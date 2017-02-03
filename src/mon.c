@@ -2061,8 +2061,37 @@ register struct monst *mtmp;
         wizdead();
     if (mtmp->data->msound == MS_NEMESIS)
         nemdead();
-    if (mtmp->data == &mons[PM_MEDUSA])
+    /* Medusa falls into two livelog categories,
+     * we log one message flagged for both categories,
+     * but only for the first kill. Subsequent kills are not an achievement.
+     */
+    if (mtmp->data == &mons[PM_MEDUSA] && !u.uachieve.killed_medusa) {
         u.uachieve.killed_medusa = 1;
+        livelog_write_string(LL_ACHIEVE|LL_UMONST, "killed Medusa");
+    } else if (unique_corpstat(mtmp->data)) {
+        switch(g.mvitals[tmp].died) {
+            case 1:
+                livelog_printf(LL_UMONST, "%s %s",
+                    nonliving(mtmp->data) ? "destroyed" : "killed",
+                    noit_mon_nam(mtmp));
+                break;
+            case 5:
+            case 10:
+            case 50:
+            case 100:
+            case 150:
+            case 200:
+            case 250:
+                livelog_printf(LL_UMONST, "%s %s (%d times)",
+                    nonliving(mtmp->data) ? "destroyed" : "killed",
+                    noit_mon_nam(mtmp), g.mvitals[tmp].died);
+                break;
+            default:
+                /* don't spam the log every time */
+                break;
+        }
+    }
+
     if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
         unmap_object(mtmp->mx, mtmp->my);
     m_detach(mtmp, mptr);
@@ -2340,7 +2369,8 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
 
     mtmp->mhp = 0; /* caller will usually have already done this */
     if (!noconduct) /* KMH, conduct */
-        u.uconduct.killer++;
+        if(!u.uconduct.killer++)
+            livelog_write_string (LL_CONDUCT,"killed for the first time");
 
     if (!nomsg) {
         boolean namedpet = has_mname(mtmp) && !Hallucination;
@@ -2507,6 +2537,10 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
             You_hear("the rumble of distant thunder...");
         else
             You_hear("the studio audience applaud!");
+        if (!unique_corpstat(mdat) && has_mname(mtmp)) {
+            livelog_printf(LL_KILLEDPET, "murdered %s, %s faithful %s",
+                           MNAME(mtmp), uhis(), mdat->mname);
+        }
     } else if (mtmp->mpeaceful)
         adjalign(-5);
 

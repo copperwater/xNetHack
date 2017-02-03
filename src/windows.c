@@ -1451,5 +1451,25 @@ mk_dgl_extrainfo()
     }
 }
 #endif /* EXTRAINFO_FN */
+void
+livelog_dump_url(llflags)
+unsigned int llflags;
+{
+#ifdef DUMPLOG
+    char buf[BUFSZ];
+    char *dumpurl;
+
+#ifdef SYSCF
+    if (!sysopt.dumplogurl)
+        return;
+    dumpurl = dump_fmtstr(sysopt.dumplogurl, buf, TRUE);
+#else
+    dumpurl = dump_fmtstr(DUMPLOG_URL, buf, TRUE);
+#endif
+    livelog_write_string(llflags, dumpurl);
+#else
+    nhUse(llflags);
+#endif /*?DUMPLOG*/
+}
 
 /*windows.c*/

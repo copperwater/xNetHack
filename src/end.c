@@ -1155,6 +1155,7 @@ int how;
             pline("Unfortunately you are still genocided...");
         } else {
             survive = TRUE;
+            livelog_write_string(LL_LIFESAVE, "averted death");
         }
     }
     /* explore and wizard modes offer player the option to keep playing */
@@ -1596,6 +1597,7 @@ int how;
         raw_print("");
         raw_print("");
     }
+    livelog_dump_url(LL_DUMP_ALL|(how == ASCENDED ? LL_DUMP_ASC : 0));
     nh_terminate(EXIT_SUCCESS);
 }
 

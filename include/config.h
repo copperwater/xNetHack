@@ -146,9 +146,10 @@
 /*
  * Section 2:   Some global parameters and filenames.
  *
- *              LOGFILE, XLOGFILE, NEWS and PANICLOG refer to files in
- *              the playground directory.  Commenting out LOGFILE, XLOGFILE,
- *              NEWS or PANICLOG removes that feature from the game.
+ *              LOGFILE, XLOGFILE, LIVELOGFILE, NEWS and PANICLOG refer to
+ *              files in the playground directory.  Commenting out LOGFILE,
+ *              XLOGFILE, LIVELOGFILE, NEWS or PANICLOG removes that feature
+ *              from the game.
  *
  *              Building with debugging features enabled is now unconditional;
  *              the old WIZARD setting for that has been eliminated.
@@ -175,6 +176,9 @@
  *              PERS_IS_UID  (0 or 1 - person is name or (numeric) userid)
  *            Can force incubi/succubi behavior to be toned down to nymph-like:
  *              SEDUCE       (0 or 1 - runtime disable/enable SEDUCE option)
+ *            Live-logging
+ *              LIVELOG      (0-0xFFFF - bitmask for level/type of live-logging
+ *                            See comments in 'sysconf' for details)
  *            The following options pertain to crash reporting:
  *              GREPPATH     (the path to the system grep(1) utility)
  *              GDBPATH      (the path to the system gdb(1) program)
@@ -212,6 +216,12 @@
    (whose name can be overridden via #define in global.h if desired) */
 #define LOGFILE  "logfile"  /* larger file for debugging purposes */
 #define XLOGFILE "xlogfile" /* even larger logfile */
+/* #define LIVELOGFILE "livelog" * in-game events recorded live */
+#ifdef LIVELOGFILE
+/* LL_flags defined in global.h. Value below is ignored if SYSCF is enabled */
+/* #define LIVELOG_DETAIL (LL_WISH|LL_ACHIEVE|LL_UMONST) */
+#define LIVELOG_DETAIL 0xFF
+#endif
 #define NEWS     "news"     /* the file containing the latest hack news */
 #define PANICLOG "paniclog" /* log of panic and impossible events */
 
@@ -578,6 +588,9 @@ typedef unsigned char uchar;
 #endif
 
 #define USE_ISAAC64 /* Use cross-plattform, bundled RNG */
+
+/* Live-logging - not particularly experimental, but very optional */
+/* #define LIVELOG_ENABLE */
 
 /* End of Section 4 */
 

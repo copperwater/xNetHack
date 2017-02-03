@@ -865,6 +865,8 @@ E boolean FDECL(Death_quote, (char *, int));
 #ifdef EXTRAINFO_FN
 E void NDECL(mk_dgl_extrainfo);
 #endif
+E void FDECL(livelog_write_string, (unsigned int, char *));
+E void VDECL(livelog_printf, (unsigned int, const char *, ...)) PRINTF_F(2, 3); 
 
 /* ### fountain.c ### */
 
@@ -2982,6 +2984,7 @@ E void FDECL(genl_status_update, (int, genericptr_t, int, int, int,
                                   unsigned long *));
 #ifdef DUMPLOG
 E char *FDECL(dump_fmtstr, (const char *, char *, BOOLEAN_P));
+E void FDECL(livelog_dump_url, (unsigned int));
 #endif
 E void FDECL(dump_open_log, (time_t));
 E void NDECL(dump_close_log);

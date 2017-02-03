@@ -4090,7 +4090,9 @@ struct obj *no_wish;
         /* name==aname => wished for artifact (otmp->oartifact => got it) */
         if (otmp->oartifact || name == aname) {
             otmp->quan = 1L;
-            u.uconduct.wisharti++; /* KMH, conduct */
+            if(!u.uconduct.wisharti++) /* KMH, conduct */
+                livelog_printf(LL_CONDUCT,
+                        "wished for %s first artifact", uhis());
         }
     }
 
