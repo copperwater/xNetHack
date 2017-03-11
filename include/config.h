@@ -524,7 +524,16 @@ typedef unsigned char uchar;
    but it isn't necessary for successful operation of the program */
 #define FREE_ALL_MEMORY             /* free all memory at exit */
 
-/* #define DUMPLOG */  /* End-of-game dump logs */
+/* Extra enhancements borrowed from nao343 and elsewhwere
+   for dgamelaunch-based server play */
+#define DGAMELAUNCH
+#ifdef DGAMELAUNCH
+#define EXTRAINFO_FN    "/dgldir/extrainfo-nhdev/%n.extrainfo"
+#define MAILCKFREQ 5  /* SIMPLE_MAIL is in unixconf.h */
+#endif
+
+
+#define DUMPLOG   /* End-of-game dump logs */
 #ifdef DUMPLOG
 
 #ifndef DUMPLOG_MSG_COUNT

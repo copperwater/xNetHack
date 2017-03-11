@@ -608,7 +608,7 @@ bail:
     if (!adminmsg)
         pline("It appears to be all gibberish.");
 }
-#endif /* SIMPLE_MAIL */
+#endif /* SIMPLE_MAIL || ADMIN_MSG */
 
 void
 ck_server_admin_msg()

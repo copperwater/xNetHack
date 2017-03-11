@@ -16,6 +16,10 @@ STATIC_DCL void NDECL(do_positionbar);
 STATIC_DCL void FDECL(regen_hp, (int));
 STATIC_DCL void FDECL(interrupt_multi, (const char *));
 
+#ifdef EXTRAINFO_FN
+static long prev_dgl_extrainfo = 0;
+#endif
+
 void
 moveloop(resuming)
 boolean resuming;
@@ -181,7 +185,12 @@ boolean resuming;
                         u.ublesscnt--;
                     if (flags.time && !context.run)
                         context.botl = 1;
-
+#ifdef EXTRAINFO_FN
+                    if ((prev_dgl_extrainfo == 0) || (prev_dgl_extrainfo < (moves + 250))) {
+                        prev_dgl_extrainfo = moves;
+                        mk_dgl_extrainfo();
+                    }
+#endif
                     /* One possible result of prayer is healing.  Whether or
                      * not you get healed depends on your current hit points.
                      * If you are allowed to regenerate during the prayer,
