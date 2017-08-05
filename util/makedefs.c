@@ -1368,8 +1368,8 @@ do_date()
     Fprintf(ofp, "#define VERSION_STRING \"%s\"\n", version_string(buf, "."));
     Fprintf(ofp, "#define VERSION_ID \\\n \"%s\"\n",
             version_id_string(buf, cbuf));
-    Fprintf(ofp, "#define COPYRIGHT_BANNER_C \\\n \"%s\"\n",
-            bannerc_string(buf, cbuf));
+    /* Fprintf(ofp, "#define COPYRIGHT_BANNER_C \\\n \"%s\"\n", */
+    /*         bannerc_string(buf, cbuf)); */
     Fprintf(ofp, "\n");
 #ifdef AMIGA
     {
