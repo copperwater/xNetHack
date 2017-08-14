@@ -865,9 +865,10 @@ register struct obj *obj;
  * succeeded.
  */
 boolean
-tamedog(mtmp, obj)
+tamedog(mtmp, obj, pacify_only)
 register struct monst *mtmp;
 register struct obj *obj;
+boolean pacify_only;
 {
     /* The Wiz, Medusa and the quest nemeses aren't even made peaceful. */
     if (mtmp->iswiz || mtmp->data == &mons[PM_MEDUSA]
@@ -931,6 +932,10 @@ register struct obj *obj;
 
     if (mtmp->m_id == quest_status.leader_m_id)
         return FALSE;
+
+    if (pacify_only) {
+       return FALSE;
+    }
 
     /* add the pet extension */
     newedog(mtmp);

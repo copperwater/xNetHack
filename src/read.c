@@ -914,7 +914,7 @@ struct obj *sobj;
         if (mtmp->isshk)
             make_happy_shk(mtmp, FALSE);
         else if (!resist(mtmp, sobj->oclass, 0, NOTELL))
-            (void) tamedog(mtmp, (struct obj *) 0);
+            (void) tamedog(mtmp, (struct obj *) 0, FALSE);
         if ((!was_peaceful && mtmp->mpeaceful) || (!was_tame && mtmp->mtame))
             return 1;
     }
@@ -2508,7 +2508,7 @@ create_particular()
             if (fem != -1 && !is_male(mtmp->data) && !is_female(mtmp->data))
                 mtmp->female = fem; /* ignored for is_neuter() */
             if (maketame) {
-                (void) tamedog(mtmp, (struct obj *) 0);
+                (void) tamedog(mtmp, (struct obj *) 0, FALSE);
             } else if (makepeaceful || makehostile) {
                 mtmp->mtame = 0; /* sanity precaution */
                 mtmp->mpeaceful = makepeaceful ? 1 : 0;

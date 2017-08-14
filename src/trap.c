@@ -3163,7 +3163,7 @@ domagictrap()
                         continue;
                     mtmp = m_at(u.ux + i, u.uy + j);
                     if (mtmp)
-                        (void) tamedog(mtmp, (struct obj *) 0);
+                        (void) tamedog(mtmp, (struct obj *) 0, TRUE);
                 }
             break;
         }

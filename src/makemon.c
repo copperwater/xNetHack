@@ -869,7 +869,7 @@ xchar x, y; /* clone's preferred location or 0 (near mon) */
              * must be made non-tame to get initialized properly.
              */
             m2->mtame = 0;
-            if (tamedog(m2, (struct obj *) 0)) {
+            if (tamedog(m2, (struct obj *) 0, FALSE)) {
                 *(EDOG(m2)) = *(EDOG(mon));
             }
         }

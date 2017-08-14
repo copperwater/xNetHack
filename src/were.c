@@ -166,7 +166,7 @@ char *genbuf;
                 *visible += 1;
         }
         if (yours && mtmp)
-            (void) tamedog(mtmp, (struct obj *) 0);
+            (void) tamedog(mtmp, (struct obj *) 0, FALSE);
     }
     return total;
 }
