@@ -2850,6 +2850,10 @@ int final;
                     " for any artifacts", "");
     }
 
+    if (!u.uconduct.pets) {
+       you_have_never("owned a pet");
+    }
+
     /* Pop up the window and wait for a key */
     display_nhwindow(en_win, TRUE);
     destroy_nhwindow(en_win);

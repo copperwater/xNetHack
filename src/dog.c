@@ -116,6 +116,7 @@ boolean quietly;
         return (struct monst *) 0;
 
     initedog(mtmp);
+    u.uconduct.pets++;
     mtmp->msleeping = 0;
     if (otmp) { /* figurine; resulting monster might not become a pet */
         chance = rn2(10); /* 0==tame, 1==peaceful, 2==hostile */
@@ -124,6 +125,7 @@ boolean quietly;
         /* 0,1,2:  b=80%,10,10; nc=10%,80,10; c=10%,10,80 */
         if (chance > 0) {
             mtmp->mtame = 0;   /* not tame after all */
+            u.uconduct.pets--; /* doesn't count as creating a pet */
             if (chance == 2) { /* hostile (cursed figurine) */
                 if (!quietly)
                     You("get a bad feeling about this.");
@@ -157,6 +159,8 @@ makedog()
 
     if (preferred_pet == 'n')
         return ((struct monst *) 0);
+
+    u.uconduct.pets++;
 
     pettype = pet_type();
     if (pettype == PM_LITTLE_DOG)
@@ -931,6 +935,7 @@ register struct obj *obj;
     /* add the pet extension */
     newedog(mtmp);
     initedog(mtmp);
+    u.uconduct.pets++;
 
     if (obj) { /* thrown food */
         /* defer eating until the edog extension has been set up */
