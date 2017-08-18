@@ -1417,7 +1417,7 @@ struct permonst _mons2[] = {
         SIZ(2250, 750, MS_BOAST, MZ_HUGE), MR_FIRE, MR_FIRE,
         M1_HUMANOID | M1_CARNIVORE, M2_GIANT | M2_STRONG | M2_ROCKTHROW
                                         | M2_NASTY | M2_COLLECT | M2_JEWELS,
-        M3_INFRAVISIBLE | M3_INFRAVISION, CLR_YELLOW),
+        M3_INFRAVISIBLE | M3_INFRAVISION, CLR_RED),
     MON("frost giant", S_GIANT, LVL(10, 12, 3, 10, -3),
         (G_NOHELL | G_GENO | G_SGROUP | 1),
         A(ATTK(AT_WEAP, AD_PHYS, 2, 12), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
@@ -1432,7 +1432,7 @@ struct permonst _mons2[] = {
         SIZ(1700, 500, MS_GRUNT, MZ_HUGE), 0, 0,
         M1_ANIMAL | M1_HUMANOID | M1_CARNIVORE,
         M2_HOSTILE | M2_STRONG | M2_NASTY | M2_COLLECT,
-        M3_INFRAVISIBLE | M3_INFRAVISION, CLR_BROWN),
+        M3_INFRAVISIBLE | M3_INFRAVISION, CLR_YELLOW),
     MON("storm giant", S_GIANT, LVL(16, 12, 3, 10, -3),
         (G_GENO | G_SGROUP | 1), A(ATTK(AT_WEAP, AD_PHYS, 2, 12), NO_ATTK,
                                    NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK),
@@ -1453,7 +1453,7 @@ struct permonst _mons2[] = {
         SIZ(1500, 700, MS_SILENT, MZ_LARGE), 0, 0,
         M1_ANIMAL | M1_HUMANOID | M1_CARNIVORE,
         M2_HOSTILE | M2_STRONG | M2_NASTY, M3_INFRAVISIBLE | M3_INFRAVISION,
-        CLR_RED),
+        CLR_ORANGE),
     /* 'I' is a visual marker for all invisible monsters and must be unused */
     /*
      * Jabberwock
