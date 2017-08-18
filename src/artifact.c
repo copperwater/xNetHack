@@ -659,6 +659,7 @@ struct monst *mon;
        will have to be extended to explicitly include quest artifacts */
     self_willed = ((oart->spfx & SPFX_INTEL) != 0);
     if (yours) {
+        u.uconduct.artitouch++;
         badclass = self_willed
                    && ((oart->role != NON_PM && !Role_if(oart->role))
                        || (oart->race != NON_PM && !Race_if(oart->race)));

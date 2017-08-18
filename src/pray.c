@@ -787,8 +787,10 @@ gcrownu()
             if (!Blind)
                 Your("sword shines brightly for a moment.");
             obj = oname(obj, artiname(ART_EXCALIBUR));
-            if (obj && obj->oartifact == ART_EXCALIBUR)
+            if (obj && obj->oartifact == ART_EXCALIBUR) {
                 u.ugifts++;
+                u.uconduct.artitouch++;
+            }
         }
         /* acquire Excalibur's skill regardless of weapon or gift */
         unrestrict_weapon_skill(P_LONG_SWORD);

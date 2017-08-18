@@ -2814,6 +2814,10 @@ int final;
         you_have_X(buf);
     }
 
+    if (!u.uconduct.artitouch) {
+        you_have_never("touched an artifact");
+    }
+
     if (!u.uconduct.wishes) {
         you_have_X("used no wishes");
     } else {

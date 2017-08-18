@@ -91,6 +91,7 @@ struct u_conduct {     /* number of times... */
     long polyselfs;    /* transformed yourself */
     long wishes;       /* used a wish */
     long wisharti;     /* wished for an artifact */
+    long artitouch;    /* touched an artifact in any way */
     /* genocides already listed at end of game */
 };
 

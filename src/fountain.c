@@ -394,6 +394,9 @@ register struct obj *obj;
             obj->oeroded = obj->oeroded2 = 0;
             obj->oerodeproof = TRUE;
             exercise(A_WIS, TRUE);
+            /* even if not wielded, it's assumed you're touching Excalibur to
+             * get it out of the water */
+            u.uconduct.artitouch++;
         }
         update_inventory();
         levl[u.ux][u.uy].typ = ROOM;
