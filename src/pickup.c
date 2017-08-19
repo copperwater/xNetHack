@@ -32,7 +32,7 @@ STATIC_DCL long FDECL(boh_loss, (struct obj *container, int));
 STATIC_PTR int FDECL(in_container, (struct obj *));
 STATIC_PTR int FDECL(out_container, (struct obj *));
 STATIC_DCL void FDECL(removed_from_icebox, (struct obj *));
-STATIC_DCL long FDECL(mbag_item_gone, (int, struct obj *));
+STATIC_DCL long FDECL(mbag_item_gone, (int, struct obj *, BOOLEAN_P));
 STATIC_DCL void FDECL(observe_quantum_cat, (struct obj *));
 STATIC_DCL void FDECL(explain_container_prompt, (BOOLEAN_P));
 STATIC_DCL int FDECL(traditional_loot, (BOOLEAN_P));
@@ -2032,7 +2032,7 @@ int held;
             otmp = curr->nobj;
             if (!rn2(13)) {
                 obj_extract_self(curr);
-                loss += mbag_item_gone(held, curr);
+                loss += mbag_item_gone(held, curr, FALSE);
             }
         }
         return loss;
@@ -2144,6 +2144,9 @@ register struct obj *obj;
                 obj->norevive = 1;
         }
     } else if (Is_mbag(current_container) && mbag_explodes(obj, 0)) {
+        struct obj * otmp;
+        struct obj * nobj;
+
         /* explicitly mention what item is triggering the explosion */
         pline("As you put %s inside, you are blasted by a magical explosion!",
               doname(obj));
@@ -2151,7 +2154,21 @@ register struct obj *obj;
         if (was_unpaid)
             addtobill(obj, FALSE, FALSE, TRUE);
         obfree(obj, (struct obj *) 0);
-        delete_contents(current_container);
+
+        /* instead of destroying everything in the bag, scatter most of its
+         * contents, though some will still be destroyed with the same chance
+         * as looting a cursed bag */
+        for(otmp = current_container->cobj; otmp; otmp = nobj) {
+            nobj = otmp->nobj;
+            if (!rn2(13)) {
+                obj_extract_self(otmp);
+                mbag_item_gone(!floor_container, otmp, TRUE);
+            }
+            else {
+                scatter(u.ux, u.uy, 4, MAY_HIT | MAY_DESTROY, otmp);
+            }
+        }
+
         if (!floor_container)
             useup(current_container);
         else if (obj_here(current_container, u.ux, u.uy))
@@ -2267,17 +2284,20 @@ struct obj *obj;
 
 /* an object inside a cursed bag of holding is being destroyed */
 STATIC_OVL long
-mbag_item_gone(held, item)
+mbag_item_gone(held, item, silent)
 int held;
 struct obj *item;
+boolean silent;
 {
     struct monst *shkp;
     long loss = 0L;
 
-    if (item->dknown)
-        pline("%s %s vanished!", Doname2(item), otense(item, "have"));
-    else
-        You("%s %s disappear!", Blind ? "notice" : "see", doname(item));
+    if (!silent) {
+        if (item->dknown)
+            pline("%s %s vanished!", Doname2(item), otense(item, "have"));
+        else
+            You("%s %s disappear!", Blind ? "notice" : "see", doname(item));
+    }
 
     if (*u.ushops && (shkp = shop_keeper(*u.ushops)) != 0) {
         if (held ? (boolean) item->unpaid : costly_spot(u.ux, u.uy))
@@ -3096,7 +3116,7 @@ struct obj *box; /* or bag */
             if (box->otyp == ICE_BOX) {
                 removed_from_icebox(otmp); /* resume rotting for corpse */
             } else if (cursed_mbag && !rn2(13)) {
-                loss += mbag_item_gone(held, otmp);
+                loss += mbag_item_gone(held, otmp, FALSE);
                 /* abbreviated drop format is no longer appropriate */
                 terse = FALSE;
                 continue;
