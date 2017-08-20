@@ -8,6 +8,7 @@
 /* croom->lx etc are schar (width <= int), so % arith ensures that */
 /* conversion of result to int is reasonable */
 
+STATIC_DCL int FDECL(mkmonst_in_room, (struct mkroom *));
 STATIC_DCL void FDECL(mkfount, (int, struct mkroom *));
 STATIC_DCL void FDECL(mksink, (struct mkroom *));
 STATIC_DCL void FDECL(mkaltar, (struct mkroom *));
@@ -800,17 +801,12 @@ skip0:
            while a monster was on the stairs. Conclusion:
            we have to check for monsters on the stairs anyway. */
 
-        if (u.uhave.amulet || !rn2(3)) {
-            x = somex(croom);
-            y = somey(croom);
-            tmonst = makemon((struct permonst *) 0, x, y, NO_MM_FLAGS);
-            if (tmonst && tmonst->data == &mons[PM_GIANT_SPIDER]
-                && !occupied(x, y))
-                (void) maketrap(x, y, WEB);
+        if (u.uhave.amulet || !rn2(2)) {
+            mkmonst_in_room(croom);
         }
         /* put traps and mimics inside */
         x = 8 - (level_difficulty() / 6);
-        if (x <= 1)
+        if (x < 2)
             x = 2;
         while (!rn2(x))
             mktrap(0, 0, croom, (coord *) 0);
@@ -1401,6 +1397,29 @@ struct mkroom *croom;
     levl[x][y].typ = STAIRS;
     levl[x][y].ladder = up ? LA_UP : LA_DOWN;
 }
+
+/* Return number of monsters created. */
+int
+mkmonst_in_room(croom)
+struct mkroom* croom;
+{
+    int x,y;
+    int num_monst = 1;
+    struct monst* tmonst;
+    x = somex(croom);
+    y = somey(croom);
+    tmonst = makemon((struct permonst *) 0, x, y, NO_MM_FLAGS);
+    if (tmonst && tmonst->data == &mons[PM_GIANT_SPIDER]
+        && !occupied(x, y)) {
+        (void) maketrap(x, y, WEB);
+    }
+    /* maybe place another monster in the same room */
+    if(!rn2(3)) {
+        num_monst += mkmonst_in_room(croom);
+    }
+    return num_monst;
+}
+
 
 STATIC_OVL void
 mkfount(mazeflag, croom)

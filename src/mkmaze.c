@@ -907,7 +907,7 @@ const char *s;
         mazexy(&mm);
         (void) makemon(&mons[PM_MINOTAUR], mm.x, mm.y, NO_MM_FLAGS);
     }
-    for (x = rn1(5, 7); x; x--) {
+    for (x = rn1(10, 20); x; x--) {
         mazexy(&mm);
         (void) makemon((struct permonst *) 0, mm.x, mm.y, NO_MM_FLAGS);
     }
