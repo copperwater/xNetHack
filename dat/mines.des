@@ -907,7 +907,6 @@ ROOM: "ordinary" , random, random, random, random {
 
 RANDOM_CORRIDORS
 
-
 # Mine end level variant 1
 # "Mimic of the Mines"
 #
@@ -1271,5 +1270,150 @@ MONSTER:'e',random
 MONSTER:'e',random
 MONSTER:'e',random
 
+# "The Gnomish Sewer" by jonadab
+#
+MAZE: "minend-4", ' '
+GEOMETRY:center,center
+#123456789012345678901234567890123456789012345678901234567890123456789012345
+MAP
+                                         }}}                  }}}        }
+   }       }} }        ##            }}}} }#}    }}} }}      }#####}}  #}
+  }}       #}}## ##}} #  ##   ##}}}}#######}}}  }   #}     }}#     ##}}}#  }
+  }        #}  }}} ###    }} }}}####}}     ###}}   #} }}}}###  ##   }#  #}}
+  ##      #}      }   #####}}###            }}##}}} #...##}       }}   }}#}
+   #}   ##}}}      }     # ##}       }}    #}   #### .{.}}###   }}}  #}  }#}
+   }#  #}}}}            #    #}    }###}###}         ...     ####}}##}#  }#
+   }##}}  # }    } }    {     ... }# }}# }}###}      #     ##    ##}}  #}#
+  }#      #}    } }}#        #...#}    }#   }}###}###     #         }}  }#
+  } #...  ##  ##    }#     }} ... #}    }}     }}#}}           #####}}}}#}
+ }#  ...# }######    }}   }#     } #}}}###}}#    }# }}####  ### }}}}#### }}
+ #   ...####  }###  ###}}}#      #}####}  ##}}  }}####    ##  }}   #}  }#  }
+ }#       }     }} }}} #}       ###}}}  }}}  }}####         }}#     #}  }#}
+  }#       #      } ###}#}     #  }#  }}   }}##}}       }}}}##}}    }#  }#}
+   }}     }##}}     }#}  }#   ##}} }#  }} ###}###}}}# }}   #  ###   }##  }#
+    }    }#  ##}}}   }##  }##}}}    }# } #    }}####}}     #    }#}} }##}}#
+    #   }}     ###}}   }}##}}        #}##    #}#}}}}# }}}##      }##} }#} #
+   #}# #   }###}  ### ###}}#    }    }#} #   #}}}}  #}}}#}}#     #}}#  }#}}#
+  #} }#}# ##}}      }}}}}  }##}}  } }  }}}#}#}}      ###}} }#   #}   #  }}#}
+ #}    }}#}        }} }     }}###}  }}### }#}           #}} }}}}..}}}# }}
+  #}}    }       }}}}         }}}#####}}}  #}}}}       }}  }}}..}}.  }#}
+ENDMAP
+
+STAIR:(31,8),up
+FOUNTAIN:(54,5)
+FOUNTAIN:(24,7)
+# Eels
+$eel = { (19,7),(56,5),(59,18) }
+SHUFFLE: $eel
+MONSTER:(';',"electric eel"),$eel[0]
+MONSTER:(';',"electric eel"),$eel[1]
+MONSTER:(';',"electric eel"),$eel[2]
+# Submerged wand of cold under an eel
+OBJECT:('/',"cold"),$eel[0]
+# Random monsters
+MONSTER:('r',"sewer rat"),random
+MONSTER:('r',"sewer rat"),random
+MONSTER:('r',"sewer rat"),random
+MONSTER:('r',"sewer rat"),random
+MONSTER:('r',"sewer rat"),random
+MONSTER:('r',"sewer rat"),random
+MONSTER:'r',random
+MONSTER:'r',random
+MONSTER:'r',random
+MONSTER:('F',"shrieker"),random
+MONSTER:('F',"shrieker"),random
+MONSTER:'F',random
+MONSTER:'F',random
+MONSTER:'F',random
+MONSTER:'F',random
+MONSTER:'S',random
+MONSTER:'S',random
+MONSTER:'S',random
+MONSTER:'S',random
+MONSTER:'G',random
+MONSTER:'G',random
+# "alligators"
+MONSTER:(':',"crocodile"),random
+MONSTER:(':',"crocodile"),random
+MONSTER:';',random
+MONSTER:';',random
+MONSTER:';',random
+MONSTER:';',random
+MONSTER:';',random
+MONSTER:';',random
+MONSTER:';',random
+MONSTER:('P',"brown pudding"),random
+MONSTER:('P',"gray ooze"),random
+LOOP [3] {
+    IF[50%] {
+	MONSTER:';',random
+    }
+}
+IF[50%] {
+    MONSTER:(':',"chameleon"),random
+}
+IF [75%] {
+    IF [50%] {
+        MONSTER:('w',"purple worm"),random
+    } ELSE {
+        MONSTER:('w',"baby purple worm"),random
+    }
+}
+IF[5%] {
+    MONSTER:('g',"gremlin"),random
+} ELSE {
+    MONSTER:('P',"brown pudding"),random
+    MONSTER:('P',"gray ooze"),random
+}
+# Objects
+OBJECT:'=',random
+OBJECT:'=',random
+OBJECT:'=',random
+OBJECT:'=',random
+OBJECT:'=',random
+OBJECT:'=',random
+OBJECT:'=',random
+OBJECT:('?',"blank paper"),random
+# these should be rotted, but the des parser doesn't let you specify erosion
+OBJECT:('[',"high boots"),random
+OBJECT:('*',"luckstone"),random
+OBJECT:('*',"loadstone"),random
+OBJECT:('*',"touchstone"),random
+# one of each soft gemstone
+OBJECT:('*',"chrysoberyl"),random
+OBJECT:('*',"amethyst"),random
+OBJECT:('*',"dilithium crystal"),random
+OBJECT:('*',"turquoise"),random
+OBJECT:('*',"citrine"),random
+OBJECT:('*',"amber"),random
+OBJECT:('*',"jet"),random
+OBJECT:('*',"opal"),random
+OBJECT:('*',"garnet"),random
+OBJECT:('*',"jasper"),random
+OBJECT:('*',"fluorite"),random
+OBJECT:('*',"jade"),random
+OBJECT:('*',"obsidian"),random
+OBJECT:('*',"agate"),random
+OBJECT:('*',"worthless piece of red glass"),random
+OBJECT:('*',"worthless piece of orange glass"),random
+OBJECT:('*',"worthless piece of yellow glass"),random
+OBJECT:('*',"worthless piece of yellowish brown glass"),random
+OBJECT:('*',"worthless piece of green glass"),random
+OBJECT:('*',"worthless piece of blue glass"),random
+OBJECT:('*',"worthless piece of violet glass"),random
+OBJECT:('*',"worthless piece of white glass"),random
+OBJECT:('*',"worthless piece of black glass"),random
+OBJECT:'*',random
+OBJECT:'*',random
+# Traps
+TRAP:"rust",random
+TRAP:"rust",random
+TRAP:"rust",random
+TRAP:"rust",random
+TRAP:"rust",random
+TRAP:"rust",random
+TRAP:random,random
+TRAP:random,random
+TRAP:random,random
 
 # end mines.des
