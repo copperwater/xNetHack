@@ -292,10 +292,16 @@ boolean thrown_weapon; /* thrown weapons are less deadly */
 
     i = !fatal ? 1 : rn2(fatal + (thrown_weapon ? 20 : 0));
     if (i == 0 && typ != A_CHA) {
-        /* instant kill */
-        u.uhp = -1;
+        /* specifically don't kill instantly, but make it really hurt */
+        pline_The("poison was potent...");
+        u.uhp = u.uhp / 2;
+        u.uhpmax = (u.uhpmax * 2) / 3;
         context.botl = TRUE;
-        pline_The("poison was deadly...");
+        /* same attribute loss as below */
+        loss = (thrown_weapon || !fatal) ? 1 : d(2, 2); /* was rn1(3,3) */
+        /* check that a stat change was made */
+        if (adjattrib(typ, -loss, 1))
+            poisontell(typ, TRUE);
     } else if (i > 5) {
         /* HP damage; more likely--but less severe--with missiles */
         loss = thrown_weapon ? rnd(6) : rn1(10, 6);
@@ -304,7 +310,7 @@ boolean thrown_weapon; /* thrown weapons are less deadly */
         /* attribute loss; if typ is A_STR, reduction in current and
            maximum HP will occur once strength has dropped down to 3 */
         loss = (thrown_weapon || !fatal) ? 1 : d(2, 2); /* was rn1(3,3) */
-        /* check that a stat change was made */
+	/* check that a stat change was made */
         if (adjattrib(typ, -loss, 1))
             poisontell(typ, TRUE);
     }

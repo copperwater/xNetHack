@@ -626,7 +626,7 @@ int dieroll;
      */
     boolean hittxt = FALSE, destroyed = FALSE, already_killed = FALSE;
     boolean get_dmg_bonus = TRUE;
-    boolean ispoisoned = FALSE, needpoismsg = FALSE, poiskilled = FALSE,
+    boolean ispoisoned = FALSE, needpoismsg = FALSE, poispotent = FALSE,
             unpoisonmsg = FALSE;
     boolean silvermsg = FALSE, silverobj = FALSE;
     boolean valid_weapon_attack = FALSE;
@@ -1074,12 +1074,16 @@ int dieroll;
             /* defer "obj is no longer poisoned" until after hit message */
             unpoisonmsg = TRUE;
         }
-        if (resists_poison(mon))
+        if (resists_poison(mon)) {
             needpoismsg = TRUE;
-        else if (rn2(10))
+        }
+        else if (rn2(10)) {
             tmp += rnd(6);
-        else
-            poiskilled = TRUE;
+        }
+        else {
+            poispotent = TRUE;
+            tmp = mon->mhp - 1;
+        }
     }
     if (tmp < 1) {
         /* make sure that negative damage adjustment can't result
@@ -1224,11 +1228,8 @@ int dieroll;
 
     if (needpoismsg)
         pline_The("poison doesn't seem to affect %s.", mon_nam(mon));
-    if (poiskilled) {
-        pline_The("poison was deadly...");
-        if (!already_killed)
-            xkilled(mon, XKILL_NOMSG);
-        destroyed = TRUE; /* return FALSE; */
+    if (poispotent) {
+        pline_The("poison was potent...");
     } else if (destroyed) {
         if (!already_killed)
             killed(mon); /* takes care of most messages */
@@ -1724,8 +1725,8 @@ register struct attack *mattk;
                 pline_The("poison doesn't seem to affect %s.", mon_nam(mdef));
             else {
                 if (!rn2(10)) {
-                    Your("poison was deadly...");
-                    tmp = mdef->mhp;
+                    Your("poison was potent...");
+                    tmp = mdef->mhp - 1;
                 } else
                     tmp += rn1(10, 6);
             }

@@ -367,8 +367,8 @@ boolean verbose;    /* give message(s) even when you can't see what happened */
                     damage += rnd(6);
                 } else {
                     if (vis)
-                        pline_The("poison was deadly...");
-                    damage = mtmp->mhp;
+                        pline_The("poison was potent...");
+                    damage = mtmp->mhp - 1;
                 }
             }
         }

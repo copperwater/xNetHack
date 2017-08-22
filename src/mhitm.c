@@ -1305,8 +1305,9 @@ register struct attack *mattk;
                     tmp += rn1(10, 6);
                 else {
                     if (vis && canspotmon(mdef))
-                        pline_The("poison was deadly...");
-                    tmp = mdef->mhp;
+                        pline_The("poison was potent...");
+                    /* reduce to 1 hit point */
+                    tmp = mdef->mhp - 1;
                 }
             }
         }
