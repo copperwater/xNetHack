@@ -2543,7 +2543,8 @@ struct monst *mon;
         case 0:
             You_feel("raised to your full potential.");
             exercise(A_CON, TRUE);
-            u.uen = (u.uenmax += rnd(5));
+            u.uenmax += rnd(5);
+            u.uen = u.uenmax;
             break;
         case 1:
             You_feel("good enough to do it again.");

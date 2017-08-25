@@ -215,15 +215,19 @@ boolean resuming;
                         }
                     }
 
-                    if (u.uen < u.uenmax
-                        && ((wtcap < MOD_ENCUMBER
-                             && (!(moves % ((MAXULEV + 8 - u.ulevel)
-                                            * (Role_if(PM_WIZARD) ? 3 : 4)
-                                            / 6)))) || Energy_regeneration)) {
-                        u.uen += rn1(
-                            (int) (ACURR(A_WIS) + ACURR(A_INT)) / 15 + 1, 1);
+                    if ((u.uen < u.uenmax) && (wtcap < MOD_ENCUMBER)) {
+                        /* 1/turn for energy regen
+                         * 3 XL/100 per turn
+                         * 3 Wis/100 per turn
+                         * 1/3 per turn if wizard */
+                        u.uen += ((float) (Energy_regeneration ? 100 : 0) +
+                                  (3 * u.ulevel) +
+                                  (3 * ACURR(A_WIS)) +
+                                  (Role_if(PM_WIZARD) ? 33 : 0)) / 100;
                         if (u.uen > u.uenmax)
                             u.uen = u.uenmax;
+                        pline("u.uen = %f %d %d", u.uen, (int) floorf(u.uen), u.uenmax);
+
                         context.botl = 1;
                         if (u.uen == u.uenmax)
                             interrupt_multi("You feel full of energy.");

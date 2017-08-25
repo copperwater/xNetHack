@@ -1337,7 +1337,8 @@ unsigned trflags;
             You("are caught in a magical explosion!");
             losehp(rnd(10), "magical explosion", KILLED_BY_AN);
             Your("body absorbs some of the magical energy!");
-            u.uen = (u.uenmax += 2);
+            u.uenmax += 2;
+            u.uen = u.uenmax;
             break;
         } else {
             domagictrap();
@@ -3779,7 +3780,7 @@ int n;
         You_feel("your magical energy drain away%c", (n > u.uen) ? '!' : '.');
         u.uen -= n;
         if (u.uen < 0) {
-            u.uenmax -= rnd(-u.uen);
+            u.uenmax -= rnd(-ceil(u.uen));
             if (u.uenmax < 0)
                 u.uenmax = 0;
             u.uen = 0;

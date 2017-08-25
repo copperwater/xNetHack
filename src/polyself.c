@@ -338,8 +338,7 @@ newman()
         enmax += newpw();
     if (enmax < u.ulevel)
         enmax = u.ulevel;
-    u.uen = rounddiv((long) u.uen * (long) enmax,
-                     ((u.uenmax < 1) ? 1 : u.uenmax));
+    u.uen = ((float) u.uen * (float) enmax) / ((u.uenmax < 1) ? 1 : u.uenmax);
     u.uenmax = enmax;
     /* [should alignment record be tweaked too?] */
 

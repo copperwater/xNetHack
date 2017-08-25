@@ -357,16 +357,16 @@ struct you {
     schar uhitinc;
     schar udaminc;
     schar uac;
-    uchar uspellprot;        /* protection by SPE_PROTECTION */
-    uchar usptime;           /* #moves until uspellprot-- */
-    uchar uspmtime;          /* #moves between uspellprot-- */
-    int uhp, uhpmax;         /* hit points, aka health */
-    int uen, uenmax;         /* magical energy - M. Stephenson */
-    xchar uhpinc[MAXULEV],   /* increases to uhpmax for each level gain */
-          ueninc[MAXULEV];   /* increases to uenmax for each level gain */
-    int ugangr;              /* if the gods are angry at you */
-    int ugifts;              /* number of artifacts bestowed */
-    int ublessed, ublesscnt; /* blessing/duration from #pray */
+    uchar uspellprot; /* protection by SPE_PROTECTION */
+    uchar usptime;    /* #moves until uspellprot-- */
+    uchar uspmtime;   /* #moves between uspellprot-- */
+    int uhp, uhpmax;
+    float uen;
+    int uenmax; /* magical energy - M. Stephenson */
+    xchar uhpinc[MAXULEV], ueninc[MAXULEV]; /* increases from level gain */
+    int ugangr;                             /* if the gods are angry at you */
+    int ugifts;                             /* number of artifacts bestowed */
+    int ublessed, ublesscnt;                /* blessing/duration from #pray */
     long umoney0;
     long uspare1;
     long uexp, urexp;
