@@ -52,8 +52,8 @@ TRAP: random, random
 # Orcish Town - a variant of Frontier Town that has been
 # overrun by orcs.  Note the barricades (iron bars).
 #
-LEVEL: "minetn-1"
-FLAGS:mazelevel
+MAZE:"minetn-1",' '
+FLAGS:inaccessibles
 INIT_MAP:mines,'.',' ',true,true,random,true
 GEOMETRY:center,center
 MAP
@@ -79,10 +79,23 @@ MAP
 ENDMAP
 
 # Don't let the player fall into his likely death
-TELEPORT_REGION:levregion(01,01,20,19),levregion(20,00,70,19)
+TELEPORT_REGION:levregion(01,01,70,19),levregion(21,02,55,18),down
 REGION:(00,00,36,16),lit,"ordinary"
 STAIR:levregion(01,03,20,19),(00,00,36,15),up
 STAIR:levregion(61,03,75,19),(00,00,36,15),down
+
+# Define areas of the map
+# Inside the walls
+$inside = selection: floodfill(18,8)
+# Near the temple
+$near_temple = selection: filter(fillrect(17,8, 23,14), $inside)
+
+# One shopkeeper managed to barricade their shop with boulders, and they live!
+REGION:(4,4,6,7),lit,"shop",filled
+DOOR:locked,(5,8)
+OBJECT:('`',"boulder"),(4,9)
+OBJECT:('`',"boulder"),(5,9)
+OBJECT:('`',"boulder"),(6,9)
 
 # shame we can't make polluted fountains
 FOUNTAIN:(16,09)
@@ -92,7 +105,6 @@ FOUNTAIN:(25,09)
 ALTAR:(20,13),noalign,shrine
 
 # set up the shop doors; could be broken down
-DOOR:random,(5,8)
 DOOR:random,(9,8)
 DOOR:random,(13,7)
 DOOR:random,(22,5)
@@ -105,33 +117,20 @@ DOOR:random,(25,13)
 DOOR:random,(31,11)
 
 # knock a few holes in the shop interior walls
-REPLACE_TERRAIN:(07,04,11,06),'|','.',18%
+REPLACE_TERRAIN:(11,04,11,06),'|','.',18%
 REPLACE_TERRAIN:(25,04,29,06),'|','.',18%
 REPLACE_TERRAIN:(07,12,11,14),'|','.',18%
 REPLACE_TERRAIN:(28,12,28,14),'|','.',33%
-
-# One spot each in most shops...
-$place = { (05,04),(09,05),(13,04),(26,04),(31,05),(30,14),(05,14),(10,13),(26,14),(27,13) }
-SHUFFLE:$place
-
-# scatter some bodies
-OBJECT:('%',"corpse"),(20,12),montype:"aligned priest"
-OBJECT:('%',"corpse"),$place[0],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$place[1],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$place[2],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$place[3],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$place[4],montype:"shopkeeper"
-OBJECT:('%',"corpse"),random,montype:"watchman"
-OBJECT:('%',"corpse"),random,montype:"watchman"
-OBJECT:('%',"corpse"),random,montype:"watchman"
-OBJECT:('%',"corpse"),random,montype:"watchman"
-OBJECT:('%',"corpse"),random,montype:"watch captain"
 
 # Rubble!
 LOOP [9 + 2d5] {
   [90%]: OBJECT:('`',"boulder"),random
   OBJECT:('*',"rock"),random
 }
+
+# One spot each in most shops...
+$place = { (09,05),(13,04),(26,04),(31,05),(30,14),(05,14),(10,13),(26,14),(27,13) }
+SHUFFLE:$place
 
 # Guarantee 7 candles since we won't have Izchak available
 OBJECT:('(',"wax candle"),$place[0],quantity:1d2
@@ -141,7 +140,7 @@ OBJECT:('(',"tallow candle"),$place[3],quantity:1d3
 OBJECT:('(',"tallow candle"),$place[2],quantity:1d2
 OBJECT:('(',"tallow candle"),$place[0],quantity:1d2
 
-# go ahead and leave a lamp next to one corpse to be suggestive
+# go ahead and leave a lamp under one corpse to be suggestive
 # and some empty wands...
 OBJECT:('(',"oil lamp"),$place[2]
 OBJECT:('/',"striking"),$place[1],uncursed,0
@@ -150,10 +149,81 @@ OBJECT:('/',"striking"),$place[4],uncursed,0
 OBJECT:('/',"magic missile"),$place[4],uncursed,0
 OBJECT:('/',"magic missile"),$place[0],uncursed,0
 
-# the Orcish Army
+# and maybe a key
+[50%]: OBJECT:('(',"skeleton key"),$place[1]
 
-$inside = selection: floodfill(18,8)
-$near_temple = selection: filter(fillrect(17,8, 23,14), $inside)
+OBJECT:('%',"corpse"),$place[0],montype:"shopkeeper"
+OBJECT:('%',"corpse"),$place[1],montype:"shopkeeper"
+OBJECT:('%',"corpse"),$place[2],montype:"shopkeeper"
+OBJECT:('%',"corpse"),$place[3],montype:"shopkeeper"
+OBJECT:('%',"corpse"),$place[4],montype:"shopkeeper"
+
+# priest spoils
+[60%]: OBJECT:('[',"robe"),(20,12)
+[40%]: OBJECT:('[',"small shield"),(20,12)
+[50%]: OBJECT:'+',(20,12)
+[50%]: OBJECT:'+',(20,12)
+OBJECT:('%',"corpse"),(20,12),montype:"aligned priest"
+
+# scatter some watchman gear
+# armor/weapon probabilities are reduced because the player doesn't actually
+# have to kill the watchmen to get them (though they may have to fight orcs
+# that wear them though)
+LOOP [5] {
+    $spot=random
+    IF [40%] {
+        IF [30%] {
+            OBJECT:('[',"ring mail"),$spot
+        } ELSE {
+            [50%]: OBJECT:('[',"studded leather armor"),$spot
+        }
+    } ELSE {
+        [40%]: OBJECT:('[',"leather armor"),$spot
+    }
+    IF [15%] {
+        OBJECT:('[',"dented pot"),$spot
+    } ELSE {
+        [20%]: OBJECT:('[',"helmet"),$spot
+    }
+    IF [15%] {
+        OBJECT:('[',"small shield"),$spot
+    } ELSE {
+        [20%]: OBJECT:('[',"large shield"),$spot
+    }
+    [15%]: OBJECT:('[',"leather gloves"),$spot
+    [20%]: OBJECT:('[',"leather cloak"),$spot
+    [50%]: OBJECT:('(',"tin whistle"),$spot
+    OBJECT:('%',"corpse"),$spot,montype:"watchman"
+}
+
+# watch captain gear
+$spot=rndcoord($inside)
+IF [80%] {
+    IF [80%] {
+        OBJECT:('[',"plate mail"),$spot
+    } ELSE {
+        OBJECT:('[',"crystal plate mail"),$spot
+    }
+}
+ELSE {
+    IF [40%] {
+        OBJECT:('[',"splint mail"),$spot
+    } ELSE {
+        [30%]: OBJECT:('[',"banded mail"),$spot
+    }
+}
+[20%]: OBJECT:('[',"helmet"),$spot
+[20%]: OBJECT:('[',"leather gloves"),$spot
+[20%]: OBJECT:('[',"high boots"),$spot
+[10%]: OBJECT:('[',"leather cloak"),$spot
+IF [40%] {
+    OBJECT:(')',"silver saber"),$spot
+} ELSE {
+    OBJECT:(')',"long sword"),$spot
+}
+OBJECT:('%',"corpse"),$spot,montype:"watch captain"
+
+# the Orcish Army
 
 LOOP [5 + 1d10] {
     IF [50%] {
@@ -170,8 +240,7 @@ LOOP [5 + 1d10] {
 LOOP [2d3] {
   MONSTER: ('o', "orc shaman"), rndcoord($near_temple), hostile
 }
-# these are not such a big deal
-# to run into outside the bars
+# these are not such a big deal to run into outside the bars
 LOOP [9 + 2d5] {
     IF [90%] {
         MONSTER: ('o', "hill orc"), random, hostile
@@ -183,7 +252,6 @@ LOOP [9 + 2d5] {
 # Hack to force full-level wallification
 NOMAP
 WALLIFY
-
 
 # Minetown variant 2
 # "Town Square"
