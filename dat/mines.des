@@ -129,34 +129,34 @@ LOOP [9 + 2d5] {
 }
 
 # One spot each in most shops...
-$place = { (09,05),(13,04),(26,04),(31,05),(30,14),(05,14),(10,13),(26,14),(27,13) }
-SHUFFLE:$place
+$shk_demise = { (09,05),(13,04),(26,04),(31,05),(30,14),(05,14),(10,13),(26,14),(27,13) }
+SHUFFLE:$shk_demise
 
 # Guarantee 7 candles since we won't have Izchak available
-OBJECT:('(',"wax candle"),$place[0],quantity:1d2
-OBJECT:('(',"wax candle"),$place[1],quantity:2d2
-OBJECT:('(',"wax candle"),$place[2],quantity:1d2
-OBJECT:('(',"tallow candle"),$place[3],quantity:1d3
-OBJECT:('(',"tallow candle"),$place[2],quantity:1d2
-OBJECT:('(',"tallow candle"),$place[0],quantity:1d2
+OBJECT:('(',"wax candle"),$shk_demise[0],quantity:1d2
+OBJECT:('(',"wax candle"),$shk_demise[1],quantity:2d2
+OBJECT:('(',"wax candle"),$shk_demise[2],quantity:1d2
+OBJECT:('(',"tallow candle"),$shk_demise[3],quantity:1d3
+OBJECT:('(',"tallow candle"),$shk_demise[2],quantity:1d2
+OBJECT:('(',"tallow candle"),$shk_demise[0],quantity:1d2
 
 # go ahead and leave a lamp under one corpse to be suggestive
 # and some empty wands...
-OBJECT:('(',"oil lamp"),$place[2]
-OBJECT:('/',"striking"),$place[1],uncursed,0
-OBJECT:('/',"striking"),$place[3],uncursed,0
-OBJECT:('/',"striking"),$place[4],uncursed,0
-OBJECT:('/',"magic missile"),$place[4],uncursed,0
-OBJECT:('/',"magic missile"),$place[0],uncursed,0
+OBJECT:('(',"oil lamp"),$shk_demise[2]
+OBJECT:('/',"striking"),$shk_demise[1],uncursed,0
+OBJECT:('/',"striking"),$shk_demise[3],uncursed,0
+OBJECT:('/',"striking"),$shk_demise[4],uncursed,0
+OBJECT:('/',"magic missile"),$shk_demise[4],uncursed,0
+OBJECT:('/',"magic missile"),$shk_demise[0],uncursed,0
 
 # and maybe a key
-[50%]: OBJECT:('(',"skeleton key"),$place[1]
+[50%]: OBJECT:('(',"skeleton key"),$shk_demise[1]
 
-OBJECT:('%',"corpse"),$place[0],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$place[1],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$place[2],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$place[3],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$place[4],montype:"shopkeeper"
+OBJECT:('%',"corpse"),$shk_demise[0],montype:"shopkeeper"
+OBJECT:('%',"corpse"),$shk_demise[1],montype:"shopkeeper"
+OBJECT:('%',"corpse"),$shk_demise[2],montype:"shopkeeper"
+OBJECT:('%',"corpse"),$shk_demise[3],montype:"shopkeeper"
+OBJECT:('%',"corpse"),$shk_demise[4],montype:"shopkeeper"
 
 # priest spoils
 [60%]: OBJECT:('[',"robe"),(20,12)
