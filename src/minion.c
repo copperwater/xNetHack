@@ -257,12 +257,14 @@ register struct monst *mtmp;
             (void) rloc(mtmp, TRUE);
         return (1);
     }
+    /* Bribable monsters are very greedy, and don't care how much gold you
+     * appear to be carrying. They are capricious, and may demand truly
+     * exorbitant amounts; however, it might be risky to challenge a hero who
+     * has reached them, since they do not want to end up dead. */
+    demand = d(50,500);
     cash = money_cnt(invent);
-    demand =
-        (cash * (rnd(80) + 20 * Athome))
-        / (100 * (1 + (sgn(u.ualign.type) == sgn(mtmp->data->maligntyp))));
 
-    if (!demand || multi < 0) { /* you have no gold or can't move */
+    if (cash == 0 || multi < 0) { /* you have no gold or can't move */
         mtmp->mpeaceful = 0;
         set_malign(mtmp);
         return 0;
@@ -276,12 +278,23 @@ register struct monst *mtmp;
         pline("%s demands %ld %s for safe passage.", Amonnam(mtmp), demand,
               currency(demand));
 
-        if ((offer = bribe(mtmp)) >= demand) {
+        offer = bribe(mtmp);
+        if (offer >= demand) {
             pline("%s vanishes, laughing about cowardly mortals.",
                   Amonnam(mtmp));
-        } else if (offer > 0L && (long) rnd(40) > (demand - offer)) {
-            pline("%s scowls at you menacingly, then vanishes.",
-                  Amonnam(mtmp));
+        } else if (offer > 0L) {
+            /* monster may rarely take pity on you if you hand over everything
+             * you have */
+            if(offer == cash && cash >= demand / 2 && !rn2(50)) {
+                pline("%s grudgingly grabs your money bag, then vanishes.",
+                      Amonnam(mtmp));
+            }
+            /* monster may also decide that being shortchanged by a small
+             * amount isn't worth risking their life */
+            else if((long) rnd(2000) > (demand - offer)) {
+              pline("%s scowls at you menacingly, then vanishes.",
+                    Amonnam(mtmp));
+            }
         } else {
             pline("%s gets angry...", Amonnam(mtmp));
             mtmp->mpeaceful = 0;
