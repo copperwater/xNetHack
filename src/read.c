@@ -1488,7 +1488,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                 You_feel("charged up!");
                 u.uen += d(sblessed ? 6 : 4, 4);
                 if (u.uen > u.uenmax) /* if current energy is already at   */
-                    u.uenmax = ceil(u.uen); /* or near maximum, increase maximum */
+                    u.uenmax = u.uen; /* or near maximum, increase maximum */
                 else
                     u.uen = u.uenmax; /* otherwise restore current to max  */
             }

@@ -1034,7 +1034,7 @@ char *hittee;              /* target's name: "you" or mon_nam(mdef) */
                     You("lose magical energy!");
                     u.uenmax--;
                     if (u.uen > 0)
-                        u.uen = max(u.uen - 1, 0);
+                        u.uen--;
                     context.botl = 1;
                 }
             } else {
@@ -1468,7 +1468,7 @@ struct obj *obj;
             break;
         }
         case ENERGY_BOOST: {
-            int epboost = (u.uenmax + 1 - (int) floorf(u.uen)) / 2;
+            int epboost = (u.uenmax + 1 - u.uen) / 2;
             if (epboost > 120)
                 epboost = 120; /* arbitrary */
             else if (epboost < 12)
@@ -1476,9 +1476,6 @@ struct obj *obj;
             if (epboost) {
                 You_feel("re-energized.");
                 u.uen += epboost;
-                if (u.uen > u.uenmax) {
-                    u.uen = u.uenmax;
-                }
                 context.botl = 1;
             } else
                 goto nothing_special;

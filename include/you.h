@@ -361,8 +361,7 @@ struct you {
     uchar usptime;    /* #moves until uspellprot-- */
     uchar uspmtime;   /* #moves between uspellprot-- */
     int uhp, uhpmax;
-    float uen;
-    int uenmax; /* magical energy - M. Stephenson */
+    int uen, uenmax; /* magical energy - M. Stephenson */
     xchar uhpinc[MAXULEV], ueninc[MAXULEV]; /* increases from level gain */
     int ugangr;                             /* if the gods are angry at you */
     int ugifts;                             /* number of artifacts bestowed */

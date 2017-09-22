@@ -623,7 +623,7 @@ bot_via_windowport()
     blstats[idx][BL_ENEMAX].a.a_int = min(u.uenmax, 9999);
 =======
 
-    blstats[idx][BL_ENE].a.a_int = (int) floorf(u.uen);
+    blstats[idx][BL_ENE].a.a_int = u.uen;
     blstats[idx][BL_ENEMAX].a.a_int = u.uenmax;
 >>>>>>> Implement FIQHack's Pw regen formula
 

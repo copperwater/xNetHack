@@ -3780,7 +3780,7 @@ int n;
         You_feel("your magical energy drain away%c", (n > u.uen) ? '!' : '.');
         u.uen -= n;
         if (u.uen < 0) {
-            u.uenmax -= rnd(-ceil(u.uen));
+            u.uenmax -= rnd(-u.uen);
             if (u.uenmax < 0)
                 u.uenmax = 0;
             u.uen = 0;

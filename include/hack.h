@@ -9,7 +9,6 @@
 #include "config.h"
 #endif
 #include "lint.h"
-#include <math.h>
 
 #define TELL 1
 #define NOTELL 0
