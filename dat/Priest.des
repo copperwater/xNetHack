@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Pri-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: noteleport,hardfloor,graveyard
 GEOMETRY:center,center
 MAP
 ............................................................................
@@ -110,7 +110,7 @@ MONSTER: ('Z',"human zombie"),(01,17)
 #
 
 MAZE: "Pri-loca",' '
-FLAGS: hardfloor
+FLAGS: hardfloor, graveyard
 # This is a kludge to init the level as a lit field.
 INIT_MAP: mines, '.' , '.' , false , false , lit , false
 GEOMETRY:center,center
@@ -186,6 +186,7 @@ TRAP:random,random
 #
 
 MAZE: "Pri-goal", ' '
+FLAGS: graveyard
 INIT_MAP: mines, 'L' , '.' , false , false , unlit , false
 GEOMETRY:center,center
 MAP
