@@ -2430,6 +2430,7 @@ int final;
     if (Fast)
         you_are(Very_fast ? "very fast" : "fast", from_what(FAST));
     if (Reflecting)
+        /* mirror reflection is not guaranteed so don't display it here */
         you_have("reflection", from_what(REFLECTING));
     if (Free_action)
         you_have("free action", from_what(FREE_ACTION));

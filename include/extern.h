@@ -1581,8 +1581,8 @@ E int FDECL(use_misc, (struct monst *));
 E int FDECL(rnd_misc_item, (struct monst *));
 E boolean FDECL(searches_for_item, (struct monst *, struct obj *));
 E boolean FDECL(mon_reflects, (struct monst *, const char *));
-E boolean FDECL(ureflects, (const char *, const char *));
 E void FDECL(mcureblindness, (struct monst *, BOOLEAN_P));
+E const char* NDECL(ureflectsrc);
 E boolean FDECL(munstone, (struct monst *, BOOLEAN_P));
 E boolean FDECL(munslime, (struct monst *, BOOLEAN_P));
 

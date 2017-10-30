@@ -547,12 +547,13 @@ aligntyp resp_god;
             pline("%s seems unaffected.", Monnam(u.ustuck));
     } else {
         pline("Suddenly, a bolt of lightning strikes you!");
-        if (Reflecting) {
+        const char* reflectsrc = ureflectsrc();
+        if (reflectsrc) {
             shieldeff(u.ux, u.uy);
             if (Blind)
                 pline("For some reason you're unaffected.");
             else
-                (void) ureflects("%s reflects from your %s.", "It");
+                pline("It reflects from your %s.", reflectsrc);
         } else if (Shock_resistance) {
             shieldeff(u.ux, u.uy);
             pline("It seems not to affect you.");

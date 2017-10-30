@@ -543,15 +543,15 @@ int spellnum;
         (void) burn_floor_objects(u.ux, u.uy, TRUE, FALSE);
         break;
     case CLC_LIGHTNING: {
-        boolean reflects;
-
         pline("A bolt of lightning strikes down at you from above!");
-        reflects = ureflects("It bounces off your %s%s.", "");
-        if (reflects || Shock_resistance) {
+        const char* reflectsrc = ureflectsrc();
+        if (reflectsrc || Shock_resistance) {
             shieldeff(u.ux, u.uy);
             dmg = 0;
-            if (reflects)
+            if (reflectsrc) {
+                pline("It bounces off your %s.", reflectsrc);
                 break;
+            }
         } else
             dmg = d(8, 6);
         if (Half_spell_damage)

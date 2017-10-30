@@ -2146,38 +2146,37 @@ const char *str;
     return FALSE;
 }
 
-boolean
-ureflects(fmt, str)
-const char *fmt, *str;
+/* Check whether the player is reflecting right now.
+ * Return a string which is the source of the player's reflection,
+ * or 0 if the player does not reflect the thing. */
+const char*
+ureflectsrc()
 {
     /* Check from outermost to innermost objects */
     if (EReflecting & W_ARMS) {
-        if (fmt && str) {
-            pline(fmt, str, "shield");
-            makeknown(SHIELD_OF_REFLECTION);
-        }
-        return TRUE;
+        /* assumes shield of reflection */
+        makeknown(SHIELD_OF_REFLECTION);
+        return "shield";
     } else if (EReflecting & W_WEP) {
         /* Due to wielded artifact weapon */
-        if (fmt && str)
-            pline(fmt, str, "weapon");
-        return TRUE;
+        return "weapon";
+    } else if (uwep && uwep->otyp == MIRROR && rn2(2)) {
+        /* wielded mirror will reflect half of the time */
+        makeknown(MIRROR);
+        return "mirror";
     } else if (EReflecting & W_AMUL) {
-        if (fmt && str) {
-            pline(fmt, str, "medallion");
-            makeknown(AMULET_OF_REFLECTION);
-        }
-        return TRUE;
+        makeknown(AMULET_OF_REFLECTION);
+        return "amulet";
     } else if (EReflecting & W_ARM) {
-        if (fmt && str)
-            pline(fmt, str, uskin ? "luster" : "armor");
-        return TRUE;
+        if(uskin) {
+            return "luster";
+        } else {
+            return "armor";
+        }
     } else if (youmonst.data == &mons[PM_SILVER_DRAGON]) {
-        if (fmt && str)
-            pline(fmt, str, "scales");
-        return TRUE;
+        return "scales";
     }
-    return FALSE;
+    return (const char*) NULL;
 }
 
 /* cure mon's blindness (use_defensive, dog_eat, meatobj) */
