@@ -1,7 +1,7 @@
 #
 # NetHack 3.6  linux $NHDT-Date: 1432512814 2015/05/25 00:13:34 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
 # Copyright (c) Kenneth Lorber, Kensington, Maryland, 2007.
-# NetHack may be freely redistributed.  See license for details. 
+# NetHack may be freely redistributed.  See license for details.
 #
 #-PRE
 # Linux hints file
@@ -20,7 +20,7 @@ VARDIR = $(HACKDIR)
 
 POSTINSTALL=cp -n sys/unix/sysconf $(INSTDIR)/sysconf; $(CHOWN) $(GAMEUID) $(INSTDIR)/sysconf; $(CHGRP) $(GAMEGRP) $(INSTDIR)/sysconf; chmod $(VARFILEPERM) $(INSTDIR)/sysconf;
 
-CFLAGS=-g -O -I../include -DNOTPARMDECL -DDLB
+CFLAGS=-g -Og -I../include -DNOTPARMDECL -DDLB
 CFLAGS+=-DCOMPRESS=\"/bin/gzip\" -DCOMPRESS_EXTENSION=\".gz\"
 CFLAGS+=-DSYSCF -DSYSCF_FILE=\"$(HACKDIR)/sysconf\" -DSECURE
 CFLAGS+=-DTIMED_DELAY
