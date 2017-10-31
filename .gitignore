@@ -31,6 +31,9 @@ core
 # We generate makefiles by shell script
 Makefile
 
+# Actual game binary
+src/xnethack
+
 # Win32-specific ignores
 Debug/
 Release/
