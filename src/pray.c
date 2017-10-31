@@ -1946,9 +1946,7 @@ doturn()
                 /* this is intentional, lichs are tougher
                    than zombies. */
                 case S_LICH:
-                    xlev += 2; /*FALLTHRU*/
-                case S_GHOST:
-                    xlev += 2; /*FALLTHRU*/
+                    xlev += 4; /*FALLTHRU*/
                 case S_VAMPIRE:
                     xlev += 2; /*FALLTHRU*/
                 case S_WRAITH:

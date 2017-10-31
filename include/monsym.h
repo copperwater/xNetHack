@@ -64,7 +64,6 @@ enum mon_class_types {
     S_YETI,
     S_ZOMBIE,
     S_HUMAN,
-    S_GHOST,
     S_GOLEM,
     S_DEMON,
     S_EEL,
@@ -132,7 +131,6 @@ enum mon_class_types {
 #define DEF_YETI        'Y'
 #define DEF_ZOMBIE      'Z'
 #define DEF_HUMAN       '@'
-#define DEF_GHOST       ' '
 #define DEF_GOLEM       '\''
 #define DEF_DEMON       '&'
 #define DEF_EEL         ';'

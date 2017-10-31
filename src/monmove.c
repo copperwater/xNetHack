@@ -1069,7 +1069,7 @@ not_special:
         flag |= ALLOW_DIG;
     if (is_human(ptr) || ptr == &mons[PM_MINOTAUR])
         flag |= ALLOW_SSM;
-    if ((is_undead(ptr) && ptr->mlet != S_GHOST) || is_vampshifter(mtmp))
+    if ((is_undead(ptr) && !noncorporeal(ptr)) || is_vampshifter(mtmp))
         flag |= NOGARLIC;
     if (throws_rocks(ptr))
         flag |= ALLOW_ROCK;

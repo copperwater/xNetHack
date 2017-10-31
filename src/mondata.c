@@ -602,8 +602,6 @@ struct permonst *pm1, *pm2;
             return (let2 == S_LICH);
         if (let1 == S_WRAITH)
             return (let2 == S_WRAITH);
-        if (let1 == S_GHOST)
-            return (let2 == S_GHOST);
     } else if (is_undead(pm2))
         return FALSE;
 
