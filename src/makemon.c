@@ -738,8 +738,10 @@ register struct monst *mtmp;
             (void) mpickobj(mtmp, otmp);
         }
         break;
-    case S_LEPRECHAUN:
-        mkmonmoney(mtmp, (long) d(level_difficulty(), 30));
+    case S_IMP:
+        if (ptr == &mons[PM_LEPRECHAUN]) {
+            mkmonmoney(mtmp, (long) d(level_difficulty(), 30));
+        }
         break;
     case S_DEMON:
         /* moved here from m_initweap() because these don't
@@ -1226,8 +1228,10 @@ int mmflags;
     case S_EEL:
         (void) hideunder(mtmp);
         break;
-    case S_LEPRECHAUN:
-        mtmp->msleeping = 1;
+    case S_IMP:
+        if(mndx == PM_LEPRECHAUN) {
+            mtmp->msleeping = 1;
+        }
         break;
     case S_JABBERWOCK:
     case S_NYMPH:

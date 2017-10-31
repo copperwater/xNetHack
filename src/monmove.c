@@ -211,13 +211,13 @@ register struct monst *mtmp;
      *      (1/7 and mon is not mimicing furniture or object)
      */
     if (couldsee(mtmp->mx, mtmp->my) && distu(mtmp->mx, mtmp->my) <= 100
-        && (!Stealth || (mtmp->data == &mons[PM_ETTIN] && rn2(10)))
+        && (!Stealth || (monsndx(mtmp->data) == PM_ETTIN && rn2(10)))
         && (!(mtmp->data->mlet == S_NYMPH
-              || mtmp->data == &mons[PM_JABBERWOCK]
+              || monsndx(mtmp->data) == PM_JABBERWOCK
 #if 0 /* DEFERRED */
               || mtmp->data == &mons[PM_VORPAL_JABBERWOCK]
 #endif
-              || mtmp->data->mlet == S_LEPRECHAUN) || !rn2(50))
+              || monsndx(mtmp->data) == PM_LEPRECHAUN) || !rn2(50))
         && (Aggravate_monster
             || (mtmp->data->mlet == S_DOG || mtmp->data->mlet == S_HUMAN)
             || (!rn2(7) && mtmp->m_ap_type != M_AP_FURNITURE
@@ -547,7 +547,7 @@ toofar:
 
     if (!nearby || mtmp->mflee || scared || mtmp->mconf || mtmp->mstun
         || (mtmp->minvis && !rn2(3))
-        || (mdat->mlet == S_LEPRECHAUN && !findgold(invent)
+        || (monsndx(mdat) == PM_LEPRECHAUN && !findgold(invent)
             && (findgold(mtmp->minvent) || rn2(2)))
         || (is_wanderer(mdat) && !rn2(4)) || (Conflict && !mtmp->iswiz)
         || (!mtmp->mcansee && !rn2(4)) || mtmp->mpeaceful) {
