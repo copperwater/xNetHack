@@ -168,15 +168,15 @@ const struct symdef defsyms[MAXPCHARS] = {
        { '_', "altar", C(CLR_GRAY) },                /* altar */
        { '|', "grave", C(CLR_GRAY) },                /* grave */
        { '\\', "opulent throne", C(HI_GOLD) },       /* throne */
-/*30*/ { '#', "sink", C(CLR_GRAY) },                 /* sink */
+/*30*/ { '\\', "sink", C(CLR_BLUE) },                /* sink */
        { '{', "fountain", C(CLR_BRIGHT_BLUE) },      /* fountain */
        { '}', "water", C(CLR_BLUE) },                /* pool */
        { '.', "ice", C(CLR_CYAN) },                  /* ice */
        { '}', "molten lava", C(CLR_RED) },           /* lava */
        { '.', "lowered drawbridge", C(CLR_BROWN) },  /* vodbridge */
        { '.', "lowered drawbridge", C(CLR_BROWN) },  /* hodbridge */
-       { '#', "raised drawbridge", C(CLR_BROWN) },   /* vcdbridge */
-       { '#', "raised drawbridge", C(CLR_BROWN) },   /* hcdbridge */
+       { '+', "raised drawbridge", C(CLR_ORANGE) },   /* vcdbridge */
+       { '+', "raised drawbridge", C(CLR_ORANGE) },   /* hcdbridge */
        { ' ', "air", C(CLR_CYAN) },                  /* open air */
 /*40*/ { '#', "cloud", C(CLR_GRAY) },                /* [part of] a cloud */
        { '}', "water", C(CLR_BLUE) },                /* under water */

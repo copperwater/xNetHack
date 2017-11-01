@@ -769,7 +769,7 @@ FOOD("clove of garlic",       7,  1,  1, 0, VEGGY,  40, CLR_WHITE),
 FOOD("slime mold",           75,  1,  5, 0, VEGGY, 250, HI_ORGANIC),
 
 /* people food */
-FOOD("lump of royal jelly",   0,  1,  2, 0, VEGGY, 200, CLR_YELLOW),
+FOOD("lump of royal jelly",   0,  1,  2, 0, VEGGY, 200, CLR_MAGENTA),
 FOOD("cream pie",            25,  1, 10, 0, VEGGY, 100, CLR_WHITE),
 FOOD("candy bar",            13,  1,  2, 0, VEGGY, 100, CLR_BROWN),
 FOOD("fortune cookie",       55,  1,  1, 0, VEGGY,  40, CLR_YELLOW),
