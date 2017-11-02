@@ -1967,8 +1967,8 @@ struct obj *obj;
             if(obj->blessed) {
 		int x, y;
                 radius = -1;
-		for (x = 0; x < COLNO; x++) {
-		    for (y = 0; y < ROWNO; y++) {
+		for (x = 1; x < COLNO; x++) {
+		    for (y = 1; y < ROWNO; y++) {
                         set_lit(x, y, (on ? &is_lit : NULL));
                     }
                 }
