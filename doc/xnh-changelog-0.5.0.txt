@@ -170,6 +170,7 @@ Stone to fleshed objects now turn into an appropriate amount of meatballs,
 There is no longer an Elbereth engraving under the Sokoban prize and the Castle
   chest. (The scrolls of scare monster are still there.)
 Scrolls of scare monster no longer work on uniques.
+Pets will not eat food if they are already satiated.
 
 
 It contains the following non-gameplay interface changes:

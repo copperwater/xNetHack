@@ -7,6 +7,8 @@
 
 #include "mfndpos.h"
 
+#define DOG_SATIATED 1500
+
 extern boolean notonhead;
 
 STATIC_DCL boolean FDECL(dog_hunger, (struct monst *, struct edog *));
@@ -502,7 +504,8 @@ int udist;
             if ((edible <= CADAVER
                  /* starving pet is more aggressive about eating */
                  || (edog->mhpmax_penalty && edible == ACCFOOD))
-                && could_reach_item(mtmp, obj->ox, obj->oy))
+                && could_reach_item(mtmp, obj->ox, obj->oy)
+                && edog->hungrytime < monstermoves + DOG_SATIATED)
                 return dog_eat(mtmp, obj, omx, omy, FALSE);
 
             carryamt = can_carry(mtmp, obj);
@@ -1162,8 +1165,9 @@ int after; /* this is extra fast monster movement */
                 if (obj->cursed) {
                     cursemsg[i] = TRUE;
                 } else if ((otyp = dogfood(mtmp, obj)) < MANFOOD
-                         && (otyp < ACCFOOD
-                             || edog->hungrytime <= monstermoves)) {
+                           && (otyp < ACCFOOD
+                               || edog->hungrytime <= monstermoves)
+                           && edog->hungrytime < monstermoves + DOG_SATIATED) {
                     /* Note: our dog likes the food so much that he
                      * might eat it even when it conceals a cursed object */
                     nix = nx;
