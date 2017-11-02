@@ -630,8 +630,10 @@ int x, y;
     } else if (!get_adjacent_loc((char *) 0, (char *) 0, u.ux, u.uy, &cc))
         return 0;
 
-    if ((cc.x == u.ux) && (cc.y == u.uy))
+    if ((cc.x == u.ux) && (cc.y == u.uy)) {
+        doloot();
         return 0;
+    }
 
     if (stumble_on_door_mimic(cc.x, cc.y))
         return 1;
