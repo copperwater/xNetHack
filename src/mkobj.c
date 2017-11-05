@@ -266,10 +266,10 @@ struct obj *box;
         n = 20;
         break;
     case CHEST:
-        n = 5;
+        n = box->olocked ? 7 : 5;
         break;
     case LARGE_BOX:
-        n = 3;
+        n = box->olocked ? 5 : 3;
         break;
     case SACK:
     case OILSKIN_SACK:
@@ -1418,8 +1418,10 @@ int x, y;
 {
     register struct obj *gold = g_at(x, y);
 
-    if (amount <= 0L)
-        amount = (long) (1 + rnd(level_difficulty() + 2) * rnd(30));
+    if (amount <= 0L) {
+        long mul = rnd(30 / max(12-depth(&u.uz), 2));
+        amount = (long) (1 + rnd(level_difficulty() + 2) * mul);
+    }
     if (gold) {
         gold->quan += amount;
     } else {

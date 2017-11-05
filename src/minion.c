@@ -291,7 +291,7 @@ register struct monst *mtmp;
             }
             /* monster may also decide that being shortchanged by a small
              * amount isn't worth risking their life */
-            else if((long) rnd(2000) > (demand - offer)) {
+            else if((long) rnd(100 * ACURR(A_CHA)) > (demand - offer)) {
               pline("%s scowls at you menacingly, then vanishes.",
                     Amonnam(mtmp));
             }
