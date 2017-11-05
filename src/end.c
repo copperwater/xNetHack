@@ -1239,13 +1239,18 @@ int how;
         nowrap_add(u.urexp, tmp);
 
         /* ascension gives a score bonus iff offering to original deity */
-        if (how == ASCENDED && u.ualign.type == u.ualignbase[A_ORIGINAL]) {
-            /* retaining original alignment: score *= 2;
-               converting, then using helm-of-OA to switch back: *= 1.5 */
-            tmp = (u.ualignbase[A_CURRENT] == u.ualignbase[A_ORIGINAL])
-                      ? u.urexp
-                      : (u.urexp / 2L);
-            nowrap_add(u.urexp, tmp);
+        if (how == ASCENDED) {
+            if (u.ualign.type == u.ualignbase[A_ORIGINAL]) {
+                /* retaining original alignment: score *= 2;
+                   converting, then using helm-of-OA to switch back: *= 1.5 */
+                tmp = (u.ualignbase[A_CURRENT] == u.ualignbase[A_ORIGINAL])
+                        ? u.urexp
+                        : (u.urexp / 2L);
+                nowrap_add(u.urexp, tmp);
+            }
+            else {
+                Strcat(killer.name, " (in dishonor)");
+            }
         }
     }
 
