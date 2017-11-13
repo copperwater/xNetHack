@@ -1356,6 +1356,9 @@ struct obj *stolenobj; /* no message if stolenobj is already being doffing */
 
 /* both 'clothes' and 'accessories' now include both armor and accessories;
    TOOL_CLASS is for eyewear, FOOD_CLASS is for MEAT_RING */
+static NEARDATA const char only_armor[] = {
+    ARMOR_CLASS, 0
+};
 static NEARDATA const char clothes[] = {
     ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS, FOOD_CLASS, 0
 };
@@ -2580,12 +2583,25 @@ int retry;
     return 0;
 }
 
-/* hit by destroy armor scroll/black dragon breath/monster spell */
+/* hit by destroy armor scroll/black dragon breath/monster spell
+ * if choose is TRUE, let the player choose what to destroy.
+ * Return 1 if something was destroyed, 0 if not.
+ */
 int
-destroy_arm(atmp)
+destroy_arm(atmp, choose)
 register struct obj *atmp;
+boolean choose;
 {
     register struct obj *otmp;
+    register struct obj *ochoice;
+    if (choose) {
+        ochoice = getobj(only_armor, "destroy");
+        /* prevent player from selecting non-worn armor */
+        if (ochoice && (ochoice->owornmask & W_ARMOR)) {
+            atmp = ochoice;
+        }
+    }
+
 #define DESTROY_ARM(o)                            \
     ((otmp = (o)) != 0 && (!atmp || atmp == otmp) \
              && (!obj_resists(otmp, 0, 90))       \

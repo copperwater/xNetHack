@@ -1052,7 +1052,10 @@ STATIC_OVL boolean
 taking_off(action)
 const char *action;
 {
-    return !strcmp(action, "take off") || !strcmp(action, "remove");
+    return !strcmp(action, "take off") || !strcmp(action, "remove") ||
+           /* choosing armor to destroy is also "taking it off", so should
+            * only use worn armor pieces */
+           !strcmp(action, "destroy");
 }
 
 /* match the prompt for either 'W' or 'P' command */

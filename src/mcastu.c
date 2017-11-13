@@ -417,7 +417,7 @@ int spellnum;
         if (Antimagic) {
             shieldeff(u.ux, u.uy);
             pline("A field of force surrounds you!");
-        } else if (!destroy_arm(some_armor(&youmonst))) {
+        } else if (!destroy_arm(some_armor(&youmonst), FALSE)) {
             Your("skin itches.");
         }
         dmg = 0;

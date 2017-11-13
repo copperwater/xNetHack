@@ -476,7 +476,7 @@ E struct obj *FDECL(stuck_ring, (struct obj *, int));
 E struct obj *NDECL(unchanger);
 E void NDECL(reset_remarm);
 E int NDECL(doddoremarm);
-E int FDECL(destroy_arm, (struct obj *));
+E int FDECL(destroy_arm, (struct obj *, BOOLEAN_P));
 E void FDECL(adj_abon, (struct obj *, SCHAR_P));
 E boolean
 FDECL(inaccessible_equipment, (struct obj *, const char *, BOOLEAN_P));

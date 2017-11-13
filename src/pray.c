@@ -578,15 +578,15 @@ aligntyp resp_god;
          */
         if (uarms && !(EReflecting & W_ARMS)
             && !(EDisint_resistance & W_ARMS))
-            (void) destroy_arm(uarms);
+            (void) destroy_arm(uarms, FALSE);
         if (uarmc && !(EReflecting & W_ARMC)
             && !(EDisint_resistance & W_ARMC))
-            (void) destroy_arm(uarmc);
+            (void) destroy_arm(uarmc, FALSE);
         if (uarm && !(EReflecting & W_ARM) && !(EDisint_resistance & W_ARM)
             && !uarmc)
-            (void) destroy_arm(uarm);
+            (void) destroy_arm(uarm, FALSE);
         if (uarmu && !uarm && !uarmc)
-            (void) destroy_arm(uarmu);
+            (void) destroy_arm(uarmu, FALSE);
         if (!Disint_resistance) {
             fry_by_god(resp_god, TRUE);
         } else {
