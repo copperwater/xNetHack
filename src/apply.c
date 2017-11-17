@@ -1429,7 +1429,7 @@ dorub()
     struct obj *obj = getobj(cuddly, "rub");
 
     if (obj && obj->oclass == GEM_CLASS) {
-        if (is_graystone(obj)) {
+        if (is_graystone(obj) || obj->otyp == ROCK) {
             use_stone(obj);
             return 1;
         } else {
@@ -2337,6 +2337,37 @@ struct obj *tstone;
         else
             pline("A sharp crack shatters %s%s.",
                   (obj->quan > 1L) ? "one of " : "", the(xname(obj)));
+        useup(obj);
+        return;
+    }
+
+    /* break rocks and maybe get some flint out of them */
+    if (obj->otyp == ROCK) {
+        int flint_made = rnd(10) - 9;
+        struct obj * flint = NULL;
+
+        if (tstone->otyp == TOUCHSTONE) {
+            /* a rock can be broken on any other rock, but breaking it on a
+             * touchstone will yield the most */
+            flint_made += 2;
+        }
+        else if (Role_if(PM_CAVEMAN)) {
+            /* experts on banging rocks together */
+            flint_made += 3;
+        }
+        pline("You bang %s%s on %s.", ((obj->quan > 1L) ? "one of " : ""),
+              the(xname(obj)), the(xname(tstone)));
+        pline("It crumbles.");
+
+        if (flint_made <= 0) {
+            flint_made = 0;
+            return;
+        }
+        flint = mksobj(FLINT, TRUE, FALSE);
+        flint->quan = flint_made;
+        flint = hold_another_object(flint, "Oops!  %s out of your grasp!",
+                                    The(aobjnam(flint, "slip")),
+                                    (const char*) 0);
         useup(obj);
         return;
     }
