@@ -2328,15 +2328,9 @@ boolean ordinary;
     }
 
     case WAN_SPEED_MONSTER:
-        if (!(HFast & INTRINSIC)) {
-            learn_it = TRUE;
-            if (!Fast)
-                You("speed up.");
-            else
-                Your("quickness feels more natural.");
-            exercise(A_DEX, TRUE);
-        }
-        HFast |= FROMOUTSIDE;
+        /* no longer gives intrinsic, but gives very fast speed instead */
+        speed_up(rn1(25, 50));
+        learn_it = TRUE;
         break;
 
     case WAN_SLEEP:
