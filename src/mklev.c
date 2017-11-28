@@ -386,6 +386,9 @@ struct mkroom *aroom;
 int type;
 {
     boolean shdoor = *in_rooms(x, y, SHOPBASE) ? TRUE : FALSE;
+    int doorstate = D_NODOOR;
+    boolean set_lock = FALSE;
+    boolean set_trap = FALSE;
 
     if (!IS_WALL(levl[x][y].typ)) /* avoid SDOORs on already made doors */
         type = DOOR;
@@ -393,32 +396,35 @@ int type;
     if (type == DOOR) {
         if (!rn2(3)) { /* is it a locked door, closed, or a doorway? */
             if (!rn2(5))
-                levl[x][y].doormask = D_ISOPEN;
+                doorstate = D_ISOPEN;
             else if (!rn2(6))
-                levl[x][y].doormask = D_LOCKED;
+                set_lock = TRUE;
             else
-                levl[x][y].doormask = D_CLOSED;
+                doorstate = D_CLOSED;
 
-            if (levl[x][y].doormask != D_ISOPEN && !shdoor
+            if (doorstate != D_ISOPEN && !shdoor
                 && level_difficulty() >= 5 && !rn2(25))
-                levl[x][y].doormask |= D_TRAPPED;
+                set_trap = TRUE;
         } else {
 #ifdef STUPID
             if (shdoor)
-                levl[x][y].doormask = D_ISOPEN;
+                doorstate = D_ISOPEN;
             else
-                levl[x][y].doormask = D_NODOOR;
+                doorstate = D_NODOOR;
 #else
-            levl[x][y].doormask = (shdoor ? D_ISOPEN : D_NODOOR);
+            doorstate = (shdoor ? D_ISOPEN : D_NODOOR);
 #endif
         }
 
         /* also done in roguecorr(); doing it here first prevents
            making mimics in place of trapped doors on rogue level */
         if (Is_rogue_level(&u.uz))
-            levl[x][y].doormask = D_NODOOR;
+            doorstate = D_NODOOR;
 
-        if (levl[x][y].doormask & D_TRAPPED) {
+        set_doorstate(&levl[x][y], doorstate);
+        set_door_lock(&levl[x][y], set_lock);
+
+        if (set_trap) {
             struct monst *mtmp;
 
             if (level_difficulty() >= 9 && !rn2(5)
@@ -426,21 +432,24 @@ int type;
                      && (mvitals[PM_LARGE_MIMIC].mvflags & G_GONE)
                      && (mvitals[PM_GIANT_MIMIC].mvflags & G_GONE))) {
                 /* make a mimic instead */
-                levl[x][y].doormask = D_NODOOR;
+                set_doorstate(&levl[x][y], D_NODOOR);
                 mtmp = makemon(mkclass(S_MIMIC, 0), x, y, NO_MM_FLAGS);
                 if (mtmp)
                     set_mimic_sym(mtmp);
             }
+            else {
+                set_door_trap(&levl[x][y], TRUE);
+            }
         }
         /* newsym(x,y); */
     } else { /* SDOOR */
+        set_doorstate(&levl[x][y], D_CLOSED);
         if (shdoor || !rn2(5))
-            levl[x][y].doormask = D_LOCKED;
-        else
-            levl[x][y].doormask = D_CLOSED;
+            set_door_lock(&levl[x][y], TRUE);
+
 
         if (!shdoor && level_difficulty() >= 4 && !rn2(20))
-            levl[x][y].doormask |= D_TRAPPED;
+            set_door_trap(&levl[x][y], TRUE);
     }
 
     add_door(x, y, aroom);
@@ -1638,7 +1647,7 @@ int dist;
 
     /* fake out saved state */
     lev->seenv = 0;
-    lev->doormask = 0;
+    set_doorstate(lev, D_NODOOR);
     if (dist < 6)
         lev->lit = TRUE;
     lev->waslit = TRUE;

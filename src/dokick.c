@@ -967,19 +967,21 @@ dokick()
                 pline("Crash!  %s a secret door!",
                       /* don't "kick open" when it's locked
                          unless it also happens to be trapped */
-                      (maploc->doormask & (D_LOCKED | D_TRAPPED)) == D_LOCKED
+                      (door_is_locked(maploc) &&
+                       !door_is_trapped(maploc))
                           ? "Your kick uncovers"
                           : "You kick open");
                 exercise(A_DEX, TRUE);
-                if (maploc->doormask & D_TRAPPED) {
-                    maploc->doormask = D_NODOOR;
+                if (door_is_trapped(maploc)) {
+                    set_doorstate(maploc, D_NODOOR);
                     b_trapped("door", FOOT);
-                } else if (maploc->doormask != D_NODOOR
-                           && !(maploc->doormask & D_LOCKED))
-                    maploc->doormask = D_ISOPEN;
+                } else if (!door_is_locked(maploc)) {
+                    /* assume doorstate is already D_CLOSED */
+                    set_doorstate(maploc, D_ISOPEN);
+                }
                 feel_newsym(x, y); /* we know it's gone */
-                if (maploc->doormask == D_ISOPEN
-                    || maploc->doormask == D_NODOOR)
+                if (doorstate(maploc) == D_ISOPEN
+                    || doorstate(maploc) == D_NODOOR)
                     unblock_point(x, y); /* vision */
                 return 1;
             } else
@@ -1000,9 +1002,9 @@ dokick()
             register int i;
             if (Levitation)
                 goto dumb;
-            if ((Luck < 0 || maploc->doormask) && !rn2(3)) {
+            if ((Luck < 0 || maploc->looted) && !rn2(3)) {
                 maploc->typ = ROOM;
-                maploc->doormask = 0; /* don't leave loose ends.. */
+                maploc->looted = 0; /* don't leave loose ends.. */
                 (void) mkgold((long) rnd(200), x, y);
                 if (Blind)
                     pline("CRASH!  You destroy it.");
@@ -1075,7 +1077,7 @@ dokick()
                 adjalign(-sgn(u.ualign.type));
             }
             maploc->typ = ROOM;
-            maploc->doormask = 0;
+            maploc->flags = 0;
             (void) mksobj_at(ROCK, x, y, TRUE, FALSE);
             del_engr_at(x, y);
             if (Blind)
@@ -1227,8 +1229,8 @@ dokick()
         goto dumb;
     }
 
-    if (maploc->doormask == D_ISOPEN || maploc->doormask == D_BROKEN
-        || maploc->doormask == D_NODOOR) {
+    /* all door states besides closed count as empty space */
+    if (!door_is_closed(maploc)) {
     dumb:
         exercise(A_DEX, FALSE);
         if (martial() || ACURR(A_DEX) >= 16 || rn2(3)) {
@@ -1254,20 +1256,20 @@ dokick()
     if (rnl(35) < avrg_attrib + (!martial() ? 0 : ACURR(A_DEX))) {
         boolean shopdoor = *in_rooms(x, y, SHOPBASE) ? TRUE : FALSE;
         /* break the door */
-        if (maploc->doormask & D_TRAPPED) {
+        if (door_is_trapped(maploc)) {
             if (flags.verbose)
                 You("kick the door.");
             exercise(A_STR, FALSE);
-            maploc->doormask = D_NODOOR;
+            set_doorstate(maploc, D_NODOOR);
             b_trapped("door", FOOT);
         } else if (ACURR(A_STR) > 18 && !rn2(5) && !shopdoor) {
             pline("As you kick the door, it shatters to pieces!");
             exercise(A_STR, TRUE);
-            maploc->doormask = D_NODOOR;
+            set_doorstate(maploc, D_NODOOR);
         } else {
             pline("As you kick the door, it crashes open!");
             exercise(A_STR, TRUE);
-            maploc->doormask = D_BROKEN;
+            set_doorstate(maploc, D_BROKEN);
         }
         feel_newsym(x, y); /* we know we broke it */
         unblock_point(x, y); /* vision */
@@ -1297,13 +1299,13 @@ dokick()
                     continue;
                 if (is_watch(mtmp->data) && mtmp->mpeaceful
                     && couldsee(mtmp->mx, mtmp->my)) {
-                    if (levl[x][y].looted & D_WARNED) {
+                    if (door_is_warned(&levl[x][y])) {
                         mon_yells(mtmp,
                                   "Halt, vandal!  You're under arrest!");
                         (void) angry_guards(FALSE);
                     } else {
                         mon_yells(mtmp, "Hey, stop damaging that door!");
-                        levl[x][y].looted |= D_WARNED;
+                        set_door_warning(&levl[x][y], TRUE);
                     }
                     break;
                 }

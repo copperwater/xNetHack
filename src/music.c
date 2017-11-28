@@ -309,7 +309,7 @@ int force;
                         break; /* no pit if portal at that location */
                     chasm->tseen = 1;
 
-                    levl[x][y].doormask = 0;
+                    levl[x][y].flags = 0;
                     /*
                      * Let liquid flow into the newly created chasm.
                      * Adjust corresponding code in apply.c for
@@ -412,13 +412,13 @@ int force;
                         newsym(x, y);
                     break;
                 case DOOR: /* Make the door collapse */
-                    if (levl[x][y].doormask == D_NODOOR)
+                    if (doorstate(&levl[x][y]) == D_NODOOR)
                         goto do_pit;
                     if (cansee(x, y))
                         pline_The("door collapses.");
                     if (*in_rooms(x, y, SHOPBASE))
                         add_damage(x, y, 0L);
-                    levl[x][y].doormask = D_NODOOR;
+                    set_doorstate(&levl[x][y], D_NODOOR);
                     unblock_point(x, y);
                     newsym(x, y);
                     break;

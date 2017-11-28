@@ -55,7 +55,7 @@ lock_action()
     };
 
     /* if the target is currently unlocked, we're trying to lock it now */
-    if (xlock.door && !(xlock.door->doormask & D_LOCKED))
+    if (xlock.door && !door_is_locked(xlock.door))
         return actions[0] + 2; /* "locking the door" */
     else if (xlock.box && !xlock.box->olocked)
         return xlock.box->otyp == CHEST ? actions[1] + 2 : actions[2] + 2;
@@ -85,16 +85,20 @@ picklock(VOID_ARGS)
         if (xlock.door != &(levl[u.ux + u.dx][u.uy + u.dy])) {
             return ((xlock.usedtime = 0)); /* you moved */
         }
-        switch (xlock.door->doormask) {
-        case D_NODOOR:
-            pline("This doorway has no door.");
-            return ((xlock.usedtime = 0));
-        case D_ISOPEN:
-            You("cannot lock an open door.");
-            return ((xlock.usedtime = 0));
-        case D_BROKEN:
-            pline("This door is broken.");
-            return ((xlock.usedtime = 0));
+        if (!door_is_closed(xlock.door)) {
+            switch (doorstate(xlock.door)) {
+            case D_NODOOR:
+                pline("This doorway has no door.");
+                return ((xlock.usedtime = 0));
+            case D_ISOPEN:
+                You("cannot lock an open door.");
+                return ((xlock.usedtime = 0));
+            case D_BROKEN:
+                pline("This door is broken.");
+                return ((xlock.usedtime = 0));
+            default:
+                impossible("bad picklock door state %d", xlock.door->doormask);
+            }
         }
     }
 
@@ -111,7 +115,7 @@ picklock(VOID_ARGS)
        state is adequate (non-cursed for rogues, blessed for others;
        checked when setting up 'xlock') */
     if ((!xlock.door ? (int) xlock.box->otrapped
-                     : (xlock.door->doormask & D_TRAPPED) != 0)
+                     : door_is_trapped(xlock.door))
         && xlock.magic_key) {
         xlock.chance += 20; /* less effort needed next time */
         /* unfortunately we don't have a 'tknown' flag to record
@@ -123,9 +127,9 @@ picklock(VOID_ARGS)
 
             /* disarming while using magic key always succeeds */
             if (xlock.door) {
-                xlock.door->doormask &= ~D_TRAPPED;
+                set_door_trap(xlock.door, FALSE);
                 what = "door";
-                alreadyunlocked = !(xlock.door->doormask & D_LOCKED);
+                alreadyunlocked = !door_is_locked(xlock.door);
             } else {
                 xlock.box->otrapped = 0;
                 what = (xlock.box->otyp == CHEST) ? "chest" : "box";
@@ -143,17 +147,16 @@ picklock(VOID_ARGS)
 
     You("succeed in %s.", lock_action());
     if (xlock.door) {
-        if (xlock.door->doormask & D_TRAPPED) {
+        if (door_is_trapped(xlock.door)) {
             b_trapped("door", FINGER);
-            xlock.door->doormask = D_NODOOR;
+            set_doorstate(xlock.door, D_NODOOR);
             unblock_point(u.ux + u.dx, u.uy + u.dy);
             if (*in_rooms(u.ux + u.dx, u.uy + u.dy, SHOPBASE))
                 add_damage(u.ux + u.dx, u.uy + u.dy, SHOP_DOOR_COST);
             newsym(u.ux + u.dx, u.uy + u.dy);
-        } else if (xlock.door->doormask & D_LOCKED)
-            xlock.door->doormask = D_CLOSED;
-        else
-            xlock.door->doormask = D_LOCKED;
+        } else {
+            set_door_lock(xlock.door, !door_is_locked(xlock.door));
+        }
     } else {
         xlock.box->olocked = !xlock.box->olocked;
         xlock.box->lknown = 1;
@@ -457,25 +460,16 @@ struct obj *pick;
                 You("%s no door there.", Blind ? "feel" : "see");
             return PICKLOCK_LEARNED_SOMETHING;
         }
-        switch (door->doormask) {
-        case D_NODOOR:
-            pline("This doorway has no door.");
-            return PICKLOCK_LEARNED_SOMETHING;
-        case D_ISOPEN:
-            You("cannot lock an open door.");
-            return PICKLOCK_LEARNED_SOMETHING;
-        case D_BROKEN:
-            pline("This door is broken.");
-            return PICKLOCK_LEARNED_SOMETHING;
-        default:
+
+        if (door_is_closed(door)) {
             /* credit cards are only good for unlocking */
-            if (picktyp == CREDIT_CARD && !(door->doormask & D_LOCKED)) {
+            if (picktyp == CREDIT_CARD && door_is_locked(door)) {
                 You_cant("lock a door with a credit card.");
                 return PICKLOCK_LEARNED_SOMETHING;
             }
 
             Sprintf(qbuf, "%s it?",
-                    (door->doormask & D_LOCKED) ? "Unlock" : "Lock");
+                    door_is_locked(door) ? "Unlock" : "Lock");
 
             c = yn(qbuf);
             if (c == 'n')
@@ -496,6 +490,20 @@ struct obj *pick;
             }
             xlock.door = door;
             xlock.box = 0;
+        } else {
+            switch (doorstate(door)) {
+            case D_NODOOR:
+                pline("This doorway has no door.");
+                return PICKLOCK_LEARNED_SOMETHING;
+            case D_ISOPEN:
+                You("cannot lock an open door.");
+                return PICKLOCK_LEARNED_SOMETHING;
+            case D_BROKEN:
+                pline("This door is broken.");
+                return PICKLOCK_LEARNED_SOMETHING;
+            default:
+                impossible("picking lock on door state %d", door->doormask);
+            }
         }
     }
     context.move = 0;
@@ -669,10 +677,15 @@ int x, y;
         return res;
     }
 
-    if (!(door->doormask & D_CLOSED)) {
+    if (door_is_locked(door)) {
+        pline("This door is locked.");
+        return res;
+    }
+
+    if (!door_is_closed(door)) {
         const char *mesg;
 
-        switch (door->doormask) {
+        switch (doorstate(door)) {
         case D_BROKEN:
             mesg = " is broken";
             break;
@@ -683,8 +696,7 @@ int x, y;
             mesg = " is already open";
             break;
         default:
-            mesg = " is locked";
-            break;
+            impossible("doopen_indir: bad door state %d", door->doormask);
         }
         pline("This door%s.", mesg);
         return res;
@@ -698,13 +710,13 @@ int x, y;
     /* door is known to be CLOSED */
     if (rnl(20) < (ACURRSTR + ACURR(A_DEX) + ACURR(A_CON)) / 3) {
         pline_The("door opens.");
-        if (door->doormask & D_TRAPPED) {
+        if (door_is_trapped(door)) {
             b_trapped("door", FINGER);
-            door->doormask = D_NODOOR;
+            set_doorstate(door, D_NODOOR);
             if (*in_rooms(cc.x, cc.y, SHOPBASE))
                 add_damage(cc.x, cc.y, SHOP_DOOR_COST);
         } else
-            door->doormask = D_ISOPEN;
+            set_doorstate(door, D_ISOPEN);
         feel_newsym(cc.x, cc.y); /* the hero knows she opened it */
         unblock_point(cc.x, cc.y); /* vision: new see through there */
     } else {
@@ -813,20 +825,20 @@ doclose()
         return res;
     }
 
-    if (door->doormask == D_NODOOR) {
+    if (doorstate(door) == D_NODOOR) {
         pline("This doorway has no door.");
         return res;
     } else if (obstructed(x, y, FALSE)) {
         return res;
-    } else if (door->doormask == D_BROKEN) {
+    } else if (doorstate(door) == D_BROKEN) {
         pline("This door is broken.");
         return res;
-    } else if (door->doormask & (D_CLOSED | D_LOCKED)) {
+    } else if (door_is_locked(door)) {
         pline("This door is already closed.");
         return res;
     }
 
-    if (door->doormask == D_ISOPEN) {
+    if (doorstate(door) == D_ISOPEN) {
         if (verysmall(youmonst.data) && !u.usteed) {
             pline("You're too small to push the door closed.");
             return res;
@@ -834,7 +846,7 @@ doclose()
         if (u.usteed
             || rn2(25) < (ACURRSTR + ACURR(A_DEX) + ACURR(A_CON)) / 3) {
             pline_The("door closes.");
-            door->doormask = D_CLOSED;
+            set_doorstate(door, D_CLOSED);
             feel_newsym(x, y); /* the hero knows she closed it */
             block_point(x, y); /* vision:  no longer see there */
         } else {
@@ -914,7 +926,7 @@ int x, y;
         case WAN_STRIKING:
         case SPE_FORCE_BOLT:
             door->typ = DOOR;
-            door->doormask = D_CLOSED | (door->doormask & D_TRAPPED);
+            set_doorstate(door, D_CLOSED);
             newsym(x, y);
             if (cansee(x, y))
                 pline("A door appears in the wall!");
@@ -962,7 +974,7 @@ int x, y;
             return FALSE;
         }
 
-        switch (door->doormask & ~D_TRAPPED) {
+        switch (doorstate(door)) {
         case D_CLOSED:
             msg = "The door locks!";
             break;
@@ -977,25 +989,27 @@ int x, y;
                "A cloud of dust springs up and assembles itself into a door!";
             break;
         default:
+            impossible("doorlock: bad door state %d", door->doormask);
             res = FALSE;
             break;
         }
         block_point(x, y);
-        door->doormask = D_LOCKED | (door->doormask & D_TRAPPED);
+        set_doorstate(door, D_CLOSED);
+        set_door_lock(door, TRUE);
         newsym(x, y);
         break;
     case WAN_OPENING:
     case SPE_KNOCK:
-        if (door->doormask & D_LOCKED) {
+        if (door_is_locked(door)) {
             msg = "The door unlocks!";
-            door->doormask = D_CLOSED | (door->doormask & D_TRAPPED);
+            set_door_lock(door, FALSE);
         } else
             res = FALSE;
         break;
     case WAN_STRIKING:
     case SPE_FORCE_BOLT:
-        if (door->doormask & (D_LOCKED | D_CLOSED)) {
-            if (door->doormask & D_TRAPPED) {
+        if (door_is_closed(door)) {
+            if (door_is_trapped(door)) {
                 if (MON_AT(x, y))
                     (void) mb_trapped(m_at(x, y));
                 else if (flags.verbose) {
@@ -1004,13 +1018,13 @@ int x, y;
                     else
                         You_hear("a distant explosion.");
                 }
-                door->doormask = D_NODOOR;
+                set_doorstate(door, D_NODOOR);
                 unblock_point(x, y);
                 newsym(x, y);
                 loudness = 40;
                 break;
             }
-            door->doormask = D_BROKEN;
+            set_doorstate(door, D_BROKEN);
             if (flags.verbose) {
                 if (cansee(x, y))
                     pline_The("door crashes open!");

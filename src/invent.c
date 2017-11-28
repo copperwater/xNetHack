@@ -2853,7 +2853,7 @@ char *buf;
     static char altbuf[BUFSZ];
 
     if (IS_DOOR(ltyp)) {
-        switch (lev->doormask) {
+        switch (doorstate(lev)) {
         case D_NODOOR:
             cmap = S_ndoor;
             break; /* "doorway" */
@@ -2863,9 +2863,11 @@ char *buf;
         case D_BROKEN:
             dfeature = "broken door";
             break;
-        default:
+        case D_CLOSED:
             cmap = S_vcdoor;
             break; /* "closed door" */
+        default:
+            impossible("dfeature_at: bad door state %d", lev->doormask);
         }
         /* override door description for open drawbridge */
         if (is_drawbridge_wall(x, y) >= 0)

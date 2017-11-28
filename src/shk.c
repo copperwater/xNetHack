@@ -3345,13 +3345,13 @@ boolean croaked;
         register xchar x = tmp_dam->place.x, y = tmp_dam->place.y;
         char shops[5];
         int disposition;
-        unsigned old_doormask = 0;
+        struct rm old_levl;
 
         disposition = 0;
         Strcpy(shops, in_rooms(x, y, SHOPBASE));
         if (index(shops, ESHK(shkp)->shoproom)) {
             if (IS_DOOR(levl[x][y].typ))
-                old_doormask = levl[x][y].doormask;
+                old_levl = levl[x][y];
 
             if (croaked)
                 disposition = (shops[1]) ? 0 : 1;
@@ -3380,7 +3380,8 @@ boolean croaked;
                     saw_walls++;
                 } else if (IS_DOOR(levl[x][y].typ)
                            /* an existing door here implies trap removal */
-                           && !(old_doormask & (D_ISOPEN | D_CLOSED))) {
+                           && (doorstate(&old_levl) != D_ISOPEN)
+                           && (doorstate(&old_levl) != D_CLOSED)) {
                     saw_door = TRUE;
                 } else if (disposition == 3) { /* untrapped */
                     saw_untrap++;
@@ -3490,8 +3491,9 @@ boolean catchup; /* restoring a level */
             (void) mpickobj(shkp, otmp);
         }
         deltrap(ttmp);
-        if (IS_DOOR(tmp_dam->typ) && !(levl[x][y].doormask & D_ISOPEN)) {
-            levl[x][y].doormask = D_CLOSED;
+        if (IS_DOOR(tmp_dam->typ)
+            && doorstate(&levl[x][y]) != D_ISOPEN) {
+            set_doorstate(&levl[x][y], D_CLOSED);
             block_point(x, y);
         } else if (IS_WALL(tmp_dam->typ)) {
             levl[x][y].typ = tmp_dam->typ;
@@ -3505,7 +3507,9 @@ boolean catchup; /* restoring a level */
         return 1;
     }
     if ((tmp_dam->typ == levl[x][y].typ)
-        && (!IS_DOOR(tmp_dam->typ) || (levl[x][y].doormask > D_BROKEN)))
+        && (!IS_DOOR(tmp_dam->typ) ||
+            (doorstate(&levl[x][y]) == D_ISOPEN) ||
+            (doorstate(&levl[x][y]) == D_CLOSED)))
         /* No messages if player already replaced shop door */
         return 1;
     levl[x][y].typ = tmp_dam->typ;
@@ -3556,7 +3560,7 @@ boolean catchup; /* restoring a level */
 
     block_point(x, y);
     if (IS_DOOR(tmp_dam->typ)) {
-        levl[x][y].doormask = D_CLOSED; /* arbitrary */
+        set_doorstate(&levl[x][y], D_CLOSED); /* arbitrary */
         newsym(x, y);
     } else {
         /* don't set doormask  - it is (hopefully) the same as it was
@@ -4465,7 +4469,7 @@ register xchar x, y;
     register struct monst *shkp;
 
     if (!(IS_DOOR(levl[u.ux][u.uy].typ)
-          && levl[u.ux][u.uy].doormask == D_BROKEN))
+          && doorstate(&levl[u.ux][u.uy]) == D_BROKEN))
         return FALSE;
 
     roomno = *in_rooms(x, y, SHOPBASE);

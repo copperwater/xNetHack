@@ -1209,7 +1209,7 @@ int x, y;
     if (!isok(x,y))
         return FALSE;
     if (!ZAP_POS(levl[x][y].typ)
-        && !(IS_DOOR(levl[x][y].typ) && (levl[x][y].doormask & D_ISOPEN)))
+        && !(IS_DOOR(levl[x][y].typ) && doorstate(&levl[x][y]) == D_ISOPEN))
         return FALSE;
     return TRUE;
 }

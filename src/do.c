@@ -279,7 +279,7 @@ polymorph_sink()
         return;
 
     level.flags.nsinks--;
-    levl[u.ux][u.uy].doormask = 0;
+    levl[u.ux][u.uy].flags = 0;
     switch (rn2(4)) {
     default:
     case 0:

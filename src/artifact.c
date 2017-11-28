@@ -2081,7 +2081,7 @@ int x, y;
                 continue;
             }
             levp = &levl[dx][dy];
-            if (IS_DOOR(levp->typ) && (levp->doormask & D_TRAPPED) != 0) {
+            if (IS_DOOR(levp->typ) && door_is_trapped(levp)) {
                 ++ret;
                 continue;
             }

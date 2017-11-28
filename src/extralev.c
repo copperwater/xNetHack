@@ -73,7 +73,7 @@ int x, y, dir;
             if (!IS_WALL(levl[fromx][fromy].typ))
                 impossible("down: no wall at %d,%d?", fromx, fromy);
             dodoor(fromx, fromy, &rooms[r[x][y].nroom]);
-            levl[fromx][fromy].doormask = D_NODOOR;
+            set_doorstate(&levl[fromx][fromy], D_NODOOR);
             fromy++;
         }
         if (y >= 2) {
@@ -95,7 +95,7 @@ int x, y, dir;
             if (!IS_WALL(levl[tox][toy].typ))
                 impossible("up: no wall at %d,%d?", tox, toy);
             dodoor(tox, toy, &rooms[r[x][y].nroom]);
-            levl[tox][toy].doormask = D_NODOOR;
+            set_doorstate(&levl[tox][toy], D_NODOOR);
             toy--;
         }
         roguejoin(fromx, fromy, tox, toy, FALSE);
@@ -115,7 +115,7 @@ int x, y, dir;
             if (!IS_WALL(levl[fromx][fromy].typ))
                 impossible("down: no wall at %d,%d?", fromx, fromy);
             dodoor(fromx, fromy, &rooms[r[x][y].nroom]);
-            levl[fromx][fromy].doormask = D_NODOOR;
+            set_doorstate(&levl[fromx][fromy], D_NODOOR);
             fromx++;
         }
         if (x >= 2) {
@@ -137,7 +137,7 @@ int x, y, dir;
             if (!IS_WALL(levl[tox][toy].typ))
                 impossible("left: no wall at %d,%d?", tox, toy);
             dodoor(tox, toy, &rooms[r[x][y].nroom]);
-            levl[tox][toy].doormask = D_NODOOR;
+            set_doorstate(&levl[tox][toy], D_NODOOR);
             tox--;
         }
         roguejoin(fromx, fromy, tox, toy, TRUE);

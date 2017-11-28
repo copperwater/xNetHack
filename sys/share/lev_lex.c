@@ -1826,7 +1826,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-{ savetoken(yytext); yylval.i=D_LOCKED; return DOOR_STATE; }
+{ savetoken(yytext); yylval.i|=D_LOCKED; return DOOR_STATE; }
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
@@ -3170,7 +3170,7 @@ static void yy_flex_strncpy (s1,s2,n )
         yyconst char * s2;
         int n;
 {
-		
+
 	int i;
 	for ( i = 0; i < n; ++i )
 		s1[i] = s2[i];
@@ -3192,7 +3192,7 @@ static int yy_flex_strlen (s )
 void *yyalloc (size )
         yy_size_t  size;
 {
-		
+
 	return (void *) malloc( size );
 }
 
@@ -3200,7 +3200,7 @@ void *yyrealloc (ptr,size )
         void * ptr;
         yy_size_t  size;
 {
-		
+
 	/* The cast to (char *) in the following accommodates both
 	 * implementations that use char* generic pointers, and those
 	 * that use void* generic pointers.  It works with the latter
@@ -3214,7 +3214,7 @@ void *yyrealloc (ptr,size )
 void yyfree (ptr )
         void * ptr;
 {
-		
+
 	free( (char *) ptr );	/* see yyrealloc() for (char *) cast */
 }
 

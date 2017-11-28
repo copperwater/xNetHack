@@ -484,7 +484,7 @@ invault()
                 EGD(guard)->fakecorr[0].ftyp = VWALL;
         }
         levl[x][y].typ = DOOR;
-        levl[x][y].doormask = D_NODOOR;
+        set_doorstate(&levl[x][y], D_NODOOR);
         unblock_point(x, y); /* doesn't block light */
         EGD(guard)->fcend = 1;
         EGD(guard)->warncnt = 1;
@@ -549,7 +549,7 @@ struct monst *grd;
                 else /* not left or right side, must be top or bottom */
                     typ = HWALL;
                 levl[x][y].typ = typ;
-                levl[x][y].doormask = 0;
+                levl[x][y].flags = 0;
                 /*
                  * hack: player knows walls are restored because of the
                  * message, below, so show this on the screen.
@@ -803,7 +803,7 @@ register struct monst *grd;
                     crm->typ = (typ == SCORR) ? CORR : DOOR;
 #endif
                     if (crm->typ == DOOR)
-                        crm->doormask = D_NODOOR;
+                        set_doorstate(crm, D_NODOOR);
                     goto proceed;
                 }
             }
@@ -828,7 +828,7 @@ nextpos:
         if (isok(nx + nx - x, ny + ny - y) && !IS_POOL(typ)
             && IS_ROOM(levl[nx + nx - x][ny + ny - y].typ)) {
             crm->typ = DOOR;
-            crm->doormask = D_NODOOR;
+            set_doorstate(crm, D_NODOOR);
             goto proceed;
         }
         if (dy && nx != x) {
@@ -845,7 +845,7 @@ nextpos:
         /* I don't like this, but ... */
         if (IS_ROOM(typ)) {
             crm->typ = DOOR;
-            crm->doormask = D_NODOOR;
+            set_doorstate(crm, D_NODOOR);
             goto proceed;
         }
         break;

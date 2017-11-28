@@ -340,7 +340,7 @@ typedef struct {
 } lev_init;
 
 typedef struct {
-    xchar wall, pos, secret, mask;
+    xchar wall, pos, secret, doormask;
 } room_door;
 
 typedef struct {

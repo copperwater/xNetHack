@@ -85,14 +85,14 @@ register struct monst *mtmp;
     if (mtmp->mpeaceful && in_town(u.ux + u.dx, u.uy + u.dy)
         && mtmp->mcansee && m_canseeu(mtmp) && !rn2(3)) {
         if (picking_lock(&x, &y) && IS_DOOR(levl[x][y].typ)
-            && (levl[x][y].doormask & D_LOCKED)) {
+            && door_is_locked(&levl[x][y])) {
             if (couldsee(mtmp->mx, mtmp->my)) {
-                if (levl[x][y].looted & D_WARNED) {
+                if (door_is_warned(&levl[x][y])) {
                     mon_yells(mtmp, "Halt, thief!  You're under arrest!");
                     (void) angry_guards(!!Deaf);
                 } else {
                     mon_yells(mtmp, "Hey, stop picking that lock!");
-                    levl[x][y].looted |= D_WARNED;
+                    set_door_warning(&levl[x][y], TRUE);
                 }
                 stop_occupation();
             }
@@ -1243,8 +1243,8 @@ postmov:
                 && !passes_walls(ptr) /* doesn't need to open doors */
                 && !can_tunnel) {     /* taken care of below */
                 struct rm *here = &levl[mtmp->mx][mtmp->my];
-                boolean btrapped = (here->doormask & D_TRAPPED) != 0,
-                        observeit = canseeit && canspotmon(mtmp);
+                boolean btrapped = door_is_trapped(here);
+                boolean observeit = canseeit && canspotmon(mtmp);
 
                 /* if mon has MKoT, disarm door trap; no message given */
                 if (btrapped && has_magic_key(mtmp)) {
@@ -1253,10 +1253,10 @@ postmov:
                        using that Key when squeezing under or smashing the
                        door.  Not significant enough to worry about; perhaps
                        the Key's magic is more powerful for monsters? */
-                    here->doormask &= ~D_TRAPPED;
+                    set_door_trap(here, FALSE);
                     btrapped = FALSE;
                 }
-                if ((here->doormask & (D_LOCKED | D_CLOSED)) != 0
+                if (door_is_closed(here)
                     && (amorphous(ptr)
                         || (can_fog(mtmp)
                             && vamp_shift(mtmp, &mons[PM_FOG_CLOUD],
@@ -1269,9 +1269,9 @@ postmov:
                                || ptr->mlet == S_LIGHT)
                                   ? "flows"
                                   : "oozes");
-                } else if (here->doormask & D_LOCKED && can_unlock) {
+                } else if (door_is_locked(here) && can_unlock) {
                     if (btrapped) {
-                        here->doormask = D_NODOOR;
+                        set_doorstate(here, D_NODOOR);
                         newsym(mtmp->mx, mtmp->my);
                         unblock_point(mtmp->mx, mtmp->my); /* vision */
                         if (mb_trapped(mtmp))
@@ -1286,13 +1286,13 @@ postmov:
                             else if (!Deaf)
                                 You_hear("a door unlock and open.");
                         }
-                        here->doormask = D_ISOPEN;
+                        set_doorstate(here, D_ISOPEN);
                         /* newsym(mtmp->mx, mtmp->my); */
                         unblock_point(mtmp->mx, mtmp->my); /* vision */
                     }
-                } else if (here->doormask == D_CLOSED && can_open) {
+                } else if (door_is_closed(here) && can_open) {
                     if (btrapped) {
-                        here->doormask = D_NODOOR;
+                        set_doorstate(here, D_NODOOR);
                         newsym(mtmp->mx, mtmp->my);
                         unblock_point(mtmp->mx, mtmp->my); /* vision */
                         if (mb_trapped(mtmp))
@@ -1306,14 +1306,14 @@ postmov:
                             else if (!Deaf)
                                 You_hear("a door open.");
                         }
-                        here->doormask = D_ISOPEN;
+                        set_doorstate(here, D_ISOPEN);
                         /* newsym(mtmp->mx, mtmp->my); */  /* done below */
                         unblock_point(mtmp->mx, mtmp->my); /* vision */
                     }
-                } else if (here->doormask & (D_LOCKED | D_CLOSED)) {
+                } else if (door_is_closed(here)) {
                     /* mfndpos guarantees this must be a doorbuster */
                     if (btrapped) {
-                        here->doormask = D_NODOOR;
+                        set_doorstate(here, D_NODOOR);
                         newsym(mtmp->mx, mtmp->my);
                         unblock_point(mtmp->mx, mtmp->my); /* vision */
                         if (mb_trapped(mtmp))
@@ -1328,10 +1328,10 @@ postmov:
                             else if (!Deaf)
                                 You_hear("a door crash open.");
                         }
-                        if ((here->doormask & D_LOCKED) != 0 && !rn2(2))
-                            here->doormask = D_NODOOR;
+                        if (door_is_locked(here) && !rn2(2))
+                            set_doorstate(here, D_NODOOR);
                         else
-                            here->doormask = D_BROKEN;
+                            set_doorstate(here, D_BROKEN);
                         /* newsym(mtmp->mx, mtmp->my); */  /* done below */
                         unblock_point(mtmp->mx, mtmp->my); /* vision */
                     }
@@ -1454,7 +1454,7 @@ closed_door(x, y)
 register int x, y;
 {
     return (boolean) (IS_DOOR(levl[x][y].typ)
-                      && (levl[x][y].doormask & (D_LOCKED | D_CLOSED)));
+                      && door_is_closed(&levl[x][y]));
 }
 
 boolean

@@ -14,7 +14,6 @@ STATIC_DCL boolean FDECL(findtravelpath, (int));
 STATIC_DCL boolean FDECL(trapmove, (int, int, struct trap *));
 STATIC_DCL void NDECL(switch_terrain);
 STATIC_DCL struct monst *FDECL(monstinroom, (struct permonst *, int));
-STATIC_DCL boolean FDECL(doorless_door, (int, int));
 STATIC_DCL void FDECL(move_update, (BOOLEAN_P));
 
 #define IS_SHOP(x) (rooms[x].rtype >= SHOPBASE)
@@ -468,7 +467,7 @@ xchar x, y;
             lev->typ = CORR;
         } else {
             lev->typ = DOOR;
-            lev->doormask = D_NODOOR;
+            set_doorstate(lev, D_NODOOR);
         }
     } else if (IS_TREE(lev->typ)) {
         digtxt = "chew through the tree.";
@@ -477,12 +476,12 @@ xchar x, y;
         digtxt = "eat through the bars.";
         dissolve_bars(x, y);
     } else if (lev->typ == SDOOR) {
-        if (lev->doormask & D_TRAPPED) {
-            lev->doormask = D_NODOOR;
+        if (door_is_trapped(lev)) {
+            set_doorstate(lev, D_NODOOR);
             b_trapped("secret door", 0);
         } else {
             digtxt = "chew through the secret door.";
-            lev->doormask = D_BROKEN;
+            set_doorstate(lev, D_BROKEN);
         }
         lev->typ = DOOR;
 
@@ -491,12 +490,12 @@ xchar x, y;
             add_damage(x, y, SHOP_DOOR_COST);
             dmgtxt = "break";
         }
-        if (lev->doormask & D_TRAPPED) {
-            lev->doormask = D_NODOOR;
+        if (door_is_trapped(lev)) {
+            set_doorstate(lev, D_NODOOR);
             b_trapped("door", 0);
         } else {
             digtxt = "chew through the door.";
-            lev->doormask = D_BROKEN;
+            set_doorstate(lev, D_BROKEN);
         }
 
     } else { /* STONE or SCORR */
@@ -2509,7 +2508,7 @@ dopickup()
             You("don't need a gravestone.  Yet.");
         else if (IS_FOUNTAIN(lev->typ))
             You("could drink the %s...", hliquid("water"));
-        else if (IS_DOOR(lev->typ) && (lev->doormask & D_ISOPEN))
+        else if (IS_DOOR(lev->typ) && (doorstate(lev) == D_ISOPEN))
             pline("It won't come off the hinges.");
         else
             There("is nothing here to pick up.");
@@ -2689,7 +2688,7 @@ lookaround()
 }
 
 /* check for a doorway which lacks its door (NODOOR or BROKEN) */
-STATIC_OVL boolean
+boolean
 doorless_door(x, y)
 int x, y;
 {
@@ -2701,7 +2700,8 @@ int x, y;
        we treat them as if their non-existant doors were actually present */
     if (Is_rogue_level(&u.uz))
         return FALSE;
-    return !(lev_p->doormask & ~(D_NODOOR | D_BROKEN));
+    return (doorstate(lev_p) == D_NODOOR ||
+            doorstate(lev_p) == D_BROKEN);
 }
 
 /* used by drown() to check whether hero can crawl from water to <x,y> */

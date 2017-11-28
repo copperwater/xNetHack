@@ -583,8 +583,7 @@ xchar x, y;
          *      + Everything else (hallways!)
          */
         if (IS_ROCK(lev->typ)
-            || (IS_DOOR(lev->typ)
-                && (lev->doormask & (D_LOCKED | D_CLOSED)))) {
+            || (IS_DOOR(lev->typ) && door_is_closed(lev))) {
             map_background(x, y, 1);
         } else if ((boulder = sobj_at(BOULDER, x, y)) != 0) {
             map_object(boulder, 1);
@@ -1595,15 +1594,20 @@ xchar x, y;
         idx = ptr->seenv ? wall_angle(ptr) : S_stone;
         break;
     case DOOR:
-        if (ptr->doormask) {
-            if (ptr->doormask & D_BROKEN)
-                idx = S_ndoor;
-            else if (ptr->doormask & D_ISOPEN)
-                idx = (ptr->horizontal) ? S_hodoor : S_vodoor;
-            else /* else is closed */
-                idx = (ptr->horizontal) ? S_hcdoor : S_vcdoor;
-        } else
+        switch(doorstate(ptr)) {
+        case D_CLOSED:
+            idx = (ptr->horizontal) ? S_hcdoor : S_vcdoor;
+            break;
+        case D_ISOPEN:
+            idx = (ptr->horizontal) ? S_hodoor : S_vodoor;
+            break;
+        case D_NODOOR:
+        case D_BROKEN:
             idx = S_ndoor;
+            break;
+        default:
+            impossible("back_to_glyph: bad door state %d", ptr->doormask);
+        }
         break;
     case IRONBARS:
         idx = S_bars;

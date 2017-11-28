@@ -720,18 +720,21 @@ register struct mkroom *sroom;
     /* make sure no doorways without doors, and no trapped doors, in shops */
     sx = doors[sroom->fdoor].x;
     sy = doors[sroom->fdoor].y;
-    if (levl[sx][sy].doormask == D_NODOOR) {
-        levl[sx][sy].doormask = D_ISOPEN;
+    if (doorstate(&levl[sx][sy]) == D_NODOOR) {
+        set_doorstate(&levl[sx][sy], D_ISOPEN);
         newsym(sx, sy);
     }
     if (levl[sx][sy].typ == SDOOR) {
         cvt_sdoor_to_door(&levl[sx][sy]); /* .typ = DOOR */
         newsym(sx, sy);
     }
-    if (levl[sx][sy].doormask & D_TRAPPED)
-        levl[sx][sy].doormask = D_LOCKED;
+    if (door_is_trapped(&levl[sx][sy])) {
+        set_door_trap(&levl[sx][sy], FALSE);
+        set_door_lock(&levl[sx][sy], TRUE);
+        set_doorstate(&levl[sx][sy], D_CLOSED);
+    }
 
-    if (levl[sx][sy].doormask == D_LOCKED) {
+    if (door_is_locked(&levl[sx][sy])) {
         register int m = sx, n = sy;
 
         if (inside_shop(sx + 1, sy))

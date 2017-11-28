@@ -147,8 +147,7 @@ int x, y;
     lev = &levl[x][y];
     if (!IS_DOOR(lev->typ))
         return FALSE;
-    if ((lev->doormask & (D_NODOOR | D_BROKEN | D_ISOPEN)) != 0
-         && trapped_chest_at(ttyp, x, y))
+    if (!door_is_closed(lev) && trapped_chest_at(ttyp, x, y))
         return FALSE;
     return TRUE;
 }
@@ -969,7 +968,7 @@ struct obj *sobj; /* null if crystal ball, *scroll if gold detection scroll */
     /* door traps */
     for (door = 0; door < doorindex; door++) {
         cc = doors[door];
-        if (levl[cc.x][cc.y].doormask & D_TRAPPED) {
+        if (door_is_trapped(&levl[cc.x][cc.y])) {
             if (cc.x != u.ux || cc.y != u.uy)
                 goto outtrapmap;
             else
@@ -1007,7 +1006,7 @@ outtrapmap:
 
     for (door = 0; door < doorindex; door++) {
         cc = doors[door];
-        if (levl[cc.x][cc.y].doormask & D_TRAPPED)
+        if (door_is_trapped(&levl[cc.x][cc.y]))
             sense_trap((struct trap *) 0, cc.x, cc.y, cursed_src);
     }
 
@@ -1342,18 +1341,15 @@ void
 cvt_sdoor_to_door(lev)
 struct rm *lev;
 {
-    int newmask = lev->doormask & ~WM_MASK;
-
-    if (Is_rogue_level(&u.uz))
-        /* rogue didn't have doors, only doorways */
-        newmask = D_NODOOR;
-    else
-        /* newly exposed door is closed */
-        if (!(newmask & D_LOCKED))
-        newmask |= D_CLOSED;
-
     lev->typ = DOOR;
-    lev->doormask = newmask;
+
+    if (Is_rogue_level(&u.uz)) {
+        /* rogue didn't have doors, only doorways */
+        set_doorstate(lev, D_NODOOR);
+    } else {
+        /* newly exposed door is closed */
+        set_doorstate(lev, D_CLOSED);
+    }
 }
 
 STATIC_PTR void
@@ -1419,10 +1415,10 @@ genericptr_t num;
     }
     if (levl[zx][zy].typ == SDOOR
         || (levl[zx][zy].typ == DOOR
-            && (levl[zx][zy].doormask & (D_CLOSED | D_LOCKED)))) {
+            && door_is_closed(&levl[zx][zy]))) {
         if (levl[zx][zy].typ == SDOOR)
             cvt_sdoor_to_door(&levl[zx][zy]); /* .typ = DOOR */
-        if (levl[zx][zy].doormask & D_TRAPPED) {
+        if (door_is_trapped(&levl[zx][zy])) {
             if (distu(zx, zy) < 3)
                 b_trapped("door", 0);
             else
@@ -1430,9 +1426,10 @@ genericptr_t num;
                       cansee(zx, zy) ? "see" : (!Deaf ? "hear"
                                                       : "feel the shock of"));
             wake_nearto(zx, zy, 11 * 11);
-            levl[zx][zy].doormask = D_NODOOR;
-        } else
-            levl[zx][zy].doormask = D_ISOPEN;
+            set_doorstate(&levl[zx][zy], D_NODOOR);
+        } else {
+            set_doorstate(&levl[zx][zy], D_ISOPEN);
+        }
         unblock_point(zx, zy);
         newsym(zx, zy);
         (*num_p)++;

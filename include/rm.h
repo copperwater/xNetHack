@@ -308,16 +308,23 @@ extern struct symsetentry symset[NUM_GRAPHICS]; /* from drawing.c */
 #define SYMHANDLING(ht) (symset[currentgraphics].handling == (ht))
 
 /*
- * The 5 possible states of doors
+ * The possible states of doors - lowest 2 bits of doormask
+ * Note that the 'locked' and 'trapped' bits are meaningful only if the door is
+ * closed.
  */
-
-#define D_NODOOR 0
-#define D_BROKEN 1
-#define D_ISOPEN 2
-#define D_CLOSED 4
-#define D_LOCKED 8
-#define D_TRAPPED 16
-#define D_SECRET 32 /* only used by sp_lev.c, NOT in rm-struct */
+enum door_states {
+    D_NODOOR = 0,
+    D_BROKEN,
+    D_ISOPEN,
+    D_CLOSED
+};
+#define D_STATEMASK 0x3
+/* closed and trapped - 3rd and 4th bits */
+#define D_LOCKED 0x4
+#define D_TRAPPED 0x8
+/* iron doors - 5th bit */
+/* #define D_IRON 0x10 */
+#define D_SECRET 0x20 /* only used by sp_lev.c, NOT in rm-struct */
 
 /*
  * Some altars are considered as shrines, so we need a flag.
@@ -352,7 +359,7 @@ extern struct symsetentry symset[NUM_GRAPHICS]; /* from drawing.c */
  * of instantly trapping the door, and if it was defined as trapped,
  * the guards consider that you have already been warned!
  */
-#define D_WARNED 16
+#define D_WARNED D_TRAPPED
 
 /*
  * Sinks have 3 different types of loot that shouldn't be abused
@@ -419,6 +426,26 @@ struct rm {
     Bitfield(edge, 1);   /* marks boundaries for special rooms*/
     Bitfield(candig, 1); /* Exception to Can_dig_down; was a trapdoor */
 };
+
+/* some door macros, intended to be called on a struct rm* */
+#define doorstate(x) ((x)->doormask & D_STATEMASK)
+#define door_is_closed(x) (doorstate(x) == D_CLOSED)
+#define door_is_locked(x) \
+    (((x)->doormask & (D_CLOSED | D_LOCKED)) == (D_CLOSED | D_LOCKED))
+#define door_is_trapped(x) \
+    (((x)->doormask & (D_CLOSED | D_TRAPPED)) == (D_CLOSED | D_TRAPPED))
+#define door_is_warned(x) \
+    (((x)->doormask & D_WARNED) == D_WARNED)
+
+#define set_door_lock(door, lock) \
+    (door)->doormask = ((door)->doormask & ~D_LOCKED) | ((lock) ? D_LOCKED : 0)
+#define set_door_trap(door, trap) \
+    (door)->doormask = ((door)->doormask & ~D_TRAPPED) | ((trap) ? D_TRAPPED : 0)
+#define set_door_warning(door, warn) \
+    (door)->doormask = ((door)->doormask & ~D_WARNED) | ((warn) ? D_WARNED : 0)
+
+#define set_doorstate(door, state) \
+    (door)->doormask = ((door)->doormask & ~D_STATEMASK) | (state)
 
 #define SET_TYPLIT(x, y, ttyp, llit)                              \
     {                                                             \

@@ -215,8 +215,8 @@ quantity	ST_RET(QUANTITY_ID);
 buried		ST_RET(BURIED_ID);
 eroded		ST_RET(ERODED_ID);
 erodeproof	ST_RET(ERODEPROOF_ID);
-trapped     { savetoken(yytext); yylval.i=1; return TRAPPED_STATE; }
-not_trapped { savetoken(yytext); yylval.i=0; return TRAPPED_STATE; }
+ctrapped        { savetoken(yytext); yylval.i=1; return TRAPPED_STATE; }
+not_trapped     { savetoken(yytext); yylval.i=0; return TRAPPED_STATE; }
 recharged	ST_RET(RECHARGED_ID);
 invisible	ST_RET(INVIS_ID);
 greased		ST_RET(GREASED_ID);
@@ -233,11 +233,12 @@ seen_traps	ST_RET(SEENTRAPS_ID);
 all		ST_RET(ALL_ID);
 horizontal	ST_RETF((yylval.i=1), HORIZ_OR_VERT);
 vertical	{ savetoken(yytext); yylval.i=2; return HORIZ_OR_VERT; }
-open		{ savetoken(yytext); yylval.i=D_ISOPEN; return DOOR_STATE; }
-closed		{ savetoken(yytext); yylval.i=D_CLOSED; return DOOR_STATE; }
-locked		{ savetoken(yytext); yylval.i=D_LOCKED; return DOOR_STATE; }
 nodoor		{ savetoken(yytext); yylval.i=D_NODOOR; return DOOR_STATE; }
 broken		{ savetoken(yytext); yylval.i=D_BROKEN; return DOOR_STATE; }
+open		{ savetoken(yytext); yylval.i=D_ISOPEN; return DOOR_STATE; }
+closed		{ savetoken(yytext); yylval.i=D_CLOSED; return DOOR_STATE; }
+locked		{ savetoken(yytext); yylval.i=D_LOCKED; return DOOR_FLAGS; }
+trapped		{ savetoken(yytext); yylval.i=D_TRAPPED; return DOOR_FLAGS; }
 secret		{ savetoken(yytext); yylval.i=D_SECRET; return DOOR_STATE; }
 north		{ savetoken(yytext); yylval.i=W_NORTH; return DIRECTION; }
 east		{ savetoken(yytext); yylval.i=W_EAST; return DIRECTION; }

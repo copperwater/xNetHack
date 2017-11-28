@@ -1343,7 +1343,7 @@ struct obj *obj;                     /* 2nd arg to fhitm/fhito */
                         makeknown(obj->otyp);
                     /* if a shop door gets broken, add it to
                        the shk's fix list (no cost to player) */
-                    if (levl[bhitpos.x][bhitpos.y].doormask == D_BROKEN
+                    if (doorstate(&levl[bhitpos.x][bhitpos.y]) == D_BROKEN
                         && *in_rooms(bhitpos.x, bhitpos.y, SHOPBASE))
                         add_damage(bhitpos.x, bhitpos.y, 0L);
                 }
@@ -1351,8 +1351,7 @@ struct obj *obj;                     /* 2nd arg to fhitm/fhito */
             }
         }
         if (!ZAP_POS(typ)
-            || (IS_DOOR(typ) && (levl[bhitpos.x][bhitpos.y].doormask
-                                 & (D_LOCKED | D_CLOSED)))) {
+            || (IS_DOOR(typ) && door_is_closed(&levl[bhitpos.x][bhitpos.y]))) {
             bhitpos.x -= ddx;
             bhitpos.y -= ddy;
             break;

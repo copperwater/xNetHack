@@ -426,7 +426,7 @@ boolean allow_drag;
 #define IS_CHAIN_ROCK(x, y)      \
     (IS_ROCK(levl[x][y].typ)     \
      || (IS_DOOR(levl[x][y].typ) \
-         && (levl[x][y].doormask & (D_CLOSED | D_LOCKED))))
+         && door_is_closed(&levl[x][y])))
 /* Don't ever move the chain into solid rock.  If we have to, then instead
  * undo the move_bc() and jump to the drag ball code.  Note that this also
  * means the "cannot carry and drag" message will not appear, since unless we

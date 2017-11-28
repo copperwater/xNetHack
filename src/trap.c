@@ -411,7 +411,7 @@ int x, y, typ;
                         && !context.mon_moving)
                            ? SHOP_HOLE_COST
                            : 0L);
-        lev->doormask = 0;     /* subsumes altarmask, icedpool... */
+        lev->flags = 0;        /* subsumes altarmask, icedpool... */
         if (IS_ROOM(lev->typ)) /* && !IS_AIR(lev->typ) */
             lev->typ = ROOM;
         /*
@@ -1618,7 +1618,7 @@ struct trap *trap;
     del_engr_at(x, y);
     wake_nearto(x, y, 400);
     if (IS_DOOR(lev->typ))
-        lev->doormask = D_BROKEN;
+        set_doorstate(lev, D_BROKEN);
     /* destroy drawbridge if present */
     if (lev->typ == DRAWBRIDGE_DOWN || is_drawbridge_wall(x, y) >= 0) {
         dbx = x, dby = y;
@@ -1925,7 +1925,7 @@ int style;
         if (otyp == BOULDER && closed_door(bhitpos.x, bhitpos.y)) {
             if (cansee(bhitpos.x, bhitpos.y))
                 pline_The("boulder crashes through a door.");
-            levl[bhitpos.x][bhitpos.y].doormask = D_BROKEN;
+            set_doorstate(&levl[bhitpos.x][bhitpos.y], D_BROKEN);
             if (dist)
                 unblock_point(bhitpos.x, bhitpos.y);
         }
@@ -4443,7 +4443,7 @@ boolean force;
         return 0;
     }
 
-    switch (levl[x][y].doormask) {
+    switch (doorstate(&levl[x][y])) {
     case D_NODOOR:
         You("%s no door there.", Blind ? "feel" : "see");
         return 0;
@@ -4455,21 +4455,21 @@ boolean force;
         return 0;
     }
 
-    if (((levl[x][y].doormask & D_TRAPPED) != 0
+    if ((door_is_trapped(&levl[x][y])
          && (force || (!confused && rn2(MAXULEV - u.ulevel + 11) < 10)))
         || (!force && confused && !rn2(3))) {
         You("find a trap on the door!");
         exercise(A_WIS, TRUE);
         if (ynq("Disarm it?") != 'y')
             return 1;
-        if (levl[x][y].doormask & D_TRAPPED) {
+        if (door_is_trapped(&levl[x][y])) {
             ch = 15 + (Role_if(PM_ROGUE) ? u.ulevel * 3 : u.ulevel);
             exercise(A_DEX, TRUE);
             if (!force && (confused || Fumbling
                            || rnd(75 + level_difficulty() / 2) > ch)) {
                 You("set it off!");
                 b_trapped("door", FINGER);
-                levl[x][y].doormask = D_NODOOR;
+                set_doorstate(&levl[x][y], D_NODOOR);
                 unblock_point(x, y);
                 newsym(x, y);
                 /* (probably ought to charge for this damage...) */
@@ -4477,7 +4477,7 @@ boolean force;
                     add_damage(x, y, 0L);
             } else {
                 You("disarm it!");
-                levl[x][y].doormask &= ~D_TRAPPED;
+                set_door_trap(&levl[x][y], FALSE);
             }
         } else
             pline("This door was not trapped.");

@@ -512,7 +512,7 @@ int x, y;
     if (cansee(x, y) || (x == u.ux && y == u.uy))
         pline_The("pipes break!  Water spurts out!");
     level.flags.nsinks--;
-    levl[x][y].doormask = 0;
+    levl[x][y].flags = 0;
     levl[x][y].typ = FOUNTAIN;
     level.flags.nfountains++;
     newsym(x, y);

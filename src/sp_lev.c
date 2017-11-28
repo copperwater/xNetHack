@@ -1287,28 +1287,29 @@ struct mkroom *broom;
     if (dd->secret == -1)
         dd->secret = rn2(2);
 
-    if (dd->mask == -1) {
+    if (dd->doormask == -1) {
         /* is it a locked door, closed, or a doorway? */
         if (!dd->secret) {
             if (!rn2(3)) {
-                if (!rn2(5))
-                    dd->mask = D_ISOPEN;
-                else if (!rn2(6))
-                    dd->mask = D_LOCKED;
-                else
-                    dd->mask = D_CLOSED;
-                if (dd->mask != D_ISOPEN && !rn2(25))
-                    dd->mask |= D_TRAPPED;
+                if (rn2(5)) {
+                    set_doorstate(dd, D_CLOSED);
+                    if(!rn2(6)) {
+                        set_door_lock(dd, TRUE);
+                    }
+                    if(!rn2(25)) {
+                        set_door_trap(dd, TRUE);
+                    }
+                } else {
+                    set_doorstate(dd, D_ISOPEN);
+                }
             } else
-                dd->mask = D_NODOOR;
+                set_doorstate(dd, D_NODOOR);
         } else {
+            set_doorstate(dd, D_CLOSED);
             if (!rn2(5))
-                dd->mask = D_LOCKED;
-            else
-                dd->mask = D_CLOSED;
-
+                set_door_lock(dd, TRUE);
             if (!rn2(20))
-                dd->mask |= D_TRAPPED;
+                set_door_trap(dd, TRUE);
         }
     }
 
@@ -1376,7 +1377,7 @@ struct mkroom *broom;
         return;
     }
     levl[x][y].typ = (dd->secret ? SDOOR : DOOR);
-    levl[x][y].doormask = dd->mask;
+    levl[x][y].doormask = dd->doormask;
 }
 
 /*
@@ -1419,7 +1420,7 @@ xchar walls; /* any of W_NORTH | W_SOUTH | W_EAST | W_WEST (or W_ANY) */
 
         if (okdoor(sx, sy)) {
             levl[sx][sy].typ = SDOOR;
-            levl[sx][sy].doormask = D_CLOSED;
+            set_doorstate(&levl[sx][sy], D_CLOSED);
             return;
         }
     }
@@ -1487,7 +1488,7 @@ int x, y;
         return TRUE;
     /* avoid closed doors */
     lev = &levl[x][y];
-    if (IS_DOOR(lev->typ) && (lev->doormask & (D_CLOSED | D_LOCKED)) != 0)
+    if (IS_DOOR(lev->typ) && door_is_closed(lev))
         return TRUE;
     /* spot is ok */
     return FALSE;
@@ -4159,7 +4160,7 @@ genericptr_t arg;
     /* handle doors and secret doors */
     if (levl[x][y].typ == SDOOR || IS_DOOR(levl[x][y].typ)) {
         if (levl[x][y].typ == SDOOR)
-            levl[x][y].doormask = D_CLOSED;
+            set_doorstate(&levl[x][y], D_CLOSED);
         if (x && (IS_WALL(levl[x - 1][y].typ) || levl[x - 1][y].horizontal))
             levl[x][y].horizontal = 1;
     }
@@ -4732,15 +4733,15 @@ spo_room_door(coder)
 struct sp_coder *coder;
 {
     static const char nhFunc[] = "spo_room_door";
-    struct opvar *wall, *secret, *mask, *pos;
+    struct opvar *wall, *secret, *doormask, *pos;
     room_door tmpd;
 
-    if (!OV_pop_i(wall) || !OV_pop_i(secret) || !OV_pop_i(mask)
+    if (!OV_pop_i(wall) || !OV_pop_i(secret) || !OV_pop_i(doormask)
         || !OV_pop_i(pos) || !coder->croom)
         return;
 
     tmpd.secret = OV_i(secret);
-    tmpd.mask = OV_i(mask);
+    tmpd.doormask = OV_i(doormask);
     tmpd.pos = OV_i(pos);
     tmpd.wall = OV_i(wall);
 
@@ -4748,7 +4749,7 @@ struct sp_coder *coder;
 
     opvar_free(wall);
     opvar_free(secret);
-    opvar_free(mask);
+    opvar_free(doormask);
     opvar_free(pos);
 }
 
@@ -4917,7 +4918,7 @@ struct sp_coder *coder;
                  */
                 if (levl[x][y].typ == SDOOR || IS_DOOR(levl[x][y].typ)) {
                     if (levl[x][y].typ == SDOOR)
-                        levl[x][y].doormask = D_CLOSED;
+                        set_doorstate(&levl[x][y], D_CLOSED);
                     /*
                      *  If there is a wall to the left that connects to a
                      *  (secret) door, then it is horizontal.  This does

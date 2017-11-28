@@ -1296,8 +1296,7 @@ xchar mx, my, fx, fy;
             if (IS_ROCK(levl[i][j].typ) && !passes_walls(mon->data)
                 && (!may_dig(i, j) || !tunnels(mon->data)))
                 continue;
-            if (IS_DOOR(levl[i][j].typ)
-                && (levl[i][j].doormask & (D_CLOSED | D_LOCKED)))
+            if (IS_DOOR(levl[i][j].typ) && door_is_closed(&levl[i][j]))
                 continue;
             if (!could_reach_item(mon, i, j))
                 continue;

@@ -1302,8 +1302,8 @@ nexttry: /* eels prefer the water, but if there is no water nearby,
             if (ntyp == IRONBARS && !(flag & ALLOW_BARS))
                 continue;
             if (IS_DOOR(ntyp) && !(amorphous(mdat) || can_fog(mon))
-                && (((levl[nx][ny].doormask & D_CLOSED) && !(flag & OPENDOOR))
-                    || ((levl[nx][ny].doormask & D_LOCKED)
+                && ((doorstate(&levl[nx][ny]) && !(flag & OPENDOOR))
+                    || (door_is_locked(&levl[nx][ny])
                         && !(flag & UNLOCKDOOR))) && !thrudoor)
                 continue;
             /* avoid poison gas? */
@@ -1313,11 +1313,7 @@ nexttry: /* eels prefer the water, but if there is no water nearby,
                 continue;
             /* first diagonal checks (tight squeezes handled below) */
             if (nx != x && ny != y
-                && (nodiag
-                    || (IS_DOOR(nowtyp) && (levl[x][y].doormask & ~D_BROKEN))
-                    || (IS_DOOR(ntyp) && (levl[nx][ny].doormask & ~D_BROKEN))
-                    || ((IS_DOOR(nowtyp) || IS_DOOR(ntyp))
-                        && Is_rogue_level(&u.uz))
+                && (nodiag || !doorless_door(x,y) || !doorless_door(x,y)
                     /* mustn't pass between adjacent long worm segments,
                        but can attack that way */
                     || (m_at(x, ny) && m_at(nx, y) && worm_cross(x, y, nx, ny)

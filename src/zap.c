@@ -3299,7 +3299,7 @@ struct obj **pobj; /* object tossed/used, set to NULL
                     if (cansee(bhitpos.x, bhitpos.y)
                         || (obj->otyp == WAN_STRIKING && !Deaf))
                         learnwand(obj);
-                    if (levl[bhitpos.x][bhitpos.y].doormask == D_BROKEN
+                    if (doorstate(&levl[bhitpos.x][bhitpos.y]) == D_BROKEN
                         && *in_rooms(bhitpos.x, bhitpos.y, SHOPBASE)) {
                         shopdoor = TRUE;
                         add_damage(bhitpos.x, bhitpos.y, SHOP_DOOR_COST);
@@ -4417,7 +4417,7 @@ short exploding_wand_typ;
                         *shopdamage = TRUE;
                 } else {
                     lev->typ = DOOR;
-                    lev->doormask = D_NODOOR;
+                    set_doorstate(lev, D_NODOOR);
                     if (see_it)
                         newsym(x, y);
                 }
@@ -4515,7 +4515,7 @@ short exploding_wand_typ;
                 } else /* caused by monster */
                     add_damage(x, y, 0L);
             }
-            lev->doormask = new_doormask;
+            set_doorstate(lev, new_doormask);
             unblock_point(x, y); /* vision */
             if (see_it) {
                 pline1(see_txt);

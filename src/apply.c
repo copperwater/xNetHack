@@ -1501,7 +1501,7 @@ int x, y;
     if (IS_DOOR(lev->typ)) {
         if (closed_door(x, y))
             return FALSE;
-        if ((lev->doormask & D_ISOPEN) != 0 && traj != jAny
+        if ((doorstate(lev) == D_ISOPEN) && traj != jAny
             /* reject diagonal jump into or out-of or through open door */
             && (traj == jDiag
                 /* reject horizontal jump through horizontal open door
@@ -1569,7 +1569,7 @@ boolean showmsg;
            you _can_ jump diagonally from doorway (without needing
            Passes_walls); that's intentional but is it correct? */
         if (diag == jDiag && IS_DOOR(lev->typ)
-            && (lev->doormask & D_ISOPEN) != 0
+            && (doorstate(lev) == D_ISOPEN)
             && (traj == jDiag
                 || ((traj & jHorz) != 0) == (lev->horizontal != 0))) {
             if (showmsg)

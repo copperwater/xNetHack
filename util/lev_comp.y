@@ -195,8 +195,8 @@ extern char curr_token[512];
 %token	<i> ALTAR_ID LADDER_ID STAIR_ID NON_DIGGABLE_ID NON_PASSWALL_ID ROOM_ID
 %token	<i> PORTAL_ID TELEPRT_ID BRANCH_ID LEV MINERALIZE_ID
 %token	<i> CORRIDOR_ID GOLD_ID ENGRAVING_ID FOUNTAIN_ID POOL_ID SINK_ID NONE
-%token	<i> RAND_CORRIDOR_ID DOOR_STATE LIGHT_STATE CURSE_TYPE ENGRAVING_TYPE
-%token	<i> DIRECTION RANDOM_TYPE RANDOM_TYPE_BRACKET A_REGISTER
+%token	<i> RAND_CORRIDOR_ID DOOR_STATE DOOR_FLAGS LIGHT_STATE CURSE_TYPE
+%token	<i> ENGRAVING_TYPE DIRECTION RANDOM_TYPE RANDOM_TYPE_BRACKET A_REGISTER
 %token	<i> ALIGNMENT LEFT_OR_RIGHT CENTER TOP_OR_BOT ALTAR_TYPE UP_OR_DOWN
 %token	<i> SUBROOM_ID NAME_ID FLAGS_ID FLAG_TYPE MON_ATTITUDE MON_ALERTNESS
 %token	<i> MON_APPEARANCE ROOMDOOR_ID IF_ID ELSE_ID
@@ -240,7 +240,7 @@ extern char curr_token[512];
 %token	<meth> METHOD_OBJ METHOD_OBJ_ARRAY
 %token	<meth> METHOD_SEL METHOD_SEL_ARRAY
 %token	<dice> DICE
-%type	<i> h_justif v_justif trap_name room_type door_state light_state
+%type	<i> h_justif v_justif trap_name room_type door_state door_flags light_state
 %type	<i> alignment altar_type a_register roomfill door_pos
 %type	<i> alignment_prfx
 %type	<i> door_wall walled secret
@@ -1634,12 +1634,16 @@ object_info	: CURSE_TYPE
 		      add_opvars(splev, "ii", VA_PASS2(-1, SP_O_V_ERODED));
 		      $$ = 0x0080;
 		  }
-		| DOOR_STATE
-		  {
-		      if ($1 == D_LOCKED) {
+                | DOOR_FLAGS
+                  {
+                      if ($1 == D_LOCKED) {
 			  add_opvars(splev, "ii", VA_PASS2(1, SP_O_V_LOCKED));
 			  $$ = 0x0100;
-		      } else if ($1 == D_BROKEN) {
+                      }
+                  }
+		| DOOR_STATE
+		  {
+		      if ($1 == D_BROKEN) {
 			  add_opvars(splev, "ii", VA_PASS2(1, SP_O_V_BROKEN));
 			  $$ = 0x0200;
 		      } else
@@ -1997,7 +2001,23 @@ roomregionflag : FILLING
 		;
 
 door_state	: DOOR_STATE
+                | DOOR_STATE '&' door_flags
+		  {
+                      $$ = ($1 | $3);
+		  }
+		| door_flags
+                  {
+                      /* state unspecified; assume door is closed */
+                      $$ = ($1 | D_CLOSED);
+                  }
 		| RANDOM_TYPE
+		;
+
+door_flags	: DOOR_FLAGS
+		| DOOR_FLAGS '&' door_flags
+                  {
+                      $$ = ($1 | $3);
+                  }
 		;
 
 light_state	: LIGHT_STATE

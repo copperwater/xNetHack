@@ -4739,9 +4739,8 @@ int x, y;
 
     if (IS_DOOR(typ)) {
         boolean key_or_pick, card;
-        int dm = levl[x][y].doormask;
 
-        if ((dm & (D_CLOSED | D_LOCKED))) {
+        if (door_is_closed(&levl[x][y])) {
             add_herecmd_menuitem(win, doopen, "Open the door"), ++K;
             /* unfortunately there's no lknown flag for doors to
                remember the locked/unlocked state */
@@ -4758,7 +4757,7 @@ int x, y;
                                  "Search the door for a trap"), ++K;
             /* [what about #force?] */
             add_herecmd_menuitem(win, dokick, "Kick the door"), ++K;
-        } else if ((dm & D_ISOPEN)) {
+        } else if (doorstate(&levl[x][y]) == D_ISOPEN) {
             add_herecmd_menuitem(win, doclose, "Close the door"), ++K;
         }
     }
@@ -5010,11 +5009,11 @@ int x, y, mod;
             if (IS_DOOR(levl[u.ux + x][u.uy + y].typ)) {
                 /* slight assistance to the player: choose kick/open for them
                  */
-                if (levl[u.ux + x][u.uy + y].doormask & D_LOCKED) {
+                if (door_is_locked(&levl[u.ux + x][u.uy + y])) {
                     cmd[0] = cmd_from_func(dokick);
                     return cmd;
                 }
-                if (levl[u.ux + x][u.uy + y].doormask & D_CLOSED) {
+                if (door_is_closed(&levl[u.ux + x][u.uy + y])) {
                     cmd[0] = cmd_from_func(doopen);
                     return cmd;
                 }
