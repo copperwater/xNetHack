@@ -896,7 +896,7 @@ register struct obj *otmp;
             heal_legs();
             unkn++;
         }
-        speed_up(rn1(10, 100 + 60 * bcsign(otmp)));
+        speed_up(rn1(10, 15 + 10 * bcsign(otmp)));
         if (!otmp->cursed && !(HFast & INTRINSIC)) {
             Your("quickness feels very natural.");
             HFast |= FROMOUTSIDE;
