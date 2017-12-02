@@ -38,6 +38,7 @@ STATIC_DCL void NDECL(sortspells);
 STATIC_DCL boolean NDECL(spellsortmenu);
 STATIC_DCL boolean FDECL(dospellmenu, (const char *, int, int *));
 STATIC_DCL int FDECL(percent_success, (int));
+STATIC_DCL int FDECL(energy_cost, (int));
 STATIC_DCL char *FDECL(spellretention, (int, char *));
 STATIC_DCL int NDECL(throwspell);
 STATIC_DCL void NDECL(cast_protection);
@@ -923,7 +924,6 @@ boolean atme;
     } else if (spellknow(spell) <= KEEN / 10) { /* 2000 turns left */
         Your("recall of this spell is gradually fading.");
     }
-    energy = (spellev(spell) * 5); /* 5 <= energy <= 35 */
 
     if (u.uhunger <= 10 && spellid(spell) != SPE_DETECT_FOOD) {
         You("are too hungry to cast that spell.");
@@ -934,6 +934,13 @@ boolean atme;
     } else if (check_capacity(
                 "Your concentration falters while carrying so much stuff.")) {
         return 1;
+    }
+
+    energy = energy_cost(spell);
+    /* if spell is impossible to cast, kludge this to u.uen + 1 to make it fail
+     * the checks below as not having enough energy. */
+    if (energy < 0) {
+        energy = u.uen + 1;
     }
 
     /* if the cast attempt is already going to fail due to insufficient
@@ -1010,8 +1017,8 @@ boolean atme;
         }
     }
 
-    chance = percent_success(spell);
-    if (confused || (rnd(100) > chance)) {
+    /* confused casting always fails, and is assessed after hunger penalty */
+    if (confused) {
         You("fail to cast the spell correctly.");
         u.uen -= energy / 2;
         context.botl = 1;
@@ -1562,7 +1569,7 @@ int *spell_no;
 {
     winid tmpwin;
     int i, n, how, splnum;
-    char buf[BUFSZ], retentionbuf[24];
+    char buf[BUFSZ], retentionbuf[24], pw_buf[5];
     const char *fmt;
     menu_item *selected;
     anything any;
@@ -1579,21 +1586,26 @@ int *spell_no;
      * given string and are of the form "a - ".
      */
     if (!iflags.menu_tab_sep) {
-        Sprintf(buf, "%-20s     Level %-12s Fail Retention", "    Name",
+        Sprintf(buf, "%-20s     Level %-12s   Pw Retention", "    Name",
                 "Category");
-        fmt = "%-20s  %2d   %-12s %3d%% %9s";
+        fmt = "%-20s  %2d   %-12s %4s %9s";
     } else {
-        Sprintf(buf, "Name\tLevel\tCategory\tFail\tRetention");
-        fmt = "%s\t%-d\t%s\t%-d%%\t%s";
+        Sprintf(buf, "Name\tLevel\tCategory\tPw\tRetention");
+        fmt = "%s\t%-d\t%s\t%s\t%s";
     }
     add_menu(tmpwin, NO_GLYPH, &any, 0, 0, iflags.menu_headings, buf,
              MENU_UNSELECTED);
     for (i = 0; i < MAXSPELL && spellid(i) != NO_SPELL; i++) {
         splnum = !spl_orderindx ? i : spl_orderindx[i];
+        if (energy_cost(splnum) < 0) {
+            strcpy(pw_buf, "Inf");
+        } else {
+            /* maximum possible should be 3500 */
+            Sprintf(pw_buf, "%d", energy_cost(splnum));
+        }
         Sprintf(buf, fmt, spellname(splnum), spellev(splnum),
                 spelltypemnemonic(spell_skilltype(spellid(splnum))),
-                100 - percent_success(splnum),
-                spellretention(splnum, retentionbuf));
+                pw_buf, spellretention(splnum, retentionbuf));
 
         any.a_int = splnum + 1; /* must be non-zero */
         add_menu(tmpwin, NO_GLYPH, &any, spellet(splnum), 0, ATR_NONE, buf,
@@ -1749,6 +1761,30 @@ int spell;
         chance = 0;
 
     return chance;
+}
+
+/* Return the amount of energy a spell will take to cast.
+   Spells can no longer fail. Instead, the percent_success() function is used
+   to increase the required energy of the spell, so a spell with a 100% success
+   chance costs the same as always, whereas a spell with a 50% success chance
+   costs twice as much Pw, and a spell with a 1% success chance costs 100 times
+   as much Pw.
+   Return -1 if the success rate would be 0 and the spell cannot be cast.
+*/
+STATIC_OVL int
+energy_cost(spell)
+int spell;
+{
+    int energy = (spellev(spell) * 5); /* 5 <= energy <= 35 */
+    int old_success_rate = percent_success(spell);
+    if (old_success_rate == 0) {
+        /* With a 0% success chance, the spell should take infinite power to
+         * cast, and is thus still uncastable. However, this should work well
+         * enough to prevent it from being cast. */
+        return -1;
+    } else {
+        return (energy * 100) / old_success_rate;
+    }
 }
 
 STATIC_OVL char *
