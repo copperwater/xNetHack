@@ -1777,14 +1777,23 @@ int spell;
 {
     int energy = (spellev(spell) * 5); /* 5 <= energy <= 35 */
     int old_success_rate = percent_success(spell);
+
     if (old_success_rate == 0) {
         /* With a 0% success chance, the spell should take infinite power to
          * cast, and is thus still uncastable. However, this should work well
          * enough to prevent it from being cast. */
         return -1;
     } else {
-        return (energy * 100) / old_success_rate;
+        energy = (energy * 100) / old_success_rate;
     }
+
+    /* If currently wielding the spellbook containing the spell that we're
+     * trying to cast, reduce the Pw cost of casting by half rounded up. */
+    if (uwep && uwep->otyp == spellid(spell)) {
+        energy = (energy + 1) / 2;
+    }
+
+    return energy;
 }
 
 STATIC_OVL char *
