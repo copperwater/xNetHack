@@ -1038,7 +1038,7 @@ int how;
 
     if (how < PANICKED)
         u.umortality++;
-    if (Lifesaved && (how <= GENOCIDED)) {
+    if (Lifesaved && (how <= GENOCIDED) && !nonliving(youmonst.data)) {
         pline("But wait...");
         makeknown(AMULET_OF_LIFE_SAVING);
         Your("medallion %s!", !Blind ? "begins to glow" : "feels warm");
