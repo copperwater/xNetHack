@@ -291,8 +291,9 @@ unsigned material;
 
 /* look for gold, on the floor or in monsters' possession */
 int
-gold_detect(sobj)
+gold_detect(sobj, passive)
 register struct obj *sobj;
+boolean passive;
 {
     register struct obj *obj;
     register struct monst *mtmp;
@@ -344,7 +345,7 @@ register struct obj *sobj;
     if (!known) {
         /* no gold found on floor or monster's inventory.
            adjust message if you have gold in your inventory */
-        if (sobj) {
+        if (sobj && !passive) {
             char buf[BUFSZ];
 
             if (youmonst.data == &mons[PM_GOLD_GOLEM])
@@ -373,9 +374,20 @@ register struct obj *sobj;
     return 0;
 
 outgoldmap:
-    cls();
+    if (!passive) {
+        cls();
+        (void) unconstrain_map();
+    }
+    else {
+        /* Unmap any previous knowledge of gold. */
+        int x, y;
+        for(x = 1; x < COLNO; x++) {
+            for(y = 1; y < ROWNO; y++) {
+                newsym(x,y);
+            }
+        }
+    }
 
-    (void) unconstrain_map();
     /* Discover gold locations. */
     for (obj = fobj; obj; obj = obj->nobj) {
         if (sobj->blessed && (temp = o_material(obj, GOLD)) != 0) {
@@ -427,13 +439,16 @@ outgoldmap:
         newsym(u.ux, u.uy);
         ter_typ |= TER_MON; /* so autodescribe will recognize hero */
     }
-    You_feel("very greedy, and sense gold!");
-    exercise(A_WIS, TRUE);
 
-    browse_map(ter_typ, "gold");
+    if(!passive) {
+        You_feel("very greedy, and sense gold!");
+        exercise(A_WIS, TRUE);
 
-    reconstrain_map();
-    docrt();
+        browse_map(ter_typ, "gold");
+
+        reconstrain_map();
+        docrt();
+    }
     if (Underwater)
         under_water(2);
     if (u.uburied)
