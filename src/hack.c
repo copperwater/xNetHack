@@ -1709,22 +1709,9 @@ domove()
      * be caught by the normal falling-monster code.
      */
     if (is_safepet(mtmp) && !(is_hider(mtmp->data) && mtmp->mundetected)) {
-        /* if trapped, there's a chance the pet goes wild */
-        if (mtmp->mtrapped) {
-            if (!rn2(mtmp->mtame)) {
-                mtmp->mtame = mtmp->mpeaceful = mtmp->msleeping = 0;
-                if (mtmp->mleashed)
-                    m_unleash(mtmp, TRUE);
-                growl(mtmp);
-            } else {
-                yelp(mtmp);
-            }
-        }
         mtmp->mundetected = 0;
         if (mtmp->m_ap_type)
             seemimic(mtmp);
-        else if (!mtmp->mtame)
-            newsym(mtmp->mx, mtmp->my);
 
         if (mtmp->mtrapped && (trap = t_at(mtmp->mx, mtmp->my)) != 0
             && (trap->ttyp == PIT || trap->ttyp == SPIKED_PIT)
@@ -1741,7 +1728,27 @@ domove()
             /* can't swap places when pet won't fit thru the opening */
             u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
             You("stop.  %s won't fit through.", upstart(y_monnam(mtmp)));
+        } else if (mtmp->mpeaceful && !mtmp->mtame
+                   && (!goodpos(u.ux0, u.uy0, mtmp, 0)
+                       || t_at(u.ux0, u.uy0) != NULL
+                       || mtmp->m_id == quest_status.leader_m_id)) {
+            /* displacing peaceful into unsafe or trapped space, or trying to
+             * displace quest leader */
+            u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
+            You("stop.  %s doesn't want to swap places.",
+                upstart(y_monnam(mtmp)));
         } else {
+            /* if trapped, there's a chance the pet goes wild */
+            if (mtmp->mtrapped) {
+                if (!rn2(mtmp->mtame)) {
+                    mtmp->mtame = mtmp->mpeaceful = mtmp->msleeping = 0;
+                    if (mtmp->mleashed)
+                        m_unleash(mtmp, TRUE);
+                    growl(mtmp);
+                } else {
+                    yelp(mtmp);
+                }
+            }
             char pnambuf[BUFSZ];
 
             /* save its current description in case of polymorph */
@@ -1752,7 +1759,7 @@ domove()
             newsym(x, y);
             newsym(u.ux0, u.uy0);
 
-            You("%s %s.", mtmp->mtame ? "swap places with" : "frighten",
+            You("%s %s.", mtmp->mpeaceful ? "swap places with" : "frighten",
                 pnambuf);
 
             /* check for displacing it into pools and traps */
@@ -1836,7 +1843,11 @@ domove()
     if (Punished) /* put back ball and chain */
         move_bc(0, bc_control, ballx, bally, chainx, chainy);
 
-    spoteffects(TRUE);
+    if (u.ux0 != u.ux || u.uy0 != u.uy) {
+        /* this used to fire even if the hero didn't move, causing some
+         * cases where a trap would re-trigger despite not going anywhere */
+        spoteffects(TRUE);
+    }
 
     /* delay next move because of ball dragging */
     /* must come after we finished picking up, in spoteffects() */
