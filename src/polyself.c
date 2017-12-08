@@ -1016,9 +1016,16 @@ rehumanize()
 {
     /* You can't revert back while unchanging */
     if (Unchanging && (u.mh < 1)) {
+        /* TODO: make the "while stuck in creature form" a multi_reason */
+        You("die...");
         killer.format = NO_KILLER_PREFIX;
         Strcpy(killer.name, "killed while stuck in creature form");
         done(DIED);
+        /* should the player be wearing an amulet of life saving, allow them to
+         * be saved from whatever killed them, but DON'T rehumanize -- if the
+         * player was resurrected with intrinsic unchanging, they shouldn't
+         * be able to regain their original form */
+        return;
     }
 
     if (emits_light(youmonst.data))
