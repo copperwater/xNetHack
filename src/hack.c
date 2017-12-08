@@ -1709,10 +1709,6 @@ domove()
      * be caught by the normal falling-monster code.
      */
     if (is_safepet(mtmp) && !(is_hider(mtmp->data) && mtmp->mundetected)) {
-        mtmp->mundetected = 0;
-        if (mtmp->m_ap_type)
-            seemimic(mtmp);
-
         if (mtmp->mtrapped && (trap = t_at(mtmp->mx, mtmp->my)) != 0
             && (trap->ttyp == PIT || trap->ttyp == SPIKED_PIT)
             && sobj_at(BOULDER, trap->tx, trap->ty)) {
@@ -1806,6 +1802,9 @@ domove()
                 break;
             }
         }
+        mtmp->mundetected = 0;
+        if (mtmp->m_ap_type)
+            seemimic(mtmp);
     }
 
     reset_occupations();
