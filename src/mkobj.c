@@ -229,7 +229,8 @@ mkobj(oclass, artif)
 char oclass;
 boolean artif;
 {
-    int tprob, i, prob = rnd(1000);
+    int tprob, i, prob;
+    int first_obj, last_obj, total_prob;
 
     if (oclass == RANDOM_CLASS) {
         const struct icp *iprobs = Is_rogue_level(&u.uz)
@@ -242,9 +243,19 @@ boolean artif;
         oclass = iprobs->iclass;
     }
 
+    /* get total probability of objects in this class */
+    first_obj = bases[(int) oclass];
+    last_obj = bases[(int) oclass + 1] - 1;
+    total_prob = 0;
+    for (i = first_obj; i <= last_obj; ++i) {
+        total_prob += objects[i].oc_prob;
+    }
+
+    prob = rnd(total_prob);
     i = bases[(int) oclass];
-    while ((prob -= objects[i].oc_prob) > 0)
+    while((prob -= objects[i].oc_prob) > 0) {
         i++;
+    }
 
     if (objects[i].oc_class != oclass || !OBJ_NAME(objects[i]))
         panic("probtype error, oclass=%d i=%d", (int) oclass, i);

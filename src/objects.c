@@ -534,11 +534,13 @@ BOOTS("levitation boots", "snow boots",
 #undef ARMOR
 
 /* rings ... */
+/* note that prob = 1 for all rings and currently can't be specified
+ * per ring without changing the RING definition */
 #define RING(name,stone,power,cost,mgc,spec,mohs,metal,color) \
     OBJECT(OBJ(name, stone),                                          \
            BITS(0, 0, spec, 0, mgc, spec, 0, 0, 0,                    \
                 HARDGEM(mohs), 0, P_NONE, metal),                     \
-           power, RING_CLASS, 0, 0, 3, cost, 0, 0, 0, 0, 15, color)
+           power, RING_CLASS, 1, 0, 3, cost, 0, 0, 0, 0, 15, color)
 RING("adornment", "wooden",
      ADORNED,                  100, 1, 1, 2, WOOD, HI_WOOD),
 RING("gain strength", "granite",

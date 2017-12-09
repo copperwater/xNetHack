@@ -110,7 +110,7 @@ boolean domaterial;
 void
 init_objects()
 {
-    register int i, first, last, sum;
+    register int i, first, last;
     register char oclass;
 #ifdef TEXTCOLOR
 #define COPY_OBJ_DESCR(o_dst, o_src) \
@@ -160,17 +160,6 @@ init_objects()
                 break;
             }
         }
-    check:
-        sum = 0;
-        for (i = first; i < last; i++)
-            sum += objects[i].oc_prob;
-        if (sum == 0) {
-            for (i = first; i < last; i++)
-                objects[i].oc_prob = (1000 + i - first) / (last - first);
-            goto check;
-        }
-        if (sum != 1000)
-            error("init-prob error for class %d (%d%%)", oclass, sum);
         first = last;
     }
     /* shuffle descriptions */
