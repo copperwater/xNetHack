@@ -2874,6 +2874,8 @@ struct obj * stone;
         chosen_y = 1;
     }
     set_keyed_loc(stone, chosen_x, chosen_y);
+    /* also put a chest here */
+    mksobj_at(CHEST, chosen_x, chosen_y, FALSE, FALSE);
 }
 
 
