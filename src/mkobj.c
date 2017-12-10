@@ -252,7 +252,7 @@ boolean artif;
     }
 
     prob = rnd(total_prob);
-    i = bases[(int) oclass] - 1;
+    i = bases[(int) oclass];
     while((prob -= objects[i].oc_prob) > 0) {
         i++;
     }
