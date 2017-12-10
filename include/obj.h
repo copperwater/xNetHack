@@ -48,10 +48,12 @@ struct obj {
                   tells which fruit a fruit is;
                   special for uball and amulet;
                   scroll of mail (normal==0, bones or wishing==1, written==2);
-                  historic and gender for statues */
+                  historic and gender for statues;
+                  ledger number of keyed level for thiefstones */
 #define STATUE_HISTORIC 0x01
 #define STATUE_MALE 0x02
 #define STATUE_FEMALE 0x04
+#define keyed_ledger spe
     char oclass;    /* object class */
     char invlet;    /* designation in inventory */
     char oartifact; /* artifact array index */
@@ -329,7 +331,8 @@ struct obj {
 /* special stones */
 #define is_graystone(obj)                                 \
     ((obj)->otyp == LUCKSTONE || (obj)->otyp == LOADSTONE \
-     || (obj)->otyp == FLINT || (obj)->otyp == TOUCHSTONE)
+     || (obj)->otyp == FLINT || (obj)->otyp == TOUCHSTONE \
+     || (obj)->otyp == THIEFSTONE)
 
 /* misc helpers, simple enough to be macros */
 #define is_flimsy(otmp)                           \
@@ -385,6 +388,12 @@ struct obj {
 #define POTHIT_HERO_THROW  1 /* thrown by hero */
 #define POTHIT_MONST_THROW 2 /* thrown by a monster */
 #define POTHIT_OTHER_THROW 3 /* propelled by some other means [scatter()] */
+
+/* special thiefstone coordinate accessors (uses corpsenm) */
+#define set_keyed_loc(stone, xx, yy) \
+    ((stone)->corpsenm = ((int)(xx) << 8) | ((int)(yy) & 0xFF))
+#define keyed_x(stone) (((stone)->corpsenm >> 8) & 0xFF)
+#define keyed_y(stone) ((stone)->corpsenm & 0xFF)
 
 /*
  *  Notes for adding new oextra structures:

@@ -540,6 +540,8 @@ int trap_type;
                         (void) mkobj_at(0, xx, yy + dy, TRUE);
                 }
             }
+            /* mark as niche */
+            rm->is_niche = TRUE;
             return;
         }
     }

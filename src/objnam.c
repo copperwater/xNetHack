@@ -1127,6 +1127,24 @@ unsigned doname_flags;
         if (obj->otyp == MEAT_RING)
             goto ring;
         break;
+    case GEM_CLASS:
+        if (obj->otyp == THIEFSTONE && known) {
+            if (obj->keyed_ledger < 1) {
+                /* doesn't point to a level: assume cancelled */
+                Strcat(eos(bp), " (inactive)");
+            } else {
+                d_level dlev;
+                dlev.dnum = ledger_to_dnum(obj->keyed_ledger);
+                dlev.dlevel = ledger_to_dlev(obj->keyed_ledger);
+                Sprintf(eos(bp), " (keyed to %s:%d)",
+                        dungeons[dlev.dnum].dname, depth(&dlev));
+                if (wizard) {
+                    Sprintf(eos(bp), " at (%d,%d)",
+                            keyed_x(obj), keyed_y(obj));
+                }
+            }
+        }
+        break;
     case BALL_CLASS:
     case CHAIN_CLASS:
         add_erosion_words(obj, prefix);

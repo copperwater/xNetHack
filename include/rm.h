@@ -522,6 +522,7 @@ struct rm {
 #define drawbridgemask flags
 #define looted flags
 #define icedpool flags
+#define is_niche flags
 
 #define blessedftn horizontal /* a fountain that grants attribs */
 #define disturbed horizontal  /* a grave that has been disturbed */

@@ -17,6 +17,7 @@ STATIC_DCL void FDECL(insane_object, (struct obj *, const char *,
                                       const char *, struct monst *));
 STATIC_DCL void FDECL(check_contained, (struct obj *, const char *));
 STATIC_DCL void FDECL(sanity_check_worn, (struct obj *));
+STATIC_DCL void FDECL(init_thiefstone, (struct obj *));
 
 struct icp {
     int iprob;   /* probability of an item type */
@@ -846,8 +847,11 @@ boolean artif;
                 curse(otmp);
             else if (otmp->otyp == ROCK)
                 otmp->quan = (long) rn1(6, 6);
-            else if (otmp->otyp != LUCKSTONE && !rn2(6))
+            else if (otmp->otyp != LUCKSTONE && otmp->otyp != THIEFSTONE
+                     && !rn2(6))
                 otmp->quan = 2L;
+            else if (otmp->otyp == THIEFSTONE)
+                init_thiefstone(otmp);
             else
                 otmp->quan = 1L;
             break;
@@ -2771,5 +2775,106 @@ struct obj *otmp2;
         You_hear("a faint sloshing sound.");
     }
 }
+
+/* Set up the data associated with a thiefstone. (This involves both selecting
+ * its keyed location and recording that location in the stone.) */
+void
+init_thiefstone(stone)
+struct obj * stone;
+{
+    stone->keyed_ledger = ledger_no(&u.uz);
+    if (stone->keyed_ledger < 1) {
+        impossible("init_thiefstone: invalid ledger number %d", stone->keyed_ledger);
+    }
+    /* Choose a suitable location on the current level.
+     * Prefers, in this order: vaults, closets, spaces with containers on them.
+     * Failing this, will try to find a suitable walkable space, preferring
+     * floor to any other terrain type.
+     * The interior of a shop is always considered unsuitable.
+     * Trapped spaces are considered unsuitable unless no other space can be
+     * found. */
+    /* try vault... */
+    struct mkroom* croom = search_special(VAULT);
+    if (croom) {
+        coord c;
+        somexy(croom, &c);
+        set_keyed_loc(stone, c.x, c.y);
+        return;
+    }
+    /* No vault? No luck. Scan all spaces on the level, assess each one and
+     * give it a "quality" score for how good it would be as a possible stash
+     * location. This is not particularly biased towards where players would
+     * want to put stashes.
+     * The algorithm for choosing a spot is as follows:
+     * 1. Assess a space and get a "quality" score.
+     * 2. If the quality of this space equals the current maximum known quality,
+     *    increment N, the number of spaces known to have this score, and select
+     *    it with probability 1/N.
+     * 3. If the quality of this space is better than any other space, select
+     *    it and set N = 1.
+     * The whole thing works because for any space with the current maximum
+     * quality, assuming M such spaces exist, the chance of being selected is
+     * 1/N * N/N+1 * N+1/N+2 * ... * M-1/M = 1/M.
+     */
+    int x, y, chosen_x, chosen_y;
+    int max_quality = -1;
+    int nmax = 0;
+    chosen_x = chosen_y = -1;
+    for (x = 1; x < COLNO; x++) {
+        for (y = 1; y < ROWNO; y++) {
+            int quality = -1;
+            if (*in_rooms(x, y, SHOPBASE)) {
+                quality -= 100;
+            }
+            if (levl[x][y].typ == ROOM || levl[x][y].typ == CORR ||
+                levl[x][y].typ == SCORR) {
+                /* other terrain might be walkable but we don't want to put it
+                 * on another feature */
+                quality += 2;
+                if (!t_at(x,y)) {
+                    quality += 7;
+                }
+                if ((levl[x][y].typ == CORR || levl[x][y].typ == SCORR)
+                    && levl[x][y].is_niche) {
+                    quality += 20;
+                }
+                if (container_at(x, y, FALSE)) {
+                    quality += 15;
+                }
+            }
+            if (levl[x][y].typ == STAIRS) {
+                /* Absolute last resort: even if an entire level has no
+                 * walkable terrain, there are probably stairs.
+                 */
+                quality += 1;
+            }
+            /* TODO: examine surrounding spaces and give quality boost to
+             * a space that has few walkable neighbors */
+            if (quality > 0) {
+                if (quality == max_quality) {
+                    nmax++;
+                    if (!rn2(nmax)) {
+                        /* pline("Chose new spot of equal quality, %d %d %d", quality, x, y); */
+                        chosen_x = x;
+                        chosen_y = y;
+                    }
+                } else if (quality > max_quality) {
+                    /* pline("New max quality */
+                    nmax = 1;
+                    chosen_x = x;
+                    chosen_y = y;
+                    max_quality = quality;
+                }
+            }
+        }
+    }
+    if (chosen_x < 0 || chosen_y < 0) {
+        impossible("init_thiefstone: couldn't find a good space");
+        chosen_x = 1;
+        chosen_y = 1;
+    }
+    set_keyed_loc(stone, chosen_x, chosen_y);
+}
+
 
 /*mkobj.c*/
