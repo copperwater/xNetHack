@@ -1413,7 +1413,43 @@ boolean telekinesis;
 
     if (obj->otyp == SCR_SCARE_MONSTER && result <= 0 && !container)
         obj->spe = 0;
+
+    /* cursed or unidentified thiefstone may steal item before the player picks
+     * it up */
+    struct obj* thiefstone = NULL;
+    struct obj* target = NULL;
+    for (otmp = invent; otmp; otmp = otmp->nobj) {
+        if (otmp->otyp = THIEFSTONE) {
+            if (!objects[THIEFSTONE].oc_name_known || otmp->cursed) {
+                thiefstone = otmp;
+            }
+        }
+    }
+    if (result > 0 && thiefstone) {
+        thiefstone_teleport(thiefstone, obj, TRUE);
+        pline("As you reach down, %s falls out of your pack!",
+              yname(thiefstone));
+        pline("It touches %s and they both vanish!", yname(obj));
+        makeknown(THIEFSTONE);
+        result = 0;
+    }
+    /* TODO: cursed thiefstone will "steal" itself and can't be picked up unless
+     * on keyed location */
     return result;
+}
+
+/* Trigger a thiefstone teleport on an object: the object and possibly the
+ * stone are sent back to the keyed level and location.
+ * stone and obj can be the same object. */
+void
+thiefstone_teleport(stone, obj)
+struct obj* stone;
+struct obj* obj;
+{
+    obj_extract_self(obj);
+    obj->ox = ledger_to_dnum(stone->keyed_ledger);
+    obj->oy = ledger_to_dlev(stone->keyed_ledger);
+    add_to_migration(obj);
 }
 
 /*
