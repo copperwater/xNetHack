@@ -249,7 +249,7 @@ moverock()
                         get_level(&dest, newlev);
                         otmp->ox = dest.dnum;
                         otmp->oy = dest.dlevel;
-                        otmp->owornmask = (long) MIGR_RANDOM;
+                        otmp->migrateflags = (long) MIGR_RANDOM;
                     }
                     seetrap(ttmp);
                     return sobj_at(BOULDER, sx, sy) ? -1 : 0;

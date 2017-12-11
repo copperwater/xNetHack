@@ -1424,7 +1424,7 @@ xchar dlev;          /* if !0 send to dlev near player */
         add_to_migration(obj);
         obj->ox = cc.x;
         obj->oy = cc.y;
-        obj->owornmask = (long) toloc;
+        obj->migrateflags = (long) toloc;
 
         /* number of fallen objects */
         dct += obj->quan;
@@ -1574,7 +1574,7 @@ boolean shop_floor_obj;
     add_to_migration(otmp);
     otmp->ox = cc.x;
     otmp->oy = cc.y;
-    otmp->owornmask = (long) toloc;
+    otmp->migrateflags = (long) toloc;
     /* boulder from rolling boulder trap, no longer part of the trap */
     if (otmp->otyp == BOULDER)
         otmp->otrapped = 0;
@@ -1609,7 +1609,7 @@ boolean near_hero;
         if (otmp->ox != u.uz.dnum || otmp->oy != u.uz.dlevel)
             continue;
 
-        where = (int) (otmp->owornmask & 0x7fffL); /* destination code */
+        where = (int) (otmp->migrateflags & 0x7fffL); /* destination code */
         nobreak = (where & MIGR_NOBREAK) != 0;
         noscatter = (where & MIGR_WITH_HERO) != 0;
         where &= ~(MIGR_NOBREAK | MIGR_NOSCATTER);
@@ -1618,7 +1618,7 @@ boolean near_hero;
             continue;
 
         obj_extract_self(otmp);
-        otmp->owornmask = 0L;
+        otmp->migrateflags = 0L;
 
         switch (where) {
         case MIGR_STAIRS_UP:

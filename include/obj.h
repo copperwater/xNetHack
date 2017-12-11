@@ -120,6 +120,8 @@ struct obj {
     unsigned oeaten;        /* nutrition left in food, if partly eaten */
     long age;               /* creation date */
     long owornmask;
+#define migrateflags owornmask /* migrating objects can't be worn anyway */
+    xchar mgrx, mgry;       /* when migrating, travel to these coords */
     struct oextra *oextra; /* pointer to oextra struct */
 };
 

@@ -1874,7 +1874,7 @@ int style;
                         get_level(&dest, newlev);
                         singleobj->ox = dest.dnum;
                         singleobj->oy = dest.dlevel;
-                        singleobj->owornmask = (long) MIGR_RANDOM;
+                        singleobj->migrateflags = (long) MIGR_RANDOM;
                     }
                     seetrap(t);
                     used_up = TRUE;
