@@ -2782,6 +2782,7 @@ void
 init_thiefstone(stone)
 struct obj * stone;
 {
+    curse(stone); /* always generated cursed */
     stone->keyed_ledger = ledger_no(&u.uz);
     if (stone->keyed_ledger < 1) {
         impossible("init_thiefstone: invalid ledger number %d", stone->keyed_ledger);
@@ -2822,7 +2823,7 @@ struct obj * stone;
     chosen_x = chosen_y = -1;
     for (x = 1; x < COLNO; x++) {
         for (y = 1; y < ROWNO; y++) {
-            int quality = -1;
+            int quality = 0;
             if (*in_rooms(x, y, SHOPBASE)) {
                 quality -= 100;
             }
@@ -2854,12 +2855,10 @@ struct obj * stone;
                 if (quality == max_quality) {
                     nmax++;
                     if (!rn2(nmax)) {
-                        /* pline("Chose new spot of equal quality, %d %d %d", quality, x, y); */
                         chosen_x = x;
                         chosen_y = y;
                     }
                 } else if (quality > max_quality) {
-                    /* pline("New max quality */
                     nmax = 1;
                     chosen_x = x;
                     chosen_y = y;
@@ -2875,7 +2874,9 @@ struct obj * stone;
     }
     set_keyed_loc(stone, chosen_x, chosen_y);
     /* also put a chest here */
-    mksobj_at(CHEST, chosen_x, chosen_y, FALSE, FALSE);
+    if (!container_at(chosen_x, chosen_y, FALSE)) {
+        mksobj_at(CHEST, chosen_x, chosen_y, FALSE, FALSE);
+    }
 }
 
 
