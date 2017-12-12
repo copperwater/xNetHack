@@ -1419,14 +1419,7 @@ boolean at_stairs, falling, portal;
 
     /* Check whether we just entered Gehennom. */
     if (!In_hell(&u.uz0) && Inhell) {
-        if (Is_valley(&u.uz)) {
-            You("arrive at the Valley of the Dead...");
-            pline_The("odor of burnt flesh and decay pervades the air.");
-#ifdef MICRO
-            display_nhwindow(WIN_MESSAGE, FALSE);
-#endif
-            You_hear("groans and moans everywhere.");
-        } else
+        if (!Is_valley(&u.uz))
             pline("It is hot here.  You smell smoke...");
         u.uachieve.enter_gehennom = 1;
     }

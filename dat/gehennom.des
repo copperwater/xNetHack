@@ -6,6 +6,9 @@
 
 MAZE: "valley", ' '
 FLAGS: noteleport,hardfloor,nommap
+MESSAGE: "You arrive at the Valley of the Dead..."
+MESSAGE: "The odor of burnt flesh and decay fills the air."
+MESSAGE: "You hear groans and moans everywhere."
 GEOMETRY:center,center
 MAP
 ----------------------------------------------------------------------------
