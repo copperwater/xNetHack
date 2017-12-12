@@ -1429,9 +1429,10 @@ boolean telekinesis;
             yname(thiefstone));
         pline("It touches %s and they %s disappear!", yname(obj),
               (obj->quan == 1 ? "both" : "all"));
-        /* hack for preventing thiefstone belonging to hero from being billed,
-         * assumes that hero can never obtain a cursed thiefstone belonging
-         * to a shopkeeper */
+        /* hack for preventing thiefstone belonging to hero from being billed.
+         * Note: if the thiefstone is on the bill already (possible through
+         * hero buying an uncursed thiefstone and then it becoming cursed),
+         * this will not cancel the debt. */
         thiefstone->no_charge = 1;
         thiefstone_teleport(thiefstone, obj);
         thiefstone_teleport(thiefstone, thiefstone);

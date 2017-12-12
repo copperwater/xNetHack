@@ -2327,6 +2327,17 @@ struct obj *tstone;
         return;
     }
 
+    if (tstone->otyp == THIEFSTONE && thiefstone_accepts(tstone, obj)
+        && !tstone->cursed) {
+        /* hack for if hero is in shop and is teleporting their own item */
+        obj->no_charge = 1;
+        pline("You touch %s to %s, which disappear%s.", yname(tstone),
+              yname(obj), (obj->quan == 1 ? "s" : ""));
+        thiefstone_teleport(tstone, obj);
+        makeknown(THIEFSTONE);
+        return;
+    }
+
     if (tstone->otyp == TOUCHSTONE && tstone->cursed
         && obj->oclass == GEM_CLASS && !is_graystone(obj)
         && !obj_resists(obj, 80, 100)) {
@@ -3493,10 +3504,12 @@ char class_list[];
 {
     register struct obj *otmp;
     int otyp;
-    boolean knowoil, knowtouchstone, addpotions, addstones, addfood;
+    boolean knowoil, knowtouchstone, knowthiefstone;
+    boolean addpotions, addstones, addfood;
 
     knowoil = objects[POT_OIL].oc_name_known;
     knowtouchstone = objects[TOUCHSTONE].oc_name_known;
+    knowthiefstone = objects[THIEFSTONE].oc_name_known;
     addpotions = addstones = addfood = FALSE;
     for (otmp = invent; otmp; otmp = otmp->nobj) {
         otyp = otmp->otyp;
@@ -3505,10 +3518,11 @@ char class_list[];
                 && (!otmp->dknown
                     || (!knowoil && !objects[otyp].oc_name_known))))
             addpotions = TRUE;
-        if (otyp == TOUCHSTONE
+        if (otyp == TOUCHSTONE || otyp == THIEFSTONE
             || (is_graystone(otmp)
                 && (!otmp->dknown
-                    || (!knowtouchstone && !objects[otyp].oc_name_known))))
+                    || ((!knowtouchstone || !knowthiefstone)
+                        && !objects[otyp].oc_name_known))))
             addstones = TRUE;
         if (otyp == CREAM_PIE || otyp == EUCALYPTUS_LEAF)
             addfood = TRUE;
@@ -3699,6 +3713,7 @@ doapply()
     case LUCKSTONE:
     case LOADSTONE:
     case TOUCHSTONE:
+    case THIEFSTONE:
         use_stone(obj);
         break;
     default:
