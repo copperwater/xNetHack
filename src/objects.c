@@ -1098,7 +1098,7 @@ GEM("worthless piece of violet glass", "violet",
            0, GEM_CLASS, prob, 0, wt, gval, sdam, ldam, 0, 0, nutr, color)
 ROCK("luckstone", "gray",  0,  10,  10, 60, 3, 3, 1, 10, 7, 1, 0, MINERAL, CLR_GRAY),
 ROCK("loadstone", "gray",  0,  10, 500,  1, 3, 3, 1, 10, 6, 1, 0, MINERAL, CLR_GRAY),
-ROCK("touchstone", "gray", 0,   8,  10, 45, 3, 3, 1, 10, 6, 1, 0, MINERAL, CLR_GRAY),
+ROCK("touchstone", "gray", 0,   8,  10, 45, 3, 3, 0, 10, 6, 1, 0, MINERAL, CLR_GRAY),
 ROCK("thiefstone", "gray", 0,  10,  10, 60, 3, 3, 1, 10, 6, 0, 1, MINERAL, CLR_GRAY),
 ROCK("flint", "gray",      0,  10,   4,  1, 6, 6, 0, 10, 7, 1, 0, MINERAL, CLR_GRAY),
 ROCK("rock", None,         1, 100,  10,  0, 3, 3, 0, 10, 7, 1, 0, MINERAL, CLR_GRAY),
