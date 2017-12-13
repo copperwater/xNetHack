@@ -552,7 +552,7 @@ domonability(VOID_ARGS)
         } else
             There("is no fountain here.");
     } else if (is_unicorn(youmonst.data)) {
-        use_unicorn_horn((struct obj *) 0);
+        use_unicorn_horn((struct obj *) 0, FALSE);
         return 1;
     } else if (youmonst.data->msound == MS_SHRIEK) {
         You("shriek.");

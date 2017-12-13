@@ -1868,8 +1868,9 @@ struct obj *obj;
 }
 
 void
-use_unicorn_horn(obj)
+use_unicorn_horn(obj, passive)
 struct obj *obj;
+boolean passive;
 {
 #define PROP_COUNT 7           /* number of properties we're dealing with */
 #define ATTR_COUNT (A_MAX * 3) /* number of attribute points we might fix */
@@ -1969,7 +1970,7 @@ struct obj *obj;
         unfixable_trbl += (AMAX(idx) - val_limit);
     }
 
-    if (trouble_count == 0) {
+    if (trouble_count == 0 && !passive) {
         pline1(nothing_happens);
         return;
     } else if (trouble_count > 1) { /* shuffle */
@@ -2031,17 +2032,18 @@ struct obj *obj;
                 ABASE(idx) += 1;
                 did_attr++;
             } else
-                panic("use_unicorn_horn: bad trouble? (%d)", idx);
+                impossible("use_unicorn_horn: bad trouble? (%d)", idx);
             break;
         }
     }
 
     if (did_attr)
-        pline("This makes you feel %s!",
+        pline("%s feel %s!",
+              (passive ? "You" : "This makes you"),
               (did_prop + did_attr) == (trouble_count + unfixable_trbl)
                   ? "great"
                   : "better");
-    else if (!did_prop)
+    else if (!did_prop && !passive)
         pline("Nothing seems to happen.");
 
     context.botl = (did_attr || did_prop);
@@ -3688,7 +3690,7 @@ doapply()
         use_figurine(&obj);
         break;
     case UNICORN_HORN:
-        use_unicorn_horn(obj);
+        use_unicorn_horn(obj, FALSE);
         break;
     case WOODEN_FLUTE:
     case MAGIC_FLUTE:

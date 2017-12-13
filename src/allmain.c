@@ -263,6 +263,11 @@ boolean resuming;
                         }
                     }
 
+                    if (!uarmg && uwep && uwep->otyp == UNICORN_HORN
+                        && !uwep->cursed) {
+                        use_unicorn_horn(uwep, TRUE);
+                    }
+
                     if (Searching && multi >= 0)
                         (void) dosearch0(1);
                     if (Warning)
