@@ -1549,6 +1549,30 @@ struct obj* obj;
     }
 }
 
+/* Thiefstone teleports a monster, presumably a valuable monster. */
+void
+thiefstone_tele_mon(stone, mon)
+struct obj* stone;
+struct monst* mon;
+{
+    xchar ledger = stone->keyed_ledger;
+    coord cc;
+    if (mon->data != &mons[PM_GOLD_GOLEM]) {
+        impossible("thiefstone_tele_mon: bad monster to teleport");
+        return;
+    }
+    if (ledger == ledger_no(&u.uz)) {
+        /* same level, just do horizontal teleport */
+        enexto(&cc, keyed_x(stone), keyed_y(stone), mon->data);
+        rloc_to(mon, cc.x, cc.y);
+    } else {
+        /* level teleport mon */
+        cc.x = keyed_x(stone);
+        cc.y = keyed_y(stone);
+        migrate_to_level(mon, ledger, MIGR_EXACT_XY, &cc);
+    }
+}
+
 /*
  * Pick up <count> of obj from the ground and add it to the hero's inventory.
  * Returns -1 if caller should break out of its loop, 0 if nothing picked

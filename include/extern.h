@@ -1821,8 +1821,9 @@ E int FDECL(out_container, (struct obj *));
 #endif
 E int FDECL(pickup, (int));
 E int FDECL(pickup_object, (struct obj *, long, BOOLEAN_P));
-E void FDECL(thiefstone_teleport, (struct obj *, struct obj *));
 E boolean FDECL(thiefstone_accepts, (struct obj *, struct obj *));
+E void FDECL(thiefstone_teleport, (struct obj *, struct obj *));
+E void FDECL(thiefstone_tele_mon, (struct obj *, struct monst *));
 E int FDECL(query_category, (const char *, struct obj *, int,
                              menu_item **, int));
 E int FDECL(query_objlist, (const char *, struct obj **, int,
