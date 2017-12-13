@@ -1418,7 +1418,8 @@ boolean telekinesis;
     struct obj* thiefstone = NULL;
     struct obj* otmp = NULL;
     for (otmp = invent; otmp; otmp = otmp->nobj) {
-        if (otmp->otyp == THIEFSTONE && otmp->cursed && !rn2(10)
+        if (otmp->otyp == THIEFSTONE && otmp->cursed && otmp->spe > 0
+            && !rn2(10)
             && (otmp->keyed_ledger != ledger_no(&u.uz)
                 || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
             thiefstone = otmp;
@@ -1441,7 +1442,7 @@ boolean telekinesis;
     }
     /* second case: obj being picked up is a cursed thiefstone,
      * which will steal a random inventory possession */
-    if (result > 0 && obj->otyp == THIEFSTONE && obj->cursed
+    if (result > 0 && obj->otyp == THIEFSTONE && obj->cursed && obj->spe > 0
         && (obj->keyed_ledger != ledger_no(&u.uz)
             || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
         int total = 0;
