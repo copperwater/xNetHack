@@ -2783,6 +2783,13 @@ init_thiefstone(stone)
 struct obj * stone;
 {
     curse(stone); /* always generated cursed */
+
+    if (In_endgame(&u.uz)) {
+        /* stones that generate in the endgame won't do anything */
+        stone->keyed_ledger = 0;
+        return;
+    }
+
     stone->keyed_ledger = ledger_no(&u.uz);
     if (stone->keyed_ledger < 1) {
         impossible("init_thiefstone: invalid ledger number %d", stone->keyed_ledger);
