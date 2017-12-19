@@ -1486,6 +1486,10 @@ struct obj* obj;
     if (obj->owornmask) {
         return FALSE;
     }
+    if (objects[obj->otyp].oc_unique) {
+        /* don't let the Amulet be teleported... */
+        return FALSE;
+    }
     if (((obj->oclass == GEM_CLASS && !is_graystone(obj) && obj->otyp != ROCK)
         || obj->oclass == COIN_CLASS)
         && stone->blessed) {

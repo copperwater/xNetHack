@@ -934,7 +934,8 @@ boolean hitsroof;
     if (obj->oclass == POTION_CLASS) {
         potionhit(&youmonst, obj, POTHIT_HERO_THROW);
     } else if (obj->otyp == THIEFSTONE && obj->blessed &&
-               youmonst.data == &mons[PM_GOLD_GOLEM]) {
+               youmonst.data == &mons[PM_GOLD_GOLEM] &&
+               !u.uhave.amulet) {
         /* the thiefstone sees you as valuable treasure and steals you away! */
         /* prevent it from angering a shopkeeper, if you're in a shop */
         obj->no_charge = 1;
@@ -1611,7 +1612,7 @@ register struct obj *obj; /* thrownobj or kickedobj or uwep */
             /* thiefstone does no damage to gold golems, but instead tries to
              * "steal" them */
             if (obj->otyp == THIEFSTONE && obj->blessed
-                && mon->data == &mons[PM_GOLD_GOLEM]) {
+                && mon->data == &mons[PM_GOLD_GOLEM] && !mon_has_amulet(mon)) {
                 /* prevent hero from paying for thiefstone */
                 obj->no_charge = 1;
                 if (canspotmon(mon)) {
