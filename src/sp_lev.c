@@ -1,4 +1,4 @@
-/* NetHack 3.6	sp_lev.c	$NHDT-Date: 1508879840 2017/10/24 21:17:20 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.90 $ */
+/* NetHack 3.6	sp_lev.c	$NHDT-Date: 1514769572 2018/01/01 01:19:32 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.95 $ */
 /*      Copyright (c) 1989 by Jean-Christophe Collet */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1589,11 +1589,14 @@ struct mkroom *croom;
             mtmp = christen_monst(mtmp, m->name.str);
 
         /*
-         * This is currently hardwired for mimics only.  It should
-         * eventually be expanded.
+         * This doesn't complain if an attempt is made to give a
+         * non-mimic/non-shapechanger an appearance or to give a
+         * shapechanger a non-monster shape, it just refuses to comply.
          */
         if (m->appear_as.str
-            && ((mtmp->data->mlet == S_MIMIC) || mtmp->cham)
+            && ((mtmp->data->mlet == S_MIMIC)
+                /* shapechanger (chameleons, et al, and vampires) */
+                || (mtmp->cham >= LOW_PM && m->appear == M_AP_MONSTER))
             && !Protection_from_shape_changers) {
             int i;
 
@@ -1658,7 +1661,29 @@ struct mkroom *croom;
                     mndx = select_newcham_form(mtmp);
                 else
                     mndx = name_to_mon(m->appear_as.str);
-                if ((mndx != NON_PM) && (&mons[mndx] != mtmp->data)) {
+
+                if (mndx == NON_PM || (is_vampshifter(mtmp)
+                                       && !validvamp(mtmp, &mndx, S_HUMAN))) {
+                    impossible("create_monster: invalid %s (\"%s\")",
+                               (mtmp->data->mlet == S_MIMIC)
+                                 ? "mimic appearance"
+                                 : (mtmp->data == &mons[PM_WIZARD_OF_YENDOR])
+                                     ? "Wizard appearance"
+                                     : is_vampshifter(mtmp)
+                                         ? "vampire shape"
+                                         : "chameleon shape",
+                               m->appear_as.str);
+                } else if (&mons[mndx] == mtmp->data) {
+                    /* explicitly forcing a mimic to appear as itself */
+                    mtmp->m_ap_type = M_AP_NOTHING;
+                    mtmp->mappearance = 0;
+                } else if (mtmp->data->mlet == S_MIMIC
+                           || mtmp->data == &mons[PM_WIZARD_OF_YENDOR]) {
+                    /* this is ordinarily only used for Wizard clones
+                       and hasn't been exhaustively tested for mimics */
+                    mtmp->m_ap_type = M_AP_MONSTER;
+                    mtmp->mappearance = mndx;
+                } else { /* chameleon or vampire */
                     struct permonst *mdat = &mons[mndx];
                     struct permonst *olddata = mtmp->data;
 
@@ -4181,8 +4206,8 @@ int dx, dy;
 genericptr_t arg;
 {
     xchar typ = *(xchar *) arg;
-    xchar x = dx;
-    xchar y = dy;
+    xchar x = dx, y = dy;
+    boolean left_or_right, up_and_down;
 
     if (!IS_DOOR(levl[x][y].typ) && levl[x][y].typ != SDOOR)
         levl[x][y].typ = (typ & D_SECRET) ? SDOOR : DOOR;
@@ -4192,12 +4217,35 @@ genericptr_t arg;
             typ = D_CLOSED;
     }
 
-    if (((isok(x-1,y) && IS_DOORJOIN(levl[x-1][y].typ)) || !isok(x-1,y))
-        || (isok(x+1,y) && IS_DOORJOIN(levl[x+1][y].typ)) || !isok(x+1,y))
-        levl[x][y].horizontal = 1;
-    else
-        levl[x][y].horizontal = 0;
-
+    /* If there's a wall or door on either the left side or right
+     * side (or both) of this secret door, make it be horizontal.
+     *
+     * It is feasible to put SDOOR in a corner, tee, or crosswall
+     * position, although once the door is found and opened it won't
+     * make a lot sense (diagonal access required).  Still, we try to
+     * handle that as best as possible.  For top or bottom tee, using
+     * horizontal is the best we can do.  For corner or crosswall,
+     * either horizontal or vertical are just as good as each other;
+     * we produce horizontal for corners and vertical for crosswalls.
+     * For left or right tee, using vertical is best.
+     *
+     * A secret door with no adjacent walls is also feasible and makes
+     * even less sense.  It will be displayed as a vertical wall while
+     * hidden and become a vertical door when found.
+     */
+    left_or_right = ((isok(x - 1, y) && (IS_WALL(levl[x - 1][y].typ)
+                                         || IS_DOOR(levl[x - 1][y].typ)
+                                         || levl[x - 1][y].typ == SDOOR))
+                     || (isok(x + 1, y) && (IS_WALL(levl[x + 1][y].typ)
+                                            || IS_DOOR(levl[x + 1][y].typ)
+                                            || levl[x + 1][y].typ == SDOOR)));
+    up_and_down = ((isok(x, y - 1) && (IS_WALL(levl[x][y - 1].typ)
+                                       || IS_DOOR(levl[x][y - 1].typ)
+                                       || levl[x][y - 1].typ == SDOOR))
+                   && (isok(x, y + 1) && (IS_WALL(levl[x][y + 1].typ)
+                                          || IS_DOOR(levl[x][y + 1].typ)
+                                          || levl[x][y + 1].typ == SDOOR)));
+    levl[x][y].horizontal = (left_or_right && !up_and_down) ? 1 : 0;
     levl[x][y].doormask = typ;
     SpLev_Map[x][y] = 1;
 }
