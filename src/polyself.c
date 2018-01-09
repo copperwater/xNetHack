@@ -1540,6 +1540,17 @@ mbodypart(mon, part)
 struct monst *mon;
 int part;
 {
+    if (part <= NO_PART) {
+        impossible("mbodypart: bad part %d", part);
+        return "strange body part";
+    }
+    /* we've taken care of NO_PART, so no need to pad these arrays with a blank
+     * or invalid string for those cases. Instead, just shift part down by one
+     * to get the correct index into these arrays. */
+    part--;
+
+    /* These arrays should otherwise be in the same order as the bodypart_types
+     * defined in hack.h. */
     static NEARDATA const char
         *humanoid_parts[] = { "arm",       "eye",  "face",         "finger",
                               "fingertip", "foot", "hand",         "handed",

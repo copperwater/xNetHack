@@ -383,7 +383,8 @@ enum explosion_types {
 
 /* Macros for messages referring to hands, eyes, feet, etc... */
 enum bodypart_types {
-    ARM = 0,
+    NO_PART = 0,
+    ARM,
     EYE,
     FACE,
     FINGER,
