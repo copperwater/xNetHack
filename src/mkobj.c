@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkobj.c	$NHDT-Date: 1501725405 2017/08/03 01:56:45 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.124 $ */
+/* NetHack 3.6	mkobj.c	$NHDT-Date: 1513298759 2017/12/15 00:45:59 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.129 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -17,6 +17,7 @@ STATIC_DCL void FDECL(insane_object, (struct obj *, const char *,
                                       const char *, struct monst *));
 STATIC_DCL void FDECL(check_contained, (struct obj *, const char *));
 STATIC_DCL void FDECL(sanity_check_worn, (struct obj *));
+STATIC_DCL void FDECL(init_thiefstone, (struct obj *));
 
 struct icp {
     int iprob;   /* probability of an item type */
@@ -229,7 +230,8 @@ mkobj(oclass, artif)
 char oclass;
 boolean artif;
 {
-    int tprob, i, prob = rnd(1000);
+    int tprob, i, prob;
+    int first_obj, last_obj, total_prob;
 
     if (oclass == RANDOM_CLASS) {
         const struct icp *iprobs = Is_rogue_level(&u.uz)
@@ -242,9 +244,19 @@ boolean artif;
         oclass = iprobs->iclass;
     }
 
+    /* get total probability of objects in this class */
+    first_obj = bases[(int) oclass];
+    last_obj = bases[(int) oclass + 1] - 1;
+    total_prob = 0;
+    for (i = first_obj; i <= last_obj; ++i) {
+        total_prob += objects[i].oc_prob;
+    }
+
+    prob = rnd(total_prob);
     i = bases[(int) oclass];
-    while ((prob -= objects[i].oc_prob) > 0)
+    while((prob -= objects[i].oc_prob) > 0) {
         i++;
+    }
 
     if (objects[i].oc_class != oclass || !OBJ_NAME(objects[i]))
         panic("probtype error, oclass=%d i=%d", (int) oclass, i);
@@ -835,8 +847,11 @@ boolean artif;
                 curse(otmp);
             else if (otmp->otyp == ROCK)
                 otmp->quan = (long) rn1(6, 6);
-            else if (otmp->otyp != LUCKSTONE && !rn2(6))
+            else if (otmp->otyp != LUCKSTONE && otmp->otyp != THIEFSTONE
+                     && !rn2(6))
                 otmp->quan = 2L;
+            else if (otmp->otyp == THIEFSTONE)
+                init_thiefstone(otmp);
             else
                 otmp->quan = 1L;
             break;
@@ -2168,7 +2183,8 @@ static const char NEARDATA /* pline formats for insane_object() */
     ofmt0[] = "%s obj %s %s: %s",
     ofmt3[] = "%s [not null] %s %s: %s",
     /* " held by mon %p (%s)" will be appended, filled by M,mon_nam(M) */
-    mfmt1[] = "%s obj %s %s (%s)", mfmt2[] = "%s obj %s %s (%s) *not*";
+    mfmt1[] = "%s obj %s %s (%s)",
+    mfmt2[] = "%s obj %s %s (%s) *not*";
 
 /* Check all object lists for consistency. */
 void
@@ -2176,6 +2192,13 @@ obj_sanity_check()
 {
     int x, y;
     struct obj *obj;
+
+    /*
+     * TODO:
+     *  Should check whether the obj->bypass and/or obj->nomerge bits
+     *  are set.  Those are both used for temporary purposes and should
+     *  be clear between moves.
+     */
 
     objlist_sanity(fobj, OBJ_FLOOR, "floor sanity");
 
@@ -2186,12 +2209,12 @@ obj_sanity_check()
         for (y = 0; y < ROWNO; y++)
             for (obj = level.objects[x][y]; obj; obj = obj->nexthere) {
                 /* <ox,oy> should match <x,y>; <0,*> should always be empty */
-                if (obj->where != OBJ_FLOOR || x == 0 || obj->ox != x
-                    || obj->oy != y) {
+                if (obj->where != OBJ_FLOOR || x == 0
+                    || obj->ox != x || obj->oy != y) {
                     char at_fmt[BUFSZ];
 
-                    Sprintf(at_fmt, "%%s obj@<%d,%d> %%s %%s: %%s@<%d,%d>", x,
-                            y, obj->ox, obj->oy);
+                    Sprintf(at_fmt, "%%s obj@<%d,%d> %%s %%s: %%s@<%d,%d>",
+                            x, y, obj->ox, obj->oy);
                     insane_object(obj, at_fmt, "location sanity",
                                   (struct monst *) 0);
                 }
@@ -2219,7 +2242,11 @@ obj_sanity_check()
     if (kickedobj)
         insane_object(kickedobj, ofmt3, "kickedobj sanity",
                       (struct monst *) 0);
-    /* [how about current_wand too?] */
+    /* current_wand isn't removed from invent while in use, but should
+       be Null between moves when we're called */
+    if (current_wand)
+        insane_object(current_wand, ofmt3, "current_wand sanity",
+                      (struct monst *) 0);
 }
 
 /* sanity check for objects on specified list (fobj, &c) */
@@ -2760,5 +2787,109 @@ struct obj *otmp2;
         You_hear("a faint sloshing sound.");
     }
 }
+
+/* Set up the data associated with a thiefstone. (This involves both selecting
+ * its keyed location and recording that location in the stone.) */
+void
+init_thiefstone(stone)
+struct obj * stone;
+{
+    curse(stone); /* always generated cursed */
+    stone->keyed_ledger = ledger_no(&u.uz);
+    if (stone->keyed_ledger < 1) {
+        impossible("init_thiefstone: invalid ledger number %d", stone->keyed_ledger);
+    }
+    /* Choose a suitable location on the current level.
+     * Prefers, in this order: vaults, closets, spaces with containers on them.
+     * Failing this, will try to find a suitable walkable space, preferring
+     * floor to any other terrain type.
+     * The interior of a shop is always considered unsuitable.
+     * Trapped spaces are considered unsuitable unless no other space can be
+     * found. */
+    /* try vault... */
+    struct mkroom* croom = search_special(VAULT);
+    if (croom) {
+        coord c;
+        somexy(croom, &c);
+        set_keyed_loc(stone, c.x, c.y);
+        return;
+    }
+    /* No vault? No luck. Scan all spaces on the level, assess each one and
+     * give it a "quality" score for how good it would be as a possible stash
+     * location. This is not particularly biased towards where players would
+     * want to put stashes.
+     * The algorithm for choosing a spot is as follows:
+     * 1. Assess a space and get a "quality" score.
+     * 2. If the quality of this space equals the current maximum known quality,
+     *    increment N, the number of spaces known to have this score, and select
+     *    it with probability 1/N.
+     * 3. If the quality of this space is better than any other space, select
+     *    it and set N = 1.
+     * The whole thing works because for any space with the current maximum
+     * quality, assuming M such spaces exist, the chance of being selected is
+     * 1/N * N/N+1 * N+1/N+2 * ... * M-1/M = 1/M.
+     */
+    int x, y, chosen_x, chosen_y;
+    int max_quality = -1;
+    int nmax = 0;
+    chosen_x = chosen_y = -1;
+    for (x = 1; x < COLNO; x++) {
+        for (y = 1; y < ROWNO; y++) {
+            int quality = 0;
+            if (*in_rooms(x, y, SHOPBASE)) {
+                quality -= 100;
+            }
+            if (levl[x][y].typ == ROOM || levl[x][y].typ == CORR ||
+                levl[x][y].typ == SCORR) {
+                /* other terrain might be walkable but we don't want to put it
+                 * on another feature */
+                quality += 2;
+                if (!t_at(x,y)) {
+                    quality += 7;
+                }
+                if ((levl[x][y].typ == CORR || levl[x][y].typ == SCORR)
+                    && levl[x][y].is_niche) {
+                    quality += 20;
+                }
+                if (container_at(x, y, FALSE)) {
+                    quality += 15;
+                }
+            }
+            if (levl[x][y].typ == STAIRS) {
+                /* Absolute last resort: even if an entire level has no
+                 * walkable terrain, there are probably stairs.
+                 */
+                quality += 1;
+            }
+            /* TODO: examine surrounding spaces and give quality boost to
+             * a space that has few walkable neighbors */
+            if (quality > 0) {
+                if (quality == max_quality) {
+                    nmax++;
+                    if (!rn2(nmax)) {
+                        chosen_x = x;
+                        chosen_y = y;
+                    }
+                } else if (quality > max_quality) {
+                    nmax = 1;
+                    chosen_x = x;
+                    chosen_y = y;
+                    max_quality = quality;
+                }
+            }
+        }
+    }
+    if (chosen_x < 0 || chosen_y < 0) {
+        impossible("init_thiefstone: couldn't find a good space");
+        chosen_x = 1;
+        chosen_y = 1;
+    }
+    set_keyed_loc(stone, chosen_x, chosen_y);
+    /* also put a chest here */
+    if (!container_at(chosen_x, chosen_y, FALSE)) {
+        mksobj_at(CHEST, chosen_x, chosen_y, FALSE, FALSE);
+    }
+}
+
 
 /*mkobj.c*/

@@ -1,4 +1,4 @@
-/* NetHack 3.6	pickup.c	$NHDT-Date: 1508549438 2017/10/21 01:30:38 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.192 $ */
+/* NetHack 3.6	pickup.c	$NHDT-Date: 1515144225 2018/01/05 09:23:45 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.193 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1413,7 +1413,139 @@ boolean telekinesis;
 
     if (obj->otyp == SCR_SCARE_MONSTER && result <= 0 && !container)
         obj->spe = 0;
+
+    /* cursed thiefstone may steal item before the player picks it up */
+    struct obj* thiefstone = NULL;
+    struct obj* otmp = NULL;
+    for (otmp = invent; otmp; otmp = otmp->nobj) {
+        if (otmp->otyp == THIEFSTONE && otmp->cursed && !rn2(10)
+            && (otmp->keyed_ledger != ledger_no(&u.uz)
+                || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
+            thiefstone = otmp;
+        }
+    }
+    if (result > 0 && thiefstone && thiefstone_accepts(thiefstone, obj)) {
+        pline("As you reach down, %s jumps out of your pack!",
+            yname(thiefstone));
+        pline("It touches %s and they %s disappear!", yname(obj),
+              (obj->quan == 1 ? "both" : "all"));
+        /* hack for preventing thiefstone belonging to hero from being billed.
+         * Note: if the thiefstone is on the bill already (possible through
+         * hero buying an uncursed thiefstone and then it becoming cursed),
+         * this will not cancel the debt. */
+        thiefstone->no_charge = 1;
+        thiefstone_teleport(thiefstone, obj);
+        thiefstone_teleport(thiefstone, thiefstone);
+        makeknown(THIEFSTONE);
+        result = 0;
+    }
+    /* second case: obj being picked up is a cursed thiefstone,
+     * which will steal a random inventory possession */
+    if (result > 0 && obj->otyp == THIEFSTONE && obj->cursed
+        && (obj->keyed_ledger != ledger_no(&u.uz)
+            || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
+        int total = 0;
+        int onum = 0;
+        for (otmp = invent; otmp; otmp = otmp->nobj) {
+            if (thiefstone_accepts(obj, otmp)) {
+                total++;
+            }
+        }
+        if (total) {
+            onum = rnd(total);
+            for (otmp = invent; otmp; otmp = otmp->nobj) {
+                if (!thiefstone_accepts(obj, otmp))
+                    continue;
+                --onum;
+                if (onum == 0)
+                    break;
+            }
+            pline("As you reach for %s, %s %s pulled out of your pack!",
+                  yname(obj), yname(otmp), (otmp->quan == 1 ? "is" : "are"));
+            pline("It touches %s and they disappear!", yname(obj));
+            /* hack for preventing items belonging to hero from being billed */
+            if (!is_unpaid(otmp)) {
+                otmp->no_charge = 1;
+            }
+            thiefstone_teleport(obj, otmp);
+            thiefstone_teleport(obj, obj);
+            makeknown(THIEFSTONE);
+            result = 0;
+        }
+    }
     return result;
+}
+
+/* Will a thiefstone teleport an object? */
+boolean
+thiefstone_accepts(stone, obj)
+struct obj* stone;
+struct obj* obj;
+{
+    if (obj->owornmask) {
+        return FALSE;
+    }
+    if (((obj->oclass == GEM_CLASS && !is_graystone(obj) && obj->otyp != ROCK)
+        || obj->oclass == COIN_CLASS)
+        && stone->blessed) {
+        return TRUE;
+    }
+    if (objects[obj->otyp].oc_magic) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/* Trigger a thiefstone teleport on an object: the object and possibly the
+ * stone are sent back to the keyed level and location.
+ * stone and obj can be the same object. */
+void
+thiefstone_teleport(stone, obj)
+struct obj* stone;
+struct obj* obj;
+{
+    xchar ledger = stone->keyed_ledger;
+    if (!thiefstone_accepts(stone, obj)) {
+        /* don't teleport if the item is of an inappropriate type */
+        impossible("thiefstone_teleport: unacceptable object");
+        return;
+    }
+    if (costly_spot(u.ux, u.uy)) {
+        /* makes two assumptions: thiefstones will never be keyed to inside a
+         * shop; and they can only teleport objects on the player's space */
+        addtobill(obj, FALSE, FALSE, FALSE);
+    }
+    if (ledger == ledger_no(&u.uz)) {
+        /* same level, just do horizontal teleport */
+	struct obj* cobj;
+        obj_extract_self(obj);
+        obj->ox = keyed_x(stone);
+        obj->oy = keyed_y(stone);
+	/* put into a container on this spot, if possible */
+	for (cobj = level.objects[obj->ox][obj->oy]; cobj;
+             cobj = cobj->nexthere) {
+	    if (Is_container(cobj)) {
+		add_to_container(cobj, obj);
+                return;
+	    }
+	}
+	/* if no containers here, continue normally */
+        if (flooreffects(obj, obj->ox, obj->oy, "")) {
+            return;
+        }
+        place_object(obj, obj->ox, obj->oy);
+        stackobj(obj);
+        newsym(obj->ox, obj->oy);
+    } else {
+        /* migrate object to thiefstone destination */
+        obj_extract_self(obj);
+        obj->ox = ledger_to_dnum(ledger);
+        obj->oy = ledger_to_dlev(ledger);
+        obj->migrateflags = (MIGR_THIEFSTONE | MIGR_NOBREAK | MIGR_NOSCATTER);
+        obj->mgrx = keyed_x(stone);
+        obj->mgry = keyed_y(stone);
+        add_to_migration(obj);
+    }
 }
 
 /*
@@ -1495,15 +1627,30 @@ struct obj *
 pick_obj(otmp)
 struct obj *otmp;
 {
+    struct obj *result;
+    int ox = otmp->ox, oy = otmp->oy;
+    boolean robshop = (!u.uswallow && otmp != uball && costly_spot(ox, oy));
+
     obj_extract_self(otmp);
-    if (!u.uswallow && otmp != uball && costly_spot(otmp->ox, otmp->oy)) {
+    otmp->nomerge = 1;
+    result = addinv(otmp);
+    otmp->nomerge = 0;
+    newsym(ox, oy);
+
+    /* this used to be done before addinv(), but remote_burglary()
+       calls rob_shop() which calls setpaid() after moving costs of
+       unpaid items to shop debt; setpaid() calls clear_unpaid() for
+       lots of object chains, but 'otmp' wasn't on any of those so
+       remained flagged as an unpaid item in inventory, triggering
+       impossible() every time inventory was examined... */
+    if (robshop) {
         char saveushops[5], fakeshop[2];
 
         /* addtobill cares about your location rather than the object's;
            usually they'll be the same, but not when using telekinesis
            (if ever implemented) or a grappling hook */
         Strcpy(saveushops, u.ushops);
-        fakeshop[0] = *in_rooms(otmp->ox, otmp->oy, SHOPBASE);
+        fakeshop[0] = *in_rooms(ox, oy, SHOPBASE);
         fakeshop[1] = '\0';
         Strcpy(u.ushops, fakeshop);
         /* sets obj->unpaid if necessary */
@@ -1511,10 +1658,9 @@ struct obj *otmp;
         Strcpy(u.ushops, saveushops);
         /* if you're outside the shop, make shk notice */
         if (!index(u.ushops, *fakeshop))
-            remote_burglary(otmp->ox, otmp->oy);
+            remote_burglary(ox, oy);
     }
-    newsym(otmp->ox, otmp->oy);
-    return addinv(otmp); /* might merge it with other objects */
+    return result;
 }
 
 /*

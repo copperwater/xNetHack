@@ -1,4 +1,4 @@
-/* NetHack 3.6	extern.h	$NHDT-Date: 1508549428 2017/10/21 01:30:28 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.619 $ */
+/* NetHack 3.6	extern.h	$NHDT-Date: 1514769568 2018/01/01 01:19:28 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.622 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -45,7 +45,7 @@ E boolean FDECL(um_dist, (XCHAR_P, XCHAR_P, XCHAR_P));
 E boolean FDECL(snuff_candle, (struct obj *));
 E boolean FDECL(snuff_lit, (struct obj *));
 E boolean FDECL(catch_lit, (struct obj *));
-E void FDECL(use_unicorn_horn, (struct obj *));
+E void FDECL(use_unicorn_horn, (struct obj *, BOOLEAN_P));
 E boolean FDECL(tinnable, (struct obj *));
 E void NDECL(reset_trapset);
 E void FDECL(fig_transform, (ANY_P *, long));
@@ -1398,6 +1398,7 @@ E void FDECL(restore_cham, (struct monst *));
 E boolean FDECL(hideunder, (struct monst *));
 E void FDECL(hide_monst, (struct monst *));
 E void FDECL(mon_animal_list, (BOOLEAN_P));
+E boolean FDECL(validvamp, (struct monst *, int *, int));
 E int FDECL(select_newcham_form, (struct monst *));
 E void FDECL(mgender_from_permonst, (struct monst *, struct permonst *));
 E int FDECL(newcham,
@@ -1622,7 +1623,7 @@ E void NDECL(synch_cursor);
 
 E void NDECL(init_objects);
 E void FDECL(obj_shuffle_range, (int, int *, int *));
-E int NDECL(find_skates);
+E boolean FDECL(objdescr_is, (struct obj *, const char *));
 E void NDECL(oinit);
 E void FDECL(savenames, (int, int));
 E void FDECL(restnames, (int));
@@ -1822,6 +1823,8 @@ E int FDECL(out_container, (struct obj *));
 #endif
 E int FDECL(pickup, (int));
 E int FDECL(pickup_object, (struct obj *, long, BOOLEAN_P));
+E void FDECL(thiefstone_teleport, (struct obj *, struct obj *));
+E boolean FDECL(thiefstone_accepts, (struct obj *, struct obj *));
 E int FDECL(query_category, (const char *, struct obj *, int,
                              menu_item **, int));
 E int FDECL(query_objlist, (const char *, struct obj **, int,
@@ -1882,6 +1885,8 @@ E const char *FDECL(mbodypart, (struct monst *, int));
 E const char *FDECL(body_part, (int));
 E int NDECL(poly_gender);
 E void FDECL(ugolemeffects, (int, int));
+E boolean NDECL(ugenocided);
+E const char *NDECL(udeadinside);
 
 /* ### potion.c ### */
 
@@ -1909,6 +1914,7 @@ E void FDECL(mongrantswish, (struct monst **));
 E void FDECL(djinni_from_bottle, (struct obj *));
 E struct monst *FDECL(split_mon, (struct monst *, struct monst *));
 E const char *NDECL(bottlename);
+E void FDECL(speed_up, (long));
 
 /* ### pray.c ### */
 

@@ -1127,6 +1127,24 @@ unsigned doname_flags;
         if (obj->otyp == MEAT_RING)
             goto ring;
         break;
+    case GEM_CLASS:
+        if (obj->otyp == THIEFSTONE && known) {
+            if (obj->keyed_ledger < 1) {
+                /* doesn't point to a level: assume cancelled */
+                Strcat(eos(bp), " (inactive)");
+            } else {
+                d_level dlev;
+                dlev.dnum = ledger_to_dnum(obj->keyed_ledger);
+                dlev.dlevel = ledger_to_dlev(obj->keyed_ledger);
+                Sprintf(eos(bp), " (keyed to %s:%d)",
+                        dungeons[dlev.dnum].dname, depth(&dlev));
+                if (wizard) {
+                    Sprintf(eos(bp), " at (%d,%d)",
+                            keyed_x(obj), keyed_y(obj));
+                }
+            }
+        }
+        break;
     case BALL_CLASS:
     case CHAIN_CLASS:
         add_erosion_words(obj, prefix);
@@ -2603,6 +2621,7 @@ struct alt_spellings {
     { "luck stone", LUCKSTONE },
     { "load stone", LOADSTONE },
     { "touch stone", TOUCHSTONE },
+    { "thief stone", THIEFSTONE },
     { "flintstone", FLINT },
     { (const char *) 0, 0 },
 };
@@ -3002,12 +3021,37 @@ struct obj *no_wish;
                 *p = 0;
         }
     }
+
+    /* Alternate spellings (pick-ax, silver sabre, &c) */
+    {
+        struct alt_spellings *as = spellings;
+
+        while (as->sp) {
+            if (fuzzymatch(bp, as->sp, " -", TRUE)) {
+                typ = as->ob;
+                goto typfnd;
+            }
+            as++;
+        }
+        /* can't use spellings list for this one due to shuffling */
+        if (!strncmpi(bp, "grey spell", 10))
+            *(bp + 2) = 'a';
+
+        if ((p = strstri(bp, "armour")) != 0) {
+            /* skip past "armo", then copy remainder beyond "u" */
+            p += 4;
+            while ((*p = *(p + 1)) != '\0')
+                ++p; /* self terminating */
+        }
+    }
+
     /* Find corpse type w/o "of" (red dragon scale mail, yeti corpse) */
-    if (strncmpi(bp, "samurai sword", 13)  /* not the "samurai" monster! */
-        && strncmpi(bp, "wizard lock", 11) /* not the "wizard" monster! */
-        && strncmpi(bp, "ninja-to", 8)     /* not the "ninja" rank */
-        && strncmpi(bp, "master key", 10)  /* not the "master" rank */
-        && strncmpi(bp, "magenta", 7)) {   /* not the "mage" rank */
+    if (strncmpi(bp, "samurai sword", 13)     /* not the "samurai" monster! */
+        && strncmpi(bp, "wizard lock", 11)    /* not the "wizard" monster! */
+        && strncmpi(bp, "ninja-to", 8)        /* not the "ninja" rank */
+        && strncmpi(bp, "master key", 10)     /* not the "master" rank */
+        && strncmpi(bp, "magenta", 7)         /* not the "mage" rank */
+        && strncmpi(bp, "thiefstone", 10)) {  /* not the "thief" rank */
         if (mntmp < LOW_PM && strlen(bp) > 2
             && (mntmp = name_to_mon(bp)) >= LOW_PM) {
             int mntmptoo, mntmplen; /* double check for rank title */
@@ -3037,29 +3081,6 @@ struct obj *no_wish;
             if (cnt == 1)
                 cnt = 2;
             Strcpy(bp, sng);
-        }
-    }
-
-    /* Alternate spellings (pick-ax, silver sabre, &c) */
-    {
-        struct alt_spellings *as = spellings;
-
-        while (as->sp) {
-            if (fuzzymatch(bp, as->sp, " -", TRUE)) {
-                typ = as->ob;
-                goto typfnd;
-            }
-            as++;
-        }
-        /* can't use spellings list for this one due to shuffling */
-        if (!strncmpi(bp, "grey spell", 10))
-            *(bp + 2) = 'a';
-
-        if ((p = strstri(bp, "armour")) != 0) {
-            /* skip past "armo", then copy remainder beyond "u" */
-            p += 4;
-            while ((*p = *(p + 1)) != '\0')
-                ++p; /* self terminating */
         }
     }
 

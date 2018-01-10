@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.233 $ $NHDT-Date: 1505214878 2017/09/12 11:14:38 $
+.\" $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.241 $ $NHDT-Date: 1512473628 2017/12/05 11:33:48 $
 .ds h0 "NetHack Guidebook
 .ds h1
 .ds h2 %
@@ -924,8 +924,25 @@ This command allows you to move an item from one particular inventory
 slot to another so that it has a letter which is more meaningful for you
 or that it will appear in a particular location when inventory listings
 are displayed.
+You can move to a currently empty slot, or if the destination is
+occupied--and won't merge--the item there will swap slots with the one
+being moved.
 ``#adjust'' can also be used to split a stack of objects; when
 choosing the item to adjust, enter a count prior to its letter.
+.lp ""
+Adjusting without a count used to collect all compatible stacks when
+moving to the destination.  That behavior has been changed; to gather
+compatible stacks, ``#adjust'' a stack into its own inventory slot.
+If it has a name assigned, other stacks with the same name or with
+no name will merge provided that all their other attributes match.
+If it does not have a name, only other stacks with no name are eligible.
+In either case, otherwise compatible stacks with a different name
+will not be merged.  This contrasts with using ``#adjust'' to move
+from one slot to a different slot.  In that situation, moving (no
+count given) a compatible stack will merge if either stack has a
+name when the other doesn't and give that name to the result, while
+splitting (count given) will ignore the source stack's name when
+deciding whether to merge with the destination stack.
 .lp #annotate
 Allows you to specify one line of text to associate with the current
 dungeon level.  All levels with annotations are displayed by the
@@ -944,7 +961,7 @@ Show your attributes. Default key is '^X'.
 .lp #autopickup
 Toggle the autopickup -option on/off. Default key is '@'.
 .lp #call
-Call (name) a monster, or a object in inventory, on the floor,
+Call (name) a monster, or an object in inventory, on the floor,
 or in the discoveries list, or add an annotation for the
 current level (same as ``#annotate'').  Default key is 'C'.
 .lp #cast
@@ -997,7 +1014,7 @@ Jump to another location. Autocompletes. Default key is 'M-j', and 'j' if number
 .lp #kick
 Kick something. Default key is '^D', and 'k' if number_pad is on.
 .lp #known
-Show what object types have been discovered. Default key is '\'.
+Show what object types have been discovered. Default key is '\\'.
 .lp #knownclass
 Show discovered types for one class of objects. Default key is '`'.
 .lp #levelchange

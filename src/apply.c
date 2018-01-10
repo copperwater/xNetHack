@@ -1861,15 +1861,16 @@ struct obj *obj;
                 verbalize(you_buy_it);
             useupf(corpse, 1L);
         }
-        can = hold_another_object(can, "You make, but cannot pick up, %s.",
-                                  doname(can), (const char *) 0);
+        (void) hold_another_object(can, "You make, but cannot pick up, %s.",
+                                   doname(can), (const char *) 0);
     } else
         impossible("Tinning failed.");
 }
 
 void
-use_unicorn_horn(obj)
+use_unicorn_horn(obj, passive)
 struct obj *obj;
+boolean passive;
 {
 #define PROP_COUNT 7           /* number of properties we're dealing with */
 #define ATTR_COUNT (A_MAX * 3) /* number of attribute points we might fix */
@@ -1969,7 +1970,7 @@ struct obj *obj;
         unfixable_trbl += (AMAX(idx) - val_limit);
     }
 
-    if (trouble_count == 0) {
+    if (trouble_count == 0 && !passive) {
         pline1(nothing_happens);
         return;
     } else if (trouble_count > 1) { /* shuffle */
@@ -2031,17 +2032,18 @@ struct obj *obj;
                 ABASE(idx) += 1;
                 did_attr++;
             } else
-                panic("use_unicorn_horn: bad trouble? (%d)", idx);
+                impossible("use_unicorn_horn: bad trouble? (%d)", idx);
             break;
         }
     }
 
     if (did_attr)
-        pline("This makes you feel %s!",
+        pline("%s feel %s!",
+              (passive ? "You" : "This makes you"),
               (did_prop + did_attr) == (trouble_count + unfixable_trbl)
                   ? "great"
                   : "better");
-    else if (!did_prop)
+    else if (!did_prop && !passive)
         pline("Nothing seems to happen.");
 
     context.botl = (did_attr || did_prop);
@@ -2324,6 +2326,17 @@ struct obj *tstone;
 
     if (obj == tstone && obj->quan == 1L) {
         You_cant("rub %s on itself.", the(xname(obj)));
+        return;
+    }
+
+    if (tstone->otyp == THIEFSTONE && thiefstone_accepts(tstone, obj)
+        && !tstone->cursed) {
+        /* hack for if hero is in shop and is teleporting their own item */
+        obj->no_charge = 1;
+        pline("You touch %s to %s, which disappear%s.", yname(tstone),
+              yname(obj), (obj->quan == 1 ? "s" : ""));
+        thiefstone_teleport(tstone, obj);
+        makeknown(THIEFSTONE);
         return;
     }
 
@@ -2838,8 +2851,8 @@ struct obj *obj;
                         pline("Snatching %s is a fatal mistake.", kbuf);
                         instapetrify(kbuf);
                     }
-                    otmp = hold_another_object(
-                        otmp, "You drop %s!", doname(otmp), (const char *) 0);
+                    (void) hold_another_object(otmp, "You drop %s!",
+                                               doname(otmp), (const char *) 0);
                     break;
                 default:
                     /* to floor beneath mon */
@@ -3262,7 +3275,7 @@ struct obj *obj;
     boolean fillmsg = FALSE;
     int expltype = EXPL_MAGICAL;
     char confirm[QBUFSZ], buf[BUFSZ];
-    boolean is_fragile = (!strcmp(OBJ_DESCR(objects[obj->otyp]), "balsa"));
+    boolean is_fragile = objdescr_is(obj, "balsa");
 
     if (!paranoid_query(ParanoidBreakwand,
                        safe_qbuf(confirm,
@@ -3493,10 +3506,12 @@ char class_list[];
 {
     register struct obj *otmp;
     int otyp;
-    boolean knowoil, knowtouchstone, addpotions, addstones, addfood;
+    boolean knowoil, knowtouchstone, knowthiefstone;
+    boolean addpotions, addstones, addfood;
 
     knowoil = objects[POT_OIL].oc_name_known;
     knowtouchstone = objects[TOUCHSTONE].oc_name_known;
+    knowthiefstone = objects[THIEFSTONE].oc_name_known;
     addpotions = addstones = addfood = FALSE;
     for (otmp = invent; otmp; otmp = otmp->nobj) {
         otyp = otmp->otyp;
@@ -3505,10 +3520,11 @@ char class_list[];
                 && (!otmp->dknown
                     || (!knowoil && !objects[otyp].oc_name_known))))
             addpotions = TRUE;
-        if (otyp == TOUCHSTONE
+        if (otyp == TOUCHSTONE || otyp == THIEFSTONE
             || (is_graystone(otmp)
                 && (!otmp->dknown
-                    || (!knowtouchstone && !objects[otyp].oc_name_known))))
+                    || ((!knowtouchstone || !knowthiefstone)
+                        && !objects[otyp].oc_name_known))))
             addstones = TRUE;
         if (otyp == CREAM_PIE || otyp == EUCALYPTUS_LEAF)
             addfood = TRUE;
@@ -3674,7 +3690,7 @@ doapply()
         use_figurine(&obj);
         break;
     case UNICORN_HORN:
-        use_unicorn_horn(obj);
+        use_unicorn_horn(obj, FALSE);
         break;
     case WOODEN_FLUTE:
     case MAGIC_FLUTE:
@@ -3699,6 +3715,7 @@ doapply()
     case LUCKSTONE:
     case LOADSTONE:
     case TOUCHSTONE:
+    case THIEFSTONE:
         use_stone(obj);
         break;
     default:

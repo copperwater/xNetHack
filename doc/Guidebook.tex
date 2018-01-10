@@ -1104,8 +1104,25 @@ This command allows you to move an item from one particular inventory
 slot to another so that it has a letter which is more meaningful for you
 or that it will appear in a particular location when inventory listings
 are displayed.
+You can move to a currently empty slot, or if the destination is
+occupied--and won't merge--the item there will swap slots with the one
+being moved.
 ``{\tt \#adjust}'' can also be used to split a stack of objects; when
-choosing the item to adjust, enter a count prior to its letter.
+choosing the item to adjust, enter a count prior to its letter.\\
+%.lp ""
+Adjusting without a count used to collect all compatible stacks when
+moving to the destination.  That behavior has been changed; to gather
+compatible stacks, ``{\tt \#adjust}'' a stack into its own inventory slot.
+If it has a name assigned, other stacks with the same name or with
+no name will merge provided that all their other attributes match.
+If it does not have a name, only other stacks with no name are eligible.
+In either case, otherwise compatible stacks with a different name
+will not be merged.  This contrasts with using ``{\tt \#adjust}'' to move
+from one slot to a different slot.  In that situation, moving (no
+count given) a compatible stack will merge if either stack has a
+name when the other doesn't and give that name to the result, while
+splitting (count given) will ignore the source stack's name when
+deciding whether to merge with the destination stack.
 %.lp
 \item[\tb{\#annotate}]
 Allows you to specify one line of text to associate with the current
@@ -1129,7 +1146,7 @@ Show your attributes. Default key is '{\tt \^{}X}'.\\
 Toggle the {\it autopickup\/} -option. Default key is '{\tt @}'.\\
 %.lp
 \item[\tb{\#call}]
-Call (name) a monster, or a object in inventory, on the floor,
+Call (name) a monster, or an object in inventory, on the floor,
 or in the discoveries list, or add an annotation for the
 current level (same as ``{\tt \#annotate}''). Default key is '{\tt C}'.
 %.lp

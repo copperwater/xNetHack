@@ -1616,6 +1616,8 @@ struct obj *otmp;
                 sick_time = (Sick > 1L) ? Sick - 1L : 1L;
             make_sick(sick_time, corpse_xname(otmp, "rotted", CXN_NORMAL),
                       TRUE, SICK_VOMITABLE);
+
+            pline("(It must have died too long ago to be safe to eat.)");
         }
         if (carried(otmp))
             useup(otmp);
@@ -2083,9 +2085,8 @@ eatspecial()
         if (otmp->otyp == SCR_SCARE_MONSTER)
             /* to eat scroll, hero is currently polymorphed into a monster */
             pline("Yuck%c", otmp->blessed ? '!' : '.');
-        else if (otmp->oclass == SCROLL_CLASS
+        else if (otmp->oclass == SCROLL_CLASS && objdescr_is(otmp, "YUM YUM"))
                  /* check description after checking for specific scrolls */
-                 && !strcmpi(OBJ_DESCR(objects[otmp->otyp]), "YUM YUM"))
             pline("Yum%c", otmp->blessed ? '!' : '.');
         else
             pline("Needs salt...");
@@ -3152,12 +3153,18 @@ skipfloor:
 void
 vomit() /* A good idea from David Neves */
 {
-    if (cantvomit(youmonst.data))
+    if (cantvomit(youmonst.data)) {
         /* doesn't cure food poisoning; message assumes that we aren't
            dealing with some esoteric body_part() */
         Your("jaw gapes convulsively.");
-    else
+    } else {
         make_sick(0L, (char *) 0, TRUE, SICK_VOMITABLE);
+        /* if not enough in stomach to actually vomit then dry heave;
+           vomiting_dialog() gives a vomit message when its countdown
+           reaches 0, but only if u.uhs < FAINTING (and !cantvomit()) */
+        if (u.uhs >= FAINTING)
+            Your("%s heaves convulsively!", body_part(STOMACH));
+    }
 
     /* nomul()/You_can_move_again used to be unconditional, which was
        viable while eating but not for Vomiting countdown where hero might

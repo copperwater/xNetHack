@@ -445,7 +445,6 @@ int
 dodrink()
 {
     register struct obj *otmp;
-    const char *potion_descr;
 
     if (Strangled) {
         pline("If you can't breathe air, how can you drink liquid?");
@@ -497,21 +496,18 @@ dodrink()
     }
     otmp->in_use = TRUE; /* you've opened the stopper */
 
-    potion_descr = OBJ_DESCR(objects[otmp->otyp]);
-    if (potion_descr) {
-        if (!strcmp(potion_descr, "milky")
-            && !(mvitals[PM_GHOST].mvflags & G_GONE)
-            && !rn2(POTION_OCCUPANT_CHANCE(mvitals[PM_GHOST].born))) {
-            ghost_from_bottle();
-            useup(otmp);
-            return 1;
-        } else if (!strcmp(potion_descr, "smoky")
-                   && !(mvitals[PM_DJINNI].mvflags & G_GONE)
-                   && !rn2(POTION_OCCUPANT_CHANCE(mvitals[PM_DJINNI].born))) {
-            djinni_from_bottle(otmp);
-            useup(otmp);
-            return 1;
-        }
+    if (objdescr_is(otmp, "milky")
+        && !(mvitals[PM_GHOST].mvflags & G_GONE)
+        && !rn2(POTION_OCCUPANT_CHANCE(mvitals[PM_GHOST].born))) {
+        ghost_from_bottle();
+        useup(otmp);
+        return 1;
+    } else if (objdescr_is(otmp, "smoky")
+               && !(mvitals[PM_DJINNI].mvflags & G_GONE)
+               && !rn2(POTION_OCCUPANT_CHANCE(mvitals[PM_DJINNI].born))) {
+        djinni_from_bottle(otmp);
+        useup(otmp);
+        return 1;
     }
     return dopotion(otmp);
 }
@@ -576,6 +572,18 @@ register struct obj *otmp;
                 }
                 if (++i >= A_MAX)
                     i = 0;
+            }
+
+            /* when using the potion (not the spell) also restore lost levels,
+               to make the potion more worth keeping around for players with
+               the spell or with a unihorn; this is better than full healing
+               in that it can restore all of them, not just half, and a
+               blessed potion restores them all at once */
+            if (otmp->otyp == POT_RESTORE_ABILITY &&
+                u.ulevel < u.ulevelmax) {
+                do {
+                    pluslvl(FALSE);
+                } while (u.ulevel < u.ulevelmax && otmp->blessed);
             }
         }
         break;
@@ -883,18 +891,15 @@ register struct obj *otmp;
             /* heal_legs() would heal steeds legs */
             heal_legs();
             unkn++;
-            break;
         }
-        /* FALLTHRU */
+        speed_up(rn1(10, 15 + 10 * bcsign(otmp)));
+        if (!otmp->cursed && !(HFast & INTRINSIC)) {
+            Your("quickness feels very natural.");
+            HFast |= FROMOUTSIDE;
+        }
+        break;
     case SPE_HASTE_SELF:
-        if (!Very_fast) { /* wwf@doe.carleton.ca */
-            You("are suddenly moving %sfaster.", Fast ? "" : "much ");
-        } else {
-            Your("%s get new energy.", makeplural(body_part(LEG)));
-            unkn++;
-        }
-        exercise(A_DEX, TRUE);
-        incr_itimeout(&HFast, rn1(10, 100 + 60 * bcsign(otmp)));
+        speed_up(rn1(10, 100 + 60 * bcsign(otmp)));
         break;
     case POT_BLINDNESS:
         if (Blind)
@@ -2323,6 +2328,20 @@ struct monst *mon,  /* monster being split */
         }
     }
     return mtmp2;
+}
+
+/* Character becomes very fast temporarily. */
+void
+speed_up(duration)
+long duration;
+{
+   if (!Very_fast) {
+       You("are suddenly moving %sfaster.", Fast ? "" : "much ");
+   } else {
+       Your("%s get new energy.", makeplural(body_part(LEG)));
+   }
+   exercise(A_DEX, TRUE);
+   incr_itimeout(&HFast, duration);
 }
 
 /*potion.c*/

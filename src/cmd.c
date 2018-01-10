@@ -1,4 +1,4 @@
-/* NetHack 3.6	cmd.c	$NHDT-Date: 1508880573 2017/10/24 21:29:33 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.275 $ */
+/* NetHack 3.6	cmd.c	$NHDT-Date: 1513130017 2017/12/13 01:53:37 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.277 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -552,7 +552,7 @@ domonability(VOID_ARGS)
         } else
             There("is no fountain here.");
     } else if (is_unicorn(youmonst.data)) {
-        use_unicorn_horn((struct obj *) 0);
+        use_unicorn_horn((struct obj *) 0, FALSE);
         return 1;
     } else if (youmonst.data->msound == MS_SHRIEK) {
         You("shriek.");
@@ -1887,8 +1887,13 @@ int final;
     Strcpy(youtoo, You_);
     /* not a traditional status but inherently obvious to player; more
        detail given below (attributes section) for magic enlightenment */
-    if (Upolyd)
-        you_are("transformed", "");
+    if (Upolyd) {
+        Strcpy(buf, "transformed");
+        if (ugenocided())
+            Sprintf(eos(buf), " and %s %s inside",
+                    final ? "felt" : "feel", udeadinside());
+        you_are(buf, "");
+    }
     /* not a trouble, but we want to display riding status before maybe
        reporting steed as trapped or hero stuck to cursed saddle */
     if (Riding) {
@@ -5133,6 +5138,7 @@ parse()
     register int foo;
     boolean prezero = FALSE;
 
+    iflags.in_parse = TRUE;
     multi = 0;
     context.move = 1;
     flush_screen(1); /* Flush screen buffer. Put the cursor on the hero. */
@@ -5199,6 +5205,8 @@ parse()
     clear_nhwindow(WIN_MESSAGE);
     if (prezero)
         in_line[0] = Cmd.spkeys[NHKF_ESC];
+
+    iflags.in_parse = FALSE;
     return in_line;
 }
 

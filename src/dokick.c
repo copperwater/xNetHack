@@ -1426,7 +1426,7 @@ xchar dlev;          /* if !0 send to dlev near player */
         add_to_migration(obj);
         obj->ox = cc.x;
         obj->oy = cc.y;
-        obj->owornmask = (long) toloc;
+        obj->migrateflags = (long) toloc;
 
         /* number of fallen objects */
         dct += obj->quan;
@@ -1576,7 +1576,7 @@ boolean shop_floor_obj;
     add_to_migration(otmp);
     otmp->ox = cc.x;
     otmp->oy = cc.y;
-    otmp->owornmask = (long) toloc;
+    otmp->migrateflags = (long) toloc;
     /* boulder from rolling boulder trap, no longer part of the trap */
     if (otmp->otyp == BOULDER)
         otmp->otrapped = 0;
@@ -1611,7 +1611,7 @@ boolean near_hero;
         if (otmp->ox != u.uz.dnum || otmp->oy != u.uz.dlevel)
             continue;
 
-        where = (int) (otmp->owornmask & 0x7fffL); /* destination code */
+        where = (int) (otmp->migrateflags & 0x7fffL); /* destination code */
         nobreak = (where & MIGR_NOBREAK) != 0;
         noscatter = (where & MIGR_WITH_HERO) != 0;
         where &= ~(MIGR_NOBREAK | MIGR_NOSCATTER);
@@ -1620,7 +1620,7 @@ boolean near_hero;
             continue;
 
         obj_extract_self(otmp);
-        otmp->owornmask = 0L;
+        otmp->migrateflags = 0L;
 
         switch (where) {
         case MIGR_STAIRS_UP:
@@ -1635,12 +1635,31 @@ boolean near_hero;
         case MIGR_WITH_HERO:
             nx = u.ux, ny = u.uy;
             break;
+        case MIGR_EXACT_XY:
+        case MIGR_THIEFSTONE:
+            nx = otmp->mgrx, ny = otmp->mgry;
+            break;
         default:
         case MIGR_RANDOM:
             nx = ny = 0;
             break;
         }
         if (nx > 0) {
+            if (where == MIGR_THIEFSTONE) {
+                struct obj* cobj;
+                boolean found_container = FALSE;
+                /* put into a container on this spot, if possible */
+                for (cobj = level.objects[nx][ny]; cobj; cobj = cobj->nexthere) {
+                    if (Is_container(cobj)) {
+                        add_to_container(cobj, otmp);
+                        found_container = TRUE;
+                        break;
+                    }
+                }
+                if (found_container)
+                    continue;
+                /* if no containers here, continue normally */
+            }
             place_object(otmp, nx, ny);
             if (!nobreak && !IS_SOFT(levl[nx][ny].typ)) {
                 if (where == MIGR_WITH_HERO) {

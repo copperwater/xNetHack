@@ -437,6 +437,7 @@ fix buffer overflow in wizard mode for '#' command when 'extmenu' option is on
 "you suddenly vomit" was given two turns before actually vomiting, so you
 	could get that message, move a bit, then get "you can move again"
 	after the 2 turn freeze applied along with the actual vomit
+give an alternate message if you vomit when stomach is empty (ie, fainting)
 corpses and other flammable items not subject to direct burning or fire-based
 	erosion which were thrown or dropped into lava remained intact
 if a potion on the floor survived a land mine explosion and got propelled at
@@ -471,6 +472,37 @@ charisma affects the leeway in demon lord bribes
 make Vlad slightly tougher
 reduce the amount of gold laying on the floor
 locked chests and large boxes contain more stuff
+make shopkeepers bill hero for burying merchandise
+monster holding hero takes double damage from an explosion for reaching into
+	adjacent spot, but it was being inflicted even when hero was swallowed
+	or beyond the explosion radius
+poly'd hero holding monster now takes double damage (if monster is within
+	explosion radious) instead of inflicting that upon the monster
+when trying to swap places with a pet and failing due to pet being unable
+	to move diagonally to hero's spot (grid bug or too tight squeeze), if
+	pet became untame the map would briefly show hero at pet's location
+when trying to swap places with a pet and failing due to pet being trapped
+	or disallowed diagonal move, the arrive-on-new-spot code (autopickup,
+	trap triggering) executed even though hero didn't ultimately move
+being "dead inside" (self-genocide while polymorphed) conferred partial
+	invulnerability--normal monster behavior stopped attacking hero
+if a fiery monster, wand of fire, or fiery explosion burned up a paper golem,
+	it could still leave blank scrolls
+hero poly'd into paper or straw golem reverts to human if burned up even when
+	Unchanging without any explanation given
+hero polymorphed into form which can't wear armor via 'W' (eliciting "don't
+	even bother") could wear it via 'P'
+make multi-shot missiles fired by monsters be less verbose when they miss
+can no longer play controlled notes on musical instrument if impaired
+if a special level specified the appearance of a mimic and mimics had been
+	genocided prior to creating the level, whatever random monster took
+	the mimic's place got its intended appearance
+redundant "hit by gush of water" message if poly'd into iron golem or gremlin
+a shop object stolen from outside the shop (via grappling hook) would be left
+	marked as 'unpaid' after the shop robbery took place, resulting in
+	"unpaid_cost: object wasn't on any bill" when looking at inventory
+a shop object stolen from outside the shop could trigger a crash if that shop
+	had never been entered by the hero
 
 
 Fixes to Post-3.6.0 Problems that Were Exposed Via git Repository
@@ -501,6 +533,8 @@ DUMPLOG: genocided and extinct species was always a blank line;
 	vanquished creatures was just a blank line if nothing had been killed
 DUMPLOG: RIP tombstone was printed for characters who survived (ascended,
 	escaped dungeon, quit, trickery or panic)
+DUMPLOG: pets who accompany hero during ascension or dungeon escape were
+	already gone by the time known portion of the level map was dumped
 artifact creation violated illiterate conduct when artifact name was assigned,
 	behavior intended only for creating Sting or Orcrist via naming
 tty: revert to pline() for issuing prompts (override MSGTYPE=hide differently)
@@ -531,6 +565,9 @@ fix mention_walls reporting secret doors as solid stone
 jumping over water unintentionally moved hero through that water, causing
 	drowning if not able to water walk or fly
 try again to fix achievement recording bug with mines and sokoban prizes
+the fix for secret doors on special levels always having vertical orientation
+	resulted in some--but not all--secret doors within vertical walls
+	being displayed as horizontal walls while still hidden
 
 
 Platform- and/or Interface-Specific Fixes
@@ -556,6 +593,7 @@ tty: if "--More--" was written to leftmost column (beginning of second line)
 tty: long message lines which wrap when shown on the top line might be
 	re-displayed incorrectly by ^P for msg_window={full,combo,reverse}
 tty: MSGTYPE=hide could interfere with display of prompts
+tty: treat carriage return as a newline for input text and --More-- prompts
 unix/X11: in top level Makefile, some commented out definitions of VARDATND
 	misspelled pilemark.xbm (as pilemark.xpm)
 unix: options file with CR+LF line ends and an invalid option line resulted in
@@ -710,8 +748,14 @@ Master Key of Thievery always finds door and chest traps if used to lock or
 	blessed (for non-rogues); player is offered the opportunity to disarm
 "Elbereth" must now be the only engraved text on a square to function
 "Elbereth" now erodes based on attacks by the player, not monsters scared
-option herecmd_menu to make a mouse click on your character pop up
+add option herecmd_menu to make a mouse click on your character pop up
 	a context menu, and extended command #herecmdmenu to do the same
+change #adjust's behavior when collecting compatible stacks; that used to
+	occur for any #adjust which lacked a split count, now it only happens
+	when 'adjusting' into a stack's own inventory slot
+a prayer result which results in uncursing some or all of the hero's items
+	won't uncurse a worn helm of opposite alignment since that would
+	facilitate the hero switching to another god by taking it off
 
 
 Platform- and/or Interface-Specific New Features

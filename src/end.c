@@ -1,4 +1,4 @@
-/* NetHack 3.6	end.c	$NHDT-Date: 1495232357 2017/05/19 22:19:17 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.131 $ */
+/* NetHack 3.6	end.c	$NHDT-Date: 1512803167 2017/12/09 07:06:07 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.137 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -401,6 +401,60 @@ int sig;
 }
 #endif
 #endif /* NO_SIGNAL */
+
+/* If the player is killed by something that allows their body to continue
+ * existing as some kind of monster that's not a ghost, they might retain
+ * their original mind and agency (and the game won't end after all). However,
+ * this comes with a drawback - the new form has intrinsic unchanging, and dying
+ * in that form will cause permanent death.
+ * Returns true if and only if the player can continue playing.
+ * Assumes u.ugrave_arise has already been set to the correct monster number.
+ */
+boolean
+sentient_arise(how)
+int how;
+{
+    int mon_nm;
+    if (how == TURNED_SLIME) {
+        /* special case, isn't set by done_in_by */
+        mon_nm = PM_GREEN_SLIME;
+    } else {
+        mon_nm = u.ugrave_arise;
+    }
+    if (mon_nm < LOW_PM || (mvitals[mon_nm].mvflags & G_GENOD)) {
+        return FALSE;
+    }
+    /* already got one shot... don't give third chances.
+     * or was unluckily wearing an amulet of unchanging and can't resurrect as
+     * a monster anyway */
+    if (Unchanging) {
+        return FALSE;
+    }
+    /* different monsters have different chances of keeping mind intact */
+    if ((mon_nm == PM_GREEN_SLIME && !rn2(2)) ||
+        (mon_nm == PM_WRAITH && !rn2(6)) ||
+        (mon_nm == PM_VAMPIRE && !rn2(10)) ||
+        (mon_nm == PM_GHOUL && !rn2(5)) ||
+        (mons[mon_nm].mlet == S_MUMMY && !rn2(8))) {
+        u.ugrave_arise = NON_PM;
+
+        if (mon_nm != PM_GREEN_SLIME) {
+            /* green slime already has transformation messages */
+            pline("Your body becomes corrupted...");
+        }
+        /* messages here aren't great for green slimes...
+         * "You have become a green slime. You turn into a green slime!" */
+        polymon(mon_nm);
+        /* bug: if u.uhp <= 0, monsters won't attack for some reason
+         * set to max, not like you're ever going to need it again... */
+        u.uhp = u.uhpmax;
+        HUnchanging |= FROMOUTSIDE;
+        pline("But wait...");
+        pline("For some reason, you still remember yourself and your quest.");
+        return TRUE;
+    }
+    return FALSE;
+}
 
 void
 done_in_by(mtmp, how)
@@ -846,10 +900,19 @@ savelife(how)
 int how;
 {
     int uhpmin = max(2 * u.ulevel, 10);
-
-    if (u.uhpmax < uhpmin)
-        u.uhpmax = uhpmin;
-    u.uhp = u.uhpmax;
+    if (Upolyd) {
+        if (Unchanging) {
+            if (u.mhmax < uhpmin)
+                u.mhmax = uhpmin;
+            u.mh = u.mhmax;
+        } else {
+            rehumanize();
+        }
+    } else {
+        if (u.uhpmax < uhpmin)
+            u.uhpmax = uhpmin;
+        u.uhp = u.uhpmax;
+    }
     u.uswldtim = 0;
     if (u.uhunger < 500) {
         u.uhunger = 500;
@@ -872,7 +935,6 @@ int how;
         u.utrap = 0;
     context.botl = 1;
     u.ugrave_arise = NON_PM;
-    HUnchanging = 0L;
     curs_on_u();
     if (!context.mon_moving)
         endmultishot(FALSE);
@@ -1038,7 +1100,8 @@ int how;
 
     if (how < PANICKED)
         u.umortality++;
-    if (Lifesaved && (how <= GENOCIDED)) {
+
+    if (Lifesaved && (how <= GENOCIDED) && !nonliving(youmonst.data)) {
         pline("But wait...");
         makeknown(AMULET_OF_LIFE_SAVING);
         Your("medallion %s!", !Blind ? "begins to glow" : "feels warm");
@@ -1059,6 +1122,11 @@ int how;
             return;
         }
     }
+    /* maybe give the player a second chance if they were killed by the
+     * appropriate monster */
+    if (sentient_arise(how)) {
+        return;
+    }
     if ((wizard || discover) && (how <= GENOCIDED)
         && !paranoid_query(ParanoidDie, "Die?")) {
         pline("OK, so you don't %s.", (how == CHOKING) ? "choke" : "die");
@@ -1067,6 +1135,7 @@ int how;
         killer.format = 0;
         return;
     }
+
     really_done(how);
 }
 
@@ -1142,11 +1211,6 @@ int how;
     else if (how == TURNED_SLIME)
         u.ugrave_arise = PM_GREEN_SLIME;
 
-    /* if pets will contribute to score, populate mydogs list now
-       (bones creation isn't a factor, but pline() messaging is) */
-    if (how == ESCAPED || how == ASCENDED)
-        keepdogs(TRUE);
-
     if (how == QUIT) {
         killer.format = NO_KILLER_PREFIX;
         if (u.uhp < 1) {
@@ -1193,6 +1257,13 @@ int how;
 
         dump_everything(how, endtime);
     }
+
+    /* if pets will contribute to score, populate mydogs list now
+       (bones creation isn't a factor, but pline() messaging is; used to
+       be done ever sooner, but we need it to come after dump_everything()
+       so that any accompanying pets are still on the map during dump) */
+    if (how == ESCAPED || how == ASCENDED)
+        keepdogs(TRUE);
 
     /* finish_paybill should be called after disclosure but before bones */
     if (bones_ok && taken)
