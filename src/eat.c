@@ -2085,9 +2085,8 @@ eatspecial()
         if (otmp->otyp == SCR_SCARE_MONSTER)
             /* to eat scroll, hero is currently polymorphed into a monster */
             pline("Yuck%c", otmp->blessed ? '!' : '.');
-        else if (otmp->oclass == SCROLL_CLASS
+        else if (otmp->oclass == SCROLL_CLASS && objdescr_is(otmp, "YUM YUM"))
                  /* check description after checking for specific scrolls */
-                 && !strcmpi(OBJ_DESCR(objects[otmp->otyp]), "YUM YUM"))
             pline("Yum%c", otmp->blessed ? '!' : '.');
         else
             pline("Needs salt...");
