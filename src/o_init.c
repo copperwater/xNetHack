@@ -253,19 +253,26 @@ shuffle_all()
     return;
 }
 
-/* find the object index for snow boots; used [once] by slippery ice code */
-int
-find_skates()
+/* Return TRUE if the provided string matches the unidentified description of
+ * the provided object. */
+boolean
+objdescr_is(obj, descr)
+struct obj * obj;
+const char * descr;
 {
-    register int i;
-    register const char *s;
+    if (obj == NULL) {
+        impossible("objdescr_is: passed null object");
+        return FALSE;
+    }
 
-    for (i = SPEED_BOOTS; i <= LEVITATION_BOOTS; i++)
-        if ((s = OBJ_DESCR(objects[i])) != 0 && !strcmp(s, "snow boots"))
-            return i;
-
-    impossible("snow boots not found?");
-    return -1; /* not 0, or caller would try again each move */
+    const char * objdescr = OBJ_DESCR(objects[obj->otyp]);
+    if (objdescr == NULL) {
+        /* possible if called on something like uarmh and the hero is wearing a
+         * dented pot which has no unidentified description; in any case, it
+         * definitely doesn't match. */
+        return FALSE;
+    }
+    return !strcmp(objdescr, descr);
 }
 
 /* level dependent initialization */
