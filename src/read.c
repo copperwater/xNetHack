@@ -1739,7 +1739,8 @@ boolean confused, helmet_protects, byu, skip_uswallow;
         newsym(u.ux, u.uy);
     }
     if (dmg)
-        losehp(Maybe_Half_Phys(dmg), "scroll of earth", KILLED_BY_AN);
+        losehp(Maybe_Half_Phys(dmg), "crushed by a falling boulder",
+               NO_KILLER_PREFIX);
 }
 
 boolean

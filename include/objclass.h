@@ -154,12 +154,13 @@ enum obj_class_types {
     MAXOCLASSES
 };
 
-#define ALLOW_COUNT (MAXOCLASSES + 1) /* Can be used in the object class    */
-#define ALL_CLASSES (MAXOCLASSES + 2) /* input to getobj().                 */
-#define ALLOW_NONE  (MAXOCLASSES + 3)
+#define ALLOW_COUNT  (MAXOCLASSES + 1) /* Can be used in the object class    */
+#define ALL_CLASSES  (MAXOCLASSES + 2) /* input to getobj().                 */
+#define ALLOW_NONE   (MAXOCLASSES + 3)
 
-#define BURNING_OIL (MAXOCLASSES + 1) /* Can be used as input to explode.   */
-#define MON_EXPLODE (MAXOCLASSES + 2) /* Exploding monster (e.g. gas spore) */
+#define BURNING_OIL  (MAXOCLASSES + 1) /* Can be used as input to explode.   */
+#define MON_EXPLODE  (MAXOCLASSES + 2) /* Exploding monster (e.g. gas spore) */
+#define TRAPPED_DOOR (MAXOCLASSES + 3) /* Exploding door */
 
 #if 0 /* moved to decl.h so that makedefs.c won't see them */
 extern const struct class_sym

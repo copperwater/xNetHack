@@ -82,4 +82,20 @@ enum trap_types {
     TRAPNUM
 };
 
+/* List of traps that can be triggered by interacting with a door. */
+enum doortrap_types {
+    HINGE_SCREECH = 0,
+    SELF_LOCK,
+    STATIC_SHOCK,
+    WATER_BUCKET,
+    HINGELESS_FORWARD,
+    HINGELESS_BACKWARD,
+    ROCKFALL,
+    HOT_KNOB,
+    FIRE_BLAST,
+    NUMDOORTRAPS
+    /* other ideas: boxing glove, sticky doorknob
+     * hurtle(u.ux - doorx, u.uy - doory, 1, FALSE) */
+};
+
 #endif /* TRAP_H */

@@ -4986,6 +4986,199 @@ register struct trap *ttmp;
     return FALSE;
 }
 
+/* Given a door location, return the trap type associated with it. */
+int
+getdoortrap(x, y)
+int x, y;
+{
+    int lvl = level_difficulty();
+    int maxtrap = HINGE_SCREECH;
+    const int trapminlevels[NUMDOORTRAPS][2] = {
+        { HINGE_SCREECH,      1 }, /* keep these sorted */
+        { SELF_LOCK,          1 },
+        { STATIC_SHOCK,       2 },
+        { WATER_BUCKET,       3 },
+        { HINGELESS_FORWARD,  6 },
+        { HINGELESS_BACKWARD, 8 },
+        { ROCKFALL,          10 },
+        { HOT_KNOB,          12 },
+        { FIRE_BLAST,        15 }};
+
+    /* Find the maximum possible effect for a trap, based on level. */
+    int i;
+    for (i = 0; i < NUMDOORTRAPS; ++i) {
+        if (lvl >= trapminlevels[i][1]) {
+            maxtrap = i;
+        }
+        else break;
+    }
+
+    /* trap is picked deterministically based on door's coordinates, so that
+     * repeat traps on the same door will be the same trap.
+     * In order to provide some extra scrambling that the player won't be able
+     * to get out of the visible game state, involve birthday as well. */
+    return ((int) ubirthday + 3*lvl + 61*x*x + 13*x*y) % (maxtrap + 1);
+}
+
+/* A door triggers a trap.
+ * bodypart is the body part used to touch the door, and can affect what the
+ * trap does.
+ * action is a doorstate that defines what the player is doing with the door:
+ *   D_ISOPEN - opening it
+ *   D_CLOSED - closing it, not wizard-locking it
+ *   D_BROKEN - destroying it
+ *   D_NODOOR - none of the above; this is for a trap that triggers when the
+ *   player moves off the doorway onto another space.
+ * Unused ones that might be of some use at some point:
+ *   D_LOCKED - locking it
+ *  -D_LOCKED - unlocking it
+ *  -D_TRAPPED - untrapping it
+ *  -D_NODOOR - moving onto the doorway.
+ */
+void
+doortrapped(x, y, bodypart, action)
+int x, y, bodypart, action;
+{
+    boolean touching = (bodypart != NO_PART);
+    int selected_trap = getdoortrap(x, y);
+    int lvl = level_difficulty();
+    struct rm * door = &levl[x][y];
+
+    /* note that player should have gotten messages like "The door opens."
+     * already */
+    if (selected_trap == HINGE_SCREECH) {
+        if (action == D_ISOPEN || action == D_CLOSED) {
+            pline("The hinges screech loudly.");
+            wake_nearto(x, y, (11 + lvl) * (11 + lvl));
+        }
+    }
+    else if (selected_trap == SELF_LOCK) {
+        boolean do_lock = FALSE;
+        if (action == D_ISOPEN) {
+            pline("But it swings closed again and locks!");
+            do_lock = TRUE;
+        }
+        else if (action == D_CLOSED) {
+            pline("The lock unexpectedly clicks into place!");
+            do_lock = TRUE;
+        }
+        else if (action == D_NODOOR) {
+            pline("The door swings closed behind you and locks!");
+            do_lock = TRUE;
+        }
+        /* probably too cruel to make it lock itself when the player tries to
+         * unlock it, and not much point doing anything when trying to be
+         * locked */
+        if (do_lock) {
+            set_doorstate(door, D_CLOSED);
+            set_door_lock(door, TRUE);
+        }
+    }
+    else if (selected_trap == STATIC_SHOCK) {
+        if ((action == D_ISOPEN || action == D_CLOSED) && touching) {
+            int dmg = rnd(lvl * 2) / (Shock_resistance ? 4 : 1);
+            dmg += 1;
+            pline("An electric spark from the doorknob zaps you!");
+            losehp(dmg, "charged doorknob", KILLED_BY_AN);
+            exercise(A_WIS, FALSE);
+        }
+    }
+    else if (selected_trap == WATER_BUCKET) {
+        if (action == D_ISOPEN || action == D_BROKEN) {
+            pline("A bucket of water splashes down%s!",
+                  (touching ? " on you" : ""));
+            if (touching) {
+                /* TODO: no iron golem rust/gremlin multiplying as of yet,
+                 * waiting to hear from DT on this */
+                water_damage_chain(invent, FALSE);
+                exercise(A_WIS, FALSE);
+            }
+        }
+        set_door_trap(door, FALSE); /* trap is gone */
+    }
+    else if (selected_trap == HINGELESS_FORWARD) {
+        if (action == D_ISOPEN) {
+            pline("The door falls forward off its hinges!");
+            if (touching) {
+                You("crash on top of it!");
+                /* move onto the door */
+                hurtle(x - u.ux, y - u.uy, 1, FALSE);
+                multi_reason = "falling on top of a door";
+
+                make_stunned((HStun & TIMEOUT) + d(2,4), FALSE);
+                losehp(Maybe_Half_Phys(rnd((lvl/4) + 1)),
+                        "falling on top of a door", KILLED_BY);
+                exercise(A_STR, FALSE);
+            }
+            set_door_trap(door, FALSE); /* trap is gone */
+            set_doorstate(door, D_BROKEN);
+            wake_nearto(x, y, 8 * 8);
+        }
+    }
+    else if (selected_trap == HINGELESS_BACKWARD) {
+        if (action == D_ISOPEN) {
+            pline("The door falls backward off its hinges!");
+            if (touching) {
+                You("are flattened by it!");
+                losehp(Maybe_Half_Phys(rnd((lvl/2) + 1)),
+                        "crushed by a falling door", NO_KILLER_PREFIX);
+                /* takes a while to get out from the door */
+                nomul(-3);
+                multi_reason = "trapped under a door";
+                exercise(A_STR, FALSE);
+            }
+            set_door_trap(door, FALSE); /* trap is gone */
+            set_doorstate(door, D_BROKEN);
+            wake_nearto(x, y, 8 * 8);
+        }
+    }
+    else if (selected_trap == ROCKFALL) {
+        if (action == D_ISOPEN || action == D_BROKEN) {
+            You("break a tripwire!");
+            You("sense a rumbling above you...");
+            if (touching) {
+                drop_boulder_on_player(FALSE, FALSE, FALSE, FALSE);
+                exercise(A_STR, FALSE);
+            }
+            else {
+                /* if triggered from a distance, boulder falls on the door's
+                 * square instead of the adjacent square; this is fine for now.
+                 */
+                drop_boulder_on_monster(x, y, FALSE, FALSE);
+            }
+            set_door_trap(door, FALSE); /* trap is gone */
+        }
+    }
+    else if (selected_trap == HOT_KNOB) {
+        if ((action == D_ISOPEN || action == D_CLOSED) && touching) {
+            pline("Ouch!  The knob is red-hot!");
+            /* TODO: gloves give half damage but burn if burnable;
+             * padded gloves are designed for heat and negate all damage */
+            if (uarmg) {
+
+            }
+            int dmg = rnd(lvl);
+            if (Fire_resistance) {
+                dmg /= 2;
+            }
+            losehp(dmg, "a red-hot doorknob", KILLED_BY);
+        }
+    }
+    else if (selected_trap == FIRE_BLAST) {
+        /* TODO: ensure explode() wakes monsters without having to call it here */
+        if (touching || cansee(x,y)) {
+            pline("KABOOM!!  The door was booby-trapped!");
+        }
+        else {
+            pline("KABOOM!!  Something explodes!");
+        }
+        explode(x, y, 11, rnd(lvl), TRAPPED_DOOR, EXPL_FIERY);
+    }
+    else {
+        impossible("doortrapped: bad trap %d", selected_trap);
+    }
+}
+
 /* used for doors (also tins).  can be used for anything else that opens. */
 void
 b_trapped(item, bodypart)
