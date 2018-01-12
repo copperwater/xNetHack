@@ -641,6 +641,11 @@ which_armor(mon, flag)
 struct monst *mon;
 long flag;
 {
+    if (!mon) {
+        impossible("which_armor: null mon");
+        return (struct obj *) 0;
+    }
+
     if (mon == &youmonst) {
         switch (flag) {
         case W_ARM:
