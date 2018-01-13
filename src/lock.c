@@ -76,13 +76,14 @@ lock_action()
 STATIC_PTR int
 picklock(VOID_ARGS)
 {
+    xchar doorx = u.ux + u.dx, doory = u.uy + u.dy;
     if (xlock.box) {
         if (xlock.box->where != OBJ_FLOOR
             || xlock.box->ox != u.ux || xlock.box->oy != u.uy) {
             return ((xlock.usedtime = 0)); /* you or it moved */
         }
     } else { /* door */
-        if (xlock.door != &(levl[u.ux + u.dx][u.uy + u.dy])) {
+        if (xlock.door != &(levl[doorx][doory])) {
             return ((xlock.usedtime = 0)); /* you moved */
         }
         if (!door_is_closed(xlock.door)) {
@@ -102,7 +103,7 @@ picklock(VOID_ARGS)
         }
     }
 
-    if (predoortrapped(u.ux + u.dx, u.uy + u.dy, NULL, FINGER, -D_LOCKED)) {
+    if (predoortrapped(doorx, doory, NULL, FINGER, -D_LOCKED) == 2) {
         /* door was destroyed somehow */
         return (xlock.usedtime = 0);
     }
@@ -152,7 +153,7 @@ picklock(VOID_ARGS)
 
     You("succeed in %s.", lock_action());
     if (xlock.door) {
-        if (!postdoortrapped(u.ux+u.dx, u.uy+u.dy, NULL, FINGER, -D_LOCKED)) {
+        if (!postdoortrapped(doorx, doory, NULL, FINGER, -D_LOCKED)) {
             set_door_lock(xlock.door, !door_is_locked(xlock.door));
         }
     } else {
@@ -700,7 +701,7 @@ int x, y;
         return res;
     }
 
-    if (predoortrapped(cc.x, cc.y, &youmonst, FINGER, D_ISOPEN)) {
+    if (predoortrapped(cc.x, cc.y, &youmonst, FINGER, D_ISOPEN) != 0) {
         return res;
     }
 
@@ -712,7 +713,7 @@ int x, y;
     /* door is known to be CLOSED */
     if (rnl(20) < (ACURRSTR + ACURR(A_DEX) + ACURR(A_CON)) / 3) {
         pline_The("door opens.");
-        if (!postdoortrapped(cc.x, cc.y, &youmonst, FINGER, D_ISOPEN)) {
+        if (!postdoortrapped(cc.x, cc.y, &youmonst, FINGER, D_ISOPEN) == 0) {
             set_doorstate(door, D_ISOPEN);
         }
         feel_newsym(cc.x, cc.y); /* the hero knows she opened it */
@@ -1007,7 +1008,7 @@ int x, y;
     case WAN_STRIKING:
     case SPE_FORCE_BOLT:
         if (door_is_closed(door)) {
-            if (doortrapped(x, y, mon, NO_PART, D_BROKEN, 2)) {
+            if (doortrapped(x, y, mon, NO_PART, D_BROKEN, 2) > 0) {
                 break;
             }
             set_doorstate(door, D_BROKEN);

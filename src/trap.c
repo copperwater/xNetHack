@@ -5054,9 +5054,10 @@ int x, y;
  *   1 = only trigger after-action traps
  *   2 = trigger all possible traps (used when e.g. zapping striking at door)
  *
- *  Return value is whether the door has been destroyed. This function will set
- *  the new doorstate appropriately, if it changes. We assume no traps will
- *  trigger on D_BROKEN doors.
+ * Return value is as follows:
+ *   0 = doorstate is not changed
+ *   1 = doorstate is changed to something non-destroyed
+ *   2 = door has been destroyed
  */
 boolean
 doortrapped(x, y, mon, bodypart, action, when)
@@ -5085,16 +5086,16 @@ int when;
 
     if (door->typ != DOOR && door->typ != SDOOR) {
         impossible("doortrapped: called on a non-door");
-        return FALSE;
+        return 0;
     }
     if (selected_trap < HINGE_SCREECH || selected_trap >= NUMDOORTRAPS) {
         impossible("doortrapped: bad trap %d", selected_trap);
-        return FALSE;
+        return 0;
     }
     /* ok to call this on a non-trapped door, since it lets us call the
      * function unconditionally whenever something interacts with a door */
     if (!door_is_trapped(door)) {
-        return FALSE;
+        return 0;
     }
 
     if (mon == NULL) {
@@ -5340,7 +5341,7 @@ int when;
             You_hear("a distant explosion.");
         }
         explode(x, y, 11, rnd(lvl), TRAPPED_DOOR, EXPL_FIERY);
-        set_doorstate(door, D_NODOOR);
+        set_doorstate(door, D_BROKEN);
         set_door_trap(door, FALSE); /* trap is gone */
     }
     if ((saved_doorstate != D_NODOOR && saved_doorstate != D_BROKEN)
@@ -5353,9 +5354,14 @@ int when;
             add_damage(x, y, (byu ? SHOP_DOOR_COST : 0L));
         }
         newsym(x, y);
+        return 2;
+    }
+    else if (saved_doorstate != doorstate(door)) {
         return 1;
     }
-    else return 0;
+    else {
+        return 0;
+    }
 }
 
 /* used for doors (also tins).  can be used for anything else that opens. */
