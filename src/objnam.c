@@ -2712,6 +2712,7 @@ struct obj *no_wish;
     int eroded, eroded2, erodeproof;
     int halfeaten, mntmp, contents;
     int islit, unlabeled, ishistoric, isdiluted, trapped;
+    int doorstate;
     int tmp, tinv, tvariety;
     int wetness, gsize = 0;
     struct fruit *f;
@@ -2743,6 +2744,7 @@ struct obj *no_wish;
 #define UNDEFINED 0
 #define EMPTY 1
 #define SPINACH 2
+    doorstate = D_NODOOR;
     contents = UNDEFINED;
     oclass = 0;
     actualn = dn = un = 0;
@@ -2860,6 +2862,10 @@ struct obj *no_wish;
         } else if (!strncmpi(bp, "large ", l = 6)) {
             /* "very large " had "very " peeled off on previous iteration */
             gsize = (very != 1) ? 3 : 4;
+        } else if (!strncmpi(bp, "closed ", l = 7)) {
+            doorstate = D_CLOSED;
+        } else if (!strncmpi(bp, "open ", l = 5)) {
+            doorstate = D_ISOPEN;
         } else
             break;
         bp += l;
@@ -3425,6 +3431,17 @@ wiztrap:
         /* furniture and terrain */
         lev = &levl[x][y];
         p = eos(bp);
+        if (!BSTRCMPI(bp, p - 4, "door")) {
+            lev->typ = DOOR;
+            set_doorstate(lev, doorstate);
+            if (trapped == 1) {
+                set_door_trap(lev, TRUE);
+            }
+            pline("A %sdoor%s.", (trapped == 1 ? "trapped " : ""),
+                  (doorstate == D_NODOOR ? "way" : ""));
+            newsym(x,y);
+            return &zeroobj;
+        }
         if (!BSTRCMPI(bp, p - 8, "fountain")) {
             lev->typ = FOUNTAIN;
             level.flags.nfountains++;
