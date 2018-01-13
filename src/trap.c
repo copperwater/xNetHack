@@ -5000,7 +5000,7 @@ getdoortrap(x, y)
 int x, y;
 {
     int lvl = level_difficulty();
-    int maxtrap = HINGE_SCREECH;
+    int maxtrap = -1;
     const int trapminlevels[NUMDOORTRAPS][2] = {
         { HINGE_SCREECH,      1 }, /* keep these sorted */
         { SELF_LOCK,          1 },
@@ -5020,6 +5020,10 @@ int x, y;
         }
         else break;
     }
+    if (maxtrap < 0) {
+        impossible("getdoortrap: no valid traps");
+        return 0;
+    }
 
     /* trap is picked deterministically based on door's coordinates, so that
      * repeat traps on the same door will be the same trap.
@@ -5029,6 +5033,7 @@ int x, y;
 }
 
 /* A door triggers a trap.
+ * mon is the monster triggering the trap (NULL or youmonst means player)
  * bodypart is the body part used to touch the door, and can affect what the
  * trap does.
  * action is a doorstate that defines what the player is doing with the door:
@@ -5042,70 +5047,153 @@ int x, y;
  *  -D_LOCKED - unlocking it
  *  -D_TRAPPED - untrapping it
  *  -D_NODOOR - moving onto the doorway.
+ * when means whether this function is being called before the action is
+ * complete, e.g. a STATIC_KNOB should trigger when touching the door but a
+ * WATER_BUCKET after opening it.
+ *   0 = only trigger before-action traps
+ *   1 = only trigger after-action traps
+ *   2 = trigger all possible traps (used when e.g. zapping striking at door)
+ *
+ *  Return value is whether the door has been destroyed. This function will set
+ *  the new doorstate appropriately, if it changes. We assume no traps will
+ *  trigger on D_BROKEN doors.
  */
-void
-doortrapped(x, y, bodypart, action)
-int x, y, bodypart, action;
+boolean
+doortrapped(x, y, mon, bodypart, action, when)
+int x, y;
+struct monst * mon;
+int bodypart, action;
+int when;
 {
-    boolean touching = (bodypart != NO_PART);
+    boolean before = (when == 0 || when == 2);
+    boolean after = (when == 1 || when == 2);
+    boolean byu = (mon == &youmonst || mon == NULL);
+    boolean touching = (!byu || (bodypart != NO_PART));
+    /* note that touching represents either you or the monster touching the
+     * door and does not mean "the player touching".
+     * However, !byu currently DOES imply touching, since monsters can't
+     * currently affect doors from range. */
+    boolean canseemon = ((byu || cansee(mon->mx, mon->my)) && !Unaware);
+    /* also assume that it's impossible for the player to trigger a door trap
+     * while unaware, so assume byu implies !Unaware */
+    boolean canseedoor = (cansee(x,y) && !Unaware);
     int selected_trap = getdoortrap(x, y);
     int lvl = level_difficulty();
+    int dmg = 0;
     struct rm * door = &levl[x][y];
+    int saved_doorstate = doorstate(door);
 
-    /* note that player should have gotten messages like "The door opens."
-     * already */
-    if (selected_trap == HINGE_SCREECH) {
-        if (action == D_ISOPEN || action == D_CLOSED) {
-            pline("The hinges screech loudly.");
-            wake_nearto(x, y, (11 + lvl) * (11 + lvl));
-        }
+    if (door->typ != DOOR && door->typ != SDOOR) {
+        impossible("doortrapped: called on a non-door");
+        return FALSE;
     }
-    else if (selected_trap == SELF_LOCK) {
+    if (selected_trap < HINGE_SCREECH || selected_trap >= NUMDOORTRAPS) {
+        impossible("doortrapped: bad trap %d", selected_trap);
+        return FALSE;
+    }
+    /* ok to call this on a non-trapped door, since it lets us call the
+     * function unconditionally whenever something interacts with a door */
+    if (!door_is_trapped(door)) {
+        return FALSE;
+    }
+
+    if (mon == NULL) {
+        /* useful for calling player/monster agnostic stuff later */
+        mon = &youmonst;
+    }
+
+    if (selected_trap == HINGE_SCREECH && after
+        && (action == D_ISOPEN || action == D_CLOSED)) {
+        int range = (11 * lvl) + (11 * lvl);
+        if (!Deaf) {
+            if (byu || canseedoor) {
+                pline("The hinges screech loudly.");
+            }
+            else {
+                You_hear("a %s screech.",
+                        dist2(u.ux, u.uy, x, y) < range ? "faint" : "nearby");
+            }
+        }
+        wake_nearto(x, y, range);
+        /* trap not disarmed */
+    }
+    else if (selected_trap == SELF_LOCK && after) {
         boolean do_lock = FALSE;
         if (action == D_ISOPEN) {
-            pline("But it swings closed again and locks!");
+            if (byu || canseedoor) {
+                pline("But it swings closed again!");
+            }
             do_lock = TRUE;
         }
         else if (action == D_CLOSED) {
-            pline("The lock unexpectedly clicks into place!");
             do_lock = TRUE;
         }
         else if (action == D_NODOOR) {
-            pline("The door swings closed behind you and locks!");
+            if (byu || canseedoor) {
+                pline("The door swings itself shut!");
+            }
             do_lock = TRUE;
         }
-        /* probably too cruel to make it lock itself when the player tries to
-         * unlock it, and not much point doing anything when trying to be
-         * locked */
+        else if (action == -D_LOCKED) {
+            if (byu) {
+                You("disarm a self-locking mechanism.");
+            }
+            set_door_trap(door, FALSE);
+        }
+        /* not much point doing anything when the player *wants* to lock it */
         if (do_lock) {
+            if (!Deaf && canseedoor) {
+                You_hear("the lock click by itself!");
+            }
             set_doorstate(door, D_CLOSED);
             set_door_lock(door, TRUE);
         }
+        /* trap not disarmed */
     }
-    else if (selected_trap == STATIC_SHOCK) {
-        if ((action == D_ISOPEN || action == D_CLOSED) && touching) {
-            int dmg = rnd(lvl * 2) / (Shock_resistance ? 4 : 1);
-            dmg += 1;
+    else if (selected_trap == STATIC_SHOCK && before && bodypart == FINGER
+             && (action == D_ISOPEN || action == D_CLOSED)) {
+        dmg = rnd(lvl * 2) / (Shock_resistance ? 4 : 1);
+        dmg += 1;
+        if (byu) {
             pline("An electric spark from the doorknob zaps you!");
             losehp(dmg, "charged doorknob", KILLED_BY_AN);
             exercise(A_WIS, FALSE);
         }
-    }
-    else if (selected_trap == WATER_BUCKET) {
-        if (action == D_ISOPEN || action == D_BROKEN) {
-            pline("A bucket of water splashes down%s!",
-                  (touching ? " on you" : ""));
-            if (touching) {
-                /* TODO: no iron golem rust/gremlin multiplying as of yet,
-                 * waiting to hear from DT on this */
-                water_damage_chain(invent, FALSE);
-                exercise(A_WIS, FALSE);
+        else {
+            if (canseemon) {
+                pline("%s is zapped by a doorknob!", mon_nam(mon));
             }
+            mon->mhp -= dmg;
+            if (mon->mhp <= 0) {
+                monkilled(mon, "", AD_ELEC);
+            }
+        }
+        /* trap not disarmed */
+    }
+    else if (selected_trap == WATER_BUCKET && after
+             && (action == D_ISOPEN || action == D_BROKEN)) {
+        if (canseemon) {
+            pline("A bucket of water splashes down on %s!",
+                  (!byu ? mon_nam(mon) : (touching ? "you" : "the floor")));
+        }
+        else {
+            You_hear("a distant splash.");
+        }
+        if (byu && touching) {
+            /* TODO: no iron golem rust/gremlin multiplying as of yet,
+                * waiting to hear from DT on this */
+            water_damage_chain(invent, FALSE);
+            exercise(A_WIS, FALSE);
+        }
+        else if (!byu) {
+            water_damage_chain(mon->minvent, FALSE);
         }
         set_door_trap(door, FALSE); /* trap is gone */
     }
-    else if (selected_trap == HINGELESS_FORWARD) {
-        if (action == D_ISOPEN) {
+    else if (selected_trap == HINGELESS_FORWARD && before
+             && action == D_ISOPEN) {
+        dmg = rnd((lvl/4) + 1);
+        if (byu) {
             pline("The door falls forward off its hinges!");
             if (touching) {
                 You("crash on top of it!");
@@ -5114,77 +5202,160 @@ int x, y, bodypart, action;
                 multi_reason = "falling on top of a door";
 
                 make_stunned((HStun & TIMEOUT) + d(2,4), FALSE);
-                losehp(Maybe_Half_Phys(rnd((lvl/4) + 1)),
-                        "falling on top of a door", KILLED_BY);
+                losehp(Maybe_Half_Phys(dmg), "falling on top of a door",
+                        KILLED_BY);
                 exercise(A_STR, FALSE);
             }
-            set_door_trap(door, FALSE); /* trap is gone */
-            set_doorstate(door, D_BROKEN);
-            wake_nearto(x, y, 8 * 8);
         }
+        else {
+            if (canseedoor) {
+                You_see("a door fall off its hinges!");
+            }
+            if (touching) {
+                if (canseedoor) {
+                    pline("%s crashes on top of it!", Monnam(mon));
+                }
+                else {
+                    You_hear("a nearby crash.");
+                }
+                mon->mx = x; mon->my = y;
+                mon->mstun = 1;
+                mon->mhp -= dmg;
+                if (mon->mhp <= 0) {
+                    monkilled(mon, "", AD_PHYS);
+                }
+            }
+        }
+        set_door_trap(door, FALSE); /* trap is gone */
+        set_doorstate(door, D_BROKEN);
+        wake_nearto(x, y, 8 * 8);
     }
-    else if (selected_trap == HINGELESS_BACKWARD) {
-        if (action == D_ISOPEN) {
+    else if (selected_trap == HINGELESS_BACKWARD && before
+             && action == D_ISOPEN) {
+        dmg = rnd((lvl/2) + 1);
+        if (byu) {
             pline("The door falls backward off its hinges!");
             if (touching) {
                 You("are flattened by it!");
-                losehp(Maybe_Half_Phys(rnd((lvl/2) + 1)),
-                        "crushed by a falling door", NO_KILLER_PREFIX);
+                losehp(Maybe_Half_Phys(dmg), "crushed by a falling door",
+                        NO_KILLER_PREFIX);
                 /* takes a while to get out from the door */
                 nomul(-3);
                 multi_reason = "trapped under a door";
                 exercise(A_STR, FALSE);
             }
-            set_door_trap(door, FALSE); /* trap is gone */
-            set_doorstate(door, D_BROKEN);
-            wake_nearto(x, y, 8 * 8);
         }
-    }
-    else if (selected_trap == ROCKFALL) {
-        if (action == D_ISOPEN || action == D_BROKEN) {
-            You("break a tripwire!");
-            You("sense a rumbling above you...");
+        else {
+            if (canseedoor) {
+                You_see("a door fall off its hinges!");
+            }
             if (touching) {
+                if (canseemon) {
+                    pline("It crashes on top of %s!", Monnam(mon));
+                }
+                else {
+                    You_hear("a nearby crash.");
+                }
+                mon->mcanmove = 0;
+                mon->mfrozen = 3;
+                mon->mhp -= dmg;
+                if (mon->mhp <= 0) {
+                    monkilled(mon, "", AD_PHYS);
+                }
+            }
+        }
+        set_door_trap(door, FALSE); /* trap is gone */
+        set_doorstate(door, D_BROKEN);
+        wake_nearto(x, y, 8 * 8);
+    }
+    else if (selected_trap == ROCKFALL && after
+             && (action == D_ISOPEN || action == D_BROKEN)) {
+        if (canseedoor) {
+            You("see a tripwire snap!");
+        }
+        You_hear("something rumbling in the ceiling.");
+        if (touching) {
+            if (byu) {
                 drop_boulder_on_player(FALSE, FALSE, FALSE, FALSE);
                 exercise(A_STR, FALSE);
             }
             else {
-                /* if triggered from a distance, boulder falls on the door's
-                 * square instead of the adjacent square; this is fine for now.
-                 */
-                drop_boulder_on_monster(x, y, FALSE, FALSE);
+                drop_boulder_on_monster(mon->mx, mon->my, FALSE, FALSE);
             }
-            set_door_trap(door, FALSE); /* trap is gone */
         }
+        else {
+            /* drop on door square */
+            drop_boulder_on_monster(x, y, FALSE, FALSE);
+        }
+        set_door_trap(door, FALSE); /* trap is gone */
     }
-    else if (selected_trap == HOT_KNOB) {
-        if ((action == D_ISOPEN || action == D_CLOSED) && touching) {
+    else if (selected_trap == HOT_KNOB && before && bodypart == FINGER
+             && (action == D_ISOPEN || action == D_CLOSED)) {
+        int dmg = rnd(lvl);
+        struct obj* gloves = which_armor(mon, W_ARMG);
+        if (byu ? Fire_resistance : resists_fire(mon)) {
+            dmg /= 2;
+            dmg += 1;
+        }
+        /* gloves give half damage but burn if burnable;
+         * padded gloves are designed for heat and negate all damage */
+        if (gloves) {
+            dmg /= 2;
+            if (objdescr_is(gloves, "padded gloves")) {
+                dmg = 0;
+            }
+        }
+        if (byu) {
             pline("Ouch!  The knob is red-hot!");
-            /* TODO: gloves give half damage but burn if burnable;
-             * padded gloves are designed for heat and negate all damage */
-            if (uarmg) {
+            if (dmg <= 0) {
+                pline("Fortunately, your gloves protect your %s.", body_part(HAND));
+            }
+            else {
+                losehp(dmg, "a red-hot doorknob", KILLED_BY);
+            }
+        }
+        else {
+            if (canseemon && dmg) {
+                pline("%s is burned by a red-hot doorknob!", Monnam(mon));
+            }
+            mon->mhp -= dmg;
+            if (mon->mhp <= 0) {
+                monkilled(mon, "", AD_FIRE);
+            }
+        }
 
-            }
-            int dmg = rnd(lvl);
-            if (Fire_resistance) {
-                dmg /= 2;
-            }
-            losehp(dmg, "a red-hot doorknob", KILLED_BY);
+        /* put this after just so a death won't be preceded by a misleading
+            * message about gloves burning */
+        if (gloves) {
+            erode_obj(gloves, NULL, ERODE_BURN, EF_GREASE);
         }
     }
-    else if (selected_trap == FIRE_BLAST) {
-        /* TODO: ensure explode() wakes monsters without having to call it here */
-        if (touching || cansee(x,y)) {
+    else if (selected_trap == FIRE_BLAST && after && action == D_ISOPEN) {
+        /* TODO: ensure explode() wakes monsters without having to call it
+         * here */
+        if (byu || canseedoor) {
             pline("KABOOM!!  The door was booby-trapped!");
         }
         else {
-            pline("KABOOM!!  Something explodes!");
+            You_hear("a distant explosion.");
         }
         explode(x, y, 11, rnd(lvl), TRAPPED_DOOR, EXPL_FIERY);
+        set_doorstate(door, D_NODOOR);
+        set_door_trap(door, FALSE); /* trap is gone */
     }
-    else {
-        impossible("doortrapped: bad trap %d", selected_trap);
+    if ((saved_doorstate != D_NODOOR && saved_doorstate != D_BROKEN)
+        && (doorstate(door) == D_NODOOR || doorstate(door) == D_BROKEN)) {
+        /* door was destroyed during this function */
+        unblock_point(x, y);
+        if (*in_rooms(x, y, SHOPBASE)) {
+            /* always add to shk fix list, but only add to player cost if the
+             * player is responsible */
+            add_damage(x, y, (byu ? SHOP_DOOR_COST : 0L));
+        }
+        newsym(x, y);
+        return 1;
     }
+    else return 0;
 }
 
 /* used for doors (also tins).  can be used for anything else that opens. */

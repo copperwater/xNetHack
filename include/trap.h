@@ -98,4 +98,9 @@ enum doortrap_types {
      * hurtle(u.ux - doorx, u.uy - doory, 1, FALSE) */
 };
 
+#define predoortrapped(x, y, mon, body, act) \
+    doortrapped(x, y, mon, body, act, 0)
+#define postdoortrapped(x, y, mon, body, act) \
+    doortrapped(x, y, mon, body, act, 1)
+
 #endif /* TRAP_H */

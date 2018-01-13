@@ -3289,7 +3289,7 @@ struct obj **pobj; /* object tossed/used, set to NULL
             case SPE_KNOCK:
             case SPE_WIZARD_LOCK:
             case SPE_FORCE_BOLT:
-                if (doorlock(obj, bhitpos.x, bhitpos.y)) {
+                if (doorlock(obj, &youmonst, bhitpos.x, bhitpos.y)) {
                     if (cansee(bhitpos.x, bhitpos.y)
                         || (obj->otyp == WAN_STRIKING && !Deaf))
                         learnwand(obj);

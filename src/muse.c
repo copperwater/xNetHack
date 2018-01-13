@@ -1336,7 +1336,7 @@ struct obj *obj;                     /* 2nd arg to fhitm/fhito */
             case WAN_OPENING:
             case WAN_LOCKING:
             case WAN_STRIKING:
-                if (doorlock(obj, bhitpos.x, bhitpos.y)) {
+                if (doorlock(obj, mon, bhitpos.x, bhitpos.y)) {
                     if (zap_oseen)
                         makeknown(obj->otyp);
                     /* if a shop door gets broken, add it to

@@ -102,6 +102,11 @@ picklock(VOID_ARGS)
         }
     }
 
+    if (predoortrapped(u.ux + u.dx, u.uy + u.dy, NULL, FINGER, -D_LOCKED)) {
+        /* door was destroyed somehow */
+        return (xlock.usedtime = 0);
+    }
+
     if (xlock.usedtime++ >= 50 || nohands(youmonst.data)) {
         You("give up your attempt at %s.", lock_action());
         exercise(A_DEX, TRUE); /* even if you don't succeed */
@@ -147,14 +152,7 @@ picklock(VOID_ARGS)
 
     You("succeed in %s.", lock_action());
     if (xlock.door) {
-        if (door_is_trapped(xlock.door)) {
-            b_trapped("door", FINGER);
-            set_doorstate(xlock.door, D_NODOOR);
-            unblock_point(u.ux + u.dx, u.uy + u.dy);
-            if (*in_rooms(u.ux + u.dx, u.uy + u.dy, SHOPBASE))
-                add_damage(u.ux + u.dx, u.uy + u.dy, SHOP_DOOR_COST);
-            newsym(u.ux + u.dx, u.uy + u.dy);
-        } else {
+        if (!postdoortrapped(u.ux+u.dx, u.uy+u.dy, NULL, FINGER, -D_LOCKED)) {
             set_door_lock(xlock.door, !door_is_locked(xlock.door));
         }
     } else {
@@ -677,8 +675,8 @@ int x, y;
         return res;
     }
 
-    if (door_is_locked(door)) {
-        pline("This door is locked.");
+    if (verysmall(youmonst.data)) {
+        pline("You're too small to pull the door open.");
         return res;
     }
 
@@ -702,21 +700,21 @@ int x, y;
         return res;
     }
 
-    if (verysmall(youmonst.data)) {
-        pline("You're too small to pull the door open.");
+    if (predoortrapped(cc.x, cc.y, &youmonst, FINGER, D_ISOPEN)) {
+        return res;
+    }
+
+    if (door_is_locked(door)) {
+        pline("This door is locked.");
         return res;
     }
 
     /* door is known to be CLOSED */
     if (rnl(20) < (ACURRSTR + ACURR(A_DEX) + ACURR(A_CON)) / 3) {
         pline_The("door opens.");
-        if (door_is_trapped(door)) {
-            b_trapped("door", FINGER);
-            set_doorstate(door, D_NODOOR);
-            if (*in_rooms(cc.x, cc.y, SHOPBASE))
-                add_damage(cc.x, cc.y, SHOP_DOOR_COST);
-        } else
+        if (!postdoortrapped(cc.x, cc.y, &youmonst, FINGER, D_ISOPEN)) {
             set_doorstate(door, D_ISOPEN);
+        }
         feel_newsym(cc.x, cc.y); /* the hero knows she opened it */
         unblock_point(cc.x, cc.y); /* vision: new see through there */
     } else {
@@ -907,13 +905,13 @@ struct obj *obj, *otmp; /* obj *is* a box */
 /* Door/secret door was hit with spell or wand effect otmp;
    returns true if something happened */
 boolean
-doorlock(otmp, x, y)
+doorlock(otmp, mon, x, y)
 struct obj *otmp;
+struct monst *mon;
 int x, y;
 {
     register struct rm *door = &levl[x][y];
     boolean res = TRUE;
-    int loudness = 0;
     const char *msg = (const char *) 0;
     const char *dustcloud = "A cloud of dust";
     const char *quickly_dissipates = "quickly dissipates";
@@ -1009,19 +1007,7 @@ int x, y;
     case WAN_STRIKING:
     case SPE_FORCE_BOLT:
         if (door_is_closed(door)) {
-            if (door_is_trapped(door)) {
-                if (MON_AT(x, y))
-                    (void) mb_trapped(m_at(x, y));
-                else if (flags.verbose) {
-                    if (cansee(x, y))
-                        pline("KABOOM!!  You see a door explode.");
-                    else
-                        You_hear("a distant explosion.");
-                }
-                set_doorstate(door, D_NODOOR);
-                unblock_point(x, y);
-                newsym(x, y);
-                loudness = 40;
+            if (doortrapped(x, y, mon, NO_PART, D_BROKEN, 2)) {
                 break;
             }
             set_doorstate(door, D_BROKEN);
@@ -1036,7 +1022,9 @@ int x, y;
             /* force vision recalc before printing more messages */
             if (vision_full_recalc)
                 vision_recalc(0);
-            loudness = 20;
+            wake_nearto(x, y, 20);
+            if (*in_rooms(x, y, SHOPBASE))
+                add_damage(x, y, 0L);
         } else
             res = FALSE;
         break;
@@ -1046,12 +1034,6 @@ int x, y;
     }
     if (msg && cansee(x, y))
         pline1(msg);
-    if (loudness > 0) {
-        /* door was destroyed */
-        wake_nearto(x, y, loudness);
-        if (*in_rooms(x, y, SHOPBASE))
-            add_damage(x, y, 0L);
-    }
 
     if (res && picking_at(x, y)) {
         /* maybe unseen monster zaps door you're unlocking */
