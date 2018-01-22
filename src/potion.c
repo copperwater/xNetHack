@@ -1867,8 +1867,9 @@ dodip()
     } else if (IS_SINK(here)) {
         /* currently can only pour potions into sinks */
         if (obj->oclass == POTION_CLASS) {
-            Sprintf(qbuf, "Pour %s into the sink?",
-                    flags.verbose? obuf : shortestname);
+            Sprintf(qbuf, "Pour %s%s into the sink?",
+                    (obj->quan != 1L ? "one of " : ""),
+                    flags.verbose? yname(obj) : shortestname);
             if (yn(qbuf) == 'y') {
                 dipsink(obj);
                 return 1;
@@ -2242,14 +2243,15 @@ struct obj * obj;
         impossible("non-potion dipped into sink");
         return;
     }
+    You("pour %sthe %s down the drain.", (obj->quan != 1L ? "one of " : ""),
+        xname(obj));
     if (obj->otyp == POT_POLYMORPH) {
         polymorph_sink();
         makeknown(POT_POLYMORPH);
         useup(obj);
         return;
     }
-    pline("You pour the %s down the drain, creating a puff of vapor.",
-          xname(obj));
+    pline("A puff of vapor rises out.");
     potionbreathe(obj);
     useup(obj);
 }
