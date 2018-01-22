@@ -15,6 +15,7 @@ STATIC_DCL void NDECL(ghost_from_bottle);
 STATIC_DCL boolean
 FDECL(H2Opotion_dip, (struct obj *, struct obj *, BOOLEAN_P, const char *));
 STATIC_DCL short FDECL(mixtype, (struct obj *, struct obj *));
+STATIC_DCL void FDECL(dipsink, (struct obj *));
 
 /* force `val' to be within valid range for intrinsic timeout value */
 STATIC_OVL long
@@ -1823,7 +1824,6 @@ register struct obj *o1, *o2;
 int
 dodip()
 {
-    static const char Dip_[] = "Dip ";
     register struct obj *potion, *obj;
     struct obj *singlepotion;
     uchar here;
@@ -1857,17 +1857,28 @@ dodip()
     here = levl[u.ux][u.uy].typ;
     /* Is there a fountain to dip into here? */
     if (IS_FOUNTAIN(here)) {
-        Sprintf(qbuf, "%s%s into the fountain?", Dip_,
+        Sprintf(qbuf, "Dip %s into the fountain?",
                 flags.verbose ? obuf : shortestname);
         /* "Dip <the object> into the fountain?" */
         if (yn(qbuf) == 'y') {
             dipfountain(obj);
             return 1;
         }
+    } else if (IS_SINK(here)) {
+        /* currently can only pour potions into sinks */
+        if (obj->oclass == POTION_CLASS) {
+            Sprintf(qbuf, "Pour %s into the sink?",
+                    flags.verbose? obuf : shortestname);
+            if (yn(qbuf) == 'y') {
+                dipsink(obj);
+                return 1;
+            }
+        }
+        /* if not potion, do regular dip */
     } else if (is_pool(u.ux, u.uy)) {
         const char *pooltype = waterbody_name(u.ux, u.uy);
 
-        Sprintf(qbuf, "%s%s into the %s?", Dip_,
+        Sprintf(qbuf, "Dip %s into the %s?",
                 flags.verbose ? obuf : shortestname, pooltype);
         /* "Dip <the object> into the {pool, moat, &c}?" */
         if (yn(qbuf) == 'y') {
@@ -2219,6 +2230,28 @@ poof:
         docall(potion);
     useup(potion);
     return 1;
+}
+
+/* Dip an object into a sink. */
+void
+dipsink(obj)
+struct obj * obj;
+{
+    /* currently can't dip non-potions into sinks */
+    if (obj->oclass != POTION_CLASS) {
+        impossible("non-potion dipped into sink");
+        return;
+    }
+    if (obj->otyp == POT_POLYMORPH) {
+        polymorph_sink();
+        makeknown(POT_POLYMORPH);
+        useup(obj);
+        return;
+    }
+    pline("You pour the %s down the drain, creating a puff of vapor.",
+          xname(obj));
+    potionbreathe(obj);
+    useup(obj);
 }
 
 /* *monp grants a wish and then leaves the game */

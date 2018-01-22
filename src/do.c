@@ -8,7 +8,6 @@
 #include "lev.h"
 
 STATIC_DCL void FDECL(trycall, (struct obj *));
-STATIC_DCL void NDECL(polymorph_sink);
 STATIC_DCL boolean NDECL(teleport_sink);
 STATIC_DCL void FDECL(dosinkring, (struct obj *));
 STATIC_PTR int FDECL(drop, (struct obj *));
@@ -270,7 +269,7 @@ register struct obj *obj;
 
 /* Transforms the sink at the player's position into
    a fountain, throne, altar or grave. */
-STATIC_DCL void
+void
 polymorph_sink()
 {
     uchar sym = S_sink;
