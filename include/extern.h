@@ -389,6 +389,7 @@ E int NDECL(dowipe);
 E void FDECL(set_wounded_legs, (long, int));
 E void NDECL(heal_legs);
 E void NDECL(polymorph_sink);
+E void FDECL(trycall, (struct obj *));
 
 /* ### do_name.c ### */
 

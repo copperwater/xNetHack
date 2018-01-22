@@ -7,7 +7,6 @@
 #include "hack.h"
 #include "lev.h"
 
-STATIC_DCL void FDECL(trycall, (struct obj *));
 STATIC_DCL boolean NDECL(teleport_sink);
 STATIC_DCL void FDECL(dosinkring, (struct obj *));
 STATIC_PTR int FDECL(drop, (struct obj *));
@@ -259,7 +258,7 @@ register struct obj *obj;
     }
 }
 
-STATIC_OVL void
+void
 trycall(obj)
 register struct obj *obj;
 {
