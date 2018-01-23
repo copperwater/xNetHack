@@ -1558,24 +1558,39 @@ void
 potionbreathe(obj)
 register struct obj *obj;
 {
-    int i, ii, isdone, kn = 0;
     boolean cureblind = FALSE;
+    boolean unambiguous = FALSE; /* if effect is unambiguous, call makeknown */
+    boolean breathe = !breathless(youmonst.data);
+    boolean cansmell = breathe && olfaction(youmonst.data);
+    boolean eyes = eyecount(youmonst.data);
+    const char * eyestr =
+        (eyes > 1 ? makeplural(body_part(EYE)) : body_part(EYE));
+
+    if (!breathe) {
+        /* currently only acid affects eyes */
+        if (eyes && obj->otyp == POT_ACID && !Acid_resistance) {
+            pline("The fumes sting your eyes.");
+        }
+        else {
+            pline("The vapors don't seem to affect you.");
+        }
+        return;
+    }
+
+    /* after this, can assume the player is breathing the vapors so should be
+     * affected by any potion effects; however, they still might not be able to
+     * smell them */
 
     switch (obj->otyp) {
     case POT_RESTORE_ABILITY:
     case POT_GAIN_ABILITY:
         if (obj->cursed) {
-            if (!breathless(youmonst.data))
+            if (cansmell) {
                 pline("Ulch!  That potion smells terrible!");
-            else if (haseyes(youmonst.data)) {
-                const char *eyes = body_part(EYE);
-
-                if (eyecount(youmonst.data) != 1)
-                    eyes = makeplural(eyes);
-                Your("%s %s!", eyes, vtense(eyes, "sting"));
             }
             break;
         } else {
+            int i, ii, isdone;
             i = rn2(A_MAX); /* start at a random point */
             for (isdone = ii = 0; !isdone && ii < A_MAX; ii++) {
                 if (ABASE(i) < AMAX(i)) {
@@ -1587,7 +1602,23 @@ register struct obj *obj;
                 if (++i >= A_MAX)
                     i = 0;
             }
+            if (cansmell) {
+                pline("Wow!  That potion smells good!");
+            }
         }
+        break;
+    case POT_GAIN_ENERGY:
+        u.uen += rnd(2);
+        if (u.uen > u.uenmax) {
+            u.uenmax++;
+            u.uen = u.uenmax;
+        }
+        You_feel("a brief rush of magical energy.");
+        unambiguous = TRUE;
+        break;
+    case POT_POLYMORPH:
+        You_feel("a change coming over you, but it peters out.");
+        unambiguous = TRUE;
         break;
     case POT_FULL_HEALING:
         if (Upolyd && u.mh < u.mhmax)
@@ -1614,6 +1645,7 @@ register struct obj *obj;
         if (cureblind)
             make_blinded(0L, !u.ucreamed);
         exercise(A_CON, TRUE);
+        You_feel("a little better.");
         break;
     case POT_SICKNESS:
         if (!Role_if(PM_HEALER)) {
@@ -1631,9 +1663,14 @@ register struct obj *obj;
             context.botl = 1;
             exercise(A_CON, FALSE);
         }
+        if (cansmell) {
+            You("smell something diseased.");
+            unambiguous = TRUE;
+        }
         break;
     case POT_HALLUCINATION:
         You("have a momentary vision.");
+        unambiguous = TRUE;
         break;
     case POT_CONFUSION:
     case POT_BOOZE:
@@ -1643,44 +1680,53 @@ register struct obj *obj;
         break;
     case POT_INVISIBILITY:
         if (!Blind && !Invis) {
-            kn++;
             pline("For an instant you %s!",
                   See_invisible ? "could see right through yourself"
                                 : "couldn't see yourself");
+            unambiguous = TRUE;
         }
         break;
     case POT_PARALYSIS:
-        kn++;
         if (!Free_action) {
             pline("%s seems to be holding you.", Something);
             nomul(-rnd(5));
             multi_reason = "frozen by a potion";
             nomovemsg = You_can_move_again;
             exercise(A_DEX, FALSE);
-        } else
+        }
+        else {
             You("stiffen momentarily.");
+        }
+        unambiguous = TRUE;
         break;
     case POT_SLEEPING:
-        kn++;
         if (!Free_action && !Sleep_resistance) {
             You_feel("rather tired.");
             nomul(-rnd(5));
             multi_reason = "sleeping off a magical draught";
             nomovemsg = You_can_move_again;
             exercise(A_DEX, FALSE);
-        } else
+        }
+        else {
             You("yawn.");
+        }
+        unambiguous = TRUE;
         break;
     case POT_SPEED:
-        if (!Fast)
+        if (Fast) {
+            Your("legs get a bit more energy.");
+        }
+        else {
             Your("knees seem more flexible now.");
+        }
+        unambiguous = TRUE;
         incr_itimeout(&HFast, rnd(5));
         exercise(A_DEX, TRUE);
         break;
     case POT_BLINDNESS:
         if (!Blind && !Unaware) {
-            kn++;
             pline("It suddenly gets dark.");
+            unambiguous = TRUE;
         }
         make_blinded(itimeout_incr(Blinded, rnd(5)), FALSE);
         if (!Blind && !Unaware)
@@ -1689,36 +1735,84 @@ register struct obj *obj;
     case POT_WATER:
         if (u.umonnum == PM_GREMLIN) {
             (void) split_mon(&youmonst, (struct monst *) 0);
+            unambiguous = TRUE;
         } else if (u.ulycn >= LOW_PM) {
             /* vapor from [un]holy water will trigger
                transformation but won't cure lycanthropy */
-            if (obj->blessed && youmonst.data == &mons[u.ulycn])
+            if (obj->blessed && youmonst.data == &mons[u.ulycn]) {
                 you_unwere(FALSE);
-            else if (obj->cursed && !Upolyd)
+                unambiguous = TRUE;
+            }
+            else if (obj->cursed && !Upolyd) {
                 you_were();
+                unambiguous = TRUE;
+            }
         }
         break;
     case POT_ACID:
-    case POT_POLYMORPH:
-        exercise(A_CON, FALSE);
+        if (Acid_resistance) {
+            if (cansmell) {
+                pline("It smells %s.", Hallucination ? "tangy" : "sour");
+                unambiguous = TRUE;
+            }
+        }
+        else {
+            pline("The %s fumes burn your %s and %s!",
+                    (Hallucination ? "amaroidal" : "acrid"),
+                    (eyes ? eyestr : ""),
+                    makeplural(body_part(LUNG)));
+            losehp(rnd(2), "acid fumes", KILLED_BY);
+            exercise(A_CON, FALSE);
+            unambiguous = TRUE;
+        }
         break;
-    /*
     case POT_GAIN_LEVEL:
+        more_experienced(5, 0);
+        /* FALLTHRU */
     case POT_LEVITATION:
-    case POT_FRUIT_JUICE:
-    case POT_MONSTER_DETECTION:
-    case POT_OBJECT_DETECTION:
-    case POT_OIL:
+        You_feel("slightly elevated.");
+        unambiguous = TRUE;
         break;
-     */
+    case POT_SEE_INVISIBLE:
+        if (!obj->cursed) {
+            make_blinded(0L, TRUE);
+        }
+        if (!See_invisible) {
+            You("think you saw something invisible, but it vanished.");
+            unambiguous = TRUE;
+        }
+        break;
+    case POT_FRUIT_JUICE:
+        if (cansmell) {
+            pline("It smells %s.",
+                  (obj->cursed ? (Hallucination ? "overripe" : "rotten")
+                               : "sweet"));
+            unambiguous = TRUE;
+        }
+        break;
+    case POT_MONSTER_DETECTION:
+        /* force uncursed monster detection */
+        obj->blessed = obj->cursed = 0;
+        peffects(obj);
+        unambiguous = TRUE;
+        break;
+    case POT_OBJECT_DETECTION:
+        /* force uncursed object detection */
+        obj->blessed = obj->cursed = 0;
+        peffects(obj);
+        unambiguous = TRUE;
+        break;
+    case POT_ENLIGHTENMENT:
+        You("have a brief moment of introspection.");
+        unambiguous = TRUE;
+        break;
     }
     /* note: no obfree() */
     if (obj->dknown) {
-        if (kn)
+        if (unambiguous)
             makeknown(obj->otyp);
-        else if (!objects[obj->otyp].oc_name_known
-                 && !objects[obj->otyp].oc_uname)
-            docall(obj);
+        else
+            trycall(obj);
     }
 }
 
@@ -2248,11 +2342,15 @@ struct obj * obj;
     if (obj->otyp == POT_POLYMORPH) {
         polymorph_sink();
         makeknown(POT_POLYMORPH);
-        useup(obj);
-        return;
     }
-    pline("A puff of vapor rises out.");
-    potionbreathe(obj);
+    else if (obj->otyp == POT_OIL) {
+        pline("It leaves an oily film on the basin.");
+        makeknown(POT_OIL);
+    }
+    else {
+        pline("A puff of vapor rises out.");
+        potionbreathe(obj);
+    }
     useup(obj);
 }
 
