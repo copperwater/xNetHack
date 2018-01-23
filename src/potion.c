@@ -1791,14 +1791,14 @@ register struct obj *obj;
         }
         break;
     case POT_MONSTER_DETECTION:
-        /* force uncursed monster detection */
-        obj->blessed = obj->cursed = 0;
+        /* force uncursed monster detection if blessed */
+        obj->blessed = 0;
         peffects(obj);
         unambiguous = TRUE;
         break;
     case POT_OBJECT_DETECTION:
-        /* force uncursed object detection */
-        obj->blessed = obj->cursed = 0;
+        /* force uncursed object detection if blessed */
+        obj->blessed = 0;
         peffects(obj);
         unambiguous = TRUE;
         break;
