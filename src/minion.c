@@ -282,20 +282,20 @@ register struct monst *mtmp;
         if (offer >= demand) {
             pline("%s vanishes, laughing about cowardly mortals.",
                   Amonnam(mtmp));
-        } else if (offer > 0L) {
+        }
+        else if (offer == cash && offer > 0 && cash >= demand / 2 && !rn2(50)) {
             /* monster may rarely take pity on you if you hand over everything
              * you have */
-            if(offer == cash && cash >= demand / 2 && !rn2(50)) {
-                pline("%s grudgingly grabs your money bag, then vanishes.",
-                      Amonnam(mtmp));
-            }
+            pline("%s grudgingly grabs your money bag, then vanishes.",
+                    Amonnam(mtmp));
+        }
+        else if((long) rnd(100 * ACURR(A_CHA)) > (demand - offer)) {
             /* monster may also decide that being shortchanged by a small
              * amount isn't worth risking their life */
-            else if((long) rnd(100 * ACURR(A_CHA)) > (demand - offer)) {
-              pline("%s scowls at you menacingly, then vanishes.",
-                    Amonnam(mtmp));
-            }
-        } else {
+            pline("%s scowls at you menacingly, then vanishes.",
+                  Amonnam(mtmp));
+        }
+        else {
             pline("%s gets angry...", Amonnam(mtmp));
             mtmp->mpeaceful = 0;
             set_malign(mtmp);
