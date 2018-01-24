@@ -329,6 +329,8 @@ struct monst *mtmp;
     } else if (offer >= umoney) {
         You("give %s all your gold.", mon_nam(mtmp));
         offer = umoney;
+    } else if (offer == umoney / 10 && mtmp->ispriest) {
+        You("pay your tithe to %s.", mon_nam(mtmp));
     } else {
         You("give %s %ld %s.", mon_nam(mtmp), offer, currency(offer));
     }
