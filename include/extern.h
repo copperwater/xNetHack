@@ -1902,6 +1902,7 @@ E void FDECL(make_stoned, (long, const char *, int, const char *));
 E void FDECL(make_vomiting, (long, BOOLEAN_P));
 E boolean FDECL(make_hallucinated, (long, BOOLEAN_P, long));
 E void FDECL(make_deaf, (long, BOOLEAN_P));
+E void FDECL(make_paralyzed, (int, BOOLEAN_P, const char *));
 E void NDECL(self_invis_message);
 E int NDECL(dodrink);
 E int FDECL(dopotion, (struct obj *));

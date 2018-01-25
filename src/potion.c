@@ -409,6 +409,52 @@ boolean talk;
     }
 }
 
+/* Set paralysis.
+ * xtime is a positive number that will be passed to nomul.
+ * talk is TRUE if this function should handle frozen-related messages.
+ * explan will be passed to multi_reason.
+ */
+void
+make_paralyzed(xtime, talk, explan)
+int xtime;
+boolean talk;
+const char * explan;
+{
+    if (Free_action) {
+        You("stiffen momentarily.");
+        return;
+    }
+    /* could be getting paralyzed while already helpless, e.g. by monster
+     * attacks */
+    if (talk && multi >= 0) {
+        /* special message for one-turn paralysis */
+        if (xtime == 1) {
+            You("stiffen briefly.");
+        }
+        else if (Levitation || Is_airlevel(&u.uz) || Is_waterlevel(&u.uz)) {
+            You("are motionlessly suspended.");
+        }
+        else if (u.usteed) {
+            You("are frozen in place!");
+        }
+        else {
+            Your("%s are frozen to the %s!", makeplural(body_part(FOOT)),
+                surface(u.ux, u.uy));
+        }
+    }
+    nomul(-xtime);
+    if (explan) {
+        multi_reason = explan;
+    }
+    if (xtime == 1) {
+        nomovemsg = 0;
+    }
+    else {
+        nomovemsg = You_can_move_again;
+    }
+    exercise(A_DEX, FALSE);
+}
+
 void
 self_invis_message()
 {
@@ -748,21 +794,8 @@ register struct obj *otmp;
         break;
     }
     case POT_PARALYSIS:
-        if (Free_action) {
-            You("stiffen momentarily.");
-        } else {
-            if (Levitation || Is_airlevel(&u.uz) || Is_waterlevel(&u.uz))
-                You("are motionlessly suspended.");
-            else if (u.usteed)
-                You("are frozen in place!");
-            else
-                Your("%s are frozen to the %s!", makeplural(body_part(FOOT)),
-                     surface(u.ux, u.uy));
-            nomul(-(rn1(10, 25 - 12 * bcsign(otmp))));
-            multi_reason = "frozen by a potion";
-            nomovemsg = You_can_move_again;
-            exercise(A_DEX, FALSE);
-        }
+        make_paralyzed(rn1(10, 25 - 12 * bcsign(otmp)), TRUE,
+                       "frozen by a potion");
         break;
     case POT_SLEEPING:
         if (Sleep_resistance || Free_action) {
@@ -1689,14 +1722,8 @@ register struct obj *obj;
     case POT_PARALYSIS:
         if (!Free_action) {
             pline("%s seems to be holding you.", Something);
-            nomul(-rnd(5));
-            multi_reason = "frozen by a potion";
-            nomovemsg = You_can_move_again;
-            exercise(A_DEX, FALSE);
         }
-        else {
-            You("stiffen momentarily.");
-        }
+        make_paralyzed(rnd(5), FALSE, "frozen by a potion");
         unambiguous = TRUE;
         break;
     case POT_SLEEPING:

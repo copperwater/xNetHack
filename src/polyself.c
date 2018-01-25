@@ -1363,19 +1363,25 @@ dogaze()
                     continue;
 
                 if (mtmp->data == &mons[PM_FLOATING_EYE] && !mtmp->mcan) {
-                    if (!Free_action) {
-                        You("are frozen by %s gaze!",
-                            s_suffix(mon_nam(mtmp)));
-                        nomul((u.ulevel > 6 || rn2(4))
-                                  ? -d((int) mtmp->m_lev + 1,
-                                       (int) mtmp->data->mattk[0].damd)
-                                  : -200);
-                        multi_reason = "frozen by a monster's gaze";
-                        nomovemsg = 0;
-                        return 1;
-                    } else
+                    if (Free_action) {
                         You("stiffen momentarily under %s gaze.",
                             s_suffix(mon_nam(mtmp)));
+                    }
+                    else {
+                        int time;
+                        if (u.ulevel > 6 || rn2(4)) {
+                            time = d((int) mtmp->m_lev + 1,
+                                     (int) mtmp->data->mattk[0].damd);
+                        }
+                        else {
+                            time = 200;
+                        }
+                        You("are frozen by %s gaze!",
+                            s_suffix(mon_nam(mtmp)));
+
+                        make_paralyzed(time, FALSE,
+                                       "frozen by a monster's gaze");
+                    }
                 }
                 /* Technically this one shouldn't affect you at all because
                  * the Medusa gaze is an active monster attack that only

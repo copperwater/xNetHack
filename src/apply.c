@@ -834,16 +834,14 @@ struct obj *obj;
             if (u.umonnum == PM_FLOATING_EYE) {
                 if (Free_action) {
                     You("stiffen momentarily under your gaze.");
-                } else {
-                    if (Hallucination)
-                        pline("Yow!  The %s stares back!", mirror);
-                    else
-                        pline("Yikes!  You've frozen yourself!");
-                    if (!Hallucination || !rn2(4)) {
-                        nomul(-rnd(MAXULEV + 6 - u.ulevel));
-                        multi_reason = "gazing into a mirror";
-                    }
-                    nomovemsg = 0; /* default, "you can move again" */
+                }
+                else if (Hallucination) {
+                    pline("Yow!  The %s stares back!", mirror);
+                }
+                else {
+                    pline("Yikes!  You've frozen yourself!");
+                    make_paralyzed(rnd(MAXULEV + 6 - u.ulevel), FALSE,
+                                   "gazing into a mirror");
                 }
             } else if (youmonst.data->mlet == S_VAMPIRE)
                 You("don't have a reflection.");
