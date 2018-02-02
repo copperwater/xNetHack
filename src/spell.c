@@ -125,25 +125,43 @@ struct obj *bp;
     boolean was_in_use;
     int lev = objects[bp->otyp].oc_level;
     int dmg = 0;
+    boolean already_cursed = bp->cursed;
 
     switch (rn2(lev)) {
     case 0:
-        You_feel("a wrenching sensation.");
-        tele(); /* teleport him */
+        if (already_cursed || rn2(4)) {
+            You_feel("a wrenching sensation.");
+            tele(); /* teleport him */
+        }
+        else {
+            if (bp->blessed) {
+                unbless(bp);
+                pline_The("book glows brown.");
+            }
+            else {
+                /* can't call curse() here because it will call cursed_book */
+                bp->cursed = 1;
+                pline_The("book glows %s.", NH_BLACK);
+            }
+        }
         break;
     case 1:
         You_feel("threatened.");
         aggravate();
         break;
     case 2:
-        make_blinded(Blinded + rn1(100, 250), TRUE);
+        make_blinded(Blinded + rn1(30, 10), TRUE);
         break;
     case 3:
-        take_gold();
+        pline_The("book develops a huge set of teeth and bites you!");
+        /* temp disable in_use; death should not destroy the book */
+        was_in_use = bp->in_use;
+        bp->in_use = FALSE;
+        losehp(rn1(5, 3), "carnivorous book", KILLED_BY_AN);
+        bp->in_use = was_in_use;
         break;
     case 4:
-        pline("These runes were just too much to comprehend.");
-        make_confused(HConfusion + rn1(7, 16), FALSE);
+        make_paralyzed(rn1(16,16), TRUE, "frozen by a book");
         break;
     case 5:
         pline_The("book was coated with contact poison!");
@@ -173,6 +191,10 @@ struct obj *bp;
     default:
         rndcurse();
         break;
+    }
+    if (already_cursed) {
+        pline_The("spellbook crumbles to dust!");
+        return TRUE;
     }
     return FALSE;
 }
@@ -554,15 +576,12 @@ register struct obj *spellbook;
         }
 
         if (too_hard) {
-            boolean gone = cursed_book(spellbook);
+            You("can't comprehend the runes!");
+            make_confused(-context.spbook.delay, FALSE); /* study time */
+            bot(); /* show Conf on status line before tele, crumbling, etc */
 
-            nomul(context.spbook.delay); /* study time */
-            multi_reason = "reading a book";
-            nomovemsg = 0;
-            context.spbook.delay = 0;
-            if (gone || !rn2(3)) {
-                if (!gone)
-                    pline_The("spellbook crumbles to dust!");
+            boolean gone = cursed_book(spellbook);
+            if (gone) {
                 if (!objects[spellbook->otyp].oc_name_known
                     && !objects[spellbook->otyp].oc_uname)
                     docall(spellbook);
@@ -886,7 +905,7 @@ spelleffects(spell, atme)
 int spell;
 boolean atme;
 {
-    int energy, damage, chance, n, intell;
+    int energy, damage, n, intell;
     int skill, role_skill, res = 0;
     boolean confused = (Confusion != 0);
     boolean physical_damage = FALSE;
