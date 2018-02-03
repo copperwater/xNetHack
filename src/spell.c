@@ -204,8 +204,6 @@ STATIC_OVL boolean
 confused_book(spellbook)
 struct obj *spellbook;
 {
-    boolean gone = FALSE;
-
     if (!rn2(3) && spellbook->otyp != SPE_BOOK_OF_THE_DEAD) {
         spellbook->in_use = TRUE; /* in case called from learn */
         pline(
@@ -216,12 +214,12 @@ struct obj *spellbook;
             && !objects[spellbook->otyp].oc_uname)
             docall(spellbook);
         useup(spellbook);
-        gone = TRUE;
+        return TRUE;
     } else {
         You("find yourself reading the %s line over and over again.",
             spellbook == context.spbook.book ? "next" : "first");
     }
-    return gone;
+    return FALSE;
 }
 
 /* special effects for The Book of the Dead */
@@ -372,12 +370,11 @@ learn(VOID_ARGS)
     if (context.spbook.delay && ublindf && ublindf->otyp == LENSES && rn2(2))
         context.spbook.delay++;
     if (Confusion) { /* became confused while learning */
-        (void) confused_book(book);
+        if (!confused_book(book)) {
+            You("can no longer focus on the book.");
+        }
         context.spbook.book = 0; /* no longer studying */
         context.spbook.o_id = 0;
-        nomul(context.spbook.delay); /* remaining delay is uninterrupted */
-        multi_reason = "reading a book";
-        nomovemsg = 0;
         context.spbook.delay = 0;
         return 0;
     }
@@ -546,31 +543,29 @@ register struct obj *spellbook;
 
         /* Books are often wiser than their readers (Rus.) */
         spellbook->in_use = TRUE;
-        if (!spellbook->blessed && spellbook->otyp != SPE_BOOK_OF_THE_DEAD) {
-            if (spellbook->cursed) {
+        if (spellbook->otyp != SPE_BOOK_OF_THE_DEAD) {
+            /* uncursed - chance to fail */
+            int read_ability = ACURR(A_INT) + 4 + u.ulevel / 2
+                                - 2 * objects[booktype].oc_level
+                                + (spellbook->blessed ? 10 : 0)
+                                - (spellbook->cursed ? 10 : 0)
+                            + ((ublindf && ublindf->otyp == LENSES) ? 2 : 0);
+
+            /* only wizards know if a spell is too difficult */
+            if (Role_if(PM_WIZARD) && read_ability < 20 && !confused) {
+                char qbuf[QBUFSZ];
+
+                Sprintf(qbuf,
+                "This spellbook is %sdifficult to comprehend.  Continue?",
+                        (read_ability < 12 ? "very " : ""));
+                if (yn(qbuf) != 'y') {
+                    spellbook->in_use = FALSE;
+                    return 1;
+                }
+            }
+            /* its up to random luck now */
+            if (rnd(20) > read_ability) {
                 too_hard = TRUE;
-            } else {
-                /* uncursed - chance to fail */
-                int read_ability = ACURR(A_INT) + 4 + u.ulevel / 2
-                                   - 2 * objects[booktype].oc_level
-                             + ((ublindf && ublindf->otyp == LENSES) ? 2 : 0);
-
-                /* only wizards know if a spell is too difficult */
-                if (Role_if(PM_WIZARD) && read_ability < 20 && !confused) {
-                    char qbuf[QBUFSZ];
-
-                    Sprintf(qbuf,
-                    "This spellbook is %sdifficult to comprehend.  Continue?",
-                            (read_ability < 12 ? "very " : ""));
-                    if (yn(qbuf) != 'y') {
-                        spellbook->in_use = FALSE;
-                        return 1;
-                    }
-                }
-                /* its up to random luck now */
-                if (rnd(20) > read_ability) {
-                    too_hard = TRUE;
-                }
             }
         }
 
@@ -592,10 +587,6 @@ register struct obj *spellbook;
             if (!confused_book(spellbook)) {
                 spellbook->in_use = FALSE;
             }
-            nomul(context.spbook.delay);
-            multi_reason = "reading a book";
-            nomovemsg = 0;
-            context.spbook.delay = 0;
             return 1;
         }
         spellbook->in_use = FALSE;
