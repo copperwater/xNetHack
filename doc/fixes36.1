@@ -503,6 +503,10 @@ a shop object stolen from outside the shop (via grappling hook) would be left
 	"unpaid_cost: object wasn't on any bill" when looking at inventory
 a shop object stolen from outside the shop could trigger a crash if that shop
 	had never been entered by the hero
+shopkeepers in their own shop and priests in their own temple are no longer
+	frightened by hero standing on scroll of scare monster
+the Wizard, Angels and lawful minions, the Riders, shopkeep/priest in own room
+	are never frightened by tooled horns
 
 
 Fixes to Post-3.6.0 Problems that Were Exposed Via git Repository
@@ -637,6 +641,8 @@ PANICTRACE: PANICTRACE_GDB used wrong value for ARGV0 when launching gdb if
 win32gui: gather raw_print error messages into a single dialog window
 win32tty: fix display errors when using a font with double wide or ambiguous
 	width characters
+Amiga (untested): 'makedefs -z' didn't handle FILE_PREFIX correctly when
+	building vis_tab.h and vis_tab.c
 
 
 General New Features
