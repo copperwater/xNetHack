@@ -1,0 +1,72 @@
+xNetHack 0.1.0 Changelog
+
+This is the first version of xNetHack, forked off the NetHack 3.6.1
+development version. It will continue to contain most or all of the latest
+commits pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
+On top of these, xNetHack 0.1.0 contains the following gameplay changes:
+
+Add "artifactless" conduct: never touch an artifact
+Add "petless" conduct: zero tame monsters the whole game
+Change magic traps' taming effect to pacification
+Bribing demons demand 50d500 gold, regardless of what the hero is carrying, and may be successfully shortchanged depending on the hero's Charisma
+Exploding bag of holding scatters 12/13 of its contents instead of destroying them outright
+Generate a lot more monsters when a level is created, and slow down the normal generation rates
+Add a barricaded shop with an alive shopkeeper to Orcish Town, and scatter around a lot of gear that should be dropped by the dead denizens
+Drop the XL threshold for the Quest to 10
+Wielding a mirror confers a 50% chance of reflecting any reflectable attack
+Add the Gnomish Sewer Mines' End (dark twisty water level with many rings)
+Replace poison instadeath with "potent" poison causing severe HP loss
+Scroll of light now gives 11 radius when uncursed and lights up the entire level when blessed
+Scroll of teleport now gives a controlled teleport when blessed
+Sinks render as blue \, drawbridges as orange +
+Recolor royal jelly to magenta
+Make scroll of remove curse type-IDed when one successfully changes the beatitude of items in inventory.
+Green slimes have an engulfing attack that starts sliming
+Candle light radius is now sqrt(x)+1 instead of log_7(x)+1
+Non-spiked pits occasionally generate in graveyards, and they are flavored as open graves
+Remove the mysterious force
+Blessed scroll of destroy armor asks the player which piece of armor to destroy
+You can rub rocks together or on touchstones to break them, occasionally producing flint stones
+Flint stones' weight is reduced to 1 aum
+Orc-captains are considered a lord to their kind, and their speed is increased from 5 to 9.
+The wand of speed monster on the player gives temporary very fast speed but not intrinsic speed
+The potion of speed gives intrinsic speed and a short duration of very fast speed
+Remove spell failure; instead, Pw cost is divided by what the success rate would have been
+Wielding a spellbook cuts the Pw cost of casting its spell in half
+The amulet of life saving does not work if the player is polymorphed into a nonliving form
+Occasionally when you die to vampires, green slimes, zombies, or anything else that would have made you arise from the grave, you turn into that monster but retain your sanity, and continue playing with permanent intrinsic unchanging.
+The player can now displace peaceful monsters
+Add thiefstones, a gray stone which steals magic items and treasure back to a location on the level it generates. If the player tracks it down and removes its curse, they can use it to their own benefit.
+Unicorn horn is a poorer weapon (1d3/1d3) but applies itself passively if
+wielded in the bare main hand.
+Potions may be #dipped in sinks to pour them down the drain and causing the hero to suffer its vapor effects.
+Add vapor effects for all potions, and make most of them unambiguously identify the potion
+Rebalance spellbook failure effects; notably a failure causes confusion instead of paralysis, and paralysis only happens as a side effect of level 5+ books. The steal gold effect is also replaced with the book biting you. A new level 1+ effect is the book dropping one level in BUC.
+Spellbooks disintegrate if and only if they are already cursed
+Blessed and cursed spellbooks act as +/- 10 Int, instead of guaranteeing success and failure
+Ghosts of Dudley can now be encountered
+Magic lamps can be wished for
+
+It contains the following non-gameplay interface changes:
+
+Using the open command to target "." (self) is an alias for #loot
+When you ascend with a non-starting alignment, the end-of-game reason is "ascended (in dishonor)".
+The Ranger pantheon changes Mercury (lawful) to Apollo and Venus (neutral) to Diana
+Whenever monsters polymorph in sight of the hero, print a message saying what they turned into
+After sacrificing the Amulet to Moloch, you get flavor text of an invisible choir chanting in Latin and being bathed in darkness
+Correct "Thou cannot escape my wrath, mortal!" to "canst not"
+Priests will give you bitcoins for an ale while hallucinating
+After being crowned, thrones give you the "very comfortable here" message
+Paying exactly 1/10 of your gold to a priest will "pay your tithe"
+Port monster lookup from FIQHack: when you are looking up a specific monster in the encyclopedia, a full description of its stats, abilities, and attacks will be shown above the encyclopedia entry
+The Candelabrum reads (n/7 candles attached) to make explicit that it holds 7 candles
+
+It contains the following non-gameplay architectural changes:
+
+Priest quest and Castle use FLAGS:graveyard instead of hardcoding in source
+Object probabilities no longer have to add up to 1000 for each object class
+Add two new coordinates to struct obj (to allow thiefstones to migrate to a certain spot)
+Touchstones are no longer a magical item
+Valley entrance message is moved into gehennom.des instead of hardcoding
+Move most paralysis sources into a new make_paralyzed function
+Refactor testing for whether an object has a specific randomized description into a new function objdescr_is()
