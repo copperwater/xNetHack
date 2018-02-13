@@ -899,6 +899,10 @@ boolean user_typed_name, without_asking;
             pass = 0;
 
         for (; pass >= 0; pass--) {
+            long entry_offset;
+            int entry_count;
+            int i;
+
             txt_offset = 0L;
             if (dlb_fseek(fp, txt_offset, SEEK_SET) < 0 ) {
                 impossible("can't get to start of 'data' file");
@@ -941,15 +945,9 @@ boolean user_typed_name, without_asking;
                     }
                 }
             }
-            if (found_in_file) {
-                long entry_offset;
-                int entry_count;
-                int i;
 
-                int mndx = name_to_mon(dbase_str);
-                if (mndx != NON_PM) {
-                    pm = &mons[mndx];
-                }
+            /* database entry should exist, now find where it is */
+            if (found_in_file) {
 
                 /* skip over other possible matches for the info */
                 do {
@@ -965,48 +963,69 @@ boolean user_typed_name, without_asking;
                     (void) dlb_fclose(fp);
                     return;
                 }
+            }
 
-                yes_to_moreinfo = FALSE;
-                if (!user_typed_name && !without_asking) {
-                    unsigned maxt = strlen("More info about \"\"?");
-                    char *entrytext = pass ? alt : dbase_str;
-                    char question[BUFSZ];
+            /* monster lookup: try to parse as a monster */
+            pm = NULL;
+            int mndx = name_to_mon(dbase_str);
+            if (mndx != NON_PM) {
+                pm = &mons[mndx];
+            }
 
-                    if (strlen(entrytext) < BUFSZ - maxt) {
-                        Strcpy(question, "More info about \"");
-                        Strcat(question, entrytext);
-                        Strcat(question, "\"?");
-                    }
-                    if (yn(question) == 'y')
-                        yes_to_moreinfo = TRUE;
+            /* object lookup: try to parse as an object */
+            /* int ondx =  */
+
+            /* prompt for more info (if using whatis to navigate the map) */
+            yes_to_moreinfo = FALSE;
+            if (!user_typed_name && !without_asking) {
+                unsigned maxt = strlen("More info about \"\"?");
+                char *entrytext = pass ? alt : dbase_str;
+                char question[BUFSZ];
+
+                if (strlen(entrytext) < BUFSZ - maxt) {
+                    Strcpy(question, "More info about \"");
+                    Strcat(question, entrytext);
+                    Strcat(question, "\"?");
                 }
+                if (yn(question) == 'y')
+                    yes_to_moreinfo = TRUE;
+            }
 
-                if (user_typed_name || without_asking || yes_to_moreinfo) {
-                    if (dlb_fseek(fp, (long) txt_offset + entry_offset,
-                                  SEEK_SET) < 0) {
-                        pline("? Seek error on 'data' file!");
-                        (void) dlb_fclose(fp);
-                        return;
-                    }
+            /* finally, put the appropriate information into a window */
+            if (user_typed_name || without_asking || yes_to_moreinfo) {
+                if (!found_in_file && !pm) {
+                    pline("I don't have any information on those things.");
+                }
+                else {
                     datawin = create_nhwindow(NHW_MENU);
+
                     /* monster lookup info */
                     if (pm) {
                         add_mon_info(datawin, pm);
                         putstr(datawin, 0, "");
                     }
-                    for (i = 0; i < entry_count; i++) {
-                        if (!dlb_fgets(buf, BUFSZ, fp))
-                            goto bad_data_file;
-                        (void) strip_newline(buf);
-                        if (index(buf + 1, '\t') != 0)
-                            (void) tabexpand(buf + 1);
-                        putstr(datawin, 0, buf + 1);
+
+                    /* encyclopedia entry */
+                    if (found_in_file) {
+                        if (dlb_fseek(fp, (long) txt_offset + entry_offset,
+                                        SEEK_SET) < 0) {
+                            pline("? Seek error on 'data' file!");
+                            (void) dlb_fclose(fp);
+                            return;
+                        }
+                        for (i = 0; i < entry_count; i++) {
+                            if (!dlb_fgets(buf, BUFSZ, fp))
+                                goto bad_data_file;
+                            (void) strip_newline(buf);
+                            if (index(buf + 1, '\t') != 0)
+                                (void) tabexpand(buf + 1);
+                            putstr(datawin, 0, buf + 1);
+                        }
                     }
                     display_nhwindow(datawin, FALSE);
                     destroy_nhwindow(datawin);
                 }
-            } else if (user_typed_name && pass == 0)
-                pline("I don't have any information on those things.");
+            }
         }
     }
     (void) dlb_fclose(fp);
