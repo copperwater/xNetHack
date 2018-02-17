@@ -15,6 +15,7 @@ STATIC_DCL void FDECL(look_at_monster, (char *, char *,
                                         struct monst *, int, int));
 STATIC_DCL struct permonst *FDECL(lookat, (int, int, char *, char *));
 STATIC_DCL void FDECL(add_mon_info, (winid, struct permonst *));
+STATIC_DCL void FDECL(add_obj_info, (winid, short));
 STATIC_DCL void FDECL(checkfile, (char *, struct permonst *,
                                   BOOLEAN_P, BOOLEAN_P));
 STATIC_DCL void FDECL(look_all, (BOOLEAN_P,BOOLEAN_P));
@@ -797,6 +798,17 @@ struct permonst * pm;
 #undef APPENDC
 #undef MONPUTSTR
 
+/* Add some information to an encyclopedia window which is printing information
+ * about an object. */
+STATIC_OVL void
+add_obj_info(datawin, otyp)
+winid datawin;
+short otyp;
+{
+    putstr(datawin, ATR_BOLD, "Object description will go here!");
+
+}
+
 /*
  * Look in the "data" file for more info.  Called if the user typed in the
  * whole name (user_typed_name == TRUE), or we've found a possible match
@@ -820,6 +832,7 @@ boolean user_typed_name, without_asking;
     int chk_skip, pass = 1;
     boolean found_in_file = FALSE, skipping_entry = FALSE, yes_to_moreinfo;
     winid datawin = WIN_ERR;
+    short otyp;
 
     fp = dlb_fopen(DATAFILE, "r");
     if (!fp) {
@@ -973,7 +986,7 @@ boolean user_typed_name, without_asking;
             }
 
             /* object lookup: try to parse as an object */
-            /* int ondx =  */
+            int otyp = name_to_otyp(dbase_str);
 
             /* prompt for more info (if using whatis to navigate the map) */
             yes_to_moreinfo = FALSE;
@@ -993,7 +1006,7 @@ boolean user_typed_name, without_asking;
 
             /* finally, put the appropriate information into a window */
             if (user_typed_name || without_asking || yes_to_moreinfo) {
-                if (!found_in_file && !pm) {
+                if (!found_in_file && !pm && otyp == STRANGE_OBJECT) {
                     pline("I don't have any information on those things.");
                 }
                 else {
@@ -1002,6 +1015,10 @@ boolean user_typed_name, without_asking;
                     /* monster lookup info */
                     if (pm) {
                         add_mon_info(datawin, pm);
+                        putstr(datawin, 0, "");
+                    }
+                    else if (otyp != STRANGE_OBJECT) {
+                        add_obj_info(datawin, otyp);
                         putstr(datawin, 0, "");
                     }
 

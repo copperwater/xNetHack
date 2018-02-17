@@ -2689,6 +2689,32 @@ char oclass;
 }
 
 /*
+ * Given a user-supplied string, try to match it to an object type.
+ * Very similar to rnd_otyp_by_namedesc, except it doesn't fall back on picking
+ * a random object if it can't find an appropriate one. Intended to be the
+ * object counterpart to name_to_mon.
+ * Only works on exact object names, since allowing it to work on randomized
+ * descriptions or user-called names would leak information to object lookup.
+ */
+short
+name_to_otyp(in_str)
+const char * in_str;
+{
+    short otyp;
+    for (otyp = STRANGE_OBJECT + 1; otyp < NUM_OBJECTS; ++otyp) {
+        if (!OBJ_NAME(objects[otyp])) {
+            /* obj is nonexistent in this game */
+            continue;
+        }
+        if (wishymatch(in_str, OBJ_NAME(objects[otyp]), TRUE)) {
+            return otyp;
+        }
+    }
+    return STRANGE_OBJECT;
+}
+
+
+/*
  * Return something wished for.  Specifying a null pointer for
  * the user request string results in a random object.  Otherwise,
  * if asking explicitly for "nothing" (or "nil") return no_wish;
