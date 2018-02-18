@@ -2710,6 +2710,21 @@ const char * in_str;
             return otyp;
         }
     }
+    /* try alternate spellings */
+    struct alt_spellings *as;
+
+    for (as = spellings; as->sp != 0; as++) {
+        if (!strcmpi(in_str, as->sp)) {
+            return as->ob;
+        }
+    }
+    /* try Japanese names */
+    struct Jitem *j;
+    for (j = Japanese_items; j->item != 0; j++) {
+        if (!strcmpi(in_str, j->name)) {
+            return j->item;
+        }
+    }
     return STRANGE_OBJECT;
 }
 
