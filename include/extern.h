@@ -2304,6 +2304,7 @@ E void FDECL(book_disappears, (struct obj *));
 E void FDECL(book_substitution, (struct obj *, struct obj *));
 E void NDECL(age_spells);
 E int NDECL(docast);
+E const char *FDECL(spelltypemnemonic, (int));
 E int FDECL(spell_skilltype, (int));
 E int FDECL(spelleffects, (int, BOOLEAN_P));
 E void NDECL(losespells);
