@@ -2701,9 +2701,47 @@ name_to_otyp(in_str)
 const char * in_str;
 {
     short otyp;
+    int i;
+    char oclass = 0;
+
+    /* Search for class names: XXXXX potion, scroll of XXXXX.  Avoid */
+    /* false hits on, e.g., rings for "ring mail".
+     * This is lifted from readobjnam, and should probably be refactored into
+     * its own function but the existing logic in there is too tied up with
+     * readobjnam variables at the moment. */
+    if (strncmpi(in_str, "enchant ", 8)
+        && strncmpi(in_str, "destroy ", 8)
+        && strncmpi(in_str, "detect food", 11)
+        && strncmpi(in_str, "food detection", 14)
+        && strncmpi(in_str, "ring mail", 9)
+        && strncmpi(in_str, "studded leather armor", 21)
+        && strncmpi(in_str, "leather armor", 13)
+        && strncmpi(in_str, "tooled horn", 11)
+        && strncmpi(in_str, "food ration", 11)
+        && strncmpi(in_str, "meat ring", 9)) {
+        for (i = 0; i < (int) (sizeof wrpsym); i++) {
+            int j = strlen(wrp[i]);
+            if (!strncmpi(in_str, wrp[i], j)) {
+                oclass = wrpsym[i];
+                if (oclass != AMULET_CLASS) {
+                    /* amulets don't consistently use "amulet of" */
+                    in_str += j;
+                    if (!strncmpi(in_str, " of ", 4))
+                        in_str += 4;
+                }
+                break;
+            }
+        }
+    }
+
     for (otyp = STRANGE_OBJECT + 1; otyp < NUM_OBJECTS; ++otyp) {
         if (!OBJ_NAME(objects[otyp])) {
             /* obj is nonexistent in this game */
+            continue;
+        }
+        else if (oclass && objects[otyp].oc_class != oclass) {
+            /* name might match, but the class is wrong, e.g. "scroll of light"
+             * becomes "light" which matches "wand of light" */
             continue;
         }
         if (wishymatch(in_str, OBJ_NAME(objects[otyp]), TRUE)) {
