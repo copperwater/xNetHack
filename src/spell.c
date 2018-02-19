@@ -517,29 +517,13 @@ register struct obj *spellbook;
             return 1;
         }
 
-        switch (objects[booktype].oc_level) {
-        case 1:
-        case 2:
-            context.spbook.delay = -objects[booktype].oc_delay;
-            break;
-        case 3:
-        case 4:
-            context.spbook.delay = -(objects[booktype].oc_level - 1)
-                                   * objects[booktype].oc_delay;
-            break;
-        case 5:
-        case 6:
-            context.spbook.delay =
-                -objects[booktype].oc_level * objects[booktype].oc_delay;
-            break;
-        case 7:
-            context.spbook.delay = -8 * objects[booktype].oc_delay;
-            break;
-        default:
+        if (objects[booktype].oc_level >= 8) {
             impossible("Unknown spellbook level %d, book %d;",
                        objects[booktype].oc_level, booktype);
             return 0;
         }
+        /* currently level * 10 */
+        context.spbook.delay = -objects[booktype].oc_delay;
 
         /* Books are often wiser than their readers (Rus.) */
         spellbook->in_use = TRUE;
