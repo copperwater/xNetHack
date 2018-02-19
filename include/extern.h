@@ -2839,6 +2839,7 @@ E int FDECL(racial_exception, (struct monst *, struct obj *));
 
 /* ### write.c ### */
 
+E int FDECL(ink_cost, (short));
 E int FDECL(dowrite, (struct obj *));
 
 /* ### zap.c ### */
