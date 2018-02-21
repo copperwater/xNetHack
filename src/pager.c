@@ -805,8 +805,291 @@ add_obj_info(datawin, otyp)
 winid datawin;
 short otyp;
 {
-    putstr(datawin, ATR_BOLD, "Object description will go here!");
+    struct objclass oc = objects[otyp];
+    char olet = oc.oc_class;
+    char buf[BUFSZ];
+    char buf2[BUFSZ];
+    const char* dir = (oc.oc_dir == NODIR ? "Non-directional"
+                                : (oc.oc_dir == IMMEDIATE ? "Beam"
+                                                          : "Ray"));
 
+#define OBJPUTSTR(str) putstr(datawin, ATR_NONE, str)
+#define ADDCLASSPROP(cond, str)            \
+    if (cond) {                             \
+        if (*buf) { Strcat(buf, ", "); }    \
+        Strcat(buf, str);                   \
+    }
+
+    /* Object classes currently with no special messages here: amulets. */
+    boolean weptool = (olet == TOOL_CLASS && oc.oc_skill != P_NONE);
+    if (olet == WEAPON_CLASS || weptool) {
+        if (oc.oc_skill >= 0) {
+            Sprintf(buf, "%s-handed weapon%s.",
+                    (oc.oc_bimanual ? "Two" : "Single"), (weptool ? "-tool" : ""));
+        }
+        else if (oc.oc_skill <= -P_BOW && oc.oc_skill >= P_CROSSBOW) {
+            Strcpy(buf, "Ammunition.");
+        }
+        else {
+            Strcpy(buf, "Thrown missile.");
+        }
+        OBJPUTSTR(buf);
+        /* Ugh. Can we just get rid of dmgval() and put its damage bonuses into
+         * the object class? */
+        const char* sdambon = "";
+        const char* ldambon = "";
+        switch (otyp) {
+        case IRON_CHAIN:
+        case CROSSBOW_BOLT:
+        case MACE:
+        case WAR_HAMMER:
+        case FLAIL:
+        case SPETUM:
+        case TRIDENT:
+            sdambon = "+1";
+            break;
+        case BATTLE_AXE:
+        case BARDICHE:
+        case BILL_GUISARME:
+        case GUISARME:
+        case LUCERN_HAMMER:
+        case MORNING_STAR:
+        case RANSEUR:
+        case BROADSWORD:
+        case ELVEN_BROADSWORD:
+        case RUNESWORD:
+        case VOULGE:
+            sdambon = "+1d4";
+        }
+        /* and again, because /large/ damage is entirely separate. Bleah. */
+        switch (otyp) {
+        case CROSSBOW_BOLT:
+        case MORNING_STAR:
+        case PARTISAN:
+        case RUNESWORD:
+        case ELVEN_BROADSWORD:
+        case BROADSWORD:
+            ldambon = "+1";
+            break;
+        case FLAIL:
+        case RANSEUR:
+        case VOULGE:
+            ldambon = "+1d4";
+            break;
+        case HALBERD:
+        case SPETUM:
+            ldambon = "+1d6";
+            break;
+        case BATTLE_AXE:
+        case BARDICHE:
+        case TRIDENT:
+            ldambon = "+2d4";
+            break;
+        case TSURUGI:
+        case DWARVISH_MATTOCK:
+        case TWO_HANDED_SWORD:
+            ldambon = "+2d6";
+        }
+        Sprintf(buf,
+               "Damage: 1d%d%s versus small and 1d%d%s versus large monsters.",
+                oc.oc_wsdam, sdambon, oc.oc_wldam, ldambon);
+        OBJPUTSTR(buf);
+        Sprintf(buf, "Has a %s%d %s to hit.", (oc.oc_hitbon >= 0 ? "+" : ""),
+                oc.oc_hitbon, (oc.oc_hitbon >= 0 ? "bonus" : "penalty"));
+        OBJPUTSTR(buf);
+    }
+    if (olet == ARMOR_CLASS) {
+        /* Indexes here correspond to ARM_SHIELD, etc; not the W_* masks.
+         * Expects ARM_SUIT = 0, all the way up to ARM_SHIRT = 6. */
+        const char* armorslots[] = {
+            "torso", "shield", "helm", "gloves", "boots", "cloak", "shirt"
+        };
+        Sprintf(buf, "Armor, worn in the %s slot.", armorslots[oc.oc_armcat]);
+
+        OBJPUTSTR(buf);
+        Sprintf(buf, "Base AC %d, takes %d turn%s to put on or remove.",
+                oc.a_ac, oc.oc_delay, (oc.oc_delay == 1 ? "" : "s"));
+        OBJPUTSTR(buf);
+    }
+    if (olet == FOOD_CLASS) {
+        if (otyp == TIN || otyp == CORPSE) {
+            OBJPUTSTR("Comestible providing varied nutrition.");
+            OBJPUTSTR("Takes various amounts of turns to eat.");
+            OBJPUTSTR("May or may not be vegetarian.");
+        }
+        else {
+            Sprintf(buf, "Comestible providing %d nutrition.", oc.oc_nutrition);
+            OBJPUTSTR(buf);
+            Sprintf(buf, "Takes %d turn%s to eat.", oc.oc_delay,
+                    (oc.oc_delay == 1 ? "" : "s"));
+            OBJPUTSTR(buf);
+            /* TODO: put special-case VEGGY foods in a list which can be
+             * referenced by doeat(), so there's no second source for this. */
+            if (oc.oc_material == FLESH && otyp != EGG) {
+                OBJPUTSTR("Is not vegetarian.");
+            }
+            else {
+                /* is either VEGGY food or egg */
+                switch (otyp) {
+                case PANCAKE:
+                case FORTUNE_COOKIE:
+                case EGG:
+                case CREAM_PIE:
+                case CANDY_BAR:
+                case LUMP_OF_ROYAL_JELLY:
+                    OBJPUTSTR("Is vegetarian but not vegan.");
+                    break;
+                default:
+                    OBJPUTSTR("Is vegan.");
+                }
+            }
+        }
+    }
+    if (olet == POTION_CLASS) {
+        /* nothing special */
+        OBJPUTSTR("Potion.");
+    }
+    if (olet == SCROLL_CLASS) {
+        /* nothing special (ink is covered below) */
+        OBJPUTSTR("Scroll.");
+    }
+    if (olet == SPBOOK_CLASS) {
+        Sprintf(buf, "Level %d spellbook, in the %s school. %s spell.",
+                oc.oc_level, spelltypemnemonic(oc.oc_skill), dir);
+        OBJPUTSTR(buf);
+        Sprintf(buf, "Takes %d actions to read.", oc.oc_delay);
+        OBJPUTSTR(buf);
+    }
+    if (olet == WAND_CLASS) {
+        Sprintf(buf, "%s wand.", dir);
+        OBJPUTSTR(buf);
+    }
+    if (olet == RING_CLASS) {
+        OBJPUTSTR(oc.oc_charged ? "Chargeable ring." : "Ring.");
+        /* see material comment below; only show toughness status if this
+         * particular ring is already identified... */
+        if (oc.oc_tough && oc.oc_name_known) {
+            OBJPUTSTR("Is made of a hard material.");
+        }
+    }
+    if (olet == GEM_CLASS) {
+        if (oc.oc_material == MINERAL) {
+            OBJPUTSTR("Type of stone.");
+        }
+        else if (oc.oc_material == GLASS) {
+            OBJPUTSTR("Piece of colored glass.");
+        }
+        else {
+            OBJPUTSTR("Precious gem.");
+        }
+        /* can do unconditionally, these aren't randomized */
+        if (oc.oc_tough) {
+            OBJPUTSTR("Is made of a hard material.");
+        }
+    }
+    if (olet == TOOL_CLASS && !weptool) {
+        const char* subclass = "tool";
+        switch (otyp) {
+        case LARGE_BOX:
+        case CHEST:
+        case ICE_BOX:
+        case SACK:
+        case OILSKIN_SACK:
+        case BAG_OF_HOLDING:
+            subclass = "container";
+            break;
+        case SKELETON_KEY:
+        case LOCK_PICK:
+        case CREDIT_CARD:
+            subclass = "unlocking tool";
+            break;
+        case TALLOW_CANDLE:
+        case WAX_CANDLE:
+        case BRASS_LANTERN:
+        case OIL_LAMP:
+        case MAGIC_LAMP:
+            subclass = "light source";
+            break;
+        case LAND_MINE:
+        case BEARTRAP:
+            subclass = "trap which can be set";
+            break;
+        case TIN_WHISTLE:
+        case MAGIC_WHISTLE:
+        case BELL:
+        case LEATHER_DRUM:
+        case DRUM_OF_EARTHQUAKE:
+            subclass = "atonal instrument";
+            break;
+        case BUGLE:
+        case MAGIC_FLUTE:
+        case WOODEN_FLUTE:
+        case TOOLED_HORN:
+        case FIRE_HORN:
+        case FROST_HORN:
+        case WOODEN_HARP:
+        case MAGIC_HARP:
+            subclass = "tonal instrument";
+            break;
+        }
+        Sprintf(buf, "%s%s.", (oc.oc_charged ? "chargeable " : ""), subclass);
+        /* capitalize first letter of buf */
+        buf[0] -= ('a' - 'A');
+        OBJPUTSTR(buf);
+    }
+
+    /* cost, wt should go next */
+    Sprintf(buf, "Base cost %d, weighs %d aum.", oc.oc_cost, oc.oc_weight);
+    OBJPUTSTR(buf);
+
+    /* Scrolls or spellbooks: ink cost */
+    if (olet == SCROLL_CLASS || olet == SPBOOK_CLASS) {
+        Sprintf(buf, "Takes %d to %d ink to write.",
+                ink_cost(otyp)/2, ink_cost(otyp)-1);
+        OBJPUTSTR(buf);
+    }
+
+    /* Confers X. Need to externify the props list in timeout.c. */
+
+    buf[0] = '\0';
+    ADDCLASSPROP(oc.oc_magic, "inherently magical");
+    ADDCLASSPROP(oc.oc_nowish, "not wishable");
+    if (*buf) {
+        Sprintf(buf2, "Is %s.", buf);
+        OBJPUTSTR(buf2);
+    }
+
+    /* Material.
+     * Note that we should not show the material of certain objects if they are
+     * subject to description shuffling that includes materials. If the player
+     * has already discovered this object, though, then it's fine to show the
+     * material.
+     * Object classes where this may matter: rings, wands. All randomized tools
+     * share materials, and all scrolls and potions are the same material. */
+    if (!(olet == RING_CLASS || olet == WAND_CLASS) || oc.oc_name_known) {
+        /* char array converting materials to strings; if this is ever needed
+        * anywhere else it should be externified. Corresponds exactly to the
+        * materials defined in objclass.h. */
+        const char* obj_materials[] = {
+            NULL, "liquid", "wax", "vegetable matter", "flesh", "paper",
+            "cloth", "leather", "wood", "bone", "dragon hide", "iron",
+            "metal", "copper", "silver", "gold", "platinum", "mithril",
+            "plastic", "glass", "gemstone", "stone"
+        };
+        Sprintf(buf, "Made of %s.", obj_materials[oc.oc_material]);
+        OBJPUTSTR(buf);
+    }
+
+    /* TODO: prevent obj lookup from displaying with monster database entry
+     * (e.g. scroll of light gives "light" monster database) */
+
+    /* Full-line remarks */
+    if (oc.oc_merge) {
+        OBJPUTSTR("Merges with identical items.");
+    }
+    if (oc.oc_unique) {
+        OBJPUTSTR("Unique item.");
+    }
 }
 
 /*
@@ -986,7 +1269,7 @@ boolean user_typed_name, without_asking;
             }
 
             /* object lookup: try to parse as an object */
-            int otyp = name_to_otyp(dbase_str);
+            otyp = name_to_otyp(dbase_str);
 
             /* prompt for more info (if using whatis to navigate the map) */
             yes_to_moreinfo = FALSE;
