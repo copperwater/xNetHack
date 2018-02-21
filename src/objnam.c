@@ -272,7 +272,7 @@ int indx;
 struct fruit *
 fruit_from_name(fname, exact, highest_fid)
 const char *fname;
-boolean exact; /* False => prefix or exact match, True = exact match only */
+boolean exact; /* False: prefix / case insensitive match, True: exact only */
 int *highest_fid; /* optional output; only valid if 'fname' isn't found */
 {
     struct fruit *f, *tentativef;
@@ -298,7 +298,7 @@ int *highest_fid; /* optional output; only valid if 'fname' isn't found */
         tentativef = 0;
         for (f = ffruit; f; f = f->nextf) {
             k = strlen(f->fname);
-            if (!strncmp(f->fname, fname, k)
+            if (!strncmpi(f->fname, fname, k)
                 && (!fname[k] || fname[k] == ' ')
                 && (!tentativef || k > strlen(tentativef->fname)))
                 tentativef = f;
@@ -2763,6 +2763,9 @@ const char * in_str;
             return j->item;
         }
     }
+    /* try fruits */
+    if (fruit_from_name(in_str, FALSE, NULL))
+        return SLIME_MOLD;
     return STRANGE_OBJECT;
 }
 
