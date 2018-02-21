@@ -1271,6 +1271,7 @@ boolean user_typed_name, without_asking;
             /* object lookup: try to parse as an object */
             otyp = name_to_otyp(dbase_str);
 
+
             /* prompt for more info (if using whatis to navigate the map) */
             yes_to_moreinfo = FALSE;
             if (!user_typed_name && !without_asking) {
@@ -1295,13 +1296,17 @@ boolean user_typed_name, without_asking;
                 else {
                     datawin = create_nhwindow(NHW_MENU);
 
-                    /* monster lookup info */
-                    if (pm) {
-                        add_mon_info(datawin, pm);
+                    /* object lookup info */
+                    if (otyp != STRANGE_OBJECT) {
+                        add_obj_info(datawin, otyp);
                         putstr(datawin, 0, "");
                     }
-                    else if (otyp != STRANGE_OBJECT) {
-                        add_obj_info(datawin, otyp);
+                    /* monster lookup info */
+                    /* secondary to object lookup because there are some
+                     * monsters whose names are substrings of objects, like
+                     * "skeleton" and "skeleton key". */
+                    else if (pm) {
+                        add_mon_info(datawin, pm);
                         putstr(datawin, 0, "");
                     }
 
