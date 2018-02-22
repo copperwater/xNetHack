@@ -1,4 +1,4 @@
-MAKEDEFS(6)                                                        MAKEDEFS(6)
+MAKEDEFS(6)                      Games Manual                      MAKEDEFS(6)
 
 
 
@@ -40,72 +40,81 @@ SHORT COMMANDS
 
        -r     Generate the rumors file.
 
+       -s     Generate the bogusmon , engrave and epitaphfiles.
+
        -h     Generate the oracles file.
 
        -z     Generate vis_tab.c and vis_tab.h.
 
 LONG COMMANDS
+       --debug
+              Show debugging output.
+
+       --make [command]
+              Execute  a  short  command.   Command is given without preceding
+              dash.
+
        --input file
               Specify the input file for the command (if needed).  If the file
               is - standard input is read.
 
        --output file
-              Specify the output file for the command  (if  needed).   If  the
+              Specify  the  output  file  for the command (if needed).  If the
               file is - standard output is written.
 
        --svs [delimiter]
-              Generate  a version string to standard output without a trailing
-              newline.  If specified, the delimiter is used between each  part
+              Generate a version string to standard output without a  trailing
+              newline.   If specified, the delimiter is used between each part
               of the version string.
 
-       --grep Filter  the input file to the output file.  See the MDGREP FUNC
+       --grep Filter the input file to the output file.  See the MDGREP  FUNC‐
               TIONS section below for information on controlling the filtering
               operation.
 
        --grep-showvars
-              Show  the  name  and  value  for each variable known to the grep
+              Show the name and value for each  variable  known  to  the  grep
               option.
 
        --grep-trace
-              Turn on debug tracing for the grep function  (  --grep  must  be
+              Turn  on  debug  tracing  for the grep function ( --grep must be
               specified as well).
 
        --grep-define symbol
-              Force  the value of symbol to be "defined."  Symbol must already
+              Force the value of symbol to be "defined."  Symbol must  already
               be known to makedefs.
 
        --grep-undef symbol
-              Force the definition of symbol to be "undefined."   Symbol  must
+              Force  the  definition of symbol to be "undefined."  Symbol must
               already be known to makedefs.
 
 MDGREP FUNCTIONS
-       The  --grep command (and certain other commands) filter their input, on
-       a line-by-line basis, according to control lines embedded in the  input
-       and  on  information  gleaned  from the NetHack(6) configuration.  This
-       allows certain changes such as embedding  platform-specific  documenta
+       The --grep command (and certain other commands) filter their input,  on
+       a  line-by-line basis, according to control lines embedded in the input
+       and on information gleaned from  the  NetHack(6)  configuration.   This
+       allows  certain  changes such as embedding platform-specific documenta‐
        tion into the master documentation files.
 
        Rules:
 
               -   The default conditional state is printing enabled.
 
-              -   Any  line NOT starting with a caret (^) is either suppressed
-                  or passed through unchanged depending on the current  condi
+              -   Any line NOT starting with a caret (^) is either  suppressed
+                  or  passed through unchanged depending on the current condi‐
                   tional state.
 
-              -   Any  line  starting with a caret is a control line; as in C,
-                  zero or more spaces may be embedded in the line almost  any
-                  where  (except  immediately  after  the  caret); however the
+              -   Any line starting with a caret is a control line; as  in  C,
+                  zero  or more spaces may be embedded in the line almost any‐
+                  where (except immediately  after  the  caret);  however  the
                   caret must be in column 1.
 
               -   Conditionals may be nested.
 
-              -   Makedefs will exit with an error  code  if  any  errors  are
-                  detected;  processing  will continue (if it can) to allow as
+              -   Makedefs  will  exit  with  an  error code if any errors are
+                  detected; processing will continue (if it can) to  allow  as
                   many errors as possible to be detected.
 
-              -   Unknown identifiers are treated  as  both  TRUE  and  as  an
-                  error.   Note  that --undef or #undef in the NetHack(6) con
+              -   Unknown  identifiers  are  treated  as  both  TRUE and as an
+                  error.  Note that --undef or #undef in the  NetHack(6)  con‐
                   figuration are different from unknown.
 
        Control lines:

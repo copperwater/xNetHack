@@ -6,7 +6,7 @@
 # program.
 #
 # This file can also be used to set local system defaults for run-time
-# options, using the same syntax as an individual user's ./nethackrc file.
+# options, using the same syntax as an individual user's ./xnethackrc file.
 
 # Which users can use debug mode (aka wizard mode; accessed via '-D' command
 # line flag or OPTIONS=playmode:debug in the runtime options config file).
@@ -123,7 +123,7 @@ PANICTRACE_LIBC=2
 # Ordinary run-time options can be set here to override the builtin-in
 # default values.  Unlike the SYSCF values above, individual users can
 # still choose their own option settings via NETHACKOPTIONS in their
-# environment or via ~/.nethackrc run-time configuration file.
+# environment or via ~/.xnethackrc run-time configuration file.
 #OPTIONS=!autopickup,fruit:tomato,symset:DECgraphics
 
 #eof

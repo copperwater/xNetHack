@@ -91,7 +91,7 @@ char lock[PL_NSIZ + 25]; /* long enough for username+-+name+.99 */
 #define SAVESIZE (PL_NSIZ + 22) /* [.save]<uid>player.e;1 */
 #else
 #if defined(WIN32)
-#define SAVESIZE (PL_NSIZ + 40) /* username-player.NetHack-saved-game */
+#define SAVESIZE (PL_NSIZ + 40) /* username-player.xNetHack-saved-game */
 #else
 #define SAVESIZE FILENAME /* from macconf.h or pcconf.h */
 #endif
@@ -103,7 +103,7 @@ char lock[PL_NSIZ + 25]; /* long enough for username+-+name+.99 */
 #define SAVE_EXTENSION ".sav"
 #endif
 #ifdef WIN32
-#define SAVE_EXTENSION ".NetHack-saved-game"
+#define SAVE_EXTENSION ".xNetHack-saved-game"
 #endif
 #endif
 
@@ -1687,7 +1687,7 @@ int retryct;
 #ifdef USE_FCNTL
     lockfd = open(filename, O_RDWR);
     if (lockfd == -1) {
-        HUP raw_printf("Cannot open file %s. Is NetHack installed correctly?",
+        HUP raw_printf("Cannot open file %s. Is xNetHack installed correctly?",
                        filename);
         nesting--;
         return FALSE;
@@ -1765,7 +1765,7 @@ int retryct;
             HUP perror(lockname);
             HUP raw_printf("Cannot lock %s.", filename);
             HUP raw_printf(
-  "(Perhaps you are running NetHack from inside the distribution package?).");
+  "(Perhaps you are running xNetHack from inside the distribution package?).");
             nesting--;
             return FALSE;
         default:
@@ -1871,15 +1871,15 @@ const char *filename;
 
 const char *default_configfile =
 #ifdef UNIX
-    ".nethackrc";
+    ".xnethackrc";
 #else
 #if defined(MAC) || defined(__BEOS__)
-    "NetHack Defaults";
+    "xNetHack Defaults";
 #else
 #if defined(MSDOS) || defined(WIN32)
-    "defaults.nh";
+    "defaults.xnh";
 #else
-    "NetHack.cnf";
+    "xNetHack.cnf";
 #endif
 #endif
 #endif
@@ -1895,7 +1895,7 @@ char configfile[BUFSZ];
  * the game will try the old name if there
  * is no defaults.nh.
  */
-const char *backward_compat_configfile = "nethack.cnf";
+const char *backward_compat_configfile = "xnethack.cnf";
 #endif
 
 /* remember the name of the file we're accessing;
@@ -1996,20 +1996,20 @@ int src;
 
     envp = nh_getenv("HOME");
     if (!envp || !*envp)
-        Strcpy(tmp_config, "NetHack.cnf");
+        Strcpy(tmp_config, "xNetHack.cnf");
     else
         Sprintf(tmp_config, "%s%s%s", envp,
                 !index(":]>/", envp[strlen(envp) - 1]) ? "/" : "",
-                "NetHack.cnf");
+                "xNetHack.cnf");
     set_configfile_name(tmp_config);
     if ((fp = fopenp(configfile, "r")) != (FILE *) 0)
         return fp;
 #else /* should be only UNIX left */
     envp = nh_getenv("HOME");
     if (!envp)
-        Strcpy(tmp_config, ".nethackrc");
+        Strcpy(tmp_config, ".xnethackrc");
     else
-        Sprintf(tmp_config, "%s/%s", envp, ".nethackrc");
+        Sprintf(tmp_config, "%s/%s", envp, ".xnethackrc");
 
     set_configfile_name(tmp_config);
     if ((fp = fopenp(configfile, "r")) != (FILE *) 0)
@@ -2019,13 +2019,13 @@ int src;
     if (envp) {
         /* OSX-style configuration settings */
         Sprintf(tmp_config, "%s/%s", envp,
-                "Library/Preferences/NetHack Defaults");
+                "Library/Preferences/xNetHack Defaults");
         set_configfile_name(tmp_config);
         if ((fp = fopenp(configfile, "r")) != (FILE *) 0)
             return fp;
         /* may be easier for user to edit if filename as '.txt' suffix */
         Sprintf(tmp_config, "%s/%s", envp,
-                "Library/Preferences/NetHack Defaults.txt");
+                "Library/Preferences/xNetHack Defaults.txt");
         set_configfile_name(tmp_config);
         if ((fp = fopenp(configfile, "r")) != (FILE *) 0)
             return fp;
@@ -2034,7 +2034,7 @@ int src;
     if (errno != ENOENT) {
         const char *details;
 
-        /* e.g., problems when setuid NetHack can't search home
+        /* e.g., problems when setuid xNetHack can't search home
            directory restricted to user */
 #if defined(NHSTDC) && !defined(NOTSTDC)
         if ((details = strerror(errno)) == 0)
