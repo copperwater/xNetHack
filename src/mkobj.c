@@ -1005,15 +1005,10 @@ boolean artif;
         case RING_CLASS:
             if (objects[otmp->otyp].oc_charged) {
                 blessorcurse(otmp, 3);
-                if (rn2(10)) {
-                    if (rn2(10) && bcsign(otmp))
-                        otmp->spe = bcsign(otmp) * rne(3);
-                    else
-                        otmp->spe = rn2(2) ? rne(3) : -rne(3);
-                }
-                /* make useless +0 rings much less common */
-                if (otmp->spe == 0)
-                    otmp->spe = rn2(4) - rn2(3);
+                if (rn2(10) && bcsign(otmp))
+                    otmp->spe = bcsign(otmp) * rne(3);
+                else
+                    otmp->spe = rn2(2) ? rne(3) : -rne(3);
                 /* negative rings are usually cursed */
                 if (otmp->spe < 0 && rn2(5))
                     curse(otmp);
