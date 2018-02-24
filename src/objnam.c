@@ -2733,6 +2733,11 @@ const char * in_str;
             }
         }
     }
+    /* if the player asked only for "ring", etc, that's not going to resolve to
+     * anything in this function, so safe to say the string matches no otyp. */
+    if (!(*in_str)) {
+        return STRANGE_OBJECT;
+    }
 
     for (otyp = STRANGE_OBJECT + 1; otyp < NUM_OBJECTS; ++otyp) {
         if (!OBJ_NAME(objects[otyp])) {
