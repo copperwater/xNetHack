@@ -258,8 +258,8 @@ dosit()
             case 12:
                 You("are granted an insight!");
                 if (invent) {
-                    /* rn2(5) agrees w/seffects() */
-                    identify_pack(rn2(5), FALSE);
+                    /* cval = 0: identify the entire pack */
+                    identify_pack(0, FALSE);
                 }
                 break;
             case 13:

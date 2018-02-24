@@ -1487,26 +1487,24 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
            perm_invent update; also simplifies empty invent check */
         useup(sobj);
         sobj = 0; /* it's gone */
-        if (confused)
+        if (!already_known)
+            (void) learnscrolltyp(SCR_IDENTIFY); /* always identifies self */
+        if (confused) {
             You("identify this as an identify scroll.");
+            break;
+        }
         else if (!already_known || !invent)
             /* force feedback now if invent became
                empty after using up this scroll */
             pline("This is an identify scroll.");
-        if (!already_known)
-            (void) learnscrolltyp(SCR_IDENTIFY);
-        /*FALLTHRU*/
+        /* 1 always, 3 for uncursed, 5 for blessed */
+        cval = 1 + (!scursed * 2) + (sblessed * 2);
+        identify_pack(cval, !already_known);
+        break;
     case SPE_IDENTIFY:
-        cval = 1;
-        if (sblessed || (!scursed && !rn2(5))) {
-            cval = rn2(5);
-            /* note: if cval==0, identify all items */
-            if (cval == 1 && sblessed && Luck > 0)
-                ++cval;
-        }
-        if (invent && !confused) {
-            identify_pack(cval, !already_known);
-        } else if (otyp == SPE_IDENTIFY) {
+        if (invent) {
+            identify_pack(1, !already_known);
+        } else {
             /* when casting a spell we know we're not confused,
                so inventory must be empty (another message has
                already been given above if reading a scroll) */
