@@ -1,12 +1,13 @@
 xNetHack 0.1.0 Changelog
+Last Updated: commit 9698d4b475264e5ae96ed22ba610c93843f31243
 
 This is the first version of xNetHack, forked off the NetHack 3.6.1
 development version. It will continue to contain most or all of the latest
 commits pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
 On top of these, xNetHack 0.1.0 contains the following gameplay changes:
 
-Add "artifactless" conduct: never touch an artifact
-Add "petless" conduct: zero tame monsters the whole game
+Add "artifactless" conduct: never touch an artifact (not currently recorded in xlog)
+Add "petless" conduct: zero tame monsters the whole game (not currently recorded in xlog)
 Change magic traps' taming effect to pacification
 Bribing demons demand 50d500 gold, regardless of what the hero is carrying, and may be successfully shortchanged depending on the hero's Charisma
 Exploding bag of holding scatters 12/13 of its contents instead of destroying them outright
@@ -34,8 +35,8 @@ The potion of speed gives intrinsic speed and a short duration of very fast spee
 Remove spell failure; instead, Pw cost is divided by what the success rate would have been
 Wielding a spellbook cuts the Pw cost of casting its spell in half
 The amulet of life saving does not work if the player is polymorphed into a nonliving form
-Occasionally when you die to vampires, green slimes, zombies, or anything else that would have made you arise from the grave, you turn into that monster but retain your sanity, and continue playing with permanent intrinsic unchanging.
-The player can now displace peaceful monsters
+Occasionally when you die to vampires, green slimes, mummies, or anything else that would have made you arise from the grave, you turn into that monster but retain your sanity, and continue playing with permanent intrinsic unchanging.
+The player can now displace peaceful monsters (with a few small exceptions)
 Add thiefstones, a gray stone which steals magic items and treasure back to a location on the level it generates. If the player tracks it down and removes its curse, they can use it to their own benefit.
 Unicorn horn is a poorer weapon (1d3/1d3) but applies itself passively if
 wielded in the bare main hand.
@@ -46,6 +47,8 @@ Spellbooks disintegrate if and only if they are already cursed
 Blessed and cursed spellbooks act as +/- 10 Int, instead of guaranteeing success and failure
 Ghosts of Dudley can now be encountered
 Magic lamps can be wished for
+Throw out the complicated spellbook delay formula; all spellbook delays are now 10*level
+Chargeable rings will never generate at +0
 
 It contains the following non-gameplay interface changes:
 
@@ -60,6 +63,11 @@ After being crowned, thrones give you the "very comfortable here" message
 Paying exactly 1/10 of your gold to a priest will "pay your tithe"
 Port monster lookup from FIQHack: when you are looking up a specific monster in the encyclopedia, a full description of its stats, abilities, and attacks will be shown above the encyclopedia entry
 The Candelabrum reads (n/7 candles attached) to make explicit that it holds 7 candles
+Gravestone color is now white; this probably doesn't matter for a lot of fonts
+Implement object lookup: when you are looking up a specific object in the encyclopedia, a full description of its stats and other properties will be shown above the encyclopedia entry
+Bones levels now have a level sound: the same "eerie feeling" as in walking into an abandoned temple
+Scrolls of identify always identify 5/3/1 items for B/U/C; spell always gives only 1
+Throne insight always gives a full inventory identify
 
 It contains the following non-gameplay architectural changes:
 
@@ -70,3 +78,4 @@ Touchstones are no longer a magical item
 Valley entrance message is moved into gehennom.des instead of hardcoding
 Move most paralysis sources into a new make_paralyzed function
 Refactor testing for whether an object has a specific randomized description into a new function objdescr_is()
+Rename cost() to ink_cost()
