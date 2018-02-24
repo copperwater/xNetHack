@@ -359,7 +359,6 @@ extern struct symsetentry symset[NUM_GRAPHICS]; /* from drawing.c */
  */
 #define S_LPUDDING 1
 #define S_LDWASHER 2
-#define S_LRING 4
 
 /*
  * The four directions for a DrawBridge.

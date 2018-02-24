@@ -1597,6 +1597,12 @@ struct mkroom *croom;
     /* Put a sink at m.x, m.y */
     levl[m.x][m.y].typ = SINK;
 
+    /* All sinks have a ring stuck in the pipes below */
+    struct obj* ring = mkobj(RING_CLASS, TRUE);
+    ring->ox = m.x;
+    ring->oy = m.y;
+    add_to_buried(ring);
+
     level.flags.nsinks++;
 }
 
