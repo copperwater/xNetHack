@@ -1739,9 +1739,11 @@ domove()
         } else if (mtmp->mpeaceful && !mtmp->mtame
                    && (!goodpos(u.ux0, u.uy0, mtmp, 0)
                        || t_at(u.ux0, u.uy0) != NULL
+                       || mtmp->ispriest
+                       || mtmp->data == &mons[PM_ORACLE]
                        || mtmp->m_id == quest_status.leader_m_id)) {
             /* displacing peaceful into unsafe or trapped space, or trying to
-             * displace quest leader */
+             * displace quest leader, Oracle, or priest */
             u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
             You("stop.  %s doesn't want to swap places.",
                 upstart(y_monnam(mtmp)));
