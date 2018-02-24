@@ -1049,7 +1049,20 @@ short otyp;
         OBJPUTSTR(buf);
     }
 
-    /* Confers X. Need to externify the props list in timeout.c. */
+    /* power conferred */
+    extern const struct propname {
+        int prop_num;
+        const char* prop_name;
+    } propertynames[]; /* located in timeout.c */
+    if (oc.oc_oprop) {
+        int i;
+        for (i = 0; propertynames[i].prop_name; ++i) {
+            if (oc.oc_oprop == propertynames[i].prop_num) {
+                Sprintf(buf, "Confers / makes you %s.", propertynames[i].prop_name);
+                OBJPUTSTR(buf);
+            }
+        }
+    }
 
     buf[0] = '\0';
     ADDCLASSPROP(oc.oc_magic, "inherently magical");
