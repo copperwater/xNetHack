@@ -23,6 +23,7 @@ STATIC_DCL void NDECL(mktemple);
 STATIC_DCL coord *FDECL(shrine_pos, (int));
 STATIC_DCL struct permonst *NDECL(morguemon);
 STATIC_DCL struct permonst *NDECL(squadmon);
+STATIC_DCL struct permonst *NDECL(zoomon);
 STATIC_DCL void FDECL(save_room, (int, struct mkroom *));
 STATIC_DCL void FDECL(rest_room, (int, struct mkroom *));
 
@@ -305,6 +306,7 @@ struct mkroom *sroom;
         break;
     }
 
+    /* fill room with monsters */
     for (sx = sroom->lx; sx <= sroom->hx; sx++)
         for (sy = sroom->ly; sy <= sroom->hy; sy++) {
             if (sroom->irregular) {
@@ -339,7 +341,7 @@ struct mkroom *sroom;
                                              ? &mons[PM_COCKATRICE]
                                              : (type == ANTHOLE)
                                                  ? antholemon()
-                                                 : (struct permonst *) 0,
+                                                 : zoomon(),
                           sx, sy, NO_MM_FLAGS);
             if (mon) {
                 mon->msleeping = 1;
@@ -508,6 +510,22 @@ antholemon()
 
     return ((mvitals[mtyp].mvflags & G_GONE) ? (struct permonst *) 0
                                              : &mons[mtyp]);
+}
+
+/* Pick random zoo-like monsters. */
+struct permonst *
+zoomon()
+{
+    struct permonst * pm;
+    int i;
+    for(i = 0; i < 100; i++) {
+        /* try to reroll until finding an animal */
+        pm = rndmonst();
+        if (is_animal(pm)) {
+            break;
+        }
+    }
+    return pm;
 }
 
 STATIC_OVL void
