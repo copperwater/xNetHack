@@ -1485,8 +1485,13 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         }
         break;
     case SCR_GOLD_DETECTION:
-        if ((confused || scursed) ? trap_detect(sobj) : gold_detect(sobj))
-            sobj = 0; /* failure: strange_feeling() -> useup() */
+        if (confused || scursed) {
+            if (trap_detect(sobj)) {
+                sobj = 0; /* failure: strange_feeling() -> useup() */
+            }
+        } else if (gold_detect(sobj, TRUE)) {
+            sobj = 0;
+        }
         break;
     case SCR_FOOD_DETECTION:
     case SPE_DETECT_FOOD:

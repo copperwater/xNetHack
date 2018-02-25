@@ -13,8 +13,23 @@
 #ifdef POSITIONBAR
 STATIC_DCL void NDECL(do_positionbar);
 #endif
+STATIC_DCL void NDECL(passive_gold_detect);
 STATIC_DCL void FDECL(regen_hp, (int));
 STATIC_DCL void FDECL(interrupt_multi, (const char *));
+
+/* TODO: move into detect.c. */
+STATIC_OVL void
+passive_gold_detect()
+{
+    if (Race_if(PM_DWARF) || youmonst.data == &mons[PM_LEPRECHAUN]) {
+        /* create temporary uncursed scroll of gold detection */
+        struct obj * otmp = mksobj(SCR_GOLD_DETECTION, FALSE, FALSE);
+        /* passive - won't impede map */
+        gold_detect(otmp, TRUE);
+        obfree(otmp, NULL);
+        see_monsters(); /* don't overwrite visible monsters with $ */
+    }
+}
 
 void
 moveloop(resuming)
@@ -340,6 +355,7 @@ boolean resuming;
 
         clear_splitobjs();
         find_ac();
+        passive_gold_detect();
         if (!context.mv || Blind) {
             /* redo monsters if hallu or wearing a helm of telepathy */
             if (Hallucination) { /* update screen randomly */
