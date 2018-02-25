@@ -281,6 +281,7 @@ E void NDECL(sokoban_detect);
 E void NDECL(dump_map);
 #endif
 E void FDECL(reveal_terrain, (int, int));
+E void NDECL(passive_gold_detect);
 
 /* ### dig.c ### */
 
