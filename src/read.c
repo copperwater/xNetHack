@@ -1450,19 +1450,31 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             do_genocide((!scursed) | (2 * !!Confusion));
         break;
     case SCR_LIGHT:
-        if (!confused || rn2(5)) {
+        if (!confused) {
             if (!Blind)
                 known = TRUE;
-            litroom(!confused && !scursed, sobj);
-            if (!confused && !scursed) {
+            litroom(!scursed, sobj);
+            if (!scursed) {
                 if (lightdamage(sobj, TRUE, 5))
                     known = TRUE;
             }
         } else {
-            /* could be scroll of create monster, don't set known ...*/
-            (void) create_critters(1, !scursed ? &mons[PM_YELLOW_LIGHT]
-                                               : &mons[PM_BLACK_LIGHT],
-                                   TRUE);
+            /* surround with cancelled tame lights which won't explode */
+            int numlights = rn1(2,4), i;
+            struct permonst * mptr = scursed ? &mons[PM_BLACK_LIGHT]
+                                             : &mons[PM_YELLOW_LIGHT];
+            for (i = 0; i < numlights; ++i) {
+                struct monst * mon = makemon(mptr, u.ux, u.uy,
+                                             MM_EDOG | NO_MINVENT);
+                initedog(mon);
+                u.uconduct.pets++;
+                mon->mcan = TRUE;
+                newsym(mon->mx, mon->my);
+            }
+            if (!Blind) {
+                pline("Lights appear all around you!");
+                known = TRUE;
+            }
         }
         break;
     case SCR_TELEPORTATION:
