@@ -1928,4 +1928,18 @@ int which_subset; /* when not full, whether to suppress objs and/or traps */
     return;
 }
 
+/* Detect out-of-sight gold across the level, silently. */
+void
+passive_gold_detect()
+{
+    if (Race_if(PM_DWARF) || youmonst.data == &mons[PM_LEPRECHAUN]) {
+        /* create temporary uncursed scroll of gold detection */
+        struct obj * otmp = mksobj(SCR_GOLD_DETECTION, FALSE, FALSE);
+        /* passive - won't impede map */
+        gold_detect(otmp, TRUE);
+        obfree(otmp, NULL);
+        see_monsters(); /* don't overwrite visible monsters with $ */
+    }
+}
+
 /*detect.c*/
