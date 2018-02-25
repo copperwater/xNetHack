@@ -27,6 +27,7 @@ passive_gold_detect()
         /* passive - won't impede map */
         gold_detect(otmp, TRUE);
         obfree(otmp, NULL);
+        see_monsters(); /* don't overwrite visible monsters with $ */
     }
 }
 
