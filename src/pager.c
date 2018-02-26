@@ -1295,6 +1295,15 @@ doidtrap()
         }
     }
 
+    /* check door trap */
+    if (wizard && levl[x][y].typ == DOOR) {
+        if (door_is_trapped(&levl[x][y]))
+            pline("This door is trapped, type = %d.", getdoortrap(x, y));
+        else
+            pline("This door is not trapped.");
+        return 0;
+    }
+
     for (trap = ftrap; trap; trap = trap->ntrap)
         if (trap->tx == x && trap->ty == y) {
             if (!trap->tseen)
