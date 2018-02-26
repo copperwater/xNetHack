@@ -58,7 +58,7 @@ newhp()
         }
         /* no Con adjustment for initial hit points */
     } else {
-        if (u.ulevel < urole.xlev) {
+        if (u.ulevel < ROLE_XLEV_CUTOFF) {
             hp = urole.hpadv.lofix + urace.hpadv.lofix;
             if (urole.hpadv.lornd > 0)
                 hp += rnd(urole.hpadv.lornd);
@@ -108,7 +108,7 @@ newpw()
             en += rnd(urace.enadv.inrnd);
     } else {
         enrnd = (int) ACURR(A_WIS) / 2;
-        if (u.ulevel < urole.xlev) {
+        if (u.ulevel < ROLE_XLEV_CUTOFF) {
             enrnd += urole.enadv.lornd + urace.enadv.lornd;
             enfix = urole.enadv.lofix + urace.enadv.lofix;
         } else {

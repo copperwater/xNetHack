@@ -22,9 +22,12 @@ struct RoleName {
 struct RoleAdvance {
     /* "fix" is the fixed amount, "rnd" is the random amount */
     xchar infix, inrnd; /* at character initialization */
-    xchar lofix, lornd; /* gained per level <  urole.xlev */
-    xchar hifix, hirnd; /* gained per level >= urole.xlev */
+    xchar lofix, lornd; /* gained per level <  xlvl 12 */
+    xchar hifix, hirnd; /* gained per level >= xlvl 12 */
 };
+/* determines at which level lofix, lornd cease to be used and hifix, hirnd
+ * start to be used */
+#define ROLE_XLEV_CUTOFF 12
 
 struct u_have {
     Bitfield(amulet, 1);   /* carrying Amulet   */
@@ -142,7 +145,6 @@ struct Role {
     xchar attrdist[A_MAX];    /* distribution of initial attributes */
     struct RoleAdvance hpadv; /* hit point advancement */
     struct RoleAdvance enadv; /* energy advancement */
-    xchar xlev;               /* cutoff experience level */
     xchar initrecord;         /* initial alignment record */
 
     /*** Spell statistics (from spell.c) ***/
