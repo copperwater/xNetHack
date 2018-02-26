@@ -955,8 +955,6 @@ SPELL("remove curse",    "wrinkled",
       P_CLERIC_SPELL,      25,  3, 1, NODIR, HI_PAPER),
 SPELL("magic mapping",   "dusty",
       P_DIVINATION_SPELL,  18,  5, 1, NODIR, HI_PAPER),
-SPELL("identify",        "bronze",
-      P_DIVINATION_SPELL,  20,  3, 1, NODIR, HI_COPPER),
 SPELL("turn undead",     "copper",
       P_CLERIC_SPELL,      16,  6, 1, IMMEDIATE, HI_COPPER),
 SPELL("polymorph",       "silver",
@@ -981,6 +979,7 @@ SPELL("flame sphere",    "canvas",
 SPELL("freeze sphere",   "hardcover",
       P_MATTER_SPELL,      20,  2, 1, 1, NODIR, CLR_BROWN),
 #endif
+/* unused description (removed spell): bronze */
 /* books with fixed descriptions
  */
 SPELL("blank paper", "plain", P_NONE, 18, 0, 0, 0, HI_PAPER),

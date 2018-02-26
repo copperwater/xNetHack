@@ -1518,16 +1518,6 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         cval = 1 + (!scursed * 2) + (sblessed * 2);
         identify_pack(cval, !already_known);
         break;
-    case SPE_IDENTIFY:
-        if (invent) {
-            identify_pack(1, !already_known);
-        } else {
-            /* when casting a spell we know we're not confused,
-               so inventory must be empty (another message has
-               already been given above if reading a scroll) */
-            pline("You're not carrying anything to be identified.");
-        }
-        break;
     case SCR_CHARGING:
         if (confused) {
             if (scursed) {

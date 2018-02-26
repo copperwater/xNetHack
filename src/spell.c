@@ -1131,7 +1131,6 @@ boolean atme;
     case SPE_CONFUSE_MONSTER:
     case SPE_DETECT_FOOD:
     case SPE_CAUSE_FEAR:
-    case SPE_IDENTIFY:
         /* high skill yields effect equivalent to blessed scroll */
         if (role_skill >= P_SKILLED)
             pseudo->blessed = 1;
