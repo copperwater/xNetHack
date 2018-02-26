@@ -433,7 +433,7 @@ struct rm {
 #define door_is_locked(x) \
     (((x)->doormask & (D_CLOSED | D_LOCKED)) == (D_CLOSED | D_LOCKED))
 #define door_is_trapped(x) \
-    (((x)->doormask & (D_CLOSED | D_TRAPPED)) == (D_CLOSED | D_TRAPPED))
+    (((x)->doormask & D_TRAPPED) == D_TRAPPED)
 #define door_is_warned(x) \
     (((x)->doormask & D_WARNED) == D_WARNED)
 
