@@ -6,7 +6,6 @@
 #include <limits.h>
 
 STATIC_DCL long FDECL(newuexp, (int));
-STATIC_DCL int FDECL(enermod, (int));
 
 STATIC_OVL long
 newuexp(lev)
@@ -17,25 +16,6 @@ int lev;
     if (lev < 20)
         return (10000L * (1L << (lev - 10)));
     return (10000000L * ((long) (lev - 19)));
-}
-
-STATIC_OVL int
-enermod(en)
-int en;
-{
-    switch (Role_switch) {
-    case PM_PRIEST:
-    case PM_WIZARD:
-        return (2 * en);
-    case PM_HEALER:
-    case PM_KNIGHT:
-        return ((3 * en) / 2);
-    case PM_BARBARIAN:
-    case PM_VALKYRIE:
-        return ((3 * en) / 4);
-    default:
-        return en;
-    }
 }
 
 /* calculate hp max increase for new level */
@@ -115,7 +95,21 @@ newpw()
             enrnd += urole.enadv.hirnd + urace.enadv.hirnd;
             enfix = urole.enadv.hifix + urace.enadv.hifix;
         }
-        en = enermod(rn1(enrnd, enfix));
+        en = rn1(enrnd, enfix);
+        /* energy gain "modifier" */
+        switch (Role_switch) {
+        case PM_PRIEST:
+        case PM_WIZARD:
+            en *= 2;
+            break;
+        case PM_HEALER:
+        case PM_KNIGHT:
+            en = ((3 * en) / 2);
+            break;
+        case PM_BARBARIAN:
+        case PM_VALKYRIE:
+            en = ((3 * en) / 4);
+        }
     }
     if (en <= 0)
         en = 1;
