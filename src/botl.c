@@ -618,14 +618,8 @@ bot_via_windowport()
     valset[BL_GOLD] = TRUE; /* indicate val already set */
 
     /* Power (magical energy) */
-<<<<<<< HEAD
     blstats[idx][BL_ENE].a.a_int = min(u.uen, 9999);
     blstats[idx][BL_ENEMAX].a.a_int = min(u.uenmax, 9999);
-=======
-
-    blstats[idx][BL_ENE].a.a_int = u.uen;
-    blstats[idx][BL_ENEMAX].a.a_int = u.uenmax;
->>>>>>> Implement FIQHack's Pw regen formula
 
     /* Armor class */
     blstats[idx][BL_AC].a.a_int = u.uac;
