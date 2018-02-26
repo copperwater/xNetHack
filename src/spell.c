@@ -1650,6 +1650,9 @@ int spell;
     int chance, splcaster, special, statused;
     int difficulty;
     int skill;
+    boolean reduce_penalty = (uarmc && uarmc->otyp == ROBE) ||
+                             (uwep && uwep->otyp == QUARTERSTAFF) ||
+                             (uwep && uwep->otyp == WAN_NOTHING);
 
     /* Calculate intrinsic ability (splcaster) */
 
@@ -1657,10 +1660,13 @@ int spell;
     special = urole.spelheal;
     statused = ACURR(urole.spelstat);
 
-    if (uarm && is_metallic(uarm))
-        splcaster += (uarmc && uarmc->otyp == ROBE) ? urole.spelarmr / 2
-                                                    : urole.spelarmr;
-    else if (uarmc && uarmc->otyp == ROBE)
+    if (uarm && is_metallic(uarm)) {
+        if (reduce_penalty)
+            splcaster += urole.spelarmr / 2;
+        else
+            splcaster += urole.spelarmr;
+    }
+    else if (reduce_penalty)
         splcaster -= urole.spelarmr;
     if (uarms)
         splcaster += urole.spelshld;

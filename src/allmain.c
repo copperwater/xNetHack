@@ -26,6 +26,7 @@ boolean resuming;
 #endif
     int moveamt = 0, wtcap = 0, change = 0;
     boolean monscanmove = FALSE;
+    int energyfrac = 0;
 
     /* Note:  these initializers don't do anything except guarantee that
             we're linked properly.
@@ -215,15 +216,24 @@ boolean resuming;
                         }
                     }
 
-                    if (u.uen < u.uenmax
-                        && ((wtcap < MOD_ENCUMBER
-                             && (!(moves % ((MAXULEV + 8 - u.ulevel)
-                                            * (Role_if(PM_WIZARD) ? 3 : 4)
-                                            / 6)))) || Energy_regeneration)) {
-                        u.uen += rn1(
-                            (int) (ACURR(A_WIS) + ACURR(A_INT)) / 15 + 1, 1);
+		    /* Energy regeneration */
+                    if ((u.uen < u.uenmax) && (wtcap < MOD_ENCUMBER)) {
+                        /* 1/turn for energy regen
+                         * 3 XL/100 per turn
+                         * 3 Wis/100 per turn
+                         * 1/3 per turn if wizard role
+			 * energyfrac represents units of 1/300 */
+			energyfrac = ((Energy_regeneration ? 300 : 0) +
+				      (9 * u.ulevel) +
+				      (9 * ACURR(A_WIS)) +
+				      (Role_if(PM_WIZARD) ? 100 : 0));
+			u.uen += energyfrac / 300;
+			if(rn2(300) < energyfrac % 300) {
+			  u.uen++;
+			}
                         if (u.uen > u.uenmax)
                             u.uen = u.uenmax;
+
                         context.botl = 1;
                         if (u.uen == u.uenmax)
                             interrupt_multi("You feel full of energy.");
