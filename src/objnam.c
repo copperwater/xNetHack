@@ -3441,6 +3441,9 @@ wiztrap:
             pline("A %sdoor%s.", (trapped == 1 ? "trapped " : ""),
                   (doorstate == D_NODOOR ? "way" : ""));
             newsym(x,y);
+            if (doorstate == D_CLOSED) {
+                block_point(x, y);
+            }
             return &zeroobj;
         }
         if (!BSTRCMPI(bp, p - 8, "fountain")) {
