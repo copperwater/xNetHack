@@ -4475,14 +4475,9 @@ boolean force;
             exercise(A_DEX, TRUE);
             if (!force && (confused || Fumbling
                            || rnd(75 + level_difficulty() / 2) > ch)) {
-                You("set it off!");
-                b_trapped("door", FINGER);
-                set_doorstate(&levl[x][y], D_NODOOR);
-                unblock_point(x, y);
-                newsym(x, y);
-                /* (probably ought to charge for this damage...) */
-                if (*in_rooms(x, y, SHOPBASE))
-                    add_damage(x, y, 0L);
+                You("slip up...");
+                /* don't "set it off"; some traps have no message here */
+                doortrapped(x, y, &youmonst, FINGER, -D_TRAPPED, 2);
             } else {
                 You("disarm it!");
                 set_door_trap(&levl[x][y], FALSE);
@@ -5042,11 +5037,11 @@ int x, y;
  *   D_CLOSED - closing it, not wizard-locking it
  *   D_BROKEN - destroying it
  *  -D_LOCKED - unlocking it
+ *  -D_TRAPPED - untrapping it
  *   D_NODOOR - none of the above; this is for a trap that triggers when the
- *   player moves off the doorway onto another space.
+ *   player moves off the doorway onto another space. (Unimplemented.)
  * Unused ones that might be of some use at some point:
  *   D_LOCKED - locking it
- *  -D_TRAPPED - untrapping it
  *  -D_NODOOR - moving onto the doorway.
  * when means whether this function is being called before the action is
  * complete, e.g. a STATIC_KNOB should trigger when touching the door but a
@@ -5129,7 +5124,8 @@ int when;
             }
             do_lock = TRUE;
         }
-        else if (action == D_CLOSED) {
+        else if (action == D_CLOSED ||
+                 (action == -D_TRAPPED && door_is_closed(door))) {
             do_lock = TRUE;
         }
         else if (action == D_NODOOR) {
@@ -5159,7 +5155,8 @@ int when;
         return 1;
     }
     else if (selected_trap == STATIC_SHOCK && before && bodypart == FINGER
-             && (action == D_ISOPEN || action == D_CLOSED)) {
+             && (action == D_ISOPEN || action == D_CLOSED
+                 || action == -D_TRAPPED)) {
         dmg = rnd(lvl * 2) / (Shock_resistance ? 4 : 1);
         dmg += 1;
         if (byu) {
@@ -5180,7 +5177,8 @@ int when;
         set_door_trap(door, FALSE);
     }
     else if (selected_trap == WATER_BUCKET && after
-             && (action == D_ISOPEN || action == D_BROKEN)) {
+             && (action == D_ISOPEN || action == D_BROKEN
+                 || action == -D_TRAPPED)) {
         if (canseemon) {
             pline("A bucket of water splashes down on %s!",
                   (!byu ? mon_nam(mon) : (touching ? "you" : "the floor")));
@@ -5200,7 +5198,8 @@ int when;
         set_door_trap(door, FALSE); /* trap is gone */
     }
     else if (selected_trap == HINGELESS_FORWARD && before
-             && (action == D_ISOPEN || action == D_BROKEN)) {
+             && (action == D_ISOPEN || action == D_BROKEN
+                 || action == -D_TRAPPED)) {
         dmg = rnd((lvl/4) + 1);
         /* necessary to set this up front; otherwise we hurtle into the closed
          * door and don't actually move */
@@ -5243,7 +5242,7 @@ int when;
         wake_nearto(x, y, 8 * 8);
     }
     else if (selected_trap == HINGELESS_BACKWARD && before
-             && action == D_ISOPEN) {
+             && (action == D_ISOPEN || action == -D_TRAPPED)) {
         dmg = rnd((lvl/2) + 1);
         if (byu) {
             pline("The door falls backward off its hinges!");
@@ -5281,7 +5280,8 @@ int when;
         wake_nearto(x, y, 8 * 8);
     }
     else if (selected_trap == ROCKFALL && after
-             && (action == D_ISOPEN || action == D_BROKEN)) {
+             && (action == D_ISOPEN || action == D_BROKEN
+                 || action == -D_TRAPPED)) {
         if (canseedoor) {
             You("see a tripwire snap!");
         }
@@ -5302,7 +5302,8 @@ int when;
         set_door_trap(door, FALSE); /* trap is gone */
     }
     else if (selected_trap == HOT_KNOB && before && bodypart == FINGER
-             && (action == D_ISOPEN || action == D_CLOSED)) {
+             && (action == D_ISOPEN || action == D_CLOSED
+                 || action == -D_TRAPPED)) {
         int dmg = rnd(lvl);
         struct obj* gloves = which_armor(mon, W_ARMG);
         if (byu ? Fire_resistance : resists_fire(mon)) {
@@ -5343,7 +5344,8 @@ int when;
         }
     }
     else if (selected_trap == FIRE_BLAST && after
-             && (action == D_ISOPEN || action == D_BROKEN)) {
+             && (action == D_ISOPEN || action == D_BROKEN
+                 || action == -D_TRAPPED)) {
         /* TODO: ensure explode() wakes monsters without having to call it
          * here */
         if (byu || canseedoor) {
@@ -5366,9 +5368,16 @@ int when;
             add_damage(x, y, (byu ? SHOP_DOOR_COST : 0L));
         }
         newsym(x, y);
+        unblock_point(x, y); /* can now see through it */
         return 2;
     }
     else if (saved_doorstate != doorstate(door)) {
+        newsym(x, y);
+        /* take care of vision */
+        if (!door_is_closed(door))
+            unblock_point(x, y);
+        else
+            block_point(x, y);
         return 1;
     }
     else {
