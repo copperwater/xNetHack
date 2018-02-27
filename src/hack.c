@@ -411,6 +411,8 @@ xchar x, y;
                         : (lev->typ == IRONBARS)
                             ? "bar"
                             : "door");
+        if (IS_DOOR(lev->typ))
+            predoortrapped(x, y, &youmonst, FACE, D_BROKEN);
         watch_dig((struct monst *) 0, x, y, FALSE);
         return 1;
     } else if ((context.digging.effort += (30 + u.udaminc)) <= 100) {
@@ -427,6 +429,8 @@ xchar x, y;
                                 ? "bars"
                                 : "door");
         context.digging.chew = TRUE;
+        if (IS_DOOR(lev->typ))
+            predoortrapped(x, y, &youmonst, FACE, D_BROKEN);
         watch_dig((struct monst *) 0, x, y, FALSE);
         return 1;
     }
@@ -476,10 +480,7 @@ xchar x, y;
         digtxt = "eat through the bars.";
         dissolve_bars(x, y);
     } else if (lev->typ == SDOOR) {
-        if (door_is_trapped(lev)) {
-            set_doorstate(lev, D_NODOOR);
-            b_trapped("secret door", 0);
-        } else {
+        if (!postdoortrapped(x, y, &youmonst, FACE, D_BROKEN)) {
             digtxt = "chew through the secret door.";
             set_doorstate(lev, D_BROKEN);
         }
@@ -490,10 +491,7 @@ xchar x, y;
             add_damage(x, y, SHOP_DOOR_COST);
             dmgtxt = "break";
         }
-        if (door_is_trapped(lev)) {
-            set_doorstate(lev, D_NODOOR);
-            b_trapped("door", 0);
-        } else {
+        if (!postdoortrapped(x, y, &youmonst, FACE, D_BROKEN)) {
             digtxt = "chew through the door.";
             set_doorstate(lev, D_BROKEN);
         }

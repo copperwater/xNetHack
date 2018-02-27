@@ -455,10 +455,12 @@ dig(VOID_ARGS)
             if (mtmp)
                 pline_The("debris from your digging comes to life!");
         }
-        if (IS_DOOR(lev->typ) && door_is_trapped(lev)) {
-            set_doorstate(lev, D_NODOOR);
-            b_trapped("door", 0);
-            newsym(dpx, dpy);
+        if (IS_DOOR(lev->typ)) {
+            /* use ARM to represent that you're in melee range ("touching") the
+             * door */
+            if (doortrapped(dpx, dpy, &youmonst, ARM, D_BROKEN, 2)) {
+                newsym(dpx, dpy);
+            }
         }
     cleanup:
         context.digging.lastdigtime = moves;

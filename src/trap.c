@@ -5032,10 +5032,11 @@ int x, y;
     return ((int) ubirthday + 3*lvl + 61*x*x + 13*x*y) % (maxtrap + 1);
 }
 
-/* A door triggers a trap.
+/* Interacting with a door triggers a trap.
  * mon is the monster triggering the trap (NULL or youmonst means player)
  * bodypart is the body part used to touch the door, and can affect what the
- * trap does.
+ * trap does. Note: ARM is sometimes used to denote touching the door with an
+ * object (i.e. chopping the door down).
  * action is a doorstate that defines what the player is doing with the door:
  *   D_ISOPEN - opening it
  *   D_CLOSED - closing it, not wizard-locking it
@@ -5175,7 +5176,8 @@ int when;
                 monkilled(mon, "", AD_ELEC);
             }
         }
-        /* trap not disarmed */
+        /* trap goes away */
+        set_door_trap(door, FALSE);
     }
     else if (selected_trap == WATER_BUCKET && after
              && (action == D_ISOPEN || action == D_BROKEN)) {
@@ -5198,8 +5200,11 @@ int when;
         set_door_trap(door, FALSE); /* trap is gone */
     }
     else if (selected_trap == HINGELESS_FORWARD && before
-             && action == D_ISOPEN) {
+             && (action == D_ISOPEN || action == D_BROKEN)) {
         dmg = rnd((lvl/4) + 1);
+        /* necessary to set this up front; otherwise we hurtle into the closed
+         * door and don't actually move */
+        set_doorstate(door, D_BROKEN);
         if (byu) {
             pline("The door falls forward off its hinges!");
             if (touching) {
@@ -5225,6 +5230,7 @@ int when;
                 else {
                     You_hear("a nearby crash.");
                 }
+                /* TODO: should replace with mhurtle? */
                 mon->mx = x; mon->my = y;
                 mon->mstun = 1;
                 mon->mhp -= dmg;
@@ -5234,7 +5240,6 @@ int when;
             }
         }
         set_door_trap(door, FALSE); /* trap is gone */
-        set_doorstate(door, D_BROKEN);
         wake_nearto(x, y, 8 * 8);
     }
     else if (selected_trap == HINGELESS_BACKWARD && before
@@ -5337,7 +5342,8 @@ int when;
             erode_obj(gloves, NULL, ERODE_BURN, EF_GREASE);
         }
     }
-    else if (selected_trap == FIRE_BLAST && after && action == D_ISOPEN) {
+    else if (selected_trap == FIRE_BLAST && after
+             && (action == D_ISOPEN || action == D_BROKEN)) {
         /* TODO: ensure explode() wakes monsters without having to call it
          * here */
         if (byu || canseedoor) {

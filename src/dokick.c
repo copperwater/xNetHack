@@ -972,10 +972,8 @@ dokick()
                           ? "Your kick uncovers"
                           : "You kick open");
                 exercise(A_DEX, TRUE);
-                if (door_is_trapped(maploc)) {
-                    set_doorstate(maploc, D_NODOOR);
-                    b_trapped("door", FOOT);
-                } else if (!door_is_locked(maploc)) {
+                doortrapped(x, y, &youmonst, FOOT, D_BROKEN, 2);
+                if (!door_is_locked(maploc)) {
                     /* assume doorstate is already D_CLOSED */
                     set_doorstate(maploc, D_ISOPEN);
                 }
@@ -1256,23 +1254,24 @@ dokick()
     if (rnl(35) < avrg_attrib + (!martial() ? 0 : ACURR(A_DEX))) {
         boolean shopdoor = *in_rooms(x, y, SHOPBASE) ? TRUE : FALSE;
         /* break the door */
-        if (door_is_trapped(maploc)) {
-            if (flags.verbose)
-                You("kick the door.");
-            exercise(A_STR, FALSE);
-            set_doorstate(maploc, D_NODOOR);
-            b_trapped("door", FOOT);
-        } else if (ACURR(A_STR) > 18 && !rn2(5) && !shopdoor) {
-            pline("As you kick the door, it shatters to pieces!");
+        if (flags.verbose)
+            You("kick the door.");
+        if (predoortrapped(x, y, &youmonst, FOOT, D_BROKEN) == 2) {
+            /* shop dmg already handled */
+            shopdoor = FALSE;
+        }
+        if (ACURR(A_STR) > 18 && !rn2(5) && !shopdoor) {
+            pline("The door shatters to pieces!");
             exercise(A_STR, TRUE);
             set_doorstate(maploc, D_NODOOR);
         } else {
-            pline("As you kick the door, it crashes open!");
+            pline("The door crashes open!");
             exercise(A_STR, TRUE);
             set_doorstate(maploc, D_BROKEN);
         }
         feel_newsym(x, y); /* we know we broke it */
         unblock_point(x, y); /* vision */
+        postdoortrapped(x, y, &youmonst, FOOT, D_BROKEN);
         if (shopdoor) {
             add_damage(x, y, SHOP_DOOR_COST);
             pay_for_damage("break", FALSE);
@@ -1293,6 +1292,7 @@ dokick()
             feel_location(x, y); /* we know we hit it */
         exercise(A_STR, TRUE);
         pline("WHAMMM!!!");
+        predoortrapped(x, y, &youmonst, FOOT, D_BROKEN);
         if (in_town(x, y))
             for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
                 if (DEADMONSTER(mtmp))
