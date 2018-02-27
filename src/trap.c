@@ -5040,11 +5040,11 @@ int x, y;
  *   D_ISOPEN - opening it
  *   D_CLOSED - closing it, not wizard-locking it
  *   D_BROKEN - destroying it
+ *  -D_LOCKED - unlocking it
  *   D_NODOOR - none of the above; this is for a trap that triggers when the
  *   player moves off the doorway onto another space.
  * Unused ones that might be of some use at some point:
  *   D_LOCKED - locking it
- *  -D_LOCKED - unlocking it
  *  -D_TRAPPED - untrapping it
  *  -D_NODOOR - moving onto the doorway.
  * when means whether this function is being called before the action is
@@ -5055,8 +5055,8 @@ int x, y;
  *   2 = trigger all possible traps (used when e.g. zapping striking at door)
  *
  * Return value is as follows:
- *   0 = doorstate is not changed
- *   1 = doorstate is changed to something non-destroyed
+ *   0 = doorstate is not changed, the caller can continue to do things with it
+ *   1 = doorstate is set by this function, to something non-destroyed
  *   2 = door has been destroyed
  */
 boolean
@@ -5103,6 +5103,8 @@ int when;
         mon = &youmonst;
     }
 
+    /* It is safe to do a direct return in any of these conditions IF the
+     * condition contains zero chance of destroying the door. */
     if (selected_trap == HINGE_SCREECH && after
         && (action == D_ISOPEN || action == D_CLOSED)) {
         int range = (11 * lvl) + (11 * lvl);
@@ -5136,12 +5138,13 @@ int when;
             do_lock = TRUE;
         }
         else if (action == -D_LOCKED) {
-            if (byu) {
+            if (byu && bodypart == FINGER) {
                 You("disarm a self-locking mechanism.");
             }
             set_door_trap(door, FALSE);
         }
-        /* not much point doing anything when the player *wants* to lock it */
+        /* no case for action == D_LOCKED
+         * not much point doing anything when the player *wants* to lock it */
         if (do_lock) {
             if (!Deaf && canseedoor) {
                 You_hear("the lock click by itself!");
@@ -5149,7 +5152,10 @@ int when;
             set_doorstate(door, D_CLOSED);
             set_door_lock(door, TRUE);
         }
-        /* trap not disarmed */
+        /* trap not disarmed, except if trying to unlock */
+        feel_newsym(x, y); /* the hero knows it is closed */
+        block_point(x, y); /* vision: no longer see there */
+        return 1;
     }
     else if (selected_trap == STATIC_SHOCK && before && bodypart == FINGER
              && (action == D_ISOPEN || action == D_CLOSED)) {

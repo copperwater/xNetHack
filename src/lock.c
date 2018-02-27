@@ -682,7 +682,7 @@ int x, y;
     }
 
     if (!door_is_closed(door)) {
-        const char *mesg;
+        const char *mesg = NULL;
 
         switch (doorstate(door)) {
         case D_BROKEN:
@@ -713,11 +713,11 @@ int x, y;
     /* door is known to be CLOSED */
     if (rnl(20) < (ACURRSTR + ACURR(A_DEX) + ACURR(A_CON)) / 3) {
         pline_The("door opens.");
-        if (!postdoortrapped(cc.x, cc.y, &youmonst, FINGER, D_ISOPEN) == 0) {
+        if (postdoortrapped(cc.x, cc.y, &youmonst, FINGER, D_ISOPEN) == 0) {
             set_doorstate(door, D_ISOPEN);
+            feel_newsym(cc.x, cc.y); /* the hero knows she opened it */
+            unblock_point(cc.x, cc.y); /* vision: new see through there */
         }
-        feel_newsym(cc.x, cc.y); /* the hero knows she opened it */
-        unblock_point(cc.x, cc.y); /* vision: new see through there */
     } else {
         exercise(A_STR, TRUE);
         pline_The("door resists!");
@@ -837,6 +837,10 @@ doclose()
         return res;
     }
 
+    if (predoortrapped(x, y, &youmonst, FINGER, D_CLOSED)) {
+        return res;
+    }
+
     if (doorstate(door) == D_ISOPEN) {
         if (verysmall(youmonst.data) && !u.usteed) {
             pline("You're too small to push the door closed.");
@@ -845,9 +849,11 @@ doclose()
         if (u.usteed
             || rn2(25) < (ACURRSTR + ACURR(A_DEX) + ACURR(A_CON)) / 3) {
             pline_The("door closes.");
-            set_doorstate(door, D_CLOSED);
-            feel_newsym(x, y); /* the hero knows she closed it */
-            block_point(x, y); /* vision:  no longer see there */
+            if (postdoortrapped(x, y, &youmonst, FINGER, D_CLOSED) == 0) {
+                set_doorstate(door, D_CLOSED);
+                feel_newsym(x, y); /* the hero knows she closed it */
+                block_point(x, y); /* vision:  no longer see there */
+            }
         } else {
             exercise(A_STR, TRUE);
             pline_The("door resists!");
