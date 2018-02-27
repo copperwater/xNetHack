@@ -3433,6 +3433,7 @@ wiztrap:
         p = eos(bp);
         if (!BSTRCMPI(bp, p - 4, "door")) {
             lev->typ = DOOR;
+            set_door_lock(lev, FALSE);
             set_doorstate(lev, doorstate);
             if (trapped == 1) {
                 set_door_trap(lev, TRUE);
