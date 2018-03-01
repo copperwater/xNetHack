@@ -5197,9 +5197,14 @@ int when;
         }
         set_door_trap(door, FALSE); /* trap is gone */
     }
-    else if (selected_trap == HINGELESS_FORWARD && before
+    else if ((selected_trap == HINGELESS_FORWARD && before
              && (action == D_ISOPEN || action == D_BROKEN
-                 || action == -D_TRAPPED)) {
+                 || action == -D_TRAPPED))
+            /* if you're trying to *break* the door, and it doesn't have
+             * hinges, it's going to fall backward regardless of which way it
+             * was rigged. */
+             || (selected_trap == HINGELESS_BACKWARD && before
+                 && action == D_BROKEN)) {
         dmg = rnd((lvl/4) + 1);
         /* necessary to set this up front; otherwise we hurtle into the closed
          * door and don't actually move */
