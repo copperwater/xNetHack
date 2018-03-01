@@ -5385,24 +5385,6 @@ int when;
     }
 }
 
-/* used for doors (also tins).  can be used for anything else that opens. */
-void
-b_trapped(item, bodypart)
-const char *item;
-int bodypart;
-{
-    int lvl = level_difficulty(),
-        dmg = rnd(5 + (lvl < 5 ? lvl : 2 + lvl / 2));
-
-    pline("KABOOM!!  %s was booby-trapped!", The(item));
-    wake_nearby();
-    losehp(Maybe_Half_Phys(dmg), "explosion", KILLED_BY_AN);
-    exercise(A_STR, FALSE);
-    if (bodypart)
-        exercise(A_CON, FALSE);
-    make_stunned((HStun & TIMEOUT) + (long) dmg, TRUE);
-}
-
 /* Monster is hit by trap. */
 /* Note: doesn't work if both obj and d_override are null */
 STATIC_OVL boolean

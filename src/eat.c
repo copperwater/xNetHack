@@ -1297,7 +1297,13 @@ const char *mesg;
 
     r = tin_variety(tin, FALSE);
     if (tin->otrapped || (tin->cursed && r != HOMEMADE_TIN && !rn2(8))) {
-        b_trapped("tin", 0);
+        int lvl = level_difficulty(),
+            dmg = rnd(5 + (lvl < 5 ? lvl : 2 + lvl / 2));
+        pline("KABOOM!!  The tin was booby-trapped!");
+        wake_nearby();
+        losehp(Maybe_Half_Phys(dmg), "exploding tin", KILLED_BY_AN);
+        exercise(A_STR, FALSE);
+        make_stunned((HStun & TIMEOUT) + (long) dmg, TRUE);
         tin = costly_tin(COST_DSTROY);
         goto use_up_tin;
     }

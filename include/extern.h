@@ -2460,7 +2460,6 @@ E int FDECL(getdoortrap, (int, int));
 E xchar FDECL(doortrapped, (int, int, struct monst *, int, int, BOOLEAN_P));
 E boolean FDECL(delfloortrap, (struct trap *));
 E struct trap *FDECL(t_at, (int, int));
-E void FDECL(b_trapped, (const char *, int));
 E boolean NDECL(unconscious);
 E void FDECL(blow_up_landmine, (struct trap *));
 E int FDECL(launch_obj, (SHORT_P, int, int, int, int, int));
