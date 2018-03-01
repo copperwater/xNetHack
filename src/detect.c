@@ -1418,21 +1418,20 @@ genericptr_t num;
             && door_is_closed(&levl[zx][zy]))) {
         if (levl[zx][zy].typ == SDOOR)
             cvt_sdoor_to_door(&levl[zx][zy]); /* .typ = DOOR */
-        if (door_is_trapped(&levl[zx][zy])) {
-            if (distu(zx, zy) < 3)
-                b_trapped("door", 0);
-            else
-                Norep("You %s an explosion!",
-                      cansee(zx, zy) ? "see" : (!Deaf ? "hear"
-                                                      : "feel the shock of"));
-            wake_nearto(zx, zy, 11 * 11);
-            set_doorstate(&levl[zx][zy], D_NODOOR);
-        } else {
+        if (getdoortrap(zx, zy) == SELF_LOCK) {
+            /* Bell of Opening > self-locking mechanism */
+            set_door_trap(&levl[zx][zy], FALSE);
+        }
+        if (doortrapped(zx, zy, NULL, NO_PART, D_ISOPEN, 2) < 2) {
+            /* trap didn't destroy it, didn't change door state */
+            /* ideally we'd have some way of telling whether any messages were
+             * printed by doortrapped and then not increment num_p, but that
+             * doesn't currently exist. */
             set_doorstate(&levl[zx][zy], D_ISOPEN);
+            (*num_p)++;
         }
         unblock_point(zx, zy);
         newsym(zx, zy);
-        (*num_p)++;
     } else if (levl[zx][zy].typ == SCORR) {
         levl[zx][zy].typ = CORR;
         unblock_point(zx, zy);
