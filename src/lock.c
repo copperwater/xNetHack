@@ -103,7 +103,8 @@ picklock(VOID_ARGS)
         }
     }
 
-    if (predoortrapped(doorx, doory, NULL, FINGER, -D_LOCKED) == 2) {
+    if (xlock.door &&
+        predoortrapped(doorx, doory, NULL, FINGER, -D_LOCKED) == 2) {
         /* door was destroyed somehow */
         return (xlock.usedtime = 0);
     }
