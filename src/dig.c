@@ -1486,17 +1486,20 @@ zap_dig()
                 break;
             }
         } else if (closed_door(zx, zy) || room->typ == SDOOR) {
-            if (*in_rooms(zx, zy, SHOPBASE)) {
-                add_damage(zx, zy, SHOP_DOOR_COST);
-                shopdoor = TRUE;
-            }
             if (room->typ == SDOOR)
                 room->typ = DOOR;
             else if (cansee(zx, zy))
                 pline_The("door is razed!");
+            if (doortrapped(zx, zy, &youmonst, NO_PART, D_BROKEN, 2) < 2) {
+                set_doorstate(room, D_BROKEN);
+                if (*in_rooms(zx, zy, SHOPBASE)) {
+                    add_damage(zx, zy, SHOP_DOOR_COST);
+                    shopdoor = TRUE;
+                }
+            }
             watch_dig((struct monst *) 0, zx, zy, TRUE);
-            set_doorstate(room, D_NODOOR);
             unblock_point(zx, zy); /* vision */
+            newsym(zx, zy);
             digdepth -= 2;
             if (maze_dig)
                 break;
