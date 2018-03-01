@@ -1006,7 +1006,8 @@ int x, y;
         break;
     case WAN_OPENING:
     case SPE_KNOCK:
-        if (door_is_locked(door)) {
+        if (door_is_locked(door)
+            && doortrapped(x, y, mon, NO_PART, -D_LOCKED, 2) == 0) {
             msg = "The door unlocks!";
             set_door_lock(door, FALSE);
         } else
