@@ -5039,10 +5039,11 @@ int x, y;
  *  -D_LOCKED - unlocking it
  *  -D_TRAPPED - untrapping it
  *   D_NODOOR - none of the above; this is for a trap that triggers when the
- *   player moves off the doorway onto another space. (Unimplemented.)
+ *     player moves off the doorway onto another space. (Unimplemented.)
  * Unused ones that might be of some use at some point:
  *   D_LOCKED - locking it
- *  -D_NODOOR - moving onto the doorway.
+ *  -D_NODOOR - moving onto the doorway. (Note that D_NODOOR is 0 so this won't
+ *    work.)
  * when means whether this function is being called before the action is
  * complete, e.g. a STATIC_KNOB should trigger when touching the door but a
  * WATER_BUCKET after opening it.
@@ -5086,6 +5087,11 @@ int when;
     }
     if (selected_trap < HINGE_SCREECH || selected_trap >= NUMDOORTRAPS) {
         impossible("doortrapped: bad trap %d", selected_trap);
+        return 0;
+    }
+    if (action != D_NODOOR && action != D_ISOPEN && action != D_BROKEN
+        && action != D_CLOSED && action != -D_TRAPPED && action != -D_LOCKED) {
+        impossible("doortrapped: bad action %d", action);
         return 0;
     }
     /* ok to call this on a non-trapped door, since it lets us call the
