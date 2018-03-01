@@ -5055,7 +5055,7 @@ int x, y;
  *   1 = doorstate is set by this function, to something non-destroyed
  *   2 = door has been destroyed
  */
-boolean
+xchar
 doortrapped(x, y, mon, bodypart, action, when)
 int x, y;
 struct monst * mon;
