@@ -1244,18 +1244,16 @@ postmov:
                 && !passes_walls(ptr) /* doesn't need to open doors */
                 && !can_tunnel) {     /* taken care of below */
                 struct rm *here = &levl[mtmp->mx][mtmp->my];
-                boolean btrapped = door_is_trapped(here);
                 boolean observeit = canseeit && canspotmon(mtmp);
 
                 /* if mon has MKoT, disarm door trap; no message given */
-                if (btrapped && has_magic_key(mtmp)) {
+                if (door_is_trapped(here) && has_magic_key(mtmp)) {
                     /* BUG: this lets a vampire or blob or a doorbuster
                        holding the Key disarm the trap even though it isn't
                        using that Key when squeezing under or smashing the
                        door.  Not significant enough to worry about; perhaps
                        the Key's magic is more powerful for monsters? */
                     set_door_trap(here, FALSE);
-                    btrapped = FALSE;
                 }
                 if (door_is_closed(here)
                     && (amorphous(ptr)
@@ -1271,34 +1269,45 @@ postmov:
                                   ? "flows"
                                   : "oozes");
                 } else if (door_is_locked(here) && can_unlock) {
-                    if (btrapped) {
-                        set_doorstate(here, D_NODOOR);
-                        newsym(mtmp->mx, mtmp->my);
-                        unblock_point(mtmp->mx, mtmp->my); /* vision */
-                        if (mb_trapped(mtmp))
+                    /* first triggers traps for unlocking */
+                    if (doortrapped(mtmp->mx, mtmp->my, mtmp,
+                                    FINGER, -D_LOCKED, 2) == 0) {
+                        if (DEADMONSTER(mtmp))
                             return 2;
-                    } else {
-                        if (flags.verbose) {
-                            if (observeit)
-                                pline("%s unlocks and opens a door.",
-                                      Monnam(mtmp));
-                            else if (canseeit)
-                                You_see("a door unlock and open.");
-                            else if (!Deaf)
-                                You_hear("a door unlock and open.");
+                        /* then triggers traps for opening */
+                        if (predoortrapped(mtmp->mx, mtmp->my, mtmp,
+                                           FINGER, D_ISOPEN) == 0) {
+                            /* note: comparing to 0 is because we know we
+                             * started out with a closed door, and doing the
+                             * rest of this code requires the door to still be
+                             * closed. */
+                            if (DEADMONSTER(mtmp))
+                                return 2;
+                            if (flags.verbose) {
+                                if (observeit)
+                                    pline("%s unlocks and opens a door.",
+                                        Monnam(mtmp));
+                                else if (canseeit)
+                                    You_see("a door unlock and open.");
+                                else if (!Deaf)
+                                    You_hear("a door unlock and open.");
+                            }
+                            if (postdoortrapped(mtmp->mx, mtmp->my, mtmp,
+                                                FINGER, D_ISOPEN) == 0) {
+                                set_doorstate(here, D_ISOPEN);
+                                /* newsym(mtmp->mx, mtmp->my); */
+                                unblock_point(mtmp->mx, mtmp->my); /* vision */
+                                if (DEADMONSTER(mtmp))
+                                    return 2;
+                            }
                         }
-                        set_doorstate(here, D_ISOPEN);
-                        /* newsym(mtmp->mx, mtmp->my); */
-                        unblock_point(mtmp->mx, mtmp->my); /* vision */
                     }
-                } else if (door_is_closed(here) && can_open) {
-                    if (btrapped) {
-                        set_doorstate(here, D_NODOOR);
-                        newsym(mtmp->mx, mtmp->my);
-                        unblock_point(mtmp->mx, mtmp->my); /* vision */
-                        if (mb_trapped(mtmp))
+                } else if (door_is_closed(here) && !door_is_locked(here)
+                           && can_open) {
+                    if (predoortrapped(mtmp->mx, mtmp->my, mtmp,
+                                       FINGER, D_ISOPEN) == 0) {
+                        if (DEADMONSTER(mtmp))
                             return 2;
-                    } else {
                         if (flags.verbose) {
                             if (observeit)
                                 pline("%s opens a door.", Monnam(mtmp));
@@ -1307,39 +1316,48 @@ postmov:
                             else if (!Deaf)
                                 You_hear("a door open.");
                         }
-                        set_doorstate(here, D_ISOPEN);
-                        /* newsym(mtmp->mx, mtmp->my); */  /* done below */
-                        unblock_point(mtmp->mx, mtmp->my); /* vision */
+                        if (postdoortrapped(mtmp->mx, mtmp->my, mtmp,
+                                            FINGER, D_ISOPEN) == 0) {
+                            set_doorstate(here, D_ISOPEN);
+                            /* newsym(mtmp->mx, mtmp->my); */  /* done below */
+                            unblock_point(mtmp->mx, mtmp->my); /* vision */
+                            if (DEADMONSTER(mtmp))
+                                return 2;
+                        }
                     }
                 } else if (door_is_closed(here)) {
                     /* mfndpos guarantees this must be a doorbuster */
-                    if (btrapped) {
-                        set_doorstate(here, D_NODOOR);
-                        newsym(mtmp->mx, mtmp->my);
-                        unblock_point(mtmp->mx, mtmp->my); /* vision */
-                        if (mb_trapped(mtmp))
+                    if (predoortrapped(mtmp->mx, mtmp->my, mtmp,
+                                       HAND, D_BROKEN) == 0) {
+                        if (DEADMONSTER(mtmp))
                             return 2;
-                    } else {
                         if (flags.verbose) {
                             if (observeit)
                                 pline("%s smashes down a door.",
-                                      Monnam(mtmp));
+                                        Monnam(mtmp));
                             else if (canseeit)
                                 You_see("a door crash open.");
                             else if (!Deaf)
                                 You_hear("a door crash open.");
                         }
-                        if (door_is_locked(here) && !rn2(2))
-                            set_doorstate(here, D_NODOOR);
-                        else
-                            set_doorstate(here, D_BROKEN);
-                        /* newsym(mtmp->mx, mtmp->my); */  /* done below */
-                        unblock_point(mtmp->mx, mtmp->my); /* vision */
+                        if (postdoortrapped(mtmp->mx, mtmp->my, mtmp,
+                                            HAND, D_BROKEN) == 0) {
+                            if (door_is_locked(here) && !rn2(2))
+                                set_doorstate(here, D_NODOOR);
+                            else
+                                set_doorstate(here, D_BROKEN);
+                            /* newsym(mtmp->mx, mtmp->my); */  /* done below */
+                            unblock_point(mtmp->mx, mtmp->my); /* vision */
+                            /* if it's a shop door, schedule repair */
+                            if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
+                                add_damage(mtmp->mx, mtmp->my, 0L);
+                            if (DEADMONSTER(mtmp))
+                                return 2;
+                        }
                     }
-                    /* if it's a shop door, schedule repair */
-                    if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
-                        add_damage(mtmp->mx, mtmp->my, 0L);
                 }
+                if (DEADMONSTER(mtmp))
+                    return 2;
             } else if (levl[mtmp->mx][mtmp->my].typ == IRONBARS) {
                 if (may_dig(mtmp->mx, mtmp->my)
                     && (dmgtype(ptr, AD_RUST) || dmgtype(ptr, AD_CORR))) {

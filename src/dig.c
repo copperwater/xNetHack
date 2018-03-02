@@ -1251,19 +1251,19 @@ register struct monst *mtmp;
 
     /* Eats away door if present & closed or locked */
     if (closed_door(mtmp->mx, mtmp->my)) {
-        if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
-            add_damage(mtmp->mx, mtmp->my, 0L);
-        unblock_point(mtmp->mx, mtmp->my); /* vision */
-        if (door_is_trapped(here)) {
-            set_doorstate(here, D_NODOOR);
-            if (mb_trapped(mtmp)) { /* mtmp is killed */
-                newsym(mtmp->mx, mtmp->my);
-                return TRUE;
-            }
-        } else {
-            if (!rn2(3) && flags.verbose) /* not too often.. */
-                draft_message(TRUE); /* "You feel an unexpected draft." */
+        predoortrapped(mtmp->mx, mtmp->my, mtmp,
+                       (needspick(mtmp->data) ? ARM : FACE), D_BROKEN);
+        if (!DEADMONSTER(mtmp)) {
+            if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
+                add_damage(mtmp->mx, mtmp->my, 0L);
+            unblock_point(mtmp->mx, mtmp->my); /* vision */
+            postdoortrapped(mtmp->mx, mtmp->my, mtmp,
+                            (needspick(mtmp->data) ? ARM : FACE), D_BROKEN);
             set_doorstate(here, D_BROKEN);
+            if (!rn2(3) && flags.verbose) {
+                /* not too often.. */
+                draft_message(TRUE); /* "You feel an unexpected draft." */
+            }
         }
         newsym(mtmp->mx, mtmp->my);
         return FALSE;
