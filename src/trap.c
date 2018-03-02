@@ -5172,7 +5172,7 @@ int when;
         }
         else {
             if (canseemon) {
-                pline("%s is zapped by a doorknob!", mon_nam(mon));
+                pline("%s is zapped by a doorknob!", Monnam(mon));
             }
             mon->mhp -= dmg;
             if (mon->mhp <= 0) {
@@ -5372,7 +5372,6 @@ int when;
     if ((saved_doorstate != D_NODOOR && saved_doorstate != D_BROKEN)
         && (doorstate(door) == D_NODOOR || doorstate(door) == D_BROKEN)) {
         /* door was destroyed during this function */
-        unblock_point(x, y);
         if (*in_rooms(x, y, SHOPBASE)) {
             /* always add to shk fix list, but only add to player cost if the
              * player is responsible */
