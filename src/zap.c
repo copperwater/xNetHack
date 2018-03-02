@@ -4544,7 +4544,7 @@ short exploding_wand_typ;
         }
     if ((mon = m_at(x, y)) != 0) {
         wakeup(mon, FALSE);
-        if (type >= 0) {
+        if (type >= 0 && !context.mon_moving) {
             setmangry(mon, TRUE);
             if (mon->ispriest && *in_rooms(mon->mx, mon->my, TEMPLE))
                 ghod_hitsu(mon);
