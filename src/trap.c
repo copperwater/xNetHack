@@ -5162,7 +5162,7 @@ int when;
     }
     else if (selected_trap == STATIC_SHOCK && before && bodypart == FINGER
              && (action == D_ISOPEN || action == D_CLOSED
-                 || action == -D_TRAPPED)) {
+                 || action == -D_LOCKED || action == -D_TRAPPED)) {
         dmg = rnd(lvl * 2) / (Shock_resistance ? 4 : 1);
         dmg += 1;
         if (byu) {
