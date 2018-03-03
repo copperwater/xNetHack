@@ -749,7 +749,6 @@ register int after;
     boolean likegold = 0, likegems = 0, likeobjs = 0, likemagic = 0,
             conceals = 0;
     boolean likerock = 0, can_tunnel = 0;
-    boolean can_open = 0, can_unlock = 0, doorbuster = 0;
     boolean uses_items = 0, setlikes = 0;
     boolean avoid = FALSE;
     boolean better_with_displacing = FALSE;
@@ -789,16 +788,15 @@ register int after;
      */
     if (!Is_rogue_level(&u.uz))
         can_tunnel = tunnels(ptr);
-    can_open = !(nohands(ptr) || verysmall(ptr));
-    can_unlock =
-        ((can_open && monhaskey(mtmp, TRUE)) || mtmp->iswiz || is_rider(ptr));
-    doorbuster = is_giant(ptr);
+
     if (mtmp->wormno)
         goto not_special;
     /* my dog gets special treatment */
     if (mtmp->mtame) {
         mmoved = dog_move(mtmp, after);
-        goto postmov;
+        if (mmoved >= 0)
+            goto postmov;
+        mmoved = 0; /* do regular m_move */
     }
 
     /* likewise for shopkeeper */
@@ -1074,11 +1072,11 @@ not_special:
         flag |= NOGARLIC;
     if (throws_rocks(ptr))
         flag |= ALLOW_ROCK;
-    if (can_open)
+    if (can_open_doors(mtmp->data))
         flag |= OPENDOOR;
-    if (can_unlock)
+    if (can_unlock(mtmp))
         flag |= UNLOCKDOOR;
-    if (doorbuster)
+    if (is_giant(ptr))
         flag |= BUSTDOOR;
     {
         register int i, j, nx, ny, nearer;
@@ -1144,6 +1142,16 @@ not_special:
 
         if (mmoved == 1 && m_digweapon_check(mtmp, nix,niy))
             return 3;
+
+        /* Will the monster spend its turn interacting with a door instead of
+         * moving? */
+        if (mon_open_door(mtmp, nix, niy)) {
+            /* was mon killed in the process of interacting with a door? */
+            if (DEADMONSTER(mtmp))
+                return 2;
+            /* monster will take its whole turn to interact with a door */
+            return 3;
+        }
 
         /* If ALLOW_U is set, either it's trying to attack you, or it
          * thinks it is.  In either case, attack this spot in preference to
@@ -1228,7 +1236,6 @@ not_special:
     }
 postmov:
     if (mmoved == 1 || mmoved == 3) {
-        boolean canseeit = cansee(mtmp->mx, mtmp->my);
 
         if (mmoved == 1) {
             newsym(omx, omy); /* update the old position */
@@ -1244,17 +1251,7 @@ postmov:
                 && !passes_walls(ptr) /* doesn't need to open doors */
                 && !can_tunnel) {     /* taken care of below */
                 struct rm *here = &levl[mtmp->mx][mtmp->my];
-                boolean observeit = canseeit && canspotmon(mtmp);
 
-                /* if mon has MKoT, disarm door trap; no message given */
-                if (door_is_trapped(here) && has_magic_key(mtmp)) {
-                    /* BUG: this lets a vampire or blob or a doorbuster
-                       holding the Key disarm the trap even though it isn't
-                       using that Key when squeezing under or smashing the
-                       door.  Not significant enough to worry about; perhaps
-                       the Key's magic is more powerful for monsters? */
-                    set_door_trap(here, FALSE);
-                }
                 if (door_is_closed(here)
                     && (amorphous(ptr)
                         || (can_fog(mtmp)
@@ -1268,96 +1265,11 @@ postmov:
                                || ptr->mlet == S_LIGHT)
                                   ? "flows"
                                   : "oozes");
-                } else if (door_is_locked(here) && can_unlock) {
-                    /* first triggers traps for unlocking */
-                    if (doortrapped(mtmp->mx, mtmp->my, mtmp,
-                                    FINGER, -D_LOCKED, 2) == 0) {
-                        if (DEADMONSTER(mtmp))
-                            return 2;
-                        /* then triggers traps for opening */
-                        if (predoortrapped(mtmp->mx, mtmp->my, mtmp,
-                                           FINGER, D_ISOPEN) == 0) {
-                            /* note: comparing to 0 is because we know we
-                             * started out with a closed door, and doing the
-                             * rest of this code requires the door to still be
-                             * closed. */
-                            if (DEADMONSTER(mtmp))
-                                return 2;
-                            if (flags.verbose) {
-                                if (observeit)
-                                    pline("%s unlocks and opens a door.",
-                                        Monnam(mtmp));
-                                else if (canseeit)
-                                    You_see("a door unlock and open.");
-                                else if (!Deaf)
-                                    You_hear("a door unlock and open.");
-                            }
-                            if (postdoortrapped(mtmp->mx, mtmp->my, mtmp,
-                                                FINGER, D_ISOPEN) == 0) {
-                                set_doorstate(here, D_ISOPEN);
-                                /* newsym(mtmp->mx, mtmp->my); */
-                                unblock_point(mtmp->mx, mtmp->my); /* vision */
-                                if (DEADMONSTER(mtmp))
-                                    return 2;
-                            }
-                        }
-                    }
-                } else if (door_is_closed(here) && !door_is_locked(here)
-                           && can_open) {
-                    if (predoortrapped(mtmp->mx, mtmp->my, mtmp,
-                                       FINGER, D_ISOPEN) == 0) {
-                        if (DEADMONSTER(mtmp))
-                            return 2;
-                        if (flags.verbose) {
-                            if (observeit)
-                                pline("%s opens a door.", Monnam(mtmp));
-                            else if (canseeit)
-                                You_see("a door open.");
-                            else if (!Deaf)
-                                You_hear("a door open.");
-                        }
-                        if (postdoortrapped(mtmp->mx, mtmp->my, mtmp,
-                                            FINGER, D_ISOPEN) == 0) {
-                            set_doorstate(here, D_ISOPEN);
-                            /* newsym(mtmp->mx, mtmp->my); */  /* done below */
-                            unblock_point(mtmp->mx, mtmp->my); /* vision */
-                            if (DEADMONSTER(mtmp))
-                                return 2;
-                        }
-                    }
+                } else if (door_is_locked(here)) {
+                    impossible("m_move: monster moving to locked door");
                 } else if (door_is_closed(here)) {
-                    /* mfndpos guarantees this must be a doorbuster */
-                    if (predoortrapped(mtmp->mx, mtmp->my, mtmp,
-                                       HAND, D_BROKEN) == 0) {
-                        if (DEADMONSTER(mtmp))
-                            return 2;
-                        if (flags.verbose) {
-                            if (observeit)
-                                pline("%s smashes down a door.",
-                                        Monnam(mtmp));
-                            else if (canseeit)
-                                You_see("a door crash open.");
-                            else if (!Deaf)
-                                You_hear("a door crash open.");
-                        }
-                        if (postdoortrapped(mtmp->mx, mtmp->my, mtmp,
-                                            HAND, D_BROKEN) == 0) {
-                            if (door_is_locked(here) && !rn2(2))
-                                set_doorstate(here, D_NODOOR);
-                            else
-                                set_doorstate(here, D_BROKEN);
-                            /* newsym(mtmp->mx, mtmp->my); */  /* done below */
-                            unblock_point(mtmp->mx, mtmp->my); /* vision */
-                            /* if it's a shop door, schedule repair */
-                            if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
-                                add_damage(mtmp->mx, mtmp->my, 0L);
-                            if (DEADMONSTER(mtmp))
-                                return 2;
-                        }
-                    }
+                    impossible("m_move: monster moving to closed door");
                 }
-                if (DEADMONSTER(mtmp))
-                    return 2;
             } else if (levl[mtmp->mx][mtmp->my].typ == IRONBARS) {
                 if (may_dig(mtmp->mx, mtmp->my)
                     && (dmgtype(ptr, AD_RUST) || dmgtype(ptr, AD_CORR))) {
@@ -1677,6 +1589,116 @@ boolean domsg;
     }
 
     return reslt;
+}
+
+/* See if a monster interacts with a door (opens, unlocks, smashes) instead of
+ * moving.  Handles any door traps that might result.
+ * Return FALSE if the monster did not interact with the door and should
+ * continue moving, TRUE if they did and should stop.
+ * Because of doortraps, if TRUE is returned, the caller should check to see if
+ * the monster died during the process. */
+boolean
+mon_open_door(mtmp, x, y)
+struct monst * mtmp;
+xchar x, y;
+{
+    struct rm *here = &levl[x][y];
+    boolean can_open = can_open_doors(mtmp->data);
+    boolean can_unlock = can_unlock(mtmp);
+
+    /* allow this function to be called on arbitrary positions */
+    if (!IS_DOOR(here->typ))
+        return FALSE;
+
+    /* monsters don't currently shut or repair doors. Only D_CLOSED matters. */
+    if (!door_is_closed(here))
+        return FALSE;
+
+    /* does the monster actually care about doors? */
+    if (passes_walls(mtmp->data) || amorphous(mtmp->data) || can_fog(mtmp))
+        return FALSE;
+
+    /* is it actually capable of interacting?
+     * note: can_open should be a superset of can_unlock, so check only it */
+    if (!can_open)
+        return FALSE;
+
+    /* needs to use door manually */
+    boolean observeit = cansee(mtmp->mx, mtmp->my) && canspotmon(mtmp);
+
+    /* if mon has MKoT, disarm door trap; no message given */
+    if (door_is_trapped(here) && has_magic_key(mtmp)) {
+        set_door_trap(here, FALSE);
+    }
+    if (door_is_locked(here) && can_unlock) {
+        /* tries to unlock, trigger locking traps */
+        /* don't bother with predoortrapped/postdoortrapped */
+        if (doortrapped(x, y, mtmp, FINGER, -D_LOCKED, 2) == 0) {
+            if (DEADMONSTER(mtmp))
+                return 2;
+            if (flags.verbose) {
+                if (observeit)
+                    pline("%s unlocks a door.", Monnam(mtmp));
+                else
+                    You_hear("a door unlock.");
+            }
+            set_door_lock(here, FALSE);
+        }
+        return TRUE;
+    }
+    else if (!door_is_locked(here) && can_open) {
+        /* tries to open, trigger openg traps */
+        if (predoortrapped(x, y, mtmp, FINGER, D_ISOPEN) == 0) {
+            if (DEADMONSTER(mtmp))
+                return 2;
+            if (flags.verbose) {
+                if (observeit)
+                    pline("%s opens a door.", Monnam(mtmp));
+                else if (cansee(x, y))
+                    You_see("a door open.");
+                else
+                    You_hear("a door open.");
+            }
+            if (postdoortrapped(x, y, mtmp,
+                                FINGER, D_ISOPEN) == 0) {
+                set_doorstate(here, D_ISOPEN);
+                unblock_point(x, y);
+                newsym(x,y);
+            }
+        }
+        return TRUE;
+    }
+    else if (is_giant(mtmp->data)) {
+        /* smashing down a door */
+        if (predoortrapped(x, y, mtmp, HAND, D_BROKEN) == 0) {
+            if (DEADMONSTER(mtmp))
+                return 2;
+            if (flags.verbose) {
+                if (observeit)
+                    pline("%s smashes down a door.",
+                            Monnam(mtmp));
+                else if (cansee(x, y))
+                    You_see("a door crash open.");
+                else if (!Deaf)
+                    You_hear("a door crash open.");
+            }
+            if (postdoortrapped(x, y, mtmp, HAND, D_BROKEN) == 0) {
+                set_doorstate(here, D_BROKEN);
+                unblock_point(x, y); /* vision */
+                newsym(x,y);
+                /* if it's a shop door, schedule repair */
+                if (*in_rooms(x, y, SHOPBASE))
+                    add_damage(x, y, 0L);
+            }
+        }
+        return TRUE;
+    }
+    /* wasn't able to interact: the only reason I can think of for getting here
+     * is that the door is locked and the monster can't unlock or smash it.
+     * In a better world, we might be able to have the monster spend a turn
+     * jiggling the knob and finding out it's locked, but they don't have any
+     * map memory so they'd probably get stuck in a loop trying it... */
+    return FALSE;
 }
 
 /*monmove.c*/

@@ -1480,6 +1480,7 @@ E boolean FDECL(can_fog, (struct monst *));
 E boolean FDECL(should_displace,
                 (struct monst *, coord *, long *, int, XCHAR_P, XCHAR_P));
 E boolean FDECL(undesirable_disp, (struct monst *, XCHAR_P, XCHAR_P));
+E boolean FDECL(mon_open_door, (struct monst *, XCHAR_P, XCHAR_P));
 
 /* ### monst.c ### */
 

@@ -116,6 +116,12 @@ pick_move:
     }
 
     if (nix != omx || niy != omy) {
+        if (mon_open_door(mtmp, nix, niy)) {
+            if (DEADMONSTER(mtmp))
+                return -2; /* died */
+            return 0; /* didn't move this turn */
+        }
+
         remove_monster(omx, omy);
         place_monster(mtmp, nix, niy);
         newsym(nix, niy);
