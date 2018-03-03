@@ -5216,7 +5216,8 @@ int when;
          * door and don't actually move */
         set_doorstate(door, D_BROKEN);
         if (byu) {
-            pline("The door falls forward off its hinges!");
+            pline("The door %s forward off its hinges!",
+                  (action == D_BROKEN ? "is knocked" : "falls"));
             if (touching) {
                 You("crash on top of it!");
                 /* move onto the door */
@@ -5231,7 +5232,8 @@ int when;
         }
         else {
             if (canseedoor) {
-                You_see("a door fall off its hinges!");
+                You_see("a door %s off its hinges!",
+                        (action == D_BROKEN ? "smashed" : "fall"));
             }
             if (touching) {
                 if (canseedoor) {
