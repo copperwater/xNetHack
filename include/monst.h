@@ -173,5 +173,8 @@ struct monst {
                                   || (mon)->mappearance == S_vcdoor))
 #define is_obj_mappear(mon,otyp) ((mon)->m_ap_type == M_AP_OBJECT \
                                   && (mon)->mappearance == (otyp))
+#define can_unlock(mon) \
+    can_open_doors(mon->data) && \
+    (monhaskey(mon, TRUE) || mon->iswiz || is_rider(mon->data))
 
 #endif /* MONST_H */

@@ -212,4 +212,7 @@
             || objects[(obj)->otyp].oc_material == VEGGY                 \
             || ((obj)->otyp == CORPSE && (obj)->corpsenm == PM_LICHEN))))
 
+/* Wielding and opening doors use the same flags: handed and not verysmall. */
+#define can_open_doors(ptr) (!cantwield(ptr))
+
 #endif /* MONDATA_H */
