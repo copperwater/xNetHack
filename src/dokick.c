@@ -1256,25 +1256,23 @@ dokick()
         /* break the door */
         if (flags.verbose)
             You("kick the door.");
-        if (predoortrapped(x, y, &youmonst, FOOT, D_BROKEN) == 2) {
-            /* shop dmg already handled */
-            shopdoor = FALSE;
-        }
-        if (ACURR(A_STR) > 18 && !rn2(5) && !shopdoor) {
-            pline("The door shatters to pieces!");
-            exercise(A_STR, TRUE);
-            set_doorstate(maploc, D_NODOOR);
-        } else {
-            pline("The door crashes open!");
-            exercise(A_STR, TRUE);
-            set_doorstate(maploc, D_BROKEN);
-        }
-        feel_newsym(x, y); /* we know we broke it */
-        unblock_point(x, y); /* vision */
-        postdoortrapped(x, y, &youmonst, FOOT, D_BROKEN);
-        if (shopdoor) {
-            add_damage(x, y, SHOP_DOOR_COST);
-            pay_for_damage("break", FALSE);
+        if (predoortrapped(x, y, &youmonst, FOOT, D_BROKEN) < 2) {
+            if (ACURR(A_STR) > 18 && !rn2(5) && !shopdoor) {
+                pline("The door shatters to pieces!");
+                exercise(A_STR, TRUE);
+                set_doorstate(maploc, D_NODOOR);
+            } else {
+                pline("The door crashes open!");
+                exercise(A_STR, TRUE);
+                set_doorstate(maploc, D_BROKEN);
+            }
+            feel_newsym(x, y); /* we know we broke it */
+            unblock_point(x, y); /* vision */
+            postdoortrapped(x, y, &youmonst, FOOT, D_BROKEN);
+            if (shopdoor) {
+                add_damage(x, y, SHOP_DOOR_COST);
+                pay_for_damage("break", FALSE);
+            }
         }
         if (in_town(x, y))
             for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
