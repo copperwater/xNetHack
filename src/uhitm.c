@@ -2846,8 +2846,10 @@ light_hits_gremlin(mon, dmg)
 struct monst *mon;
 int dmg;
 {
-    pline("%s %s!", Monnam(mon),
-          (dmg > mon->mhp / 2) ? "wails in agony" : "cries out in pain");
+    if (canspotmon(mon)) {
+        pline("%s %s!", Monnam(mon),
+            (dmg > mon->mhp / 2) ? "wails in agony" : "cries out in pain");
+    }
     mon->mhp -= dmg;
     wake_nearto(mon->mx, mon->my, 30);
     if (mon->mhp <= 0) {
@@ -2858,6 +2860,7 @@ int dmg;
     } else if (cansee(mon->mx, mon->my) && !canspotmon(mon)) {
         map_invisible(mon->mx, mon->my);
     }
+    setmangry(mon, FALSE);
 }
 
 /*uhitm.c*/
