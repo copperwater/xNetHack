@@ -5246,8 +5246,7 @@ int when;
                 else {
                     You_hear("a nearby crash.");
                 }
-                /* TODO: should replace with mhurtle? */
-                mon->mx = x; mon->my = y;
+                mhurtle(mon, x - mon->mx, y - mon->my, 1);
                 mon->mstun = 1;
                 mon->mhp -= dmg;
                 if (mon->mhp <= 0) {
