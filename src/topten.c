@@ -422,6 +422,10 @@ encodeconduct()
         e |= 1L << 10;
     if (!num_genocides())
         e |= 1L << 11;
+    if (!u.uconduct.pets)
+        e |= 1L << 12;
+    if (!u.uconduct.artitouch)
+        e |= 1L << 13;
 
     return e;
 }

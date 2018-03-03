@@ -658,7 +658,6 @@ makelevel()
     register struct mkroom *croom, *troom;
     register int tryct;
     register int x, y;
-    struct monst *tmonst; /* always put a web with a spider */
     branch *branchp;
     int room_threshold;
 
@@ -1548,7 +1547,7 @@ struct mkroom* croom;
 {
     int x,y;
     int num_monst = 1;
-    struct monst* tmonst;
+    struct monst *tmonst; /* always put a web with a spider */
     x = somex(croom);
     y = somey(croom);
     tmonst = makemon((struct permonst *) 0, x, y, NO_MM_FLAGS);
@@ -1606,6 +1605,12 @@ struct mkroom *croom;
 
     /* Put a sink at m.x, m.y */
     levl[m.x][m.y].typ = SINK;
+
+    /* All sinks have a ring stuck in the pipes below */
+    struct obj* ring = mkobj(RING_CLASS, TRUE);
+    ring->ox = m.x;
+    ring->oy = m.y;
+    add_to_buried(ring);
 
     level.flags.nsinks++;
 }

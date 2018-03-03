@@ -2747,7 +2747,6 @@ boolean via_attack;
             }
         }
     }
-
 }
 
 /* wake up a monster, possibly making it angry in the process */
@@ -2757,9 +2756,6 @@ register struct monst *mtmp;
 boolean via_attack;
 {
     mtmp->msleeping = 0;
-    finish_meating(mtmp);
-    if (via_attack)
-        setmangry(mtmp, TRUE);
     if (mtmp->m_ap_type) {
         seemimic(mtmp);
     } else if (context.forcefight && !context.mon_moving
@@ -2767,6 +2763,9 @@ boolean via_attack;
         mtmp->mundetected = 0;
         newsym(mtmp->mx, mtmp->my);
     }
+    finish_meating(mtmp);
+    if (via_attack)
+        setmangry(mtmp, TRUE);
 }
 
 /* Wake up nearby monsters without angering them. */

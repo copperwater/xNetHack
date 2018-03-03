@@ -312,6 +312,15 @@ dosounds()
         }
         return;
     }
+    if (level.bonesinfo && !rn2(300)) {
+        if (hallu) {
+            You("have a cheery feeling.");
+        }
+        else {
+            You("have an eerie feeling...");
+        }
+        return;
+    }
 }
 
 static const char *const h_sounds[] = {

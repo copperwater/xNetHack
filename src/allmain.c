@@ -1,4 +1,4 @@
-/* NetHack 3.6	allmain.c	$NHDT-Date: 1513130016 2017/12/13 01:53:36 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.81 $ */
+/* NetHack 3.6	allmain.c	$NHDT-Date: 1518193644 2018/02/09 16:27:24 $  $NHDT-Branch: githash $:$NHDT-Revision: 1.86 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -26,6 +26,7 @@ boolean resuming;
 #endif
     int moveamt = 0, wtcap = 0, change = 0;
     boolean monscanmove = FALSE;
+    int energyfrac = 0;
 
     /* Note:  these initializers don't do anything except guarantee that
             we're linked properly.
@@ -215,15 +216,24 @@ boolean resuming;
                         }
                     }
 
-                    if (u.uen < u.uenmax
-                        && ((wtcap < MOD_ENCUMBER
-                             && (!(moves % ((MAXULEV + 8 - u.ulevel)
-                                            * (Role_if(PM_WIZARD) ? 3 : 4)
-                                            / 6)))) || Energy_regeneration)) {
-                        u.uen += rn1(
-                            (int) (ACURR(A_WIS) + ACURR(A_INT)) / 15 + 1, 1);
+		    /* Energy regeneration */
+                    if ((u.uen < u.uenmax) && (wtcap < MOD_ENCUMBER)) {
+                        /* 1/turn for energy regen
+                         * 3 XL/100 per turn
+                         * 3 Wis/100 per turn
+                         * 1/3 per turn if wizard role
+			 * energyfrac represents units of 1/300 */
+			energyfrac = ((Energy_regeneration ? 300 : 0) +
+				      (9 * u.ulevel) +
+				      (9 * ACURR(A_WIS)) +
+				      (Role_if(PM_WIZARD) ? 100 : 0));
+			u.uen += energyfrac / 300;
+			if(rn2(300) < energyfrac % 300) {
+			  u.uen++;
+			}
                         if (u.uen > u.uenmax)
                             u.uen = u.uenmax;
+
                         context.botl = 1;
                         if (u.uen == u.uenmax)
                             interrupt_multi("You feel full of energy.");
@@ -340,6 +350,7 @@ boolean resuming;
 
         clear_splitobjs();
         find_ac();
+        passive_gold_detect();
         if (!context.mv || Blind) {
             /* redo monsters if hallu or wearing a helm of telepathy */
             if (Hallucination) { /* update screen randomly */
@@ -742,5 +753,88 @@ const char *msg;
     }
 }
 
+/*
+ * Argument processing helpers - for xxmain() to share
+ * and call.
+ *
+ * These should return TRUE if the argument matched,
+ * whether the processing of the argument was
+ * successful or not.
+ *
+ * Most of these do their thing, then after returning
+ * to xxmain(), the code exits without starting a game.
+ *
+ */
+
+static struct early_opt earlyopts[] = {
+    {ARG_DEBUG, "debug", 5, FALSE},
+    {ARG_VERSION, "version", 4, TRUE},
+};
+
+boolean
+argcheck(argc, argv, e_arg)
+int argc;
+char *argv[];
+enum earlyarg e_arg;
+{
+    int i, idx;
+    boolean match = FALSE;
+    char *userea = (char *)0;
+    const char *dashdash = "";
+
+    for (idx = 0; idx < SIZE(earlyopts); idx++) {
+        if (earlyopts[idx].e == e_arg)
+            break;
+    }
+    if ((idx >= SIZE(earlyopts)) || (argc <= 1))
+            return FALSE;
+
+    for (i = 1; i < argc; ++i) {
+        if (argv[i][0] != '-')
+            continue;
+        if (argv[i][1] == '-') {
+            userea = &argv[i][2];
+            dashdash = "-";
+        } else {
+            userea = &argv[i][1];
+        }
+        match = match_optname(userea, earlyopts[idx].name,
+                    earlyopts[idx].minlength, earlyopts[idx].valallowed);
+        if (match) break;
+    }
+
+    if (match) {
+        switch(e_arg) {
+            case ARG_DEBUG:
+                        break;
+            case ARG_VERSION: {
+                        boolean insert_into_pastebuf = FALSE;
+                        const char *extended_opt = index(userea,':');
+
+                        if (!extended_opt)
+                            extended_opt = index(userea, '=');
+
+                        if (extended_opt) {
+                            extended_opt++;
+                            if (match_optname(extended_opt, "paste",
+                                                   5, FALSE)) {
+                                insert_into_pastebuf = TRUE;
+                            } else {
+                                raw_printf(
+                     "-%sversion can only be extended with -%sversion:paste.\n",
+                                            dashdash, dashdash);
+                                return TRUE;
+            		    }
+        		}
+                        early_version_info(insert_into_pastebuf);
+                        return TRUE;
+                        break;
+            }
+            default:
+                        break;
+        }
+    };
+    return FALSE;
+}
 
 /*allmain.c*/

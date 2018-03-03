@@ -1,4 +1,4 @@
-/* NetHack 3.6	detect.c	$NHDT-Date: 1495346103 2017/05/21 05:55:03 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.77 $ */
+/* NetHack 3.6	detect.c	$NHDT-Date: 1519281847 2018/02/22 06:44:07 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.80 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -290,8 +290,9 @@ unsigned material;
 
 /* look for gold, on the floor or in monsters' possession */
 int
-gold_detect(sobj)
+gold_detect(sobj, passive)
 register struct obj *sobj;
+boolean passive;
 {
     register struct obj *obj;
     register struct monst *mtmp;
@@ -343,7 +344,7 @@ register struct obj *sobj;
     if (!known) {
         /* no gold found on floor or monster's inventory.
            adjust message if you have gold in your inventory */
-        if (sobj) {
+        if (sobj && !passive) {
             char buf[BUFSZ];
 
             if (youmonst.data == &mons[PM_GOLD_GOLEM])
@@ -372,9 +373,20 @@ register struct obj *sobj;
     return 0;
 
 outgoldmap:
-    cls();
+    if (!passive) {
+        cls();
+        (void) unconstrain_map();
+    }
+    else {
+        /* Unmap any previous knowledge of gold. */
+        int x, y;
+        for(x = 1; x < COLNO; x++) {
+            for(y = 1; y < ROWNO; y++) {
+                newsym(x,y);
+            }
+        }
+    }
 
-    (void) unconstrain_map();
     /* Discover gold locations. */
     for (obj = fobj; obj; obj = obj->nobj) {
         if (sobj->blessed && (temp = o_material(obj, GOLD)) != 0) {
@@ -426,13 +438,16 @@ outgoldmap:
         newsym(u.ux, u.uy);
         ter_typ |= TER_MON; /* so autodescribe will recognize hero */
     }
-    You_feel("very greedy, and sense gold!");
-    exercise(A_WIS, TRUE);
 
-    browse_map(ter_typ, "gold");
+    if(!passive) {
+        You_feel("very greedy, and sense gold!");
+        exercise(A_WIS, TRUE);
 
-    reconstrain_map();
-    docrt();
+        browse_map(ter_typ, "gold");
+
+        reconstrain_map();
+        docrt();
+    }
     if (Underwater)
         under_water(2);
     if (u.uburied)
@@ -1323,6 +1338,10 @@ struct obj *sobj; /* scroll--actually fake spellbook--object */
 
     if (!level.flags.hero_memory || unconstrained || mdetected) {
         flush_screen(1);                 /* flush temp screen */
+        /* the getpos() prompt from browse_map() is only shown when
+           flags.verbose is set, but make this unconditional so that
+           not-verbose users become aware of the prompting situation */
+        You("sense your surroundings.");
         if (extended || glyph_is_monster(glyph_at(u.ux, u.uy)))
             ter_typ |= TER_MON;
         if (extended)
@@ -1903,6 +1922,20 @@ int which_subset; /* when not full, whether to suppress objs and/or traps */
             under_ground(2);
     }
     return;
+}
+
+/* Detect out-of-sight gold across the level, silently. */
+void
+passive_gold_detect()
+{
+    if (Race_if(PM_DWARF) || youmonst.data == &mons[PM_LEPRECHAUN]) {
+        /* create temporary uncursed scroll of gold detection */
+        struct obj * otmp = mksobj(SCR_GOLD_DETECTION, FALSE, FALSE);
+        /* passive - won't impede map */
+        gold_detect(otmp, TRUE);
+        obfree(otmp, NULL);
+        see_monsters(); /* don't overwrite visible monsters with $ */
+    }
 }
 
 /*detect.c*/

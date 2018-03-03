@@ -1447,22 +1447,34 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         if (sblessed)
             do_class_genocide();
         else
-            do_genocide(!scursed | (2 * !!Confusion));
+            do_genocide((!scursed) | (2 * !!Confusion));
         break;
     case SCR_LIGHT:
-        if (!confused || rn2(5)) {
+        if (!confused) {
             if (!Blind)
                 known = TRUE;
-            litroom(!confused && !scursed, sobj);
-            if (!confused && !scursed) {
+            litroom(!scursed, sobj);
+            if (!scursed) {
                 if (lightdamage(sobj, TRUE, 5))
                     known = TRUE;
             }
         } else {
-            /* could be scroll of create monster, don't set known ...*/
-            (void) create_critters(1, !scursed ? &mons[PM_YELLOW_LIGHT]
-                                               : &mons[PM_BLACK_LIGHT],
-                                   TRUE);
+            /* surround with cancelled tame lights which won't explode */
+            int numlights = rn1(2,4), i;
+            struct permonst * mptr = scursed ? &mons[PM_BLACK_LIGHT]
+                                             : &mons[PM_YELLOW_LIGHT];
+            for (i = 0; i < numlights; ++i) {
+                struct monst * mon = makemon(mptr, u.ux, u.uy,
+                                             MM_EDOG | NO_MINVENT);
+                initedog(mon);
+                u.uconduct.pets++;
+                mon->mcan = TRUE;
+                newsym(mon->mx, mon->my);
+            }
+            if (!Blind) {
+                pline("Lights appear all around you!");
+                known = TRUE;
+            }
         }
         break;
     case SCR_TELEPORTATION:
@@ -1473,8 +1485,13 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         }
         break;
     case SCR_GOLD_DETECTION:
-        if ((confused || scursed) ? trap_detect(sobj) : gold_detect(sobj))
-            sobj = 0; /* failure: strange_feeling() -> useup() */
+        if (confused || scursed) {
+            if (trap_detect(sobj)) {
+                sobj = 0; /* failure: strange_feeling() -> useup() */
+            }
+        } else if (gold_detect(sobj, TRUE)) {
+            sobj = 0;
+        }
         break;
     case SCR_FOOD_DETECTION:
     case SPE_DETECT_FOOD:
@@ -1487,31 +1504,19 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
            perm_invent update; also simplifies empty invent check */
         useup(sobj);
         sobj = 0; /* it's gone */
-        if (confused)
+        if (!already_known)
+            (void) learnscrolltyp(SCR_IDENTIFY); /* always identifies self */
+        if (confused) {
             You("identify this as an identify scroll.");
+            break;
+        }
         else if (!already_known || !invent)
             /* force feedback now if invent became
                empty after using up this scroll */
             pline("This is an identify scroll.");
-        if (!already_known)
-            (void) learnscrolltyp(SCR_IDENTIFY);
-        /*FALLTHRU*/
-    case SPE_IDENTIFY:
-        cval = 1;
-        if (sblessed || (!scursed && !rn2(5))) {
-            cval = rn2(5);
-            /* note: if cval==0, identify all items */
-            if (cval == 1 && sblessed && Luck > 0)
-                ++cval;
-        }
-        if (invent && !confused) {
-            identify_pack(cval, !already_known);
-        } else if (otyp == SPE_IDENTIFY) {
-            /* when casting a spell we know we're not confused,
-               so inventory must be empty (another message has
-               already been given above if reading a scroll) */
-            pline("You're not carrying anything to be identified.");
-        }
+        /* 1 always, 3 for uncursed, 5 for blessed */
+        cval = 1 + (!scursed * 2) + (sblessed * 2);
+        identify_pack(cval, !already_known);
         break;
     case SCR_CHARGING:
         if (confused) {

@@ -1154,18 +1154,12 @@ register struct attack *mattk;
     case AD_PLYS:
         hitmsg(mtmp, mattk);
         if (uncancelled && multi >= 0 && !rn2(3)) {
-            if (Free_action) {
-                You("momentarily stiffen.");
-            } else {
-                if (Blind)
-                    You("are frozen!");
-                else
-                    You("are frozen by %s!", mon_nam(mtmp));
-                nomovemsg = You_can_move_again;
-                nomul(-rnd(10));
-                multi_reason = "paralyzed by a monster";
-                exercise(A_DEX, FALSE);
+            boolean sawmon = FALSE;
+            if (!Free_action && canspotmon(mtmp)) {
+                You("are frozen by %s!", mon_nam(mtmp));
+                sawmon = TRUE;
             }
+            make_paralyzed(rnd(10), !sawmon, "paralyzed by a monster");
         }
         break;
     case AD_DRLI:
@@ -2571,7 +2565,8 @@ struct monst *mon;
         case 0:
             You_feel("raised to your full potential.");
             exercise(A_CON, TRUE);
-            u.uen = (u.uenmax += rnd(5));
+            u.uenmax += rnd(5);
+            u.uen = u.uenmax;
             break;
         case 1:
             You_feel("good enough to do it again.");

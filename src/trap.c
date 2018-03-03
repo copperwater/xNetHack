@@ -1350,7 +1350,8 @@ unsigned trflags;
             You("are caught in a magical explosion!");
             losehp(rnd(10), "magical explosion", KILLED_BY_AN);
             Your("body absorbs some of the magical energy!");
-            u.uen = (u.uenmax += 2);
+            u.uenmax += 2;
+            u.uen = u.uenmax;
             break;
         } else {
             domagictrap();
@@ -4792,14 +4793,7 @@ boolean disarm;
         case 5:
         case 4:
         case 3:
-            if (!Free_action) {
-                pline("Suddenly you are frozen in place!");
-                nomul(-d(5, 6));
-                multi_reason = "frozen by a trap";
-                exercise(A_DEX, FALSE);
-                nomovemsg = You_can_move_again;
-            } else
-                You("momentarily stiffen.");
+            make_paralyzed(d(5, 6), TRUE, "frozen by a trap");
             break;
         case 2:
         case 1:

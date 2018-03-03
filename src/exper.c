@@ -6,7 +6,6 @@
 #include <limits.h>
 
 STATIC_DCL long FDECL(newuexp, (int));
-STATIC_DCL int FDECL(enermod, (int));
 
 STATIC_OVL long
 newuexp(lev)
@@ -19,23 +18,60 @@ int lev;
     return (10000000L * ((long) (lev - 19)));
 }
 
-STATIC_OVL int
-enermod(en)
-int en;
+/* calculate hp max increase for new level */
+int
+newhp()
 {
-    switch (Role_switch) {
-    case PM_PRIEST:
-    case PM_WIZARD:
-        return (2 * en);
-    case PM_HEALER:
-    case PM_KNIGHT:
-        return ((3 * en) / 2);
-    case PM_BARBARIAN:
-    case PM_VALKYRIE:
-        return ((3 * en) / 4);
-    default:
-        return en;
+    int hp, conplus;
+
+    if (u.ulevel == 0) {
+        /* Initialize hit points */
+        hp = urole.hpadv.infix + urace.hpadv.infix;
+        if (urole.hpadv.inrnd > 0)
+            hp += rnd(urole.hpadv.inrnd);
+        if (urace.hpadv.inrnd > 0)
+            hp += rnd(urace.hpadv.inrnd);
+        if (moves <= 1L) { /* initial hero; skip for polyself to new man */
+            /* Initialize alignment stuff */
+            u.ualign.type = aligns[flags.initalign].value;
+            u.ualign.record = urole.initrecord;
+        }
+        /* no Con adjustment for initial hit points */
+    } else {
+        if (u.ulevel < ROLE_XLEV_CUTOFF) {
+            hp = urole.hpadv.lofix + urace.hpadv.lofix;
+            if (urole.hpadv.lornd > 0)
+                hp += rnd(urole.hpadv.lornd);
+            if (urace.hpadv.lornd > 0)
+                hp += rnd(urace.hpadv.lornd);
+        } else {
+            hp = urole.hpadv.hifix + urace.hpadv.hifix;
+            if (urole.hpadv.hirnd > 0)
+                hp += rnd(urole.hpadv.hirnd);
+            if (urace.hpadv.hirnd > 0)
+                hp += rnd(urace.hpadv.hirnd);
+        }
+        if (ACURR(A_CON) <= 3)
+            conplus = -2;
+        else if (ACURR(A_CON) <= 6)
+            conplus = -1;
+        else if (ACURR(A_CON) <= 14)
+            conplus = 0;
+        else if (ACURR(A_CON) <= 16)
+            conplus = 1;
+        else if (ACURR(A_CON) == 17)
+            conplus = 2;
+        else if (ACURR(A_CON) == 18)
+            conplus = 3;
+        else
+            conplus = 4;
+        hp += conplus;
     }
+    if (hp <= 0)
+        hp = 1;
+    if (u.ulevel < MAXULEV)
+        u.uhpinc[u.ulevel] = (xchar) hp;
+    return hp;
 }
 
 /* calculate spell power/energy points for new level */
@@ -52,14 +88,28 @@ newpw()
             en += rnd(urace.enadv.inrnd);
     } else {
         enrnd = (int) ACURR(A_WIS) / 2;
-        if (u.ulevel < urole.xlev) {
+        if (u.ulevel < ROLE_XLEV_CUTOFF) {
             enrnd += urole.enadv.lornd + urace.enadv.lornd;
             enfix = urole.enadv.lofix + urace.enadv.lofix;
         } else {
             enrnd += urole.enadv.hirnd + urace.enadv.hirnd;
             enfix = urole.enadv.hifix + urace.enadv.hifix;
         }
-        en = enermod(rn1(enrnd, enfix));
+        en = rn1(enrnd, enfix);
+        /* energy gain "modifier" */
+        switch (Role_switch) {
+        case PM_PRIEST:
+        case PM_WIZARD:
+            en *= 2;
+            break;
+        case PM_HEALER:
+        case PM_KNIGHT:
+            en = ((3 * en) / 2);
+            break;
+        case PM_BARBARIAN:
+        case PM_VALKYRIE:
+            en = ((3 * en) / 4);
+        }
     }
     if (en <= 0)
         en = 1;

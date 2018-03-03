@@ -1,4 +1,4 @@
-/* NetHack 3.6	apply.c	$NHDT-Date: 1496619131 2017/06/04 23:32:11 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.232 $ */
+/* NetHack 3.6	apply.c	$NHDT-Date: 1519598527 2018/02/25 22:42:07 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.243 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -442,7 +442,11 @@ struct obj *obj;
     } else if (Underwater) {
         You("blow bubbles through %s.", yname(obj));
     } else {
-        You(whistle_str, obj->cursed ? "shrill" : "high");
+        if (Deaf)
+            You_feel("rushing air tickle your %s.",
+                        body_part(NOSE));
+        else
+            You(whistle_str, obj->cursed ? "shrill" : "high");
         wake_nearby();
         if (obj->cursed)
             vault_summon_gd();
@@ -834,16 +838,14 @@ struct obj *obj;
             if (u.umonnum == PM_FLOATING_EYE) {
                 if (Free_action) {
                     You("stiffen momentarily under your gaze.");
-                } else {
-                    if (Hallucination)
-                        pline("Yow!  The %s stares back!", mirror);
-                    else
-                        pline("Yikes!  You've frozen yourself!");
-                    if (!Hallucination || !rn2(4)) {
-                        nomul(-rnd(MAXULEV + 6 - u.ulevel));
-                        multi_reason = "gazing into a mirror";
-                    }
-                    nomovemsg = 0; /* default, "you can move again" */
+                }
+                else if (Hallucination) {
+                    pline("Yow!  The %s stares back!", mirror);
+                }
+                else {
+                    pline("Yikes!  You've frozen yourself!");
+                    make_paralyzed(rnd(MAXULEV + 6 - u.ulevel), FALSE,
+                                   "gazing into a mirror");
                 }
             } else if (youmonst.data->mlet == S_VAMPIRE)
                 You("don't have a reflection.");

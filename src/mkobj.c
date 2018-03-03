@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkobj.c	$NHDT-Date: 1513298759 2017/12/15 00:45:59 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.129 $ */
+/* NetHack 3.6	mkobj.c	$NHDT-Date: 1518053380 2018/02/08 01:29:40 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.130 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -591,6 +591,23 @@ struct obj *otmp;
     }
 }
 
+/* is 'obj' inside a container whose contents aren't known?
+   if so, return the outermost container meeting that criterium */
+struct obj *
+unknwn_contnr_contents(obj)
+struct obj *obj;
+{
+    struct obj *result = 0, *parent;
+
+    while (obj->where == OBJ_CONTAINED) {
+        parent = obj->ocontainer;
+        if (!parent->cknown)
+            result = parent;
+        obj = parent;
+    }
+    return result;
+}
+
 /*
  * Create a dummy duplicate to put on shop bill.  The duplicate exists
  * only in the billobjs chain.  This function is used when a shop object
@@ -988,15 +1005,10 @@ boolean artif;
         case RING_CLASS:
             if (objects[otmp->otyp].oc_charged) {
                 blessorcurse(otmp, 3);
-                if (rn2(10)) {
-                    if (rn2(10) && bcsign(otmp))
-                        otmp->spe = bcsign(otmp) * rne(3);
-                    else
-                        otmp->spe = rn2(2) ? rne(3) : -rne(3);
-                }
-                /* make useless +0 rings much less common */
-                if (otmp->spe == 0)
-                    otmp->spe = rn2(4) - rn2(3);
+                if (rn2(10) && bcsign(otmp))
+                    otmp->spe = bcsign(otmp) * rne(3);
+                else
+                    otmp->spe = rn2(2) ? rne(3) : -rne(3);
                 /* negative rings are usually cursed */
                 if (otmp->spe < 0 && rn2(5))
                     curse(otmp);

@@ -1,4 +1,4 @@
-/* NetHack 3.6	invent.c	$NHDT-Date: 1512473628 2017/12/05 11:33:48 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.223 $ */
+/* NetHack 3.6	invent.c	$NHDT-Date: 1519672703 2018/02/26 19:18:23 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.225 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -598,6 +598,11 @@ struct obj *obj;
 
     /* fill empty quiver if obj was thrown */
     if (flags.pickup_thrown && !uquiver && obj_was_thrown
+        /* if Mjollnir is thrown and fails to return, we want to
+           auto-pick it when we move to its spot, but not into quiver;
+           aklyses behave like Mjollnir when thrown while wielded, but
+           we lack sufficient information here make them exceptions */
+        && obj->oartifact != ART_MJOLLNIR
         && (throwing_weapon(obj) || is_ammo(obj)))
         setuqwep(obj);
 added:
@@ -2544,22 +2549,26 @@ STATIC_OVL void
 dounpaid()
 {
     winid win;
-    struct obj *otmp, *marker;
+    struct obj *otmp, *marker, *contnr;
     register char ilet;
     char *invlet = flags.inv_order;
     int classcount, count, num_so_far;
     long cost, totcost;
 
     count = count_unpaid(invent);
+    otmp = marker = contnr = (struct obj *) 0;
 
     if (count == 1) {
-        marker = (struct obj *) 0;
         otmp = find_unpaid(invent, &marker);
+        contnr = unknwn_contnr_contents(otmp);
+    }
+    if  (otmp && !contnr) {
+        /* 1 item; use pline instead of popup menu */
         cost = unpaid_cost(otmp, FALSE);
         iflags.suppress_price++; /* suppress "(unpaid)" suffix */
         pline1(xprname(otmp, distant_name(otmp, doname),
-                       carried(otmp) ? otmp->invlet : CONTAINED_SYM, TRUE,
-                       cost, 0L));
+                       carried(otmp) ? otmp->invlet : CONTAINED_SYM,
+                       TRUE, cost, 0L));
         iflags.suppress_price--;
         return;
     }

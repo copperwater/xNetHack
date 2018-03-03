@@ -258,8 +258,8 @@ dosit()
             case 12:
                 You("are granted an insight!");
                 if (invent) {
-                    /* rn2(5) agrees w/seffects() */
-                    identify_pack(rn2(5), FALSE);
+                    /* cval = 0: identify the entire pack */
+                    identify_pack(0, FALSE);
                 }
                 break;
             case 13:
@@ -272,7 +272,7 @@ dosit()
                 break;
             }
         } else {
-            if (is_prince(youmonst.data))
+            if (is_prince(youmonst.data) || u.uevent.uhand_of_elbereth)
                 You_feel("very comfortable here.");
             else
                 You_feel("somehow out of place...");

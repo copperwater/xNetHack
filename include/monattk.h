@@ -17,16 +17,16 @@
 #define AT_TUCH 5   /* touches */
 #define AT_STNG 6   /* sting */
 #define AT_HUGS 7   /* crushing bearhug */
-#define AT_SPIT 10  /* spits substance - ranged */
-#define AT_ENGL 11  /* engulf (swallow or by a cloud) */
-#define AT_BREA 12  /* breath - ranged */
-#define AT_EXPL 13  /* explodes - proximity */
-#define AT_BOOM 14  /* explodes when killed */
-#define AT_GAZE 15  /* gaze - ranged */
-#define AT_TENT 16  /* tentacles */
-
-#define AT_WEAP 254 /* uses weapon */
-#define AT_MAGC 255 /* uses magic spell(s) */
+#define AT_SPIT 8 /* spits substance - ranged */
+#define AT_ENGL 9  /* engulf (swallow or by a cloud) */
+#define AT_BREA 10  /* breath - ranged */
+#define AT_EXPL 11  /* explodes - proximity */
+#define AT_BOOM 12  /* explodes when killed */
+#define AT_GAZE 13  /* gaze - ranged */
+#define AT_TENT 14  /* tentacles */
+#define AT_WEAP 15  /* uses weapon */
+#define AT_MAGC 16  /* uses magic spell(s) */
+#define LAST_AT AT_MAGC
 
 /*	Add new damage types below.
  *
@@ -77,13 +77,12 @@
 #define AD_SLIM 40  /* turns you into green slime */
 #define AD_ENCH 41  /* remove enchantment (disenchanter) */
 #define AD_CORR 42  /* corrode armor (black pudding) */
-
-#define AD_CLRC 240 /* random clerical spell */
-#define AD_SPEL 241 /* random magic spell */
-#define AD_RBRE 242 /* random breath weapon */
-
-#define AD_SAMU 252 /* hits, may steal Amulet (Wizard) */
-#define AD_CURS 253 /* random curse (ex. gremlin) */
+#define AD_CURS 43 /* random curse (ex. gremlin) */
+#define AD_CLRC 44 /* random clerical spell */
+#define AD_SPEL 45 /* random magic spell */
+#define AD_RBRE 46 /* random breath weapon */
+#define AD_SAMU 47 /* hits, may steal Amulet (Wizard) */
+#define LAST_AD AD_SAMU
 
 /*
  *  Monster to monster attacks.  When a monster attacks another (mattackm),

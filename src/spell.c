@@ -43,7 +43,6 @@ STATIC_DCL char *FDECL(spellretention, (int, char *));
 STATIC_DCL int NDECL(throwspell);
 STATIC_DCL void NDECL(cast_protection);
 STATIC_DCL void FDECL(spell_backfire, (int));
-STATIC_DCL const char *FDECL(spelltypemnemonic, (int));
 STATIC_DCL boolean FDECL(spell_aim_step, (genericptr_t, int, int));
 
 /* The roles[] table lists the role-specific values for tuning
@@ -125,25 +124,43 @@ struct obj *bp;
     boolean was_in_use;
     int lev = objects[bp->otyp].oc_level;
     int dmg = 0;
+    boolean already_cursed = bp->cursed;
 
     switch (rn2(lev)) {
     case 0:
-        You_feel("a wrenching sensation.");
-        tele(); /* teleport him */
+        if (already_cursed || rn2(4)) {
+            You_feel("a wrenching sensation.");
+            tele(); /* teleport him */
+        }
+        else {
+            if (bp->blessed) {
+                unbless(bp);
+                pline_The("book glows brown.");
+            }
+            else {
+                /* can't call curse() here because it will call cursed_book */
+                bp->cursed = 1;
+                pline_The("book glows %s.", NH_BLACK);
+            }
+        }
         break;
     case 1:
         You_feel("threatened.");
         aggravate();
         break;
     case 2:
-        make_blinded(Blinded + rn1(100, 250), TRUE);
+        make_blinded(Blinded + rn1(30, 10), TRUE);
         break;
     case 3:
-        take_gold();
+        pline_The("book develops a huge set of teeth and bites you!");
+        /* temp disable in_use; death should not destroy the book */
+        was_in_use = bp->in_use;
+        bp->in_use = FALSE;
+        losehp(rn1(5, 3), "carnivorous book", KILLED_BY_AN);
+        bp->in_use = was_in_use;
         break;
     case 4:
-        pline("These runes were just too much to comprehend.");
-        make_confused(HConfusion + rn1(7, 16), FALSE);
+        make_paralyzed(rn1(16,16), TRUE, "frozen by a book");
         break;
     case 5:
         pline_The("book was coated with contact poison!");
@@ -174,6 +191,10 @@ struct obj *bp;
         rndcurse();
         break;
     }
+    if (already_cursed) {
+        pline_The("spellbook crumbles to dust!");
+        return TRUE;
+    }
     return FALSE;
 }
 
@@ -182,8 +203,6 @@ STATIC_OVL boolean
 confused_book(spellbook)
 struct obj *spellbook;
 {
-    boolean gone = FALSE;
-
     if (!rn2(3) && spellbook->otyp != SPE_BOOK_OF_THE_DEAD) {
         spellbook->in_use = TRUE; /* in case called from learn */
         pline(
@@ -194,12 +213,12 @@ struct obj *spellbook;
             && !objects[spellbook->otyp].oc_uname)
             docall(spellbook);
         useup(spellbook);
-        gone = TRUE;
+        return TRUE;
     } else {
         You("find yourself reading the %s line over and over again.",
             spellbook == context.spbook.book ? "next" : "first");
     }
-    return gone;
+    return FALSE;
 }
 
 /* special effects for The Book of the Dead */
@@ -350,12 +369,11 @@ learn(VOID_ARGS)
     if (context.spbook.delay && ublindf && ublindf->otyp == LENSES && rn2(2))
         context.spbook.delay++;
     if (Confusion) { /* became confused while learning */
-        (void) confused_book(book);
+        if (!confused_book(book)) {
+            You("can no longer focus on the book.");
+        }
         context.spbook.book = 0; /* no longer studying */
         context.spbook.o_id = 0;
-        nomul(context.spbook.delay); /* remaining delay is uninterrupted */
-        multi_reason = "reading a book";
-        nomovemsg = 0;
         context.spbook.delay = 0;
         return 0;
     }
@@ -498,70 +516,49 @@ register struct obj *spellbook;
             return 1;
         }
 
-        switch (objects[booktype].oc_level) {
-        case 1:
-        case 2:
-            context.spbook.delay = -objects[booktype].oc_delay;
-            break;
-        case 3:
-        case 4:
-            context.spbook.delay = -(objects[booktype].oc_level - 1)
-                                   * objects[booktype].oc_delay;
-            break;
-        case 5:
-        case 6:
-            context.spbook.delay =
-                -objects[booktype].oc_level * objects[booktype].oc_delay;
-            break;
-        case 7:
-            context.spbook.delay = -8 * objects[booktype].oc_delay;
-            break;
-        default:
+        if (objects[booktype].oc_level >= 8) {
             impossible("Unknown spellbook level %d, book %d;",
                        objects[booktype].oc_level, booktype);
             return 0;
         }
+        /* currently level * 10 */
+        context.spbook.delay = -objects[booktype].oc_delay;
 
         /* Books are often wiser than their readers (Rus.) */
         spellbook->in_use = TRUE;
-        if (!spellbook->blessed && spellbook->otyp != SPE_BOOK_OF_THE_DEAD) {
-            if (spellbook->cursed) {
+        if (spellbook->otyp != SPE_BOOK_OF_THE_DEAD) {
+            /* uncursed - chance to fail */
+            int read_ability = ACURR(A_INT) + 4 + u.ulevel / 2
+                                - 2 * objects[booktype].oc_level
+                                + (spellbook->blessed ? 10 : 0)
+                                - (spellbook->cursed ? 10 : 0)
+                            + ((ublindf && ublindf->otyp == LENSES) ? 2 : 0);
+
+            /* only wizards know if a spell is too difficult */
+            if (Role_if(PM_WIZARD) && read_ability < 20 && !confused) {
+                char qbuf[QBUFSZ];
+
+                Sprintf(qbuf,
+                "This spellbook is %sdifficult to comprehend.  Continue?",
+                        (read_ability < 12 ? "very " : ""));
+                if (yn(qbuf) != 'y') {
+                    spellbook->in_use = FALSE;
+                    return 1;
+                }
+            }
+            /* its up to random luck now */
+            if (rnd(20) > read_ability) {
                 too_hard = TRUE;
-            } else {
-                /* uncursed - chance to fail */
-                int read_ability = ACURR(A_INT) + 4 + u.ulevel / 2
-                                   - 2 * objects[booktype].oc_level
-                             + ((ublindf && ublindf->otyp == LENSES) ? 2 : 0);
-
-                /* only wizards know if a spell is too difficult */
-                if (Role_if(PM_WIZARD) && read_ability < 20 && !confused) {
-                    char qbuf[QBUFSZ];
-
-                    Sprintf(qbuf,
-                    "This spellbook is %sdifficult to comprehend.  Continue?",
-                            (read_ability < 12 ? "very " : ""));
-                    if (yn(qbuf) != 'y') {
-                        spellbook->in_use = FALSE;
-                        return 1;
-                    }
-                }
-                /* its up to random luck now */
-                if (rnd(20) > read_ability) {
-                    too_hard = TRUE;
-                }
             }
         }
 
         if (too_hard) {
-            boolean gone = cursed_book(spellbook);
+            You("can't comprehend the runes!");
+            make_confused(-context.spbook.delay, FALSE); /* study time */
+            bot(); /* show Conf on status line before tele, crumbling, etc */
 
-            nomul(context.spbook.delay); /* study time */
-            multi_reason = "reading a book";
-            nomovemsg = 0;
-            context.spbook.delay = 0;
-            if (gone || !rn2(3)) {
-                if (!gone)
-                    pline_The("spellbook crumbles to dust!");
+            boolean gone = cursed_book(spellbook);
+            if (gone) {
                 if (!objects[spellbook->otyp].oc_name_known
                     && !objects[spellbook->otyp].oc_uname)
                     docall(spellbook);
@@ -573,10 +570,6 @@ register struct obj *spellbook;
             if (!confused_book(spellbook)) {
                 spellbook->in_use = FALSE;
             }
-            nomul(context.spbook.delay);
-            multi_reason = "reading a book";
-            nomovemsg = 0;
-            context.spbook.delay = 0;
             return 1;
         }
         spellbook->in_use = FALSE;
@@ -727,7 +720,7 @@ docast()
     return 0;
 }
 
-STATIC_OVL const char *
+const char *
 spelltypemnemonic(skill)
 int skill;
 {
@@ -885,7 +878,7 @@ spelleffects(spell, atme)
 int spell;
 boolean atme;
 {
-    int energy, damage, chance, n, intell;
+    int energy, damage, n, intell;
     int skill, role_skill, res = 0;
     boolean confused = (Confusion != 0);
     boolean physical_damage = FALSE;
@@ -1138,7 +1131,6 @@ boolean atme;
     case SPE_CONFUSE_MONSTER:
     case SPE_DETECT_FOOD:
     case SPE_CAUSE_FEAR:
-    case SPE_IDENTIFY:
         /* high skill yields effect equivalent to blessed scroll */
         if (role_skill >= P_SKILLED)
             pseudo->blessed = 1;
@@ -1657,6 +1649,9 @@ int spell;
     int chance, splcaster, special, statused;
     int difficulty;
     int skill;
+    boolean reduce_penalty = (uarmc && uarmc->otyp == ROBE) ||
+                             (uwep && uwep->otyp == QUARTERSTAFF) ||
+                             (uwep && uwep->otyp == WAN_NOTHING);
 
     /* Calculate intrinsic ability (splcaster) */
 
@@ -1664,10 +1659,13 @@ int spell;
     special = urole.spelheal;
     statused = ACURR(urole.spelstat);
 
-    if (uarm && is_metallic(uarm))
-        splcaster += (uarmc && uarmc->otyp == ROBE) ? urole.spelarmr / 2
-                                                    : urole.spelarmr;
-    else if (uarmc && uarmc->otyp == ROBE)
+    if (uarm && is_metallic(uarm)) {
+        if (reduce_penalty)
+            splcaster += urole.spelarmr / 2;
+        else
+            splcaster += urole.spelarmr;
+    }
+    else if (reduce_penalty)
         splcaster -= urole.spelarmr;
     if (uarms)
         splcaster += urole.spelshld;

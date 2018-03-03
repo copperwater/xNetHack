@@ -7,8 +7,6 @@
 #include "hack.h"
 #include "lev.h"
 
-STATIC_DCL void FDECL(trycall, (struct obj *));
-STATIC_DCL void NDECL(polymorph_sink);
 STATIC_DCL boolean NDECL(teleport_sink);
 STATIC_DCL void FDECL(dosinkring, (struct obj *));
 STATIC_PTR int FDECL(drop, (struct obj *));
@@ -260,7 +258,7 @@ register struct obj *obj;
     }
 }
 
-STATIC_OVL void
+void
 trycall(obj)
 register struct obj *obj;
 {
@@ -270,7 +268,7 @@ register struct obj *obj;
 
 /* Transforms the sink at the player's position into
    a fountain, throne, altar or grave. */
-STATIC_DCL void
+void
 polymorph_sink()
 {
     uchar sym = S_sink;
@@ -501,7 +499,7 @@ register struct obj *obj;
         pline_The("sink backs up, leaving %s.", doname(obj));
         obj->in_use = FALSE;
         dropx(obj);
-    } else if (!rn2(5)) {
+    } else if (rn2(5)) {
         freeinv(obj);
         obj->in_use = FALSE;
         obj->ox = u.ux;
