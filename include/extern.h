@@ -1461,7 +1461,6 @@ E boolean FDECL(olfaction, (struct permonst *));
 /* ### monmove.c ### */
 
 E boolean FDECL(itsstuck, (struct monst *));
-E boolean FDECL(mb_trapped, (struct monst *));
 E boolean FDECL(monhaskey, (struct monst *, BOOLEAN_P));
 E void FDECL(mon_regen, (struct monst *, BOOLEAN_P));
 E int FDECL(dochugw, (struct monst *));

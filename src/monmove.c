@@ -16,30 +16,6 @@ STATIC_DCL int FDECL(m_arrival, (struct monst *));
 STATIC_DCL boolean FDECL(stuff_prevents_passage, (struct monst *));
 STATIC_DCL int FDECL(vamp_shift, (struct monst *, struct permonst *, BOOLEAN_P));
 
-/* True if mtmp died */
-boolean
-mb_trapped(mtmp)
-struct monst *mtmp;
-{
-    if (flags.verbose) {
-        if (cansee(mtmp->mx, mtmp->my) && !Unaware)
-            pline("KABOOM!!  You see a door explode.");
-        else if (!Deaf)
-            You_hear("a distant explosion.");
-    }
-    wake_nearto(mtmp->mx, mtmp->my, 7 * 7);
-    mtmp->mstun = 1;
-    mtmp->mhp -= rnd(15);
-    if (mtmp->mhp <= 0) {
-        mondied(mtmp);
-        if (mtmp->mhp > 0) /* lifesaved */
-            return FALSE;
-        else
-            return TRUE;
-    }
-    return FALSE;
-}
-
 /* check whether a monster is carrying a locking/unlocking tool */
 boolean
 monhaskey(mon, for_unlocking)
