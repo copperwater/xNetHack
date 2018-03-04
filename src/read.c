@@ -1514,8 +1514,8 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             /* force feedback now if invent became
                empty after using up this scroll */
             pline("This is an identify scroll.");
-        /* 1 always, 3 for uncursed, 5 for blessed */
-        cval = 1 + (!scursed * 2) + (sblessed * 2);
+        /* 1 always, 4 for uncursed, 7 for blessed */
+        cval = 1 + (!scursed * 3) + (sblessed * 3);
         identify_pack(cval, !already_known);
         break;
     case SCR_CHARGING:
