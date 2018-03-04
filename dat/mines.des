@@ -1333,8 +1333,8 @@ MONSTER:'S',random
 MONSTER:'G',random
 MONSTER:'G',random
 # "alligators"
-MONSTER:(':',"crocodile"),random
-MONSTER:(':',"crocodile"),random
+MONSTER:('l',"crocodile"),random
+MONSTER:('l',"crocodile"),random
 MONSTER:';',random
 MONSTER:';',random
 MONSTER:';',random
@@ -1350,7 +1350,7 @@ LOOP [3] {
     }
 }
 IF[50%] {
-    MONSTER:(':',"chameleon"),random
+    MONSTER:('l',"chameleon"),random
 }
 IF [75%] {
     IF [50%] {
