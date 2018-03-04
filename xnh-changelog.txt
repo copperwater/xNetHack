@@ -81,6 +81,53 @@ The Candelabrum reads (n/7 candles attached) to make explicit that it holds 7 ca
 Gravestone color is now white; this probably doesn't matter for a lot of fonts
 Implement object lookup: when you are looking up a specific object in the encyclopedia, a full description of its stats and other properties will be shown above the encyclopedia entry
 Bones levels now have a level sound: the same "eerie feeling" as in walking into an abandoned temple
+Move the entire ":" monster class, lizards, to "l" (leprechauns are displaced to green "i").
+Move the entire " " monster class, ghosts, to "W"
+Move bugbears from the "h" monster class to the "o" monster class
+Recolor many monsters:
+* Werejackals are green, wererats are yellow, and werewolves are orange, in both their human and were forms
+* Foxes are recolored from red to brown
+* Wolves are recolored from brown to gray
+* Wargs are recolored from brown to black
+* Floating eyes are recolored from blue to cyan, and there was much rejoicing
+* Mind flayers are recolored from magenta to cyan
+* Master mind flayers are recolored from magenta to bright cyan
+* Kobolds (and mummies and zombies thereof) are recolored from brown to gray
+* Titanotheres are recolored from gray to yellow
+* Baluchitheria are recolored from gray to orange
+* Giant rats are recolored from brown to red
+* Rabid rats are recolored from brown to green
+* Aleaxes are recolored from yellow to gray
+* Shriekers are recolored from magenta to bright magenta
+* Minotaurs are recolored from brown to orange
+* Arch-liches are recolored from magenta to bright magenta
+* Gnome mummies are recolored from red to brown
+* Orc mummies (and orc zombies and the "orc" monster) are recolored from gray to blue
+* Mordor orcs are recolored to red
+* Human mummies are recolored from gray to white
+* Ettins, ettin mummies, and ettin zombies are recolored from brown to yellow
+* Cobras are recolored from blue to bright blue
+* Owlbears are recolored from brown to orange
+* Sasquatches are moved from gray to red
+* "Boss" monsters (Wizard of Yendor, all demon lords, and the Riders) are recolored from magenta to bright magenta
+* Imps are recolored from red to orange
+* Kops are recolored according to their equivalent Yendorian Army ranks
+* Erinyes are recolored from red to green
+* Barbed devils are recolored from red to cyan
+* Mariliths are recolored from red to bright cyan
+* Vrocks are recolored from red to orange
+* Nalfeshnees are recolored from red to bright blue
+* Pit fiends are recolored from red to black
+* Piranhas are recolored from red to orange
+* Geckos are recolored from green to bright green
+* Crocodiles and baby crocodiles are recolored from brown to red
+* Chameleons (in their default form) are recolored from brown to gray
+* Fiery monsters (fire giants, fire vortices, fire elementals) are changed from yellow to red
+* Ghosts are recolored from nothing to white
+* Shades are recolored from nothing to black
+* Wraiths are recolored from black to gray
+* Barrow wights are recolored from gray to bright blue
+* Acid blobs are recolored to bright green
 
 It contains the following non-gameplay architectural changes:
 
