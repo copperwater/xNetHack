@@ -483,6 +483,7 @@ E int FDECL(destroy_arm, (struct obj *, BOOLEAN_P));
 E void FDECL(adj_abon, (struct obj *, SCHAR_P));
 E boolean
 FDECL(inaccessible_equipment, (struct obj *, const char *, BOOLEAN_P));
+E int FDECL(ringbon, (short));
 
 /* ### dog.c ### */
 

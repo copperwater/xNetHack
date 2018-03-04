@@ -2751,4 +2751,25 @@ boolean only_if_known_cursed; /* ignore covering unless known to be cursed */
     return FALSE;
 }
 
+/* Computes magical bonus from worn rings of a specific type.
+ * Intended for things that give numerical bonuses; could theoretically be
+ * extended later if other equipment confers a similar bonus. */
+int
+ringbon(ring_typ)
+short ring_typ;
+{
+    int bon = 0;
+    if (!objects[ring_typ].oc_charged) {
+        impossible("ringbon: called with non-chargeable ring?");
+        return 0;
+    }
+    if (uleft && uleft->otyp == ring_typ) {
+        bon += uleft->spe;
+    }
+    if (uright && uright->otyp == ring_typ) {
+        bon += uright->spe;
+    }
+    return bon;
+}
+
 /*do_wear.c*/

@@ -601,6 +601,8 @@ RING("see invisible", "engagement",
      SEE_INVIS,                150, 1, 0,  5, IRON, HI_METAL),
 RING("protection from shape changers", "shiny",
      PROT_FROM_SHAPE_CHANGERS, 100, 1, 0,  5, IRON, CLR_BRIGHT_CYAN),
+RING("carrying", "glittery",
+     0,                        200, 1, 1, 7, GEMSTONE, CLR_WHITE),
 #undef RING
 
 /* amulets ... - THE Amulet comes last because it is special */
