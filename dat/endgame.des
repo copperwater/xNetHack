@@ -346,13 +346,13 @@ MONSTER:('&',"pit fiend"),random
 MONSTER:('E',"fire elemental"),random,hostile
 MONSTER:('S',"pit viper"),random
 #
-MONSTER:(':',"salamander"),random,hostile
-MONSTER:(':',"salamander"),random,hostile
+MONSTER:('l',"salamander"),random,hostile
+MONSTER:('l',"salamander"),random,hostile
 MONSTER:('H',"minotaur"),random
-MONSTER:(':',"salamander"),random,hostile
+MONSTER:('l',"salamander"),random,hostile
 MONSTER:('v',"steam vortex"),random
-MONSTER:(':',"salamander"),random,hostile
-MONSTER:(':',"salamander"),random,hostile
+MONSTER:('l',"salamander"),random,hostile
+MONSTER:('l',"salamander"),random,hostile
 #
 MONSTER:('H',"fire giant"),random
 MONSTER:('&',"barbed devil"),random
@@ -367,10 +367,10 @@ MONSTER:('E',"fire elemental"),random,hostile
 MONSTER:('E',"fire elemental"),random,hostile
 #
 MONSTER:('&',"barbed devil"),random
-MONSTER:(':',"salamander"),random,hostile
+MONSTER:('l',"salamander"),random,hostile
 MONSTER:('v',"steam vortex"),random
-MONSTER:(':',"salamander"),random,hostile
-MONSTER:(':',"salamander"),random,hostile
+MONSTER:('l',"salamander"),random,hostile
+MONSTER:('l',"salamander"),random,hostile
 
 OBJECT:('`',"boulder"),random
 OBJECT:('`',"boulder"),random

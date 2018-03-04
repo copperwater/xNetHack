@@ -913,7 +913,7 @@ struct obj *obj;
             pline("%s is too far away to see %sself in the dark.",
                   Monnam(mtmp), mhim(mtmp));
         /* some monsters do special things */
-    } else if (mlet == S_VAMPIRE || mlet == S_GHOST || is_vampshifter(mtmp)) {
+    } else if (mlet == S_VAMPIRE || mlet == S_WRAITH || is_vampshifter(mtmp)) {
         if (vis)
             pline("%s doesn't have a reflection.", Monnam(mtmp));
     } else if (monable && mtmp->data == &mons[PM_MEDUSA]) {

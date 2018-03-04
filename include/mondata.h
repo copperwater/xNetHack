@@ -40,7 +40,7 @@
     (((ptr)->mflags1 & (M1_AMPHIBIOUS | M1_BREATHLESS)) != 0L)
 #define passes_walls(ptr) (((ptr)->mflags1 & M1_WALLWALK) != 0L)
 #define amorphous(ptr) (((ptr)->mflags1 & M1_AMORPHOUS) != 0L)
-#define noncorporeal(ptr) ((ptr)->mlet == S_GHOST)
+#define noncorporeal(ptr) (((ptr)->mflags3 & M3_NONCORPOREAL) != 0L)
 #define tunnels(ptr) (((ptr)->mflags1 & M1_TUNNEL) != 0L)
 #define needspick(ptr) (((ptr)->mflags1 & M1_NEEDPICK) != 0L)
 #define hides_under(ptr) (((ptr)->mflags1 & M1_CONCEAL) != 0L)

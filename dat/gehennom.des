@@ -149,12 +149,12 @@ TRAP:"magic", random
 
 # Random monsters.
 # The ghosts.
-MONSTER:(' ',"ghost"),random
-MONSTER:(' ',"ghost"),random
-MONSTER:(' ',"ghost"),random
-MONSTER:(' ',"ghost"),random
-MONSTER:(' ',"ghost"),random
-MONSTER:(' ',"ghost"),random
+MONSTER:('W',"ghost"),random
+MONSTER:('W',"ghost"),random
+MONSTER:('W',"ghost"),random
+MONSTER:('W',"ghost"),random
+MONSTER:('W',"ghost"),random
+MONSTER:('W',"ghost"),random
 # Add a few bats for atmosphere.
 MONSTER:('B',"vampire bat"),random
 MONSTER:('B',"vampire bat"),random
@@ -398,8 +398,8 @@ OBJECT:random,random
 MONSTER:('&',"Orcus"),(33,15)
 # And its preferred companions
 MONSTER:('Z',"human zombie"),(32,15)
-MONSTER:(' ',"shade"),(32,14)
-MONSTER:(' ',"shade"),(32,16)
+MONSTER:('W',"shade"),(32,14)
+MONSTER:('W',"shade"),(32,16)
 MONSTER:('V',"vampire"),(35,16)
 MONSTER:('V',"vampire"),(35,14)
 MONSTER:('V',"vampire lord"),(36,14)
@@ -410,10 +410,10 @@ MONSTER:('Z',"skeleton"),random
 MONSTER:('Z',"skeleton"),random
 MONSTER:('Z',"skeleton"),random
 MONSTER:('Z',"skeleton"),random
-MONSTER:(' ',"shade"),random
-MONSTER:(' ',"shade"),random
-MONSTER:(' ',"shade"),random
-MONSTER:(' ',"shade"),random
+MONSTER:('W',"shade"),random
+MONSTER:('W',"shade"),random
+MONSTER:('W',"shade"),random
+MONSTER:('W',"shade"),random
 MONSTER:('Z',"giant zombie"),random
 MONSTER:('Z',"giant zombie"),random
 MONSTER:('Z',"giant zombie"),random
@@ -491,7 +491,7 @@ TRAP:"fire", random
 TRAP:"magic", random
 TRAP:"magic", random
 # Random monsters.
-MONSTER:(' ',"ghost"),(11,07)
+MONSTER:('W',"ghost"),(11,07)
 MONSTER:('&',"horned devil"),(10,05)
 MONSTER:'L',random
 # Some Vampires for good measure
@@ -577,7 +577,7 @@ TRAP:"fire", random
 TRAP:"magic", random
 TRAP:"magic", random
 # Random monsters.
-MONSTER:(' ',"ghost"),(37,07)
+MONSTER:('W',"ghost"),(37,07)
 MONSTER:('&',"horned devil"),(32,05)
 MONSTER:('&',"barbed devil"),(38,07)
 MONSTER:'L',random

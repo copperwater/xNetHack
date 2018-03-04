@@ -158,6 +158,7 @@
 #define M3_INFRAVISIBLE 0x0200 /* visible by infravision */
 
 #define M3_DISPLACES 0x0400 /* moves monsters out of its way */
+#define M3_NONCORPOREAL 0x0800 /* isn't corporeal, e.g. ghost */
 
 #define MZ_TINY 0          /* < 2' */
 #define MZ_SMALL 1         /* 2-4' */
