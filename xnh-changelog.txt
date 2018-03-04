@@ -1,13 +1,13 @@
 xNetHack 0.1.0 Changelog
-Last Updated: commit 9698d4b475264e5ae96ed22ba610c93843f31243
+Last Updated: commit d70ba212dabc10ab3d08977a123ffdabbd76caa1
 
 This is the first version of xNetHack, forked off the NetHack 3.6.1
 development version. It will continue to contain most or all of the latest
 commits pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
 On top of these, xNetHack 0.1.0 contains the following gameplay changes:
 
-Add "artifactless" conduct: never touch an artifact (not currently recorded in xlog)
-Add "petless" conduct: zero tame monsters the whole game (not currently recorded in xlog)
+Add "artifactless" conduct: never touch an artifact (14th bit of xlogfile conduct)
+Add "petless" conduct: zero tame monsters the whole game (13th bit of xlogfile conduct)
 Change magic traps' taming effect to pacification
 Bribing demons demand 50d500 gold, regardless of what the hero is carrying, and may be successfully shortchanged depending on the hero's Charisma
 Exploding bag of holding scatters 12/13 of its contents instead of destroying them outright
@@ -49,6 +49,21 @@ Ghosts of Dudley can now be encountered
 Magic lamps can be wished for
 Throw out the complicated spellbook delay formula; all spellbook delays are now 10*level
 Chargeable rings will never generate at +0
+"Klunk!" from kicking a sink is less likely
+"Flupp!" effect from kicking a sink will dislodge and spit up one ring buried under the sink
+All sinks on non-special levels now generate with one ring buried beneath them
+Dropping a ring down a sink has an 80% chance of being buried beneath it, rather than 20%
+Confused scroll of light will conjure several tame cancelled lights, which cannot explode but are useful as a light source. Will be yellow lights if non-cursed and black lights if cursed.
+Passive gold detection for dwarf and leprechaun-polyed players: all gold pieces on the map will be shown at all times.
+Treasure zoos generate only animal monsters
+Wielding a quarterstaff or wand of nothing reduces the Pw cost of a spell just like a robe would do, and not stacking with it
+All roles now have a standardized "cutoff level" of 12 for maxHP and maxPw gains.
+Scrolls of identify always identify 7/4/1 items for B/U/C; full inventory ID is no longer possible from scroll
+Throne insight always gives a full inventory identify
+Spell of identify is removed
+Replace the KABOOM!! door trap with several different interesting traps that scale with dungeon level: screeching hinges, self-locking mechanisms, statically charged doorknob, falling bucket of water, removed hinges, boulder dropping out of the ceiling, hot doorknob, and fiery explosion.
+Hitting a gremlin with light will anger it
+Add ring of carrying: chargeable 200zm ring that increases or decreases carrying capacity by 5% per enchantment.
 
 It contains the following non-gameplay interface changes:
 
@@ -66,8 +81,6 @@ The Candelabrum reads (n/7 candles attached) to make explicit that it holds 7 ca
 Gravestone color is now white; this probably doesn't matter for a lot of fonts
 Implement object lookup: when you are looking up a specific object in the encyclopedia, a full description of its stats and other properties will be shown above the encyclopedia entry
 Bones levels now have a level sound: the same "eerie feeling" as in walking into an abandoned temple
-Scrolls of identify always identify 5/3/1 items for B/U/C; spell always gives only 1
-Throne insight always gives a full inventory identify
 
 It contains the following non-gameplay architectural changes:
 
@@ -79,3 +92,6 @@ Valley entrance message is moved into gehennom.des instead of hardcoding
 Move most paralysis sources into a new make_paralyzed function
 Refactor testing for whether an object has a specific randomized description into a new function objdescr_is()
 Rename cost() to ink_cost()
+Remove enermod() function since it was only being called in one place
+Comprehensive doors overhaul: "locked" and "trapped" are no longer separate states, but simply flags; actual state of a door (none, broken, open, closed) are reduced to 2 bits, freeing up one bit for later use.
+The b_trapped and mb_trapped are removed; the new door traps make them unused.
