@@ -381,9 +381,12 @@ outgoldmap:
     else {
         /* Unmap any previous knowledge of gold. */
         int x, y;
+        int goldglyph = objnum_to_glyph(GOLD_PIECE);
         for(x = 1; x < COLNO; x++) {
             for(y = 1; y < ROWNO; y++) {
-                newsym(x,y);
+                if (levl[x][y].glyph == goldglyph) {
+                    newsym(x,y);
+                }
             }
         }
     }
@@ -401,12 +404,16 @@ outgoldmap:
                 temp->ox = obj->ox;
                 temp->oy = obj->oy;
             }
-            map_object(temp, 1);
+            /* passive gold detection: don't map object in visible range,
+             * otherwise things like a chest containing gold will show as $
+             * rather than (. */
+            if (!passive || !cansee(temp->ox, temp->oy))
+                map_object(temp, 1);
         }
         if (temp && temp->ox == u.ux && temp->oy == u.uy)
             ugold = TRUE;
     }
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+    for (mtmp = fmon; mtmp && !passive; mtmp = mtmp->nmon) {
         if (DEADMONSTER(mtmp))
             continue; /* probably overkill here */
         temp = 0;
