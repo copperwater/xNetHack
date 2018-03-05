@@ -350,7 +350,7 @@ boolean resuming;
 
         clear_splitobjs();
         find_ac();
-        passive_gold_detect();
+        /* passive_gold_detect(); */ /* too buggy right now */
         if (!context.mv || Blind) {
             /* redo monsters if hallu or wearing a helm of telepathy */
             if (Hallucination) { /* update screen randomly */
