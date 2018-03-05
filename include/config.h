@@ -172,7 +172,7 @@
  *              GDBPATH      (the path to the system gdb(1) program)
  *            Regular nethack options can also be specified in order to
  *            provide system-wide default values local to your system:
- *              OPTIONS      (same as in users' .nethackrc or defaults.nh)
+ *              OPTIONS      (same as in users' .xnethackrc or defaults.nh)
  *
  *              In the future there may be other ways to supply SYSCF
  *              information (Windows registry, Apple resource forks, etc)

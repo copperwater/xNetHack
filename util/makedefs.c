@@ -1201,7 +1201,7 @@ const char *build_date;
     Strcat(subbuf, " Beta");
 #endif
 
-    Sprintf(outbuf, "%s NetHack%s Version %s - last %s %s.", PORT_ID,
+    Sprintf(outbuf, "%s xNetHack%s Version %s - last %s %s.", PORT_ID,
             subbuf, version_string(versbuf, "."),
             date_via_env ? "revision" : "build", build_date);
     return outbuf;
@@ -1420,7 +1420,7 @@ char *githash, *gitbranch;
             *strval++ = '\0';
             /* strip off the '\n' */
             if ((c = index(strval, '\n')) != 0)
-                *c = '\0'; 
+                *c = '\0';
             if ((c = index(opt, '\n')) != 0)
                 *c = '\0';
             /* strip leading and trailing white space */

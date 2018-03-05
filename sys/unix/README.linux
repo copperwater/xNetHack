@@ -36,8 +36,8 @@ things in /usr/games/lib/nethackdir (such as a copy of this README :-).
 The general documentation Guidebook.txt and the processed man pages
 nethack.txt and recover.txt should provide an introduction to the game.
 
-The sample config file called dot.nethackrc can be used by copying
-it to your home directory as .nethackrc and modifying it to your liking.
+The sample config file called dot.xnethackrc can be used by copying
+it to your home directory as .xnethackrc and modifying it to your liking.
 
 If you are running X11 copy the nh10.pcf and ibm.pcf font files from
 /usr/games/lib/nethackdir to a X11 fonts directory (such as
@@ -51,7 +51,7 @@ doing this.
 The official Linux binary is set up to run setgid games, which allows
 multiple users on your system to play the game and prevents cheating by
 unprivileged users.  The usual default for NetHack is setuid games, but
-this causes problems with accessing .nethackrc on distributions with
+this causes problems with accessing .xnethackrc on distributions with
 restrictive default security on home directories and users who don't know
 the tradeoffs of various permission settings.
 
