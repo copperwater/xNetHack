@@ -1017,6 +1017,7 @@ register struct trobj *trop;
                    || (otyp == SCR_ENCHANT_WEAPON && Role_if(PM_MONK))
                    /* wizard patch -- they already have one */
                    || (otyp == SPE_FORCE_BOLT && Role_if(PM_WIZARD))
+                   || (otyp == SPE_MAGIC_MISSILE && Role_if(PM_WIZARD))
                    /* powerful spells are either useless to
                       low level players or unbalancing; also
                       spells in restricted skill categories */
