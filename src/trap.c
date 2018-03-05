@@ -3545,7 +3545,7 @@ boolean force;
             if (carried(obj))
                 update_inventory();
             return ER_DAMAGED;
-        } else if (obj->otyp != POT_WATER) {
+        } else if (obj->otyp != POT_WATER && obj->otyp != POT_OIL) {
             if (carried(obj))
                 pline("Your %s %s.", ostr, vtense(ostr, "dilute"));
 

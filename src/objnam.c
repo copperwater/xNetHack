@@ -3857,7 +3857,8 @@ typfnd:
     if (isgreased)
         otmp->greased = 1;
 
-    if (isdiluted && otmp->oclass == POTION_CLASS && otmp->otyp != POT_WATER)
+    if (isdiluted && otmp->oclass == POTION_CLASS && otmp->otyp != POT_WATER
+        && otmp->otyp != POT_OIL)
         otmp->odiluted = 1;
 
     /* set tin variety */
