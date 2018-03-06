@@ -2857,10 +2857,14 @@ int dmg;
             monkilled(mon, (char *) 0, AD_BLND);
         else
             killed(mon);
-    } else if (cansee(mon->mx, mon->my) && !canspotmon(mon)) {
-        map_invisible(mon->mx, mon->my);
+    } else {
+        if (cansee(mon->mx, mon->my) && !canspotmon(mon)) {
+            map_invisible(mon->mx, mon->my);
+        }
+        if (!context.mon_moving) {
+            setmangry(mon, FALSE);
+        }
     }
-    setmangry(mon, FALSE);
 }
 
 /*uhitm.c*/
