@@ -904,7 +904,9 @@ short otyp;
         const char* armorslots[] = {
             "torso", "shield", "helm", "gloves", "boots", "cloak", "shirt"
         };
-        Sprintf(buf, "Armor, worn in the %s slot.", armorslots[oc.oc_armcat]);
+        Sprintf(buf, "%s, worn in the %s slot.",
+                (oc.oc_bulky ? "Bulky armor" : "Armor"),
+                armorslots[oc.oc_armcat]);
 
         OBJPUTSTR(buf);
         Sprintf(buf, "Base AC %d, takes %d turn%s to put on or remove.",
