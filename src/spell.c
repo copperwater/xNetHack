@@ -1639,6 +1639,33 @@ int *spell_no;
     return FALSE;
 }
 
+struct spellwand {
+    short spell;
+    short wand;  /* both of these are otyps */
+};
+static const struct spellwand wand_combos[] = {
+    { SPE_LIGHT,           WAN_LIGHT },
+    { SPE_FIREBALL,        WAN_FIRE },
+    { SPE_CONE_OF_COLD,    WAN_COLD },
+    { SPE_CANCELLATION,    WAN_CANCELLATION },
+    { SPE_FINGER_OF_DEATH, WAN_DEATH },
+    { SPE_SLEEP,           WAN_SLEEP },
+    { SPE_DIG,             WAN_DIGGING },
+    { SPE_KNOCK,           WAN_OPENING },
+    { SPE_WIZARD_LOCK,     WAN_LOCKING },
+    { SPE_DETECT_UNSEEN,   WAN_SECRET_DOOR_DETECTION },
+    { SPE_MAGIC_MISSILE,   WAN_MAGIC_MISSILE },
+    { SPE_INVISIBILITY,    WAN_MAKE_INVISIBLE },
+    { SPE_SLOW_MONSTER,    WAN_SLOW_MONSTER },
+    { SPE_HASTE_SELF,      WAN_SPEED_MONSTER },
+    { SPE_FORCE_BOLT,      WAN_STRIKING },
+    { SPE_TURN_UNDEAD,     WAN_UNDEAD_TURNING },
+    { SPE_CREATE_MONSTER,  WAN_CREATE_MONSTER },
+    { SPE_POLYMORPH,       WAN_POLYMORPH },
+    { SPE_TELEPORT_AWAY,   WAN_TELEPORTATION },
+    { 0, 0}
+};
+
 STATIC_OVL int
 percent_success(spell)
 int spell;
@@ -1652,6 +1679,17 @@ int spell;
     boolean reduce_penalty = (uarmc && uarmc->otyp == ROBE) ||
                              (uwep && uwep->otyp == QUARTERSTAFF) ||
                              (uwep && uwep->otyp == WAN_NOTHING);
+
+    /* can also reduce penalty if using a wand whose magic is similar */
+    if (uwep && uwep->oclass == WAND_CLASS) {
+        int i = 0;
+        for (i = 0; i < sizeof(wand_combos); ++i) {
+            if (uwep && uwep->otyp == wand_combos[i].wand
+                && spellid(spell) == wand_combos[i].spell) {
+                reduce_penalty = TRUE;
+            }
+        }
+    }
 
     /* Calculate intrinsic ability (splcaster) */
 
