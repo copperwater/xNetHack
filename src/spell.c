@@ -69,33 +69,7 @@ STATIC_DCL boolean FDECL(spell_aim_step, (genericptr_t, int, int));
  *      The `spelspec' is a single spell which is fundamentally easier
  *      for that role to cast.
  *
- *  spelspec, spelsbon:
- *      Arc map masters (SPE_MAGIC_MAPPING)
- *      Bar fugue/berserker (SPE_HASTE_SELF)
- *      Cav born to dig (SPE_DIG)
- *      Hea to heal (SPE_CURE_SICKNESS)
- *      Kni to turn back evil (SPE_TURN_UNDEAD)
- *      Mon to preserve their abilities (SPE_RESTORE_ABILITY)
- *      Pri to bless (SPE_REMOVE_CURSE)
- *      Ran to hide (SPE_INVISIBILITY)
- *      Rog to find loot (SPE_DETECT_TREASURE)
- *      Sam to be At One (SPE_CLAIRVOYANCE)
- *      Tou to smile (SPE_CHARM_MONSTER)
- *      Val control the cold (SPE_CONE_OF_COLD)
- *      Wiz all really, but SPE_MAGIC_MISSILE is their party trick
- *
- *      See percent_success() below for more comments.
- *
- *  uarmbon, uarmsbon, uarmhbon, uarmgbon, uarmfbon:
- *      Fighters find body armour & shield a little less limiting.
- *      Headgear, Gauntlets and Footwear are not role-specific (but
- *      still have an effect, except helm of brilliance, which is designed
- *      to permit magic-use).
  */
-
-#define uarmhbon 4 /* Metal helmets interfere with the mind */
-#define uarmgbon 6 /* Casting channels through the hands */
-#define uarmfbon 2 /* All metal interferes to some degree */
 
 /* since the spellbook itself doesn't blow up, don't say just "explodes" */
 static const char explodes[] = "radiates explosive energy";
@@ -1666,128 +1640,80 @@ static const struct spellwand wand_combos[] = {
     { 0, 0}
 };
 
+/* Compute a percentage chance of a spell succeeding, based on skill,
+ * Intelligence, XL, armor getting in the way, and the spell level.
+ * In xNetHack this number isn't actually used directly, but rather influences
+ * how much extra Pw a difficult spell will take to cast.
+ * Original formula by FIQ, with some modifications. */
 STATIC_OVL int
 percent_success(spell)
 int spell;
 {
-    /* Intrinsic and learned ability are combined to calculate
-     * the probability of player's success at cast a given spell.
-     */
-    int chance, splcaster, special, statused;
-    int difficulty;
+    int chance;
     int skill;
-    boolean reduce_penalty = (uarmc && uarmc->otyp == ROBE) ||
-                             (uwep && uwep->otyp == QUARTERSTAFF) ||
-                             (uwep && uwep->otyp == WAN_NOTHING);
 
-    /* can also reduce penalty if using a wand whose magic is similar */
-    if (uwep && uwep->oclass == WAND_CLASS) {
+    /* Calculate effective Int: may be boosted by certain items */
+    unsigned char intel = ACURR(A_INT);
+    if (uwep && uwep->oclass == WAND_CLASS && uwep->otyp != WAN_NOTHING) {
+        /* can get a boost from a wand whose magic is similar
+         * however, you need to have formally identified it, otherwise you can
+         * cheese wand ID by wielding different wands and seeing if this stat
+         * changes */
         int i = 0;
         for (i = 0; i < sizeof(wand_combos); ++i) {
-            if (uwep && uwep->otyp == wand_combos[i].wand
-                && spellid(spell) == wand_combos[i].spell) {
-                reduce_penalty = TRUE;
+            if (spellid(spell) == wand_combos[i].spell
+                && uwep && uwep->otyp == wand_combos[i].wand
+                && objects[uwep->otyp].oc_name_known) {
+                intel += 7;
+                break;
             }
         }
     }
+    else if ((uarmc && uarmc->otyp == ROBE)
+             || (uwep && (uwep->otyp == QUARTERSTAFF
+                          || uwep->otyp == WAN_NOTHING))) {
+        intel += 5;
+    }
 
-    /* Calculate intrinsic ability (splcaster) */
+    /* At base, chance is dependent on your Int and XL. */
+    chance = (intel * 5) + (u.ulevel * 5);
 
-    splcaster = urole.spelbase;
-    special = urole.spelheal;
-    statused = ACURR(urole.spelstat);
+    /* Higher level spells will reduce this chance, though. */
+    chance -= 25 * spellev(spell);
 
+    /* Calculate penalty from armor. Metal armor and shields hurt chance. */
     if (uarm && is_metallic(uarm)) {
-        if (reduce_penalty)
-            splcaster += urole.spelarmr / 2;
+        chance -= 50;
+    }
+    if (uarms) {
+        if (objects[uarms->otyp].oc_bulky)
+            chance -= 50;
         else
-            splcaster += urole.spelarmr;
+            chance -= 15;
+
+        if (is_metallic(uarms))
+            chance -= 5;
     }
-    else if (reduce_penalty)
-        splcaster -= urole.spelarmr;
-    if (uarms)
-        splcaster += urole.spelshld;
+    if (uarmh && is_metallic(uarmh) && uarmh->otyp != HELM_OF_BRILLIANCE) {
+        chance -= 20;
+    }
+    if (uarmg && is_metallic(uarmg)) {
+        chance -= 35;
+    }
+    if (uarmf && is_metallic(uarmf)) {
+        chance -= 10;
+    }
 
-    if (uarmh && is_metallic(uarmh) && uarmh->otyp != HELM_OF_BRILLIANCE)
-        splcaster += uarmhbon;
-    if (uarmg && is_metallic(uarmg))
-        splcaster += uarmgbon;
-    if (uarmf && is_metallic(uarmf))
-        splcaster += uarmfbon;
-
-    if (spellid(spell) == urole.spelspec)
-        splcaster += urole.spelsbon;
-
-    /* `healing spell' bonus */
-    if (spellid(spell) == SPE_HEALING || spellid(spell) == SPE_EXTRA_HEALING
-        || spellid(spell) == SPE_CURE_BLINDNESS
-        || spellid(spell) == SPE_CURE_SICKNESS
-        || spellid(spell) == SPE_RESTORE_ABILITY
-        || spellid(spell) == SPE_REMOVE_CURSE)
-        splcaster += special;
-
-    if (splcaster > 20)
-        splcaster = 20;
-
-    /* Calculate learned ability */
-
-    /* Players basic likelihood of being able to cast any spell
-     * is based of their `magic' statistic. (Int or Wis)
-     */
-    chance = 11 * statused / 2;
-
-    /*
-     * High level spells are harder.  Easier for higher level casters.
-     * The difficulty is based on the hero's level and their skill level
-     * in that spell type.
-     */
+    /* no malus for unskilled/restricted, you just miss out on bonuses instead */
     skill = P_SKILL(spell_skilltype(spellid(spell)));
-    skill = max(skill, P_UNSKILLED) - 1; /* unskilled => 0 */
-    difficulty =
-        (spellev(spell) - 1) * 4 - ((skill * 6) + (u.ulevel / 3) + 1);
-
-    if (difficulty > 0) {
-        /* Player is too low level or unskilled. */
-        chance -= isqrt(900 * difficulty + 2000);
-    } else {
-        /* Player is above level.  Learning continues, but the
-         * law of diminishing returns sets in quickly for
-         * low-level spells.  That is, a player quickly gains
-         * no advantage for raising level.
-         */
-        int learning = 15 * -difficulty / spellev(spell);
-        chance += learning > 20 ? 20 : learning;
+    switch (skill) {
+    case P_EXPERT:
+        chance += 40; /* FALLTHRU */
+    case P_SKILLED:
+        chance += 20; /* FALLTHRU */
+    case P_BASIC:
+        chance += 20;
     }
-
-    /* Clamp the chance: >18 stat and advanced learning only help
-     * to a limit, while chances below "hopeless" only raise the
-     * specter of overflowing 16-bit ints (and permit wearing a
-     * shield to raise the chances :-).
-     */
-    if (chance < 0)
-        chance = 0;
-    if (chance > 120)
-        chance = 120;
-
-    /* Wearing anything but a light shield makes it very awkward
-     * to cast a spell.  The penalty is not quite so bad for the
-     * player's role-specific spell.
-     */
-    if (uarms && weight(uarms) > (int) objects[SMALL_SHIELD].oc_weight) {
-        if (spellid(spell) == urole.spelspec) {
-            chance /= 2;
-        } else {
-            chance /= 4;
-        }
-    }
-
-    /* Finally, chance (based on player intell/wisdom and level) is
-     * combined with ability (based on player intrinsics and
-     * encumbrances).  No matter how intelligent/wise and advanced
-     * a player is, intrinsics and encumbrance can prevent casting;
-     * and no matter how able, learning is always required.
-     */
-    chance = chance * (20 - splcaster) / 15 - splcaster;
 
     /* Clamp to percentile */
     if (chance > 100)

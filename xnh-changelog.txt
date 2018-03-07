@@ -76,6 +76,8 @@ Change some spell levels:
 * Detect unseen: 3 -> 2
 * Turn undead: 6 -> 2
 * Jumping: 1 -> 2
+Dwarvish and Uruk-hai shields count as bulky
+Replace old spell formula with a more straightforward one; see the cc55435795147d709e58f73b3dce87f13169f536 commit message for details.
 
 It contains the following non-gameplay interface changes:
 
