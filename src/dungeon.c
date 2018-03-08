@@ -271,7 +271,7 @@ s_level *
 find_level(s)
 const char *s;
 {
-    s_level *curr;
+    s_level *curr = NULL;
     for (curr = sp_levchn; curr; curr = curr->next)
         if (!strcmpi(s, curr->proto))
             break;
