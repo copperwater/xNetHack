@@ -257,6 +257,7 @@ top		{ savetoken(yytext); yylval.i=1; return TOP_OR_BOT; }
 bottom		{ savetoken(yytext); yylval.i=5; return TOP_OR_BOT; }
 lit		{ savetoken(yytext); yylval.i=1; return LIGHT_STATE; }
 unlit		{ savetoken(yytext); yylval.i=0; return LIGHT_STATE; }
+mineslight	{ savetoken(yytext); yylval.i=2; return LIGHT_STATE; }
 filled		{ savetoken(yytext); yylval.i=1; return FILLING; }
 unfilled	{ savetoken(yytext); yylval.i=0; return FILLING; }
 regular		{ savetoken(yytext); yylval.i=0; return IRREGULAR; }

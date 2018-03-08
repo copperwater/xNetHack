@@ -78,6 +78,7 @@ Change some spell levels:
 * Jumping: 1 -> 2
 Dwarvish and Uruk-hai shields count as bulky
 Replace old spell formula with a more straightforward one; see the cc55435795147d709e58f73b3dce87f13169f536 commit message for details.
+Upper Mines levels are always lit; Lower Mines levels are always dark.
 
 It contains the following non-gameplay interface changes:
 

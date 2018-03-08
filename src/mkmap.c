@@ -457,8 +457,20 @@ lev_init *init_lev;
     xchar lit = init_lev->lit, walled = init_lev->walled;
     int i;
 
-    if (lit < 0)
+    if (lit < 0) {
         lit = (rnd(1 + abs(depth(&u.uz))) < 11 && rn2(77)) ? 1 : 0;
+    }
+    else if (lit == 2) { /* mineslight */
+        /* Always bright above Minetown, always dark below */
+        s_level *minetownslev = find_level("minetn");
+        if (!minetownslev) {
+            impossible("Failed to find Minetown! Setting mineslight randomly");
+            lit = rn2(2);
+        }
+        else {
+            lit = (depth(&u.uz) < depth(&minetownslev->dlevel) ? 1 : 0);
+        }
+    }
 
     new_locations = (char *) alloc((WIDTH + 1) * HEIGHT);
 
