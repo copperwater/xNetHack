@@ -206,7 +206,7 @@ NEARDATA struct permonst mons[] = {
           NO_ATTK),
         SIZ(300, 250, MS_BARK, MZ_SMALL), 0, 0,
         M1_ANIMAL | M1_NOHANDS | M1_CARNIVORE, M2_HOSTILE, M3_INFRAVISIBLE,
-        CLR_GREEN),
+        CLR_RED),
     MON("coyote", S_DOG, LVL(1, 12, 7, 0, 0), (G_GENO | G_SGROUP | 1),
         A(ATTK(AT_BITE, AD_PHYS, 1, 4), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
           NO_ATTK),
