@@ -1301,7 +1301,7 @@ nexttry: /* eels prefer the water, but if there is no water nearby,
             if (ntyp == IRONBARS && !(flag & ALLOW_BARS))
                 continue;
             if (IS_DOOR(ntyp) && !(amorphous(mdat) || can_fog(mon))
-                && ((doorstate(&levl[nx][ny]) && !(flag & OPENDOOR))
+                && ((door_is_closed(&levl[nx][ny]) && !(flag & OPENDOOR))
                     || (door_is_locked(&levl[nx][ny])
                         && !(flag & UNLOCKDOOR))) && !thrudoor)
                 continue;
