@@ -3,12 +3,12 @@
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* NetHack 3.6.1 */
-#define VERSION_MAJOR 3
-#define VERSION_MINOR 6
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 1
 /*
  * PATCHLEVEL is updated for each release.
  */
-#define PATCHLEVEL 1
+#define PATCHLEVEL 0
 /*
  * Incrementing EDITLEVEL can be used to force invalidation of old bones
  * and save files.
@@ -29,14 +29,11 @@
  * PP = patch level, ee = edit level, L = literal suffix "L",
  * with all four numbers specified as two hexadecimal digits.
  */
-#define VERSION_COMPATIBILITY 0x03060002L
+#define VERSION_COMPATIBILITY 0x00010000L
 
 /****************************************************************************/
-/* Version 3.6.x */
-
-/*  Patch 1, [insert date here]
- *  A couple of dozen bug fixes.
- *
+/*
+ *  xNetHack 0.1.0, yet to be released formally
  */
 
 /*
