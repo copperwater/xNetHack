@@ -177,4 +177,13 @@ struct monst {
     can_open_doors(mon->data) && \
     (monhaskey(mon, TRUE) || mon->iswiz || is_rider(mon->data))
 
+/* Get the maximum difficulty monsters that can currently be generated,
+ * given the current level difficulty and the hero's level. */
+#define max_difficulty() ((level_difficulty() + u.ulevel) / 2)
+#define min_difficulty() (level_difficulty() / 6)
+
+/* Macros for whether a given monster is too strong for a specific level. */
+#define toostrong(monindx, lev) (monstr[monindx] > lev)
+#define tooweak(monindx, lev) (monstr[monindx] < lev)
+
 #endif /* MONST_H */

@@ -28,8 +28,6 @@ extern const int monstr[];
 
 #define m_initsgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 3)
 #define m_initlgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 10)
-#define toostrong(monindx, lev) (monstr[monindx] > lev)
-#define tooweak(monindx, lev) (monstr[monindx] < lev)
 
 boolean
 is_home_elemental(ptr)
@@ -1499,7 +1497,7 @@ rndmonst()
         return ptr;
 
     if (rndmonst_state.choice_count < 0) { /* need to recalculate */
-        int zlevel, minmlev, maxmlev;
+        int minmlev, maxmlev;
         boolean elemlevel;
         boolean upper;
 
@@ -1515,11 +1513,10 @@ rndmonst()
             debugpline0("rndmonst: no common mons!");
             return (struct permonst *) 0;
         } /* else `mndx' now ready for use below */
-        zlevel = level_difficulty();
         /* determine the level of the weakest monster to make. */
-        minmlev = zlevel / 6;
+        minmlev = min_difficulty();
         /* determine the level of the strongest monster to make. */
-        maxmlev = (zlevel + u.ulevel) / 2;
+        maxmlev = max_difficulty();
         upper = Is_rogue_level(&u.uz);
         elemlevel = In_endgame(&u.uz) && !Is_astralevel(&u.uz);
 
