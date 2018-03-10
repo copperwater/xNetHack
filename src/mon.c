@@ -39,6 +39,7 @@ const char *warnings[] = {
 };
 #endif /* 0 */
 
+extern const int monstr[];
 
 void
 sanity_check_single_mon(mtmp, chk_geno, msg)
@@ -2595,10 +2596,18 @@ struct monst *mtmp;
             stop_occupation();
         }
         if (!rn2(10)) {
-            if (!rn2(13))
-                (void) makemon(&mons[PM_PURPLE_WORM], 0, 0, NO_MM_FLAGS);
-            else
+            if (!rn2(13)) {
+                /* don't generate purple worms if they would be too difficult */
+                if (toostrong(PM_PURPLE_WORM, max_difficulty())) {
+                    (void) makemon(&mons[PM_BABY_PURPLE_WORM], 0, 0, NO_MM_FLAGS);
+                }
+                else {
+                    (void) makemon(&mons[PM_PURPLE_WORM], 0, 0, NO_MM_FLAGS);
+                }
+            }
+            else {
                 (void) makemon((struct permonst *) 0, 0, 0, NO_MM_FLAGS);
+            }
         }
         aggravate();
     }

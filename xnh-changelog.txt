@@ -38,9 +38,8 @@ The amulet of life saving does not work if the player is polymorphed into a nonl
 Occasionally when you die to vampires, green slimes, mummies, or anything else that would have made you arise from the grave, you turn into that monster but retain your sanity, and continue playing with permanent intrinsic unchanging.
 The player can now displace peaceful monsters (with a few small exceptions)
 Add thiefstones, a gray stone which steals magic items and treasure back to a location on the level it generates. If the player tracks it down and removes its curse, they can use it to their own benefit.
-Unicorn horn is a poorer weapon (1d3/1d3) but applies itself passively if
-wielded in the bare main hand.
-Potions may be #dipped in sinks to pour them down the drain and causing the hero to suffer its vapor effects.
+Unicorn horn is a poorer weapon (1d3/1d3) but applies itself passively if wielded in the bare main hand.
+Potions may be #dipped in sinks to pour them down the drain, causing the hero to suffer its vapor effects.
 Add vapor effects for all potions, and make most of them unambiguously identify the potion
 Rebalance spellbook failure effects; notably a failure causes confusion instead of paralysis, and paralysis only happens as a side effect of level 5+ books. The steal gold effect is also replaced with the book biting you. A new level 1+ effect is the book dropping one level in BUC.
 Spellbooks disintegrate if and only if they are already cursed
@@ -81,6 +80,7 @@ Replace old spell formula with a more straightforward one; see the cc554357 comm
 Upper Mines levels are always lit; Lower Mines levels are always dark.
 Use a new, more continuous, Pw regeneration formula from FIQHack (see commit 56c5bbbb)
 Wizards get four spellbooks in starting inventory (force bolt, magic missile, and two random). This replaces the scrolls, potions, rings and wand they previously started with.
+Shriekers will spawn a baby purple worm if regular purple worms are too hard
 
 It contains the following non-gameplay interface changes:
 
