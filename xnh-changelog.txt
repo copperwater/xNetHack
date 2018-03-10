@@ -77,8 +77,10 @@ Change some spell levels:
 * Turn undead: 6 -> 2
 * Jumping: 1 -> 2
 Dwarvish and Uruk-hai shields count as bulky
-Replace old spell formula with a more straightforward one; see the cc55435795147d709e58f73b3dce87f13169f536 commit message for details.
+Replace old spell formula with a more straightforward one; see the cc554357 commit message for details.
 Upper Mines levels are always lit; Lower Mines levels are always dark.
+Use a new, more continuous, Pw regeneration formula from FIQHack (see commit 56c5bbbb)
+Wizards get four spellbooks in starting inventory (force bolt, magic missile, and two random). This replaces the scrolls, potions, rings and wand they previously started with.
 
 It contains the following non-gameplay interface changes:
 
@@ -101,7 +103,6 @@ Move the entire " " monster class, ghosts, to "W"
 Move bugbears from the "h" monster class to the "o" monster class
 Recolor many monsters:
 * Werejackals are green, wererats are yellow, and werewolves are orange, in both their human and were forms
-* Foxes are recolored from red to brown
 * Wolves are recolored from brown to gray
 * Wargs are recolored from brown to black
 * Floating eyes are recolored from blue to cyan, and there was much rejoicing
