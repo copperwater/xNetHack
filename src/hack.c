@@ -2706,15 +2706,18 @@ lookaround()
     }
 }
 
-/* check for a doorway which lacks its door (NODOOR or BROKEN) */
+/* check for a doorway which lacks its door (NODOOR or BROKEN).
+ * Must be called on an actual door coordinate. */
 boolean
 doorless_door(x, y)
 int x, y;
 {
     struct rm *lev_p = &levl[x][y];
 
-    if (!IS_DOOR(lev_p->typ))
+    if (!IS_DOOR(lev_p->typ)) {
+        impossible("doorless_door: called on a non-door");
         return FALSE;
+    }
     /* all rogue level doors are doorless but disallow diagonal access, so
        we treat them as if their non-existant doors were actually present */
     if (Is_rogue_level(&u.uz))
