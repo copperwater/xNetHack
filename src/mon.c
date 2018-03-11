@@ -1378,7 +1378,9 @@ nexttry: /* eels prefer the water, but if there is no water nearby,
                 continue;
             /* first diagonal checks (tight squeezes handled below) */
             if (nx != x && ny != y
-                && (nodiag || !doorless_door(x,y) || !doorless_door(x,y)
+                && (nodiag
+                    || (IS_DOOR(nowtyp) && !doorless_door(x, y))
+                    || (IS_DOOR(ntyp) && !doorless_door(nx, ny))
                     /* mustn't pass between adjacent long worm segments,
                        but can attack that way */
                     || (m_at(x, ny) && m_at(nx, y) && worm_cross(x, y, nx, ny)
