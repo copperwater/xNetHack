@@ -1317,6 +1317,13 @@ postmov:
                     return 2; /* it died */
             }
 
+            /* Maybe a purple worm ate a corpse */
+            if (ptr == &mons[PM_PURPLE_WORM]
+                || ptr == &mons[PM_BABY_PURPLE_WORM]) {
+                if (meatcorpse(mtmp) == 2)
+                    return 2; /* it died */
+            }
+
             if (!*in_rooms(mtmp->mx, mtmp->my, SHOPBASE) || !rn2(25)) {
                 boolean picked = FALSE;
 
