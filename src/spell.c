@@ -1660,9 +1660,9 @@ int spell;
          * cheese wand ID by wielding different wands and seeing if this stat
          * changes */
         int i = 0;
-        for (i = 0; i < sizeof(wand_combos); ++i) {
+        for (i = 0; wand_combos[i].spell != 0; ++i) {
             if (spellid(spell) == wand_combos[i].spell
-                && uwep && uwep->otyp == wand_combos[i].wand
+                && uwep->otyp == wand_combos[i].wand
                 && objects[uwep->otyp].oc_name_known) {
                 intel += 7;
                 break;
