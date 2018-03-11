@@ -1037,8 +1037,11 @@ open_savefile()
 int
 delete_savefile()
 {
-    (void) unlink(fqname(SAVEF, SAVEPREFIX, 0));
-    return 0; /* for restore_saved_game() (ex-xxxmain.c) test */
+    if (yn_function("Delete the save file?", ynchars, 'n') == 'y') {
+        (void) unlink(fqname(SAVEF, SAVEPREFIX, 0));
+        return 0; /* for restore_saved_game() (ex-xxxmain.c) test */
+    }
+    return 1;
 }
 
 /* try to open up a save file and prepare to restore it */
@@ -1062,6 +1065,7 @@ restore_saved_game()
 
     if (validate(fd, fq_save) != 0) {
         (void) nhclose(fd), fd = -1;
+
         (void) delete_savefile();
     }
     return fd;
