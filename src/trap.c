@@ -5163,7 +5163,8 @@ int when;
     else if (selected_trap == STATIC_SHOCK && before && bodypart == FINGER
              && (action == D_ISOPEN || action == D_CLOSED
                  || action == -D_LOCKED || action == -D_TRAPPED)) {
-        dmg = rnd(lvl * 2) / (Shock_resistance ? 4 : 1);
+        boolean resists = (byu ? Shock_resistance : resists_elec(mon));
+        dmg = rnd(lvl * 2) / (resists ? 4 : 1);
         dmg += 1;
         if (byu) {
             pline("An electric spark from the doorknob zaps you!");
