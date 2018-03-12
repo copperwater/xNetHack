@@ -5,10 +5,11 @@ descendent of Rogue and Hack, and a direct descendant of NetHack 3.6. For more
 information on NetHack, visit http://nethack.org, and for its public Git
 repository, see https://github.com/NetHack/NetHack.
 
-The purpose of xNetHack is experimentation: to apply one or several new
-features, improvements, or balance tweaks to vanilla NetHack at a time, so
-their benefits and drawbacks can be examined without piling on other changes,
-as all current variants do. Once a change has been tested enough, the
-differences from vanilla will be saved as a patch and the rest of the code will
-be reset to vanilla 3.6 so a new change can be put forth for testing.
+The purpose of xNetHack is to take vanilla 3.6 and fix game balance issues, remove common sources of frustration and tedium, and experiment with new ideas from the community.
+
+xNetHack's public Git repository can be accessed at
+https://github.com/copperwater/xNetHack. Its changelog can be viewed at
+https://raw.githubusercontent.com/copperwater/xNetHack/xnh0.1.0/xnh-changelog.txt. A more human-readable version of this is available on the NetHack wiki: https://nethackwiki.com/wiki/XNetHack.
+
+The ideas and proposals that xNetHack draws from are archived on the NetHack wiki, [here](https://nethackwiki.com/wiki/User:Phol_ende_wodan/YANI/IRC_archive) and [here](https://nethackwiki.com/wiki/User:Phol_ende_wodan/YANI). These pages are maintained by the xNetHack author.
 
