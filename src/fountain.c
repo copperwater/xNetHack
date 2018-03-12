@@ -397,6 +397,7 @@ register struct obj *obj;
             /* even if not wielded, it's assumed you're touching Excalibur to
              * get it out of the water */
             u.uconduct.artitouch++;
+	    livelog_write_string(LL_ARTIFACT, "received Excalibur");
         }
         update_inventory();
         levl[u.ux][u.uy].typ = ROOM;

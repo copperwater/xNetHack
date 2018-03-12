@@ -282,18 +282,26 @@ register struct monst *mtmp;
         if (offer >= demand) {
             pline("%s vanishes, laughing about cowardly mortals.",
                   Amonnam(mtmp));
+            livelog_printf(LL_UMONST, "bribed %s with %ld %s for safe passage",
+                  Amonnam(mtmp), offer, currency(offer));
         }
         else if (offer == cash && offer > 0 && cash >= demand / 2 && !rn2(50)) {
             /* monster may rarely take pity on you if you hand over everything
              * you have */
             pline("%s grudgingly grabs your money bag, then vanishes.",
                     Amonnam(mtmp));
+            livelog_printf(LL_UMONST,
+                           "turned out their pockets for %s for safe passage",
+                           Amonnam(mtmp));
         }
         else if((long) rnd(100 * ACURR(A_CHA)) > (demand - offer)) {
             /* monster may also decide that being shortchanged by a small
              * amount isn't worth risking their life */
             pline("%s scowls at you menacingly, then vanishes.",
                   Amonnam(mtmp));
+            livelog_printf(LL_UMONST,
+                           "shortchanged %s with %ld %s for safe passage",
+                           Amonnam(mtmp), offer, currency(offer));
         }
         else {
             pline("%s gets angry...", Amonnam(mtmp));
