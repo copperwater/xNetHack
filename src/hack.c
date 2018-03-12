@@ -1730,26 +1730,25 @@ domove()
             /* can't swap places when pet won't fit thru the opening */
             You("stop.  %s won't fit through.", upstart(y_monnam(mtmp)));
             didnt_move = TRUE;
-        } else if (mtmp->mpeaceful && !mtmp->mtame) {
-            if (mtmp->mtrapped) {
-                /* TODO: pets can get angered when displaced out of a trap.
-                 * Having peaceful monsters simply refuse is inconsistent.
-                 * Probably, pets should not be able to be displaced out of a
-                 * trap like a pit or bear trap at all. */
-                You("stop.  %s can't move out of that trap.",
-                    upstart(y_monnam(mtmp)));
-                didnt_move = TRUE;
-            } else if (!goodpos(u.ux0, u.uy0, mtmp, 0)
+        } else if (mtmp->mpeaceful && !mtmp->mtame && mtmp->mtrapped) {
+            /* TODO: pets can get angered when displaced out of a trap.
+             * Having peaceful monsters simply refuse is inconsistent.
+             * Probably, pets should not be able to be displaced out of a
+             * trap like a pit or bear trap at all. */
+            You("stop.  %s can't move out of that trap.",
+                upstart(y_monnam(mtmp)));
+            didnt_move = TRUE;
+        } else if (mtmp->mpeaceful && !mtmp->mtame
+                   && (!goodpos(u.ux0, u.uy0, mtmp, 0)
                        || t_at(u.ux0, u.uy0) != NULL
                        || mtmp->ispriest
                        || mtmp->data == &mons[PM_ORACLE]
-                       || mtmp->m_id == quest_status.leader_m_id) {
-                /* displacing peaceful into unsafe or trapped space, or trying to
-                 * displace quest leader, Oracle, or priest */
-                You("stop.  %s doesn't want to swap places.",
-                    upstart(y_monnam(mtmp)));
-                didnt_move = TRUE;
-            }
+                       || mtmp->m_id == quest_status.leader_m_id)) {
+            /* displacing peaceful into unsafe or trapped space, or trying to
+             * displace quest leader, Oracle, or priest */
+            You("stop.  %s doesn't want to swap places.",
+                upstart(y_monnam(mtmp)));
+            didnt_move = TRUE;
         } else {
             /* if trapped, there's a chance the pet goes wild */
             if (mtmp->mtrapped) {
