@@ -19,8 +19,6 @@ Add the Gnomish Sewer Mines' End (dark twisty water level with many rings)
 Replace poison instadeath with "potent" poison causing severe HP loss
 Scroll of light now gives 11 radius when uncursed and lights up the entire level when blessed
 Scroll of teleport now gives a controlled teleport when blessed
-Sinks render as blue \, drawbridges as orange +
-Recolor royal jelly to magenta
 Make scroll of remove curse type-IDed when one successfully changes the beatitude of items in inventory.
 Green slimes have an engulfing attack that starts sliming
 Candle light radius is now sqrt(x)+1 instead of log_7(x)+1
@@ -87,6 +85,8 @@ It contains the following non-gameplay interface changes:
 Using the open command to target "." (self) is an alias for #loot
 When you ascend with a non-starting alignment, the end-of-game reason is "ascended (in dishonor)".
 The Ranger pantheon changes Mercury (lawful) to Apollo and Venus (neutral) to Diana
+Sinks render as blue \, drawbridges as orange +
+Recolor royal jelly to magenta
 Whenever monsters polymorph in sight of the hero, print a message saying what they turned into
 After sacrificing the Amulet to Moloch, you get flavor text of an invisible choir chanting in Latin and being bathed in darkness
 Correct "Thou cannot escape my wrath, mortal!" to "canst not"
