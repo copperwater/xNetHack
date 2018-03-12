@@ -463,7 +463,7 @@ struct obj *pick;
 
         if (door_is_closed(door)) {
             /* credit cards are only good for unlocking */
-            if (picktyp == CREDIT_CARD && door_is_locked(door)) {
+            if (picktyp == CREDIT_CARD && !door_is_locked(door)) {
                 You_cant("lock a door with a credit card.");
                 return PICKLOCK_LEARNED_SOMETHING;
             }
