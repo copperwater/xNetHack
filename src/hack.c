@@ -1703,6 +1703,9 @@ domove()
      * be caught by the normal falling-monster code.
      */
     if (is_safepet(mtmp) && !(is_hider(mtmp->data) && mtmp->mundetected)) {
+        /* if it turns out we can't actually move */
+        boolean didnt_move = FALSE;
+
         /* seemimic/newsym should be done before moving hero, otherwise
            the display code will draw the hero here before we possibly
            cancel the swap below (we can ignore steed mx,my here) */
@@ -1716,34 +1719,37 @@ domove()
             && (trap->ttyp == PIT || trap->ttyp == SPIKED_PIT)
             && sobj_at(BOULDER, trap->tx, trap->ty)) {
             /* can't swap places with pet pinned in a pit by a boulder */
-            u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
-            if (u.usteed)
-                u.usteed->mx = u.ux, u.usteed->my = u.uy;
+            didnt_move = TRUE;
         } else if (u.ux0 != x && u.uy0 != y && NODIAG(mtmp->data - mons)) {
             /* can't swap places when pet can't move to your spot */
-            u.ux = u.ux0, u.uy = u.uy0;
-            if (u.usteed)
-                u.usteed->mx = u.ux, u.usteed->my = u.uy;
             You("stop.  %s can't move diagonally.", upstart(y_monnam(mtmp)));
+            didnt_move = TRUE;
         } else if (u.ux0 != x && u.uy0 != y && bad_rock(mtmp->data, x, u.uy0)
                    && bad_rock(mtmp->data, u.ux0, y)
                    && (bigmonst(mtmp->data) || (curr_mon_load(mtmp) > 600))) {
             /* can't swap places when pet won't fit thru the opening */
-            u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
-            if (u.usteed)
-                u.usteed->mx = u.ux, u.usteed->my = u.uy;
             You("stop.  %s won't fit through.", upstart(y_monnam(mtmp)));
-        } else if (mtmp->mpeaceful && !mtmp->mtame
-                   && (!goodpos(u.ux0, u.uy0, mtmp, 0)
+            didnt_move = TRUE;
+        } else if (mtmp->mpeaceful && !mtmp->mtame) {
+            if (mtmp->mtrapped) {
+                /* TODO: pets can get angered when displaced out of a trap.
+                 * Having peaceful monsters simply refuse is inconsistent.
+                 * Probably, pets should not be able to be displaced out of a
+                 * trap like a pit or bear trap at all. */
+                You("stop.  %s can't move out of that trap.",
+                    upstart(y_monnam(mtmp)));
+                didnt_move = TRUE;
+            } else if (!goodpos(u.ux0, u.uy0, mtmp, 0)
                        || t_at(u.ux0, u.uy0) != NULL
                        || mtmp->ispriest
                        || mtmp->data == &mons[PM_ORACLE]
-                       || mtmp->m_id == quest_status.leader_m_id)) {
-            /* displacing peaceful into unsafe or trapped space, or trying to
-             * displace quest leader, Oracle, or priest */
-            u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
-            You("stop.  %s doesn't want to swap places.",
-                upstart(y_monnam(mtmp)));
+                       || mtmp->m_id == quest_status.leader_m_id) {
+                /* displacing peaceful into unsafe or trapped space, or trying to
+                 * displace quest leader, Oracle, or priest */
+                You("stop.  %s doesn't want to swap places.",
+                    upstart(y_monnam(mtmp)));
+                didnt_move = TRUE;
+            }
         } else {
             /* if trapped, there's a chance the pet goes wild */
             if (mtmp->mtrapped) {
@@ -1813,6 +1819,13 @@ domove()
                 break;
             }
         }
+
+        if (didnt_move) {
+            u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
+            if (u.usteed)
+                u.usteed->mx = u.ux, u.usteed->my = u.uy;
+        }
+
         mtmp->mundetected = 0;
         if (mtmp->m_ap_type)
             seemimic(mtmp);
