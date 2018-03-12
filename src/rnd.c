@@ -21,16 +21,12 @@ int
 rn2(x)
 register int x;
 {
-#ifdef BETA
     if (x <= 0) {
-        impossible("rn2(%d) attempted", x);
+        impossible("rn2(%d) attempted, returning 0", x);
         return 0;
     }
     x = RND(x);
     return x;
-#else
-    return RND(x);
-#endif
 }
 
 /* 0 <= rnl(x) < x; sometimes subtracting Luck;
@@ -41,12 +37,10 @@ register int x;
 {
     register int i, adjustment;
 
-#ifdef BETA
     if (x <= 0) {
-        impossible("rnl(%d) attempted", x);
+        impossible("rnl(%d) attempted, returning 0", x);
         return 0;
     }
-#endif
 
     adjustment = Luck;
     if (x <= 15) {
@@ -83,12 +77,10 @@ int
 rnd(x)
 register int x;
 {
-#ifdef BETA
     if (x <= 0) {
-        impossible("rnd(%d) attempted", x);
+        impossible("rnd(%d) attempted, returning 1", x);
         return 1;
     }
-#endif
     x = RND(x) + 1;
     return x;
 }
@@ -100,12 +92,10 @@ register int n, x;
 {
     register int tmp = n;
 
-#ifdef BETA
     if (x < 0 || n < 0 || (x == 0 && n != 0)) {
-        impossible("d(%d,%d) attempted", n, x);
+        impossible("d(%d,%d) attempted, returning 1", n, x);
         return 1;
     }
-#endif
     while (n--)
         tmp += RND(x);
     return tmp; /* Alea iacta est. -- J.C. */
