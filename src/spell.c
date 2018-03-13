@@ -162,6 +162,7 @@ struct obj *bp;
         }
         return TRUE;
     default:
+        impossible("spellbook level out of bounds");
         rndcurse();
         break;
     }
