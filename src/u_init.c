@@ -116,6 +116,7 @@ static struct trobj Ranger[] = {
     { ARROW, 0, WEAPON_CLASS, 30, UNDEF_BLESS },
     { CLOAK_OF_DISPLACEMENT, 2, ARMOR_CLASS, 1, UNDEF_BLESS },
     { CRAM_RATION, 0, FOOD_CLASS, 4, 0 },
+    { BEARTRAP, 0, TOOL_CLASS, 2, 0 },
     { 0, 0, 0, 0, 0 }
 };
 static struct trobj Rogue[] = {
