@@ -684,8 +684,8 @@ TOOL("figurine",            None, 1, 0, 1, 0, 25, 50, 80, MINERAL, HI_MINERAL),
         /* monster type specified by obj->corpsenm */
 TOOL("magic marker",        None, 1, 0, 1, 1, 15,  2, 50, PLASTIC, CLR_RED),
 /* traps */
-TOOL("land mine",           None, 1, 0, 0, 0, 0, 300,180, IRON, CLR_RED),
-TOOL("beartrap",            None, 1, 0, 0, 0, 0, 200, 60, IRON, HI_METAL),
+TOOL("land mine",           None, 1, 0, 0, 0, 0,  40,180, IRON, CLR_RED),
+TOOL("beartrap",            None, 1, 0, 0, 0, 0,  50, 60, IRON, HI_METAL),
 /* instruments;
    "If tin whistles are made out of tin, what do they make foghorns out of?" */
 TOOL("tin whistle",    "whistle", 0, 0, 0, 0,100, 3, 10, METAL, HI_METAL),
