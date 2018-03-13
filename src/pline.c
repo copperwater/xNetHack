@@ -447,6 +447,7 @@ VA_DECL(const char *, s)
     pline("%s", VA_PASS1(pbuf));
     pline(VA_PASS1(
        "Program in disorder!  (Saving and reloading may fix this problem.)"));
+    pline("Please report these messages to the developer.");
     program_state.in_impossible = 0;
     VA_END();
 }
