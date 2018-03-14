@@ -362,7 +362,7 @@ const struct Role roles[] = {
         { "Archer", 0 },
         { "Sharpshooter", 0 },
         { "Marksman", "Markswoman" } },
-      "Apollo", "Diana", "Mars", /* Roman/planets */
+      "Apollo", "_Diana", "Mars", /* Roman/planets */
       "Ran",
       "Orion's camp",
       "the cave of the wumpus",
