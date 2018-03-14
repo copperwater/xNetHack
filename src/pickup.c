@@ -1482,6 +1482,9 @@ thiefstone_accepts(stone, obj)
 struct obj* stone;
 struct obj* obj;
 {
+    if (stone->keyed_level == 0) { /* cancelled */
+        return FALSE;
+    }
     if (obj->owornmask) {
         return FALSE;
     }
@@ -1505,6 +1508,11 @@ struct obj* stone;
 struct obj* obj;
 {
     xchar ledger = stone->keyed_ledger;
+    if (ledger == 0) {
+        /* cancelled stone */
+        impossible("thiefstone_teleport: called with cancelled stone");
+        return;
+    }
     if (!thiefstone_accepts(stone, obj)) {
         /* don't teleport if the item is of an inappropriate type */
         impossible("thiefstone_teleport: unacceptable object");
