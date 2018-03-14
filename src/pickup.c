@@ -1482,7 +1482,7 @@ thiefstone_accepts(stone, obj)
 struct obj* stone;
 struct obj* obj;
 {
-    if (stone->keyed_level == 0) { /* cancelled */
+    if (stone->keyed_ledger == 0) { /* cancelled */
         return FALSE;
     }
     if (obj->owornmask) {
