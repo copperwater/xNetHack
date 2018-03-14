@@ -1679,6 +1679,38 @@ domove()
         return;
     }
 
+    /* Paranoid checks for dangerous moves, unless specified with 'm' */
+    if (!context.nopick || context.run) {
+        boolean known_wwalking, known_lwalking;
+        known_wwalking = (uarmf && uarmf->otyp == WATER_WALKING_BOOTS
+                          && objects[WATER_WALKING_BOOTS].oc_name_known
+                          && !u.usteed);
+        /* FIXME: This can be exploited to identify the ring of fire resistance
+         * if the player is wearing it unidentified and has identified
+         * fireproof boots of water walking and is walking over lava. However,
+         * this is such a marginal case that it may not be worth fixing. */
+        known_lwalking = (known_wwalking && Fire_resistance &&
+                          uarmf->oerodeproof && uarmf->rknown);
+        if (!Levitation && !Flying && !is_clinger(youmonst.data) && !Stunned
+            && !Confusion && levl[x][y].seenv
+            && ((is_pool(x, y) && !is_pool(u.ux, u.uy))
+                || (is_lava(x, y) && !is_lava(u.ux, u.uy)))) {
+            if (is_pool(x, y) && !known_wwalking
+                && !paranoid_query(ParanoidSwim, "Really enter the water?")) {
+                context.move = 0;
+                nomul(0);
+                return;
+            }
+            else if (is_lava(x, y) && !known_lwalking
+                     && !paranoid_query(ParanoidSwim,
+                                        "Really enter the lava?")) {
+                context.move = 0;
+                nomul(0);
+                return;
+            }
+        }
+    }
+
     /* Move ball and chain.  */
     if (Punished)
         if (!drag_ball(x, y, &bc_control, &ballx, &bally, &chainx, &chainy,
