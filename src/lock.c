@@ -639,8 +639,7 @@ int x, y;
         return 0;
 
     if ((cc.x == u.ux) && (cc.y == u.uy)) {
-        doloot();
-        return 0;
+        return doloot();
     }
 
     if (stumble_on_door_mimic(cc.x, cc.y))
