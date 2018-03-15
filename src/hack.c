@@ -1666,6 +1666,35 @@ domove()
     if (u_rooted())
         return;
 
+    /* warn player before walking into known traps */
+    trap = t_at(x, y);
+    if (trap && trap->tseen && !Stunned && !Confusion) {
+        /* TODO: fancy fiqhack logic that doesn't warn you if you're known
+         * immune to the trap */
+        char qbuf[QBUFSZ];
+        boolean into = FALSE; /* "onto" the trap vs "into" */
+        switch (trap->ttyp) {
+        case BEAR_TRAP:
+        case PIT:
+        case SPIKED_PIT:
+        case HOLE:
+        case TELEP_TRAP:
+        case LEVEL_TELEP:
+        case MAGIC_PORTAL:
+        case WEB:
+            into = TRUE;
+        }
+        snprintf(qbuf, QBUFSZ, "Really %s %sto that %s?",
+                 locomotion(youmonst.data, "step"),
+                 (into ? "in" : "on"),
+                 defsyms[trap_to_defsym(trap->ttyp)].explanation);
+        if (!paranoid_query(ParanoidTrap, qbuf)) {
+            nomul(0);
+            context.move = 0;
+            return;
+        }
+    }
+
     if (u.utrap) {
         if (!trapmove(x, y, trap))
             return;

@@ -148,6 +148,7 @@ Recolor many monsters:
 * Barrow wights are recolored from gray to bright blue
 * Acid blobs are recolored to bright green
 Add "swim" to the list of paranoid_confirmation options, and always prompt before entering water (having it in paranoid_confirmation simply requires you type out "yes"). Moving with m will not prompt at all.
+Add "trap" to the list of paranoid_confirmation options, and always prompt before stepping onto a trap.
 
 It contains the following non-gameplay architectural changes:
 
