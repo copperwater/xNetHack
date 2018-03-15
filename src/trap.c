@@ -5367,9 +5367,12 @@ int when;
         else {
             You_hear("a distant explosion.");
         }
-        explode(x, y, 11, rnd(lvl), TRAPPED_DOOR, EXPL_FIERY);
-        set_doorstate(door, D_BROKEN);
+        /* need to remove trap now because otherwise explode() will destroy the
+         * door and call doortrapped() again */
         set_door_trap(door, FALSE); /* trap is gone */
+        explode(x, y, 11, rnd(lvl), TRAPPED_DOOR, EXPL_FIERY);
+        /* don't need to set doorstate since the door should be consumed in
+         * flames */
     }
     if ((saved_doorstate != D_NODOOR && saved_doorstate != D_BROKEN)
         && (doorstate(door) == D_NODOOR || doorstate(door) == D_BROKEN)) {
