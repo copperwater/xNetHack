@@ -842,7 +842,10 @@ struct trap *trap;
  * Note: this does NOT mean "will a monster trigger a trap in the first place",
  * though if it won't that does imply that they'll not suffer adverse effects.
  * For example, an elf is considered immune to sleeping gas traps even though
- * they'll set the trap off. */
+ * they'll set the trap off.
+ * Return value: 0 = not immune, 1 = obviously immune, 2 = immune but in a
+ * non-obvious way such as an unidentified item or hidden intrinsic providing a
+ * resistance; the player should still be warned of this trap. */
 boolean
 immune_to_trap(mon, ttype)
 struct monst* mon;
@@ -850,10 +853,11 @@ xchar ttype;
 {
     if (!mon) {
         impossible("immune_to_trap: null monster");
-        return FALSE;
+        return 0;
     }
     struct permonst * pm = mon->data;
     boolean you = (mon == &youmonst);
+
     switch(ttype) {
     case ARROW_TRAP:
     case DART_TRAP:
@@ -862,7 +866,7 @@ xchar ttype;
     case BEAR_TRAP:
         if (pm->msize <= MZ_SMALL || amorphous(pm) || is_whirly(pm)
             || unsolid(pm))
-            return TRUE;
+            return 1;
         /* FALLTHRU */
     case SQKY_BOARD:
     case LANDMINE:
@@ -875,29 +879,31 @@ xchar ttype;
          * hanging to the ceiling */
         if (Sokoban && (ttype == PIT || ttype == SPIKED_PIT || ttype == HOLE
                         || ttype == TRAPDOOR))
-            return FALSE;
+            return 0;
         if (is_floater(pm) || is_flyer(pm) || is_clinger(pm))
-            return TRUE;
+            return 1;
         else if (you && (Levitation || Flying))
-            return TRUE;
-        return FALSE;
+            return 1;
+        return 0;
     case SLP_GAS_TRAP:
-        if (breathless(pm) || resists_sleep(mon))
-            return TRUE;
+        if (breathless(pm))
+            return 1;
+        else if (!you && resists_sleep(mon))
+            return 1;
         else if (you && Sleep_resistance)
-            return TRUE;
-        return FALSE;
+            return 2;
+        return 0;
     case LEVEL_TELEP:
     case TELEP_TRAP:
         /* consider unintended teleporting to be an adverse effect */
         if (In_endgame(&u.uz) || mon_has_amulet(mon))
-            return TRUE;
+            return 1;
         /* FALLTHRU */
     case POLY_TRAP:
-        if (resists_magm(mon) || (you && Antimagic))
-            /* Antimagic should be covered by resists_magm, but just in case */
-            return TRUE;
-        return FALSE;
+        if (resists_magm(mon))
+            /* covers Antimagic for player */
+            return (you ? 2 : 1);
+        return 0;
     case STATUE_TRAP:
         /* no effect on monsters, only affects players; even so, a player should
          * never actually be able to see a statue trap without triggering it;
@@ -907,68 +913,73 @@ xchar ttype;
         /* most of this code is lifted from mu_maybe_destroy_web */
         if (webmaker(pm) || amorphous(pm) || is_whirly(pm) || flaming(pm)
             || unsolid(pm) || pm == &mons[PM_GELATINOUS_CUBE])
-            return TRUE;
-        return FALSE;
+            return 1;
+        return 0;
     case ANTI_MAGIC:
         /* doesn't hurt any non-magic-resistant monster with no magic */
         if (you) {
-            if (!Antimagic && u.uenmax == 0)
-                return TRUE;
+            if (Antimagic)
+                return 0;
+            else if (u.uenmax == 0)
+                /* player won't lose HP and can't lose more Pw */
+                return 2;
         }
         /* following conditional lifted from mintrap ANTI_MAGIC logic */
         else if (!resists_magm(mon)
                  && (mon->mcan || (!attacktype(pm, AT_MAGC)
                                    && !attacktype(pm, AT_BREA)))) {
-            return TRUE;
+            return 1;
         }
-        return FALSE;
+        return 0;
     case RUST_TRAP:
         /* harmful if wearing anything rustable or if the monster is an iron
          * golem */
         if (pm == &mons[PM_IRON_GOLEM])
-            return FALSE;
+            return 0;
         else {
             struct obj * obj = (you ? invent : mon->minvent);
             for (; obj; obj = obj->nobj) {
                 /* rust traps can currently hit only worn armor and weapons */
                 if (is_rustprone(obj) && obj->owornmask) {
-                    return FALSE;
+                    return 0;
                 }
             }
         }
-        return TRUE;
+        return 1;
     case MAGIC_TRAP:
         /* for player, any number of bad effects.
          * for monsters, only replicates fire trap, so fall through */
         if (you)
-            return FALSE;
+            return 0;
         /* else FALLTHRU */
     case FIRE_TRAP: /* can always destroy items being carried */
         /* harmful if wearing anything burnable or if the monster isn't
          * resistant */
-        if (!resists_fire(mon))
-            return FALSE;
+        if (you && !Fire_resistance)
+            return 0;
+        else if (!you && !resists_fire(mon))
+            return 0;
         else {
             struct obj * obj = (you ? invent : mon->minvent);
             for (; obj; obj = obj->nobj) {
                 if (obj->oclass == SCROLL_CLASS || obj->oclass == POTION_CLASS
                     || obj->oclass == SPBOOK_CLASS
                     || (obj->owornmask && is_flammable(obj)))
-                    return FALSE;
+                    return 0;
             }
         }
-        return TRUE;
+        return (you ? 2 : 1);
     case MAGIC_PORTAL:
         /* never hurts monsters, but player is considered non-immune so they
          * can be asked about entering it */
         return !you;
     case VIBRATING_SQUARE:
         /* no adverse effects */
-        return TRUE;
+        return 1;
     default:
         impossible("immune_to_trap: bad ttype %d", ttype);
     }
-    return FALSE;
+    return 0;
 }
 
 void
