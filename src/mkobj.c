@@ -791,6 +791,8 @@ boolean artif;
 
             if (artif && !rn2(20))
                 otmp = mk_artifact(otmp, (aligntyp) A_NONE);
+            else if (!rn2(40))
+                otmp->oerodeproof = 1;
             break;
         case FOOD_CLASS:
             otmp->oeaten = 0;
