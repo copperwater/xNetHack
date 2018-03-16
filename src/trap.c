@@ -862,7 +862,9 @@ xchar ttype;
     case ARROW_TRAP:
     case DART_TRAP:
     case ROCKTRAP:
-        return noncorporeal(pm);
+        /* can hit anything. Even noncorporeal monsters might get a blessed
+         * projectile. */
+        return FALSE;
     case BEAR_TRAP:
         if (pm->msize <= MZ_SMALL || amorphous(pm) || is_whirly(pm)
             || unsolid(pm))
