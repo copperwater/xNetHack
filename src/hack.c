@@ -1673,8 +1673,9 @@ domove()
         /* note on hallucination: all traps still show as ^, but the hero can't
          * tell what they are, so warn of every trap. */
         char qbuf[QBUFSZ];
+        xchar traptype = (Hallucination ? rnd(TRAPNUM - 1) : trap->ttyp);
         boolean into = FALSE; /* "onto" the trap vs "into" */
-        switch (trap->ttyp) {
+        switch (traptype) {
         case BEAR_TRAP:
         case PIT:
         case SPIKED_PIT:
@@ -1685,7 +1686,6 @@ domove()
         case WEB:
             into = TRUE;
         }
-        xchar traptype = (Hallucination ? rnd(TRAPNUM - 1) : trap->ttyp);
         snprintf(qbuf, QBUFSZ, "Really %s %sto that %s?",
                  locomotion(youmonst.data, "step"),
                  (into ? "in" : "on"),
