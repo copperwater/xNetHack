@@ -709,7 +709,7 @@ WEPTOOL("pick-axe", None,
 WEPTOOL("grappling hook", "iron hook",
         0, 0, 0,  5,  30,  50,  2,  6, WHACK,  P_FLAIL,    IRON, HI_METAL),
 WEPTOOL("unicorn horn", None,
-        1, 1, 0,  0,  20, 100, 3, 12, PIERCE, P_UNICORN_HORN,
+        1, 1, 0,  0,  20, 100, 8, 10, PIERCE, P_UNICORN_HORN,
                                                            BONE, CLR_WHITE),
         /* 3.4.1: unicorn horn left classified as "magic" */
 /* two unique tools;
