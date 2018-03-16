@@ -2436,7 +2436,7 @@ boolean by_you; /* true: if mon kills itself, hero gets credit/blame */
             if (vis)
                 pline("%s %s %s %s fire trap!", Mnam,
                       vtense(Mnam, locomotion(mon->data, "move")),
-                      is_floater(mon->data) ? "over" : "onto",
+                      !grounded(mon->data) ? "over" : "onto",
                       trap->tseen ? "the" : "a");
         }
         /* hack to avoid mintrap()'s chance of avoiding known trap */

@@ -296,7 +296,7 @@ boolean force;      /* Quietly force this animal */
     }
 
     /* Is the player impaired? */
-    if (!force && !is_floater(ptr) && !is_flyer(ptr) && Levitation
+    if (!force && grounded(ptr) && Levitation
         && !Lev_at_will) {
         You("cannot reach %s.", mon_nam(mtmp));
         return (FALSE);
@@ -553,7 +553,7 @@ int reason; /* Player was thrown off etc. */
             struct permonst *mdat = mtmp->data;
 
             /* The steed may drop into water/lava */
-            if (!is_flyer(mdat) && !is_floater(mdat) && !is_clinger(mdat)) {
+            if (grounded(mdat)) {
                 if (is_pool(u.ux, u.uy)) {
                     if (!Underwater)
                         pline("%s falls into the %s!", Monnam(mtmp),

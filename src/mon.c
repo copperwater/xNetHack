@@ -469,11 +469,8 @@ register struct monst *mtmp;
 {
     boolean inpool, inlava, infountain;
 
-    /* [what about ceiling clingers?] */
-    inpool = (is_pool(mtmp->mx, mtmp->my)
-              && !(is_flyer(mtmp->data) || is_floater(mtmp->data)));
-    inlava = (is_lava(mtmp->mx, mtmp->my)
-              && !(is_flyer(mtmp->data) || is_floater(mtmp->data)));
+    inpool = (is_pool(mtmp->mx, mtmp->my) && !grounded(mtmp->data));
+    inlava = (is_lava(mtmp->mx, mtmp->my) && !grounded(mtmp->data));
     infountain = IS_FOUNTAIN(levl[mtmp->mx][mtmp->my].typ);
 
     /* Flying and levitation keeps our steed out of the liquid */
@@ -514,7 +511,7 @@ register struct monst *mtmp;
          * protect their stuff. Fire resistant monsters can only protect
          * themselves  --ALI
          */
-        if (!is_clinger(mtmp->data) && !likes_lava(mtmp->data)) {
+        if (!likes_lava(mtmp->data)) {
             if (!resists_fire(mtmp)) {
                 if (cansee(mtmp->mx, mtmp->my)) {
                     struct attack *dummy = &mtmp->data->mattk[0];
@@ -548,7 +545,7 @@ register struct monst *mtmp;
          * water damage to dead monsters' inventory, but survivors need to
          * be handled here.  Swimmers are able to protect their stuff...
          */
-        if (!is_clinger(mtmp->data) && !is_swimmer(mtmp->data)
+        if (!is_swimmer(mtmp->data)
             && !amphibious(mtmp->data)) {
             if (cansee(mtmp->mx, mtmp->my)) {
                 pline("%s drowns.", Monnam(mtmp));
@@ -1314,9 +1311,8 @@ long flag;
 
     nodiag = NODIAG(mdat - mons);
     wantpool = mdat->mlet == S_EEL;
-    poolok = (is_flyer(mdat) || is_clinger(mdat)
-              || (is_swimmer(mdat) && !wantpool));
-    lavaok = (is_flyer(mdat) || is_clinger(mdat) || likes_lava(mdat));
+    poolok = (!grounded(mdat) || (is_swimmer(mdat) && !wantpool));
+    lavaok = (!grounded(mdat) || likes_lava(mdat));
     thrudoor = ((flag & (ALLOW_WALL | BUSTDOOR)) != 0L);
     poisongas_ok = ((nonliving(mdat) || is_vampshifter(mon)
                      || breathless(mdat)) || resists_poison(mon));
@@ -1490,15 +1486,14 @@ nexttry: /* eels prefer the water, but if there is no water nearby,
                         && ttmp->ttyp != STATUE_TRAP
                         && ((ttmp->ttyp != PIT && ttmp->ttyp != SPIKED_PIT
                              && ttmp->ttyp != TRAPDOOR && ttmp->ttyp != HOLE)
-                            || (!is_flyer(mdat) && !is_floater(mdat)
-                                && !is_clinger(mdat)) || Sokoban)
+                            || (grounded(mdat)) || Sokoban)
                         && (ttmp->ttyp != SLP_GAS_TRAP || !resists_sleep(mon))
                         && (ttmp->ttyp != BEAR_TRAP
                             || (mdat->msize > MZ_SMALL && !amorphous(mdat)
-                                && !is_flyer(mdat) && !is_floater(mdat)
+                                && grounded(mdat)
                                 && !is_whirly(mdat) && !unsolid(mdat)))
                         && (ttmp->ttyp != FIRE_TRAP || !resists_fire(mon))
-                        && (ttmp->ttyp != SQKY_BOARD || !is_flyer(mdat))
+                        && (ttmp->ttyp != SQKY_BOARD || grounded(mdat))
                         && (ttmp->ttyp != WEB
                             || (!amorphous(mdat) && !webmaker(mdat)
                                 && !is_whirly(mdat) && !unsolid(mdat)))
@@ -2012,7 +2007,7 @@ register struct monst *mtmp;
         livelog_printf(LL_UMONST, "%s %s",
               nonliving(mtmp->data) ? "destroyed" : "killed",
               noit_mon_nam(mtmp));
-    
+
     if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
         unmap_object(mtmp->mx, mtmp->my);
     m_detach(mtmp, mptr);
@@ -2502,7 +2497,7 @@ struct monst *mtmp;
                              (SUPPRESS_SADDLE | SUPPRESS_HALLUCINATION
                               | SUPPRESS_INVISIBLE | SUPPRESS_IT), FALSE),
                     amorphous(mtmp->data) ? "coalesces on the"
-                       : is_flyer(mtmp->data) ? "drops to the"
+                       : !grounded(mtmp->data) ? "drops to the"
                           : "writhes on the",
                     surface(x,y));
             mtmp->mcanmove = 1;

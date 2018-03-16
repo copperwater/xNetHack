@@ -488,7 +488,7 @@ boolean td; /* td == TRUE : trap door or hole */
         ; /* KMH -- You can't escape the Sokoban level traps */
     else if (Levitation || u.ustuck
              || (!Can_fall_thru(&u.uz) && !levl[u.ux][u.uy].candig) || Flying
-             || is_clinger(youmonst.data)
+             || !grounded(youmonst.data)
              || (Inhell && !u.uevent.invoked && newlevel == bottom)) {
         dont_fall = "don't fall in.";
     } else if (youmonst.data->msize >= MZ_HUGE) {
@@ -880,7 +880,7 @@ xchar ttype;
         if (Sokoban && (ttype == PIT || ttype == SPIKED_PIT || ttype == HOLE
                         || ttype == TRAPDOOR))
             return 0;
-        if (is_floater(pm) || is_flyer(pm) || is_clinger(pm))
+        if (!grounded(pm))
             return 1;
         else if (you && (Levitation || Flying))
             return 1;
@@ -1025,7 +1025,7 @@ unsigned trflags;
         if (!Fumbling && ttype != MAGIC_PORTAL && ttype != VIBRATING_SQUARE
             && ttype != ANTI_MAGIC && !forcebungle && !plunged && !adj_pit
             && (!rn2(5) || ((ttype == PIT || ttype == SPIKED_PIT)
-                            && is_clinger(youmonst.data)))) {
+                            && !grounded(youmonst.data)))) {
             You("escape %s %s.", (ttype == ARROW_TRAP && !trap->madeby_u)
                                      ? "an"
                                      : a_your[trap->madeby_u],
@@ -1275,7 +1275,7 @@ unsigned trflags;
         if (!Sokoban && (Levitation || (Flying && !plunged)))
             break;
         feeltrap(trap);
-        if (!Sokoban && is_clinger(youmonst.data) && !plunged) {
+        if (!Sokoban && !grounded(youmonst.data) && !plunged) {
             if (trap->tseen) {
                 You_see("%s %spit below you.", a_your[trap->madeby_u],
                         ttype == SPIKED_PIT ? "spiked " : "");
@@ -2350,7 +2350,7 @@ register struct monst *mtmp;
                 trapkilled = TRUE;
             break;
         case SQKY_BOARD:
-            if (is_flyer(mptr))
+            if (!grounded(mptr))
                 break;
             /* stepped on a squeaky board */
             if (in_sight) {
@@ -2375,7 +2375,7 @@ register struct monst *mtmp;
             wake_nearto(mtmp->mx, mtmp->my, 40);
             break;
         case BEAR_TRAP:
-            if (mptr->msize > MZ_SMALL && !amorphous(mptr) && !is_flyer(mptr)
+            if (mptr->msize > MZ_SMALL && !amorphous(mptr) && grounded(mptr)
                 && !is_whirly(mptr) && !unsolid(mptr)) {
                 mtmp->mtrapped = 1;
                 if (in_sight) {
@@ -2533,9 +2533,7 @@ register struct monst *mtmp;
         case PIT:
         case SPIKED_PIT:
             fallverb = "falls";
-            if (is_flyer(mptr) || is_floater(mptr)
-                || (mtmp->wormno && count_wsegs(mtmp) > 5)
-                || is_clinger(mptr)) {
+            if (!grounded(mptr) || (mtmp->wormno && count_wsegs(mtmp) > 5)) {
                 if (force_mintrap && !Sokoban) {
                     /* openfallingtrap; not inescapable here */
                     if (in_sight) {
@@ -2570,8 +2568,7 @@ register struct monst *mtmp;
                            defsyms[trap_to_defsym(tt)].explanation);
                 break; /* don't activate it after all */
             }
-            if (is_flyer(mptr) || is_floater(mptr) || mptr == &mons[PM_WUMPUS]
-                || (mtmp->wormno && count_wsegs(mtmp) > 5)
+            if (!grounded(mptr) || (mtmp->wormno && count_wsegs(mtmp) > 5)
                 || mptr->msize >= MZ_HUGE) {
                 if (force_mintrap && !Sokoban) {
                     /* openfallingtrap; not inescapable here */
@@ -2721,7 +2718,7 @@ register struct monst *mtmp;
         case LANDMINE:
             if (rn2(3))
                 break; /* monsters usually don't set it off */
-            if (is_flyer(mptr)) {
+            if (!grounded(mptr)) {
                 boolean already_seen = trap->tseen;
 
                 if (in_sight && !already_seen) {
@@ -2776,7 +2773,7 @@ register struct monst *mtmp;
             }
             break;
         case ROLLING_BOULDER_TRAP:
-            if (!is_flyer(mptr)) {
+            if (grounded(mptr)) {
                 int style = ROLL | (in_sight ? 0 : LAUNCH_UNSEEN);
 
                 newsym(mtmp->mx, mtmp->my);

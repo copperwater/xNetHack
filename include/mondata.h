@@ -34,6 +34,7 @@
 #define is_flyer(ptr) (((ptr)->mflags1 & M1_FLY) != 0L)
 #define is_floater(ptr) ((ptr)->mlet == S_EYE || (ptr)->mlet == S_LIGHT)
 #define is_clinger(ptr) (((ptr)->mflags1 & M1_CLING) != 0L)
+#define grounded(ptr) (!is_flyer(ptr) && !is_floater(ptr) && !is_clinger(ptr))
 #define is_swimmer(ptr) (((ptr)->mflags1 & M1_SWIM) != 0L)
 #define breathless(ptr) (((ptr)->mflags1 & M1_BREATHLESS) != 0L)
 #define amphibious(ptr) \
@@ -98,6 +99,8 @@
 #define is_bat(ptr)                                         \
     ((ptr) == &mons[PM_BAT] || (ptr) == &mons[PM_GIANT_BAT] \
      || (ptr) == &mons[PM_VAMPIRE_BAT])
+#define is_bee(ptr) ((ptr) == &mons[PM_KILLER_BEE] \
+     || (ptr) == &mons[PM_QUEEN_BEE])
 #define is_bird(ptr) ((ptr)->mlet == S_BAT && !is_bat(ptr))
 #define is_giant(ptr) (((ptr)->mflags2 & M2_GIANT) != 0L)
 #define is_golem(ptr) ((ptr)->mlet == S_GOLEM)

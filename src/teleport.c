@@ -64,8 +64,7 @@ unsigned gpflags;
                 return (Levitation || Flying || Wwalking || Swimming
                         || Amphibious);
             else
-                return (is_floater(mdat) || is_flyer(mdat) || is_swimmer(mdat)
-                        || is_clinger(mdat));
+                return (!grounded(mdat) || is_swimmer(mdat));
         } else if (mdat->mlet == S_EEL && rn2(13) && !ignorewater) {
             return FALSE;
         } else if (is_lava(x, y)) {
@@ -75,8 +74,7 @@ unsigned gpflags;
                             && uarmf->oerodeproof)
                         || (Upolyd && likes_lava(youmonst.data)));
             else
-                return (is_floater(mdat) || is_flyer(mdat)
-                        || likes_lava(mdat));
+                return (!grounded(mdat) || likes_lava(mdat));
         }
         if (passes_walls(mdat) && may_passwall(x, y))
             return TRUE;

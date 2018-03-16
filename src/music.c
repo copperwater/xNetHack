@@ -340,8 +340,7 @@ int force;
                     /* We have to check whether monsters or player
                        falls in a chasm... */
                     if (mtmp) {
-                        if (!is_flyer(mtmp->data)
-                            && !is_clinger(mtmp->data)) {
+                        if (grounded(mtmp->data)) {
                             boolean m_already_trapped = mtmp->mtrapped;
                             mtmp->mtrapped = 1;
                             if (!m_already_trapped) { /* suppress messages */
@@ -376,7 +375,7 @@ int force;
                         }
                     } else if (x == u.ux && y == u.uy) {
                         if (Levitation || Flying
-                            || is_clinger(youmonst.data)) {
+                            || !grounded(youmonst.data)) {
                             if (!tu_pit) { /* no pit here previously */
                                 pline("A chasm opens up under you!");
                                 You("don't fall in!");

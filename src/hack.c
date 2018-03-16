@@ -844,7 +844,7 @@ int mode;
         struct trap *t = t_at(x, y);
 
         if ((t && t->tseen)
-            || (!Levitation && !Flying && !is_clinger(youmonst.data)
+            || (!Levitation && !Flying && grounded(youmonst.data)
                 && is_pool_or_lava(x, y) && levl[x][y].seenv))
             return (mode == TEST_TRAP);
     }
@@ -1394,8 +1394,8 @@ domove()
 
             if ((uarmf && objdescr_is(uarmf, "snow boots"))
                 || resists_cold(&youmonst)
-                || Flying || is_floater(youmonst.data)
-                || is_clinger(youmonst.data) || is_whirly(youmonst.data)) {
+                || Flying || !grounded(youmonst.data)
+                || is_whirly(youmonst.data)) {
                 on_ice = FALSE;
             } else if (!rn2(Cold_resistance ? 3 : 2)) {
                 HFumbling |= FROMOUTSIDE;
@@ -1436,7 +1436,7 @@ domove()
             return;
         }
         if (((trap = t_at(x, y)) && trap->tseen)
-            || (Blind && !Levitation && !Flying && !is_clinger(youmonst.data)
+            || (Blind && !Levitation && !Flying && grounded(youmonst.data)
                 && is_pool_or_lava(x, y) && levl[x][y].seenv)) {
             if (context.run >= 2) {
                 if (iflags.mention_walls) {
@@ -1722,7 +1722,7 @@ domove()
          * this is such a marginal case that it may not be worth fixing. */
         known_lwalking = (known_wwalking && Fire_resistance &&
                           uarmf->oerodeproof && uarmf->rknown);
-        if (!Levitation && !Flying && !is_clinger(youmonst.data) && !Stunned
+        if (!Levitation && !Flying && grounded(youmonst.data) && !Stunned
             && !Confusion && levl[x][y].seenv
             && ((is_pool(x, y) && !is_pool(u.ux, u.uy))
                 || (is_lava(x, y) && !is_lava(u.ux, u.uy)))) {
@@ -2095,8 +2095,7 @@ boolean newspot;             /* true if called by spoteffects */
     /* check for entering water or lava */
     if (!u.ustuck && !Levitation && !Flying && is_pool_or_lava(u.ux, u.uy)) {
         if (u.usteed
-            && (is_flyer(u.usteed->data) || is_floater(u.usteed->data)
-                || is_clinger(u.usteed->data))) {
+            && !grounded(u.usteed->data)) {
             /* floating or clinging steed keeps hero safe (is_flyer() test
                is redundant; it can't be true since Flying yielded false) */
             return FALSE;
@@ -2584,8 +2583,7 @@ dopickup()
         }
     }
     if (is_pool(u.ux, u.uy)) {
-        if (Wwalking || is_floater(youmonst.data) || is_clinger(youmonst.data)
-            || (Flying && !Breathless)) {
+        if (Wwalking || !grounded(youmonst.data) || (Flying && !Breathless)) {
             You("cannot dive into the %s to pick things up.",
                 hliquid("water"));
             return 0;
@@ -2595,8 +2593,7 @@ dopickup()
         }
     }
     if (is_lava(u.ux, u.uy)) {
-        if (Wwalking || is_floater(youmonst.data) || is_clinger(youmonst.data)
-            || (Flying && !Breathless)) {
+        if (Wwalking || !grounded(youmonst.data) || (Flying && !Breathless)) {
             You_cant("reach the bottom to pick things up.");
             return 0;
         } else if (!likes_lava(youmonst.data)) {
@@ -2731,7 +2728,7 @@ lookaround()
                 /* water and lava only stop you if directly in front, and stop
                  * you even if you are running
                  */
-                if (!Levitation && !Flying && !is_clinger(youmonst.data)
+                if (!Levitation && !Flying && grounded(youmonst.data)
                     && x == u.ux + u.dx && y == u.uy + u.dy) {
                     /* No Wwalking check; otherwise they'd be able
                      * to test boots by trying to SHIFT-direction

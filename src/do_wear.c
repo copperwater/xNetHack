@@ -220,7 +220,7 @@ Boots_off(VOID_ARGS)
     case WATER_WALKING_BOOTS:
         /* check for lava since fireproofed boots make it viable */
         if ((is_pool(u.ux, u.uy) || is_lava(u.ux, u.uy))
-            && !Levitation && !Flying && !is_clinger(youmonst.data)
+            && !Levitation && !Flying && grounded(youmonst.data)
             && !context.takeoff.cancelled_don
             /* avoid recursive call to lava_effects() */
             && !iflags.in_lava_effects) {

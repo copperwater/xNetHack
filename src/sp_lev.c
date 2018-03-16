@@ -1503,7 +1503,7 @@ struct permonst *pm;
         return loc;
     if (pm->mlet == S_EEL || amphibious(pm) || is_swimmer(pm))
         loc = WET;
-    if (is_flyer(pm) || is_floater(pm))
+    if (!grounded(pm))
         loc |= (HOT | WET);
     if (passes_walls(pm) || noncorporeal(pm))
         loc |= SOLID;

@@ -406,8 +406,7 @@ int x, y;
         return (boolean) ((is_u(etmp) && (Wwalking || Amphibious || Swimming
                                           || Flying || Levitation))
                           || is_swimmer(etmp->edata)
-                          || is_flyer(etmp->edata)
-                          || is_floater(etmp->edata));
+                          || !grounded(etmp->edata));
     /* must force call to lava_effects in e_died if is_u */
     if (is_lava(x, y))
         return (boolean) ((is_u(etmp) && (Levitation || Flying))
@@ -729,8 +728,7 @@ struct entity *etmp;
             if (!Deaf)
                 You_hear("a splash.");
         if (e_survives_at(etmp, etmp->ex, etmp->ey)) {
-            if (e_inview && !is_flyer(etmp->edata)
-                && !is_floater(etmp->edata))
+            if (e_inview && grounded(etmp->edata))
                 pline("%s from the bridge.", E_phrase(etmp, "fall"));
             return;
         }

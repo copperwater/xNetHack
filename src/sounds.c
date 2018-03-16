@@ -145,7 +145,7 @@ dosounds()
         for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
             if (DEADMONSTER(mtmp))
                 continue;
-            if ((mtmp->data->mlet == S_ANT && is_flyer(mtmp->data))
+            if (is_bee(mtmp->data)
                 && mon_in_room(mtmp, BEEHIVE)) {
                 switch (rn2(2) + hallu) {
                 case 0:
