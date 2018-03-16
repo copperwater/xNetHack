@@ -1669,7 +1669,9 @@ domove()
     /* warn player before walking into known traps */
     trap = t_at(x, y);
     if (trap && trap->tseen && !Stunned && !Confusion
-        && (immune_to_trap(&youmonst, trap->ttyp) == 1)) {
+        && (immune_to_trap(&youmonst, trap->ttyp) != 1 || Hallucination)) {
+        /* note on hallucination: all traps still show as ^, but the hero can't
+         * tell what they are, so warn of every trap. */
         char qbuf[QBUFSZ];
         boolean into = FALSE; /* "onto" the trap vs "into" */
         switch (trap->ttyp) {
@@ -1683,10 +1685,11 @@ domove()
         case WEB:
             into = TRUE;
         }
+        xchar traptype = (Hallucination ? rnd(TRAPNUM - 1) : trap->ttyp);
         snprintf(qbuf, QBUFSZ, "Really %s %sto that %s?",
                  locomotion(youmonst.data, "step"),
                  (into ? "in" : "on"),
-                 defsyms[trap_to_defsym(trap->ttyp)].explanation);
+                 defsyms[trap_to_defsym(traptype)].explanation);
         if (!paranoid_query(ParanoidTrap, qbuf)) {
             nomul(0);
             context.move = 0;
