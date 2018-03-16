@@ -252,10 +252,10 @@ boolean exclaim; /* emphasis */
 
 /* called when an attack or trap has poisoned hero (used to be in mon.c) */
 void
-poisoned(reason, typ, pkiller, fatal, thrown_weapon)
+poisoned(reason, typ, pkiller, hpdamchance, thrown_weapon)
 const char *reason,    /* controls what messages we display */
            *pkiller;   /* for score+log file if fatal */
-int typ, fatal;        /* if fatal is 0, limit damage to adjattrib */
+int typ, hpdamchance;  /* if 0, limit damage to adjattrib */
 boolean thrown_weapon; /* thrown weapons are less deadly */
 {
     int i, loss, kprefix = KILLED_BY_AN;
@@ -290,26 +290,15 @@ boolean thrown_weapon; /* thrown weapons are less deadly */
         kprefix = KILLED_BY;
     }
 
-    i = !fatal ? 1 : rn2(fatal + (thrown_weapon ? 20 : 0));
-    if (i == 0 && typ != A_CHA) {
-        /* specifically don't kill instantly, but make it really hurt */
-        pline_The("poison was potent...");
-        u.uhp = u.uhp / 2;
-        u.uhpmax = (u.uhpmax * 2) / 3;
-        context.botl = TRUE;
-        /* same attribute loss as below */
-        loss = (thrown_weapon || !fatal) ? 1 : d(2, 2); /* was rn1(3,3) */
-        /* check that a stat change was made */
-        if (adjattrib(typ, -loss, 1))
-            poisontell(typ, TRUE);
-    } else if (i > 5) {
+    i = !hpdamchance ? 1 : rn2(hpdamchance + (thrown_weapon ? 20 : 0));
+    if (i > 5 && typ != A_CHA) {
         /* HP damage; more likely--but less severe--with missiles */
         loss = thrown_weapon ? rnd(6) : rn1(10, 6);
         losehp(loss, pkiller, kprefix); /* poison damage */
     } else {
         /* attribute loss; if typ is A_STR, reduction in current and
            maximum HP will occur once strength has dropped down to 3 */
-        loss = (thrown_weapon || !fatal) ? 1 : d(2, 2); /* was rn1(3,3) */
+        loss = (thrown_weapon || !hpdamchance) ? 1 : d(2, 2); /* was rn1(3,3) */
 	/* check that a stat change was made */
         if (adjattrib(typ, -loss, 1))
             poisontell(typ, TRUE);

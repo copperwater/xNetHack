@@ -1309,14 +1309,7 @@ register struct attack *mattk;
                     pline_The("poison doesn't seem to affect %s.",
                               mon_nam(mdef));
             } else {
-                if (rn2(10))
-                    tmp += rn1(10, 6);
-                else {
-                    if (vis && canspotmon(mdef))
-                        pline_The("poison was potent...");
-                    /* reduce to 1 hit point */
-                    tmp = mdef->mhp - 1;
-                }
+                tmp += rn1(10, 6);
             }
         }
         break;

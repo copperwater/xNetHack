@@ -369,13 +369,7 @@ boolean verbose;    /* give message(s) even when you can't see what happened */
                     pline_The("poison doesn't seem to affect %s.",
                               mon_nam(mtmp));
             } else {
-                if (rn2(30)) {
-                    damage += rnd(6);
-                } else {
-                    if (vis)
-                        pline_The("poison was potent...");
-                    damage = mtmp->mhp - 1;
-                }
+                damage += rnd(6);
             }
         }
         if (objects[otmp->otyp].oc_material == SILVER

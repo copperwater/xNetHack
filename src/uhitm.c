@@ -656,7 +656,7 @@ int dieroll;
      */
     boolean hittxt = FALSE, destroyed = FALSE, already_killed = FALSE;
     boolean get_dmg_bonus = TRUE;
-    boolean ispoisoned = FALSE, needpoismsg = FALSE, poispotent = FALSE,
+    boolean ispoisoned = FALSE, needpoismsg = FALSE,
             unpoisonmsg = FALSE;
     boolean silvermsg = FALSE, silverobj = FALSE;
     boolean valid_weapon_attack = FALSE;
@@ -1110,12 +1110,8 @@ int dieroll;
         if (resists_poison(mon)) {
             needpoismsg = TRUE;
         }
-        else if (rn2(10)) {
-            tmp += rnd(6);
-        }
         else {
-            poispotent = TRUE;
-            tmp = mon->mhp - 1;
+            tmp += rnd(6);
         }
     }
     if (tmp < 1) {
@@ -1267,9 +1263,7 @@ int dieroll;
 
     if (needpoismsg)
         pline_The("poison doesn't seem to affect %s.", mon_nam(mon));
-    if (poispotent) {
-        pline_The("poison was potent...");
-    } else if (destroyed) {
+    else if (destroyed) {
         if (!already_killed)
             killed(mon); /* takes care of most messages */
     } else if (u.umconf && hand_to_hand) {
@@ -1767,11 +1761,7 @@ register struct attack *mattk;
             if (resists_poison(mdef))
                 pline_The("poison doesn't seem to affect %s.", mon_nam(mdef));
             else {
-                if (!rn2(10)) {
-                    Your("poison was potent...");
-                    tmp = mdef->mhp - 1;
-                } else
-                    tmp += rn1(10, 6);
+                tmp += rn1(10, 6);
             }
         }
         break;
