@@ -1014,10 +1014,12 @@ unsigned trflags;
               defsyms[trap_to_defsym(ttype)].explanation);
         /* then proceed to normal trap effect */
     } else if (already_seen && !forcetrap) {
-        if ((Levitation || (Flying && !plunged))
+        if ((Levitation || (Flying && !plunged) || is_clinger(youmonst.data))
             && (ttype == PIT || ttype == SPIKED_PIT || ttype == HOLE
-                || ttype == BEAR_TRAP)) {
-            You("%s over %s %s.", Levitation ? "float" : "fly",
+                || ttype == BEAR_TRAP || ttype == ROLLING_BOULDER_TRAP
+                || ttype == SQKY_BOARD)) {
+            You("%s over %s %s.", (Levitation ? "float" :
+                                                (Flying ? "fly" : "hang")),
                 a_your[trap->madeby_u],
                 defsyms[trap_to_defsym(ttype)].explanation);
             return;
@@ -1622,6 +1624,8 @@ unsigned trflags;
 
     case ROLLING_BOULDER_TRAP: {
         int style = ROLL | (trap->tseen ? LAUNCH_KNOWN : 0);
+        if (Levitation || Flying || !grounded(youmonst.data))
+            break;
 
         feeltrap(trap);
         pline("Click! You trigger a rolling boulder trap!");
