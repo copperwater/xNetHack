@@ -1668,9 +1668,8 @@ domove()
 
     /* warn player before walking into known traps */
     trap = t_at(x, y);
-    if (trap && trap->tseen && !Stunned && !Confusion) {
-        /* TODO: fancy fiqhack logic that doesn't warn you if you're known
-         * immune to the trap */
+    if (trap && trap->tseen && !Stunned && !Confusion
+        && (immune_to_trap(&youmonst, trap->ttyp) == 1)) {
         char qbuf[QBUFSZ];
         boolean into = FALSE; /* "onto" the trap vs "into" */
         switch (trap->ttyp) {
