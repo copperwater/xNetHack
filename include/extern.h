@@ -352,6 +352,7 @@ E void FDECL(row_refresh, (int, int, int));
 E void NDECL(cls);
 E void FDECL(flush_screen, (int));
 E int FDECL(back_to_glyph, (XCHAR_P, XCHAR_P));
+E int FDECL(back_to_defsym, (XCHAR_P, XCHAR_P));
 E int FDECL(zapdir_to_glyph, (int, int, int));
 E int FDECL(glyph_at, (XCHAR_P, XCHAR_P));
 E void NDECL(set_wall_state);
@@ -637,7 +638,7 @@ E int NDECL(opentin);
 E int NDECL(unfaint);
 #endif
 E void NDECL(eatmupdate);
-E boolean FDECL(is_edible, (struct obj *));
+E int FDECL(is_edible, (struct obj *));
 E void NDECL(init_uhunger);
 E int NDECL(Hear_again);
 E void NDECL(reset_eat);
@@ -971,10 +972,14 @@ E struct obj *NDECL(u_have_novel);
 E struct obj *FDECL(o_on, (unsigned int, struct obj *));
 E boolean FDECL(obj_here, (struct obj *, int, int));
 E boolean NDECL(wearing_armor);
-E boolean FDECL(is_worn, (struct obj *));
+E int FDECL(is_worn, (struct obj *));
 E struct obj *FDECL(g_at, (int, int));
 E boolean FDECL(splittable, (struct obj *));
-E struct obj *FDECL(getobj, (const char *, const char *));
+E int FDECL(allow_floor, (struct obj *));
+E int FDECL(allow_any_obj, (struct obj *));
+E int FDECL(allow_any, (struct obj *));
+E struct obj *FDECL(getobj, (const char *, int (*)(OBJ_P), BOOLEAN_P,
+                             BOOLEAN_P));
 E int FDECL(ggetobj, (const char *, int (*)(OBJ_P), int,
                       BOOLEAN_P, unsigned *));
 E int FDECL(askchain, (struct obj **, const char *, int, int (*)(OBJ_P),
@@ -1013,7 +1018,7 @@ E void NDECL(reassign);
 E int NDECL(doorganize);
 E void NDECL(free_pickinv_cache);
 E int FDECL(count_unpaid, (struct obj *));
-E int FDECL(count_buc, (struct obj *, int, boolean (*)(OBJ_P)));
+E int FDECL(count_buc, (struct obj *, int, int (*)(OBJ_P)));
 E void FDECL(tally_BUCX, (struct obj *, BOOLEAN_P,
                           int *, int *, int *, int *, int *));
 E long FDECL(count_contents, (struct obj *, BOOLEAN_P, BOOLEAN_P, BOOLEAN_P));
@@ -1668,7 +1673,7 @@ E boolean FDECL(erosion_matters, (struct obj *));
 E char *FDECL(doname, (struct obj *));
 E char *FDECL(doname_with_price, (struct obj *));
 E char *FDECL(doname_vague_quan, (struct obj *));
-E boolean FDECL(not_fully_identified, (struct obj *));
+E int FDECL(not_fully_identified, (struct obj *));
 E char *FDECL(corpse_xname, (struct obj *, const char *, unsigned));
 E char *FDECL(cxname, (struct obj *));
 E char *FDECL(cxname_singular, (struct obj *));
@@ -1823,13 +1828,12 @@ E void NDECL(getlock);
 /* ### pickup.c ### */
 
 E int FDECL(collect_obj_classes, (char *, struct obj *, BOOLEAN_P,
-                                  boolean FDECL((*), (OBJ_P)), int *));
+                                  int FDECL((*), (OBJ_P)), int *));
 E boolean FDECL(rider_corpse_revival, (struct obj *, BOOLEAN_P));
 E boolean FDECL(menu_class_present, (int));
 E void FDECL(add_valid_menu_class, (int));
-E boolean FDECL(allow_all, (struct obj *));
-E boolean FDECL(allow_category, (struct obj *));
-E boolean FDECL(is_worn_by_type, (struct obj *));
+E int FDECL(allow_category, (struct obj *));
+E int FDECL(is_worn_by_type, (struct obj *));
 E int FDECL(ck_bag, (struct obj *));
 #ifdef USE_TRAMPOLI
 E int FDECL(in_container, (struct obj *));
@@ -1842,10 +1846,11 @@ E boolean FDECL(thiefstone_accepts, (struct obj *, struct obj *));
 E int FDECL(query_category, (const char *, struct obj *, int,
                              menu_item **, int));
 E int FDECL(query_objlist, (const char *, struct obj **, int,
-                            menu_item **, int, boolean (*)(OBJ_P)));
+                            menu_item **, int, int (*)(OBJ_P)));
 E struct obj *FDECL(pick_obj, (struct obj *));
 E int NDECL(encumber_msg);
 E int FDECL(container_at, (int, int, BOOLEAN_P));
+E int FDECL(floor_loot_ok, (struct obj *));
 E int NDECL(doloot);
 E boolean FDECL(container_gone, (int (*)(OBJ_P)));
 E boolean NDECL(u_handsy);
@@ -2020,7 +2025,7 @@ E long NDECL(random);
 E void FDECL(learnscroll, (struct obj *));
 E char *FDECL(tshirt_text, (struct obj *, char *));
 E int NDECL(doread);
-E boolean FDECL(is_chargeable, (struct obj *));
+E int FDECL(is_chargeable, (struct obj *));
 E void FDECL(recharge, (struct obj *, int));
 E void FDECL(forget_objects, (int));
 E void FDECL(forget_levels, (int));

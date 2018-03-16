@@ -1354,6 +1354,85 @@ struct obj *stolenobj; /* no message if stolenobj is already being doffing */
     return result;
 }
 
+STATIC_OVL int
+equip_ok(obj, removing, accessory)
+struct obj *obj;
+boolean removing;
+boolean accessory;
+{
+    if (!obj || obj == &zeroobj)
+        return 0;
+
+    /* meat rings aren't encouraged for putting on */
+    if (!removing && obj->otyp == MEAT_RING)
+        return 1;
+
+    /* allow, but don't list, accessories for W/T or vice versa */
+    if (obj->oclass == ARMOR_CLASS) {
+        if (accessory)
+            return 1;
+    } else if (obj->oclass == AMULET_CLASS || obj->oclass == RING_CLASS ||
+               obj->otyp == BLINDFOLD || obj->otyp == TOWEL ||
+               obj->otyp == LENSES || obj->otyp == MEAT_RING) {
+        if (!accessory)
+            return 1;
+    } else
+        return 0;
+
+    /* removing non-worn equipment */
+    if (removing && !obj->owornmask)
+        return 0;
+
+    long mask = 0;
+    if (obj->oclass == ARMOR_CLASS && !removing &&
+        !canwearobj(obj, &mask, FALSE))
+        return 0;
+
+    /* check for putting on accessories in already filled slots */
+    if (!removing &&
+        (((obj->oclass == RING_CLASS || obj->otyp == MEAT_RING) &&
+          uleft && uright) ||
+         (obj->oclass == AMULET_CLASS && uamul) ||
+         (obj->oclass == TOOL_CLASS && ublindf)))
+        return 0;
+
+    /* removing inaccessible equipment */
+    if (removing &&
+        inaccessible_equipment(obj, NULL, (obj->oclass == RING_CLASS)))
+        return 0;
+
+    /* all good to go */
+    return 2;
+}
+
+STATIC_OVL int
+puton_ok(obj)
+struct obj *obj;
+{
+    return equip_ok(obj, FALSE, TRUE);
+}
+
+STATIC_OVL int
+remove_ok(obj)
+struct obj *obj;
+{
+    return equip_ok(obj, TRUE, TRUE);
+}
+
+STATIC_OVL int
+wear_ok(obj)
+struct obj *obj;
+{
+    return equip_ok(obj, FALSE, FALSE);
+}
+
+STATIC_OVL int
+takeoff_ok(obj)
+struct obj *obj;
+{
+    return equip_ok(obj, TRUE, FALSE);
+}
+
 /* both 'clothes' and 'accessories' now include both armor and accessories;
    TOOL_CLASS is for eyewear, FOOD_CLASS is for MEAT_RING */
 static NEARDATA const char only_armor[] = {
@@ -1486,7 +1565,7 @@ dotakeoff()
         return 0;
     }
     if (Narmorpieces != 1 || ParanoidRemove)
-        otmp = getobj(clothes, "take off");
+        otmp = getobj("take off", takeoff_ok, FALSE, FALSE);
     if (!otmp)
         return 0;
 
@@ -1505,7 +1584,7 @@ doremring()
         return 0;
     }
     if (Naccessories != 1 || ParanoidRemove)
-        otmp = getobj(accessories, "remove");
+        otmp = getobj("remove", remove_ok, FALSE, FALSE);
     if (!otmp)
         return 0;
 
@@ -1768,9 +1847,6 @@ boolean noisy;
         } else
             *mask = W_ARM;
     } else {
-        /* getobj can't do this after setting its allow_all flag; that
-           happens if you have armor for slots that are covered up or
-           extra armor for slots that are filled */
         if (noisy)
             silly_thing("wear", otmp);
         err++;
@@ -1985,7 +2061,7 @@ dowear()
         You("are already wearing a full complement of armor.");
         return 0;
     }
-    otmp = getobj(clothes, "wear");
+    otmp = getobj("wear", wear_ok, FALSE, FALSE);
     return otmp ? accessory_or_armor_on(otmp) : 0;
 }
 
@@ -2004,7 +2080,7 @@ doputon()
              (ublindf->otyp == LENSES) ? "some lenses" : "a blindfold");
         return 0;
     }
-    otmp = getobj(accessories, "put on");
+    otmp = getobj("put on", puton_ok, FALSE, FALSE);
     return otmp ? accessory_or_armor_on(otmp) : 0;
 }
 
@@ -2603,7 +2679,7 @@ boolean choose;
     register struct obj *otmp;
     register struct obj *ochoice;
     if (choose) {
-        ochoice = getobj(only_armor, "destroy");
+        ochoice = getobj("destroy", takeoff_ok, FALSE, FALSE);
         /* prevent player from selecting non-worn armor */
         if (ochoice && (ochoice->owornmask & W_ARMOR)) {
             atmp = ochoice;
