@@ -323,7 +323,7 @@ enum door_states {
 #define D_LOCKED 0x4
 #define D_TRAPPED 0x8
 /* iron doors - 5th bit */
-/* #define D_IRON 0x10 */
+#define D_IRON 0x10
 #define D_SECRET 0x20 /* only used by sp_lev.c, NOT in rm-struct */
 
 /*
@@ -435,6 +435,8 @@ struct rm {
     (((x)->doormask & D_TRAPPED) == D_TRAPPED)
 #define door_is_warned(x) \
     (((x)->doormask & D_WARNED) == D_WARNED)
+#define door_is_iron(x) \
+    (((x)->doormask & D_IRON) == D_IRON)
 
 #define set_door_lock(door, lock) \
     (door)->doormask = ((door)->doormask & ~D_LOCKED) | ((lock) ? D_LOCKED : 0)

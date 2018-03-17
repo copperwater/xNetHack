@@ -126,12 +126,15 @@ unsigned *ospecial;
             else
                 color = NO_COLOR;
 #ifdef TEXTCOLOR
+        } else if (is_cmap_door(offset) && door_is_iron(&levl[x][y])) {
+            color = CLR_CYAN;
         /* provide a visible difference if normal and lit corridor
            use the same symbol */
         } else if (iflags.use_color && offset == S_litcorr
                    && showsyms[idx] == showsyms[S_corr + SYM_OFF_P]) {
             color = CLR_WHITE;
         }
+        /* show branch stairs in a different color */
         else if (iflags.use_color &&
                  (offset == S_upstair || offset == S_dnstair) &&
                  (x == sstairs.sx && y == sstairs.sy)) {
