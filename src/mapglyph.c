@@ -131,6 +131,11 @@ unsigned *ospecial;
         } else if (iflags.use_color && offset == S_litcorr
                    && showsyms[idx] == showsyms[S_corr + SYM_OFF_P]) {
             color = CLR_WHITE;
+        }
+        else if (iflags.use_color &&
+                 (offset == S_upstair || offset == S_dnstair) &&
+                 (x == sstairs.sx && y == sstairs.sy)) {
+            color = CLR_ORANGE;
 #endif
         /* try to provide a visible difference between water and lava
            if they use the same symbol and color is disabled */
