@@ -1275,7 +1275,7 @@ STATIC_VAR const struct paranoia_opts {
     { PARANOID_REMOVE, "Remove", 1, "Takeoff", 1,
       "always pick from inventory for Remove and Takeoff" },
     { PARANOID_SWIM, "swim", 1, NULL, 0,
-      "yes vs y to walk into a water or lava space" },
+      "y to walk into a water or lava space when moving with 'm'" },
     { PARANOID_TRAP, "trap", 1, "move-trap", 1,
       "yes vs y to move onto a trap" },
     /* for config file parsing; interactive menu skips these */
