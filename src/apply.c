@@ -2281,8 +2281,15 @@ struct obj *obj;
     if (!obj || obj == &zeroobj)
         return 0;
 
-    if (obj && (obj->oclass == COIN_CLASS || obj->oclass == GEM_CLASS))
-        return 2;
+    if (is_graystone(obj))
+        return 1;
+
+    if (obj->oclass == GEM_CLASS) {
+        if (objects[obj->otyp].oc_name_known)
+            return 1;
+        else
+            return 2;
+    }
 
     return 1;
 }
