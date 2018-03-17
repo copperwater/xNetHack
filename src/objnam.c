@@ -1,4 +1,4 @@
-/* NetHack 3.6	objnam.c	$NHDT-Date: 1471112245 2016/08/13 18:17:25 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.178 $ */
+/* NetHack 3.6	objnam.c	$NHDT-Date: 1521144299 2018/03/15 20:04:59 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.189 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -22,6 +22,7 @@ STATIC_DCL boolean FDECL(singplur_lookup, (char *, char *, BOOLEAN_P,
                                            const char *const *));
 STATIC_DCL char *FDECL(singplur_compound, (char *));
 STATIC_DCL char *FDECL(xname_flags, (struct obj *, unsigned));
+STATIC_DCL boolean FDECL(badman, (const char *, BOOLEAN_P));
 
 struct Jitem {
     int item;
@@ -2059,9 +2060,9 @@ static struct sing_plur one_off[] = {
     { "ovum", "ova" },
     { "ox", "oxen" },
     { "rtex", "rtices" }, /* vortex */
-    { "tooth", "teeth" },
     { "serum", "sera" },
     { "staff", "staves" },
+    { "tooth", "teeth" },
     { 0, 0 }
 };
 
@@ -2081,8 +2082,7 @@ static const char *const as_is[] = {
        variant instead of attempting to support both. */
 };
 
-/* singularize/pluralize decisions common to both makesingular & makeplural
- */
+/* singularize/pluralize decisions common to both makesingular & makeplural */
 STATIC_OVL boolean
 singplur_lookup(basestr, endstring, to_plural, alt_as_is)
 char *basestr, *endstring;    /* base string, pointer to eos(string) */
@@ -2106,15 +2106,34 @@ const char *const *alt_as_is; /* another set like as_is[] */
         }
     }
 
-    /* avoid false hit on one_off[].plur == "lice";
+    /* avoid false hit on one_off[].plur == "lice" or .sing == "goose";
        if more of these turn up, one_off[] entries will need to flagged
        as to which are whole words and which are matchable as suffices
        then matching in the loop below will end up becoming more complex */
     if (!strcmpi(basestr, "slice")
         || !strcmpi(basestr, "mongoose")) {
         if (to_plural)
-            (void) strkitten(basestr, 's');
+            Strcasecpy(endstring, "s");
         return TRUE;
+    }
+    /* skip "ox" -> "oxen" entry when pluralizing "<something>ox"
+       unless it is muskox */
+    if (to_plural && strlen(basestr) > 2 && !strcmpi(endstring - 2, "ox")
+        && strcmpi(endstring - 6, "muskox")) {
+        /* "fox" -> "foxes" */
+        Strcasecpy(endstring, "es");
+        return TRUE;
+    }
+    if (to_plural) {
+        if (!strcmpi(endstring - 3, "man")
+            && badman(basestr, to_plural)) {
+            Strcasecpy(endstring, "s");
+            return TRUE;
+        }
+    } else {
+        if (!strcmpi(endstring - 3, "men")
+            && badman(basestr, to_plural))
+            return TRUE;
     }
     for (sp = one_off; sp->sing; sp++) {
         /* check whether endstring already matches */
@@ -2225,7 +2244,7 @@ const char *oldstr;
     spot--;
     while (spot > str && *spot == ' ')
         spot--; /* Strip blanks from end */
-    *(spot + 1) = 0;
+    *(spot + 1) = '\0';
     /* Now spot is the last character of the string */
 
     len = strlen(str);
@@ -2256,9 +2275,8 @@ const char *oldstr;
 
     /* man/men ("Wiped out all cavemen.") */
     if (len >= 3 && !strcmpi(spot - 2, "man")
-        /* exclude shamans and humans */
-        && (len < 6 || strcmpi(spot - 5, "shaman"))
-        && (len < 5 || strcmpi(spot - 4, "human"))) {
+        /* exclude shamans and humans etc */
+        && !badman(str, TRUE)) {
         Strcasecpy(spot - 1, "en");
         goto bottom;
     }
@@ -2433,7 +2451,8 @@ const char *oldstr;
 
     } else { /* input doesn't end in 's' */
 
-        if (!BSTRCMPI(bp, p - 3, "men")) {
+        if (!BSTRCMPI(bp, p - 3, "men")
+            && !badman(bp, FALSE)) {
             Strcasecpy(p - 2, "an");
             goto bottom;
         }
@@ -2458,6 +2477,50 @@ bottom:
         Strcat(bp, excess);
 
     return bp;
+}
+
+boolean
+badman(basestr, to_plural)
+const char *basestr;
+boolean to_plural;            /* true => makeplural, false => makesingular */
+{
+    int i, al;
+    char *endstr;
+    /* these are all the prefixes for *man that don't have a *men plural */
+    const char *no_men[] = {
+        "albu", "antihu", "anti", "ata", "auto", "cai",
+        "cay", "ceru", "corner", "decu", "des", "dura", "fir",
+        "glass", "hanu", "het", "infrahu", "inhu", "land",
+        "meat", "nonhu", "otto", "out", "prehu", "protohu",
+        "subhu", "superhu", "talis", "unhu", "sha",
+        "hu", "un", "le", "re", "so", "to", "at", "a",
+    };
+    /* these are all the prefixes for *men that don't have a *man singular */
+    const char *no_man[] = {
+        "acu", "ceru", "cogno", "cycla", "fleh", "hegu", "preno", "sonar",
+        "dai", "exa", "fla", "sta", "teg", "tegu", "vela",
+        "da", "hy", "lu", "no", "nu", "ra", "ru", "se", "vi", "ya", "o"
+    };
+
+    if (!basestr || strlen(basestr) < 4)
+        return FALSE;
+
+    endstr = eos((char *)basestr);
+
+    if (to_plural) {
+        for (i = 0; i < SIZE(no_men); i++) {
+            al = (int) strlen(no_men[i]);
+            if (!BSTRNCMPI(basestr, endstr - (al + 3), no_men[i], al))
+                return TRUE;
+        }
+    } else {
+        for (i = 0; i < SIZE(no_man); i++) {
+            al = (int) strlen(no_man[i]);
+            if (!BSTRNCMPI(basestr, endstr - (al + 3), no_man[i], al))
+                return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 /* compare user string against object name string using fuzzy matching */
