@@ -469,8 +469,8 @@ register struct monst *mtmp;
 {
     boolean inpool, inlava, infountain;
 
-    inpool = (is_pool(mtmp->mx, mtmp->my) && !grounded(mtmp->data));
-    inlava = (is_lava(mtmp->mx, mtmp->my) && !grounded(mtmp->data));
+    inpool = (is_pool(mtmp->mx, mtmp->my) && grounded(mtmp->data));
+    inlava = (is_lava(mtmp->mx, mtmp->my) && grounded(mtmp->data));
     infountain = IS_FOUNTAIN(levl[mtmp->mx][mtmp->my].typ);
 
     /* Flying and levitation keeps our steed out of the liquid */
