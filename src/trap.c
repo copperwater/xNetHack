@@ -3048,7 +3048,7 @@ long hmask, emask; /* might cancel timeout */
          * Use knowledge of the two routines as a hack -- this
          * should really be handled differently -dlc
          */
-        if (is_pool(u.ux, u.uy) && !Wwalking && !Swimming && !u.uinwater)
+        if (is_pool(u.ux, u.uy))
             no_msg = drown();
 
         if (is_lava(u.ux, u.uy)) {
@@ -3788,6 +3788,24 @@ drown()
     const char *pool_of_water;
     boolean inpool_ok = FALSE, crawl_ok;
     int i, x, y;
+
+    if (Levitation || Flying) {
+        /* shouldn't drown */
+        return FALSE;
+    }
+    /* Note: drown() callers should NOT check !Wwalking as a condition of
+     * calling it. If water walking boots prevent the player from falling in,
+     * they should become identified. */
+    if (Wwalking) {
+        if (u.uinwater) {
+            impossible("drown: in water but also water walking?");
+        }
+        /* maybe we were called because the hero moved or fell into a pool; if
+         * so, assuming the only source of water walking is water walking
+         * boots, identify them. */
+        makeknown(WATER_WALKING_BOOTS);
+        return FALSE;
+    }
 
     /* happily wading in the same contiguous pool */
     if (u.uinwater && is_pool(u.ux - u.dx, u.uy - u.dy)
@@ -5682,6 +5700,14 @@ lava_effects()
 
     if (!Fire_resistance) {
         if (Wwalking) {
+            /* Assume three things:
+             * 1. The hero is wearing water walking boots (they are the only
+             *    source of the water walking property).
+             * 2. Water walking boots are always burnable.
+             * 3. To be walking on lava, they must be fireproof.
+             */
+            makeknown(WATER_WALKING_BOOTS);
+            uarmf->rknown = 1;
             pline_The("%s here burns you!", hliquid("lava"));
             if (usurvive) {
                 losehp(dmg, lava_killer, KILLED_BY); /* lava damage */
