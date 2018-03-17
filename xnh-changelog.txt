@@ -1,5 +1,5 @@
 xNetHack 0.1.0 Changelog
-Last Updated: commit 066463562840436e04a0833013774e1383f1ef6e
+Last Updated: commit d6017c53b5294322ad2bb1e3a76fcabcf205eef8
 
 This is the first version of xNetHack, forked off the NetHack 3.6.1
 development version. It will continue to contain most or all of the latest
@@ -16,7 +16,7 @@ Add a barricaded shop with an alive shopkeeper to Orcish Town, and scatter aroun
 Drop the XL threshold for the Quest to 10
 Wielding a mirror confers a 50% chance of reflecting any reflectable attack
 Add the Gnomish Sewer Mines' End (dark twisty water level with many rings)
-Replace poison instadeath with "potent" poison causing severe HP loss
+Remove random chance of extra-powerful poison (instadeath in vanilla) from all poison sources
 Scroll of light now gives 11 radius when uncursed and lights up the entire level when blessed
 Scroll of teleport now gives a controlled teleport when blessed
 Make scroll of remove curse type-IDed when one successfully changes the beatitude of items in inventory.
@@ -36,7 +36,7 @@ The amulet of life saving does not work if the player is polymorphed into a nonl
 Occasionally when you die to vampires, green slimes, mummies, or anything else that would have made you arise from the grave, you turn into that monster but retain your sanity, and continue playing with permanent intrinsic unchanging.
 The player can now displace peaceful monsters (with a few small exceptions: Oracle, shopkeepers, priests, quest leader)
 Add thiefstones, a gray stone which steals magic items and treasure back to a location on the level it generates. If the player tracks it down and removes its curse, they can use it to their own benefit.
-Unicorn horn is a poorer weapon (1d3/1d3) but applies itself passively if wielded in the bare main hand.
+Unicorn horn is a poorer weapon (1d8/1d10), and no longer restores lost ability points, but is made one-handed and applies itself passively if wielded in the bare main hand.
 Potions may be #dipped in sinks to pour them down the drain, causing the hero to suffer its vapor effects.
 Add vapor effects for all potions, and make most of them unambiguously identify the potion
 Rebalance spellbook failure effects; notably a failure causes confusion instead of paralysis, and paralysis only happens as a side effect of level 5+ books. The steal gold effect is also replaced with the book biting you. A new level 1+ effect is the book dropping one level in BUC.
@@ -82,6 +82,8 @@ Shriekers will spawn a baby purple worm if regular purple worms are too hard
 Scalpels do 1d5 damage versus small and 1d7 versus large monsters.
 Land mine weight is reduced to 40; beartrap weight is reduced to 50.
 Rangers start the game with two beartraps.
+1/40 of random non-artifact weapons generate erodeproof.
+The player does not trigger rolling boulder traps unless on the ground.
 
 It contains the following non-gameplay interface changes:
 
@@ -147,8 +149,11 @@ Recolor many monsters:
 * Wraiths are recolored from black to gray
 * Barrow wights are recolored from gray to bright blue
 * Acid blobs are recolored to bright green
-Add "swim" to the list of paranoid_confirmation options, and always prompt before entering water (having it in paranoid_confirmation simply requires you type out "yes"). Moving with m will not prompt at all.
-Add "trap" to the list of paranoid_confirmation options, and always prompt before stepping onto a trap.
+It is now impossible to enter water or lava unless you are impaired, know you are safe, or use the 'm' command.
+Add "swim" to the list of paranoid_confirmation options. When enabled, you will be prompted before unsafely entering water when you try to move there with the 'm' command.
+Add "trap" to the list of paranoid_confirmation options, and always prompt before stepping onto a trap, unless impaired, or unless the player is obviously immune to the trap's effects.
+Merge FIQ's getobj patch: more developer-customizable prompts for objects, and these prompts also accept , representing "object or dungeon feature on the floor".
+Water walking boots self-identify if they obviously prevent you from entering water. If they prevent you from entering lava, their fireproofness is also identified.
 
 It contains the following non-gameplay architectural changes:
 
@@ -165,3 +170,5 @@ Comprehensive doors overhaul: "locked" and "trapped" are no longer separate stat
 The b_trapped and mb_trapped are removed; the new door traps make them unused.
 Import livelogging, dgamelaunch simplemail, and dgamelaunch extrainfo.
 impossible() now asks the player to report the message to the developer.
+Add immune_to_trap() function which works symmetrically on monsters and players. Currently used only in conjunction with paranoid trap mechanics, but intended to be used for monster AI in the future.
+Merge a lot of (is_floater() || is_flyer() || is_clinger()) logic into a new !grounded() macro, which cleans up some edge cases that weren't previously covered.
