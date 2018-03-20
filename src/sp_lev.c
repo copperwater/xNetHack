@@ -750,9 +750,15 @@ fill_rooms()
 STATIC_OVL int
 rnddoor()
 {
-    int i = 1 << rn2(5);
+    /* Assume order is D_NODOOR = 0, D_BROKEN, D_ISOPEN, D_CLOSED,
+     * and we are not going to generate broken doors */
+    int i = rn2(3);
+    if (i > D_NODOOR)
+        i++;
 
-    i >>= 1;
+    if (i == D_CLOSED && !rn2(3))
+        i |= D_LOCKED;
+
     return i;
 }
 
