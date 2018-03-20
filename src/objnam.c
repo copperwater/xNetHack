@@ -2866,7 +2866,7 @@ struct obj *no_wish;
     int eroded, eroded2, erodeproof;
     int halfeaten, mntmp, contents;
     int islit, unlabeled, ishistoric, isdiluted, trapped;
-    int doorstate;
+    int doorstate, material;
     int tmp, tinv, tvariety;
     int wetness, gsize = 0;
     struct fruit *f;
@@ -2899,6 +2899,7 @@ struct obj *no_wish;
 #define EMPTY 1
 #define SPINACH 2
     doorstate = D_NODOOR;
+    material = 0;
     contents = UNDEFINED;
     oclass = 0;
     actualn = dn = un = 0;
@@ -3020,6 +3021,11 @@ struct obj *no_wish;
             doorstate = D_CLOSED;
         } else if (!strncmpi(bp, "open ", l = 5)) {
             doorstate = D_ISOPEN;
+        } else if (!strncmpi(bp, "wooden ", l = 7)
+                   || !strncmpi(bp, "wood ", l = 5)) {
+            material = WOOD;
+        } else if (!strncmpi(bp, "iron ", l = 5)) {
+            material = IRON;
         } else
             break;
         bp += l;
@@ -3598,6 +3604,10 @@ wiztrap:
             if (doorstate == D_CLOSED) {
                 block_point(x, y);
             }
+            if (material == WOOD)
+                set_door_iron(lev, FALSE);
+            else if (material == IRON)
+                set_door_iron(lev, TRUE);
             return &zeroobj;
         }
         if (!BSTRCMPI(bp, p - 8, "fountain")) {
