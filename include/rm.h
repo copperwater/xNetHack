@@ -444,6 +444,8 @@ struct rm {
     (door)->doormask = ((door)->doormask & ~D_TRAPPED) | ((trap) ? D_TRAPPED : 0)
 #define set_door_warning(door, warn) \
     (door)->doormask = ((door)->doormask & ~D_WARNED) | ((warn) ? D_WARNED : 0)
+#define set_door_iron(door, iron) \
+    (door)->doormask = ((door)->doormask & ~D_IRON) | ((iron) ? D_IRON : 0)
 
 #define set_doorstate(door, state) \
     (door)->doormask = ((door)->doormask & ~D_STATEMASK) | (state)

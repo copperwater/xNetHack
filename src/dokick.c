@@ -967,20 +967,22 @@ dokick()
                 pline("Crash!  %s a secret door!",
                       /* don't "kick open" when it's locked
                          unless it also happens to be trapped */
-                      (door_is_locked(maploc) &&
-                       !door_is_trapped(maploc))
+                      (door_is_locked(maploc) || door_is_iron(maploc))
                           ? "Your kick uncovers"
                           : "You kick open");
                 exercise(A_DEX, TRUE);
-                doortrapped(x, y, &youmonst, FOOT, D_BROKEN, 2);
-                if (!door_is_locked(maploc)) {
-                    /* assume doorstate is already D_CLOSED */
-                    set_doorstate(maploc, D_ISOPEN);
+                predoortrapped(x, y, &youmonst, FOOT, D_BROKEN);
+                if (!door_is_iron(maploc)) {
+                    if (!door_is_locked(maploc)) {
+                        /* assume doorstate is already D_CLOSED */
+                        postdoortrapped(x, y, &youmonst, FOOT, D_ISOPEN);
+                        set_doorstate(maploc, D_ISOPEN);
+                    }
+                    feel_newsym(x, y); /* we know it's gone */
+                    if (doorstate(maploc) == D_ISOPEN
+                        || doorstate(maploc) == D_NODOOR)
+                        unblock_point(x, y); /* vision */
                 }
-                feel_newsym(x, y); /* we know it's gone */
-                if (doorstate(maploc) == D_ISOPEN
-                    || doorstate(maploc) == D_NODOOR)
-                    unblock_point(x, y); /* vision */
                 return 1;
             } else
                 goto ouch;
@@ -1248,8 +1250,10 @@ dokick()
         goto ouch;
 
     exercise(A_DEX, TRUE);
+
     /* door is known to be CLOSED or LOCKED */
-    if (rnl(35) < avrg_attrib + (!martial() ? 0 : ACURR(A_DEX))) {
+    if (rnl(35) < avrg_attrib + (!martial() ? 0 : ACURR(A_DEX))
+        && !door_is_iron(maploc)) {
         boolean shopdoor = *in_rooms(x, y, SHOPBASE) ? TRUE : FALSE;
         /* break the door */
         if (flags.verbose)
@@ -1288,7 +1292,10 @@ dokick()
             feel_location(x, y); /* we know we hit it */
         exercise(A_STR, TRUE);
         pline("WHAMMM!!!");
-        predoortrapped(x, y, &youmonst, FOOT, D_BROKEN);
+        if (!predoortrapped(x, y, &youmonst, FOOT, D_BROKEN)
+            && door_is_iron(maploc)) {
+            pline("The door doesn't budge an inch.");
+        }
         if (in_town(x, y))
             for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
                 if (DEADMONSTER(mtmp))

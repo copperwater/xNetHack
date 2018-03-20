@@ -149,19 +149,30 @@ xchar x, y;
     if (!ispick && !is_axe(otmp))
         return DIGTYP_UNDIGGABLE;
 
-    return ((ispick && sobj_at(STATUE, x, y))
-               ? DIGTYP_STATUE
-               : (ispick && sobj_at(BOULDER, x, y))
-                  ? DIGTYP_BOULDER
-                  : closed_door(x, y)
-                     ? DIGTYP_DOOR
-                     : IS_TREE(levl[x][y].typ)
-                        ? (ispick ? DIGTYP_UNDIGGABLE : DIGTYP_TREE)
-                        : (ispick && IS_ROCK(levl[x][y].typ)
-                           && (!level.flags.arboreal
-                               || IS_WALL(levl[x][y].typ)))
-                           ? DIGTYP_ROCK
-                           : DIGTYP_UNDIGGABLE);
+    if (ispick && sobj_at(STATUE, x, y)) {
+        return DIGTYP_STATUE;
+    }
+    else if (ispick && sobj_at(BOULDER, x, y)) {
+        return DIGTYP_BOULDER;
+    }
+    else if (closed_door(x, y)) {
+        if (door_is_iron(&levl[x][y]))
+            return DIGTYP_UNDIGGABLE;
+        else
+            return DIGTYP_DOOR;
+    }
+    else if (IS_TREE(levl[x][y].typ)) {
+        if (ispick)
+            return DIGTYP_UNDIGGABLE;
+        else
+            return DIGTYP_TREE;
+    }
+    else if (ispick && IS_ROCK(levl[x][y].typ)
+             && (!level.flags.arboreal || IS_WALL(levl[x][y].typ))) {
+        return DIGTYP_ROCK;
+    }
+
+    return DIGTYP_UNDIGGABLE;
 }
 
 boolean
@@ -419,16 +430,8 @@ dig(VOID_ARGS)
         } else if (lev->typ == SDOOR) {
             cvt_sdoor_to_door(lev); /* ->typ = DOOR */
             digtxt = "You break through a secret door!";
-            if (!door_is_trapped(lev))
-                set_doorstate(lev, D_BROKEN);
         } else if (closed_door(dpx, dpy)) {
             digtxt = "You break through the door.";
-            if (shopedge) {
-                add_damage(dpx, dpy, SHOP_DOOR_COST);
-                dmgtxt = "break";
-            }
-            if (!door_is_trapped(lev))
-                set_doorstate(lev, D_BROKEN);
         } else
             return 0; /* statue or boulder got taken */
 
@@ -460,6 +463,10 @@ dig(VOID_ARGS)
              * door */
             if (doortrapped(dpx, dpy, &youmonst, ARM, D_BROKEN, 2)) {
                 newsym(dpx, dpy);
+            }
+            else if (shopedge) {
+                add_damage(dpx, dpy, SHOP_DOOR_COST);
+                dmgtxt = "break";
             }
         }
     cleanup:
@@ -1067,8 +1074,15 @@ struct obj *obj;
                 nomul(-d(2, 2));
                 multi_reason = "stuck in a spider web";
                 nomovemsg = "You pull free.";
+            } else if (lev->typ == SDOOR && door_is_iron(lev)) {
+                cvt_sdoor_to_door(lev);
+                pline("Clang! You uncover a secret iron door!");
+                wake_nearby();
+            } else if (IS_DOOR(lev->typ) && door_is_iron(lev)) {
+                pline("Clang! Your pick-axe bounces harmlessly off the door.");
+                wake_nearby();
             } else if (lev->typ == IRONBARS) {
-                pline("Clang!");
+                pline("Clang! Your pick-axe bounces harmlessly off the bars.");
                 wake_nearby();
             } else if (IS_TREE(lev->typ)) {
                 You("need an axe to cut down a tree.");
@@ -1249,6 +1263,7 @@ register struct monst *mtmp;
 {
     register struct rm *here;
     int pile = rnd(12);
+    boolean withpick = needspick(mtmp->data);
 
     here = &levl[mtmp->mx][mtmp->my];
     if (here->typ == SDOOR)
@@ -1256,14 +1271,16 @@ register struct monst *mtmp;
 
     /* Eats away door if present & closed or locked */
     if (closed_door(mtmp->mx, mtmp->my)) {
+        if (door_is_iron(here) && (withpick || !metallivorous(mtmp->data)))
+            return FALSE;
         predoortrapped(mtmp->mx, mtmp->my, mtmp,
-                       (needspick(mtmp->data) ? ARM : FACE), D_BROKEN);
+                       (withpick ? ARM : FACE), D_BROKEN);
         if (!DEADMONSTER(mtmp)) {
             if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
                 add_damage(mtmp->mx, mtmp->my, 0L);
             unblock_point(mtmp->mx, mtmp->my); /* vision */
             postdoortrapped(mtmp->mx, mtmp->my, mtmp,
-                            (needspick(mtmp->data) ? ARM : FACE), D_BROKEN);
+                            (withpick ? ARM : FACE), D_BROKEN);
             set_doorstate(here, D_BROKEN);
             if (!rn2(3) && flags.verbose) {
                 /* not too often.. */
@@ -1492,23 +1509,33 @@ zap_dig()
                 break;
             }
         } else if (closed_door(zx, zy) || room->typ == SDOOR) {
-            if (room->typ == SDOOR)
-                room->typ = DOOR;
-            else if (cansee(zx, zy))
-                pline_The("door is razed!");
-            if (doortrapped(zx, zy, &youmonst, NO_PART, D_BROKEN, 2) < 2) {
-                set_doorstate(room, D_BROKEN);
-                if (*in_rooms(zx, zy, SHOPBASE)) {
-                    add_damage(zx, zy, SHOP_DOOR_COST);
-                    shopdoor = TRUE;
-                }
+            if (room->typ == SDOOR) {
+                cvt_sdoor_to_door(room);
+                if (cansee(zx, zy))
+                    pline("A door appears in the wall!");
             }
-            watch_dig((struct monst *) 0, zx, zy, TRUE);
-            unblock_point(zx, zy); /* vision */
-            newsym(zx, zy);
-            digdepth -= 2;
-            if (maze_dig)
-                break;
+            if (door_is_iron(room)) {
+                if (cansee(zx,zy))
+                    pline_The("door shudders slightly.");
+                digdepth = 0;
+            }
+            else {
+                if (cansee(zx, zy))
+                    pline_The("door is razed!");
+                if (doortrapped(zx, zy, &youmonst, NO_PART, D_BROKEN, 2) < 2) {
+                    set_doorstate(room, D_BROKEN);
+                    if (*in_rooms(zx, zy, SHOPBASE)) {
+                        add_damage(zx, zy, SHOP_DOOR_COST);
+                        shopdoor = TRUE;
+                    }
+                }
+                watch_dig((struct monst *) 0, zx, zy, TRUE);
+                unblock_point(zx, zy); /* vision */
+                newsym(zx, zy);
+                digdepth -= 2;
+                if (maze_dig)
+                    break;
+            }
         } else if (maze_dig) {
             if (IS_WALL(room->typ)) {
                 if (!(room->wall_info & W_NONDIGGABLE)) {

@@ -378,13 +378,20 @@ xchar x, y;
         (void) memset((genericptr_t) &context.digging, 0,
                       sizeof (struct dig_info));
 
-    if (!boulder && IS_ROCK(lev->typ) && !may_dig(x, y)) {
+    /* checks for terrain you can't chew through */
+    if ((IS_ROCK(lev->typ) && !may_dig(x, y))
+        || (IS_DOOR(lev->typ) && door_is_iron(lev)
+            && !metallivorous(youmonst.data))
+        || (lev->typ == IRONBARS)
+        || (lev->typ == TREE)) {
         You("hurt your teeth on the %s.",
             (lev->typ == IRONBARS)
                 ? "bars"
                 : IS_TREE(lev->typ)
                     ? "tree"
-                    : "hard stone");
+                    : IS_DOOR(lev->typ)
+                        ? "reinforced door"
+                        : "hard stone");
         nomul(0);
         return 1;
     } else if (context.digging.pos.x != x || context.digging.pos.y != y

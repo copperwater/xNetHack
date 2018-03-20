@@ -699,7 +699,7 @@ xchar nix,niy;
     if (can_tunnel && needspick(mtmp->data)
         && mtmp->weapon_check != NO_WEAPON_WANTED
         && ((IS_ROCK(levl[nix][niy].typ) && may_dig(nix, niy))
-            || closed_door(nix, niy))) {
+            || (closed_door(nix, niy) && !door_is_iron(&levl[nix][niy])))) {
         if (closed_door(nix, niy)) {
             if (!(mw_tmp = MON_WEP(mtmp))
                 || !is_pick(mw_tmp)
@@ -1231,7 +1231,9 @@ postmov:
             }
             ptr = mtmp->data;
 
-            /* open a door, or crash through it, if 'mtmp' can */
+            /* aos: The only way a monster can move directly onto a closed door
+             * is by flowing under it. This if implicitly handles
+             * nodoor/open/broken cases as well. */
             if (IS_DOOR(levl[mtmp->mx][mtmp->my].typ)
                 && !passes_walls(ptr) /* doesn't need to open doors */
                 && !can_tunnel) {     /* taken care of below */
@@ -1660,7 +1662,7 @@ xchar x, y;
         }
         return TRUE;
     }
-    else if (is_giant(mtmp->data)) {
+    else if (is_giant(mtmp->data) && !door_is_iron(here)) {
         /* smashing down a door */
         if (predoortrapped(x, y, mtmp, HAND, D_BROKEN) == 0) {
             if (DEADMONSTER(mtmp))

@@ -1015,6 +1015,12 @@ int x, y;
     case WAN_STRIKING:
     case SPE_FORCE_BOLT:
         if (door_is_closed(door)) {
+            if (door_is_iron(door)) {
+                if (cansee(x, y)) {
+                    pline_The("reinforced door shudders.");
+                }
+                break;
+            }
             if (doortrapped(x, y, mon, NO_PART, D_BROKEN, 2) > 0) {
                 break;
             }

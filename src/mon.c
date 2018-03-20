@@ -1362,10 +1362,19 @@ nexttry: /* eels prefer the water, but if there is no water nearby,
             /* KMH -- Added iron bars */
             if (ntyp == IRONBARS && !(flag & ALLOW_BARS))
                 continue;
-            if (IS_DOOR(ntyp) && !(amorphous(mdat) || can_fog(mon))
+            /* Doors are a little complicated... */
+            if (IS_DOOR(ntyp)
+                /* Can mon not bypass the door entirely? */
+                && !(amorphous(mdat) || can_fog(mon) || (flag & ALLOW_WALL))
+                /* Can mon not open a closed door? */
                 && ((door_is_closed(&levl[nx][ny]) && !(flag & OPENDOOR))
+                    /* Can mon not unlock a locked door? */
                     || (door_is_locked(&levl[nx][ny])
-                        && !(flag & UNLOCKDOOR))) && !thrudoor)
+                        && !(flag & UNLOCKDOOR)))
+                /* Can mon not dig through the door? */
+                && (!(rockok || treeok) || door_is_iron(&levl[nx][ny]))
+                /* Can mon not bust through the door? */
+                && (!(flag & BUSTDOOR) || door_is_iron(&levl[nx][ny])))
                 continue;
             /* avoid poison gas? */
             if (!poisongas_ok && !in_poisongas

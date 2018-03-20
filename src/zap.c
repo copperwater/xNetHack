@@ -4474,55 +4474,52 @@ short exploding_wand_typ;
     if (closed_door(x, y)) {
         int new_doormask = -1;
         const char *see_txt = 0, *sense_txt = 0, *hear_txt = 0;
+        boolean irondoor = door_is_iron(&levl[x][y]);
 
         rangemod = -1000;
-        switch (abstype) {
-        case ZT_FIRE:
+        if (abstype == ZT_FIRE && !irondoor) {
             new_doormask = D_NODOOR;
             see_txt = "The door is consumed in flames!";
             sense_txt = "smell smoke.";
-            break;
-        case ZT_COLD:
+        }
+        else if (abstype == ZT_COLD && !irondoor) {
             new_doormask = D_NODOOR;
             see_txt = "The door freezes and shatters!";
             sense_txt = "feel cold.";
-            break;
-        case ZT_DEATH:
-            /* death spells/wands don't disintegrate */
-            if (abs(type) != ZT_BREATH(ZT_DEATH))
-                goto def_case;
-            new_doormask = D_NODOOR;
-            see_txt = "The door disintegrates!";
-            hear_txt = "crashing wood.";
-            break;
-        case ZT_LIGHTNING:
+        }
+        else if (abstype == ZT_LIGHTNING && !irondoor) {
             new_doormask = D_BROKEN;
             see_txt = "The door splinters!";
             hear_txt = "crackling.";
-            break;
-        default:
-        def_case:
+        }
+        else if (abstype == ZT_DEATH && abs(type) == ZT_BREATH(ZT_DEATH)) {
+            /* death spells/wands don't disintegrate */
+            new_doormask = D_NODOOR;
+            see_txt = "The door disintegrates!";
+            if (!irondoor) {
+                hear_txt = "crashing wood.";
+            }
+        }
+        else {
             if (exploding_wand_typ > 0) {
                 /* Magical explosion from misc exploding wand */
-                if (exploding_wand_typ == WAN_STRIKING) {
+                if (exploding_wand_typ == WAN_STRIKING && !irondoor) {
                     new_doormask = D_BROKEN;
                     see_txt = "The door crashes open!";
                     sense_txt = "feel a burst of cool air.";
-                    break;
                 }
             }
-            if (see_it) {
+            else if (see_it) {
                 /* "the door absorbs the blast" would be
-                   inaccurate for an exploding wand since
-                   other adjacent locations still get hit */
+                inaccurate for an exploding wand since
+                other adjacent locations still get hit */
                 if (exploding_wand_typ)
                     pline_The("door remains intact.");
                 else
                     pline_The("door absorbs %s %s!", yourzap ? "your" : "the",
-                              zapverb);
+                            zapverb);
             } else
                 You_feel("vibrations.");
-            break;
         }
         if (new_doormask >= 0 /* door gets broken */
             && doortrapped(x, y, NULL, NO_PART, D_BROKEN, 2) < 2) {
