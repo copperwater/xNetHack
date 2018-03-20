@@ -1,4 +1,4 @@
-/* NetHack 3.6	objnam.c	$NHDT-Date: 1521144299 2018/03/15 20:04:59 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.189 $ */
+/* NetHack 3.6	objnam.c	$NHDT-Date: 1521507553 2018/03/20 00:59:13 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.199 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -2059,6 +2059,7 @@ static struct sing_plur one_off[] = {
     { "nemesis", "nemeses" },
     { "ovum", "ova" },
     { "ox", "oxen" },
+    { "passerby", "passersby" },
     { "rtex", "rtices" }, /* vortex */
     { "serum", "sera" },
     { "staff", "staves" },
@@ -2071,11 +2072,11 @@ static const char *const as_is[] = {
     "boots",   "shoes",     "gloves",    "lenses",   "scales",
     "eyes",    "gauntlets", "iron bars",
     /* both singular and plural are spelled the same */
-    "deer",    "elk",       "fish",      "tuna",      "yaki",
-    "-hai",    "krill",     "manes",     "moose",     "ninja",
-    "sheep",   "ronin",     "roshi",     "shito",     "tengu",
-    "ki-rin",  "Nazgul",    "gunyoki",   "piranha",   "samurai",
-    "shuriken", 0,
+    "bison",   "deer",      "elk",       "fish",      "fowl",
+    "tuna",    "yaki",      "-hai",      "krill",     "manes",
+    "moose",   "ninja",     "sheep",     "ronin",     "roshi",
+    "shito",   "tengu",     "ki-rin",    "Nazgul",    "gunyoki",
+    "piranha", "samurai",   "shuriken", 0,
     /* Note:  "fish" and "piranha" are collective plurals, suitable
        for "wiped out all <foo>".  For "3 <foo>", they should be
        "fishes" and "piranhas" instead.  We settle for collective
@@ -2259,7 +2260,6 @@ const char *oldstr;
     {
         static const char *const already_plural[] = {
             "ae",  /* algae, larvae, &c */
-            "men", /* also catches women, watchmen */
             "matzot", 0,
         };
 
@@ -2485,21 +2485,21 @@ const char *basestr;
 boolean to_plural;            /* true => makeplural, false => makesingular */
 {
     int i, al;
-    char *endstr;
+    char *endstr, *spot;
     /* these are all the prefixes for *man that don't have a *men plural */
     const char *no_men[] = {
-        "albu", "antihu", "anti", "ata", "auto", "cai",
-        "cay", "ceru", "corner", "decu", "des", "dura", "fir",
-        "glass", "hanu", "het", "infrahu", "inhu", "land",
-        "meat", "nonhu", "otto", "out", "prehu", "protohu",
+        "albu", "antihu", "anti", "ata", "auto", "bildungsro", "cai", "cay",
+        "ceru", "corner", "decu", "des", "dura", "fir", "hanu", "het",
+        "infrahu", "inhu", "nonhu", "otto", "out", "prehu", "protohu",
         "subhu", "superhu", "talis", "unhu", "sha",
         "hu", "un", "le", "re", "so", "to", "at", "a",
     };
     /* these are all the prefixes for *men that don't have a *man singular */
     const char *no_man[] = {
-        "acu", "ceru", "cogno", "cycla", "fleh", "hegu", "preno", "sonar",
-        "dai", "exa", "fla", "sta", "teg", "tegu", "vela",
-        "da", "hy", "lu", "no", "nu", "ra", "ru", "se", "vi", "ya", "o"
+        "abdo", "acu", "agno", "ceru", "cogno", "cycla", "fleh", "grava",
+        "hegu", "preno", "sonar", "speci", "dai", "exa", "fla", "sta", "teg",
+        "tegu", "vela", "da", "hy", "lu", "no", "nu", "ra", "ru", "se", "vi", "ya",
+        "o", "a",
     };
 
     if (!basestr || strlen(basestr) < 4)
@@ -2510,13 +2510,17 @@ boolean to_plural;            /* true => makeplural, false => makesingular */
     if (to_plural) {
         for (i = 0; i < SIZE(no_men); i++) {
             al = (int) strlen(no_men[i]);
-            if (!BSTRNCMPI(basestr, endstr - (al + 3), no_men[i], al))
+            spot = endstr - (al + 3);
+            if (!BSTRNCMPI(basestr, spot, no_men[i], al)
+                && (spot == basestr || *(spot - 1) == ' '))
                 return TRUE;
         }
     } else {
         for (i = 0; i < SIZE(no_man); i++) {
             al = (int) strlen(no_man[i]);
-            if (!BSTRNCMPI(basestr, endstr - (al + 3), no_man[i], al))
+            spot = endstr - (al + 3);
+            if (!BSTRNCMPI(basestr, spot, no_man[i], al)
+                && (spot == basestr || *(spot - 1) == ' '))
                 return TRUE;
         }
     }
@@ -2682,6 +2686,8 @@ struct alt_spellings {
     { "grapnel", GRAPPLING_HOOK },
     { "grapple", GRAPPLING_HOOK },
     { "protection from shape shifters", RIN_PROTECTION_FROM_SHAPE_CHAN },
+    /* if we ever add other sizes, move this to o_ranges[] with "bag" */
+    { "box", LARGE_BOX },
     /* normally we wouldn't have to worry about unnecessary <space>, but
        " stone" will get stripped off, preventing a wishymatch; that actually
        lets "flint stone" be a match, so we also accept bogus "flintstone" */
@@ -2863,7 +2869,7 @@ struct obj *no_wish;
     register struct obj *otmp;
     int cnt, spe, spesgn, typ, very, rechrg;
     int blessed, uncursed, iscursed, ispoisoned, isgreased;
-    int eroded, eroded2, erodeproof;
+    int eroded, eroded2, erodeproof, locked, unlocked, broken;
     int halfeaten, mntmp, contents;
     int islit, unlabeled, ishistoric, isdiluted, trapped;
     int doorstate, material;
@@ -2890,9 +2896,11 @@ struct obj *no_wish;
     char *un, *dn, *actualn, *origbp = bp;
     const char *name = 0;
 
-    cnt = spe = spesgn = typ = very = rechrg = blessed = uncursed = iscursed =
-        ispoisoned = isgreased = eroded = eroded2 = erodeproof = halfeaten =
-            islit = unlabeled = ishistoric = isdiluted = trapped = 0;
+    cnt = spe = spesgn = typ = 0;
+    very = rechrg = blessed = uncursed = iscursed = ispoisoned =
+        isgreased = eroded = eroded2 = erodeproof = halfeaten =
+        islit = unlabeled = ishistoric = isdiluted = trapped =
+        locked = unlocked = broken = 0;
     tvariety = RANDOM_TIN;
     mntmp = NON_PM;
 #define UNDEFINED 0
@@ -2982,6 +2990,13 @@ struct obj *no_wish;
                 trapped = 1;
         } else if (!strncmpi(bp, "untrapped ", l = 10)) {
             trapped = 2; /* not trapped */
+        /* locked, unlocked, broken: box/chest lock states */
+        } else if (!strncmpi(bp, "locked ", l = 7)) {
+            locked = 1, unlocked = broken = 0;
+        } else if (!strncmpi(bp, "unlocked ", l = 9)) {
+            unlocked = 1, locked = broken = 0;
+        } else if (!strncmpi(bp, "broken ", l = 7)) {
+            broken = 1, locked = unlocked = 0;
         } else if (!strncmpi(bp, "greased ", l = 8)) {
             isgreased = 1;
         } else if (!strncmpi(bp, "very ", l = 5)) {
@@ -3398,7 +3413,10 @@ retry:
         ; /* avoid false hit on "* glass" */
     } else if (!BSTRCMPI(bp, p - 6, " glass") || !strcmpi(bp, "glass")) {
         register char *g = bp;
-        if (strstri(g, "broken"))
+
+        /* treat "broken glass" as a non-existent item; since "broken" is
+           also a chest/box prefix it might have been stripped off above */
+        if (broken || strstri(g, "broken"))
             return (struct obj *) 0;
         if (!strncmpi(g, "worthless ", 10))
             g += 10;
@@ -3933,6 +3951,28 @@ typfnd:
     if (trapped) {
         if (Is_box(otmp) || typ == TIN)
             otmp->otrapped = (trapped == 1);
+    }
+    /* empty for containers rather than for tins */
+    if (contents == EMPTY) {
+        if (otmp->otyp == BAG_OF_TRICKS || otmp->otyp == HORN_OF_PLENTY) {
+            if (otmp->spe > 0)
+                otmp->spe = 0;
+        } else if (Has_contents(otmp)) {
+            /* this assumes that artifacts can't be randomly generated
+               inside containers */
+            delete_contents(otmp);
+            otmp->owt = weight(otmp);
+        }
+    }
+    /* set locked/unlocked/broken */
+    if (Is_box(otmp)) {
+        if (locked) {
+            otmp->olocked = 1, otmp->obroken = 0;
+        } else if (unlocked) {
+            otmp->olocked = 0, otmp->obroken = 0;
+        } else if (broken) {
+            otmp->olocked = 0, otmp->obroken = 1;
+        }
     }
 
     if (isgreased)
