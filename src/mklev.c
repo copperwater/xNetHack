@@ -394,64 +394,81 @@ int type;
     if (!IS_WALL(lev->typ)) /* avoid SDOORs on already made doors */
         type = DOOR;
     lev->typ = type;
-    if (type == DOOR) {
-        if (!rn2(3)) { /* is it a locked door, closed, or a doorway? */
-            if (!rn2(5))
-                doorstate = D_ISOPEN;
-            else if (!rn2(6))
+
+    /* is it a locked door, closed, or a doorway? */
+    if (!rn2(3) || type == SDOOR) {
+        if (rn2(5) || type == SDOOR) {
+            doorstate = D_CLOSED;
+            if (!rn2(4)) {
                 set_lock = TRUE;
-            else
-                doorstate = D_CLOSED;
-
-            if (doorstate != D_ISOPEN && !shdoor
-                && level_difficulty() >= 5 && !rn2(25))
-                set_trap = TRUE;
-        } else {
-#ifdef STUPID
-            if (shdoor)
-                doorstate = D_ISOPEN;
-            else
-                doorstate = D_NODOOR;
-#else
-            doorstate = (shdoor ? D_ISOPEN : D_NODOOR);
-#endif
+            }
         }
-
-        /* also done in roguecorr(); doing it here first prevents
-           making mimics in place of trapped doors on rogue level */
-        if (Is_rogue_level(&u.uz))
+        else {
+            doorstate = D_ISOPEN;
+        }
+    } else {
+        /* door would be absent, but shop doors need a real one */
+        if (shdoor)
+            doorstate = D_ISOPEN;
+        else
             doorstate = D_NODOOR;
-
-        set_doorstate(lev, doorstate);
-        set_door_lock(lev, set_lock);
-
-        if (set_trap) {
-            struct monst *mtmp;
-
-            if (level_difficulty() >= 9 && !rn2(5)
-                && !((mvitals[PM_SMALL_MIMIC].mvflags & G_GONE)
-                     && (mvitals[PM_LARGE_MIMIC].mvflags & G_GONE)
-                     && (mvitals[PM_GIANT_MIMIC].mvflags & G_GONE))) {
-                /* make a mimic instead */
-                set_doorstate(lev, D_NODOOR);
-                mtmp = makemon(mkclass(S_MIMIC, 0), x, y, NO_MM_FLAGS);
-                if (mtmp)
-                    set_mimic_sym(mtmp);
-            }
-            else {
-                set_door_trap(lev, TRUE);
-            }
-        }
-        /* newsym(x,y); */
-    } else { /* SDOOR */
-        set_doorstate(lev, D_CLOSED);
-        if (shdoor || !rn2(5))
-            set_door_lock(lev, TRUE);
-
-
-        if (!shdoor && level_difficulty() >= 4 && !rn2(20))
-            set_door_trap(lev, TRUE);
     }
+
+    /* Is the trap that would generate at this location suitable for this
+        * initial door state? */
+    if (!rn2(23) && !shdoor) {
+        switch (getdoortrap(x, y)) {
+        case SELF_LOCK:
+            set_lock = FALSE;
+            /* FALLTHRU */
+        case HINGE_SCREECH:
+        case STATIC_SHOCK:
+        case ROCKFALL:
+        case HOT_KNOB:
+            /* traps that require only an actual door */
+            if ((doorstate == D_ISOPEN || doorstate == D_CLOSED))
+                set_trap = TRUE;
+            break;
+        case WATER_BUCKET:
+        case HINGELESS_FORWARD:
+        case HINGELESS_BACKWARD:
+        case FIRE_BLAST:
+            /* traps that require a closed door */
+            if (doorstate == D_CLOSED)
+                set_trap = TRUE;
+            break;
+        default:
+            impossible("dosdoor: bad door trap type");
+        }
+    }
+
+    /* also done in roguecorr(); doing it here first prevents
+        making mimics in place of trapped doors on rogue level */
+    if (Is_rogue_level(&u.uz))
+        doorstate = D_NODOOR;
+
+    set_doorstate(lev, doorstate);
+    set_door_lock(lev, set_lock);
+
+    if (set_trap) {
+        struct monst *mtmp;
+
+        if (level_difficulty() >= 9 && !rn2(7) && type != SDOOR
+            && !((mvitals[PM_SMALL_MIMIC].mvflags & G_GONE)
+                    && (mvitals[PM_LARGE_MIMIC].mvflags & G_GONE)
+                    && (mvitals[PM_GIANT_MIMIC].mvflags & G_GONE))) {
+            /* make a mimic instead */
+            set_doorstate(lev, D_NODOOR);
+            mtmp = makemon(mkclass(S_MIMIC, 0), x, y, NO_MM_FLAGS);
+            if (mtmp)
+                set_mimic_sym(mtmp);
+        }
+        else {
+            set_door_trap(lev, TRUE);
+        }
+    }
+    /* newsym(x,y); */
+
     /* iron door generation */
     if (doorstate(lev) != D_NODOOR && rn1(50, 10) < level_difficulty()) {
         set_door_iron(lev, TRUE);
