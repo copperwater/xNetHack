@@ -239,6 +239,7 @@ open		{ savetoken(yytext); yylval.i=D_ISOPEN; return DOOR_STATE; }
 closed		{ savetoken(yytext); yylval.i=D_CLOSED; return DOOR_STATE; }
 locked		{ savetoken(yytext); yylval.i=D_LOCKED; return DOOR_FLAGS; }
 trapped		{ savetoken(yytext); yylval.i=D_TRAPPED; return DOOR_FLAGS; }
+irondoor        { savetoken(yytext); yylval.i=D_IRON; return DOOR_FLAGS; }
 secret		{ savetoken(yytext); yylval.i=D_SECRET; return DOOR_STATE; }
 north		{ savetoken(yytext); yylval.i=W_NORTH; return DIRECTION; }
 east		{ savetoken(yytext); yylval.i=W_EAST; return DIRECTION; }
