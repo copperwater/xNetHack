@@ -1317,14 +1317,20 @@ boolean allow_floor;
             obj = res;
             res = NULL;
 
+            ilet = ',';
+            if (obj != &zeroobj && obj->where == OBJ_INVENT)
+                ilet = obj->invlet;
+
             if (!cnt) { /* picked 0 of something */
                 if (flags.verbose)
                     pline1(Never_mind);
                 return NULL;
             }
 
-            if (obj == &zeroobj || cnt < 0 || cnt == obj->quan)
+            if (obj == &zeroobj || cnt < 0 || cnt == obj->quan) {
+                savech(ilet);
                 return obj;
+            }
 
             if (cnt > obj->quan) {
                 You("don't have that many!  You only have %ld.", obj->quan);
@@ -1340,6 +1346,7 @@ boolean allow_floor;
                 /* kludge for canletgo()'s can't-drop-this message */
                 obj->corpsenm = (int) cnt;
 
+            savech(ilet);
             return obj;
         }
 
@@ -1390,6 +1397,7 @@ boolean allow_floor;
                 return NULL;
             }
 
+            savech(ilet);
             return &zeroobj;
         }
 
@@ -1408,17 +1416,12 @@ boolean allow_floor;
         }
 
         if (ilet == ',' || ilet == '?' || ilet == '*') {
-            if (ilet == ',' && !floor)
-                return &zeroobj; /* dungeon feature */
-
             boolean show_discouraged = FALSE;
             int qflags = (INVORDER_SORT | SIGNAL_ESCAPE);
             menu_item *selection = NULL;
             struct obj **objchain = &invent;
             if (ilet == ',') {
                 qflags |= (BY_NEXTHERE | FEEL_COCKATRICE);
-                if (!floor || !feature)
-                    qflags |= AUTOSELECT_SINGLE;
                 if (feature)
                     qflags |= INCLUDE_FEATURE;
 
