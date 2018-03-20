@@ -4,7 +4,15 @@ Last Updated: commit d6017c53b5294322ad2bb1e3a76fcabcf205eef8
 This is the first version of xNetHack, forked off the NetHack 3.6.1
 development version. It will continue to contain most or all of the latest
 commits pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
-On top of these, xNetHack 0.1.0 contains the following gameplay changes:
+
+The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
+attempts to describe these changes in a way that's better formatted and more
+friendly to players. However, it might be out of date; in case of conflicting
+information, this changelog is more up-to-date than the wiki page, and the
+commit messages are more up-to-date than this changelog.
+
+On top of any changes made by the NetHack devteam on 3.6.1, xNetHack 0.1.0
+contains the following gameplay changes:
 
 Add "artifactless" conduct: never touch an artifact (14th bit of xlogfile conduct)
 Add "petless" conduct: zero tame monsters the whole game (13th bit of xlogfile conduct)
@@ -84,6 +92,11 @@ Land mine weight is reduced to 40; beartrap weight is reduced to 50.
 Rangers start the game with two beartraps.
 1/40 of random non-artifact weapons generate erodeproof.
 The player does not trigger rolling boulder traps unless on the ground.
+Add iron doors: they mostly act like normal doors, able to be opened, closed, locked, unlocked, and untrapped like wooden doors, but they cannot be destroyed by brute force. They render as cyan instead of brown, and random doors on filler levels with higher than 10 difficulty may be generated as iron.
+Convert several Castle doors to iron.
+Certain appropriate kinds of traps (those that can be triggered by closing as well as opening) can generate on doors that generate in the "open" state
+Pets may no longer be displaced (and untamed) out of traps
+Pets now refuse to be displaced into bad terrain (a trap that harms them, or liquid)
 
 It contains the following non-gameplay interface changes:
 
@@ -154,6 +167,7 @@ Add "swim" to the list of paranoid_confirmation options. When enabled, you will 
 Add "trap" to the list of paranoid_confirmation options, and always prompt before stepping onto a trap, unless impaired, or unless the player is obviously immune to the trap's effects.
 Merge FIQ's getobj patch: more developer-customizable prompts for objects, and these prompts also accept , representing "object or dungeon feature on the floor".
 Water walking boots self-identify if they obviously prevent you from entering water. If they prevent you from entering lava, their fireproofness is also identified.
+Branch stairs are colored orange.
 
 It contains the following non-gameplay architectural changes:
 
@@ -172,3 +186,4 @@ Import livelogging, dgamelaunch simplemail, and dgamelaunch extrainfo.
 impossible() now asks the player to report the message to the developer.
 Add immune_to_trap() function which works symmetrically on monsters and players. Currently used only in conjunction with paranoid trap mechanics, but intended to be used for monster AI in the future.
 Merge a lot of (is_floater() || is_flyer() || is_clinger()) logic into a new !grounded() macro, which cleans up some edge cases that weren't previously covered.
+Add incomplete "material" field to the wish parser. Predecessor of object materials, perhaps?
