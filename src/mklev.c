@@ -389,10 +389,11 @@ int type;
     int doorstate = D_NODOOR;
     boolean set_lock = FALSE;
     boolean set_trap = FALSE;
+    struct rm* lev = &levl[x][y];
 
-    if (!IS_WALL(levl[x][y].typ)) /* avoid SDOORs on already made doors */
+    if (!IS_WALL(lev->typ)) /* avoid SDOORs on already made doors */
         type = DOOR;
-    levl[x][y].typ = type;
+    lev->typ = type;
     if (type == DOOR) {
         if (!rn2(3)) { /* is it a locked door, closed, or a doorway? */
             if (!rn2(5))
@@ -421,8 +422,8 @@ int type;
         if (Is_rogue_level(&u.uz))
             doorstate = D_NODOOR;
 
-        set_doorstate(&levl[x][y], doorstate);
-        set_door_lock(&levl[x][y], set_lock);
+        set_doorstate(lev, doorstate);
+        set_door_lock(lev, set_lock);
 
         if (set_trap) {
             struct monst *mtmp;
@@ -432,24 +433,32 @@ int type;
                      && (mvitals[PM_LARGE_MIMIC].mvflags & G_GONE)
                      && (mvitals[PM_GIANT_MIMIC].mvflags & G_GONE))) {
                 /* make a mimic instead */
-                set_doorstate(&levl[x][y], D_NODOOR);
+                set_doorstate(lev, D_NODOOR);
                 mtmp = makemon(mkclass(S_MIMIC, 0), x, y, NO_MM_FLAGS);
                 if (mtmp)
                     set_mimic_sym(mtmp);
             }
             else {
-                set_door_trap(&levl[x][y], TRUE);
+                set_door_trap(lev, TRUE);
             }
         }
         /* newsym(x,y); */
     } else { /* SDOOR */
-        set_doorstate(&levl[x][y], D_CLOSED);
+        set_doorstate(lev, D_CLOSED);
         if (shdoor || !rn2(5))
-            set_door_lock(&levl[x][y], TRUE);
+            set_door_lock(lev, TRUE);
 
 
         if (!shdoor && level_difficulty() >= 4 && !rn2(20))
-            set_door_trap(&levl[x][y], TRUE);
+            set_door_trap(lev, TRUE);
+    }
+    /* iron door generation */
+    if (doorstate(lev) != D_NODOOR && rn1(50, 10) < level_difficulty()) {
+        set_door_iron(lev, TRUE);
+    }
+    else {
+        /* clean up any uninitialized bit here */
+        set_door_iron(lev, FALSE);
     }
 
     add_door(x, y, aroom);
