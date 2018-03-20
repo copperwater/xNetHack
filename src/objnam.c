@@ -3638,7 +3638,7 @@ wiztrap:
             del_engr_at(x, y);
             pline("A %s.", (lev->typ == POOL) ? "pool" : "moat");
             /* Must manually make kelp! */
-            water_damage_chain(level.objects[x][y], TRUE);
+            water_damage_chain(level.objects[x][y], TRUE, 0, TRUE);
             newsym(x, y);
             return &zeroobj;
         }

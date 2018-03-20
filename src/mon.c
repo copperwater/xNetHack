@@ -486,7 +486,7 @@ register struct monst *mtmp;
         if (split_mon(mtmp, (struct monst *) 0))
             dryup(mtmp->mx, mtmp->my, FALSE);
         if (inpool)
-            water_damage_chain(mtmp->minvent, FALSE);
+            water_damage_chain(mtmp->minvent, FALSE, 0, TRUE);
         return 0;
     } else if (mtmp->data == &mons[PM_IRON_GOLEM] && inpool && !rn2(5)) {
         int dam = d(2, 6);
@@ -501,7 +501,7 @@ register struct monst *mtmp;
             if (mtmp->mhp < 1)
                 return 1;
         }
-        water_damage_chain(mtmp->minvent, FALSE);
+        water_damage_chain(mtmp->minvent, FALSE, 0, TRUE);
         return 0;
     }
 
@@ -558,7 +558,7 @@ register struct monst *mtmp;
             }
             mondead(mtmp);
             if (mtmp->mhp > 0) {
-                water_damage_chain(mtmp->minvent, FALSE);
+                water_damage_chain(mtmp->minvent, FALSE, 0, TRUE);
                 (void) rloc(mtmp, FALSE);
                 return 0;
             }
