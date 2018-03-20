@@ -1823,15 +1823,14 @@ domove()
             /* can't swap places when pet won't fit thru the opening */
             You("stop.  %s won't fit through.", upstart(y_monnam(mtmp)));
             didnt_move = TRUE;
-        } else if (mtmp->mpeaceful && !mtmp->mtame && mtmp->mtrapped) {
-            /* TODO: pets can get angered when displaced out of a trap.
-             * Having peaceful monsters simply refuse is inconsistent.
-             * Probably, pets should not be able to be displaced out of a
-             * trap like a pit or bear trap at all. */
+        } else if ((mtmp->mpeaceful || mtmp->mtame) && mtmp->mtrapped) {
+            /* aos: since peaceful monsters simply being unable to move out of
+             * traps was inconsistent with pets having it possible but being
+             * untamed in the process, extend this to pets as well. */
             You("stop.  %s can't move out of that trap.",
                 upstart(y_monnam(mtmp)));
             didnt_move = TRUE;
-        } else if (mtmp->mpeaceful && !mtmp->mtame
+        } else if (mtmp->mpeaceful
                    && (!goodpos(u.ux0, u.uy0, mtmp, 0)
                        || t_at(u.ux0, u.uy0) != NULL
                        || mtmp->ispriest
@@ -1844,17 +1843,6 @@ domove()
                 upstart(y_monnam(mtmp)));
             didnt_move = TRUE;
         } else {
-            /* if trapped, there's a chance the pet goes wild */
-            if (mtmp->mtrapped) {
-                if (!rn2(mtmp->mtame)) {
-                    mtmp->mtame = mtmp->mpeaceful = mtmp->msleeping = 0;
-                    if (mtmp->mleashed)
-                        m_unleash(mtmp, TRUE);
-                    growl(mtmp);
-                } else {
-                    yelp(mtmp);
-                }
-            }
             char pnambuf[BUFSZ];
 
             /* save its current description in case of polymorph */
