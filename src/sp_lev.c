@@ -3301,12 +3301,21 @@ struct sp_coder *coder;
     static const char nhFunc[] = "spo_engraving";
     struct opvar *etyp, *txt, *ecoord;
     xchar x, y;
+    char buf[BUFSZ];
+    buf[0] = '\0';
 
-    if (!OV_pop_i(etyp) || !OV_pop_s(txt) || !OV_pop_c(ecoord))
+    if (!OV_pop_i(etyp) || !OV_pop(txt) || !OV_pop_c(ecoord))
         return;
 
+    if (OV_typ(txt) == SPOVAR_INT) {
+        if (OV_i(txt) != -1) {
+            impossible("spo_engraving: got int that wasn't -1");
+        }
+        /* specified random engraving instead of str */
+        random_engraving(buf);
+    }
     get_location_coord(&x, &y, DRY, coder->croom, OV_i(ecoord));
-    make_engr_at(x, y, OV_s(txt), 0L, OV_i(etyp));
+    make_engr_at(x, y, (*buf ? buf : OV_s(txt)), 0L, OV_i(etyp));
 
     opvar_free(etyp);
     opvar_free(txt);

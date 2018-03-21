@@ -188,3 +188,4 @@ Add immune_to_trap() function which works symmetrically on monsters and players.
 Merge a lot of (is_floater() || is_flyer() || is_clinger()) logic into a new !grounded() macro, which cleans up some edge cases that weren't previously covered.
 Add incomplete "material" field to the wish parser. Predecessor of object materials, perhaps?
 Create coord_hash function for deterministic hashing of xyz coordinates
+Allow engravings in des files to specify random instead of a literal string; this will generate regular random engraving text.

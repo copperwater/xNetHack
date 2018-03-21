@@ -1923,12 +1923,19 @@ gold_detail	: GOLD_ID ':' math_expr_var ',' coord_or_var
 		  }
 		;
 
-engraving_detail: ENGRAVING_ID ':' coord_or_var ',' engraving_type ',' string_expr
+engraving_detail: ENGRAVING_ID ':' coord_or_var ',' engraving_type ',' engraving_text
 		  {
 		      add_opvars(splev, "io",
 				 VA_PASS2((long)$5, SPO_ENGRAVING));
 		  }
 		;
+
+engraving_text  : string_expr
+                | RANDOM_TYPE
+                  {
+                      add_opvars(splev, "i", VA_PASS1($1));
+                  }
+                ;
 
 mineralize	: MINERALIZE_ID ':' integer_or_var ',' integer_or_var ',' integer_or_var ',' integer_or_var
 		  {
