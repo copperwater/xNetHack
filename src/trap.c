@@ -5254,13 +5254,7 @@ int x, y;
      * repeat traps on the same door will be the same trap.
      * In order to provide some extra scrambling that the player won't be able
      * to get out of the visible game state, involve birthday as well. */
-    const int magic_number = 0x45d9f3b;
-    /* use Cantor pairing to reduce (x,y) to a unique number */
-    unsigned int a = ((x+y) * (x+y+1) / 2) + x + ledger_no(&u.uz) + ubirthday;
-    a = a * magic_number;
-    a = ((a >> 16) ^ a) * magic_number;
-    a = ((a >> 16) ^ a);
-    return (int) (a % (maxtrap + 1));
+    return (int) (coord_hash(x, y, ledger_no(&u.uz)) % (maxtrap + 1));
 }
 
 /* Interacting with a door triggers a trap.

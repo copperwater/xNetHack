@@ -650,6 +650,27 @@ int x0, y0, x1, y1;
     return (boolean) (!dy || !dx || dy == dx || dy == -dx);
 }
 
+/* Deterministic hash of three coordinates (intended to be x, y, and z, but
+ * they don't actually have to be). In a lot of cases, z should probably also
+ * be ledger_no(&u.uz) so that the "z" is actually unique among levels.
+ * Throws ubirthday into the hash so that the hash should be (mostly) unique
+ * among the same coordinates in different games, and so the player shouldn't
+ * be able to get the result out of the visible game state (assuming they
+ * didn't actually guess it or track it otherwise...)
+ */
+unsigned int
+coord_hash(x, y, z)
+int x, y, z;
+{
+    const int magic_number = 0x45d9f3b;
+    /* use Cantor pairing to reduce (x,y) to a unique number */
+    unsigned int a = ((x+y) * (x+y+1) / 2) + x + z + ubirthday;
+    a = a * magic_number;
+    a = ((a >> 16) ^ a) * magic_number;
+    a = ((a >> 16) ^ a);
+    return a;
+}
+
 /* guts of pmatch(), pmatchi(), and pmatchz();
    match a string against a pattern */
 static boolean

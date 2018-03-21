@@ -187,3 +187,4 @@ impossible() now asks the player to report the message to the developer.
 Add immune_to_trap() function which works symmetrically on monsters and players. Currently used only in conjunction with paranoid trap mechanics, but intended to be used for monster AI in the future.
 Merge a lot of (is_floater() || is_flyer() || is_clinger()) logic into a new !grounded() macro, which cleans up some edge cases that weren't previously covered.
 Add incomplete "material" field to the wish parser. Predecessor of object materials, perhaps?
+Create coord_hash function for deterministic hashing of xyz coordinates
