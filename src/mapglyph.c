@@ -72,6 +72,7 @@ unsigned *ospecial;
     boolean has_rogue_ibm_graphics = HAS_ROGUE_IBM_GRAPHICS;
     boolean has_rogue_color = (has_rogue_ibm_graphics
                                && symset[currentgraphics].nocolor == 0);
+    struct engr* engr = engr_at(x, y);
 
     /*
      *  Map the glyph back to a character and color.
@@ -127,7 +128,7 @@ unsigned *ospecial;
                 color = NO_COLOR;
 #ifdef TEXTCOLOR
         } else if (is_cmap_door(offset) && door_is_iron(&levl[x][y])) {
-            color = CLR_CYAN;
+            color = HI_METAL;
         /* provide a visible difference if normal and lit corridor
            use the same symbol */
         } else if (iflags.use_color && offset == S_litcorr
@@ -139,10 +140,37 @@ unsigned *ospecial;
                  (offset == S_upstair || offset == S_dnstair) &&
                  (x == sstairs.sx && y == sstairs.sy)) {
             color = CLR_ORANGE;
+        }
+        /* visible engravings */
+        else if (engr && engr->engr_type != HEADSTONE) {
+            /* hack: use amulet symbol */
+            idx = AMULET_CLASS + SYM_OFF_O;
+            if (engr->engr_type == DUST) {
+                color = CLR_BROWN;
+            }
+            else if (engr->engr_type == ENGRAVE) {
+                color = CLR_GRAY;
+            }
+            else if (engr->engr_type == BURN) {
+                color = CLR_BLACK;
+            }
+            else if (engr->engr_type == MARK) {
+                int k = (coord_hash(x, y, ledger_no(&u.uz)) % 3);
+                if (k == 0)
+                    color = CLR_BRIGHT_GREEN;
+                else if (k == 1)
+                    color = CLR_BRIGHT_BLUE;
+                else if (k == 2)
+                    color = CLR_BRIGHT_MAGENTA;
+            }
+            else if (engr->engr_type == BURN) {
+                color = CLR_RED;
+            }
 #endif
+        }
         /* try to provide a visible difference between water and lava
            if they use the same symbol and color is disabled */
-        } else if (!iflags.use_color && offset == S_lava
+        else if (!iflags.use_color && offset == S_lava
                    && (showsyms[idx] == showsyms[S_pool + SYM_OFF_P]
                        || showsyms[idx] == showsyms[S_water + SYM_OFF_P])) {
             special |= MG_BW_LAVA;
