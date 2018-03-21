@@ -532,7 +532,11 @@ IF [50%] {
 } ELSE {
   OBJECT:('"',"amulet of reflection"),$place[0]
 }
+# Soko premapping makes all engravings show up, so burn engravings in all three
+# rooms
 ENGRAVING:$place[0],burn,"Elbereth"
+ENGRAVING:$place[1],burn,random
+ENGRAVING:$place[2],burn,random
 OBJECT:('?', "scare monster"),$place[0],cursed
 
 
@@ -633,5 +637,10 @@ IF [50%] {
 } ELSE {
   OBJECT:('"',"amulet of reflection"),$place[0]
 }
+
+# Soko premapping makes all engravings show up, so burn engravings in all three
+# rooms
 ENGRAVING:$place[0],burn,"Elbereth"
+ENGRAVING:$place[1],burn,random
+ENGRAVING:$place[2],burn,random
 OBJECT:('?', "scare monster"),$place[0],cursed
