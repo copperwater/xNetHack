@@ -143,8 +143,7 @@ unsigned *ospecial;
         }
         /* visible engravings */
         else if (engr && engr->engr_type != HEADSTONE) {
-            /* hack: use amulet symbol */
-            idx = AMULET_CLASS + SYM_OFF_O;
+            idx = S_engraving + SYM_OFF_P;
             if (engr->engr_type == DUST) {
                 color = CLR_BROWN;
             }
