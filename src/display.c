@@ -1694,6 +1694,13 @@ xchar x, y;
         idx = S_room;
         break;
     }
+    /* aos: engravings come last
+     * FIXME: if the player engraves over certain terrain types like lowered
+     * drawbridges, it could be confusing. Perhaps some of these types should
+     * be exempt from showing as engravings. */
+    if (engr_at(x, y)) {
+        idx = S_engraving;
+    }
 
     return idx;
 }
@@ -1818,6 +1825,9 @@ xchar x, y;
             else if (idx == S_room)
                 idx = (flags.dark_room && iflags.use_color)
                          ? DARKROOMSYM : S_stone;
+        }
+        if (engr_at(x, y)) {
+            idx = S_engraving;
         }
 
         if (idx != S_room)
