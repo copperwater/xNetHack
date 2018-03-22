@@ -1444,7 +1444,8 @@ boolean telekinesis;
     struct obj* thiefstone = NULL;
     struct obj* otmp = NULL;
     for (otmp = invent; otmp; otmp = otmp->nobj) {
-        if (otmp->otyp == THIEFSTONE && otmp->cursed && !rn2(10)
+        if (otmp->otyp == THIEFSTONE && otmp->cursed && otmp->spe > 0
+            && !rn2(10)
             && (otmp->keyed_ledger != ledger_no(&u.uz)
                 || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
             thiefstone = otmp;
@@ -1467,7 +1468,7 @@ boolean telekinesis;
     }
     /* second case: obj being picked up is a cursed thiefstone,
      * which will steal a random inventory possession */
-    if (result > 0 && obj->otyp == THIEFSTONE && obj->cursed
+    if (result > 0 && obj->otyp == THIEFSTONE && obj->cursed && obj->spe > 0
         && (obj->keyed_ledger != ledger_no(&u.uz)
             || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
         int total = 0;
@@ -1583,6 +1584,30 @@ struct obj* obj;
         obj->mgrx = keyed_x(stone);
         obj->mgry = keyed_y(stone);
         add_to_migration(obj);
+    }
+}
+
+/* Thiefstone teleports a monster, presumably a valuable monster. */
+void
+thiefstone_tele_mon(stone, mon)
+struct obj* stone;
+struct monst* mon;
+{
+    xchar ledger = stone->keyed_ledger;
+    coord cc;
+    if (mon->data != &mons[PM_GOLD_GOLEM]) {
+        impossible("thiefstone_tele_mon: bad monster to teleport");
+        return;
+    }
+    if (ledger == ledger_no(&u.uz)) {
+        /* same level, just do horizontal teleport */
+        enexto(&cc, keyed_x(stone), keyed_y(stone), mon->data);
+        rloc_to(mon, cc.x, cc.y);
+    } else {
+        /* level teleport mon */
+        cc.x = keyed_x(stone);
+        cc.y = keyed_y(stone);
+        migrate_to_level(mon, ledger, MIGR_EXACT_XY, &cc);
     }
 }
 
