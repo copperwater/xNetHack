@@ -155,6 +155,7 @@ enum screen_symbols {
     S_air,
     S_cloud,
     S_water,
+    S_engraving,
 
 /* end dungeon characters, begin traps */
 

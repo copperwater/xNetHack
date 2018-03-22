@@ -563,6 +563,7 @@ struct {
 {S_air,      "air", "air"},
 {S_cloud,    "cloud", "cloud"},
 {S_water,    "water", "water"},
+{S_engraving, "engraving", "engraving"},
 {S_arrow_trap,           "arrow trap", "arrow trap"},
 {S_dart_trap,            "dart trap", "dart trap"},
 {S_falling_rock_trap,    "falling rock trap", "falling rock trap"},

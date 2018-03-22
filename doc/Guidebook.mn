@@ -3678,6 +3678,7 @@ d	S_dog	(dog or other canine)
 D	S_dragon	(dragon)
 ;	S_eel	(sea monster)
 E	S_elemental	(elemental)
+"       S_engraving     (engraving on the floor)
 /	S_explode1	(explosion top left)
 -	S_explode2	(explosion top center)
 `\e'	S_explode3	(explosion top right)
@@ -3976,7 +3977,7 @@ to enable this feature.  The following values may be combined:
 0x10 - Life-saving
 0x20 - Break conduct - see also LLC_TURNS below.
 0x40 - Artifact obtained (#name Sting, dip for Excalibur)
-0x80 - Genocides 
+0x80 - Genocides
 0x8000 - Livelog debug msgs (currently only 'enter new level')
 .ei
 .ed
