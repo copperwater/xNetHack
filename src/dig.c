@@ -430,8 +430,10 @@ dig(VOID_ARGS)
         } else if (lev->typ == SDOOR) {
             cvt_sdoor_to_door(lev); /* ->typ = DOOR */
             digtxt = "You break through a secret door!";
+            set_doorstate(lev, D_BROKEN);
         } else if (closed_door(dpx, dpy)) {
             digtxt = "You break through the door.";
+            set_doorstate(lev, D_BROKEN);
         } else
             return 0; /* statue or boulder got taken */
 
@@ -461,12 +463,12 @@ dig(VOID_ARGS)
         if (IS_DOOR(lev->typ)) {
             /* use ARM to represent that you're in melee range ("touching") the
              * door */
-            if (doortrapped(dpx, dpy, &youmonst, ARM, D_BROKEN, 2)) {
+            if (!postdoortrapped(dpx, dpy, &youmonst, ARM, D_BROKEN)) {
+                if (shopedge) {
+                    add_damage(dpx, dpy, SHOP_DOOR_COST);
+                    dmgtxt = "break";
+                }
                 newsym(dpx, dpy);
-            }
-            else if (shopedge) {
-                add_damage(dpx, dpy, SHOP_DOOR_COST);
-                dmgtxt = "break";
             }
         }
     cleanup:
@@ -1132,7 +1134,13 @@ struct obj *obj;
 
             did_dig_msg = FALSE;
             context.digging.quiet = FALSE;
-            if (context.digging.pos.x != rx || context.digging.pos.y != ry
+            if (IS_DOOR(lev->typ)
+                && predoortrapped(rx, ry, &youmonst, ARM, D_BROKEN)) {
+                /* doorstate was modified by trap, so don't dig:
+                 * do nothing else; trap will handle messages */
+                ;
+            }
+            else if (context.digging.pos.x != rx || context.digging.pos.y != ry
                 || !on_level(&context.digging.level, &u.uz)
                 || context.digging.down) {
                 if (flags.autodig && dig_target == DIGTYP_ROCK
@@ -1157,6 +1165,9 @@ struct obj *obj;
                 You("%s %s.", context.digging.chew ? "begin" : "continue",
                     d_action[dig_target]);
                 context.digging.chew = FALSE;
+            }
+            if (IS_DOOR(lev->typ)) {
+                predoortrapped(rx, ry, &youmonst, ARM, D_BROKEN);
             }
             set_occupation(dig, verbing, 0);
         }
