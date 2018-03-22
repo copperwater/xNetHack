@@ -1575,6 +1575,10 @@ xchar x, y;
     int idx;
     struct rm *ptr = &(levl[x][y]);
 
+    /* aos: most types of terrain shouldn't have engravings override their
+     * usual symbol. Only boring ones should do that. */
+    boolean engr_override = FALSE;
+
     switch (ptr->typ) {
     case SCORR:
     case STONE:
@@ -1582,9 +1586,11 @@ xchar x, y;
         break;
     case ROOM:
         idx = S_room;
+        engr_override = TRUE;
         break;
     case CORR:
         idx = (ptr->waslit || flags.lit_corridor) ? S_litcorr : S_corr;
+        engr_override = TRUE;
         break;
     case HWALL:
     case VWALL:
@@ -1611,6 +1617,8 @@ xchar x, y;
         case D_NODOOR:
         case D_BROKEN:
             idx = S_ndoor;
+            engr_override = TRUE;
+        break;
             break;
         default:
             impossible("back_to_glyph: bad door state %d", ptr->doormask);
@@ -1652,6 +1660,7 @@ xchar x, y;
         break;
     case ICE:
         idx = S_ice;
+        engr_override = TRUE;
         break;
     case AIR:
         idx = S_air;
@@ -1692,13 +1701,10 @@ xchar x, y;
     default:
         impossible("back_to_glyph:  unknown level type [ = %d ]", ptr->typ);
         idx = S_room;
+        engr_override = TRUE;
         break;
     }
-    /* aos: engravings come last
-     * FIXME: if the player engraves over certain terrain types like lowered
-     * drawbridges, it could be confusing. Perhaps some of these types should
-     * be exempt from showing as engravings. */
-    if (engr_at(x, y)) {
+    if (engr_override && engr_at(x, y)) {
         idx = S_engraving;
     }
 
