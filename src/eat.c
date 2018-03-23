@@ -2269,6 +2269,11 @@ struct obj *otmp;
             fall_asleep(-rn1(11, 20), TRUE);
         }
         break;
+    case CANDY_BAR:
+        /* "rare candy" - Pokemon */
+        if (!rn2(100)) {
+            pluslvl(FALSE);
+        }
     }
     return;
 }
