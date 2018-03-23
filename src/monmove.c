@@ -1350,6 +1350,27 @@ postmov:
             }
         }
 
+        /* maybe a spider spun a web */
+        if (webmaker(ptr)) {
+            /* FIXME: Doors should be selected a little more discriminately;
+             * spiders should prefer to spin webs in doorways that actually
+             * have two walls on either side. This will work well enough in
+             * naturally generated levels, but not when some dwarf starts
+             * mining out all the walls of a room and creating "doorways"
+             * everywhere. */
+            int prob = ((ptr == &mons[PM_GIANT_SPIDER]) ? 25 : 10);
+            if (IS_DOOR(levl[mtmp->mx][mtmp->my].typ)) {
+                prob *= 2;
+            }
+            if (!t_at(mtmp->mx, mtmp->my) && rn2(1000) < prob) {
+                struct trap* trap = maketrap(mtmp->mx, mtmp->my, WEB);
+                if (canspotmon(mtmp)) {
+                    pline("%s spins a web.", upstart(y_monnam(mtmp)));
+                    trap->tseen = 1;
+                }
+            }
+        }
+
         if (hides_under(ptr) || ptr->mlet == S_EEL) {
             /* Always set--or reset--mundetected if it's already hidden
                (just in case the object it was hiding under went away);
