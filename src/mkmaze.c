@@ -1161,7 +1161,7 @@ fumaroles()
         xchar y = rn1(ROWNO - 4, 3);
 
         if (levl[x][y].typ == LAVAPOOL) {
-            NhRegion *r = create_gas_cloud(x, y, 4 + rn2(5), rn1(10, 5));
+            NhRegion *r = create_gas_cloud(x, y, rn1(50, 40), rn1(10, 5));
 
             clear_heros_fault(r);
             snd = TRUE;

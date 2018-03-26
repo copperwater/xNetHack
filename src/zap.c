@@ -4410,7 +4410,7 @@ short exploding_wand_typ;
         break; /* ZT_COLD */
 
     case ZT_POISON_GAS:
-        (void) create_gas_cloud(x, y, 1, 8);
+        (void) create_gas_cloud(x, y, rnd(5), 8);
         break;
 
     case ZT_ACID:

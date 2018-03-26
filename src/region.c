@@ -1003,30 +1003,82 @@ genericptr_t p2;
     return FALSE; /* Monster is still alive */
 }
 
+/* Create a gas cloud which starts at (x,y) and grows outward from it via
+ * breadth-first search.
+ * cloudsize is the number of squares the cloud will attempt to fill.
+ * damage is how much it deals to afflicted creatures. */
 NhRegion *
-create_gas_cloud(x, y, radius, damage)
+create_gas_cloud(x, y, cloudsize, damage)
 xchar x, y;
-int radius;
+int cloudsize;
 int damage;
 {
     NhRegion *cloud;
-    int i, nrect;
+    int i, j, nrect;
     NhRect tmprect;
 
+    /* store visited coords */
+    xchar xcoords[cloudsize];
+    xchar ycoords[cloudsize];
+    xcoords[0] = x;
+    ycoords[0] = y;
+    int curridx;
+    int newidx = 1; /* initial spot is already taken */
+
+    for (curridx = 0; curridx < newidx; curridx++) {
+        if (newidx >= cloudsize)
+            break;
+        int xx = xcoords[curridx];
+        int yy = ycoords[curridx];
+        /* Do NOT check for if there is already a gas cloud created at some
+         * other time at this position. They can overlap. */
+        for (int i = 0; i < 4; ++i) {
+            /* try all 4 directions
+             * TODO: randomize the order in which it checks directions. Since
+             * this is BFS it probably won't be noticed very much anyway. */
+
+            int dx = 0, dy = 0;
+            boolean isunpicked = TRUE;
+            if (i >= 2) {
+                dy = ((i % 2 == 0) ? -1 : 1);
+            }
+            else {
+                dx = ((i % 2 == 0) ? -1 : 1);
+            }
+            /* don't pick a location we've already picked */
+            if (valid_cloud_pos(xx + dx, yy + dy)) {
+                for (j = 0; j < newidx; ++j) {
+                    if (xcoords[j] == xx + dx && ycoords[j] == yy + dy) {
+                        isunpicked = FALSE;
+                        break;
+                    }
+                }
+                if (isunpicked) {
+                    xcoords[newidx] = xx + dx;
+                    ycoords[newidx] = yy + dy;
+                    newidx++;
+                }
+            }
+            if (newidx >= cloudsize) {
+                /* don't try further directions */
+                break;
+            }
+        }
+    }
+    /* we have now either filled up xcoord and ycoord entirely or run out of
+     * space. In either case, newidx is the correct total number of coordinates
+     * inserted. */
     cloud = create_region((NhRect *) 0, 0);
-    nrect = radius;
-    tmprect.lx = x;
-    tmprect.hx = x;
-    tmprect.ly = y - (radius - 1);
-    tmprect.hy = y + (radius - 1);
-    for (i = 0; i < nrect; i++) {
+    for (i = 0; i < newidx; ++i) {
+        tmprect.lx = tmprect.hx = xcoords[i];
+        tmprect.ly = tmprect.hy = ycoords[i];
         add_rect_to_reg(cloud, &tmprect);
-        tmprect.lx--;
-        tmprect.hx++;
-        tmprect.ly++;
-        tmprect.hy--;
     }
     cloud->ttl = rn1(3, 4);
+    /* If the cloud was constrained in a small space, give it more time to
+     * live. */
+    cloud->ttl = (cloud->ttl * cloudsize) / newidx;
+
     if (!in_mklev && !context.mon_moving)
         set_heros_fault(cloud); /* assume player has created it */
     cloud->inside_f = INSIDE_GAS_CLOUD;

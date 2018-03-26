@@ -40,9 +40,8 @@ STATIC_DCL void FDECL(randomize, (int *, int));
 STATIC_DCL void FDECL(forget_single_object, (int));
 STATIC_DCL void FDECL(forget, (int));
 STATIC_DCL int FDECL(maybe_tame, (struct monst *, struct obj *));
-STATIC_DCL boolean FDECL(is_valid_stinking_cloud_pos, (int, int, BOOLEAN_P));
+STATIC_DCL boolean FDECL(can_center_cloud, (int, int));
 STATIC_DCL void FDECL(display_stinking_cloud_positions, (int));
-STATIC_DCL boolean FDECL(get_valid_stinking_cloud_pos, (int, int));
 STATIC_PTR void FDECL(set_lit, (int, int, genericptr));
 
 STATIC_OVL boolean
@@ -976,26 +975,26 @@ struct obj *sobj;
     return 0;
 }
 
-STATIC_OVL boolean
-get_valid_stinking_cloud_pos(x,y)
+/* Can a stinking cloud physically exist at a certain position?
+ * NOT the same thing as can_center_cloud.
+ */
+boolean
+valid_cloud_pos(x, y)
 int x,y;
 {
-    return (!(!isok(x,y) || !cansee(x, y)
-              || !ACCESSIBLE(levl[x][y].typ)
-              || distu(x, y) >= 32));
+    return (isok(x,y) && ACCESSIBLE(levl[x][y].typ));
 }
 
+/* Callback for getpos_sethilite, also used in determining whether a scroll
+ * should have its regular effects, or not because it was out of range.
+ */
 boolean
-is_valid_stinking_cloud_pos(x, y, showmsg)
+can_center_cloud(x, y)
 int x, y;
-boolean showmsg;
 {
-    if (!get_valid_stinking_cloud_pos(x,y)) {
-        if (showmsg)
-            You("smell rotten eggs.");
+    if (!valid_cloud_pos(x, y))
         return FALSE;
-    }
-    return TRUE;
+    return (cansee(x, y) && distu(x, y) < 32);
 }
 
 void
@@ -1012,7 +1011,7 @@ int state;
             for (dy = -dist; dy <= dist; dy++) {
                 x = u.ux + dx;
                 y = u.uy + dy;
-                if (get_valid_stinking_cloud_pos(x,y))
+                if (can_center_cloud(x, y))
                     tmp_at(x, y);
             }
     } else {
@@ -1669,9 +1668,9 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                     pline("This is a scroll of fire!");
                 dam *= 5;
                 pline("Where do you want to center the explosion?");
-                getpos_sethilite(display_stinking_cloud_positions, get_valid_stinking_cloud_pos);
+                getpos_sethilite(display_stinking_cloud_positions, can_center_cloud);
                 (void) getpos(&cc, TRUE, "the desired position");
-                if (!is_valid_stinking_cloud_pos(cc.x, cc.y, FALSE)) {
+                if (!can_center_cloud(cc.x, cc.y)) {
                     /* try to reach too far, get burned */
                     cc.x = u.ux;
                     cc.y = u.uy;
@@ -1741,14 +1740,16 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
               already_known ? "stinking " : "");
         cc.x = u.ux;
         cc.y = u.uy;
-        getpos_sethilite(display_stinking_cloud_positions, get_valid_stinking_cloud_pos);
+        getpos_sethilite(display_stinking_cloud_positions, can_center_cloud);
         if (getpos(&cc, TRUE, "the desired position") < 0) {
             pline1(Never_mind);
             break;
         }
-        if (!is_valid_stinking_cloud_pos(cc.x, cc.y, TRUE))
+        if (!can_center_cloud(cc.x, cc.y)) {
+            You("smell rotten eggs.");
             break;
-        (void) create_gas_cloud(cc.x, cc.y, 3 + bcsign(sobj),
+        }
+        (void) create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj),
                                 8 + 4 * bcsign(sobj));
         break;
     }
