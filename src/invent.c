@@ -1233,11 +1233,14 @@ boolean allow_floor;
     if (feature && oldstyle) {
         struct trap *trap = t_at(u.ux, u.uy);
         int sym = back_to_defsym(u.ux, u.uy);
+        char fbuf[BUFSZ];
+
         if (trap)
             sym = trap_to_defsym(what_trap(trap->ttyp));
 
         Sprintf(qbuf, "%s the %s?", upperwhat,
-                defsyms[sym].explanation);
+                trap ? defsyms[sym].explanation :
+                dfeature_at(u.ux, u.uy, fbuf));
 
         c = ynq(qbuf);
         if (c == 'y')
@@ -1414,6 +1417,9 @@ boolean allow_floor;
         }
 
         if (ilet == ',' || ilet == '?' || ilet == '*') {
+            if (ilet == ',' && !floor)
+                return &zeroobj; /* dungeon feature */
+
             boolean show_discouraged = FALSE;
             int qflags = (INVORDER_SORT | SIGNAL_ESCAPE);
             menu_item *selection = NULL;
