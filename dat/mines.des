@@ -1284,9 +1284,9 @@ MAP
    #}   ##}}}      } }   # ##}       }}    #}   #### .{.}}####  }}}  #}  }#}
    }#  #}}}}        }    #   #}    }###}###}         ...     ####}}##}## }#
    }##}}  # }    } }    {#   #... }# }}# }}###}      #     ###   ##}}  #}#
-  }#      #}    } }}#        #...#}    }#   }}###}####}}} ##        }}  }#
-  }##...  ##  ##    }#     }} ... #}    }}     }}#}}      }}  ######}}}}#}
- }#  ...# }######    }}   }#     }##}}}###}}#    }# }}####}}### }}}}#### }}
+  }#      #}    } }}#       }#...#}    }#   }}###}####}}} ##        }}  }#
+  }##...  ##  ##    }##    }} ... #}    }}     }}#}}      }}  ######}}}}#}
+ }#  ...# }######    }}#  }#     }##}}}###}}#    }# }}####}}### }}}}#### }}
  #   ...####  }###  ###}}}#      #}####}  ##}}  }}####   #### }}   #}  }#  }
  }#       }     }} }}} #} #     ###}}}  }}}  }}####         }}#     #}  }#}
   }#       #     }} ###}#}#    ## }#  }}   }}##}}       }}}}##}}    }#  }#}
@@ -1302,6 +1302,13 @@ ENDMAP
 STAIR:(31,8),up
 FOUNTAIN:(54,5)
 FOUNTAIN:(24,7)
+
+# luckstone and touchstone used to be random but that's a bit too cruel
+$stone = { (2,4),(2,18),(21,9),(45,16),(64,14),(62,20),(74,18),(71,1),(59,8) }
+SHUFFLE: $stone
+OBJECT:('*',"luckstone"),$stone[0]
+OBJECT:('*',"touchstone"),$stone[1]
+
 # Eels
 $eel = { (19,7),(56,5),(59,18) }
 SHUFFLE: $eel
@@ -1377,8 +1384,6 @@ OBJECT:('?',"blank paper"),random
 OBJECT:('?',"blank paper"),random
 # these should be rotted, but the des parser doesn't let you specify erosion
 OBJECT:('[',"high boots"),random
-OBJECT:('*',"luckstone"),random
-OBJECT:('*',"touchstone"),random
 # one of each soft gemstone
 OBJECT:('*',"chrysoberyl"),random
 OBJECT:('*',"amethyst"),random
