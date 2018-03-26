@@ -1,5 +1,4 @@
 xNetHack 0.1.0 Changelog
-Last Updated: commit d6017c53b5294322ad2bb1e3a76fcabcf205eef8
 
 This is the first version of xNetHack, forked off the NetHack 3.6.1
 development version. It will continue to contain most or all of the latest
