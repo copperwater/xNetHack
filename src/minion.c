@@ -476,14 +476,17 @@ gain_guardian_angel()
                 pline("An angel appears near you.");
             else
                 You_feel("the presence of a friendly angel near you.");
-            /* guardian angel -- the one case mtame doesn't
-             * imply an edog structure, so we don't want to
-             * call tamedog().
-             */
-            mtmp->mtame = 10;
-            /* to avoid breaking petless, you're going to have to avoid this
-             * outcome somehow */
-            u.uconduct.pets++;
+            /* Too nasty for the game to unexpectedly break petless conduct on
+             * the final level of the game. The angel will still appear, but
+             * won't be tamed. */
+            if (u.uconduct.pets) {
+                /* guardian angel -- the one case mtame doesn't
+                * imply an edog structure, so we don't want to
+                * call tamedog().
+                */
+                mtmp->mtame = 10;
+                u.uconduct.pets++;
+            }
             /* make him strong enough vs. endgame foes */
             mtmp->m_lev = rn1(8, 15);
             mtmp->mhp = mtmp->mhpmax =
