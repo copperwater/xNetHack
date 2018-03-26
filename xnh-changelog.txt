@@ -97,6 +97,12 @@ Convert several Castle doors to iron.
 Certain appropriate kinds of traps (those that can be triggered by closing as well as opening) can generate on doors that generate in the "open" state
 Pets may no longer be displaced (and untamed) out of traps
 Pets now refuse to be displaced into bad terrain (a trap that harms them, or liquid)
+Hitting a gold golem with a blessed thiefstone (only if thrown due to a bug) will teleport that golem to the keyed location. Works on players polyselfed into gold golems. Does not work on a monster carrying the Amulet.
+Rare candy from Pokemon; when you eat a candy bar there is a 1% chance of gaining a level.
+Spiders have a small probability of spinning a web with each step they take. This chance is doubled if it is in a doorway. If you observe this happen, the web is identified.
+Stinking clouds expand to fit their terrain rather than using a rhombus shape. Be careful with them in confined spaces.
+If the player has followed petless conduct, the guardian angel on Astral will spawn peaceful rather than tame
+The Astral Plane is fully lit
 
 It contains the following non-gameplay interface changes:
 
@@ -167,7 +173,10 @@ Add "swim" to the list of paranoid_confirmation options. When enabled, you will 
 Add "trap" to the list of paranoid_confirmation options, and always prompt before stepping onto a trap, unless impaired, or unless the player is obviously immune to the trap's effects.
 Merge FIQ's getobj patch: more developer-customizable prompts for objects, and these prompts also accept , representing "object or dungeon feature on the floor".
 Water walking boots self-identify if they obviously prevent you from entering water. If they prevent you from entering lava, their fireproofness is also identified.
-Branch stairs are colored orange.
+Branch stairs are colored yellow.
+Engravings display visibly on the floor when you are able to see them. The default symbol is " but it may be set manually via S_engraving. A new engraving tile is also added to the default tileset.
+Add some thiefstone-related true and false rumors
+Reference the famous Monty Hall Problem on the two dud Sokoban engravings
 
 It contains the following non-gameplay architectural changes:
 
