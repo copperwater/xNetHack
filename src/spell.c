@@ -1690,12 +1690,12 @@ int spell;
     }
     if (uarms) {
         if (objects[uarms->otyp].oc_bulky)
-            chance -= 50;
+            chance -= 30;
         else
             chance -= 15;
 
         if (is_metallic(uarms))
-            chance -= 5;
+            chance -= 50;
     }
     if (uarmh && is_metallic(uarmh) && uarmh->otyp != HELM_OF_BRILLIANCE) {
         chance -= 20;
