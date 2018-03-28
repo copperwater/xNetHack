@@ -1418,7 +1418,7 @@ boolean at_stairs, falling, portal;
     if (!In_hell(&u.uz0) && Inhell) {
         if (!Is_valley(&u.uz))
             pline("It is hot here.  You smell smoke...");
-        if(!u.uachieve.enter_gehennom) 
+        if(!u.uachieve.enter_gehennom)
             livelog_write_string(LL_ACHIEVE, "entered Gehennom");
         u.uachieve.enter_gehennom = 1;
     }
@@ -1640,9 +1640,11 @@ struct obj *corpse;
 
         case OBJ_FLOOR:
             if (cansee(mtmp->mx, mtmp->my))
-                pline("%s rises from the dead!",
+                pline("%s rises from %s!",
                       chewed ? Adjmonnam(mtmp, "bite-covered")
-                             : Monnam(mtmp));
+                             : Monnam(mtmp),
+                      (mtmp->data == &mons[PM_DEATH] ? "a short nap"
+                                                     : "the dead"));
             break;
 
         case OBJ_MINVENT: /* probably a nymph's */
