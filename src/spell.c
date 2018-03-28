@@ -1644,7 +1644,8 @@ static const struct spellwand wand_combos[] = {
 };
 
 /* Compute a percentage chance of a spell succeeding, based on skill,
- * Intelligence, XL, armor getting in the way, and the spell level.
+ * Intelligence, XL, armor getting in the way, the spell level, and base role
+ * spellcasting ability.
  * In xNetHack this number isn't actually used directly, but rather influences
  * how much extra Pw a difficult spell will take to cast.
  * Original formula by FIQ, with some modifications. */
@@ -1678,7 +1679,15 @@ int spell;
         intel += 5;
     }
 
-    /* At base, chance is dependent on your Int and XL. */
+    /* Don't get over-powerful with these boosts */
+    if (intel >= 20) {
+        intel = 20;
+    }
+
+    /* At base, chance is your base role spellcasting ability. */
+    chance = urole.spelbase;
+
+    /* Int and XL increase this. */
     chance = (intel * 5) + (u.ulevel * 5);
 
     /* Higher level spells will reduce this chance, though. */

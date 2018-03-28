@@ -58,7 +58,7 @@ const struct Role roles[] = {
       { 11, 0, 0, 8, 1, 0 }, /* Hit points */
       { 1, 0, 0, 1, 0, 1 }, /* Energy */
       10,
-      5,
+      30,
       0,
       2,
       10,
@@ -99,7 +99,7 @@ const struct Role roles[] = {
       { 14, 0, 0, 10, 2, 0 }, /* Hit points */
       { 1, 0, 0, 1, 0, 1 }, /* Energy */
       10,
-      14,
+      0,
       0,
       0,
       8,
@@ -140,7 +140,7 @@ const struct Role roles[] = {
       { 14, 0, 0, 8, 2, 0 }, /* Hit points */
       { 1, 0, 0, 1, 0, 1 }, /* Energy */
       0,
-      12,
+      5,
       0,
       1,
       8,
@@ -180,7 +180,7 @@ const struct Role roles[] = {
       { 11, 0, 0, 8, 1, 0 }, /* Hit points */
       { 1, 4, 0, 1, 0, 2 }, /* Energy */
       10,
-      3,
+      40,
       -3,
       2,
       10,
@@ -220,7 +220,7 @@ const struct Role roles[] = {
       { 14, 0, 0, 8, 2, 0 }, /* Hit points */
       { 1, 4, 0, 1, 0, 2 }, /* Energy */
       10,
-      8,
+      15,
       -2,
       0,
       9,
@@ -261,7 +261,7 @@ const struct Role roles[] = {
       { 12, 0, 0, 8, 1, 0 }, /* Hit points */
       { 2, 2, 0, 2, 0, 2 }, /* Energy */
       10,
-      8,
+      35,
       -2,
       2,
       20,
@@ -302,7 +302,7 @@ const struct Role roles[] = {
       { 12, 0, 0, 8, 1, 0 }, /* Hit points */
       { 4, 3, 0, 2, 0, 2 }, /* Energy */
       0,
-      3,
+      40,
       -2,
       2,
       10,
@@ -344,7 +344,7 @@ const struct Role roles[] = {
       { 10, 0, 0, 8, 1, 0 }, /* Hit points */
       { 1, 0, 0, 1, 0, 1 }, /* Energy */
       10,
-      8,
+      15,
       0,
       1,
       9,
@@ -386,7 +386,7 @@ const struct Role roles[] = {
       { 13, 0, 0, 6, 1, 0 }, /* Hit points */
       { 1, 0, 0, 1, 0, 1 }, /* Energy */
       10,
-      9,
+      10,
       2,
       1,
       10,
@@ -466,7 +466,7 @@ const struct Role roles[] = {
       { 8, 0, 0, 8, 0, 0 }, /* Hit points */
       { 1, 0, 0, 1, 0, 1 }, /* Energy */
       0,
-      5,
+      20,
       1,
       2,
       10,
@@ -506,7 +506,7 @@ const struct Role roles[] = {
       { 14, 0, 0, 8, 2, 0 }, /* Hit points */
       { 1, 0, 0, 1, 0, 1 }, /* Energy */
       0,
-      10,
+      25,
       -2,
       0,
       9,
@@ -547,7 +547,7 @@ const struct Role roles[] = {
       { 10, 0, 0, 8, 1, 0 }, /* Hit points */
       { 4, 3, 0, 2, 0, 3 }, /* Energy */
       0,
-      1,
+      50,
       0,
       3,
       10,

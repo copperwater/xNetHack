@@ -148,7 +148,7 @@ struct Role {
     xchar initrecord;         /* initial alignment record */
 
     /*** Spell statistics (from spell.c) ***/
-    int spelbase; /* base spellcasting penalty */
+    int spelbase; /* base spellcasting bonus */
     int spelheal; /* penalty (-bonus) for healing spells */
     int spelshld; /* penalty for wearing any shield */
     int spelarmr; /* penalty for wearing metal armour */
