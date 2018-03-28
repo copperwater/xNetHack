@@ -299,9 +299,14 @@ boolean
 hates_silver(ptr)
 register struct permonst *ptr;
 {
+    if (ptr->mlet == S_IMP) {
+        /* impish creatures that aren't actually demonic */
+        if (ptr == &mons[PM_TENGU] || ptr == &mons[PM_LEPRECHAUN])
+            return FALSE;
+    }
     return (boolean) (is_were(ptr) || ptr->mlet == S_VAMPIRE || is_demon(ptr)
                       || ptr == &mons[PM_SHADE]
-                      || (ptr->mlet == S_IMP && ptr != &mons[PM_TENGU]));
+                      || (ptr->mlet == S_IMP));
 }
 
 /* True iff the type of monster pass through iron bars */
