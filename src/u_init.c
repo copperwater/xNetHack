@@ -748,6 +748,7 @@ u_init()
         if (!rn2(5))
             ini_inv(Blindfold);
         knows_object(SACK);
+        knows_object(THIEFSTONE);
         skill_init(Skill_R);
         break;
     case PM_SAMURAI:
