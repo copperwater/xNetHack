@@ -142,7 +142,8 @@ unsigned *ospecial;
             color = CLR_YELLOW;
         }
         /* visible engravings */
-        else if (engr && engr->engr_type != HEADSTONE) {
+        else if (offset == S_engraving && engr
+                 && engr->engr_type != HEADSTONE) {
             if (engr->engr_type == DUST) {
                 color = CLR_BROWN;
             }
