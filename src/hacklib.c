@@ -42,6 +42,8 @@
         int             distmin         (int, int, int, int)
         int             dist2           (int, int, int, int)
         boolean         online2         (int, int)
+        unsigned int    coord_hash      (int, int, int)
+        unsigned int    hash1           (int)
         boolean         pmatch          (const char *, const char *)
         boolean         pmatchi         (const char *, const char *)
         boolean         pmatchz         (const char *, const char *)
@@ -141,6 +143,28 @@ char *s;
 {
     if (s)
         *s = highc(*s);
+    return s;
+}
+
+/* capitalize first letters of every word in a string */
+char *
+up_all_words(s)
+char * s;
+{
+    char * p;
+    boolean space = TRUE;
+    for (p = s; *p; p++) {
+        if (*p == ' ') {
+            space = TRUE;
+        }
+        else if (space && letter(*p)) {
+            *p = highc(*p);
+            space = FALSE;
+        }
+        else {
+            space = FALSE;
+        }
+    }
     return s;
 }
 
@@ -669,6 +693,16 @@ int x, y, z;
     a = ((a >> 16) ^ a) * magic_number;
     a = ((a >> 16) ^ a);
     return a;
+}
+
+/* Deterministic hash of a single number. Useful for hashes of non-coordinate
+ * numbers such as object or monster ids. */
+unsigned int
+hash1(x)
+int x;
+{
+    /* wrap around coord_hash; ignore Cantor coordinate pairing */
+    return coord_hash(0, 0, x);
 }
 
 /* guts of pmatch(), pmatchi(), and pmatchz();
