@@ -81,7 +81,7 @@ Change some spell levels:
 * Turn undead: 6 -> 2
 * Jumping: 1 -> 2
 Dwarvish and Uruk-hai shields count as bulky
-Replace old spell formula with a more straightforward one; see the cc554357 commit message for details.
+Replace old spell formula with a more straightforward one; see the xNetHack wiki page for details.
 Upper Mines levels are always lit; Lower Mines levels are always dark.
 Use a new, more continuous, Pw regeneration formula from FIQHack (see commit 56c5bbbb)
 Wizards get four spellbooks in starting inventory (force bolt, magic missile, and two random). This replaces the scrolls, potions, rings and wand they previously started with.
@@ -102,6 +102,7 @@ Spiders have a small probability of spinning a web with each step they take. Thi
 Stinking clouds expand to fit their terrain rather than using a rhombus shape. Be careful with them in confined spaces.
 If the player has followed petless conduct, the guardian angel on Astral will spawn peaceful rather than tame
 The Astral Plane is fully lit
+Allow tins to be read (you read the label). On 1/5 of labeled tins it tells you the contents honestly, otherwise it will give a random false label. Tins made by the player are not labeled.
 
 It contains the following non-gameplay interface changes:
 
@@ -176,6 +177,8 @@ Branch stairs are colored yellow.
 Engravings display visibly on the floor when you are able to see them. The default symbol is " but it may be set manually via S_engraving. A new engraving tile is also added to the default tileset.
 Add some thiefstone-related true and false rumors
 Reference the famous Monty Hall Problem on the two dud Sokoban engravings
+Pressing Escape while being held or engulfed by a monster gives "You cannot escape from the monster!" YAFM
+Death rises from a "short nap" instead of "the dead" when reincarnating
 
 It contains the following non-gameplay architectural changes:
 
@@ -197,3 +200,6 @@ Merge a lot of (is_floater() || is_flyer() || is_clinger()) logic into a new !gr
 Add incomplete "material" field to the wish parser. Predecessor of object materials, perhaps?
 Create coord_hash function for deterministic hashing of xyz coordinates
 Allow engravings in des files to specify random instead of a literal string; this will generate regular random engraving text.
+Allow get_rnd_text to choose a specific byte offset in the file.
+Add up_all_words() as a library function: it turns "string-thing like this" into "String-thing Like This".
+Create hash1() function: same logic as coord_hash, but only 1 parameter instead of 3
