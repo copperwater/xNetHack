@@ -1704,7 +1704,7 @@ int spell;
             chance -= 15;
 
         if (is_metallic(uarms))
-            chance -= 50;
+            chance -= 15;
     }
     if (uarmh && is_metallic(uarmh) && uarmh->otyp != HELM_OF_BRILLIANCE) {
         chance -= 20;

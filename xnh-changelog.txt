@@ -102,6 +102,7 @@ Spiders have a small probability of spinning a web with each step they take. Thi
 Stinking clouds expand to fit their terrain rather than using a rhombus shape. Be careful with them in confined spaces.
 If the player has followed petless conduct, the guardian angel on Astral will spawn peaceful rather than tame
 The Astral Plane is fully lit
+Rogues start with thiefstones identified (but they don't get one in inventory)
 Allow tins to be read (you read the label). On 1/5 of labeled tins it tells you the contents honestly, otherwise it will give a random false label. Tins made by the player are not labeled.
 
 It contains the following non-gameplay interface changes:
