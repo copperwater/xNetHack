@@ -343,6 +343,126 @@ doread()
             livelog_write_string(LL_CONDUCT,
                     "became literate by reading a candy bar wrapper");
         return 1;
+    } else if (scroll->otyp == TIN) {
+        static const char *tin_msgs[] = {
+            /* special cases and format strings come first; if more with format strings
+             * are added put them after these but before the rest. */
+#define LABEL_BOGUSMON 1
+#define LABEL_FRUIT_START 2
+#define NUM_FRUIT_LABELS 2
+#define LABEL_MONST_START 4
+#define NUM_MONST_LABELS 9
+            NULL,                                                /* unlabeled */
+            "Rare Meat of a Genocided %s",       /* add hallucinatory monster */
+            "Patent Pending %s Puree",                /* insert the fruitname */
+            "100% Pasteurized %s Juice",              /* insert the fruitname */
+            "Grade AAA - Finest %s",    /* potential contents, sometimes true */
+            "Delicious %s - Tinned in Sparkling Fountain Water",     /* ditto */
+            "%s Casserole with Gravy",                               /* ditto */
+            "Dried Prunes with %s and Sauerkraut",                   /* ditto */
+            "Pickled %s - Sell By January 6, 1958",                  /* ditto */
+            "Chef's Choice Mashed %s",                               /* ditto */
+        "Gluten-Free, No Trans Fats, Non-GMO, 98%% Arsenic Free %s", /* ditto */
+            "Spiced %s with Natural and Artificial Flavors",         /* ditto */
+            "%s - Packaged in the Wizard's Tinnery",                 /* ditto */
+            "Nuka-Cola",                                           /* Fallout */
+            "Sploosh",                                               /* Holes */
+            "Jalapeno Cheddar Cheese Spread MRE",                 /* military */
+            "Humanitarian Daily Ration 8970-01-375-0516",            /* ditto */
+            "Fancy Feast Cat Food",                              /* real life */
+            "Chickatrice of the Sea",                            /* tuna fish */
+        "First Quality Peaches - Not labeled for individual resale", /* Rogue */
+            "Andy Warhol Campbell's Tomato Soup",    /* Andy Warhol paintings */
+            "Water Chestnuts - open only while underwater",
+            "Yendorian Brand Applesauce",
+            "This tin is NOT booby-trapped",
+            "No ghosts in this tin, guaranteed!",
+            "Fresh Tinned Adventurer Meat",
+            "Extra-Mushy Pea Soup",
+            "Schroedinger's Tin",
+            "Rothe-N-Beans",
+            "Feed The Beast - Werewolf Meat",
+            "Soylent Green",
+            "Djinni Brand Tins - Open now for your free wish!"
+        };
+        int food = tin_variety(scroll, TRUE);
+        int msgidx = hash1(scroll->o_id) % SIZE(tin_msgs);
+        const char* endpunct = "";
+        const char* format_string; /* holds format string tinmsg */
+        char format_arg[BUFSZ]; /* holds argument to format string */
+
+        if (food == HOMEMADE_TIN || tin_msgs[msgidx] == NULL) {
+            pline("This tin has no label.");
+            return 0;
+        }
+        else if (Blind) {
+            pline("Being blind, you cannot read the label on the tin.");
+            return 0;
+        }
+        else {
+            format_string = tin_msgs[msgidx];
+            pline("It reads:");
+            if (scroll->o_id % 5 == 0) {
+                /* be truthful */
+                msgidx = (scroll->o_id % NUM_MONST_LABELS) + LABEL_MONST_START;
+                format_string = tin_msgs[msgidx];
+                if (food == SPINACH_TIN) {
+                    Strcpy(format_arg, "spinach");
+                } else {
+                    Strcpy(format_arg, mons[scroll->corpsenm].mname);
+                }
+                up_all_words(format_arg);
+            }
+            else { /* lie */
+                if (msgidx == LABEL_BOGUSMON) {
+                    /* hallucinatory monster */
+                    Strcpy(format_arg,
+                           bogusmon(format_arg, NULL, hash1(scroll->o_id)));
+                    up_all_words(format_arg);
+                }
+                else if (msgidx >= LABEL_FRUIT_START
+                         && msgidx < LABEL_FRUIT_START + NUM_FRUIT_LABELS) {
+                    /* use player's fruit name */
+                    Strcpy(format_arg, fruitname(FALSE));
+                    up_all_words(format_arg);
+                }
+                else if (msgidx >= LABEL_MONST_START
+                         && msgidx < LABEL_MONST_START + NUM_MONST_LABELS) {
+                    int mndx;
+                    int seed = scroll->o_id;
+                    unsigned short forbidden_geno =
+                        (G_UNIQ | G_NOGEN | G_NOCORPSE);
+                    do {
+                        /* pray this doesn't infinite loop somehow... */
+                        mndx = (hash1(seed) % (SPECIAL_PM - LOW_PM)) + LOW_PM;
+                        seed += mndx;
+                    } while ((mons[mndx].geno & forbidden_geno) != 0);
+                    Strcpy(format_arg, mons[mndx].mname);
+                    up_all_words(format_arg);
+                }
+                else {
+                    /* no format strings; do it this way for consistency with
+                     * the others */
+                    format_string = "%s";
+                    Strcpy(format_arg, tin_msgs[msgidx]);
+                }
+            }
+            char preprocbuf[BUFSZ]; /* for holding the extra stuff */
+            Sprintf(preprocbuf, "\"%s\"%%s", format_string);
+            /* fix ending punctuation - "." only if the format string does not
+             * end with punctuation */
+            if (!index(".?!", preprocbuf[strlen(preprocbuf)-1])) {
+                endpunct = ".";
+            }
+
+            /* preprocbuf MUST contain two and only two %s */
+            pline(preprocbuf, format_arg, endpunct);
+
+            if(!u.uconduct.literate++)
+                livelog_write_string(LL_CONDUCT,
+                        "became literate by reading a tin label");
+            return 1;
+        }
     } else if (scroll->oclass != SCROLL_CLASS
                && scroll->oclass != SPBOOK_CLASS) {
         pline(silly_thing_to, "read");
