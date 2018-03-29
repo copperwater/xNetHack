@@ -35,7 +35,6 @@ STATIC_DCL int FDECL(bounded_increase, (int, int, int));
 STATIC_DCL void FDECL(accessory_has_effect, (struct obj *));
 STATIC_DCL void FDECL(eataccessory, (struct obj *));
 STATIC_DCL const char *FDECL(foodword, (struct obj *));
-STATIC_DCL int FDECL(tin_variety, (struct obj *, BOOLEAN_P));
 STATIC_DCL boolean FDECL(maybe_cannibal, (int, BOOLEAN_P));
 
 char msgbuf[BUFSZ];
@@ -1283,7 +1282,7 @@ int forcetype;
     obj->spe = -(r + 1); /* offset by 1 to allow index 0 */
 }
 
-STATIC_OVL int
+int
 tin_variety(obj, disp)
 struct obj *obj;
 boolean disp; /* we're just displaying so leave things alone */

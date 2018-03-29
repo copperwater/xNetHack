@@ -16,7 +16,6 @@ STATIC_DCL boolean FDECL(alreadynamed, (struct monst *, char *, char *));
 STATIC_DCL void FDECL(do_oname, (struct obj *));
 STATIC_PTR char *FDECL(docall_xname, (struct obj *));
 STATIC_DCL void NDECL(namefloorobj);
-STATIC_DCL char *FDECL(bogusmon, (char *,char *, int));
 
 extern const char what_is_an_unknown_object[]; /* from pager.c */
 
@@ -1934,7 +1933,7 @@ char *outbuf;
 /* fake monsters used to be in a hard-coded array, now in a data file
  * The which parameter is passed along to get_rnd_text and represents the line
  * of BOGUSMONFILE to return. Specify -1 for a random one. */
-STATIC_OVL char *
+char *
 bogusmon(buf, code, which)
 char *buf, *code;
 int which;
