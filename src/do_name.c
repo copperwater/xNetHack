@@ -16,7 +16,7 @@ STATIC_DCL boolean FDECL(alreadynamed, (struct monst *, char *, char *));
 STATIC_DCL void FDECL(do_oname, (struct obj *));
 STATIC_PTR char *FDECL(docall_xname, (struct obj *));
 STATIC_DCL void NDECL(namefloorobj);
-STATIC_DCL char *FDECL(bogusmon, (char *,char *));
+STATIC_DCL char *FDECL(bogusmon, (char *,char *, int));
 
 extern const char what_is_an_unknown_object[]; /* from pager.c */
 
@@ -1546,7 +1546,7 @@ namefloorobj()
         /* random rank title for hero's role */
         unames[1] = rank_of(rnd(30), Role_switch, flags.female);
         /* random fake monster */
-        unames[2] = bogusmon(tmpbuf, (char *) 0);
+        unames[2] = bogusmon(tmpbuf, (char *) 0, -1);
         /* increased chance for fake monster */
         unames[3] = unames[2];
         /* traditional */
@@ -1931,14 +1931,17 @@ char *outbuf;
     return outbuf;
 }
 
-/* fake monsters used to be in a hard-coded array, now in a data file */
+/* fake monsters used to be in a hard-coded array, now in a data file
+ * The which parameter is passed along to get_rnd_text and represents the line
+ * of BOGUSMONFILE to return. Specify -1 for a random one. */
 STATIC_OVL char *
-bogusmon(buf, code)
+bogusmon(buf, code, which)
 char *buf, *code;
+int which;
 {
     char *mname = buf;
 
-    get_rnd_text(BOGUSMONFILE, buf);
+    get_rnd_text(BOGUSMONFILE, buf, which);
     /* strip prefix if present */
     if (!letter(*mname)) {
         if (code)
@@ -1970,7 +1973,7 @@ char *code;
              && (type_is_pname(&mons[name]) || (mons[name].geno & G_NOGEN)));
 
     if (name >= SPECIAL_PM) {
-        mname = bogusmon(buf, code);
+        mname = bogusmon(buf, code, -1);
     } else {
         mname = strcpy(buf, mons[name].mname);
     }

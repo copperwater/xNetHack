@@ -662,6 +662,7 @@ E void NDECL(fix_petrification);
 E void FDECL(consume_oeaten, (struct obj *, int));
 E boolean FDECL(maybe_finished_meal, (BOOLEAN_P));
 E void FDECL(set_tin_variety, (struct obj *, int));
+E int FDECL(tin_variety, (struct obj *, BOOLEAN_P));
 E int FDECL(tin_variety_txt, (char *, int *));
 E void FDECL(tin_details, (struct obj *, int, char *));
 E boolean FDECL(Popeye, (int));
@@ -2144,7 +2145,7 @@ E const char *NDECL(Goodbye);
 /* ### rumors.c ### */
 
 E char *FDECL(getrumor, (int, char *, BOOLEAN_P));
-E char *FDECL(get_rnd_text, (const char *, char *));
+E char *FDECL(get_rnd_text, (const char *, char *, int));
 E void FDECL(outrumor, (int, int));
 E void FDECL(outoracle, (BOOLEAN_P, BOOLEAN_P));
 E void FDECL(save_oracles, (int, int));

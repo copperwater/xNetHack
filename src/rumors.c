@@ -276,11 +276,15 @@ rumor_check()
     }
 }
 
-/* Gets a random line of text from file 'fname', and returns it. */
+/* Gets a line of text from file 'fname', and returns it.
+ * which is the line number; if greater than the file size, it will wrap around
+ * to the beginning of the file. A negative value for which indicates that the
+ * caller wants a random line. */
 char *
-get_rnd_text(fname, buf)
+get_rnd_text(fname, buf, which)
 const char *fname;
 char *buf;
+int which;
 {
     dlb *fh;
 
@@ -301,7 +305,12 @@ char *buf;
         (void) dlb_fseek(fh, 0L, SEEK_END);
         endtxt = dlb_ftell(fh);
         sizetxt = endtxt - starttxt;
-        tidbit = Rand() % sizetxt;
+        if (which < 0) {
+            tidbit = rn2(sizetxt);
+        }
+        else {
+            tidbit = which % sizetxt;
+        }
 
         (void) dlb_fseek(fh, starttxt + tidbit, SEEK_SET);
         (void) dlb_fgets(line, sizeof line, fh);
