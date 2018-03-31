@@ -370,6 +370,7 @@ struct you {
     int ugangr;                             /* if the gods are angry at you */
     int ugifts;                             /* number of artifacts bestowed */
     int ublessed, ublesscnt;                /* blessing/duration from #pray */
+    long ulastprayed;                       /* the turn you last prayed */
     long umoney0;
     long uspare1;
     long uexp, urexp;

@@ -1745,7 +1745,7 @@ dosacrifice()
                     exercise(A_WIS, TRUE);
                     livelog_printf (LL_DIVINEGIFT|LL_ARTIFACT,
                             "had %s bestowed upon %s by %s",
-                            artiname(otmp->oartifact), 
+                            artiname(otmp->oartifact),
                             uhim(),
                             align_gname(u.ualign.type));
                     /* make sure we can use this weapon */
@@ -1845,6 +1845,8 @@ dopray()
     /* set up p_type and p_alignment */
     if (!can_pray(TRUE))
         return 0;
+
+    u.ulastprayed = moves;
 
     if (wizard && p_type >= 0) {
         if (yn("Force the gods to be pleased?") == 'y') {
