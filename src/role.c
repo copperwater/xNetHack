@@ -174,7 +174,7 @@ const struct Role roles[] = {
       ART_STAFF_OF_AESCULAPIUS,
       MH_HUMAN | MH_GNOME | ROLE_MALE | ROLE_FEMALE | ROLE_NEUTRAL,
       /* Str Int Wis Dex Con Cha */
-      { 7, 7, 13, 7, 11, 16 },
+      { 7, 11, 11, 7, 11, 11 },
       { 15, 20, 20, 15, 25, 5 },
       /* Init   Lower  Higher */
       { 11, 0, 0, 8, 1, 0 }, /* Hit points */
@@ -255,7 +255,7 @@ const struct Role roles[] = {
       MH_HUMAN | ROLE_MALE | ROLE_FEMALE | ROLE_LAWFUL | ROLE_NEUTRAL
           | ROLE_CHAOTIC,
       /* Str Int Wis Dex Con Cha */
-      { 10, 7, 8, 8, 7, 7 },
+      { 10, 7, 14, 8, 7, 7 },
       { 25, 10, 20, 20, 15, 10 },
       /* Init   Lower  Higher */
       { 12, 0, 0, 8, 1, 0 }, /* Hit points */
@@ -296,8 +296,8 @@ const struct Role roles[] = {
       MH_HUMAN | MH_ELF | ROLE_MALE | ROLE_FEMALE | ROLE_LAWFUL | ROLE_NEUTRAL
           | ROLE_CHAOTIC,
       /* Str Int Wis Dex Con Cha */
-      { 7, 7, 10, 7, 7, 7 },
-      { 15, 10, 30, 15, 20, 10 },
+      { 7, 10, 10, 7, 7, 7 },
+      { 15, 20, 20, 15, 20, 10 },
       /* Init   Lower  Higher */
       { 12, 0, 0, 8, 1, 0 }, /* Hit points */
       { 4, 3, 0, 2, 0, 2 }, /* Energy */
