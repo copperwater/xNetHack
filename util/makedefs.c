@@ -2767,6 +2767,7 @@ do_objs()
                 prefix = -1;
                 break;
             }
+            /*FALLTHRU*/
         default:
             Fprintf(ofp, "#define\t");
         }

@@ -750,7 +750,7 @@ wiz_mon_polycontrol(VOID_ARGS)
 STATIC_PTR int
 wiz_level_change(VOID_ARGS)
 {
-    char buf[BUFSZ];
+    char buf[BUFSZ] = DUMMY;
     int newlevel;
     int ret;
 
@@ -3706,7 +3706,7 @@ static int
 wiz_migrate_mons()
 {
     int mcount = 0;
-    char inbuf[BUFSZ];
+    char inbuf[BUFSZ] = DUMMY;
     struct permonst *ptr;
     struct monst *mtmp;
     d_level tolevel;
@@ -4132,7 +4132,8 @@ register char *cmd;
         break;
     case NHKF_RUN2:
         if (!Cmd.num_pad)
-            break; /* else FALLTHRU */
+            break;
+        /*FALLTHRU*/
     case NHKF_RUN:
         if (movecmd(lowc(cmd[1]))) {
             context.run = 3;
@@ -4142,7 +4143,8 @@ register char *cmd;
         break;
     case NHKF_FIGHT2:
         if (!Cmd.num_pad)
-            break; /* else FALLTHRU */
+            break;
+        /*FALLTHRU*/
     /* Effects of movement commands and invisible monsters:
      * m: always move onto space (even if 'I' remembered)
      * F: always attack space (even if 'I' not remembered)
@@ -4541,14 +4543,16 @@ const char *msg;
         break;
     case NHKF_RUN2:
         if (!Cmd.num_pad)
-            break; /* else FALLTHRU */
+            break;
+        /*FALLTHRU*/
     case NHKF_RUN:
     case NHKF_RUN_NOPICKUP:
         dothat = "run";
         break;
     case NHKF_FIGHT2:
         if (!Cmd.num_pad)
-            break; /* else FALLTHRU */
+            break;
+        /*FALLTHRU*/
     case NHKF_FIGHT:
         dothat = "fight";
         how = ""; /* avoid "fight at yourself" */
@@ -5462,7 +5466,7 @@ const char *prompt;
        to give the go-ahead for this query; default is "no" unless the
        ParanoidConfirm flag is set in which case there's no default */
     if (be_paranoid) {
-        char qbuf[QBUFSZ], ans[BUFSZ];
+        char qbuf[QBUFSZ], ans[BUFSZ] = DUMMY;
         const char *promptprefix = "", *responsetype = ParanoidConfirm
                                                            ? "(yes|no)"
                                                            : "(yes) [no]";

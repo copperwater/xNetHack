@@ -1376,7 +1376,8 @@ int how;
        for normal end of game, genocide doesn't either */
     if (how <= GENOCIDED) {
         dump_redirect(TRUE);
-        genl_outrip(0, how, endtime);
+        if (iflags.in_dumplog)
+            genl_outrip(0, how, endtime);
         dump_redirect(FALSE);
     }
 #endif
@@ -1457,7 +1458,8 @@ int how;
             artifact_score(invent, FALSE, endwin); /* list artifacts */
 #ifdef DUMPLOG
         dump_redirect(TRUE);
-        artifact_score(invent, FALSE, 0);
+        if (iflags.in_dumplog)
+            artifact_score(invent, FALSE, 0);
         dump_redirect(FALSE);
 #endif
 
@@ -1645,23 +1647,28 @@ int status;
 
 extern const int monstr[];
 
-static const char *vanqorders[] = {
+enum vanq_order_modes {
+    VANQ_MLVL_MNDX = 0,
+    VANQ_MSTR_MNDX,
+    VANQ_ALPHA_SEP,
+    VANQ_ALPHA_MIX,
+    VANQ_MCLS_HTOL,
+    VANQ_MCLS_LTOH,
+    VANQ_COUNT_H_L,
+    VANQ_COUNT_L_H,
+
+    NUM_VANQ_ORDER_MODES
+};
+
+static const char *vanqorders[NUM_VANQ_ORDER_MODES] = {
     "traditional: by monster level, by internal monster index",
-#define VANQ_MLVL_MNDX 0
     "by monster toughness, by internal monster index",
-#define VANQ_MSTR_MNDX 1
     "alphabetically, first unique monsters, then others",
-#define VANQ_ALPHA_SEP 2
     "alphabetically, unique monsters and others intermixed",
-#define VANQ_ALPHA_MIX 3
     "by monster class, high to low level within class",
-#define VANQ_MCLS_HTOL 4
     "by monster class, low to high level within class",
-#define VANQ_MCLS_LTOH 5
     "by count, high to low, by internal index within tied count",
-#define VANQ_COUNT_H_L 6
     "by count, low to high, by internal index within tied count",
-#define VANQ_COUNT_L_H 7
 };
 static int vanq_sortmode = VANQ_MLVL_MNDX;
 

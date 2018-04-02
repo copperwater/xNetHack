@@ -1720,6 +1720,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             /* do_mapping() already reveals secret passages */
         }
         known = TRUE;
+        /*FALLTHRU*/
     case SPE_MAGIC_MAPPING:
         if (level.flags.nommap) {
             Your("%s spins as %s blocks the spell!", body_part(HEAD),
@@ -2212,7 +2213,7 @@ STATIC_OVL void
 do_class_genocide()
 {
     int i, j, immunecnt, gonecnt, goodcnt, class, feel_dead, ll_done = 0;
-    char buf[BUFSZ];
+    char buf[BUFSZ] = DUMMY;
     boolean gameover = FALSE; /* true iff killed self */
 
     for (j = 0;; j++) {
@@ -2375,7 +2376,7 @@ int how;
 /* 3 = forced genocide of player */
 /* 5 (4 | 1) = normal genocide from throne */
 {
-    char buf[BUFSZ];
+    char buf[BUFSZ] = DUMMY;
     register int i, killplayer = 0;
     register int mndx;
     register struct permonst *ptr;
@@ -2637,7 +2638,7 @@ struct obj *from_obj;
 boolean
 create_particular()
 {
-    char buf[BUFSZ], *bufp, monclass;
+    char buf[BUFSZ] = DUMMY, *bufp, monclass;
     char *tmpp;
     int which, tryct, i, firstchoice = NON_PM;
     struct permonst *whichpm = NULL;

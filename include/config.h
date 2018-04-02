@@ -532,8 +532,13 @@ typedef unsigned char uchar;
 #define MAILCKFREQ 5  /* SIMPLE_MAIL is in unixconf.h */
 #endif
 
-
 #define DUMPLOG   /* End-of-game dump logs */
+
+/* EDIT_GETLIN makes the string input in TTY, Qt4, and X11
+   so some prompts will remember the previously input text
+   (within the same session) */
+/* #define EDIT_GETLIN */
+
 #ifdef DUMPLOG
 
 #ifndef DUMPLOG_MSG_COUNT

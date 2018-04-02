@@ -330,6 +330,7 @@ drinkfountain()
                 dofindgem();
                 break;
             }
+            /*FALLTHRU*/
         case 28: /* Water Nymph */
             dowaternymph();
             break;
@@ -450,6 +451,7 @@ register struct obj *obj;
             dofindgem();
             break;
         }
+        /*FALLTHRU*/
     case 25: /* Water gushes forth */
         dogushforth(FALSE);
         break;
@@ -620,6 +622,7 @@ drinksink()
             pline("From the murky drain, a hand reaches up... --oops--");
             break;
         }
+        /*FALLTHRU*/
     default:
         You("take a sip of %s %s.",
             rn2(3) ? (rn2(2) ? "cold" : "warm") : "hot",

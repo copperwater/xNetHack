@@ -1607,7 +1607,7 @@ unsigned *resultflags;
     int oletct, iletct, unpaid, oc_of_sym;
     char sym, *ip, olets[MAXOCLASSES + 5], ilets[MAXOCLASSES + 10];
     char extra_removeables[3 + 1]; /* uwep,uswapwep,uquiver */
-    char buf[BUFSZ], qbuf[QBUFSZ];
+    char buf[BUFSZ] = DUMMY, qbuf[QBUFSZ];
 
     if (!invent) {
         You("have nothing to %s.", word);
@@ -1881,6 +1881,7 @@ nextclass:
         switch (sym) {
         case 'a':
             allflag = 1;
+            /*FALLTHRU*/
         case 'y':
             tmp = (*fn)(otmp);
             if (tmp < 0) {
@@ -1897,6 +1898,7 @@ nextclass:
             cnt += tmp;
             if (--mx == 0)
                 goto ret;
+            /*FALLTHRU*/
         case 'n':
             if (nodot)
                 dud++;
