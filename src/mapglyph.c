@@ -142,7 +142,7 @@ unsigned *ospecial;
             color = CLR_YELLOW;
         }
         /* visible engravings */
-        else if (offset == S_engraving && engr
+        else if (iflags.use_color && offset == S_engraving && engr
                  && engr->engr_type != HEADSTONE) {
             if (engr->engr_type == DUST) {
                 color = CLR_BROWN;
