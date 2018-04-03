@@ -4697,9 +4697,6 @@ boolean force;
     case D_NODOOR:
         You("%s no door there.", Blind ? "feel" : "see");
         return 0;
-    case D_ISOPEN:
-        pline("This door is safely open.");
-        return 0;
     case D_BROKEN:
         pline("This door is broken.");
         return 0;
