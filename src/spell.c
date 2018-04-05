@@ -116,6 +116,7 @@ struct obj *bp;
                 bp->cursed = 1;
                 pline_The("book glows %s.", NH_BLACK);
             }
+            bp->bknown = TRUE;
         }
         break;
     case 1:
