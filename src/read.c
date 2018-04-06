@@ -1102,7 +1102,9 @@ boolean
 valid_cloud_pos(x, y)
 int x,y;
 {
-    return (isok(x,y) && ACCESSIBLE(levl[x][y].typ));
+    if (!isok(x,y))
+        return FALSE;
+    if (ACCESSIBLE(levl[x][y].typ) || is_pool(x, y) || is_lava(x, y));
 }
 
 /* Callback for getpos_sethilite, also used in determining whether a scroll
