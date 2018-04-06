@@ -154,7 +154,8 @@ picklock(VOID_ARGS)
 
     You("succeed in %s.", lock_action());
     if (xlock.door) {
-        if (!postdoortrapped(doorx, doory, NULL, FINGER, -D_LOCKED)) {
+        int intended = (door_is_locked(xlock.door) ? -D_LOCKED : D_LOCKED);
+        if (!postdoortrapped(doorx, doory, NULL, FINGER, intended)) {
             set_door_lock(xlock.door, !door_is_locked(xlock.door));
         }
     } else {

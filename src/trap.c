@@ -5268,12 +5268,12 @@ int x, y;
  *   D_ISOPEN - opening it
  *   D_CLOSED - closing it, not wizard-locking it
  *   D_BROKEN - destroying it
+ *   D_LOCKED - locking it
  *  -D_LOCKED - unlocking it
  *  -D_TRAPPED - untrapping it
  *   D_NODOOR - none of the above; this is for a trap that triggers when the
  *     player moves off the doorway onto another space. (Unimplemented.)
  * Unused ones that might be of some use at some point:
- *   D_LOCKED - locking it
  *  -D_NODOOR - moving onto the doorway. (Note that D_NODOOR is 0 so this won't
  *    work.)
  * when means whether this function is being called before the action is
@@ -5322,7 +5322,8 @@ int when;
         return 0;
     }
     if (action != D_NODOOR && action != D_ISOPEN && action != D_BROKEN
-        && action != D_CLOSED && action != -D_TRAPPED && action != -D_LOCKED) {
+        && action != D_CLOSED && action != -D_TRAPPED
+        && action != -D_LOCKED && action != D_LOCKED) {
         impossible("doortrapped: bad action %d", action);
         return 0;
     }
@@ -5377,6 +5378,7 @@ int when;
                 You("disarm a self-locking mechanism.");
             }
             set_door_trap(door, FALSE);
+            return 0; /* not changed at all */
         }
         /* no case for action == D_LOCKED
          * not much point doing anything when the player *wants* to lock it */
@@ -5390,7 +5392,8 @@ int when;
         /* trap not disarmed, except if trying to unlock */
         feel_newsym(x, y); /* the hero knows it is closed */
         block_point(x, y); /* vision: no longer see there */
-        return 1;
+        return 1; /* apart from disarming, all of these effects change door state
+                     even temporarily */
     }
     else if (selected_trap == STATIC_SHOCK && before && bodypart == FINGER
              && (action == D_ISOPEN || action == D_CLOSED
