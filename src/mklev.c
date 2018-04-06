@@ -1264,7 +1264,15 @@ struct mkroom *aroom;
         return;
     }
 
-    dosdoor(x, y, aroom, rn2(8) ? DOOR : SDOOR);
+    /* Probability of a random door being a secret door:
+     * sqrt(depth-3) / 35, or depth-3 / 1225.
+     * If depth <= 3, probability is 0. */
+    xchar doortyp = DOOR;
+    schar u_depth = depth(&u.uz);
+    if (u_depth > 3 && rn2(1225) < u_depth - 3) {
+        doortyp = SDOOR;
+    }
+    dosdoor(x, y, aroom, doortyp);
 }
 
 boolean
