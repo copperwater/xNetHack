@@ -656,7 +656,9 @@ int x, y;
  * Does this by looking for spots that have 3 or more directions in which they
  * are separated from another open space 2 squares away by some inaccessible
  * terrain. Then it picks a random one of these directions and replaces the
- * wall between them with whatever terrain typ is. */
+ * wall between them with whatever terrain typ is.
+ * If it decides to remove the dead end in a direction that goes into a room,
+ * create a door there instead. */
 void
 maze_remove_deadends(typ)
 xchar typ;
@@ -696,7 +698,12 @@ xchar typ;
                     dy = y;
                     dir = dirok[rn2(idx)];
                     mz_move(dx, dy, dir);
-                    levl[dx][dy].typ = typ;
+                    if (levl[dx][dy].roomno != NO_ROOM) {
+                        dodoor(dx, dy, &rooms[levl[dx][dy].roomno]);
+                    }
+                    else {
+                        levl[dx][dy].typ = typ;
+                    }
                 }
             }
 }
@@ -716,6 +723,7 @@ int wallthick;
     int rdx = 0;
     int rdy = 0;
     int scale;
+    int room_attempts = 7;
 
     if (wallthick < 1)
         wallthick = 1;
@@ -731,14 +739,102 @@ int wallthick;
     rdx = (x_maze_max / scale);
     rdy = (y_maze_max / scale);
 
+    /* Pre-room setup: set the whole level to STONE so that rooms don't object
+     * to being placed on it. */
+    for (x = 2; x < (rdx * 2); x++)
+        for (y = 2; y < (rdy * 2); y++)
+            levl[x][y].typ = STONE;
+
+    /* TODO:
+     * Break this room-creating logic into its own function.
+     * Add regularly generated doors to rooms.
+     * Allow rooms to
+     * YANI: rooms can generate without doors - make them into treasure vaults,
+     * make all but one wall (in a door position) undiggable, and stock with
+     * treasure.
+     * Gehennom special room types: water room with sea monsters,
+     * slaughterhouse, demon den, regular rooms but with sinks or fountains,
+     * more graveyards,
+     */
+
+    /* Add some rooms to the maze!
+     * Rooms go first, before the mazewalk is executed. */
+    for (; room_attempts >= 0; room_attempts--) {
+        int roomidx;
+        coord roompos;
+        xchar width, height;
+        boolean intersect = FALSE;
+
+        /* room must fit nicely in the maze; that is, its corner spaces should
+         * all be valid maze0xy() locations. Thus, it should have odd
+         * dimensions. */
+        width = 2 * rn2(4) + 3;
+        height = 2 * rn2(4) + 3;
+
+        /* Pick a corner location. Which directions the room points out from
+         * this corner are randomized so that we don't have a bias towards any
+         * edge of the map. */
+        maze0xy(&roompos);
+        if (rn2(2)) {
+            /* original roompos is a bottom corner */
+            roompos.y -= (height-1);
+        }
+        if (rn2(2)) {
+            /* original roompos is a right corner */
+            roompos.x -= (width - 1);
+        }
+        /* these variables are the boundaries including walls */
+        xchar lx = roompos.x - 1;
+        xchar ly = roompos.y - 1;
+        xchar hx = roompos.x + width;
+        xchar hy = roompos.y + height;
+
+        if (!maze_inbounds(lx, ly) || !maze_inbounds(hx, hy)) {
+            /* can't place, out of bounds */
+            continue;
+        }
+
+        /* Does it intersect with an existing room?
+         * Because of the constraints on room coordinates and the behavior of
+         * inside_room, this should ensure that no two rooms ever touch.
+         * Also make sure no two room walls ever touch; this should guarantee
+         * that the mazewalk can reach everywhere. */
+        for (roomidx = 0; roomidx < nroom; roomidx++) {
+            struct mkroom* croom = &rooms[roomidx];
+            /* coordinates of the bounding walls, not the actual room */
+            if (inside_room(croom, lx, ly)
+                || inside_room(croom, hx, ly)
+                || inside_room(croom, lx, hy)
+                || inside_room(croom, hx, hy)) {
+                intersect = TRUE;
+                break;
+            }
+        }
+        if (intersect) {
+            /* can't place this one */
+            continue;
+        }
+        /* pick a suitable place in the maze to add a room */
+        if (!create_room(roompos.x, roompos.y, width, height,
+                         RM_LEFT, RM_TOP, OROOM, 1))
+            continue;
+        /* set roomno so mazewalk and other maze generation ignore it */
+        topologize(&rooms[nroom-1]);
+    }
+
     if (level.flags.corrmaze)
         for (x = 2; x < (rdx * 2); x++)
             for (y = 2; y < (rdy * 2); y++)
                 levl[x][y].typ = STONE;
-    else
-        for (x = 2; x <= (rdx * 2); x++)
-            for (y = 2; y <= (rdy * 2); y++)
-                levl[x][y].typ = ((x % 2) && (y % 2)) ? STONE : HWALL;
+    else {
+        for (x = 2; x <= (rdx * 2); x++) {
+            for (y = 2; y <= (rdy * 2); y++) {
+                if (levl[x][y].roomno == NO_ROOM) {
+                    levl[x][y].typ = ((x % 2) && (y % 2)) ? STONE : HWALL;
+                }
+            }
+        }
+    }
 
     /* set upper bounds for maze0xy and walkfrom */
     x_maze_max = (rdx * 2);
@@ -862,14 +958,17 @@ const char *s;
     }
 
     level.flags.is_maze_lev = TRUE;
-    level.flags.corrmaze = !rn2(3);
+    level.flags.corrmaze = FALSE; //!rn2(3);
 
+    /*
     if (!Invocation_lev(&u.uz) && rn2(2)) {
         int corrscale = rnd(4);
         create_maze(corrscale,rnd(4)-corrscale);
     } else {
         create_maze(1,1);
     }
+    */
+    create_maze(1,1);
 
     if (!level.flags.corrmaze)
         wallification(2, 2, x_maze_max, y_maze_max);
