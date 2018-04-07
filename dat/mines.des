@@ -257,7 +257,7 @@ WALLIFY
 # "Town Square"
 #
 LEVEL: "minetn-2"
-ROOM: "ordinary" , lit, (3,3), (center,center), (31,15) {
+ROOM: "ordinary" , lit, (25,3), (left,top), (31,15) {
 FOUNTAIN: (17, 5)
 FOUNTAIN: (13, 8)
 
@@ -372,7 +372,7 @@ RANDOM_CORRIDORS
 # "Alley Town"
 #
 LEVEL: "minetn-3"
-ROOM: "ordinary",lit,(3,3),(center,center),(31,15) {
+ROOM: "ordinary",lit,(25,3),(left,top),(31,15) {
 FOUNTAIN:(01,06)
 FOUNTAIN:(29,13)
 
@@ -481,7 +481,7 @@ RANDOM_CORRIDORS
 # "College Town"
 #
 LEVEL: "minetn-4"
-ROOM: "ordinary",lit,(3,3),(center,center),(30,15) {
+ROOM: "ordinary",lit,(25,3),(left,top),(30,15) {
 FOUNTAIN:(08,07)
 FOUNTAIN:(18,07)
 
@@ -784,7 +784,7 @@ MONSTER: ('@', "watch captain"), random, peaceful
 # "Bazaar Town" by Kelly Bailey
 #
 LEVEL: "minetn-7"
-ROOM: "ordinary" , lit, (3,3), (center,center), (30,15) {
+ROOM: "ordinary" , lit, (25,3), (left,top), (30,15) {
 FOUNTAIN: (12, 07)
 FOUNTAIN: (11, 13)
 

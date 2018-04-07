@@ -1138,9 +1138,8 @@ chk:
  * algorithm looks for available rects to begin with, instead of setting the
  * room location first and then trying to find a rect it fits in.
  * Otherwise:
- *   x, y: Coordinates for the room, in multiples of COLNO/5. If both are -1,
- *   it will choose a random multiple of COLNO/5. Make sure not to have only
- *   one be -1.
+ *   x, y: Absolute coordinates for the room. If either is -1, it will choose
+ *   a random value within the screen bounds.
  *   w, h: Width and height of the room. If _either_ is -1, width is set to
  *   d15 + 2 and height is set to d8 + 1.
  *   xal, yal: Room alignment (should be LEFT, RIGHT, CENTER / TOP, BOTTOM,
@@ -1307,11 +1306,9 @@ xchar rtype, rlit;
             r2.hy = yabs + htmp;
         } else { /* Only some parameters are random */
             int rndpos = 0;
-            if (xtmp < 0 && ytmp < 0) { /* Position is RANDOM */
-                xtmp = rnd(5);
-                ytmp = rnd(5);
-                rndpos = 1;
-            }
+            xabs = (xtmp < 0) ? rn2(COLNO) : xtmp;
+            yabs = (ytmp < 0) ? rn2(COLNO) : ytmp;
+
             if (wtmp < 0 || htmp < 0) { /* Size is RANDOM */
                 wtmp = rn1(15, 3);
                 htmp = rn1(8, 2);
@@ -1321,28 +1318,24 @@ xchar rtype, rlit;
             if (yaltmp == -1) /* Vertical alignment is RANDOM */
                 yaltmp = rnd(3);
 
-            /* Try to generate real (absolute) coordinates here! */
-
-            xabs = (((xtmp - 1) * COLNO) / 5) + 1;
-            yabs = (((ytmp - 1) * ROWNO) / 5) + 1;
             switch (xaltmp) {
             case LEFT:
                 break;
             case RIGHT:
-                xabs += (COLNO / 5) - wtmp;
+                xabs -= wtmp;
                 break;
             case CENTER:
-                xabs += ((COLNO / 5) - wtmp) / 2;
+                xabs -= wtmp / 2;
                 break;
             }
             switch (yaltmp) {
             case TOP:
                 break;
             case BOTTOM:
-                yabs += (ROWNO / 5) - htmp;
+                yabs -= htmp;
                 break;
             case CENTER:
-                yabs += ((ROWNO / 5) - htmp) / 2;
+                yabs -= htmp / 2;
                 break;
             }
 
@@ -1359,8 +1352,8 @@ xchar rtype, rlit;
             /* Try to find a rectangle that fits our room */
             r2.lx = xabs - 1;
             r2.ly = yabs - 1;
-            r2.hx = xabs + wtmp + rndpos;
-            r2.hy = yabs + htmp + rndpos;
+            r2.hx = xabs + wtmp;
+            r2.hy = yabs + htmp;
             r1 = get_rect(&r2);
         }
     } while (++trycnt <= 100 && !r1);

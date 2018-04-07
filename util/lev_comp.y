@@ -1270,9 +1270,9 @@ roomfill	: /* nothing */
 
 room_pos	: '(' INTEGER ',' INTEGER ')'
 		  {
-			if ( $2 < 1 || $2 > 5 ||
-			    $4 < 1 || $4 > 5 ) {
-			    lc_error("Room positions should be between 1-5: (%li,%li)!", $2, $4);
+			if ( $2 < 0 || $2 > COLNO ||
+			    $4 < 0 || $4 > ROWNO ) {
+			    lc_error("Room positions should be real coordinates: (%li,%li)!", $2, $4);
 			} else {
 			    $$.x = $2;
 			    $$.y = $4;
