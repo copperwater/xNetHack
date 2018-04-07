@@ -24,6 +24,7 @@ STATIC_DCL boolean FDECL(put_lregion_here, (XCHAR_P, XCHAR_P, XCHAR_P,
 STATIC_DCL void NDECL(baalz_fixup);
 STATIC_DCL void NDECL(setup_waterlevel);
 STATIC_DCL void NDECL(unsetup_waterlevel);
+STATIC_DCL void NDECL(maze_add_rooms);
 
 /* adjust a coordinate one step in the specified direction */
 #define mz_move(X, Y, dir) \
@@ -708,62 +709,38 @@ xchar typ;
             }
 }
 
-/* Create a maze with specified corridor width and wall thickness
- * TODO: rewrite walkfrom so it works on temp space, not levl
- */
-void
-create_maze(corrwid, wallthick)
-int corrwid;
-int wallthick;
+/* TODO:
+    * Idea: rooms can generate without doors - make them into treasure vaults,
+    * make all but one wall (in a door position) undiggable, and stock with
+    * treasure.
+    * Gehennom special room types: water room with sea monsters,
+    * slaughterhouse, demon den, regular rooms but with sinks or fountains,
+    * more graveyards (with shades), aligned altars, lava room, walless room
+    * (destroy all the walls), dragon nests, hellhound dens, portal rooms that
+    * take you to other floors,
+    */
+
+/* Add some rooms to the maze!
+ * Rooms are placed first, before the mazewalk is executed. */
+STATIC_OVL void
+maze_add_rooms()
 {
-    int x,y;
-    coord mm;
-    int tmp_xmax = x_maze_max;
-    int tmp_ymax = y_maze_max;
-    int rdx = 0;
-    int rdy = 0;
-    int scale;
-    int room_attempts = 7;
-
-    if (wallthick < 1)
-        wallthick = 1;
-    else if (wallthick > 5)
-        wallthick = 5;
-
-    if (corrwid < 1)
-        corrwid = 1;
-    else if (corrwid > 5)
-        corrwid = 5;
-
-    scale = corrwid + wallthick;
-    rdx = (x_maze_max / scale);
-    rdy = (y_maze_max / scale);
+    xchar x, y;
+    int room_attempts = 20;
 
     /* Pre-room setup: set the whole level to STONE so that rooms don't object
      * to being placed on it. */
-    for (x = 2; x < (rdx * 2); x++)
-        for (y = 2; y < (rdy * 2); y++)
+    for (x = 2; x < x_maze_max; x++)
+        for (y = 2; y < y_maze_max; y++)
             levl[x][y].typ = STONE;
 
-    /* TODO:
-     * Break this room-creating logic into its own function.
-     * Add regularly generated doors to rooms.
-     * Allow rooms to
-     * YANI: rooms can generate without doors - make them into treasure vaults,
-     * make all but one wall (in a door position) undiggable, and stock with
-     * treasure.
-     * Gehennom special room types: water room with sea monsters,
-     * slaughterhouse, demon den, regular rooms but with sinks or fountains,
-     * more graveyards,
-     */
-
-    /* Add some rooms to the maze!
-     * Rooms go first, before the mazewalk is executed. */
-    for (; room_attempts >= 0; room_attempts--) {
+    for (; room_attempts > 0; room_attempts--) {
         int roomidx;
         coord roompos;
-        xchar width, height;
+        xchar lx, ly, hx, hy, width, height;
         boolean intersect = FALSE;
+        int door_attempts = 5;
+        int no_doors_made = 0;
 
         /* room must fit nicely in the maze; that is, its corner spaces should
          * all be valid maze0xy() locations. Thus, it should have odd
@@ -784,10 +761,10 @@ int wallthick;
             roompos.x -= (width - 1);
         }
         /* these variables are the boundaries including walls */
-        xchar lx = roompos.x - 1;
-        xchar ly = roompos.y - 1;
-        xchar hx = roompos.x + width;
-        xchar hy = roompos.y + height;
+        lx = roompos.x - 1;
+        ly = roompos.y - 1;
+        hx = roompos.x + width;
+        hy = roompos.y + height;
 
         if (!maze_inbounds(lx, ly) || !maze_inbounds(hx, hy)) {
             /* can't place, out of bounds */
@@ -801,7 +778,6 @@ int wallthick;
          * that the mazewalk can reach everywhere. */
         for (roomidx = 0; roomidx < nroom; roomidx++) {
             struct mkroom* croom = &rooms[roomidx];
-            /* coordinates of the bounding walls, not the actual room */
             if (inside_room(croom, lx, ly)
                 || inside_room(croom, hx, ly)
                 || inside_room(croom, lx, hy)
@@ -818,14 +794,95 @@ int wallthick;
         if (!create_room(roompos.x, roompos.y, width, height,
                          RM_LEFT, RM_TOP, OROOM, 1))
             continue;
+
+        /* put in some doors */
+        for (; door_attempts > 0; door_attempts--) {
+            /* don't use finddpos - it'll bias doors towards the top left of
+             * the room */
+            xchar doorx, doory;
+            boolean horiz = rn2(2) ? TRUE : FALSE;
+            if (horiz) {
+                doorx = rn1(hx - lx + 1, lx);
+                doory = rn2(2) ? ly : hy;
+            }
+            else {
+                doorx = rn2(2) ? hx : lx;
+                doory = rn1(hy - ly + 1, ly);
+            }
+            /* Don't generate doors on the maze edges */
+            if (!maze_inbounds(doorx - 1, doory)
+                || !maze_inbounds(doorx, doory - 1)
+                || !maze_inbounds(doorx + 1, doory)
+                || !maze_inbounds(doorx, doory + 1))
+                continue;
+            /* Make sure doors don't generate at possible wall-intersection
+             * points (inverse of valid maze0xy() locations).
+             * Because we're on a wall, one of doorx and doory will be even --
+             * but the other should not be.
+             * Shouldn't need okdoor() - with this rule, doors can't be next to
+             * each other and they should always be on walls */
+            if ((doorx % 2 == 0) && (doory % 2 == 0)) {
+                if (door_attempts == 1) {
+                    door_attempts++; /* try again */
+                    no_doors_made++;
+                    if (no_doors_made == 100)
+                        break;
+                }
+                continue;
+            }
+            dodoor(doorx, doory, &rooms[nroom-1]);
+        }
+        if (no_doors_made >= 100) {
+            impossible("maze_add_rooms: couldn't place a door?");
+        }
+
         /* set roomno so mazewalk and other maze generation ignore it */
         topologize(&rooms[nroom-1]);
     }
+}
 
-    if (level.flags.corrmaze)
-        for (x = 2; x < (rdx * 2); x++)
-            for (y = 2; y < (rdy * 2); y++)
-                levl[x][y].typ = STONE;
+/* Create a maze with specified corridor width and wall thickness
+ * TODO: rewrite walkfrom so it works on temp space, not levl
+ */
+void
+create_maze(corrwid, wallthick)
+int corrwid;
+int wallthick;
+{
+    int x,y;
+    coord mm;
+    int tmp_xmax = x_maze_max;
+    int tmp_ymax = y_maze_max;
+    int rdx = 0;
+    int rdy = 0;
+    int scale;
+
+    if (wallthick < 1)
+        wallthick = 1;
+    else if (wallthick > 5)
+        wallthick = 5;
+
+    if (corrwid < 1)
+        corrwid = 1;
+    else if (corrwid > 5)
+        corrwid = 5;
+
+    scale = corrwid + wallthick;
+    rdx = (x_maze_max / scale);
+    rdy = (y_maze_max / scale);
+
+    /* Place rooms first */
+    maze_add_rooms();
+
+    if (level.flags.corrmaze) {
+        for (x = 2; x < (rdx * 2); x++) {
+            for (y = 2; y < (rdy * 2); y++) {
+                if (levl[x][y].roomno == NO_ROOM) {
+                    levl[x][y].typ = STONE;
+                }
+            }
+        }
+    }
     else {
         for (x = 2; x <= (rdx * 2); x++) {
             for (y = 2; y <= (rdy * 2); y++) {
