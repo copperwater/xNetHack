@@ -165,15 +165,6 @@ STATIC_DCL long FDECL(opvar_array_length, (struct sp_coder *));
 STATIC_DCL void FDECL(spo_shuffle_array, (struct sp_coder *));
 STATIC_DCL boolean FDECL(sp_level_coder, (sp_lev *));
 
-#define LEFT 1
-#define H_LEFT 2
-#define CENTER 3
-#define H_RIGHT 4
-#define RIGHT 5
-
-#define TOP 1
-#define BOTTOM 5
-
 #define sq(x) ((x) * (x))
 
 /* These are also defined in rect.c. If it's important that they have the same
@@ -1142,10 +1133,11 @@ chk:
  *   a random value within the screen bounds.
  *   w, h: Width and height of the room. If _either_ is -1, width is set to
  *   d15 + 2 and height is set to d8 + 1.
- *   xal, yal: Room alignment (should be LEFT, RIGHT, CENTER / TOP, BOTTOM,
- *     CENTER). Define what point in the room is represented by x and y; e.g.
- *     using CENTER,CENTER means that (x,y) should be the center of the room.
- *     If either is -1 it will pick one of the three randomly.
+ *   xal, yal: Room alignment (should be RM_LEFT, RM_RIGHT, RM_CENTER / RM_TOP,
+ *     RM_BOTTOM, RM_CENTER). Define what point in the room is represented by x
+ *     and y; e.g. using RM_CENTER,RM_CENTER means that (x,y) should be the
+ *     center of the room. If either is -1 it will pick one of the three
+ *     randomly.
  *   rtype: The room type. If -1, it will choose OROOM (*not* a random special
  *     room type).
  *   rlit: Whether to light the room. If -1, it will choose based on the level
@@ -1319,22 +1311,22 @@ xchar rtype, rlit;
                 yaltmp = rnd(3);
 
             switch (xaltmp) {
-            case LEFT:
+            case RM_LEFT:
                 break;
-            case RIGHT:
+            case RM_RIGHT:
                 xabs -= wtmp;
                 break;
-            case CENTER:
+            case RM_CENTER:
                 xabs -= wtmp / 2;
                 break;
             }
             switch (yaltmp) {
-            case TOP:
+            case RM_TOP:
                 break;
-            case BOTTOM:
+            case RM_BOTTOM:
                 yabs -= htmp;
                 break;
-            case CENTER:
+            case RM_CENTER:
                 yabs -= htmp / 2;
                 break;
             }
@@ -5018,30 +5010,30 @@ struct sp_coder *coder;
         break;
     case 1:
         switch ((int) halign) {
-        case LEFT:
+        case RM_LEFT:
             xstart = splev_init_present ? 1 : 3;
             break;
-        case H_LEFT:
+        case RM_H_LEFT:
             xstart = 2 + ((x_maze_max - 2 - xsize) / 4);
             break;
-        case CENTER:
+        case RM_CENTER:
             xstart = 2 + ((x_maze_max - 2 - xsize) / 2);
             break;
-        case H_RIGHT:
+        case RM_H_RIGHT:
             xstart = 2 + ((x_maze_max - 2 - xsize) * 3 / 4);
             break;
-        case RIGHT:
+        case RM_RIGHT:
             xstart = x_maze_max - xsize - 1;
             break;
         }
         switch ((int) valign) {
-        case TOP:
+        case RM_TOP:
             ystart = 3;
             break;
-        case CENTER:
+        case RM_CENTER:
             ystart = 2 + ((y_maze_max - 2 - ysize) / 2);
             break;
-        case BOTTOM:
+        case RM_BOTTOM:
             ystart = y_maze_max - ysize - 1;
             break;
         }

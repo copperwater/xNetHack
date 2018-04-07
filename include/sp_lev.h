@@ -12,6 +12,15 @@
 #define W_WEST 8
 #define W_ANY (W_NORTH | W_SOUTH | W_EAST | W_WEST)
 
+/* Room alignment directions. */
+#define RM_LEFT 1
+#define RM_H_LEFT 2
+#define RM_CENTER 3
+#define RM_H_RIGHT 4
+#define RM_RIGHT 5
+#define RM_TOP 1
+#define RM_BOTTOM 5
+
 /* MAP limits */
 #define MAP_X_LIM 76
 #define MAP_Y_LIM 21
