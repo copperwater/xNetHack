@@ -24,7 +24,6 @@ STATIC_DCL boolean FDECL(put_lregion_here, (XCHAR_P, XCHAR_P, XCHAR_P,
 STATIC_DCL void NDECL(baalz_fixup);
 STATIC_DCL void NDECL(setup_waterlevel);
 STATIC_DCL void NDECL(unsetup_waterlevel);
-STATIC_DCL void NDECL(maze_add_rooms);
 
 /* adjust a coordinate one step in the specified direction */
 #define mz_move(X, Y, dir) \
@@ -647,7 +646,7 @@ fixup_special()
  * checked. */
 boolean
 maze_inbounds(x, y)
-int x, y;
+xchar x, y;
 {
     return (x >= 2 && y >= 2
             && x < x_maze_max && y < y_maze_max && isok(x, y));
@@ -709,24 +708,17 @@ xchar typ;
             }
 }
 
-/* TODO:
-    * Idea: rooms can generate without doors - make them into treasure vaults,
-    * make all but one wall (in a door position) undiggable, and stock with
-    * treasure.
-    * Gehennom special room types: water room with sea monsters,
-    * slaughterhouse, demon den, regular rooms but with sinks or fountains,
-    * more graveyards (with shades), aligned altars, lava room, walless room
-    * (destroy all the walls), dragon nests, hellhound dens, portal rooms that
-    * take you to other floors,
-    */
-
 /* Add some rooms to the maze!
  * Rooms are placed first, before the mazewalk is executed. */
-STATIC_OVL void
-maze_add_rooms()
+void
+maze_add_rooms(attempts)
+int attempts;
 {
     xchar x, y;
-    int room_attempts = 20;
+
+    /* Ineligible maze levels for rooms */
+    if (Is_special(&u.uz) || Invocation_lev(&u.uz))
+        return;
 
     /* Pre-room setup: set the whole level to STONE so that rooms don't object
      * to being placed on it. */
@@ -734,7 +726,7 @@ maze_add_rooms()
         for (y = 2; y < y_maze_max; y++)
             levl[x][y].typ = STONE;
 
-    for (; room_attempts > 0; room_attempts--) {
+    for (; attempts > 0; attempts--) {
         int roomidx;
         coord roompos;
         xchar lx, ly, hx, hy, width, height;
@@ -768,6 +760,17 @@ maze_add_rooms()
 
         if (!maze_inbounds(lx, ly) || !maze_inbounds(hx, hy)) {
             /* can't place, out of bounds */
+            continue;
+        }
+
+        /* Mazes on special levels: are any corners of the room too close to a
+         * special level map?
+         * Ensure some extra buffer space around rooms so that they don't block
+         * off the regular maze generation. */
+        if (in_splev_map(lx - 2, ly) || in_splev_map(lx, ly - 2)
+            || in_splev_map(hx, ly - 2) || in_splev_map(hx + 2, ly)
+            || in_splev_map(lx - 2, hy) || in_splev_map(lx, hy + 2)
+            || in_splev_map(hx, hy + 2) || in_splev_map(hx + 2, hy)) {
             continue;
         }
 
@@ -839,7 +842,21 @@ maze_add_rooms()
         /* set roomno so mazewalk and other maze generation ignore it */
         topologize(&rooms[nroom-1]);
     }
+
+    /* Special rooms! */
+    for (attempts = 2; attempts > 0; attempts--) {
+        if (wizard && nh_getenv("SHOPTYPE")) {
+            /* full manual override */
+            mkroom(SHOPBASE);
+        }
+        else {
+            mkroom(rand_roomtype());
+        }
+    }
 }
+
+/* TODO: make a function to knock down a number of entire room walls randomly
+ */
 
 /* Create a maze with specified corridor width and wall thickness
  * TODO: rewrite walkfrom so it works on temp space, not levl
@@ -872,8 +889,10 @@ int wallthick;
     rdy = (y_maze_max / scale);
 
     /* Place rooms first */
-    maze_add_rooms();
+    maze_add_rooms(20);
 
+    lvlfill_maze_grid(2, 2, rdx * 2, rdy * 2, HWALL);
+    /*
     if (level.flags.corrmaze) {
         for (x = 2; x < (rdx * 2); x++) {
             for (y = 2; y < (rdy * 2); y++) {
@@ -892,6 +911,7 @@ int wallthick;
             }
         }
     }
+    */
 
     /* set upper bounds for maze0xy and walkfrom */
     x_maze_max = (rdx * 2);
