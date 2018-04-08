@@ -719,6 +719,13 @@ xchar typ;
             }
 }
 
+/* Return TRUE if this is an eligible maze level to have rooms. */
+boolean
+mazeroom_eligible()
+{
+    return !(Is_special(&u.uz) || Invocation_lev(&u.uz));
+}
+
 /* Add some rooms to the maze!
  * Rooms are placed first, before the mazewalk is executed. */
 void
@@ -728,7 +735,7 @@ int attempts;
     xchar x, y;
 
     /* Ineligible maze levels for rooms */
-    if (Is_special(&u.uz) || Invocation_lev(&u.uz))
+    if (!mazeroom_eligible())
         return;
 
     /* Pre-room setup: set the whole level to STONE so that rooms don't object
@@ -875,6 +882,9 @@ STATIC_OVL void
 maze_touchup_rooms(attempts)
 int attempts;
 {
+    if (!mazeroom_eligible())
+        return;
+
     int i;
     for (attempts = 2; attempts > 0; attempts--) {
         if (wizard && nh_getenv("SHOPTYPE")) {
