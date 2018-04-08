@@ -517,7 +517,7 @@ int type;
     lev->typ = type;
 
     /* is it a locked door, closed, or a doorway? */
-    if (!rn2(3) || type == SDOOR) {
+    if (!rn2(3) || type == SDOOR || level.flags.is_maze_lev) {
         if (rn2(5) || type == SDOOR) {
             doorstate = D_CLOSED;
             if (!rn2(4)) {
@@ -591,7 +591,7 @@ int type;
     /* newsym(x,y); */
 
     /* iron door generation */
-    if (doorstate(lev) != D_NODOOR && rn1(50, 10) < level_difficulty()) {
+    if (doorstate(lev) != D_NODOOR && rn1(40, 10) < level_difficulty()) {
         set_door_iron(lev, TRUE);
     }
     else {
