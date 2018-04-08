@@ -68,6 +68,12 @@ enum roomtype_types {
     LEPREHALL,  /* leprechaun hall (Tom Proudfoot) */
     COCKNEST,   /* cockatrice nest (Tom Proudfoot) */
     ANTHOLE,    /* ants (Tom Proudfoot) */
+    DEMONDEN,   /* demons */
+    SUBMERGED,  /* water floor, sea monsters */
+    LAVAROOM,   /* lava floor, fire monsters */
+    ABBATOIR,   /* corpses, blood, leashes */
+    STATUARY,   /* lined with empty statues */
+    SEMINARY,   /* some roaming priests */
     SHOPBASE,   /* everything above this is a shop */
     ARMORSHOP,  /* specific shop defines for level compiler */
     SCROLLSHOP,
