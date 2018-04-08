@@ -22,7 +22,6 @@ STATIC_DCL void NDECL(mkshop), FDECL(mkzoo, (int)), NDECL(mkswamp);
 STATIC_DCL struct mkroom * NDECL(mktemple);
 STATIC_DCL void NDECL(mkseminary);
 STATIC_DCL void NDECL(mksubmerged);
-STATIC_DCL void NDECL(mklavaroom);
 STATIC_DCL coord *FDECL(shrine_pos, (int));
 STATIC_DCL struct permonst *NDECL(morguemon);
 STATIC_DCL struct permonst *NDECL(squadmon);
@@ -826,6 +825,8 @@ mkseminary()
         impossible("mkseminary: altar not present?");
         return;
     }
+    sroom->rtype = SEMINARY;
+
     aligntyp altaralign = Amask2align(levl[ss->x][ss->y].altarmask & AM_MASK);
 
     for (i = rn1(4,1); i > 0; --i) {
@@ -852,6 +853,8 @@ mksubmerged()
 
     if (!(sroom = pick_room(TRUE)))
         return;
+
+    sroom->rtype = SUBMERGED;
 
     for (x = sroom->lx; x <= sroom->hx; x++) {
         for (y = sroom->ly; y <= sroom->hy; y++) {
