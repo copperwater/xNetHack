@@ -162,7 +162,7 @@ unsigned *ospecial;
                 else if (k == 2)
                     color = CLR_BRIGHT_MAGENTA;
             }
-            else if (engr->engr_type == BURN) {
+            else if (engr->engr_type == ENGR_BLOOD) {
                 color = CLR_RED;
             }
 #endif
