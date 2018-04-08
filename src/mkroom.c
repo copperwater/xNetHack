@@ -509,7 +509,9 @@ struct mkroom *sroom;
                 }
                 break;
             case LAVAROOM:
-                if (rn2(2)) {
+                if (rn2(2) && levl[sx][sy].typ == ROOM) {
+                    /* test for ROOM mainly so we don't overwrite the stairs;
+                     * but also cover anything else weird */
                     levl[sx][sy].typ = LAVAPOOL;
                 }
                 break;
