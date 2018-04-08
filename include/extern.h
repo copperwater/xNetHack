@@ -1242,6 +1242,7 @@ E void FDECL(add_subroom, (struct mkroom *, int, int, int, int, BOOLEAN_P,
                            SCHAR_P, BOOLEAN_P));
 E void NDECL(makecorridors);
 E void FDECL(add_door, (int, int, struct mkroom *));
+E int NDECL(rand_roomtype);
 E void NDECL(mklev);
 #ifdef SPECIALIZATION
 E void FDECL(topologize, (struct mkroom *, BOOLEAN_P));
@@ -1277,6 +1278,8 @@ E boolean FDECL(bad_location, (XCHAR_P, XCHAR_P, XCHAR_P, XCHAR_P,
 E void FDECL(place_lregion, (XCHAR_P, XCHAR_P, XCHAR_P, XCHAR_P, XCHAR_P,
                              XCHAR_P, XCHAR_P, XCHAR_P, XCHAR_P, d_level *));
 E void NDECL(fixup_special);
+E boolean FDECL(maze_inbounds, (XCHAR_P, XCHAR_P));
+E void FDECL(maze_add_rooms, (int));
 E void NDECL(fumaroles);
 E void NDECL(movebubbles);
 E void NDECL(water_friction);
@@ -2314,8 +2317,10 @@ E boolean FDECL(load_special, (const char *));
 E xchar FDECL(selection_getpoint, (int, int, struct opvar *));
 E struct opvar *FDECL(selection_opvar, (char *));
 E void FDECL(opvar_free_x, (struct opvar *));
+E void FDECL(lvlfill_maze_grid, (int, int, int, int, SCHAR_P));
 E void FDECL(set_selection_floodfillchk, (int FDECL((*), (int,int))));
 E void FDECL(selection_floodfill, (struct opvar *, int, int, BOOLEAN_P));
+E boolean FDECL(in_splev_map, (XCHAR_P, XCHAR_P));
 
 /* ### spell.c ### */
 
