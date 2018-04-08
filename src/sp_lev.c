@@ -45,7 +45,6 @@ STATIC_DCL struct opvar *FDECL(splev_stack_getdat, (struct sp_coder *,
                                                     XCHAR_P));
 STATIC_DCL struct opvar *FDECL(splev_stack_getdat_any, (struct sp_coder *));
 STATIC_DCL void FDECL(variable_list_del, (struct splev_var *));
-STATIC_DCL void FDECL(lvlfill_maze_grid, (int, int, int, int, SCHAR_P));
 STATIC_DCL void FDECL(lvlfill_solid, (SCHAR_P, SCHAR_P));
 STATIC_DCL void FDECL(set_wall_property, (XCHAR_P, XCHAR_P, XCHAR_P, XCHAR_P,
                                           int));
@@ -595,15 +594,30 @@ int x1, y1, x2, y2;
 schar filling;
 {
     int x, y;
+    /* FIXME: Can't work with special levels right now because it places the
+     * fill (plus rooms) of the level and then the map, which means that rooms
+     * can be cut off. There seems to be no way to tell where the special level
+     * is going to be placed ahead of time. */
+    /* maze_add_rooms(20); */
 
-    for (x = x1; x <= x2; x++)
+    for (x = x1; x <= x2; x++) {
         for (y = y1; y <= y2; y++) {
-            if (level.flags.corrmaze)
-                levl[x][y].typ = STONE;
-            else
-                levl[x][y].typ = (y < 2 || ((x % 2) && (y % 2))) ? STONE
-                                                                 : filling;
+            /* avoid overwriting maze rooms */
+            if (levl[x][y].roomno == NO_ROOM) {
+                if (level.flags.corrmaze) {
+                    levl[x][y].typ = STONE;
+                }
+                else {
+                    if (y < 2 || ((x % 2) && (y % 2))) {
+                        levl[x][y].typ = STONE;
+                    }
+                    else {
+                        levl[x][y].typ = filling;
+                    }
+                }
+            }
         }
+    }
 }
 
 void
@@ -6134,6 +6148,19 @@ const char *name;
 
 give_up:
     return result;
+}
+
+/* Accessor for SpLev_Map for other files.
+ * Always returns FALSE for non-special levels. */
+boolean
+in_splev_map(x, y)
+xchar x, y;
+{
+    if (!Is_special(&u.uz))
+        return FALSE;
+    if (!maze_inbounds(x, y))
+        return FALSE;
+    return (SpLev_Map[x][y] != 0);
 }
 
 #ifdef _MSC_VER
