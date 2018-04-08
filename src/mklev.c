@@ -776,6 +776,72 @@ makevtele()
     makeniche(TELEP_TRAP);
 }
 
+/* Choose an appropriate special room type for the given level. */
+int
+rand_roomtype()
+{
+    int u_depth = depth(&u.uz);
+    /* minimum number of rooms needed to allow a random special room */
+    int room_threshold = Is_branchlev(&u.uz) ? 4 : 3;
+    if (level.flags.has_vault)
+        room_threshold++;
+
+    if (!Inhell) {
+        if (u_depth > 1 && u_depth < depth(&medusa_level)
+            && nroom >= room_threshold && rn2(u_depth) < 3) {
+            /* random shop */
+            return SHOPBASE;
+        }
+        else if (u_depth > 4 && !rn2(6))
+            return COURT;
+        else if (u_depth > 5 && !rn2(8)
+                    && !(mvitals[PM_LEPRECHAUN].mvflags & G_GONE))
+            return LEPREHALL;
+        else if (u_depth > 6 && !rn2(7))
+            return ZOO;
+        else if (u_depth > 8 && !rn2(5))
+            return TEMPLE;
+        else if (u_depth > 9 && !rn2(5)
+                    && !(mvitals[PM_KILLER_BEE].mvflags & G_GONE))
+            return BEEHIVE;
+        else if (u_depth > 11 && !rn2(6))
+            return MORGUE;
+        else if (u_depth > 12 && !rn2(8) && antholemon())
+            return ANTHOLE;
+        else if (u_depth > 14 && !rn2(4)
+                    && !(mvitals[PM_SOLDIER].mvflags & G_GONE))
+            return BARRACKS;
+        else if (u_depth > 15 && !rn2(6))
+            return SWAMP;
+        else if (u_depth > 16 && !rn2(8)
+                    && !(mvitals[PM_COCKATRICE].mvflags & G_GONE))
+            return COCKNEST;
+        else
+            return OROOM;
+    }
+    else { /* Gehennom random special rooms */
+        /* provisionally: depth doesn't really matter too much since none of
+         * these rooms have a wildly higher difficulty. */
+        int chance = rn2(100);
+        if (chance < 25)
+            return MORGUE;
+        else if (chance < 45)
+            return DEMONDEN;
+        else if (chance < 60)
+            return SUBMERGED;
+        else if (chance < 75)
+            return LAVAROOM;
+        else if (chance < 80)
+            return ABBATOIR;
+        else if (chance < 90)
+            return SEMINARY;
+        else if (chance < 95)
+            return TEMPLE; /* Moloch temple */
+        else
+            return STATUARY;
+    }
+}
+
 /* clear out various globals that keep information on the current level.
  * some of this is only necessary for some types of levels (maze, normal,
  * special) but it's easier to put it all in one place than make sure
@@ -858,7 +924,6 @@ makelevel()
     register int tryct;
     register int x, y;
     branch *branchp;
-    int room_threshold;
 
     /* this is apparently used to denote that a lot of program state is
      * uninitialized */
@@ -943,8 +1008,6 @@ makelevel()
     }
 
     branchp = Is_branchlev(&u.uz);    /* possible dungeon branch */
-    room_threshold = branchp ? 4 : 3; /* minimum number of rooms needed
-                                         to allow a random special room */
     if (Is_rogue_level(&u.uz))
         goto skip0;
     makecorridors();
@@ -965,7 +1028,6 @@ makelevel()
             add_room(vault_x, vault_y, vault_x + w, vault_y + h, TRUE, VAULT,
                      FALSE);
             level.flags.has_vault = 1;
-            ++room_threshold;
             fill_room(&rooms[nroom - 1], FALSE);
             mk_knox_portal(vault_x + w, vault_y + h);
             /* Only put a vault teleporter with 1/3 chance;
@@ -985,45 +1047,17 @@ makelevel()
         }
     }
 
-    {
-        /* Try to create one special room on the level.
-         * The available special rooms depend on how deep you are.
-         * If a special room is selected and fails to be created (e.g. it tried
-         * to make a shop and failed because no room had exactly 1 door), it
-         * won't try to create the other types of available special rooms. */
-        register int u_depth = depth(&u.uz);
+    /* Try to create one special room on the level.
+     * The available special rooms depend on how deep you are.
+     * If a special room is selected and fails to be created (e.g. it tried
+     * to make a shop and failed because no room had exactly 1 door), it
+     * won't try to create the other types of available special rooms. */
 
-        if (wizard && nh_getenv("SHOPTYPE"))
-            /* special case that overrides everything else for wizard mode */
-            mkroom(SHOPBASE);
-        else if (u_depth > 1 && u_depth < depth(&medusa_level)
-                 && nroom >= room_threshold && rn2(u_depth) < 3)
-            mkroom(SHOPBASE);
-        else if (u_depth > 4 && !rn2(6))
-            mkroom(COURT);
-        else if (u_depth > 5 && !rn2(8)
-                 && !(mvitals[PM_LEPRECHAUN].mvflags & G_GONE))
-            mkroom(LEPREHALL);
-        else if (u_depth > 6 && !rn2(7))
-            mkroom(ZOO);
-        else if (u_depth > 8 && !rn2(5))
-            mkroom(TEMPLE);
-        else if (u_depth > 9 && !rn2(5)
-                 && !(mvitals[PM_KILLER_BEE].mvflags & G_GONE))
-            mkroom(BEEHIVE);
-        else if (u_depth > 11 && !rn2(6))
-            mkroom(MORGUE);
-        else if (u_depth > 12 && !rn2(8) && antholemon())
-            mkroom(ANTHOLE);
-        else if (u_depth > 14 && !rn2(4)
-                 && !(mvitals[PM_SOLDIER].mvflags & G_GONE))
-            mkroom(BARRACKS);
-        else if (u_depth > 15 && !rn2(6))
-            mkroom(SWAMP);
-        else if (u_depth > 16 && !rn2(8)
-                 && !(mvitals[PM_COCKATRICE].mvflags & G_GONE))
-            mkroom(COCKNEST);
-    }
+    if (wizard && nh_getenv("SHOPTYPE"))
+        /* special case that overrides everything else for wizard mode */
+        mkroom(SHOPBASE);
+    else
+        mkroom(rand_roomtype());
 
 skip0:
     /* Place multi-dungeon branch. */
