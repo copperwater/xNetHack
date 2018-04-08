@@ -6,7 +6,7 @@
 
 LEVEL: "oracle"
 
-ROOM: "ordinary" , lit, (3,3), (center,center), (11,9) {
+ROOM: "ordinary" , lit, (37,10), (center,center), (11,9) {
   OBJECT:('`',"statue"),(0,0),montype:'C',1
   OBJECT:('`',"statue"),(0,8),montype:'C',1
   OBJECT:('`',"statue"),(10,0),montype:'C',1
