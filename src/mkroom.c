@@ -19,11 +19,16 @@
 STATIC_DCL boolean FDECL(isbig, (struct mkroom *));
 STATIC_DCL struct mkroom *FDECL(pick_room, (BOOLEAN_P));
 STATIC_DCL void NDECL(mkshop), FDECL(mkzoo, (int)), NDECL(mkswamp);
-STATIC_DCL void NDECL(mktemple);
+STATIC_DCL struct mkroom * NDECL(mktemple);
+STATIC_DCL void NDECL(mkseminary);
+STATIC_DCL void NDECL(mksubmerged);
+STATIC_DCL void NDECL(mklavaroom);
 STATIC_DCL coord *FDECL(shrine_pos, (int));
 STATIC_DCL struct permonst *NDECL(morguemon);
 STATIC_DCL struct permonst *NDECL(squadmon);
 STATIC_DCL struct permonst *NDECL(zoomon);
+STATIC_DCL struct permonst *NDECL(demondenmon);
+STATIC_DCL struct permonst *NDECL(abbatoirmon);
 STATIC_DCL void FDECL(save_room, (int, struct mkroom *));
 STATIC_DCL void FDECL(rest_room, (int, struct mkroom *));
 
@@ -51,24 +56,25 @@ void
 mkroom(roomtype)
 int roomtype;
 {
+    if (roomtype == OROOM)
+        return; /* not actually trying to make a special room */
     if (roomtype >= SHOPBASE)
         mkshop(); /* someday, we should be able to specify shop type */
-    else
+    else {
         switch (roomtype) {
         case COURT:
-            mkzoo(COURT);
-            break;
         case ZOO:
-            mkzoo(ZOO);
-            break;
         case BEEHIVE:
-            mkzoo(BEEHIVE);
-            break;
         case MORGUE:
-            mkzoo(MORGUE);
-            break;
         case BARRACKS:
-            mkzoo(BARRACKS);
+        case LEPREHALL:
+        case COCKNEST:
+        case ANTHOLE:
+        case DEMONDEN:
+        case LAVAROOM:
+        case ABBATOIR:
+            /* all of these just call mkzoo directly */
+            mkzoo(roomtype);
             break;
         case SWAMP:
             mkswamp();
@@ -76,18 +82,19 @@ int roomtype;
         case TEMPLE:
             mktemple();
             break;
-        case LEPREHALL:
-            mkzoo(LEPREHALL);
+        case SUBMERGED:
+            mksubmerged();
             break;
-        case COCKNEST:
-            mkzoo(COCKNEST);
+        case SEMINARY:
+            mkseminary();
             break;
-        case ANTHOLE:
-            mkzoo(ANTHOLE);
+        case STATUARY:
+            /* mkstatuary(); */
             break;
         default:
             impossible("Tried to make a room of type %d.", roomtype);
         }
+    }
 }
 
 /* Create and stock a shop on a random room.
@@ -133,11 +140,11 @@ mkshop()
                 mkzoo(COURT);
                 return;
             }
-            if (*ep == 's' || *ep == 'S') {
+            if (*ep == 's') {
                 mkzoo(BARRACKS);
                 return;
             }
-            if (*ep == 'a' || *ep == 'A') {
+            if (*ep == 'a') {
                 mkzoo(ANTHOLE);
                 return;
             }
@@ -145,7 +152,7 @@ mkshop()
                 mkzoo(COCKNEST);
                 return;
             }
-            if (*ep == 'l' || *ep == 'L') {
+            if (*ep == 'l') {
                 mkzoo(LEPREHALL);
                 return;
             }
@@ -156,6 +163,24 @@ mkshop()
             if (*ep == '}') {
                 mkswamp();
                 return;
+            }
+            if (*ep == 'A') {
+                mkzoo(ABBATOIR);
+                return;
+            }
+            if (*ep == 'd' || *ep == 'D') {
+                mkzoo(DEMONDEN);
+                return;
+            }
+            if (*ep == 'L') {
+                mkzoo(LAVAROOM);
+                return;
+            }
+            if (*ep == 'S') {
+                mkseminary();
+            }
+            if (*ep == 'u' || *ep == 'U') {
+                mksubmerged();
             }
             for (i = 0; shtypes[i].name; i++)
                 if (*ep == def_oc_syms[(int) shtypes[i].symb].sym)
@@ -299,7 +324,7 @@ void
 fill_zoo(sroom)
 struct mkroom *sroom;
 {
-    struct monst *mon;
+    struct monst *mon = NULL;
     register int sx, sy, i;
     int sh, tx = 0, ty = 0, goldlim = 0, type = sroom->rtype;
     int rmno = (int) ((sroom - rooms) + ROOMOFFSET);
@@ -365,24 +390,48 @@ struct mkroom *sroom;
             if (type == COURT && IS_THRONE(levl[sx][sy].typ))
                 continue;
             /* create the appropriate room filler monster */
-            mon = makemon((type == COURT)
-                           ? courtmon()
-                           : (type == BARRACKS)
-                              ? squadmon()
-                              : (type == MORGUE)
-                                 ? morguemon()
-                                 : (type == BEEHIVE)
-                                     ? (sx == tx && sy == ty
-                                         ? &mons[PM_QUEEN_BEE]
-                                         : &mons[PM_KILLER_BEE])
-                                     : (type == LEPREHALL)
-                                         ? &mons[PM_LEPRECHAUN]
-                                         : (type == COCKNEST)
-                                             ? &mons[PM_COCKATRICE]
-                                             : (type == ANTHOLE)
-                                                 ? antholemon()
-                                                 : zoomon(),
-                          sx, sy, NO_MM_FLAGS);
+            struct permonst * fillermon = NULL;
+            if (type == COURT) {
+                fillermon = courtmon();
+            }
+            else if (type == BARRACKS) {
+                fillermon = squadmon();
+            }
+            else if (type == MORGUE) {
+                fillermon = morguemon();
+            }
+            else if (type == BEEHIVE) {
+                if (sx == tx && sy == ty)
+                    fillermon = &mons[PM_QUEEN_BEE];
+                else
+                    fillermon = &mons[PM_KILLER_BEE];
+            }
+            else if (type == LEPREHALL) {
+                fillermon = &mons[PM_LEPRECHAUN];
+            }
+            else if (type == COCKNEST) {
+                fillermon = &mons[PM_COCKATRICE];
+            }
+            else if (type == ANTHOLE) {
+                fillermon = antholemon();
+            }
+            else if (type == ZOO) {
+                fillermon = zoomon();
+            }
+            else if (type == DEMONDEN) {
+                fillermon = demondenmon();
+            }
+            else if (type == LAVAROOM) {
+                fillermon = rn2(5) ? NULL : &mons[PM_SALAMANDER];
+            }
+            else if (type == ABBATOIR) {
+                fillermon = abbatoirmon();
+            }
+
+            mon = NULL;
+            if (fillermon) {
+                mon = makemon(fillermon, sx, sy, NO_MM_FLAGS);
+            }
             /* All special rooms currently generate all their monsters asleep. */
             if (mon) {
                 mon->msleeping = 1;
@@ -444,6 +493,47 @@ struct mkroom *sroom;
             case ANTHOLE:
                 if (!rn2(3))
                     (void) mkobj_at(FOOD_CLASS, sx, sy, FALSE);
+                break;
+            case DEMONDEN:
+                if (mon) {
+                    if (!rn2(3)) {
+                        /* undo sleep */
+                        mon->msleeping = 0;
+                    }
+                    /* treasure */
+                    (void) mkgold((long) rn1(200, 10), sx, sy);
+                    for (i = rn2(3) + 1; i > 0; i--) {
+                        mkobj_at((rn2(2) ? RANDOM_CLASS : GEM_CLASS),
+                                 sx, sy, TRUE);
+                    }
+                }
+                break;
+            case LAVAROOM:
+                if (rn2(2)) {
+                    levl[sx][sy].typ = LAVAPOOL;
+                }
+                break;
+            case ABBATOIR:
+                /* scatter some corpses, leashes, knives, blood */
+                if (mon) {
+                    mon->msleeping = 0;
+                }
+                if (!rn2(7)) {
+                    struct obj* sobj = mksobj_at(CORPSE, sx, sy, TRUE, FALSE);
+                    sobj->corpsenm = monsndx(zoomon());
+                }
+                if (!rn2(10)) {
+                    mksobj_at(LEASH, sx, sy, FALSE, FALSE);
+                }
+                if (!rn2(6)) {
+                    mksobj_at(KNIFE, sx, sy, TRUE, FALSE);
+                }
+                if (!rn2(2)) {
+                    const char* bloodstains[] =
+                        { "/", "-", "\\", ".", "," ":" };
+                    make_engr_at(sx, sy, bloodstains[rn2(SIZE(bloodstains))],
+                                 0, ENGR_BLOOD);
+                }
                 break;
             }
         }
@@ -580,6 +670,37 @@ zoomon()
     return pm;
 }
 
+/* Pick random demon den monsters. */
+struct permonst *
+demondenmon()
+{
+    if (!rn2(4)) {
+        if (rn2(8)) {
+            return mkclass(S_DEMON, 0);
+        }
+        else {
+            return mkclass(S_IMP, 0);
+        }
+    }
+    return NULL;
+}
+
+struct permonst *
+abbatoirmon()
+{
+    if (!rn2(10)) {
+        if (!rn2(6)) {
+            /* mon for slaughter */
+            return zoomon();
+        }
+        else {
+            /* butcher */
+            return &mons[PM_MARILITH];
+        }
+    }
+    return NULL;
+}
+
 /* Turn up to 5 ordinary rooms into swamp rooms.
  * Swamps contain a checkerboard pattern of pools (except next to doors),
  * F-class monsters, and possibly one sea monster, apiece.
@@ -636,14 +757,16 @@ int roomno;
 
     /* if width and height are odd, placement will be the exact center;
        if either or both are even, center point is a hypothetical spot
-       between map locations and placement will be adjacent to that */
+       between map locations and placement will be adjacent to that.
+       Make deterministic so that if it is called multiple times on the same
+       room it will return the same coordinate. */
     delta = troom->hx - troom->lx;
     buf.x = troom->lx + delta / 2;
-    if ((delta % 2) && rn2(2))
+    if ((delta % 2) && (roomno & 1))
         buf.x++;
     delta = troom->hy - troom->ly;
     buf.y = troom->ly + delta / 2;
-    if ((delta % 2) && rn2(2))
+    if ((delta % 2) && (roomno & 2))
         buf.y++;
     return &buf;
 }
@@ -651,7 +774,7 @@ int roomno;
 /* Try and find a suitable room for a temple and if successful, create the
  * temple with its altar and attendant priest.
  */
-STATIC_OVL void
+STATIC_OVL struct mkroom *
 mktemple()
 {
     register struct mkroom *sroom;
@@ -659,7 +782,7 @@ mktemple()
     register struct rm *lev;
 
     if (!(sroom = pick_room(TRUE)))
-        return;
+        return NULL;
 
     /* set up Priest and shrine */
     sroom->rtype = TEMPLE;
@@ -670,10 +793,87 @@ mktemple()
     shrine_spot = shrine_pos((int) ((sroom - rooms) + ROOMOFFSET));
     lev = &levl[shrine_spot->x][shrine_spot->y];
     lev->typ = ALTAR;
-    lev->altarmask = induced_align(80);
+    if (!Inhell) {
+        lev->altarmask = induced_align(80);
+    }
+    else {
+        lev->altarmask = AM_NONE; /* Moloch */
+    }
     priestini(&u.uz, sroom, shrine_spot->x, shrine_spot->y, FALSE);
     lev->altarmask |= AM_SHRINE;
     level.flags.has_temple = 1;
+    return sroom;
+}
+
+/* Create a seminary - a temple containing the usual peaceful priest and some
+ * roaming priests of the same god. */
+void
+mkseminary()
+{
+    struct mkroom * sroom = mktemple();
+    int i;
+    xchar x, y;
+    coord *ss; /* shrine spot */
+
+    if (!sroom) /* temple creation failed */
+        return;
+
+    /* get altar alignment, roaming priests should have the same */
+    ss = shrine_pos((int) ((sroom - rooms) + ROOMOFFSET));
+    if (levl[ss->x][ss->y].typ != ALTAR) {
+        impossible("mkseminary: altar not present?");
+        return;
+    }
+    aligntyp altaralign = Amask2align(levl[ss->x][ss->y].altarmask & AM_MASK);
+
+    for (i = rn1(4,1); i > 0; --i) {
+        x = somex(sroom);
+        y = somey(sroom);
+        if (MON_AT(x, y)) {
+            i++;
+            continue;
+        }
+        /* peaceful if they're of your alignment */
+        mk_roamer(&mons[PM_ALIGNED_PRIEST], altaralign, x, y,
+                  (u.ualign.type == altaralign));
+    }
+}
+
+/* Create a submerged room - filled entirely with water, populated with sea
+ * monsters and kelp and hidden treasure. */
+void
+mksubmerged()
+{
+    struct mkroom *sroom;
+    struct obj *chest, *obj;
+    xchar x, y;
+
+    if (!(sroom = pick_room(TRUE)))
+        return;
+
+    for (x = sroom->lx; x <= sroom->hx; x++) {
+        for (y = sroom->ly; y <= sroom->hy; y++) {
+            levl[x][y].typ = MOAT;
+            if (!rn2(4)) {
+                makemon(mkclass(S_EEL, 0), x, y, NO_MM_FLAGS);
+            }
+            if (!rn2(20)) {
+                mksobj_at(KELP_FROND, x, y, TRUE, FALSE);
+            }
+        }
+    }
+    x = somex(sroom);
+    y = somey(sroom);
+    chest = mksobj_at(CHEST, x, y, TRUE, FALSE);
+    obj = mksobj(GOLD_PIECE, TRUE, FALSE);
+    obj->quan = rn1(1000, 1000);
+    add_to_container(chest, obj);
+    for (x = rn2(10); x > 0; --x) {
+        add_to_container(chest, mkobj(GEM_CLASS, FALSE));
+    }
+    if (!rn2(10)) {
+        add_to_container(chest, mksobj(MAGIC_LAMP, TRUE, FALSE));
+    }
 }
 
 /* Return TRUE if the given location is next to a door or a secret door in any
