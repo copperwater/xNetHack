@@ -918,7 +918,14 @@ int wallthick;
     y_maze_max = (rdy * 2);
 
     /* create maze */
-    maze0xy(&mm);
+    do {
+        maze0xy(&mm);
+        /* continue searching for spots until we find one that's not in a room;
+         * the room generation code should never generate rooms such that the
+         * mazewalk has no available locations or cannot spread over the rest
+         * of the unoccupied space */
+    } while(levl[mm.x][mm.y].roomno != NO_ROOM);
+
     walkfrom((int) mm.x, (int) mm.y, 0);
 
     if (!rn2(5))
