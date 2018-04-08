@@ -9,10 +9,6 @@
 /* conversion of result to int is reasonable */
 
 STATIC_DCL int FDECL(mkmonst_in_room, (struct mkroom *));
-STATIC_DCL void FDECL(mkfount, (int, struct mkroom *));
-STATIC_DCL void FDECL(mksink, (struct mkroom *));
-STATIC_DCL void FDECL(mkaltar, (struct mkroom *));
-STATIC_DCL void FDECL(mkgrave, (struct mkroom *));
 STATIC_DCL void NDECL(makevtele);
 STATIC_DCL void NDECL(clear_level_structures);
 STATIC_DCL void NDECL(makelevel);
@@ -1093,16 +1089,16 @@ skip0:
 
         /* maybe place some dungeon features inside */
         if (!rn2(10))
-            mkfount(0, croom);
+            mkfeature(FOUNTAIN, 0, croom);
         if (!rn2(60))
-            mksink(croom);
+            mkfeature(SINK, 0, croom);
         if (!rn2(60))
-            mkaltar(croom);
+            mkfeature(ALTAR, 0, croom);
         x = 80 - (depth(&u.uz) * 2);
         if (x < 2)
             x = 2;
         if (!rn2(x))
-            mkgrave(croom);
+            mkfeature(GRAVE, 0, croom);
 
         /* put statues inside */
         if (!rn2(20))
@@ -1121,17 +1117,7 @@ skip0:
         /* maybe make some graffiti
          * chance decreases the lower you get in the dungeon */
         if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
-            char buf[BUFSZ];
-            const char *mesg = random_engraving(buf);
-            if (mesg) {
-                do {
-                    x = somex(croom);
-                    y = somey(croom);
-                } while (levl[x][y].typ != ROOM && !rn2(40));
-                if (!(IS_POOL(levl[x][y].typ)
-                      || IS_FURNITURE(levl[x][y].typ)))
-                    make_engr_at(x, y, mesg, 0L, MARK);
-            }
+            mkfeature(0, 0, croom);
         }
 
     skip_nonrogue:
@@ -1898,21 +1884,23 @@ struct mkroom* croom;
     return num_monst;
 }
 
-
-/* Place a fountain.
- * If mazeflag is TRUE, it will pick a random maze position; otherwise it will
- * assume croom is non-null and will pick a random position inside it.
- * May become a magic fountain with 1/7 chance. */
-STATIC_OVL void
-mkfount(mazeflag, croom)
-int mazeflag;
+/* Place the given dungeon feature, either randomly in a maze if mazeflag is
+ * TRUE, or in croom otherwise.
+ * If typ is 0, place an engraving instead. */
+void
+mkfeature(typ, mazeflag, croom)
+xchar typ;
+boolean mazeflag;
 struct mkroom *croom;
 {
     coord m;
     register int tryct = 0;
 
-    /* This code is repeated across several functions and should probably be
-     * extracted into its own function... */
+    if (!mazeflag && !croom)
+        return;
+    if (mazeflag && croom) /* pick one */
+        mazeflag == rn2(2) ? TRUE : FALSE;
+
     do {
         if (++tryct > 200)
             return;
@@ -1922,114 +1910,66 @@ struct mkroom *croom;
             return;
     } while (occupied(m.x, m.y) || bydoor(m.x, m.y));
 
-    levl[m.x][m.y].typ = FOUNTAIN;
-    /* Is it a "blessed" fountain? (affects drinking from fountain) */
-    if (!rn2(7))
-        levl[m.x][m.y].blessedftn = 1;
-
-    level.flags.nfountains++;
-}
-
-/* Place a sink somewhere in croom. */
-STATIC_OVL void
-mksink(croom)
-struct mkroom *croom;
-{
-    coord m;
-    register int tryct = 0;
-
-    do {
-        if (++tryct > 200)
-            return;
-        if (!somexy(croom, &m))
-            return;
-    } while (occupied(m.x, m.y) || bydoor(m.x, m.y));
-
-    /* Put a sink at m.x, m.y */
-    levl[m.x][m.y].typ = SINK;
-
-    /* All sinks have a ring stuck in the pipes below */
-    struct obj* ring = mkobj(RING_CLASS, TRUE);
-    ring->ox = m.x;
-    ring->oy = m.y;
-    add_to_buried(ring);
-
-    level.flags.nsinks++;
-}
-
-/* Place an altar somewhere in croom.
- * Set its alignment randomly with uniform probability. */
-STATIC_OVL void
-mkaltar(croom)
-struct mkroom *croom;
-{
-    coord m;
-    register int tryct = 0;
-    aligntyp al;
-
-    if (croom->rtype != OROOM)
-        return;
-
-    do {
-        if (++tryct > 200)
-            return;
-        if (!somexy(croom, &m))
-            return;
-    } while (occupied(m.x, m.y) || bydoor(m.x, m.y));
-
-    /* Put an altar at m.x, m.y */
-    levl[m.x][m.y].typ = ALTAR;
-
-    /* -1 - A_CHAOTIC, 0 - A_NEUTRAL, 1 - A_LAWFUL */
-    al = rn2((int) A_LAWFUL + 2) - 1;
-    levl[m.x][m.y].altarmask = Align2amask(al);
-}
-
-/* Create a grave (headstone) somewhere in croom. Special rules:
- * 1/10 of graves get a bell placed on them and a special inscription. The
- *   inscription is otherwise pulled from epitaph.
- * 1/3 of graves get gold placed on them.
- * 0-4 random cursed objects may be buried under the grave.
- */
-static void
-mkgrave(croom)
-struct mkroom *croom;
-{
-    coord m;
-    register int tryct = 0;
-    register struct obj *otmp;
-    boolean dobell = !rn2(10);
-
-    if (croom->rtype != OROOM)
-        return;
-
-    do {
-        if (++tryct > 200)
-            return;
-        if (!somexy(croom, &m))
-            return;
-    } while (occupied(m.x, m.y) || bydoor(m.x, m.y));
-
-    /* Put a grave at m.x, m.y */
-    make_grave(m.x, m.y, dobell ? "Saved by the bell!" : (char *) 0);
-
-    /* Possibly fill it with objects */
-    if (!rn2(3))
-        (void) mkgold(0L, m.x, m.y);
-    for (tryct = rn2(5); tryct; tryct--) {
-        otmp = mkobj(RANDOM_CLASS, TRUE);
-        if (!otmp)
-            return;
-        curse(otmp);
-        otmp->ox = m.x;
-        otmp->oy = m.y;
-        add_to_buried(otmp);
+    if (typ == FOUNTAIN) {
+        levl[m.x][m.y].typ = FOUNTAIN;
+        /* May become a magic fountain with 1/7 chance. */
+        if (!rn2(7))
+            levl[m.x][m.y].blessedftn = 1;
+        level.flags.nfountains++;
     }
+    else if (typ == SINK) {
+        levl[m.x][m.y].typ = SINK;
+        /* All sinks have a ring stuck in the pipes below */
+        struct obj* ring = mkobj(RING_CLASS, TRUE);
+        ring->ox = m.x;
+        ring->oy = m.y;
+        add_to_buried(ring);
+        level.flags.nsinks++;
+    }
+    else if (typ == ALTAR) {
+        levl[m.x][m.y].typ = ALTAR;
+        /* Set its alignment randomly with uniform probability.
+         * TODO: Allow this to make Moloch altars in Gehennom. */
+        aligntyp al;
+        /* -1 - A_CHAOTIC, 0 - A_NEUTRAL, 1 - A_LAWFUL */
+        al = rn2((int) A_LAWFUL + 2) - 1;
+        levl[m.x][m.y].altarmask = Align2amask(al);
+    }
+    else if (typ == GRAVE) {
+        /* Special rules:
+         * 1/10 of graves get a bell placed on them with "Saved by the bell!".
+         *   The inscription is otherwise pulled from epitaph.
+         * 1/3 of graves get gold placed on them.
+         * 0-4 random cursed objects may be buried under the grave.
+         */
+        register struct obj *otmp;
+        boolean dobell = !rn2(10);
 
-    /* Leave a bell, in case we accidentally buried someone alive */
-    if (dobell)
-        (void) mksobj_at(BELL, m.x, m.y, TRUE, FALSE);
-    return;
+        /* Possibly fill it with objects */
+        if (!rn2(3))
+            (void) mkgold(0L, m.x, m.y);
+        for (tryct = rn2(5); tryct; tryct--) {
+            otmp = mkobj(RANDOM_CLASS, TRUE);
+            if (!otmp)
+                return;
+            curse(otmp);
+            otmp->ox = m.x;
+            otmp->oy = m.y;
+            add_to_buried(otmp);
+        }
+
+        /* Leave a bell, in case we accidentally buried someone alive */
+        if (dobell)
+            (void) mksobj_at(BELL, m.x, m.y, TRUE, FALSE);
+    }
+    else if (!typ) {
+        /* engraving */
+        char buf[BUFSZ];
+        const char *mesg = random_engraving(buf);
+        if (mesg) {
+            make_engr_at(m.x, m.y, mesg, 0L, MARK);
+        }
+    }
 }
 
 /* maze levels have slightly different constraints from normal levels */
