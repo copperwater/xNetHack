@@ -652,6 +652,17 @@ xchar x, y;
             && x < x_maze_max && y < y_maze_max && isok(x, y));
 }
 
+/* Return TRUE iff the given location is on the edge of the valid maze area;
+ * that is, if you could step one square in any direction and then go out of
+ * bounds. */
+boolean
+maze_edge(x, y)
+xchar x, y;
+{
+    return (!maze_inbounds(x - 1, y) || !maze_inbounds(x + 1, y)
+            || !maze_inbounds(x, y - 1) || !maze_inbounds(x, y + 1));
+}
+
 /* Remove all dead ends from the maze.
  * Does this by looking for spots that have 3 or more directions in which they
  * are separated from another open space 2 squares away by some inaccessible
@@ -813,10 +824,7 @@ int attempts;
                 doory = rn1(hy - ly + 1, ly);
             }
             /* Don't generate doors on the maze edges */
-            if (!maze_inbounds(doorx - 1, doory)
-                || !maze_inbounds(doorx, doory - 1)
-                || !maze_inbounds(doorx + 1, doory)
-                || !maze_inbounds(doorx, doory + 1))
+            if (maze_edge(doorx, doory))
                 continue;
             /* Make sure doors don't generate at possible wall-intersection
              * points (inverse of valid maze0xy() locations).
@@ -842,8 +850,32 @@ int attempts;
         /* set roomno so mazewalk and other maze generation ignore it */
         topologize(&rooms[nroom-1]);
     }
+}
 
-    /* Special rooms! */
+/* Utility function to destroy a wall at the given spot. */
+void
+destroy_wall(x, y)
+xchar x, y;
+{
+    /* don't destroy walls of the maze border */
+    if (maze_edge(x, y))
+        return;
+    if (IS_WALL(levl[x][y].typ) || IS_DOOR(levl[x][y].typ)) {
+        levl[x][y].typ = ROOM;
+        levl[x][y].flags = 0; /* clear door mask */
+    }
+}
+
+/* Postprocessing after most of the rest of the level has been created
+ * (including stairs), and some rooms exist.
+ * Select attempts rooms to be converted into special rooms, then possibly
+ * place some other furniture inside the room. For non-special rooms, also
+ * knock down some walls to make the maze more accessible. */
+STATIC_OVL void
+maze_touchup_rooms(attempts)
+int attempts;
+{
+    int i;
     for (attempts = 2; attempts > 0; attempts--) {
         if (wizard && nh_getenv("SHOPTYPE")) {
             /* full manual override */
@@ -853,10 +885,36 @@ int attempts;
             mkroom(rand_roomtype());
         }
     }
-}
+    for (i = 0; i < nroom; ++i) {
+        if (rooms[i].rtype != OROOM) /* is it already special? */
+            continue;
+        /* probabilities here are deflated from makelevel() */
+        if (!rn2(20))
+            mkfeature(FOUNTAIN, FALSE, &rooms[i]);
+        if (!rn2(80))
+            mkfeature(SINK, FALSE, &rooms[i]);
+        if (!rn2(100))
+            mkfeature(GRAVE, FALSE, &rooms[i]);
+        /* TODO: Currently altars won't generate in Gehennom because they
+         * would imply the player can pray on a coaligned altar there, and that
+         * isn't implemented. */
+        if (!rn2(100) && !Inhell)
+            mkfeature(ALTAR, FALSE, &rooms[i]);
 
-/* TODO: make a function to knock down a number of entire room walls randomly
- */
+        /* Maybe remove the walls for this room. */
+        if (TRUE || rn2(5)) {
+            xchar x, y;
+            for (x = rooms[i].lx; x <= rooms[i].hx; ++x) {
+                destroy_wall(x, rooms[i].ly - 1);
+                destroy_wall(x, rooms[i].hy + 1);
+            }
+            for (y = rooms[i].ly; y <= rooms[i].hy; ++y) {
+                destroy_wall(rooms[i].lx - 1, y);
+                destroy_wall(rooms[i].hx + 1, y);
+            }
+        }
+    }
+}
 
 /* Create a maze with specified corridor width and wall thickness
  * TODO: rewrite walkfrom so it works on temp space, not levl
@@ -1108,6 +1166,9 @@ const char *s;
 
     /* place branch stair or portal */
     place_branch(Is_branchlev(&u.uz), 0, 0);
+
+    /* init special rooms and dungeon features */
+    maze_touchup_rooms(rnd(3));
 
     for (x = rn1(8, 11); x; x--) {
         mazexy(&mm);
