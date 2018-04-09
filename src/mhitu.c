@@ -2528,10 +2528,7 @@ struct monst *mon;
         case 0:
             You_feel("drained of energy.");
             u.uen = 0;
-            u.uenmax -= rnd(Half_physical_damage ? 5 : 10);
             exercise(A_CON, FALSE);
-            if (u.uenmax < 0)
-                u.uenmax = 0;
             break;
         case 1:
             You("are down in the dumps.");
@@ -2573,7 +2570,6 @@ struct monst *mon;
         case 0:
             You_feel("raised to your full potential.");
             exercise(A_CON, TRUE);
-            u.uenmax += rnd(5);
             u.uen = u.uenmax;
             break;
         case 1:

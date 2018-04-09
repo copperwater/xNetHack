@@ -23,6 +23,7 @@ Change the level generation of maze levels (mostly Gehennom, but also applies to
 Maze levels above the Castle will use regular Dungeons special rooms instead of these.
 New conduct unfair-scare-less, which tracks the number of times you scare monsters while standing on a position of impunity, such as an Elbereth square or scroll of scare monster.
 Monsters that deliberately jump into polymorph traps will stay in-depth.
+Foocubi no longer affect maximum Pw; the effects now only either set current Pw to max or 0.
 
 It contains the following non-gameplay interface changes:
 In the Ctrl-X status screen, the last turn on which you prayed is displayed.
