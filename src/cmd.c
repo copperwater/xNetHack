@@ -2868,6 +2868,15 @@ int final;
        you_have_never("owned a pet");
     }
 
+    if (!u.uconduct.scares) {
+        you_have_never("unfairly scared a monster");
+    }
+    else {
+        Sprintf(buf, "unfairly scared monsters %ld time%s", u.uconduct.scares,
+                plur(u.uconduct.scares));
+        you_have_X(buf);
+    }
+
     /* Pop up the window and wait for a key */
     display_nhwindow(en_win, TRUE);
     destroy_nhwindow(en_win);

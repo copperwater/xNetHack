@@ -96,6 +96,7 @@ struct u_conduct {     /* number of times... */
     long wisharti;     /* wished for an artifact */
     long artitouch;    /* touched an artifact in any way */
     long pets;         /* obtained a pet */
+    long scares;       /* scared a monster by standing in a certain spot */
     /* genocides already listed at end of game */
 };
 
