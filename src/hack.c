@@ -2511,7 +2511,17 @@ register boolean newlev;
                 msg_given = FALSE;
             break;
         }
+        case DEMONDEN:
+            You("enter a hideous den!");
+            break;
+        case SUBMERGED:
+            You("enter a flooded room!");
+            break;
+        case ABBATOIR:
+            You("enter a horrific slaughterhouse!");
+            break;
         case TEMPLE:
+        case SEMINARY:
             intemple(roomno + ROOMOFFSET);
         /*FALLTHRU*/
         default:
