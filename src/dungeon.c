@@ -2795,47 +2795,11 @@ shop_string(rtype)
 int rtype;
 {
     const char *str = "shop"; /* catchall */
-
-    /* Yuck, redundancy...but shclass.name doesn't cut it as a noun */
-    switch (rtype) {
-    case SHOPBASE - 1:
+    if (rtype == SHOPBASE - 1) {
         str = "untended shop";
-        break; /* see recalc_mapseen */
-    case SHOPBASE:
-        str = "general store";
-        break;
-    case ARMORSHOP:
-        str = "armor shop";
-        break;
-    case SCROLLSHOP:
-        str = "scroll shop";
-        break;
-    case POTIONSHOP:
-        str = "potion shop";
-        break;
-    case WEAPONSHOP:
-        str = "weapon shop";
-        break;
-    case FOODSHOP:
-        str = "delicatessen";
-        break;
-    case RINGSHOP:
-        str = "jewelers";
-        break;
-    case WANDSHOP:
-        str = "wand shop";
-        break;
-    case BOOKSHOP:
-        str = "bookstore";
-        break;
-    case FODDERSHOP:
-        str = "health food store";
-        break;
-    case CANDLESHOP:
-        str = "lighting shop";
-        break;
-    default:
-        break;
+    }
+    else if (rtype >= SHOPBASE) {
+        str = get_shtype(rtype)->noun_name;
     }
     return str;
 }

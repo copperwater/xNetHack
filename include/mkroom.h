@@ -24,6 +24,7 @@ struct mkroom {
 
 struct shclass {
     const char *name; /* name of the shop type */
+    const char *noun_name; /* shop type in #overview */
     char symb;        /* this identifies the shop type */
     int prob;         /* the shop type probability in % */
     schar shdist;     /* object placement type */

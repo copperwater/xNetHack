@@ -2270,6 +2270,7 @@ E char *FDECL(Shknam, (struct monst *));
 E char *FDECL(shkname, (struct monst *));
 E boolean FDECL(shkname_is_pname, (struct monst *));
 E boolean FDECL(is_izchak, (struct monst *, BOOLEAN_P));
+E const struct shclass* FDECL(get_shtype, (int));
 
 /* ### sit.c ### */
 

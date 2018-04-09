@@ -203,6 +203,7 @@ static const char *const shkhealthfoods[] = {
  */
 const struct shclass shtypes[] = {
     { "general store",
+      "general store",
       RANDOM_CLASS,
       42,
       D_SHOP,
@@ -214,6 +215,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shkgeneral },
     { "used armor dealership",
+      "armor shop",
       ARMOR_CLASS,
       14,
       D_SHOP,
@@ -225,6 +227,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shkarmors },
     { "second-hand bookstore",
+      "scroll shop",
       SCROLL_CLASS,
       10,
       D_SHOP,
@@ -236,6 +239,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shkbooks },
     { "liquor emporium",
+      "potion shop",
       POTION_CLASS,
       10,
       D_SHOP,
@@ -247,6 +251,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shkliquors },
     { "antique weapons outlet",
+      "weapon shop",
       WEAPON_CLASS,
       5,
       D_SHOP,
@@ -258,6 +263,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shkweapons },
     { "delicatessen",
+      "delicatessen",
       FOOD_CLASS,
       5,
       D_SHOP,
@@ -269,6 +275,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shkfoods },
     { "jewelers",
+      "jewelry shop",
       RING_CLASS,
       3,
       D_SHOP,
@@ -280,6 +287,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shkrings },
     { "quality apparel and accessories",
+      "wand shop",
       WAND_CLASS,
       3,
       D_SHOP,
@@ -289,6 +297,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shkwands },
     { "hardware store",
+      "tool shop",
       TOOL_CLASS,
       3,
       D_SHOP,
@@ -300,6 +309,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shktools },
     { "rare books",
+      "bookstore",
       SPBOOK_CLASS,
       3,
       D_SHOP,
@@ -311,6 +321,7 @@ const struct shclass shtypes[] = {
         { 0, 0 } },
       shkbooks },
     { "health food store",
+      "health food store",
       FOOD_CLASS,
       2,
       D_SHOP,
@@ -326,6 +337,7 @@ const struct shclass shtypes[] = {
      * loader.
      */
     { "lighting store",
+      "lighting shop",
       TOOL_CLASS,
       0,
       D_SHOP,
@@ -338,6 +350,7 @@ const struct shclass shtypes[] = {
       shklight },
     /* sentinel */
     { (char *) 0,
+      (char *) 0,
       0,
       0,
       0,
@@ -906,6 +919,18 @@ boolean override_hallucination;
     if (!letter(*shknm))
         ++shknm;
     return (boolean) !strcmp(shknm, "Izchak");
+}
+
+/* Return a pointer to the appropriate shtype for the given room type. */
+const struct shclass*
+get_shtype(rtype)
+int rtype;
+{
+    if (rtype < SHOPBASE) {
+        impossible("get_shtype: given non-shop %d", rtype);
+        return &shtypes[SHOPBASE];
+    }
+    return &shtypes[rtype - SHOPBASE];
 }
 
 /*shknam.c*/
