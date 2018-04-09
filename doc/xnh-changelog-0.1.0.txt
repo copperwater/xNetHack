@@ -104,6 +104,9 @@ If the player has followed petless conduct, the guardian angel on Astral will sp
 The Astral Plane is fully lit
 Rogues start with thiefstones identified (but they don't get one in inventory)
 Allow tins to be read (you read the label). On 1/5 of labeled tins it tells you the contents honestly, otherwise it will give a random false label. Tins made by the player are not labeled.
+Rebalance some starting attributes and distributions. Healers have higher Int, lower Wis, and lower Cha, Monks have higher Wis, and Priests have higher Int. Priests' Int and Wis distributions are now equal.
+Polymorph traps disappear whenever they polymorph anything, not just the player.
+Random doors are secret less of the time. No doors on the first three levels will be secret, and the chance of secret doors remains well below vanilla levels for most of the Dungeons of Doom.
 
 It contains the following non-gameplay interface changes:
 
@@ -180,6 +183,7 @@ Add some thiefstone-related true and false rumors
 Reference the famous Monty Hall Problem on the two dud Sokoban engravings
 Pressing Escape while being held or engulfed by a monster gives "You cannot escape from the monster!" YAFM
 Death rises from a "short nap" instead of "the dead" when reincarnating
+The invisible choir is "visible" if you ascend while seeing invisible
 
 It contains the following non-gameplay architectural changes:
 
@@ -204,3 +208,4 @@ Allow engravings in des files to specify random instead of a literal string; thi
 Allow get_rnd_text to choose a specific byte offset in the file.
 Add up_all_words() as a library function: it turns "string-thing like this" into "String-thing Like This".
 Create hash1() function: same logic as coord_hash, but only 1 parameter instead of 3
+Full documentation of all level generation code except for sp_lev.c
