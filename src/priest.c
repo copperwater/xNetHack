@@ -157,7 +157,8 @@ register struct monst *priest;
 register xchar x, y;
 {
     return (boolean) (priest && priest->ispriest
-                      && (EPRI(priest)->shroom == *in_rooms(x, y, TEMPLE))
+                      && ((EPRI(priest)->shroom == *in_rooms(x, y, TEMPLE))
+                        || (EPRI(priest)->shroom == *in_rooms(x, y, SEMINARY)))
                       && on_level(&(EPRI(priest)->shrlevel), &u.uz));
 }
 
