@@ -486,6 +486,10 @@ register struct obj *obj;
             pline_The(
                   "sink momentarily looks like a regularly erupting geyser.");
             break;
+        case RIN_CARRYING:
+            pline_The("sink looks like it can hold %s water than before.",
+                      (obj->spe < 0 ? "less" : "more"));
+            break;
         default:
             break;
         }

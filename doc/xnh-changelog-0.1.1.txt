@@ -26,6 +26,7 @@ Monsters that deliberately jump into polymorph traps will stay in-depth.
 Foocubi no longer affect maximum Pw; the effects now only either set current Pw to max or 0.
 Spellcasting system tweaked: skill no longer gives you a bonus, but caps your effective success rate instead
 Boost most roles' starting Pw amounts so that in general casters starting with level 1 spells will be able to cast them.
+Rings of carrying now produce a unique message when dropped into sinks.
 
 It contains the following non-gameplay interface changes:
 In the Ctrl-X status screen, the last turn on which you prayed is displayed.
