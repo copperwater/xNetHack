@@ -842,9 +842,10 @@ int attempts;
                 if (door_attempts == 1) {
                     door_attempts++; /* try again */
                     no_doors_made++;
-                    if (no_doors_made == 200)
+                    if (no_doors_made == 200) {
                         impossible("maze_add_rooms: can't place a door!");
                         break;
+                    }
                 }
                 continue;
             }
