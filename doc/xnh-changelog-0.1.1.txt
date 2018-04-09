@@ -14,6 +14,14 @@ the wiki page, and the commit messages are more up-to-date than this changelog.
 On top of any changes made by the NetHack devteam on 3.6.1, and any changes
 made in xNetHack 0.1.0, xNetHack 0.1.1 contains the following gameplay changes:
 
+New conduct unfair-scare-less, which tracks the number of times you scare monsters while standing on a position of impunity, such as an Elbereth square or scroll of scare monster.
+Change the level generation of maze levels (mostly Gehennom, but also applies to mazes below Medusa) rather drastically. Widemazes and corridor mazes are currently disabled. Instead, several rooms are generated and placed before the maze generates, and aligned with it. These rooms can be walless, leaving large swaths of the level open, or they can be new Gehennom-themed special rooms. The new special rooms include:
+* Demon dens, containing demons and simple piles of loot.
+* Submerged rooms, containing sea monsters and a sunken treasure chest.
+* Lava rooms, containing salamanders.
+* Slaughterhouses, bloody rooms containing corpses, leashes, and knives.
+* Seminaries of Moloch, a regular temple to Moloch containing one peaceful priest and several hostile priests.
+Maze levels above the Castle will use regular Dungeons special rooms instead of these.
 
 It contains the following non-gameplay interface changes:
 In the Ctrl-X status screen, the last turn on which you prayed is displayed.
