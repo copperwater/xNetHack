@@ -22,6 +22,7 @@ STATIC_DCL void NDECL(mkshop), FDECL(mkzoo, (int)), NDECL(mkswamp);
 STATIC_DCL struct mkroom * NDECL(mktemple);
 STATIC_DCL void NDECL(mkseminary);
 STATIC_DCL void NDECL(mksubmerged);
+STATIC_DCL void NDECL(mkstatuary);
 STATIC_DCL coord *FDECL(shrine_pos, (int));
 STATIC_DCL struct permonst *NDECL(morguemon);
 STATIC_DCL struct permonst *NDECL(squadmon);
@@ -88,7 +89,7 @@ int roomtype;
             mkseminary();
             break;
         case STATUARY:
-            /* mkstatuary(); */
+            mkstatuary();
             break;
         default:
             impossible("Tried to make a room of type %d.", roomtype);
@@ -131,7 +132,7 @@ mkshop()
                 mkzoo(MORGUE);
                 return;
             }
-            if (*ep == 'b' || *ep == 'B') {
+            if (*ep == 'b') {
                 mkzoo(BEEHIVE);
                 return;
             }
@@ -139,7 +140,7 @@ mkshop()
                 mkzoo(COURT);
                 return;
             }
-            if (*ep == 's') {
+            if (*ep == 'B') {
                 mkzoo(BARRACKS);
                 return;
             }
@@ -177,9 +178,15 @@ mkshop()
             }
             if (*ep == 'S') {
                 mkseminary();
+                return;
             }
-            if (*ep == 'u' || *ep == 'U') {
+            if (*ep == 'u' || *ep == 'U') { /* underwater */
                 mksubmerged();
+                return;
+            }
+            if (*ep == 's') {
+                mkstatuary();
+                return;
             }
             for (i = 0; shtypes[i].name; i++)
                 if (*ep == def_oc_syms[(int) shtypes[i].symb].sym)
@@ -883,6 +890,45 @@ mksubmerged()
     if (!rn2(10)) {
         add_to_container(chest, mksobj(MAGIC_LAMP, TRUE, FALSE));
     }
+}
+
+/* Create a statuary room - eerily lined with empty statues of the player */
+void
+mkstatuary()
+{
+    struct mkroom *sroom;
+    struct obj *statue;
+    xchar x, y, width, height;
+
+    if (!(sroom = pick_room(FALSE)))
+        return;
+
+    sroom->rtype = STATUARY;
+
+#define MKSTATUE(x, y)                                       \
+    if (!nexttodoor(x, y)) {                                 \
+        statue = mkcorpstat(STATUE, NULL, &mons[u.umonster], \
+                            x, y, CORPSTAT_NONE);            \
+        oname(statue, plname);                               \
+    }
+
+    /* pick the longer dimension to place statues */
+    width = sroom->hx - sroom->lx;
+    height = sroom->hy - sroom->ly;
+    if (width > height || (width == height && rn2(2))) {
+        for (x = sroom->lx; x <= sroom->hx; x++) {
+            MKSTATUE(x, sroom->ly);
+            MKSTATUE(x, sroom->hy);
+        }
+    }
+    else {
+        for (y = sroom->ly; y <= sroom->hy; y++) {
+            MKSTATUE(sroom->lx, y);
+            MKSTATUE(sroom->hx, y);
+        }
+    }
+
+#undef MKSTATUE
 }
 
 /* Return TRUE if the given location is next to a door or a secret door in any
