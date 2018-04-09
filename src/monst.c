@@ -2655,42 +2655,42 @@ struct permonst _mons2[] = {
     /*
      * sea monsters
      */
-    MON("jellyfish", S_EEL, LVL(3, 3, 6, 0, 0), (G_GENO | G_NOGEN),
+    MON("jellyfish", S_EEL, LVL(3, 3, 6, 0, 0), (G_GENO | G_NOGEN | 2),
         A(ATTK(AT_STNG, AD_DRST, 3, 3), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
           NO_ATTK),
         SIZ(80, 20, MS_SILENT, MZ_SMALL), MR_POISON, MR_POISON,
         M1_SWIM | M1_AMPHIBIOUS | M1_SLITHY | M1_NOLIMBS | M1_NOHEAD
             | M1_NOTAKE | M1_POIS,
         M2_HOSTILE, 0, CLR_BLUE),
-    MON("piranha", S_EEL, LVL(5, 12, 4, 0, 0), (G_GENO | G_NOGEN | G_SGROUP),
+    MON("piranha", S_EEL, LVL(5, 12, 4, 0, 0), (G_GENO | G_NOGEN | G_SGROUP | 3),
         A(ATTK(AT_BITE, AD_PHYS, 2, 6), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
           NO_ATTK),
         SIZ(60, 30, MS_SILENT, MZ_SMALL), 0, 0,
         M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
             | M1_CARNIVORE | M1_OVIPAROUS | M1_NOTAKE,
         M2_HOSTILE, 0, CLR_ORANGE),
-    MON("shark", S_EEL, LVL(7, 12, 2, 0, 0), (G_GENO | G_NOGEN),
+    MON("shark", S_EEL, LVL(7, 12, 2, 0, 0), (G_GENO | G_NOGEN | 2),
         A(ATTK(AT_BITE, AD_PHYS, 5, 6), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
           NO_ATTK),
         SIZ(500, 350, MS_SILENT, MZ_LARGE), 0, 0,
         M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
             | M1_CARNIVORE | M1_OVIPAROUS | M1_THICK_HIDE | M1_NOTAKE,
         M2_HOSTILE, 0, CLR_GRAY),
-    MON("giant eel", S_EEL, LVL(5, 9, -1, 0, 0), (G_GENO | G_NOGEN),
+    MON("giant eel", S_EEL, LVL(5, 9, -1, 0, 0), (G_GENO | G_NOGEN | 4),
         A(ATTK(AT_BITE, AD_PHYS, 3, 6), ATTK(AT_TUCH, AD_WRAP, 0, 0), NO_ATTK,
           NO_ATTK, NO_ATTK, NO_ATTK),
         SIZ(200, 250, MS_SILENT, MZ_HUGE), 0, 0,
         M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
             | M1_CARNIVORE | M1_OVIPAROUS | M1_NOTAKE,
         M2_HOSTILE, M3_INFRAVISIBLE, CLR_CYAN),
-    MON("electric eel", S_EEL, LVL(7, 10, -3, 0, 0), (G_GENO | G_NOGEN),
+    MON("electric eel", S_EEL, LVL(7, 10, -3, 0, 0), (G_GENO | G_NOGEN | 2),
         A(ATTK(AT_BITE, AD_ELEC, 4, 6), ATTK(AT_TUCH, AD_WRAP, 0, 0), NO_ATTK,
           NO_ATTK, NO_ATTK, NO_ATTK),
         SIZ(200, 250, MS_SILENT, MZ_HUGE), MR_ELEC, MR_ELEC,
         M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
             | M1_CARNIVORE | M1_OVIPAROUS | M1_NOTAKE,
         M2_HOSTILE, M3_INFRAVISIBLE, CLR_BRIGHT_BLUE),
-    MON("kraken", S_EEL, LVL(20, 3, 6, 0, -3), (G_GENO | G_NOGEN),
+    MON("kraken", S_EEL, LVL(20, 3, 6, 0, -3), (G_GENO | G_NOGEN | 1),
         A(ATTK(AT_CLAW, AD_PHYS, 2, 4), ATTK(AT_CLAW, AD_PHYS, 2, 4),
           ATTK(AT_HUGS, AD_WRAP, 2, 6), ATTK(AT_BITE, AD_PHYS, 5, 4), NO_ATTK,
           NO_ATTK),

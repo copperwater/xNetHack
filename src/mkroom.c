@@ -860,7 +860,11 @@ mksubmerged()
         for (y = sroom->ly; y <= sroom->hy; y++) {
             levl[x][y].typ = MOAT;
             if (!rn2(4)) {
-                makemon(mkclass(S_EEL, 0), x, y, NO_MM_FLAGS);
+                /* this actually turns *off* G_NOGEN disabling - we need that
+                 * since all sea monsters are G_NOGEN */
+                struct permonst* pm = mkclass(S_EEL, G_NOGEN);
+                if (pm)
+                    makemon(pm, x, y, NO_MM_FLAGS);
             }
             if (!rn2(20)) {
                 mksobj_at(KELP_FROND, x, y, TRUE, FALSE);
