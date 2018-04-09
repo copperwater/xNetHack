@@ -1661,6 +1661,7 @@ int spell;
 {
     int chance;
     int skill;
+    int cap;
 
     /* Calculate effective Int: may be boosted by certain items */
     unsigned char intel = ACURR(A_INT);
@@ -1722,20 +1723,21 @@ int spell;
         chance -= 10;
     }
 
-    /* no malus for unskilled/restricted, you just miss out on bonuses instead */
+    /* The less skilled you are, the worse the cap on your spellcasting ability. */
+    cap = 30; /* restricted */
     skill = P_SKILL(spell_skilltype(spellid(spell)));
-    switch (skill) {
-    case P_EXPERT:
-        chance += 40; /* FALLTHRU */
-    case P_SKILLED:
-        chance += 20; /* FALLTHRU */
-    case P_BASIC:
-        chance += 20;
-    }
+    if (skill == P_EXPERT)
+        cap = 100;
+    else if (skill == P_SKILLED)
+        cap = 80;
+    else if (skill == P_BASIC)
+        cap = 60;
+    else if (skill == P_UNSKILLED)
+        cap = 40;
 
     /* Clamp to percentile */
-    if (chance > 100)
-        chance = 100;
+    if (chance > cap)
+        chance = cap;
     if (chance < 0)
         chance = 0;
 

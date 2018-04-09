@@ -2,7 +2,7 @@ xNetHack 0.1.1 Changelog
 
 This is the first minor update version of xNetHack. It remains a fork off of
 the vanilla NetHack 3.6.1 development version, and is also based directly on
-xNetHack 0.1.0. It will continue to contain most or all of the latest commits
+xNetHack 0.1.0. It will continue to contain all of the latest commits
 pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
 
 The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
@@ -24,6 +24,7 @@ Maze levels above the Castle will use regular Dungeons special rooms instead of 
 New conduct unfair-scare-less, which tracks the number of times you scare monsters while standing on a position of impunity, such as an Elbereth square or scroll of scare monster.
 Monsters that deliberately jump into polymorph traps will stay in-depth.
 Foocubi no longer affect maximum Pw; the effects now only either set current Pw to max or 0.
+Spellcasting system tweaked: skill no longer gives you a bonus, but caps your effective success rate instead
 
 It contains the following non-gameplay interface changes:
 In the Ctrl-X status screen, the last turn on which you prayed is displayed.
