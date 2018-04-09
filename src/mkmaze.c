@@ -749,7 +749,7 @@ int attempts;
         coord roompos;
         xchar lx, ly, hx, hy, width, height;
         boolean intersect = FALSE;
-        int door_attempts = 5;
+        int door_attempts = 3;
         int no_doors_made = 0;
 
         /* room must fit nicely in the maze; that is, its corner spaces should
@@ -830,20 +830,20 @@ int attempts;
                 doorx = rn2(2) ? hx : lx;
                 doory = rn1(hy - ly + 1, ly);
             }
-            /* Don't generate doors on the maze edges */
-            if (maze_edge(doorx, doory))
-                continue;
-            /* Make sure doors don't generate at possible wall-intersection
+            /* Don't generate doors on the maze edges.
+             * Also make sure doors don't generate at possible wall-intersection
              * points (inverse of valid maze0xy() locations).
              * Because we're on a wall, one of doorx and doory will be even --
              * but the other should not be.
              * Shouldn't need okdoor() - with this rule, doors can't be next to
              * each other and they should always be on walls */
-            if ((doorx % 2 == 0) && (doory % 2 == 0)) {
+            if (maze_edge(doorx, doory)
+                || ((doorx % 2 == 0) && (doory % 2 == 0))) {
                 if (door_attempts == 1) {
                     door_attempts++; /* try again */
                     no_doors_made++;
-                    if (no_doors_made == 100)
+                    if (no_doors_made == 200)
+                        impossible("maze_add_rooms: can't place a door!");
                         break;
                 }
                 continue;
