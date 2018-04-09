@@ -1,0 +1,22 @@
+xNetHack 0.1.1 Changelog
+
+This is the first minor update version of xNetHack. It remains a fork off of
+the vanilla NetHack 3.6.1 development version, and is also based directly on
+xNetHack 0.1.0. It will continue to contain most or all of the latest commits
+pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
+
+The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
+attempts to describe these changes in a way that's better formatted and more
+friendly to players. However, it might be out of date; in case of conflicting
+information, this changelog and others in this folder are more up-to-date than
+the wiki page, and the commit messages are more up-to-date than this changelog.
+
+On top of any changes made by the NetHack devteam on 3.6.1, and any changes
+made in xNetHack 0.1.0, xNetHack 0.1.1 contains the following gameplay changes:
+
+
+It contains the following non-gameplay interface changes:
+In the Ctrl-X status screen, the last turn on which you prayed is displayed.
+
+It contains the following non-gameplay architectural changes:
+

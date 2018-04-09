@@ -426,6 +426,8 @@ encodeconduct()
         e |= 1L << 12;
     if (!u.uconduct.artitouch)
         e |= 1L << 13;
+    if (!u.uconduct.scares)
+        e |= 1L << 14;
 
     return e;
 }

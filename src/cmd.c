@@ -2137,6 +2137,14 @@ int final;
         else
             you_are("not wearing any armor", "");
     }
+    if (!final) {
+        if (u.ulastprayed < 0)
+            you_have_never("prayed");
+        else {
+            Sprintf(buf, " on turn %d", u.ulastprayed);
+            enlght_line(You_, "prayed", buf, "");
+        }
+    }
 }
 
 /* attributes: intrinsics and the like, other non-obvious capabilities */
@@ -2858,6 +2866,15 @@ int final;
 
     if (!u.uconduct.pets) {
        you_have_never("owned a pet");
+    }
+
+    if (!u.uconduct.scares) {
+        you_have_never("unfairly scared a monster");
+    }
+    else {
+        Sprintf(buf, "unfairly scared monsters %ld time%s", u.uconduct.scares,
+                plur(u.uconduct.scares));
+        you_have_X(buf);
     }
 
     /* Pop up the window and wait for a key */

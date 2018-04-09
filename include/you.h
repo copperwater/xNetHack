@@ -96,6 +96,7 @@ struct u_conduct {     /* number of times... */
     long wisharti;     /* wished for an artifact */
     long artitouch;    /* touched an artifact in any way */
     long pets;         /* obtained a pet */
+    long scares;       /* scared a monster by standing in a certain spot */
     /* genocides already listed at end of game */
 };
 
@@ -373,6 +374,7 @@ struct you {
     int ugangr;                             /* if the gods are angry at you */
     int ugifts;                             /* number of artifacts bestowed */
     int ublessed, ublesscnt;                /* blessing/duration from #pray */
+    long ulastprayed;                       /* the turn you last prayed */
     long umoney0;
     long uspare1;
     long uexp, urexp;

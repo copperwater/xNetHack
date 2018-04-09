@@ -280,6 +280,7 @@ int *inrange, *nearby, *scared;
 {
     int seescaryx, seescaryy;
     boolean sawscary = FALSE;
+    boolean sanct_scary = FALSE;
 
     *inrange = (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy)
                 <= (BOLT_LIM * BOLT_LIM));
@@ -301,8 +302,13 @@ int *inrange, *nearby, *scared;
     }
 
     sawscary = onscary(seescaryx, seescaryy, mtmp);
-    if (*nearby && (sawscary
-                    || (!mtmp->mpeaceful && in_your_sanctuary(mtmp, 0, 0)))) {
+    sanct_scary = (!mtmp->mpeaceful && in_your_sanctuary(mtmp, 0, 0));
+    if (*nearby && (sawscary || sanct_scary)) {
+        if (!mtmp->mflee
+            && !(sanct_scary && !sawscary && Is_astralevel(&u.uz))) {
+            /* be lenient; don't break conduct in the high temple on Astral */
+            u.uconduct.scares++;
+        }
         *scared = 1;
         monflee(mtmp, rnd(rn2(7) ? 10 : 100), TRUE, TRUE);
     } else
