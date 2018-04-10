@@ -1540,7 +1540,7 @@ dosacrifice()
                 u.uachieve.ascended = 1;
                 /* you might be able to see the invisible choir! */
                 pline("%s choir sings, and you are bathed in radiance...",
-                      (See_invisible ? "A visible" : "An invisible"));
+                      (See_invisible && !Blind ? "A visible" : "An invisible"));
                 godvoice(altaralign, "Mortal, thou hast done well!");
                 display_nhwindow(WIN_MESSAGE, FALSE);
                 verbalize(
