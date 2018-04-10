@@ -3558,8 +3558,6 @@ struct obj *obj;
      * Since you can also loot easily with the o command, experimentally,
      * disable floor lootables being applyable.
      */
-    if (obj->where != OBJ_INVENT)
-        return floor_loot_ok(obj);
 
     if (obj->oclass == TOOL_CLASS || is_pole(obj) || is_axe(obj))
         return 2;
@@ -3594,7 +3592,7 @@ doapply()
         return 0;
 
     setapplyclasses(class_list); /* tools[] */
-    obj = getobj("use or apply", apply_ok, TRUE, TRUE);
+    obj = getobj("use or apply", apply_ok, TRUE, FALSE);
     if (!obj)
         return 0;
 
