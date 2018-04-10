@@ -3548,7 +3548,16 @@ struct obj *obj;
     if (!obj || obj == &zeroobj)
         return 0;
 
-    /* allow lootables to be applied everywhere */
+    /* Okay, this is a bit of a contentious issue. Should floor lootables be
+     * applyable?
+     * For players playing with menustyle non-full, this is a minor annoyance
+     * to muscle memory whenever trying to apply something while standing on
+     * top of a container, since it will prompt them every time. This is
+     * exacerbated if the player stands on more than one container. For those
+     * with full, it only shows , as an option and is not really a problem.
+     * Since you can also loot easily with the o command, experimentally,
+     * disable floor lootables being applyable.
+     */
     if (obj->where != OBJ_INVENT)
         return floor_loot_ok(obj);
 
