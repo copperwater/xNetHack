@@ -329,7 +329,7 @@ int sig_unused UNUSED;
 int
 done2()
 {
-    if (!paranoid_query(ParanoidQuit, "Really quit?")) {
+    if (!paranoid_query(ParanoidQuit, "Really quit? (This will end your game permanently!)")) {
 #ifndef NO_SIGNAL
         (void) signal(SIGINT, (SIG_RET_TYPE) done1);
 #endif
