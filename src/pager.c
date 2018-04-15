@@ -830,7 +830,7 @@ short otyp;
             Sprintf(buf, "%s-handed weapon%s.",
                     (oc.oc_bimanual ? "Two" : "Single"), (weptool ? "-tool" : ""));
         }
-        else if (oc.oc_skill <= -P_BOW && oc.oc_skill >= P_CROSSBOW) {
+        else if (oc.oc_skill <= -P_BOW && oc.oc_skill >= -P_CROSSBOW) {
             Strcpy(buf, "Ammunition.");
         }
         else {
