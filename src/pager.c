@@ -611,8 +611,8 @@ struct permonst * pm;
 #define MONPUTSTR(str) putstr(datawin, ATR_BOLD, str)
 
     /* Misc */
-    Sprintf(buf, "Difficulty %d, speed %d, base AC %d, magic saving throw %d.",
-            diff, pm->mmove, pm->ac, pm->mr);
+    Sprintf(buf, "Difficulty %d, speed %d, base AC %d, magic saving throw %d, weight %d.",
+            diff, pm->mmove, pm->ac, pm->mr, pm->cwt);
     MONPUTSTR(buf);
 
     /* Generation */
@@ -667,6 +667,8 @@ struct permonst * pm;
     ADDMR(mflag1, M1_TPORT, "teleportitis");
     ADDMR(mflag1, M1_TPORT_CNTRL, "teleport control");
     if (!(gen & G_NOCORPSE)) {
+        Sprintf(buf2, "Provides %d nutrition when eaten.", pm->cnutrit);
+        MONPUTSTR(buf2);
         if (*buf) {
             Sprintf(buf2, "Corpse may convey %s.", buf);
             MONPUTSTR(buf2);
