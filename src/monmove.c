@@ -305,6 +305,7 @@ int *inrange, *nearby, *scared;
     sanct_scary = (!mtmp->mpeaceful && in_your_sanctuary(mtmp, 0, 0));
     if (*nearby && (sawscary || sanct_scary)) {
         if (!mtmp->mflee
+            && !mtmp->mpeaceful /* only break conduct for hostiles */
             && !(sanct_scary && !sawscary && Is_astralevel(&u.uz))) {
             /* be lenient; don't break conduct in the high temple on Astral */
             u.uconduct.scares++;

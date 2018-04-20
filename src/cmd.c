@@ -2869,10 +2869,10 @@ int final;
     }
 
     if (!u.uconduct.scares) {
-        you_have_never("unfairly scared a monster");
+        you_have_never("scared an enemy with impunity");
     }
     else {
-        Sprintf(buf, "unfairly scared monsters %ld time%s", u.uconduct.scares,
+        Sprintf(buf, "scared enemies with impunity %ld time%s", u.uconduct.scares,
                 plur(u.uconduct.scares));
         you_have_X(buf);
     }
