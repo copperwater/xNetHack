@@ -29,6 +29,7 @@ Boost most roles' starting Pw amounts so that in general casters starting with l
 Rings of carrying now produce a unique message when dropped into sinks.
 You can force-fight a web with a bladed weapon to attempt to cut through and destroy it. Chance of success depends on Str.
 Wielding Sting will auto-destroy any web you are stuck in when you try to move out of it, also letting you take your move normally.
+Dropping a container onto an altar will show colored flashes corresponding to its contents and identify their beatitude.
 
 It contains the following non-gameplay interface changes:
 In the Ctrl-X status screen, the last turn on which you prayed is displayed.
