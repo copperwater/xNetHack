@@ -1223,9 +1223,17 @@ struct trap *desttrap; /* nonnull if another trap at <x,y> */
         break;
     case TT_WEB:
         if (uwep && uwep->oartifact == ART_STING) {
+            /* FIXME: since trap_move is called before other checks for whether
+             * the hero is actually going to move, this can be exploited to
+             * remove a web in 0 turns if there is something (such as a wall)
+             * in the direction of movement.
+             * Ideally, this trap removal should come in its own piece of code
+             * after we decide that the hero is in fact moving. */
             u.utrap = 0;
             pline("Sting cuts through the web!");
-            break; /* escape trap but don't move */
+            deltrap(t_at(u.ux, u.uy));
+            newsym(u.ux, u.uy);
+            return TRUE; /* escape trap and also move */
         }
         if (--u.utrap) {
             if (flags.verbose) {
@@ -1589,7 +1597,41 @@ domove()
         return;
     }
 
-    /* specifying 'F' with no monster wastes a turn */
+    /* intentional cutting through a spider web */
+    trap = t_at(x, y);
+    if (context.forcefight && trap && trap->ttyp == WEB
+        && trap->tseen && uwep) {
+        if (uwep->oartifact == ART_STING) {
+            /* guaranteed success */
+            pline("Sting cuts through the web!");
+        }
+        else if (!is_blade(uwep)) {
+            You_cant("cut a web with a %s!", xname(uwep));
+            return;
+        }
+        /* TODO: if failing to cut the web is going to be a thing, it should
+         * really be an occupation... */
+        else if (rn2(20) > ACURR(A_DEX)) {
+            You("hack ineffectually at some of the strands.");
+            return;
+        }
+        else {
+            You("cut through the web.");
+        }
+        deltrap(trap);
+        newsym(x, y);
+        return;
+    }
+
+    /* specifying 'F' with no monster wastes a turn
+     * FIXME: This logic really ought to be evaluated in two different
+     * locations: one above the iron bar logic above this, and using the
+     * attacking-invisible-monster condition; one where it is now, and using
+     * the forcefight condition. The reason being if we think we're attacking
+     * an invisible monster, that should be processed before trying to
+     * forcefight the terrain. But if we know there isn't a monster there, then
+     * the above terrain-fighting checks should come before the
+     * fighting-nothing check. */
     if (context.forcefight
         /* remembered an 'I' && didn't use a move command */
         || (glyph_is_invisible(levl[x][y].glyph) && !context.nopick)) {
@@ -1664,6 +1706,7 @@ domove()
         return;
     }
     (void) unmap_invisible(x, y);
+
     /* not attacking an animal, so we try to move */
     if ((u.dx || u.dy) && u.usteed && stucksteed(FALSE)) {
         nomul(0);
