@@ -1673,6 +1673,19 @@ domove()
     if (u_rooted())
         return;
 
+    if (u.utrap) {
+        if (!trapmove(x, y, trap))
+            return;
+    }
+
+    if (!test_move(u.ux, u.uy, x - u.ux, y - u.uy, DO_MOVE)) {
+        if (!context.door_opened) {
+            context.move = 0;
+            nomul(0);
+        }
+        return;
+    }
+
     /* warn player before walking into known traps */
     trap = t_at(x, y);
     if (trap && trap->tseen && (!context.nopick || context.run)
@@ -1703,19 +1716,6 @@ domove()
             context.move = 0;
             return;
         }
-    }
-
-    if (u.utrap) {
-        if (!trapmove(x, y, trap))
-            return;
-    }
-
-    if (!test_move(u.ux, u.uy, x - u.ux, y - u.uy, DO_MOVE)) {
-        if (!context.door_opened) {
-            context.move = 0;
-            nomul(0);
-        }
-        return;
     }
 
     /* Paranoid checks for dangerous moves into water or lava */
