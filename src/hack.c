@@ -1611,7 +1611,7 @@ domove()
         }
         /* TODO: if failing to cut the web is going to be a thing, it should
          * really be an occupation... */
-        else if (rn2(20) > ACURR(A_DEX)) {
+        else if (rn2(20) > ACURR(A_STR)) {
             You("hack ineffectually at some of the strands.");
             return;
         }
