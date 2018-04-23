@@ -1,4 +1,4 @@
-/* NetHack 3.6	cmd.c	$NHDT-Date: 1518861485 2018/02/17 09:58:05 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.278 $ */
+/* NetHack 3.6	cmd.c	$NHDT-Date: 1523306904 2018/04/09 20:48:24 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.281 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1278,6 +1278,7 @@ wiz_intrinsic(VOID_ARGS)
         }
         if (n >= 1)
             free((genericptr_t) pick_list);
+        doredraw();
     } else
         pline("Unavailable command '%s'.",
               visctrl((int) cmd_from_func(wiz_intrinsic)));
@@ -4075,6 +4076,8 @@ int NDECL((*cmd_func));
         || cmd_func == doloot
         /* travel: pop up a menu of interesting targets in view */
         || cmd_func == dotravel
+        /* wizard mode ^V */
+        || cmd_func == wiz_level_tele
         /* 'm' prefix allowed for some extended commands */
         || cmd_func == doextcmd || cmd_func == doextlist)
         return TRUE;
