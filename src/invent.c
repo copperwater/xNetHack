@@ -389,6 +389,14 @@ struct obj **potmp, **pobj;
             otmp->age = ((otmp->age * otmp->quan) + (obj->age * obj->quan))
                         / (otmp->quan + obj->quan);
 
+        /* Combine ID states.
+         * Assume that mergable() will handle whether two things can't merge
+         * due to having incompatible ID states. */
+        otmp->known |= obj->known;
+        otmp->dknown |= obj->dknown;
+        otmp->bknown |= obj->bknown;
+        otmp->rknown |= obj->rknown;
+
         otmp->quan += obj->quan;
         /* temporary special case for gold objects!!!! */
         if (otmp->oclass == COIN_CLASS)
@@ -3200,14 +3208,13 @@ register struct obj *otmp, *obj;
         return FALSE;
 
     if (obj->dknown != otmp->dknown
-        || (obj->bknown != otmp->bknown && !Role_if(PM_PRIEST))
+        /* || (obj->bknown != otmp->bknown && !Role_if(PM_PRIEST)) */
         || obj->oeroded != otmp->oeroded || obj->oeroded2 != otmp->oeroded2
         || obj->greased != otmp->greased)
         return FALSE;
 
     if ((obj->oclass == WEAPON_CLASS || obj->oclass == ARMOR_CLASS)
-        && (obj->oerodeproof != otmp->oerodeproof
-            || obj->rknown != otmp->rknown))
+        && obj->oerodeproof != otmp->oerodeproof)
         return FALSE;
 
     if (obj->otyp == CORPSE || obj->otyp == EGG || obj->otyp == TIN) {
@@ -3251,10 +3258,7 @@ register struct obj *otmp, *obj;
     if (obj->oartifact != otmp->oartifact)
         return FALSE;
 
-    if (obj->known == otmp->known || !objects[otmp->otyp].oc_uses_known) {
-        return (boolean) objects[obj->otyp].oc_merge;
-    } else
-        return FALSE;
+    return (boolean) objects[obj->otyp].oc_merge;
 }
 
 /* the '$' command */
