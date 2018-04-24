@@ -34,6 +34,7 @@ Objects will merge with other objects even if the enchantment, beatitude, or ero
 
 It contains the following non-gameplay interface changes:
 In the Ctrl-X status screen, the last turn on which you prayed is displayed.
+Grappling hooks are now known as that even when unidentified, "iron hook" is removed.
 
 It contains the following non-gameplay architectural changes:
 
