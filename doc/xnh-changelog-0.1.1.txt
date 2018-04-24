@@ -31,6 +31,7 @@ You can force-fight a web with a bladed weapon to attempt to cut through and des
 Wielding Sting will auto-destroy any web you are stuck in when you try to move out of it, also letting you take your move normally.
 Dropping a container onto an altar will show colored flashes corresponding to its contents and identify their beatitude.
 Objects will merge with other objects even if the enchantment, beatitude, or erosionproofing on one of the items is not known. The merge will retain your knowledge of the objects' enchantment and beatitude.
+Archeologists begin the game with a grappling hook.
 
 It contains the following non-gameplay interface changes:
 In the Ctrl-X status screen, the last turn on which you prayed is displayed.
