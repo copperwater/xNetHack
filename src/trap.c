@@ -5595,7 +5595,7 @@ int when;
         if (byu) {
             pline("Ouch!  The knob is red-hot!");
             if (dmg <= 0) {
-                pline("Fortunately, your gloves protect your %s.", body_part(HAND));
+                pline("Fortunately, your glove protect your %s.", body_part(HAND));
             }
             else {
                 losehp(dmg, "a red-hot doorknob", KILLED_BY);
