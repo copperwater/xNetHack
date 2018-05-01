@@ -78,7 +78,6 @@ STATIC_DCL void FDECL(create_altar, (altar *, struct mkroom *));
 STATIC_DCL void FDECL(replace_terrain, (replaceterrain *, struct mkroom *));
 STATIC_DCL boolean FDECL(search_door, (struct mkroom *,
                                        xchar *, xchar *, XCHAR_P, int));
-STATIC_DCL void NDECL(fix_stair_rooms);
 STATIC_DCL void FDECL(create_corridor, (corridor *));
 STATIC_DCL struct mkroom *FDECL(build_room, (room *, struct mkroom *));
 STATIC_DCL void FDECL(light_region, (region *));
@@ -2431,50 +2430,6 @@ schar ftyp, btyp;
 }
 
 /*
- * Disgusting hack: since special levels have their rooms filled before
- * sorting the rooms, we have to re-arrange the speed values upstairs_room
- * and dnstairs_room after the rooms have been sorted.  On normal levels,
- * stairs don't get created until _after_ sorting takes place.
- */
-STATIC_OVL void
-fix_stair_rooms()
-{
-    int i;
-    struct mkroom *croom;
-
-    if (xdnstair
-        && !((dnstairs_room->lx <= xdnstair && xdnstair <= dnstairs_room->hx)
-             && (dnstairs_room->ly <= ydnstair
-                 && ydnstair <= dnstairs_room->hy))) {
-        for (i = 0; i < nroom; i++) {
-            croom = &rooms[i];
-            if ((croom->lx <= xdnstair && xdnstair <= croom->hx)
-                && (croom->ly <= ydnstair && ydnstair <= croom->hy)) {
-                dnstairs_room = croom;
-                break;
-            }
-        }
-        if (i == nroom)
-            panic("Couldn't find dnstair room in fix_stair_rooms!");
-    }
-    if (xupstair
-        && !((upstairs_room->lx <= xupstair && xupstair <= upstairs_room->hx)
-             && (upstairs_room->ly <= yupstair
-                 && yupstair <= upstairs_room->hy))) {
-        for (i = 0; i < nroom; i++) {
-            croom = &rooms[i];
-            if ((croom->lx <= xupstair && xupstair <= croom->hx)
-                && (croom->ly <= yupstair && yupstair <= croom->hy)) {
-                upstairs_room = croom;
-                break;
-            }
-        }
-        if (i == nroom)
-            panic("Couldn't find upstair room in fix_stair_rooms!");
-    }
-}
-
-/*
  * Corridors always start from a door. But it can end anywhere...
  * Basically we search for door coordinates or for endpoints coordinates
  * (from a distance).
@@ -2486,7 +2441,6 @@ corridor *c;
     coord org, dest;
 
     if (c->src.room == -1) {
-        fix_stair_rooms();
         makecorridors(); /*makecorridors(c->src.door);*/
         return;
     }

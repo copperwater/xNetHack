@@ -1376,7 +1376,7 @@ coord *mp;
 
             do
                 croom = &rooms[rn2(nroom)];
-            while ((croom == dnstairs_room || croom == upstairs_room
+            while ((has_upstairs(croom) || has_dnstairs(croom)
                     || croom->rtype != OROOM) && (++tryct < 100));
         } else
             croom = &rooms[rn2(nroom)];
@@ -1851,11 +1851,9 @@ struct mkroom *croom;
     if (up) {
         xupstair = x;
         yupstair = y;
-        upstairs_room = croom;
     } else {
         xdnstair = x;
         ydnstair = y;
-        dnstairs_room = croom;
     }
 
     levl[x][y].typ = STAIRS;

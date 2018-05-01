@@ -951,28 +951,21 @@ register int sx, sy;
     return FALSE;
 }
 
-/* Return TRUE if the given room contains downstairs (regular or branch). */
+/* Return TRUE if the given room contains stairs (regular or branch), in the
+ * specified direction. */
 boolean
-has_dnstairs(sroom)
+has_stairs(sroom, up)
 register struct mkroom *sroom;
+boolean up;
 {
-    if (sroom == dnstairs_room)
-        return TRUE;
-    if (sstairs.sx && !sstairs.up)
-        return (boolean) (sroom == sstairs_room);
-    return FALSE;
-}
-
-/* Return TRUE if the given room contains upstairs (regular or branch). */
-boolean
-has_upstairs(sroom)
-register struct mkroom *sroom;
-{
-    if (sroom == upstairs_room)
-        return TRUE;
-    if (sstairs.sx && sstairs.up)
-        return (boolean) (sroom == sstairs_room);
-    return FALSE;
+    if (up) {
+        return (inside_room(sroom, xupstair, yupstair)
+                || (sstairs.up && inside_room(sroom, sstairs.sx, sstairs.sy)));
+    }
+    else {
+        return (inside_room(sroom, xdnstair, ydnstair)
+                || (!sstairs.up && inside_room(sroom, sstairs.sx, sstairs.sy)));
+    }
 }
 
 /* Return a random x coordinate within the x limits of a room. */

@@ -1362,8 +1362,9 @@ E void FDECL(mkroom, (int));
 E void FDECL(fill_zoo, (struct mkroom *));
 E struct permonst *NDECL(antholemon);
 E boolean FDECL(nexttodoor, (int, int));
-E boolean FDECL(has_dnstairs, (struct mkroom *));
-E boolean FDECL(has_upstairs, (struct mkroom *));
+E boolean FDECL(has_stairs, (struct mkroom *, BOOLEAN_P));
+#define has_upstairs(croom) has_stairs(croom, TRUE)
+#define has_dnstairs(croom) has_stairs(croom, FALSE)
 E int FDECL(somex, (struct mkroom *));
 E int FDECL(somey, (struct mkroom *));
 E boolean FDECL(inside_room, (struct mkroom *, XCHAR_P, XCHAR_P));

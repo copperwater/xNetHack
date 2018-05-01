@@ -123,7 +123,7 @@ NEARDATA coord doors[DOORMAX] = { DUMMY };
 
 NEARDATA struct mkroom rooms[(MAXNROFROOMS + 1) * 2] = { DUMMY };
 NEARDATA struct mkroom *subrooms = &rooms[MAXNROFROOMS + 1];
-struct mkroom *upstairs_room, *dnstairs_room, *sstairs_room;
+struct mkroom *sstairs_room;
 
 dlevel_t level; /* level map */
 struct trap *ftrap = (struct trap *) 0;
