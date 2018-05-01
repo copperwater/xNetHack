@@ -1667,7 +1667,12 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         else if (!already_known || !invent)
             /* force feedback now if invent became
                empty after using up this scroll */
-            pline("This is an identify scroll.");
+            if (scursed) {
+                pline("Do you want your possessions identified?");
+            }
+            else {
+                pline("This is an identify scroll.");
+            }
         /* 1 always, 4 for uncursed, 7 for blessed */
         cval = 1 + (!scursed * 3) + (sblessed * 3);
         identify_pack(cval, !already_known);
