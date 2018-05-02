@@ -1257,9 +1257,10 @@ int dieroll;
 
     /* [note: thrown obj might go away during killed/xkilled call] */
 
-    if (needpoismsg)
+    if (needpoismsg) {
         pline_The("poison doesn't seem to affect %s.", mon_nam(mon));
-    else if (destroyed) {
+    }
+    if (destroyed) {
         if (!already_killed)
             killed(mon); /* takes care of most messages */
     } else if (u.umconf && hand_to_hand) {
