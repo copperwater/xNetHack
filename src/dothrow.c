@@ -727,7 +727,11 @@ int x, y;
     vision_recalc(1);  /* update for new position */
     flush_screen(1);
 
-    if (is_pool(x, y) || (Is_waterlevel(&u.uz) && levl[x][y].typ == WATER)) {
+    if (is_pool(x, y) && !u.uinwater
+        && ((Is_waterlevel(&u.uz) && levl[x][y].typ == WATER)
+            || !(Levitation || Flying || Wwalking))) {
+            /* checks are still here due to needing to be able to hurtle over
+             * water */
         multi = 0; /* can move, so drown() allows crawling out of water */
         (void) drown();
         return FALSE;
