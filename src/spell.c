@@ -1680,9 +1680,12 @@ int spell;
             }
         }
     }
-    else if ((uarmc && uarmc->otyp == ROBE)
-             || (uwep && (uwep->otyp == QUARTERSTAFF
-                          || uwep->otyp == WAN_NOTHING))) {
+    /* can't be an else if - otherwise, wielding an unidentified non-nothing
+     * wand will prevent this bonus from being assessed */
+    if (intel == ACURR(A_INT)
+        && ((uarmc && uarmc->otyp == ROBE)
+            || (uwep && (uwep->otyp == QUARTERSTAFF
+                         || uwep->otyp == WAN_NOTHING)))) {
         intel += 5;
     }
 
