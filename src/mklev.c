@@ -827,11 +827,11 @@ rand_roomtype()
             return SUBMERGED;
         else if (chance < 75)
             return LAVAROOM;
-        else if (chance < 80)
-            return ABBATOIR;
         else if (chance < 90)
-            return SEMINARY;
+            return ABBATOIR;
         else if (chance < 95)
+            return SEMINARY;
+        else if (chance < 99)
             return TEMPLE; /* Moloch temple */
         else
             return STATUARY;
