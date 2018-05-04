@@ -141,6 +141,26 @@ unsigned *ospecial;
                  (x == sstairs.sx && y == sstairs.sy)) {
             color = CLR_YELLOW;
         }
+        /* color altars */
+        else if (iflags.use_color && offset == S_altar) {
+            if (Is_astralevel(&u.uz) || Is_sanctum(&u.uz)) {
+                color = CLR_BRIGHT_MAGENTA;
+            }
+            else {
+                if (a_align(x, y) == A_LAWFUL) {
+                    color = CLR_YELLOW;
+                }
+                else if (a_align(x, y) == A_NEUTRAL) {
+                    color = CLR_GRAY;
+                }
+                else if (a_align(x, y) == A_CHAOTIC) {
+                    color = CLR_RED;
+                }
+                else if (a_align(x, y) == A_NONE) {
+                    color = CLR_BLACK;
+                }
+            }
+        }
         /* visible engravings */
         else if (iflags.use_color && offset == S_engraving && engr
                  && engr->engr_type != HEADSTONE) {
