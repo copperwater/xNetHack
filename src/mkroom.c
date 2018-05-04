@@ -470,7 +470,7 @@ struct mkroom *sroom;
                                      TRUE, FALSE);
                 if (!rn2(5))
                     make_grave(sx, sy, (char *) 0);
-                else if (!rn2(80)) {
+                else if (!rn2(200)) {
                     maketrap(sx, sy, PIT);
                 }
                 break;
