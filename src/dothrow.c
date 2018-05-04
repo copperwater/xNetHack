@@ -1557,7 +1557,7 @@ register struct obj *obj; /* thrownobj or kickedobj or uwep */
         case GAUNTLETS_OF_FUMBLING:
             tmp -= 3;
             break;
-        case LEATHER_GLOVES:
+        case GLOVES:
         case GAUNTLETS_OF_DEXTERITY:
             break;
         default:

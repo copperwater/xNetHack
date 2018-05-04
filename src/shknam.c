@@ -292,7 +292,7 @@ const struct shclass shtypes[] = {
       3,
       D_SHOP,
       { { 90, WAND_CLASS },
-        { 5, -LEATHER_GLOVES },
+        { 5, -GLOVES },
         { 5, -ELVEN_CLOAK },
         { 0, 0 } },
       shkwands },

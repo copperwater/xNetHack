@@ -232,16 +232,14 @@ struct obj {
 #define is_suit(otmp) \
     (otmp->oclass == ARMOR_CLASS && objects[otmp->otyp].oc_armcat == ARM_SUIT)
 #define is_elven_armor(otmp)                                              \
-    ((otmp)->otyp == ELVEN_LEATHER_HELM                                   \
-     || (otmp)->otyp == ELVEN_MITHRIL_COAT || (otmp)->otyp == ELVEN_CLOAK \
+    ((otmp)->otyp == ELVEN_HELM || (otmp)->otyp == ELVEN_CLOAK \
      || (otmp)->otyp == ELVEN_SHIELD || (otmp)->otyp == ELVEN_BOOTS)
 #define is_orcish_armor(otmp)                                            \
     ((otmp)->otyp == ORCISH_HELM || (otmp)->otyp == ORCISH_CHAIN_MAIL    \
      || (otmp)->otyp == ORCISH_RING_MAIL || (otmp)->otyp == ORCISH_CLOAK \
      || (otmp)->otyp == URUK_HAI_SHIELD || (otmp)->otyp == ORCISH_SHIELD)
 #define is_dwarvish_armor(otmp)               \
-    ((otmp)->otyp == DWARVISH_IRON_HELM       \
-     || (otmp)->otyp == DWARVISH_MITHRIL_COAT \
+    ((otmp)->otyp == DWARVISH_HELM       \
      || (otmp)->otyp == DWARVISH_CLOAK        \
      || (otmp)->otyp == DWARVISH_ROUNDSHIELD)
 #define is_gnomish_armor(otmp) (FALSE)
