@@ -18,6 +18,7 @@ STATIC_DCL void FDECL(insane_object, (struct obj *, const char *,
 STATIC_DCL void FDECL(check_contained, (struct obj *, const char *));
 STATIC_DCL void FDECL(sanity_check_worn, (struct obj *));
 STATIC_DCL void FDECL(init_thiefstone, (struct obj *));
+STATIC_DCL void FDECL(init_obj_material, (struct obj *));
 
 struct icp {
     int iprob;   /* probability of an item type */
@@ -773,6 +774,7 @@ boolean artif;
     otmp->lknown = 0;
     otmp->cknown = 0;
     otmp->corpsenm = NON_PM;
+    init_obj_material(otmp);
 
     if (init) {
         switch (let) {
@@ -2909,6 +2911,116 @@ struct obj * stone;
     /* also put a chest here */
     if (!container_at(chosen_x, chosen_y, FALSE)) {
         mksobj_at(CHEST, chosen_x, chosen_y, FALSE, FALSE);
+    }
+}
+
+/* Object material probabilities. */
+static const struct icp iron_materials[] = {
+    {80, IRON},
+    {5, WOOD},
+    {5, SILVER},
+    {3, COPPER},
+    {3, MITHRIL},
+    {1, GOLD},
+    {1, BONE},
+    {1, GLASS},
+    {1, PLASTIC}
+};
+
+/* for objects which are normally iron or metal */
+static const struct icp metal_materials[] = {
+    {80, IRON},
+    { 5, WOOD},
+    { 5, SILVER},
+    { 3, COPPER},
+    { 3, MITHRIL},
+    { 1, GOLD},
+    { 1, BONE},
+    { 1, GLASS},
+    { 1, PLASTIC}
+};
+
+/* for objects which are normally wooden */
+static const struct icp wood_materials[] = {
+    {80, WOOD},
+    {10, MINERAL},
+    { 5, IRON},
+    { 3, BONE},
+    { 1, COPPER},
+    { 1, SILVER}
+};
+
+/* for objects which are normally cloth or leather */
+static const struct icp unrigid_materials[] = {
+    {60, CLOTH},
+    {31, LEATHER},
+    { 7, PAPER},
+    { 2, PLASTIC}
+};
+
+/* for objects of dwarvish make */
+static const struct icp dwarvish_materials[] = {
+    {85, IRON},
+    {10, MITHRIL},
+    { 2, COPPER},
+    { 1, SILVER},
+    { 1, GOLD},
+    { 1, PLATINUM}
+};
+
+/* for objects of elven make - no iron! */
+static const struct icp elven_materials[] = {
+    {80, WOOD},
+    {10, COPPER},
+    { 5, MITHRIL},
+    { 3, SILVER},
+    { 2, GOLD}
+};
+
+/* TODO: Orcish? */
+
+void
+init_obj_material(obj)
+struct obj* obj;
+{
+    unsigned short otyp = obj->otyp;
+    unsigned short orig_mat = objects[obj->otyp].oc_material;
+    obj->material = orig_mat;
+    const struct icp* materials = NULL;
+    if (is_elven_obj(obj)) {
+        materials = elven_materials;
+        if (otyp == ELVEN_HELM && rn2(3)) {
+            obj->material = LEATHER;
+            return;
+        }
+    }
+    else if (is_dwarvish_obj(obj) && otyp != DWARVISH_CLOAK) {
+        materials = dwarvish_materials;
+    }
+    else if (obj->oclass == WEAPON_CLASS || is_weptool(obj)
+             || obj->oclass == ARMOR_CLASS
+             || obj->otyp == CHEST || obj->otyp == LARGE_BOX) {
+        if (orig_mat == IRON || orig_mat == METAL) {
+            materials = iron_materials;
+        }
+        else if (orig_mat == WOOD) {
+            materials = wood_materials;
+        }
+    }
+    else if (obj->oclass == ARMOR_CLASS
+             && (orig_mat == CLOTH || orig_mat == LEATHER)) {
+        materials = unrigid_materials;
+    }
+    if (materials) {
+        int i = rnd(100);
+        for(; (i -= materials->iprob) > 0; materials++);
+        obj->material = materials->iclass;
+    }
+
+    /* Do any post-fixups here for bad or illogical material combinations */
+    if (otyp == PICK_AXE &&
+        (obj->material == PLASTIC || obj->material == BONE)) {
+        obj->material = IRON;
     }
 }
 
