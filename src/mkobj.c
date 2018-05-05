@@ -18,6 +18,7 @@ STATIC_DCL void FDECL(insane_object, (struct obj *, const char *,
 STATIC_DCL void FDECL(check_contained, (struct obj *, const char *));
 STATIC_DCL void FDECL(sanity_check_worn, (struct obj *));
 STATIC_DCL void FDECL(init_thiefstone, (struct obj *));
+STATIC_DCL const struct icp* FDECL(material_list, (struct obj *));
 STATIC_DCL void FDECL(init_obj_material, (struct obj *));
 
 struct icp {
@@ -2976,45 +2977,68 @@ static const struct icp elven_materials[] = {
     { 3, SILVER},
     { 2, GOLD}
 };
+/* hack specifically for elven helms */
+static const struct icp elvenhelm_materials[] = {
+    {70, LEATHER},
+    {20, COPPER},
+    {10, WOOD}
+};
 
 /* TODO: Orcish? */
 
-void
-init_obj_material(obj)
+/* Return the appropriate above list for a given object, or NULL if there isn't
+ * an appropriate list. */
+const struct icp*
+material_list(obj)
 struct obj* obj;
 {
     unsigned short otyp = obj->otyp;
-    unsigned short orig_mat = objects[obj->otyp].oc_material;
-    obj->material = orig_mat;
-    const struct icp* materials = NULL;
+    int default_material = objects[otyp].oc_material;
     if (is_elven_obj(obj)) {
-        materials = elven_materials;
-        if (otyp == ELVEN_HELM && rn2(3)) {
-            obj->material = LEATHER;
-            return;
+        if (otyp == ELVEN_HELM) {
+            return elvenhelm_materials;
+        }
+        else {
+            return elven_materials;
         }
     }
     else if (is_dwarvish_obj(obj) && otyp != DWARVISH_CLOAK) {
-        materials = dwarvish_materials;
+        return dwarvish_materials;
     }
     else if (obj->oclass == WEAPON_CLASS || is_weptool(obj)
              || obj->oclass == ARMOR_CLASS
              || obj->otyp == CHEST || obj->otyp == LARGE_BOX) {
-        if (orig_mat == IRON || orig_mat == METAL) {
-            materials = iron_materials;
+        if (default_material == IRON || default_material == METAL) {
+            return iron_materials;
         }
-        else if (orig_mat == WOOD) {
-            materials = wood_materials;
+        else if (default_material == WOOD) {
+            return wood_materials;
         }
     }
     else if (obj->oclass == ARMOR_CLASS
-             && (orig_mat == CLOTH || orig_mat == LEATHER)) {
-        materials = unrigid_materials;
+             && (default_material == CLOTH || default_material == LEATHER)) {
+        return unrigid_materials;
     }
+    return NULL;
+}
+
+/* Initialize the material field of an object, possibly randomizing it from the
+ * above lists. */
+void
+init_obj_material(obj)
+struct obj* obj;
+{
+    const struct icp* materials = material_list(obj);
+    unsigned short otyp = obj->otyp;
+
     if (materials) {
         int i = rnd(100);
         for(; (i -= materials->iprob) > 0; materials++);
         obj->material = materials->iclass;
+    }
+    else {
+        /* default case for other items: always use base material... */
+        obj->material = objects[obj->otyp].oc_material;
     }
 
     /* Do any post-fixups here for bad or illogical material combinations */
@@ -3024,5 +3048,32 @@ struct obj* obj;
     }
 }
 
+/* Return TRUE if mat is a valid material for a given object of obj's type
+ * (whether a random object of this type could generate as that material). */
+boolean
+valid_obj_material(obj, mat)
+struct obj* obj;
+int mat;
+{
+    if (obj->oartifact) {
+        /* shenanigans possible here, ignore them */
+        return TRUE;
+    }
+    const struct icp* materials = material_list(obj);
+
+    if (materials) {
+        int i = 100; /* guarantee going through everything */
+        for(; (i -= materials->iprob) > 0; materials++) {
+            if (materials->iclass == mat)
+                return TRUE;
+        }
+        /* no valid ones found */
+        return FALSE;
+    }
+    else {
+        /* if no appropriate list, this should just be the regular material */
+        return (mat == objects[obj->otyp].oc_material);
+    }
+}
 
 /*mkobj.c*/
