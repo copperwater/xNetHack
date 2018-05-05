@@ -222,7 +222,7 @@
      ? (obj)->otyp == BANANA                                             \
      : (is_domestic(ptr) && (obj)->oclass == FOOD_CLASS                  \
         && ((ptr)->mlet != S_UNICORN                                     \
-            || objects[(obj)->otyp].oc_material == VEGGY                 \
+            || obj->material == VEGGY                 \
             || ((obj)->otyp == CORPSE && (obj)->corpsenm == PM_LICHEN))))
 
 /* Wielding and opening doors use the same flags: handed and not verysmall. */

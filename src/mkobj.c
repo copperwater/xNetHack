@@ -1661,7 +1661,7 @@ is_flammable(otmp)
 register struct obj *otmp;
 {
     int otyp = otmp->otyp;
-    int omat = objects[otyp].oc_material;
+    int omat = otmp->material;
 
     /* Candles can be burned, but they're not flammable in the sense that
      * they can't get fire damage and it makes no sense for them to be
@@ -1682,8 +1682,7 @@ register struct obj *otmp;
 {
     int otyp = otmp->otyp;
 
-    return (boolean) (objects[otyp].oc_material <= WOOD
-                      && objects[otyp].oc_material != LIQUID);
+    return (boolean) (otmp->material <= WOOD && otmp->material != LIQUID);
 }
 
 /*

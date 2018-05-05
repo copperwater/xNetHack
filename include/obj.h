@@ -336,10 +336,13 @@ struct obj {
      || (obj)->otyp == FLINT || (obj)->otyp == TOUCHSTONE \
      || (obj)->otyp == THIEFSTONE)
 
+/* worthless glass -- assumes all GLASS * are worthless glass */
+#define is_worthless_glass(obj) \
+    ((obj)->oclass == GEM_CLASS && obj->material == GLASS)
+
 /* misc helpers, simple enough to be macros */
 #define is_flimsy(otmp)                           \
-    (objects[(otmp)->otyp].oc_material <= LEATHER \
-     || (otmp)->otyp == RUBBER_HOSE)
+    (otmp->material <= LEATHER || (otmp)->otyp == RUBBER_HOSE)
 #define is_plural(o) \
     ((o)->quan != 1L                                                    \
      /* "the Eyes of the Overworld" are plural, but                     \

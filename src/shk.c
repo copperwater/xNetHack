@@ -2000,8 +2000,7 @@ register struct monst *shkp; /* if angry, impose a surcharge */
     /* shopkeeper may notice if the player isn't very knowledgeable -
        especially when gem prices are concerned */
     if (!obj->dknown || !objects[obj->otyp].oc_name_known) {
-        if (obj->oclass == GEM_CLASS
-            && objects[obj->otyp].oc_material == GLASS) {
+        if (is_worthless_glass(obj)) {
             int i;
             /* get a value that's 'random' from game to game, but the
                same within the same game */
@@ -2248,8 +2247,8 @@ register struct monst *shkp;
     if (!obj->dknown || !objects[obj->otyp].oc_name_known) {
         if (obj->oclass == GEM_CLASS) {
             /* different shop keepers give different prices */
-            if (objects[obj->otyp].oc_material == GEMSTONE
-                || objects[obj->otyp].oc_material == GLASS) {
+            if (obj->material == GEMSTONE
+                || is_worthless_glass(obj)) {
                 tmp = (obj->otyp % (6 - shkp->m_id % 3));
                 tmp = (tmp + 3) * obj->quan;
             }

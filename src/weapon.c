@@ -298,7 +298,7 @@ struct monst *mon;
             tmp = 0;
     }
 
-    if (objects[otyp].oc_material <= LEATHER && thick_skinned(ptr))
+    if (otmp->material <= LEATHER && thick_skinned(ptr))
         /* thick skinned/scaled creatures don't feel it */
         tmp = 0;
     if (ptr == &mons[PM_SHADE] && !shade_glare(otmp))
@@ -326,7 +326,7 @@ struct monst *mon;
             bonus += rnd(4);
         if (is_axe(otmp) && is_wooden(ptr))
             bonus += rnd(4);
-        if (objects[otyp].oc_material == SILVER && mon_hates_silver(mon))
+        if (otmp->material == SILVER && mon_hates_silver(mon))
             bonus += rnd(20);
 
         /* if the weapon is going to get a double damage bonus, adjust
@@ -368,7 +368,8 @@ int x;
             /* never select non-cockatrice corpses */
             && !((x == CORPSE || x == EGG)
                  && !touch_petrifies(&mons[otmp->corpsenm]))
-            && (!otmp->oartifact || touch_artifact(otmp, mtmp)))
+            && (!otmp->oartifact || touch_artifact(otmp, mtmp))
+            && !(otmp->material == SILVER && mon_hates_silver(mtmp)))
             return otmp;
     }
     return (struct obj *) 0;
@@ -427,13 +428,12 @@ register struct monst *mtmp;
              * Big weapon is basically the same as bimanual.
              * All monsters can wield the remaining weapons.
              */
-            if (((strongmonst(mtmp->data)
+            if ((strongmonst(mtmp->data)
                   && (mtmp->misc_worn_check & W_ARMS) == 0)
-                 || !objects[pwep[i]].oc_bimanual)
-                && (objects[pwep[i]].oc_material != SILVER
-                    || !mon_hates_silver(mtmp))) {
+                 || !objects[pwep[i]].oc_bimanual) {
                 if ((otmp = oselect(mtmp, pwep[i])) != 0
-                    && (otmp == mwep || !mweponly)) {
+                    && (otmp == mwep || !mweponly)
+                    && !(otmp->material == SILVER && mon_hates_silver(mtmp))) {
                     propellor = otmp; /* force the monster to wield it */
                     return otmp;
                 }
@@ -539,7 +539,8 @@ register struct monst *mtmp;
         if (otmp->oclass == WEAPON_CLASS && otmp->oartifact
             && touch_artifact(otmp, mtmp)
             && ((strong && !wearing_shield)
-                || !objects[otmp->otyp].oc_bimanual))
+                || !objects[otmp->otyp].oc_bimanual)
+            && !(otmp->material == SILVER && mon_hates_silver(mtmp)))
             return otmp;
     }
 
@@ -553,9 +554,7 @@ register struct monst *mtmp;
         if (hwep[i] == CORPSE && !(mtmp->misc_worn_check & W_ARMG)
             && !resists_ston(mtmp))
             continue;
-        if (((strong && !wearing_shield) || !objects[hwep[i]].oc_bimanual)
-            && (objects[hwep[i]].oc_material != SILVER
-                || !mon_hates_silver(mtmp)))
+        if ((strong && !wearing_shield) || !objects[hwep[i]].oc_bimanual)
             Oselect(hwep[i]);
     }
 

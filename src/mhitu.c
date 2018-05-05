@@ -994,8 +994,7 @@ register struct attack *mattk;
                     hitmsg(mtmp, mattk);
                 if (!dmg)
                     break;
-                if (objects[otmp->otyp].oc_material == SILVER
-                    && Hate_silver) {
+                if (otmp->material == SILVER && Hate_silver) {
                     pline_The("silver sears your flesh!");
                     exercise(A_CON, FALSE);
                 }
@@ -1008,9 +1007,8 @@ register struct attack *mattk;
                 if (tmp < 1)
                     tmp = 1;
                 if (u.mh - tmp > 1
-                    && (objects[otmp->otyp].oc_material == IRON
+                    && (otmp->material == IRON || otmp->material == METAL)
                         /* relevant 'metal' objects are scalpel and tsurugi */
-                        || objects[otmp->otyp].oc_material == METAL)
                     && (u.umonnum == PM_BLACK_PUDDING
                         || u.umonnum == PM_BROWN_PUDDING)) {
                     if (tmp > 1)
