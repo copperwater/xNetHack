@@ -3045,13 +3045,22 @@ struct obj *no_wish;
             doorstate = D_CLOSED;
         } else if (!strncmpi(bp, "open ", l = 5)) {
             doorstate = D_ISOPEN;
-        } else if (!strncmpi(bp, "wooden ", l = 7)
-                   || !strncmpi(bp, "wood ", l = 5)) {
-            material = WOOD;
-        } else if (!strncmpi(bp, "iron ", l = 5)) {
-            material = IRON;
-        } else
-            break;
+        } else {
+            /* doesn't currently catch "wood" for wooden */
+            for (i = 1; i < NUM_MATERIAL_TYPES; i++) {
+                l = strlen(materialnm[i]);
+                if (l > 0 && !strncmpi(bp, materialnm[i], l))
+                {
+                    material = i;
+                    l++;
+                    break; /* from the for loop */
+                }
+            }
+            if (i == NUM_MATERIAL_TYPES)
+                /* no matching materials so no match for anything in this whole
+                 * if chain */
+                break;
+        }
         bp += l;
     }
     if (!cnt)
@@ -3309,15 +3318,8 @@ struct obj *no_wish;
         || !BSTRCMPI(bp, p - 7, "zorkmid")
         || !strcmpi(bp, "gold") || !strcmpi(bp, "money")
         || !strcmpi(bp, "coin") || *bp == GOLD_SYM) {
-        if (cnt > 5000 && !wizard)
-            cnt = 5000;
-        else if (cnt < 1)
-            cnt = 1;
-        otmp = mksobj(GOLD_PIECE, FALSE, FALSE);
-        otmp->quan = (long) cnt;
-        otmp->owt = weight(otmp);
-        context.botl = 1;
-        return otmp;
+        typ = GOLD_PIECE;
+        goto typfnd;
     }
 
     /* check for single character object class code ("/" for wand, &c) */
@@ -3734,6 +3736,11 @@ wiztrap:
         }
     }
 
+    if (!oclass && material == GOLD) {
+        /* things like "5000 gold" */
+        oclass = COIN_CLASS;
+        typ = GOLD_PIECE;
+    }
     if (!oclass)
         return ((struct obj *) 0);
 any:
@@ -3780,11 +3787,15 @@ typfnd:
     }
 
     /* if player specified a reasonable count, maybe honor it */
-    if (cnt > 0 && objects[typ].oc_merge
+    if (cnt > 1 && objects[typ].oc_merge
         && (wizard || cnt < rnd(6) || (cnt <= 7 && Is_candle(otmp))
             || (cnt <= 20 && ((oclass == WEAPON_CLASS && is_ammo(otmp))
-                              || typ == ROCK || is_missile(otmp)))))
+                              || typ == ROCK || is_missile(otmp))))) {
+        if (oclass = COIN_CLASS && !wizard && cnt > 5000) {
+            cnt = 5000;
+        }
         otmp->quan = (long) cnt;
+    }
 
     if (oclass == VENOM_CLASS)
         otmp->spe = 1;
@@ -4030,6 +4041,19 @@ typfnd:
         otmp = &zeroobj;
         pline("For a moment, you feel %s in your %s, but it disappears!",
               something, makeplural(body_part(HAND)));
+    }
+
+#if 0 /* deferred until we see the balance implications of obj materials */
+    if (material > 0 && !otmp->oartifact
+        && (wizard || valid_obj_material(otmp, material))) {
+#else
+    if (material > 0 && !otmp->oartifact && wizard) {
+#endif
+        if (!valid_obj_material(otmp, material)) {
+            pline("Note: material %s is not normally valid for this object.",
+                  materialnm[material]);
+        }
+        otmp->material = material;
     }
 
     if (halfeaten && otmp->oclass == FOOD_CLASS) {
