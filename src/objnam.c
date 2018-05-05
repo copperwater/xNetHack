@@ -461,6 +461,11 @@ unsigned cxn_flags; /* bitmask of CXN_xxx values */
         else if (is_wet_towel(obj))
             Strcpy(buf, (obj->spe < 3) ? "moist " : "wet ");
 
+        if (obj->material != objects[obj->otyp].oc_material) {
+            Strcat(buf, materialnm[obj->material]);
+            Strcat(buf, " ");
+        }
+
         if (!dknown)
             Strcat(buf, dn);
         else if (nn)
@@ -491,6 +496,10 @@ unsigned cxn_flags; /* bitmask of CXN_xxx values */
         if (is_boots(obj) || is_gloves(obj))
             Strcpy(buf, "pair of ");
 
+        if (obj->material != objects[obj->otyp].oc_material) {
+            Strcat(buf, materialnm[obj->material]);
+            Strcat(buf, " ");
+        }
         if (obj->otyp >= ELVEN_SHIELD && obj->otyp <= ORCISH_SHIELD
             && !dknown) {
             Strcpy(buf, "shield");
