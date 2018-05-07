@@ -1691,6 +1691,19 @@ struct obj *obj;
                 /* animate_statue() forces all golems to become flesh golems */
                 mon = animate_statue(obj, oox, ooy, ANIMATE_SPELL, (int *) 0);
             } else { /* (obj->otyp == FIGURINE) */
+                if (obj->otyp != FIGURINE) {
+                    /* hedge against other stone tools being added */
+                    pline("%s to flesh!", Tobjnam(obj, "turn"));
+                    obj->material = FLESH;
+                    obj->owt = weight(obj);
+                    break;
+                }
+                if (vegetarian(&mons[obj->corpsenm])) {
+                    /* don't animate monsters that aren't fleshy */
+                    obj = poly_obj(obj, MEATBALL);
+                    smell = TRUE;
+                    break;
+                }
                 if (golem_xform)
                     ptr = &mons[PM_FLESH_GOLEM];
                 mon = makemon(ptr, oox, ooy, NO_MINVENT);
@@ -1748,9 +1761,16 @@ struct obj *obj;
         smell = TRUE;
         break;
     case WEAPON_CLASS: /* crysknife */
-        /*FALLTHRU*/
+        /* FALLTHRU */
     default:
-        res = 0;
+        if (valid_obj_material(obj, FLESH)) {
+            pline("%s to flesh!", Tobjnam(obj, "turn"));
+            obj->material = FLESH;
+            obj->owt = weight(obj);
+        }
+        else {
+            res = 0;
+        }
         break;
     }
 
