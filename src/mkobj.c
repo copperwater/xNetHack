@@ -1366,6 +1366,35 @@ register struct obj *otmp;
     return (!!otmp->blessed - !!otmp->cursed);
 }
 
+/* Relative weights of different materials. In this case, the volume of a given
+ * item is assumed to be constant, and these numbers are reasonably close
+ * approximations of their densities in kg per cubic meter. */
+STATIC_DCL
+const int matdensities[] = {
+    0,
+    1000,  // LIQUID - water
+    900,   // WAX
+    500,   // VEGGY - guess; depends on water content
+    1000,  // FLESH
+    580,   // PAPER - actually more than this but we assume not solid paper
+    1300,  // CLOTH - wool
+    760,   // LEATHER
+    810,   // WOOD - oak, specifically
+    1700,  // BONE
+    2000,  // DRAGONHIDE - scales probably make it heavier than FLESH
+    8000,  // IRON
+    4500,  // METAL - guess at titanium
+    8960,  // COPPER
+    10490, // SILVER
+    19300, // GOLD
+    21450, // PLATINUM
+    5000,  // MITHRIL - guess
+    940,   // PLASTIC - low density polyethylene in this case
+    6000,  // GLASS - pretty wide range of densities, this is middling
+    4500,  // GEMSTONE - corundum specifically
+    3000   // MINERAL - basalt specifically
+};
+
 /*
  *  Calculate the weight of the given object.  This will recursively follow
  *  and calculate the weight of any containers.
@@ -1379,6 +1408,13 @@ weight(obj)
 register struct obj *obj;
 {
     int wt = (int) objects[obj->otyp].oc_weight;
+
+    /* Modify weight according to the relative densities of the two materials,
+     * if they differ. */
+    if (obj->material != objects[obj->otyp].oc_material) {
+        wt = (wt * matdensities[obj->material])
+             / matdensities[objects[obj->otyp].oc_material];
+    }
 
     /* glob absorpsion means that merging globs accumulates weight while
        quantity stays 1, so update 'wt' to reflect that, unless owt is 0,
@@ -1433,6 +1469,51 @@ register struct obj *obj;
         return wt + obj->spe * (int) objects[TALLOW_CANDLE].oc_weight;
     }
     return (wt ? wt * (int) obj->quan : ((int) obj->quan + 1) >> 1);
+}
+
+/* Relative defensiveness of various materials. The only thing that should ever
+ * matter is the difference between two of these quantities, so the values are
+ * adjusted up so that there are no negatives.
+ * The units involved here are AC points (but again, only the difference
+ * matters.) */
+const int matac[] = {
+     0,
+     0,  // LIQUID
+     1,  // WAX
+     1,  // VEGGY
+     3,  // FLESH
+     1,  // PAPER
+     2,  // CLOTH
+     3,  // LEATHER
+     4,  // WOOD
+     6,  // BONE
+     10, // DRAGON_HIDE
+     5,  // IRON - de facto baseline for metal armor
+     5,  // METAL
+     4,  // COPPER
+     5,  // SILVER
+     3,  // GOLD
+     4,  // PLATINUM
+     6,  // MITHRIL
+     3,  // PLASTIC
+     5,  // GLASS
+     7,  // GEMSTONE
+     8   // MINERAL
+};
+
+/* Compute the bonus or penalty to AC an armor piece should get for being a
+ * non-default material. */
+int
+material_bonus(obj)
+struct obj * obj;
+{
+    int diff = matac[obj->material] - matac[objects[obj->otyp].oc_material];
+
+    /* don't allow the armor's base AC to go below 0 */
+    if (objects[obj->otyp].a_ac + diff < 0) {
+        diff = -(objects[obj->otyp].a_ac);
+    }
+    return diff;
 }
 
 static int treefruits[] = { APPLE, ORANGE, PEAR, BANANA, EUCALYPTUS_LEAF };
