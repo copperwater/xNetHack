@@ -92,8 +92,13 @@ register boolean clumsy;
     }
     if (blessed_foot_damage)
         dmg += rnd(4);
-    if (uarmf)
+    if (uarmf) {
         dmg += uarmf->spe;
+        if (uarmf->material == SILVER && mon_hates_silver(mon)) {
+            pline_The("silver sears %s's flesh!", mon_nam(mon));
+            dmg += rnd(20);
+        }
+    }
     dmg += u.udaminc; /* add ring(s) of increase damage */
     if (dmg > 0)
         mon->mhp -= dmg;

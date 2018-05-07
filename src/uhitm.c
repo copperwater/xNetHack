@@ -685,7 +685,15 @@ int dieroll;
         /* So do silver rings.  Note: rings are worn under gloves, so you
          * don't get both bonuses.
          */
-        if (!uarmg) {
+        if (uarmg) {
+            if (uarmg->material == SILVER && mon_hates_silver(mon)) {
+                Strcpy(saved_oname, "silver gauntlets");
+                tmp += rnd(20);
+                silvermsg = TRUE;
+                silverobj = TRUE;
+            }
+        }
+        else {
             if (uleft && uleft->material == SILVER)
                 barehand_silver_rings++;
             if (uright && uright->material == SILVER)
