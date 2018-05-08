@@ -10,7 +10,8 @@
 
 
 #PREFIX=/usr
-PREFIX=$(wildcard ~)/nh/install
+#PREFIX=$(wildcard ~)/nh/install
+PREFIX=/opt
 HACKDIR=$(PREFIX)/games/lib/$(GAME)dir
 SHELLDIR = $(PREFIX)/games
 INSTDIR=$(HACKDIR)
@@ -32,15 +33,18 @@ LINK=$(CC)
 # Only needed for GLIBC stack trace:
 LFLAGS=-rdynamic
 
-WINSRC = $(WINTTYSRC)
-WINOBJ = $(WINTTYOBJ)
+WINSRC = $(WINTTYSRC) $(WINCURSESSRC)
+WINOBJ = $(WINTTYOBJ) $(WINCURSESOBJ)
 WINLIB = $(WINTTYLIB)
 
 WINTTYLIB=-lcurses
 
-CHOWN=true
-CHGRP=true
+CHOWN=chown
+CHGRP=chgrp
+
+GAMEUID=games
+GAMEGRP=bin
 
 VARDIRPERM = 0755
 VARFILEPERM = 0600
-GAMEPERM = 0755
+GAMEPERM = 4755

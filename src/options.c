@@ -28,6 +28,10 @@ NEARDATA struct instance_flags iflags; /* provide linkage */
 #define PREFER_TILED FALSE
 #endif
 
+#ifdef CURSES_GRAPHICS
+extern int curses_read_attrs(char *attrs);
+#endif
+
 enum window_option_types {
     MESSAGE_OPTION = 1,
     STATUS_OPTION,
@@ -100,9 +104,14 @@ static struct Bool_Opt {
 #else
     { "checkspace", (boolean *) 0, FALSE, SET_IN_FILE },
 #endif
+#ifdef CURSES_GRAPHICS
+    { "classic_status", &iflags.classic_status, TRUE, SET_IN_FILE },
+#else
+    { "classic_status", (boolean *) 0, TRUE, SET_IN_FILE },
+#endif
     { "clicklook", &iflags.clicklook, FALSE, SET_IN_GAME },
     { "cmdassist", &iflags.cmdassist, TRUE, SET_IN_GAME },
-#if defined(MICRO) || defined(WIN32)
+#if defined(MICRO) || defined(WIN32) || defined(CURSES_GRAPHICS)
     { "color", &iflags.wc_color, TRUE, SET_IN_GAME }, /*WC*/
 #else /* systems that support multiple terminals, many monochrome */
     { "color", &iflags.wc_color, FALSE, SET_IN_GAME }, /*WC*/
@@ -110,7 +119,7 @@ static struct Bool_Opt {
     { "confirm", &flags.confirm, TRUE, SET_IN_GAME },
     { "dark_room", &flags.dark_room, TRUE, SET_IN_GAME },
     { "eight_bit_tty", &iflags.wc_eight_bit_input, FALSE, SET_IN_GAME }, /*WC*/
-#ifdef TTY_GRAPHICS
+#if defined(TTY_GRAPHICS) || defined(CURSES_GRAPHICS)
     { "extmenu", &iflags.extmenu, FALSE, SET_IN_GAME },
 #else
     { "extmenu", (boolean *) 0, FALSE, SET_IN_FILE },
@@ -130,6 +139,7 @@ static struct Bool_Opt {
     { "force_invmenu", &iflags.force_invmenu, FALSE, SET_IN_GAME },
     { "fullscreen", &iflags.wc2_fullscreen, FALSE, SET_IN_FILE },
     { "goldX", &iflags.goldX, FALSE, SET_IN_GAME },
+    {"guicolor", &iflags.wc2_guicolor, TRUE, SET_IN_GAME},
     { "help", &flags.help, TRUE, SET_IN_GAME },
     { "herecmd_menu", &iflags.herecmd_menu, FALSE, SET_IN_GAME },
     { "hilite_pet", &iflags.wc_hilite_pet, FALSE, SET_IN_GAME }, /*WC*/
@@ -160,7 +170,11 @@ static struct Bool_Opt {
 #else
     { "menu_overlay", (boolean *) 0, FALSE, SET_IN_FILE },
 #endif
+#ifdef CURSES_GRAPHICS
+    { "mouse_support", &iflags.wc_mouse_support, FALSE, DISP_IN_GAME }, /*WC*/
+#else
     { "mouse_support", &iflags.wc_mouse_support, TRUE, DISP_IN_GAME }, /*WC*/
+#endif
 #ifdef NEWS
     { "news", &iflags.news, TRUE, DISP_IN_GAME },
 #else
@@ -321,7 +335,7 @@ static struct Comp_Opt {
     { "monsters", "the symbols to use for monsters", MAXMCLASSES,
       SET_IN_FILE },
     { "msghistory", "number of top line messages to save", 5, DISP_IN_GAME },
-#ifdef TTY_GRAPHICS
+#if defined(TTY_GRAPHICS) || defined(CURSES_GRAPHICS)
     { "msg_window", "the type of message window required", 1, SET_IN_GAME },
 #else
     { "msg_window", "the type of message window required", 1, SET_IN_FILE },
@@ -347,6 +361,7 @@ static struct Comp_Opt {
 #endif
     { "paranoid_confirmation", "extra prompting in certain situations", 28,
       SET_IN_GAME },
+    { "petattr",  "attributes for highlighting pets", 12, SET_IN_FILE },
     { "pettype", "your preferred initial pet type", 4, DISP_IN_GAME },
     { "pickup_burden", "maximum burden picked up before prompt", 20,
       SET_IN_GAME },
@@ -3431,6 +3446,71 @@ boolean tinitial, tfrom_file;
                 return FALSE;
         } else if (negated)
             bad_negation(fullname, TRUE);
+        return retval;
+    }
+
+    /* WINCAP2
+     * term_cols:amount */
+    fullname = "term_cols";
+    if (match_optname(opts, fullname, sizeof("term_cols")-1, TRUE)) {
+        op = string_for_opt(opts, negated);
+        iflags.wc2_term_cols = atoi(op);
+        if (negated) bad_negation(fullname, FALSE);
+        return retval;
+    }
+
+    /* WINCAP2
+     * term_rows:amount */
+    fullname = "term_rows";
+    if (match_optname(opts, fullname, sizeof("term_rows")-1, TRUE)) {
+        op = string_for_opt(opts, negated);
+        iflags.wc2_term_rows = atoi(op);
+        if (negated) bad_negation(fullname, FALSE);
+        return retval;
+    }
+
+    /* WINCAP2
+     * petattr:string */
+    fullname = "petattr";
+    if (match_optname(opts, fullname, sizeof("petattr")-1, TRUE)) {
+        op = string_for_opt(opts, negated);
+        if (op && !negated) {
+#ifdef CURSES_GRAPHICS
+            iflags.wc2_petattr = curses_read_attrs(op);
+            if (!curses_read_attrs(op))
+                config_error_add("Unknown %s parameter '%s'", fullname, opts);
+                return FALSE;
+#else
+            /* non-curses windowports will not use this flag anyway
+             * but the above will not compile if we don't have curses.
+             * Just set it to a sensible default: */
+            iflags.wc2_petattr = ATR_INVERSE
+#endif
+        } else if (negated) bad_negation(fullname, TRUE);
+        return retval;
+    }
+
+    /* WINCAP2
+     * windowborders:n */
+    fullname = "windowborders";
+    if (match_optname(opts, fullname, sizeof("windowborders")-1, TRUE)) {
+        op = string_for_opt(opts, negated);
+        if (negated && op) bad_negation(fullname, TRUE);
+        else {
+            if (negated)
+                iflags.wc2_windowborders = 2; /* Off */
+            else if (!op)
+                iflags.wc2_windowborders = 1; /* On */
+            else    /* Value supplied */
+                iflags.wc2_windowborders = atoi(op);
+            if ((iflags.wc2_windowborders > 3) ||
+                (iflags.wc2_windowborders < 1)) {
+                iflags.wc2_windowborders = 0;
+                config_error_add("Unknown %s parameter '%s'", fullname, opts);
+                return FALSE;
+
+            }
+        }
         return retval;
     }
 
