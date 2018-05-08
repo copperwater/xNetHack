@@ -434,6 +434,7 @@ E char *FDECL(coyotename, (struct monst *, char *));
 E const char *FDECL(noveltitle, (int *));
 E const char *FDECL(lookup_novel, (const char *, int *));
 E char *FDECL(bogusmon, (char *,char *, int));
+E void FDECL(mintroduce, (struct monst *));
 
 /* ### do_wear.c ### */
 
