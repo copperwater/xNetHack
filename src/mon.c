@@ -394,7 +394,7 @@ unsigned corpseflags;
     case PM_LEATHER_GOLEM:
         num = d(2, 4);
         while (num--)
-            obj = mksobj_at(LEATHER_ARMOR, x, y, TRUE, FALSE);
+            obj = mksobj_at(LIGHT_ARMOR, x, y, TRUE, FALSE);
         free_mname(mtmp);
         break;
     case PM_GOLD_GOLEM:
@@ -1099,7 +1099,7 @@ register struct monst *mtmp;
     int mat_idx;
 
     if ((gold = g_at(mtmp->mx, mtmp->my)) != 0) {
-        mat_idx = objects[gold->otyp].oc_material;
+        mat_idx = gold->material;
         obj_extract_self(gold);
         add_to_minv(mtmp, gold);
         if (cansee(mtmp->mx, mtmp->my)) {
@@ -1237,7 +1237,7 @@ struct obj *otmp;
         return 0;
     if (otyp == CORPSE && is_rider(&mons[otmp->corpsenm]))
         return 0;
-    if (objects[otyp].oc_material == SILVER && mon_hates_silver(mtmp)
+    if (otmp->material == SILVER && mon_hates_silver(mtmp)
         && (otyp != BELL_OF_OPENING || !is_covetous(mdat)))
         return 0;
 
