@@ -163,6 +163,12 @@ char *buf;
            from book series _A_Song_of_Ice_and_Fire_ by George R.R. Martin,
            TV show "Game of Thrones" (probably an actual T-shirt too...) */
         "/Valar morghulis/ -- /Valar dohaeris/",
+        "Keep Calm and Quaff Fountains.",
+        "I killed the Wizard of Yendor.  (He got over it.)",
+        "Born to Rune",
+        "Juiblex Jubilee 2008",
+        "David Lee Rothe",
+        "Who watches the Minetown Watchmen?",
     };
 
     Strcpy(buf, shirt_msgs[tshirt->o_id % SIZE(shirt_msgs)]);
