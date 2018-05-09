@@ -465,6 +465,10 @@ encodeachieve()
         r |= 1L << 12;
     if (u.uroleplay.nudist)
         r |= 1L << 13;
+    if (u.uroleplay.hallu)
+        r |= 1L << 14;
+    if (u.uroleplay.deaf)
+        r |= 1L << 15;
 
     return r;
 }

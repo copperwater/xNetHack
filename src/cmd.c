@@ -1955,7 +1955,7 @@ int final;
     if (Confusion)
         you_are("confused", "");
     if (Hallucination)
-        you_are("hallucinating", "");
+        you_are("hallucinating", from_what(HALLUC));
     if (Blind) {
         /* from_what() (currently wizard-mode only) checks !haseyes()
            before u.uroleplay.blind, so we should too */
@@ -2772,6 +2772,10 @@ int final;
 
     if (u.uroleplay.blind)
         you_have_been("blind from birth");
+    if (u.uroleplay.deaf)
+        you_have_been("deaf from birth");
+    if (u.uroleplay.hallu)
+        you_have_been("hallucinating for your entire life");
     if (u.uroleplay.nudist)
         you_have_been("faithfully nudist");
 

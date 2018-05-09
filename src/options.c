@@ -108,6 +108,7 @@ static struct Bool_Opt {
 #endif
     { "confirm", &flags.confirm, TRUE, SET_IN_GAME },
     { "dark_room", &flags.dark_room, TRUE, SET_IN_GAME },
+    { "deaf", &u.uroleplay.deaf, FALSE, DISP_IN_GAME },
     { "eight_bit_tty", &iflags.wc_eight_bit_input, FALSE, SET_IN_GAME }, /*WC*/
 #ifdef TTY_GRAPHICS
     { "extmenu", &iflags.extmenu, FALSE, SET_IN_GAME },
@@ -129,6 +130,7 @@ static struct Bool_Opt {
     { "force_invmenu", &iflags.force_invmenu, FALSE, SET_IN_GAME },
     { "fullscreen", &iflags.wc2_fullscreen, FALSE, SET_IN_FILE },
     { "goldX", &iflags.goldX, FALSE, SET_IN_GAME },
+    { "hallucinating", &u.uroleplay.hallu, FALSE, DISP_IN_GAME },
     { "help", &flags.help, TRUE, SET_IN_GAME },
     { "herecmd_menu", &iflags.herecmd_menu, FALSE, SET_IN_GAME },
     { "hilite_pet", &iflags.wc_hilite_pet, FALSE, SET_IN_GAME }, /*WC*/
