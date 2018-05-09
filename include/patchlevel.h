@@ -1,5 +1,6 @@
-/* NetHack 3.6	patchlevel.h	$NHDT-Date: 1451600769 2015/12/31 22:26:09 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.116 $ */
+/* NetHack 3.6	patchlevel.h	$NHDT-Date: 1524931630 2018/04/28 16:07:10 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.121 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Michael Allison, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* NetHack 3.6.1 */
@@ -33,15 +34,18 @@
 
 /****************************************************************************/
 /*
- *  xNetHack 0.1.1, April 8, 2018
+ *  xNetHack changes are not documented here; see the changelog and wiki for
+ *  documentation on the changes. Below are the patch notes from the vanilla
+ *  devteam for vanilla versions.
  *
- *  Rooms added to maze levels.
- *  One new conduct.
- *  Tracking of last turn prayed.
  */
 
-/*
- *  xNetHack 0.1.0, not released formally
+/*  Patch 2, <insert date here>
+ *
+ */
+
+/*  Patch 1, April 27, 2018
+ *  Over four hundred and seventy bug fixes and improvements.
  */
 
 /*
