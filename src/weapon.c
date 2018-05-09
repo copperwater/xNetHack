@@ -1,5 +1,6 @@
 /* NetHack 3.6	weapon.c	$NHDT-Date: 1454660575 2016/02/05 08:22:55 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.57 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*
@@ -298,7 +299,7 @@ struct monst *mon;
             tmp = 0;
     }
 
-    if (objects[otyp].oc_material <= LEATHER && thick_skinned(ptr))
+    if (otmp->material <= LEATHER && thick_skinned(ptr))
         /* thick skinned/scaled creatures don't feel it */
         tmp = 0;
     if (ptr == &mons[PM_SHADE] && !shade_glare(otmp))
@@ -326,7 +327,7 @@ struct monst *mon;
             bonus += rnd(4);
         if (is_axe(otmp) && is_wooden(ptr))
             bonus += rnd(4);
-        if (objects[otyp].oc_material == SILVER && mon_hates_silver(mon))
+        if (otmp->material == SILVER && mon_hates_silver(mon))
             bonus += rnd(20);
 
         /* if the weapon is going to get a double damage bonus, adjust
@@ -368,16 +369,17 @@ int x;
             /* never select non-cockatrice corpses */
             && !((x == CORPSE || x == EGG)
                  && !touch_petrifies(&mons[otmp->corpsenm]))
-            && (!otmp->oartifact || touch_artifact(otmp, mtmp)))
+            && (!otmp->oartifact || touch_artifact(otmp, mtmp))
+            && !(otmp->material == SILVER && mon_hates_silver(mtmp)))
             return otmp;
     }
     return (struct obj *) 0;
 }
 
 static NEARDATA const int rwep[] = {
-    DWARVISH_SPEAR, SILVER_SPEAR, ELVEN_SPEAR, SPEAR, ORCISH_SPEAR, JAVELIN,
-    SHURIKEN, YA, SILVER_ARROW, ELVEN_ARROW, ARROW, ORCISH_ARROW,
-    CROSSBOW_BOLT, SILVER_DAGGER, ELVEN_DAGGER, DAGGER, ORCISH_DAGGER, KNIFE,
+    DWARVISH_SPEAR, ELVEN_SPEAR, SPEAR, ORCISH_SPEAR, JAVELIN,
+    SHURIKEN, YA, ELVEN_ARROW, ARROW, ORCISH_ARROW,
+    CROSSBOW_BOLT, ELVEN_DAGGER, DAGGER, ORCISH_DAGGER, KNIFE,
     FLINT, ROCK, LOADSTONE, LUCKSTONE, DART,
     /* BOOMERANG, */ CREAM_PIE
 };
@@ -427,13 +429,12 @@ register struct monst *mtmp;
              * Big weapon is basically the same as bimanual.
              * All monsters can wield the remaining weapons.
              */
-            if (((strongmonst(mtmp->data)
+            if ((strongmonst(mtmp->data)
                   && (mtmp->misc_worn_check & W_ARMS) == 0)
-                 || !objects[pwep[i]].oc_bimanual)
-                && (objects[pwep[i]].oc_material != SILVER
-                    || !mon_hates_silver(mtmp))) {
+                 || !objects[pwep[i]].oc_bimanual) {
                 if ((otmp = oselect(mtmp, pwep[i])) != 0
-                    && (otmp == mwep || !mweponly)) {
+                    && (otmp == mwep || !mweponly)
+                    && !(otmp->material == SILVER && mon_hates_silver(mtmp))) {
                     propellor = otmp; /* force the monster to wield it */
                     return otmp;
                 }
@@ -516,11 +517,11 @@ static const NEARDATA short hwep[] = {
     CORPSE, /* cockatrice corpse */
     TSURUGI, RUNESWORD, DWARVISH_MATTOCK, TWO_HANDED_SWORD, BATTLE_AXE,
     KATANA, UNICORN_HORN, CRYSKNIFE, TRIDENT, LONG_SWORD, ELVEN_BROADSWORD,
-    BROADSWORD, SCIMITAR, SILVER_SABER, MORNING_STAR, ELVEN_SHORT_SWORD,
+    BROADSWORD, SCIMITAR, SABER, MORNING_STAR, ELVEN_SHORT_SWORD,
     DWARVISH_SHORT_SWORD, SHORT_SWORD, ORCISH_SHORT_SWORD, MACE, AXE,
-    DWARVISH_SPEAR, SILVER_SPEAR, ELVEN_SPEAR, SPEAR, ORCISH_SPEAR, FLAIL,
+    DWARVISH_SPEAR, ELVEN_SPEAR, SPEAR, ORCISH_SPEAR, FLAIL,
     BULLWHIP, QUARTERSTAFF, JAVELIN, AKLYS, CLUB, PICK_AXE, RUBBER_HOSE,
-    WAR_HAMMER, SILVER_DAGGER, ELVEN_DAGGER, DAGGER, ORCISH_DAGGER, ATHAME,
+    WAR_HAMMER, ELVEN_DAGGER, DAGGER, ORCISH_DAGGER, ATHAME,
     SCALPEL, KNIFE, WORM_TOOTH
 };
 
@@ -539,7 +540,8 @@ register struct monst *mtmp;
         if (otmp->oclass == WEAPON_CLASS && otmp->oartifact
             && touch_artifact(otmp, mtmp)
             && ((strong && !wearing_shield)
-                || !objects[otmp->otyp].oc_bimanual))
+                || !objects[otmp->otyp].oc_bimanual)
+            && !(otmp->material == SILVER && mon_hates_silver(mtmp)))
             return otmp;
     }
 
@@ -553,9 +555,7 @@ register struct monst *mtmp;
         if (hwep[i] == CORPSE && !(mtmp->misc_worn_check & W_ARMG)
             && !resists_ston(mtmp))
             continue;
-        if (((strong && !wearing_shield) || !objects[hwep[i]].oc_bimanual)
-            && (objects[hwep[i]].oc_material != SILVER
-                || !mon_hates_silver(mtmp)))
+        if ((strong && !wearing_shield) || !objects[hwep[i]].oc_bimanual)
             Oselect(hwep[i]);
     }
 

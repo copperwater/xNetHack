@@ -1,5 +1,6 @@
 /* NetHack 3.6	do_name.c	$NHDT-Date: 1519420054 2018/02/23 21:07:34 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.128 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -1298,6 +1299,23 @@ const char *name;
             else
                 livelog_printf(LL_ARTIFACT, "chose %s to be named \"%s\"", ansimpleoname(obj), bare_artifactname(obj));
         }
+        /* set up specific materials for the artifact */
+        switch(obj->oartifact) {
+        case ART_SUNSWORD:
+            obj->material = GOLD;
+            break;
+        case ART_WEREBANE:
+        case ART_DEMONBANE:
+        case ART_GRAYSWANDIR:
+            obj->material = SILVER;
+            break;
+        case ART_YENDORIAN_EXPRESS_CARD:
+            obj->material = PLATINUM;
+            break;
+        default:
+            /* prevent any wishes for materials on an artifact */
+            obj->material = objects[obj->otyp].oc_material;
+        }
     }
     if (carried(obj))
         update_inventory();
@@ -2138,6 +2156,65 @@ int *idx;
         return sir_Terry_novels[*idx];
 
     return (const char *) 0;
+}
+
+/* Most of these are actual names of nymphs from mythology. */
+const char* nymphnames[] = {
+    "Erythea", "Hesperia", "Arethusa", "Pasithea", "Thaleia", "Halimede",
+    "Actaea", "Electra", "Maia", "Nesaea", "Alcyone", "Asterope",
+    "Callianeira", "Nausithoe", "Dione", "Thetis", "Ephyra", "Eulimene",
+    "Nerea", "Laomedeia", "Echo", "Maera", "Eurydice", "Lysianassa", "Phoebe",
+    "Daphnis", "Daphnae", "Melinoe", "Othreis", "Polychrome"
+};
+
+const char* maldemonnames[] = {
+    "Agiel", "Kali", "Amon", "Foras", "Armaros", "Orias", "Malthus", "Asag",
+    "Raum", "Iblis", "Vanth", "Bael", "Leonard", "Barbas", "Charun", "Ishmael",
+    "Balthamel", "Rahvin"
+};
+
+const char* femdemonnames[] = {
+    "Mara", "Lamia", "Meraxes", "Daeva", "Amy", "Lilith", "Aliss", "Berith",
+    "Euryale", "Zorya", "Rhaenyra", "Bellatrix", "Rusalka", "Messaana",
+    "Jadis", "Anzu", "Eve", "Bilquis", "Cyndane", "Vanessa", "Graendal"
+};
+#define rnd_name(list) list[rn2(SIZE(list))]
+
+/* Monster introduces themselves. If they're not currently named, give them a
+ * random name from the specified list. */
+void
+mintroduce(mtmp)
+struct monst *mtmp;
+{
+    if (!has_mname(mtmp)) {
+        const char* name;
+        boolean male = FALSE, female = FALSE;
+        if (mtmp->data->mlet == S_NYMPH) {
+            name = rnd_name(nymphnames);
+        }
+        else if (is_demon(mtmp->data)) {
+            if (mtmp->female)
+                name = rnd_name(femdemonnames);
+            else
+                name = rnd_name(maldemonnames);
+        }
+        else {
+            impossible("mintroduce: monster type %s has no defined names!",
+                       mtmp->data->mname);
+            return;
+        }
+        const char* pronoun =
+            genders[is_neuter(mtmp->data) ? 2 : mtmp->female].him;
+        if (!Deaf) {
+            pline("%s introduces %sself to you as %s.", Monnam(mtmp), pronoun,
+                  name);
+            christen_monst(mtmp, name);
+        } else {
+            pline("%s seems to be introducing %sself, but you can't hear %s.",
+                  Monnam(mtmp), pronoun, pronoun);
+        }
+    }
+    return;
 }
 
 /*do_name.c*/

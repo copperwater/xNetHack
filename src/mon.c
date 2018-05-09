@@ -1,5 +1,6 @@
 /* NetHack 3.6	mon.c	$NHDT-Date: 1522540516 2018/03/31 23:55:16 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.250 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* If you're using precompiled headers, you don't want this either */
@@ -394,7 +395,7 @@ unsigned corpseflags;
     case PM_LEATHER_GOLEM:
         num = d(2, 4);
         while (num--)
-            obj = mksobj_at(LEATHER_ARMOR, x, y, TRUE, FALSE);
+            obj = mksobj_at(LIGHT_ARMOR, x, y, TRUE, FALSE);
         free_mname(mtmp);
         break;
     case PM_GOLD_GOLEM:
@@ -1099,7 +1100,7 @@ register struct monst *mtmp;
     int mat_idx;
 
     if ((gold = g_at(mtmp->mx, mtmp->my)) != 0) {
-        mat_idx = objects[gold->otyp].oc_material;
+        mat_idx = gold->material;
         obj_extract_self(gold);
         add_to_minv(mtmp, gold);
         if (cansee(mtmp->mx, mtmp->my)) {
@@ -1237,7 +1238,7 @@ struct obj *otmp;
         return 0;
     if (otyp == CORPSE && is_rider(&mons[otmp->corpsenm]))
         return 0;
-    if (objects[otyp].oc_material == SILVER && mon_hates_silver(mtmp)
+    if (otmp->material == SILVER && mon_hates_silver(mtmp)
         && (otyp != BELL_OF_OPENING || !is_covetous(mdat)))
         return 0;
 
@@ -1546,15 +1547,41 @@ mm_aggression(magr, mdef)
 struct monst *magr, /* monster that is currently deciding where to move */
              *mdef; /* another monster which is next to it */
 {
+    struct permonst *ma, *md;
+    ma = magr->data;
+    md = mdef->data;
     /* supposedly purple worms are attracted to shrieking because they
        like to eat shriekers, so attack the latter when feasible */
-    int mndx = monsndx(magr->data);
-    if ((mndx == PM_PURPLE_WORM || monsndx(magr->data) == PM_BABY_PURPLE_WORM)
-        && mdef->data == &mons[PM_SHRIEKER])
+    if ((ma == &mons[PM_PURPLE_WORM] || md == &mons[PM_BABY_PURPLE_WORM])
+        && md == &mons[PM_SHRIEKER])
         return ALLOW_M | ALLOW_TM;
-    /* Various other combinations such as dog vs cat, cat vs rat, and
-       elf vs orc have been suggested.  For the time being we don't
-       support those. */
+    /* Grudge patch. */
+    /* Since the quest guardians are under siege, it makes sense to have
+       them fight hostiles.  (But we don't want the quest leader to be in
+       danger.) */
+    if(ma->msound==MS_GUARDIAN && mdef->mpeaceful==FALSE)
+        return ALLOW_M|ALLOW_TM;
+    /* and vice versa */
+    if(md->msound==MS_GUARDIAN && magr->mpeaceful==FALSE)
+   	    return ALLOW_M|ALLOW_TM;
+  	/* elves vs. orcs */
+  	if(is_elf(ma) && is_orc(md))
+  		  return ALLOW_M|ALLOW_TM;
+  	/* and vice versa */
+  	if(is_elf(md) && is_orc(ma))
+  		  return ALLOW_M|ALLOW_TM;
+  	/* angels vs. demons */
+  	if(ma->mlet==S_ANGEL && is_demon(md))
+  		  return ALLOW_M|ALLOW_TM;
+  	/* and vice versa */
+  	if(md->mlet==S_ANGEL && is_demon(ma))
+  		  return ALLOW_M|ALLOW_TM;
+  	/* woodchucks vs. The Oracle */
+  	if(ma == &mons[PM_WOODCHUCK] && md == &mons[PM_ORACLE])
+  		  return ALLOW_M|ALLOW_TM;
+  	/* ravens like eyes */
+  	if(ma == &mons[PM_RAVEN] && md == &mons[PM_FLOATING_EYE])
+  		  return ALLOW_M|ALLOW_TM;
     return 0L;
 }
 

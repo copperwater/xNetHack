@@ -1,6 +1,10 @@
+# NetHack 3.6  engrave.txt       $NHDT-Date: 1524689579 2018/04/25 20:52:59 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.2 $
+# Copyright (c) 2015 by Pasi Kallinen
+# NetHack may be freely redistributed.  See license for details.
 # Random engravings on the floor
 #
 Elbereth
+
 # trap engravings
 Vlad was here
 ad aerarium
@@ -9,38 +13,52 @@ ad aerarium
 Owlbreath
 Galadriel
 Kilroy was here
+Frodo Lives!
 
 # Journey to the Center of the Earth
 A.S. ->
 <- A.S.
+
 # Adventure
 You won't get it up the steps
+
 # Inferno
 Lasciate ogni speranza o voi ch'entrate.
+Abandon all hope, ye who enter here.
+
 # Prisoner
 Well Come
-# So Long...
+
+# HHGttG
 We apologize for the inconvenience.
+
 # Thriller
 See you next Wednesday
+
 # Smokey Stover
 notary sojak
-
 For a good time call 8?7-5309
+
 # Various zoos around the world
 Please don't feed the animals.
+
 # A palindrome
 Madam, in Eden, I'm Adam.
+
 # Siskel & Ebert
 Two thumbs up!
+
 # The First C Program
 Hello, World!
 ^?MAIL
+
 # AOL
 You've got mail!
 ^.
+
 # Clueless
 As if!
+
 # 200x incarnation of Dr.Who
 BAD WOLF
 
@@ -83,3 +101,15 @@ Warning, Exploding runes!
 
 # "Whispers Underground" Ben Aaronovitch
 If you can read these words then you are not only a nerd but probably dead.
+
+# Super Mario 64 conspiracy theory
+L is Real 2401
+
+# The Day the Earth Stood Still
+Klaatu barada nikto
+
+# Parisian Catacombs (can't use accented e, oh well)
+Arrete, c'est ici l'empire de la mort
+
+# Portal
+The cake is a lie

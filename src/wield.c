@@ -1,5 +1,6 @@
 /* NetHack 3.6	wield.c	$NHDT-Date: 1496959480 2017/06/08 22:04:40 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.54 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -203,7 +204,7 @@ struct obj *wep;
 #if 0
         /* we'll get back to this someday, but it's not balanced yet */
         if (Race_if(PM_ELF) && !wep->oartifact
-            && objects[wep->otyp].oc_material == IRON) {
+            && wep->material == IRON) {
             /* Elves are averse to wielding cold iron */
             You("have an uneasy feeling about wielding cold iron.");
             change_luck(-1);

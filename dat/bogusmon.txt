@@ -1,3 +1,7 @@
+# NetHack 3.6  bogusmon.txt       $NHDT-Date: 1524689579 2018/04/25 20:52:59 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.7 $
+# Copyright (c) 2016 by Pasi Kallinen
+# NetHack may be freely redistributed.  See license for details.
+#
 # Hallucinatory monsters
 #
 #
@@ -8,74 +12,118 @@
 # vertical bar  |  male, general name
 # equals        =  gender not specified, personal name
 
-# misc.
-jumbo shrimp
-giant pigmy
-gnu
-killer penguin
-giant cockroach
-giant slug
-maggot
-pterodactyl
-tyrannosaurus rex
-basilisk
-beholder
-nightmare
-efreeti
-marid
-rot grub
-bookworm
-master lichen
-shadow
-hologram
-jester
-attorney
-sleazoid
-killer tomato
-amazon
-robot
-battlemech
-rhinovirus
-harpy
-lion-dog
-rat-ant
-Y2K bug
-angry mariachi
-arch-pedant
-bluebird of happiness
-cardboard golem
-duct tape golem
+## Section 1 - stuff derived directly from NetHack
+
+# spoofs of in game things
 diagonally moving grid bug
-evil overlord
-newsgroup troll
-ninja pirate zombie robot
-octarine dragon
-gonzo journalist
-lag monster
-loan shark
-possessed waffle iron
-poultrygeist
-stuffed raccoon puppet
-viking
-wee green blobbie
-wereplatypus
+hexagonal grid bug
+demilichen
+master lichen
 hag of bolding
-blancmange
-raging nerd
-spelling bee
-land octopus
-frog prince
-pigasus
 _Semigorgon
-conventioneer
-large microbat
-small megabat
-uberhulk
-tofurkey
+|Vendor of Yizard
+apostrophe golem
+voluptuous ampersand
++Rodney
+ear piercer
+floatin' guy
+violent gem
+|Wizard of Splendor
+
+# Dudley's Dungeon
 +Dudley
-shrinking violet
-shallow one
-spherical cow
+
+# self-deprecation
+poorly balanced monster
+obscure reference
+
+# soundex and typos of monsters
+gloating eye
+flush golem
+martyr orc
+mortar orc
+acid blog
+acute blob
+aria elemental
+aliasing priest
+aligned parasite
+aligned parquet
+aligned proctor
+baby balky dragon
+baby blues dragon
+baby caricature
+baby crochet
+baby grainy dragon
+baby bong worm
+baby long word
+baby parable worm
+barfed devil
+beer wight
+boor wight
+brawny mold
+rave spider
+clue golem
+cockathrice
+bust vortex
+errata elemental
+elastic eel
+electrocardiogram eel
+fir elemental
+tire elemental
+flamingo sphere
+fallacy golem
+frizzed centaur
+forest centerfold
+fierceness sphere
+frosted giant
+geriatric snake
+gnat ant
+giant bath
+grant beetle
+grind bug
+giant mango
+glossy golem
+gnome laureate
+gnome dummy
+gooier ooze
+green slide
+guardian nacho
+hearth elemental
+hell hound pun
+high purist
+hairnet devil
+ice trowel
+killer beet
+feather golem
+lockatrice
+lounge worm
+mountain lymph
+pager golem
+pie fiend
+prophylactic worm
+mock role
+sock mole
+rogue piercer
+seesawing sphere
+simile mimic
+moldier ant
+stain vortex
+scone giant
+umbrella hulk
+vampire mace
+verbal jabberwock
+waiter elemental
+water lemon
+water melon
+winged grizzly
+wire vortex
+yellow wight
+
+## Section 2 - other roguelike references
+
+# Slash'EM Extended
+dissolved undead potato
+great wyrm of power
 
 # Quendor (Zork, &c.)
 grue
@@ -88,6 +136,12 @@ dornbeast
 # Moria
 Ancient Multi-Hued Dragon
 +Evil Iggy
+
+# Angband
++Morgoth
+yeek
+quylthulg
+Greater Hell Beast
 
 # Rogue V5 http://rogue.rogueforge.net/vade-mecum/
 rattlesnake
@@ -104,18 +158,42 @@ venus flytrap
 # Wizardry
 creeping coins
 
+# Dungeon Crawl Stone Soup
++Sigmund
+lernaean hydra
++Ijyb
++Gloorx Vloq
++Blork the orc
+
+# ADOM
+Ancient Chaos Wyrm
+
+# POWDER
+tridude
+
+## Section 3 - miscellaneous pop culture references
+
 # Greek legend
 hydra
 siren
+Argonaut
+satyr
+Nemean lion
+-Scylla
+-Charybdis
 
 # Monty Python
 killer bunny
+Rabbit of Caerbannog
+|Knight Who Says Ni
+|Black Knight
 
 # The Princess Bride
 rodent of unusual size
 
 # Wallace & Gromit
 were-rabbit
+wrong trousers
 
 # "Only you can prevent forest fires!
 +Smokey Bear
@@ -123,9 +201,11 @@ were-rabbit
 # Discworld
 Luggage
 vampiric watermelon
++Wintersmith
 
 # Lord of the Rings
 Ent
++Great Goblin
 
 # Xanth
 tangle tree
@@ -134,7 +214,14 @@ wiggle
 
 # Lewis Carroll
 white rabbit
+Cheshire cat
+jubjub bird
+bandersnatch
 snark
+mock turtle
+=March Hare
++Tweedledee
++Tweedledum
 
 # Dr. Dolittle
 pushmi-pullyu
@@ -149,6 +236,9 @@ Borg
 
 # Star Wars
 Ewok
+Jedi
+Sith Lord
+Force
 
 # Tonari no Totoro
 Totoro
@@ -184,6 +274,11 @@ Dalek
 # HGttG
 microscopic space fleet
 Ravenous Bugblatter Beast of Traal
+Babel fish
+Vogon
+=Deep Thought
++Agrajag
+small furry creature from Alpha Centauri
 
 # TMNT
 teenage mutant ninja turtle
@@ -204,9 +299,6 @@ one-eyed one-horned flying purple people eater
 # saccharine kiddy TV
 +Barney the dinosaur
 
-# Angband
-+Morgoth
-
 # Babylon 5
 Vorlon
 
@@ -216,68 +308,6 @@ questing beast
 # Movie
 Predator
 
-# common pest
-mother-in-law
-
-# Actual creatures
-praying mantis
-beluga whale
-chicken
-coelacanth
-star-nosed mole
-lungfish
-slow loris
-sea cucumber
-tapeworm
-liger
-velociraptor
-corpulent porpoise
-quokka
-potoo
-lemming
-
-# european cryptids
-wolpertinger
-elwedritsche
-skvader
-+Nessie
-tatzelwurm
-dahu
-
-# fictitious beasts
-dropbear
-wild haggis
-jackalope
-flying pig
-hippocampus
-hippogriff
-kelpie
-catoblepas
-phoenix
-amphisbaena
-
-# Unusually animate body parts
-bouncing eye
-floating nose
-wandering eye
-
-# Computerese
-buffer overflow
-dangling pointer
-walking disk drive
-floating point
-regex engine
-netsplit
-wiki
-peer
-COBOL
-
-# bugs
-bohrbug
-mandelbug
-schroedinbug
-heisenbug
-
 # DooM
 cacodemon
 scrag
@@ -285,47 +315,17 @@ scrag
 # MST3K
 +Crow T. Robot
 
-# Items and stuff
-chess pawn
-chocolate pudding
-ooblecks
-terracotta warrior
-hearse
-roomba
-miniature blimp
-dust speck
-
 # DnD monster
 gazebo
-
-# SciFi elements
-gray goo
-magnetic monopole
-first category perpetual motion device
-big dumb object
 
 # Ultima
 +Lord British
 
 # They Might Be Giants
-particle man
++Particle Man
 
 # Robot Finds Kitten
 kitten prospecting robot
-
-# Typography
-guillemet
-solidus
-obelus
-dingbat
-bold face
-boustrophedon
-ligature
-rebus
-
-# Their actual character
-apostrophe golem
-voluptuous ampersand
 
 # Web comics and animation
 +Bob the angry flower
@@ -367,49 +367,33 @@ ceiling cat
 basement cat
 monorail cat
 
-# POWDER
-tridude
-
 # Radomir Dopieralski
 orcus cosmicus
-
-# Angband
-yeek
-quylthulg
-Greater Hell Beast
-
-# Souljazz
-+Vendor of Yizard
-
-# Dungeon Crawl Stone Soup
-+Sigmund
-lernaean hydra
-+Ijyb
-+Gloorx Vloq
-+Blork the orc
 
 # Wil Wheaton, John Scalzi
 unicorn pegasus kitten
 
 # Minecraft
 enderman
-
-# Pun
-wight supremacist
+creeper
 
 # Starcraft 2
 zergling
 
-# Feelings
-existential angst
-figment of your imagination
-flash of insight
-
-# Fish
-ghoti
-
 # Roald Dahl
+oompa-loompa
 vermicious knid
+
+# Calvin and Hobbes
+snow goon
+
+# Super Mario
+piranha plant
+goomba
+Koopa Troopa
+lakitu
+chain chomp
+super mushroom
 
 # Carcassonne
 meeple
@@ -420,8 +404,210 @@ womble
 # Fraggle Rock
 fraggle
 
-# Spoonerism
-mock role
+# M.U.G.E.N.
+wayward hitbox
+null-tier character
+palette swap
+
+# Lovecraft
+=Cthulu
+=Yog-Sothoth
+=Nyarlathotep
+
+# Pirates of Penzance
+modern major general
+
+## Section 4 - miscellaneous non-reference things
+
+# Actual creatures
+praying mantis
+beluga whale
+chicken
+coelacanth
+star-nosed mole
+lungfish
+slow loris
+sea cucumber
+tapeworm
+liger
+velociraptor
+corpulent porpoise
+quokka
+potoo
+lemming
+
+# european cryptids
+wolpertinger
+elwedritsche
+skvader
+_Nessie
+tatzelwurm
+dahu
+
+# fictitious beasts
+dropbear
+wild haggis
+jackalope
+flying pig
+hippocampus
+hippogriff
+kelpie
+catoblepas
+phoenix
+amphisbaena
+
+# Unusually animate body parts
+bouncing eye
+floating nose
+wandering eye
+
+# Computerese
+buffer overflow
+dangling pointer
+walking disk drive
+floating point
+regex engine
+netsplit
+wiki
+peer
+COBOL
+segmentation fault
+goto statement
+spaghetti code
+deferred feature
+deferred monster
+recursion
+numeric prefix
+technical difficulty
+
+# bugs
+bohrbug
+mandelbug
+=Schroedinger's Bug
+heisenbug
+microcode bug
+
+# glitches and corruptions
++ZZAZZ
+MissingNo
+-M
+=Test0
+
+# Items and stuff
+chess pawn
+chocolate pudding
+ooblecks
+terracotta warrior
+hearse
+roomba
+miniature blimp
+dust speck
+
+# SciFi elements
+gray goo
+magnetic monopole
+first category perpetual motion device
+big dumb object
+
+# Typography
+guillemet
+solidus
+obelus
+dingbat
+bold face
+boustrophedon
+ligature
+rebus
+wingding
+
+# misc.
+jumbo shrimp
+giant pigmy
+gnu
+killer penguin
+giant cockroach
+giant slug
+maggot
+pterodactyl
+tyrannosaurus rex
+basilisk
+beholder
+nightmare
+efreeti
+marid
+rot grub
+bookworm
+shadow
+hologram
+jester
+attorney
+sleazoid
+killer tomato
+amazon
+robot
+battlemech
+rhinovirus
+harpy
+lion-dog
+rat-ant
+Y2K bug
+angry mariachi
+arch-pedant
+bluebird of happiness
+cardboard golem
+duct tape golem
+evil overlord
+newsgroup troll
+ninja pirate zombie robot
+octarine dragon
+gonzo journalist
+lag monster
+loan shark
+possessed waffle iron
+poultrygeist
+stuffed raccoon puppet
+viking
+wee green blobbie
+wereplatypus
+blancmange
+raging nerd
+spelling bee
+land octopus
+frog prince
+pigasus
+conventioneer
+large microbat
+small megabat
+uberhulk
+tofurkey
+shrinking violet
+shallow one
+spherical cow
+mother-in-law
+ghoti
+protagonist
+explosive weasel
+animated chainsaw
+studio audience
+pumpkin king
+cliche
+overused trope
+runaway shopping cart
+modern art
+angry onion
+reanimator
+overclocked microwave
+bobble hat
+puzzle fiend
+combinatorial explosion
+
+# Feelings
+existential angst
+figment of your imagination
+flash of insight
+hallucination
+bad thoughts
+hopes and dreams
 
 # Truly scary things
 clown
@@ -429,78 +615,3 @@ mime
 peddler
 haggler
 
-# soundex and typos of monsters
-gloating eye
-flush golem
-martyr orc
-mortar orc
-acid blog
-acute blob
-aria elemental
-aliasing priest
-aligned parasite
-aligned parquet
-aligned proctor
-baby balky dragon
-baby blues dragon
-baby caricature
-baby crochet
-baby grainy dragon
-baby bong worm
-baby long word
-baby parable worm
-barfed devil
-beer wight
-boor wight
-brawny mold
-rave spider
-clue golem
-bust vortex
-errata elemental
-elastic eel
-electrocardiogram eel
-fir elemental
-tire elemental
-flamingo sphere
-fallacy golem
-frizzed centaur
-forest centerfold
-fierceness sphere
-frosted giant
-geriatric snake
-gnat ant
-giant bath
-grant beetle
-grind bug
-giant mango
-glossy golem
-gnome laureate
-gnome dummy
-gooier ooze
-green slide
-guardian nacho
-hell hound pun
-high purist
-hairnet devil
-ice trowel
-killer beet
-feather golem
-lounge worm
-mountain lymph
-pager golem
-pie fiend
-prophylactic worm
-sock mole
-rogue piercer
-seesawing sphere
-simile mimic
-moldier ant
-stain vortex
-scone giant
-umbrella hulk
-vampire mace
-verbal jabberwock
-water lemon
-water melon
-winged grizzly
-yellow wight

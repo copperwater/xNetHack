@@ -1,5 +1,6 @@
 /* NetHack 3.6	o_init.c	$NHDT-Date: 1450318588 2015/12/17 02:16:28 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.22 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -185,8 +186,8 @@ int *lo_p, *hi_p; /* output: range that item belongs among */
     case ARMOR_CLASS:
         if (otyp >= HELMET && otyp <= HELM_OF_TELEPATHY)
             *lo_p = HELMET, *hi_p = HELM_OF_TELEPATHY;
-        else if (otyp >= LEATHER_GLOVES && otyp <= GAUNTLETS_OF_DEXTERITY)
-            *lo_p = LEATHER_GLOVES, *hi_p = GAUNTLETS_OF_DEXTERITY;
+        else if (otyp >= GLOVES && otyp <= GAUNTLETS_OF_DEXTERITY)
+            *lo_p = GLOVES, *hi_p = GAUNTLETS_OF_DEXTERITY;
         else if (otyp >= CLOAK_OF_PROTECTION && otyp <= CLOAK_OF_DISPLACEMENT)
             *lo_p = CLOAK_OF_PROTECTION, *hi_p = CLOAK_OF_DISPLACEMENT;
         else if (otyp >= SPEED_BOOTS && otyp <= LEVITATION_BOOTS)
@@ -236,7 +237,7 @@ shuffle_all()
     };
     /* sub-class type ranges (one item from each group) */
     static short shuffle_types[] = {
-        HELMET, LEATHER_GLOVES, CLOAK_OF_PROTECTION, SPEED_BOOTS,
+        HELMET, GLOVES, CLOAK_OF_PROTECTION, SPEED_BOOTS,
     };
     int first, last, idx;
 

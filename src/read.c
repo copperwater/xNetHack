@@ -1,5 +1,6 @@
 /* NetHack 3.6	read.c	$NHDT-Date: 1515802375 2018/01/13 00:12:55 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.150 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -163,6 +164,12 @@ char *buf;
            from book series _A_Song_of_Ice_and_Fire_ by George R.R. Martin,
            TV show "Game of Thrones" (probably an actual T-shirt too...) */
         "/Valar morghulis/ -- /Valar dohaeris/",
+        "Keep Calm and Quaff Fountains.",
+        "I killed the Wizard of Yendor.  (He got over it.)",
+        "Born to Rune",
+        "Juiblex Jubilee 2008",
+        "David Lee Rothe",
+        "Who watches the Minetown Watchmen?",
     };
 
     Strcpy(buf, shirt_msgs[tshirt->o_id % SIZE(shirt_msgs)]);

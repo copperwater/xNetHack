@@ -1,5 +1,6 @@
 /* NetHack 3.6	detect.c	$NHDT-Date: 1522891623 2018/04/05 01:27:03 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.81 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*
@@ -185,12 +186,12 @@ unsigned material;
     register struct obj *otmp;
     struct obj *temp;
 
-    if (objects[obj->otyp].oc_material == material)
+    if (obj->material == material)
         return obj;
 
     if (Has_contents(obj)) {
         for (otmp = obj->cobj; otmp; otmp = otmp->nobj)
-            if (objects[otmp->otyp].oc_material == material)
+            if (obj->material == material)
                 return otmp;
             else if (Has_contents(otmp)
                      && (temp = o_material(otmp, material)) != 0)

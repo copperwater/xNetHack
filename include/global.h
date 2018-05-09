@@ -1,5 +1,6 @@
-/* NetHack 3.6	global.h	$NHDT-Date: 1465114189 2016/06/05 08:09:49 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.49 $ */
+/* NetHack 3.6	global.h	$NHDT-Date: 1524690661 2018/04/25 21:11:01 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.51 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef GLOBAL_H
@@ -7,7 +8,7 @@
 
 #include <stdio.h>
 
-// #define BETA  /* development or beta testing [MRS] */
+/* #define BETA  */ /* development or beta testing [MRS] */
 
 #define DEBUG
 
@@ -359,6 +360,6 @@ struct savefile_info {
 #define LL_LIFESAVE   0x0010 /* Use up amulet of lifesaving */
 #define LL_CONDUCT    0x0020 /* Break conduct - not reported early-game */
 #define LL_ARTIFACT   0x0040 /* Excalibur, Sting, Orcrist, plus sac gifts and artwishes */
-#define LL_GENOCIDE   0x0080 /* Logging of genocides */ 
-#define LL_DEBUG      0x8000 /* For debugging messages and other spam */ 
+#define LL_GENOCIDE   0x0080 /* Logging of genocides */
+#define LL_DEBUG      0x8000 /* For debugging messages and other spam */
 #endif /* GLOBAL_H */

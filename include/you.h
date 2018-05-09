@@ -1,5 +1,6 @@
 /* NetHack 3.6	you.h	$NHDT-Date: 1450231172 2015/12/16 01:59:32 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.30 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef YOU_H
@@ -103,6 +104,8 @@ struct u_conduct {     /* number of times... */
 struct u_roleplay {
     boolean blind;  /* permanently blind */
     boolean nudist; /* has not worn any armor, ever */
+    boolean hallu;  /* permanently hallucinating */
+    boolean deaf;   /* permanently deaf */
     long numbones;  /* # of bones files loaded  */
 };
 

@@ -1,5 +1,6 @@
 /* NetHack 3.6	cmd.c	$NHDT-Date: 1523306904 2018/04/09 20:48:24 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.281 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -1955,7 +1956,7 @@ int final;
     if (Confusion)
         you_are("confused", "");
     if (Hallucination)
-        you_are("hallucinating", "");
+        you_are("hallucinating", from_what(HALLUC));
     if (Blind) {
         /* from_what() (currently wizard-mode only) checks !haseyes()
            before u.uroleplay.blind, so we should too */
@@ -2772,6 +2773,10 @@ int final;
 
     if (u.uroleplay.blind)
         you_have_been("blind from birth");
+    if (u.uroleplay.deaf)
+        you_have_been("deaf from birth");
+    if (u.uroleplay.hallu)
+        you_have_been("hallucinating for your entire life");
     if (u.uroleplay.nudist)
         you_have_been("faithfully nudist");
 

@@ -1,5 +1,6 @@
 /* NetHack 3.6	invent.c	$NHDT-Date: 1519672703 2018/02/26 19:18:23 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.225 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -3210,7 +3211,7 @@ register struct obj *otmp, *obj;
     if (obj->dknown != otmp->dknown
         /* || (obj->bknown != otmp->bknown && !Role_if(PM_PRIEST)) */
         || obj->oeroded != otmp->oeroded || obj->oeroded2 != otmp->oeroded2
-        || obj->greased != otmp->greased)
+        || obj->material != otmp->material || obj->greased != otmp->greased)
         return FALSE;
 
     if ((obj->oclass == WEAPON_CLASS || obj->oclass == ARMOR_CLASS)

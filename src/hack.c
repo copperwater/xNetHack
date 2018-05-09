@@ -1,5 +1,6 @@
 /* NetHack 3.6	hack.c	$NHDT-Date: 1518861490 2018/02/17 09:58:10 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.182 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -872,8 +873,11 @@ int mode;
 
     if (sobj_at(BOULDER, x, y) && (Sokoban || !Passes_walls)) {
         if (!(Blind || Hallucination) && (context.run >= 2)
-            && mode != TEST_TRAV)
+            && mode != TEST_TRAV) {
+            if (mode == DO_MOVE && iflags.mention_walls)
+                pline("A boulder blocks your path.");
             return FALSE;
+        }
         if (mode == DO_MOVE) {
             /* tunneling monsters will chew before pushing */
             if (tunnels(youmonst.data) && !needspick(youmonst.data)

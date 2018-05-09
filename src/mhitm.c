@@ -1,5 +1,6 @@
 /* NetHack 3.6	mhitm.c	$NHDT-Date: 1513297346 2017/12/15 00:22:26 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.99 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -413,8 +414,8 @@ register struct monst *magr, *mdef;
                 res[i] = hitmm(magr, mdef, mattk);
                 if ((mdef->data == &mons[PM_BLACK_PUDDING]
                      || mdef->data == &mons[PM_BROWN_PUDDING])
-                    && (otmp && (objects[otmp->otyp].oc_material == IRON
-                                 || objects[otmp->otyp].oc_material == METAL))
+                    && (otmp && (otmp->material == IRON
+                                 || otmp->material == METAL))
                     && mdef->mhp > 1
                     && !mdef->mcan) {
                     if (clone_mon(mdef, 0, 0)) {
@@ -1540,6 +1541,22 @@ int mdead;
         if (!rn2(6))
             acid_damage(MON_WEP(magr));
         goto assess_dmg;
+    /* Grudge patch. */
+    case AD_MAGM:
+      /* wrath of gods for attacking Oracle */
+        if(resists_magm(magr)) {
+            if(canseemon(magr)) {
+                shieldeff(magr->mx, magr->my);
+                pline("A hail of magic missiles narrowly misses %s!",
+                    mon_nam(magr));
+              }
+        } else {
+            if(canseemon(magr))
+                pline(magr->data == &mons[PM_WOODCHUCK] ? "ZOT!" :
+                    "%s is hit by magic missiles appearing from thin air!",
+                    Monnam(magr));
+            goto assess_dmg;
+        } break;
     case AD_ENCH: /* KMH -- remove enchantment (disenchanter) */
         if (mhit && !mdef->mcan && otmp) {
             (void) drain_item(otmp, FALSE);

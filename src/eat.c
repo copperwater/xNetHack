@@ -1,5 +1,6 @@
 /* NetHack 3.6	eat.c	$NHDT-Date: 1502754159 2017/08/14 23:42:39 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.179 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -1494,7 +1495,6 @@ struct obj *otmp;
             tmp = rn2(uwep->cursed ? 3 : !uwep->blessed ? 2 : 1);
             break;
         case DAGGER:
-        case SILVER_DAGGER:
         case ELVEN_DAGGER:
         case ORCISH_DAGGER:
         case ATHAME:
@@ -2110,7 +2110,7 @@ eatspecial()
         vault_gd_watching(GD_EATGOLD);
         return;
     }
-    if (objects[otmp->otyp].oc_material == PAPER) {
+    if (otmp->material == PAPER) {
 #ifdef MAIL
         if (otmp->otyp == SCR_MAIL)
             /* no nutrition */
@@ -2180,10 +2180,9 @@ struct obj *otmp;
 {
     if (otmp->oclass == FOOD_CLASS)
         return "food";
-    if (otmp->oclass == GEM_CLASS && objects[otmp->otyp].oc_material == GLASS
-        && otmp->dknown)
+    if (is_worthless_glass(otmp) && otmp->dknown)
         makeknown(otmp->otyp);
-    return foodwords[objects[otmp->otyp].oc_material];
+    return foodwords[otmp->material];
 }
 
 /* called after consuming (non-corpse) food */
@@ -2314,7 +2313,7 @@ struct obj *otmp;
          it_or_they[QBUFSZ], eat_it_anyway[QBUFSZ];
     boolean cadaver = (otmp->otyp == CORPSE || otmp->globby),
             stoneorslime = FALSE;
-    int material = objects[otmp->otyp].oc_material, mnum = otmp->corpsenm;
+    int material = otmp->material, mnum = otmp->corpsenm;
     long rotted = 0L;
 
     Strcpy(foodsmell, Tobjnam(otmp, "smell"));
@@ -2574,7 +2573,7 @@ doeat()
             ll_conduct++;
             livelog_printf(LL_CONDUCT, "ate for the first time (%s)", food_xname(otmp,FALSE));
         }
-        material = objects[otmp->otyp].oc_material;
+        material = otmp->material;
         if (material == LEATHER || material == BONE
             || material == DRAGON_HIDE) {
             if(!u.uconduct.unvegan++ && !ll_conduct) {
@@ -2591,7 +2590,7 @@ doeat()
         if (otmp->cursed) {
             (void) rottenfood(otmp);
             nodelicious = TRUE;
-        } else if (objects[otmp->otyp].oc_material == PAPER)
+        } else if (otmp->material == PAPER)
             nodelicious = TRUE;
 
         if (otmp->oclass == WEAPON_CLASS && otmp->opoisoned) {
@@ -2672,8 +2671,7 @@ doeat()
         /* No checks for WAX, LEATHER, BONE, DRAGON_HIDE.  These are
          * all handled in the != FOOD_CLASS case, above.
          */
-        switch (objects[otmp->otyp].oc_material) {
-        case FLESH:
+        if (otmp->material == FLESH) {
             if(!u.uconduct.unvegan++ && !ll_conduct) {
                 ll_conduct++;
                 livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s", an(food_xname(otmp,FALSE)));
@@ -2683,15 +2681,12 @@ doeat()
                     livelog_printf(LL_CONDUCT, "tasted meat for the first time, by eating %s", an(food_xname(otmp,FALSE)));
                 violated_vegetarian();
             }
-            break;
-
-        default:
-            if (otmp->otyp == PANCAKE || otmp->otyp == FORTUNE_COOKIE /*eggs*/
-                || otmp->otyp == CREAM_PIE || otmp->otyp == CANDY_BAR /*milk*/
-                || otmp->otyp == LUMP_OF_ROYAL_JELLY)
-                if(!u.uconduct.unvegan++ && !ll_conduct)
-                    livelog_printf(LL_CONDUCT, "consumed animal products (%s) for the first time", food_xname(otmp,FALSE));
-            break;
+        }
+        else if (otmp->otyp == PANCAKE || otmp->otyp == FORTUNE_COOKIE /*eggs*/
+                 || otmp->otyp == CREAM_PIE || otmp->otyp == CANDY_BAR /*milk*/
+                 || otmp->otyp == LUMP_OF_ROYAL_JELLY) {
+            if(!u.uconduct.unvegan++ && !ll_conduct)
+                livelog_printf(LL_CONDUCT, "consumed animal products (%s) for the first time", food_xname(otmp,FALSE));
         }
 
         context.victual.reqtime = objects[otmp->otyp].oc_delay;

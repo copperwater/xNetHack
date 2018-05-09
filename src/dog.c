@@ -1,5 +1,6 @@
 /* NetHack 3.6	dog.c	$NHDT-Date: 1502753406 2017/08/14 23:30:06 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.60 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -839,7 +840,7 @@ register struct obj *obj;
         if (obj->otyp == AMULET_OF_STRANGULATION
             || obj->otyp == RIN_SLOW_DIGESTION)
             return TABU;
-        if (mon_hates_silver(mon) && objects[obj->otyp].oc_material == SILVER)
+        if (mon_hates_silver(mon) && obj->material == SILVER)
             return TABU;
         if (mptr == &mons[PM_GELATINOUS_CUBE] && is_organic(obj))
             return ACCFOOD;

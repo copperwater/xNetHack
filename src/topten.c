@@ -1,5 +1,6 @@
 /* NetHack 3.6	topten.c	$NHDT-Date: 1450451497 2015/12/18 15:11:37 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.44 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -387,8 +388,13 @@ encodexlogflags()
         e |= 1L << 0;
     if (discover)
         e |= 1L << 1;
-    if (!u.uroleplay.numbones)
-        e |= 1L << 2;
+    /* Reserve the 9th through 16th bits as their own number representing the
+     * number of bones files loaded. */
+    if (u.uroleplay.numbones > 0xFF) {
+        impossible("more than 255 bones files loaded?");
+        u.uroleplay.numbones = 0xFF;
+    }
+    e |= u.uroleplay.numbones << 8;
 
     return e;
 }
@@ -428,6 +434,14 @@ encodeconduct()
         e |= 1L << 13;
     if (!u.uconduct.scares)
         e |= 1L << 14;
+    if (u.uroleplay.blind)
+        e |= 1L << 15;
+    if (u.uroleplay.nudist)
+        e |= 1L << 16;
+    if (u.uroleplay.hallu)
+        e |= 1L << 17;
+    if (u.uroleplay.deaf)
+        e |= 1L << 18;
 
     return e;
 }
@@ -461,10 +475,6 @@ encodeachieve()
         r |= 1L << 10;
     if (u.uachieve.killed_medusa)
         r |= 1L << 11;
-    if (u.uroleplay.blind)
-        r |= 1L << 12;
-    if (u.uroleplay.nudist)
-        r |= 1L << 13;
 
     return r;
 }

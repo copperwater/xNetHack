@@ -1,5 +1,6 @@
 /* NetHack 3.6	mthrowu.c	$NHDT-Date: 1514152830 2017/12/24 22:00:30 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.73 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -85,8 +86,7 @@ const char *name; /* if null, then format `*objp' */
             potionhit(&youmonst, obj, POTHIT_OTHER_THROW);
             *objp = obj = 0; /* potionhit() uses up the potion */
         } else {
-            if (obj && objects[obj->otyp].oc_material == SILVER
-                && Hate_silver) {
+            if (obj && obj->material == SILVER && Hate_silver) {
                 /* extra damage already applied by dmgval() */
                 pline_The("silver sears your flesh!");
                 exercise(A_CON, FALSE);
@@ -372,8 +372,7 @@ boolean verbose;    /* give message(s) even when you can't see what happened */
                 damage += rnd(6);
             }
         }
-        if (objects[otmp->otyp].oc_material == SILVER
-            && mon_hates_silver(mtmp)) {
+        if (otmp->material == SILVER && mon_hates_silver(mtmp)) {
             if (vis)
                 pline_The("silver sears %s flesh!", s_suffix(mon_nam(mtmp)));
             else if (verbose && !target)
@@ -1117,8 +1116,7 @@ boolean your_fault, from_invent;
     else if (obj_type == BOULDER || obj_type == HEAVY_IRON_BALL)
         pline("Whang!");
     else if (otmp->oclass == COIN_CLASS
-             || objects[obj_type].oc_material == GOLD
-             || objects[obj_type].oc_material == SILVER)
+             || otmp->material == GOLD || otmp->material == SILVER)
         pline("Clink!");
     else
         pline("Clonk!");

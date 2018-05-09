@@ -1,5 +1,6 @@
 /* NetHack 3.6	mhitu.c	$NHDT-Date: 1513297347 2017/12/15 00:22:27 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.149 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -994,10 +995,10 @@ register struct attack *mattk;
                     hitmsg(mtmp, mattk);
                 if (!dmg)
                     break;
-                if (objects[otmp->otyp].oc_material == SILVER
-                    && Hate_silver) {
+                if (otmp->material == SILVER && Hate_silver) {
                     pline_The("silver sears your flesh!");
                     exercise(A_CON, FALSE);
+                    dmg += rnd(20);
                 }
                 /* this redundancy necessary because you have
                    to take the damage _before_ being cloned;
@@ -1008,9 +1009,8 @@ register struct attack *mattk;
                 if (tmp < 1)
                     tmp = 1;
                 if (u.mh - tmp > 1
-                    && (objects[otmp->otyp].oc_material == IRON
+                    && (otmp->material == IRON || otmp->material == METAL)
                         /* relevant 'metal' objects are scalpel and tsurugi */
-                        || objects[otmp->otyp].oc_material == METAL)
                     && (u.umonnum == PM_BLACK_PUDDING
                         || u.umonnum == PM_BROWN_PUDDING)) {
                     if (tmp > 1)
@@ -1195,7 +1195,7 @@ register struct attack *mattk;
         } else {
             if (uarmf) {
                 if (rn2(2) && (uarmf->otyp == LOW_BOOTS
-                               || uarmf->otyp == IRON_SHOES)) {
+                               || uarmf->otyp == DWARVISH_BOOTS)) {
                     pline("%s pricks the exposed part of your %s %s!",
                           Monst_name, sidestr, leg);
                 } else if (!rn2(5)) {
@@ -1305,9 +1305,11 @@ register struct attack *mattk;
 
     case AD_SSEX:
         if (SYSOPT_SEDUCE) {
-            if (could_seduce(mtmp, &youmonst, mattk) == 1 && !mtmp->mcan)
+            if (could_seduce(mtmp, &youmonst, mattk) == 1 && !mtmp->mcan) {
+                mintroduce(mtmp);
                 if (doseduce(mtmp))
                     return 3;
+            }
             break;
         }
         /*FALLTHRU*/
@@ -1327,18 +1329,21 @@ register struct attack *mattk;
             if (!tele_restrict(mtmp))
                 (void) rloc(mtmp, TRUE);
             return 3;
-        } else if (mtmp->mcan) {
-            if (!Blind)
-                pline("%s tries to %s you, but you seem %s.",
-                      Adjmonnam(mtmp, "plain"),
-                      flags.female ? "charm" : "seduce",
-                      flags.female ? "unaffected" : "uninterested");
-            if (rn2(3)) {
-                if (!tele_restrict(mtmp))
-                    (void) rloc(mtmp, TRUE);
-                return 3;
+        } else {
+            mintroduce(mtmp);
+            if (mtmp->mcan) {
+                if (!Blind)
+                    pline("%s tries to %s you, but you seem %s.",
+                        Adjmonnam(mtmp, "plain"),
+                        flags.female ? "charm" : "seduce",
+                        flags.female ? "unaffected" : "uninterested");
+                if (rn2(3)) {
+                    if (!tele_restrict(mtmp))
+                        (void) rloc(mtmp, TRUE);
+                    return 3;
+                }
+                break;
             }
-            break;
         }
         buf[0] = '\0';
         switch (steal(mtmp, buf)) {
@@ -1629,6 +1634,35 @@ register struct attack *mattk;
     default:
         dmg = 0;
         break;
+    }
+    /* handle silver gloves for touch attacks */
+    switch(mattk->aatyp) {
+    case AT_WEAP:
+        if (mon_currwep)
+            break;
+        /* FALLTHRU */
+    case AT_CLAW:
+    case AT_TUCH:
+    case AT_HUGS:
+        {
+            struct obj *marmg = which_armor(mtmp, W_ARMG);
+            if (marmg && marmg->material == SILVER && Hate_silver) {
+                /* assume that marmg is plural */
+                pline("%s sear your flesh!", upstart(yname(marmg)));
+                exercise(A_CON, FALSE);
+                dmg += rnd(20);
+            }
+        }
+        break;
+    case AT_KICK:
+        {
+            struct obj * marmf = which_armor(mtmp, W_ARMF);
+            if (marmf && marmf->material == SILVER && Hate_silver) {
+                pline("%s sear your flesh!", upstart(yname(marmf)));
+                exercise(A_CON, FALSE);
+                dmg += rnd(20);
+            }
+        }
     }
     if ((Upolyd ? u.mh : u.uhp) < 1) {
         /* already dead? call rehumanize() or done_in_by() as appropriate */

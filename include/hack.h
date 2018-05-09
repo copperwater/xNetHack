@@ -1,5 +1,6 @@
 /* NetHack 3.6	hack.h	$NHDT-Date: 1490908464 2017/03/30 21:14:24 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.76 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef HACK_H
@@ -464,8 +465,9 @@ enum bodypart_types {
 #define plur(x) (((x) == 1) ? "" : "s")
 
 #define ARM_BONUS(obj)                      \
-    (objects[(obj)->otyp].a_ac + (obj)->spe \
-     - min((int) greatest_erosion(obj), objects[(obj)->otyp].a_ac))
+    (objects[(obj)->otyp].a_ac + (obj)->spe + material_bonus(obj) \
+     - min((int) greatest_erosion(obj), \
+           objects[(obj)->otyp].a_ac + material_bonus(obj)))
 
 #define makeknown(x) discover_object((x), TRUE, TRUE)
 #define distu(xx, yy) dist2((int)(xx), (int)(yy), (int) u.ux, (int) u.uy)

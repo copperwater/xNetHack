@@ -1,5 +1,6 @@
 /* NetHack 3.6	bones.c	$NHDT-Date: 1508827591 2017/10/24 06:46:31 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.71 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985,1993. */
+/*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -160,11 +161,13 @@ boolean restore;
             } else if (otmp->otyp == AMULET_OF_YENDOR) {
                 /* no longer the real Amulet */
                 otmp->otyp = FAKE_AMULET_OF_YENDOR;
+                otmp->material = PLASTIC;
                 curse(otmp);
             } else if (otmp->otyp == CANDELABRUM_OF_INVOCATION) {
                 if (otmp->lamplit)
                     end_burn(otmp, TRUE);
                 otmp->otyp = WAX_CANDLE;
+                otmp->material = WAX;
                 otmp->age = 50L; /* assume used */
                 if (otmp->spe > 0)
                     otmp->quan = (long) otmp->spe;
@@ -173,6 +176,7 @@ boolean restore;
                 curse(otmp);
             } else if (otmp->otyp == BELL_OF_OPENING) {
                 otmp->otyp = BELL;
+                otmp->material = COPPER;
                 curse(otmp);
             } else if (otmp->otyp == SPE_BOOK_OF_THE_DEAD) {
                 otmp->otyp = SPE_BLANK_PAPER;

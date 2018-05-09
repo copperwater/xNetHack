@@ -1,5 +1,6 @@
 /* NetHack 3.6	uhitm.c	$NHDT-Date: 1521684760 2018/03/22 02:12:40 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.176 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -685,10 +686,18 @@ int dieroll;
         /* So do silver rings.  Note: rings are worn under gloves, so you
          * don't get both bonuses.
          */
-        if (!uarmg) {
-            if (uleft && objects[uleft->otyp].oc_material == SILVER)
+        if (uarmg) {
+            if (uarmg->material == SILVER && mon_hates_silver(mon)) {
+                Strcpy(saved_oname, "silver gauntlets");
+                tmp += rnd(20);
+                silvermsg = TRUE;
+                silverobj = TRUE;
+            }
+        }
+        else {
+            if (uleft && uleft->material == SILVER)
                 barehand_silver_rings++;
-            if (uright && objects[uright->otyp].oc_material == SILVER)
+            if (uright && uright->material == SILVER)
                 barehand_silver_rings++;
             if (barehand_silver_rings && mon_hates_silver(mon)) {
                 tmp += rnd(20);
@@ -714,7 +723,7 @@ int dieroll;
                     tmp = 0;
                 else
                     tmp = rnd(2);
-                if (objects[obj->otyp].oc_material == SILVER
+                if (obj->material == SILVER
                     && mon_hates_silver(mon)) {
                     silvermsg = TRUE;
                     silverobj = TRUE;
@@ -795,7 +804,7 @@ int dieroll;
                         return TRUE;
                     hittxt = TRUE;
                 }
-                if (objects[obj->otyp].oc_material == SILVER
+                if (obj->material == SILVER
                     && mon_hates_silver(mon)) {
                     silvermsg = TRUE;
                     silverobj = TRUE;
@@ -1050,7 +1059,7 @@ int dieroll;
                      * Things like silver wands can arrive here so
                      * so we need another silver check.
                      */
-                    if (objects[obj->otyp].oc_material == SILVER
+                    if (obj->material == SILVER
                         && mon_hates_silver(mon)) {
                         tmp += rnd(20);
                         silvermsg = TRUE;
@@ -1189,9 +1198,8 @@ int dieroll;
         /* iron weapon using melee or polearm hit [3.6.1: metal weapon too;
            also allow either or both weapons to cause split when twoweap] */
         && obj && (obj == uwep || (u.twoweap && obj == uswapwep))
-        && ((objects[obj->otyp].oc_material == IRON
-             /* allow scalpel and tsurugi to split puddings */
-             || objects[obj->otyp].oc_material == METAL)
+        && ((obj->material == IRON || obj->material == METAL)
+            /* allow scalpel and tsurugi to split puddings */
             /* but not bashing with darts, arrows or ya */
             && !(is_ammo(obj) || is_missile(obj)))
         && hand_to_hand) {
@@ -1297,7 +1305,7 @@ struct obj *obj;
         || obj->otyp == IRON_CHAIN      /* dmgval handles those first three */
         || obj->otyp == MIRROR          /* silver in the reflective surface */
         || obj->otyp == CLOVE_OF_GARLIC /* causes shades to flee */
-        || objects[obj->otyp].oc_material == SILVER)
+        || obj->material == SILVER)
         return TRUE;
     return FALSE;
 }

@@ -1,0 +1,42 @@
+xNetHack 0.2.0 Changelog
+
+This is the first minor update version of xNetHack. It is a fork off of
+the vanilla NetHack 3.6.1 release, and is also based directly on
+xNetHack 0.1.0. It will continue to contain all of the latest commits
+pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
+
+The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
+attempts to describe these changes in a way that's better formatted and more
+friendly to players. However, it might be out of date; in case of conflicting
+information, this changelog and others in this folder are more up-to-date than
+the wiki page, and the commit messages are more up-to-date than this changelog.
+
+On top of any changes made by the NetHack devteam on 3.6.1, and any changes
+made in previous xNetHack versions, xNetHack 0.2.0 contains the following
+gameplay changes:
+
+The object materials patch has been ported (mostly from GruntHack):
+  Objects may now generate being made of a material that isn't their base type.
+  This affects their weight, price, AC (for armor), and special effects, such
+    as silver affecting demons.
+  Special-material variants of objects such as silver daggers have been removed.
+    Some names are changed to reflect this (e.g. leather armor is now "light
+    armor", iron skull cap is now "skull cap")
+  Artifacts always have one specific material. This is the same as the base
+    item for all artifacts except for Sunsword (gold), Werebane (silver),
+    Grayswandir (silver), and the Platinum Yendorian Express Card (platinum).
+  Materials are not wishable except in wizard mode.
+Nymphs and foocubi will introduce themselves (giving them a name) if they do
+  not already have a name, when they initiate their charm or seduction attacks.
+Permanent hallucination mode: enable it with OPTIONS=hallucination in config.
+  This is unbreakable unless you wield Grayswandir. It is counted as a conduct.
+Permanent deafness mode: enable it with OPTIONS=deaf in config. It is counted
+  as a conduct.
+
+It contains the following non-gameplay interface changes:
+
+Lots of new hallucinatory monsters, engravings, shirts, headstones, and rumors.
+
+It contains the following non-gameplay architectural changes:
+
+Refactor xlogfile bitfields. Blind and nudist are moved to conducts. The exact number of bones files generated now has a whole byte to itself, in the flags field.

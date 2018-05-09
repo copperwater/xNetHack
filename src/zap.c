@@ -1,5 +1,6 @@
 /* NetHack 3.6	zap.c	$NHDT-Date: 1524470244 2018/04/23 07:57:24 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.275 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -1212,7 +1213,7 @@ int mat, minwt;
             continue;
 #endif
 
-        if (((int) objects[otmp->otyp].oc_material == mat)
+        if (((int) otmp->material == mat)
             == (rn2(minwt + 1) != 0)) {
             /* appropriately add damage to bill */
             if (costly_spot(otmp->ox, otmp->oy)) {
@@ -1344,7 +1345,7 @@ struct obj *obj;
         /* some may metamorphosize */
         for (i = obj->quan; i; i--)
             if (!rn2(Luck + 45)) {
-                poly_zapped = objects[obj->otyp].oc_material;
+                poly_zapped = obj->material;
                 break;
             }
     }
@@ -1555,8 +1556,8 @@ int id;
 
     case GEM_CLASS:
         if (otmp->quan > (long) rnd(4)
-            && objects[obj->otyp].oc_material == MINERAL
-            && objects[otmp->otyp].oc_material != MINERAL) {
+            && obj->material == MINERAL
+            && otmp->material != MINERAL) {
             otmp->otyp = ROCK; /* transmutation backfired */
             otmp->quan /= 2L;  /* some material has been lost */
         }
@@ -1663,8 +1664,7 @@ struct obj *obj;
     xchar oox, ooy;
     boolean smell = FALSE, golem_xform = FALSE;
 
-    if (objects[obj->otyp].oc_material != MINERAL
-        && objects[obj->otyp].oc_material != GEMSTONE)
+    if (obj->material != MINERAL && obj->material != GEMSTONE)
         return 0;
     /* Heart of Ahriman usually resists; ordinary items rarely do */
     if (obj_resists(obj, 2, 98))
@@ -1692,6 +1692,19 @@ struct obj *obj;
                 /* animate_statue() forces all golems to become flesh golems */
                 mon = animate_statue(obj, oox, ooy, ANIMATE_SPELL, (int *) 0);
             } else { /* (obj->otyp == FIGURINE) */
+                if (obj->otyp != FIGURINE) {
+                    /* hedge against other stone tools being added */
+                    pline("%s to flesh!", Tobjnam(obj, "turn"));
+                    obj->material = FLESH;
+                    obj->owt = weight(obj);
+                    break;
+                }
+                if (vegetarian(&mons[obj->corpsenm])) {
+                    /* don't animate monsters that aren't fleshy */
+                    obj = poly_obj(obj, MEATBALL);
+                    smell = TRUE;
+                    break;
+                }
                 if (golem_xform)
                     ptr = &mons[PM_FLESH_GOLEM];
                 mon = makemon(ptr, oox, ooy, NO_MINVENT);
@@ -1749,9 +1762,16 @@ struct obj *obj;
         smell = TRUE;
         break;
     case WEAPON_CLASS: /* crysknife */
-        /*FALLTHRU*/
+        /* FALLTHRU */
     default:
-        res = 0;
+        if (valid_obj_material(obj, FLESH)) {
+            pline("%s to flesh!", Tobjnam(obj, "turn"));
+            obj->material = FLESH;
+            obj->owt = weight(obj);
+        }
+        else {
+            res = 0;
+        }
         break;
     }
 

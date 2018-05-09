@@ -1,5 +1,6 @@
 /* NetHack 3.6	pager.c	$NHDT-Date: 1523142395 2018/04/07 23:06:35 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.123 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* This file contains the command routines dowhatis() and dohelp() and */
@@ -1089,14 +1090,22 @@ short otyp;
     if (!(olet == RING_CLASS || olet == WAND_CLASS) || oc.oc_name_known) {
         /* char array converting materials to strings; if this is ever needed
         * anywhere else it should be externified. Corresponds exactly to the
-        * materials defined in objclass.h. */
-        const char* obj_materials[] = {
-            NULL, "liquid", "wax", "vegetable matter", "flesh", "paper",
-            "cloth", "leather", "wood", "bone", "dragon hide", "iron",
-            "metal", "copper", "silver", "gold", "platinum", "mithril",
-            "plastic", "glass", "gemstone", "stone"
-        };
-        Sprintf(buf, "Made of %s.", obj_materials[oc.oc_material]);
+        * materials defined in objclass.h.
+        * This is very similar to materialnm[], but the slight difference is
+        * that this is always the noun form whereas materialnm uses adjective
+        * forms; most materials have the same noun and adjective forms but two
+        * (wood/wooden, vegetable matter/organic) don't */
+        const char* mat_str = materialnm[oc.oc_material];
+        /* Two exceptions to materialnm, which uses adjectival forms: most of
+         * these work fine as nouns but two don't. */
+        if (oc.oc_material == WOOD) {
+            mat_str = "wood";
+        }
+        else if (oc.oc_material == VEGGY) {
+            mat_str = "vegetable matter";
+        }
+
+        Sprintf(buf, "Normally made of %s.", mat_str);
         OBJPUTSTR(buf);
     }
 

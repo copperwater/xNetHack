@@ -1,5 +1,6 @@
 /* NetHack 3.6	sit.c	$NHDT-Date: 1458341129 2016/03/18 22:45:29 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.53 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -76,7 +77,7 @@ dosit()
                                                                   : "");
         } else {
             You("sit on %s.", the(xname(obj)));
-            if (!(Is_box(obj) || objects[obj->otyp].oc_material == CLOTH))
+            if (!(Is_box(obj) || obj->material == CLOTH))
                 pline("It's not very comfortable...");
         }
     } else if (trap != 0 || (u.utrap && (u.utraptype >= TT_LAVA))) {

@@ -32,10 +32,12 @@ Wielding Sting will auto-destroy any web you are stuck in when you try to move o
 Dropping a container onto an altar will show colored flashes corresponding to its contents and identify their beatitude.
 Objects will merge with other objects even if the enchantment, beatitude, or erosionproofing on one of the items is not known. The merge will retain your knowledge of the objects' enchantment and beatitude.
 Archeologists begin the game with a grappling hook.
+Pits in graveyards generate 1/200 of the time instead of 1/80.
 
 It contains the following non-gameplay interface changes:
 In the Ctrl-X status screen, the last turn on which you prayed is displayed.
 Grappling hooks are now known as that even when unidentified, "iron hook" is removed.
+Altars are colored according to their alignment: yellow for lawful, gray for neutral, red for chaotic, and black for unaligned. High altars are bright magenta.
 
 It contains the following non-gameplay architectural changes:
 

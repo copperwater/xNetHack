@@ -1,5 +1,6 @@
 /* NetHack 3.6  artilist.h      $NHDT-Date: 1433050874 2015/05/31 05:41:14 $  $NHDT-Branch: master $:$NHDT-Revision: 1.16 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifdef MAKEDEFS_C
@@ -112,11 +113,11 @@ STATIC_OVL NEARDATA struct artifact artilist[] = {
       PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_LAWFUL, NON_PM, NON_PM, 2500L,
       NO_COLOR),
 
-    A("Werebane", SILVER_SABER, (SPFX_RESTR | SPFX_DFLAG2), 0, M2_WERE,
+    A("Werebane", SABER, (SPFX_RESTR | SPFX_DFLAG2), 0, M2_WERE,
       PHYS(5, 0), DFNS(AD_WERE), NO_CARY, 0, A_NONE, NON_PM, NON_PM, 1500L,
       NO_COLOR),
 
-    A("Grayswandir", SILVER_SABER, (SPFX_RESTR | SPFX_HALRES), 0, 0,
+    A("Grayswandir", SABER, (SPFX_RESTR | SPFX_HALRES), 0, 0,
       PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_LAWFUL, NON_PM, NON_PM, 8000L,
       NO_COLOR),
 

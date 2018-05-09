@@ -1,5 +1,6 @@
 /* NetHack 3.6	minion.c	$NHDT-Date: 1432512773 2015/05/25 00:12:53 $  $NHDT-Branch: master $:$NHDT-Revision: 1.33 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
+/*-Copyright (c) Robert Patrick Rankin, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -492,7 +493,7 @@ gain_guardian_angel()
             mtmp->mhp = mtmp->mhpmax =
                 d((int) mtmp->m_lev, 10) + 30 + rnd(30);
             if ((otmp = select_hwep(mtmp)) == 0) {
-                otmp = mksobj(SILVER_SABER, FALSE, FALSE);
+                otmp = mksobj(SABER, FALSE, FALSE);
                 if (mpickobj(mtmp, otmp))
                     panic("merged weapon?");
             }

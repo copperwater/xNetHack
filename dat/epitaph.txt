@@ -1,3 +1,6 @@
+# NetHack 3.6  epitaph.txt       $NHDT-Date: 1524689580 2018/04/25 20:53:00 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.3 $
+# Copyright (c) 2015 by Pasi Kallinen
+# NetHack may be freely redistributed.  See license for details.
 # Epitaphs for random headstones
 #
 #
@@ -62,14 +65,18 @@ Here lies The Lady's maid, died of a Vorpal Blade
 Here lies the left foot of Jack, killed by a land mine.  Let us know if you find any more of him
 He waited too long
 I'd rather be sailing
+I'll just hit this thing one more time, it'll die.
 If a man's deeds do not outlive him, of what value is a mark in stone?
 I'm gonna make it!
+I don't need to unencumber myself, they're only soldiers, I've been killing soldiers, I'll be fine.
 I took both pills!
 I will survive!
 Killed by a black dragon -- This grave is empty
 Let me out of here!
 Lookin' good, Medusa.
+Maybe if I press the key harder I'll hit for more damage next time.
 Mrs. Smith, choked on an apple.  She left behind grieving husband, daughter, and granddaughter.
+MumaKilled
 Nobody believed her when she said her feet were killing her
 No!  I don't want to see my damn conduct!
 One corpse, sans head
@@ -255,6 +262,7 @@ Here lies the body of John Round.  Lost at sea and never found.
 Here there be dragons
 Hey, I didn't write this stuff!
 Hodie mihi, cras tibi
+Hold my beer!
 Hold my calls
 Home Sweet Hell
 Humpty Dumpty, a Bad Egg.  He was pushed off the wall.
@@ -369,6 +377,7 @@ This gravestone provided by The Yendorian Grave Services Inc.
 This is not an important part of my life.
 This one's on me.
 This side up
+Though under Earth and throneless now I be, yet while I lived all Earth was under me
 Tim Burr -- Smashed by a tree
 Tone it down a bit, I'm trying to get some rest here.
 Virtually Alive
@@ -392,5 +401,6 @@ Would you mind moving a bit?  I'm short of breath down here.
 Would you quit being evil over my shoulder?
 Ya really had me going baby, but now I'm gone.
 Yes Dear, just a few more minutes...
+You asked me if it would kill me to be civil...well, now you know.
 You said it wasn't poisonous!
 You set my heart aflame.  You gave me heartburn.

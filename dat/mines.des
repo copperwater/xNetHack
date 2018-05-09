@@ -175,10 +175,10 @@ LOOP [5] {
         IF [30%] {
             OBJECT:('[',"ring mail"),$spot
         } ELSE {
-            [50%]: OBJECT:('[',"studded leather armor"),$spot
+            [50%]: OBJECT:('[',"studded armor"),$spot
         }
     } ELSE {
-        [40%]: OBJECT:('[',"leather armor"),$spot
+        [40%]: OBJECT:('[',"light armor"),$spot
     }
     IF [15%] {
         OBJECT:('[',"dented pot"),$spot
@@ -190,8 +190,8 @@ LOOP [5] {
     } ELSE {
         [20%]: OBJECT:('[',"large shield"),$spot
     }
-    [15%]: OBJECT:('[',"leather gloves"),$spot
-    [20%]: OBJECT:('[',"leather cloak"),$spot
+    [15%]: OBJECT:('[',"gloves"),$spot
+    [20%]: OBJECT:('[',"plain cloak"),$spot
     [50%]: OBJECT:('(',"tin whistle"),$spot
     OBJECT:('%',"corpse"),$spot,montype:"watchman"
 }
@@ -213,11 +213,11 @@ ELSE {
     }
 }
 [20%]: OBJECT:('[',"helmet"),$spot
-[20%]: OBJECT:('[',"leather gloves"),$spot
+[20%]: OBJECT:('[',"gloves"),$spot
 [20%]: OBJECT:('[',"high boots"),$spot
-[10%]: OBJECT:('[',"leather cloak"),$spot
+[10%]: OBJECT:('[',"plain cloak"),$spot
 IF [40%] {
-    OBJECT:(')',"silver saber"),$spot
+    OBJECT:(')',"saber"),$spot
 } ELSE {
     OBJECT:(')',"long sword"),$spot
 }
