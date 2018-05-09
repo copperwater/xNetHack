@@ -115,14 +115,14 @@ curses_init_nhwindows(int *argcp, char **argv)
     } else {
         iflags.use_color = FALSE;
         set_option_mod_status("color", SET_IN_FILE);
-        //iflags.wc2_guicolor = FALSE;
-        //set_wc2_option_mod_status(WC2_GUICOLOR, SET_IN_FILE);
+        iflags.wc2_guicolor = FALSE;
+        set_wc2_option_mod_status(WC2_GUICOLOR, SET_IN_FILE);
     }
 #else
     iflags.use_color = FALSE;
     set_option_mod_status("color", SET_IN_FILE);
-    //iflags.wc2_guicolor = FALSE;
-    //set_wc2_option_mod_status(WC2_GUICOLOR, SET_IN_FILE);
+    iflags.wc2_guicolor = FALSE;
+    set_wc2_option_mod_status(WC2_GUICOLOR, SET_IN_FILE);
 #endif
     noecho();
     raw();
@@ -298,10 +298,15 @@ curses_display_nhwindow(winid wid, BOOLEAN_P block)
         return;
     }
 
-    /* actually display the window */
-    wnoutrefresh(curses_get_nhwin(wid));
-    /* flush pending writes from other windows too */
-    doupdate();
+    /* don't overwrite the splash screen first time through */
+    if (!iflags.window_inited && wid == MAP_WIN)
+        iflags.window_inited = TRUE;
+    else {
+        /* actually display the window */
+        wnoutrefresh(curses_get_nhwin(wid));
+        /* flush pending writes from other windows too */
+        doupdate();
+    }
     if ((wid == MAP_WIN) && block) {
         (void) curses_more();
     }
@@ -570,8 +575,7 @@ curses_print_glyph(winid wid, XCHAR_P x, XCHAR_P y, int glyph)
     /* map glyph to character and color */
     mapglyph(glyph, &ch, &color, &special, x, y);
     if ((special & MG_PET) && iflags.hilite_pet) {
-        //attr = iflags.wc2_petattr;
-        attr = A_REVERSE;
+        attr = iflags.wc2_petattr;
     }
     if ((special & MG_DETECT) && iflags.use_inverse) {
         attr = A_REVERSE;

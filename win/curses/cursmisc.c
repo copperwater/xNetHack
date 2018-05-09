@@ -848,29 +848,3 @@ parse_escape_sequence(void)
 #endif /* !PDCURSES */
 }
 
-
-/* This is a kludge for the statuscolors patch which calls tty-specific
-functions, which causes a compiler error if TTY_GRAPHICS is not
-defined.  Adding stub functions to avoid this. */
-
-#if defined(STATUS_COLORS) && !defined(TTY_GRAPHICS)
-extern void
-term_start_color(int color)
-{
-}
-
-extern void
-term_start_attr(int attr)
-{
-}
-
-extern void
-term_end_color()
-{
-}
-
-extern void
-term_end_attr(int attr)
-{
-}
-#endif /* STATUS_COLORS && !TTY_GRAPGICS */
