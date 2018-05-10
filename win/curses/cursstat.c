@@ -1,5 +1,6 @@
 /* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
+#include <ctype.h> /* toupper() */
 #include "curses.h"
 #include "hack.h"
 #include "wincurs.h"
@@ -14,9 +15,13 @@
  */
 
 extern const char *status_fieldfmt[MAXBLSTATS];
+extern const char *status_fieldnm[MAXBLSTATS];
 extern char *status_vals[MAXBLSTATS];
 extern boolean status_activefields[MAXBLSTATS];
-//extern winid WIN_STATUS;
+
+/* Long format fields for vertical window */
+#define MAXSTATLEN 40
+static char status_vals_long[MAXSTATLEN][MAXBLSTATS];
 
 #ifdef STATUS_HILITES
 static long curses_condition_bits;
@@ -26,6 +31,10 @@ int hpbar_percent, hpbar_color;
 static int FDECL(condcolor, (long, unsigned long *));
 static int FDECL(condattr, (long, unsigned long *));
 #endif /* STATUS_HILITES */
+static void FDECL(draw_status, (unsigned long *));
+static void FDECL(draw_classic, (boolean, unsigned long *));
+static void FDECL(draw_vertical, (boolean, unsigned long *));
+static void FDECL(draw_horizontal, (boolean, unsigned long *));
 
 void
 curses_status_init()
@@ -100,29 +109,29 @@ curses_status_init()
 #define Begin_Attr(m) \
             if (m) {                                                          \
                 if ((m) & HL_BOLD)                                            \
-                    wattron(win, A_BOLD);                              \
+                    wattron(win, A_BOLD);                                     \
                 if ((m) & HL_INVERSE)                                         \
-                    wattron(win,A_REVERSE);                            \
+                    wattron(win,A_REVERSE);                                   \
                 if ((m) & HL_ULINE)                                           \
-                    wattron(win,A_UNDERLINE);                          \
+                    wattron(win,A_UNDERLINE);                                 \
                 if ((m) & HL_BLINK)                                           \
-                    wattron(win,A_BLINK);                              \
+                    wattron(win,A_BLINK);                                     \
                 if ((m) & HL_DIM)                                             \
-                    wattron(win,A_DIM);                                \
+                    wattron(win,A_DIM);                                       \
             }
 
 #define End_Attr(m) \
             if (m) {                                                          \
                 if ((m) & HL_DIM)                                             \
-                    wattroff(win,A_DIM);                               \
+                    wattroff(win,A_DIM);                                      \
                 if ((m) & HL_BLINK)                                           \
-                    wattroff(win,A_BLINK);                             \
+                    wattroff(win,A_BLINK);                                    \
                 if ((m) & HL_ULINE)                                           \
-                    wattroff(win,A_UNDERLINE);                         \
+                    wattroff(win,A_UNDERLINE);                                \
                 if ((m) & HL_INVERSE)                                         \
-                    wattroff(win,A_REVERSE);                           \
+                    wattroff(win,A_REVERSE);                                  \
                 if ((m) & HL_BOLD)                                            \
-                    wattroff(win,A_BOLD);                              \
+                    wattroff(win,A_BOLD);                                     \
             }
 
 #ifdef STATUS_HILITES
@@ -132,57 +141,44 @@ curses_status_init()
             if (curses_condition_bits & (bm)) {                               \
                 putstr(STATUS_WIN, 0, " ");                                   \
                 if (iflags.hilite_delta) {                                    \
-                    attrmask = condattr(bm, colormasks);                      \
-                    Begin_Attr(attrmask);                                     \
-                    if ((coloridx = condcolor(bm, colormasks)) != NO_COLOR)   \
-                        curses_toggle_color_attr(win,coloridx,NONE,ON);\
+                    attrmask = condattr((bm), colormasks);                    \
+                    Begin_Attr(attrmask);                                 \
+                    if ((coloridx = condcolor((bm), colormasks)) != NO_COLOR) \
+                        curses_toggle_color_attr(win, coloridx, NONE, ON);    \
                 }                                                             \
-                putstr(STATUS_WIN, 0, txt);                                   \
+                putstr(STATUS_WIN, 0, (txt));                                 \
                 if (iflags.hilite_delta) {                                    \
                     if (coloridx != NO_COLOR)                                 \
-                        curses_toggle_color_attr(win,coloridx,NONE,OFF);\
+                        curses_toggle_color_attr(win, coloridx, NONE, OFF);   \
                     End_Attr(attrmask);                                       \
                 }                                                             \
             }
 #else
 #define MaybeDisplayCond(bm,txt) \
-            if (curses_condition_bits & (bm)) {                                  \
+            if (curses_condition_bits & (bm)) {                               \
                 putstr(STATUS_WIN, 0, " ");                                   \
                 if (iflags.hilite_delta) {                                    \
-                    attrmask = condattr(bm, colormasks);                      \
-                    Begin_Attr(attrmask);                                     \
+                    attrmask = condattr((bm), colormasks);                    \
+                    Begin_Attr(attrmask);                                 \
                 }                                                             \
-                putstr(STATUS_WIN, 0, txt);                                   \
+                putstr(STATUS_WIN, 0, (txt));                                 \
                 if (iflags.hilite_delta) {                                    \
-                    End_Attr(attrmask);                                       \
+                    End_Attr(attrmask);                                   \
                 }                                                             \
             }
 #endif
 
 void
 curses_status_update(fldidx, ptr, chg, percent, color, colormasks)
-int fldidx, chg UNUSED, percent UNUSED, color;
+int fldidx, chg UNUSED, percent, color;
 genericptr_t ptr;
 unsigned long *colormasks;
 {
     long *condptr = (long *) ptr;
-    int i, attrmask = 0;
-#ifdef TEXTCOLOR
-    int coloridx = NO_COLOR;
-#endif
     char *text = (char *) ptr;
     static boolean oncearound = FALSE; /* prevent premature partial display */
-    enum statusfields fieldorder[2][15] = {
-        { BL_TITLE, BL_STR, BL_DX, BL_CO, BL_IN, BL_WI, BL_CH, BL_ALIGN,
-          BL_SCORE, BL_FLUSH, BL_FLUSH, BL_FLUSH, BL_FLUSH, BL_FLUSH,
-          BL_FLUSH },
-        { BL_LEVELDESC, BL_GOLD, BL_HP, BL_HPMAX, BL_ENE, BL_ENEMAX,
-          BL_AC, BL_XP, BL_EXP, BL_HD, BL_TIME, BL_HUNGER,
-          BL_CAP, BL_CONDITION, BL_FLUSH }
-    };
-    int attridx = 0;
+    boolean use_name = TRUE;
 
-    WINDOW *win = curses_get_nhwin(STATUS_WIN);
     if (fldidx != BL_FLUSH) {
         if (!status_activefields[fldidx])
             return;
@@ -191,11 +187,25 @@ unsigned long *colormasks;
             curses_condition_bits = *condptr;
             oncearound = TRUE;
             break;
+        case BL_TITLE:
+        case BL_HPMAX:
+        case BL_ENEMAX:
+        case BL_HUNGER:
+        case BL_CAP:
+            use_name = FALSE;
+            /* FALLTHROUGH */
         default:
             Sprintf(status_vals[fldidx],
                     (fldidx == BL_TITLE && iflags.wc2_hitpointbar) ? "%-30s" :
                     status_fieldfmt[fldidx] ? status_fieldfmt[fldidx] : "%s",
                     text);
+            if (use_name) {
+                Sprintf(status_vals_long[fldidx], "%s%*c: %s",
+                        status_fieldnm[fldidx],
+                        16-strlen(status_fieldnm[fldidx]), ' ', text);
+                *status_vals_long[fldidx] = toupper(*status_vals_long[fldidx]); 
+            } else
+                strncpy(status_vals_long[fldidx], status_vals[fldidx], MAXSTATLEN-1);
 #ifdef TEXTCOLOR
             curses_status_colors[fldidx] = color;
 #else
@@ -214,8 +224,81 @@ unsigned long *colormasks;
     }
 
     if (!oncearound) return;
+    draw_status(colormasks);
+}
 
-    curs(STATUS_WIN, 1, 0); // adjust for borders
+void
+draw_status(colormasks)
+unsigned long *colormasks;
+{
+    boolean horiz = FALSE;
+    WINDOW *win = curses_get_nhwin(STATUS_WIN);
+    int orient = curses_get_window_orientation(STATUS_WIN);
+    boolean border = curses_window_has_border(STATUS_WIN);
+
+    if ((orient != ALIGN_RIGHT) && (orient != ALIGN_LEFT))
+        horiz = TRUE;
+
+    /* Figure out if we have proper window dimensions for horizontal statusbar. */
+    if (horiz) {
+        /* correct y */
+        int cy = 3;
+        if (iflags.classic_status)
+            cy = 2;
+
+        /* actual y (and x) */
+        int ax = 0;
+        int ay = 0;
+        getmaxyx(win, ay, ax);
+        if (border)
+            ay -= 2;
+
+        if (cy != ay) { /* something changed. Redo everything */
+            curses_create_main_windows();
+            curses_last_messages();
+            doredraw();
+            win = curses_get_nhwin(STATUS_WIN);
+        }
+    }
+
+    werase(win);
+    if (horiz) {
+        if (iflags.classic_status)
+            draw_classic(border, colormasks);
+        else
+            draw_horizontal(border, colormasks);
+    } else
+        draw_vertical(border, colormasks);
+
+    if (border)
+        box(win, 0, 0);
+    wnoutrefresh(win);
+}
+
+/* The 'classic' NetHack 3.x status layout */
+void
+draw_classic(border, colormasks)
+boolean border;
+unsigned long *colormasks;
+{
+    enum statusfields fieldorder[2][15] = {
+        { BL_TITLE, BL_STR, BL_DX, BL_CO, BL_IN, BL_WI, BL_CH, BL_ALIGN,
+          BL_SCORE, BL_FLUSH, BL_FLUSH, BL_FLUSH, BL_FLUSH, BL_FLUSH,
+          BL_FLUSH },
+        { BL_LEVELDESC, BL_GOLD, BL_HP, BL_HPMAX, BL_ENE, BL_ENEMAX,
+          BL_AC, BL_XP, BL_EXP, BL_HD, BL_TIME, BL_HUNGER,
+          BL_CAP, BL_CONDITION, BL_FLUSH }
+    };
+#ifdef TEXTCOLOR
+    int coloridx = NO_COLOR;
+#endif
+    int i, attrmask = 0;
+    char *text;
+    int attridx = 0;
+
+    WINDOW *win = curses_get_nhwin(STATUS_WIN);
+    if (border) wmove(win, 1, 1);
+    else wmove(win, 0, 0);
     for (i = 0; fieldorder[0][i] != BL_FLUSH; ++i) {
         int fldidx1 = fieldorder[0][i];
         if (status_activefields[fldidx1]) {
@@ -296,7 +379,8 @@ unsigned long *colormasks;
         }
     }
     wclrtoeol(win);
-    curs(STATUS_WIN, 1, 1); // borders blah
+    if (border) wmove(win, 2, 1);
+    else wmove (win, 1, 0);
     for (i = 0; fieldorder[1][i] != BL_FLUSH; ++i) {
         int fldidx2 = fieldorder[1][i];
 
@@ -352,6 +436,152 @@ unsigned long *colormasks;
         }
     }
     wclrtoeol(win);
+    return;
+}
+
+/* The new NH4-style horizontal layout on 3 lines */
+void
+draw_horizontal(border, colormasks)
+boolean border;
+unsigned long *colormasks;
+{
+    /* TODO: implement this */
+    /* for now, just draw classic */
+    draw_classic(border, colormasks);
+}
+
+/* The vertical layout from the original curses implementation */
+void
+draw_vertical(border, colormasks)
+boolean border;
+unsigned long *colormasks;
+{
+    enum statusfields fieldorder[24] = {
+         BL_TITLE, BL_STR, BL_DX, BL_CO, BL_IN, BL_WI, BL_CH, BL_ALIGN,
+         BL_SCORE, BL_LEVELDESC, BL_GOLD, BL_HP, BL_HPMAX, BL_ENE, BL_ENEMAX,
+         BL_AC, BL_XP, BL_EXP, BL_HD, BL_TIME, BL_HUNGER,
+         BL_CAP, BL_CONDITION, BL_FLUSH 
+    };
+#ifdef TEXTCOLOR
+    int coloridx = NO_COLOR;
+#endif
+    int i, attrmask = 0;
+    char *text;
+    int attridx = 0;
+    int x = 0, y = 0;
+
+    WINDOW *win = curses_get_nhwin(STATUS_WIN);
+    if (border) x++,y++;
+    for (i = 0; fieldorder[i] != BL_FLUSH; ++i) {
+        int fldidx1 = fieldorder[i];
+        if (status_activefields[fldidx1]) {
+            if (fldidx1 != BL_TITLE || !iflags.wc2_hitpointbar) {
+
+                if (fldidx1 != BL_CONDITION) {
+#ifdef TEXTCOLOR
+                    coloridx = curses_status_colors[fldidx1] & 0x00FF;
+#endif
+                    attridx = (curses_status_colors[fldidx1] & 0xFF00) >> 8;
+                    text = status_vals_long[fldidx1];
+                    if (iflags.hilite_delta) {
+                        if (*text == ' ') {
+                            putstr(STATUS_WIN, 0, " ");
+                            text++;
+                        }
+                        /* multiple attributes can be in effect concurrently */
+                        Begin_Attr(attridx);
+#ifdef TEXTCOLOR
+                        if (coloridx != NO_COLOR && coloridx != CLR_MAX)
+                            curses_toggle_color_attr(win, coloridx, NONE, ON);
+#endif
+                    }
+
+                    if (fldidx1 != BL_HPMAX
+                        && fldidx1 != BL_ENEMAX
+                        && fldidx1 != BL_EXP)
+                        wmove(win, y++, x); /* everything on a new line except the above */
+                
+                    if (fldidx1 == BL_GOLD) {
+                        /* putmixed() due to GOLD glyph */
+                        putmixed(STATUS_WIN, 0, text);
+                    } else {
+                        putstr(STATUS_WIN, 0, text);
+
+                        if (fldidx1 == BL_TITLE) y++;
+
+                        if (iflags.hilite_delta) {
+#ifdef TEXTCOLOR
+                            if (coloridx != NO_COLOR)
+                                curses_toggle_color_attr(win, coloridx,NONE,OFF);
+#endif
+                            End_Attr(attridx);
+                        }
+                    }
+                } else { /* condition */
+                    MaybeDisplayCond(BL_MASK_STONE, "Stone");
+                    MaybeDisplayCond(BL_MASK_SLIME, "Slime");
+                    MaybeDisplayCond(BL_MASK_STRNGL, "Strngl");
+                    MaybeDisplayCond(BL_MASK_FOODPOIS, "FoodPois");
+                    MaybeDisplayCond(BL_MASK_TERMILL, "TermIll");
+                    MaybeDisplayCond(BL_MASK_BLIND, "Blind");
+                    MaybeDisplayCond(BL_MASK_DEAF, "Deaf");
+                    MaybeDisplayCond(BL_MASK_STUN, "Stun");
+                    MaybeDisplayCond(BL_MASK_CONF, "Conf");
+                    MaybeDisplayCond(BL_MASK_HALLU, "Hallu");
+                    MaybeDisplayCond(BL_MASK_LEV, "Lev");
+                    MaybeDisplayCond(BL_MASK_FLY, "Fly");
+                    MaybeDisplayCond(BL_MASK_RIDE, "Ride");
+                }
+            } else {
+                /* hitpointbar using hp percent calculation */
+                int bar_pos, bar_len;
+                char *bar2 = (char *)0;
+                char bar[MAXCO], savedch;
+                boolean twoparts = FALSE;
+
+                text = status_vals[fldidx1];
+                bar_len = strlen(text);
+                if (bar_len < MAXCO-1) {
+                    Strcpy(bar, text);
+                    bar_pos = (bar_len * hpbar_percent) / 100;
+                    if (bar_pos < 1 && hpbar_percent > 0)
+                        bar_pos = 1;
+                    if (bar_pos >= bar_len && hpbar_percent < 100)
+                        bar_pos = bar_len - 1;
+                    if (bar_pos > 0 && bar_pos < bar_len) {
+                        twoparts = TRUE;
+                        bar2 = &bar[bar_pos];
+                        savedch = *bar2;
+                        *bar2 = '\0';
+                    }
+                }
+                wmove(win, y++, x);
+                if (iflags.hilite_delta && iflags.wc2_hitpointbar) {
+                    putstr(STATUS_WIN, 0, "[");
+#ifdef TEXTCOLOR
+                    coloridx = hpbar_color & 0x00FF;
+                    /* attridx = (hpbar_color & 0xFF00) >> 8; */
+                    if (coloridx != NO_COLOR)
+                        curses_toggle_color_attr(win,coloridx,NONE,ON);
+#endif
+                    wattron(win,A_REVERSE);
+                    putstr(STATUS_WIN, 0, bar);
+                    wattroff(win,A_REVERSE);
+#ifdef TEXTCOLOR
+                    if (coloridx != NO_COLOR)
+                        curses_toggle_color_attr(win,coloridx,NONE,OFF);
+#endif
+                    if (twoparts) {
+                        *bar2 = savedch;
+                        putstr(STATUS_WIN, 0, bar2);
+                    }
+                    putstr(STATUS_WIN, 0, "]");
+                } else
+                    putstr(STATUS_WIN, 0, text);
+                y++; /* blank line after title */
+            }
+        }
+    }
     return;
 }
 
@@ -834,7 +1064,6 @@ curses_update_stats(void)
     boolean horiz = FALSE;
     if ((orient != ALIGN_RIGHT) && (orient != ALIGN_LEFT))
         horiz = TRUE;
-
     boolean border = curses_window_has_border(STATUS_WIN);
 
     /* Figure out if we have proper window dimensions for horizontal statusbar. */
