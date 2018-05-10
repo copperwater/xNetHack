@@ -26,6 +26,7 @@ The object materials patch has been ported (mostly from GruntHack):
     item for all artifacts except for Sunsword (gold), Werebane (silver),
     Grayswandir (silver), and the Platinum Yendorian Express Card (platinum).
   Materials are not wishable except in wizard mode.
+  Items in the hero's initial inventory are always their standard material.
 Nymphs and foocubi will introduce themselves (giving them a name) if they do
   not already have a name, when they initiate their charm or seduction attacks.
 Permanent hallucination mode: enable it with OPTIONS=hallucination in config.
