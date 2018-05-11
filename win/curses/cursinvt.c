@@ -91,22 +91,21 @@ curses_add_inv(int y, int glyph, CHAR_P accelerator, attr_t attr,
         wattroff(win, glyphclr);
     }
 #endif
-#ifdef MENU_COLOR
+    int color = NO_COLOR;
     if (accelerator && /* Don't colorize categories */
         iflags.use_menu_color) {
-        int color = NO_COLOR;
         boolean menu_color = FALSE;
         char str_mutable[BUFSZ];
         Strcpy(str_mutable, str);
         attr = 0;
         get_menu_coloring(str_mutable, &color, &attr);
-        if (color != NO_COLOR)
-            attr |= curses_color_attr(color, 0);
+        attr = curses_convert_attr(attr);
     }
-#endif
     
-    wattron(win, attr);
+    curses_toggle_color_attr(win, color, attr, ON);
+    //wattron(win, attr);
     wprintw(win, "%s", str);
-    wattroff(win, attr);
+    //wattroff(win, attr);
+    curses_toggle_color_attr(win, color, attr, OFF);
     wclrtoeol(win);
 }
