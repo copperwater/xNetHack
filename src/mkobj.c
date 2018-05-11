@@ -3051,7 +3051,8 @@ static const struct icp dwarvish_materials[] = {
     { 1, PLATINUM}
 };
 
-/* for objects of elven make - no iron! */
+/* for armor-y objects of elven make - no iron!
+ * Does not cover clothy items; those use the regular cloth probs. */
 static const struct icp elven_materials[] = {
     {80, WOOD},
     {10, COPPER},
@@ -3076,7 +3077,7 @@ struct obj* obj;
 {
     unsigned short otyp = obj->otyp;
     int default_material = objects[otyp].oc_material;
-    if (is_elven_obj(obj)) {
+    if (is_elven_obj(obj) && default_material != CLOTH) {
         if (otyp == ELVEN_HELM) {
             return elvenhelm_materials;
         }
@@ -3084,7 +3085,7 @@ struct obj* obj;
             return elven_materials;
         }
     }
-    else if (is_dwarvish_obj(obj) && otyp != DWARVISH_CLOAK) {
+    else if (is_dwarvish_obj(obj) && default_material != CLOTH) {
         return dwarvish_materials;
     }
     else if (obj->oclass == WEAPON_CLASS || is_weptool(obj)
@@ -3096,10 +3097,9 @@ struct obj* obj;
         else if (default_material == WOOD) {
             return wood_materials;
         }
-    }
-    else if (obj->oclass == ARMOR_CLASS
-             && (default_material == CLOTH || default_material == LEATHER)) {
-        return unrigid_materials;
+        else if (default_material == CLOTH || default_material == LEATHER) {
+            return unrigid_materials;
+        }
     }
     return NULL;
 }
