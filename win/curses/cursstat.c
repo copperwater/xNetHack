@@ -20,8 +20,7 @@ extern char *status_vals[MAXBLSTATS];
 extern boolean status_activefields[MAXBLSTATS];
 
 /* Long format fields for vertical window */
-#define MAXSTATLEN 40
-static char status_vals_long[MAXSTATLEN][MAXBLSTATS];
+static char *status_vals_long[MAXBLSTATS];
 
 #ifdef STATUS_HILITES
 static long curses_condition_bits;
@@ -42,8 +41,11 @@ curses_status_init()
 #ifdef STATUS_HILITES
     int i;
 
-    for (i = 0; i < MAXBLSTATS; ++i)
-        curses_status_colors[i] = NO_COLOR; /* no color */
+    for (i = 0; i < MAXBLSTATS; ++i) {
+	curses_status_colors[i] = NO_COLOR; /* no color */
+	status_vals_long[i] = (char *) alloc(MAXCO);
+        *status_vals_long[i] = '\0';
+    }
     curses_condition_bits = 0L;
     hpbar_percent = 0, hpbar_color = NO_COLOR;
 #endif /* STATUS_HILITES */
@@ -176,12 +178,15 @@ unsigned long *colormasks;
 {
     long *condptr = (long *) ptr;
     char *text = (char *) ptr;
+    char *goldnum = NULL;
     static boolean oncearound = FALSE; /* prevent premature partial display */
     boolean use_name = TRUE;
 
     if (fldidx != BL_FLUSH) {
         if (!status_activefields[fldidx])
             return;
+        if (fldidx == BL_GOLD)
+           goldnum = index(text,':') + 1;
         switch (fldidx) {
         case BL_CONDITION:
             curses_condition_bits = *condptr;
@@ -192,6 +197,7 @@ unsigned long *colormasks;
         case BL_ENEMAX:
         case BL_HUNGER:
         case BL_CAP:
+        case BL_EXP:
             use_name = FALSE;
             /* FALLTHROUGH */
         default:
@@ -200,12 +206,11 @@ unsigned long *colormasks;
                     status_fieldfmt[fldidx] ? status_fieldfmt[fldidx] : "%s",
                     text);
             if (use_name) {
-                Sprintf(status_vals_long[fldidx], "%s%*c: %s",
-                        status_fieldnm[fldidx],
-                        16-strlen(status_fieldnm[fldidx]), ' ', text);
-                *status_vals_long[fldidx] = toupper(*status_vals_long[fldidx]); 
+                Sprintf(status_vals_long[fldidx], "%-16s: %s",
+                        status_fieldnm[fldidx], goldnum ? goldnum : text);
+                *(status_vals_long[fldidx]) = toupper((*status_vals_long[fldidx]));
             } else
-                strncpy(status_vals_long[fldidx], status_vals[fldidx], MAXSTATLEN-1);
+                Strcpy(status_vals_long[fldidx], status_vals[fldidx]);
 #ifdef TEXTCOLOR
             curses_status_colors[fldidx] = color;
 #else
@@ -460,7 +465,7 @@ unsigned long *colormasks;
          BL_TITLE, BL_STR, BL_DX, BL_CO, BL_IN, BL_WI, BL_CH, BL_ALIGN,
          BL_SCORE, BL_LEVELDESC, BL_GOLD, BL_HP, BL_HPMAX, BL_ENE, BL_ENEMAX,
          BL_AC, BL_XP, BL_EXP, BL_HD, BL_TIME, BL_HUNGER,
-         BL_CAP, BL_CONDITION, BL_FLUSH 
+         BL_CAP, BL_CONDITION, BL_FLUSH
     };
 #ifdef TEXTCOLOR
     int coloridx = NO_COLOR;
@@ -500,22 +505,17 @@ unsigned long *colormasks;
                         && fldidx1 != BL_ENEMAX
                         && fldidx1 != BL_EXP)
                         wmove(win, y++, x); /* everything on a new line except the above */
-                
-                    if (fldidx1 == BL_GOLD) {
-                        /* putmixed() due to GOLD glyph */
-                        putmixed(STATUS_WIN, 0, text);
-                    } else {
-                        putstr(STATUS_WIN, 0, text);
 
-                        if (fldidx1 == BL_TITLE) y++;
+                    putstr(STATUS_WIN, 0, text);
 
-                        if (iflags.hilite_delta) {
+                    if (fldidx1 == BL_TITLE) y++;
+
+                    if (iflags.hilite_delta) {
 #ifdef TEXTCOLOR
-                            if (coloridx != NO_COLOR)
-                                curses_toggle_color_attr(win, coloridx,NONE,OFF);
+                        if (coloridx != NO_COLOR)
+                            curses_toggle_color_attr(win, coloridx,NONE,OFF);
 #endif
-                            End_Attr(attridx);
-                        }
+                        End_Attr(attridx);
                     }
                 } else { /* condition */
                     MaybeDisplayCond(BL_MASK_STONE, "Stone");
@@ -538,9 +538,12 @@ unsigned long *colormasks;
                 char *bar2 = (char *)0;
                 char bar[MAXCO], savedch;
                 boolean twoparts = FALSE;
+                int height,width;
 
                 text = status_vals[fldidx1];
-                bar_len = strlen(text);
+                getmaxyx(win, height, width);
+                bar_len = min(strlen(text), width - (border ? 4 : 2));
+                text[bar_len] = '\0';
                 if (bar_len < MAXCO-1) {
                     Strcpy(bar, text);
                     bar_pos = (bar_len * hpbar_percent) / 100;
