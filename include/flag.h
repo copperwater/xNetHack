@@ -404,6 +404,8 @@ struct instance_flags {
     boolean wc2_hitpointbar;  /* show graphical bar representing hit points */
     boolean cmdassist;     /* provide detailed assistance for some commands */
     boolean clicklook;          /* allow right-clicking for look */
+    boolean msg_is_alert; /* suggest windowport should grab player's attention
+                           * and request <TAB> acknowlegement */
     boolean obsolete;  /* obsolete options can point at this, it isn't used */
     struct autopickup_exception *autopickup_exceptions[2];
 #define AP_LEAVE 0
