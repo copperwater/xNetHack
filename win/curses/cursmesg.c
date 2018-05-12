@@ -134,33 +134,38 @@ curses_message_win_puts(const char *message, boolean recursed)
 
 
 int
-curses_block(boolean require_tab)
+curses_block(boolean noscroll)
+/* noscroll - blocking because of msgtype = stop/alert */
+/* else blocking because window is full, so need to scroll after */
 {
     int height, width, ret;
     WINDOW *win = curses_get_nhwin(MESSAGE_WIN);
+    char *resp = " \n\033"; /* space, enter, esc */
+
 
     curses_get_window_size(MESSAGE_WIN, &height, &width);
     curses_toggle_color_attr(win, MORECOLOR, NONE, ON);
-    mvwprintw(win, my, mx, require_tab ? "<TAB!>" : ">>");
+    mvwprintw(win, my, mx, iflags.msg_is_alert ? "<TAB!>" : ">>");
     curses_toggle_color_attr(win, MORECOLOR, NONE, OFF);
-    if (require_tab)
+    if (iflags.msg_is_alert)
         curses_alert_main_borders(TRUE);
     wrefresh(win);
-    while (require_tab && (ret = wgetch(win) != '\t'));
-    /* msgtype=stop should require space rather than
+    while (iflags.msg_is_alert && (ret = wgetch(win) != '\t'));
+    /* msgtype=stop should require space/enter rather than
      * just any key, as we want to prevent YASD from
      * riding direction keys. */
-    while (!require_tab && (ret = wgetch(win) != ' '));
-    if (require_tab)
+    while (!iflags.msg_is_alert && (ret = wgetch(win)) && !index(resp,(char)ret));
+    if (iflags.msg_is_alert)
         curses_alert_main_borders(FALSE);
     if (height == 1) {
         curses_clear_unhighlight_message_window();
     } else {
         mvwprintw(win, my, mx, "      ");
-        if (!require_tab) {
+        if (!noscroll) {
             scroll_window(MESSAGE_WIN);
             turn_lines = 1;
         }
+        wrefresh(win);
     }
 
     return ret;

@@ -312,10 +312,7 @@ curses_display_nhwindow(winid wid, BOOLEAN_P block)
     }
 
     if ((wid == MESSAGE_WIN) && block) {
-        if (iflags.msg_is_alert)
-            (void) curses_block(TRUE);
-        else
-            (void) curses_more();
+        (void) curses_block(TRUE);
     }
 }
 
