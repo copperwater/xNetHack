@@ -146,7 +146,11 @@ curses_block(boolean require_tab)
     if (require_tab)
         curses_alert_main_borders(TRUE);
     wrefresh(win);
-    while ((ret = wgetch(win) != '\t') && require_tab);
+    while (require_tab && (ret = wgetch(win) != '\t'));
+    /* msgtype=stop should require space rather than
+     * just any key, as we want to prevent YASD from
+     * riding direction keys. */
+    while (!require_tab && (ret = wgetch(win) != ' '));
     if (require_tab)
         curses_alert_main_borders(FALSE);
     if (height == 1) {
