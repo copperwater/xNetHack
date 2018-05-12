@@ -730,6 +730,7 @@ initoptions_init()
 #endif
     iflags.menu_headings = ATR_INVERSE;
     iflags.getpos_coords = GPCOORDS_NONE;
+    iflags.msg_is_alert = FALSE;
 
     /* hero's role, race, &c haven't been chosen yet */
     flags.initrole = flags.initrace = flags.initgend = flags.initalign
@@ -1485,6 +1486,8 @@ static const struct {
     { "noshow", MSGTYP_NOSHOW, NULL },
     { "stop", MSGTYP_STOP, "Prompt for more after the message" },
     { "more", MSGTYP_STOP, NULL },
+    /* 'alert' will fallback to 'stop' behaviour if windowport does not support it */
+    { "alert", MSGTYP_ALERT, "Force acknowlegement with <TAB>" },
     { "norep", MSGTYP_NOREP, "Do not repeat the message" }
 };
 
