@@ -101,7 +101,7 @@ curses_add_inv(int y, int glyph, CHAR_P accelerator, attr_t attr,
         get_menu_coloring(str_mutable, &color, &attr);
         attr = curses_convert_attr(attr);
     }
-    
+    if (color == NO_COLOR) color = NONE;
     curses_toggle_color_attr(win, color, attr, ON);
     //wattron(win, attr);
     wprintw(win, "%s", str);
