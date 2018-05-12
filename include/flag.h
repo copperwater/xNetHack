@@ -324,6 +324,8 @@ struct instance_flags {
     boolean cmdassist;       /* provide detailed assistance for some comnds */
     boolean time_botl;       /* context.botl for 'time' (moves) only */
     boolean wizweight;       /* display weight of everything in wizard mode */
+    boolean msg_is_alert;    /* suggest windowport should grab player's attention
+                              * and request <TAB> acknowlegement */
     /*
      * Window capability support.
      */
