@@ -143,15 +143,15 @@ nhrgb orig_hiwhite;
 " \\__,_||_| \\_| \\___| \\__||_|  |_| \\__,_| \\___||_|\\_\\"
 
 #define XNETHACK_SPLASH_A \
-"      _   _      _   _   _            _      _     "
+"      _   _      _   _   _            _    "
 #define XNETHACK_SPLASH_B \
-"__  _| \ | | ___| |_| | | | __ _  ___| | __ (_)___ "
+"__  _| \\ | | ___| |_| | | | __ _  ___| | __"
 #define XNETHACK_SPLASH_C \
-"\ \/ /  \| |/ _ \ __| |_| |/ _` |/ __| |/ / | / __|"
+"\\ \\/ /  \\| |/ _ \\ __| |_| |/ _` |/ __| |/ /"
 #define XNETHACK_SPLASH_D \
-" >  <| |\  |  __/ |_|  _  | (_| | (__|   <  | \__ \"
+" >  <| |\\  |  __/ |_|  _  | (_| | (__|   < "
 #define XNETHACK_SPLASH_E \
-"/_/\_\_| \_|\___|\__|_| |_|\__,_|\___|_|\_\ |_|___/"
+"/_/\\_\\_| \\_|\\___|\\__|_| |_|\\__,_|\\___|_|\\_\\"
 
 /* win* is size and placement of window to change, x/y/w/h is baseline which can
    decrease depending on alignment of win* in orientation.
