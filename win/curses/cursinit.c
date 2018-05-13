@@ -143,15 +143,21 @@ nhrgb orig_hiwhite;
 " \\__,_||_| \\_| \\___| \\__||_|  |_| \\__,_| \\___||_|\\_\\"
 
 #define XNETHACK_SPLASH_A \
-"      _   _      _   _   _            _    "
+"          __   __       __   __  __          __     A "
 #define XNETHACK_SPLASH_B \
-"__  _| \\ | | ___| |_| | | | __ _  ___| | __"
+"         /  | / /      / /  / / / /         / /    ,X, "
 #define XNETHACK_SPLASH_C \
-"\\ \\/ /  \\| |/ _ \\ __| |_| |/ _` |/ __| |/ /"
+"__  __  /   |/ /___  _/ /_ / /_/ /_   ____ / /___ <=V=>"
 #define XNETHACK_SPLASH_D \
-" >  <| |\\  |  __/ |_|  _  | (_| | (__|   < "
+"\\ \\/ / / /| / // _ \\/  __// _   /  \\ / __//   __/  ||| "
 #define XNETHACK_SPLASH_E \
-"/_/\\_\\_| \\_|\\___|\\__|_| |_|\\__,_|\\___|_|\\_\\"
+" /  / / / |  /|  __// /  / / / / / // /_ / /\\ \\    ||| "
+#define XNETHACK_SPLASH_F \
+"/_/\\_/_/  |_/ \\___//_/  /_/ /_/\\___\\\\__//_/  \\_\\   ||| "
+#define XNETHACK_SPLASH_G \
+" ,_______________________________________________  ||| "
+#define XNETHACK_SPLASH_H \
+"                                                 '  \\| "
 
 /* win* is size and placement of window to change, x/y/w/h is baseline which can
    decrease depending on alignment of win* in orientation.
@@ -1104,7 +1110,10 @@ curses_display_splash_window()
             mvaddstr(y_start + 2, x_start, XNETHACK_SPLASH_C);
             mvaddstr(y_start + 3, x_start, XNETHACK_SPLASH_D);
             mvaddstr(y_start + 4, x_start, XNETHACK_SPLASH_E);
-            y_start += 6;
+            mvaddstr(y_start + 5, x_start, XNETHACK_SPLASH_F);
+            mvaddstr(y_start + 6, x_start, XNETHACK_SPLASH_G);
+            mvaddstr(y_start + 7, x_start, XNETHACK_SPLASH_H);
+            y_start += 9;
             break;
         default:
             impossible("which_variant number %d out of range", which_variant);
