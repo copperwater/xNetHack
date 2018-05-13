@@ -108,7 +108,7 @@ extern void curses_wait_synch(void);
 
 extern void curses_cliparound(int x, int y);
 
-extern void curses_print_glyph(winid wid,XCHAR_P x,XCHAR_P y,int glyph);
+extern void curses_print_glyph(winid wid,XCHAR_P x,XCHAR_P y,int glyph, int bkglyph);
 
 extern void curses_raw_print(const char *str);
 

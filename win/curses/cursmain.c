@@ -553,16 +553,17 @@ curses_cliparound(int x, int y)
 }
 
 /*
-print_glyph(window, x, y, glyph)
+print_glyph(window, x, y, glyph, bkglyph)
                 -- Print the glyph at (x,y) on the given window.  Glyphs are
                    integers at the interface, mapped to whatever the window-
                    port wants (symbol, font, color, attributes, ...there's
                    a 1-1 map between glyphs and distinct things on the map).
+                   bkglyph is to render the background behind the glyph.
+                   It's not used here. 
 */
 void
-curses_print_glyph(winid wid, XCHAR_P x, XCHAR_P y, int glyph)
+curses_print_glyph(winid wid, XCHAR_P x, XCHAR_P y, int glyph, int bkglyph)
 {
-    //glyph_t ch;
     int ch;
     int color;
     unsigned int special;
