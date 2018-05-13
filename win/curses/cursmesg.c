@@ -481,6 +481,11 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
             free(tmpbuf);
             curs_set(orig_cursor);
             curses_toggle_color_attr(win, NONE, A_BOLD, OFF);
+            if (++my > maxy) {
+                scroll_window(MESSAGE_WIN);
+                my--;
+            }
+            mx = border_space;
             return;
         case '\b':
         case KEY_BACKSPACE:
