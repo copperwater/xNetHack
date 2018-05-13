@@ -37,7 +37,13 @@ Permanent deafness mode: enable it with OPTIONS=deaf in config. It is counted
 It contains the following non-gameplay interface changes:
 
 Lots of new hallucinatory monsters, engravings, shirts, headstones, and rumors.
+Add the curses interface (OPTIONS=windowtype:curses). And there was much
+  rejoicing.
 
 It contains the following non-gameplay architectural changes:
 
-Refactor xlogfile bitfields. Blind and nudist are moved to conducts. The exact number of bones files generated now has a whole byte to itself, in the flags field.
+Refactor xlogfile bitfields. Blind and nudist are moved to conducts. The exact
+  number of bones files generated now has a whole byte to itself, in the flags
+  field.
+Add whereis patch. Every time the hero changes levels, a whereis file is
+  updated with some information about them.
