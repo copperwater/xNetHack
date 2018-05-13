@@ -18,6 +18,7 @@
 #define SPORKHACK_CURSES    4
 #define GRUNTHACK_CURSES    5
 #define DNETHACK_CURSES     6
+#define XNETHACK_CURSES     7
 
 static void set_window_position(int *, int *, int *, int *, int,
                                 int *, int *, int *, int *, int,
@@ -141,6 +142,22 @@ nhrgb orig_hiwhite;
 #define DNETHACK_SPLASH_F \
 " \\__,_||_| \\_| \\___| \\__||_|  |_| \\__,_| \\___||_|\\_\\"
 
+#define XNETHACK_SPLASH_A \
+"          __   __       __   __  __          __     A "
+#define XNETHACK_SPLASH_B \
+"         /  | / /      / /  / / / /         / /    ,X, "
+#define XNETHACK_SPLASH_C \
+"__  __  /   |/ /___  _/ /_ / /_/ /_   ____ / /___ <=V=>"
+#define XNETHACK_SPLASH_D \
+"\\ \\/ / / /| / // _ \\/  __// _   /  \\ / __//   __/  ||| "
+#define XNETHACK_SPLASH_E \
+" /  / / / |  /|  __// /  / / / / / // /_ / /\\ \\    ||| "
+#define XNETHACK_SPLASH_F \
+"/_/\\_/_/  |_/ \\___//_/  /_/ /_/\\___\\\\__//_/  \\_\\   ||| "
+#define XNETHACK_SPLASH_G \
+" ,_______________________________________________  ||| "
+#define XNETHACK_SPLASH_H \
+"                                                 '  \\| "
 
 /* win* is size and placement of window to change, x/y/w/h is baseline which can
    decrease depending on alignment of win* in orientation.
@@ -1022,6 +1039,10 @@ curses_display_splash_window()
     if (strncmp("dNethack", COPYRIGHT_BANNER_A, 8) == 0) {
         which_variant = DNETHACK_CURSES;
     }
+  
+    if (strncmp("xNetHack", COPYRIGHT_BANNER_A, 8) == 0) {
+        which_variant = XNETHACK_CURSES;
+    }
 
 
     curses_toggle_color_attr(stdscr, CLR_WHITE, A_NORMAL, ON);
@@ -1082,6 +1103,17 @@ curses_display_splash_window()
             mvaddstr(y_start + 4, x_start, DNETHACK_SPLASH_E);
             mvaddstr(y_start + 5, x_start, DNETHACK_SPLASH_F);
             y_start += 7;
+            break;
+        case XNETHACK_CURSES:
+            mvaddstr(y_start, x_start, XNETHACK_SPLASH_A);
+            mvaddstr(y_start + 1, x_start, XNETHACK_SPLASH_B);
+            mvaddstr(y_start + 2, x_start, XNETHACK_SPLASH_C);
+            mvaddstr(y_start + 3, x_start, XNETHACK_SPLASH_D);
+            mvaddstr(y_start + 4, x_start, XNETHACK_SPLASH_E);
+            mvaddstr(y_start + 5, x_start, XNETHACK_SPLASH_F);
+            mvaddstr(y_start + 6, x_start, XNETHACK_SPLASH_G);
+            mvaddstr(y_start + 7, x_start, XNETHACK_SPLASH_H);
+            y_start += 9;
             break;
         default:
             impossible("which_variant number %d out of range", which_variant);
