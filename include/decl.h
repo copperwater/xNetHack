@@ -188,6 +188,10 @@ E NEARDATA struct kinfo {
     char name[BUFSZ]; /* actual killer name */
 } killer;
 
+#ifdef WHEREIS_FILE
+E char whereis_real_path[255];
+#endif
+
 E long done_money;
 E NEARDATA char plname[PL_NSIZ];
 E NEARDATA char dogname[];

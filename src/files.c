@@ -12,6 +12,13 @@
 #include "wintty.h" /* more() */
 #endif
 
+#ifdef WHEREIS_FILE
+#include <ctype.h> /* whereis-file tolower() */
+#ifdef UNIX
+#include <sys/stat.h> /* whereis-file chmod() */
+#endif
+#endif
+
 #if (!defined(MAC) && !defined(O_WRONLY) && !defined(AZTEC_C)) \
     || defined(USE_FCNTL)
 #include <fcntl.h>
@@ -85,6 +92,10 @@ char lock[PL_NSIZ + 25]; /* long enough for username+-+name+.99 */
 #endif
 #endif
 
+#ifdef WHEREIS_FILE
+char whereis_file[255]=WHEREIS_FILE;
+#endif
+
 #if defined(UNIX) || defined(__BEOS__)
 #define SAVESIZE (PL_NSIZ + 13) /* save/99999player.e */
 #else
@@ -124,6 +135,10 @@ struct level_ftrack {
 #include <share.h>
 #endif
 #endif /*HOLD_LOCKFILE_OPEN*/
+
+#ifdef WHEREIS_FILE
+STATIC_DCL void FDECL(write_whereis, (int));
+#endif
 
 #define WIZKIT_MAX 128
 static char wizkit[WIZKIT_MAX];
@@ -608,6 +623,10 @@ clearlocks()
             delete_levelfile(x); /* not all levels need be present */
     }
 #endif /* ?PC_LOCKING,&c */
+
+#ifdef WHEREIS_FILE
+	delete_whereis();
+#endif
 }
 
 #if defined(SELECTSAVED)
@@ -666,7 +685,7 @@ void
 really_close()
 {
     int fd;
-    
+
     if (lftrack.init) {
         fd = lftrack.fd;
 
@@ -700,6 +719,100 @@ int fd;
     return close(fd);
 }
 #endif /* ?HOLD_LOCKFILE_OPEN */
+
+#ifdef WHEREIS_FILE
+/** Set the filename for the whereis file. */
+void
+set_whereisfile()
+{
+	char *p = (char *) strstr(whereis_file, "%n");
+	if (p) {
+		int new_whereis_len = strlen(whereis_file)+strlen(plname)-2; /* %n */
+		char *new_whereis_fn = (char *) alloc((unsigned)(new_whereis_len+1));
+		char *q = new_whereis_fn;
+		strncpy(q, whereis_file, p-whereis_file);
+		q += p-whereis_file;
+		strncpy(q, plname, strlen(plname) + 1);
+		regularize(q);
+		q[strlen(plname)] = '\0';
+		q += strlen(q);
+		p += 2;   /* skip "%n" */
+		strncpy(q, p, strlen(p));
+		new_whereis_fn[new_whereis_len] = '\0';
+		Sprintf(whereis_file,new_whereis_fn);
+		free(new_whereis_fn); /* clean up the pointer */
+	}
+}
+
+/** Write out information about current game to plname.whereis. */
+void
+write_whereis(playing)
+boolean playing; /**< True if game is running.  */
+{
+	FILE* fp;
+	char whereis_work[511];
+	if (strstr(whereis_file, "%n")) set_whereisfile();
+	Sprintf(whereis_work,
+	        "player=%s:depth=%d:dnum=%d:dname=%s:hp=%d:maxhp=%d:turns=%ld:score=%ld:role=%s:race=%s:gender=%s:align=%s:conduct=0x%lx:amulet=%d:ascended=%d:playing=%d\n",
+	        plname,
+	        depth(&u.uz),
+	        u.uz.dnum,
+	        dungeons[u.uz.dnum].dname,
+	        u.uhp,
+	        u.uhpmax,
+	        moves,
+#ifdef SCORE_ON_BOTL
+	        botl_score(),
+#else
+	        0L,
+#endif
+	        urole.filecode,
+	        urace.filecode,
+	        genders[flags.female].filecode,
+	        aligns[1 - u.ualign.type].filecode,
+#ifdef RECORD_CONDUCT
+	        encodeconduct(),
+#else
+	        0L,
+#endif
+	        u.uhave.amulet ? 1 : 0,
+	        u.uevent.ascended ? 2 : killer.name ? 1 : 0,
+	        playing);
+
+	fp = fopen_datafile(whereis_file,"w",LEVELPREFIX);
+	if (fp) {
+#ifdef UNIX
+		mode_t whereismode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+		chmod(fqname(whereis_file, LEVELPREFIX, 2), whereismode);
+#endif
+		fwrite(whereis_work,strlen(whereis_work),1,fp);
+		fclose(fp);
+	} else {
+		pline("Can't open %s for output.", whereis_file);
+		pline("No whereis file created.");
+	}
+}
+
+/** Signal handler to update whereis information. */
+void
+signal_whereis(sig_unused)
+int sig_unused;
+{
+	touch_whereis();
+}
+
+void
+touch_whereis()
+{
+	write_whereis(TRUE);
+}
+
+void
+delete_whereis()
+{
+	write_whereis(FALSE);
+}
+#endif /* WHEREIS_FILE */
 
 /* ----------  END LEVEL FILE HANDLING ----------- */
 

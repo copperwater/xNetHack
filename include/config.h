@@ -540,6 +540,8 @@ typedef unsigned char uchar;
    (within the same session) */
 /* #define EDIT_GETLIN */
 
+#define WHEREIS_FILE "whereis/%n.whereis" /* Write out player's current location to player.whereis */
+
 #ifdef DUMPLOG
 
 #ifndef DUMPLOG_MSG_COUNT
