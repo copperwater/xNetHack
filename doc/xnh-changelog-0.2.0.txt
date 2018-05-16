@@ -29,6 +29,11 @@ The object materials patch has been ported (mostly from GruntHack):
   Items in the hero's initial inventory are always their standard material.
   Golems can drop items made of their material in addition to their standard
     drops.
+  Glass items always break when thrown, and glass weapons break 1/6 of the time
+    when used in melee. Glass armor, if it is randomly targeted by an attack,
+    will break 1/6 of the time.
+  Erodeproofing glass items by any of the normal methods shatterproofs it. This
+    can also be wished for.
 Nymphs and foocubi will introduce themselves (giving them a name) if they do
   not already have a name, when they initiate their charm or seduction attacks.
 Permanent hallucination mode: enable it with OPTIONS=hallucination in config.
