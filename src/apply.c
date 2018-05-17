@@ -3569,11 +3569,16 @@ struct obj *obj;
           !objects[POT_OIL].oc_name_known)))
         return 2;
 
-    if (is_graystone(obj) &&
-        (obj->otyp == TOUCHSTONE || !obj->dknown ||
-         (!objects[obj->otyp].oc_name_known &&
-          !objects[TOUCHSTONE].oc_name_known)))
-        return 2;
+    if (is_graystone(obj)) {
+        /* The only case where we _don't_ apply a gray stone is if we KNOW it
+         * isn't a touchstone or a thiefstone. */
+        if (obj->otyp != TOUCHSTONE && objects[TOUCHSTONE].oc_name_known
+            && obj->otyp != THIEFSTONE && objects[THIEFSTONE].oc_name_known
+            && obj->dknown)
+            return 0;
+        else
+            return 2;
+    }
 
     if (obj->otyp == CREAM_PIE || obj->otyp == EUCALYPTUS_LEAF)
         return 2;
