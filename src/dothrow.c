@@ -2207,6 +2207,12 @@ struct obj *obj;
     if (u.dz) {
         if (u.dz < 0 && !Is_airlevel(&u.uz) && !Underwater
             && !Is_waterlevel(&u.uz)) {
+            if (obj->quan == 1L && !nohands(youmonst.data)) {
+                pline("You flip the coin...  It is %s.",
+                      rn2(2) ? "heads" : "tails");
+                pick_obj(obj);
+                return 1;
+            }
             pline_The("gold hits the %s, then falls back on top of your %s.",
                       ceiling(u.ux, u.uy), body_part(HEAD));
             /* some self damage? */
