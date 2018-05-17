@@ -3131,7 +3131,9 @@ struct obj* obj;
 
     if (materials) {
         int i = rnd(100);
-        for(; (i -= materials->iprob) > 0; materials++);
+        for (; i > 0; materials++) {
+            i -= materials->iprob;
+        }
         obj->material = materials->iclass;
     }
     else {
@@ -3161,9 +3163,10 @@ int mat;
 
     if (materials) {
         int i = 100; /* guarantee going through everything */
-        for(; (i -= materials->iprob) > 0; materials++) {
+        for (; i > 0; materials++) {
             if (materials->iclass == mat)
                 return TRUE;
+            i -= materials->iprob;
         }
         /* no valid ones found */
         return FALSE;
