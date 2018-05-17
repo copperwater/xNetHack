@@ -3159,8 +3159,12 @@ struct obj* obj;
 
     if (materials) {
         int i = rnd(100);
-        for (; i > 0; materials++) {
+        pline("i = %d", i);
+        while (i > 0) {
+            if (i <= materials->iprob)
+                break;
             i -= materials->iprob;
+            materials++;
         }
         obj->material = materials->iclass;
     }
@@ -3191,11 +3195,13 @@ int mat;
 
     if (materials) {
         int i = 100; /* guarantee going through everything */
-        for (; i > 0; materials++) {
+        while (i > 0) {
             if (materials->iclass == mat)
                 return TRUE;
             i -= materials->iprob;
+            materials++;
         }
+
         /* no valid ones found */
         return FALSE;
     }
