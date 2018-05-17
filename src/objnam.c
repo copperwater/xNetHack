@@ -3054,9 +3054,11 @@ struct obj *no_wish;
             doorstate = D_ISOPEN;
         } else {
             /* check for materials */
-            if (!strncmpi(bp, "silver dragon", l = 13)) {
+            if (!strncmpi(bp, "silver dragon", l = 13)
+                || !strcmp(bp, "gold")) {
                 /* hack so that silver dragon scales/mail doesn't get
-                 * interpreted as silver */
+                 * interpreted as silver, or a wish for just "gold" doesn't get
+                 * interpreted as gold */
                 break;
             }
             /* doesn't currently catch "wood" for wooden */
