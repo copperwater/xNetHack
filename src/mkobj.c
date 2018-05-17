@@ -3159,7 +3159,6 @@ struct obj* obj;
 
     if (materials) {
         int i = rnd(100);
-        pline("i = %d", i);
         while (i > 0) {
             if (i <= materials->iprob)
                 break;
