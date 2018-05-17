@@ -35,6 +35,9 @@ The object materials patch has been ported (mostly from GruntHack):
   Erodeproofing glass items by any of the normal methods shatterproofs it. This
     can also be wished for.
   Hobbits' elven chain mails are always mithril.
+  Weapons may get damage bonuses or penalties based on their material; for
+    instance, sharp glass weapons do +3 damage, and gold blunt weapons do +2
+    damage.
 Nymphs and foocubi will introduce themselves (giving them a name) if they do
   not already have a name, when they initiate their charm or seduction attacks.
 Permanent hallucination mode: enable it with OPTIONS=hallucination in config.
