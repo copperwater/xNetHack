@@ -44,6 +44,7 @@ Permanent hallucination mode: enable it with OPTIONS=hallucination in config.
   This is unbreakable unless you wield Grayswandir. It is counted as a conduct.
 Permanent deafness mode: enable it with OPTIONS=deaf in config. It is counted
   as a conduct.
+Throwing a single gold piece upwards makes you flip it and get heads or tails.
 Room-and-corridor level rooms have a 2/5 chance to generate items instead of a
   1/3 chance.
 
