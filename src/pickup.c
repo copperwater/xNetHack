@@ -3245,19 +3245,21 @@ struct obj *box; /* or bag */
 
         if (maybeshopgoods && !box->no_charge)
             addtobill(box, FALSE, FALSE, TRUE);
-        /* apply this bag/horn until empty or monster/object creation fails
-           (if the latter occurs, force the former...) */
-        do {
-            if (!(bag ? bagotricks(box, TRUE, &seen)
-                      : hornoplenty(box, TRUE)))
-                break;
-        } while (box->spe > 0);
+        if (bag)
+            bagotricks(box, TRUE, &seen);
+        else {
+            do {
+                /* apply this horn until empty or monster/object creation fails
+                 * (if the latter occurs, force the former...)
+                 * FIXME: bag of tricks behavior was changed to account for
+                 * tipping so it doesn't have to be looped over here; horns of
+                 * plenty should probably follow suit. */
+                if (!hornoplenty(box, TRUE))
+                    break;
+            } while (box->spe > 0);
+        }
 
         if (box->spe < old_spe) {
-            if (bag)
-                pline((seen == 0) ? "Nothing seems to happen."
-                                  : (seen == 1) ? "A monster appears."
-                                                : "Monsters appear!");
             /* check_unpaid wants to see a non-zero charge count */
             box->spe = old_spe;
             check_unpaid_usage(box, TRUE);

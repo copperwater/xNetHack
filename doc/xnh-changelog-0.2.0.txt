@@ -50,6 +50,7 @@ It contains the following non-gameplay interface changes:
 Lots of new hallucinatory monsters, engravings, shirts, headstones, and rumors.
 Add the curses interface (OPTIONS=windowtype:curses). And there was much
   rejoicing.
+A message is always printed when monsters are created.
 
 It contains the following non-gameplay architectural changes:
 
@@ -58,3 +59,5 @@ Refactor xlogfile bitfields. Blind and nudist are moved to conducts. The exact
   field.
 Add whereis patch. Every time the hero changes levels, a whereis file is
   updated with some information about them.
+Refactor create_critters() and bagotricks() logic so that the latter can call
+  the former.

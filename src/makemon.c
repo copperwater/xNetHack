@@ -1407,38 +1407,66 @@ int mndx;
 }
 
 /* used for wand/scroll/spell of create monster */
-/* returns TRUE iff you know monsters have been created */
-boolean
-create_critters(cnt, mptr, neverask)
+/* returns number of monsters you know have been created */
+int
+create_critters(cnt, mptr, neverask, creator)
 int cnt;
 struct permonst *mptr; /* usually null; used for confused reading */
 boolean neverask;
+struct monst* creator;
 {
     coord c;
-    int x, y;
     struct monst *mon;
-    boolean known = FALSE;
     boolean ask = (wizard && !neverask);
+    int nknown = 0;
+    int x = u.ux, y = u.uy;
+    boolean in_water = u.uinwater;
+    int old_census = monster_census(TRUE);
+    int newmons_ct;
+
+    if (creator != &youmonst) {
+        in_water = is_pool(creator->mx, creator->my);
+        x = creator->mx;
+        y = creator->my;
+    }
 
     while (cnt--) {
         if (ask) {
-            if (create_particular()) {
-                known = TRUE;
+            if ((mon = create_particular()) != NULL) {
                 continue;
             } else
                 ask = FALSE; /* ESC will shut off prompting */
         }
-        x = u.ux, y = u.uy;
-        /* if in water, try to encourage an aquatic monster
+        /* if in water, encourage amphibious monsters
            by finding and then specifying another wet location */
-        if (!mptr && u.uinwater && enexto(&c, x, y, &mons[PM_GIANT_EEL]))
+        if (!mptr && in_water && enexto(&c, x, y, &mons[PM_GIANT_EEL]))
             x = c.x, y = c.y;
 
-        mon = makemon(mptr, x, y, NO_MM_FLAGS);
-        if (mon && canspotmon(mon))
-            known = TRUE;
+        mon = makemon(mptr, x, y, MM_ADJACENTOK);
     }
-    return known;
+    newmons_ct = monster_census(TRUE) - old_census;
+    if (newmons_ct > 0) {
+        if (newmons_ct == 1) {
+            /* only one monster we know of that was created - Amonnam
+             * suffices */
+            pline("%s appears from nowhere!", Amonnam(mon));
+        }
+        else {
+            /* mon will still hold the last created monster - so we can use
+             * Amonnam to describe the whole group, if mptr is set. */
+            char buf[BUFSZ];
+            buf[0] = '\0';
+            if (mptr) {
+                Sprintf(buf, "%ss", mptr->mname);
+                upstart(buf);
+            }
+            else {
+                Strcpy(buf, "Monsters");
+            }
+            pline("%s appear from nowhere!", buf);
+        }
+    }
+    return newmons_ct;
 }
 
 STATIC_OVL boolean
@@ -2210,26 +2238,22 @@ int *seencount;  /* secondary output */
             bag->cknown = 1;
     } else {
         struct monst *mtmp;
-        int creatcnt = 1, seecount = 0;
+        int creatcnt = 0, seecount = 0;
 
-        consume_obj_charge(bag, !tipping);
-
-        if (!rn2(23))
-            creatcnt += rnd(7);
         do {
-            mtmp = makemon((struct permonst *) 0, u.ux, u.uy, NO_MM_FLAGS);
-            if (mtmp) {
-                ++moncount;
-                if (canspotmon(mtmp))
-                    ++seecount;
-            }
-        } while (--creatcnt > 0);
+            consume_obj_charge(bag, !tipping);
+            creatcnt ++;
+            if (!rn2(23))
+                creatcnt += rnd(7);
+        } while (tipping && bag->spe > 0);
+
+        seecount = create_critters(creatcnt, NULL, FALSE, &youmonst);
         if (seecount) {
             if (seencount)
                 *seencount += seecount;
             if (bag->dknown)
                 makeknown(BAG_OF_TRICKS);
-        } else if (!tipping) {
+        } else {
             pline1(!moncount ? nothing_happens : "Nothing seems to happen.");
         }
     }
