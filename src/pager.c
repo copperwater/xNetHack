@@ -636,14 +636,14 @@ struct permonst * pm;
 
     /* Resistances */
     buf[0] = '\0';
-    ADDRESIST(pm_resistance(pm, FIRE_RES), "fire");
-    ADDRESIST(pm_resistance(pm, COLD_RES), "cold");
-    ADDRESIST(pm_resistance(pm, SLEEP_RES), "sleep");
-    ADDRESIST(pm_resistance(pm, DISINT_RES), "disintegration");
-    ADDRESIST(pm_resistance(pm, SHOCK_RES), "shock");
-    ADDRESIST(pm_resistance(pm, POISON_RES), "poison");
-    ADDRESIST(pm_resistance(pm, ACID_RES), "acid");
-    ADDRESIST(pm_resistance(pm, STONE_RES), "petrification");
+    ADDRESIST(pm_resistance(pm, MR_FIRE), "fire");
+    ADDRESIST(pm_resistance(pm, MR_COLD), "cold");
+    ADDRESIST(pm_resistance(pm, MR_SLEEP), "sleep");
+    ADDRESIST(pm_resistance(pm, MR_DISINT), "disintegration");
+    ADDRESIST(pm_resistance(pm, MR_ELEC), "shock");
+    ADDRESIST(pm_resistance(pm, MR_POISON), "poison");
+    ADDRESIST(pm_resistance(pm, MR_ACID), "acid");
+    ADDRESIST(pm_resistance(pm, MR_STONE), "petrification");
     ADDRESIST(resists_drain(pm), "life-drain");
     /* ADDRESIST(SICK_RES, "sickness"); */
     ADDRESIST(resists_mgc(pm), "magic");
