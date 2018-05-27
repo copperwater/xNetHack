@@ -335,7 +335,6 @@ curses_count_window(const char *count_text)
         winy += messageh - 1;
 
         if (countwin == NULL) {
-            pline("#");
 #ifndef PDCURSES
             countwin = newwin(1, 25, winy, winx);
 #endif /* !PDCURSES */
