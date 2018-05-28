@@ -353,8 +353,8 @@ register struct monst *mtmp;
                 You("stop.  %s is in the way!", buf);
                 context.travel = context.travel1 = context.mv = context.run = 0;
                 return TRUE;
-            } else if ((mtmp->mfrozen || (!mtmp->mcanmove)
-                        || (mtmp->data->mmove == 0)) && rn2(6)) {
+            } else if (mtmp->mfrozen || mtmp->msleeping || (!mtmp->mcanmove)
+                       || (mtmp->data->mmove == 0 && rn2(6))) {
                 pline("%s doesn't seem to move!", Monnam(mtmp));
                 context.travel = context.travel1 = context.mv = context.run = 0;
                 return TRUE;

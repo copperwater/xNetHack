@@ -47,6 +47,8 @@ Permanent deafness mode: enable it with OPTIONS=deaf in config. It is counted
 Throwing a single gold piece upwards makes you flip it and get heads or tails.
 Room-and-corridor level rooms have a 2/5 chance to generate items instead of a
   1/3 chance.
+Peaceful or tame monsters that are sleeping, paralyzed, or otherwise immobilized
+  can never be displaced. Sessile monsters can be displaced 1/6 of the time.
 
 It contains the following non-gameplay interface changes:
 
