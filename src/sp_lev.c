@@ -2364,7 +2364,10 @@ schar ftyp, btyp;
 
         crm = &levl[xx][yy];
         if (crm->typ == btyp) {
-            if (ftyp != CORR || rn2(100)) {
+            /* Probability of a random corridor square being secret:
+             * depth - 4 / 2000.
+             * If depth <= 4, probability is 0. */
+            if (ftyp != CORR || (rn2(2000) >= depth(&u.uz) - 4)) {
                 crm->typ = ftyp;
                 if (nxcor && !rn2(50))
                     (void) mksobj_at(BOULDER, xx, yy, TRUE, FALSE);

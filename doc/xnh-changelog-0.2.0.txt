@@ -49,6 +49,9 @@ Room-and-corridor level rooms have a 2/5 chance to generate items instead of a
   1/3 chance.
 Peaceful or tame monsters that are sleeping, paralyzed, or otherwise immobilized
   can never be displaced. Sessile monsters can be displaced 1/6 of the time.
+Decrease chance of secret passages generating: they never generate on the first
+  four levels; on deeper levels, whenever a secret passage might have been
+  generated with its 1% chance, it instead uses a 1 in (level-4 / 2000) chance.
 
 It contains the following non-gameplay interface changes:
 
