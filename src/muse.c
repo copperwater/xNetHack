@@ -750,62 +750,33 @@ struct monst *mtmp;
                          (coord *) 0);
         return 2;
     }
-    case MUSE_WAN_CREATE_MONSTER: {
-        coord cc;
-        /* pm: 0 => random, eel => aquatic, croc => amphibious */
-        struct permonst *pm =
-            !is_pool(mtmp->mx, mtmp->my)
-                ? 0
-                : &mons[u.uinwater ? PM_GIANT_EEL : PM_CROCODILE];
-        struct monst *mon;
-
-        if (!enexto(&cc, mtmp->mx, mtmp->my, pm))
-            return 0;
+    case MUSE_WAN_CREATE_MONSTER:
+        /* FIXME: Merge this logic with the identical formula in zap.c. */
         mzapmsg(mtmp, otmp, FALSE);
         otmp->spe--;
-        mon = makemon((struct permonst *) 0, cc.x, cc.y, NO_MM_FLAGS);
-        if (mon && canspotmon(mon) && oseen)
+        if (create_critters(rn2(23) ? 1 : rn1(7, 2), NULL, TRUE, mtmp)
+            && oseen)
             makeknown(WAN_CREATE_MONSTER);
         return 2;
-    }
-    case MUSE_SCR_CREATE_MONSTER: {
-        coord cc;
-        struct permonst *pm = 0, *fish = 0;
-        int cnt = 1;
-        struct monst *mon;
-        boolean known = FALSE;
-
-        if (!rn2(73))
-            cnt += rnd(4);
-        if (mtmp->mconf || otmp->cursed)
-            cnt += 12;
-        if (mtmp->mconf)
-            pm = fish = &mons[PM_ACID_BLOB];
-        else if (is_pool(mtmp->mx, mtmp->my))
-            fish = &mons[u.uinwater ? PM_GIANT_EEL : PM_CROCODILE];
+    case MUSE_SCR_CREATE_MONSTER:
+        /* FIXME: This logic should really be merged with the identical formula
+         * in read.c. */
         mreadmsg(mtmp, otmp);
-        while (cnt--) {
-            /* `fish' potentially gives bias towards water locations;
-               `pm' is what to actually create (0 => random) */
-            if (!enexto(&cc, mtmp->mx, mtmp->my, fish))
-                break;
-            mon = makemon(pm, cc.x, cc.y, NO_MM_FLAGS);
-            if (mon && canspotmon(mon))
-                known = TRUE;
-        }
-        /* The only case where we don't use oseen.  For wands, you
-         * have to be able to see the monster zap the wand to know
-         * what type it is.  For teleport scrolls, you have to see
-         * the monster to know it teleported.
-         */
-        if (known)
+        if (create_critters(1 + ((mtmp->mconf || otmp->cursed) ? 12 : 0)
+                              + ((otmp->blessed || rn2(73)) ? 0 : rnd(4)),
+                            mtmp->mconf ? &mons[PM_ACID_BLOB] : NULL,
+                            TRUE, mtmp))
+            /* The only case where we don't use oseen.  For wands, you
+             * have to be able to see the monster zap the wand to know
+             * what type it is.  For teleport scrolls, you have to see
+             * the monster to know it teleported.
+             */
             makeknown(SCR_CREATE_MONSTER);
         else if (!objects[SCR_CREATE_MONSTER].oc_name_known
                  && !objects[SCR_CREATE_MONSTER].oc_uname)
             docall(otmp);
         m_useup(mtmp, otmp);
         return 2;
-    }
     case MUSE_TRAPDOOR:
         /* trap doors on "bottom" levels of dungeons are rock-drop
          * trap doors, not holes in the floor.  We check here for

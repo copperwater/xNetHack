@@ -2877,7 +2877,7 @@ int final;
     if (!u.uconduct.scares) {
         you_have_never("scared an enemy with impunity");
     }
-    else {
+    else if (wizard) {
         Sprintf(buf, "scared enemies with impunity %ld time%s", u.uconduct.scares,
                 plur(u.uconduct.scares));
         you_have_X(buf);

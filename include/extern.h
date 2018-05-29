@@ -1160,7 +1160,7 @@ E struct mextra *NDECL(newmextra);
 E void FDECL(copy_mextra, (struct monst *, struct monst *));
 E void FDECL(dealloc_mextra, (struct monst *));
 E struct monst *FDECL(makemon, (struct permonst *, int, int, int));
-E boolean FDECL(create_critters, (int, struct permonst *, BOOLEAN_P));
+E int FDECL(create_critters, (int, struct permonst *, BOOLEAN_P, struct monst *));
 E struct permonst *NDECL(rndmonst);
 E void FDECL(reset_rndmonst, (int));
 E struct permonst *FDECL(mkclass, (CHAR_P, int));
@@ -2064,7 +2064,7 @@ E void FDECL(do_genocide, (int));
 E void FDECL(punish, (struct obj *));
 E void NDECL(unpunish);
 E boolean FDECL(cant_revive, (int *, BOOLEAN_P, struct obj *));
-E boolean NDECL(create_particular);
+E struct monst * NDECL(create_particular);
 
 /* ### rect.c ### */
 

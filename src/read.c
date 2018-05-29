@@ -1516,7 +1516,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                                 + ((sblessed || rn2(73)) ? 0 : rnd(4)),
                             confused ? &mons[PM_ACID_BLOB]
                                      : (struct permonst *) 0,
-                            FALSE))
+                            FALSE, &youmonst))
             known = TRUE;
         /* no need to flush monsters; we ask for identification only if the
          * monsters are not visible
@@ -2648,8 +2648,11 @@ struct obj *from_obj;
  * Used in wizard mode only (for ^G command and for scroll or spell
  * of create monster).  Once upon a time, an earlier incarnation of
  * this code was also used for the scroll/spell in explore mode.
+ *
+ * Return a pointer to the last monster created, or NULL if no monster was
+ * created.
  */
-boolean
+struct monst *
 create_particular()
 {
     char buf[BUFSZ] = DUMMY, *bufp, monclass;
@@ -2672,7 +2675,7 @@ create_particular()
         getlin("Create what kind of monster? [type the name or symbol]", buf);
         bufp = mungspaces(buf);
         if (*bufp == '\033')
-            return FALSE;
+            return NULL;
         if ((tmpp = strstri(bufp, "saddled ")) != 0) {
             saddled = TRUE;
             (void) memset(tmpp, ' ', sizeof "saddled " - 1);
@@ -2780,7 +2783,7 @@ create_particular()
                 (void) newcham(mtmp, &mons[firstchoice], FALSE, FALSE);
         }
     }
-    return madeany;
+    return mtmp;
 }
 
 /*read.c*/

@@ -385,29 +385,10 @@ int spellnum;
         } else
             impossible("bad wizard cloning?");
         break;
-    case MGC_SUMMON_MONS: {
-        int count;
-
-        count = nasty(mtmp); /* summon something nasty */
-        if (mtmp->iswiz)
-            verbalize("Destroy the thief, my pet%s!", plur(count));
-        else {
-            const char *mappear =
-                (count == 1) ? "A monster appears" : "Monsters appear";
-
-            /* messages not quite right if plural monsters created but
-               only a single monster is seen */
-            if (Invisible && !perceives(mtmp->data)
-                && (mtmp->mux != u.ux || mtmp->muy != u.uy))
-                pline("%s around a spot near you!", mappear);
-            else if (Displaced && (mtmp->mux != u.ux || mtmp->muy != u.uy))
-                pline("%s around your displaced image!", mappear);
-            else
-                pline("%s from nowhere!", mappear);
-        }
+    case MGC_SUMMON_MONS:
+        (void) nasty(mtmp); /* summon something nasty */
         dmg = 0;
         break;
-    }
     case MGC_AGGRAVATION:
         You_feel("that monsters are aware of your presence.");
         aggravate();

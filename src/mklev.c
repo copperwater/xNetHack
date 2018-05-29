@@ -1124,7 +1124,7 @@ skip0:
     skip_nonrogue:
         /* place a random object in the room, with a recursive 20% chance of
          * placing another */
-        if (!rn2(3)) {
+        if (rnd(5) <= 2) {
             (void) mkobj_at(0, somex(croom), somey(croom), TRUE);
             tryct = 0;
             while (!rn2(5)) {

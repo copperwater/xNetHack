@@ -617,6 +617,25 @@ struct monst *summoner;
 
     if (count)
         count = monster_census(FALSE) - census;
+
+    if (summoner && summoner->iswiz)
+        verbalize("Destroy the thief, my pet%s!", plur(count));
+    else {
+        const char *mappear =
+            (count == 1) ? "A monster appears" : "Monsters appear";
+
+        /* messages not quite right if plural monsters created but
+            only a single monster is seen */
+        if (summoner && Invisible && !perceives(summoner->data)
+            && (summoner->mux != u.ux || summoner->muy != u.uy))
+            pline("%s around a spot near you!", mappear);
+        else if (summoner && Displaced
+                 && (summoner->mux != u.ux || summoner->muy != u.uy))
+            pline("%s around your displaced image!", mappear);
+        else
+            pline("%s from nowhere!", mappear);
+    }
+
     return count;
 }
 

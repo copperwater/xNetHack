@@ -1372,7 +1372,7 @@ postmov:
             }
             if (!t_at(mtmp->mx, mtmp->my) && rn2(1000) < prob) {
                 struct trap* trap = maketrap(mtmp->mx, mtmp->my, WEB);
-                if (canspotmon(mtmp)) {
+                if (trap && canspotmon(mtmp)) {
                     pline("%s spins a web.", upstart(y_monnam(mtmp)));
                     trap->tseen = 1;
                 }

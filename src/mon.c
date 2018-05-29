@@ -1597,30 +1597,34 @@ struct monst *magr, /* monster that is currently deciding where to move */
     /* Grudge patch. */
     /* Since the quest guardians are under siege, it makes sense to have
        them fight hostiles.  (But we don't want the quest leader to be in
-       danger.) */
-    if(ma->msound==MS_GUARDIAN && mdef->mpeaceful==FALSE)
+       danger.)
+       NOTE: But don't let still-peaceful guardians fight hostile guardians if
+       the hero manages to annoy one of them! */
+    if (ma->msound==MS_GUARDIAN && mdef->mpeaceful==FALSE
+        && !md->msound == MS_GUARDIAN)
         return ALLOW_M|ALLOW_TM;
     /* and vice versa */
-    if(md->msound==MS_GUARDIAN && magr->mpeaceful==FALSE)
-   	    return ALLOW_M|ALLOW_TM;
-  	/* elves vs. orcs */
-  	if(is_elf(ma) && is_orc(md))
-  		  return ALLOW_M|ALLOW_TM;
-  	/* and vice versa */
-  	if(is_elf(md) && is_orc(ma))
-  		  return ALLOW_M|ALLOW_TM;
-  	/* angels vs. demons */
-  	if(ma->mlet==S_ANGEL && is_demon(md))
-  		  return ALLOW_M|ALLOW_TM;
-  	/* and vice versa */
-  	if(md->mlet==S_ANGEL && is_demon(ma))
-  		  return ALLOW_M|ALLOW_TM;
-  	/* woodchucks vs. The Oracle */
-  	if(ma == &mons[PM_WOODCHUCK] && md == &mons[PM_ORACLE])
-  		  return ALLOW_M|ALLOW_TM;
-  	/* ravens like eyes */
-  	if(ma == &mons[PM_RAVEN] && md == &mons[PM_FLOATING_EYE])
-  		  return ALLOW_M|ALLOW_TM;
+    if (md->msound==MS_GUARDIAN && magr->mpeaceful==FALSE
+        && !ma->msound == MS_GUARDIAN)
+        return ALLOW_M|ALLOW_TM;
+    /* elves vs. orcs */
+    if(is_elf(ma) && is_orc(md))
+        return ALLOW_M|ALLOW_TM;
+    /* and vice versa */
+    if (is_elf(md) && is_orc(ma))
+        return ALLOW_M|ALLOW_TM;
+    /* angels vs. demons */
+    if (ma->mlet==S_ANGEL && is_demon(md))
+        return ALLOW_M|ALLOW_TM;
+    /* and vice versa */
+    if (md->mlet==S_ANGEL && is_demon(ma))
+        return ALLOW_M|ALLOW_TM;
+    /* woodchucks vs. The Oracle */
+    if (ma == &mons[PM_WOODCHUCK] && md == &mons[PM_ORACLE])
+        return ALLOW_M|ALLOW_TM;
+    /* ravens like eyes */
+    if (ma == &mons[PM_RAVEN] && md == &mons[PM_FLOATING_EYE])
+      return ALLOW_M|ALLOW_TM;
     return 0L;
 }
 

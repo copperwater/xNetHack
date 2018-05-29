@@ -47,6 +47,9 @@ int expltype;
     char hallu_buf[BUFSZ], killr_buf[BUFSZ];
     short exploding_wand_typ = 0;
 
+    if (olet == TRAPPED_DOOR) { /* exploding door */
+        exploding_wand_typ = type;
+    }
     if (olet == WAND_CLASS) { /* retributive strike */
         /* 'type' is passed as (wand's object type * -1); save
            object type and convert 'type' itself to zap-type */
