@@ -656,7 +656,7 @@ wiz_makemap(VOID_ARGS)
         vision_reset();
         vision_full_recalc = 1;
         cls();
-        (void) safe_teleds(TRUE);
+        (void) safe_teleds(TRUE, FALSE);
         if (Punished) {
             unplacebc();
             placebc();

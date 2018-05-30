@@ -2389,8 +2389,8 @@ E boolean FDECL(goodpos, (int, int, struct monst *, unsigned));
 E boolean FDECL(enexto, (coord *, XCHAR_P, XCHAR_P, struct permonst *));
 E boolean FDECL(enexto_core, (coord *, XCHAR_P, XCHAR_P,
                               struct permonst *, unsigned));
-E void FDECL(teleds, (int, int, BOOLEAN_P));
-E boolean FDECL(safe_teleds, (BOOLEAN_P));
+E void FDECL(teleds, (int, int, BOOLEAN_P, BOOLEAN_P));
+E boolean FDECL(safe_teleds, (BOOLEAN_P, BOOLEAN_P));
 E boolean FDECL(teleport_pet, (struct monst *, BOOLEAN_P));
 E void NDECL(tele);
 E boolean FDECL(scrolltele, (struct obj *));

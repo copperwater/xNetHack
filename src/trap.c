@@ -3990,7 +3990,7 @@ crawl:
             You("dump some of your gear to lose weight...");
         if (succ) {
             pline("Pheew!  That was close.");
-            teleds(x, y, TRUE);
+            teleds(x, y, TRUE, FALSE);
             return TRUE;
         }
         /* still too much weight */
@@ -4009,7 +4009,7 @@ crawl:
         Strcpy(killer.name, pool_of_water);
         done(DROWNING);
         /* oops, we're still alive.  better get out of the water. */
-        if (safe_teleds(TRUE))
+        if (safe_teleds(TRUE, TRUE))
             break; /* successful life-save */
         /* nowhere safe to land; repeat drowning loop... */
         pline("You're still drowning.");
@@ -5839,7 +5839,7 @@ lava_effects()
             Strcpy(killer.name, lava_killer);
             You("%s...", boil_away ? "boil away" : "burn to a crisp");
             done(BURNING);
-            if (safe_teleds(TRUE))
+            if (safe_teleds(TRUE, TRUE))
                 break; /* successful life-save */
             /* nowhere safe to land; repeat burning loop */
             pline("You're still burning.");
@@ -5895,7 +5895,7 @@ sink_into_lava()
             done(DISSOLVED);
             /* can only get here via life-saving; try to get away from lava */
             u.utrap = 0;
-            (void) safe_teleds(TRUE);
+            (void) safe_teleds(TRUE, TRUE);
         } else if (!u.umoved) {
             /* can't fully turn into slime while in lava, but might not
                have it be burned away until you've come awfully close */

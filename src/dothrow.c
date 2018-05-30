@@ -966,7 +966,7 @@ boolean hitsroof;
         obj->no_charge = 1;
         pline_The("thiefstone steals you away!");
         if (obj->keyed_ledger == ledger_no(&u.uz)) {
-            teleds(keyed_x(obj), keyed_y(obj), FALSE);
+            teleds(keyed_x(obj), keyed_y(obj), FALSE, FALSE);
         } else {
             d_level newlev;
             newlev.dnum = ledger_to_dnum(obj->keyed_ledger);
@@ -976,7 +976,7 @@ boolean hitsroof;
              * enough */
             /* schedule_goto(&newlev, FALSE, FALSE, FALSE, NULL, NULL); */
             goto_level(&newlev, FALSE, FALSE, FALSE);
-            teleds(keyed_x(obj), keyed_y(obj), FALSE);
+            teleds(keyed_x(obj), keyed_y(obj), FALSE, FALSE);
         }
         thiefstone_teleport(obj, obj);
         return FALSE;

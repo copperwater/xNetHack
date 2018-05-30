@@ -245,9 +245,9 @@ boolean trapok;
 }
 
 void
-teleds(nux, nuy, allow_drag)
+teleds(nux, nuy, allow_drag, talk)
 register int nux, nuy;
-boolean allow_drag;
+boolean allow_drag, talk;
 {
     boolean ball_active, ball_still_in_range;
 
@@ -317,8 +317,10 @@ boolean allow_drag;
                 move_bc(0, bc_control, ballx, bally, chainx, chainy);
         }
     }
-    You("materialize in %s location!",
-        (nux == u.ux0 && nuy == u.uy0) ? "the same" : "a different");
+    if (talk) {
+        You("materialize in %s location!",
+            (nux == u.ux0 && nuy == u.uy0) ? "the same" : "a different");
+    }
     /* must set u.ux, u.uy after drag_ball(), which may need to know
        the old position if allow_drag is true... */
     u_on_newpos(nux, nuy); /* set u.<x,y>, usteed-><mx,my>; cliparound() */
@@ -354,8 +356,8 @@ boolean allow_drag;
 }
 
 boolean
-safe_teleds(allow_drag)
-boolean allow_drag;
+safe_teleds(allow_drag, talk)
+boolean allow_drag, talk;
 {
     register int nux, nuy, tcnt = 0;
 
@@ -365,7 +367,7 @@ boolean allow_drag;
     } while (!teleok(nux, nuy, (boolean) (tcnt > 200)) && ++tcnt <= 400);
 
     if (tcnt <= 400) {
-        teleds(nux, nuy, allow_drag);
+        teleds(nux, nuy, allow_drag, talk);
         return TRUE;
     } else
         return FALSE;
@@ -378,7 +380,7 @@ vault_tele()
     coord c;
 
     if (croom && somexy(croom, &c) && teleok(c.x, c.y, FALSE)) {
-        teleds(c.x, c.y, FALSE);
+        teleds(c.x, c.y, FALSE, TRUE);
         return;
     }
     tele();
@@ -469,7 +471,7 @@ struct obj *scroll;
                 /* for scroll, discover it regardless of destination */
                 if (scroll)
                     learnscroll(scroll);
-                teleds(cc.x, cc.y, FALSE);
+                teleds(cc.x, cc.y, FALSE, TRUE);
                 return TRUE;
             }
             pline("Sorry...");
@@ -478,7 +480,7 @@ struct obj *scroll;
     }
 
     telescroll = scroll;
-    (void) safe_teleds(FALSE);
+    (void) safe_teleds(FALSE, TRUE);
     /* teleds() will leave telescroll intact iff random destination
        is far enough away for scroll discovery to be warranted */
     if (telescroll)

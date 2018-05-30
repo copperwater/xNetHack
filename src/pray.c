@@ -353,7 +353,7 @@ int trouble;
     case TROUBLE_LAVA:
         You("are back on solid ground.");
         /* teleport should always succeed, but if not, just untrap them */
-        if (!safe_teleds(FALSE))
+        if (!safe_teleds(FALSE, FALSE))
             u.utrap = 0;
         break;
     case TROUBLE_STARVING:
@@ -410,7 +410,7 @@ int trouble;
         break;
     case TROUBLE_STUCK_IN_WALL:
         /* no control, but works on no-teleport levels */
-        if (safe_teleds(FALSE)) {
+        if (safe_teleds(FALSE, FALSE)) {
             Your("surroundings change.");
         } else {
             /* safe_teleds() couldn't find a safe place; perhaps the

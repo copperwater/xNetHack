@@ -1789,7 +1789,7 @@ int magic; /* 0=Physical, otherwise skill level */
          * and usually moves the ball if punished, but does not handle all
          * the effects of landing on the final position.
          */
-        teleds(cc.x, cc.y, FALSE);
+        teleds(cc.x, cc.y, FALSE, FALSE);
         sokoban_guilt();
         nomul(-1);
         multi_reason = "jumping around";
@@ -2762,7 +2762,7 @@ struct obj *obj;
             if (proficient && rn2(proficient + 2)) {
                 if (!mtmp || enexto(&cc, rx, ry, youmonst.data)) {
                     You("yank yourself out of the pit!");
-                    teleds(cc.x, cc.y, TRUE);
+                    teleds(cc.x, cc.y, TRUE, FALSE);
                     u.utrap = 0;
                     vision_full_recalc = 1;
                 }
