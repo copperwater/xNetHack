@@ -168,7 +168,7 @@ WEAPON("stiletto", None,
    when a stack of teeth is enchanted at once, they fuse into one crysknife;
    when a stack of crysknives drops, the whole stack reverts to teeth */
 WEAPON("worm tooth", None,
-       1, 1, 0,  0,  20,   2,  2,  2, 0, 0,   P_KNIFE, 0, CLR_WHITE),
+       1, 1, 0,  0,  20,   2,  2,  2, 0, 0,   P_KNIFE, BONE, CLR_WHITE),
 WEAPON("crysknife", None,
        1, 1, 0,  0,  20, 100, 10, 10, 3, P,   P_KNIFE, MINERAL, CLR_WHITE),
 
