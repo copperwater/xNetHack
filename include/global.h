@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 
-/* #define BETA  */ /* development or beta testing [MRS] */
+#define BETA   /* development or beta testing [MRS] */
 
 #define DEBUG
 
@@ -362,4 +362,10 @@ struct savefile_info {
 #define LL_ARTIFACT   0x0040 /* Excalibur, Sting, Orcrist, plus sac gifts and artwishes */
 #define LL_GENOCIDE   0x0080 /* Logging of genocides */
 #define LL_DEBUG      0x8000 /* For debugging messages and other spam */
+
+/* Supply nethack_enter macro if not supplied by port */
+#ifndef nethack_enter
+#define nethack_enter(argc, argv) ((void) 0)
+#endif
+
 #endif /* GLOBAL_H */

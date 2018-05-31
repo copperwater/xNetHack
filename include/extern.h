@@ -1,4 +1,4 @@
-/* NetHack 3.6	extern.h	$NHDT-Date: 1518053385 2018/02/08 01:29:45 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.625 $ */
+/* NetHack 3.6	extern.h	$NHDT-Date: 1525012590 2018/04/29 14:36:30 $  $NHDT-Branch: master $:$NHDT-Revision: 1.629 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -26,7 +26,7 @@ E void NDECL(display_gamewindows);
 E void NDECL(newgame);
 E void FDECL(welcome, (BOOLEAN_P));
 E time_t NDECL(get_realtime);
-E boolean FDECL(argcheck, (int, char **, enum earlyarg));
+E int FDECL(argcheck, (int, char **, enum earlyarg));
 
 /* ### apply.c ### */
 
@@ -795,6 +795,7 @@ E void NDECL(read_wizkit);
 E int FDECL(read_sym_file, (int));
 E int FDECL(parse_sym_line, (char *, int));
 E void FDECL(paniclog, (const char *, const char *));
+E void FDECL(testinglog, (const char *, const char *, const char *));
 E int FDECL(validate_prefix_locations, (char *));
 #ifdef SELECTSAVED
 E char *FDECL(plname_from_file, (const char *));
@@ -1185,6 +1186,7 @@ E boolean FDECL(usmellmon, (struct permonst *));
 
 E int FDECL(mapglyph, (int, int *, int *, unsigned *, int, int));
 E char *FDECL(encglyph, (int));
+E const char *FDECL(decode_mixed, (char *,const char *));
 E void FDECL(genl_putmixed, (winid, int, const char *));
 
 /* ### mcastu.c ### */
@@ -1654,6 +1656,7 @@ E int NDECL(tgetch);
 E int FDECL(ntposkey, (int *, int *, int *));
 E void FDECL(set_output_mode, (int));
 E void NDECL(synch_cursor);
+E void NDECL(nethack_enter_nttty);
 #endif
 
 /* ### o_init.c ### */
@@ -2831,6 +2834,11 @@ E void NDECL(dump_close_log);
 E void FDECL(dump_redirect, (BOOLEAN_P));
 E void FDECL(dump_forward_putstr, (winid, int, const char*, int));
 
+/* ### winnt.c ### */
+#ifdef WIN32
+E void NDECL(nethack_enter_winnt);
+#endif
+
 /* ### wizard.c ### */
 
 E void NDECL(amulet);
@@ -2931,7 +2939,8 @@ E int FDECL(spell_damage_bonus, (int));
 E const char *FDECL(exclam, (int force));
 E void FDECL(hit, (const char *, struct monst *, const char *));
 E void FDECL(miss, (const char *, struct monst *));
-E struct monst *FDECL(bhit, (int, int, int, int, int (*)(MONST_P, OBJ_P),
+E struct monst *FDECL(bhit, (int, int, int, enum bhit_call_types,
+                             int (*)(MONST_P, OBJ_P),
                              int (*)(OBJ_P, OBJ_P), struct obj **));
 E struct monst *FDECL(boomhit, (struct obj *, int, int));
 E int FDECL(zhitm, (struct monst *, int, int, struct obj **));
