@@ -5105,6 +5105,13 @@ retry:
         wishcmdassist(MAXWISHTRY - tries);
         goto retry;
     }
+    if (buf[0] == '\0') {
+        if (yn("Really forfeit this wish?") == 'y') {
+            Strcpy(buf, "nothing");
+        }
+        else
+            goto retry;
+    }
     /*
      *  Note: if they wished for and got a non-object successfully,
      *  otmp == &zeroobj.  That includes gold, or an artifact that
