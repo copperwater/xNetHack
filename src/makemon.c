@@ -781,7 +781,7 @@ register struct monst *mtmp;
         (void) mongets(mtmp, rnd_defensive_item(mtmp));
     if ((int) mtmp->m_lev > rn2(100))
         (void) mongets(mtmp, rnd_misc_item(mtmp));
-    if (likes_gold(ptr) && !findgold(mtmp->minvent) && !rn2(5))
+    if (likes_gold(ptr) && !findgold(mtmp->minvent, TRUE) && !rn2(5))
         mkmonmoney(mtmp,
                    (long) d(level_difficulty(), mtmp->minvent ? 5 : 10));
 }
