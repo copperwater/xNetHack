@@ -1983,14 +1983,13 @@ identify_pack(id_limit, learning_id)
 int id_limit;
 boolean learning_id; /* true if we just read unknown identify scroll */
 {
-    struct obj *obj, *the_obj;
+    struct obj *obj, *unid_obj[52];
     int n, unid_cnt;
 
     unid_cnt = 0;
-    the_obj = 0; /* if unid_cnt ends up 1, this will be it */
     for (obj = invent; obj; obj = obj->nobj)
         if (not_fully_identified(obj))
-            ++unid_cnt, the_obj = obj;
+            unid_obj[unid_cnt++] = obj;
 
     if (!unid_cnt) {
         You("have already identified all %sof your possessions.",
@@ -1998,13 +1997,12 @@ boolean learning_id; /* true if we just read unknown identify scroll */
     } else if (!id_limit || id_limit >= unid_cnt) {
         /* identify everything */
         if (unid_cnt == 1) {
-            (void) identify(the_obj);
+            (void) identify(unid_obj[0]);
         } else {
             /* TODO:  use fully_identify_obj and cornline/menu/whatever here
              */
-            for (obj = invent; obj; obj = obj->nobj)
-                if (not_fully_identified(obj))
-                    (void) identify(obj);
+            for (n = 0; n < unid_cnt; n++)
+                (void) identify(unid_obj[n]);
         }
     } else {
         /* identify up to `id_limit' items */
