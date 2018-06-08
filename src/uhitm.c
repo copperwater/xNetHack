@@ -796,8 +796,10 @@ int dieroll;
                     hittxt = TRUE;
                 }
                 /* maybe break your glass weapon or monster's glass armor */
-                break_glass_obj(obj);
-                break_glass_obj(some_armor(mon));
+                if (hand_to_hand) {
+                    break_glass_obj(obj);
+                    break_glass_obj(some_armor(mon));
+                }
 
                 if (obj->oartifact
                     && artifact_hit(&youmonst, mon, obj, &tmp, dieroll)) {
