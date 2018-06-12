@@ -61,8 +61,11 @@ It contains the following non-gameplay interface changes:
 Lots of new hallucinatory monsters, engravings, shirts, headstones, and rumors.
 Add the curses interface (OPTIONS=windowtype:curses). And there was much
   rejoicing.
-A message is always printed when monsters are created.
+A message is always printed when monsters are created (taking the general form
+  of "%s appear from nowhere!")
 A message is always printed when the hero teleports.
+The shopkeeper sell prompt defaults to No instead of Yes, so hitting Enter or
+  Space won't sell an item.
 
 It contains the following non-gameplay architectural changes:
 
