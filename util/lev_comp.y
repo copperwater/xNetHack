@@ -207,7 +207,7 @@ extern char curr_token[512];
 %token	<i> SWITCH_ID CASE_ID BREAK_ID DEFAULT_ID
 %token	<i> ERODED_ID TRAPPED_STATE RECHARGED_ID INVIS_ID GREASED_ID
 %token	<i> FEMALE_ID CANCELLED_ID REVIVED_ID AVENGE_ID FLEEING_ID BLINDED_ID
-%token	<i> PARALYZED_ID STUNNED_ID CONFUSED_ID SEENTRAPS_ID ALL_ID
+%token	<i> PARALYZED_ID STUNNED_ID CONFUSED_ID SEENTRAPS_ID DEAD_ID ALL_ID
 %token	<i> MONTYPE_ID
 %token	<i> GRAVE_ID ERODEPROOF_ID
 %token	<i> FUNCTION_ID
@@ -1425,7 +1425,7 @@ monster_infos	: /* nothing */
 		| monster_infos ',' monster_info
 		  {
 		      if (( $1 & $3 ))
-			  lc_error("MONSTER extra info defined twice.");
+			  lc_error("MONSTER extra info defined twice, or conflicting.");
 		      $$ = ( $1 | $3 );
 		  }
 		;
@@ -1515,7 +1515,12 @@ monster_info	: string_expr
 				 VA_PASS2((long)$3, SP_M_V_SEENTRAPS));
 		      $$ = 0x8000;
 		  }
-		;
+		| DEAD_ID
+                  {
+                      add_opvars(splev, "ii", VA_PASS2(1, SP_M_V_DEAD));
+                      $$ = 0xFFFF; /* being dead conflicts with all other params */
+                  }
+                ;
 
 seen_trap_mask	: STRING
 		  {

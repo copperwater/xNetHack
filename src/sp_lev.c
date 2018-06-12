@@ -1927,6 +1927,12 @@ struct mkroom *croom;
             discard_minvent(mtmp);
             invent_carrying_monster = mtmp;
         }
+        if (m->dead) {
+            mondied(mtmp);
+            /* kludge for this: it didn't actually die while the player was
+             * around, so revert mondead() incrementing this */
+            mvitals[monsndx(mtmp->data)].died--;
+        }
     }
 }
 
@@ -3059,6 +3065,7 @@ struct sp_coder *coder;
     tmpmons.confused = 0;
     tmpmons.seentraps = 0;
     tmpmons.has_invent = 0;
+    tmpmons.dead = 0;
 
     if (!OV_pop_i(has_inv))
         return;
@@ -3139,6 +3146,10 @@ struct sp_coder *coder;
         case SP_M_V_SEENTRAPS:
             if (OV_typ(parm) == SPOVAR_INT)
                 tmpmons.seentraps = OV_i(parm);
+            break;
+        case SP_M_V_DEAD:
+            if (OV_typ(parm) == SPOVAR_INT)
+                tmpmons.dead = OV_i(parm);
             break;
         case SP_M_V_END:
             nparams = SP_M_V_END + 1;

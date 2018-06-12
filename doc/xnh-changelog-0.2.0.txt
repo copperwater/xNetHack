@@ -72,3 +72,8 @@ Add whereis patch. Every time the hero changes levels, a whereis file is
   updated with some information about them.
 Refactor create_critters() and bagotricks() logic so that the latter can call
   the former.
+Add a new monster status "dead" to the level parser, which makes the monster
+  instantly die (without a message or any in-game effect) when the level is
+  loaded. The point is so that special levels can generate realistic items that
+  the monster would have been carrying without having to specify and
+  reimplement the logic for that.
