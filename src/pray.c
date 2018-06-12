@@ -1373,6 +1373,12 @@ dosacrifice()
                 pline_The("altar is stained with %s blood.", urace.adj);
                 levl[u.ux][u.uy].altarmask = AM_CHAOTIC;
                 angry_priest();
+                if (!canspotself())
+                    /* with colored altars, regular newsym() doesn't cut it -
+                     * it will see that the actual glyph is still the same, so
+                     * the color won't be updated. This code must be added
+                     * anywhere an altar mask could change. */
+                    newsym_force(u.ux, u.uy);
             } else {
                 struct monst *dmon;
                 const char *demonless_msg;
@@ -1388,6 +1394,8 @@ dosacrifice()
                     newsym(u.ux, u.uy);
                     angry_priest();
                     demonless_msg = "cloud dissipates";
+                    if (!canspotself())
+                        newsym_force(u.ux, u.uy);
                 } else {
                     /* either you're chaotic or altar is Moloch's or both */
                     pline_The("blood covers the altar!");
@@ -1646,6 +1654,9 @@ dosacrifice()
                                             : u.ualign.type
                                                ? NH_RED
                                                : (const char *) "gray"));
+
+                    if (!canspotself())
+                        newsym_force(u.ux, u.uy);
 
                     if (rnl(u.ulevel) > 6 && u.ualign.record > 0
                         && rnd(u.ualign.record) > (3 * ALIGNLIM) / 4)
