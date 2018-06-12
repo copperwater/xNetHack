@@ -1427,7 +1427,7 @@ unsigned trflags;
         if (webmsgok) {
             char verbbuf[BUFSZ];
 
-            if (forcetrap || viasitting) {
+            if (forcetrap || viasitting || context.nopick) {
                 Strcpy(verbbuf, "are caught by");
             } else if (u.usteed) {
                 Sprintf(verbbuf, "lead %s into",
