@@ -66,7 +66,8 @@ enum invoke_prop_types {
     LEV_TELE,
     CREATE_PORTAL,
     ENLIGHTENING,
-    CREATE_AMMO
+    CREATE_AMMO,
+    LIGHTNING_BOLT
 };
 
 #endif /* ARTIFACT_H */

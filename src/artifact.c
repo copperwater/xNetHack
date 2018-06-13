@@ -1224,6 +1224,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
             (void) destroy_mitem(mdef, RING_CLASS, AD_ELEC);
         if (!rn2(5))
             (void) destroy_mitem(mdef, WAND_CLASS, AD_ELEC);
+        wake_nearto(mdef->mx, mdef->my, 6 * 6); /* thunder */
         return realizes_damage;
     }
     if (attacks(AD_MAGM, otmp)) {
@@ -1619,6 +1620,23 @@ struct obj *obj;
             otmp = hold_another_object(otmp, "Suddenly %s out.",
                                        aobjnam(otmp, "fall"), (char *) 0);
             break;
+        }
+        case LIGHTNING_BOLT: {
+            struct obj* pseudo = mksobj(WAN_LIGHTNING, FALSE, FALSE);
+            pseudo->blessed = pseudo->cursed = 0;
+            /* type is a "spell of lightning bolt" which doesn't actually
+             * exist: 10 + AD_ELEC - 1 */
+            if(!getdir(NULL) || (!u.dx && !u.dy && !u.dz)) {
+                int damage = zapyourself(pseudo, TRUE);
+                if (damage > 0) {
+                    losehp(damage, "struck by lightning", NO_KILLER_PREFIX);
+                }
+            }
+            else {
+                /* don't use weffects - we want higher damage than that */
+                buzz(9 + AD_ELEC, 8, u.ux, u.uy, u.dx, u.dy);
+            }
+            obfree(pseudo, NULL);
         }
         }
     } else {
