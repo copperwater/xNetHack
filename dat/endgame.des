@@ -621,12 +621,12 @@ MONSTER:('A',"Angel"),(62,13),neutral,hostile
 MONSTER:('A',"Angel"),(63,13),neutral,peaceful
 #
 # Assorted nasties
-MONSTER:'L',random,hostile
-MONSTER:'L',random,hostile
-MONSTER:'L',random,hostile
-MONSTER:'V',random,hostile
-MONSTER:'V',random,hostile
-MONSTER:'V',random,hostile
+MONSTER:'A',random,hostile
+MONSTER:'A',random,hostile
+MONSTER:'A',random,hostile
+MONSTER:'A',random,hostile
+MONSTER:'A',random,hostile
+MONSTER:'A',random,hostile
 MONSTER:'D',random,hostile
 MONSTER:'D',random,hostile
 MONSTER:'D',random,hostile

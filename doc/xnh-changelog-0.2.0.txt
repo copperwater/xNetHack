@@ -57,6 +57,8 @@ Each barracks in the castle may open into either the courtyard or the throne
 Orcish Town now contains all the gear that the shopkeepers, watchmen, and
   priest would have carried, as well as all the shop loot from the destroyed
   shops, scattered around.
+The Astral Plane now contains six random A-class monsters instead of three
+  random V and three random L. This may generate Archons, so beware!
 
 It contains the following non-gameplay interface changes:
 
