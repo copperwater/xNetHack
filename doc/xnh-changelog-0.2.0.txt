@@ -82,3 +82,5 @@ Add a new monster status "dead" to the level parser, which makes the monster
   loaded. The point is so that special levels can generate realistic items that
   the monster would have been carrying without having to specify and
   reimplement the logic for that.
+In wizard mode, you can now opt to override an artifact ignoring you because
+  it's tired.
