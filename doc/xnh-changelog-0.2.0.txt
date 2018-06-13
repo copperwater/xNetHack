@@ -54,6 +54,9 @@ Decrease chance of secret passages generating: they never generate on the first
   generated with its 1% chance, it instead uses a 1 in (level-4 / 2000) chance.
 Each barracks in the castle may open into either the courtyard or the throne
   room with equal probability. These doors are no longer locked.
+Orcish Town now contains all the gear that the shopkeepers, watchmen, and
+  priest would have carried, as well as all the shop loot from the destroyed
+  shops, scattered around.
 
 It contains the following non-gameplay interface changes:
 
