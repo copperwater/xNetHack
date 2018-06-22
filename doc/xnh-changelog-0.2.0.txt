@@ -61,6 +61,8 @@ The Astral Plane now contains six random A-class monsters instead of three
   random V and three random L. This may generate Archons, so beware!
 Hitting things with Mjollnir now wakes monsters around the monster it hit.
 Mjollnir can now be invoked for a powerful lightning bolt.
+Port FIQHack's XP curve; this primarily means that a character who continuously
+  kills monsters will keep leveling up through the later game.
 
 It contains the following non-gameplay interface changes:
 
