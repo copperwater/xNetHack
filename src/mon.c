@@ -894,25 +894,35 @@ register struct monst *mtmp;
                     grow = mlevelgain(otmp);
                     heal = mhealup(otmp);
                     mstone = mstoning(otmp);
-                    delobj(otmp);
                     ptr = mtmp->data;
-                    if (poly) {
-                        if (newcham(mtmp, (struct permonst *) 0, FALSE, FALSE))
-                            ptr = mtmp->data;
-                    } else if (grow) {
-                        ptr = grow_up(mtmp, (struct monst *) 0);
-                    } else if (mstone) {
-                        if (poly_when_stoned(ptr)) {
-                            mon_to_stone(mtmp);
-                            ptr = mtmp->data;
-                        } else if (!resists_ston(mtmp)) {
-                            if (canseemon(mtmp))
-                                pline("%s turns to stone!", Monnam(mtmp));
-                            monstone(mtmp);
-                            ptr = (struct permonst *) 0;
+
+                    if (poly || grow || heal || mstone || !rn2(7)) {
+                        delobj(otmp);
+                        if (poly) {
+                            if (newcham(mtmp, (struct permonst *) 0, FALSE,
+                                        FALSE))
+                                ptr = mtmp->data;
+                        } else if (grow) {
+                            ptr = grow_up(mtmp, (struct monst *) 0);
+                        } else if (mstone) {
+                            if (poly_when_stoned(ptr)) {
+                                mon_to_stone(mtmp);
+                                ptr = mtmp->data;
+                            } else if (!resists_ston(mtmp)) {
+                                if (canseemon(mtmp))
+                                    pline("%s turns to stone!", Monnam(mtmp));
+                                monstone(mtmp);
+                                ptr = (struct permonst *) 0;
+                            }
+                        } else if (heal) {
+                            mtmp->mhp = mtmp->mhpmax;
                         }
-                    } else if (heal) {
-                        mtmp->mhp = mtmp->mhpmax;
+                    }
+                    else {
+                        /* metal is slow to digest... put it in the monster's
+                         * "stomach" */
+                        obj_extract_self(otmp);
+                        add_to_minv(mtmp, otmp);
                     }
                     if (!ptr)
                         return 2; /* it died */

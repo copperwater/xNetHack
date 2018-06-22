@@ -56,6 +56,9 @@ Each barracks in the castle may open into either the courtyard or the throne
   room with equal probability. These doors are no longer locked.
 Teleportation onto the Vibrating Square is now allowed.
 You can only rub things if you are in a form with hands.
+When metallivores eat metal from the ground, assuming it has no special effects
+  on them, there is a 6/7 chance the metal goes into their inventory rather
+  than vanishing.
 
 It contains the following non-gameplay interface changes:
 
