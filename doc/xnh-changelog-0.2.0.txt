@@ -66,6 +66,7 @@ A message is always printed when monsters are created and the hero is aware of
 A message is always printed when the hero teleports or level teleports.
 The shopkeeper sell prompt defaults to No instead of Yes, so hitting Enter or
   Space won't sell an item.
+You get a YAFM when you attempt to apply "-".
 
 It contains the following non-gameplay architectural changes:
 

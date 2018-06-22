@@ -3565,8 +3565,12 @@ STATIC_OVL int
 apply_ok(obj)
 struct obj *obj;
 {
+    /* for a YAFM */
+    if (!obj)
+        return 1;
+
     /* maybe we should allow triggering traps? */
-    if (!obj || obj == &zeroobj)
+    if (obj == &zeroobj)
         return 0;
 
     /* Okay, this is a bit of a contentious issue. Should floor lootables be
@@ -3621,6 +3625,11 @@ doapply()
     obj = getobj("use or apply", apply_ok, TRUE, FALSE);
     if (!obj)
         return 0;
+
+    if (obj == &zeroobj) {
+        pline("%s always said you needed to apply yourself!", ldrname());
+        return 0;
+    }
 
     if (!retouch_object(&obj, FALSE))
         return 1; /* evading your grasp costs a turn; just be
