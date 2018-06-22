@@ -1441,6 +1441,11 @@ struct obj *obj;
 int
 dorub()
 {
+    if (nohands(youmonst.data)) {
+        You("can't rub anything together without hands.");
+        return 0;
+    }
+
     struct obj *obj = getobj("rub", rub_ok, FALSE, FALSE);
 
     if (obj && obj->oclass == GEM_CLASS) {
@@ -2279,7 +2284,10 @@ STATIC_OVL int
 touchstone_ok(obj)
 struct obj *obj;
 {
-    if (!obj || obj == &zeroobj)
+    if (!obj)
+        return 1;
+
+    if (obj == &zeroobj)
         return 0;
 
     if (is_graystone(obj))
@@ -2305,21 +2313,40 @@ struct obj *tstone;
     const char *streak_color, *choices;
     char stonebuf[QBUFSZ];
     static const char scritch[] = "\"scritch, scritch\"";
+    boolean known_touchstone = tstone->otyp == TOUCHSTONE && tstone->dknown
+                               && objects[TOUCHSTONE].oc_name_known;
 
+    if (nohands(youmonst.data)) {
+        You("can't rub anything together without hands.");
+        return;
+    }
     /* in case it was acquired while blinded */
     if (!Blind)
         tstone->dknown = 1;
     /* when the touchstone is fully known, don't bother listing extra
        junk as likely candidates for rubbing */
     Sprintf(stonebuf, "rub on the stone%s", plur(tstone->quan));
-    if (tstone->otyp == TOUCHSTONE && tstone->dknown &&
-        objects[TOUCHSTONE].oc_name_known)
+    if (known_touchstone)
         obj = getobj(stonebuf, touchstone_ok, FALSE, FALSE);
     else
-        obj = getobj(stonebuf, allow_any_obj, FALSE, FALSE);
+        obj = getobj(stonebuf, allow_any, FALSE, FALSE);
 
     if (!obj)
         return;
+
+    if (obj == &zeroobj) {
+        if (youmonst.data == &mons[PM_GLASS_GOLEM]) {
+            if (known_touchstone)
+                You_feel("worthless.");
+            else
+                pline("You make scratch marks on the stone.");
+        }
+        else {
+            pline("You rub the stone on your %s.", body_part(HAND));
+            pline("It's not very interesting.");
+        }
+        return;
+    }
 
     if (obj == tstone && obj->quan == 1L) {
         You_cant("rub %s on itself.", the(xname(obj)));
