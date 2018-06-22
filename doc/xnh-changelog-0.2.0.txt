@@ -71,6 +71,9 @@ You get a YAFM when you attempt to apply "-".
 You can now rub stones on your hand. Currently the only use for this is a YAFM
   when you are polyselfed into a glass golem and rub an identified touchstone
   on your hand.
+Some golem colors are modified so they can be better distinguished. Straw
+  golems are bright blue, rope are black, clay are orange, glass are bright
+  cyan.
 
 It contains the following non-gameplay architectural changes:
 
