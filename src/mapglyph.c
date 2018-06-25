@@ -199,6 +199,7 @@ unsigned *ospecial;
     } else if ((offset = (glyph - GLYPH_OBJ_OFF)) >= 0) { /* object */
         struct obj* otmp = vobj_at(x, y);
         idx = objects[offset].oc_class + SYM_OFF_O;
+        if (On_stairs(x,y) && levl[x][y].seenv) special |= MG_STAIRS;
         if (offset == BOULDER)
             idx = SYM_BOULDER + SYM_OFF_X;
         if (has_rogue_color && iflags.use_color) {
@@ -241,6 +242,7 @@ unsigned *ospecial;
             mon_color(offset);
         special |= MG_RIDDEN;
     } else if ((offset = (glyph - GLYPH_BODY_OFF)) >= 0) { /* a corpse */
+        if (On_stairs(x,y) && levl[x][y].seenv) special |= MG_STAIRS;
         idx = objects[CORPSE].oc_class + SYM_OFF_O;
         if (has_rogue_color && iflags.use_color)
             color = CLR_RED;
