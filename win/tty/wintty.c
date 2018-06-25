@@ -3253,11 +3253,17 @@ int bkglyph UNUSED;
     if (((special & MG_PET) && iflags.hilite_pet)
         || ((special & MG_OBJPILE) && iflags.hilite_pile)
         || ((special & MG_DETECT) && iflags.use_inverse)
-        || ((special & MG_BW_LAVA) && iflags.use_inverse)
-        || ((special & MG_STAIRS) && iflags.hilite_hidden_stairs)) {
+        || ((special & MG_BW_LAVA) && iflags.use_inverse)) {
         term_start_attr(ATR_INVERSE);
         reverse_on = TRUE;
     }
+
+#ifdef TEXTCOLOR
+    if ((special & MG_STAIRS) && iflags.hilite_hidden_stairs
+        && (window == NHW_MAP)) {
+        term_start_bgcolor(CLR_RED);
+    }
+#endif /* TEXTCOLOR */
 
 #if defined(USE_TILES) && defined(MSDOS)
     if (iflags.grmode && iflags.tile_view)

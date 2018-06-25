@@ -73,6 +73,8 @@ A message is always printed when monsters are created.
 A message is always printed when the hero teleports.
 When a leprechaun dodges your attack, make this clear: "You miss wildly and
   stumble forwards." Ported from FIQHack.
+Add the hilite_hidden_stairs patch from 343-nao, hilighting stairs obscured by
+  objects with a red background. This option defaults to true.
 
 It contains the following non-gameplay architectural changes:
 
@@ -90,3 +92,4 @@ Add a new monster status "dead" to the level parser, which makes the monster
   reimplement the logic for that.
 In wizard mode, you can now opt to override an artifact ignoring you because
   it's tired.
+In the tty windowport, a specific background color can now be used.
