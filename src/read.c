@@ -29,6 +29,7 @@ struct obj *obj;
         return 2;
 
     if (obj->otyp == TIN || obj->otyp == T_SHIRT || obj->otyp == CANDY_BAR
+        || obj->otyp == C_RATION || obj->otyp == K_RATION
         || obj->otyp == MAGIC_MARKER)
         return 2;
 
@@ -358,6 +359,34 @@ doread()
             livelog_write_string(LL_CONDUCT,
                     "became literate by reading a candy bar wrapper");
         return 1;
+    } else if (scroll->otyp == C_RATION || scroll->otyp == K_RATION) {
+        /* nonvegan/nonvegetarian names might be somewhat misleading since
+         * these rations are always vegan */
+        static const char *mil_ration_msgs[] = {
+            "Jalapeno Cheddar Cheese Spread MRE",
+            "Chili and Macaroni MRE",
+            "Wheat Snack Bread MRE",
+            "Ratatouille MRE",
+            "Lemon Pepper Tuna MRE",
+            "Chicken Chunks MRE",
+            "Sloppy Joe MRE",
+            "Rib Shaped BBQ Pork Patty MRE",
+            "Chicken with Salsa MRE",
+            "Tuna in Pouch MRE",
+            "Meatloaf with Gravy MRE",
+            "Ham Slice MRE"
+            "Humanitarian Daily Ration 8970-01-375-0516",
+        };
+        if (Blind) {
+            You_cant("feel any Braille writing.");
+            return 0;
+        }
+        pline("The label reads: \"%s\".",
+              mil_ration_msgs[scroll->o_id % SIZE(mil_ration_msgs)]);
+        if(!u.uconduct.literate++)
+            livelog_write_string(LL_CONDUCT,
+                    "became literate by reading the label on a ration");
+        return 1;
     } else if (scroll->otyp == TIN) {
         static const char *tin_msgs[] = {
             /* special cases and format strings come first; if more with format strings
@@ -382,8 +411,6 @@ doread()
             "%s - Packaged in the Wizard's Tinnery",                 /* ditto */
             "Nuka-Cola",                                           /* Fallout */
             "Sploosh",                                               /* Holes */
-            "Jalapeno Cheddar Cheese Spread MRE",                 /* military */
-            "Humanitarian Daily Ration 8970-01-375-0516",            /* ditto */
             "Fancy Feast Cat Food",                              /* real life */
             "Chickatrice of the Sea",                            /* tuna fish */
         "First Quality Peaches - Not labeled for individual resale", /* Rogue */
