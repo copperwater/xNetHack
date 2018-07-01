@@ -94,6 +94,7 @@ When a leprechaun dodges your attack, make this clear: "You miss wildly and
 Add the hilite_hidden_stairs patch from 343-nao, hilighting stairs obscured by
   objects with a red background. This option defaults to true.
 You can read the label on C- and K-rations.
+Candelabrum gives a helpful tip if you try to apply it with no candles.
 
 It contains the following non-gameplay architectural changes:
 
