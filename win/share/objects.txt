@@ -2421,7 +2421,7 @@ Z = (195, 195, 195)
   ..AAAAAAAAAAAP..
   ...PPPPPPPPPPP..
 }
-# tile 126 (piece of cloth / cloak of displacement)
+# tile 126 (dusty cloak / cloak of displacement)
 {
   ................
   ................
