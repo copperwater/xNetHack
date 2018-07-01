@@ -74,6 +74,7 @@ Port Fourk's random psuedo-artifact weapon names for random non-artifact but
 It contains the following non-gameplay interface changes:
 
 Lots of new hallucinatory monsters, engravings, shirts, headstones, and rumors.
+  Also more hallucinatory gods.
 Add the curses interface (OPTIONS=windowtype:curses). And there was much
   rejoicing.
 A message is always printed when monsters are created and the hero is aware of
