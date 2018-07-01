@@ -59,6 +59,17 @@ You can only rub things if you are in a form with hands.
 When metallivores eat metal from the ground, assuming it has no special effects
   on them, there is a 6/7 chance the metal goes into their inventory rather
   than vanishing.
+Orcish Town now contains all the gear that the shopkeepers, watchmen, and
+  priest would have carried, as well as all the shop loot from the destroyed
+  shops, scattered around.
+The Astral Plane now contains six random A-class monsters instead of three
+  random V and three random L. This may generate Archons, so beware!
+Hitting things with Mjollnir now wakes monsters around the monster it hit.
+Mjollnir can now be invoked for a powerful lightning bolt.
+Port FIQHack's XP curve; this primarily means that a character who continuously
+  kills monsters will keep leveling up through the later game.
+Port Fourk's random psuedo-artifact weapon names for random non-artifact but
+  very good (highly enchanted, erodeproof, or both) weapons.
 
 It contains the following non-gameplay interface changes:
 
@@ -77,6 +88,10 @@ You can now rub stones on your hand. Currently the only use for this is a YAFM
 Some golem colors are modified so they can be better distinguished. Straw
   golems are bright blue, rope are black, clay are orange, glass are bright
   cyan.
+When a leprechaun dodges your attack, make this clear: "You miss wildly and
+  stumble forwards." Ported from FIQHack.
+Add the hilite_hidden_stairs patch from 343-nao, hilighting stairs obscured by
+  objects with a red background. This option defaults to true.
 
 It contains the following non-gameplay architectural changes:
 
@@ -87,3 +102,11 @@ Add whereis patch. Every time the hero changes levels, a whereis file is
   updated with some information about them.
 Refactor create_critters() and bagotricks() logic so that the latter can call
   the former.
+Add a new monster status "dead" to the level parser, which makes the monster
+  instantly die (without a message or any in-game effect) when the level is
+  loaded. The point is so that special levels can generate realistic items that
+  the monster would have been carrying without having to specify and
+  reimplement the logic for that.
+In wizard mode, you can now opt to override an artifact ignoring you because
+  it's tired.
+In the tty windowport, a specific background color can now be used.

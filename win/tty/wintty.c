@@ -3258,6 +3258,13 @@ int bkglyph UNUSED;
         reverse_on = TRUE;
     }
 
+#ifdef TEXTCOLOR
+    if ((special & MG_STAIRS) && iflags.hilite_hidden_stairs
+        && (window == NHW_MAP)) {
+        term_start_bgcolor(CLR_RED);
+    }
+#endif /* TEXTCOLOR */
+
 #if defined(USE_TILES) && defined(MSDOS)
     if (iflags.grmode && iflags.tile_view)
         xputg(glyph, ch, special);
@@ -4290,4 +4297,3 @@ render_status(VOID_ARGS)
 #endif /* TTY_GRAPHICS */
 
 /*wintty.c*/
-

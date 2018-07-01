@@ -123,105 +123,71 @@ REPLACE_TERRAIN:(07,12,11,14),'|','.',18%
 REPLACE_TERRAIN:(28,12,28,14),'|','.',33%
 
 # Rubble!
-LOOP [9 + 2d5] {
+LOOP [5 + 2d5] {
   [90%]: OBJECT:('`',"boulder"),random
   OBJECT:('*',"rock"),random
 }
 
-# One spot each in most shops...
+# Shopkeeper "bones" piles. One spot each in most shops...
+# there were 4 shops in Frontier Town; the general store shk is still present
+# so there should only be three dead shks here
 $shk_demise = { (09,05),(13,04),(26,04),(31,05),(30,14),(05,14),(10,13),(26,14),(27,13) }
 SHUFFLE:$shk_demise
+MONSTER:('@',"shopkeeper"),$shk_demise[0],dead
+MONSTER:('@',"shopkeeper"),$shk_demise[1],dead
+MONSTER:('@',"shopkeeper"),$shk_demise[2],dead
+# Orcish Town is hard enough without the orcs picking up and using the
+# shopkeepers' wands and potions.
+OBJECT: ('`',"boulder"), $shk_demise[0]
+OBJECT: ('`',"boulder"), $shk_demise[1]
+OBJECT: ('`',"boulder"), $shk_demise[2]
 
-# Guarantee 7 candles since we won't have Izchak available
-OBJECT:('(',"wax candle"),$shk_demise[0],quantity:1d2
-OBJECT:('(',"wax candle"),$shk_demise[1],quantity:2d2
-OBJECT:('(',"wax candle"),$shk_demise[2],quantity:1d2
-OBJECT:('(',"tallow candle"),$shk_demise[3],quantity:1d3
-OBJECT:('(',"tallow candle"),$shk_demise[2],quantity:1d2
-OBJECT:('(',"tallow candle"),$shk_demise[0],quantity:1d2
-
-# go ahead and leave a lamp under one corpse to be suggestive
-# and some empty wands...
-OBJECT:('(',"oil lamp"),$shk_demise[2]
-OBJECT:('/',"striking"),$shk_demise[1],uncursed,0
-OBJECT:('/',"striking"),$shk_demise[3],uncursed,0
-OBJECT:('/',"striking"),$shk_demise[4],uncursed,0
-OBJECT:('/',"magic missile"),$shk_demise[4],uncursed,0
-OBJECT:('/',"magic missile"),$shk_demise[0],uncursed,0
-
-# and maybe a key
-[50%]: OBJECT:('(',"skeleton key"),$shk_demise[1]
-
-OBJECT:('%',"corpse"),$shk_demise[0],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$shk_demise[1],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$shk_demise[2],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$shk_demise[3],montype:"shopkeeper"
-OBJECT:('%',"corpse"),$shk_demise[4],montype:"shopkeeper"
+# shop inventories... 9 items from a tool shop, 4 from a delicatessen, 6 from Izchak
+# Ideally we could just call some routine to fill the shop objects with the
+# appropriate probabilities for their shops and not put in the shopkeepers, but
+# that can't be made to work without a refactor of room-filling semantics.
+LOOP [9] {
+  OBJECT: '(', rndcoord($inside)
+}
+# For now, only FOOD_CLASS items from deli.
+LOOP [4] {
+  OBJECT: '%', rndcoord($inside)
+}
+# probabilities not exactly the same, no potion of oil, but otherwise close.
+# Notably, overall 5% chance of a magic lamp per placement, up from 3%.
+LOOP [6] {
+  IF [80%] {
+    IF [50%] {
+      OBJECT: ('(',"wax candle"), rndcoord($inside), quantity:1d4
+    } ELSE {
+      OBJECT: ('(',"tallow candle"), rndcoord($inside), quantity:1d4
+    }
+  } ELSE {
+    IF [50%] {
+      OBJECT: ('(',"oil lamp"), rndcoord($inside)
+    } ELSE {
+      IF [50%] {
+        OBJECT: ('(',"brass lantern"), rndcoord($inside)
+      } ELSE {
+        OBJECT: ('(',"magic lamp"), rndcoord($inside)
+      }
+    }
+  }
+}
 
 # priest spoils
-[60%]: OBJECT:('[',"robe"),(20,12)
-[40%]: OBJECT:('[',"small shield"),(20,12)
-[50%]: OBJECT:'+',(20,12)
-[50%]: OBJECT:'+',(20,12)
-OBJECT:('%',"corpse"),(20,12),montype:"aligned priest"
-
-# scatter some watchman gear
-# armor/weapon probabilities are reduced because the player doesn't actually
-# have to kill the watchmen to get them (though they may have to fight orcs
-# that wear them though)
-LOOP [5] {
-    $spot=random
-    IF [40%] {
-        IF [30%] {
-            OBJECT:('[',"ring mail"),$spot
-        } ELSE {
-            [50%]: OBJECT:('[',"studded armor"),$spot
-        }
-    } ELSE {
-        [40%]: OBJECT:('[',"light armor"),$spot
-    }
-    IF [15%] {
-        OBJECT:('[',"dented pot"),$spot
-    } ELSE {
-        [20%]: OBJECT:('[',"helmet"),$spot
-    }
-    IF [15%] {
-        OBJECT:('[',"small shield"),$spot
-    } ELSE {
-        [20%]: OBJECT:('[',"large shield"),$spot
-    }
-    [15%]: OBJECT:('[',"gloves"),$spot
-    [20%]: OBJECT:('[',"plain cloak"),$spot
-    [50%]: OBJECT:('(',"tin whistle"),$spot
-    OBJECT:('%',"corpse"),$spot,montype:"watchman"
+# have to manually provide the spellbooks because those are given to a priest
+# when initialized as a shrine attendant - which this priest is not.
+MONSTER:('@',"aligned priest"),(20,12),dead
+LOOP [1d3 + 1] {
+  OBJECT: '+', (20,12)
 }
 
-# watch captain gear
-$spot=rndcoord($inside)
-IF [80%] {
-    IF [80%] {
-        OBJECT:('[',"plate mail"),$spot
-    } ELSE {
-        OBJECT:('[',"crystal plate mail"),$spot
-    }
+# the remains of the Watch
+LOOP [4] {
+  MONSTER:('@',"watchman"),random,dead
 }
-ELSE {
-    IF [40%] {
-        OBJECT:('[',"splint mail"),$spot
-    } ELSE {
-        [30%]: OBJECT:('[',"banded mail"),$spot
-    }
-}
-[20%]: OBJECT:('[',"helmet"),$spot
-[20%]: OBJECT:('[',"gloves"),$spot
-[20%]: OBJECT:('[',"high boots"),$spot
-[10%]: OBJECT:('[',"plain cloak"),$spot
-IF [40%] {
-    OBJECT:(')',"saber"),$spot
-} ELSE {
-    OBJECT:(')',"long sword"),$spot
-}
-OBJECT:('%',"corpse"),$spot,montype:"watch captain"
+MONSTER:('@',"watch captain"),random,dead
 
 # the Orcish Army
 
