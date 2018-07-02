@@ -218,7 +218,6 @@ static struct inv_sub {
     { PM_ORC, HELMET, ORCISH_HELM },
     { PM_ORC, SMALL_SHIELD, ORCISH_SHIELD },
     { PM_ORC, RING_MAIL, ORCISH_RING_MAIL },
-    { PM_ORC, CHAIN_MAIL, ORCISH_CHAIN_MAIL },
     { PM_DWARF, SPEAR, DWARVISH_SPEAR },
     { PM_DWARF, SHORT_SWORD, DWARVISH_SHORT_SWORD },
     { PM_DWARF, HELMET, DWARVISH_HELM },
@@ -825,7 +824,7 @@ u_init()
         knows_object(ELVEN_SPEAR);
         knows_object(ELVEN_DAGGER);
         knows_object(ELVEN_BROADSWORD);
-        knows_object(ELVEN_CHAIN_MAIL);
+        knows_object(ELVEN_RING_MAIL);
         knows_object(ELVEN_HELM);
         knows_object(ELVEN_SHIELD);
         knows_object(ELVEN_BOOTS);
@@ -838,7 +837,7 @@ u_init()
         knows_object(DWARVISH_SHORT_SWORD);
         knows_object(DWARVISH_MATTOCK);
         knows_object(DWARVISH_HELM);
-        knows_object(DWARVISH_CHAIN_MAIL);
+        knows_object(DWARVISH_RING_MAIL);
         knows_object(DWARVISH_CLOAK);
         knows_object(DWARVISH_ROUNDSHIELD);
         break;
@@ -856,7 +855,6 @@ u_init()
         knows_object(ORCISH_BOW);
         knows_object(ORCISH_SPEAR);
         knows_object(ORCISH_DAGGER);
-        knows_object(ORCISH_CHAIN_MAIL);
         knows_object(ORCISH_RING_MAIL);
         knows_object(ORCISH_HELM);
         knows_object(ORCISH_SHIELD);

@@ -222,7 +222,7 @@ register struct monst *mtmp;
         } else if (is_elf(ptr)) {
             if (rn2(2))
                 (void) mongets(mtmp,
-                               rn2(2) ? ELVEN_CHAIN_MAIL : ELVEN_CLOAK);
+                               rn2(2) ? ELVEN_RING_MAIL : ELVEN_CLOAK);
             if (rn2(2))
                 (void) mongets(mtmp, ELVEN_HELM);
             else if (!rn2(4))
@@ -362,8 +362,8 @@ register struct monst *mtmp;
                 break;
             }
             if (!rn2(10)) {
-                (void) mongets(mtmp, ELVEN_CHAIN_MAIL);
-                struct obj* mail = m_carrying(mtmp, ELVEN_CHAIN_MAIL);
+                (void) mongets(mtmp, ELVEN_RING_MAIL);
+                struct obj* mail = m_carrying(mtmp, ELVEN_RING_MAIL);
                 if (mail)
                     mail->material = MITHRIL;
             }
@@ -385,7 +385,7 @@ register struct monst *mtmp;
                 }
                 (void) mongets(mtmp, DWARVISH_HELM);
                 if (!rn2(3))
-                    (void) mongets(mtmp, DWARVISH_CHAIN_MAIL);
+                    (void) mongets(mtmp, DWARVISH_RING_MAIL);
             } else {
                 (void) mongets(mtmp, !rn2(3) ? PICK_AXE : DAGGER);
             }
@@ -412,7 +412,7 @@ register struct monst *mtmp;
             if (!rn2(3))
                 (void) mongets(mtmp, KNIFE);
             if (!rn2(3))
-                (void) mongets(mtmp, ORCISH_CHAIN_MAIL);
+                (void) mongets(mtmp, ORCISH_RING_MAIL);
             break;
         case PM_URUK_HAI:
             if (!rn2(3))

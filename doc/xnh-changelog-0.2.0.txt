@@ -19,9 +19,14 @@ The object materials patch has been ported (mostly from GruntHack):
   Objects may now generate being made of a material that isn't their base type.
   This affects their weight, price, AC (for armor), and special effects, such
     as silver affecting demons.
-  Special-material variants of objects such as silver daggers have been removed.
-    Some names are changed to reflect this (e.g. leather armor is now "light
-    armor", iron skull cap is now "skull cap")
+  Material-specific variants of objects such as silver daggers are all, one way
+  or another, removed:
+    Sometimes only the names are changed (e.g. leather armor is now "light
+    armor", iron skull cap is now "skull cap").
+    Sometimes the object is removed entirely (e.g. there's no point in silver
+    daggers being a distinct item anymore).
+    In a few cases the object is replaced with another object (e.g. mithril
+    coats become racial ring mails).
   Artifacts always have one specific material. This is the same as the base
     item for all artifacts except for Sunsword (gold), Werebane (silver),
     Grayswandir (silver), and the Platinum Yendorian Express Card (platinum).
@@ -34,7 +39,7 @@ The object materials patch has been ported (mostly from GruntHack):
     will break 1/6 of the time.
   Erodeproofing glass items by any of the normal methods shatterproofs it. This
     can also be wished for.
-  Hobbits' elven chain mails are always mithril.
+  Hobbits' elven ring mails are always mithril.
   Weapons may get damage bonuses or penalties based on their material; for
     instance, sharp glass weapons do +3 damage, and gold blunt weapons do +2
     damage.
