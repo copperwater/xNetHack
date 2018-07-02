@@ -17,6 +17,8 @@ gameplay changes:
 
 The object materials patch has been ported (mostly from GruntHack):
   Objects may now generate being made of a material that isn't their base type.
+    Affected objects are armor, weapons, weapon-tools, boxes, a few mundane
+    tools, and amulets. All other objects remain the same.
   This affects their weight, price, AC (for armor), and special effects, such
     as silver affecting demons.
   Material-specific variants of objects such as silver daggers are all, one way
@@ -38,7 +40,7 @@ The object materials patch has been ported (mostly from GruntHack):
     when used in melee. Glass armor, if it is randomly targeted by an attack,
     will break 1/6 of the time.
   Erodeproofing glass items by any of the normal methods shatterproofs it. This
-    can also be wished for.
+    can also be wished for (in wizard mode).
   Hobbits' elven ring mails are always mithril.
   Weapons may get damage bonuses or penalties based on their material; for
     instance, sharp glass weapons do +3 damage, and gold blunt weapons do +2

@@ -3057,8 +3057,8 @@ static const struct icp elven_materials[] = {
     { 2, GOLD}
 };
 
-/* Reflectable items - currently just the shield of reflection, but anything
- * that can hold a polish */
+/* Reflectable items - for the shield of reflection; anything that can hold a
+ * polish */
 static const struct icp shiny_materials[] = {
     {30, SILVER},
     {20, COPPER},
@@ -3118,6 +3118,13 @@ struct obj* obj;
             return bow_materials;
         case ELVEN_HELM:
             return elvenhelm_materials;
+        case CHEST:
+        case LARGE_BOX:
+            return wood_materials;
+        case SKELETON_KEY:
+        case LOCK_PICK:
+        case TIN_OPENER:
+            return metal_materials;
         default:
             break;
     }
@@ -3130,9 +3137,13 @@ struct obj* obj;
     else if (is_dwarvish_obj(obj) && default_material != CLOTH) {
         return dwarvish_materials;
     }
+    else if (obj->oclass == AMULET_CLASS && otyp != AMULET_OF_YENDOR
+             && otyp != FAKE_AMULET_OF_YENDOR) {
+        /* could use metal_materials too */
+        return shiny_materials;
+    }
     else if (obj->oclass == WEAPON_CLASS || is_weptool(obj)
-             || obj->oclass == ARMOR_CLASS
-             || obj->otyp == CHEST || obj->otyp == LARGE_BOX) {
+             || obj->oclass == ARMOR_CLASS) {
         if (default_material == IRON || default_material == METAL) {
             return metal_materials;
         }
