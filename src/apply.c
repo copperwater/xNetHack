@@ -1,4 +1,4 @@
-/* NetHack 3.6	apply.c	$NHDT-Date: 1519598527 2018/02/25 22:42:07 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.243 $ */
+/* NetHack 3.6	apply.c	$NHDT-Date: 1526769961 2018/05/19 22:46:01 $  $NHDT-Branch: NetHack-3.6.2 $:$NHDT-Revision: 1.246 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1116,6 +1116,7 @@ register struct obj *obj;
     }
     if (obj->spe <= 0) {
         pline("This %s has no %s.", xname(obj), s);
+        pline("To attach candles, apply them instead of the %s.", xname(obj));
         return;
     }
     if (Underwater) {
@@ -1441,6 +1442,11 @@ struct obj *obj;
 int
 dorub()
 {
+    if (nohands(youmonst.data)) {
+        You("can't rub anything together without hands.");
+        return 0;
+    }
+
     struct obj *obj = getobj("rub", rub_ok, FALSE, FALSE);
 
     if (obj && obj->oclass == GEM_CLASS) {
@@ -1789,7 +1795,7 @@ int magic; /* 0=Physical, otherwise skill level */
          * and usually moves the ball if punished, but does not handle all
          * the effects of landing on the final position.
          */
-        teleds(cc.x, cc.y, FALSE);
+        teleds(cc.x, cc.y, FALSE, FALSE);
         sokoban_guilt();
         nomul(-1);
         multi_reason = "jumping around";
@@ -2279,7 +2285,10 @@ STATIC_OVL int
 touchstone_ok(obj)
 struct obj *obj;
 {
-    if (!obj || obj == &zeroobj)
+    if (!obj)
+        return 1;
+
+    if (obj == &zeroobj)
         return 0;
 
     if (is_graystone(obj))
@@ -2305,21 +2314,40 @@ struct obj *tstone;
     const char *streak_color, *choices;
     char stonebuf[QBUFSZ];
     static const char scritch[] = "\"scritch, scritch\"";
+    boolean known_touchstone = tstone->otyp == TOUCHSTONE && tstone->dknown
+                               && objects[TOUCHSTONE].oc_name_known;
 
+    if (nohands(youmonst.data)) {
+        You("can't rub anything together without hands.");
+        return;
+    }
     /* in case it was acquired while blinded */
     if (!Blind)
         tstone->dknown = 1;
     /* when the touchstone is fully known, don't bother listing extra
        junk as likely candidates for rubbing */
     Sprintf(stonebuf, "rub on the stone%s", plur(tstone->quan));
-    if (tstone->otyp == TOUCHSTONE && tstone->dknown &&
-        objects[TOUCHSTONE].oc_name_known)
+    if (known_touchstone)
         obj = getobj(stonebuf, touchstone_ok, FALSE, FALSE);
     else
-        obj = getobj(stonebuf, allow_any_obj, FALSE, FALSE);
+        obj = getobj(stonebuf, allow_any, FALSE, FALSE);
 
     if (!obj)
         return;
+
+    if (obj == &zeroobj) {
+        if (youmonst.data == &mons[PM_GLASS_GOLEM]) {
+            if (known_touchstone)
+                You_feel("worthless.");
+            else
+                pline("You make scratch marks on the stone.");
+        }
+        else {
+            pline("You rub the stone on your %s.", body_part(HAND));
+            pline("It's not very interesting.");
+        }
+        return;
+    }
 
     if (obj == tstone && obj->quan == 1L) {
         You_cant("rub %s on itself.", the(xname(obj)));
@@ -2762,7 +2790,7 @@ struct obj *obj;
             if (proficient && rn2(proficient + 2)) {
                 if (!mtmp || enexto(&cc, rx, ry, youmonst.data)) {
                     You("yank yourself out of the pit!");
-                    teleds(cc.x, cc.y, TRUE);
+                    teleds(cc.x, cc.y, TRUE, FALSE);
                     u.utrap = 0;
                     vision_full_recalc = 1;
                 }
@@ -2901,21 +2929,41 @@ coord *pos;
 int min_range, max_range;
 {
     struct monst *mtmp;
-    struct monst *selmon = (struct monst *) 0;
+    coord mpos;
+    boolean impaired;
+    int x, y, lo_x, hi_x, lo_y, hi_y, rt, glyph;
 
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-        if (mtmp && !DEADMONSTER(mtmp) && !mtmp->mtame
-            && cansee(mtmp->mx, mtmp->my)
-            && distu(mtmp->mx, mtmp->my) <= max_range
-            && distu(mtmp->mx, mtmp->my) >= min_range) {
-            if (selmon)
-                return FALSE;
-            selmon = mtmp;
+    if (Blind)
+        return FALSE; /* must be able to see target location */
+    impaired = (Confusion || Stunned || Hallucination);
+    mpos.x = mpos.y = 0; /* no candidate location yet */
+    rt = isqrt(max_range);
+    lo_x = max(u.ux - rt, 1), hi_x = min(u.ux + rt, COLNO - 1);
+    lo_y = max(u.uy - rt, 0), hi_y = min(u.uy + rt, ROWNO - 1);
+    for (x = lo_x; x <= hi_x; ++x) {
+        for (y = lo_y; y <= hi_y; ++y) {
+            if (distu(x, y) < min_range || distu(x, y) > max_range
+                || !isok(x, y) || !cansee(x, y))
+                continue;
+            glyph = glyph_at(x, y);
+            if (!impaired
+                && glyph_is_monster(glyph)
+                && (mtmp = m_at(x, y)) != 0
+                && (mtmp->mtame || (mtmp->mpeaceful && flags.confirm)))
+                continue;
+            if (glyph_is_monster(glyph)
+                || glyph_is_warning(glyph)
+                || glyph_is_invisible(glyph)
+                || (glyph_is_statue(glyph) && impaired)) {
+                if (mpos.x)
+                    return FALSE; /* more than one candidate location */
+                mpos.x = x, mpos.y = y;
+            }
         }
-    if (!selmon)
-        return FALSE;
-    pos->x = selmon->mx;
-    pos->y = selmon->my;
+    }
+    if (!mpos.x)
+        return FALSE; /* no candidate location */
+    *pos = mpos;
     return TRUE;
 }
 
@@ -2923,8 +2971,8 @@ static int polearm_range_min = -1;
 static int polearm_range_max = -1;
 
 STATIC_OVL boolean
-get_valid_polearm_position(x,y)
-int x,y;
+get_valid_polearm_position(x, y)
+int x, y;
 {
     return (isok(x, y) && ACCESSIBLE(levl[x][y].typ)
             && distu(x, y) >= polearm_range_min
@@ -3034,7 +3082,7 @@ struct obj *obj;
         return res;
     }
 
-    context.polearm.hitmon = NULL;
+    context.polearm.hitmon = (struct monst *) 0;
     /* Attack the monster there */
     bhitpos = cc;
     if ((mtmp = m_at(bhitpos.x, bhitpos.y)) != (struct monst *) 0) {
@@ -3545,8 +3593,12 @@ STATIC_OVL int
 apply_ok(obj)
 struct obj *obj;
 {
+    /* for a YAFM */
+    if (!obj)
+        return 1;
+
     /* maybe we should allow triggering traps? */
-    if (!obj || obj == &zeroobj)
+    if (obj == &zeroobj)
         return 0;
 
     /* Okay, this is a bit of a contentious issue. Should floor lootables be
@@ -3601,6 +3653,11 @@ doapply()
     obj = getobj("use or apply", apply_ok, TRUE, FALSE);
     if (!obj)
         return 0;
+
+    if (obj == &zeroobj) {
+        pline("%s always said you needed to apply yourself!", ldrname());
+        return 0;
+    }
 
     if (!retouch_object(&obj, FALSE))
         return 1; /* evading your grasp costs a turn; just be

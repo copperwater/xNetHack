@@ -64,7 +64,7 @@ struct flag {
      * 'schar' to 'short int' instead of to 'char'.  (Needed by pre-ANSI
      * systems that use unsigned characters without a way to force them
      * to be signed.)  So, the type has been changed back to 'xchar' for
-     * 3.6.1.
+     * 3.6.x.
      *
      * TODO:  change to 'char' (and move out of this block of booleans,
      * and get rid of these comments...) once 3.6.0 savefile compatibility
@@ -223,6 +223,16 @@ enum getloc_filters {
     NUM_GFILTER
 };
 
+struct debug_flags {
+    boolean test;
+#ifdef TTY_GRAPHICS
+    boolean ttystatus;
+#endif
+#ifdef WIN32
+    boolean immediateflips;
+#endif
+};
+
 struct instance_flags {
     /* stuff that really isn't option or platform related. They are
      * set and cleared during the game to control the internal
@@ -275,6 +285,7 @@ struct instance_flags {
        breaking 3.6.[01] save files */
     boolean goldX;            /* for BUCX filtering, whether gold is X or U */
     boolean hilite_pile;      /* mark piles of objects with a hilite */
+    boolean hilite_hidden_stairs; /* mark hidden stairs with a hilite */
     boolean implicit_uncursed; /* maybe omit "uncursed" status in inventory */
     boolean mention_walls;    /* give feedback when bumping walls */
     boolean menu_head_objsym; /* Show obj symbol in menu headings */
@@ -436,6 +447,7 @@ struct instance_flags {
     short mines_prize_type;     /* luckstone */
     short soko_prize_type1;     /* bag of holding or    */
     short soko_prize_type2;     /* amulet of reflection */
+    struct debug_flags debug;
 };
 
 /*

@@ -1235,6 +1235,14 @@ term_end_raw_bold()
 }
 
 #ifdef TEXTCOLOR
+void
+term_start_bgcolor(color)
+int color;
+{
+    char tmp[8];
+    Sprintf(tmp, "\033[%dm", ((color % 8) + 40));
+    xputs(tmp);
+}
 
 void
 term_end_color()

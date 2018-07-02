@@ -61,8 +61,8 @@ STATIC_OVL NEARDATA struct artifact artilist[] = {
      *      if the wielder is a Valkyrie wearing Gauntlets of Power.
      */
     A("Mjollnir", WAR_HAMMER, /* Mjo:llnir */
-      (SPFX_RESTR | SPFX_ATTK), 0, 0, ELEC(5, 24), NO_DFNS, NO_CARY, 0,
-      A_NEUTRAL, PM_VALKYRIE, NON_PM, 4000L, NO_COLOR),
+      (SPFX_RESTR | SPFX_ATTK), 0, 0, ELEC(5, 24), NO_DFNS, NO_CARY,
+      LIGHTNING_BOLT, A_NEUTRAL, PM_VALKYRIE, NON_PM, 4000L, NO_COLOR),
 
     A("Cleaver", BATTLE_AXE, SPFX_RESTR, 0, 0, PHYS(3, 6), NO_DFNS, NO_CARY,
       0, A_NEUTRAL, PM_BARBARIAN, NON_PM, 1500L, NO_COLOR),

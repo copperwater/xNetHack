@@ -1,4 +1,4 @@
-/* NetHack 3.6	read.c	$NHDT-Date: 1515802375 2018/01/13 00:12:55 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.150 $ */
+/* NetHack 3.6	read.c	$NHDT-Date: 1526728750 2018/05/19 11:19:10 $  $NHDT-Branch: NetHack-3.6.2 $:$NHDT-Revision: 1.155 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -28,22 +28,31 @@ struct obj *obj;
     if (obj->oclass == SCROLL_CLASS || obj->oclass == SPBOOK_CLASS)
         return 2;
 
+    if (obj->otyp == TIN || obj->otyp == T_SHIRT || obj->otyp == CANDY_BAR
+        || obj->otyp == C_RATION || obj->otyp == K_RATION
+        || obj->otyp == MAGIC_MARKER)
+        return 2;
+
     return 1;
 }
 
 STATIC_DCL boolean FDECL(learnscrolltyp, (SHORT_P));
-STATIC_DCL char * FDECL(erode_obj_text, (struct obj *, char *));
-STATIC_DCL void NDECL(do_class_genocide);
+STATIC_DCL char *FDECL(erode_obj_text, (struct obj *, char *));
+STATIC_DCL char *FDECL(apron_text, (struct obj *, char *buf));
 STATIC_DCL void FDECL(stripspe, (struct obj *));
 STATIC_DCL void FDECL(p_glow1, (struct obj *));
 STATIC_DCL void FDECL(p_glow2, (struct obj *, const char *));
-STATIC_DCL void FDECL(randomize, (int *, int));
 STATIC_DCL void FDECL(forget_single_object, (int));
+#if 0 /* not used */
+STATIC_DCL void FDECL(forget_objclass, (int));
+#endif
+STATIC_DCL void FDECL(randomize, (int *, int));
 STATIC_DCL void FDECL(forget, (int));
 STATIC_DCL int FDECL(maybe_tame, (struct monst *, struct obj *));
 STATIC_DCL boolean FDECL(can_center_cloud, (int, int));
 STATIC_DCL void FDECL(display_stinking_cloud_positions, (int));
 STATIC_PTR void FDECL(set_lit, (int, int, genericptr));
+STATIC_DCL void NDECL(do_class_genocide);
 
 STATIC_OVL boolean
 learnscrolltyp(scrolltyp)
@@ -68,7 +77,7 @@ struct obj *sobj;
         (void) learnscrolltyp(sobj->otyp);
 }
 
-char *
+STATIC_OVL char *
 erode_obj_text(otmp, buf)
 struct obj *otmp;
 char *buf;
@@ -176,7 +185,7 @@ char *buf;
     return erode_obj_text(tshirt, buf);
 }
 
-char *
+STATIC_OVL char *
 apron_text(apron, buf)
 struct obj *apron;
 char *buf;
@@ -350,6 +359,34 @@ doread()
             livelog_write_string(LL_CONDUCT,
                     "became literate by reading a candy bar wrapper");
         return 1;
+    } else if (scroll->otyp == C_RATION || scroll->otyp == K_RATION) {
+        /* nonvegan/nonvegetarian names might be somewhat misleading since
+         * these rations are always vegan */
+        static const char *mil_ration_msgs[] = {
+            "Jalapeno Cheddar Cheese Spread MRE",
+            "Chili and Macaroni MRE",
+            "Wheat Snack Bread MRE",
+            "Ratatouille MRE",
+            "Lemon Pepper Tuna MRE",
+            "Chicken Chunks MRE",
+            "Sloppy Joe MRE",
+            "Rib Shaped BBQ Pork Patty MRE",
+            "Chicken with Salsa MRE",
+            "Tuna in Pouch MRE",
+            "Meatloaf with Gravy MRE",
+            "Ham Slice MRE"
+            "Humanitarian Daily Ration 8970-01-375-0516",
+        };
+        if (Blind) {
+            You_cant("feel any Braille writing.");
+            return 0;
+        }
+        pline("The label reads: \"%s\".",
+              mil_ration_msgs[scroll->o_id % SIZE(mil_ration_msgs)]);
+        if(!u.uconduct.literate++)
+            livelog_write_string(LL_CONDUCT,
+                    "became literate by reading the label on a ration");
+        return 1;
     } else if (scroll->otyp == TIN) {
         static const char *tin_msgs[] = {
             /* special cases and format strings come first; if more with format strings
@@ -374,8 +411,6 @@ doread()
             "%s - Packaged in the Wizard's Tinnery",                 /* ditto */
             "Nuka-Cola",                                           /* Fallout */
             "Sploosh",                                               /* Holes */
-            "Jalapeno Cheddar Cheese Spread MRE",                 /* military */
-            "Humanitarian Daily Ration 8970-01-375-0516",            /* ditto */
             "Fancy Feast Cat Food",                              /* real life */
             "Chickatrice of the Sea",                            /* tuna fish */
         "First Quality Peaches - Not labeled for individual resale", /* Rogue */
@@ -476,6 +511,7 @@ doread()
         return 0;
     } else if (Blind && (scroll->otyp != SPE_BOOK_OF_THE_DEAD)) {
         const char *what = 0;
+
         if (scroll->oclass == SPBOOK_CLASS)
             what = "mystic runes";
         else if (!scroll->dknown)
@@ -1126,7 +1162,7 @@ int x, y;
     return (cansee(x, y) && distu(x, y) < 32);
 }
 
-void
+STATIC_PTR void
 display_stinking_cloud_positions(state)
 int state;
 {
@@ -1891,6 +1927,11 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
     default:
         impossible("What weird effect is this? (%u)", otyp);
     }
+    /* if sobj is gone, we've already called useup() above and the
+       update_inventory() that it performs might have come too soon
+       (before charging an item, for instance) */
+    if (!sobj)
+        update_inventory();
     return sobj ? 0 : 1;
 }
 

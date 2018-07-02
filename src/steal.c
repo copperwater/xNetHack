@@ -132,7 +132,7 @@ register struct monst *mtmp;
 
             tmp = (somegold(money_cnt(invent)) + gold_price - 1) / gold_price;
             tmp = min(tmp, ygold->quan);
-            if (tmp < ygold->quan && ygold->otyp == GOLD_PIECE)
+            if (tmp < ygold->quan)
                 ygold = splitobj(ygold, tmp);
             else
                 setnotworn(ygold);
@@ -140,6 +140,7 @@ register struct monst *mtmp;
         }
         else {
             pline("%s steals %s!", Monnam(mtmp), yname(ygold));
+            remove_worn_item(ygold, TRUE);
         }
         freeinv(ygold);
         add_to_minv(mtmp, ygold);

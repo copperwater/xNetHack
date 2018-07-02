@@ -1,4 +1,4 @@
-/* NetHack 3.6	files.c	$NHDT-Date: 1524950534 2018/04/28 21:22:14 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.238 $ */
+/* NetHack 3.6	files.c	$NHDT-Date: 1526382938 2018/05/15 11:15:38 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.240 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -3681,7 +3681,7 @@ const char *dir UNUSED_if_not_OS2_CODEVIEW;
 
 /* ----------  END SCOREBOARD CREATION ----------- */
 
-/* ----------  BEGIN PANIC/IMPOSSIBLE LOG ----------- */
+/* ----------  BEGIN PANIC/IMPOSSIBLE/TESTING LOG ----------- */
 
 /*ARGSUSED*/
 void
@@ -3718,7 +3718,29 @@ const char *reason; /* explanation */
     return;
 }
 
-/* ----------  END PANIC/IMPOSSIBLE LOG ----------- */
+void
+testinglog(filenm, type, reason)
+const char *filenm;   /* ad hoc file name */
+const char *type; 
+const char *reason;   /* explanation */
+{
+    FILE *lfile;
+    char fnbuf[BUFSZ];
+
+    if (!filenm)
+        return;
+    Strcpy(fnbuf, filenm);
+    if (index(fnbuf, '.') == 0)
+        Strcat(fnbuf, ".log");
+    lfile = fopen_datafile(fnbuf, "a", TROUBLEPREFIX);
+    if (lfile) {
+        (void) fprintf(lfile, "%s\n%s\n", type, reason);
+        (void) fclose(lfile);
+    }
+    return;
+}
+
+/* ----------  END PANIC/IMPOSSIBLE/TESTING LOG ----------- */
 
 #ifdef SELF_RECOVER
 

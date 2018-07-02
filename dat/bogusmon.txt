@@ -21,14 +21,14 @@ demilichen
 master lichen
 hag of bolding
 _Semigorgon
-|Vendor of Yizard
++Vendor of Yizard
 apostrophe golem
 voluptuous ampersand
 +Rodney
 ear piercer
-floatin' guy
 violent gem
-|Wizard of Splendor
++Wizard of Splendor
++Lizard of Yendor
 
 # Dudley's Dungeon
 +Dudley
@@ -60,6 +60,7 @@ baby parable worm
 barfed devil
 beer wight
 boor wight
+beerholder
 brawny mold
 rave spider
 clue golem
@@ -71,6 +72,7 @@ electrocardiogram eel
 fir elemental
 tire elemental
 flamingo sphere
+floatin' guy
 fallacy golem
 frizzed centaur
 forest centerfold
@@ -97,6 +99,7 @@ killer beet
 feather golem
 lockatrice
 lounge worm
+mime flayer
 mountain lymph
 pager golem
 pie fiend
@@ -104,6 +107,8 @@ prophylactic worm
 mock role
 sock mole
 rogue piercer
+rabbit rat
+rapid rat
 seesawing sphere
 simile mimic
 moldier ant
@@ -237,8 +242,13 @@ Borg
 # Star Wars
 Ewok
 Jedi
-Sith Lord
+|Sith Lord
 Force
+sarlacc
++Jabba the Hutt
+astromech droid
+Twi'lek
+bothan
 
 # Tonari no Totoro
 Totoro
@@ -315,8 +325,9 @@ scrag
 # MST3K
 +Crow T. Robot
 
-# DnD monster
+# DnD
 gazebo
+wizard of the coast
 
 # Ultima
 +Lord British
@@ -417,6 +428,18 @@ palette swap
 # Pirates of Penzance
 modern major general
 
+# Wheel of Time
+Trolloc
+gholam
+Myrddraal
+Aelfinn
+
+# Avatar: The Last Airbender
+platypus bear
+sky bison
+badger mole
+fire ferret
+
 ## Section 4 - miscellaneous non-reference things
 
 # Actual creatures
@@ -479,6 +502,7 @@ deferred monster
 recursion
 numeric prefix
 technical difficulty
+lag monster
 
 # bugs
 bohrbug
@@ -519,6 +543,10 @@ boustrophedon
 ligature
 rebus
 wingding
+
+# geology
+graben
+gabbro
 
 # misc.
 jumbo shrimp
@@ -600,6 +628,10 @@ overclocked microwave
 bobble hat
 puzzle fiend
 combinatorial explosion
+golem of infinite hunger
+crimson dervish
+munch provider
+ascii art
 
 # Feelings
 existential angst

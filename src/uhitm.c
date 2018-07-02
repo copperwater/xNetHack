@@ -409,8 +409,10 @@ register struct monst *mtmp;
         && !mtmp->mconf && mtmp->mcansee && !rn2(7)
         && (m_move(mtmp, 0) == 2 /* it died */
             || mtmp->mx != u.ux + u.dx
-            || mtmp->my != u.uy + u.dy)) /* it moved */
+            || mtmp->my != u.uy + u.dy)) { /* it moved */
+        You("miss wildly and stumble forwards.");
         return FALSE;
+    }
 
     if (Upolyd)
         (void) hmonas(mtmp);
@@ -796,8 +798,10 @@ int dieroll;
                     hittxt = TRUE;
                 }
                 /* maybe break your glass weapon or monster's glass armor */
-                break_glass_obj(obj);
-                break_glass_obj(some_armor(mon));
+                if (hand_to_hand) {
+                    break_glass_obj(obj);
+                    break_glass_obj(some_armor(mon));
+                }
 
                 if (obj->oartifact
                     && artifact_hit(&youmonst, mon, obj, &tmp, dieroll)) {

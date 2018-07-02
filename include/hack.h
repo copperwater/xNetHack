@@ -1,4 +1,4 @@
-/* NetHack 3.6	hack.h	$NHDT-Date: 1490908464 2017/03/30 21:14:24 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.76 $ */
+/* NetHack 3.6	hack.h	$NHDT-Date: 1525012595 2018/04/29 14:36:35 $  $NHDT-Branch: master $:$NHDT-Revision: 1.82 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -73,15 +73,16 @@ enum dismount_types {
 };
 
 /* Special returns from mapglyph() */
-#define MG_CORPSE  0x01
-#define MG_INVIS   0x02
-#define MG_DETECT  0x04
-#define MG_PET     0x08
-#define MG_RIDDEN  0x10
-#define MG_STATUE  0x20
-#define MG_OBJPILE 0x40  /* more than one stack of objects */
-#define MG_BW_LAVA 0x80  /* 'black & white lava': highlight lava if it
+#define MG_CORPSE  0x00001
+#define MG_INVIS   0x00002
+#define MG_DETECT  0x00004
+#define MG_PET     0x00008
+#define MG_RIDDEN  0x00010
+#define MG_STATUE  0x00020
+#define MG_OBJPILE 0x00040  /* more than one stack of objects */
+#define MG_BW_LAVA 0x00080  /* 'black & white lava': highlight lava if it
                             can't be distringuished from water by color */
+#define MG_STAIRS  0x00100  /* hidden stairs */
 
 /* sellobj_state() states */
 #define SELL_NORMAL (0)
@@ -175,6 +176,7 @@ NEARDATA extern coord bhitpos; /* place where throw or zap hits or stops */
 enum bhit_call_types {
     ZAPPED_WAND = 0,
     THROWN_WEAPON,
+    THROWN_TETHERED_WEAPON,
     KICKED_WEAPON,
     FLASHED_LIGHT,
     INVIS_BEAM

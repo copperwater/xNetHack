@@ -1139,7 +1139,7 @@ region_safety()
 
     if (n > 1 || (n == 1 && !r)) {
         /* multiple overlapping cloud regions or non-expiring one */
-        safe_teleds(FALSE);
+        safe_teleds(FALSE, TRUE);
     } else if (r) {
         remove_region(r);
         pline_The("gas cloud enveloping you dissipates.");
