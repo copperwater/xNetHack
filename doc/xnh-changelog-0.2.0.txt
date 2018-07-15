@@ -79,6 +79,7 @@ Port FIQHack's XP curve; this primarily means that a character who continuously
   kills monsters will keep leveling up through the later game.
 Port Fourk's random psuedo-artifact weapon names for random non-artifact but
   very good (highly enchanted, erodeproof, or both) weapons.
+Downgrade the electric eel in the Gnomish Sewer to a regular giant eel
 
 It contains the following non-gameplay interface changes:
 

@@ -1275,10 +1275,10 @@ SHUFFLE: $stone
 OBJECT:('*',"luckstone"),$stone[0]
 OBJECT:('*',"touchstone"),$stone[1]
 
-# Eels
+# The predator of the depths
 $eel = { (19,7),(56,5),(59,18) }
 SHUFFLE: $eel
-MONSTER:(';',"electric eel"),$eel[0]
+MONSTER:(';',"giant eel"),$eel[0]
 # Submerged wand of cold under an eel
 OBJECT:('/',"cold"),$eel[0]
 # Random monsters
