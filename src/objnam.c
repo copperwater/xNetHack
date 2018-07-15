@@ -3967,8 +3967,13 @@ typfnd:
          * but damageproof combined with damaged is feasible (eroded
          * armor modified by confused reading of cursed destroy armor)
          * so don't prevent player from wishing for such a combination.
+         *
+         * Note on glass objects: this cannot be used to wish for shatterproof
+         * non-base-glass objects like daggers, but it can be used to e.g. get a
+         * shatterproof crystal plate mail.
          */
-        if (erodeproof && (is_damageable(otmp) || otmp->otyp == CRYSKNIFE))
+        if (erodeproof && (is_damageable(otmp) || otmp->otyp == CRYSKNIFE
+                           || objects[otmp->otyp].oc_material == GLASS))
             otmp->oerodeproof = (Luck >= 0 || wizard);
     }
 

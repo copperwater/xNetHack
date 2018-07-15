@@ -39,8 +39,10 @@ The object materials patch has been ported (mostly from GruntHack):
   Glass items always break when thrown, and glass weapons break 1/6 of the time
     when used in melee. Glass armor, if it is randomly targeted by an attack,
     will break 1/6 of the time.
-  Erodeproofing glass items by any of the normal methods shatterproofs it. This
-    can also be wished for (in wizard mode).
+  Erodeproofing glass items by any of the normal methods shatterproofs it.
+    Shatterproof glass items can be wished for outside of wizard mode, but only
+    for items which are usually made of glass, such as crystal plate mails. (In
+    wizard mode, you may wish for shatterproof not-usually-glass items.)
   Hobbits' elven ring mails are always mithril.
   Weapons may get damage bonuses or penalties based on their material; for
     instance, sharp glass weapons do +3 damage, and gold blunt weapons do +2
