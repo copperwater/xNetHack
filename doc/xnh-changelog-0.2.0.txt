@@ -80,6 +80,7 @@ Port FIQHack's XP curve; this primarily means that a character who continuously
 Port Fourk's random psuedo-artifact weapon names for random non-artifact but
   very good (highly enchanted, erodeproof, or both) weapons.
 Downgrade the electric eel in the Gnomish Sewer to a regular giant eel
+Add "gourmet" as a random tin preparation method, giving 350 nutrition.
 
 It contains the following non-gameplay interface changes:
 

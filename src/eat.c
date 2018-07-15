@@ -148,6 +148,7 @@ static const struct {
                 { "stir fried", 80, 0, 1 },
                 { "sauteed", 95, 0, 0 },
                 { "candied", 100, 1, 0 },
+                { "gourmet", 350, 1, 0 },
                 { "pureed", 500, 1, 0 },
                 { "", 0, 0, 0 } };
 #define TTSZ SIZE(tintxts)
