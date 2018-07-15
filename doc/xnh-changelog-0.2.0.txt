@@ -106,6 +106,7 @@ You can read the label on C- and K-rations.
 Candelabrum gives a helpful tip if you try to apply it with no candles.
 Replace the awful "You feel cold" message for freezing an out of sight door
   with "a deep cracking sound".
+Add YAFM for killing a jabberwock while hallucinating.
 
 It contains the following non-gameplay architectural changes:
 
