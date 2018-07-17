@@ -4024,7 +4024,6 @@ x	S_xan	(xan or other mythical/fantastic insect)
 X	S_xorn	(xorn)
 Y	S_yeti	(apelike creature)
 Z	S_zombie	(zombie)
-z	S_zruty	(zruty)
 .\"TABLE_END  Do not delete this line.
 .TE
 .pg
@@ -4499,8 +4498,8 @@ passed away. NetHack 3.6.0 introduced a tribute to him.
 team since the release of 3.4.3 with some of the beloved community
 patches. Many bugs were fixed and some code was restructured.
 .pg
-In late April 2018, several hundred bug fixes for 3.6.0 and 
-some new features were assembled and released as NetHack 3.6.1. 
+In late April 2018, several hundred bug fixes for 3.6.0 and
+some new features were assembled and released as NetHack 3.6.1.
 The development team at the time of release of 3.6.1 consisted of
 \fBWarwick Allison\fP, \fBMichael Allison\fP, \fBKen Arromdee\fP,
 \fBDavid Cohrs\fP, \fBJessie Collet\fP, \fBPasi Kallinen\fP,
@@ -4537,10 +4536,10 @@ SPECIAL THANKS
 .pg
 On behalf of the NetHack community, thank you very much once
 again to \fBM. Drew Streib\fP, \fBPasi Kallinen\fP for providing a
-public NetHack server at nethack.alt.org. Thanks to \fBKeith Simpson\fP 
-and \fBAndy Thomson\fP for hardfought.org. Thanks to all those 
-unnamed dungeoneers who invest their time and effort into annual 
-NetHack tournaments such as Junehack and in days past, 
+public NetHack server at nethack.alt.org. Thanks to \fBKeith Simpson\fP
+and \fBAndy Thomson\fP for hardfought.org. Thanks to all those
+unnamed dungeoneers who invest their time and effort into annual
+NetHack tournaments such as Junehack and in days past,
 devnull.net (gone for now, but not forgotten).
 .pg
 .ce
