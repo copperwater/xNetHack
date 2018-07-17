@@ -5,8 +5,6 @@
 
 #include "hack.h"
 
-#include <ctype.h>
-
 extern boolean notonhead; /* for long worms */
 
 STATIC_DCL int FDECL(use_camera, (struct obj *));
@@ -3657,8 +3655,8 @@ doapply()
         return 0;
 
     if (obj == &zeroobj) {
-        char const *name = ldrname();
-        pline("%c%s always said you needed to apply yourself!", toupper(name[0]), name + 1);
+        const char *name = ldrname();
+        pline("%c%s always said you needed to apply yourself!", highc(name[0]), name + 1);
         return 0;
     }
 
