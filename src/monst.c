@@ -1023,6 +1023,51 @@ NEARDATA struct permonst mons[] = {
             | M1_NOHEAD | M1_MINDLESS | M1_UNSOLID | M1_SEE_INVIS | M1_NOTAKE,
         M2_HOSTILE | M2_NEUTER, 0, CLR_BLACK),
     /*
+     * z - sea monsters
+     */
+    MON("jellyfish", S_EEL, LVL(3, 3, 6, 0, 0), (G_GENO | G_NOGEN | 2),
+        A(ATTK(AT_STNG, AD_DRST, 3, 3), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
+          NO_ATTK),
+        SIZ(80, 20, MS_SILENT, MZ_SMALL), MR_POISON, MR_POISON,
+        M1_SWIM | M1_AMPHIBIOUS | M1_SLITHY | M1_NOLIMBS | M1_NOHEAD
+            | M1_NOTAKE | M1_POIS,
+        M2_HOSTILE, 0, CLR_BLUE),
+    MON("piranha", S_EEL, LVL(5, 12, 4, 0, 0), (G_GENO | G_NOGEN | G_SGROUP | 3),
+        A(ATTK(AT_BITE, AD_PHYS, 2, 6), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
+          NO_ATTK),
+        SIZ(60, 30, MS_SILENT, MZ_SMALL), 0, 0,
+        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
+            | M1_CARNIVORE | M1_OVIPAROUS | M1_NOTAKE,
+        M2_HOSTILE, 0, CLR_ORANGE),
+    MON("shark", S_EEL, LVL(7, 12, 2, 0, 0), (G_GENO | G_NOGEN | 2),
+        A(ATTK(AT_BITE, AD_PHYS, 5, 6), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
+          NO_ATTK),
+        SIZ(500, 350, MS_SILENT, MZ_LARGE), 0, 0,
+        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
+            | M1_CARNIVORE | M1_OVIPAROUS | M1_THICK_HIDE | M1_NOTAKE,
+        M2_HOSTILE, 0, CLR_GRAY),
+    MON("giant eel", S_EEL, LVL(5, 9, -1, 0, 0), (G_GENO | G_NOGEN | 4),
+        A(ATTK(AT_BITE, AD_PHYS, 3, 6), ATTK(AT_TUCH, AD_WRAP, 0, 0), NO_ATTK,
+          NO_ATTK, NO_ATTK, NO_ATTK),
+        SIZ(200, 250, MS_SILENT, MZ_HUGE), 0, 0,
+        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
+            | M1_CARNIVORE | M1_OVIPAROUS | M1_NOTAKE,
+        M2_HOSTILE, M3_INFRAVISIBLE, CLR_CYAN),
+    MON("electric eel", S_EEL, LVL(7, 10, -3, 0, 0), (G_GENO | G_NOGEN | 2),
+        A(ATTK(AT_BITE, AD_ELEC, 4, 6), ATTK(AT_TUCH, AD_WRAP, 0, 0), NO_ATTK,
+          NO_ATTK, NO_ATTK, NO_ATTK),
+        SIZ(200, 250, MS_SILENT, MZ_HUGE), MR_ELEC, MR_ELEC,
+        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
+            | M1_CARNIVORE | M1_OVIPAROUS | M1_NOTAKE,
+        M2_HOSTILE, M3_INFRAVISIBLE, CLR_BRIGHT_BLUE),
+    MON("kraken", S_EEL, LVL(20, 3, 6, 0, -3), (G_GENO | G_NOGEN | 1),
+        A(ATTK(AT_CLAW, AD_PHYS, 2, 4), ATTK(AT_CLAW, AD_PHYS, 2, 4),
+          ATTK(AT_HUGS, AD_WRAP, 2, 6), ATTK(AT_BITE, AD_PHYS, 5, 4), NO_ATTK,
+          NO_ATTK),
+        SIZ(1800, 1000, MS_SILENT, MZ_HUGE), 0, 0,
+        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_NOHANDS | M1_CARNIVORE,
+        M2_NOPOLY | M2_HOSTILE | M2_STRONG, M3_INFRAVISIBLE, CLR_RED),
+    /*
      * Angels and other lawful minions
      */
     MON("couatl", S_ANGEL, LVL(8, 10, 5, 30, 7),
@@ -2644,51 +2689,6 @@ struct permonst _mons2[] = {
         SIZ(1500, 400, MS_DJINNI, MZ_HUMAN), MR_POISON | MR_STONE, 0,
         M1_HUMANOID | M1_FLY | M1_POIS, M2_NOPOLY | M2_STALK | M2_COLLECT,
         M3_INFRAVISIBLE, CLR_YELLOW),
-    /*
-     * sea monsters
-     */
-    MON("jellyfish", S_EEL, LVL(3, 3, 6, 0, 0), (G_GENO | G_NOGEN | 2),
-        A(ATTK(AT_STNG, AD_DRST, 3, 3), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
-          NO_ATTK),
-        SIZ(80, 20, MS_SILENT, MZ_SMALL), MR_POISON, MR_POISON,
-        M1_SWIM | M1_AMPHIBIOUS | M1_SLITHY | M1_NOLIMBS | M1_NOHEAD
-            | M1_NOTAKE | M1_POIS,
-        M2_HOSTILE, 0, CLR_BLUE),
-    MON("piranha", S_EEL, LVL(5, 12, 4, 0, 0), (G_GENO | G_NOGEN | G_SGROUP | 3),
-        A(ATTK(AT_BITE, AD_PHYS, 2, 6), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
-          NO_ATTK),
-        SIZ(60, 30, MS_SILENT, MZ_SMALL), 0, 0,
-        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
-            | M1_CARNIVORE | M1_OVIPAROUS | M1_NOTAKE,
-        M2_HOSTILE, 0, CLR_ORANGE),
-    MON("shark", S_EEL, LVL(7, 12, 2, 0, 0), (G_GENO | G_NOGEN | 2),
-        A(ATTK(AT_BITE, AD_PHYS, 5, 6), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
-          NO_ATTK),
-        SIZ(500, 350, MS_SILENT, MZ_LARGE), 0, 0,
-        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
-            | M1_CARNIVORE | M1_OVIPAROUS | M1_THICK_HIDE | M1_NOTAKE,
-        M2_HOSTILE, 0, CLR_GRAY),
-    MON("giant eel", S_EEL, LVL(5, 9, -1, 0, 0), (G_GENO | G_NOGEN | 4),
-        A(ATTK(AT_BITE, AD_PHYS, 3, 6), ATTK(AT_TUCH, AD_WRAP, 0, 0), NO_ATTK,
-          NO_ATTK, NO_ATTK, NO_ATTK),
-        SIZ(200, 250, MS_SILENT, MZ_HUGE), 0, 0,
-        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
-            | M1_CARNIVORE | M1_OVIPAROUS | M1_NOTAKE,
-        M2_HOSTILE, M3_INFRAVISIBLE, CLR_CYAN),
-    MON("electric eel", S_EEL, LVL(7, 10, -3, 0, 0), (G_GENO | G_NOGEN | 2),
-        A(ATTK(AT_BITE, AD_ELEC, 4, 6), ATTK(AT_TUCH, AD_WRAP, 0, 0), NO_ATTK,
-          NO_ATTK, NO_ATTK, NO_ATTK),
-        SIZ(200, 250, MS_SILENT, MZ_HUGE), MR_ELEC, MR_ELEC,
-        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_SLITHY | M1_NOLIMBS
-            | M1_CARNIVORE | M1_OVIPAROUS | M1_NOTAKE,
-        M2_HOSTILE, M3_INFRAVISIBLE, CLR_BRIGHT_BLUE),
-    MON("kraken", S_EEL, LVL(20, 3, 6, 0, -3), (G_GENO | G_NOGEN | 1),
-        A(ATTK(AT_CLAW, AD_PHYS, 2, 4), ATTK(AT_CLAW, AD_PHYS, 2, 4),
-          ATTK(AT_HUGS, AD_WRAP, 2, 6), ATTK(AT_BITE, AD_PHYS, 5, 4), NO_ATTK,
-          NO_ATTK),
-        SIZ(1800, 1000, MS_SILENT, MZ_HUGE), 0, 0,
-        M1_SWIM | M1_AMPHIBIOUS | M1_ANIMAL | M1_NOHANDS | M1_CARNIVORE,
-        M2_NOPOLY | M2_HOSTILE | M2_STRONG, M3_INFRAVISIBLE, CLR_RED),
 
     /*
      * dummy monster needed for visual interface

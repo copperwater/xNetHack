@@ -86,12 +86,12 @@ TRAP:"board",(38,07)
 TRAP:"board",(38,12)
 # Random monsters
 MONSTER:('@',"Medusa"),(36,10),asleep
-MONSTER:(';',"giant eel"),(11,06)
-MONSTER:(';',"giant eel"),(23,13)
-MONSTER:(';',"giant eel"),(29,02)
-MONSTER:(';',"jellyfish"),(02,02)
-MONSTER:(';',"jellyfish"),(00,08)
-MONSTER:(';',"jellyfish"),(04,18)
+MONSTER:('z',"giant eel"),(11,06)
+MONSTER:('z',"giant eel"),(23,13)
+MONSTER:('z',"giant eel"),(29,02)
+MONSTER:('z',"jellyfish"),(02,02)
+MONSTER:('z',"jellyfish"),(00,08)
+MONSTER:('z',"jellyfish"),(04,18)
 MONSTER:('T',"water troll"),(51,03)
 MONSTER:('T',"water troll"),(64,11)
 MONSTER:'S',(38,07)
@@ -185,15 +185,15 @@ TRAP:random,random
 MONSTER:('@',"Medusa"),(68,10),asleep
 MONSTER:('g',"gremlin"),(02,14)
 MONSTER:('H',"titan"),(02,05)
-MONSTER:(';',"electric eel"),(10,13)
-MONSTER:(';',"electric eel"),(11,13)
-MONSTER:(';',"electric eel"),(10,14)
-MONSTER:(';',"electric eel"),(11,14)
-MONSTER:(';',"electric eel"),(10,15)
-MONSTER:(';',"electric eel"),(11,15)
-MONSTER:(';',"jellyfish"),(01,01)
-MONSTER:(';',"jellyfish"),(00,08)
-MONSTER:(';',"jellyfish"),(04,19)
+MONSTER:('z',"electric eel"),(10,13)
+MONSTER:('z',"electric eel"),(11,13)
+MONSTER:('z',"electric eel"),(10,14)
+MONSTER:('z',"electric eel"),(11,14)
+MONSTER:('z',"electric eel"),(10,15)
+MONSTER:('z',"electric eel"),(11,15)
+MONSTER:('z',"jellyfish"),(01,01)
+MONSTER:('z',"jellyfish"),(00,08)
+MONSTER:('z',"jellyfish"),(04,19)
 MONSTER:(''',"stone golem"),(64,08),asleep
 MONSTER:(''',"stone golem"),(65,08),asleep
 MONSTER:(''',"stone golem"),(64,09),asleep
@@ -298,10 +298,10 @@ TRAP:"board",random
 TRAP:random,random
 #
 MONSTER:('@',"Medusa"),$place[0]
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"jellyfish"),random
-MONSTER:(';',"jellyfish"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"jellyfish"),random
+MONSTER:('z',"jellyfish"),random
 MONSTER:('n',"wood nymph"),random
 MONSTER:('n',"wood nymph"),random
 MONSTER:('n',"water nymph"),random
@@ -393,7 +393,7 @@ LOOP [7] {
 }
 #
 MONSTER:('@',"Medusa"),$place[0]
-MONSTER:(';',"kraken"),(07,07)
+MONSTER:('z',"kraken"),(07,07)
 #
 # the nesting dragon
 MONSTER:('D',"yellow dragon"), (05,04), asleep
@@ -403,10 +403,10 @@ OBJECT:('%',"egg"), (05,04), montype:"yellow dragon"
 [50%]: OBJECT: ('%',"egg"), (05,04), montype:"yellow dragon"
 [25%]: OBJECT: ('%',"egg"), (05,04), montype:"yellow dragon"
 #
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"jellyfish"),random
-MONSTER:(';',"jellyfish"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"jellyfish"),random
+MONSTER:('z',"jellyfish"),random
 LOOP [14] {
   MONSTER:'S',random
 }

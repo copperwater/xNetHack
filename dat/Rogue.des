@@ -370,10 +370,10 @@ MONSTER: ('l',"chameleon"),random,hostile
 MONSTER: ('l',"chameleon"),random,hostile
 MONSTER: ('l',"chameleon"),random,hostile
 MONSTER: ('l',"chameleon"),random,hostile
-MONSTER:(';',"shark"),(51,14),hostile
-MONSTER:(';',"shark"),(53,09),hostile
-MONSTER:(';',"shark"),(55,15),hostile
-MONSTER:(';',"shark"),(58,10),hostile
+MONSTER:('z',"shark"),(51,14),hostile
+MONSTER:('z',"shark"),(53,09),hostile
+MONSTER:('z',"shark"),(55,15),hostile
+MONSTER:('z',"shark"),(58,10),hostile
 
 #
 #	The "fill" level for the quest.

@@ -90,9 +90,9 @@ MONSTER: ('r',"rabid rat"),random
 MONSTER: ('r',"rabid rat"),random
 MONSTER: ('r',"rabid rat"),random
 MONSTER: ('r',"rabid rat"),random
-MONSTER: (';',"giant eel"),random
-MONSTER: (';',"shark"),random
-MONSTER: ';', random
+MONSTER: ('z',"giant eel"),random
+MONSTER: ('z',"shark"),random
+MONSTER: 'z', random
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile
@@ -175,18 +175,18 @@ MONSTER:('r',"rabid rat"),random
 MONSTER:('r',"rabid rat"),random
 MONSTER:('r',"rabid rat"),random
 MONSTER:'r',random,hostile
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"electric eel"),random
-MONSTER:(';',"electric eel"),random
-MONSTER:(';',"kraken"),random
-MONSTER:(';',"shark"),random
-MONSTER:(';',"shark"),random
-MONSTER:';', random,hostile
-MONSTER:';', random,hostile
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"electric eel"),random
+MONSTER:('z',"electric eel"),random
+MONSTER:('z',"kraken"),random
+MONSTER:('z',"shark"),random
+MONSTER:('z',"shark"),random
+MONSTER:'z', random,hostile
+MONSTER:'z', random,hostile
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile
@@ -265,17 +265,17 @@ MONSTER:('r',"rabid rat"),random
 MONSTER:('r',"rabid rat"),random
 MONSTER:'r',random,hostile
 MONSTER:'r',random,hostile
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"giant eel"),random
-MONSTER:(';',"electric eel"),random
-MONSTER:(';',"electric eel"),random
-MONSTER:(';',"shark"),random
-MONSTER:(';',"shark"),random
-MONSTER:';',random,hostile
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"giant eel"),random
+MONSTER:('z',"electric eel"),random
+MONSTER:('z',"electric eel"),random
+MONSTER:('z',"shark"),random
+MONSTER:('z',"shark"),random
+MONSTER:'z',random,hostile
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile
@@ -320,9 +320,9 @@ OBJECT: random, random
 MONSTER: ('r', "rabid rat"), random
 MONSTER: 'r', random,hostile
 MONSTER: 'r', random,hostile
-MONSTER: (';', "giant eel"), random
-MONSTER: (';', "giant eel"), random
-MONSTER: (';', "electric eel"), random
+MONSTER: ('z', "giant eel"), random
+MONSTER: ('z', "giant eel"), random
+MONSTER: ('z', "electric eel"), random
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile
@@ -359,13 +359,13 @@ MONSTER: ('r', "rabid rat"), random
 MONSTER: ('r', "rabid rat"), random
 MONSTER: 'r', random,hostile
 MONSTER: 'r', random,hostile
-MONSTER: (';', "giant eel"), random
-MONSTER: (';', "giant eel"), random
-MONSTER: (';', "giant eel"), random
-MONSTER: (';', "giant eel"), random
-MONSTER: (';', "giant eel"), random
-MONSTER: (';', "electric eel"), random
-MONSTER: (';', "electric eel"), random
+MONSTER: ('z', "giant eel"), random
+MONSTER: ('z', "giant eel"), random
+MONSTER: ('z', "giant eel"), random
+MONSTER: ('z', "giant eel"), random
+MONSTER: ('z', "giant eel"), random
+MONSTER: ('z', "electric eel"), random
+MONSTER: ('z', "electric eel"), random
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile
 MONSTER: 'D',random,hostile

@@ -37,6 +37,7 @@ enum mon_class_types {
     S_WORM,
     S_XAN,
     S_LIGHT,
+    S_EEL,
     S_ANGEL,
     S_BAT,
     S_CENTAUR,
@@ -66,7 +67,6 @@ enum mon_class_types {
     S_HUMAN,
     S_GOLEM,
     S_DEMON,
-    S_EEL,
 
     S_WORM_TAIL,
     S_MIMIC_DEF,
@@ -104,6 +104,7 @@ enum mon_class_types {
 #define DEF_WORM        'w'
 #define DEF_XAN         'x'
 #define DEF_LIGHT       'y'
+#define DEF_EEL         'z'
 #define DEF_ANGEL       'A'
 #define DEF_BAT         'B'
 #define DEF_CENTAUR     'C'
@@ -132,7 +133,6 @@ enum mon_class_types {
 #define DEF_HUMAN       '@'
 #define DEF_GOLEM       '\''
 #define DEF_DEMON       '&'
-#define DEF_EEL         ';'
 
 #define DEF_INVISIBLE   'I'
 #define DEF_WORM_TAIL   '~'

@@ -277,8 +277,8 @@ MONSTER:'F',random
 MONSTER:'F',random
 MONSTER:'m',random
 MONSTER:'m',random
-MONSTER:(';',"jellyfish"),random
-MONSTER:(';',"jellyfish"),random
+MONSTER:('z',"jellyfish"),random
+MONSTER:('z',"jellyfish"),random
 # Some random objects
 OBJECT:'!',random
 OBJECT:'!',random

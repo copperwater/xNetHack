@@ -1714,7 +1714,7 @@ const genericptr vptr2;
            an inappropriate result when mlet2 is greater than mlet1,
            so force our copies (mcls1, mcls2) to be signed */
         mcls1 = (schar) mons[indx1].mlet, mcls2 = (schar) mons[indx2].mlet;
-        /* S_ANT through S_ZRUTY correspond to lowercase monster classes,
+        /* S_ANT through S_EEL correspond to lowercase monster classes,
            S_ANGEL through S_ZOMBIE correspond to uppercase, and various
            punctuation characters are used for classes beyond those */
         if (mcls1 > S_ZOMBIE && mcls2 > S_ZOMBIE) {
@@ -1723,7 +1723,7 @@ const genericptr vptr2;
                internal order is ok if neither or just one is punctuation
                since letters have lower values so come out before punct */
             static const char punctclasses[] = {
-                S_LIZARD, S_EEL, S_GOLEM, S_DEMON, S_HUMAN, '\0'
+                S_GOLEM, S_DEMON, S_HUMAN, '\0'
             };
 
             if ((punct = index(punctclasses, mcls1)) != 0)
