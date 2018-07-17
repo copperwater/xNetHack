@@ -3655,7 +3655,8 @@ doapply()
         return 0;
 
     if (obj == &zeroobj) {
-        pline("%s always said you needed to apply yourself!", ldrname());
+        const char *name = ldrname();
+        pline("%c%s always said you needed to apply yourself!", highc(name[0]), name + 1);
         return 0;
     }
 
