@@ -58,7 +58,7 @@ enum mon_class_types {
     S_RUSTMONST,
     S_SNAKE,
     S_TROLL,
-    S_UMBER,
+    S_ABERRATION,
     S_VAMPIRE,
     S_WRAITH,
     S_XORN,
@@ -124,7 +124,7 @@ enum mon_class_types {
 #define DEF_RUSTMONST   'R'
 #define DEF_SNAKE       'S'
 #define DEF_TROLL       'T'
-#define DEF_UMBER       'U'
+#define DEF_ABERRATION  'U'
 #define DEF_VAMPIRE     'V'
 #define DEF_WRAITH      'W'
 #define DEF_XORN        'X'

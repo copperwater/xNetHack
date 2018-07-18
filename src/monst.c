@@ -1919,7 +1919,7 @@ struct permonst _mons2[] = {
     /*
      * Umber hulk
      */
-    MON("umber hulk", S_UMBER, LVL(9, 6, 2, 25, 0), (G_GENO | 2),
+    MON("umber hulk", S_ABERRATION, LVL(9, 6, 2, 25, 0), (G_GENO | 2),
         A(ATTK(AT_CLAW, AD_PHYS, 3, 4), ATTK(AT_CLAW, AD_PHYS, 3, 4),
           ATTK(AT_BITE, AD_PHYS, 2, 5), ATTK(AT_GAZE, AD_CONF, 0, 0), NO_ATTK,
           NO_ATTK),
