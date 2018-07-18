@@ -4974,7 +4974,7 @@
                                  .                         S_hodbridge            (horizontal lowered drawbridge)
                                  |                         S_hodoor               (open door in horizontal wall)
                                  ^                         S_hole                 (hole)
-                                 @                         S_human                (human or elf)
+                                 @                         S_human                (human)
                                  h                         S_humanoid             (humanoid)
                                  -                         S_hwall                (horizontal wall)
                                  .                         S_ice                  (ice)
@@ -5020,7 +5020,7 @@
 
 
 
-                                 Q                         S_quantmech            (quantum mechanic)
+                                 Q                         S_elf                  (elf)
                                  =                         S_ring                 (ring)
                                  `                         S_rock                 (boulder or statue)
                                  r                         S_rodent               (rodent)

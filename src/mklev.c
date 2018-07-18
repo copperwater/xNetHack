@@ -715,6 +715,7 @@ int trap_type;
                     if (!rn2(5) && IS_WALL(levl[xx][yy].typ)) {
                         levl[xx][yy].typ = IRONBARS;
                         if (rn2(3))
+                            /* For the love of God, Montresor! */
                             (void) mkcorpstat(CORPSE, (struct monst *) 0,
                                               mkclass(S_HUMAN, 0), xx,
                                               yy + dy, TRUE);

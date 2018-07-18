@@ -219,43 +219,6 @@ register struct monst *mtmp;
                 w2 = KNIFE;
             if (w2)
                 (void) mongets(mtmp, w2);
-        } else if (is_elf(ptr)) {
-            if (rn2(2))
-                (void) mongets(mtmp,
-                               rn2(2) ? ELVEN_RING_MAIL : ELVEN_CLOAK);
-            if (rn2(2))
-                (void) mongets(mtmp, ELVEN_HELM);
-            else if (!rn2(4))
-                (void) mongets(mtmp, ELVEN_BOOTS);
-            if (rn2(2))
-                (void) mongets(mtmp, ELVEN_DAGGER);
-            switch (rn2(3)) {
-            case 0:
-                if (!rn2(4))
-                    (void) mongets(mtmp, ELVEN_SHIELD);
-                if (rn2(3))
-                    (void) mongets(mtmp, ELVEN_SHORT_SWORD);
-                (void) mongets(mtmp, ELVEN_BOW);
-                m_initthrow(mtmp, ELVEN_ARROW, 12);
-                break;
-            case 1:
-                (void) mongets(mtmp, ELVEN_BROADSWORD);
-                if (rn2(2))
-                    (void) mongets(mtmp, ELVEN_SHIELD);
-                break;
-            case 2:
-                if (rn2(2)) {
-                    (void) mongets(mtmp, ELVEN_SPEAR);
-                    (void) mongets(mtmp, ELVEN_SHIELD);
-                }
-                break;
-            }
-            if (mm == PM_ELVENKING) {
-                if (rn2(3) || (in_mklev && Is_earthlevel(&u.uz)))
-                    (void) mongets(mtmp, PICK_AXE);
-                if (!rn2(50))
-                    (void) mongets(mtmp, CRYSTAL_BALL);
-            }
         } else if (ptr->msound == MS_PRIEST
                    || quest_mon_represents_role(ptr, PM_PRIEST)) {
             otmp = mksobj(MACE, FALSE, FALSE);
@@ -320,6 +283,44 @@ register struct monst *mtmp;
                 (void) mongets(mtmp, LIGHT_ARMOR);
                 break;
             }
+        }
+        break;
+    case S_ELF:
+        if (rn2(2))
+            (void) mongets(mtmp,
+                            rn2(2) ? ELVEN_RING_MAIL : ELVEN_CLOAK);
+        if (rn2(2))
+            (void) mongets(mtmp, ELVEN_HELM);
+        else if (!rn2(4))
+            (void) mongets(mtmp, ELVEN_BOOTS);
+        if (rn2(2))
+            (void) mongets(mtmp, ELVEN_DAGGER);
+        switch (rn2(3)) {
+        case 0:
+            if (!rn2(4))
+                (void) mongets(mtmp, ELVEN_SHIELD);
+            if (rn2(3))
+                (void) mongets(mtmp, ELVEN_SHORT_SWORD);
+            (void) mongets(mtmp, ELVEN_BOW);
+            m_initthrow(mtmp, ELVEN_ARROW, 12);
+            break;
+        case 1:
+            (void) mongets(mtmp, ELVEN_BROADSWORD);
+            if (rn2(2))
+                (void) mongets(mtmp, ELVEN_SHIELD);
+            break;
+        case 2:
+            if (rn2(2)) {
+                (void) mongets(mtmp, ELVEN_SPEAR);
+                (void) mongets(mtmp, ELVEN_SHIELD);
+            }
+            break;
+        }
+        if (mm == PM_ELVENKING) {
+            if (rn2(3) || (in_mklev && Is_earthlevel(&u.uz)))
+                (void) mongets(mtmp, PICK_AXE);
+            if (!rn2(50))
+                (void) mongets(mtmp, CRYSTAL_BALL);
         }
         break;
 
@@ -737,8 +738,8 @@ register struct monst *mtmp;
         if (rn2(7))
             (void) mongets(mtmp, MUMMY_WRAPPING);
         break;
-    case S_QUANTMECH:
-        if (!rn2(20)) {
+    case S_ABERRATION:
+        if (ptr == &mons[PM_QUANTUM_MECHANIC] && !rn2(20)) {
             otmp = mksobj(LARGE_BOX, FALSE, FALSE);
             otmp->spe = 1; /* flag for special box */
             otmp->owt = weight(otmp);

@@ -1485,7 +1485,6 @@ electric eel
 	water, and earth.  Some mystics have postulated the necessity
 	for a fifth type, the spirit elemental, but none have ever
 	been encountered, at least on this plane of existence.
-~human or elf*
 ~elf ??m*
 *elf*
 elvenking
@@ -2370,8 +2369,7 @@ humanoid
 	tribal nature, and will fiercely defend their lairs.  Usually
 	hostile, they may even band together to raid and pillage
 	human settlements.
-# takes "human or elf or you" when specifying '@' as a dwarf, gnome, or orc
-human
+# takes "human or you" when specifying '@' as a dwarf, gnome, or orc
 chieftain
 guard
 ninja
@@ -2380,7 +2378,7 @@ ronin
 student
 warrior
 *watch*
-human or elf*
+human*
 	These strange creatures live mostly on the surface of the
 	earth, gathering together in societies of various forms, but
 	occasionally a stray will descend into the depths and commit

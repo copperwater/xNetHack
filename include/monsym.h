@@ -54,7 +54,7 @@ enum mon_class_types {
     S_NAGA,
     S_OGRE,
     S_PUDDING,
-    S_QUANTMECH,
+    S_ELF,
     S_RUSTMONST,
     S_SNAKE,
     S_TROLL,
@@ -120,7 +120,7 @@ enum mon_class_types {
 #define DEF_NAGA        'N'
 #define DEF_OGRE        'O'
 #define DEF_PUDDING     'P'
-#define DEF_QUANTMECH   'Q'
+#define DEF_ELF         'Q'
 #define DEF_RUSTMONST   'R'
 #define DEF_SNAKE       'S'
 #define DEF_TROLL       'T'

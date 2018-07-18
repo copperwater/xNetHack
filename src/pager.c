@@ -1583,7 +1583,7 @@ const char **firstmatch;
         if ((looked ? (sym == showsyms[S_HUMAN + SYM_OFF_M]
                        && cc.x == u.ux && cc.y == u.uy)
                     : (sym == def_monsyms[S_HUMAN].sym && !flags.showrace))
-            && !(Race_if(PM_HUMAN) || Race_if(PM_ELF)) && !Upolyd)
+            && !Race_if(PM_HUMAN) && !Upolyd)
             found += append_str(out_str, "you"); /* tack on "or you" */
     }
 

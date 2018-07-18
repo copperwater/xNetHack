@@ -151,7 +151,8 @@ struct monst *mtmp;
             && ((u.ux == x && u.uy == y)
                 || (Displaced && mtmp->mux == x && mtmp->muy == y))
             && !(mtmp->isshk || mtmp->isgd || !mtmp->mcansee
-                 || mtmp->mpeaceful || mtmp->data->mlet == S_HUMAN
+                 || mtmp->mpeaceful
+                 || mtmp->data->mlet == S_HUMAN || mtmp->data->mlet == S_ELF
                  || mtmp->data == &mons[PM_MINOTAUR]
                  || Inhell || In_endgame(&u.uz)));
 }
