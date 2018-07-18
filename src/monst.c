@@ -442,23 +442,6 @@ NEARDATA struct permonst mons[] = {
         M2_DWARF | M2_STRONG | M2_PRINCE | M2_MALE | M2_GREEDY | M2_JEWELS
             | M2_COLLECT,
         M3_INFRAVISIBLE | M3_INFRAVISION, HI_LORD),
-    MON("mind flayer", S_HUMANOID, LVL(9, 12, 5, 90, -8), (G_GENO | 1),
-        A(ATTK(AT_WEAP, AD_PHYS, 1, 4), ATTK(AT_TENT, AD_DRIN, 2, 1),
-          ATTK(AT_TENT, AD_DRIN, 2, 1), ATTK(AT_TENT, AD_DRIN, 2, 1), NO_ATTK,
-          NO_ATTK),
-        SIZ(1450, 400, MS_HISS, MZ_HUMAN), 0, 0,
-        M1_HUMANOID | M1_FLY | M1_SEE_INVIS | M1_OMNIVORE,
-        M2_HOSTILE | M2_NASTY | M2_GREEDY | M2_JEWELS | M2_COLLECT,
-        M3_INFRAVISIBLE | M3_INFRAVISION, CLR_CYAN),
-    MON("master mind flayer", S_HUMANOID, LVL(13, 12, 0, 90, -8),
-        (G_GENO | 1),
-        A(ATTK(AT_WEAP, AD_PHYS, 1, 8), ATTK(AT_TENT, AD_DRIN, 2, 1),
-          ATTK(AT_TENT, AD_DRIN, 2, 1), ATTK(AT_TENT, AD_DRIN, 2, 1),
-          ATTK(AT_TENT, AD_DRIN, 2, 1), ATTK(AT_TENT, AD_DRIN, 2, 1)),
-        SIZ(1450, 400, MS_HISS, MZ_HUMAN), 0, 0,
-        M1_HUMANOID | M1_FLY | M1_SEE_INVIS | M1_OMNIVORE,
-        M2_HOSTILE | M2_NASTY | M2_GREEDY | M2_JEWELS | M2_COLLECT,
-        M3_INFRAVISIBLE | M3_INFRAVISION, CLR_BRIGHT_CYAN),
     /*
      * imps & other minor demons/devils
      */
@@ -1810,12 +1793,6 @@ struct permonst _mons2[] = {
     /*
      * Quantum mechanics
      */
-    MON("quantum mechanic", S_QUANTMECH, LVL(7, 12, 3, 10, 0), (G_GENO | 3),
-        A(ATTK(AT_CLAW, AD_TLPT, 1, 4), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
-          NO_ATTK),
-        SIZ(WT_HUMAN, 20, MS_HUMANOID, MZ_HUMAN), MR_POISON, 0,
-        M1_HUMANOID | M1_OMNIVORE | M1_POIS | M1_TPORT, M2_HOSTILE,
-        M3_INFRAVISIBLE, CLR_CYAN),
     /*
      * Rust monster or disenchanter
      */
@@ -1925,6 +1902,29 @@ struct permonst _mons2[] = {
           NO_ATTK),
         SIZ(1200, 500, MS_SILENT, MZ_LARGE), 0, 0, M1_TUNNEL | M1_CARNIVORE,
         M2_STRONG, M3_INFRAVISIBLE, CLR_BROWN),
+    MON("quantum mechanic", S_ABERRATION, LVL(7, 12, 3, 10, 0), (G_GENO | 3),
+        A(ATTK(AT_CLAW, AD_TLPT, 1, 4), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
+          NO_ATTK),
+        SIZ(WT_HUMAN, 20, MS_HUMANOID, MZ_HUMAN), MR_POISON, 0,
+        M1_HUMANOID | M1_OMNIVORE | M1_POIS | M1_TPORT, M2_HOSTILE,
+        M3_INFRAVISIBLE, CLR_CYAN),
+    MON("mind flayer", S_ABERRATION, LVL(9, 12, 5, 90, -8), (G_GENO | 1),
+        A(ATTK(AT_WEAP, AD_PHYS, 1, 4), ATTK(AT_TENT, AD_DRIN, 2, 1),
+          ATTK(AT_TENT, AD_DRIN, 2, 1), ATTK(AT_TENT, AD_DRIN, 2, 1), NO_ATTK,
+          NO_ATTK),
+        SIZ(1450, 400, MS_HISS, MZ_HUMAN), 0, 0,
+        M1_HUMANOID | M1_FLY | M1_SEE_INVIS | M1_OMNIVORE,
+        M2_HOSTILE | M2_NASTY | M2_GREEDY | M2_JEWELS | M2_COLLECT,
+        M3_INFRAVISIBLE | M3_INFRAVISION, CLR_MAGENTA),
+    MON("master mind flayer", S_ABERRATION, LVL(13, 12, 0, 90, -8),
+        (G_GENO | 1),
+        A(ATTK(AT_WEAP, AD_PHYS, 1, 8), ATTK(AT_TENT, AD_DRIN, 2, 1),
+          ATTK(AT_TENT, AD_DRIN, 2, 1), ATTK(AT_TENT, AD_DRIN, 2, 1),
+          ATTK(AT_TENT, AD_DRIN, 2, 1), ATTK(AT_TENT, AD_DRIN, 2, 1)),
+        SIZ(1450, 400, MS_HISS, MZ_HUMAN), 0, 0,
+        M1_HUMANOID | M1_FLY | M1_SEE_INVIS | M1_OMNIVORE,
+        M2_HOSTILE | M2_NASTY | M2_GREEDY | M2_JEWELS | M2_COLLECT,
+        M3_INFRAVISIBLE | M3_INFRAVISION, CLR_BRIGHT_MAGENTA),
     /*
      * Vampires
      */
