@@ -1,0 +1,36 @@
+xNetHack 0.3.0 Changelog
+
+This is the first minor update version of xNetHack. It is a fork off of
+the vanilla NetHack 3.6.1 release, and is also based directly on
+xNetHack 0.2.0. It will continue to contain all of the latest commits
+pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
+
+The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
+attempts to describe these changes in a way that's better formatted and more
+friendly to players. However, it might be out of date; in case of conflicting
+information, this changelog and others in this folder are more up-to-date than
+the wiki page, and the commit messages are more up-to-date than this changelog.
+
+On top of any changes made by the NetHack devteam on 3.6.1, and any changes
+made in previous xNetHack versions, xNetHack 0.3.0 contains the following
+gameplay changes:
+
+Zruties are removed.
+Mind flayers and master mind flayers can no longer generate in the Mines on
+  account of no longer being h class.
+Elves (except the ungenocidable "elf" monster) can now be genocided as a class
+  by non-elf players without killing themselves, on account of no longer being
+  @ class.
+
+It contains the following non-gameplay interface changes:
+
+A fair amount of monster letter rearrangement:
+  All types of sea monsters are moved from ; to z. No colors are changed.
+  The U class is rebranded as "aberrations" (and umber hulks remain in it).
+  Quantum mechanics are moved from Q to U, and remain cyan.
+  Mind flayers and master mind flayers are moved from h to U. They are
+    recolored from their cyan/bright cyan to magenta/bright magenta.
+  All types of elves are moved from @ to Q (for Quendi). No colors are changed.
+
+It contains the following non-gameplay architectural changes:
+
