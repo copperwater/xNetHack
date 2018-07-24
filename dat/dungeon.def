@@ -19,7 +19,7 @@ ALIGNMENT:	unaligned
 BRANCH:		"The Gnomish Mines" @ (2, 3)
 LEVEL:		"rogue" "R" @ (15, 4)
 LEVELDESC:	roguelike
-LEVEL:		"oracle" "O" @ (5, 5)
+RNDLEVEL:	"oracle" "O" @ (5, 5) 3
 LEVALIGN:	neutral
 CHAINBRANCH:	"Sokoban" "oracle" + (1, 0) up
 RNDLEVEL:	"bigrm" "B" @ (10, 3) 40 10

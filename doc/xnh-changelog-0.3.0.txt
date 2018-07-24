@@ -21,6 +21,7 @@ Mind flayers and master mind flayers can no longer generate in the Mines on
 Elves (except the ungenocidable "elf" monster) can now be genocided as a class
   by non-elf players without killing themselves, on account of no longer being
   @ class.
+Two new variants of the Oracle level are added.
 
 It contains the following non-gameplay interface changes:
 

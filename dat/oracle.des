@@ -5,7 +5,7 @@
 # Oracle level
 #
 
-LEVEL: "oracle"
+LEVEL: "oracle-1"
 
 ROOM: "ordinary" , lit, (37,10), (center,center), (11,9) {
   OBJECT:('`',"statue"),(0,0),montype:'C',1
@@ -61,5 +61,184 @@ ROOM: "ordinary" , random, random, random, random {
   TRAP: random, random
   MONSTER: random, random
 }
+
+RANDOM_CORRIDORS
+
+LEVEL: "oracle-2"
+
+ROOM: "delphi" , lit, (37,10), (center,center), (11,9) {
+  # Make a square ring of pools around the Oracle, 2 spaces out, with one
+  # orthogonal pool removed
+
+  $orthopool = { (5,2),(3,4),(7,4),(5,6) }
+  SHUFFLE: $orthopool
+
+  POOL:(3,2)
+  POOL:(4,2)
+  POOL:(6,2)
+  POOL:(7,2)
+  POOL:(3,3)
+  POOL:(7,3)
+  POOL:(3,5)
+  POOL:(7,5)
+  POOL:(3,6)
+  POOL:(4,6)
+  POOL:(6,6)
+  POOL:(7,6)
+  POOL:$orthopool[0]
+  POOL:$orthopool[1]
+  POOL:$orthopool[2]
+
+  # The 4 fountains are on the outside corners
+  FOUNTAIN:(2,1)
+  FOUNTAIN:(8,1)
+  FOUNTAIN:(2,7)
+  FOUNTAIN:(8,7)
+
+  # statues of the 4 elements - appropriately neutral
+  $statuelocs = { (5,0),(5,8),(1,4),(9,4) }
+  SHUFFLE:$statuelocs
+  OBJECT:('`',"statue"),$statuelocs[0],montype:"water elemental",1
+  OBJECT:('`',"statue"),$statuelocs[1],montype:"earth elemental",1
+  OBJECT:('`',"statue"),$statuelocs[2],montype:"fire elemental",1
+  OBJECT:('`',"statue"),$statuelocs[3],montype:"air elemental",1
+
+  MONSTER: ('@', "Oracle"), (5,4)
+
+  MONSTER: random, random
+  MONSTER: random, random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  STAIR: random, up
+  OBJECT: random,random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  STAIR: random, down
+  OBJECT: random, random
+  TRAP: random, random
+  MONSTER: random, random
+  MONSTER: random, random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  OBJECT: random, random
+  OBJECT: random, random
+  MONSTER: random, random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  OBJECT: random, random
+  TRAP: random, random
+  MONSTER: random, random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  OBJECT: random, random
+  TRAP: random, random
+  MONSTER: random, random
+}
+
+RANDOM_CORRIDORS
+
+LEVEL: "oracle-3"
+
+ROOM: "delphi" , lit, (37,10), (center,center), (11,9) {
+  # Make a squarish ring of pools around the Oracle, 3 spaces out
+  POOL:(3,1)
+  POOL:(4,1)
+  POOL:(6,1)
+  POOL:(7,1)
+  POOL:(2,2)
+  POOL:(8,2)
+  POOL:(2,3)
+  POOL:(8,3)
+  POOL:(2,5)
+  POOL:(8,5)
+  POOL:(2,6)
+  POOL:(8,6)
+  POOL:(3,7)
+  POOL:(4,7)
+  POOL:(6,7)
+  POOL:(7,7)
+
+  # Close off three of the four passages into the center; there are also only
+  # three fountains; make sure that no fountain is aligned with the open square
+  $direction = 1d4
+  $numbers = { 1,2,3,4 }
+  SHUFFLE:$numbers
+  $orthopool = { (5,1),(2,4),(8,4),(5,7) }
+  $fountain = { (5,2),(3,4),(7,4),(5,6) }
+  POOL:$orthopool[$numbers[0]]
+  POOL:$orthopool[$numbers[1]]
+  POOL:$orthopool[$numbers[2]]
+  FOUNTAIN:$fountain[$numbers[0]]
+  FOUNTAIN:$fountain[$numbers[1]]
+  FOUNTAIN:$fountain[$numbers[2]]
+
+  # four trees
+  #TREE:(3,2)
+  #TREE:(3,6)
+  #TREE:(7,2)
+  #TREE:(7,6)
+
+<<<<<<< HEAD
+  # miscellaneous oracle-type statues
+  $statuelocs = { (0,0),(10,0),(0,8),(10,8) }
+  SHUFFLE:$statuelocs
+  OBJECT:('`',"statue"),$statuelocs[0],montype:"snake",1
+  OBJECT:('`',"statue"),$statuelocs[1],montype:"guardian naga",1
+  OBJECT:('`',"statue"),$statuelocs[2],montype:"shark",1
+  OBJECT:('`',"statue"),$statuelocs[3],montype:"water nymph",1
+=======
+  # statues of the 4 elements - appropriately neutral
+  $statuelocs = { (5,0),(5,8),(1,4),(9,4) }
+  SHUFFLE:$statuelocs
+  OBJECT:('`',"statue"),$statuelocs[0],montype:"water elemental",1
+  OBJECT:('`',"statue"),$statuelocs[1],montype:"earth elemental",1
+  OBJECT:('`',"statue"),$statuelocs[2],montype:"fire elemental",1
+  OBJECT:('`',"statue"),$statuelocs[3],montype:"air elemental",1
+>>>>>>> 3ead49cb... UNFINISHED oracle variant addition. REBASE REBASE REBASE
+
+  MONSTER: ('@', "Oracle"), (5,4)
+
+  MONSTER: random, random
+  MONSTER: random, random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  STAIR: random, up
+  OBJECT: random,random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  STAIR: random, down
+  OBJECT: random, random
+  TRAP: random, random
+  MONSTER: random, random
+  MONSTER: random, random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  OBJECT: random, random
+  OBJECT: random, random
+  MONSTER: random, random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  OBJECT: random, random
+  TRAP: random, random
+  MONSTER: random, random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  OBJECT: random, random
+  TRAP: random, random
+  MONSTER: random, random
+}
+
+# Keep thy enemies close...
+OBJECT:('`',"statue"),random,montype:"woodchuck",1
 
 RANDOM_CORRIDORS
