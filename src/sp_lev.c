@@ -4404,6 +4404,9 @@ struct sp_coder *coder;
     case SPO_POOL:
         typ = POOL;
         break;
+    case SPO_TREE:
+        typ = TREE;
+        break;
     }
     selection_iterate(sel, sel_set_feature, (genericptr_t) &typ);
     opvar_free(sel);
@@ -5522,6 +5525,7 @@ sp_lev *lvl;
         case SPO_SINK:
         case SPO_POOL:
         case SPO_FOUNTAIN:
+        case SPO_TREE:
             spo_feature(coder);
             break;
         case SPO_TRAP:

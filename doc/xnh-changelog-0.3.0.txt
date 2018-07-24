@@ -33,4 +33,4 @@ A fair amount of monster letter rearrangement:
   All types of elves are moved from @ to Q (for Quendi). No colors are changed.
 
 It contains the following non-gameplay architectural changes:
-
+TREEs can now be specified in des files, which obviously produces a tree.

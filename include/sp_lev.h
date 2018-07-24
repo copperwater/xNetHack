@@ -81,6 +81,7 @@ enum opcode_defs {
     SPO_FOUNTAIN,
     SPO_SINK,
     SPO_POOL,
+    SPO_TREE,
     SPO_TRAP,
     SPO_GOLD,
     SPO_CORRIDOR,
