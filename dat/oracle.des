@@ -178,28 +178,17 @@ ROOM: "delphi" , lit, (37,10), (center,center), (11,9) {
   FOUNTAIN:$fountain[$numbers[2]]
 
   # four trees
-  #TREE:(3,2)
-  #TREE:(3,6)
-  #TREE:(7,2)
-  #TREE:(7,6)
+  TREE:(3,2)
+  TREE:(3,6)
+  TREE:(7,2)
+  TREE:(7,6)
 
-<<<<<<< HEAD
-  # miscellaneous oracle-type statues
   $statuelocs = { (0,0),(10,0),(0,8),(10,8) }
   SHUFFLE:$statuelocs
   OBJECT:('`',"statue"),$statuelocs[0],montype:"snake",1
   OBJECT:('`',"statue"),$statuelocs[1],montype:"guardian naga",1
   OBJECT:('`',"statue"),$statuelocs[2],montype:"shark",1
   OBJECT:('`',"statue"),$statuelocs[3],montype:"water nymph",1
-=======
-  # statues of the 4 elements - appropriately neutral
-  $statuelocs = { (5,0),(5,8),(1,4),(9,4) }
-  SHUFFLE:$statuelocs
-  OBJECT:('`',"statue"),$statuelocs[0],montype:"water elemental",1
-  OBJECT:('`',"statue"),$statuelocs[1],montype:"earth elemental",1
-  OBJECT:('`',"statue"),$statuelocs[2],montype:"fire elemental",1
-  OBJECT:('`',"statue"),$statuelocs[3],montype:"air elemental",1
->>>>>>> 3ead49cb... UNFINISHED oracle variant addition. REBASE REBASE REBASE
 
   MONSTER: ('@', "Oracle"), (5,4)
 
