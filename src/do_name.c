@@ -1292,10 +1292,14 @@ struct obj * wpn;
         "%s of Serenity", "%s of Fable",   "%s of Legend",   "%s of Integrity",
         "%s of Redress",  "%s of Fate",    "%s of Punition", "%s of Reckoning",
         "%s of Omen",     "%s of Truth",   "%s of Virtue",   "%s of Bloodlust",
-        "%s of Disaster", "%s of Torment", "Righteous %s",   "Mighty %s",
-        "Death %s",       "Due Process",   "Puddingbane",    "Vladsbane",
-        "Newtsbane",      "Aggressive Negotiation",
-        "Orphan Maker",   "Monster Slayer"
+        "%s of Disaster", "%s of Torment", "%s of the Gods", "%s of the Horde",
+        "%s of Gilgamesh","%s of the Planes",             "%s of Swift Defeat",
+        "Righteous %s",   "Mighty %s",     "Unstoppable %s", "Sacred %s",
+        "Holy %s",        "Lucky %s",      "Dudley's %s",    "Chaos %s",
+        "Hungry %s",      "Inexorable %s", "Virtuous %s",    "Death %s",
+        "Due Process",    "Puddingbane",   "Vladsbane",      "Newtsbane",
+        "Monster Slayer", "Orphan Maker",  "Aggressive Negotiation",
+        "Old Reliable",   "Barman's Friend"
     };
 
     const char* name = wpn_names[rn2(SIZE(wpn_names))];
