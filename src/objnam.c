@@ -3061,7 +3061,8 @@ struct obj *no_wish;
         } else {
             /* check for materials */
             if (!strncmpi(bp, "silver dragon", l = 13)
-                || !strcmp(bp, "gold")) {
+                || !strcmp(bp, "gold")
+                || !strncmpi(bp, "platinum yendorian express card", l = 31)) {
                 /* hack so that silver dragon scales/mail doesn't get
                  * interpreted as silver, or a wish for just "gold" doesn't get
                  * interpreted as gold */
@@ -3967,8 +3968,13 @@ typfnd:
          * but damageproof combined with damaged is feasible (eroded
          * armor modified by confused reading of cursed destroy armor)
          * so don't prevent player from wishing for such a combination.
+         *
+         * Note on glass objects: this cannot be used to wish for shatterproof
+         * non-base-glass objects like daggers, but it can be used to e.g. get a
+         * shatterproof crystal plate mail.
          */
-        if (erodeproof && (is_damageable(otmp) || otmp->otyp == CRYSKNIFE))
+        if (erodeproof && (is_damageable(otmp) || otmp->otyp == CRYSKNIFE
+                           || objects[otmp->otyp].oc_material == GLASS))
             otmp->oerodeproof = (Luck >= 0 || wizard);
     }
 
