@@ -1715,6 +1715,10 @@ xchar x, y;
         idx = S_ice;
         engr_override = TRUE;
         break;
+    case GRASS:
+        idx = S_grass;
+        engr_override = TRUE;
+        break;
     case AIR:
         idx = S_air;
         break;
@@ -1856,6 +1860,8 @@ xchar x, y;
         case ICE:
            idx = S_ice;
            break;
+        case GRASS:
+           idx = S_grass;
         case AIR:
            idx = S_air;
            break;
@@ -1911,8 +1917,8 @@ static const char *type_names[MAX_TYPE] = {
     "CROSSWALL", "TUWALL", "TDWALL", "TLWALL", "TRWALL", "DBWALL", "TREE",
     "SDOOR", "SCORR", "POOL", "MOAT", "WATER", "DRAWBRIDGE_UP", "LAVAPOOL",
     "IRON_BARS", "DOOR", "CORR", "ROOM", "STAIRS", "LADDER", "FOUNTAIN",
-    "THRONE", "SINK", "GRAVE", "ALTAR", "ICE", "DRAWBRIDGE_DOWN", "AIR",
-    "CLOUD"
+    "THRONE", "SINK", "GRAVE", "ALTAR", "ICE", "GRASS", "DRAWBRIDGE_DOWN",
+    "AIR", "CLOUD"
 };
 
 static const char *
