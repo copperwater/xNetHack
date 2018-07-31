@@ -9,97 +9,102 @@
 #	and receive your quest assignment.
 #
 MAZE: "Mon-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: hardfloor
 GEOMETRY:center,center
 MAP
-............................................................................
-............................................................................
-............................................................................
-....................------------------------------------....................
-....................|................|.....|.....|.....|....................
-....................|..------------..|--+-----+-----+--|....................
-....................|..|..........|..|.................|....................
-....................|..|..........|..|+---+---+-----+--|....................
-..................---..|..........|......|...|...|.....|....................
-..................+....|..........+......|...|...|.....|....................
-..................+....|..........+......|...|...|.....|....................
-..................---..|..........|......|...|...|.....|....................
-....................|..|..........|..|+-----+---+---+--|....................
-....................|..|..........|..|.................|....................
-....................|..------------..|--+-----+-----+--|....................
-....................|................|.....|.....|.....|....................
-....................------------------------------------....................
-............................................................................
-............................................................................
-............................................................................
+,,,,T,,,,,,,,,T,,,|,,,,,....,|.}}}.|T,,,,,,.........T....-...T.--....T,,,,,,
+,,.,,,,,,,,,,,,,,,|,,,....{.,|}}}...........T..T.......-...........-.,,,T,,,
+,...,,,,,,,,,,,T,,|,,.......--.....|T,,,T,,,,........T...--..-..--....T,,,,T
+..{..,,,T,,,,,,,,--,....-----...............T.....T...-..--.....--.T...,T,,,
+,...,,,,,,,,,,,,,|,,....T|.........|T,,,,,,..................--....---------
+,,.,,,,,,,T,,,,,,|,....---.....--------------+-----,......--.--..-..,,,,,,,,
+,,.,,,,,,,,,,,,T,|,....T|...-.--..................--,.-...--........T.......
+,,.,,,,,,,,,,,,,--,....---....|...-..-..-..-..-....--.........-...........,,
+,...,,,T,,T,,T,,|,,......|..-.|.....................|.-...,,....-.......,,,,
+.........................+....+.....................|....,,,,.......,--.--,,
+.........................+....+.....................|....,,,,..,...,--...--,
+,...,,,T,,T,,T,,|,,......|..-.|.....................|.-...,,........|..{..|,
+,,,,,,,,,,,,,,,,--,....---....|...-..-..-..-..-....--.........,,....--...--,
+,,,,,,,,,,,T,,,,,|,....T|...-.--..................--..-...........,.---.--,,
+,,,,T,,,,,,,,,,,,|,....---.....----------+---------....-----+-----,......,,,
+,,,,,,,,,,,,,,,,,|,,....T|............................--K.......K--.....,T,,
+,,,,,,,,,T,,,,,,,--,....--------...--------...--......+...........|..,,,,,,,
+,,T,,,,,,,,,,,,,,,|,,......,,T,-----,,,|--.....--,,,,,|...}}}}}...+.,,,,,,,,
+,,,,,,,,,,,,,,,,T,|,,........,,,,,,,,T,-|.......|T,,,,--}}}}}}}}}--,,,,,,,T,
+,,,,,,T,,,,,,,,,,,|,,,,........,,,T,,,,,|-.....-|,,,T,,-----------,,,,T,,,,,
 ENDMAP
-# Dungeon Description
-REGION:(00,00,75,19),lit,"ordinary"
-REGION:(24,06,33,13),lit,"temple"
 
-REPLACE_TERRAIN:(0,0,10,19),'.','T',10%
-REPLACE_TERRAIN:(65,0,75,19),'.','T',10%
+# Full level is lit
+REGION:(00,00,75,19),lit,"ordinary"
 
 # Portal arrival point
-TERRAIN:(05,04),'.'
-BRANCH:(05,04,05,04),(0,0,0,0)
+BRANCH:(02,10,02,10),(0,0,0,0)
 # Stairs
-STAIR:(52,09),down
+STAIR:(75,06),down
 # Doors
-DOOR:locked,(18,09)
-DOOR:locked,(18,10)
-DOOR:closed,(34,09)
-DOOR:closed,(34,10)
-DOOR:closed,(40,05)
-DOOR:closed,(46,05)
-DOOR:closed,(52,05)
-DOOR:locked,(38,07)
-DOOR:closed,(42,07)
-DOOR:closed,(46,07)
-DOOR:closed,(52,07)
-DOOR:locked,(38,12)
-DOOR:closed,(44,12)
-DOOR:closed,(48,12)
-DOOR:closed,(52,12)
-DOOR:closed,(40,14)
-DOOR:closed,(46,14)
-DOOR:closed,(52,14)
+DOOR:locked&irondoor,(25,09)
+DOOR:locked&irondoor,(25,10)
+DOOR:locked,(30,09)
+DOOR:locked,(30,10)
+DOOR:locked,(41,14)
+DOOR:locked,(45,05)
+DOOR:random,(54,16)
+DOOR:random,(60,14)
+DOOR:random,(66,17)
+
 # Unattended Altar - unaligned due to conflict - player must align it.
-ALTAR:(28,09),noalign,altar
+ALTAR:(44,18),noalign,altar
+
 # The Grand Master
-MONSTER:('@',"Grand Master"),(28,10)
-# No treasure chest!
+MONSTER:('@',"Grand Master"),(49,09)
+
 # guards for the audience chamber
-MONSTER:('@',"abbot"),(32,07)
-MONSTER:('@',"abbot"),(32,08)
-MONSTER:('@',"abbot"),(32,11)
-MONSTER:('@',"abbot"),(32,12)
-MONSTER:('@',"abbot"),(33,07)
-MONSTER:('@',"abbot"),(33,08)
-MONSTER:('@',"abbot"),(33,11)
-MONSTER:('@',"abbot"),(33,12)
-# Non diggable walls
-NON_DIGGABLE:(18,03,55,16)
-# Random traps
-TRAP:"dart",(20,09)
-TRAP:"dart",(20,10)
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-# Monsters on siege duty.
-MONSTER: ('E',"earth elemental"),(37,01)
-MONSTER: ('E',"earth elemental"),(37,18)
-MONSTER: ('E',"earth elemental"),(03,03)
-MONSTER: ('E',"earth elemental"),(65,04)
-MONSTER: ('E',"earth elemental"),(12,11)
-MONSTER: ('E',"earth elemental"),(60,12)
-MONSTER: ('E',"earth elemental"),(14,08)
-MONSTER: ('E',"earth elemental"),(55,00)
-MONSTER: ('X',"xorn"),(18,18)
-MONSTER: ('X',"xorn"),(59,10)
-MONSTER: ('X',"xorn"),(13,09)
-MONSTER: ('X',"xorn"),(01,17)
+$main_hall = selection: fillrect(31,06,51,13)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+
+# Monks are ascetics: you won't find anything here that they won't give
+# to a Candidate starting out
+CONTAINER:('(',"chest"),not_trapped,(51,08) {
+  OBJECT:('[',"robe"),+1,uncursed
+  OBJECT:('[',"gloves"),+2,uncursed
+  OBJECT:('(',"blindfold"),uncursed
+}
+CONTAINER:('(',"chest"),not_trapped,(51,11) {
+  OBJECT:'%'
+  OBJECT:'%'
+  OBJECT:'%'
+  OBJECT:'%'
+  OBJECT:'%'
+}
+
+# Non diggable walls - try to hit as few trees as possible
+NON_DIGGABLE:(16,00,18,19)
+NON_DIGGABLE:(25,00,29,16)
+NON_DIGGABLE:(24,05,24,14)
+NON_DIGGABLE:(30,16,40,19)
+NON_DIGGABLE:(30,05,52,14)
+
+# A few rocks for scenery flavor
+OBJECT:('`',"boulder"),(30,00)
+OBJECT:('`',"boulder"),(75,16)
+OBJECT:('`',"boulder"),(72,19)
+
+# And finally, the baddies
+$outside = selection: fillrect(00,00,16,19)
+$inside_walls = selection: floodfill(26,09)
+LOOP [4] {
+  MONSTER:('E',"earth elemental"),rndcoord($outside),hostile
+  MONSTER:'E',rndcoord($inside_walls),hostile
+}
+MONSTER:('X',"xorn"),(21,08),hostile
+MONSTER:('X',"xorn"),(21,11),hostile
 
 #
 #	The "locate" level for the quest.
