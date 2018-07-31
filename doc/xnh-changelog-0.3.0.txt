@@ -22,6 +22,10 @@ Elves (except the ungenocidable "elf" monster) can now be genocided as a class
   by non-elf players without killing themselves, on account of no longer being
   @ class.
 Two new variants of the Oracle level are added.
+Add grass terrain, which renders as a green , (comma). Currently doesn't do
+  anything special.
+Replace the Monastery of Chan-Sune (the Monk home level) entirely, as well as
+  its flavor text, so that both aren't duplicates of the Priest quest.
 
 It contains the following non-gameplay interface changes:
 
@@ -35,3 +39,6 @@ A fair amount of monster letter rearrangement:
 
 It contains the following non-gameplay architectural changes:
 TREEs can now be specified in des files, which obviously produces a tree.
+Grass can now be specified in des files (as g or ,), which produces grass.
+  Either of these characters can also be used in things like INIT_MAP to create
+  a mines-style filler level but with a grassy plain.
