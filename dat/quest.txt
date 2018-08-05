@@ -1465,12 +1465,12 @@ against %n."
 "I must continue to hold this hall against the elementals while you are gone."
 %E
 %Cc Mon 00035
-You remember the descriptions of %i, given
-to you by the %l.  It is ahead that you will find
-%n's trail.
-%E [You have reached %i.  %nC lurks further ahead.]
+A high mountain path stretches upwards in front of you.
+Somewhere at its end, you will find %i,
+and in its depths %n surely lurks.
+%E [You are near %i.  %nC lurks further ahead.]
 %Cp Mon 00036
-Again, you stand before %i.
+Again, you near %i.
 %E
 %Cc Mon 00040
 The stench of brimstone is all about you, and the elementals close in

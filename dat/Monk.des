@@ -114,90 +114,100 @@ MONSTER:('X',"xorn"),(21,11),hostile
 #
 
 MAZE: "Mon-loca",' '
+FLAGS:hardfloor
 GEOMETRY:center,center
 #         1         2         3         4         5         6         7 
 #123456789012345678901234567890123456789012345678901234567890123456789012345
 MAP
-             ----------------------------------------------------   --------
-           ---.................................................-    --.....|
-         ---...--------........------........................---     ---...|
-       ---.....-      --.......-    ----..................----         --.--
-     ---.....----      ---------       --..................--         --..|
-   ---...-----                       ----.----.....----.....---      --..||
-----..----                       -----..---  |...---  |.......---   --...|
-|...---                       ----....---    |.---    |.........-- --...||
-|...-                      ----.....---     ----      |..........---....|
-|...----                ----......---       |         |...|.......-....||
-|......-----          ---.........-         |     -----...|............|
-|..........-----   ----...........---       -------......||...........||
-|..............-----................---     |............|||..........|
-|-S----...............................---   |...........|| |.........||
-|.....|..............------.............-----..........||  ||........|
-|.....|.............--    ---.........................||    |.......||
-|.....|.............-       ---.....................--|     ||......|
-|---S--------.......----      --.................----        |.....||
-|...........|..........--------..............-----           ||....|
-|...........|............................-----                |....|
-------------------------------------------                    ------
+....TTT    .}}}...T...     T...      ..  T....      T..T      ...           
+......T  ...}}.......    .......T ...........     ......    .......  .....  
+T.....   ..}....T..........................      ... T...   .----.....----. 
+TT....    } ...   .........  ....... ....     ...........  ..|..-------..|. 
+TT...T   }            ...   .......  ...      ....  ....T  ..|...........|..
+TT...  {}    ....T.        .....T   ...     T....    ...  ...--..-----..--..
+T....       .......T      .....     ...   .......     ..  ....|..|...|..|...
+T...T     .... ....T     ....      ....   ......      ..   ...|..|...|..|...
+T...T    T...  .....     T..     ....T.   ......      ..  ....|..|...|..|...
+....     ...  T....     ...     .......    ....       ...  ..--..-----..--..
+...     ...   ....    T....   ..T.....     ....      T...  ..|...........|. 
+...T   ....  .....   ......   .......      T....     ...   ..|..-------..|. 
+...T   ...   T...    .....     .....      .......    ....   .----.....----. 
+....  ....   ....     .....    .....      .......   .....   ..............  
+.... T....   ....     ....    .......{   ......T    .......     ... ......  
+T... .....   ....T   .....   .......}.T  .......    T......           ....  
+T...B......   .....  ....T   ......}.............     .........   ......... 
+T...B....T.   ..... .....     ..T..}..........          T.................. 
+TTT.B.}.       }}......}}       ..}......T.             ................    
 ENDMAP
-# Random Monsters
-$monster = monster: { 'E', 'X' }
-SHUFFLE: $monster
 
 # Dungeon Description
-REGION:(00,00,75,20),lit,"ordinary"
+REGION:(00,00,75,18),lit,"ordinary"
+# darken the fortress
+REGION:(62,03,72,11),unlit,"ordinary"
+
 # Stairs
-STAIR:random,up
-STAIR:random,down
+STAIR:(00,00),up
+STAIR:(67,07),down
+
 # Non diggable walls
 NON_DIGGABLE:(00,00,75,20)
+
+# Make one door on a random side of the inner and outer walls of the fort 
+$innerwalls = { (67,05),(65,07),(69,07),(67,09) }
+$outerwalls = { (67,03),(62,07),(72,07),(67,11) }
+SHUFFLE: $innerwalls
+SHUFFLE: $outerwalls
+DOOR:locked&irondoor,$innerwalls[0]
+DOOR:locked,$outerwalls[0]
+
 # Objects
+OBJECT:('(',"chest"),(62,03)
+OBJECT:('(',"chest"),(62,11)
+OBJECT:('(',"chest"),(72,03)
+OBJECT:('(',"chest"),(72,11)
 OBJECT:random,random
 OBJECT:random,random
 OBJECT:random,random
 OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-# Random traps
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
+LOOP [5] {
+  OBJECT:('`',"boulder"),random
+}
+
+# Traps
+$forest = selection:floodfill(01, 01)
+LOOP [2 + 1d2] {
+  TRAP:"bear",rndcoord($forest)
+}
+TRAP:"pit",random
+TRAP:"spiked pit",random
+TRAP:"spiked pit",random
+TRAP:"land mine",random
+TRAP:"rolling boulder",random
+TRAP:"bear",random
+$fortress = selection:floodfill(62,03)
+LOOP [3 + 1d3] {
+  TRAP:random,rndcoord($fortress)
+}
+
 # Random monsters.
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
+MONSTER: ('E',"earth elemental"),(05,17)
+MONSTER: ('E',"earth elemental"),(13,02)
+MONSTER: ('E',"earth elemental"),(28,01)
+MONSTER: ('E',"earth elemental"),(24,11)
+MONSTER: ('E',"earth elemental"),(70,17)
+MONSTER: ('E',"earth elemental"),(72,16)
+MONSTER: 'E',(15,01)
+MONSTER: 'E',(45,07)
+MONSTER: ('X',"xorn"),(07,16)
+MONSTER: ('X',"xorn"),(42,17)
+MONSTER: ('X',"xorn"),(44,16)
+MONSTER: ('X',"xorn"),(63,04)
+MONSTER: ('X',"xorn"),(71,04)
+MONSTER: ('X',"xorn"),(63,10)
+MONSTER: ('X',"xorn"),(71,10)
+LOOP [4] {
+  MONSTER:'E',rndcoord(fillrect(58,00,75,13))
+}
 
 #
 #	The "goal" level for the quest.

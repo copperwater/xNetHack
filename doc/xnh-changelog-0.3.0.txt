@@ -26,6 +26,9 @@ Add grass terrain, which renders as a green , (comma). Currently doesn't do
   anything special.
 Replace the Monastery of Chan-Sune (the Monk home level) entirely, as well as
   its flavor text, so that both aren't duplicates of the Priest quest.
+Replace the Monastery of the Earth-Lord (the Monk locate level) entirely, as
+  well as its flavor text, so that it isn't a duplicate of the Rogue locate
+  level.
 
 It contains the following non-gameplay interface changes:
 
