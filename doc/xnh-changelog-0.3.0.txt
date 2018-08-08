@@ -31,6 +31,8 @@ Replace the Monastery of the Earth-Lord (the Monk locate level) entirely, as
   level.
 Replace the Monk upper filler level(s) with a grassy, river-crossed,
   tree-dotted plain instead of room-and-corridor filler.
+Replace the Ranger home level with Khor's design for that level, with a couple
+  small changes.
 
 It contains the following non-gameplay interface changes:
 
