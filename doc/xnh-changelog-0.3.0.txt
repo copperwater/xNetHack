@@ -29,6 +29,8 @@ Replace the Monastery of Chan-Sune (the Monk home level) entirely, as well as
 Replace the Monastery of the Earth-Lord (the Monk locate level) entirely, as
   well as its flavor text, so that it isn't a duplicate of the Rogue locate
   level.
+Replace the Monk upper filler level(s) with a grassy, river-crossed,
+  tree-dotted plain instead of room-and-corridor filler.
 
 It contains the following non-gameplay interface changes:
 

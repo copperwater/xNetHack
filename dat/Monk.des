@@ -294,54 +294,54 @@ MONSTER: ('X',"xorn"),random
 #	and goal levels.
 #
 
-LEVEL: "Mon-fila"
-# Random Monsters
-$monster = monster: { 'E', 'X' }
-SHUFFLE: $monster
+MAZE: "Mon-fila", 'g'
+INIT_MAP: mines, 'g', 'g', true, false, lit, false
+NOMAP
+$leftedge = selection: line (00,00),(00,20)
+$rightedge = selection: line (78,00),(78,20)
+$topedge = selection: line(00,00),(78,00)
+$botedge = selection: line(00,20),(78,20)
+$leftstair = rndcoord($leftedge)
+$rightstair = rndcoord($rightedge)
+REPLACE_TERRAIN: (00,00,79,20), 'g', 'T', 4%
+LOOP [1d3] {
+  TERRAIN: (randline rndcoord($topedge), rndcoord($botedge), 8), '}'
+}
+# make a path from one stairs to the other
+TERRAIN:(randline $leftstair, $rightstair, 20), '.'
+STAIR:$leftstair,up
+STAIR:$rightstair,down
 
-#
-ROOM: "ordinary" , random, random, random, random {
-  STAIR: random, up
-  OBJECT: random,random
-  MONSTER: 'E', random, hostile
+# scatter a few rocks
+LOOP [8 + 2d4] {
+  OBJECT:('`',"boulder"),random
+}
+## DEFUNCT: pending level compiler fixes that let you use variables in TRAP
+## For now, just put a bunch of pits
+# $traps = { "land mine", "bear", "rolling boulder", "spiked pit" }
+# SHUFFLE: $traps
+LOOP [5 + 1d3] {
+  # $trapidx = 1d4
+  IF [65%] {
+    TRAP: "spiked pit", random
+  }
+  ELSE {
+    TRAP: "pit", random
+  }
+} 
+
+# Monsters
+LOOP [2 + 1d3] {
+  MONSTER: 'E', random
+}
+LOOP [3] {
+  MONSTER:('X',"xorn"),random
 }
 
-ROOM: "ordinary" , random, random, random, random {
+# Objects
+LOOP [2 + 1d2] {
   OBJECT: random, random
-  OBJECT: random,random
-  MONSTER: 'E', random, hostile
 }
-
-ROOM: "ordinary" , random, random, random, random {
-  OBJECT: random, random
-  TRAP: random, random
-  OBJECT: random,random
-  MONSTER: ('X', "xorn"), random
-  MONSTER: ('E', "earth elemental"), random
-}
-
-ROOM: "ordinary" , random, random, random, random {
-  STAIR: random, down
-  OBJECT: random, random
-  TRAP: random, random
-  MONSTER: 'E', random, hostile
-  MONSTER: ('E', "earth elemental"), random
-}
-
-ROOM: "ordinary" , random, random, random, random {
-  OBJECT: random, random
-  OBJECT: random, random
-  TRAP: random, random
-  MONSTER: 'X', random, hostile
-}
-
-ROOM: "ordinary" , random, random, random, random {
-  OBJECT: random, random
-  TRAP: random, random
-  MONSTER: ('E', "earth elemental"), random
-}
-
-RANDOM_CORRIDORS
 
 LEVEL: "Mon-filb"
 # Random Monsters
