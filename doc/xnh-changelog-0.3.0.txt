@@ -43,6 +43,8 @@ A fair amount of monster letter rearrangement:
   Mind flayers and master mind flayers are moved from h to U. They are
     recolored from their cyan/bright cyan to magenta/bright magenta.
   All types of elves are moved from @ to Q (for Quendi). No colors are changed.
+If you are not a beginner and would break weaponless conduct for the first
+  time, you are prompted to confirm if you really want to.
 
 It contains the following non-gameplay architectural changes:
 TREEs can now be specified in des files, which obviously produces a tree.

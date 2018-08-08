@@ -210,6 +210,16 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
         }
     }
 
+    /* Prompt for a non-beginner hitting with a wielded weapon for the first
+     * time */
+    if (wep && (wep->oclass == WEAPON_CLASS || is_weptool(wep))
+            && !u.uconduct.weaphit && !flags.beginner) {
+        if (!paranoid_query(TRUE, "Break weaponless conduct?")) {
+            context.move = 0;
+            return TRUE;
+        }
+    }
+
     return FALSE;
 }
 
