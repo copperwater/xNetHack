@@ -51,3 +51,5 @@ TREEs can now be specified in des files, which obviously produces a tree.
 Grass can now be specified in des files (as g or ,), which produces grass.
   Either of these characters can also be used in things like INIT_MAP to create
   a mines-style filler level but with a grassy plain.
+Replace has_ceiling(lev) with ceiling_exists() which is implied to mean on the
+  current level.

@@ -1457,7 +1457,7 @@ dohide()
         return 0;
     }
     /* Planes of Air and Water */
-    if (on_ceiling && !has_ceiling(&u.uz)) {
+    if (on_ceiling && !ceiling_exists()) {
         There("is nowhere to hide above you.");
         u.uundetected = 0;
         return 0;
