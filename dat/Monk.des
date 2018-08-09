@@ -295,6 +295,7 @@ MONSTER: ('X',"xorn"),random
 #
 
 MAZE: "Mon-fila", 'g'
+FLAGS: hardfloor
 INIT_MAP: mines, 'g', 'g', true, false, lit, false
 NOMAP
 $leftedge = selection: line (00,00),(00,20)
