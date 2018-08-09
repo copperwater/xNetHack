@@ -1329,7 +1329,8 @@ d_level *lev;
 boolean
 ceiling_exists()
 {
-    return (!Is_airlevel(&u.uz) && !Is_waterlevel(&u.uz));
+    return !(Is_airlevel(&u.uz) || Is_waterlevel(&u.uz)
+             || level.flags.outdoors);
 }
 
 /*

@@ -615,6 +615,8 @@ struct levelflags {
                                   normal mode descendant of such) */
     Bitfield(corrmaze, 1);     /* Whether corridors are used for the maze
                                   rather than ROOM */
+    Bitfield(outdoors, 1);     /* Whether the level is open to the sky and has
+                                  no ceiling. The Planes don't count. */
 };
 
 typedef struct {

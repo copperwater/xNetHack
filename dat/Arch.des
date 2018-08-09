@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Arc-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: noteleport,hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 ............................................................................
@@ -118,7 +118,7 @@ MONSTER: 'S',(10,19)
 #
 
 MAZE: "Arc-loca",' '
-FLAGS: hardfloor
+FLAGS: hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 ............................................................................

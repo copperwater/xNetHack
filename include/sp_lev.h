@@ -41,6 +41,7 @@
 #define CORRMAZE 0x00000800L  /* for maze levels only */
 #define CHECK_INACCESSIBLES 0x00001000L /* check for inaccessible areas and
    generate ways to escape from them */
+#define OUTDOORS 0x00002000L
 
 /* different level layout initializers */
 enum lvlinit_types {

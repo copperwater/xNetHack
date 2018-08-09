@@ -3376,6 +3376,8 @@ struct sp_coder *coder;
         level.flags.corrmaze = TRUE;
     if (lflags & CHECK_INACCESSIBLES)
         coder->check_inaccessibles = TRUE;
+    if (lflags & OUTDOORS)
+        level.flags.outdoors = TRUE;
 
     opvar_free(flagdata);
 }

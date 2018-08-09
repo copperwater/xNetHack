@@ -9,6 +9,8 @@
 #
 MAZE: "Rog-strt",' '
 FLAGS: noteleport, hardfloor, nommap
+# not outdoors because so much of the level is indoors: assume that the alleys
+# have lots of overhangs and bridges and things
 GEOMETRY:center,center
 #         1         2         3         4         5         6         7
 #123456789012345678901234567890123456789012345678901234567890123456789012345

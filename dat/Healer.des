@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Hea-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: noteleport,hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
@@ -111,7 +111,7 @@ MONSTER: 'S',random,hostile
 #
 
 MAZE: "Hea-loca",' '
-FLAGS: hardfloor
+FLAGS: hardfloor,outdoors
 #
 INIT_MAP: mines, '.' , 'P', true , true , lit , false
 GEOMETRY:center,center
@@ -211,6 +211,7 @@ MONSTER: 'S',random,hostile
 #
 
 MAZE: "Hea-goal", 'P'
+FLAGS: outdoors
 #
 INIT_MAP: mines, '.' , 'P' , false , true , lit , false
 GEOMETRY:center,center

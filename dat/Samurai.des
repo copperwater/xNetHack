@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Sam-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: noteleport,hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 ..............................................................PP............
@@ -96,7 +96,7 @@ MONSTER:('E',"stalker"),random
 #
 
 MAZE: "Sam-loca",' '
-FLAGS: hardfloor
+FLAGS: hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 ............................................................................

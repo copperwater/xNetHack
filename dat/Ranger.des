@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Ran-strt",'.'
-FLAGS: noteleport,hardfloor,arboreal
+FLAGS: noteleport,hardfloor,arboreal,outdoors
 INIT_MAP:mines,'g','g',true,false,lit,false
 GEOMETRY:left,center
 ##########1#########2#########3#########4#########5#########6#########7#####
@@ -324,6 +324,7 @@ WALLIFY
 #
 
 MAZE: "Ran-fila" , ' '
+FLAGS: outdoors
 INIT_MAP: mines, '.' , 'T', true, true, random, true
 NOMAP
 #

@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Tou-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: noteleport,hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 .......}}....---------..-------------------------------------------------...

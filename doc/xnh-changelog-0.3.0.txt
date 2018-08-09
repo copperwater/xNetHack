@@ -53,3 +53,6 @@ Grass can now be specified in des files (as g or ,), which produces grass.
   a mines-style filler level but with a grassy plain.
 Replace has_ceiling(lev) with ceiling_exists() which is implied to mean on the
   current level.
+Add a level flag "outdoors", which basically means there is no ceiling.
+  Relevant in Quests, and has some particular effects such as scrolls of earth
+  not working and rock and rust traps not randomly generating.

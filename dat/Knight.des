@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Kni-strt",'.'
-FLAGS: noteleport,hardfloor
+FLAGS: noteleport,hardfloor,outdoors
 # This is a kludge to init the level as a lit field.
 INIT_MAP: mines, '.' , '.' , false , false , lit , false
 GEOMETRY:center,center
@@ -106,7 +106,7 @@ MONSTER: ('i',"quasit"),(36,00),hostile
 #
 
 MAZE: "Kni-loca",' '
-FLAGS: hardfloor
+FLAGS: hardfloor,outdoors
 INIT_MAP: mines, '.' , 'P' , false , true , lit , false
 GEOMETRY:center,center
 MAP

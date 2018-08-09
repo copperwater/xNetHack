@@ -1663,6 +1663,11 @@ coord *tm;
                 if (rn2(7))
                     kind = NO_TRAP;
                 break;
+            case RUST_TRAP:
+            case ROCKTRAP:
+                /* certain traps that rely on a ceiling to make sense */
+                if (!ceiling_exists())
+                    kind = NO_TRAP;
             }
         } while (kind == NO_TRAP);
     }
