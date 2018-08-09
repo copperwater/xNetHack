@@ -317,18 +317,9 @@ STAIR:$rightstair,down
 LOOP [8 + 2d4] {
   OBJECT:('`',"boulder"),random
 }
-## DEFUNCT: pending level compiler fixes that let you use variables in TRAP
-## For now, just put a bunch of pits
-# $traps = { "land mine", "bear", "rolling boulder", "spiked pit" }
-# SHUFFLE: $traps
+# Some random traps
 LOOP [5 + 1d3] {
-  # $trapidx = 1d4
-  IF [65%] {
-    TRAP: "spiked pit", random
-  }
-  ELSE {
-    TRAP: "pit", random
-  }
+  TRAP:random,random
 } 
 
 # Monsters
