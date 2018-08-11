@@ -2560,7 +2560,7 @@ ter_selection_x	: coord_or_var
 		  {
 		      add_opvars(splev, "io", VA_PASS2($9, SPO_SEL_ELLIPSE));
 		  }
-		| gradient_ID '(' GRADIENT_TYPE ',' '(' math_expr_var '-' math_expr_var opt_limited ')' ',' coord_or_var opt_coord_or_var ')'
+		| gradient_ID '(' GRADIENT_TYPE ',' '(' math_expr_var ',' math_expr_var opt_limited ')' ',' coord_or_var opt_coord_or_var ')'
 		  {
 		      add_opvars(splev, "iio",
 				 VA_PASS3($9, $3, SPO_SEL_GRADIENT));
