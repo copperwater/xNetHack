@@ -2631,6 +2631,9 @@ int x1, y1, x2, y2;
         lo_yy = (y > 0) ? y - 1 : 0;
         hi_yy = (y < y2) ? y + 1 : y2;
         for (x = x1; x <= x2; x++) {
+            if (!isok(x, y))
+                /* not on the map anyway, can't be wallified */
+                continue;
             if (levl[x][y].typ != STONE)
                 continue;
             lo_xx = (x > 0) ? x - 1 : 0;
@@ -3991,14 +3994,16 @@ boolean diagonals;
     static const char nhFunc[] = "selection_floodfill";
     struct opvar *tmp = selection_opvar((char *) 0);
 #define SEL_FLOOD_STACK (COLNO * ROWNO)
-#define SEL_FLOOD(nx, ny)                     \
-    do {                                      \
-        if (idx < SEL_FLOOD_STACK) {          \
-            dx[idx] = (nx);                   \
-            dy[idx] = (ny);                   \
-            idx++;                            \
-        } else                                \
-            panic(floodfill_stack_overrun);   \
+#define SEL_FLOOD(nx, ny)                       \
+    do {                                        \
+        if (idx < SEL_FLOOD_STACK) {            \
+            dx[idx] = (nx);                     \
+            dy[idx] = (ny);                     \
+            idx++;                              \
+            selection_setpoint(nx, ny, ov, 1);  \
+            selection_setpoint(nx, ny, tmp, 1); \
+        } else                                  \
+            panic(floodfill_stack_overrun);     \
     } while (0)
 #define SEL_FLOOD_CHKDIR(mx,my,sel)                  \
     if (isok((mx), (my))                             \
@@ -4014,15 +4019,14 @@ boolean diagonals;
         opvar_free(tmp);
         return;
     }
+    if (!isok(x, y)) {
+        return;
+    }
     SEL_FLOOD(x, y);
     do {
         idx--;
         x = dx[idx];
         y = dy[idx];
-        if (isok(x, y)) {
-            selection_setpoint(x, y, ov, 1);
-            selection_setpoint(x, y, tmp, 1);
-        }
         SEL_FLOOD_CHKDIR((x + 1), y, tmp);
         SEL_FLOOD_CHKDIR((x - 1), y, tmp);
         SEL_FLOOD_CHKDIR(x, (y + 1), tmp);
