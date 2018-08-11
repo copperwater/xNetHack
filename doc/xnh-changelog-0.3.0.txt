@@ -33,6 +33,8 @@ Replace the Monk upper filler level(s) with a grassy, river-crossed,
   tree-dotted plain instead of room-and-corridor filler.
 Replace the Ranger home level with Khor's design for that level, with a couple
   small changes.
+Replace the Barbarian upper filler level (empty plain) with a plain that
+  contains randomly generated mesas of rock.
 
 It contains the following non-gameplay interface changes:
 
@@ -56,3 +58,5 @@ Replace has_ceiling(lev) with ceiling_exists() which is implied to mean on the
 Add a level flag "outdoors", which basically means there is no ceiling.
   Relevant in Quests, and has some particular effects such as scrolls of earth
   not working and rock and rust traps not randomly generating.
+Slightly modify syntax of the gradient selection operator in the level
+  compiler.
