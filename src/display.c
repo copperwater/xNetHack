@@ -1891,9 +1891,6 @@ xchar x, y;
                 idx = (flags.dark_room && iflags.use_color)
                          ? DARKROOMSYM : S_stone;
         }
-        if (engr_at(x, y)) {
-            idx = S_engraving;
-        }
 
         if (idx != S_room)
             bkglyph = cmap_to_glyph(idx);
