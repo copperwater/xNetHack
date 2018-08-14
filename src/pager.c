@@ -698,6 +698,7 @@ struct permonst * pm;
         }
     }
 
+    /* inherent characteristics: "Monster is X." */
     APPENDC(!(gen & G_GENO), "ungenocideable");
     APPENDC(breathless(pm), "breathless");
     if (!breathless(pm))
@@ -721,9 +722,10 @@ struct permonst * pm;
         buf[0] = '\0';
     }
 
+    /* inherent abilities: "Monster can X." */
     APPENDC(hides_under(pm), "hide under objects");
-    if (!hides_under(pm))
-        APPENDC(is_hider(pm), "hide");
+    APPENDC(pm->mlet == S_MIMIC, "mimic objects and terrain");
+    APPENDC(is_hider(pm) && !(pm->mlet == S_MIMIC), "hide on the ceiling");
     APPENDC(is_swimmer(pm), "swim");
     if (!is_floater(pm))
         APPENDC(is_flyer(pm), "fly");
