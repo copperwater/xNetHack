@@ -1950,13 +1950,15 @@ struct mkroom *croom;
         register struct obj *otmp;
         boolean dobell = !rn2(10);
 
+        make_grave(m.x, m.y, dobell ? "Saved by the bell!" : NULL);
+
         /* Possibly fill it with objects */
         if (!rn2(3))
             (void) mkgold(0L, m.x, m.y);
         for (tryct = rn2(5); tryct; tryct--) {
             otmp = mkobj(RANDOM_CLASS, TRUE);
             if (!otmp)
-                return;
+                break;
             curse(otmp);
             otmp->ox = m.x;
             otmp->oy = m.y;
