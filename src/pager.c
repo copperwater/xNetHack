@@ -137,10 +137,16 @@ char *outbuf;
         Strcpy(outbuf, ", hiding");
         if (hides_under(mon->data)) {
             Strcat(outbuf, " under ");
-            /* remembered glyph, not glyph_at() which is 'mon' */
-            if (glyph_is_object(glyph))
-                goto objfrommap;
-            Strcat(outbuf, something);
+            int hidetyp = concealed_spot(x, y);
+            if (hidetyp == 1) { /* hiding with terrain */
+                Strcat(outbuf, explain_terrain(x, y));
+            }
+            else {
+                /* remembered glyph, not glyph_at() which is 'mon' */
+                if (glyph_is_object(glyph))
+                    goto objfrommap;
+                Strcat(outbuf, something);
+            }
         } else if (is_hider(mon->data)) {
             Sprintf(eos(outbuf), " on the %s",
                     (is_flyer(mon->data) || mon->data->mlet == S_PIERCER)

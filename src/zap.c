@@ -1883,9 +1883,13 @@ struct obj *obj, *otmp;
                 (void) boxlock(obj, otmp);
 
             if (obj_shudders(obj)) {
+                /* Do we need to possibly refresh our cover state?
+                 * If we are currently hiding and the shuddering object might
+                 * have been the only thing on our square, call hideunder
+                 * again. */
                 boolean cover =
-                    ((obj == level.objects[u.ux][u.uy]) && u.uundetected
-                     && hides_under(youmonst.data));
+                    (hides_under(youmonst.data) && u.uundetected
+                     && (obj == level.objects[u.ux][u.uy]));
 
                 if (cansee(obj->ox, obj->oy))
                     learn_it = TRUE;

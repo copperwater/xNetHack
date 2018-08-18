@@ -35,6 +35,9 @@ Replace the Ranger home level with Khor's design for that level, with a couple
   small changes.
 Replace the Barbarian upper filler level (empty plain) with a plain that
   contains randomly generated mesas of rock.
+Monsters that can hide under objects can also now hide under grass, sinks,
+  altars, thrones, graves, and ladders without needing an object there. They
+  will also move from concealed spot to concealed spot much faster.
 
 It contains the following non-gameplay interface changes:
 
