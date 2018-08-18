@@ -828,12 +828,14 @@ level_tele()
         if (!(wizard && force_dest))
             get_level(&newlevel, newlev);
     }
-    schedule_goto(&newlevel, FALSE, FALSE, 0, (char *) 0, (char *) 0);
-    /* in case player just read a scroll and is about to be asked to
-       call it something, we can't defer until the end of the turn */
-    if (u.utotype && !context.mon_moving)
-        deferred_goto();
-    You("materialize on a different level!");
+    if (newlevel.dnum != u.uz.dnum || newlevel.dlevel != u.uz.dlevel) {
+        schedule_goto(&newlevel, FALSE, FALSE, 0, (char *) 0, (char *) 0);
+        /* in case player just read a scroll and is about to be asked to
+        call it something, we can't defer until the end of the turn */
+        if (u.utotype && !context.mon_moving)
+            deferred_goto();
+        You("materialize on a different level!");
+    }
 }
 
 void
