@@ -174,7 +174,10 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
             return FALSE;
         }
         if (!((Blind ? Blind_telepat : Unblind_telepat) || Detect_monsters)) {
-
+            if (Hallucination) {
+                pline("A wild %s appeared!", l_monnam(mtmp));
+                return TRUE;
+            }
             if (Blind || (is_pool(mtmp->mx, mtmp->my) && !Underwater)) {
                 pline("Wait!  There's a hidden monster there!");
             }
