@@ -16,14 +16,21 @@ made in previous xNetHack versions, xNetHack 0.3.0 contains the following
 gameplay changes:
 
 Zruties are removed.
+A fair amount of monster letter rearrangement:
+  All types of sea monsters are moved from ; to z. No colors are changed.
+  The U class is rebranded as "aberrations" (and umber hulks remain in it).
+  Quantum mechanics are moved from Q to U, and remain cyan.
+  Mind flayers and master mind flayers are moved from h to U. They are
+    recolored from their cyan/bright cyan to magenta/bright magenta.
+  All types of elves are moved from @ to Q (for Quendi). No colors are changed.
 Mind flayers and master mind flayers can no longer generate in the Mines on
   account of no longer being h class.
 Elves (except the ungenocidable "elf" monster) can now be genocided as a class
   by non-elf players without killing themselves, on account of no longer being
   @ class.
 Two new variants of the Oracle level are added.
-Add grass terrain, which renders as a green , (comma). Currently doesn't do
-  anything special.
+Add grass terrain, which renders as a green , (comma). Special effects:
+  * Concealing monsters can hide in and move through grass while concealed.
 Replace the Monastery of Chan-Sune (the Monk home level) entirely, as well as
   its flavor text, so that both aren't duplicates of the Priest quest.
 Replace the Monastery of the Earth-Lord (the Monk locate level) entirely, as
@@ -41,13 +48,6 @@ Monsters that can hide under objects can also now hide under grass, sinks,
 
 It contains the following non-gameplay interface changes:
 
-A fair amount of monster letter rearrangement:
-  All types of sea monsters are moved from ; to z. No colors are changed.
-  The U class is rebranded as "aberrations" (and umber hulks remain in it).
-  Quantum mechanics are moved from Q to U, and remain cyan.
-  Mind flayers and master mind flayers are moved from h to U. They are
-    recolored from their cyan/bright cyan to magenta/bright magenta.
-  All types of elves are moved from @ to Q (for Quendi). No colors are changed.
 If you are not a beginner and would break weaponless conduct for the first
   time, you are prompted to confirm if you really want to.
 
