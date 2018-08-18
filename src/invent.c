@@ -1241,7 +1241,7 @@ boolean allow_floor;
     /* things on the floor for old-style prompts */
     if (feature && oldstyle) {
         struct trap *trap = t_at(u.ux, u.uy);
-        int sym = back_to_defsym(u.ux, u.uy);
+        int sym = back_to_defsym(u.ux, u.uy, FALSE);
         char fbuf[BUFSZ];
 
         if (trap)

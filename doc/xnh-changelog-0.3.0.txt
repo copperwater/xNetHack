@@ -60,3 +60,5 @@ Add a level flag "outdoors", which basically means there is no ceiling.
   not working and rock and rust traps not randomly generating.
 Slightly modify syntax of the gradient selection operator in the level
   compiler.
+Refactor back_to_defsym to have a third argument, which basically controls
+  whether it acts like vanilla or considers xNetHack's visible engravings.

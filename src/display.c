@@ -1618,12 +1618,13 @@ int
 back_to_glyph(x, y)
 xchar x, y;
 {
-    return cmap_to_glyph(back_to_defsym(x, y));
+    return cmap_to_glyph(back_to_defsym(x, y, TRUE));
 }
 
 int
-back_to_defsym(x, y)
+back_to_defsym(x, y, show_engravings)
 xchar x, y;
+boolean show_engravings;
 {
     int idx;
     struct rm *ptr = &(levl[x][y]);
@@ -1761,7 +1762,7 @@ xchar x, y;
         engr_override = TRUE;
         break;
     }
-    if (engr_override && engr_at(x, y)) {
+    if (show_engravings && engr_override && engr_at(x, y)) {
         idx = S_engraving;
     }
 
