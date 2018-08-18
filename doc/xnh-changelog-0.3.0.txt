@@ -31,6 +31,7 @@ Elves (except the ungenocidable "elf" monster) can now be genocided as a class
 Two new variants of the Oracle level are added.
 Add grass terrain, which renders as a green , (comma). Special effects:
   * Concealing monsters can hide in and move through grass while concealed.
+  * Fire rays and explosions scorch it, turning it into normal floor.
 Replace the Monastery of Chan-Sune (the Monk home level) entirely, as well as
   its flavor text, so that both aren't duplicates of the Priest quest.
 Replace the Monastery of the Earth-Lord (the Monk locate level) entirely, as
