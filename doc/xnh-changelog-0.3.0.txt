@@ -52,6 +52,9 @@ It contains the following non-gameplay interface changes:
 If you are not a beginner and would break weaponless conduct for the first
   time, you are prompted to confirm if you really want to.
 YAFM if hallucinating and you stumble onto an unseen monster
+The livelogging patch is extended to include killing your own pet. This is a
+  livelog flag of 0x0100, so anyone using it already should check their sysconf
+  to make sure that LIVELOGFLAGS isn't set to 0xFF.
 
 It contains the following non-gameplay architectural changes:
 TREEs can now be specified in des files, which obviously produces a tree.
