@@ -577,7 +577,8 @@ int what; /* should be a long */
 
     if (flags.menu_style != MENU_TRADITIONAL || iflags.menu_requested) {
         /* use menus exclusively */
-        traverse_how |= AUTOSELECT_SINGLE | INVORDER_SORT;
+        traverse_how |= AUTOSELECT_SINGLE
+                        | (flags.sortpack ? INVORDER_SORT : 0);
         if (count) { /* looking for N of something */
             char qbuf[QBUFSZ];
 
@@ -852,8 +853,10 @@ int FDECL((*allow), (OBJ_P));     /* allow function */
     char *pack;
     anything any;
     boolean printed_type_name, first,
-        sorted = (qflags & INVORDER_SORT) != 0,
-        engulfer = (qflags & INCLUDE_HERO) != 0;
+            sorted = (qflags & INVORDER_SORT) != 0,
+            engulfer = (qflags & INCLUDE_HERO) != 0;
+    unsigned sortflags;
+    Loot *sortedolist, *srtoli;
     boolean feature;
     feature = ((qflags & INCLUDE_FEATURE) && (*allow)(&zeroobj) >= allowmin);
 
@@ -884,16 +887,14 @@ int FDECL((*allow), (OBJ_P));     /* allow function */
         return 1;
     }
 
-    if (sorted || flags.sortloot != 'n') {
-        sortloot(&olist,
-                 (((flags.sortloot == 'f'
-                    || (flags.sortloot == 'l' && !(qflags & USE_INVLET)))
-                   ? SORTLOOT_LOOT
-                   : (qflags & USE_INVLET) ? SORTLOOT_INVLET : 0)
-                  | (flags.sortpack ? SORTLOOT_PACK : 0)),
-                 (qflags & BY_NEXTHERE) ? TRUE : FALSE);
-        *olist_p = olist;
-    }
+    sortflags = (((flags.sortloot == 'f'
+                   || (flags.sortloot == 'l' && !(qflags & USE_INVLET)))
+                  ? SORTLOOT_LOOT
+                  : ((qflags & USE_INVLET) ? SORTLOOT_INVLET : 0))
+                 | (flags.sortpack ? SORTLOOT_PACK : 0)
+                 | ((qflags & FEEL_COCKATRICE) ? SORTLOOT_PETRIFY : 0));
+    sortedolist = sortloot(&olist, sortflags,
+                           (qflags & BY_NEXTHERE) ? TRUE : FALSE, allow);
 
     win = create_nhwindow(NHW_MENU);
     start_menu(win);
@@ -901,14 +902,14 @@ int FDECL((*allow), (OBJ_P));     /* allow function */
     /*
      * Run through the list and add the objects to the menu.  If
      * INVORDER_SORT is set, we'll run through the list once for
-     * each type so we can group them.  The allow function will only
-     * be called once per object in the list.
+     * each type so we can group them.  The allow function was
+     * called by sortloot() and will be called once per item here.
      */
     pack = flags.inv_order;
     first = TRUE;
     do {
         printed_type_name = FALSE;
-        for (curr = olist; curr; curr = FOLLOW(curr, qflags)) {
+        for (srtoli = sortedolist; ((curr = srtoli->obj) != 0); ++srtoli) {
             if (sorted && curr->oclass != *pack)
                 continue;
             if ((qflags & FEEL_COCKATRICE) && curr->otyp == CORPSE
@@ -940,6 +941,7 @@ int FDECL((*allow), (OBJ_P));     /* allow function */
         }
         pack++;
     } while (sorted && *pack);
+    unsortloot(&sortedolist);
 
     if (engulfer || feature) {
         char buf[BUFSZ];
