@@ -3632,7 +3632,7 @@ boolean force;
             */
         return ER_NOTHING;
     } else if (obj->oclass == SCROLL_CLASS) {
-        if (obj->otyp == SCR_BLANK_PAPER
+        if (obj->otyp == SCR_BLANK_PAPER || obj->otyp == SCR_WATER
 #ifdef MAIL
             || obj->otyp == SCR_MAIL
 #endif
