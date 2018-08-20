@@ -27,3 +27,5 @@ It contains the following non-gameplay interface changes:
 
 
 It contains the following non-gameplay architectural changes:
+
+Remove all (now dead) code relating to amnesia.

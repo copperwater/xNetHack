@@ -1135,7 +1135,7 @@ Open a door. Default key is 'o'.
 Show and change option settings. Default key is 'O'.
 .lp #overview
 Display information you've discovered about the dungeon.  Any visited
-level (unless forgotten due to amnesia) with an annotation is included,
+level with an annotation is included,
 and many things (altars, thrones, fountains, and so on; extra stairs
 leading to another dungeon branch) trigger an automatic annotation.
 If dungeon overview is chosen during end-of-game disclosure, every visited

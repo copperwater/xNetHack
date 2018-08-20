@@ -623,7 +623,6 @@ E char *FDECL(get_annotation, (d_level *));
 E int NDECL(donamelevel);
 E int NDECL(dooverview);
 E void FDECL(show_overview, (int, int));
-E void FDECL(forget_mapseen, (int));
 E void FDECL(rm_mapseen, (int));
 E void FDECL(init_mapseen, (d_level *));
 E void NDECL(recalc_mapseen);
@@ -2053,10 +2052,6 @@ E char *FDECL(tshirt_text, (struct obj *, char *));
 E int NDECL(doread);
 E int FDECL(is_chargeable, (struct obj *));
 E void FDECL(recharge, (struct obj *, int));
-E void FDECL(forget_objects, (int));
-E void FDECL(forget_levels, (int));
-E void NDECL(forget_traps);
-E void FDECL(forget_map, (int));
 E boolean FDECL(valid_cloud_pos, (int, int));
 E int FDECL(seffects, (struct obj *));
 E void FDECL(drop_boulder_on_player,
@@ -2354,7 +2349,6 @@ E int NDECL(docast);
 E const char *FDECL(spelltypemnemonic, (int));
 E int FDECL(spell_skilltype, (int));
 E int FDECL(spelleffects, (int, BOOLEAN_P));
-E void NDECL(losespells);
 E int NDECL(dovspell);
 E void FDECL(initialspell, (struct obj *));
 
