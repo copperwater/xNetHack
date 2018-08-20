@@ -26,6 +26,8 @@ Monsters created along with rooms will never generate on top of stairs.
 If the player enters a level on a spot where there is a monster, always
   displace the monster away. (Previously this only happened 50% of the time,
   and the other 50% the player was moved.)
+Monster groups, small and large, now have their sizes fuzzed a bit.
+Most create monster sources will no longer create groups of monsters.
 
 It contains the following non-gameplay interface changes:
 
@@ -33,3 +35,4 @@ It contains the following non-gameplay interface changes:
 It contains the following non-gameplay architectural changes:
 
 Remove all (now dead) code relating to amnesia.
+Add a makemon flag for suppressing the creation of monster groups.

@@ -27,8 +27,8 @@ STATIC_DCL boolean FDECL(makemon_rnd_goodpos, (struct monst *,
 
 extern const int monstr[];
 
-#define m_initsgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 3)
-#define m_initlgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 10)
+#define m_initsgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 2 + rn2(3))
+#define m_initlgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 8 + rn2(4))
 
 boolean
 is_home_elemental(ptr)
@@ -1360,7 +1360,7 @@ int mmflags;
                               : eminp->renegade;
     }
     set_malign(mtmp); /* having finished peaceful changes */
-    if (anymon) {
+    if (anymon && !(mmflags & MM_NOGROUP)) {
         if ((ptr->geno & G_SGROUP) && rn2(2)) {
             m_initsgrp(mtmp, mtmp->mx, mtmp->my);
         } else if (ptr->geno & G_LGROUP) {
@@ -1453,7 +1453,7 @@ struct monst* creator;
         if (!mptr && in_water && enexto(&c, x, y, &mons[PM_GIANT_EEL]))
             x = c.x, y = c.y;
 
-        mon = makemon(mptr, x, y, MM_ADJACENTOK);
+        mon = makemon(mptr, x, y, MM_ADJACENTOK | MM_NOGROUP);
     }
     newmons_ct = monster_census(TRUE) - old_census;
     if (newmons_ct > 0) {
@@ -1468,6 +1468,7 @@ struct monst* creator;
             char buf[BUFSZ];
             buf[0] = '\0';
             if (mptr) {
+                /* TODO: we lack a monster pluralization function */
                 Sprintf(buf, "%ss", mptr->mname);
                 upstart(buf);
             }
