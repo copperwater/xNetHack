@@ -23,6 +23,9 @@ Also from UnNetHack, random graves may have a scroll of water placed on them,
   and the epitaph is then "Apres moi, le deluge."
 Remove mind flayers' amnesia. They still drain Int.
 Monsters created along with rooms will never generate on top of stairs.
+If the player enters a level on a spot where there is a monster, always
+  displace the monster away. (Previously this only happened 50% of the time,
+  and the other 50% the player was moved.)
 
 It contains the following non-gameplay interface changes:
 
