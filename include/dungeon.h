@@ -154,7 +154,9 @@ typedef struct branch {
 struct linfo {
     unsigned char flags;
 #define VISITED 0x01      /* hero has visited this level */
+#if 0 /* amnesia was removed from the game */
 #define FORGOTTEN 0x02    /* hero will forget this level when reached */
+#endif
 #define LFILE_EXISTS 0x04 /* a level file exists for this level */
         /* Note:  VISITED and LFILE_EXISTS are currently almost always
          * set at the same time.  However they _mean_ different things.
@@ -221,7 +223,6 @@ typedef struct mapseen {
     } feat;
     struct mapseen_flags {
         Bitfield(unreachable, 1); /* can't get back to this level */
-        Bitfield(forgot, 1);      /* player has forgotten about this level */
         Bitfield(knownbones, 1);  /* player aware of bones */
         Bitfield(oracle, 1);
         Bitfield(sokosolved, 1);

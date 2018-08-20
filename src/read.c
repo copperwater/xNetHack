@@ -42,14 +42,9 @@ STATIC_DCL char *FDECL(apron_text, (struct obj *, char *buf));
 STATIC_DCL void FDECL(stripspe, (struct obj *));
 STATIC_DCL void FDECL(p_glow1, (struct obj *));
 STATIC_DCL void FDECL(p_glow2, (struct obj *, const char *));
-STATIC_DCL void FDECL(forget_single_object, (int));
-#if 0 /* not used */
-STATIC_DCL void FDECL(forget_objclass, (int));
-#endif
 STATIC_DCL void FDECL(randomize, (int *, int));
 STATIC_PTR void FDECL(flood_space, (int, int, genericptr_t));
 STATIC_PTR void FDECL(unflood_space, (int, int, genericptr_t));
-STATIC_DCL void FDECL(forget, (int));
 STATIC_DCL int FDECL(maybe_tame, (struct monst *, struct obj *));
 STATIC_DCL boolean FDECL(can_center_cloud, (int, int));
 STATIC_DCL void FDECL(display_stinking_cloud_positions, (int));
@@ -904,36 +899,6 @@ int curse_bless;
     }
 }
 
-/* Forget known information about this object type. */
-STATIC_OVL void
-forget_single_object(obj_id)
-int obj_id;
-{
-    objects[obj_id].oc_name_known = 0;
-    objects[obj_id].oc_pre_discovered = 0; /* a discovery when relearned */
-    if (objects[obj_id].oc_uname) {
-        free((genericptr_t) objects[obj_id].oc_uname);
-        objects[obj_id].oc_uname = 0;
-    }
-    undiscover_object(obj_id); /* after clearing oc_name_known */
-
-    /* clear & free object names from matching inventory items too? */
-}
-
-#if 0 /* here if anyone wants it.... */
-/* Forget everything known about a particular object class. */
-STATIC_OVL void
-forget_objclass(oclass)
-int oclass;
-{
-    int i;
-
-    for (i = bases[oclass];
-         i < NUM_OBJECTS && objects[i].oc_class == oclass; i++)
-        forget_single_object(i);
-}
-#endif
-
 /* randomize the given list of numbers  0 <= i < count */
 STATIC_OVL void
 randomize(indices, count)
@@ -949,171 +914,6 @@ int count;
         indices[i] = indices[iswap];
         indices[iswap] = temp;
     }
-}
-
-/* Forget % of known objects. */
-void
-forget_objects(percent)
-int percent;
-{
-    int i, count;
-    int indices[NUM_OBJECTS];
-
-    if (percent == 0)
-        return;
-    if (percent <= 0 || percent > 100) {
-        impossible("forget_objects: bad percent %d", percent);
-        return;
-    }
-
-    indices[0] = 0; /* lint suppression */
-    for (count = 0, i = 1; i < NUM_OBJECTS; i++)
-        if (OBJ_DESCR(objects[i])
-            && (objects[i].oc_name_known || objects[i].oc_uname))
-            indices[count++] = i;
-
-    if (count > 0) {
-        randomize(indices, count);
-
-        /* forget first % of randomized indices */
-        count = ((count * percent) + rn2(100)) / 100;
-        for (i = 0; i < count; i++)
-            forget_single_object(indices[i]);
-    }
-}
-
-/* Forget some or all of map (depends on parameters). */
-void
-forget_map(howmuch)
-int howmuch;
-{
-    register int zx, zy;
-
-    if (Sokoban)
-        return;
-
-    known = TRUE;
-    for (zx = 0; zx < COLNO; zx++)
-        for (zy = 0; zy < ROWNO; zy++)
-            if (howmuch & ALL_MAP || rn2(7)) {
-                /* Zonk all memory of this location. */
-                levl[zx][zy].seenv = 0;
-                levl[zx][zy].waslit = 0;
-                levl[zx][zy].glyph = cmap_to_glyph(S_stone);
-                lastseentyp[zx][zy] = STONE;
-            }
-    /* forget overview data for this level */
-    forget_mapseen(ledger_no(&u.uz));
-}
-
-/* Forget all traps on the level. */
-void
-forget_traps()
-{
-    register struct trap *trap;
-
-    /* forget all traps (except the one the hero is in :-) */
-    for (trap = ftrap; trap; trap = trap->ntrap)
-        if ((trap->tx != u.ux || trap->ty != u.uy) && (trap->ttyp != HOLE))
-            trap->tseen = 0;
-}
-
-/*
- * Forget given % of all levels that the hero has visited and not forgotten,
- * except this one.
- */
-void
-forget_levels(percent)
-int percent;
-{
-    int i, count;
-    xchar maxl, this_lev;
-    int indices[MAXLINFO];
-
-    if (percent == 0)
-        return;
-
-    if (percent <= 0 || percent > 100) {
-        impossible("forget_levels: bad percent %d", percent);
-        return;
-    }
-
-    this_lev = ledger_no(&u.uz);
-    maxl = maxledgerno();
-
-    /* count & save indices of non-forgotten visited levels */
-    /* Sokoban levels are pre-mapped for the player, and should stay
-     * so, or they become nearly impossible to solve.  But try to
-     * shift the forgetting elsewhere by fiddling with percent
-     * instead of forgetting fewer levels.
-     */
-    indices[0] = 0; /* lint suppression */
-    for (count = 0, i = 0; i <= maxl; i++)
-        if ((level_info[i].flags & VISITED)
-            && !(level_info[i].flags & FORGOTTEN) && i != this_lev) {
-            if (ledger_to_dnum(i) == sokoban_dnum)
-                percent += 2;
-            else
-                indices[count++] = i;
-        }
-
-    if (percent > 100)
-        percent = 100;
-
-    if (count > 0) {
-        randomize(indices, count);
-
-        /* forget first % of randomized indices */
-        count = ((count * percent) + 50) / 100;
-        for (i = 0; i < count; i++) {
-            level_info[indices[i]].flags |= FORGOTTEN;
-            forget_mapseen(indices[i]);
-        }
-    }
-}
-
-/*
- * Forget some things (e.g. after reading a scroll of amnesia).  When called,
- * the following are always forgotten:
- *      - felt ball & chain
- *      - traps
- *      - part (6 out of 7) of the map
- *
- * Other things are subject to flags:
- *      howmuch & ALL_MAP       = forget whole map
- *      howmuch & ALL_SPELLS    = forget all spells
- */
-STATIC_OVL void
-forget(howmuch)
-int howmuch;
-{
-    if (Punished)
-        u.bc_felt = 0; /* forget felt ball&chain */
-
-    forget_map(howmuch);
-    forget_traps();
-
-    /* 1 in 3 chance of forgetting some levels */
-    if (!rn2(3))
-        forget_levels(rn2(25));
-
-    /* 1 in 3 chance of forgetting some objects */
-    if (!rn2(3))
-        forget_objects(rn2(25));
-
-    if (howmuch & ALL_SPELLS)
-        losespells();
-    /*
-     * Make sure that what was seen is restored correctly.  To do this,
-     * we need to go blind for an instant --- turn off the display,
-     * then restart it.  All this work is needed to correctly handle
-     * walls which are stone on one side and wall on the other.  Turning
-     * off the seen bits above will make the wall revert to stone,  but
-     * there are cases where we don't want this to happen.  The easiest
-     * thing to do is to run it through the vision system again, which
-     * is always correct.
-     */
-    docrt(); /* this correctly will reset vision */
 }
 
 /* monster is hit by scroll of taming's effect */

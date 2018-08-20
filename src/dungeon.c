@@ -1682,9 +1682,7 @@ const char *nam;
              || (u.uz.dnum == medusa_level.dnum
                  && dlev.dnum == valley_level.dnum))
             && (/* either wizard mode or else seen and not forgotten */
-                wizard
-                || (level_info[idx].flags & (FORGOTTEN | VISITED))
-                       == VISITED)) {
+                wizard || (level_info[idx].flags & VISITED))) {
             lev = depth(&dlev);
         }
     } else { /* not a specific level; try branch names */
@@ -1698,9 +1696,8 @@ const char *nam;
             idx &= 0x00FF;
             if (/* either wizard mode, or else _both_ sides of branch seen */
                 wizard
-                || ((level_info[idx].flags & (FORGOTTEN | VISITED)) == VISITED
-                    && (level_info[idxtoo].flags & (FORGOTTEN | VISITED))
-                           == VISITED)) {
+                || ((level_info[idx].flags & VISITED)
+                    && (level_info[idxtoo].flags & VISITED))) {
                 if (ledger_to_dnum(idxtoo) == u.uz.dnum)
                     idx = idxtoo;
                 dlev.dnum = ledger_to_dnum(idx);
@@ -2117,35 +2114,6 @@ const char *s;
 
 
 void
-forget_mapseen(ledger_num)
-int ledger_num;
-{
-    mapseen *mptr;
-    struct cemetery *bp;
-
-    for (mptr = mapseenchn; mptr; mptr = mptr->next)
-        if (dungeons[mptr->lev.dnum].ledger_start + mptr->lev.dlevel
-            == ledger_num)
-            break;
-
-    /* if not found, then nothing to forget */
-    if (mptr) {
-        mptr->flags.forgot = 1;
-        mptr->br = (branch *) 0;
-
-        /* custom names are erased, not just forgotten until revisited */
-        if (mptr->custom) {
-            mptr->custom_lth = 0;
-            free((genericptr_t) mptr->custom);
-            mptr->custom = (char *) 0;
-        }
-        (void) memset((genericptr_t) mptr->msrooms, 0, sizeof mptr->msrooms);
-        for (bp = mptr->final_resting_place; bp; bp = bp->next)
-            bp->bonesknown = FALSE;
-    }
-}
-
-void
 rm_mapseen(ledger_num)
 int ledger_num;
 {
@@ -2358,7 +2326,7 @@ mapseen *mptr;
 {
     if (on_level(&u.uz, &mptr->lev))
         return TRUE;
-    if (mptr->flags.unreachable || mptr->flags.forgot)
+    if (mptr->flags.unreachable)
         return FALSE;
     /* level is of interest if it has an auto-generated annotation */
     if (mptr->flags.oracle || mptr->flags.bigroom || mptr->flags.roguelevel
@@ -2431,13 +2399,9 @@ recalc_mapseen()
     /* mptr->flags.bigroom retains previous value when hero can't see */
     if (!Blind)
         mptr->flags.bigroom = Is_bigroom(&u.uz);
-    else if (mptr->flags.forgot)
-        mptr->flags.bigroom = 0;
     mptr->flags.roguelevel = Is_rogue_level(&u.uz);
     mptr->flags.oracle = 0; /* recalculated during room traversal below */
     mptr->flags.castletune = 0;
-    /* flags.castle, flags.valley, flags.msanctum retain previous value */
-    mptr->flags.forgot = 0;
     /* flags.quest_summons disabled once quest finished */
     mptr->flags.quest_summons = (at_dgn_entrance("The Quest")
                                  && u.uevent.qcalled
@@ -2926,9 +2890,6 @@ boolean printdun;
                   : (final == 1 && how == ESCAPED) ? "left from"
                     : "were");
     putstr(win, !final ? ATR_BOLD : 0, buf);
-
-    if (mptr->flags.forgot)
-        return;
 
     if (INTEREST(mptr->feat)) {
         buf[0] = 0;
