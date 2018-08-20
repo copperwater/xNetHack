@@ -1,0 +1,26 @@
+xNetHack 0.3.0 Changelog
+
+This is a minor update version of xNetHack. It is a fork off of
+the vanilla NetHack 3.6.1 release, and is also based directly on
+xNetHack 0.3.0. It will continue to contain all of the latest commits
+pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
+
+The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
+attempts to describe these changes in a way that's better formatted and more
+friendly to players. However, it might be out of date; in case of conflicting
+information, this changelog and others in this folder are more up-to-date than
+the wiki page, and the commit messages are more up-to-date than this changelog.
+
+On top of any changes made by the NetHack devteam on 3.6.1, and any changes
+made in previous xNetHack versions, xNetHack 0.3.1 contains the following
+gameplay changes:
+
+Remove the scroll of amnesia. In its place, create the scroll of water, which
+  behaves mostly like UnNetHack's scroll of flood, except it will never create
+  a pool underneath the player. It costs 200 and takes 4-7 ink to write. It is
+  unblankable except by acid.
+
+It contains the following non-gameplay interface changes:
+
+
+It contains the following non-gameplay architectural changes:

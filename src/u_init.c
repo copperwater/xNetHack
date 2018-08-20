@@ -1007,7 +1007,7 @@ register struct trobj *trop;
                    /* 'useless' items */
                    || otyp == POT_HALLUCINATION
                    || otyp == POT_ACID
-                   || otyp == SCR_AMNESIA
+                   || otyp == SCR_WATER
                    || otyp == SCR_FIRE
                    || otyp == SCR_BLANK_PAPER
                    || otyp == SPE_BLANK_PAPER

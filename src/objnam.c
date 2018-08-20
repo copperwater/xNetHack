@@ -2720,6 +2720,7 @@ struct alt_spellings {
     { "touch stone", TOUCHSTONE },
     { "thief stone", THIEFSTONE },
     { "flintstone", FLINT },
+    { "scroll of flood", SCR_WATER }, /* unnethack name for it */
     { (const char *) 0, 0 },
 };
 

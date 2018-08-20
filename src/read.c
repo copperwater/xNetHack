@@ -47,6 +47,8 @@ STATIC_DCL void FDECL(forget_single_object, (int));
 STATIC_DCL void FDECL(forget_objclass, (int));
 #endif
 STATIC_DCL void FDECL(randomize, (int *, int));
+STATIC_PTR void FDECL(flood_space, (int, int, genericptr_t));
+STATIC_PTR void FDECL(unflood_space, (int, int, genericptr_t));
 STATIC_DCL void FDECL(forget, (int));
 STATIC_DCL int FDECL(maybe_tame, (struct monst *, struct obj *));
 STATIC_DCL boolean FDECL(can_center_cloud, (int, int));
@@ -1184,6 +1186,60 @@ int state;
     }
 }
 
+/* Flood a space. This is a callback function. */
+STATIC_PTR void
+flood_space(x, y, poolcnt)
+int x, y;
+genericptr_t poolcnt;
+{
+    struct monst *mtmp;
+    struct trap *ttmp;
+
+    /* Never create on the player's space. */
+    if (x == u.ux && y == u.uy)
+        return;
+
+    /* Create them only on regular terrain, never underneath boulders or next
+     * to doors, weighted towards spaces near the player. */
+    if (nexttodoor(x, y) || rn2(1 + distmin(u.ux, u.uy, x, y))
+        || sobj_at(BOULDER, x, y)
+        || (levl[x][y].typ != ROOM && levl[x][y].typ != GRASS))
+        return;
+
+    /* Never create if there's an immovable trap here. */
+    ttmp = t_at(x, y);
+    if (ttmp && !delfloortrap(ttmp))
+        return;
+
+    /* create pool */
+    levl[x][y].typ = POOL;
+    del_engr_at(x, y);
+    water_damage_chain(level.objects[x][y], TRUE, 0, TRUE);
+    mtmp = m_at(x, y);
+    if (mtmp)
+        minliquid(mtmp);
+    newsym(x, y);
+    (* (int*)poolcnt)++;
+}
+
+/* Unflood (dry up) a space. This is a callback function. */
+STATIC_PTR void
+unflood_space(x, y, drycnt)
+int x, y;
+genericptr_t drycnt;
+{
+    if ((levl[x][y].typ != POOL) &&
+        (levl[x][y].typ != MOAT) &&
+        (levl[x][y].typ != WATER) &&
+        (levl[x][y].typ != FOUNTAIN))
+            return;
+
+    /* Get rid of a pool at x, y */
+    levl[x][y].typ = ROOM;
+    newsym(x, y);
+    (* (int*)drycnt)++;
+}
+
 /* scroll effects; return 1 if we use up the scroll and possibly make it
    become discovered, 0 if caller should take care of those side-effects */
 int
@@ -1788,21 +1844,6 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             pline("Unfortunately, you can't grasp the details.");
         }
         break;
-    case SCR_AMNESIA:
-        known = TRUE;
-        forget((!sblessed ? ALL_SPELLS : 0)
-               | (!confused || scursed ? ALL_MAP : 0));
-        if (Hallucination) /* Ommmmmm! */
-            Your("mind releases itself from mundane concerns.");
-        else if (!strncmpi(plname, "Maud", 4))
-            pline(
-          "As your mind turns inward on itself, you forget everything else.");
-        else if (rn2(2))
-            pline("Who was that Maud person anyway?");
-        else
-            pline("Thinking of Maud you forget everything else.");
-        exercise(A_WIS, FALSE);
-        break;
     case SCR_FIRE: {
         coord cc;
         int dam;
@@ -1922,6 +1963,32 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         }
         (void) create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj),
                                 8 + 4 * bcsign(sobj));
+        break;
+    }
+    case SCR_WATER: {
+        int range = 4 + (2 * bcsign(sobj));
+        if (confused) {
+            int dried_up = 0;
+            do_clear_area(u.ux, u.uy, range, unflood_space, &dried_up);
+            if (dried_up) {
+                known = TRUE;
+                if (Hallucination)
+                    pline("Oh no! Dehydration!");
+                else
+                    pline("You are suddenly very dry!");
+            }
+        }
+        else {
+            int madepools = 0;
+            do_clear_area(u.ux, u.uy, range, flood_space, &madepools);
+            if (madepools) {
+                known = TRUE;
+                if (Hallucination)
+                    pline("A totally gnarly wave comes in!");
+                else
+                    pline("A flood surges through the area!");
+            }
+        }
         break;
     }
     default:
