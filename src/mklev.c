@@ -1875,8 +1875,10 @@ struct mkroom* croom;
     int x,y;
     int num_monst = 1;
     struct monst *tmonst; /* always put a web with a spider */
-    x = somex(croom);
-    y = somey(croom);
+    do {
+        x = somex(croom);
+        y = somey(croom);
+    } while (levl[x][y].typ == STAIRS || levl[x][y].typ == LADDER);
     tmonst = makemon((struct permonst *) 0, x, y, NO_MM_FLAGS);
     if (tmonst && tmonst->data == &mons[PM_GIANT_SPIDER]
         && !occupied(x, y)) {
