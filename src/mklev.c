@@ -1948,10 +1948,19 @@ struct mkroom *croom;
          * 0-4 random cursed objects may be buried under the grave.
          */
         register struct obj *otmp;
-        boolean dobell = !rn2(10);
+        const char * inscription = NULL;
+        if (!rn2(10)) {
+            /* Leave a bell, in case we accidentally buried someone alive */
+            inscription = "Saved by the bell!";
+            mksobj_at(BELL, m.x, m.y, TRUE, FALSE);
+        }
+        else if (!rn2(11)) {
+            inscription = "Apres moi, le deluge.";
+            mksobj_at(SCR_WATER, m.x, m.y, TRUE, FALSE);
+        }
 
         /* Put a grave at <m.x,m.y> */
-        make_grave(m.x, m.y, dobell ? "Saved by the bell!" : (char *) 0);
+        make_grave(m.x, m.y, inscription);
 
         /* Possibly fill it with objects */
         if (!rn2(3)) {
@@ -1977,10 +1986,6 @@ struct mkroom *croom;
             otmp->oy = m.y;
             add_to_buried(otmp);
         }
-
-        /* Leave a bell, in case we accidentally buried someone alive */
-        if (dobell)
-            (void) mksobj_at(BELL, m.x, m.y, TRUE, FALSE);
     }
     else if (!typ) {
         /* engraving */
