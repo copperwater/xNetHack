@@ -22,6 +22,7 @@ Remove the scroll of amnesia. In its place, create the scroll of water, which
 Also from UnNetHack, random graves may have a scroll of water placed on them,
   and the epitaph is then "Apres moi, le deluge."
 Remove mind flayers' amnesia. They still drain Int.
+Monsters created along with rooms will never generate on top of stairs.
 
 It contains the following non-gameplay interface changes:
 
