@@ -1,4 +1,4 @@
-xNetHack 0.3.0 Changelog
+xNetHack 0.3.1 Changelog
 
 This is a minor update version of xNetHack. It is a fork off of
 the vanilla NetHack 3.6.1 release, and is also based directly on
@@ -21,6 +21,7 @@ Remove the scroll of amnesia. In its place, create the scroll of water, which
   unblankable except by acid.
 Also from UnNetHack, random graves may have a scroll of water placed on them,
   and the epitaph is then "Apres moi, le deluge."
+Remove mind flayers' amnesia. They still drain Int.
 
 It contains the following non-gameplay interface changes:
 
