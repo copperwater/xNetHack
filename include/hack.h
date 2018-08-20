@@ -261,6 +261,7 @@ typedef struct sortloot_item Loot;
 #define MM_ESHK 0x00400   /* add eshk structure */
 #define MM_EMIN 0x00800   /* add emin structure */
 #define MM_EDOG 0x01000   /* add edog structure */
+#define MM_NOGROUP 0x02000 /* don't generate groups */
 
 /* flags for make_corpse() and mkcorpstat() */
 #define CORPSTAT_NONE 0x00
