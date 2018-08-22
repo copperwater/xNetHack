@@ -43,3 +43,5 @@ It contains the following non-gameplay architectural changes:
 
 Remove all (now dead) code relating to amnesia.
 Add a makemon flag for suppressing the creation of monster groups.
+Enable LIVELOGFLAGS in the sysconf. Livelogging is still disabled by default in
+  config.h.

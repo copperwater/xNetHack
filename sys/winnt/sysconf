@@ -79,10 +79,12 @@ WIZARDS=*
 # 0x10 - Life-saving
 # 0x20 - Break conduct - see also LLC_TURNS below.
 # 0x40 - Artifact obtained (#name Sting, dip for Excalibur)
-# 0x80 - Genocides 
+# 0x80 - Genocides
+# 0x0100 - Killed your own pet
+# 0x0200 - Died, but rose from the grave as a monster, and kept playing
 # 0x8000 - Livelog debug msgs (currently only 'enter new level')
 # Enabled at compile time by defining LIVELOGFILE in config.h
-# LIVELOG=0xFF
+# LIVELOG=0x03FF
 
 # Do not livelog breaking of conducts before this turncount
 # Cuts down on spam
@@ -93,9 +95,9 @@ WIZARDS=*
 # point at must exist.  NetHack will not create them for you.
 #
 # HACKDIR is the default location for everything.
-# Note: On Windows HACKDIR defaults to the location 
+# Note: On Windows HACKDIR defaults to the location
 #       of the NetHack.exe or NetHackw.exe file so
-#       setting HACKDIR below to override that is 
+#       setting HACKDIR below to override that is
 #       not usually necessary or recommended.
 #HACKDIR=c:\games\nethack
 #
