@@ -31,6 +31,8 @@ Most create monster sources will no longer create groups of monsters.
 
 It contains the following non-gameplay interface changes:
 
+When you kill the Wizard of Yendor, the livelog prints where you are in the
+  dungeon.
 
 It contains the following non-gameplay architectural changes:
 
