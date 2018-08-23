@@ -1052,6 +1052,7 @@ rehumanize()
     if (u.uhp < 1) {
         /* can only happen if some bit of code reduces u.uhp
            instead of u.mh while poly'd */
+        impossible("u.uhp was reduced while polyselfed?");
         Your("old form was not healthy enough to survive.");
         Sprintf(killer.name, "reverting to unhealthy %s form", urace.adj);
         killer.format = KILLED_BY;

@@ -483,6 +483,7 @@ int wtcap;
 
     if (Upolyd) {
         if (u.mh < 1) { /* shouldn't happen... */
+            impossible("regenerating monster HP that was negative?");
             rehumanize();
         } else if (youmonst.data->mlet == S_EEL
                    && !is_pool(u.ux, u.uy) && !Is_waterlevel(&u.uz)) {
@@ -873,7 +874,7 @@ enum earlyarg e_arg;
  * are documented is right here. No gameplay is altered.
  *
  * test             - test whether this parser is working
- * ttystatus        - TTY: 
+ * ttystatus        - TTY:
  * immediateflips   - WIN32: turn off display performance
  *                    optimization so that display output
  *                    can be debugged without buffering.
