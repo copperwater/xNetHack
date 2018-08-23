@@ -33,6 +33,9 @@ It contains the following non-gameplay interface changes:
 
 When you kill the Wizard of Yendor, the livelog prints where you are in the
   dungeon.
+If you die while stuck in creature form, your actual death reason is shown, and
+  the "while stuck in creature form" is recorded in the while field of the
+  xlogfile.
 
 It contains the following non-gameplay architectural changes:
 

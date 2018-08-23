@@ -2222,8 +2222,9 @@ struct obj *otmp;
             if(!u.uconduct.literate++)
                 livelog_write_string(LL_CONDUCT, "became literate by reading the fortune inside a cookie");
         break;
-    case LUMP_OF_ROYAL_JELLY:
+    case LUMP_OF_ROYAL_JELLY: {
         /* This stuff seems to be VERY healthy! */
+        const char* rotten_jelly = "rotten lump of royal jelly";
         gainstr(otmp, 1, TRUE);
         if (Upolyd) {
             u.mh += otmp->cursed ? -rnd(20) : rnd(20);
@@ -2232,6 +2233,9 @@ struct obj *otmp;
                     u.mhmax++;
                 u.mh = u.mhmax;
             } else if (u.mh <= 0) {
+                /* in case we die here */
+                Strcpy(killer.name, rotten_jelly);
+                killer.format = KILLED_BY_AN;
                 rehumanize();
             }
         } else {
@@ -2242,13 +2246,14 @@ struct obj *otmp;
                 u.uhp = u.uhpmax;
             } else if (u.uhp <= 0) {
                 killer.format = KILLED_BY_AN;
-                Strcpy(killer.name, "rotten lump of royal jelly");
+                Strcpy(killer.name, rotten_jelly);
                 done(POISONING);
             }
         }
         if (!otmp->cursed)
             heal_legs();
         break;
+    }
     case EGG:
         if (flesh_petrifies(&mons[otmp->corpsenm])) {
             if (!Stone_resistance

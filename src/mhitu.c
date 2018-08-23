@@ -1051,6 +1051,8 @@ register struct attack *mattk;
             if (completelyburns(youmonst.data)) { /* paper or straw golem */
                 You("go up in flames!");
                 /* KMH -- this is okay with unchanging */
+                Strcpy(killer.name, "immolated");
+                killer.format = NO_KILLER_PREFIX;
                 rehumanize();
                 break;
             } else if (Fire_resistance) {
@@ -1398,6 +1400,8 @@ register struct attack *mattk;
         if (u.umonnum == PM_IRON_GOLEM) {
             You("rust!");
             /* KMH -- this is okay with unchanging */
+            Strcpy(killer.name, "rusted away");
+            killer.format = NO_KILLER_PREFIX;
             rehumanize();
             break;
         }
@@ -1416,6 +1420,8 @@ register struct attack *mattk;
         if (u.umonnum == PM_WOOD_GOLEM || u.umonnum == PM_LEATHER_GOLEM) {
             You("rot!");
             /* KMH -- this is okay with unchanging */
+            Strcpy(killer.name, "rotted away");
+            killer.format = NO_KILLER_PREFIX;
             rehumanize();
             break;
         }
@@ -1495,6 +1501,8 @@ register struct attack *mattk;
             if (u.umonnum == PM_CLAY_GOLEM) {
                 pline("Some writing vanishes from your head!");
                 /* KMH -- this is okay with unchanging */
+                Sprintf(killer.name, "was deactivated");
+                killer.format = NO_KILLER_PREFIX;
                 rehumanize();
                 break;
             }
@@ -2356,8 +2364,11 @@ int n;
     context.botl = 1;
     if (Upolyd) {
         u.mh -= n;
-        if (u.mh < 1)
+        if (u.mh < 1) {
+            /* in case rehumanize kills us for good */
+            format_monkiller(mtmp, DIED);
             rehumanize();
+        }
     } else {
         u.uhp -= n;
         if (u.uhp < 1)
@@ -2853,6 +2864,8 @@ struct attack *mattk;
         case AD_PHYS:
             if (oldu_mattk->aatyp == AT_BOOM) {
                 You("explode!");
+                Strcpy(killer.name, "detonated");
+                killer.format = NO_KILLER_PREFIX;
                 /* KMH, balance patch -- this is okay with unchanging */
                 rehumanize();
                 goto assess_dmg;

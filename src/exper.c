@@ -323,8 +323,12 @@ const char *drainer; /* cause of death, if drain should be fatal */
         num = monhp_per_lvl(&youmonst);
         u.mhmax -= num;
         u.mh -= num;
-        if (u.mh <= 0)
+        if (u.mh <= 0) {
+            /* in case we die here */
+            Strcpy(killer.name, "fragility");
+            killer.format = KILLED_BY;
             rehumanize();
+        }
     }
 
     context.botl = 1;

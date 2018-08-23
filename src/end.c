@@ -457,8 +457,12 @@ int how;
     return FALSE;
 }
 
+/* The player has just died to mtmp, but might be in human or monster form, and
+ * if the latter they might rehumanize.
+ * Set killer accordingly; do nothing else.
+ */
 void
-done_in_by(mtmp, how)
+format_monkiller(mtmp, how)
 struct monst *mtmp;
 int how;
 {
@@ -471,8 +475,6 @@ int how;
             mimicker = (mtmp->m_ap_type == M_AP_MONSTER),
             imitator = (mptr != champtr || mimicker);
 
-    You((how == STONING) ? "turn to stone..." : "die...");
-    mark_synch(); /* flush buffered screen output */
     buf[0] = '\0';
     killer.format = KILLED_BY_AN;
     /* "killed by the high priest of Crom" is okay,
@@ -547,6 +549,20 @@ int how;
     }
 
     Strcpy(killer.name, buf);
+}
+
+void
+done_in_by(mtmp, how)
+struct monst *mtmp;
+int how;
+{
+    struct permonst *mptr = mtmp->data;
+
+    You((how == STONING) ? "turn to stone..." : "die...");
+    mark_synch(); /* flush buffered screen output */
+
+    format_monkiller(mtmp, how);
+
     if (mptr->mlet == S_WRAITH)
         u.ugrave_arise = PM_WRAITH;
     else if (mptr->mlet == S_MUMMY && urace.mummynum != NON_PM)

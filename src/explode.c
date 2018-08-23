@@ -528,33 +528,35 @@ int expltype;
         }
 
         if (u.uhp <= 0 || (Upolyd && u.mh <= 0)) {
+            if (olet == MON_EXPLODE) {
+                if (generic) /* explosion was unseen; str=="explosion", */
+                    ;        /* killer.name=="gas spore's explosion"    */
+                else if (str != killer.name && str != hallu_buf)
+                    Strcpy(killer.name, str);
+                killer.format = KILLED_BY_AN;
+            } else if (type >= 0 && olet != SCROLL_CLASS) {
+                killer.format = NO_KILLER_PREFIX;
+                Sprintf(killer.name, "caught %sself in %s own %s", uhim(),
+                        uhis(), str);
+            } else {
+                killer.format = (!strcmpi(str, "tower of flame")
+                                    || !strcmpi(str, "fireball"))
+                                    ? KILLED_BY_AN
+                                    : KILLED_BY;
+                Strcpy(killer.name, str);
+            }
+
             if (Upolyd) {
                 rehumanize();
-            } else {
-                if (olet == MON_EXPLODE) {
-                    if (generic) /* explosion was unseen; str=="explosion", */
-                        ;        /* killer.name=="gas spore's explosion"    */
-                    else if (str != killer.name && str != hallu_buf)
-                        Strcpy(killer.name, str);
-                    killer.format = KILLED_BY_AN;
-                } else if (type >= 0 && olet != SCROLL_CLASS) {
-                    killer.format = NO_KILLER_PREFIX;
-                    Sprintf(killer.name, "caught %sself in %s own %s", uhim(),
-                            uhis(), str);
-                } else {
-                    killer.format = (!strcmpi(str, "tower of flame")
-                                     || !strcmpi(str, "fireball"))
-                                        ? KILLED_BY_AN
-                                        : KILLED_BY;
-                    Strcpy(killer.name, str);
-                }
+            }
+            else {
                 if (iflags.last_msg == PLNMSG_CAUGHT_IN_EXPLOSION
                     || iflags.last_msg == PLNMSG_TOWER_OF_FLAME) /*seffects()*/
                     pline("It is fatal.");
                 else
                     pline_The("%s is fatal.", str);
                 /* Known BUG: BURNING suppresses corpse in bones data,
-                   but done does not handle killer reason correctly */
+                    but done does not handle killer reason correctly */
                 done((adtyp == AD_FIRE) ? BURNING : DIED);
             }
         }

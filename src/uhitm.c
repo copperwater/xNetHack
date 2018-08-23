@@ -2446,6 +2446,8 @@ register struct monst *mon;
         }
         if (dhit == -1) {
             u.mh = -1; /* dead in the current form */
+            Sprintf(killer.name, "blew %sself up", uhim());
+            killer.format = NO_KILLER_PREFIX;
             rehumanize();
         }
         if (sum[i] == 2) {

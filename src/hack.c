@@ -1705,6 +1705,8 @@ domove()
         if (explo) {
             wake_nearby();
             u.mh = -1; /* dead in the current form */
+            Sprintf(killer.name, "blew %sself up", uhim());
+            killer.format = NO_KILLER_PREFIX;
             rehumanize();
         }
         return;
@@ -3008,10 +3010,16 @@ boolean k_format;
         if (u.mhmax < u.mh)
             u.mhmax = u.mh;
         context.botl = 1;
-        if (u.mh < 1)
+        if (u.mh < 1) {
+            /* copy this code here as well, in case we done() in rehumanize */
+            killer.format = k_format;
+            if (killer.name != knam) /* the thing that killed you */
+                Strcpy(killer.name, knam ? knam : "");
             rehumanize();
-        else if (n > 0 && u.mh * 10 < u.mhmax && Unchanging)
+        }
+        else if (n > 0 && u.mh * 10 < u.mhmax && Unchanging) {
             maybe_wail();
+        }
         return;
     }
 
