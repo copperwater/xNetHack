@@ -446,12 +446,14 @@ int how;
         /* messages here aren't great for green slimes...
          * "You have become a green slime. You turn into a green slime!" */
         polymon(mon_nm);
+        livelog_printf(LL_ARISE, "became permanently corrupted into a %s",
+                       mons[mon_nm].mname);
         /* bug: if u.uhp <= 0, monsters won't attack for some reason
          * set to max, not like you're ever going to need it again... */
         u.uhp = u.uhpmax;
         HUnchanging |= FROMOUTSIDE;
         pline("But wait...");
-        pline("For some reason, you still remember yourself and your quest.");
+        pline("Your mind is intact.  You still remember your quest.");
         return TRUE;
     }
     return FALSE;
