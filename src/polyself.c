@@ -1024,15 +1024,19 @@ rehumanize()
     /* You can't revert back while unchanging */
     if (Unchanging) {
         if (u.mh < 1) {
-            /* TODO: make the "while stuck in creature form" a multi_reason */
+            /* in case we happen to get caught without killer set, avoid
+             * "killed by a died" */
+            if (killer.name[0] == '\0') {
+                impossible("failed rehumanize with no killer set?");
+                Strcpy(killer.name, "killed weirdly");
+                killer.format = NO_KILLER_PREFIX;
+            }
             You("die...");
-            killer.format = NO_KILLER_PREFIX;
-            Strcpy(killer.name, "killed while stuck in creature form");
             done(DIED);
-            /* should the player be wearing an amulet of life saving, allow them to
-            * be saved from whatever killed them, but DON'T rehumanize -- if the
-            * player was resurrected with intrinsic unchanging, they shouldn't
-            * be able to regain their original form */
+            /* should the player be wearing an amulet of life saving, allow
+             * them to be saved from whatever killed them, but DON'T rehumanize
+             * -- if the player was resurrected with intrinsic unchanging, they
+             * shouldn't be able to regain their original form */
             return;
         } else if (uamul && uamul->otyp == AMULET_OF_UNCHANGING) {
             Your("%s %s!", simpleonames(uamul), otense(uamul, "fail"));

@@ -344,6 +344,7 @@ int how;
 #define Fprintf (void) fprintf
 #define XLOG_SEP '\t' /* xlogfile field separator. */
     char buf[BUFSZ], tmpbuf[DTHSZ + 1];
+    char stuck = (Upolyd && Unchanging);
 
     Sprintf(buf, "version=%d.%d.%d", tt->ver_major, tt->ver_minor,
             tt->patchlevel);
@@ -363,9 +364,17 @@ int how;
     Fprintf(rfile, "%s%cname=%s%cdeath=%s",
             buf, /* (already includes separator) */
             XLOG_SEP, plname, XLOG_SEP, tmpbuf);
-    if (multi)
-        Fprintf(rfile, "%cwhile=%s", XLOG_SEP,
-                multi_reason ? multi_reason : "helpless");
+    if (multi || stuck) {
+        const char* helpless = (multi ? (multi_reason ? multi_reason
+                                                      : "helpless")
+                                      : "");
+        const char* and = (multi && stuck) ? " and " : "";
+        tmpbuf[0] = '\0';
+        if (stuck)
+            Sprintf(tmpbuf, "stuck in %s form", mons[u.umonnum].mname);
+
+        Fprintf(rfile, "%cwhile=%s%s%s", XLOG_SEP, helpless, and, tmpbuf);
+    }
     Fprintf(rfile, "%cconduct=0x%lx%cturns=%ld%cachieve=0x%lx", XLOG_SEP,
             encodeconduct(), XLOG_SEP, moves, XLOG_SEP, encodeachieve());
     Fprintf(rfile, "%crealtime=%ld%cstarttime=%ld%cendtime=%ld", XLOG_SEP,
