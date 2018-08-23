@@ -36,6 +36,8 @@ When you kill the Wizard of Yendor, the livelog prints where you are in the
 If you die while stuck in creature form, your actual death reason is shown, and
   the "while stuck in creature form" is recorded in the while field of the
   xlogfile.
+The livelogging patch is extended to include arising from the dead or slime as
+  a sentient copy of the monster. This is a livelog flag of 0x0200.
 
 It contains the following non-gameplay architectural changes:
 
