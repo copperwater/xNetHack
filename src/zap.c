@@ -4723,6 +4723,13 @@ register int osym, dmgtyp;
     const char *mult;
     boolean physical_damage;
 
+    /* special effect of extrinsic resistances: they protect all items from
+     * their respective damage types */
+    if ((dmgtyp == AD_FIRE && EFire_resistance) ||
+        (dmgtyp == AD_COLD && ECold_resistance) ||
+        (dmgtyp == AD_ELEC && EShock_resistance))
+        return;
+
     for (obj = invent; obj; obj = obj2) {
         obj2 = obj->nobj;
         physical_damage = FALSE;
