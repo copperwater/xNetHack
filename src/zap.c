@@ -2504,7 +2504,7 @@ boolean ordinary;
 
         if (u.umonnum == PM_STONE_GOLEM) {
             learn_it = TRUE;
-            (void) polymon(PM_FLESH_GOLEM);
+            (void) polymon(PM_FLESH_GOLEM, TRUE);
         }
         if (Stoned) {
             learn_it = TRUE;
