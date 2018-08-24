@@ -445,7 +445,7 @@ int how;
         }
         /* messages here aren't great for green slimes...
          * "You have become a green slime. You turn into a green slime!" */
-        polymon(mon_nm);
+        polymon(mon_nm, TRUE);
         livelog_printf(LL_ARISE, "became permanently corrupted into a %s",
                        mons[mon_nm].mname);
         /* bug: if u.uhp <= 0, monsters won't attack for some reason

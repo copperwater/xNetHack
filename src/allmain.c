@@ -627,7 +627,7 @@ newgame()
                        * any artifacts */
     u_init();
     if (Polyinit_mode) {
-        polymon(flags.polyinit_mnum);
+        polymon(flags.polyinit_mnum, FALSE);
         HUnchanging |= FROMOUTSIDE;
     }
 
