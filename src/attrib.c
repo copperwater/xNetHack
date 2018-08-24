@@ -396,7 +396,7 @@ boolean inc_or_dec;
         return; /* can't exercise these */
 
     /* no physical exercise while polymorphed; the body's temporary */
-    if (Upolyd && i != A_WIS)
+    if (Upolyd && !Polyinit_mode && i != A_WIS)
         return;
 
     if (abs(AEXE(i)) < AVAL) {

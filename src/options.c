@@ -376,6 +376,8 @@ static struct Comp_Opt {
       DISP_IN_GAME },
     { "player_selection", "choose character via dialog or prompts", 12,
       DISP_IN_GAME },
+    { "polyinit", "play the whole game as a monster (non-scoring)", -1,
+      SET_IN_FILE },
     { "race", "your starting race (e.g., Human, Elf)", PL_CSIZ,
       DISP_IN_GAME },
     { "role", "your starting role (e.g., Barbarian, Valkyrie)", PL_CSIZ,
@@ -738,6 +740,9 @@ initoptions_init()
     /* hero's role, race, &c haven't been chosen yet */
     flags.initrole = flags.initrace = flags.initgend = flags.initalign
         = ROLE_NONE;
+
+    /* polyinit hasn't been configured yet */
+    flags. polyinit_mnum = NON_PM;
 
     /* Set the default monster and object class symbols. */
     init_symbols();
@@ -2106,6 +2111,26 @@ boolean tinitial, tfrom_file;
                 return FALSE;
             } else
                 flags.female = flags.initgend;
+        } else
+            return FALSE;
+        return retval;
+    }
+
+    /* polyinit:string */
+    fullname = "polyinit";
+    if (match_optname(opts, fullname, 8, TRUE)) {
+        if (parse_role_opts(negated, fullname, opts, &op)) {
+            int monnum = name_to_mon(op);
+            if (monnum < LOW_PM) {
+                config_error_add("%s: could not find monster '%s'",
+                                 fullname, op);
+                return FALSE;
+            }
+            if (!polyok(&mons[monnum])) {
+                config_error_add("%s: '%s' is non-polymorphable", fullname, op);
+                return FALSE;
+            }
+            flags.polyinit_mnum = monnum;
         } else
             return FALSE;
         return retval;

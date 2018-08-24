@@ -370,7 +370,7 @@ int how;
                                       : "");
         const char* and = (multi && stuck) ? " and " : "";
         tmpbuf[0] = '\0';
-        if (stuck)
+        if (stuck && !Polyinit_mode)
             Sprintf(tmpbuf, "stuck in %s form", mons[u.umonnum].mname);
 
         Fprintf(rfile, "%cwhile=%s%s%s", XLOG_SEP, helpless, and, tmpbuf);
@@ -397,6 +397,8 @@ encodexlogflags()
         e |= 1L << 0;
     if (discover)
         e |= 1L << 1;
+    if (Polyinit_mode)
+        e |= 1L << 2;
     /* Reserve the 9th through 16th bits as their own number representing the
      * number of bones files loaded. */
     if (u.uroleplay.numbones > 0xFF) {
@@ -608,7 +610,7 @@ time_t when;
     }
 #endif /* XLOGFILE */
 
-    if (wizard || discover) {
+    if (wizard || discover || Polyinit_mode) {
         if (how != PANICKED)
             HUP {
                 char pbuf[BUFSZ];
@@ -616,7 +618,7 @@ time_t when;
                 topten_print("");
                 Sprintf(pbuf,
              "Since you were in %s mode, the score list will not be checked.",
-                        wizard ? "wizard" : "discover");
+                        wizard ? "wizard" : discover ? "discover" : "polyinit");
                 topten_print(pbuf);
             }
         goto showwin;
