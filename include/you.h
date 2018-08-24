@@ -399,5 +399,6 @@ struct you {
 }; /* end of `struct you' */
 
 #define Upolyd (u.umonnum != u.umonster)
+#define Polyinit_mode (flags.polyinit_mnum != NON_PM)
 
 #endif /* YOU_H */

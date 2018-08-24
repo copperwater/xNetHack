@@ -626,6 +626,10 @@ newgame()
     init_artifacts(); /* before u_init() in case $WIZKIT specifies
                        * any artifacts */
     u_init();
+    if (Polyinit_mode) {
+        polymon(flags.polyinit_mnum);
+        HUnchanging |= FROMOUTSIDE;
+    }
 
 #ifndef NO_SIGNAL
     (void) signal(SIGINT, (SIG_RET_TYPE) done1);

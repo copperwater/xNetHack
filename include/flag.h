@@ -151,12 +151,13 @@ struct flag {
      * is initialized or restored (specifically, after role_init()
      * is called).
      */
-    int initrole;  /* starting role      (index into roles[])   */
-    int initrace;  /* starting race      (index into races[])   */
-    int initgend;  /* starting gender    (index into genders[]) */
-    int initalign; /* starting alignment (index into aligns[])  */
-    int randomall; /* randomly assign everything not specified */
-    int pantheon;  /* deity selection for priest character */
+    int initrole;      /* starting role      (index into roles[])   */
+    int initrace;      /* starting race      (index into races[])   */
+    int initgend;      /* starting gender    (index into genders[]) */
+    int initalign;     /* starting alignment (index into aligns[])  */
+    int randomall;     /* randomly assign everything not specified */
+    int pantheon;      /* deity selection for priest character */
+    int polyinit_mnum; /* polyinit to this monster, -1 = no polyinit */
     /* Items which were in iflags in 3.4.x to preserve savefile compatibility
      */
     boolean lootabc;   /* use "a/b/c" rather than "o/i/b" when looting */
