@@ -1,9 +1,9 @@
-xNetHack 0.3.1 Changelog
+xNetHack 0.4.0 Changelog
 
-This is a minor update version of xNetHack. It is a fork off of
-the vanilla NetHack 3.6.1 release, and is also based directly on
-xNetHack 0.3.0. It will continue to contain all of the latest commits
-pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
+This is a minor version of xNetHack. It is a fork off of the vanilla NetHack
+3.6.1 release, and is also based directly on xNetHack 0.3.0. It will continue
+to contain all of the latest commits pushed by the vanilla devteam on their
+3.6.2 branch; see doc/fixes36.2 for these changes.
 
 The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
 attempts to describe these changes in a way that's better formatted and more
@@ -12,7 +12,7 @@ information, this changelog and others in this folder are more up-to-date than
 the wiki page, and the commit messages are more up-to-date than this changelog.
 
 On top of any changes made by the NetHack devteam on 3.6.1, and any changes
-made in previous xNetHack versions, xNetHack 0.3.1 contains the following
+made in previous xNetHack versions, xNetHack 0.4.0 contains the following
 gameplay changes:
 
 Remove the scroll of amnesia. In its place, create the scroll of water, which
