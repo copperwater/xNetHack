@@ -510,6 +510,11 @@ typedef unsigned char uchar;
  * Only available with POSIX_TYPES or GNU C */
 /* #define MSGHANDLER */
 
+
+/* Allow polyinit as normally illegal polyforms
+   This can cause unexpected behaviour and crashes */
+/* #define ALLOW_ALL_POLYINITS */
+
 #define STATUS_HILITES         /* support hilites of status fields */
 
 /* #define WINCHAIN */              /* stacked window systems */

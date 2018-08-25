@@ -1447,10 +1447,11 @@ boolean allow_floor;
     if (iflags.menu_requested) /* command was preceded by 'm' */
         allow_floor = FALSE;
 
-    char buf[BUFSZ], qbuf[QBUFSZ];
-    char lets[BUFSZ], altlets[BUFSZ], *ap;
+    char buf[BUFSZ] = "";
+    char qbuf[QBUFSZ] = "";
+    char lets[BUFSZ] = "", altlets[BUFSZ] = "", *ap;
     char qsfx[QBUFSZ]; /* for old-style floor prompts */
-    char invlets[256] = {0};
+    char invlets[256] = "";
     int i, n, c;
     register char ilet;
     register struct obj *obj, *otmp;
