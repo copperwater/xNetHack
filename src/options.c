@@ -2126,10 +2126,12 @@ boolean tinitial, tfrom_file;
                                  fullname, op);
                 return FALSE;
             }
+#ifndef ALLOW_ALL_POLYINITS /* In config.h */
             if (!polyok(&mons[monnum])) {
                 config_error_add("%s: '%s' is non-polymorphable", fullname, op);
                 return FALSE;
             }
+#endif
             flags.polyinit_mnum = monnum;
         } else
             return FALSE;
