@@ -3005,7 +3005,8 @@ struct obj * stone;
 /* Object material probabilities. */
 /* for objects which are normally iron or metal */
 static const struct icp metal_materials[] = {
-    {80, IRON},
+    {75, 0}, /* default to base type, iron or metal */
+    { 5, IRON},
     { 5, WOOD},
     { 5, SILVER},
     { 3, COPPER},
@@ -3075,6 +3076,28 @@ static const struct icp shiny_materials[] = {
     { 2, PLATINUM}
 };
 
+/* for bells and other tools, especially instruments, which are normally copper
+ * or metal.  Wood and glass in other lists precludes us from using those. */
+static const struct icp resonant_materials[] = {
+    {55, 0}, /* use base material */
+    {25, COPPER},
+    { 6, SILVER},
+    { 5, IRON},
+    { 5, MITHRIL},
+    { 3, GOLD},
+    { 1, PLATINUM}
+};
+
+/* for horns, currently. */
+static const struct icp horn_materials[] = {
+    {70, BONE},
+    {10, COPPER},
+    { 8, MITHRIL},
+    { 5, WOOD},
+    { 5, SILVER},
+    { 2, GOLD}
+};
+
 /* hacks for specific objects... not great because it's a lot of data, but it's
  * a relatively clean solution */
 static const struct icp elvenhelm_materials[] = {
@@ -3083,13 +3106,14 @@ static const struct icp elvenhelm_materials[] = {
     {10, WOOD}
 };
 static const struct icp bow_materials[] = {
-    {80, WOOD},
+    /* assumes all bows will be wood by default, fairly safe assumption */
+    {75, WOOD},
     { 7, IRON},
-    { 4, PLASTIC},
-    { 3, BONE},
-    { 2, MITHRIL},
-    { 2, COPPER},
-    { 1, SILVER},
+    { 5, MITHRIL},
+    { 4, COPPER},
+    { 4, BONE},
+    { 2, SILVER},
+    { 2, PLASTIC},
     { 1, GOLD}
 };
 
@@ -3130,6 +3154,22 @@ struct obj* obj;
         case LOCK_PICK:
         case TIN_OPENER:
             return metal_materials;
+        case BELL:
+        case BUGLE:
+        case LANTERN:
+        case OIL_LAMP:
+        case MAGIC_LAMP:
+        case MAGIC_WHISTLE:
+        case FLUTE:
+        case MAGIC_FLUTE:
+        case HARP:
+        case MAGIC_HARP:
+            return resonant_materials;
+        case TOOLED_HORN:
+        case FIRE_HORN:
+        case FROST_HORN:
+        case HORN_OF_PLENTY:
+            return horn_materials;
         default:
             break;
     }
@@ -3181,7 +3221,11 @@ struct obj* obj;
             i -= materials->iprob;
             materials++;
         }
-        obj->material = materials->iclass;
+        if (materials->iclass)
+            obj->material = materials->iclass;
+        else
+            /* can use a 0 in the list to default to the base material */
+            obj->material = objects[obj->otyp].oc_material;
     }
     else {
         /* default case for other items: always use base material... */
@@ -3206,23 +3250,26 @@ int mat;
         /* shenanigans possible here, ignore them */
         return TRUE;
     }
-    const struct icp* materials = material_list(obj);
 
-    if (materials) {
-        int i = 100; /* guarantee going through everything */
-        while (i > 0) {
-            if (materials->iclass == mat)
-                return TRUE;
-            i -= materials->iprob;
-            materials++;
-        }
-
-        /* no valid ones found */
-        return FALSE;
+    /* if it is what it's defined as in objects.c, always valid, don't bother
+     * with lists */
+    if (objects[obj->otyp].oc_material == mat) {
+        return TRUE;
     }
     else {
-        /* if no appropriate list, this should just be the regular material */
-        return (mat == objects[obj->otyp].oc_material);
+        const struct icp* materials = material_list(obj);
+
+        if (materials) {
+            int i = 100; /* guarantee going through everything */
+            while (i > 0) {
+                if (materials->iclass == mat)
+                    return TRUE;
+                i -= materials->iprob;
+                materials++;
+            }
+        }
+        /* no valid materials in list, or no valid list */
+        return FALSE;
     }
 }
 
