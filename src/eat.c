@@ -1036,9 +1036,17 @@ register int pm;
         if (youmonst.data->mlet != S_MIMIC && !Unchanging) {
             char buf[BUFSZ];
 
-            if(!u.uconduct.polyselfs++) /* you're changing form */
-                livelog_printf(LL_CONDUCT, "changed form for the first time by mimicing %s",
-                     Hallucination ? "an orange" : "a pile of gold");
+            /* Long time debate on whether this should break polyselfless
+             * conduct. In vanilla, it does, but in xNetHack it does not.  The
+             * reasoning is that the mimics don't _actually_ change form, they
+             * are just supernaturally good at looking like something else. So
+             * the player upon eating them doesn't turn into a pile of gold
+             * either; they just temporarily get very good at pretending to
+             * look like one.
+             * An additional argument is that the point of polyselfless conduct
+             * is to abandon the benefits of turning into other monsters
+             * (second HP bar, many powerful abilities, etc), and mimicking
+             * an object provides none of these. */
             You_cant("resist the temptation to mimic %s.",
                      Hallucination ? "an orange" : "a pile of gold");
             /* A pile of gold can't ride. */
