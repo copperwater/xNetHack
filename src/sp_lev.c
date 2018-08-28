@@ -4053,6 +4053,10 @@ boolean diagonals;
         idx--;
         x = dx[idx];
         y = dy[idx];
+        if (isok(x, y)) {
+            selection_setpoint(x, y, ov, 1);
+            selection_setpoint(x, y, tmp, 1);
+        }
         SEL_FLOOD_CHKDIR((x + 1), y, tmp);
         SEL_FLOOD_CHKDIR((x - 1), y, tmp);
         SEL_FLOOD_CHKDIR(x, (y + 1), tmp);
