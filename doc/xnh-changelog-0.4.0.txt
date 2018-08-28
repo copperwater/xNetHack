@@ -38,6 +38,7 @@ Add polyinit mode: you begin the game permanently polymorphed into a monster of
 Extrinsic sources of fire, cold, and shock resistance provide immunity to all
   items in your inventory from that type of damage.
 Eating mimic corpses no longer breaks polyselfless conduct.
+Tourists now begin the game wearing low boots (walking shoes).
 
 It contains the following non-gameplay interface changes:
 
