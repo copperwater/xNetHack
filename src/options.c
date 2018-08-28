@@ -2121,13 +2121,21 @@ boolean tinitial, tfrom_file;
     if (match_optname(opts, fullname, 8, TRUE)) {
         if (parse_role_opts(negated, fullname, opts, &op)) {
             int monnum = name_to_mon(op);
+            struct permonst * mdat;
             if (monnum < LOW_PM) {
                 config_error_add("%s: could not find monster '%s'",
                                  fullname, op);
                 return FALSE;
             }
-            if (!polyok(&mons[monnum])) {
-                config_error_add("%s: '%s' is non-polymorphable", fullname, op);
+            mdat = &mons[monnum];
+            if (unique_corpstat(mdat)) {
+                config_error_add("%s: cannot play as unique monster '%s'",
+                                 fullname, op);
+                return FALSE;
+            }
+            if (is_mplayer(mdat)) {
+                config_error_add("%s: cannot play as player monster '%s'",
+                                 fullname, op);
                 return FALSE;
             }
             flags.polyinit_mnum = monnum;

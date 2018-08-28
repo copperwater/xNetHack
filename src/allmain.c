@@ -627,6 +627,18 @@ newgame()
                        * any artifacts */
     u_init();
     if (Polyinit_mode) {
+        if (!polyok(&mons[flags.polyinit_mnum])) {
+            winid wwin = create_nhwindow(NHW_MENU);
+#define warn(str) putstr(wwin, 0, str)
+            warn("WARNING: You polyinitted into something non-polymorphable.");
+            warn("You are now in uncharted territory.  In this form you may");
+            warn("expose undiscovered bugs and will probably crash the game.");
+            warn("Though we cannot provide full support for such polyforms,");
+            warn("please make a bug report so it can possibly get supported.");
+            display_nhwindow(wwin, FALSE);
+            destroy_nhwindow(wwin);
+#undef warn
+        }
         polymon(flags.polyinit_mnum, FALSE);
         HUnchanging |= FROMOUTSIDE;
     }

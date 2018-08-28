@@ -32,6 +32,9 @@ Add polyinit mode: you begin the game permanently polymorphed into a monster of
   your choice. This is a non-scoring mode like explore mode, and can be
   combined with explore mode (and wizard mode of course). To enable, set
   OPTIONS=polyinit:[monster] in your config file.
+  You can polyinit to anything except player monsters and uniques. Any other
+  monsters are fair game, but if you can't polymorph into one in a normal game,
+  it's not officially supported. Beware of crashes.
 Extrinsic sources of fire, cold, and shock resistance provide immunity to all
   items in your inventory from that type of damage.
 
