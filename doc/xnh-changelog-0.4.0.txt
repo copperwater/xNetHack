@@ -48,6 +48,7 @@ If you die while stuck in creature form, your actual death reason is shown, and
   xlogfile.
 The livelogging patch is extended to include arising from the dead or slime as
   a sentient copy of the monster. This is a livelog flag of 0x0200.
+The #terrain command works while hallucinating, confused or stunned.
 
 It contains the following non-gameplay architectural changes:
 
