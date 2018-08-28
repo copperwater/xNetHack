@@ -665,7 +665,7 @@ register struct monst *mtmp;
                 if (ptr != &mons[PM_SOLDIER] && !rn2(3))
                     (void) mongets(mtmp, BUGLE);
             } else if (ptr == &mons[PM_WATCHMAN] && rn2(3))
-                (void) mongets(mtmp, TIN_WHISTLE);
+                (void) mongets(mtmp, PEA_WHISTLE);
         } else if (ptr == &mons[PM_SHOPKEEPER]) {
             (void) mongets(mtmp, SKELETON_KEY);
             switch (rn2(4)) {

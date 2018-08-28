@@ -894,7 +894,7 @@ boolean artif;
                 otmp->quan = 1L + (long) (rn2(2) ? rn2(7) : 0);
                 blessorcurse(otmp, 5);
                 break;
-            case BRASS_LANTERN:
+            case LANTERN:
             case OIL_LAMP:
                 otmp->spe = 1;
                 otmp->age = (long) rn1(500, 1000);

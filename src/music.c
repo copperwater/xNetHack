@@ -525,7 +525,7 @@ struct obj *instr;
         put_monsters_to_sleep(u.ulevel * 5);
         exercise(A_DEX, TRUE);
         break;
-    case WOODEN_FLUTE: /* May charm snakes */
+    case FLUTE: /* May charm snakes */
         do_spec &= (rn2(ACURR(A_DEX)) + u.ulevel > 25);
         pline("%s.", Tobjnam(instr, do_spec ? "trill" : "toot"));
         if (do_spec)
@@ -569,7 +569,7 @@ struct obj *instr;
         charm_monsters((u.ulevel - 1) / 3 + 1);
         exercise(A_DEX, TRUE);
         break;
-    case WOODEN_HARP: /* May calm Nymph */
+    case HARP: /* May calm Nymph */
         do_spec &= (rn2(ACURR(A_DEX)) + u.ulevel > 25);
         pline("%s %s.", Yname2(instr),
               do_spec ? "produces a lilting melody" : "twangs");
@@ -616,7 +616,7 @@ struct obj *instr;
     if (Underwater) {
         You_cant("play music underwater!");
         return 0;
-    } else if ((instr->otyp == WOODEN_FLUTE || instr->otyp == MAGIC_FLUTE
+    } else if ((instr->otyp == FLUTE || instr->otyp == MAGIC_FLUTE
                 || instr->otyp == TOOLED_HORN || instr->otyp == FROST_HORN
                 || instr->otyp == FIRE_HORN || instr->otyp == BUGLE)
                && !can_blow(&youmonst)) {
@@ -806,7 +806,7 @@ char *buf;
     if ((fd = open("/dev/speaker", 1)) != -1) {
         /* send a prefix to modify instrumental `timbre' */
         switch (instr->otyp) {
-        case WOODEN_FLUTE:
+        case FLUTE:
         case MAGIC_FLUTE:
             (void) write(fd, ">ol", 1); /* up one octave & lock */
             break;
@@ -818,7 +818,7 @@ char *buf;
         case BUGLE:
             (void) write(fd, "ol", 2); /* octave lock */
             break;
-        case WOODEN_HARP:
+        case HARP:
         case MAGIC_HARP:
             (void) write(fd, "l8mlol", 4); /* fast, legato, octave lock */
             break;
@@ -875,7 +875,7 @@ char *buf;
     /* emit a prefix to modify instrumental `timbre' */
     playinit();
     switch (instr->otyp) {
-    case WOODEN_FLUTE:
+    case FLUTE:
     case MAGIC_FLUTE:
         playstring(">ol", 1); /* up one octave & lock */
         break;
@@ -887,7 +887,7 @@ char *buf;
     case BUGLE:
         playstring("ol", 2); /* octave lock */
         break;
-    case WOODEN_HARP:
+    case HARP:
     case MAGIC_HARP:
         playstring("l8mlol", 4); /* fast, legato, octave lock */
         break;
