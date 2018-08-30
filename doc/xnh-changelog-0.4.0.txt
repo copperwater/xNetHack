@@ -39,6 +39,8 @@ Extrinsic sources of fire, cold, and shock resistance provide immunity to all
   items in your inventory from that type of damage.
 Eating mimic corpses no longer breaks polyselfless conduct.
 Tourists now begin the game wearing low boots (walking shoes).
+Martial arts attacks now always include skill damage bonuses, instead of
+  randomly not getting them 75% of the time.
 
 It contains the following non-gameplay interface changes:
 

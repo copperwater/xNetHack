@@ -696,7 +696,10 @@ int dieroll;
             tmp = rnd(4); /* bonus for martial arts */
         else
             tmp = rnd(2);
-        valid_weapon_attack = (tmp > 1);
+        /* It's unfair to martial arts users that whenever they roll a natural
+         * 1 on this d4, they get no bonuses and hit for just that one point of
+         * damage. */
+        valid_weapon_attack = TRUE;
         /* blessed gloves give bonuses when fighting 'bare-handed' */
         if (uarmg && uarmg->blessed
             && (is_undead(mdat) || is_demon(mdat) || is_vampshifter(mon)))
