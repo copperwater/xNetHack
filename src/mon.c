@@ -2567,7 +2567,7 @@ cleanup:
             You_hear("the studio audience applaud!");
         if (!unique_corpstat(mdat) && has_mname(mtmp)) {
             livelog_printf(LL_KILLEDPET, "murdered %s, %s faithful %s",
-                           mon_nam(mtmp), uhis(), mdat->mname);
+                           MNAME(mtmp), uhis(), mdat->mname);
         }
     } else if (mtmp->mpeaceful)
         adjalign(-5);
