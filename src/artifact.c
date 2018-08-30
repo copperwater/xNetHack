@@ -336,8 +336,8 @@ struct obj *obj;
 {
     const struct artifact *arti;
 
-    /* any silver object is effective */
-    if (obj->material == SILVER)
+    /* any silver object is effective; bone too, though it gets no bonus */
+    if (obj->material == SILVER || obj->material == BONE)
         return TRUE;
     /* non-silver artifacts with bonus against undead also are effective */
     arti = get_artifact(obj);
