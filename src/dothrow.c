@@ -938,7 +938,7 @@ boolean hitsroof;
                          && touch_petrifies(&mons[obj->corpsenm]));
     /* note: obj->quan == 1 */
 
-    if (!has_ceiling(&u.uz)) {
+    if (!ceiling_exists()) {
         action = "flies up into"; /* into "the sky" or "the water above" */
     } else if (hitsroof) {
         if (breaktest(obj)) {
@@ -1325,7 +1325,7 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
         if ((obj->oartifact == ART_MJOLLNIR && Role_if(PM_VALKYRIE))
             || tethered_weapon) {
             if (rn2(100)) {
-                if (tethered_weapon)        
+                if (tethered_weapon)
                     tmp_at(DISP_END, BACKTRACK);
                 else
                     sho_obj_return_to_u(obj); /* display its flight */

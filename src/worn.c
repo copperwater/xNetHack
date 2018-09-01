@@ -29,7 +29,8 @@ const struct worn {
              { W_TOOL, &ublindf },
              { W_BALL, &uball },
              { W_CHAIN, &uchain },
-             { 0, 0 } };
+             { 0, 0 }
+};
 
 /* This only allows for one blocking item per property */
 #define w_blocks(o, m) \
@@ -105,8 +106,7 @@ long mask;
                 }
             }
     }
-    if (!restoring)
-        update_inventory();
+    update_inventory();
 }
 
 /* called e.g. when obj is destroyed */
@@ -137,9 +137,20 @@ register struct obj *obj;
             if ((p = w_blocks(obj, wp->w_mask)) != 0)
                 u.uprops[p].blocked &= ~wp->w_mask;
         }
-    /* setnotworn() isn't called during restore but parallel setworn() */
-    if (!restoring)
-        update_inventory();
+    update_inventory();
+}
+
+/* return item worn in slot indiciated by wornmask; needed by poly_obj() */
+struct obj *
+wearmask_to_obj(wornmask)
+long wornmask;
+{
+    const struct worn *wp;
+
+    for (wp = worn; wp->w_mask; wp++)
+        if (wp->w_mask & wornmask)
+            return *wp->w_obj;
+    return (struct obj *) 0;
 }
 
 /* return a bitmask of the equipment slot(s) a given item might be worn in */
@@ -780,6 +791,30 @@ struct obj *objchain;
         objchain = objchain->nobj;
     }
     return objchain;
+}
+
+/* like nxt_unbypassed_obj() but operates on sortloot_item array rather
+   than an object linked list; the array contains obj==Null terminator;
+   there's an added complication that the array may have stale pointers
+   for deleted objects (see Multiple-Drop case in askchain(invent.c)) */
+struct obj *
+nxt_unbypassed_loot(lootarray, listhead)
+Loot *lootarray;
+struct obj *listhead;
+{
+    struct obj *o, *obj;
+
+    while ((obj = lootarray->obj) != 0) {
+        for (o = listhead; o; o = o->nobj)
+            if (o == obj)
+                break;
+        if (o && !obj->bypass) {
+            bypass_obj(obj);
+            break;
+        }
+        ++lootarray;
+    }
+    return obj;
 }
 
 void

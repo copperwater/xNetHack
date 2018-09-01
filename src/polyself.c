@@ -1451,13 +1451,13 @@ dohide()
         u.uundetected = 0;
         return 0;
     }
-    if (hides_under(youmonst.data) && !level.objects[u.ux][u.uy]) {
+    if (hides_under(youmonst.data) && !concealed_spot(u.ux, u.uy)) {
         There("is nothing to hide under here.");
         u.uundetected = 0;
         return 0;
     }
     /* Planes of Air and Water */
-    if (on_ceiling && !has_ceiling(&u.uz)) {
+    if (on_ceiling && !ceiling_exists()) {
         There("is nowhere to hide above you.");
         u.uundetected = 0;
         return 0;
@@ -1646,7 +1646,7 @@ int part;
        such attacks should still reference hands rather than claws */
     static const char not_claws[] = {
         S_HUMAN,     S_MUMMY,   S_ZOMBIE, S_ANGEL, S_NYMPH,
-        S_QUANTMECH, S_VAMPIRE, S_ORC,    S_GIANT, /* quest nemeses */
+        S_VAMPIRE, S_ORC,    S_GIANT, /* quest nemeses */
         '\0' /* string terminator; assert( S_xxx != 0 ); */
     };
     struct permonst *mptr = mon->data;

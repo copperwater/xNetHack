@@ -1275,10 +1275,10 @@ SHUFFLE: $stone
 OBJECT:('*',"luckstone"),$stone[0]
 OBJECT:('*',"touchstone"),$stone[1]
 
-# Eels
+# The predator of the depths
 $eel = { (19,7),(56,5),(59,18) }
 SHUFFLE: $eel
-MONSTER:(';',"electric eel"),$eel[0]
+MONSTER:('z',"giant eel"),$eel[0]
 # Submerged wand of cold under an eel
 OBJECT:('/',"cold"),$eel[0]
 # Random monsters
@@ -1306,19 +1306,19 @@ MONSTER:'G',random
 # "alligators"
 MONSTER:('l',"crocodile"),random
 MONSTER:('l',"crocodile"),random
-MONSTER:(';',"jellyfish"),random
-MONSTER:(';',"jellyfish"),random
-MONSTER:(';',"jellyfish"),random
-MONSTER:(';',"piranha"),random
-MONSTER:(';',"piranha"),random
+MONSTER:('z',"jellyfish"),random
+MONSTER:('z',"jellyfish"),random
+MONSTER:('z',"jellyfish"),random
+MONSTER:('z',"piranha"),random
+MONSTER:('z',"piranha"),random
 MONSTER:('P',"brown pudding"),random
 MONSTER:('P',"gray ooze"),random
 LOOP [3] {
     IF [50%] {
         IF [50%] {
-            MONSTER:(';',"piranha"),random
+            MONSTER:('z',"piranha"),random
         } ELSE {
-            MONSTER:';',random
+            MONSTER:'z',random
         }
     }
 }

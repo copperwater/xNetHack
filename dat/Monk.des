@@ -9,97 +9,102 @@
 #	and receive your quest assignment.
 #
 MAZE: "Mon-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: hardfloor,outdoors
 GEOMETRY:center,center
 MAP
-............................................................................
-............................................................................
-............................................................................
-....................------------------------------------....................
-....................|................|.....|.....|.....|....................
-....................|..------------..|--+-----+-----+--|....................
-....................|..|..........|..|.................|....................
-....................|..|..........|..|+---+---+-----+--|....................
-..................---..|..........|......|...|...|.....|....................
-..................+....|..........+......|...|...|.....|....................
-..................+....|..........+......|...|...|.....|....................
-..................---..|..........|......|...|...|.....|....................
-....................|..|..........|..|+-----+---+---+--|....................
-....................|..|..........|..|.................|....................
-....................|..------------..|--+-----+-----+--|....................
-....................|................|.....|.....|.....|....................
-....................------------------------------------....................
-............................................................................
-............................................................................
-............................................................................
+,,,,T,,,,,,,,,T,,,|,,,,,....,|.}}}.|T,,,,,,.........T....-...T.--....T,,,,,,
+,,.,,,,,,,,,,,,,,,|,,,....{.,|}}}...........T..T.......-...........-.,,,T,,,
+,...,,,,,,,,,,,T,,|,,.......--.....|T,,,T,,,,........T...--..-..--....T,,,,T
+..{..,,,T,,,,,,,,--,....-----...............T.....T...-..--.....--.T...,T,,,
+,...,,,,,,,,,,,,,|,,....T|.........|T,,,,,,..................--....---------
+,,.,,,,,,,T,,,,,,|,....---.....--------------+-----,......--.--..-..,,,,,,,,
+,,.,,,,,,,,,,,,T,|,....T|...-.--..................--,.-...--........T.......
+,,.,,,,,,,,,,,,,--,....---....|...-..-..-..-..-....--.........-...........,,
+,...,,,T,,T,,T,,|,,......|..-.|.....................|.-...,,....-.......,,,,
+.........................+....+.....................|....,,,,.......,--.--,,
+.........................+....+.....................|....,,,,..,...,--...--,
+,...,,,T,,T,,T,,|,,......|..-.|.....................|.-...,,........|..{..|,
+,,,,,,,,,,,,,,,,--,....---....|...-..-..-..-..-....--.........,,....--...--,
+,,,,,,,,,,,T,,,,,|,....T|...-.--..................--..-...........,.---.--,,
+,,,,T,,,,,,,,,,,,|,....---.....----------+---------....-----+-----,......,,,
+,,,,,,,,,,,,,,,,,|,,....T|............................--K.......K--.....,T,,
+,,,,,,,,,T,,,,,,,--,....--------...--------...--......+...........|..,,,,,,,
+,,T,,,,,,,,,,,,,,,|,,......,,T,-----,,,|--.....--,,,,,|...}}}}}...+.,,,,,,,,
+,,,,,,,,,,,,,,,,T,|,,........,,,,,,,,T,-|.......|T,,,,--}}}}}}}}}--,,,,,,,T,
+,,,,,,T,,,,,,,,,,,|,,,,........,,,T,,,,,|-.....-|,,,T,,-----------,,,,T,,,,,
 ENDMAP
-# Dungeon Description
-REGION:(00,00,75,19),lit,"ordinary"
-REGION:(24,06,33,13),lit,"temple"
 
-REPLACE_TERRAIN:(0,0,10,19),'.','T',10%
-REPLACE_TERRAIN:(65,0,75,19),'.','T',10%
+# Full level is lit
+REGION:(00,00,75,19),lit,"ordinary"
 
 # Portal arrival point
-TERRAIN:(05,04),'.'
-BRANCH:(05,04,05,04),(0,0,0,0)
+BRANCH:(02,10,02,10),(0,0,0,0)
 # Stairs
-STAIR:(52,09),down
+STAIR:(75,06),down
 # Doors
-DOOR:locked,(18,09)
-DOOR:locked,(18,10)
-DOOR:closed,(34,09)
-DOOR:closed,(34,10)
-DOOR:closed,(40,05)
-DOOR:closed,(46,05)
-DOOR:closed,(52,05)
-DOOR:locked,(38,07)
-DOOR:closed,(42,07)
-DOOR:closed,(46,07)
-DOOR:closed,(52,07)
-DOOR:locked,(38,12)
-DOOR:closed,(44,12)
-DOOR:closed,(48,12)
-DOOR:closed,(52,12)
-DOOR:closed,(40,14)
-DOOR:closed,(46,14)
-DOOR:closed,(52,14)
+DOOR:locked&irondoor,(25,09)
+DOOR:locked&irondoor,(25,10)
+DOOR:locked,(30,09)
+DOOR:locked,(30,10)
+DOOR:locked,(41,14)
+DOOR:locked,(45,05)
+DOOR:random,(54,16)
+DOOR:random,(60,14)
+DOOR:random,(66,17)
+
 # Unattended Altar - unaligned due to conflict - player must align it.
-ALTAR:(28,09),noalign,altar
+ALTAR:(44,18),noalign,altar
+
 # The Grand Master
-MONSTER:('@',"Grand Master"),(28,10)
-# No treasure chest!
+MONSTER:('@',"Grand Master"),(49,09)
+
 # guards for the audience chamber
-MONSTER:('@',"abbot"),(32,07)
-MONSTER:('@',"abbot"),(32,08)
-MONSTER:('@',"abbot"),(32,11)
-MONSTER:('@',"abbot"),(32,12)
-MONSTER:('@',"abbot"),(33,07)
-MONSTER:('@',"abbot"),(33,08)
-MONSTER:('@',"abbot"),(33,11)
-MONSTER:('@',"abbot"),(33,12)
-# Non diggable walls
-NON_DIGGABLE:(18,03,55,16)
-# Random traps
-TRAP:"dart",(20,09)
-TRAP:"dart",(20,10)
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-# Monsters on siege duty.
-MONSTER: ('E',"earth elemental"),(37,01)
-MONSTER: ('E',"earth elemental"),(37,18)
-MONSTER: ('E',"earth elemental"),(03,03)
-MONSTER: ('E',"earth elemental"),(65,04)
-MONSTER: ('E',"earth elemental"),(12,11)
-MONSTER: ('E',"earth elemental"),(60,12)
-MONSTER: ('E',"earth elemental"),(14,08)
-MONSTER: ('E',"earth elemental"),(55,00)
-MONSTER: ('X',"xorn"),(18,18)
-MONSTER: ('X',"xorn"),(59,10)
-MONSTER: ('X',"xorn"),(13,09)
-MONSTER: ('X',"xorn"),(01,17)
+$main_hall = selection: fillrect(31,06,51,13)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+MONSTER:('@',"abbot"),rndcoord($main_hall)
+
+# Monks are ascetics: you won't find anything here that they won't give
+# to a Candidate starting out
+CONTAINER:('(',"chest"),not_trapped,(51,08) {
+  OBJECT:('[',"robe"),+1,uncursed
+  OBJECT:('[',"gloves"),+2,uncursed
+  OBJECT:('(',"blindfold"),uncursed
+}
+CONTAINER:('(',"chest"),not_trapped,(51,11) {
+  OBJECT:'%'
+  OBJECT:'%'
+  OBJECT:'%'
+  OBJECT:'%'
+  OBJECT:'%'
+}
+
+# Non diggable walls - try to hit as few trees as possible
+NON_DIGGABLE:(16,00,18,19)
+NON_DIGGABLE:(25,00,29,16)
+NON_DIGGABLE:(24,05,24,14)
+NON_DIGGABLE:(30,16,40,19)
+NON_DIGGABLE:(30,05,52,14)
+
+# A few rocks for scenery flavor
+OBJECT:('`',"boulder"),(30,00)
+OBJECT:('`',"boulder"),(75,16)
+OBJECT:('`',"boulder"),(72,19)
+
+# And finally, the baddies
+$outside = selection: fillrect(00,00,16,19)
+$inside_walls = selection: floodfill(26,09)
+LOOP [4] {
+  MONSTER:('E',"earth elemental"),rndcoord($outside),hostile
+  MONSTER:'E',rndcoord($inside_walls),hostile
+}
+MONSTER:('X',"xorn"),(21,08),hostile
+MONSTER:('X',"xorn"),(21,11),hostile
 
 #
 #	The "locate" level for the quest.
@@ -109,90 +114,100 @@ MONSTER: ('X',"xorn"),(01,17)
 #
 
 MAZE: "Mon-loca",' '
+FLAGS:hardfloor,outdoors
 GEOMETRY:center,center
 #         1         2         3         4         5         6         7 
 #123456789012345678901234567890123456789012345678901234567890123456789012345
 MAP
-             ----------------------------------------------------   --------
-           ---.................................................-    --.....|
-         ---...--------........------........................---     ---...|
-       ---.....-      --.......-    ----..................----         --.--
-     ---.....----      ---------       --..................--         --..|
-   ---...-----                       ----.----.....----.....---      --..||
-----..----                       -----..---  |...---  |.......---   --...|
-|...---                       ----....---    |.---    |.........-- --...||
-|...-                      ----.....---     ----      |..........---....|
-|...----                ----......---       |         |...|.......-....||
-|......-----          ---.........-         |     -----...|............|
-|..........-----   ----...........---       -------......||...........||
-|..............-----................---     |............|||..........|
-|-S----...............................---   |...........|| |.........||
-|.....|..............------.............-----..........||  ||........|
-|.....|.............--    ---.........................||    |.......||
-|.....|.............-       ---.....................--|     ||......|
-|---S--------.......----      --.................----        |.....||
-|...........|..........--------..............-----           ||....|
-|...........|............................-----                |....|
-------------------------------------------                    ------
+....TTT    .}}}...T...     T...      ..  T....      T..T      ...           
+......T  ...}}.......    .......T ...........     ......    .......  .....  
+T.....   ..}....T..........................      ... T...   .----.....----. 
+TT....    } ...   .........  ....... ....     ...........  ..|..-------..|. 
+TT...T   }            ...   .......  ...      ....  ....T  ..|...........|..
+TT...  {}    ....T.        .....T   ...     T....    ...  ...--..-----..--..
+T....       .......T      .....     ...   .......     ..  ....|..|...|..|...
+T...T     .... ....T     ....      ....   ......      ..   ...|..|...|..|...
+T...T    T...  .....     T..     ....T.   ......      ..  ....|..|...|..|...
+....     ...  T....     ...     .......    ....       ...  ..--..-----..--..
+...     ...   ....    T....   ..T.....     ....      T...  ..|...........|. 
+...T   ....  .....   ......   .......      T....     ...   ..|..-------..|. 
+...T   ...   T...    .....     .....      .......    ....   .----.....----. 
+....  ....   ....     .....    .....      .......   .....   ..............  
+.... T....   ....     ....    .......{   ......T    .......     ... ......  
+T... .....   ....T   .....   .......}.T  .......    T......           ....  
+T...B......   .....  ....T   ......}.............     .........   ......... 
+T...B....T.   ..... .....     ..T..}..........          T.................. 
+TTT.B.}.       }}......}}       ..}......T.             ................    
 ENDMAP
-# Random Monsters
-$monster = monster: { 'E', 'X' }
-SHUFFLE: $monster
 
 # Dungeon Description
-REGION:(00,00,75,20),lit,"ordinary"
+REGION:(00,00,75,18),lit,"ordinary"
+# darken the fortress
+REGION:(62,03,72,11),unlit,"ordinary"
+
 # Stairs
-STAIR:random,up
-STAIR:random,down
+STAIR:(00,00),up
+STAIR:(67,07),down
+
 # Non diggable walls
 NON_DIGGABLE:(00,00,75,20)
+
+# Make one door on a random side of the inner and outer walls of the fort 
+$innerwalls = { (67,05),(65,07),(69,07),(67,09) }
+$outerwalls = { (67,03),(62,07),(72,07),(67,11) }
+SHUFFLE: $innerwalls
+SHUFFLE: $outerwalls
+DOOR:locked&irondoor,$innerwalls[0]
+DOOR:locked,$outerwalls[0]
+
 # Objects
+OBJECT:('(',"chest"),(62,03)
+OBJECT:('(',"chest"),(62,11)
+OBJECT:('(',"chest"),(72,03)
+OBJECT:('(',"chest"),(72,11)
 OBJECT:random,random
 OBJECT:random,random
 OBJECT:random,random
 OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-# Random traps
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
+LOOP [5] {
+  OBJECT:('`',"boulder"),random
+}
+
+# Traps
+$forest = selection:floodfill(01, 01)
+LOOP [2 + 1d2] {
+  TRAP:"bear",rndcoord($forest)
+}
+TRAP:"pit",random
+TRAP:"spiked pit",random
+TRAP:"spiked pit",random
+TRAP:"land mine",random
+TRAP:"rolling boulder",random
+TRAP:"bear",random
+$fortress = selection:floodfill(62,03)
+LOOP [3 + 1d3] {
+  TRAP:random,rndcoord($fortress)
+}
+
 # Random monsters.
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('E',"earth elemental"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
-MONSTER: ('X',"xorn"),random
+MONSTER: ('E',"earth elemental"),(05,17)
+MONSTER: ('E',"earth elemental"),(13,02)
+MONSTER: ('E',"earth elemental"),(28,01)
+MONSTER: ('E',"earth elemental"),(24,11)
+MONSTER: ('E',"earth elemental"),(70,17)
+MONSTER: ('E',"earth elemental"),(72,16)
+MONSTER: 'E',(15,01)
+MONSTER: 'E',(45,07)
+MONSTER: ('X',"xorn"),(07,16)
+MONSTER: ('X',"xorn"),(42,17)
+MONSTER: ('X',"xorn"),(44,16)
+MONSTER: ('X',"xorn"),(63,04)
+MONSTER: ('X',"xorn"),(71,04)
+MONSTER: ('X',"xorn"),(63,10)
+MONSTER: ('X',"xorn"),(71,10)
+LOOP [4] {
+  MONSTER:'E',rndcoord(fillrect(58,00,75,13))
+}
 
 #
 #	The "goal" level for the quest.
@@ -279,54 +294,46 @@ MONSTER: ('X',"xorn"),random
 #	and goal levels.
 #
 
-LEVEL: "Mon-fila"
-# Random Monsters
-$monster = monster: { 'E', 'X' }
-SHUFFLE: $monster
+MAZE: "Mon-fila", 'g'
+FLAGS: hardfloor,outdoors
+INIT_MAP: mines, 'g', 'g', true, false, lit, false
+NOMAP
+$leftedge = selection: line (00,00),(00,20)
+$rightedge = selection: line (78,00),(78,20)
+$topedge = selection: line(00,00),(78,00)
+$botedge = selection: line(00,20),(78,20)
+$leftstair = rndcoord($leftedge)
+$rightstair = rndcoord($rightedge)
+REPLACE_TERRAIN: (00,00,79,20), 'g', 'T', 4%
+LOOP [1d3] {
+  TERRAIN: (randline rndcoord($topedge), rndcoord($botedge), 8), '}'
+}
+# make a path from one stairs to the other
+TERRAIN:(randline $leftstair, $rightstair, 20), '.'
+STAIR:$leftstair,up
+STAIR:$rightstair,down
 
-#
-ROOM: "ordinary" , random, random, random, random {
-  STAIR: random, up
-  OBJECT: random,random
-  MONSTER: 'E', random, hostile
+# scatter a few rocks
+LOOP [8 + 2d4] {
+  OBJECT:('`',"boulder"),random
+}
+# Some random traps
+LOOP [5 + 1d3] {
+  TRAP:random,random
+} 
+
+# Monsters
+LOOP [2 + 1d3] {
+  MONSTER: 'E', random
+}
+LOOP [3] {
+  MONSTER:('X',"xorn"),random
 }
 
-ROOM: "ordinary" , random, random, random, random {
+# Objects
+LOOP [2 + 1d2] {
   OBJECT: random, random
-  OBJECT: random,random
-  MONSTER: 'E', random, hostile
 }
-
-ROOM: "ordinary" , random, random, random, random {
-  OBJECT: random, random
-  TRAP: random, random
-  OBJECT: random,random
-  MONSTER: ('X', "xorn"), random
-  MONSTER: ('E', "earth elemental"), random
-}
-
-ROOM: "ordinary" , random, random, random, random {
-  STAIR: random, down
-  OBJECT: random, random
-  TRAP: random, random
-  MONSTER: 'E', random, hostile
-  MONSTER: ('E', "earth elemental"), random
-}
-
-ROOM: "ordinary" , random, random, random, random {
-  OBJECT: random, random
-  OBJECT: random, random
-  TRAP: random, random
-  MONSTER: 'X', random, hostile
-}
-
-ROOM: "ordinary" , random, random, random, random {
-  OBJECT: random, random
-  TRAP: random, random
-  MONSTER: ('E', "earth elemental"), random
-}
-
-RANDOM_CORRIDORS
 
 LEVEL: "Mon-filb"
 # Random Monsters

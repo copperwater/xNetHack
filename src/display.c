@@ -1618,12 +1618,13 @@ int
 back_to_glyph(x, y)
 xchar x, y;
 {
-    return cmap_to_glyph(back_to_defsym(x, y));
+    return cmap_to_glyph(back_to_defsym(x, y, TRUE));
 }
 
 int
-back_to_defsym(x, y)
+back_to_defsym(x, y, show_engravings)
 xchar x, y;
+boolean show_engravings;
 {
     int idx;
     struct rm *ptr = &(levl[x][y]);
@@ -1715,6 +1716,10 @@ xchar x, y;
         idx = S_ice;
         engr_override = TRUE;
         break;
+    case GRASS:
+        idx = S_grass;
+        engr_override = TRUE;
+        break;
     case AIR:
         idx = S_air;
         break;
@@ -1757,7 +1762,7 @@ xchar x, y;
         engr_override = TRUE;
         break;
     }
-    if (engr_override && engr_at(x, y)) {
+    if (show_engravings && engr_override && engr_at(x, y)) {
         idx = S_engraving;
     }
 
@@ -1856,6 +1861,8 @@ xchar x, y;
         case ICE:
            idx = S_ice;
            break;
+        case GRASS:
+           idx = S_grass;
         case AIR:
            idx = S_air;
            break;
@@ -1885,9 +1892,6 @@ xchar x, y;
                 idx = (flags.dark_room && iflags.use_color)
                          ? DARKROOMSYM : S_stone;
         }
-        if (engr_at(x, y)) {
-            idx = S_engraving;
-        }
 
         if (idx != S_room)
             bkglyph = cmap_to_glyph(idx);
@@ -1911,8 +1915,8 @@ static const char *type_names[MAX_TYPE] = {
     "CROSSWALL", "TUWALL", "TDWALL", "TLWALL", "TRWALL", "DBWALL", "TREE",
     "SDOOR", "SCORR", "POOL", "MOAT", "WATER", "DRAWBRIDGE_UP", "LAVAPOOL",
     "IRON_BARS", "DOOR", "CORR", "ROOM", "STAIRS", "LADDER", "FOUNTAIN",
-    "THRONE", "SINK", "GRAVE", "ALTAR", "ICE", "DRAWBRIDGE_DOWN", "AIR",
-    "CLOUD"
+    "THRONE", "SINK", "GRAVE", "ALTAR", "ICE", "GRASS", "DRAWBRIDGE_DOWN",
+    "AIR", "CLOUD"
 };
 
 static const char *

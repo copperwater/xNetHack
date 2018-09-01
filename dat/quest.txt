@@ -905,7 +905,7 @@ arts on the unsuspecting."
 %Cc Hea 00019
 "Alas, %p, you are yet too inexperienced to deal with the rigors
 of such a task.  You must be able to draw on the knowledge of botany,
-alchemy and veterinary practices before I can send you on this quest 
+alchemy and veterinary practices before I can send you on this quest
 with good conscience.
 
 "Return when you wear %Ra's caduceus."
@@ -1338,10 +1338,11 @@ the Planes of the Elements, to achieve this goal.
 #
 %Cc Mon 00001
 You find yourself standing in sight of %H.
-Something is obviously wrong here.  Strange shapes lumber around
-outside %H!
 
-You realize that the %l needs your assistance!
+But what is this? The great gates are sealed shut, and ominous noises
+echo from the grounds around you.
+
+You must consult with %l at once!
 %E [You have reached %H but something is wrong.  %lC needs your aid.]
 %Cp Mon 00002
 Once again, you stand before %H.
@@ -1354,92 +1355,95 @@ may be the final time you come here.
 "Greetings, honorable %r.  It is good to see you."
 %E
 %Cp Mon 00006
-"Ah, %p!  Surely you can help us in our hour of need."
+"Our beautiful monastery lies in shambles, %p."
 %E
 %Cp Mon 00007
-"Greetings, %s.  %lC has great need of your help."
+"Welcome back, %p. Will you join me in meditation?"
 %E
 %Cp Mon 00008
-"Alas, it seems as if even %d has deserted us."
+"It will take long to repair the damage from the elementals."
 %E
 %Cp Mon 00009
-"May %d be with you, %s."
+"Got any potions of enlightenment to spare?"
 %E
 %Cp Mon 00010
 "Greetings, honorable %r.  It is good to see you again."
 %E
 %Cp Mon 00011
-"Ah, %p!  Our deepest gratitude for all of your help."
+"%l teaches us not to focus on earthly beauty."
 %E
 %Cp Mon 00012
-"Greetings, %s.  Perhaps you will take some time to meditate with us?"
-%E
-%Cp Mon 00013
 "With this test behind you, may %d bring you enlightenment."
 %E
+%Cp Mon 00013
+"Good day, %p. The repair efforts have been going well."
+%E
 %Cp Mon 00014
-"May %d be with you, %s."
+"Got any wands of enlightenment to spare?"
 %E
 %Cc Mon 00015
-"Ah, %p, my %S.  You have returned to us at last.
-A great blow has befallen our order; perhaps you can help us.
-First, however, I must determine if you are prepared for this
-great challenge."
-%E [%lC checks whether you are ready for the great challenge.]
+"Ah, %p, my %S.
+Hard times have fallen on our peaceful monastery, but you may be able to
+help.  But first, let us see how your training has continued while you
+have been away from us."
+%E [%lC checks whether you are prepared to help.]
 %Cp Mon 00016
-"Again, my %S, you stand before me.  Are you ready now to help us?"
+"My %S, you return.  Have you practiced and meditated further?"
 %E
 %Cp Mon 00017
 "Once more, %p, you stand within the sanctum.  Are you ready now?"
 %E
 %Cc Mon 00018
-"You are a heretic, %p!  How can you, %ra, deviate so from the
-teachings of %d?  Begone from this temple.  You are no longer
-%sa to this order.  We will pray to %d for other assistance,
-as you have failed us utterly."
-%E [You are a heretic and have failed utterly.]
+"You are a disgrace, %p!  I can see that your mind has turned away from
+the path of enlightenment.  We will never defeat %n if you are our
+champion.
+
+You are no longer %sa here. Return to the dungeon from whence you came,
+and never again return."
+%E [You are unenlightened and are expelled from the monastery.]
 %Cc Mon 00019
-"Alas, %p, it is not yet to be.  A mere %r could never
-withstand the might of %n.  Go forth, again into the world, and
-return when you have attained the post of %R."
+"Though your progress is adequate, no %r can stand up to %n.
+You must continue your martial and mental training. Return to us when
+you have attained the post of %R."
 %E [You are not ready to face %n.  Come back when you are %Ra.]
 %Cc Mon 00020
-"This is terrible, %p.  You have deviated from the true path!
-You know that %d requires the most strident devotion of this
-order.  The %shood must stand for utmost piety.
+"You seem troubled, %p. It looks as though you are letting worldly
+concerns begin to turn you away from enlightenment and the %a way.
 
-"Go from here, atone for your sins against %d.  Return only when
-you have purified yourself."
-%E [You must atone.  Come back when you are worthy of %d.]
+There is still some hope for you, though. Go from here and meditate on
+your transgressions, and return once you have restored harmony with
+yourself and with %d."
+%E [You are losing your way.  Come back when your harmony is restored.]
 %Cc Mon 00021
-"Yes, %p.  You are truly ready now.  Attend to me and I shall
-tell you of what has transpired:
+"Yes, %p.  You are truly ready now.  Listen now to the story of our
+woes:
 
-"During one of the Great Meditations a short time ago, %n and
-a legion of elementals invaded %H.  Many %gP
-were killed, including the one bearing %o.
+"A few nights ago, %n led a surprise assault on
+%H, along with dozens of elementals.
+Our %gP fought bravely, but too many of them were slaughtered,
+including the one bearing %o.
+The %gP that remain are barely enough to defend this hall.
 
-Now, there are barely enough %gP left to keep the elementals
-at bay.
+"Travel through the wilderness until you reach
+%i, then, from there, descend into
+%ns lair.
+Defeat %n and bring back %o, and with them
+we will be able to reestablish %H as a center of
+spiritual guidance.
 
-"We need you to find %i, then, from there,
-travel to %ns lair.  If you can manage to defeat %n and
-return %o here, we can then drive off the legions
-of elementals that slay our students.
-
-"Go with %d as your guide, %p."
+"Go bravely with %d, %p."
 %E [Find %i, then continue to %ns lair.  Defeat %ni and return with %o.]
 %Cp Mon 00025
-"You can prevail, if you rely on %d."
+"Though unenlightened, %n is an incredibly dangerous martial artist."
 %E
 %Cp Mon 00026
-"Remember that %n has great magic at his command."
+"In addition to his physical threats, %n is also a master of dark magic."
 %E
 %Cp Mon 00027
-"Be pure, my %S."
+"Keep you mind clear, my %S."
 %E
 %Cp Mon 00028
-"Beware, %i is surrounded by hordes of earth elementals."
+"The path to %i is steep, and you will face many foes there."
 %E
 %Cp Mon 00029
 "Remember your studies, and you will prevail!"
@@ -1449,24 +1453,24 @@ of elementals that slay our students.
 against %n."
 %E
 %Cp Mon 00031
-"Call upon %d when your need is greatest.  You will be answered."
+"It will not do for you to be unfocused. Meditate on your mission if you must."
 %E
 %Cp Mon 00032
-"Remember to use the elementals' strength against them!"
+"We have some small amount of supplies here; take any that you may need."
 %E
 %Cp Mon 00033
-"Do not lose faith, %p.  If you do so, %n will grow stronger."
+"%n may try to trick and distract you.  Be steadfast."
 %E
 %Cp Mon 00034
-"Wear %o.  They will assist you in your efforts."
+"I must continue to hold this hall against the elementals while you are gone."
 %E
 %Cc Mon 00035
-You remember the descriptions of %i, given
-to you by the %l.  It is ahead that you will find
-%n's trail.
-%E [You have reached %i.  %nC lurks further ahead.]
+A high mountain path stretches upwards in front of you.
+Somewhere at its end, you will find %i,
+and in its depths %n surely lurks.
+%E [You are near %i.  %nC lurks further ahead.]
 %Cp Mon 00036
-Again, you stand before %i.
+Again, you near %i.
 %E
 %Cc Mon 00040
 The stench of brimstone is all about you, and the elementals close in
@@ -1543,33 +1547,32 @@ as possible.
 With that, %n expires.
 %E [As %n dies, %nh threatens to return.]
 %Cc Mon 00081
-"You have returned, %p.  And with %o, I see.
-Congratulations.
+"Amazing work, %p! You have recovered %o!
 
-"I have been in meditation, and have received direction from
-a minion of %d.  %d commands that you retain
-%o.  With %oi, you must recover the Amulet
+"I have meditated on the use to which %o could
+best be put. The choice is clear: you must keep
+%o, and use them on your quest for the Amulet
 of Yendor.
 
-"Go forth, and let %d guide your steps."
-%E [Keep %o.  %oH will help you recover the Amulet of Yendor.]
+"I could not be more proud of you, %p. Go with my blessing."
+%E [Keep %o.  They will help you recover the Amulet of Yendor.]
 %Cc Mon 00082
 %lC studies %o for a moment,
 then returns his gaze to you.
 
 "%oC must remain with you.  Use %oi
 as you resume your search for the Amulet.
-%Z await your return through the magic portal
-that brought you here."
+As you know, you will find it somewhere in %Z, back through
+the magic portal.
 %E [Keep %o and return to %Z to search for the Amulet.]
 %Cp Mon 00090
-"Welcome back, %p.  How is your quest for the Amulet going?"
+"Good morning, %p.  Is there any small assistance we can provide you?"
 %E
 %Cc Mon 00091
 "You have prevailed, %p!  %d is surely with you.  Now,
-you must take the Amulet, and sacrifice it on %ds altar on
-the Astral Plane.  I suspect that I shall never see you again in this
-life, but I hope to at %ds feet."
+you must bring the Amulet up out of the dungeon, and sacrifice it on
+%ds altar on the Astral Plane, where you may reach true nirvana at last.
+All of us here will continue to keep you in our thoughts."
 %E [Take the Amulet to the Astral Plane and deliver it to %d.]
 #
 #	Priest
@@ -1586,8 +1589,8 @@ You realize that %l needs your assistance!
 Once again, you stand before %H.
 %E
 %Cp Pri 00003
-Again you face %H.  Your intuition hints that this may be
-the final time you come here.
+Again you face %H.  You get the feeling that %d's patience is beginning
+to run out.
 %E
 %Cp Pri 00005
 "Greetings, honored %r.  It is good to see you."
@@ -1794,13 +1797,13 @@ You then hear the voice of %n, screaming in terror...
 "You have returned, %p.  And with %o, I see.
 Congratulations.
 
-"I have been in meditation, and have received direction from
+"I have been praying, and have received direction from
 a minion of %d.  %d commands that you retain
 %o.  With it, you must recover the Amulet
 of Yendor.
 
 "Go forth, and let %d guide your steps."
-%E [Congraulations, %p.  Keep %o; go and recover the Amulet.]
+%E [Congratulations, %p.  Keep %o; go and recover the Amulet.]
 %Cc Pri 00082
 %lC reiterates that %o is yours now.
 
@@ -2919,7 +2922,7 @@ But it is now likely that you can defeat %n, and recover
 "A short time ago, %n and his minions attacked this place.  They
 opened the huge volcanic vents you %x about the hill, and attacked.  I knew
 that this was to come to pass, and had asked %d for a group of %gP
-to help defend this place.  The few you %x here are the  mightiest of
+to help defend this place.  The few you %x here are the mightiest of
 Valhalla's own, and are all that are left of one hundred %d sent.
 
 "Despite the great and glorious battle we fought, %n managed at

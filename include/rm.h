@@ -69,6 +69,7 @@ enum levl_typ_types {
     GRAVE,
     ALTAR,
     ICE,
+    GRASS,
     DRAWBRIDGE_DOWN,
     AIR,
     CLOUD,
@@ -102,6 +103,7 @@ enum levl_typ_types {
 #define IS_DRAWBRIDGE(typ) \
     ((typ) == DRAWBRIDGE_UP || (typ) == DRAWBRIDGE_DOWN)
 #define IS_FURNITURE(typ) ((typ) >= STAIRS && (typ) <= ALTAR)
+#define IS_GRASS(typ) ((typ) == GRASS)
 #define IS_AIR(typ) ((typ) == AIR || (typ) == CLOUD)
 #define IS_SOFT(typ) ((typ) == AIR || (typ) == CLOUD || IS_POOL(typ))
 
@@ -148,6 +150,7 @@ enum screen_symbols {
     S_fountain,
     S_pool,
     S_ice,
+    S_grass,
     S_lava,
     S_vodbridge,
     S_hodbridge,
@@ -612,6 +615,8 @@ struct levelflags {
                                   normal mode descendant of such) */
     Bitfield(corrmaze, 1);     /* Whether corridors are used for the maze
                                   rather than ROOM */
+    Bitfield(outdoors, 1);     /* Whether the level is open to the sky and has
+                                  no ceiling. The Planes don't count. */
 };
 
 typedef struct {

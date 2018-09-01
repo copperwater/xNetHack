@@ -9,44 +9,68 @@
 #	and receive your quest assignment.
 #
 MAZE: "Ran-strt",'.'
-FLAGS: noteleport,hardfloor,arboreal
-INIT_MAP:mines,'.','.',true,true,lit,false
-REPLACE_TERRAIN:(0,0,76,19),'.', 'T', 5%
+FLAGS: noteleport,hardfloor,arboreal,outdoors
+INIT_MAP:mines,'g','g',true,false,lit,false
 GEOMETRY:left,center
-#1234567890123456789012345678901234567890123456789012345678901234567890
+##########1#########2#########3#########4#########5#########6#########7#####
+#123456789012345678901234567890123456789012345678901234567890123456789012345
 MAP
-                                       xx
-   ...................................  x
-  ..                                 ..  
- ..  ...............F...............  .. 
- .  ..             .F.             ..  . 
- . ..  .............F.............  .. . 
- . .  ..                         ..  . . 
- . . ..  .......................  .. ... 
- . . .  ..                     ..  .     
- ... . ..  .|..................... ......
- FFF . .  ..S..................          
- ... . ..  .|.................  .... ... 
- . . .  ..                     ..  . . . 
- . . ..  .......................  .. . . 
- . .  ..                         ..  . . 
- . ..  .............F.............  .. . 
- .  ..             .F.             ..  . 
- ..  ...............F...............  .. 
-  ..                                 ..  
-   ...................................  x
-                                       xx
+TTTTT,,TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT,TT,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,,
+TTTT,,,,TTTTTTTT,,TTT,,,,,,,,,TT,,,,,,TTTT,T,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,,
+TTT,,TTTTTT,,TTTT,,T,,TT,,,TT,,,,TTT,,,,TT,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,
+T,TT,,,,TTT,,,,TTT,,,TT,,,,,,,TT,TT,,,,,TTTT,,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,
+TT,,,TT,,,,,TT,,TT,,TTT,,TT,,TTT,,,,,,,TTTT,,,,,,,,,,,,,},},,,,,,,,,,,,,,,,,
+TTT,,TTTT,T,,,,,,,,,,,,,TTTT,,,,,,T,,,TTTTT,,,,,,,,,,,,,},},,,,,,,,,,,,,,,,,
+TT,,,,TT,,TTTTTT,,,,,,,,TTT,,,,,TT,,,,,,TTTT,,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,
+T,,TT,,T,,,TTTT,,TTT,,,TTT,,,,TTTTT,,,,,,TTT,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,,
+T,,TT,,T,TTTTTTFFTTTFFFTTTFFTTTTTTTTT,,,,,TT,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,
+TT,TTTTTTTT,,,,,,,,,,,,,,,,,,,TTT,TTTT,,,,,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,
+TT,,,,,TTT,,,,,,,,,,,,,,,,,,,,,,,,TTTTTT,,TT,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,
+TT,,TTTTTTT,,,,,,,,,,,,,,,,,,,TT,,,TTTTTTTTT,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,
+TTT,,,TTTTTTTTTFFTTTFFFTTTFFTTTT,,,,TTT,,,TT,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,
+TTTT,,,,TTTTTTT,,TTTT,,,TT,,,TTT,,,,,TT,,,TT,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,
+TTT,,,,,,,,,,T,,,TTT,,,,T,,T,,T,,,T,,,TT,,T,,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,
+TT,,,TT,,TTT,,,T,,T,,T,,,,,TT,,,TTTT,,TT,TT,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,
+TT,,TTTTTTTT,TTTT,,,,TT,,,TTT,,,,TTTT,,,,TTT,,,,,,,,,,,,,,,},},,,,,,,,,,,,,,
+TT,,,,,TTT,,TTTT,,,,,TTTTTTT,,,,,,,T,,,,TT,T,,,,,,,,,,,,,,},,,}},,,,,,,,,,,,
+TTT,,,,,TT,,TTTT,,TT,,,,TT,,,,TT,,,,,,TTTTT,,,,,,,,,,,,,,,},,,,,}},,,,,,,,,,
+TTTTTT,,TTTTTTTTTTTTTT,,,,,,TTTTT,,,TTTTT,T,,,,,,,,,,,,,,},,,,,,,,}}},,,,,,,
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT,,T,,,,,,,,,,,,},,,,,,,,,,,,},,,,,,
 ENDMAP
-# Dungeon Description
-REGION:(00,00,40,20),lit,"ordinary"
+REGION:(00,00,78,20),lit,"ordinary"
+REPLACE_TERRAIN:(43,00,47,20),'g','T',30%
+REPLACE_TERRAIN:(48,00,52,20),'g','T',15%
+REPLACE_TERRAIN:(53,00,78,20),'g','T',4%
+
 # Stairs
-STAIR:(10,10),down
+$rightedge = selection: line(78,00),(78,20)
+$dnstair = rndcoord($rightedge)
+STAIR:$dnstair,down
+
+# Guarantee a treeless path from the stair to the forest entry
+TERRAIN:(randline $dnstair, (43,09), 6), 'g'
+
 # Portal arrival point; just about anywhere on the right hand side of the map
 BRANCH:levregion(51,2,77,18),(0,0,40,20)
-# Orion
+
+# Altar (entry text says there's one here)
+ALTAR:(11,10),coaligned,altar
+
+# Orion and his faithful dog
 MONSTER:('@',"Orion"),(20,10)
+MONSTER:('d',"large dog"),(20,11),"Sirius",peaceful
 # The treasure of Orion
-OBJECT:('(',"chest"),(20,10)
+CONTAINER:('(',"chest"), not_trapped,(20,10) {
+  OBJECT:(')',"bow"),blessed
+  OBJECT:(')',"arrow"),+2,quantity:40
+  OBJECT:random
+  OBJECT:random
+  OBJECT:random
+  OBJECT:random
+  OBJECT:random
+  OBJECT:random
+}
+
 # Guards for the audience chamber
 MONSTER:('@',"hunter"),(19,09)
 MONSTER:('@',"hunter"),(20,09)
@@ -54,19 +78,25 @@ MONSTER:('@',"hunter"),(21,09)
 MONSTER:('@',"hunter"),(19,10)
 MONSTER:('@',"hunter"),(21,10)
 MONSTER:('@',"hunter"),(19,11)
-MONSTER:('@',"hunter"),(20,11)
+MONSTER:('@',"hunter"),(20,12)
 MONSTER:('@',"hunter"),(21,11)
-# Non diggable walls
+
+# Non diggable trees
 NON_DIGGABLE:(00,00,40,20)
+
 # Traps
-TRAP:"arrow",(30,09)
 TRAP:"arrow",(30,10)
 TRAP:"pit",(40,09)
 TRAP:"spiked pit",random
 TRAP:"bear",random
 TRAP:"bear",random
+
+# A few other scattered objects
+LOOP [2 + 1d3] {
+  OBJECT:random,random
+}
+
 # Monsters on siege duty.
-MONSTER: ('H',"minotaur"),(33,09),hostile,asleep
 MONSTER: ('C',"forest centaur"),(19,03),hostile
 MONSTER: ('C',"forest centaur"),(19,04),hostile
 MONSTER: ('C',"forest centaur"),(19,05),hostile
@@ -93,7 +123,6 @@ MONSTER: ('C',"plains centaur"),random,hostile
 MONSTER: ('C',"plains centaur"),random,hostile
 MONSTER: ('s',"scorpion"),random,hostile
 MONSTER: ('s',"scorpion"),random,hostile
-
 
 #
 #	The "locate" level for the quest.
@@ -295,6 +324,7 @@ WALLIFY
 #
 
 MAZE: "Ran-fila" , ' '
+FLAGS: outdoors
 INIT_MAP: mines, '.' , 'T', true, true, random, true
 NOMAP
 #

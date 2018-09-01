@@ -1325,12 +1325,12 @@ d_level *lev;
                           && sstairs.sx && sstairs.up));
 }
 
+/* Are we on a level that has a ceiling above us? */
 boolean
-has_ceiling(lev)
-d_level *lev;
+ceiling_exists()
 {
-    /* [what about level 1 of the quest?] */
-    return (boolean) (!Is_airlevel(lev) && !Is_waterlevel(lev));
+    return !(Is_airlevel(&u.uz) || Is_waterlevel(&u.uz)
+             || level.flags.outdoors);
 }
 
 /*

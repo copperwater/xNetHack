@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Tou-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: noteleport,hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 .......}}....---------..-------------------------------------------------...
@@ -113,11 +113,11 @@ MONSTER:('@',"guide"),(66,04)
 MONSTER:('@',"watchman"),(35,08)
 MONSTER:('@',"watchman"),(36,08)
 # river monsters
-MONSTER:(';',"giant eel"),(62,12)
-MONSTER:(';',"piranha"),(47,10)
-MONSTER:(';',"piranha"),(29,11)
-MONSTER:(';',"kraken"),(34,09)
-MONSTER:(';',"kraken"),(37,09)
+MONSTER:('z',"giant eel"),(62,12)
+MONSTER:('z',"piranha"),(47,10)
+MONSTER:('z',"piranha"),(29,11)
+MONSTER:('z',"kraken"),(34,09)
+MONSTER:('z',"kraken"),(37,09)
 # Random traps
 TRAP:random,random
 TRAP:random,random

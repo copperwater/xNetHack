@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Arc-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: noteleport,hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 ............................................................................
@@ -84,9 +84,9 @@ MONSTER:('@',"student"),(28,11)
 MONSTER:('@',"watchman"),(50,06)
 MONSTER:('@',"watchman"),(50,14)
 # Eels in the moat
-MONSTER:(';',"giant eel"),(20,10)
-MONSTER:(';',"giant eel"),(45,04)
-MONSTER:(';',"giant eel"),(33,16)
+MONSTER:('z',"giant eel"),(20,10)
+MONSTER:('z',"giant eel"),(45,04)
+MONSTER:('z',"giant eel"),(33,16)
 # Non diggable walls
 NON_DIGGABLE:(00,00,75,19)
 # Random traps
@@ -118,7 +118,7 @@ MONSTER: 'S',(10,19)
 #
 
 MAZE: "Arc-loca",' '
-FLAGS: hardfloor
+FLAGS: hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 ............................................................................

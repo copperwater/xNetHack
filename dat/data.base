@@ -1485,7 +1485,6 @@ electric eel
 	water, and earth.  Some mystics have postulated the necessity
 	for a fifth type, the spirit elemental, but none have ever
 	been encountered, at least on this plane of existence.
-~human or elf*
 ~elf ??m*
 *elf*
 elvenking
@@ -2370,8 +2369,7 @@ humanoid
 	tribal nature, and will fiercely defend their lairs.  Usually
 	hostile, they may even band together to raid and pillage
 	human settlements.
-# takes "human or elf or you" when specifying '@' as a dwarf, gnome, or orc
-human
+# takes "human or you" when specifying '@' as a dwarf, gnome, or orc
 chieftain
 guard
 ninja
@@ -2380,7 +2378,7 @@ ronin
 student
 warrior
 *watch*
-human or elf*
+human*
 	These strange creatures live mostly on the surface of the
 	earth, gathering together in societies of various forms, but
 	occasionally a stray will descend into the depths and commit
@@ -5428,17 +5426,17 @@ web
 	When first we practise to deceive!
 		[ Marmion, by Sir Walter Scott ]
 whistle
-	There were legends both on the front and on the back of the 
+	There were legends both on the front and on the back of the
 	whistle. The one read thus:
 
-	FLA FUR BIS FLE The other: QUIS EST ISTE QUI VENIT 
-	'I ought to be able to make it out,' he thought; 
-	'but I suppose I am a little rusty in my Latin. 
-	When I come to think of it, I don't believe I even 
-	know the word for a whistle. The long one does seem 
-	simple enough. It ought to mean, "Who is this who is coming?" 
+	FLA FUR BIS FLE The other: QUIS EST ISTE QUI VENIT
+	'I ought to be able to make it out,' he thought;
+	'but I suppose I am a little rusty in my Latin.
+	When I come to think of it, I don't believe I even
+	know the word for a whistle. The long one does seem
+	simple enough. It ought to mean, "Who is this who is coming?"
 
-	Well, the best way to find out is evidently to whistle 
+	Well, the best way to find out is evidently to whistle
 	for him.'
 
 		[Ghost Stories of an Antiquary, by Montague Rhodes James
@@ -5631,6 +5629,3 @@ yumi
 	mechanical semblance of life, -- it is a dead body which is
 	made to walk and act and move as if it were alive.
 		[ W. B. Seabrook ]
-zruty
-	The zruty are wild and gigantic beings, living in the
-	wildernesses of the Tatra mountains.

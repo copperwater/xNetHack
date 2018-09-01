@@ -117,7 +117,7 @@ FILE *orig_yyin = NULL;
 		  map_cnt = 0;
 		  return MAP_ID;
 		}
-<MAPC>[-|}{+xABCISHKPLWTF\\#. 0123456789]*\r?\n	{
+<MAPC>[-|}{+xABCISHKPLWTFg\\#., 0123456789]*\r?\n	{
 		  int len = yyleng;
 		  savetoken(yytext);
 		  /* convert \r\n to \n */
@@ -163,6 +163,7 @@ BRANCH		ST_RET(BRANCH_ID);
 FOUNTAIN	ST_RET(FOUNTAIN_ID);
 SINK		ST_RET(SINK_ID);
 POOL		ST_RET(POOL_ID);
+TREE		ST_RET(TREE_ID);
 NON_DIGGABLE	ST_RET(NON_DIGGABLE_ID);
 NON_PASSWALL	ST_RET(NON_PASSWALL_ID);
 IF		ST_RET(IF_ID);
@@ -309,6 +310,7 @@ icedpools	{ savetoken(yytext); yylval.i=ICEDPOOLS; return FLAG_TYPE; }
 solidify	{ savetoken(yytext); yylval.i=SOLIDIFY; return FLAG_TYPE; }
 corrmaze        { savetoken(yytext); yylval.i=CORRMAZE; return FLAG_TYPE; }
 inaccessibles   { savetoken(yytext); yylval.i=CHECK_INACCESSIBLES; return FLAG_TYPE; }
+outdoors        { savetoken(yytext); yylval.i=OUTDOORS; return FLAG_TYPE; }
 [0-9]+d[0-9]+	{ char *p = index(yytext, 'd');
 		  savetoken(yytext);
 		  if (p) {

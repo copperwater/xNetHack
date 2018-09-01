@@ -226,7 +226,7 @@ register int x, y;
     else if (Is_waterlevel(&u.uz))
         /* water plane has no surface; its air bubbles aren't below sky */
         what = "water above";
-    else if (IS_AIR(lev->typ))
+    else if (!ceiling_exists())
         what = "sky";
     else if (Underwater)
         what = "water's surface";

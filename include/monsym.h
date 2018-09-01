@@ -37,7 +37,7 @@ enum mon_class_types {
     S_WORM,
     S_XAN,
     S_LIGHT,
-    S_ZRUTY,
+    S_EEL,
     S_ANGEL,
     S_BAT,
     S_CENTAUR,
@@ -54,11 +54,11 @@ enum mon_class_types {
     S_NAGA,
     S_OGRE,
     S_PUDDING,
-    S_QUANTMECH,
+    S_ELF,
     S_RUSTMONST,
     S_SNAKE,
     S_TROLL,
-    S_UMBER,
+    S_ABERRATION,
     S_VAMPIRE,
     S_WRAITH,
     S_XORN,
@@ -67,7 +67,6 @@ enum mon_class_types {
     S_HUMAN,
     S_GOLEM,
     S_DEMON,
-    S_EEL,
 
     S_WORM_TAIL,
     S_MIMIC_DEF,
@@ -105,7 +104,7 @@ enum mon_class_types {
 #define DEF_WORM        'w'
 #define DEF_XAN         'x'
 #define DEF_LIGHT       'y'
-#define DEF_ZRUTY       'z'
+#define DEF_EEL         'z'
 #define DEF_ANGEL       'A'
 #define DEF_BAT         'B'
 #define DEF_CENTAUR     'C'
@@ -121,11 +120,11 @@ enum mon_class_types {
 #define DEF_NAGA        'N'
 #define DEF_OGRE        'O'
 #define DEF_PUDDING     'P'
-#define DEF_QUANTMECH   'Q'
+#define DEF_ELF         'Q'
 #define DEF_RUSTMONST   'R'
 #define DEF_SNAKE       'S'
 #define DEF_TROLL       'T'
-#define DEF_UMBER       'U'
+#define DEF_ABERRATION  'U'
 #define DEF_VAMPIRE     'V'
 #define DEF_WRAITH      'W'
 #define DEF_XORN        'X'
@@ -134,7 +133,6 @@ enum mon_class_types {
 #define DEF_HUMAN       '@'
 #define DEF_GOLEM       '\''
 #define DEF_DEMON       '&'
-#define DEF_EEL         ';'
 
 #define DEF_INVISIBLE   'I'
 #define DEF_WORM_TAIL   '~'

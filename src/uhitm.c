@@ -174,13 +174,19 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
             return FALSE;
         }
         if (!((Blind ? Blind_telepat : Unblind_telepat) || Detect_monsters)) {
-            struct obj *obj;
-
-            if (Blind || (is_pool(mtmp->mx, mtmp->my) && !Underwater))
+            if (Hallucination) {
+                pline("A wild %s appeared!", l_monnam(mtmp));
+                return TRUE;
+            }
+            if (Blind || (is_pool(mtmp->mx, mtmp->my) && !Underwater)) {
                 pline("Wait!  There's a hidden monster there!");
-            else if ((obj = level.objects[mtmp->mx][mtmp->my]) != 0)
-                pline("Wait!  There's %s hiding under %s!",
-                      an(l_monnam(mtmp)), doname(obj));
+            }
+            else if (concealed_spot(mtmp->mx, mtmp->my)) {
+                struct obj *obj = level.objects[mtmp->mx][mtmp->my];
+                pline("Wait!  There's %s hiding under %s%s!", an(l_monnam(mtmp)),
+                      obj ? "" : "the ",
+                      obj ? doname(obj) : explain_terrain(mtmp->mx, mtmp->my));
+            }
             return TRUE;
         }
     }
@@ -207,6 +213,16 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
                 context.move = 0;
                 return TRUE;
             }
+        }
+    }
+
+    /* Prompt for a non-beginner hitting with a wielded weapon for the first
+     * time */
+    if (wep && (wep->oclass == WEAPON_CLASS || is_weptool(wep))
+            && !u.uconduct.weaphit && !flags.beginner) {
+        if (!paranoid_query(TRUE, "Break weaponless conduct?")) {
+            context.move = 0;
+            return TRUE;
         }
     }
 

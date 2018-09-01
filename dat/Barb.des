@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Bar-strt",' '
-FLAGS: noteleport,hardfloor
+FLAGS: noteleport,hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 ..................................PP........................................
@@ -84,9 +84,9 @@ NON_DIGGABLE:(00,00,75,19)
 # One trap to keep the ogres at bay.
 TRAP:"spiked pit",(37,07)
 # Eels in the river
-MONSTER:(';',"giant eel"),(36,01)
-MONSTER:(';',"giant eel"),(37,09)
-MONSTER:(';',"giant eel"),(39,15)
+MONSTER:('z',"giant eel"),(36,01)
+MONSTER:('z',"giant eel"),(37,09)
+MONSTER:('z',"giant eel"),(39,15)
 # Monsters on siege duty.
 MONSTER:('O',"ogre"),(40,08),hostile
 MONSTER:('O',"ogre"),(41,06),hostile
@@ -108,7 +108,7 @@ MONSTER:('O',"ogre"),(42,10),hostile
 #
 
 MAZE: "Bar-loca",' '
-FLAGS: hardfloor
+FLAGS: hardfloor,outdoors
 GEOMETRY:center,center
 MAP
 ..........PPP.........................................                      
@@ -314,11 +314,39 @@ WALLIFY
 #
 
 MAZE: "Bar-fila" , ' '
+FLAGS: outdoors, hardfloor, inaccessibles
 INIT_MAP: mines, '.' , '.' , true , true , unlit , false
 NOMAP
+
+# light it up
+REGION:(00,00,75,19),lit,"ordinary"
+
+# let's make some mesa-like rock promontories
+$mesa_centers = selection: fillrect(08,00,72,20)
+LOOP [12 + 1d4] {
+  # gradients are non-invertible so have to do some selection magic to flip it
+  $center = rndcoord($mesa_centers)
+  $rock = selection: complement gradient(radial, (0 , 3, limited), $center)
+  $overlap = selection: circle($center,3,unfilled)
+  IF [50%] {
+      $rock = selection: grow(north,filter($rock, $overlap))
+  }
+  ELSE {
+      $rock = selection: grow(east,filter($rock, $overlap))
+  }
+  $rock = selection: grow($rock)
+  TERRAIN:$rock, ' '
+}
 #
-STAIR: random, up
-STAIR: random, down
+$leftedge = selection: line(00,00),(00,20)
+$rightedge = selection: line(78,00),(78,20)
+$upstair = rndcoord($leftedge)
+$dnstair = rndcoord($rightedge)
+# guarantee a way across the level
+TERRAIN:(randline $upstair,$dnstair,10),'.'
+
+STAIR: $upstair, up
+STAIR: $dnstair, down
 #
 OBJECT: random, random
 OBJECT: random, random
@@ -338,6 +366,9 @@ MONSTER: ('O', "ogre"), random, hostile
 MONSTER: ('O', "ogre"), random, hostile
 MONSTER: 'O', random, hostile
 MONSTER: ('T', "rock troll"), random, hostile
+
+# wallify the rock promontories
+WALLIFY
 
 MAZE: "Bar-filb" , ' '
 INIT_MAP: mines, '.' , ' ' , true , true , unlit , true

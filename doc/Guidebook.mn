@@ -3890,7 +3890,7 @@ $	S_coin	(pile of coins)
 >	S_dnstair	(staircase down)
 d	S_dog	(dog or other canine)
 D	S_dragon	(dragon)
-;	S_eel	(sea monster)
+z	S_eel	(sea monster)
 E	S_elemental	(elemental)
 "       S_engraving     (engraving on the floor)
 /	S_explode1	(explosion top left)
@@ -3914,6 +3914,7 @@ F	S_fungus	(fungus or mold)
 H	S_giant	(giant humanoid)
 G	S_gnome	(gnome)
 '	S_golem	(golem)
+,       S_grass (grass)
 |	S_grave	(grave)
 g	S_gremlin	(gremlin)
 \-	S_hbeam	(horizontal beam [zap animation])
@@ -3922,7 +3923,7 @@ g	S_gremlin	(gremlin)
 \.	S_hodbridge	(horizontal lowered drawbridge)
 |	S_hodoor	(open door in horizontal wall)
 \(ha	S_hole	(hole)
-@	S_human	(human or elf)
+@	S_human	(human)
 h	S_humanoid	(humanoid)
 \-	S_hwall	(horizontal wall)
 \.	S_ice	(ice)
@@ -3955,7 +3956,7 @@ p	S_piercer	(piercer)
 !	S_potion	(potion)
 P	S_pudding	(pudding or ooze)
 q	S_quadruped	(quadruped)
-Q	S_quantmech	(quantum mechanic)
+Q	S_elf	(elf)
 \&=	S_ring	(ring)
 \`	S_rock	(boulder or statue)
 r	S_rodent	(rodent)
@@ -3999,7 +4000,7 @@ t	S_trapper	(trapper or lurker above)
 T	S_troll	(troll)
 |	S_trwall	(wall)
 \-	S_tuwall	(wall)
-U	S_umber	(umber hulk)
+U	S_aberration	(aberration)
 u	S_unicorn	(unicorn or horse)
 <	S_upladder	(ladder up)
 <	S_upstair	(staircase up)
@@ -4024,7 +4025,6 @@ x	S_xan	(xan or other mythical/fantastic insect)
 X	S_xorn	(xorn)
 Y	S_yeti	(apelike creature)
 Z	S_zombie	(zombie)
-z	S_zruty	(zruty)
 .\"TABLE_END  Do not delete this line.
 .TE
 .pg
@@ -4499,8 +4499,8 @@ passed away. NetHack 3.6.0 introduced a tribute to him.
 team since the release of 3.4.3 with some of the beloved community
 patches. Many bugs were fixed and some code was restructured.
 .pg
-In late April 2018, several hundred bug fixes for 3.6.0 and 
-some new features were assembled and released as NetHack 3.6.1. 
+In late April 2018, several hundred bug fixes for 3.6.0 and
+some new features were assembled and released as NetHack 3.6.1.
 The development team at the time of release of 3.6.1 consisted of
 \fBWarwick Allison\fP, \fBMichael Allison\fP, \fBKen Arromdee\fP,
 \fBDavid Cohrs\fP, \fBJessie Collet\fP, \fBPasi Kallinen\fP,
@@ -4537,10 +4537,10 @@ SPECIAL THANKS
 .pg
 On behalf of the NetHack community, thank you very much once
 again to \fBM. Drew Streib\fP, \fBPasi Kallinen\fP for providing a
-public NetHack server at nethack.alt.org. Thanks to \fBKeith Simpson\fP 
-and \fBAndy Thomson\fP for hardfought.org. Thanks to all those 
-unnamed dungeoneers who invest their time and effort into annual 
-NetHack tournaments such as Junehack and in days past, 
+public NetHack server at nethack.alt.org. Thanks to \fBKeith Simpson\fP
+and \fBAndy Thomson\fP for hardfought.org. Thanks to all those
+unnamed dungeoneers who invest their time and effort into annual
+NetHack tournaments such as Junehack and in days past,
 devnull.net (gone for now, but not forgotten).
 .pg
 .ce

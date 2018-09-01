@@ -79,6 +79,7 @@ start: IBMgraphics
 	S_fountain: \xf4		# meta-t, integral top half
 	S_pool: \xf7			# meta-w, approx. equals
 	S_ice: \xfa			# meta-z, centered dot
+	S_grass: \xfa			# meta-z, centered dot
 	S_lava: \xf7			# meta-w, approx. equals
 	S_vodbridge: \xfa 		# meta-z, centered dot
 	S_hodbridge: \xfa		# meta-z, centered dot
@@ -332,6 +333,7 @@ start: NHAccess
 	S_fountain: \126
 	S_pool: \042
 	S_ice: \042
+	S_grass: \042
 	S_lava: \035
 	S_vodbridge: \035
 	S_hodbridge: \032
@@ -451,6 +453,7 @@ start: Blank
         S_giant: \032
         S_gnome: \032
         S_golem: \032
+        S_grass: \032
         S_grave: \032
         S_gremlin: \032
         S_hbeam: \032
@@ -495,7 +498,7 @@ start: Blank
         S_potion: \032
         S_pudding: \032
         S_quadruped: \032
-        S_quantmech: \032
+        S_elf: \032
         S_ring: \032
         S_rock: \032
         S_rodent: \032
@@ -539,7 +542,7 @@ start: Blank
         S_troll: \032
         S_trwall: \032
         S_tuwall: \032
-        S_umber: \032
+        S_aberration: \032
         S_unicorn: \032
         S_upladder: \032
         S_upstair: \032
@@ -564,7 +567,6 @@ start: Blank
         S_xorn: \032
         S_yeti: \032
         S_zombie: \032
-        S_zruty: \032
 finish
 
 start: plain

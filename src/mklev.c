@@ -715,6 +715,7 @@ int trap_type;
                     if (!rn2(5) && IS_WALL(levl[xx][yy].typ)) {
                         levl[xx][yy].typ = IRONBARS;
                         if (rn2(3))
+                            /* For the love of God, Montresor! */
                             (void) mkcorpstat(CORPSE, (struct monst *) 0,
                                               mkclass(S_HUMAN, 0), xx,
                                               yy + dy, TRUE);
@@ -1662,6 +1663,11 @@ coord *tm;
                 if (rn2(7))
                     kind = NO_TRAP;
                 break;
+            case RUST_TRAP:
+            case ROCKTRAP:
+                /* certain traps that rely on a ceiling to make sense */
+                if (!ceiling_exists())
+                    kind = NO_TRAP;
             }
         } while (kind == NO_TRAP);
     }
@@ -1944,13 +1950,28 @@ struct mkroom *croom;
         register struct obj *otmp;
         boolean dobell = !rn2(10);
 
+        /* Put a grave at <m.x,m.y> */
+        make_grave(m.x, m.y, dobell ? "Saved by the bell!" : (char *) 0);
+
         /* Possibly fill it with objects */
-        if (!rn2(3))
-            (void) mkgold(0L, m.x, m.y);
+        if (!rn2(3)) {
+            /* this used to use mkgold(), which puts a stack of gold on
+            the ground (or merges it with an existing one there if
+            present), and didn't bother burying it; now we create a
+            loose, easily buriable, stack but we make no attempt to
+            replicate mkgold()'s level-based formula for the amount */
+            struct obj *gold = mksobj(GOLD_PIECE, TRUE, FALSE);
+
+            gold->quan = (long) (rnd(20) + level_difficulty() * rnd(5));
+            gold->owt = weight(gold);
+            gold->ox = m.x, gold->oy = m.y;
+            add_to_buried(gold);
+        }
+
         for (tryct = rn2(5); tryct; tryct--) {
             otmp = mkobj(RANDOM_CLASS, TRUE);
             if (!otmp)
-                return;
+                break;
             curse(otmp);
             otmp->ox = m.x;
             otmp->oy = m.y;

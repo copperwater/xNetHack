@@ -151,7 +151,8 @@ struct monst *mtmp;
             && ((u.ux == x && u.uy == y)
                 || (Displaced && mtmp->mux == x && mtmp->muy == y))
             && !(mtmp->isshk || mtmp->isgd || !mtmp->mcansee
-                 || mtmp->mpeaceful || mtmp->data->mlet == S_HUMAN
+                 || mtmp->mpeaceful
+                 || mtmp->data->mlet == S_HUMAN || mtmp->data->mlet == S_ELF
                  || mtmp->data == &mons[PM_MINOTAUR]
                  || Inhell || In_endgame(&u.uz)));
 }
@@ -771,8 +772,6 @@ register int after;
             finish_meating(mtmp);
         return 3; /* still eating */
     }
-    if (hides_under(ptr) && OBJ_AT(mtmp->mx, mtmp->my) && rn2(10))
-        return 0; /* do not leave hiding place */
 
     set_apparxy(mtmp);
     /* where does mtmp think you are? */
@@ -1196,6 +1195,13 @@ not_special:
             return 3;
         }
 
+        /* hiding-under monsters will attack things from their hiding spot but
+         * are less likely to venture out */
+        if (hides_under(ptr) && concealed_spot(mtmp->mx, mtmp->my)
+            && !concealed_spot(nix, niy) && rn2(10)) {
+            return 0;
+        }
+
         if ((info[chi] & ALLOW_MDISP)) {
             struct monst *mtmp2;
             int mstatus;
@@ -1393,6 +1399,31 @@ postmov:
         }
     }
     return mmoved;
+}
+
+/* Return 1 or 2 if a hides_under monster can conceal itself at this spot.
+ * If the monster can hide under an object, return 2.
+ * Otherwise, monsters can hide in grass and under some types of dungeon
+ * furniture. If no object is available but the terrain is suitable, return 1.
+ * Return 0 if the monster can't conceal itself.
+ */
+int
+concealed_spot(x, y)
+register int x, y;
+{
+    if (OBJ_AT(x, y))
+        return 2;
+    switch (levl[x][y].typ) {
+    case GRASS:
+    case SINK:
+    case ALTAR:
+    case THRONE:
+    case LADDER:
+    case GRAVE:
+        return 1;
+    default:
+        return 0;
+    }
 }
 
 void

@@ -194,7 +194,8 @@ extern char curr_token[512];
 %token	<i> MAZEWALK_ID WALLIFY_ID REGION_ID FILLING IRREGULAR JOINED
 %token	<i> ALTAR_ID LADDER_ID STAIR_ID NON_DIGGABLE_ID NON_PASSWALL_ID ROOM_ID
 %token	<i> PORTAL_ID TELEPRT_ID BRANCH_ID LEV MINERALIZE_ID
-%token	<i> CORRIDOR_ID GOLD_ID ENGRAVING_ID FOUNTAIN_ID POOL_ID SINK_ID NONE
+%token	<i> CORRIDOR_ID GOLD_ID ENGRAVING_ID FOUNTAIN_ID POOL_ID TREE_ID
+%token  <i> SINK_ID NONE
 %token	<i> RAND_CORRIDOR_ID DOOR_STATE DOOR_FLAGS LIGHT_STATE CURSE_TYPE
 %token	<i> ENGRAVING_TYPE DIRECTION RANDOM_TYPE RANDOM_TYPE_BRACKET A_REGISTER
 %token	<i> ALIGNMENT LEFT_OR_RIGHT CENTER TOP_OR_BOT ALTAR_TYPE UP_OR_DOWN
@@ -498,6 +499,7 @@ levstatement 	: message
 		| object_detail
 		| passwall_detail
 		| pool_detail
+                | tree_detail
 		| portal_region
 		| random_corridors
 		| region_detail
@@ -1828,6 +1830,12 @@ pool_detail : POOL_ID ':' ter_selection
 		  }
 		;
 
+tree_detail : TREE_ID ':' ter_selection
+		  {
+		      add_opvars(splev, "o", VA_PASS1(SPO_TREE));
+		  }
+		;
+
 terrain_type	: CHAR
 		  {
 		      $$.lit = -2;
@@ -2552,7 +2560,7 @@ ter_selection_x	: coord_or_var
 		  {
 		      add_opvars(splev, "io", VA_PASS2($9, SPO_SEL_ELLIPSE));
 		  }
-		| gradient_ID '(' GRADIENT_TYPE ',' '(' math_expr_var '-' math_expr_var opt_limited ')' ',' coord_or_var opt_coord_or_var ')'
+		| gradient_ID '(' GRADIENT_TYPE ',' '(' math_expr_var ',' math_expr_var opt_limited ')' ',' coord_or_var opt_coord_or_var ')'
 		  {
 		      add_opvars(splev, "iio",
 				 VA_PASS3($9, $3, SPO_SEL_GRADIENT));

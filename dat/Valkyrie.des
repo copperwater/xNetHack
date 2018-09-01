@@ -9,7 +9,7 @@
 #	and receive your quest assignment.
 #
 MAZE: "Val-strt",' '
-FLAGS: noteleport,hardfloor,icedpools
+FLAGS: noteleport,hardfloor,icedpools,outdoors
 INIT_MAP:solidfill,'I'
 
 $pools = selection: random & random & random & random & random &
@@ -101,7 +101,7 @@ MONSTER: ('H',"fire giant"),(10,16),hostile
 #
 
 MAZE: "Val-loca",' '
-FLAGS: hardfloor,icedpools
+FLAGS: hardfloor,icedpools,outdoors
 INIT_MAP: mines, '.', 'I', true, true, lit, false
 GEOMETRY:center,center
 MAP

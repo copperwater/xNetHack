@@ -1858,7 +1858,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
     }
     case SCR_EARTH:
         /* TODO: handle steeds */
-        if (!Is_rogue_level(&u.uz) && has_ceiling(&u.uz)
+        if (!Is_rogue_level(&u.uz) && ceiling_exists()
             && (!In_endgame(&u.uz) || Is_earthlevel(&u.uz))) {
             register int x, y;
             int nboulders = 0;

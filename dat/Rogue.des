@@ -9,6 +9,8 @@
 #
 MAZE: "Rog-strt",' '
 FLAGS: noteleport, hardfloor, nommap
+# not outdoors because so much of the level is indoors: assume that the alleys
+# have lots of overhangs and bridges and things
 GEOMETRY:center,center
 #         1         2         3         4         5         6         7
 #123456789012345678901234567890123456789012345678901234567890123456789012345
@@ -370,10 +372,10 @@ MONSTER: ('l',"chameleon"),random,hostile
 MONSTER: ('l',"chameleon"),random,hostile
 MONSTER: ('l',"chameleon"),random,hostile
 MONSTER: ('l',"chameleon"),random,hostile
-MONSTER:(';',"shark"),(51,14),hostile
-MONSTER:(';',"shark"),(53,09),hostile
-MONSTER:(';',"shark"),(55,15),hostile
-MONSTER:(';',"shark"),(58,10),hostile
+MONSTER:('z',"shark"),(51,14),hostile
+MONSTER:('z',"shark"),(53,09),hostile
+MONSTER:('z',"shark"),(55,15),hostile
+MONSTER:('z',"shark"),(58,10),hostile
 
 #
 #	The "fill" level for the quest.

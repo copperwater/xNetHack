@@ -137,10 +137,16 @@ char *outbuf;
         Strcpy(outbuf, ", hiding");
         if (hides_under(mon->data)) {
             Strcat(outbuf, " under ");
-            /* remembered glyph, not glyph_at() which is 'mon' */
-            if (glyph_is_object(glyph))
-                goto objfrommap;
-            Strcat(outbuf, something);
+            int hidetyp = concealed_spot(x, y);
+            if (hidetyp == 1) { /* hiding with terrain */
+                Strcat(outbuf, explain_terrain(x, y));
+            }
+            else {
+                /* remembered glyph, not glyph_at() which is 'mon' */
+                if (glyph_is_object(glyph))
+                    goto objfrommap;
+                Strcat(outbuf, something);
+            }
         } else if (is_hider(mon->data)) {
             Sprintf(eos(outbuf), " on the %s",
                     (is_flyer(mon->data) || mon->data->mlet == S_PIERCER)
@@ -190,6 +196,10 @@ struct obj **obj_p;
             otmp->spe = context.current_fruit; /* give it a type */
         if (mtmp && has_mcorpsenm(mtmp)) /* mimic as corpse/statue */
             otmp->corpsenm = MCORPSENM(mtmp);
+        else if (otmp->otyp == CORPSE && glyph_is_body(glyph))
+            otmp->corpsenm = glyph - GLYPH_BODY_OFF;
+        else if (otmp->otyp == STATUE && glyph_is_statue(glyph))
+            otmp->corpsenm = glyph - GLYPH_STATUE_OFF;
     }
     /* if located at adjacent spot, mark it as having been seen up close
        (corpse type will be known even if dknown is 0, so we don't need a
@@ -698,6 +708,7 @@ struct permonst * pm;
         }
     }
 
+    /* inherent characteristics: "Monster is X." */
     APPENDC(!(gen & G_GENO), "ungenocideable");
     APPENDC(breathless(pm), "breathless");
     if (!breathless(pm))
@@ -721,9 +732,10 @@ struct permonst * pm;
         buf[0] = '\0';
     }
 
+    /* inherent abilities: "Monster can X." */
     APPENDC(hides_under(pm), "hide under objects");
-    if (!hides_under(pm))
-        APPENDC(is_hider(pm), "hide");
+    APPENDC(pm->mlet == S_MIMIC, "mimic objects and terrain");
+    APPENDC(is_hider(pm) && !(pm->mlet == S_MIMIC), "hide on the ceiling");
     APPENDC(is_swimmer(pm), "swim");
     if (!is_floater(pm))
         APPENDC(is_flyer(pm), "fly");
@@ -1583,7 +1595,7 @@ const char **firstmatch;
         if ((looked ? (sym == showsyms[S_HUMAN + SYM_OFF_M]
                        && cc.x == u.ux && cc.y == u.uy)
                     : (sym == def_monsyms[S_HUMAN].sym && !flags.showrace))
-            && !(Race_if(PM_HUMAN) || Race_if(PM_ELF)) && !Upolyd)
+            && !Race_if(PM_HUMAN) && !Upolyd)
             found += append_str(out_str, "you"); /* tack on "or you" */
     }
 
