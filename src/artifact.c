@@ -1966,6 +1966,14 @@ boolean loseit;    /* whether to drop it if hero can longer touch it */
             losehp(dmg, buf, KILLED_BY);
             exercise(A_CON, FALSE);
         }
+        /* concession to elves wishing to use iron gear: don't make them
+         * totally unable to use them. In fact, they can touch them just fine
+         * as long as they're willing to.
+         * In keeping with the flavor of searing vs just pain implemented
+         * everywhere else, only silver is actually unbearable -- other
+         * hated non-silver materials can be used too. */
+        if (!bane && !(hatemat && obj->material == SILVER))
+            return 1;
     }
 
     /* removing a worn item might result in loss of levitation,

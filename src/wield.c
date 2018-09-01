@@ -155,7 +155,9 @@ struct obj *wep;
         You("cannot wield a two-handed %s while wearing a shield.",
             is_sword(wep) ? "sword" : wep->otyp == BATTLE_AXE ? "axe"
                                                               : "weapon");
-    } else if (!retouch_object(&wep, FALSE)) {
+    } else if ((wep->oartifact || !uarmg) && !retouch_object(&wep, FALSE)) {
+        /* don't retouch and take material damage if it's a non-artifact object
+         * and you're wearing gloves */
         res++; /* takes a turn even though it doesn't get wielded */
     } else {
         /* Weapon WILL be wielded after this point */

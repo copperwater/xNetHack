@@ -211,7 +211,7 @@ WEAPON("tsurugi", "long samurai sword",
                                                             METAL, HI_METAL),
         /* +2d6 large */
 WEAPON("runesword", "runed broadsword",
-       0, 0, 0,  0,  40, 300,  4,  6, 0, S,   P_BROAD_SWORD, IRON, CLR_BLACK),
+       0, 0, 0,  0,  40, 300,  4,  6, 0, S,   P_BROAD_SWORD, METAL, CLR_BLACK),
         /* +d4 small, +1 large; Stormbringer: +5d2 +d8 from level drain */
 
 /* polearms */

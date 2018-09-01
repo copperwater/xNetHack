@@ -320,6 +320,11 @@ int material;
                           || is_demon(ptr) || ptr == &mons[PM_SHADE]
                           || (ptr->mlet == S_IMP));
     }
+    else if (material == IRON) {
+        /* cold iron: fairy/fae creatures hate it */
+        return (boolean) (ptr->mlet == S_ELF || ptr->mlet == S_NYMPH
+                          || ptr->mlet == S_IMP);
+    }
     return FALSE;
 }
 
