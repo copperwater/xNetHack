@@ -316,14 +316,20 @@ int material;
             if (ptr == &mons[PM_TENGU] || ptr == &mons[PM_LEPRECHAUN])
                 return FALSE;
         }
-        return (boolean) (is_were(ptr) || ptr->mlet == S_VAMPIRE
-                          || is_demon(ptr) || ptr == &mons[PM_SHADE]
-                          || (ptr->mlet == S_IMP));
+        return (is_were(ptr) || ptr->mlet == S_VAMPIRE
+                || is_demon(ptr) || ptr == &mons[PM_SHADE]
+                || (ptr->mlet == S_IMP));
     }
     else if (material == IRON) {
         /* cold iron: fairy/fae creatures hate it */
-        return (boolean) (ptr->mlet == S_ELF || ptr->mlet == S_NYMPH
-                          || ptr->mlet == S_IMP);
+        return (ptr->mlet == S_ELF || ptr->mlet == S_NYMPH
+                || ptr->mlet == S_IMP);
+    }
+    else if (material == COPPER) {
+        /* copper has antibacterial and antifungal properties,
+         * very good versus sickness, mold and decay */
+        return (ptr->mlet == S_FUNGUS || dmgtype(ptr, AD_DISE)
+                || dmgtype(ptr, AD_DCAY) || dmgtype(ptr, AD_PEST));
     }
     return FALSE;
 }
