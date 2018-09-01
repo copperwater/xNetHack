@@ -287,27 +287,55 @@ struct permonst *ptr;
     return FALSE;
 }
 
-/* True if specific monster is especially affected by silver weapons */
+/* True if specific monster is especially affected by weapons of the given
+ * material type */
 boolean
-mon_hates_silver(mon)
-struct monst *mon;
+mon_hates_material(mon, material)
+struct monst * mon;
+int material;
 {
-    return (boolean) (is_vampshifter(mon) || hates_silver(mon->data));
+    if (hates_material(mon->data, material))
+        return TRUE;
+
+    /* extra case: shapeshifted vampires still hate silver */
+    if (material == SILVER && is_vampshifter(mon))
+        return TRUE;
+    return FALSE;
 }
 
-/* True if monster-type is especially affected by silver weapons */
+/* True if monster-type is especially affected by weapons of the given material
+ * type */
 boolean
-hates_silver(ptr)
+hates_material(ptr, material)
 register struct permonst *ptr;
+int material;
 {
-    if (ptr->mlet == S_IMP) {
-        /* impish creatures that aren't actually demonic */
-        if (ptr == &mons[PM_TENGU] || ptr == &mons[PM_LEPRECHAUN])
-            return FALSE;
+    if (material == SILVER) {
+        if (ptr->mlet == S_IMP) {
+            /* impish creatures that aren't actually demonic */
+            if (ptr == &mons[PM_TENGU] || ptr == &mons[PM_LEPRECHAUN])
+                return FALSE;
+        }
+        return (boolean) (is_were(ptr) || ptr->mlet == S_VAMPIRE
+                          || is_demon(ptr) || ptr == &mons[PM_SHADE]
+                          || (ptr->mlet == S_IMP));
     }
-    return (boolean) (is_were(ptr) || ptr->mlet == S_VAMPIRE || is_demon(ptr)
-                      || ptr == &mons[PM_SHADE]
-                      || (ptr->mlet == S_IMP));
+    return FALSE;
+}
+
+/* Return amount of damage a monster will take from coming into contact with a
+ * material it hates. */
+int
+sear_damage(material)
+int material;
+{
+    switch (material) {
+    case SILVER:
+        return 20;
+    case IRON:
+    default:
+        return 6;
+    }
 }
 
 /* True iff the type of monster pass through iron bars */

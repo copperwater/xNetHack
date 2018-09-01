@@ -1468,8 +1468,9 @@ E boolean FDECL(resists_blnd, (struct monst *));
 E boolean
 FDECL(can_blnd, (struct monst *, struct monst *, UCHAR_P, struct obj *));
 E boolean FDECL(ranged_attk, (struct permonst *));
-E boolean FDECL(hates_silver, (struct permonst *));
-E boolean FDECL(mon_hates_silver, (struct monst *));
+E boolean FDECL(hates_material, (struct permonst *, int));
+E boolean FDECL(mon_hates_material, (struct monst *, int));
+E int FDECL(sear_damage, (int));
 E boolean FDECL(passes_bars, (struct permonst *));
 E boolean FDECL(can_blow, (struct monst *));
 E boolean FDECL(can_chant, (struct monst *));

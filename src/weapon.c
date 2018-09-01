@@ -359,8 +359,8 @@ struct monst *mon;
             bonus += rnd(4);
         if (is_axe(otmp) && is_wooden(ptr))
             bonus += rnd(4);
-        if (otmp->material == SILVER && mon_hates_silver(mon))
-            bonus += rnd(20);
+        if (mon_hates_material(mon, otmp->material))
+            bonus += rnd(sear_damage(otmp->material));
 
         /* if the weapon is going to get a double damage bonus, adjust
            this bonus so that effectively it's added after the doubling */
@@ -402,7 +402,7 @@ int x;
             && !((x == CORPSE || x == EGG)
                  && !touch_petrifies(&mons[otmp->corpsenm]))
             && (!otmp->oartifact || touch_artifact(otmp, mtmp))
-            && !(otmp->material == SILVER && mon_hates_silver(mtmp)))
+            && !mon_hates_material(mtmp, otmp->material))
             return otmp;
     }
     return (struct obj *) 0;
@@ -466,7 +466,7 @@ register struct monst *mtmp;
                  || !objects[pwep[i]].oc_bimanual) {
                 if ((otmp = oselect(mtmp, pwep[i])) != 0
                     && (otmp == mwep || !mweponly)
-                    && !(otmp->material == SILVER && mon_hates_silver(mtmp))) {
+                    && !mon_hates_material(mtmp, otmp->material)) {
                     propellor = otmp; /* force the monster to wield it */
                     return otmp;
                 }
@@ -573,7 +573,7 @@ register struct monst *mtmp;
             && touch_artifact(otmp, mtmp)
             && ((strong && !wearing_shield)
                 || !objects[otmp->otyp].oc_bimanual)
-            && !(otmp->material == SILVER && mon_hates_silver(mtmp)))
+            && !mon_hates_material(mtmp, otmp->material))
             return otmp;
     }
 

@@ -1006,10 +1006,14 @@ register struct attack *mattk;
 
                 if (!dmg)
                     break;
-                if (otmp->material == SILVER && Hate_silver) {
-                    pline_The("silver sears your flesh!");
+                if (Hate_material(otmp->material)) {
+                    if (otmp->material == SILVER)
+                        pline_The("silver sears your flesh!");
+                    else
+                        You("flinch at the touch of %s!",
+                            materialnm[otmp->material]);
                     exercise(A_CON, FALSE);
-                    dmg += rnd(20);
+                    dmg += rnd(sear_damage(otmp->material));
                 }
                 /* this redundancy necessary because you have
                    to take the damage _before_ being cloned;
@@ -1658,21 +1662,27 @@ register struct attack *mattk;
     case AT_HUGS:
         {
             struct obj *marmg = which_armor(mtmp, W_ARMG);
-            if (marmg && marmg->material == SILVER && Hate_silver) {
+            if (marmg && Hate_material(marmg->material)) {
                 /* assume that marmg is plural */
-                pline("%s sear your flesh!", upstart(yname(marmg)));
+                if (marmg->material == SILVER)
+                    pline("%s sear your flesh!", upstart(yname(marmg)));
+                else
+                    You("flinch at the touch of %s!", yname(marmg));
                 exercise(A_CON, FALSE);
-                dmg += rnd(20);
+                dmg += rnd(sear_damage(marmg->material));
             }
         }
         break;
     case AT_KICK:
         {
             struct obj * marmf = which_armor(mtmp, W_ARMF);
-            if (marmf && marmf->material == SILVER && Hate_silver) {
-                pline("%s sear your flesh!", upstart(yname(marmf)));
+            if (marmf && Hate_material(marmf->material)) {
+                if (marmf->material == SILVER)
+                    pline("%s sear your flesh!", upstart(yname(marmf)));
+                else
+                    You("flinch at the touch of %s!", yname(marmf));
                 exercise(A_CON, FALSE);
-                dmg += rnd(20);
+                dmg += rnd(sear_damage(marmf->material));
             }
         }
     }
