@@ -120,8 +120,26 @@ int type;
         talk = FALSE;
 #endif
     if (xtime > 0L) {
+        int copperarmor = 0;
+        struct obj* otmp;
         if (Sick_resistance)
             return;
+
+        /* Copper's anti-microbial properties make it effective in warding off
+         * sickness. */
+        for (otmp = invent; otmp; otmp = otmp->nobj) {
+            if ((otmp->owornmask & W_ARMOR) && otmp->material == COPPER) {
+                copperarmor++;
+            }
+        }
+        if (rn2(5) < copperarmor) {
+            /* practially, someone could have copper helm, boots, body armor,
+             * shield, gloves. If they're *all* copper, you're immune to
+             * sickness. */
+            You_feel("briefly ill.");
+            return;
+        }
+
         if (!old) {
             /* newly sick */
             You_feel("deathly sick.");
