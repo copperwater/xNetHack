@@ -1509,7 +1509,7 @@ const int matac[] = {
      3,  // PLASTIC
      5,  // GLASS
      7,  // GEMSTONE
-     8   // MINERAL
+     6   // MINERAL
 };
 
 /* Compute the bonus or penalty to AC an armor piece should get for being a
