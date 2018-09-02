@@ -71,6 +71,8 @@ Copper antimicrobialness resists sickness: for each piece of copper armor you
 Object material densities have been overhauled because the "ultra realistic"
   ones did not make for good gameplay. They are now arbitrary units that will
   hopefully preserve some realism while still making for good gameplay.
+You can now refresh your memory with a spellbook whenever you want, rather than
+  forcing you to wait until it dips below 10% retention.
 
 It contains the following non-gameplay interface changes:
 
