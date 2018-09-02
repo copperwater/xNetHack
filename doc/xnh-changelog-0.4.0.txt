@@ -86,6 +86,8 @@ The livelogging patch is extended to include arising from the dead or slime as
 The #terrain command works while hallucinating, confused or stunned.
 Cursed scrolls of remove curse no longer give "You feel like someone is helping
   you", since they don't practically uncurse anything.
+The spell menu now shows the exact number of turns of spell memory you have in
+  the "Retention" column, rather than vague percentages.
 
 It contains the following non-gameplay architectural changes:
 

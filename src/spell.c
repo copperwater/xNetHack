@@ -39,7 +39,6 @@ STATIC_DCL boolean NDECL(spellsortmenu);
 STATIC_DCL boolean FDECL(dospellmenu, (const char *, int, int *));
 STATIC_DCL int FDECL(percent_success, (int));
 STATIC_DCL int FDECL(energy_cost, (int));
-STATIC_DCL char *FDECL(spellretention, (int, char *));
 STATIC_DCL int NDECL(throwspell);
 STATIC_DCL void NDECL(cast_protection);
 STATIC_DCL void FDECL(spell_backfire, (int));
@@ -1493,7 +1492,7 @@ int *spell_no;
 {
     winid tmpwin;
     int i, n, how, splnum;
-    char buf[BUFSZ], retentionbuf[24], pw_buf[5];
+    char buf[BUFSZ], pw_buf[5];
     const char *fmt;
     menu_item *selected;
     anything any;
@@ -1512,10 +1511,10 @@ int *spell_no;
     if (!iflags.menu_tab_sep) {
         Sprintf(buf, "%-20s     Level %-12s   Pw Retention", "    Name",
                 "Category");
-        fmt = "%-20s  %2d   %-12s %4s %9s";
+        fmt = "%-20s  %2d   %-12s %4s     %5d";
     } else {
         Sprintf(buf, "Name\tLevel\tCategory\tPw\tRetention");
-        fmt = "%s\t%-d\t%s\t%s\t%s";
+        fmt = "%s\t%-d\t%s\t%s\t%d";
     }
     add_menu(tmpwin, NO_GLYPH, &any, 0, 0, iflags.menu_headings, buf,
              MENU_UNSELECTED);
@@ -1529,7 +1528,7 @@ int *spell_no;
         }
         Sprintf(buf, fmt, spellname(splnum), spellev(splnum),
                 spelltypemnemonic(spell_skilltype(spellid(splnum))),
-                pw_buf, spellretention(splnum, retentionbuf));
+                pw_buf, spellknow(splnum));
 
         any.a_int = splnum + 1; /* must be non-zero */
         add_menu(tmpwin, NO_GLYPH, &any, spellet(splnum), 0, ATR_NONE, buf,
@@ -1728,52 +1727,6 @@ int spell;
     }
 
     return energy;
-}
-
-STATIC_OVL char *
-spellretention(idx, outbuf)
-int idx;
-char *outbuf;
-{
-    long turnsleft, percent, accuracy;
-    int skill;
-
-    skill = P_SKILL(spell_skilltype(spellid(idx)));
-    skill = max(skill, P_UNSKILLED); /* restricted same as unskilled */
-    turnsleft = spellknow(idx);
-    *outbuf = '\0'; /* lint suppression */
-
-    if (turnsleft < 1L) {
-        /* spell has expired; hero can't successfully cast it anymore */
-        Strcpy(outbuf, "(gone)");
-    } else if (turnsleft >= (long) KEEN) {
-        /* full retention, first turn or immediately after reading book */
-        Strcpy(outbuf, "100%");
-    } else {
-        /*
-         * Retention is displayed as a range of percentages of
-         * amount of time left until memory of the spell expires;
-         * the precision of the range depends upon hero's skill
-         * in this spell.
-         *    expert:  2% intervals; 1-2,   3-4,  ...,   99-100;
-         *   skilled:  5% intervals; 1-5,   6-10, ...,   95-100;
-         *     basic: 10% intervals; 1-10, 11-20, ...,   91-100;
-         * unskilled: 25% intervals; 1-25, 26-50, 51-75, 76-100.
-         *
-         * At the low end of each range, a value of N% really means
-         * (N-1)%+1 through N%; so 1% is "greater than 0, at most 200".
-         * KEEN is a multiple of 100; KEEN/100 loses no precision.
-         */
-        percent = (turnsleft - 1L) / ((long) KEEN / 100L) + 1L;
-        accuracy =
-            (skill == P_EXPERT) ? 2L : (skill == P_SKILLED)
-                                           ? 5L
-                                           : (skill == P_BASIC) ? 10L : 25L;
-        /* round up to the high end of this range */
-        percent = accuracy * ((percent - 1L) / accuracy + 1L);
-        Sprintf(outbuf, "%ld%%-%ld%%", percent - accuracy + 1L, percent);
-    }
-    return outbuf;
 }
 
 /* Learn a spell during creation of the initial inventory */
