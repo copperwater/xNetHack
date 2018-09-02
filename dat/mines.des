@@ -167,7 +167,7 @@ LOOP [6] {
       OBJECT: ('(',"oil lamp"), rndcoord($inside)
     } ELSE {
       IF [50%] {
-        OBJECT: ('(',"brass lantern"), rndcoord($inside)
+        OBJECT: ('(',"lantern"), rndcoord($inside)
       } ELSE {
         OBJECT: ('(',"magic lamp"), rndcoord($inside)
       }

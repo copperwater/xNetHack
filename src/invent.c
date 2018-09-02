@@ -123,12 +123,12 @@ struct obj *obj;
             k = 1; /* regular container or unknown bag of tricks */
         else
             switch (otyp) {
-            case WOODEN_FLUTE:
+            case FLUTE:
             case MAGIC_FLUTE:
             case TOOLED_HORN:
             case FROST_HORN:
             case FIRE_HORN:
-            case WOODEN_HARP:
+            case HARP:
             case MAGIC_HARP:
             case BUGLE:
             case LEATHER_DRUM:

@@ -336,8 +336,8 @@ struct obj *obj;
 {
     const struct artifact *arti;
 
-    /* any silver object is effective */
-    if (obj->material == SILVER)
+    /* any silver object is effective; bone too, though it gets no bonus */
+    if (obj->material == SILVER || obj->material == BONE)
         return TRUE;
     /* non-silver artifacts with bonus against undead also are effective */
     arti = get_artifact(obj);
@@ -697,9 +697,10 @@ struct monst *mon;
         You("are blasted by %s power!", s_suffix(the(xname(obj))));
         touch_blasted = TRUE;
         dmg = d((Antimagic ? 2 : 4), (self_willed ? 10 : 4));
-        /* add half (maybe quarter) of the usual silver damage bonus */
-        if (obj->material == SILVER && Hate_silver)
-            tmp = rnd(10), dmg += Maybe_Half_Phys(tmp);
+        /* add half of the usual material damage bonus */
+        if (Hate_material(obj->material)) {
+            dmg += (rnd(sear_damage(obj->material)) / 2) + 1;
+        }
         Sprintf(buf, "touching %s", oart->name);
         losehp(dmg, buf, KILLED_BY); /* magic damage, not physical */
         exercise(A_WIS, FALSE);
@@ -1935,29 +1936,44 @@ boolean loseit;    /* whether to drop it if hero can longer touch it */
     if (touch_artifact(obj, &youmonst)) {
         char buf[BUFSZ];
         int dmg = 0, tmp;
-        boolean ag = (obj->material == SILVER && Hate_silver),
+        boolean hatemat = Hate_material(obj->material),
                 bane = bane_applies(get_artifact(obj), &youmonst);
 
         /* nothing else to do if hero can successfully handle this object */
-        if (!ag && !bane)
+        if (!hatemat && !bane)
             return 1;
 
         /* hero can't handle this object, but didn't get touch_artifact()'s
            "<obj> evades your grasp|control" message; give an alternate one */
-        You_cant("handle %s%s!", yname(obj),
-                 obj->owornmask ? " anymore" : "");
+
+        if (!bane && !(hatemat && obj->material == SILVER)) {
+            pline("The %s of %s hurts to touch!", materialnm[obj->material],
+                  yname(obj));
+        }
+        else {
+            You_cant("handle %s%s!", yname(obj),
+                    obj->owornmask ? " anymore" : "");
+        }
         /* also inflict damage unless touch_artifact() already did so */
         if (!touch_blasted) {
-            /* damage is somewhat arbitrary; half the usual 1d20 physical
-               for silver, 1d10 magical for <foo>bane, potentially both */
-            if (ag)
-                tmp = rnd(10), dmg += Maybe_Half_Phys(tmp);
+            /* damage is somewhat arbitrary: 1d10 magical for <foo>bane,
+             * half of the usual damage for materials */
+            if (hatemat)
+                dmg += rnd(sear_damage(obj->material) / 2);
             if (bane)
                 dmg += rnd(10);
             Sprintf(buf, "handling %s", killer_xname(obj));
             losehp(dmg, buf, KILLED_BY);
             exercise(A_CON, FALSE);
         }
+        /* concession to elves wishing to use iron gear: don't make them
+         * totally unable to use them. In fact, they can touch them just fine
+         * as long as they're willing to.
+         * In keeping with the flavor of searing vs just pain implemented
+         * everywhere else, only silver is actually unbearable -- other
+         * hated non-silver materials can be used too. */
+        if (!bane && !(hatemat && obj->material == SILVER))
+            return 1;
     }
 
     /* removing a worn item might result in loss of levitation,

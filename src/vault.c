@@ -666,7 +666,7 @@ register struct monst *grd;
             letknow:
                 if (!cansee(grd->mx, grd->my) || !mon_visible(grd))
                     You_hear("%s.",
-                             m_carrying(grd, TIN_WHISTLE)
+                             m_carrying(grd, PEA_WHISTLE)
                                  ? "the shrill sound of a guard's whistle"
                                  : "angry shouting");
                 else

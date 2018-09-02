@@ -184,7 +184,7 @@ static struct trobj Lamp[] = { { OIL_LAMP, 1, TOOL_CLASS, 1, 0 },
                                { 0, 0, 0, 0, 0 } };
 static struct trobj Blindfold[] = { { BLINDFOLD, 0, TOOL_CLASS, 1, 0 },
                                     { 0, 0, 0, 0, 0 } };
-static struct trobj Instrument[] = { { WOODEN_FLUTE, 0, TOOL_CLASS, 1, 0 },
+static struct trobj Instrument[] = { { FLUTE, 0, TOOL_CLASS, 1, 0 },
                                      { 0, 0, 0, 0, 0 } };
 static struct trobj Xtra_food[] = { { UNDEF_TYP, UNDEF_SPE, FOOD_CLASS, 2, 0 },
                                     { 0, 0, 0, 0, 0 } };
@@ -815,7 +815,7 @@ u_init()
          * get only non-magic instruments.
          */
         if (Role_if(PM_PRIEST) || Role_if(PM_WIZARD)) {
-            static int trotyp[] = { WOODEN_FLUTE, TOOLED_HORN, WOODEN_HARP,
+            static int trotyp[] = { FLUTE,  TOOLED_HORN,       HARP,
                                     BELL,         BUGLE,       LEATHER_DRUM };
             Instrument[0].trotyp = trotyp[rn2(SIZE(trotyp))];
             ini_inv(Instrument);

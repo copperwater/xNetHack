@@ -308,7 +308,7 @@ pc_speaker(struct obj *instr, char *tune)
         return;
     initspeaker();
     switch (instr->otyp) {
-    case WOODEN_FLUTE:
+    case FLUTE:
     case MAGIC_FLUTE:
         octave = 5; /* up one octave */
         break;
@@ -319,7 +319,7 @@ pc_speaker(struct obj *instr, char *tune)
         break;
     case BUGLE:
         break;
-    case WOODEN_HARP:
+    case HARP:
     case MAGIC_HARP:
         length = 8;
         mtype = 'L'; /* fast, legato */

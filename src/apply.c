@@ -1263,7 +1263,7 @@ struct obj *obj;
 
     if (obj->lamplit) {
         if (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
-            || obj->otyp == BRASS_LANTERN || obj->otyp == POT_OIL) {
+            || obj->otyp == LANTERN || obj->otyp == POT_OIL) {
             (void) get_obj_location(obj, &x, &y, 0);
             if (obj->where == OBJ_MINVENT ? cansee(x, y) : !Blind)
                 pline("%s %s out!", Yname2(obj), otense(obj, "go"));
@@ -1295,7 +1295,7 @@ struct obj *obj;
         if (obj->otyp == CANDELABRUM_OF_INVOCATION && obj->cursed)
             return FALSE;
         if ((obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
-             || obj->otyp == BRASS_LANTERN) && obj->cursed && !rn2(2))
+             || obj->otyp == LANTERN) && obj->cursed && !rn2(2))
             return FALSE;
         if (obj->where == OBJ_MINVENT ? cansee(x, y) : !Blind)
             pline("%s %s light!", Yname2(obj), otense(obj, "catch"));
@@ -1322,7 +1322,7 @@ struct obj *obj;
 
     if (obj->lamplit) {
         if (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
-            || obj->otyp == BRASS_LANTERN)
+            || obj->otyp == LANTERN)
             pline("%slamp is now off.", Shk_Your(buf, obj));
         else
             You("snuff out %s.", yname(obj));
@@ -1337,7 +1337,7 @@ struct obj *obj;
     /* magic lamps with an spe == 0 (wished for) cannot be lit */
     if ((!Is_candle(obj) && obj->age == 0)
         || (obj->otyp == MAGIC_LAMP && obj->spe == 0)) {
-        if (obj->otyp == BRASS_LANTERN)
+        if (obj->otyp == LANTERN)
             Your("lamp has run out of power.");
         else
             pline("This %s has no oil.", xname(obj));
@@ -1349,7 +1349,7 @@ struct obj *obj;
                   otense(obj, "die"));
     } else {
         if (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
-            || obj->otyp == BRASS_LANTERN) {
+            || obj->otyp == LANTERN) {
             check_unpaid(obj);
             pline("%slamp is now on.", Shk_Your(buf, obj));
         } else { /* candle(s) */
@@ -1433,7 +1433,7 @@ struct obj *obj;
 {
     if (obj &&
         (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP ||
-         obj->otyp == BRASS_LANTERN || is_graystone(obj)))
+         obj->otyp == LANTERN || is_graystone(obj)))
         return 2;
 
     return 0;
@@ -1483,7 +1483,7 @@ dorub()
             You("%s smoke.", !Blind ? "see a puff of" : "smell");
         } else
             pline1(nothing_happens);
-    } else if (obj->otyp == BRASS_LANTERN) {
+    } else if (obj->otyp == LANTERN) {
         /* message from Adventure */
         pline("Rubbing the electric lamp is not particularly rewarding.");
         pline("Anyway, nothing exciting happens.");
@@ -3734,7 +3734,7 @@ doapply()
     case MAGIC_WHISTLE:
         use_magic_whistle(obj);
         break;
-    case TIN_WHISTLE:
+    case PEA_WHISTLE:
         use_whistle(obj);
         break;
     case EUCALYPTUS_LEAF:
@@ -3774,7 +3774,7 @@ doapply()
         break;
     case OIL_LAMP:
     case MAGIC_LAMP:
-    case BRASS_LANTERN:
+    case LANTERN:
         use_lamp(obj);
         break;
     case POT_OIL:
@@ -3801,12 +3801,12 @@ doapply()
     case UNICORN_HORN:
         use_unicorn_horn(obj, FALSE);
         break;
-    case WOODEN_FLUTE:
+    case FLUTE:
     case MAGIC_FLUTE:
     case TOOLED_HORN:
     case FROST_HORN:
     case FIRE_HORN:
-    case WOODEN_HARP:
+    case HARP:
     case MAGIC_HARP:
     case BUGLE:
     case LEATHER_DRUM:

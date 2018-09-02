@@ -48,7 +48,7 @@ STATIC_OVL struct Jitem Japanese_items[] = { { SHORT_SWORD, "wakizashi" },
                                              { FLAIL, "nunchaku" },
                                              { GLAIVE, "naginata" },
                                              { LOCK_PICK, "osaku" },
-                                             { WOODEN_HARP, "koto" },
+                                             { HARP, "koto" },
                                              { KNIFE, "shito" },
                                              { PLATE_MAIL, "tanko" },
                                              { HELMET, "kabuto" },
@@ -1080,7 +1080,7 @@ unsigned doname_flags;
                     !obj->lamplit ? " attached" : ", lit");
             break;
         } else if (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
-                   || obj->otyp == BRASS_LANTERN || Is_candle(obj)) {
+                   || obj->otyp == LANTERN || Is_candle(obj)) {
             if (Is_candle(obj)
                 && obj->age < 20L * (long) objects[obj->otyp].oc_cost)
                 Strcat(prefix, "partly used ");
@@ -2691,7 +2691,7 @@ struct alt_spellings {
     { "grey dragon scale mail", GRAY_DRAGON_SCALE_MAIL },
     { "grey dragon scales", GRAY_DRAGON_SCALES },
     { "iron ball", HEAVY_IRON_BALL },
-    { "lantern", BRASS_LANTERN },
+    { "lantern", LANTERN },
     { "mattock", DWARVISH_MATTOCK },
     { "amulet of poison resistance", AMULET_VERSUS_POISON },
     { "potion of sleep", POT_SLEEPING },
@@ -3832,7 +3832,7 @@ typfnd:
     otmp = typ ? mksobj(typ, TRUE, FALSE) : mkobj(oclass, FALSE);
     typ = otmp->otyp, oclass = otmp->oclass; /* what we actually got */
 
-    if (islit && (typ == OIL_LAMP || typ == MAGIC_LAMP || typ == BRASS_LANTERN
+    if (islit && (typ == OIL_LAMP || typ == MAGIC_LAMP || typ == LANTERN
                   || Is_candle(otmp) || typ == POT_OIL)) {
         place_object(otmp, u.ux, u.uy); /* make it viable light source */
         begin_burn(otmp, FALSE);

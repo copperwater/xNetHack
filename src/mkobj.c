@@ -894,7 +894,7 @@ boolean artif;
                 otmp->quan = 1L + (long) (rn2(2) ? rn2(7) : 0);
                 blessorcurse(otmp, 5);
                 break;
-            case BRASS_LANTERN:
+            case LANTERN:
             case OIL_LAMP:
                 otmp->spe = 1;
                 otmp->age = (long) rn1(500, 1000);
@@ -1372,33 +1372,38 @@ register struct obj *otmp;
     return (!!otmp->blessed - !!otmp->cursed);
 }
 
-/* Relative weights of different materials. In this case, the volume of a given
- * item is assumed to be constant, and these numbers are reasonably close
- * approximations of their densities in kg per cubic meter. */
+/* Relative weights of different materials.
+ * This used to be an attempt at making them super realistic, with densities in
+ * terms of their kg/m^3 and as close to real life as possible, but that just
+ * doesn't work because it makes materials infeasible to use. Nobody wants
+ * anything gold or platinum if it weighs three times as much as its iron
+ * counterpart, and things such as wooden plate mails were incredibly
+ * overpowered by weighing about one-tenth as much as the iron counterpart.
+ * Instead, use arbitrary units. */
 STATIC_DCL
 const int matdensities[] = {
-    0,
-    1000,  // LIQUID - water
-    900,   // WAX
-    500,   // VEGGY - guess; depends on water content
-    1000,  // FLESH
-    580,   // PAPER - actually more than this but we assume not solid paper
-    1300,  // CLOTH - wool
-    760,   // LEATHER
-    810,   // WOOD - oak, specifically
-    1700,  // BONE
-    2000,  // DRAGONHIDE - scales probably make it heavier than FLESH
-    8000,  // IRON
-    4500,  // METAL - guess at titanium
-    8960,  // COPPER
-    10490, // SILVER
-    19300, // GOLD
-    21450, // PLATINUM
-    5000,  // MITHRIL - guess
-    940,   // PLASTIC - low density polyethylene in this case
-    6000,  // GLASS - pretty wide range of densities, this is middling
-    4500,  // GEMSTONE - corundum specifically
-    3000   // MINERAL - basalt specifically
+    0,   // will cause div/0 errors if anything is this material
+    10,  // LIQUID
+    15,  // WAX
+    10,  // VEGGY
+    10,  // FLESH
+    5,   // PAPER
+    10,  // CLOTH
+    15,  // LEATHER
+    30,  // WOOD
+    25,  // BONE
+    20,  // DRAGONHIDE
+    80,  // IRON
+    70,  // METAL
+    85,  // COPPER
+    90,  // SILVER
+    120, // GOLD
+    120, // PLATINUM
+    50,  // MITHRIL
+    20,  // PLASTIC
+    60,  // GLASS
+    55,  // GEMSTONE
+    70   // MINERAL
 };
 
 /*
@@ -3005,7 +3010,8 @@ struct obj * stone;
 /* Object material probabilities. */
 /* for objects which are normally iron or metal */
 static const struct icp metal_materials[] = {
-    {80, IRON},
+    {75, 0}, /* default to base type, iron or metal */
+    { 5, IRON},
     { 5, WOOD},
     { 5, SILVER},
     { 3, COPPER},
@@ -3075,6 +3081,28 @@ static const struct icp shiny_materials[] = {
     { 2, PLATINUM}
 };
 
+/* for bells and other tools, especially instruments, which are normally copper
+ * or metal.  Wood and glass in other lists precludes us from using those. */
+static const struct icp resonant_materials[] = {
+    {55, 0}, /* use base material */
+    {25, COPPER},
+    { 6, SILVER},
+    { 5, IRON},
+    { 5, MITHRIL},
+    { 3, GOLD},
+    { 1, PLATINUM}
+};
+
+/* for horns, currently. */
+static const struct icp horn_materials[] = {
+    {70, BONE},
+    {10, COPPER},
+    { 8, MITHRIL},
+    { 5, WOOD},
+    { 5, SILVER},
+    { 2, GOLD}
+};
+
 /* hacks for specific objects... not great because it's a lot of data, but it's
  * a relatively clean solution */
 static const struct icp elvenhelm_materials[] = {
@@ -3083,13 +3111,14 @@ static const struct icp elvenhelm_materials[] = {
     {10, WOOD}
 };
 static const struct icp bow_materials[] = {
-    {80, WOOD},
+    /* assumes all bows will be wood by default, fairly safe assumption */
+    {75, WOOD},
     { 7, IRON},
-    { 4, PLASTIC},
-    { 3, BONE},
-    { 2, MITHRIL},
-    { 2, COPPER},
-    { 1, SILVER},
+    { 5, MITHRIL},
+    { 4, COPPER},
+    { 4, BONE},
+    { 2, SILVER},
+    { 2, PLASTIC},
     { 1, GOLD}
 };
 
@@ -3130,6 +3159,22 @@ struct obj* obj;
         case LOCK_PICK:
         case TIN_OPENER:
             return metal_materials;
+        case BELL:
+        case BUGLE:
+        case LANTERN:
+        case OIL_LAMP:
+        case MAGIC_LAMP:
+        case MAGIC_WHISTLE:
+        case FLUTE:
+        case MAGIC_FLUTE:
+        case HARP:
+        case MAGIC_HARP:
+            return resonant_materials;
+        case TOOLED_HORN:
+        case FIRE_HORN:
+        case FROST_HORN:
+        case HORN_OF_PLENTY:
+            return horn_materials;
         default:
             break;
     }
@@ -3181,7 +3226,11 @@ struct obj* obj;
             i -= materials->iprob;
             materials++;
         }
-        obj->material = materials->iclass;
+        if (materials->iclass)
+            obj->material = materials->iclass;
+        else
+            /* can use a 0 in the list to default to the base material */
+            obj->material = objects[obj->otyp].oc_material;
     }
     else {
         /* default case for other items: always use base material... */
@@ -3206,23 +3255,26 @@ int mat;
         /* shenanigans possible here, ignore them */
         return TRUE;
     }
-    const struct icp* materials = material_list(obj);
 
-    if (materials) {
-        int i = 100; /* guarantee going through everything */
-        while (i > 0) {
-            if (materials->iclass == mat)
-                return TRUE;
-            i -= materials->iprob;
-            materials++;
-        }
-
-        /* no valid ones found */
-        return FALSE;
+    /* if it is what it's defined as in objects.c, always valid, don't bother
+     * with lists */
+    if (objects[obj->otyp].oc_material == mat) {
+        return TRUE;
     }
     else {
-        /* if no appropriate list, this should just be the regular material */
-        return (mat == objects[obj->otyp].oc_material);
+        const struct icp* materials = material_list(obj);
+
+        if (materials) {
+            int i = 100; /* guarantee going through everything */
+            while (i > 0) {
+                if (materials->iclass == mat)
+                    return TRUE;
+                i -= materials->iprob;
+                materials++;
+            }
+        }
+        /* no valid materials in list, or no valid list */
+        return FALSE;
     }
 }
 
