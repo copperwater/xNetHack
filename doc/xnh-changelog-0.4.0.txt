@@ -41,6 +41,36 @@ Eating mimic corpses no longer breaks polyselfless conduct.
 Tourists now begin the game wearing low boots (walking shoes).
 Martial arts attacks now always include skill damage bonuses, instead of
   randomly not getting them 75% of the time.
+Several more tools are now eligible to receive non-default object materials.
+  Mostly these are instruments: all whistles, harps, flutes, horns, and bugles.
+  Lanterns and lamps are also now eligible.
+  Horns use their own new list; everything else made eligible uses a separate
+    new "resonant" list.
+  Several items are renamed due to containing materials in the name:
+    "wooden flute" -> "flute"
+    "wooden harp" -> "harp"
+    "tin whistle" -> "pea whistle"
+    "brass lantern" -> "lantern"
+    "silver bell" (for the Bell of Opening) -> "engraved silver bell"
+Slight tweak to the object material probabilities for bows.
+Weapons made out of bone can hit shades (they don't get any bonuses though)
+Silver-hating has been refactored and generalized into any-material-hating.
+  Behavior for silver itself is NOT changed: all silver haters still hate
+    silver and it still sears them for d20 damage.
+  Other material hatred does not cause searing, it causes pain and flinching
+    but does only d6 bonus damage, and the player can touch and use items made
+    of a material they hate (unlike silver, which if the player hates it will
+    be unhandleable.)
+  Elves (including elvish players), nymphs, and all i-class monsters now hate
+    iron.
+  Fungi, Pestilence, and anything else with a disease or rotting attack now
+    hates copper.
+Copper antimicrobialness resists sickness: for each piece of copper armor you
+  wear, you have a stacking 20% chance to not fall Ill when you would have
+  otherwise.
+Object material densities have been overhauled because the "ultra realistic"
+  ones did not make for good gameplay. They are now arbitrary units that will
+  hopefully preserve some realism while still making for good gameplay.
 
 It contains the following non-gameplay interface changes:
 
