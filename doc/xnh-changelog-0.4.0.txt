@@ -73,6 +73,11 @@ Object material densities have been overhauled because the "ultra realistic"
   hopefully preserve some realism while still making for good gameplay.
 Object material prices per aum have also been updated, but only for gold,
   platinum, and mithril, all of which have been made more expensive.
+Some base materials have been changed to make life easier for elvish players:
+  Runeswords, and therefore Stormbringer, are now metal.
+  Athames and therefore Magicbane are now metal.
+  All amulets, and therefore the Eye of the Aethiopica, are now metal.
+  The Mitre of Holiness is now silver.
 You can now refresh your memory with a spellbook whenever you want, rather than
   forcing you to wait until it dips below 10% retention.
 Implement player-as-an-Archon blinding gaze attack (code by Pavel Braginskiy)

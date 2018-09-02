@@ -157,7 +157,7 @@ WEAPON("elven dagger", "runed dagger",
 WEAPON("orcish dagger", "crude dagger",
        0, 1, 0, 12,  10,   4,  3,  3, 2, P,   P_DAGGER, IRON, CLR_BLACK),
 WEAPON("athame", None,
-       1, 1, 0,  0,  10,   4,  4,  3, 2, S,   P_DAGGER, IRON, HI_METAL),
+       1, 1, 0,  0,  10,   4,  4,  3, 2, S,   P_DAGGER, METAL, HI_METAL),
 WEAPON("scalpel", None,
        1, 1, 0,  0,   5,   6,  5,  7, 2, S,   P_KNIFE, METAL, HI_METAL),
 WEAPON("knife", None,
@@ -598,7 +598,7 @@ RING("carrying", "glittery",
 /* amulets ... - THE Amulet comes last because it is special */
 #define AMULET(name,desc,power,prob) \
     OBJECT(OBJ(name, desc),                                            \
-           BITS(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, P_NONE, IRON),        \
+           BITS(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, P_NONE, METAL),        \
            power, AMULET_CLASS, prob, 0, 20, 150, 0, 0, 0, 0, 20, HI_METAL)
 AMULET("amulet of ESP",                "circular", TELEPAT, 175),
 AMULET("amulet of life saving",       "spherical", LIFESAVED, 75),
