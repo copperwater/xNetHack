@@ -1403,7 +1403,7 @@ dogaze()
                         (void) destroy_mitem(mtmp, SPBOOK_CLASS, AD_FIRE);
                     if (dmg)
                         mtmp->mhp -= dmg;
-                    if (mtmp->mhp <= 0)
+                    if (DEADMONSTER(mtmp))
                         killed(mtmp);
                 }
                 /* For consistency with passive() in uhitm.c, this only
@@ -1571,7 +1571,7 @@ domindblast()
                 u_sen ? "telepathy"
                       : telepathic(mtmp->data) ? "latent telepathy" : "mind");
             mtmp->mhp -= rnd(15);
-            if (mtmp->mhp <= 0)
+            if (DEADMONSTER(mtmp))
                 killed(mtmp);
         }
     }

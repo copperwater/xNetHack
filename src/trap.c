@@ -1734,7 +1734,7 @@ struct obj *otmp;
         break;
     case PIT:
     case SPIKED_PIT:
-        trapkilled = (steed->mhp <= 0
+        trapkilled = (DEADMONSTER(steed)
                       || thitm(0, steed, (struct obj *) 0,
                                rnd((tt == PIT) ? 6 : 10), FALSE));
         steedhit = TRUE;
@@ -2485,7 +2485,7 @@ register struct monst *mtmp;
                 else if (mtmp->mtame)
                     pline("May %s rust in peace.", mon_nam(mtmp));
                 mondied(mtmp);
-                if (mtmp->mhp <= 0)
+                if (DEADMONSTER(mtmp))
                     trapkilled = TRUE;
             } else if (mptr == &mons[PM_GREMLIN] && rn2(3)) {
                 (void) split_mon(mtmp, (struct monst *) 0);
@@ -2580,7 +2580,7 @@ register struct monst *mtmp;
                 seetrap(trap);
             }
             mselftouch(mtmp, "Falling, ", FALSE);
-            if (mtmp->mhp <= 0 || thitm(0, mtmp, (struct obj *) 0,
+            if (DEADMONSTER(mtmp) || thitm(0, mtmp, (struct obj *) 0,
                                         rnd((tt == PIT) ? 6 : 10), FALSE))
                 trapkilled = TRUE;
             break;
@@ -2726,13 +2726,13 @@ register struct monst *mtmp;
                 if (in_sight)
                     seetrap(trap);
                 mtmp->mhp -= dmgval2;
-                if (mtmp->mhp <= 0)
+                if (DEADMONSTER(mtmp))
                     monkilled(mtmp,
                               in_sight
                                   ? "compression from an anti-magic field"
                                   : (const char *) 0,
                               -AD_MAGM);
-                if (mtmp->mhp <= 0)
+                if (DEADMONSTER(mtmp))
                     trapkilled = TRUE;
                 if (see_it)
                     newsym(trap->tx, trap->ty);
@@ -2767,7 +2767,7 @@ register struct monst *mtmp;
             blow_up_landmine(trap);
             /* explosion might have destroyed a drawbridge; don't
                dish out more damage if monster is already dead */
-            if (mtmp->mhp <= 0
+            if (DEADMONSTER(mtmp)
                 || thitm(0, mtmp, (struct obj *) 0, rnd(16), FALSE)) {
                 trapkilled = TRUE;
             } else {
@@ -2777,7 +2777,7 @@ register struct monst *mtmp;
             }
             /* a boulder may fill the new pit, crushing monster */
             fill_pit(trap->tx, trap->ty);
-            if (mtmp->mhp <= 0)
+            if (DEADMONSTER(mtmp))
                 trapkilled = TRUE;
             if (unconscious()) {
                 multi = -1;
@@ -2810,7 +2810,7 @@ register struct monst *mtmp;
                                trap->launch2.x, trap->launch2.y, style)) {
                     if (in_sight)
                         trap->tseen = TRUE;
-                    if (mtmp->mhp <= 0)
+                    if (DEADMONSTER(mtmp))
                         trapkilled = TRUE;
                 } else {
                     deltrap(trap);
@@ -2927,7 +2927,7 @@ boolean byplayer;
         }
         minstapetrify(mon, byplayer);
         /* if life-saved, might not be able to continue wielding */
-        if (mon->mhp > 0 && !which_armor(mon, W_ARMG) && !resists_ston(mon))
+        if (!DEADMONSTER(mon) && !which_armor(mon, W_ARMG) && !resists_ston(mon))
             mwepgone(mon);
     }
 }
@@ -4220,7 +4220,7 @@ boolean force_failure;
                     if (mtmp->mtame)
                         abuse_dog(mtmp);
                     mtmp->mhp -= rnd(4);
-                    if (mtmp->mhp <= 0)
+                    if (DEADMONSTER(mtmp))
                         killed(mtmp);
                 } else if (ttype == WEB) {
                     if (!webmaker(youmonst.data)) {
@@ -5704,11 +5704,11 @@ boolean nocorpse;
                 dam = 1;
         }
         mon->mhp -= dam;
-        if (mon->mhp <= 0) {
+        if (DEADMONSTER(mon)) {
             int xx = mon->mx, yy = mon->my;
 
             monkilled(mon, "", nocorpse ? -AD_RBRE : AD_PHYS);
-            if (mon->mhp <= 0) {
+            if (DEADMONSTER(mon)) {
                 newsym(xx, yy);
                 trapkilled = TRUE;
             }

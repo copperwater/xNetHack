@@ -365,7 +365,7 @@ register struct monst *mtmp;
 
     if (!ranged)
         nomul(0);
-    if (mtmp->mhp <= 0 || (Underwater && !is_swimmer(mtmp->data)))
+    if (DEADMONSTER(mtmp) || (Underwater && !is_swimmer(mtmp->data)))
         return 0;
 
     /* If swallowed, can only be affected by u.ustuck */
@@ -1851,7 +1851,7 @@ struct attack *mattk;
             if (Punished)
                 placebc();
             u.ustuck = 0;
-            return (mtmp->mhp > 0) ? 0 : 2;
+            return (!DEADMONSTER(mtmp)) ? 0 : 2;
         }
 
         display_nhwindow(WIN_MESSAGE, FALSE);
@@ -2143,7 +2143,7 @@ boolean ufound;
     if (kill_agr)
         mondead(mtmp);
     wake_nearto(mtmp->mx, mtmp->my, 7 * 7);
-    return (mtmp->mhp > 0) ? 0 : 2;
+    return (!DEADMONSTER(mtmp)) ? 0 : 2;
 }
 
 /* monster gazes at you */
@@ -2212,7 +2212,7 @@ struct attack *mattk;
             stoned = TRUE;
             killed(mtmp);
 
-            if (mtmp->mhp > 0)
+            if (!DEADMONSTER(mtmp))
                 break;
             return 2;
         }
@@ -2848,7 +2848,7 @@ struct attack *mattk;
             pline("%s turns to stone!", Monnam(mtmp));
             stoned = 1;
             xkilled(mtmp, XKILL_NOMSG);
-            if (mtmp->mhp > 0)
+            if (!DEADMONSTER(mtmp))
                 return 1;
             return 2;
         }
@@ -2961,7 +2961,7 @@ assess_dmg:
     if ((mtmp->mhp -= tmp) <= 0) {
         pline("%s dies!", Monnam(mtmp));
         xkilled(mtmp, XKILL_NOMSG);
-        if (mtmp->mhp > 0)
+        if (!DEADMONSTER(mtmp))
             return 1;
         return 2;
     }
