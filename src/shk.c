@@ -2006,9 +2006,9 @@ const int matprices[] = {
     10, /* METAL */
     10, /* COPPER */
     30, /* SILVER */
-    30, /* GOLD */
-    30, /* PLATINUM */
-    32, /* MITHRIL - mithril-coat to regular chain mail */
+    60, /* GOLD */
+    80, /* PLATINUM */
+    50, /* MITHRIL */
     10, /* PLASTIC */
     20, /* GLASS */
    500, /* GEMSTONE */
