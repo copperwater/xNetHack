@@ -1372,33 +1372,38 @@ register struct obj *otmp;
     return (!!otmp->blessed - !!otmp->cursed);
 }
 
-/* Relative weights of different materials. In this case, the volume of a given
- * item is assumed to be constant, and these numbers are reasonably close
- * approximations of their densities in kg per cubic meter. */
+/* Relative weights of different materials.
+ * This used to be an attempt at making them super realistic, with densities in
+ * terms of their kg/m^3 and as close to real life as possible, but that just
+ * doesn't work because it makes materials infeasible to use. Nobody wants
+ * anything gold or platinum if it weighs three times as much as its iron
+ * counterpart, and things such as wooden plate mails were incredibly
+ * overpowered by weighing about one-tenth as much as the iron counterpart.
+ * Instead, use arbitrary units. */
 STATIC_DCL
 const int matdensities[] = {
-    0,
-    1000,  // LIQUID - water
-    900,   // WAX
-    500,   // VEGGY - guess; depends on water content
-    1000,  // FLESH
-    580,   // PAPER - actually more than this but we assume not solid paper
-    1300,  // CLOTH - wool
-    760,   // LEATHER
-    810,   // WOOD - oak, specifically
-    1700,  // BONE
-    2000,  // DRAGONHIDE - scales probably make it heavier than FLESH
-    8000,  // IRON
-    4500,  // METAL - guess at titanium
-    8960,  // COPPER
-    10490, // SILVER
-    19300, // GOLD
-    21450, // PLATINUM
-    5000,  // MITHRIL - guess
-    940,   // PLASTIC - low density polyethylene in this case
-    6000,  // GLASS - pretty wide range of densities, this is middling
-    4500,  // GEMSTONE - corundum specifically
-    3000   // MINERAL - basalt specifically
+    0,   // will cause div/0 errors if anything is this material
+    10,  // LIQUID
+    15,  // WAX
+    10,  // VEGGY
+    10,  // FLESH
+    5,   // PAPER
+    10,  // CLOTH
+    15,  // LEATHER
+    30,  // WOOD
+    25,  // BONE
+    20,  // DRAGONHIDE
+    80,  // IRON
+    70,  // METAL
+    85,  // COPPER
+    90,  // SILVER
+    120, // GOLD
+    120, // PLATINUM
+    50,  // MITHRIL
+    20,  // PLASTIC
+    60,  // GLASS
+    55,  // GEMSTONE
+    70   // MINERAL
 };
 
 /*
