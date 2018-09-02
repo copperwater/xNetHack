@@ -1329,7 +1329,7 @@ dogaze()
             break;
         }
     }
-    if (adtyp != AD_CONF && adtyp != AD_FIRE) {
+    if (adtyp != AD_CONF && adtyp != AD_FIRE && adtyp != AD_BLND) {
         impossible("gaze attack %d?", adtyp);
         return 0;
     }
@@ -1405,6 +1405,22 @@ dogaze()
                         mtmp->mhp -= dmg;
                     if (DEADMONSTER(mtmp))
                         killed(mtmp);
+                } else if (adtyp == AD_BLND) {
+                    int dmg = d(2, 6);
+                    You("attack %s with a blinding gaze!", mon_nam(mtmp));
+                    if (!can_blnd(&youmonst, mtmp, AT_GAZE, NULL)) {
+                        pline("%s doesn't seem affected.", Monnam(mtmp));
+                        dmg = 0;
+                    }
+                    if(dmg) {
+                        mtmp->mhp -= dmg;
+                        mtmp->mcansee = 0;
+                        mtmp->mblinded = rnd(50);
+                        mtmp->mstun = 1;
+                        if(DEADMONSTER(mtmp))
+                            killed(mtmp);
+                    }
+
                 }
                 /* For consistency with passive() in uhitm.c, this only
                  * affects you if the monster is still alive.
