@@ -176,6 +176,9 @@ char *buf;
         "Juiblex Jubilee 2008",
         "David Lee Rothe",
         "Who watches the Minetown Watchmen?",
+        "Got ASCII?",
+        "I <3 Sokoban",
+        "24601", // Les Miserables
     };
 
     Strcpy(buf, shirt_msgs[tshirt->o_id % SIZE(shirt_msgs)]);

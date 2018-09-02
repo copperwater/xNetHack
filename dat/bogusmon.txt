@@ -19,6 +19,7 @@ diagonally moving grid bug
 hexagonal grid bug
 demilichen
 master lichen
+arch-lichen
 hag of bolding
 _Semigorgon
 +Vendor of Yizard
@@ -30,8 +31,9 @@ violent gem
 +Wizard of Splendor
 +Lizard of Yendor
 
-# Dudley's Dungeon
+# NetHack community: tournaments, webcomics, etc
 +Dudley
+improved tin opener
 
 # self-deprecation
 poorly balanced monster

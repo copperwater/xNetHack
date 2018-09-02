@@ -24,7 +24,7 @@ You won't get it up the steps
 
 # Inferno
 Lasciate ogni speranza o voi ch'entrate.
-Abandon all hope, ye who enter here.
+All hope abandon, ye who enter here.
 
 # Prisoner
 Well Come
@@ -50,11 +50,9 @@ Two thumbs up!
 
 # The First C Program
 Hello, World!
-^?MAIL
 
 # AOL
 You've got mail!
-^.
 
 # Clueless
 As if!
@@ -88,6 +86,8 @@ Watch out, there's a gnome with a wand of death behind that door!
 # Misc fun
 This square deliberately left blank.
 Abandon all work, ye who enter here.
+Historical Marker -- Third Battle of Yendor
+On this spot in 1857 nothing happened.
 
 # Viking graffiti
 Haermund Hardaxe carved these runes
@@ -118,3 +118,6 @@ The cake is a lie
 
 # Monty Python and the Holy Grail
 He who is valiant and pure of spirit may find the Holy Grail in the Castle of aaarrrrggh.
+
+# Super Mario Bros
+Sorry, adventurer, your amulet is in another dungeon.
