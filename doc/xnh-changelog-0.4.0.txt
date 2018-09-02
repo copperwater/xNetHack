@@ -88,6 +88,8 @@ Cursed scrolls of remove curse no longer give "You feel like someone is helping
   you", since they don't practically uncurse anything.
 The spell menu now shows the exact number of turns of spell memory you have in
   the "Retention" column, rather than vague percentages.
+When a potion of oil fails to dilute in water, give a message and identify the
+  potion.
 
 It contains the following non-gameplay architectural changes:
 
