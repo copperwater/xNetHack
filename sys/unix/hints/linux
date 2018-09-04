@@ -10,8 +10,7 @@
 
 
 #PREFIX=/usr
-#PREFIX=$(wildcard ~)/nh/install
-PREFIX=/opt
+PREFIX=$(wildcard ~)/nh/install
 HACKDIR=$(PREFIX)/games/lib/$(GAME)dir
 SHELLDIR = $(PREFIX)/games
 INSTDIR=$(HACKDIR)
@@ -39,12 +38,9 @@ WINLIB = $(WINTTYLIB)
 
 WINTTYLIB=-lcurses
 
-CHOWN=chown
-CHGRP=chgrp
-
-GAMEUID=games
-GAMEGRP=bin
+CHOWN=true
+CHGRP=true
 
 VARDIRPERM = 0755
 VARFILEPERM = 0600
-GAMEPERM = 4755
+GAMEPERM = 0755
