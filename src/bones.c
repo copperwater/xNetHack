@@ -309,7 +309,7 @@ can_make_bones()
 {
     register struct trap *ttmp;
 
-    if (!flags.bones)
+    if (!flags.bones || Polyinit_mode)
         return FALSE;
     if (ledger_no(&u.uz) <= 0 || ledger_no(&u.uz) > maxledgerno())
         return FALSE;
