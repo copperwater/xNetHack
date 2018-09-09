@@ -217,92 +217,139 @@ MONSTER:'T',random,hostile
 #
 
 MAZE: "Bar-goal", ' '
+FLAGS:outdoors
 GEOMETRY:center,center
+#12345678901234567890123456789012345678901234567890123456789012345678901234567890
 MAP
-                                                                            
-                               .............                                
-                             ..................                             
-        ....              .........................          ....           
-      .......          ..........................           .......         
-      ......             ........................          .......          
-      ..  ......................................             ..             
-       ..                 .....................             ..              
-        ..                 ..................              ..               
-         ..         ..S...S..............   ................                
-          ..                   ........                ...                  
-       .........                                         ..                 
-       ......  ..                                         ...  ....         
-      .. ...    ..                             ......       ........        
-   ....          .. ..................        ........       ......         
-  ......          ......................       ......         ..            
-   ....             ..................              ...........             
-                      ..............                                        
-                        ...........                                         
-                                                                            
+.................................................|.........|................
+.................................................---.....---BB-----.........
+...................................................--....|....|...|.........
+...............................---..................---..|..---...+.........
+...............................|.|........----------B.-+--..|.+...|.........
+...............................|.---+--...|........|........-------.........
+...............................|......|...|........|.............B..........
+...............................|......|...|.-+----+-............------......
+...............................--------..----..|................|....--+-...
+.........................................|.....+................+...--..|...
+.........................................-------................|...|...|...
+..........................................B........--+-..-----..---------...
+......................................-----------BB|..|...+..--....B........
+......................................|.........|..|..---.|...--+-----......
+......................................|.........+..|....|B---........|......
+......................................|.........|..------...|....-----......
+......................................----...----...........------..........
+.........................................|...|..............................
+.........................................--+--..............................
+............................................................................
 ENDMAP
 # Dungeon Description
 REGION:(00,00,75,19),unlit,"ordinary"
-# Secret doors
-DOOR:locked,(22,09)
-DOOR:locked,(26,09)
-# Stairs
-STAIR:(36,05),up
-# The altar.  Unattended.
-ALTAR:(63,04),noncoaligned,altar
-NON_DIGGABLE:(00,00,75,19)
-# Objects
-OBJECT:('*',"luckstone"),(63,04),blessed,0,name:"The Heart of Ahriman"
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-OBJECT:random,random
-# Random traps
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-TRAP:random,random
-# Random monsters.
-MONSTER:('@',"Thoth Amon"),(63,04),hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:('O',"ogre"),random,hostile
-MONSTER:'O',random,hostile
-MONSTER:'O',random,hostile
-MONSTER:('T',"rock troll"),random,hostile
-MONSTER:('T',"rock troll"),random,hostile
-MONSTER:('T',"rock troll"),random,hostile
-MONSTER:('T',"rock troll"),random,hostile
-MONSTER:('T',"rock troll"),random,hostile
-MONSTER:('T',"rock troll"),random,hostile
-MONSTER:('T',"rock troll"),random,hostile
-MONSTER:('T',"rock troll"),random,hostile
-MONSTER:'T',random,hostile
-WALLIFY
+# Don't levelport or fall into the interesting part of the level
+TELEPORT_REGION:(38,00,75,19),(0,0,0,0)
+
+# Stair
+$leftedge = selection: line(00,00),(00,19)
+STAIR:rndcoord($leftedge),up
+
+# Grass... none in the village, more outside it
+# Filter is necessary to prevent it from writing to x=1 and y=0.
+$grassy = selection: filter('.', gradient(radial,(11,80,unlimited),(55,08),(59,08)))
+TERRAIN:$grassy,'g'
+
+# Make some trees
+REPLACE_TERRAIN:(00,00,31,19),'g','T',2%
+
+# Interior doors. Exterior doors are all gone, but still have + on the map to
+# be a doorway.
+DOOR:closed,(62,04)
+DOOR:closed,(45,07)
+
+# Thoth Amon and his treasure
+MONSTER:('@',"Thoth Amon"),(57,08),hostile
+OBJECT:('*',"luckstone"),(57,08),blessed,0,name:"The Heart of Ahriman"
+
+# Thoth Amon's attendants
+$towncenter = selection: floodfill(57,08)
+LOOP [2] { MONSTER:"Olog-hai",rndcoord($towncenter),hostile }
+LOOP [3] { MONSTER:"ogre king",rndcoord($towncenter),hostile }
+MONSTER:"kobold lord",rndcoord($towncenter),hostile
+LOOP [2] { MONSTER:"orc-captain",rndcoord($towncenter),hostile }
+# Wish there were some higher-level rampaging-type monsters that are also spellcasters...
+MONSTER:"orc shaman",(57,05),hostile,asleep
+MONSTER:"orc shaman",(53,07),hostile,asleep
+MONSTER:"orc shaman",(61,07),hostile,asleep
+MONSTER:"orc shaman",(54,10),hostile,asleep
+MONSTER:"orc shaman",(60,10),hostile,asleep
+
+# Thoth Amon's horde
+# For some reason, filtering with $outsidetown makes it include all of
+# $outsidetown, so this doesn't work. Bleah.
+$outsidetown = selection: floodfill(01,01)
+# $hordestart = selection: filter(fillrect(31,00,48,19), $outsidetown)
+$hordestart = selection: filter('.', fillrect(31,00,41,19))
+LOOP [8] { MONSTER:"ogre",rndcoord($hordestart),hostile }
+LOOP [6] { MONSTER:'O',rndcoord($hordestart),hostile }
+LOOP [8] { MONSTER:"rock troll",rndcoord($hordestart),hostile }
+LOOP [6] { MONSTER:'T',rndcoord($hordestart),hostile }
+LOOP [4] { MONSTER:'o',rndcoord($hordestart),hostile }
+LOOP [3] { MONSTER:'k',rndcoord($hordestart),hostile }
+# Ominous candles on the ground to see their approach
+$candleline = selection: line(29,00),(29,19)
+LOOP [1d5 + 1] { OBJECT:"tallow candle",rndcoord($candleline),lit }
+
+# Random objects, scattered through the buildings. TODO: add all the buildings.
+$inbuildings = selection: floodfill(32,05) & floodfill(50,00) & floodfill(45,06) & floodfill(45,09) & floodfill(45,13) & floodfill(53,13) & floodfill(60,13) & floodfill(65,02) & floodfill(65,08) & floodfill(70,09)
+LOOP [14] { OBJECT:random,rndcoord($inbuildings) }
+
+# Traps. Thoth Amon has invested heavily in intruder detection
+LOOP [10] { TRAP:"board",rndcoord($towncenter & $inbuildings) }
+LOOP [10] { TRAP:"board",rndcoord($outsidetown) }
+LOOP [10] { TRAP:"bear",random }
+LOOP [10] { TRAP:"spiked pit",random }
+
+# Fire ring in the village center
+OBJECT:"rock",(56,06),quantity:3d2
+OBJECT:"rock",(57,06),quantity:3d2
+OBJECT:"rock",(58,06),quantity:3d2
+OBJECT:"rock",(55,07),quantity:3d2
+OBJECT:"rock",(59,07),quantity:3d2
+OBJECT:"rock",(54,08),quantity:3d2
+OBJECT:"rock",(60,08),quantity:3d2
+OBJECT:"rock",(55,09),quantity:3d2
+OBJECT:"rock",(59,09),quantity:3d2
+OBJECT:"rock",(56,10),quantity:3d2
+OBJECT:"rock",(57,10),quantity:3d2
+OBJECT:"rock",(58,10),quantity:3d2
+
+# Barricades blocking access to the buildings
+OBJECT:"boulder",(60,01)
+OBJECT:"boulder",(61,01)
+OBJECT:"boulder",(59,02)
+OBJECT:"boulder",(60,02)
+OBJECT:"boulder",(61,02)
+OBJECT:"boulder",(52,04)
+OBJECT:"boulder",(53,04)
+OBJECT:"boulder",(52,05)
+OBJECT:"boulder",(53,05)
+OBJECT:"boulder",(64,06)
+OBJECT:"boulder",(65,06)
+OBJECT:"boulder",(39,08)
+OBJECT:"boulder",(40,08)
+OBJECT:"boulder",(42,11)
+OBJECT:"boulder",(43,11)
+OBJECT:"boulder",(44,11)
+OBJECT:"boulder",(49,12)
+OBJECT:"boulder",(50,12)
+OBJECT:"boulder",(49,13)
+OBJECT:"boulder",(50,13)
+OBJECT:"boulder",(57,14)
+OBJECT:"boulder",(57,15)
+OBJECT:"boulder",(65,12)
+OBJECT:"boulder",(66,12)
+OBJECT:"boulder",(67,12)
+
+# Some more random scattered boulders.
+LOOP [8 + 2d4] { OBJECT:"boulder",rndcoord($outsidetown) }
 
 #
 #	The "fill" levels for the quest.

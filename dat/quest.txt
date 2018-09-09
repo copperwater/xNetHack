@@ -442,16 +442,17 @@ guard."
 %n."
 %E
 %Cc Bar 00035
-The scent of water comes to you in the desert breeze.  You know that
-you have located %i.
+As the sun sinks below the horizon, the scent of water comes to you in
+the desert breeze.  You know that you have located %i.
 %E [You have located %i.]
 %Cp Bar 00036
 Yet again you have a chance to infiltrate %i.
 %E
 %Cc Bar 00040
-The hairs on the nape of your neck lift as you sense an energy in the
-very air around you.  You fight down a primordial panic that seeks to
-make you turn and run.  This is surely the lair of %n.
+Ahead, you can make out the glow of fire and the dark shapes of
+buildings. The hairs on the nape of your neck lift as you sense an
+energy in the very air around you.  You fight down a primordial panic
+that seeks to make you turn and run.  This is surely the lair of %n.
 %E [This is surely the lair of %n.]
 %Cp Bar 00041
 Yet again you feel the air around you heavy with malevolent magical energy.
