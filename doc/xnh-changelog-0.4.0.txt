@@ -35,6 +35,7 @@ Add polyinit mode: you begin the game permanently polymorphed into a monster of
   You can polyinit to anything except player monsters and uniques. Any other
   monsters are fair game, but if you can't polymorph into one in a normal game,
   it's not officially supported. Beware of crashes.
+  In polyinit mode, you will never leave bones.
 Extrinsic sources of fire, cold, and shock resistance provide immunity to all
   items in your inventory from that type of damage.
 Eating mimic corpses no longer breaks polyselfless conduct.
@@ -82,6 +83,7 @@ Some base materials have been changed to make life easier for elvish players:
 You can now refresh your memory with a spellbook whenever you want, rather than
   forcing you to wait until it dips below 10% retention.
 Implement player-as-an-Archon blinding gaze attack (code by Pavel Braginskiy)
+The Barbarian lower filler and goal levels are replaced.
 
 It contains the following non-gameplay interface changes:
 
@@ -108,3 +110,4 @@ Remove all (now dead) code relating to amnesia.
 Add a makemon flag for suppressing the creation of monster groups.
 Enable LIVELOGFLAGS in the sysconf. Livelogging is still disabled by default in
   config.h.
+Fix two critical bugs in the selection_do_grow code.
