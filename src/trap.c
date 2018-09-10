@@ -5441,7 +5441,7 @@ int when;
                 pline("%s is zapped by a doorknob!", Monnam(mon));
             }
             mon->mhp -= dmg;
-            if (mon->mhp <= 0) {
+            if (DEADMONSTER(mon)) {
                 monkilled(mon, "", AD_ELEC);
             }
         }
@@ -5511,7 +5511,7 @@ int when;
                 mhurtle(mon, x - mon->mx, y - mon->my, 1);
                 mon->mstun = 1;
                 mon->mhp -= dmg;
-                if (mon->mhp <= 0) {
+                if (DEADMONSTER(mon)) {
                     monkilled(mon, "", AD_PHYS);
                 }
             }
@@ -5548,7 +5548,7 @@ int when;
                 mon->mcanmove = 0;
                 mon->mfrozen = 3;
                 mon->mhp -= dmg;
-                if (mon->mhp <= 0) {
+                if (DEADMONSTER(mon)) {
                     monkilled(mon, "", AD_PHYS);
                 }
             }
@@ -5610,7 +5610,7 @@ int when;
                 pline("%s is burned by a red-hot doorknob!", Monnam(mon));
             }
             mon->mhp -= dmg;
-            if (mon->mhp <= 0) {
+            if (DEADMONSTER(mon)) {
                 monkilled(mon, "", AD_FIRE);
             }
         }
