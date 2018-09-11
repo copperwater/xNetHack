@@ -84,6 +84,12 @@ You can now refresh your memory with a spellbook whenever you want, rather than
   forcing you to wait until it dips below 10% retention.
 Implement player-as-an-Archon blinding gaze attack (code by Pavel Braginskiy)
 The Barbarian lower filler and goal levels are replaced.
+The chance of a successful artifact wish is now 1/(# of artifact wishes + 1).
+  This means that randomly generated, named, and gifted artifacts do not count
+  against your chances. However, unsuccessful wishes still count against you.
+The chance of a god gift on a sacrifice is now 1/(10 + 2 * gifts^2).
+  This again means that randomly generated, named, and wished-for artifacts do
+  not count against your chances.
 
 It contains the following non-gameplay interface changes:
 

@@ -1736,13 +1736,11 @@ dosacrifice()
                 }
             }
         } else {
-            int nartifacts = nartifact_exist();
-
             /* you were already in pretty good standing */
             /* The player can gain an artifact */
             /* The chance goes down as the number of artifacts goes up */
             if (u.ulevel > 2 && u.uluck >= 0
-                && !rn2(10 + (2 * u.ugifts * nartifacts))) {
+                && !rn2(10 + (2 * u.ugifts * u.ugifts))) {
                 otmp = mk_artifact((struct obj *) 0, a_align(u.ux, u.uy));
                 if (otmp) {
                     if (otmp->spe < 0)
@@ -1754,7 +1752,7 @@ dosacrifice()
                     dropy(otmp);
                     godvoice(u.ualign.type, "Use my gift wisely!");
                     u.ugifts++;
-                    u.ublesscnt = rnz(300 + (50 * nartifacts));
+                    u.ublesscnt = rnz(300 + (50 * u.ugifts));
                     exercise(A_WIS, TRUE);
                     livelog_printf (LL_DIVINEGIFT|LL_ARTIFACT,
                             "had %s bestowed upon %s by %s",
