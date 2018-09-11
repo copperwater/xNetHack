@@ -1796,7 +1796,6 @@ int magic; /* 0=Physical, otherwise skill level */
          * the effects of landing on the final position.
          */
         teleds(cc.x, cc.y, FALSE, FALSE);
-        sokoban_guilt();
         nomul(-1);
         multi_reason = "jumping around";
         nomovemsg = "";

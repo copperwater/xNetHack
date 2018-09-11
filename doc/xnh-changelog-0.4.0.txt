@@ -90,6 +90,8 @@ The chance of a successful artifact wish is now 1/(# of artifact wishes + 1).
 The chance of a god gift on a sacrifice is now 1/(10 + 2 * gifts^2).
   This again means that randomly generated, named, and wished-for artifacts do
   not count against your chances.
+Sokoban luck penalties for jumping, hurtling, and dragging yourself via thrown
+  ball are removed, since none of them can actually be cheated with.
 
 It contains the following non-gameplay interface changes:
 
