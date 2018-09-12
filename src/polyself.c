@@ -1292,6 +1292,11 @@ dospinweb()
     if (ttmp) {
         ttmp->madeby_u = 1;
         feeltrap(ttmp);
+        if (in_rooms(u.ux, u.uy, SHOPBASE)) {
+            /* make the shopkeeper clean it up, and he doesn't appreciate that
+             * the player did that */
+            add_damage(u.ux, u.uy, SHOP_WEB_COST);
+        }
     }
     return 1;
 }

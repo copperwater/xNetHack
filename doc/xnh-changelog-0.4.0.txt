@@ -92,6 +92,10 @@ The chance of a god gift on a sacrifice is now 1/(10 + 2 * gifts^2).
   not count against your chances.
 Sokoban luck penalties for jumping, hurtling, and dragging yourself via thrown
   ball are removed, since none of them can actually be cheated with.
+The spiders-spinning-webs feature introduced in 0.1.0 ascended to vanilla, and
+  has been backported from there so that xNetHack's version now behaves the
+  same as vanilla.
+  Additionally, shopkeepers will also clean up webs spun in their shops.
 
 It contains the following non-gameplay interface changes:
 

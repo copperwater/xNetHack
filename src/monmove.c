@@ -1403,6 +1403,11 @@ postmov:
                     pline("%s spins a web.", upstart(mbuf));
                     trap->tseen = 1;
                 }
+                if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE)) {
+                    /* a shopkeeper will make sure to keep the shop cobweb-free
+                     * (don't charge the player for this either) */
+                    add_damage(mtmp->mx, mtmp->my, 0L);
+                }
             }
         }
 
