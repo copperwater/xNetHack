@@ -505,6 +505,18 @@ doread()
                         "became literate by reading a tin label");
             return 1;
         }
+    } else if (scroll->otyp == DWARVISH_RING_MAIL) {
+        if (Blind) {
+            pline("You can't read this while blind.");
+            return 0;
+        }
+        pline("It reads:");
+        pline("\"This is a dwarvish ring mail.");
+        pline("All craftsdwarfship is of the finest quality.\"");
+        if(!u.uconduct.literate++)
+            livelog_write_string(LL_CONDUCT,
+                    "became literate by reading a dwarvish ring mail");
+        return 1;
     } else if (scroll->oclass != SCROLL_CLASS
                && scroll->oclass != SPBOOK_CLASS) {
         pline(silly_thing_to, "read");
