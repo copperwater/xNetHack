@@ -118,6 +118,7 @@ When a potion of oil fails to dilute in water, give a message and identify the
 Usual update of more gravestone messages, random engravings, and shirt
   messages.
 Easter egg when you read a dwarvish ring mail.
+Suppress "Unknown command 'foo'." messages in the dumplog.
 
 It contains the following non-gameplay architectural changes:
 
