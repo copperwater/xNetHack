@@ -736,7 +736,7 @@ register int pm;
         /* It so happens that since we know these monsters */
         /* cannot appear in tins, context.victual.piece will always */
         /* be what we want, which is not generally true. */
-        if (revive_corpse(context.victual.piece)) {
+        if (revive_corpse(context.victual.piece, FALSE)) {
             context.victual.piece = (struct obj *) 0;
             context.victual.o_id = 0;
         }

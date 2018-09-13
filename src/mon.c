@@ -962,7 +962,7 @@ struct monst *mtmp;
         /* touch sensitive items */
         if (otmp->otyp == CORPSE && is_rider(&mons[otmp->corpsenm])) {
             /* Rider corpse isn't just inedible; can't engulf it either */
-            (void) revive_corpse(otmp);
+            (void) revive_corpse(otmp, FALSE);
 
         /* untouchable (or inaccessible) items */
         } else if ((otmp->otyp == CORPSE
@@ -1097,7 +1097,7 @@ struct monst* mtmp;
 
         struct permonst* corpsepm = &mons[otmp->corpsenm];
         if (is_rider(corpsepm)) {
-            revive_corpse(otmp);
+            revive_corpse(otmp, FALSE);
             continue;
         }
 

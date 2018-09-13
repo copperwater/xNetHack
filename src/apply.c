@@ -1850,7 +1850,7 @@ struct obj *obj;
         instapetrify(kbuf);
     }
     if (is_rider(&mons[corpse->corpsenm])) {
-        if (revive_corpse(corpse))
+        if (revive_corpse(corpse, FALSE))
             verbalize("Yes...  But War does not preserve its enemies...");
         else
             pline_The("corpse evades your grasp.");

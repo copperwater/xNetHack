@@ -384,8 +384,9 @@ E void FDECL(goto_level, (d_level *, BOOLEAN_P, BOOLEAN_P, BOOLEAN_P));
 E void FDECL(schedule_goto, (d_level *, BOOLEAN_P, BOOLEAN_P, int,
                              const char *, const char *));
 E void NDECL(deferred_goto);
-E boolean FDECL(revive_corpse, (struct obj *));
+E boolean FDECL(revive_corpse, (struct obj *, boolean));
 E void FDECL(revive_mon, (ANY_P *, long));
+E void FDECL(moldy_corpse, (ANY_P *, long));
 E int NDECL(donull);
 E int NDECL(dowipe);
 E void FDECL(set_wounded_legs, (long, int));

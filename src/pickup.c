@@ -294,7 +294,7 @@ boolean remotely;
 
     pline("At your %s, the corpse suddenly moves...",
           remotely ? "attempted acquisition" : "touch");
-    (void) revive_corpse(obj);
+    (void) revive_corpse(obj, FALSE);
     exercise(A_WIS, FALSE);
     return TRUE;
 }
@@ -2383,6 +2383,7 @@ register struct obj *obj;
         if (obj->otyp == CORPSE && obj->timed) {
             long rot_alarm = stop_timer(ROT_CORPSE, obj_to_any(obj));
 
+            (void) stop_timer(MOLDY_CORPSE, obj_to_any(obj));
             (void) stop_timer(REVIVE_MON, obj_to_any(obj));
             /* mark a non-reviving corpse as such */
             if (rot_alarm)
