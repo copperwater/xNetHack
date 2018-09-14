@@ -1849,7 +1849,6 @@ long timeout;
      * set the corpsenm of the (stack of) corpses to the fungus, then revive it,
      * then set the corpsenm back to what it initially was. */
     body->corpsenm = monsndx(newpm);
-    pline("%d MNAME %s", body->corpsenm, mons[body->corpsenm].mname);
 
     /* Also, don't let the mold become named. */
     if (has_oname(body)) {

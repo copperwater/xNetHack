@@ -750,7 +750,6 @@ boolean by_hero;
     /* prepare for the monster */
     montype = corpse->corpsenm;
     mptr = &mons[montype];
-        pline("%d MNAME %s", corpse->corpsenm, mons[corpse->corpsenm].mname);
 
     /* [should probably handle recorporealization first; if corpse and
        ghost are at same location, revived creature shouldn't be bumped
