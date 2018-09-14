@@ -98,6 +98,8 @@ The spiders-spinning-webs feature introduced in 0.1.0 ascended to vanilla, and
   Additionally, shopkeepers will also clean up webs spun in their shops.
 The SLASH'EM feature in which corpses in the taint-risk stage can spontaneously
   morph into living F monsters has been ported.
+Force bolts (from the spell and the wand of striking) will smash through and
+  destroy iron bars in their path.
 
 It contains the following non-gameplay interface changes:
 

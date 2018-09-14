@@ -3204,6 +3204,20 @@ struct obj **pobj; /* object tossed/used, set to NULL
 
         typ = levl[bhitpos.x][bhitpos.y].typ;
 
+        if (typ == IRONBARS
+            && (obj->otyp == SPE_FORCE_BOLT || obj->otyp == WAN_STRIKING)) {
+            levl[bhitpos.x][bhitpos.y].typ = ROOM;
+            if (cansee(bhitpos.x, bhitpos.y))
+                pline_The("iron bars are blown apart!");
+            else
+                You_hear("a lot of loud clanging sounds!");
+            wake_nearto(bhitpos.x, bhitpos.y, 20 * 20);
+            newsym(bhitpos.x, bhitpos.y);
+            /* stop the bolt here; it takes a lot of energy to destroy bars */
+            range = 0;
+            break;
+        }
+
         /* iron bars will block anything big enough */
         if ((weapon == THROWN_WEAPON || weapon == KICKED_WEAPON)
             && typ == IRONBARS
