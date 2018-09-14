@@ -192,4 +192,6 @@ struct monst {
 #define toostrong(monindx, lev) (monstr[monindx] > lev)
 #define tooweak(monindx, lev) (monstr[monindx] < lev)
 
+#define helpless(mon) ((mon)->msleeping || !(mon)->mcanmove)
+
 #endif /* MONST_H */

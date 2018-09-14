@@ -100,6 +100,9 @@ The SLASH'EM feature in which corpses in the taint-risk stage can spontaneously
   morph into living F monsters has been ported.
 Force bolts (from the spell and the wand of striking) will smash through and
   destroy iron bars in their path.
+Melee combat now awakens monsters in a radius dependent on the size of the
+  attacking monster. This is reduced but not eliminated for a stealthy player,
+  and does not affect other types of combat.
 
 It contains the following non-gameplay interface changes:
 

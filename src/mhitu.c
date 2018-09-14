@@ -922,6 +922,10 @@ register struct attack *mattk;
     if (!canspotmon(mtmp))
         map_invisible(mtmp->mx, mtmp->my);
 
+    /* Awaken nearby monsters */
+    if (!(is_silent(mdat) && multi < 0) && rn2(10)) {
+        wake_nearto(u.ux, u.uy, combat_noise(mtmp->data));
+    }
     /*  If the monster is undetected & hits you, you should know where
      *  the attack came from.
      */

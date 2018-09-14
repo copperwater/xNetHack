@@ -534,6 +534,11 @@ hitmm(magr, mdef, mattk)
 register struct monst *magr, *mdef;
 struct attack *mattk;
 {
+    /* Possibly awaken nearby monsters */
+    if ((!is_silent(magr->data) || !helpless(mdef)) && rn2(10)) {
+        wake_nearto(magr->mx, magr->my, combat_noise(magr->data));
+    }
+
     if (vis) {
         int compat;
         char buf[BUFSZ], mdef_name[BUFSZ];
