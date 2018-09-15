@@ -1689,14 +1689,14 @@ boolean moldy;
     }
     mtmp = revive(corpse, FALSE); /* corpse is gone if successful */
 
-    /* [ALI] Override revive's HP calculation. The HP that a mold starts with do
-     * not depend on the HP of the monster whose corpse it grew on.
-     */
-    if (moldy) {
-	mtmp->mhp = mtmp->mhpmax;
-        chewed = FALSE;
-    }
     if (mtmp) {
+        /* [ALI] Override revive's HP calculation. The HP that a mold starts with do
+        * not depend on the HP of the monster whose corpse it grew on.
+        */
+        if (moldy) {
+            mtmp->mhp = mtmp->mhpmax;
+            chewed = FALSE;
+        }
         switch (where) {
         case OBJ_INVENT:
             if (is_uwep) {
