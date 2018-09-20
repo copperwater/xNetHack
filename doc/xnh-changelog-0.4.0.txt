@@ -128,6 +128,8 @@ Suppress "Unknown command 'foo'." messages in the dumplog.
 YAFM when you break an identified wand of nothing
 Demon lords that ask for bribes now indicate their displeasure when you come to
   them with no money (previously, they just silently attacked).
+All demon lords, the Riders, Vlad, and the Wizard of Yendor all have a unique
+  multiline message that prints when you encounter them for the first time.
 
 It contains the following non-gameplay architectural changes:
 

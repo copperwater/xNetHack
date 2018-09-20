@@ -3481,6 +3481,118 @@ resides.
 Go now!  You are banished from this place.
 %E [You are banished from %H for betraying your allegiance to %d.]
 #
+#       Demon lord appearance messages
+#
+%Cc - 00070
+A massive pillar of slime towers above you, larger than you would believe
+to be possible. It hisses, spits, and bubbles, filling the air around it
+with noxious vapours. Most striking of all is the burning hatred that
+emanates from it, so intense that it feels almost like a physical force
+and you have to struggle not to let it push you back.
+
+Juiblex, the Faceless Lord, has arrived.
+%E [Juiblex appears!]
+%Cc - 00071
+The hulking humanoid that stands before you is covered nearly three meters
+tall and has the head of a hyena. In one hand it grips a flail, and the
+other hand crackles with magical energy. When it opens its mouth, the
+unholy din that emerges could charitably be called a laugh.
+
+Yeenoghu has come to call.
+%E [Yeenoghu appears!]
+%Cc - 00072
+Blackness cloaks the being in front of you. All you can see of it is a
+muscular form, two burning yellow eyes, and a pair of claws. One of the
+claws clutches a skull-topped wand, about which a miasma of dark magic
+gathers.
+
+"I am Orcus, Lord of the Dead. Goodbye."
+%E [Orcus appears!]
+%Cc - 00073
+The monster you now face is nothing short of horrifying. The upper body
+seems to be a combination of three separate humanoids that have been
+forcibly merged.  The lower body is serpentine and distended, tapering off
+into an enormous stinger. The hands of the monster end in wicked claws.
+
+"Greetings, mortal. I am Geryon."
+%E [Geryon appears!]
+%Cc - 00074
+The being in front of you sniffs in disdain and tosses his ram's horns. He
+is dressed in fine clothing, and his skin is covered in bony protrusions.
+A flickering gray aura surrounds him, which occasionally curls into a
+bestial shape.
+
+"Is this the one who seeks the Amulet of Yendor? How utterly pathetic. I,
+Dispater, shall dispatch thee."
+%E [Dispater appears!]
+%Cc - 00075
+A maddening buzz fills your ears. Thousands of flies appear from
+everywhere, swarming through the air to coalesce into a horrible,
+pulsating mass, which continually spews torrents of insects as it expands.
+
+Baalzebub, Lord of the Flies approaches.
+%E [Baalzebub appears!]
+%Cc - 00076
+The air around you is filled with a momentary hissing, before a figure
+appears in a flash of frost. He grins at you, displaying a mouth full of
+fangs.
+
+"I am Asmodeus. Come to me, %r."
+%E [Asmodeus appears!]
+%Cc - 00077
+A great beast drags itself from the earth in a shower of stone, roaring
+loudly enough that the world shakes around it. You cannot wrap your mind
+around the entirety of its form, and instead must process bits and pieces
+of it at a time.
+
+Four lashing tentacles, thick with rot.
+Thick, scaly legs ending in knifelike claws.
+The cloying smell of mildew mixed with blood.
+A pair of rabid mandrill heads, their eyes trained on you.
+Prince of Demons.
+
+Demogorgon.
+%E [Demogorgon appears!]
+#
+#       Appearance messages for other high-level uniques
+#
+%Cc - 00080
+Blocking the way in front of you stands a huge horse, pale as the moon.
+Its rider is cloaked in a black robe, taller than a man, and holding a
+gleaming scythe. He turns to face you, revealing his head to be a grinning
+skull. Instead of eyes, two icy blue pinpoints of light shine as brightly
+as stars.
+%E [You encounter Death.]
+%Cc - 00081
+A disgusting stench assaults your nose as a blinding white horse thunders
+to a stop ahead. Its rider wears a sickly green cloak covered in splotches
+of mildew and circled by several flies. A glittering crown, looking
+rather out of place, rests on his head. With a ghastly leer he extends a
+diseased finger toward you.
+%E [You encounter Pestilence.]
+%Cc - 00082
+A horse, dark as midnight, rears up before you, with a hunched figure
+seated on its back. He is wearing a thin gray cowl and clutching a set of
+black iron balance scales. He lowers his hood and glares at you, revealing
+a badly emaciated face. Under his fevered gaze, a pang of hunger goes
+through your stomach.
+%E [You encounter Famine.]
+%Cc - 00083
+A man stands before you. He wears an elaborate robe trimmed with gold, and
+he regards you with a fiendish gaze. The very air around him pulsates with
+a fell power, and sparks fly from his fingers.
+
+"Not since the fall of Yendor has a puny mortal dared to cross my path.
+Thou art a fool to challenge me. Prepare to die!"
+%E [You encounter the Wizard of Yendor!]
+%Cc - 00084
+In a swirl of dark vapor, a tall figure appears, garbed in a high-collared black
+velvet cloak. His skin is very pale, except for some disturbing red stains
+around his mouth.  His lips curl into a sneer, revealing long white fangs.
+
+"I am Vlad Dracula, the Impaler. Tonight I will feast on thy blood."
+%E [You encounter Vlad The Impaler!]
+#
 #	TEST PATTERN
 #
 %Cc - 00099

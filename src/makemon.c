@@ -1394,7 +1394,7 @@ int mmflags;
             mtmp->mstrategy |= STRAT_WAITFORU;
         if (ptr->mflags3 & M3_CLOSE)
             mtmp->mstrategy |= STRAT_CLOSE;
-        if (ptr->mflags3 & (M3_WAITMASK | M3_COVETOUS))
+        if (ptr->mflags3 & (M3_WAITMASK | M3_COVETOUS) || is_rider(ptr))
             mtmp->mstrategy |= STRAT_APPEARMSG;
     }
 

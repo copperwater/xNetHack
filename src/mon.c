@@ -2690,10 +2690,13 @@ struct monst *mtmp;
         return;
     rloc_to(mtmp, mm.x, mm.y);
     if (!in_mklev && (mtmp->mstrategy & STRAT_APPEARMSG)) {
-        mtmp->mstrategy &= ~STRAT_APPEARMSG; /* one chance only */
-        if (!couldspot && canspotmon(mtmp))
-            pline("%s suddenly %s!", Amonnam(mtmp),
-                  !Blind ? "appears" : "arrives");
+        if (canspotmon(mtmp)) {
+            if (!boss_entrance(mtmp) && !couldspot) {
+                pline("%s suddenly %s!", Amonnam(mtmp),
+                    !Blind ? "appears" : "arrives");
+                mtmp->mstrategy &= ~STRAT_APPEARMSG; /* one chance only */
+            }
+        }
     }
     return;
 }

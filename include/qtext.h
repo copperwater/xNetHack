@@ -113,6 +113,20 @@ struct qtlists {
 #define QTN_DEMONIC 20
 
 #define QT_BANISHED 60
+
+/*
+ * Message defines for boss appearances, not role-specific.
+ */
+
+#define QT_DLORD_APPEARS 70
+#define QTN_DLORD 8 /* number of demon lords */
+
+#define QT_RIDER_APPEARS 80
+#define QTN_RIDER 3 /* number of Riders */
+
+#define QT_WIZARD_APPEARS 83
+#define QT_VLAD_APPEARS 84
+
 #endif /***** !MAKEDEFS *****/
 
 #endif /* QTEXT_H */

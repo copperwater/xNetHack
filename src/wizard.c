@@ -481,7 +481,7 @@ aggravate()
             continue;
         if (in_w_tower != In_W_tower(mtmp->mx, mtmp->my, &u.uz))
             continue;
-        mtmp->mstrategy &= ~(STRAT_WAITFORU | STRAT_APPEARMSG);
+        mtmp->mstrategy &= ~STRAT_WAITFORU;
         mtmp->msleeping = 0;
         if (!mtmp->mcanmove && !rn2(5)) {
             mtmp->mfrozen = 0;

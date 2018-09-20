@@ -427,6 +427,12 @@ register struct monst *mtmp;
     /* check distance and scariness of attacks */
     distfleeck(mtmp, &inrange, &nearby, &scared);
 
+    /* Dramatic entrance messages if it's a boss */
+    if (canseemon(mtmp)) {
+        boss_entrance(mtmp);
+        mtmp->mstrategy &= ~STRAT_APPEARMSG;
+    }
+
     if (find_defensive(mtmp)) {
         if (use_defensive(mtmp) != 0)
             return 1;
