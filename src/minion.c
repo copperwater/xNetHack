@@ -266,6 +266,8 @@ register struct monst *mtmp;
     cash = money_cnt(invent);
 
     if (cash == 0 || multi < 0) { /* you have no gold or can't move */
+        pline("%s roars:", Amonnam(mtmp));
+        verbalize("You bring me no tribute?  Then you must die!");
         mtmp->mpeaceful = 0;
         set_malign(mtmp);
         return 0;

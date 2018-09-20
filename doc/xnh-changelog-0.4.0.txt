@@ -126,6 +126,8 @@ Usual update of more gravestone messages, random engravings, and shirt
 Easter egg when you read a dwarvish ring mail.
 Suppress "Unknown command 'foo'." messages in the dumplog.
 YAFM when you break an identified wand of nothing
+Demon lords that ask for bribes now indicate their displeasure when you come to
+  them with no money (previously, they just silently attacked).
 
 It contains the following non-gameplay architectural changes:
 
