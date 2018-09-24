@@ -104,6 +104,8 @@ Force bolts (from the spell and the wand of striking) will smash through and
 Melee combat now awakens monsters in a radius dependent on the size of the
   attacking monster. This is reduced but not eliminated for a stealthy player,
   and does not affect other types of combat.
+Make the rne() function not care about experience level. It now caps at 10
+  regardless of the player's stats.
 
 It contains the following non-gameplay interface changes:
 
