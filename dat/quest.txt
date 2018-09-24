@@ -3579,7 +3579,7 @@ through your stomach.
 %E [You encounter Famine.]
 %Cc - 00083
 A man stands before you. He wears an elaborate robe trimmed with gold, and
-he regards you with a fiendish gaze. The very air around him pulsates with
+he regards you with a malevolent stare. The very air around him pulsates with
 a fell power, and sparks fly from his fingers.
 
 "Not since the fall of Yendor has a puny mortal dared to cross my path.
