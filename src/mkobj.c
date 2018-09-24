@@ -1017,14 +1017,33 @@ boolean artif;
             break;
         case RING_CLASS:
             if (objects[otmp->otyp].oc_charged) {
+                schar multiplier = 1;
                 blessorcurse(otmp, 3);
-                if (rn2(10) && bcsign(otmp))
-                    otmp->spe = bcsign(otmp) * rne(3);
-                else
-                    otmp->spe = rn2(2) ? rne(3) : -rne(3);
-                /* negative rings are usually cursed */
-                if (otmp->spe < 0 && rn2(5))
-                    curse(otmp);
+                /* This multiplier formula is from FIQHack:
+                 * Beatitude |    +1 |  0 |    -1
+                 * Blessed:      94%   2%      4%
+                 * Uncursed:     67%   2%     31%
+                 * Cursed:       13%   2%     85%
+                 */
+                if (rn2(10)) {
+                    /* For 81% of rings that were already cursed, and for 40.5%
+                     * of rings that were uncursed, make enchantment negative.
+                     */
+                    if (rn2(10) && (otmp->cursed || (!bcsign(otmp) && !rn2(3))))
+                        multiplier = -1;
+                }
+                else if (!rn2(5)) {
+                    /* 2% of all charged rings are +0 */
+                    multiplier = 0;
+                }
+                else if (!rn2(2)) {
+                    /* 4% of all charged rings are made negative, even blessed
+                     * ones */
+                    multiplier = -1;
+                }
+                /* use rne(2) to get higher values; nobody really likes
+                 * low-enchanted rings that much. */
+                otmp->spe = rne(2) * multiplier;
             } else if (rn2(10) && (otmp->otyp == RIN_TELEPORTATION
                                    || otmp->otyp == RIN_POLYMORPH
                                    || otmp->otyp == RIN_AGGRAVATE_MONSTER
