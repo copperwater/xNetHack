@@ -666,7 +666,8 @@ u_init()
      * random number generators are bad enough to seriously
      * skew the results if we use rn2(2)...  --KAA
      */
-    case PM_ARCHEOLOGIST:
+    case PM_ARCHEOLOGIST: {
+        int i;
         ini_inv(Archeologist);
         if (!rn2(10))
             ini_inv(Tinopener);
@@ -676,8 +677,12 @@ u_init()
             ini_inv(Magicmarker);
         knows_object(SACK);
         knows_object(TOUCHSTONE);
+        for (i = LAST_GEM + 1; i <= LAST_GEM + 9; ++i) {
+            knows_object(i);
+        }
         skill_init(Skill_A);
         break;
+    }
     case PM_BARBARIAN:
         if (rn2(100) >= 50) { /* see above comment */
             Barbarian[B_MAJOR].trotyp = BATTLE_AXE;
