@@ -113,6 +113,8 @@ Port FIQHack's charged ring initial enchantment math. The main thing is that
   likely to have positive enchantment, cursed rings are very likely to have
   negative, and uncursed have positive enchantment about 2/3 of the time and
   negative about 1/3. The formula for uncursed rings is slightly tweaked.
+Demon lords are made hostile if you wield Demonbane, as well as Excalibur, when
+  they are generated or they approach you.
 
 It contains the following non-gameplay interface changes:
 
