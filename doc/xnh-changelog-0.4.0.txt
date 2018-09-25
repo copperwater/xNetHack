@@ -142,6 +142,8 @@ Demon lords that ask for bribes now indicate their displeasure when you come to
   them with no money (previously, they just silently attacked).
 All demon lords, the Riders, Vlad, and the Wizard of Yendor all have a unique
   multiline message that prints when you encounter them for the first time.
+All wands that print an unambiguous message clue to their identity now
+  automatically type-identify when engraved with.
 
 It contains the following non-gameplay architectural changes:
 
@@ -150,3 +152,6 @@ Add a makemon flag for suppressing the creation of monster groups.
 Enable LIVELOGFLAGS in the sysconf. Livelogging is still disabled by default in
   config.h.
 Fix two critical bugs in the selection_do_grow code.
+Since there needed to be two distinct calls to identifying a wand via
+  engraving, break out that small bit of logic into its own function
+  engraving_learn_wand.
