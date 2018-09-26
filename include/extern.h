@@ -2004,6 +2004,7 @@ E char *FDECL(priestname, (struct monst *, char *));
 E boolean FDECL(p_coaligned, (struct monst *));
 E struct monst *FDECL(findpriest, (CHAR_P));
 E void FDECL(intemple, (int));
+E void FDECL(scary_ghost, (struct monst *));
 E void FDECL(forget_temple_entry, (struct monst *));
 E void FDECL(priest_talk, (struct monst *));
 E struct monst *FDECL(mk_roamer, (struct permonst *, ALIGNTYP_P, XCHAR_P,

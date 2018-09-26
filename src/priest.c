@@ -499,21 +499,34 @@ int roomno;
             && (mtmp = makemon(&mons[PM_GHOST], u.ux, u.uy, NO_MM_FLAGS))
                    != 0) {
             int ngen = mvitals[PM_GHOST].born;
-            if (canspotmon(mtmp))
+            if (canspotmon(mtmp)) {
                 pline("A%s ghost appears next to you%c",
                       ngen < 5 ? "n enormous" : "",
                       ngen < 10 ? '!' : '.');
-            else
+                scary_ghost(mtmp);
+            }
+            else {
                 You("sense a presence close by!");
-            mtmp->mpeaceful = 0;
-            set_malign(mtmp);
-            if (flags.verbose)
-                You("are frightened to death, and unable to move.");
-            nomul(-3);
-            multi_reason = "being terrified of a ghost";
-            nomovemsg = "You regain your composure.";
+            }
         }
     }
+}
+
+/* A suddenly appearing ghost scares you and freezes you with fright for a few
+ * turns.
+ * Assumes the caller has already checked for the hero noticing the ghost, and
+ * printed out an appropriate message for its appearance. */
+void
+scary_ghost(ghost)
+struct monst* ghost;
+{
+    ghost->mpeaceful = 0;
+    set_malign(ghost);
+    if (flags.verbose)
+        You("are frightened to death, and unable to move.");
+    nomul(-3);
+    multi_reason = "being terrified of a ghost";
+    nomovemsg = "You regain your composure.";
 }
 
 /* reset the move counters used to limit temple entry feedback;

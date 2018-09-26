@@ -492,17 +492,13 @@ ghost_from_bottle()
         pline("This bottle turns out to be empty.");
         return;
     }
-    if (Blind) {
+    if (!canspotmon(mtmp)) {
         pline("As you open the bottle, %s emerges.", something);
         return;
     }
     pline("As you open the bottle, an enormous %s emerges!",
           Hallucination ? rndmonnam(NULL) : (const char *) "ghost");
-    if (flags.verbose)
-        You("are frightened to death, and unable to move.");
-    nomul(-3);
-    multi_reason = "being frightened to death";
-    nomovemsg = "You regain your composure.";
+    scary_ghost(mtmp);
 }
 
 STATIC_OVL int
