@@ -1,4 +1,4 @@
-/* NetHack 3.6	makemon.c	$NHDT-Date: 1495237801 2017/05/19 23:50:01 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.116 $ */
+/* NetHack 3.6	makemon.c	$NHDT-Date: 1537477761 2018/09/20 21:09:21 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.124 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1399,6 +1399,9 @@ int mmflags;
             mtmp->mstrategy |= STRAT_APPEARMSG;
     }
 
+    if (allow_minvent && migrating_objs)
+        deliver_obj_to_mon(mtmp, 1, DF_NONE); /* in case there's waiting items */
+    
     if (!in_mklev)
         newsym(mtmp->mx, mtmp->my); /* make sure the mon shows up */
 
@@ -1871,7 +1874,7 @@ struct monst *mtmp, *victim;
                            slightly less sexist if prepared for it...) */
                       : (fem && !mtmp->female) ? "female " : "",
                     ptr->mname);
-            pline("%s %s %s.", Monnam(mtmp),
+            pline("%s %s %s.", upstart(y_monnam(mtmp)),
                   (fem != mtmp->female) ? "changes into"
                                         : humanoid(ptr) ? "becomes"
                                                         : "grows up into",
@@ -2163,16 +2166,12 @@ register struct monst *mtmp;
             appear = Is_rogue_level(&u.uz) ? S_hwall : S_hcdoor;
         else
             appear = Is_rogue_level(&u.uz) ? S_vwall : S_vcdoor;
-        if (!mtmp->minvis || See_invisible)
-            block_point(mx, my); /* vision */
     } else if (level.flags.is_maze_lev && !In_sokoban(&u.uz) && rn2(2)) {
         ap_type = M_AP_OBJECT;
         appear = STATUE;
     } else if (roomno < 0 && !t_at(mx, my)) {
         ap_type = M_AP_OBJECT;
         appear = BOULDER;
-        if (!mtmp->minvis || See_invisible)
-            block_point(mx, my); /* vision */
     } else if (rt == ZOO || rt == VAULT) {
         ap_type = M_AP_OBJECT;
         appear = GOLD_PIECE;
@@ -2230,6 +2229,9 @@ register struct monst *mtmp;
         if (appear == EGG && !can_be_hatched(MCORPSENM(mtmp)))
             MCORPSENM(mtmp) = NON_PM; /* revert to generic egg */
     }
+
+    if (does_block(mx, my, &levl[mx][my]))
+        block_point(mx, my);
 }
 
 /* release monster from bag of tricks; return number of monsters created */

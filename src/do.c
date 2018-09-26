@@ -144,8 +144,7 @@ const char *verb;
     if (obj->otyp == BOULDER && boulder_hits_pool(obj, x, y, FALSE)) {
         return TRUE;
     } else if (obj->otyp == BOULDER && (t = t_at(x, y)) != 0
-             && (t->ttyp == PIT || t->ttyp == SPIKED_PIT
-                 || t->ttyp == TRAPDOOR || t->ttyp == HOLE)) {
+               && (is_pit(t->ttyp) || is_hole(t->ttyp))) {
         if (((mtmp = m_at(x, y)) && mtmp->mtrapped)
             || (u.utrap && u.ux == x && u.uy == y)) {
             if (*verb)
@@ -998,7 +997,7 @@ dodown()
         if (trap && uteetering_at_seen_pit(trap)) {
             dotrap(trap, TOOKPLUNGE);
             return 1;
-        } else if (!trap || (trap->ttyp != TRAPDOOR && trap->ttyp != HOLE)
+        } else if (!trap || !is_hole(trap->ttyp)
                    || !Can_fall_thru(&u.uz) || !trap->tseen) {
             if (flags.autodig && !context.nopick && uwep && is_pick(uwep)) {
                 return use_pick_axe2(uwep);

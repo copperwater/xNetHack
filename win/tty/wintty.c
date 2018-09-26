@@ -67,6 +67,7 @@ struct window_procs tty_procs = {
 #endif
 #if defined(STATUS_HILITES)
      | WC2_HILITE_STATUS | WC2_HITPOINTBAR | WC2_FLUSH_STATUS
+     | WC2_RESET_STATUS
 #endif
      | WC2_DARKGRAY),
     tty_init_nhwindows, tty_player_selection, tty_askname, tty_get_nh_event,
@@ -3844,7 +3845,8 @@ int *topsz, *bottomsz;
             tty_status[NOW][idx].y = row;
             tty_status[NOW][idx].x = col;
 
-            /* evaluate */
+            /* On a change to the field length, everything 
+               further to the right must be updated as well */
             if (tty_status[NOW][idx].lth != tty_status[BEFORE][idx].lth)
                 update_right = TRUE;
 
@@ -4136,16 +4138,11 @@ render_status(VOID_ARGS)
         for (i = 0; fieldorder[row][i] != BL_FLUSH; ++i) {
             int fldidx = fieldorder[row][i];
 
-            if (do_field_opt && !tty_status[NOW][fldidx].redraw)
-                continue;
-            /*
-             * Ignore zero length fields. check_fields() didn't count
-             * them in either.
-             */
-            if (!tty_status[NOW][fldidx].lth && fldidx != BL_CONDITION)
+            if (!status_activefields[fldidx])
                 continue;
 
-            if (status_activefields[fldidx]) {
+            if ((tty_status[NOW][fldidx].lth || fldidx == BL_CONDITION)
+                 && (tty_status[NOW][fldidx].redraw || !do_field_opt)) {
                 int coloridx = tty_status[NOW][fldidx].color;
                 int attridx = tty_status[NOW][fldidx].attr;
                 int x = tty_status[NOW][fldidx].x;
@@ -4303,15 +4300,16 @@ render_status(VOID_ARGS)
                         End_Attr(attridx);
                     }
                 }
-                /* reset .redraw and .dirty now that they've been rendered */
-                tty_status[NOW][fldidx].dirty  = FALSE;
-                tty_status[NOW][fldidx].redraw = FALSE;
-                /*
-                 * Make a copy of the entire tty_status struct for comparison
-                 * of current and previous.
-                 */
-                tty_status[BEFORE][fldidx] = tty_status[NOW][fldidx];
             }
+            /* reset .redraw and .dirty now that they've been rendered */
+            tty_status[NOW][fldidx].dirty  = FALSE;
+            tty_status[NOW][fldidx].redraw = FALSE;
+
+            /*
+             * Make a copy of the entire tty_status struct for comparison
+             * of current and previous.
+             */
+             tty_status[BEFORE][fldidx] = tty_status[NOW][fldidx];
         }
     }
     if (cond_disp_width[NOW] < cond_width_at_shrink) {

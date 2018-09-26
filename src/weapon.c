@@ -361,6 +361,8 @@ struct monst *mon;
             bonus += rnd(4);
         if (mon_hates_material(mon, otmp->material))
             bonus += rnd(sear_damage(otmp->material));
+        if (artifact_light(otmp) && otmp->lamplit && hates_light(ptr))
+            bonus += rnd(8);
 
         /* if the weapon is going to get a double damage bonus, adjust
            this bonus so that effectively it's added after the doubling */

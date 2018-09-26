@@ -190,7 +190,8 @@ static struct Bool_Opt {
 #else
     { "page_wait", (boolean *) 0, FALSE, SET_IN_FILE },
 #endif
-    { "perm_invent", &flags.perm_invent, FALSE, SET_IN_GAME },
+    /* 3.6.2: move perm_invent from flags to inflags and out of save file */
+    { "perm_invent", &iflags.perm_invent, FALSE, SET_IN_GAME },
     { "pickup_thrown", &flags.pickup_thrown, TRUE, SET_IN_GAME },
     { "popup_dialog", &iflags.wc_popup_dialog, FALSE, SET_IN_GAME },   /*WC*/
     { "preload_tiles", &iflags.wc_preload_tiles, TRUE, DISP_IN_GAME }, /*WC*/
@@ -802,6 +803,15 @@ initoptions_init()
 #endif
 #endif /* UNIX || VMS */
 
+#if defined(MSDOS) || defined(WIN32)
+    /* Use IBM defaults. Can be overridden via config file */
+    if (!symset[PRIMARY].name) {
+        load_symset("IBMGraphics_2", PRIMARY);
+    }
+    if (!symset[ROGUESET].name) {
+        load_symset("RogueEpyx", ROGUESET);
+    }
+#endif
 #ifdef MAC_GRAPHICS_ENV
     if (!symset[PRIMARY].name)
         load_symset("MACGraphics", PRIMARY);

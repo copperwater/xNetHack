@@ -148,7 +148,8 @@ typedef struct branch {
 #define MIGR_THIEFSTONE 10  /* thiefstone inter-level teleport */
 #define MIGR_NOBREAK 1024   /* bitmask: don't break on delivery */
 #define MIGR_NOSCATTER 2048 /* don't scatter on delivery */
-
+#define MIGR_TO_SPECIES 4096 /* migrating to species as they are made */ 
+#define MIGR_LEFTOVERS 8192  /* grab remaining MIGR_TO_SPECIES objects */
 /* level information (saved via ledger number) */
 
 struct linfo {

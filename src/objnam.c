@@ -1,4 +1,4 @@
-/* NetHack 3.6	objnam.c	$NHDT-Date: 1533352036 2018/08/04 03:07:16 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.206 $ */
+/* NetHack 3.6	objnam.c	$NHDT-Date: 1537659941 2018/09/22 23:45:41 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.212 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -12,7 +12,7 @@
 
 STATIC_DCL char *FDECL(strprepend, (char *, const char *));
 STATIC_DCL short FDECL(rnd_otyp_by_wpnskill, (SCHAR_P));
-STATIC_DCL short FDECL(rnd_otyp_by_namedesc, (char *, CHAR_P));
+STATIC_DCL short FDECL(rnd_otyp_by_namedesc, (const char *, CHAR_P, int));
 STATIC_DCL boolean FDECL(wishymatch, (const char *, const char *, BOOLEAN_P));
 STATIC_DCL char *NDECL(nextobuf);
 STATIC_DCL void FDECL(releaseobuf, (char *));
@@ -1071,7 +1071,7 @@ unsigned doname_flags;
                 obj->leashmon = 0;
             } else {
                 Sprintf(eos(bp), " (attached to %s)",
-                        a_monnam(mlsh));
+                        noit_mon_nam(mlsh));
             }
             break;
         }
@@ -2730,6 +2730,7 @@ schar skill;
 {
     int i, n = 0;
     short otyp = STRANGE_OBJECT;
+
     for (i = bases[WEAPON_CLASS];
          i < NUM_OBJECTS && objects[i].oc_class == WEAPON_CLASS; i++)
         if (objects[i].oc_skill == skill) {
@@ -2748,20 +2749,29 @@ schar skill;
 }
 
 STATIC_OVL short
-rnd_otyp_by_namedesc(name, oclass)
-char *name;
+rnd_otyp_by_namedesc(name, oclass, xtra_prob)
+const char *name;
 char oclass;
+int xtra_prob; /* to force 0% random generation items to also be considered */
 {
     int i, n = 0;
     short validobjs[NUM_OBJECTS];
     register const char *zn;
-    long maxprob = 0;
+    int prob, maxprob = 0;
 
-    if (!name)
+    if (!name || !*name)
         return STRANGE_OBJECT;
 
     memset((genericptr_t) validobjs, 0, sizeof validobjs);
 
+    /* FIXME:
+     * When this spans classes (the !oclass case), the item
+     * probabilities are not very useful because they don't take
+     * the class generation probability into account.  [If 10%
+     * of spellbooks were blank and 1% of scrolls were blank,
+     * "blank" would have 10/11 chance to yield a blook even though
+     * scrolls are supposed to be much more common than books.]
+     */
     for (i = oclass ? bases[(int) oclass] : STRANGE_OBJECT + 1;
          i < NUM_OBJECTS && (!oclass || objects[i].oc_class == oclass);
          ++i) {
@@ -2774,20 +2784,25 @@ char oclass;
             || ((zn = objects[i].oc_uname) != 0
                 && wishymatch(name, zn, FALSE))) {
             validobjs[n++] = (short) i;
-            maxprob += (objects[i].oc_prob + 1);
+            maxprob += (objects[i].oc_prob + xtra_prob);
         }
     }
 
     if (n > 0 && maxprob) {
-        long prob = rn2(maxprob);
-
-        i = 0;
-        while (i < n - 1
-               && (prob -= (objects[validobjs[i]].oc_prob + 1)) >= 0)
-            i++;
+        prob = rn2(maxprob);
+        for (i = 0; i < n - 1; i++)
+            if ((prob -= (objects[validobjs[i]].oc_prob + xtra_prob)) < 0)
+                break;
         return validobjs[i];
     }
     return STRANGE_OBJECT;
+}
+
+int
+shiny_obj(oclass)
+char oclass;
+{
+    return (int) rnd_otyp_by_namedesc("shiny", oclass, 0);
 }
 
 /*
@@ -3361,6 +3376,11 @@ struct obj *no_wish;
         typ = SPE_BLANK_PAPER;
         goto typfnd;
     }
+    /* specific food rather than color of gem/potion/spellbook[/scales] */
+    if (!BSTRCMPI(bp, p - 6, "orange") && mntmp == NON_PM) {
+        typ = ORANGE;
+        goto typfnd;
+    }
     /*
      * NOTE: Gold pieces are handled as objects nowadays, and therefore
      * this section should probably be reconsidered as well as the entire
@@ -3528,10 +3548,10 @@ srch:
         }
     }
 
-    if (((typ = rnd_otyp_by_namedesc(actualn, oclass)) != STRANGE_OBJECT)
-        || ((typ = rnd_otyp_by_namedesc(dn, oclass)) != STRANGE_OBJECT)
-        || ((typ = rnd_otyp_by_namedesc(un, oclass)) != STRANGE_OBJECT)
-        || ((typ = rnd_otyp_by_namedesc(origbp, oclass)) != STRANGE_OBJECT))
+    if (((typ = rnd_otyp_by_namedesc(actualn, oclass, 1)) != STRANGE_OBJECT)
+        || ((typ = rnd_otyp_by_namedesc(dn, oclass, 1)) != STRANGE_OBJECT)
+        || ((typ = rnd_otyp_by_namedesc(un, oclass, 1)) != STRANGE_OBJECT)
+        || ((typ = rnd_otyp_by_namedesc(origbp, oclass, 1)) != STRANGE_OBJECT))
         goto typfnd;
     typ = 0;
 
@@ -3658,7 +3678,7 @@ wiztrap:
             if (strncmpi(tname, bp, strlen(tname)))
                 continue;
             /* found it; avoid stupid mistakes */
-            if ((trap == TRAPDOOR || trap == HOLE) && !Can_fall_thru(&u.uz))
+            if (is_hole(trap) && !Can_fall_thru(&u.uz))
                 trap = ROCKTRAP;
             if ((t = maketrap(x, y, trap)) != 0) {
                 trap = t->ttyp;

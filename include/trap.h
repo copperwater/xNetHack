@@ -83,6 +83,9 @@ enum trap_types {
     TRAPNUM
 };
 
+#define is_pit(ttyp) ((ttyp) == PIT || (ttyp) == SPIKED_PIT)
+#define is_hole(ttyp)  ((ttyp) == HOLE || (ttyp) == TRAPDOOR)
+
 /* List of traps that can be triggered by interacting with a door. */
 enum doortrap_types {
     HINGE_SCREECH = 0,
