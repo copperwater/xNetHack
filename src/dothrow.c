@@ -1041,7 +1041,7 @@ boolean hitsroof;
                 dmg = 1;
             else if (dmg > 6)
                 dmg = 6;
-            if (youmonst.data == &mons[PM_SHADE] && obj->material != SILVER)
+            if (noncorporeal(youmonst.data) && !shade_glare(obj))
                 dmg = 0;
         }
         if (dmg > 1 && less_damage)

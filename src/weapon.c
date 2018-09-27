@@ -334,7 +334,7 @@ struct monst *mon;
     if (otmp->material <= LEATHER && thick_skinned(ptr))
         /* thick skinned/scaled creatures don't feel it */
         tmp = 0;
-    if (ptr == &mons[PM_SHADE] && !shade_glare(otmp))
+    if (noncorporeal(ptr) && !shade_glare(otmp))
         tmp = 0;
 
     /* "very heavy iron ball"; weight increase is in increments */

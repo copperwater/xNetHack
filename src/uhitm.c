@@ -701,7 +701,7 @@ int dieroll;
 
     wakeup(mon, TRUE);
     if (!obj) { /* attack with bare hands */
-        if (mdat == &mons[PM_SHADE])
+        if (noncorporeal(mdat))
             tmp = 0;
         else if (martial_bonus())
             tmp = rnd(4); /* bonus for martial arts */
@@ -754,7 +754,7 @@ int dieroll;
                 || (is_ammo(obj) && (thrown != HMON_THROWN
                                      || !ammo_and_launcher(obj, uwep)))) {
                 /* then do only 1-2 points of damage */
-                if (mdat == &mons[PM_SHADE] && !shade_glare(obj))
+                if (noncorporeal(mdat) && !shade_glare(obj))
                     tmp = 0;
                 else
                     tmp = rnd(2);
@@ -776,7 +776,7 @@ int dieroll;
                     if (!more_than_1)
                         obj = (struct obj *) 0;
                     hittxt = TRUE;
-                    if (mdat != &mons[PM_SHADE])
+                    if (noncorporeal(mdat))
                         tmp++;
                 }
             } else {
@@ -885,9 +885,9 @@ int dieroll;
             hittxt = TRUE;
             /* in case potion effect causes transformation */
             mdat = mon->data;
-            tmp = (mdat == &mons[PM_SHADE]) ? 0 : 1;
+            tmp = (noncorporeal(mdat)) ? 0 : 1;
         } else {
-            if (mdat == &mons[PM_SHADE] && !shade_aware(obj)) {
+            if (noncorporeal(mdat) && !shade_aware(obj)) {
                 tmp = 0;
                 Strcpy(unconventional, cxname(obj));
             } else {
@@ -1160,7 +1160,7 @@ int dieroll;
         /* make sure that negative damage adjustment can't result
            in inadvertently boosting the victim's hit points */
         tmp = 0;
-        if (mdat == &mons[PM_SHADE]) {
+        if (noncorporeal(mdat)) {
             if (!hittxt) {
                 const char *what = *unconventional ? unconventional : "attack";
 
@@ -1639,7 +1639,7 @@ register struct attack *mattk;
         } else if (mattk->aatyp == AT_KICK) {
             if (thick_skinned(pd))
                 tmp = 0;
-            if (pd == &mons[PM_SHADE]) {
+            if (noncorporeal(pd)) {
                 if (!(uarmf && uarmf->blessed)) {
                     impossible("bad shade attack function flow?");
                     tmp = 0;
@@ -2406,7 +2406,7 @@ register struct monst *mon;
                 }
                 wakeup(mon, TRUE);
                 /* maybe this check should be in damageum()? */
-                if (mon->data == &mons[PM_SHADE]
+                if (noncorporeal(mon->data)
                     && !(mattk->aatyp == AT_KICK && uarmf
                          && uarmf->blessed)) {
                     Your("attack passes harmlessly through %s.",
@@ -2439,7 +2439,7 @@ register struct monst *mon;
              */
             dhit = 1;
             wakeup(mon, TRUE);
-            if (mon->data == &mons[PM_SHADE])
+            if (noncorporeal(mon->data))
                 Your("hug passes harmlessly through %s.", mon_nam(mon));
             else if (!sticks(mon->data) && !u.uswallow) {
                 if (mon == u.ustuck) {
@@ -2465,7 +2465,7 @@ register struct monst *mon;
                                    &attknum, &armorpenalty);
             if ((dhit = (tmp > rnd(20 + i)))) {
                 wakeup(mon, TRUE);
-                if (mon->data == &mons[PM_SHADE])
+                if (noncorporeal(mon->data))
                     Your("attempt to surround %s is harmless.", mon_nam(mon));
                 else {
                     sum[i] = gulpum(mon, mattk);

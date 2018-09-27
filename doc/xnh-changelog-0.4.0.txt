@@ -155,3 +155,6 @@ Fix two critical bugs in the selection_do_grow code.
 Since there needed to be two distinct calls to identifying a wand via
   engraving, break out that small bit of logic into its own function
   engraving_learn_wand.
+Refactor both instances of ghosts scaring the player into one scary_ghost
+  function.
+Most checks in the code for PM_SHADE are replaced with noncorporeal() checks.

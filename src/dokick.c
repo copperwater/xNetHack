@@ -51,14 +51,14 @@ register boolean clumsy;
         dmg = 0;
 
     /* attacking a shade is useless */
-    if (mon->data == &mons[PM_SHADE])
+    if (noncorporeal(mon->data))
         dmg = 0;
 
     if ((is_undead(mon->data) || is_demon(mon->data) || is_vampshifter(mon))
         && uarmf && uarmf->blessed)
-        blessed_foot_damage = 1;
+        blessed_foot_damage = rnd(4);
 
-    if (mon->data == &mons[PM_SHADE] && !blessed_foot_damage) {
+    if (noncorporeal(mon->data) && !blessed_foot_damage) {
         pline_The("%s.", kick_passes_thru);
         /* doesn't exercise skill or abuse alignment or frighten pet,
            and shades have no passive counterattack */
@@ -217,7 +217,7 @@ xchar x, y;
             if (uattk->aatyp != AT_KICK)
                 continue;
 
-            if (mon->data == &mons[PM_SHADE] && (!uarmf || !uarmf->blessed)) {
+            if (noncorporeal(mon->data) && (!uarmf || !uarmf->blessed)) {
                 /* doesn't matter whether it would have hit or missed,
                    and shades have no passive counterattack */
                 Your("%s %s.", kick_passes_thru, mon_nam(mon));
