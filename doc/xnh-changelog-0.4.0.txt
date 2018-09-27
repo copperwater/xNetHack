@@ -116,12 +116,27 @@ Port FIQHack's charged ring initial enchantment math. The main thing is that
 Demon lords are made hostile if you wield Demonbane, as well as Excalibur, when
   they are generated or they approach you.
 Archeologists begin the game knowing all varieties of worthless glass.
+Ghosts are overhauled: while idle, hostile ones will turn invisible, and they
+  will then try to follow you invisibly and make themselves visible when
+  adjacent, which will scare you and freeze you for three turns if you didn't
+  see them beforehand. They can then turn invisible in another 2d8 turns. Their
+  1d1 damage is removed, meaning they cannot hurt you on their own.
+Additionally, ghosts are now incorporeally immune to all of the same things
+  that shades are. Just like shades, objects that are silver, bone, blessed or
+  artifacts versus undead will hit them. However, silver does not cause silver
+  damage to ghosts.
+Ghost stats are also changed: their base level is brought down from 10 to 4
+  (mainly to knock down their hit dice; they should be hard to land a hit on in
+  the first place but not actually be a tank once the player has something that
+  can hurt them), their speed is increased from 3 to 5, their AC is increased
+  (making them *easier* to hit) from -5 to 5, and their magic resistance is
+  increased from 50 to 80.
 
 It contains the following non-gameplay interface changes:
 
 When you kill the Wizard of Yendor, the livelog prints where you are in the
-  dungeon.
-If you die while stuck in creature form, your actual death reason is shown, and
+  dungeon.  If you die while stuck in creature form, your actual death reason
+  is shown, and
   the "while stuck in creature form" is recorded in the while field of the
   xlogfile.
 The livelogging patch is extended to include arising from the dead or slime as

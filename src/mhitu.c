@@ -1178,6 +1178,35 @@ register struct attack *mattk;
         (void) adjattrib(A_INT, -rnd(2), FALSE);
         break;
     case AD_PLYS:
+        /* Ghosts don't have a "paralyzing touch"; this is simply the most
+         * convenient place to put this code. What they actually do is try to
+         * pop up out of nowhere right next to you, frightening you to death
+         * (which of course paralyzes you). */
+        if (mtmp->data == &mons[PM_GHOST]) {
+            dmg = 0;
+            boolean couldspot = canspotmon(mtmp);
+            if (mtmp->minvis) {
+                mtmp->minvis = 0;
+                newsym(mtmp->mx, mtmp->my);
+                mtmp->mspec_used = d(2, 8);
+                if (canspotmon(mtmp) && !Unaware) {
+                    if (!couldspot) {
+                        /* only works if you didn't know it was there before it
+                        * turned visible */
+                        if (Hallucination)
+                            verbalize("Boo!");
+                        else
+                            pline("A ghost appears out of nowhere!");
+                        scary_ghost(mtmp);
+                    }
+                    else {
+                        pline("%s becomes visible!", Monnam(mtmp));
+                        You("aren't scared.");
+                    }
+                }
+            }
+            break;
+        }
         hitmsg(mtmp, mattk);
         if (uncancelled && multi >= 0 && !rn2(3)) {
             boolean sawmon = FALSE;

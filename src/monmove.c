@@ -535,6 +535,26 @@ register struct monst *mtmp;
             }
         }
     }
+
+    /* ghosts prefer turning invisible instead of moving if they can */
+    if (mdat == &mons[PM_GHOST] && !mtmp->mpeaceful && !mtmp->mcan
+        && !mtmp->mspec_used && !mtmp->minvis) {
+        boolean couldsee = canseemon(mtmp);
+        /* need to store the monster's name as we see it now; noit_Monnam after
+         * the fact would give "The invisible Foo's ghost fades from view" */
+        char nam[BUFSZ];
+        Strcpy(nam, Monnam(mtmp));
+        mtmp->minvis = 1;
+        if (couldsee && !canseemon(mtmp)) {
+            pline("%s fades from view.", nam);
+        }
+        else if (couldsee && See_invisible) {
+            pline("%s turns even more transparent.", nam);
+        }
+        newsym(mtmp->mx, mtmp->my);
+        return 0;
+    }
+
 toofar:
 
     /* If monster is nearby you, and has to wield a weapon, do so.   This

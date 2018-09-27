@@ -2031,8 +2031,8 @@ struct permonst _mons2[] = {
         M2_NOPOLY | M2_UNDEAD | M2_STALK | M2_STRONG | M2_HOSTILE | M2_MALE
             | M2_COLLECT,
         0, HI_LORD),
-    MON("ghost", S_WRAITH, LVL(10, 3, -5, 50, -5), (G_NOCORPSE | G_NOGEN),
-        A(ATTK(AT_TUCH, AD_PHYS, 1, 1), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
+    MON("ghost", S_WRAITH, LVL(4, 5, 5, 80, -5), (G_NOCORPSE | G_NOGEN),
+        A(ATTK(AT_TUCH, AD_PLYS, 1, 1), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
           NO_ATTK),
         SIZ(WT_HUMAN, 0, MS_SILENT, MZ_HUMAN),
         MR_COLD | MR_DISINT | MR_SLEEP | MR_POISON | MR_STONE, 0,
