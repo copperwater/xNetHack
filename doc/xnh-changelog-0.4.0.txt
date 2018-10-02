@@ -159,6 +159,7 @@ All demon lords, the Riders, Vlad, and the Wizard of Yendor all have a unique
   multiline message that prints when you encounter them for the first time.
 All wands that print an unambiguous message clue to their identity now
   automatically type-identify when engraved with.
+YAFM when you sit on a towel.
 
 It contains the following non-gameplay architectural changes:
 
