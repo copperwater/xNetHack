@@ -3245,7 +3245,7 @@ struct obj **pobj; /* object tossed/used, set to NULL
         typ = levl[bhitpos.x][bhitpos.y].typ;
 
         if (typ == IRONBARS
-            && ((levl[bhitpos.x][bhitpos.y].wall_info & W_NONDIGGABLE) != 0)
+            && ((levl[bhitpos.x][bhitpos.y].wall_info & W_NONDIGGABLE) == 0)
             && (obj->otyp == SPE_FORCE_BOLT || obj->otyp == WAN_STRIKING)) {
             levl[bhitpos.x][bhitpos.y].typ = ROOM;
             if (cansee(bhitpos.x, bhitpos.y))
