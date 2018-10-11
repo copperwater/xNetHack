@@ -986,7 +986,7 @@ register struct trobj *trop;
         if (otyp != UNDEF_TYP) {
             obj = mksobj(otyp, TRUE, FALSE);
             /* Don't allow materials to be start scummed for */
-            obj->material = objects[obj->otyp].oc_material;
+            obj->material = objects[otyp].oc_material;
             /* Don't allow weapons to roll high enchantment and get an oname
              * when they'll then have their enchantment set after this */
             free_oname(obj);
@@ -1039,7 +1039,7 @@ register struct trobj *trop;
             }
 
             /* Don't allow materials to be start scummed for */
-            obj->material = objects[obj->otyp].oc_material;
+            obj->material = objects[otyp].oc_material;
 
             /* Don't start with +0 or negative rings */
             if (objects[otyp].oc_charged && obj->spe <= 0)
@@ -1080,6 +1080,11 @@ register struct trobj *trop;
                                 (trop->trotyp == UNDEF_TYP) ? "random " : "",
                                 OBJ_NAME(objects[otyp]));
                     otyp = obj->otyp = inv_subs[i].subs_otyp;
+                    /* This might have created a bad material combination, such
+                     * as a dagger (which was forced to be iron earlier) turning
+                     * into an elven dagger, but now remaining iron. Fix this up
+                     * here as well. */
+                    obj->material = objects[otyp].oc_material;
                     break;
                 }
         }
