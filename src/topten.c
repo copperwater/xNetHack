@@ -370,7 +370,7 @@ int how;
         const char* helpless = (multi ? (multi_reason ? multi_reason
                                                       : "helpless")
                                       : "");
-        const char* and = (multi && stuck) ? " and " : "";
+        const char* and = (multi && stuck && !Polyinit_mode) ? " and " : "";
         tmpbuf[0] = '\0';
         if (stuck && !Polyinit_mode)
             Sprintf(tmpbuf, "stuck in %s form", mons[u.umonnum].mname);
