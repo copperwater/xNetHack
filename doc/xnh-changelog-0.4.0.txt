@@ -160,6 +160,7 @@ All demon lords, the Riders, Vlad, and the Wizard of Yendor all have a unique
 All wands that print an unambiguous message clue to their identity now
   automatically type-identify when engraved with.
 YAFM when you sit on a towel.
+YAFM when starting or restoring a game while hallucinating.
 
 It contains the following non-gameplay architectural changes:
 

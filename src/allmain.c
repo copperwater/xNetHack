@@ -718,6 +718,9 @@ boolean new_game; /* false => restoring an old game */
                    : "%s %s, the%s %s %s, welcome back to xNetHack!",
           Hello((struct monst *) 0), plname, buf, urace.adj,
           (currentgend && urole.name.f) ? urole.name.f : urole.name.m);
+
+    if (Hallucination)
+        pline("xNetHack is filmed in front of a live studio audience.");
 }
 
 #ifdef POSITIONBAR
