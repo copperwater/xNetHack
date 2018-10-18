@@ -87,7 +87,8 @@ struct objclass {
 
 /* secondary damage: rot/acid/acid */
 #define is_corrodeable(otmp)                   \
-    (otmp->material == COPPER || otmp->material == IRON)
+    (otmp->material == COPPER || otmp->material == SILVER \
+     || otmp->material == IRON)
 
 #define is_damageable(otmp)                                        \
     (is_rustprone(otmp) || is_flammable(otmp) || is_rottable(otmp) \
