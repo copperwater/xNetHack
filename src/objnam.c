@@ -3079,7 +3079,8 @@ struct obj *no_wish;
             /* check for materials */
             if (!strncmpi(bp, "silver dragon", l = 13)
                 || !strcmp(bp, "gold")
-                || !strncmpi(bp, "platinum yendorian express card", l = 31)) {
+                || !strncmpi(bp, "platinum yendorian express card", l = 31)
+                || !strncmpi(bp, "iron bars", l = 9)) {
                 /* hack so that silver dragon scales/mail doesn't get
                  * interpreted as silver, or a wish for just "gold" doesn't get
                  * interpreted as gold */
