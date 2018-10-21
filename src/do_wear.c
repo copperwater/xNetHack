@@ -186,10 +186,11 @@ Boots_on(VOID_ARGS)
             incr_itimeout(&HFumbling, rnd(20));
         break;
     case LEVITATION_BOOTS:
-        if (!oldprop && !HLevitation && !BLevitation) {
+        if (!oldprop && !HLevitation && !(BLevitation & FROMOUTSIDE)) {
             makeknown(uarmf->otyp);
             float_up();
-            spoteffects(FALSE);
+            if (Levitation)
+                spoteffects(FALSE); /* for sink effect */
         } else {
             float_vs_flight(); /* maybe toggle (BFlying & I_SPECIAL) */
         }
@@ -239,7 +240,7 @@ Boots_off(VOID_ARGS)
             HFumbling = EFumbling = 0;
         break;
     case LEVITATION_BOOTS:
-        if (!oldprop && !HLevitation && !BLevitation
+        if (!oldprop && !HLevitation && !(BLevitation & FROMOUTSIDE)
             && !context.takeoff.cancelled_don) {
             (void) float_down(0L, 0L);
             makeknown(otyp);
@@ -910,10 +911,11 @@ register struct obj *obj;
         }
         break;
     case RIN_LEVITATION:
-        if (!oldprop && !HLevitation && !BLevitation) {
+        if (!oldprop && !HLevitation && !(BLevitation & FROMOUTSIDE)) {
             float_up();
             learnring(obj, TRUE);
-            spoteffects(FALSE); /* for sinks */
+            if (Levitation)
+                spoteffects(FALSE); /* for sinks */
         } else {
             float_vs_flight(); /* maybe toggle (BFlying & I_SPECIAL) */
         }
@@ -1027,7 +1029,7 @@ boolean gone;
         }
         break;
     case RIN_LEVITATION:
-        if (!BLevitation) {
+        if (!(BLevitation & FROMOUTSIDE)) {
             (void) float_down(0L, 0L);
             if (!Levitation)
                 learnring(obj, TRUE);

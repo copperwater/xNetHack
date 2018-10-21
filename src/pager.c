@@ -2123,7 +2123,7 @@ boolean without_asking;
             }
             display_nhwindow(datawin, FALSE);
             destroy_nhwindow(datawin), datawin = WIN_ERR;
-	}
+        }
     }
 }
 

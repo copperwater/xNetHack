@@ -3217,9 +3217,25 @@ int corpsecheck; /* 0, no check, 1, corpses, 2, tinnable corpses */
             return NULL;
         }
 
-        u.utrap = u.utraptype = 0;
-        deltrap(trap);
-        return mksobj(BEARTRAP, TRUE, FALSE);
+        if (trap->tseen && trap->ttyp == BEAR_TRAP) {
+            boolean u_in_beartrap = (u.utrap && u.utraptype == TT_BEARTRAP);
+
+            /* If not already stuck in the trap, perhaps there should
+               be a chance to becoming trapped?  Probably not, because
+               then the trap would just get eaten on the _next_ turn... */
+            Sprintf(qbuf, "There is a bear trap here (%s); eat it?",
+                    u_in_beartrap ? "holding you" : "armed");
+            if ((c = yn_function(qbuf, ynqchars, 'n')) == 'y') {
+                deltrap(trap);
+                if (u_in_beartrap)
+                    reset_utrap(TRUE);
+                return mksobj(BEARTRAP, TRUE, FALSE);
+            } else if (c == 'q') {
+                return (struct obj *) 0;
+            }
+        }
+        impossible("Eating weird or unseen floor trap %d?", trap->ttyp);
+        return NULL;
     }
 
     if (corpsecheck && otmp && !(offering && otmp->oclass == AMULET_CLASS) &&

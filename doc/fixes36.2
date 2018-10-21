@@ -142,6 +142,35 @@ known bear trap was being forgotten about by a player polymorphed into a
 no leash-related message is given when a leashed pet yellow light explodes
 shop messages refer to shk by name even when shk is not visible but some
 	used pronoun "it" or "its" in same sentence; ditto for vault guards
+poly'd hero and monsters could eat through iron bars in areas where walls
+	were flagged as non-diggable
+Samurai seeing items at a distance could have them be described by their
+	ordinary names rather than by their Japanese names
+wizard mode ^T shouldn't have been diminishing player power but it was
+	and hilite_status:power settings really drew attention to that
+fix missing space in "would flyif you weren't levitating"
+a wand of polymorph lost its magical ability for the turn just because the
+	player using it to engrave happened to be blind, which didn't make
+	a much sense
+floating eye is classified as a flyer but flying is blocked while levitating,
+	so don't set intrinsic flying if hero is polymorphed into one
+being trapped (bear trap, web, molten or solidified lava, chained to buried
+	iron ball) blocks both levitation and flight (note: being stuck in a
+	pit ends when either of those starts so doesn't apply)
+change default value for the 'autodescribe' option to 'on'
+Elbereth hypocrisy penalty doesn't apply if attacking a monster which isn't
+	frightened by Elbereth; normal scuffing of engravings still applies
+Elbereth hypocrisy penalty reduced when alignment is already low
+during character creation, don't unset alternate weapon when a shield gets
+	worn (was preventing knight from having lance set up as uswapwep)
+preformatted Guidebook.txt split line in middle of "' '" for #wait command
+prevent simiulated screenshot in Guidebook.txt from spanning page boundary
+overview information for former hero was not being set properly when bones
+	file was saved, so current hero coming across a dead hero's grave
+	didn't have #overview feedback augmented with "final resting place"
+in Guidebook.mn and Guidebook.txt, the 'I' command mis-described `IX' as
+	displaying inventory items whose bless/curse state is "known"
+	(Guidebook.tex correctly had "unknown")
 
 
 Fixes to Post-3.6.1 Problems that Were Exposed Via git Repository
@@ -153,10 +182,15 @@ sortloot segfaulted when filtering a subset of items (seen with 'A' command)
 orctown: prevent Bad fruit #0 and some minor tuning
 make long extended commands list be more navigable
 simplify #wizidentify; don't rely on having bold menu entries
+ensure tmp_at() structures are initialized for all code paths when swallowed
 tty: turn off an optimization that is the suspected cause of Windows reported 
 	partial status lines following level changes
 tty: ensure that current status fields are always copied to prior status
 	values so that comparisons are correct
+tty: fix an out of bounds error in tty_status_update() for BL_HUNGER case
+tty: fix leftover display artifact when the last field on the row got placed
+	to the left of where it was previously due to it, or one of the fields
+	to its left, getting shorter
 X11: its use of genl_status_update exposed a negative index use that could
 	lead to a segfault
 
@@ -199,6 +233,15 @@ Qt: add Qt5 specific hints file for linux and Mac OS X (Ray Chason)
 Qt: enable compiling Qt5 on Windows (Ray Chason)
 Qt: entering extended commands, hide non-matching ones
 Qt: remember tile and font size
+X11: implement menucolors and allow menus to obey some attributes
+X11: make key translations work with menus on Linux
+X11: allow mouse wheel scrolling to work in menus by default
+X11: handle paged menu control keys
+X11: remember perm_invent window geometry
+X11: handle X errors via panic
+X11: don't reuse perm_invent window for picking an object
+X11: obey mouse_support and allow toggling it in game
+X11: obey menu movement keys
 
 
 General New Features
@@ -218,6 +261,9 @@ wizard mode #wizidentify can now select individual items for permanent
 	identify everything if everything is already fully identified
 spiders will occasionally spin webs when moving around
 make mine town "orctown" variation a multiple level feature of the mines
+replace #monpolycontrol command with monpolycontrol boolean option
+replace #wizdebug_traveldisplay command with travel_debug boolean option
+rename #wizdebug_bury command to #wizbury
 
 
 Code Cleanup and Reorganization

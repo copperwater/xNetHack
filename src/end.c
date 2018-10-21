@@ -951,7 +951,7 @@ int how;
     else
         multi = -1;
     if (u.utrap && u.utraptype == TT_LAVA)
-        u.utrap = 0;
+        reset_utrap(FALSE);
     context.botl = 1;
     u.ugrave_arise = NON_PM;
     curs_on_u();

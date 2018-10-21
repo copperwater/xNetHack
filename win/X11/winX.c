@@ -1,4 +1,4 @@
-/* NetHack 3.6	winX.c	$NHDT-Date: 1526429314 2018/05/16 00:08:34 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.50 $ */
+/* NetHack 3.6	winX.c	$NHDT-Date: 1539392992 2018/10/13 01:09:52 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.57 $ */
 /* Copyright (c) Dean Luick, 1992                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -85,6 +85,8 @@ int click_x, click_y, click_button; /* Click position on a map window   */
                                     /* (filled by set_button_values()). */
 int updated_inventory;
 
+static int (*old_error_handler) (Display *, XErrorEvent *);
+
 #if !defined(NO_SIGNAL) && defined(SAFERHANGUP)
 #if XtSpecificationRelease >= 6
 #define X11_HANGUP_SIGNAL
@@ -148,6 +150,7 @@ static void FDECL(nhFreePixel, (XtAppContext, XrmValuePtr, XtPointer,
 static boolean FDECL(new_resource_macro, (String, unsigned));
 static void NDECL(load_default_resources);
 static void NDECL(release_default_resources);
+static int FDECL(panic_on_error, (Display *, XErrorEvent *));
 #ifdef X11_HANGUP_SIGNAL
 static void FDECL(X11_sig, (int));
 static void FDECL(X11_sig_cb, (XtPointer, XtSignalId *));
@@ -430,6 +433,86 @@ XtPointer *closure_ret;
         *closure_ret = (char *) True;
         done(Pixel, screenColor.pixel);
     }
+}
+
+/* Ask the WM for window frame size */
+void
+get_window_frame_extents(w, top, bottom, left, right)
+Widget w;
+long *top, *bottom, *left, *right;
+{
+    XEvent event;
+    Display *dpy = XtDisplay(w);
+    Window win = XtWindow(w);
+    Atom prop, retprop;
+    int retfmt;
+    unsigned long nitems;
+    unsigned long nbytes;
+    unsigned char *data = 0;
+    long *extents;
+
+    prop = XInternAtom(dpy, "_NET_FRAME_EXTENTS", True);
+
+    while (XGetWindowProperty(dpy, win, prop,
+                              0, 4, False, AnyPropertyType,
+                              &retprop, &retfmt,
+                              &nitems, &nbytes, &data) != Success
+           || nitems != 4 || nbytes != 0)
+        {
+            XNextEvent(dpy, &event);
+        }
+
+    extents = (long *) data;
+
+    *left = extents[0];
+    *right = extents[1];
+    *top = extents[2];
+    *bottom = extents[3];
+}
+
+void
+get_widget_window_geometry(w, x,y, width, height)
+Widget w;
+int *x, *y, *width, *height;
+{
+    long top, bottom, left, right;
+    Arg args[5];
+    XtSetArg(args[0], nhStr(XtNx), x);
+    XtSetArg(args[1], nhStr(XtNy), y);
+    XtSetArg(args[2], nhStr(XtNwidth), width);
+    XtSetArg(args[3], nhStr(XtNheight), height);
+    XtGetValues(w, args, 4);
+    get_window_frame_extents(w, &top, &bottom, &left, &right);
+    *x -= left;
+    *y -= top;
+}
+
+/* Change the full font name string so the weight is "bold" */
+char *
+fontname_boldify(fontname)
+const char *fontname;
+{
+    static char buf[BUFSZ];
+    char *bufp = buf;
+    int idx = 0;
+
+    while (*fontname) {
+        if (*fontname == '-')
+            idx++;
+        *bufp = *fontname;
+        if (idx == 3) {
+            strcat(buf, "bold");
+            bufp += 5;
+            do {
+                fontname++;
+            } while (*fontname && *fontname != '-');
+        } else {
+            bufp++;
+            fontname++;
+        }
+    }
+    *bufp = '\0';
+    return buf;
 }
 
 #ifdef TEXTCOLOR
@@ -1193,6 +1276,21 @@ static XtResource resources[] = {
 #endif
 };
 
+static int
+panic_on_error(display, error)
+Display *display;
+XErrorEvent *error;
+{
+    char buf[BUFSZ];
+    XGetErrorText(display, error->error_code, buf, BUFSZ);
+    fprintf(stderr, "X Error: code %i (%s), request %i, minor %i, serial %lu\n",
+            error->error_code, buf,
+            error->request_code, error->minor_code,
+            error->serial);
+    panic("X Error");
+    return 0;
+}
+
 void
 X11_init_nhwindows(argcp, argv)
 int *argcp;
@@ -1209,6 +1307,7 @@ char **argv;
 
     /* add another option that can be set */
     set_wc_option_mod_status(WC_TILED_MAP, SET_IN_GAME);
+    set_option_mod_status("mouse_support", SET_IN_GAME);
 
     load_default_resources(); /* create default_resource_data[] */
 
@@ -1237,6 +1336,8 @@ char **argv;
               XtParseTranslationTable("<Message>WM_PROTOCOLS: X11_hangup()"));
 
     /* We don't need to realize the top level widget. */
+
+    old_error_handler = XSetErrorHandler(panic_on_error);
 
 #ifdef TEXTCOLOR
     /* add new color converter to deal with overused colormaps */
@@ -2447,6 +2548,20 @@ int dir;
     return;
 }
 
+void
+find_scrollbars(w, horiz, vert)
+Widget w;
+Widget *horiz, *vert;
+{
+    if (w) {
+        do {
+            *horiz = XtNameToWidget(w, "*horizontal");
+            *vert = XtNameToWidget(w, "*vertical");
+            w = XtParent(w);
+        } while (!*horiz && !*vert && w);
+    }
+}
+
 /* Callback
  * Scroll a viewport, using standard NH 1,2,3,4,6,7,8,9 directions.
  */
@@ -2459,7 +2574,7 @@ String *params;
 Cardinal *num_params;
 {
     Arg arg[2];
-    Widget horiz_sb, vert_sb;
+    Widget horiz_sb = (Widget) 0, vert_sb = (Widget) 0;
     float top, shown;
     Boolean do_call;
     int direction;
@@ -2472,19 +2587,7 @@ Cardinal *num_params;
 
     direction = atoi(params[0]);
 
-    horiz_sb = XtNameToWidget(viewport, "*horizontal");
-    vert_sb = XtNameToWidget(viewport, "*vertical");
-
-    if (!horiz_sb && !vert_sb) {
-        /* Perhaps the widget enclosing this has scrollbars (could use while)
-         */
-        Widget parent = XtParent(viewport);
-
-        if (parent) {
-            horiz_sb = XtNameToWidget(parent, "horizontal");
-            vert_sb = XtNameToWidget(parent, "vertical");
-        }
-    }
+    find_scrollbars(viewport, &horiz_sb, &vert_sb);
 
 #define H_DELTA 0.25 /* distance of horiz shift */
     /* vert shift is half of curr distance */

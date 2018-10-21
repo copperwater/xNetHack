@@ -1,4 +1,4 @@
-/* NetHack 3.6	mon.c	$NHDT-Date: 1526132509 2018/05/12 13:41:49 $  $NHDT-Branch: master $:$NHDT-Revision: 1.252 $ */
+/* NetHack 3.6	mon.c	$NHDT-Date: 1539479657 2018/10/14 01:14:17 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.260 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -502,7 +502,7 @@ unsigned corpseflags;
      *  underneath it, you could be told the corpse type of a
      *  monster that you never knew was there without this.
      *  The code in hitmu() substitutes the word "something"
-     *  if the corpses obj->dknown is 0.
+     *  if the corpse's obj->dknown is 0.
      */
     if (Blind && !sensemon(mtmp))
         obj->dknown = 0;
@@ -1431,7 +1431,11 @@ nexttry: /* eels prefer the water, but if there is no water nearby,
                 && !((IS_TREE(ntyp) ? treeok : rockok) && may_dig(nx, ny)))
                 continue;
             /* KMH -- Added iron bars */
-            if (ntyp == IRONBARS && !(flag & ALLOW_BARS))
+            if (ntyp == IRONBARS
+                && (!(flag & ALLOW_BARS)
+                    || ((levl[nx][ny].wall_info & W_NONDIGGABLE)
+                        && (dmgtype(mdat, AD_RUST)
+                            || dmgtype(mdat, AD_CORR)))))
                 continue;
             /* Doors are a little complicated... */
             if (IS_DOOR(ntyp)
@@ -2843,7 +2847,10 @@ setmangry(mtmp, via_attack)
 struct monst *mtmp;
 boolean via_attack;
 {
-    if (via_attack && sengr_at("Elbereth", u.ux, u.uy, TRUE)) {
+    if (via_attack && sengr_at("Elbereth", u.ux, u.uy, TRUE)
+        /* only hypocritical if monster is vulnerable to Elbereth (or
+           peaceful--not vulnerable but attacking it is hypocritical) */
+        && (onscary(u.ux, u.uy, mtmp) || mtmp->mpeaceful)) {
         You_feel("like a hypocrite.");
         /* AIS: Yes, I know alignment penalties and bonuses aren't balanced
            at the moment. This is about correct relative to other "small"
@@ -2852,7 +2859,8 @@ boolean via_attack;
            violating your own request. I know 5 isn't actually large, but
            it's intentionally larger than the 1s and 2s that are normally
            given for this sort of thing. */
-        adjalign(-5);
+        /* reduce to 3 (average) when alignment is already very low */
+        adjalign((u.ualign.record > 5) ? -5 : -rnd(5));
 
         if (!Blind)
             pline("The engraving beneath you fades.");

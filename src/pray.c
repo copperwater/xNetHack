@@ -354,7 +354,7 @@ int trouble;
         You("are back on solid ground.");
         /* teleport should always succeed, but if not, just untrap them */
         if (!safe_teleds(FALSE, FALSE))
-            u.utrap = 0;
+            reset_utrap(TRUE);
         break;
     case TROUBLE_STARVING:
         /* temporarily lost strength recovery now handled by init_uhunger() */

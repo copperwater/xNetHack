@@ -1,4 +1,4 @@
-/* NetHack 3.6	objnam.c	$NHDT-Date: 1537659941 2018/09/22 23:45:41 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.212 $ */
+/* NetHack 3.6	objnam.c	$NHDT-Date: 1539938837 2018/10/19 08:47:17 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.214 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -403,7 +403,7 @@ unsigned cxn_flags; /* bitmask of CXN_xxx values */
     register struct objclass *ocl = &objects[typ];
     int nn = ocl->oc_name_known, omndx = obj->corpsenm;
     const char *actualn = OBJ_NAME(*ocl);
-    const char *dn = OBJ_DESCR(*ocl) ? OBJ_DESCR(*ocl) : actualn;
+    const char *dn = OBJ_DESCR(*ocl);
     const char *un = ocl->oc_uname;
     boolean pluralize = (obj->quan != 1L) && !(cxn_flags & CXN_SINGULAR);
     boolean known, dknown, bknown;
@@ -411,6 +411,10 @@ unsigned cxn_flags; /* bitmask of CXN_xxx values */
     buf = nextobuf() + PREFIX; /* leave room for "17 -3 " */
     if (Role_if(PM_SAMURAI) && Japanese_item_name(typ))
         actualn = Japanese_item_name(typ);
+    /* 3.6.2: this used to be part of 'dn's initialization, but it
+       needs to come after possibly overriding 'actualn' */
+    if (!dn)
+        dn = actualn;
 
     buf[0] = '\0';
     /*
@@ -2430,7 +2434,13 @@ const char *oldstr;
         if (p >= bp + 2 && lowc(p[-2]) == 'e') {
             if (p >= bp + 3 && lowc(p[-3]) == 'i') { /* "ies" */
                 if (!BSTRCMPI(bp, p - 7, "cookies")
-                    || !BSTRCMPI(bp, p - 4, "pies")
+                    || (!BSTRCMPI(bp, p - 4, "pies")
+                        /* avoid false match for "harpies" */
+                        && (p - 4 == bp || p[-5] == ' '))
+                    /* alternate djinni/djinn spelling; not really needed */
+                    || (!BSTRCMPI(bp, p - 6, "genies")
+                        /* avoid false match for "progenies" */
+                        && (p - 6 == bp || p[-7] == ' '))
                     || !BSTRCMPI(bp, p - 5, "mbies") /* zombie */
                     || !BSTRCMPI(bp, p - 5, "yries")) /* valkyrie */
                     goto mins;
@@ -2680,7 +2690,7 @@ STATIC_OVL NEARDATA const struct o_range o_ranges[] = {
    absence of spaces and/or hyphens (such as "pickaxe" vs "pick axe"
    vs "pick-axe") then there is no need for inclusion in this list;
    likewise for ``"of" inversions'' ("boots of speed" vs "speed boots") */
-struct alt_spellings {
+static const struct alt_spellings {
     const char *sp;
     int ob;
 } spellings[] = {
@@ -2704,6 +2714,8 @@ struct alt_spellings {
     { "eucalyptus", EUCALYPTUS_LEAF },
     { "royal jelly", LUMP_OF_ROYAL_JELLY },
     { "lembas", LEMBAS_WAFER },
+    { "cookie", FORTUNE_COOKIE },
+    { "pie", CREAM_PIE },
     { "marker", MAGIC_MARKER },
     { "hook", GRAPPLING_HOOK },
     { "grappling iron", GRAPPLING_HOOK },

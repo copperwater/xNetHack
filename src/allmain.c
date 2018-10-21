@@ -843,44 +843,42 @@ enum earlyarg e_arg;
             userea = &argv[i][1];
         }
         match = match_optname(userea, earlyopts[idx].name,
-                    earlyopts[idx].minlength, earlyopts[idx].valallowed);
+                              earlyopts[idx].minlength,
+                              earlyopts[idx].valallowed);
         if (match) break;
     }
 
     if (match) {
-        const char *extended_opt = index(userea,':');
+        const char *extended_opt = index(userea, ':');
 
         if (!extended_opt)
             extended_opt = index(userea, '=');
         switch(e_arg) {
-            case ARG_DEBUG:
-                        if (extended_opt) {
-                            extended_opt++;
-                            debug_fields(extended_opt);
-                        }
-                        return 1;
-                        break;
-            case ARG_VERSION: {
-                        boolean insert_into_pastebuf = FALSE;
-
-                        if (extended_opt) {
-                            extended_opt++;
-                            if (match_optname(extended_opt, "paste",
-                                                   5, FALSE)) {
-                                insert_into_pastebuf = TRUE;
-                            } else {
-                                raw_printf(
-                     "-%sversion can only be extended with -%sversion:paste.\n",
-                                            dashdash, dashdash);
-                                return TRUE;
-            		    }
-        		}
-                        early_version_info(insert_into_pastebuf);
-                        return 2;
-                        break;
+        case ARG_DEBUG:
+            if (extended_opt) {
+                extended_opt++;
+                debug_fields(extended_opt);
             }
-            default:
-                        break;
+            return 1;
+        case ARG_VERSION: {
+            boolean insert_into_pastebuf = FALSE;
+
+            if (extended_opt) {
+                extended_opt++;
+                if (match_optname(extended_opt, "paste", 5, FALSE)) {
+                    insert_into_pastebuf = TRUE;
+                } else {
+                    raw_printf(
+                   "-%sversion can only be extended with -%sversion:paste.\n",
+                               dashdash, dashdash);
+                    return TRUE;
+                }
+            }
+            early_version_info(insert_into_pastebuf);
+            return 2;
+        }
+        default:
+            break;
         }
     };
     return FALSE;

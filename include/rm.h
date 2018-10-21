@@ -392,7 +392,7 @@ enum door_states {
 #define DB_UNDER 28 /* mask for underneath */
 
 /*
- * Wall information.
+ * Wall information.  Nondiggable also applies to iron bars.
  */
 #define WM_MASK 0x07 /* wall mode (bottom three bits) */
 #define W_NONDIGGABLE 0x08

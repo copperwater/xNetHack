@@ -232,12 +232,11 @@ struct monst *mon;
     }
 }
 
-#define flees_light(mon) ((mon)->data == &mons[PM_GREMLIN] &&                          \
-                        (uwep && artifact_light(uwep) && uwep->lamplit))
-
+#define flees_light(mon) ((mon)->data == &mons[PM_GREMLIN]     \
+                          && (uwep && artifact_light(uwep) && uwep->lamplit))
 /* we could include this in the above macro, but probably overkill/overhead */
-/*      (!((which_armor((mon), W_ARMC) != 0) && ((which_armor((mon), W_ARMH) != 0))) && */
-
+/*      && (!(which_armor((mon), W_ARMC) != 0                               */
+/*            && which_armor((mon), W_ARMH) != 0))                          */
 
 
 /* monster begins fleeing for the specified time, 0 means untimed flee
@@ -1337,7 +1336,8 @@ postmov:
                     impossible("m_move: monster moving to closed door");
                 }
             } else if (levl[mtmp->mx][mtmp->my].typ == IRONBARS) {
-                if (may_dig(mtmp->mx, mtmp->my)
+                /* 3.6.2: was using may_dig() but it doesn't handle bars */
+                if (!(levl[mtmp->mx][mtmp->my].wall_info & W_NONDIGGABLE)
                     && (dmgtype(ptr, AD_RUST) || dmgtype(ptr, AD_CORR))) {
                     if (canseemon(mtmp))
                         pline("%s eats through the iron bars.", Monnam(mtmp));
