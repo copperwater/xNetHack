@@ -53,6 +53,8 @@ Several more tools are now eligible to receive non-default object materials.
     "tin whistle" -> "pea whistle"
     "brass lantern" -> "lantern"
     "silver bell" (for the Bell of Opening) -> "engraved silver bell"
+  Boomerangs, while not a tool, are also eligible; they receive the same
+    materials as bows.
 Slight tweak to the object material probabilities for bows.
 Weapons made out of bone can hit shades (they don't get any bonuses though)
 Silver-hating has been refactored and generalized into any-material-hating.
@@ -131,6 +133,9 @@ Ghost stats are also changed: their base level is brought down from 10 to 4
   can hurt them), their speed is increased from 3 to 5, their AC is increased
   (making them *easier* to hit) from -5 to 5, and their magic resistance is
   increased from 50 to 80.
+Silver items are now corrodeable.
+Pets will no longer eat shapeshifter corpses unless starving or unless tameness
+  is so low that they are about to go feral.
 
 It contains the following non-gameplay interface changes:
 
