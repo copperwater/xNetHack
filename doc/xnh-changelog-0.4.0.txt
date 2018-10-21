@@ -65,7 +65,7 @@ Silver-hating has been refactored and generalized into any-material-hating.
     of a material they hate (unlike silver, which if the player hates it will
     be unhandleable.)
   Elves (including elvish players), nymphs, and all i-class monsters now hate
-    iron.
+    iron (including crashing into iron bars).
   Fungi, Pestilence, and anything else with a disease or rotting attack now
     hates copper.
 Copper antimicrobialness resists sickness: for each piece of copper armor you

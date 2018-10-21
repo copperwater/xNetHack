@@ -627,6 +627,8 @@ int x, y;
         if (levl[x][y].typ == IRONBARS) {
             You("crash into some iron bars.  Ouch!");
             dmg = rnd(2 + *range);
+            if (Hate_material(IRON))
+                dmg += sear_damage(IRON);
             losehp(Maybe_Half_Phys(dmg), "crashing into iron bars",
                    KILLED_BY);
             wake_nearto(x,y, 20);
@@ -1327,7 +1329,7 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
             (void) encumber_msg();
             if (thrownobj->owornmask & W_QUIVER) /* in case addinv() autoquivered */
                 setuqwep((struct obj *) 0);
-            setuwep(thrownobj);            
+            setuwep(thrownobj);
         } else {
             /* ball is not picked up by monster */
             if (obj != uball)
