@@ -1743,7 +1743,8 @@ domove()
     trap = t_at(x, y);
     if (trap && trap->tseen && (!context.nopick || context.run)
         && !Stunned && !Confusion
-        && (immune_to_trap(&youmonst, trap->ttyp) != 1 || Hallucination)) {
+        && (immune_to_trap(&youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
+            || Hallucination)) {
         /* note on hallucination: all traps still show as ^, but the hero can't
          * tell what they are, so warn of every trap. */
         char qbuf[QBUFSZ];

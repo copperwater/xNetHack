@@ -102,6 +102,13 @@ enum doortrap_types {
      * hurtle(u.ux - doorx, u.uy - doory, 1, FALSE) */
 };
 
+/* Return codes from immune_to_trap. */
+enum trap_immunities {
+    TRAP_NOT_IMMUNE = 0,
+    TRAP_CLEARLY_IMMUNE,
+    TRAP_HIDDEN_IMMUNE
+};
+
 #define predoortrapped(x, y, mon, body, act) \
     doortrapped(x, y, mon, body, act, 0)
 #define postdoortrapped(x, y, mon, body, act) \
