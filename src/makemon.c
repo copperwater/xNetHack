@@ -1,4 +1,4 @@
-/* NetHack 3.6	makemon.c	$NHDT-Date: 1495237801 2017/05/19 23:50:01 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.116 $ */
+/* NetHack 3.6	makemon.c	$NHDT-Date: 1539804904 2018/10/17 19:35:04 $  $NHDT-Branch: keni-makedefsm $:$NHDT-Revision: 1.127 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -25,12 +25,10 @@ STATIC_DCL void FDECL(m_initinv, (struct monst *));
 STATIC_DCL boolean FDECL(makemon_rnd_goodpos, (struct monst *,
                                                unsigned, coord *));
 
-extern const int monstr[];
-
 #define m_initsgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 3)
 #define m_initlgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 10)
-#define toostrong(monindx, lev) (monstr[monindx] > lev)
-#define tooweak(monindx, lev) (monstr[monindx] < lev)
+#define toostrong(monindx, lev) (mons[monindx].difficulty > lev)
+#define tooweak(monindx, lev) (mons[monindx].difficulty < lev)
 
 boolean
 is_home_elemental(ptr)
@@ -1390,6 +1388,9 @@ int mmflags;
             mtmp->mstrategy |= STRAT_APPEARMSG;
     }
 
+    if (allow_minvent && migrating_objs)
+        deliver_obj_to_mon(mtmp, 1, DF_NONE); /* in case of waiting items */
+
     if (!in_mklev)
         newsym(mtmp->mx, mtmp->my); /* make sure the mon shows up */
 
@@ -1649,7 +1650,7 @@ int spc;
         if (mk_gen_ok(last, G_GONE, mask)) {
             /* consider it */
             if (num && toostrong(last, maxmlev)
-                && monstr[last] != monstr[last - 1] && rn2(2))
+                && mons[last].difficulty != mons[last - 1].difficulty && rn2(2))
                 break;
             num += mons[last].geno & G_FREQ;
         }
@@ -1751,7 +1752,7 @@ struct monst *mtmp, *victim;
 
     /* monster died after killing enemy but before calling this function */
     /* currently possible if killing a gas spore */
-    if (mtmp->mhp <= 0)
+    if (DEADMONSTER(mtmp))
         return (struct permonst *) 0;
 
     /* note:  none of the monsters with special hit point calculations
@@ -1834,7 +1835,7 @@ struct monst *mtmp, *victim;
                            slightly less sexist if prepared for it...) */
                       : (fem && !mtmp->female) ? "female " : "",
                     ptr->mname);
-            pline("%s %s %s.", Monnam(mtmp),
+            pline("%s %s %s.", upstart(y_monnam(mtmp)),
                   (fem != mtmp->female) ? "changes into"
                                         : humanoid(ptr) ? "becomes"
                                                         : "grows up into",
@@ -2126,16 +2127,12 @@ register struct monst *mtmp;
             appear = Is_rogue_level(&u.uz) ? S_hwall : S_hcdoor;
         else
             appear = Is_rogue_level(&u.uz) ? S_vwall : S_vcdoor;
-        if (!mtmp->minvis || See_invisible)
-            block_point(mx, my); /* vision */
     } else if (level.flags.is_maze_lev && !In_sokoban(&u.uz) && rn2(2)) {
         ap_type = M_AP_OBJECT;
         appear = STATUE;
     } else if (roomno < 0 && !t_at(mx, my)) {
         ap_type = M_AP_OBJECT;
         appear = BOULDER;
-        if (!mtmp->minvis || See_invisible)
-            block_point(mx, my); /* vision */
     } else if (rt == ZOO || rt == VAULT) {
         ap_type = M_AP_OBJECT;
         appear = GOLD_PIECE;
@@ -2193,6 +2190,9 @@ register struct monst *mtmp;
         if (appear == EGG && !can_be_hatched(MCORPSENM(mtmp)))
             MCORPSENM(mtmp) = NON_PM; /* revert to generic egg */
     }
+
+    if (does_block(mx, my, &levl[mx][my]))
+        block_point(mx, my);
 }
 
 /* release monster from bag of tricks; return number of monsters created */

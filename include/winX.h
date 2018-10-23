@@ -135,6 +135,8 @@ typedef struct x11_mi {
     boolean preselected; /*   in advance?  */
     char selector;       /* Char used to select this entry. */
     char gselector;      /* Group selector. */
+    Widget w;
+    int window;
 } x11_menu_item;
 
 struct menu {
@@ -143,8 +145,6 @@ struct menu {
     const char *query;    /* Query string. */
     const char *gacc;     /* Group accelerators. */
     int count;            /* Number of strings. */
-    String *list_pointer; /* String list. */
-    Boolean *sensitive;   /* Active list. */
     char curr_selector;   /* Next keyboard accelerator to assign, */
                           /*   if 0, then we're out.              */
 };
@@ -153,18 +153,26 @@ struct menu_info_t {
     struct menu curr_menu; /* Menu being displayed. */
     struct menu new_menu;  /* New menu being built. */
 
+    boolean nh_colors_inited;
+    XColor nh_colors[CLR_MAX];
+
     XFontStruct *fs;           /* Font for the window. */
+    XFontStruct *boldfs;       /* Bold font */
+    Display *boldfs_dpy;
     long menu_count;           /* number entered by user */
     Dimension line_height;     /* Total height of a line of text. */
     Dimension internal_height; /* Internal height between widget & border */
     Dimension internal_width;  /* Internal width between widget & border */
     short how;                 /* Menu mode PICK_NONE, PICK_ONE, PICK_ANY */
-    boolean valid_widgets;     /* TRUE if widgets have been created. */
     boolean is_menu;   /* Has been confirmed to being a menu window. */
     boolean is_active; /* TRUE when waiting for user input. */
     boolean is_up;     /* TRUE when window is popped-up. */
     boolean cancelled; /* Menu has been explicitly cancelled. */
     boolean counting;  /* true when menu_count has a valid value */
+    boolean permi;
+
+    int permi_x, permi_y; /* perm_invent window x,y */
+    int permi_w, permi_h; /* perm_invent window wid, hei */
 };
 
 /*
@@ -246,6 +254,7 @@ E boolean plsel_ask_name;
 
 typedef struct {
     Boolean slow;             /* issue prompts between map and message wins */
+    Boolean fancy_status;     /* use "fancy" status vs. TTY-style status */
     Boolean autofocus;        /* grab pointer focus for popup windows */
     Boolean message_line;     /* separate current turn mesgs from prev ones */
     Boolean highlight_prompt; /* if 'slow', highlight yn prompts */
@@ -290,6 +299,8 @@ E void FDECL(positionpopup, (Widget, BOOLEAN_P));
 /* ### winX.c ### */
 E struct xwindow *FDECL(find_widget, (Widget));
 E Boolean FDECL(nhApproxColor, (Screen *, Colormap, char *, XColor *));
+E void FDECL(get_widget_window_geometry, (Widget, int *, int *, int *, int *));
+E char *FDECL(fontname_boldify, (const char *));
 E Dimension FDECL(nhFontHeight, (Widget));
 E char FDECL(key_event_to_char, (XKeyEvent *));
 E void FDECL(msgkey, (Widget, XtPointer, XEvent *));
@@ -297,6 +308,7 @@ E void FDECL(highlight_yn, (BOOLEAN_P));
 E void FDECL(nh_XtPopup, (Widget, int, Widget));
 E void FDECL(nh_XtPopdown, (Widget));
 E void FDECL(win_X11_init, (int));
+E void FDECL(find_scrollbars, (Widget, Widget *, Widget *));
 E void FDECL(nh_keyscroll, (Widget, XEvent *, String *, Cardinal *));
 
 /* ### winmesg.c ### */
@@ -383,6 +395,8 @@ E void FDECL(hilight_value, (Widget));
 E void FDECL(swap_fg_bg, (Widget));
 
 /* external declarations */
+E char *FDECL(X11_getmsghistory, (BOOLEAN_P));
+E void FDECL(X11_putmsghistory, (const char *, BOOLEAN_P));
 E void FDECL(X11_init_nhwindows, (int *, char **));
 E void NDECL(X11_player_selection);
 E void NDECL(X11_askname);
@@ -420,6 +434,10 @@ E void FDECL(X11_getlin, (const char *, char *));
 E int NDECL(X11_get_ext_cmd);
 E void FDECL(X11_number_pad, (int));
 E void NDECL(X11_delay_output);
+E void NDECL(X11_status_init);
+E void NDECL(X11_status_finish);
+E void FDECL(X11_status_enablefield, (int, const char *, const char *, BOOLEAN_P));
+E void FDECL(X11_status_update, (int, genericptr_t, int, int, int, unsigned long *));
 
 /* other defs that really should go away (they're tty specific) */
 E void NDECL(X11_start_screen);

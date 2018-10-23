@@ -1,5 +1,5 @@
 #	NetHack Makefile.
-# NetHack 3.6  Makefile.src    $NHDT-Date: 1526687360 2018/05/18 23:49:20 $  $NHDT-Branch: NetHack-3.6.2 $:$NHDT-Revision: 1.55 $
+# NetHack 3.6  Makefile.src    $NHDT-Date: 1539968067 2018/10/19 16:54:27 $  $NHDT-Branch: keni-makedefsm $:$NHDT-Revision: 1.58 $
 # Copyright (c) 2018 by Pasi Kallinen
 # NetHack may be freely redistributed.  See license for details.
 
@@ -163,7 +163,8 @@ GNOMEINC=-I/usr/lib/glib/include -I/usr/lib/gnome-libs/include -I../win/gnome
 # NetHack is standard C.  If using Qt, uncomment the LINK line here to get
 # the C++ libraries linked in.
 CXXFLAGS = $(CFLAGS) -I. -I$(QTDIR)/include
-CXX=g++
+CXX ?= g++
+MOC ?= moc
 #LINK=g++
 #	For cross-compiling, eg. with gcc on Linux (see also CC further up):
 #CXX=arm-linux-g++
@@ -284,6 +285,9 @@ WINQTLIB = -L$(QTDIR)/lib -lqt
 #
 # libraries for Qt 4
 WINQT4LIB = `pkg-config QtGui --libs`
+#
+# libraries for Qt 5 (use with WINQT4SRC and WINQT4OBJ)
+WINQT5LIB = `pkg-config Qt5Gui Qt5Widgets Qt5Multimedia --libs`
 #
 # libraries for KDE (with Qt)
 WINKDELIB = -lkdecore -lkdeui -lXext
@@ -431,7 +435,7 @@ SYSCSRC = ../sys/atari/tos.c ../sys/share/pcmain.c ../sys/share/pcsys.c \
 SYSCXXSRC = ../sys/share/cppregex.cpp
 
 # generated source files (tile.c is handled separately via WINxxxSRC)
-GENCSRC = monstr.c vis_tab.c	#tile.c
+GENCSRC = vis_tab.c	#tile.c
 
 # all windowing-system-dependent .c (for dependencies and such)
 WINCSRC = $(WINTTYSRC) $(WINX11SRC) $(WINGNOMESRC) $(WINGEMSRC)
@@ -478,7 +482,7 @@ HOBJ = $(FIRSTOBJ) allmain.o alloc.o apply.o artifact.o attrib.o ball.o \
 	extralev.o files.o fountain.o hack.o hacklib.o invent.o light.o \
 	lock.o mail.o makemon.o mapglyph.o mcastu.o mhitm.o mhitu.o \
 	minion.o mklev.o mkmap.o \
-	mkmaze.o mkobj.o mkroom.o mon.o mondata.o monmove.o monstr.o \
+	mkmaze.o mkobj.o mkroom.o mon.o mondata.o monmove.o \
 	mplayer.o mthrowu.o muse.o music.o o_init.o objnam.o options.o \
 	pager.o pickup.o pline.o polyself.o potion.o pray.o priest.o \
 	quest.o questpgr.o read.o rect.o region.o restore.o rip.o rnd.o \
@@ -574,25 +578,25 @@ qttableview.moc: ../include/qttableview.h
 
 # Qt 4 windowport meta-object-compiler output
 qt4kde0.moc : ../win/Qt4/qt4kde0.h
-	$(QTDIR)/bin/moc -o qt4kde0.moc ../win/Qt4/qt4kde0.h
+	$(QTDIR)/bin/$(MOC) -o qt4kde0.moc ../win/Qt4/qt4kde0.h
 qt4main.moc : ../win/Qt4/qt4main.h
-	$(QTDIR)/bin/moc -o qt4main.moc ../win/Qt4/qt4main.h
+	$(QTDIR)/bin/$(MOC) -o qt4main.moc ../win/Qt4/qt4main.h
 qt4map.moc : ../win/Qt4/qt4map.h
-	$(QTDIR)/bin/moc -o qt4map.moc ../win/Qt4/qt4map.h
+	$(QTDIR)/bin/$(MOC) -o qt4map.moc ../win/Qt4/qt4map.h
 qt4menu.moc : ../win/Qt4/qt4menu.h
-	$(QTDIR)/bin/moc -o qt4menu.moc ../win/Qt4/qt4menu.h
+	$(QTDIR)/bin/$(MOC) -o qt4menu.moc ../win/Qt4/qt4menu.h
 qt4msg.moc : ../win/Qt4/qt4msg.h
-	$(QTDIR)/bin/moc -o qt4msg.moc ../win/Qt4/qt4msg.h
+	$(QTDIR)/bin/$(MOC) -o qt4msg.moc ../win/Qt4/qt4msg.h
 qt4plsel.moc : ../win/Qt4/qt4plsel.h
-	$(QTDIR)/bin/moc -o qt4plsel.moc ../win/Qt4/qt4plsel.h
+	$(QTDIR)/bin/$(MOC) -o qt4plsel.moc ../win/Qt4/qt4plsel.h
 qt4set.moc : ../win/Qt4/qt4set.h
-	$(QTDIR)/bin/moc -o qt4set.moc ../win/Qt4/qt4set.h
+	$(QTDIR)/bin/$(MOC) -o qt4set.moc ../win/Qt4/qt4set.h
 qt4stat.moc : ../win/Qt4/qt4stat.h
-	$(QTDIR)/bin/moc -o qt4stat.moc ../win/Qt4/qt4stat.h
+	$(QTDIR)/bin/$(MOC) -o qt4stat.moc ../win/Qt4/qt4stat.h
 qt4xcmd.moc : ../win/Qt4/qt4xcmd.h
-	$(QTDIR)/bin/moc -o qt4xcmd.moc ../win/Qt4/qt4xcmd.h
+	$(QTDIR)/bin/$(MOC) -o qt4xcmd.moc ../win/Qt4/qt4xcmd.h
 qt4yndlg.moc : ../win/Qt4/qt4yndlg.h
-	$(QTDIR)/bin/moc -o qt4yndlg.moc ../win/Qt4/qt4yndlg.h
+	$(QTDIR)/bin/$(MOC) -o qt4yndlg.moc ../win/Qt4/qt4yndlg.h
 
 #	build monst.o and objects.o before executing '$(MAKE) makedefs'
 $(MAKEDEFS): $(FIRSTOBJ) \
@@ -613,9 +617,7 @@ $(MAKEDEFS): $(FIRSTOBJ) \
 	@( cd ../util ; $(MAKE) ../include/onames.h )
 ../include/pm.h: $(MAKEDEFS) ../include/onames.h
 	@( cd ../util ; $(MAKE) ../include/pm.h )
-monstr.c: $(MAKEDEFS) ../include/pm.h
-	@( cd ../util ; $(MAKE) ../src/monstr.c )
-../include/vis_tab.h: $(MAKEDEFS) monstr.c
+../include/vis_tab.h: $(MAKEDEFS) ../include/pm.h
 	@( cd ../util ; $(MAKE) ../include/vis_tab.h )
 # makedefs -z makes both vis_tab.h and vis_tab.c, but writes the .h first
 vis_tab.c: ../include/vis_tab.h
@@ -663,7 +665,7 @@ clean:
 spotless: clean
 	-rm -f a.out core $(GAME) Sys*
 	-rm -f ../include/date.h ../include/onames.h ../include/pm.h
-	-rm -f monstr.c ../include/vis_tab.h vis_tab.c tile.c *.moc
+	-rm -f ../include/vis_tab.h vis_tab.c tile.c *.moc
 	-rm -f ../win/gnome/gn_rip.h
 
 
@@ -913,7 +915,6 @@ wc_chainout.o: ../win/chain/wc_chainout.c $(HACK_H)
 	$(CC) $(CFLAGS) -c ../win/chain/wc_chainout.c
 wc_trace.o: ../win/chain/wc_trace.c $(HACK_H) ../include/func_tab.h
 	$(CC) $(CFLAGS) -c ../win/chain/wc_trace.c
-monstr.o: monstr.c $(CONFIG_H)
 vis_tab.o: vis_tab.c $(CONFIG_H) ../include/vis_tab.h
 allmain.o: allmain.c $(HACK_H)
 alloc.o: alloc.c $(CONFIG_H)

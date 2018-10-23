@@ -365,7 +365,7 @@ register struct monst *mtmp;
 
     if (!ranged)
         nomul(0);
-    if (mtmp->mhp <= 0 || (Underwater && !is_swimmer(mtmp->data)))
+    if (DEADMONSTER(mtmp) || (Underwater && !is_swimmer(mtmp->data)))
         return 0;
 
     /* If swallowed, can only be affected by u.ustuck */
@@ -1744,7 +1744,7 @@ struct attack *mattk;
 
         if (!engulf_target(mtmp, &youmonst))
             return 0;
-        if ((t && ((t->ttyp == PIT) || (t->ttyp == SPIKED_PIT)))
+        if ((t && is_pit(t->ttyp))
             && sobj_at(BOULDER, u.ux, u.uy))
             return 0;
 
@@ -1774,7 +1774,7 @@ struct attack *mattk;
         if (u.utrap) {
             You("are released from the %s!",
                 u.utraptype == TT_WEB ? "web" : "trap");
-            u.utrap = 0;
+            reset_utrap(FALSE);
         }
 
         i = number_leashed();
@@ -1796,7 +1796,7 @@ struct attack *mattk;
             if (Punished)
                 placebc();
             u.ustuck = 0;
-            return (mtmp->mhp > 0) ? 0 : 2;
+            return (!DEADMONSTER(mtmp)) ? 0 : 2;
         }
 
         display_nhwindow(WIN_MESSAGE, FALSE);
@@ -2066,7 +2066,7 @@ boolean ufound;
     if (kill_agr)
         mondead(mtmp);
     wake_nearto(mtmp->mx, mtmp->my, 7 * 7);
-    return (mtmp->mhp > 0) ? 0 : 2;
+    return (!DEADMONSTER(mtmp)) ? 0 : 2;
 }
 
 /* monster gazes at you */
@@ -2132,7 +2132,7 @@ struct attack *mattk;
             stoned = TRUE;
             killed(mtmp);
 
-            if (mtmp->mhp > 0)
+            if (!DEADMONSTER(mtmp))
                 break;
             return 2;
         }
@@ -2613,7 +2613,7 @@ struct monst *mon;
         ;
     } else if (rn2(20) < ACURR(A_CHA)) {
         pline("%s demands that you pay %s, but you refuse...",
-              noit_Monnam(mon), Blind ? (fem ? "her" : "him") : mhim(mon));
+              noit_Monnam(mon), noit_mhim(mon));
     } else if (u.umonnum == PM_LEPRECHAUN) {
         pline("%s tries to take your money, but fails...", noit_Monnam(mon));
     } else {
@@ -2768,7 +2768,7 @@ struct attack *mattk;
             pline("%s turns to stone!", Monnam(mtmp));
             stoned = 1;
             xkilled(mtmp, XKILL_NOMSG);
-            if (mtmp->mhp > 0)
+            if (!DEADMONSTER(mtmp))
                 return 1;
             return 2;
         }
@@ -2879,7 +2879,7 @@ assess_dmg:
     if ((mtmp->mhp -= tmp) <= 0) {
         pline("%s dies!", Monnam(mtmp));
         xkilled(mtmp, XKILL_NOMSG);
-        if (mtmp->mhp > 0)
+        if (!DEADMONSTER(mtmp))
             return 1;
         return 2;
     }

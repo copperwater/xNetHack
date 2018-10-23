@@ -1,4 +1,4 @@
-/* NetHack 3.6	winX.c	$NHDT-Date: 1526429314 2018/05/16 00:08:34 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.50 $ */
+/* NetHack 3.6	winX.c	$NHDT-Date: 1539392992 2018/10/13 01:09:52 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.57 $ */
 /* Copyright (c) Dean Luick, 1992                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -85,6 +85,8 @@ int click_x, click_y, click_button; /* Click position on a map window   */
                                     /* (filled by set_button_values()). */
 int updated_inventory;
 
+static int (*old_error_handler) (Display *, XErrorEvent *);
+
 #if !defined(NO_SIGNAL) && defined(SAFERHANGUP)
 #if XtSpecificationRelease >= 6
 #define X11_HANGUP_SIGNAL
@@ -100,7 +102,10 @@ struct window_procs X11_procs = {
     "X11",
     (WC_COLOR | WC_HILITE_PET | WC_ASCII_MAP | WC_TILED_MAP
      | WC_PLAYER_SELECTION | WC_PERM_INVENT | WC_MOUSE_SUPPORT),
-    0L, /* WC2 flag mask */
+#if defined(STATUS_HILITES)
+    WC2_FLUSH_STATUS | WC2_RESET_STATUS | WC2_HILITE_STATUS |
+#endif
+    0L,
     X11_init_nhwindows,
     X11_player_selection, X11_askname, X11_get_nh_event, X11_exit_nhwindows,
     X11_suspend_nhwindows, X11_resume_nhwindows, X11_create_nhwindow,
@@ -128,9 +133,9 @@ struct window_procs X11_procs = {
 #else
     genl_outrip,
 #endif
-    X11_preference_update, genl_getmsghistory, genl_putmsghistory,
-    genl_status_init, genl_status_finish, genl_status_enablefield,
-    genl_status_update,
+    X11_preference_update, X11_getmsghistory, X11_putmsghistory,
+    X11_status_init, X11_status_finish, X11_status_enablefield,
+    X11_status_update,
     genl_can_suspend_no, /* XXX may not always be correct */
 };
 
@@ -145,6 +150,7 @@ static void FDECL(nhFreePixel, (XtAppContext, XrmValuePtr, XtPointer,
 static boolean FDECL(new_resource_macro, (String, unsigned));
 static void NDECL(load_default_resources);
 static void NDECL(release_default_resources);
+static int FDECL(panic_on_error, (Display *, XErrorEvent *));
 #ifdef X11_HANGUP_SIGNAL
 static void FDECL(X11_sig, (int));
 static void FDECL(X11_sig_cb, (XtPointer, XtSignalId *));
@@ -174,6 +180,43 @@ static winid message_win = WIN_ERR, /* These are the winids of the message, */
              map_win = WIN_ERR,     /*   map, and status windows, when they */
              status_win = WIN_ERR;  /*   are created in init_windows().     */
 static Pixmap icon_pixmap = None;   /* Pixmap for icon.                     */
+
+void
+X11_putmsghistory(msg, is_restoring)
+const char *msg;
+boolean is_restoring;
+{
+    if (WIN_MESSAGE != WIN_ERR) {
+        struct xwindow *wp = &window_list[WIN_MESSAGE];
+        debugpline2("X11_putmsghistory('%s',%i)", msg, is_restoring);
+        if (msg)
+            append_message(wp, msg);
+    }
+}
+
+char *
+X11_getmsghistory(init)
+boolean init;
+{
+    if (WIN_MESSAGE != WIN_ERR) {
+        static struct line_element *curr = (struct line_element *) 0;
+        static int numlines = 0;
+        struct xwindow *wp = &window_list[WIN_MESSAGE];
+
+        if (!curr) {
+            curr = wp->mesg_information->head;
+            numlines = 0;
+        }
+
+        if (numlines < wp->mesg_information->num_lines) {
+            curr = curr->next;
+            numlines++;
+            debugpline2("X11_getmsghistory(%i)='%s'", init, curr->line);
+            return curr->line;
+        }
+    }
+    return (char *) 0;
+}
 
 /*
  * Find the window structure that corresponds to the given widget.  Note
@@ -427,6 +470,86 @@ XtPointer *closure_ret;
         *closure_ret = (char *) True;
         done(Pixel, screenColor.pixel);
     }
+}
+
+/* Ask the WM for window frame size */
+void
+get_window_frame_extents(w, top, bottom, left, right)
+Widget w;
+long *top, *bottom, *left, *right;
+{
+    XEvent event;
+    Display *dpy = XtDisplay(w);
+    Window win = XtWindow(w);
+    Atom prop, retprop;
+    int retfmt;
+    unsigned long nitems;
+    unsigned long nbytes;
+    unsigned char *data = 0;
+    long *extents;
+
+    prop = XInternAtom(dpy, "_NET_FRAME_EXTENTS", True);
+
+    while (XGetWindowProperty(dpy, win, prop,
+                              0, 4, False, AnyPropertyType,
+                              &retprop, &retfmt,
+                              &nitems, &nbytes, &data) != Success
+           || nitems != 4 || nbytes != 0)
+        {
+            XNextEvent(dpy, &event);
+        }
+
+    extents = (long *) data;
+
+    *left = extents[0];
+    *right = extents[1];
+    *top = extents[2];
+    *bottom = extents[3];
+}
+
+void
+get_widget_window_geometry(w, x,y, width, height)
+Widget w;
+int *x, *y, *width, *height;
+{
+    long top, bottom, left, right;
+    Arg args[5];
+    XtSetArg(args[0], nhStr(XtNx), x);
+    XtSetArg(args[1], nhStr(XtNy), y);
+    XtSetArg(args[2], nhStr(XtNwidth), width);
+    XtSetArg(args[3], nhStr(XtNheight), height);
+    XtGetValues(w, args, 4);
+    get_window_frame_extents(w, &top, &bottom, &left, &right);
+    *x -= left;
+    *y -= top;
+}
+
+/* Change the full font name string so the weight is "bold" */
+char *
+fontname_boldify(fontname)
+const char *fontname;
+{
+    static char buf[BUFSZ];
+    char *bufp = buf;
+    int idx = 0;
+
+    while (*fontname) {
+        if (*fontname == '-')
+            idx++;
+        *bufp = *fontname;
+        if (idx == 3) {
+            strcat(buf, "bold");
+            bufp += 5;
+            do {
+                fontname++;
+            } while (*fontname && *fontname != '-');
+        } else {
+            bufp++;
+            fontname++;
+        }
+    }
+    *bufp = '\0';
+    return buf;
 }
 
 #ifdef TEXTCOLOR
@@ -704,9 +827,11 @@ const char *str;
         toplines[TBUFSZ - 1] = 0;
         append_message(wp, str);
         break;
+#ifndef STATUS_HILITES
     case NHW_STATUS:
         adjust_status(wp, str);
         break;
+#endif
     case NHW_MAP:
         impossible("putstr: called on map window \"%s\"", str);
         break;
@@ -1144,6 +1269,8 @@ static XtActionsRec actions[] = {
 static XtResource resources[] = {
     { nhStr("slow"), nhStr("Slow"), XtRBoolean, sizeof(Boolean),
       XtOffset(AppResources *, slow), XtRString, nhStr("True") },
+    { nhStr("fancy_status"), nhStr("Fancy_status"), XtRBoolean, sizeof(Boolean),
+      XtOffset(AppResources *, fancy_status), XtRString, nhStr("True") },
     { nhStr("autofocus"), nhStr("AutoFocus"), XtRBoolean, sizeof(Boolean),
       XtOffset(AppResources *, autofocus), XtRString, nhStr("False") },
     { nhStr("message_line"), nhStr("Message_line"), XtRBoolean,
@@ -1190,6 +1317,21 @@ static XtResource resources[] = {
 #endif
 };
 
+static int
+panic_on_error(display, error)
+Display *display;
+XErrorEvent *error;
+{
+    char buf[BUFSZ];
+    XGetErrorText(display, error->error_code, buf, BUFSZ);
+    fprintf(stderr, "X Error: code %i (%s), request %i, minor %i, serial %lu\n",
+            error->error_code, buf,
+            error->request_code, error->minor_code,
+            error->serial);
+    panic("X Error");
+    return 0;
+}
+
 void
 X11_init_nhwindows(argcp, argv)
 int *argcp;
@@ -1206,6 +1348,7 @@ char **argv;
 
     /* add another option that can be set */
     set_wc_option_mod_status(WC_TILED_MAP, SET_IN_GAME);
+    set_option_mod_status("mouse_support", SET_IN_GAME);
 
     load_default_resources(); /* create default_resource_data[] */
 
@@ -1234,6 +1377,8 @@ char **argv;
               XtParseTranslationTable("<Message>WM_PROTOCOLS: X11_hangup()"));
 
     /* We don't need to realize the top level widget. */
+
+    old_error_handler = XSetErrorHandler(panic_on_error);
 
 #ifdef TEXTCOLOR
     /* add new color converter to deal with overused colormaps */
@@ -2110,7 +2255,7 @@ static int
 input_event(exit_condition)
 int exit_condition;
 {
-    if (WIN_STATUS != WIN_ERR) /* hilighting on the fancy status window */
+    if (appResources.fancy_status && WIN_STATUS != WIN_ERR) /* hilighting on the fancy status window */
         check_turn_events();
     if (WIN_MAP != WIN_ERR) /* make sure cursor is not clipped */
         check_cursor_visibility(&window_list[WIN_MAP]);
@@ -2380,7 +2525,8 @@ init_standard_windows()
      * after the fancy status widget is realized (above, with the game popup),
      * but before it is popped up.
      */
-    null_out_status();
+    if (appResources.fancy_status)
+        null_out_status();
     /*
      * Set the map size to its standard size.  As with the message window
      * above, the map window needs to be set to its constrained size until
@@ -2404,7 +2550,7 @@ void
 nh_XtPopup(w, g, childwid)
 Widget w;        /* widget */
 int g;           /* type of grab */
-Widget childwid; /* child to recieve focus (can be None) */
+Widget childwid; /* child to receive focus (can be None) */
 {
     XtPopup(w, (XtGrabKind) g);
     XSetWMProtocols(XtDisplay(w), XtWindow(w), &wm_delete_window, 1);
@@ -2444,6 +2590,20 @@ int dir;
     return;
 }
 
+void
+find_scrollbars(w, horiz, vert)
+Widget w;
+Widget *horiz, *vert;
+{
+    if (w) {
+        do {
+            *horiz = XtNameToWidget(w, "*horizontal");
+            *vert = XtNameToWidget(w, "*vertical");
+            w = XtParent(w);
+        } while (!*horiz && !*vert && w);
+    }
+}
+
 /* Callback
  * Scroll a viewport, using standard NH 1,2,3,4,6,7,8,9 directions.
  */
@@ -2456,7 +2616,7 @@ String *params;
 Cardinal *num_params;
 {
     Arg arg[2];
-    Widget horiz_sb, vert_sb;
+    Widget horiz_sb = (Widget) 0, vert_sb = (Widget) 0;
     float top, shown;
     Boolean do_call;
     int direction;
@@ -2469,19 +2629,7 @@ Cardinal *num_params;
 
     direction = atoi(params[0]);
 
-    horiz_sb = XtNameToWidget(viewport, "*horizontal");
-    vert_sb = XtNameToWidget(viewport, "*vertical");
-
-    if (!horiz_sb && !vert_sb) {
-        /* Perhaps the widget enclosing this has scrollbars (could use while)
-         */
-        Widget parent = XtParent(viewport);
-
-        if (parent) {
-            horiz_sb = XtNameToWidget(parent, "horizontal");
-            vert_sb = XtNameToWidget(parent, "vertical");
-        }
-    }
+    find_scrollbars(viewport, &horiz_sb, &vert_sb);
 
 #define H_DELTA 0.25 /* distance of horiz shift */
     /* vert shift is half of curr distance */

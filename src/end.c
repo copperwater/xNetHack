@@ -1,4 +1,4 @@
-/* NetHack 3.6	end.c	$NHDT-Date: 1528332335 2018/06/07 00:45:35 $  $NHDT-Branch: NetHack-3.6.2 $:$NHDT-Revision: 1.141 $ */
+/* NetHack 3.6	end.c	$NHDT-Date: 1539804880 2018/10/17 19:34:40 $  $NHDT-Branch: keni-makedefsm $:$NHDT-Revision: 1.146 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -748,7 +748,7 @@ time_t when; /* date+time at end of game */
     dump_plines();
     putstr(0, 0, "");
     putstr(0, 0, "Inventory:");
-    display_inventory((char *) 0, TRUE);
+    (void) display_inventory((char *) 0, TRUE);
     container_contents(invent, TRUE, TRUE, FALSE);
     enlightenment((BASICENLIGHTENMENT | MAGICENLIGHTENMENT),
                   (how >= PANICKED) ? ENL_GAMEOVERALIVE : ENL_GAMEOVERDEAD);
@@ -870,7 +870,7 @@ int how;
     else
         multi = -1;
     if (u.utrap && u.utraptype == TT_LAVA)
-        u.utrap = 0;
+        reset_utrap(FALSE);
     context.botl = 1;
     u.ugrave_arise = NON_PM;
     HUnchanging = 0L;
@@ -1280,7 +1280,7 @@ int how;
         if (WIN_INVEN != WIN_ERR) {
             destroy_nhwindow(WIN_INVEN),  WIN_INVEN = WIN_ERR;
             /* precaution in case any late update_inventory() calls occur */
-            flags.perm_invent = 0;
+            iflags.perm_invent = 0;
         }
         display_nhwindow(WIN_MESSAGE, TRUE);
         destroy_nhwindow(WIN_MAP),  WIN_MAP = WIN_ERR;
@@ -1574,8 +1574,6 @@ int status;
     nethack_exit(status);
 }
 
-extern const int monstr[];
-
 enum vanq_order_modes {
     VANQ_MLVL_MNDX = 0,
     VANQ_MSTR_MNDX,
@@ -1620,7 +1618,7 @@ const genericptr vptr2;
         break;
     case VANQ_MSTR_MNDX:
         /* sort by monster toughness */
-        mstr1 = monstr[indx1], mstr2 = monstr[indx2];
+        mstr1 = mons[indx1].difficulty, mstr2 = mons[indx2].difficulty;
         res = mstr2 - mstr1; /* monstr high to low */
         break;
     case VANQ_ALPHA_SEP:

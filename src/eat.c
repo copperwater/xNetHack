@@ -525,7 +525,7 @@ int *dmg_p; /* for dishing out extra damage in lieu of Int loss */
             if (visflag && canseemon(magr))
                 pline("%s turns to stone!", Monnam(magr));
             monstone(magr);
-            if (magr->mhp > 0) {
+            if (!DEADMONSTER(magr)) {
                 /* life-saved; don't continue eating the brains */
                 return MM_MISS;
             } else {
@@ -612,7 +612,7 @@ int *dmg_p; /* for dishing out extra damage in lieu of Int loss */
             return MM_MISS;
         } else if (is_rider(pd)) {
             mondied(magr);
-            if (magr->mhp <= 0)
+            if (DEADMONSTER(magr))
                 result = MM_AGR_DIED;
             /* Rider takes extra damage regardless of whether attacker dies */
             *dmg_p += xtra_dmg;
@@ -3088,15 +3088,17 @@ int corpsecheck; /* 0, no check, 1, corpses, 2, tinnable corpses */
         struct trap *ttmp = t_at(u.ux, u.uy);
 
         if (ttmp && ttmp->tseen && ttmp->ttyp == BEAR_TRAP) {
+            boolean u_in_beartrap = (u.utrap && u.utraptype == TT_BEARTRAP);
+
             /* If not already stuck in the trap, perhaps there should
                be a chance to becoming trapped?  Probably not, because
                then the trap would just get eaten on the _next_ turn... */
             Sprintf(qbuf, "There is a bear trap here (%s); eat it?",
-                    (u.utrap && u.utraptype == TT_BEARTRAP) ? "holding you"
-                                                            : "armed");
+                    u_in_beartrap ? "holding you" : "armed");
             if ((c = yn_function(qbuf, ynqchars, 'n')) == 'y') {
-                u.utrap = u.utraptype = 0;
                 deltrap(ttmp);
+                if (u_in_beartrap)
+                    reset_utrap(TRUE);
                 return mksobj(BEARTRAP, TRUE, FALSE);
             } else if (c == 'q') {
                 return (struct obj *) 0;
