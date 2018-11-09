@@ -2883,7 +2883,7 @@ const char * in_str;
         }
     }
     /* try alternate spellings */
-    struct alt_spellings *as;
+    const struct alt_spellings *as;
 
     for (as = spellings; as->sp != 0; as++) {
         if (!strcmpi(in_str, as->sp)) {
@@ -3303,7 +3303,7 @@ struct obj *no_wish;
 
     /* Alternate spellings (pick-ax, silver sabre, &c) */
     {
-        struct alt_spellings *as = spellings;
+        const struct alt_spellings *as = spellings;
 
         while (as->sp) {
             if (fuzzymatch(bp, as->sp, " -", TRUE)) {
