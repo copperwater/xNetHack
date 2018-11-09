@@ -169,6 +169,8 @@ YAFM when starting or restoring a game while hallucinating.
 Peaceful monsters are now underlined by default in both the tty and curses
   windowports. It is controlled by the boolean option "underline_peacefuls"
   (defaults to true).
+Slightly more flavorful (ha) message when you get regurgitated on account of
+  slow digestion.
 
 It contains the following non-gameplay architectural changes:
 
