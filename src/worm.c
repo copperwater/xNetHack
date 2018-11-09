@@ -463,7 +463,9 @@ boolean use_detection_glyph;
             ? detected_monnum_to_glyph(what_mon(PM_LONG_WORM_TAIL))
             : (worm->mtame
                ? petnum_to_glyph(what_mon(PM_LONG_WORM_TAIL))
-               : monnum_to_glyph(what_mon(PM_LONG_WORM_TAIL)));
+               : (worm->mpeaceful
+                  ? peacefulnum_to_glyph(what_mon(PM_LONG_WORM_TAIL))
+                  : monnum_to_glyph(what_mon(PM_LONG_WORM_TAIL))));
         show_glyph(curr->wx, curr->wy, num);
         curr = curr->nseg;
     }

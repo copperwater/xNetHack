@@ -81,7 +81,9 @@ boolean showtail;
         show_glyph(mtmp->mx, mtmp->my, detected_mon_to_glyph(mtmp));
     else
         show_glyph(mtmp->mx, mtmp->my,
-                   mtmp->mtame ? pet_to_glyph(mtmp) : mon_to_glyph(mtmp));
+                   mtmp->mtame ? pet_to_glyph(mtmp)
+                               : mtmp->mpeaceful ? peaceful_to_glyph(mtmp)
+                                                 : mon_to_glyph(mtmp));
 
     if (showtail && mtmp->data == &mons[PM_LONG_WORM])
         detect_wsegs(mtmp, 0);

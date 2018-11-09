@@ -3214,7 +3214,7 @@ int glyph;
 int bkglyph UNUSED;
 {
     int ch;
-    boolean reverse_on = FALSE;
+    boolean reverse_on = FALSE, underline_on = FALSE;
     int color;
     unsigned special;
 
@@ -3260,6 +3260,11 @@ int bkglyph UNUSED;
         reverse_on = TRUE;
     }
 
+    if ((special & MG_PEACEFUL) && iflags.underline_peacefuls) {
+        term_start_attr(ATR_ULINE);
+        underline_on = TRUE;
+    }
+
 #ifdef TEXTCOLOR
     if ((special & MG_STAIRS) && iflags.hilite_hidden_stairs
         && (window == NHW_MAP)) {
@@ -3274,6 +3279,9 @@ int bkglyph UNUSED;
 #endif
         g_putch(ch); /* print the character */
 
+    if (underline_on) {
+        term_end_attr(ATR_ULINE);
+    }
     if (reverse_on) {
         term_end_attr(ATR_INVERSE);
 #ifdef TEXTCOLOR
@@ -3567,7 +3575,7 @@ static boolean truncation_expected = FALSE;
  * for all platforms eventually and the conditional
  * setting below can be removed.
  */
-static int do_field_opt = 
+static int do_field_opt =
 #if defined(DISABLE_TTY_FIELD_OPT)
     0;
 #else
@@ -3650,11 +3658,11 @@ do_setlast()
  *         BL_XP, BL_AC, BL_HD, BL_TIME, BL_HUNGER, BL_HP, BL_HPMAX,
  *         BL_LEVELDESC, BL_EXP, BL_CONDITION
  *      -- fldindex could also be BL_FLUSH (-1), which is not really
- *         a field index, but is a special trigger to tell the 
+ *         a field index, but is a special trigger to tell the
  *         windowport that it should output all changes received
  *         to this point. It marks the end of a bot() cycle.
  *      -- fldindex could also be BL_RESET (-3), which is not really
- *         a field index, but is a special advisory to to tell the 
+ *         a field index, but is a special advisory to to tell the
  *         windowport that it should redisplay all its status fields,
  *         even if no changes have been presented to it.
  *      -- ptr is usually a "char *", unless fldindex is BL_CONDITION.
@@ -3889,7 +3897,7 @@ int *topsz, *bottomsz;
             tty_status[NOW][idx].y = row;
             tty_status[NOW][idx].x = col;
 
-            /* On a change to the field length, everything 
+            /* On a change to the field length, everything
                further to the right must be updated as well */
             if (tty_status[NOW][idx].lth != tty_status[BEFORE][idx].lth)
                 update_right = TRUE;
@@ -4340,7 +4348,7 @@ render_status(VOID_ARGS)
                             term_start_color(coloridx);
                     }
                     tty_putstatusfield(&tty_status[NOW][idx],
-                                       text, x, y);                    
+                                       text, x, y);
                     if (iflags.hilite_delta) {
                         if (coloridx != NO_COLOR && coloridx != CLR_MAX)
                             term_end_color();

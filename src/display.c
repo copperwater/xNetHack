@@ -457,6 +457,11 @@ xchar worm_tail;            /* mon is actually a worm tail */
                 num = petnum_to_glyph(PM_LONG_WORM_TAIL);
             else
                 num = pet_to_glyph(mon);
+        } else if (mon->mpeaceful && !Hallucination) {
+            if (worm_tail)
+                num = peacefulnum_to_glyph(PM_LONG_WORM_TAIL);
+            else
+                num = peaceful_to_glyph(mon);
         } else if (sightflags == DETECTED) {
             if (worm_tail)
                 num = detected_monnum_to_glyph(what_mon(PM_LONG_WORM_TAIL));
@@ -1455,6 +1460,9 @@ int x, y, glyph;
         } else if (glyph >= GLYPH_INVIS_OFF) { /* invisible mon */
             text = "invisible mon";
             offset = glyph - GLYPH_INVIS_OFF;
+        } else if (glyph >= GLYPH_PEACEFUL_OFF) { /* a pet */
+            text = "peaceful monster";
+            offset = glyph - GLYPH_PEACEFUL_OFF;
         } else if (glyph >= GLYPH_PET_OFF) { /* a pet */
             text = "pet";
             offset = glyph - GLYPH_PET_OFF;

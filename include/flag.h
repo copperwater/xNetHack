@@ -377,6 +377,7 @@ struct instance_flags {
      */
     boolean wc_color;         /* use color graphics                  */
     boolean wc_hilite_pet;    /* hilight pets                        */
+    boolean wc_underline_peacefuls; /* underline peaceful monsters   */
     boolean wc_ascii_map;     /* show map using traditional ascii    */
     boolean wc_tiled_map;     /* show map using tiles                */
     boolean wc_preload_tiles; /* preload tiles into memory           */
@@ -462,6 +463,7 @@ struct instance_flags {
 #endif
 #define use_color wc_color
 #define hilite_pet wc_hilite_pet
+#define underline_peacefuls wc_underline_peacefuls
 #define use_inverse wc_inverse
 #ifdef MAC_GRAPHICS_ENV
 #define large_font obsolete

@@ -166,6 +166,9 @@ All wands that print an unambiguous message clue to their identity now
   automatically type-identify when engraved with.
 YAFM when you sit on a towel.
 YAFM when starting or restoring a game while hallucinating.
+Peaceful monsters are now underlined by default in both the tty and curses
+  windowports. It is controlled by the boolean option "underline_peacefuls"
+  (defaults to true).
 
 It contains the following non-gameplay architectural changes:
 
@@ -182,3 +185,5 @@ Refactor both instances of ghosts scaring the player into one scary_ghost
 Most checks in the code for PM_SHADE are replaced with noncorporeal() checks.
 Split steal_it into itself and really_steal, which contains the actual logic for
   the player stealing from a monster.
+Add peaceful monster glyph offset to the display code, and all the other
+  corresponding macros and defines that go along with that.

@@ -267,6 +267,13 @@ unsigned *ospecial;
         else
             invis_color(offset);
         special |= MG_INVIS;
+    } else if ((offset = (glyph - GLYPH_PEACEFUL_OFF)) >= 0) { /* peaceful */
+        idx = mons[offset].mlet + SYM_OFF_M;
+        if (has_rogue_color)
+            color = NO_COLOR; /* no need to check iflags.use_color */
+        else
+            mon_color(offset);
+        special |= MG_PEACEFUL;
     } else if ((offset = (glyph - GLYPH_PET_OFF)) >= 0) { /* a pet */
         idx = mons[offset].mlet + SYM_OFF_M;
         if (has_rogue_color)

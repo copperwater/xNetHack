@@ -267,7 +267,8 @@
 
 #define GLYPH_MON_OFF     0
 #define GLYPH_PET_OFF     (NUMMONS + GLYPH_MON_OFF)
-#define GLYPH_INVIS_OFF   (NUMMONS + GLYPH_PET_OFF)
+#define GLYPH_PEACEFUL_OFF (NUMMONS + GLYPH_PET_OFF)
+#define GLYPH_INVIS_OFF   (NUMMONS + GLYPH_PEACEFUL_OFF)
 #define GLYPH_DETECT_OFF  (1 + GLYPH_INVIS_OFF)
 #define GLYPH_BODY_OFF    (NUMMONS + GLYPH_DETECT_OFF)
 #define GLYPH_RIDDEN_OFF  (NUMMONS + GLYPH_BODY_OFF)
@@ -292,6 +293,8 @@
     ((int) what_mon(monsndx((mon)->data)) + GLYPH_RIDDEN_OFF)
 #define pet_to_glyph(mon) \
     ((int) what_mon(monsndx((mon)->data)) + GLYPH_PET_OFF)
+#define peaceful_to_glyph(mon) \
+    ((int) what_mon(monsndx((mon)->data)) + GLYPH_PEACEFUL_OFF)
 
 /* This has the unfortunate side effect of needing a global variable    */
 /* to store a result. 'otg_temp' is defined and declared in decl.{ch}.  */
@@ -330,6 +333,7 @@
 #define detected_monnum_to_glyph(mnum) ((int) (mnum) + GLYPH_DETECT_OFF)
 #define ridden_monnum_to_glyph(mnum) ((int) (mnum) + GLYPH_RIDDEN_OFF)
 #define petnum_to_glyph(mnum) ((int) (mnum) + GLYPH_PET_OFF)
+#define peacefulnum_to_glyph(mnum) ((int) (mnum) + GLYPH_PEACEFUL_OFF)
 
 /* The hero's glyph when seen as a monster.
  */
@@ -353,17 +357,19 @@
  *         to return).
  */
 #define glyph_to_mon(glyph) \
-    (glyph_is_normal_monster(glyph)                             \
-         ? ((glyph) - GLYPH_MON_OFF)                            \
-         : glyph_is_pet(glyph)                                  \
-               ? ((glyph) - GLYPH_PET_OFF)                      \
-               : glyph_is_detected_monster(glyph)               \
-                     ? ((glyph) - GLYPH_DETECT_OFF)             \
-                     : glyph_is_ridden_monster(glyph)           \
-                           ? ((glyph) - GLYPH_RIDDEN_OFF)       \
-                           : glyph_is_statue(glyph)             \
-                                 ? ((glyph) - GLYPH_STATUE_OFF) \
-                                 : NO_GLYPH)
+    (glyph_is_normal_monster(glyph)                                   \
+         ? ((glyph) - GLYPH_MON_OFF)                                  \
+         : glyph_is_pet(glyph)                                        \
+               ? ((glyph) - GLYPH_PET_OFF)                            \
+               : glyph_is_peaceful(glyph)                             \
+                     ? ((glyph) - GLYPH_PEACEFUL_OFF)                 \
+                     : glyph_is_detected_monster(glyph)               \
+                           ? ((glyph) - GLYPH_DETECT_OFF)             \
+                           : glyph_is_ridden_monster(glyph)           \
+                                 ? ((glyph) - GLYPH_RIDDEN_OFF)       \
+                                 : glyph_is_statue(glyph)             \
+                                       ? ((glyph) - GLYPH_STATUE_OFF) \
+                                       : NO_GLYPH)
 #define glyph_to_obj(glyph) \
     (glyph_is_body(glyph)                        \
          ? CORPSE                                \
@@ -388,11 +394,14 @@
  */
 #define glyph_is_monster(glyph)                            \
     (glyph_is_normal_monster(glyph) || glyph_is_pet(glyph) \
+     || glyph_is_peaceful(glyph) \
      || glyph_is_ridden_monster(glyph) || glyph_is_detected_monster(glyph))
 #define glyph_is_normal_monster(glyph) \
     ((glyph) >= GLYPH_MON_OFF && (glyph) < (GLYPH_MON_OFF + NUMMONS))
 #define glyph_is_pet(glyph) \
     ((glyph) >= GLYPH_PET_OFF && (glyph) < (GLYPH_PET_OFF + NUMMONS))
+#define glyph_is_peaceful(glyph) \
+    ((glyph) >= GLYPH_PEACEFUL_OFF && (glyph) < (GLYPH_PEACEFUL_OFF + NUMMONS))
 #define glyph_is_body(glyph) \
     ((glyph) >= GLYPH_BODY_OFF && (glyph) < (GLYPH_BODY_OFF + NUMMONS))
 
