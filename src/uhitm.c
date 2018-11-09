@@ -2704,10 +2704,12 @@ boolean wep_was_destroyed;
                         pline("%s looks %s%s.", Monnam(mon),
                               !rn2(2) ? "" : "rather ",
                               !rn2(2) ? "numb" : "stupified");
+                    } else if (rnd(30) < ACURR(A_WIS)) {
+                        You("avert your eyes from %s gaze.",
+                            s_suffix(mon_nam(mon)));
                     } else {
-                        int time = ((ACURR(A_WIS) > 12 || rn2(4)) ? tmp : 127);
                         You("are frozen by %s gaze!", s_suffix(mon_nam(mon)));
-                        make_paralyzed(time, FALSE,
+                        make_paralyzed(tmp, FALSE,
                                        "frozen by a monster's gaze");
                     }
                 } else {
