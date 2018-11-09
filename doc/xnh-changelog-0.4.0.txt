@@ -180,3 +180,5 @@ Since there needed to be two distinct calls to identifying a wand via
 Refactor both instances of ghosts scaring the player into one scary_ghost
   function.
 Most checks in the code for PM_SHADE are replaced with noncorporeal() checks.
+Split steal_it into itself and really_steal, which contains the actual logic for
+  the player stealing from a monster.

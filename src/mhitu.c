@@ -1,4 +1,4 @@
-/* NetHack 3.6	mhitu.c	$NHDT-Date: 1513297347 2017/12/15 00:22:27 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.149 $ */
+/* NetHack 3.6	mhitu.c	$NHDT-Date: 1540767817 2018/10/28 23:03:37 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.159 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2066,7 +2066,9 @@ struct attack *mattk;
     if (tmp)
         stop_occupation();
 
-    if (touch_petrifies(youmonst.data) && !resists_ston(mtmp)) {
+    if (!u.uswallow) {
+        ; /* life-saving has already expelled swallowed hero */
+    } else if (touch_petrifies(youmonst.data) && !resists_ston(mtmp)) {
         pline("%s very hurriedly %s you!", Monnam(mtmp),
               is_animal(mtmp->data) ? "regurgitates" : "expels");
         expels(mtmp, mtmp->data, FALSE);

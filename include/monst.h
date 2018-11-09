@@ -189,8 +189,8 @@ struct monst {
 #define min_difficulty() (level_difficulty() / 6)
 
 /* Macros for whether a given monster is too strong for a specific level. */
-#define toostrong(monindx, lev) (monstr[monindx] > lev)
-#define tooweak(monindx, lev) (monstr[monindx] < lev)
+#define toostrong(monindx, lev) (mons[monindx].difficulty > lev)
+#define tooweak(monindx, lev) (mons[monindx].difficulty < lev)
 
 #define helpless(mon) ((mon)->msleeping || !(mon)->mcanmove)
 

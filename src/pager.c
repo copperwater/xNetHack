@@ -36,7 +36,6 @@ STATIC_DCL void NDECL(hmenu_doextlist);
 #ifdef PORT_HELP
 extern void NDECL(port_help);
 #endif
-extern const int monstr[];
 
 /* Returns "true" for characters that could represent a monster's stomach. */
 STATIC_OVL boolean
@@ -592,7 +591,6 @@ struct permonst * pm;
 {
     char buf[BUFSZ];
     char buf2[BUFSZ];
-    int diff = monstr[monsndx(pm)];
     int gen = pm->geno;
     int freq = (gen & G_FREQ);
     boolean uniq = !!(gen & G_UNIQ);
@@ -624,7 +622,7 @@ struct permonst * pm;
 
     /* Misc */
     Sprintf(buf, "Difficulty %d, speed %d, base AC %d, magic saving throw %d, weight %d.",
-            diff, pm->mmove, pm->ac, pm->mr, pm->cwt);
+            pm->difficulty, pm->mmove, pm->ac, pm->mr, pm->cwt);
     MONPUTSTR(buf);
 
     /* Generation */

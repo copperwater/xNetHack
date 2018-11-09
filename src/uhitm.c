@@ -9,6 +9,7 @@ STATIC_DCL boolean FDECL(known_hitum, (struct monst *, struct obj *, int *,
                                        int, int, struct attack *, int));
 STATIC_DCL boolean FDECL(theft_petrifies, (struct obj *));
 STATIC_DCL void FDECL(steal_it, (struct monst *, struct attack *));
+STATIC_DCL boolean FDECL(really_steal, (struct obj *, struct monst *));
 STATIC_DCL boolean FDECL(hitum_cleave, (struct monst *, struct attack *));
 STATIC_DCL boolean FDECL(hitum, (struct monst *, struct attack *));
 STATIC_DCL boolean FDECL(hmon_hitmon, (struct monst *, struct obj *, int,
@@ -369,12 +370,14 @@ register struct monst *mtmp;
                 Strcpy(buf, y_monnam(mtmp));
                 buf[0] = highc(buf[0]);
                 You("stop.  %s is in the way!", buf);
-                context.travel = context.travel1 = context.mv = context.run = 0;
+                context.travel = context.travel1 = context.mv = context.run
+                    = 0;
                 return TRUE;
             } else if (mtmp->mfrozen || mtmp->msleeping || (!mtmp->mcanmove)
                        || (mtmp->data->mmove == 0 && rn2(6))) {
                 pline("%s doesn't seem to move!", Monnam(mtmp));
-                context.travel = context.travel1 = context.mv = context.run = 0;
+                context.travel = context.travel1 = context.mv = context.run
+                    = 0;
                 return TRUE;
             } else
                 return FALSE;
@@ -438,7 +441,7 @@ register struct monst *mtmp;
         (void) hitum(mtmp, youmonst.data->mattk);
     mtmp->mstrategy &= ~STRAT_WAITMASK;
 
-atk_done:
+ atk_done:
     /* see comment in attack_checks() */
     /* we only need to check for this if we did an attack_checks()
      * and it returned 0 (it's okay to attack), and the monster didn't
@@ -846,7 +849,8 @@ int dieroll;
                     harm_obj = TRUE;
                     harm_material = obj->material;
                 }
-                if (artifact_light(obj) && obj->lamplit && mon_hates_light(mon))
+                if (artifact_light(obj) && obj->lamplit
+                    && mon_hates_light(mon))
                     lightobj = TRUE;
                 if (u.usteed && !thrown && tmp > 0
                     && weapon_type(obj) == P_LANCE && mon != u.ustuck) {
@@ -1523,7 +1527,6 @@ struct monst *mdef;
 struct attack *mattk;
 {
     struct obj *otmp, *stealoid, **minvent_ptr;
-    long unwornmask;
 
     if (!mdef->minvent)
         return; /* nothing to take */
@@ -1558,41 +1561,58 @@ struct attack *mattk;
     while ((otmp = mdef->minvent) != 0) {
         if (!Upolyd)
             break; /* no longer have ability to steal */
-        /* take the object away from the monster */
-        obj_extract_self(otmp);
-        if ((unwornmask = otmp->owornmask) != 0L) {
-            mdef->misc_worn_check &= ~unwornmask;
-            if (otmp->owornmask & W_WEP)
-                setmnotwielded(mdef, otmp);
-            otmp->owornmask = 0L;
-            update_mon_intrinsics(mdef, otmp, FALSE, FALSE);
-            /* give monster a chance to wear other equipment on its next
-               move instead of waiting until it picks something up */
-            mdef->misc_worn_check |= I_SPECIAL;
-
-            if (otmp == stealoid) /* special message for final item */
-                pline("%s finishes taking off %s suit.", Monnam(mdef),
-                      mhis(mdef));
-        }
-        /* give the object to the character */
-        otmp = hold_another_object(otmp, "You snatched but dropped %s.",
-                                   doname(otmp), "You steal: ");
+        if (otmp == stealoid) /* special message for final item */
+            pline("%s finishes taking off %s suit.", Monnam(mdef),
+                    mhis(mdef));
+        if (really_steal(otmp, mdef)) /* hero got interrupted... */
+            break;
         if (otmp->where != OBJ_INVENT)
             continue;
-        if (theft_petrifies(otmp))
-            break; /* stop thieving even though hero survived */
-        /* more take-away handling, after theft message */
-        if (unwornmask & W_WEP) { /* stole wielded weapon */
-            possibly_unwield(mdef, FALSE);
-        } else if (unwornmask & W_ARMG) { /* stole worn gloves */
-            mselftouch(mdef, (const char *) 0, TRUE);
-            if (DEADMONSTER(mdef)) /* it's now a statue */
-                return;         /* can't continue stealing */
-        }
-
         if (!stealoid)
             break; /* only taking one item */
     }
+}
+
+/* Actual mechanics of stealing obj from mdef. This is now its own function
+ * because player-as-leprechaun can steal gold items, including gold weapons and
+ * armor, etc.
+ * Assumes caller handles whatever other messages are necessary; this takes care
+ * of the "You steal e - an imaginary widget" message.
+ * Returns TRUE if and only if the player has done something that should
+ * interrupt multi-stealing, such as stealing a cockatrice corpse and getting
+ * petrified, but then getting lifesaved.*/
+STATIC_OVL boolean
+really_steal(obj, mdef)
+struct obj * obj;
+struct monst * mdef;
+{
+    long unwornmask;
+    /* take the object away from the monster */
+    obj_extract_self(obj);
+    if ((unwornmask = obj->owornmask) != 0L) {
+        mdef->misc_worn_check &= ~unwornmask;
+        if (obj->owornmask & W_WEP)
+            setmnotwielded(mdef, obj);
+        obj->owornmask = 0L;
+        update_mon_intrinsics(mdef, obj, FALSE, FALSE);
+        /* give monster a chance to wear other equipment on its next
+           move instead of waiting until it picks something up */
+        mdef->misc_worn_check |= I_SPECIAL;
+    }
+    /* give the object to the character */
+    obj = hold_another_object(obj, "You snatched but dropped %s.",
+                               doname(obj), "You steal: ");
+    if (theft_petrifies(obj))
+        return TRUE; /* stop thieving even though hero survived */
+    /* more take-away handling, after theft message */
+    if (unwornmask & W_WEP) { /* stole wielded weapon */
+        possibly_unwield(mdef, FALSE);
+    } else if (unwornmask & W_ARMG) { /* stole worn gloves */
+        mselftouch(mdef, (const char *) 0, TRUE);
+        if (DEADMONSTER(mdef)) /* it's now a statue */
+            return TRUE;       /* can't continue stealing */
+    }
+    return FALSE;
 }
 
 int
@@ -1603,6 +1623,7 @@ register struct attack *mattk;
     register struct permonst *pd = mdef->data;
     int armpro, tmp = d((int) mattk->damn, (int) mattk->damd);
     boolean negated;
+    struct obj *mongold;
 
     armpro = magic_negation(mdef);
     /* since hero can't be cancelled, only defender's armor applies */
@@ -1742,24 +1763,21 @@ register struct attack *mattk;
     case AD_SGLD:
         /* This you as a leprechaun, so steal
            real gold only, no lesser coins */
-        {
-            struct obj *mongold = findgold(mdef->minvent, FALSE);
-            if (mongold) {
+        mongold = findgold(mdef->minvent, FALSE);
+        if (mongold) {
+            if (mongold->otyp != GOLD_PIECE) {
+                /* stole a gold non-coin object */
+                really_steal(mongold, mdef);
+            }
+            else if (merge_choice(invent, mongold) || inv_cnt(FALSE) < 52) {
+                Your("purse feels heavier.");
                 obj_extract_self(mongold);
-                if (merge_choice(invent, mongold) || inv_cnt(FALSE) < 52) {
-                    addinv(mongold);
-                    if (mongold->otyp == GOLD_PIECE) {
-                        Your("purse feels heavier.");
-                    }
-                    else {
-                        You("steal %s's %s.", mon_nam(mdef), xname(mongold));
-                    }
-                } else {
-                    You("grab %s's %s, but find no room in your knapsack.",
-                        (mongold->otyp == GOLD_PIECE ? "gold" : xname(mongold)),
-                        mon_nam(mdef));
-                    dropy(mongold);
-                }
+                addinv(mongold);
+            } else {
+                You("grab %s's gold, but find no room in your knapsack.",
+                    mon_nam(mdef));
+                obj_extract_self(mongold);
+                dropy(mongold);
             }
         }
         exercise(A_DEX, TRUE);
@@ -1770,8 +1788,9 @@ register struct attack *mattk;
             tmp = 1;
         if (!negated && tmp < mdef->mhp) {
             char nambuf[BUFSZ];
-            boolean u_saw_mon =
-                canseemon(mdef) || (u.uswallow && u.ustuck == mdef);
+            boolean u_saw_mon = (canseemon(mdef)
+                                 || (u.uswallow && u.ustuck == mdef));
+
             /* record the name before losing sight of monster */
             Strcpy(nambuf, Monnam(mdef));
             if (u_teleport_mon(mdef, FALSE) && u_saw_mon
@@ -1853,8 +1872,9 @@ register struct attack *mattk;
     case AD_DRCO:
         if (!negated && !rn2(8)) {
             Your("%s was poisoned!", mpoisons_subj(&youmonst, mattk));
-            if (resists_poison(mdef))
+            if (resists_poison(mdef)) {
                 pline_The("poison doesn't seem to affect %s.", mon_nam(mdef));
+            }
             else {
                 tmp += rn1(10, 6);
             }
@@ -1996,12 +2016,11 @@ explum(mdef, mattk)
 register struct monst *mdef;
 register struct attack *mattk;
 {
+    boolean resistance; /* only for cold/fire/elec */
     register int tmp = d((int) mattk->damn, (int) mattk->damd);
 
     You("explode!");
     switch (mattk->adtyp) {
-        boolean resistance; /* only for cold/fire/elec */
-
     case AD_BLND:
         if (!resists_blnd(mdef)) {
             pline("%s is blinded by your flash of light!", Monnam(mdef));

@@ -1,4 +1,4 @@
-/* NetHack 3.6	end.c	$NHDT-Date: 1528332335 2018/06/07 00:45:35 $  $NHDT-Branch: NetHack-3.6.2 $:$NHDT-Revision: 1.141 $ */
+/* NetHack 3.6	end.c	$NHDT-Date: 1540767809 2018/10/28 23:03:29 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.148 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -932,7 +932,7 @@ int how;
             u.uhpmax = uhpmin;
         u.uhp = u.uhpmax;
     }
-    u.uswldtim = 0;
+
     if (u.uhunger < 500) {
         u.uhunger = 500;
         newuhs(FALSE);
@@ -957,6 +957,16 @@ int how;
     curs_on_u();
     if (!context.mon_moving)
         endmultishot(FALSE);
+    if (u.uswallow) {
+        /* might drop hero onto a trap that kills her all over again */
+        expels(u.ustuck, u.ustuck->data, TRUE);
+    } else if (u.ustuck) {
+        if (Upolyd && sticks(youmonst.data))
+            You("release %s.", mon_nam(u.ustuck));
+        else
+            pline("%s releases you.", Monnam(u.ustuck));
+        unstuck(u.ustuck);
+    }
 }
 
 /*
@@ -1086,13 +1096,16 @@ void
 done(how)
 int how;
 {
+    boolean survive = FALSE;
+
     if (how == TRICKED) {
         if (killer.name[0]) {
             paniclog("trickery", killer.name);
-            killer.name[0] = 0;
+            killer.name[0] = '\0';
         }
         if (wizard) {
             You("are a very tricky wizard, it seems.");
+            killer.format = KILLED_BY_AN; /* reset to 0 */
             return;
         }
     }
@@ -1117,9 +1130,17 @@ int how;
     if (!killer.name[0] || how >= PANICKED)
         Strcpy(killer.name, deaths[how]);
 
-    if (how < PANICKED)
+    if (how < PANICKED) {
         u.umortality++;
-
+        /* in case caller hasn't already done this */
+        if (u.uhp > 0 || (Upolyd && u.mh > 0)) {
+            /* for deaths not triggered by loss of hit points, force
+               current HP to zero (0 HP when turning into green slime
+               is iffy but we don't have much choice--that is fatal) */
+            u.uhp = u.mh = 0;
+            context.botl = 1;
+        }
+    }
     if (Lifesaved && (how <= GENOCIDED) && !nonliving(youmonst.data)) {
         pline("But wait...");
         makeknown(AMULET_OF_LIFE_SAVING);
@@ -1136,27 +1157,32 @@ int how;
         if (how == GENOCIDED) {
             pline("Unfortunately you are still genocided...");
         } else {
-            killer.name[0] = 0;
-            killer.format = 0;
             livelog_write_string(LL_LIFESAVE, "averted death");
-            return;
+            survive = TRUE;
         }
     }
     /* maybe give the player a second chance if they were killed by the
      * appropriate monster */
-    if (sentient_arise(how)) {
-        return;
+    if (!survive && sentient_arise(how)) {
+        survive = TRUE;
     }
-    if ((wizard || discover) && (how <= GENOCIDED)
+
+    /* explore and wizard modes offer player the option to keep playing */
+    if (!survive && (wizard || discover) && how <= GENOCIDED
         && !paranoid_query(ParanoidDie, "Die?")) {
         pline("OK, so you don't %s.", (how == CHOKING) ? "choke" : "die");
         savelife(how);
-        killer.name[0] = 0;
-        killer.format = 0;
+        survive = TRUE;
+    }
+
+    if (survive) {
+        killer.name[0] = '\0';
+        killer.format = KILLED_BY_AN; /* reset to 0 */
         return;
     }
 
     really_done(how);
+    /*NOTREACHED*/
 }
 
 /* separated from done() in order to specify the __noreturn__ attribute */
@@ -1667,8 +1693,6 @@ int status;
     nethack_exit(status);
 }
 
-extern const int monstr[];
-
 enum vanq_order_modes {
     VANQ_MLVL_MNDX = 0,
     VANQ_MSTR_MNDX,
@@ -1713,7 +1737,7 @@ const genericptr vptr2;
         break;
     case VANQ_MSTR_MNDX:
         /* sort by monster toughness */
-        mstr1 = monstr[indx1], mstr2 = monstr[indx2];
+        mstr1 = mons[indx1].difficulty, mstr2 = mons[indx2].difficulty;
         res = mstr2 - mstr1; /* monstr high to low */
         break;
     case VANQ_ALPHA_SEP:

@@ -1,4 +1,4 @@
-/* NetHack 3.6	muse.c	$NHDT-Date: 1505181522 2017/09/12 01:58:42 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.80 $ */
+/* NetHack 3.6	muse.c	$NHDT-Date: 1539804880 2018/10/17 19:34:40 $  $NHDT-Branch: keni-makedefsm $:$NHDT-Revision: 1.85 $ */
 /*      Copyright (C) 1990 by Ken Arromdee                         */
 /* NetHack may be freely redistributed.  See license for details.  */
 
@@ -7,8 +7,6 @@
  */
 
 #include "hack.h"
-
-extern const int monstr[];
 
 boolean m_using = FALSE;
 
@@ -946,7 +944,7 @@ rnd_defensive_item(mtmp)
 struct monst *mtmp;
 {
     struct permonst *pm = mtmp->data;
-    int difficulty = monstr[(monsndx(pm))];
+    int difficulty = mons[(monsndx(pm))].difficulty;
     int trycnt = 0;
 
     if (is_animal(pm) || attacktype(pm, AT_EXPL) || mindless(mtmp->data)
@@ -1510,7 +1508,7 @@ rnd_offensive_item(mtmp)
 struct monst *mtmp;
 {
     struct permonst *pm = mtmp->data;
-    int difficulty = monstr[(monsndx(pm))];
+    int difficulty = mons[(monsndx(pm))].difficulty;
 
     if (is_animal(pm) || attacktype(pm, AT_EXPL) || mindless(mtmp->data)
         || noncorporeal(pm) || pm->mlet == S_KOP)
@@ -1590,7 +1588,7 @@ struct monst *mtmp;
         return FALSE;
 
     if (!stuck && !immobile && (mtmp->cham == NON_PM)
-        && monstr[(pmidx = monsndx(mdat))] < 6) {
+        && mons[(pmidx = monsndx(mdat))].difficulty < 6) {
         boolean ignore_boulders = (verysmall(mdat) || throws_rocks(mdat)
                                    || passes_walls(mdat)),
             diag_ok = !NODIAG(pmidx);
@@ -1676,13 +1674,13 @@ struct monst *mtmp;
         }
         nomore(MUSE_WAN_POLYMORPH);
         if (obj->otyp == WAN_POLYMORPH && obj->spe > 0
-            && (mtmp->cham == NON_PM) && monstr[monsndx(mdat)] < 6) {
+            && (mtmp->cham == NON_PM) && mons[monsndx(mdat)].difficulty < 6) {
             m.misc = obj;
             m.has_misc = MUSE_WAN_POLYMORPH;
         }
         nomore(MUSE_POT_POLYMORPH);
         if (obj->otyp == POT_POLYMORPH && (mtmp->cham == NON_PM)
-            && monstr[monsndx(mdat)] < 6) {
+            && mons[monsndx(mdat)].difficulty < 6) {
             m.misc = obj;
             m.has_misc = MUSE_POT_POLYMORPH;
         }
@@ -1953,7 +1951,7 @@ rnd_misc_item(mtmp)
 struct monst *mtmp;
 {
     struct permonst *pm = mtmp->data;
-    int difficulty = monstr[(monsndx(pm))];
+    int difficulty = mons[(monsndx(pm))].difficulty;
 
     if (is_animal(pm) || attacktype(pm, AT_EXPL) || mindless(mtmp->data)
         || noncorporeal(pm) || pm->mlet == S_KOP)
@@ -2008,7 +2006,7 @@ struct obj *obj;
         if (typ == WAN_DIGGING)
             return (boolean) !is_floater(mon->data);
         if (typ == WAN_POLYMORPH)
-            return (boolean) (monstr[monsndx(mon->data)] < 6);
+            return (boolean) (mons[monsndx(mon->data)].difficulty < 6);
         if (objects[typ].oc_dir == RAY || typ == WAN_STRIKING
             || typ == WAN_TELEPORTATION || typ == WAN_CREATE_MONSTER)
             return TRUE;

@@ -1,4 +1,4 @@
-/* NetHack 3.6	hack.c	$NHDT-Date: 1518861490 2018/02/17 09:58:10 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.182 $ */
+/* NetHack 3.6	hack.c	$NHDT-Date: 1540591769 2018/10/26 22:09:29 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.194 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2684,6 +2684,11 @@ pickup_checks()
             You("could drink the %s...", hliquid("water"));
         else if (IS_DOOR(lev->typ) && (doorstate(lev) == D_ISOPEN))
             pline("It won't come off the hinges.");
+        else if (IS_ALTAR(lev->typ))
+            pline("Moving the altar would be a very bad idea.");
+        else if (lev->typ == STAIRS)
+            pline_The("stairs are solidly fixed to the %s.",
+                      surface(u.ux, u.uy));
         else
             There("is nothing here to pick up.");
         return 0;

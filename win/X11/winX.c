@@ -49,6 +49,7 @@
 #include "hack.h"
 #include "winX.h"
 #include "dlb.h"
+#include "xwindow.h"
 
 #ifndef NO_SIGNAL
 #include <signal.h>
@@ -103,7 +104,7 @@ struct window_procs X11_procs = {
     (WC_COLOR | WC_HILITE_PET | WC_ASCII_MAP | WC_TILED_MAP
      | WC_PLAYER_SELECTION | WC_PERM_INVENT | WC_MOUSE_SUPPORT),
 #if defined(STATUS_HILITES)
-    WC2_FLUSH_STATUS | WC2_RESET_STATUS |
+    WC2_FLUSH_STATUS | WC2_RESET_STATUS | WC2_HILITE_STATUS |
 #endif
     0L,
     X11_init_nhwindows,
@@ -133,9 +134,9 @@ struct window_procs X11_procs = {
 #else
     genl_outrip,
 #endif
-    X11_preference_update, genl_getmsghistory, genl_putmsghistory,
-    genl_status_init, genl_status_finish, genl_status_enablefield,
-    genl_status_update,
+    X11_preference_update, X11_getmsghistory, X11_putmsghistory,
+    X11_status_init, X11_status_finish, X11_status_enablefield,
+    X11_status_update,
     genl_can_suspend_no, /* XXX may not always be correct */
 };
 
@@ -163,8 +164,6 @@ static void FDECL(done_button, (Widget, XtPointer, XtPointer));
 static void FDECL(getline_delete, (Widget, XEvent *, String *, Cardinal *));
 static void FDECL(abort_button, (Widget, XtPointer, XtPointer));
 static void NDECL(release_getline_widgets);
-static void FDECL(delete_file, (Widget, XEvent *, String *, Cardinal *));
-static void FDECL(dismiss_file, (Widget, XEvent *, String *, Cardinal *));
 static void FDECL(yn_delete, (Widget, XEvent *, String *, Cardinal *));
 static void FDECL(yn_key, (Widget, XEvent *, String *, Cardinal *));
 static void NDECL(release_yn_widgets);
@@ -180,6 +179,46 @@ static winid message_win = WIN_ERR, /* These are the winids of the message, */
              map_win = WIN_ERR,     /*   map, and status windows, when they */
              status_win = WIN_ERR;  /*   are created in init_windows().     */
 static Pixmap icon_pixmap = None;   /* Pixmap for icon.                     */
+
+void
+X11_putmsghistory(msg, is_restoring)
+const char *msg;
+boolean is_restoring;
+{
+    if (WIN_MESSAGE != WIN_ERR) {
+        struct xwindow *wp = &window_list[WIN_MESSAGE];
+        debugpline2("X11_putmsghistory('%s',%i)", msg, is_restoring);
+        if (msg)
+            append_message(wp, msg);
+    }
+}
+
+char *
+X11_getmsghistory(init)
+boolean init;
+{
+    if (WIN_MESSAGE != WIN_ERR) {
+        static struct line_element *curr = (struct line_element *) 0;
+        static int numlines = 0;
+        struct xwindow *wp = &window_list[WIN_MESSAGE];
+
+        if (init)
+            curr = (struct line_element *) 0;
+
+        if (!curr) {
+            curr = wp->mesg_information->head;
+            numlines = 0;
+        }
+
+        if (numlines < wp->mesg_information->num_lines) {
+            curr = curr->next;
+            numlines++;
+            debugpline2("X11_getmsghistory(%i)='%s'", init, curr->line);
+            return curr->line;
+        }
+    }
+    return (char *) 0;
+}
 
 /*
  * Find the window structure that corresponds to the given widget.  Note
@@ -224,6 +263,102 @@ find_free_window()
     if (windex == MAX_WINDOWS)
         panic("find_free_window: no free windows!");
     return (winid) windex;
+}
+
+
+XColor
+get_nhcolor(wp, clr)
+struct xwindow *wp;
+int clr;
+{
+    init_menu_nhcolors(wp);
+    /* FIXME: init_menu_nhcolors may fail */
+
+    if (clr >= 0 && clr < CLR_MAX)
+        return wp->nh_colors[clr];
+
+    return wp->nh_colors[0];
+}
+
+void
+init_menu_nhcolors(wp)
+struct xwindow *wp;
+{
+    static const char *mapCLR_to_res[CLR_MAX] = {
+        XtNblack,
+        XtNred,
+        XtNgreen,
+        XtNbrown,
+        XtNblue,
+        XtNmagenta,
+        XtNcyan,
+        XtNgray,
+        XtNforeground,
+        XtNorange,
+        XtNbright_green,
+        XtNyellow,
+        XtNbright_blue,
+        XtNbright_magenta,
+        XtNbright_cyan,
+        XtNwhite,
+    };
+    Display *dpy;
+    Colormap screen_colormap;
+    XrmDatabase rDB;
+    XrmValue value;
+    Status rc;
+    int color;
+    char *ret_type[32];
+    char clr_name[BUFSZ];
+    char clrclass[BUFSZ];
+    const char *wintypenames[NHW_TEXT] = {
+        "message", "status", "map", "menu", "text"
+    };
+    const char *wtn;
+    char wtn_up[BUFSZ];
+
+    if (wp->nh_colors_inited || !wp->type)
+        return;
+
+    wtn = wintypenames[wp->type - 1];
+    Strcpy(wtn_up, wtn);
+    (void) upstart(wtn_up);
+
+    dpy = XtDisplay(wp->w);
+    screen_colormap = DefaultColormap(dpy, DefaultScreen(dpy));
+    rDB = XrmGetDatabase(dpy);
+
+    for (color = 0; color < CLR_MAX; color++) {
+        Sprintf(clr_name, "nethack.%s.%s", wtn, mapCLR_to_res[color]);
+        Sprintf(clrclass, "NetHack.%s.%s", wtn_up, mapCLR_to_res[color]);
+
+        if (!XrmGetResource(rDB, clr_name, clrclass, ret_type, &value)) {
+            Sprintf(clr_name, "nethack.map.%s", mapCLR_to_res[color]);
+            Sprintf(clrclass, "NetHack.Map.%s", mapCLR_to_res[color]);
+        }
+
+        if (!XrmGetResource(rDB, clr_name, clrclass, ret_type, &value)) {
+            impossible("XrmGetResource error (%s)", clr_name);
+        } else if (!strcmp(ret_type[0], "String")) {
+            char tmpbuf[256];
+
+            if (value.size >= sizeof tmpbuf)
+                value.size = sizeof tmpbuf - 1;
+            (void) strncpy(tmpbuf, (char *) value.addr, (int) value.size);
+            tmpbuf[value.size] = '\0';
+            /* tmpbuf now contains the color name from the named resource */
+
+            rc = XAllocNamedColor(dpy, screen_colormap, tmpbuf,
+                                  &wp->nh_colors[color],
+                                  &wp->nh_colors[color]);
+            if (rc == 0) {
+                impossible("XAllocNamedColor failed for color %i (%s)",
+                           color, clr_name);
+            }
+        }
+    }
+
+    wp->nh_colors_inited = TRUE;
 }
 
 /*
@@ -515,6 +650,31 @@ const char *fontname;
     return buf;
 }
 
+void
+load_boldfont(wp, w)
+struct xwindow *wp;
+Widget w;
+{
+    Arg args[1];
+    XFontStruct *fs;
+    unsigned long ret;
+    char *fontname;
+    Display *dpy;
+
+    if (wp->boldfs)
+        return;
+
+    XtSetArg(args[0], nhStr(XtNfont), &fs);
+    XtGetValues(w, args, 1);
+
+    if (!XGetFontProperty(fs, XA_FONT, &ret))
+        return;
+
+    wp->boldfs_dpy = dpy = XtDisplay(w);
+    fontname = fontname_boldify(XGetAtomName(dpy, (Atom)ret));
+    wp->boldfs = XLoadQueryFont(dpy, fontname);
+}
+
 #ifdef TEXTCOLOR
 /* ARGSUSED */
 static void
@@ -790,9 +950,11 @@ const char *str;
         toplines[TBUFSZ - 1] = 0;
         append_message(wp, str);
         break;
+#ifndef STATUS_HILITES
     case NHW_STATUS:
         adjust_status(wp, str);
         break;
+#endif
     case NHW_MAP:
         impossible("putstr: called on map window \"%s\"", str);
         break;
@@ -913,6 +1075,10 @@ int type;
     wp->prevx = wp->prevy = wp->cursx = wp->cursy = wp->pixel_width =
         wp->pixel_height = 0;
     wp->keep_window = FALSE;
+    wp->nh_colors_inited = FALSE;
+    wp->boldfs = (XFontStruct *) 0;
+    wp->boldfs_dpy = (Display *) 0;
+    wp->title = (char *) 0;
 
     switch (type) {
     case NHW_MAP:
@@ -1057,6 +1223,17 @@ winid window;
         WIN_INVEN = WIN_ERR;
     }
 
+    if (wp->boldfs) {
+        XFreeFont(wp->boldfs_dpy, wp->boldfs);
+        wp->boldfs = (XFontStruct *) 0;
+        wp->boldfs_dpy = (Display *) 0;
+    }
+
+    if (wp->title) {
+        free(wp->title);
+        wp->title = (char *) 0;
+    }
+
     switch (wp->type) {
     case NHW_MAP:
         destroy_map_window(wp);
@@ -1199,8 +1376,6 @@ Widget toplevel = (Widget) 0; /* toplevel widget */
 Atom wm_delete_window;        /* pop down windows */
 
 static XtActionsRec actions[] = {
-    { nhStr("dismiss_file"), dismiss_file }, /* file viewing widget */
-    { nhStr("delete_file"), delete_file },   /* file delete-window */
     { nhStr("dismiss_text"), dismiss_text }, /* text widget button action */
     { nhStr("delete_text"), delete_text },   /* text widget delete action */
     { nhStr("key_dismiss_text"), key_dismiss_text }, /* text key action   */
@@ -1230,6 +1405,8 @@ static XtActionsRec actions[] = {
 static XtResource resources[] = {
     { nhStr("slow"), nhStr("Slow"), XtRBoolean, sizeof(Boolean),
       XtOffset(AppResources *, slow), XtRString, nhStr("True") },
+    { nhStr("fancy_status"), nhStr("Fancy_status"), XtRBoolean, sizeof(Boolean),
+      XtOffset(AppResources *, fancy_status), XtRString, nhStr("True") },
     { nhStr("autofocus"), nhStr("AutoFocus"), XtRBoolean, sizeof(Boolean),
       XtOffset(AppResources *, autofocus), XtRString, nhStr("False") },
     { nhStr("message_line"), nhStr("Message_line"), XtRBoolean,
@@ -1745,160 +1922,48 @@ char *input;
 }
 
 /* Display file ----------------------------------------------------------- */
-static const char display_translations[] = "#override\n\
-     <Key>q: dismiss_file()\n\
-     <Key>Escape: dismiss_file()\n\
-     <BtnDown>: dismiss_file()";
 
-/* WM_DELETE_WINDOW callback for file dismissal. */
-/*ARGSUSED*/
-static void
-delete_file(w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
-{
-    nhUse(event);
-    nhUse(params);
-    nhUse(num_params);
-
-    nh_XtPopdown(w);
-    XtDestroyWidget(w);
-}
-
-/* Callback for file dismissal. */
-/*ARGSUSED*/
-static void
-dismiss_file(w, event, params, num_params)
-Widget w;
-XEvent *event;
-String *params;
-Cardinal *num_params;
-{
-    Widget popup = XtParent(w);
-
-    nhUse(event);
-    nhUse(params);
-    nhUse(num_params);
-
-    nh_XtPopdown(popup);
-    XtDestroyWidget(popup);
-}
-
+/* uses a menu (with no selectors specified) rather than a text window
+   to allow previous_page and first_menu actions to move backwards */
 void
 X11_display_file(str, complain)
 const char *str;
 boolean complain;
 {
     dlb *fp;
-    Arg args[12];
-    Cardinal num_args;
-    Widget popup, dispfile;
-    Position top_margin, bottom_margin, left_margin, right_margin;
-    XFontStruct *fs;
-    int new_width, new_height;
+    winid newwin;
+    struct xwindow *wp;
+    anything any;
+    menu_item *menu_list;
 #define LLEN 128
     char line[LLEN];
-    int num_lines;
-    char *textlines, *bp;
-    int charcount;
 
     /* Use the port-independent file opener to see if the file exists. */
     fp = dlb_fopen(str, RDTMODE);
-
     if (!fp) {
         if (complain)
             pline("Cannot open %s.  Sorry.", str);
         return; /* it doesn't exist, ignore */
     }
 
-    /*
-     * Count the number of lines and characters in the file.
-     */
-    num_lines = 0;
-    charcount = 1;
-    while (dlb_fgets(line, LLEN, fp)) {
-        num_lines++;
-        charcount += strlen(line);
-    }
+    newwin = X11_create_nhwindow(NHW_MENU);
+    wp = &window_list[newwin];
+    X11_start_menu(newwin);
 
+    any = zeroany;
+    while (dlb_fgets(line, LLEN, fp)) {
+        X11_add_menu(newwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
+                     line, MENU_UNSELECTED);
+    }
     (void) dlb_fclose(fp);
 
-    /* Ignore empty files */
-    if (num_lines == 0)
-        return;
+    /* show file name as the window title */
+    if (str)
+        wp->title = dupstr(str);
 
-    /* If over the max window size, truncate the window size to the max */
-    if (num_lines >= DISPLAY_FILE_SIZE)
-        num_lines = DISPLAY_FILE_SIZE;
-
-    /*
-     * Re-open the file and read the data into a buffer.  Cannot use
-     * the XawAsciiFile type of widget, because that is not DLB-aware.
-     */
-    textlines = (char *) alloc((unsigned int) charcount);
-    textlines[0] = '\0';
-
-    fp = dlb_fopen(str, RDTMODE);
-
-    bp = textlines;
-    while (dlb_fgets(line, LLEN, fp)) {
-        Strcpy((bp = eos(bp)), line);
-    }
-
-    (void) dlb_fclose(fp);
-
-    num_args = 0;
-    XtSetArg(args[num_args], nhStr(XtNtitle), str); num_args++;
-
-    popup = XtCreatePopupShell("display_file", topLevelShellWidgetClass,
-                               toplevel, args, num_args);
-    XtOverrideTranslations(popup,
-        XtParseTranslationTable("<Message>WM_PROTOCOLS: delete_file()"));
-
-    num_args = 0;
-    XtSetArg(args[num_args], nhStr(XtNscrollHorizontal),
-             XawtextScrollWhenNeeded); num_args++;
-    XtSetArg(args[num_args], nhStr(XtNscrollVertical), XawtextScrollAlways);
-                                                                   num_args++;
-    XtSetArg(args[num_args], nhStr(XtNtype), XawAsciiString); num_args++;
-    XtSetArg(args[num_args], nhStr(XtNstring), textlines); num_args++;
-    XtSetArg(args[num_args], nhStr(XtNdisplayCaret), False); num_args++;
-    XtSetArg(args[num_args], nhStr(XtNtranslations),
-             XtParseTranslationTable(display_translations)); num_args++;
-
-    dispfile = XtCreateManagedWidget("text",                      /* name */
-                                     asciiTextWidgetClass, popup, /* parent */
-                                     args, num_args);
-
-    /* Get font and border information. */
-    num_args = 0;
-    XtSetArg(args[num_args], nhStr(XtNfont), &fs); num_args++;
-    XtSetArg(args[num_args], nhStr(XtNtopMargin), &top_margin); num_args++;
-    XtSetArg(args[num_args], nhStr(XtNbottomMargin), &bottom_margin);
-                                                                   num_args++;
-    XtSetArg(args[num_args], nhStr(XtNleftMargin), &left_margin); num_args++;
-    XtSetArg(args[num_args], nhStr(XtNrightMargin), &right_margin);
-                                                                   num_args++;
-    XtGetValues(dispfile, args, num_args);
-
-    /*
-     * The data files are currently set up assuming an 80 char wide window
-     * and a fixed width font.  Soo..
-     */
-    new_height =
-        num_lines * nhFontHeight(dispfile) + top_margin + bottom_margin;
-    new_width = 80 * fs->max_bounds.width + left_margin + right_margin;
-
-    /* Set the new width and height. */
-    num_args = 0;
-    XtSetArg(args[num_args], XtNwidth, new_width); num_args++;
-    XtSetArg(args[num_args], XtNheight, new_height); num_args++;
-    XtSetValues(dispfile, args, num_args);
-
-    nh_XtPopup(popup, (int) XtGrabNone, (Widget) 0);
-    free(textlines);
+    wp->menu_information->permi = FALSE;
+    (void) X11_select_menu(newwin, PICK_NONE, &menu_list);
+    X11_destroy_nhwindow(newwin);
 }
 
 /* yn_function ------------------------------------------------------------ */
@@ -2214,7 +2279,7 @@ static int
 input_event(exit_condition)
 int exit_condition;
 {
-    if (WIN_STATUS != WIN_ERR) /* hilighting on the fancy status window */
+    if (appResources.fancy_status && WIN_STATUS != WIN_ERR) /* hilighting on the fancy status window */
         check_turn_events();
     if (WIN_MAP != WIN_ERR) /* make sure cursor is not clipped */
         check_cursor_visibility(&window_list[WIN_MAP]);
@@ -2484,7 +2549,8 @@ init_standard_windows()
      * after the fancy status widget is realized (above, with the game popup),
      * but before it is popped up.
      */
-    null_out_status();
+    if (appResources.fancy_status)
+        null_out_status();
     /*
      * Set the map size to its standard size.  As with the message window
      * above, the map window needs to be set to its constrained size until
