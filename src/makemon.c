@@ -282,6 +282,20 @@ register struct monst *mtmp;
                 break;
             }
         }
+        else if (mm == PM_CROESUS) {
+            /* Bling!
+             * This assumes that gold will remain a valid material for these
+             * specific items. */
+            (void) mongets(mtmp, TWO_HANDED_SWORD);
+            struct obj* received = m_carrying(mtmp, TWO_HANDED_SWORD);
+            if (received)
+                received->material = GOLD;
+            int item = rn2(8) ? CHAIN_MAIL : PLATE_MAIL;
+            (void) mongets(mtmp, item);
+            received = m_carrying(mtmp, item);
+            if (received)
+                received->material = GOLD;
+        }
         break;
     case S_ELF:
         if (rn2(2))
@@ -1298,8 +1312,6 @@ int mmflags;
             mitem = SPE_DIG;
     } else if (mndx == PM_GHOST && !(mmflags & MM_NONAME)) {
         mtmp = christen_monst(mtmp, rndghostname());
-    } else if (mndx == PM_CROESUS) {
-        mitem = TWO_HANDED_SWORD;
     } else if (ptr->msound == MS_NEMESIS) {
         mitem = BELL_OF_OPENING;
     } else if (mndx == PM_PESTILENCE) {

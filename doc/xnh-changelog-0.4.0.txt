@@ -136,6 +136,8 @@ Ghost stats are also changed: their base level is brought down from 10 to 4
 Silver items are now corrodeable.
 Pets will no longer eat shapeshifter corpses unless starving or unless tameness
   is so low that they are about to go feral.
+Croesus' two-handed sword is gold, and he also gets either a chain mail or plate
+  mail, which is also gold.
 
 It contains the following non-gameplay interface changes:
 
