@@ -173,6 +173,10 @@ Peaceful monsters are now underlined by default in both the tty and curses
   (defaults to true).
 Slightly more flavorful (ha) message when you get regurgitated on account of
   slow digestion.
+Make gnomish wizards, kobold shamans, and orc shamans telepathic. Their corpses
+  may now occasionally convey telepathy (infrequent, unlike floating eyes).
+The corpse of any casting monster now follows the same logic as newt corpses to
+  make the player regain some energy and maybe gain a point to their max.
 
 It contains the following non-gameplay architectural changes:
 

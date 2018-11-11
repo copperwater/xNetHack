@@ -871,7 +871,11 @@ register struct permonst *ptr;
         chance = 12;
         break;
     case TELEPAT:
-        chance = 1;
+        if (ptr == &mons[PM_FLOATING_EYE] || ptr == &mons[PM_MIND_FLAYER]
+            || ptr == &mons[PM_MASTER_MIND_FLAYER])
+            chance = 1;
+        else
+            chance = 20;
         break;
     default:
         chance = 15;
@@ -965,6 +969,7 @@ cpostfx(pm)
 register int pm;
 {
     register int tmp = 0;
+
     int catch_lycanthropy = NON_PM;
 
     /* in case `afternmv' didn't get called for previously mimicking
@@ -973,22 +978,6 @@ register int pm;
         (void) eatmdone();
 
     switch (pm) {
-    case PM_NEWT:
-        /* MRKR: "eye of newt" may give small magical energy boost */
-        if (rn2(3) || 3 * u.uen <= 2 * u.uenmax) {
-            int old_uen = u.uen;
-            u.uen += rnd(3);
-            if (u.uen > u.uenmax) {
-                if (!rn2(3))
-                    u.uenmax++;
-                u.uen = u.uenmax;
-            }
-            if (old_uen != u.uen) {
-                You_feel("a mild buzz.");
-                context.botl = 1;
-            }
-        }
-        break;
     case PM_WRAITH:
         pluslvl(FALSE);
         break;
@@ -1122,6 +1111,11 @@ register int pm;
     default: {
         struct permonst *ptr = &mons[pm];
         boolean conveys_STR = is_giant(ptr);
+
+        /* Eating magical monsters can give you some magical energy. */
+        /* MRKR: "eye of newt" may give small magical energy boost */
+        boolean conveys_energy = (attacktype(&mons[pm], AT_MAGC)
+                                  || pm == PM_NEWT);
         int i, count;
 
         if (dmgtype(ptr, AD_STUN) || dmgtype(ptr, AD_HALU)
@@ -1145,6 +1139,11 @@ register int pm;
             tmp = -1; /* use -1 as fake prop index for STR */
             debugpline1("\"Intrinsic\" strength, %d", tmp);
         }
+        else if (conveys_energy) {
+            count = 1;
+            tmp = -2;
+            debugpline1("\"Intrinsic\" energy gain, %d", tmp);
+        }
         for (i = 1; i <= LAST_PROP; i++) {
             if (!intrinsic_possible(i, ptr))
                 continue;
@@ -1164,8 +1163,26 @@ register int pm;
         /* if something was chosen, give it now (givit() might fail) */
         if (tmp == -1)
             gainstr((struct obj *) 0, 0, TRUE);
+        else if (tmp == -2) {
+            if (rn2(3) || 3 * u.uen <= 2 * u.uenmax) {
+                int old_uen = u.uen, old_uenmax = u.uenmax;
+                u.uen += (pm == PM_NEWT) ? rnd(3) : rnd(mons[pm].mlevel);
+                if (u.uen > u.uenmax) {
+                    if (!rn2(3))
+                        u.uenmax++;
+                    u.uen = u.uenmax;
+                }
+                if (old_uen != u.uen) {
+                    You_feel("a %s buzz.",
+                            old_uenmax != u.uenmax ? "moderate" : "mild");
+                    context.botl = 1;
+                }
+            }
+
+        }
         else if (tmp > 0)
             givit(tmp, ptr);
+
         break;
     } /* default case */
     } /* switch */
