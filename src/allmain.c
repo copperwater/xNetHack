@@ -419,7 +419,7 @@ boolean resuming;
             continue;
         }
 
-        if (iflags.sanity_check)
+        if (iflags.sanity_check || iflags.debug_fuzzer)
             sanity_check();
 
 #ifdef CLIPPING
@@ -805,7 +805,14 @@ const char *msg;
 static struct early_opt earlyopts[] = {
     {ARG_DEBUG, "debug", 5, TRUE},
     {ARG_VERSION, "version", 4, TRUE},
+#ifdef WIN32
+    {ARG_WINDOWS, "windows", 4, TRUE},
+#endif
 };
+
+#ifdef WIN32
+extern int FDECL(windows_early_options, (const char *));
+#endif
 
 /*
  * Returns:
@@ -876,6 +883,14 @@ enum earlyarg e_arg;
             early_version_info(insert_into_pastebuf);
             return 2;
         }
+#ifdef WIN32
+        case ARG_WINDOWS: {
+            if (extended_opt) {
+                extended_opt++;
+                return windows_early_options(extended_opt);
+            }
+        }
+#endif
         default:
             break;
         }

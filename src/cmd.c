@@ -1,4 +1,4 @@
-/* NetHack 3.6	cmd.c	$NHDT-Date: 1541631031 2018/11/07 22:50:31 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.299 $ */
+/* NetHack 3.6	cmd.c	$NHDT-Date: 1541902950 2018/11/11 02:22:30 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.301 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -298,6 +298,8 @@ pgetchar() /* courtesy of aeb@cwi.nl */
 {
     register int ch;
 
+    if (iflags.debug_fuzzer)
+        return randomkey();
     if (!(ch = popch()))
         ch = nhgetch();
     return (char) ch;
@@ -942,6 +944,11 @@ wiz_level_change(VOID_ARGS)
 STATIC_PTR int
 wiz_panic(VOID_ARGS)
 {
+    if (iflags.debug_fuzzer) {
+        u.uhp = u.uhpmax = 1000;
+        u.uen = u.uenmax = 1000;
+        return 0;
+    }
     if (yn("Do you want to call panic() and end your game?") == 'y')
         panic("Crash test.");
     return 0;
@@ -1416,7 +1423,19 @@ wiz_intrinsic(VOID_ARGS)
                 make_vomiting(newtimeout, FALSE);
                 pline1(buf);
                 break;
+            case WARN_OF_MON:
+                if (!Warn_of_mon) {
+                    context.warntype.speciesidx = PM_GRID_BUG;
+                    context.warntype.species
+                                         = &mons[context.warntype.speciesidx];
+                }
+                goto def_feedback;
+            case LEVITATION:
+            case FLYING:
+                float_vs_flight();
+                /*FALLTHRU*/
             default:
+            def_feedback:
                 pline("Timeout for %s %s %d.", propertynames[i].prop_name,
                       oldtimeout ? "increased by" : "set to", amt);
                 incr_itimeout(&u.uprops[p].intrinsic, amt);
@@ -4390,6 +4409,29 @@ int NDECL((*cmd_func));
     return FALSE;
 }
 
+char
+randomkey()
+{
+    static int i = 0;
+    char c;
+
+    switch (rn2(12)) {
+    default: c = '\033'; break;
+    case 0: c = '\n'; break;
+    case 1:
+    case 2:
+    case 3:
+    case 4: c = (char)(' ' + rn2((int)('~' - ' '))); break;
+    case 5: c = '\t'; break;
+    case 6: c = (char)('a' + rn2((int)('z' - 'a'))); break;
+    case 7: c = (char)('A' + rn2((int)('Z' - 'A'))); break;
+    case 8: c = extcmdlist[(i++) % SIZE(extcmdlist)].key; break;
+    case 9: c = '#'; break;
+    }
+
+    return c;
+}
+
 int
 ch2spkeys(c, start, end)
 char c;
@@ -5603,6 +5645,8 @@ readchar()
     register int sym;
     int x = u.ux, y = u.uy, mod = 0;
 
+    if (iflags.debug_fuzzer)
+        return randomkey();
     if (*readchar_queue)
         sym = *readchar_queue++;
     else

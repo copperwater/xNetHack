@@ -5,6 +5,10 @@
 
 /* main.c - MSDOS, OS/2, ST, Amiga, and Windows NetHack */
 
+#ifdef WIN32
+#include "win32api.h" /* for GetModuleFileName */
+#endif
+
 #include "hack.h"
 #include "dlb.h"
 
@@ -20,10 +24,6 @@
 #ifdef GNUDOS
 #include <sys/stat.h>
 #endif
-#endif
-
-#ifdef WIN32
-#include "win32api.h" /* for GetModuleFileName */
 #endif
 
 #ifdef __DJGPP__
@@ -344,6 +344,13 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
             argc--;
             argv++;
 	}
+
+#ifdef WIN32
+	if (argcheck(argc, argv, ARG_WINDOWS) == 1) {
+	    argc--;
+	    argv++;
+	}
+#endif
 
         if (argc > 1 && !strncmp(argv[1], "-d", 2) && argv[1][2] != 'e') {
             /* avoid matching "-dec" for DECgraphics; since the man page
