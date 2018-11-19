@@ -178,7 +178,9 @@ const char *verb;
             if (Blind && (x == u.ux) && (y == u.uy)) {
                 You_hear("a CRASH! beneath you.");
             } else if (!Blind && cansee(x, y)) {
-                pline_The("boulder %s%s.", t->tseen ? "" : "triggers and ",
+                pline_The("boulder %s%s.",
+                    (t->ttyp == TRAPDOOR && !t->tseen)
+                        ? "triggers and " : "",
                           t->ttyp == TRAPDOOR
                               ? "plugs a trap door"
                               : t->ttyp == HOLE ? "plugs a hole"
@@ -1059,6 +1061,8 @@ doup()
         return 1;
     }
     if (ledger_no(&u.uz) == 1) {
+        if (iflags.debug_fuzzer)
+            return 0;
         if (yn("Beware, there will be no return! Still climb?") != 'y')
             return 0;
     }
@@ -1878,7 +1882,8 @@ register int timex;
 }
 
 void
-heal_legs()
+heal_legs(how)
+int how; /* 0: ordinary, 1: dismounting steed, 2: limbs turn to stone */
 {
     if (Wounded_legs) {
         if (ATEMP(A_DEX) < 0) {
@@ -1886,7 +1891,11 @@ heal_legs()
             context.botl = 1;
         }
 
-        if (!u.usteed) {
+        /* when mounted, wounded legs applies to the steed;
+           during petrification countdown, "your limbs turn to stone"
+           before the final stages and that calls us (how==2) to cure
+           wounded legs, but we want to suppress the feel better message */
+        if (!u.usteed && how != 2) {
             const char *legs = body_part(LEG);
 
             if ((EWounded_legs & BOTH_SIDES) == BOTH_SIDES)
@@ -1896,7 +1905,7 @@ heal_legs()
             Your("%s %s better.", legs, vtense(legs, "feel"));
         }
 
-        HWounded_legs = EWounded_legs = 0;
+        HWounded_legs = EWounded_legs = 0L;
 
         /* Wounded_legs reduces carrying capacity, so we want
            an encumbrance check when they're healed.  However,
@@ -1908,7 +1917,7 @@ heal_legs()
            it might be immediately contradicted [able to carry
            more when steed becomes healthy, then possible floor
            feedback, then able to carry less when back on foot]. */
-        if (!in_steed_dismounting)
+        if (how == 0)
             (void) encumber_msg();
     }
 }

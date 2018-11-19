@@ -1,4 +1,4 @@
-/* NetHack 3.6	extern.h	$NHDT-Date: 1535812936 2018/09/01 14:42:16 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.636 $ */
+/* NetHack 3.6	extern.h	$NHDT-Date: 1541719965 2018/11/08 23:32:45 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.647 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -172,6 +172,7 @@ E boolean NDECL(status_hilite_menu);
 
 /* ### cmd.c ### */
 
+E char NDECL(randomkey);
 E int NDECL(doconduct);
 E int NDECL(domonability);
 E char FDECL(cmd_from_func, (int NDECL((*))));
@@ -389,7 +390,7 @@ E void FDECL(revive_mon, (ANY_P *, long));
 E int NDECL(donull);
 E int NDECL(dowipe);
 E void FDECL(set_wounded_legs, (long, int));
-E void NDECL(heal_legs);
+E void FDECL(heal_legs, (int));
 
 /* ### do_name.c ### */
 
@@ -628,6 +629,7 @@ E void FDECL(room_discovered, (int));
 E void FDECL(recbranch_mapseen, (d_level *, d_level *));
 E void FDECL(overview_stats, (winid, const char *, long *, long *));
 E void FDECL(remdun_mapseen, (int));
+E const char *FDECL(endgamelevelname, (char *, int));
 
 /* ### eat.c ### */
 
@@ -720,6 +722,7 @@ E void FDECL(make_grave, (int, int, const char *));
 
 /* ### exper.c ### */
 
+E long FDECL(newuexp, (int));
 E int NDECL(newpw);
 E int FDECL(experience, (struct monst *, int));
 E void FDECL(more_experienced, (int, int));
@@ -782,7 +785,7 @@ E void FDECL(unlock_file, (const char *));
 E boolean FDECL(can_read_file, (const char *));
 #endif
 E void FDECL(config_error_init, (BOOLEAN_P, const char *, BOOLEAN_P));
-E void FDECL(config_error_add, (const char *, ...)) PRINTF_F(1, 2);
+E void FDECL(config_erradd, (const char *));
 E int NDECL(config_error_done);
 E boolean FDECL(read_config_file, (const char *, int));
 E void FDECL(check_recordfile, (const char *));
@@ -1874,6 +1877,7 @@ E void VDECL(There, (const char *, ...)) PRINTF_F(1, 2);
 E void VDECL(verbalize, (const char *, ...)) PRINTF_F(1, 2);
 E void VDECL(raw_printf, (const char *, ...)) PRINTF_F(1, 2);
 E void VDECL(impossible, (const char *, ...)) PRINTF_F(1, 2);
+E void VDECL(config_error_add, (const char *, ...)) PRINTF_F(1, 2);
 
 /* ### polyself.c ### */
 
@@ -2417,6 +2421,7 @@ E void NDECL(timer_sanity_check);
 /* ### topten.c ### */
 
 E void FDECL(formatkiller, (char *, unsigned, int, BOOLEAN_P));
+E int FDECL(observable_depth, (d_level *));
 E void FDECL(topten, (int, time_t));
 E void FDECL(prscore, (int, char **));
 E struct toptenentry *NDECL(get_rnd_toptenentry);
@@ -2722,6 +2727,9 @@ E int NDECL(abon);
 E int NDECL(dbon);
 E void FDECL(wet_a_towel, (struct obj *, int, BOOLEAN_P));
 E void FDECL(dry_a_towel, (struct obj *, int, BOOLEAN_P));
+E char *FDECL(skill_level_name, (int, char *));
+E const char *FDECL(skill_name, (int));
+E boolean FDECL(can_advance, (int, BOOLEAN_P));
 E int NDECL(enhance_weapon_skill);
 E void FDECL(unrestrict_weapon_skill, (int));
 E void FDECL(use_skill, (int, int));

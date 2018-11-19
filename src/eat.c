@@ -1,4 +1,4 @@
-/* NetHack 3.6	eat.c	$NHDT-Date: 1502754159 2017/08/14 23:42:39 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.179 $ */
+/* NetHack 3.6	eat.c	$NHDT-Date: 1540596900 2018/10/26 23:35:00 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.193 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -110,14 +110,18 @@ register struct obj *obj;
     return (boolean) (obj->oclass == FOOD_CLASS);
 }
 
+/* used for hero init, life saving (if choking), and prayer results of fix
+   starving, fix weak from hunger, or golden glow boon (if u.uhunger < 900) */
 void
 init_uhunger()
 {
     context.botl = (u.uhs != NOT_HUNGRY || ATEMP(A_STR) < 0);
     u.uhunger = 900;
     u.uhs = NOT_HUNGRY;
-    if (ATEMP(A_STR) < 0)
+    if (ATEMP(A_STR) < 0) {
         ATEMP(A_STR) = 0;
+        (void) encumber_msg();
+    }
 }
 
 /* tin types [SPINACH_TIN = -1, overrides corpsenm, nut==600] */
@@ -939,10 +943,11 @@ register struct permonst *ptr;
 /* called after completely consuming a corpse */
 STATIC_OVL void
 cpostfx(pm)
-register int pm;
+int pm;
 {
-    register int tmp = 0;
+    int tmp = 0;
     int catch_lycanthropy = NON_PM;
+    boolean check_intrinsics = FALSE;
 
     /* in case `afternmv' didn't get called for previously mimicking
        gold, clean up now to avoid `eatmbuf' memory leak */
@@ -954,6 +959,7 @@ register int pm;
         /* MRKR: "eye of newt" may give small magical energy boost */
         if (rn2(3) || 3 * u.uen <= 2 * u.uenmax) {
             int old_uen = u.uen;
+
             u.uen += rnd(3);
             if (u.uen > u.uenmax) {
                 if (!rn2(3))
@@ -985,6 +991,7 @@ register int pm;
             u.uhp = u.uhpmax;
         make_blinded(0L, !u.ucreamed);
         context.botl = 1;
+        check_intrinsics = TRUE; /* might also convey poison resistance */
         break;
     case PM_STALKER:
         if (!Invis) {
@@ -1086,7 +1093,13 @@ register int pm;
             pline("For some reason, that tasted bland.");
         }
     /*FALLTHRU*/
-    default: {
+    default:
+        check_intrinsics = TRUE;
+        break;
+    }
+
+    /* possibly convey an intrinsic */
+    if (check_intrinsics) {
         struct permonst *ptr = &mons[pm];
         boolean conveys_STR = is_giant(ptr);
         int i, count;
@@ -1133,9 +1146,7 @@ register int pm;
             gainstr((struct obj *) 0, 0, TRUE);
         else if (tmp > 0)
             givit(tmp, ptr);
-        break;
-    } /* default case */
-    } /* switch */
+    } /* check_intrinsics */
 
     if (catch_lycanthropy >= LOW_PM) {
         set_ulycn(catch_lycanthropy);
@@ -2213,7 +2224,7 @@ struct obj *otmp;
             }
         }
         if (!otmp->cursed)
-            heal_legs();
+            heal_legs(0);
         break;
     case EGG:
         if (flesh_petrifies(&mons[otmp->corpsenm])) {
@@ -3177,7 +3188,8 @@ vomit() /* A good idea from David Neves */
            dealing with some esoteric body_part() */
         Your("jaw gapes convulsively.");
     } else {
-        make_sick(0L, (char *) 0, TRUE, SICK_VOMITABLE);
+        if (Sick && (u.usick_type & SICK_VOMITABLE) != 0)
+            make_sick(0L, (char *) 0, TRUE, SICK_VOMITABLE);
         /* if not enough in stomach to actually vomit then dry heave;
            vomiting_dialog() gives a vomit message when its countdown
            reaches 0, but only if u.uhs < FAINTING (and !cantvomit()) */

@@ -1,4 +1,4 @@
-/* NetHack 3.6	winmenu.c	$NHDT-Date: 1539812601 2018/10/17 21:43:21 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.28 $ */
+/* NetHack 3.6	winmenu.c	$NHDT-Date: 1542245161 2018/11/15 01:26:01 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.33 $ */
 /* Copyright (c) Dean Luick, 1992				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -32,12 +32,9 @@
 #undef PRESERVE_NO_SYSV
 #endif
 
-#include "xwindow.h"
 #include "hack.h"
 #include "winX.h"
 
-XColor FDECL(get_nhcolor, (struct xwindow *, int));
-static void FDECL(init_menu_nhcolors, (struct xwindow *));
 static void FDECL(menu_size_change_handler, (Widget, XtPointer,
                                              XEvent *, Boolean *));
 static void FDECL(menu_select, (Widget, XtPointer, XtPointer));
@@ -48,6 +45,7 @@ static void FDECL(menu_all, (Widget, XtPointer, XtPointer));
 static void FDECL(menu_none, (Widget, XtPointer, XtPointer));
 static void FDECL(menu_invert, (Widget, XtPointer, XtPointer));
 static void FDECL(menu_search, (Widget, XtPointer, XtPointer));
+static void FDECL(search_menu, (struct xwindow *));
 static void FDECL(select_all, (struct xwindow *));
 static void FDECL(select_none, (struct xwindow *));
 static void FDECL(select_match, (struct xwindow *, char *));
@@ -55,7 +53,6 @@ static void FDECL(invert_all, (struct xwindow *));
 static void FDECL(invert_match, (struct xwindow *, char *));
 static void FDECL(menu_popdown, (struct xwindow *));
 static Widget FDECL(menu_create_buttons, (struct xwindow *, Widget, Widget));
-static void FDECL(load_boldfont, (struct xwindow *, Widget));
 static void FDECL(menu_create_entries, (struct xwindow *, struct menu *));
 static void FDECL(destroy_menu_entry_widgets, (struct xwindow *));
 static void NDECL(create_menu_translation_tables);
@@ -258,7 +255,8 @@ Cardinal *num_params;
         return;
     }
 
-    if (menu_info->is_active && menu_info->how != PICK_NONE) { /* waiting for input */
+    /* don't exclude PICK_NONE menus; doing so disables scrolling via keys */
+    if (menu_info->is_active) { /* waiting for input */
         /* first check for an explicit selector match, so that it won't be
            overridden if it happens to duplicate a mapped menu command (':'
            to look inside a container vs ':' to select via search string) */
@@ -288,25 +286,9 @@ Cardinal *num_params;
                 menu_info->counting = TRUE;
             return;
         } else if (ch == MENU_SEARCH) { /* search */
-            if (menu_info->how == PICK_ANY || menu_info->how == PICK_ONE) {
-                char buf[BUFSZ + 2], tmpbuf[BUFSZ];
-
-                X11_getlin("Search for:", tmpbuf);
-                if (!*tmpbuf || *tmpbuf == '\033')
-                    return;
-                /* convert "string" into "*string*" for use with pmatch() */
-                Sprintf(buf, "*%s*", tmpbuf);
-
-                if (menu_info->how == PICK_ANY) {
-                    invert_match(wp, buf);
-                    return;
-                } else {
-                    select_match(wp, buf);
-                }
-            } else {
-                X11_nhbell();
+            search_menu(wp);
+            if (menu_info->how == PICK_ANY)
                 return;
-            }
         } else if (ch == MENU_SELECT_ALL || ch == MENU_SELECT_PAGE) {
             if (menu_info->how == PICK_ANY)
                 select_all(wp);
@@ -328,12 +310,14 @@ Cardinal *num_params;
         } else if (ch == MENU_FIRST_PAGE || ch == MENU_LAST_PAGE) {
             Widget hbar = (Widget) 0, vbar = (Widget) 0;
             float top = (ch == MENU_FIRST_PAGE) ? 0.0 : 1.0;
+
             find_scrollbars(wp->w, &hbar, &vbar);
             if (vbar)
                 XtCallCallbacks(vbar, XtNjumpProc, &top);
             return;
         } else if (ch == MENU_NEXT_PAGE || ch == MENU_PREVIOUS_PAGE) {
             Widget hbar = (Widget) 0, vbar = (Widget) 0;
+
             find_scrollbars(wp->w, &hbar, &vbar);
             if (vbar) {
                 float shown, top;
@@ -472,24 +456,47 @@ XtPointer client_data, call_data;
 {
     struct xwindow *wp = (struct xwindow *) client_data;
     struct menu_info_t *menu_info = wp->menu_information;
-    char buf[BUFSZ + 2], tmpbuf[BUFSZ];
 
     nhUse(w);
     nhUse(call_data);
 
-    X11_getlin("Search for:", tmpbuf);
-    if (!*tmpbuf || *tmpbuf == '\033')
-        return;
-    /* convert "string" into "*string*" for use with pmatch() */
-    Sprintf(buf, "*%s*", tmpbuf);
-
-    if (menu_info->how == PICK_ANY)
-        invert_match(wp, buf);
-    else
-        select_match(wp, buf);
-
+    search_menu(wp);
     if (menu_info->how == PICK_ONE)
         menu_popdown(wp);
+}
+
+/* common to menu_search and menu_key */
+static void
+search_menu(wp)
+struct xwindow *wp;
+{
+    char *pat, buf[BUFSZ + 2]; /* room for '*' + BUFSZ-1 + '*' + '\0' */
+    struct menu_info_t *menu_info = wp->menu_information;
+
+    buf[0] = buf[1] = '\0';
+    pat = &buf[1]; /* leave room to maybe insert '*' at front */
+    if (menu_info->how != PICK_NONE) {
+        X11_getlin("Search for:", pat);
+        if (!*pat || *pat == '\033')
+            return;
+        /* convert "string" into "*string*" for use with pmatch() */
+        if (*pat != '*')
+            *--pat = '*'; /* now points to &buf[0] */
+        if (*(eos(pat) - 1) != '*')
+            Strcat(pat, "*");
+    }
+
+    switch (menu_info->how) {
+    case PICK_ANY:
+        invert_match(wp, pat);
+        break;
+    case PICK_ONE:
+        select_match(wp, pat);
+        break;
+    default: /* PICK_NONE */
+        X11_nhbell();
+        break;
+    }
 }
 
 static void
@@ -823,6 +830,9 @@ menu_item **menu_list;
             XtSetArg(args[num_args], nhStr(XtNheight), menu_info->permi_h);
             num_args++;
         }
+        if (wp->title) {
+            XtSetArg(args[num_args], nhStr(XtNtitle), wp->title); num_args++;
+        }
         wp->popup = XtCreatePopupShell((window == WIN_INVEN)
                                            ? "inventory" : "menu",
                                        (how == PICK_NONE)
@@ -1030,7 +1040,9 @@ Widget form,under;
     num_args = 0;
     XtSetArg(args[num_args], nhStr(XtNfromVert), label); num_args++;
     XtSetArg(args[num_args], nhStr(XtNfromHoriz), ok); num_args++;
+#if 0   /* [cancel] is a viable choice even for PICK_NONE */
     XtSetArg(args[num_args], nhStr(XtNsensitive), how != PICK_NONE); num_args++;
+#endif
     XtSetArg(args[num_args], nhStr(XtNtop), XtChainTop); num_args++;
     XtSetArg(args[num_args], nhStr(XtNbottom), XtChainTop); num_args++;
     XtSetArg(args[num_args], nhStr(XtNleft), XtChainLeft); num_args++;
@@ -1122,31 +1134,6 @@ Widget form,under;
 }
 
 static void
-load_boldfont(wp, w)
-struct xwindow *wp;
-Widget w;
-{
-    Arg args[1];
-    XFontStruct *fs;
-    unsigned long ret;
-    char *fontname;
-    Display *dpy;
-
-    if (wp->menu_information->boldfs)
-        return;
-
-    XtSetArg(args[0], nhStr(XtNfont), &fs);
-    XtGetValues(w, args, 1);
-
-    if (!XGetFontProperty(fs, XA_FONT, &ret))
-        return;
-
-    wp->menu_information->boldfs_dpy = dpy = XtDisplay(w);
-    fontname = fontname_boldify(XGetAtomName(dpy, (Atom)ret));
-    wp->menu_information->boldfs = XLoadQueryFont(dpy, fontname);
-}
-
-static void
 menu_create_entries(wp, curr_menu)
 struct xwindow *wp;
 struct menu *curr_menu;
@@ -1185,7 +1172,7 @@ struct menu *curr_menu;
                          get_nhcolor(wp, color).pixel); num_args++;
         }
 
-        /* TODO: ATR_BOLD, ATR_DIM, ATR_ULINE, ATR_BLINK */
+        /* TODO: ATR_DIM, ATR_ULINE, ATR_BLINK */
 
         if (attr == ATR_INVERSE) {
             XtSetArg(args[num_args], nhStr(XtNforeground),
@@ -1215,7 +1202,7 @@ struct menu *curr_menu;
             load_boldfont(wp, curr->w);
             num_args = 0;
             XtSetArg(args[num_args], nhStr(XtNfont),
-                     wp->menu_information->boldfs); num_args++;
+                     wp->boldfs); num_args++;
             XtSetValues(curr->w, args, num_args);
         }
 
@@ -1315,91 +1302,6 @@ struct xwindow *wp;
     }
 }
 
-XColor
-get_nhcolor(wp, clr)
-struct xwindow *wp;
-int clr;
-{
-    init_menu_nhcolors(wp);
-
-    if (clr >= 0 && clr < CLR_MAX)
-        return wp->menu_information->nh_colors[clr];
-
-    return wp->menu_information->nh_colors[0];
-}
-
-static void
-init_menu_nhcolors(wp)
-struct xwindow *wp;
-{
-    static const char *mapCLR_to_res[CLR_MAX] = {
-        XtNblack,
-        XtNred,
-        XtNgreen,
-        XtNbrown,
-        XtNblue,
-        XtNmagenta,
-        XtNcyan,
-        XtNgray,
-        XtNforeground,
-        XtNorange,
-        XtNbright_green,
-        XtNyellow,
-        XtNbright_blue,
-        XtNbright_magenta,
-        XtNbright_cyan,
-        XtNwhite,
-    };
-    Display *dpy;
-    Colormap screen_colormap;
-    XrmDatabase rDB;
-    XrmValue value;
-    Status rc;
-    int color;
-    char *ret_type[32];
-    char clr_name[BUFSZ];
-    char clrclass[BUFSZ];
-
-    if (wp->menu_information->nh_colors_inited)
-        return;
-
-    dpy = XtDisplay(wp->w);
-    screen_colormap = DefaultColormap(dpy, DefaultScreen(dpy));
-    rDB = XrmGetDatabase(dpy);
-
-    for (color = 0; color < CLR_MAX; color++) {
-        Sprintf(clr_name, "nethack.menu.%s", mapCLR_to_res[color]);
-        Sprintf(clrclass, "NetHack.Menu.%s", mapCLR_to_res[color]);
-
-        if (!XrmGetResource(rDB, clr_name, clrclass, ret_type, &value)) {
-            Sprintf(clr_name, "nethack.map.%s", mapCLR_to_res[color]);
-            Sprintf(clrclass, "NetHack.Map.%s", mapCLR_to_res[color]);
-        }
-
-        if (!XrmGetResource(rDB, clr_name, clrclass, ret_type, &value)) {
-            impossible("XrmGetResource error (%s)", clr_name);
-        } else if (!strcmp(ret_type[0], "String")) {
-            char tmpbuf[256];
-
-            if (value.size >= sizeof tmpbuf)
-                value.size = sizeof tmpbuf - 1;
-            (void) strncpy(tmpbuf, (char *) value.addr, (int) value.size);
-            tmpbuf[value.size] = '\0';
-            /* tmpbuf now contains the color name from the named resource */
-
-            rc = XAllocNamedColor(dpy, screen_colormap, tmpbuf,
-                                  &wp->menu_information->nh_colors[color],
-                                  &wp->menu_information->nh_colors[color]);
-            if (rc == 0) {
-                impossible("XAllocNamedColor failed for color %i (%s)",
-                           color, clr_name);
-            }
-        }
-    }
-
-    wp->menu_information->nh_colors_inited = TRUE;
-}
-
 void
 create_menu_window(wp)
 struct xwindow *wp;
@@ -1413,7 +1315,6 @@ struct xwindow *wp;
     reset_menu_to_default(&wp->menu_information->new_menu);
     reset_menu_count(wp->menu_information);
     wp->w = wp->popup = (Widget) 0;
-    wp->menu_information->nh_colors_inited = FALSE;
     wp->menu_information->permi_x = -1;
     wp->menu_information->permi_y = -1;
     wp->menu_information->permi_w = -1;
@@ -1425,9 +1326,6 @@ destroy_menu_window(wp)
 struct xwindow *wp;
 {
     clear_old_menu(wp); /* this will also destroy the widgets */
-    if (wp->menu_information->boldfs)
-        XFreeFont(wp->menu_information->boldfs_dpy,
-                  wp->menu_information->boldfs);
     free((genericptr_t) wp->menu_information);
     wp->menu_information = (struct menu_info_t *) 0;
     wp->type = NHW_NONE; /* allow re-use */

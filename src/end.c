@@ -1,4 +1,4 @@
-/* NetHack 3.6	end.c	$NHDT-Date: 1539804880 2018/10/17 19:34:40 $  $NHDT-Branch: keni-makedefsm $:$NHDT-Revision: 1.146 $ */
+/* NetHack 3.6	end.c	$NHDT-Date: 1541902951 2018/11/11 02:22:31 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.150 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -330,6 +330,8 @@ int sig_unused UNUSED;
 int
 done2()
 {
+    if (iflags.debug_fuzzer)
+        return 0;
     if (!paranoid_query(ParanoidQuit, "Really quit?")) {
 #ifndef NO_SIGNAL
         (void) signal(SIGINT, (SIG_RET_TYPE) done1);
@@ -602,7 +604,7 @@ VA_DECL(const char *, str)
     /* XXX can we move this above the prints?  Then we'd be able to
      * suppress "it may be possible to rebuild" based on dosave0()
      * or say it's NOT possible to rebuild. */
-    if (program_state.something_worth_saving) {
+    if (program_state.something_worth_saving && !iflags.debug_fuzzer) {
         set_error_savefile();
         if (dosave0()) {
             /* os/win port specific recover instructions */
@@ -851,7 +853,8 @@ int how;
     if (u.uhpmax < uhpmin)
         u.uhpmax = uhpmin;
     u.uhp = u.uhpmax;
-    u.uswldtim = 0;
+    if (Upolyd) /* Unchanging, or death which bypasses losing hit points */
+        u.mh = u.mhmax;
     if (u.uhunger < 500) {
         u.uhunger = 500;
         newuhs(FALSE);
@@ -877,6 +880,16 @@ int how;
     curs_on_u();
     if (!context.mon_moving)
         endmultishot(FALSE);
+    if (u.uswallow) {
+        /* might drop hero onto a trap that kills her all over again */
+        expels(u.ustuck, u.ustuck->data, TRUE);
+    } else if (u.ustuck) {
+        if (Upolyd && sticks(youmonst.data))
+            You("release %s.", mon_nam(u.ustuck));
+        else
+            pline("%s releases you.", Monnam(u.ustuck));
+        unstuck(u.ustuck);
+    }
 }
 
 /*
@@ -1006,13 +1019,16 @@ void
 done(how)
 int how;
 {
+    boolean survive = FALSE;
+
     if (how == TRICKED) {
         if (killer.name[0]) {
             paniclog("trickery", killer.name);
-            killer.name[0] = 0;
+            killer.name[0] = '\0';
         }
         if (wizard) {
             You("are a very tricky wizard, it seems.");
+            killer.format = KILLED_BY_AN; /* reset to 0 */
             return;
         }
     }
@@ -1029,6 +1045,14 @@ int how;
         bot();
     }
 
+    if (iflags.debug_fuzzer) {
+        if (!(program_state.panicking || how == PANICKED)) {
+            savelife(how);
+            killer.name[0] = 0;
+            killer.format = 0;
+            return;
+        }
+    } else
     if (how == ASCENDED || (!killer.name[0] && how == GENOCIDED))
         killer.format = NO_KILLER_PREFIX;
     /* Avoid killed by "a" burning or "a" starvation */
@@ -1037,8 +1061,17 @@ int how;
     if (!killer.name[0] || how >= PANICKED)
         Strcpy(killer.name, deaths[how]);
 
-    if (how < PANICKED)
+    if (how < PANICKED) {
         u.umortality++;
+        /* in case caller hasn't already done this */
+        if (u.uhp > 0 || (Upolyd && u.mh > 0)) {
+            /* for deaths not triggered by loss of hit points, force
+               current HP to zero (0 HP when turning into green slime
+               is iffy but we don't have much choice--that is fatal) */
+            u.uhp = u.mh = 0;
+            context.botl = 1;
+        }
+    }
     if (Lifesaved && (how <= GENOCIDED)) {
         pline("But wait...");
         makeknown(AMULET_OF_LIFE_SAVING);
@@ -1055,20 +1088,24 @@ int how;
         if (how == GENOCIDED) {
             pline("Unfortunately you are still genocided...");
         } else {
-            killer.name[0] = 0;
-            killer.format = 0;
-            return;
+            survive = TRUE;
         }
     }
-    if ((wizard || discover) && (how <= GENOCIDED)
+    /* explore and wizard modes offer player the option to keep playing */
+    if (!survive && (wizard || discover) && how <= GENOCIDED
         && !paranoid_query(ParanoidDie, "Die?")) {
         pline("OK, so you don't %s.", (how == CHOKING) ? "choke" : "die");
         savelife(how);
-        killer.name[0] = 0;
-        killer.format = 0;
+        survive = TRUE;
+    }
+
+    if (survive) {
+        killer.name[0] = '\0';
+        killer.format = KILLED_BY_AN; /* reset to 0 */
         return;
     }
     really_done(how);
+    /*NOTREACHED*/
 }
 
 /* separated from done() in order to specify the __noreturn__ attribute */
@@ -1972,10 +2009,10 @@ const char *killername;
 {
     struct kinfo *k = find_delayed_killer(id);
 
-    if (k == (struct kinfo *) 0) {
+    if (!k) {
         /* no match, add a new delayed killer to the list */
-        k = (struct kinfo *) alloc(sizeof(struct kinfo));
-        (void) memset((genericptr_t)k, 0, sizeof(struct kinfo));
+        k = (struct kinfo *) alloc(sizeof (struct kinfo));
+        (void) memset((genericptr_t) k, 0, sizeof (struct kinfo));
         k->id = id;
         k->next = killer.next;
         killer.next = k;

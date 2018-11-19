@@ -1,4 +1,4 @@
-/* NetHack 3.6	winstat.c	$NHDT-Date: 1452920162 2016/01/16 04:56:02 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.16 $ */
+/* NetHack 3.6	winstat.c	$NHDT-Date: 1540247293 2018/10/22 22:28:13 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.18 $ */
 /* Copyright (c) Dean Luick, 1992				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -114,12 +114,11 @@ static enum statusfields X11_fieldorder[X11_NUM_STATUS_LINES][X11_NUM_STATUS_FIE
       BL_CAP, BL_CONDITION, BL_FLUSH }
 };
 
-static boolean X11_labels_created = FALSE;
 static Widget X11_status_widget;
 static Widget X11_status_labels[MAXBLSTATS];
 static Widget X11_cond_labels[32]; /* Ugh */
 
-static Pixel X11_colors[16];
+struct xwindow *xw_status_win;
 static Pixel X11_status_widget_fg, X11_status_widget_bg;
 
 
@@ -235,13 +234,16 @@ const char *text;
         return;
 
     label = X11_cond_labels[idx];
-    if ((X11_condition_bits & bm)) {
+    if ((X11_condition_bits & bm) != 0) {
         int attrmask, coloridx;
         XFontStruct *font;
         Position lbl_x;
         Position lbl_y;
+
 #ifdef TEXTCOLOR
         coloridx = condcolor(bm, colormasks);
+#else
+        coloridx = NO_COLOR;
 #endif
         attrmask = condattr(bm, colormasks);
         num_args = 0;
@@ -263,14 +265,22 @@ const char *text;
         XtSetArg(args[num_args], nhStr(XtNlabel), (text && *text) ? text : ""); num_args++;
         XtSetArg(args[num_args], nhStr(XtNwidth), lbl_wid); num_args++;
 
-        fg = (coloridx != NO_COLOR) ? X11_colors[coloridx] : X11_status_widget_fg;
+        fg = (coloridx != NO_COLOR) ? get_nhcolor(xw_status_win, coloridx).pixel
+                                    : X11_status_widget_fg;
         if (attrmask & HL_INVERSE) {
             Pixel tmppx = fg;
             fg = bg;
             bg = tmppx;
         }
+
+        if (attrmask & HL_BOLD) {
+            load_boldfont(xw_status_win, label);
+            XtSetArg(args[num_args], nhStr(XtNfont),
+                     xw_status_win->boldfs); num_args++;
+        }
+
         if (fg == bg)
-            fg = X11_colors[CLR_GRAY];
+            fg = get_nhcolor(xw_status_win, CLR_GRAY).pixel;
 
         XtSetArg(args[num_args], nhStr(XtNforeground), fg); num_args++;
         XtSetArg(args[num_args], nhStr(XtNbackground), bg); num_args++;
@@ -298,25 +308,18 @@ const char *text;
 
 void
 X11_status_update_tty(fld, ptr, chg, percent, color, colormasks)
-int fld, chg UNUSED, percent UNUSED, color;
+int fld, chg UNUSED, percent, color;
 genericptr_t ptr;
 unsigned long *colormasks;
 {
+    static boolean oncearound = FALSE; /* prevent premature partial display */
     long *condptr = (long *) ptr;
-    int i, j, attrmask = 0;
-#ifdef TEXTCOLOR
     int coloridx = NO_COLOR;
-#endif
     const char *text = (char *) ptr;
     char tmpbuf[BUFSZ];
-    static boolean oncearound = FALSE; /* prevent premature partial display */
     int attridx = 0;
 
     XFontStruct *font;
-    int direction;
-    int ascent;
-    int descent;
-    XCharStruct overall;
     Arg args[10];
     Cardinal num_args;
     Position lbl_x;
@@ -327,6 +330,10 @@ unsigned long *colormasks;
     Dimension lbl_iwidth;
     Widget label;
     Pixel fg = X11_status_widget_fg, bg = X11_status_widget_bg;
+
+#ifndef TEXTCOLOR
+    color = NO_COLOR;
+#endif
 
     if (fld < BL_RESET || fld >= MAXBLSTATS)
         return;
@@ -347,18 +354,10 @@ unsigned long *colormasks;
                     (fld == BL_TITLE && iflags.wc2_hitpointbar) ? "%-30s" :
                     status_fieldfmt[fld] ? status_fieldfmt[fld] : "%s",
                     text);
-#ifdef TEXTCOLOR
             X11_status_colors[fld] = color;
-#else
-            X11_status_colors[fld] = NO_COLOR;
-#endif
             if (iflags.wc2_hitpointbar && fld == BL_HP) {
                 hpbar_percent = percent;
-#ifdef TEXTCOLOR
                 hpbar_color = color;
-#else
-                hpbar_color = NO_COLOR;
-#endif
              }
              break;
         }
@@ -381,12 +380,10 @@ unsigned long *colormasks;
             text = status_vals[fld];
             if (fld == BL_GOLD)
                 text = decode_mixed(tmpbuf, text);
-
 #ifdef TEXTCOLOR
             coloridx = X11_status_colors[fld] & 0x00FF;
 #endif
             attridx = (X11_status_colors[fld] & 0xFF00) >> 8;
-
 
             num_args = 0;
             XtSetArg(args[num_args], nhStr(XtNfont), &font); num_args++;
@@ -398,7 +395,8 @@ unsigned long *colormasks;
             XtSetArg(args[num_args], nhStr(XtNborderWidth), &lbl_border_wid); num_args++;
             XtGetValues(label, args, num_args);
 
-            /*raw_printf("font: %i-%i", font->min_bounds.width, font->max_bounds.width);*/
+            /*raw_printf("font: %i-%i",
+                         font->min_bounds.width, font->max_bounds.width);*/
 
             if (text && *text)
                 lbl_wid = lbl_iwidth + font->max_bounds.width * strlen(text);
@@ -408,18 +406,27 @@ unsigned long *colormasks;
             /*raw_printf("1:lbl_wid=%i('%s')", lbl_wid, text);*/
 
             num_args = 0;
-            XtSetArg(args[num_args], nhStr(XtNlabel), (text && *text) ? text : ""); num_args++;
+            XtSetArg(args[num_args], nhStr(XtNlabel),
+                     (text && *text) ? text : ""); num_args++;
             XtSetArg(args[num_args], nhStr(XtNwidth), lbl_wid); num_args++;
 
-            fg = (coloridx != NO_COLOR) ? X11_colors[coloridx] : X11_status_widget_fg;
+            fg = (coloridx != NO_COLOR) ? get_nhcolor(xw_status_win, coloridx).pixel
+                                        : X11_status_widget_fg;
             if (attridx & HL_INVERSE) {
                 Pixel tmppx = fg;
+
                 fg = bg;
                 bg = tmppx;
             }
 
+            if (attridx & HL_BOLD) {
+                load_boldfont(xw_status_win, label);
+                XtSetArg(args[num_args], nhStr(XtNfont),
+                         xw_status_win->boldfs); num_args++;
+            }
+
             if (fg == bg)
-                fg = X11_colors[CLR_GRAY];
+                fg = get_nhcolor(xw_status_win, CLR_GRAY).pixel;
 
             XtSetArg(args[num_args], nhStr(XtNforeground), fg); num_args++;
             XtSetArg(args[num_args], nhStr(XtNbackground), bg); num_args++;
@@ -427,9 +434,11 @@ unsigned long *colormasks;
             XtResizeWidget(label, lbl_wid, lbl_hei, lbl_border_wid);
         }
     } else {
-        int x,y;
+        int x, y;
+
         for (y = 0; y < X11_NUM_STATUS_LINES; y++) {
             Cardinal dx = 0;
+
             for (x = 0; x < X11_NUM_STATUS_FIELD; x++) {
                 int f = X11_fieldorder[y][x];
 
@@ -449,7 +458,8 @@ unsigned long *colormasks;
                         XtSetArg(args[num_args], nhStr(XtNy), &lbl_y); num_args++;
                         XtSetArg(args[num_args], nhStr(XtNwidth), &lbl_wid); num_args++;
                         XtSetArg(args[num_args], nhStr(XtNheight), &lbl_hei); num_args++;
-                        XtSetArg(args[num_args], nhStr(XtNborderWidth), &lbl_border_wid); num_args++;
+                        XtSetArg(args[num_args], nhStr(XtNborderWidth),
+                                 &lbl_border_wid); num_args++;
                         XtGetValues(label, args, num_args);
 
                         lbl_x = dx;
@@ -457,7 +467,8 @@ unsigned long *colormasks;
                         num_args = 0;
                         XtSetArg(args[num_args], nhStr(XtNx), lbl_x); num_args++;
                         XtSetValues(label, args, num_args);
-                        XtConfigureWidget(label, lbl_x, lbl_y, lbl_wid, lbl_hei, lbl_border_wid);
+                        XtConfigureWidget(label, lbl_x, lbl_y,
+                                          lbl_wid, lbl_hei, lbl_border_wid);
 
                         if (lbl_wid > 1)
                             dx += lbl_wid;
@@ -475,7 +486,8 @@ unsigned long *colormasks;
                 XtSetArg(args[num_args], nhStr(XtNy), &lbl_y); num_args++;
                 XtSetArg(args[num_args], nhStr(XtNwidth), &lbl_wid); num_args++;
                 XtSetArg(args[num_args], nhStr(XtNheight), &lbl_hei); num_args++;
-                XtSetArg(args[num_args], nhStr(XtNborderWidth), &lbl_border_wid); num_args++;
+                XtSetArg(args[num_args], nhStr(XtNborderWidth),
+                         &lbl_border_wid); num_args++;
                 XtGetValues(label, args, num_args);
 
                 lbl_x = dx;
@@ -485,7 +497,8 @@ unsigned long *colormasks;
                 XtSetArg(args[num_args], nhStr(XtNx), lbl_x); num_args++;
                 XtSetArg(args[num_args], nhStr(XtNlabel), text); num_args++;
                 XtSetValues(label, args, num_args);
-                XtConfigureWidget(label, lbl_x, lbl_y, lbl_wid, lbl_hei, lbl_border_wid);
+                XtConfigureWidget(label, lbl_x, lbl_y,
+                                  lbl_wid, lbl_hei, lbl_border_wid);
 
                 dx += lbl_wid;
             }
@@ -493,14 +506,14 @@ unsigned long *colormasks;
     }
 }
 
+/*ARGSUSED*/
 void
 X11_status_update_fancy(fld, ptr, chg, percent, color, colormasks)
-int fld, chg UNUSED, percent UNUSED, color;
+int fld, chg UNUSED, percent UNUSED, color UNUSED;
 genericptr_t ptr;
-unsigned long *colormasks;
+unsigned long *colormasks UNUSED;
 {
-    int i;
-    struct {
+    static const struct {
         int bl, ff;
     } bl_to_fancyfield[] = {
         { BL_TITLE, F_NAME },
@@ -526,9 +539,8 @@ unsigned long *colormasks;
         { BL_LEVELDESC, F_DLEVEL },
         { BL_EXP, F_EXP }
     };
-
-    struct {
-        long mask;
+    static const struct {
+        unsigned long mask;
         int ff;
     } mask_to_fancyfield[] = {
         { BL_MASK_STONE, F_STONE },
@@ -545,10 +557,12 @@ unsigned long *colormasks;
         { BL_MASK_FLY, F_FLY },
         { BL_MASK_RIDE, F_RIDE }
     };
+    int i;
 
     if (fld == BL_RESET || fld == BL_FLUSH) {
         if (WIN_STATUS != WIN_ERR) {
             struct xwindow *wp = &window_list[WIN_STATUS];
+
             update_fancy_status(wp);
         }
         return;
@@ -579,44 +593,6 @@ unsigned long *colormasks;
         X11_status_update_tty(fld, ptr, chg, percent, color, colormasks);
 }
 
-
-void
-init_nhcolors(w)
-Widget w;
-{
-    int i;
-    Display *dpy = XtDisplay(w);
-    int defscreen = DefaultScreen(dpy);
-    Colormap cmap = DefaultColormap(dpy, defscreen);
-    const char * resource2clr[16] = {
-        XtNblack,
-        XtNred,
-        XtNgreen,
-        XtNbrown,
-        XtNblue,
-        XtNmagenta,
-        XtNcyan,
-        XtNgray,
-        XtNforeground,
-        XtNorange,
-        XtNbright_green,
-        XtNyellow,
-        XtNbright_blue,
-        XtNbright_magenta,
-        XtNbright_cyan,
-        XtNwhite
-    };
-
-    for (i = 0; i < SIZE(resource2clr); i++) {
-        XColor color, ignore;
-
-        if (XAllocNamedColor(dpy, cmap, resource2clr[i], &color, &ignore))
-            X11_colors[i] = color.pixel;
-        else
-            X11_colors[i] = WhitePixel(dpy, defscreen);
-    }
-}
-
 Widget
 create_tty_status(parent, top)
 Widget parent, top;
@@ -625,9 +601,7 @@ Widget parent, top;
     Widget w;
     Arg args[16];
     Cardinal num_args;
-    char buf[32];
     int i, x, y;
-    Widget testlabel;
 
     num_args = 0;
     if (top != (Widget) 0) {
@@ -653,17 +627,20 @@ Widget parent, top;
             int fld = X11_fieldorder[y][x];
             char labelname[BUFSZ];
             int prevfld;
+
             if (fld <= BL_FLUSH)
                 continue;
             Sprintf(labelname, "label_%s", bl_idx_to_fldname(fld));
             num_args = 0;
             if (y > 0) {
                 prevfld = X11_fieldorder[y-1][0];
-                XtSetArg(args[num_args], nhStr(XtNfromVert), X11_status_labels[prevfld]); num_args++;
+                XtSetArg(args[num_args], nhStr(XtNfromVert),
+                         X11_status_labels[prevfld]); num_args++;
             }
             if (x > 0) {
                 prevfld = X11_fieldorder[y][x-1];
-                XtSetArg(args[num_args], nhStr(XtNfromHoriz), X11_status_labels[prevfld]); num_args++;
+                XtSetArg(args[num_args], nhStr(XtNfromHoriz),
+                         X11_status_labels[prevfld]); num_args++;
             }
 
             XtSetArg(args[num_args], nhStr(XtNhorizDistance), 0); num_args++;
@@ -676,7 +653,8 @@ Widget parent, top;
             XtSetArg(args[num_args], nhStr(XtNjustify), XtJustifyLeft); num_args++;
             XtSetArg(args[num_args], nhStr(XtNborderWidth), 0); num_args++;
             /*
-            XtSetArg(args[num_args], nhStr(XtNlabel), bl_idx_to_fldname(fld)); num_args++;
+            XtSetArg(args[num_args], nhStr(XtNlabel),
+                     bl_idx_to_fldname(fld)); num_args++;
             */
             XtSetArg(args[num_args], nhStr(XtNlabel), ""); num_args++;
             X11_status_labels[fld] = XtCreateManagedWidget(labelname,
@@ -693,7 +671,8 @@ Widget parent, top;
         num_args = 0;
 
         prevfld = X11_fieldorder[0][0];
-        XtSetArg(args[num_args], nhStr(XtNfromVert), X11_status_labels[prevfld]); num_args++;
+        XtSetArg(args[num_args], nhStr(XtNfromVert),
+                 X11_status_labels[prevfld]); num_args++;
 
         XtSetArg(args[num_args], nhStr(XtNfromHoriz),
                  (i == 0) ? X11_status_labels[BL_CONDITION]
@@ -713,15 +692,14 @@ Widget parent, top;
                                                    args, num_args);
     }
 
-    init_nhcolors(w);
-
     return w;
 }
 
+/*ARGSUSED*/
 void
 create_status_window_tty(wp, create_popup, parent)
 struct xwindow *wp; /* window pointer */
-boolean create_popup;
+boolean create_popup UNUSED;
 Widget parent;
 {
     Arg args[10];
@@ -755,10 +733,11 @@ struct xwindow *wp;
         wp->type = NHW_NONE;
 }
 
+/*ARGSUSED*/
 void
 adjust_status_tty(wp, str)
-struct xwindow *wp;
-const char *str;
+struct xwindow *wp UNUSED;
+const char *str UNUSED;
 {
     /* nothing */
 }
@@ -769,6 +748,7 @@ struct xwindow *wp; /* window pointer */
 boolean create_popup;
 Widget parent;
 {
+    xw_status_win = wp;
     if (appResources.fancy_status)
         create_status_window_fancy(wp, create_popup, parent);
     else
@@ -1445,12 +1425,11 @@ int i;
     update_val(sv, val);
 }
 
+/*ARGUSED*/
 static void
 update_fancy_status(wp)
-struct xwindow *wp;
+struct xwindow *wp UNUSED;
 {
-    struct X_status_value *sv;
-    long val;
     int i;
 
     /*if (wp->cursy != 0)

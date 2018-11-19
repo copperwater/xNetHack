@@ -1,4 +1,4 @@
-/* NetHack 3.6	timeout.c	$NHDT-Date: 1505214876 2017/09/12 11:14:36 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.75 $ */
+/* NetHack 3.6	timeout.c	$NHDT-Date: 1541902953 2018/11/11 02:22:33 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.84 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -45,7 +45,7 @@ const struct propname {
     { SEE_INVIS, "see invisible" },
     { INVIS, "invisible" },
     /* properties beyond here don't have timed values during normal play,
-       so there's no much point in trying to order them sensibly;
+       so there's not much point in trying to order them sensibly;
        they're either on or off based on equipment, role, actions, &c */
     { FIRE_RES, "fire resistance" },
     { COLD_RES, "cold resistance" },
@@ -136,10 +136,19 @@ stoned_dialogue()
         nomul(-3); /* can't move anymore */
         multi_reason = "getting stoned";
         nomovemsg = You_can_move_again; /* not unconscious */
+        /* "your limbs have turned to stone" so terminate wounded legs */
+        if (Wounded_legs && !u.usteed)
+            heal_legs(2);
         break;
-    case 2:
+    case 2: /* turned to stone */
         if ((HDeaf & TIMEOUT) > 0L && (HDeaf & TIMEOUT) < 5L)
             set_itimeout(&HDeaf, 5L); /* avoid Hear_again at tail end */
+        /* if also vomiting or turning into slime, stop those (no messages) */
+        if (Vomiting)
+            make_vomiting(0L, FALSE);
+        if (Slimed)
+            make_slimed(0L, (char *) 0);
+        break;
     default:
         break;
     }
@@ -318,15 +327,25 @@ slime_dialogue()
         } else
             pline1(buf);
     }
-    if (i == 3L) {  /* limbs becoming oozy */
+
+    switch (i) {
+    case 3L:  /* limbs becoming oozy */
         HFast = 0L; /* lose intrinsic speed */
         if (!Popeye(SLIMED))
             stop_occupation();
         if (multi > 0)
             nomul(0);
+        break;
+    case 2L: /* skin begins to peel */
+        if ((HDeaf & TIMEOUT) > 0L && (HDeaf & TIMEOUT) < 5L)
+            set_itimeout(&HDeaf, 5L); /* avoid Hear_again at tail end */
+        break;
+    case 1L: /* turning into slime */
+        /* if also turning to stone, stop doing that (no message) */
+        if (Stoned)
+            make_stoned(0L, (char *) 0, KILLED_BY_AN, (char *) 0);
+        break;
     }
-    if (i == 2L && (HDeaf & TIMEOUT) > 0L && (HDeaf & TIMEOUT) < 5L)
-        set_itimeout(&HDeaf, 5L); /* avoid Hear_again at tail end */
     exercise(A_DEX, FALSE);
 }
 
@@ -367,6 +386,7 @@ nh_timeout()
 {
     register struct prop *upp;
     struct kinfo *kptr;
+    boolean was_flying;
     int sleeptime;
     int m_idx;
     int baseluck = (flags.moonphase == FULL_MOON) ? 1 : 0;
@@ -431,6 +451,7 @@ nh_timeout()
             pline("%s stops galloping.", Monnam(u.usteed));
     }
 
+    was_flying = Flying;
     for (upp = u.uprops; upp < u.uprops + SIZE(u.uprops); upp++)
         if ((upp->intrinsic & TIMEOUT) && !(--upp->intrinsic & TIMEOUT)) {
             kptr = find_delayed_killer((int) (upp - u.uprops));
@@ -532,7 +553,7 @@ nh_timeout()
                 stop_occupation();
                 break;
             case WOUNDED_LEGS:
-                heal_legs();
+                heal_legs(0);
                 stop_occupation();
                 break;
             case HALLUC:
@@ -553,6 +574,25 @@ nh_timeout()
                 break;
             case LEVITATION:
                 (void) float_down(I_SPECIAL | TIMEOUT, 0L);
+                break;
+            case FLYING:
+                /* timed Flying is via #wizintrinsic only */
+                if (was_flying && !Flying) {
+                    context.botl = 1;
+                    You("land.");
+                    spoteffects(TRUE);
+                }
+                break;
+            case WARN_OF_MON:
+                /* timed Warn_of_mon is via #wizintrinsic only */
+                if (!Warn_of_mon) {
+                    context.warntype.speciesidx = NON_PM;
+                    if (context.warntype.species) {
+                        You("are no longer warned about %s.",
+                            makeplural(context.warntype.species->mname));
+                        context.warntype.species = (struct permonst *) 0;
+                    }
+                }
                 break;
             case PASSES_WALLS:
                 if (!Passes_walls) {
@@ -1720,7 +1760,7 @@ timer_sanity_check()
             struct obj *obj = curr->arg.a_obj;
 
             if (obj->timed == 0) {
-                pline("timer sanity: untimed obj %s, timer %ld",
+                impossible("timer sanity: untimed obj %s, timer %ld",
                       fmt_ptr((genericptr_t) obj), curr->tid);
             }
         }
