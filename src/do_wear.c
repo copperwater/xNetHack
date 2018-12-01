@@ -702,8 +702,17 @@ Amulet_on()
     case AMULET_OF_LIFE_SAVING:
     case AMULET_VERSUS_POISON:
     case AMULET_OF_REFLECTION:
-    case AMULET_OF_MAGICAL_BREATHING:
     case FAKE_AMULET_OF_YENDOR:
+        break;
+    case AMULET_OF_MAGICAL_BREATHING:
+        if (Strangled) {
+            /* assume that this is an engulfing suffocater or some other
+             * non-amulet form of strangulation. Only the amulet form of
+             * strangulation constricts the neck and ignores magical breathing.
+             */
+            You("can suddenly breathe again!");
+            Strangled = 0;
+        }
         break;
     case AMULET_OF_UNCHANGING:
         if (Slimed)

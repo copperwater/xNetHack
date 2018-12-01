@@ -1965,8 +1965,18 @@ struct attack *mattk;
          * Generally, only give a message if this is the first engulf, not a
          * subsequent attack when already engulfed. */
         if (Breathless) {
-            if (!old_uswallow)
-                You("can't breathe, but you don't need to.");
+            if (!old_uswallow) {
+                if (!(HMagical_breathing || EMagical_breathing)) {
+                    /* test this one first, in case breathless and also wearing
+                     * magical breathing */
+                    You("can't breathe, but you don't need to.");
+                }
+                else {
+                    You("can still breathe, though.");
+                    if (uamul && uamul->otyp == AMULET_OF_MAGICAL_BREATHING)
+                        makeknown(AMULET_OF_MAGICAL_BREATHING);
+                }
+            }
             tmp = 0;
         }
         else if (!Strangled) {
