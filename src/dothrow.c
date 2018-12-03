@@ -1327,7 +1327,8 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
             pline("%s returns to your hand!", The(xname(thrownobj)));
             thrownobj = addinv(thrownobj);
             (void) encumber_msg();
-            if (thrownobj->owornmask & W_QUIVER) /* in case addinv() autoquivered */
+            /* in case addinv() autoquivered */
+            if (thrownobj->owornmask & W_QUIVER)
                 setuqwep((struct obj *) 0);
             setuwep(thrownobj);
         } else {

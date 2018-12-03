@@ -180,6 +180,7 @@ static struct Bool_Opt {
 #else
     { "mouse_support", &iflags.wc_mouse_support, TRUE, DISP_IN_GAME }, /*WC*/
 #endif
+    { "monpolycontrol", &iflags.mon_polycontrol, FALSE, SET_IN_WIZGAME },
 #ifdef NEWS
     { "news", &iflags.news, TRUE, DISP_IN_GAME },
 #else
@@ -3352,8 +3353,8 @@ boolean tinitial, tfrom_file;
 
     /* WINCAP
      *
-     *  map_mode:[tiles|ascii4x6|ascii6x8|ascii8x8|ascii16x8|ascii7x12|
-     *            ascii8x12|ascii16x12|ascii12x16|ascii10x18|fit_to_screen]
+     *  map_mode:[tiles|ascii4x6|ascii6x8|ascii8x8|ascii16x8|ascii7x12
+     *            |ascii8x12|ascii16x12|ascii12x16|ascii10x18|fit_to_screen]
      */
     fullname = "map_mode";
     if (match_optname(opts, fullname, sizeof("map_mode") - 1, TRUE)) {

@@ -395,57 +395,46 @@ curses_init_nhcolors()
 {
 #ifdef TEXTCOLOR
     if (has_colors()) {
+        int i;
+
+        /* the map for ordering of colour pairs */
+        int clr_remap[16] = {
+            COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
+            COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, -1,
+            COLOR_WHITE, COLOR_RED + 8,
+                    COLOR_GREEN + 8, COLOR_YELLOW + 8,
+            COLOR_BLUE + 8, COLOR_MAGENTA + 8,
+                    COLOR_CYAN + 8, COLOR_WHITE + 8
+        };
+
+        boolean hicolor = FALSE;
+
+        if (COLORS >= 16)
+            hicolor = TRUE;
+
+        /* Pair zero is reserved for the terminal defaults */
         use_default_colors();
-        init_pair(1, COLOR_BLACK, -1);
-        init_pair(2, COLOR_RED, -1);
-        init_pair(3, COLOR_GREEN, -1);
-        init_pair(4, COLOR_YELLOW, -1);
-        init_pair(5, COLOR_BLUE, -1);
-        init_pair(6, COLOR_MAGENTA, -1);
-        init_pair(7, COLOR_CYAN, -1);
-        init_pair(8, -1, -1);
 
-        {
-            int i;
+        /* The first 1-8 or 16 - fg only. -1 for terminal default bg */
+        for (i = 1; i <= (hicolor ? 16 : 8); i++) {
+            init_pair(i, clr_remap[i-1], -1);
+        }
 
-            int clr_remap[16] = {
-                COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
-                COLOR_BLUE,
-                COLOR_MAGENTA, COLOR_CYAN, -1, COLOR_WHITE,
-                COLOR_RED + 8, COLOR_GREEN + 8, COLOR_YELLOW + 8,
-                COLOR_BLUE + 8,
-                COLOR_MAGENTA + 8, COLOR_CYAN + 8, COLOR_WHITE + 8
-            };
-
-            for (i = 0; i < (COLORS >= 16 ? 16 : 8); i++) {
-                init_pair(17 + (i * 2) + 0, clr_remap[i], COLOR_RED);
-                init_pair(17 + (i * 2) + 1, clr_remap[i], COLOR_BLUE);
-            }
-
-            boolean hicolor = FALSE;
-            if (COLORS >= 16)
-                hicolor = TRUE;
-
-            /* Work around the crazy definitions above for more background colors... */
-            for (i = 0; i < (COLORS >= 16 ? 16 : 8); i++) {
-                init_pair((hicolor ? 49 : 9) + i, clr_remap[i], COLOR_GREEN);
-                init_pair((hicolor ? 65 : 33) + i, clr_remap[i], COLOR_YELLOW);
-                init_pair((hicolor ? 81 : 41) + i, clr_remap[i], COLOR_MAGENTA);
-                init_pair((hicolor ? 97 : 49) + i, clr_remap[i], COLOR_CYAN);
-                init_pair((hicolor ? 113 : 57) + i, clr_remap[i], COLOR_WHITE);
-            }
+        /* From 17 up to 32 or 48 - same fg, alternate red/blue bg
+         * This is for the hilite stairs/piles patches */
+        for (i = 0; i < (hicolor ? 16 : 8); i++) {
+            init_pair(17 + (i * 2) + 0, clr_remap[i], COLOR_RED);
+            init_pair(17 + (i * 2) + 1, clr_remap[i], COLOR_BLUE);
         }
 
 
-        if (COLORS >= 16) {
-            init_pair(9, COLOR_WHITE, -1);
-            init_pair(10, COLOR_RED + 8, -1);
-            init_pair(11, COLOR_GREEN + 8, -1);
-            init_pair(12, COLOR_YELLOW + 8, -1);
-            init_pair(13, COLOR_BLUE + 8, -1);
-            init_pair(14, COLOR_MAGENTA + 8, -1);
-            init_pair(15, COLOR_CYAN + 8, -1);
-            init_pair(16, COLOR_WHITE + 8, -1);
+        /* Work around the crazy definitions above for more background colors... */
+        for (i = 0; i < (COLORS >= 16 ? 16 : 8); i++) {
+            init_pair((hicolor ? 49 : 9) + i, clr_remap[i], COLOR_GREEN);
+            init_pair((hicolor ? 65 : 33) + i, clr_remap[i], COLOR_YELLOW);
+            init_pair((hicolor ? 81 : 41) + i, clr_remap[i], COLOR_MAGENTA);
+            init_pair((hicolor ? 97 : 49) + i, clr_remap[i], COLOR_CYAN);
+            init_pair((hicolor ? 113 : 57) + i, clr_remap[i], COLOR_WHITE);
         }
 
         if (can_change_color()) {
@@ -492,8 +481,6 @@ curses_init_nhcolors()
                     init_pair(1, CURSES_DARK_GRAY, -1);
                 }
 # endif
-            } else {
-                /* Set flag to use bold for bright colors */
             }
         }
     }
