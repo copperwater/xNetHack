@@ -1,4 +1,4 @@
-/* NetHack 3.6	end.c	$NHDT-Date: 1541902951 2018/11/11 02:22:31 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.150 $ */
+/* NetHack 3.6	end.c	$NHDT-Date: 1542798619 2018/11/21 11:10:19 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.152 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -49,7 +49,6 @@ STATIC_DCL void FDECL(get_valuables, (struct obj *));
 STATIC_DCL void FDECL(sort_valuables, (struct valuable_data *, int));
 STATIC_DCL void FDECL(artifact_score, (struct obj *, BOOLEAN_P, winid));
 STATIC_DCL void FDECL(really_done, (int)) NORETURN;
-STATIC_DCL boolean FDECL(odds_and_ends, (struct obj *, int));
 STATIC_DCL void FDECL(savelife, (int));
 STATIC_PTR int FDECL(CFDECLSPEC vanqsort_cmp, (const genericptr,
                                                const genericptr));
@@ -941,8 +940,7 @@ int how;
     }
     /* cure impending doom of sickness hero won't have time to fix */
     if ((Sick & TIMEOUT) == 1L) {
-        u.usick_type = 0;
-        set_itimeout(&Sick, 0L);
+        make_sick(0L, (char *) 0, FALSE, SICK_ALL);
     }
     if (how == CHOKING)
         init_uhunger();
@@ -1034,6 +1032,13 @@ int size; /* max value is less than 20 */
     return;
 }
 
+#if 0
+/*
+ * odds_and_ends() was used for 3.6.0 and 3.6.1.
+ * Schroedinger's Cat is handled differently starting with 3.6.2.
+ */
+STATIC_DCL boolean FDECL(odds_and_ends, (struct obj *, int));
+
 #define CAT_CHECK 2
 
 STATIC_OVL boolean
@@ -1042,6 +1047,7 @@ struct obj *list;
 int what;
 {
     struct obj *otmp;
+
     for (otmp = list; otmp; otmp = otmp->nobj) {
         switch (what) {
         case CAT_CHECK: /* Schroedinger's Cat */
@@ -1055,6 +1061,7 @@ int what;
     }
     return FALSE;
 }
+#endif
 
 /* called twice; first to calculate total, then to list relevant items */
 STATIC_OVL void
@@ -1306,6 +1313,20 @@ int how;
             obj->known = obj->bknown = obj->dknown = obj->rknown = 1;
             if (Is_container(obj) || obj->otyp == STATUE)
                 obj->cknown = obj->lknown = 1;
+            /* we resolve Schroedinger's cat now in case of both
+               disclosure and dumplog, where the 50:50 chance for
+               live cat has to be the same both times */
+            if (SchroedingersBox(obj)) {
+                if (!Schroedingers_cat) {
+                    /* tell observe_quantum_cat() not to create a cat; if it
+                       chooses live cat in this situation, it will leave the
+                       SchroedingersBox flag set (for container_contents()) */
+                    observe_quantum_cat(obj, FALSE, FALSE);
+                    if (SchroedingersBox(obj))
+                        Schroedingers_cat = TRUE;
+                } else
+                    obj->spe = 0; /* ordinary box with cat corpse in it */
+            }
         }
 
         if (strcmp(flags.end_disclose, "none"))
@@ -1316,7 +1337,7 @@ int how;
 
     /* if pets will contribute to score, populate mydogs list now
        (bones creation isn't a factor, but pline() messaging is; used to
-       be done ever sooner, but we need it to come after dump_everything()
+       be done even sooner, but we need it to come after dump_everything()
        so that any accompanying pets are still on the map during dump) */
     if (how == ESCAPED || how == ASCENDED)
         keepdogs(TRUE, FALSE);
@@ -1482,21 +1503,21 @@ int how;
         viz_array[0][0] |= IN_SIGHT; /* need visibility for naming */
         mtmp = mydogs;
         Strcpy(pbuf, "You");
-        if (!Schroedingers_cat) /* check here in case disclosure was off */
-            Schroedingers_cat = odds_and_ends(invent, CAT_CHECK);
-        if (Schroedingers_cat) {
-            int mhp, m_lev = adj_lev(&mons[PM_HOUSECAT]);
-
-            mhp = d(m_lev, 8);
-            nowrap_add(u.urexp, mhp);
-            Strcat(eos(pbuf), " and Schroedinger's cat");
-        }
-        if (mtmp) {
+        if (mtmp || Schroedingers_cat) {
             while (mtmp) {
                 Sprintf(eos(pbuf), " and %s", mon_nam(mtmp));
                 if (mtmp->mtame)
                     nowrap_add(u.urexp, mtmp->mhp);
                 mtmp = mtmp->nmon;
+            }
+            /* [it might be more robust to create a housecat and add it to
+               mydogs; it doesn't have to be placed on the map for that] */
+            if (Schroedingers_cat) {
+                int mhp, m_lev = adj_lev(&mons[PM_HOUSECAT]);
+
+                mhp = d(m_lev, 8);
+                nowrap_add(u.urexp, mhp);
+                Strcat(eos(pbuf), " and Schroedinger's cat");
             }
             dump_forward_putstr(endwin, 0, pbuf, done_stopprint);
             pbuf[0] = '\0';
@@ -1606,23 +1627,18 @@ boolean identified, all_containers, reportempty;
 {
     register struct obj *box, *obj;
     char buf[BUFSZ];
-    boolean cat, deadcat;
+    boolean cat,
+            dumping =
+#ifdef DUMPLOG
+                     iflags.in_dumplog ? TRUE :
+#endif
+                     FALSE;
 
     for (box = list; box; box = box->nobj) {
         if (Is_container(box) || box->otyp == STATUE) {
             box->cknown = 1; /* we're looking at the contents now */
             if (identified)
                 box->lknown = 1;
-            cat = deadcat = FALSE;
-            if (SchroedingersBox(box) && !Schroedingers_cat) {
-                /* Schroedinger's Cat? */
-                cat = odds_and_ends(box, CAT_CHECK);
-                if (cat)
-                    Schroedingers_cat = TRUE;
-                else
-                    deadcat = TRUE;
-                box->spe = 0;
-            }
             if (box->otyp == BAG_OF_TRICKS) {
                 continue; /* wrong type of container */
             } else if (box->cobj) {
@@ -1630,38 +1646,49 @@ boolean identified, all_containers, reportempty;
                 Loot *sortedcobj, *srtc;
                 unsigned sortflags;
 
+                /* at this stage, the SchroedingerBox() flag is only set
+                   if the cat inside the box is alive; the box actually
+                   contains a cat corpse that we'll pretend is not there;
+                   for dead cat, the flag will be clear and there'll be
+                   a cat corpse inside the box; either way, inventory
+                   reports the box as containing "1 item" */
+                cat = SchroedingersBox(box);
+
                 Sprintf(buf, "Contents of %s:", the(xname(box)));
                 putstr(tmpwin, 0, buf);
-                putstr(tmpwin, 0, "");
-                sortflags = (((flags.sortloot == 'l' || flags.sortloot == 'f')
-                              ? SORTLOOT_LOOT : 0)
-                             | (flags.sortpack ? SORTLOOT_PACK : 0));
-                sortedcobj = sortloot(&box->cobj, sortflags, FALSE,
-                                      (int FDECL((*), (OBJ_P))) 0);
-                for (srtc = sortedcobj; ((obj = srtc->obj) != 0); ++srtc) {
-                    if (identified) {
-                        discover_object(obj->otyp, TRUE, FALSE);
-                        obj->known = obj->bknown = obj->dknown
-                            = obj->rknown = 1;
-                        if (Is_container(obj) || obj->otyp == STATUE)
-                            obj->cknown = obj->lknown = 1;
+                if (!dumping)
+                    putstr(tmpwin, 0, "");
+                buf[0] = buf[1] = ' '; /* two leading spaces */
+                if (box->cobj && !cat) {
+                    sortflags = (((flags.sortloot == 'l'
+                                   || flags.sortloot == 'f')
+                                     ? SORTLOOT_LOOT : 0)
+                                 | (flags.sortpack ? SORTLOOT_PACK : 0));
+                    sortedcobj = sortloot(&box->cobj, sortflags, FALSE,
+                                          (int FDECL((*), (OBJ_P))) 0);
+                    for (srtc = sortedcobj; ((obj = srtc->obj) != 0); ++srtc) {
+                        if (identified) {
+                            discover_object(obj->otyp, TRUE, FALSE);
+                            obj->known = obj->bknown = obj->dknown
+                                = obj->rknown = 1;
+                            if (Is_container(obj) || obj->otyp == STATUE)
+                                obj->cknown = obj->lknown = 1;
+                        }
+                        Strcpy(&buf[2], doname(obj));
+                        putstr(tmpwin, 0, buf);
                     }
-                    putstr(tmpwin, 0, doname(obj));
+                    unsortloot(&sortedcobj);
+                } else if (cat) {
+                    Strcpy(&buf[2], "Schroedinger's cat!");
+                    putstr(tmpwin, 0, buf);
                 }
-                unsortloot(&sortedcobj);
-                if (cat)
-                    putstr(tmpwin, 0, "Schroedinger's cat");
-                else if (deadcat)
-                    putstr(tmpwin, 0, "Schroedinger's dead cat");
+                if (dumping)
+                    putstr(0, 0, "");
                 display_nhwindow(tmpwin, TRUE);
                 destroy_nhwindow(tmpwin);
                 if (all_containers)
                     container_contents(box->cobj, identified, TRUE,
                                        reportempty);
-            } else if (cat || deadcat) {
-                pline("%s Schroedinger's %scat!", Tobjnam(box, "contain"),
-                      deadcat ? "dead " : "");
-                display_nhwindow(WIN_MESSAGE, FALSE);
             } else if (reportempty) {
                 pline("%s is empty.", upstart(thesimpleoname(box)));
                 display_nhwindow(WIN_MESSAGE, FALSE);
@@ -2143,10 +2170,11 @@ struct kinfo *kptr;
     }
 
     if (k == (struct kinfo *) 0) {
-        impossible("dealloc_killer not on list");
+        impossible("dealloc_killer (#%d) not on list", kptr->id);
     } else {
         prev->next = k->next;
         free((genericptr_t) k);
+        debugpline1("freed delayed killer #%d", kptr->id);
     }
 }
 
@@ -2159,7 +2187,7 @@ int mode;
 
     if (perform_bwrite(mode)) {
         for (kptr = &killer; kptr != (struct kinfo *) 0; kptr = kptr->next) {
-            bwrite(fd, (genericptr_t) kptr, sizeof(struct kinfo));
+            bwrite(fd, (genericptr_t) kptr, sizeof (struct kinfo));
         }
     }
     if (release_data(mode)) {
@@ -2178,9 +2206,9 @@ int fd;
     struct kinfo *kptr;
 
     for (kptr = &killer; kptr != (struct kinfo *) 0; kptr = kptr->next) {
-        mread(fd, (genericptr_t) kptr, sizeof(struct kinfo));
+        mread(fd, (genericptr_t) kptr, sizeof (struct kinfo));
         if (kptr->next) {
-            kptr->next = (struct kinfo *) alloc(sizeof(struct kinfo));
+            kptr->next = (struct kinfo *) alloc(sizeof (struct kinfo));
         }
     }
 }

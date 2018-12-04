@@ -1,4 +1,4 @@
-/* NetHack 3.6	restore.c	$NHDT-Date: 1451082255 2015/12/25 22:24:15 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.103 $ */
+/* NetHack 3.6	restore.c	$NHDT-Date: 1542798626 2018/11/21 11:10:26 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.109 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -298,10 +298,32 @@ boolean ghostly, frozen;
         /* get contents of a container or statue */
         if (Has_contents(otmp)) {
             struct obj *otmp3;
+
             otmp->cobj = restobjchn(fd, ghostly, Is_IceBox(otmp));
             /* restore container back pointers */
             for (otmp3 = otmp->cobj; otmp3; otmp3 = otmp3->nobj)
                 otmp3->ocontainer = otmp;
+        } else if (SchroedingersBox(otmp)) {
+            struct obj *catcorpse;
+
+            /*
+             * TODO:  Remove this after 3.6.x save compatibility is dropped.
+             *
+             * For 3.6.2, SchroedingersBox() always has a cat corpse in it.
+             * For 3.6.[01], it was empty and its weight was falsified
+             * to have the value it would have had if there was one inside.
+             * Put a non-rotting cat corpse in this box to convert to 3.6.2.
+             *
+             * [Note: after this fix up, future save/restore of this object
+             * will take the Has_contents() code path above.]
+             */
+            if ((catcorpse = mksobj(CORPSE, TRUE, FALSE)) != 0) {
+                otmp->spe = 1; /* flag for special SchroedingersBox */
+                set_corpsenm(catcorpse, PM_HOUSECAT);
+                (void) stop_timer(ROT_CORPSE, obj_to_any(catcorpse));
+                add_to_container(otmp, catcorpse);
+                otmp->owt = weight(otmp);
+            }
         }
         if (otmp->bypass)
             otmp->bypass = 0;
@@ -809,7 +831,7 @@ register int fd;
 #ifdef AMII_GRAPHICS
     {
         extern struct window_procs amii_procs;
-        if (windowprocs.win_init_nhwindows == amii_procs.win_init_nhwindows) {
+        if (WINDOWPORT("amii") {
             extern winid WIN_BASE;
             clear_nhwindow(WIN_BASE); /* hack until there's a hook for this */
         }
@@ -825,7 +847,7 @@ register int fd;
     curs(WIN_MAP, 1, 1);
     dotcnt = 0;
     dotrow = 2;
-    if (strncmpi("X11", windowprocs.name, 3))
+    if (!WINDOWPORT("X11"))
         putstr(WIN_MAP, 0, "Restoring:");
 #endif
     restoreprocs.mread_flags = 1; /* return despite error */
@@ -840,7 +862,7 @@ register int fd;
             dotrow++;
             dotcnt = 0;
         }
-        if (strncmpi("X11", windowprocs.name, 3)) {
+        if (!WINDOWPORT("X11")) {
             putstr(WIN_MAP, 0, ".");
         }
         mark_synch();
@@ -1083,7 +1105,7 @@ boolean ghostly;
             set_residency(mtmp, FALSE);
         place_monster(mtmp, mtmp->mx, mtmp->my);
         if (mtmp->wormno)
-            place_wsegs(mtmp);
+            place_wsegs(mtmp, NULL);
 
         /* regenerate monsters while on another level */
         if (!u.uz.dlevel)

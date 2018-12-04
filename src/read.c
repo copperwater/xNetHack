@@ -2682,7 +2682,7 @@ struct _create_particular_data *d;
             if (iflags.wc_underline_peacefuls)
                 /* mpeaceful is only set here, so the previous calls to newsym
                  * will make it look like the monster isn't peaceful. */
-            newsym(mtmp->mx, mtmp->my);
+                newsym(mtmp->mx, mtmp->my);
         }
         if (d->saddled && can_saddle(mtmp) && !which_armor(mtmp, W_SADDLE)) {
             struct obj *otmp = mksobj(SADDLE, TRUE, FALSE);

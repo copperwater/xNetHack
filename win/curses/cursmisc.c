@@ -1,3 +1,6 @@
+/* NetHack 3.6 cursmisc.c */
+/* Copyright (c) Karl Garrison, 2010. */
+/* NetHack may be freely redistributed.  See license for details. */
 /* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
 #include "curses.h"
@@ -235,7 +238,7 @@ curses_num_lines(const char *str, int width)
     strncpy(substr, str, BUFSZ-1);
     substr[BUFSZ-1] = '\0';
 
-    while (strlen(substr) > width) {
+    while (strlen(substr) > (size_t) width) {
         last_space = 0;
 
         for (count = 0; count <= width; count++) {
@@ -246,7 +249,7 @@ curses_num_lines(const char *str, int width)
         if (last_space == 0) {  /* No spaces found */
             last_space = count - 1;
         }
-        for (count = (last_space + 1); count < strlen(substr); count++) {
+        for (count = (last_space + 1); (size_t) count < strlen(substr); count++) {
             tmpstr[count - (last_space + 1)] = substr[count];
         }
         tmpstr[count - (last_space + 1)] = '\0';
@@ -267,12 +270,28 @@ curses_break_str(const char *str, int width, int line_num)
     int last_space, count;
     char *retstr;
     int curline = 0;
-    int strsize = strlen(str);
+    int strsize = strlen(str) + 1;
+#if __STDC_VERSION__ >= 199901L
     char substr[strsize];
     char curstr[strsize];
     char tmpstr[strsize];
 
     strcpy(substr, str);
+#else
+#ifndef BUFSZ
+#define BUFSZ 256
+#endif
+    char substr[BUFSZ * 2];
+    char curstr[BUFSZ * 2];
+    char tmpstr[BUFSZ * 2];
+
+    if (strsize > (BUFSZ * 2) - 1) {
+        paniclog("curses", "curses_break_str() string too long.");
+        strncpy(substr, str, (BUFSZ * 2) - 2);
+        substr[(BUFSZ * 2) - 1] = '\0';
+    } else
+        strcpy(substr, str);
+#endif
 
     while (curline < line_num) {
         if (strlen(substr) == 0) {
@@ -298,7 +317,7 @@ curses_break_str(const char *str, int width, int line_num)
         if (substr[count] == '\0') {
             break;
         }
-        for (count = (last_space + 1); count < strlen(substr); count++) {
+        for (count = (last_space + 1); (size_t) count < strlen(substr); count++) {
             tmpstr[count - (last_space + 1)] = substr[count];
         }
         tmpstr[count - (last_space + 1)] = '\0';
@@ -323,12 +342,28 @@ curses_str_remainder(const char *str, int width, int line_num)
     int last_space, count;
     char *retstr;
     int curline = 0;
-    int strsize = strlen(str);
+    int strsize = strlen(str) + 1;
+#if __STDC_VERSION__ >= 199901L
     char substr[strsize];
     char curstr[strsize];
     char tmpstr[strsize];
 
     strcpy(substr, str);
+#else
+#ifndef BUFSZ
+#define BUFSZ 256
+#endif
+    char substr[BUFSZ * 2];
+    char curstr[BUFSZ * 2];
+    char tmpstr[BUFSZ * 2];
+
+    if (strsize > (BUFSZ * 2) - 1) {
+        paniclog("curses", "curses_str_remainder() string too long.");
+        strncpy(substr, str, (BUFSZ * 2) - 2);
+        substr[(BUFSZ * 2) - 1] = '\0';
+    } else
+        strcpy(substr, str);
+#endif
 
     while (curline < line_num) {
         if (strlen(substr) == 0) {
@@ -354,7 +389,7 @@ curses_str_remainder(const char *str, int width, int line_num)
         if (substr[count] == '\0') {
             break;
         }
-        for (count = (last_space + 1); count < strlen(substr); count++) {
+        for (count = (last_space + 1); (size_t) count < strlen(substr); count++) {
             tmpstr[count - (last_space + 1)] = substr[count];
         }
         tmpstr[count - (last_space + 1)] = '\0';
@@ -405,11 +440,9 @@ curses_convert_glyph(int ch, int glyph)
 {
     int symbol;
 
-#ifdef REINCARNATION
     if (Is_rogue_level(&u.uz)) {
         return ch;
     }
-#endif
 
     /* Save some processing time by returning if the glyph represents
        an object that we don't have custom characters for */
@@ -531,7 +564,7 @@ void
 curses_posthousekeeping()
 {
     curs_set(0);
-    //curses_decrement_highlights(FALSE);
+    /* curses_decrement_highlights(FALSE); */
     curses_clear_unhighlight_message_window();
 }
 

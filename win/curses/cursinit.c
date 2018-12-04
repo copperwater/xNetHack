@@ -1,3 +1,6 @@
+/* NetHack 3.6 cursinit.c */
+/* Copyright (c) Karl Garrison, 2010. */
+/* NetHack may be freely redistributed.  See license for details. */
 /* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
 #include "curses.h"
@@ -11,14 +14,6 @@
 /* Initialization and startup functions for curses interface */
 
 /* Private declarations */
-
-#define NETHACK_CURSES      1
-#define SLASHEM_CURSES      2
-#define UNNETHACK_CURSES    3
-#define SPORKHACK_CURSES    4
-#define GRUNTHACK_CURSES    5
-#define DNETHACK_CURSES     6
-#define XNETHACK_CURSES     7
 
 static void set_window_position(int *, int *, int *, int *, int,
                                 int *, int *, int *, int *, int,
@@ -43,104 +38,7 @@ nhrgb orig_himagenta;
 nhrgb orig_hicyan;
 nhrgb orig_hiwhite;
 
-/* Banners used for an optional ASCII splash screen */
-
-#define NETHACK_SPLASH_A \
-" _   _        _    _    _               _    "
-
-#define NETHACK_SPLASH_B \
-"| \\ | |      | |  | |  | |             | |   "
-
-#define NETHACK_SPLASH_C \
-"|  \\| |  ___ | |_ | |__| |  __ _   ___ | | __"
-
-#define NETHACK_SPLASH_D \
-"| . ` | / _ \\| __||  __  | / _` | / __|| |/ /"
-
-#define NETHACK_SPLASH_E \
-"| |\\  ||  __/| |_ | |  | || (_| || (__ |   < "
-
-#define NETHACK_SPLASH_F \
-"|_| \\_| \\___| \\__||_|  |_| \\__,_| \\___||_|\\_\\"
-
-#define SLASHEM_SPLASH_A \
-" _____  _              _     _  ______  __  __ "
-
-#define SLASHEM_SPLASH_B \
-" / ____|| |            | |   ( )|  ____||  \\/  |"
-
-#define SLASHEM_SPLASH_C \
-"| (___  | |  __ _  ___ | |__  \\|| |__   | \\  / |"
-
-#define SLASHEM_SPLASH_D \
-" \\___ \\ | | / _` |/ __|| '_ \\   |  __|  | |\\/| |"
-
-#define SLASHEM_SPLASH_E \
-" ____) || || (_| |\\__ \\| | | |  | |____ | |  | |"
-
-#define SLASHEM_SPLASH_F \
-"|_____/ |_| \\__,_||___/|_| |_|  |______||_|  |_|"
-
-#define UNNETHACK_SPLASH_A \
-" _    _         _   _        _    _    _               _"
-
-#define UNNETHACK_SPLASH_B \
-"| |  | |       | \\ | |      | |  | |  | |             | |"
-
-#define UNNETHACK_SPLASH_C \
-"| |  | | _ __  |  \\| |  ___ | |_ | |__| |  __ _   ___ | | __"
-
-#define UNNETHACK_SPLASH_D \
-"| |  | || '_ \\ | . ` | / _ \\| __||  __  | / _` | / __|| |/ /"
-
-#define UNNETHACK_SPLASH_E \
-"| |__| || | | || |\\  ||  __/| |_ | |  | || (_| || (__ |   <"
-
-#define UNNETHACK_SPLASH_F \
-" \\____/ |_| |_||_| \\_| \\___| \\__||_|  |_| \\__,_| \\___||_|\\_\\"
-
-#define SPORKHACK_SPLASH_A \
-"  _____                      _     _    _               _    "
-#define SPORKHACK_SPLASH_B \
-" / ____|                    | |   | |  | |             | |   "
-#define SPORKHACK_SPLASH_C \
-"| (___   _ __    ___   _ __ | | __| |__| |  __ _   ___ | | __"
-#define SPORKHACK_SPLASH_D \
-" \\___ \\ | '_ \\  / _ \\ | '__|| |/ /|  __  | / _` | / __|| |/ /"
-#define SPORKHACK_SPLASH_E \
-" ____) || |_) || (_) || |   |   < | |  | || (_| || (__ |   < "
-#define SPORKHACK_SPLASH_F \
-"|_____/ | .__/  \\___/ |_|   |_|\\_\\|_|  |_| \\__,_| \\___||_|\\_\\"
-#define SPORKHACK_SPLASH_G \
-"        | |                                                  "
-#define SPORKHACK_SPLASH_H \
-"        |_|                                                 "
-
-#define GRUNTHACK_SPLASH_A \
-" ______                      _    _    _               _    "
-#define GRUNTHACK_SPLASH_B \
-"/  ____)                    | |  | |  | |             | |   "
-#define GRUNTHACK_SPLASH_C \
-"| / ___  _ __  _   _  _ __  | |_ | |__| |  __ _   ___ | |  _"
-#define GRUNTHACK_SPLASH_D \
-"| | L  \\| '__)| | | || '_ \\ | __)|  __  | / _` | / __)| |/ /"
-#define GRUNTHACK_SPLASH_E \
-"| l__) || |   | |_| || | | || |_ | |  | || (_| || (__ |   < "
-#define GRUNTHACK_SPLASH_F \
-"\\______/|_|   \\___,_||_| |_| \\__)|_|  |_| \\__,_| \\___)|_|\\_\\"
-
-#define DNETHACK_SPLASH_A \
-"     _  _   _        _    _    _               _    "
-#define DNETHACK_SPLASH_B \
-"    | || \\ | |      | |  | |  | |             | |   "
-#define DNETHACK_SPLASH_C \
-"  __| ||  \\| |  ___ | |_ | |__| |  __ _   ___ | | __"
-#define DNETHACK_SPLASH_D \
-" / _` || . ` | / _ \\| __||  __  | / _` | / __|| |/ /"
-#define DNETHACK_SPLASH_E \
-"| (_| || |\\  ||  __/| |_ | |  | || (_| || (__ |   < "
-#define DNETHACK_SPLASH_F \
-" \\__,_||_| \\_| \\___| \\__||_|  |_| \\__,_| \\___||_|\\_\\"
+/* Banners used for an optional ASCII splash screen. */
 
 #define XNETHACK_SPLASH_A \
 "          __   __       __   __  __          __     A "
@@ -281,110 +179,112 @@ curses_create_main_windows()
        based on configuration. The priority alignment-wise is: status > msgarea > game.
        Define everything as taking as much space as possible and shrink/move based on
        alignment positions. */
-    int message_x = 0;
-    int message_y = 0;
-    int status_x = 0;
-    int status_y = 0;
-    int inv_x = 0;
-    int inv_y = 0;
-    int map_x = 0;
-    int map_y = 0;
+    {
+        int message_x = 0;
+        int message_y = 0;
+        int status_x = 0;
+        int status_y = 0;
+        int inv_x = 0;
+        int inv_y = 0;
+        int map_x = 0;
+        int map_y = 0;
 
-    int message_height = 0;
-    int message_width = 0;
-    int status_height = 0;
-    int status_width = 0;
-    int inv_height = 0;
-    int inv_width = 0;
-    int map_height = (term_rows - border_space);
-    int map_width = (term_cols - border_space);
+        int message_height = 0;
+        int message_width = 0;
+        int status_height = 0;
+        int status_width = 0;
+        int inv_height = 0;
+        int inv_width = 0;
+        int map_height = (term_rows - border_space);
+        int map_width = (term_cols - border_space);
+        int statusheight = 3;
 
-    boolean status_vertical = FALSE;
-    boolean msg_vertical = FALSE;
-    if (status_orientation == ALIGN_LEFT ||
-        status_orientation == ALIGN_RIGHT)
-        status_vertical = TRUE;
-    if (message_orientation == ALIGN_LEFT ||
-        message_orientation == ALIGN_RIGHT)
-        msg_vertical = TRUE;
+        boolean status_vertical = FALSE;
+        boolean msg_vertical = FALSE;
+        if (status_orientation == ALIGN_LEFT ||
+            status_orientation == ALIGN_RIGHT)
+            status_vertical = TRUE;
+        if (message_orientation == ALIGN_LEFT ||
+            message_orientation == ALIGN_RIGHT)
+            msg_vertical = TRUE;
 
-    int statusheight = 3;
-    if (iflags.classic_status)
-        statusheight = 2;
+        if (iflags.statuslines < 3)
+            statusheight = 2;
 
-    /* Vertical windows have priority. Otherwise, priotity is:
-       status > inv > msg */
-    if (status_vertical)
-        set_window_position(&status_x, &status_y, &status_width, &status_height,
-                            status_orientation, &map_x, &map_y, &map_width, &map_height,
-                            border_space, statusheight, 26);
+        /* Vertical windows have priority. Otherwise, priotity is:
+           status > inv > msg */
+        if (status_vertical)
+            set_window_position(&status_x, &status_y, &status_width, &status_height,
+                                status_orientation, &map_x, &map_y, &map_width, &map_height,
+                                border_space, statusheight, 26);
 
-    if (iflags.perm_invent) {
-        /* Take up all width unless msgbar is also vertical. */
-        int width = -25;
+        if (iflags.perm_invent) {
+            /* Take up all width unless msgbar is also vertical. */
+            int width = -25;
+            if (msg_vertical)
+                width = 25;
+
+            set_window_position(&inv_x, &inv_y, &inv_width, &inv_height,
+                                ALIGN_RIGHT, &map_x, &map_y, &map_width, &map_height,
+                                border_space, -1, width);
+        }
+
         if (msg_vertical)
-            width = 25;
+            set_window_position(&message_x, &message_y, &message_width, &message_height,
+                                message_orientation, &map_x, &map_y, &map_width, &map_height,
+                                border_space, -1, -25);
 
-        set_window_position(&inv_x, &inv_y, &inv_width, &inv_height,
-                            ALIGN_RIGHT, &map_x, &map_y, &map_width, &map_height,
-                            border_space, -1, width);
+        /* Now draw horizontal windows */
+        if (!status_vertical)
+            set_window_position(&status_x, &status_y, &status_width, &status_height,
+                                status_orientation, &map_x, &map_y, &map_width, &map_height,
+                                border_space, statusheight, 26);
+
+        if (!msg_vertical)
+            set_window_position(&message_x, &message_y, &message_width, &message_height,
+                                message_orientation, &map_x, &map_y, &map_width, &map_height,
+                                border_space, -1, -25);
+
+        if (map_width > COLNO)
+            map_width = COLNO;
+
+        if (map_height > ROWNO)
+            map_height = ROWNO;
+
+        if (curses_get_nhwin(STATUS_WIN)) {
+            curses_del_nhwin(STATUS_WIN);
+            curses_del_nhwin(MESSAGE_WIN);
+            curses_del_nhwin(MAP_WIN);
+            curses_del_nhwin(INV_WIN);
+
+            clear();
+        }
+
+        curses_add_nhwin(STATUS_WIN, status_height, status_width, status_y,
+                         status_x, status_orientation, borders);
+
+        curses_add_nhwin(MESSAGE_WIN, message_height, message_width, message_y,
+                         message_x, message_orientation, borders);
+
+        if (iflags.perm_invent)
+            curses_add_nhwin(INV_WIN, inv_height, inv_width, inv_y, inv_x,
+                             ALIGN_RIGHT, borders);
+
+        curses_add_nhwin(MAP_WIN, map_height, map_width, map_y, map_x, 0, borders);
+
+        refresh();
+
+        curses_refresh_nethack_windows();
+    /*
+        if (iflags.window_inited) {
+            curses_update_stats();
+            if (iflags.perm_invent)
+                curses_update_inventory();
+        } else {
+            iflags.window_inited = TRUE;
+        }
+    */
     }
-
-    if (msg_vertical)
-        set_window_position(&message_x, &message_y, &message_width, &message_height,
-                            message_orientation, &map_x, &map_y, &map_width, &map_height,
-                            border_space, -1, -25);
-
-    /* Now draw horizontal windows */
-    if (!status_vertical)
-        set_window_position(&status_x, &status_y, &status_width, &status_height,
-                            status_orientation, &map_x, &map_y, &map_width, &map_height,
-                            border_space, statusheight, 26);
-
-    if (!msg_vertical)
-        set_window_position(&message_x, &message_y, &message_width, &message_height,
-                            message_orientation, &map_x, &map_y, &map_width, &map_height,
-                            border_space, -1, -25);
-
-    if (map_width > COLNO)
-        map_width = COLNO;
-
-    if (map_height > ROWNO)
-        map_height = ROWNO;
-
-    if (curses_get_nhwin(STATUS_WIN)) {
-        curses_del_nhwin(STATUS_WIN);
-        curses_del_nhwin(MESSAGE_WIN);
-        curses_del_nhwin(MAP_WIN);
-        curses_del_nhwin(INV_WIN);
-
-        clear();
-    }
-
-    curses_add_nhwin(STATUS_WIN, status_height, status_width, status_y,
-                     status_x, status_orientation, borders);
-
-    curses_add_nhwin(MESSAGE_WIN, message_height, message_width, message_y,
-                     message_x, message_orientation, borders);
-
-    if (iflags.perm_invent)
-        curses_add_nhwin(INV_WIN, inv_height, inv_width, inv_y, inv_x,
-                         ALIGN_RIGHT, borders);
-
-    curses_add_nhwin(MAP_WIN, map_height, map_width, map_y, map_x, 0, borders);
-
-    refresh();
-
-    curses_refresh_nethack_windows();
-/*
-    if (iflags.window_inited) {
-        curses_update_stats();
-        if (flags.perm_invent)
-            curses_update_inventory();
-    } else {
-        iflags.window_inited = TRUE;
-    }
-*/
 }
 
 
@@ -395,46 +295,57 @@ curses_init_nhcolors()
 {
 #ifdef TEXTCOLOR
     if (has_colors()) {
-        int i;
-
-        /* the map for ordering of colour pairs */
-        int clr_remap[16] = {
-            COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
-            COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, -1,
-            COLOR_WHITE, COLOR_RED + 8,
-                    COLOR_GREEN + 8, COLOR_YELLOW + 8,
-            COLOR_BLUE + 8, COLOR_MAGENTA + 8,
-                    COLOR_CYAN + 8, COLOR_WHITE + 8
-        };
-
-        boolean hicolor = FALSE;
-
-        if (COLORS >= 16)
-            hicolor = TRUE;
-
-        /* Pair zero is reserved for the terminal defaults */
         use_default_colors();
+        init_pair(1, COLOR_BLACK, -1);
+        init_pair(2, COLOR_RED, -1);
+        init_pair(3, COLOR_GREEN, -1);
+        init_pair(4, COLOR_YELLOW, -1);
+        init_pair(5, COLOR_BLUE, -1);
+        init_pair(6, COLOR_MAGENTA, -1);
+        init_pair(7, COLOR_CYAN, -1);
+        init_pair(8, -1, -1);
 
-        /* The first 1-8 or 16 - fg only. -1 for terminal default bg */
-        for (i = 1; i <= (hicolor ? 16 : 8); i++) {
-            init_pair(i, clr_remap[i-1], -1);
+        {
+            int i;
+            boolean hicolor = FALSE;
+
+            int clr_remap[16] = {
+                COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
+                COLOR_BLUE,
+                COLOR_MAGENTA, COLOR_CYAN, -1, COLOR_WHITE,
+                COLOR_RED + 8, COLOR_GREEN + 8, COLOR_YELLOW + 8,
+                COLOR_BLUE + 8,
+                COLOR_MAGENTA + 8, COLOR_CYAN + 8, COLOR_WHITE + 8
+            };
+
+            for (i = 0; i < (COLORS >= 16 ? 16 : 8); i++) {
+                init_pair(17 + (i * 2) + 0, clr_remap[i], COLOR_RED);
+                init_pair(17 + (i * 2) + 1, clr_remap[i], COLOR_BLUE);
+            }
+
+            if (COLORS >= 16)
+                hicolor = TRUE;
+
+            /* Work around the crazy definitions above for more background colors... */
+            for (i = 0; i < (COLORS >= 16 ? 16 : 8); i++) {
+                init_pair((hicolor ? 49 : 9) + i, clr_remap[i], COLOR_GREEN);
+                init_pair((hicolor ? 65 : 33) + i, clr_remap[i], COLOR_YELLOW);
+                init_pair((hicolor ? 81 : 41) + i, clr_remap[i], COLOR_MAGENTA);
+                init_pair((hicolor ? 97 : 49) + i, clr_remap[i], COLOR_CYAN);
+                init_pair((hicolor ? 113 : 57) + i, clr_remap[i], COLOR_WHITE);
+            }
         }
 
-        /* From 17 up to 32 or 48 - same fg, alternate red/blue bg
-         * This is for the hilite stairs/piles patches */
-        for (i = 0; i < (hicolor ? 16 : 8); i++) {
-            init_pair(17 + (i * 2) + 0, clr_remap[i], COLOR_RED);
-            init_pair(17 + (i * 2) + 1, clr_remap[i], COLOR_BLUE);
-        }
 
-
-        /* Work around the crazy definitions above for more background colors... */
-        for (i = 0; i < (COLORS >= 16 ? 16 : 8); i++) {
-            init_pair((hicolor ? 49 : 9) + i, clr_remap[i], COLOR_GREEN);
-            init_pair((hicolor ? 65 : 33) + i, clr_remap[i], COLOR_YELLOW);
-            init_pair((hicolor ? 81 : 41) + i, clr_remap[i], COLOR_MAGENTA);
-            init_pair((hicolor ? 97 : 49) + i, clr_remap[i], COLOR_CYAN);
-            init_pair((hicolor ? 113 : 57) + i, clr_remap[i], COLOR_WHITE);
+        if (COLORS >= 16) {
+            init_pair(9, COLOR_WHITE, -1);
+            init_pair(10, COLOR_RED + 8, -1);
+            init_pair(11, COLOR_GREEN + 8, -1);
+            init_pair(12, COLOR_YELLOW + 8, -1);
+            init_pair(13, COLOR_BLUE + 8, -1);
+            init_pair(14, COLOR_MAGENTA + 8, -1);
+            init_pair(15, COLOR_CYAN + 8, -1);
+            init_pair(16, COLOR_WHITE + 8, -1);
         }
 
         if (can_change_color()) {
@@ -481,6 +392,8 @@ curses_init_nhcolors()
                     init_pair(1, CURSES_DARK_GRAY, -1);
                 }
 # endif
+            } else {
+                /* Set flag to use bold for bright colors */
             }
         }
     }
@@ -503,12 +416,6 @@ curses_choose_character()
     char pbuf[QBUFSZ];
     char choice[QBUFSZ];
     char tmpchoice[QBUFSZ];
-
-#ifdef TUTORIAL_MODE
-    winid win;
-    anything any;
-    menu_item *selected = 0;
-#endif
 
     prompt = build_plselection_prompt(pbuf, QBUFSZ, flags.initrole,
                                       flags.initrace, flags.initgend,
@@ -571,63 +478,6 @@ curses_choose_character()
     if (pick4u == 'y') {
         flags.randomall = TRUE;
     }
-#ifdef TUTORIAL_MODE
-    else if (pick4u == 't') {   /* Tutorial mode in UnNetHack */
-        clear();
-        mvaddstr(0, 1, "Choose a character");
-        refresh();
-        win = curses_get_wid(NHW_MENU);
-        curses_create_nhmenu(win);
-        any.a_int = 1;
-        curses_add_menu(win, NO_GLYPH, &any, 'v', 0, ATR_NONE,
-                        "lawful female dwarf Valkyrie (uses melee and thrown weapons)",
-                        MENU_UNSELECTED);
-        any.a_int = 2;
-        curses_add_menu(win, NO_GLYPH, &any, 'w', 0, ATR_NONE,
-                        "chaotic male elf Wizard (relies mostly on spells)",
-                        MENU_UNSELECTED);
-        any.a_int = 3;
-        curses_add_menu(win, NO_GLYPH, &any, 'R', 0, ATR_NONE,
-                        "neutral female human Ranger (good with ranged combat)",
-                        MENU_UNSELECTED);
-        any.a_int = 4;
-        curses_add_menu(win, NO_GLYPH, &any, 'q', 0, ATR_NONE,
-                        "quit", MENU_UNSELECTED);
-        curses_end_menu(win, "What character do you want to try?");
-        n = curses_select_menu(win, PICK_ONE, &selected);
-        destroy_nhwindow(win);
-        if (n != 1 || selected[0].item.a_int == 4) {
-            clearlocks();
-            curses_bail(0);
-        }
-        switch (selected[0].item.a_int) {
-        case 1:
-            flags.initrole = str2role("Valkyrie");
-            flags.initrace = str2race("dwarf");
-            flags.initgend = str2gend("female");
-            flags.initalign = str2align("lawful");
-            break;
-        case 2:
-            flags.initrole = str2role("Wizard");
-            flags.initrace = str2race("elf");
-            flags.initgend = str2gend("male");
-            flags.initalign = str2align("chaotic");
-            break;
-        case 3:
-            flags.initrole = str2role("Ranger");
-            flags.initrace = str2race("human");
-            flags.initgend = str2gend("female");
-            flags.initalign = str2align("neutral");
-            break;
-        default:
-            panic("Impossible menu selection");
-            break;
-        }
-        free((genericptr_t) selected);
-        selected = 0;
-        flags.tutorial = 1;
-    }
-#endif
 
     clear();
     refresh();
@@ -672,8 +522,8 @@ curses_choose_character()
             clearlocks();
             curses_bail(0);
         }
-        free(choices);
-        free(pickmap);
+        free((genericptr_t) choices);
+        free((genericptr_t) pickmap);
     } else if (flags.initrole < 0)
         sel = ROLE_RANDOM;
     else
@@ -734,8 +584,8 @@ curses_choose_character()
                 curses_bail(0);
             }
             flags.initrace = sel;
-            free(choices);
-            free(pickmap);
+            free((genericptr_t) choices);
+            free((genericptr_t) pickmap);
         }
         if (flags.initrace == ROLE_RANDOM) {    /* Random role */
             sel = pick_race(flags.initrole, flags.initgend,
@@ -793,8 +643,8 @@ curses_choose_character()
                 curses_bail(0);
             }
             flags.initgend = sel;
-            free(choices);
-            free(pickmap);
+            free((genericptr_t) choices);
+            free((genericptr_t) pickmap);
         }
         if (flags.initgend == ROLE_RANDOM) {    /* Random gender */
             sel = pick_gend(flags.initrole, flags.initrace,
@@ -850,8 +700,8 @@ curses_choose_character()
                 curses_bail(0);
             }
             flags.initalign = sel;
-            free(choices);
-            free(pickmap);
+            free((genericptr_t) choices);
+            free((genericptr_t) pickmap);
         }
         if (flags.initalign == ROLE_RANDOM) {
             sel = pick_align(flags.initrole, flags.initrace,
@@ -914,7 +764,7 @@ curses_character_dialog(const char **choices, const char *prompt)
         ret--;
     }
 
-    free(selected);
+    free((genericptr_t) selected);
     return ret;
 }
 
@@ -934,7 +784,7 @@ curses_init_options()
     set_option_mod_status("eight_bit_tty", SET_IN_FILE);
 
     /* Add those that are */
-    set_option_mod_status("classic_status", SET_IN_GAME);
+    set_option_mod_status("statuslines", SET_IN_GAME);
 
     /* Make sure that DECgraphics is not set to true via the config
        file, as this will cause display issues.  We can't disable it in
@@ -997,114 +847,24 @@ curses_display_splash_window()
 {
     int x_start;
     int y_start;
-    int which_variant = NETHACK_CURSES; /* Default to NetHack */
+
     curses_get_window_xy(MAP_WIN, &x_start, &y_start);
 
     if ((term_cols < 70) || (term_rows < 20)) {
         iflags.wc_splash_screen = FALSE;        /* No room for s.s. */
     }
-#ifdef DEF_GAME_NAME
-    if (strcmp(DEF_GAME_NAME, "SlashEM") == 0) {
-        which_variant = SLASHEM_CURSES;
-    }
-#endif
-
-#ifdef GAME_SHORT_NAME
-    if (strcmp(GAME_SHORT_NAME, "UNH") == 0) {
-        which_variant = UNNETHACK_CURSES;
-    }
-#endif
-
-    if (strncmp("SporkHack", COPYRIGHT_BANNER_A, 9) == 0) {
-        which_variant = SPORKHACK_CURSES;
-    }
-
-    if (strncmp("GruntHack", COPYRIGHT_BANNER_A, 9) == 0) {
-        which_variant = GRUNTHACK_CURSES;
-    }
-
-    if (strncmp("dNethack", COPYRIGHT_BANNER_A, 8) == 0) {
-        which_variant = DNETHACK_CURSES;
-    }
-
-    if (strncmp("xNetHack", COPYRIGHT_BANNER_A, 8) == 0) {
-        which_variant = XNETHACK_CURSES;
-    }
-
 
     curses_toggle_color_attr(stdscr, CLR_WHITE, A_NORMAL, ON);
     if (iflags.wc_splash_screen) {
-        switch (which_variant) {
-        case NETHACK_CURSES:
-            mvaddstr(y_start, x_start, NETHACK_SPLASH_A);
-            mvaddstr(y_start + 1, x_start, NETHACK_SPLASH_B);
-            mvaddstr(y_start + 2, x_start, NETHACK_SPLASH_C);
-            mvaddstr(y_start + 3, x_start, NETHACK_SPLASH_D);
-            mvaddstr(y_start + 4, x_start, NETHACK_SPLASH_E);
-            mvaddstr(y_start + 5, x_start, NETHACK_SPLASH_F);
-            y_start += 7;
-            break;
-        case SLASHEM_CURSES:
-            mvaddstr(y_start, x_start, SLASHEM_SPLASH_A);
-            mvaddstr(y_start + 1, x_start, SLASHEM_SPLASH_B);
-            mvaddstr(y_start + 2, x_start, SLASHEM_SPLASH_C);
-            mvaddstr(y_start + 3, x_start, SLASHEM_SPLASH_D);
-            mvaddstr(y_start + 4, x_start, SLASHEM_SPLASH_E);
-            mvaddstr(y_start + 5, x_start, SLASHEM_SPLASH_F);
-            y_start += 7;
-            break;
-        case UNNETHACK_CURSES:
-            mvaddstr(y_start, x_start, UNNETHACK_SPLASH_A);
-            mvaddstr(y_start + 1, x_start, UNNETHACK_SPLASH_B);
-            mvaddstr(y_start + 2, x_start, UNNETHACK_SPLASH_C);
-            mvaddstr(y_start + 3, x_start, UNNETHACK_SPLASH_D);
-            mvaddstr(y_start + 4, x_start, UNNETHACK_SPLASH_E);
-            mvaddstr(y_start + 5, x_start, UNNETHACK_SPLASH_F);
-            y_start += 7;
-            break;
-        case SPORKHACK_CURSES:
-            mvaddstr(y_start, x_start, SPORKHACK_SPLASH_A);
-            mvaddstr(y_start + 1, x_start, SPORKHACK_SPLASH_B);
-            mvaddstr(y_start + 2, x_start, SPORKHACK_SPLASH_C);
-            mvaddstr(y_start + 3, x_start, SPORKHACK_SPLASH_D);
-            mvaddstr(y_start + 4, x_start, SPORKHACK_SPLASH_E);
-            mvaddstr(y_start + 5, x_start, SPORKHACK_SPLASH_F);
-            mvaddstr(y_start + 6, x_start, SPORKHACK_SPLASH_G);
-            mvaddstr(y_start + 7, x_start, SPORKHACK_SPLASH_H);
-            y_start += 9;
-            break;
-        case GRUNTHACK_CURSES:
-            mvaddstr(y_start, x_start, GRUNTHACK_SPLASH_A);
-            mvaddstr(y_start + 1, x_start, GRUNTHACK_SPLASH_B);
-            mvaddstr(y_start + 2, x_start, GRUNTHACK_SPLASH_C);
-            mvaddstr(y_start + 3, x_start, GRUNTHACK_SPLASH_D);
-            mvaddstr(y_start + 4, x_start, GRUNTHACK_SPLASH_E);
-            mvaddstr(y_start + 5, x_start, GRUNTHACK_SPLASH_F);
-            y_start += 7;
-            break;
-        case DNETHACK_CURSES:
-            mvaddstr(y_start, x_start, DNETHACK_SPLASH_A);
-            mvaddstr(y_start + 1, x_start, DNETHACK_SPLASH_B);
-            mvaddstr(y_start + 2, x_start, DNETHACK_SPLASH_C);
-            mvaddstr(y_start + 3, x_start, DNETHACK_SPLASH_D);
-            mvaddstr(y_start + 4, x_start, DNETHACK_SPLASH_E);
-            mvaddstr(y_start + 5, x_start, DNETHACK_SPLASH_F);
-            y_start += 7;
-            break;
-        case XNETHACK_CURSES:
-            mvaddstr(y_start, x_start, XNETHACK_SPLASH_A);
-            mvaddstr(y_start + 1, x_start, XNETHACK_SPLASH_B);
-            mvaddstr(y_start + 2, x_start, XNETHACK_SPLASH_C);
-            mvaddstr(y_start + 3, x_start, XNETHACK_SPLASH_D);
-            mvaddstr(y_start + 4, x_start, XNETHACK_SPLASH_E);
-            mvaddstr(y_start + 5, x_start, XNETHACK_SPLASH_F);
-            mvaddstr(y_start + 6, x_start, XNETHACK_SPLASH_G);
-            mvaddstr(y_start + 7, x_start, XNETHACK_SPLASH_H);
-            y_start += 9;
-            break;
-        default:
-            impossible("which_variant number %d out of range", which_variant);
-        }
+        mvaddstr(y_start, x_start, XNETHACK_SPLASH_A);
+        mvaddstr(y_start + 1, x_start, XNETHACK_SPLASH_B);
+        mvaddstr(y_start + 2, x_start, XNETHACK_SPLASH_C);
+        mvaddstr(y_start + 3, x_start, XNETHACK_SPLASH_D);
+        mvaddstr(y_start + 4, x_start, XNETHACK_SPLASH_E);
+        mvaddstr(y_start + 5, x_start, XNETHACK_SPLASH_F);
+        mvaddstr(y_start + 6, x_start, XNETHACK_SPLASH_G);
+        mvaddstr(y_start + 7, x_start, XNETHACK_SPLASH_H);
+        y_start += 9;
     }
 
     curses_toggle_color_attr(stdscr, CLR_WHITE, A_NORMAL, OFF);

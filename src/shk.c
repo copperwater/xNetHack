@@ -1,4 +1,4 @@
-/* NetHack 3.6	shk.c	$NHDT-Date: 1515144230 2018/01/05 09:23:50 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.136 $ */
+/* NetHack 3.6	shk.c	$NHDT-Date: 1542853899 2018/11/22 02:31:39 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.142 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1827,9 +1827,10 @@ int croaked;
             eshkp->robbed -= umoney;
             if (eshkp->robbed < 0L)
                 eshkp->robbed = 0L;
-            if (umoney > 0)
+            if (umoney > 0L) {
                 money2mon(shkp, umoney);
-            context.botl = 1;
+                context.botl = 1;
+            }
             pline("%s %s all your possessions.", Shknam(shkp), takes);
             taken = TRUE;
             /* where to put player's invent (after disclosure) */
@@ -2435,6 +2436,8 @@ register struct monst *shkp;
 {
     register struct obj *otmp;
 
+    if (SchroedingersBox(obj))
+        return;
     for (otmp = obj->cobj; otmp; otmp = otmp->nobj) {
         if (otmp->oclass == COIN_CLASS)
             continue;
@@ -2632,15 +2635,16 @@ char *buf;
     static const char *const honored[] = { "good", "honored", "most gracious",
                                            "esteemed",
                                            "most renowned and sacred" };
+
     Strcat(buf, honored[rn2(SIZE(honored) - 1) + u.uevent.udemigod]);
     if (is_vampire(youmonst.data))
         Strcat(buf, (flags.female) ? " dark lady" : " dark lord");
     else if (is_elf(youmonst.data))
         Strcat(buf, (flags.female) ? " hiril" : " hir");
     else
-        Strcat(buf, !is_human(youmonst.data) ? " creature" : (flags.female)
-                                                                 ? " lady"
-                                                                 : " sir");
+        Strcat(buf, !is_human(youmonst.data) ? " creature"
+                                             : (flags.female) ? " lady"
+                                                              : " sir");
 }
 
 void
@@ -2831,6 +2835,7 @@ boolean peaceful, silent;
 
     if (peaceful) {
         boolean credit_use = !!ESHK(shkp)->credit;
+
         value = check_credit(value, shkp);
         /* 'peaceful' affects general treatment, but doesn't affect
          * the fact that other code expects that all charges after the
@@ -4070,8 +4075,10 @@ boolean cant_mollify;
             currency(cost_of_damage), !animal ? "\"" : "");
     if (yn(qbuf) != 'n') {
         cost_of_damage = check_credit(cost_of_damage, shkp);
-        money2mon(shkp, cost_of_damage);
-        context.botl = 1;
+        if (cost_of_damage > 0L) {
+            money2mon(shkp, cost_of_damage);
+            context.botl = 1;
+        }
         pline("Mollified, %s accepts your restitution.", shkname(shkp));
         /* move shk back to his home loc */
         home_shk(shkp, FALSE);

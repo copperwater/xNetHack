@@ -1,3 +1,6 @@
+/* NetHack 3.6 cursstat.c */
+/* Copyright (c) Karl Garrison, 2010. */
+/* NetHack may be freely redistributed.  See license for details. */
 /* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
 #include <ctype.h> /* toupper() */
@@ -31,9 +34,9 @@ static int FDECL(condcolor, (long, unsigned long *));
 static int FDECL(condattr, (long, unsigned long *));
 #endif /* STATUS_HILITES */
 static void FDECL(draw_status, (unsigned long *));
-static void FDECL(draw_classic, (boolean, unsigned long *));
-static void FDECL(draw_vertical, (boolean, unsigned long *));
-static void FDECL(draw_horizontal, (boolean, unsigned long *));
+static void FDECL(draw_classic, (BOOLEAN_P, unsigned long *));
+static void FDECL(draw_vertical, (BOOLEAN_P, unsigned long *));
+static void FDECL(draw_horizontal, (BOOLEAN_P, unsigned long *));
 
 void
 curses_status_init()
@@ -246,14 +249,15 @@ unsigned long *colormasks;
 
     /* Figure out if we have proper window dimensions for horizontal statusbar. */
     if (horiz) {
+        int ax = 0;
+        int ay = 0;
+
         /* correct y */
         int cy = 3;
-        if (iflags.classic_status)
+        if (iflags.statuslines < 3)
             cy = 2;
 
         /* actual y (and x) */
-        int ax = 0;
-        int ay = 0;
         getmaxyx(win, ay, ax);
         if (border)
             ay -= 2;
@@ -268,7 +272,7 @@ unsigned long *colormasks;
 
     werase(win);
     if (horiz) {
-        if (iflags.classic_status)
+        if (iflags.statuslines < 3)
             draw_classic(border, colormasks);
         else
             draw_horizontal(border, colormasks);
@@ -339,7 +343,7 @@ unsigned long *colormasks;
                 /* hitpointbar using hp percent calculation */
                 int bar_pos, bar_len;
                 char *bar2 = (char *)0;
-                char bar[MAXCO], savedch;
+                char bar[MAXCO], savedch = 0;
                 boolean twoparts = FALSE;
 
                 text = status_vals[fldidx1];
@@ -536,13 +540,13 @@ unsigned long *colormasks;
                 /* hitpointbar using hp percent calculation */
                 int bar_pos, bar_len;
                 char *bar2 = (char *)0;
-                char bar[MAXCO], savedch;
+                char bar[MAXCO], savedch = 0;
                 boolean twoparts = FALSE;
                 int height,width;
 
                 text = status_vals[fldidx1];
                 getmaxyx(win, height, width);
-                bar_len = min(strlen(text), width - (border ? 4 : 2));
+                bar_len = min(strlen(text), (size_t)width - (border ? 4 : 2));
                 text[bar_len] = '\0';
                 if (bar_len < MAXCO-1) {
                     Strcpy(bar, text);
@@ -642,7 +646,7 @@ unsigned long *bmarray;
 }
 #endif /* STATUS_HILITES */
 
-#if 0 //old stuff to be re-incorporated
+#if 0 /* old stuff to be re-incorporated */
 /* Private declarations */
 
 /* Used to track previous value of things, to highlight changes. */
@@ -1073,7 +1077,7 @@ curses_update_stats(void)
     if (horiz) {
         /* correct y */
         int cy = 3;
-        if (iflags.classic_status)
+        if (iflags.statuslines < 3)
             cy = 2;
 
         /* actual y (and x) */
@@ -1135,7 +1139,7 @@ curses_update_stats(void)
 static void
 draw_horizontal(int x, int y, int hp, int hpmax)
 {
-    if (!iflags.classic_status) {
+    if (iflags.statuslines >= 3) {
         /* Draw new-style statusbar */
         draw_horizontal_new(x, y, hp, hpmax);
         return;
@@ -1178,11 +1182,7 @@ draw_horizontal(int x, int y, int hp, int hpmax)
 
     wprintw(win, "%s", buf);
 
-#ifndef GOLDOBJ
-    print_statdiff("$", &prevau, u.ugold, STAT_GOLD);
-#else
     print_statdiff("$", &prevau, money_cnt(invent), STAT_GOLD);
-#endif
 
     /* HP/Pw use special coloring rules */
     attr_t hpattr, pwattr;
@@ -1210,14 +1210,12 @@ draw_horizontal(int x, int y, int hp, int hpmax)
 
     if (Upolyd)
         print_statdiff(" HD:", &prevlevel, mons[u.umonnum].mlevel, STAT_OTHER);
-#ifdef EXP_ON_BOTL
     else if (flags.showexp) {
         print_statdiff(" Xp:", &prevlevel, u.ulevel, STAT_OTHER);
         /* use waddch, we don't want to highlight the '/' */
         waddch(win, '/');
         print_statdiff("", &prevexp, u.uexp, STAT_OTHER);
     }
-#endif
     else
         print_statdiff(" Exp:", &prevlevel, u.ulevel, STAT_OTHER);
 
@@ -1255,7 +1253,6 @@ draw_horizontal_new(int x, int y, int hp, int hpmax)
     print_statdiff(" AC:", &prevac, u.uac, STAT_AC);
     if (Upolyd)
         print_statdiff(" HD:", &prevlevel, mons[u.umonnum].mlevel, STAT_OTHER);
-#ifdef EXP_ON_BOTL
     else if (flags.showexp) {
         /* Ensure that Xp have proper highlight on level change. */
         int levelchange = 0;
@@ -1282,7 +1279,6 @@ draw_horizontal_new(int x, int y, int hp, int hpmax)
         print_statdiff("", &prevexp, xp_left, STAT_AC);
         waddch(win, ')');
     }
-#endif
     else
         print_statdiff(" Exp:", &prevlevel, u.ulevel, STAT_OTHER);
 
@@ -1297,11 +1293,7 @@ draw_horizontal_new(int x, int y, int hp, int hpmax)
     wprintw(win, "Pw:");
     draw_bar(FALSE, u.uen, u.uenmax, NULL);
 
-#ifndef GOLDOBJ
-    print_statdiff(" $", &prevau, u.ugold, STAT_GOLD);
-#else
     print_statdiff(" $", &prevau, money_cnt(invent), STAT_GOLD);
-#endif
 
 #ifdef SCORE_ON_BOTL
     if (flags.showscore)
@@ -1417,11 +1409,7 @@ draw_vertical(int x, int y, int hp, int hpmax)
         wprintw(win, "%d", depth(&u.uz));
     wmove(win, y++, x);
 
-#ifndef GOLDOBJ
-    print_statdiff("Gold:          ", &prevau, u.ugold, STAT_GOLD);
-#else
     print_statdiff("Gold:          ", &prevau, money_cnt(invent), STAT_GOLD);
-#endif
     wmove(win, y++, x);
 
     /* HP/Pw use special coloring rules */
@@ -1454,14 +1442,12 @@ draw_vertical(int x, int y, int hp, int hpmax)
 
     if (Upolyd)
         print_statdiff("Hit Dice:      ", &prevlevel, mons[u.umonnum].mlevel, STAT_OTHER);
-#ifdef EXP_ON_BOTL
     else if (flags.showexp) {
         print_statdiff("Experience:    ", &prevlevel, u.ulevel, STAT_OTHER);
         /* use waddch, we don't want to highlight the '/' */
         waddch(win, '/');
         print_statdiff("", &prevexp, u.uexp, STAT_OTHER);
     }
-#endif
     else
         print_statdiff("Level:         ", &prevlevel, u.ulevel, STAT_OTHER);
     wmove(win, y++, x);
@@ -1589,9 +1575,7 @@ curses_decrement_highlights(boolean zero)
     unhighlight |= decrement_highlight(&prevau, zero);
     unhighlight |= decrement_highlight(&prevlevel, zero);
     unhighlight |= decrement_highlight(&prevac, zero);
-#ifdef EXP_ON_BOTL
     unhighlight |= decrement_highlight(&prevexp, zero);
-#endif
     unhighlight |= decrement_highlight(&prevtime, zero);
 #ifdef SCORE_ON_BOTL
     unhighlight |= decrement_highlight(&prevscore, zero);

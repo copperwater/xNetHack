@@ -3627,26 +3627,10 @@ const char *fmt;
 boolean enable;
 {
     genl_status_enablefield(fieldidx, nm, fmt, enable);
+#ifdef STATUS_HILITES
     /* force re-evaluation of last field on the row */
     setlast = FALSE;
-}
-
-void
-do_setlast()
-{
-    int i, row, fld;
-
-    setlast = TRUE;
-    for (row = 0; row < 2; ++row)
-        for (i = MAX_PER_ROW - 1; i > 0; --i) {
-           fld = fieldorder[row][i];
-
-           if (fld == BL_FLUSH || !status_activefields[fld])
-                continue;
-
-           last_on_row[row] = fld;
-           break;
-	}
+#endif
 }
 
 #ifdef STATUS_HILITES
@@ -3822,6 +3806,24 @@ unsigned long *colormasks;
     return;
 }
 
+void
+do_setlast()
+{
+    int i, row, fld;
+
+    setlast = TRUE;
+    for (row = 0; row < 2; ++row)
+        for (i = MAX_PER_ROW - 1; i > 0; --i) {
+           fld = fieldorder[row][i];
+
+           if (fld == BL_FLUSH || !status_activefields[fld])
+                continue;
+
+           last_on_row[row] = fld;
+           break;
+	}
+}
+
 STATIC_OVL int
 make_things_fit(force_update)
 boolean force_update;
@@ -3882,7 +3884,7 @@ boolean forcefields;
 int *topsz, *bottomsz;
 {
     int c, i, row, col, trackx, idx;
-    boolean valid = TRUE, matchprev = FALSE, update_right, disregard;
+    boolean valid = TRUE, matchprev = FALSE, update_right, disregard = FALSE;
 
     if (!windowdata_init && !check_windowdata())
         return FALSE;
@@ -3891,6 +3893,7 @@ int *topsz, *bottomsz;
         col = 1;
         trackx = 1;
         update_right = FALSE;
+        idx = -1;
         for (i = 0; fieldorder[row][i] != BL_FLUSH; ++i) {
             idx = fieldorder[row][i];
             if (!status_activefields[idx])
@@ -3956,10 +3959,12 @@ int *topsz, *bottomsz;
                 tty_status[NOW][idx].redraw = TRUE;
             col += tty_status[NOW][idx].lth;
         }
-        if (row && bottomsz)
-            *bottomsz = col + tty_status[NOW][idx].lth;
-        else if (topsz)
-            *topsz = col + tty_status[NOW][idx].lth;
+        if (idx != -1) {
+            if (row && bottomsz)
+                *bottomsz = col + tty_status[NOW][idx].lth;
+            else if (topsz)
+                *topsz = col + tty_status[NOW][idx].lth;
+        }
     }
     return valid;
 }
@@ -3975,7 +3980,7 @@ struct tty_status_fields *fld;
 const char *val;
 int x, y;
 {
-    int i, n, ncols, lth;
+    int i, n, ncols, lth = 0;
     struct WinDesc *cw = 0;
     const char *text = (char *)0;
 
@@ -4288,7 +4293,7 @@ render_status(VOID_ARGS)
                     /* hitpointbar using hp percent calculation */
                     int bar_pos, bar_len;
                     char *bar2 = (char *)0;
-                    char bar[MAXCO], savedch;
+                    char bar[MAXCO], savedch = 0;
                     boolean twoparts = FALSE;
 
                     bar_len = strlen(text);

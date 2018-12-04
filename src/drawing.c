@@ -552,9 +552,10 @@ boolean name_too;
  * to this array at the matching offset.
  */
 const char *known_handling[] = {
-    "UNKNOWN", /* H_UNK */
-    "IBM",     /* H_IBM */
-    "DEC",     /* H_DEC */
+    "UNKNOWN", /* H_UNK  */
+    "IBM",     /* H_IBM  */
+    "DEC",     /* H_DEC  */
+    "CURS",    /* H_CURS */
     (const char *) 0,
 };
 

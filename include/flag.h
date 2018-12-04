@@ -316,6 +316,7 @@ struct instance_flags {
     boolean rlecomp;          /* alternative to zerocomp; run-length encoding
                                * compression of levels when writing savefile */
     uchar num_pad_mode;
+    boolean cursesgraphics;     /* Use portable curses extended characters */
 #if 0   /* XXXgraphics superseded by symbol sets */
     boolean  DECgraphics;       /* use DEC VT-xxx extended character set */
     boolean  IBMgraphics;       /* use IBM extended character set */
@@ -327,6 +328,8 @@ struct instance_flags {
     uchar bouldersym; /* symbol for boulder display */
 #if defined(TTY_GRAPHICS) || defined(CURSES_GRAPHICS)
     char prevmsg_window; /* type of old message window to use */
+#endif
+#if defined(TTY_GRAPHICS) || defined(CURSES_GRAPHICS)
     boolean extmenu;     /* extended commands use menu interface */
 #endif
 #ifdef CURSES_GRAPHICS
@@ -371,8 +374,10 @@ struct instance_flags {
 #ifdef TTY_TILES_ESCCODES
     boolean vt_tiledata;     /* output console codes for tile support in TTY */
 #endif
-    boolean wizweight;        /* display weight of everything in wizard mode */
-
+    boolean wizweight;       /* display weight of everything in wizard mode */
+    boolean cmdassist;       /* provide detailed assistance for some commands */
+    boolean clicklook;          /* allow right-clicking for look */
+    int statuslines;         /* default = 2, code support for alternative 3 */
     /*
      * Window capability support.
      */
@@ -418,22 +423,18 @@ struct instance_flags {
     boolean wc_popup_dialog;    /* put queries in pop up dialogs instead of
                                  * in the message window */
     boolean wc_eight_bit_input; /* allow eight bit input               */
-    boolean wc_mouse_support;   /* allow mouse support */
     boolean wc2_fullscreen;     /* run fullscreen */
     boolean wc2_softkeyboard;   /* use software keyboard */
     boolean wc2_wraptext;       /* wrap text */
     boolean wc2_selectsaved;    /* display a menu of user's saved games */
-    boolean wc2_darkgray;   /* try to use dark-gray color for black glyphs */
-    boolean wc2_hitpointbar;/* show graphical bar representing hit points */
-    int wc2_windowborders;  /* display borders around windows */
-    int wc2_term_cols;      /* terminal size x */
-    int wc2_term_rows;      /* terminal size y */
-    int wc2_petattr;        /* text attributes for pet */
+    boolean wc2_darkgray;    /* try to use dark-gray color for black glyphs */
+    boolean wc2_hitpointbar;  /* show graphical bar representing hit points */
+    int wc_mouse_support;       /* allow mouse support */
+    int wc2_term_cols;		/* terminal width, in characters */
+    int wc2_term_rows;		/* terminal height, in characters */
+    int wc2_windowborders;	/* display borders on NetHack windows */
+    int wc2_petattr;            /* text attributes for pet */
     boolean wc2_guicolor;   /* allow colours in gui (outside map) */
-    boolean cmdassist;      /* provide detailed assistance for some commands */
-    boolean clicklook;      /* allow right-clicking for look */
-    boolean msg_is_alert; /* suggest windowport should grab player's attention
-                           * and request <TAB> acknowlegement */
     boolean obsolete;  /* obsolete options can point at this, it isn't used */
     struct autopickup_exception *autopickup_exceptions[2];
 #define AP_LEAVE 0
@@ -454,6 +455,7 @@ struct instance_flags {
     short soko_prize_type1;     /* bag of holding or    */
     short soko_prize_type2;     /* amulet of reflection */
     struct debug_flags debug;
+    boolean windowtype_locked;  /* windowtype can't change from configfile */
 };
 
 /*

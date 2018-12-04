@@ -5,7 +5,7 @@
 #ifndef NTCONF_H
 #define NTCONF_H
 
-/* #define SHELL	/* nt use of pcsys routines caused a hang */
+/* #define SHELL */	/* nt use of pcsys routines caused a hang */
 
 #define RANDOM    /* have Berkeley random(3) */
 #define TEXTCOLOR /* Color text */
@@ -43,7 +43,7 @@
  *  The remaining code shouldn't need modification.
  * -----------------------------------------------------------------
  */
-/* #define SHORT_FILENAMES	/* All NT filesystems support long names now
+/* #define SHORT_FILENAMES */ /* All NT filesystems support long names now
  */
 
 #ifdef MICRO
@@ -93,6 +93,16 @@ extern void FDECL(interject, (int));
  * Compiler-specific adjustments
  *===============================================
  */
+
+#ifdef __MINGW32__
+#ifdef strncasecmp
+#undef strncasecmp
+#endif
+#ifdef strcasecmp
+#undef strcasecmp
+#endif
+#endif
+ 
 #ifdef _MSC_VER
 #if (_MSC_VER > 1000)
 /* Visual C 8 warning elimination */
@@ -133,11 +143,13 @@ extern void FDECL(interject, (int));
 #define strncmpi(a, b, c) strnicmp(a, b, c)
 #endif
 
+#ifdef _MSC_VER
 /* Visual Studio defines this in their own headers, which we don't use */
 #ifndef snprintf
 #define snprintf _snprintf
 #pragma warning( \
     disable : 4996) /* deprecation warning suggesting snprintf_s */
+#endif
 #endif
 
 #include <sys/types.h>
@@ -227,7 +239,9 @@ open(const char _FAR *__path, int __access, ... /*unsigned mode*/);
 long _RTLENTRY _EXPFUNC lseek(int __handle, long __offset, int __fromwhere);
 int _RTLENTRY _EXPFUNC read(int __handle, void _FAR *__buf, unsigned __len);
 #endif
-#include <conio.h>
+#ifndef CURSES_GRAPHICS
+#include <conio.h>      /* conflicting definitions with curses.h */
+#endif
 #undef kbhit /* Use our special NT kbhit */
 #define kbhit (*nt_kbhit)
 

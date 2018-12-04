@@ -1,3 +1,6 @@
+/* NetHack 3.6 cursmain.c */
+/* Copyright (c) Karl Garrison, 2010. */
+/* NetHack may be freely redistributed.  See license for details. */
 /* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
 #include "curses.h"
@@ -76,6 +79,16 @@ struct window_procs curses_procs = {
     curses_status_update,
     genl_can_suspend_yes,
 };
+
+/*
+ * Global variables for curses interface
+ */
+
+int term_rows, term_cols;   /* size of underlying terminal */
+int orig_cursor;	    /* Preserve initial cursor state */
+WINDOW *base_term;          /* underlying terminal window */
+boolean counting;           /* Count window is active */
+WINDOW *mapwin, *statuswin, *messagewin;    /* Main windows */
 
 /* Track if we're performing an update to the permanent window.
    Needed since we aren't using the normal menu functions to handle
@@ -584,9 +597,12 @@ curses_print_glyph(winid wid, XCHAR_P x, XCHAR_P y, int glyph, int bkglyph)
         ch = curses_convert_glyph(ch, glyph);
     }
     if (wid == NHW_MAP) {
+/* hilite stairs not in 3.6, yet
         if ((special & MG_STAIRS) && iflags.hilite_hidden_stairs) {
             color = 16 + (color * 2);
-        } else if ((special & MG_OBJPILE) && iflags.hilite_pile) {
+        } else
+*/
+        if ((special & MG_OBJPILE) && iflags.hilite_pile) {
             color = 16 + (color * 2) + 1;
         }
     }
@@ -817,3 +833,4 @@ curses_preference_update(const char *pref)
         doredraw();
     }
 }
+

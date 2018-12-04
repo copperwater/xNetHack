@@ -182,7 +182,7 @@ dosave0()
     dotcnt = 0;
     dotrow = 2;
     curs(WIN_MAP, 1, 1);
-    if (strncmpi("X11", windowprocs.name, 3))
+    if (!WINDOWPORT("X11"))
         putstr(WIN_MAP, 0, "Saving:");
 #endif
 #ifdef MFLOPPY
@@ -246,7 +246,7 @@ dosave0()
             dotrow++;
             dotcnt = 0;
         }
-        if (strncmpi("X11", windowprocs.name, 3)) {
+        if (!WINDOWPORT("X11")) {
             putstr(WIN_MAP, 0, ".");
         }
         mark_synch();
@@ -540,6 +540,11 @@ skip_lots:
     saveobjchn(fd, level.buriedobjlist, mode);
     saveobjchn(fd, billobjs, mode);
     if (release_data(mode)) {
+        int x,y;
+
+        for (y = 0; y < ROWNO; y++)
+            for (x = 0; x < COLNO; x++)
+                level.monsters[x][y] = 0;
         fmon = 0;
         ftrap = 0;
         fobj = 0;

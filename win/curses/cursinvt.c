@@ -1,3 +1,6 @@
+/* NetHack 3.6 cursinvt.c */
+/* Copyright (c) Karl Garrison, 2010. */
+/* NetHack may be freely redistributed.  See license for details. */
 /* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
 #include "curses.h"
@@ -12,6 +15,10 @@ void
 curses_update_inv(void)
 {
     WINDOW *win = curses_get_nhwin(INV_WIN);
+    boolean border;
+    int x = 0;
+    int y = 0;
+    attr_t attr = A_UNDERLINE;
 
     /* Check if the inventory window is enabled in first place */
     if (!win) {
@@ -25,11 +32,9 @@ curses_update_inv(void)
         return;
     }
 
-    boolean border = curses_window_has_border(INV_WIN);
+    border = curses_window_has_border(INV_WIN);
 
     /* Figure out drawing area */
-    int x = 0;
-    int y = 0;
     if (border) {
         x++;
         y++;
@@ -39,7 +44,6 @@ curses_update_inv(void)
     werase(win);
 
     wmove(win, y, x);
-    attr_t attr = A_UNDERLINE;
     wattron(win, attr);
     wprintw(win, "Inventory:");
     wattroff(win, attr);
@@ -62,6 +66,7 @@ curses_add_inv(int y, int glyph, CHAR_P accelerator, attr_t attr,
                const char *str)
 {
     WINDOW *win = curses_get_nhwin(INV_WIN);
+    int color = NO_COLOR;
 
     /* Figure out where to draw the line */
     int x = 0;
@@ -78,7 +83,7 @@ curses_add_inv(int y, int glyph, CHAR_P accelerator, attr_t attr,
         wattroff(win, bold);
         wprintw(win, ") ");
     }
-#if 0 // FIXME: MENU GLYPHS
+#if 0 /* FIXME: MENU GLYPHS */
     if (accelerator && glyph != NO_GLYPH && iflags.use_menu_glyphs) {
         unsigned dummy = 0; /* Not used */
         int color = 0;
@@ -91,21 +96,18 @@ curses_add_inv(int y, int glyph, CHAR_P accelerator, attr_t attr,
         wattroff(win, glyphclr);
     }
 #endif
-    int color = NO_COLOR;
     if (accelerator && /* Don't colorize categories */
         iflags.use_menu_color) {
-        boolean menu_color = FALSE;
         char str_mutable[BUFSZ];
         Strcpy(str_mutable, str);
         attr = 0;
-        get_menu_coloring(str_mutable, &color, &attr);
+        get_menu_coloring(str_mutable, &color, (int *) &attr);
         attr = curses_convert_attr(attr);
     }
     if (color == NO_COLOR) color = NONE;
     curses_toggle_color_attr(win, color, attr, ON);
-    //wattron(win, attr);
     wprintw(win, "%s", str);
-    //wattroff(win, attr);
+    /* wattroff(win, attr); */
     curses_toggle_color_attr(win, color, attr, OFF);
     wclrtoeol(win);
 }

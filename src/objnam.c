@@ -1,4 +1,4 @@
-/* NetHack 3.6	objnam.c	$NHDT-Date: 1539938837 2018/10/19 08:47:17 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.214 $ */
+/* NetHack 3.6	objnam.c	$NHDT-Date: 1543745355 2018/12/02 10:09:15 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.227 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1183,15 +1183,16 @@ unsigned doname_flags;
 
             if (bimanual(obj))
                 hand_s = makeplural(hand_s);
+            /* note: Sting's glow message, if added, will insert text
+               in front of "(weapon in hand)"'s closing paren */
             Sprintf(eos(bp), " (%sweapon in %s)",
                     (obj->otyp == AKLYS) ? "tethered " : "", hand_s);
 
             if (warn_obj_cnt && obj == uwep && (EWarn_of_mon & W_WEP) != 0L) {
-                /* presumably can be felt when blind */
-                Strcat(bp, " (glowing");
-                if (!Blind)
-                    Sprintf(eos(bp), " %s", glow_color(obj->oartifact));
-                Strcat(bp, ")");
+                if (!Blind) /* we know bp[] ends with ')'; overwrite that */
+                    Sprintf(eos(bp) - 1, ", %s %s)",
+                            glow_verb(warn_obj_cnt, TRUE),
+                            glow_color(obj->oartifact));
             }
         }
     }

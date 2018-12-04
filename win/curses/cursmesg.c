@@ -1,3 +1,6 @@
+/* NetHack 3.6 cursmesg.c */
+/* Copyright (c) Karl Garrison, 2010. */
+/* NetHack may be freely redistributed.  See license for details. */
 /* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
 #include "curses.h"
@@ -114,7 +117,7 @@ curses_message_win_puts(const char *message, boolean recursed)
         tmpstr = curses_break_str(message, (width - 2), 1);
         mvwprintw(win, my, mx, "%s", tmpstr);
         mx += strlen(tmpstr);
-        if (strlen(tmpstr) < (width - 2)) {
+        if (strlen(tmpstr) < (size_t) (width - 2)) {
             mx++;
         }
         free(tmpstr);
@@ -138,25 +141,20 @@ curses_block(boolean noscroll)
 /* noscroll - blocking because of msgtype = stop/alert */
 /* else blocking because window is full, so need to scroll after */
 {
-    int height, width, ret;
+    int height, width, ret = 0;
     WINDOW *win = curses_get_nhwin(MESSAGE_WIN);
     char *resp = " \n\033"; /* space, enter, esc */
 
 
     curses_get_window_size(MESSAGE_WIN, &height, &width);
     curses_toggle_color_attr(win, MORECOLOR, NONE, ON);
-    mvwprintw(win, my, mx, iflags.msg_is_alert ? "<TAB!>" : ">>");
+    mvwprintw(win, my, mx, ">>");
     curses_toggle_color_attr(win, MORECOLOR, NONE, OFF);
-    if (iflags.msg_is_alert)
-        curses_alert_main_borders(TRUE);
     wrefresh(win);
-    while (iflags.msg_is_alert && (ret = wgetch(win) != '\t'));
     /* msgtype=stop should require space/enter rather than
      * just any key, as we want to prevent YASD from
      * riding direction keys. */
-    while (!iflags.msg_is_alert && (ret = wgetch(win)) && !index(resp,(char)ret));
-    if (iflags.msg_is_alert)
-        curses_alert_main_borders(FALSE);
+    while ((ret = wgetch(win)) && !index(resp,(char)ret));
     if (height == 1) {
         curses_clear_unhighlight_message_window();
     } else {
@@ -225,6 +223,8 @@ void
 curses_last_messages()
 {
     boolean border = curses_window_has_border(MESSAGE_WIN);
+    nhprev_mesg *mesg;
+    int i;
 
     if (border) {
         mx = 1;
@@ -234,8 +234,6 @@ curses_last_messages()
         my = 0;
     }
 
-    nhprev_mesg *mesg;
-    int i;
     for (i = (num_messages - 1); i > 0; i--) {
         mesg = get_msg_line(TRUE, i);
         if (mesg && mesg->str && strcmp(mesg->str, ""))
@@ -356,12 +354,12 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
     char *tmpstr; /* for free() */
     int maxy, maxx; /* linewrap / scroll */
     int ch;
-
     WINDOW *win = curses_get_nhwin(MESSAGE_WIN);
     int border_space = 0;
     int len = 0; /* of answer string */
     boolean border = curses_window_has_border(MESSAGE_WIN);
-    int orig_cursor = curs_set(0);
+
+    orig_cursor = curs_set(0);
 
     curses_get_window_size(MESSAGE_WIN, &height, &width);
     if (border) {
@@ -484,7 +482,7 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
             p_answer[--len] = '\0';
             mvwaddch(win, my, --mx, ' ');
             /* try to unwrap back to the previous line if there is one */
-            if (nlines > 1 && strlen(linestarts[nlines - 2]) < width) {
+            if (nlines > 1 && strlen(linestarts[nlines - 2]) < (size_t) width) {
                 mvwaddstr(win, my - 1, border_space, linestarts[nlines - 2]);
                 if (nlines-- > height) {
                     unscroll_window(MESSAGE_WIN);
