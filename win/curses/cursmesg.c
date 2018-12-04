@@ -151,6 +151,7 @@ curses_block(boolean noscroll)
     mvwprintw(win, my, mx, ">>");
     curses_toggle_color_attr(win, MORECOLOR, NONE, OFF);
     wrefresh(win);
+    while (noscroll && (ret = wgetch(win) != '\t'));
     /* msgtype=stop should require space/enter rather than
      * just any key, as we want to prevent YASD from
      * riding direction keys. */
