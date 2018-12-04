@@ -533,6 +533,28 @@ typedef unsigned char uchar;
    but it isn't necessary for successful operation of the program */
 #define FREE_ALL_MEMORY             /* free all memory at exit */
 
+/* Extra enhancements borrowed from nao343 and elsewhere for dgamelaunch-based
+ * server play */
+/* #define DGAMELAUNCH */
+
+#ifdef DGAMELAUNCH
+
+/* Extrainfo contains some brief bits of information that are useful to show in
+ * a menu listing games that are currently in play on a server */
+#define EXTRAINFO_FN    "/dgldir/extrainfo-nhdev/%n.extrainfo"
+
+/* How many moves between checking for more incoming mail. */
+#define MAILCKFREQ 5  /* SIMPLE_MAIL is in unixconf.h */
+
+/* Write out player's current location to player.whereis */
+#define WHEREIS_FILE "whereis/%n.whereis"
+
+#endif /* DGAMELAUNCH */
+
+/* End-of-game dump logs showing the map, messages, stats, identified
+ * possessions, vanquished monsters, etc. */
+#define DUMPLOG
+
 /* EXTRA_SANITY_CHECKS adds extra impossible calls,
  * probably not useful for normal play */
 /* #define EXTRA_SANITY_CHECKS */
@@ -541,8 +563,6 @@ typedef unsigned char uchar;
    so some prompts will remember the previously input text
    (within the same session) */
 /* #define EDIT_GETLIN */
-
-#define WHEREIS_FILE "whereis/%n.whereis" /* Write out player's current location to player.whereis */
 
 #ifdef DUMPLOG
 
