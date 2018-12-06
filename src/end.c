@@ -1377,6 +1377,17 @@ int how;
         umoney += hidden_gold(); /* accumulate gold from containers */
         tmp = umoney - tmp;      /* net gain */
 
+        /* There's not really any particular reason that a dungeon that was 52
+         * levels deep should be worth more than a dungeon that was 45 levels
+         * deep. The only people who realistically care about score at these
+         * stages of the game are those who are trying to get the minimum score,
+         * which is only possible when the sanctum is on level 45, and it really
+         * annoys them that an unknowable variable decided at the start of the
+         * game controls whether they can actually get it or not.
+         */
+        if (deepest > 45)
+            deepest = 45;
+
         if (tmp < 0L)
             tmp = 0L;
         if (how < PANICKED)

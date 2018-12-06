@@ -183,6 +183,8 @@ Make gnomish wizards, kobold shamans, and orc shamans telepathic. Their corpses
   may now occasionally convey telepathy (infrequent, unlike floating eyes).
 The corpse of any casting monster now follows the same logic as newt corpses to
   make the player regain some energy and maybe gain a point to their max.
+You no longer get additional score for reaching a deeper dungeon level than 45.
+  This is mainly so that true min-score can be achieved in any game.
 
 It contains the following non-gameplay architectural changes:
 
