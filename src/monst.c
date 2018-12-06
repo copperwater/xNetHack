@@ -160,15 +160,15 @@ NEARDATA struct permonst mons[] = {
         M1_NOEYES | M1_NOLIMBS | M1_NOHEAD | M1_MINDLESS,
         M2_WANDER | M2_HOSTILE | M2_NEUTER, 0, 6, CLR_WHITE),
     MON("gelatinous cube", S_BLOB, LVL(6, 6, 8, 0, 0), (G_GENO | 2),
-        A(ATTK(AT_TUCH, AD_PLYS, 2, 4), ATTK(AT_ENGL, AD_WRAP, 1, 4),
-          ATTK(AT_NONE, AD_PLYS, 1, 4), NO_ATTK, NO_ATTK, NO_ATTK),
+        A(ATTK(AT_TUCH, AD_PLYS, 2, 4), ATTK(AT_NONE, AD_PLYS, 1, 4), NO_ATTK,
+          NO_ATTK, NO_ATTK, NO_ATTK),
         SIZ(600, 150, MS_SILENT, MZ_LARGE),
         MR_FIRE | MR_COLD | MR_ELEC | MR_SLEEP | MR_POISON | MR_ACID
             | MR_STONE,
         MR_FIRE | MR_COLD | MR_ELEC | MR_SLEEP,
         M1_NOEYES | M1_NOLIMBS | M1_NOHEAD | M1_MINDLESS | M1_OMNIVORE
             | M1_ACID,
-        M2_WANDER | M2_HOSTILE | M2_NEUTER, 0, 16, CLR_CYAN),
+        M2_WANDER | M2_HOSTILE | M2_NEUTER, 0, 8, CLR_CYAN),
     /*
      * cockatrice
      */
@@ -1355,8 +1355,8 @@ NEARDATA struct permonst mons[] = {
             | M1_WALLWALK | M1_THICK_HIDE,
         M2_STRONG | M2_NEUTER, 0, 10, CLR_BROWN),
     MON("water elemental", S_ELEMENTAL, LVL(8, 6, 2, 30, 0), (G_NOCORPSE | 1),
-        A(ATTK(AT_CLAW, AD_PHYS, 5, 6), ATTK(AT_ENGL, AD_WRAP, 4, 4),
-          ATTK(AT_NONE, AD_RUST, 0, 0), NO_ATTK, NO_ATTK, NO_ATTK),
+        A(ATTK(AT_CLAW, AD_PHYS, 5, 6), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
+          NO_ATTK),
         SIZ(2500, 0, MS_SILENT, MZ_HUGE), MR_POISON | MR_STONE, 0,
         M1_NOEYES | M1_NOLIMBS | M1_NOHEAD | M1_MINDLESS | M1_BREATHLESS
             | M1_UNSOLID | M1_AMPHIBIOUS | M1_SWIM,

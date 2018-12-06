@@ -1375,13 +1375,8 @@ register struct attack *mattk;
             tmp = 0;
         break;
     case AD_WRAP: /* monsters cannot grab one another, it's too hard */
-        /* suffocation attack: negate damage for breathless. This isn't
-         * affected by cancellation. */
-        if (magr->mcan
-            || (attacktype_fordmg(magr->data, AT_ENGL, AD_WRAP)
-                && breathless(mdef->data))) {
+        if (magr->mcan)
             tmp = 0;
-        }
         break;
     case AD_ENCH:
         /* there's no msomearmor() function, so just do damage */

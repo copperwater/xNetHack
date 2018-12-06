@@ -138,12 +138,6 @@ Pets will no longer eat shapeshifter corpses unless starving or unless tameness
   is so low that they are about to go feral.
 Croesus' two-handed sword is gold, and he also gets either a chain mail or plate
   mail, which is also gold.
-Water elementals and gelatinous cubes now have an engulf attack, which
-  suffocates you in 5 turns unless you escape somehow. Water elementals' attack
-  additionally wets d3 items in your inventory when it engulfs you. Since
-  gelatinous cubes can now paralyze-suffocate you, their difficulty is bumped up
-  to 16.
-Water elementals are given a passive rust attack.
 
 It contains the following non-gameplay interface changes:
 

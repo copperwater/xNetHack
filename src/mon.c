@@ -2403,18 +2403,6 @@ struct monst *mtmp;
                without an engulf attack) from immediately re-engulfing */
             if (attacktype(mtmp->data, AT_ENGL) && !mtmp->mspec_used)
                 mtmp->mspec_used = rnd(2);
-
-            if (attacktype_fordmg(mtmp->data, AT_ENGL, AD_WRAP)) {
-                /* If this is a suffocating engulfer, make sure to reset
-                 * Strangled, unless the hero was already being strangled. */
-                if (Strangled
-                    && (!(uamul && uamul->otyp == AMULET_OF_STRANGULATION))) {
-                    /* FIXME: What if the hero was being strangled by some other
-                     * source that isn't the amulet? */
-                    Strangled = 0;
-                    You("can breathe again.");
-                }
-            }
         }
         u.ustuck = 0;
     }

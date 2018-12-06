@@ -292,6 +292,7 @@ boolean allow_drag, talk;
         }
     }
     reset_utrap(FALSE);
+    u.ustuck = 0;
     u.ux0 = u.ux;
     u.uy0 = u.uy;
 
@@ -301,25 +302,14 @@ boolean allow_drag, talk;
     }
 
     if (u.uswallow) {
-        if (Punished) {
-            /* unstuck calls placebc() so have to unplace it here to avoid a
-             * panic, though this will not affect the actual final placement of
-             * the ball - see below */
-            unplacebc();
+        u.uswldtim = u.uswallow = 0;
+        if (Punished && !ball_active) {
+            /* ensure ball placement, like unstuck */
             ball_active = TRUE;
             allow_drag = FALSE;
         }
-        unstuck(u.ustuck);
-        /* ...and then we have to unplacebc() after this, because unstuck places
-         * it where the hero is teleporting from. Unplacing it again lets the
-         * placebc() below set it properly */
-        if (Punished) {
-            /* ensure ball placement, like unstuck */
-            unplacebc();
-        }
         docrt();
     }
-    u.ustuck = 0;
     if (ball_active) {
         if (ball_still_in_range || allow_drag) {
             int bc_control;

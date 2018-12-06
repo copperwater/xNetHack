@@ -702,17 +702,8 @@ Amulet_on()
     case AMULET_OF_LIFE_SAVING:
     case AMULET_VERSUS_POISON:
     case AMULET_OF_REFLECTION:
-    case FAKE_AMULET_OF_YENDOR:
-        break;
     case AMULET_OF_MAGICAL_BREATHING:
-        if (Strangled) {
-            /* assume that this is an engulfing suffocater or some other
-             * non-amulet form of strangulation. Only the amulet form of
-             * strangulation constricts the neck and ignores magical breathing.
-             */
-            You("can suddenly breathe again!");
-            Strangled = 0;
-        }
+    case FAKE_AMULET_OF_YENDOR:
         break;
     case AMULET_OF_UNCHANGING:
         if (Slimed)
@@ -745,9 +736,7 @@ Amulet_on()
     case AMULET_OF_STRANGULATION:
         if (can_be_strangled(&youmonst)) {
             makeknown(AMULET_OF_STRANGULATION);
-            if (Strangled == 0 || Strangled > 6) {
-                Strangled = 6L;
-            }
+            Strangled = 6L;
             context.botl = TRUE;
             pline("It constricts your throat!");
         }
