@@ -138,6 +138,12 @@ Pets will no longer eat shapeshifter corpses unless starving or unless tameness
   is so low that they are about to go feral.
 Croesus' two-handed sword is gold, and he also gets either a chain mail or plate
   mail, which is also gold.
+Chameleons will no longer turn into too-high-difficulty forms. This goes for
+  other shapechangers too - but only in their failure cases where they turn into
+  random monsters. For instance, sandestins will still pick a nasty form 6/7 of
+  the time even out of difficulty, and doppelgangers will still pick nasties or
+  player monsters if they are out of difficulty. Chameleons' special case for
+  animals, however, no longer allows it to select out-of-difficulty animals.
 
 It contains the following non-gameplay interface changes:
 

@@ -3493,8 +3493,16 @@ struct monst *mon;
         }
         break;
     case PM_CHAMELEON:
-        if (!rn2(3))
-            mndx = pick_animal();
+        if (!rn2(3)) {
+            tryct = 20;
+            do {
+                mndx = pick_animal();
+            } while (--tryct > 0 && toostrong(mndx, max_difficulty()));
+            if (tryct == 0) {
+                /* failed to pick an animal of appropriate difficulty */
+                mndx = NON_PM;
+            }
+        }
         break;
     case PM_VLAD_THE_IMPALER:
     case PM_VAMPIRE_LORD:
@@ -3562,13 +3570,26 @@ struct monst *mon;
 
     /* if no form was specified above, pick one at random now */
     if (mndx == NON_PM) {
-        tryct = 50;
-        do {
-            mndx = rn1(SPECIAL_PM - LOW_PM, LOW_PM);
-        } while (--tryct > 0 && !validspecmon(mon, mndx)
-                 /* try harder to select uppercase monster on rogue level */
-                 && (tryct > 40 && Is_rogue_level(&u.uz)
-                     && !isupper((uchar) mons[mndx].mlet)));
+        int tmpndx, qualified = 0;
+        for (tmpndx = LOW_PM; tmpndx < SPECIAL_PM; ++tmpndx) {
+            if (!validspecmon(mon, tmpndx))
+                continue;
+            /* select uppercase monster on rogue level */
+            if (Is_rogue_level(&u.uz) && !isupper((uchar) mons[tmpndx].mlet))
+                continue;
+            /* don't pick an out-of-difficulty monster */
+            if (toostrong(tmpndx, max_difficulty()))
+                continue;
+
+            qualified++;
+            /* minimal form of reservoir sampling */
+            if (!rn2(qualified))
+                mndx = tmpndx;
+        }
+        if (qualified == 0) {
+            impossible("select_newcham_form: no appropriate monster??");
+            mndx = PM_ACID_BLOB; /* arbitrary */
+        }
     }
     return mndx;
 }
