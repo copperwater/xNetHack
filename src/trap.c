@@ -1365,15 +1365,10 @@ unsigned trflags;
             } else {
                 Strcpy(verbbuf,
                        !plunged ? "fall" : (Flying ? "dive" : "plunge"));
-                if (is_grave) {
-                    You("%s into an open grave!", verbbuf);
-                }
-                else {
-                    You("%s into %s pit!", verbbuf, a_your[trap->madeby_u]);
-                }
             }
             if (*verbbuf)
-                You("%s into %s pit!", verbbuf, a_your[trap->madeby_u]);
+                You("%s into %s %s!", verbbuf, a_your[trap->madeby_u],
+                    (is_grave ? "open grave" : "pit"));
         }
         /* wumpus reference */
         if (Role_if(PM_RANGER) && !trap->madeby_u && !trap->once
