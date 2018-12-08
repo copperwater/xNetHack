@@ -189,6 +189,8 @@ Track survivor as a full conduct. It exists as the 20th least significant bit of
   the xlogfile conduct field (0x80000).
 Give a hint message after feeling more confident in your skills that you should
   use #enhance to enhance them.
+If you hit the letter of something in your inventory while viewing it normally
+  (not at a prompt), it will open the encyclopedia for that item.
 
 It contains the following non-gameplay architectural changes:
 

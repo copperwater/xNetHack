@@ -17,8 +17,6 @@ STATIC_DCL void FDECL(look_at_monster, (char *, char *,
 STATIC_DCL struct permonst *FDECL(lookat, (int, int, char *, char *));
 STATIC_DCL void FDECL(add_mon_info, (winid, struct permonst *));
 STATIC_DCL void FDECL(add_obj_info, (winid, short));
-STATIC_DCL void FDECL(checkfile, (char *, struct permonst *,
-                                  BOOLEAN_P, BOOLEAN_P, char *));
 STATIC_DCL void FDECL(look_all, (BOOLEAN_P,BOOLEAN_P));
 STATIC_DCL void FDECL(do_supplemental_info, (char *, struct permonst *,
                                              BOOLEAN_P));
@@ -1195,7 +1193,7 @@ short otyp;
  *       lcase() for data.base lookup so that we can have a clean key.
  *       Therefore, we create a copy of inp _just_ for data.base lookup.
  */
-STATIC_OVL void
+void
 checkfile(inp, pm, user_typed_name, without_asking, supplemental_name)
 char *inp;
 struct permonst *pm;

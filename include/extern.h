@@ -1805,6 +1805,8 @@ E void NDECL(msgtype_free);
 E char *FDECL(self_lookat, (char *));
 E void FDECL(mhidden_description, (struct monst *, BOOLEAN_P, char *));
 E boolean FDECL(object_from_map, (int,int,int,struct obj **));
+E void FDECL(checkfile, (char *, struct permonst *,
+                         BOOLEAN_P, BOOLEAN_P, char *));
 E int FDECL(do_screen_description, (coord, BOOLEAN_P, int, char *,
                                     const char **, struct permonst **));
 E int FDECL(do_look, (int, coord *));

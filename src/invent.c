@@ -2475,7 +2475,23 @@ long quan;       /* if non-0, print this quantity, not obj->quan */
 int
 ddoinv()
 {
-    (void) display_inventory((char *) 0, FALSE);
+    char invlet = display_inventory((char *) 0, TRUE);
+    struct obj* invobj;
+    char out_str[BUFSZ];
+
+    if (!invlet || invlet == '\033' || invlet == ' ' || invlet == '\n')
+        return 0;
+
+    for (invobj = invent; invobj != NULL; invobj = invobj->nobj) {
+        if (invobj->invlet == invlet) {
+            strcpy(out_str, singular(invobj, xname));
+            break;
+        }
+    }
+    if (invobj == NULL)
+        return 0;
+
+    checkfile(out_str, NULL, TRUE, TRUE, NULL);
     return 0;
 }
 
