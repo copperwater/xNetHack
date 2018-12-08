@@ -454,6 +454,8 @@ encodeconduct()
         e |= 1L << 17;
     if (u.uroleplay.deaf)
         e |= 1L << 18;
+    if (u.umortality == 0)
+        e |= 1L << 19;
 
     return e;
 }
