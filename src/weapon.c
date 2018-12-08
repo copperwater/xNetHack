@@ -74,6 +74,7 @@ int skill;
                  : (skill <= P_LAST_WEAPON) ? "weapon "
                      : (skill <= P_LAST_SPELL) ? "spell casting "
                          : "fighting ");
+    pline("(Use the #enhance command to advance them.)");
 }
 
 /* weapon's skill category name for use as generalized description of weapon;

@@ -187,6 +187,8 @@ You no longer get additional score for reaching a deeper dungeon level than 45.
   This is mainly so that true min-score can be achieved in any game.
 Track survivor as a full conduct. It exists as the 20th least significant bit of
   the xlogfile conduct field (0x80000).
+Give a hint message after feeling more confident in your skills that you should
+  use #enhance to enhance them.
 
 It contains the following non-gameplay architectural changes:
 
