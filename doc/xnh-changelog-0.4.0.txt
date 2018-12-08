@@ -203,3 +203,5 @@ Split steal_it into itself and really_steal, which contains the actual logic for
   the player stealing from a monster.
 Add peaceful monster glyph offset to the display code, and all the other
   corresponding macros and defines that go along with that.
+Refactor rndmonst to require only a single pass over the monsters array to
+  select its monster, removing the need for a rndmonst_state cache.

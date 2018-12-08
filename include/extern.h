@@ -1177,7 +1177,6 @@ E void FDECL(dealloc_mextra, (struct monst *));
 E struct monst *FDECL(makemon, (struct permonst *, int, int, int));
 E int FDECL(create_critters, (int, struct permonst *, BOOLEAN_P, struct monst *));
 E struct permonst *NDECL(rndmonst);
-E void FDECL(reset_rndmonst, (int));
 E struct permonst *FDECL(mkclass, (CHAR_P, int));
 E int FDECL(mkclass_poly, (int));
 E int FDECL(adj_lev, (struct permonst *));
