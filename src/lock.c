@@ -988,7 +988,8 @@ int x, y;
 
         switch (doorstate(door)) {
         case D_CLOSED:
-            msg = "The door locks!";
+            if (!door_is_locked(door))
+                msg = "The door locks!";
             break;
         case D_ISOPEN:
             msg = "The door swings shut, and locks!";
