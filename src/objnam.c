@@ -4148,6 +4148,11 @@ typfnd:
         }
         otmp->material = material;
     }
+    else if (otmp->oartifact) {
+        /* oname() handles the assignment of a specific material for any
+         * possible artifact. Do nothing here. */
+        ;
+    }
     else {
         /* for now, material in wishes will always be base; this is to prevent
          * problems like wishing for arrows and getting glass arrows which will
