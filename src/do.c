@@ -1825,21 +1825,25 @@ long timeout;
     char* old_oname = (has_oname(body) ? ONAME(body) : NULL);
     int oldtyp = body->corpsenm;
     int oldquan = body->quan;
-    struct permonst* newpm;
+    struct permonst* newpm = mkclass(S_FUNGUS, 0);
 
     /* [ALI] Molds don't grow in adverse conditions.  If it ever
      * becomes possible for molds to grow in containers we should
      * check for iceboxes here as well.
      */
-    if ((body->where == OBJ_FLOOR || body->where==OBJ_BURIED)
-         && (is_pool(body->ox, body->oy) || is_lava(body->ox, body->oy)
-             || is_ice(body->ox, body->oy)))
-        return;
+    boolean bad_spot = ((body->where == OBJ_FLOOR || body->where==OBJ_BURIED)
+                        && (is_pool(body->ox, body->oy) ||
+                            is_lava(body->ox, body->oy) ||
+                            is_ice(body->ox, body->oy)));
+    /* maybe F are genocided? */
+    boolean no_eligible = (newpm == NULL);
 
-    newpm = mkclass(S_FUNGUS, 0);
-
-    if (!newpm) /* maybe F are genocided? */
+    if (bad_spot || no_eligible) {
+        /* set to rot away normally */
+        start_timer(250L - (monstermoves - peek_at_iced_corpse_age(body)),
+                    TIMER_OBJECT, ROT_CORPSE, arg);
         return;
+    }
 
     /* Weight towards non-motile fungi. */
     if (newpm->mmove)
