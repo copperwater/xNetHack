@@ -400,6 +400,7 @@ xchar e_type;
     ep->engr_y = y;
     ep->engr_txt = (char *) (ep + 1);
     Strcpy(ep->engr_txt, s);
+    newsym(x, y);
     /* engraving Elbereth shows wisdom */
     if (!in_mklev && !strcmp(s, "Elbereth"))
         exercise(A_WIS, TRUE);
@@ -1291,6 +1292,7 @@ register struct engr *ep;
             return;
         }
     }
+    newsym(ep->engr_x, ep->engr_y);
     dealloc_engr(ep);
 }
 
@@ -1300,6 +1302,7 @@ rloc_engr(ep)
 struct engr *ep;
 {
     int tx, ty, tryct = 200;
+    newsym(ep->engr_x, ep->engr_y); /* gone from old spot */
 
     do {
         if (--tryct < 0)
@@ -1310,6 +1313,7 @@ struct engr *ep;
 
     ep->engr_x = tx;
     ep->engr_y = ty;
+    newsym(tx, ty);
 }
 
 /* Create a headstone at the given location.
