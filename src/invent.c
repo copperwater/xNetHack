@@ -2484,7 +2484,7 @@ ddoinv()
 
     for (invobj = invent; invobj != NULL; invobj = invobj->nobj) {
         if (invobj->invlet == invlet) {
-            strcpy(out_str, singular(invobj, xname));
+            strcpy(out_str, simple_typename(invobj->otyp));
             break;
         }
     }
