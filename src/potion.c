@@ -964,7 +964,10 @@ register struct obj *otmp;
             }
         }
         if (Hallucination) {
-            You("are shocked back to your senses!");
+            if (!u.uroleplay.hallu) {
+                You("are shocked back to your senses!");
+            }
+            /* this is ok with permahallu conduct */
             (void) make_hallucinated(0L, FALSE, 0L);
         }
         break;
