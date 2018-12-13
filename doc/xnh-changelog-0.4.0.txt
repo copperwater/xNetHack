@@ -146,6 +146,7 @@ Chameleons will no longer turn into too-high-difficulty forms. This goes for
   animals, however, no longer allows it to select out-of-difficulty animals.
 Revert 0.3.1 change that did extra fuzzing on monster group sizes. Monster group
   sizes now are the same as vanilla again.
+Corpses of F monsters will never have mold grow on them.
 
 It contains the following non-gameplay interface changes:
 

@@ -1827,6 +1827,9 @@ long timeout;
     int oldquan = body->quan;
     struct permonst* newpm = mkclass(S_FUNGUS, 0);
 
+    /* Don't allow arbitrarily long chains of mold growing on mold. */
+    boolean already_fungus = (mons[oldtyp].mlet == S_FUNGUS);
+
     /* [ALI] Molds don't grow in adverse conditions.  If it ever
      * becomes possible for molds to grow in containers we should
      * check for iceboxes here as well.
@@ -1835,10 +1838,11 @@ long timeout;
                         && (is_pool(body->ox, body->oy) ||
                             is_lava(body->ox, body->oy) ||
                             is_ice(body->ox, body->oy)));
+
     /* maybe F are genocided? */
     boolean no_eligible = (newpm == NULL);
 
-    if (bad_spot || no_eligible) {
+    if (already_fungus || bad_spot || no_eligible) {
         /* set to rot away normally */
         start_timer(250L - (monstermoves - peek_at_iced_corpse_age(body)),
                     TIMER_OBJECT, ROT_CORPSE, arg);
