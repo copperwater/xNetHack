@@ -1838,12 +1838,12 @@ long timeout;
 
     newpm = mkclass(S_FUNGUS, 0);
 
+    if (!newpm) /* maybe F are genocided? */
+        return;
+
     /* Weight towards non-motile fungi. */
     if (newpm->mmove)
         newpm = mkclass(S_FUNGUS, 0);
-
-    if (!newpm) /* maybe F are genocided? */
-        return;
 
     /* We want to piggyback on the actual revive_corpse routine, but we don't
      * have a real appropriate fungus corpse. The workaround is to temporarily
