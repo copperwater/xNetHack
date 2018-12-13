@@ -147,6 +147,8 @@ Chameleons will no longer turn into too-high-difficulty forms. This goes for
 Revert 0.3.1 change that did extra fuzzing on monster group sizes. Monster group
   sizes now are the same as vanilla again.
 Corpses of F monsters will never have mold grow on them.
+Blessed wands will wrest 1/7 of the time, and uncursed 1/23 of the time, instead
+  of 1/121 (cursed still wrests with this frequency).
 
 It contains the following non-gameplay interface changes:
 
