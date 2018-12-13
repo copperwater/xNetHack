@@ -25,8 +25,8 @@ STATIC_DCL void FDECL(m_initinv, (struct monst *));
 STATIC_DCL boolean FDECL(makemon_rnd_goodpos, (struct monst *,
                                                unsigned, coord *));
 
-#define m_initsgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 2 + rn2(3))
-#define m_initlgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 8 + rn2(4))
+#define m_initsgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 3)
+#define m_initlgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 10)
 
 boolean
 is_home_elemental(ptr)

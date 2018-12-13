@@ -144,6 +144,8 @@ Chameleons will no longer turn into too-high-difficulty forms. This goes for
   the time even out of difficulty, and doppelgangers will still pick nasties or
   player monsters if they are out of difficulty. Chameleons' special case for
   animals, however, no longer allows it to select out-of-difficulty animals.
+Revert 0.3.1 change that did extra fuzzing on monster group sizes. Monster group
+  sizes now are the same as vanilla again.
 
 It contains the following non-gameplay interface changes:
 
