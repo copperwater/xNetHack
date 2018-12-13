@@ -2894,6 +2894,7 @@ boolean via_attack;
     if (mtmp->mtame)
         return;
     mtmp->mpeaceful = 0;
+    newsym(mtmp->mx, mtmp->my); /* clear peaceful glyph */
     if (mtmp->ispriest) {
         if (p_coaligned(mtmp))
             adjalign(-5); /* very bad */
