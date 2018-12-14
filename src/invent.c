@@ -2442,8 +2442,13 @@ long quan;       /* if non-0, print this quantity, not obj->quan */
     boolean use_invlet = (flags.invlet_constant
                           && let != CONTAINED_SYM && let != HANDS_SYM);
     long savequan = 0;
+    long save_owt = 0;
 
     if (quan && obj) {
+        if (iflags.invweight) {
+            save_owt = obj->owt;
+            obj->owt = obj->owt * quan / obj->quan;
+        }
         savequan = obj->quan;
         obj->quan = quan;
     }
@@ -2465,8 +2470,12 @@ long quan;       /* if non-0, print this quantity, not obj->quan */
         Sprintf(li, "%c - %s%s", (use_invlet ? obj->invlet : let),
                 (txt ? txt : doname(obj)), (dot ? "." : ""));
     }
-    if (savequan)
+    if (savequan) {
         obj->quan = savequan;
+    }
+    if (save_owt) {
+        obj->owt = save_owt;
+    }
 
     return li;
 }

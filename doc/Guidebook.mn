@@ -3033,6 +3033,9 @@ Cannot be set with the \(oqO\(cq command.
 Ignore interrupt signals, including breaks (default off).  Persistent.
 .lp implicit_uncursed
 Omit "uncursed" from inventory lists, if possible (default on).
+.lp invweight
+Augment inventory object descriptions with their objects' weight
+(default on).
 .lp legacy
 Display an introductory message when starting the game (default on).
 Persistent.
@@ -3508,9 +3511,6 @@ When the program has been built to support multiple interfaces,
 select which one to use, such as \(lqtty\(rq or \(lqX11\(rq
 (default depends on build-time settings; use \(lq#version\(rq to check).
 Cannot be set with the \(oqO\(cq command.
-.lp wizweight
-Augment object descriptions with their objects' weight (default off).
-Debug mode only.
 .lp zerocomp
 When writing out a save file, perform zero-comp compression of the
 contents. Not all ports support zero-comp compression. It has no effect
@@ -4247,7 +4247,7 @@ c1 l1 l.
 .\" because description is wide, centered title seems off, so pad it a bit
 .\" note that each backslash precedes one space of padding (including the
 .\" last one; in other words, there's a trailing space here)
-NetHack Symbols\ \ \ \ \ \ \ 
+NetHack Symbols\ \ \ \ \ \ \
 Default	Symbol Name	Description
 \_	\_	\_
 \ 	S_air	(air)

@@ -1256,11 +1256,11 @@ unsigned doname_flags;
         Strcpy(prefix + 3, tmpbuf + 2);
     }
 
-    /* show weight for items (debug tourist info)
-     * aum is stolen from Crawl's "Arbitrary Unit of Measure" */
-    if (wizard && iflags.wizweight) {
-        Sprintf(eos(bp), " (%d aum)", obj->owt);
+    /* show weight for items */
+    if (iflags.invweight && (obj->where == OBJ_INVENT || wizard)) {
+        Sprintf(eos(bp), " {%d}", obj->owt);
     }
+
     bp = strprepend(bp, prefix);
     return bp;
 }
