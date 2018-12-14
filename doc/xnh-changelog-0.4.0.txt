@@ -150,6 +150,16 @@ Corpses of F monsters will never have mold grow on them.
 Blessed wands will wrest 1/7 of the time, and uncursed 1/23 of the time, instead
   of 1/121 (cursed still wrests with this frequency).
 A few doors in Vlad's Tower are now iron.
+MAJOR wand of wishing changes: it will turn to dust when it runs out of charges
+  (so no wrest wishes), it will explode when recharged, and it will no longer
+  generate randomly. Instead of a single wand at the Castle, however, there are
+  multiple ones scattered throughout the later game:
+    One (0:2) wand in the Castle chest.
+    One (0:1) wand in Vlad's chest.
+    One (0:1) wand in the Fake Wizard's Tower that has no portal.
+    One (0:1) wand on the space occupied by the Wizard of Yendor.
+    One (0:1) wand in the northeasternmost room of the Sanctum.
+
 
 It contains the following non-gameplay interface changes:
 

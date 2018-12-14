@@ -39,7 +39,12 @@ DOOR:locked,(08,07)
 DOOR:locked,(10,07)
 DOOR:locked&irondoor,(03,06)
 # treasures
-OBJECT:('(',"chest"),(07,05)
+CONTAINER:('(',"chest"),(07,05) {
+  OBJECT:('/',"wishing"),1
+  OBJECT:random
+  OBJECT:random
+  OBJECT:random
+}
 
 OBJECT:('(',"chest"),$niches[0]
 OBJECT:('(',"chest"),$niches[1]

@@ -672,6 +672,7 @@ TRAP:"anti magic", random
 TRAP:"fire", random
 TRAP:"magic", random
 # Some random objects
+OBJECT:('/',"wishing"),1,(67,06)
 OBJECT:'[',random
 OBJECT:'[',random
 OBJECT:'[',random

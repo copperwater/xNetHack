@@ -51,6 +51,7 @@ MONSTER:('d',"hell hound"),(15,05)
 MONSTER:('V',"vampire lord"),(17,05)
 # The local treasure
 OBJECT:('+',"Book of the Dead"),(16,05)
+OBJECT:('/',"wishing"),1,(16,05)
 # Surrounding terror
 MONSTER:('z',"kraken"),(14,02)
 MONSTER:('z',"giant eel"),(17,02)
@@ -279,3 +280,4 @@ TRAP:"board",(03,04)
 TRAP:"board",(05,04)
 # treasures
 OBJECT:'"',(04,04)
+OBJECT:('/',"wishing"),1,(04,04)
