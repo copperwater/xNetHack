@@ -82,6 +82,7 @@ Some base materials have been changed to make life easier for elvish players:
 You can now refresh your memory with a spellbook whenever you want, rather than
   forcing you to wait until it dips below 10% retention.
 Implement player-as-an-Archon blinding gaze attack (code by Pavel Braginskiy)
+Silver items can corrode, and bone items can burn.
 
 It contains the following non-gameplay interface changes:
 
