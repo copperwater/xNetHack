@@ -159,6 +159,9 @@ MAJOR wand of wishing changes: it will turn to dust when it runs out of charges
     One (0:1) wand in the Fake Wizard's Tower that has no portal.
     One (0:1) wand on the space occupied by the Wizard of Yendor.
     One (0:1) wand in the northeasternmost room of the Sanctum.
+Make spellbooks' weight dependent on their level. The weight is 30 plus 5 per
+  spell level, so the overall range is 35 for a level 1 spellbook up to 65 for a
+  level 7 spellbook.
 
 
 It contains the following non-gameplay interface changes:

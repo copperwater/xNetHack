@@ -887,8 +887,8 @@ SCROLL("blank paper", "unlabeled",  0,  28,  60),
 #define SPELL(name,desc,sub,prob,level,mgc,dir,color)  \
     OBJECT(OBJ(name, desc),                                             \
            BITS(0, 0, 0, 0, mgc, 0, 0, 0, 0, 0, dir, sub, PAPER),       \
-           0, SPBOOK_CLASS, prob, level * 10, 50, level * 100,          \
-           0, 0, 0, level, 20, color)
+           0, SPBOOK_CLASS, prob, level * 10, level * 5 + 30,           \
+           level * 100, 0, 0, 0, level, 20, color)
 /* Spellbook description normally refers to book covers (primarily color).
    Parchment and vellum would never be used for such, but rather than
    eliminate those, finagle their definitions to refer to the pages
