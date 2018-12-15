@@ -83,6 +83,85 @@ You can now refresh your memory with a spellbook whenever you want, rather than
   forcing you to wait until it dips below 10% retention.
 Implement player-as-an-Archon blinding gaze attack (code by Pavel Braginskiy)
 Silver items can corrode, and bone items can burn.
+The Barbarian lower filler and goal levels are replaced.
+The chance of a successful artifact wish is now 1/(# of artifact wishes + 1).
+  This means that randomly generated, named, and gifted artifacts do not count
+  against your chances. However, unsuccessful wishes still count against you.
+The chance of a god gift on a sacrifice is now 1/(10 + 2 * gifts^2).
+  This again means that randomly generated, named, and wished-for artifacts do
+  not count against your chances.
+Sokoban luck penalties for jumping, hurtling, and dragging yourself via thrown
+  ball are removed, since none of them can actually be cheated with.
+The spiders-spinning-webs feature introduced in 0.1.0 ascended to vanilla, and
+  has been backported from there so that xNetHack's version now behaves the
+  same as vanilla.
+  Additionally, shopkeepers will also clean up webs spun in their shops.
+The SLASH'EM feature in which corpses in the taint-risk stage can spontaneously
+  morph into living F monsters has been ported.
+Force bolts (from the spell and the wand of striking) will smash through and
+  destroy iron bars in their path. If the bars are set nondiggable, they do not
+  interact with the force bolt.
+Melee combat now awakens monsters in a radius dependent on the size of the
+  attacking monster. This is reduced but not eliminated for a stealthy player,
+  and does not affect other types of combat.
+Make the rne() function not care about experience level. It now caps at 10
+  regardless of the player's stats.
+Port FIQHack's charged ring initial enchantment math. The main thing is that
+  rings now use rne(2) instead of rne(3), making high enchantment more likely,
+  and zero enchantment extremely unlikely.  The math on whether the enchantment
+  is negative also uses a new formula. In general, blessed rings are very
+  likely to have positive enchantment, cursed rings are very likely to have
+  negative, and uncursed have positive enchantment about 2/3 of the time and
+  negative about 1/3. The formula for uncursed rings is slightly tweaked.
+Demon lords are made hostile if you wield Demonbane, as well as Excalibur, when
+  they are generated or they approach you.
+Archeologists begin the game knowing all varieties of worthless glass.
+Ghosts are overhauled: while idle, hostile ones will turn invisible, and they
+  will then try to follow you invisibly and make themselves visible when
+  adjacent, which will scare you and freeze you for three turns if you didn't
+  see them beforehand. They can then turn invisible in another 2d8 turns. Their
+  1d1 damage is removed, meaning they cannot hurt you on their own.
+Additionally, ghosts are now incorporeally immune to all of the same things
+  that shades are. Just like shades, objects that are silver, bone, blessed or
+  artifacts versus undead will hit them. However, silver does not cause silver
+  damage to ghosts.
+Ghost stats are also changed: their base level is brought down from 10 to 4
+  (mainly to knock down their hit dice; they should be hard to land a hit on in
+  the first place but not actually be a tank once the player has something that
+  can hurt them), their speed is increased from 3 to 5, their AC is increased
+  (making them *easier* to hit) from -5 to 5, and their magic resistance is
+  increased from 50 to 80.
+Silver items are now corrodeable.
+Pets will no longer eat shapeshifter corpses unless starving or unless tameness
+  is so low that they are about to go feral.
+Croesus' two-handed sword is gold, and he also gets either a chain mail or plate
+  mail, which is also gold.
+Chameleons will no longer turn into too-high-difficulty forms. This goes for
+  other shapechangers too - but only in their failure cases where they turn into
+  random monsters. For instance, sandestins will still pick a nasty form 6/7 of
+  the time even out of difficulty, and doppelgangers will still pick nasties or
+  player monsters if they are out of difficulty. Chameleons' special case for
+  animals, however, no longer allows it to select out-of-difficulty animals.
+Revert 0.3.1 change that did extra fuzzing on monster group sizes. Monster group
+  sizes now are the same as vanilla again.
+Corpses of F monsters will never have mold grow on them.
+Blessed wands will wrest 1/7 of the time, and uncursed 1/23 of the time, instead
+  of 1/121 (cursed still wrests with this frequency).
+A few doors in Vlad's Tower are now iron.
+MAJOR wand of wishing changes: it will turn to dust when it runs out of charges
+  (so no wrest wishes), it will explode when recharged, and it will no longer
+  generate randomly. Instead of a single wand at the Castle, however, there are
+  multiple ones scattered throughout the later game:
+    One (0:2) wand in the Castle chest.
+    One (0:1) wand in Vlad's chest.
+    One (0:1) wand in the Fake Wizard's Tower that has no portal.
+    One (0:1) wand on the space occupied by the Wizard of Yendor.
+    One (0:1) wand in the northeasternmost room of the Sanctum.
+Make spellbooks' weight dependent on their level. The weight is 30 plus 5 per
+  spell level, so the overall range is 35 for a level 1 spellbook up to 65 for a
+  level 7 spellbook.
+Dwarf lords and dwarf kings that generate with dwarvish ring mail have a 25%/50%
+  chance of that mail being guaranteed mithril, if it wasn't already.
 
 It contains the following non-gameplay interface changes:
 
