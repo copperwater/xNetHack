@@ -2425,7 +2425,7 @@ struct obj * obj;
 {
     /* currently can't dip non-potions into sinks */
     if (obj->oclass != POTION_CLASS) {
-        impossible("non-potion dipped into sink");
+        pline("That wouldn't do anything.");
         return;
     }
     You("pour %sthe %s down the drain.", (obj->quan != 1L ? "one of " : ""),
