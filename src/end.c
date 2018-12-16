@@ -444,6 +444,11 @@ int how;
             /* green slime already has transformation messages */
             pline("Your body becomes corrupted...");
         }
+        /* Set unchanging FIRST (polymon doesn't care about it):
+         * otherwise it's possible for the hero to get blasted by artifacts or
+         * whatever after transforming in polymon, and if that calls rehumanize
+         * before unchanging is set, the hero will rehumanize normally. */
+        HUnchanging |= FROMOUTSIDE;
         /* messages here aren't great for green slimes...
          * "You have become a green slime. You turn into a green slime!" */
         polymon(mon_nm, TRUE);
@@ -452,7 +457,6 @@ int how;
         /* bug: if u.uhp <= 0, monsters won't attack for some reason
          * set to max, not like you're ever going to need it again... */
         u.uhp = u.uhpmax;
-        HUnchanging |= FROMOUTSIDE;
         pline("But wait...");
         pline("Your mind is intact.  You still remember your quest.");
         return TRUE;
