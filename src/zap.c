@@ -410,7 +410,7 @@ struct obj *otmp;
             dmg *= 2;
         if (otyp == SPE_DRAIN_LIFE)
             dmg = spell_damage_bonus(dmg);
-        if (resists_drli(mtmp)) {
+        if (resists_drli(mtmp) || item_catches_drain(mtmp)) {
             shieldeff(mtmp->mx, mtmp->my);
         } else if (!resist(mtmp, otmp->oclass, dmg, NOTELL) && !DEADMONSTER(mtmp)) {
             mtmp->mhp -= dmg;

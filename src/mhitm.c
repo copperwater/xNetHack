@@ -1228,7 +1228,8 @@ register struct attack *mattk;
         }
         break;
     case AD_DRLI:
-        if (!cancelled && !rn2(3) && !resists_drli(mdef)) {
+        if (!cancelled && !rn2(3) && !resists_drli(mdef)
+            && !item_catches_drain(mdef)) {
             tmp = d(2, 6);
             if (vis && canspotmon(mdef))
                 pline("%s suddenly seems weaker!", Monnam(mdef));

@@ -278,7 +278,7 @@ const char *drainer; /* cause of death, if drain should be fatal */
        wizard mode request to reduce level; never fatal though */
     if (drainer && !strcmp(drainer, "#levelchange"))
         drainer = 0;
-    else if (resists_drli(&youmonst))
+    else if (resists_drli(&youmonst) || item_catches_drain(&youmonst))
         return;
 
     if (u.ulevel > 1) {

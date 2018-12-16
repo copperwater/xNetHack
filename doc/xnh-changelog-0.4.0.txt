@@ -162,6 +162,8 @@ Make spellbooks' weight dependent on their level. The weight is 30 plus 5 per
   level 7 spellbook.
 Dwarf lords and dwarf kings that generate with dwarvish ring mail have a 25%/50%
   chance of that mail being guaranteed mithril, if it wasn't already.
+Positively enchanted, worn bone armor will intercept a incoming level drain,
+  losing one point of enchantment in the process.
 
 It contains the following non-gameplay interface changes:
 
