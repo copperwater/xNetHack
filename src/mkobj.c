@@ -1497,7 +1497,7 @@ const int matac[] = {
      2,  // CLOTH
      3,  // LEATHER
      4,  // WOOD
-     6,  // BONE
+     4,  // BONE
      10, // DRAGON_HIDE
      5,  // IRON - de facto baseline for metal armor
      5,  // METAL
