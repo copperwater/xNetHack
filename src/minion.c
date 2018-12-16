@@ -302,7 +302,7 @@ register struct monst *mtmp;
     /* Slight advantage given. */
     if (is_dprince(mtmp->data)) {
         mtmp->minvis = mtmp->perminvis = 0;
-        if (!boss_entrance(mtmp)) {
+        if ((mtmp->mstrategy & STRAT_APPEARMSG) && !boss_entrance(mtmp)) {
             impossible("demon_talk: still can't see monster?");
             mtmp->mstrategy &= ~STRAT_APPEARMSG;
         }
