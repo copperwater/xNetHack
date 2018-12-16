@@ -85,6 +85,7 @@ Some base materials have been changed to make life easier for elvish players:
 You can now refresh your memory with a spellbook whenever you want, rather than
   forcing you to wait until it dips below 10% retention.
 Implement player-as-an-Archon blinding gaze attack (code by Pavel Braginskiy)
+Silver items can corrode, and bone items can burn.
 The Barbarian lower filler and goal levels are replaced.
 The chance of a successful artifact wish is now 1/(# of artifact wishes + 1).
   This means that randomly generated, named, and gifted artifacts do not count
@@ -162,6 +163,11 @@ MAJOR wand of wishing changes: it will turn to dust when it runs out of charges
 Make spellbooks' weight dependent on their level. The weight is 30 plus 5 per
   spell level, so the overall range is 35 for a level 1 spellbook up to 65 for a
   level 7 spellbook.
+Dwarf lords and dwarf kings that generate with dwarvish ring mail have a 25%/50%
+  chance of that mail being guaranteed mithril, if it wasn't already.
+Positively enchanted, worn bone armor will intercept a incoming level drain,
+  losing one point of enchantment in the process.
+Bone's relative material AC is decreased from 6 to 4 (on par with wood).
 
 
 It contains the following non-gameplay interface changes:

@@ -2668,7 +2668,7 @@ struct monst *mon;
             context.botl = 1;
             break;
         case 3:
-            if (!resists_drli(&youmonst)) {
+            if (!resists_drli(&youmonst) && !item_catches_drain(&youmonst)) {
                 You_feel("out of shape.");
                 losexp("overexertion");
             } else {

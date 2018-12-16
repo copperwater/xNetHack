@@ -1352,6 +1352,14 @@ int dieroll; /* needed for Magicbane and vorpal blades */
         /* some non-living creatures (golems, vortices) are
            vulnerable to life drain effects */
         const char *life = nonliving(mdef->data) ? "animating force" : "life";
+        if (item_catches_drain(mdef)) {
+            /* This has to go here rather than along with the resists_drli
+             * check; otherwise a drainable item gets drained even if the
+             * attack is a miss.
+             * Return FALSE because no special draining damage happened so we
+             * want the attack to do its regular non-artifact damage. */
+            return FALSE;
+        }
 
         if (!youdefend) {
             if (vis) {

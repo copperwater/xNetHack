@@ -2565,6 +2565,7 @@ E void FDECL(missum, (struct monst *, struct attack *, BOOLEAN_P));
 E int FDECL(passive, (struct monst *, struct obj *, BOOLEAN_P, int,
                       UCHAR_P, BOOLEAN_P));
 E void FDECL(passive_obj, (struct monst *, struct obj *, struct attack *));
+E boolean FDECL(item_catches_drain, (struct monst *));
 E boolean FDECL(break_glass_obj, (struct obj *));
 E void FDECL(stumble_onto_mimic, (struct monst *));
 E int FDECL(flash_hits_mon, (struct monst *, struct obj *));

@@ -1545,7 +1545,7 @@ const int matac[] = {
      2,  // CLOTH
      3,  // LEATHER
      4,  // WOOD
-     6,  // BONE
+     4,  // BONE
      10, // DRAGON_HIDE
      5,  // IRON - de facto baseline for metal armor
      5,  // METAL
@@ -1816,7 +1816,7 @@ register struct obj *otmp;
     if (objects[otyp].oc_oprop == FIRE_RES || otyp == WAN_FIRE)
         return FALSE;
 
-    return (boolean) ((omat <= WOOD && omat != LIQUID) || omat == PLASTIC);
+    return (boolean) ((omat <= BONE && omat != LIQUID) || omat == PLASTIC);
 }
 
 boolean

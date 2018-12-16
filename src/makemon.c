@@ -397,8 +397,15 @@ register struct monst *mtmp;
                     (void) mongets(mtmp, DWARVISH_ROUNDSHIELD);
                 }
                 (void) mongets(mtmp, DWARVISH_HELM);
-                if (!rn2(3))
+                if (!rn2(3)) {
                     (void) mongets(mtmp, DWARVISH_RING_MAIL);
+                    if ((ptr == &mons[PM_DWARF_LORD] && !rn2(4))
+                        || (ptr == &mons[PM_DWARF_KING] && !rn2(2))) {
+                        struct obj* mail = m_carrying(mtmp, DWARVISH_RING_MAIL);
+                        if (mail)
+                            mail->material = MITHRIL;
+                    }
+                }
             } else {
                 (void) mongets(mtmp, !rn2(3) ? PICK_AXE : DAGGER);
             }
