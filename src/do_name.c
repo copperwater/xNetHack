@@ -1215,9 +1215,6 @@ register struct obj *obj;
      * arguable that we should for anything other than "X".  Doing so
      * would make attaching player's notes to hero's inventory have an
      * in-game effect, which may or may not be the correct thing to do.
-     *
-     * We do violate illiteracy in oname() if player creates Sting or
-     * Orcrist, clearly being literate (no pun intended...).
      */
 
     /* relax restrictions over proper capitalization for artifacts */
@@ -1228,29 +1225,11 @@ register struct obj *obj;
         pline_The("artifact seems to resist the attempt.");
         return;
     } else if (restrict_name(obj, buf) || exist_artifact(obj->otyp, buf)) {
-        /* this used to change one letter, substituting a value
-           of 'a' through 'y' (due to an off by one error, 'z'
-           would never be selected) and then force that to
-           upper case if such was the case of the input;
-           now, the hand slip scuffs one or two letters as if
-           the text had been trodden upon, sometimes picking
-           punctuation instead of an arbitrary letter;
-           unfortunately, we have to cover the possibility of
-           it targetting spaces so failing to make any change
-           (we know that it must eventually target a nonspace
-           because buf[] matches a valid artifact name) */
-        Strcpy(bufcpy, buf);
-        /* for "the Foo of Bar", only scuff "Foo of Bar" part */
-        bufp = !strncmpi(bufcpy, "the ", 4) ? (buf + 4) : buf;
-        do {
-            wipeout_text(bufp, rnd(2), (unsigned) 0);
-        } while (!strcmp(buf, bufcpy));
-        pline("While engraving, your %s slips.", body_part(HAND));
+        /* this used to be flavored as actually writing on the weapon and
+         * breaking illiterate, but that was silly for a number of reasons. */
+        pline("For some reason, you can't mentally assign that name to %s.",
+              is_plural(obj) ? "them" : "it");
         display_nhwindow(WIN_MESSAGE, FALSE);
-        You("engrave: \"%s\".", buf);
-        /* violate illiteracy conduct since hero attempted to write
-           a valid artifact name */
-        u.uconduct.literate++;
     }
     ++via_naming; /* This ought to be an argument rather than a static... */
     obj = oname(obj, buf);
@@ -1355,12 +1334,7 @@ const char *name;
         if (obj->unpaid)
             alter_cost(obj, 0L);
         if (via_naming) {
-            /* violate illiteracy conduct since successfully wrote arti-name */
-            u.uconduct.literate++;
-            if(!u.uconduct.literate++)
-                livelog_printf(LL_CONDUCT|LL_ARTIFACT, "became literate by naming %s", bare_artifactname(obj));
-            else
-                livelog_printf(LL_ARTIFACT, "chose %s to be named \"%s\"", ansimpleoname(obj), bare_artifactname(obj));
+            livelog_printf(LL_ARTIFACT, "chose %s to be named \"%s\"", ansimpleoname(obj), bare_artifactname(obj));
         }
         /* set up specific materials for the artifact */
         switch(obj->oartifact) {
