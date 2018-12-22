@@ -221,6 +221,7 @@ The wizweight option is changed to "invweight", now defaults to on, is now
   items in your inventory.
 The 'i' inventory command now shows how full your inventory is, both in terms of
   weight/carrycap and n/52 items.
+YAFM when hallucinating and you observe a monster grow up.
 
 It contains the following non-gameplay architectural changes:
 
