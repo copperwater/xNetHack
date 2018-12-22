@@ -223,6 +223,7 @@ The wizweight option is changed to "invweight", now defaults to on, is now
 The 'i' inventory command now shows how full your inventory is, both in terms of
   weight/carrycap and n/52 items.
 YAFM when hallucinating and you observe a monster grow up.
+Neutral sacrifices disappear in a cloud of smoke instead of a burst of flame.
 
 It contains the following non-gameplay architectural changes:
 
