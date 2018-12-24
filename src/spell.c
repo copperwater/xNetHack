@@ -1647,7 +1647,7 @@ int spell;
     chance = urole.spelbase;
 
     /* Int and XL increase this. */
-    chance = (intel * 5) + (u.ulevel * 5);
+    chance += (intel * 5) + (u.ulevel * 5);
 
     /* Higher level spells will reduce this chance, though. */
     chance -= 25 * spellev(spell);
