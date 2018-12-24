@@ -169,6 +169,8 @@ Positively enchanted, worn bone armor will intercept a incoming level drain,
   losing one point of enchantment in the process.
 Bone's relative material AC is decreased from 6 to 4 (on par with wood).
 Naming artifacts no longer breaks illiterate conduct.
+Wielding a spellbook will no longer bring the Pw cost of the spell below its
+  base 5*level value, though the halving effect otherwise still works.
 
 
 It contains the following non-gameplay interface changes:

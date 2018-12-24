@@ -1614,6 +1614,10 @@ int spell;
 
     /* Calculate effective Int: may be boosted by certain items */
     unsigned char intel = ACURR(A_INT);
+
+    boolean wield_wand_bonus, wield_book_bonus, gear_bonus;
+    wield_wand_bonus = wield_book_bonus = gear_bonus = FALSE;
+
     if (uwep && uwep->oclass == WAND_CLASS && uwep->otyp != WAN_NOTHING) {
         /* can get a boost from a wand whose magic is similar
          * however, you need to have formally identified it, otherwise you can
@@ -1624,17 +1628,32 @@ int spell;
             if (spellid(spell) == wand_combos[i].spell
                 && uwep->otyp == wand_combos[i].wand
                 && objects[uwep->otyp].oc_name_known) {
-                intel += 7;
+                wield_wand_bonus = TRUE;
                 break;
             }
         }
     }
     /* can't be an else if - otherwise, wielding an unidentified non-nothing
      * wand will prevent this bonus from being assessed */
-    if (intel == ACURR(A_INT)
-        && ((uarmc && uarmc->otyp == ROBE)
-            || (uwep && (uwep->otyp == QUARTERSTAFF
-                         || uwep->otyp == WAN_NOTHING)))) {
+    if (uwep && uwep->oclass == SPBOOK_CLASS && uwep->otyp == spellid(spell)) {
+        /* Wielding the spellbook containing the spell that we're trying to cast
+         * gives the same benefit as the wand.
+         * No check for spellbook identification here, largely because if the
+         * hero knows a spell they should know its corresponding book's
+         * appearance. */
+        wield_book_bonus = TRUE;
+    }
+    if (uarmc && uarmc->otyp == ROBE) {
+        gear_bonus = TRUE;
+    }
+    if (uwep && (uwep->otyp == QUARTERSTAFF || uwep->otyp == WAN_NOTHING)) {
+        gear_bonus = TRUE;
+    }
+
+    if (wield_wand_bonus) {
+        intel += 7;
+    }
+    else if (gear_bonus) {
         intel += 5;
     }
 
@@ -1708,7 +1727,8 @@ STATIC_OVL int
 energy_cost(spell)
 int spell;
 {
-    int energy = (spellev(spell) * 5); /* 5 <= energy <= 35 */
+    int base_energy = (spellev(spell) * 5); /* 5 <= energy <= 35 */
+    int energy = base_energy;
     int old_success_rate = percent_success(spell);
 
     if (old_success_rate == 0) {
@@ -1721,9 +1741,14 @@ int spell;
     }
 
     /* If currently wielding the spellbook containing the spell that we're
-     * trying to cast, reduce the Pw cost of casting by half rounded up. */
+     * trying to cast, reduce the Pw cost of casting by half rounded up.
+     * But don't reduce further than the innate base amount of power the spell
+     * normally takes to cast. */
     if (uwep && uwep->otyp == spellid(spell)) {
-        energy = (energy + 1) / 2;
+        int half_energy = (energy + 1) / 2;
+        if (half_energy < base_energy)
+            half_energy = base_energy;
+        energy = half_energy;
     }
 
     return energy;
