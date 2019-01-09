@@ -171,6 +171,10 @@ Bone's relative material AC is decreased from 6 to 4 (on par with wood).
 Naming artifacts no longer breaks illiterate conduct.
 Wielding a spellbook will no longer bring the Pw cost of the spell below its
   base 5*level value, though the halving effect otherwise still works.
+Make gnomish wizards, kobold shamans, and orc shamans telepathic. Their corpses
+  may now occasionally convey telepathy (infrequent, unlike floating eyes).
+The corpse of any casting monster now follows the same logic as newt corpses to
+  make the player regain some energy and maybe gain a point to their max.
 
 
 It contains the following non-gameplay interface changes:
@@ -207,10 +211,6 @@ Peaceful monsters are now underlined by default in both the tty and curses
   (defaults to true).
 Slightly more flavorful (ha) message when you get regurgitated on account of
   slow digestion.
-Make gnomish wizards, kobold shamans, and orc shamans telepathic. Their corpses
-  may now occasionally convey telepathy (infrequent, unlike floating eyes).
-The corpse of any casting monster now follows the same logic as newt corpses to
-  make the player regain some energy and maybe gain a point to their max.
 You no longer get additional score for reaching a deeper dungeon level than 45.
   This is mainly so that true min-score can be achieved in any game.
 Track survivor as a full conduct. It exists as the 20th least significant bit of
