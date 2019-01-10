@@ -1,4 +1,4 @@
-/* NetHack 3.6	makemon.c	$NHDT-Date: 1542798623 2018/11/21 11:10:23 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.128 $ */
+/* NetHack 3.6	makemon.c	$NHDT-Date: 1544998885 2018/12/16 22:21:25 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.131 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -18,15 +18,15 @@ STATIC_DCL boolean FDECL(uncommon, (int));
 STATIC_DCL int FDECL(align_shift, (struct permonst *));
 STATIC_DCL boolean FDECL(mk_gen_ok, (int, int, int));
 STATIC_DCL boolean FDECL(wrong_elem_type, (struct permonst *));
-STATIC_DCL void FDECL(m_initgrp, (struct monst *, int, int, int));
+STATIC_DCL void FDECL(m_initgrp, (struct monst *, int, int, int, int));
 STATIC_DCL void FDECL(m_initthrow, (struct monst *, int, int));
 STATIC_DCL void FDECL(m_initweap, (struct monst *));
 STATIC_DCL void FDECL(m_initinv, (struct monst *));
 STATIC_DCL boolean FDECL(makemon_rnd_goodpos, (struct monst *,
                                                unsigned, coord *));
 
-#define m_initsgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 3)
-#define m_initlgrp(mtmp, x, y) m_initgrp(mtmp, x, y, 10)
+#define m_initsgrp(mtmp, x, y, mmf) m_initgrp(mtmp, x, y, 3, mmf)
+#define m_initlgrp(mtmp, x, y, mmf) m_initgrp(mtmp, x, y, 10, mmf)
 
 boolean
 is_home_elemental(ptr)
@@ -74,9 +74,9 @@ struct permonst *ptr;
 
 /* make a group just like mtmp */
 STATIC_OVL void
-m_initgrp(mtmp, x, y, n)
-register struct monst *mtmp;
-register int x, y, n;
+m_initgrp(mtmp, x, y, n, mmflags)
+struct monst *mtmp;
+int x, y, n, mmflags;
 {
     coord mm;
     register int cnt = rnd(n);
@@ -127,7 +127,7 @@ register int x, y, n;
          * smaller group.
          */
         if (enexto(&mm, mm.x, mm.y, mtmp->data)) {
-            mon = makemon(mtmp->data, mm.x, mm.y, NO_MM_FLAGS);
+            mon = makemon(mtmp->data, mm.x, mm.y, (mmflags | MM_NOGRP));
             if (mon) {
                 mon->mpeaceful = FALSE;
                 mon->mavenge = 0;
@@ -1216,7 +1216,8 @@ int mmflags;
         newemin(mtmp);
     if (mmflags & MM_EDOG)
         newedog(mtmp);
-
+    if (mmflags & MM_ASLEEP)
+        mtmp->msleeping = 1;
     mtmp->nmon = fmon;
     fmon = mtmp;
     mtmp->m_id = context.ident++;
@@ -1388,14 +1389,14 @@ int mmflags;
                               : eminp->renegade;
     }
     set_malign(mtmp); /* having finished peaceful changes */
-    if (anymon && !(mmflags & MM_NOGROUP)) {
+    if (anymon && !(mmflags & MM_NOGRP)) {
         if ((ptr->geno & G_SGROUP) && rn2(2)) {
-            m_initsgrp(mtmp, mtmp->mx, mtmp->my);
+            m_initsgrp(mtmp, mtmp->mx, mtmp->my, mmflags);
         } else if (ptr->geno & G_LGROUP) {
             if (rn2(3))
-                m_initlgrp(mtmp, mtmp->mx, mtmp->my);
+                m_initlgrp(mtmp, mtmp->mx, mtmp->my, mmflags);
             else
-                m_initsgrp(mtmp, mtmp->mx, mtmp->my);
+                m_initsgrp(mtmp, mtmp->mx, mtmp->my, mmflags);
         }
     }
 
@@ -1484,7 +1485,7 @@ struct monst* creator;
         if (!mptr && in_water && enexto(&c, x, y, &mons[PM_GIANT_EEL]))
             x = c.x, y = c.y;
 
-        mon = makemon(mptr, x, y, MM_ADJACENTOK | MM_NOGROUP);
+        mon = makemon(mptr, x, y, MM_ADJACENTOK | MM_NOGRP);
     }
     newmons_ct = monster_census(TRUE) - old_census;
     if (newmons_ct > 0) {
@@ -1649,59 +1650,89 @@ int mndx, mvflagsmask, genomask;
 }
 
 /* Make one of the multiple types of a given monster class.
- * The second parameter specifies a special casing bit mask
- * to allow the normal genesis masks to be deactivated.
- * Returns Null if no monsters in that class can be made.
- */
+   The second parameter specifies a special casing bit mask
+   to allow the normal genesis masks to be deactivated.
+   Returns Null if no monsters in that class can be made. */
 struct permonst *
 mkclass(class, spc)
 char class;
 int spc;
 {
+    return mkclass_aligned(class, spc, A_NONE);
+}
+
+/* mkclass() with alignment restrictions; used by ndemon() */
+struct permonst *
+mkclass_aligned(class, spc, atyp)
+char class;
+int spc;
+aligntyp atyp;
+{
     register int first, last, num = 0;
+    int k, nums[SPECIAL_PM + 1]; /* +1: insurance for final return value */
     int maxmlev, mask = (G_NOGEN | G_UNIQ) & ~spc;
 
+    (void) memset((genericptr_t) nums, 0, sizeof nums);
     maxmlev = level_difficulty() >> 1;
     if (class < 1 || class >= MAXMCLASSES) {
         impossible("mkclass called with bad class!");
         return (struct permonst *) 0;
     }
     /*  Assumption #1:  monsters of a given class are contiguous in the
-     *                  mons[] array.
+     *                  mons[] array.  Player monsters and quest denizens
+     *                  are an exception; mkclass() won't pick them.
+     *                  SPECIAL_PM is long worm tail and separates the
+     *                  regular monsters from the exceptions.
      */
     for (first = LOW_PM; first < SPECIAL_PM; first++)
         if (mons[first].mlet == class)
             break;
-    if (first == SPECIAL_PM)
+    if (first == SPECIAL_PM) {
+        impossible("mkclass found no class %d monsters", class);
         return (struct permonst *) 0;
-
-    for (last = first; last < SPECIAL_PM && mons[last].mlet == class; last++)
-        if (mk_gen_ok(last, G_GONE, mask)) {
-            /* consider it */
-            if (num && toostrong(last, maxmlev)
-                && mons[last].difficulty != mons[last - 1].difficulty && rn2(2))
-                break;
-            num += mons[last].geno & G_FREQ;
-        }
-    if (!num)
-        return (struct permonst *) 0;
+    }
 
     /*  Assumption #2:  monsters of a given class are presented in ascending
      *                  order of strength.
      */
-    for (num = rnd(num); num > 0; first++)
-        if (mk_gen_ok(first, G_GONE, mask)) {
-            /* skew towards lower value monsters at lower exp. levels */
-            num -= mons[first].geno & G_FREQ;
-            if (num && adj_lev(&mons[first]) > (u.ulevel * 2)) {
-                /* but not when multiple monsters are same level */
-                if (mons[first].mlevel != mons[first + 1].mlevel)
-                    num--;
+    for (last = first; last < SPECIAL_PM && mons[last].mlet == class; last++) {
+        if (atyp != A_NONE && sgn(mons[last].maligntyp) != sgn(atyp))
+            continue;
+        if (mk_gen_ok(last, G_GONE, mask)) {
+            /* consider it; don't reject a toostrong() monster if we
+               don't have anything yet (num==0) or if it is the same
+               (or lower) difficulty as preceding candidate (non-zero
+               'num' implies last > first so mons[last-1] is safe);
+               sometimes accept it even if high difficulty */
+            if (num && toostrong(last, maxmlev)
+                && mons[last].difficulty > mons[last - 1].difficulty
+                && rn2(2))
+                break;
+            if ((k = (mons[last].geno & G_FREQ)) > 0) {
+                /* skew towards lower value monsters at lower exp. levels
+                   (this used to be done in the next loop, but that didn't
+                   work well when multiple species had the same level and
+                   were followed by one that was past the bias threshold;
+                   cited example was sucubus and incubus, where the bias
+                   against picking the next demon resulted in incubus
+                   being picked nearly twice as often as sucubus);
+                   we need the '+1' in case the entire set is too high
+                   level (really low level hero) */
+                nums[last] = k + 1 - (adj_lev(&mons[last]) > (u.ulevel * 2));
+                num += nums[last];
             }
         }
-    first--; /* correct an off-by-one error */
+    }
+    if (!num)
+        return (struct permonst *) 0;
 
-    return &mons[first];
+    /* the hard work has already been done; 'num' should hit 0 before
+       first reaches last (which is actually one past our last candidate) */
+    for (num = rnd(num); first < last; first++)
+        if ((num -= nums[first]) <= 0)
+            break;
+
+    return nums[first] ? &mons[first] : (struct permonst *) 0;
 }
 
 /* like mkclass(), but excludes difficulty considerations; used when

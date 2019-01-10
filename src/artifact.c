@@ -1,4 +1,4 @@
-/* NetHack 3.6	artifact.c	$NHDT-Date: 1543745353 2018/12/02 10:09:13 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.127 $ */
+/* NetHack 3.6	artifact.c	$NHDT-Date: 1545597414 2018/12/23 20:36:54 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.128 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1512,6 +1512,7 @@ struct obj *obj;
         }
         case ENERGY_BOOST: {
             int epboost = (u.uenmax + 1 - u.uen) / 2;
+
             if (epboost > 120)
                 epboost = 120; /* arbitrary */
             else if (epboost < 12)
@@ -1631,6 +1632,7 @@ struct obj *obj;
             otmp->owt = weight(otmp);
             otmp = hold_another_object(otmp, "Suddenly %s out.",
                                        aobjnam(otmp, "fall"), (char *) 0);
+            nhUse(otmp);
             break;
         }
         case LIGHTNING_BOLT: {
@@ -1673,7 +1675,7 @@ struct obj *obj;
         }
 
         if ((eprop & ~W_ARTI) || iprop) {
-        nothing_special:
+ nothing_special:
             /* you had the property from some other source too */
             if (carried(obj))
                 You_feel("a surge of power, but nothing seems to happen.");
@@ -2042,7 +2044,7 @@ boolean loseit;    /* whether to drop it if hero can longer touch it */
     if (loseit && obj) {
         if (Levitation) {
             freeinv(obj);
-            hitfloor(obj);
+            hitfloor(obj, TRUE);
         } else {
             /* dropx gives a message iff item lands on an altar */
             if (!IS_ALTAR(levl[u.ux][u.uy].typ))

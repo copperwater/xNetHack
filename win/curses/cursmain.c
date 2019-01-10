@@ -1,7 +1,7 @@
+/* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 /* NetHack 3.6 cursmain.c */
 /* Copyright (c) Karl Garrison, 2010. */
 /* NetHack may be freely redistributed.  See license for details. */
-/* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
 #include "curses.h"
 #include "hack.h"
@@ -14,14 +14,14 @@
 /* Interface definition, for windows.c */
 struct window_procs curses_procs = {
     "curses",
-    WC_ALIGN_MESSAGE | WC_ALIGN_STATUS | WC_COLOR | WC_HILITE_PET |
-        WC_PERM_INVENT | WC_POPUP_DIALOG | WC_SPLASH_SCREEN,
-    WC2_DARKGRAY | WC2_HITPOINTBAR |
+    (WC_ALIGN_MESSAGE | WC_ALIGN_STATUS | WC_COLOR | WC_HILITE_PET
+     | WC_PERM_INVENT | WC_POPUP_DIALOG | WC_SPLASH_SCREEN),
+    (WC2_DARKGRAY | WC2_HITPOINTBAR
 #if defined(STATUS_HILITES)
-     WC2_HILITE_STATUS |
+     | WC2_HILITE_STATUS
 #endif
-    WC2_HITPOINTBAR | WC2_FLUSH_STATUS |
-    WC2_TERM_SIZE | WC2_WINDOWBORDERS | WC2_PETATTR | WC2_GUICOLOR,
+     |  WC2_HITPOINTBAR | WC2_FLUSH_STATUS
+     |  WC2_TERM_SIZE | WC2_WINDOWBORDERS | WC2_PETATTR | WC2_GUICOLOR),
     curses_init_nhwindows,
     curses_player_selection,
     curses_askname,
@@ -110,7 +110,8 @@ init_nhwindows(int* argcp, char** argv)
                 ** windows?  Or at least all but WIN_INFO?      -dean
 */
 void
-curses_init_nhwindows(int *argcp, char **argv)
+curses_init_nhwindows(int *argcp UNUSED,
+                      char **argv UNUSED)
 {
 #ifdef PDCURSES
     char window_title[BUFSZ];
@@ -249,7 +250,7 @@ curses_exit_nhwindows(const char *str)
 
 /* Prepare the window to be suspended. */
 void
-curses_suspend_nhwindows(const char *str)
+curses_suspend_nhwindows(const char *str UNUSED)
 {
     endwin();
 }
@@ -578,7 +579,8 @@ print_glyph(window, x, y, glyph, bkglyph)
                    It's not used here.
 */
 void
-curses_print_glyph(winid wid, XCHAR_P x, XCHAR_P y, int glyph, int bkglyph)
+curses_print_glyph(winid wid, XCHAR_P x, XCHAR_P y, int glyph,
+                   int bkglyph UNUSED)
 {
     int ch;
     int color;
@@ -625,7 +627,13 @@ raw_print(str)  -- Print directly to a screen, or otherwise guarantee that
 void
 curses_raw_print(const char *str)
 {
+#ifdef PDCURSES
+    WINDOW *win = curses_get_nhwin(MESSAGE_WIN);
+
+    curses_message_win_puts(str, FALSE);
+#else
     puts(str);
+#endif
 }
 
 /*
@@ -767,8 +775,9 @@ number_pad(state)
             -- Initialize the number pad to the given state.
 */
 void
-curses_number_pad(int state)
+curses_number_pad(int state UNUSED)
 {
+    return;
 }
 
 /*
@@ -812,8 +821,10 @@ outrip(winid, int)
                genl_outrip for the value and check the #if in rip.c.
 */
 void
-curses_outrip(winid wid, int how)
+curses_outrip(winid wid UNUSED,
+              int how UNUSED)
 {
+     return;
 }
 
 /*

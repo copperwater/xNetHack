@@ -396,6 +396,7 @@ struct mkroom *sroom;
             /* don't place monster on explicitly placed throne */
             if (type == COURT && IS_THRONE(levl[sx][sy].typ))
                 continue;
+
             /* create the appropriate room filler monster */
             struct permonst * fillermon = NULL;
             if (type == COURT) {
@@ -437,15 +438,19 @@ struct mkroom *sroom;
 
             mon = NULL;
             if (fillermon) {
-                mon = makemon(fillermon, sx, sy, NO_MM_FLAGS);
-            }
-            /* All special rooms currently generate all their monsters asleep. */
-            if (mon) {
-                mon->msleeping = 1;
-                if (type == COURT && mon->mpeaceful) {
-                    /* Courts are also always hostile. */
-                    mon->mpeaceful = 0;
-                    set_malign(mon);
+                /* All special rooms currently generate all their monsters asleep. */
+                mon = makemon(fillermon, sx, sy, MM_ASLEEP);
+
+                if (mon) {
+                    if (type == COURT && mon->mpeaceful) {
+                        /* Courts are also always hostile. */
+                        mon->mpeaceful = 0;
+                        set_malign(mon);
+                    }
+                    if (type == ABBATOIR || (type == DEMONDEN && !rn2(3))) {
+                        /* undo its sleep */
+                        mon->msleeping = 0;
+                    }
                 }
             }
             switch (type) {
@@ -503,10 +508,6 @@ struct mkroom *sroom;
                 break;
             case DEMONDEN:
                 if (mon) {
-                    if (!rn2(3)) {
-                        /* undo sleep */
-                        mon->msleeping = 0;
-                    }
                     /* treasure */
                     (void) mkgold((long) rn1(200, 10), sx, sy);
                     for (i = rn2(3) + 1; i > 0; i--) {
@@ -524,9 +525,6 @@ struct mkroom *sroom;
                 break;
             case ABBATOIR:
                 /* scatter some corpses, leashes, knives, blood */
-                if (mon) {
-                    mon->msleeping = 0;
-                }
                 if (!rn2(7)) {
                     struct obj* sobj = mksobj_at(CORPSE, sx, sy, TRUE, FALSE);
                     sobj->corpsenm = monsndx(zoomon());

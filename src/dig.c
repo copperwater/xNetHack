@@ -1,4 +1,4 @@
-/* NetHack 3.6	dig.c	$NHDT-Date: 1542765354 2018/11/21 01:55:54 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.115 $ */
+/* NetHack 3.6	dig.c	$NHDT-Date: 1544442710 2018/12/10 11:51:50 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.116 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -81,7 +81,7 @@ boolean waslit, rockit;
     lev->horizontal = FALSE;
     /* short-circuit vision recalc */
     viz_array[y][x] = (dist < 3) ? (IN_SIGHT | COULD_SEE) : COULD_SEE;
-    lev->typ = (rockit ? STONE : ROOM);
+    lev->typ = (rockit ? STONE : ROOM); /* flags set via doormask above */
     if (dist >= 3)
         impossible("mkcavepos called with dist %d", dist);
     feel_newsym(x, y);
@@ -129,7 +129,7 @@ register boolean rockit;
     }
 
     if (!rockit && levl[u.ux][u.uy].typ == CORR) {
-        levl[u.ux][u.uy].typ = ROOM;
+        levl[u.ux][u.uy].typ = ROOM; /* flags for CORR already 0 */
         if (waslit)
             levl[u.ux][u.uy].waslit = TRUE;
         newsym(u.ux, u.uy); /* in case player is invisible */
@@ -372,9 +372,9 @@ dig(VOID_ARGS)
     }
 
     if (context.digging.effort > 100) {
-        register const char *digtxt, *dmgtxt = (const char *) 0;
-        register struct obj *obj;
-        register boolean shopedge = *in_rooms(dpx, dpy, SHOPBASE);
+        const char *digtxt, *dmgtxt = (const char *) 0;
+        struct obj *obj;
+        boolean shopedge = *in_rooms(dpx, dpy, SHOPBASE);
 
         if ((obj = sobj_at(STATUE, dpx, dpy)) != 0) {
             if (break_statue(obj))
@@ -408,12 +408,12 @@ dig(VOID_ARGS)
             }
             if (IS_TREE(lev->typ)) {
                 digtxt = "You cut down the tree.";
-                lev->typ = ROOM;
+                lev->typ = ROOM, lev->flags = 0;
                 if (!rn2(5))
                     (void) rnd_treefruit_at(dpx, dpy);
             } else {
                 digtxt = "You succeed in cutting away some rock.";
-                lev->typ = CORR;
+                lev->typ = CORR, lev->flags = 0;
             }
         } else if (IS_WALL(lev->typ)) {
             if (shopedge) {
@@ -421,9 +421,9 @@ dig(VOID_ARGS)
                 dmgtxt = "damage";
             }
             if (level.flags.is_maze_lev) {
-                lev->typ = ROOM;
+                lev->typ = ROOM, lev->flags = 0;
             } else if (level.flags.is_cavernous_lev && !in_town(dpx, dpy)) {
-                lev->typ = CORR;
+                lev->typ = CORR, lev->flags = 0;
             } else {
                 lev->typ = DOOR;
                 set_doorstate(lev, D_NODOOR);
@@ -584,6 +584,7 @@ int ttyp;
     } else if (lev->typ == DRAWBRIDGE_DOWN
                || (is_drawbridge_wall(x, y) >= 0)) {
         int bx = x, by = y;
+
         /* if under the portcullis, the bridge is adjacent */
         (void) find_drawbridge(&bx, &by);
         destroy_drawbridge(bx, by);
@@ -864,6 +865,7 @@ coord *cc;
     } else {
         typ = fillholetyp(dig_x, dig_y, FALSE);
 
+        lev->flags = 0;
         if (typ != ROOM) {
             lev->typ = typ;
             liquid_flow(dig_x, dig_y, typ, ttmp,
@@ -946,7 +948,7 @@ coord *cc;
         pline_The("grave seems unused.  Strange....");
         break;
     }
-    levl[dig_x][dig_y].typ = ROOM;
+    levl[dig_x][dig_y].typ = ROOM, levl[dig_x][dig_y].flags = 0;
     del_engr_at(dig_x, dig_y);
     newsym(dig_x, dig_y);
     return;
@@ -1302,7 +1304,7 @@ register struct monst *mtmp;
         newsym(mtmp->mx, mtmp->my);
         return FALSE;
     } else if (here->typ == SCORR) {
-        here->typ = CORR;
+        here->typ = CORR, here->flags = 0;
         unblock_point(mtmp->mx, mtmp->my);
         newsym(mtmp->mx, mtmp->my);
         draft_message(FALSE); /* "You feel a draft." */
@@ -1327,20 +1329,20 @@ register struct monst *mtmp;
         if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
             add_damage(mtmp->mx, mtmp->my, 0L);
         if (level.flags.is_maze_lev) {
-            here->typ = ROOM;
+            here->typ = ROOM, here->flags = 0;
         } else if (level.flags.is_cavernous_lev
                    && !in_town(mtmp->mx, mtmp->my)) {
-            here->typ = CORR;
+            here->typ = CORR, here->flags = 0;
         } else {
             here->typ = DOOR;
             set_doorstate(here, D_NODOOR);
         }
     } else if (IS_TREE(here->typ)) {
-        here->typ = ROOM;
+        here->typ = ROOM, here->flags = 0;
         if (pile && pile < 5)
             (void) rnd_treefruit_at(mtmp->mx, mtmp->my);
     } else {
-        here->typ = CORR;
+        here->typ = CORR, here->flags = 0;
         if (pile && pile < 5)
             (void) mksobj_at((pile == 1) ? BOULDER : ROCK, mtmp->mx, mtmp->my,
                              TRUE, FALSE);
@@ -1554,21 +1556,21 @@ zap_dig()
                         add_damage(zx, zy, SHOP_WALL_COST);
                         shopwall = TRUE;
                     }
-                    room->typ = ROOM;
+                    room->typ = ROOM, room->flags = 0;
                     unblock_point(zx, zy); /* vision */
                 } else if (!Blind)
                     pline_The("wall glows then fades.");
                 break;
             } else if (IS_TREE(room->typ)) { /* check trees before stone */
                 if (!(room->wall_info & W_NONDIGGABLE)) {
-                    room->typ = ROOM;
+                    room->typ = ROOM, room->flags = 0;
                     unblock_point(zx, zy); /* vision */
                 } else if (!Blind)
                     pline_The("tree shudders but is unharmed.");
                 break;
             } else if (room->typ == STONE || room->typ == SCORR) {
                 if (!(room->wall_info & W_NONDIGGABLE)) {
-                    room->typ = CORR;
+                    room->typ = CORR, room->flags = 0;
                     unblock_point(zx, zy); /* vision */
                 } else if (!Blind)
                     pline_The("rock glows then fades.");
@@ -1584,17 +1586,17 @@ zap_dig()
                 }
                 watch_dig((struct monst *) 0, zx, zy, TRUE);
                 if (level.flags.is_cavernous_lev && !in_town(zx, zy)) {
-                    room->typ = CORR;
+                    room->typ = CORR, room->flags = 0;
                 } else {
                     room->typ = DOOR;
                     set_doorstate(room, D_NODOOR);
                 }
                 digdepth -= 2;
             } else if (IS_TREE(room->typ)) {
-                room->typ = ROOM;
+                room->typ = ROOM, room->flags = 0;
                 digdepth -= 2;
             } else { /* IS_ROCK but not IS_WALL or SDOOR */
-                room->typ = CORR;
+                room->typ = CORR, room->flags = 0;
                 digdepth--;
             }
             unblock_point(zx, zy); /* vision */
@@ -1606,8 +1608,10 @@ zap_dig()
 
     if (pitflow && isok(flow_x, flow_y)) {
         struct trap *ttmp = t_at(flow_x, flow_y);
+
         if (ttmp && is_pit(ttmp->ttyp)) {
             schar filltyp = fillholetyp(ttmp->tx, ttmp->ty, TRUE);
+
             if (filltyp != ROOM)
                 pit_flow(ttmp, filltyp);
         }
@@ -1632,7 +1636,7 @@ char *msg;
     int ltyp;
     struct rm *room;
     const char *foundation_msg =
-        "The foundation is too hard to dig through from this angle.";
+                 "The foundation is too hard to dig through from this angle.";
 
     if (!cc)
         return FALSE;
@@ -1640,7 +1644,7 @@ char *msg;
         return FALSE;
     *msg = '\0';
     room = &levl[cc->x][cc->y];
-    ltyp = room->typ;
+    ltyp = room->typ, room->flags = 0;
 
     if (is_pool(cc->x, cc->y) || is_lava(cc->x, cc->y)) {
         /* this is handled by the caller after we return FALSE */
@@ -1720,15 +1724,14 @@ pit_flow(trap, filltyp)
 struct trap *trap;
 schar filltyp;
 {
-    if (trap && (filltyp != ROOM)
-        && is_pit(trap->ttyp)) {
+    if (trap && filltyp != ROOM && is_pit(trap->ttyp)) {
         struct trap t;
         int idx;
 
         t = *trap;
-        levl[trap->tx][trap->ty].typ = filltyp;
-        liquid_flow(trap->tx, trap->ty, filltyp, trap,
-                    (trap->tx == u.ux && trap->ty == u.uy)
+        levl[t.tx][t.ty].typ = filltyp, levl[t.tx][t.ty].flags = 0;
+        liquid_flow(t.tx, t.ty, filltyp, trap,
+                    (t.tx == u.ux && t.ty == u.uy)
                         ? "Suddenly %s flows in from the adjacent pit!"
                         : (char *) 0);
         for (idx = 0; idx < 8; ++idx) {

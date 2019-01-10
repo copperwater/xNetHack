@@ -1,4 +1,4 @@
-/* NetHack 3.6	files.c	$NHDT-Date: 1543395733 2018/11/28 09:02:13 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.244 $ */
+/* NetHack 3.6	files.c	$NHDT-Date: 1546144856 2018/12/30 04:40:56 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.249 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -3183,7 +3183,8 @@ boolean FDECL((*proc), (char *));
                     *ep = '\0';
 
                 /* trim off spaces at end of line */
-                while (--ep >= inbuf && (*ep == ' ' || *ep == '\t' || *ep == '\r'))
+                while (--ep >= inbuf
+                       && (*ep == ' ' || *ep == '\t' || *ep == '\r'))
                     *ep = '\0';
 
                 if (!config_error_nextline(inbuf)) {
@@ -3333,9 +3334,7 @@ int which_set;
         config_error_add("Missing finish for symset \"%s\"",
                          symset[which_set].name ? symset[which_set].name
                                                 : "unknown");
-
     config_error_done();
-
     return 1;
 }
 
@@ -3404,37 +3403,26 @@ int which_set;
 
             switch (symp->idx) {
             case 0:
-                tmpsp =
-                    (struct symsetentry *) alloc(sizeof (struct symsetentry));
-                tmpsp->next = (struct symsetentry *) 0;
-                if (!symset_list) {
-                    symset_list = tmpsp;
-                    symset_count = 0;
-                } else {
-                    symset_count++;
-                    tmpsp->next = symset_list;
-                    symset_list = tmpsp;
-                }
-                tmpsp->idx = symset_count;
+                tmpsp = (struct symsetentry *) alloc(sizeof *tmpsp);
+                tmpsp->next = symset_list;
+                symset_list = tmpsp;
+                tmpsp->idx = symset_count++;
                 tmpsp->name = dupstr(bufp);
                 tmpsp->desc = (char *) 0;
-                tmpsp->nocolor = 0;
+                tmpsp->handling = H_UNK;
                 /* initialize restriction bits */
+                tmpsp->nocolor = 0;
                 tmpsp->primary = 0;
                 tmpsp->rogue = 0;
                 break;
             case 2:
                 /* handler type identified */
                 tmpsp = symset_list; /* most recent symset */
-                tmpsp->handling = H_UNK;
-                i = 0;
-                while (known_handling[i]) {
+                for (i = 0; known_handling[i]; ++i)
                     if (!strcmpi(known_handling[i], bufp)) {
                         tmpsp->handling = i;
-                        break; /* while loop */
+                        break; /* for loop */
                     }
-                    i++;
-                }
                 break;
             case 3:                  /* description:something */
                 tmpsp = symset_list; /* most recent symset */

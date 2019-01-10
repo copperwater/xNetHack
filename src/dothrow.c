@@ -1,4 +1,4 @@
-/* NetHack 3.6	dothrow.c	$NHDT-Date: 1543892215 2018/12/04 02:56:55 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.152 $ */
+/* NetHack 3.6	dothrow.c	$NHDT-Date: 1545597420 2018/12/23 20:37:00 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.155 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -431,21 +431,21 @@ boolean verbose;
     }
 }
 
-/*
- * Object hits floor at hero's feet.  Called from drop() and throwit().
- */
+/* Object hits floor at hero's feet.
+   Called from drop(), throwit(), hold_another_object(). */
 void
-hitfloor(obj)
-register struct obj *obj;
+hitfloor(obj, verbosely)
+struct obj *obj;
+boolean verbosely; /* usually True; False if caller has given drop message */
 {
-    if (IS_SOFT(levl[u.ux][u.uy].typ) || u.uinwater) {
+    if (IS_SOFT(levl[u.ux][u.uy].typ) || u.uinwater || u.uswallow) {
         dropy(obj);
         return;
     }
     if (IS_ALTAR(levl[u.ux][u.uy].typ))
         doaltarobj(obj);
-    else
-        pline("%s hit%s the %s.", Doname2(obj), (obj->quan == 1L) ? "s" : "",
+    else if (verbosely)
+        pline("%s %s the %s.", Doname2(obj), otense(obj, "hit"),
               surface(u.ux, u.uy));
 
     if (hero_breaks(obj, u.ux, u.uy, TRUE))
@@ -725,6 +725,11 @@ int x, y;
     newsym(ox, oy);    /* update old position */
     vision_recalc(1);  /* update for new position */
     flush_screen(1);
+    /* if terrain type changes, levitation or flying might become blocked
+       or unblocked; might issue message, so do this after map+vision has
+       been updated for new location instead of right after u_on_newpos() */
+    if (levl[u.ux][u.uy].typ != levl[ox][oy].typ)
+        switch_terrain();
 
     if (is_pool(x, y) && !u.uinwater) {
         if ((Is_waterlevel(&u.uz) && levl[x][y].typ == WATER)
@@ -907,21 +912,26 @@ struct obj *obj;
 xchar x, y;
 boolean broken;
 {
+    boolean costly_xy;
     struct monst *shkp = shop_keeper(*u.ushops);
 
     if (!shkp)
         return;
 
-    if (broken || !costly_spot(x, y)
-        || *in_rooms(x, y, SHOPBASE) != *u.ushops) {
+    costly_xy = costly_spot(x, y);
+    if (broken || !costly_xy || *in_rooms(x, y, SHOPBASE) != *u.ushops) {
         /* thrown out of a shop or into a different shop */
         if (is_unpaid(obj))
             (void) stolen_value(obj, u.ux, u.uy, (boolean) shkp->mpeaceful,
                                 FALSE);
         if (broken)
             obj->no_charge = 1;
-    } else {
-        if (costly_spot(u.ux, u.uy) && costly_spot(x, y)) {
+    } else if (costly_xy) {
+        char *oshops = in_rooms(x, y, SHOPBASE);
+
+        /* ushops0: in case we threw while levitating and recoiled
+           out of shop (most likely to the shk's spot in front of door) */
+        if (*oshops == *u.ushops || *oshops == *u.ushops0) {
             if (is_unpaid(obj))
                 subfrombill(obj, shkp);
             else if (x != shkp->mx || y != shkp->my)
@@ -1077,7 +1087,7 @@ boolean hitsroof;
             done(STONING);
             return obj ? TRUE : FALSE;
         }
-        hitfloor(obj);
+        hitfloor(obj, TRUE);
         thrownobj = 0;
         losehp(Maybe_Half_Phys(dmg), "falling object", KILLED_BY_AN);
     }
@@ -1198,7 +1208,7 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
                for dealing with cursed saddle:  throw holy water > */
             potionhit(u.usteed, obj, POTHIT_HERO_THROW);
         } else {
-            hitfloor(obj);
+            hitfloor(obj, TRUE);
         }
         thrownobj = (struct obj *) 0;
         return;

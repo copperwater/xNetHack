@@ -1,4 +1,4 @@
-/* NetHack 3.6	uhitm.c	$NHDT-Date: 1543892215 2018/12/04 02:56:55 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.195 $ */
+/* NetHack 3.6	uhitm.c	$NHDT-Date: 1545597432 2018/12/23 20:37:12 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.197 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -102,7 +102,7 @@ attack_checks(mtmp, wep)
 register struct monst *mtmp;
 struct obj *wep; /* uwep for attack(), null for kick_monster() */
 {
-    char qbuf[QBUFSZ];
+    int glyph;
 
     /* if you're close enough to attack, alert any waiting monster */
     mtmp->mstrategy &= ~STRAT_WAITMASK;
@@ -125,6 +125,12 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
         return FALSE;
     }
 
+    /* cache the shown glyph;
+       cases which might change it (by placing or removing
+       'rembered, unseen monster' glyph or revealing a mimic)
+       always return without further reference to this */
+    glyph = glyph_at(bhitpos.x, bhitpos.y);
+
     /* Put up an invisible monster marker, but with exceptions for
      * monsters that hide and monsters you've been warned about.
      * The former already prints a warning message and
@@ -133,8 +139,8 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
      * happening two turns in a row.  The latter shows a glyph on
      * the screen, so you know something is there.
      */
-    if (!canspotmon(mtmp) && !glyph_is_warning(glyph_at(bhitpos.x, bhitpos.y))
-        && !glyph_is_invisible(levl[bhitpos.x][bhitpos.y].glyph)
+    if (!canspotmon(mtmp)
+        && !glyph_is_warning(glyph) && !glyph_is_invisible(glyph)
         && !(!Blind && mtmp->mundetected && hides_under(mtmp->data))) {
         pline("Wait!  There's %s there you can't see!", something);
         map_invisible(bhitpos.x, bhitpos.y);
@@ -147,17 +153,23 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
             if (!u.ustuck && !mtmp->mflee && dmgtype(mtmp->data, AD_STCK))
                 u.ustuck = mtmp;
         }
+        /* #H7329 - if hero is on engraved "Elbereth", this will end up
+         * assessing an alignment penalty and removing the engraving
+         * even though no attack actually occurs.  Since it also angers
+         * peacefuls, we're operating as if an attack attempt did occur
+         * and the Elbereth behavior is consistent.
+         */
         wakeup(mtmp, TRUE); /* always necessary; also un-mimics mimics */
         return TRUE;
     }
 
     if (mtmp->m_ap_type && !Protection_from_shape_changers && !sensemon(mtmp)
-        && !glyph_is_warning(glyph_at(bhitpos.x, bhitpos.y))) {
+        && !glyph_is_warning(glyph)) {
         /* If a hidden mimic was in a square where a player remembers
          * some (probably different) unseen monster, the player is in
          * luck--he attacks it even though it's hidden.
          */
-        if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph)) {
+        if (glyph_is_invisible(glyph)) {
             seemimic(mtmp);
             return FALSE;
         }
@@ -166,11 +178,11 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
     }
 
     if (mtmp->mundetected && !canseemon(mtmp)
-        && !glyph_is_warning(glyph_at(bhitpos.x, bhitpos.y))
+        && !glyph_is_warning(glyph)
         && (hides_under(mtmp->data) || mtmp->data->mlet == S_EEL)) {
         mtmp->mundetected = mtmp->msleeping = 0;
         newsym(mtmp->mx, mtmp->my);
-        if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph)) {
+        if (glyph_is_invisible(glyph)) {
             seemimic(mtmp);
             return FALSE;
         }
@@ -203,14 +215,16 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
         wakeup(mtmp, TRUE);
     }
 
-    if (flags.confirm && mtmp->mpeaceful && !Confusion && !Hallucination
-        && !Stunned) {
+    if (flags.confirm && mtmp->mpeaceful
+        && !Confusion && !Hallucination && !Stunned) {
         /* Intelligent chaotic weapons (Stormbringer) want blood */
         if (wep && wep->oartifact == ART_STORMBRINGER) {
             override_confirmation = TRUE;
             return FALSE;
         }
         if (canspotmon(mtmp)) {
+            char qbuf[QBUFSZ];
+
             Sprintf(qbuf, "Really attack %s?", mon_nam(mtmp));
             if (!paranoid_query(ParanoidHit, qbuf)) {
                 context.move = 0;
@@ -345,23 +359,26 @@ register struct monst *mtmp;
     /* Intelligent chaotic weapons (Stormbringer) want blood */
     if (is_safepet(mtmp) && !context.forcefight) {
         if (!uwep || uwep->oartifact != ART_STORMBRINGER) {
-            /* there are some additional considerations: this won't work
+            /* There are some additional considerations: this won't work
              * if in a shop or Punished or you miss a random roll or
              * if you can walk thru walls and your pet cannot (KAA) or
-             * if your pet is a long worm (unless someone does better).
-             * there's also a chance of displacing a "frozen" monster.
+             * if your pet is a long worm with a tail.
+             * There's also a chance of displacing a "frozen" monster:
              * sleeping monsters might magically walk in their sleep.
              */
-            boolean foo = (Punished || !rn2(7) || is_longworm(mtmp->data)),
+            boolean foo = (Punished || !rn2(7)
+                           || (is_longworm(mtmp->data) && mtmp->wormno)),
                     inshop = FALSE;
             char *p;
 
-            for (p = in_rooms(mtmp->mx, mtmp->my, SHOPBASE); *p; p++)
-                if (tended_shop(&rooms[*p - ROOMOFFSET])) {
-                    inshop = TRUE;
-                    break;
-                }
-
+            /* only check for in-shop if don't already have reason to stop */
+            if (!foo) {
+                for (p = in_rooms(mtmp->mx, mtmp->my, SHOPBASE); *p; p++)
+                    if (tended_shop(&rooms[*p - ROOMOFFSET])) {
+                        inshop = TRUE;
+                        break;
+                    }
+            }
             if (inshop || foo || (IS_ROCK(levl[u.ux][u.uy].typ)
                                   && !passes_walls(mtmp->data))) {
                 char buf[BUFSZ];
@@ -935,7 +952,7 @@ int dieroll;
                         if (resists_ston(mon))
                             break;
                         /* note: hp may be <= 0 even if munstoned==TRUE */
-                        return (boolean) (!DEADMONSTER(mon));
+                        return (boolean) !DEADMONSTER(mon);
 #if 0
                     } else if (touch_petrifies(mdat)) {
                         ; /* maybe turn the corpse into a statue? */
@@ -1568,7 +1585,8 @@ struct attack *mattk;
                     mhis(mdef));
         if (really_steal(otmp, mdef)) /* hero got interrupted... */
             break;
-        if (otmp->where != OBJ_INVENT)
+        /* might have dropped otmp, and it might have broken or left level */
+        if (!otmp || otmp->where != OBJ_INVENT)
             continue;
         if (!stealoid)
             break; /* only taking one item */

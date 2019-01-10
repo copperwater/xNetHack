@@ -1,4 +1,4 @@
-/* NetHack 3.6	end.c	$NHDT-Date: 1542798619 2018/11/21 11:10:19 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.152 $ */
+/* NetHack 3.6	end.c	$NHDT-Date: 1545786454 2018/12/26 01:07:34 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.162 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -11,7 +11,9 @@
 #include <signal.h>
 #endif
 #include <ctype.h>
+#ifndef LONG_MAX
 #include <limits.h>
+#endif
 #include "dlb.h"
 
 /* add b to long a, convert wraparound to max value */
@@ -126,14 +128,17 @@ static boolean NDECL(NH_panictrace_libc);
 static boolean NDECL(NH_panictrace_gdb);
 
 #ifndef NO_SIGNAL
-/*ARGSUSED*/
-void panictrace_handler(
-    sig_unused) /* called as signal() handler, so sent at least one arg */
+/* called as signal() handler, so sent at least one arg */
+/*ARGUSED*/
+void
+panictrace_handler(sig_unused)
 int sig_unused UNUSED;
 {
 #define SIG_MSG "\nSignal received.\n"
-    (void) write(2, SIG_MSG, sizeof(SIG_MSG) - 1);
-    NH_abort();
+    int f2 = (int) write(2, SIG_MSG, sizeof SIG_MSG - 1);
+
+    nhUse(f2);  /* what could we do if write to fd#2 (stderr) fails  */
+    NH_abort(); /* ... and we're already in the process of quitting? */
 }
 
 void
@@ -199,7 +204,7 @@ NH_abort()
        traceback and exit; 2 = show traceback and stay in debugger */
     /* if (wizard && gdb_prio == 1) gdb_prio = 2; */
     vms_traceback(gdb_prio);
-    (void) libc_prio; /* half-hearted attempt at lint suppression */
+    nhUse(libc_prio);
 
 #endif /* ?VMS */
 
@@ -449,9 +454,17 @@ int how;
          * whatever after transforming in polymon, and if that calls rehumanize
          * before unchanging is set, the hero will rehumanize normally. */
         HUnchanging |= FROMOUTSIDE;
-        /* messages here aren't great for green slimes...
-         * "You have become a green slime. You turn into a green slime!" */
-        polymon(mon_nm, TRUE);
+        if (mon_nm != PM_GREEN_SLIME) {
+            /* slimed_to_death() already polyed us into green slime, we don't
+             * want to call it again as that will trigger newman() */
+            polymon(mon_nm, TRUE);
+        }
+        else {
+            /* but... at the same time, need to undo done()'s setting of mh to 0
+             * if we did turn into a green slime (mhmax should still be set from
+             * the first polymon) */
+            u.mh = u.mhmax;
+        }
         livelog_printf(LL_ARISE, "became permanently corrupted into a %s",
                        mons[mon_nm].mname);
         /* bug: if u.uhp <= 0, monsters won't attack for some reason
@@ -653,13 +666,13 @@ VA_DECL(const char *, str)
                         ? "Program initialization has failed."
                         : "Suddenly, the dungeon collapses.");
 #ifndef MICRO
-#if defined(NOTIFY_NETHACK_BUGS)
+#ifdef NOTIFY_NETHACK_BUGS
     if (!wizard)
         raw_printf("Report the following error to \"%s\" or at \"%s\".",
                    DEVTEAM_EMAIL, DEVTEAM_URL);
     else if (program_state.something_worth_saving)
         raw_print("\nError save file being written.\n");
-#else
+#else /* !NOTIFY_NETHACK_BUGS */
     if (!wizard) {
         const char *maybe_rebuild = !program_state.something_worth_saving
                                      ? "."
@@ -675,7 +688,7 @@ VA_DECL(const char *, str)
             raw_printf("Report error to \"%s\"%s", WIZARD_NAME,
                        maybe_rebuild);
     }
-#endif
+#endif /* ?NOTIFY_NETHACK_BUGS */
     /* XXX can we move this above the prints?  Then we'd be able to
      * suppress "it may be possible to rebuild" based on dosave0()
      * or say it's NOT possible to rebuild. */
@@ -687,7 +700,7 @@ VA_DECL(const char *, str)
                 raw_printf("%s", sysopt.recover);
         }
     }
-#endif
+#endif /* !MICRO */
     {
         char buf[BUFSZ];
 
@@ -938,16 +951,18 @@ int how;
         u.uhp = u.uhpmax;
     }
 
-    if (u.uhunger < 500) {
-        u.uhunger = 500;
-        newuhs(FALSE);
+    if (u.uhpmax < uhpmin)
+        u.uhpmax = uhpmin;
+    u.uhp = u.uhpmax;
+    if (Upolyd) /* Unchanging, or death which bypasses losing hit points */
+        u.mh = u.mhmax;
+    if (u.uhunger < 500 || how == CHOKING) {
+        init_uhunger();
     }
     /* cure impending doom of sickness hero won't have time to fix */
     if ((Sick & TIMEOUT) == 1L) {
         make_sick(0L, (char *) 0, FALSE, SICK_ALL);
     }
-    if (how == CHOKING)
-        init_uhunger();
     nomovemsg = "You survived that attempt on your life.";
     context.move = 0;
     if (multi > 0)
@@ -1138,7 +1153,19 @@ int how;
     if (iflags.debug_fuzzer) {
         if (!(program_state.panicking || how == PANICKED)) {
             savelife(how);
-            killer.name[0] = 0;
+            /* periodically restore characteristics and lost exp levels
+               or cure lycanthropy */
+            if (!rn2(10)) {
+                struct obj *potion = mksobj((u.ulycn > LOW_PM && !rn2(3))
+                                            ? POT_WATER : POT_RESTORE_ABILITY,
+                                            TRUE, FALSE);
+
+                bless(potion);
+                (void) peffects(potion); /* always -1 for restore ability */
+                /* not useup(); we haven't put this potion into inventory */
+                obfree(potion, (struct obj *) 0);
+            }
+            killer.name[0] = '\0';
             killer.format = 0;
             return;
         }
@@ -1154,10 +1181,9 @@ int how;
     if (how < PANICKED) {
         u.umortality++;
         /* in case caller hasn't already done this */
-        if (u.uhp > 0 || (Upolyd && u.mh > 0)) {
+        if (how != TURNED_SLIME && (u.uhp > 0 || (Upolyd && u.mh > 0))) {
             /* for deaths not triggered by loss of hit points, force
-               current HP to zero (0 HP when turning into green slime
-               is iffy but we don't have much choice--that is fatal) */
+               current HP to zero */
             u.uhp = u.mh = 0;
             context.botl = 1;
         }
@@ -1275,7 +1301,12 @@ int how;
         u.ugrave_arise = (NON_PM - 2); /* leave no corpse */
     else if (how == STONING)
         u.ugrave_arise = (NON_PM - 1); /* statue instead of corpse */
-    else if (how == TURNED_SLIME)
+    else if (how == TURNED_SLIME
+             /* it's possible to turn into slime even though green slimes
+                have been genocided:  genocide could occur after hero is
+                already infected or hero could eat a glob of one created
+                before genocide; don't try to arise as one if they're gone */
+             && !(mvitals[PM_GREEN_SLIME].mvflags & G_GENOD))
         u.ugrave_arise = PM_GREEN_SLIME;
 
     if (how == QUIT) {
@@ -1417,11 +1448,14 @@ int how;
         }
     }
 
-    if (u.ugrave_arise >= LOW_PM && u.ugrave_arise != PM_GREEN_SLIME) {
+    if (u.ugrave_arise >= LOW_PM) {
         /* give this feedback even if bones aren't going to be created,
            so that its presence or absence doesn't tip off the player to
            new bones or their lack; it might be a lie if makemon fails */
-        Your("body rises from the dead as %s...",
+        Your("%s as %s...",
+             (u.ugrave_arise != PM_GREEN_SLIME)
+                 ? "body rises from the dead"
+                 : "revenant persists",
              an(mons[u.ugrave_arise].mname));
         display_nhwindow(WIN_MESSAGE, FALSE);
     }
@@ -1642,12 +1676,7 @@ boolean identified, all_containers, reportempty;
 {
     register struct obj *box, *obj;
     char buf[BUFSZ];
-    boolean cat,
-            dumping =
-#ifdef DUMPLOG
-                     iflags.in_dumplog ? TRUE :
-#endif
-                     FALSE;
+    boolean cat, dumping = iflags.in_dumplog;
 
     for (box = list; box; box = box->nobj) {
         if (Is_container(box) || box->otyp == STATUE) {
@@ -1689,7 +1718,7 @@ boolean identified, all_containers, reportempty;
                             if (Is_container(obj) || obj->otyp == STATUE)
                                 obj->cknown = obj->lknown = 1;
                         }
-                        Strcpy(&buf[2], doname(obj));
+                        Strcpy(&buf[2], doname_with_price(obj));
                         putstr(tmpwin, 0, buf);
                     }
                     unsortloot(&sortedcobj);

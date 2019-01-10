@@ -1,4 +1,4 @@
-# NetHack 3.6	Makefile.msc	$NHDT-Date: 1520858848 2018/03/12 12:47:28 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.112 $ */
+# NetHack 3.6	Makefile.msc	$NHDT-Date: 1546174708 2018/12/30 12:58:28 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.147 $ */
 #       Copyright (c) NetHack PC Development Team 1993-2018
 #
 #==============================================================================
@@ -215,7 +215,7 @@ VOBJ06 = $(O)dothrow.o  $(O)drawing.o  $(O)dungeon.o  $(O)eat.o
 VOBJ07 = $(O)end.o      $(O)engrave.o  $(O)exper.o    $(O)explode.o 
 VOBJ08 = $(O)extralev.o $(O)files.o    $(O)fountain.o $(O)hack.o    
 VOBJ09 = $(O)hacklib.o  $(O)invent.o   $(O)light.o    $(O)lock.o    
-VOBJ10 = $(O)mail.o     $(O)pcmain.o   $(O)makemon.o  $(O)mapglyph.o $(O)mcastu.o  
+VOBJ10 = $(O)mail.o     $(O)makemon.o  $(O)mapglyph.o $(O)mcastu.o  
 VOBJ11 = $(O)mhitm.o    $(O)mhitu.o    $(O)minion.o   $(O)mklev.o   
 VOBJ12 = $(O)mkmap.o    $(O)mkmaze.o   $(O)mkobj.o    $(O)mkroom.o  
 VOBJ13 = $(O)mon.o      $(O)mondata.o  $(O)monmove.o  $(O)monst.o   
@@ -233,7 +233,7 @@ VOBJ24 = $(O)track.o    $(O)trap.o     $(O)u_init.o   $(O)uhitm.o
 VOBJ25 = $(O)vault.o    $(O)vis_tab.o  $(O)vision.o   $(O)weapon.o
 VOBJ26 = $(O)were.o     $(O)wield.o    $(O)windows.o  $(O)wizard.o
 VOBJ27 = $(O)worm.o     $(O)worn.o     $(O)write.o    $(O)zap.o
-VOBJ28 = $(O)win10.o
+VOBJ28 = 
 
 DLBOBJ = $(O)dlb.o
 
@@ -248,8 +248,8 @@ CURSESOBJ= $(O)cursdial.o $(O)cursinit.o $(O)cursinvt.o $(O)cursmain.o \
 	   $(O)cursmesg.o $(O)cursmisc.o $(O)cursstat.o $(O)curswins.o
 !ENDIF
 
-SOBJ   = $(O)winnt.o    $(O)pcsys.o      $(O)pcunix.o  \
-	   $(SOUND) 	$(O)nhlan.o
+SOBJ   = $(O)windmain.o $(O)winnt.o $(O)win10.o \
+	$(O)safeproc.o $(O)nhlan.o $(SOUND) 
 
 OBJS   = $(VOBJ01) $(VOBJ02) $(VOBJ03) $(VOBJ04) $(VOBJ05) \
          $(VOBJ06) $(VOBJ07) $(VOBJ08) $(VOBJ09) $(VOBJ10) \
@@ -288,25 +288,27 @@ ALLOBJ  = $(SOBJ) $(DLBOBJ)  $(WOBJ) $(OBJS) $(VVOBJ)
 OPTIONS_FILE = $(DAT)\options
 
 !IF "$(ADD_CURSES)" == "Y"	
-#==========================================
+#===============-=================================================
 # PDCurses build macros
-#==========================================
+# Latest PDCurses from https://github.com/wmcbrine/PDCurses.git
+#=================================================================
+
 PDCURSES_CURSES_H	= $(PDCURSES_TOP)\curses.h
 PDCURSES_CURSPRIV_H	= $(PDCURSES_TOP)\curspriv.h
 PDCURSES_HEADERS	= $(PDCURSES_CURSES_H) $(PDCURSES_CURSPRIV_H)
 PDCSRC                  = $(PDCURSES_TOP)\pdcurses
 PDCWINCON               = $(PDCURSES_TOP)\wincon
-PDCLIBOBJS = $(O)addch.o $(O)addchstr.o $(O)addstr.o $(O)attr.o $(O)beep.o             \
-	$(O)bkgd.o $(O)border.o $(O)clear.o $(O)color.o $(O)delch.o $(O)deleteln.o     \
-	$(O)deprec.o $(O)getch.o $(O)getstr.o $(O)getyx.o $(O)inch.o $(O)inchstr.o     \
-	$(O)initscr.o $(O)inopts.o $(O)insch.o $(O)insstr.o $(O)instr.o $(O)kernel.o   \
-	$(O)keyname.o $(O)mouse.o $(O)move.o $(O)outopts.o $(O)overlay.o $(O)pad.o     \
+
+PDCLIBOBJS = $(O)addch.o $(O)addchstr.o $(O)addstr.o $(O)attr.o $(O)beep.o \
+	$(O)bkgd.o $(O)border.o $(O)clear.o $(O)color.o $(O)delch.o $(O)deleteln.o \
+	$(O)getch.o $(O)getstr.o $(O)getyx.o $(O)inch.o $(O)inchstr.o \
+	$(O)initscr.o $(O)inopts.o $(O)insch.o $(O)insstr.o $(O)instr.o $(O)kernel.o \
+	$(O)keyname.o $(O)mouse.o $(O)move.o $(O)outopts.o $(O)overlay.o $(O)pad.o \
 	$(O)panel.o $(O)printw.o $(O)refresh.o $(O)scanw.o $(O)scr_dump.o $(O)scroll.o \
-	$(O)slk.o $(O)termattr.o $(O)terminfo.o $(O)touch.o $(O)util.o $(O)window.o    \
-	$(O)debug.o
+	$(O)slk.o $(O)termattr.o $(O)touch.o $(O)util.o $(O)window.o $(O)debug.o
 
 PDCOBJS = $(O)pdcclip.o $(O)pdcdisp.o $(O)pdcgetsc.o $(O)pdckbd.o $(O)pdcscrn.o \
-	  $(O)pdcsetsc.o $(O)pdcutil.o
+	$(O)pdcsetsc.o $(O)pdcutil.o
 
 PDCLIB = $(O)pdcurses.lib
 
@@ -535,7 +537,7 @@ INCLDIR= /I..\include /I..\sys\winnt
 # Util builds
 #==========================================
 
-cflagsBuild = $(cflags) $(INCLDIR) $(WINPFLAG) $(DLBFLG)
+cflagsBuild = $(cflags) $(INCLDIR) $(WINPFLAG) $(DLBFLG) -DSAFEPROCS
 lflagsBuild = $(lflags) $(conlibs) $(MACHINE)
 
 #==========================================
@@ -1486,14 +1488,14 @@ $(O)panic.o:  $(U)panic.c $(CONFIG_H)
 # 
 # curses window port dependencies
 #
-$(O)\cursdial.o: $(WCURSES)\cursdial.c $(WCURSES)\cursdial.h $(INCL)\wincurs.h
-$(O)\cursinit.c: $(WCURSES)\cursinit.c $(WCURSES)\cursinit.h $(INCL)\wincurs.h
-$(O)\cursinvt.c: $(WCURSES)\cursinvt.c $(WCURSES)\cursinvt.h $(INCL)\wincurs.h
-$(O)\cursmain.c: $(WCURSES)\cursmain.c $(WCURSES)\cursmain.h $(INCL)\wincurs.h
-$(O)\cursmesg.c: $(WCURSES)\cursmesg.c $(WCURSES)\cursmesg.h $(INCL)\wincurs.h
-$(O)\cursmisc.c: $(WCURSES)\cursmisc.c $(WCURSES)\cursmisc.h $(INCL)\wincurs.h
-$(O)\cursstat.c: $(WCURSES)\cursstat.c $(WCURSES)\cursstat.h $(INCL)\wincurs.h
-$(O)\curswins.c: $(WCURSES)\curswins.c $(WCURSES)\curswins.h $(INCL)\wincurs.h
+$(O)cursdial.o: $(WCURSES)\cursdial.c $(WCURSES)\cursdial.h $(INCL)\wincurs.h
+$(O)cursinit.o: $(WCURSES)\cursinit.c $(WCURSES)\cursinit.h $(INCL)\wincurs.h
+$(O)cursinvt.o: $(WCURSES)\cursinvt.c $(WCURSES)\cursinvt.h $(INCL)\wincurs.h
+$(O)cursmain.o: $(WCURSES)\cursmain.c $(INCL)\wincurs.h
+$(O)cursmesg.o: $(WCURSES)\cursmesg.c $(WCURSES)\cursmesg.h $(INCL)\wincurs.h
+$(O)cursmisc.o: $(WCURSES)\cursmisc.c $(WCURSES)\cursmisc.h $(INCL)\wincurs.h
+$(O)cursstat.o: $(WCURSES)\cursstat.c $(WCURSES)\cursstat.h $(INCL)\wincurs.h
+$(O)curswins.o: $(WCURSES)\curswins.c $(WCURSES)\curswins.h $(INCL)\wincurs.h
 #
 # The rest are stolen from sys/unix/Makefile.src, 
 # with the following changes:
@@ -1503,7 +1505,6 @@ $(O)\curswins.c: $(WCURSES)\curswins.c $(WCURSES)\curswins.h $(INCL)\wincurs.h
 #   * $(CFLAGS) replaced with $(cflagsBuild)
 #   * $(CC) replaced with @$(CC)
 #   * targets prefixed with $(O)
-#   * the single win32api.h reference uncommented
 # but otherwise untouched.
 # That means that there is some irrelevant stuff
 # in here, but maintenance should be easier.
@@ -1511,15 +1512,8 @@ $(O)\curswins.c: $(WCURSES)\curswins.c $(WCURSES)\curswins.h $(INCL)\wincurs.h
 
 $(O)tos.o: ..\sys\atari\tos.c $(HACK_H) $(INCL)\tcap.h
 	@$(CC) $(cflagsBuild) -Fo$@ ..\sys\atari\tos.c
-$(O)pcmain.o: ..\sys\share\pcmain.c $(HACK_H) $(INCL)\dlb.h \
-		$(MSWSYS)\win32api.h
-	@$(CC) $(cflagsBuild) -Fo$@ ..\sys\share\pcmain.c
-$(O)pcsys.o: ..\sys\share\pcsys.c $(HACK_H)
-	@$(CC) $(cflagsBuild) -Fo$@ ..\sys\share\pcsys.c
 $(O)pctty.o: ..\sys\share\pctty.c $(HACK_H)
 	@$(CC) $(cflagsBuild) -Fo$@ ..\sys\share\pctty.c
-$(O)pcunix.o: ..\sys\share\pcunix.c $(HACK_H)
-	@$(CC) $(cflagsBuild) -Fo$@ ..\sys\share\pcunix.c
 $(O)random.o: ..\sys\share\random.c $(HACK_H)
 	@$(CC) $(cflagsBuild) -Fo$@ ..\sys\share\random.c
 $(O)ioctl.o: ..\sys\share\ioctl.c $(HACK_H) $(INCL)\tcap.h

@@ -1,4 +1,4 @@
-/* NetHack 3.6	extern.h	$NHDT-Date: 1543892214 2018/12/04 02:56:54 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.665 $ */
+/* NetHack 3.6	extern.h	$NHDT-Date: 1546687295 2019/01/05 11:21:35 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.681 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -173,6 +173,8 @@ E boolean NDECL(status_hilite_menu);
 /* ### cmd.c ### */
 
 E char NDECL(randomkey);
+E void FDECL(random_response, (char *, int));
+E int NDECL(rnd_extcmd_idx);
 E int NDECL(doconduct);
 E int NDECL(domonability);
 E char FDECL(cmd_from_func, (int NDECL((*))));
@@ -542,7 +544,7 @@ E void FDECL(impact_drop, (struct obj *, XCHAR_P, XCHAR_P, XCHAR_P));
 E int NDECL(dothrow);
 E int NDECL(dofire);
 E void FDECL(endmultishot, (BOOLEAN_P));
-E void FDECL(hitfloor, (struct obj *));
+E void FDECL(hitfloor, (struct obj *, BOOLEAN_P));
 E void FDECL(hurtle, (int, int, int, BOOLEAN_P));
 E void FDECL(mhurtle, (struct monst *, int, int, int));
 E boolean FDECL(throwing_weapon, (struct obj *));
@@ -748,7 +750,7 @@ E long FDECL(rndexp, (BOOLEAN_P));
 
 E void FDECL(explode, (int, int, int, int, CHAR_P, int));
 E long FDECL(scatter, (int, int, int, unsigned int, struct obj *));
-E void FDECL(splatter_burning_oil, (int, int));
+E void FDECL(splatter_burning_oil, (int, int, BOOLEAN_P));
 E void FDECL(explode_oil, (struct obj *, int, int));
 
 /* ### extralev.c ### */
@@ -876,6 +878,7 @@ E boolean NDECL(u_rooted);
 E void NDECL(domove);
 E boolean NDECL(overexertion);
 E void NDECL(invocation_message);
+E void NDECL(switch_terrain);
 E boolean FDECL(pooleffects, (BOOLEAN_P));
 E void FDECL(spoteffects, (BOOLEAN_P));
 E char *FDECL(in_rooms, (XCHAR_P, XCHAR_P, int));
@@ -1178,6 +1181,7 @@ E struct monst *FDECL(makemon, (struct permonst *, int, int, int));
 E int FDECL(create_critters, (int, struct permonst *, BOOLEAN_P, struct monst *));
 E struct permonst *NDECL(rndmonst);
 E struct permonst *FDECL(mkclass, (CHAR_P, int));
+E struct permonst *FDECL(mkclass_aligned, (CHAR_P, int, ALIGNTYP_P));
 E int FDECL(mkclass_poly, (int));
 E int FDECL(adj_lev, (struct permonst *));
 E struct permonst *FDECL(grow_up, (struct monst *, struct monst *));
@@ -1675,6 +1679,7 @@ E int FDECL(ntposkey, (int *, int *, int *));
 E void FDECL(set_output_mode, (int));
 E void NDECL(synch_cursor);
 E void NDECL(nethack_enter_nttty);
+E void NDECL(nttty_exit);
 #endif
 
 /* ### o_init.c ### */
@@ -1769,6 +1774,7 @@ E int FDECL(fruitadd, (char *, struct fruit *));
 E int FDECL(choose_classes_menu, (const char *, int, BOOLEAN_P,
                                   char *, char *));
 E boolean FDECL(parsebindings, (char *));
+E void FDECL(oc_to_str, (char *, char *));
 E void FDECL(add_menu_cmd_alias, (CHAR_P, CHAR_P));
 E char FDECL(get_menu_cmd_key, (CHAR_P));
 E char FDECL(map_menu_cmd, (CHAR_P));
@@ -2260,6 +2266,7 @@ E long FDECL(contained_cost,
              (struct obj *, struct monst *, long, BOOLEAN_P, BOOLEAN_P));
 E long FDECL(contained_gold, (struct obj *));
 E void FDECL(picked_container, (struct obj *));
+E void FDECL(gem_learned, (int));
 E void FDECL(alter_cost, (struct obj *, long));
 E long FDECL(unpaid_cost, (struct obj *, BOOLEAN_P));
 E boolean FDECL(billable, (struct monst **, struct obj *, CHAR_P, BOOLEAN_P));
@@ -2286,7 +2293,8 @@ E void FDECL(shk_chat, (struct monst *));
 E void FDECL(check_unpaid_usage, (struct obj *, BOOLEAN_P));
 E void FDECL(check_unpaid, (struct obj *));
 E void FDECL(costly_gold, (XCHAR_P, XCHAR_P, long));
-E long FDECL(get_cost_of_shop_item, (struct obj *));
+E long FDECL(get_cost_of_shop_item, (struct obj *, int *));
+E int FDECL(oid_price_adjustment, (struct obj *, unsigned));
 E boolean FDECL(block_door, (XCHAR_P, XCHAR_P));
 E boolean FDECL(block_entry, (XCHAR_P, XCHAR_P));
 E char *FDECL(shk_your, (char *, struct obj *));
@@ -2371,6 +2379,7 @@ E int NDECL(docast);
 E const char *FDECL(spelltypemnemonic, (int));
 E int FDECL(spell_skilltype, (int));
 E int FDECL(spelleffects, (int, BOOLEAN_P));
+E int FDECL(tport_spell, (int));
 E int NDECL(dovspell);
 E void FDECL(initialspell, (struct obj *));
 
@@ -2780,6 +2789,7 @@ E const char *FDECL(weapon_descr, (struct obj *));
 E int FDECL(hitval, (struct obj *, struct monst *));
 E int FDECL(dmgval, (struct obj *, struct monst *));
 E struct obj *FDECL(select_rwep, (struct monst *));
+E boolean FDECL(monmightthrowwep, (struct obj *));
 E struct obj *FDECL(select_hwep, (struct monst *));
 E void FDECL(possibly_unwield, (struct monst *, BOOLEAN_P));
 E void FDECL(mwepgone, (struct monst *));

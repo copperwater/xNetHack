@@ -1,4 +1,4 @@
-/* NetHack 3.6	pickup.c	$NHDT-Date: 1543188989 2018/11/25 23:36:29 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.220 $ */
+/* NetHack 3.6	pickup.c	$NHDT-Date: 1545785547 2018/12/26 00:52:27 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.222 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -849,7 +849,8 @@ int FDECL((*allow), (OBJ_P));     /* allow function */
     unsigned sortflags;
     Loot *sortedolist, *srtoli;
     boolean feature;
-    feature = ((qflags & INCLUDE_FEATURE) && (*allow)(&zeroobj) >= allowmin);
+    feature = ((qflags & INCLUDE_FEATURE)
+               && (*allow)((struct obj *) &zeroobj) >= allowmin);
 
     *pick_list = (menu_item *) 0;
     if (!olist && !engulfer && !feature)
@@ -951,7 +952,7 @@ int FDECL((*allow), (OBJ_P));     /* allow function */
             add_menu(win, NO_GLYPH, &any, 0, 0, iflags.menu_headings, buf,
                      MENU_UNSELECTED);
         }
-        any.a_obj = &zeroobj;
+        any.a_obj = (struct obj *) &zeroobj;
         if (engulfer)
             add_menu(win, mon_to_glyph(&youmonst), &any,
                      /* fake inventory letter, no group accelerator */
@@ -2235,6 +2236,7 @@ boolean *prev_loot;
             }
             otmp = hold_another_object(otmp, "You drop %s!", doname(otmp),
                                        (const char *) 0);
+            nhUse(otmp);
             timepassed = rnd(3);
             if (prev_loot)
                 *prev_loot = TRUE;
@@ -2431,6 +2433,20 @@ register struct obj *obj;
             }
         }
 
+        /* if carried, shop goods will be flagged 'unpaid' and obfree() will
+           handle bill issues, but if on floor, we need to put them on bill
+           before deleting them (non-shop items will be flagged 'no_charge') */
+        if (floor_container
+            && costly_spot(current_container->ox, current_container->oy)) {
+            struct obj save_no_charge;
+
+            save_no_charge.no_charge = current_container->no_charge;
+            addtobill(current_container, FALSE, FALSE, FALSE);
+            /* addtobill() clears no charge; we need to set it back
+               so that useupf() doesn't double bill */
+            current_container->no_charge = save_no_charge.no_charge;
+        }
+        delete_contents(current_container);
         if (!floor_container)
             useup(current_container);
         else if (obj_here(current_container, u.ux, u.uy))
@@ -3378,7 +3394,7 @@ struct obj *box; /* or bag */
 
             if (highdrop) {
                 /* might break or fall down stairs; handles altars itself */
-                hitfloor(otmp);
+                hitfloor(otmp, TRUE);
             } else {
                 if (altarizing) {
                     doaltarobj(otmp);

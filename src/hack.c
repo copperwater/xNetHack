@@ -1,4 +1,4 @@
-/* NetHack 3.6	hack.c	$NHDT-Date: 1540591769 2018/10/26 22:09:29 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.194 $ */
+/* NetHack 3.6	hack.c	$NHDT-Date: 1546656413 2019/01/05 02:46:53 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.203 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -13,7 +13,6 @@ STATIC_DCL int FDECL(still_chewing, (XCHAR_P, XCHAR_P));
 STATIC_DCL void NDECL(dosinkfall);
 STATIC_DCL boolean FDECL(findtravelpath, (int));
 STATIC_DCL boolean FDECL(trapmove, (int, int, struct trap *));
-STATIC_DCL void NDECL(switch_terrain);
 STATIC_DCL struct monst *FDECL(monstinroom, (struct permonst *, int));
 STATIC_DCL void FDECL(move_update, (BOOLEAN_P));
 
@@ -279,7 +278,7 @@ moverock()
                 /* note: reset to zero after save/restore cycle */
                 static NEARDATA long lastmovetime;
 #endif
-            dopush:
+ dopush:
                 if (!u.usteed) {
                     if (moves > lastmovetime + 2 || moves < lastmovetime)
                         pline("With %s effort you move %s.",
@@ -304,7 +303,7 @@ moverock()
                 newsym(sx, sy);
             }
         } else {
-        nopushmsg:
+ nopushmsg:
             if (u.usteed)
                 pline("%s tries to move %s, but cannot.",
                       upstart(y_monnam(u.usteed)), the(xname(otmp)));
@@ -312,7 +311,7 @@ moverock()
                 You("try to move %s, but in vain.", the(xname(otmp)));
             if (Blind)
                 feel_location(sx, sy);
-        cannot_push:
+ cannot_push:
             if (throws_rocks(youmonst.data)) {
                 boolean
                     canpickup = (!Sokoban
@@ -811,7 +810,7 @@ int mode;
                 return FALSE;
             }
         } else {
-        testdiag:
+ testdiag:
             if (dx && dy && !Passes_walls
                 && (!doorless_door(x, y) || block_door(x, y))) {
                 /* Diagonal moves into a door are not allowed. */
@@ -936,7 +935,7 @@ int mode;
                 u.dx = u.tx - u.ux;
                 u.dy = u.ty - u.uy;
                 nomul(0);
-                iflags.travelcc.x = iflags.travelcc.y = -1;
+                iflags.travelcc.x = iflags.travelcc.y = 0;
             }
             return TRUE;
         }
@@ -969,8 +968,8 @@ int mode;
             uy = u.uy;
         }
 
-    noguess:
-        (void) memset((genericptr_t) travel, 0, sizeof(travel));
+ noguess:
+        (void) memset((genericptr_t) travel, 0, sizeof travel);
         travelstepx[0][0] = tx;
         travelstepy[0][0] = ty;
 
@@ -1058,7 +1057,7 @@ int mode;
                                     nomul(0);
                                     /* reset run so domove run checks work */
                                     context.run = 8;
-                                    iflags.travelcc.x = iflags.travelcc.y = -1;
+                                    iflags.travelcc.x = iflags.travelcc.y = 0;
                                 }
                                 return TRUE;
                             }
@@ -1155,7 +1154,7 @@ int mode;
         return FALSE;
     }
 
-found:
+ found:
     u.dx = 0;
     u.dy = 0;
     nomul(0);
@@ -1315,7 +1314,7 @@ struct trap *desttrap; /* nonnull if another trap at <x,y> */
                     Norep("You are %s %s.", predicament, culprit);
             }
         } else {
-wriggle_free:
+ wriggle_free:
             if (u.usteed)
                 pline("%s finally %s free.", upstart(steedname),
                       !anchored ? "lurches" : "wrenches the ball");
@@ -1448,6 +1447,19 @@ domove()
             }
             x = u.ux + u.dx;
             y = u.uy + u.dy;
+
+            /* are we trying to move out of water while carrying too much? */
+            if (isok(x, y) && !is_pool(x, y) && !Is_waterlevel(&u.uz)
+                && wtcap > (Swimming ? MOD_ENCUMBER : SLT_ENCUMBER)) {
+                /* when escaping from drowning you need to be unencumbered
+                   in order to crawl out of water, but when not drowning,
+                   doing so while encumbered is feasible; if in an aquatic
+                   form, stressed or less is allowed; otherwise (magical
+                   breathing), only burdened is allowed */
+                You("are carrying too much to climb out of the water.");
+                nomul(0);
+                return;
+            }
         }
         if (!isok(x, y)) {
             nomul(0);
@@ -1460,6 +1472,7 @@ domove()
                 if (iflags.mention_walls) {
                     if (trap && trap->tseen) {
                         int tt = what_trap(trap->ttyp);
+
                         You("stop in front of %s.",
                             an(defsyms[trap_to_defsym(tt)].explanation));
                     } else if (is_pool_or_lava(x,y) && levl[x][y].seenv) {
@@ -1498,7 +1511,7 @@ domove()
                 case 0:
                 case 1:
                 case 2:
-                pull_free:
+ pull_free:
                     You("pull free from %s.", mon_nam(u.ustuck));
                     u.ustuck = 0;
                     break;
@@ -2079,12 +2092,13 @@ invocation_message()
 /* moving onto different terrain;
    might be going into solid rock, inhibiting levitation or flight,
    or coming back out of such, reinstating levitation/flying */
-STATIC_OVL void
+void
 switch_terrain()
 {
     struct rm *lev = &levl[u.ux][u.uy];
     boolean blocklev = (IS_ROCK(lev->typ) || closed_door(u.ux, u.uy)
-                        || (Is_waterlevel(&u.uz) && lev->typ == WATER));
+                        || (Is_waterlevel(&u.uz) && lev->typ == WATER)),
+            was_levitating = !!Levitation, was_flying = !!Flying;
 
     if (blocklev) {
         /* called from spoteffects(), stop levitating but skip float_down() */
@@ -2112,6 +2126,8 @@ switch_terrain()
         if (Flying)
             You("start flying.");
     }
+    if ((!Levitation ^ was_levitating) || (!Flying ^ was_flying))
+        context.botl = TRUE; /* update Lev/Fly status condition */
 }
 
 /* extracted from spoteffects; called by spoteffects to check for entering or
@@ -2329,7 +2345,7 @@ boolean pick;
         }
         mnexto(mtmp); /* have to move the monster */
     }
-spotdone:
+ spotdone:
     if (!--inspoteffects) {
         spotterrain = STONE; /* 0 */
         spotloc.x = spotloc.y = 0;
@@ -2715,7 +2731,8 @@ dopickup(VOID_ARGS)
     int count, tmpcount, ret;
 
     /* awful kludge to work around parse()'s pre-decrement */
-    count = (multi || (save_cm && *save_cm == cmd_from_func(dopickup))) ? multi + 1 : 0;
+    count = (multi || (save_cm && *save_cm == cmd_from_func(dopickup)))
+              ? multi + 1 : 0;
     multi = 0; /* always reset */
 
     if ((ret = pickup_checks() >= 0))
@@ -2788,7 +2805,7 @@ lookaround()
                 }
                 goto bcorr;
             } else if (levl[x][y].typ == CORR) {
-            bcorr:
+ bcorr:
                 if (levl[u.ux][u.uy].typ != ROOM) {
                     if (context.run == 1 || context.run == 3
                         || context.run == 8) {
@@ -2846,7 +2863,7 @@ lookaround()
                     || ((y == u.uy - u.dy) && (x != u.ux + u.dx)))
                     continue;
             }
-        stop:
+ stop:
             nomul(0);
             return;
         } /* end for loops */
@@ -2982,12 +2999,13 @@ const char *msg_override;
     else if (!nomovemsg)
         nomovemsg = You_can_move_again;
     if (*nomovemsg)
-        pline1(nomovemsg);
+        pline("%s", nomovemsg);
     nomovemsg = 0;
     u.usleep = 0;
     multi_reason = NULL;
     if (afternmv) {
         int NDECL((*f)) = afternmv;
+
         /* clear afternmv before calling it (to override the
            encumbrance hack for levitation--see weight_cap()) */
         afternmv = (int NDECL((*))) 0;

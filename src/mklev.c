@@ -1065,7 +1065,7 @@ skip0:
         if (croom->rtype != OROOM)
             continue;
 
-        /* put a sleeping monster inside */
+        /* put a monster inside */
         /* Note: monster may be on the stairs. This cannot be
            avoided: maybe the player fell through a trap door
            while a monster was on the stairs. Conclusion:

@@ -328,8 +328,6 @@ struct instance_flags {
     uchar bouldersym; /* symbol for boulder display */
 #if defined(TTY_GRAPHICS) || defined(CURSES_GRAPHICS)
     char prevmsg_window; /* type of old message window to use */
-#endif
-#if defined(TTY_GRAPHICS) || defined(CURSES_GRAPHICS)
     boolean extmenu;     /* extended commands use menu interface */
 #endif
 #ifdef CURSES_GRAPHICS
@@ -458,6 +456,9 @@ struct instance_flags {
     short soko_prize_type2;     /* amulet of reflection */
     struct debug_flags debug;
     boolean windowtype_locked;  /* windowtype can't change from configfile */
+    boolean windowtype_deferred; /* pick a windowport and store it in
+                                    chosen_windowport[], but do not switch to
+                                    it in the midst of options processing */
 };
 
 /*

@@ -1,4 +1,4 @@
-/* NetHack 3.6	potion.c	$NHDT-Date: 1543745356 2018/12/02 10:09:16 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.155 $ */
+/* NetHack 3.6	potion.c	$NHDT-Date: 1545597429 2018/12/23 20:37:09 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.157 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2338,7 +2338,10 @@ more_dips:
         } else {
             You("fill %s with oil.", yname(obj));
             check_unpaid(potion);        /* Yendorian Fuel Tax */
-            obj->age += 2 * potion->age; /* burns more efficiently */
+            /* burns more efficiently in a lamp than in a bottle;
+               diluted potion provides less benefit but we don't attempt
+               to track that the lamp now also has some non-oil in it */
+            obj->age += (!potion->odiluted ? 4L : 3L) * potion->age / 2L;
             if (obj->age > 1500L)
                 obj->age = 1500L;
             useup(potion);
@@ -2403,6 +2406,7 @@ more_dips:
         singlepotion =
             hold_another_object(singlepotion, "You juggle and drop %s!",
                                 doname(singlepotion), (const char *) 0);
+        nhUse(singlepotion);
         update_inventory();
         return 1;
     }

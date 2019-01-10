@@ -1,7 +1,7 @@
+/* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 /* NetHack 3.6 cursdial.c */
 /* Copyright (c) Karl Garrison, 2010. */
 /* NetHack may be freely redistributed.  See license for details. */
-/* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
 #include "curses.h"
 #include "hack.h"
@@ -87,17 +87,10 @@ curses_line_input_dialog(const char *prompt, char *answer, int buffer)
     int prompt_width = strlen(prompt) + buffer + 1;
     int prompt_height = 1;
     int height = prompt_height;
-#if __STDC_VERSION__ >= 199901L
-    char input[buffer];
-#else
-#ifndef BUFSZ
-#define BUFSZ 256
-#endif
     char input[BUFSZ];
 
-    buffer = BUFSZ - 1;
-#endif
-
+    if (buffer >= (int) sizeof input)
+         buffer = (int) sizeof input - 1;
     maxwidth = term_cols - 2;
 
     if (iflags.window_inited) {
@@ -164,6 +157,9 @@ curses_character_input_dialog(const char *prompt, const char *choices,
                               CHAR_P def)
 {
     WINDOW *askwin = NULL;
+#ifdef PDCURSES
+    WINDOW *message_window;
+#endif
     int answer, count, maxwidth, map_height, map_width;
     char *linestr;
     char askstr[BUFSZ + QBUFSZ];
@@ -180,6 +176,9 @@ curses_character_input_dialog(const char *prompt, const char *choices,
         map_width = term_cols;
     }
 
+#ifdef PDCURSES
+    message_window = curses_get_nhwin(MESSAGE_WIN);
+#endif
     maxwidth = map_width - 2;
 
     if (choices != NULL) {
@@ -241,8 +240,11 @@ curses_character_input_dialog(const char *prompt, const char *choices,
     /*curses_stupid_hack = 0; */
 
     while (1) {
+#ifdef PDCURSES
+        answer = wgetch(message_window);
+#else
         answer = getch();
-
+#endif
         if (answer == ERR) {
             answer = def;
             break;
@@ -511,8 +513,8 @@ curses_add_nhmenu_item(winid wid, int glyph, const ANY_P * identifier,
     nhmenu *current_menu = get_menu(wid);
 
     if (current_menu == NULL) {
-        impossible
-            ("curses_add_nhmenu_item: attempt to add item to nonexistent menu");
+        impossible(
+           "curses_add_nhmenu_item: attempt to add item to nonexistent menu");
         return;
     }
 
@@ -561,21 +563,19 @@ void
 curses_finalize_nhmenu(winid wid, const char *prompt)
 {
     int count = 0;
+    nhmenu_item *menu_item_ptr;
     nhmenu *current_menu = get_menu(wid);
 
     if (current_menu == NULL) {
-        impossible("curses_finalize_nhmenu: attempt to finalize nonexistent menu");
+        impossible(
+              "curses_finalize_nhmenu: attempt to finalize nonexistent menu");
         return;
     }
-
-    nhmenu_item *menu_item_ptr = current_menu->entries;
-    while (menu_item_ptr != NULL) {
-        menu_item_ptr = menu_item_ptr->next_item;
+    for (menu_item_ptr = current_menu->entries;
+         menu_item_ptr != NULL; menu_item_ptr = menu_item_ptr->next_item)
         count++;
-    }
 
     current_menu->num_entries = count;
-
     current_menu->prompt = curses_copy_of(prompt);
 }
 
@@ -594,7 +594,8 @@ curses_display_nhmenu(winid wid, int how, MENU_ITEM_P ** _selected)
     *_selected = NULL;
 
     if (current_menu == NULL) {
-        impossible("curses_display_nhmenu: attempt to display nonexistent menu");
+        impossible(
+                "curses_display_nhmenu: attempt to display nonexistent menu");
         return '\033';
     }
 
@@ -1014,7 +1015,7 @@ menu_display_page(nhmenu *menu, WINDOW * win, int page_num)
             start_col += 4;
         }
 #if 0
-        //FIXME: menuglyphs not implemented yet
+        /* FIXME: menuglyphs not implemented yet */
         if (menu_item_ptr->glyph != NO_GLYPH && iflags.use_menu_glyphs) {
             unsigned special;  /*notused */
 
@@ -1142,6 +1143,7 @@ menu_get_selections(WINDOW * win, nhmenu *menu, int how)
                 curpage = menu_operation(win, menu, INVERT, 0);
                 break;
             }
+            /*FALLTHRU*/
         default:
             if (isdigit(curletter)) {
                 count = curses_get_count(curletter - '0');
@@ -1254,6 +1256,8 @@ menu_get_selections(WINDOW * win, nhmenu *menu, int how)
                     if (how == PICK_ONE) {
                         menu_clear_selections(menu);
                         menu_select_deselect(win, menu_item_ptr, SELECT);
+                        if (count)
+                            menu_item_ptr->count = count;
                         num_selected = 1;
                         dismiss = TRUE;
                         break;

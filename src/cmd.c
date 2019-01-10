@@ -1,4 +1,4 @@
-/* NetHack 3.6	cmd.c	$NHDT-Date: 1543797825 2018/12/03 00:43:45 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.312 $ */
+/* NetHack 3.6	cmd.c	$NHDT-Date: 1546565813 2019/01/04 01:36:53 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.324 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2019,6 +2019,22 @@ int final;
             enl_msg(Your_wallet, "contains ", "contained ", buf, "");
         }
     }
+
+    if (flags.pickup) {
+        char ocl[MAXOCLASSES + 1];
+
+        Strcpy(buf, "on");
+        oc_to_str(flags.pickup_types, ocl);
+        Sprintf(eos(buf), " for %s%s%s",
+                *ocl ? "'" : "", *ocl ? ocl : "all types", *ocl ? "'" : "");
+        if (flags.pickup_thrown && *ocl) /* *ocl: don't show if 'all types' */
+            Strcat(buf, " plus thrown");
+        if (iflags.autopickup_exceptions[AP_GRAB]
+            || iflags.autopickup_exceptions[AP_LEAVE])
+            Strcat(buf, ", with exceptions");
+    } else
+        Strcpy(buf, "off");
+    enl_msg("Autopickup ", "is ", "was ", buf, "");
 }
 
 /* characteristics: expanded version of bottom line strength, dexterity, &c */
@@ -2748,7 +2764,12 @@ int final;
     }
     if (Polymorph_control)
         you_have("polymorph control", from_what(POLYMORPH_CONTROL));
-    if (Upolyd && u.umonnum != u.ulycn) {
+    if (Upolyd && u.umonnum != u.ulycn
+        /* if we've died from turning into slime, we're polymorphed
+           right now but don't want to list it as a temporary attribute
+           [we need a more reliable way to detect this situation] */
+        && !(final == ENL_GAMEOVERDEAD
+             && u.umonnum == PM_GREEN_SLIME && !Unchanging)) {
         /* foreign shape (except were-form which is handled below) */
         Sprintf(buf, "polymorphed into %s", an(youmonst.data->mname));
         if (wizard)
@@ -3421,6 +3442,8 @@ struct ext_func_tab extcmdlist[] = {
     { '\0', (char *) 0, (char *) 0, donull, 0, (char *) 0 } /* sentinel */
 };
 
+int extcmdlist_length = SIZE(extcmdlist) - 1;
+
 const char *
 key2extcmddesc(key)
 uchar key;
@@ -3677,18 +3700,18 @@ STATIC_OVL int
 size_obj(otmp)
 struct obj *otmp;
 {
-    int sz = (int) sizeof(struct obj);
+    int sz = (int) sizeof (struct obj);
 
     if (otmp->oextra) {
-        sz += (int) sizeof(struct oextra);
+        sz += (int) sizeof (struct oextra);
         if (ONAME(otmp))
             sz += (int) strlen(ONAME(otmp)) + 1;
         if (OMONST(otmp))
-            sz += (int) sizeof(struct monst);
+            sz += size_monst(OMONST(otmp), FALSE);
         if (OMID(otmp))
-            sz += (int) sizeof(unsigned);
+            sz += (int) sizeof (unsigned);
         if (OLONG(otmp))
-            sz += (int) sizeof(long);
+            sz += (int) sizeof (long);
         if (OMAILCMD(otmp))
             sz += (int) strlen(OMAILCMD(otmp)) + 1;
     }
@@ -4421,8 +4444,8 @@ int NDECL((*cmd_func));
         || cmd_func == doloot
         /* travel: pop up a menu of interesting targets in view */
         || cmd_func == dotravel
-        /* wizard mode ^V */
-        || cmd_func == wiz_level_tele
+        /* wizard mode ^V and ^T */
+        || cmd_func == wiz_level_tele || cmd_func == dotelecmd
         /* 'm' prefix allowed for some extended commands */
         || cmd_func == doextcmd || cmd_func == doextlist)
         return TRUE;
@@ -4450,6 +4473,34 @@ randomkey()
     }
 
     return c;
+}
+
+void
+random_response(buf, sz)
+char *buf;
+int sz;
+{
+    char c;
+    int count = 0;
+
+    for (;;) {
+        c = randomkey();
+        if (c == '\n')
+            break;
+        if (c == '\033') {
+            count = 0;
+            break;
+        }
+        if (count < sz - 1)
+            buf[count++] = c;
+    }
+    buf[count] = '\0';
+}
+
+int
+rnd_extcmd_idx(VOID_ARGS)
+{
+    return rn2(extcmdlist_length + 1) - 1;
 }
 
 int
@@ -5533,7 +5584,6 @@ parse()
     static char in_line[COLNO];
 #endif
     register int foo;
-    boolean prezero = FALSE;
 
     iflags.in_parse = TRUE;
     multi = 0;
@@ -5606,8 +5656,6 @@ parse()
         in_line[2] = 0;
     }
     clear_nhwindow(WIN_MESSAGE);
-    if (prezero)
-        in_line[0] = Cmd.spkeys[NHKF_ESC];
 
     iflags.in_parse = FALSE;
     return in_line;
@@ -5734,7 +5782,7 @@ dotravel(VOID_ARGS)
     cmd[1] = 0;
     cc.x = iflags.travelcc.x;
     cc.y = iflags.travelcc.y;
-    if (cc.x == -1 && cc.y == -1) {
+    if (cc.x == 0 && cc.y == 0) {
         /* No cached destination, start attempt from current position */
         cc.x = u.ux;
         cc.y = u.uy;

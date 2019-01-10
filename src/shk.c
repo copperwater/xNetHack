@@ -1,4 +1,4 @@
-/* NetHack 3.6	shk.c	$NHDT-Date: 1542853899 2018/11/22 02:31:39 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.142 $ */
+/* NetHack 3.6	shk.c	$NHDT-Date: 1546770990 2019/01/06 10:36:30 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.152 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -921,7 +921,7 @@ register struct obj *obj, *merge;
             if (onbill(obj, shkp, TRUE))
                 break;
     }
-    /* sanity check, more or less */
+    /* sanity check, in case obj is on bill but not marked 'unpaid' */
     if (!shkp)
         shkp = shop_keeper(*u.ushops);
     /*
@@ -958,6 +958,17 @@ register struct obj *obj, *merge;
             *bp = ESHK(shkp)->bill_p[ESHK(shkp)->billct];
 #endif
         }
+    } else {
+        /* not on bill; if the item is being merged away rather than
+           just deleted and has a higher price adjustment than the stack
+           being merged into, give the latter the former's obj->o_id so
+           that the merged stack takes on higher price; matters if hero
+           eventually buys them from a shop, but doesn't matter if hero
+           owns them and intends to sell (unless he subsequently buys
+           them back) or if no shopping activity ever involves them */
+        if (merge && (oid_price_adjustment(obj, obj->o_id)
+                      > oid_price_adjustment(merge, merge->o_id)))
+            merge->o_id = obj->o_id;
     }
     if (obj->owornmask) {
         impossible("obfree: deleting worn obj (%d: %ld)", obj->otyp,
@@ -1962,26 +1973,30 @@ unsigned id;
     return (struct obj *) 0;
 }
 
-/* Returns the price of an arbitrary item in the shop.
-   Returns 0 if the item doesn't belong to a shopkeeper. */
+/* Returns the price of an arbitrary item in the shop,
+   0 if the item doesn't belong to a shopkeeper or hero is not in the shop. */
 long
-get_cost_of_shop_item(obj)
+get_cost_of_shop_item(obj, nochrg)
 register struct obj *obj;
-{
+int *nochrg; /* alternate return value: 1: no charge, 0: shop owned,        */
+{            /* -1: not in a shop (so should't be formatted as "no charge") */
     struct monst *shkp;
+    struct obj *top;
     xchar x, y;
     long cost = 0L;
 
-    if (*u.ushops
-        && obj->oclass != COIN_CLASS
+    *nochrg = -1; /* assume 'not applicable' */
+    if (*u.ushops && obj->oclass != COIN_CLASS
         && obj != uball && obj != uchain
-        && get_obj_location(obj, &x, &y, 0)
-        && (obj->unpaid
-            || (obj->where == OBJ_FLOOR
-                && !obj->no_charge && costly_spot(x, y)))
-        && (shkp = shop_keeper(*in_rooms(x, y, SHOPBASE))) != 0
-        && inhishop(shkp)) {
-        cost = obj->quan * get_cost(obj, shkp);
+        && get_obj_location(obj, &x, &y, CONTAINED_TOO)
+        && *in_rooms(x, y, SHOPBASE) == *u.ushops
+        && (shkp = shop_keeper(inside_shop(x, y))) != 0 && inhishop(shkp)) {
+        for (top = obj; top->where == OBJ_CONTAINED; top = top->ocontainer)
+            continue;
+        *nochrg = (top->where == OBJ_FLOOR && obj->no_charge);
+
+        if (carried(top) ? (int) obj->unpaid : !*nochrg)
+            cost = obj->quan * get_cost(obj, shkp);
         if (Has_contents(obj))
             cost += contained_cost(obj, shkp, 0L, FALSE, FALSE);
     }
@@ -2017,6 +2032,22 @@ const int matprices[] = {
    500, /* GEMSTONE */
     10  /* MINERAL */
 };
+
+/* decide whether to apply a surcharge (or hypothetically, a discount) to obj
+   if it had ID number 'oid'; returns 1: increase, 0: normal, -1: decrease */
+int
+oid_price_adjustment(obj, oid)
+struct obj *obj;
+unsigned oid;
+{
+    int res = 0, otyp = obj->otyp;
+
+    if (!(obj->dknown && objects[otyp].oc_name_known)
+        && (obj->oclass != GEM_CLASS || objects[otyp].oc_material != GLASS)) {
+        res = ((oid % 4) == 0); /* id%4 ==0 -> +1, ==1..3 -> 0 */
+    }
+    return res;
+}
 
 /* calculate the value that the shk will charge for [one of] an object */
 STATIC_OVL long
@@ -2076,7 +2107,7 @@ register struct monst *shkp; /* if angry, impose a surcharge */
                 break;
             }
             tmp = (long) objects[i].oc_cost;
-        } else if (!(obj->o_id % 4)) {
+        } else if (oid_price_adjustment(obj, obj->o_id) > 0) {
             /* unid'd, arbitrarily impose surcharge: tmp *= 4/3 */
             multiplier *= 4L;
             divisor *= 3L;
@@ -2312,6 +2343,45 @@ register struct monst *shkp;
 
     /* (no adjustment for angry shk here) */
     return tmp;
+}
+
+/* unlike alter_cost() which operates on a specific item, identifying or
+   forgetting a gem causes all unpaid gems of its type to change value */
+void
+gem_learned(oindx)
+int oindx;
+{
+    struct obj *obj;
+    struct monst *shkp;
+    struct bill_x *bp;
+    int ct;
+
+    /*
+     * Unfortunately, shop bill doesn't have object type included,
+     * just obj->oid for each unpaid stack, so we have to go through
+     * every bill and every item on that bill and match up against
+     * every unpaid stack on the level....
+     *
+     * Fortunately, there's no need to catch up when changing dungeon
+     * levels even if we ID'd or forget some gems while gone from a
+     * level.  There won't be any shop bills when arriving; they were
+     * either paid before leaving or got treated as robbery and it's
+     * too late to adjust pricing.
+     */
+    for (shkp = next_shkp(fmon, TRUE); shkp;
+         shkp = next_shkp(shkp->nmon, TRUE)) {
+        ct = ESHK(shkp)->billct;
+        bp = ESHK(shkp)->bill;
+        while (--ct >= 0) {
+            obj = find_oid(bp->bo_id);
+            if (!obj) /* shouldn't happen */
+                continue;
+            if ((oindx != STRANGE_OBJECT) ? (obj->otyp == oindx)
+                                          : (obj->oclass == GEM_CLASS))
+                bp->price = get_cost(obj, shkp);
+            ++bp;
+        }
+    }
 }
 
 /* called when an item's value has been enhanced; if it happens to be
@@ -2799,15 +2869,26 @@ boolean peaceful, silent;
     char roomno = *in_rooms(x, y, SHOPBASE);
     struct bill_x *bp;
     struct monst *shkp = 0;
+    boolean was_unpaid;
+    long c_count = 0L, u_count = 0L;
+
+    /* gather information for message(s) prior to manipulating bill */
+    was_unpaid = obj->unpaid ? TRUE : FALSE;
+    if (Has_contents(obj)) {
+        c_count = count_contents(obj, TRUE, FALSE, TRUE);
+        u_count = count_contents(obj, TRUE, FALSE, FALSE);
+    }
 
     if (!billable(&shkp, obj, roomno, FALSE)) {
         /* things already on the bill yield a not-billable result, so
            we need to check bill before deciding that shk doesn't care */
-        if ((bp = onbill(obj, shkp, FALSE)) == 0)
+        if ((bp = onbill(obj, shkp, FALSE)) != 0) {
+            /* shk does care; take obj off bill to avoid double billing */
+            billamt = bp->bquan * bp->price;
+            sub_one_frombill(obj, shkp);
+        }
+        if (!bp && !u_count)
             return 0L;
-        /* shk does care; take obj off bill to avoid double billing */
-        billamt = bp->bquan * bp->price;
-        sub_one_frombill(obj, shkp);
     }
 
     if (obj->oclass == COIN_CLASS) {
@@ -2846,6 +2927,7 @@ boolean peaceful, silent;
             ESHK(shkp)->debit += value;
 
         if (!silent) {
+            char buf[BUFSZ];
             const char *still = "";
 
             if (credit_use) {
@@ -2859,12 +2941,17 @@ boolean peaceful, silent;
                 }
                 still = "still ";
             }
-            if (obj->oclass == COIN_CLASS)
-                You("%sowe %s %ld %s!", still, shkname(shkp), value,
-                    currency(value));
-            else
-                You("%sowe %s %ld %s for %s!", still, shkname(shkp),
-                    value, currency(value), (obj->quan > 1L) ? "them" : "it");
+            Sprintf(buf, "%sowe %s %ld %s", still, shkname(shkp),
+                    value, currency(value));
+            if (u_count) /* u_count > 0 implies Has_contents(obj) */
+                Sprintf(eos(buf), " for %s%sits contents",
+                        was_unpaid ? "it and " : "",
+                        (c_count > u_count) ? "some of " : "");
+            else if (obj->oclass != COIN_CLASS)
+                Sprintf(eos(buf), " for %s",
+                        (obj->quan > 1L) ? "them" : "it");
+
+            You("%s!", buf); /* "You owe <shk> N zorkmids for it!" */
         }
     } else {
         ESHK(shkp)->robbed += value;
@@ -4157,9 +4244,8 @@ register struct obj *first_obj;
     for (otmp = first_obj; otmp; otmp = otmp->nexthere) {
         if (otmp->oclass == COIN_CLASS)
             continue;
-        cost = (otmp->no_charge || otmp == uball || otmp == uchain)
-                   ? 0L
-                   : get_cost(otmp, (struct monst *) 0);
+        cost = (otmp->no_charge || otmp == uball || otmp == uchain) ? 0L
+                 : get_cost(otmp, shkp);
         contentsonly = !cost;
         if (Has_contents(otmp))
             cost += contained_cost(otmp, shkp, 0L, FALSE, FALSE);

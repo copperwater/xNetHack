@@ -687,6 +687,12 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             ZeroMemory(data->menu.prompt, sizeof(data->menu.prompt));
         }
     } break;
+
+	case MSNH_MSG_RANDOM_INPUT: {
+        PostMessage(GetMenuControl(hWnd),
+            WM_MSNH_COMMAND, MSNH_MSG_RANDOM_INPUT, 0);
+	} break;
+
     }
 }
 /*-----------------------------------------------------------------------------*/
@@ -1589,6 +1595,7 @@ reset_menu_count(HWND hwndList, PNHMenuWindow data)
 LRESULT CALLBACK
 NHMenuListWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    HWND hWndParent = GetParent(hWnd);
     BOOL bUpdateFocusItem;
 
     /* we will redraw focused item whenever horizontal scrolling occurs
@@ -1620,6 +1627,20 @@ NHMenuListWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetFocus(GetNHApp()->hMainWnd);
         }
         return FALSE;
+
+    case WM_MSNH_COMMAND:
+        if (wParam == MSNH_MSG_RANDOM_INPUT) {
+            char c = randomkey();
+            if (c == '\n')
+                PostMessage(hWndParent, WM_COMMAND, MAKELONG(IDOK, 0), 0);
+            else if (c == '\033')
+                PostMessage(hWndParent, WM_COMMAND, MAKELONG(IDCANCEL, 0), 0);
+            else
+                PostMessage(hWnd, WM_CHAR, c, 0);
+            return 0;
+        }
+        break;
+
     }
 
     /* update focused item */
@@ -1647,6 +1668,7 @@ NHMenuListWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK
 NHMenuTextWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    HWND hWndParent = GetParent(hWnd);
     HDC hDC;
     RECT rc;
 
@@ -1674,8 +1696,7 @@ NHMenuTextWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 && (si.nPos + (int) si.nPage) <= (si.nMax - si.nMin))
                 SendMessage(hWnd, EM_SCROLL, SB_PAGEDOWN, 0);
             else
-                PostMessage(GetParent(hWnd), WM_COMMAND, MAKELONG(IDOK, 0),
-                            0);
+                PostMessage(hWndParent, WM_COMMAND, MAKELONG(IDOK, 0), 0);
             return 0;
         }
         case VK_NEXT:
@@ -1714,6 +1735,20 @@ NHMenuTextWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_SETFOCUS:
         HideCaret(hWnd);
         return 0;
+
+    case WM_MSNH_COMMAND:
+        if (wParam == MSNH_MSG_RANDOM_INPUT) {
+            char c = randomkey();
+            if (c == '\n')
+                PostMessage(hWndParent, WM_COMMAND, MAKELONG(IDOK, 0), 0);
+            else if (c == '\033')
+                PostMessage(hWndParent, WM_COMMAND, MAKELONG(IDCANCEL, 0), 0);
+            else
+                PostMessage(hWnd, WM_CHAR, c, 0);
+            return 0;
+        }
+        break;
+
     }
 
     if (editControlWndProc)

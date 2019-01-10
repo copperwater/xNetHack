@@ -1,4 +1,4 @@
-/* NetHack 3.6	tradstdc.h	$NHDT-Date: 1543371689 2018/11/28 02:21:29 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.32 $ */
+/* NetHack 3.6	tradstdc.h	$NHDT-Date: 1545270756 2018/12/20 01:52:36 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.34 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -390,8 +390,10 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #endif
 
 #ifdef __clang__
-#define UNUSED __attribute__((unused))
-#define NORETURN __attribute__((noreturn))
+/* clang's gcc emulation is sufficient for nethack's usage */
+#ifndef __GNUC__
+#define __GNUC__ 4
+#endif
 #endif
 
 /*
@@ -405,6 +407,10 @@ typedef genericptr genericptr_t; /* (void *) or (char *) */
 #if __GNUC__ >= 3
 #define UNUSED __attribute__((unused))
 #define NORETURN __attribute__((noreturn))
+/* disable gcc's __attribute__((__warn_unused_result__)) since explicitly
+   discarding the result by casting to (void) is not accepted as a 'use' */
+#define __warn_unused_result__ /*empty*/
+#define warn_unused_result /*empty*/
 #endif
 #endif
 

@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.286 $ $NHDT-Date: 1540625949 2018/10/27 07:39:09 $
+.\" $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.292 $ $NHDT-Date: 1546984605 2019/01/08 21:56:45 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" NetHack's Guidebook.mn currently does *not* adhere to these guidelines.
@@ -24,7 +24,7 @@
 .ds vr "NetHack 3.6
 .ds f0 "\*(vr
 .ds f1
-.ds f2 "November 29, 2018
+.ds f2 "December 15, 2018
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -587,6 +587,8 @@ or (for \(lq#loot\(rq to remove a saddle),
 skip containers and go straight to adjacent monsters.
 The prefix will
 make \(lq#travel\(rq command show a menu of interesting targets in sight.
+In debug mode (aka \(lqwizard mode\(rq), the \(oqm\(cq prefix may also be
+used with the \(lq#teleport\(rq and \(lq#wizlevelport\(rq commands.
 .lp F[yuhjklbn]
 Prefix:  fight a monster (even if you only guess one is there).
 .lp M[yuhjklbn]
@@ -4934,8 +4936,8 @@ again to \fBM. Drew Streib\fP and \fBPasi Kallinen\fP for providing a
 public NetHack server at nethack.alt.org. Thanks to \fBKeith Simpson\fP
 and \fBAndy Thomson\fP for hardfought.org. Thanks to all those
 unnamed dungeoneers who invest their time and effort into annual
-NetHack tournaments such as Junethack and in days past,
-devnull.net (gone for now, but not forgotten).
+NetHack tournaments such as Junethack, The November NetHack Tournament 
+and in days past, devnull.net (gone for now, but not forgotten).
 .pg
 .ce
 - - - - - - - - - -\ \ \ \ \" when centered, the dashes look a little too far

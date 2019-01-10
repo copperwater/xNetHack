@@ -1,7 +1,7 @@
+/* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 /* NetHack 3.6 cursmesg.c */
 /* Copyright (c) Karl Garrison, 2010. */
 /* NetHack may be freely redistributed.  See license for details. */
-/* vim:set cin ft=c sw=4 sts=4 ts=8 et ai cino=Ls\:0t0(0 : -*- mode:c;fill-column:80;tab-width:8;c-basic-offset:4;indent-tabs-mode:nil;c-file-style:"k&r" -*-*/
 
 #include "curses.h"
 #include "hack.h"
@@ -143,8 +143,7 @@ curses_block(boolean noscroll)
 {
     int height, width, ret = 0;
     WINDOW *win = curses_get_nhwin(MESSAGE_WIN);
-    char *resp = " \n\033"; /* space, enter, esc */
-
+    const char *resp = " \r\n\033"; /* space, enter, esc */
 
     curses_get_window_size(MESSAGE_WIN, &height, &width);
     curses_toggle_color_attr(win, MORECOLOR, NONE, ON);
@@ -434,7 +433,11 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
         wmove(win, my, mx);
         curs_set(1);
         wrefresh(win);
+#ifdef PDCURSES
+        ch = wgetch(win);
+#else
         ch = getch();
+#endif
         curs_set(0);
         switch(ch) {
         case '\033': /* DOESCAPE */

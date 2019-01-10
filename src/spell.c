@@ -1,4 +1,4 @@
-/* NetHack 3.6	spell.c	$NHDT-Date: 1542765363 2018/11/21 01:56:03 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.87 $ */
+/* NetHack 3.6	spell.c	$NHDT-Date: 1546565814 2019/01/04 01:36:54 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.88 $ */
 /*      Copyright (c) M. Stephenson 1988                          */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -916,6 +916,10 @@ boolean atme;
         return 1;
     }
 
+    /*
+     *  Note: dotele() also calculates energy use and checks nutrition
+     *  and strength requirements; it any of these change, update it too.
+     */
     energy = energy_cost(spell);
     /* if spell is impossible to cast, kludge this to u.uen + 1 to make it fail
      * the checks below as not having enough energy. */
@@ -1255,6 +1259,61 @@ throwspell()
     return 1;
 }
 
+/* add/hide/remove/unhide teleport-away on behalf of dotelecmd() to give
+   more control to behavior of ^T when used in wizard mode */
+int
+tport_spell(what)
+int what;
+{
+    static struct tport_hideaway {
+        struct spell savespell;
+        int tport_indx;
+    } save_tport;
+    int i;
+/* also defined in teleport.c */
+#define NOOP_SPELL  0
+#define HIDE_SPELL  1
+#define ADD_SPELL   2
+#define UNHIDESPELL 3
+#define REMOVESPELL 4
+
+    for (i = 0; i < MAXSPELL; i++)
+        if (spellid(i) == SPE_TELEPORT_AWAY || spellid(i) == NO_SPELL)
+            break;
+    if (i == MAXSPELL) {
+        impossible("tport_spell: spellbook full");
+        /* wizard mode ^T is not able to honor player's menu choice */
+    } else if (spellid(i) == NO_SPELL) {
+        if (what == HIDE_SPELL || what == REMOVESPELL) {
+            save_tport.tport_indx = MAXSPELL;
+        } else if (what == UNHIDESPELL) {
+            /*assert( save_tport.savespell.sp_id == SPE_TELEPORT_AWAY );*/
+            spl_book[save_tport.tport_indx] = save_tport.savespell;
+            save_tport.tport_indx = MAXSPELL; /* burn bridge... */
+        } else if (what == ADD_SPELL) {
+            save_tport.savespell = spl_book[i];
+            save_tport.tport_indx = i;
+            spl_book[i].sp_id = SPE_TELEPORT_AWAY;
+            spl_book[i].sp_lev = objects[SPE_TELEPORT_AWAY].oc_level;
+            spl_book[i].sp_know = KEEN;
+            return REMOVESPELL; /* operation needed to reverse */
+        }
+    } else { /* spellid(i) == SPE_TELEPORT_AWAY */
+        if (what == ADD_SPELL || what == UNHIDESPELL) {
+            save_tport.tport_indx = MAXSPELL;
+        } else if (what == REMOVESPELL) {
+            /*assert( i == save_tport.tport_indx );*/
+            spl_book[i] = save_tport.savespell;
+            save_tport.tport_indx = MAXSPELL;
+        } else if (what == HIDE_SPELL) {
+            save_tport.savespell = spl_book[i];
+            save_tport.tport_indx = i;
+            spl_book[i].sp_id = NO_SPELL;
+            return UNHIDESPELL; /* operation needed to reverse */
+        }
+    }
+    return NOOP_SPELL;
+}
 
 /*
  * Allow player to sort the list of known spells.  Manually swapping

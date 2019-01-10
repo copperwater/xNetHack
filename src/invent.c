@@ -1,4 +1,4 @@
-/* NetHack 3.6	invent.c	$NHDT-Date: 1541145517 2018/11/02 07:58:37 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.241 $ */
+/* NetHack 3.6	invent.c	$NHDT-Date: 1547025166 2019/01/09 09:12:46 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.250 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -25,8 +25,8 @@ STATIC_DCL int FDECL(only_here, (struct obj *));
 STATIC_DCL void FDECL(compactify, (char *));
 STATIC_DCL boolean FDECL(taking_off, (const char *));
 STATIC_DCL boolean FDECL(putting_on, (const char *));
-STATIC_PTR int FDECL(ckunpaid, (struct obj *));
 STATIC_PTR int FDECL(ckvalidcat, (struct obj *));
+STATIC_PTR int FDECL(ckunpaid, (struct obj *));
 STATIC_PTR char *FDECL(safeq_xprname, (struct obj *));
 STATIC_PTR char *FDECL(safeq_shortxprname, (struct obj *));
 STATIC_DCL char FDECL(display_pickinv, (const char *, const char *,
@@ -52,7 +52,7 @@ static int lastinvnr = 51; /* 0 ... 51 (never saved&restored) */
  */
 static char venom_inv[] = { VENOM_CLASS, 0 }; /* (constant) */
 
-/* sortloot() classification; called at most once for each object sorted  */
+/* sortloot() classification; called at most once [per sort] for each object */
 STATIC_OVL void
 loot_classify(sort_item, obj)
 Loot *sort_item;
@@ -71,6 +71,7 @@ struct obj *obj;
     const char *classorder;
     char *p;
     int k, otyp = obj->otyp, oclass = obj->oclass;
+    boolean seen, discovered = objects[otyp].oc_name_known ? TRUE : FALSE;
 
     /*
      * For the value types assigned by this classification, sortloot()
@@ -78,6 +79,7 @@ struct obj *obj;
      */
     if (!Blind)
         obj->dknown = 1; /* xname(obj) does this; we want it sooner */
+    seen = obj->dknown ? TRUE : FALSE,
     /* class order */
     classorder = flags.sortpack ? flags.inv_order : def_srt_order;
     p = index(classorder, oclass);
@@ -120,7 +122,7 @@ struct obj *obj;
                           : !is_pole(obj) ? 5 : 6);
         break;
     case TOOL_CLASS:
-        if (obj->dknown && objects[otyp].oc_name_known
+        if (seen && discovered
             && (otyp == BAG_OF_TRICKS || otyp == HORN_OF_PLENTY))
             k = 2; /* known pseudo-container */
         else if (Is_container(obj))
@@ -164,6 +166,35 @@ struct obj *obj;
             break;
         }
         break;
+    case GEM_CLASS:
+        /*
+         * Normally subclass takes priority over discovery status, but
+         * that would give away information for gems (assuming we'll
+         * group them as valuable gems, next glass, then gray stones,
+         * and finally rocks once they're all fully identified).
+         *
+         * Order:
+         *  1) unseen gems and glass ("gem")
+         *  2) seen but undiscovered gems and glass ("blue gem"),
+         *  3) discovered gems ("sapphire"),
+         *  4) discovered glass ("worthless pieced of blue glass"),
+         *  5) unseen gray stones and rocks ("stone"),
+         *  6) seen but undiscovered gray stones ("gray stone"),
+         *  7) discovered gray stones ("touchstone"),
+         *  8) seen rocks ("rock").
+         */
+        switch (objects[obj->otyp].oc_material) {
+        case GEMSTONE:
+            k = !seen ? 1 : !discovered ? 2 : 3;
+            break;
+        case GLASS:
+            k = !seen ? 1 : !discovered ? 2 : 4;
+            break;
+        default: /* MINERAL */
+            k = !seen ? 5 : (obj->otyp != ROCK) ? (!discovered ? 6 : 7) : 8;
+            break;
+        }
+        break;
     default:
         /* other classes don't have subclasses; we assign a nonzero
            value because sortloot() uses 0 to mean 'not yet classified' */
@@ -172,9 +203,9 @@ struct obj *obj;
     }
     sort_item->subclass = (xchar) k;
     /* discovery status */
-    k = !obj->dknown ? 1 /* unseen */
-        : (objects[otyp].oc_name_known || !OBJ_DESCR(objects[otyp])) ? 4
-          : (objects[otyp].oc_uname)? 3 /* named (partially discovered) */
+    k = !seen ? 1 /* unseen */
+        : (discovered || !OBJ_DESCR(objects[otyp])) ? 4
+          : (objects[otyp].oc_uname) ? 3 /* named (partially discovered) */
             : 2; /* undiscovered */
     sort_item->disco = (xchar) k;
 }
@@ -395,7 +426,7 @@ const genericptr vptr2;
             return val2 - val1; /* bigger is better */
     }
 
-tiebreak:
+ tiebreak:
     /* They're identical, as far as we're concerned.  We want
        to force a deterministic order, and do so by producing a
        stable sort: maintain the original order of equal items. */
@@ -838,11 +869,13 @@ struct obj *obj;
                                  "acquired the luckstone from Mines' End");
         u.uachieve.mines_luckstone = 1;
         obj->record_achieve_special = NON_PM;
+        obj->nomerge = 0;
     } else if (is_soko_prize(obj)) {
         if(!u.uachieve.finish_sokoban)
             livelog_write_string(LL_ACHIEVE, "completed Sokoban");
         u.uachieve.finish_sokoban = 1;
         obj->record_achieve_special = NON_PM;
+        obj->nomerge = 0;
     }
 }
 
@@ -929,7 +962,7 @@ struct obj *obj;
         && obj->oartifact != ART_MJOLLNIR
         && (throwing_weapon(obj) || is_ammo(obj)))
         setuqwep(obj);
-added:
+ added:
     addinv_core2(obj);
     carry_obj_effects(obj); /* carrying affects the obj */
     update_inventory();
@@ -999,9 +1032,9 @@ const char *drop_fmt, *drop_arg, *hold_msg;
         }
     }
     if (Fumbling) {
-        if (drop_fmt)
-            pline(drop_fmt, drop_arg);
-        dropy(obj);
+        obj->nomerge = 1;
+        obj = addinv(obj); /* dropping expects obj to be in invent */
+        goto drop_it;
     } else {
         long oquan = obj->quan;
         int prev_encumbr = near_capacity(); /* before addinv() */
@@ -1018,12 +1051,10 @@ const char *drop_fmt, *drop_arg, *hold_msg;
         obj = addinv(obj);
         if (inv_cnt(FALSE) > 52 || ((obj->otyp != LOADSTONE || !obj->cursed)
                                     && near_capacity() > prev_encumbr)) {
-            if (drop_fmt)
-                pline(drop_fmt, drop_arg);
             /* undo any merge which took place */
             if (obj->quan > oquan)
                 obj = splitobj(obj, oquan);
-            dropx(obj);
+            goto drop_it;
         } else {
             if (flags.autoquiver && !uquiver && !obj->owornmask
                 && (is_missile(obj) || ammo_and_launcher(obj, uwep)
@@ -1034,6 +1065,18 @@ const char *drop_fmt, *drop_arg, *hold_msg;
         }
     }
     return obj;
+
+ drop_it:
+    if (drop_fmt)
+        pline(drop_fmt, drop_arg);
+    obj->nomerge = 0;
+    if (can_reach_floor(TRUE)) {
+        dropx(obj);
+    } else {
+        freeinv(obj);
+        hitfloor(obj, FALSE);
+    }
+    return (struct obj *) 0; /* might be gone */
 }
 
 /* useup() all of an item regardless of its quantity */
@@ -1509,7 +1552,7 @@ boolean allow_floor;
     }
 
     /* dungeon features */
-    if (allow_floor && (*obj_ok)(&zeroobj))
+    if (allow_floor && (*obj_ok)((struct obj *) &zeroobj))
         feature = TRUE;
 
     /* non-inventory letters */
@@ -1555,7 +1598,7 @@ boolean allow_floor;
 
         c = ynq(qbuf);
         if (c == 'y')
-            return &zeroobj;
+            return (struct obj*) &zeroobj;
         else if (c == 'q') {
             if (flags.verbose)
                 pline1(Never_mind);
@@ -1728,7 +1771,7 @@ boolean allow_floor;
             }
 
             savech(ilet);
-            return &zeroobj;
+            return (struct obj *) &zeroobj;
         }
 
         if (ilet == '.')
@@ -1748,7 +1791,7 @@ boolean allow_floor;
         if (ilet == ',' || ilet == '?' || ilet == '*') {
             if (ilet == ',' && !floor) {
                 /* dungeon feature */
-                res = &zeroobj;
+                res = (struct obj *) &zeroobj;
                 continue;
             }
 
@@ -2139,7 +2182,7 @@ int FDECL((*fn), (OBJ_P)), FDECL((*ckfn), (OBJ_P));
      * For example, if a person specifies =/ then first all rings
      * will be asked about followed by all wands.  -dgk
      */
-nextclass:
+ nextclass:
     ilet = 'a' - 1;
     if (*objchn && (*objchn)->oclass == COIN_CLASS)
         ilet--;                     /* extra iteration */
@@ -2249,7 +2292,7 @@ nextclass:
         pline("That was all.");
     else if (!dud && !cnt)
         pline("No applicable objects.");
-ret:
+ ret:
     unsortloot(&sortedchn);
     bypass_objlist(*objchn, FALSE);
     return cnt;
@@ -2703,7 +2746,7 @@ long *out_cnt;
             inv_weight() + wcap, wcap, inv_cnt(TRUE));
     add_menu(win, NO_GLYPH, &any, 0, 0, ATR_BOLD, invheading, MENU_UNSELECTED);
 
-nextclass:
+ nextclass:
     classcount = 0;
     for (srtinv = sortedinvent; (otmp = srtinv->obj) != 0; ++srtinv) {
         if (lets && !index(lets, otmp->invlet))
@@ -2958,6 +3001,7 @@ int *bcp, *ucp, *ccp, *xcp, *ocp;
     }
 }
 
+/* count everything inside a container, or just shop-owned items inside */
 long
 count_contents(container, nested, quantity, everything)
 struct obj *container;
@@ -2965,13 +3009,25 @@ boolean nested, /* include contents of any nested containers */
     quantity,   /* count all vs count separate stacks */
     everything; /* all objects vs only unpaid objects */
 {
-    struct obj *otmp;
+    struct obj *otmp, *topc;
+    boolean shoppy = FALSE;
     long count = 0L;
 
+    if (!everything) {
+        for (topc = container; topc->where == OBJ_CONTAINED;
+             topc = topc->ocontainer)
+            continue;
+        if (topc->where == OBJ_FLOOR) {
+            xchar x, y;
+
+            (void) get_obj_location(topc, &x, &y, CONTAINED_TOO);
+            shoppy = costly_spot(x, y);
+        }
+    }
     for (otmp = container->cobj; otmp; otmp = otmp->nobj) {
         if (nested && Has_contents(otmp))
             count += count_contents(otmp, nested, quantity, everything);
-        if (everything || otmp->unpaid)
+        if (everything || otmp->unpaid || (shoppy && !otmp->no_charge))
             count += quantity ? otmp->quan : 1L;
     }
     return count;
@@ -3592,11 +3648,10 @@ register struct obj *otmp, *obj;
 {
     int objnamelth = 0, otmpnamelth = 0;
 
-    if (obj == otmp)
-        return FALSE; /* already the same object */
-    if (obj->otyp != otmp->otyp)
-        return FALSE; /* different types */
-    if (obj->nomerge) /* explicitly marked to prevent merge */
+    /* fail if already the same object, if different types, if either is
+       explicitly marked to prevent merge, or if not mergable in general */
+    if (obj == otmp || obj->otyp != otmp->otyp
+        || obj->nomerge || otmp->nomerge || !objects[obj->otyp].oc_merge)
         return FALSE;
 
     /* coins of the same kind will always merge */
@@ -4134,7 +4189,7 @@ doorganize() /* inventory organizer by Del Lamb */
                compatible stacks get collected along the way,
                but splitting to same slot is not */
             || (splitting && let == obj->invlet)) {
-        noadjust:
+ noadjust:
             if (splitting)
                 (void) merged(&splitting, &obj);
             if (!ever_mind)
