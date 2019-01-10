@@ -175,6 +175,7 @@ Make gnomish wizards, kobold shamans, and orc shamans telepathic. Their corpses
   may now occasionally convey telepathy (infrequent, unlike floating eyes).
 The corpse of any casting monster now follows the same logic as newt corpses to
   make the player regain some energy and maybe gain a point to their max.
+Genociding green slime while turning to slime stops the sliming
 
 
 It contains the following non-gameplay interface changes:

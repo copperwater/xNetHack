@@ -2254,6 +2254,10 @@ do_class_genocide()
                             gameover = TRUE;
                         }
                     }
+                    if (i == PM_GREEN_SLIME && Slimed) {
+                        make_slimed(0L,
+                                    "The slime that covers you disappears!");
+                    }
                 } else if (mvitals[i].mvflags & G_GENOD) {
                     if (!gameover)
                         pline("All %s are already nonexistent.", nam);
@@ -2405,6 +2409,9 @@ int how;
         pline("Wiped out %s%s.", which,
               (*which != 'a') ? buf : makeplural(buf));
 
+        if (mndx == PM_GREEN_SLIME && Slimed) {
+            make_slimed(0L, "The slime that covers you disappears!");
+        }
         if (killplayer) {
             /* might need to wipe out dual role */
             if (urole.femalenum != NON_PM && mndx == urole.malenum)
