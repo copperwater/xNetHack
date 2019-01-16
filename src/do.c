@@ -1,4 +1,4 @@
-/* NetHack 3.6	do.c	$NHDT-Date: 1545597418 2018/12/23 20:36:58 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.182 $ */
+/* NetHack 3.6	do.c	$NHDT-Date: 1547512513 2019/01/15 00:35:13 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.185 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -413,7 +413,7 @@ register struct obj *obj;
         goto giveback;
     case RIN_SLOW_DIGESTION:
         pline_The("ring is regurgitated!");
-    giveback:
+ giveback:
         obj->in_use = FALSE;
         dropx(obj);
         trycall(obj);
@@ -932,7 +932,7 @@ int retry;
         }
     }
 
-drop_done:
+ drop_done:
     return n_dropped;
 }
 
@@ -1199,6 +1199,39 @@ register xchar x, y;
 }
 */
 
+/* when arriving on a level, if hero and a monster are trying to share same
+   spot, move one; extracted from goto_level(); also used by wiz_makemap() */
+void
+u_collide_m(mtmp)
+struct monst *mtmp;
+{
+    coord cc;
+
+    if (!mtmp || mtmp == u.usteed || mtmp != m_at(u.ux, u.uy)) {
+        impossible("level arrival collision: %s?",
+                   !mtmp ? "no monster"
+                     : (mtmp == u.usteed) ? "steed is on map"
+                       : "monster not co-located");
+        return;
+    }
+
+    /* There's a monster at your target destination; it might be one
+       which accompanied you--see mon_arrive(dogmove.c)--or perhaps
+       it was already here. Displace the monster to any nearby location. */
+    mnexto(mtmp);
+
+    if ((mtmp = m_at(u.ux, u.uy)) != 0) {
+        /* there was an unconditional impossible("mnexto failed")
+           here, but it's not impossible and we're prepared to cope
+           with the situation, so only say something when debugging */
+        if (wizard)
+            pline("(monster in hero's way)");
+        if (!rloc(mtmp, TRUE) || (mtmp = m_at(u.ux, u.uy)) != 0)
+            /* no room to move it; send it away, to return later */
+            m_into_limbo(mtmp);
+    }
+}
+
 void
 goto_level(newlevel, at_stairs, falling, portal)
 d_level *newlevel;
@@ -1447,25 +1480,12 @@ boolean at_stairs, falling, portal;
      */
     run_timers();
 
+    /* hero might be arriving at a spot containing a monster;
+       if so, move one or the other to another location */
+    if ((mtmp = m_at(u.ux, u.uy)) != 0)
+        u_collide_m(mtmp);
+
     initrack();
-
-    if ((mtmp = m_at(u.ux, u.uy)) != 0 && mtmp != u.usteed) {
-        /* There's a monster at your target destination; it might be one
-           which accompanied you--see mon_arrive(dogmove.c)--or perhaps
-           it was already here. Displace the monster to any nearby location. */
-        mnexto(mtmp);
-
-        if ((mtmp = m_at(u.ux, u.uy)) != 0) {
-            /* there was an unconditional impossible("mnearto failed")
-               here, but it's not impossible and we're prepared to cope
-               with the situation, so only say something when debugging */
-            if (wizard)
-                pline("(monster in hero's way)");
-            if (!rloc(mtmp, TRUE) || (mtmp = m_at(u.ux, u.uy)) != 0)
-                /* no room to move it; send it away, to return later */
-                m_into_limbo(mtmp);
-        }
-    }
 
     /* initial movement of bubbles just before vision_recalc */
     if (Is_waterlevel(&u.uz) || Is_airlevel(&u.uz))
@@ -1685,17 +1705,16 @@ boolean moldy;
     where = corpse->where;
     is_uwep = (corpse == uwep);
     chewed = (corpse->oeaten != 0);
-    Strcpy(cname,
-           corpse_xname(corpse, chewed ? "bite-covered" : (const char *) 0,
-                        CXN_SINGULAR));
+    Strcpy(cname, corpse_xname(corpse,
+                               chewed ? "bite-covered" : (const char *) 0,
+                               CXN_SINGULAR));
     mcarry = (where == OBJ_MINVENT) ? corpse->ocarry : 0;
 
     if (where == OBJ_CONTAINED) {
         struct monst *mtmp2;
 
         container = corpse->ocontainer;
-        mtmp2 =
-            get_container_location(container, &container_where, (int *) 0);
+        mtmp2 = get_container_location(container, &container_where, (int *) 0);
         /* container_where is the outermost container's location even if
          * nested */
         if (container_where == OBJ_MINVENT && mtmp2)
