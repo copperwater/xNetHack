@@ -2411,6 +2411,51 @@ dodip()
         return 1;
     }
 
+    if (obj->otyp == CORPSE) {
+        if (potion->otyp == POT_FRUIT_JUICE) {
+            switch(obj->corpsenm) {
+            case PM_BROWN_MOLD:
+            case PM_GREEN_MOLD:
+            case PM_YELLOW_MOLD:
+            case PM_RED_MOLD:
+            case PM_VIOLET_FUNGUS:
+                /* MRKR: Molds and fungi have various medicinal properties */
+                /* AOS: This code could possibly be merged into the stuff above,
+                 * but ultimately I felt that there would be too much of the
+                 * above code that we have to make an exception for in this
+                 * case. The dipped potion isn't actually changing right now,
+                 * and its dknown, beatitude etc aren't affected. */
+                pline("%s dissolves and the liquid begins fizzing slowly.",
+                      The(cxname(obj)));
+
+                /* order matters: split first, then start the timer, then try to
+                 * hold_another_object.  Previously this segfaulted when
+                 * hold_another_object was called first, the hero dropped the
+                 * potion, and then the timer tried to start on its NULL return
+                 * value. */
+                if (potion->quan > 1)
+                    singlepotion = splitobj(potion, 1);
+                else
+                    singlepotion = potion;
+                singlepotion->corpsenm = obj->corpsenm;
+                useup(obj);
+                obj_extract_self(singlepotion);
+                start_timer(50 + rn2(50), TIMER_OBJECT, FERMENT,
+                            obj_to_any(singlepotion));
+                singlepotion = hold_another_object(singlepotion,
+                                                   "You juggle and drop %s!",
+                                                   doname(singlepotion),
+                                                   NULL);
+                costly_alteration(singlepotion, COST_FERMENT);
+                update_inventory();
+                return 1;
+
+            /* no default case, other corpses won't do anything special and will
+             * just fall through to "Interesting..." below. */
+            }
+        }
+    }
+
     pline("Interesting...");
     return 1;
 
@@ -2420,6 +2465,67 @@ dodip()
         docall(potion);
     useup(potion);
     return 1;
+}
+
+void
+ferment(arg, timeout)
+anything* arg;
+long timeout;
+{
+    struct obj* potion = arg->a_obj;
+    short corpsenm = potion->corpsenm;
+    boolean need_newsym = FALSE;
+    xchar x, y;
+    short new_otyp;
+
+    if (!potion) {
+        impossible("null potion fermenting?");
+        return;
+    }
+
+    /* if it has been transformed in the meantime, silently do nothing */
+    if (potion->otyp != POT_FRUIT_JUICE)
+        return;
+
+    if (corpsenm == PM_BROWN_MOLD)
+        new_otyp = POT_SLEEPING;
+    else if (corpsenm == PM_GREEN_MOLD)
+        new_otyp = POT_ACID;
+    else if (corpsenm == PM_YELLOW_MOLD)
+        new_otyp = POT_CONFUSION;
+    else if (corpsenm == PM_RED_MOLD)
+        new_otyp = POT_BOOZE; /* it "tastes like liquid fire" */
+    else if (corpsenm == PM_VIOLET_FUNGUS)
+        new_otyp = POT_HALLUCINATION;
+    else {
+        impossible("Strange fermentation agent %d!", corpsenm);
+        return;
+    }
+
+    /* corpsenm = 0 actually means giant ant, but the default value of corpsenm
+     * on potions appears to be 0. For now this doesn't have any effect because
+     * giant ants can't ferment, but this seems wrong... */
+    potion->corpsenm = 0;
+    if (get_obj_location(potion, &x, &y, 0) && !Blind && cansee(x, y)) {
+        /* OBJ_MINVENT used to be shown here, but on the principle that we
+         * generally can't see what's in a monster's inventory at a glance,
+         * don't show anything that happens to be fermenting there. */
+        if (potion->where == OBJ_INVENT) {
+            pline("%s %s.", Yobjnam2(potion, "turn"),
+                  hcolor(OBJ_DESCR(objects[new_otyp])));
+        }
+        else if (potion->where == OBJ_FLOOR) {
+            You_see("%s %s.", an(aobjnam(potion, "turn")),
+                    hcolor(OBJ_DESCR(objects[new_otyp])));
+            /* can't newsym here because otyp has to change after the message is
+             * printed */
+            need_newsym = TRUE;
+        }
+    }
+
+    potion->otyp = new_otyp;
+    if (need_newsym)
+        newsym(x, y);
 }
 
 /* Dip an object into a sink. */

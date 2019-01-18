@@ -176,15 +176,25 @@ Make gnomish wizards, kobold shamans, and orc shamans telepathic. Their corpses
 The corpse of any casting monster now follows the same logic as newt corpses to
   make the player regain some energy and maybe gain a point to their max.
 Genociding green slime while turning to slime stops the sliming
+Incorporate Malcolm Ryan's brewing patch, ported to NetHack 3.6. This enables
+  you to dissolve fungi corpses in fruit juice to ferment them into various
+  other potions:
+    Green mold produces acid (NOT healing as in the original patch)
+    Red mold produces booze (NOT sleeping as in the original patch)
+    Brown mold produces sleeping (NOT booze as in the original patch)
+    Yellow mold produces confusion
+    Violet fungus produces hallucination
+  Additionally unlike the original patch, you cannot ferment an entire stack of
+  potions with one corpse, and fermenting a shop-owned potion makes you pay for
+  its original cost.
 
 
 It contains the following non-gameplay interface changes:
 
 When you kill the Wizard of Yendor, the livelog prints where you are in the
-  dungeon.  If you die while stuck in creature form, your actual death reason
-  is shown, and
-  the "while stuck in creature form" is recorded in the while field of the
-  xlogfile.
+  dungeon.  If you die while stuck in creature form, your actual death reason is
+  shown, and the "while stuck in creature form" is recorded in the while field
+  of the xlogfile.
 The livelogging patch is extended to include arising from the dead or slime as
   a sentient copy of the monster. This is a livelog flag of 0x0200.
 The #terrain command works while hallucinating, confused or stunned.

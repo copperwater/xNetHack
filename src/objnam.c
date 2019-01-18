@@ -1105,6 +1105,8 @@ unsigned doname_flags;
     case POTION_CLASS:
         if (obj->otyp == POT_OIL && obj->lamplit)
             Strcat(bp, " (lit)");
+        if (obj->otyp == POT_FRUIT_JUICE && obj->corpsenm)
+            Strcat(bp, " (fermenting)");
         break;
     case RING_CLASS:
  ring:

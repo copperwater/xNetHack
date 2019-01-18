@@ -33,6 +33,7 @@ enum timeout_types {
     FIG_TRANSFORM,
     MELT_ICE_AWAY,
     MOLDY_CORPSE,
+    FERMENT,
 
     NUM_TIME_FUNCS
 };
