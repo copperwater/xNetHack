@@ -187,6 +187,8 @@ Incorporate Malcolm Ryan's brewing patch, ported to NetHack 3.6. This enables
   Additionally unlike the original patch, you cannot ferment an entire stack of
   potions with one corpse, and fermenting a shop-owned potion makes you pay for
   its original cost.
+Mold will not grow on a corpse when the corpse's spot is occupied by some other
+  creature.
 
 
 It contains the following non-gameplay interface changes:

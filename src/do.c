@@ -1865,11 +1865,15 @@ long timeout;
     /* [ALI] Molds don't grow in adverse conditions.  If it ever
      * becomes possible for molds to grow in containers we should
      * check for iceboxes here as well.
+     * [AOS] Further, the mold has to grow *on* the corpse, not enexto'd a bunch
+     * of spaces away (or behind the hero blocking their escape route) if
+     * there's a crowd.
      */
     boolean bad_spot = ((body->where == OBJ_FLOOR || body->where==OBJ_BURIED)
                         && (is_pool(body->ox, body->oy) ||
                             is_lava(body->ox, body->oy) ||
-                            is_ice(body->ox, body->oy)));
+                            is_ice(body->ox, body->oy)  ||
+                            MON_AT(body->ox, body->oy)));
 
     /* maybe F are genocided? */
     boolean no_eligible = (newpm == NULL);
