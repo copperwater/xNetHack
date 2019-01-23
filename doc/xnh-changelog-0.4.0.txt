@@ -194,6 +194,8 @@ Buff war hammers into a two-handed weapon that does 2d6 to small monsters and
 Significantly buff Ogresmasher: it now deals d8 extra damage to all monsters,
   and has heavy critical hits, which crush and instakill small or tiny monsters
   and disable medium or larger monsters.
+Change Dragonbane from a broadsword into a dwarvish spear.
+Change Demonbane from a silver long sword into a silver mace.
 
 
 It contains the following non-gameplay interface changes:
