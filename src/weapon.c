@@ -244,6 +244,10 @@ struct monst *mon;
             tmp += rnd(6);
             break;
 
+        case WAR_HAMMER:
+            tmp += rnd(8);
+            break;
+
         case BATTLE_AXE:
         case BARDICHE:
         case TRIDENT:
@@ -263,7 +267,6 @@ struct monst *mon;
         case IRON_CHAIN:
         case CROSSBOW_BOLT:
         case MACE:
-        case WAR_HAMMER:
         case FLAIL:
         case SPETUM:
         case TRIDENT:
@@ -284,6 +287,7 @@ struct monst *mon;
             tmp += rnd(4);
             break;
 
+        case WAR_HAMMER:
         case ACID_VENOM:
             tmp += rnd(6);
             break;

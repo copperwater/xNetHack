@@ -189,6 +189,8 @@ Incorporate Malcolm Ryan's brewing patch, ported to NetHack 3.6. This enables
   its original cost.
 Mold will not grow on a corpse when the corpse's spot is occupied by some other
   creature.
+Buff war hammers into a two-handed weapon that does 2d6 to small monsters and
+  2d8 to large.
 
 
 It contains the following non-gameplay interface changes:

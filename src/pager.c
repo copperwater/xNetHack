@@ -861,7 +861,6 @@ short otyp;
         case IRON_CHAIN:
         case CROSSBOW_BOLT:
         case MACE:
-        case WAR_HAMMER:
         case FLAIL:
         case SPETUM:
         case TRIDENT:
@@ -879,6 +878,10 @@ short otyp;
         case RUNESWORD:
         case VOULGE:
             sdambon = "+1d4";
+            break;
+        case WAR_HAMMER:
+            sdambon = "+1d6";
+            break;
         }
         /* and again, because /large/ damage is entirely separate. Bleah. */
         switch (otyp) {
@@ -899,6 +902,9 @@ short otyp;
         case SPETUM:
             ldambon = "+1d6";
             break;
+        case WAR_HAMMER:
+            ldambon = "+1d8";
+            break;
         case BATTLE_AXE:
         case BARDICHE:
         case TRIDENT:
@@ -908,6 +914,7 @@ short otyp;
         case DWARVISH_MATTOCK:
         case TWO_HANDED_SWORD:
             ldambon = "+2d6";
+            break;
         }
         Sprintf(buf,
                "Damage: 1d%d%s versus small and 1d%d%s versus large monsters.",
