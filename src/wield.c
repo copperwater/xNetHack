@@ -642,7 +642,13 @@ can_twoweapon()
         pline("%s isn't one-handed.", Yname2(otmp));
     } else if (uarms)
         You_cant("use two weapons while wearing a shield.");
-    else if (uswapwep->oartifact)
+    else if (uswapwep->oartifact
+            /* From NetHack Fourk: allow only Fire Brand and Frost Brand to be
+             * dual-wielded. */
+             && !(uswapwep->oartifact == ART_FIRE_BRAND
+                  && uwep->oartifact == ART_FROST_BRAND)
+             && !(uswapwep->oartifact == ART_FROST_BRAND
+                  && uwep->oartifact == ART_FIRE_BRAND))
         pline("%s being held second to another weapon!",
               Yobjnam2(uswapwep, "resist"));
     else if (uswapwep->otyp == CORPSE && cant_wield_corpse(uswapwep)) {

@@ -204,6 +204,8 @@ Port Fourk's change to the Sceptre of Might: it is now the Priest quest artifact
   carried, magic resistance when wielded, and +d5 to hit and +d12 versus all
   monsters. Its invoke power is hungerless conflict, as the Sceptre used to
   provide.
+Fire and Frost Brand are now short swords that can be twoweaponed with each
+  other.
 
 
 It contains the following non-gameplay interface changes:
