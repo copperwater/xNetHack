@@ -1348,6 +1348,51 @@ int dieroll; /* needed for Magicbane and vorpal blades */
             }
         }
     }
+    if (spec_ability(otmp, SPFX_HEAVYHIT)) {
+        if (otmp->oartifact == ART_OGRESMASHER && dieroll == 1) {
+            boolean smallmonst = (mdef->data->msize <= MZ_SMALL);
+            wepdesc = artilist[ART_OGRESMASHER].name;
+
+            if (youdefend) {
+                if (smallmonst) {
+                    pline("%s crushes you!", wepdesc);
+                    *dmgptr = 2 * (Upolyd ? u.mh : u.uhp)
+                              + FATAL_DAMAGE_MODIFIER;
+                }
+                else {
+                    pline("%s smashes into you!", wepdesc);
+                    /* No extra damage, but kill speed and inflict status
+                     * ailments. */
+                    if (HFast)
+                        u_slow_down(); /* avoid multiple "You slow down" */
+                    make_stunned((HStun & TIMEOUT) + (long) rn1(5, 5), TRUE);
+                }
+                otmp->dknown = TRUE;
+            }
+            else {
+                if (smallmonst) {
+                    if (vis) {
+                        pline("%s crushes %s!", wepdesc, mon_nam(mdef));
+                        otmp->dknown = TRUE;
+                    }
+                    *dmgptr = 2 * mdef->mhp + FATAL_DAMAGE_MODIFIER;
+                }
+                else {
+                    if (vis) {
+                        if (youattack)
+                            You("smash %s into %s!", wepdesc, mon_nam(mdef));
+                        else
+                            pline("%s smashes %s into %s!", Monnam(magr),
+                                  wepdesc, mon_nam(mdef));
+                        otmp->dknown = TRUE;
+                    }
+                    mon_adjust_speed(mdef, -2, NULL);
+                    mdef->mstun = 1;
+                }
+            }
+            return TRUE;
+        }
+    }
     if (spec_ability(otmp, SPFX_DRLI)) {
         /* some non-living creatures (golems, vortices) are
            vulnerable to life drain effects */

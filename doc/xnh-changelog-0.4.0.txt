@@ -191,6 +191,9 @@ Mold will not grow on a corpse when the corpse's spot is occupied by some other
   creature.
 Buff war hammers into a two-handed weapon that does 2d6 to small monsters and
   2d8 to large.
+Significantly buff Ogresmasher: it now deals d8 extra damage to all monsters,
+  and has heavy critical hits, which crush and instakill small or tiny monsters
+  and disable medium or larger monsters.
 
 
 It contains the following non-gameplay interface changes:
