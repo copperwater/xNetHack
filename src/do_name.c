@@ -1350,8 +1350,12 @@ const char *name;
         case ART_WEREBANE:
         case ART_DEMONBANE:
         case ART_GRAYSWANDIR:
-        case ART_MITRE_OF_HOLINESS:
+        /* case ART_MITRE_OF_HOLINESS: */
             obj->material = SILVER;
+            break;
+        case ART_SCEPTRE_OF_MIGHT:
+            /* don't make it hurt elves */
+            obj->material = METAL;
             break;
         case ART_YENDORIAN_EXPRESS_CARD:
             obj->material = PLATINUM;

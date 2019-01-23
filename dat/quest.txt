@@ -1689,7 +1689,7 @@ undead that befoul the land.
 "You may be able to affect %n with magical cold."
 %E
 %Cp Pri 00030
-"Acquire and wear %o if you can.  It will aid you
+"Acquire %o if you can.  It will aid you
 against %n."
 %E
 %Cp Pri 00031
@@ -1702,7 +1702,7 @@ against %n."
 "Do not lose faith, %p.  If you do so, %n will grow stronger."
 %E
 %Cp Pri 00034
-"Wear %o.  It will assist you against the undead."
+"Use %o.  It will assist you against the undead."
 %E
 %Cc Pri 00035
 You stand facing a large graveyard.  The sky above is filled with clouds

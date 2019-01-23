@@ -170,10 +170,11 @@ STATIC_OVL NEARDATA struct artifact artilist[] = {
       PHYS(5, 0), NO_DFNS, NO_CARY, LEVITATION, A_NEUTRAL, PM_BARBARIAN,
       NON_PM, 2500L, NO_COLOR),
 
-    A("The Sceptre of Might", MACE,
-      (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_DALIGN), 0, 0, PHYS(5, 0),
-      DFNS(AD_MAGM), NO_CARY, CONFLICT, A_LAWFUL, PM_CAVEMAN, NON_PM, 2500L,
-      NO_COLOR),
+    A("Big Stick", CLUB,
+      (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_DEFN),
+      SPFX_STLTH, 0, /* "speak softly..." */
+      PHYS(5, 12), DFNS(AD_MAGM), NO_CARY, CONFLICT, A_CHAOTIC, PM_CAVEMAN,
+      NON_PM, 2500L, NO_COLOR),
 
 #if 0 /* OBSOLETE */
 A("The Palantir of Westernesse",        CRYSTAL_BALL,
@@ -199,10 +200,18 @@ A("The Palantir of Westernesse",        CRYSTAL_BALL,
       DFNS(AD_MAGM), NO_CARY, ENLIGHTENING, A_NEUTRAL, PM_MONK, NON_PM,
       2500L, NO_COLOR),
 
+    A("The Sceptre of Might", MACE,
+      (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_DALIGN), 0, 0, PHYS(5, 0),
+      DRLI(0,0), NO_CARY, ENERGY_BOOST, A_LAWFUL, PM_PRIEST, NON_PM,
+      2500L, NO_COLOR),
+
+    /* Removed for now. This isn't a bad artifact, but the Sceptre of Might
+     * offers more interesting choices for Priests than this does.
     A("The Mitre of Holiness", HELM_OF_BRILLIANCE,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_DFLAG2 | SPFX_INTEL | SPFX_PROTECT), 0,
       M2_UNDEAD, NO_ATTK, NO_DFNS, CARY(AD_FIRE), ENERGY_BOOST, A_LAWFUL,
       PM_PRIEST, NON_PM, 2000L, NO_COLOR),
+     */
 
     A("The Longbow of Diana", BOW,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_REFLECT), SPFX_ESP, 0,

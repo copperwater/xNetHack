@@ -196,6 +196,14 @@ Significantly buff Ogresmasher: it now deals d8 extra damage to all monsters,
   and disable medium or larger monsters.
 Change Dragonbane from a broadsword into a dwarvish spear.
 Change Demonbane from a silver long sword into a silver mace.
+Port Fourk's change to the Sceptre of Might: it is now the Priest quest artifact
+  instead of the Caveman quest artifact, and confers drain resistance when
+  wielded instead of magic resistance. Instead of conflict, its invoke power is
+  the same energy boost provided by the Mitre of Holiness, which is removed. The
+  new quest artifact for Cavemen is Big Stick, a club that confers stealth when
+  carried, magic resistance when wielded, and +d5 to hit and +d12 versus all
+  monsters. Its invoke power is hungerless conflict, as the Sceptre used to
+  provide.
 
 
 It contains the following non-gameplay interface changes:
