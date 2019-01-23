@@ -850,12 +850,6 @@ int dieroll;
                     }
                     hittxt = TRUE;
                 }
-                /* maybe break your glass weapon or monster's glass armor */
-                if (hand_to_hand) {
-                    break_glass_obj(obj);
-                    break_glass_obj(some_armor(mon));
-                }
-
                 if (obj->oartifact
                     && artifact_hit(&youmonst, mon, obj, &tmp, dieroll)) {
                     if (DEADMONSTER(mon)) /* artifact killed monster */
@@ -894,6 +888,14 @@ int dieroll;
                     if (obj->opoisoned && is_poisonable(obj))
                         ispoisoned = TRUE;
                 }
+                /* maybe break your glass weapon or monster's glass armor; put
+                 * this at the end so that other stuff doesn't have to check obj
+                 * && obj->whatever all the time */
+                if (hand_to_hand) {
+                    break_glass_obj(obj);
+                    break_glass_obj(some_armor(mon));
+                }
+
             }
         } else if (obj->oclass == POTION_CLASS) {
             if (obj->quan > 1L)
