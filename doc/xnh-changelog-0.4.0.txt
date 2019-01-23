@@ -258,6 +258,7 @@ YAFM when hallucinating and you observe a monster grow up.
 Neutral sacrifices disappear in a cloud of smoke instead of a burst of flame.
 Reenable YAFM in the list of vanquished creatures if you die while
   hallucinating.
+Tiles are now supported again.
 
 It contains the following non-gameplay architectural changes:
 
