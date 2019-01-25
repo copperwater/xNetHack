@@ -1,4 +1,4 @@
-/* NetHack 3.6	weapon.c	$NHDT-Date: 1547025169 2019/01/09 09:12:49 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.68 $ */
+/* NetHack 3.6	weapon.c	$NHDT-Date: 1548209744 2019/01/23 02:15:44 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.69 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -385,6 +385,126 @@ struct monst *mon;
     }
 
     return  tmp;
+}
+
+/* check whether blessed and/or material damage applies for *non-weapon* hit;
+   return value is the amount of the extra damage */
+int
+special_dmgval(magr, mdef, armask, out_obj)
+struct monst *magr, *mdef;
+long armask; /* armor mask, multiple bits accepted for W_ARMC|W_ARM|W_ARMU
+              * or W_ARMG|W_RINGL|W_RINGR only */
+struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
+{
+    struct obj *obj;
+    struct permonst *ptr = mdef->data;
+    boolean left_ring = (armask & W_RINGL) ? TRUE : FALSE,
+            right_ring = (armask & W_RINGR) ? TRUE : FALSE;
+    int bonus = 0;
+
+    obj = 0;
+    if (out_obj)
+        *out_obj = 0;
+    if (armask & (W_ARMC | W_ARM | W_ARMU)) {
+        if ((armask & W_ARMC) != 0L
+            && (obj = which_armor(magr, W_ARMC)) != 0)
+            armask = W_ARMC;
+        else if ((armask & W_ARM) != 0L
+                 && (obj = which_armor(magr, W_ARM)) != 0)
+            armask = W_ARM;
+        else if ((armask & W_ARMU) != 0L
+                 && (obj = which_armor(magr, W_ARMU)) != 0)
+            armask = W_ARMU;
+        else
+            armask = 0L;
+    } else if (armask & (W_ARMG | W_RINGL | W_RINGR)) {
+        armask = ((obj = which_armor(magr, W_ARMG)) != 0) ?  W_ARMG : 0L;
+    } else {
+        obj = which_armor(magr, armask);
+    }
+
+    if (obj) {
+        if (obj->blessed
+            && (is_undead(ptr) || is_demon(ptr) || is_vampshifter(mdef)))
+            bonus += rnd(4);
+        if (mon_hates_material(mdef, obj->material)) {
+            bonus += rnd(sear_damage(obj->material));
+            if (out_obj)
+                *out_obj = obj;
+        }
+
+    /* when no gloves we check for rings made of hated material (blessed rings
+     * ignored) */
+    } else if ((left_ring || right_ring) && magr == &youmonst) {
+        if (left_ring && uleft
+            && mon_hates_material(mdef, uleft->material)) {
+            bonus += rnd(sear_damage(uleft->material));
+            if (out_obj)
+                *out_obj = uleft;
+        }
+        if (right_ring && uright
+            && mon_hates_material(mdef, uright->material)) {
+            /* What if an enemy hates two kinds of materials and you're
+             * wearing one of each?
+             * The most appropriate flavor is that you're only hitting with
+             * one hand at a time, so if both would apply material damage,
+             * take one or the other hand randomly. */
+            if (*out_obj == uleft && rn2(2)) {
+                /* nothing in this function could have set bonus to 0 before
+                 * this except the left ring case above */
+                bonus = 0;
+                bonus += rnd(sear_damage(uright->material));
+                if (out_obj)
+                    *out_obj = uright;
+            }
+        }
+    }
+
+    return bonus;
+}
+
+/* give a "silver <item> sears <target>" message (or similar for other
+ * material); not used for weapon hit, so we only handle rings */
+void
+searmsg(magr, mdef, obj)
+struct monst *magr UNUSED;
+struct monst *mdef;
+struct obj * obj; /* the offending item */
+{
+    char onamebuf[BUFSZ];
+    char whose[BUFSZ];
+    int mat = obj->material;
+    const char* matname = materialnm[mat];
+
+    if (!obj) {
+        impossible("searmsg: nothing searing?");
+        return;
+    }
+
+    /* Make it explicit to the player that this effect is from the
+     * material. If the object name doesn't already contain the material name,
+     * add it (e.g. "engraved silver bell" shouldn't turn into "silver engraved
+     * silver bell") */
+    boolean alreadyin = (strstri(cxname(obj), matname) != NULL);
+    if (!alreadyin) {
+        Sprintf(onamebuf, "%s %s", matname, cxname(obj));
+    }
+    else {
+        Strcpy(onamebuf, cxname(obj));
+    }
+    char* whom = mon_nam(mdef);
+    shk_your(whose, obj);
+    if (mat == SILVER) { /* more dramatic effects than other materials */
+        /* note: s_suffix returns a modifiable buffer */
+        if (!noncorporeal(mdef->data) && !amorphous(mdef->data))
+            whom = strcat(s_suffix(whom), " flesh");
+
+        pline("%s%s %s %s!", upstart(whose), onamebuf,
+              vtense(onamebuf, "sear"), whom);
+    }
+    else {
+        pline("%s flinches from %s %s!", whom, whose, onamebuf);
+    }
 }
 
 STATIC_DCL struct obj *FDECL(oselect, (struct monst *, int));
