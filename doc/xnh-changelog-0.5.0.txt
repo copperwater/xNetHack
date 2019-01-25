@@ -23,6 +23,8 @@ Potion bottles are called by nonsensical names when hallucinating.
 Your god will belch, bray, squeak, and so on instead of booming or thundering
   while you are hallucinating.
 Confused scrolls of fire underwater evaporate the water like a regular scroll.
+A message is printed when you fail to walk into liquid, and the first time this
+  happens in the game it informs you that you can use m to walk in.
 
 
 It contains the following non-gameplay architectural changes:
