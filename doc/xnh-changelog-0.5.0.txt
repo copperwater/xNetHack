@@ -19,5 +19,7 @@ gameplay changes:
 
 It contains the following non-gameplay interface changes:
 
+Potion bottles are called by nonsensical names when hallucinating.
+
 
 It contains the following non-gameplay architectural changes:
