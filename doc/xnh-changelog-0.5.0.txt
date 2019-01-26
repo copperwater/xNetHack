@@ -16,6 +16,7 @@ On top of any changes made by the NetHack devteam on 3.6.1, and any changes
 made in previous xNetHack versions, xNetHack 0.4.0 contains the following
 gameplay changes:
 
+You can sometimes recover from food poisoning with a Con/100 chance.
 
 It contains the following non-gameplay interface changes:
 
