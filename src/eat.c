@@ -1790,6 +1790,9 @@ struct obj *otmp;
             && mons[mnum].mlet == S_RODENT) {
             yummy = palatable = TRUE;
         }
+        if (mnum == PM_LONG_WORM || mnum == PM_BABY_LONG_WORM) {
+            taste = "spicy";
+        }
 
         if (!strncmpi(pmxnam, "the ", 4))
             pmxnam += 4;

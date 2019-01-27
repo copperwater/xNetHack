@@ -67,7 +67,14 @@ A message is printed when you fail to walk into liquid, and the first time this
 Add a new paranoid confirmation option "throw"; when on, it prompts for
   confirmation when you try to throw ammo with no matching launcher for it.
 Dwarves think all rats are delicious.
-
+YAFM for hearing a dwarf digging while hallucinating.
+YAFM for eating long worms.
+YAFM for dying to green slime (permanently) while hallucinating.
+YAFM for failing to get a wished-for artifact while hallucinating.
+YAFM for ascending while hallucinating.
+YAFM for trying to #chat to a wall.
+YAFM for a cosmetic magic trap effect if you are a hallucinating valkyrie.
+YAFM for hearing a wererat change form while hallucinating.
 
 It contains the following non-gameplay architectural changes:
 

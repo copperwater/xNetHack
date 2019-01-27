@@ -1309,8 +1309,11 @@ int how;
                 have been genocided:  genocide could occur after hero is
                 already infected or hero could eat a glob of one created
                 before genocide; don't try to arise as one if they're gone */
-             && !(mvitals[PM_GREEN_SLIME].mvflags & G_GENOD))
+             && !(mvitals[PM_GREEN_SLIME].mvflags & G_GENOD)) {
+        if (Hallucination)
+            pline("Next time, watch out for slime!");
         u.ugrave_arise = PM_GREEN_SLIME;
+    }
 
     if (how == QUIT) {
         killer.format = NO_KILLER_PREFIX;
