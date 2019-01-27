@@ -17,6 +17,7 @@ made in previous xNetHack versions, xNetHack 0.4.0 contains the following
 gameplay changes:
 
 You can sometimes recover from food poisoning with a Con/100 chance.
+If you have hungerless casting, you will never be too hungry to cast a spell.
 
 It contains the following non-gameplay interface changes:
 
@@ -32,3 +33,5 @@ Dwarves think all rats are delicious.
 
 
 It contains the following non-gameplay architectural changes:
+
+Refactor spell hunger reduction logic into its own function.
