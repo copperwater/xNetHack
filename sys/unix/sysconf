@@ -96,11 +96,11 @@ MAXPLAYERS=10
 # 0x0200 - Died, but rose from the grave as a monster, and kept playing
 # 0x8000 - Livelog debug msgs (currently only 'enter new level')
 # Enabled at compile time by defining LIVELOGFILE in config.h
-# LIVELOG=0x03FF
+LIVELOG=0x03FF
 
 # Do not livelog breaking of conducts before this turncount
 # Cuts down on spam
-# LLC_TURNS=3000
+LLC_TURNS=3000
 
 # Show debugging information originating from these source files.
 # Use '*' for all, or list source files separated by spaces.

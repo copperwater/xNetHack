@@ -217,11 +217,6 @@
    (whose name can be overridden via #define in global.h if desired) */
 #define LOGFILE  "logfile"  /* larger file for debugging purposes */
 #define XLOGFILE "xlogfile" /* even larger logfile */
-/* #define LIVELOGFILE "livelog" * in-game events recorded live */
-#ifdef LIVELOGFILE
-/* LL_flags defined in global.h. Value below is ignored if SYSCF is enabled */
-/* #define LIVELOG_DETAIL (LL_WISH|LL_ACHIEVE|LL_UMONST) */
-#define LIVELOG_DETAIL 0xFF
 #endif
 #define NEWS     "news"     /* the file containing the latest hack news */
 #define PANICLOG "paniclog" /* log of panic and impossible events */
@@ -534,14 +529,26 @@ typedef unsigned char uchar;
 #define FREE_ALL_MEMORY             /* free all memory at exit */
 
 /* Extra enhancements borrowed from nao343 and elsewhere for dgamelaunch-based
- * server play */
+ * server play. If you're not running a server, you probably don't need any of
+ * these features.
+ * DGAMELAUNCH doesn't mean anything in nethack itself, it's just a handy
+ * compile-time toggle switch for all server-specfic features. */
 /* #define DGAMELAUNCH */
 
 #ifdef DGAMELAUNCH
 
+/* Livelogging: writing important events into a file that another program can
+ * read from. By default, the name of this file is LIVELOGFILE in the
+ * playground. */
+#define LIVELOGFILE "livelog" /* in-game events recorded live */
+#ifdef LIVELOGFILE
+/* LL_flags defined in global.h. Value below is ignored if SYSCF is enabled */
+/* #define LIVELOG_DETAIL (LL_WISH|LL_ACHIEVE|LL_UMONST) */
+#define LIVELOG_DETAIL 0xFFFF
+
 /* Extrainfo contains some brief bits of information that are useful to show in
  * a menu listing games that are currently in play on a server */
-#define EXTRAINFO_FN    "/dgldir/extrainfo-nhdev/%n.extrainfo"
+#define EXTRAINFO_FN    "/dgldir/extrainfo-xnh/%n.extrainfo"
 
 /* How many moves between checking for more incoming mail. */
 #define MAILCKFREQ 5  /* SIMPLE_MAIL is in unixconf.h */
