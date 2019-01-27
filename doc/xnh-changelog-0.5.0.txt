@@ -26,6 +26,8 @@ Your god will belch, bray, squeak, and so on instead of booming or thundering
 Confused scrolls of fire underwater evaporate the water like a regular scroll.
 A message is printed when you fail to walk into liquid, and the first time this
   happens in the game it informs you that you can use m to walk in.
+Add a new paranoid confirmation option "throw"; when on, it prompts for
+  confirmation when you try to throw ammo with no matching launcher for it.
 
 
 It contains the following non-gameplay architectural changes:
