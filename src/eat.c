@@ -1765,6 +1765,11 @@ struct obj *otmp;
                          && ((rotted < 1) ? TRUE : !rn2(rotted+1)));
         const char *pmxnam = food_xname(otmp, FALSE);
 
+        if (maybe_polyd(is_dwarf(youmonst.data), Race_if(PM_DWARF))
+            && mons[mnum].mlet == S_RODENT) {
+            yummy = palatable = TRUE;
+        }
+
         if (!strncmpi(pmxnam, "the ", 4))
             pmxnam += 4;
         pline("%s%s %s %s%c",
