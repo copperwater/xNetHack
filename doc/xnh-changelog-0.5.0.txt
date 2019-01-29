@@ -19,6 +19,8 @@ gameplay changes:
 You can sometimes recover from food poisoning with a Con/100 chance.
 If you have hungerless casting, you will never be too hungry to cast a spell.
 Corpses dropped by zombies can revive on their own.
+When you are killed by a zombie, you will arise from the grave as one in bones
+  (25% chance to keep playing as a zombie, similar to other undead).
 
 It contains the following non-gameplay interface changes:
 

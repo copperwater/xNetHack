@@ -442,6 +442,7 @@ int how;
         (mon_nm == PM_WRAITH && !rn2(6)) ||
         (mon_nm == PM_VAMPIRE && !rn2(10)) ||
         (mon_nm == PM_GHOUL && !rn2(5)) ||
+        (mons[mon_nm].mlet == S_ZOMBIE && !rn2(4)) ||
         (mons[mon_nm].mlet == S_MUMMY && !rn2(8))) {
         u.ugrave_arise = NON_PM;
 
@@ -591,6 +592,8 @@ int how;
         u.ugrave_arise = PM_VAMPIRE;
     else if (mptr == &mons[PM_GHOUL])
         u.ugrave_arise = PM_GHOUL;
+    else if (mptr->mlet == S_ZOMBIE && mptr != &mons[PM_SKELETON])
+        u.ugrave_arise = urace.zombienum;
     /* this could happen if a high-end vampire kills the hero
        when ordinary vampires are genocided; ditto for wraiths */
     if (u.ugrave_arise >= LOW_PM
