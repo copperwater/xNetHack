@@ -139,6 +139,107 @@ mon_sanity_check()
     }
 }
 
+/* Return TRUE if this monster is capable of converting other monsters into
+ * zombies. */
+boolean
+zombie_maker(pm)
+struct permonst * pm;
+{
+    switch(pm->mlet) {
+    case S_ZOMBIE:
+        /* Z-class monsters that aren't actually zombies go here */
+        if (pm == &mons[PM_GHOUL] || pm == &mons[PM_SKELETON])
+            return FALSE;
+        return TRUE;
+    case S_LICH:
+        /* all liches will create zombies as well */
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/* return the monster index of the zombie monster which this monster could be
+ * turned into, or NON_PM if it doesn't have a direct counterpart. Sort of the
+ * zombie-specific inverse of undead_to_corpse.
+ * If a zombie gets passed to this function, it should return NON_PM, not the
+ * same monster again. */
+int
+zombie_form(pm)
+struct permonst * pm;
+{
+    switch(pm->mlet) {
+    case S_KOBOLD:
+        return PM_KOBOLD_ZOMBIE;
+    case S_ORC:
+        return PM_ORC_ZOMBIE;
+    case S_GIANT:
+        if (pm == &mons[PM_ETTIN])
+            return PM_ETTIN_ZOMBIE;
+        return PM_GIANT_ZOMBIE;
+    case S_HUMAN:
+    case S_KOP:
+        return PM_HUMAN_ZOMBIE;
+    case S_ELF:
+        return PM_ELF_ZOMBIE;
+    case S_HUMANOID:
+        if (is_dwarf(pm))
+            return PM_DWARF_ZOMBIE;
+        else
+            break;
+    case S_GNOME:
+        return PM_GNOME_ZOMBIE;
+    }
+    return NON_PM;
+}
+
+/* mdef is dying to a zombie's attack, and is being resurrected as its
+ * corresponding zombie. */
+void
+zombify(mdef, dotame)
+struct monst* mdef;
+boolean dotame;
+{
+    struct permonst* mdat = mdef->data;
+    boolean couldspot = canspotmon(mdef);
+    /* Due to messaging sequencing, we want to print the "rises" message
+     * before calling newcham. To do this, momentarily turn mdef into a
+     * zombie, save its canspotmon, and then put it back. */
+    mdef->data = &mons[zombie_form(mdat)];
+    boolean willspot = canspotmon(mdef);
+    mdef->data = mdat;
+
+    if (couldspot && willspot) {
+        /* only print if you can spot both the dying monster and the arising
+         * zombie */
+        pline("%s rises again as a zombie!", Monnam(mdef));
+    }
+
+    if (newcham(mdef, &mons[zombie_form(mdat)], FALSE, FALSE)) {
+        /* don't continue if failed to turn into zombie (extinct?) */
+        mdef->mcanmove = 1;
+        mdef->mfrozen = 0;
+
+        /* Tameness checks: a pet zombie will create more pet zombies; a
+         * hostile or peaceful zombie will create hostile zombies,
+         * regardless of the original peaceful or tame status of the
+         * zombified monster. (The player will also create pet zombies,
+         * but that's covered in uhitm.) */
+        if (dotame)
+            /* don't need to worry about petless conduct: in order for
+             * more pet zombies to be created, there needs to be at
+             * least one pet already existing. */
+            tamedog(mdef, NULL, FALSE);
+        else
+            mdef->mtame = mdef->mpeaceful = 0;
+
+        newsym(mdef->mx, mdef->my); /* cover bases */
+
+        /* The mhp is presumably the fraction of what it was before -
+         * less than zero. Set it to full. */
+        mdef->mhp = mdef->mhpmax;
+    }
+
+}
 
 /* convert the monster index of an undead to its living counterpart */
 int
@@ -2484,7 +2585,9 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
             burycorpse = FALSE,
             nomsg = (xkill_flags & XKILL_NOMSG) != 0,
             nocorpse = (xkill_flags & XKILL_NOCORPSE) != 0,
-            noconduct = (xkill_flags & XKILL_NOCONDUCT) != 0;
+            noconduct = (xkill_flags & XKILL_NOCONDUCT) != 0,
+            zombifying = (zombie_maker(youmonst.data)
+                          && zombie_form(mtmp->data) != NON_PM);
 
     mtmp->mhp = 0; /* caller will usually have already done this */
     if (!noconduct) /* KMH, conduct */
@@ -2531,10 +2634,12 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
     vamp_rise_msg = FALSE; /* might get set in mondead(); only checked below */
     disintegested = nocorpse; /* alternate vamp_rise message needed if true */
     /* dispose of monster and make cadaver */
-    if (stoned)
-        monstone(mtmp);
-    else
-        mondead(mtmp);
+    if (!zombifying) {
+        if (stoned)
+            monstone(mtmp);
+        else
+            mondead(mtmp);
+    }
     disintegested = FALSE; /* reset */
 
     if (!DEADMONSTER(mtmp)) { /* monster lifesaved */
@@ -2568,7 +2673,7 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
         stackobj(mksobj_at(SCR_MAIL, x, y, FALSE, FALSE));
     }
 #endif
-    if (accessible(x, y) || is_pool(x, y)) {
+    if ((accessible(x, y) || is_pool(x, y)) && !zombifying) {
         struct obj *cadaver;
         int otyp;
 
@@ -2667,6 +2772,10 @@ cleanup:
 
     /* malign was already adjusted for u.ualign.type and randomization */
     adjalign(mtmp->malign);
+
+    if (zombifying) {
+        zombify(mtmp, TRUE);
+    }
 }
 
 /* changes the monster into a stone monster of the same type
