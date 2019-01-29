@@ -24,6 +24,7 @@ When you are killed by a zombie, you will arise from the grave as one in bones
 When a zombie or lich kills a monster that has a zombie counterpart in melee, it
   resurrects as a zombie that is either tame or hostile depending on the
   attacking zombie.
+Zombies will grudge monsters that they can zombify, and vice versa.
 
 It contains the following non-gameplay interface changes:
 

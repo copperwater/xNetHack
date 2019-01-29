@@ -1807,7 +1807,13 @@ struct monst *magr, /* monster that is currently deciding where to move */
         return ALLOW_M|ALLOW_TM;
     /* ravens like eyes */
     if (ma == &mons[PM_RAVEN] && md == &mons[PM_FLOATING_EYE])
-      return ALLOW_M|ALLOW_TM;
+        return ALLOW_M|ALLOW_TM;
+    /* zombies vs things that can be zombified */
+    if (zombie_maker(ma) && zombie_form(md) != NON_PM)
+        return ALLOW_M|ALLOW_TM;
+    /* and vice versa */
+    if (zombie_maker(md) && zombie_form(ma) != NON_PM)
+        return ALLOW_M|ALLOW_TM;
     return 0L;
 }
 
