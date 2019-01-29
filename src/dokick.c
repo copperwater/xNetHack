@@ -428,7 +428,7 @@ xchar x, y; /* coordinates where object was before the impact, not after */
         const char *result = (char *) 0;
 
         otmp2 = otmp->nobj;
-        if (obj->material == GLASS
+        if (otmp->material == GLASS
             && otmp->oclass != GEM_CLASS && !obj_resists(otmp, 33, 100)) {
             result = "shatter";
         } else if (otmp->otyp == EGG && !rn2(3)) {
