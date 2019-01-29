@@ -3141,6 +3141,8 @@ struct obj* obj;
          * Return NULL so that init_obj_material and valid_obj_material both
          * work properly. */
         case BULLWHIP:
+        case WORM_TOOTH:
+        case CRYSKNIFE:
             return NULL;
         /* Any other cases for specific object types go here. */
         case SHIELD_OF_REFLECTION:
