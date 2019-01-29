@@ -18,6 +18,7 @@ gameplay changes:
 
 You can sometimes recover from food poisoning with a Con/100 chance.
 If you have hungerless casting, you will never be too hungry to cast a spell.
+Corpses dropped by zombies can revive on their own.
 
 It contains the following non-gameplay interface changes:
 

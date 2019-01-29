@@ -271,6 +271,7 @@ typedef struct sortloot_item Loot;
 #define CORPSTAT_NONE 0x00
 #define CORPSTAT_INIT 0x01   /* pass init flag to mkcorpstat */
 #define CORPSTAT_BURIED 0x02 /* bury the corpse or statue */
+#define CORPSTAT_ZOMBIE 0x04 /* mark corpse as zombie-revivable */
 
 /* flags for decide_to_shift() */
 #define SHIFT_SEENMSG 0x01 /* put out a message if in sight */

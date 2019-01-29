@@ -304,6 +304,7 @@ unsigned corpseflags;
     int mndx = monsndx(mdat);
     unsigned corpstatflags = corpseflags;
     boolean burythem = ((corpstatflags & CORPSTAT_BURIED) != 0);
+    boolean flag_as_zombie = FALSE;
 
     switch (mndx) {
     case PM_GRAY_DRAGON:
@@ -351,14 +352,6 @@ unsigned corpseflags;
         obj = mkcorpstat(CORPSE, mtmp, &mons[num], x, y, corpstatflags);
         obj->age -= 100; /* this is an *OLD* corpse */
         break;
-    case PM_KOBOLD_MUMMY:
-    case PM_DWARF_MUMMY:
-    case PM_GNOME_MUMMY:
-    case PM_ORC_MUMMY:
-    case PM_ELF_MUMMY:
-    case PM_HUMAN_MUMMY:
-    case PM_GIANT_MUMMY:
-    case PM_ETTIN_MUMMY:
     case PM_KOBOLD_ZOMBIE:
     case PM_DWARF_ZOMBIE:
     case PM_GNOME_ZOMBIE:
@@ -367,8 +360,20 @@ unsigned corpseflags;
     case PM_HUMAN_ZOMBIE:
     case PM_GIANT_ZOMBIE:
     case PM_ETTIN_ZOMBIE:
+        flag_as_zombie = TRUE;
+        /* FALLTHRU */
+    case PM_KOBOLD_MUMMY:
+    case PM_DWARF_MUMMY:
+    case PM_GNOME_MUMMY:
+    case PM_ORC_MUMMY:
+    case PM_ELF_MUMMY:
+    case PM_HUMAN_MUMMY:
+    case PM_GIANT_MUMMY:
+    case PM_ETTIN_MUMMY:
         num = undead_to_corpse(mndx);
         corpstatflags |= CORPSTAT_INIT;
+        if (flag_as_zombie)
+            corpstatflags |= CORPSTAT_ZOMBIE;
         obj = mkcorpstat(CORPSE, mtmp, &mons[num], x, y, corpstatflags);
         obj->age -= 100; /* this is an *OLD* corpse */
         break;
