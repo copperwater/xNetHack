@@ -1969,6 +1969,11 @@ int otyp;
             else if (otmp->oclass == ARMOR_CLASS && otmp->spe < 0)
                 otmp->spe = 0;
         }
+        else if (is_lord(mtmp->data)) {
+            if ((otmp->oclass == WEAPON_CLASS || otmp->oclass == ARMOR_CLASS)
+                && otmp->spe < 0)
+                otmp->spe = 0;
+        }
 
         spe = otmp->spe;
         (void) mpickobj(mtmp, otmp); /* might free otmp */

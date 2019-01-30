@@ -29,6 +29,7 @@ The pet-off-level-untaming timer is fuzzed so it's not totally predictable.
 Pets' willingness to attack foes of a certain level decreases linearly with
   their hit point percentage.
 Trees can generate in the rooms of room-and-corridor levels.
+Lord monsters' weapons and armor is never negatively enchanted.
 
 It contains the following non-gameplay interface changes:
 
