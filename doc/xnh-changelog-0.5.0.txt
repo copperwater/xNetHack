@@ -25,6 +25,7 @@ When a zombie or lich kills a monster that has a zombie counterpart in melee, it
   resurrects as a zombie that is either tame or hostile depending on the
   attacking zombie.
 Zombies will grudge monsters that they can zombify, and vice versa.
+The pet-off-level-untaming timer is fuzzed so it's not totally predictable.
 
 It contains the following non-gameplay interface changes:
 
