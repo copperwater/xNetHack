@@ -14,7 +14,6 @@ STATIC_PTR int NDECL(unfaint);
 STATIC_DCL const char *FDECL(food_xname, (struct obj *, BOOLEAN_P));
 STATIC_DCL void FDECL(choke, (struct obj *));
 STATIC_DCL void NDECL(recalc_wt);
-STATIC_DCL unsigned FDECL(obj_nutrition, (struct obj *));
 STATIC_DCL struct obj *FDECL(touchfood, (struct obj *));
 STATIC_DCL void NDECL(do_reset_eat);
 STATIC_DCL void FDECL(done_eating, (BOOLEAN_P));
@@ -321,7 +320,7 @@ reset_eat()
 }
 
 /* base nutrition of a food-class object */
-STATIC_OVL unsigned
+unsigned
 obj_nutrition(otmp)
 struct obj *otmp;
 {

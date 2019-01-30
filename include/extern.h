@@ -657,6 +657,7 @@ E int FDECL(is_edible, (struct obj *));
 E void NDECL(init_uhunger);
 E int NDECL(Hear_again);
 E void NDECL(reset_eat);
+E unsigned FDECL(obj_nutrition, (struct obj *));
 E int NDECL(doeat);
 E int FDECL(use_tin_opener, (struct obj *));
 E void NDECL(gethungry);

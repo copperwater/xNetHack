@@ -4,6 +4,8 @@
 
 #include "hack.h"
 
+STATIC_DCL int FDECL(countfood, (struct obj *));
+STATIC_DCL boolean NDECL(starving);
 STATIC_PTR int NDECL(prayer_done);
 STATIC_DCL struct obj *NDECL(worst_cursed_item);
 STATIC_DCL int NDECL(in_trouble);
@@ -170,6 +172,78 @@ stuck_in_wall()
     return (count == 8) ? TRUE : FALSE;
 }
 
+/* Return the total amount of nutrition in item (or in the inventory, if item is
+ * null). If item is a container, recursively check its contents.
+ * This is for counting easily-accessible food for the purposes of prayer, so it
+ * doesn't actually return the total amount of nutrition - some types are
+ * excluded for various reasons.
+ * It also currently doesn't take into account non-food items which provide
+ * food, such as horns of plenty (arguably a horn of plenty could possibly just
+ * produce near-useless water until it runs out of charges anyway).
+ */
+STATIC_OVL int
+countfood(item)
+struct obj* item;
+{
+    struct obj* otmp;
+    int totnut = 0;
+    if (!item) { /* traverse inventory */
+        for (otmp = invent; otmp; otmp = otmp->nobj) {
+            totnut += countfood(otmp);
+        }
+    }
+    else {
+        if (item->oclass == FOOD_CLASS) {
+            /* Exclusions to being counted as food. */
+            if (Is_pudding(item)         /* glob */
+                || item->otyp == TIN     /* might take too long to open */
+                || item->otyp == EGG     /* could be dangerous, rotten... */
+                || item->otyp == CORPSE) /* ditto */
+                return 0;
+
+            return (item->oeaten ? item->oeaten : obj_nutrition(item));
+        }
+        else if (Has_contents(item)) {
+            /* Because containers can be #tipped, we don't have to worry about
+             * whether the hero has hands available for looting them. */
+            for (otmp = item->cobj; otmp; otmp = otmp->nobj) {
+                totnut += countfood(otmp);
+            }
+            /* artificial penalty for each level of nesting: if a food item is
+             * nested inside 7 sacks, it will take 7 actions to retrieve it.
+             * Yes, a fast player might be able to get it out in fewer turns,
+             * but that doesn't matter too much.
+             * The penalty is assessed not for the cost of getting *each* piece
+             * of food out, but for getting *any one* piece of food out. */
+            if (totnut > 0)
+                totnut -= 1;
+        }
+    }
+    return totnut;
+}
+
+/* Return True if your hunger should be classified as a major problem, because
+ * you are currently going to starve to death with nothing to eat.
+ */
+STATIC_OVL boolean
+starving()
+{
+    if (u.uhs < WEAK) /* not a major problem */
+        return FALSE;
+
+    int totalfood = countfood(NULL);
+
+    if (Slow_digestion)
+        /* Even the least nutritious of foods will keep you going for a while
+         * with slow digestion, so it's only a serious problem if you are about
+         * to faint and have no food. */
+        return (u.uhunger + totalfood < 10);
+
+    /* It is a big problem if your food stores are insufficient to get you out
+     * of HUNGRY range into NOT_HUNGRY (150). */
+    return (u.uhunger + totalfood < 150);
+}
+
 /*
  * Return 0 if nothing particular seems wrong, positive numbers for
  * serious trouble, and negative numbers for comparative annoyances.
@@ -203,7 +277,7 @@ in_trouble()
         return TROUBLE_LAVA;
     if (Sick)
         return TROUBLE_SICK;
-    if (u.uhs >= WEAK)
+    if (starving())
         return TROUBLE_STARVING;
     if (region_danger())
         return TROUBLE_REGION;

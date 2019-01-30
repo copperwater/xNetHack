@@ -30,6 +30,7 @@ Pets' willingness to attack foes of a certain level decreases linearly with
   their hit point percentage.
 Trees can generate in the rooms of room-and-corridor levels.
 Lord monsters' weapons and armor is never negatively enchanted.
+If you're carrying sufficient food, being Weak isn't a major trouble.
 
 It contains the following non-gameplay interface changes:
 
@@ -48,3 +49,4 @@ It contains the following non-gameplay architectural changes:
 
 Refactor spell hunger reduction logic into its own function.
 Refactor confusing logic of what food adjective to choose.
+Promote obj_nutrition to a non-static function.
