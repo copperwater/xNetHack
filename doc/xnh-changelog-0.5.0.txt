@@ -26,6 +26,8 @@ When a zombie or lich kills a monster that has a zombie counterpart in melee, it
   attacking zombie.
 Zombies will grudge monsters that they can zombify, and vice versa.
 The pet-off-level-untaming timer is fuzzed so it's not totally predictable.
+Pets' willingness to attack foes of a certain level decreases linearly with
+  their hit point percentage.
 
 It contains the following non-gameplay interface changes:
 
