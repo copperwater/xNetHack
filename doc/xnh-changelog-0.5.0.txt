@@ -28,6 +28,7 @@ Zombies will grudge monsters that they can zombify, and vice versa.
 The pet-off-level-untaming timer is fuzzed so it's not totally predictable.
 Pets' willingness to attack foes of a certain level decreases linearly with
   their hit point percentage.
+Trees can generate in the rooms of room-and-corridor levels.
 
 It contains the following non-gameplay interface changes:
 
