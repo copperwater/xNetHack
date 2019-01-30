@@ -3069,12 +3069,12 @@ static const struct icp elven_materials[] = {
 };
 
 /* Reflectable items - for the shield of reflection; anything that can hold a
- * polish */
+ * polish. Amulets also arbitrarily use this list. */
 static const struct icp shiny_materials[] = {
     {30, SILVER},
-    {20, COPPER},
-    {10, GOLD},
-    {10, IRON}, /* stainless steel */
+    {22, COPPER},
+    {12, GOLD},
+    {12, IRON}, /* stainless steel */
     {10, GLASS},
     { 7, MITHRIL},
     { 5, METAL}, /* aluminum, or similar */
