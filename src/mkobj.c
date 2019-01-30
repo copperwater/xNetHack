@@ -3244,7 +3244,7 @@ struct obj* obj;
     /* Do any post-fixups here for bad or illogical material combinations */
     if ((otyp == PICK_AXE || otyp == DWARVISH_MATTOCK) &&
         (obj->material == PLASTIC || obj->material == GLASS)) {
-        obj->material = IRON;
+        obj->material = objects[obj->otyp].oc_material;
     }
 }
 
