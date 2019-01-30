@@ -1,0 +1,51 @@
+xNetHack 0.5.0 Changelog
+
+This is a minor version of xNetHack. It is a fork off of the vanilla NetHack
+3.6.2 development version release, and is also based directly on xNetHack 0.4.1.
+It will continue to contain all of the latest commits pushed by the vanilla
+devteam on their 3.6.2 branch; see doc/fixes36.2 for these changes.
+
+The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
+attempts to describe these changes in a way that's better formatted and more
+friendly to players. However, the wiki page might be out of date; in case of
+conflicting rnformation, this changelog and others in this directory are more
+up-to-date than the wiki page, and the commit messages are more up-to-date than
+this changelog.
+
+On top of any changes made by the NetHack devteam on 3.6.1, and any changes
+made in previous xNetHack versions, xNetHack 0.4.0 contains the following
+gameplay changes:
+
+You can sometimes recover from food poisoning with a Con/100 chance.
+If you have hungerless casting, you will never be too hungry to cast a spell.
+Corpses dropped by zombies can revive on their own.
+When you are killed by a zombie, you will arise from the grave as one in bones
+  (25% chance to keep playing as a zombie, similar to other undead).
+When a zombie or lich kills a monster that has a zombie counterpart in melee, it
+  resurrects as a zombie that is either tame or hostile depending on the
+  attacking zombie.
+Zombies will grudge monsters that they can zombify, and vice versa.
+The pet-off-level-untaming timer is fuzzed so it's not totally predictable.
+Pets' willingness to attack foes of a certain level decreases linearly with
+  their hit point percentage.
+Trees can generate in the rooms of room-and-corridor levels.
+Elven items use their base material 60% of the time and become wood 20% of the
+  time rather than defaulting to wood 80% of the time.
+
+It contains the following non-gameplay interface changes:
+
+Potion bottles are called by nonsensical names when hallucinating.
+Your god will belch, bray, squeak, and so on instead of booming or thundering
+  while you are hallucinating.
+Confused scrolls of fire underwater evaporate the water like a regular scroll.
+A message is printed when you fail to walk into liquid, and the first time this
+  happens in the game it informs you that you can use m to walk in.
+Add a new paranoid confirmation option "throw"; when on, it prompts for
+  confirmation when you try to throw ammo with no matching launcher for it.
+Dwarves think all rats are delicious.
+
+
+It contains the following non-gameplay architectural changes:
+
+Refactor spell hunger reduction logic into its own function.
+Refactor confusing logic of what food adjective to choose.

@@ -3061,7 +3061,8 @@ static const struct icp dwarvish_materials[] = {
 /* for armor-y objects of elven make - no iron!
  * Does not cover clothy items; those use the regular cloth probs. */
 static const struct icp elven_materials[] = {
-    {80, WOOD},
+    {60, 0}, /* use base material */
+    {20, WOOD},
     {10, COPPER},
     { 5, MITHRIL},
     { 3, SILVER},
