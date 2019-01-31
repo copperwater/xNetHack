@@ -4112,13 +4112,13 @@ typfnd:
             pline("Note: material %s is not normally valid for this object.",
                   materialnm[material]);
         }
-        otmp->material = material;
+        set_material(otmp, material);
     }
     else {
         /* for now, material in wishes will always be base; this is to prevent
          * problems like wishing for arrows and getting glass arrows which will
          * shatter. */
-        otmp->material = objects[otmp->otyp].oc_material;
+        set_material(otmp, objects[otmp->otyp].oc_material);
     }
 
     if (halfeaten && otmp->oclass == FOOD_CLASS) {

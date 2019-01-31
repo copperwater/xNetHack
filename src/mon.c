@@ -370,7 +370,7 @@ unsigned corpseflags;
                 delobj(obj);
                 obj = mksobj_at(IRON_CHAIN, x, y, TRUE, FALSE);
             }
-            obj->material = IRON;
+            set_material(obj, IRON);
         }
         free_mname(mtmp); /* don't christen obj */
         break;
@@ -383,7 +383,7 @@ unsigned corpseflags;
                 delobj(obj);
                 obj = mksobj_at((LAST_GEM + rnd(9)), x, y, TRUE, FALSE);
             }
-            obj->material = GLASS;
+            set_material(obj, GLASS);
         }
         free_mname(mtmp);
         break;
@@ -407,7 +407,7 @@ unsigned corpseflags;
                 delobj(obj);
                 obj = mksobj_at(QUARTERSTAFF, x, y, TRUE, FALSE);
             }
-            obj->material = WOOD;
+            set_material(obj, WOOD);
         }
         free_mname(mtmp);
         break;
@@ -419,7 +419,7 @@ unsigned corpseflags;
                 delobj(obj);
                 obj = mksobj_at(LIGHT_ARMOR, x, y, TRUE, FALSE);
             }
-            obj->material = LEATHER;
+            set_material(obj, LEATHER);
         }
         free_mname(mtmp);
         break;
@@ -431,7 +431,7 @@ unsigned corpseflags;
                 delobj(obj);
                 obj = mkgold(50 + rnd(100), x, y);
             }
-            obj->material = GOLD;
+            set_material(obj, GOLD);
         }
         free_mname(mtmp);
         break;
@@ -444,7 +444,7 @@ unsigned corpseflags;
                 delobj(obj);
                 obj = mksobj_at(SCR_BLANK_PAPER, x, y, TRUE, FALSE);
             }
-            obj->material = PAPER;
+            set_material(obj, PAPER);
         }
         free_mname(mtmp);
         break;

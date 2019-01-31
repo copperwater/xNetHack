@@ -3231,20 +3231,20 @@ struct obj* obj;
             materials++;
         }
         if (materials->iclass)
-            obj->material = materials->iclass;
+            set_material(obj, materials->iclass);
         else
             /* can use a 0 in the list to default to the base material */
-            obj->material = objects[obj->otyp].oc_material;
+            set_material(obj, objects[obj->otyp].oc_material;
     }
     else {
         /* default case for other items: always use base material... */
-        obj->material = objects[obj->otyp].oc_material;
+        set_material(obj, objects[obj->otyp].oc_material);
     }
 
     /* Do any post-fixups here for bad or illogical material combinations */
     if ((otyp == PICK_AXE || otyp == DWARVISH_MATTOCK) &&
         (obj->material == PLASTIC || obj->material == GLASS)) {
-        obj->material = objects[obj->otyp].oc_material;
+        set_material(obj, objects[obj->otyp].oc_material);
     }
 }
 
@@ -3280,6 +3280,29 @@ int mat;
         /* no valid materials in list, or no valid list */
         return FALSE;
     }
+}
+
+/* Change the object's material, and any properties derived from it.
+ * This includes weight, and erosion/erodeproofing (i.e. materials which
+ * can't corrode will not be generated corroded or corrode-proofed).
+ */
+void
+set_material(otmp, material)
+struct obj* otmp;
+int material;
+{
+    if (!valid_obj_material(otmp, material)) {
+        impossible("setting material of %s to invalid material %d",
+                   OBJ_NAME(objects[otmp->otyp]), material);
+    }
+    otmp->material = material;
+    otmp->owt = weight(otmp);
+    if ((otmp->oeroded) && !is_rustprone(otmp) && !is_flammable(otmp))
+        otmp->oeroded = 0;
+    if ((otmp->oeroded2) && !is_corrodeable(otmp) && !is_rottable(otmp))
+        otmp->oeroded2 = 0;
+    if (otmp->oerodeproof && !is_damageable(otmp) && (otmp->material != GLASS))
+        otmp->oerodeproof = FALSE;
 }
 
 /*mkobj.c*/

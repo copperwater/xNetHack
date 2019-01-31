@@ -49,3 +49,5 @@ It contains the following non-gameplay architectural changes:
 
 Refactor spell hunger reduction logic into its own function.
 Refactor confusing logic of what food adjective to choose.
+Change all obj->material = foo statements into a function set_material which
+  handles weight recalculation and erosion differences between the materials.
