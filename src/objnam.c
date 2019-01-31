@@ -4102,12 +4102,7 @@ typfnd:
               something, makeplural(body_part(HAND)));
     }
 
-#if 0 /* deferred until we see the balance implications of obj materials */
-    if (material > 0 && !otmp->oartifact
-        && (wizard || valid_obj_material(otmp, material))) {
-#else
     if (material > 0 && !otmp->oartifact && wizard) {
-#endif
         if (!valid_obj_material(otmp, material)) {
             pline("Note: material %s is not normally valid for this object.",
                   materialnm[material]);
