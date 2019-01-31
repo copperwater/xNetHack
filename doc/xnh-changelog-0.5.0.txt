@@ -31,6 +31,8 @@ Pets' willingness to attack foes of a certain level decreases linearly with
 Trees can generate in the rooms of room-and-corridor levels.
 Lord monsters' weapons and armor is never negatively enchanted.
 If you're carrying sufficient food, being Weak isn't a major trouble.
+If you're turning to slime and opening a tin of chameleon meat, you won't be
+  interrupted (you could turn into something fiery).
 
 It contains the following non-gameplay interface changes:
 
