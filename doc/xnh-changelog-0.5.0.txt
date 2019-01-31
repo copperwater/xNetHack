@@ -31,6 +31,8 @@ Pets' willingness to attack foes of a certain level decreases linearly with
 Trees can generate in the rooms of room-and-corridor levels.
 Elven items use their base material 60% of the time and become wood 20% of the
   time rather than defaulting to wood 80% of the time.
+The throne monster in throne rooms has a shiny expensive mace rather than a
+  boring iron one.
 
 It contains the following non-gameplay interface changes:
 
