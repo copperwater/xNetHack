@@ -781,6 +781,7 @@ struct obj *obj;
                 costly_alteration(obj, COST_DEGRD);
             obj->otyp = WORM_TOOTH;
             obj->oerodeproof = 0;
+            obj->material = objects[WORM_TOOTH].oc_material;
         }
         break;
     }
