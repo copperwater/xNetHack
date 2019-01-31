@@ -2238,7 +2238,7 @@ dodip()
                 return 1;
             }
         }
-        obj->odiluted = (obj->otyp != POT_WATER);
+        obj->odiluted = (obj->otyp != POT_WATER && obj->otyp != POT_OIL);
 
         if (obj->otyp == POT_WATER && !Hallucination) {
             pline_The("mixture bubbles%s.", Blind ? "" : ", then clears");
