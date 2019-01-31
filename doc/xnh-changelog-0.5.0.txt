@@ -33,6 +33,8 @@ Elven items use their base material 60% of the time and become wood 20% of the
   time rather than defaulting to wood 80% of the time.
 The throne monster in throne rooms has a shiny expensive mace rather than a
   boring iron one.
+The Bell of Opening will turn into a silver regular bell in a bones file, rather
+  than a copper one.
 
 It contains the following non-gameplay interface changes:
 
