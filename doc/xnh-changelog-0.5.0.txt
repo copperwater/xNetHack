@@ -33,6 +33,8 @@ Lord monsters' weapons and armor is never negatively enchanted.
 If you're carrying sufficient food, being Weak isn't a major trouble.
 If you're turning to slime and opening a tin of chameleon meat, you won't be
   interrupted (you could turn into something fiery).
+Blessed potions of hallucination grant enlightenment 50% of the time; cursed
+  ones do 20% of the time, uncursed ones never do.
 
 It contains the following non-gameplay interface changes:
 

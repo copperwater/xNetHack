@@ -716,11 +716,24 @@ register struct obj *otmp;
         }
         break;
     case POT_HALLUCINATION:
-        if (Hallucination || Halluc_resistance)
+        if (Halluc_resistance) {
             nothing++;
+            break;
+        }
+        else if (Hallucination) {
+            nothing++;
+        }
         (void) make_hallucinated(itimeout_incr(HHallucination,
                                           rn1(200, 600 - 300 * bcsign(otmp))),
                                  TRUE, 0L);
+        if ((otmp->blessed && !rn2(2)) || (otmp->cursed && !rn2(5))) {
+            You("see a vision..."); /* not You_see */
+            display_nhwindow(WIN_MESSAGE, FALSE);
+            enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
+            pline_The("vision fades.");
+            exercise(A_WIS, TRUE);
+            nothing = 0;
+        }
         break;
     case POT_WATER:
         if (!otmp->blessed && !otmp->cursed) {
