@@ -382,6 +382,8 @@ register struct monst *mtmp;
             }
             if (!rn2(10))
                 (void) mongets(mtmp, DWARVISH_CLOAK);
+            while (!rn2(3))
+                (void) mongets(mtmp, APPLE + rn2(CARROT - APPLE));
         } else if (is_dwarf(ptr)) {
             if (rn2(7))
                 (void) mongets(mtmp, DWARVISH_CLOAK);
