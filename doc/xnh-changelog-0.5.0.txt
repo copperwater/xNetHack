@@ -57,3 +57,5 @@ It contains the following non-gameplay architectural changes:
 Refactor spell hunger reduction logic into its own function.
 Refactor confusing logic of what food adjective to choose.
 Promote obj_nutrition to a non-static function.
+Allow artifacts which target a monster class (S_* instead of M2_*) to warn
+  versus that monster class. The save-stable version of this is kludgy.

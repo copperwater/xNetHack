@@ -577,12 +577,21 @@ long wp_mask;
     }
     if (spfx & SPFX_WARN) {
         if (spec_m2(otmp)) {
+            /* FIXME: This currently uses 0x80000000 (M2_MAGIC, which nothing
+             * currently warns of) as a mask that denotes "actually warn versus
+             * monster mlet rather than M2 flags". The proper way to do this is
+             * to add another field to context.warntype, but that requires a
+             * savebreak; so when the next savebreak happens refactor this code.
+             */
+            unsigned long type = spec_m2(otmp);
+            if (spfx & SPFX_DCLAS)
+                type |= 0x80000000;
             if (on) {
                 EWarn_of_mon |= wp_mask;
-                context.warntype.obj |= spec_m2(otmp);
+                context.warntype.obj |= type;
             } else {
                 EWarn_of_mon &= ~wp_mask;
-                context.warntype.obj &= ~spec_m2(otmp);
+                context.warntype.obj &= ~type;
             }
             see_monsters();
         } else {
