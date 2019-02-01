@@ -50,6 +50,8 @@ Ogresmasher's cost is raised to 1200.
 Sitting or manually teleporting via ^T while standing on a known level
   teleporter will activate it, bypassing magic resistance.
 Intelligent monsters in the Castle know about the trapdoors.
+Reading a confused scroll of earth will summon earth elementals and dust
+  vortices rather than mostly harmless rocks.
 
 
 It contains the following non-gameplay interface changes:
