@@ -105,32 +105,34 @@ STATIC_OVL NEARDATA struct artifact artilist[] = {
       NO_COLOR),
 
     A("Dragonbane", DWARVISH_SPEAR,
-      (SPFX_RESTR | SPFX_DCLAS | SPFX_REFLECT), 0, S_DRAGON,
-      PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 500L,
+      (SPFX_WARN | SPFX_RESTR | SPFX_DCLAS | SPFX_REFLECT), 0, S_DRAGON,
+      PHYS(5, 10), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 2500L,
       NO_COLOR),
 
-    A("Demonbane", MACE, (SPFX_RESTR | SPFX_DFLAG2), 0, M2_DEMON,
+    A("Demonbane", MACE, (SPFX_WARN | SPFX_RESTR | SPFX_DFLAG2), 0, M2_DEMON,
       PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_LAWFUL, NON_PM, NON_PM, 2500L,
-      NO_COLOR),
+      CLR_WHITE),
 
-    A("Werebane", SABER, (SPFX_RESTR | SPFX_DFLAG2), 0, M2_WERE,
-      PHYS(5, 0), DFNS(AD_WERE), NO_CARY, 0, A_NONE, NON_PM, NON_PM, 1500L,
+    A("Werebane", SABER, (SPFX_WARN | SPFX_RESTR | SPFX_DFLAG2), 0, M2_WERE,
+      PHYS(5, 10), DFNS(AD_WERE), NO_CARY, 0, A_NONE, NON_PM, NON_PM, 1500L,
       NO_COLOR),
 
     A("Grayswandir", SABER, (SPFX_RESTR | SPFX_HALRES), 0, 0,
       PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_LAWFUL, NON_PM, NON_PM, 8000L,
       NO_COLOR),
 
-    A("Giantslayer", LONG_SWORD, (SPFX_RESTR | SPFX_DFLAG2), 0, M2_GIANT,
-      PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_NEUTRAL, NON_PM, NON_PM, 200L,
+    A("Giantslayer", LONG_SWORD,
+      (SPFX_WARN | SPFX_RESTR | SPFX_DFLAG2), 0, M2_GIANT,
+      PHYS(5, 10), NO_DFNS, NO_CARY, 0, A_NEUTRAL, NON_PM, NON_PM, 500L,
       NO_COLOR),
 
     A("Ogresmasher", WAR_HAMMER, (SPFX_RESTR | SPFX_HEAVYHIT), 0, 0,
-      PHYS(3, 8), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 200L,
+      PHYS(3, 8), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 1200L,
       NO_COLOR),
 
-    A("Trollsbane", MORNING_STAR, (SPFX_RESTR | SPFX_DCLAS), 0, S_TROLL,
-      PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 200L,
+    A("Trollsbane", MORNING_STAR,
+      (SPFX_WARN | SPFX_RESTR | SPFX_DCLAS | SPFX_REGEN), 0, S_TROLL,
+      PHYS(5, 10), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 1000L,
       NO_COLOR),
     /*
      *      Two problems:  1) doesn't let trolls regenerate heads,

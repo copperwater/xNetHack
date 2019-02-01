@@ -38,6 +38,16 @@ Blessed potions of hallucination grant enlightenment 50% of the time; cursed
 Grimtooth is now permanently poisoned and has a base cost of 1000.
 Poisoned weapons in melee do d10+6 damage to non-resistant creatures, but only
   25% of the time.
+Dragonbane now gives vision of dragons when wielded and does +d10 damage to
+  dragons. Its cost is raised to 2500.
+Demonbane now gives vision of demons when wielded, glowing white.
+Werebane now gives vision of weres when wielded and does +d10 damage to weres.
+Giantslayer now gives vision of giants when wielded and does +d10 damage to
+  giants. Its cost is raised to 500.
+Trollsbane now gives hungerless regeneration when wielded, gives vision of
+trolls when wielded, and does +d10 damage to trolls. Its cost is raised to 1000.
+Ogresmasher's cost is raised to 1200.
+
 
 It contains the following non-gameplay interface changes:
 
