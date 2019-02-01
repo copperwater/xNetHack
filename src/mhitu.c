@@ -1059,6 +1059,19 @@ register struct attack *mattk;
                         You("divide as %s hits you!", mon_nam(mtmp));
                 }
                 rustm(&youmonst, otmp);
+
+                if ((otmp->opoisoned || permapoisoned(otmp)) && !rn2(4)) {
+                    /* similar to dopois code below, but we don't use the exact
+                     * same values, nor do we want the same 1/8 chance of the
+                     * poison taking (use 1/4, same as in uhitm.c). */
+                    Sprintf(buf, "%s %s", s_suffix(Monnam(mtmp)),
+                            mpoisons_subj(mtmp, mattk));
+                    /* arbitrary, but most poison sources in the game are
+                     * strength-based. With hpdamchance = 10, HP damage occurs
+                     * 1/2 of the time and it will hit Str the rest of the time.
+                     * (This is the same as poisoned ammo.) */
+                    poisoned(buf, A_STR, mdat->mname, 10, FALSE);
+                }
             } else if (mattk->aatyp != AT_TUCH || dmg != 0
                        || mtmp != u.ustuck)
                 hitmsg(mtmp, mattk);

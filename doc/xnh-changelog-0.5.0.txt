@@ -35,6 +35,9 @@ If you're turning to slime and opening a tin of chameleon meat, you won't be
   interrupted (you could turn into something fiery).
 Blessed potions of hallucination grant enlightenment 50% of the time; cursed
   ones do 20% of the time, uncursed ones never do.
+Grimtooth is now permanently poisoned and has a base cost of 1000.
+Poisoned weapons in melee do d10+6 damage to non-resistant creatures, but only
+  25% of the time.
 
 It contains the following non-gameplay interface changes:
 

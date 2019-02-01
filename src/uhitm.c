@@ -867,7 +867,14 @@ int dieroll;
                                  && uwep->otyp == ELVEN_BOW)
                             tmp++;
                     }
-                    if (obj->opoisoned && is_poisonable(obj))
+                }
+                if ((obj->opoisoned || permapoisoned(obj))
+                    && is_poisonable(obj)) {
+                    /* Since non-thrown poison sources do more damage, they
+                     * would be way too powerful to poison on each hit - so
+                     * artificially limit the opportunity for it to score a
+                     * hit. */
+                    if (thrown == HMON_THROWN || !rn2(4))
                         ispoisoned = TRUE;
                 }
                 /* maybe break your glass weapon or monster's glass armor; put
@@ -1150,7 +1157,7 @@ int dieroll;
             You_feel("like an evil coward for using a poisoned weapon.");
             adjalign(-1);
         }
-        if (obj && !rn2(nopoison)) {
+        if (obj && !permapoisoned(obj) && !rn2(nopoison)) {
             /* remove poison now in case obj ends up in a bones file */
             obj->opoisoned = FALSE;
             /* defer "obj is no longer poisoned" until after hit message */
@@ -1160,7 +1167,7 @@ int dieroll;
             needpoismsg = TRUE;
         }
         else {
-            tmp += rnd(6);
+            tmp += (thrown == HMON_THROWN ? rnd(6) : rn1(10, 6));
         }
     }
     if (tmp < 1) {

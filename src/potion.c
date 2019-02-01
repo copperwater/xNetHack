@@ -2285,9 +2285,10 @@ dodip()
             pline("%s forms a coating on %s.", buf, the(xname(obj)));
             obj->opoisoned = TRUE;
             goto poof;
-        } else if (obj->opoisoned && (potion->otyp == POT_HEALING
-                                      || potion->otyp == POT_EXTRA_HEALING
-                                      || potion->otyp == POT_FULL_HEALING)) {
+        } else if (obj->opoisoned && !permapoisoned(obj)
+                   && (potion->otyp == POT_HEALING
+                       || potion->otyp == POT_EXTRA_HEALING
+                       || potion->otyp == POT_FULL_HEALING)) {
             pline("A coating wears off %s.", the(xname(obj)));
             obj->opoisoned = 0;
             goto poof;

@@ -205,6 +205,9 @@ aligntyp alignment; /* target alignment, or A_NONE */
         if (by_align)
             otmp = 0; /* (there was no original object) */
     }
+    /* poison artifacts that are permapoisoned */
+    if (permapoisoned(otmp))
+        otmp->opoisoned = 1;
     return otmp;
 }
 
@@ -2312,6 +2315,15 @@ struct monst *mon; /* if null, hero assumed */
             return o;
     }
     return (struct obj *) 0;
+}
+
+/* return TRUE if obj is permanently poisoned (currently only true for artifacts
+ * in general and Grimtooth specifically) */
+boolean
+permapoisoned(obj)
+struct obj* obj;
+{
+    return (obj && obj->oartifact == ART_GRIMTOOTH);
 }
 
 /*artifact.c*/

@@ -944,6 +944,14 @@ register struct attack *mattk;
                 }
                 if (tmp)
                     rustm(mdef, otmp);
+                if ((otmp->opoisoned || permapoisoned(otmp)) && !rn2(4)) {
+                    /* 1/4 chance of weapon poison applying is the same as in
+                     * uhitm and mhitu cases. But since we don't need to call
+                     * any special functions or go through tangled hmon_hitmon
+                     * code, we can just jump straight to the poisoning. */
+                    goto dopois;
+                }
+
             }
         } else if (pa == &mons[PM_PURPLE_WORM] && pd == &mons[PM_SHRIEKER]) {
             /* hack to enhance mm_aggression(); we don't want purple
@@ -1322,6 +1330,7 @@ register struct attack *mattk;
     case AD_DRDX:
     case AD_DRCO:
         if (!cancelled && !rn2(8)) {
+ dopois:
             if (vis && canspotmon(magr))
                 pline("%s %s was poisoned!", s_suffix(Monnam(magr)),
                       mpoisons_subj(magr, mattk));

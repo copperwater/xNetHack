@@ -4170,6 +4170,9 @@ struct obj *no_wish;
             otmp->quan = 1L;
             u.uconduct.wisharti++; /* KMH, conduct */
         }
+        /* poison poisoned artifacts */
+        if (permapoisoned(otmp))
+            otmp->opoisoned = 1;
     }
 
     /* more wishing abuse: don't allow wishing for certain artifacts */
