@@ -1345,24 +1345,24 @@ const char *name;
         /* set up specific materials for the artifact */
         switch(obj->oartifact) {
         case ART_SUNSWORD:
-            obj->material = GOLD;
+            set_material(obj, GOLD);
             break;
         case ART_WEREBANE:
         case ART_DEMONBANE:
         case ART_GRAYSWANDIR:
         /* case ART_MITRE_OF_HOLINESS: */
-            obj->material = SILVER;
+            set_material(obj, SILVER);
             break;
         case ART_SCEPTRE_OF_MIGHT:
             /* don't make it hurt elves */
             obj->material = METAL;
             break;
         case ART_YENDORIAN_EXPRESS_CARD:
-            obj->material = PLATINUM;
+            set_material(obj, PLATINUM);
             break;
         default:
             /* prevent any wishes for materials on an artifact */
-            obj->material = objects[obj->otyp].oc_material;
+            set_material(obj, objects[obj->otyp].oc_material);
         }
     }
     if (carried(obj))

@@ -87,7 +87,7 @@ boolean restore;
             }
             /* prevent materials from differing on things like rings */
             if (!valid_obj_material(otmp, otmp->material)) {
-                otmp->material = objects[otmp->otyp].oc_material;
+                set_material(otmp, objects[otmp->otyp].oc_material);
             }
         } else { /* saving */
             /* do not zero out o_ids for ghost levels anymore */
@@ -165,13 +165,13 @@ boolean restore;
             } else if (otmp->otyp == AMULET_OF_YENDOR) {
                 /* no longer the real Amulet */
                 otmp->otyp = FAKE_AMULET_OF_YENDOR;
-                otmp->material = PLASTIC;
+                set_material(otmp, PLASTIC);
                 curse(otmp);
             } else if (otmp->otyp == CANDELABRUM_OF_INVOCATION) {
                 if (otmp->lamplit)
                     end_burn(otmp, TRUE);
                 otmp->otyp = WAX_CANDLE;
-                otmp->material = WAX;
+                set_material(otmp, WAX);
                 otmp->age = 50L; /* assume used */
                 if (otmp->spe > 0)
                     otmp->quan = (long) otmp->spe;
@@ -180,7 +180,7 @@ boolean restore;
                 curse(otmp);
             } else if (otmp->otyp == BELL_OF_OPENING) {
                 otmp->otyp = BELL;
-                otmp->material = COPPER;
+                set_material(otmp, SILVER);
                 curse(otmp);
             } else if (otmp->otyp == SPE_BOOK_OF_THE_DEAD) {
                 otmp->otyp = SPE_BLANK_PAPER;

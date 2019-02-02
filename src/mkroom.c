@@ -318,7 +318,16 @@ int x,y;
         mon->mpeaceful = 0;
         set_malign(mon);
         /* Give him a sceptre to pound in judgment */
-        (void) mongets(mon, MACE);
+        struct obj* mace = mksobj(MACE, TRUE, FALSE);
+        if (!rn2(15))
+            set_material(mace, PLATINUM);
+        else if (!rn2(14))
+            set_material(mace, MITHRIL);
+        else if (rnd(13) <= 3)
+            set_material(mace, SILVER);
+        else
+            set_material(mace, GOLD);
+        mpickobj(mon, mace);
     }
 }
 

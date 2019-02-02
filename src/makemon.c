@@ -378,7 +378,7 @@ register struct monst *mtmp;
                 (void) mongets(mtmp, ELVEN_RING_MAIL);
                 struct obj* mail = m_carrying(mtmp, ELVEN_RING_MAIL);
                 if (mail)
-                    mail->material = MITHRIL;
+                    set_material(mail, MITHRIL);
             }
             if (!rn2(10))
                 (void) mongets(mtmp, DWARVISH_CLOAK);

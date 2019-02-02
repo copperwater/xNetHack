@@ -986,7 +986,7 @@ register struct trobj *trop;
         if (otyp != UNDEF_TYP) {
             obj = mksobj(otyp, TRUE, FALSE);
             /* Don't allow materials to be start scummed for */
-            obj->material = objects[otyp].oc_material;
+            set_material(obj, objects[otyp].oc_material);
             /* Don't allow weapons to roll high enchantment and get an oname
              * when they'll then have their enchantment set after this */
             free_oname(obj);
@@ -1039,7 +1039,11 @@ register struct trobj *trop;
             }
 
             /* Don't allow materials to be start scummed for */
+<<<<<<< HEAD
             obj->material = objects[otyp].oc_material;
+=======
+            set_material(obj, objects[obj->otyp].oc_material);
+>>>>>>> object_materials
 
             /* Don't start with +0 or negative rings */
             if (objects[otyp].oc_charged && obj->spe <= 0)

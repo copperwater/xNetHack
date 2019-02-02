@@ -4189,17 +4189,12 @@ struct obj *no_wish;
                 something, makeplural(body_part(HAND)));
     }
 
-#if 0 /* deferred until we see the balance implications of obj materials */
-    if (material > 0 && !otmp->oartifact
-        && (wizard || valid_obj_material(otmp, material))) {
-#else
     if (material > 0 && !otmp->oartifact && wizard) {
-#endif
         if (!valid_obj_material(otmp, material)) {
             pline("Note: material %s is not normally valid for this object.",
                   materialnm[material]);
         }
-        otmp->material = material;
+        set_material(otmp, material);
     }
     else if (otmp->oartifact) {
         /* oname() handles the assignment of a specific material for any
@@ -4210,7 +4205,7 @@ struct obj *no_wish;
         /* for now, material in wishes will always be base; this is to prevent
          * problems like wishing for arrows and getting glass arrows which will
          * shatter. */
-        otmp->material = objects[otmp->otyp].oc_material;
+        set_material(otmp, objects[otmp->otyp].oc_material);
     }
 
     if (halfeaten && otmp->oclass == FOOD_CLASS) {
