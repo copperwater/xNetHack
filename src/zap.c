@@ -1729,7 +1729,7 @@ struct obj *obj;
                 if (obj->otyp != FIGURINE) {
                     /* hedge against other stone tools being added */
                     pline("%s to flesh!", Tobjnam(obj, "turn"));
-                    obj->material = FLESH;
+                    set_material(obj, FLESH);
                     obj->owt = weight(obj);
                     break;
                 }
@@ -1800,7 +1800,7 @@ struct obj *obj;
     default:
         if (valid_obj_material(obj, FLESH)) {
             pline("%s to flesh!", Tobjnam(obj, "turn"));
-            obj->material = FLESH;
+            set_material(obj, FLESH);
             obj->owt = weight(obj);
         }
         else {

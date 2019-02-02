@@ -214,6 +214,16 @@ int shotlimit;
     }
 
     m_shot.s = ammo_and_launcher(obj, uwep) ? TRUE : FALSE;
+
+    /* If you are trying to throw ammo without the matching launcher, this is
+     * probably a mistake.
+     * Possible addition: also ask if trying to throw a weapon that shouldn't be
+     * thrown, like a sword. */
+    if (is_ammo(obj) && !matching_launcher(obj, uwep) && ParanoidThrow
+        && yn("You don't have a launcher for that. Really throw it?") != 'y') {
+        return 0;
+    }
+
     /* give a message if shooting more than one, or if player
        attempted to specify a count */
     if (multishot > 1 || shotlimit > 0) {

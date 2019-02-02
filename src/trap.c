@@ -3416,6 +3416,8 @@ domagictrap()
                     (flags.female || (Upolyd && is_neuter(youmonst.data)))
                         ? "oddly "
                         : "");
+            else if (Role_if(PM_VALKYRIE) && Hallucination)
+                You("pine for the fjords.");
             else
                 You("suddenly yearn for %s.",
                     Hallucination

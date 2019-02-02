@@ -4,6 +4,8 @@
 
 #include "hack.h"
 
+STATIC_DCL int FDECL(countfood, (struct obj *));
+STATIC_DCL boolean NDECL(starving);
 STATIC_PTR int NDECL(prayer_done);
 STATIC_DCL struct obj *NDECL(worst_cursed_item);
 STATIC_DCL int NDECL(in_trouble);
@@ -45,6 +47,12 @@ static const char *Moloch = "Moloch";
 
 static const char *godvoices[] = {
     "booms out", "thunders", "rings out", "booms",
+};
+
+static const char *hgodvoices[] = {
+    "belches", "ring-a-lings out", "squeaks", "squeals", "screeches", "drones",
+    "buzzes", "pipes", "tinkles", "rumbulates", "moos", "brays", "barks",
+    "screams", "howls", "ululates", "quacks", "meows",
 };
 
 /* values calculated when prayer starts, and used when completed */
@@ -164,6 +172,78 @@ stuck_in_wall()
     return (count == 8) ? TRUE : FALSE;
 }
 
+/* Return the total amount of nutrition in item (or in the inventory, if item is
+ * null). If item is a container, recursively check its contents.
+ * This is for counting easily-accessible food for the purposes of prayer, so it
+ * doesn't actually return the total amount of nutrition - some types are
+ * excluded for various reasons.
+ * It also currently doesn't take into account non-food items which provide
+ * food, such as horns of plenty (arguably a horn of plenty could possibly just
+ * produce near-useless water until it runs out of charges anyway).
+ */
+STATIC_OVL int
+countfood(item)
+struct obj* item;
+{
+    struct obj* otmp;
+    int totnut = 0;
+    if (!item) { /* traverse inventory */
+        for (otmp = invent; otmp; otmp = otmp->nobj) {
+            totnut += countfood(otmp);
+        }
+    }
+    else {
+        if (item->oclass == FOOD_CLASS) {
+            /* Exclusions to being counted as food. */
+            if (Is_pudding(item)         /* glob */
+                || item->otyp == TIN     /* might take too long to open */
+                || item->otyp == EGG     /* could be dangerous, rotten... */
+                || item->otyp == CORPSE) /* ditto */
+                return 0;
+
+            return (item->oeaten ? item->oeaten : obj_nutrition(item));
+        }
+        else if (Has_contents(item)) {
+            /* Because containers can be #tipped, we don't have to worry about
+             * whether the hero has hands available for looting them. */
+            for (otmp = item->cobj; otmp; otmp = otmp->nobj) {
+                totnut += countfood(otmp);
+            }
+            /* artificial penalty for each level of nesting: if a food item is
+             * nested inside 7 sacks, it will take 7 actions to retrieve it.
+             * Yes, a fast player might be able to get it out in fewer turns,
+             * but that doesn't matter too much.
+             * The penalty is assessed not for the cost of getting *each* piece
+             * of food out, but for getting *any one* piece of food out. */
+            if (totnut > 0)
+                totnut -= 1;
+        }
+    }
+    return totnut;
+}
+
+/* Return True if your hunger should be classified as a major problem, because
+ * you are currently going to starve to death with nothing to eat.
+ */
+STATIC_OVL boolean
+starving()
+{
+    if (u.uhs < WEAK) /* not a major problem */
+        return FALSE;
+
+    int totalfood = countfood(NULL);
+
+    if (Slow_digestion)
+        /* Even the least nutritious of foods will keep you going for a while
+         * with slow digestion, so it's only a serious problem if you are about
+         * to faint and have no food. */
+        return (u.uhunger + totalfood < 10);
+
+    /* It is a big problem if your food stores are insufficient to get you out
+     * of HUNGRY range into NOT_HUNGRY (150). */
+    return (u.uhunger + totalfood < 150);
+}
+
 /*
  * Return 0 if nothing particular seems wrong, positive numbers for
  * serious trouble, and negative numbers for comparative annoyances.
@@ -197,7 +277,7 @@ in_trouble()
         return TROUBLE_LAVA;
     if (Sick)
         return TROUBLE_SICK;
-    if (u.uhs >= WEAK)
+    if (starving())
         return TROUBLE_STARVING;
     if (region_danger())
         return TROUBLE_REGION;
@@ -1253,7 +1333,9 @@ const char *words;
         words = "";
 
     pline_The("voice of %s %s: %s%s%s", align_gname(g_align),
-              godvoices[rn2(SIZE(godvoices))], quot, words, quot);
+              Hallucination ? hgodvoices[rn2(SIZE(hgodvoices))]
+                            : godvoices[rn2(SIZE(godvoices))],
+              quot, words, quot);
 }
 
 STATIC_OVL void
@@ -1549,8 +1631,10 @@ dosacrifice()
                 adjalign(10);
                 u.uachieve.ascended = 1;
                 /* you might be able to see the invisible choir! */
-                pline("%s choir sings, and you are bathed in radiance...",
-                      (See_invisible && !Blind ? "A visible" : "An invisible"));
+                pline("%s sings, and you are bathed in radiance...",
+                      Hallucination ? "The fat lady"
+                          : (See_invisible && !Blind ? "A visible choir"
+                                                     : "An invisible choir"));
                 godvoice(altaralign, "Mortal, thou hast done well!");
                 display_nhwindow(WIN_MESSAGE, FALSE);
                 verbalize(
@@ -2109,23 +2193,35 @@ aligntyp alignment;
 }
 
 static const char *hallu_gods[] = {
-    "the Flying Spaghetti Monster", /* Church of the FSM */
-    "Eris",                         /* Discordianism */
-    "the Martians",                 /* every science fiction ever */
-    "Xom",                          /* Crawl */
-    "AnDoR dRaKoN",                 /* ADOM */
-    "the Central Bank of Yendor",   /* economics */
-    "Tooth Fairy",                  /* real world(?) */
-    "Om",                           /* Discworld */
-    "Yawgmoth",                     /* Magic: the Gathering */
-    "Morgoth",                      /* LoTR */
-    "Cthulhu",                      /* Lovecraft */
-    "the Ori",                      /* Stargate */
-    "destiny",                      /* why not? */
-    "your Friend the Computer",     /* Paranoia */
-    "Big Brother",                  /* 1984 */
-    "Random Number God",            /* gaming parlance */
-    "RNGesus"                       /* gaming parlance */
+    "the Flying Spaghetti Monster",     /* Church of the FSM */
+    "Eris",                             /* Discordianism */
+    "the Martians",                     /* every science fiction ever */
+    "Xom",                              /* Crawl */
+    "AnDoR dRaKoN",                     /* ADOM */
+    "the Central Bank of Yendor",       /* economics */
+    "Tooth Fairy",                      /* real world(?) */
+    "Om",                               /* Discworld */
+    "Yawgmoth",                         /* Magic: the Gathering */
+    "Morgoth",                          /* LoTR */
+    "Cthulhu",                          /* Lovecraft */
+    "the Ori",                          /* Stargate */
+    "destiny",                          /* why not? */
+    "your Friend the Computer",         /* Paranoia */
+    "Big Brother",                      /* 1984 */
+    "Random Number God",                /* gaming parlance */
+    "RNGesus",                          /* gaming parlance */
+    "the DevTeam",                      /* NetHack */
+    "the Gnome With The Wand Of Death", /* NetHack community */
+    "Marduk",                           /* "the Creator" */
+    "Albert Einstein",                  /* real world */
+    "Zeus",                             /* Greek mythology */
+    "Cosmic AC",                        /* The Last Question */
+    "%s",                               /* dNetHack bug */
+    "Manwe",                            /* Silmarillion */
+    "the Doctor",                       /* Doctor Who */
+    "Aslan",                            /* Narnia */
+    "Armok",                            /* Dwarf Fortress */
+    "the God-Emperor",                  /* Warhammer 40K */
 };
 
 /* hallucination handling for priest/minion names: select a random god

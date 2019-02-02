@@ -944,6 +944,14 @@ register struct attack *mattk;
                 }
                 if (tmp)
                     rustm(mdef, otmp);
+                if ((otmp->opoisoned || permapoisoned(otmp)) && !rn2(4)) {
+                    /* 1/4 chance of weapon poison applying is the same as in
+                     * uhitm and mhitu cases. But since we don't need to call
+                     * any special functions or go through tangled hmon_hitmon
+                     * code, we can just jump straight to the poisoning. */
+                    goto dopois;
+                }
+
             }
         } else if (pa == &mons[PM_PURPLE_WORM] && pd == &mons[PM_SHRIEKER]) {
             /* hack to enhance mm_aggression(); we don't want purple
@@ -1322,6 +1330,7 @@ register struct attack *mattk;
     case AD_DRDX:
     case AD_DRCO:
         if (!cancelled && !rn2(8)) {
+ dopois:
             if (vis && canspotmon(magr))
                 pline("%s %s was poisoned!", s_suffix(Monnam(magr)),
                       mpoisons_subj(magr, mattk));
@@ -1397,6 +1406,31 @@ register struct attack *mattk;
             place_monster(mdef, mdef->mx, mdef->my);
             mdef->mhp = 0;
         }
+
+        /* If the killing monster is a zombie (in melee, we assume) and the
+         * dying monster a) has a zombie counterpart and b) won't be lifesaved,
+         * turn it into a zombie instead of killing it.
+         * If it's determined later that the zombie revival process should
+         * happen less than 100% of the time, add a limiting clause here. */
+        if (zombie_maker(pa) && zombie_form(pd) != NON_PM
+            && !mlifesaver(mdef)) {
+            if (canspotmon(mdef)) {
+                /* Since we're not going to call monkilled, need to give the
+                 * standard killed message here.
+                 * "killed" not "destroyed" should be safe assuming that the
+                 * only things which can turn into zombies are !nonliving. */
+                pline("%s is killed!", Monnam(mdef));
+            }
+            zombify(mdef, (boolean) magr->mtame);
+            /* Flag defender as dying so that the attacker won't continue using
+             * its remaining attacks against the new zombie. Also make sure to
+             * call grow_up to credit the attacker with the kill and the HP for
+             * it.
+             * Zombies won't grow up into a genocided form, but liches might, so
+             * also return aggressor dying in that rare case. */
+            return (MM_DEF_DIED | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
+        }
+
         monkilled(mdef, "", (int) mattk->adtyp);
         if (!DEADMONSTER(mdef))
             return res; /* mdef lifesaved */

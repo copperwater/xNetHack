@@ -97,6 +97,7 @@ E void FDECL(retouch_equipment, (int));
 E void NDECL(mkot_trap_warn);
 E boolean FDECL(is_magic_key, (struct monst *, struct obj *));
 E struct obj *FDECL(has_magic_key, (struct monst *));
+E boolean FDECL(permapoisoned, (struct obj *));
 
 /* ### attrib.c ### */
 
@@ -657,6 +658,7 @@ E int FDECL(is_edible, (struct obj *));
 E void NDECL(init_uhunger);
 E int NDECL(Hear_again);
 E void NDECL(reset_eat);
+E unsigned FDECL(obj_nutrition, (struct obj *));
 E int NDECL(doeat);
 E int FDECL(use_tin_opener, (struct obj *));
 E void NDECL(gethungry);
@@ -1386,6 +1388,7 @@ E struct obj *FDECL(obj_absorb, (struct obj **, struct obj **));
 E struct obj *FDECL(obj_meld, (struct obj **, struct obj **));
 E void FDECL(pudding_merge_message, (struct obj *, struct obj *));
 E boolean FDECL(valid_obj_material, (struct obj *, int));
+E void FDECL(set_material, (struct obj *, int));
 
 /* ### mkroom.c ### */
 
@@ -1410,6 +1413,9 @@ E int FDECL(cmap_to_type, (int));
 /* ### mon.c ### */
 
 E void NDECL(mon_sanity_check);
+E boolean FDECL(zombie_maker, (struct permonst *));
+E int FDECL(zombie_form, (struct permonst *));
+E void FDECL(zombify, (struct monst *, BOOLEAN_P));
 E int FDECL(undead_to_corpse, (int));
 E int FDECL(genus, (int, int));
 E int FDECL(pm_to_cham, (int));

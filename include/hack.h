@@ -206,9 +206,13 @@ struct sortloot_item {
 };
 typedef struct sortloot_item Loot;
 
+/* FIXME: fix this kludge at next savebreak; see warn code in artifact.c */
 #define MATCH_WARN_OF_MON(mon)                                               \
     (Warn_of_mon && ((context.warntype.obj                                   \
-                      && (context.warntype.obj & (mon)->data->mflags2))      \
+                      && (((context.warntype.obj & 0x80000000) != 0) ?       \
+                          ((context.warntype.obj & 0x7FFFFFFF)               \
+                                                     == (mon)->data->mlet) : \
+                          (context.warntype.obj & (mon)->data->mflags2)))    \
                      || (context.warntype.polyd                              \
                          && (context.warntype.polyd & (mon)->data->mflags2)) \
                      || (context.warntype.species                            \
@@ -271,6 +275,7 @@ typedef struct sortloot_item Loot;
 #define CORPSTAT_NONE 0x00
 #define CORPSTAT_INIT 0x01   /* pass init flag to mkcorpstat */
 #define CORPSTAT_BURIED 0x02 /* bury the corpse or statue */
+#define CORPSTAT_ZOMBIE 0x04 /* mark corpse as zombie-revivable */
 
 /* flags for decide_to_shift() */
 #define SHIFT_SEENMSG 0x01 /* put out a message if in sight */

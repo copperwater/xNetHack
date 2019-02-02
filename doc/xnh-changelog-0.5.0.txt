@@ -16,8 +16,87 @@ On top of any changes made by the NetHack devteam on 3.6.1, and any changes
 made in previous xNetHack versions, xNetHack 0.4.0 contains the following
 gameplay changes:
 
+You can sometimes recover from food poisoning with a Con/100 chance.
+If you have hungerless casting, you will never be too hungry to cast a spell.
+Corpses dropped by zombies can revive on their own.
+When you are killed by a zombie, you will arise from the grave as one in bones
+  (25% chance to keep playing as a zombie, similar to other undead).
+When a zombie or lich kills a monster that has a zombie counterpart in melee, it
+  resurrects as a zombie that is either tame or hostile depending on the
+  attacking zombie.
+Zombies will grudge monsters that they can zombify, and vice versa.
+The pet-off-level-untaming timer is fuzzed so it's not totally predictable.
+Pets' willingness to attack foes of a certain level decreases linearly with
+  their hit point percentage.
+Trees can generate in the rooms of room-and-corridor levels.
+Lord monsters' weapons and armor is never negatively enchanted.
+If you're carrying sufficient food, being Weak isn't a major trouble.
+If you're turning to slime and opening a tin of chameleon meat, you won't be
+  interrupted (you could turn into something fiery).
+Blessed potions of hallucination grant enlightenment 50% of the time; cursed
+  ones do 20% of the time, uncursed ones never do.
+Grimtooth is now permanently poisoned and has a base cost of 1000.
+Poisoned weapons in melee do d10+6 damage to non-resistant creatures, but only
+  25% of the time.
+Dragonbane now gives vision of dragons when wielded and does +d10 damage to
+  dragons. Its cost is raised to 2500.
+Demonbane now gives vision of demons when wielded, glowing white.
+Werebane now gives vision of weres when wielded and does +d10 damage to weres.
+Giantslayer now gives vision of giants when wielded and does +d10 damage to
+  giants. Its cost is raised to 500.
+Trollsbane now gives hungerless regeneration when wielded, gives vision of
+trolls when wielded, and does +d10 damage to trolls. Its cost is raised to 1000.
+Ogresmasher's cost is raised to 1200.
+Sitting or manually teleporting via ^T while standing on a known level
+  teleporter will activate it, bypassing magic resistance.
+Intelligent monsters in the Castle know about the trapdoors.
+Reading a confused scroll of earth will summon earth elementals and dust
+  vortices rather than mostly harmless rocks.
+Hobbits may generate carrying produce.
+Fire Brand instakills flammable golems and green slimes
+Elven items use their base material 60% of the time and become wood 20% of the
+  time rather than defaulting to wood 80% of the time.
+The throne monster in throne rooms has a shiny expensive mace rather than a
+  boring iron one.
+The Bell of Opening will turn into a silver regular bell in a bones file, rather
+  than a copper one.
+
 
 It contains the following non-gameplay interface changes:
 
+Potion bottles are called by nonsensical names when hallucinating.
+Your god will belch, bray, squeak, and so on instead of booming or thundering
+  while you are hallucinating.
+Confused scrolls of fire underwater evaporate the water like a regular scroll.
+A message is printed when you fail to walk into liquid, and the first time this
+  happens in the game it informs you that you can use m to walk in.
+Add a new paranoid confirmation option "throw"; when on, it prompts for
+  confirmation when you try to throw ammo with no matching launcher for it.
+Dwarves think all rats are delicious.
+<<<<<<< HEAD
+YAFM for hearing a dwarf digging while hallucinating.
+YAFM for eating long worms.
+YAFM for dying to green slime (permanently) while hallucinating.
+YAFM for failing to get a wished-for artifact while hallucinating.
+YAFM for ascending while hallucinating.
+YAFM for trying to #chat to a wall.
+YAFM for a cosmetic magic trap effect if you are a hallucinating valkyrie.
+YAFM for hearing a wererat change form while hallucinating.
+Usual periodic assortment of new bogusmons, bogus gods, bogus currencies, candy
+  bar labels, t-shirt texts, rumors, engravings, and epitaphs.
+=======
+
+>>>>>>> object_materials
 
 It contains the following non-gameplay architectural changes:
+
+Refactor spell hunger reduction logic into its own function.
+Refactor confusing logic of what food adjective to choose.
+<<<<<<< HEAD
+Promote obj_nutrition to a non-static function.
+Allow artifacts which target a monster class (S_* instead of M2_*) to warn
+  versus that monster class. The save-stable version of this is kludgy.
+=======
+Change all obj->material = foo statements into a function set_material which
+  handles weight recalculation and erosion differences between the materials.
+>>>>>>> object_materials

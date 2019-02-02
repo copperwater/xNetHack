@@ -716,11 +716,24 @@ register struct obj *otmp;
         }
         break;
     case POT_HALLUCINATION:
-        if (Hallucination || Halluc_resistance)
+        if (Halluc_resistance) {
             nothing++;
+            break;
+        }
+        else if (Hallucination) {
+            nothing++;
+        }
         (void) make_hallucinated(itimeout_incr(HHallucination,
                                           rn1(200, 600 - 300 * bcsign(otmp))),
                                  TRUE, 0L);
+        if ((otmp->blessed && !rn2(2)) || (otmp->cursed && !rn2(5))) {
+            You("see a vision..."); /* not You_see */
+            display_nhwindow(WIN_MESSAGE, FALSE);
+            enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
+            pline_The("vision fades.");
+            exercise(A_WIS, TRUE);
+            nothing = 0;
+        }
         break;
     case POT_WATER:
         if (!otmp->blessed && !otmp->cursed) {
@@ -1280,11 +1293,20 @@ const char *txt;
 
 const char *bottlenames[] = { "bottle", "phial", "flagon", "carafe",
                               "flask",  "jar",   "vial" };
+const char *hbottlenames[] = {
+    "jug", "pitcher", "barrel", "tin", "bag", "box", "glass", "beaker",
+    "tumbler", "vase", "flowerpot", "pan", "thingy", "mug", "teacup", "teapot",
+    "keg", "bucket", "thermos", "amphora", "wineskin", "parcel", "bowl",
+    "ampoule"
+};
 
 const char *
 bottlename()
 {
-    return bottlenames[rn2(SIZE(bottlenames))];
+    if (Hallucination)
+        return hbottlenames[rn2(SIZE(hbottlenames))];
+    else
+        return bottlenames[rn2(SIZE(bottlenames))];
 }
 
 /* handle item dipped into water potion or steed saddle splashed by same */
@@ -2216,7 +2238,7 @@ dodip()
                 return 1;
             }
         }
-        obj->odiluted = (obj->otyp != POT_WATER);
+        obj->odiluted = (obj->otyp != POT_WATER && obj->otyp != POT_OIL);
 
         if (obj->otyp == POT_WATER && !Hallucination) {
             pline_The("mixture bubbles%s.", Blind ? "" : ", then clears");
@@ -2263,9 +2285,10 @@ dodip()
             pline("%s forms a coating on %s.", buf, the(xname(obj)));
             obj->opoisoned = TRUE;
             goto poof;
-        } else if (obj->opoisoned && (potion->otyp == POT_HEALING
-                                      || potion->otyp == POT_EXTRA_HEALING
-                                      || potion->otyp == POT_FULL_HEALING)) {
+        } else if (obj->opoisoned && !permapoisoned(obj)
+                   && (potion->otyp == POT_HEALING
+                       || potion->otyp == POT_EXTRA_HEALING
+                       || potion->otyp == POT_FULL_HEALING)) {
             pline("A coating wears off %s.", the(xname(obj)));
             obj->opoisoned = 0;
             goto poof;

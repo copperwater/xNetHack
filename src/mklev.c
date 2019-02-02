@@ -1095,6 +1095,8 @@ skip0:
             mkfeature(SINK, 0, croom);
         if (!rn2(60))
             mkfeature(ALTAR, 0, croom);
+        if (!rn2(30 + (depth(&u.uz) * 5)))
+            mkfeature(TREE, 0, croom);
         x = 80 - (depth(&u.uz) * 2);
         if (x < 2)
             x = 2;
@@ -1102,18 +1104,25 @@ skip0:
             mkfeature(GRAVE, 0, croom);
 
         /* put statues inside */
-        if (!rn2(20))
-            (void) mkcorpstat(STATUE, (struct monst *) 0,
-                              (struct permonst *) 0, somex(croom),
-                              somey(croom), CORPSTAT_INIT);
+        if (!rn2(20)) {
+            x = somex(croom);
+            y = somey(croom);
+            if (ACCESSIBLE(levl[x][y].typ))
+                (void) mkcorpstat(STATUE, (struct monst *) 0,
+                                (struct permonst *) 0, x, y, CORPSTAT_INIT);
+        }
         /* put box/chest inside;
          *  40% chance for at least 1 box, regardless of number
          *  of rooms; about 5 - 7.5% for 2 boxes, least likely
          *  when few rooms; chance for 3 or more is negligible.
          */
-        if (!rn2(nroom * 5 / 2))
-            (void) mksobj_at((rn2(3)) ? LARGE_BOX : CHEST, somex(croom),
-                             somey(croom), TRUE, FALSE);
+        if (!rn2(nroom * 5 / 2)) {
+            x = somex(croom);
+            y = somey(croom);
+            if (ACCESSIBLE(levl[x][y].typ))
+                (void) mksobj_at((rn2(3)) ? LARGE_BOX : CHEST, x, y,
+                                 TRUE, FALSE);
+        }
 
         /* maybe make some graffiti
          * chance decreases the lower you get in the dungeon */
@@ -1125,14 +1134,20 @@ skip0:
         /* place a random object in the room, with a recursive 20% chance of
          * placing another */
         if (rnd(5) <= 2) {
-            (void) mkobj_at(0, somex(croom), somey(croom), TRUE);
+            x = somex(croom);
+            y = somey(croom);
+            if (ACCESSIBLE(levl[x][y].typ))
+                (void) mkobj_at(0, x, y, TRUE);
             tryct = 0;
             while (!rn2(5)) {
                 if (++tryct > 100) {
                     impossible("tryct overflow4");
                     break;
                 }
-                (void) mkobj_at(0, somex(croom), somey(croom), TRUE);
+                x = somex(croom);
+                y = somey(croom);
+                if (ACCESSIBLE(levl[x][y].typ))
+                    (void) mkobj_at(0, x, y, TRUE);
             }
         }
     }
@@ -1944,7 +1959,8 @@ struct mkroom *croom;
         /* Special rules:
          * 1/10 of graves get a bell placed on them with "Saved by the bell!".
          *   The inscription is otherwise pulled from epitaph.
-         * 1/3 of graves get gold placed on them.
+         * 1/11 of graves get a scroll of water with "Apres moi, le deluge.".
+         * 1/3 of graves get gold buried in them.
          * 0-4 random cursed objects may be buried under the grave.
          */
         register struct obj *otmp;
@@ -1986,6 +2002,9 @@ struct mkroom *croom;
             otmp->oy = m.y;
             add_to_buried(otmp);
         }
+    }
+    else if (typ == TREE) {
+        levl[m.x][m.y].typ = TREE;
     }
     else if (!typ) {
         /* engraving */

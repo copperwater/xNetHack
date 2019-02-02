@@ -442,6 +442,7 @@ int how;
         (mon_nm == PM_WRAITH && !rn2(6)) ||
         (mon_nm == PM_VAMPIRE && !rn2(10)) ||
         (mon_nm == PM_GHOUL && !rn2(5)) ||
+        (mons[mon_nm].mlet == S_ZOMBIE && !rn2(4)) ||
         (mons[mon_nm].mlet == S_MUMMY && !rn2(8))) {
         u.ugrave_arise = NON_PM;
 
@@ -591,6 +592,8 @@ int how;
         u.ugrave_arise = PM_VAMPIRE;
     else if (mptr == &mons[PM_GHOUL])
         u.ugrave_arise = PM_GHOUL;
+    else if (mptr->mlet == S_ZOMBIE && mptr != &mons[PM_SKELETON])
+        u.ugrave_arise = urace.zombienum;
     /* this could happen if a high-end vampire kills the hero
        when ordinary vampires are genocided; ditto for wraiths */
     if (u.ugrave_arise >= LOW_PM
@@ -1306,8 +1309,11 @@ int how;
                 have been genocided:  genocide could occur after hero is
                 already infected or hero could eat a glob of one created
                 before genocide; don't try to arise as one if they're gone */
-             && !(mvitals[PM_GREEN_SLIME].mvflags & G_GENOD))
+             && !(mvitals[PM_GREEN_SLIME].mvflags & G_GENOD)) {
+        if (Hallucination)
+            pline("Next time, watch out for slime!");
         u.ugrave_arise = PM_GREEN_SLIME;
+    }
 
     if (how == QUIT) {
         killer.format = NO_KILLER_PREFIX;
@@ -2033,7 +2039,7 @@ boolean ask;
                 Sprintf(buftoo, "%*s%s", pfx, "", buf);
                 putstr(klwin, 0, buftoo);
             }
-            if (Hallucination)
+            if (Hallucination && ntypes > 10)
                 putstr(klwin, 0, "and a partridge in a pear tree");
             if (ntypes > 1) {
                 if (!dumping)

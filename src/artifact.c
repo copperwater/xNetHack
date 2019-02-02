@@ -205,6 +205,9 @@ aligntyp alignment; /* target alignment, or A_NONE */
         if (by_align)
             otmp = 0; /* (there was no original object) */
     }
+    /* poison artifacts that are permapoisoned */
+    if (permapoisoned(otmp))
+        otmp->opoisoned = 1;
     return otmp;
 }
 
@@ -574,12 +577,21 @@ long wp_mask;
     }
     if (spfx & SPFX_WARN) {
         if (spec_m2(otmp)) {
+            /* FIXME: This currently uses 0x80000000 (M2_MAGIC, which nothing
+             * currently warns of) as a mask that denotes "actually warn versus
+             * monster mlet rather than M2 flags". The proper way to do this is
+             * to add another field to context.warntype, but that requires a
+             * savebreak; so when the next savebreak happens refactor this code.
+             */
+            unsigned long type = spec_m2(otmp);
+            if (spfx & SPFX_DCLAS)
+                type |= 0x80000000;
             if (on) {
                 EWarn_of_mon |= wp_mask;
-                context.warntype.obj |= spec_m2(otmp);
+                context.warntype.obj |= type;
             } else {
                 EWarn_of_mon &= ~wp_mask;
-                context.warntype.obj &= ~spec_m2(otmp);
+                context.warntype.obj &= ~type;
             }
             see_monsters();
         } else {
@@ -1190,14 +1202,28 @@ int dieroll; /* needed for Magicbane and vorpal blades */
 
     /* the four basic attacks: fire, cold, shock and missiles */
     if (attacks(AD_FIRE, otmp)) {
-        if (realizes_damage)
+        if (realizes_damage) {
             pline_The("fiery blade %s %s%c",
                       !spec_dbon_applies
                           ? "hits"
-                          : (mdef->data == &mons[PM_WATER_ELEMENTAL])
+                          : (mdef->data == &mons[PM_WATER_ELEMENTAL]
+                             || mdef->data == &mons[PM_ICE_VORTEX])
                                 ? "vaporizes part of"
                                 : "burns",
                       hittee, !spec_dbon_applies ? '.' : '!');
+            if (completelyburns(mdef->data) || is_wooden(mdef->data)
+                || mdef->data == &mons[PM_GREEN_SLIME]) {
+                if (youdefend) {
+                    You("ignite and turn to ash!");
+                    losehp((Upolyd ? u.mh : u.uhp) + 1, "immolation",
+                           NO_KILLER_PREFIX);
+                }
+                else {
+                    pline("%s ignites and turns to ash!", Monnam(mdef));
+                    mondead(mdef);
+                }
+            }
+        }
         if (!rn2(4))
             (void) destroy_mitem(mdef, POTION_CLASS, AD_FIRE);
         if (!rn2(4))
@@ -2312,6 +2338,15 @@ struct monst *mon; /* if null, hero assumed */
             return o;
     }
     return (struct obj *) 0;
+}
+
+/* return TRUE if obj is permanently poisoned (currently only true for artifacts
+ * in general and Grimtooth specifically) */
+boolean
+permapoisoned(obj)
+struct obj* obj;
+{
+    return (obj && obj->oartifact == ART_GRIMTOOTH);
 }
 
 /*artifact.c*/

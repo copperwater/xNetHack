@@ -378,10 +378,12 @@ register struct monst *mtmp;
                 (void) mongets(mtmp, ELVEN_RING_MAIL);
                 struct obj* mail = m_carrying(mtmp, ELVEN_RING_MAIL);
                 if (mail)
-                    mail->material = MITHRIL;
+                    set_material(mail, MITHRIL);
             }
             if (!rn2(10))
                 (void) mongets(mtmp, DWARVISH_CLOAK);
+            while (!rn2(3))
+                (void) mongets(mtmp, APPLE + rn2(CARROT - APPLE));
         } else if (is_dwarf(ptr)) {
             if (rn2(7))
                 (void) mongets(mtmp, DWARVISH_CLOAK);
@@ -1247,6 +1249,8 @@ int mmflags;
 
     if (In_sokoban(&u.uz) && !mindless(ptr)) /* know about traps here */
         mtmp->mtrapseen = (1L << (PIT - 1)) | (1L << (HOLE - 1));
+    if (Is_stronghold(&u.uz) && !mindless(ptr)) /* know about the trap doors */
+        mtmp->mtrapseen = (1L << (TRAPDOOR - 1));
     /* quest leader and nemesis both know about all trap types */
     if (ptr->msound == MS_LEADER || ptr->msound == MS_NEMESIS)
         mtmp->mtrapseen = ~0;
@@ -1967,6 +1971,11 @@ int otyp;
             if (otmp->oclass == WEAPON_CLASS && otmp->spe < 1)
                 otmp->spe = 1;
             else if (otmp->oclass == ARMOR_CLASS && otmp->spe < 0)
+                otmp->spe = 0;
+        }
+        else if (is_lord(mtmp->data)) {
+            if ((otmp->oclass == WEAPON_CLASS || otmp->oclass == ARMOR_CLASS)
+                && otmp->spe < 0)
                 otmp->spe = 0;
         }
 

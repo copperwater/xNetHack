@@ -116,8 +116,15 @@ Arrete, c'est ici l'empire de la mort
 # Portal
 The cake is a lie
 
-# Monty Python and the Holy Grail
+# Monty Python
 He who is valiant and pure of spirit may find the Holy Grail in the Castle of aaarrrrggh.
+Romanes Eunt Domus
 
 # Super Mario Bros
 Sorry, adventurer, your amulet is in another dungeon.
+
+# Wilfred Owen
+Dulce et decorum est pro patria mori.
+
+# Lovecraft
+Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn

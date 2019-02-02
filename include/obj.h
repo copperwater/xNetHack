@@ -96,6 +96,7 @@ struct obj {
     Bitfield(otrapped, 1);    /* container is trapped */
 /* or accidental tripped rolling boulder trap */
 #define opoisoned otrapped /* object (weapon) is coated with poison */
+#define zombie_corpse otrapped /* corpse is a zombie that might revive */
 
     Bitfield(recharged, 3); /* number of times it's been recharged */
 #define on_ice recharged    /* corpse on ice */
@@ -204,10 +205,11 @@ struct obj {
     (otmp->oclass == WEAPON_CLASS                   \
      && objects[otmp->otyp].oc_skill >= -P_SHURIKEN \
      && objects[otmp->otyp].oc_skill <= -P_BOW)
-#define is_poisonable(otmp)                         \
-    (otmp->oclass == WEAPON_CLASS                   \
-     && objects[otmp->otyp].oc_skill >= -P_SHURIKEN \
-     && objects[otmp->otyp].oc_skill <= -P_BOW)
+#define is_poisonable(otmp)                          \
+    ((otmp->oclass == WEAPON_CLASS                   \
+      && objects[otmp->otyp].oc_skill >= -P_SHURIKEN \
+      && objects[otmp->otyp].oc_skill <= -P_BOW)     \
+     || permapoisoned(otmp))
 #define uslinging() (uwep && objects[uwep->otyp].oc_skill == P_SLING)
 /* 'is_quest_artifact()' only applies to the current role's artifact */
 #define any_quest_artifact(o) ((o)->oartifact >= ART_ORB_OF_DETECTION)

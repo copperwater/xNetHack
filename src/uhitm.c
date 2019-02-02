@@ -867,7 +867,14 @@ int dieroll;
                                  && uwep->otyp == ELVEN_BOW)
                             tmp++;
                     }
-                    if (obj->opoisoned && is_poisonable(obj))
+                }
+                if ((obj->opoisoned || permapoisoned(obj))
+                    && is_poisonable(obj)) {
+                    /* Since non-thrown poison sources do more damage, they
+                     * would be way too powerful to poison on each hit - so
+                     * artificially limit the opportunity for it to score a
+                     * hit. */
+                    if (thrown == HMON_THROWN || !rn2(4))
                         ispoisoned = TRUE;
                 }
                 /* maybe break your glass weapon or monster's glass armor; put
@@ -1150,7 +1157,7 @@ int dieroll;
             You_feel("like an evil coward for using a poisoned weapon.");
             adjalign(-1);
         }
-        if (obj && !rn2(nopoison)) {
+        if (obj && !permapoisoned(obj) && !rn2(nopoison)) {
             /* remove poison now in case obj ends up in a bones file */
             obj->opoisoned = FALSE;
             /* defer "obj is no longer poisoned" until after hit message */
@@ -1160,7 +1167,7 @@ int dieroll;
             needpoismsg = TRUE;
         }
         else {
-            tmp += rnd(6);
+            tmp += (thrown == HMON_THROWN ? rnd(6) : rn1(10, 6));
         }
     }
     if (tmp < 1) {
@@ -2298,7 +2305,8 @@ register struct monst *mon;
 {
     struct attack *mattk, alt_attk;
     struct obj *weapon, **originalweapon;
-    boolean altwep = FALSE, weapon_used = FALSE, odd_claw = TRUE;
+    boolean altwep = FALSE, weapon_used = FALSE, odd_claw = TRUE,
+            stop_attacking = FALSE;
     int i, tmp, armorpenalty, sum[NATTK], nsum = 0, dhit = 0, attknum = 0;
     int dieroll, multi_claw = 0;
 
@@ -2644,9 +2652,11 @@ register struct monst *mon;
             killer.format = NO_KILLER_PREFIX;
             rehumanize();
         }
+        stop_attacking = FALSE;
         if (sum[i] == 2) {
             /* defender dead */
             (void) passive(mon, weapon, 1, 0, mattk->aatyp, FALSE);
+            stop_attacking = TRUE; /* zombification; DEADMONSTER is false */
             nsum = 0; /* return value below used to be 'nsum > 0' */
         } else {
             (void) passive(mon, weapon, sum[i], 1, mattk->aatyp, FALSE);
@@ -2664,8 +2674,10 @@ register struct monst *mon;
             break; /* don't proceed with additional attacks */
         }
         /* stop attacking if defender has died;
-           needed to defer this until after uswapwep->cursed check */
-        if (DEADMONSTER(mon))
+           needed to defer this until after uswapwep->cursed check;
+           use stop_attacking to track cases like if the monster was polymorphed
+           or zombified and we should not attack it any more this round. */
+        if (DEADMONSTER(mon) || stop_attacking)
             break;
         if (!Upolyd)
             break; /* No extra attacks if no longer a monster */

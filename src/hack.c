@@ -1821,6 +1821,13 @@ domove()
              * moving at all */
             if ((is_pool(x, y) && !known_wwalking)
                 || (is_lava(x, y) && !known_lwalking)) {
+                static boolean first_time = TRUE;
+                pline("You avoid stepping into the %s.",
+                      is_lava(x, y) ? "molten lava" : "water");
+                if (first_time) {
+                    pline("(Use \"m\" to step in if you really want to.)");
+                    first_time = FALSE;
+                }
                 context.move = 0;
                 nomul(0);
                 return;

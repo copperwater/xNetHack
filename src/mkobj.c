@@ -1218,10 +1218,11 @@ struct obj *body;
     int rot_adjust;
     short action;
 
-#define TAINT_AGE (50L)        /* age when corpses go bad */
-#define TROLL_REVIVE_CHANCE 37 /* 1/37 chance for 50 turns   ~ 75% chance */
-#define MOLDY_CHANCE 290       /* 1/290 chance for 200 turns ~ 50% chance */
-#define ROT_AGE (250L)         /* age when corpses rot away */
+#define TAINT_AGE (50L)          /* age when corpses go bad */
+#define TROLL_REVIVE_CHANCE 37   /* 1/37 chance for 50 turns   ~ 75% chance */
+#define ZOMBIE_REVIVE_CHANCE 275 /* 1/275 chance for 250 turns ~ 60% chance */
+#define MOLDY_CHANCE 290         /* 1/290 chance for 200 turns ~ 50% chance */
+#define ROT_AGE (250L)           /* age when corpses rot away */
 
     /* lizards and lichen don't rot or revive */
     if (body->corpsenm == PM_LIZARD || body->corpsenm == PM_LICHEN)
@@ -1248,13 +1249,26 @@ struct obj *body;
 
     } else if (mons[body->corpsenm].mlet == S_TROLL && !body->norevive) {
         long age;
-        for (age = 2; age <= TAINT_AGE; age++)
+        for (age = 2; age <= TAINT_AGE; age++) {
             if (!rn2(TROLL_REVIVE_CHANCE)) { /* troll revives */
                 action = REVIVE_MON;
                 when = age;
                 break;
             }
+        }
+    } else if (body->zombie_corpse && !body->norevive) {
+        long age;
+        for (age = 2; age <= ROT_AGE; age++) {
+            if (!rn2(ZOMBIE_REVIVE_CHANCE)) { /* zombie revives */
+                action = REVIVE_MON;
+                when = age;
+                break;
+            }
+        }
     }
+    /* independent if block so that a corpse which is eligible to revive but
+     * fails to will still possibly grow mold, rather than having all troll
+     * corpses just never grow mold. */
     if (action == ROT_CORPSE && !acidic(&mons[body->corpsenm])) {
         /* Corpses get moldy.
          * TODO: allow green molds to grow on acidic corpses. */
@@ -1658,6 +1672,9 @@ unsigned corpstatflags;
     } else
         otmp = mksobj_at(objtype, x, y, init, FALSE);
     if (otmp) {
+        if ((corpstatflags & CORPSTAT_ZOMBIE) != 0) {
+            otmp->zombie_corpse = 1;
+        }
         if (mtmp) {
             struct obj *otmp2;
 
@@ -1676,7 +1693,8 @@ unsigned corpstatflags;
             otmp->corpsenm = monsndx(ptr);
             otmp->owt = weight(otmp);
             if (otmp->otyp == CORPSE && (special_corpse(old_corpsenm)
-                                         || special_corpse(otmp->corpsenm))) {
+                                         || special_corpse(otmp->corpsenm)
+                                         || otmp->zombie_corpse)) {
                 obj_stop_timers(otmp);
                 start_corpse_timeout(otmp);
             }
@@ -3142,7 +3160,8 @@ static const struct icp dwarvish_materials[] = {
 /* for armor-y objects of elven make - no iron!
  * Does not cover clothy items; those use the regular cloth probs. */
 static const struct icp elven_materials[] = {
-    {80, WOOD},
+    {60, 0}, /* use base material */
+    {20, WOOD},
     {10, COPPER},
     { 5, MITHRIL},
     { 3, SILVER},
@@ -3150,12 +3169,12 @@ static const struct icp elven_materials[] = {
 };
 
 /* Reflectable items - for the shield of reflection; anything that can hold a
- * polish */
+ * polish. Amulets also arbitrarily use this list. */
 static const struct icp shiny_materials[] = {
     {30, SILVER},
-    {20, COPPER},
-    {10, GOLD},
-    {10, IRON}, /* stainless steel */
+    {22, COPPER},
+    {12, GOLD},
+    {12, IRON}, /* stainless steel */
     {10, GLASS},
     { 7, MITHRIL},
     { 5, METAL}, /* aluminum, or similar */
@@ -3222,6 +3241,8 @@ struct obj* obj;
          * Return NULL so that init_obj_material and valid_obj_material both
          * work properly. */
         case BULLWHIP:
+        case WORM_TOOTH:
+        case CRYSKNIFE:
             return NULL;
         /* Any other cases for specific object types go here. */
         case SHIELD_OF_REFLECTION:
@@ -3309,20 +3330,20 @@ struct obj* obj;
             materials++;
         }
         if (materials->iclass)
-            obj->material = materials->iclass;
+            set_material(obj, materials->iclass);
         else
             /* can use a 0 in the list to default to the base material */
-            obj->material = objects[obj->otyp].oc_material;
+            set_material(obj, objects[obj->otyp].oc_material;
     }
     else {
         /* default case for other items: always use base material... */
-        obj->material = objects[obj->otyp].oc_material;
+        set_material(obj, objects[obj->otyp].oc_material);
     }
 
     /* Do any post-fixups here for bad or illogical material combinations */
-    if (otyp == PICK_AXE &&
+    if ((otyp == PICK_AXE || otyp == DWARVISH_MATTOCK) &&
         (obj->material == PLASTIC || obj->material == GLASS)) {
-        obj->material = IRON;
+        set_material(obj, objects[obj->otyp].oc_material);
     }
 }
 
@@ -3358,6 +3379,29 @@ int mat;
         /* no valid materials in list, or no valid list */
         return FALSE;
     }
+}
+
+/* Change the object's material, and any properties derived from it.
+ * This includes weight, and erosion/erodeproofing (i.e. materials which
+ * can't corrode will not be generated corroded or corrode-proofed).
+ */
+void
+set_material(otmp, material)
+struct obj* otmp;
+int material;
+{
+    if (!valid_obj_material(otmp, material)) {
+        impossible("setting material of %s to invalid material %d",
+                   OBJ_NAME(objects[otmp->otyp]), material);
+    }
+    otmp->material = material;
+    otmp->owt = weight(otmp);
+    if ((otmp->oeroded) && !is_rustprone(otmp) && !is_flammable(otmp))
+        otmp->oeroded = 0;
+    if ((otmp->oeroded2) && !is_corrodeable(otmp) && !is_rottable(otmp))
+        otmp->oeroded2 = 0;
+    if (otmp->oerodeproof && !is_damageable(otmp) && (otmp->material != GLASS))
+        otmp->oerodeproof = FALSE;
 }
 
 /*mkobj.c*/

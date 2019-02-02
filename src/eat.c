@@ -14,7 +14,6 @@ STATIC_PTR int NDECL(unfaint);
 STATIC_DCL const char *FDECL(food_xname, (struct obj *, BOOLEAN_P));
 STATIC_DCL void FDECL(choke, (struct obj *));
 STATIC_DCL void NDECL(recalc_wt);
-STATIC_DCL unsigned FDECL(obj_nutrition, (struct obj *));
 STATIC_DCL struct obj *FDECL(touchfood, (struct obj *));
 STATIC_DCL void NDECL(do_reset_eat);
 STATIC_DCL void FDECL(done_eating, (BOOLEAN_P));
@@ -321,7 +320,7 @@ reset_eat()
 }
 
 /* base nutrition of a food-class object */
-STATIC_OVL unsigned
+unsigned
 obj_nutrition(otmp)
 struct obj *otmp;
 {
@@ -1764,6 +1763,36 @@ struct obj *otmp;
                          && rn2(10)
                          && ((rotted < 1) ? TRUE : !rn2(rotted+1)));
         const char *pmxnam = food_xname(otmp, FALSE);
+        const char* taste;
+
+        if (Hallucination) {
+            /* if hallu, "This food is X"; if not, "This food tastes X" */
+            if (yummy)
+                /* tiger reference is to TV ads for "Frosted Flakes",
+                   breakfast cereal targeted at kids by "Tony the tiger" */
+                taste = (u.umonnum == PM_TIGER) ? "gr-r-reat" : "gnarly";
+            else if (palatable)
+                taste = "copacetic";
+            else
+                taste = "grody";
+        }
+        else {
+            if (yummy)
+                taste = "delicious";
+            else if (palatable)
+                taste = "okay";
+            else
+                taste = "terrible";
+        }
+
+        /* special cases for funny messages or combinations go here */
+        if (maybe_polyd(is_dwarf(youmonst.data), Race_if(PM_DWARF))
+            && mons[mnum].mlet == S_RODENT) {
+            yummy = palatable = TRUE;
+        }
+        if (mnum == PM_LONG_WORM || mnum == PM_BABY_LONG_WORM) {
+            taste = "spicy";
+        }
 
         if (!strncmpi(pmxnam, "the ", 4))
             pmxnam += 4;
@@ -1771,13 +1800,7 @@ struct obj *otmp;
               type_is_pname(&mons[mnum])
                  ? "" : the_unique_pm(&mons[mnum]) ? "The " : "This ",
               pmxnam,
-              Hallucination ? "is" : "tastes",
-                  /* tiger reference is to TV ads for "Frosted Flakes",
-                     breakfast cereal targeted at kids by "Tony the tiger" */
-              Hallucination
-                 ? (yummy ? ((u.umonnum == PM_TIGER) ? "gr-r-reat" : "gnarly")
-                          : palatable ? "copacetic" : "grody")
-                 : (yummy ? "delicious" : palatable ? "okay" : "terrible"),
+              Hallucination ? "is" : "tastes", taste,
               (yummy || !palatable) ? '!' : '.');
     }
 
@@ -3423,8 +3446,10 @@ int threat;
     case STONED:
         return (boolean) (mndx >= LOW_PM
                           && (mndx == PM_LIZARD || acidic(&mons[mndx])));
-    /* no tins can cure these (yet?) */
+    /* polymorph into a fiery monster */
     case SLIMED:
+        return (boolean) (mndx == PM_CHAMELEON);
+    /* no tins can cure these (yet?) */
     case SICK:
     case VOMITING:
         break;
