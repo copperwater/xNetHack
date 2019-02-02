@@ -1290,6 +1290,8 @@ static const char *const currencies[] = {
     "Triganic Pu",           /* The Hitchhiker's Guide to the Galaxy */
     "woolong",               /* Cowboy Bebop */
     "zorkmid",               /* Zork, NetHack */
+    "rupee",                 /* The Legend Of Zelda (also real life)*/
+    "Platinum Yendorian Express Frequent Flier Mile", /* NetHack (?) */
 };
 
 const char *

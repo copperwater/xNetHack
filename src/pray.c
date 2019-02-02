@@ -2193,23 +2193,35 @@ aligntyp alignment;
 }
 
 static const char *hallu_gods[] = {
-    "the Flying Spaghetti Monster", /* Church of the FSM */
-    "Eris",                         /* Discordianism */
-    "the Martians",                 /* every science fiction ever */
-    "Xom",                          /* Crawl */
-    "AnDoR dRaKoN",                 /* ADOM */
-    "the Central Bank of Yendor",   /* economics */
-    "Tooth Fairy",                  /* real world(?) */
-    "Om",                           /* Discworld */
-    "Yawgmoth",                     /* Magic: the Gathering */
-    "Morgoth",                      /* LoTR */
-    "Cthulhu",                      /* Lovecraft */
-    "the Ori",                      /* Stargate */
-    "destiny",                      /* why not? */
-    "your Friend the Computer",     /* Paranoia */
-    "Big Brother",                  /* 1984 */
-    "Random Number God",            /* gaming parlance */
-    "RNGesus"                       /* gaming parlance */
+    "the Flying Spaghetti Monster",     /* Church of the FSM */
+    "Eris",                             /* Discordianism */
+    "the Martians",                     /* every science fiction ever */
+    "Xom",                              /* Crawl */
+    "AnDoR dRaKoN",                     /* ADOM */
+    "the Central Bank of Yendor",       /* economics */
+    "Tooth Fairy",                      /* real world(?) */
+    "Om",                               /* Discworld */
+    "Yawgmoth",                         /* Magic: the Gathering */
+    "Morgoth",                          /* LoTR */
+    "Cthulhu",                          /* Lovecraft */
+    "the Ori",                          /* Stargate */
+    "destiny",                          /* why not? */
+    "your Friend the Computer",         /* Paranoia */
+    "Big Brother",                      /* 1984 */
+    "Random Number God",                /* gaming parlance */
+    "RNGesus",                          /* gaming parlance */
+    "the DevTeam",                      /* NetHack */
+    "the Gnome With The Wand Of Death", /* NetHack community */
+    "Marduk",                           /* "the Creator" */
+    "Albert Einstein",                  /* real world */
+    "Zeus",                             /* Greek mythology */
+    "Cosmic AC",                        /* The Last Question */
+    "%s",                               /* dNetHack bug */
+    "Manwe",                            /* Silmarillion */
+    "the Doctor",                       /* Doctor Who */
+    "Aslan",                            /* Narnia */
+    "Armok",                            /* Dwarf Fortress */
+    "the God-Emperor",                  /* Warhammer 40K */
 };
 
 /* hallucination handling for priest/minion names: select a random god

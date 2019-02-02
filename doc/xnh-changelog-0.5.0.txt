@@ -75,6 +75,8 @@ YAFM for ascending while hallucinating.
 YAFM for trying to #chat to a wall.
 YAFM for a cosmetic magic trap effect if you are a hallucinating valkyrie.
 YAFM for hearing a wererat change form while hallucinating.
+Usual periodic assortment of new bogusmons, bogus gods, bogus currencies, candy
+  bar labels, t-shirt texts, rumors, engravings, and epitaphs.
 
 It contains the following non-gameplay architectural changes:
 

@@ -30,10 +30,15 @@ ear piercer
 violent gem
 +Wizard of Splendor
 +Lizard of Yendor
+Grid Bug Mk 2
+lurker below
+hallucinogen-distorted hallucination
 
 # NetHack community: tournaments, webcomics, etc
 +Dudley
 improved tin opener
+=Gnome With The Wand Of Death
+speedrunner
 
 # self-deprecation
 poorly balanced monster
@@ -68,6 +73,7 @@ rave spider
 clue golem
 cockathrice
 bust vortex
+decipede
 errata elemental
 elastic eel
 electrocardiogram eel
@@ -127,6 +133,9 @@ wire vortex
 yellow wight
 
 ## Section 2 - other roguelike references
+
+# dNetHack
+orc of the ages of stars
 
 # Slash'EM Extended
 dissolved undead potato
@@ -189,11 +198,15 @@ Nemean lion
 -Scylla
 -Charybdis
 
+# other folklore
+-Baba Yaga
+
 # Monty Python
 killer bunny
 Rabbit of Caerbannog
 |Knight Who Says Ni
 |Black Knight
+legendary black beast of Aaarrrrggh
 
 # The Princess Bride
 rodent of unusual size
@@ -209,10 +222,12 @@ wrong trousers
 Luggage
 vampiric watermelon
 +Wintersmith
+wizzard
 
 # Lord of the Rings
 Ent
 +Great Goblin
+pink oliphaunt
 
 # Xanth
 tangle tree
@@ -267,6 +282,7 @@ nyaasu
 # monster movies
 -Godzilla
 +King Kong
+xenomorph
 
 # old L of SH
 earthquake beast
@@ -291,6 +307,7 @@ Vogon
 =Deep Thought
 +Agrajag
 small furry creature from Alpha Centauri
+hooloovoo
 
 # TMNT
 teenage mutant ninja turtle
@@ -330,6 +347,8 @@ scrag
 # DnD
 gazebo
 wizard of the coast
+munchkin
+rules lawyer
 
 # Ultima
 +Lord British
@@ -356,9 +375,6 @@ Flying Spaghetti Monster
 three-headed monkey
 +El Pollo Diablo
 
-# modern folklore
-little green man
-
 # Portal
 weighted Companion Cube
 
@@ -374,6 +390,9 @@ tie-thulu
 +Domo-kun
 looooooooooooong cat
 nyan cat
+lolcat
+exploding kitten
++Trogdor
 
 # the Internet is made for cat pix
 ceiling cat
@@ -388,7 +407,9 @@ unicorn pegasus kitten
 
 # Minecraft
 enderman
+-Ender Dragon
 creeper
+=Wither
 
 # Starcraft 2
 zergling
@@ -426,6 +447,7 @@ palette swap
 =Cthulu
 =Yog-Sothoth
 =Nyarlathotep
+unnameable horror from beyond
 
 # Pirates of Penzance
 modern major general
@@ -441,6 +463,25 @@ platypus bear
 sky bison
 badger mole
 fire ferret
+
+# Harry Potter
++Voldemort
+crumple-horned snorkack
+niffler
+whomping willow
+
+# The Legend of Zelda
+wallmaster
+floormaster
+Like Like
+moblin
+lizalfos
+skulltula
+octorok
+
+# A Song Of Ice And Fire
+Other
+khalasar
 
 ## Section 4 - miscellaneous non-reference things
 
@@ -480,6 +521,8 @@ kelpie
 catoblepas
 phoenix
 amphisbaena
+chupacabra
+wendigo
 
 # Unusually animate body parts
 bouncing eye
@@ -505,6 +548,8 @@ recursion
 numeric prefix
 technical difficulty
 lag monster
+stack overflow
+bogon
 
 # bugs
 bohrbug
@@ -534,6 +579,8 @@ gray goo
 magnetic monopole
 first category perpetual motion device
 big dumb object
+little green man
+space invader
 
 # Typography
 guillemet
@@ -634,6 +681,9 @@ golem of infinite hunger
 crimson dervish
 munch provider
 ascii art
+jabbermouth
+schooner
+muppet
 
 # Feelings
 existential angst

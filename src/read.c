@@ -162,6 +162,7 @@ char *buf;
         "Hello, I'm War!",
         "It is better to light a candle than to curse the darkness",
         "It is easier to curse the darkness than to light a candle",
+        "It is easier to light the darkness than to curse a candle",
         /* expanded "rock--paper--scissors" featured in TV show "Big Bang
            Theory" although they didn't create it (and an actual T-shirt
            with pentagonal diagram showing which choices defeat which) */
@@ -346,7 +347,8 @@ doread()
             "Crispy Yum Yum", "Nilla Crunchie",   "Berry Bar",
             "Choco Nummer",   "Om-nom", /* Cat Macro */
             "Fruity Oaty",              /* Serenity */
-            "Wonka Bar" /* Charlie and the Chocolate Factory */
+            "Wonka Bar", /* Charlie and the Chocolate Factory */
+            "EAT ME"     /* Alice in Wonderland */
         };
 
         if (Blind) {
