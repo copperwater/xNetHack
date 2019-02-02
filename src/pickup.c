@@ -923,7 +923,7 @@ int FDECL((*allow), (OBJ_P));     /* allow function */
                 }
 
                 any.a_obj = curr;
-                add_menu(win, obj_to_glyph(curr), &any,
+                add_menu(win, obj_to_glyph(curr, rn2_on_display_rng), &any,
                          (qflags & USE_INVLET) ? curr->invlet
                            : (first && curr->oclass == COIN_CLASS) ? '$' : 0,
                          def_oc_syms[(int) objects[curr->otyp].oc_class].sym,
@@ -954,14 +954,14 @@ int FDECL((*allow), (OBJ_P));     /* allow function */
         }
         any.a_obj = (struct obj *) &zeroobj;
         if (engulfer)
-            add_menu(win, mon_to_glyph(&youmonst), &any,
+            add_menu(win, mon_to_glyph(&youmonst, rn2_on_display_rng), &any,
                      /* fake inventory letter, no group accelerator */
                      CONTAINED_SYM, 0, ATR_NONE, an(self_lookat(buf)),
                      MENU_UNSELECTED);
         else {
             int sym = back_to_defsym(u.ux, u.uy, FALSE);
             if (trap)
-                sym = trap_to_defsym(what_trap(trap->ttyp));
+                sym = trap_to_defsym(what_trap(trap->ttyp, rn2_on_display_rng));
             add_menu(win, cmap_to_glyph(sym), &any,
                      0, 0, ATR_NONE,
                      an(trap ? defsyms[sym].explanation :

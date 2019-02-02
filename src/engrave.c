@@ -19,7 +19,7 @@ char *outbuf;
     /* a random engraving may come from the "rumors" file,
        or from the "engrave" file (formerly in an array here) */
     if (!rn2(4) || !(rumor = getrumor(0, outbuf, TRUE)) || !*rumor)
-        (void) get_rnd_text(ENGRAVEFILE, outbuf, -1);
+        (void) get_rnd_text(ENGRAVEFILE, outbuf, -1, rn2);
 
     wipeout_text(outbuf, (int) (strlen(outbuf) / 4), 0);
     return outbuf;
@@ -1334,7 +1334,7 @@ const char *str;
     /* Engrave the headstone */
     del_engr_at(x, y);
     if (!str)
-        str = get_rnd_text(EPITAPHFILE, buf, -1);
+        str = get_rnd_text(EPITAPHFILE, buf, -1, rn2);
     make_engr_at(x, y, str, 0L, HEADSTONE);
     return;
 }

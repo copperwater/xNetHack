@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.235 $ $NHDT-Date: 1548209734 2019/01/23 02:15:34 $
+$NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.242 $ $NHDT-Date: 1548978603 2019/01/31 23:50:03 $
 
 This fixes36.2 file is here to capture information about updates in the 3.6.x
 lineage following the release of 3.6.1 in April 2018. Please note, however,
@@ -335,6 +335,8 @@ entering Ft.Ludios with a lit candle lit up the entire entry room except for
 	one corner spot; that corner is beyond candle radius but other spots
 	even further away were being shown; force the walls to unlit in order
 	to prevent those wall spots from showing so soon
+a couple of short wall segments in the "Gnome King's Wine Cellar" variant of
+	Mines' End were diggable; one stone spot which should have been, wasn't
 boulder dropped or launched by a monster onto a monster trapped in a pit and
 	killing it credited/blamed the hero and might trigger a deltrap panic
 the simulation of dual weapon combat when polymorphed into a form with more
@@ -350,6 +352,13 @@ various non-weapon attacks while polymorphed didn't inflict blessed or silver
 hero poly'd into rope golem form could choke headless or non-breathing monsts
 hero poly'd into creature with hug attack could hug a long worm's tail which
 	rendered the whole worm immobile
+smudging of an engraving has been relocated to after a succesful move
+	and both your former location and your resulting location are
+	subject to the smudging
+monster with multiple items in inventory could trigger 'dealloc_obj with nobj'
+	panic when turned into a statue if separate mon->minvent items merged
+lock picking context could end up with stale container pointer if container
+	being forced/unlocked/locked got destroyed or sent to another level
 
 
 Fixes to Post-3.6.1 Problems that Were Exposed Via git Repository
@@ -405,6 +414,8 @@ when engulfed while in a shop, dropping an item into the engulfer and then
 	using ':' to look at current location could cause a crash
 when items were on the floor just inside a shop's door where the shopkeeper
 	doesn't buy and sell stuff, those items showed a 'for sale' price
+having an artifact wish be refused ("for a moment you feel <artifact> in
+	your hands, but it disappears") would immediately segfault
 tty: turn off an optimization that is the suspected cause of Windows reported
 	partial status lines following level changes
 tty: ensure that current status fields are always copied to prior status
@@ -534,6 +545,8 @@ when sortloot is enabled, gems are grouped in subsets (1) unseen gems and
 	and (8) seen rocks (IDed/unIDed not applicable)
 in wizard mode, ^T can be preceded by 'm' prefix in order to test teleporting
 	without having wizard mode override various restrictions
+include isaac64 for pseudo random number generation
+core prng and display prng use different contexts
 
 
 NetHack Community Patches (or Variation) Included

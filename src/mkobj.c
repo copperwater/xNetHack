@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkobj.c	$NHDT-Date: 1547086532 2019/01/10 02:15:32 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.141 $ */
+/* NetHack 3.6	mkobj.c	$NHDT-Date: 1548978605 2019/01/31 23:50:05 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.142 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2240,6 +2240,10 @@ struct obj *obj;
     if (obj->where != OBJ_FREE)
         panic("add_to_migration: obj not free");
 
+    /* lock picking context becomes stale if it's for this object */
+    if (Is_container(obj))
+        maybe_reset_pick(obj);
+
     obj->where = OBJ_MIGRATING;
     obj->nobj = migrating_objs;
     migrating_objs = obj;
@@ -3333,7 +3337,7 @@ struct obj* obj;
             set_material(obj, materials->iclass);
         else
             /* can use a 0 in the list to default to the base material */
-            set_material(obj, objects[obj->otyp].oc_material;
+            set_material(obj, objects[obj->otyp].oc_material);
     }
     else {
         /* default case for other items: always use base material... */

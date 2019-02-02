@@ -125,12 +125,12 @@ boolean exclude_cookie;
             case 2: /*(might let a bogus input arg sneak thru)*/
             case 1:
                 beginning = (long) true_rumor_start;
-                tidbit = Rand() % true_rumor_size;
+                tidbit = rn2(true_rumor_size);
                 break;
             case 0: /* once here, 0 => false rather than "either"*/
             case -1:
                 beginning = (long) false_rumor_start;
-                tidbit = Rand() % false_rumor_size;
+                tidbit = rn2(false_rumor_size);
                 break;
             default:
                 impossible("strange truth value for rumor");
@@ -283,12 +283,14 @@ rumor_check()
 /* Gets a line of text from file 'fname', and returns it.
  * which is the line number; if greater than the file size, it will wrap around
  * to the beginning of the file. A negative value for which indicates that the
- * caller wants a random line. */
+ * caller wants a random line.
+ * rng is the random number generator to use, and should act like rn2 does. */
 char *
-get_rnd_text(fname, buf, which)
+get_rnd_text(fname, buf, which, rng)
 const char *fname;
 char *buf;
 int which;
+int FDECL((*rng), (int));
 {
     dlb *fh;
 
@@ -310,7 +312,7 @@ int which;
         endtxt = dlb_ftell(fh);
         sizetxt = endtxt - starttxt;
         if (which < 0) {
-            tidbit = rn2(sizetxt);
+            tidbit = rng(sizetxt);
         }
         else {
             tidbit = which % sizetxt;

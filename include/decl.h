@@ -227,6 +227,7 @@ E NEARDATA boolean mrg_to_wielded;
 E NEARDATA boolean defer_see_monsters;
 
 E NEARDATA boolean in_steed_dismounting;
+E NEARDATA boolean has_strong_rngseed;
 
 E const int shield_static[];
 
@@ -278,6 +279,11 @@ E NEARDATA struct mvitals {
     uchar died;
     uchar mvflags;
 } mvitals[NUMMONS];
+
+E NEARDATA long domove_attempting;
+E NEARDATA long domove_succeeded;
+#define DOMOVE_WALK         0x00000001
+#define DOMOVE_RUSH         0x00000002
 
 E NEARDATA struct c_color_names {
     const char *const c_black, *const c_amber, *const c_golden,
