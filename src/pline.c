@@ -479,7 +479,10 @@ VA_DECL(const char *, s)
     if (program_state.something_worth_saving)
         Strcat(pbuf, "  (Saving and reloading may fix this problem.)");
     pline("%s", VA_PASS1(pbuf));
-    pline("Please report these messages to the developer.");
+    pline("Please report these messages to %s.", DEVTEAM_EMAIL);
+    if (sysopt.support) {
+        pline("Alternatively, contact local support: %s", sysopt.support);
+    }
     program_state.in_impossible = 0;
     VA_END();
 }

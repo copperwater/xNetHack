@@ -73,7 +73,6 @@ A message is printed when you fail to walk into liquid, and the first time this
 Add a new paranoid confirmation option "throw"; when on, it prompts for
   confirmation when you try to throw ammo with no matching launcher for it.
 Dwarves think all rats are delicious.
-<<<<<<< HEAD
 YAFM for hearing a dwarf digging while hallucinating.
 YAFM for eating long worms.
 YAFM for dying to green slime (permanently) while hallucinating.
@@ -84,19 +83,15 @@ YAFM for a cosmetic magic trap effect if you are a hallucinating valkyrie.
 YAFM for hearing a wererat change form while hallucinating.
 Usual periodic assortment of new bogusmons, bogus gods, bogus currencies, candy
   bar labels, t-shirt texts, rumors, engravings, and epitaphs.
-=======
+Give better directions for reporting impossible() calls.
 
->>>>>>> object_materials
 
 It contains the following non-gameplay architectural changes:
 
 Refactor spell hunger reduction logic into its own function.
 Refactor confusing logic of what food adjective to choose.
-<<<<<<< HEAD
 Promote obj_nutrition to a non-static function.
 Allow artifacts which target a monster class (S_* instead of M2_*) to warn
   versus that monster class. The save-stable version of this is kludgy.
-=======
 Change all obj->material = foo statements into a function set_material which
   handles weight recalculation and erosion differences between the materials.
->>>>>>> object_materials
