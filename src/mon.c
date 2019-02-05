@@ -1769,6 +1769,9 @@ struct monst *magr, /* monster that is currently deciding where to move */
     struct permonst *ma, *md;
     ma = magr->data;
     md = mdef->data;
+    /* Don't allow pets to fight each other. */
+    if (magr->mtame && mdef->mtame)
+        return 0;
     /* supposedly purple worms are attracted to shrieking because they
        like to eat shriekers, so attack the latter when feasible */
     if ((ma == &mons[PM_PURPLE_WORM] || md == &mons[PM_BABY_PURPLE_WORM])
