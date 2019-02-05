@@ -60,6 +60,7 @@ The throne monster in throne rooms has a shiny expensive mace rather than a
   boring iron one.
 The Bell of Opening will turn into a silver regular bell in a bones file, rather
   than a copper one.
+All types of orc monsters (all o) resist poison.
 
 
 It contains the following non-gameplay interface changes:
