@@ -3663,9 +3663,16 @@ doapply()
         return 0;
     }
 
-    if (!retouch_object(&obj, FALSE))
-        return 1; /* evading your grasp costs a turn; just be
-                     grateful that you don't drop it as well */
+    /* Assume applying an object specifically involves touching it with your
+     * hands, and that there will be no appliable items that are meant to be
+     * applied only with feet, or something. If wearing gloves of any sort, you
+     * are shielded from harmful material effects of that item, though only if
+     * it's not an artifact. */
+    if (obj->oartifact || !uarmg) {
+        if (!retouch_object(&obj, FALSE))
+            return 1; /* evading your grasp costs a turn; just be
+                         grateful that you don't drop it as well */
+    }
 
     /* floor containers */
     if (obj->where != OBJ_INVENT)
