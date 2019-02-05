@@ -825,6 +825,9 @@ register struct monst *mtmp;
             pline_msg = "curses orcs.";
         else if (is_dwarf(ptr))
             pline_msg = "talks about mining.";
+        else if (is_gnome(ptr))
+            verbl_msg =
+                "Many enter the dungeon, and few return to the sunlit lands.";
         else if (likes_magic(ptr))
             pline_msg = "talks about spellcraft.";
         else if (ptr->mlet == S_CENTAUR)

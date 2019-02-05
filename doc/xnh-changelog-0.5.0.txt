@@ -84,6 +84,7 @@ YAFM for hearing a wererat change form while hallucinating.
 Usual periodic assortment of new bogusmons, bogus gods, bogus currencies, candy
   bar labels, t-shirt texts, rumors, engravings, and epitaphs.
 Give better directions for reporting impossible() calls.
+Give gnomes a gnomeish message when chatted to.
 
 
 It contains the following non-gameplay architectural changes:
