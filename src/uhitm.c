@@ -1115,6 +1115,7 @@ int dieroll;
                      */
                     if (mon_hates_material(mon, obj->material)) {
                         hated_obj = obj;
+                        tmp += rnd(sear_damage(obj->material));
                     }
                 }
             }
