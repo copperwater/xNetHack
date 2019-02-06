@@ -62,6 +62,9 @@ The Bell of Opening will turn into a silver regular bell in a bones file, rather
   than a copper one.
 All types of orc monsters (all o) resist poison.
 Pets won't fight each other even if they grudge each other.
+Port RPresser's epitaph patch, enabling you to write your own gravestone text.
+Wizard mode players now always get the option to leave bones unless the level is
+  ineligible.
 
 
 It contains the following non-gameplay interface changes:
@@ -99,3 +102,4 @@ Allow artifacts which target a monster class (S_* instead of M2_*) to warn
   versus that monster class. The save-stable version of this is kludgy.
 Change all obj->material = foo statements into a function set_material which
   handles weight recalculation and erosion differences between the materials.
+Move bones depth logic out of can_make_bones into really_done.

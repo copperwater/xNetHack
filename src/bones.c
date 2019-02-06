@@ -303,7 +303,8 @@ struct monst *oracle;
     return TRUE; /* keep oracle in new bones file */
 }
 
-/* check whether bones are feasible */
+/* check whether bones are feasible on this level; not whether bones *will* be
+ * made from this level, but whether bones *could* be made from this level */
 boolean
 can_make_bones()
 {
@@ -325,10 +326,6 @@ can_make_bones()
                 return FALSE;
     }
 
-    if (depth(&u.uz) <= 0                 /* bulletproofing for endgame */
-        || (!rn2(1 + (depth(&u.uz) >> 2)) /* fewer ghosts on low levels */
-            && !wizard))
-        return FALSE;
     /* don't let multiple restarts generate multiple copies of objects
        in bones files */
     if (discover)

@@ -1403,8 +1403,16 @@ int how;
                        : urace.malenum;
         }
         corpse = mk_named_object(CORPSE, &mons[mnum], u.ux, u.uy, plname);
-        Sprintf(pbuf, "%s, ", plname);
-        formatkiller(eos(pbuf), sizeof pbuf - strlen(pbuf), how, TRUE);
+        if (yn("Do you want to write your own epitaph?") != 'y') {
+            Sprintf(pbuf, "%s, ", plname);
+            formatkiller(eos(pbuf), sizeof pbuf - strlen(pbuf), how, TRUE);
+        }
+        else {
+            char ebuf[101]; /* arbitrary, but should be enough */
+            getlin("Enter your epitaph (100 characters max):", ebuf);
+            ebuf[100] = '\0';
+            Sprintf(pbuf, "%s. %s", plname, ebuf);
+        }
         make_grave(u.ux, u.uy, pbuf);
     }
     pbuf[0] = '\0'; /* clear grave text; also lint suppression */
@@ -1467,8 +1475,15 @@ int how;
     }
 
     if (bones_ok) {
-        if (!wizard || paranoid_query(ParanoidBones, "Save bones?"))
+        /* Wizard mode always has the option of leaving bones.
+         * Non-wizards may or may not, with increasing chance as depth
+         * increases.
+         * This logic used to be in can_save_bones, but was moved here. */
+        if ((wizard && paranoid_query(ParanoidBones, "Save bones?"))
+            || (depth(&u.uz) > 0 /* bulletproofing for endgame */
+                && rn2(1 + (depth(&u.uz) / 4)))) {
             savebones(how, endtime, corpse);
+        }
         /* corpse may be invalid pointer now so
             ensure that it isn't used again */
         corpse = (struct obj *) 0;
