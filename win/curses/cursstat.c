@@ -57,6 +57,21 @@ curses_status_init()
     genl_status_init();
 }
 
+void
+curses_status_finish()
+{
+#ifdef STATUS_HILITES
+    int i;
+
+    for (i = 0; i < MAXBLSTATS; ++i) {
+         if (status_vals_long[i])
+              free(status_vals_long[i]), status_vals_long[i] = (char *) 0;
+    }
+    genl_status_finish();
+#endif /* STATUS_HILITES */
+    return;
+}
+
 /*
  *  *_status_update()
  *      -- update the value of a status field.

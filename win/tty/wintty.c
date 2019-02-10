@@ -1,4 +1,4 @@
-/* NetHack 3.6	wintty.c	$NHDT-Date: 1545705819 2018/12/25 02:43:39 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.190 $ */
+/* NetHack 3.6	wintty.c	$NHDT-Date: 1549755185 2019/02/09 23:33:05 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.195 $ */
 /* Copyright (c) David Cohrs, 1991                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -96,7 +96,7 @@ struct window_procs tty_procs = {
      | WC2_HILITE_STATUS | WC2_HITPOINTBAR | WC2_FLUSH_STATUS
      | WC2_RESET_STATUS
 #endif
-     | WC2_DARKGRAY),
+     | WC2_DARKGRAY | WC2_SUPPRESS_HIST),
     tty_init_nhwindows, tty_player_selection, tty_askname, tty_get_nh_event,
     tty_exit_nhwindows, tty_suspend_nhwindows, tty_resume_nhwindows,
     tty_create_nhwindow, tty_clear_nhwindow, tty_display_nhwindow,
@@ -1526,7 +1526,7 @@ boolean free_data;
         tty_menu_item *temp;
 
         while ((temp = cw->mlist) != 0) {
-            cw->mlist = cw->mlist->next;
+            cw->mlist = temp->next;
             if (temp->str)
                 free((genericptr_t) temp->str);
             free((genericptr_t) temp);
@@ -2151,6 +2151,7 @@ winid window;
 struct WinDesc *cw;
 {
     int i, n, attr;
+    boolean linestart;
     register char *cp;
 
     for (n = 0, i = 0; i < cw->maxrow; i++) {
@@ -2184,15 +2185,25 @@ struct WinDesc *cw;
                 ++ttyDisplay->curx;
             }
             term_start_attr(attr);
-            for (cp = &cw->data[i][1];
+            for (cp = &cw->data[i][1], linestart = TRUE;
 #ifndef WIN32CON
                  *cp && (int) ++ttyDisplay->curx < (int) ttyDisplay->cols;
-                 cp++)
+                 cp++
 #else
                  *cp && (int) ttyDisplay->curx < (int) ttyDisplay->cols;
-                 cp++, ttyDisplay->curx++)
+                 cp++, ttyDisplay->curx++
 #endif
-                (void) putchar(*cp);
+                 ) {
+                /* message recall for msg_window:full/combination/reverse
+                   might have output from '/' in it (see redotoplin()) */
+                if (linestart && (*cp & 0x80) != 0) {
+                    g_putch(*cp);
+                    end_glyphout();
+                    linestart = FALSE;
+                } else {
+                    (void) putchar(*cp);
+                }
+            }
             term_end_attr(attr);
         }
     }
@@ -2574,13 +2585,29 @@ const char *str;
     print_vt_code2(AVTC_SELECT_WINDOW, window);
 
     switch (cw->type) {
-    case NHW_MESSAGE:
+    case NHW_MESSAGE: {
+        int suppress_history = (attr & ATR_NOHISTORY);
+
+        /* in case we ever support display attributes for topline
+           messages, clear flag mask leaving only display attr */
+        /*attr &= ~(ATR_URGENT | ATR_NOHISTORY);*/
+
         /* really do this later */
 #if defined(USER_SOUNDS) && defined(WIN32CON)
         play_sound_for_message(str);
 #endif
-        update_topl(str);
+        if (!suppress_history) {
+            /* normal output; add to current top line if room, else flush
+               whatever is there to history and then write this */
+            update_topl(str);
+        } else {
+            /* put anything already on top line into history */
+            remember_topl();
+            /* write to top line without remembering what we're writing */
+            show_topl(str);
+        }
         break;
+    }
 #ifndef STATUS_HILITES
     case NHW_STATUS:
         ob = &cw->data[cw->cury][j = cw->curx];

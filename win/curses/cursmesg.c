@@ -35,9 +35,7 @@ static nhprev_mesg *last_mesg = NULL;
 static int max_messages;
 static int num_messages = 0;
 
-
-
-/* Write a string to the message window.  Attributes set by calling function. */
+/* Write string to the message window.  Attributes set by calling function. */
 
 void
 curses_message_win_puts(const char *message, boolean recursed)
@@ -50,10 +48,20 @@ curses_message_win_puts(const char *message, boolean recursed)
     int border_space = 0;
     static long suppress_turn = -1;
 
+#if 1
+    /*
+     * Handled by core's use of putstr(WIN_MESSAGE,ATR_NOHISTORY,message)
+     * for intermediate counts, but get_count() also uses putmsghistory()
+     * for the final count, to remember that without showing it.  But
+     * curses is using genl_putmsghistory() which just delivers the text
+     * via a normal pline().  This hides that at cost of not having it
+     * in ^P recall and being out of sync with DUMPLOG's message history.
+     */
     if (strncmp("Count:", message, 6) == 0) {
         curses_count_window(message);
         return;
     }
+#endif
 
     if (suppress_turn == moves) {
         return;
@@ -73,7 +81,9 @@ curses_message_win_puts(const char *message, boolean recursed)
     linespace = ((width + border_space) - 3) - mx;
 
     if (strcmp(message, "#") == 0) {    /* Extended command or Count: */
-        if ((strcmp(toplines, "#") != 0) && (my >= (height - 1 + border_space)) && (height != 1)) {     /* Bottom of message window */
+        if ((strcmp(toplines, "#") != 0)
+            /* Bottom of message window */
+            && (my >= (height - 1 + border_space)) && (height != 1)) {
             scroll_window(MESSAGE_WIN);
             mx = width;
             my--;
@@ -89,7 +99,8 @@ curses_message_win_puts(const char *message, boolean recursed)
     }
 
     if (linespace < message_length) {
-        if (my >= (height - 1 + border_space)) {        /* bottom of message win */
+        if (my >= (height - 1 + border_space)) {
+            /* bottom of message win */
             if ((turn_lines > height) || (height == 1)) {
                 /* Pause until key is hit - Esc suppresses any further
                    messages that turn */
@@ -124,8 +135,8 @@ curses_message_win_puts(const char *message, boolean recursed)
         if (height > 1) {
             curses_toggle_color_attr(win, NONE, A_BOLD, OFF);
         }
-        curses_message_win_puts(tmpstr = curses_str_remainder(message, (width - 2), 1),
-                                TRUE);
+        tmpstr = curses_str_remainder(message, (width - 2), 1);
+        curses_message_win_puts(tmpstr, TRUE);
         free(tmpstr);
     } else {
         mvwprintw(win, my, mx, "%s", message);
@@ -190,11 +201,9 @@ curses_clear_unhighlight_message_window()
     WINDOW *win = curses_get_nhwin(MESSAGE_WIN);
 
     turn_lines = 1;
-
     curses_get_window_size(MESSAGE_WIN, &mh, &mw);
 
     mx = 0;
-
     if (border) {
         mx++;
     }
@@ -205,7 +214,6 @@ curses_clear_unhighlight_message_window()
         mx += mw;               /* Force new line on new turn */
 
         if (border) {
-
             for (count = 0; count < mh; count++) {
                 mvwchgat(win, count + 1, 1, mw, COLOR_PAIR(8), A_NORMAL, NULL);
             }
@@ -214,14 +222,13 @@ curses_clear_unhighlight_message_window()
                 mvwchgat(win, count, 0, mw, COLOR_PAIR(8), A_NORMAL, NULL);
             }
         }
-
         wnoutrefresh(win);
     }
 }
 
 
 /* Reset message window cursor to starting position, and display most
-recent messages. */
+   recent messages. */
 
 void
 curses_last_messages()
@@ -240,7 +247,7 @@ curses_last_messages()
 
     for (i = (num_messages - 1); i > 0; i--) {
         mesg = get_msg_line(TRUE, i);
-        if (mesg && mesg->str && strcmp(mesg->str, ""))
+        if (mesg && mesg->str && *mesg->str)
             curses_message_win_puts(mesg->str, TRUE);
     }
     curses_message_win_puts(toplines, TRUE);
@@ -263,6 +270,21 @@ curses_init_mesg_history()
     }
 }
 
+/* Delete message history at game end. */
+
+void
+curses_teardown_messages(void)
+{
+    nhprev_mesg *current_mesg;
+
+    while ((current_mesg = first_mesg) != 0) {
+        first_mesg = current_mesg->next_mesg;
+        free(current_mesg->str);
+        free(current_mesg);
+    }
+    last_mesg = (nhprev_mesg *) 0;
+    num_messages = 0;
+}
 
 /* Display previous message window messages in reverse chron order */
 
@@ -272,23 +294,20 @@ curses_prev_mesg()
     int count;
     winid wid;
     long turn = 0;
-    anything *identifier;
+    anything Id;
     nhprev_mesg *mesg;
     menu_item *selected = NULL;
 
     wid = curses_get_wid(NHW_MENU);
     curses_create_nhmenu(wid);
-    identifier = malloc(sizeof (anything));
-    identifier->a_void = NULL;
+    Id = zeroany;
 
     for (count = 0; count < num_messages; count++) {
         mesg = get_msg_line(TRUE, count);
         if ((turn != mesg->turn) && (count != 0)) {
-            curses_add_menu(wid, NO_GLYPH, identifier, 0, 0, A_NORMAL,
-                            "---", FALSE);
+            curses_add_menu(wid, NO_GLYPH, &Id, 0, 0, A_NORMAL, "---", FALSE);
         }
-        curses_add_menu(wid, NO_GLYPH, identifier, 0, 0, A_NORMAL,
-                        mesg->str, FALSE);
+        curses_add_menu(wid, NO_GLYPH, &Id, 0, 0, A_NORMAL, mesg->str, FALSE);
         turn = mesg->turn;
     }
 
@@ -297,8 +316,10 @@ curses_prev_mesg()
 }
 
 
-/* Shows Count: at the bottom of the message window,
-   popup_dialog is not currently implemented for this function */
+/* Display at the bottom of the message window without remembering the
+   line for ^P recall.  Used for putstr(WIN_MESSAGE,ATR_NOHISTORY,text)
+   which core currently uses for 'Count: 123' and dolook's autodescribe.
+   popup_dialog is not currently implemented for this function. */
 
 void
 curses_count_window(const char *count_text)
@@ -307,13 +328,12 @@ curses_count_window(const char *count_text)
     int messageh, messagew;
     static WINDOW *countwin = NULL;
 
-    if ((count_text == NULL) && (countwin != NULL)) {
-        delwin(countwin);
-        countwin = NULL;
+    if (!count_text) {
+        if (countwin)
+             delwin(countwin), countwin = NULL;
         counting = FALSE;
         return;
     }
-
     counting = TRUE;
 
     curses_get_window_xy(MESSAGE_WIN, &winx, &winy);
@@ -326,18 +346,14 @@ curses_count_window(const char *count_text)
 
     winy += messageh - 1;
 
-    if (countwin == NULL) {
-#ifndef PDCURSES
-        countwin = newwin(1, 25, winy, winx);
-#endif /* !PDCURSES */
-    }
 #ifdef PDCURSES
-    else {
-        curses_destroy_win(countwin);
-    }
-
-    countwin = newwin(1, 25, winy, winx);
+    if (countwin)
+        curses_destroy_win(countwin), countwin = NULL;
 #endif /* PDCURSES */
+    /* this used to specify a width of 25; that was adequate for 'Count: 123'
+       but not for dolook's autodescribe when it refers to a named monster */
+    if (!countwin)
+        countwin = newwin(1, messagew, winy, winx);
     startx = 0;
     starty = 0;
 
@@ -345,7 +361,7 @@ curses_count_window(const char *count_text)
     wrefresh(countwin);
 }
 
-	/* Gets a "line" (buffer) of input. */
+/* Gets a "line" (buffer) of input. */
 void
 curses_message_win_getline(const char *prompt, char *answer, int buffer)
 {
@@ -363,66 +379,75 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
     int len = 0; /* of answer string */
     boolean border = curses_window_has_border(MESSAGE_WIN);
 
+    *answer = '\0';
     orig_cursor = curs_set(0);
 
     curses_get_window_size(MESSAGE_WIN, &height, &width);
     if (border) {
         border_space = 1;
-        if (mx < 1) mx = 1;
-        if (my < 1) my = 1;
+        if (mx < 1)
+            mx = 1;
+        if (my < 1)
+            my = 1;
     }
     maxy = height - 1 + border_space;
     maxx = width - 1 + border_space;
 
-    tmpbuf = (char *)malloc(strlen(prompt) + buffer + 2);
+    tmpbuf = (char *) alloc((unsigned) ((int) strlen(prompt) + buffer + 2));
     maxlines = buffer / width * 2;
-    strcpy(tmpbuf, prompt);
-    strcat(tmpbuf, " ");
+    Strcpy(tmpbuf, prompt);
+    Strcat(tmpbuf, " ");
     nlines = curses_num_lines(tmpbuf,width);
     maxlines += nlines * 2;
-    linestarts = (char **)malloc(sizeof(char*) * maxlines);
+    linestarts = (char **) alloc((unsigned) (sizeof (char *) * maxlines));
     p_answer = tmpbuf + strlen(tmpbuf);
     linestarts[0] = tmpbuf;
 
     if (mx > border_space) { /* newline */
-        if (my >= maxy) scroll_window(MESSAGE_WIN);
-        else my++;
+        if (my >= maxy)
+            scroll_window(MESSAGE_WIN);
+        else
+            my++;
         mx = border_space;
     }
 
     curses_toggle_color_attr(win, NONE, A_BOLD, ON);
 
-    for (i = 0; i < nlines-1; i++) {
-        tmpstr = curses_break_str(linestarts[i],width-1,1);
-        linestarts[i+1] = linestarts[i] + strlen(tmpstr);
-        if (*linestarts[i+1] == ' ') linestarts[i+1]++;
-        mvwaddstr(win,my,mx,tmpstr);
+    for (i = 0; i < nlines - 1; i++) {
+        tmpstr = curses_break_str(linestarts[i], width - 1, 1);
+        linestarts[i + 1] = linestarts[i] + (int) strlen(tmpstr);
+        if (*linestarts[i + 1] == ' ')
+            linestarts[i + 1]++;
+        mvwaddstr(win, my, mx, tmpstr);
         free(tmpstr);
         if (++my >= maxy) {
             scroll_window(MESSAGE_WIN);
             my--;
         }
     }
-    mvwaddstr(win,my,mx,linestarts[nlines-1]);
-    mx = promptx = strlen(linestarts[nlines-1]) + border_space;
+    mvwaddstr(win, my, mx, linestarts[nlines - 1]);
+    mx = promptx = (int) strlen(linestarts[nlines - 1]) + border_space;
     promptline = nlines - 1;
 
-    while(1) {
-        mx = strlen(linestarts[nlines - 1]) + border_space;
+    while (1) {
+        mx = (int) strlen(linestarts[nlines - 1]) + border_space;
         if (mx > maxx) {
             if (nlines < maxlines) {
-                tmpstr = curses_break_str(linestarts[nlines - 1], width - 1, 1);
-                mx = strlen(tmpstr) + border_space;
+                tmpstr = curses_break_str(linestarts[nlines - 1],
+                                          width - 1, 1);
+                mx = (int) strlen(tmpstr) + border_space;
                 mvwprintw(win, my, mx, "%*c", maxx - mx + 1, ' ');
                 if (++my > maxy) {
                     scroll_window(MESSAGE_WIN);
                     my--;
                 }
                 mx = border_space;
-                linestarts[nlines] = linestarts[nlines - 1] + strlen(tmpstr);
-                if (*linestarts[nlines] == ' ') linestarts[nlines]++;
+                linestarts[nlines] = linestarts[nlines - 1]
+                                    + (int) strlen(tmpstr);
+                if (*linestarts[nlines] == ' ')
+                    linestarts[nlines]++;
                 mvwaddstr(win, my, mx, linestarts[nlines]);
-                mx = strlen(linestarts[nlines]) + border_space;
+                mx = (int) strlen(linestarts[nlines]) + border_space;
                 nlines++;
                 free(tmpstr);
             } else {
@@ -438,14 +463,33 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
 #else
         ch = getch();
 #endif
+#if 0   /* [erase_char (delete one character) and kill_char (delete all
+         * characters) are from tty and not currently set up for curses] */
+        if (ch == erase_char) {
+            ch = '\177'; /* match switch-case below */
+
+        /* honor kill_char if it's ^U or similar, but not if it's '@' */
+        } else if (ch == kill_char && (ch < ' ' || ch >= '\177')) { /*ASCII*/
+            if (len == 0) /* nothing to kill; just start over */
+                continue;
+            ch = '\033'; /* get rid of all current input, then start over */
+        }
+#endif
         curs_set(0);
-        switch(ch) {
+        switch (ch) {
         case '\033': /* DOESCAPE */
-            /* blank the input but don't exit */
-            while(nlines  - 1 > promptline) {
+            /* if there isn't any input yet, return ESC */
+            if (len == 0) {
+                Strcpy(answer, "\033");
+                return;
+            }
+            /* otherwise, discard current input and start over;
+               first need to blank it from the screen */
+            while (nlines - 1 > promptline) {
                 if (nlines-- > height) {
                     unscroll_window(MESSAGE_WIN);
-                    tmpstr = curses_break_str(linestarts[nlines - height], width - 1, 1);
+                    tmpstr = curses_break_str(linestarts[nlines - height],
+                                              width - 1, 1);
                     mvwaddstr(win, border_space, border_space, tmpstr);
                     free(tmpstr);
                 } else {
@@ -469,8 +513,9 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
         case '\r':
         case '\n':
             free(linestarts);
-            strncpy(answer, p_answer, buffer);
-            strcpy(toplines, tmpbuf);
+            (void) strncpy(answer, p_answer, buffer);
+            answer[buffer - 1] = '\0';
+            Strcpy(toplines, tmpbuf);
             mesg_add_line((char *) tmpbuf);
             free(tmpbuf);
             curs_set(orig_cursor);
@@ -481,7 +526,9 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
             }
             mx = border_space;
             return;
-        case '\b':
+        case '\177': /* DEL/Rubout */
+        case KEY_DC: /* delete-character */
+        case '\b': /* ^H (Backspace: '\011') */
         case KEY_BACKSPACE:
             if (len < 1) {
                 len = 1;
@@ -490,23 +537,28 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
             p_answer[--len] = '\0';
             mvwaddch(win, my, --mx, ' ');
             /* try to unwrap back to the previous line if there is one */
-            if (nlines > 1 && strlen(linestarts[nlines - 2]) < (size_t) width) {
+            if (nlines > 1 && (int) strlen(linestarts[nlines - 2]) < width) {
                 mvwaddstr(win, my - 1, border_space, linestarts[nlines - 2]);
                 if (nlines-- > height) {
                     unscroll_window(MESSAGE_WIN);
-                    tmpstr = curses_break_str(linestarts[nlines - height], width - 1, 1);
+                    tmpstr = curses_break_str(linestarts[nlines - height],
+                                              width - 1, 1);
                     mvwaddstr(win, border_space, border_space, tmpstr);
                     free(tmpstr);
                 } else {
-                    /* clean up the leftovers on the next line, if we didn't scroll it away */
-                    mvwprintw(win, my--, border_space, "%*c", strlen(linestarts[nlines]), ' ');
+                    /* clean up the leftovers on the next line,
+                       if we didn't scroll it away */
+                    mvwprintw(win, my--, border_space, "%*c",
+                              (int) strlen(linestarts[nlines]), ' ');
                 }
             }
             break;
         default:
             p_answer[len++] = ch;
-            if (len >= buffer) len = buffer-1;
-            else mvwaddch(win, my, mx, ch);
+            if (len >= buffer)
+                len = buffer - 1;
+            else
+                mvwaddch(win, my, mx, ch);
             p_answer[len] = '\0';
         }
     }
@@ -516,13 +568,13 @@ curses_message_win_getline(const char *prompt, char *answer, int buffer)
 static void
 scroll_window(winid wid)
 {
-    directional_scroll(wid,1);
+    directional_scroll(wid, 1);
 }
 
 static void
 unscroll_window(winid wid)
 {
-    directional_scroll(wid,-1);
+    directional_scroll(wid, -1);
 }
 
 static void
@@ -567,7 +619,8 @@ static void
 mesg_add_line(char *mline)
 {
     nhprev_mesg *tmp_mesg = NULL;
-    nhprev_mesg *current_mesg = malloc(sizeof (nhprev_mesg));
+    nhprev_mesg *current_mesg = (nhprev_mesg *) alloc((unsigned)
+                                                      (sizeof (nhprev_mesg)));
 
     current_mesg->str = curses_copy_of(mline);
     current_mesg->turn = moves;
@@ -583,11 +636,11 @@ mesg_add_line(char *mline)
     current_mesg->prev_mesg = last_mesg;
     last_mesg = current_mesg;
 
-
     if (num_messages < max_messages) {
         num_messages++;
     } else {
         tmp_mesg = first_mesg->next_mesg;
+        free(first_mesg->str);
         free(first_mesg);
         first_mesg = tmp_mesg;
     }
