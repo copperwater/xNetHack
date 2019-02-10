@@ -3113,7 +3113,7 @@ struct obj * stone;
 /* Object material probabilities. */
 /* for objects which are normally iron or metal */
 static const struct icp metal_materials[] = {
-    {75, 0}, /* default to base type, iron or metal */
+    {74, 0}, /* default to base type, iron or metal */
     { 5, IRON},
     { 5, WOOD},
     { 5, SILVER},
@@ -3122,6 +3122,7 @@ static const struct icp metal_materials[] = {
     { 1, GOLD},
     { 1, BONE},
     { 1, GLASS},
+    { 1, PLATINUM},
     { 1, PLASTIC}
 };
 
