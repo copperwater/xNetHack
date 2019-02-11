@@ -5,6 +5,7 @@
 
 #include "hack.h"
 
+STATIC_DCL boolean FDECL(attack_check_weaponless, (struct obj *));
 STATIC_DCL boolean FDECL(known_hitum, (struct monst *, struct obj *, int *,
                                        int, int, struct attack *, int));
 STATIC_DCL boolean FDECL(theft_petrifies, (struct obj *));
@@ -108,7 +109,7 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
     mtmp->mstrategy &= ~STRAT_WAITMASK;
 
     if (u.uswallow && mtmp == u.ustuck)
-        return FALSE;
+        return attack_check_weaponless(wep);
 
     if (context.forcefight) {
         /* Do this in the caller, after we checked that the monster
@@ -122,7 +123,7 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
             && !glyph_is_invisible(levl[bhitpos.x][bhitpos.y].glyph))
             map_invisible(bhitpos.x, bhitpos.y);
          */
-        return FALSE;
+        return attack_check_weaponless(wep);
     }
 
     /* cache the shown glyph;
@@ -171,7 +172,7 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
          */
         if (glyph_is_invisible(glyph)) {
             seemimic(mtmp);
-            return FALSE;
+            return attack_check_weaponless(wep);
         }
         stumble_onto_mimic(mtmp);
         return TRUE;
@@ -184,7 +185,7 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
         newsym(mtmp->mx, mtmp->my);
         if (glyph_is_invisible(glyph)) {
             seemimic(mtmp);
-            return FALSE;
+            return attack_check_weaponless(wep);
         }
         if (!((Blind ? Blind_telepat : Unblind_telepat) || Detect_monsters)) {
             struct obj *obj;
@@ -215,13 +216,17 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
         wakeup(mtmp, TRUE);
     }
 
+    /* Intelligent chaotic weapons (Stormbringer) want blood */
+    if (wep && wep->oartifact == ART_STORMBRINGER) {
+        if (mtmp->mpeaceful) /* only print message if it was peaceful */
+            override_confirmation = TRUE;
+        return FALSE; /* no attack_check_weaponless */
+    }
+
     if (flags.confirm && mtmp->mpeaceful
         && !Confusion && !Hallucination && !Stunned) {
-        /* Intelligent chaotic weapons (Stormbringer) want blood */
-        if (wep && wep->oartifact == ART_STORMBRINGER) {
-            override_confirmation = TRUE;
-            return FALSE;
-        }
+        /* The player has the ability to displace peacefuls, so I'm not sure if
+         * this code ever actually gets reached. */
         if (canspotmon(mtmp)) {
             char qbuf[QBUFSZ];
 
@@ -233,16 +238,28 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
         }
     }
 
-    /* Prompt for a non-beginner hitting with a wielded weapon for the first
-     * time */
+    return attack_check_weaponless(wep);
+}
+
+/* If the player is about to break weaponless conduct as a non-beginner and
+ * therefore might be trying to keep it (e.g. forgetting to unwield a pick-axe),
+ * prompt them to make sure.
+ * It is assumed that the return value from this function will be returned
+ * directly from attack_checks(), and like that, TRUE means not attack whereas
+ * FALSE means OK to attack. This also sets context.move to 0 as a side effect
+ * (so that it takes no time) if the player elects not to attack.
+ */
+STATIC_OVL boolean
+attack_check_weaponless(wep)
+struct obj* wep;
+{
     if (wep && (wep->oclass == WEAPON_CLASS || is_weptool(wep))
-            && !u.uconduct.weaphit && !flags.beginner) {
+            && !u.uconduct.weaphit) {
         if (!paranoid_query(TRUE, "Break weaponless conduct?")) {
             context.move = 0;
             return TRUE;
         }
     }
-
     return FALSE;
 }
 
