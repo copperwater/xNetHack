@@ -141,6 +141,34 @@ unsigned *ospecial;
                  (x == sstairs.sx && y == sstairs.sy)) {
             color = CLR_YELLOW;
         }
+        /* Colored Walls and Floors Patch */
+        else if (iflags.use_color && offset >= S_vwall && offset <= S_trwall) {
+            if (In_W_tower(x, y, &u.uz))
+                color = CLR_MAGENTA;
+            else if (In_sokoban(&u.uz))
+                color = CLR_BLUE;
+            else if (In_tower(&u.uz)) /* Vlad's */
+                color = CLR_BLACK;
+            else if (In_mines(&u.uz)) /* no in_rooms check */
+                color = CLR_BROWN;
+            else if (In_hell(&u.uz) && !Is_valley(&u.uz))
+                color = CLR_ORANGE;
+            else if (Is_astralevel(&u.uz))
+                color = CLR_WHITE;
+            else
+                cmap_color(offset);
+        }
+        /* Colored floors don't really work that well with dark_room.
+         * The original patch was for 3.4.3, which didn't have that, so it might
+         * have worked better there.
+        else if (iflags.use_color
+                 && (offset == S_room || offset == S_darkroom)) {
+            if (Is_juiblex_level(&u.uz))
+                color = CLR_GREEN;
+            else
+                cmap_color(offset);
+        }
+        */
         /* color altars */
         else if (iflags.use_color && offset == S_altar) {
             if (Is_astralevel(&u.uz) || Is_sanctum(&u.uz)) {
@@ -298,6 +326,12 @@ unsigned *ospecial;
                 color = HI_DOMESTIC;
 #endif
         }
+    }
+
+    /* Colored Walls/Floors Patch: The Valley of the Dead is monochrome, turning
+     * everything to shades of gray. */
+    if (iflags.use_color && Is_valley(&u.uz) && color != CLR_BLACK) {
+        color = (color < NO_COLOR) ? CLR_GRAY : CLR_WHITE;
     }
 
     ch = showsyms[idx];
