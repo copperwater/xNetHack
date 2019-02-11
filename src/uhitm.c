@@ -254,7 +254,7 @@ attack_check_weaponless(wep)
 struct obj* wep;
 {
     if (wep && (wep->oclass == WEAPON_CLASS || is_weptool(wep))
-            && !u.uconduct.weaphit) {
+            && !u.uconduct.weaphit && !flags.beginner) {
         if (!paranoid_query(TRUE, "Break weaponless conduct?")) {
             context.move = 0;
             return TRUE;
