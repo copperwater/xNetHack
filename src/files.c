@@ -1181,7 +1181,8 @@ restore_saved_game()
     if (validate(fd, fq_save) != 0) {
         (void) nhclose(fd), fd = -1;
 
-        (void) delete_savefile();
+        if (yn("Delete the save file?") == 'y')
+            (void) delete_savefile();
     }
     return fd;
 }
