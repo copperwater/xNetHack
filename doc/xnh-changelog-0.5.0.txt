@@ -106,3 +106,6 @@ Allow artifacts which target a monster class (S_* instead of M2_*) to warn
 Change all obj->material = foo statements into a function set_material which
   handles weight recalculation and erosion differences between the materials.
 Move bones depth logic out of can_make_bones into really_done.
+Move corpse-intrinsic-selection logic into its own function.
+Extract part of givit's logic (the yes/no of whether an intrinsic should be
+  given) into its own function.
