@@ -420,7 +420,7 @@ register struct monst *mtmp;
             yelp_verb = (!Deaf) ? "yelp" : "recoil";
             break;
         case MS_ROAR:
-            yelp_verb = (!Deaf) ? "snarl" : "bluff";
+            yelp_verb = (!Deaf) ? "roar" : "bluff";
             break;
         case MS_SQEEK:
             yelp_verb = (!Deaf) ? "squeal" : "quiver";

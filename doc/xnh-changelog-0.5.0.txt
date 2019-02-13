@@ -67,6 +67,8 @@ Wizard mode players now always get the option to leave bones unless the level is
   ineligible.
 Pets can gain intrinsics from corpses they eat, identically to players, except
   that they can currently only get resistance-type intrinsics.
+Dragons will roar of their own accord from time to time, which wakes nearby
+  monsters.
 
 
 It contains the following non-gameplay interface changes:

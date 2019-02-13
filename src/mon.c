@@ -3017,6 +3017,17 @@ struct monst *mtmp;
         }
         aggravate();
     }
+    else if (mtmp->data->msound == MS_ROAR && mtmp->data->mlet == S_DRAGON
+             && !mtmp->mpeaceful) {
+        if (!Deaf) {
+            if (canspotmon(mtmp))
+                pline("%s roars!", Monnam(mtmp));
+            else
+                You_hear("a loud roar!");
+            stop_occupation();
+        }
+        wake_nearto(mtmp->mx, mtmp->my, 5 * 5);
+    }
     if (mtmp->data == &mons[PM_MEDUSA]) {
         register int i;
 
