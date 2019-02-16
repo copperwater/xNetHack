@@ -30,7 +30,7 @@
 #define tp_sensemon(mon) \
     (/* The hero can always sense a monster IF:        */                   \
      /* 1. The monster and player are both telepathic  */                   \
-     (telepathic(mon->data) && (HTelepat || ETelepat))                      \
+     (has_telepathy(mon) && (HTelepat || ETelepat))                         \
      /* OR 2. the monster has a brain to sense         */                   \
       || (!mindless(mon->data)                                              \
           /* AND 3a. hero is blind and telepathic      */                   \

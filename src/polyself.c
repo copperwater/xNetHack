@@ -1605,11 +1605,11 @@ domindblast()
             continue;
         if (mtmp->mpeaceful)
             continue;
-        u_sen = telepathic(mtmp->data) && !mtmp->mcansee;
-        if (u_sen || (telepathic(mtmp->data) && rn2(2)) || !rn2(10)) {
+        u_sen = has_telepathy(mtmp) && !mtmp->mcansee;
+        if (u_sen || (has_telepathy(mtmp) && rn2(2)) || !rn2(10)) {
             You("lock in on %s %s.", s_suffix(mon_nam(mtmp)),
                 u_sen ? "telepathy"
-                      : telepathic(mtmp->data) ? "latent telepathy" : "mind");
+                      : has_telepathy(mtmp) ? "latent telepathy" : "mind");
             mtmp->mhp -= rnd(15);
             if (DEADMONSTER(mtmp))
                 killed(mtmp);

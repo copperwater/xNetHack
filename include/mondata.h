@@ -19,6 +19,9 @@
 #define resists_acid(mon) (((mon)->mintrinsics & MR_ACID) != 0)
 #define resists_ston(mon) (((mon)->mintrinsics & MR_STONE) != 0)
 
+#define has_telepathy(mon) \
+    (telepathic((mon)->data) || ((mon)->mintrinsics & MR2_TELEPATHY) != 0)
+
 /* as of 3.2.0:  gray dragons, Angels, Oracle, Yeenoghu */
 #define resists_mgc(ptr) \
     (dmgtype(ptr, AD_MAGM) || ptr == &mons[PM_BABY_GRAY_DRAGON] \

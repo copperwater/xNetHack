@@ -115,3 +115,5 @@ Move bones depth logic out of can_make_bones into really_done.
 Move corpse-intrinsic-selection logic into its own function.
 Extract part of givit's logic (the yes/no of whether an intrinsic should be
   given) into its own function.
+Define a new MR2_TELEPATHY monster intrinsic and set it by default for all
+  inherently-telepathic monsters.
