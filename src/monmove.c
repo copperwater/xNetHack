@@ -1579,6 +1579,10 @@ register struct monst *mtmp;
     if (mx == u.ux && my == u.uy)
         goto found_you;
 
+    /* monster can see you via cooperative telepathy */
+    if (telepathic(mtmp->data) && (HTelepat || ETelepat))
+        goto found_you;
+
     notseen = (!mtmp->mcansee || (Invis && !perceives(mtmp->data)));
     /* add cases as required.  eg. Displacement ... */
     if (notseen || Underwater) {

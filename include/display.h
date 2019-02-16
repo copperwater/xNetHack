@@ -28,15 +28,17 @@
  * monsters that are hiding or mimicing other monsters.
  */
 #define tp_sensemon(mon) \
-    (/* The hero can always sense a monster IF:        */  \
-     /* 1. the monster has a brain to sense            */  \
-     (!mindless(mon->data))                                \
-     /* AND     2a. hero is blind and telepathic       */  \
-      && ((Blind && Blind_telepat)                         \
-          /* OR 2b. hero is using a telepathy inducing */  \
-          /*        object and in range                */  \
-          || (Unblind_telepat                              \
-              && (distu(mon->mx, mon->my) <= (BOLT_LIM * BOLT_LIM)))))
+    (/* The hero can always sense a monster IF:        */                   \
+     /* 1. The monster and player are both telepathic  */                   \
+     (telepathic(mon->data) && (HTelepat || ETelepat))                      \
+     /* OR 2. the monster has a brain to sense         */                   \
+      || (!mindless(mon->data)                                              \
+          /* AND 3a. hero is blind and telepathic      */                   \
+          && ((Blind && Blind_telepat)                                      \
+          /* OR 3b. hero is using a telepathy inducing */                   \
+          /*        object and in range                */                   \
+              || (Unblind_telepat                                           \
+                  && (distu(mon->mx, mon->my) <= (BOLT_LIM * BOLT_LIM)))))) \
 
 #define sensemon(mon) \
     (tp_sensemon(mon) || Detect_monsters || MATCH_WARN_OF_MON(mon))

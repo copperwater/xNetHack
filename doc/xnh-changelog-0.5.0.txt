@@ -69,6 +69,8 @@ Pets can gain intrinsics from corpses they eat, identically to players, except
   that they can currently only get resistance-type intrinsics.
 Dragons will roar of their own accord from time to time, which wakes nearby
   monsters.
+Implement cooperative telepathy: if you have any sort of telepathy, even
+  extrinsic and you are not blind, you are able to see telepathic monsters.
 
 
 It contains the following non-gameplay interface changes:
