@@ -96,7 +96,7 @@ Give better directions for reporting impossible() calls.
 Give gnomes a gnomeish message when chatted to.
 Auto-identify a potion of acid when it explodes due to water contact.
 Add L's Colored Walls Patch, turning the walls in various special levels and
-  branches different colors.
+  branches different colors. Also in some types of special rooms.
 Don't unconditionally delete the save file in case of a version mismatch.
 
 

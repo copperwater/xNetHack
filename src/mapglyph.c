@@ -151,10 +151,36 @@ unsigned *ospecial;
                 color = CLR_BLACK;
             else if (In_mines(&u.uz)) /* no in_rooms check */
                 color = CLR_BROWN;
-            else if (In_hell(&u.uz) && !Is_valley(&u.uz))
-                color = CLR_ORANGE;
+            else if (In_hell(&u.uz) && !Is_valley(&u.uz)) {
+                if (getroomtype(x, y) == ABBATOIR)
+                    color = CLR_RED;
+                else if (getroomtype(x, y) == SEMINARY)
+                    color = CLR_WHITE;
+                else
+                    color = CLR_ORANGE;
+            }
             else if (Is_astralevel(&u.uz))
                 color = CLR_WHITE;
+            else if (getroomtype(x, y) == DELPHI) /* on a special level... */
+                color = CLR_BRIGHT_BLUE;
+            else if (!Is_special(&u.uz)) {
+                /* Only in filler levels will these get colored walls for
+                 * the moment; colored walls look weird when they're part of
+                 * special levels that adjoin special room walls to other room
+                 * walls directly. */
+                if (getroomtype(x, y) == BEEHIVE)
+                    color = CLR_YELLOW;
+                else if (getroomtype(x, y) == COURT)
+                    color = CLR_BRIGHT_MAGENTA;
+                else if (getroomtype(x, y) == VAULT)
+                    color = CLR_YELLOW;
+                else if (getroomtype(x, y) == TEMPLE)
+                    color = CLR_WHITE;
+                else if (getroomtype(x, y) == LEPREHALL)
+                    color = CLR_BRIGHT_GREEN;
+                else if (getroomtype(x, y) == ANTHOLE)
+                    color = CLR_BROWN;
+            }
             else
                 cmap_color(offset);
         }
