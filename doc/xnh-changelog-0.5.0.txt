@@ -66,7 +66,7 @@ Port RPresser's epitaph patch, enabling you to write your own gravestone text.
 Wizard mode players now always get the option to leave bones unless the level is
   ineligible.
 Pets can gain intrinsics from corpses they eat, identically to players, except
-  that they can currently only get resistance-type intrinsics.
+  that they can currently only get resistance-type intrinsics and telepathy.
 Dragons will roar of their own accord from time to time, which wakes nearby
   monsters.
 Implement cooperative telepathy: if you have any sort of telepathy, even

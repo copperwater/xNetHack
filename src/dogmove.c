@@ -397,6 +397,12 @@ struct permonst* ptr;
         intrinsic = MR_POISON;
         msg = "%s looks healthy.";
         break;
+    case TELEPAT:
+        if (!mindless(mtmp->data)) {
+            intrinsic = MR2_TELEPATHY;
+            if (haseyes(mtmp->data))
+                msg = "%s blinks a few times.";
+        }
     }
 
     /* Don't give message if it already had this intrinsic */
