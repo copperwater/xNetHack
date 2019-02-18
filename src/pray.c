@@ -203,7 +203,7 @@ struct obj* item;
 
             return (item->oeaten ? item->oeaten : obj_nutrition(item));
         }
-        else if (Has_contents(item)) {
+        else if (Has_contents(item) && !item->olocked) {
             /* Because containers can be #tipped, we don't have to worry about
              * whether the hero has hands available for looting them. */
             for (otmp = item->cobj; otmp; otmp = otmp->nobj) {
