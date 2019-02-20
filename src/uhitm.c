@@ -5,7 +5,7 @@
 
 #include "hack.h"
 
-STATIC_DCL boolean FDECL(attack_check_weaponless, (struct obj *));
+STATIC_DCL boolean FDECL(attack_check_conducts, (struct obj *));
 STATIC_DCL boolean FDECL(known_hitum, (struct monst *, struct obj *, int *,
                                        int, int, struct attack *, int));
 STATIC_DCL boolean FDECL(theft_petrifies, (struct obj *));
@@ -109,7 +109,7 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
     mtmp->mstrategy &= ~STRAT_WAITMASK;
 
     if (u.uswallow && mtmp == u.ustuck)
-        return attack_check_weaponless(wep);
+        return attack_check_conducts(wep);
 
     if (context.forcefight) {
         /* Do this in the caller, after we checked that the monster
@@ -123,7 +123,7 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
             && !glyph_is_invisible(levl[bhitpos.x][bhitpos.y].glyph))
             map_invisible(bhitpos.x, bhitpos.y);
          */
-        return attack_check_weaponless(wep);
+        return attack_check_conducts(wep);
     }
 
     /* cache the shown glyph;
@@ -172,7 +172,7 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
          */
         if (glyph_is_invisible(glyph)) {
             seemimic(mtmp);
-            return attack_check_weaponless(wep);
+            return attack_check_conducts(wep);
         }
         stumble_onto_mimic(mtmp);
         return TRUE;
@@ -185,7 +185,7 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
         newsym(mtmp->mx, mtmp->my);
         if (glyph_is_invisible(glyph)) {
             seemimic(mtmp);
-            return attack_check_weaponless(wep);
+            return attack_check_conducts(wep);
         }
         if (!((Blind ? Blind_telepat : Unblind_telepat) || Detect_monsters)) {
             struct obj *obj;
@@ -238,21 +238,24 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
         }
     }
 
-    return attack_check_weaponless(wep);
+    return attack_check_conducts(wep);
 }
 
-/* If the player is about to break weaponless conduct as a non-beginner and
- * therefore might be trying to keep it (e.g. forgetting to unwield a pick-axe),
- * prompt them to make sure.
+/* If the player is about to break a conduct by attacking but it's reasonably
+ * likely that they're trying to preserve that conduct, ask them to confirm.
+ * The two conducts that are at risk by attacking are weaponless and pacifist.
+ *
  * It is assumed that the return value from this function will be returned
  * directly from attack_checks(), and like that, TRUE means not attack whereas
  * FALSE means OK to attack. This also sets context.move to 0 as a side effect
  * (so that it takes no time) if the player elects not to attack.
  */
 STATIC_OVL boolean
-attack_check_weaponless(wep)
+attack_check_conducts(wep)
 struct obj* wep;
 {
+    /* Weaponless: about to break weaponless conduct as a non-beginner
+     * (common situation is forgetting to unwield a pick-axe) */
     if (wep && (wep->oclass == WEAPON_CLASS || is_weptool(wep))
             && !u.uconduct.weaphit && !flags.beginner) {
         if (!paranoid_query(TRUE, "Break weaponless conduct?")) {
@@ -260,6 +263,21 @@ struct obj* wep;
             return TRUE;
         }
     }
+    /* Pacifist: about to hit anything at all. Note that pacifists can hit
+     * things without breaking the conduct, so long as they never directly kill
+     * anything, but they *probably* aren't trying to do this. Still, if they
+     * pressed F to forcefight, assume the user is trying to bypass this prompt.
+     * Use turns rather than beginner status to determine if it is early enough,
+     * since it's hard for pacifists to gain score.
+     */
+    if (!u.uconduct.killer && !context.forcefight && moves > 100) {
+        pline("Killing a monster violates pacifist conduct.");
+        if (!paranoid_query(TRUE, "Attack anyway?")) {
+            context.move = 0;
+            return TRUE;
+        }
+    }
+
     return FALSE;
 }
 
