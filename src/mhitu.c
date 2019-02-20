@@ -1249,7 +1249,8 @@ register struct attack *mattk;
         break;
     case AD_DRLI:
         hitmsg(mtmp, mattk);
-        if (uncancelled && !rn2(3) && !Drain_resistance) {
+        if (uncancelled && !rn2(3) && !Drain_resistance
+            && !item_catches_drain(&youmonst)) {
             losexp("life drainage");
         }
         break;
