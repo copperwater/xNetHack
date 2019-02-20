@@ -1080,6 +1080,13 @@ int after; /* this is extra fast monster movement */
              *  below 25%:  prevented from attacking at all by a different case
              */
             int balk = mtmp->m_lev + ((5 * mtmp->mhp) / mtmp->mhpmax) - 2;
+            boolean grudge = FALSE;
+
+            /* Grudges override level checks. */
+            if (mm_aggression(mtmp, mtmp2) & ALLOW_M) {
+                grudge = TRUE;
+                balk = mtmp2->m_lev + 1;
+            }
 
             if ((int) mtmp2->m_lev >= balk
                 || (mtmp2->data == &mons[PM_FLOATING_EYE] && rn2(10)
@@ -1090,7 +1097,7 @@ int after; /* this is extra fast monster movement */
                 || ((mtmp->mhp * 4 < mtmp->mhpmax
                      || mtmp2->data->msound == MS_GUARDIAN
                      || mtmp2->data->msound == MS_LEADER) && mtmp2->mpeaceful
-                    && !Conflict)
+                    && !grudge && !Conflict)
                 || (touch_petrifies(mtmp2->data) && !resists_ston(mtmp)))
                 continue;
 

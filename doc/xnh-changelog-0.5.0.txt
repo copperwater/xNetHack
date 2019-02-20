@@ -71,6 +71,7 @@ Dragons will roar of their own accord from time to time, which wakes nearby
   monsters.
 Implement cooperative telepathy: if you have any sort of telepathy, even
   extrinsic and you are not blind, you are able to see telepathic monsters.
+Pets will attack monsters they grudge even if they are of too high a level.
 
 
 It contains the following non-gameplay interface changes:
