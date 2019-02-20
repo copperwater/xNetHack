@@ -173,7 +173,7 @@ unsigned *ospecial;
                 else if (getroomtype(x, y) == COURT)
                     color = CLR_BRIGHT_MAGENTA;
                 else if (getroomtype(x, y) == VAULT)
-                    color = CLR_YELLOW;
+                    color = HI_METAL;
                 else if (getroomtype(x, y) == TEMPLE)
                     color = CLR_WHITE;
                 else if (getroomtype(x, y) == LEPREHALL)
