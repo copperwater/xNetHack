@@ -46,6 +46,7 @@
 #define MS_SPELL 37     /* spellcaster not matching any of the above */
 #define MS_WERE 38      /* lycanthrope in human form */
 #define MS_BOAST 39     /* giants */
+#define MS_GROAN 40     /* groans (zombies) */
 
 #define MR_FIRE 0x01   /* resists fire */
 #define MR_COLD 0x02   /* resists cold */
