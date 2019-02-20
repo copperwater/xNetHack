@@ -1098,7 +1098,9 @@ int after; /* this is extra fast monster movement */
                      || mtmp2->data->msound == MS_GUARDIAN
                      || mtmp2->data->msound == MS_LEADER) && mtmp2->mpeaceful
                     && !grudge && !Conflict)
-                || (touch_petrifies(mtmp2->data) && !resists_ston(mtmp)))
+                || (touch_petrifies(mtmp2->data) && !resists_ston(mtmp))
+                || (attacktype(mtmp2->data, AT_BOOM)
+                    && distu(mtmp2->mx, mtmp2->my) < 3))
                 continue;
 
             if (after)
