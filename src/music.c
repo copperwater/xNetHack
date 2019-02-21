@@ -29,7 +29,6 @@
 #include "hack.h"
 
 STATIC_DCL void FDECL(awaken_monsters, (int));
-STATIC_DCL void FDECL(put_monsters_to_sleep, (int));
 STATIC_DCL void FDECL(charm_snakes, (int));
 STATIC_DCL void FDECL(calm_nymphs, (int));
 STATIC_DCL void FDECL(charm_monsters, (int));
@@ -88,8 +87,9 @@ int distance;
  * Make monsters fall asleep.  Note that they may resist the spell.
  */
 
-STATIC_OVL void
-put_monsters_to_sleep(distance)
+void
+put_monsters_to_sleep(caster, distance)
+struct monst * caster;
 int distance;
 {
     register struct monst *mtmp;
@@ -97,7 +97,12 @@ int distance;
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
         if (DEADMONSTER(mtmp))
             continue;
-        if (distu(mtmp->mx, mtmp->my) < distance
+        if (mtmp == caster) /* immune to own effects */
+            continue;
+        xchar cx = (caster == &youmonst) ? u.ux : caster->mx;
+        xchar cy = (caster == &youmonst) ? u.uy : caster->my;
+
+        if (dist2(cx, cy, mtmp->mx, mtmp->my) < distance
             && sleep_monst(mtmp, d(10, 10), TOOL_CLASS)) {
             mtmp->msleeping = 1; /* 10d10 turns + wake_nearby to rouse */
             slept_monst(mtmp);
@@ -542,7 +547,7 @@ struct obj *instr;
         consume_obj_charge(instr, TRUE);
 
         You("produce %s music.", Hallucination ? "piped" : "soft");
-        put_monsters_to_sleep(u.ulevel * 5);
+        put_monsters_to_sleep(&youmonst, u.ulevel * 5);
         exercise(A_DEX, TRUE);
         break;
     case FLUTE: /* May charm snakes */

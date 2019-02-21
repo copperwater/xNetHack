@@ -75,6 +75,7 @@ Implement cooperative telepathy: if you have any sort of telepathy, even
   extrinsic and you are not blind, you are able to see telepathic monsters.
 Pets will attack monsters they grudge even if they are of too high a level.
 Pets will not attack gas spores that you're adjacent to.
+Monsters can use magic flutes.
 
 
 It contains the following non-gameplay interface changes:
@@ -124,3 +125,5 @@ Extract part of givit's logic (the yes/no of whether an intrinsic should be
   given) into its own function.
 Define a new MR2_TELEPATHY monster intrinsic and set it by default for all
   inherently-telepathic monsters.
+Add a parameter to put_monsters_to_sleep defining the monster that is causing
+  the effect.

@@ -258,6 +258,7 @@ struct obj *otmp;
 #define MUSE_UNICORN_HORN 17
 #define MUSE_POT_FULL_HEALING 18
 #define MUSE_LIZARD_CORPSE 19
+#define MUSE_MAGIC_FLUTE 20
 /*
 #define MUSE_INNATE_TPT 9999
  * We cannot use this.  Since monsters get unlimited teleportation, if they
@@ -1125,6 +1126,15 @@ struct monst *mtmp;
             m.offensive = obj;
             m.has_offense = MUSE_POT_ACID;
         }
+        nomore(MUSE_MAGIC_FLUTE);
+        if (obj->otyp == MAGIC_FLUTE && !u.usleep && !rn2(3)
+            && obj->spe > 0 && multi >= 0) {
+            int dist = dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy);
+            if (dist <= mtmp->m_lev * 5) {
+                m.offensive = obj;
+                m.has_offense = MUSE_MAGIC_FLUTE;
+            }
+        }
         /* we can safely put this scroll here since the locations that
          * are in a 1 square radius are a subset of the locations that
          * are in wand or throwing range (in other words, always lined_up())
@@ -1373,6 +1383,34 @@ struct monst *mtmp;
              sgn(mtmp->muy - mtmp->my));
         m_using = FALSE;
         return (DEADMONSTER(mtmp)) ? 1 : 2;
+    case MUSE_MAGIC_FLUTE: {
+        const char* music = Hallucination ? "piping" : "soft";
+        if (oseen) {
+            makeknown(otmp->otyp);
+            pline("%s plays a %s!", Monnam(mtmp), xname(otmp));
+            if (!Deaf)
+                pline("%s produces %s music.", Monnam(mtmp), music);
+        }
+        else {
+            You_hear("%s music being played.", music);
+        }
+        m_using = TRUE;
+        put_monsters_to_sleep(mtmp, mtmp->m_lev * 5);
+        if (!Deaf) {
+            /* No effects on you if you can't hear the music, but the monster
+             * doesn't know that so it won't be prevented from trying. */
+            if (Sleep_resistance)
+                You("yawn.");
+            else {
+                You("fall asleep.");
+                /* sleep time is same as put_monsters_to_sleep */
+                fall_asleep(-d(10, 10), TRUE);
+            }
+        }
+        otmp->spe--;
+        m_using = FALSE;
+        return 2;
+    }
     case MUSE_WAN_TELEPORTATION:
     case MUSE_WAN_STRIKING:
         zap_oseen = oseen;
@@ -2036,7 +2074,7 @@ struct obj *obj;
             return (boolean) needspick(mon->data);
         if (typ == UNICORN_HORN)
             return (boolean) (!obj->cursed && !is_unicorn(mon->data));
-        if (typ == FROST_HORN || typ == FIRE_HORN)
+        if (typ == FROST_HORN || typ == FIRE_HORN || typ == MAGIC_FLUTE)
             return (obj->spe > 0 && can_blow(mon));
         break;
     case FOOD_CLASS:
