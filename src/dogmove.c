@@ -9,7 +9,6 @@
 
 extern boolean notonhead;
 
-STATIC_DCL void FDECL(dog_givit, (struct monst *, struct permonst *));
 STATIC_DCL boolean FDECL(dog_hunger, (struct monst *, struct edog *));
 STATIC_DCL int FDECL(dog_invent, (struct monst *, struct edog *, int));
 STATIC_DCL int FDECL(dog_goal, (struct monst *, struct edog *, int, int, int));
@@ -351,13 +350,13 @@ boolean devour;
     if (deadmimic)
         quickmimic(mtmp);
     if (obj->otyp == CORPSE)
-        dog_givit(mtmp, &mons[obj->corpsenm]);
+        mon_givit(mtmp, &mons[obj->corpsenm]);
     return 1;
 }
 
-/* Maybe give an intrinsic to a pet from eating a corpse that confers it. */
-STATIC_OVL void
-dog_givit(mtmp, ptr)
+/* Maybe give an intrinsic to a monster from eating a corpse that confers it. */
+void
+mon_givit(mtmp, ptr)
 struct monst* mtmp;
 struct permonst* ptr;
 {

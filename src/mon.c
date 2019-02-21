@@ -1181,6 +1181,8 @@ struct monst *mtmp;
                 if (otmp->oclass == SCROLL_CLASS
                     && objdescr_is(otmp, "YUM YUM"))
                     pline("Yum%c", otmp->blessed ? '!' : '.');
+                if (otmp->otyp == CORPSE)
+                    mon_givit(mtmp, &mons[otmp->corpsenm]);
             } else {
                 if (flags.verbose)
                     You_hear("a slurping sound.");
