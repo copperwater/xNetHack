@@ -25,6 +25,7 @@ STATIC_DCL boolean FDECL(isspecmon, (struct monst *));
 STATIC_DCL boolean FDECL(validspecmon, (struct monst *, int));
 STATIC_DCL struct permonst *FDECL(accept_newcham_form, (int));
 STATIC_DCL struct obj *FDECL(make_corpse, (struct monst *, unsigned));
+STATIC_OVL long FDECL(mm_2way_aggression, (struct monst *, struct monst *));
 STATIC_DCL void FDECL(m_detach, (struct monst *, struct permonst *));
 STATIC_DCL void FDECL(lifesaved_monster, (struct monst *));
 
@@ -1761,6 +1762,39 @@ nexttry: /* eels prefer the water, but if there is no water nearby,
     return cnt;
 }
 
+/* Part of mm_aggression that represents two-way aggression. To avoid having to
+ * code each case twice, this function contains those cases that ought to
+ * happen twice, and mm_aggression will call it twice. */
+STATIC_OVL long
+mm_2way_aggression(magr, mdef)
+struct monst *magr, *mdef;
+{
+    struct permonst *ma = magr->data;
+    struct permonst *md = mdef->data;
+    /* Since the quest guardians are under siege, it makes sense to have
+       them fight hostiles.  (But we don't want the quest leader to be in
+       danger.)
+       NOTE: But don't let still-peaceful guardians fight hostile guardians if
+       the hero manages to annoy one of them! */
+    if (ma->msound==MS_GUARDIAN && mdef->mpeaceful==FALSE
+        && !md->msound == MS_GUARDIAN)
+        return ALLOW_M|ALLOW_TM;
+
+    /* elves vs. orcs */
+    if(is_elf(ma) && is_orc(md))
+        return ALLOW_M|ALLOW_TM;
+
+    /* angels vs. demons */
+    if (ma->mlet==S_ANGEL && is_demon(md))
+        return ALLOW_M|ALLOW_TM;
+
+    /* zombies vs things that can be zombified */
+    if (zombie_maker(ma) && zombie_form(md) != NON_PM)
+        return ALLOW_M|ALLOW_TM;
+
+    return 0;
+}
+
 /* Monster against monster special attacks; for the specified monster
    combinations, this allows one monster to attack another adjacent one
    in the absence of Conflict.  There is no provision for targetting
@@ -1782,44 +1816,21 @@ struct monst *magr, /* monster that is currently deciding where to move */
     if ((ma == &mons[PM_PURPLE_WORM] || md == &mons[PM_BABY_PURPLE_WORM])
         && md == &mons[PM_SHRIEKER])
         return ALLOW_M | ALLOW_TM;
+
     /* Grudge patch. */
-    /* Since the quest guardians are under siege, it makes sense to have
-       them fight hostiles.  (But we don't want the quest leader to be in
-       danger.)
-       NOTE: But don't let still-peaceful guardians fight hostile guardians if
-       the hero manages to annoy one of them! */
-    if (ma->msound==MS_GUARDIAN && mdef->mpeaceful==FALSE
-        && !md->msound == MS_GUARDIAN)
-        return ALLOW_M|ALLOW_TM;
-    /* and vice versa */
-    if (md->msound==MS_GUARDIAN && magr->mpeaceful==FALSE
-        && !ma->msound == MS_GUARDIAN)
-        return ALLOW_M|ALLOW_TM;
-    /* elves vs. orcs */
-    if(is_elf(ma) && is_orc(md))
-        return ALLOW_M|ALLOW_TM;
-    /* and vice versa */
-    if (is_elf(md) && is_orc(ma))
-        return ALLOW_M|ALLOW_TM;
-    /* angels vs. demons */
-    if (ma->mlet==S_ANGEL && is_demon(md))
-        return ALLOW_M|ALLOW_TM;
-    /* and vice versa */
-    if (md->mlet==S_ANGEL && is_demon(ma))
-        return ALLOW_M|ALLOW_TM;
-    /* woodchucks vs. The Oracle */
+    /* Put one-way aggressions below here, and two-way aggressions in
+     * mm_2way_aggression. */
+
+    /* woodchucks vs. The Oracle (she has a passive retaliation) */
     if (ma == &mons[PM_WOODCHUCK] && md == &mons[PM_ORACLE])
         return ALLOW_M|ALLOW_TM;
+
     /* ravens like eyes */
     if (ma == &mons[PM_RAVEN] && md == &mons[PM_FLOATING_EYE])
         return ALLOW_M|ALLOW_TM;
-    /* zombies vs things that can be zombified */
-    if (zombie_maker(ma) && zombie_form(md) != NON_PM)
-        return ALLOW_M|ALLOW_TM;
-    /* and vice versa */
-    if (zombie_maker(md) && zombie_form(ma) != NON_PM)
-        return ALLOW_M|ALLOW_TM;
-    return 0L;
+
+    /* now test all two-way aggressions both ways */
+    return (mm_2way_aggression(magr, mdef) | mm_2way_aggression(mdef, magr));
 }
 
 /* Monster displacing another monster out of the way */

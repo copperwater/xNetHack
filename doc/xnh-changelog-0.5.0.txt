@@ -131,3 +131,4 @@ Add a parameter to put_monsters_to_sleep defining the monster that is causing
   the effect.
 Refactor mpickstuff to use a callback function rather than a string of object
   classes, allowing for finer control of objects monsters will pick up.
+Refactor mm_aggression into clear one-directional and two-directional cases.
