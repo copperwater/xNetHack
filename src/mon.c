@@ -1792,6 +1792,10 @@ struct monst *magr, *mdef;
     if (zombie_maker(ma) && zombie_form(md) != NON_PM)
         return ALLOW_M|ALLOW_TM;
 
+    /* hobbits vs Nazguls */
+    if (ma == &mons[PM_HOBBIT] && md == &mons[PM_NAZGUL])
+        return ALLOW_M|ALLOW_TM;
+
     return 0;
 }
 

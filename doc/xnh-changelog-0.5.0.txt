@@ -110,6 +110,7 @@ Don't unconditionally delete the save file in case of a version mismatch.
 Zombies groan instead of being silent.
 Trying to attack a monster in melee with pacifist conduct intact after 100 turns
   will ask you if you really want to attack.
+Hobbits and Nazguls grudge each other.
 
 
 It contains the following non-gameplay architectural changes:
