@@ -2464,7 +2464,13 @@ dodip()
                     singlepotion = splitobj(potion, 1);
                 else
                     singlepotion = potion;
+
                 singlepotion->corpsenm = obj->corpsenm;
+
+                if (obj->cursed)
+                    /* placeholder for "turn into sickness instead" */
+                    singlepotion->corpsenm = PM_PESTILENCE;
+
                 useup(obj);
                 obj_extract_self(singlepotion);
                 start_timer(50 + rn2(50), TIMER_OBJECT, FERMENT,
@@ -2524,6 +2530,11 @@ long timeout;
         new_otyp = POT_BOOZE; /* it "tastes like liquid fire" */
     else if (corpsenm == PM_VIOLET_FUNGUS)
         new_otyp = POT_HALLUCINATION;
+    else if (corpsenm == PM_PESTILENCE)
+        /* not actually fermenting Pestilence; just denotes that something went
+         * wrong in the mixing and the potion should turn into sickness instead
+         * of whatever it was going to */
+        new_otyp = POT_SICKNESS;
     else {
         impossible("Strange fermentation agent %d!", corpsenm);
         return;

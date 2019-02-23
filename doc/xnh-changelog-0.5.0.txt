@@ -78,6 +78,7 @@ Pets will not attack gas spores that you're adjacent to.
 Magic-liking monsters will pick up all magical items, not just objects from
   classes where all items are magical.
 Monsters can use magic flutes
+Dissolving a cursed mold corpse in fruit juice will create sickness
 
 
 It contains the following non-gameplay interface changes:
