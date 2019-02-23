@@ -503,6 +503,7 @@ struct obj * obj; /* the offending item */
               vtense(onamebuf, "sear"), whom);
     }
     else {
+        whom = upstart(whom);
         pline("%s flinches from %s%s!", whom, whose, onamebuf);
     }
 }
