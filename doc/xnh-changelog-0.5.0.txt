@@ -100,6 +100,7 @@ YAFM for ascending while hallucinating.
 YAFM for trying to #chat to a wall.
 YAFM for a cosmetic magic trap effect if you are a hallucinating valkyrie.
 YAFM for hearing a wererat change form while hallucinating.
+YAFM for getting your brains eaten while hallucinating.
 Usual periodic assortment of new bogusmons, bogus gods, bogus currencies, candy
   bar labels, t-shirt texts, rumors, engravings, and epitaphs.
 Give better directions for reporting impossible() calls.
