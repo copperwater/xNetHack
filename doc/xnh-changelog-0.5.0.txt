@@ -79,6 +79,8 @@ Magic-liking monsters will pick up all magical items, not just objects from
   classes where all items are magical.
 Monsters can use magic flutes.
 Dissolving a cursed mold corpse in fruit juice will create sickness.
+Port the Free Fortune Cookie Patch: half of szechuan tins, if eaten, give you a
+  free fortune cookie.
 
 
 It contains the following non-gameplay interface changes:

@@ -1467,6 +1467,13 @@ const char *mesg;
                   tintxts[r].txt, makeplural(body_part(FINGER)));
         }
 
+        if (!strcmp(tintxts[r].txt, "szechuan") && rn2(2)) {
+            struct obj* cookie = mksobj(FORTUNE_COOKIE, FALSE, FALSE);
+            cookie->blessed = tin->blessed;
+            cookie->cursed = tin->cursed;
+            pline("There is a free fortune cookie inside!");
+            hold_another_object(cookie, "It falls to the floor.", NULL, NULL);
+        }
     } else { /* spinach... */
         if (tin->cursed) {
             pline("It contains some decaying%s%s substance.",
