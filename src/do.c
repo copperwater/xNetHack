@@ -1913,7 +1913,10 @@ long timeout;
     /* maybe F are genocided? */
     boolean no_eligible = (newpm == NULL);
 
-    if (already_fungus || bad_spot || no_eligible) {
+    /* Don't grow mold on the corpse the player is eating. */
+    boolean munching = (body == context.victual.piece);
+
+    if (already_fungus || bad_spot || no_eligible || munching) {
         /* set to rot away normally */
         start_timer(250L - (monstermoves - peek_at_iced_corpse_age(body)),
                     TIMER_OBJECT, ROT_CORPSE, arg);
