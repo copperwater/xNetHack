@@ -827,7 +827,23 @@ int dieroll;
                        let it also hit from behind or shatter foes' weapons */
                     || (hand_to_hand && obj->oartifact == ART_CLEAVER)) {
                     ; /* no special bonuses */
-                } else if (mon->mflee && Role_if(PM_ROGUE) && !Upolyd
+                }
+                else if (mdat->mlet == S_VAMPIRE && obj->material == WOOD
+                    && (objects[obj->otyp].oc_dir & PIERCE)
+                    && which_armor(mon, W_ARM) == 0 && dieroll == 1) {
+                    /* Critical hit with a piercing wooden weapon = staked
+                     * through the heart! */
+                    tmp = mon->mhp;
+                    You("stake %s through the heart!", mon_nam(mon));
+                    /* don't let negative daminc prevent from killing (and
+                     * positive won't matter anyway) */
+                    get_dmg_bonus = FALSE;
+                    /* also don't let skill-based damage penalties prevent this
+                     * from killing; cancel this out now (valid_weapon_attack is
+                     * guaranteed from the above if) */
+                    tmp -= weapon_dam_bonus(uwep);
+                }
+                else if (mon->mflee && Role_if(PM_ROGUE) && !Upolyd
                            /* multi-shot throwing is too powerful here */
                            && hand_to_hand) {
                     You("strike %s from behind!", mon_nam(mon));
