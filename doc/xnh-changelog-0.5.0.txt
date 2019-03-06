@@ -83,6 +83,7 @@ Port the Free Fortune Cookie Patch: half of szechuan tins, if eaten, give you a
   free fortune cookie.
 Getting a critical hit on a vampire with a wooden piercing weapon can stake it
 through the heart and destroy it instantly.
+Magic lamps always release a djinni when rubbed instead of 1/3 of the time.
 
 
 It contains the following non-gameplay interface changes:
