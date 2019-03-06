@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.257 $ $NHDT-Date: 1550014802 2019/02/12 23:40:02 $
+$NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.268 $ $NHDT-Date: 1551493951 2019/03/02 02:32:31 $
 
 This fixes36.2 file is here to capture information about updates in the 3.6.x
 lineage following the release of 3.6.1 in April 2018. Please note, however,
@@ -371,6 +371,24 @@ DUMPLOG: output from '/' (#whatis) and ';' went into ^P message recall history
 when donning armor, defer flagging its +/- value--which can be deduced from
 	the status line--as known until finished in case it gets stolen before
 	then (player might still deduce the +/- value but hero won't learn it)
+a monster with resistances supplied by worn armor would lose them if that
+	monster went through a shape change even if the armor stayed worn
+when using 'f' to fire/throw--and possibly some ^A's to repeat--then running
+	out of ammo (with either 'autoquiver' off or nothing suitable to put
+	in quiver), using ^A would put whichever inventory item was assigned
+	the same letter as the prior direction into quiver slot (unless item
+	was already worn or wielded) and then ask for a direction to fire it
+early rolling boulder trap lacking any boulder might still have the corpse
+	of a dead adventurer
+persistent inventory window would show "(being worn)" for armor that was in
+	the midst of being put on or taken off; it is 'partly worn' in such
+	circumstances so "being worn" could be misleading
+toggling perm_invent on didn't immediately show persistent inventory window
+some fish should lay their eggs in the water rather than on land
+wand or spell of undead turning handled messages and wand-discovery in a
+	non-intuitive manner biased toward healers
+if steed ate a mimic corpse and began masquerading as something, hero could
+	keep riding it; force dismount
 
 
 Fixes to Post-3.6.1 Problems that Were Exposed Via git Repository
@@ -432,6 +450,8 @@ after 'when donning armor, enchanment becomes known even if interrupted' fix,
 	worn in a slot which usually has one) didn't make +/- become known
 having an artifact wish be refused ("for a moment you feel <artifact> in
 	your hands, but it disappears") would immediately segfault
+when persistent inventory window is enabled, wearing armor doesn't immediately
+	update it with armor's newly observed +/- value
 tty: turn off an optimization that is the suspected cause of Windows reported
 	partial status lines following level changes
 tty: ensure that current status fields are always copied to prior status
@@ -479,6 +499,10 @@ tty: suppress intermediate 'Count: 123' prompt and getpos autodescribe
 	feedback from being included in ^P message recall
 tty: ^P feedback with msg_window:full/combination/reverse containing output
 	from dolook/whatis could show strange characters for DECgraphics
+tty: if eight_bit_tty option is set and current symbol set specifies
+	DECgraphics handling, render line-drawing characters (in nethack's
+	scheme, the 4th quarter of ASCII--mostly lower case letters--with
+	8th-bit forced on) instead of treating that subset as 8-bit characters
 unix: Makefile.src and Makefile.utl inadvertently relied on a 'gnu make'
 	extension when using $(VERBOSEMAKE) to reduce build-time feedback;
 	replace with $(QUIETCC) which operates the same but defaults to

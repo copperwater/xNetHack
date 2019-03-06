@@ -1,4 +1,4 @@
-/* NetHack 3.6	mondata.h	$NHDT-Date: 1548209737 2019/01/23 02:15:37 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.36 $ */
+/* NetHack 3.6	mondata.h	$NHDT-Date: 1550524558 2019/02/18 21:15:58 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.37 $ */
 /* Copyright (c) 1989 Mike Threepoint				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -11,24 +11,24 @@
 #define pm_resistance(ptr, typ) (((ptr)->mresists & (typ)) != 0)
 
 #define resists_fire(mon) \
-    ((((mon)->data->mresists | (mon)->mintrinsics) & MR_FIRE) != 0)
+    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_FIRE) != 0)
 #define resists_cold(mon) \
-    ((((mon)->data->mresists | (mon)->mintrinsics) & MR_COLD) != 0)
+    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_COLD) != 0)
 #define resists_sleep(mon) \
-    ((((mon)->data->mresists | (mon)->mintrinsics) & MR_SLEEP) != 0)
+    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_SLEEP) != 0)
 #define resists_disint(mon) \
-    ((((mon)->data->mresists | (mon)->mintrinsics) & MR_DISINT) != 0)
+    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_DISINT) != 0)
 #define resists_elec(mon) \
-    ((((mon)->data->mresists | (mon)->mintrinsics) & MR_ELEC) != 0)
+    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_ELEC) != 0)
 #define resists_poison(mon) \
-    ((((mon)->data->mresists | (mon)->mintrinsics) & MR_POISON) != 0)
+    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_POISON) != 0)
 #define resists_acid(mon) \
-    ((((mon)->data->mresists | (mon)->mintrinsics) & MR_ACID) != 0)
+    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_ACID) != 0)
 #define resists_ston(mon) \
-    ((((mon)->data->mresists | (mon)->mintrinsics) & MR_STONE) != 0)
+    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_STONE) != 0)
 
 #define has_telepathy(mon) \
-    (telepathic((mon)->data) || ((mon)->mintrinsics & MR2_TELEPATHY) != 0)
+    (telepathic((mon)->data) || ((mon)->mextrinsics & MR2_TELEPATHY) != 0)
 
 /* as of 3.2.0:  gray dragons, Angels, Oracle, Yeenoghu */
 #define resists_mgc(ptr) \
@@ -85,6 +85,8 @@
 #define slimeproof(ptr) \
     ((ptr) == &mons[PM_GREEN_SLIME] || flaming(ptr) || noncorporeal(ptr))
 #define lays_eggs(ptr) (((ptr)->mflags1 & M1_OVIPAROUS) != 0L)
+#define eggs_in_water(ptr) \
+    (lays_eggs(ptr) && (ptr)->mlet == S_EEL && is_swimmer(ptr))
 #define regenerates(ptr) (((ptr)->mflags1 & M1_REGEN) != 0L)
 #define perceives(ptr) (((ptr)->mflags1 & M1_SEE_INVIS) != 0L)
 #define can_teleport(ptr) (((ptr)->mflags1 & M1_TPORT) != 0L)

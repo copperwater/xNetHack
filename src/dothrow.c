@@ -1,4 +1,4 @@
-/* NetHack 3.6	dothrow.c	$NHDT-Date: 1545597420 2018/12/23 20:37:00 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.155 $ */
+/* NetHack 3.6	dothrow.c	$NHDT-Date: 1550868876 2019/02/22 20:54:36 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.158 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -408,8 +408,12 @@ dofire()
                 You("have nothing appropriate for your quiver.");
         }
         /* if autoquiver is disabled or has failed, prompt for missile;
-           fill quiver with it if it's not wielded */
+           fill quiver with it if it's not wielded or worn */
         if (!obj) {
+            /* in case we're using ^A to repeat prior 'f' command, don't
+               use direction of previous throw as getobj()'s choice here */
+            in_doagain = 0;
+            /* choose something from inventory, then usually quiver it */
             obj = getobj("throw", throw_ok, TRUE, FALSE);
             /* Q command doesn't allow gold in quiver */
             if (obj && !obj->owornmask && obj->oclass != COIN_CLASS)
@@ -757,12 +761,11 @@ int x, y;
     }
 
     /* FIXME:
-     * Each trap should really trigger on the recoil if
-     * it would trigger during normal movement. However,
-     * not all the possible side-effects of this are
-     * tested [as of 3.4.0] so we trigger those that
-     * we have tested, and offer a message for the
-     * ones that we have not yet tested.
+     * Each trap should really trigger on the recoil if it would
+     * trigger during normal movement. However, not all the possible
+     * side-effects of this are tested [as of 3.4.0] so we trigger
+     * those that we have tested, and offer a message for the ones
+     * that we have not yet tested.
      */
     if ((ttmp = t_at(x, y)) != 0) {
         if (stopping_short) {
@@ -1087,7 +1090,7 @@ boolean hitsroof;
         } else if (petrifier && !Stone_resistance
                    && !(poly_when_stoned(youmonst.data)
                         && polymon(PM_STONE_GOLEM, TRUE))) {
-        petrify:
+ petrify:
             killer.format = KILLED_BY;
             Strcpy(killer.name, "elementary physics"); /* "what goes up..." */
             You("turn to stone.");
@@ -1154,9 +1157,9 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
     if ((obj->cursed || obj->greased) && (u.dx || u.dy) && !rn2(7)) {
         boolean slipok = TRUE;
 
-        if (ammo_and_launcher(obj, uwep))
+        if (ammo_and_launcher(obj, uwep)) {
             pline("%s!", Tobjnam(obj, "misfire"));
-        else {
+        } else {
             /* only slip if it's greased or meant to be thrown */
             if (obj->greased || throwing_weapon(obj))
                 /* BUG: this message is grammatically incorrect if obj has
@@ -1200,7 +1203,8 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
         if (u.dz < 0
             /* Mjollnir must we wielded to be thrown--caller verifies this;
                aklys must we wielded as primary to return when thrown */
-            && ((Role_if(PM_VALKYRIE) && obj->oartifact == ART_MJOLLNIR) || tethered_weapon)
+            && ((Role_if(PM_VALKYRIE) && obj->oartifact == ART_MJOLLNIR)
+                || tethered_weapon)
             && !impaired) {
             pline("%s the %s and returns to your hand!", Tobjnam(obj, "hit"),
                   ceiling(u.ux, u.uy));
@@ -1240,8 +1244,8 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
         }
     } else {
         /* crossbow range is independent of strength */
-        crossbowing =
-            (ammo_and_launcher(obj, uwep) && weapon_type(uwep) == P_CROSSBOW);
+        crossbowing = (ammo_and_launcher(obj, uwep)
+                       && weapon_type(uwep) == P_CROSSBOW);
         urange = (crossbowing ? 18 : (int) ACURRSTR) / 2;
         /* balls are easy to throw or at least roll;
          * also, this insures the maximum range of a ball is greater
@@ -1410,7 +1414,8 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
                 thrownobj = (struct obj *) 0;
                 return;
             } else {
-                if (tethered_weapon) tmp_at(DISP_END, 0);
+                if (tethered_weapon)
+                    tmp_at(DISP_END, 0);
                 /* when this location is stepped on, the weapon will be
                    auto-picked up due to 'obj->was_thrown' of 1;
                    addinv() prevents thrown Mjollnir from being placed
@@ -1475,8 +1480,7 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
     }
 }
 
-/* an object may hit a monster; various factors adjust the chance of hitting
- */
+/* an object may hit a monster; various factors adjust chance of hitting */
 int
 omon_adj(mon, obj, mon_notices)
 struct monst *mon;
@@ -1575,7 +1579,7 @@ register struct obj *obj; /* thrownobj or kickedobj or uwep */
      * No bonuses for fleeing or stunned targets (they don't dodge
      *    melee blows as readily, but dodging arrows is hard anyway).
      * Not affected by traps, etc.
-     * Certain items which don't in themselves do damage ignore tmp.
+     * Certain items which don't in themselves do damage ignore 'tmp'.
      * Distance and monster size affect chance to hit.
      */
     tmp = -1 + Luck + find_mac(mon) + u.uhitinc
@@ -1918,7 +1922,7 @@ register struct obj *obj;
     (void) mpickobj(mon, obj); /* may merge and free obj */
     ret = 1;
 
-nopick:
+ nopick:
     if (!Blind)
         pline1(buf);
     if (!tele_restrict(mon))
