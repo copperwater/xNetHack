@@ -1088,6 +1088,8 @@ int reason; /* 0==conversion, 1==helm-of-OA on, 2==helm-of-OA off */
     context.botl = 1; /* status line needs updating */
     if (reason == 0) {
         /* conversion via altar */
+        livelog_printf(LL_ALIGNMENT, "permanently converted to %s",
+                       aligns[1 - newalign].adj);
         u.ualignbase[A_CURRENT] = (aligntyp) newalign;
         /* worn helm of opposite alignment might block change */
         if (!uarmh || uarmh->otyp != HELM_OF_OPPOSITE_ALIGNMENT)
@@ -1096,6 +1098,11 @@ int reason; /* 0==conversion, 1==helm-of-OA on, 2==helm-of-OA off */
             (u.ualign.type != oldalign) ? "sudden " : "");
     } else {
         /* putting on or taking off a helm of opposite alignment */
+        if (reason == 1) {
+            /* don't livelog taking it back off */
+            livelog_printf(LL_ALIGNMENT, "used a helm to turn %s",
+                           aligns[1 - newalign].adj);
+        }
         u.ualign.type = (aligntyp) newalign;
         if (reason == 1)
             Your("mind oscillates %s.", Hallucination ? "wildly" : "briefly");

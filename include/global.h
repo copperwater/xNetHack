@@ -370,6 +370,7 @@ struct savefile_info {
 #define LL_GENOCIDE   0x0080 /* Logging of genocides */
 #define LL_KILLEDPET  0x0100 /* Killed a tame monster */
 #define LL_ARISE      0x0200 /* sentient_arise: was killed, continue playing as monster */
+#define LL_ALIGNMENT  0x0400 /* changed alignment temporarily or permanently */
 #define LL_DEBUG      0x8000 /* For debugging messages and other spam */
 
 /* Supply nethack_enter macro if not supplied by port */

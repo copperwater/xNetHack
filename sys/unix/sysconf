@@ -87,16 +87,17 @@ MAXPLAYERS=10
 # 0x01 - Wishes
 # 0x02 - Significant achievements (complete sokoban, perform invocation, etc)
 # 0x04 - Kill, destroy or bribe a unique monster.
-# 0x08 - Significant religious events (sacrifice gifts, crowning)
+# 0x08 - Divine gifts (sacrifice gifts, crowning)
 # 0x10 - Life-saving
 # 0x20 - Break conduct - see also LLC_TURNS below.
 # 0x40 - Artifact obtained (#name Sting, dip for Excalibur)
 # 0x80 - Genocides
 # 0x0100 - Killed your own pet
 # 0x0200 - Died, but rose from the grave as a monster, and kept playing
+# 0x0400 - Changing alignment
 # 0x8000 - Livelog debug msgs (currently only 'enter new level')
 # Enabled at compile time by defining LIVELOGFILE in config.h
-LIVELOG=0x03FF
+LIVELOG=0x07FF
 
 # Do not livelog breaking of conducts before this turncount
 # Cuts down on spam
