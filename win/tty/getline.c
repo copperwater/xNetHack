@@ -221,7 +221,7 @@ register const char *s; /* chars allowed besides return */
         !g.program_state.done_hup &&
 #endif
         (c = tty_nhgetch()) != EOF) {
-        if (c == '\n' || c == '\r')
+        if ((c == '\n' || c == '\r') && !iflags.msg_is_alert)
             break;
 
         if (iflags.cbreak) {
