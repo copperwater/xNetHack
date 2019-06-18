@@ -1708,16 +1708,25 @@ static const char have_been[] = "have been ", have_never[] = "have never ",
     enl_msg(You_, have, (const char *) "", something, "")
 
 static void
-enlght_out(buf)
+enlght_out_attr(attr, buf)
 const char *buf;
+int attr;
 {
     if (g.en_via_menu) {
         anything any;
 
         any = cg.zeroany;
-        add_menu(g.en_win, NO_GLYPH, &any, 0, 0, ATR_NONE, buf, FALSE);
+        add_menu(g.en_win, NO_GLYPH, &any, 0, 0, attr, buf, FALSE);
     } else
-        putstr(g.en_win, 0, buf);
+        putstr(g.en_win, attr, buf);
+}
+
+
+static void
+enlght_out(buf)
+const char *buf;
+{
+    enlght_out_attr(ATR_NONE, buf);
 }
 
 static void
@@ -1864,7 +1873,7 @@ int final; /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE, ENL_GAMEOVERDEAD */
                 : g.urole.name.m);
 
     /* title */
-    enlght_out(buf); /* "Conan the Archeologist's attributes:" */
+    enlght_out_attr(ATR_HEADING, buf); /* "Conan the Archeologist's attributes:" */
     /* background and characteristics; ^X or end-of-game disclosure */
     if (mode & BASICENLIGHTENMENT) {
         /* role, race, alignment, deities, dungeon level, time, experience */
@@ -1919,7 +1928,7 @@ int final;
     rank_titl = rank_of(u.ulevel, Role_switch, innategend);
 
     enlght_out(""); /* separator after title */
-    enlght_out("Background:");
+    enlght_out_attr(ATR_SUBHEAD, "Background:");
 
     /* if polymorphed, report current shape before underlying role;
        will be repeated as first status: "you are transformed" and also
@@ -2164,7 +2173,7 @@ int final;
         pwmax = u.uenmax, hpmax = (Upolyd ? u.mhmax : u.uhpmax);
 
     enlght_out(""); /* separator after background */
-    enlght_out("Basics:");
+    enlght_out_attr(ATR_SUBHEAD, "Basics:");
 
     if (hp < 0)
         hp = 0;
@@ -2243,7 +2252,7 @@ int final;
 
     enlght_out("");
     Sprintf(buf, "%s Characteristics:", !final ? "Current" : "Final");
-    enlght_out(buf);
+    enlght_out_attr(ATR_SUBHEAD, buf);
 
     /* bottom line order */
     one_characteristic(mode, final, A_STR); /* strength */
@@ -2375,7 +2384,7 @@ int final;
      *     should be discernible to the hero hence to the player)
     \*/
     enlght_out(""); /* separator after title or characteristics */
-    enlght_out(final ? "Final Status:" : "Current Status:");
+    enlght_out_attr(ATR_SUBHEAD, final ? "Final Status:" : "Current Status:");
 
     Strcpy(youtoo, You_);
     /* not a traditional status but inherently obvious to player; more
@@ -2702,7 +2711,7 @@ int final;
      *  Attributes
     \*/
     enlght_out("");
-    enlght_out(final ? "Final Attributes:" : "Current Attributes:");
+    enlght_out_attr(ATR_SUBHEAD, final ? "Final Attributes:" : "Current Attributes:");
 
     if (u.uevent.uhand_of_elbereth) {
         static const char *const hofe_titles[3] = { "the Hand of Elbereth",
@@ -3337,7 +3346,7 @@ int final;
 
     /* Create the conduct window */
     g.en_win = create_nhwindow(NHW_MENU);
-    putstr(g.en_win, 0, "Voluntary challenges:");
+    putstr(g.en_win, ATR_HEADING, "Voluntary challenges:");
 
     if (u.uroleplay.blind)
         you_have_been("blind from birth");
@@ -6102,7 +6111,7 @@ const char *query, *resp;
 char def;
 {
     char res, qbuf[QBUFSZ];
-#ifdef DUMPLOG
+#if defined(DUMPLOG) || defined(DUMPHTML)
     unsigned idx = g.saved_pline_index;
     /* buffer to hold query+space+formatted_single_char_response */
     char dumplog_buf[QBUFSZ + 1 + 15]; /* [QBUFSZ+1+7] should suffice */
@@ -6119,10 +6128,10 @@ char def;
         query = qbuf;
     }
     res = (*windowprocs.win_yn_function)(query, resp, def);
-#ifdef DUMPLOG
+#if defined(DUMPLOG) || defined(DUMPHTML)
     if (idx == g.saved_pline_index) {
-        /* when idx is still the same as g.saved_pline_index, the interface
-           didn't put the prompt into g.saved_plines[]; we put a simplified
+        /* when idx is still the same as saved_pline_index, the interface
+           didn't put the prompt into saved_plines[]; we put a simplified
            version in there now (without response choices or default) */
         Sprintf(dumplog_buf, "%s ", query);
         (void) key2txt((uchar) res, eos(dumplog_buf));

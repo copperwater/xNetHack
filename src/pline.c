@@ -12,7 +12,7 @@ static char *FDECL(You_buf, (int));
 static void FDECL(execplinehandler, (const char *));
 #endif
 
-#ifdef DUMPLOG
+#if defined(DUMPLOG) || defined(DUMPHTML)
 
 /* keep the most recent DUMPLOG_MSG_COUNT messages */
 void
@@ -149,7 +149,7 @@ VA_DECL(const char *, line)
         line = pbuf;
     }
 
-#ifdef DUMPLOG
+#if defined(DUMPLOG) || defined(DUMPHTML)
     /* We hook here early to have options-agnostic output.
      * Unfortunately, that means Norep() isn't honored (general issue) and
      * that short lines aren't combined into one longer one (tty behavior).

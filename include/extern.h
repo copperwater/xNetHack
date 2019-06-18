@@ -307,7 +307,7 @@ E void NDECL(warnreveal);
 E int FDECL(dosearch0, (int));
 E int NDECL(dosearch);
 E void NDECL(sokoban_detect);
-#ifdef DUMPLOG
+#if defined(DUMPLOG) || defined(DUMPHTML) 
 E void NDECL(dump_map);
 #endif
 E void FDECL(reveal_terrain, (int, int));
@@ -1976,7 +1976,7 @@ E boolean FDECL(autopick_testobj, (struct obj *, BOOLEAN_P));
 
 /* ### pline.c ### */
 
-#ifdef DUMPLOG
+#if defined(DUMPLOG) || defined(DUMPHTML)
 E void FDECL(dumplogmsg, (const char *));
 E void NDECL(dumplogfreemessages);
 #endif

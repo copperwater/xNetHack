@@ -129,6 +129,11 @@ LLC_TURNS=3000
 #   %N first character of player name
 DUMPLOGFILE=/dgldir/userdata/%N/%n/nethack/dumplog/%t.nh.txt
 
+# End of game HTML dump.
+# Only available if NetHack was compiled with DUMPHTML
+# Allows placeholders as above.
+DUMPHTMLFILE=/dgldir/userdata/%N/%n/nethack/dumplog/%t.nh.html
+
 # Number of bones file pools.
 # The pool you belong to is determined at game start. You will
 # load and save bones only from that pool. Generally useful

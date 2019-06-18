@@ -2712,6 +2712,12 @@ char *origbuf;
             free((genericptr_t) sysopt.dumplogurl);
         sysopt.dumplogurl = dupstr(bufp);
 #endif
+    } else if (src == SET_IN_SYS && match_varname(buf, "DUMPHTMLFILE", 7)) {
+#ifdef DUMPHTML
+        if (sysopt.dumphtmlfile)
+            free((genericptr_t) sysopt.dumphtmlfile);
+        sysopt.dumphtmlfile = dupstr(bufp);
+#endif
     } else if (src == SET_IN_SYS && match_varname(buf, "GENERICUSERS", 12)) {
         if (sysopt.genericusers)
             free((genericptr_t) sysopt.genericusers);
