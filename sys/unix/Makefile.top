@@ -78,7 +78,8 @@ VARDAT = $(VARDATD) $(VARDATND)
 # end of configuration
 #
 
-CSS = NetHack-dump.css
+# The CSS file is required for HTML end-of-game dump logs.
+CSS = NHdump.css
 
 DATHELP = help hh cmdhelp keyhelp history opthelp wizhelp
 

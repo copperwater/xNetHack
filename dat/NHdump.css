@@ -1,4 +1,4 @@
-/* NetHack dump CSS file */
+/* CSS - only required for HTML DumpLogs */
 body {
 	color:#CCCCCC;
 	background-color:#222222;
@@ -7,8 +7,6 @@ body {
 pre.nh_screen {
 	font-family: DejaVu Sans Mono,Menlo,Courier New,Courier,monospace;
 }
-.nh_skills,
-.nh_game_information,
 .nh_item_letter {
 	padding-left: 3ex;
 }
@@ -59,36 +57,22 @@ span.nh_screen {
 	background-color:black;
 }
 
-.nh_skills th {
-	text-align: left;
-}
-.nh_skills td {
-	padding-left: 1em;
-}
 
 .nh_color_0 { color:#AAAAAA; }  /* CLR_BLACK          */
-.nh_lava,
 .nh_color_1 { color:#DD0000; }  /* CLR_RED            */
-.nh_tree,
 .nh_color_2 { color:#00AA00; }  /* CLR_GREEN          */
-.nh_door, .nh_drawbridge, .nh_ladder,
 .nh_color_3 { color:#BBBB00; }  /* CLR_BROWN          */
-.nh_pool, .nh_moat, .nh_water, .nh_fountain,
 .nh_color_4 { color:#3333FF; }  /* CLR_BLUE           */
 .nh_color_5 { color:#AA00AA; }  /* CLR_MAGENTA        */
 .nh_color_6 { color:#00BBBB; }  /* CLR_CYAN           */
 .nh_color_7 { color:#AAAAAA; }  /* CLR_GRAY           */
-.nh_sink, .nh_grave, .nh_altar,
 .nh_color_8 { color:#AAAAAA; }  /* NO_COLOR           */
 .nh_color_9 { color:#FF5555; }  /* CLR_ORANGE         */
 .nh_color_10 { color:#55FF55; } /* CLR_BRIGHT_GREEN   */
-.nh_throne,
 .nh_color_11 { color:#FFFF00; } /* CLR_YELLOW         */
 .nh_color_12 { color:#0000FC; } /* CLR_BRIGHT_BLUE    */
 .nh_color_13 { color:#FC00FC; } /* CLR_BRIGHT_MAGENTA */
-.nh_ice, .nh_ironbars,
 .nh_color_14 { color:#00FFFF; } /* CLR_BRIGHT_CYAN    */
-.nh_stairs,
 .nh_color_15 { color:#FCFCFC; } /* CLR_WHITE          */
 .nh_inv_0 { color: black; background-color:#AAAAAA; }  /* CLR_BLACK          */
 .nh_inv_1 { color: black; background-color:#DD0000; }  /* CLR_RED            */
@@ -106,13 +90,4 @@ span.nh_screen {
 .nh_inv_13 { color: black; background-color:#FC00FC; } /* CLR_BRIGHT_MAGENTA */
 .nh_inv_14 { color: black; background-color:#00FCFC; } /* CLR_BRIGHT_CYAN    */
 .nh_inv_15 { color: black; background-color:#FCFCFC; } /* CLR_WHITE          */
-
-.nh_corridor   { color:#666666; }
-
-a {
-	background-color: inherit;
-	color: inherit;
-	text-decoration: inherit;
-}
-a:hover { border-bottom: 1px dotted gray; }
 

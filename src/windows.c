@@ -1878,7 +1878,7 @@ dump_css()
     int c = 0;
     FILE *css;
     if (!dumphtml_file) return;
-    css = fopen_datafile("NetHack-dump.css", "r", DATAPREFIX);
+    css = fopen_datafile("NHdump.css", "r", DATAPREFIX);
     if (!css) {
         pline("Can't open css file for input.");
         pline("CSS file not included.");
@@ -1980,10 +1980,10 @@ int attr;
 const char *str;
 {
     /* Suppress output to HTML for NHW_MAP
-       Suppress newline for NHW_STATUS */
-    if (dumplog_file)
-        fprintf(dumplog_file,
-                win == NHW_STATUS ? "%s" : "%s\n", str);
+       Suppress newline for NHW_STATUS
+       Send NHW_STATUS to HTML only */
+    if (dumplog_file && win != NHW_STATUS)
+        fprintf(dumplog_file, "%s\n", str);
 #ifdef DUMPHTML
     if (dumphtml_file && win != NHW_MAP)
         if (win == NHW_STATUS)

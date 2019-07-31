@@ -761,10 +761,13 @@ time_t when; /* date+time at end of game */
 
     dump_start_screendump();
     dump_map();
-    //putstr(0, 0, do_statusline1());
-    //putstr(0, 0, do_statusline2());
+    /* NHW_MAP -> ASCII dump only */
+    putstr(NHW_MAP, 0, do_statusline1());
+    putstr(NHW_MAP, 0, do_statusline2());
+    /* the next two lines are for the HTML status */
     status_initialize(TRUE);
     bot();
+
     dump_end_screendump();
     putstr(0, 0, "");
 
@@ -1485,12 +1488,13 @@ int how;
 #if defined(DUMPLOG) || defined(DUMPHTML)
     dump_redirect(TRUE);
     if (iflags.in_dumplog)
-        /* dump attributes don't work in dump_forward_putstr */
+        /* dump attributes don't work unless dump_redirect is on */
         putstr(endwin, ATR_SUBHEAD, pbuf);
     dump_redirect(FALSE);
 #endif
 
-    if (!done_stopprint) putstr(endwin, 0, pbuf);
+    if (!done_stopprint)
+        putstr(endwin, 0, pbuf);
     dump_forward_putstr(endwin, 0, "", done_stopprint);
 
     if (how == ESCAPED || how == ASCENDED) {
