@@ -1733,7 +1733,6 @@ dump_render_status()
         }
         if (dumphtml_file)
             fprintf(dumphtml_file, "%*s</span>\n", pad, " ");
-        putstr(NHW_MAP, 0, ""); /* for newline; NHW_MAP -> ascii dump only */
     }
     return;
 }
@@ -1979,13 +1978,12 @@ winid win;
 int attr;
 const char *str;
 {
-    /* Suppress output to HTML for NHW_MAP
-       Suppress newline for NHW_STATUS
+    /* Suppress newline for NHW_STATUS
        Send NHW_STATUS to HTML only */
-    if (dumplog_file && win != NHW_STATUS)
+    if (dumplog_file && win != NHW_STATUS && win != NHW_DUMPHTML)
         fprintf(dumplog_file, "%s\n", str);
 #ifdef DUMPHTML
-    if (dumphtml_file && win != NHW_MAP)
+    if (dumphtml_file && win != NHW_DUMPTXT)
         if (win == NHW_STATUS)
             html_dump_str(dumphtml_file, str);
         else

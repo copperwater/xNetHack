@@ -1924,8 +1924,6 @@ dump_map()
      * (our caller has already printed a separator).  If there is
      * more than one blank map row at the bottom, keep just one.
      * Any blank rows within the middle of the map are kept.
-     * Note: putstr() to NHW_MAP will go only to ASCII dumplog;
-     * Separate functions handle the HTML map.
      */
     skippedrows = 0;
     toprow = TRUE;
@@ -1958,15 +1956,15 @@ dump_map()
                 toprow = FALSE;
             }
             for (x = 0; x < skippedrows; x++)
-                putstr(NHW_MAP, 0, "");
-            putstr(NHW_MAP, 0, buf); /* map row #y */
+                putstr(NHW_DUMPTXT, 0, "");
+            putstr(NHW_DUMPTXT, 0, buf); /* map row #y */
             skippedrows = 0;
         } else {
             ++skippedrows;
         }
     }
     if (skippedrows)
-        putstr(NHW_MAP, 0, "");
+        putstr(NHW_DUMPTXT, 0, "");
 }
 #endif /* DUMPLOG || DUMPHTML */
 

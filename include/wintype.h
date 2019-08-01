@@ -72,6 +72,11 @@ typedef struct mi {
 #define NHW_MAP 3
 #define NHW_MENU 4
 #define NHW_TEXT 5
+#if defined(DUMPLOG) || defined(DUMPHTML)
+/* There's no windump.h, so these go here for now */
+#define NHW_DUMPTXT 6
+#define NHW_DUMPHTML 7
+#endif
 
 /* attribute types for putstr; the same as the ANSI value, for convenience */
 #define ATR_NONE       0

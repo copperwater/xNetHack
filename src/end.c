@@ -736,7 +736,7 @@ time_t when; /* date+time at end of game */
        build date+time or even with an older nethack version,
        but we only have access to the one it finished under */
     putstr(0, ATR_SUBHEAD, getversionstring(pbuf));
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
 
     /* game start and end date+time to disambiguate version date+time */
     Strcpy(datetimebuf, yyyymmddhhmmss(ubirthday));
@@ -748,7 +748,7 @@ time_t when; /* date+time at end of game */
             &datetimebuf[0], &datetimebuf[4], &datetimebuf[6],
             &datetimebuf[8], &datetimebuf[10], &datetimebuf[12]);
     putstr(0, ATR_SUBHEAD, pbuf);
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
 
     /* character name and basic role info */
     Sprintf(pbuf, "%s, %s %s %s %s", plname,
@@ -757,36 +757,36 @@ time_t when; /* date+time at end of game */
             urace.adj,
             (flags.female && urole.name.f) ? urole.name.f : urole.name.m);
     putstr(0, ATR_SUBHEAD, pbuf);
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
 
     dump_start_screendump();
     dump_map();
     /* NHW_MAP -> ASCII dump only */
-    putstr(NHW_MAP, 0, do_statusline1());
-    putstr(NHW_MAP, 0, do_statusline2());
+    putstr(NHW_DUMPTXT, 0, do_statusline1());
+    putstr(NHW_DUMPTXT, 0, do_statusline2());
     /* the next two lines are for the HTML status */
     status_initialize(TRUE);
     bot();
 
     dump_end_screendump();
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
 
     dump_plines();
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
     putstr(0, ATR_HEADING, "Inventory:");
     (void) display_inventory((char *) 0, TRUE);
     container_contents(invent, TRUE, TRUE, FALSE);
     enlightenment((BASICENLIGHTENMENT | MAGICENLIGHTENMENT),
                   (how >= PANICKED) ? ENL_GAMEOVERALIVE : ENL_GAMEOVERDEAD);
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
     list_vanquished('d', FALSE); /* 'd' => 'y' */
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
     list_genocided('d', FALSE); /* 'd' => 'y' */
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
     show_conduct((how >= PANICKED) ? 1 : 2);
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
     show_overview((how >= PANICKED) ? 1 : 2, how);
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
     dump_redirect(FALSE);
 #else
     nhUse(how);
