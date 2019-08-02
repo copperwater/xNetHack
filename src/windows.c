@@ -2053,6 +2053,9 @@ boolean preselected UNUSED;
     if (dumphtml_file) {
         int color;
         boolean iscolor = FALSE;
+        /* Don't use NHW_MENU for inv items as this makes bullet points */
+        if (!attr && glyph != NO_GLYPH)
+            win = (winid)0;
         html_write_tags(dumphtml_file, win, attr, TRUE);
         if (iflags.use_menu_color && get_menu_coloring(str, &color, &attr)) {
             iscolor = TRUE;
