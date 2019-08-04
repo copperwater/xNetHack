@@ -3,6 +3,7 @@ body {
 	color:#CCCCCC;
 	background-color:#222222;
 	font-family: monospace;
+        font-size:1vw;
 }
 pre.nh_screen {
 	font-family: DejaVu Sans Mono,Menlo,Courier New,Courier,monospace;
@@ -24,7 +25,7 @@ pre.nh_screen {
   background-color: #222222;
   color: #fff;
   text-align: center;
-  font-size:80%;
+  font-size:1vw;
   padding: 5px 5px;
   border-radius: 6px;
 
