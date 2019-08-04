@@ -3,10 +3,11 @@ body {
 	color:#CCCCCC;
 	background-color:#222222;
 	font-family: monospace;
-        font-size:1vw;
+	font-size:0.9vw;
 }
 pre.nh_screen {
 	font-family: DejaVu Sans Mono,Menlo,Courier New,Courier,monospace;
+        font-size:1.05vw;
 }
 .nh_item_letter {
 	padding-left: 3ex;
@@ -25,7 +26,7 @@ pre.nh_screen {
   background-color: #222222;
   color: #fff;
   text-align: center;
-  font-size:1vw;
+  font-size:0.9vw;
   padding: 5px 5px;
   border-radius: 6px;
 
@@ -41,13 +42,13 @@ pre.nh_screen {
 
 h2 {
 	color:white;
-	font-size:125%;
+        font-size:1.06vw;
 	margin:0.5ex;
 	padding-top:1.5em;
 }
 h3 {
 	color:white;
-	font-size:110%;
+        font-size:0.95vw;
 	margin: 1ex 0ex 0.25ex 1.5ex;
 }
 blockquote {
