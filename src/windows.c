@@ -1427,10 +1427,10 @@ html_init_sym()
     htmlsym[S_blcorn] = 9492;
     htmlsym[S_brcorn] = 9496;
     htmlsym[S_crwall] = 9532;
-    htmlsym[S_tuwall] = 9516;
-    htmlsym[S_tdwall] = 9524;
-    htmlsym[S_tlwall] = 9500;
-    htmlsym[S_trwall] = 9508;
+    htmlsym[S_tuwall] = 9524;
+    htmlsym[S_tdwall] = 9516;
+    htmlsym[S_tlwall] = 9508;
+    htmlsym[S_trwall] = 9500;
     htmlsym[S_vbeam] = 9474;
     htmlsym[S_hbeam] = 9472;
     htmlsym[S_sw_ml] = 9474;
