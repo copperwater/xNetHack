@@ -6,7 +6,7 @@ body {
 	font-size:0.9vw;
 }
 pre.nh_screen {
-	font-family: DejaVu Sans Mono,Menlo,Courier New,Courier,monospace;
+	font-family: DejaVu Sans Mono, Consolas, Menlo, Courier New, Courier, monospace;
         font-size:1.05vw;
 }
 .nh_item_letter {
