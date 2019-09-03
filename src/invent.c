@@ -1817,7 +1817,7 @@ boolean allow_floor;
                         pline1("Not carrying anything.");
                     else
                         pline("Not carrying anything to %s.", what);
-                    continue;
+                    break;
                 }
 
                 qflags |= USE_INVLET;
