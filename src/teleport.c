@@ -1,4 +1,4 @@
-/* NetHack 3.6	teleport.c	$NHDT-Date: 1550524567 2019/02/18 21:16:07 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.85 $ */
+/* NetHack 3.6	teleport.c	$NHDT-Date: 1564771880 2019/08/02 18:51:20 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.92 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -39,7 +39,8 @@ unsigned gpflags;
      * which could be co-located and thus get restricted a bit too much.
      * oh well.
      */
-    if (mtmp != &youmonst && x == u.ux && y == u.uy
+    if (x == u.ux && y == u.uy
+        && mtmp != &youmonst && (mtmp != u.ustuck || !u.uswallow)
         && (!u.usteed || mtmp != u.usteed))
         return FALSE;
 
@@ -61,15 +62,24 @@ unsigned gpflags;
 
         mdat = mtmp->data;
         if (is_pool(x, y) && !ignorewater) {
+            /* [what about Breathless?] */
             if (mtmp == &youmonst)
-                return (Levitation || Flying || Wwalking || Swimming
-                        || Amphibious);
+                return (Swimming || Amphibious
+                        || (!Is_waterlevel(&u.uz)
+                            /* water on the Plane of Water has no surface
+                               so there's no way to be on or above that */
+                            && (Levitation || Flying || Wwalking)));
             else
-                return (!grounded(mdat) || is_swimmer(mdat));
+                return (is_swimmer(mdat)
+                        || (!Is_waterlevel(&u.uz) && !grounded(mdat)));
         } else if (mdat->mlet == S_EEL && rn2(13) && !ignorewater) {
             return FALSE;
         } else if (is_lava(x, y)) {
-            if (mtmp == &youmonst)
+            /* 3.6.3: floating eye can levitate over lava but it avoids
+               that due the effect of the heat causing it to dry out */
+            if (mdat == &mons[PM_FLOATING_EYE])
+                return FALSE;
+            else if (mtmp == &youmonst)
                 return (Levitation || Flying
                         || (Fire_resistance && Wwalking && uarmf
                             && uarmf->oerodeproof)
@@ -106,22 +116,24 @@ coord *cc;
 register xchar xx, yy;
 struct permonst *mdat;
 {
-    return enexto_core(cc, xx, yy, mdat, 0);
+    return enexto_core(cc, xx, yy, mdat, NO_MM_FLAGS);
 }
 
 boolean
 enexto_core(cc, xx, yy, mdat, entflags)
 coord *cc;
-register xchar xx, yy;
+xchar xx, yy;
 struct permonst *mdat;
 unsigned entflags;
 {
 #define MAX_GOOD 15
     coord good[MAX_GOOD], *good_ptr;
     int x, y, range, i;
-    int xmin, xmax, ymin, ymax;
+    int xmin, xmax, ymin, ymax, rangemax;
     struct monst fakemon; /* dummy monster */
+    boolean allow_xx_yy = (boolean) ((entflags & GP_ALLOW_XY) != 0);
 
+    entflags &= ~GP_ALLOW_XY;
     if (!mdat) {
         debugpline0("enexto() called with null mdat");
         /* default to player's original monster type */
@@ -130,6 +142,13 @@ unsigned entflags;
     fakemon = zeromonst;
     set_mon_data(&fakemon, mdat); /* set up for goodpos */
 
+    /* used to use 'if (range > ROWNO && range > COLNO) return FALSE' below,
+       so effectively 'max(ROWNO, COLNO)' which performs useless iterations
+       (possibly many iterations if <xx,yy> is in the center of the map) */
+    xmax = max(xx - 1, (COLNO - 1) - xx);
+    ymax = max(yy - 0, (ROWNO - 1) - yy);
+    rangemax = max(xmax, ymax);
+    /* setup: no suitable spots yet, first iteration checks adjacent spots */
     good_ptr = good;
     range = 1;
     /*
@@ -142,7 +161,7 @@ unsigned entflags;
         ymin = max(0, yy - range);
         ymax = min(ROWNO - 1, yy + range);
 
-        for (x = xmin; x <= xmax; x++)
+        for (x = xmin; x <= xmax; x++) {
             if (goodpos(x, ymin, &fakemon, entflags)) {
                 good_ptr->x = x;
                 good_ptr->y = ymin;
@@ -150,38 +169,46 @@ unsigned entflags;
                 if (good_ptr++ == &good[MAX_GOOD - 1])
                     goto full;
             }
-        for (x = xmin; x <= xmax; x++)
             if (goodpos(x, ymax, &fakemon, entflags)) {
                 good_ptr->x = x;
                 good_ptr->y = ymax;
-                /* beware of accessing beyond segment boundaries.. */
                 if (good_ptr++ == &good[MAX_GOOD - 1])
                     goto full;
             }
-        for (y = ymin + 1; y < ymax; y++)
+        }
+        /* 3.6.3: this used to use 'ymin+1' which left top row unchecked */
+        for (y = ymin; y < ymax; y++) {
             if (goodpos(xmin, y, &fakemon, entflags)) {
                 good_ptr->x = xmin;
                 good_ptr->y = y;
-                /* beware of accessing beyond segment boundaries.. */
                 if (good_ptr++ == &good[MAX_GOOD - 1])
                     goto full;
             }
-        for (y = ymin + 1; y < ymax; y++)
             if (goodpos(xmax, y, &fakemon, entflags)) {
                 good_ptr->x = xmax;
                 good_ptr->y = y;
-                /* beware of accessing beyond segment boundaries.. */
                 if (good_ptr++ == &good[MAX_GOOD - 1])
                     goto full;
             }
-        range++;
+        }
+    } while (++range <= rangemax && good_ptr == good);
 
-        /* return if we've grown too big (nothing is valid) */
-        if (range > ROWNO && range > COLNO)
+    /* return False if we exhausted 'range' without finding anything */
+    if (good_ptr == good) {
+        /* 3.6.3: earlier versions didn't have the option to try <xx,yy>,
+           and left 'cc' uninitialized when returning False */
+        cc->x = xx, cc->y = yy;
+        /* if every spot other than <xx,yy> has failed, try <xx,yy> itself */
+        if (allow_xx_yy && goodpos(xx, yy, &fakemon, entflags)) {
+            return TRUE; /* 'cc' is set */
+        } else {
+            debugpline3("enexto(\"%s\",%d,%d) failed", mdat->mname, xx, yy);
             return FALSE;
-    } while (good_ptr == good);
+        }
+    }
 
-full:
+ full:
+    /* we've got between 1 and SIZE(good) candidates; choose one */
     i = rn2((int) (good_ptr - good));
     cc->x = good[i].x;
     cc->y = good[i].y;
@@ -432,7 +459,7 @@ boolean force_it;
             return FALSE;
         } else {
             Your("leash goes slack.");
-        release_it:
+ release_it:
             m_unleash(mtmp, FALSE);
             return TRUE;
         }
@@ -485,7 +512,7 @@ struct obj *scroll;
             Strcpy(whobuf, "you");
             if (u.usteed)
                 Sprintf(eos(whobuf), " and %s", mon_nam(u.usteed));
-            pline("To what position do %s want to be teleported?", whobuf);
+            pline("Where do %s want to be teleported?", whobuf);
             cc.x = u.ux;
             cc.y = u.uy;
             if (getpos(&cc, TRUE, "the desired position") < 0)
@@ -811,7 +838,7 @@ level_tele()
                 schar destlev;
                 xchar destdnum;
 
-            levTport_menu:
+ levTport_menu:
                 destlev = 0;
                 destdnum = 0;
                 newlev = (int) print_dungeon(TRUE, &destlev, &destdnum);
@@ -879,7 +906,7 @@ level_tele()
         if (In_quest(&u.uz) && newlev > 0)
             newlev = newlev + dungeons[u.uz.dnum].depth_start - 1;
     } else { /* involuntary level tele */
-    random_levtport:
+ random_levtport:
         newlev = random_teleport_level();
         if (newlev == depth(&u.uz)) {
             You1(shudder_for_moment);
@@ -1168,7 +1195,7 @@ register int x, y;
     register int oldx = mtmp->mx, oldy = mtmp->my;
     boolean resident_shk = mtmp->isshk && inhishop(mtmp);
 
-    if (x == mtmp->mx && y == mtmp->my && m_at(x,y) == mtmp)
+    if (x == mtmp->mx && y == mtmp->my && m_at(x, y) == mtmp)
         return; /* that was easy */
 
     if (oldx) { /* "pick up" monster */
@@ -1189,11 +1216,11 @@ register int x, y;
 
     if (u.ustuck == mtmp) {
         if (u.uswallow) {
-            u.ux = x;
-            u.uy = y;
+            u_on_newpos(mtmp->mx, mtmp->my);
             docrt();
-        } else
-            u.ustuck = 0;
+        } else if (distu(mtmp->mx, mtmp->my) > 2) {
+           unstuck(mtmp);
+        }
     }
 
     newsym(x, y);      /* update new location */
@@ -1254,7 +1281,7 @@ boolean suppress_impossible;
         impossible("rloc(): couldn't relocate monster");
     return FALSE;
 
-found_xy:
+ found_xy:
     rloc_to(mtmp, x, y);
     return TRUE;
 }
@@ -1263,7 +1290,7 @@ STATIC_OVL void
 mvault_tele(mtmp)
 struct monst *mtmp;
 {
-    register struct mkroom *croom = search_special(VAULT);
+    struct mkroom *croom = search_special(VAULT);
     coord c;
 
     if (croom && somexy(croom, &c) && goodpos(c.x, c.y, mtmp, 0)) {
@@ -1347,8 +1374,9 @@ int in_sight;
                 get_level(&tolevel, depth(&u.uz) + 1);
             }
         } else if (tt == MAGIC_PORTAL) {
-            if (In_endgame(&u.uz)
-                && (mon_has_amulet(mtmp) || is_home_elemental(mtmp->data))) {
+            if (In_endgame(&u.uz) && (mon_has_amulet(mtmp)
+                                      || is_home_elemental(mtmp->data)
+                                      || rn2(7))) {
                 if (in_sight && mtmp->data->mlet != S_ELEMENTAL) {
                     pline("%s seems to shimmer for a moment.", Monnam(mtmp));
                     seetrap(trap);
@@ -1443,6 +1471,9 @@ register struct obj *obj;
                                            dndest.nhx, dndest.nhy)));
 
     if (flooreffects(obj, tx, ty, "fall")) {
+        /* update old location since flooreffects() couldn't;
+           unblock_point() for boulder handled by obj_extract_self() */
+        newsym(otx, oty);
         return FALSE;
     } else if (otx == 0 && oty == 0) {
         ; /* fell through a trap door; no update of old loc needed */
@@ -1459,6 +1490,7 @@ register struct obj *obj;
         newsym(otx, oty); /* update old location */
     }
     place_object(obj, tx, ty);
+    /* note: block_point() for boulder handled by place_object() */
     newsym(tx, ty);
     return TRUE;
 }

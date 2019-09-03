@@ -1,4 +1,4 @@
-/* NetHack 3.6	display.h	$NHDT-Date: 1546212620 2018/12/30 23:30:20 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.29 $ */
+/* NetHack 3.6	display.h	$NHDT-Date: 1559994621 2019/06/08 11:50:21 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.32 $ */
 /* Copyright (c) Dean Luick, with acknowledgements to Kevin Darcy */
 /* and Dave Cohrs, 1990.                                          */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -60,11 +60,18 @@
  * vobj_at() returns a pointer to an object that the hero can see there.
  * Infravision is not taken into account.
  */
+#if 0
 #define mon_visible(mon) \
     (/* The hero can see the monster IF the monster                     */ \
      (!mon->minvis || See_invisible)  /*     1. is not invisible        */ \
      && !mon->mundetected             /* AND 2. not an undetected hider */ \
      && !(mon->mburied || u.uburied)) /* AND 3. neither you nor it is buried */
+#else   /* without 'mburied' and 'uburied' */
+#define mon_visible(mon) \
+    (/* The hero can see the monster IF the monster                     */ \
+     (!mon->minvis || See_invisible)  /*     1. is not invisible        */ \
+     && !mon->mundetected)            /* AND 2. not an undetected hider */
+#endif
 
 /*
  * see_with_infrared()
@@ -217,13 +224,13 @@
 
 #define display_self() \
     show_glyph(u.ux, u.uy,                                                  \
-           maybe_display_usteed((youmonst.m_ap_type == M_AP_NOTHING)        \
+           maybe_display_usteed((U_AP_TYPE == M_AP_NOTHING)                 \
                                 ? hero_glyph                                \
-                                : (youmonst.m_ap_type == M_AP_FURNITURE)    \
+                                : (U_AP_TYPE == M_AP_FURNITURE)             \
                                   ? cmap_to_glyph(youmonst.mappearance)     \
-                                  : (youmonst.m_ap_type == M_AP_OBJECT)     \
+                                  : (U_AP_TYPE == M_AP_OBJECT)              \
                                     ? objnum_to_glyph(youmonst.mappearance) \
-                                    /* else M_AP_MONSTER */                 \
+                                    /* else U_AP_TYPE == M_AP_MONSTER */    \
                                     : monnum_to_glyph(youmonst.mappearance)))
 
 /* Get a string describing the terrain at (x, y). */

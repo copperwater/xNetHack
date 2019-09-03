@@ -1,4 +1,4 @@
-/* NetHack 3.6	mklev.c	$NHDT-Date: 1550800390 2019/02/22 01:53:10 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.59 $ */
+/* NetHack 3.6	mklev.c	$NHDT-Date: 1562455089 2019/07/06 23:18:09 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.63 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Alex Smith, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -853,6 +853,10 @@ clear_level_structures()
     register int x, y;
     register struct rm *lev;
 
+    /* note:  normally we'd start at x=1 because map column #0 isn't used
+       (except for placing vault guard at <0,0> when removed from the map
+       but not from the level); explicitly reset column #0 along with the
+       rest so that we start the new level with a completely clean slate */
     for (x = 0; x < COLNO; x++) {
         lev = &levl[x][0];
         for (y = 0; y < ROWNO; y++) {
@@ -907,6 +911,7 @@ clear_level_structures()
     xdnstair = ydnstair = xupstair = yupstair = 0;
     sstairs.sx = sstairs.sy = 0;
     xdnladder = ydnladder = xupladder = yupladder = 0;
+    sstairs_room = (struct mkroom *) 0;
     made_branch = FALSE;
     clear_regions();
 }
@@ -1024,8 +1029,8 @@ makelevel()
         /* make sure vault can actually be placed */
         if (check_room(&vault_x, &w, &vault_y, &h, TRUE)) {
  fill_vault:
-            add_room(vault_x, vault_y, vault_x + w, vault_y + h, TRUE, VAULT,
-                     FALSE);
+            add_room(vault_x, vault_y, vault_x + w, vault_y + h,
+                     TRUE, VAULT, FALSE);
             level.flags.has_vault = 1;
             fill_room(&rooms[nroom - 1], FALSE);
             mk_knox_portal(vault_x + w, vault_y + h);
@@ -1306,6 +1311,13 @@ mklev()
        entered; rooms[].orig_rtype always retains original rtype value */
     for (ridx = 0; ridx < SIZE(rooms); ridx++)
         rooms[ridx].orig_rtype = rooms[ridx].rtype;
+
+    /* something like this usually belongs in clear_level_structures()
+       but these aren't saved and restored so might not retain their
+       values for the life of the current level; reset them to default
+       now so that they never do and no one will be tempted to introduce
+       a new use of them for anything on this level */
+    sstairs_room = (struct mkroom *) 0;
 
     reseed_random(rn2);
     reseed_random(rn2_on_display_rng);
@@ -2040,23 +2052,30 @@ struct mkroom *croom;
 #define y_maze_min 2
 
 /*
- * Major level transmutation: add a set of stairs (to the Sanctum) after
- * an earthquake that leaves behind a a new topology, centered at inv_pos.
+ * Major level transmutation:  add a set of stairs (to the Sanctum) after
+ * an earthquake that leaves behind a new topology, centered at inv_pos.
  * Assumes there are no rooms within the invocation area and that inv_pos
  * is not too close to the edge of the map.  Also assume the hero can see,
  * which is guaranteed for normal play due to the fact that sight is needed
- * to read the Book of the Dead.
- * FIXME: Can't assume that the hero can see, they could be roleplaying blind.
+ * to read the Book of the Dead.  [That assumption is not valid; it is
+ * possible that "the Book reads the hero" rather than vice versa if
+ * attempted while blind (in order to make blind-from-birth conduct viable).]
  */
 void
 mkinvokearea()
 {
     int dist;
-    xchar xmin = inv_pos.x, xmax = inv_pos.x;
-    xchar ymin = inv_pos.y, ymax = inv_pos.y;
+    xchar xmin = inv_pos.x, xmax = inv_pos.x,
+          ymin = inv_pos.y, ymax = inv_pos.y;
     register xchar i;
 
+    /* slightly odd if levitating, but not wrong */
     pline_The("floor shakes violently under you!");
+    /*
+     * TODO:
+     *  Suppress this message if player has dug out all the walls
+     *  that would otherwise be affected.
+     */
     pline_The("walls around you begin to bend and crumble!");
     display_nhwindow(WIN_MESSAGE, TRUE);
 
@@ -2116,8 +2135,7 @@ int dist;
     /* clip at existing map borders if necessary */
     if (!within_bounded_area(x, y, x_maze_min + 1, y_maze_min + 1,
                              x_maze_max - 1, y_maze_max - 1)) {
-        /* only outermost 2 columns and/or rows may be truncated due to edge
-         */
+        /* outermost 2 columns and/or rows may be truncated due to edge */
         if (dist < (7 - 2))
             panic("mkinvpos: <%d,%d> (%d) off map edge!", x, y, dist);
         return;

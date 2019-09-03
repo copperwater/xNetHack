@@ -1,4 +1,4 @@
-/* NetHack 3.6	patchlevel.h	$NHDT-Date: 1524931630 2018/04/28 16:07:10 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.121 $ */
+/* NetHack 3.6	patchlevel.h	$NHDT-Date: 1557510467 2019/05/10 17:47:47 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.127 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -40,9 +40,13 @@
  *
  */
 
-/*  Patch 2, <insert date here>
+/*  Patch 3, <insert date here>
  *
- *  Over 220 bug fixes including a couple of crash bug fixes
+ */
+
+/*  Patch 2, May 7, 2019
+ *
+ *  Over 320 bug fixes including a couple of crash bug fixes
  *  More than 15 enhancements or improvements
  *  Ensuring that unix Makefiles do not rely on features unique to gnu make
  *  Improvements to hilite_status parsing in an effort to ensure that expected
@@ -50,6 +54,7 @@
  *  Performance optimizations for tty
  *  Windows console tty via use of a back buffer
  *  Mac OS X build improvements and inclusion of an Xcode project
+ *  Adopted the community curses window port
  */
 
 /*  Patch 1, April 27, 2018

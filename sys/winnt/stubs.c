@@ -22,6 +22,15 @@ mswin_destroy_reg()
 {
     return;
 }
+void
+mswin_raw_print_flush()
+{
+}
+
+void
+mswin_raw_print(const char *str)
+{
+}
 
 /* MINGW32 has trouble with both a main() and WinMain()
  * so we move main for the MINGW tty version into this stub
@@ -55,6 +64,9 @@ HANDLE hConIn;
 HANDLE hConOut;
 int GUILaunched;
 struct window_procs tty_procs = { "-ttystubs" };
+#ifdef CURSES_GRAPHICS
+char erase_char, kill_char;
+#endif
 
 void
 win_tty_init(dir)

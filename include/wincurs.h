@@ -38,12 +38,6 @@ extern WINDOW *mapwin, *statuswin, *messagewin;    /* Main windows  */
 #endif  /* !__APPLE__ && !PDCURSES */
 #define CURSES_DARK_GRAY    17
 #define MAP_SCROLLBARS
-#ifdef PDCURSES
-# define getmouse nc_getmouse
-# ifndef NCURSES_MOUSE_VERSION
-#  define NCURSES_MOUSE_VERSION
-# endif
-#endif
 
 #if !defined(A_LEFTLINE) && defined(A_LEFT)
 #define A_LEFTLINE A_LEFT
@@ -114,6 +108,7 @@ extern void curses_end_screen(void);
 extern void curses_outrip(winid wid, int how);
 extern void genl_outrip(winid tmpwin, int how, time_t when);
 extern void curses_preference_update(const char *pref);
+extern void curs_reset_windows(boolean, boolean);
 
 /* curswins.c */
 
@@ -127,6 +122,7 @@ extern void curses_refresh_nhwin(winid wid);
 extern void curses_refresh_nethack_windows(void);
 extern void curses_del_nhwin(winid wid);
 extern void curses_del_wid(winid wid);
+extern void curs_destroy_all_wins(void);
 extern void curses_putch(winid wid, int x, int y, int ch,
                          int color, int attrs);
 extern void curses_get_window_size(winid wid, int *height, int *width);
@@ -147,6 +143,7 @@ extern boolean curses_map_borders(int *sx, int *sy, int *ex, int *ey,
 extern int curses_read_char(void);
 extern void curses_toggle_color_attr(WINDOW *win, int color, int attr,
                                      int onoff);
+extern void curses_menu_color_attr(WINDOW *, int, int, int);
 extern void curses_bail(const char *mesg);
 extern winid curses_get_wid(int type);
 extern char *curses_copy_of(const char *s);
@@ -163,10 +160,11 @@ extern void curses_view_file(const char *filename, boolean must_exist);
 extern void curses_rtrim(char *str);
 extern int curses_get_count(int first_digit);
 extern int curses_convert_attr(int attr);
-extern int curses_read_attrs(char *attrs);
+extern int curses_read_attrs(const char *attrs);
 extern char *curses_fmt_attrs(char *);
 extern int curses_convert_keys(int key);
 extern int curses_get_mouse(int *mousex, int *mousey, int *mod);
+extern void curses_mouse_support(int);
 
 /* cursdial.c */
 
@@ -180,10 +178,11 @@ extern void curses_add_nhmenu_item(winid wid, int glyph,
                                    const ANY_P *identifier, CHAR_P accelerator,
                                    CHAR_P group_accel, int attr,
                                    const char *str, BOOLEAN_P presel);
+extern void curs_menu_set_bottom_heavy(winid);
 extern void curses_finalize_nhmenu(winid wid, const char *prompt);
 extern int curses_display_nhmenu(winid wid, int how, MENU_ITEM_P **_selected);
 extern boolean curses_menu_exists(winid wid);
-extern void curses_del_menu(winid wid);
+extern void curses_del_menu(winid, boolean);
 
 /* cursstat.c */
 
@@ -210,6 +209,7 @@ extern void curses_cleanup(void);
 /* cursmesg.c */
 
 extern void curses_message_win_puts(const char *message, boolean recursed);
+extern void curses_got_input(void);
 extern int curses_block(boolean require_tab); /* for MSGTYPE=STOP */
 extern int curses_more(void);
 extern void curses_clear_unhighlight_message_window(void);
@@ -220,6 +220,8 @@ extern void curses_init_mesg_history(void);
 extern void curses_teardown_messages(void);
 extern void curses_prev_mesg(void);
 extern void curses_count_window(const char *count_text);
+char *curses_getmsghistory(BOOLEAN_P);
+void curses_putmsghistory(const char *, BOOLEAN_P);
 
 #endif  /* WINCURS_H */
 

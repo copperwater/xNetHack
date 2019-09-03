@@ -1,4 +1,4 @@
-/* NetHack 3.6	files.c	$NHDT-Date: 1546144856 2018/12/30 04:40:56 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.249 $ */
+/* NetHack 3.6	files.c	$NHDT-Date: 1562719337 2019/07/10 00:42:17 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.252 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -3079,7 +3079,7 @@ struct obj *obj;
     /* subset of starting inventory pre-ID */
     obj->dknown = 1;
     if (Role_if(PM_PRIEST))
-        obj->bknown = 1;
+        obj->bknown = 1; /* ok to bypass set_bknown() */
     /* same criteria as lift_object()'s check for available inventory slot */
     if (obj->oclass != COIN_CLASS && inv_cnt(FALSE) >= 52
         && !merge_choice(invent, obj)) {
@@ -3184,9 +3184,9 @@ boolean FDECL((*proc), (char *));
                     *ep = '\0';
 
                 /* trim off spaces at end of line */
-                while (--ep >= inbuf
+                while (ep >= inbuf
                        && (*ep == ' ' || *ep == '\t' || *ep == '\r'))
-                    *ep = '\0';
+                    *ep-- = '\0';
 
                 if (!config_error_nextline(inbuf)) {
                     rv = FALSE;
@@ -3273,7 +3273,6 @@ boolean FDECL((*proc), (char *));
 }
 
 extern struct symsetentry *symset_list;  /* options.c */
-extern struct symparse loadsyms[];       /* drawing.c */
 extern const char *known_handling[];     /* drawing.c */
 extern const char *known_restrictions[]; /* drawing.c */
 static int symset_count = 0;             /* for pick-list building only */
@@ -3353,7 +3352,7 @@ char *buf;
 int which_set;
 {
     int val, i;
-    struct symparse *symp = (struct symparse *) 0;
+    struct symparse *symp;
     char *bufp, *commentp, *altp;
 
     /* convert each instance of whitespace (tabs, consecutive spaces)

@@ -1,4 +1,4 @@
-/* NetHack 3.6	pager.c	$NHDT-Date: 1549334449 2019/02/05 02:40:49 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.150 $ */
+/* NetHack 3.6	pager.c	$NHDT-Date: 1562632673 2019/07/09 00:37:53 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.154 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -89,7 +89,7 @@ char *outbuf;
             mons[u.umonnum].mname, plname);
     if (u.usteed)
         Sprintf(eos(outbuf), ", mounted on %s", y_monnam(u.usteed));
-    if (u.uundetected || (Upolyd && youmonst.m_ap_type))
+    if (u.uundetected || (Upolyd && U_AP_TYPE))
         mhidden_description(&youmonst, FALSE, eos(outbuf));
     return outbuf;
 }
@@ -109,12 +109,12 @@ char *outbuf;
                                                     : glyph_at(x, y);
 
     *outbuf = '\0';
-    if (mon->m_ap_type == M_AP_FURNITURE
-        || mon->m_ap_type == M_AP_OBJECT) {
+    if (M_AP_TYPE(mon) == M_AP_FURNITURE
+        || M_AP_TYPE(mon) == M_AP_OBJECT) {
         Strcpy(outbuf, ", mimicking ");
-        if (mon->m_ap_type == M_AP_FURNITURE) {
+        if (M_AP_TYPE(mon) == M_AP_FURNITURE) {
             Strcat(outbuf, an(defsyms[mon->mappearance].explanation));
-        } else if (mon->m_ap_type == M_AP_OBJECT
+        } else if (M_AP_TYPE(mon) == M_AP_OBJECT
                    /* remembered glyph, not glyph_at() which is 'mon' */
                    && glyph_is_object(glyph)) {
  objfrommap:
@@ -123,12 +123,14 @@ char *outbuf;
             Strcat(outbuf, (otmp && otmp->otyp != STRANGE_OBJECT)
                               ? ansimpleoname(otmp)
                               : an(obj_descr[STRANGE_OBJECT].oc_name));
-            if (fakeobj)
+            if (fakeobj) {
+                otmp->where = OBJ_FREE; /* object_from_map set to OBJ_FLOOR */
                 dealloc_obj(otmp);
+            }
         } else {
             Strcat(outbuf, something);
         }
-    } else if (mon->m_ap_type == M_AP_MONSTER) {
+    } else if (M_AP_TYPE(mon) == M_AP_MONSTER) {
         if (altmon)
             Sprintf(outbuf, ", masquerading as %s",
                     an(mons[mon->mappearance].mname));
@@ -164,7 +166,7 @@ object_from_map(glyph, x, y, obj_p)
 int glyph, x, y;
 struct obj **obj_p;
 {
-    boolean fakeobj = FALSE;
+    boolean fakeobj = FALSE, mimic_obj = FALSE;
     struct monst *mtmp;
     struct obj *otmp;
     int glyphotyp = glyph_to_obj(glyph);
@@ -178,9 +180,10 @@ struct obj **obj_p;
 
     /* there might be a mimic here posing as an object */
     mtmp = m_at(x, y);
-    if (mtmp && is_obj_mappear(mtmp, (unsigned) glyphotyp))
+    if (mtmp && is_obj_mappear(mtmp, (unsigned) glyphotyp)) {
         otmp = 0;
-    else
+        mimic_obj = TRUE;
+    } else
         mtmp = 0;
 
     if (!otmp || otmp->otyp != glyphotyp) {
@@ -201,6 +204,10 @@ struct obj **obj_p;
             otmp->corpsenm = glyph - GLYPH_STATUE_OFF;
         if (otmp->otyp == LEASH)
             otmp->leashmon = 0;
+        /* extra fields needed for shop price with doname() formatting */
+        otmp->where = OBJ_FLOOR;
+        otmp->ox = x, otmp->oy = y;
+        otmp->no_charge = (otmp->otyp == STRANGE_OBJECT && costly_spot(x, y));
     }
     /* if located at adjacent spot, mark it as having been seen up close
        (corpse type will be known even if dknown is 0, so we don't need a
@@ -214,7 +221,11 @@ struct obj **obj_p;
         /* terrain mode views what's already known, doesn't learn new stuff */
         && !iflags.terrainmode) /* so don't set dknown when in terrain mode */
         otmp->dknown = 1; /* if a pile, clearly see the top item only */
-
+    if (fakeobj && mtmp && mimic_obj &&
+        (otmp->dknown || (M_AP_FLAG(mtmp) & M_AP_F_DKNOWN))) {
+            mtmp->m_ap_type |= M_AP_F_DKNOWN;
+            otmp->dknown = 1;
+    }
     *obj_p = otmp;
     return fakeobj; /* when True, caller needs to dealloc *obj_p */
 }
@@ -232,8 +243,10 @@ int x, y, glyph;
                      ? distant_name(otmp, otmp->dknown ? doname_with_price
                                                        : doname_vague_quan)
                      : obj_descr[STRANGE_OBJECT].oc_name);
-        if (fakeobj)
+        if (fakeobj) {
+            otmp->where = OBJ_FREE; /* object_from_map set it to OBJ_FLOOR */
             dealloc_obj(otmp), otmp = 0;
+        }
     } else
         Strcpy(buf, something); /* sanity precaution */
 
@@ -290,14 +303,16 @@ int x, y;
         int tt = t ? t->ttyp : NO_TRAP;
 
         /* newsym lets you know of the trap, so mention it here */
-        if (tt == BEAR_TRAP || is_pit(tt) || tt == WEB)
+        if (tt == BEAR_TRAP || is_pit(tt) || tt == WEB) {
             Sprintf(eos(buf), ", trapped in %s",
                     an(defsyms[trap_to_defsym(tt)].explanation));
+            t->tseen = 1;
+        }
     }
 
     /* we know the hero sees a monster at this location, but if it's shown
        due to persistant monster detection he might remember something else */
-    if (mtmp->mundetected || mtmp->m_ap_type)
+    if (mtmp->mundetected || M_AP_TYPE(mtmp))
         mhidden_description(mtmp, FALSE, eos(buf));
 
     if (monbuf) {
@@ -1765,7 +1780,10 @@ struct permonst **for_supplement;
      */
 
     if (found > 4)
-        Sprintf(out_str, "%s", "That can be many things");
+        /* 3.6.3: this used to be "That can be many things" (without prefix)
+           which turned it into a sentence that lacked its terminating period;
+           we could add one below but reinstating the prefix here is better */
+        Sprintf(out_str, "%scan be many things", prefix);
 
  didlook:
     if (looked) {
@@ -2127,7 +2145,7 @@ static const char *suptext2[] = {
     (char *) 0,
 };
 
-void
+STATIC_OVL void
 do_supplemental_info(name, pm, without_asking)
 char *name;
 struct permonst *pm;
@@ -2612,61 +2630,61 @@ docontact(VOID_ARGS)
     destroy_nhwindow(cwin);
 }
 
-void
+STATIC_OVL void
 dispfile_help(VOID_ARGS)
 {
     display_file(HELP, TRUE);
 }
 
-void
+STATIC_OVL void
 dispfile_shelp(VOID_ARGS)
 {
     display_file(SHELP, TRUE);
 }
 
-void
+STATIC_OVL void
 dispfile_optionfile(VOID_ARGS)
 {
     display_file(OPTIONFILE, TRUE);
 }
 
-void
+STATIC_OVL void
 dispfile_license(VOID_ARGS)
 {
     display_file(LICENSE, TRUE);
 }
 
-void
+STATIC_OVL void
 dispfile_debughelp(VOID_ARGS)
 {
     display_file(DEBUGHELP, TRUE);
 }
 
-void
+STATIC_OVL void
 hmenu_doextversion(VOID_ARGS)
 {
     (void) doextversion();
 }
 
-void
+STATIC_OVL void
 hmenu_dohistory(VOID_ARGS)
 {
     (void) dohistory();
 }
 
-void
+STATIC_OVL void
 hmenu_dowhatis(VOID_ARGS)
 {
     (void) dowhatis();
 }
 
-void
+STATIC_OVL void
 hmenu_dowhatdoes(VOID_ARGS)
 {
     (void) dowhatdoes();
 }
 
-void
+STATIC_OVL void
 hmenu_doextlist(VOID_ARGS)
 {
     (void) doextlist();

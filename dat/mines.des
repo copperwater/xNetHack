@@ -1075,6 +1075,7 @@ OBJECT:('!',"booze"),(10,09)
 OBJECT:('!',"object detection"),(10,09)
 # Objects
 # The Treasure chamber...
+OBJECT:('*',"luckstone"),(70,05)
 OBJECT:('*',"diamond"),(69,04)
 OBJECT:'*',(69,04)
 OBJECT:('*',"diamond"),(69,04)
@@ -1091,7 +1092,6 @@ OBJECT:('*',"ruby"),(70,05)
 OBJECT:('*',"amethyst"),(70,05)
 OBJECT:'*',(70,05)
 OBJECT:('*',"amethyst"),(70,05)
-OBJECT:('*',"luckstone"),(70,05)
 # Scattered gems...
 OBJECT:'*',random
 OBJECT:'*',random
@@ -1180,24 +1180,24 @@ STAIR:(42,8),up
 WALLIFY
 
 # Objects
-OBJECT:('*',"diamond"),random
-OBJECT:'*',random
-OBJECT:('*',"diamond"),random
-OBJECT:'*',random
-OBJECT:('*',"emerald"),random
-OBJECT:'*',random
-OBJECT:('*',"emerald"),random
-OBJECT:'*',random
-OBJECT:('*',"emerald"),random
-OBJECT:'*',random
-OBJECT:('*',"ruby"),random
-OBJECT:'*',random
-OBJECT:('*',"ruby"),random
-OBJECT:('*',"amethyst"),random
-OBJECT:'*',random
-OBJECT:('*',"amethyst"),random
 OBJECT:('*',"luckstone"),$place[0]
 OBJECT:('*',"flint"),$place[1]
+OBJECT:('*',"diamond"),random
+OBJECT:'*',random
+OBJECT:('*',"diamond"),random
+OBJECT:'*',random
+OBJECT:('*',"emerald"),random
+OBJECT:'*',random
+OBJECT:('*',"emerald"),random
+OBJECT:'*',random
+OBJECT:('*',"emerald"),random
+OBJECT:'*',random
+OBJECT:('*',"ruby"),random
+OBJECT:'*',random
+OBJECT:('*',"ruby"),random
+OBJECT:('*',"amethyst"),random
+OBJECT:'*',random
+OBJECT:('*',"amethyst"),random
 OBJECT:'?',random
 OBJECT:'?',random
 OBJECT:'?',random

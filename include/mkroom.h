@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkroom.h	$NHDT-Date: 1432512780 2015/05/25 00:13:00 $  $NHDT-Branch: master $:$NHDT-Revision: 1.13 $ */
+/* NetHack 3.6	mkroom.h	$NHDT-Date: 1560851014 2019/06/18 09:43:34 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.16 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -33,8 +33,8 @@ struct shclass {
 #define D_SHOP 1      /* shop-like placement */
 #define D_TEMPLE 2    /* temple-like placement */
     struct itp {
-        int iprob; /* probability of an item type */
-        int itype; /* item type: if >=0 a class, if < 0 a specific item */
+        int iprob;    /* probability of an item type */
+        int itype;    /* item type: if >=0 a class, if < 0 a specific item */
     } iprobs[6];
     const char *const *shknms; /* list of shopkeeper names for this type */
 };
@@ -57,37 +57,37 @@ extern NEARDATA coord doors[DOORMAX];
 
 /* values for rtype in the room definition structure */
 enum roomtype_types {
-    OROOM = 0,      /* ordinary room */
-    COURT = 2,      /* contains a throne */
-    SWAMP,      /* contains pools */
-    VAULT,      /* contains piles of gold */
-    BEEHIVE,    /* contains killer bees and royal jelly */
-    MORGUE,     /* contains corpses, undead and ghosts */
-    BARRACKS,   /* contains soldiers and their gear */
-    ZOO,        /* floor covered with treasure and monsters */
-    DELPHI,     /* contains Oracle and peripherals */
-    TEMPLE,     /* contains a shrine */
-    LEPREHALL,  /* leprechaun hall (Tom Proudfoot) */
-    COCKNEST,   /* cockatrice nest (Tom Proudfoot) */
-    ANTHOLE,    /* ants (Tom Proudfoot) */
-    DEMONDEN,   /* demons */
-    SUBMERGED,  /* water floor, sea monsters */
-    LAVAROOM,   /* lava floor, fire monsters */
-    ABBATOIR,   /* corpses, blood, leashes */
-    STATUARY,   /* lined with empty statues */
-    SEMINARY,   /* some roaming priests */
-    SHOPBASE,   /* everything above this is a shop */
-    ARMORSHOP,  /* specific shop defines for level compiler */
-    SCROLLSHOP,
-    POTIONSHOP,
-    WEAPONSHOP,
-    FOODSHOP,
-    RINGSHOP,
-    WANDSHOP,
-    TOOLSHOP,
-    BOOKSHOP,
-    FODDERSHOP, /* health food store */
-    CANDLESHOP
+    OROOM      =  0, /* ordinary room */
+    COURT      =  2, /* contains a throne */
+    SWAMP      =  3, /* contains pools */
+    VAULT      =  4, /* detached room usually reached via teleport trap */
+    BEEHIVE    =  5, /* contains killer bees and royal jelly */
+    MORGUE     =  6, /* contains corpses, undead and graves */
+    BARRACKS   =  7, /* contains soldiers and their gear */
+    ZOO        =  8, /* floor covered with treasure and monsters */
+    DELPHI     =  9, /* contains Oracle and peripherals */
+    TEMPLE     = 10, /* contains a shrine (altar attended by priest[ess]) */
+    LEPREHALL  = 11, /* leprechaun hall (Tom Proudfoot) */
+    COCKNEST   = 12, /* cockatrice nest (Tom Proudfoot) */
+    ANTHOLE    = 13, /* ants (Tom Proudfoot) */
+    DEMONDEN   = 14, /* demons */
+    SUBMERGED  = 15, /* water floor, sea monsters */
+    LAVAROOM   = 16, /* lava floor, fire monsters */
+    ABBATOIR   = 17, /* corpses, blood, leashes */
+    STATUARY   = 18, /* lined with empty statues */
+    SEMINARY   = 19, /* some roaming priests */
+    SHOPBASE   = 20, /* everything above this is a shop */
+    ARMORSHOP  = 21, /* specific shop defines for level compiler */
+    SCROLLSHOP = 22,
+    POTIONSHOP = 23,
+    WEAPONSHOP = 24,
+    FOODSHOP   = 25,
+    RINGSHOP   = 26,
+    WANDSHOP   = 27,
+    TOOLSHOP   = 28,
+    BOOKSHOP   = 29,
+    FODDERSHOP = 30, /* health food store */
+    CANDLESHOP = 31
 };
 
 #define MAXRTYPE (CANDLESHOP) /* maximum valid room type */
@@ -97,25 +97,19 @@ enum roomtype_types {
 #define ANY_TYPE (-1)
 #define ANY_SHOP (-2)
 
-#define NO_ROOM 0 /* indicates lack of room-occupancy */
-#define SHARED 1  /* indicates normal shared boundary */
-#define SHARED_PLUS                                  \
-    2 /* indicates shared boundary - extra adjacent- \
-       * square searching required */
+#define NO_ROOM     0 /* indicates lack of room-occupancy */
+#define SHARED      1 /* indicates normal shared boundary */
+#define SHARED_PLUS 2 /* indicates shared boundary - extra adjacent-square
+                       * searching required */
+#define ROOMOFFSET  3 /* (levl[x][y].roomno - ROOMOFFSET) gives rooms[] index,
+                       * for inside-squares and non-shared boundaries */
 
-#define ROOMOFFSET                              \
-    3 /*                                        \
-       * (levl[x][y].roomno - ROOMOFFSET) gives \
-       * rooms[] index, for inside-squares and  \
-       * non-shared boundaries.                 \
-       */
-
-#define IS_ROOM_PTR(x) ((x) >= rooms && (x) < rooms + MAXNROFROOMS)
-#define IS_ROOM_INDEX(x) ((x) >= 0 && (x) < MAXNROFROOMS)
-#define IS_SUBROOM_PTR(x) ((x) >= subrooms && (x) < subrooms + MAXNROFROOMS)
+#define IS_ROOM_PTR(x)      ((x) >= rooms && (x) < rooms + MAXNROFROOMS)
+#define IS_ROOM_INDEX(x)    ((x) >= 0 && (x) < MAXNROFROOMS)
+#define IS_SUBROOM_PTR(x)   ((x) >= subrooms && (x) < subrooms + MAXNROFROOMS)
 #define IS_SUBROOM_INDEX(x) ((x) > MAXNROFROOMS && (x) < (MAXNROFROOMS * 2))
-#define ROOM_INDEX(x) ((x) -rooms)
-#define SUBROOM_INDEX(x) ((x) -subrooms)
+#define ROOM_INDEX(x)       ((x) -rooms)
+#define SUBROOM_INDEX(x)    ((x) -subrooms)
 #define IS_LAST_ROOM_PTR(x) (ROOM_INDEX(x) == nroom)
 #define IS_LAST_SUBROOM_PTR(x) (!nsubroom || SUBROOM_INDEX(x) == nsubroom)
 

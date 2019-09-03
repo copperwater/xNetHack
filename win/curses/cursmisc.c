@@ -42,6 +42,9 @@ curses_read_char()
 {
     int ch, tmpch;
 
+    /* cancel message suppression; all messages have had a chance to be read */
+    curses_got_input();
+
     ch = getch();
     tmpch = ch;
     ch = curses_convert_keys(ch);
@@ -81,19 +84,25 @@ curses_read_char()
 /* Turn on or off the specified color and / or attribute */
 
 void
-curses_toggle_color_attr(WINDOW * win, int color, int attr, int onoff)
+curses_toggle_color_attr(WINDOW *win, int color, int attr, int onoff)
 {
 #ifdef TEXTCOLOR
     int curses_color;
 
-    /* Map color disabled */
-    if ((!iflags.wc_color) && (win == mapwin)) {
+    /* if color is disabled, just show attribute */
+    if ((win == mapwin) ? !iflags.wc_color
+                        /* statuswin is for #if STATUS_HILITES
+                           but doesn't need to be conditional */
+                        : !(iflags.wc2_guicolor || win == statuswin)) {
+#endif
+        if (attr != NONE) {
+            if (onoff == ON)
+                wattron(win, attr);
+            else
+                wattroff(win, attr);
+        }
         return;
-    }
-
-    /* GUI color disabled */
-    if ((!iflags.wc2_guicolor) && (win != mapwin)) {
-        return;
+#ifdef TEXTCOLOR
     }
 
     if (color == 0) {           /* make black fg visible */
@@ -149,7 +158,25 @@ curses_toggle_color_attr(WINDOW * win, int color, int attr, int onoff)
             wattroff(win, attr);
         }
     }
+#else
+    nhUse(color);
 #endif /* TEXTCOLOR */
+}
+
+/* call curses_toggle_color_attr() with 'menucolors' instead of 'guicolor'
+   as the control flag */
+
+void
+curses_menu_color_attr(WINDOW *win, int color, int attr, int onoff)
+{
+    boolean save_guicolor = iflags.wc2_guicolor;
+
+    /* curses_toggle_color_attr() uses 'guicolor' to decide whether to
+       honor specified color, but menu windows have their own
+       more-specific control, 'menucolors', so override with that here */
+    iflags.wc2_guicolor = iflags.use_menu_color;
+    curses_toggle_color_attr(win, color, attr, onoff);
+    iflags.wc2_guicolor = save_guicolor;
 }
 
 
@@ -169,9 +196,9 @@ curses_bail(const char *mesg)
 winid
 curses_get_wid(int type)
 {
-    winid ret;
     static winid menu_wid = 20; /* Always even */
     static winid text_wid = 21; /* Always odd */
+    winid ret;
 
     switch (type) {
     case NHW_MESSAGE:
@@ -523,8 +550,9 @@ curses_move_cursor(winid wid, int x, int y)
         curs_y++;
     }
 
-    if ((x >= sx) && (x <= ex) && (y >= sy) && (y <= ey)) {
-        curs_x -= sx;
+    if (x >= sx && x <= ex && y >= sy && y <= ey) {
+        /* map column #0 isn't used; shift column #1 to first screen column */
+        curs_x -= (sx + 1);
         curs_y -= sy;
 #ifdef PDCURSES
         move(curs_y, curs_x);
@@ -578,11 +606,9 @@ curses_view_file(const char *filename, boolean must_exist)
     menu_item *selected = NULL;
     dlb *fp = dlb_fopen(filename, "r");
 
-    if ((fp == NULL) && (must_exist)) {
-        pline("Cannot open %s for reading!", filename);
-    }
-
     if (fp == NULL) {
+        if (must_exist)
+            pline("Cannot open \"%s\" for reading!", filename);
         return;
     }
 
@@ -597,6 +623,7 @@ curses_view_file(const char *filename, boolean must_exist)
     dlb_fclose(fp);
     curses_end_menu(wid, "");
     curses_select_menu(wid, PICK_NONE, &selected);
+    curses_del_wid(wid);
 }
 
 
@@ -667,6 +694,9 @@ curses_convert_attr(int attr)
     case ATR_BOLD:
         curses_attr = A_BOLD;
         break;
+    case ATR_DIM:
+        curses_attr = A_DIM;
+        break;
     case ATR_BLINK:
         curses_attr = A_BLINK;
         break;
@@ -685,7 +715,7 @@ curses_convert_attr(int attr)
    success (might be 0), or -1 if not found. */
 
 int
-curses_read_attrs(char *attrs)
+curses_read_attrs(const char *attrs)
 {
     int retattr = 0;
 
@@ -778,6 +808,13 @@ curses_convert_keys(int key)
 
     /* Handle arrow keys */
     switch (key) {
+    case KEY_BACKSPACE:
+        /* we can't distinguish between a separate backspace key and
+           explicit Ctrl+H intended to rush to the left; without this,
+           a value for ^H greater than 255 is passed back to core's
+           readchar() and stripping the value down to 0..255 yields ^G! */
+        ret = C('H');
+        break;
     case KEY_LEFT:
         if (iflags.num_pad) {
             ret = '4';
@@ -856,6 +893,20 @@ curses_convert_keys(int key)
     return ret;
 }
 
+/*
+ * We treat buttons 2 and 3 as equivalent so that it doesn't matter which
+ * one is for right-click and which for middle-click.  The core uses CLICK_2
+ * for right-click ("not left"-click) even though 2 might be middle button.
+ *
+ * BUTTON_CTRL was enabled at one point but was not working as intended.
+ * Ctrl+left_click was generating pairs of duplicated events with Ctrl and
+ * Report_mouse_position bits set (even though Report_mouse_position wasn't
+ * enabled) but no button click bit set.  (It sort of worked because Ctrl+
+ * Report_mouse_position wasn't a left click so passed along CLICK_2, but
+ * the duplication made that too annoying to use.  Attempting to immediately
+ * drain the second one wasn't working as intended either.)
+ */
+#define MOUSEBUTTONS (BUTTON1_CLICKED | BUTTON2_CLICKED | BUTTON3_CLICKED)
 
 /* Process mouse events.  Mouse movement is processed until no further
 mouse movement events are available.  Returns 0 for a mouse click
@@ -870,12 +921,21 @@ curses_get_mouse(int *mousex, int *mousey, int *mod)
 #ifdef NCURSES_MOUSE_VERSION
     MEVENT event;
 
-    if (getmouse(&event) == OK) { /* When the user clicks left mouse button */
-        if (event.bstate & BUTTON1_CLICKED) {
+    if (getmouse(&event) == OK) { /* True if user has clicked */
+        if ((event.bstate & MOUSEBUTTONS) != 0) {
+        /*
+         * The ncurses man page documents wmouse_trafo() incorrectly.
+         * It says that last argument 'TRUE' translates from screen
+         * to window and 'FALSE' translates from window to screen,
+         * but those are backwards.  The mouse_trafo() macro calls
+         * last argument 'to_screen', suggesting that the backwards
+         * implementation is the intended behavior and the man page
+         * is describing it wrong.
+         */
             /* See if coords are in map window & convert coords */
-            if (wmouse_trafo(mapwin, &event.y, &event.x, TRUE)) {
-                key = 0;        /* Flag mouse click */
-                *mousex = event.x;
+            if (wmouse_trafo(mapwin, &event.y, &event.x, FALSE)) {
+                key = '\0'; /* core uses this to detect a mouse click */
+                *mousex = event.x + 1; /* +1: screen 0..78 is map 1..79 */
                 *mousey = event.y;
 
                 if (curses_window_has_border(MAP_WIN)) {
@@ -883,7 +943,8 @@ curses_get_mouse(int *mousex, int *mousey, int *mod)
                     (*mousey)--;
                 }
 
-                *mod = CLICK_1;
+                *mod = ((event.bstate & (BUTTON1_CLICKED | BUTTON_CTRL))
+                        == BUTTON1_CLICKED) ? CLICK_1 : CLICK_2;
             }
         }
     }
@@ -892,6 +953,24 @@ curses_get_mouse(int *mousex, int *mousey, int *mod)
     return key;
 }
 
+void
+curses_mouse_support(mode)
+int mode; /* 0: off, 1: on, 2: alternate on */
+{
+#ifdef NCURSES_MOUSE_VERSION
+    mmask_t result, oldmask, newmask;
+
+    if (!mode)
+        newmask = 0;
+    else
+        newmask = MOUSEBUTTONS; /* buttons 1, 2, and 3 */
+
+    result = mousemask(newmask, &oldmask);
+    nhUse(result);
+#else
+    nhUse(mode);
+#endif
+}
 
 static int
 parse_escape_sequence(void)

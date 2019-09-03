@@ -105,7 +105,7 @@ set_window_position(int *winx, int *winy, int *winw, int *winh,
     }
 }
 
-/* Create the "main" nonvolitile windows used by nethack */
+/* Create the "main" nonvolatile windows used by nethack */
 void
 curses_create_main_windows()
 {
@@ -117,21 +117,18 @@ curses_create_main_windows()
     boolean borders = FALSE;
 
     switch (iflags.wc2_windowborders) {
+    case 0:                     /* Off */
+        borders = FALSE;
+        break;
     case 1:                     /* On */
         borders = TRUE;
         break;
-    case 2:                     /* Off */
-        borders = FALSE;
-        break;
-    case 3:                     /* Auto */
-        if ((term_cols > 81) && (term_rows > 25)) {
-            borders = TRUE;
-        }
+    case 2:                     /* Auto */
+        borders = (term_cols > 81 && term_rows > 25);
         break;
     default:
         borders = FALSE;
     }
-
 
     if (borders) {
         border_space = 2;
@@ -143,35 +140,44 @@ curses_create_main_windows()
     }
 
     /* Determine status window orientation */
-    if (!iflags.wc_align_status || (iflags.wc_align_status == ALIGN_TOP)
-        || (iflags.wc_align_status == ALIGN_BOTTOM)) {
-        if (!iflags.wc_align_status) {
-            iflags.wc_align_status = ALIGN_BOTTOM;
-        }
+    if (!iflags.wc_align_status)
+        iflags.wc_align_status = ALIGN_BOTTOM;
+    if (iflags.wc_align_status == ALIGN_TOP
+        || iflags.wc_align_status == ALIGN_BOTTOM) {
         status_orientation = iflags.wc_align_status;
-    } else {                    /* left or right alignment */
-
-        /* Max space for player name and title horizontally */
-        if ((hspace >= 26) && (term_rows >= 24)) {
+    } else { /* left or right alignment */
+        /*
+         * Max space for player name and title horizontally.
+         * [Width of 26 gives enough room for a 24 character
+         * hitpoint bar (horizontal layout uses 30 for that) and
+         * can accommodate widest field ("Experience  : 30/123456789")
+         * other than title without truncating anything.
+         * Height originally required at least 24 lines, but 21
+         * suffices and 20 can be made to work by suppressing score.]
+         */
+        if (hspace >= 26 && term_rows >= 20) {
             status_orientation = iflags.wc_align_status;
             hspace -= (26 + border_space);
         } else {
+            /* orientation won't match option setting, making 'O' command's
+               list of settings seem inaccurate; but leaving the requested
+               setting in iflags might allow it to take effect if the main
+               window gets resized */
             status_orientation = ALIGN_BOTTOM;
         }
     }
 
     /* Determine message window orientation */
-    if (!iflags.wc_align_message || (iflags.wc_align_message == ALIGN_TOP)
-        || (iflags.wc_align_message == ALIGN_BOTTOM)) {
-        if (!iflags.wc_align_message) {
-            iflags.wc_align_message = ALIGN_TOP;
-        }
+    if (!iflags.wc_align_message)
+        iflags.wc_align_message = ALIGN_TOP;
+    if (iflags.wc_align_message == ALIGN_TOP
+        || iflags.wc_align_message == ALIGN_BOTTOM) {
         message_orientation = iflags.wc_align_message;
-    } else {                    /* left or right alignment */
-
+    } else { /* left or right alignment */
         if ((hspace - border_space) >= 25) {    /* Arbitrary */
             message_orientation = iflags.wc_align_message;
         } else {
+            /* orientation won't match option setting (see above) */
             message_orientation = ALIGN_TOP;
         }
     }
@@ -190,7 +196,6 @@ curses_create_main_windows()
         int inv_y = 0;
         int map_x = 0;
         int map_y = 0;
-
         int message_height = 0;
         int message_width = 0;
         int status_height = 0;
@@ -199,20 +204,11 @@ curses_create_main_windows()
         int inv_width = 0;
         int map_height = (term_rows - border_space);
         int map_width = (term_cols - border_space);
-        int statusheight = 3;
-
-        boolean status_vertical = FALSE;
-        boolean msg_vertical = FALSE;
-
-        if (status_orientation == ALIGN_LEFT ||
-            status_orientation == ALIGN_RIGHT)
-            status_vertical = TRUE;
-        if (message_orientation == ALIGN_LEFT ||
-            message_orientation == ALIGN_RIGHT)
-            msg_vertical = TRUE;
-
-        if (iflags.statuslines < 3)
-            statusheight = 2;
+        int statusheight = (iflags.wc2_statuslines < 3) ? 2 : 3;
+        boolean status_vertical = (status_orientation == ALIGN_LEFT
+                                   || status_orientation == ALIGN_RIGHT);
+        boolean msg_vertical = (message_orientation == ALIGN_LEFT
+                                || message_orientation == ALIGN_RIGHT);
 
         /* Vertical windows have priority. Otherwise, priotity is:
            status > inv > msg */
@@ -221,13 +217,11 @@ curses_create_main_windows()
                                 &status_width, &status_height,
                                 status_orientation,
                                 &map_x, &map_y, &map_width, &map_height,
-                                border_space, statusheight, 26);
+                                border_space, 20, 26);
 
         if (iflags.perm_invent) {
             /* Take up all width unless msgbar is also vertical. */
-            int width = -25;
-            if (msg_vertical)
-                width = 25;
+            int width = msg_vertical ? 25 : -25;
 
             set_window_position(&inv_x, &inv_y, &inv_width, &inv_height,
                                 ALIGN_RIGHT, &map_x, &map_y,
@@ -248,7 +242,7 @@ curses_create_main_windows()
                                 &status_width, &status_height,
                                 status_orientation,
                                 &map_x, &map_y, &map_width, &map_height,
-                                border_space, statusheight, 26);
+                                border_space, statusheight, 0);
 
         if (!msg_vertical)
             set_window_position(&message_x, &message_y,
@@ -259,16 +253,17 @@ curses_create_main_windows()
 
         if (map_width > COLNO)
             map_width = COLNO;
-
         if (map_height > ROWNO)
             map_height = ROWNO;
 
         if (curses_get_nhwin(STATUS_WIN)) {
             curses_del_nhwin(STATUS_WIN);
+            /* 'count window' overlays last line of mesg win;
+               asking it to display a Null string removes it */
+            curses_count_window((char *) 0);
             curses_del_nhwin(MESSAGE_WIN);
             curses_del_nhwin(MAP_WIN);
             curses_del_nhwin(INV_WIN);
-
             clear();
         }
 
@@ -781,17 +776,12 @@ curses_character_dialog(const char **choices, const char *prompt)
 void
 curses_init_options()
 {
-    set_wc_option_mod_status(WC_ALIGN_MESSAGE | WC_ALIGN_STATUS | WC_COLOR
-                             | WC_HILITE_PET | WC_POPUP_DIALOG, SET_IN_GAME);
-
-    set_wc2_option_mod_status(WC2_GUICOLOR, SET_IN_GAME);
+    /* change these from DISP_IN_GAME to SET_IN_GAME */
+    set_wc_option_mod_status(WC_ALIGN_MESSAGE | WC_ALIGN_STATUS, SET_IN_GAME);
 
     /* Remove a few options that are irrelevant to this windowport */
     /*set_option_mod_status("DECgraphics", SET_IN_FILE); */
     set_option_mod_status("eight_bit_tty", SET_IN_FILE);
-
-    /* Add those that are */
-    set_option_mod_status("statuslines", SET_IN_GAME);
 
     /* Make sure that DECgraphics is not set to true via the config
        file, as this will cause display issues.  We can't disable it in
@@ -804,15 +794,12 @@ curses_init_options()
 #ifdef PDCURSES
     /* PDCurses for SDL, win32 and OS/2 has the ability to set the
        terminal size programatically.  If the user does not specify a
-       size in the config file, we will set it to a nice big 110x32 to
+       size in the config file, we will set it to a nice big 32x110 to
        take advantage of some of the nice features of this windowport. */
-    if (iflags.wc2_term_cols == 0) {
+    if (iflags.wc2_term_cols == 0)
         iflags.wc2_term_cols = 110;
-    }
-
-    if (iflags.wc2_term_rows == 0) {
+    if (iflags.wc2_term_rows == 0)
         iflags.wc2_term_rows = 32;
-    }
 
     resize_term(iflags.wc2_term_rows, iflags.wc2_term_cols);
     getmaxyx(base_term, term_rows, term_cols);
@@ -829,9 +816,6 @@ curses_init_options()
     }
 */
 #endif /* PDCURSES */
-    if (!iflags.wc2_windowborders) {
-        iflags.wc2_windowborders = 3;   /* Set to auto if not specified */
-    }
 
     /* fix up pet highlighting */
     if (iflags.wc2_petattr == -1) /* shouldn't happen */
@@ -844,10 +828,18 @@ curses_init_options()
         iflags.wc2_petattr = A_REVERSE;
     }
 
+    /* curses doesn't support 's' (single message at a time; successive
+       ^P's go back to earlier messages) and 'c' (combination; single
+       on first and second of consecutive ^P's, full on third) */
+    if (iflags.prevmsg_window != 'f')
+        iflags.prevmsg_window = 'r';
+
 #ifdef NCURSES_MOUSE_VERSION
     if (iflags.wc_mouse_support) {
-        mousemask(BUTTON1_CLICKED, NULL);
+        curses_mouse_support(iflags.wc_mouse_support);
     }
+#else
+    iflags.wc_mouse_support = 0;
 #endif
 }
 

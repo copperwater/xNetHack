@@ -1,4 +1,4 @@
-/* NetHack 3.6	potion.c	$NHDT-Date: 1549074254 2019/02/02 02:24:14 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.160 $ */
+/* NetHack 3.6	potion.c	$NHDT-Date: 1560850774 2019/06/18 09:39:34 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.162 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -203,8 +203,15 @@ const char *msg;
         if (msg)
             pline("%s", msg);
     }
-    if (!Slimed)
+    if (!Slimed) {
         dealloc_killer(find_delayed_killer(SLIMED));
+        /* fake appearance is set late in turn-to-slime countdown */
+        if (U_AP_TYPE == M_AP_MONSTER
+            && youmonst.mappearance == PM_GREEN_SLIME) {
+            youmonst.m_ap_type = M_AP_NOTHING;
+            youmonst.mappearance = 0;
+        }
+    }
 }
 
 /* start or stop petrification */

@@ -1,4 +1,4 @@
-/* NetHack 3.6	mapglyph.c	$NHDT-Date: 1526429201 2018/05/16 00:06:41 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.47 $ */
+/* NetHack 3.6	mapglyph.c	$NHDT-Date: 1552945095 2019/03/18 21:38:15 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.48 $ */
 /* Copyright (c) David Cohrs, 1991                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -387,7 +387,7 @@ int glyph;
     return encbuf;
 }
 
-const char *
+char *
 decode_mixed(buf, str)
 char *buf;
 const char *str;
@@ -395,8 +395,8 @@ const char *str;
     static const char hex[] = "00112233445566778899aAbBcCdDeEfF";
     char *put = buf;
 
-    if (!put || !str)
-        return "";
+    if (!str)
+        return strcpy(buf, "");
 
     while (*str) {
         if (*str == '\\') {
@@ -450,6 +450,15 @@ const char *str;
                 break;
 #endif
             case '\\':
+                break;
+            case '\0':
+                /* String ended with '\\'.  This can happen when someone
+                   names an object with a name ending with '\\', drops the
+                   named object on the floor nearby and does a look at all
+                   nearby objects. */
+                /* brh - should we perhaps not allow things to have names
+                   that contain '\\' */
+                str = save_str;
                 break;
             }
         }

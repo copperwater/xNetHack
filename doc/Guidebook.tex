@@ -45,7 +45,7 @@
 %.au
 \author{Original version - Eric S. Raymond\\
 (Edited and expanded for 3.6 by Mike Stephenson and others)}
-\date{February 27, 2019}
+\date{July 9, 2019}
 
 \maketitle
 
@@ -883,7 +883,8 @@ choices but will accept an accessory and attempt to put that on.)
 Repeat previous message.\\
 %.lp ""
 Subsequent {\tt \^{}P}'s repeat earlier messages.
-The behavior can be varied via the {\it msg\verb+_+window\/} option.
+For some interfaces, the behavior can be varied via the
+{\it msg\verb+_+window\/} option.
 %.lp
 \item[\tb{q}]
 Quaff (drink) something (potion, water, etc).
@@ -1215,7 +1216,13 @@ Advance or check weapon and spell skills. Autocompletes.
 Default key is `{\tt M-e}'.
 %.lp
 \item[\tb{\#exploremode}]
-Enter the explore mode.
+Enter the explore mode.\\
+%.lp ""
+Requires confirmation; default response is `{\tt n}' (no).
+To really switch to explore mode, respond with `{\tt y}'.
+You can set the
+{\it paranoid\verb+_+confirmation:quit\/}
+option to require a response of ``{\tt yes}'' instead.
 %.lp
 \item[\tb{\#fire}]
 Fire ammunition from quiver. Default key is `{\tt f}'.
@@ -1323,7 +1330,13 @@ Default keys are `{\tt \^{}O}', and `{\tt M-O}'.
 Test the panic routine.
 Terminates the current game.
 Autocompletes.
-Debug mode only.
+Debug mode only.\\
+%.lp ""
+Asks for confirmation; default is `{\tt n}' (no); continue playing.
+To really panic, respond with `{\tt y}''.
+You can set the
+{\it paranoid\verb+_+confirmation:quit\/}
+option to require a response of ``{\tt yes}'' instead.
 %.lp
 \item[\tb{\#pay}]
 Pay your shopping bill. Default key is `{\tt p}'.
@@ -1360,12 +1373,14 @@ Quaff (drink) something. Default key is `{\tt q}'.
 %.lp
 \item[\tb{\#quit}]
 Quit the program without saving your game. Autocompletes.
-Default key is `{\tt M-q}'.
+Default key is `{\tt M-q}'.\\
 %.lp ""
 Since using this command by accident would throw away the current game,
-you are asked to confirm your intent before quitting.  By default a
-response of `{\tt y}' acknowledges that intent.  You can set the
-{\it paranoid\verb+_+confirmation\/}
+you are asked to confirm your intent before quitting.
+Default response is `{\tt n}' (no); continue playing.
+To really quit, respond with `{\tt y}'.
+You can set the
+{\it paranoid\verb+_+confirmation:quit\/}
 option to require a response of ``{\tt yes}'' instead.
 %.lp
 \item[\tb{\#quiver}]
@@ -3265,8 +3280,13 @@ Cannot be set with the `{\tt O}' command.
 \item[\ib{extmenu}]
 Changes the extended commands interface to pop-up a menu of available commands.
 It is keystroke compatible with the traditional interface except that it does
-not require that you hit Enter.  It is implemented only by the tty port
-(default off), when the game has been compiled to support tty graphics.
+not require that you hit Enter.
+It is implemented for the tty interface (default off).
+.lp ""
+For the X11 interface, which always uses a menu for choosing an extended
+command, it controls whether the menu shows all available commands (on)
+or just the subset of commands which have traditionally been considered
+extended ones (off).
 %.lp
 \item[\ib{female}]
 An obsolete synonym for ``{\tt gender:female}''.  Cannot be set with the
@@ -3304,11 +3324,6 @@ treat gold pieces as {\tt X} (unknown bless/curse state, when `on')
 or {\tt U} (known to be uncursed, when `off', the default).
 Gold is never blessed or cursed, but it is not described as ``uncursed''
 even when the {\it implicit\verb+_+uncursed\/} option is `off'.
-%.lp
-\item[\ib{guicolor}]
-Use color text and/or highlighting attributes when displaying some
-non-map data (such as menu selector letters).
-Curses interface only; default is on.
 %.lp
 \item[\ib{help}]
 If more information is available for an object looked at
@@ -3489,7 +3504,9 @@ Cannot be set with the `{\tt O}' command.
 %.lp
 \item[\ib{msg\verb+_+window}]
 Allows you to change the way recalled messages are displayed.
-(It is currently implemented for tty only.) The possible values are:
+Currently it is only supported for tty (all four choices) and for curses
+(`{\tt f}' and `{\tt r}' choices, default `{\tt r}').
+The possible values are:
 
 %.sd
 %.si
@@ -3614,6 +3631,7 @@ such as ``{\it par\-a\-noid\verb+_+con\-fir\-ma\-tion:attack~pray~Remove}''.
 If true, always display your current inventory in a window.  This only
 makes sense for windowing system interfaces that implement this feature.
 %.lp
+%.\" petattr is a wincap option but we'll document it here...
 \item[\ib{petattr}]
 Specifies one or more text highlighting attributes to use when showing
 pets on the map.
@@ -3642,7 +3660,7 @@ Currently multiple highlight-style letters can be combined by simply
 stringing them together (for example, ``bk''), but in the future
 they might require being separated by plus signs (such as ``b\verb&+&k'',
 which works already).
-When using the `N' choice, it should be specified on its own,
+When using the `n' choice, it should be specified on its own,
 not in combination with any of the other letters.
 
 %.lp
@@ -3754,8 +3772,8 @@ depend upon the window port used or on the type of terminal.  Persistent.
 Prevent you from (knowingly) attacking your pets (default on).  Persistent.
 %+.lp
 \item[\ib{sanity\verb+_+check}]
-+Evaluate monsters, objects, and map prior to each turn (default off).
-+Debug mode only.
+Evaluate monsters, objects, and map prior to each turn (default off).
+Debug mode only.
 %.lp
 \item[\ib{scores}]
 Control what parts of the score list you are shown at the end (for example,
@@ -3822,15 +3840,6 @@ and prior versions (for example, ``{\tt suppress\verb+_+alert:3.3.1}'')
 This option may be used to select one of the named symbol sets found within
 {\tt symbols} to alter the symbols displayed on the screen.
 Use ``{\tt symset:default}'' to explicitly select the default symbols.
-%.lp
-\item[\ib{term\verb+_+cols}\ \ {\it and}]"
-%.lp
-\item[\ib{term\verb+_+rows}]
-Curses interface only.
-Number of columns and rows to use for the display.
-Curses will attempt to resize to the values specified but will settle
-for smaller sizes if they are too big.
-Default is the current window size.
 %.lp
 \item[\ib{time}]
 Show the elapsed game time in turns on bottom line (default off).  Persistent.
@@ -3923,30 +3932,19 @@ meta-digit keys to fast-move, instead of moving 8 units at a time,
 move by skipping the same glyphs.
 (default off)
 %.lp
-\item[\ib{windowborders}]
-Whether to draw boxes around the map, status area, message area, and
-persistent inventory window if enabled.
-Curses interface only.
-Acceptable values are
-
-%.sd
-%.si
-{\tt 1} --- on, always show borders\\
-{\tt 2} --- off, never show borders\\
-{\tt 3} --- auto, on if terminal or window is at least
-(24\verb&+&2)x(80\verb&+&2)\ \ (default)\\
-%.ei
-%.ed
-
-%.lp ""
-(The 26x82 size threshold for `3' refers to number of rows and
-columns of the display.)
-%.lp
 \item[\ib{windowtype}]
 When the program has been built to support multiple interfaces,
 select whichone to use, such as ``{\tt tty}'' or ``{\tt X11}''
 (default depends on build-time settings; use ``{\tt \#version}'' to check).
 Cannot be set with the `{\tt O}' command.
+
+%.lp ""
+When used, it should be the first option set since its value might
+enable or disable the availability of various other options.
+For multiple lines in a configuration file, that would be the first
+non-comment line.
+For a comma-separated list in NETHACKOPTIONS or an OPTIONS line in a
+configuration file, that would be the {\it rightmost\/} option in the list.
 %.lp
 \item[\ib{wizweight}]
 Augment object descriptions with their objects' weight (default off).
@@ -4031,6 +4029,11 @@ If {\it NetHack\/} can, it should use this size font for text windows.
 \item[\ib{fullscreen}]
 If {\it NetHack\/} can, it should try and display on the entire screen rather than in a window.
 %.lp
+\item[\ib{guicolor}]
+Use color text and/or highlighting attributes when displaying some
+non-map data (such as menu selector letters).
+Curses interface only; default is on.
+%.lp
 \item[\ib{large\verb+_+font}]
 If {\it NetHack\/} can, it should use a large font.
 %.lp
@@ -4063,10 +4066,26 @@ If {\it NetHack\/} can, it should display a menu of existing saved games for the
 choose from at game startup, if it can. Not all ports support this option.
 %.lp
 \item[\ib{softkeyboard}]
-If {\it NetHack\/} can, it should display an onscreen keyboard.  Handhelds are most likely to support this option.
+If {\it NetHack\/} can, it should display an onscreen keyboard.
+Handhelds are most likely to support this option.
 %.lp
 \item[\ib{splash\verb+_+screen}]
-If {\it NetHack\/} can, it should display an opening splash screen when it starts up (default yes).
+If {\it NetHack\/} can, it should display an opening splash screen when
+it starts up (default yes).
+%.lp
+\item[\ib{statuslines}]
+Number of lines for traditional below-the-map status display.
+Acceptable values are 2 and 3 (default is 2).
+Curses and tty interfaces only.
+%.lp
+\item[\ib{term\verb+_+cols}\ \ {\it and}]"
+%.lp
+\item[\ib{term\verb+_+rows}]
+Curses interface only.
+Number of columns and rows to use for the display.
+Curses will attempt to resize to the values specified but will settle
+for smaller sizes if they are too big.
+Default is the current window size.
 %.lp
 \item[\ib{tiled\verb+_+map}]
 If {\it NetHack\/} can, it should display a tiled map if it can.
@@ -4089,6 +4108,28 @@ If {\it NetHack\/} can, it should display inverse when the game specifies it.
 \item[\ib{vary\verb+_+msgcount}]
 If {\it NetHack\/} can, it should display this number of messages at a time
 in the message window.
+%.lp
+\item[\ib{windowborders}]
+Whether to draw boxes around the map, status area, message area, and
+persistent inventory window if enabled.
+Curses interface only.
+Acceptable values are
+
+%.sd
+%.si
+{\tt 0} --- off, never show borders\\
+{\tt 1} --- on, always show borders\\
+{\tt 2} --- auto, on display is at least
+(\verb&24+2&)x(\verb&80+2&)\ \ (default)\\
+%.ei
+%.ed
+
+%.lp "
+(The 26x82 size threshold for `2' refers to number of rows and
+columns of the display.
+A width of at least 110 columns (\verb&80+2+26+2&) is needed for
+{\it align_status\/}
+set to {tt left} or {\tt right}.)
 %.lp
 \item[\ib{windowcolors}]
 If {\it NetHack\/} can, it should display windows with the specified
@@ -4555,12 +4596,15 @@ The pattern should be a regular expression.
 %.lp ""
 Allowed colors are {\it black}, {\it red}, {\it green}, {\it brown},
 {\it blue}, {\it magenta}, {\it cyan}, {\it gray}, {\it orange},
-{\it lightgreen}, {\it yellow}, {\it lightblue}, {\it lightmagenta},
-{\it lightcyan}, and {\it white}.
+{\it light-green}, {\it yellow}, {\it light-blue}, {\it light-magenta},
+{\it light-cyan}, and {\it white}.
+And {\it no-color}, the default foreground color, which isn't necessarily
+the same as any of the other colors.
 
 %.lp ""
 Allowed attributes are {\it none}, {\it bold}, {\it dim}, {\it underline},
 {\it blink}, and {\it inverse}.
+{\it Normal\/} is a synonym for {\it none}.
 Note that the platform used may interpret the attributes any way it
 wants.
 
@@ -4630,40 +4674,68 @@ The pattern should be a regular expression.
 \subsection*{Configuring Status Hilites}
 
 %.pg
-Your copy of {\it NetHack\/} may have been compiled with support for {\it Status Hilites}.
+Your copy of {\it NetHack\/} may have been compiled with support
+for {\it Status Hilites}.
 If so, you can customize your game display by setting thresholds to
 change the color or appearance of fields in the status display.
-%.pg
-The format for defining status colors is:
+
+The format for defining status colors is:\\
 \begin{verbatim}
-    OPTION=hilite_status: field-name/behavior/color&attributes
+OPTION=hilite_status:field-name/behavior/color&attributes
 \end{verbatim}
-%.pg
-For example, the following line in your config file will cause
+
+For example, the following line in your configuration file will cause
 the hitpoints field to display in the color red if your hitpoints
-drop to or below a threshold of 30%:
+drop to or below a threshold of 30%:\\
 \begin{verbatim}
-    OPTION=hilite_status: hitpoints/<=30%/red/normal
+OPTION=hilite_status:hitpoints/<=30%/red/normal
 \end{verbatim}
-%.pg
-For another example, the following line in your config file will cause
-wisdom to be displayed red if it drops and green if it rises.
+(That example is actually specifying {\tt red\&normal} for  {\tt <=30\%}
+and {\tt no-color\&normal} for {\tt >30\%}.)\\
+
+For another example, the following line in your configuration file will cause
+wisdom to be displayed red if it drops and green if it rises:\\
 \begin{verbatim}
-    OPTION=hilite_status: wisdom/down/red/up/green
+OPTION=hilite_status:wisdom/down/red/up/green
 \end{verbatim}
+
+Allowed colors are black, red, green, brown, blue, magenta, cyan, gray,
+orange, light-green, yellow, light-blue, light-magenta, light-cyan, and white.
+And {\it no-color}, the default foreground color on the display, which
+is not necessarily the same as black or white or any of the other colors.
+
+Allowed attributes are none, bold, dim, underline, blink, and inverse.
+``Normal'' is a synonym for ``none''; they should not be used in
+combination with any of the other attributes.
+
+To specify both a color and an attribute, use `\&' to combine them.
+To specify multiple attributes, use `+' to combine those.
+For example: {\tt magenta\&inverse+dim}.
+
+Note that the display may substitute or ignore particular attributes
+depending upon its capabilities, and in general may interpret the
+attributes any way it wants.
+For example, on some display systems a request for bold might yield
+blink or vice versa.
+On others, issuing an attribute request while another is already
+set up will replace the earlier attribute rather than combine with it.
+Since nethack issues attribute requests sequentially (at least with
+the {\it tty} interface) rather than all at once, the only way a
+situation like that can be controlled is to specify just one attribute.
+
 You can adjust the display of the following status fields:
 %.sd
 \begin{center}
 \begin{tabular}{lll}
 %TABLE_START
-title & strength & dexterity\\
-constitution & intelligence & wisdom\\
-charisma & alignment & score\\
-carrying-capacity & gold & power\\
-power-max & experience-level & armor-class\\
-HD & time & hunger\\
-hitpoints & hitpoints-max & dungeon-level\\
-experience & condition\\
+title & dungeon-level & experience-level\\
+strength & gold & experience\\
+dexterity & hitpoints & HD\\
+constitution & hitpoints-max & time\\
+intelligence & power & hunger\\
+wisdom & power-max & carrying-capacity\\
+charisma & armor-class & condition\\
+alignment &  & score\\
 %TABLE_END  Do not delete this line.
 \end{tabular}
 \end{center}
@@ -4715,7 +4787,24 @@ it also matches when value is below or above the percentage.
 Use prefix `{\tt <}' or `{\tt >}' to match when strictly below or above.
 (The numeric limit is relaxed slightly for those: {\tt >-1\%}
 and {\tt <101\%} are allowed.)
-Only valid for ``{\it hitpoints\/}'' and ``{\it power\/}'' fields.
+Only four fields support percentage rules.
+Percentages for ``{\it hitpoints\/}'' and ``{\it power\/}'' are
+straightforward; they're based on the corresponding maximum field.
+Percentage highlight rules are also allowed for ``{\it experience level\/}''
+and ``{\it experience points\/}'' (valid when the
+(\it showexp\/}
+option is enabled).
+For those, the percentage is based on the progress from the start of
+the current experience level to the start of the next level.
+So if level 2 starts at 20 points and level 3 starts at 40 points,
+having 30 points is 50\% and 35 points is 75\%.
+100\% is unattainable for experience because you'll gain a level and
+the calculations will be reset for that new level, but a rule for
+{\tt =100\%} is allowed and matches the special case of being
+exactly 1 experience point short of the next level.
+% (If you manage to reach level 30, there is no next level and the
+% percentage will remain at 0\% no matter have many additional experience
+% points you earn.)
 %.lp "*"
 \item{\bb{}}
 absolute value sets the attribute when the field value
@@ -4737,26 +4826,11 @@ is tested; the character's name is ignored.
 %.ei
 \elist
 
-%.lp ""
-Allowed colors are {\it black}, {\it red}, {\it green}, {\it brown},
-{\it blue}, {\it magenta}, {\it cyan}, {\it gray}, {\it orange},
-{\it lightgreen}, {\it yellow}, {\it lightblue}, {\it lightmagenta},
-{\it lightcyan}, and {\it white}.
-
-%.lp ""
-Allowed attributes are {\it bold}, {\it inverse}, {\it underline},
-{\it blink}, {\it dim}, and {\it normal}.
-Note that the platform used may interpret the attributes any way it
-wants.
-
-%.lp ""
 The in-game options menu can help you determine the correct syntax for a
 config file.
 
-%.lp ""
 The whole feature can be disable by setting option {\it statushilites} to 0.
 
-%.lp ""
 Example hilites:
 \begin{verbatim}
     OPTION=hilite_status: gold/up/yellow/down/brown
@@ -4987,17 +5061,6 @@ Default                      & Symbol Name                & Description\\
 \verb@z@ & S\verb+_+zruty                   &	(zruty)
 \end{longtable}%
 }
-
-%.pg
-There is one additional class of object, described as ``strange object'',
-which will occasionally be the shape taken on by mimics and shown as
-`{\tt \verb+]+}'
-for maps displayed as text characters.
-Although the displayed character is the same as the default value for
-`S\verb+_+mimic\verb+_+def', it is a different symbol and there is no
-corresponding
-`S\verb+_+strange\verb+_+object' symbol nor any way to assign an
-alternate value for it.
 
 %.pg
 %.hn 2
@@ -5583,18 +5646,6 @@ patches.  Many bugs were fixed and some code was restructured.
 
 %.pg
 \medskip
-In late April 2018, several hundred bug fixes for 3.6.0 and some new features
-were assembled and released as NetHack 3.6.1. The {\it NetHack Development Team} at the
-time of release of 3.6.1 consisted of
-{\it Warwick Allison}, {\it Michael Allison}, {\it Ken Arromdee},
-{\it David Cohrs}, {\it Jessie Collet},
-{\it Pasi Kallinen}, {\it Ken Lorber}, {\it Dean Luick},
-{\it Patric Mueller}, {\it Pat Rankin}, {\it Derek S. Ray},
-{\it Alex Smith}, {\it Mike Stephenson}, {\it Janet Walz}, and
-{\it Paul Winner}.
-
-%.pg
-\medskip
 The {\it NetHack Development Team}, as well as {\it Steve VanDevender} and
 {\it Kevin Smolkowski}, ensured that {\it NetHack\/} 3.6 continued to
 operate on various Unix flavors and maintained the X11 interface.
@@ -5613,15 +5664,32 @@ maintained the port of  {\it NetHack\/} 3.6 for Microsoft Windows.
 
 %.pg
 \medskip
-{\it Pat Rankin} attempted to keep the VMS port running for NetHack 3.6.1,
+{\it Pat Rankin} attempted to keep the VMS port running for NetHack 3.6,
 hindered by limited access.  {\it Kevin Smolkowski} has updated and tested it
 for the most recent version of OpenVMS (V8.4 as of this writing) on Alpha
 and Integrity (aka Itanium aka IA64) but not VAX.
 
 %.pg
 \medskip
-{\it Ray Chason}  resurrected the msdos port for 3.6.1 and contributed the
+{\it Ray Chason}  resurrected the msdos port for 3.6 and contributed the
 necessary updates to the community at large.
+
+%.pg
+\medskip
+In late April 2018, several hundred bug fixes for 3.6.0 and some new features
+were assembled and released as NetHack 3.6.1. The {\it NetHack Development Team} at the
+time of release of 3.6.1 consisted of
+{\it Warwick Allison}, {\it Michael Allison}, {\it Ken Arromdee},
+{\it David Cohrs}, {\it Jessie Collet},
+{\it Pasi Kallinen}, {\it Ken Lorber}, {\it Dean Luick},
+{\it Patric Mueller}, {\it Pat Rankin}, {\it Derek S. Ray},
+{\it Alex Smith}, {\it Mike Stephenson}, {\it Janet Walz}, and
+{\it Paul Winner}.
+
+%.pg
+\medskip
+In early May 2019, another 320 bug fixes along with some enhancements and 
+the adopted curses window port, were released as 3.6.2.
 
 %.pg
 \medskip

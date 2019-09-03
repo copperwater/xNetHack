@@ -1,4 +1,4 @@
-/* NetHack 3.6	zap.c	$NHDT-Date: 1551395521 2019/02/28 23:12:01 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.307 $ */
+/* NetHack 3.6	zap.c	$NHDT-Date: 1561927499 2019/06/30 20:44:59 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.312 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -126,6 +126,7 @@ struct obj *obj;
             if (obj->dknown)
                 makeknown(obj->otyp);
         }
+        update_inventory();
     }
 }
 
@@ -144,7 +145,7 @@ struct obj *otmp;
     const char *zap_type_text = "spell";
     struct obj *obj;
     boolean disguised_mimic = (mtmp->data->mlet == S_MIMIC
-                               && mtmp->m_ap_type != M_AP_NOTHING);
+                               && M_AP_TYPE(mtmp) != M_AP_NOTHING);
 
     if (u.uswallow && mtmp == u.ustuck)
         reveal_invis = FALSE;
@@ -461,7 +462,7 @@ struct obj *otmp;
             m_respond(mtmp);
             if (mtmp->isshk && !*u.ushops)
                 hot_pursuit(mtmp);
-        } else if (mtmp->m_ap_type)
+        } else if (M_AP_TYPE(mtmp))
             seemimic(mtmp); /* might unblock if mimicing a boulder/door */
     }
     /* note: bhitpos won't be set if swallowed, but that's okay since
@@ -583,11 +584,8 @@ struct obj *obj;
 coord *cc;
 boolean adjacentok; /* False: at obj's spot only, True: nearby is allowed */
 {
-    struct monst *mtmp = (struct monst *) 0;
-    struct monst *mtmp2 = (struct monst *) 0;
+    struct monst *mtmp, *mtmp2 = has_omonst(obj) ? get_mtraits(obj, TRUE) : 0;
 
-    if (has_omonst(obj))
-        mtmp2 = get_mtraits(obj, TRUE);
     if (mtmp2) {
         /* save_mtraits() validated mtmp2->mnum */
         mtmp2->data = &mons[mtmp2->mnum];
@@ -596,8 +594,12 @@ boolean adjacentok; /* False: at obj's spot only, True: nearby is allowed */
         mtmp = makemon(mtmp2->data, cc->x, cc->y,
                        (NO_MINVENT | MM_NOWAIT | MM_NOCOUNTBIRTH
                         | (adjacentok ? MM_ADJACENTOK : 0)));
-        if (!mtmp)
-            return mtmp;
+        if (!mtmp) {
+            /* mtmp2 is a copy of obj's object->oextra->omonst extension
+               and is not on the map or on any monst lists */
+            dealloc_monst(mtmp2);
+            return (struct monst *) 0;
+        }
 
         /* heal the monster */
         if (mtmp->mhpmax > mtmp2->mhpmax && is_rider(mtmp2->data))
@@ -827,7 +829,7 @@ boolean by_hero;
         mtmp->mundetected = 0;
         newsym(mtmp->mx, mtmp->my);
     }
-    if (mtmp->m_ap_type)
+    if (M_AP_TYPE(mtmp))
         seemimic(mtmp);
 
     one_of = (corpse->quan > 1L);
@@ -1924,9 +1926,9 @@ struct obj *obj, *otmp;
                  * If we are currently hiding and the shuddering object might
                  * have been the only thing on our square, call hideunder
                  * again. */
-                boolean cover =
-                    (hides_under(youmonst.data) && u.uundetected
-                     && (obj == level.objects[u.ux][u.uy]));
+                boolean cover = ((obj == level.objects[u.ux][u.uy])
+                                 && u.uundetected
+                                 && hides_under(youmonst.data));
 
                 if (cansee(obj->ox, obj->oy))
                     learn_it = TRUE;
@@ -1959,6 +1961,7 @@ struct obj *obj, *otmp;
                     obj->cknown = 0;
                 } else {
                     struct obj *o;
+
                     /* view contents (not recursively) */
                     for (o = obj->cobj; o; o = o->nobj)
                         o->dknown = 1; /* "seen", even if blind */
@@ -2521,22 +2524,39 @@ boolean ordinary;
             learn_it = TRUE;
             unpunish();
         }
-        if (u.utrap) { /* escape web or bear trap */
-            (void) openholdingtrap(&youmonst, &learn_it);
-        } else {
+        /* invent is hit iff hero doesn't escape from a trap */
+        if (!u.utrap || !openholdingtrap(&youmonst, &learn_it)) {
             struct obj *otmp;
+            boolean boxing = FALSE;
+
             /* unlock carried boxes */
             for (otmp = invent; otmp; otmp = otmp->nobj)
-                if (Is_box(otmp))
+                if (Is_box(otmp)) {
                     (void) boxlock(otmp, obj);
+                    boxing = TRUE;
+                }
+            if (boxing)
+                update_inventory(); /* in case any box->lknown has changed */
+
             /* trigger previously escaped trapdoor */
             (void) openfallingtrap(&youmonst, TRUE, &learn_it);
         }
         break;
     case WAN_LOCKING:
     case SPE_WIZARD_LOCK:
-        if (!u.utrap) {
-            (void) closeholdingtrap(&youmonst, &learn_it);
+        /* similar logic to opening; invent is hit iff no trap triggered */
+        if (u.utrap || !closeholdingtrap(&youmonst, &learn_it)) {
+            struct obj *otmp;
+            boolean boxing = FALSE;
+
+            /* lock carried boxes */
+            for (otmp = invent; otmp; otmp = otmp->nobj)
+                if (Is_box(otmp)) {
+                    (void) boxlock(otmp, obj);
+                    boxing = TRUE;
+                }
+            if (boxing)
+                update_inventory(); /* in case any box->lknown has changed */
         }
         break;
     case WAN_DIGGING:
@@ -2555,6 +2575,7 @@ boolean ordinary;
                     otmp->cknown = 1;
             }
         }
+        update_inventory();
         learn_it = TRUE;
         ustatusline();
         break;
@@ -2782,7 +2803,7 @@ boolean youattack, allow_cancel_kill, self_cancel;
     } else {
         mdef->mcan = 1;
         /* force shapeshifter into its base form */
-        if (mdef->m_ap_type != M_AP_NOTHING)
+        if (M_AP_TYPE(mdef) != M_AP_NOTHING)
             seemimic(mdef);
         /* [not 'else if'; chameleon might have been hiding as a mimic] */
         if (mdef->cham >= LOW_PM) {
@@ -3229,7 +3250,7 @@ int FDECL((*fhitm), (MONST_P, OBJ_P)), /* fns called when mon/obj hit */
 struct obj **pobj; /* object tossed/used, set to NULL
                     * if object is destroyed */
 {
-    struct monst *mtmp;
+    struct monst *mtmp, *result = (struct monst *) 0;
     struct obj *obj = *pobj;
     uchar typ;
     boolean shopdoor = FALSE, point_blank = TRUE;
@@ -3255,9 +3276,9 @@ struct obj **pobj; /* object tossed/used, set to NULL
     if (weapon == FLASHED_LIGHT) {
         tmp_at(DISP_BEAM, cmap_to_glyph(S_flashbeam));
     } else if (weapon == THROWN_TETHERED_WEAPON && obj) {
-            tethered_weapon = TRUE;
-            weapon = THROWN_WEAPON;     /* simplify if's that follow below */
-            tmp_at(DISP_TETHER, obj_to_glyph(obj, rn2_on_display_rng));
+        tethered_weapon = TRUE;
+        weapon = THROWN_WEAPON; /* simplify 'if's that follow below */
+        tmp_at(DISP_TETHER, obj_to_glyph(obj, rn2_on_display_rng));
     } else if (weapon != ZAPPED_WAND && weapon != INVIS_BEAM)
         tmp_at(DISP_FLASH, obj_to_glyph(obj, rn2_on_display_rng));
 
@@ -3278,7 +3299,8 @@ struct obj **pobj; /* object tossed/used, set to NULL
         if (is_pick(obj) && inside_shop(x, y)
             && (mtmp = shkcatch(obj, x, y)) != 0) {
             tmp_at(DISP_END, 0);
-            return mtmp;
+            result = mtmp;
+            goto bhit_done;
         }
 
         typ = levl[bhitpos.x][bhitpos.y].typ;
@@ -3298,16 +3320,19 @@ struct obj **pobj; /* object tossed/used, set to NULL
             break;
         }
 
-        /* iron bars will block anything big enough */
-        if ((weapon == THROWN_WEAPON || weapon == KICKED_WEAPON)
-            && typ == IRONBARS
-            && hits_bars(pobj, x - ddx, y - ddy, bhitpos.x, bhitpos.y,
-                         point_blank ? 0 : !rn2(5), 1)) {
-            /* caveat: obj might now be null... */
-            obj = *pobj;
-            bhitpos.x -= ddx;
-            bhitpos.y -= ddy;
-            break;
+        /* iron bars will block anything big enough and break some things */
+        if (weapon == THROWN_WEAPON || weapon == KICKED_WEAPON) {
+            if (typ == IRONBARS
+                && hits_bars(pobj, x - ddx, y - ddy, bhitpos.x, bhitpos.y,
+                             point_blank ? 0 : !rn2(5), 1)) {
+                /* caveat: obj might now be null... */
+                obj = *pobj;
+                bhitpos.x -= ddx;
+                bhitpos.y -= ddy;
+                break;
+            } else if (obj->lamplit && !Blind) {
+                show_transient_light(obj, bhitpos.x, bhitpos.y);
+            }
         }
 
         if (weapon == ZAPPED_WAND && find_drawbridge(&x, &y)) {
@@ -3387,7 +3412,8 @@ struct obj **pobj; /* object tossed/used, set to NULL
                     (void) flash_hits_mon(mtmp, obj);
                 } else {
                     tmp_at(DISP_END, 0);
-                    return mtmp; /* caller will call flash_hits_mon */
+                    result = mtmp; /* caller will call flash_hits_mon */
+                    goto bhit_done;
                 }
             } else if (weapon == INVIS_BEAM) {
                 /* Like FLASHED_LIGHT, INVIS_BEAM should continue
@@ -3395,8 +3421,10 @@ struct obj **pobj; /* object tossed/used, set to NULL
                    prepared for multiple hits so just get first one
                    that's either visible or could see its invisible
                    self.  [No tmp_at() cleanup is needed here.] */
-                if (!mtmp->minvis || perceives(mtmp->data))
-                    return mtmp;
+                if (!mtmp->minvis || perceives(mtmp->data)) {
+                    result = mtmp;
+                    goto bhit_done;
+                }
             } else if (weapon != ZAPPED_WAND) {
 
                 /* THROWN_WEAPON, KICKED_WEAPON */
@@ -3405,7 +3433,8 @@ struct obj **pobj; /* object tossed/used, set to NULL
 
                 if (cansee(bhitpos.x, bhitpos.y) && !canspotmon(mtmp))
                     map_invisible(bhitpos.x, bhitpos.y);
-                return mtmp;
+                result = mtmp;
+                goto bhit_done;
             } else {
                 /* ZAPPED_WAND */
                 (*fhitm)(mtmp, obj);
@@ -3428,7 +3457,7 @@ struct obj **pobj; /* object tossed/used, set to NULL
                     || ship_object(obj, bhitpos.x, bhitpos.y,
                                    costly_spot(bhitpos.x, bhitpos.y)))) {
                 tmp_at(DISP_END, 0);
-                return (struct monst *) 0;
+                goto bhit_done; /* result == (struct monst *) 0 */
             }
         }
         if (weapon == ZAPPED_WAND && (IS_DOOR(typ) || typ == SDOOR)) {
@@ -3511,7 +3540,11 @@ struct obj **pobj; /* object tossed/used, set to NULL
     if (shopdoor)
         pay_for_damage("destroy", FALSE);
 
-    return (struct monst *) 0;
+ bhit_done:
+    if (weapon == THROWN_WEAPON || weapon == KICKED_WEAPON)
+        transient_light_cleanup();
+
+    return result;
 }
 
 /* process thrown boomerang, which travels a curving path...
@@ -4124,7 +4157,7 @@ boolean say; /* Announce out of sight hit/miss events if true */
                 break;
             if (type >= 0)
                 mon->mstrategy &= ~STRAT_WAITMASK;
-        buzzmonst:
+ buzzmonst:
             notonhead = (mon->mx != bhitpos.x || mon->my != bhitpos.y);
             if (zap_hit(find_mac(mon), spell_type)) {
                 if (mon_reflects(mon, (char *) 0)) {
@@ -4246,7 +4279,7 @@ boolean say; /* Announce out of sight hit/miss events if true */
             uchar rmn;
             boolean fireball;
 
-        make_bounce:
+ make_bounce:
             bchance = (levl[sx][sy].typ == STONE) ? 10
                 : (In_mines(&u.uz) && IS_WALL(levl[sx][sy].typ)) ? 20
                 : 75;
@@ -5315,7 +5348,7 @@ makewish()
     nothing = zeroobj; /* lint suppression; only its address matters */
     if (flags.verbose)
         You("may wish for an object.");
-retry:
+ retry:
     Strcpy(promptbuf, "For what do you wish");
     if (iflags.cmdassist && tries > 0)
         Strcat(promptbuf, " (enter 'help' for assistance)");
@@ -5326,6 +5359,7 @@ retry:
         buf[0] = '\0';
     } else if (!strcmpi(buf, "help")) {
         wishcmdassist(MAXWISHTRY - tries);
+        buf[0] = '\0'; /* for EDIT_GETLIN */
         goto retry;
     }
     if (buf[0] == '\0') {

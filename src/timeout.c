@@ -1,4 +1,4 @@
-/* NetHack 3.6	timeout.c	$NHDT-Date: 1545182148 2018/12/19 01:15:48 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.89 $ */
+/* NetHack 3.6	timeout.c	$NHDT-Date: 1565574996 2019/08/12 01:56:36 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.92 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -12,6 +12,8 @@ STATIC_DCL void NDECL(choke_dialogue);
 STATIC_DCL void NDECL(levitation_dialogue);
 STATIC_DCL void NDECL(slime_dialogue);
 STATIC_DCL void FDECL(slimed_to_death, (struct kinfo *));
+STATIC_DCL void NDECL(phaze_dialogue);
+STATIC_DCL void FDECL(done_timeout, (int, int));
 STATIC_DCL void NDECL(slip_or_trip);
 STATIC_DCL void FDECL(see_lamp_flicker, (struct obj *, const char *));
 STATIC_DCL void FDECL(lantern_message, (struct obj *));
@@ -403,9 +405,10 @@ struct kinfo *kptr;
         del_light_source(LS_MONSTER, monst_to_any(&youmonst));
     save_mvflags = mvitals[PM_GREEN_SLIME].mvflags;
     mvitals[PM_GREEN_SLIME].mvflags = save_mvflags & ~G_GENOD;
+    /* become a green slime; also resets youmonst.m_ap_type+.mappearance */
     (void) polymon(PM_GREEN_SLIME, FALSE);
     mvitals[PM_GREEN_SLIME].mvflags = save_mvflags;
-    done(TURNED_SLIME);
+    done_timeout(TURNED_SLIME, SLIMED);
 
     return;
 }
@@ -432,6 +435,23 @@ phaze_dialogue()
 
     if (((HPasses_walls & TIMEOUT) % 2L) && i > 0L && i <= SIZE(phaze_texts))
         pline1(phaze_texts[SIZE(phaze_texts) - i]);
+}
+
+/* when a status timeout is fatal, keep the status line indicator shown
+   during end of game rundown (and potential dumplog);
+   timeout has already counted down to 0 by the time we get here */
+STATIC_OVL void
+done_timeout(how, which)
+int how, which;
+{
+    long *intrinsic_p = &u.uprops[which].intrinsic;
+
+    *intrinsic_p |= I_SPECIAL; /* affects final disclosure */
+    done(how);
+
+    /* life-saved */
+    *intrinsic_p &= ~I_SPECIAL;
+    context.botl = TRUE;
 }
 
 void
@@ -519,10 +539,10 @@ nh_timeout()
                 }
                 dealloc_killer(kptr);
                 /* (unlike sliming, you aren't changing form here) */
-                done(STONING);
+                done_timeout(STONING, STONED);
                 break;
             case SLIMED:
-                slimed_to_death(kptr); /* done(TURNED_SLIME) */
+                slimed_to_death(kptr); /* done_timeout(TURNED_SLIME,SLIMED) */
                 break;
             case VOMITING:
                 make_vomiting(0L, TRUE);
@@ -556,8 +576,8 @@ nh_timeout()
                         killer.format = KILLED_BY;
                     }
                 }
+                done_timeout(POISONING, SICK);
                 u.usick_type = 0;
-                done(POISONING);
                 break;
             case FAST:
                 if (!Very_fast)
@@ -660,7 +680,7 @@ nh_timeout()
                 killer.format = KILLED_BY;
                 Strcpy(killer.name,
                        (u.uburied) ? "suffocation" : "strangulation");
-                done(DIED);
+                done_timeout(DIED, STRANGLED);
                 /* must be declining to die in explore|wizard mode;
                    treat like being cured of strangulation by prayer */
                 if (uamul && uamul->otyp == AMULET_OF_STRANGULATION) {
@@ -1860,13 +1880,32 @@ short kind;
 short func_index;
 anything *arg;
 {
-    timer_element *gnu;
+    timer_element *gnu, *dup;
 
-    if (func_index < 0 || func_index >= NUM_TIME_FUNCS)
-        panic("start_timer");
+    if (kind < 0 || kind >= NUM_TIMER_KINDS
+        || func_index < 0 || func_index >= NUM_TIME_FUNCS)
+        panic("start_timer (%s: %d)", kind_name(kind), (int) func_index);
 
-    gnu = (timer_element *) alloc(sizeof(timer_element));
-    (void) memset((genericptr_t)gnu, 0, sizeof(timer_element));
+    /* fail if <arg> already has a <func_index> timer running */
+    for (dup = timer_base; dup; dup = dup->next)
+        if (dup->kind == kind
+            && dup->func_index == func_index
+            && dup->arg.a_void == arg->a_void)
+            break;
+    if (dup) {
+        char idbuf[QBUFSZ];
+
+#ifdef VERBOSE_TIMER
+        Sprintf(idbuf, "%s timer", timeout_funcs[func_index].name);
+#else
+        Sprintf(idbuf, "%s timer (%d)", kind_name(kind), (int) func_index);
+#endif
+        impossible("Attempted to start duplicate %s, aborted.", idbuf);
+        return FALSE;
+    }
+
+    gnu = (timer_element *) alloc(sizeof *gnu);
+    (void) memset((genericptr_t) gnu, 0, sizeof *gnu);
     gnu->next = 0;
     gnu->tid = timer_id++;
     gnu->timeout = monstermoves + when;
@@ -1879,7 +1918,6 @@ anything *arg;
     if (kind == TIMER_OBJECT) /* increment object's timed count */
         (arg->a_obj)->timed++;
 
-    /* should check for duplicates and fail if any */
     return TRUE;
 }
 

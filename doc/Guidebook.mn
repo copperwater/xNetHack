@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.299 $ $NHDT-Date: 1551488947 2019/03/02 01:09:07 $
+.\" $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.312 $ $NHDT-Date: 1562838836 2019/07/11 09:53:56 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" NetHack's Guidebook.mn currently does *not* adhere to these guidelines.
@@ -24,7 +24,7 @@
 .ds vr "NetHack 3.6
 .ds f0 "\*(vr
 .ds f1
-.ds f2 "February 27, 2019
+.ds f2 "July 9, 2019
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -777,7 +777,7 @@ choices but will accept an accessory and attempt to put that on.)
 Repeat previous message.
 .lp ""
 Subsequent \(oq\(haP\(cqs repeat earlier messages.
-The behavior can be varied via the
+For some interfaces, the behavior can be varied via the
 .op msg_window
 option.
 .lp q
@@ -1104,6 +1104,12 @@ Autocompletes.
 Default key is \(oqM-e\(cq.
 .lp #exploremode
 Enter the explore mode.
+.lp ""
+Requires confirmation; default response is \f(CRn\fP (no).
+To really switch to explore mode, respond with \f(CRy\fP.
+You can set the
+.op paranoid_confirmation:quit
+option to require a response of \f(CRyes\fP instead.
 .lp "#fire    "
 Fire ammunition from quiver.
 Default key is \(oqf\(cq.
@@ -1211,6 +1217,12 @@ Test the panic routine.
 Terminates the current game.
 Autocompletes.
 Debug mode only.
+.lp ""
+Asks for confirmation; default is \f(CRn\fP (no); continue playing.
+To really panic, respond with \f(CRy\fP.
+You can set the
+.op paranoid_confirmation:quit
+option to require a response of \f(CRyes\fP instead.
 .lp "#pay     "
 Pay your shopping bill.
 Default key is \(oqp\(cq.
@@ -1251,10 +1263,11 @@ Default key is \(oqM-q\(cq.
 .lp ""
 Since using this command by accident would throw away the current game,
 you are asked to confirm your intent before quitting.
-By default a response of \(oqy\(cq acknowledges that intent.
+Default response is \f(CRn\fP (no); continue playing.
+To really quit, respond with \f(CRy\fP.
 You can set the
-.op paranoid_confirmation
-option to require a response of \(lqyes\(rq instead.
+.op paranoid_confirmation:quit
+option to require a response of \f(CRyes\fP instead.
 .lp "#quiver  "
 Select ammunition for quiver.
 Default key is \(oqQ\(cq.
@@ -2972,8 +2985,12 @@ Changes the extended commands interface to pop-up a menu of available
 commands.
 It is keystroke compatible with the traditional interface except that it
 does not require that you hit \fIEnter\fP.
-It is implemented only by the tty port
-(default off), when the game has been compiled to support tty graphics.
+It is implemented for the tty interface (default off).
+.lp ""
+For the X11 interface, which always uses a menu for choosing an extended
+command, it controls whether the menu shows all available commands (on)
+or just the subset of commands which have traditionally been considered
+extended ones (off).
 .lp female
 An obsolete synonym for \(lqgender:female\(rq.
 Cannot be set with the \(oqO\(cq command.
@@ -3010,10 +3027,6 @@ Gold is never blessed or cursed, but it is not described as \(lquncursed\(rq
 even when the
 .op implicit_uncursed
 option is \(lqoff\(rq.
-.lp guicolor
-Use color text and/or highlighting attributes when displaying some
-non-map data (such as menu selector letters).
-Curses interface only; default is on.
 .lp "help    "
 If more information is available for an object looked at
 with the \(oq/\(cq command, ask if you want to see it (default on).
@@ -3178,7 +3191,8 @@ with \(oq\(haP\(cq) (default 20).
 Cannot be set with the \(oqO\(cq command.
 .lp msg_window
 Allows you to change the way recalled messages are displayed.
-(It is currently implemented for tty only.)
+Currently it is only supported for tty (all four choices) and for curses
+(\(oq\f(CRf\fP\(cq and \(oq\f(CRr\fP\(cq choices, default \(oq\f(CRr\fP\(cq).
 The possible values are:
 .sd
 .si
@@ -3284,6 +3298,7 @@ such as \(lqparanoid_confirmation:attack pray Remove\(rq.
 .lp perm_invent
 If true, always display your current inventory in a window.  This only
 makes sense for windowing system interfaces that implement this feature.
+.\" petattr is a wincap option but we'll document it here...
 .lp petattr
 Specifies one or more text highlighting attributes to use when showing
 pets on the map.
@@ -3311,7 +3326,7 @@ Currently multiple highlight-style letters can be combined by simply
 stringing them together (for example, \(lqbk\(rq), but in the future
 they might require being separated by plus signs (such as \(lqb+k\(rq,
 which works already).
-When using the \(oqN\(cq choice, it should be specified on its own,
+When using the \(oqn\(cq choice, it should be specified on its own,
 not in combination with any of the other letters.
 .lp pettype
 Specify the type of your initial pet, if you are playing a character class
@@ -3476,13 +3491,6 @@ and prior versions (for example \(lqsuppress_alert:3.3.1\(rq).
 This option may be used to select one of the named symbol sets found within
 \(lqsymbols\(rq to alter the symbols displayed on the screen.
 Use \(lqsymset:default\(rq to explicitly select the default symbols.
-.lp "term_cols\ \ \fIand\fP"
-.lp term_rows
-Curses interface only.
-Number of columns and rows to use for the display.
-Curses will attempt to resize to the values specified but will settle
-for smaller sizes if they are too big.
-Default is the current window size.
 .lp "time    "
 Show the elapsed game time in turns on bottom line (default off).
 Persistent.
@@ -3557,26 +3565,23 @@ When getting a location on the map, and using shifted movement keys or
 meta-digit keys to fast-move, instead of moving 8 units at a time,
 move by skipping the same glyphs.
 (default off)
-.lp windowborders
-Whether to draw boxes around the map, status area, message area, and
-persistent inventory window if enabled.
-Curses interface only.
-Acceptable values are
-.sd
-.si
-.CC 1 "on, always show borders"
-.CC 2 "off, never show borders"
-.CC 3 "auto, on if terminal or window is at least (24+2)x(80+2)\ \ (default)"
-.ei
-.ed
-.lp ""
-(The 26x82 size threshold for \(oq3\(cq refers to number of rows and
-columns of the display.)
 .lp windowtype
 When the program has been built to support multiple interfaces,
 select which one to use, such as \(lqtty\(rq or \(lqX11\(rq
 (default depends on build-time settings; use \(lq#version\(rq to check).
 Cannot be set with the \(oqO\(cq command.
+.lp ""
+When used, it should be the first option set since its value might
+enable or disable the availability of various other options.
+For multiple lines in a configuration file, that would be the first
+non-comment line.
+For a comma-separated list in NETHACKOPTIONS or an OPTIONS line in a
+configuration file,
+that would
+be the \fIrightmost\fP option in the list.
+.lp wizweight
+Augment object descriptions with their objects' weight (default off).
+Debug mode only.
 .lp zerocomp
 When writing out a save file, perform zero-comp compression of the
 contents. Not all ports support zero-comp compression. It has no effect
@@ -3634,6 +3639,10 @@ If NetHack can, it should use this size font for text windows.
 .lp fullscreen
 If NetHack can, it should try and display on the entire screen rather than
 in a window.
+.lp guicolor
+Use color text and/or highlighting attributes when displaying some
+non-map data (such as menu selector letters).
+Curses interface only; default is on.
 .lp large_font
 If NetHack can, it should use a large font.
 .lp map_mode
@@ -3665,6 +3674,17 @@ Handhelds are most likely to support this option.
 .lp splash_screen
 If NetHack can, it should display an opening splash screen when it starts
 up (default yes).
+.lp statuslines
+Number of lines for traditional below-the-map status display.
+Acceptable values are 2 and 3 (default is 2).
+Curses and tty interfaces only.
+.lp "term_cols\ \ \fIand\fP"
+.lp term_rows
+Curses interface only.
+Number of columns and rows to use for the display.
+Curses will attempt to resize to the values specified but will settle
+for smaller sizes if they are too big.
+Default is the current window size.
 .lp tiled_map
 If NetHack can, it should display a tiled map if it can.
 .lp tile_file
@@ -3680,6 +3700,24 @@ If NetHack can, it should display inverse when the game specifies it.
 .lp vary_msgcount
 If NetHack can, it should display this number of messages at a time in
 the message window.
+.lp windowborders
+Whether to draw boxes around the map, status area, message area, and
+persistent inventory window if enabled.
+Curses interface only.
+Acceptable values are
+.sd
+.si
+.CC 0 "off, never show borders"
+.CC 1 "on, always show borders"
+.CC 2 "auto, on if display is at least (24+2)x(80+2)\ \ (default)"
+.ei
+.ed
+.lp ""
+(The 26x82 size threshold for \(oq2\(cq refers to number of rows and
+columns of the display.
+A width of at least 110 columns (80+2+26+2) is needed for
+.op align_status
+set to \f(CRleft\fP or \f(CRright\fP.)
 .lp windowcolors
 If NetHack can, it should display windows with the specified
 foreground/background colors. Windows GUI only. The format is
@@ -4090,9 +4128,12 @@ If no attribute is defined, no attribute is used.
 The pattern should be a regular expression.
 .lp ""
 Allowed colors are black, red, green, brown, blue, magenta, cyan, gray,
-orange, lightgreen, yellow, lightblue, lightmagenta, lightcyan, and white.
+orange, light-green, yellow, light-blue, light-magenta, light-cyan, and white.
+And \f(CRno-color\fP, the default foreground color, which isn't necessarily
+the same as any of the other colors.
 .lp ""
 Allowed attributes are none, bold, dim, underline, blink, and inverse.
+\(lqNormal\(rq is a synonym for \(lqnone\(rq.
 Note that the platform used may interpret the attributes any way it
 wants.
 .lp ""
@@ -4157,36 +4198,62 @@ If so, you can customize your game display by setting thresholds to
 change the color or appearance of fields in the status display.
 .pg
 The format for defining status colors is:
-.si
-.lp "OPTION=hilite_status: field-name/behavior/color&attributes"
-.ei
+.SD n
+\f(CROPTION=hilite_status:\fIfield-name\fP/\fIbehavior\fP/\fIcolor\fP&\fIattributes\fP\fP
+.ED
 .pg
-For example, the following line in your config file will cause
+For example, the following line in your configuration file will cause
 the hitpoints field to display in the color red if your hitpoints
 drop to or below a threshold of 30%:
-.si
-.lp "OPTION=hilite_status: hitpoints/<=30%/red/normal"
-.ei
+.SD n
+\f(CROPTION=hilite_status:hitpoints/<=30%/red/normal\fP
+.ED
+(That example is actually specifying \f(CRred&normal\fP for <=30%
+and \f(CRno-color&normal\fP for >30%.)
 .pg
-For another example, the following line in your config file will cause
-wisdom to be displayed red if it drops and green if it rises.
-.si
-.lp "OPTION=hilite_status: wisdom/down/red/up/green"
-.ei
+For another example, the following line in your configuration file will cause
+wisdom to be displayed red if it drops and green if it rises:
+.SD n
+\f(CROPTION=hilite_status:wisdom/down/red/up/green\fP
+.ED
 .pg
-You can adjust the display of the following status fields:
+Allowed colors are black, red, green, brown, blue, magenta, cyan, gray,
+orange, light-green, yellow, light-blue, light-magenta, light-cyan, and white.
+And \(lqno-color\(rq, the default foreground color on the display, which
+is not necessarily the same as black or white or any of the other colors.
+.pg
+Allowed attributes are none, bold, dim, underline, blink, and inverse.
+\(lqNormal\(rq is a synonym for \(lqnone\(rq; they should not be used in
+combination with any of the other attributes.
+.pg
+To specify both a color and an attribute, use \(oq&\(cq to combine them.
+To specify multiple attributes, use \(oq+\(cq to combine those.
+For example: \(lqmagenta&inverse+dim\(rq.
+.pg
+Note that the display may substitute or ignore particular attributes
+depending upon its capabilities, and in general may interpret the
+attributes any way it wants.
+For example, on some display systems a request for bold might yield
+blink or vice versa.
+On others, issuing an attribute request while another is already
+set up will replace the earlier attribute rather than combine with it.
+Since NetHack issues attribute requests sequentially (at least with
+the \f(CRtty\fP interface) rather than all at once, the only way a
+situation like that can be controlled is to specify just one attribute.
+.pg
+You can adjust the appearance of the following status fields:
 .TS S
 center;
 c c c.
 .\"TABLE_START
-title	strength	dexterity
-constitution	intelligence	wisdom
-charisma	alignment	score
-carrying-capacity	gold	power
-power-max	experience-level	armor-class
-HD	time	hunger
-hitpoints	hitpoints-max	dungeon-level
-experience	condition
+title	dungeon-level	experience-level
+strength	gold	experience
+dexterity	hitpoints	HD
+constitution	hitpoints-max	time
+intelligence	power	hunger
+wisdom	power-max	carrying-capacity
+charisma	armor-class	condition
+alignment		score
 .\"TABLE_END  Do not delete this line.
 .TE
 .lp ""
@@ -4233,7 +4300,24 @@ it also matches when value is below or above the percentage.
 Use prefix \(oq<\(cq or \(oq>\(cq to match when strictly below or above.
 (The numeric limit is relaxed slightly for those: \f(CR>-1%\fP
 and \f(CR<101%\fP are allowed.)
-Only valid for \(lqhitpoints\(rq and \(lqpower\(rq fields.
+Only four fields support percentage rules.
+Percentages for \(lqhitpoints\(rq and \(lqpower\(rq are
+straightforward; they're based on the corresponding maximum field.
+Percentage highlight rules are also allowed for \(lqexperience level\(rq
+and \(lqexperience points\(rq (valid when the
+.op showexp
+option is enabled).
+For those, the percentage is based on the progress from the start of
+the current experience level to the start of the next level.
+So if level 2 starts at 20 points and level 3 starts at 40 points,
+having 30 points is 50% and 35 points is 75%.
+100% is unattainable for experience because you'll gain a level and
+the calculations will be reset for that new level, but a rule for
+\f(CR=100%\fP is allowed and matches the special case of being
+exactly 1 experience point short of the next level.
+.\" (If you manage to reach level 30, there is no next level and the
+.\" percentage will remain at 0% no matter have many additional experience
+.\" points you earn.)
 .lp "*"
 absolute value sets the attribute when the field value matches
 that number.
@@ -4252,20 +4336,14 @@ and \(lqtitle\(rq.
 For title, only the role's rank title
 is tested; the character's name is ignored.
 .ei
-.lp ""
-Allowed colors are black, red, green, brown, blue, magenta, cyan, gray,
-orange, lightgreen, yellow, lightblue, lightmagenta, lightcyan, and white.
-.lp ""
-Allowed attributes are bold, inverse, underline, blink, dim, and normal.
-Note that the platform used may interpret the attributes any way it
-wants.
-.lp ""
+.pg
 The in-game options menu can help you determine the correct syntax for a
 config file.
-.lp ""
-The whole feature  can  be  disabled  by  setting  option
-statushilites to 0.
-.lp ""
+.pg
+The whole feature can be disabled by setting option
+.op statushilites
+to 0.
+.pg
 Example hilites:
 .sd
 .si
@@ -4492,14 +4570,6 @@ Z	S_zombie	(zombie)
 z	S_zruty	(zruty)
 .\"TABLE_END  Do not delete this line.
 .TE
-.pg
-There is one additional class of object, described as \(lqstrange object\(rq,
-which will occasionally be the shape taken on by mimics and shown
-as \(oq]\(cq for maps displayed as text characters.
-Although the displayed character is the same as the default value for
-\(lqS_mimic_def\(rq, it is a different symbol and there is no corresponding
-\(lqS_strange_object\(rq symbol nor any way to assign an alternate value
-for it.
 .pg
 .hn 2
 Configuring NetHack for Play by the Blind
@@ -4960,15 +5030,6 @@ passed away. NetHack 3.6.0 introduced a tribute to him.
 team since the release of 3.4.3 with some of the beloved community
 patches. Many bugs were fixed and some code was restructured.
 .pg
-In late April 2018, several hundred bug fixes for 3.6.0 and
-some new features were assembled and released as NetHack 3.6.1.
-The NetHack Development Team at the time of release of 3.6.1 consisted of
-\fBWarwick Allison\fP, \fBMichael Allison\fP, \fBKen Arromdee\fP,
-\fBDavid Cohrs\fP, \fBJessie Collet\fP, \fBPasi Kallinen\fP,
-\fBKen Lorber\fP, \fBDean Luick\fP, \fBPatric Mueller\fP,
-\fBPat Rankin\fP, \fBDerek S. Ray\fP, \fBAlex Smith\fP,
-\fBMike Stephenson\fP, \fBJanet Walz\fP, and \fBPaul Winner\fP.
-.pg
 The NetHack Development Team, as well as \fBSteve VanDevender\fP and
 \fBKevin Smolkowski\fP, ensured that NetHack 3.6 continued to operate on
 various
@@ -4983,13 +5044,25 @@ maintained the port of NetHack 3.6 for Mac OSX.
 \fBDerek S. Ray\fP and \fBYitzhak Sapir\fP maintained the port of
 NetHack 3.6 for Microsoft Windows.
 .pg
-\fBPat Rankin\fP attempted to keep the VMS port running for NetHack 3.6.1,
+\fBPat Rankin\fP attempted to keep the VMS port running for NetHack 3.6,
 hindered by limited access. \fBKevin Smolkowski\fP has updated and tested it
 for the most recent version of OpenVMS (V8.4 as of this writing) on Alpha
 and Integrity (aka Itanium aka IA64) but not VAX.
 .pg
-\fBRay Chason\fP resurrected the msdos port for 3.6.1 and contributed the
+\fBRay Chason\fP resurrected the msdos port for 3.6 and contributed the
 necessary updates to the community at large.
+.pg
+In late April 2018, several hundred bug fixes for 3.6.0 and
+some new features were assembled and released as NetHack 3.6.1.
+The NetHack Development Team at the time of release of 3.6.1 consisted of
+\fBWarwick Allison\fP, \fBMichael Allison\fP, \fBKen Arromdee\fP,
+\fBDavid Cohrs\fP, \fBJessie Collet\fP, \fBPasi Kallinen\fP,
+\fBKen Lorber\fP, \fBDean Luick\fP, \fBPatric Mueller\fP,
+\fBPat Rankin\fP, \fBDerek S. Ray\fP, \fBAlex Smith\fP,
+\fBMike Stephenson\fP, \fBJanet Walz\fP, and \fBPaul Winner\fP.
+.pg
+In early May 2019, another 320 bug fixes along with some enhancements and
+the adopted curses window port, were released as 3.6.2.
 .pg
 The official NetHack web site is maintained by \fBKen Lorber\fP
 at
@@ -5003,7 +5076,7 @@ again to \fBM. Drew Streib\fP and \fBPasi Kallinen\fP for providing a
 public NetHack server at nethack.alt.org. Thanks to \fBKeith Simpson\fP
 and \fBAndy Thomson\fP for hardfought.org. Thanks to all those
 unnamed dungeoneers who invest their time and effort into annual
-NetHack tournaments such as Junethack, The November NetHack Tournament 
+NetHack tournaments such as Junethack, The November NetHack Tournament
 and in days past, devnull.net (gone for now, but not forgotten).
 .pg
 .ce

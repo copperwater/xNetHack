@@ -1,4 +1,4 @@
-/* NetHack 3.6	dogmove.c	$NHDT-Date: 1551493951 2019/03/02 02:32:31 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.72 $ */
+/* NetHack 3.6	dogmove.c	$NHDT-Date: 1557094801 2019/05/05 22:20:01 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.74 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -442,8 +442,9 @@ struct edog *edog;
             else
                 You_feel("worried about %s.", y_monnam(mtmp));
             stop_occupation();
-        } else if (monstermoves > edog->hungrytime + 750 || DEADMONSTER(mtmp)) {
-        dog_died:
+        } else if (monstermoves > edog->hungrytime + 750
+                   || DEADMONSTER(mtmp)) {
+ dog_died:
             if (mtmp->mleashed && mtmp != u.usteed)
                 Your("leash goes slack.");
             else if (cansee(mtmp->mx, mtmp->my))
@@ -678,7 +679,6 @@ int after, udist, whappr;
     return appr;
 }
 
-
 STATIC_OVL struct monst *
 find_targ(mtmp, dx, dy, maxdist)
 register struct monst *mtmp;
@@ -707,14 +707,13 @@ int maxdist;
         if (!m_cansee(mtmp, curx, cury))
             break;
 
-        targ = m_at(curx, cury);
-
         if (curx == mtmp->mux && cury == mtmp->muy)
             return &youmonst;
 
-        if (targ) {
+        if ((targ = m_at(curx, cury)) != 0) {
             /* Is the monster visible to the pet? */
-            if ((!targ->minvis || perceives(mtmp->data)) && !targ->mundetected)
+            if ((!targ->minvis || perceives(mtmp->data))
+                && !targ->mundetected)
                 break;
             /* If the pet can't see it, it assumes it aint there */
             targ = 0;
@@ -870,7 +869,6 @@ struct monst *mtmp, *mtarg;
     return score;
 }
 
-
 STATIC_OVL struct monst *
 best_target(mtmp)
 struct monst *mtmp;   /* Pet */
@@ -921,7 +919,6 @@ struct monst *mtmp;   /* Pet */
 
     return best_targ;
 }
-
 
 /* return 0 (no move), 1 (move) or 2 (dead) */
 int
@@ -1206,7 +1203,7 @@ int after; /* this is extra fast monster movement */
                 chcnt = 0;
             chi = i;
         }
-    nxti:
+ nxti:
         ;
     }
 
@@ -1221,6 +1218,7 @@ int after; /* this is extra fast monster movement */
         /* How hungry is the pet? */
         if (!mtmp->isminion) {
             struct edog *dog = EDOG(mtmp);
+
             hungry = (monstermoves > (dog->hungrytime + 300));
         }
 
@@ -1266,7 +1264,7 @@ int after; /* this is extra fast monster movement */
         }
     }
 
-newdogpos:
+ newdogpos:
     if (nix != omx || niy != omy) {
         boolean wasseen;
 
@@ -1344,7 +1342,7 @@ newdogpos:
         }
         cc.x = mtmp->mx;
         cc.y = mtmp->my;
-    dognext:
+ dognext:
         if (!m_in_out_region(mtmp, nix, niy))
             return 1;
         remove_monster(mtmp->mx, mtmp->my);
@@ -1448,7 +1446,7 @@ finish_meating(mtmp)
 struct monst *mtmp;
 {
     mtmp->meating = 0;
-    if (mtmp->m_ap_type && mtmp->mappearance && mtmp->cham == NON_PM) {
+    if (M_AP_TYPE(mtmp) && mtmp->mappearance && mtmp->cham == NON_PM) {
         /* was eating a mimic and now appearance needs resetting */
         mtmp->m_ap_type = 0;
         mtmp->mappearance = 0;
@@ -1502,15 +1500,15 @@ struct monst *mtmp;
         newsym(mtmp->mx, mtmp->my);
         You("%s %s %sappear%s where %s was!",
             cansee(mtmp->mx, mtmp->my) ? "see" : "sense that",
-            (mtmp->m_ap_type == M_AP_FURNITURE)
+            (M_AP_TYPE(mtmp) == M_AP_FURNITURE)
                 ? an(defsyms[mtmp->mappearance].explanation)
-                : (mtmp->m_ap_type == M_AP_OBJECT
+                : (M_AP_TYPE(mtmp) == M_AP_OBJECT
                    && OBJ_DESCR(objects[mtmp->mappearance]))
                       ? an(OBJ_DESCR(objects[mtmp->mappearance]))
-                      : (mtmp->m_ap_type == M_AP_OBJECT
+                      : (M_AP_TYPE(mtmp) == M_AP_OBJECT
                          && OBJ_NAME(objects[mtmp->mappearance]))
                             ? an(OBJ_NAME(objects[mtmp->mappearance]))
-                            : (mtmp->m_ap_type == M_AP_MONSTER)
+                            : (M_AP_TYPE(mtmp) == M_AP_MONSTER)
                                   ? an(mons[mtmp->mappearance].mname)
                                   : something,
             cansee(mtmp->mx, mtmp->my) ? "" : "has ",
