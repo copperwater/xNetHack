@@ -120,6 +120,8 @@ Trying to attack a monster in melee with pacifist conduct intact after 100 turns
 Hobbits and Nazguls grudge each other.
 Livelog when the player changes alignment (by helm or permaconversion).
 YAFM for staking a vampire's heart while hallucinating.
+You can try indefinitely to enter a valid wish, rather than the game giving you
+  a random object after 5 failed tries.
 
 
 It contains the following non-gameplay architectural changes:
