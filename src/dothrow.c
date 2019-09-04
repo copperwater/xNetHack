@@ -2233,9 +2233,9 @@ struct obj* obj;
         impossible("breaking glass obj in melee but not in inventory?");
         return FALSE;
     }
-    obj->owornmask = 0;
 
     if (obj->quan == 1L) {
+        obj->owornmask = 0;
         pline("%s breaks into pieces!", upstart(yname(obj)));
         obj_extract_self(obj); /* it's being destroyed */
     }
