@@ -343,8 +343,8 @@ register struct monst *mtmp;
 
             /* maybe make it special */
             if (!rn2(20) || is_lord(ptr))
-                otmp = oname(otmp,
-                             artiname(rn2(2) ? ART_DEMONBANE : ART_SUNSWORD));
+                otmp = oname(otmp, artiname(ART_SUNSWORD));
+
             bless(otmp);
             otmp->oerodeproof = TRUE;
             spe2 = rn2(4);
