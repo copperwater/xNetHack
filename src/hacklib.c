@@ -684,7 +684,9 @@ int x0, y0, x1, y1;
  * Throws ubirthday into the hash so that the hash should be (mostly) unique
  * among the same coordinates in different games, and so the player shouldn't
  * be able to get the result out of the visible game state (assuming they
- * didn't actually guess it or track it otherwise...)
+ * didn't actually guess it or track it otherwise... if this becomes a problem,
+ * the game may need to generate a hidden random number on startup and use that
+ * instead, or add a server secret.)
  */
 unsigned int
 coord_hash(x, y, z)
