@@ -2936,13 +2936,13 @@ boolean wep_was_destroyed;
                     if (reflectsrc) {
                         pline("%s gaze is reflected by your %s.",
                                   s_suffix(Monnam(mon)), reflectsrc);
-                    } else if (Free_action) {
-                        You("momentarily stiffen under %s gaze!",
-                            s_suffix(mon_nam(mon)));
-                    } else if (Hallucination && rn2(4)) {
+                    } else if (Hallucination) {
                         pline("%s looks %s%s.", Monnam(mon),
                               !rn2(2) ? "" : "rather ",
                               !rn2(2) ? "numb" : "stupified");
+                    } else if (Free_action) {
+                        You("momentarily stiffen under %s gaze!",
+                            s_suffix(mon_nam(mon)));
                     } else if (rnd(30) < ACURR(A_WIS)) {
                         You("avert your eyes from %s gaze.",
                             s_suffix(mon_nam(mon)));
