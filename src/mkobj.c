@@ -268,7 +268,13 @@ boolean artif;
 
     /* get total probability of objects in this class */
     first_obj = bases[(int) oclass];
-    last_obj = bases[(int) oclass + 1] - 1;
+    if (oclass + 1 < MAXOCLASSES) {
+        last_obj = bases[(int) oclass + 1] - 1;
+    }
+    else {
+        /* bases[oclass + 1] doesn't exist in this case */
+        last_obj = NUM_OBJECTS - 1;
+    }
     total_prob = 0;
     for (i = first_obj; i <= last_obj; ++i) {
         total_prob += objects[i].oc_prob;
