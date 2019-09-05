@@ -1,268 +1,214 @@
 # NetHack 3.6  epitaph.txt       $NHDT-Date: 1524689580 2018/04/25 20:53:00 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.3 $
 # Copyright (c) 2015 by Pasi Kallinen
 # NetHack may be freely redistributed.  See license for details.
-# Epitaphs for random headstones
-#
-#
-Rest in peace
-R.I.P.
-Rest In Pieces
-Note -- there are NO valuable items in this grave
-1994-1995. The Longest-Lived Hacker Ever
-The Grave of the Unknown Hacker
-We weren't sure who this was, but we buried him here anyway
-Sparky -- he was a very good dog
-Beware of Electric Third Rail
-Made in Taiwan
-Og friend. Og good dude. Og died. Og now food.
-Beetlejuice Beetlejuice Beetlejuice
-Look out below!
-Please don't dig me up.  I'm perfectly happy down here. -- Resident
-Postman, please note forwarding address: Gehennom, Asmodeus's Fortress, fifth lemure on the left
-Mary had a little lamb/Its fleece was white as snow/When Mary was in trouble/The lamb was first to go
-Be careful, or this could happen to you!
-Soon you'll join this fellow in hell! -- the Wizard of Yendor
-Caution! This grave contains toxic waste
-Sum quod eris
-Here lies an Atheist, all dressed up and no place to go
-Here lies Ezekiel, age 102.  The good die young.
-Here lies my wife: Here let her lie! Now she's at rest and so am I.
-Here lies Johnny Yeast.  Pardon me for not rising.
-He always lied while on the earth and now he's lying in it
-I made an ash of myself
-Soon ripe.  Soon rotten.  Soon gone.  But not forgotten.
-Here lies the body of Jonathan Blake.  Stepped on the gas instead of the brake.
-Go away!
-Alas fair Death, 'twas missed in life - some peace and quiet from my wife
-Applaud, my friends, the comedy is finished.
-At last... a nice long sleep.
-Audi Partem Alteram
-Basil, assaulted by bears
-Burninated
-Confusion will be my epitaph
-Do not open until Christmas
-Don't be daft, they couldn't hit an elephant at this dist-
-Don't forget to stop and smell the roses
-Don't let this happen to you!
-Dulce et decorum est pro patria mori
-Et in Arcadia ego
-Fatty and skinny went to bed.  Fatty rolled over and skinny was dead.  Skinny Smith 1983-2000.
-Finally I am becoming stupider no more
-Follow me to hell
-...for famous men have the whole earth as their memorial
-Game over, man.  Game over.
-Go away!  I'm trying to take a nap in here!  Bloody adventurers...
-Gone fishin'
-Good night, sweet prince: And flights of angels sing thee to thy rest!
-Go Team Ant!
-He farmed his way here
-Here lies a programmer.  Killed by a fatal error.
-Here lies Bob - decided to try an acid blob
-Here lies Dudley, killed by another %&#@#& newt.
-Here lies Gregg, choked on an egg
-Here lies Lies.  It's True.
-Here lies The Lady's maid, died of a Vorpal Blade
-Here lies the left foot of Jack, killed by a land mine.  Let us know if you find any more of him
-He waited too long
-I'd rather be sailing
-I'll just hit this thing one more time, it'll die.
-If a man's deeds do not outlive him, of what value is a mark in stone?
-I'm gonna make it!
-I don't need to unencumber myself, they're only soldiers, I've been killing soldiers, I'll be fine.
-I took both pills!
-I will survive!
-Killed by a black dragon -- This grave is empty
-Let me out of here!
-Lookin' good, Medusa.
-Maybe if I press the key harder I'll hit for more damage next time.
-Mrs. Smith, choked on an apple.  She left behind grieving husband, daughter, and granddaughter.
-MumaKilled
-Nobody believed her when she said her feet were killing her
-No!  I don't want to see my damn conduct!
-One corpse, sans head
-On the whole, I'd rather be in Minetown
-On vacation
-Oops.
-Out to Lunch
-SOLD
-Someone set us up the bomb!
-Take my stuff, I don't need it anymore
-Taking a year dead for tax reasons
-The reports of my demise are completely accurate
+# Epitaphs for random headstones. Lines starting with "#" are ignored.
+
+# Misc epitaphs, many of them from vanilla.
+"Oh, honey... I missed you!" she said, and fired again.
+%p, killed by an ambush, while reading a gravestone
 (This space for sale)
-This was actually just a pit, but since there was a corpse, we filled it
-This way to the crypt
-Tu quoque, Brute?
-VACANCY
-Welcome!
-Wish you were here!
-Yea, it got me too
-You should see the other guy
 ...and they made me engrave my own headstone too!
-...but the blood has stopped pumping and I am left to decay...
-<Expletive Deleted>
+1994-1995. The Longest-Lived Hacker Ever
+A good dog. Took "play dead" far too literally though.
 A masochist is never satisfied.
-Ach, 'twas a wee monster in the loch
+AFK
 Adapt.  Enjoy.  Survive.
 Adventure, hah!  Excitement, hah!
-After all, what are friends for...
 After this, nothing will shock me
-After three days, fish and guests stink
 Age and treachery will always overcome youth and skill
-Ageing is not so bad.  The real killer is when you stop.
+Aging is not so bad.  The real killer is when you stop.
 Ain't I a stinker?
 Al's Mortuary -- You kill 'em, we chill 'em
+Alas fair Death, 'twas missed in life - some peace and quiet from my wife
+Alas, poor Yorick!
 Algernon
-All else failed...
+All else failed
 All hail RNG
-All right, we'll call it a draw!
+All those who trod on my grave shall be cursed evermore.
 All's well that ends well
 Alone at last!
-Always attack a floating eye from behind!
 Am I having fun yet?
-And I can still crawl, I'm not dead yet!
 And all I wanted was a free lunch
-And all of the signs were right there on your face
 And don't give me that innocent look either!
 And everyone died.  Boo hoo hoo.
-And here I go again...
-And nobody cares until somebody famous dies...
 And so it ends?
 And so... it begins.
 And sometimes the bear eats you.
 And then 'e nailed me 'ead to the floor!
 And they said it couldn't be done!
-And what do I look like?  The living?
-And yes, it was ALL his fault!
-And you said it was pretty here...
 Another lost soul
-Any day above ground is a good day!
-Any more of this and I'll die of a stroke before I'm 30.
+Another one bites the dust.
+Any day above ground is a good day! I don't have any good days.
 Anybody seen my head?
 Anyone for deathmatch?
+Anyone wanna switch places?
 Anything for a change.
 Anything that kills you makes you ... well, dead
 Anything worth doing is worth overdoing.
+Apparently, you *can't* kill huge fierce green dragons with your bare hands.
+Applaud, my friends, the comedy is finished.
 Are unicorns supposedly peaceful if you're a virgin?  Hah!
 Are we all being disintegrated, or is it just me?
+Are you irritable, tired, depressed of life? Keep it up!
+At last... a nice long sleep.
 At least I'm good at something
+At least now we know what that button did. I will try THIS button--
 Attempted suicide
-Auri sacra fames
-Auribus teneo lupum
+Audi Partem Alteram
+Back in MY day we didn't have these fancy headstones; we had cairns and we liked 'em!
+Be careful, or this could happen to you!
 Be prepared
 Beauty survives
-Been Here.  Now Gone.  Had a Good Time.
+Been here.  Now gone.  Had a good time.
 Been through Hell, eh?  What did you bring me?
+Beetlejuice Beetlejuice Beetlejuice
 Beg your pardon, didn't recognize you, I've changed a lot.
 Being dead builds character
 Beloved daughter, a treasure, buried here.
 Best friends come and go....  Mine just die.
-Better be dead than a fat slave
 Better luck next time
-Beware of Discordians bearing answers
-Beware the ...
+Beware of Electric Third Rail
 Bloody Hell...
 Bloody barbarians!
 Blown upward out of sight: He sought the leak by candlelight
+Bought the farm
 Brains... Brains... Fresh human brains...
+Bulk deals on gravestones - Die today!
 Buried the cat.  Took an hour.  Damn thing kept fighting.
+Burninated
 But I disarmed the trap!
-CONNECT 1964 - NO CARRIER 1994
 Call me if you need my phone number!
+Can I get a turn undead over here?
 Can YOU fly?
 Can you believe that thing is STILL moving?
 Can you come up with some better ending for this?
-Can you feel anything when I do this?
 Can you give me mouth to mouth, you just took my breath away.
 Can't I just have a LITTLE peril?
 Can't eat, can't sleep, had to bury the husband here.
-Can't you hit me?!
+Caution! This grave contains toxic waste
 Chaos, panic and disorder.  My work here is done.
 Check enclosed.
 Check this out!  It's my brain!
 Chivalry is only reasonably dead
+Closed for inventory
 Coffin for sale.  Lifetime guarantee.
 Come Monday, I'll be all right.
-Come and see the violence inherent in the system
-Come back here!  I'll bite your bloody knees off!
-Commodore Business Machines, Inc.  Died for our sins.
 Complain to one who can help you
 Confess my sins to god?  Which one?
-Confusion will be my epitaph
 Cooties?  Ain't no cooties on me!
 Could somebody get this noose off me?
 Could you check again?  My name MUST be there.
 Could you please take a breath mint?
 Couldn't I be sedated for this?
+Couldn't think with portals.
 Courage is looking at your setbacks with serenity
 Cover me, I'm going in!
 Crash course in brain surgery
 Cross my fingers for me.
-Curse god and die
-Cut to fit
-De'Ath
-Dead Again?  Pardon me for not getting it right the first time!
+Curses, foiled again!
+Dead again?  Pardon me for not getting it right the first time!
 Dead and loving every moment!
 Dear wife of mine.  Died of a broken heart, after I took it out of her.
+Did you know that death rays bounce?
+Died when this very tombstone fell and crushed his head
+Dig here for a wand of wishing.
+Do not open until Christmas
+Do not write anything on my tombstone except my name.
+Don't be daft, they couldn't hit an elephant at this dist-
+Don't forget to stop and smell the roses
+Don't let this happen to you!
+Don't mind me, just rolling in my grave.
 Don't tread on me!
 Dragon? What dragon?
 Drawn and quartered
+Dudley, killed by a newt.
+Dulce et decorum est pro patria mori
+Eaten by a Grue
 Either I'm dead or my watch has stopped.
-Eliza -- Was I really alive, or did I just think I was?
-Elvis
+Elvis. Yes, he's really dead.
 Enter not into the path of the wicked
 Eris?  I don't need Eris
 Eternal Damnation, Come and stay a long while!
-Even The Dead pay taxes (and they aren't Grateful).
-Even a tomb stone will say good things when you're down!
-Ever notice that live is evil backwards?
+Even the dead pay taxes (and they aren't grateful).
 Every day is starting to look like Monday
 Every day, in every way, I am getting better and better.
 Every survival kit should include a sense of humor
+Everybody's dead, Dave.
+Everyone runs out of extra lives sometime.
 Evil I did dwell;  lewd did I live
-Ex post fucto
 Excellent day to have a rotten day.
 Excuse me for not standing up.
+Excuse me, I ordered the cremation.
 Experience isn't everything.  First, you've got to survive.
-First shalt thou pull out the Holy Pin
-For a Breath, I Tarry...
+Explore the Mazes of Menace, they said. It will be fun, they said.
+Finally I am becoming stupider no more
+Follow me to hell
 For recreational use only.
 For sale: One soul, slightly used.  Asking for 3 wishes.
 For some moments in life, there are no words.
+For you, scum; only 700,000,000 for this grave reserve.
 Forget Disney World, I'm going to Hell!
-Forget about the dog, Beware of my wife.
-Funeral - Real fun.
+Game over, man.  Game over.
 Gawd, it's depressing in here, isn't it?
-Genuine Exploding Gravestone.  (c)Acme Gravestones Inc.
+Genuine Exploding Gravestone.  (c) Acme Gravestones Inc.
 Get back here!  I'm not finished yet...
+Go Team Ant!
 Go ahead, I dare you to!
 Go ahead, it's either you or him.
+Go away!
+Go away!  I'm trying to take a nap in here!  Bloody adventurers...
 Goldilocks -- This casket is just right
 Gone But Not Forgotten
 Gone Underground For Good
 Gone away owin' more than he could pay.
+Gone fishin'
 Gone, but not forgiven
+Good morning! I see the assassins have succeeded!
+Good night, sweet prince: And flights of angels sing thee to thy rest!
 Got a life.  Didn't know what to do with it.
 Grave?  But I was cremated!
 Greetings from Hell - Wish you were here.
-HELP! It's dark in here....  Oh, my eyes are closed - sorry
+Greg the Ghoul's All Nite Diner: All you can eat, under your feet
+HELP! It's dark in here....  Oh, my eyes are closed.
 Ha! I NEVER pay income tax!
 Have you come to raise the dead?
 Having a good time can be deadly.
 Having a great time.  Where am I exactly??
+He always lied while on the earth and now he's lying in it
+He didn't fly so good. Who wants to try next?
 He died of the flux.
 He died today....  May we rest in peace!
+He farmed his way here
 He got the upside, I got the downside.
 He lost his face when he was beheaded.
 He missed me first.
-He's not dead, he just smells that way.
+He waited too long
+He's not dead, he just smells that way
+Help! I'm trapped in a gravestone factory!
 Help! I've fallen and I can't get up!
 Help, I can't wake up!
+Here lies Patient Zero
+Here lies Bob - decided to try an acid blob
+Here lies Bugs Bunny. His doc couldn't figure out what was up.
+Here lies Dudley, killed by another !&#@#& newt.
+Here lies Elric, killed by touching Stormbringer
+Here lies Ezekiel, age 102.  The good die young.
+Here lies Garfield, who ate a pan of cursed lasagna.
+Here lies Ilene Toofar. Fell off a cliff.
+Here lies Johnny Yeast.  Pardon me for not rising.
 Here lies Pinocchio
-Here lies the body of John Round.  Lost at sea and never found.
+Here lies The Lady's maid, died of a Vorpal Blade
+Here lies Tim Burr. Smashed by a tree.
+Here lies a programmer.  Killed by a fatal error.
+Here lies an atheist, all dressed up and no place to go
+Here lies my wife: Here let her lie! Now she's at rest and so am I.
+Here lies the body of Jonathan Blake.  Stepped on the gas instead of the brake.
+Here lies the left foot of Jack, killed by a land mine.  Let us know if you find any more of him
 Here lies the zruty, eaten by a sea monster. May it zzz in peace.
 Here there be dragons
 Hey, I didn't write this stuff!
+Hey, get off my grave!
+Hey, you! What year is it?
 Hodie mihi, cras tibi
 Hold my beer!
 Hold my calls
@@ -271,26 +217,27 @@ Humpty Dumpty, a Bad Egg.  He was pushed off the wall.
 I KNEW this would happen if I lived long enough.
 I TOLD you I was sick!
 I ain't broke but I am badly bent.
+I ain't even mad.
 I ain't old.  I'm chronologically advantaged.
-I am NOT a vampire.  I just like to bite..nibble, really!
+I am NOT a vampire.  I just like to bite... nibble, really!
 I am here.  Wish you were fine.
+I am never eating cursed fortune cookies again.
 I am not dead yet, but watch for further reports.
 I believe them bones are me.
-I broke his brain.
-I can feel it.  My mind.  It's going.  I can feel it.
 I can't go to Hell.  They're afraid I'm gonna take over!
-I can't go to hell, they don't want me.
 I didn't believe in reincarnation the last time, either.
 I didn't mean it when I said 'Bite me'
 I died laughing
-I disbelieved in reincarnation in my last life, too.
+I don't know what I expected.
+I don't need to unencumber myself, they're only soldiers, I've been killing soldiers, I'll be fine.
+I don't wanna go!
+I don't want a big chunk of rock put by my grave.
 I hacked myself to death
 I have all the time in the world
 I knew I'd find a use for this gravestone!
 I know my mind.  And it's around here someplace.
-I lied!  I'll never be alright!
 I like it better in the dark.
-I like to be here when I can.
+I made an ash of myself
 I may rise but I refuse to shine.
 I never get any either.
 I said hit HIM with the fireball, not me!
@@ -300,19 +247,22 @@ I used up all my sick days, so now I'm calling in dead.
 I was killed by <illegible scrawl>
 I was somebody.  Who, is no business of yours.
 I will not go quietly.
+I wonder what deleting 'system32' does?
 I'd give you a piece of my mind... but I can't find it.
 I'd rather be breathing
-I'll be back!
-I'll be mellow when I'm dead.  For now, let's PARTY!
+I'd rather be sailing
+I'll be back.
+I'll bring all of you ants to justi-
+I'll just hit this thing one more time, it'll die.
 I'm doing this only for tax purposes.
+I'm gonna make it!
 I'm not afraid of Death!  What's he gonna do? Kill me?
 I'm not getting enough money, so I'm not going to engrave anything useful here.
 I'm not saying anything.
-I'm weeth stupeed --->
+If a man's deeds do not outlive him, of what value is a mark in stone?
 If you thought you had problems...
 Ignorance kills daily.
 Ignore me... I'm just here for my looks!
-Ilene Toofar -- Fell off a cliff
 Is that all?
 Is there life before Death?
 Is this a joke, or a grave matter?
@@ -321,91 +271,141 @@ It must be Thursday.  I never could get the hang of Thursdays.
 It wasn't a fair fight
 It wasn't so easy.
 It's Loot, Pillage and THEN Burn...
-Just doing my job here
+Killed by a black dragon -- This grave is empty
 Killed by diarrhea of mouth and constipation of brain.
+LEEROY JENKINS!
+Last words are for wimps.
 Let her RIP
 Let it be; I am dead.
+Let me out of here!
 Let's play Hide the Corpse
 Life is NOT a dream
-Madge Ination -- It wasn't all in my head
+Little Johnny was a chemist. Now he is no more. 'Cause what he thought was H20, was H2SO4
+Look out below!
+Lookin' good, Medusa.
+Losing is Fun!
+Made in Taiwan
+Master Kaen Training Program Victim #237
+Maybe if I press the key harder I'll hit for more damage next time.
 Meet me in Heaven
+Mistakenly performed a sword swallowing stunt with Vorpal Blade.
 Move on, there's nothing to see here.
 Mr. Flintstone -- Yabba-dabba-done
+MumaKilled
 My heart is not in this
+NOT THE BEES
 No one ever died from it
-No, you want room 12A, next door.
+No!  I don't want to see my damn conduct!
+Nobody believed her when she said her feet were killing her
 Nope.  No trap on that chest.  I swear.
 Not again!
 Not every soil can bear all things
+Note -- there are NO valuable items in this grave
 Now I have a life
-Now I lay thee down to sleep... wanna join me?
-OK, here is a question: Where ARE your tanlines?
+Now I lay me down to sleep... wanna join me?
 Obesa Cantavit
+Og friend. Og good dude. Og died. Og now food.
+Oh sure, give the *gnome* a wand of death.
 Oh! An untimely death.
 Oh, by the way, how was my funeral?
-"Oh, honey... I missed you!" she said, and fired again.
 Ok, so the light does go off.  Now let me out of here.
-One stone brain
-Ooh! Somebody STOP me!
+On the whole, I'd rather be in Minetown
+On vacation
+One corpse, sans head
 Oops!
+Oops.
+Ouch.  I hate when that happens.
 Out for the night.  Leave a message.
+Out to Lunch
 Ow!  Do that again!
 Pardon my dust.
 Part of me still works.
+Please don't dig me up.  I'm perfectly happy down here. -- Resident
 Please, not in front of those orcs!
+Postman, please note forwarding address: Gehennom, Asmodeus's Fortress, fifth lemure on the left
+Pour one out for me, will ya?
 Prepare to meet me in Heaven
-R2D2 -- Rest, Tin Piece
+Press F to pay respects
+R.I.P.
 Relax.  Nothing ever happens on the first level.
 Res omnia mea culpa est
 Rest In Pieces
+Rest in peace
 Rest, rest, perturbed spirit.
-Rip Torn
-She always said her feet were killing her but nobody believed her.
+Rolling In Grave Power Generator #1357
+SOLD
 She died of a chest cold.
 So let it be written, so let it be done!
 So then I says, How do I know you're the real angel of death?
 Some patients insist on dying.
 Some people have it dead easy, don't they?
 Some things are better left buried.
-Sure, trust me, I'm a lawyer...
+Someone set us up the bomb!
+Soon ripe.  Soon rotten.  Soon gone.  But not forgotten.
+Soon you'll join this fellow in hell! -- the Wizard of Yendor
+Sparky -- he was a very good dog
+Sum quod eris
+Take my stuff, I don't need it anymore
+Taking a year dead for tax reasons
+Teracotta Warrior
 Thank God I wore my corset, because I think my sides have split.
 That is all
 The Gods DO have a sense of humor: I'm living proof!
+The Grave of the Unknown Hacker
 The frog's dead.  He Kermitted suicide.
+The only way two people can keep a secret is if one of them is dead.
+The reports of my demise are completely accurate
+The treasure is buried three spaces to the left.
 This dungeon is a pushover
 This elevator doesn't go to Heaven
+This gravestone does not indicate a bones file.
 This gravestone is shareware.  To register, please send me 10 zorkmids
 This gravestone provided by The Yendorian Grave Services Inc.
+This gravestone provided to you by FreeStone. Please read license before continuing.
+This headstone intentionally left blank.
 This is not an important part of my life.
+This is what happens to you if you try to kill me.
 This one's on me.
 This side up
-Though under Earth and throneless now I be, yet while I lived all Earth was under me
-Tim Burr -- Smashed by a tree
+This grave reserved for %p
+This was actually just a pit, but since there was a corpse, we filled it
+This way to the crypt
 Tone it down a bit, I'm trying to get some rest here.
+Tu quoque, Brute?
+Upgrade to a mausoleum with our premium membership package
+VACANCY
 Virtually Alive
-We Will Meet Again.
+Wait, I was eaten by a purple worm. How did I end up in this grave?
+Was I really alive, or did I just think I was?
+We apologise for the inconvenience.
+We weren't sure who this was, but we buried him here anyway
+We will meet again.
 Weep not, he is at rest
 Welcome to Dante's.  What level please?
+Welcome!
 Well, at least they listened to my sermon...
 Went to be an angel.
-What are you doing over there?
 What are you smiling at?
-What can you say, Death's got appeal...!
 What health care?
 What pit?
+What're you gonna do, stab me?
+When I said I'd rather die free than live a slave, I was being rhetorical.
 When the gods want to punish you, they answer your prayers.
+When we said "get the point?" that didn't mean to stand on the dart trap.
 Where e'er you be let your wind go free.  Keeping it in was the death of me!
 Where's my refund?
-Will let you know for sure in a day or two...
+Who would've thought coffins are this comfy?
+Wish you were here!
 Wizards are wimps
 Worms at work, do not disturb!
 Would you mind moving a bit?  I'm short of breath down here.
-Would you quit being evil over my shoulder?
 Ya really had me going baby, but now I'm gone.
-Yes Dear, just a few more minutes...
+Yea, it got me too
+Yet another pathetic follower of %d
 You asked me if it would kill me to be civil...well, now you know.
 You said it wasn't poisonous!
-You set my heart aflame.  You gave me heartburn.
+You should see the other guy.
+Your thoughts and prayers aren’t with me. I would know.
 
 # Monty Python
 Always look on the bright side of life.
@@ -415,24 +415,17 @@ You come from nothing, you're going back to nothing. What have you lost? Nothing
 Ex-Adventurer
 Just pining for the fjords.
 I'm not dead, I'm just resting.
+Come and see the violence inherent in the system!
+First shalt thou pull out the Holy Pin...
+'Tis but a flesh wound!
+All right, we'll call it a draw!
+Come back here!  I'll bite your bloody knees off!
+
+# They Might Be Giants
+The statue got me high
 
 # Lovecraft
 That is not dead which may eternal lie.
-
-# at least vaguely related to nethack
-Can I get a turn undead over here?
-Oh sure, give the *gnome* a wand of death.
-Dig here for a wand of wishing.
-Master Kaen Training Program Victim #237
-
-# misc
-Are you irritable, tired, depressed of life? Keep it up!
-Pour one out for me, will ya?
-The treasure is buried three spaces to the left.
-Excuse me, I ordered the cremation.
-Back in MY day we didn't have these fancy headstones; we had cairns and we liked 'em!
-Upgrade to a mausoleum with our premium membership package
-Hey, you! What year is it?
 
 # copied or mildly edited from splicehack
 This is all part of my evil plan!
@@ -448,10 +441,26 @@ That's it?
 "Zombie life insurance" isn't all it's cracked up to be.
 I shall walk here again.
 No fair.
+Onward to the next adventure!
 
 # Spongebob Squarepants
-He was #1
+Smitty Werbenjagermanjensen -- He was #1
+
+# Gunnerkrigg Court
+Jeanne -- She died and we did nothing
 
 # Discworld
 I ATEN'T DEAD
 Edward d'Eath - Gonne from this world
+
+# 2001: A Space Odyssey
+I can feel it.  My mind.  It's going.  I can feel it.
+
+# Narnia
+Though under Earth and throneless now I be, yet while I lived all Earth was under me
+
+# Pet Sematary
+Smucky: He was Obediant.
+
+# The Enigma of Amigara Fault
+This is my hole! It was made for me!
