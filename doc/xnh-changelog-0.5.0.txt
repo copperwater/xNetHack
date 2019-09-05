@@ -145,3 +145,5 @@ Add a parameter to put_monsters_to_sleep defining the monster that is causing
 Refactor mpickstuff to use a callback function rather than a string of object
   classes, allowing for finer control of objects monsters will pick up.
 Refactor mm_aggression into clear one-directional and two-directional cases.
+Pass lines retrieved via get_rnd_text (rumors, bogusmons, graffiti, epitaphs,
+  etc) through the quest text parser, letting them use % arguments.

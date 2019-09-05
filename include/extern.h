@@ -2104,6 +2104,7 @@ E short FDECL(quest_info, (int));
 E const char *NDECL(ldrname);
 E boolean FDECL(is_quest_artifact, (struct obj *));
 E struct obj *FDECL(find_quest_artifact, (unsigned));
+E void FDECL(convert_line, (char *,char *));
 E void FDECL(com_pager, (int));
 E void FDECL(qt_pager, (int));
 E struct permonst *NDECL(qt_montype);

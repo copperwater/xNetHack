@@ -146,7 +146,8 @@ boolean exclude_cookie;
             }
             if ((endp = index(line, '\n')) != 0)
                 *endp = 0;
-            Strcat(rumor_buf, xcrypt(line, xbuf));
+            convert_line(line, xbuf);
+            Strcat(rumor_buf, xbuf);
         } while (
             count++ < 50 && exclude_cookie
             && (strstri(rumor_buf, "fortune") || strstri(rumor_buf, "pity")));
@@ -326,7 +327,8 @@ int FDECL((*rng), (int));
         }
         if ((endp = index(line, '\n')) != 0)
             *endp = 0;
-        Strcat(buf, xcrypt(line, xbuf));
+        convert_line(line, xbuf);
+        Strcat(buf, xbuf);
         (void) dlb_fclose(fh);
     } else {
         couldnt_open_file(fname);

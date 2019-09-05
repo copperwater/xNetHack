@@ -29,7 +29,6 @@ STATIC_DCL const char *NDECL(homebase);
 STATIC_DCL void FDECL(qtext_pronoun, (CHAR_P, CHAR_P));
 STATIC_DCL struct qtmsg *FDECL(msg_in, (struct qtmsg *, int));
 STATIC_DCL void FDECL(convert_arg, (CHAR_P));
-STATIC_DCL void FDECL(convert_line, (char *,char *));
 STATIC_DCL void FDECL(deliver_by_pline, (struct qtmsg *));
 STATIC_DCL void FDECL(deliver_by_window, (struct qtmsg *, int));
 STATIC_DCL boolean FDECL(skip_pager, (BOOLEAN_P));
@@ -419,7 +418,7 @@ char c;
     Strcpy(cvt_buf, str);
 }
 
-STATIC_OVL void
+void
 convert_line(in_line, out_line)
 char *in_line, *out_line;
 {
