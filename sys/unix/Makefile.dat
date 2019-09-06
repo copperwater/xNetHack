@@ -9,7 +9,7 @@ NHSROOT=..
 # SHELL=E:/GEMINI2/MUPFEL.TTP
 # UUDECODE=uudecode
 
-VARDAT = bogusmon data engrave epitaph rumors quest.dat oracles options
+VARDAT = bogusmon data engrave epitaph rumors shirts quest.dat oracles options
 
 all:	$(VARDAT) spec_levs quest_levs dungeon
 
@@ -119,6 +119,9 @@ epitaph:	epitaph.txt ../util/makedefs
 	../util/makedefs -s
 
 bogusmon:	bogusmon.txt ../util/makedefs
+	../util/makedefs -s
+
+shirts:		shirts.txt ../util/makedefs
 	../util/makedefs -s
 
 # note: 'options' should have already been made when include/date.h was created
