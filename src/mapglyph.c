@@ -180,6 +180,8 @@ unsigned *ospecial;
                     color = CLR_BRIGHT_GREEN;
                 else if (getroomtype(x, y) == ANTHOLE)
                     color = CLR_BROWN;
+                else if (getroomtype(x, y) == SWAMP)
+                    color = CLR_GREEN;
             }
             else
                 cmap_color(offset);
