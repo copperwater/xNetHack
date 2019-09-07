@@ -87,6 +87,7 @@ Magic lamps always release a djinni when rubbed instead of 1/3 of the time.
 Hallucination protects fully versus the gaze attack of floating eyes.
 1/30 of randomly generated tins are booby-trapped and will explode when opened.
 1/5 of nurses carry a scalpel.
+Wearing a charged ring of carrying will auto-identify it.
 
 
 It contains the following non-gameplay interface changes:

@@ -893,6 +893,14 @@ register struct obj *obj;
     case RIN_SUSTAIN_ABILITY:
     case MEAT_RING:
         break;
+    case RIN_CARRYING:
+        /* with inventory weights available, this is trivial to identify if it's
+         * charged, so if it IS charged, learn it. */
+        if (obj->spe != 0) {
+            Your("pack feels %s.", obj->spe < 0 ? "heavier" : "lighter");
+        }
+        learnring(obj, (obj->spe != 0));
+        break;
     case RIN_REGENERATION:
         You_feel("invigorated!");
         learnring(obj, TRUE);
