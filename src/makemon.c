@@ -296,6 +296,9 @@ register struct monst *mtmp;
             if (received)
                 received->material = GOLD;
         }
+        else if (mm == PM_NURSE && !rn2(5)) {
+            (void) mongets(mtmp, SCALPEL);
+        }
         break;
     case S_ELF:
         if (rn2(2))
