@@ -1958,7 +1958,8 @@ struct mkroom *croom;
             mazexy(&m);
         else if (!somexy(croom, &m))
             return;
-    } while (occupied(m.x, m.y) || bydoor(m.x, m.y));
+    } while (occupied(m.x, m.y) || bydoor(m.x, m.y)
+             || levl[m.x][m.y].typ != ROOM);
 
     if (typ == FOUNTAIN) {
         levl[m.x][m.y].typ = FOUNTAIN;
