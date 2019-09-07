@@ -1841,6 +1841,15 @@ struct monst *magr, /* monster that is currently deciding where to move */
     if (ma == &mons[PM_RAVEN] && md == &mons[PM_FLOATING_EYE])
         return ALLOW_M|ALLOW_TM;
 
+    /* insect-eating bugs vs insects */
+    if (ma->mlet == S_SPIDER && (md->mlet == S_ANT || md->mlet == S_XAN))
+        return ALLOW_M|ALLOW_TM;
+
+    /* bats vs insects */
+    if (is_bat(ma) && (md->mlet == S_ANT || md->mlet == S_XAN) &&
+        (md->mflags1 & M1_FLY))
+        return ALLOW_M|ALLOW_TM;
+
     /* now test all two-way aggressions both ways */
     return (mm_2way_aggression(magr, mdef) | mm_2way_aggression(mdef, magr));
 }

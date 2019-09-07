@@ -88,6 +88,9 @@ Hallucination protects fully versus the gaze attack of floating eyes.
 1/30 of randomly generated tins are booby-trapped and will explode when opened.
 1/5 of nurses carry a scalpel.
 Wearing a charged ring of carrying will auto-identify it.
+Hobbits and Nazguls grudge each other.
+All s-class monsters grudge x-class and a-class monsters, but not vice versa.
+Bats grudge all flying x-class and a-class monsters (currently just bees).
 
 
 It contains the following non-gameplay interface changes:
@@ -121,7 +124,6 @@ Don't unconditionally delete the save file in case of a version mismatch.
 Zombies groan instead of being silent.
 Trying to attack a monster in melee with pacifist conduct intact after 100 turns
   will ask you if you really want to attack.
-Hobbits and Nazguls grudge each other.
 Livelog when the player changes alignment (by helm or permaconversion).
 YAFM for staking a vampire's heart while hallucinating.
 You can try indefinitely to enter a valid wish, rather than the game giving you
