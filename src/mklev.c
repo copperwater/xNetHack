@@ -1131,9 +1131,21 @@ makelevel()
                                  TRUE, FALSE);
         }
 
-        /* maybe make some graffiti
-         * chance decreases the lower you get in the dungeon */
-        if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
+        /* Maybe make some graffiti.
+         * Chance decreases the lower you get in the dungeon.
+         * On dlvl1, put a special graffiti in the starting room: this is always
+         * a true rumor, never a false one or random engraving, and is never
+         * damaged. */
+        if (depth(&u.uz) == 1 && has_upstairs(croom)) {
+            char buf[BUFSZ];
+            getrumor(1, buf, TRUE);
+            do { /* avoid other features */
+                x = somex(croom);
+                y = somey(croom);
+            } while (levl[x][y].typ != ROOM && !t_at(x, y));
+            make_engr_at(x, y, buf, 0, MARK);
+        }
+        else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
             mkfeature(0, 0, croom);
         }
 
