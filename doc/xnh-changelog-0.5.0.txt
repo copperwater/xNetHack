@@ -126,6 +126,7 @@ Livelog when the player changes alignment (by helm or permaconversion).
 YAFM for staking a vampire's heart while hallucinating.
 You can try indefinitely to enter a valid wish, rather than the game giving you
   a random object after 5 failed tries.
+YAFM for hitting a devil with an egg (thrown or melee).
 
 
 It contains the following non-gameplay architectural changes:
