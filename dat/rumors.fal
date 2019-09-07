@@ -1,5 +1,16 @@
+# False rumors.
+# These exist to cast doubt on the advice you can get straight from the game.
+# Pretty much anything NetHack-related goes here, as long as it's not actual
+# valid advice. Cryptically hinting at mechanics that don't exist, recommending
+# that the player do useless things, even total tangents, as long as they make
+# sense in context.
+#
+# Certain rumors might not make any sense unless they come from the scrap of
+# paper inside a fortune cookie. To ensure that a rumor will ONLY be seen
+# coming from a fortune cookie, put a : at the start of the line.
+
 "So when I die, the first thing I will see in heaven is a score list?"
-%p, will you marry me?
+:%p, will you marry me?
 1st Law of Hacking:  leaving is much more difficult than entering.
 2nd Law of Hacking:  first in, first out.
 3rd Law of Hacking:  the last blow counts most.
@@ -41,7 +52,7 @@ Angels wear jackets. Fairies wear boots.
 Any small object that is accidentally dropped will hide under a larger object.
 April Fools!
 Archeologists find more bones piles.
-Bad luck and misfortune will infest your pathetic soul for all eternity.
+:Bad luck and misfortune will infest your pathetic soul for all eternity.
 Balrogs do not appear above level 20.
 Banana peels work especially well against Keystone Kops.
 Be careful when eating bananas.  Monsters might slip on the peels.
@@ -57,7 +68,7 @@ Close the door!  You're letting the heat out!
 Cockatrice is a rare delicacy, if you know how to remove the stoning glands.
 Cockatrices might turn themselves to stone faced with a mirror.
 Consumption of home-made food is strictly forbidden in this dungeon.
-DON'T OPEN THE COOKIE
+:DON'T OPEN THE COOKIE
 Dare to be stupid!
 Dark room?  Your chance to develop your photographs!
 Dark rooms are not *completely* dark:  just wait and let your eyes adjust...
@@ -80,7 +91,7 @@ Don't eat too much:  you might start hiccoughing!
 Don't pick up keys until you find the shop on this floor.
 Don't play NetHack at your work; your boss might hit you!
 Don't tell a soul you found a secret door, otherwise it isn't a secret anymore.
-Don't worry about the Amulet, get more fortune cookies!
+:Don't worry about the Amulet, get more fortune cookies!
 Drinking potions of booze may land you in jail if you are under experience level 21.
 Drop your vanity and get rid of your jewels!  Pickpockets about!
 Eat 10 cloves of garlic and keep all humans at a two-square distance.
@@ -101,12 +112,12 @@ Ever tried enchanting a rope?
 Floating eyes can't stand Hawaiian shirts.
 For any remedy there is a misery.
 Giant bats turn into giant vampires.
-Give my regards to the next fortune cookie you eat.
+:Give my regards to the next fortune cookie you eat.
 Gods are offended by those who polymorph themselves too often.
 Good day for overcoming obstacles.  Try a steeplechase.
 Half moon tonight.  (At least it's better than no moon at all.)
 Having a hard time against Demogorgon? Try zapping him with a wand of death.
-Help!  I'm trapped in a fortune cookie factory!
+:Help!  I'm trapped in a fortune cookie factory!
 Housecats have nine lives, kittens only one.
 How long can you tread water?
 Hungry?  There is an abundance of food on the next level.
@@ -133,7 +144,6 @@ Katanas are very sharp; watch you don't cut yourself.
 Keep a clear mind:  quaff clear potions.
 Killer bees keep appearing till you kill their queen.
 Killer bunnies can only be tamed with carrots.
-Latest news?  Put `rec.games.roguelike.nethack' in your .newsrc!
 Lawful gods love dogs. Dead ones.
 Learn how to spell.  Play NetHack!
 Leprechauns hide their gold in a secret room.
@@ -162,7 +172,7 @@ Never teach your pet rust monster to fetch.
 Never trust a random generator in magic fields.
 Never use a wand of death.
 No level contains two shops.  The maze is no level.  So...
-No part of this fortune may be reproduced, stored in a retrieval system, ...
+:No part of this fortune may be reproduced, stored in a retrieval system, ...
 Not all rumors are as misleading as this one.
 Nymphs and nurses like beautiful rings.
 Nymphs are blondes.  Are you a gentleman?
@@ -192,12 +202,12 @@ Shopkeepers only sell artifact weapons to those they truly trust.
 Shopkeepers sometimes die from old age.
 Some mazes (especially small ones) have no solutions, says man 6 maze.
 Some questions the Sphynx asks just *don't* have any answers.
-Sorry, no fortune this time.  Better luck next cookie!
+:Sorry, no fortune this time.  Better luck next cookie!
 Spare your scrolls of make-edible until it's really necessary!
 Spreading poison all over yourself will prevent monsters from trying to eat you.
 Sticks and stones may break your bones but manes will never hurt you.
 Stormbringer doesn't steal souls.  People steal souls.
-Suddenly, the dungeon will collapse.
+:Suddenly, the dungeon will collapse.
 Taming a mail daemon may cause a system security violation.
 That food really hit the spot! The spot hits the food ration. The food ration is destroyed!
 The 40th level is death.
@@ -424,15 +434,15 @@ They say that you should only sacrifice a unicorn on an altar of its own alignme
 They say that you should play a bugle when entering Fort Ludios.
 They say that you should remove your armor before sitting on a throne.
 They say the more luckstones you have, the better.
-This fortune cookie is copy protected.
-This fortune cookie is the property of Fortune Cookies, Inc.
-This message will erupt into a tower of flame in 3 seconds.
-This release contains 10%% recycled material.
+:This fortune cookie is copy protected.
+:This fortune cookie is the property of Fortune Cookies, Inc.
+:This message will erupt into a tower of flame in 3 seconds.
+:This paper contains 10%% recycled material.
 Tired?  Try a scroll of charging on yourself.
 To reach heaven, escape the dungeon while wearing a ring of levitation.
 Tourists wear shirts loud enough to wake the dead.
 Ulch!  That meat was painted!
-Unfortunately, this message is useless.
+:Unfortunately, this message is useless.
 Using a morning star in the evening has no effect.
 Waltz, dumb nymph, for quick jigs vex.
 Want a hint?  Zap a wand of make invisible on your weapon!
@@ -444,14 +454,14 @@ Watch out for that dwarf king! He might be a master mind flayer in disguise!
 We have new ways of detecting treachery...
 Wet towels make great weapons!
 Whatever can go wrong, will go wrong.
-When I die, I don't want a grave. Put my epitaph inside a fortune cookie instead.
+:When I die, I don't want a grave. Put my epitaph inside a fortune cookie instead.
 When a piercer drops in on you, you will be tempted to hit the ceiling!
 When in a maze follow the right wall and you will never get lost.
 When you have a key, you don't have to wait for the guard.
 Who's "they", and why do they say so much?
-Why are you wasting time reading fortunes?
+:Why are you wasting time reading fortunes?
 Wish for a master key and open the Magic Memory Vault!
-You are destined to be misled by a fortune.
+:You are destined to be misled by a fortune.
 You can get a genuine Amulet of Yendor by doing the following:  --More--
 You can make holy water by boiling the hell out of it.
 You can protect yourself from black dragons by doing the following:  --More--
@@ -460,9 +470,9 @@ You feel like someone is pulling your leg.
 You have to outwit the Sphynx or pay her.
 You may get rich selling letters, but beware of being blackmailed!
 You offend Shai-Hulud by sheathing your crysknife without having drawn blood.
-You should continue eating fortune cookies.
+:You should continue eating fortune cookies.
 You should sharpen that sword once in a while.
 You want to regain strength?  Two levels ahead is a guesthouse!
 You will encounter a tall, dark, and gruesome creature...
-Your lucky numbers are 5, 29, 17, 34, and 8.
+:Your lucky numbers are 5, 29, 17, 34, and 8.
 Your plan is going to fail badly.

@@ -148,9 +148,7 @@ boolean exclude_cookie;
                 *endp = 0;
             convert_line(line, xbuf);
             Strcat(rumor_buf, xbuf);
-        } while (
-            count++ < 50 && exclude_cookie
-            && (strstri(rumor_buf, "fortune") || strstri(rumor_buf, "pity")));
+        } while (count++ < 50 && exclude_cookie && (*rumor_buf == ':'));
         (void) dlb_fclose(rumors);
         if (count >= 50)
             impossible("Can't find non-cookie rumor?");
@@ -175,6 +173,10 @@ boolean exclude_cookie;
         *x = '\0';
     }
 #endif
+    /* cookie rumors have a : at the start of the line; strip this if present */
+    if (*rumor_buf == ':')
+        rumor_buf++;
+
     return rumor_buf;
 }
 

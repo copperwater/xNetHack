@@ -1,3 +1,13 @@
+# True rumors.
+# Generally, the rumors in this file should be helpful to a player encountering
+# the game for the first time. They don't need to be totally straightforward -
+# cryptic but entirely true is the name of the game - but they shouldn't be
+# misleading or describe extremely marginal things.
+#
+# Certain rumors might not make any sense unless they come from the scrap of
+# paper inside a fortune cookie. To ensure that a rumor will ONLY be seen
+# coming from a fortune cookie, put a : at the start of the line.
+
 .senutrof gnidaer naht erom rof desu eb nac srorriM
 A blindfold can be very useful if you're telepathic.
 A candelabrum affixed with seven candles shows the way with a magical light.
@@ -95,7 +105,7 @@ Hunger is a confusing experience for a dog!
 I once knew a hacker who ate too fast and choked to death.
 I wish I never wished a wand of wishing.  (Wishful thinking.)
 I wouldn't advise playing catch with a giant.
-I'm watching you, %p.  -- The Wizard of Yendor
+:I'm watching you, %p.  -- The Wizard of Yendor
 Ice boxes keep your food fresh.
 If a gray stone steals from you, steal back from it.
 If you are being punished, it's done with a deadly weapon.
