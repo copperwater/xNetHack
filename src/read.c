@@ -321,12 +321,14 @@ doread()
         "Gluten-Free, No Trans Fats, Non-GMO, 98%% Arsenic Free %s", /* ditto */
             "Spiced %s with Natural and Artificial Flavors",         /* ditto */
             "%s - Packaged in the Wizard's Tinnery",                 /* ditto */
+            "%s Chili (Possibly Vegetarian)",                        /* ditto */
             "Nuka-Cola",                                           /* Fallout */
             "Sploosh",                                               /* Holes */
             "Fancy Feast Cat Food",                              /* real life */
             "Chickatrice of the Sea",                            /* tuna fish */
         "First Quality Peaches - Not labeled for individual resale", /* Rogue */
             "Andy Warhol Campbell's Tomato Soup",    /* Andy Warhol paintings */
+        "Spam, Spam, Spam, Spam, Spam, Spam, Baked Beans, Spam, Spam, and Spam",
             "Water Chestnuts - open only while underwater",
             "Yendorian Brand Applesauce",
             "This tin is NOT booby-trapped",
@@ -337,7 +339,8 @@ doread()
             "Rothe-N-Beans",
             "Feed The Beast - Werewolf Meat",
             "Soylent Green",
-            "Djinni Brand Tins - Open now for your free wish!"
+            "Djinni Brand Tins - Open now for your free wish!",
+            "Can Of Whoop-Ass. Use Caution When Opening.",
         };
         int food = tin_variety(scroll, TRUE);
         int msgidx = hash1(scroll->o_id) % SIZE(tin_msgs);

@@ -1278,6 +1278,7 @@ static const char *const currencies[] = {
     "cirbozoid",             /* Starslip */
     "credit chit",           /* Deus Ex */
     "cubit",                 /* Battlestar Galactica */
+    "cursed doubloon",       /* real life */
     "Flanian Pobble Bead",   /* The Hitchhiker's Guide to the Galaxy */
     "fretzer",               /* Jules Verne */
     "imperial credit",       /* Star Wars */
