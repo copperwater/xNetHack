@@ -2446,11 +2446,13 @@ register struct obj *obj;
          * as looting a cursed bag */
         for(otmp = current_container->cobj; otmp; otmp = nobj) {
             nobj = otmp->nobj;
+            obj_extract_self(otmp);
             if (!rn2(13)) {
-                obj_extract_self(otmp);
                 mbag_item_gone(!floor_container, otmp, TRUE);
             }
             else {
+                otmp->ox = u.ux;
+                otmp->oy = u.uy;
                 scatter(u.ux, u.uy, 4, MAY_HIT | MAY_DESTROY, otmp);
             }
         }
