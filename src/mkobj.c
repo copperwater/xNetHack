@@ -892,6 +892,8 @@ boolean artif;
                         }
                     }
                 blessorcurse(otmp, 10);
+                if (!rn2(30))
+                    otmp->otrapped = TRUE;
                 break;
             case SLIME_MOLD:
                 otmp->spe = context.current_fruit;
