@@ -756,6 +756,67 @@ const char *const random_malediction[] = {
     "Verily, thou shalt be one dead"
 };
 
+const char* angelic_taunts[] = {
+    "Repent, and thou shalt be saved!",
+    "Thou shalt pay for thine insolence!",
+    "Very soon, my child, thou shalt meet thy maker.",
+    "The great %D has sent me to make thee pay for thy sins!",
+    "The wrath of %D is now upon thee!",
+    "Thy life belongs to %D now!",
+    "Dost thou wish to receive thy final blessing?",
+    "Thou art but a godless void.",
+    "Thou art not worthy to seek the Amulet.",
+    "%d have mercy on thee, for I shall not!",
+    "Abandon this arrogance and accept your doom!",
+    "Begone, and do not return!",
+    "Depart, thou accursed, into everlasting fire!",
+    "Filthy mortal, thy life is forfeit!",
+    /* not using "thy" to keep the quote intact */
+    "I find your lack of faith disturbing.",
+    "Kneel, or thou shalt be knelt!",
+    "Say your prayers, %p!",
+    "Thou shalt not kill! That's my job!",
+    /* hallucination-only */
+#define NUM_HALLU_ANGEL_TAUNTS 2
+    "Just one more sinner, and I get a promotion!",
+    "No one expects the Spanish Inquisition!",
+};
+
+const char* impish_taunts[] = {
+    "I first mistook thee for a statue, when I regarded thy head of stone.",
+    "Come here often?",
+    "Doth pain excite thee?  Wouldst thou prefer the whip?",
+    "Thinkest thou it shall tickle as I rip out thy lungs?",
+    "Eat slime and die!",
+    "Go ahead, fetch thy mama!  I shall wait.",
+    "Go play leapfrog with a herd of unicorns!",
+    "Hast thou been drinking, or art thou always so clumsy?",
+"This time I shall let thee off with a spanking, but let it not happen again.",
+    "I've met smarter (and prettier) acid blobs.",
+    "Look!  Thy bootlace is undone!",
+    "Mercy!  Dost thou wish me to die of laughter?",
+    "Run away!  Live to flee another day!",
+    "Thou hadst best fight better than thou canst dress!",
+    "Twixt thy cousin and thee, Medusa is the prettier.",
+"Methinks thou wert unnaturally stirred by yon corpse back there, eh, varlet?",
+    "Up thy nose with a rubber hose!",
+    "Verily, thy corpse could not smell worse!",
+    "Wait!  I shall polymorph into a grid bug to give thee a fighting chance!",
+    "Why search for the Amulet?  Thou wouldst but lose it, cretin.",
+    "Art thou a dragon, or is that merely thy foul breath?",
+    "Go away, or I shall taunt thee again!",
+    "Hurry up and die already, I'm hungry!",
+    "I fart in thy general direction.",
+    "Thy self-esteem shall crumble beneath my vicious mockery!",
+    "Thy broken corpse shall taste delicious lightly seasoned with nutmeg!",
+    "Thy mother was a hamster and thy father smelt of elderberries!",
+    "Talk to the claw!",
+    /* hallucination-only */
+#define NUM_HALLU_IMP_TAUNTS 2
+    "Come at me, bro!",
+    "Ni!",
+};
+
 /* Insult or intimidate the player */
 void
 cuss(mtmp)
@@ -781,13 +842,28 @@ register struct monst *mtmp;
                       random_insult[rn2(SIZE(random_insult))]);
     } else if (is_lminion(mtmp)
                && !(mtmp->isminion && EMIN(mtmp)->renegade)) {
-        com_pager(rn2(QTN_ANGELIC - 1 + (Hallucination ? 1 : 0))
-                  + QT_ANGELIC);
+        char buf[BUFSZ];
+        int max = SIZE(angelic_taunts);
+        if (!Hallucination)
+            max -= NUM_HALLU_ANGEL_TAUNTS;
+        xcrypt(angelic_taunts[rn2(max)], buf);
+        convert_line(buf, buf);
+        verbalize(buf);
     } else {
         if (!rn2(is_minion(mtmp->data) ? 100 : 5))
             pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
-        else
-            com_pager(rn2(QTN_DEMONIC) + QT_DEMONIC);
+        else {
+            char buf[BUFSZ];
+            int max = SIZE(impish_taunts);
+            if (!Hallucination)
+                max -= NUM_HALLU_IMP_TAUNTS;
+            /* this is silly - but convert_line assumes that the line is being
+             * read out of an xcrypted data file and xcrypts it before reading
+             * it, so we have to undo it by xcrypting it first. */
+            xcrypt(impish_taunts[rn2(max)], buf);
+            convert_line(buf, buf);
+            verbalize(buf);
+        }
     }
 }
 
