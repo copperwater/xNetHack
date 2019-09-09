@@ -911,6 +911,9 @@ unsigned long old_rumor_offset;
 
     /* copy the rumors */
     while ((line = fgetline(ifp)) != 0) {
+        /* skip comments and blank lines */
+        if (line[0] == '#' || line[0] == '\n')
+            continue;
 #ifdef PAD_RUMORS_TO
         /* rumor selection is accomplished by seeking to a random
            position in the file, advancing to newline, and taking
