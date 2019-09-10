@@ -561,6 +561,7 @@ typedef unsigned char uchar;
 /* End-of-game dump logs showing the map, messages, stats, identified
  * possessions, vanquished monsters, etc. */
 #define DUMPLOG
+#define DUMPHTML
 
 /* EXTRA_SANITY_CHECKS adds extra impossible calls,
  * probably not useful for normal play */
@@ -583,11 +584,13 @@ typedef unsigned char uchar;
    whole thing, then type a new end for the text. */
 /* #define EDIT_GETLIN */
 
-#ifdef DUMPLOG
+#if defined(DUMPLOG) || defined(DUMPHTML)
 
 #ifndef DUMPLOG_MSG_COUNT
 #define DUMPLOG_MSG_COUNT   50
 #endif
+
+#ifdef DUMPLOG
 
 #ifndef DUMPLOG_FILE
 #define DUMPLOG_FILE        "/tmp/nethack.%n.%d.log"
@@ -605,7 +608,21 @@ typedef unsigned char uchar;
 */
 #endif
 
+#endif /* DUMPLOG */
+
+#ifdef DUMPHTML
+
+#ifndef DUMPHTML_FILE
+#define DUMPHTML_FILE        "/tmp/nethack.%n.%d.html"
+/* Placeholders as above
+ * DUMPHTML_FILE is not used if SYSCF is defiined
+ */
+
 #endif
+
+#endif /* DUMPHTML */
+
+#endif /* DUMPLOG || DUMPHTML */
 
 #define USE_ISAAC64 /* Use cross-plattform, bundled RNG */
 
