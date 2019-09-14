@@ -17,6 +17,7 @@ Add "artifactless" conduct: never touch an artifact (14th bit of xlogfile conduc
 Add "petless" conduct: zero tame monsters the whole game (13th bit of xlogfile conduct)
 Change magic traps' taming effect to pacification
 Bribing demons demand 50d500 gold, regardless of what the hero is carrying, and may be successfully shortchanged depending on the hero's Charisma
+7% of objects in hardware stones are touchstones
 Exploding bag of holding scatters 12/13 of its contents instead of destroying them outright
 Generate a lot more monsters when a level is created, and slow down the normal generation rates
 Add a barricaded shop with an alive shopkeeper to Orcish Town, and scatter around a lot of gear that should be dropped by the dead denizens
