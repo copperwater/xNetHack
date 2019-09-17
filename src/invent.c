@@ -2767,12 +2767,15 @@ long *out_cnt;
         gotsomething = TRUE;
     }
 
-    /* Show weight total and item limit. */
-    char invheading[QBUFSZ];
-    int wcap = weight_cap();
-    Sprintf(invheading, "Inventory: %d/%d weight (%d/52 slots)",
-            inv_weight() + wcap, wcap, inv_cnt(TRUE));
-    add_menu(win, NO_GLYPH, &any, 0, 0, ATR_BOLD, invheading, MENU_UNSELECTED);
+    /* Show weight total and item limit. Only for full invent display, not
+     * within getobj. */
+    if (!lets) {
+        char invheading[QBUFSZ];
+        int wcap = weight_cap();
+        Sprintf(invheading, "Inventory: %d/%d weight (%d/52 slots)",
+                inv_weight() + wcap, wcap, inv_cnt(TRUE));
+        add_menu(win, NO_GLYPH, &any, 0, 0, ATR_BOLD, invheading, MENU_UNSELECTED);
+    }
 
  nextclass:
     classcount = 0;
