@@ -93,6 +93,7 @@ All s-class monsters grudge x-class and a-class monsters, but not vice versa.
 Bats grudge all flying x-class and a-class monsters (currently just bees).
 Guarantee graffiti of a true rumor in the first room of the dungeon.
 When hallucinating, all rays appear as blasts of something nonsensical.
+Rings that aren't obviously iron by their appearance are made of metal instead.
 
 
 It contains the following non-gameplay interface changes:
