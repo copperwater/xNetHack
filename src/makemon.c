@@ -286,15 +286,12 @@ register struct monst *mtmp;
             /* Bling!
              * This assumes that gold will remain a valid material for these
              * specific items. */
-            (void) mongets(mtmp, TWO_HANDED_SWORD);
-            struct obj* received = m_carrying(mtmp, TWO_HANDED_SWORD);
-            if (received)
-                received->material = GOLD;
-            int item = rn2(8) ? CHAIN_MAIL : PLATE_MAIL;
-            (void) mongets(mtmp, item);
-            received = m_carrying(mtmp, item);
-            if (received)
-                received->material = GOLD;
+            otmp = mongets(mtmp, TWO_HANDED_SWORD);
+            if (otmp)
+                otmp->material = GOLD;
+            otmp = mongets(mtmp, rn2(8) ? CHAIN_MAIL : PLATE_MAIL);
+            if (otmp)
+                otmp->material = GOLD;
         }
         else if (mm == PM_NURSE && !rn2(5)) {
             (void) mongets(mtmp, SCALPEL);
@@ -378,10 +375,9 @@ register struct monst *mtmp;
                 break;
             }
             if (!rn2(10)) {
-                (void) mongets(mtmp, ELVEN_RING_MAIL);
-                struct obj* mail = m_carrying(mtmp, ELVEN_RING_MAIL);
-                if (mail)
-                    set_material(mail, MITHRIL);
+                otmp = mongets(mtmp, ELVEN_RING_MAIL);
+                if (otmp)
+                    set_material(otmp, MITHRIL);
             }
             if (!rn2(10))
                 (void) mongets(mtmp, DWARVISH_CLOAK);
@@ -403,12 +399,10 @@ register struct monst *mtmp;
                 }
                 (void) mongets(mtmp, DWARVISH_HELM);
                 if (!rn2(3)) {
-                    (void) mongets(mtmp, DWARVISH_RING_MAIL);
-                    if ((ptr == &mons[PM_DWARF_LORD] && !rn2(4))
-                        || (ptr == &mons[PM_DWARF_KING] && !rn2(2))) {
-                        struct obj* mail = m_carrying(mtmp, DWARVISH_RING_MAIL);
-                        if (mail)
-                            mail->material = MITHRIL;
+                    otmp = mongets(mtmp, DWARVISH_RING_MAIL);
+                    if (otmp && ((ptr == &mons[PM_DWARF_LORD] && !rn2(4))
+                                 || (ptr == &mons[PM_DWARF_KING] && !rn2(2)))) {
+                        otmp->material = MITHRIL;
                     }
                 }
             } else {
