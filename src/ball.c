@@ -57,8 +57,9 @@ ballfall()
                 ;
             }
             else if (is_hard(uarmh)) {
-                pline("Fortunately, you are wearing a hard helmet.");
-                dmg = 3;
+                Your("helmet only slightly protects you.");
+                if (dmg > 2)
+                    dmg -= 2;
             } else if (flags.verbose)
                 pline("%s does not protect you.", Yname2(uarmh));
         }

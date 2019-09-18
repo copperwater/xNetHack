@@ -2378,6 +2378,9 @@ boolean pick;
                   ceiling(u.ux, u.uy));
             if (mtmp->mtame) { /* jumps to greet you, not attack */
                 ;
+            } else if (u.uac + 3 <= rnd(20)) {
+                You("are almost hit by %s!",
+                    x_monnam(mtmp, ARTICLE_A, "falling", 0, TRUE));
             } else if (uarmh) {
                 if (breaktest(uarmh) && (mtmp->data == &mons[PM_GLASS_PIERCER]
                                          && uarmh->material == GLASS)) {
@@ -2389,15 +2392,13 @@ boolean pick;
                     /* glass piercer actually piercing glass. Give it some bonus
                      * damage. */
                     dmg += rnd(6);
-                    mdamageu(mtmp, dmg);
                 }
                 else if (is_hard(uarmh)) {
                     pline("Its blow glances off your %s.",
                         helm_simple_name(uarmh));
+                    dmg = (dmg + 1) / 2;
                 }
-            } else if (u.uac + 3 <= rnd(20)) {
-                You("are almost hit by %s!",
-                    x_monnam(mtmp, ARTICLE_A, "falling", 0, TRUE));
+                mdamageu(mtmp, dmg);
             } else {
                 You("are hit by %s!",
                     x_monnam(mtmp, ARTICLE_A, "falling", 0, TRUE));

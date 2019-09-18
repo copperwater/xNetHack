@@ -1069,8 +1069,8 @@ boolean hitsroof;
             if (noncorporeal(youmonst.data) && !shade_glare(obj))
                 dmg = 0;
         }
-        if (dmg > 1 && less_damage)
-            dmg = 1;
+        if (dmg > 2 && less_damage)
+            dmg = (dmg > 2 ? dmg - 2 : 2);
         if (dmg > 0)
             dmg += u.udaminc;
         if (dmg < 0)
@@ -1078,11 +1078,15 @@ boolean hitsroof;
         dmg = Maybe_Half_Phys(dmg);
 
         if (uarmh) {
-            if (obj->owt > 500 && is_brittle(uarmh) && break_glass_obj(uarmh)) {
+            if (obj->owt >= 500 && is_brittle(uarmh) && break_glass_obj(uarmh)) {
                 ;
             } else if (less_damage && dmg < (Upolyd ? u.mh : u.uhp)) {
-                if (!artimsg)
-                    pline("Fortunately, you are wearing a hard helmet.");
+                if (!artimsg) {
+                    if (dmg > 2)
+                        Your("helmet only slightly protects you.");
+                    else
+                        pline("Fortunately, you are wearing a hard helmet.");
+                }
                 /* helmet definitely protects you when it blocks petrification
                  */
             } else if (!petrifier) {

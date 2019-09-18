@@ -96,6 +96,8 @@ When hallucinating, all rays appear as blasts of something nonsensical.
 Rings that aren't obviously iron by their appearance are made of metal instead.
 Helms made of wood, bone and stone protect your head the same as a metal helm.
 Helms made of glass may be shattered if a heavy object drops on them.
+Helms reduce a lot less of the damage if the falling object is very heavy.
+Helms only protect you from half of the damage from a falling piercer.
 
 
 It contains the following non-gameplay interface changes:

@@ -1765,13 +1765,20 @@ boolean confused, helmet_protects, byu, skip_uswallow;
         You("are hit by %s!", doname(otmp2));
         dmg = dmgval(otmp2, &youmonst) * otmp2->quan;
         if (uarmh && helmet_protects) {
-            if (otmp2->owt > 500 && is_brittle(uarmh)
+            if (otmp2->owt >= 500 && is_brittle(uarmh)
                 && break_glass_obj(uarmh)) {
                 ;
             } else if (is_hard(uarmh)) {
-                pline("Fortunately, you are wearing a hard helmet.");
-                if (dmg > 2)
-                    dmg = 2;
+                if (otmp2->owt >= 500) {
+                    if (dmg > 2)
+                        dmg -= 2;
+                    Your("helmet only slightly protects you.");
+                }
+                else {
+                    if (dmg > 2)
+                        dmg = 2;
+                    pline("Fortunately, you are wearing a hard helmet.");
+                }
             } else if (flags.verbose) {
                 pline("%s does not protect you.", Yname2(uarmh));
             }
@@ -1823,17 +1830,25 @@ boolean confused, byu;
 
         mdmg = dmgval(otmp2, mtmp) * otmp2->quan;
         if (helmet) {
-            if (otmp2->owt > 500 && is_brittle(helmet)
+            if (otmp2->owt >= 500 && is_brittle(helmet)
                 && break_glass_obj(helmet)) {
                 ;
             } else if (is_hard(helmet)) {
-                if (canspotmon(mtmp))
-                    pline("Fortunately, %s is wearing a hard helmet.",
-                          mon_nam(mtmp));
-                else if (!Deaf)
-                    You_hear("a clanging sound.");
-                if (mdmg > 2)
-                    mdmg = 2;
+                if (otmp2->owt >= 500) {
+                    if (mdmg > 2)
+                        mdmg -= 2;
+                    pline("%s helmet is only slightly protective.",
+                          s_suffix(Monnam(mtmp)));
+                }
+                else {
+                    if (mdmg > 2)
+                        mdmg = 2;
+                    if (canspotmon(mtmp))
+                        pline("Fortunately, %s is wearing a hard helmet.",
+                              mon_nam(mtmp));
+                    else if (!Deaf)
+                        You_hear("a clanging sound.");
+                }
             } else {
                 if (canspotmon(mtmp))
                     pline("%s's %s does not protect %s.", Monnam(mtmp),
