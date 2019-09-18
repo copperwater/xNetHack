@@ -22,7 +22,6 @@ STATIC_DCL void FDECL(check_glob, (struct obj *, const char *));
 STATIC_DCL void FDECL(sanity_check_worn, (struct obj *));
 STATIC_DCL void FDECL(init_thiefstone, (struct obj *));
 STATIC_DCL const struct icp* FDECL(material_list, (struct obj *));
-STATIC_DCL void FDECL(init_obj_material, (struct obj *));
 
 struct icp {
     int iprob;   /* probability of an item type */

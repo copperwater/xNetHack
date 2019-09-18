@@ -303,7 +303,7 @@ E void NDECL(warnreveal);
 E int FDECL(dosearch0, (int));
 E int NDECL(dosearch);
 E void NDECL(sokoban_detect);
-#if defined(DUMPLOG) || defined(DUMPHTML) 
+#if defined(DUMPLOG) || defined(DUMPHTML)
 E void NDECL(dump_map);
 #endif
 E void FDECL(reveal_terrain, (int, int));
@@ -1418,6 +1418,7 @@ E struct obj *FDECL(obj_nexto_xy, (struct obj *, int, int, BOOLEAN_P));
 E struct obj *FDECL(obj_absorb, (struct obj **, struct obj **));
 E struct obj *FDECL(obj_meld, (struct obj **, struct obj **));
 E void FDECL(pudding_merge_message, (struct obj *, struct obj *));
+E void FDECL(init_obj_material, (struct obj *));
 E boolean FDECL(valid_obj_material, (struct obj *, int));
 E void FDECL(set_material, (struct obj *, int));
 
