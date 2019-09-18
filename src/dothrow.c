@@ -1078,7 +1078,9 @@ boolean hitsroof;
         dmg = Maybe_Half_Phys(dmg);
 
         if (uarmh) {
-            if (less_damage && dmg < (Upolyd ? u.mh : u.uhp)) {
+            if (obj->owt > 500 && is_brittle(uarmh) && break_glass_obj(uarmh)) {
+                ;
+            } else if (less_damage && dmg < (Upolyd ? u.mh : u.uhp)) {
                 if (!artimsg)
                     pline("Fortunately, you are wearing a hard helmet.");
                 /* helmet definitely protects you when it blocks petrification
@@ -2188,7 +2190,8 @@ boolean in_view;
  * Return TRUE if destroyed.
  * Separate logic from breakobj because we are not unconditionally breaking the
  * object, and we also need to make sure it's removed from the inventory
- * properly. */
+ * properly.
+ * This also can be called if something heavy falls on a glass helm. */
 boolean
 break_glass_obj(obj)
 struct obj* obj;
@@ -2230,7 +2233,7 @@ struct obj* obj;
         }
     }
     else {
-        impossible("breaking glass obj in melee but not in inventory?");
+        impossible("breaking glass obj not in anyone's inventory?");
         return FALSE;
     }
 

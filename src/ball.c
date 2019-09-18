@@ -53,7 +53,10 @@ ballfall()
 
         pline_The("iron ball falls on your %s.", body_part(HEAD));
         if (uarmh) {
-            if (is_hard(uarmh)) {
+            if (is_brittle(uarmh) && break_glass_obj(uarmh)) {
+                ;
+            }
+            else if (is_hard(uarmh)) {
                 pline("Fortunately, you are wearing a hard helmet.");
                 dmg = 3;
             } else if (flags.verbose)

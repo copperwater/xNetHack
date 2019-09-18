@@ -1765,7 +1765,10 @@ boolean confused, helmet_protects, byu, skip_uswallow;
         You("are hit by %s!", doname(otmp2));
         dmg = dmgval(otmp2, &youmonst) * otmp2->quan;
         if (uarmh && helmet_protects) {
-            if (is_hard(uarmh)) {
+            if (otmp2->owt > 500 && is_brittle(uarmh)
+                && break_glass_obj(uarmh)) {
+                ;
+            } else if (is_hard(uarmh)) {
                 pline("Fortunately, you are wearing a hard helmet.");
                 if (dmg > 2)
                     dmg = 2;
@@ -1820,7 +1823,10 @@ boolean confused, byu;
 
         mdmg = dmgval(otmp2, mtmp) * otmp2->quan;
         if (helmet) {
-            if (is_hard(helmet)) {
+            if (otmp2->owt > 500 && is_brittle(helmet)
+                && break_glass_obj(helmet)) {
+                ;
+            } else if (is_hard(helmet)) {
                 if (canspotmon(mtmp))
                     pline("Fortunately, %s is wearing a hard helmet.",
                           mon_nam(mtmp));
