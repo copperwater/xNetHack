@@ -1183,7 +1183,7 @@ unsigned trflags;
             pline("A trap door in %s opens and %s falls on your %s!",
                   the(ceiling(u.ux, u.uy)), an(xname(otmp)), body_part(HEAD));
             if (uarmh) {
-                if (is_metallic(uarmh)) {
+                if (is_hard(uarmh)) {
                     pline("Fortunately, you are wearing a hard helmet.");
                     dmg = 2;
                 } else if (flags.verbose) {

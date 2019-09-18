@@ -1168,7 +1168,7 @@ struct monst *mtmp;
          */
         nomore(MUSE_SCR_EARTH);
         if (obj->otyp == SCR_EARTH
-            && ((helmet && is_metallic(helmet)) || mtmp->mconf
+            && ((helmet && is_hard(helmet)) || mtmp->mconf
                 || amorphous(mtmp->data) || passes_walls(mtmp->data)
                 || noncorporeal(mtmp->data) || unsolid(mtmp->data)
                 || !rn2(10))
@@ -1577,7 +1577,7 @@ struct monst *mtmp;
     case 0: {
         struct obj *helmet = which_armor(mtmp, W_ARMH);
 
-        if ((helmet && is_metallic(helmet)) || amorphous(pm)
+        if ((helmet && is_hard(helmet)) || amorphous(pm)
             || passes_walls(pm) || noncorporeal(pm) || unsolid(pm))
             return SCR_EARTH;
     } /* fall through */

@@ -83,6 +83,12 @@ struct objclass {
 #define is_metallic(otmp)                    \
     (otmp->material >= IRON && otmp->material <= MITHRIL)
 
+/* Hard materials. Currently only used for things falling on helms. */
+#define is_hard(otmp) \
+    (is_metallic(otmp) || (otmp->material == WOOD) \
+     || (otmp->material == BONE) || (otmp->material == MINERAL) \
+     || (otmp->material == GLASS))
+
 /* primary damage: fire/rust/--- */
 /* is_flammable(otmp), is_rottable(otmp) in mkobj.c */
 #define is_rustprone(otmp) (otmp->material == IRON)
