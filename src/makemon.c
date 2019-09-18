@@ -1959,7 +1959,6 @@ int otyp;
 {
     register struct obj *otmp;
     int tryct;
-    int spe;
 
     if (!otyp)
         return (struct obj *) 0;
@@ -2029,7 +2028,6 @@ int otyp;
             }
         }
 
-        spe = otmp->spe;
         (void) mpickobj(mtmp, otmp); /* might free otmp */
     }
     return otmp;
