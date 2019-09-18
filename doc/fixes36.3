@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.107 $ $NHDT-Date: 1567302620 2019/09/01 01:50:20 $
+$NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.112 $ $NHDT-Date: 1568509226 2019/09/15 01:00:26 $
 
 This fixes36.3 file is here to capture information about updates in the 3.6.x
 lineage following the release of 3.6.2 in May 2019. Please note, however,
@@ -133,6 +133,12 @@ have 'O' update persistent inventory window if 'implicit_uncursed',
 'O's "set <option> to what?" could be used to force a buffer overflow
 'O's response to bad 'statuslines' value said "must be 2 and 3" (at one point
 	it was "must be between 2 and 3", change it to "must be 2 or 3")
+when spellcasting monster aimed at wrong spot due to not being able to see
+	invisible hero, feedback could be erroneous if hero could see self
+	[messages used 'if (Invisible)' test where 'if (Invis)' was meant]
+prevent impossible when guard tries to relocate a monster on a full level
+hallucination provides partial protection from passive gaze counterattack
+	against hero's attack; check for that before checking for free action
 
 
 Fixes to Post-3.6.2 Problems that Were Exposed Via git Repository
@@ -151,6 +157,8 @@ wizard mode ^I "not carrying anything" still claimed "not carrying anything"
 	if "(all items are already identified)" was given
 monster throwing from stack of missiles (darts, daggers, spears) would cause
 	crash if it wasn't wielding a weapon (bug in multi-shot shooting fix)
+surviving death while polymorphed would yield "You are a <foo>" without
+	terminating period
 curses: sometimes the message window would show a blank line after a prompt
 curses: the change to show map in columns 1..79 instead of 2..80 made the
 	highlight for '@' show up in the wrong place if clipped map had been
@@ -288,6 +296,7 @@ curses+'perm_invent': since persistent inventory is narrow, strip off "a",
 NetHack Community Patches (or Variation) Included
 -------------------------------------------------
 add a couple of engraving suggestions in pull request #79
+chasonr's faster method to write characters to msdos VGA in pull request #220
 
 
 Code Cleanup and Reorganization

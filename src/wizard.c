@@ -630,7 +630,7 @@ struct monst *summoner;
 
         /* messages not quite right if plural monsters created but
             only a single monster is seen */
-        if (summoner && Invisible && !perceives(summoner->data)
+        if (summoner && Invis && !perceives(summoner->data)
             && (summoner->mux != u.ux || summoner->muy != u.uy))
             pline("%s around a spot near you!", mappear);
         else if (summoner && Displaced
