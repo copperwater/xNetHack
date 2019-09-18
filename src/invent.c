@@ -1690,7 +1690,7 @@ boolean allow_floor;
     /* done with preparing, now do the actual prompt */
 
     boolean first = TRUE;
-    for (;;) {
+    for (;; first = FALSE) {
         if (res) {
             obj = res;
             res = NULL;
