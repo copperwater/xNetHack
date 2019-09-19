@@ -2359,11 +2359,14 @@ register struct monst *mtmp;
     else if (mtmp->data == &mons[PM_WIZARD_OF_YENDOR]) {
         /* special case to show dlvl */
         char buf[BUFSZ];
-        describe_level(buf);
+        if (In_endgame(&u.uz))
+            endgamelevelname(buf, depth(&u.uz));
+        else
+            describe_level(buf);
         livelog_printf(LL_UMONST, "killed the Wizard of Yendor %s %s",
                        (In_quest(&u.uz) || Is_knox(&u.uz)) ?
                            "in" :
-                            In_endgame(&u.uz) ? "in the" : "on",
+                            In_endgame(&u.uz) ? "on the" : "on",
                        buf);
     } else if (unique_corpstat(mtmp->data))
         livelog_printf(LL_UMONST, "%s %s",
