@@ -984,7 +984,10 @@ register struct obj *otmp;
             }
         }
         if (Hallucination) {
-            if (!u.uroleplay.hallu) {
+            if (u.uroleplay.hallu) {
+                You("feel less groovy for a harsh second.");
+            }
+            else {
                 You("are shocked back to your senses!");
             }
             /* this is ok with permahallu conduct */
