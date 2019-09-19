@@ -933,9 +933,22 @@ int dieroll;
                     /* Since non-thrown poison sources do more damage, they
                      * would be way too powerful to poison on each hit - so
                      * artificially limit the opportunity for it to score a
-                     * hit. */
-                    if (thrown == HMON_THROWN || !rn2(4))
+                     * hit.
+                     * However, we don't want to only cause alignment penalties
+                     * for using Grimtooth when it actually causes poison: the
+                     * intent was to use a poisoned weapon whether or not it
+                     * actually poisoned anything. */
+                    if (Role_if(PM_SAMURAI)) {
+                        You("are in dishonor for using a poisoned weapon.");
+                        adjalign(-sgn(u.ualign.type));
+                    } else if (u.ualign.type == A_LAWFUL
+                               && u.ualign.record > -10) {
+                        You_feel("like an evil coward for using a poisoned weapon.");
+                        adjalign(-1);
+                    }
+                    if (thrown == HMON_THROWN || !rn2(4)) {
                         ispoisoned = TRUE;
+                    }
                 }
                 /* maybe break your glass weapon or monster's glass armor; put
                  * this at the end so that other stuff doesn't have to check obj
@@ -1215,13 +1228,6 @@ int dieroll;
 
         if (nopoison < 2)
             nopoison = 2;
-        if (Role_if(PM_SAMURAI)) {
-            You("dishonorably use a poisoned weapon!");
-            adjalign(-sgn(u.ualign.type));
-        } else if (u.ualign.type == A_LAWFUL && u.ualign.record > -10) {
-            You_feel("like an evil coward for using a poisoned weapon.");
-            adjalign(-1);
-        }
         if (obj && !permapoisoned(obj) && !rn2(nopoison)) {
             /* remove poison now in case obj ends up in a bones file */
             obj->opoisoned = FALSE;
