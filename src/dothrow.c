@@ -1078,7 +1078,7 @@ boolean hitsroof;
         dmg = Maybe_Half_Phys(dmg);
 
         if (uarmh) {
-            if (obj->owt >= 500 && is_brittle(uarmh) && break_glass_obj(uarmh)) {
+            if (obj->owt >= 400 && is_brittle(uarmh) && break_glass_obj(uarmh)) {
                 ;
             } else if (less_damage && dmg < (Upolyd ? u.mh : u.uhp)) {
                 if (!artimsg) {

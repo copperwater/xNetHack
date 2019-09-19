@@ -1765,11 +1765,11 @@ boolean confused, helmet_protects, byu, skip_uswallow;
         You("are hit by %s!", doname(otmp2));
         dmg = dmgval(otmp2, &youmonst) * otmp2->quan;
         if (uarmh && helmet_protects) {
-            if (otmp2->owt >= 500 && is_brittle(uarmh)
+            if (otmp2->owt >= 400 && is_brittle(uarmh)
                 && break_glass_obj(uarmh)) {
                 ;
             } else if (is_hard(uarmh)) {
-                if (otmp2->owt >= 500) {
+                if (otmp2->owt >= 400) {
                     if (dmg > 2)
                         dmg -= 2;
                     Your("helmet only slightly protects you.");
@@ -1830,11 +1830,11 @@ boolean confused, byu;
 
         mdmg = dmgval(otmp2, mtmp) * otmp2->quan;
         if (helmet) {
-            if (otmp2->owt >= 500 && is_brittle(helmet)
+            if (otmp2->owt >= 400 && is_brittle(helmet)
                 && break_glass_obj(helmet)) {
                 ;
             } else if (is_hard(helmet)) {
-                if (otmp2->owt >= 500) {
+                if (otmp2->owt >= 400) {
                     if (mdmg > 2)
                         mdmg -= 2;
                     pline("%s helmet is only slightly protective.",
