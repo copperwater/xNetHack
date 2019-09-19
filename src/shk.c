@@ -2051,7 +2051,7 @@ const int matprices[] = {
     60, /* GOLD */
     80, /* PLATINUM */
     50, /* MITHRIL */
-    10, /* PLASTIC */
+     3, /* PLASTIC */
     20, /* GLASS */
    500, /* GEMSTONE */
     10  /* MINERAL */
