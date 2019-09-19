@@ -98,6 +98,8 @@ Helms made of wood, bone and stone protect your head the same as a metal helm.
 Helms made of glass may be shattered if a heavy object drops on them.
 Helms reduce a lot less of the damage if the falling object is very heavy.
 Helms only protect you from half of the damage from a falling piercer.
+Acidic corpses can go moldy, but produce only green mold.
+
 
 
 It contains the following non-gameplay interface changes:

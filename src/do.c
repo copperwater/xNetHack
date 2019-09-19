@@ -1910,6 +1910,14 @@ long timeout;
     int oldquan = body->quan;
     struct permonst* newpm = mkclass(S_FUNGUS, 0);
 
+    /* Acidic corpses only grow acidic fungi. */
+    if (acidic(&mons[oldtyp])) {
+        if (mvitals[PM_GREEN_MOLD].mvflags & G_GONE)
+            newpm = NULL;
+        else
+            newpm = &mons[PM_GREEN_MOLD];
+    }
+
     /* Don't allow arbitrarily long chains of mold growing on mold. */
     boolean already_fungus = (mons[oldtyp].mlet == S_FUNGUS);
 

@@ -1278,9 +1278,8 @@ struct obj *body;
     /* independent if block so that a corpse which is eligible to revive but
      * fails to will still possibly grow mold, rather than having all troll
      * corpses just never grow mold. */
-    if (action == ROT_CORPSE && !acidic(&mons[body->corpsenm])) {
-        /* Corpses get moldy.
-         * TODO: allow green molds to grow on acidic corpses. */
+    if (action == ROT_CORPSE) {
+        /* Corpses get moldy. */
         long age;
         for (age = TAINT_AGE + 1; age <= ROT_AGE; age++) {
             if (!rn2(MOLDY_CHANCE)) {    /* "revives" as a random s_fungus */
