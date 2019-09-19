@@ -100,6 +100,7 @@ Helms reduce a lot less of the damage if the falling object is very heavy.
 Helms only protect you from half of the damage from a falling piercer.
 Acidic corpses can go moldy, but produce only green mold.
 Plastic has a much lower relative cost as a material.
+Group size now throttles on low dungeon levels rather than experience levels.
 
 
 It contains the following non-gameplay interface changes:
