@@ -1272,6 +1272,14 @@ int dieroll; /* needed for Magicbane and vorpal blades */
         return Mb_hit(magr, mdef, otmp, dmgptr, dieroll, vis, hittee);
     }
 
+    /* poison damage is a 1/4 chance; use dieroll to make sure the message syncs
+     * up with the poison effects */
+    if (permapoisoned(otmp) && realizes_damage && dieroll <= 5
+        && !(youdefend ? Poison_resistance : resists_poison(mdef))) {
+        pline_The("jagged blade poisons %s!", hittee);
+        return TRUE;
+    }
+
     if (!spec_dbon_applies) {
         /* since damage bonus didn't apply, nothing more to do;
            no further attacks have side-effects on inventory */

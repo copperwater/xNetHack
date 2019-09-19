@@ -139,6 +139,7 @@ You can try indefinitely to enter a valid wish, rather than the game giving you
   a random object after 5 failed tries.
 YAFM for hitting a devil with an egg (thrown or melee).
 Message that you can't reenter the dungeon after negative levelport
+Give a special artifact message when Grimtooth poisons a target.
 
 
 It contains the following non-gameplay architectural changes:

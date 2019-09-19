@@ -946,7 +946,13 @@ int dieroll;
                         You_feel("like an evil coward for using a poisoned weapon.");
                         adjalign(-1);
                     }
-                    if (thrown == HMON_THROWN || !rn2(4)) {
+                    /* Grimtooth's 1/4 chance of poisoning is based on dieroll,
+                     * which provides a consistent way to make sure the poison
+                     * damage is only dealt when the special message is
+                     * delivered.
+                     * For other (currently nonexistent) poisoned melee weapons,
+                     * using dieroll should still work fine. */
+                    if (thrown == HMON_THROWN || dieroll <= 5) {
                         ispoisoned = TRUE;
                     }
                 }

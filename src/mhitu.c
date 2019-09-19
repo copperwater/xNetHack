@@ -1059,7 +1059,7 @@ register struct attack *mattk;
                 }
                 rustm(&youmonst, otmp);
 
-                if ((otmp->opoisoned || permapoisoned(otmp)) && !rn2(4)) {
+                if ((otmp->opoisoned || permapoisoned(otmp)) && dieroll <= 5) {
                     /* similar to dopois code below, but we don't use the exact
                      * same values, nor do we want the same 1/8 chance of the
                      * poison taking (use 1/4, same as in uhitm.c). */
