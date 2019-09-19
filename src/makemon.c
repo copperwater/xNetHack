@@ -1958,7 +1958,6 @@ register struct monst *mtmp;
 int otyp;
 {
     register struct obj *otmp;
-    int tryct;
 
     if (!otyp)
         return (struct obj *) 0;
@@ -2004,27 +2003,33 @@ int otyp;
         }
 
         /* if mtmp would hate the material of the object they're getting,
-         * rerandomize it */
-        tryct = 0;
-        while (mon_hates_material(mtmp, otmp->material)) {
-            init_obj_material(otmp);
-            tryct++;
-            if (tryct >= 100) {
-                /* will anything work? */
-                int mat;
-                for (mat = 1; mat < NUM_MATERIAL_TYPES; ++mat) {
-                    if (valid_obj_material(otmp, mat)
-                        && !mon_hates_material(mtmp, mat)) {
-                        set_material(otmp, mat);
-                        break;
+         * rerandomize it.
+         * This is limited to worn and wielded objects; it's pointless to try to
+         * reset the material of objects that only have one valid material in
+         * the first place, such as rings and wands. */
+        if (otmp->oclass == WEAPON_CLASS || otmp->oclass == ARMOR_CLASS
+            || is_weptool(otmp) || otmp->oclass == AMULET_CLASS) {
+            int tryct = 0;
+            while (mon_hates_material(mtmp, otmp->material)) {
+                init_obj_material(otmp);
+                tryct++;
+                if (tryct >= 100) {
+                    /* will anything work? */
+                    int mat;
+                    for (mat = 1; mat < NUM_MATERIAL_TYPES; ++mat) {
+                        if (valid_obj_material(otmp, mat)
+                            && !mon_hates_material(mtmp, mat)) {
+                            set_material(otmp, mat);
+                            break;
+                        }
                     }
+                    if (mat == NUM_MATERIAL_TYPES) {
+                        impossible("mon %d doesn't like any materials for obj %d",
+                                   monsndx(mtmp->data), otmp->otyp);
+                        set_material(otmp, objects[otmp->otyp].oc_material);
+                    }
+                    break;
                 }
-                if (mat == NUM_MATERIAL_TYPES) {
-                    impossible("mon %d doesn't like any materials for obj %d",
-                               monsndx(mtmp->data), otmp->otyp);
-                    set_material(otmp, objects[otmp->otyp].oc_material);
-                }
-                break;
             }
         }
 
