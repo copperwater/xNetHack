@@ -335,6 +335,8 @@ boolean ghostly, frozen;
                 context.tin.tin = otmp;
             if (otmp->o_id == context.spbook.o_id)
                 context.spbook.book = otmp;
+            if (otmp->o_id == context.crystal.o_id)
+                context.crystal.ball = otmp;
         }
         otmp2 = otmp;
     }

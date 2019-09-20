@@ -39,6 +39,12 @@ struct book_info {
     schar delay;      /* moves left for this spell */
 };
 
+struct crystalball_info {
+    struct obj* ball;
+    unsigned o_id;
+    xchar looktime;
+};
+
 struct takeoff_info {
     long mask;
     long what;
@@ -134,6 +140,7 @@ struct context_info {
     struct victual_info victual;
     struct tin_info tin;
     struct book_info spbook;
+    struct crystalball_info crystal;
     struct takeoff_info takeoff;
     struct warntype_info warntype;
     struct polearm_info polearm;

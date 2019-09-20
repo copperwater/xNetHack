@@ -180,6 +180,8 @@ Intrinsic invisibility and see invisible are no longer obtainable.
   The wand grants 50+d50 turns per zap, or (charges)d250 turns if broken.
 Elven boots will always be leather.
 Orcish gear will be either iron, wood, bone, plastic, or glass.
+Gazing into a crystal ball is now an occupation that doesn't leave you helpless.
+  It takes 6-10 turns to use one, rather than 1-10.
 
 
 It contains the following non-gameplay interface changes:
@@ -235,6 +237,10 @@ More explicit hunger messages.
 YAFM for hallucinating and doing nothing in particular.
 Add weapon skills and intended launchers to object lookup.
 Display skill caps and the percent towards the next skill in #enhance.
+Crystal balls prompt you again if they don't recognize the character you want to
+  look for. You no longer get vague statements about the location of special
+  levels.
+Crystal balls give unique messages if they are uncharged or cancelled.
 
 
 It contains the following non-gameplay architectural changes:
@@ -264,3 +270,5 @@ Move angelic and demonic maledictions out of quest.txt into wizard.c string
   constants, and scrap using com_pager for them.
 Objects will only be given a randomized object material if called with init=TRUE
   in mksobj.
+Add a struct crystalball_info to struct context, and the appropriate bits into
+  the save and restore code to save and restore it.

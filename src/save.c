@@ -1067,6 +1067,10 @@ register struct obj *otmp;
                 context.spbook.o_id = otmp->o_id;
                 context.spbook.book = (struct obj *) 0;
             }
+            if (otmp == context.crystal.ball) {
+                context.crystal.o_id = otmp->o_id;
+                context.crystal.ball = (struct obj *) 0;
+            }
             otmp->where = OBJ_FREE; /* set to free so dealloc will work */
             otmp->nobj = NULL;      /* nobj saved into otmp2 */
             otmp->cobj = NULL;      /* contents handled above */
