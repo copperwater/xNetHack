@@ -343,7 +343,7 @@ doread()
             "Can Of Whoop-Ass. Use Caution When Opening.",
         };
         int food = tin_variety(scroll, TRUE);
-        int msgidx = hash1(scroll->o_id) % SIZE(tin_msgs);
+        int msgidx = hash1(scroll->tinseed) % SIZE(tin_msgs);
         const char* endpunct = "";
         const char* format_string; /* holds format string tinmsg */
         char format_arg[BUFSZ]; /* holds argument to format string */
@@ -359,9 +359,9 @@ doread()
         else {
             format_string = tin_msgs[msgidx];
             pline("It reads:");
-            if (scroll->o_id % 5 == 0) {
+            if (scroll->tinseed % 5 == 0 && scroll->corpsenm) {
                 /* be truthful */
-                msgidx = (scroll->o_id % NUM_MONST_LABELS) + LABEL_MONST_START;
+                msgidx = (scroll->tinseed % NUM_MONST_LABELS) + LABEL_MONST_START;
                 format_string = tin_msgs[msgidx];
                 if (food == SPINACH_TIN) {
                     Strcpy(format_arg, "spinach");
@@ -374,7 +374,7 @@ doread()
                 if (msgidx == LABEL_BOGUSMON) {
                     /* hallucinatory monster */
                     Strcpy(format_arg,
-                           bogusmon(format_arg, NULL, hash1(scroll->o_id)));
+                           bogusmon(format_arg, NULL, hash1(scroll->tinseed)));
                     up_all_words(format_arg);
                 }
                 else if (msgidx >= LABEL_FRUIT_START
@@ -386,7 +386,7 @@ doread()
                 else if (msgidx >= LABEL_MONST_START
                          && msgidx < LABEL_MONST_START + NUM_MONST_LABELS) {
                     int mndx;
-                    int seed = scroll->o_id;
+                    int seed = scroll->tinseed;
                     unsigned short forbidden_geno =
                         (G_UNIQ | G_NOGEN | G_NOCORPSE);
                     do {

@@ -878,6 +878,7 @@ boolean artif;
                 break;
             case TIN:
                 otmp->corpsenm = NON_PM; /* empty (so far) */
+                otmp->tinseed = rand();
                 if (!rn2(6))
                     set_tin_variety(otmp, SPINACH_TIN);
                 else
