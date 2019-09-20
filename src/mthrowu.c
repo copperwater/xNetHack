@@ -110,6 +110,9 @@ const char *name; /* if null, then format `*objp' */
                 }
                 exercise(A_CON, FALSE);
             }
+            else if (obj && obj->owt >= 400 && is_brittle(uarm)) {
+                break_glass_obj(uarm);
+            }
             if (is_acid)
                 pline("It burns!");
             losehp(dam, knm, kprefix); /* acid damage */
