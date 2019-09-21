@@ -102,6 +102,7 @@ Acidic corpses can go moldy, but produce only green mold.
 Plastic has a much lower relative cost as a material.
 Group size now throttles on low dungeon levels rather than experience levels.
 Glass body armor may shatter if you are hit with a heavy object moving sideways.
+Hallucination is now effective against all gaze attacks made by monsters.
 
 
 It contains the following non-gameplay interface changes:

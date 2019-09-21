@@ -2277,7 +2277,7 @@ struct attack *mattk;
        appropriate to what's currently being displayed, giving
        ordinary monsters a gaze attack when hero thinks he or she
        is facing a gazing creature, but let's not go that far...] */
-    if (Hallucination && rn2(4))
+    if (Hallucination)
         cancelled = TRUE;
 
     switch (mattk->adtyp) {
