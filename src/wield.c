@@ -250,7 +250,7 @@ STATIC_OVL int
 wield_ok(obj)
 struct obj *obj;
 {
-    if (obj == &zeroobj)
+    if (obj == &zeroobj || (obj && obj->oclass == COIN_CLASS))
         return 0;
 
     if (!obj || obj->oclass == WEAPON_CLASS ||
