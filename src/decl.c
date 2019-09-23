@@ -340,6 +340,9 @@ struct plinemsg_type *plinemsg_types = (struct plinemsg_type *) 0;
 const char *ARGV0;
 #endif
 
+char *fuzzer_log[FUZZER_LOG_SIZE] = DUMMY;
+long fuzzer_log_idx = 0;
+
 /* support for lint.h */
 unsigned nhUse_dummy = 0;
 

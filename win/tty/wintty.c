@@ -1670,6 +1670,11 @@ long count;
         } else { /* change state */
             curr->selected = FALSE;
             curr->count = -1L;
+            {
+                char buf[BUFSZ];
+                Sprintf(buf, "menu.unselect: '%s'", curr->str);
+                FUZLOG(buf);
+            }
             if (in_view)
                 set_item_state(window, lineno, curr);
             return TRUE;
@@ -1683,6 +1688,11 @@ long count;
             return TRUE;
         } else if (!counting) {
             curr->selected = TRUE;
+            {
+                char buf[BUFSZ];
+                Sprintf(buf, "menu.select: '%s'", curr->str);
+                FUZLOG(buf);
+            }
             if (in_view)
                 set_item_state(window, lineno, curr);
             return TRUE;

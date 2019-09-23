@@ -177,6 +177,7 @@ boolean quietly;
     struct permonst *pa, *pd;
     int tx, ty, fx, fy;
 
+    fuzl_p2("mdisplacem", "magr", magr, "mdef", mdef);
     /* sanity checks; could matter if we unexpectedly get a long worm */
     if (!magr || !mdef || magr == mdef)
         return MM_MISS;

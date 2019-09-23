@@ -193,6 +193,7 @@ E boolean NDECL(status_hilite_menu);
 
 /* ### cmd.c ### */
 
+E void FDECL(fuz_log, (char *));
 E char NDECL(randomkey);
 E void FDECL(random_response, (char *, int));
 E int NDECL(rnd_extcmd_idx);

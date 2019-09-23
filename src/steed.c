@@ -740,6 +740,8 @@ struct monst *mon;
 int x, y;
 {
     char buf[QBUFSZ];
+    fuzl_mtmp("place_monster", mon);
+    fuzl_xy(" -> place_monster", x,y);
 
     buf[0] = '\0';
     /* normal map bounds are <1..COLNO-1,0..ROWNO-1> but sometimes

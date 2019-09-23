@@ -226,6 +226,7 @@ losedogs()
     register struct monst *mtmp, *mtmp0, *mtmp2;
     int dismissKops = 0;
 
+    FUZLOG("losedogs");
     /*
      * First, scan migrating_mons for shopkeepers who want to dismiss Kops,
      * and scan mydogs for shopkeepers who want to retain kops.
@@ -312,6 +313,7 @@ boolean with_you;
     int num_segs;
     boolean failed_to_place = FALSE;
 
+    fuzl_mtmp("mon_arrive", mtmp);
     mtmp->nmon = fmon;
     fmon = mtmp;
     if (mtmp->isshk)
@@ -696,6 +698,7 @@ coord *cc;   /* optional destination coordinates */
     xchar xyflags;
     int num_segs = 0; /* count of worm segments */
 
+    fuzl_mtmp("migrate_to_level", mtmp);
     if (mtmp->isshk)
         set_residency(mtmp, TRUE);
 

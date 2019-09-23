@@ -622,6 +622,7 @@ struct obj *otmp;
         extract_nobj(obj, &obj->ocarry->minvent);
         break;
     case OBJ_FLOOR:
+        fuzl_xyi("replace_obj floor", obj->ox, obj->oy, obj->otyp);
         otmp->nobj = obj->nobj;
         otmp->nexthere = obj->nexthere;
         otmp->ox = obj->ox;
@@ -1899,6 +1900,7 @@ register struct obj *otmp;
 int x, y;
 {
     register struct obj *otmp2 = level.objects[x][y];
+    fuzl_xyi("place_object", x,y, otmp->otyp);
 
     if (!isok(x, y)) { /* validate location */
         void VDECL((*func), (const char *, ...)) PRINTF_F(1, 2);

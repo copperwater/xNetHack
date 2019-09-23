@@ -435,6 +435,7 @@ boolean resuming;
         if (iflags.sanity_check || iflags.debug_fuzzer)
             sanity_check();
 
+        FUZLOG("-------------------------- SANITY CHECKPOINT --------------------------");
 #ifdef CLIPPING
         /* just before rhack */
         cliparound(u.ux, u.uy);

@@ -19,6 +19,49 @@ STATIC_DCL boolean FDECL(stuff_prevents_passage, (struct monst *));
 STATIC_DCL int FDECL(vamp_shift, (struct monst *, struct permonst *,
                                   BOOLEAN_P));
 
+void
+fuzl_mtmp(s, mtmp)
+char *s;
+struct monst *mtmp;
+{
+    char buf[BUFSZ];
+    if (mtmp)
+        Sprintf(buf, "%s(%p, %i,%i)", s, mtmp, mtmp->mx, mtmp->my);
+    else
+        Sprintf(buf, "ERROR %s has null monster");
+    FUZLOG(buf);
+}
+
+fuzl_p2(str, s1, m1, s2, m2)
+char *str;
+char *s1;
+struct monst *m1;
+char *s2;
+struct monst *m2;
+{
+    char buf[BUFSZ];
+    Sprintf(buf, "%s(%s=%p,%s=%p)", str, s1, m1, s2,m2);
+    FUZLOG(buf);
+}
+
+fuzl_xy(str, x, y)
+char *str;
+int x,y;
+{
+    char buf[BUFSZ];
+    Sprintf(buf, "%s(%i,%i)", str, x,y);
+    FUZLOG(buf);
+}
+
+fuzl_xyi(str, x, y, i)
+char *str;
+int x,y,i;
+{
+    char buf[BUFSZ];
+    Sprintf(buf, "%s(%i, %i,%i)", str, i,x,y);
+    FUZLOG(buf);
+}
+
 /* check whether a monster is carrying a locking/unlocking tool */
 boolean
 monhaskey(mon, for_unlocking)
@@ -89,7 +132,9 @@ register struct monst *mtmp;
 {
     int x = mtmp->mx, y = mtmp->my;
     boolean already_saw_mon = !occupation ? 0 : canspotmon(mtmp);
+    fuzl_mtmp("dochug BEGIN", mtmp);
     int rd = dochug(mtmp);
+    FUZLOG("dochug END");
 
     /* a similar check is in monster_nearby() in hack.c */
     /* check whether hero notices monster and stops current activity */

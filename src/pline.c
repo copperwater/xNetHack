@@ -162,6 +162,7 @@ VA_DECL(const char *, line)
     if ((pline_flags & SUPPRESS_HISTORY) == 0)
         dumplogmsg(line);
 #endif
+    FUZLOG(line);
     /* use raw_print() if we're called too early (or perhaps too late
        during shutdown) or if we're being called recursively (probably
        via debugpline() in the interface code) */

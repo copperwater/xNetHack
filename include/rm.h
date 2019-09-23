@@ -674,12 +674,14 @@ extern dlevel_t level; /* structure describing the current level */
 #ifdef EXTRA_SANITY_CHECKS
 #define place_worm_seg(m, x, y) \
     do {                                                        \
+        fuzl_xy("place_worm_seg", x,y);                         \
         if (level.monsters[x][y] && level.monsters[x][y] != m)  \
             impossible("place_worm_seg over mon");              \
         level.monsters[x][y] = m;                               \
     } while(0)
 #define remove_monster(x, y) \
     do {                                                \
+        fuzl_xy("remove_monster", x,y);                 \
         if (!level.monsters[x][y])                      \
             impossible("no monster to remove");         \
         level.monsters[x][y] = (struct monst *) 0;      \

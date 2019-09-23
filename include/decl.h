@@ -463,6 +463,11 @@ struct early_opt {
     boolean valallowed;
 };
 
+#define FUZZER_LOG_SIZE 20000
+E char *fuzzer_log[FUZZER_LOG_SIZE];
+E long fuzzer_log_idx;
+#define FUZLOG(s) fuz_log(s)
+
 #undef E
 
 #endif /* DECL_H */

@@ -4651,6 +4651,16 @@ int NDECL((*cmd_func));
     return FALSE;
 }
 
+void
+fuz_log(msg)
+char *msg;
+{
+    fuzzer_log_idx = (fuzzer_log_idx + 1) % FUZZER_LOG_SIZE;
+    if (fuzzer_log[fuzzer_log_idx])
+        free(fuzzer_log[fuzzer_log_idx]);
+    fuzzer_log[fuzzer_log_idx] = dupstr(msg);
+}
+
 char
 randomkey()
 {
@@ -4761,6 +4771,11 @@ register char *cmd;
     if (firsttime) {
         context.nopick = 0;
         cmd = parse();
+        {
+            char buf[BUFSZ];
+            Sprintf(buf, "rhack() cmd: '%s'", visctrl(*cmd));
+            FUZLOG(buf);
+        }
     }
     if (*cmd == Cmd.spkeys[NHKF_ESC]) {
         /* a clever player might try to press Escape to escape from a
@@ -4950,6 +4965,11 @@ register char *cmd;
                 func = ((struct ext_func_tab *) tlist)->ef_funct;
                 if (tlist->f_text && !occupation && multi)
                     set_occupation(func, tlist->f_text, multi);
+                {
+                    char buf[BUFSZ];
+                    Sprintf(buf, "rhack() extcmd: '%s'", tlist->ef_txt);
+                    FUZLOG(buf);
+                }
                 res = (*func)(); /* perform the command */
             }
             if (!res) {
@@ -5103,6 +5123,11 @@ retry:
     else
         dirsym = yn_function((s && *s != '^') ? s : "In what direction?",
                              (char *) 0, '\0');
+    {
+        char buf[BUFSZ];
+        Sprintf(buf, "getdir() dirsym: '%s'", visctrl(dirsym));
+        FUZLOG(buf);
+    }
     /* remove the prompt string so caller won't have to */
     clear_nhwindow(WIN_MESSAGE);
 
