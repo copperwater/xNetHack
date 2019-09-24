@@ -859,8 +859,11 @@ rndtrap()
             if (level.flags.noteleport)
                 rtrap = NO_TRAP;
             break;
-        case ROLLING_BOULDER_TRAP:
         case ROCKTRAP:
+            if (level.flags.outdoors)
+                rtrap = NO_TRAP;
+            /* FALLTHRU */
+        case ROLLING_BOULDER_TRAP:
             if (In_endgame(&u.uz))
                 rtrap = NO_TRAP;
             break;
