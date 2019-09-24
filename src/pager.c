@@ -1000,11 +1000,16 @@ short otyp;
         OBJPUTSTR("Scroll.");
     }
     if (olet == SPBOOK_CLASS) {
-        Sprintf(buf, "Level %d spellbook, in the %s school. %s spell.",
-                oc.oc_level, spelltypemnemonic(oc.oc_skill), dir);
-        OBJPUTSTR(buf);
-        Sprintf(buf, "Takes %d actions to read.", oc.oc_delay);
-        OBJPUTSTR(buf);
+        if (otyp == SPE_BLANK_PAPER) {
+            OBJPUTSTR("Spellbook.");
+        }
+        else {
+            Sprintf(buf, "Level %d spellbook, in the %s school. %s spell.",
+                    oc.oc_level, spelltypemnemonic(oc.oc_skill), dir);
+            OBJPUTSTR(buf);
+            Sprintf(buf, "Takes %d actions to read.", oc.oc_delay);
+            OBJPUTSTR(buf);
+        }
     }
     if (olet == WAND_CLASS) {
         Sprintf(buf, "%s wand.", dir);
@@ -1090,9 +1095,14 @@ short otyp;
 
     /* Scrolls or spellbooks: ink cost */
     if (olet == SCROLL_CLASS || olet == SPBOOK_CLASS) {
-        Sprintf(buf, "Takes %d to %d ink to write.",
-                ink_cost(otyp)/2, ink_cost(otyp)-1);
-        OBJPUTSTR(buf);
+        if (otyp == SCR_BLANK_PAPER || otyp == SPE_BLANK_PAPER) {
+            OBJPUTSTR("Can be written on.");
+        }
+        else {
+            Sprintf(buf, "Takes %d to %d ink to write.",
+                    ink_cost(otyp)/2, ink_cost(otyp)-1);
+            OBJPUTSTR(buf);
+        }
     }
 
     /* power conferred */
