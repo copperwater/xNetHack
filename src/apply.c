@@ -460,8 +460,11 @@ struct obj *obj;
     if (!can_blow(&youmonst)) {
         You("are incapable of using the whistle.");
     } else if (obj->cursed && !rn2(2)) {
-        You("produce a %shigh-pitched humming noise.",
-            Underwater ? "very " : "");
+        if (Hallucination)
+            You("play a kazoo symphony.");
+        else
+            You("produce a %shigh-pitched humming noise.",
+                Underwater ? "very " : "");
         wake_nearby();
     } else {
         int pet_cnt = 0, omx, omy;

@@ -546,7 +546,7 @@ struct obj *instr;
     case MAGIC_FLUTE: /* Make monster fall asleep */
         consume_obj_charge(instr, TRUE);
 
-        You("produce %s music.", Hallucination ? "piped" : "soft");
+        You("produce %s music.", Hallucination ? "elevator" : "soft");
         put_monsters_to_sleep(&youmonst, u.ulevel * 5);
         exercise(A_DEX, TRUE);
         break;
