@@ -1716,6 +1716,8 @@ int how;
                     if (has_oname(otmp))
                         free_oname(otmp);
                     otmp->quan = count;
+                    /* don't show material */
+                    otmp->material = objects[otmp->otyp].oc_material;
                     Sprintf(pbuf, "%8ld %s (worth %ld %s),", count,
                             xname(otmp), count * (long) objects[typ].oc_cost,
                             currency(2L));

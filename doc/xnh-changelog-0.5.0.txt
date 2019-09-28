@@ -104,6 +104,7 @@ Group size now throttles on low dungeon levels rather than experience levels.
 Glass body armor may shatter if you are hit with a heavy object moving sideways.
 Hallucination is now effective against all gaze attacks made by monsters.
 Falling rock traps no longer generate on outdoors levels.
+Amulets are worth 150 zorkmids each when the game ends regardless of material.
 
 
 It contains the following non-gameplay interface changes:
