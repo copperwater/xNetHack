@@ -1302,7 +1302,7 @@ register struct attack *mattk;
             } else {
                 if (!Deaf)
                     You_hear("%s hissing!", s_suffix(mon_nam(mtmp)));
-                if (!rn2(10)
+                if (!rn2(6) || !Deaf
                     || (flags.moonphase == NEW_MOON && !have_lizard())) {
  do_stone:
                     if (!Stoned && !Stone_resistance
