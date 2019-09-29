@@ -1656,8 +1656,9 @@ domove_core()
             return;
         }
         /* TODO: if failing to cut the web is going to be a thing, it should
-         * really be an occupation... */
-        else if (rn2(20) > ACURR(A_STR)) {
+         * really be an occupation. Not necessarily its own occupation, it can
+         * probably slide into the digging code pretty well. */
+        else if (rn2(20) > ACURR(A_STR) + uwep->spe) {
             You("hack ineffectually at some of the strands.");
             return;
         }
