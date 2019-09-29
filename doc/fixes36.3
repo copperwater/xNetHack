@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.112 $ $NHDT-Date: 1568509226 2019/09/15 01:00:26 $
+$NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.116 $ $NHDT-Date: 1569276988 2019/09/23 22:16:28 $
 
 This fixes36.3 file is here to capture information about updates in the 3.6.x
 lineage following the release of 3.6.2 in May 2019. Please note, however,
@@ -139,6 +139,23 @@ when spellcasting monster aimed at wrong spot due to not being able to see
 prevent impossible when guard tries to relocate a monster on a full level
 hallucination provides partial protection from passive gaze counterattack
 	against hero's attack; check for that before checking for free action
+feedback from blessed potion of restore ability never reported "you feel great"
+	due to bad logic for not-unihorn case in unfixable_trouble_count()
+when rubbing a ring on a touchstone, all types of rings were treated as if
+	they were gems; an iron ring made a cyan streak instead of yielding
+	"scritch, scritch" and a gold ring made a yellow streak rather than
+	a golden scratch
+zapping self with wand of opening or spell of knock to escape from a trap
+	reported "you're released from <trap>" rather than "from the <trap>"
+zapping self with wand of opening or spell of knock to escape from a pit trap
+	didn't reset vision limits--only spots adjacent to pit were visible
+wielded aklys that returned to hero when thrown while inside an engulfer left
+	a stale 'thrownobj' pointer that triggered "add_to_minv: obj not free"
+	panic if same weapon killed any engulfer via melee from inside
+uarmh null pointer dereference if a helm of opposite alignment came off due 
+	to being polymorphed
+verb tense was inappropriate in some messages when a mon/pet had a name 
+	ending in 's'
 
 
 Fixes to Post-3.6.2 Problems that Were Exposed Via git Repository
