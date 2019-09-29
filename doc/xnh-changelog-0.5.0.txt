@@ -105,6 +105,7 @@ Glass body armor may shatter if you are hit with a heavy object moving sideways.
 Hallucination is now effective against all gaze attacks made by monsters.
 Falling rock traps no longer generate on outdoors levels.
 Amulets are worth 150 zorkmids each when the game ends regardless of material.
+Amulets of life saving only heal 50-100 HP if they save you from HP loss death.
 
 
 It contains the following non-gameplay interface changes:
