@@ -181,7 +181,12 @@ register int n, x;
     return tmp; /* Alea iacta est. -- J.C. */
 }
 
-/* 1 <= rne(x) <= max(u.ulevel/3,5) */
+/* 1 <= rne(x) <= 10, with exponential distribution:
+ * chance of 1: (x-1)/x
+ * chance of 2: (x-1)/x^2
+ * chance of 3: (x-1)/x^3
+ * etc.
+ */
 int
 rne(x)
 register int x;
@@ -192,15 +197,6 @@ register int x;
     while (tmp < 10 && !rn2(x))
         tmp++;
     return tmp;
-
-    /* was:
-     *  tmp = 1;
-     *  while (!rn2(x))
-     *    tmp++;
-     *  return min(tmp, (u.ulevel < 15) ? 5 : u.ulevel / 3);
-     * which is clearer but less efficient and stands a vanishingly
-     * small chance of overflowing tmp
-     */
 }
 
 /* rnz: everyone's favorite! */
