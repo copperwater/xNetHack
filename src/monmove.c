@@ -32,6 +32,7 @@ struct monst *mtmp;
     FUZLOG(buf);
 }
 
+void
 fuzl_p2(str, s1, m1, s2, m2)
 char *str;
 char *s1;
@@ -44,6 +45,7 @@ struct monst *m2;
     FUZLOG(buf);
 }
 
+void
 fuzl_xy(str, x, y)
 char *str;
 int x,y;
@@ -53,6 +55,7 @@ int x,y;
     FUZLOG(buf);
 }
 
+void
 fuzl_xyi(str, x, y, i)
 char *str;
 int x,y,i;

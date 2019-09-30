@@ -4653,7 +4653,7 @@ int NDECL((*cmd_func));
 
 void
 fuz_log(msg)
-char *msg;
+const char *msg;
 {
     fuzzer_log_idx = (fuzzer_log_idx + 1) % FUZZER_LOG_SIZE;
     if (fuzzer_log[fuzzer_log_idx])

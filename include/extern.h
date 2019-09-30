@@ -193,7 +193,7 @@ E boolean NDECL(status_hilite_menu);
 
 /* ### cmd.c ### */
 
-E void FDECL(fuz_log, (char *));
+E void FDECL(fuz_log, (const char *));
 E char NDECL(randomkey);
 E void FDECL(random_response, (char *, int));
 E int NDECL(rnd_extcmd_idx);
@@ -1562,6 +1562,10 @@ E boolean FDECL(olfaction, (struct permonst *));
 
 /* ### monmove.c ### */
 
+E void FDECL(fuzl_mtmp, (char *, struct monst *));
+E void FDECL(fuzl_p2, (char *, char *, struct monst *, char *, struct monst *));
+E void FDECL(fuzl_xy, (char *, int, int));
+E void FDECL(fuzl_xyi, (char *, int, int, int));
 E boolean FDECL(itsstuck, (struct monst *));
 E boolean FDECL(monhaskey, (struct monst *, BOOLEAN_P));
 E void FDECL(mon_regen, (struct monst *, BOOLEAN_P));
