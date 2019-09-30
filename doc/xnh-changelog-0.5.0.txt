@@ -111,6 +111,7 @@ Shopkeepers' base level is adjusted from 12 to 13.
 Cockatrice hissing attacks begin stoning 1/5 of the time, but deafness blocks
   the attack entirely.
 Reading engravings stops capital-letter running.
+Aligned priests' maces are never cursed.
 
 
 It contains the following non-gameplay interface changes:
