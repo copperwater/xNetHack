@@ -1458,17 +1458,6 @@ struct obj *obj;
     return equip_ok(obj, TRUE, FALSE);
 }
 
-/* both 'clothes' and 'accessories' now include both armor and accessories;
-   TOOL_CLASS is for eyewear, FOOD_CLASS is for MEAT_RING */
-static NEARDATA const char only_armor[] = {
-    ARMOR_CLASS, 0
-};
-static NEARDATA const char clothes[] = {
-    ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS, FOOD_CLASS, 0
-};
-static NEARDATA const char accessories[] = {
-    RING_CLASS, AMULET_CLASS, TOOL_CLASS, FOOD_CLASS, ARMOR_CLASS, 0
-};
 STATIC_VAR NEARDATA int Narmorpieces, Naccessories;
 
 /* assign values to Narmorpieces and Naccessories */

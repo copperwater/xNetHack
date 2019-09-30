@@ -2069,13 +2069,10 @@ dodip()
     register struct obj *potion, *obj;
     struct obj *singlepotion;
     uchar here;
-    char allowall[2];
     short mixture;
     char qbuf[QBUFSZ];
     const char *shortestname; /* last resort obj name for prompt */
 
-    allowall[0] = ALL_CLASSES;
-    allowall[1] = '\0';
     if (!(obj = getobj("dip", allow_any_obj, FALSE, FALSE)))
         return 0;
     if (inaccessible_equipment(obj, "dip", FALSE))

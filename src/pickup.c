@@ -2737,8 +2737,6 @@ u_handsy()
     return TRUE;
 }
 
-static const char stashable[] = { ALLOW_COUNT, COIN_CLASS, ALL_CLASSES, 0 };
-
 int
 use_container(objp, held, more_containers)
 struct obj **objp;
@@ -3221,19 +3219,14 @@ struct obj *obj;
 int
 dotip()
 {
-    struct obj *cobj, *nobj;
-    coord cc;
-    int boxes;
-    char c, buf[BUFSZ], qbuf[BUFSZ];
+    struct obj *cobj;
+    char buf[BUFSZ];
     const char *spillage = 0;
 
     /*
      * doesn't require free hands;
      * limbs are needed to tip floor containers
      */
-
-    /* at present, can only tip things at current spot, not adjacent ones */
-    cc.x = u.ux, cc.y = u.uy;
 
     cobj = getobj("tip", tip_ok, FALSE, TRUE);
     if (!cobj)

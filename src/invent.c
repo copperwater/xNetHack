@@ -24,7 +24,6 @@ STATIC_DCL int FDECL(worn_wield_only, (struct obj *));
 STATIC_DCL int FDECL(only_here, (struct obj *));
 STATIC_DCL void FDECL(compactify, (char *));
 STATIC_DCL boolean FDECL(taking_off, (const char *));
-STATIC_DCL boolean FDECL(putting_on, (const char *));
 STATIC_PTR int FDECL(ckvalidcat, (struct obj *));
 STATIC_PTR int FDECL(ckunpaid, (struct obj *));
 STATIC_PTR char *FDECL(safeq_xprname, (struct obj *));
@@ -1434,14 +1433,6 @@ const char *action;
            !strcmp(action, "destroy");
 }
 
-/* match the prompt for either 'W' or 'P' command */
-STATIC_OVL boolean
-putting_on(action)
-const char *action;
-{
-    return !strcmp(action, "wear") || !strcmp(action, "put on");
-}
-
 /* Basic callbacks for getobj that allows any floor item and anything. */
 
 /* Allow floor objects only */
@@ -1501,10 +1492,10 @@ boolean allow_floor;
 
     char buf[BUFSZ] = "";
     char qbuf[QBUFSZ] = "";
-    char lets[BUFSZ] = "", altlets[BUFSZ] = "", *ap;
+    char lets[BUFSZ] = "", altlets[BUFSZ] = "";
     char qsfx[QBUFSZ]; /* for old-style floor prompts */
     char invlets[256] = "";
-    int i, n, c;
+    int n, c;
     register char ilet;
     register struct obj *obj, *otmp;
     struct obj *res = NULL;
@@ -1620,8 +1611,7 @@ boolean allow_floor;
                             (int FDECL((*), (OBJ_P))) 0);
 
     for (srtinv = sortedinvent; (otmp = srtinv->obj) != 0; ++srtinv) {
-        if (&bp[foo] == &buf[sizeof buf - 1]
-            || ap == &altlets[sizeof altlets - 1]) {
+        if (&bp[foo] == &buf[sizeof buf - 1]) {
             /* we must have a huge number of NOINVSYM items somehow */
             impossible("getobj: inventory overflow");
             break;
@@ -1676,9 +1666,9 @@ boolean allow_floor;
         Strcpy(buf, "*");
     else if (inv) { /* encouraged inventory objects */
         lets['?'] = TRUE;
-        Sprintf(eos(buf), " or ?*", buf);
+        Strcat(eos(buf), " or ?*");
     } else if (altinv) /* valid (but not encouraged) inventory objects */
-        Sprintf(eos(buf), " or *", buf);
+        Strcat(eos(buf), " or *");
 
     /* Yes, allow this even if !inv && !altinv. This allows use to give
        feedback to the player as to how nothing in the inventory is a
@@ -1800,7 +1790,6 @@ boolean allow_floor;
                 continue;
             }
 
-            boolean show_discouraged = FALSE;
             int qflags = (INVORDER_SORT | SIGNAL_ESCAPE);
             menu_item *selection = NULL;
             struct obj **objchain = &invent;
@@ -1818,7 +1807,7 @@ boolean allow_floor;
                         pline1("Not carrying anything.");
                     else
                         pline("Not carrying anything to %s.", what);
-                    break;
+                    return NULL;
                 }
 
                 qflags |= USE_INVLET;
@@ -1862,7 +1851,7 @@ boolean allow_floor;
 
         for (obj = invent; obj; obj = obj->nobj)
             if (obj->invlet == ilet)
-                break;
+                return obj;
 
         if (!obj) {
             impossible("getobj: inventory letter detected, but not found?");

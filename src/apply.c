@@ -1436,8 +1436,6 @@ struct obj **optr;
     *optr = obj;
 }
 
-static NEARDATA const char cuddly[] = { TOOL_CLASS, GEM_CLASS, 0 };
-
 STATIC_OVL int
 rub_ok(obj)
 struct obj *obj;
@@ -2323,11 +2321,9 @@ use_stone(tstone)
 struct obj *tstone;
 {
     static const char scritch[] = "\"scritch, scritch\"";
-    static const char allowall[3] = { COIN_CLASS, ALL_CLASSES, 0 };
-    static const char coins_gems[3] = { COIN_CLASS, GEM_CLASS, 0 };
     struct obj *obj;
     boolean do_scratch;
-    const char *streak_color, *choices;
+    const char *streak_color;
     char stonebuf[QBUFSZ];
     boolean known_touchstone = tstone->otyp == TOUCHSTONE && tstone->dknown
                                && objects[TOUCHSTONE].oc_name_known;

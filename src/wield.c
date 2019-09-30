@@ -381,7 +381,6 @@ dowieldquiver()
 {
     char qbuf[QBUFSZ];
     struct obj *newquiver;
-    const char *quivee_types;
     int res;
     boolean finish_splitting = FALSE,
             was_uwep = FALSE, was_twoweap = u.twoweap;
