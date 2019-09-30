@@ -1043,27 +1043,39 @@ int damage;
         int yy = ycoords[curridx];
         /* Do NOT check for if there is already a gas cloud created at some
          * other time at this position. They can overlap. */
-        for (int i = 0; i < 4; ++i) {
-            /* try all 4 directions
-             * TODO: randomize the order in which it checks directions. Since
-             * this is BFS it probably won't be noticed very much anyway. */
 
-            int dx = 0, dy = 0;
+        /* Primitive Fisher-Yates-Knuth shuffle to randomize the order of
+         * directions chosen. */
+        int i;
+        coord dirs[4] = { {0, -1}, {0, 1}, {-1, 0}, {1, 0} };
+        for (i = 4; i > 0; --i) {
+            xchar swapidx = rn2(i);
+            coord tmp = dirs[swapidx];
+            dirs[swapidx] = dirs[i-1];
+            dirs[i-1] = tmp;
+        }
+        int nvalid = 0; /* # of valid adjacent spots */
+        for (i = 0; i < 4; ++i) {
+            /* try all 4 directions */
+
+            int dx = dirs[i].x, dy = dirs[i].y;
             boolean isunpicked = TRUE;
-            if (i >= 2) {
-                dy = ((i % 2 == 0) ? -1 : 1);
-            }
-            else {
-                dx = ((i % 2 == 0) ? -1 : 1);
-            }
-            /* don't pick a location we've already picked */
+
             if (valid_cloud_pos(xx + dx, yy + dy)) {
+                nvalid++;
+                /* don't pick a location we've already picked */
                 for (j = 0; j < newidx; ++j) {
                     if (xcoords[j] == xx + dx && ycoords[j] == yy + dy) {
                         isunpicked = FALSE;
                         break;
                     }
                 }
+                /* randomly disrupt the natural breadth-first search, so that
+                 * clouds released in open spaces don't always tend towards a
+                 * rhombus shape */
+                if (nvalid == 4 && !rn2(2))
+                    continue;
+
                 if (isunpicked) {
                     xcoords[newidx] = xx + dx;
                     ycoords[newidx] = yy + dy;
