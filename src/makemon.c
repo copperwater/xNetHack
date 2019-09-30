@@ -1276,6 +1276,11 @@ int mmflags;
             mtmp->minvis = TRUE;
         }
         break;
+    case S_WRAITH:
+        if (mndx == PM_GHOST && !rn2(3)) {
+            mtmp->minvis = TRUE; /* not permanent though */
+        }
+        break;
     case S_EEL:
         (void) hideunder(mtmp);
         break;

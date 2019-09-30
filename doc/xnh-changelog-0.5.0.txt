@@ -112,6 +112,7 @@ Cockatrice hissing attacks begin stoning 1/5 of the time, but deafness blocks
   the attack entirely.
 Reading engravings stops capital-letter running.
 Aligned priests' maces are never cursed.
+Ghosts generate invisible 1/3 of the time.
 
 
 It contains the following non-gameplay interface changes:
