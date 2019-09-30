@@ -1097,18 +1097,18 @@ makelevel()
 
         /* maybe place some dungeon features inside */
         if (!rn2(10))
-            mkfeature(FOUNTAIN, 0, croom);
+            mkfeature(FOUNTAIN, croom);
         if (!rn2(60))
-            mkfeature(SINK, 0, croom);
+            mkfeature(SINK, croom);
         if (!rn2(60))
-            mkfeature(ALTAR, 0, croom);
+            mkfeature(ALTAR, croom);
         if (!rn2(30 + (depth(&u.uz) * 5)))
-            mkfeature(TREE, 0, croom);
+            mkfeature(TREE, croom);
         x = 80 - (depth(&u.uz) * 2);
         if (x < 2)
             x = 2;
         if (!rn2(x))
-            mkfeature(GRAVE, 0, croom);
+            mkfeature(GRAVE, croom);
 
         /* put statues inside */
         if (!rn2(20)) {
@@ -1146,7 +1146,7 @@ makelevel()
             make_engr_at(x, y, buf, 0, MARK);
         }
         else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
-            mkfeature(0, 0, croom);
+            mkfeature(0, croom);
         }
 
  skip_nonrogue:
@@ -1946,28 +1946,21 @@ struct mkroom* croom;
     return num_monst;
 }
 
-/* Place the given dungeon feature, either randomly in a maze if mazeflag is
- * TRUE, or in croom otherwise.
+/* Place the given dungeon feature in room croom.
  * If typ is 0, place an engraving instead. */
 void
-mkfeature(typ, mazeflag, croom)
+mkfeature(typ, croom)
 xchar typ;
-boolean mazeflag;
 struct mkroom *croom;
 {
     coord m;
     register int tryct = 0;
 
-    if (!mazeflag && !croom)
+    if (!croom)
         return;
-    if (mazeflag && croom) /* pick one */
-        mazeflag == rn2(2) ? TRUE : FALSE;
-
     do {
         if (++tryct > 200)
             return;
-        if (mazeflag)
-            mazexy(&m);
         else if (!somexy(croom, &m))
             return;
     } while (occupied(m.x, m.y) || bydoor(m.x, m.y)

@@ -1093,16 +1093,16 @@ int attempts;
             continue;
         /* probabilities here are deflated from makelevel() */
         if (!rn2(20))
-            mkfeature(FOUNTAIN, FALSE, &rooms[i]);
+            mkfeature(FOUNTAIN, &rooms[i]);
         if (!rn2(80))
-            mkfeature(SINK, FALSE, &rooms[i]);
+            mkfeature(SINK, &rooms[i]);
         if (!rn2(100))
-            mkfeature(GRAVE, FALSE, &rooms[i]);
+            mkfeature(GRAVE, &rooms[i]);
         /* TODO: Currently altars won't generate in Gehennom because they
          * would imply the player can pray on a coaligned altar there, and that
          * isn't implemented. */
         if (!rn2(100) && !Inhell)
-            mkfeature(ALTAR, FALSE, &rooms[i]);
+            mkfeature(ALTAR, &rooms[i]);
 
         /* Maybe remove the walls for this room. */
         if (TRUE || rn2(5)) {
