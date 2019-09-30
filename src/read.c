@@ -42,7 +42,6 @@ STATIC_DCL char *FDECL(apron_text, (struct obj *, char *buf));
 STATIC_DCL void FDECL(stripspe, (struct obj *));
 STATIC_DCL void FDECL(p_glow1, (struct obj *));
 STATIC_DCL void FDECL(p_glow2, (struct obj *, const char *));
-STATIC_DCL void FDECL(randomize, (int *, int));
 STATIC_PTR void FDECL(flood_space, (int, int, genericptr_t));
 STATIC_PTR void FDECL(unflood_space, (int, int, genericptr_t));
 STATIC_DCL int FDECL(maybe_tame, (struct monst *, struct obj *));
@@ -824,23 +823,6 @@ int curse_bless;
     }
 }
 
-/* randomize the given list of numbers  0 <= i < count */
-STATIC_OVL void
-randomize(indices, count)
-int *indices;
-int count;
-{
-    int i, iswap, temp;
-
-    for (i = count - 1; i > 0; i--) {
-        if ((iswap = rn2(i + 1)) == i)
-            continue;
-        temp = indices[i];
-        indices[i] = indices[iswap];
-        indices[iswap] = temp;
-    }
-}
-
 /* monster is hit by scroll of taming's effect */
 STATIC_OVL int
 maybe_tame(mtmp, sobj)
@@ -874,7 +856,7 @@ int x,y;
 {
     if (!isok(x,y))
         return FALSE;
-    if (ACCESSIBLE(levl[x][y].typ) || is_pool(x, y) || is_lava(x, y));
+    return ACCESSIBLE(levl[x][y].typ) || is_pool(x, y) || is_lava(x, y);
 }
 
 /* Callback for getpos_sethilite, also used in determining whether a scroll
@@ -1491,7 +1473,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             You("identify this as an identify scroll.");
             break;
         }
-        else if (!already_known || !invent)
+        else if (!already_known || !invent) {
             /* force feedback now if invent became
                empty after using up this scroll */
             if (scursed) {
@@ -1500,6 +1482,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             else {
                 pline("This is an identify scroll.");
             }
+        }
         /* 1 always, 4 for uncursed, 7 for blessed */
         cval = 1 + (!scursed * 3) + (sblessed * 3);
         identify_pack(cval, !already_known);
@@ -2609,7 +2592,6 @@ struct _create_particular_data *d;
     struct permonst *whichpm = NULL;
     int i, mx, my, firstchoice = NON_PM;
     struct monst *mtmp;
-    boolean madeany = FALSE;
 
     if (!d->randmonst) {
         firstchoice = d->which;
@@ -2686,7 +2668,6 @@ struct _create_particular_data *d;
             viz_array[my][mx] = saveviz;
             newsym(mx, my);
         }
-        madeany = TRUE;
         /* in case we got a doppelganger instead of what was asked
            for, make it start out looking like what was asked for */
         if (mtmp->cham != NON_PM && firstchoice != NON_PM

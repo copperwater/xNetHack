@@ -1536,7 +1536,7 @@ long flag;
     uchar ntyp;
     uchar nowtyp;
     boolean wantpool, poolok, lavaok, nodiag;
-    boolean rockok = FALSE, treeok = FALSE, thrudoor;
+    boolean rockok = FALSE, treeok = FALSE;
     int maxx, maxy;
     boolean poisongas_ok, in_poisongas;
     NhRegion *gas_reg;
@@ -1553,7 +1553,6 @@ long flag;
     lavaok = (!grounded(mdat) || likes_lava(mdat));
     if (mdat == &mons[PM_FLOATING_EYE]) /* prefers to avoid heat */
         lavaok = FALSE;
-    thrudoor = ((flag & (ALLOW_WALL | BUSTDOOR)) != 0L);
     poisongas_ok = ((nonliving(mdat) || is_vampshifter(mon)
                      || breathless(mdat)) || resists_poison(mon));
     in_poisongas = ((gas_reg = visible_region_at(x,y)) != 0
@@ -1576,8 +1575,6 @@ long flag;
             treeok = (m_carrying(mon, AXE) || (m_carrying(mon, BATTLE_AXE)
                                                && !which_armor(mon, W_ARMS)));
         }
-        if (rockok || treeok)
-            thrudoor = TRUE;
     }
 
  nexttry: /* eels prefer the water, but if there is no water nearby,
@@ -1785,7 +1782,7 @@ struct monst *magr, *mdef;
        NOTE: But don't let still-peaceful guardians fight hostile guardians if
        the hero manages to annoy one of them! */
     if (ma->msound==MS_GUARDIAN && mdef->mpeaceful==FALSE
-        && !md->msound == MS_GUARDIAN)
+        && !(md->msound == MS_GUARDIAN))
         return ALLOW_M|ALLOW_TM;
 
     /* elves vs. orcs */

@@ -5303,9 +5303,7 @@ wishcmdassist()
     },
         preserve_wishless[] = "Doing so will preserve 'wishless' conduct.",
         suppress_cmdassist[] =
-            "(Suppress this assistance with !cmdassist in your config file.)",
-        *cardinals[] = { "zero",  "one",  "two", "three", "four", "five" },
-        too_many[] = "too many";
+            "(Suppress this assistance with !cmdassist in your config file.)";
     int i;
     winid win;
 

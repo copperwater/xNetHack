@@ -186,7 +186,7 @@ int
 rne(x)
 register int x;
 {
-    register int tmp, utmp;
+    register int tmp;
 
     tmp = 1;
     while (tmp < 10 && !rn2(x))

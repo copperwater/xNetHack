@@ -1325,7 +1325,6 @@ xchar rtype, rlit;
             r2.hx = xabs + wtmp;
             r2.hy = yabs + htmp;
         } else { /* Only some parameters are random */
-            int rndpos = 0;
             xabs = (xtmp < 0) ? rn2(COLNO) : xtmp;
             yabs = (ytmp < 0) ? rn2(COLNO) : ytmp;
 

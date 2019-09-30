@@ -1238,8 +1238,6 @@ void
 u_collide_m(mtmp)
 struct monst *mtmp;
 {
-    coord cc;
-
     if (!mtmp || mtmp == u.usteed || mtmp != m_at(u.ux, u.uy)) {
         impossible("level arrival collision: %s?",
                    !mtmp ? "no monster"
@@ -1796,7 +1794,7 @@ boolean moldy;
             break;
 
         case OBJ_FLOOR:
-            if (cansee(mtmp->mx, mtmp->my))
+            if (cansee(mtmp->mx, mtmp->my)) {
                 if (moldy)
                     pline("%s grows on a moldy corpse!", Amonnam(mtmp));
                 else
@@ -1805,6 +1803,7 @@ boolean moldy;
                                 : Monnam(mtmp),
                         (mtmp->data == &mons[PM_DEATH] ? "a short nap"
                                                         : "the dead"));
+            }
             break;
 
         case OBJ_MINVENT: /* probably a nymph's */

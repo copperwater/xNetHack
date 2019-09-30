@@ -732,7 +732,7 @@ register struct monst *mtmp;
         pline_msg = "wails mournfully.";
         break;
     case MS_GROAN:
-        if (rn2(10) || !ptr->mlet == S_ZOMBIE)
+        if (rn2(10) || !(ptr->mlet == S_ZOMBIE))
             pline_msg = "groans";
         else
             verbl_msg = "Braaaaaains...";

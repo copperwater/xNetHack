@@ -188,7 +188,6 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
             return attack_check_conducts(wep);
         }
         if (!((Blind ? Blind_telepat : Unblind_telepat) || Detect_monsters)) {
-            struct obj *obj;
 
             if (!Blind && Hallucination) {
                 pline("A wild %s appeared!", l_monnam(mtmp));

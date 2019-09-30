@@ -2611,7 +2611,7 @@ int final;
         if (u.ulastprayed < 0)
             you_have_never("prayed");
         else {
-            Sprintf(buf, " on turn %d", u.ulastprayed);
+            Sprintf(buf, " on turn %ld", u.ulastprayed);
             enlght_line(You_, "prayed", buf, "");
         }
     }

@@ -4003,7 +4003,7 @@ struct obj *no_wish;
         && (wizard || cnt < rnd(6) || (cnt <= 7 && Is_candle(otmp))
             || (cnt <= 20 && ((oclass == WEAPON_CLASS && is_ammo(otmp))
                               || typ == ROCK || is_missile(otmp))))) {
-        if (oclass = COIN_CLASS && !wizard && cnt > 5000) {
+        if (oclass == COIN_CLASS && !wizard && cnt > 5000) {
             cnt = 5000;
         }
         otmp->quan = (long) cnt;

@@ -3782,9 +3782,10 @@ boolean tinitial, tfrom_file;
         if (op && !negated) {
 #ifdef CURSES_GRAPHICS
             iflags.wc2_petattr = curses_read_attrs(op);
-            if (!curses_read_attrs(op))
+            if (!curses_read_attrs(op)) {
                 config_error_add("Unknown %s parameter '%s'", fullname, opts);
                 return FALSE;
+            }
 #else
             /* non-curses windowports will not use this flag anyway
              * but the above will not compile if we don't have curses.

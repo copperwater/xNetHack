@@ -1025,7 +1025,7 @@ int cloudsize;
 int damage;
 {
     NhRegion *cloud;
-    int i, j, nrect;
+    int i, j;
     NhRect tmprect;
 
     /* store visited coords */

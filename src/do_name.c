@@ -1206,7 +1206,7 @@ void
 do_oname(obj)
 register struct obj *obj;
 {
-    char *bufp, buf[BUFSZ], bufcpy[BUFSZ], qbuf[QBUFSZ];
+    char buf[BUFSZ], qbuf[QBUFSZ];
     const char *aname;
     short objtyp;
 
@@ -2346,7 +2346,6 @@ struct monst *mtmp;
 {
     if (!has_mname(mtmp)) {
         const char* name;
-        boolean male = FALSE, female = FALSE;
         if (mtmp->data->mlet == S_NYMPH) {
             name = rnd_name(nymphnames);
         }

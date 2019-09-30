@@ -1468,7 +1468,6 @@ struct monst* creator;
     coord c;
     struct monst *mon;
     boolean ask = (wizard && !neverask);
-    int nknown = 0;
     int x = u.ux, y = u.uy;
     boolean in_water = u.uinwater;
     int old_census = monster_census(TRUE);
@@ -1574,7 +1573,7 @@ struct permonst *
 rndmonst()
 {
     register struct permonst *ptr;
-    register int mndx, ct;
+    register int mndx;
 
     if (u.uz.dnum == quest_dnum && rn2(7) && (ptr = qt_montype()) != 0)
         return ptr;
@@ -2323,7 +2322,6 @@ int *seencount;  /* secondary output */
         if (bag->dknown && objects[bag->otyp].oc_name_known)
             bag->cknown = 1;
     } else {
-        struct monst *mtmp;
         int creatcnt = 0, seecount = 0;
 
         do {

@@ -702,7 +702,7 @@ struct monst *mon;
 
     if (((badclass || badalign) && self_willed)
         || (badalign && (!yours || !rn2(4)))) {
-        int dmg, tmp;
+        int dmg;
         char buf[BUFSZ];
 
         if (!yours)
@@ -2064,7 +2064,7 @@ boolean loseit;    /* whether to drop it if hero can longer touch it */
 
     if (touch_artifact(obj, &youmonst)) {
         char buf[BUFSZ];
-        int dmg = 0, tmp;
+        int dmg = 0;
         boolean hatemat = Hate_material(obj->material),
                 bane = bane_applies(get_artifact(obj), &youmonst);
 

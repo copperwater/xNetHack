@@ -819,10 +819,10 @@ boolean noisy;
         spoteffects(TRUE);
     if (Passes_walls && u.utrap
         && (u.utraptype == TT_INFLOOR || u.utraptype == TT_BURIEDBALL)) {
-        if (u.utraptype == TT_INFLOOR)
+        if (u.utraptype == TT_INFLOOR) {
             if (noisy)
                 pline_The("rock seems to no longer trap you.");
-        else {
+        } else {
             if (noisy)
                 pline_The("buried ball is no longer bound to you.");
             buried_ball_to_freedom();
@@ -996,12 +996,13 @@ boolean noisy;
         if ((otmp = uarmf) != 0) {
             if (donning(otmp))
                 cancel_don();
-            if (is_whirly(youmonst.data))
+            if (is_whirly(youmonst.data)) {
                 if (noisy)
                     Your("boots fall away!");
-            else if (noisy)
+            } else if (noisy) {
                 Your("boots %s off your feet!",
                     verysmall(youmonst.data) ? "slide" : "are pushed");
+            }
             (void) Boots_off();
             dropx(otmp);
         }

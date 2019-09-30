@@ -1985,11 +1985,12 @@ const char *str;
     if (dumplog_file && win != NHW_STATUS && win != NHW_DUMPHTML)
         fprintf(dumplog_file, "%s\n", str);
 #ifdef DUMPHTML
-    if (dumphtml_file && win != NHW_DUMPTXT)
+    if (dumphtml_file && win != NHW_DUMPTXT) {
         if (win == NHW_STATUS)
             html_dump_str(dumphtml_file, str);
         else
             html_dump_line(dumphtml_file, win, attr, str);
+    }
 #endif
 }
 

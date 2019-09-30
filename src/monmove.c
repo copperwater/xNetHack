@@ -28,7 +28,7 @@ struct monst *mtmp;
     if (mtmp)
         Sprintf(buf, "%s(%p, %i,%i)", s, mtmp, mtmp->mx, mtmp->my);
     else
-        Sprintf(buf, "ERROR %s has null monster");
+        Sprintf(buf, "ERROR %s has null monster", s);
     FUZLOG(buf);
 }
 
