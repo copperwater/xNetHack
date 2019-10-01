@@ -4818,6 +4818,11 @@ register struct obj *obj;
     if (trap && trap->ttyp == STATUE_TRAP
         && activate_statue_trap(trap, obj->ox, obj->oy, TRUE))
         return FALSE;
+    if (is_metallic(obj)) {
+        if (!Deaf)
+            pline("Clang!");
+        return FALSE;
+    }
     /* drop any objects contained inside the statue */
     while ((item = obj->cobj) != 0) {
         obj_extract_self(item);

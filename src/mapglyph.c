@@ -57,6 +57,15 @@ static const int explcolors[] = {
 #define is_objpile(x,y) (!Hallucination && level.objects[(x)][(y)] \
                          && level.objects[(x)][(y)]->nexthere)
 
+/* Externify this array if it's ever needed anywhere else.
+ * Colors are in the same order as materials are defined. */
+static const int materialclr[] = {
+    CLR_BLACK, HI_ORGANIC, CLR_WHITE, HI_ORGANIC, CLR_RED,
+    CLR_WHITE, HI_CLOTH, HI_LEATHER, HI_WOOD, CLR_WHITE, CLR_BLACK,
+    HI_METAL, HI_METAL, HI_COPPER, HI_SILVER, HI_GOLD, CLR_WHITE,
+    HI_SILVER, CLR_WHITE, HI_GLASS, CLR_RED, CLR_GRAY
+};
+
 /*ARGSUSED*/
 int
 mapglyph(glyph, ochar, ocolor, ospecial, x, y)
@@ -84,8 +93,15 @@ unsigned *ospecial;
         idx = mons[offset].mlet + SYM_OFF_M;
         if (has_rogue_color)
             color = CLR_RED;
-        else
-            obj_color(STATUE);
+        else {
+            struct obj* otmp = vobj_at(x, y);
+            if (iflags.use_color && otmp && otmp->otyp == STATUE
+                && otmp->material != MINERAL) {
+                color = materialclr[otmp->material];
+            }
+            else
+                obj_color(STATUE);
+        }
         special |= MG_STATUE;
         if (is_objpile(x,y))
             special |= MG_OBJPILE;
@@ -274,13 +290,6 @@ unsigned *ospecial;
 #ifdef TEXTCOLOR
         if (iflags.use_color && otmp && otmp->otyp == offset
             && otmp->material != objects[offset].oc_material) {
-            /* Externify this array if it's ever needed anywhere else. */
-            const int materialclr[] = {
-                CLR_BLACK, HI_ORGANIC, CLR_WHITE, HI_ORGANIC, CLR_RED,
-                CLR_WHITE, HI_CLOTH, HI_LEATHER, HI_WOOD, CLR_WHITE, CLR_BLACK,
-                HI_METAL, HI_METAL, HI_COPPER, HI_SILVER, HI_GOLD, CLR_WHITE,
-                HI_SILVER, CLR_WHITE, HI_GLASS, CLR_RED, CLR_GRAY
-            };
             color = materialclr[otmp->material];
         } else
 #endif

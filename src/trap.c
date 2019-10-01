@@ -382,6 +382,9 @@ int x, y, typ;
                  && sgn(u.ualign.type) == sgn(mptr->maligntyp));
         statue = mkcorpstat(STATUE, (struct monst *) 0, mptr, x, y,
                             CORPSTAT_NONE);
+        /* we would like statues to use random materials, but not allow them to
+         * get the random spellbook */
+        init_obj_material(statue);
         mtmp = makemon(&mons[statue->corpsenm], 0, 0, MM_NOCOUNTBIRTH);
         if (!mtmp)
             break; /* should never happen */

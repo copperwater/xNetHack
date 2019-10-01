@@ -1143,7 +1143,7 @@ struct obj *obj;
             }
         } else {
             static const char *const d_action[6] = { "swinging", "digging",
-                                                     "chipping the statue",
+                                                     "hitting the statue",
                                                      "hitting the boulder",
                                                      "chopping at the door",
                                                      "cutting the tree" };

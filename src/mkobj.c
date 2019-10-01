@@ -3311,6 +3311,11 @@ static const struct icp horn_materials[] = {
 
 /* hacks for specific objects... not great because it's a lot of data, but it's
  * a relatively clean solution */
+static const struct icp statue_materials[] = {
+    {95, MINERAL},
+    { 4, COPPER},
+    { 1, GOLD}
+};
 static const struct icp elvenhelm_materials[] = {
     {70, LEATHER},
     {20, COPPER},
@@ -3384,6 +3389,8 @@ struct obj* obj;
         case FROST_HORN:
         case HORN_OF_PLENTY:
             return horn_materials;
+        case STATUE:
+            return statue_materials;
         default:
             break;
     }

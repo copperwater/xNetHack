@@ -116,6 +116,7 @@ Ghosts generate invisible 1/3 of the time.
 Gas clouds are a little random in how they spread out from a point; the edges of
   the cloud may be fuzzy and hard to predict.
 The chest that generates with a thiefstone now contains random contents.
+Random statues can occasionally be copper, or rarely gold.
 
 
 It contains the following non-gameplay interface changes:

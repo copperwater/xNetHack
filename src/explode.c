@@ -654,7 +654,7 @@ struct obj *obj; /* only scatter this obj        */
                     obj_extract_self(otmp);
                     place_object(otmp, sx, sy);
                 }
-            } else {
+            } else if (!is_metallic(otmp)) {
                 struct trap *trap;
 
                 if ((trap = t_at(sx, sy)) && trap->ttyp == STATUE_TRAP)
@@ -662,7 +662,7 @@ struct obj *obj; /* only scatter this obj        */
                 if (cansee(sx, sy))
                     pline("%s.", Tobjnam(otmp, "crumble"));
                 else
-                    You_hear("stone crumbling.");
+                    You_hear("crumbling.");
                 (void) break_statue(otmp);
                 place_object(otmp, sx, sy); /* put fragments on floor */
             }

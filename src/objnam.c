@@ -612,10 +612,11 @@ unsigned cxn_flags; /* bitmask of CXN_xxx values */
         if (typ == STATUE && omndx != NON_PM) {
             char anbuf[10];
 
-            Sprintf(buf, "%s%s of %s%s",
+            Sprintf(buf, "%s%s %s of %s%s",
                     (Role_if(PM_ARCHEOLOGIST) && (obj->spe & STATUE_HISTORIC))
                        ? "historic "
                        : "",
+                    materialnm[obj->material],
                     actualn,
                     type_is_pname(&mons[omndx])
                        ? ""
