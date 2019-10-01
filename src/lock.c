@@ -488,13 +488,6 @@ struct obj *pick;
                 return PICKLOCK_LEARNED_SOMETHING;
             }
 
-            Sprintf(qbuf, "%s it?",
-                    door_is_locked(door) ? "Unlock" : "Lock");
-
-            c = yn(qbuf);
-            if (c == 'n')
-                return 0;
-
             switch (picktyp) {
             case CREDIT_CARD:
                 ch = 2 * ACURR(A_DEX) + 20 * Role_if(PM_ROGUE);
