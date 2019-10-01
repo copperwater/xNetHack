@@ -313,7 +313,7 @@ register struct monst *mtmp;
     case S_ANGEL:
         if (humanoid(ptr)) {
             /* create minion stuff; can't use mongets */
-            otmp = mksobj(LONG_SWORD, FALSE, FALSE);
+            otmp = mongets(mtmp, LONG_SWORD);
 
             /* maybe make it special */
             if (!rn2(20) || is_lord(ptr))
@@ -323,15 +323,12 @@ register struct monst *mtmp;
             otmp->oerodeproof = TRUE;
             spe2 = rn2(4);
             otmp->spe = max(otmp->spe, spe2);
-            (void) mpickobj(mtmp, otmp);
 
-            otmp = mksobj(!rn2(4) || is_lord(ptr) ? SHIELD_OF_REFLECTION
-                                                  : LARGE_SHIELD,
-                          FALSE, FALSE);
+            otmp = mongets(mtmp, !rn2(4) || is_lord(ptr) ? SHIELD_OF_REFLECTION
+                                                         : LARGE_SHIELD);
             otmp->cursed = FALSE;
             otmp->oerodeproof = TRUE;
             otmp->spe = 0;
-            (void) mpickobj(mtmp, otmp);
         }
         break;
 
@@ -675,9 +672,8 @@ register struct monst *mtmp;
                 /* if hero teleports out of a vault while being confronted
                    by the vault's guard, there is a shrill whistling sound,
                    so guard evidently carries a cursed whistle */
-                otmp = mksobj(PEA_WHISTLE, TRUE, FALSE);
+                otmp = mongets(mtmp, PEA_WHISTLE);
                 curse(otmp);
-                (void) mpickobj(mtmp, otmp);
             } else { /* soldiers and their officers */
                 if (!rn2(3))
                     (void) mongets(mtmp, K_RATION);
@@ -725,32 +721,30 @@ register struct monst *mtmp;
                 (void) mongets(mtmp, WAN_DIGGING);
         } else if (is_giant(ptr)) {
             for (cnt = rn2((int) (mtmp->m_lev / 2)); cnt; cnt--) {
-                otmp = mksobj(rnd_class(DILITHIUM_CRYSTAL, LUCKSTONE - 1),
-                              FALSE, FALSE);
-                otmp->quan = (long) rn1(2, 3);
-                otmp->owt = weight(otmp);
-                (void) mpickobj(mtmp, otmp);
+                otmp = mongets(mtmp,
+                               rnd_class(DILITHIUM_CRYSTAL, LUCKSTONE - 1));
+                if (otmp) { /* may have merged into another stack of same gem */
+                    otmp->quan = (long) rn1(2, 3);
+                    otmp->owt = weight(otmp);
+                }
             }
         }
         break;
     case S_WRAITH:
         if (ptr == &mons[PM_NAZGUL]) {
-            otmp = mksobj(RIN_INVISIBILITY, FALSE, FALSE);
+            otmp = mongets(mtmp, RIN_INVISIBILITY);
             curse(otmp);
-            (void) mpickobj(mtmp, otmp);
         }
         break;
     case S_LICH:
         if (ptr == &mons[PM_MASTER_LICH] && !rn2(13))
             (void) mongets(mtmp, (rn2(7) ? ATHAME : WAN_NOTHING));
         else if (ptr == &mons[PM_ARCH_LICH] && !rn2(3)) {
-            otmp = mksobj(rn2(3) ? ATHAME : QUARTERSTAFF, TRUE,
-                          rn2(13) ? FALSE : TRUE);
+            otmp = mongets(mtmp, rn2(3) ? ATHAME : QUARTERSTAFF);
             if (otmp->spe < 2)
                 otmp->spe = rnd(3);
             if (!rn2(4))
                 otmp->oerodeproof = 1;
-            (void) mpickobj(mtmp, otmp);
         }
         break;
     case S_MUMMY:
@@ -793,10 +787,10 @@ register struct monst *mtmp;
         break;
     case S_GNOME:
         if (!rn2((In_mines(&u.uz) && in_mklev) ? 20 : 60)) {
-            otmp = mksobj(rn2(4) ? TALLOW_CANDLE : WAX_CANDLE, TRUE, FALSE);
+            otmp = mongets(mtmp, rn2(4) ? TALLOW_CANDLE : WAX_CANDLE);
             otmp->quan = 1;
             otmp->owt = weight(otmp);
-            if (!mpickobj(mtmp, otmp) && !levl[mtmp->mx][mtmp->my].lit)
+            if (!levl[mtmp->mx][mtmp->my].lit)
                 begin_burn(otmp, FALSE);
         }
         break;
@@ -2011,7 +2005,11 @@ int otyp;
             }
         }
 
-        (void) mpickobj(mtmp, otmp); /* might free otmp */
+        /* otmp might be merged into their inventory and freed. If that happens,
+         * we no longer have a pointer to the object here, so it's the caller's
+         * responsibility to check this return value. */
+        if (mpickobj(mtmp, otmp))
+            return NULL;
     }
     return otmp;
 }
