@@ -1468,7 +1468,7 @@ const char *mesg;
         }
 
         if (!strcmp(tintxts[r].txt, "szechuan") && rn2(2)) {
-            struct obj* cookie = mksobj(FORTUNE_COOKIE, FALSE, FALSE);
+            struct obj* cookie = mksobj(FORTUNE_COOKIE, TRUE, FALSE);
             cookie->blessed = tin->blessed;
             cookie->cursed = tin->cursed;
             pline("There is a free fortune cookie inside!");

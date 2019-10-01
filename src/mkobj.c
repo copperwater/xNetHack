@@ -820,9 +820,10 @@ boolean artif;
     otmp->lknown = 0;
     otmp->cknown = 0;
     otmp->corpsenm = NON_PM;
-    init_obj_material(otmp);
+    set_material(otmp, objects[otmp->otyp].oc_material);
 
     if (init) {
+        init_obj_material(otmp);
         switch (let) {
         case WEAPON_CLASS:
             otmp->quan = is_multigen(otmp) ? (long) rn1(6, 6) : 1L;
@@ -3206,7 +3207,7 @@ struct obj * stone;
     set_keyed_loc(stone, chosen_x, chosen_y);
     /* also put a chest here */
     if (!container_at(chosen_x, chosen_y, FALSE)) {
-        mksobj_at(CHEST, chosen_x, chosen_y, FALSE, FALSE);
+        mksobj_at(CHEST, chosen_x, chosen_y, TRUE, FALSE);
     }
 }
 
