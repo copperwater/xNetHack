@@ -1842,9 +1842,13 @@ struct monst *magr, /* monster that is currently deciding where to move */
     if (ma->mlet == S_SPIDER && (md->mlet == S_ANT || md->mlet == S_XAN))
         return ALLOW_M|ALLOW_TM;
 
-    /* bats vs insects */
+    /* bats vs flying insects */
     if (is_bat(ma) && (md->mlet == S_ANT || md->mlet == S_XAN) &&
         (md->mflags1 & M1_FLY))
+        return ALLOW_M|ALLOW_TM;
+
+    /* cats vs rats */
+    if (ma->mlet == S_FELINE && is_rat(md))
         return ALLOW_M|ALLOW_TM;
 
     /* now test all two-way aggressions both ways */

@@ -120,6 +120,7 @@ Random statues can occasionally be copper, or rarely gold.
 Quarterstaves no longer block spellcasting if a cursed one is welded to both of
   your hands.
 Quarterstaves only do d4 damage to small monsters.
+Felines now attack rats.
 
 
 It contains the following non-gameplay interface changes:
