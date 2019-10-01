@@ -1142,7 +1142,7 @@ makelevel()
             do { /* avoid other features */
                 x = somex(croom);
                 y = somey(croom);
-            } while (levl[x][y].typ != ROOM && !t_at(x, y));
+            } while (levl[x][y].typ != ROOM || t_at(x, y));
             make_engr_at(x, y, buf, 0, MARK);
         }
         else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
