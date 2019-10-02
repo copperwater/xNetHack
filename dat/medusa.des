@@ -184,7 +184,8 @@ TRAP:random,random
 # Monsters.
 MONSTER:('@',"Medusa"),(68,10),asleep
 MONSTER:('g',"gremlin"),(02,14)
-MONSTER:('H',"titan"),(02,05)
+MONSTER:('N',"golden naga"),(02,05)
+MONSTER:('N',"golden naga"),(48,06)
 MONSTER:('z',"electric eel"),(10,13)
 MONSTER:('z',"electric eel"),(11,13)
 MONSTER:('z',"electric eel"),(10,14)
