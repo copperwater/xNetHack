@@ -132,6 +132,8 @@ Revise ammo breakage rules: as in NetHack Fourk, the chance of breakage
   less often.
 Demon princes gate in twice as many demons as lesser demons do; demon lords gate
   in some intermediate amount.
+Goblins now generate in small groups (but won't on very shallow levels due to
+  automatic group size scaling).
 
 
 It contains the following non-gameplay interface changes:
