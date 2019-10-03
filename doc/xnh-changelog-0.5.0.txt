@@ -130,6 +130,8 @@ Revise ammo breakage rules: as in NetHack Fourk, the chance of breakage
   decreases with higher skill and skill cap. Negatively enchanted and cursed
   ammo breaks much more often; positively enchanted and blessed ammo breaks much
   less often.
+Demon princes gate in twice as many demons as lesser demons do; demon lords gate
+  in some intermediate amount.
 
 
 It contains the following non-gameplay interface changes:
