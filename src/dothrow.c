@@ -1774,19 +1774,27 @@ register struct obj *obj; /* thrownobj or kickedobj or uwep */
             if (objects[otyp].oc_skill < P_NONE
                 && objects[otyp].oc_skill > -P_BOOMERANG
                 && !objects[otyp].oc_magic) {
-                /* we were breaking 2/3 of everything unconditionally.
-                 * we still don't want anything to survive unconditionally,
-                 * but we need ammo to stay around longer on average.
-                 */
-                int broken, chance;
 
-                chance = 3 + greatest_erosion(obj) - obj->spe;
-                if (chance > 1)
-                    broken = rn2(chance);
-                else
-                    broken = !rn2(4);
-                if (obj->blessed && !rnl(4))
-                    broken = 0;
+                /* The previous version of this logic made sure early-game
+                 * characters couldn't use their ranged weapons much or they'd
+                 * all break.  That isn't what we want.  So instead, we use a
+                 * combination of skill and max skill to determine the base
+                 * chance of breakage, then use item enchantment for the
+                 * item's saving throw, as it were.
+                 */
+                boolean broken = FALSE;
+                int chance = (P_SKILL(weapon_type(obj))
+                              * P_MAX_SKILL(weapon_type(obj)) * 2);
+                schar speadjust = obj->spe
+                                  + (obj->blessed * 2)
+                                  - (obj->cursed * 2);
+                if ((chance == 0 && rn2(2)) || !rn2(chance)) {
+                    /* Object will break unless positive enchantment saves it. */
+                    broken = (speadjust <= 0) || !rn2(1 + speadjust);
+                } else {
+                    /* Object survives unless negative enchantment dooms it. */
+                    broken = (speadjust < 0) && rn2(1 - speadjust);
+                }
 
                 if (broken) {
                     if (*u.ushops || obj->unpaid)

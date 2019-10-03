@@ -126,6 +126,10 @@ The portal to Fort Ludios now generates in the first vault generated on or below
 The titan on one Medusa level has been replaced with two golden nagas.
 Drop the level of the spellbook of invisibility from 4 to 1.
 Yeenoghu's magic missile attack damage is increased to 6d6.
+Revise ammo breakage rules: as in NetHack Fourk, the chance of breakage
+  decreases with higher skill and skill cap. Negatively enchanted and cursed
+  ammo breaks much more often; positively enchanted and blessed ammo breaks much
+  less often.
 
 
 It contains the following non-gameplay interface changes:
