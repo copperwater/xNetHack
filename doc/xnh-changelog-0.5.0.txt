@@ -135,6 +135,7 @@ Demon princes gate in twice as many demons as lesser demons do; demon lords gate
 Goblins now generate in small groups (but won't on very shallow levels due to
   automatic group size scaling).
 The Wizard of Yendor now has a 2d6 weapon attack.
+Restore passive rust attack to water elementals.
 
 
 It contains the following non-gameplay interface changes:
