@@ -2510,7 +2510,7 @@ dodip()
 void
 ferment(arg, timeout)
 anything* arg;
-long timeout;
+long timeout UNUSED;
 {
     struct obj* potion = arg->a_obj;
     short corpsenm = potion->corpsenm;

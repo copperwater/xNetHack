@@ -1901,7 +1901,7 @@ long timeout UNUSED;
 void
 moldy_corpse(arg, timeout)
 anything* arg;
-long timeout;
+long timeout UNUSED;
 {
     struct obj* body = arg->a_obj;
     char* old_oname = (has_oname(body) ? ONAME(body) : NULL);

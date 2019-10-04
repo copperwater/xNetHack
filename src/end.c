@@ -487,9 +487,8 @@ int how;
  * Set killer accordingly; do nothing else.
  */
 void
-format_monkiller(mtmp, how)
+format_monkiller(mtmp)
 struct monst *mtmp;
-int how;
 {
     char buf[BUFSZ];
     struct permonst *mptr = mtmp->data,
@@ -586,7 +585,7 @@ int how;
     You((how == STONING) ? "turn to stone..." : "die...");
     mark_synch(); /* flush buffered screen output */
 
-    format_monkiller(mtmp, how);
+    format_monkiller(mtmp);
 
     /*
      * Chicken and egg issue:

@@ -1939,6 +1939,7 @@ xchar x, y;
            break;
         case GRASS:
            idx = S_grass;
+           break;
         case AIR:
            idx = S_air;
            break;

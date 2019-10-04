@@ -809,10 +809,10 @@ struct permonst * pm;
                 dicebuf[0] = '\0';
             }
         }
-        if (attk->aatyp < 0 || attk->aatyp > LAST_AT) {
+        if (attk->aatyp > LAST_AT) {
             impossible("add_to_mon: unknown attack type %d", attk->aatyp);
         }
-        else if (attk->adtyp < 0 || attk->adtyp > LAST_AD) {
+        else if (attk->adtyp > LAST_AD) {
             impossible("add_to_mon: unknown damage type %d", attk->adtyp);
         }
         else {

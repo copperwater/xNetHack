@@ -990,7 +990,7 @@ makelevel()
     /* construct stairs (up and down in different rooms if possible) */
     croom = &rooms[rn2(nroom)];
     if (!Is_botlevel(&u.uz))
-        mkstairs(somex(croom), somey(croom), 0, croom); /* down */
+        mkstairs(somex(croom), somey(croom), 0); /* down */
     if (nroom > 1) {
         troom = croom;
         croom = &rooms[rn2(nroom - 1)];
@@ -1007,7 +1007,7 @@ makelevel()
             sx = somex(croom);
             sy = somey(croom);
         } while (occupied(sx, sy));
-        mkstairs(sx, sy, 1, croom); /* up */
+        mkstairs(sx, sy, 1); /* up */
     }
 
     branchp = Is_branchlev(&u.uz);    /* possible dungeon branch */
@@ -1891,10 +1891,9 @@ coord *tm;
  * up is whether or not it's upstairs.
  */
 void
-mkstairs(x, y, up, croom)
+mkstairs(x, y, up)
 xchar x, y;
 char up; /* should probably be boolean... */
-struct mkroom *croom;
 {
     if (!x) {
         impossible("mkstairs:  bogus stair attempt at <%d,%d>", x, y);
@@ -2118,7 +2117,7 @@ mkinvokearea()
     }
 
     You("are standing at the top of a stairwell leading down!");
-    mkstairs(u.ux, u.uy, 0, (struct mkroom *) 0); /* down */
+    mkstairs(u.ux, u.uy, 0); /* down */
     newsym(u.ux, u.uy);
     vision_full_recalc = 1; /* everything changed */
     livelog_write_string(LL_ACHIEVE, "performed the invocation");

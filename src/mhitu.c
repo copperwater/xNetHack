@@ -2482,7 +2482,7 @@ int n;
         u.mh -= n;
         if (u.mh < 1) {
             /* in case rehumanize kills us for good */
-            format_monkiller(mtmp, DIED);
+            format_monkiller(mtmp);
             rehumanize();
         }
     } else {

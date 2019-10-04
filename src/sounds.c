@@ -736,6 +736,7 @@ register struct monst *mtmp;
             pline_msg = "groans";
         else
             verbl_msg = "Braaaaaains...";
+	break;
     case MS_GURGLE:
         pline_msg = "gurgles.";
         break;

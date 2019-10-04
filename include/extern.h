@@ -718,7 +718,7 @@ E int NDECL(done2);
 #ifdef USE_TRAMPOLI
 E void FDECL(done_intr, (int));
 #endif
-E void FDECL(format_monkiller, (struct monst *, int));
+E void FDECL(format_monkiller, (struct monst *));
 E void FDECL(done_in_by, (struct monst *, int));
 #endif /* !MAKEDEFS_C && !LEV_LEX_C */
 E void VDECL(panic, (const char *, ...)) PRINTF_F(1, 2) NORETURN;
@@ -1315,7 +1315,7 @@ E boolean FDECL(occupied, (XCHAR_P, XCHAR_P));
 E int FDECL(okdoor, (XCHAR_P, XCHAR_P));
 E void FDECL(dodoor, (int, int, struct mkroom *));
 E void FDECL(mktrap, (int, int, struct mkroom *, coord *));
-E void FDECL(mkstairs, (XCHAR_P, XCHAR_P, CHAR_P, struct mkroom *));
+E void FDECL(mkstairs, (XCHAR_P, XCHAR_P, CHAR_P));
 E void FDECL(mkfeature, (XCHAR_P, struct mkroom *));
 E void NDECL(mkinvokearea);
 E void FDECL(mineralize, (int, int, int, int, BOOLEAN_P));

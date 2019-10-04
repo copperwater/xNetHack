@@ -3578,7 +3578,7 @@ struct sp_coder *coder;
     get_location_coord(&x, &y, DRY, coder->croom, OV_i(scoord));
     if ((badtrap = t_at(x, y)) != 0)
         deltrap(badtrap);
-    mkstairs(x, y, (char) OV_i(up), coder->croom);
+    mkstairs(x, y, (char) OV_i(up));
     SpLev_Map[x][y] = 1;
 
     opvar_free(scoord);
