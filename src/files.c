@@ -4372,10 +4372,8 @@ char *buffer UNUSED;
 {
 }
 
-void
-livelog_printf
-VA_DECL2(unsigned int, ll_type, const char *, fmt)
-} /* would be matched in VA_END() but we don't need this */
+/* empty livelog_printf body triggers unused parameters warnings; instead, it is
+ * macroed into nothing, so it doesn't appear here */
 
 #endif /* LIVELOGFILE */
 
