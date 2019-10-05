@@ -1990,18 +1990,21 @@ register struct obj *o1, *o2;
         case POT_GAIN_ENERGY:
             return POT_EXTRA_HEALING;
         }
+        break;
     case POT_EXTRA_HEALING:
         switch (o2->otyp) {
         case POT_GAIN_LEVEL:
         case POT_GAIN_ENERGY:
             return POT_FULL_HEALING;
         }
+        break;
     case POT_FULL_HEALING:
         switch (o2->otyp) {
         case POT_GAIN_LEVEL:
         case POT_GAIN_ENERGY:
             return POT_GAIN_ABILITY;
         }
+        break;
     case UNICORN_HORN:
         switch (o2->otyp) {
         case POT_SICKNESS:

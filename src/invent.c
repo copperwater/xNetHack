@@ -140,6 +140,7 @@ struct obj *obj;
             case DRUM_OF_EARTHQUAKE:
             case HORN_OF_PLENTY: /* not a musical instrument */
                 k = 3; /* instrument or unknown horn of plenty */
+                break;
             default:
                 k = 4; /* 'other' tool */
             }
@@ -1496,7 +1497,7 @@ boolean allow_floor;
     char qsfx[QBUFSZ]; /* for old-style floor prompts */
     char invlets[256] = "";
     int n, c;
-    register char ilet;
+    register unsigned char ilet; /* unsigned to avoid char-subscripts warning */
     register struct obj *obj, *otmp;
     struct obj *res = NULL;
     int cnt = -1;
@@ -1517,15 +1518,15 @@ boolean allow_floor;
     n = 0;
     reorder_invent(); /* ensure it's sorted alphabetically */
     for (obj = invent; obj; obj = obj->nobj) {
-        invlets[obj->invlet] = TRUE;
+        invlets[(unsigned char) obj->invlet] = TRUE;
         c = (*obj_ok)(obj);
         if (c == 1) {
-            altlets[obj->invlet] = TRUE;
+            altlets[(unsigned char) obj->invlet] = TRUE;
             altinv = TRUE;
         } else if (c > 1) {
             qbuf[n++] = obj->invlet;
             inv = TRUE;
-            lets[obj->invlet] = TRUE;
+            lets[(unsigned char) obj->invlet] = TRUE;
         }
     }
 

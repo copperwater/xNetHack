@@ -2066,7 +2066,7 @@ struct obj *obj;
     if (obj->globby) {
         /* globs must be sold by weight not by volume */
         int unit_weight = (int) objects[obj->otyp].oc_weight,
-            wt = (obj->owt > 0) ? obj->owt : weight(obj);
+            wt = (obj->owt > 0) ? obj->owt : (unsigned) weight(obj);
 
         if (unit_weight)
             units = wt / unit_weight;

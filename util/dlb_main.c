@@ -264,7 +264,7 @@ char **argv;
 
         close_library(&lib);
         xexit(EXIT_SUCCESS);
-
+        break;
     case 'x': { /* extract archive contents */
         int f, n;
         long remainder, total_read;
@@ -333,7 +333,7 @@ char **argv;
         close_library(&lib);
         xexit(EXIT_SUCCESS);
     }
-
+    break;
     case 'c': /* create archive */
     {
         libdir *ld = 0;

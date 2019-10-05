@@ -208,7 +208,7 @@ typedef struct sortloot_item Loot;
     (Warn_of_mon && ((context.warntype.obj                                   \
                       && (((context.warntype.obj & 0x80000000) != 0) ?       \
                           ((context.warntype.obj & 0x7FFFFFFF)               \
-                                                     == (mon)->data->mlet) : \
+                                      == (unsigned int) (mon)->data->mlet) : \
                           (context.warntype.obj & (mon)->data->mflags2)))    \
                      || (context.warntype.polyd                              \
                          && (context.warntype.polyd & (mon)->data->mflags2)) \
