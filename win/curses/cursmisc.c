@@ -65,6 +65,7 @@ curses_read_char()
         ch = M(tmpch);
     }
 #endif
+    nhUse(tmpch); /* satisfy compiler whether or not alt keys are defined */
 
 #ifdef KEY_RESIZE
     /* Handle resize events via get_nh_event, not this code */
@@ -372,7 +373,6 @@ curses_str_remainder(const char *str, int width, int line_num)
     int strsize = strlen(str) + 1;
 #if __STDC_VERSION__ >= 199901L
     char substr[strsize];
-    char curstr[strsize];
     char tmpstr[strsize];
 
     strcpy(substr, str);
@@ -381,7 +381,6 @@ curses_str_remainder(const char *str, int width, int line_num)
 #define BUFSZ 256
 #endif
     char substr[BUFSZ * 2];
-    char curstr[BUFSZ * 2];
     char tmpstr[BUFSZ * 2];
 
     if (strsize > (BUFSZ * 2) - 1) {
@@ -409,10 +408,6 @@ curses_str_remainder(const char *str, int width, int line_num)
         if (last_space == 0) {  /* No spaces found */
             last_space = count - 1;
         }
-        for (count = 0; count < last_space; count++) {
-            curstr[count] = substr[count];
-        }
-        curstr[count] = '\0';
         if (substr[count] == '\0') {
             break;
         }

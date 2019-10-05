@@ -206,7 +206,6 @@ STATIC_DCL boolean FDECL(check_fields, (BOOLEAN_P, int *));
 STATIC_DCL void NDECL(render_status);
 STATIC_DCL void FDECL(tty_putstatusfield, (const char *, int, int));
 STATIC_DCL boolean NDECL(check_windowdata);
-STATIC_DCL int NDECL(condition_size);
 STATIC_DCL int FDECL(make_things_fit, (BOOLEAN_P));
 STATIC_DCL void FDECL(shrink_enc, (int));
 STATIC_DCL void FDECL(shrink_dlvl, (int));
@@ -3994,7 +3993,7 @@ STATIC_OVL int
 make_things_fit(force_update)
 boolean force_update;
 {
-    int trycnt, fitting = 0, condsz, requirement;
+    int trycnt, fitting = 0, requirement;
     int rowsz[3], num_rows, condrow, otheroptions = 0;
 
     num_rows = (iflags.wc2_statuslines < 3) ? 2 : 3;
@@ -4004,7 +4003,6 @@ boolean force_update;
         shrink_enc(0);
     if (dlvl_shrinklvl > 0)
         shrink_dlvl(0);
-    condsz = condition_size();
     for (trycnt = 0; trycnt < 6 && !fitting; ++trycnt) {
         /* FIXME: this remeasures each line every time even though it
            is only attempting to shrink one of them and the other one
@@ -4022,7 +4020,6 @@ boolean force_update;
         if (trycnt < 2) {
             if (cond_shrinklvl < trycnt + 1) {
                 cond_shrinklvl = trycnt + 1;
-                condsz = condition_size();
             }
             continue;
         }
@@ -4169,7 +4166,7 @@ status_sanity_check(VOID_ARGS)
         "BL_TIME", "BL_HUNGER", "BL_HP", "BL_HPMAX",           /* 16.. 19 */
         "BL_LEVELDESC", "BL_EXP", "BL_CONDITION"              /* 20.. 22 */
     };
-   
+
     if (in_sanity_check)
         return;
     in_sanity_check = TRUE;
@@ -4238,11 +4235,13 @@ int x, y;
         }
     } else {
         /* Now we're truncating */
-        if (truncation_expected)
+        if (truncation_expected) {
             ; /* but we knew in advance */
+        }
     }
 }
 
+#if 0 /* UNUSED */
 /* caller must set cond_shrinklvl (0..2) before calling us */
 STATIC_OVL int
 condition_size()
@@ -4261,6 +4260,7 @@ condition_size()
     tty_status[NOW][BL_CONDITION].lth = lth;
     return lth;
 }
+#endif
 
 STATIC_OVL void
 shrink_enc(lvl)

@@ -203,7 +203,7 @@ curses_block(boolean noscroll) /* noscroll - blocking because of msgtype
         prev_x = mx, prev_y = my;
         blink = 0;
     }
-    moreattr = !iflags.wc2_guicolor ? A_REVERSE : NONE;
+    moreattr = !iflags.wc2_guicolor ? (int) A_REVERSE : NONE;
     curses_toggle_color_attr(win, MORECOLOR, moreattr, ON);
     if (blink) {
         wattron(win, A_BLINK);
@@ -240,7 +240,7 @@ curses_block(boolean noscroll) /* noscroll - blocking because of msgtype
     if (height == 1) {
         curses_clear_unhighlight_message_window();
     } else {
-        mx -= morewidth, mvwprintw(win, my, mx, "%*s", (size_t)morewidth, ""); /* back up and blank out ">>" */
+        mx -= morewidth, mvwprintw(win, my, mx, "%*s", (int) morewidth, ""); /* back up and blank out ">>" */
         if (!noscroll) {
             scroll_window(MESSAGE_WIN);
         }
