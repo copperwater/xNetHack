@@ -1,4 +1,4 @@
-/* NetHack 3.6	invent.c	$NHDT-Date: 1567213892 2019/08/31 01:11:32 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.262 $ */
+/* NetHack 3.6	invent.c	$NHDT-Date: 1570232224 2019/10/04 23:37:04 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.263 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -143,6 +143,7 @@ struct obj *obj;
                 break;
             default:
                 k = 4; /* 'other' tool */
+                break;
             }
         break;
     case FOOD_CLASS:

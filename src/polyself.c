@@ -1,4 +1,4 @@
-/* NetHack 3.6	polyself.c	$NHDT-Date: 1559664952 2019/06/04 16:15:52 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.133 $ */
+/* NetHack 3.6	polyself.c	$NHDT-Date: 1570230710 2019/10/04 23:11:50 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.134 $ */
 /*      Copyright (C) 1987, 1988, 1989 by Ken Arromdee */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -23,6 +23,7 @@
 
 STATIC_DCL void FDECL(check_strangling, (BOOLEAN_P, BOOLEAN_P));
 STATIC_DCL void FDECL(polyman, (const char *, const char *));
+STATIC_DCL void FDECL(dropp, (struct obj *));
 STATIC_DCL void FDECL(break_armor, (BOOLEAN_P));
 STATIC_DCL void FDECL(drop_weapon, (int, BOOLEAN_P));
 STATIC_DCL int FDECL(armor_to_dragon, (int));
@@ -867,6 +868,33 @@ boolean noisy;
     return 1;
 }
 
+/* dropx() jacket for break_armor() */
+STATIC_OVL void
+dropp(obj)
+struct obj *obj;
+{
+    struct obj *otmp;
+
+    /*
+     * Dropping worn armor while polymorphing might put hero into water
+     * (loss of levitation boots or water walking boots that the new
+     * form can't wear), where emergency_disrobe() could remove it from
+     * inventory.  Without this, dropx() could trigger an 'object lost'
+     * panic.  Right now, boots are the only armor which might encounter
+     * this situation, but handle it for all armor.
+     *
+     * Hypothetically, 'obj' could have merged with something (not
+     * applicable for armor) and no longer be a valid pointer, so scan
+     * inventory for it instead of trusting obj->where.
+     */
+    for (otmp = invent; otmp; otmp = otmp->nobj) {
+        if (otmp == obj) {
+            dropx(obj);
+            break;
+        }
+    }
+}
+
 STATIC_OVL void
 break_armor(noisy)
 boolean noisy;
@@ -888,7 +916,7 @@ boolean noisy;
                 if (noisy)
                     Your("%s falls off!", cloak_simple_name(otmp));
                 (void) Cloak_off();
-                dropx(otmp);
+                dropp(otmp);
             } else {
                 if (noisy)
                     Your("%s tears apart!", cloak_simple_name(otmp));
@@ -908,7 +936,7 @@ boolean noisy;
             if (noisy)
                 Your("armor falls around you!");
             (void) Armor_gone();
-            dropx(otmp);
+            dropp(otmp);
         }
         if ((otmp = uarmc) != 0) {
             if (noisy) {
@@ -918,7 +946,7 @@ boolean noisy;
                     You("shrink out of your %s!", cloak_simple_name(otmp));
             }
             (void) Cloak_off();
-            dropx(otmp);
+            dropp(otmp);
         }
         if ((otmp = uarmu) != 0) {
             if (noisy) {
@@ -928,7 +956,7 @@ boolean noisy;
                     You("become much too small for your shirt!");
             }
             setworn((struct obj *) 0, otmp->owornmask & W_ARMU);
-            dropx(otmp);
+            dropp(otmp);
         }
     }
     if (has_horns(youmonst.data)) {
@@ -949,7 +977,7 @@ boolean noisy;
                     Your("%s falls to the %s!", helm_simple_name(otmp),
                         surface(u.ux, u.uy));
                 (void) Helmet_off();
-                dropx(otmp);
+                dropp(otmp);
             }
         }
     }
@@ -962,13 +990,13 @@ boolean noisy;
                 You("drop your gloves%s!", uwep ? " and weapon" : "");
             drop_weapon(0, noisy);
             (void) Gloves_off();
-            dropx(otmp);
+            dropp(otmp);
         }
         if ((otmp = uarms) != 0) {
             if (noisy)
                 You("can no longer hold your shield!");
             (void) Shield_off();
-            dropx(otmp);
+            dropp(otmp);
         }
         if ((otmp = uarmh) != 0) {
             if (donning(otmp))
@@ -977,7 +1005,7 @@ boolean noisy;
                 Your("%s falls to the %s!", helm_simple_name(otmp),
                     surface(u.ux, u.uy));
             (void) Helmet_off();
-            dropx(otmp);
+            dropp(otmp);
         }
     }
     if (nohands(youmonst.data) || verysmall(youmonst.data)
@@ -993,7 +1021,7 @@ boolean noisy;
                     verysmall(youmonst.data) ? "slide" : "are pushed");
             }
             (void) Boots_off();
-            dropx(otmp);
+            dropp(otmp);
         }
     }
 }
@@ -1048,6 +1076,10 @@ boolean noisy;
                 updateinv = FALSE;
             else if (candropwep)
                 dropx(otmp);
+            /* [note: dropp vs dropx -- if heart of ahriman is wielded, we
+               might be losing levitation by dropping it; but that won't
+               happen until the drop, unlike Boots_off() dumping hero into
+               water and triggering emergency_disrobe() before dropx()] */
 
             if (updateinv)
                 update_inventory();

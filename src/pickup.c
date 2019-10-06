@@ -1,4 +1,4 @@
-/* NetHack 3.6	pickup.c	$NHDT-Date: 1562203851 2019/07/04 01:30:51 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.229 $ */
+/* NetHack 3.6	pickup.c	$NHDT-Date: 1570142736 2019/10/03 22:45:36 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.234 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -711,28 +711,22 @@ int what; /* should be a long */
     return (n_tried > 0);
 }
 
-boolean
-is_autopickup_exception(obj, grab)
+struct autopickup_exception *
+check_autopickup_exceptions(obj)
 struct obj *obj;
-boolean grab; /* forced pickup, rather than forced leave behind? */
 {
     /*
      *  Does the text description of this match an exception?
      */
-    struct autopickup_exception
-        *ape = (grab) ? iflags.autopickup_exceptions[AP_GRAB]
-                      : iflags.autopickup_exceptions[AP_LEAVE];
+    struct autopickup_exception *ape = apelist;
 
     if (ape) {
         char *objdesc = makesingular(doname(obj));
 
-        while (ape) {
-            if (regex_match(objdesc, ape->regex))
-                return TRUE;
+        while (ape && !regex_match(objdesc, ape->regex))
             ape = ape->next;
-        }
     }
-    return FALSE;
+    return ape;
 }
 
 boolean
@@ -740,6 +734,7 @@ autopick_testobj(otmp, calc_costly)
 struct obj *otmp;
 boolean calc_costly;
 {
+    struct autopickup_exception *ape;
     static boolean costly = FALSE;
     const char *otypes = flags.pickup_types;
     boolean pickit;
@@ -755,12 +750,12 @@ boolean calc_costly;
 
     /* check for pickup_types */
     pickit = (!*otypes || index(otypes, otmp->oclass));
-    /* check for "always pick up */
-    if (!pickit)
-        pickit = is_autopickup_exception(otmp, TRUE);
-    /* then for "never pick up */
-    if (pickit)
-        pickit = !is_autopickup_exception(otmp, FALSE);
+
+    /* check for autopickup exceptions */
+    ape = check_autopickup_exceptions(otmp);
+    if (ape)
+        pickit = ape->grab;
+
     /* pickup_thrown overrides pickup_types and exceptions */
     if (!pickit)
         pickit = (flags.pickup_thrown && otmp->was_thrown);
@@ -1093,11 +1088,13 @@ int how;               /* type of query */
         if (curr) {
             *pick_list = (menu_item *) alloc(sizeof(menu_item));
             (*pick_list)->item.a_int = curr->oclass;
-            return 1;
+            n = 1;
         } else {
             debugpline0("query_category: no single object match");
+            n = 0;
         }
-        return 0;
+        /* early return is ok; there's no temp window yet */
+        return n;
     }
 
     win = create_nhwindow(NHW_MENU);
@@ -1150,7 +1147,8 @@ int how;               /* type of query */
         pack++;
         if (invlet >= 'u') {
             impossible("query_category: too many categories");
-            return 0;
+            n = 0;
+            goto query_done;
         }
     } while (*pack);
 
@@ -1210,6 +1208,7 @@ int how;               /* type of query */
     }
     end_menu(win, qstr);
     n = select_menu(win, how, pick_list);
+ query_done:
     destroy_nhwindow(win);
     if (n < 0)
         n = 0; /* caller's don't expect -1 */

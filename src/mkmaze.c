@@ -701,7 +701,7 @@ struct monst *mtmp;
     goldprob = is_captain ? 600 : 300;
     gemprob = goldprob / 4;
     if (rn2(1000) < goldprob) {
-        if ((otmp = mksobj(GOLD_PIECE, FALSE, FALSE)) != 0) {
+        if ((otmp = mksobj(GOLD_PIECE, TRUE, FALSE)) != 0) {
             otmp->quan = 1L + rnd(goldprob);
             otmp->owt = weight(otmp);
             add_to_minv(mtmp, otmp);
@@ -717,7 +717,7 @@ struct monst *mtmp;
     }
     if (is_captain || !rn2(8)) {
         otyp = shiny_obj(RING_CLASS);
-        if (otyp != STRANGE_OBJECT && (otmp = mksobj(otyp, FALSE, FALSE)) != 0)
+        if (otyp != STRANGE_OBJECT && (otmp = mksobj(otyp, TRUE, FALSE)) != 0)
             add_to_minv(mtmp, otmp);
     }
 }
@@ -728,7 +728,7 @@ const char *gang;
 {
     struct obj *otmp;
 
-    otmp = mksobj_migr_to_species(otyp, (unsigned long) M2_ORC, FALSE, FALSE);
+    otmp = mksobj_migr_to_species(otyp, (unsigned long) M2_ORC, TRUE, FALSE);
     if (otmp && gang) {
         new_oname(otmp, strlen(gang) + 1); /* removes old name if present */
         Strcpy(ONAME(otmp), gang);

@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.116 $ $NHDT-Date: 1569276988 2019/09/23 22:16:28 $
+$NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.125 $ $NHDT-Date: 1570318925 2019/10/05 23:42:05 $
 
 This fixes36.3 file is here to capture information about updates in the 3.6.x
 lineage following the release of 3.6.2 in May 2019. Please note, however,
@@ -156,6 +156,27 @@ uarmh null pointer dereference if a helm of opposite alignment came off due
 	to being polymorphed
 verb tense was inappropriate in some messages when a mon/pet had a name 
 	ending in 's'
+orctown booty items should have been initialized in mksobj()
+query_category() and whatdoes_help() had early returns which could each leave
+	a temporary window around, which in turn might eventually lead to a
+	panic due to lack of window slots [probably moot for unmodified 3.6.x;
+	the query one couldn't happen unless there is a coding error for
+	object classes somewhere and the help one couldn't happen unless the
+	installed data files left 'keyhelp' missing]
+ball and chain could end up too far from punished hero (triggering b&c warning
+	for wizard mode with sanity checking active) when crawling out of
+	water failed because dropping stuff left hero overly encumbered and
+	hero was life saved--or player declined to die--if the hero got
+	teleported one step further from ball and chain's current location
+avoid 'object lost' panic when polymorph causes loss of levitation boots or
+	water walking boots which dumps hero into water where emergency
+	disrobing/dropping in order to crawl out chooses to drop those boots
+'sortloot's attempt to group musical instruments separately from other tools
+	didn't work as intended due to missing 'break' in sortloot_classify()
+<shift><letter> running told player about engravings as they were being moved
+	over but buffered output didn't show it until hero stopped, so it
+	wasn't possible to tell where they were, unlike all other forms of
+	multiple movement; stop running if/when an engraving is reached
 
 
 Fixes to Post-3.6.2 Problems that Were Exposed Via git Repository
@@ -163,7 +184,7 @@ Fixes to Post-3.6.2 Problems that Were Exposed Via git Repository
 elemental_clog() loop needed to guard against obliteration of the monster
 	that was trying to be placed
 using ^G to create "hidden mimic" shouldn't have marked it as undetected since
-	mimics 'hide' be appearing to be something else; honor "hidden" for
+	mimics 'hide' by appearing to be something else; honor "hidden" for
 	'hides_under' creatures if/when created at location with object(s),
 	also for eels and other fish if/when created at water location
 for wizard mode 'wizweight' option, glob weight wasn't shown unless glob had
@@ -314,6 +335,7 @@ NetHack Community Patches (or Variation) Included
 -------------------------------------------------
 add a couple of engraving suggestions in pull request #79
 chasonr's faster method to write characters to msdos VGA in pull request #220
+autopickup exception priority change in pull request #226
 
 
 Code Cleanup and Reorganization
