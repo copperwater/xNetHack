@@ -848,7 +848,7 @@ register struct monst *mtmp;
             max -= NUM_HALLU_ANGEL_TAUNTS;
         xcrypt(angelic_taunts[rn2(max)], buf);
         convert_line(buf, buf);
-        verbalize(buf);
+        verbalize1(buf);
     } else {
         if (!rn2(is_minion(mtmp->data) ? 100 : 5))
             pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
@@ -862,7 +862,7 @@ register struct monst *mtmp;
              * it, so we have to undo it by xcrypting it first. */
             xcrypt(impish_taunts[rn2(max)], buf);
             convert_line(buf, buf);
-            verbalize(buf);
+            verbalize1(buf);
         }
     }
 }
