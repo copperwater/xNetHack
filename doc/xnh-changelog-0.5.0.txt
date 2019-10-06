@@ -142,6 +142,26 @@ Scale the size of monsters' hit dice by their in-game size. Medium monsters
 Adjust the special monster maximum HP formula for Riders to 40 + 8d8. Remove the
   special monster maximum HP formla for dragons (they follow normal rules for
   any gigantic creature of their level).
+Adjust monster sizes:
+  Giant ants are Small rather than Tiny.
+  Lemures are Small rather than Medium.
+  Baby crocodiles are Small rather than Medium.
+  Mumakil are Gigantic rather than Large.
+  Mastodons are Huge rather than Large.
+  Giant rats are Small rather than Tiny.
+  Centipedes are Small rather than Tiny.
+  All v-class monsters are Large rather than Huge.
+  Electric eels are Large rather than Huge. (Giant eels remain Huge.)
+  Krakens are Gigantic rather than Huge.
+  All baby dragons are Large rather than Huge.
+  All elementals are Large rather than Huge.
+  All naga hatchlings are Small rather than Large.
+  Cobras are Large rather than Medium.
+  Xorns are Large rather than Medium.
+  Medusa is Medium rather than Large.
+  Balrogs are Huge rather than Large.
+  Juiblex is Gigantic rather than Large.
+Mumaks' base level is now 10, and their difficulty is increased to 15.
 
 
 It contains the following non-gameplay interface changes:
