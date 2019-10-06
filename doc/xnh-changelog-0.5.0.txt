@@ -136,6 +136,12 @@ Goblins now generate in small groups (but won't on very shallow levels due to
   automatic group size scaling).
 The Wizard of Yendor now has a 2d6 weapon attack.
 Restore passive rust attack to water elementals.
+Scale the size of monsters' hit dice by their in-game size. Medium monsters
+  still use a d8; smaller monsters use smaller dice and larger monsters use
+  larger dice.
+Adjust the special monster maximum HP formula for Riders to 40 + 8d8. Remove the
+  special monster maximum HP formla for dragons (they follow normal rules for
+  any gigantic creature of their level).
 
 
 It contains the following non-gameplay interface changes:

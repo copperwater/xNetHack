@@ -709,19 +709,8 @@ boolean noisy;
      * "experience level of you as a monster" for a polymorphed character.
      */
     mlvl = (int) mons[mntmp].mlevel;
-    if (youmonst.data->mlet == S_DRAGON && mntmp >= PM_GRAY_DRAGON) {
-        u.mhmax = In_endgame(&u.uz) ? (8 * mlvl) : (4 * mlvl + d(mlvl, 4));
-    } else if (is_golem(youmonst.data)) {
-        u.mhmax = golemhp(mntmp);
-    } else {
-        if (!mlvl)
-            u.mhmax = rnd(4);
-        else
-            u.mhmax = d(mlvl, 8);
-        if (is_home_elemental(&mons[mntmp]))
-            u.mhmax *= 3;
-    }
-    u.mh = u.mhmax;
+    u.mhmax = u.mh = monmaxhp(&mons[mntmp], mlvl);
+    pline("setting mlvl %d, hpmax %d", mlvl, u.mhmax);
 
     if (u.ulevel < mlvl) {
         /* Low level characters can't become high level monsters for long */
