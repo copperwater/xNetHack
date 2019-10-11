@@ -517,6 +517,9 @@ xchar x, y;
         return 1;
     }
 
+    if (kickedobj->oartifact)
+        u.uconduct.artitouch++;
+
     if (!uarmf && kickedobj->otyp == CORPSE
         && touch_petrifies(&mons[kickedobj->corpsenm]) && !Stone_resistance) {
         You("kick %s with your bare %s.",
