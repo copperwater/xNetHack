@@ -4236,12 +4236,15 @@ int x, y;
                 text++;
             }
         }
-    } else {
-        /* Now we're truncating */
+    }
+#if 0
+    else {
         if (truncation_expected) {
+        /* Now we're truncating */
             ; /* but we knew in advance */
         }
     }
+#endif
 }
 
 /* caller must set cond_shrinklvl (0..2) before calling us */
