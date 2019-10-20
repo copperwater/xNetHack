@@ -41,7 +41,9 @@ int
 curses_read_char()
 {
     int ch;
-    int tmpch = 0;
+#if defined(ALT_0) || defined(ALT_9) || defined(ALT_A) || defined(ALT_Z)
+    int tmpch;
+#endif
 
     /* cancel message suppression; all messages have had a chance to be read */
     curses_got_input();
@@ -68,7 +70,6 @@ curses_read_char()
         ch = M(tmpch);
     }
 #endif
-    nhUse(tmpch); /* satisfy compiler whether or not alt keys are defined */
 
 #ifdef KEY_RESIZE
     /* Handle resize events via get_nh_event, not this code */
