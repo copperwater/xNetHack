@@ -985,7 +985,7 @@ register struct obj *otmp;
         }
         if (Hallucination) {
             if (u.uroleplay.hallu) {
-                You("feel less groovy for a harsh second.");
+                You_feel("less groovy for a harsh second.");
             }
             else {
                 You("are shocked back to your senses!");
