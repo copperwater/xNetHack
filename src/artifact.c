@@ -2022,10 +2022,8 @@ void
 Sting_effects(orc_count)
 int orc_count; /* new count (warn_obj_cnt is old count); -1 is a flag value */
 {
-    if (uwep
-        && (uwep->oartifact == ART_STING
-            || uwep->oartifact == ART_ORCRIST
-            || uwep->oartifact == ART_GRIMTOOTH)) {
+    if (uwep && uwep->oartifact
+        && artilist[(int) uwep->oartifact].acolor != NO_COLOR) {
         int oldstr = glow_strength(warn_obj_cnt),
             newstr = glow_strength(orc_count);
 
