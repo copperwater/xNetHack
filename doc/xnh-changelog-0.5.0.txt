@@ -210,6 +210,8 @@ YAFM for fumbling noisily while hallucinating.
 YAFM for seeing a lantern on the floor get dim while hallucinating.
 YAFM for observing something step on a squeaky board while hallucinating.
 Remove "[Un]lock it?" prompts for applying a key to a door.
+Failed and cancelled scrolls of stinking cloud give a new message (and also a
+  YAFM for doing this while hallucinating).
 
 
 It contains the following non-gameplay architectural changes:

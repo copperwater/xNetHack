@@ -1676,12 +1676,12 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         cc.x = u.ux;
         cc.y = u.uy;
         getpos_sethilite(display_stinking_cloud_positions, can_center_cloud);
-        if (getpos(&cc, TRUE, "the desired position") < 0) {
-            pline1(Never_mind);
-            break;
-        }
-        if (!can_center_cloud(cc.x, cc.y)) {
-            You("smell rotten eggs.");
+        if (getpos(&cc, TRUE, "the desired position") < 0
+            || !can_center_cloud(cc.x, cc.y)) {
+            if (Hallucination)
+                pline("Ugh... someone cut the cheese.");
+            else
+                pline("The scroll crumbles with a whiff of rotten eggs.");
             break;
         }
         (void) create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj),
