@@ -26,10 +26,10 @@ royal jelly
 wide-angle disintegration beam
 
 # spoofs of in-game things
-+Lizard of Yendor
+Lizard of Yendor
 +Rodney
-+Vendor of Yizard
-+Wizard of Splendor
+Vendor of Yizard
+Wizard of Splendor
 =Death with a Wand of Gnomes
 -Maud
 Demogorgonzola
@@ -68,7 +68,7 @@ voluptuous ampersand
 
 # NetHack community: tournaments, webcomics, etc
 +Dudley
-=Gnome With The Wand Of Death
+Gnome With The Wand Of Death
 Dev Team member
 Random Number God
 astral call bug
@@ -210,7 +210,7 @@ xeroc
 creeping coins
 
 # Dungeon Crawl Stone Soup
-+Blork the orc
++Blork the Orc
 +Sigmund
 lernaean hydra
 
@@ -250,7 +250,7 @@ sphinx
 # other folklore
 +Santa Claus
 -Baba Yaga
--Lady of the Lake
+Lady of the Lake
 basilisk
 changeling
 efreeti
@@ -279,12 +279,12 @@ were-rabbit
 wrong trousers
 
 # US Forest Service
-+Smokey Bear
++Smokey the Bear
 
 # Discworld
 +Foul Ole Ron
-+Death of Rats
-+Wintersmith
+Death of Rats
+Wintersmith
 -Granny Weatherwax
 =Bel-Shamharoth
 Luggage
@@ -294,8 +294,8 @@ vampiric watermelon
 wizzard
 
 # Lord of the Rings
-+Eye of Sauron
-+Great Goblin
+Eye of Sauron
+Great Goblin
 Ent
 pink oliphaunt
 
@@ -315,8 +315,8 @@ snark
 white rabbit
 
 # The Wizard of Oz
-+Wizard of Oz
--Wicked Witch of the West
+Wizard of Oz
+Wicked Witch of the West
 hammer-head
 flying monkey
 
@@ -395,7 +395,7 @@ one-eyed one-horned flying purple people eater
 witch doctor
 
 # saccharine kiddy TV
-+Barney the dinosaur
++Barney the Dinosaur
 
 # Babylon 5
 Vorlon
@@ -425,6 +425,7 @@ wizard of the coast
 
 # They Might Be Giants
 +Particle Man
++Triangle Man
 bee of the bird of the moth
 cow beneath the sea
 hotel detective
@@ -474,8 +475,8 @@ orcus cosmicus
 
 # Minecraft
 +Herobrine
--Ender Dragon
-=Wither
+Ender Dragon
+Wither
 creeper
 enderman
 snow golem
@@ -484,7 +485,7 @@ snow golem
 zergling
 
 # Roald Dahl
--Grand High Witch
+Grand High Witch
 oompa-loompa
 vermicious knid
 
@@ -577,8 +578,8 @@ blue-eyes white dragon
 +Elmer Fudd
 
 # Dr. Seuss
-+Grinch
-+Lorax
+Grinch
+Lorax
 cat in the hat
 green eggs and ham
 star-bellied sneetch
@@ -589,7 +590,7 @@ star-bellied sneetch
 # Theology
 +Jesus Christ
 +Mephistopheles
-=Holy Spirit
+Holy Spirit
 pope
 
 # Super Smash Bros
@@ -697,7 +698,6 @@ microcode bug
 
 # glitches and corruptions
 +ZZAZZ
--M
 =Test0
 MissingNo
 
@@ -765,10 +765,10 @@ peddler
 +Colonel Sanders
 +Frankenstein's monster
 +One Punch Man
-+Sheriff of Nottingham
+Sheriff of Nottingham
 +Skeletor
 -Ebony Dark'ness Dementia Raven Way
-=Ghost of Christmas Past
+Ghost of Christmas Past
 Mexican jumping bean
 acid worm
 angry mariachi
