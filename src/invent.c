@@ -1853,7 +1853,7 @@ boolean allow_floor;
 
         for (obj = invent; obj; obj = obj->nobj)
             if (obj->invlet == ilet)
-                return obj;
+                break;
 
         if (!obj) {
             impossible("getobj: inventory letter detected, but not found?");
