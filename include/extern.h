@@ -1564,6 +1564,7 @@ E const char *FDECL(stagger, (const struct permonst *, const char *));
 E const char *FDECL(on_fire, (struct permonst *, struct attack *));
 E const struct permonst *FDECL(raceptr, (struct monst *));
 E boolean FDECL(olfaction, (struct permonst *));
+E int FDECL(monmaterial, (int));
 
 /* ### monmove.c ### */
 

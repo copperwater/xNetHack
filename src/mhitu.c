@@ -1072,8 +1072,21 @@ register struct attack *mattk;
                     poisoned(buf, A_STR, mdat->mname, 10, FALSE);
                 }
             } else if (mattk->aatyp != AT_TUCH || dmg != 0
-                       || mtmp != u.ustuck)
+                       || mtmp != u.ustuck) {
                 hitmsg(mtmp, mattk);
+                /* Monster is hitting you barehanded. It might be made of a
+                 * material you hate. */
+                int mat = monmaterial(monsndx(mdat));
+                if (Hate_material(mat)) {
+                    if (mat == SILVER)
+                        pline_The("silver sears your flesh!");
+                    else
+                        You("flinch at the touch of %s!",
+                            materialnm[mat]);
+                    exercise(A_CON, FALSE);
+                    dmg += rnd(sear_damage(mat));
+                }
+            }
         }
         break;
     case AD_DISE:

@@ -162,6 +162,8 @@ Adjust monster sizes:
   Balrogs are Huge rather than Large.
   Juiblex is Gigantic rather than Large.
 Mumaks' base level is now 10, and their difficulty is increased to 15.
+Material hatred damage is assessed for monsters made of a certain material
+  touching (hitting, kicking, etc) a monster that hates that material.
 
 
 It contains the following non-gameplay interface changes:
