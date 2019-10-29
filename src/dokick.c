@@ -38,7 +38,7 @@ boolean clumsy;
     int dmg = (ACURRSTR + ACURR(A_DEX) + ACURR(A_CON)) / 15;
     int specialdmg, kick_skill = P_NONE;
     boolean trapkilled = FALSE;
-    const struct obj* hated_obj;
+    struct obj* hated_obj;
 
     if (uarmf && uarmf->otyp == KICKING_BOOTS)
         dmg += 5;
