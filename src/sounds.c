@@ -572,9 +572,7 @@ register struct monst *mtmp;
         } else {
             /* approximation of GEICO's advertising slogan (it actually
                concludes with "save you 15% or more on car insurance.") */
-            Sprintf(verbuf, "15 minutes could save you 15 %s.",
-                    currency(15L)); /* "zorkmids" */
-            verbl_msg = verbuf;
+            Strcat(verbuf, "15 minutes could save you 15 zorkmids.");
         }
         break;
     case MS_VAMPIRE: {
