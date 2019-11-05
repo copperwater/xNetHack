@@ -446,15 +446,21 @@ long xtime;
 boolean talk;
 {
     long old = HDeaf;
+    boolean can_hear_now;
 
     if (Unaware)
         talk = FALSE;
 
     set_itimeout(&HDeaf, xtime);
+    can_hear_now = !Deaf;
     if ((xtime != 0L) ^ (old != 0L)) {
         context.botl = TRUE;
-        if (talk)
-            You(old ? "can hear again." : "are unable to hear anything.");
+        if (talk) {
+            if (old && can_hear_now)
+                You("can hear again.");
+            else
+                You("are unable to hear anything.");
+        }
     }
 }
 
