@@ -9,11 +9,12 @@
 
 /* part of the output on gain or loss of attribute */
 static const char
-    *const plusattr[] = { "strong", "smart", "wise",
-                          "agile",  "tough", "charismatic" },
-    *const minusattr[] = { "weak",    "stupid",
-                           "foolish", "clumsy",
-                           "fragile", "repulsive" };
+    *const plusattr[] = { "stronger", "smarter", "wiser",
+                          "more agile",  "tougher", "more charismatic" },
+    *const staticattr[] = { "strong", "smart", "wise",
+                            "agile",  "tough", "charismatic" },
+    *const minusattr[] = { "weaker", "stupider", "more foolish",
+                           "clumsier", "more fragile", "more repulsive" };
 /* also used by enlightenment for non-abbreviated status info */
 const char
     *const attrname[] = { "strength", "intelligence", "wisdom",
@@ -171,6 +172,7 @@ int msgflg; /* positive => no message, zero => message, and */
     if (ACURR(ndx) == old_acurr) {
         if (msgflg == 0 && flags.verbose) {
             if (ABASE(ndx) == old_abase && AMAX(ndx) == old_amax) {
+                attrstr = staticattr[ndx];
                 pline("You're %s as %s as you can get.",
                       abonflg ? "currently" : "already", attrstr);
             } else {
@@ -184,7 +186,7 @@ int msgflg; /* positive => no message, zero => message, and */
     }
 
     if (msgflg <= 0)
-        You_feel("%s%s!", (incr > 1 || incr < -1) ? "very " : "", attrstr);
+        You_feel("%s%s!", (incr > 1 || incr < -1) ? "much " : "", attrstr);
     context.botl = TRUE;
     if (program_state.in_moveloop && (ndx == A_STR || ndx == A_CON))
         (void) encumber_msg();

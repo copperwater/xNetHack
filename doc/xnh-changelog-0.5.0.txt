@@ -214,6 +214,7 @@ YAFM for observing something step on a squeaky board while hallucinating.
 Remove "[Un]lock it?" prompts for applying a key to a door.
 Failed and cancelled scrolls of stinking cloud give a new message (and also a
   YAFM for doing this while hallucinating).
+Stat increase/decrease messages are comparative ("You feel stronger", etc)
 
 
 It contains the following non-gameplay architectural changes:
