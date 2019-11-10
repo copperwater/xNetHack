@@ -502,7 +502,7 @@ exerper()
 
         if (Sick || Vomiting)
             exercise(A_CON, FALSE);
-        if (Confusion || Hallucination)
+        if (Confusion || (Hallucination && !u.uroleplay.hallu))
             exercise(A_WIS, FALSE);
         if ((Wounded_legs && !u.usteed) || Fumbling || HStun)
             exercise(A_DEX, FALSE);
