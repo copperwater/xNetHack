@@ -3219,13 +3219,21 @@ boolean incr;
                           : "Elf");
             else
                 You((!incr)
-                        ? "feel weak now."
-                        : (u.uhunger < 45) ? "feel weak."
-                                           : "are beginning to feel weak.");
+                        ? "feel weak from hunger now."
+                        : (u.uhunger < 45) ? "feel weak from hunger."
+                                : "are beginning to feel weak from hunger.");
             if (incr && occupation
                 && (occupation != eatfood && occupation != opentin))
                 stop_occupation();
             context.travel = context.travel1 = context.mv = context.run = 0;
+            break;
+        case NOT_HUNGRY:
+            if (flags.verbose && !incr) {
+                if (Hallucination)
+                    pline("The munchies have receded.");
+                else
+                    You("no longer feel hungry.");
+            }
             break;
         }
         u.uhs = newhs;
