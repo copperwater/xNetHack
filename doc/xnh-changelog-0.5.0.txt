@@ -216,6 +216,7 @@ Failed and cancelled scrolls of stinking cloud give a new message (and also a
   YAFM for doing this while hallucinating).
 Stat increase/decrease messages are comparative ("You feel stronger", etc)
 More explicit hunger messages.
+YAFM for hallucinating and doing nothing in particular.
 
 
 It contains the following non-gameplay architectural changes:
