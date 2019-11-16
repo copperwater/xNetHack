@@ -1695,10 +1695,8 @@ STATIC_OVL int
 stone_to_flesh_obj(obj)
 struct obj *obj;
 {
-    int res = 1; /* affected object by default */
     struct permonst *ptr;
-    struct monst *mon, *shkp;
-    struct obj *item;
+    struct monst *mon = NULL, *shkp;
     xchar oox, ooy;
     boolean smell = FALSE, golem_xform = FALSE;
 
@@ -1711,41 +1709,42 @@ struct obj *obj;
     (void) get_obj_location(obj, &oox, &ooy, 0);
     /* add more if stone objects are added.. */
     switch (objects[obj->otyp].oc_class) {
+    case RING_CLASS: /* some of the rings are stone */
+        obj = poly_obj(obj, MEAT_RING);
+        smell = TRUE;
+        break;
+    case WAND_CLASS: /* marble wand */
+        obj = poly_obj(obj, MEAT_STICK);
+        smell = TRUE;
+        break;
+    case GEM_CLASS: /* stones & gems */
+        obj = poly_obj(obj, MEATBALL);
+        smell = TRUE;
+        break;
     case ROCK_CLASS: /* boulders and statues */
     case TOOL_CLASS: /* figurines */
         if (obj->otyp == BOULDER) {
             obj = poly_obj(obj, HUGE_CHUNK_OF_MEAT);
             smell = TRUE;
+            break;
         } else if (obj->otyp == STATUE || obj->otyp == FIGURINE) {
+            boolean can_animate = TRUE;
             ptr = &mons[obj->corpsenm];
             if (is_golem(ptr)) {
                 golem_xform = (ptr != &mons[PM_FLESH_GOLEM]);
             } else if (vegetarian(ptr)) {
                 /* Don't animate monsters that aren't flesh */
-                obj = poly_obj(obj, MEATBALL);
-                smell = TRUE;
-                break;
+                can_animate = FALSE;
             }
             if (obj->otyp == STATUE) {
                 /* animate_statue() forces all golems to become flesh golems */
-                mon = animate_statue(obj, oox, ooy, ANIMATE_SPELL, (int *) 0);
-            } else { /* (obj->otyp == FIGURINE) */
-                if (obj->otyp != FIGURINE) {
-                    /* hedge against other stone tools being added */
-                    pline("%s to flesh!", Tobjnam(obj, "turn"));
-                    set_material(obj, FLESH);
-                    obj->owt = weight(obj);
-                    break;
-                }
-                if (vegetarian(&mons[obj->corpsenm])) {
-                    /* don't animate monsters that aren't fleshy */
-                    obj = poly_obj(obj, MEATBALL);
-                    smell = TRUE;
-                    break;
-                }
+                if (can_animate)
+                    mon = animate_statue(obj, oox, ooy, ANIMATE_SPELL, (int *) 0);
+            } else {
                 if (golem_xform)
                     ptr = &mons[PM_FLESH_GOLEM];
-                mon = makemon(ptr, oox, ooy, NO_MINVENT);
+                if (can_animate)
+                    mon = makemon(ptr, oox, ooy, NO_MINVENT);
                 if (mon) {
                     if (costly_spot(oox, ooy)
                         && (carried(obj) ? obj->unpaid : !obj->no_charge)) {
@@ -1769,47 +1768,46 @@ struct obj *obj;
                 /* this golem handling is redundant... */
                 if (is_golem(ptr) && ptr != &mons[PM_FLESH_GOLEM])
                     (void) newcham(mon, &mons[PM_FLESH_GOLEM], TRUE, FALSE);
-            } else if ((ptr->geno & (G_NOCORPSE | G_UNIQ)) != 0) {
-                /* didn't revive but can't leave corpse either */
-                res = 0;
-            } else {
-                /* unlikely to get here since genociding monsters also
-                   sets the G_NOCORPSE flag; drop statue's contents */
-                while ((item = obj->cobj) != 0) {
-                    bypass_obj(item); /* make stone-to-flesh miss it */
-                    obj_extract_self(item);
-                    place_object(item, oox, ooy);
-                }
-                obj = poly_obj(obj, CORPSE);
+                break;
             }
-        } else { /* miscellaneous tool or unexpected rock... */
-            res = 0;
         }
-        break;
-    /* maybe add weird things to become? */
-    case RING_CLASS: /* some of the rings are stone */
-        obj = poly_obj(obj, MEAT_RING);
-        smell = TRUE;
-        break;
-    case WAND_CLASS: /* marble wand */
-        obj = poly_obj(obj, MEAT_STICK);
-        smell = TRUE;
-        break;
-    case GEM_CLASS: /* stones & gems */
-        obj = poly_obj(obj, MEATBALL);
-        smell = TRUE;
-        break;
-    case WEAPON_CLASS: /* crysknife */
+        /* Any other tools not covered here, statues and figurines that didn't
+         * animate because they were vegetarian or for any other reason: */
         /* FALLTHRU */
     default:
         if (valid_obj_material(obj, FLESH)) {
+            /* Currently no objects are valid as both stone and flesh. */
             pline("%s to flesh!", Tobjnam(obj, "turn"));
             set_material(obj, FLESH);
-            obj->owt = weight(obj);
         }
         else {
-            res = 0;
+            /* Could do handling here to turn stone sticklike objects
+             * (quarterstaves, swords, etc) into meat sticks, but that probably
+             * isn't worth it. */
+            int newquan = objects[obj->otyp].oc_weight / 10;
+            if (obj->otyp == STATUE)
+                newquan = mons[obj->corpsenm].cwt / 10;
+            if (newquan == 0)
+                newquan++;
+            if (Has_contents(obj)) {
+                /* Drop contents; similar to break_statue, this does not check
+                 * for shops or anything else. It also assumes that ice boxes
+                 * won't be made out of stone and thus doesn't need to handle
+                 * starting rot timers on objects. */
+                struct obj *otmp;
+                while ((otmp = obj->cobj) != 0) {
+                    bypass_obj(otmp); /* make stone-to-flesh miss it */
+                    obj_extract_self(otmp);
+                    place_object(otmp, obj->ox, obj->oy);
+                }
+                obj_extract_self(obj);
+                place_object(obj, obj->ox, obj->oy); /* put back on top */
+            }
+            obj = poly_obj(obj, MEATBALL);
+            obj->quan =  newquan;
         }
+        obj->owt = weight(obj);
+        smell = TRUE;
         break;
     }
 
@@ -1827,7 +1825,7 @@ struct obj *obj;
             Norep("You smell a delicious smell.");
     }
     newsym(oox, ooy);
-    return res;
+    return 1;
 }
 
 /*

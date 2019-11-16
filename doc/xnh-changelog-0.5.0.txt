@@ -164,6 +164,9 @@ Adjust monster sizes:
 Mumaks' base level is now 10, and their difficulty is increased to 15.
 Material hatred damage is assessed for monsters made of a certain material
   touching (hitting, kicking, etc) a monster that hates that material.
+Stone to fleshed objects now turn into an appropriate amount of meatballs,
+  proportional to the monster's weight if a statue and proportional to the
+  object's base weight otherwise.
 
 
 It contains the following non-gameplay interface changes:
