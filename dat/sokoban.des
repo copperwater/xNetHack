@@ -534,7 +534,6 @@ IF [50%] {
 }
 # Soko premapping makes all engravings show up, so burn engravings in all three
 # rooms. Other engravings reference famous three-door games.
-ENGRAVING:$place[0],burn,"Elbereth"
 ENGRAVING:$place[1],burn,"You have just won a goat."
 ENGRAVING:$place[2],burn,"You feel like you need to see Monty Hall."
 OBJECT:('?', "scare monster"),$place[0],cursed
@@ -640,7 +639,6 @@ IF [50%] {
 
 # Soko premapping makes all engravings show up, so burn engravings in all three
 # rooms. Other engravings reference famous three-door games.
-ENGRAVING:$place[0],burn,"Elbereth"
 ENGRAVING:$place[1],burn,"You have just won a goat."
 ENGRAVING:$place[2],burn,"You feel like you need to see Monty Hall."
 OBJECT:('?', "scare monster"),$place[0],cursed

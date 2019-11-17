@@ -167,6 +167,8 @@ Material hatred damage is assessed for monsters made of a certain material
 Stone to fleshed objects now turn into an appropriate amount of meatballs,
   proportional to the monster's weight if a statue and proportional to the
   object's base weight otherwise.
+There is no longer an Elbereth engraving under the Sokoban prize and the Castle
+  chest. (The scrolls of scare monster are still there.)
 
 
 It contains the following non-gameplay interface changes:
