@@ -1,0 +1,58 @@
+#
+# NetHack 3.6  linux $NHDT-Date: 1432512814 2015/05/25 00:13:34 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
+# Copyright (c) Kenneth Lorber, Kensington, Maryland, 2007.
+# NetHack may be freely redistributed.  See license for details.
+#
+#-PRE
+# Linux hints file
+# This hints file provides a chrooted build for Linux, specifically
+# for Ubuntu dapper.
+# Does not copy required libraries or termcap files into the chroot.
+
+COMPILEREVISION?=1
+
+# this is the chroot dir
+PREFIX=/opt/nethack/chroot
+
+# this is the dir where NetHack is inside the chroot
+HACKDIR=/nh37a-hdf
+INSTDIR=$(PREFIX)$(HACKDIR)
+# DGL does not use the shell script launcher
+SHELLDIR=/tmp
+VARDIR=$(INSTDIR)/var
+
+
+POSTINSTALL=cp -n sys/unix/sysconf $(INSTDIR)/sysconf; $(CHOWN) $(GAMEUID) $(INSTDIR)/sysconf; $(CHGRP) $(GAMEGRP) $(INSTDIR)/sysconf; chmod $(VARFILEPERM) $(INSTDIR)/sysconf;
+
+CFLAGS1=-DCOMPRESS=\"/bin/gzip\" -DCOMPRESS_EXTENSION=\".gz\"
+CFLAGS=-g -O0 -I../include -DNOTPARMDECL $(CFLAGS1) -DDLB
+CFLAGS+=-Wno-format-overflow
+CFLAGS+=-DSYSCF -DSYSCF_FILE=\"$(HACKDIR)/sysconf\" -DSECURE
+CFLAGS+=-DTIMED_DELAY
+CFLAGS+=-DHACKDIR=\"$(HACKDIR)\"
+CFLAGS+=-DVAR_PLAYGROUND=\"$(HACKDIR)/var\"
+CFLAGS+=-DCONFIG_ERROR_SECURE=FALSE
+CFLAGS+=-DCURSES_GRAPHICS
+
+LINK=$(CC)
+# Only needed for GLIBC stack trace:
+LFLAGS=-rdynamic
+
+WINSRC = $(WINTTYSRC) $(WINCURSESSRC)
+WINOBJ = $(WINTTYOBJ) $(WINCURSESOBJ)
+WINLIB = $(WINTTYLIB) $(WINCURSESLIB)
+
+WINTTYLIB=-lcurses
+
+# if TTY_TILES_ESCCODES
+WINSRC += tile.c
+WINOBJ += tile.o
+
+CHOWN=chown
+CHGRP=chgrp
+GAMEUID=games
+GAMEGRP=games
+
+VARDIRPERM = 0755
+VARFILEPERM = 0600
+GAMEPERM = 0755
