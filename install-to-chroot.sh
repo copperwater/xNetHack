@@ -20,7 +20,7 @@ USRGRP="games:games"
 COMPRESSBIN="/bin/gzip"
 # fixed data to copy (leave blank to skip)
 NH_GIT="/home/build/NetHack37"
-NH_BRANCH="NetHack-3.7" # will probably need to make another hdf branch for this one
+NH_BRANCH="3.7-hdf" # will probably need to make another hdf branch for this one
 # HACKDIR from include/config.h; aka nethack subdir inside chroot
 NHSUBDIR="nh37a-hdf"
 # VAR_PLAYGROUND from include/unixconf.h
