@@ -171,7 +171,7 @@ unsigned mgflags;
                 color = CLR_BRIGHT_MAGENTA;
             } else {
                 switch (amsk & AM_MASK) {
-#if 0   /*
+        /*
          * On OSX with TERM=xterm-color256 these render as
          *  white -> tty: gray, curses: ok
          *  gray  -> both tty and curses: black
@@ -191,7 +191,7 @@ unsigned mgflags;
                 case AM_CHAOTIC: /* 1 */
                     color = CLR_BLACK;
                     break;
-#else /* !0: TEMP? */
+#if 0
                 case AM_LAWFUL:  /* 4 */
                 case AM_NEUTRAL: /* 2 */
                 case AM_CHAOTIC: /* 1 */
