@@ -587,7 +587,7 @@ struct obj *corpse;
 int
 getbones()
 {
-    int ok, i;
+    int ok;
     NHFILE *nhfp = (NHFILE *) 0;
     char c = 0, *bonesid, oldbonesid[40]; /* was [10]; more should be safer */
 
@@ -615,7 +615,7 @@ getbones()
 
     if (validate(nhfp, g.bones) != 0) {
         if (!wizard)
-            pline("Discarding unuseable bones; no need to panic...");
+            pline("Discarding unusable bones; no need to panic...");
         ok = FALSE;
     } else {
         ok = TRUE;
