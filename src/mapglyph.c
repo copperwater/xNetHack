@@ -154,6 +154,13 @@ unsigned mgflags;
         } else if (iflags.use_color && offset == S_litcorr
                    && g.showsyms[idx] == g.showsyms[S_corr + SYM_OFF_P]) {
             color = CLR_WHITE;
+        /* show branch stairs in a different color */
+        } else if (iflags.use_color
+                   && (offset == S_upstair || offset == S_dnstair)
+                   && (x == g.sstairs.sx && y == g.sstairs.sy)
+                   && (g.showsyms[idx] == g.showsyms[S_upstair + SYM_OFF_P]
+                       || g.showsyms[idx] == g.showsyms[S_dnstair + SYM_OFF_P])) {
+            color = CLR_YELLOW;
 #endif
         /* try to provide a visible difference between water and lava
            if they use the same symbol and color is disabled */
