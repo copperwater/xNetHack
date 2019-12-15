@@ -4,7 +4,6 @@
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
-#include "lev.h"
 #include "func_tab.h"
 
 /* Macros for meta and ctrl modifiers:
@@ -1351,7 +1350,7 @@ wiz_map_levltyp(VOID_ARGS)
 
 /* temporary? hack, since level type codes aren't the same as screen
    symbols and only the latter have easily accessible descriptions */
-static const char *levltyp[] = {
+const char *levltyp[] = {
     "stone", "vertical wall", "horizontal wall", "top-left corner wall",
     "top-right corner wall", "bottom-left corner wall",
     "bottom-right corner wall", "cross wall", "tee-up wall", "tee-down wall",
@@ -1366,6 +1365,15 @@ static const char *levltyp[] = {
     /* padding in case the number of entries above is odd */
     ""
 };
+
+const char *
+levltyp_to_name(typ)
+int typ;
+{
+    if (typ >= 0 && typ < MAX_TYPE)
+        return levltyp[typ];
+    return NULL;
+}
 
 /* explanation of base-36 output from wiz_map_levltyp() */
 static void
