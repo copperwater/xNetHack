@@ -11,10 +11,10 @@
 #include "patchlevel.h"
 #endif
 
-/* If UPDATE_RECORD_IN_PLACE is defined, we don't want to rewrite the 
- * whole file, because that entails creating a new version which 
+/* If UPDATE_RECORD_IN_PLACE is defined, we don't want to rewrite the
+ * whole file, because that entails creating a new version which
  * requires that the old one be deletable. UPDATE_RECORD_IN_PLACE
- * had to be defined more centrally in 3.7 to ensure that the 
+ * had to be defined more centrally in 3.7 to ensure that the
  * final_fpos field gets included in struct instance_globals aka 'g'.
 */
 
@@ -421,6 +421,8 @@ encodeconduct()
         e |= 1L << 10;
     if (!num_genocides())
         e |= 1L << 11;
+    if (!u.uconduct.elbereth)
+        e |= 1L << 12;
 
     return e;
 }
