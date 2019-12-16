@@ -746,13 +746,16 @@ unsigned int *stuckid, *steedid;
     }
     freefruitchn(g.ffruit); /* clean up fruit(s) made by initoptions() */
     g.ffruit = loadfruitchn(nhfp);
-  
+
     restnames(nhfp);
     restore_waterlevel(nhfp);
     restore_msghistory(nhfp);
     /* must come after all mons & objs are restored */
     relink_timers(FALSE);
     relink_light_sources(FALSE);
+#ifdef WHEREIS_FILE
+    touch_whereis();
+#endif
     /* inventory display is now viable */
     iflags.perm_invent = defer_perm_invent;
     return TRUE;

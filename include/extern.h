@@ -850,6 +850,11 @@ E boolean NDECL(recover_savefile);
 E void NDECL(assure_syscf_file);
 #endif
 E int FDECL(nhclose, (int));
+#ifdef WHEREIS_FILE
+E void NDECL(touch_whereis);
+E void NDECL(delete_whereis);
+E void FDECL(signal_whereis, (int));
+#endif
 #ifdef DEBUG
 E boolean FDECL(debugcore, (const char *, BOOLEAN_P));
 #endif
@@ -2587,6 +2592,9 @@ E void NDECL(timer_sanity_check);
 
 /* ### topten.c ### */
 
+#ifdef RECORD_CONDUCT
+E long FDECL(encodeconduct, (void));
+#endif
 E void FDECL(formatkiller, (char *, unsigned, int, BOOLEAN_P));
 E int FDECL(observable_depth, (d_level *));
 E void FDECL(topten, (int, time_t));

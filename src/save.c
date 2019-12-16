@@ -97,6 +97,10 @@ dosave0()
     char whynot[BUFSZ];
     NHFILE *nhfp, *onhfp;
 
+#ifdef WHEREIS_FILE
+    delete_whereis();
+#endif
+
     /* we may get here via hangup signal, in which case we want to fix up
        a few of things before saving so that they won't be restored in
        an improper state; these will be no-ops for normal save sequence */

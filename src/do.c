@@ -1348,6 +1348,10 @@ boolean at_stairs, falling, portal;
     /* digging context is level-aware and can actually be resumed if
        hero returns to the previous level without any intervening dig */
 
+#ifdef WHEREIS_FILE
+    touch_whereis();
+#endif
+
     if (falling) /* assuming this is only trap door or hole */
         impact_drop((struct obj *) 0, u.ux, u.uy, newlevel->dlevel);
 

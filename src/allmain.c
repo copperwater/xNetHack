@@ -89,6 +89,9 @@ boolean resuming;
     g.context.move = 0;
 
     g.program_state.in_moveloop = 1;
+#ifdef WHEREIS_FILE
+    touch_whereis();
+#endif
     for (;;) {
 #ifdef SAFERHANGUP
         if (g.program_state.done_hup)

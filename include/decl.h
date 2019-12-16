@@ -243,6 +243,10 @@ struct kinfo {
     char name[BUFSZ]; /* actual killer name */
 };
 
+#ifdef WHEREIS_FILE
+    char whereis_real_path[255];
+#endif
+
 E const schar xdir[], ydir[], zdir[];
 
 struct multishot {
