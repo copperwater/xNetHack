@@ -4765,13 +4765,13 @@ int bufsz;
 void
 livelog_write_string(ll_type, buffer)
 unsigned int ll_type;
-char *buffer;
+const char *buffer;
 {
 #define LLOG_SEP '\t' /* livelog field separator */
     FILE* livelogfile;
 
     if(!(ll_type & sysopt.livelog)) return;
-    if((ll_type == LL_CONDUCT) && (moves < sysopt.ll_conduct_turns)) return;
+    if((ll_type == LL_CONDUCT) && (g.moves < sysopt.ll_conduct_turns)) return;
     if(lock_file(LIVELOGFILE, SCOREPREFIX, 10)) {
         if(!(livelogfile = fopen_datafile(LIVELOGFILE, "a", SCOREPREFIX))) {
             pline("Cannot open live log file!");
@@ -4806,7 +4806,7 @@ char *buffer;
                      LLOG_SEP,  
                      msgbuf);
 
-            fprintf(livelogfile, tmpbuf);
+            fprintf(livelogfile, "%s", tmpbuf);
             (void) fclose(livelogfile);
         }
         unlock_file(LIVELOGFILE);

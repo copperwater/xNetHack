@@ -216,12 +216,6 @@
    (whose name can be overridden via #define in global.h if desired) */
 #define LOGFILE  "logfile"  /* larger file for debugging purposes */
 #define XLOGFILE "xlogfile" /* even larger logfile */
-/* #define LIVELOGFILE "livelog" * in-game events recorded live */
-#ifdef LIVELOGFILE
-/* LL_flags defined in global.h. Value below is ignored if SYSCF is enabled */
-/* #define LIVELOG_DETAIL (LL_WISH|LL_ACHIEVE|LL_UMONST) */
-#define LIVELOG_DETAIL 0xFF
-#endif
 #define NEWS     "news"     /* the file containing the latest hack news */
 #define PANICLOG "paniclog" /* log of panic and impossible events */
 
@@ -555,12 +549,24 @@ typedef unsigned char uchar;
 
 /* Extra server enhancements for
    dgamelaunch-based server play */
-#define DGAMELAUNCH
+/* #define DGAMELAUNCH */
 #ifdef DGAMELAUNCH
 #define EXTRAINFO_FN    "/dgldir/extrainfo-nh370/%n.extrainfo"
 #define MAILCKFREQ 5    /* SIMPLE_MAIL is in unixconf.h */
 #define WHEREIS_FILE    "whereis/%n.whereis" /* Write out player's current location to player.whereis */
+
+/* Live-logging - not particularly experimental, but very optional */
+/* #define LIVELOG_ENABLE */
+#ifdef LIVELOG_ENABLE
+#define LIVELOGFILE "livelog" /* in-game events recorded live */
+#ifdef LIVELOGFILE
+/* LL_flags defined in global.h. Value below is ignored if SYSCF is enabled */
+/* #define LIVELOG_DETAIL (LL_WISH|LL_ACHIEVE|LL_UMONST) */
+#define LIVELOG_DETAIL 0xFF
 #endif
+#endif /* LIVELOG_ENABLE */
+
+#endif /* DGAMELAUNCH */
 
 /* #define DUMPLOG */  /* End-of-game dump logs */
 #ifdef DUMPLOG
@@ -588,9 +594,6 @@ typedef unsigned char uchar;
 #endif
 
 #define USE_ISAAC64 /* Use cross-plattform, bundled RNG */
-
-/* Live-logging - not particularly experimental, but very optional */
-/* #define LIVELOG_ENABLE */
 
 /* End of Section 4 */
 

@@ -2120,12 +2120,13 @@ do_class_genocide()
                     /* This check must be first since player monsters might
                      * have G_GENOD or !G_GENO.
                      */
-                    if(!ll_done++)
+                    if(!ll_done++) {
                         if(!num_genocides())
                             livelog_printf(LL_CONDUCT|LL_GENOCIDE,
                                 "performed %s first genocide (class %c)", uhis(), def_monsyms[class].sym);
                         else
                             livelog_printf(LL_GENOCIDE, "genocided class %c", def_monsyms[class].sym);
+                    }
                     g.mvitals[i].mvflags |= (G_GENOD | G_NOCORPSE);
                     reset_rndmonst(i);
                     kill_genocided_monsters();
