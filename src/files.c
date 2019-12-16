@@ -2796,7 +2796,7 @@ char *origbuf;
         sysopt.tt_oname_maxrank = n;
     } else if (src == SET_IN_SYS && match_varname(buf, "LIVELOG", 7)) {
 #ifdef LIVELOGFILE
-        n = strtol(bufp,NULL,0); 
+        n = strtol(bufp,NULL,0);
         if (n < 0 || n > 0xFFFF) {
             raw_printf("Illegal value in LIVELOG (must be between 0 and 0xFFFF).");
             return 0;
@@ -4770,40 +4770,43 @@ const char *buffer;
 #define LLOG_SEP '\t' /* livelog field separator */
     FILE* livelogfile;
 
-    if(!(ll_type & sysopt.livelog)) return;
-    if((ll_type == LL_CONDUCT) && (g.moves < sysopt.ll_conduct_turns)) return;
-    if(lock_file(LIVELOGFILE, SCOREPREFIX, 10)) {
-        if(!(livelogfile = fopen_datafile(LIVELOGFILE, "a", SCOREPREFIX))) {
+    if (!(ll_type & sysopt.livelog))
+        return;
+    if ((ll_type == LL_CONDUCT) && (g.moves < sysopt.ll_conduct_turns))
+        return;
+    if (lock_file(LIVELOGFILE, SCOREPREFIX, 10)) {
+        if (!(livelogfile = fopen_datafile(LIVELOGFILE, "a", SCOREPREFIX))) {
             pline("Cannot open live log file!");
         } else {
-            char tmpbuf[1024+1];
-            char msgbuf[512+1];
+            char tmpbuf[1024 + 1];
+            char msgbuf[512 + 1];
             char *c1 = msgbuf;
             strncpy(msgbuf, buffer, 512);
             msgbuf[512] = '\0';
             while (*c1 != '\0') {
-                if (*c1 == LLOG_SEP) *c1 = '_';
+                if (*c1 == LLOG_SEP)
+                    *c1 = '_';
                 c1++;
             }
             snprintf(tmpbuf, 1024, "lltype=%d%cplayer=%s%crole=%s%crace=%s%cgender=%s%calign=%s%cturns=%ld%cstarttime=%ld%ccurtime=%ld%cmessage=%s\n",
-                     (ll_type & sysopt.livelog), 
-                     LLOG_SEP,  
+                     (ll_type & sysopt.livelog),
+                     LLOG_SEP,
                      g.plname,
-                     LLOG_SEP,  
+                     LLOG_SEP,
                      g.urole.filecode,
-                     LLOG_SEP,  
+                     LLOG_SEP,
                      g.urace.filecode,
-                     LLOG_SEP,  
+                     LLOG_SEP,
                      genders[flags.female].filecode,
-                     LLOG_SEP,  
+                     LLOG_SEP,
                      aligns[1-u.ualign.type].filecode,
-                     LLOG_SEP,  
+                     LLOG_SEP,
                      g.moves,
-                     LLOG_SEP,  
+                     LLOG_SEP,
                      (long)ubirthday,
-                     LLOG_SEP,  
+                     LLOG_SEP,
                      (long)time(NULL),
-                     LLOG_SEP,  
+                     LLOG_SEP,
                      msgbuf);
 
             fprintf(livelogfile, "%s", tmpbuf);

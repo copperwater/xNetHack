@@ -2067,13 +2067,13 @@ register struct monst *mtmp;
      */
     if (mtmp->data == &mons[PM_MEDUSA] && !u.uachieve.killed_medusa) {
         u.uachieve.killed_medusa = 1;
-        livelog_write_string(LL_ACHIEVE|LL_UMONST, "killed Medusa");
+        livelog_write_string(LL_ACHIEVE | LL_UMONST, "killed Medusa");
     } else if (unique_corpstat(mtmp->data)) {
         switch(g.mvitals[tmp].died) {
             case 1:
                 livelog_printf(LL_UMONST, "%s %s",
-                    nonliving(mtmp->data) ? "destroyed" : "killed",
-                    noit_mon_nam(mtmp));
+                               nonliving(mtmp->data) ? "destroyed" : "killed",
+                               noit_mon_nam(mtmp));
                 break;
             case 5:
             case 10:
@@ -2083,8 +2083,8 @@ register struct monst *mtmp;
             case 200:
             case 250:
                 livelog_printf(LL_UMONST, "%s %s (%d times)",
-                    nonliving(mtmp->data) ? "destroyed" : "killed",
-                    noit_mon_nam(mtmp), g.mvitals[tmp].died);
+                               nonliving(mtmp->data) ? "destroyed" : "killed",
+                               noit_mon_nam(mtmp), g.mvitals[tmp].died);
                 break;
             default:
                 /* don't spam the log every time */
@@ -2369,8 +2369,8 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
 
     mtmp->mhp = 0; /* caller will usually have already done this */
     if (!noconduct) /* KMH, conduct */
-        if(!u.uconduct.killer++)
-            livelog_write_string (LL_CONDUCT,"killed for the first time");
+        if (!u.uconduct.killer++)
+            livelog_write_string (LL_CONDUCT, "killed for the first time");
 
     if (!nomsg) {
         boolean namedpet = has_mname(mtmp) && !Hallucination;

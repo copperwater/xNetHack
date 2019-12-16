@@ -273,10 +273,10 @@ register struct obj *obj;
 
     if (obj->oclass != COIN_CLASS) {
         /* KMH, conduct */
-        if(!u.uconduct.gnostic++)
+        if (!u.uconduct.gnostic++)
             livelog_printf(LL_CONDUCT,
-                    "eschewed atheism, by dropping %s on an altar",
-                    doname(obj));
+                           "eschewed atheism, by dropping %s on an altar",
+                           doname(obj));
     } else {
         /* coins don't have bless/curse status */
         obj->blessed = obj->cursed = 0;
@@ -1260,7 +1260,7 @@ boolean at_stairs, falling, portal;
     if (newdungeon && In_endgame(newlevel)) { /* 1st Endgame Level !!! */
         if (!u.uhave.amulet)
             return;  /* must have the Amulet */
-        if (!wizard) {/* wizard ^V can bypass Earth level */
+        if (!wizard) { /* wizard ^V can bypass Earth level */
             assign_level(newlevel, &earth_level); /* (redundant) */
             livelog_write_string(LL_ACHIEVE, "entered the Planes");
         }
@@ -1627,7 +1627,7 @@ boolean at_stairs, falling, portal;
             You_hear("groans and moans everywhere.");
         } else
             pline("It is hot here.  You smell smoke...");
-        if(!u.uachieve.enter_gehennom) 
+        if (!u.uachieve.enter_gehennom)
             livelog_write_string(LL_ACHIEVE, "entered Gehennom");
         u.uachieve.enter_gehennom = 1;
     }

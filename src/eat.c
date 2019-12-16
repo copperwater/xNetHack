@@ -479,12 +479,12 @@ eating_conducts(pd)
 struct permonst *pd;
 {
     int ll_conduct = 0;
-    if(!u.uconduct.food++) {
+    if (!u.uconduct.food++) {
         livelog_printf(LL_CONDUCT, "ate for the first time - %s", pd->mname);
         ll_conduct++;
     }
     if (!vegan(pd))
-        if(!u.uconduct.unvegan++ && !ll_conduct) {
+        if (!u.uconduct.unvegan++ && !ll_conduct) {
             livelog_printf(LL_CONDUCT, "consumed animal products (%s) for the first time", pd->mname);
             ll_conduct++;
         }
@@ -1028,9 +1028,9 @@ int pm;
         if (g.youmonst.data->mlet != S_MIMIC && !Unchanging) {
             char buf[BUFSZ];
 
-            if(!u.uconduct.polyselfs++) /* you're changing form */
+            if (!u.uconduct.polyselfs++) /* you're changing form */
                 livelog_printf(LL_CONDUCT, "changed form for the first time by mimicking %s",
-                     Hallucination ? "an orange" : "a pile of gold");
+                               Hallucination ? "an orange" : "a pile of gold");
             You_cant("resist the temptation to mimic %s.",
                      Hallucination ? "an orange" : "a pile of gold");
             /* A pile of gold can't ride. */
@@ -1410,7 +1410,7 @@ const char *mesg;
          * conduct update, side-effects, shop handling, and nutrition.
          */
         /* don't need vegan/vegetarian checks for spinach */
-        if(!u.uconduct.food++)
+        if (!u.uconduct.food++)
             livelog_write_string(LL_CONDUCT, "ate for the first time (spinach)");
         if (!tin->cursed)
             pline("This makes you feel like %s!",
@@ -1608,13 +1608,15 @@ struct obj *otmp;
 
     /* KMH, conduct */
     if (!vegan(&mons[mnum]))
-        if(!u.uconduct.unvegan++) {
-            livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s", an(food_xname(otmp,FALSE)));
+        if (!u.uconduct.unvegan++) {
+            livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s",
+                           an(food_xname(otmp, FALSE)));
             ll_conduct++;
         }
     if (!vegetarian(&mons[mnum])) {
         if (!u.uconduct.unvegetarian && !ll_conduct)
-            livelog_printf(LL_CONDUCT, "tasted meat for the first time, by eating %s", an(food_xname(otmp,FALSE)));
+            livelog_printf(LL_CONDUCT, "tasted meat for the first time, by eating %s",
+                           an(food_xname(otmp, FALSE)));
         violated_vegetarian();
     }
 
@@ -2216,7 +2218,7 @@ struct obj *otmp;
     case FORTUNE_COOKIE:
         outrumor(bcsign(otmp), BY_COOKIE);
         if (!Blind)
-            if(!u.uconduct.literate++)
+            if (!u.uconduct.literate++)
                 livelog_write_string(LL_CONDUCT, "became literate by reading the fortune inside a cookie");
         break;
     case LUMP_OF_ROYAL_JELLY:
@@ -2579,23 +2581,27 @@ doeat()
         g.context.victual.nmod = basenutrit;
         g.context.victual.eating = TRUE; /* needed for lesshungry() */
 
-        if(!u.uconduct.food++) {
+        if (!u.uconduct.food++) {
             ll_conduct++;
-            livelog_printf(LL_CONDUCT, "ate for the first time (%s)", food_xname(otmp,FALSE));
+            livelog_printf(LL_CONDUCT, "ate for the first time (%s)",
+                           food_xname(otmp, FALSE));
         }
         material = objects[otmp->otyp].oc_material;
         if (material == LEATHER || material == BONE
             || material == DRAGON_HIDE) {
-            if(!u.uconduct.unvegan++ && !ll_conduct) {
-                livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s", an(food_xname(otmp,FALSE)));
+            if (!u.uconduct.unvegan++ && !ll_conduct) {
+                livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s",
+                               an(food_xname(otmp, FALSE)));
                 ll_conduct++;
             }
-            if(!u.uconduct.unvegetarian & !ll_conduct)
-                livelog_printf(LL_CONDUCT, "tasted meat for the first time, by eating %s", an(food_xname(otmp,FALSE)));
+            if (!u.uconduct.unvegetarian & !ll_conduct)
+                livelog_printf(LL_CONDUCT, "tasted meat for the first time, by eating %s",
+                               an(food_xname(otmp, FALSE)));
             violated_vegetarian();
         } else if (material == WAX)
-            if(!u.uconduct.unvegan++ && !ll_conduct) 
-                livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s", an(food_xname(otmp,FALSE)));
+            if (!u.uconduct.unvegan++ && !ll_conduct)
+                livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s",
+                               an(food_xname(otmp, FALSE)));
 
         if (otmp->cursed) {
             (void) rottenfood(otmp);
@@ -2652,8 +2658,8 @@ doeat()
     }
 
     /* KMH, conduct */
-    if(!u.uconduct.food++) {
-        livelog_printf(LL_CONDUCT, "ate for the first time - %s", food_xname(otmp,FALSE));
+    if (!u.uconduct.food++) {
+        livelog_printf(LL_CONDUCT, "ate for the first time - %s", food_xname(otmp, FALSE));
         ll_conduct++;
     }
 
@@ -2685,13 +2691,15 @@ doeat()
          */
         switch (objects[otmp->otyp].oc_material) {
         case FLESH:
-            if(!u.uconduct.unvegan++ && !ll_conduct) {
+            if (!u.uconduct.unvegan++ && !ll_conduct) {
                 ll_conduct++;
-                livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s", an(food_xname(otmp,FALSE)));
+                livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s",
+                               an(food_xname(otmp, FALSE)));
             }
             if (otmp->otyp != EGG) {
                 if (!u.uconduct.unvegetarian && !ll_conduct)
-                    livelog_printf(LL_CONDUCT, "tasted meat for the first time, by eating %s", an(food_xname(otmp,FALSE)));
+                    livelog_printf(LL_CONDUCT, "tasted meat for the first time, by eating %s",
+                                   an(food_xname(otmp, FALSE)));
                 violated_vegetarian();
             }
             break;
@@ -2700,8 +2708,9 @@ doeat()
             if (otmp->otyp == PANCAKE || otmp->otyp == FORTUNE_COOKIE /*eggs*/
                 || otmp->otyp == CREAM_PIE || otmp->otyp == CANDY_BAR /*milk*/
                 || otmp->otyp == LUMP_OF_ROYAL_JELLY)
-                if(!u.uconduct.unvegan++ && !ll_conduct)
-                    livelog_printf(LL_CONDUCT, "consumed animal products (%s) for the first time", food_xname(otmp,FALSE));
+                if (!u.uconduct.unvegan++ && !ll_conduct)
+                    livelog_printf(LL_CONDUCT, "consumed animal products (%s) for the first time",
+                                   food_xname(otmp, FALSE));
             break;
         }
 

@@ -1597,7 +1597,7 @@ int how;
         raw_print("");
         raw_print("");
     }
-    livelog_dump_url(LL_DUMP_ALL|(how == ASCENDED ? LL_DUMP_ASC : 0));
+    livelog_dump_url(LL_DUMP_ALL | (how == ASCENDED ? LL_DUMP_ASC : 0));
     nh_terminate(EXIT_SUCCESS);
 }
 

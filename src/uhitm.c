@@ -507,9 +507,9 @@ int dieroll;
             if (mon->wormno && *mhit)
                 cutworm(mon, g.bhitpos.x, g.bhitpos.y, slice_or_chop);
         }
-        if(u.uconduct.weaphit && !oldweaphit)
+        if (u.uconduct.weaphit && !oldweaphit)
             livelog_write_string(LL_CONDUCT,
-                    "hit with a wielded weapon for the first time");
+                                 "hit with a wielded weapon for the first time");
     }
     return malive;
 }
