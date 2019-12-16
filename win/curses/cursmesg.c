@@ -183,15 +183,16 @@ curses_block(boolean noscroll) /* noscroll - blocking because of msgtype
     static const char resp[] = " \r\n\033"; /* space, enter, esc */
     static int prev_x = -1, prev_y = -1, blink = 0;
     int height, width, moreattr, oldcrsr, ret = 0,
-        brdroffset = curses_window_has_border(MESSAGE_WIN) ? 1 : 0;
+        brdroffset = curses_window_has_border(MESSAGE_WIN) ? 1 : 0,
+        morewidth = (iflags.msg_is_alert ? 5 : 2); /* 2/5 for ">>" / "<TAB>" */
     WINDOW *win = curses_get_nhwin(MESSAGE_WIN);
 
     curses_get_window_size(MESSAGE_WIN, &height, &width);
-    if (mx - brdroffset > width - 3) { /* -3: room for ">>_" */
+    if (mx - brdroffset > width - morewidth - 1) {
         if (my - brdroffset < height - 1)
             ++my, mx = brdroffset;
         else
-            mx = width - 3 + brdroffset;
+            mx = width - morewidth - 1 + brdroffset;
     }
     /* if ">>" (--More--) is being rendered at the same spot as before,
        toggle attributes so that the first '>' starts blinking if it wasn't
@@ -206,13 +207,19 @@ curses_block(boolean noscroll) /* noscroll - blocking because of msgtype
     curses_toggle_color_attr(win, MORECOLOR, moreattr, ON);
     if (blink) {
         wattron(win, A_BLINK);
-        mvwprintw(win, my, mx, ">"), mx += 1;
+        mvwprintw(win, my, mx, (iflags.msg_is_alert ? "<TAB" : ">")), mx += morewidth - 1;
         wattroff(win, A_BLINK);
         waddstr(win, ">"), mx += 1;
     } else {
-        mvwprintw(win, my, mx, ">>"), mx += 2;
+        mvwprintw(win, my, mx, (iflags.msg_is_alert ? "<TAB>" : ">>")), mx += morewidth;
     }
     curses_toggle_color_attr(win, MORECOLOR, moreattr, OFF);
+    if (iflags.msg_is_alert) {
+        curses_alert_main_borders(TRUE);
+        wrefresh(win);
+    }
+    while (iflags.msg_is_alert && (ret = wgetch(win) != '\t'));
+    curses_alert_main_borders(FALSE);
     wrefresh(win);
 
     /* cancel mesg suppression; all messages will have had chance to be read */
@@ -220,6 +227,7 @@ curses_block(boolean noscroll) /* noscroll - blocking because of msgtype
 
     oldcrsr = curs_set(1);
     do {
+        if (iflags.msg_is_alert) break;
         ret = wgetch(win);
         if (ret == ERR || ret == '\0')
             ret = '\n';
@@ -232,7 +240,7 @@ curses_block(boolean noscroll) /* noscroll - blocking because of msgtype
     if (height == 1) {
         curses_clear_unhighlight_message_window();
     } else {
-        mx -= 2, mvwprintw(win, my, mx, "  "); /* back up and blank out ">>" */
+        mx -= morewidth, mvwprintw(win, my, mx, "%*s", (int) morewidth, ""); /* back up and blank out ">>" */
         if (!noscroll) {
             scroll_window(MESSAGE_WIN);
         }
