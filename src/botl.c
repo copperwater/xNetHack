@@ -17,6 +17,9 @@ static const char *NDECL(rank);
 static void NDECL(bot_via_windowport);
 static void NDECL(stat_update_time);
 
+/* limit of the player's name in the status window */
+#define BOTL_NSIZ 16
+
 static char *
 get_strength_str()
 {
@@ -54,7 +57,7 @@ do_statusline1()
     Strcpy(newbot1, g.plname);
     if ('a' <= newbot1[0] && newbot1[0] <= 'z')
         newbot1[0] += 'A' - 'a';
-    newbot1[10] = 0;
+    newbot1[BOTL_NSIZ] = '\0';
     Sprintf(nb = eos(newbot1), " the ");
 
     if (Upolyd) {

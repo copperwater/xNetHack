@@ -32,7 +32,7 @@
 #define dealloc_ttentry(ttent) free((genericptr_t) (ttent))
 #ifndef NAMSZ
 /* Changing NAMSZ can break your existing record/logfile */
-#define NAMSZ 10
+#define NAMSZ PL_NSIZ
 #endif
 #define DTHSZ 100
 #define ROLESZ 3
@@ -810,7 +810,7 @@ boolean so;
     else
         Strcat(linebuf, "   ");
 
-    Sprintf(eos(linebuf), " %10ld  %.10s", t1->points ? t1->points : u.urexp,
+    Sprintf(eos(linebuf), " %10ld  %.16s", t1->points ? t1->points : u.urexp,
             t1->name);
     Sprintf(eos(linebuf), "-%s", t1->plrole);
     if (t1->plrace[0] != '?')
