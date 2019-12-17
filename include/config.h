@@ -600,14 +600,14 @@ typedef unsigned char uchar;
 
 #ifndef DUMPHTML_FILE
 #define DUMPHTML_FILE        "/tmp/nethack.%n.%d.html"
-/* Placeholders as above 
+/* Placeholders as above
  * DUMPHTML_FILE is not used if SYSCF is defiined
  */
 
 #endif
 
 #endif /* DUMPHTML */
- 
+
 #endif /* DUMPLOG || DUMPHTML */
 
 #define USE_ISAAC64 /* Use cross-plattform, bundled RNG */
