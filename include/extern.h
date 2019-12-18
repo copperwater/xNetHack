@@ -1897,6 +1897,7 @@ E boolean NDECL(authorize_wizard_mode);
 #endif /* MICRO || WIN32 */
 #if defined(WIN32)
 E int NDECL(getlock);
+E const char *NDECL(get_portable_device);
 #endif
 
 /* ### pcsys.c ### */
