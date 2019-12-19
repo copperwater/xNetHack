@@ -1922,6 +1922,13 @@ struct monst *mtmp;
     }
 }
 
+static const char *const killdeath[] = {
+    "put Death down for a little nap",
+    "helped Death catch some z's",
+    "had Death have a nanna's",
+    "sent Death up the wooden hill to Bedfordshire"
+};
+
 void
 mondead(mtmp)
 register struct monst *mtmp;
@@ -2068,6 +2075,8 @@ register struct monst *mtmp;
     if (mtmp->data == &mons[PM_MEDUSA] && !u.uachieve.killed_medusa) {
         u.uachieve.killed_medusa = 1;
         livelog_write_string(LL_ACHIEVE | LL_UMONST, "killed Medusa");
+    } else if (mtmp->data == &mons[PM_DEATH]) {
+        livelog_printf(LL_UMONST, "%s", killdeath[rn2(SIZE(killdeath))]);
     } else if (unique_corpstat(mtmp->data)) {
         switch(g.mvitals[tmp].died) {
             case 1:
