@@ -13,7 +13,6 @@ extern const char *hu_stat[]; /* defined in eat.c */
 const char *const enc_stat[] = { "",         "Burdened",  "Stressed",
                                  "Strained", "Overtaxed", "Overloaded" };
 
-static const char *NDECL(rank);
 static void NDECL(bot_via_windowport);
 static void NDECL(stat_update_time);
 
@@ -312,7 +311,7 @@ boolean female;
     return "Player";
 }
 
-static const char *
+const char *
 rank()
 {
     return rank_of(u.ulevel, Role_switch, flags.female);

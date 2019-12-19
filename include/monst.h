@@ -167,6 +167,8 @@ struct monst {
     long misc_worn_check;  /* mon's wornmask */
     xchar weapon_check;    /* flag for whether to try switching weapons */
 
+    char former_rank[25];  /* for bones' ghost rank in their former life */
+
     int meating;           /* monster is eating timeout */
     struct mextra *mextra; /* point to mextra struct */
 };

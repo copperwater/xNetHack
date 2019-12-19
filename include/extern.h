@@ -170,6 +170,7 @@ E char *NDECL(do_statusline2);
 E void NDECL(bot);
 E void NDECL(timebot);
 E int FDECL(xlev_to_rank, (int));
+E const char *NDECL(rank);
 E const char *FDECL(rank_of, (int, SHORT_P, BOOLEAN_P));
 E int FDECL(title_to_mon, (const char *, int *, int *));
 E void NDECL(max_rank_sz);
