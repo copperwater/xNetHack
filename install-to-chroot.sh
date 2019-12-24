@@ -51,10 +51,10 @@ set -e
 umask 022
 
 echo "Creating inprogress and extrainfo directories"
-mkdir -p "$NAO_CHROOT/dgldir/inprogress-nh370-hdf"
-chown "$USRGRP" "$NAO_CHROOT/dgldir/inprogress-nh370-hdf"
-mkdir -p "$NAO_CHROOT/dgldir/extrainfo-nh370"
-chown "$USRGRP" "$NAO_CHROOT/dgldir/extrainfo-nh370"
+mkdir -p "$NAO_CHROOT/dgldir/inprogress-nh370a-hdf"
+chown "$USRGRP" "$NAO_CHROOT/dgldir/inprogress-nh370a-hdf"
+mkdir -p "$NAO_CHROOT/dgldir/extrainfo-nh370a"
+chown "$USRGRP" "$NAO_CHROOT/dgldir/extrainfo-nh370a"
 
 echo "Making $NAO_CHROOT/$NHSUBDIR"
 mkdir -p "$NAO_CHROOT/$NHSUBDIR"
