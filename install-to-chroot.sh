@@ -24,7 +24,7 @@ NH_BRANCH="3.7-hdf" # will probably need to make another hdf branch for this one
 # HACKDIR from include/config.h; aka nethack subdir inside chroot
 NHSUBDIR="nh370a-hdf"
 # VAR_PLAYGROUND from include/unixconf.h
-NH_VAR_PLAYGROUND="/nh370-hdfa/var/"
+NH_VAR_PLAYGROUND="/nh370a-hdf/var/"
 # only define this if dgl was configured with --enable-sqlite
 SQLITE_DBFILE="/dgldir/dgamelaunch.db"
 # END OF CONFIG
