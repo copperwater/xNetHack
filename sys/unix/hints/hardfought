@@ -15,7 +15,7 @@ COMPILEREVISION?=1
 PREFIX=/opt/nethack/chroot
 
 # this is the dir where NetHack is inside the chroot
-HACKDIR=/nh370-hdf
+HACKDIR=/nh370a-hdf
 INSTDIR=$(PREFIX)$(HACKDIR)
 # DGL does not use the shell script launcher
 SHELLDIR=/tmp
