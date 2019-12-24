@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.30 $ $NHDT-Date: 1577063925 2019/12/23 01:18:45 $
+$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.34 $ $NHDT-Date: 1577186790 2019/12/24 11:26:30 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -15,8 +15,11 @@ fix accessing mons[-1] when trying to gate in a non-valid demon
 fast hero could have random clairvoyance happen more than once on same turn
 using 'Q' on wielded weapon would offer to split stack; make using 'w' on a
 	quivered stack behave similarly
+weight for giant spider was too low for creature of size 'large';
+	weight for giant beetle was much too low for 'large'
 leave some menu items out of "invert all" via '@' when their inclusion would
 	degrade the usefulness of that interface feature
+change crysknife from mineral to bone and worm tooth from unspecified to bone
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -25,6 +28,8 @@ fix compile when DLB isn't defined
 urealtime.realtime was being incorrectly calculated
 revised "mysterious force" when climbing out of gehennom could generate
 	warnings about "rn2(0) attempted" or "rn2(-n) attempted"
+after 'w' on split stack patch, wielding '-' would cause an object_lost panic
+same patch allowed partial stack from getobj to replace cursed wielded weapon
 
 
 Platform- and/or Interface-Specific Fixes
