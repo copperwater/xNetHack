@@ -236,4 +236,7 @@
             || objects[(obj)->otyp].oc_material == VEGGY                 \
             || ((obj)->otyp == CORPSE && (obj)->corpsenm == PM_LICHEN))))
 
+#define is_bones_monster(ptr) ((ptr) == &mons[PM_GHOST] || (ptr) == &mons[PM_GHOUL]        \
+                               || (ptr) == &mons[PM_VAMPIRE] || (ptr) == &mons[PM_WRAITH]  \
+                               || (ptr) == &mons[PM_GREEN_SLIME] || (ptr)->mlet == S_MUMMY)
 #endif /* MONDATA_H */

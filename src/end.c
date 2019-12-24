@@ -419,7 +419,7 @@ int how;
         g.killer.format = KILLED_BY;
     }
     /* _the_ <invisible> <distorted> ghost of Dudley */
-    if (mptr == &mons[PM_GHOST] && has_mname(mtmp)) {
+    if (is_bones_monster(mptr) && has_mname(mtmp)) {
         Strcat(buf, "the ");
         g.killer.format = KILLED_BY;
     }
@@ -460,10 +460,8 @@ int how;
                                : "%s imitating %s",
                 realnm, shape);
         mptr = mtmp->data; /* reset for mimicker case */
-    } else if (mptr == &mons[PM_GHOST]) {
-        Strcat(buf, "ghost");
-        if (has_mname(mtmp))
-            Sprintf(eos(buf), " of %s", MNAME(mtmp));
+    } else if (is_bones_monster(mptr)) {
+        Strcpy(buf, m_monnam(mtmp));
     } else if (mtmp->isshk) {
         const char *shknm = shkname(mtmp),
                    *honorific = shkname_is_pname(mtmp) ? ""
