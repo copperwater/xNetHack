@@ -71,7 +71,7 @@ static void FDECL(dump_display_nhwindow, (winid, BOOLEAN_P));
 static void FDECL(dump_destroy_nhwindow, (winid));
 static void FDECL(dump_start_menu, (winid));
 static void FDECL(dump_add_menu, (winid, int, const ANY_P *, CHAR_P,
-                                      CHAR_P, int, const char *, BOOLEAN_P));
+                                      CHAR_P, int, const char *, unsigned int));
 static void FDECL(dump_end_menu, (winid, const char *));
 static int FDECL(dump_select_menu, (winid, int, MENU_ITEM_P **));
 static void FDECL(dump_putstr, (winid, int, const char *));
@@ -507,7 +507,7 @@ static void FDECL(hup_exit_nhwindows, (const char *));
 static winid FDECL(hup_create_nhwindow, (int));
 static int FDECL(hup_select_menu, (winid, int, MENU_ITEM_P **));
 static void FDECL(hup_add_menu, (winid, int, const anything *, CHAR_P, CHAR_P,
-                                 int, const char *, BOOLEAN_P));
+                                 int, const char *, unsigned int));
 static void FDECL(hup_end_menu, (winid, const char *));
 static void FDECL(hup_putstr, (winid, int, const char *));
 static void FDECL(hup_print_glyph, (winid, XCHAR_P, XCHAR_P, int, int));
@@ -693,13 +693,13 @@ struct mi **menu_list UNUSED;
 
 /*ARGSUSED*/
 static void
-hup_add_menu(window, glyph, identifier, sel, grpsel, attr, txt, preselected)
+hup_add_menu(window, glyph, identifier, sel, grpsel, attr, txt, itemflags)
 winid window UNUSED;
 int glyph UNUSED, attr UNUSED;
 const anything *identifier UNUSED;
 char sel UNUSED, grpsel UNUSED;
 const char *txt UNUSED;
-boolean preselected UNUSED;
+unsigned int itemflags UNUSED;
 {
     return;
 }
@@ -2067,15 +2067,15 @@ winid win UNUSED;
 
 /*ARGSUSED*/
 static void
-dump_add_menu(win, glyph, identifier, ch, gch, attr, str, preselected)
-winid win;
+dump_add_menu(win, glyph, identifier, ch, gch, attr, str, itemflags)
+winid win UNUSED;
 int glyph;
 const anything *identifier UNUSED;
 char ch;
 char gch UNUSED;
 int attr;
 const char *str;
-boolean preselected UNUSED;
+unsigned int itemflags UNUSED;
 {
     if (dumplog_file) {
         if (glyph == NO_GLYPH)
