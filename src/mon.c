@@ -2559,7 +2559,7 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
     if (is_bones_monster(mtmp->data)
         && mtmp->former_rank && strlen(mtmp->former_rank) > 0) {
         livelog_printf(LL_UMONST, "destroyed %s, the former %s",
-                       mon_nam(mtmp), mtmp->former_rank);
+                       noit_mon_nam(mtmp), mtmp->former_rank);
     }
 }
 
