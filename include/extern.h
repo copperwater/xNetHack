@@ -1128,7 +1128,7 @@ E boolean FDECL(picking_at, (int, int));
 E void FDECL(breakchestlock, (struct obj *, BOOLEAN_P));
 E void NDECL(reset_pick);
 E void FDECL(maybe_reset_pick, (struct obj *));
-E int FDECL(pick_lock, (struct obj *));
+E int FDECL(pick_lock, (struct obj *, XCHAR_P, XCHAR_P, struct obj *));
 E int NDECL(doforce);
 E boolean FDECL(boxlock, (struct obj *, struct obj *));
 E boolean FDECL(doorlock, (struct obj *, int, int));
@@ -1686,6 +1686,7 @@ E int FDECL(l_selection_register, (lua_State *));
 
 /* ### nhlobj.c ### */
 #if !defined(CROSSCOMPILE) || defined(CROSSCOMPILE_TARGET)
+E void FDECL(nhl_push_obj, (lua_State *, struct obj *));
 E int FDECL(l_obj_register, (lua_State *));
 #endif
 
@@ -2668,6 +2669,7 @@ E boolean FDECL(uescaped_shaft, (struct trap *));
 E boolean NDECL(lava_effects);
 E void NDECL(sink_into_lava);
 E void NDECL(sokoban_guilt);
+E const char * FDECL(trapname, (int, BOOLEAN_P));
 
 /* ### u_init.c ### */
 
