@@ -239,9 +239,6 @@ unsigned *ospecial;
             if (engr->engr_type == DUST) {
                 color = CLR_BROWN;
             }
-            else if (engr->engr_type == ENGRAVE) {
-                color = CLR_GRAY;
-            }
             else if (engr->engr_type == BURN) {
                 color = CLR_BLACK;
             }
@@ -256,6 +253,9 @@ unsigned *ospecial;
             }
             else if (engr->engr_type == ENGR_BLOOD) {
                 color = CLR_RED;
+            }
+            else { /* ENGRAVE */
+                color = CLR_GRAY;
             }
 #endif
         }
