@@ -126,6 +126,7 @@ gnome dummy
 gnome laureate
 gooier ooze
 grant beetle
+greater snake
 green slide
 grind bug
 guardian nacho
@@ -436,6 +437,10 @@ hotel detective
 +Strong Bad
 +Trogdor
 
+# Girl Genius
+smakken
+mimmoth
+
 # KoL
 one-winged dewinged stab-bat
 
@@ -662,6 +667,7 @@ combinatorial explosion
 imaginary number
 largest prime number
 set of all sets
+octahedron
 
 # Computerese
 Blue Screen of Death
@@ -761,15 +767,15 @@ mime
 peddler
 
 # misc.
-+Donkey Kong
 +Colonel Sanders
++Donkey Kong
 +Frankenstein's monster
 +One Punch Man
-Sheriff of Nottingham
 +Skeletor
 -Ebony Dark'ness Dementia Raven Way
 Ghost of Christmas Past
 Mexican jumping bean
+Sheriff of Nottingham
 acid worm
 angry mariachi
 angry onion
@@ -816,6 +822,7 @@ dust bunny
 early bird
 earthquake beast
 eldritch horror
+electric giraffe
 emperor penguin
 emu
 evil overlord
@@ -878,6 +885,7 @@ nightmare
 ninja pirate zombie robot
 non-player character
 octarine dragon
+omnibus
 outsourcing partner
 overclocked microwave
 overused trope
@@ -911,8 +919,10 @@ shallow one
 sharknado
 shrinking violet
 sleazoid
+slinky
 small megabat
 spherical cow
+steam dragon
 stick figure
 studio audience
 stuffed raccoon puppet

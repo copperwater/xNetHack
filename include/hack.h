@@ -70,6 +70,10 @@ enum dismount_types {
     DISMOUNT_BYCHOICE = 6
 };
 
+/* mgflags for mapglyph() */
+#define MG_FLAG_NORMAL     0x00
+#define MG_FLAG_NOOVERRIDE 0x01
+
 /* Special returns from mapglyph() */
 #define MG_CORPSE   0x00001
 #define MG_INVIS    0x00002

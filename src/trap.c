@@ -1,4 +1,4 @@
-/* NetHack 3.6	trap.c	$NHDT-Date: 1569189770 2019/09/22 22:02:50 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.317 $ */
+/* NetHack 3.6	trap.c	$NHDT-Date: 1576638501 2019/12/18 03:08:21 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.329 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -446,13 +446,15 @@ int x, y, typ;
 }
 
 void
-fall_through(td)
+fall_through(td, ftflags)
 boolean td; /* td == TRUE : trap door or hole */
+unsigned ftflags;
 {
     d_level dtmp;
     char msgbuf[BUFSZ];
     const char *dont_fall = 0;
     int newlevel, bottom;
+    struct trap *t = (struct trap *) 0;
 
     /* we'll fall even while levitating in Sokoban; otherwise, if we
        won't fall and won't be told that we aren't falling, give up now */
@@ -475,10 +477,9 @@ boolean td; /* td == TRUE : trap door or hole */
     } while (!rn2(4) && newlevel < bottom);
 
     if (td) {
-        struct trap *t = t_at(u.ux, u.uy);
-
+        t = t_at(u.ux, u.uy);
         feeltrap(t);
-        if (!Sokoban) {
+        if (!Sokoban && !(ftflags & TOOKPLUNGE)) {
             if (t->ttyp == TRAPDOOR)
                 pline("A trap door opens up under you!");
             else
@@ -490,8 +491,10 @@ boolean td; /* td == TRUE : trap door or hole */
     if (Sokoban && Can_fall_thru(&u.uz))
         ; /* KMH -- You can't escape the Sokoban level traps */
     else if (Levitation || u.ustuck
-             || (!Can_fall_thru(&u.uz) && !levl[u.ux][u.uy].candig) || Flying
-             || !grounded(youmonst.data)
+             || (!Can_fall_thru(&u.uz) && !levl[u.ux][u.uy].candig)
+             || ((Flying || !grounded(youmonst.data)
+                  || (ceiling_hider(youmonst.data) && u.uundetected))
+                 && !(ftflags & TOOKPLUNGE))
              || (Inhell && !u.uevent.invoked && newlevel == bottom)) {
         dont_fall = "don't fall in.";
     } else if (youmonst.data->msize >= MZ_HUGE) {
@@ -509,6 +512,13 @@ boolean td; /* td == TRUE : trap door or hole */
         }
         return;
     }
+    if ((Flying || is_clinger(youmonst.data))
+        && (ftflags & TOOKPLUNGE) && td && t)
+        You("%s down %s!",
+            Flying ? "swoop" : "deliberately drop",
+            (t->ttyp == TRAPDOOR)
+                ? "through the trap door"
+                : "into the gaping hole");
 
     if (*u.ushops)
         shopdig(1);
@@ -1462,7 +1472,7 @@ unsigned trflags;
                        defsyms[trap_to_defsym(ttype)].explanation);
             break; /* don't activate it after all */
         }
-        fall_through(TRUE);
+        fall_through(TRUE, (trflags & TOOKPLUNGE));
         break;
 
     case TELEP_TRAP:
@@ -1770,7 +1780,7 @@ struct obj *otmp;
     switch (tt) {
     case ARROW_TRAP:
         if (!otmp) {
-            impossible("steed hit by non-existant arrow?");
+            impossible("steed hit by non-existent arrow?");
             return 0;
         }
         trapkilled = thitm(8, steed, otmp, 0, FALSE);
@@ -1778,7 +1788,7 @@ struct obj *otmp;
         break;
     case DART_TRAP:
         if (!otmp) {
-            impossible("steed hit by non-existant dart?");
+            impossible("steed hit by non-existent dart?");
             return 0;
         }
         trapkilled = thitm(7, steed, otmp, 0, FALSE);
@@ -1808,13 +1818,20 @@ struct obj *otmp;
         deltrap(trap);
         newsym(steed->mx, steed->my);
         if (!resists_magm(steed) && !resist(steed, WAND_CLASS, 0, NOTELL)) {
+            struct permonst *mdat = steed->data;
+
             (void) newcham(steed, (struct permonst *) 0, FALSE, TRUE);
-            if (!can_saddle(steed) || !can_ride(steed))
+            if (!can_saddle(steed) || !can_ride(steed)) {
                 dismount_steed(DISMOUNT_POLY);
-            else
-                You("have to adjust yourself in the saddle on %s.",
-                    x_monnam(steed, ARTICLE_A, (char *) 0, SUPPRESS_SADDLE,
-                             FALSE));
+            } else {
+                char buf[BUFSZ];
+
+                Strcpy(buf, x_monnam(steed, ARTICLE_YOUR, (char *) 0,
+                                            SUPPRESS_SADDLE, FALSE));
+                if (mdat != steed->data)
+                    (void) strsubst(buf, "your ", "your new ");
+                You("adjust yourself in the saddle on %s.", buf);
+            }
         }
         steedhit = TRUE;
         break;
@@ -2825,7 +2842,8 @@ register struct monst *mtmp;
                       a_your[trap->madeby_u]);
             }
             if (!in_sight && !Deaf)
-                pline("Kaablamm!  You hear an explosion in the distance!");
+                pline("Kaablamm!  %s an explosion in the distance!",
+                      "You hear");  /* Deaf-aware */
             blow_up_landmine(trap);
             /* explosion might have destroyed a drawbridge; don't
                dish out more damage if monster is already dead */
@@ -3980,6 +3998,7 @@ drown()
         /* shouldn't drown */
         return FALSE;
     }
+    feel_newsym(u.ux, u.uy); /* in case Blind, map the water here */
     /* Note: drown() callers should NOT check !Wwalking as a condition of
      * calling it. If water walking boots prevent the player from falling in,
      * they should become identified. */
@@ -5369,11 +5388,21 @@ boolean
 uteetering_at_seen_pit(trap)
 struct trap *trap;
 {
-    if (trap && trap->tseen && (!u.utrap || u.utraptype != TT_PIT)
-        && is_pit(trap->ttyp))
-        return TRUE;
-    else
-        return FALSE;
+    return (trap && is_pit(trap->ttyp) && trap->tseen
+            && trap->tx == u.ux && trap->ty == u.uy
+            && !(u.utrap && u.utraptype == TT_PIT));
+}
+
+/*
+ * Returns TRUE if you didn't fall through a hole or didn't
+ * release a trap door
+ */
+boolean
+uescaped_shaft(trap)
+struct trap *trap;
+{
+    return (trap && is_hole(trap->ttyp) && trap->tseen
+            && trap->tx == u.ux && trap->ty == u.uy);
 }
 
 /* Destroy a trap that emanates from the floor. */
@@ -5897,6 +5926,7 @@ lava_effects()
     int dmg = d(6, 6); /* only applicable for water walking */
     boolean usurvive, boil_away;
 
+    feel_newsym(u.ux, u.uy); /* in case Blind, map the lava here */
     burn_away_slime();
     if (likes_lava(youmonst.data))
         return FALSE;
@@ -6029,7 +6059,10 @@ sink_into_lava()
     static const char sink_deeper[] = "You sink deeper into the lava.";
 
     if (!u.utrap || u.utraptype != TT_LAVA) {
-        ; /* do nothing; this shouldn't happen */
+        ; /* do nothing; this usually won't happen but could after
+           * polymorphing from a flier into a ceiling hider and then hiding;
+           * allmain() only checks whether the hero is at a lava location,
+           * not whether he or she is currently sinking */
     } else if (!is_lava(u.ux, u.uy)) {
         reset_utrap(FALSE); /* this shouldn't happen either */
     } else if (!u.uinvulnerable) {

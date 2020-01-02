@@ -604,7 +604,7 @@ getbones()
 
     if (validate(fd, bones) != 0) {
         if (!wizard)
-            pline("Discarding unuseable bones; no need to panic...");
+            pline("Discarding unusable bones; no need to panic...");
         ok = FALSE;
     } else {
         ok = TRUE;

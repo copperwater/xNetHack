@@ -473,7 +473,7 @@ struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
 }
 
 /* give a "silver <item> sears <target>" message (or similar for other
- * material); not used for weapon hit, so we only handle rings, boots for kick,
+ * material); in addition to weapon hit, this is used for rings, boots for kick,
  * gloves for punch, or helm for headbutt.
  * This also handles the case where magr is made of a material that mdef hates.
  */

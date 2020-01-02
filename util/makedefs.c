@@ -53,7 +53,7 @@
 #endif
 
 #if defined(UNIX) && !defined(LINT) && !defined(GCC_WARN)
-static const char SCCS_Id[] UNUSED = "@(#)makedefs.c\t3.6\t2019/05/07";
+static const char SCCS_Id[] UNUSED = "@(#)makedefs.c\t3.6\t2019/12/17";
 #endif
 
 /* names of files to be generated */
@@ -1205,16 +1205,20 @@ char *outbuf;
 const char *build_date;
 {
     char subbuf[64], versbuf[64];
-    char betabuf[64];
+    char statusbuf[64];
 
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
 #if (NH_DEVEL_STATUS == NH_STATUS_BETA)
-    Strcpy(betabuf, " Beta");
+    Strcpy(statusbuf, " Beta");
 #else
-    Strcpy(betabuf, " Work-in-progress");
+#if (NH_DEVEL_STATUS == NH_STATUS_WIP)
+    Strcpy(statusbuf, " Work-in-progress");
+#else
+    Strcpy(statusbuf, " post-release");
+#endif
 #endif
 #else
-    betabuf[0] = '\0';
+    statusbuf[0] = '\0';
 #endif
 
     subbuf[0] = '\0';
@@ -1224,7 +1228,7 @@ const char *build_date;
 #endif
 
     Sprintf(outbuf, "%s xNetHack%s Version %s%s - last %s %s.", PORT_ID,
-            subbuf, version_string(versbuf, "."), betabuf,
+            subbuf, version_string(versbuf, "."), statusbuf,
             date_via_env ? "revision" : "build", build_date);
     return outbuf;
 }
@@ -1245,7 +1249,11 @@ const char *build_date;
 #if (NH_DEVEL_STATUS == NH_STATUS_BETA)
     Strcat(subbuf, " Beta");
 #else
+#if (NH_DEVEL_STATUS == NH_STATUS_WIP)
     Strcat(subbuf, " Work-in-progress");
+#else
+    Strcat(subbuf, " post-release");
+#endif
 #endif
 #endif
 
@@ -1847,7 +1855,11 @@ do_options()
 #if (NH_DEVEL_STATUS == NH_STATUS_BETA)
             " [beta]"
 #else
+#if (NH_DEVEL_STATUS == NH_STATUS_WIP)
             " [work-in-progress]"
+#else
+            " [post-release]"
+#endif
 #endif
 #else
             ""

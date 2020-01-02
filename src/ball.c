@@ -1,4 +1,4 @@
-/* NetHack 3.6	ball.c	$NHDT-Date: 1570566373 2019/10/08 20:26:13 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.43 $ */
+/* NetHack 3.6	ball.c	$NHDT-Date: 1573940835 2019/11/16 21:47:15 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.44 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) David Cohrs, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -202,8 +202,7 @@ placebc()
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
         char panicbuf[BUFSZ];
 
-        Sprintf(panicbuf,
-            "placebc denied, restriction in effect");
+        Sprintf(panicbuf, "placebc denied, restriction in effect");
         paniclog("placebc", panicbuf);
 #endif
         return;
@@ -247,10 +246,9 @@ int pin;
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
         char panicbuf[BUFSZ];
 
-        Sprintf(panicbuf,
-                "lift_covet_and_placebc denied, %s",
-                (pin != bcrestriction) ?
-                "pin mismatch" : "restriction in effect");
+        Sprintf(panicbuf, "lift_covet_and_placebc denied, %s",
+                (pin != bcrestriction) ? "pin mismatch"
+                                       : "restriction in effect");
         paniclog("placebc", panicbuf);
 #endif
         return;
@@ -273,8 +271,7 @@ int linenum;
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
         char panicbuf[BUFSZ];
 
-        Sprintf(panicbuf,
-            "Placebc denied to %s:%d, restricted by %s:%d",
+        Sprintf(panicbuf, "Placebc denied to %s:%d, restricted by %s:%d",
                 funcnm, linenum,
                 bcpbreadcrumbs.funcnm, bcpbreadcrumbs.linenum);
         paniclog("Placebc", panicbuf);
@@ -304,10 +301,9 @@ int linenum;
     if (bcrestriction) {
         char panicbuf[BUFSZ];
 
-        Sprintf(panicbuf,
-          "Unplacebc from %s:%d, when restricted to %s:%d",
-                   funcnm, linenum,
-                   bcubreadcrumbs.funcnm, bcubreadcrumbs.linenum);
+        Sprintf(panicbuf, "Unplacebc from %s:%d, when restricted to %s:%d",
+                funcnm, linenum,
+                bcubreadcrumbs.funcnm, bcubreadcrumbs.linenum);
         paniclog("Unplacebc", panicbuf);
     }
     bcpbreadcrumbs.in_effect = FALSE;
@@ -351,7 +347,7 @@ int linenum;
         char panicbuf[BUFSZ];
 
         Sprintf(panicbuf,
-            "Lift_covet_and_placebc denied to %s:%d, restricted by %s:%d",
+                "Lift_covet_and_placebc denied to %s:%d, restricted by %s:%d",
                 funcnm, linenum,
                 bcpbreadcrumbs.funcnm, bcpbreadcrumbs.linenum);
         paniclog("Lift_covet_and_placebc", panicbuf);
