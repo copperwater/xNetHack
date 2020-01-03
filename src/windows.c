@@ -1949,23 +1949,22 @@ dump_open_log(now)
 time_t now;
 {
 #if defined(DUMPLOG) || defined(DUMPHTML)
-#ifdef SYSCF
-#undef DUMPLOG_FILE
-#undef DUMPHTML_FILE
-#define DUMPLOG_FILE sysopt.dumplogfile
-#define DUMPHTML_FILE sysopt.dumphtmlfile
-#endif
     char buf[BUFSZ];
     char *fname = (char *)0;
 
     dumplog_now = now;
 #ifdef SYSCF
+#undef DUMPLOG_FILE
+#undef DUMPHTML_FILE
+#define DUMPLOG_FILE sysopt.dumplogfile
+#define DUMPHTML_FILE sysopt.dumphtmlfile
     if (!sysopt.dumplogfile)
         return;
     fname = dump_fmtstr(sysopt.dumplogfile, buf, TRUE);
 #else
     fname = dump_fmtstr(DUMPLOG_FILE, buf, TRUE);
 #endif
+    if (fname) dumplog_file = fopen(fname, "w");
 #ifdef DUMPHTML
     fname = dump_fmtstr(DUMPHTML_FILE, buf, TRUE);
     if(fname) dumphtml_file = fopen(fname, "w");
@@ -2182,7 +2181,7 @@ mk_dgl_extrainfo()
 #endif
     char new_fn[512];
 
-    dump_fmtstr(EXTRAINFO_FN,new_fn);
+    dump_fmtstr(EXTRAINFO_FN,new_fn, TRUE);
 
     extrai = fopen(new_fn, "w");
     if (!extrai) {
