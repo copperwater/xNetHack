@@ -872,15 +872,22 @@ short otyp;
     /* Object classes currently with no special messages here: amulets. */
     boolean weptool = (olet == TOOL_CLASS && oc.oc_skill != P_NONE);
     if (olet == WEAPON_CLASS || weptool) {
-        if (oc.oc_skill >= 0) {
-            Sprintf(buf, "%s-handed weapon%s.",
-                    (oc.oc_bimanual ? "Two" : "Single"), (weptool ? "-tool" : ""));
+        const int skill = oc.oc_skill;
+        if (skill >= 0) {
+            Sprintf(buf, "%s-handed weapon%s using the %s skill.",
+                    (oc.oc_bimanual ? "Two" : "Single"),
+                    (weptool ? "-tool" : ""),
+                    skill_name(skill));
         }
-        else if (oc.oc_skill <= -P_BOW && oc.oc_skill >= -P_CROSSBOW) {
-            Strcpy(buf, "Ammunition.");
+        else if (skill <= -P_BOW && oc.oc_skill >= -P_CROSSBOW) {
+            /* Minor assumption: the skill name will be the same as the launcher
+             * itself. Currently this is only bow and crossbow. */
+            Sprintf(buf, "Ammunition meant to be fired from a %s.",
+                    skill_name(-skill));
         }
         else {
-            Strcpy(buf, "Thrown missile.");
+            Sprintf(buf, "Thrown missile using the %s skill.",
+                    skill_name(skill));
         }
         OBJPUTSTR(buf);
         /* Ugh. Can we just get rid of dmgval() and put its damage bonuses into
