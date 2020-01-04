@@ -223,6 +223,7 @@ Stat increase/decrease messages are comparative ("You feel stronger", etc)
 More explicit hunger messages.
 YAFM for hallucinating and doing nothing in particular.
 Add weapon skills and intended launchers to object lookup.
+Display skill caps and the percent towards the next skill in #enhance.
 
 
 It contains the following non-gameplay architectural changes:
