@@ -1,4 +1,4 @@
-/* NetHack 3.6	extern.h	$NHDT-Date: 1575830178 2019/12/08 18:36:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.767 $ */
+/* NetHack 3.6	extern.h	$NHDT-Date: 1578297243 2020/01/06 07:54:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.781 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1128,6 +1128,7 @@ E boolean FDECL(picking_at, (int, int));
 E void FDECL(breakchestlock, (struct obj *, BOOLEAN_P));
 E void NDECL(reset_pick);
 E void FDECL(maybe_reset_pick, (struct obj *));
+E struct obj *FDECL(autokey, (BOOLEAN_P));
 E int FDECL(pick_lock, (struct obj *, XCHAR_P, XCHAR_P, struct obj *));
 E int NDECL(doforce);
 E boolean FDECL(boxlock, (struct obj *, struct obj *));
@@ -1312,6 +1313,7 @@ E void FDECL(mineralize, (int, int, int, int, BOOLEAN_P));
 
 E void FDECL(flood_fill_rm, (int, int, int, BOOLEAN_P, BOOLEAN_P));
 E void FDECL(remove_rooms, (int, int, int, int));
+E boolean FDECL(litstate_rnd, (int));
 /* E void FDECL(mkmap, (lev_init *)); -- need sp_lev.h for lev_init */
 
 /* ### mkmaze.c ### */
@@ -1687,6 +1689,7 @@ E int FDECL(l_selection_register, (lua_State *));
 /* ### nhlobj.c ### */
 #if !defined(CROSSCOMPILE) || defined(CROSSCOMPILE_TARGET)
 E void FDECL(nhl_push_obj, (lua_State *, struct obj *));
+E int FDECL(nhl_obj_u_giveobj, (lua_State *));
 E int FDECL(l_obj_register, (lua_State *));
 #endif
 

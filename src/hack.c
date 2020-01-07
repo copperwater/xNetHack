@@ -3171,7 +3171,6 @@ money_cnt(otmp)
 struct obj *otmp;
 {
     while (otmp) {
-        /* Must change when silver & copper is implemented: */
         if (otmp->oclass == COIN_CLASS)
             return otmp->quan;
         otmp = otmp->nobj;

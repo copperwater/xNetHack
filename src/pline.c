@@ -31,7 +31,6 @@ const char *line;
 
     if (!strncmp(line, "Unknown command", 15))
         return;
-
     if (oldest && strlen(oldest) >= strlen(line)) {
         /* this buffer will gradually shrink until the 'else' is needed;
            there's no pressing need to track allocation size instead */
@@ -489,6 +488,10 @@ VA_DECL(const char *, s)
     if (g.program_state.something_worth_saving)
         Strcat(pbuf, "  (Saving and reloading may fix this problem.)");
     pline("%s", VA_PASS1(pbuf));
+    pline("Please report these messages to %s.", DEVTEAM_EMAIL);
+    if (sysopt.support) {
+        pline("Alternatively, contact local support: %s", sysopt.support);
+    }
 
     g.program_state.in_impossible = 0;
     VA_END();

@@ -1,4 +1,4 @@
-/* NetHack 3.7	objnam.c	$NHDT-Date: 1576638500 2019/12/18 03:08:20 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.257 $ */
+/* NetHack 3.7	objnam.c	$NHDT-Date: 1578258724 2020/01/05 21:12:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.280 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1096,11 +1096,7 @@ unsigned doname_flags;
             break;
         }
         if (obj->otyp == CANDELABRUM_OF_INVOCATION) {
-            if (!obj->spe)
-                Strcpy(tmpbuf, "no");
-            else
-                Sprintf(tmpbuf, "%d", obj->spe);
-            Sprintf(eos(bp), " (%s candle%s%s)", tmpbuf, plur(obj->spe),
+            Sprintf(eos(bp), " (%d of 7 candle%s%s)", obj->spe, plur(obj->spe),
                     !obj->lamplit ? " attached" : ", lit");
             break;
         } else if (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
@@ -1178,7 +1174,18 @@ unsigned doname_flags;
     }
 
     if ((obj->owornmask & W_WEP) && !g.mrg_to_wielded) {
-        if (obj->quan != 1L) {
+        boolean twoweap_primary = (obj == uwep && u.twoweap);
+
+        /* use alternate phrasing for non-weapons and for wielded ammo
+           (arrows, bolts), or missiles (darts, shuriken, boomerangs)
+           except when those are being actively dual-wielded where the
+           regular phrasing will list them as "in right hand" to
+           contrast with secondary weapon's "in left hand" */
+        if ((obj->quan != 1L
+             || ((obj->oclass == WEAPON_CLASS)
+                 ? (is_ammo(obj) || is_missile(obj))
+                 : !is_weptool(obj)))
+            && !twoweap_primary) {
             Strcat(bp, " (wielded)");
         } else {
             const char *hand_s = body_part(HAND);
@@ -1187,10 +1194,13 @@ unsigned doname_flags;
                 hand_s = makeplural(hand_s);
             /* note: Sting's glow message, if added, will insert text
                in front of "(weapon in hand)"'s closing paren */
-            Sprintf(eos(bp), " (%sweapon in %s)",
-                    (obj->otyp == AKLYS) ? "tethered " : "", hand_s);
+            Sprintf(eos(bp), " (%s%s in %s%s)",
+                    twoweap_primary ? "wielded" : "weapon",
+                    (obj->otyp == AKLYS) ? "tethered " : "",
+                    twoweap_primary ? "right " : "", hand_s);
 
-            if (g.warn_obj_cnt && obj == uwep && (EWarn_of_mon & W_WEP) != 0L) {
+            if (g.warn_obj_cnt && obj == uwep
+                && (EWarn_of_mon & W_WEP) != 0L) {
                 if (!Blind) /* we know bp[] ends with ')'; overwrite that */
                     Sprintf(eos(bp) - 1, ", %s %s)",
                             glow_verb(g.warn_obj_cnt, TRUE),
@@ -1200,9 +1210,11 @@ unsigned doname_flags;
     }
     if (obj->owornmask & W_SWAPWEP) {
         if (u.twoweap)
-            Sprintf(eos(bp), " (wielded in other %s)", body_part(HAND));
+            Sprintf(eos(bp), " (wielded in left %s)", body_part(HAND));
         else
-            Strcat(bp, " (alternate weapon; not wielded)");
+            /* TODO: rephrase this when obj isn't a weapon or weptool */
+            Sprintf(eos(bp), " (alternate weapon%s; not wielded)",
+                    plur(obj->quan));
     }
     if (obj->owornmask & W_QUIVER) {
         switch (obj->oclass) {
@@ -3683,7 +3695,7 @@ struct obj *no_wish;
  wiztrap:
     if (wizard && !g.program_state.wizkit_wishing) {
         struct rm *lev;
-        boolean madeterrain = FALSE;
+        boolean madeterrain = FALSE, badterrain = FALSE;
         int trap, x = u.ux, y = u.uy;
 
         for (trap = NO_TRAP + 1; trap < TRAPNUM; trap++) {
@@ -3777,6 +3789,45 @@ struct obj *no_wish;
             lev->typ = IRONBARS;
             pline("Iron bars.");
             madeterrain = TRUE;
+        } else if (!BSTRCMPI(bp, p - 11, "secret door")) {
+            if (lev->typ == DOOR
+                || (IS_WALL(lev->typ) && lev->typ != DBWALL)) {
+                lev->typ = SDOOR;
+                lev->wall_info = 0;
+                /* lev->horizontal stays as-is */
+                /* no special handling for rogue level is necessary;
+                   exposing a secret door there yields a doorless doorway */
+#if 0       /*
+             * Can't do this; secret doors want both doormask and
+             * wall_info but those both overload rm.flags which makes
+             * D_CLOSED conflict with WM_MASK.  However, converting
+             * secret door to regular door sets D_CLOSED iff D_LOCKED
+             * isn't specified so the alternate code suffices.
+             */
+                lev->doormask = locked ? D_LOCKED : D_CLOSED;
+#else
+                /* cvt_sdoor_to_door() will change D_NODOOR to D_CLOSED */
+                lev->doormask = locked ? D_LOCKED : D_NODOOR;
+#endif
+                if (trapped)
+                    lev->doormask |= D_TRAPPED;
+                block_point(x, y);
+                pline("Secret door.");
+                madeterrain = TRUE;
+            } else {
+                pline("Secret door requires door or wall location.");
+                badterrain = TRUE;
+            }
+        } else if (!BSTRCMPI(bp, p - 15, "secret corridor")) {
+            if (lev->typ == CORR) {
+                lev->typ = SCORR;
+                block_point(x, y);
+                pline("Secret corridor.");
+                madeterrain = TRUE;
+            } else {
+                pline("Secret corridor requires corridor location.");
+                badterrain = TRUE;
+            }
         }
 
         if (madeterrain) {
@@ -3791,6 +3842,8 @@ struct obj *no_wish;
                        && !is_lava(u.ux, u.uy)) {
                 reset_utrap(FALSE);
             }
+        }
+        if (madeterrain || badterrain) {
             /* cast 'const' away; caller won't modify this */
             return (struct obj *) &cg.zeroobj;
         }

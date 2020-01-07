@@ -56,11 +56,11 @@ int shotlimit;
     }
 
     /*
-     * Throwing money is usually for getting rid of it when
+     * Throwing gold is usually for getting rid of it when
      * a leprechaun approaches, or for bribing an oncoming
      * angry monster.  So throw the whole object.
      *
-     * If the money is in quiver, throw one coin at a time,
+     * If the gold is in quiver, throw one coin at a time,
      * possibly using a sling.
      */
     if (obj->oclass == COIN_CLASS && obj != uquiver)
@@ -842,7 +842,6 @@ boolean verbose;
         You("%s in the opposite direction.", range > 1 ? "hurtle" : "float");
     /* if we're in the midst of shooting multiple projectiles, stop */
     endmultishot(TRUE);
-    sokoban_guilt();
     uc.x = u.ux;
     uc.y = u.uy;
     /* this setting of cc is only correct if dx and dy are [-1,0,1] only */
@@ -2128,7 +2127,7 @@ struct obj *obj;
     if (u.uswallow) {
         pline(is_animal(u.ustuck->data) ? "%s in the %s's entrails."
                                         : "%s into %s.",
-              "The money disappears", mon_nam(u.ustuck));
+              "The gold disappears", mon_nam(u.ustuck));
         add_to_minv(u.ustuck, obj);
         return 1;
     }
