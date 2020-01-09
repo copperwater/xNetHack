@@ -1,4 +1,4 @@
-/* NetHack 3.7	objnam.c	$NHDT-Date: 1578258724 2020/01/05 21:12:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.280 $ */
+/* NetHack 3.7	objnam.c	$NHDT-Date: 1578400811 2020/01/07 12:40:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.282 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -24,7 +24,6 @@ static boolean FDECL(singplur_lookup, (char *, char *, BOOLEAN_P,
 static char *FDECL(singplur_compound, (char *));
 static char *FDECL(xname_flags, (struct obj *, unsigned));
 static boolean FDECL(badman, (const char *, BOOLEAN_P));
-static char *FDECL(globwt, (struct obj *, char *, boolean *));
 
 struct Jitem {
     int item;
@@ -926,8 +925,7 @@ unsigned doname_flags;
 {
     boolean ispoisoned = FALSE,
             with_price = (doname_flags & DONAME_WITH_PRICE) != 0,
-            vague_quan = (doname_flags & DONAME_VAGUE_QUAN) != 0,
-            weightshown = FALSE;
+            vague_quan = (doname_flags & DONAME_VAGUE_QUAN) != 0;
     boolean known, dknown, cknown, bknown, lknown;
     int omndx = obj->corpsenm;
     char prefix[PREFIX], globbuf[QBUFSZ];
@@ -1174,7 +1172,9 @@ unsigned doname_flags;
     }
 
     if ((obj->owornmask & W_WEP) && !g.mrg_to_wielded) {
-        boolean twoweap_primary = (obj == uwep && u.twoweap);
+        boolean twoweap_primary = (obj == uwep && u.twoweap),
+                tethered = (obj->otyp == AKLYS);
+
 
         /* use alternate phrasing for non-weapons and for wielded ammo
            (arrows, bolts), or missiles (darts, shuriken, boomerangs)
@@ -1195,8 +1195,9 @@ unsigned doname_flags;
             /* note: Sting's glow message, if added, will insert text
                in front of "(weapon in hand)"'s closing paren */
             Sprintf(eos(bp), " (%s%s in %s%s)",
-                    twoweap_primary ? "wielded" : "weapon",
-                    (obj->otyp == AKLYS) ? "tethered " : "",
+                    tethered ? "tethered " : "", /* aklys */
+                    /* avoid "tethered wielded in right hand" for twoweapon */
+                    (twoweap_primary && !tethered) ? "wielded" : "weapon",
                     twoweap_primary ? "right " : "", hand_s);
 
             if (g.warn_obj_cnt && obj == uwep
@@ -1255,22 +1256,19 @@ unsigned doname_flags;
     } else if (is_unpaid(obj)) { /* in inventory or in container in invent */
         long quotedprice = unpaid_cost(obj, TRUE);
 
-        Sprintf(eos(bp), " (%s, %s%ld %s)",
+        Sprintf(eos(bp), " (%s, %ld %s)",
                 obj->unpaid ? "unpaid" : "contents",
-                globwt(obj, globbuf, &weightshown),
                 quotedprice, currency(quotedprice));
     } else if (with_price) { /* on floor or in container on floor */
         int nochrg = 0;
         long price = get_cost_of_shop_item(obj, &nochrg);
 
         if (price > 0L)
-            Sprintf(eos(bp), " (%s, %s%ld %s)",
+            Sprintf(eos(bp), " (%s, %ld %s)",
                     nochrg ? "contents" : "for sale",
-                    globwt(obj, globbuf, &weightshown),
                     price, currency(price));
         else if (nochrg > 0)
-            Sprintf(eos(bp), " (%sno charge)",
-                    globwt(obj, globbuf, &weightshown));
+            Sprintf(eos(bp), " (no charge)");
     }
     if (!strncmp(prefix, "a ", 2)) {
         /* save current prefix, without "a "; might be empty */
@@ -1284,9 +1282,10 @@ unsigned doname_flags;
     /* show weight for items (debug tourist info);
        "aum" is stolen from Crawl's "Arbitrary Unit of Measure" */
     if (wizard && iflags.wizweight) {
-        /* wizard mode user has asked to see object weights;
-           globs with shop pricing attached already include it */
-        if (!weightshown)
+        /* wizard mode user has asked to see object weights */
+        if (with_price && (*(eos(bp)-1) == ')'))
+            Sprintf(eos(bp)-1, ", %u aum)", obj->owt);
+        else
             Sprintf(eos(bp), " (%u aum)", obj->owt);
     }
     bp = strprepend(bp, prefix);
@@ -2962,7 +2961,7 @@ struct obj *no_wish;
     register struct obj *otmp;
     int cnt, spe, spesgn, typ, very, rechrg;
     int blessed, uncursed, iscursed, ispoisoned, isgreased;
-    int eroded, eroded2, erodeproof, locked, unlocked, broken;
+    int eroded, eroded2, erodeproof, locked, unlocked, broken, real, fake;
     int halfeaten, mntmp, contents;
     int islit, unlabeled, ishistoric, isdiluted, trapped;
     int tmp, tinv, tvariety;
@@ -2970,7 +2969,7 @@ struct obj *no_wish;
     struct fruit *f;
     int ftype = g.context.current_fruit;
     char fruitbuf[BUFSZ], globbuf[BUFSZ];
-    /* Fruits may not mess up the ability to wish for real objects (since
+    /* Fruits must not mess up the ability to wish for real objects (since
      * you can leave a fruit in a bones file and it will be added to
      * another person's game), so they must be checked for last, after
      * stripping all the possible prefixes and seeing if there's a real
@@ -2992,7 +2991,7 @@ struct obj *no_wish;
     very = rechrg = blessed = uncursed = iscursed = ispoisoned =
         isgreased = eroded = eroded2 = erodeproof = halfeaten =
         islit = unlabeled = ishistoric = isdiluted = trapped =
-        locked = unlocked = broken = 0;
+        locked = unlocked = broken = real = fake = 0;
     tvariety = RANDOM_TIN;
     mntmp = NON_PM;
 #define UNDEFINED 0
@@ -3135,6 +3134,15 @@ struct obj *no_wish;
                 break;
             /* "very large " had "very " peeled off on previous iteration */
             gsize = (very != 1) ? 3 : 4;
+        } else if (!strncmpi(bp, "real ", l = 5)) {
+            /* accept "real Amulet of Yendor" with "blessed" or "cursed"
+               or useless "erodeproof" before or after "real" ... */
+            real = 1; /* don't negate 'fake' here; "real fake amulet" and
+                       * "fake real amulet" will both yield fake amulet
+                       * (so will "real amulet" outside of wizard mode) */
+        } else if (!strncmpi(bp, "fake ", l = 5)) {
+            /* ... and "fake Amulet of Yendor" likewise */
+            fake = 1; /* doesn't matter whether 'real' is negated here */
         } else
             break;
         bp += l;
@@ -3230,6 +3238,33 @@ struct obj *no_wish;
     if ((p = strstri(bp, " of spinach")) != 0) {
         *p = 0;
         contents = SPINACH;
+    }
+    /* this is only useful for wizard mode but we'll accept its parsing
+       in normal play (result is never the real Amulet for that case) */
+    if ((p = strstri(bp, OBJ_DESCR(objects[AMULET_OF_YENDOR]))) != 0
+        && (p == bp || p[-1] == ' ')) {
+        char *s = bp;
+
+        /* "Amulet of Yendor" matches two items; disambiguate via "real"
+           or "fake" prefix (parsed above so that both "blessed real"
+           and "real blessed" work); also accept partial specification of
+           the full name of the fake; unlike the prefix recognition loop
+           above, these have to be in the right order when more than one
+           is present (similar to glass gems below) */
+        if (!strncmpi(s, "cheap ", 6))
+            fake = 1, s += 6;
+        if (!strncmpi(s, "plastic ", 8))
+            fake = 1, s += 8;
+        if (!strncmpi(s, "imitation ", 10))
+            fake = 1, s += 10;
+        nhUse(s); /* suppress potential assigned-but-not-used complaint */
+        /* '(!real && !fake)' is the default, so 50:50 chance for either */
+        if (real && fake)
+            real = 0;
+        else if (!real && !fake && !rn2(2))
+            real = 1;
+        typ = real ? AMULET_OF_YENDOR : FAKE_AMULET_OF_YENDOR;
+        goto typfnd;
     }
 
     /*
@@ -4447,22 +4482,6 @@ const char *lastR;
     }
     /* assert( strlen(qbuf) < QBUFSZ ); */
     return qbuf;
-}
-
-static char *
-globwt(otmp, buf, weightformatted_p)
-struct obj *otmp;
-char *buf;
-boolean *weightformatted_p;
-{
-    *buf = '\0';
-    if (otmp->globby) {
-        Sprintf(buf, "%u aum, ", otmp->owt);
-        *weightformatted_p = TRUE;
-    } else {
-        *weightformatted_p = FALSE;
-    }
-    return buf;
 }
 
 /*objnam.c*/
