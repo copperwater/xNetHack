@@ -1,4 +1,4 @@
-/* NetHack 3.6	pager.c	$NHDT-Date: 1578137709 2020/01/04 11:35:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.179 $ */
+/* NetHack 3.6	pager.c	$NHDT-Date: 1578668022 2020/01/10 14:53:42 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.181 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -77,7 +77,7 @@ char *
 self_lookat(outbuf)
 char *outbuf;
 {
-    char race[QBUFSZ];
+    char race[QBUFSZ], trapbuf[QBUFSZ];
 
     /* include race with role unless polymorphed */
     race[0] = '\0';
@@ -91,6 +91,11 @@ char *outbuf;
         Sprintf(eos(outbuf), ", mounted on %s", y_monnam(u.usteed));
     if (u.uundetected || (Upolyd && U_AP_TYPE))
         mhidden_description(&g.youmonst, FALSE, eos(outbuf));
+    if (Punished)
+        Sprintf(eos(outbuf), ", chained to %s",
+                uball ? ansimpleoname(uball) : "nothing?");
+    if (u.utrap) /* bear trap, pit, web, in-floor, in-lava, tethered */
+        Sprintf(eos(outbuf), ", %s", trap_predicament(trapbuf, FALSE));
     return outbuf;
 }
 
@@ -106,7 +111,7 @@ char *outbuf;
     boolean fakeobj, isyou = (mon == &g.youmonst);
     int x = isyou ? u.ux : mon->mx, y = isyou ? u.uy : mon->my,
         glyph = (g.level.flags.hero_memory && !isyou) ? levl[x][y].glyph
-                                                    : glyph_at(x, y);
+                                                      : glyph_at(x, y);
 
     *outbuf = '\0';
     if (M_AP_TYPE(mon) == M_AP_FURNITURE
@@ -144,8 +149,7 @@ char *outbuf;
             Strcat(outbuf, something);
         } else if (is_hider(mon->data)) {
             Sprintf(eos(outbuf), " on the %s",
-                    (is_flyer(mon->data) || mon->data->mlet == S_PIERCER)
-                       ? "ceiling"
+                    ceiling_hider(mon->data) ? "ceiling"
                        : surface(x, y)); /* trapper */
         } else {
             if (mon->data->mlet == S_EEL && is_pool(x, y))
