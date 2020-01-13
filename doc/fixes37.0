@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.60 $ $NHDT-Date: 1578690701 2020/01/10 21:11:41 $
+$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ $NHDT-Date: 1578855619 2020/01/12 19:00:19 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -42,6 +42,8 @@ walking out of tethered-to-buried-object trap condition was supposed to
 	reinstate punishment but wasn't finding the buried iron ball because
 	the trap condition was cleared first to indicate escape; result was
 	attached chain that got dragged around but had no ball attached
+when poly'd into a giant and moving onto a boulder's spot, message given was
+	confused about whether autopickup would occur so could be misleading
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -66,6 +68,9 @@ if running and Blind or Stunned or Fumbling or Dex < 10, encountering a closed
 	door orthogonally would keep reporting "ouch! you bump into a door"
 	repeatedly until eventually interrupted by approaching monster or
 	hunger or ^C
+data.base lookup of an entry with any blank lines would falsely claim that
+	"'data' file in wrong fromat or corrupted" after some extra checks
+	were added while investigating tab handling anomalies
 
 
 Platform- and/or Interface-Specific Fixes
@@ -95,10 +100,16 @@ add 'quick_farsight' option to provide some control over random clairvoyance
 	revealed map can seem intrusive; doesn't affect clairvoyance spell
 replace "money" in in-game texts with "gold"
 when hallucinating, see hallucinated currencies instead of bits for an ale
+when hallucinating, see hallucinated liquids when looking at water or lava
+	on the map
 applying a spellbook hints about read charges left
 wizard mode wishing for level topology can now create hidden doors (ask for
 	"secret door" when at a door or wall location) and hidden corridor
 	spots ("secret corridor" at a corridor location)
+tiny chance for randomly created spellbooks to be Discworld novels instead
+	of having only one in the first book or scroll shop created (won't
+	occur in hero's initial inventory or NPC priest inventory or be
+	bestowed as a prayer boon; might occur inside statues)
 
 
 Platform- and/or Interface-Specific New Features
