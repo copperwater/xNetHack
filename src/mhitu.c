@@ -2123,7 +2123,7 @@ struct attack *mattk;
         if (flaming(youmonst.data)) {
             pline("Your body burns through %s!", mon_nam(mtmp));
             /* kills the slime from the inside out */
-            xkilled(mtmp, 3);
+            xkilled(mtmp, XKILL_NOMSG | XKILL_NOCORPSE | XKILL_NOCONDUCT);
             mon_killed = TRUE;
         } else if (Unchanging || noncorporeal(youmonst.data)
                    || youmonst.data == &mons[PM_GREEN_SLIME]) {
