@@ -171,6 +171,7 @@ There is no longer an Elbereth engraving under the Sokoban prize and the Castle
   chest. (The scrolls of scare monster are still there.)
 Scrolls of scare monster no longer work on uniques.
 Pets will not eat food if they are already satiated.
+Centaurs prefer to keep their distance from you and won't close to melee combat.
 
 
 It contains the following non-gameplay interface changes:
