@@ -1075,18 +1075,17 @@ int pm;
         context.botl = 1;
         check_intrinsics = TRUE; /* might also convey poison resistance */
         break;
-    case PM_STALKER:
-        if (!Invis) {
-            set_itimeout(&HInvis, (long) rn1(100, 50));
-            if (!Blind && !BInvis)
-                self_invis_message();
-        } else {
-            if (!(HInvis & INTRINSIC))
-                You_feel("hidden!");
-            HInvis |= FROMOUTSIDE;
-            HSee_invisible |= FROMOUTSIDE;
+    case PM_STALKER: {
+        boolean was_invis = !!Invis;
+        incr_itimeout(&HInvis, (long) rn1(200, 200));
+        if (!was_invis && !Blind && !BInvis) {
+            self_invis_message();
+        }
+        if (was_invis) {
+            incr_itimeout(&HSee_invisible, (long) rn1(200, 600));
         }
         newsym(u.ux, u.uy);
+    }
         /*FALLTHRU*/
     case PM_YELLOW_LIGHT:
     case PM_GIANT_BAT:

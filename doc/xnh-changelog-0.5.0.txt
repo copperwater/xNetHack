@@ -172,6 +172,12 @@ There is no longer an Elbereth engraving under the Sokoban prize and the Castle
 Scrolls of scare monster no longer work on uniques.
 Pets will not eat food if they are already satiated.
 Centaurs prefer to keep their distance from you and won't close to melee combat.
+Intrinsic invisibility and see invisible are no longer obtainable.
+  Extrinsics (rings, cloak, artifacts) and role-based intrinsics are unchanged.
+  Stalkers now grant 200+d200 turns of both intrinsics.
+  Random throne and fountain effects now grant 1000 + d1000 turns.
+  The potions grant 200+d200 turns, plus 200 if uncursed / 400 if blessed.
+  The wand grants 50+d50 turns per zap, or (charges)d250 turns if broken.
 
 
 It contains the following non-gameplay interface changes:
