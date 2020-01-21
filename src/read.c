@@ -1423,7 +1423,8 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             }
         } else {
             /* surround with cancelled tame lights which won't explode */
-            int numlights = rn1(2,4), i;
+            int numlights = rn1(2,3) + (sblessed * 2);
+            int i;
             struct permonst * mptr = scursed ? &mons[PM_BLACK_LIGHT]
                                              : &mons[PM_YELLOW_LIGHT];
             for (i = 0; i < numlights; ++i) {
