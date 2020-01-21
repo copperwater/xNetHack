@@ -3300,6 +3300,15 @@ static const struct icp dwarvish_materials[] = {
     { 1, PLATINUM}
 };
 
+/* for objects of orcish make - no valuables */
+static const struct icp crude_materials[] = {
+    {80, IRON}, /* default to base type, iron or metal */
+    { 8, BONE},
+    { 5, PLASTIC},
+    { 5, WOOD},
+    { 2, GLASS}
+};
+
 /* for armor-y objects of elven make - no iron!
  * Does not cover clothy items; those use the regular cloth probs. */
 static const struct icp elven_materials[] = {
@@ -3370,8 +3379,6 @@ static const struct icp bow_materials[] = {
     { 1, GOLD}
 };
 
-/* TODO: Orcish? */
-
 /* Return the appropriate above list for a given object, or NULL if there isn't
  * an appropriate list. */
 const struct icp*
@@ -3391,6 +3398,7 @@ struct obj* obj;
         case BULLWHIP:
         case WORM_TOOTH:
         case CRYSKNIFE:
+        case ELVEN_BOOTS:
             return NULL;
         /* Any other cases for specific object types go here. */
         case SHIELD_OF_REFLECTION:
@@ -3439,6 +3447,9 @@ struct obj* obj;
     }
     else if (is_dwarvish_obj(obj) && default_material != CLOTH) {
         return dwarvish_materials;
+    }
+    else if (is_orcish_obj(obj) && default_material != CLOTH) {
+        return crude_materials;
     }
     else if (obj->oclass == AMULET_CLASS && otyp != AMULET_OF_YENDOR
              && otyp != FAKE_AMULET_OF_YENDOR) {

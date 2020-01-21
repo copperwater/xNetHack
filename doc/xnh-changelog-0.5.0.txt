@@ -178,6 +178,8 @@ Intrinsic invisibility and see invisible are no longer obtainable.
   Random throne and fountain effects now grant 1000 + d1000 turns.
   The potions grant 200+d200 turns, plus 200 if uncursed / 400 if blessed.
   The wand grants 50+d50 turns per zap, or (charges)d250 turns if broken.
+Elven boots will always be leather.
+Orcish gear will be either iron, wood, bone, plastic, or glass.
 
 
 It contains the following non-gameplay interface changes:
