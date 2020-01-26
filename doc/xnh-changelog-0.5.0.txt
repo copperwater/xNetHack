@@ -182,6 +182,12 @@ Elven boots will always be leather.
 Orcish gear will be either iron, wood, bone, plastic, or glass.
 Gazing into a crystal ball is now an occupation that doesn't leave you helpless.
   It takes 6-10 turns to use one, rather than 1-10.
+Crystal balls now have many more charges and weigh only 100.
+A blessed or cursed crystal ball counts as +5 or -5 to your Int when determining
+  whether you successfully use it.
+Non-cursed crystal balls will never explode.
+Uncursed charging a crystal ball, horn of plenty, bag of tricks or can of grease
+  will add d5+5 charges instead of just d5.
 
 
 It contains the following non-gameplay interface changes:

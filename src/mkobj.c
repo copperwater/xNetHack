@@ -974,7 +974,7 @@ boolean artif;
                 blessorcurse(otmp, 10);
                 break;
             case CRYSTAL_BALL:
-                otmp->spe = rnd(5);
+                otmp->spe = rnd(25);
                 blessorcurse(otmp, 2);
                 break;
             case HORN_OF_PLENTY:

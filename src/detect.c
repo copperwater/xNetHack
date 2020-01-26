@@ -1153,9 +1153,9 @@ struct obj **optr;
         pline("The glass shell is empty.");
         return;
     }
-    oops = (rnd(20) > ACURR(A_INT) || obj->cursed);
+    oops = (rnd(20) > (ACURR(A_INT) + 5 * (obj->blessed - obj->cursed)));
     if (oops && (obj->spe > 0)) {
-        switch (rnd(obj->oartifact ? 4 : 5)) {
+        switch (rnd((obj->oartifact || !obj->cursed) ? 4 : 5)) {
         case 1:
             pline("%s too much to comprehend!", Tobjnam(obj, "are"));
             break;

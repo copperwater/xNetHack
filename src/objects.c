@@ -660,7 +660,7 @@ TOOL("magic lamp",        "lamp", 0, 0, 1, 0, 15, 20,500, COPPER, CLR_YELLOW),
 /* other tools */
 TOOL("expensive camera",    None, 1, 0, 0, 1, 15, 12,200, PLASTIC, CLR_BLACK),
 TOOL("mirror",   "looking glass", 0, 0, 0, 0, 45, 13, 10, GLASS, HI_SILVER),
-TOOL("crystal ball", "glass orb", 0, 0, 1, 1, 15,150, 60, GLASS, HI_GLASS),
+TOOL("crystal ball", "glass orb", 0, 0, 1, 1, 15,100, 60, GLASS, HI_GLASS),
 TOOL("lenses",              None, 1, 0, 0, 0,  5,  3, 80, GLASS, HI_GLASS),
 TOOL("blindfold",           None, 1, 0, 0, 0, 50,  2, 20, CLOTH, CLR_BLACK),
 TOOL("towel",               None, 1, 0, 0, 0, 50,  2, 50, CLOTH, CLR_MAGENTA),
