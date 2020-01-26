@@ -7,7 +7,7 @@
 
 #include "mfndpos.h"
 
-#define DOG_SATIATED 1500
+#define DOG_SATIATED 800
 
 extern boolean notonhead;
 
