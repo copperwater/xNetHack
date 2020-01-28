@@ -1038,6 +1038,7 @@ int uid;
  * print selected parts of score list.
  * argc >= 2, with argv[0] untrustworthy (directory names, et al.),
  * and argv[1] starting with "-s".
+ * caveat: some shells might allow argv elements to be arbitrarily long.
  */
 void
 prscore(argc, argv)
