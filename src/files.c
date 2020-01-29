@@ -4871,7 +4871,7 @@ VA_DECL2(unsigned int, ll_type, const char *, fmt)
 void
 livelog_write_string(log_type, buffer)
 unsigned int log_type UNUSED;
-char *buffer UNUSED;
+const char *buffer UNUSED;
 {
 }
 
