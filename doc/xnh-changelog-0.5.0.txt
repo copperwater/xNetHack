@@ -201,6 +201,7 @@ Remove the rogue tribute level.
 Add Frontier Town (what Orcish Town was before being ransacked) as an eighth
   variant of Minetown.
 Monsters that wear helms of telepathy become telepathic.
+Monsters can wear amulets of ESP, becoming telepathic.
 
 
 It contains the following non-gameplay interface changes:
