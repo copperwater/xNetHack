@@ -295,3 +295,5 @@ Add an ammo field to struct trap, which represents the object contained in the
   than on generic objects.
 Rename cnv_trap_obj to remove_trap_ammo. It now extracts and places the ammo
   from a trap.
+Split monster intrinsics off the mextrinsics field, preventing monsters' worn
+  armor from clobbering their intrinsics from eaten corpses.
