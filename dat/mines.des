@@ -873,6 +873,99 @@ ROOM: "ordinary" , random, random, random, random {
 
 RANDOM_CORRIDORS
 
+# Minetown variant 8
+# Frontier Town - not yet pillaged by orcs
+#
+LEVEL: "minetn-8"
+ROOM: "ordinary" , lit, (25,3), (left, top), (31,15) {
+  FOUNTAIN: (13, 7)
+  FOUNTAIN: (20, 7)
+
+# The Town Watch
+MONSTER: "watchman", random, peaceful
+MONSTER: "watchman", random, peaceful
+MONSTER: "watchman", random, peaceful
+MONSTER: "watchman", random, peaceful
+MONSTER: "watch captain", random, peaceful
+
+[90%] : SUBROOM: "shop" , lit, (2,2), (3,4) {
+  ROOMDOOR: false, closed, south, random
+}
+
+[90%] : SUBROOM: "tool shop", lit, (2,9), (3,4) {
+  ROOMDOOR: false, closed, north, random
+}
+
+SUBROOM: "ordinary", unlit, (6,2), (3,4) {
+  ROOMDOOR: false, closed, south, random
+}
+
+SUBROOM: "ordinary", lit, (6,9), (3,4) {
+  ROOMDOOR: false, closed, north, random
+}
+
+[90%] : SUBROOM: "food shop", lit, (10,2), (2,3) {
+  ROOMDOOR: false, closed, south, random
+}
+
+SUBROOM: "candle shop", lit, (22,2), (3,3) {
+  ROOMDOOR: false, closed, south, random
+}
+
+SUBROOM: "ordinary", unlit, (10,10), (2,3) {
+  ROOMDOOR: false, locked, east, random
+  MONSTER: "gnome", random
+}
+
+SUBROOM: "ordinary", lit, (19,2),  (2,3) {
+  ROOMDOOR: false, locked, west, random
+  MONSTER: "gnome", random
+}
+
+SUBROOM: "temple", lit, (15,9), (4,4) {
+  ROOMDOOR: false, closed, north, random
+  ALTAR:(02,02),align[0],shrine
+  MONSTER: "gnomish wizard", random
+  MONSTER: "gnomish wizard", random
+}
+
+SUBROOM: "ordinary", lit, (22,10), (2,3) {
+  ROOMDOOR: false, locked, west, random
+}
+
+SUBROOM: "ordinary", lit, (26,2), (3,3) {
+  ROOMDOOR: false, closed, south, random
+  MONSTER: "gnome lord", random
+}
+
+SUBROOM: "ordinary", unlit, (25,10), (4,3) {
+  ROOMDOOR: false, closed, north, random
+}
+
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  STAIR: random, up
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  STAIR: random, down
+  TRAP: random, random
+  MONSTER: "gnome", random
+  MONSTER: "gnome", random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  MONSTER: "dwarf", random
+}
+
+ROOM: "ordinary" , random, random, random, random {
+  TRAP: random, random
+  MONSTER: "gnome", random
+}
+
+RANDOM_CORRIDORS
+
 # Mine end level variant 1
 # "Mimic of the Mines"
 #
