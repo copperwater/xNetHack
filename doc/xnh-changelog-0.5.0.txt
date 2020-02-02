@@ -196,6 +196,7 @@ Dart and arrow traps generate with 15+1d20 ammo, rock traps with 5+1d10.
 Poison darts from traps deal Con damage more often (60% of the time), and higher
   HP damage when they don't. However, dart traps won't generate with poison
   darts until depth 7.
+Any iron items that elvish players would start with are copper instead.
 
 
 It contains the following non-gameplay interface changes:
