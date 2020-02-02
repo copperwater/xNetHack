@@ -188,6 +188,11 @@ A blessed or cursed crystal ball counts as +5 or -5 to your Int when determining
 Non-cursed crystal balls will never explode.
 Uncursed charging a crystal ball, horn of plenty, bag of tricks or can of grease
   will add d5+5 charges instead of just d5.
+Dart and arrow traps produce ammunition from a stack, so it will all have the
+  same material, enchantment, etc. The number of darts/arrows from a given trap
+  is constant, regardless of whether produced by firing or by untrapping.
+Poison darts from traps deal Con damage more often (60% of the time), and higher
+  HP damage when they don't.
 
 
 It contains the following non-gameplay interface changes:
@@ -278,3 +283,8 @@ Objects will only be given a randomized object material if called with init=TRUE
   in mksobj.
 Add a struct crystalball_info to struct context, and the appropriate bits into
   the save and restore code to save and restore it.
+Add an ammo field to struct trap, which represents the object contained in the
+  trap (darts, beartrap, etc). Interactions with the trap draw on this rather
+  than on generic objects.
+Rename cnv_trap_obj to remove_trap_ammo. It now extracts and places the ammo
+  from a trap.

@@ -889,10 +889,9 @@ coord *cc;
         /* magical digging disarms settable traps */
         if (by_magic && ttmp
             && (ttmp->ttyp == LANDMINE || ttmp->ttyp == BEAR_TRAP)) {
-            int otyp = (ttmp->ttyp == LANDMINE) ? LAND_MINE : BEARTRAP;
 
             /* convert trap into buried object (deletes trap) */
-            cnv_trap_obj(otyp, 1, ttmp, TRUE);
+            remove_trap_ammo(ttmp, (ttmp->ttyp == LANDMINE));
         }
 
         /* finally we get to make a hole */
