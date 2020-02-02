@@ -30,6 +30,14 @@ struct trap {
                               when you untrap a monster.  It would be too
                               easy to make a monster peaceful if you could
                               set a trap for it and then untrap it. */
+    struct obj* ammo; /* object associated with this trap - darts for a dart
+                         trap, arrows for an arrow trap, a beartrap object for a
+                         bear trap.  This object does not physically exist in
+                         the game until some action creates it, such as the
+                         beartrap being untrapped, or one dart being fired.
+                         Not all types of traps will need this field - in fact,
+                         most don't. Only those which need to store persistent
+                         information about the associated object do. */
     union vlaunchinfo vl;
 #define launch_otyp vl.v_launch_otyp
 #define launch2 vl.v_launch2

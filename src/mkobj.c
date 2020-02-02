@@ -2171,6 +2171,13 @@ struct obj *obj;
     case OBJ_ONBILL:
         extract_nobj(obj, &billobjs);
         break;
+    case OBJ_INTRAP:
+        /* The only place that we should be trying to extract an object inside a
+         * trap is from within the trap code, where we have a pointer to the
+         * trap that contains the object. We should never be trying to extract
+         * an object inside a trap without that context. */
+        panic("trying to extract object from trap with no trap info");
+        break;
     default:
         panic("obj_extract_self");
         break;

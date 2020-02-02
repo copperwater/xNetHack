@@ -1173,6 +1173,8 @@ int mode;
         trap2 = trap->ntrap;
         if (perform_bwrite(mode))
             bwrite(fd, (genericptr_t) trap, sizeof *trap);
+        if (trap->ammo)
+            saveobjchn(fd, trap->ammo, mode);
         if (release_data(mode))
             dealloc_trap(trap);
         trap = trap2;

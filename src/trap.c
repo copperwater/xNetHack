@@ -5279,6 +5279,12 @@ register struct trap *trap;
     }
     if (Sokoban && (trap->ttyp == PIT || trap->ttyp == HOLE))
         maybe_finish_sokoban();
+    while (trap->ammo) {
+        impossible("deleting trap containing ammo?");
+        struct obj* otmp = trap->ammo;
+        extract_nobj(otmp, &trap->ammo);
+        obfree(otmp, (struct obj *) 0);
+    }
     dealloc_trap(trap);
 }
 

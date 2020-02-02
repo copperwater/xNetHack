@@ -1102,6 +1102,12 @@ boolean ghostly;
     while (trap = newtrap(),
            mread(fd, (genericptr_t) trap, sizeof(struct trap)),
            trap->tx != 0) { /* need "!= 0" to work around DICE 3.0 bug */
+        /* trap->ammo will either be NULL or a stale pointer from the previous
+         * game. We don't read the stale pointer, other than to see whether an
+         * object chain follows this trap. */
+        if (trap->ammo) {
+            trap->ammo = restobjchn(fd, ghostly, FALSE);
+        }
         trap->ntrap = ftrap;
         ftrap = trap;
     }
