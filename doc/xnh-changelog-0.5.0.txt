@@ -188,9 +188,11 @@ A blessed or cursed crystal ball counts as +5 or -5 to your Int when determining
 Non-cursed crystal balls will never explode.
 Uncursed charging a crystal ball, horn of plenty, bag of tricks or can of grease
   will add d5+5 charges instead of just d5.
-Dart and arrow traps produce ammunition from a stack, so it will all have the
-  same material, enchantment, etc. The number of darts/arrows from a given trap
-  is constant, regardless of whether produced by firing or by untrapping.
+Dart, arrow, and rock traps produce ammunition from a stack, so it will all have
+  the same material, enchantment, etc. The number of darts/arrows/rocks from a
+  given trap is constant, regardless of whether produced by firing or by
+  untrapping.
+Dart and arrow traps generate with 15+1d20 ammo, rock traps with 5+1d10.
 Poison darts from traps deal Con damage more often (60% of the time), and higher
   HP damage when they don't.
 

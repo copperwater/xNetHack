@@ -9,7 +9,6 @@ extern const char *const destroy_strings[][3]; /* from zap.c */
 
 STATIC_DCL boolean FDECL(keep_saddle_with_steedcorpse, (unsigned, struct obj *,
                                                         struct obj *));
-STATIC_DCL struct obj *FDECL(t_missile, (int, struct trap *));
 STATIC_DCL char *FDECL(trapnote, (struct trap *, BOOLEAN_P));
 STATIC_DCL int FDECL(steedintrap, (struct trap *, struct obj *));
 STATIC_DCL void FDECL(launch_drop_spot, (struct obj *, XCHAR_P, XCHAR_P));
@@ -430,6 +429,12 @@ int x, y, typ;
                            : level.flags.is_cavernous_lev ? CORR : DOOR;
 
         unearth_objs(x, y);
+        break;
+    case ROCKTRAP:
+        otmp = mksobj(ROCK, TRUE, FALSE);
+        /* TODO: Scale this with depth. */
+        otmp->quan = 5 + rnd(10);
+        set_trap_ammo(ttmp, otmp);
         break;
     case DART_TRAP:
         otmp = mksobj(DART, TRUE, FALSE);
@@ -1048,21 +1053,6 @@ xchar ttype;
     return TRAP_NOT_IMMUNE;
 }
 
-/* make a single arrow/dart/rock for a trap to shoot or drop */
-STATIC_OVL struct obj *
-t_missile(otyp, trap)
-int otyp;
-struct trap *trap;
-{
-    struct obj *otmp = mksobj(otyp, TRUE, FALSE);
-
-    otmp->quan = 1L;
-    otmp->owt = weight(otmp);
-    otmp->opoisoned = 0;
-    otmp->ox = trap->tx, otmp->oy = trap->ty;
-    return otmp;
-}
-
 void
 set_utrap(tim, typ)
 unsigned tim, typ;
@@ -1200,7 +1190,7 @@ unsigned trflags;
         break;
 
     case ROCKTRAP:
-        if (trap->once && trap->tseen && !rn2(15)) {
+        if (!trap->ammo) {
             pline("A trap door in %s opens, but nothing falls out!",
                   the(ceiling(u.ux, u.uy)));
             deltrap(trap);
@@ -1208,9 +1198,12 @@ unsigned trflags;
         } else {
             int dmg = d(2, 6); /* should be std ROCK dmg? */
 
-            trap->once = 1;
+            otmp = trap->ammo;
+            if (trap->ammo->quan > 1) {
+                otmp = splitobj(trap->ammo, 1);
+            }
+            extract_nobj(otmp, &trap->ammo);
             feeltrap(trap);
-            otmp = t_missile(ROCK, trap);
             place_object(otmp, u.ux, u.uy);
 
             pline("A trap door in %s opens and %s falls on your %s!",
@@ -2430,7 +2423,7 @@ register struct monst *mtmp;
                 trapkilled = TRUE;
             break;
         case ROCKTRAP:
-            if (trap->once && trap->tseen && !rn2(15)) {
+            if (!trap->ammo) {
                 if (in_sight && see_it)
                     pline(
                         "A trap door above %s opens, but nothing falls out!",
@@ -2439,8 +2432,11 @@ register struct monst *mtmp;
                 newsym(mtmp->mx, mtmp->my);
                 break;
             }
-            trap->once = 1;
-            otmp = t_missile(ROCK, trap);
+            otmp = trap->ammo;
+            if (trap->ammo->quan > 1) {
+                otmp = splitobj(trap->ammo, 1);
+            }
+            extract_nobj(otmp, &trap->ammo);
             if (in_sight)
                 seetrap(trap);
             if (thitm(0, mtmp, otmp, d(2, 6), FALSE))
