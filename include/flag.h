@@ -1,4 +1,4 @@
-/* NetHack 3.7	flag.h	$NHDT-Date: 1579261284 2020/01/17 11:41:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.172 $ */
+/* NetHack 3.7	flag.h	$NHDT-Date: 1580434522 2020/01/31 01:35:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.175 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -41,6 +41,7 @@ struct flag {
     boolean invlet_constant; /* let objects keep their inventory symbol */
     boolean legacy;          /* print game entry "story" */
     boolean lit_corridor;    /* show a dark corr as lit if it is in sight */
+    boolean mention_decor;   /* give feedback for unobscured furniture */
     boolean mention_walls;   /* give feedback when bumping walls */
     boolean nap;             /* `timed_delay' option for display effects */
     boolean null;            /* OK to send nulls to the terminal */
@@ -283,6 +284,7 @@ struct instance_flags {
     boolean zerocomp;         /* write zero-compressed save files */
     boolean rlecomp;          /* alternative to zerocomp; run-length encoding
                                * compression of levels when writing savefile */
+    schar prev_decor;         /* 'mention_decor' just mentioned this */
     uchar num_pad_mode;
     uchar bouldersym;         /* symbol for boulder display */
     char prevmsg_window;      /* type of old message window to use */
@@ -400,11 +402,6 @@ struct instance_flags {
     Bitfield(save_uswallow, 1);
     Bitfield(save_uinwater, 1);
     Bitfield(save_uburied, 1);
-    /* item types used to acomplish "special achievements"; find the target
-       object and you'll be flagged as having achieved something... */
-    short mines_prize_type;     /* luckstone */
-    short soko_prize_type1;     /* bag of holding or    */
-    short soko_prize_type2;     /* amulet of reflection */
     struct debug_flags debug;
     boolean windowtype_locked;  /* windowtype can't change from configfile */
     boolean windowtype_deferred; /* pick a windowport and store it in
