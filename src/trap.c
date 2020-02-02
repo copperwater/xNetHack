@@ -439,8 +439,8 @@ int x, y, typ;
     case DART_TRAP:
         otmp = mksobj(DART, TRUE, FALSE);
         otmp->quan = 15 + rnd(20);
-        /* darts are poisoned 1/6 of the time */
-        otmp->opoisoned = !rn2(6);
+        /* darts are poisoned 1/6 of the time on level 7+ */
+        otmp->opoisoned = (level_difficulty() > 6 && !rn2(6));
         set_trap_ammo(ttmp, otmp);
         break;
     case ARROW_TRAP:
