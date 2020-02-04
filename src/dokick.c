@@ -38,7 +38,7 @@ boolean clumsy;
     int dmg = (ACURRSTR + ACURR(A_DEX) + ACURR(A_CON)) / 15;
     int specialdmg, kick_skill = P_NONE;
     boolean trapkilled = FALSE;
-    struct obj* hated_obj;
+    struct obj* hated_obj = NULL;
 
     if (uarmf && uarmf->otyp == KICKING_BOOTS)
         dmg += 5;
@@ -93,7 +93,7 @@ boolean clumsy;
     if (uarmf) {
         dmg += uarmf->spe;
     }
-    if (specialdmg)
+    if (specialdmg && hated_obj)
         searmsg(&youmonst, mon, hated_obj);
     dmg += u.udaminc; /* add ring(s) of increase damage */
     if (dmg > 0)

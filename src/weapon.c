@@ -483,21 +483,24 @@ struct monst *magr UNUSED;
 struct monst *mdef;
 struct obj * obj; /* the offending item, or &zeroobj if your body */
 {
-    char onamebuf[BUFSZ];
-    char whose[BUFSZ];
-    int mat = obj->material;
-    const char* matname = materialnm[mat];
-
     if (!obj) {
         impossible("searmsg: nothing searing?");
         return;
     }
-    else if (obj == &zeroobj) {
+
+    char onamebuf[BUFSZ];
+    char whose[BUFSZ];
+    int mat;
+
+    if (obj == &zeroobj) {
+        mat = monmaterial(monsndx(youmonst.data));
         Strcpy(whose, "your ");
-        Sprintf(onamebuf, "%s touch",
-                materialnm[monmaterial(monsndx(youmonst.data))]);
+        Sprintf(onamebuf, "%s touch", materialnm[mat]);
     }
     else {
+        mat = obj->material;
+        const char* matname = materialnm[mat];
+
         /* Make it explicit to the player that this effect is from the material.
          * If the object name doesn't already contain the material name, add it
          * (e.g. "engraved silver bell" shouldn't turn into "silver engraved
