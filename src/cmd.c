@@ -3391,6 +3391,10 @@ int final;
         you_have_X(buf);
     }
 
+    if (!u.uconduct.uncelibate) {
+        you_have_X("been celibate");
+    }
+
     /* Pop up the window and wait for a key */
     display_nhwindow(en_win, TRUE);
     destroy_nhwindow(en_win);
