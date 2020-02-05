@@ -1,4 +1,4 @@
-/* NetHack 3.6	apply.c	$NHDT-Date: 1578187332 2020/01/05 01:22:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.310 $ */
+/* NetHack 3.6	apply.c	$NHDT-Date: 1580476196 2020/01/31 13:09:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.316 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -29,6 +29,7 @@ static int FDECL(use_whip, (struct obj *));
 static void FDECL(display_polearm_positions, (int));
 static int FDECL(use_pole, (struct obj *));
 static int FDECL(use_cream_pie, (struct obj *));
+static int FDECL(use_royal_jelly, (struct obj *));
 static int FDECL(use_grapple, (struct obj *));
 static int FDECL(do_break_wand, (struct obj *));
 static int FDECL(flip_through_book, (struct obj *));
@@ -815,14 +816,25 @@ register xchar x, y;
     }
 }
 
+/* charisma is supposed to include qualities like leadership and personal
+   magnetism rather than just appearance, but it has devolved to this... */
 const char *
 beautiful()
 {
-    return ((ACURR(A_CHA) > 14)
-               ? ((poly_gender() == 1)
-                     ? "beautiful"
-                     : "handsome")
-               : "ugly");
+    const char *res;
+    int cha = ACURR(A_CHA);
+
+    /* don't bother complaining about the sexism; nethack is not real life */
+    res = ((cha >= 25) ? "sublime" /* 25 is the maximum possible */
+           : (cha >= 19) ? "splendorous" /* note: not "splendiferous" */
+             : (cha >= 16) ? ((poly_gender() == 1) ? "beautiful" : "handsome")
+               : (cha >= 14) ? ((poly_gender() == 1) ? "winsome" : "amiable")
+                 : (cha >= 11) ? "cute"
+                   : (cha >= 9) ? "plain"
+                     : (cha >= 6) ? "homely"
+                       : (cha >= 4) ? "ugly"
+                         : "hideous"); /* 3 is the minimum possible */
+    return res;
 }
 
 static const char look_str[] = "look %s.";
@@ -1456,24 +1468,36 @@ struct obj **optr;
     *optr = obj;
 }
 
-static NEARDATA const char cuddly[] = { TOOL_CLASS, GEM_CLASS, 0 };
+static NEARDATA const char
+    cuddly[] = { TOOL_CLASS, GEM_CLASS, 0 },
+    cuddlier[] = { TOOL_CLASS, GEM_CLASS, FOOD_CLASS, 0 };
 
 int
 dorub()
 {
-    struct obj *obj = getobj(cuddly, "rub");
+    struct obj *obj;
 
-    if (obj && obj->oclass == GEM_CLASS) {
+    if (nohands(g.youmonst.data)) {
+        You("aren't able to rub anything without hands.");
+        return 0;
+    }
+    obj = getobj(carrying(LUMP_OF_ROYAL_JELLY) ? cuddlier : cuddly, "rub");
+    if (!obj) {
+        /* pline1(Never_mind); -- handled by getobj() */
+        return 0;
+    }
+    if (obj->oclass == GEM_CLASS || obj->oclass == FOOD_CLASS) {
         if (is_graystone(obj)) {
             use_stone(obj);
             return 1;
+        } else if (obj->otyp == LUMP_OF_ROYAL_JELLY) {
+            return use_royal_jelly(obj);
         } else {
             pline("Sorry, I don't know how to use that.");
             return 0;
         }
     }
-
-    if (!obj || !wield_tool(obj, "rub"))
+    if (!wield_tool(obj, "rub"))
         return 0;
 
     /* now uwep is obj */
@@ -3120,6 +3144,72 @@ struct obj *obj;
 }
 
 static int
+use_royal_jelly(obj)
+struct obj *obj;
+{
+    static const char allowall[2] = { ALL_CLASSES, 0 };
+    int oldcorpsenm;
+    unsigned was_timed;
+    struct obj *eobj;
+
+    if (obj->quan > 1L)
+        obj = splitobj(obj, 1L);
+    /* remove from inventory so that it won't be offered as a choice
+       to rub on itself */
+    freeinv(obj);
+
+    /* right now you can rub one royal jelly on an entire stack of eggs */
+    eobj = getobj(allowall, "rub the royal jelly on");
+    if (!eobj) {
+        addinv(obj); /* put the unused lump back; if it came from
+                      * a split, it should merge back */
+        /* pline1(Never_mind); -- getobj() took care of this */
+        return 0;
+    }
+
+    You("smear royal jelly all over %s.", yname(eobj));
+    if (eobj->otyp != EGG) {
+        pline1(nothing_happens);
+        goto useup_jelly;
+    }
+
+    oldcorpsenm = eobj->corpsenm;
+    if (eobj->corpsenm == PM_KILLER_BEE)
+        eobj->corpsenm = PM_QUEEN_BEE;
+
+    if (obj->cursed) {
+        if (eobj->timed || eobj->corpsenm != oldcorpsenm)
+            pline("The %s %s feebly.", xname(eobj), otense(eobj, "quiver"));
+        else
+            pline("Nothing seems to happen.");
+        kill_egg(eobj);
+        goto useup_jelly;
+    }
+
+    was_timed = eobj->timed;
+    if (eobj->corpsenm != NON_PM) {
+        if (!eobj->timed)
+            attach_egg_hatch_timeout(eobj, 0L);
+        /* blessed royal jelly will make the hatched creature think
+           you're the parent - but has no effect if you laid the egg */
+        if (obj->blessed && !eobj->spe)
+            eobj->spe = 2;
+    }
+
+    if ((eobj->timed && !was_timed) || eobj->spe == 2
+        || eobj->corpsenm != oldcorpsenm)
+        pline("The %s %s briefly.", xname(eobj), otense(eobj, "quiver"));
+    else
+        pline("Nothing seems to happen.");
+
+ useup_jelly:
+    /* not useup() because we've already done freeinv() */
+    setnotworn(obj);
+    obfree(obj, (struct obj *) 0);
+    return 1;
+}
+
+static int
 use_grapple(obj)
 struct obj *obj;
 {
@@ -3533,7 +3623,8 @@ char class_list[];
                 && (!otmp->dknown
                     || (!knowtouchstone && !objects[otyp].oc_name_known))))
             addstones = TRUE;
-        if (otyp == CREAM_PIE || otyp == EUCALYPTUS_LEAF)
+        if (otyp == CREAM_PIE || otyp == EUCALYPTUS_LEAF
+            || otyp == LUMP_OF_ROYAL_JELLY)
             addfood = TRUE;
         if (otmp->oclass == SPBOOK_CLASS)
             addspellbooks = TRUE;
@@ -3561,6 +3652,10 @@ doapply()
     register int res = 1;
     char class_list[MAXOCLASSES + 2];
 
+    if (nohands(g.youmonst.data)) {
+        You("aren't able to use or apply tools in your current form.");
+        return 0;
+    }
     if (check_capacity((char *) 0))
         return 0;
 
@@ -3597,6 +3692,9 @@ doapply()
         break;
     case CREAM_PIE:
         res = use_cream_pie(obj);
+        break;
+    case LUMP_OF_ROYAL_JELLY:
+        res = use_royal_jelly(obj);
         break;
     case BULLWHIP:
         res = use_whip(obj);

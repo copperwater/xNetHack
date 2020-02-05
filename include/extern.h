@@ -1,4 +1,4 @@
-/* NetHack 3.6	extern.h	$NHDT-Date: 1580044333 2020/01/26 13:12:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.786 $ */
+/* NetHack 3.6	extern.h	$NHDT-Date: 1580633720 2020/02/02 08:55:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.787 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -2191,7 +2191,7 @@ E void FDECL(update_monster_region, (struct monst *));
 E NhRegion *FDECL(visible_region_at, (XCHAR_P, XCHAR_P));
 E void FDECL(show_region, (NhRegion *, XCHAR_P, XCHAR_P));
 E void FDECL(save_regions, (NHFILE *));
-E void FDECL(rest_regions, (NHFILE *, BOOLEAN_P));
+E void FDECL(rest_regions, (NHFILE *));
 E void FDECL(region_stats, (const char *, char *, long *, long *));
 E NhRegion *FDECL(create_gas_cloud, (XCHAR_P, XCHAR_P, int, int));
 E boolean NDECL(region_danger);
@@ -2203,7 +2203,7 @@ E void FDECL(inven_inuse, (BOOLEAN_P));
 E int FDECL(dorecover, (NHFILE *));
 E void FDECL(restcemetery, (NHFILE *, struct cemetery **));
 E void FDECL(trickery, (char *));
-E void FDECL(getlev, (NHFILE *, int, XCHAR_P, BOOLEAN_P));
+E void FDECL(getlev, (NHFILE *, int, XCHAR_P));
 E void FDECL(get_plname_from_file, (NHFILE *, char *));
 #ifdef SELECTSAVED
 E int FDECL(restore_menu, (winid));
@@ -2595,7 +2595,7 @@ E long FDECL(spot_time_expires, (XCHAR_P, XCHAR_P, SHORT_P));
 E long FDECL(spot_time_left, (XCHAR_P, XCHAR_P, SHORT_P));
 E boolean FDECL(obj_is_local, (struct obj *));
 E void FDECL(save_timers, (NHFILE *, int));
-E void FDECL(restore_timers, (NHFILE *, int, BOOLEAN_P, long));
+E void FDECL(restore_timers, (NHFILE *, int, long));
 E void FDECL(timer_stats, (const char *, char *, long *, long *));
 E void FDECL(relink_timers, (BOOLEAN_P));
 E int NDECL(wiz_timeout_queue);
@@ -3029,7 +3029,7 @@ E void FDECL(initworm, (struct monst *, int));
 E void FDECL(worm_move, (struct monst *));
 E void FDECL(worm_nomove, (struct monst *));
 E void FDECL(wormgone, (struct monst *));
-E void FDECL(wormhitu, (struct monst *));
+E int FDECL(wormhitu, (struct monst *));
 E void FDECL(cutworm, (struct monst *, XCHAR_P, XCHAR_P, BOOLEAN_P));
 E void FDECL(see_wsegs, (struct monst *));
 E void FDECL(detect_wsegs, (struct monst *, BOOLEAN_P));

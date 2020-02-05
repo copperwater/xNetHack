@@ -27,6 +27,7 @@ void FDECL(set_levelfile_name, (int));
 int FDECL(open_levelfile, (int));
 int NDECL(create_savefile);
 void FDECL(copy_bytes, (int, int));
+static void FDECL(store_formatindicator, (int));
 
 #ifndef WIN_CE
 #define Fprintf (void) fprintf
@@ -37,6 +38,8 @@ static void nhce_message(FILE *, const char *, ...);
 
 #define Close (void) close
 
+
+#if 0
 #ifdef UNIX
 #define SAVESIZE (PL_NSIZ + 13) /* save/99999player.e */
 #else
@@ -49,6 +52,48 @@ static void nhce_message(FILE *, const char *, ...);
 #define SAVESIZE FILENAME /* from macconf.h or pcconf.h */
 #endif
 #endif
+#endif
+#endif
+
+/* This needs to match NetHack itself */
+
+#define INDEXT ".xxxxxx"           /* largest indicator suffix */
+#define INDSIZE sizeof(INDEXT)
+
+#if defined(UNIX) || defined(__BEOS__)
+#define SAVEX "save/99999.e"
+#ifndef SAVE_EXTENSION
+#define SAVE_EXTENSION ""
+#endif
+#else /* UNIX || __BEOS__ */
+#ifdef VMS
+#define SAVEX "[.save]nnnnn.e;1"
+#ifndef SAVE_EXTENSION
+#define SAVE_EXTENSION ""
+#endif
+#else /* VMS */
+#if defined(WIN32) || defined(MICRO)
+#define SAVEX ""
+#if !defined(SAVE_EXTENSION)
+#ifdef MICRO
+#define SAVE_EXTENSION ".svh"
+#endif
+#ifdef WIN32
+#define SAVE_EXTENSION ".NetHack-saved-game"
+#endif
+#endif /* !SAVE_EXTENSION */
+#endif /* WIN32 || MICRO */
+#endif /* else !VMS */
+#endif /* else !(UNIX || __BEOS__) */
+
+#ifndef SAVE_EXTENSION
+#define SAVE_EXTENSION ""
+#endif
+
+#ifdef MICRO
+#define SAVESIZE FILENAME
+#else
+#define SAVESIZE (PL_NSIZ + sizeof(SAVEX) + sizeof(SAVE_EXTENSION) + INDSIZE)
 #endif
 
 #if defined(EXEPATH)
@@ -216,11 +261,11 @@ restore_savefile(basename)
 char *basename;
 {
     int gfd, lfd, sfd;
-    int res = 0, lev, savelev, hpid, pltmpsiz;
+    int res = 0, lev, savelev, hpid, pltmpsiz, filecmc;
     xchar levc;
     struct version_info version_data;
     struct savefile_info sfi;
-    char plbuf[PL_NSIZ];
+    char plbuf[PL_NSIZ], indicator;
 
     /* level 0 file contains:
      *  pid of creating process (ignored here)
@@ -265,6 +310,10 @@ char *basename;
     }
     if ((read(gfd, (genericptr_t) savename, sizeof savename)
          != sizeof savename)
+        || (read(gfd, (genericptr_t) &indicator, sizeof indicator)
+            != sizeof indicator)
+        || (read(gfd, (genericptr_t) &filecmc, sizeof filecmc)
+            != sizeof filecmc)
         || (read(gfd, (genericptr_t) &version_data, sizeof version_data)
             != sizeof version_data)
         || (read(gfd, (genericptr_t) &sfi, sizeof sfi) != sizeof sfi)
@@ -277,6 +326,7 @@ char *basename;
     }
 
     /* save file should contain:
+     *  format indicator and cmc
      *  version info
      *  savefile info
      *  player name
@@ -299,6 +349,7 @@ char *basename;
         return -1;
     }
 
+    store_formatindicator(sfd);
     if (write(sfd, (genericptr_t) &version_data, sizeof version_data)
         != sizeof version_data) {
         Fprintf(stderr, "Error writing %s; recovery failed.\n", savename);
@@ -394,6 +445,19 @@ char *basename;
     return res;
 }
 
+static void
+store_formatindicator(fd)
+int fd;
+{
+    char indicate = 'h';      /* historical */
+    int cmc = 0;
+
+    write(fd, (genericptr_t) &indicate, sizeof indicate);
+    write(fd, (genericptr_t) &cmc, sizeof cmc);
+}
+
+
+
 #ifdef EXEPATH
 #ifdef __DJGPP__
 #define PATH_SEPARATOR '/'
@@ -458,3 +522,4 @@ nhce_message(FILE *f, const char *str, ...)
 #endif
 
 /*recover.c*/
+

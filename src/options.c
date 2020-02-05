@@ -1,4 +1,4 @@
-/* NetHack 3.7	options.c	$NHDT-Date: 1579261293 2020/01/17 11:41:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.428 $ */
+/* NetHack 3.7	options.c	$NHDT-Date: 1580434523 2020/01/31 01:35:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.439 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -158,6 +158,7 @@ static const struct Bool_Opt {
 #else
     { "mail", (boolean *) 0, TRUE, SET_IN_FILE },
 #endif
+    { "mention_decor", &flags.mention_decor, FALSE, SET_IN_GAME },
     { "mention_walls", &flags.mention_walls, FALSE, SET_IN_GAME },
     { "menucolors", &iflags.use_menu_color, FALSE, SET_IN_GAME },
     /* for menu debugging only*/
@@ -737,12 +738,6 @@ initoptions_init()
     init_symbols();
     for (i = 0; i < WARNCOUNT; i++)
         g.warnsyms[i] = def_warnsyms[i].sym;
-
-    /* for "special achievement" tracking (see obj.h,
-       create_object(sp_lev.c), addinv_core1(invent.c) */
-    g.context.achieveo.mines_prize_type = LUCKSTONE;
-    g.context.achieveo.soko_prize_typ1 = BAG_OF_HOLDING;
-    g.context.achieveo.soko_prize_typ2 = AMULET_OF_REFLECTION;
 
     /* assert( sizeof flags.inv_order == sizeof def_inv_order ); */
     (void) memcpy((genericptr_t) flags.inv_order,
@@ -2390,8 +2385,8 @@ boolean tinitial, tfrom_file;
                 return FALSE;
             }
             iflags.menuinvertmode = mode;
-	}
-	return retval;
+        }
+        return retval;
     }
 
     fullname = "msghistory";
@@ -3380,9 +3375,11 @@ boolean tinitial, tfrom_file;
             bad_negation(fullname, FALSE);
             return FALSE;
         }
-        op = string_for_opt(opts, negated);
-        iflags.wc_video_width = strtol(op, NULL, 10);
-        return FALSE;
+        if ((op = string_for_opt(opts, negated)) != empty_optstr)
+            iflags.wc_video_width = strtol(op, NULL, 10);
+        else
+            return FALSE;
+        return retval;
     }
     fullname = "video_height";
     if (match_optname(opts, fullname, 7, TRUE)) {
@@ -3392,9 +3389,11 @@ boolean tinitial, tfrom_file;
             bad_negation(fullname, FALSE);
             return FALSE;
         }
-        op = string_for_opt(opts, negated);
-        iflags.wc_video_height = strtol(op, NULL, 10);
-        return FALSE;
+        if ((op = string_for_opt(opts, negated)) != empty_optstr)
+            iflags.wc_video_height = strtol(op, NULL, 10);
+        else
+            return FALSE;
+        return retval;
     }
 #ifdef NO_TERMS
     /* video:string -- must be after longer tests */
@@ -3416,11 +3415,6 @@ boolean tinitial, tfrom_file;
         return retval;
     }
 #endif /* NO_TERMS */
-        } else if ((opts = string_for_env_opt(fullname, opts, FALSE))
-                                              == empty_optstr) {
-            return FALSE;
-        }
-    }
 #endif /* MSDOS */
 
     /* WINCAP
@@ -4167,6 +4161,8 @@ boolean tinitial, tfrom_file;
                        || boolopt[i].addr == &iflags.wc2_guicolor) {
                 update_inventory();
 #endif /* TEXTCOLOR */
+            } else if (boolopt[i].addr == &flags.mention_decor) {
+                iflags.prev_decor = STONE;
             }
             return retval;
         }

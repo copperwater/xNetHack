@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.76 $ $NHDT-Date: 1580043420 2020/01/26 12:57:00 $
+$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.87 $ $NHDT-Date: 1580633720 2020/02/02 08:55:20 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -48,6 +48,9 @@ hero can no longer wear blindfold/towel/lenses when poly'd into headless form
 revamp achievement tracking for exploring Mine's End and Sokoban (by acquiring
 	luckstone and bag of holding or amulet of reflection, respectively)
 throttle long worm growth rate and HP accumulation
+poly'd hero was able to zap wands, apply tools, and #rub objects without
+	having any hands
+spellcasting monster got an extra move after casting
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -76,10 +79,19 @@ data.base lookup of an entry with any blank lines would falsely claim that
 	"'data' file in wrong fromat or corrupted" after some extra checks
 	were added while investigating tab handling anomalies
 using nhl_error() to report a Lua processing problem would clobber the stack
+level teleporation's "You materialize on a different level!" could be given
+	out of sequence with other arrival messages
+creating Mine Town variant 1 (Orcish Town) sometimes complained about being
+	unable to place lregion type 1 and failed to have any staircase up
+prevent "you materialize on a different level" after "a mysterious force
+	prevents you from descending" if you try to level teleport past the
+	stairs down from the quest home level before being granted access
 
 
 Platform- and/or Interface-Specific Fixes
 -----------------------------------------
+msdos:  Add -DSTATUES_LOOK_LIKE_MONSTERS to Makefile1.cross so the VESA mode
+	can display statue glyphs. 
 tty: role and race selection menus weren't filtering out potential choices
 	which got excluded by OPTIONS=align:!lawful or !neutral or !chaotic
 
@@ -95,12 +107,12 @@ savefile: add support to deconstruct internal data structures down into their
 	individual fields and save those fields instead of the entire struct
 savefile: use little-endian format for fields where that makes a difference
 replace build-time level compiler and dungeon compiler with run-time loading of
-	the dungeon and level descriptions and interpreting them via LUA
+	the dungeon and level descriptions and interpreting them via Lua
 split off some of the functionality that was in makedefs (compiled-in options
 	build date/time, etc) so that it can be built by a cross-compiler
 	and accessed on the target platform
 replace quest.txt and associated conversion to quest.dat via makedefs with
-	lua quest texts loaded at runtime
+	Lua quest texts loaded at runtime
 some altars are displayed in different colors (for tty and curses at least)
 add 'quick_farsight' option to provide some control over random clairvoyance
 	where pausing to be able to browse temporarily visible aspects of the
@@ -122,6 +134,13 @@ tiny chance for randomly created spellbooks to be Discworld novels instead
 wearing a wet towel confers "half damage from poison gas" attribute
 for end of game disclosure and dumplog, show 'achievements' (previously only
 	available as an encoded value in xlogfile) along with 'conduct'
+more grades of self-appearance than beautiful or handsome vs ugly
+when 'color' if Off and 'use_inverse' is On, draw ice on the map in inverse
+	video if it uses the same character as room floor or as dark floor
+new 'mention_decor' option; when On, describe dungeon features being stepped
+	on or floated/flown over even when they're not covered by objects
+applying royal jelly on an egg kills, revives, or changes the egg
+intelligent monsters pick up and rummage through containers
 
 
 Platform- and/or Interface-Specific New Features

@@ -1,4 +1,4 @@
-/* NetHack 3.6	hack.h	$NHDT-Date: 1559227823 2019/05/30 14:50:23 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.105 $ */
+/* NetHack 3.6	hack.h	$NHDT-Date: 1580600495 2020/02/01 23:41:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.128 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -83,15 +83,16 @@ enum dismount_types {
 #define MG_FLAG_NOOVERRIDE 0x01
 
 /* Special returns from mapglyph() */
-#define MG_CORPSE  0x01
-#define MG_INVIS   0x02
-#define MG_DETECT  0x04
-#define MG_PET     0x08
-#define MG_RIDDEN  0x10
-#define MG_STATUE  0x20
-#define MG_OBJPILE 0x40  /* more than one stack of objects */
-#define MG_BW_LAVA 0x80  /* 'black & white lava': highlight lava if it
-                            can't be distringuished from water by color */
+#define MG_CORPSE  0x0001
+#define MG_INVIS   0x0002
+#define MG_DETECT  0x0004
+#define MG_PET     0x0008
+#define MG_RIDDEN  0x0010
+#define MG_STATUE  0x0020
+#define MG_OBJPILE 0x0040  /* more than one stack of objects */
+#define MG_BW_LAVA 0x0080  /* 'black & white lava': highlight lava if it
+                              can't be distringuished from water by color */
+#define MG_BW_ICE  0x0100  /* similar for ice vs floor */
 
 /* sellobj_state() states */
 #define SELL_NORMAL (0)
@@ -167,9 +168,6 @@ typedef struct strbuf {
     char * str;
     char   buf[256];
 } strbuf_t;
-
-/* max. layers of object containment from sp_lev.h */
-#define MAX_CONTAINMENT 10
 
 /* str_or_len from sp_lev.h */
 typedef union str_or_len {

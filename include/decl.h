@@ -1,4 +1,4 @@
-/* NetHack 3.6  decl.h  $NHDT-Date: 1573869061 2019/11/16 01:51:01 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.165 $ */
+/* NetHack 3.6  decl.h  $NHDT-Date: 1580600478 2020/02/01 23:41:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.221 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2007. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7,70 +7,6 @@
 #define DECL_H
 
 #define E extern
-#if !defined(MICRO) && !defined(VMS) && !defined(WIN32)
-#define LOCKNAMESIZE (PL_NSIZ + 14) /* long enough for uid+name+.99 */
-#define LOCKNAMEINIT "1lock"
-#define BONESINIT "bonesnn.xxx.le"
-#define BONESSIZE sizeof(BONESINIT)
-#else
-#if defined(MICRO)
-#define LOCKNAMESIZE FILENAME
-#define LOCKNAMEINIT ""
-#define BONESINIT ""
-#define BONESSIZE FILENAME
-#endif
-#if defined(VMS)
-#define LOCKNAMESIZE (PL_NSIZ + 17) /* long enough for _uid+name+.99;1 */
-#define LOCKNAMEINIT "1lock"
-#define BONESINIT "bonesnn.xxx_le;1"
-#define BONESSIZE sizeof(BONESINIT)
-#endif
-#if defined(WIN32)
-#define LOCKNAMESIZE (PL_NSIZ + 25) /* long enough for username+-+name+.99 */
-#define LOCKNAMEINIT ""
-#define BONESINIT "bonesnn.xxx.le"
-#define BONESSIZE sizeof(BONESINIT)
-#endif
-#endif
-
-#define INDEXT ".xxxxxx"           /* largest indicator suffix */
-#define INDSIZE sizeof(INDEXT)
-
-#if defined(UNIX) || defined(__BEOS__)
-#define SAVEX "save/99999.e"
-#ifndef SAVE_EXTENSION
-#define SAVE_EXTENSION ""
-#endif
-#else /* UNIX || __BEOS__ */
-#ifdef VMS
-#define SAVEX "[.save]nnnnn.e;1"
-#ifndef SAVE_EXTENSION
-#define SAVE_EXTENSION ""
-#endif
-#else /* VMS */
-#if defined(WIN32) || defined(MICRO)
-#define SAVEX ""
-#if !defined(SAVE_EXTENSION)
-#ifdef MICRO
-#define SAVE_EXTENSION ".svh"
-#endif
-#ifdef WIN32
-#define SAVE_EXTENSION ".NetHack-saved-game"
-#endif
-#endif /* !SAVE_EXTENSION */
-#endif /* WIN32 || MICRO */
-#endif /* else !VMS */
-#endif /* else !(UNIX || __BEOS__) */
-
-#ifndef SAVE_EXTENSION
-#define SAVE_EXTENSION ""
-#endif
-
-#ifndef MICRO
-#define SAVESIZE (PL_NSIZ + sizeof(SAVEX) + sizeof(SAVE_EXTENSION) + INDSIZE)
-#else
-#define SAVESIZE FILENAME
-#endif
 
 /* max size of a windowtype option */
 #define WINTYPELEN 16
@@ -950,6 +886,7 @@ struct instance_globals {
     boolean chosen_symset_start;
     boolean chosen_symset_end;
     int symset_which_set;
+    /* SAVESIZE, BONESSIZE, LOCKNAMESIZE are defined in "fnamesiz.h" */
     char SAVEF[SAVESIZE]; /* holds relative path of save file from playground */
 #ifdef MICRO
     char SAVEP[SAVESIZE]; /* holds path of directory for save file */
@@ -1178,27 +1115,19 @@ struct instance_globals {
     /* auto-response flag for/from "sell foo?" 'a' => 'y', 'q' => 'n' */
     char sell_response;
     int sell_how;
-    /* can't just use sell_response='y' for auto_credit because the 'a' response
+    /* can't just use sell_response='y' for auto_credit because 'a' response
        shouldn't carry over from ordinary selling to credit selling */
     boolean auto_credit;
     struct repo repo;
-   long int followmsg; /* last time of follow message */
-
+    long int followmsg; /* last time of follow message */
 
     /* sp_lev.c */
     char *lev_message;
     lev_region *lregions;
     int num_lregions;
-    /* positions touched by level elements explicitly defined in des-file */
-    char SpLev_Map[COLNO][ROWNO];
     struct sp_coder *coder;
     xchar xstart, ystart;
-    char xsize, ysize;
-    boolean splev_init_present;
-    boolean icedpools;
-    struct obj *container_obj[MAX_CONTAINMENT];
-    int container_idx;
-    struct monst *invent_carrying_monster;
+    xchar xsize, ysize;
 
     /* spells.c */
     int spl_sortmode;   /* index into spl_sortchoices[] */
