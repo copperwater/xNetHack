@@ -203,6 +203,7 @@ Add Frontier Town (what Orcish Town was before being ransacked) as an eighth
 Monsters that wear helms of telepathy become telepathic.
 Monsters can wear amulets of ESP, becoming telepathic.
 Celibate conduct (broken when you lie with an incubus/succubus)
+The Chromatic Dragon is now named Tiamat.
 
 
 It contains the following non-gameplay interface changes:

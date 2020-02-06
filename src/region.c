@@ -999,8 +999,8 @@ genericptr_t p2;
             && !((mtmp->data->mlet == S_EEL || Is_waterlevel(&u.uz))
                  && is_pool(mtmp->mx, mtmp->my))
             /* exclude monsters with poison gas breath attack:
-               adult green dragon and Chromatic Dragon (and iron golem,
-               but nonliving() and breathless() tests also catch that) */
+               adult green dragon and Tiamat (and iron golem, but nonliving()
+               and breathless() tests also catch that) */
             && !(attacktype_fordmg(mtmp->data, AT_BREA, AD_DRST)
                  || attacktype_fordmg(mtmp->data, AT_BREA, AD_RBRE))) {
             if (cansee(mtmp->mx, mtmp->my))
