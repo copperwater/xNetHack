@@ -568,166 +568,153 @@ speaks of you.
 #	Cave(wo)man
 #
 %Cc Cav 00001
-You descend through a barely familiar stairwell that you remember
-%l showing you when you embarked upon your vision quest.
-
-You arrive back at %H, but something seems
-wrong here.  The usual smoke and glowing light of the fires of the
-outer caves are absent, and an uneasy quiet fills the damp air.
-%E [You arrive back at %H, but something is wrong here.]
+You come to %H.  It not right.  There no meat in cave.
+There no mammoth hides.  Men are sad.  Things broke.  Fire
+not lit.  %H not right, make you sad.  You look for %l.
+Him tell you what is wrong.
+%E [You come to %H. It wrong.]
 %Cp Cav 00002
-Once again, you arrive back at %H.
+You come to %H again.
 %E
 %Cp Cav 00003
-For some reason, you think that this may be the last time you will
-enter %H.
+You think this may be last time you come to %H.
 %E
 %Cp Cav 00005
-"We have not been able to gather as much food since the Giants sealed
-off our access to the outer world."
+"We not get much food since Big Men seal off %H."
 %E
 %Cp Cav 00006
-"Since %n sent her minions, we have been constantly fighting."
+"Since Bad Men come with %n, we fight all the time."
 %E
 %Cp Cav 00007
-"I have heard your vision quest was successful.  Is this so?"
+"You think we beat %n, take back %o?"
 %E
 %Cp Cav 00008
-"So, tell me, %p, how have you fared?"
+"Hey, %p, you help?"
 %E
 %Cp Cav 00009
-"%lC grows old.  We know not who will guide us after he ascends."
+"%lC old.  We not know who guide us after him die."
 %E
 %Cp Cav 00010
-"The rains have returned and the land grows lush again."
+"We hunt mammoth again."
 %E
 %Cp Cav 00011
-"Peace has returned, give thanks to %d!"
+"Peace back.  Peace good.  Give thanks to %d!"
 %E
 %Cp Cav 00012
-"Welcome back!  Did you find %o?"
+"You back!  You find %o?"
 %E
 %Cp Cav 00013
-"So, %p, tell us the story of your fight with %n."
+"Strong %p, tell us how you fight %n."
 %E
 %Cp Cav 00014
-"%lC grows old.  Perhaps you will guide us after he ascends."
+"%lC old.  Maybe you guide us after him die."
 %E
 %Cc Cav 00015
-"You have returned from your vision quest, %p.  Thank %d.
+"You come back, %p.  Thank %d.
 
-"We are in dire need of your help, my %S.
+"We need big help, my %S.
 
-"But first, I must see if you are yet capable of the quest I would
-ask you to undertake."
-%E ["You have returned.  We are in dire need of your help."]
+"But first, me see if you can do things me ask you to do."
+%E ["You back.  We need big help."]
 %Cp Cav 00016
-"Again, you return to us, %p.  Let me see if you are ready now."
+"You back, %p.  Let me see if you ready now."
 %E
 %Cp Cav 00017
-"Ah, %p.  Are you finally ready?"
+"Ah, %p.  You ready?"
 %E
 %Cc Cav 00018
-"%pC!  You have sealed our fate.  You seem unable to reform yourself,
-so I must select another to take your place.
+"%pC!  You not good enough.  Seems you not able to get ready.
+Me pick other one from tribe to take your place.
 
-"Begone from %H!  You have betrayed us by choosing
-the path of the %C over the true path of the %L.
+"Leave %H!  You let us down.  You choose
+path of %C over true path of %L.
 
-"You no longer live in our eyes."
-%E ["You have betrayed the %L.  Begone!"]
+"You not live in our eyes."
+%E ["You not %L.  Leave!"]
 %Cc Cav 00019
-"Alas, %p, you are as yet too inexperienced to embark upon such
-a difficult quest as that I propose to give you.
+"No, %p, you not ready to go on such hard quest as what me give you.
 
-"%rA could not possibly survive the rigors demanded to find
-%i, never mind to confront %n herself.
+"%rA can not do what it take to find
+%i, could not fight %n, could not bring back %o.
 
-"Adventure some more, and you will learn the skills you will require.
-%d decrees it."
-%E ["%rA is too inexperienced.  Come back when you have progressed."]
+"Go do more things.  You learn stuff you need.
+%d say so."
+%E ["%rA not ready.  Go do other things."]
 %Cc Cav 00020
-"%pC!  You have deviated from my teachings.  You no longer follow
-the path of the %a as you should.  I banish you from these caves, to
-go forth and purify yourself.  Then, you might be able to accomplish this
-quest."
-%E ["You no longer follow the path of the %a.  Go, and purify yourself."]
+"%pC!  You not do like me teach you.  You not do right things
+on true path of %a.  Me send you from our caves.  Go, %p.
+Go away and make self right.  Then maybe you can do this quest."
+%E ["You not doing %a good.  Go fix self."]
 %Cc Cav 00021
-"You are indeed ready now, %p.  I shall tell you a tale of
-great suffering among your people:
+"Yes, you good now, %p.  Me tell you what happen to us.
 
-"Shortly after you left on your vision quest, the caves were invaded by
-the creatures sent against us by %n.
+"Right after you leave, Bad Men come to caves, fight us.
+They come with %n.  This one very bad.  It stomp.
+It bite.  It claw.  It breathe on us, burn us, freeze us,
+hurt us lots of ways.  It lead the Bad Men to fight us.
+Some of us die.
 
-"She, herself, could not attack us due to her great size, but her minions
-have harassed us ever since.  In the first attacks, many died, and the
-minions of %n managed to steal %o.
-They took it to %i and there, none of our
-%g warriors have been able to go.
+"While we hurt, Bad Men take %o.  They take it to %i.
+We can not get it back.  %n will kill us.
 
-"You must find %i, and within it wrest
-%o from %n.  She guards it as
-jealously as she guards all treasures she attains.  But with it,
-we can make our caves safe once more.
+"%p, you find %i, take back %o from %n.  Then we can
+make caves safe."
 
-"Please, %p, recover %o for us, and return it here."
-%E [Find and defeat %n, recover %o, and return with it.]
+%E [Go beat %n.  Get %o.  Bring back.]
 %Cp Cav 00025
-"%nC is immune to her own breath weapons.
-You should use magic upon her that she does not use herself."
+"%nC not hurt by her own breath.
+You should use magic that she not use, maybe
+she not know how to beat that."
 %E
 %Cp Cav 00026
-"When you encounter %n, call upon %d for assistance."
+"When you fight %n, call to %d for help."
 %E
 %Cp Cav 00027
-"There will be nowhere to hide inside %ns inner sanctum."
+"There no place to hide in %ns cave."
 %E
 %Cp Cav 00028
-"Your best chance with %n will be to keep moving."
+"Best way to not die when %n fight you is, run away."
 %E
 %Cp Cav 00029
-"Do not be distracted by the great treasures in %ns lair.
-Concentrate on %o."
+"You no stop to take pretty things in %ns lair.
+Just make sure you get %o."
 %E
 %Cp Cav 00030
-"%oC is the only object that %n truly fears."
+"If you take %o from %n, maybe you use it to hit her."
 %E
 %Cp Cav 00031
-"Do not be fooled by %ns size.  She is fast, and it is
-rumored that she uses magic."
+"Do not be fooled by %ns size.  She is fast and has magic too."
 %E
 %Cp Cav 00032
-"I would send a party of %gP with you, but we will need all
-of our strength to defend ourselves."
+"Me would send %gP with you, but we need them to fight here,
+keep our cave."
 %E
 %Cp Cav 00033
-"Remember, be %a at all times.  This is your strength."
+"If you kill %n, you be big hero here."
 %E
 %Cp Cav 00034
-"If only we had an amulet of reflection, this would not have happened."
+"Watch out for %ns breath.  It hurt lots of ways."
 %E
 %Cc Cav 00035
-You %x many large claw marks on the ground.  The tunnels ahead
-of you are larger than most of those in any cave complex you have
-ever been in before.
+You %x many big claw marks on ground.  Cave ahead of you
+is larger than most cave you have been in before.
 
-Your nose detects the smell of carrion from within, and bones litter
-the sides of the tunnels.
-%E [You %x many large claw marks, smell carrion, and notice bones.]
+You smell dead things in there and see bones on the ground.
+%E [You %x many large claw marks, see and smell dead things.]
 %Cp Cav 00036
-Once again, you approach %i.
+You come to %i again.
 %E
 %Cc Cav 00040
-You find yourself in a large cavern, with neatly polished walls, that
-nevertheless show signs of being scorched by fire.
+You come to big cave, with shiny walls.  Walls look like they
+have been burned.
 
-Bones litter the floor, and there are objects scattered everywhere.
-The air is close with the stench of sulphurous fumes.
+You see bones on the floor, and other things.
+It smell bad in here, like smoke from fire mountain.
 
-%nC is clearly visible, but %nh seems to be asleep.
-%E [You enter a large cavern.  %nC is present.]
+%nC is here, but it seem like she is asleep.
+%E [You come to big cave.  %nC is here.]
 %Cp Cav 00041
-Once again, you find yourself in the lair of %n.
+You come to lair of %n again.
 %E
 %Cc Cav 00050
 "So, follower of %l, you seek to invade the lair of
@@ -754,7 +741,7 @@ Now I shall kill you."
 "Join me for lunch?  You're the main course, %c."
 %E
 %Cp Cav 00063
-"With %o, I am invincible!  You cannot succeed."
+"With the power of %o, your tribe will die."
 %E
 %Cp Cav 00064
 "Your mentor, %l has failed.  You are nothing to fear."
@@ -775,50 +762,47 @@ Now I shall kill you."
 "%d has deserted you, %c.  This is my domain."
 %E
 %Cc Cav 00070
-As you pick up %o it seems heavy at first, but as you
-hold it strength flows into your arms.
+As you pick up %o it seem heavy at first, but then
+your arms feel strong.
 
-You suddenly feel full of power, as if nothing could possibly stand
-in your path.
-%E [%oC fills you with a feeling of power.]
+You feel like you can beat up anyone now.
+%E [%oC make you feel strong and good.]
 %Cp Cav 00080
-%nC sinks to the ground, her heads flailing about.
-As she dies, a cloud of noxious fumes billows about her.
+%nC sink to ground.  She move a lot, then she not move.
+Big cloud of smelly smoke come out of all her heads.
 %E
 %Cc Cav 00081
-%lC glimpses %o in your possession.
-He smiles and says:
+%lC see %o in your hands.
+Him smile and say:
 
-    You have done it!  We are saved.  But I fear that %o
-    will always be a target for %C forces who will want it for their
-    own.
+    You have it!  We saved now.  But me fear that Bad Men still
+    want to take it from us.
 
-    To prevent further trouble, I would like you, %p,
-    to take %o away with you.  It will help you as you
-    quest for the Amulet of Yendor.
-%E ["Take %o with you.  It will help in your quest for the Amulet of Yendor."]
+    You keep it safe, %p, take %o away with you.  It
+    help you find other thing you look for.
+
+%E ["Take %o with you.  It maybe help you on big quest."]
 %Cc Cav 00082
-%l grasps %o proudly for a moment, then looks at you.
+%l take %o, then him look at you.
 
-"You are its keeper now, and the time has come to resume your search
-for the Amulet.  %Z await your return through the
-magic portal which brought you here."
-%E ["You are the keeper of %o now.  Return to %Z to search for the Amulet.]
+"You keep it now.  Keep it safe, go look for other
+thing, thing for %d.  Go back though magic thing that
+brought you here."
+
+%E ["You keep %o now.  Return to %Z.]
 %Cp Cav 00090
-"%pC!  Welcome back.
-How goes your quest to recover the Amulet for %d?"
+"%pC!  You back.
+Did you find other thing %d told you to look for?"
 %E
 %Cc Cav 00091
-"You have been successful, I see, %p.
+"Oh, good, %p, you find thing for %d.
 
-"Now that the Amulet of Yendor is yours, here is what you must do:
+"Take god thing up to sky.  It take you where you need to go,
+to place of earth, place of fire, place of air, place of water,
+and place of gods, where the Great House of %d is.
 
-"Journey upwards to the open air.  The Amulet you carry will then
-take you into the Astral Planes, where the Great Temple of %d
-casts its influence throughout our world.
-
-"Sacrifice the Amulet on the altar.  Thus shall %d become supreme!"
-%E ["Take the Amulet to the altar of %d on the Astral Plane and offer it."]
+"Take god thing up there."
+%E ["Take Amulet to %d in place of gods."]
 #
 #	Healer
 #
