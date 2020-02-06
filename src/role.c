@@ -533,7 +533,7 @@ const struct Role roles[] = {
       PM_KITTEN,
       PM_NEFERET_THE_GREEN,
       PM_APPRENTICE,
-      PM_DARK_ONE,
+      PM_ANARAXIS_THE_BLACK,
       PM_VAMPIRE_BAT,
       PM_XORN,
       S_BAT,
