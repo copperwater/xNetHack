@@ -917,7 +917,6 @@ boolean artif;
             }
             break;
         case GEM_CLASS:
-            otmp->corpsenm = 0; /* LOADSTONE hack */
             if (otmp->otyp == LOADSTONE)
                 curse(otmp);
             else if (otmp->otyp == ROCK)

@@ -3955,7 +3955,7 @@ boolean *lostsome;
                  * in removing them + loadstone and other cursed stuff
                  * for obvious reasons.
                  */
-                if (!((obj->otyp == LOADSTONE && obj->cursed) || obj == uamul
+                if (!(undroppable(obj) || obj == uamul
                       || obj == uleft || obj == uright || obj == ublindf
                       || obj == uarm || obj == uarmc || obj == uarmg
                       || obj == uarmf || obj == uarmu

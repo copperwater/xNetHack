@@ -1052,7 +1052,7 @@ const char *drop_fmt, *drop_arg, *hold_msg;
             drop_arg = strcpy(buf, drop_arg);
 
         obj = addinv(obj);
-        if (inv_cnt(FALSE) > 52 || ((obj->otyp != LOADSTONE || !obj->cursed)
+        if (inv_cnt(FALSE) > 52 || (!undroppable(obj)
                                     && near_capacity() > prev_encumbr)) {
             /* undo any merge which took place */
             if (obj->quan > oquan)
@@ -1420,8 +1420,7 @@ boolean
 splittable(obj)
 struct obj *obj;
 {
-    return !((obj->otyp == LOADSTONE && obj->cursed)
-             || (obj == uwep && welded(uwep)));
+    return !(undroppable(obj) || (obj == uwep && welded(uwep)));
 }
 
 /* match the prompt for either 'T' or 'R' command */
@@ -1712,9 +1711,6 @@ boolean allow_floor;
             /* don't split a stack of cursed loadstones */
             if (splittable(obj))
                 obj = splitobj(obj, cnt);
-            else if (obj->otyp == LOADSTONE && obj->cursed)
-                /* kludge for canletgo()'s can't-drop-this message */
-                obj->corpsenm = (int) cnt;
 
             savech(ilet);
             return obj;

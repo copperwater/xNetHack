@@ -303,3 +303,4 @@ Rename cnv_trap_obj to remove_trap_ammo. It now extracts and places the ammo
   from a trap.
 Split monster intrinsics off the mextrinsics field, preventing monsters' worn
   armor from clobbering their intrinsics from eaten corpses.
+Generalize loadstone undroppability behavior to work on arbitrary objects.

@@ -2354,9 +2354,9 @@ register struct obj *obj;
         Norep("You cannot %s %s you are wearing.",
               Icebox ? "refrigerate" : "stash", something);
         return 0;
-    } else if ((obj->otyp == LOADSTONE) && obj->cursed) {
+    } else if (undroppable(obj)) {
         set_bknown(obj, 1);
-        pline_The("stone%s won't leave your person.", plur(obj->quan));
+        pline("%s won't leave your person.", xname(obj));
         return 0;
     } else if (obj->otyp == AMULET_OF_YENDOR
                || obj->otyp == CANDELABRUM_OF_INVOCATION

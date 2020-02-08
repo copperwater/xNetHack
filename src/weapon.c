@@ -527,25 +527,27 @@ struct obj * obj; /* the offending item, or &zeroobj if your body */
     }
 }
 
-STATIC_DCL struct obj *FDECL(oselect, (struct monst *, int));
-#define Oselect(x)                      \
-    if ((otmp = oselect(mtmp, x)) != 0) \
+STATIC_DCL struct obj *FDECL(oselect, (struct monst *, int, boolean));
+#define Oselect(x, missile)                      \
+    if ((otmp = oselect(mtmp, x, missile)) != 0) \
         return otmp;
 
 STATIC_OVL struct obj *
-oselect(mtmp, x)
+oselect(mtmp, otyp, missile)
 struct monst *mtmp;
-int x;
+int otyp;
+boolean missile; /* otyp is an object that will be thrown */
 {
     struct obj *otmp;
 
     for (otmp = mtmp->minvent; otmp; otmp = otmp->nobj) {
-        if (otmp->otyp == x
+        if (otmp->otyp == otyp
             /* never select non-cockatrice corpses */
-            && !((x == CORPSE || x == EGG)
+            && !((otyp == CORPSE || otyp == EGG)
                  && !touch_petrifies(&mons[otmp->corpsenm]))
             && (!otmp->oartifact || touch_artifact(otmp, mtmp))
-            && !mon_hates_material(mtmp, otmp->material))
+            && !mon_hates_material(mtmp, otmp->material)
+            && !(missile && undroppable(otmp)))
             return otmp;
     }
     return (struct obj *) 0;
@@ -581,11 +583,11 @@ register struct monst *mtmp;
     char mlet = mtmp->data->mlet;
 
     propellor = (struct obj *) &zeroobj;
-    Oselect(EGG);      /* cockatrice egg */
-    if (mlet == S_KOP) /* pies are first choice for Kops */
-        Oselect(CREAM_PIE);
+    Oselect(EGG, TRUE);           /* cockatrice egg */
+    if (mlet == S_KOP)            /* pies are first choice for Kops */
+        Oselect(CREAM_PIE, TRUE);
     if (throws_rocks(mtmp->data)) /* ...boulders for giants */
-        Oselect(BOULDER);
+        Oselect(BOULDER, TRUE);
 
     /* Select polearms first; they do more damage and aren't expendable.
        But don't pick one if monster's weapon is welded, because then
@@ -608,7 +610,7 @@ register struct monst *mtmp;
             if ((strongmonst(mtmp->data)
                   && (mtmp->misc_worn_check & W_ARMS) == 0)
                  || !objects[pwep[i]].oc_bimanual) {
-                if ((otmp = oselect(mtmp, pwep[i])) != 0
+                if ((otmp = oselect(mtmp, pwep[i], FALSE)) != 0
                     && (otmp == mwep || !mweponly)
                     && !mon_hates_material(mtmp, otmp->material)) {
                     propellor = otmp; /* force the monster to wield it */
@@ -631,7 +633,7 @@ register struct monst *mtmp;
             && m_carrying(mtmp, SLING)) { /* propellor */
             for (otmp = mtmp->minvent; otmp; otmp = otmp->nobj)
                 if (otmp->oclass == GEM_CLASS
-                    && (otmp->otyp != LOADSTONE || !otmp->cursed)) {
+                    && !undroppable(otmp)) {
                     propellor = m_carrying(mtmp, SLING);
                     return otmp;
                 }
@@ -644,19 +646,19 @@ register struct monst *mtmp;
         if (prop < 0) {
             switch (-prop) {
             case P_BOW:
-                propellor = oselect(mtmp, YUMI);
+                propellor = oselect(mtmp, YUMI, FALSE);
                 if (!propellor)
-                    propellor = oselect(mtmp, ELVEN_BOW);
+                    propellor = oselect(mtmp, ELVEN_BOW, FALSE);
                 if (!propellor)
-                    propellor = oselect(mtmp, BOW);
+                    propellor = oselect(mtmp, BOW, FALSE);
                 if (!propellor)
-                    propellor = oselect(mtmp, ORCISH_BOW);
+                    propellor = oselect(mtmp, ORCISH_BOW, FALSE);
                 break;
             case P_SLING:
-                propellor = oselect(mtmp, SLING);
+                propellor = oselect(mtmp, SLING, FALSE);
                 break;
             case P_CROSSBOW:
-                propellor = oselect(mtmp, CROSSBOW);
+                propellor = oselect(mtmp, CROSSBOW, FALSE);
             }
             if ((otmp = MON_WEP(mtmp)) && mwelded(otmp) && otmp != propellor
                 && mtmp->weapon_check == NO_WEAPON_WANTED)
@@ -667,20 +669,11 @@ register struct monst *mtmp;
          * propellor = 0, needed one and didn't have one
          */
         if (propellor != 0) {
-            /* Note: cannot use m_carrying for loadstones, since it will
-             * always select the first object of a type, and maybe the
-             * monster is carrying two but only the first is unthrowable.
-             */
-            if (rwep[i] != LOADSTONE) {
-                /* Don't throw a cursed weapon-in-hand or an artifact */
-                if ((otmp = oselect(mtmp, rwep[i])) && !otmp->oartifact
-                    && !(otmp == MON_WEP(mtmp) && mwelded(otmp)))
-                    return otmp;
-            } else
-                for (otmp = mtmp->minvent; otmp; otmp = otmp->nobj) {
-                    if (otmp->otyp == LOADSTONE && !otmp->cursed)
-                        return otmp;
-                }
+            /* Don't throw a cursed weapon-in-hand or an artifact */
+            if ((otmp = oselect(mtmp, rwep[i], TRUE)) && !otmp->oartifact
+                && !(otmp == MON_WEP(mtmp) && mwelded(otmp))) {
+                return otmp;
+            }
         }
     }
 
@@ -735,7 +728,7 @@ register struct monst *mtmp;
     }
 
     if (is_giant(mtmp->data)) /* giants just love to use clubs */
-        Oselect(CLUB);
+        Oselect(CLUB, FALSE);
 
     /* only strong monsters can wield big (esp. long) weapons */
     /* big weapon is basically the same as bimanual */
@@ -745,7 +738,7 @@ register struct monst *mtmp;
             && !resists_ston(mtmp))
             continue;
         if ((strong && !wearing_shield) || !objects[hwep[i]].oc_bimanual)
-            Oselect(hwep[i]);
+            Oselect(hwep[i], FALSE);
     }
 
     /* failure */

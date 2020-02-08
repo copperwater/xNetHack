@@ -402,7 +402,7 @@ worst_cursed_item()
         for (otmp = invent; otmp; otmp = otmp->nobj) {
             if (!otmp->cursed)
                 continue;
-            if (otmp->otyp == LOADSTONE || confers_luck(otmp))
+            if (undroppable(otmp) || confers_luck(otmp))
                 break;
         }
     }

@@ -615,14 +615,11 @@ const char *word;
             Norep("You cannot %s %s you are wearing.", word, something);
         return FALSE;
     }
-    if (obj->otyp == LOADSTONE && obj->cursed) {
-        /* getobj() kludge sets corpsenm to user's specified count
-           when refusing to split a stack of cursed loadstones */
+    if (undroppable(obj)) {
         if (*word) {
-            pline("For some reason, you cannot %s%s the stone%s!", word,
-                  obj->corpsenm ? " any of" : "", plur(obj->quan));
+            pline("For some reason, you cannot %s%s the %s!", word,
+                  obj->quan > 1 ? " any of" : "", xname(obj));
         }
-        obj->corpsenm = 0; /* reset */
         set_bknown(obj, 1);
         return FALSE;
     }
@@ -955,11 +952,8 @@ int retry;
                 /* found next selected invent item */
                 cnt = pick_list[i].count;
                 if (cnt < otmp->quan) {
-                    if (welded(otmp)) {
+                    if (welded(otmp) || undroppable(otmp)) {
                         ; /* don't split */
-                    } else if (otmp->otyp == LOADSTONE && otmp->cursed) {
-                        /* same kludge as getobj(), for canletgo()'s use */
-                        otmp->corpsenm = (int) cnt; /* don't split */
                     } else {
                         otmp = splitobj(otmp, cnt);
                     }
