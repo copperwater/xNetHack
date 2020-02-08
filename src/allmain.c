@@ -197,6 +197,8 @@ boolean resuming;
                         u.ublesscnt--;
                     if (flags.time && !context.run)
                         iflags.time_botl = TRUE;
+                    if (Conflict)
+                        u.uconduct.conflicting++;
 #ifdef EXTRAINFO_FN
                     if ((prev_dgl_extrainfo == 0) || (prev_dgl_extrainfo < (moves + 250))) {
                         prev_dgl_extrainfo = moves;

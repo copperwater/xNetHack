@@ -99,6 +99,7 @@ struct u_conduct {     /* number of times... */
     long pets;         /* obtained a pet */
     long scares;       /* scared a monster by standing in a certain spot */
     long uncelibate;   /* interacted with a foocubus */
+    long conflicting;  /* generated conflict */
     /* genocides already listed at end of game */
 };
 

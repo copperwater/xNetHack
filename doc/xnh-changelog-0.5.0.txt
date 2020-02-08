@@ -206,7 +206,9 @@ Celibate conduct (broken when you lie with an incubus/succubus)
 The Chromatic Dragon is now named Tiamat.
 The Caveman quest narration and dialogue have been changed to use caveman
   speech patterns.
+The Dark One is now named Anaraxis the Black.
 Loadstones are removed.
+Conflictless conduct (broken when you generate conflict).
 
 
 It contains the following non-gameplay interface changes:

@@ -458,6 +458,8 @@ encodeconduct()
         e |= 1L << 19;
     if (u.uconduct.uncelibate)
         e |= 1L << 20;
+    if (u.uconduct.conflicting)
+        e |= 1L << 21;
 
     return e;
 }
