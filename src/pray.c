@@ -353,12 +353,6 @@ worst_cursed_item()
 {
     register struct obj *otmp;
 
-    /* if strained or worse, check for loadstone first */
-    if (near_capacity() >= HVY_ENCUMBER) {
-        for (otmp = invent; otmp; otmp = otmp->nobj)
-            if (Cursed_obj(otmp, LOADSTONE))
-                return otmp;
-    }
     /* weapon takes precedence if it is interfering
        with taking off a ring or putting on a shield */
     if (welded(uwep) && (uright || bimanual(uwep))) { /* weapon */

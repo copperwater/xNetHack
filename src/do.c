@@ -920,8 +920,8 @@ int retry;
         bypass_objlist(invent, FALSE); /* clear bypass bit for invent */
         while ((otmp = nxt_unbypassed_obj(invent)) != 0)
             n_dropped += drop(otmp);
-        /* we might not have dropped everything (worn armor, welded weapon,
-           cursed loadstones), so reset any remaining inventory to normal */
+        /* we might not have dropped everything (worn armor, welded weapon),
+           so reset any remaining inventory to normal */
         bypass_objlist(invent, FALSE);
     } else {
         /* should coordinate with perm invent, maybe not show worn items */

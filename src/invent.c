@@ -1160,9 +1160,7 @@ struct obj *obj;
         set_artifact_intrinsic(obj, 0, W_ART);
     }
 
-    if (obj->otyp == LOADSTONE) {
-        curse(obj);
-    } else if (confers_luck(obj)) {
+    if (confers_luck(obj)) {
         set_moreluck();
         context.botl = 1;
     } else if (obj->otyp == FIGURINE && obj->timed) {
@@ -1708,7 +1706,7 @@ boolean allow_floor;
                 continue;
             }
 
-            /* don't split a stack of cursed loadstones */
+            /* don't split a stack of undroppable objects */
             if (splittable(obj))
                 obj = splitobj(obj, cnt);
 
@@ -2232,8 +2230,8 @@ int FDECL((*fn), (OBJ_P)), FDECL((*ckfn), (OBJ_P));
         otmpo = otmp;
         if (sym == '#') {
             /* Number was entered; split the object unless it corresponds
-               to 'none' or 'all'.  2 special cases: cursed loadstones and
-               welded weapons (eg, multiple daggers) will remain as merged
+               to 'none' or 'all'.  2 special cases: cursed undroppable items
+               and welded weapons (eg, multiple daggers) will remain as merged
                unit; done to avoid splitting an object that won't be
                droppable (even if we're picking up rather than dropping). */
             if (!yn_number) {
@@ -4269,7 +4267,7 @@ doorganize() /* inventory organizer by Del Lamb */
 
     /*
      * don't use freeinv/addinv to avoid double-touching artifacts,
-     * dousing lamps, losing luck, cursing loadstone, etc.
+     * dousing lamps, losing luck, etc.
      */
     extract_nobj(obj, &invent);
 

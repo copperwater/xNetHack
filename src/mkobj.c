@@ -353,7 +353,7 @@ struct obj *box;
                 otmp->owt = weight(otmp);
             } else
                 while (otmp->otyp == ROCK) {
-                    otmp->otyp = rnd_class(DILITHIUM_CRYSTAL, LOADSTONE);
+                    otmp->otyp = rnd_class(DILITHIUM_CRYSTAL, LUCKSTONE);
                     if (otmp->quan > 2L)
                         otmp->quan = 1L;
                     otmp->owt = weight(otmp);
@@ -917,9 +917,7 @@ boolean artif;
             }
             break;
         case GEM_CLASS:
-            if (otmp->otyp == LOADSTONE)
-                curse(otmp);
-            else if (otmp->otyp == ROCK)
+            if (otmp->otyp == ROCK)
                 otmp->quan = (long) rn1(6, 6);
             else if (otmp->otyp != LUCKSTONE && otmp->otyp != THIEFSTONE
                      && !rn2(6))

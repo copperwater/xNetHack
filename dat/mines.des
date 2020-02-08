@@ -1021,7 +1021,7 @@ MONSTER:'m',$place[0], m_object "luckstone"
 OBJECT:('*',"worthless piece of white glass"),$place[1]
 OBJECT:('*',"emerald"),$place[1]
 OBJECT:('*',"amethyst"),$place[1]
-MONSTER:'m',$place[1], m_object "loadstone"
+MONSTER:'m',$place[1], m_object "touchstone"
 OBJECT:('*',"diamond"),$place[2]
 OBJECT:('*',"worthless piece of green glass"),$place[2]
 OBJECT:('*',"amethyst"),$place[2]
@@ -1032,7 +1032,7 @@ OBJECT:('*',"worthless piece of violet glass"),$place[3]
 MONSTER:'m',$place[3], m_object "touchstone"
 OBJECT:('*',"worthless piece of red glass"),$place[4]
 OBJECT:('*',"ruby"),$place[4]
-OBJECT:('*',"loadstone"),$place[4]
+OBJECT:('*',"touchstone"),$place[4]
 OBJECT:('*',"ruby"),$place[5]
 OBJECT:('*',"worthless piece of red glass"),$place[5]
 OBJECT:('*',"luckstone"),$place[5]

@@ -3952,7 +3952,7 @@ boolean *lostsome;
                 /*
                  * Undroppables are: body armor, boots, gloves,
                  * amulets, and rings because of the time and effort
-                 * in removing them + loadstone and other cursed stuff
+                 * in removing them and other cursed stuff
                  * for obvious reasons.
                  */
                 if (!(undroppable(obj) || obj == uamul

@@ -1426,11 +1426,10 @@ boolean telekinesis;
             xname(obj));
         return -1;
     }
-    /* override weight consideration for loadstone picked up by anybody
-       and for boulder picked up by hero poly'd into a giant; override
-       availability of open inventory slot iff not already carrying one */
-    if (obj->otyp == LOADSTONE
-        || (obj->otyp == BOULDER && throws_rocks(youmonst.data))) {
+    /* override weight consideration for boulder picked up by hero poly'd into a
+     * giant; override availability of open inventory slot iff not already
+     * carrying one */
+    if (obj->otyp == BOULDER && throws_rocks(youmonst.data)) {
         if (inv_cnt(FALSE) < 52 || !carrying(obj->otyp)
             || merge_choice(invent, obj))
             return 1; /* lift regardless of current situation */
@@ -1731,7 +1730,7 @@ boolean telekinesis; /* not picking it up directly by hand */
     /* Whats left of the special case for gold :-) */
     if (obj->oclass == COIN_CLASS)
         context.botl = 1;
-    if (obj->quan != count && obj->otyp != LOADSTONE)
+    if (obj->quan != count)
         obj = splitobj(obj, count);
 
     obj = pick_obj(obj);
@@ -2552,7 +2551,7 @@ register struct obj *obj;
     if ((res = lift_object(obj, current_container, &count, FALSE)) <= 0)
         return res;
 
-    if (obj->quan != count && obj->otyp != LOADSTONE)
+    if (obj->quan != count)
         obj = splitobj(obj, count);
 
     /* Remove the object from the list. */

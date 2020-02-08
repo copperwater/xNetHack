@@ -206,6 +206,7 @@ Celibate conduct (broken when you lie with an incubus/succubus)
 The Chromatic Dragon is now named Tiamat.
 The Caveman quest narration and dialogue have been changed to use caveman
   speech patterns.
+Loadstones are removed.
 
 
 It contains the following non-gameplay interface changes:

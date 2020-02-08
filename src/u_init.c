@@ -567,7 +567,7 @@ register int obj;
 }
 
 /* Know ordinary (non-magical) objects of a certain class,
- * like all gems except the loadstone and luckstone.
+ * like all gems except the luckstone.
  */
 STATIC_OVL void
 knows_class(sym)
