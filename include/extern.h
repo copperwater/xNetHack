@@ -1,4 +1,4 @@
-/* NetHack 3.6	extern.h	$NHDT-Date: 1580633720 2020/02/02 08:55:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.787 $ */
+/* NetHack 3.6	extern.h	$NHDT-Date: 1581322657 2020/02/10 08:17:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.795 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -184,6 +184,9 @@ E boolean NDECL(exp_percent_changing);
 E int NDECL(stat_cap_indx);
 E int NDECL(stat_hunger_indx);
 E const char *FDECL(bl_idx_to_fldname, (int));
+E void FDECL(condopt, (int, boolean *, BOOLEAN_P));
+E int FDECL(parse_cond_option, (BOOLEAN_P, char *));
+E void NDECL(cond_menu);
 #ifdef STATUS_HILITES
 E void NDECL(status_eval_next_unhilite);
 E void NDECL(reset_status_hilites);
@@ -199,7 +202,6 @@ E boolean NDECL(status_hilite_menu);
 E char NDECL(randomkey);
 E void FDECL(random_response, (char *, int));
 E int NDECL(rnd_extcmd_idx);
-E int NDECL(doconduct);
 E int NDECL(domonability);
 E char FDECL(cmd_from_func, (int NDECL((*))));
 E boolean FDECL(redraw_cmd, (CHAR_P));
@@ -232,10 +234,6 @@ E void FDECL(rhack, (char *));
 E int NDECL(doextlist);
 E int NDECL(extcmd_via_menu);
 E int NDECL(enter_explore_mode);
-E char *FDECL(trap_predicament, (char *, int, BOOLEAN_P));
-E void FDECL(enlightenment, (int, int));
-E void FDECL(youhiding, (BOOLEAN_P, int));
-E void FDECL(show_conduct, (int));
 E boolean FDECL(bind_key, (UCHAR_P, const char *));
 E void NDECL(dokeylist);
 E int FDECL(xytod, (SCHAR_P, SCHAR_P));
@@ -567,6 +565,7 @@ E void FDECL(impact_drop, (struct obj *, XCHAR_P, XCHAR_P, XCHAR_P));
 
 /* ### dothrow.c ### */
 
+E int FDECL(multishot_class_bonus, (int, struct obj *, struct obj *));
 E int NDECL(dothrow);
 E int NDECL(dofire);
 E void FDECL(endmultishot, (BOOLEAN_P));
@@ -635,6 +634,9 @@ E void FDECL(u_on_sstairs, (int));
 E void NDECL(u_on_upstairs);
 E void NDECL(u_on_dnstairs);
 E boolean FDECL(On_stairs, (XCHAR_P, XCHAR_P));
+E boolean FDECL(On_ladder, (XCHAR_P, XCHAR_P));
+E boolean FDECL(On_stairs_up, (XCHAR_P, XCHAR_P));
+E boolean FDECL(On_stairs_dn, (XCHAR_P, XCHAR_P));
 E void FDECL(get_level, (d_level *, int));
 E boolean FDECL(Is_botlevel, (d_level *));
 E boolean FDECL(Can_fall_thru, (d_level *));
@@ -725,8 +727,6 @@ E void FDECL(done, (int));
 E void FDECL(container_contents, (struct obj *, BOOLEAN_P,
                                   BOOLEAN_P, BOOLEAN_P));
 E void FDECL(nh_terminate, (int)) NORETURN;
-E int NDECL(dovanquished);
-E int NDECL(num_genocides);
 E void FDECL(delayed_killer, (int, int, const char *));
 E struct kinfo *FDECL(find_delayed_killer, (int));
 E void FDECL(dealloc_killer, (struct kinfo *));
@@ -996,6 +996,26 @@ E void FDECL(strbuf_reserve, (strbuf_t *, int));
 E void FDECL(strbuf_empty, (strbuf_t *));
 E void FDECL(strbuf_nl_to_crlf, (strbuf_t *));
 E char *FDECL(nonconst, (const char *, char *));
+
+/* ### insight.c ### */
+
+E int NDECL(doattributes);
+E void FDECL(enlightenment, (int, int));
+E void FDECL(youhiding, (BOOLEAN_P, int));
+E char *FDECL(trap_predicament, (char *, int, BOOLEAN_P));
+E int NDECL(doconduct);
+E void FDECL(show_conduct, (int));
+E void FDECL(record_achievement, (XCHAR_P));
+E boolean FDECL(remove_achievement, (XCHAR_P));
+E int NDECL(count_achievements);
+E int NDECL(dovanquished);
+E void FDECL(list_vanquished, (CHAR_P, BOOLEAN_P));
+E int NDECL(num_genocides);
+E void FDECL(list_genocided, (CHAR_P, BOOLEAN_P));
+E const char *FDECL(align_str, (ALIGNTYP_P));
+E char *FDECL(piousness, (BOOLEAN_P, const char *));
+E void FDECL(mstatusline, (struct monst *));
+E void NDECL(ustatusline);
 
 /* ### invent.c ### */
 
@@ -1550,6 +1570,7 @@ E boolean FDECL(monhaskey, (struct monst *, BOOLEAN_P));
 E void FDECL(mon_regen, (struct monst *, BOOLEAN_P));
 E int FDECL(dochugw, (struct monst *));
 E boolean FDECL(onscary, (int, int, struct monst *));
+E struct monst *FDECL(find_pmmonst, (int));
 E int FDECL(bee_eat_jelly, (struct monst *, struct obj *));
 E void FDECL(monflee, (struct monst *, int, BOOLEAN_P, BOOLEAN_P));
 E void FDECL(mon_yells, (struct monst *, const char *));
@@ -2106,10 +2127,6 @@ E void NDECL(clearpriests);
 E void FDECL(restpriest, (struct monst *, BOOLEAN_P));
 E void FDECL(newepri, (struct monst *));
 E void FDECL(free_epri, (struct monst *));
-E const char *FDECL(align_str, (ALIGNTYP_P));
-E char *FDECL(piousness, (BOOLEAN_P, const char *));
-E void FDECL(mstatusline, (struct monst *));
-E void NDECL(ustatusline);
 
 /* ### quest.c ### */
 

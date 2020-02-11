@@ -1,4 +1,4 @@
-/* NetHack 3.7	invent.c	$NHDT-Date: 1580476196 2020/01/31 13:09:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.288 $ */
+/* NetHack 3.7	invent.c	$NHDT-Date: 1581322662 2020/02/10 08:17:42 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.290 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -15,6 +15,7 @@
 
 static void FDECL(loot_classify, (Loot *, struct obj *));
 static char *FDECL(loot_xname, (struct obj *));
+static int FDECL(invletter_value, (CHAR_P));
 static int FDECL(CFDECLSPEC sortloot_cmp, (const genericptr,
                                                const genericptr));
 static void NDECL(reorder_invent);
@@ -294,6 +295,17 @@ struct obj *obj;
     return res;
 }
 
+static int
+invletter_value(c)
+char c;
+{
+    return ('a' <= c && c <= 'z') ? (c - 'a' + 2)
+        : ('A' <= c && c <= 'Z') ? (c - 'A' + 2 + 26)
+        : (c == '$') ? 1
+        : (c == '#') ? 1 + 52 + 1
+        : 1 + 52 + 1 + 1; /* none of the above */
+}
+
 /* qsort comparison routine for sortloot() */
 static int CFDECLSPEC
 sortloot_cmp(vptr1, vptr2)
@@ -305,7 +317,7 @@ const genericptr vptr2;
     struct obj *obj1 = sli1->obj,
                *obj2 = sli2->obj;
     char *nam1, *nam2;
-    int val1, val2, c, namcmp;
+    int val1, val2, namcmp;
 
     /* order by object class unless we're doing by-invlet without sortpack */
     if ((g.sortlootmode & (SORTLOOT_PACK | SORTLOOT_INVLET))
@@ -350,18 +362,8 @@ const genericptr vptr2;
 
     /* order by assigned inventory letter */
     if ((g.sortlootmode & SORTLOOT_INVLET) != 0) {
-        c = obj1->invlet;
-        val1 = ('a' <= c && c <= 'z') ? (c - 'a' + 2)
-               : ('A' <= c && c <= 'Z') ? (c - 'A' + 2 + 26)
-                 : (c == '$') ? 1
-                   : (c == '#') ? 1 + 52 + 1
-                     : 1 + 52 + 1 + 1; /* none of the above */
-        c = obj2->invlet;
-        val2 = ('a' <= c && c <= 'z') ? (c - 'a' + 2)
-               : ('A' <= c && c <= 'Z') ? (c - 'A' + 2 + 26)
-                 : (c == '$') ? 1
-                   : (c == '#') ? 1 + 52 + 1
-                     : 1 + 52 + 1 + 1; /* none of the above */
+        val1 = invletter_value(obj1->invlet);
+        val2 = invletter_value(obj2->invlet);
         if (val1 != val2)
             return val1 - val2;
     }
@@ -808,33 +810,22 @@ struct obj *obj;
         if (u.uhave.amulet)
             impossible("already have amulet?");
         u.uhave.amulet = 1;
-        /* Player will be able to discover if s/he has the real amulet */
-        /* by monitoring the livelog - but only when it was picked up */
-        /* for the first time */
-        if (!u.uachieve.amulet)
-            livelog_write_string(LL_ACHIEVE, "acquired the Amulet of Yendor");
-        u.uachieve.amulet = 1;
+        record_achievement(ACH_AMUL);
     } else if (obj->otyp == CANDELABRUM_OF_INVOCATION) {
         if (u.uhave.menorah)
             impossible("already have candelabrum?");
         u.uhave.menorah = 1;
-        if (!u.uachieve.menorah)
-            livelog_write_string(LL_ACHIEVE, "acquired the Candelabrum of Invocation");
-        u.uachieve.menorah = 1;
+        record_achievement(ACH_CNDL);
     } else if (obj->otyp == BELL_OF_OPENING) {
         if (u.uhave.bell)
             impossible("already have silver bell?");
         u.uhave.bell = 1;
-        if (!u.uachieve.bell)
-            livelog_write_string(LL_ACHIEVE, "acquired the Bell of Opening");
-        u.uachieve.bell = 1;
+        record_achievement(ACH_BELL);
     } else if (obj->otyp == SPE_BOOK_OF_THE_DEAD) {
         if (u.uhave.book)
             impossible("already have the book?");
         u.uhave.book = 1;
-        if (!u.uachieve.book)
-            livelog_write_string(LL_ACHIEVE, "acquired the Book of the Dead");
-        u.uachieve.book = 1;
+        record_achievement(ACH_BOOK);
     } else if (obj->oartifact) {
         if (is_quest_artifact(obj)) {
             if (u.uhave.questart)
@@ -848,16 +839,12 @@ struct obj *obj;
     /* "special achievements"; revealed in end of game disclosure and
        dumplog, originally just recorded in XLOGFILE */
     if (is_mines_prize(obj)) {
-        if (!u.uachieve.mines_luckstone)
-            livelog_write_string(LL_ACHIEVE, "acquired the luckstone from Mines' End");
-        u.uachieve.mines_luckstone = 1;
-        g.context.achieveo.mines_prize_oid = 0;
+        record_achievement(ACH_LUCK);
+        g.context.achieveo.mines_prize_oid = 0; /* done with luckstone o_id */
         obj->nomerge = 0;
     } else if (is_soko_prize(obj)) {
-        if (!u.uachieve.finish_sokoban)
-            livelog_write_string(LL_ACHIEVE, "completed Sokoban");
-        u.uachieve.finish_sokoban = 1;
-        g.context.achieveo.soko_prize_oid = 0;
+        record_achievement(ACH_SOKO);
+        g.context.achieveo.soko_prize_oid = 0; /* done with bag/amulet o_id */
         obj->nomerge = 0;
     }
 }

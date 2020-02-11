@@ -1,4 +1,4 @@
-/* NetHack 3.6	mon.c	$NHDT-Date: 1580044343 2020/01/26 13:12:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.320 $ */
+/* NetHack 3.6	mon.c	$NHDT-Date: 1581322664 2020/02/10 08:17:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.321 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2074,16 +2074,17 @@ register struct monst *mtmp;
     /* Medusa falls into two livelog categories,
      * we log one message flagged for both categories,
      * but only for the first kill. Subsequent kills are not an achievement.
+     * record_achievement() now handles this.
      */
-    if (mtmp->data == &mons[PM_MEDUSA] && !u.uachieve.killed_medusa) {
-        u.uachieve.killed_medusa = 1;
-        livelog_write_string(LL_ACHIEVE | LL_UMONST, "killed Medusa");
-    } else if (mtmp->data == &mons[PM_DEATH]) {
+    if (mtmp->data == &mons[PM_MEDUSA])
+        record_achievement(ACH_MEDU);
+    else if (mtmp->data == &mons[PM_DEATH]) {
         livelog_printf(LL_UMONST, "%s", killdeath[rn2(SIZE(killdeath))]);
     } else if (unique_corpstat(mtmp->data)) {
         switch(g.mvitals[tmp].died) {
             case 1:
-                livelog_printf(LL_UMONST, "%s %s",
+                if (mtmp->data != &mons[PM_MEDUSA])
+                    livelog_printf(LL_UMONST, "%s %s",
                                nonliving(mtmp->data) ? "destroyed" : "killed",
                                noit_mon_nam(mtmp));
                 break;

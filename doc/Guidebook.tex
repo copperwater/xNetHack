@@ -44,8 +44,8 @@
 
 %.au
 \author{Original version - Eric S. Raymond\\
-(Edited and expanded for 3.6 by Mike Stephenson and others)}
-\date{January 27, 2020}
+(Edited and expanded for 3.7 by Mike Stephenson and others)}
+\date{February 10, 2020}
 
 \maketitle
 
@@ -3911,7 +3911,7 @@ something pushes the old item into your alternate weapon slot (default off).
 Likewise for the `a' (apply) command if it causes the applied item to
 become wielded.  Persistent.
 %.lp
-\item[\ib(quick\verb+_+farsight)]
+\item[\ib{quick\verb+_+farsight}]
 When set, usually prevents the ``you sense your surroundings'' message
 where play pauses to allow you to browse the map whenever clairvoyance
 randomly activates.
@@ -4064,9 +4064,11 @@ of {\it NetHack\/} is started without a parent window, but it no longer leaves
 the score list around after game end on a terminal or emulating window.
 %.lp
 \item[\ib{travel}]
-Allow the travel command (default on).  Turning this option off will
-prevent the game from attempting unintended moves if you make inadvertent
-mouse clicks on the map window.  Persistent.
+Allow the travel command via mouse click (default on).
+Turning this option off will prevent the game from attempting unintended
+moves if you make inadvertent mouse clicks on the map window.
+Does not affect traveling via the `{\tt \verb+_+}' (``{\tt \#travel}'')
+command.  Persistent.
 % %.lp
 % \item[ib{travel\verb+_+debug}]
 % Display intended path during each step of travel (default off).
@@ -4428,16 +4430,21 @@ Cannot be set with the `{\tt O}' command.
 %.lp
 \item[\ib{video}]
 Set the video mode used ({\it PC\/ NetHack\/} only).
-Values are {\it autodetect\/}, {\it default\/}, or {\it vga\/}.
-Setting {\it vga\/} (or {\it autodetect\/} with vga hardware present) will
-cause the game to display tiles.
+Values are {\it autodetect\/}, {\it default\/}, {\it vga\/}, or {\it vesa\/}.
+Setting {\it vesa\/} will cause the game to display tiles, using the full
+capability of the VGA hardware.
+Setting {\it vga\/} will cause the game to display tiles, fixed at 640x480
+in 16 colors, a mode that is compatible with all VGA hardware. Third party
+tilesets will probably not work.
+Setting {\it autodetect\/} attempts {\it vesa\/}, then {\it vga\/}, and
+finally sets {\it default\/} if neither of those modes works.
 Cannot be set with the `{\tt O}' command.
 %.lp
 \item[\ib{video\verb+_+height}]
-Set the VGA mode resolution height (MS-DOS only, with video:vga)
+Set the VGA mode resolution height (MS-DOS only, with video:vesa)
 %.lp
 \item[\ib{video\verb+_+width}]
-Set the VGA mode resolution width (MS-DOS only, with video:vga)
+Set the VGA mode resolution width (MS-DOS only, with video:vesa)
 %.lp
 \item[\ib{videocolors}]
 \begin{sloppypar}
@@ -5220,8 +5227,7 @@ Default                      & Symbol Name                & Description\\
 \verb+@+ & S\verb+_+ss3                     &	(magic shield 3 of 4)\\
 \verb@*@ & S\verb+_+ss4                     &	(magic shield 4 of 4)\\
 \verb@^@ & S\verb+_+statue\verb+_+trap            &	(statue trap)\\
-\verb@ @ & S\verb+_+stone                   &	(solid rock or unexplored terrain\\
-         &                                  &   \,or dark part of a room)\\
+\verb@ @ & S\verb+_+stone                   &	(solid rock)\\
 \verb@]@ & S\verb+_+strange\verb+_+obj      &	(strange object)\\
 \verb@-@ & S\verb+_+sw\verb+_+bc                  &	(swallow bottom center)\\
 \verb@\@ & S\verb+_+sw\verb+_+bl                  &	(swallow bottom left)\\
@@ -5245,6 +5251,7 @@ Default                      & Symbol Name                & Description\\
 \verb@|@ & S\verb+_+trwall                  &	(wall)\\
 \verb@-@ & S\verb+_+tuwall                  &	(wall)\\
 \verb@U@ & S\verb+_+umber                   &	(umber hulk)\\
+\verb@ @ & S\verb+_+unexplored              &	(unexplored terrain)\\
 \verb@u@ & S\verb+_+unicorn                 &	(unicorn or horse)\\
 \verb@<@ & S\verb+_+upladder                &	(ladder up)\\
 \verb@<@ & S\verb+_+upstair                 &	(staircase up)\\
