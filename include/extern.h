@@ -2245,6 +2245,7 @@ E int FDECL(randalign, (int, int));
 E int FDECL(str2role, (const char *));
 E int FDECL(str2race, (const char *));
 E int FDECL(str2gend, (const char *));
+E int FDECL(str2orientation, (const char *));
 E int FDECL(str2align, (const char *));
 E boolean FDECL(ok_role, (int, int, int, int));
 E int FDECL(pick_role, (int, int, int, int));

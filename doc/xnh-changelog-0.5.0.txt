@@ -209,6 +209,14 @@ The Caveman quest narration and dialogue have been changed to use caveman
 The Dark One is now named Anaraxis the Black.
 Loadstones are removed.
 Conflictless conduct (broken when you generate conflict).
+Add homosexual and bisexual orientations. These can be specified by
+  OPTIONS=orientation:[orientation]. It also accepts "straight", "gay" and "bi".
+  The only thing your orientation controls is what sort of foocubi you can
+  interact with.
+If you are bisexual, foocubi roll twice after each encounter to see if they get
+  a severe headache.
+The foocubus gained from kicking a sink will always be compatible with your
+  orientation.
 
 
 It contains the following non-gameplay interface changes:
