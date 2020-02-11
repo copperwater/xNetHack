@@ -27,7 +27,6 @@ CFLAGS+= -Wno-format-nonliteral # generated format strings are fairly common
 CFLAGS+= -Wno-stringop-truncation # vanilla often strncpy's to overwrite a part of a string, deliberately not copying terminating \0
 CFLAGS+= -Wno-missing-field-initializers # many places, especially in the cmd.c commands list
 CFLAGS+= -Wimplicit-fallthrough=2 # 3 usually ok, but nice to have /* else FALLTHRU */
-CFLAGS+=-Wno-format-overflow -Wno-stringop-truncation
 CFLAGS+=-DCOMPRESS=\"/bin/gzip\" -DCOMPRESS_EXTENSION=\".gz\"
 CFLAGS+=-DSYSCF -DSYSCF_FILE=\"$(HACKDIR)/sysconf\" -DSECURE
 CFLAGS+=-DTIMED_DELAY
