@@ -235,6 +235,7 @@ More explicit hunger messages.
 YAFM for hallucinating and doing nothing in particular.
 Add weapon skills and intended launchers to object lookup.
 Display skill caps and the percent towards the next skill in #enhance.
+When worn or wielded items become uncursed, you get a message.
 
 
 It contains the following non-gameplay architectural changes:

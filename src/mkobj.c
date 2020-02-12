@@ -1439,6 +1439,18 @@ register struct obj *otmp;
         (void) stop_timer(FIG_TRANSFORM, obj_to_any(otmp));
     if (otmp->lamplit)
         maybe_adjust_light(otmp, old_light);
+    if (otmp->where == OBJ_INVENT && otmp->owornmask && otmp->bknown) {
+        if (otmp->owornmask & W_WEP) {
+            pline("%s is no longer welded to your %s.",
+                  upstart(yname(otmp)), makeplural(body_part(HAND)));
+        }
+        else if (otmp->owornmask & (W_ARMOR | W_ACCESSORY)) {
+            if (Hallucination)
+                pline("The adhesion of %s has diminished.", yname(otmp));
+            else if (otmp->otyp != AMULET_OF_STRANGULATION)
+                pline("%s seems to loosen a bit.", upstart(yname(otmp)));
+        }
+    }
     return;
 }
 
