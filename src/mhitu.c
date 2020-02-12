@@ -2568,6 +2568,15 @@ struct attack *mattk; /* non-Null: current attack; Null: general capability */
         || (adtyp != AD_SEDU && adtyp != AD_SSEX && adtyp != AD_SITM))
         return 0;
 
+    if (mdef == &youmonst || magr == &youmonst) {
+        switch (flags.orientation) {
+        case ORIENT_GAY:
+            return genagr == gendef;
+        case ORIENT_BISEXUAL:
+            return 1;
+        }
+        /* ORIENT_STRAIGHT falls through to return statement below */
+    }
     return (genagr == 1 - gendef) ? 1 : (pagr->mlet == S_NYMPH) ? 2 : 0;
 }
 
@@ -2742,6 +2751,7 @@ struct monst *mon;
     /* by this point you have discovered mon's identity, blind or not... */
     pline("Time stands still while you and %s lie in each other's arms...",
           noit_mon_nam(mon));
+    u.uconduct.uncelibate++;
     /* 3.6.1: a combined total for charisma plus intelligence of 35-1
        used to guarantee successful outcome; now total maxes out at 32
        as far as deciding what will happen; chance for bad outcome when
@@ -2858,7 +2868,7 @@ struct monst *mon;
             context.botl = 1;
         }
     }
-    if (!rn2(25))
+    if (!rn2(25) || (flags.orientation == ORIENT_BISEXUAL && !rn2(25)))
         mon->mcan = 1; /* monster is worn out */
     if (!tele_restrict(mon))
         (void) rloc(mon, TRUE);

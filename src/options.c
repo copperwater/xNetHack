@@ -344,6 +344,7 @@ static struct Comp_Opt {
     { "mouse_support", "game receives click info from mouse", 0, SET_IN_GAME },
     { "number_pad", "use the number pad for movement", 1, SET_IN_GAME },
     { "objects", "the symbols to use for objects", MAXOCLASSES, SET_IN_FILE },
+    { "orientation", "your sexual orientation", 12, DISP_IN_GAME },
     { "packorder", "the inventory order of the items in your pack",
       MAXOCLASSES, SET_IN_GAME },
 #ifdef CHANGE_COLOR
@@ -2184,6 +2185,22 @@ boolean tinitial, tfrom_file;
             flags.polyinit_mnum = monnum;
         } else
             return FALSE;
+        return retval;
+    }
+
+    /* orientation:string */
+    fullname = "orientation";
+    if (match_optname(opts, fullname, 2, TRUE)) {
+        if (parse_role_opts(negated, fullname, opts, &op)) {
+            if ((flags.orientation = str2orientation(op)) == ROLE_NONE) {
+                config_error_add("Unknown %s  '%s'", fullname, op);
+                return FALSE;
+            }
+        }
+        else {
+            flags.orientation = ORIENT_STRAIGHT;
+            return FALSE;
+        }
         return retval;
     }
 
@@ -5767,6 +5784,8 @@ char *buf;
         Sprintf(buf, "%s", pl_fruit);
     else if (!strcmp(optname, "gender"))
         Sprintf(buf, "%s", rolestring(flags.initgend, genders, adj));
+    else if (!strcmp(optname, "orientation"))
+        Sprintf(buf, "%s", rolestring(flags.orientation, orientations, adj));
     else if (!strcmp(optname, "horsename"))
         Sprintf(buf, "%s", horsename[0] ? horsename : none);
     else if (!strcmp(optname, "map_mode")) {

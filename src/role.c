@@ -126,7 +126,7 @@ const struct Role roles[] = {
       PM_LITTLE_DOG,
       PM_SHAMAN_KARNOV,
       PM_NEANDERTHAL,
-      PM_CHROMATIC_DRAGON,
+      PM_TIAMAT,
       PM_BUGBEAR,
       PM_HILL_GIANT,
       S_HUMANOID,
@@ -533,7 +533,7 @@ const struct Role roles[] = {
       PM_KITTEN,
       PM_NEFERET_THE_GREEN,
       PM_APPRENTICE,
-      PM_DARK_ONE,
+      PM_ANARAXIS_THE_BLACK,
       PM_VAMPIRE_BAT,
       PM_XORN,
       S_BAT,
@@ -728,6 +728,13 @@ const struct Gender genders[] = {
     { "male", "he", "him", "his", "Mal", ROLE_MALE },
     { "female", "she", "her", "her", "Fem", ROLE_FEMALE },
     { "neuter", "it", "it", "its", "Ntr", ROLE_NEUTER }
+};
+
+/* Table of all orientations */
+const struct Orientation orientations[] = {
+    { "straight", "heterosexual", ORIENT_STRAIGHT },
+    { "gay",      "homosexual", ORIENT_GAY },
+    { "bi",       "bisexual", ORIENT_BISEXUAL }
 };
 
 /* Table of all alignments */
@@ -947,6 +954,39 @@ const char *str;
     if ((len == 1 && (*str == '*' || *str == '@'))
         || !strncmpi(str, randomstr, len))
         return ROLE_RANDOM;
+
+    /* Couldn't find anything appropriate */
+    return ROLE_NONE;
+}
+
+int
+str2orientation(str)
+const char *str;
+{
+    int i, len;
+
+    /* Is str valid? */
+    if (!str || !str[0]) {
+        /* Defaulting to this is problematic, but it might be more problematic
+         * to give players who have never heard of the orientation option a
+         * random orientation.  No good solution. */
+        return ORIENT_STRAIGHT;
+    }
+
+    /* Match as much of str as is provided */
+    len = strlen(str);
+    for (i = 0; i < ROLE_ORIENTATIONS; i++) {
+        /* Does it match either the adjective or alternate form? */
+        if (!strncmpi(str, orientations[i].adj, len)
+            || !strncmpi(str, orientations[i].technical, len))
+            return orientations[i].mapping;
+    }
+
+    /* Orientations don't get blocked by choice of race/role/align/gender, so
+     * choosing randomly is simpler here than for the other birth options. */
+    if ((len == 1 && (*str == '*' || *str == '@'))
+        || !strncmpi(str, randomstr, len))
+        return rn2(ROLE_ORIENTATIONS);
 
     /* Couldn't find anything appropriate */
     return ROLE_NONE;

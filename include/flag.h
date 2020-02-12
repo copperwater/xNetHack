@@ -31,6 +31,10 @@ struct flag {
     boolean explore; /* in exploration mode */
 #define discover flags.explore
     boolean female;
+    xchar orientation; /* index into orientations[] */
+#define ORIENT_STRAIGHT 0
+#define ORIENT_GAY 1
+#define ORIENT_BISEXUAL 2
     boolean friday13;        /* it's Friday the 13th */
     boolean help;            /* look in data file for info about stuff */
     boolean ignintr;         /* ignore interrupts */

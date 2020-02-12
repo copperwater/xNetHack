@@ -2083,7 +2083,7 @@ struct obj *obj;
     case AMULET_CLASS:
         if (typ == AMULET_OF_LIFE_SAVING)
             return (boolean) !(nonliving(mon->data) || is_vampshifter(mon));
-        if (typ == AMULET_OF_REFLECTION)
+        if (typ == AMULET_OF_REFLECTION || typ == AMULET_OF_ESP)
             return TRUE;
         break;
     case TOOL_CLASS:
@@ -2146,7 +2146,7 @@ const char *str;
             pline(str, s_suffix(mon_nam(mon)), "armor");
         return TRUE;
     } else if (mon->data == &mons[PM_SILVER_DRAGON]
-               || mon->data == &mons[PM_CHROMATIC_DRAGON]) {
+               || mon->data == &mons[PM_TIAMAT]) {
         /* Silver dragons only reflect when mature; babies do not */
         if (str)
             pline(str, s_suffix(mon_nam(mon)), "scales");

@@ -17,7 +17,6 @@
 DUNGEON:	"The Dungeons of Doom" "D" (25, 5)
 ALIGNMENT:	unaligned
 BRANCH:		"The Gnomish Mines" @ (2, 3)
-LEVEL:		"rogue" "R" @ (15, 4)
 LEVELDESC:	roguelike
 RNDLEVEL:	"oracle" "O" @ (5, 5) 3
 LEVALIGN:	neutral
@@ -71,7 +70,7 @@ LEVEL:		"fakewiz2" "G" @ (-6,4)
 DUNGEON:	"The Gnomish Mines" "M" (8, 2)
 ALIGNMENT:	lawful
 DESCRIPTION:	mazelike
-RNDLEVEL:	"minetn" "T" @ (3, 2) 7
+RNDLEVEL:	"minetn" "T" @ (3, 2) 8
 LEVELDESC:	town
 RNDLEVEL:	"minend" "E" @ (-1, 0) 4
 

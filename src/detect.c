@@ -28,6 +28,7 @@ STATIC_PTR void FDECL(openone, (int, int, genericptr_t));
 STATIC_DCL int FDECL(mfind0, (struct monst *, BOOLEAN_P));
 STATIC_DCL int FDECL(reveal_terrain_getglyph, (int, int, int,
                                                unsigned, int, int));
+STATIC_PTR int NDECL(look_in_crystal_ball);
 
 #ifdef DUMPHTML
 extern void FDECL(html_dump_glyph, (int, int, int, int, int, unsigned));
@@ -1067,64 +1068,80 @@ struct obj *sobj; /* null if crystal ball, *scroll if gold detection scroll */
     return 0;
 }
 
-const char *
-level_distance(where)
-d_level *where;
+/* occupation callback for gazing into a crystal ball */
+int
+look_in_crystal_ball()
 {
-    register schar ll = depth(&u.uz) - depth(where);
-    register boolean indun = (u.uz.dnum == where->dnum);
+    struct obj* ball = context.crystal.ball;
 
-    if (ll < 0) {
-        if (ll < (-8 - rn2(3)))
-            if (!indun)
-                return "far away";
+    if (--context.crystal.looktime > 0)
+        return 1; /* still looking */
+
+    context.crystal.ball = (struct obj *) 0;
+    context.crystal.o_id = 0;
+
+    /* was ball stolen somehow? */
+    if (!carried(ball))
+        return 0;
+
+    makeknown(CRYSTAL_BALL);
+
+    /* done gazing into the ball */
+    if (ball->spe <= 0) {
+        You("see only opaque gray fog.");
+    } else {
+        char ch;
+        int class;
+        int ret = -1;
+
+        if (flags.verbose)
+            You("may look for an object, monster, or trap symbol.");
+        do {
+            /* read a single character */
+            ch = yn_function("What do you look for?", (char *) 0, '\0');
+            if (index(quitchars, ch)) {
+                if (flags.verbose)
+                    pline1(Never_mind);
+                return 0;
+            }
+            /* special case: accept ']' as synonym for mimic
+            * we have to do this before the def_char_to_objclass check
+            */
+            if (ch == DEF_MIMIC_DEF)
+                ch = DEF_MIMIC;
+
+            /* TODO: allow dungeon features too
+             * TODO: monster_detect shouldn't open a new window if there are
+             * none of that monster there */
+            if ((class = def_char_to_objclass(ch)) != MAXOCLASSES)
+                ret = object_detect((struct obj *) 0, class);
+            else if ((class = def_char_to_monclass(ch)) != MAXMCLASSES)
+                ret = monster_detect((struct obj *) 0, class);
+            else if (showsyms[SYM_BOULDER + SYM_OFF_X]
+                     && (ch == showsyms[SYM_BOULDER + SYM_OFF_X]))
+                ret = object_detect((struct obj *) 0, ROCK_CLASS);
+            else if (ch == '^')
+                ret = trap_detect((struct obj *) 0);
+            else {
+                pline("I don't recognize that symbol.");
+            }
+        } while (ret == -1);
+
+        if (ret == 1) {
+            if (!rn2(50)) /* make them nervous */
+                You_see("the Wizard of Yendor gazing out at you.");
             else
-                return "far below";
-        else if (ll < -1)
-            if (!indun)
-                return "away below you";
-            else
-                return "below you";
-        else if (!indun)
-            return "in the distance";
-        else
-            return "just below";
-    } else if (ll > 0) {
-        if (ll > (8 + rn2(3)))
-            if (!indun)
-                return "far away";
-            else
-                return "far above";
-        else if (ll > 1)
-            if (!indun)
-                return "away above you";
-            else
-                return "above you";
-        else if (!indun)
-            return "in the distance";
-        else
-            return "just above";
-    } else if (!indun)
-        return "in the distance";
-    else
-        return "near you";
+                You("don't seem to find any of those here.");
+        }
+        consume_obj_charge(ball, TRUE);
+    }
+    return 0;
 }
-
-static const struct {
-    const char *what;
-    d_level *where;
-} level_detects[] = {
-    { "Delphi", &oracle_level },
-    { "Medusa's lair", &medusa_level },
-    { "a castle", &stronghold_level },
-    { "the Wizard of Yendor's tower", &wiz1_level },
-};
 
 void
 use_crystal_ball(optr)
 struct obj **optr;
 {
-    char ch;
     int oops;
     struct obj *obj = *optr;
 
@@ -1132,9 +1149,13 @@ struct obj **optr;
         pline("Too bad you can't see %s.", the(xname(obj)));
         return;
     }
-    oops = (rnd(20) > ACURR(A_INT) || obj->cursed);
+    if (obj->spe < 0) { /* cancelled */
+        pline("The glass shell is empty.");
+        return;
+    }
+    oops = (rnd(20) > (ACURR(A_INT) + 5 * (obj->blessed - obj->cursed)));
     if (oops && (obj->spe > 0)) {
-        switch (rnd(obj->oartifact ? 4 : 5)) {
+        switch (rnd((obj->oartifact || !obj->cursed) ? 4 : 5)) {
         case 1:
             pline("%s too much to comprehend!", Tobjnam(obj, "are"));
             break;
@@ -1204,61 +1225,14 @@ struct obj **optr;
         return;
     }
 
-    /* read a single character */
-    if (flags.verbose)
-        You("may look for an object or monster symbol.");
-    ch = yn_function("What do you look for?", (char *) 0, '\0');
-    if (index(quitchars, ch)) {
-        if (flags.verbose)
-            pline1(Never_mind);
-        return;
-    }
-    You("peer into %s...", the(xname(obj)));
-    nomul(-rnd(10));
-    multi_reason = "gazing into a crystal ball";
-    nomovemsg = "";
-    if (obj->spe <= 0) {
-        pline_The("vision is unclear.");
-    } else {
-        int class, i;
-        int ret = 0;
-
-        makeknown(CRYSTAL_BALL);
-        consume_obj_charge(obj, TRUE);
-
-        /* special case: accept ']' as synonym for mimic
-         * we have to do this before the def_char_to_objclass check
-         */
-        if (ch == DEF_MIMIC_DEF)
-            ch = DEF_MIMIC;
-
-        if ((class = def_char_to_objclass(ch)) != MAXOCLASSES)
-            ret = object_detect((struct obj *) 0, class);
-        else if ((class = def_char_to_monclass(ch)) != MAXMCLASSES)
-            ret = monster_detect((struct obj *) 0, class);
-        else if (showsyms[SYM_BOULDER + SYM_OFF_X]
-                 && (ch == showsyms[SYM_BOULDER + SYM_OFF_X]))
-            ret = object_detect((struct obj *) 0, ROCK_CLASS);
-        else
-            switch (ch) {
-            case '^':
-                ret = trap_detect((struct obj *) 0);
-                break;
-            default:
-                i = rn2(SIZE(level_detects));
-                You_see("%s, %s.", level_detects[i].what,
-                        level_distance(level_detects[i].where));
-                ret = 0;
-                break;
-            }
-
-        if (ret) {
-            if (!rn2(100)) /* make them nervous */
-                You_see("the Wizard of Yendor gazing out at you.");
-            else
-                pline_The("vision is unclear.");
-        }
-    }
+    /* Crystal balls no longer paralyze the player. Though if the ball is
+     * uncharged, it will still take several turns of peering into it to get a
+     * null result. */
+    You("gaze into %s...", the(xname(obj)));
+    context.crystal.ball = obj;
+    context.crystal.o_id = obj->o_id;
+    context.crystal.looktime = rn1(5, 6);
+    set_occupation(look_in_crystal_ball, "gazing", 0);
     return;
 }
 

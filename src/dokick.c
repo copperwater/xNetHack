@@ -1171,9 +1171,14 @@ dokick()
         }
         if (IS_SINK(maploc->typ)) {
             int gend = poly_gender();
-            short washerndx = (gend == 1 || (gend == 2 && rn2(2)))
-                                  ? PM_INCUBUS
-                                  : PM_SUCCUBUS;
+            short washerndx = PM_SUCCUBUS;
+            if (((gend == 2 || flags.orientation == ORIENT_BISEXUAL) && rn2(2))
+                || (gend == 1 && flags.orientation == ORIENT_STRAIGHT)
+                || (gend == 0 && flags.orientation == ORIENT_GAY)) {
+                /* if neuter or bisexual, pick randomly
+                 * if female and straight, or male and gay, switch to incubus */
+                washerndx = PM_INCUBUS;
+            }
 
             if (Levitation)
                 goto dumb;

@@ -1426,11 +1426,10 @@ boolean telekinesis;
             xname(obj));
         return -1;
     }
-    /* override weight consideration for loadstone picked up by anybody
-       and for boulder picked up by hero poly'd into a giant; override
-       availability of open inventory slot iff not already carrying one */
-    if (obj->otyp == LOADSTONE
-        || (obj->otyp == BOULDER && throws_rocks(youmonst.data))) {
+    /* override weight consideration for boulder picked up by hero poly'd into a
+     * giant; override availability of open inventory slot iff not already
+     * carrying one */
+    if (obj->otyp == BOULDER && throws_rocks(youmonst.data)) {
         if (inv_cnt(FALSE) < 52 || !carrying(obj->otyp)
             || merge_choice(invent, obj))
             return 1; /* lift regardless of current situation */
@@ -1731,7 +1730,7 @@ boolean telekinesis; /* not picking it up directly by hand */
     /* Whats left of the special case for gold :-) */
     if (obj->oclass == COIN_CLASS)
         context.botl = 1;
-    if (obj->quan != count && obj->otyp != LOADSTONE)
+    if (obj->quan != count)
         obj = splitobj(obj, count);
 
     obj = pick_obj(obj);
@@ -2354,9 +2353,9 @@ register struct obj *obj;
         Norep("You cannot %s %s you are wearing.",
               Icebox ? "refrigerate" : "stash", something);
         return 0;
-    } else if ((obj->otyp == LOADSTONE) && obj->cursed) {
+    } else if (undroppable(obj)) {
         set_bknown(obj, 1);
-        pline_The("stone%s won't leave your person.", plur(obj->quan));
+        pline("%s won't leave your person.", xname(obj));
         return 0;
     } else if (obj->otyp == AMULET_OF_YENDOR
                || obj->otyp == CANDELABRUM_OF_INVOCATION
@@ -2552,7 +2551,7 @@ register struct obj *obj;
     if ((res = lift_object(obj, current_container, &count, FALSE)) <= 0)
         return res;
 
-    if (obj->quan != count && obj->otyp != LOADSTONE)
+    if (obj->quan != count)
         obj = splitobj(obj, count);
 
     /* Remove the object from the list. */

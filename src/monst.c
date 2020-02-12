@@ -2986,7 +2986,7 @@ struct permonst _mons2[] = {
     /* Multi-headed, possessing the breath attacks of all the other dragons
      * (selected at random when attacking).
      */
-    MON("Chromatic Dragon", S_DRAGON, LVL(16, 12, 0, 30, -14),
+    MON("Tiamat", S_DRAGON, LVL(16, 12, 0, 30, -14),
         (G_NOGEN | G_UNIQ),
         A(ATTK(AT_BREA, AD_RBRE, 6, 6), ATTK(AT_MAGC, AD_SPEL, 0, 0),
           ATTK(AT_CLAW, AD_SAMU, 2, 8), ATTK(AT_BITE, AD_PHYS, 4, 8),
@@ -2997,8 +2997,8 @@ struct permonst _mons2[] = {
         MR_FIRE | MR_COLD | MR_SLEEP | MR_DISINT | MR_ELEC | MR_POISON
             | MR_STONE,
         M1_THICK_HIDE | M1_NOHANDS | M1_CARNIVORE | M1_SEE_INVIS | M1_POIS,
-        M2_NOPOLY | M2_HOSTILE | M2_FEMALE | M2_STALK | M2_STRONG | M2_NASTY
-            | M2_GREEDY | M2_JEWELS | M2_MAGIC,
+        M2_NOPOLY | M2_HOSTILE | M2_FEMALE | M2_STALK | M2_PNAME | M2_STRONG
+            | M2_NASTY | M2_GREEDY | M2_JEWELS | M2_MAGIC,
         M3_WANTSARTI | M3_WAITFORU | M3_INFRAVISIBLE, 23, HI_LORD),
 #if 0 /* OBSOLETE */
     MON("Goblin King", S_ORC,
@@ -3092,15 +3092,15 @@ struct permonst _mons2[] = {
             | M2_STRONG | M2_NASTY | M2_ROCKTHROW | M2_JEWELS | M2_COLLECT,
         M3_WANTSARTI | M3_WAITFORU | M3_INFRAVISION | M3_INFRAVISIBLE,
         19, HI_LORD),
-    MON("Dark One", S_HUMAN, LVL(15, 12, 0, 80, -10),
+    MON("Anaraxis the Black", S_HUMAN, LVL(15, 12, 0, 80, -10),
         (G_NOGEN | G_UNIQ | G_NOCORPSE),
         A(ATTK(AT_WEAP, AD_PHYS, 1, 6), ATTK(AT_WEAP, AD_PHYS, 1, 6),
           ATTK(AT_CLAW, AD_SAMU, 1, 4), ATTK(AT_MAGC, AD_SPEL, 0, 0), NO_ATTK,
           NO_ATTK),
         SIZ(WT_HUMAN, 400, MS_NEMESIS, MZ_HUMAN), MR_STONE, 0,
         M1_HUMANOID | M1_OMNIVORE,
-        M2_NOPOLY | M2_HUMAN | M2_STRONG | M2_HOSTILE | M2_STALK | M2_NASTY
-            | M2_COLLECT | M2_MAGIC,
+        M2_NOPOLY | M2_HUMAN | M2_STRONG | M2_PNAME | M2_HOSTILE | M2_STALK
+            | M2_NASTY | M2_COLLECT | M2_MAGIC,
         M3_WANTSARTI | M3_WAITFORU | M3_INFRAVISIBLE, 20, CLR_BLACK),
     /*
      * quest "guardians"

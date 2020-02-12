@@ -68,7 +68,8 @@ struct obj {
 #define OBJ_MIGRATING 5 /* object sent off to another level */
 #define OBJ_BURIED 6    /* object buried */
 #define OBJ_ONBILL 7    /* object on shk bill */
-#define NOBJ_STATES 8
+#define OBJ_INTRAP 8    /* object is trap ammo */
+#define NOBJ_STATES 9
     xchar timed; /* # of fuses (timers) attached to this obj */
 
     Bitfield(cursed, 1);
@@ -338,9 +339,8 @@ struct obj {
 
 /* special stones */
 #define is_graystone(obj)                                 \
-    ((obj)->otyp == LUCKSTONE || (obj)->otyp == LOADSTONE \
-     || (obj)->otyp == FLINT || (obj)->otyp == TOUCHSTONE \
-     || (obj)->otyp == THIEFSTONE)
+    ((obj)->otyp == LUCKSTONE || (obj)->otyp == FLINT     \
+     || (obj)->otyp == TOUCHSTONE || (obj)->otyp == THIEFSTONE)
 
 /* worthless glass -- assumes all GLASS * are worthless glass */
 #define is_worthless_glass(obj) \
@@ -356,6 +356,7 @@ struct obj {
      || ((o)->oartifact == ART_EYES_OF_THE_OVERWORLD                    \
          && !undiscovered_artifact(ART_EYES_OF_THE_OVERWORLD)))
 #define pair_of(o) ((o)->otyp == LENSES || is_gloves(o) || is_boots(o))
+#define undroppable(o) ( FALSE )
 
 /* 'PRIZE' values override obj->corpsenm so prizes mustn't be object types
    which use that field for monster type (or other overloaded purpose) */

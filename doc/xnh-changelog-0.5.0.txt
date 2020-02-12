@@ -180,6 +180,43 @@ Intrinsic invisibility and see invisible are no longer obtainable.
   The wand grants 50+d50 turns per zap, or (charges)d250 turns if broken.
 Elven boots will always be leather.
 Orcish gear will be either iron, wood, bone, plastic, or glass.
+Gazing into a crystal ball is now an occupation that doesn't leave you helpless.
+  It takes 6-10 turns to use one, rather than 1-10.
+Crystal balls now have many more charges and weigh only 100.
+A blessed or cursed crystal ball counts as +5 or -5 to your Int when determining
+  whether you successfully use it.
+Non-cursed crystal balls will never explode.
+Uncursed charging a crystal ball, horn of plenty, bag of tricks or can of grease
+  will add d5+5 charges instead of just d5.
+Dart, arrow, and rock traps produce ammunition from a stack, so it will all have
+  the same material, enchantment, etc. The number of darts/arrows/rocks from a
+  given trap is constant, regardless of whether produced by firing or by
+  untrapping.
+Dart and arrow traps generate with 15+1d20 ammo, rock traps with 5+1d10.
+Poison darts from traps deal Con damage more often (60% of the time), and higher
+  HP damage when they don't. However, dart traps won't generate with poison
+  darts until depth 7.
+Any iron items that elvish players would start with are copper instead.
+Remove the rogue tribute level.
+Add Frontier Town (what Orcish Town was before being ransacked) as an eighth
+  variant of Minetown.
+Monsters that wear helms of telepathy become telepathic.
+Monsters can wear amulets of ESP, becoming telepathic.
+Celibate conduct (broken when you lie with an incubus/succubus)
+The Chromatic Dragon is now named Tiamat.
+The Caveman quest narration and dialogue have been changed to use caveman
+  speech patterns.
+The Dark One is now named Anaraxis the Black.
+Loadstones are removed.
+Conflictless conduct (broken when you generate conflict).
+Add homosexual and bisexual orientations. These can be specified by
+  OPTIONS=orientation:[orientation]. It also accepts "straight", "gay" and "bi".
+  The only thing your orientation controls is what sort of foocubi you can
+  interact with.
+If you are bisexual, foocubi roll twice after each encounter to see if they get
+  a severe headache.
+The foocubus gained from kicking a sink will always be compatible with your
+  orientation.
 
 
 It contains the following non-gameplay interface changes:
@@ -236,6 +273,10 @@ YAFM for hallucinating and doing nothing in particular.
 Add weapon skills and intended launchers to object lookup.
 Display skill caps and the percent towards the next skill in #enhance.
 When worn or wielded items become uncursed, you get a message.
+Crystal balls prompt you again if they don't recognize the character you want to
+  look for. You no longer get vague statements about the location of special
+  levels.
+Crystal balls give unique messages if they are uncharged or cancelled.
 
 
 It contains the following non-gameplay architectural changes:
@@ -265,3 +306,13 @@ Move angelic and demonic maledictions out of quest.txt into wizard.c string
   constants, and scrap using com_pager for them.
 Objects will only be given a randomized object material if called with init=TRUE
   in mksobj.
+Add a struct crystalball_info to struct context, and the appropriate bits into
+  the save and restore code to save and restore it.
+Add an ammo field to struct trap, which represents the object contained in the
+  trap (darts, beartrap, etc). Interactions with the trap draw on this rather
+  than on generic objects.
+Rename cnv_trap_obj to remove_trap_ammo. It now extracts and places the ammo
+  from a trap.
+Split monster intrinsics off the mextrinsics field, preventing monsters' worn
+  armor from clobbering their intrinsics from eaten corpses.
+Generalize loadstone undroppability behavior to work on arbitrary objects.

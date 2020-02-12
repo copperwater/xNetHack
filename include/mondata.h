@@ -10,30 +10,27 @@
 
 #define pm_resistance(ptr, typ) (((ptr)->mresists & (typ)) != 0)
 
-#define resists_fire(mon) \
-    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_FIRE) != 0)
-#define resists_cold(mon) \
-    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_COLD) != 0)
-#define resists_sleep(mon) \
-    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_SLEEP) != 0)
-#define resists_disint(mon) \
-    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_DISINT) != 0)
-#define resists_elec(mon) \
-    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_ELEC) != 0)
-#define resists_poison(mon) \
-    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_POISON) != 0)
-#define resists_acid(mon) \
-    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_ACID) != 0)
-#define resists_ston(mon) \
-    ((((mon)->data->mresists | (mon)->mextrinsics) & MR_STONE) != 0)
+/* mresists from any source - innate, intrinsic, or extrinsic */
+#define mon_resistancebits(mon) \
+    ((mon)->data->mresists | (mon)->mextrinsics | (mon)->mintrinsics)
+#define resists_fire(mon) ((mon_resistancebits(mon) & MR_FIRE) != 0)
+#define resists_cold(mon) ((mon_resistancebits(mon) & MR_COLD) != 0)
+#define resists_sleep(mon) ((mon_resistancebits(mon) & MR_SLEEP) != 0)
+#define resists_disint(mon) ((mon_resistancebits(mon) & MR_DISINT) != 0)
+#define resists_elec(mon) ((mon_resistancebits(mon) & MR_ELEC) != 0)
+#define resists_poison(mon) ((mon_resistancebits(mon) & MR_POISON) != 0)
+#define resists_acid(mon) ((mon_resistancebits(mon) & MR_ACID) != 0)
+#define resists_ston(mon) ((mon_resistancebits(mon) & MR_STONE) != 0)
 
+/* for MR2 stuff, the mresists part of mon_resistancebits is 0 because it's a
+ * uchar */
 #define has_telepathy(mon) \
-    (telepathic((mon)->data) || ((mon)->mextrinsics & MR2_TELEPATHY) != 0)
+    (telepathic((mon)->data) || (mon_resistancebits(mon) & MR2_TELEPATHY) != 0)
 
 /* as of 3.2.0:  gray dragons, Angels, Oracle, Yeenoghu */
 #define resists_mgc(ptr) \
     (dmgtype(ptr, AD_MAGM) || ptr == &mons[PM_BABY_GRAY_DRAGON] \
-     || dmgtype(ptr, AD_RBRE)) /* Chromatic Dragon */
+     || dmgtype(ptr, AD_RBRE)) /* Tiamat */
 
 #define resists_drain(ptr) \
     (is_undead(ptr) || is_demon(ptr) || is_were(ptr) \

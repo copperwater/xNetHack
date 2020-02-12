@@ -350,8 +350,7 @@ char *objnambuf;
     if (monkey_business) {
         boolean ostuck;
 
-        /* is the player prevented from voluntarily giving up this item?
-           (ignores loadstones; the !can_carry() check will catch those) */
+        /* is the player prevented from voluntarily giving up this item? */
         if (otmp == uball)
             ostuck = TRUE; /* effectively worn; curse is implicit */
         else if (otmp == uquiver || (otmp == uswapwep && !u.twoweap))
@@ -361,7 +360,8 @@ char *objnambuf;
                       /* nymphs can steal rings from under
                          cursed weapon but animals can't */
                       || (otmp == uright && welded(uwep))
-                      || (otmp == uleft && welded(uwep) && bimanual(uwep)));
+                      || (otmp == uleft && welded(uwep) && bimanual(uwep))
+                      || undroppable(otmp));
 
         if (ostuck || can_carry(mtmp, otmp) == 0) {
             static const char *const how[] = { "steal", "snatch", "grab",

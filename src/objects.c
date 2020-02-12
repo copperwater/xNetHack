@@ -660,7 +660,7 @@ TOOL("magic lamp",        "lamp", 0, 0, 1, 0, 15, 20,500, COPPER, CLR_YELLOW),
 /* other tools */
 TOOL("expensive camera",    None, 1, 0, 0, 1, 15, 12,200, PLASTIC, CLR_BLACK),
 TOOL("mirror",   "looking glass", 0, 0, 0, 0, 45, 13, 10, GLASS, HI_SILVER),
-TOOL("crystal ball", "glass orb", 0, 0, 1, 1, 15,150, 60, GLASS, HI_GLASS),
+TOOL("crystal ball", "glass orb", 0, 0, 1, 1, 15,100, 60, GLASS, HI_GLASS),
 TOOL("lenses",              None, 1, 0, 0, 0,  5,  3, 80, GLASS, HI_GLASS),
 TOOL("blindfold",           None, 1, 0, 0, 0, 50,  2, 20, CLOTH, CLR_BLACK),
 TOOL("towel",               None, 1, 0, 0, 0, 50,  2, 50, CLOTH, CLR_MAGENTA),
@@ -1104,7 +1104,6 @@ GEM("worthless piece of violet glass", "violet",
                 HARDGEM(mohs), 0, -P_SLING, glass),                     \
            0, GEM_CLASS, prob, 0, wt, gval, sdam, ldam, 0, 0, nutr, color)
 ROCK("luckstone", "gray",  0,  10,  10, 60, 3, 3, 1, 10, 7, 1, 0, MINERAL, CLR_GRAY),
-ROCK("loadstone", "gray",  0,  10, 500,  1, 3, 3, 1, 10, 6, 1, 0, MINERAL, CLR_GRAY),
 ROCK("touchstone", "gray", 0,   8,  10, 45, 3, 3, 0, 10, 6, 1, 0, MINERAL, CLR_GRAY),
 ROCK("thiefstone", "gray", 0,  10,  10, 60, 3, 3, 1, 10, 6, 0, 1, MINERAL, CLR_GRAY),
 ROCK("flint", "gray",      0,  10,   1,  1, 6, 6, 0, 10, 7, 1, 0, MINERAL, CLR_GRAY),

@@ -2870,7 +2870,6 @@ static const struct alt_spellings {
        " stone" will get stripped off, preventing a wishymatch; that actually
        lets "flint stone" be a match, so we also accept bogus "flintstone" */
     { "luck stone", LUCKSTONE },
-    { "load stone", LOADSTONE },
     { "touch stone", TOUCHSTONE },
     { "thief stone", THIEFSTONE },
     { "flintstone", FLINT },

@@ -1954,6 +1954,11 @@ int final;
         enlght_out(buf);
     }
 
+    /* sexual orientation */
+    buf[0] = '\0';
+    Sprintf(buf, "%s", orientations[flags.orientation].technical);
+    you_are(buf, "");
+
     /* As of 3.6.2: dungeon level, so that ^X really has all status info as
        claimed by the comment below; this reveals more information than
        the basic status display, but that's one of the purposes of ^X;
@@ -3389,6 +3394,14 @@ int final;
         Sprintf(buf, "scared enemies with impunity %ld time%s", u.uconduct.scares,
                 plur(u.uconduct.scares));
         you_have_X(buf);
+    }
+
+    if (!u.uconduct.uncelibate) {
+        you_have_X("been celibate");
+    }
+
+    if (!u.uconduct.conflicting) {
+        you_have_never("generated conflict");
     }
 
     /* Pop up the window and wait for a key */

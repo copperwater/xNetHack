@@ -326,7 +326,7 @@ struct obj *obj;
 boolean on, silently;
 {
     int unseen;
-    uchar mask;
+    unsigned short mask;
     struct obj *otmp;
     int which = (int) objects[obj->otyp].oc_oprop;
 
@@ -354,7 +354,6 @@ boolean on, silently;
         /* properties which have no effect for monsters */
         case CLAIRVOYANT:
         case STEALTH:
-        case TELEPAT:
             break;
         /* properties which should have an effect but aren't implemented */
         case LEVITATION:
@@ -366,11 +365,14 @@ boolean on, silently;
         case JUMPING:
         case PROTECTION:
             break;
+        case TELEPAT:
+            mon->mextrinsics |= MR2_TELEPATHY;
+            break;
         default:
             if (which <= 8) { /* 1 thru 8 correspond to MR_xxx mask values */
                 /* FIRE,COLD,SLEEP,DISINT,SHOCK,POISON,ACID,STONE */
-                mask = (uchar) (1 << (which - 1));
-                mon->mextrinsics |= (unsigned short) mask;
+                mask = 1 << (which - 1);
+                mon->mextrinsics |= mask;
             }
             break;
         }
@@ -387,6 +389,9 @@ boolean on, silently;
             in_mklev = save_in_mklev;
             break;
         }
+        case TELEPAT:
+            mask = MR2_TELEPATHY;
+            /* FALLTHRU */
         case FIRE_RES:
         case COLD_RES:
         case SLEEP_RES:
@@ -395,7 +400,9 @@ boolean on, silently;
         case POISON_RES:
         case ACID_RES:
         case STONE_RES:
-            mask = (uchar) (1 << (which - 1));
+            if (which <= 8) {
+                mask = 1 << (which - 1);
+            }
             /* update monster's extrinsics (for worn objects only;
                'obj' itself might still be worn or already unworn) */
             for (otmp = mon->minvent; otmp; otmp = otmp->nobj)
@@ -404,7 +411,7 @@ boolean on, silently;
                     && (int) objects[otmp->otyp].oc_oprop == which)
                     break;
             if (!otmp)
-                mon->mextrinsics &= ~((unsigned short) mask);
+                mon->mextrinsics &= ~mask;
             break;
         default:
             break;
@@ -536,7 +543,8 @@ boolean racialexception;
         case W_AMUL:
             if (obj->oclass != AMULET_CLASS
                 || (obj->otyp != AMULET_OF_LIFE_SAVING
-                    && obj->otyp != AMULET_OF_REFLECTION))
+                    && obj->otyp != AMULET_OF_REFLECTION
+                    && obj->otyp != AMULET_OF_ESP))
                 continue;
             best = obj;
             goto outer_break; /* no such thing as better amulets */

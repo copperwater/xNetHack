@@ -4578,8 +4578,7 @@ boolean altusage; /* some items have an "alternate" use with different cost */
         /* altusage: emptying of all the contents at once */
         if (!altusage)
             tmp /= 5L;
-    } else if (otmp->otyp == CRYSTAL_BALL               /* 1 - 5 */
-               || otmp->otyp == OIL_LAMP                /* 1 - 10 */
+    } else if (otmp->otyp == OIL_LAMP                   /* 1 - 10 */
                || otmp->otyp == LANTERN
                || (otmp->otyp >= MAGIC_FLUTE
                    && otmp->otyp <= DRUM_OF_EARTHQUAKE) /* 5 - 9 */
@@ -4589,6 +4588,7 @@ boolean altusage; /* some items have an "alternate" use with different cost */
     } else if (otmp->oclass == SPBOOK_CLASS) {
         tmp -= tmp / 5L;
     } else if (otmp->otyp == CAN_OF_GREASE || otmp->otyp == TINNING_KIT
+               || otmp->otyp == CRYSTAL_BALL
                || otmp->otyp == EXPENSIVE_CAMERA) {
         tmp /= 10L;
     } else if (otmp->otyp == POT_OIL) {

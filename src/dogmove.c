@@ -407,11 +407,11 @@ struct permonst* ptr;
     }
 
     /* Don't give message if it already had this intrinsic */
-    if (mtmp->mextrinsics & intrinsic)
+    if (mtmp->mintrinsics & intrinsic)
         return;
 
     if (intrinsic)
-        mtmp->mextrinsics |= intrinsic;
+        mtmp->mintrinsics |= intrinsic;
 
     if (vis && msg)
         pline(msg, Monnam(mtmp));

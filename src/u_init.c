@@ -567,7 +567,7 @@ register int obj;
 }
 
 /* Know ordinary (non-magical) objects of a certain class,
- * like all gems except the loadstone and luckstone.
+ * like all gems except the luckstone.
  */
 STATIC_OVL void
 knows_class(sym)
@@ -987,6 +987,12 @@ register struct trobj *trop;
             obj = mksobj(otyp, TRUE, FALSE);
             /* Don't allow materials to be start scummed for */
             set_material(obj, objects[otyp].oc_material);
+            /* Don't give elves objects made of iron (e.g. Priest's mace) */
+            if (Race_if(PM_ELF) && obj->material == IRON
+                && (obj->oclass == WEAPON_CLASS || obj->oclass == ARMOR_CLASS
+                    || obj->oclass == TOOL_CLASS)) {
+                obj->material = COPPER;
+            }
             /* Don't allow weapons to roll high enchantment and get an oname
              * when they'll then have their enchantment set after this */
             free_oname(obj);

@@ -98,6 +98,8 @@ struct u_conduct {     /* number of times... */
     long artitouch;    /* touched an artifact in any way */
     long pets;         /* obtained a pet */
     long scares;       /* scared a monster by standing in a certain spot */
+    long uncelibate;   /* interacted with a foocubus */
+    long conflicting;  /* generated conflict */
     /* genocides already listed at end of game */
 };
 
@@ -239,10 +241,17 @@ struct Gender {
     const char *filecode; /* file code */
     short allow;          /* equivalent ROLE_ mask */
 };
+struct Orientation {
+    const char* adj;       /* gay/straight/bi */
+    const char* technical; /* homosexual/heterosexual/bisexual */
+    xchar mapping;         /* equivalent constant, e.g. ORIENT_STRAIGHT */
+};
 #define ROLE_GENDERS 2    /* number of permitted player genders
                              increment to 3 if you allow neuter roles */
+#define ROLE_ORIENTATIONS 3 /* number of defined player orientations */
 
 extern const struct Gender genders[]; /* table of available genders */
+extern const struct Orientation orientations[]; /* table of available genders */
 /* pronouns for the hero */
 #define uhe()      (genders[flags.female ? 1 : 0].he)
 #define uhim()     (genders[flags.female ? 1 : 0].him)

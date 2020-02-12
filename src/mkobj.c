@@ -353,7 +353,7 @@ struct obj *box;
                 otmp->owt = weight(otmp);
             } else
                 while (otmp->otyp == ROCK) {
-                    otmp->otyp = rnd_class(DILITHIUM_CRYSTAL, LOADSTONE);
+                    otmp->otyp = rnd_class(DILITHIUM_CRYSTAL, LUCKSTONE);
                     if (otmp->quan > 2L)
                         otmp->quan = 1L;
                     otmp->owt = weight(otmp);
@@ -917,10 +917,7 @@ boolean artif;
             }
             break;
         case GEM_CLASS:
-            otmp->corpsenm = 0; /* LOADSTONE hack */
-            if (otmp->otyp == LOADSTONE)
-                curse(otmp);
-            else if (otmp->otyp == ROCK)
+            if (otmp->otyp == ROCK)
                 otmp->quan = (long) rn1(6, 6);
             else if (otmp->otyp != LUCKSTONE && otmp->otyp != THIEFSTONE
                      && !rn2(6))
@@ -974,7 +971,7 @@ boolean artif;
                 blessorcurse(otmp, 10);
                 break;
             case CRYSTAL_BALL:
-                otmp->spe = rnd(5);
+                otmp->spe = rnd(25);
                 blessorcurse(otmp, 2);
                 break;
             case HORN_OF_PLENTY:
@@ -2182,6 +2179,13 @@ struct obj *obj;
         break;
     case OBJ_ONBILL:
         extract_nobj(obj, &billobjs);
+        break;
+    case OBJ_INTRAP:
+        /* The only place that we should be trying to extract an object inside a
+         * trap is from within the trap code, where we have a pointer to the
+         * trap that contains the object. We should never be trying to extract
+         * an object inside a trap without that context. */
+        panic("trying to extract object from trap with no trap info");
         break;
     default:
         panic("obj_extract_self");

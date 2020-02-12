@@ -2661,6 +2661,7 @@ set_trap()
     struct obj *otmp = trapinfo.tobj;
     struct trap *ttmp;
     int ttyp;
+    boolean obj_cursed = otmp->cursed;
 
     if (!otmp || !carried(otmp) || u.ux != trapinfo.tx
         || u.uy != trapinfo.ty) {
@@ -2677,13 +2678,21 @@ set_trap()
     if (ttmp) {
         ttmp->madeby_u = 1;
         feeltrap(ttmp);
+
+        /* Our object becomes the new ammo of the trap. */
+        if (otmp->quan > 1) {
+            otmp = splitobj(otmp, 1);
+        }
+        freeinv(otmp);
+        set_trap_ammo(ttmp, otmp);
+
         if (*in_rooms(u.ux, u.uy, SHOPBASE)) {
             add_damage(u.ux, u.uy, 0L); /* schedule removal */
         }
         if (!trapinfo.force_bungle)
             You("finish arming %s.",
                 the(defsyms[trap_to_defsym(what_trap(ttyp, rn2))].explanation));
-        if (((otmp->cursed || Fumbling) && (rnl(10) > 5))
+        if (((obj_cursed || Fumbling) && (rnl(10) > 5))
             || trapinfo.force_bungle)
             dotrap(ttmp,
                    (unsigned) (trapinfo.force_bungle ? FORCEBUNGLE : 0));
@@ -2691,7 +2700,6 @@ set_trap()
         /* this shouldn't happen */
         Your("trap setting attempt fails.");
     }
-    useup(otmp);
     reset_trapset();
     return 0;
 }
@@ -3881,7 +3889,6 @@ doapply()
         break;
     case FLINT:
     case LUCKSTONE:
-    case LOADSTONE:
     case TOUCHSTONE:
     case THIEFSTONE:
         use_stone(obj);
