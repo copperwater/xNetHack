@@ -1191,8 +1191,7 @@ version_string(outbuf, delim)
 char *outbuf;
 const char *delim;
 {
-    Sprintf(outbuf, "%d%s%d%s%d", VERSION_MAJOR, delim, VERSION_MINOR, delim,
-            PATCHLEVEL);
+    Sprintf(outbuf, "%d%s%d", VERSION_MAJOR, delim, VERSION_MINOR);
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     Sprintf(eos(outbuf), "-%d", EDITLEVEL);
 #endif
