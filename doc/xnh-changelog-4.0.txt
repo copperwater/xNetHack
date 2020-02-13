@@ -1,7 +1,7 @@
-xNetHack 0.4.0 Changelog
+xNetHack 4.0 Changelog
 
 This is a minor version of xNetHack. It is a fork off of the vanilla NetHack
-3.6.1 release, and is also based directly on xNetHack 0.3.0. It will continue
+3.6.1 release, and is also based directly on xNetHack 3.0. It will continue
 to contain all of the latest commits pushed by the vanilla devteam on their
 3.6.2 branch; see doc/fixes36.2 for these changes.
 
@@ -12,7 +12,7 @@ information, this changelog and others in this folder are more up-to-date than
 the wiki page, and the commit messages are more up-to-date than this changelog.
 
 On top of any changes made by the NetHack devteam on 3.6.1, and any changes
-made in previous xNetHack versions, xNetHack 0.4.0 contains the following
+made in previous xNetHack versions, xNetHack 4.0 contains the following
 gameplay changes:
 
 Remove the scroll of amnesia. In its place, create the scroll of water, which
@@ -95,7 +95,7 @@ The chance of a god gift on a sacrifice is now 1/(10 + 2 * gifts^2).
   not count against your chances.
 Sokoban luck penalties for jumping, hurtling, and dragging yourself via thrown
   ball are removed, since none of them can actually be cheated with.
-The spiders-spinning-webs feature introduced in 0.1.0 ascended to vanilla, and
+The spiders-spinning-webs feature introduced in 1.0 ascended to vanilla, and
   has been backported from there so that xNetHack's version now behaves the
   same as vanilla.
   Additionally, shopkeepers will also clean up webs spun in their shops.
@@ -145,7 +145,7 @@ Chameleons will no longer turn into too-high-difficulty forms. This goes for
   the time even out of difficulty, and doppelgangers will still pick nasties or
   player monsters if they are out of difficulty. Chameleons' special case for
   animals, however, no longer allows it to select out-of-difficulty animals.
-Revert 0.3.1 change that did extra fuzzing on monster group sizes. Monster group
+Revert 3.1 change that did extra fuzzing on monster group sizes. Monster group
   sizes now are the same as vanilla again.
 Corpses of F monsters will never have mold grow on them.
 Blessed wands will wrest 1/7 of the time, and uncursed 1/23 of the time, instead

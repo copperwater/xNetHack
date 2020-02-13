@@ -1,8 +1,8 @@
-xNetHack 0.1.1 Changelog
+xNetHack 1.1 Changelog
 
 This is the first minor update version of xNetHack. It remains a fork off of
 the vanilla NetHack 3.6.1 development version, and is also based directly on
-xNetHack 0.1.0. It will continue to contain all of the latest commits
+xNetHack 1.0. It will continue to contain all of the latest commits
 pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
 
 The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
@@ -12,7 +12,7 @@ information, this changelog and others in this folder are more up-to-date than
 the wiki page, and the commit messages are more up-to-date than this changelog.
 
 On top of any changes made by the NetHack devteam on 3.6.1, and any changes
-made in xNetHack 0.1.0, xNetHack 0.1.1 contains the following gameplay changes:
+made in xNetHack 1.0, xNetHack 1.1 contains the following gameplay changes:
 
 Change the level generation of maze levels (mostly Gehennom, but also applies to mazes below Medusa) rather drastically. Widemazes and corridor mazes are currently disabled. Instead, several rooms are generated and placed before the maze generates, and aligned with it. These rooms can be walless, leaving large swaths of the level open, or they can be new Gehennom-themed special rooms. The new special rooms include:
 * Demon dens, containing demons and simple piles of loot.

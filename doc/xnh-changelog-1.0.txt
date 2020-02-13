@@ -1,4 +1,4 @@
-xNetHack 0.1.0 Changelog
+xNetHack 1.0 Changelog
 
 This is the first version of xNetHack, forked off the NetHack 3.6.1
 development version. It will continue to contain most or all of the latest
@@ -10,7 +10,7 @@ friendly to players. However, it might be out of date; in case of conflicting
 information, this changelog is more up-to-date than the wiki page, and the
 commit messages are more up-to-date than this changelog.
 
-On top of any changes made by the NetHack devteam on 3.6.1, xNetHack 0.1.0
+On top of any changes made by the NetHack devteam on 3.6.1, xNetHack 1.0
 contains the following gameplay changes:
 
 Add "artifactless" conduct: never touch an artifact (14th bit of xlogfile conduct)
