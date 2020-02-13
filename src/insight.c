@@ -45,7 +45,9 @@ static const char have_been[] = "have been ", have_never[] = "have never ",
 
 /* for livelogging: */
 /* ordered per 'enum achievements' in you.h */
+/* take care to keep them in sync! */
 static const char *achieve_str [] = { 
+    "", /* actual achievements are numbered from 1 */
     "acquired the Bell of Opening",
     "entered Gehennom",
     "acquired the Candelabrum of Invocation",
