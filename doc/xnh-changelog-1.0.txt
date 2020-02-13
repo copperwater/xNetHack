@@ -1,8 +1,7 @@
 xNetHack 1.0 Changelog
 
 This is the first version of xNetHack, forked off the NetHack 3.6.1
-development version. It will continue to contain most or all of the latest
-commits pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
+development version. See doc/fixes36.1 for the devteam's changes.
 
 The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
 attempts to describe these changes in a way that's better formatted and more

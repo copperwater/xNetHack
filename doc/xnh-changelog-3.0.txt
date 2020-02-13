@@ -1,9 +1,8 @@
 xNetHack 3.0 Changelog
 
-This is the first minor update version of xNetHack. It is a fork off of
+This is a major update version of xNetHack. It is a fork off of
 the vanilla NetHack 3.6.1 release, and is also based directly on
-xNetHack 2.0. It will continue to contain all of the latest commits
-pushed by the vanilla devteam; see doc/fixes36.1 for these changes.
+xNetHack 2.0. See doc/fixes36.1 for the devteam's changes.
 
 The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
 attempts to describe these changes in a way that's better formatted and more
