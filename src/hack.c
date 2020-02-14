@@ -392,18 +392,22 @@ xchar x, y;
     struct rm *lev = &levl[x][y];
     struct obj *boulder = sobj_at(BOULDER, x, y);
     const char *digtxt = (char *) 0, *dmgtxt = (char *) 0;
+    boolean nondig = (lev->wall_info & W_NONDIGGABLE);
+    boolean u_cant_chew_metal = !metallivorous(youmonst.data);
 
     if (context.digging.down) /* not continuing previous dig (w/ pick-axe) */
         (void) memset((genericptr_t) &context.digging, 0,
                       sizeof (struct dig_info));
 
-    /* checks for terrain you can't chew through */
-    if ((lev->wall_info & W_NONDIGGABLE)
-        || !IS_ROCK(lev->typ) /* may_dig() would be redundant */
-        || !(IS_DOOR(lev->typ) && door_is_iron(lev)
-             && !metallivorous(youmonst.data))
-        || !(lev->typ == IRONBARS)
-        || !(lev->typ == TREE)) {
+    /* checks for terrain you can't chew through
+     * note: trees are covered in IS_ROCK, but that's really non-obvious so it's
+     * good to make it explicit */
+    if (!boulder
+        && ((IS_ROCK(lev->typ) && nondig)
+            || (lev->typ == TREE && nondig)
+            || (IS_DOOR(lev->typ) && nondig)
+            || (IS_DOOR(lev->typ) && door_is_iron(lev) && u_cant_chew_metal)
+            || (lev->typ == IRONBARS && (nondig || u_cant_chew_metal)))) {
         You("hurt your teeth on the %s.",
             (lev->typ == IRONBARS)
                 ? "bars"
