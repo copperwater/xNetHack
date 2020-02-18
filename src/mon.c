@@ -1941,13 +1941,6 @@ struct monst *mtmp;
     }
 }
 
-static const char *const killdeath[] = {
-    "put Death down for a little nap",
-    "helped Death catch some z's",
-    "had Death have a nanna's",
-    "sent Death up the wooden hill to Bedfordshire"
-};
-
 void
 mondead(mtmp)
 register struct monst *mtmp;
@@ -2103,9 +2096,27 @@ register struct monst *mtmp;
     if (mtmp->data == &mons[PM_MEDUSA])
         record_achievement(ACH_MEDU);
     else if (mtmp->data == &mons[PM_DEATH]) {
-        livelog_printf(LL_UMONST, "%s", killdeath[rn2(SIZE(killdeath))]);
+        switch (g.mvitals[tmp].died) {
+            case 1:
+                livelog_printf(LL_UMONST, "put %s down for a little nap",
+                               noit_mon_nam(mtmp));
+                break;
+            case 5:
+            case 10:
+            case 50:
+            case 100:
+            case 150:
+            case 200:
+            case 250:
+                livelog_printf(LL_UMONST, "put %s down for a little nap (%d times)",
+                               noit_mon_nam(mtmp), g.mvitals[tmp].died);
+                break;
+            default:
+                /* don't spam the log every time */
+                break;
+        }
     } else if (unique_corpstat(mtmp->data)) {
-        switch(g.mvitals[tmp].died) {
+        switch (g.mvitals[tmp].died) {
             case 1:
                 if (mtmp->data != &mons[PM_MEDUSA])
                     livelog_printf(LL_UMONST, "%s %s",
