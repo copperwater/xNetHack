@@ -60,9 +60,18 @@ static const char *achieve_str [] = {
     "acquired the Mines' End luckstone",
     "completed Sokoban",
     "killed Medusa",
-     /* Below are not used */
+     /* these two are not logged */
     "hero was always blond, no, blind",
     "hero never wore armor",
+     /* */
+    "entered the Gnomish Mines",
+    "reached Mine Town",
+    "entered a shop",
+    "entered a temple",
+    "consulted the Oracle",
+    "read a Discworld novel",
+    "entered Sokoban",
+    "entered the Bigroom",
     "",
 };
 
