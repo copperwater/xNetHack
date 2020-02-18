@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.94 $ $NHDT-Date: 1581210469 2020/02/09 01:07:49 $
+$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.102 $ $NHDT-Date: 1581810078 2020/02/15 23:41:18 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -55,6 +55,8 @@ allow defining #wizgenesis quantity in the prompt
 digging through iron bars from an adjacent pit made a pit on top of the bars
 give feedback if controlled level teleport attempt fails because hero is
 	already on the bottom level and player tries to go even deeper
+unseen pet that drowned didn't give "you have a sad feeling" message
+prevent ravens from blinding other ravens: /corvus oculum corvi non eruit/
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -93,6 +95,8 @@ prevent "you materialize on a different level" after "a mysterious force
 set g.context.botl for glove and wielding actions that could start or end
 	bare-handedness in support of condtests[bl_bareh]
 reinstate ranked ordering of the status condition fields
+grammar for messages about a monster removing items from a container was bad
+some new status conditions didn't always update when they should
 
 
 Platform- and/or Interface-Specific Fixes
@@ -160,6 +164,8 @@ added several new status conditions all of which are opt-in except
 
 Platform- and/or Interface-Specific New Features
 ------------------------------------------------
+teach unix/Makefile.doc how to make Guidebook.dat, an unpaginated copy of
+	Guidebook.txt
 
 
 NetHack Community Patches (or Variation) Included

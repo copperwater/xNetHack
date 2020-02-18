@@ -1,4 +1,4 @@
-/* NetHack 3.6	hack.c	$NHDT-Date: 1579261288 2020/01/17 11:41:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.245 $ */
+/* NetHack 3.6	hack.c	$NHDT-Date: 1581886860 2020/02/16 21:01:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.248 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1548,13 +1548,14 @@ domove_core()
         if (u.ustuck && (x != u.ustuck->mx || y != u.ustuck->my)) {
             if (distu(u.ustuck->mx, u.ustuck->my) > 2) {
                 /* perhaps it fled (or was teleported or ... ) */
-                u.ustuck = 0;
+                set_ustuck((struct monst *) 0);
             } else if (sticks(g.youmonst.data)) {
                 /* When polymorphed into a sticking monster,
                  * u.ustuck means it's stuck to you, not you to it.
                  */
-                You("release %s.", mon_nam(u.ustuck));
-                u.ustuck = 0;
+                mtmp = u.ustuck;
+                set_ustuck((struct monst *) 0);
+                You("release %s.", mon_nam(mtmp));
             } else {
                 /* If holder is asleep or paralyzed:
                  *      37.5% chance of getting away,
@@ -1570,8 +1571,9 @@ domove_core()
                 case 1:
                 case 2:
  pull_free:
-                    You("pull free from %s.", mon_nam(u.ustuck));
-                    u.ustuck = 0;
+                    mtmp = u.ustuck;
+                    set_ustuck((struct monst *) 0);
+                    You("pull free from %s.", mon_nam(mtmp));
                     break;
                 case 3:
                     if (!u.ustuck->mcanmove) {
@@ -2210,7 +2212,7 @@ boolean pick;
     check_special_room(FALSE);
     if (IS_SINK(levl[u.ux][u.uy].typ) && Levitation)
         dosinkfall();
-    if (!g.in_steed_dismounting) { /* if dismounting, we'll check again later */
+    if (!g.in_steed_dismounting) { /* if dismounting, check again later */
         boolean pit;
 
         /* if levitation is due to time out at the end of this
@@ -2474,7 +2476,7 @@ register boolean newlev;
 /* possibly deliver a one-time room entry message */
 void
 check_special_room(newlev)
-register boolean newlev;
+boolean newlev;
 {
     register struct monst *mtmp;
     char *ptr;
@@ -2486,6 +2488,12 @@ register boolean newlev;
 
     if (!*u.uentered && !*u.ushops_entered) /* implied by newlev */
         return; /* no entrance messages necessary */
+
+    if (!g.context.achieveo.minetn_reached
+        && In_mines(&u.uz) && in_town(u.ux, u.uy)) {
+        record_achievement(ACH_TOWN);
+        g.context.achieveo.minetn_reached = TRUE;
+    }
 
     /* Did we just enter a shop? */
     if (*u.ushops_entered)
@@ -2516,6 +2524,7 @@ register boolean newlev;
         case MORGUE:
             if (midnight()) {
                 const char *run = locomotion(g.youmonst.data, "Run");
+
                 pline("%s away!  %s away!", run, run);
             } else
                 You("have an uncanny feeling...");
@@ -2540,6 +2549,7 @@ register boolean newlev;
             break;
         case DELPHI: {
             struct monst *oracle = monstinroom(&mons[PM_ORACLE], roomno);
+
             if (oracle) {
                 if (!oracle->mpeaceful)
                     verbalize("You're in Delphi, %s.", g.plname);
@@ -2598,7 +2608,6 @@ register boolean newlev;
                 }
         }
     }
-
     return;
 }
 
@@ -2930,10 +2939,11 @@ monster_nearby()
 
 void
 nomul(nval)
-register int nval;
+int nval;
 {
     if (g.multi < nval)
         return;              /* This is a bug fix by ab@unido */
+    g.context.botl |= (g.multi >= 0);
     u.uinvulnerable = FALSE; /* Kludge to avoid ctrl-C bug -dlc */
     u.usleep = 0;
     g.multi = nval;
@@ -2947,6 +2957,7 @@ void
 unmul(msg_override)
 const char *msg_override;
 {
+    g.context.botl = 1;
     g.multi = 0; /* caller will usually have done this already */
     if (msg_override)
         g.nomovemsg = msg_override;

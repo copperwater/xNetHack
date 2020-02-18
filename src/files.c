@@ -3534,6 +3534,7 @@ int which_set;
     g.symset[which_set].explicitly = TRUE;
     g.chosen_symset_start = g.chosen_symset_end = FALSE;
     g.symset_which_set = which_set;
+    g.symset_count = 0;
 
     config_error_init(TRUE, "symbols", FALSE);
 
@@ -3643,6 +3644,7 @@ int which_set;
                     g.symset_list = tmpsp;
                 else
                     lastsp->next = tmpsp;
+                tmpsp->idx = g.symset_count++;
                 tmpsp->name = dupstr(bufp);
                 tmpsp->desc = (char *) 0;
                 tmpsp->handling = H_UNK;
