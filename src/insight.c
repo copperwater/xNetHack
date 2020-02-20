@@ -53,7 +53,7 @@ static const char *achieve_str [] = {
     "acquired the Candelabrum of Invocation",
     "acquired the Book of the Dead",
     "performed the invocation",
-    "acuired The Amulet of Yendor",
+    "acquired The Amulet of Yendor",
     "entered the Planes",
     "entered the Astral Plane",
     "ascended",
