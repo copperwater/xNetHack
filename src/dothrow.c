@@ -1794,7 +1794,7 @@ register struct obj *obj; /* thrownobj or kickedobj or uwep */
                 schar speadjust = obj->spe
                                   + (obj->blessed * 2)
                                   - (obj->cursed * 2);
-                if ((chance == 0 && rn2(2)) || !rn2(chance)) {
+                if (chance == 0 ? rn2(2) : !rn2(chance)) {
                     /* Object will break unless positive enchantment saves it. */
                     broken = (speadjust <= 0) || !rn2(1 + speadjust);
                 } else {
