@@ -1,4 +1,4 @@
-/* NetHack 3.6	rm.h	$NHDT-Date: 1573943499 2019/11/16 22:31:39 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.66 $ */
+/* NetHack 3.6	rm.h	$NHDT-Date: 1580070206 2020/01/26 20:23:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.78 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -9,7 +9,7 @@
 /*
  * The dungeon presentation graphics code and data structures were rewritten
  * and generalized for NetHack's release 2 by Eric S. Raymond (eric@snark)
- * building on Don G. Kneller's MS-DOS implementation.	See drawing.c for
+ * building on Don G Kneller's MS-DOS implementation.	See drawing.c for
  * the code that permits the user to set the contents of the symbol structure.
  *
  * The door representation was changed by Ari
@@ -89,7 +89,7 @@ enum levl_typ_types {
 #define IS_DOOR(typ) ((typ) == DOOR)
 #define IS_DOORJOIN(typ) (IS_ROCK(typ) || (typ) == IRONBARS)
 #define IS_TREE(typ)                                            \
-    ((typ) == TREE || (level.flags.arboreal && (typ) == STONE))
+    ((typ) == TREE || (g.level.flags.arboreal && (typ) == STONE))
 #define ACCESSIBLE(typ) ((typ) >= DOOR) /* good position */
 #define IS_ROOM(typ) ((typ) >= ROOM)    /* ROOM, STAIRS, furniture.. */
 #define ZAP_POS(typ) ((typ) >= POOL)
@@ -309,21 +309,24 @@ struct symsetentry {
                      * symsets by 'O' can skip it for !MAC_GRAPHICS_ENV */
 
 extern const struct symdef defsyms[MAXPCHARS]; /* defaults */
+#define WARNCOUNT 6 /* number of different warning levels */
 extern const struct symdef def_warnsyms[WARNCOUNT];
-extern int currentgraphics; /* from drawing.c */
-extern nhsym showsyms[];
-extern nhsym primary_syms[];
-extern nhsym rogue_syms[];
-extern nhsym ov_primary_syms[];
-extern nhsym ov_rogue_syms[];
-
-extern struct symsetentry symset[NUM_GRAPHICS]; /* from drawing.c */
-#define SYMHANDLING(ht) (symset[currentgraphics].handling == (ht))
+#define SYMHANDLING(ht) (g.symset[g.currentgraphics].handling == (ht))
 
 /*
  * The possible states of doors - lowest 2 bits of doormask
- * Note that the 'locked' and 'trapped' bits are meaningful only if the door is
- * closed.
+ *
+ * Note that the 'locked' bit is meaningful only if the door is closed.
+ *
+ * Note:  secret doors (SDOOR) want to use both rm.doormask and rm.wall_info but
+ * those both overload rm.flags.  D_LOCKED conflicts with WM_MASK (below).
+ * So it is not possible to specify all three of locked, trapped, and iron.
+ * We go with making the D_LOCKED bit meaningless for secret doors. It will
+ * still be possible to specify D_TRAPPED or D_IRON, but the lock will be
+ * randomly set during cvt_sdoor_to_door() in detect.c.
+ *
+ * Additionally, D_IRON conflicts with W_NONDIGGABLE but the latter is not
+ * expected to be used on door locations.
  */
 enum door_states {
     D_NODOOR = 0,
@@ -368,7 +371,7 @@ enum door_states {
 #define CLEAR_FOUNTAIN_LOOTED(x, y) levl[x][y].looted &= ~F_LOOTED;
 
 /*
- * Doors are even worse :-) The special warning has a side effect
+ * doors are even worse :-) The special warning has a side effect
  * of instantly trapping the door, and if it was defined as trapped,
  * the guards consider that you have already been warned!
  */
@@ -558,17 +561,20 @@ struct rm {
 #define SV7   0x80
 #define SVALL 0xFF
 
-#define doormask flags
-#define altarmask flags
-#define wall_info flags
-#define ladder flags
-#define drawbridgemask flags
-#define looted flags
-#define icedpool flags
-#define is_niche flags
-
+/* if these get changed or expanded, make sure wizard-mode wishing becomes
+   aware of the new usage */
+#define doormask   flags /* door, sdoor (note conflict with wall_info) */
+#define altarmask  flags /* alignment and maybe temple */
+#define wall_info  flags /* wall, sdoor (note conflict with doormask) */
+#define ladder     flags /* up or down */
+#define drawbridgemask flags /* what's underneath when the span is open */
+#define looted     flags /* used for throne, tree, fountain, sink, door */
+#define icedpool   flags /* used for ice (in case it melts) */
+#define is_niche   flags /* used to mark corridor spaces that are niches */
+/* horizonal applies to walls, doors (including sdoor); also to iron bars
+   even though they don't have separate symbols for horizontal and vertical */
 #define blessedftn horizontal /* a fountain that grants attribs */
-#define disturbed horizontal  /* a grave that has been disturbed */
+#define disturbed  horizontal /* a grave that has been disturbed */
 
 struct damage {
     struct damage *next;
@@ -581,7 +587,7 @@ struct damage {
    an existing bones level; if so, most recent victim will be first in list */
 struct cemetery {
     struct cemetery *next; /* next struct is previous dead character... */
-    /* "plname" + "-ROLe" + "-RACe" + "-GENder" + "-ALIgnment" + \0 */
+    /* "g.plname" + "-ROLe" + "-RACe" + "-GENder" + "-ALIgnment" + \0 */
     char who[PL_NSIZ + 4 * (1 + 3) + 1];
     /* death reason, same as in score/log file */
     char how[100 + 1]; /* [DTHSZ+1] */
@@ -645,16 +651,12 @@ typedef struct {
     struct levelflags flags;
 } dlevel_t;
 
-extern schar lastseentyp[COLNO][ROWNO]; /* last seen/touched dungeon typ */
-
-extern dlevel_t level; /* structure describing the current level */
-
 /*
  * Macros for compatibility with old code. Someday these will go away.
  */
-#define levl level.locations
-#define fobj level.objlist
-#define fmon level.monlist
+#define levl g.level.locations
+#define fobj g.level.objlist
+#define fmon g.level.monlist
 
 /*
  * Covert a trap number into the defsym graphics array.
@@ -664,44 +666,44 @@ extern dlevel_t level; /* structure describing the current level */
 #define trap_to_defsym(t) (S_arrow_trap + (t) -1)
 #define defsym_to_trap(d) ((d) -S_arrow_trap + 1)
 
-#define OBJ_AT(x, y) (level.objects[x][y] != (struct obj *) 0)
+#define OBJ_AT(x, y) (g.level.objects[x][y] != (struct obj *) 0)
 /*
  * Macros for encapsulation of level.monsters references.
  */
 #if 0
 #define MON_AT(x, y)                            \
-    (level.monsters[x][y] != (struct monst *) 0 \
-     && !(level.monsters[x][y])->mburied)
+    (g.level.monsters[x][y] != (struct monst *) 0 \
+     && !(g.level.monsters[x][y])->mburied)
 #define MON_BURIED_AT(x, y)                     \
-    (level.monsters[x][y] != (struct monst *) 0 \
-     && (level.monsters[x][y])->mburied)
+    (g.level.monsters[x][y] != (struct monst *) 0 \
+     && (g.level.monsters[x][y])->mburied)
 #else   /* without 'mburied' */
-#define MON_AT(x, y) (level.monsters[x][y] != (struct monst *) 0)
+#define MON_AT(x, y) (g.level.monsters[x][y] != (struct monst *) 0)
 #endif
 #ifdef EXTRA_SANITY_CHECKS
 #define place_worm_seg(m, x, y) \
     do {                                                        \
         fuzl_xy("place_worm_seg", x,y);                         \
-        if (level.monsters[x][y] && level.monsters[x][y] != m)  \
+        if (g.level.monsters[x][y] && g.level.monsters[x][y] != m)  \
             impossible("place_worm_seg over mon");              \
-        level.monsters[x][y] = m;                               \
+        g.level.monsters[x][y] = m;                               \
     } while(0)
 #define remove_monster(x, y) \
     do {                                                \
         fuzl_xy("remove_monster", x,y);                 \
-        if (!level.monsters[x][y])                      \
+        if (!g.level.monsters[x][y])                      \
             impossible("no monster to remove");         \
-        level.monsters[x][y] = (struct monst *) 0;      \
+        g.level.monsters[x][y] = (struct monst *) 0;      \
     } while(0)
 #else
-#define place_worm_seg(m, x, y) level.monsters[x][y] = m
-#define remove_monster(x, y) level.monsters[x][y] = (struct monst *) 0
+#define place_worm_seg(m, x, y) g.level.monsters[x][y] = m
+#define remove_monster(x, y) g.level.monsters[x][y] = (struct monst *) 0
 #endif
-#define m_at(x, y) (MON_AT(x, y) ? level.monsters[x][y] : (struct monst *) 0)
+#define m_at(x, y) (MON_AT(x, y) ? g.level.monsters[x][y] : (struct monst *) 0)
 #define m_buried_at(x, y) \
-    (MON_BURIED_AT(x, y) ? level.monsters[x][y] : (struct monst *) 0)
+    (MON_BURIED_AT(x, y) ? g.level.monsters[x][y] : (struct monst *) 0)
 
 /* restricted movement, potential luck penalties */
-#define Sokoban level.flags.sokoban_rules
+#define Sokoban g.level.flags.sokoban_rules
 
 #endif /* RM_H */

@@ -1,4 +1,4 @@
-/* NetHack 3.6	patchlevel.h	$NHDT-Date: 1557510467 2019/05/10 17:47:47 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.127 $ */
+/* NetHack 3.7	patchlevel.h	$NHDT-Date: 1580437691 2020/01/31 02:28:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.155 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -13,7 +13,7 @@
  * Incrementing EDITLEVEL can be used to force invalidation of old bones
  * and save files.
  */
-#define EDITLEVEL 0
+#define EDITLEVEL 13
 
 #define COPYRIGHT_BANNER_A "xNetHack 5.0, Copyright 2020, based on NetHack, Copyright 1985-2020"
 #define COPYRIGHT_BANNER_B "by Stichting Mathematisch Centrum and M. Stephenson. See license for details."
@@ -31,12 +31,36 @@
  */
 #define VERSION_COMPATIBILITY 0x05000000L
 
-/****************************************************************************/
 /*
  *  xNetHack changes are not documented here; see the changelog and wiki for
  *  documentation on the changes. Below are the patch notes from the vanilla
  *  devteam for vanilla versions.
  *
+ */
+
+/****************************************************************************/
+/* Version 3.7.x */
+
+/*
+ *  NetHack 3.7.0, <insert date here>
+ *
+ */
+
+/****************************************************************************/
+/*  Patch 5, January 27, 2020
+ *
+ *  fix accessing mons[-1] when trying to gate in a non-valid demon
+ *  fix accessing mons[-1] when monster figures out if a tin cures stoning
+ *  have string_for_opt() return empty_optstr on failure
+ *  ensure existing callers of string_for_opt() check return value before using it
+ *  fix potential buffer overflow in add_menu_coloring()
+ *  fix potential buffer overflow in sym_val()
+ *  fix potential buffer overflow in pline(), raw_printf(), and config_error_add()
+ *  fix potential buffer overflow in choose_windows()
+ *  use vsnprintf instead of vsprintf in pline.c where possible
+ *  Windows: incldues a fix from a 3.6.4 post-release update where
+ *      OPTIONS=map_mode:fit_to_screen could cause a game start failure
+ *  Windows: users with C-locale unmappable names could get game start failure
  */
 
 /*  Patch 4, December 18, 2019

@@ -61,30 +61,30 @@ extern void FDECL(trace_procs_init, (int));
 extern void *FDECL(trace_procs_chain, (int, int, void *, void *, void *));
 #endif
 
-STATIC_DCL void FDECL(def_raw_print, (const char *s));
-STATIC_DCL void NDECL(def_wait_synch);
+static void FDECL(def_raw_print, (const char *s));
+static void NDECL(def_wait_synch);
 
 #if defined(DUMPLOG) || defined(DUMPHTML)
-STATIC_DCL winid FDECL(dump_create_nhwindow, (int));
-STATIC_DCL void FDECL(dump_clear_nhwindow, (winid));
-STATIC_DCL void FDECL(dump_display_nhwindow, (winid, BOOLEAN_P));
-STATIC_DCL void FDECL(dump_destroy_nhwindow, (winid));
-STATIC_DCL void FDECL(dump_start_menu, (winid));
-STATIC_DCL void FDECL(dump_add_menu, (winid, int, const ANY_P *, CHAR_P,
-                                      CHAR_P, int, const char *, BOOLEAN_P));
-STATIC_DCL void FDECL(dump_end_menu, (winid, const char *));
-STATIC_DCL int FDECL(dump_select_menu, (winid, int, MENU_ITEM_P **));
-STATIC_DCL void FDECL(dump_putstr, (winid, int, const char *));
-STATIC_DCL void NDECL(dump_headers);
-STATIC_DCL void NDECL(dump_footers);
-STATIC_DCL void FDECL(dump_set_color_attr, (int, int, BOOLEAN_P));
-#ifdef DUMPHTML
-STATIC_DCL void NDECL(html_init_sym);
-STATIC_DCL void NDECL(dump_css);
-STATIC_DCL void FDECL(dump_outrip, (winid, int, time_t));
-#endif
+static winid FDECL(dump_create_nhwindow, (int));
+static void FDECL(dump_clear_nhwindow, (winid));
+static void FDECL(dump_display_nhwindow, (winid, BOOLEAN_P));
+static void FDECL(dump_destroy_nhwindow, (winid));
+static void FDECL(dump_start_menu, (winid));
+static void FDECL(dump_add_menu, (winid, int, const ANY_P *, CHAR_P,
+                                      CHAR_P, int, const char *, unsigned int));
+static void FDECL(dump_end_menu, (winid, const char *));
+static int FDECL(dump_select_menu, (winid, int, MENU_ITEM_P **));
+static void FDECL(dump_putstr, (winid, int, const char *));
+static void NDECL(dump_headers);
+static void NDECL(dump_footers);
+static void FDECL(dump_set_color_attr, (int, int, BOOLEAN_P));
+#endif /* DUMPLOG || DUMPHTML */
 
-#endif /* DUMPLOG */
+#ifdef DUMPHTML
+static void NDECL(html_init_sym);
+static void NDECL(dump_css);
+static void FDECL(dump_outrip, (winid, int, time_t));
+#endif /* DUMPHTML */
 
 #ifdef HANGUPHANDLING
 volatile
@@ -197,8 +197,6 @@ wl_addtail(struct winlink *wl)
 }
 #endif /* WINCHAIN */
 
-static struct win_choices *last_winchoice = 0;
-
 boolean
 genl_can_suspend_no(VOID_ARGS)
 {
@@ -211,7 +209,7 @@ genl_can_suspend_yes(VOID_ARGS)
     return TRUE;
 }
 
-STATIC_OVL
+static
 void
 def_raw_print(s)
 const char *s;
@@ -219,7 +217,7 @@ const char *s;
     puts(s);
 }
 
-STATIC_OVL
+static
 void
 def_wait_synch(VOID_ARGS)
 {
@@ -255,7 +253,8 @@ void
 choose_windows(s)
 const char *s;
 {
-    register int i;
+    int i;
+    char *tmps = 0;
 
     for (i = 0; winchoices[i].procs; i++) {
         if ('+' == winchoices[i].procs->name[0])
@@ -265,11 +264,11 @@ const char *s;
         if (!strcmpi(s, winchoices[i].procs->name)) {
             windowprocs = *winchoices[i].procs;
 
-            if (last_winchoice && last_winchoice->ini_routine)
-                (*last_winchoice->ini_routine)(WININIT_UNDO);
+            if (g.last_winchoice && g.last_winchoice->ini_routine)
+                (*g.last_winchoice->ini_routine)(WININIT_UNDO);
             if (winchoices[i].ini_routine)
                 (*winchoices[i].ini_routine)(WININIT);
-            last_winchoice = &winchoices[i];
+            g.last_winchoice = &winchoices[i];
             return;
         }
     }
@@ -281,9 +280,22 @@ const char *s;
         windowprocs.win_wait_synch = def_wait_synch;
 
     if (!winchoices[0].procs) {
-        raw_printf("No window types?");
+        raw_printf("No window types supported?");
         nh_terminate(EXIT_FAILURE);
     }
+    /* 50: arbitrary, no real window_type names are anywhere near that long;
+       used to prevent potential raw_printf() overflow if user supplies a
+       very long string (on the order of 1200 chars) on the command line
+       (config file options can't get that big; they're truncated at 1023) */
+#define WINDOW_TYPE_MAXLEN 50
+    if (strlen(s) >= WINDOW_TYPE_MAXLEN) {
+        tmps = (char *) alloc(WINDOW_TYPE_MAXLEN);
+        (void) strncpy(tmps, s, WINDOW_TYPE_MAXLEN - 1);
+        tmps[WINDOW_TYPE_MAXLEN - 1] = '\0';
+        s = tmps;
+    }
+#undef WINDOW_TYPE_MAXLEN
+
     if (!winchoices[1].procs) {
         config_error_add(
                      "Window type %s not recognized.  The only choice is: %s",
@@ -305,6 +317,8 @@ const char *s;
         config_error_add("Window type %s not recognized.  Choices are:  %s",
                          s, buf);
     }
+    if (tmps)
+        free((genericptr_t) tmps) /*, tmps = 0*/ ;
 
     if (windowprocs.win_raw_print == def_raw_print
             || WINDOWPORT("safe-startup"))
@@ -386,7 +400,7 @@ commit_windowchain()
                                               p->nextlink->linkdata);
         } else {
             (void) (*p->wincp->chain_routine)(WINCHAIN_INIT, n, p->linkdata,
-                                              last_winchoice->procs, 0);
+                                              g.last_winchoice->procs, 0);
         }
     }
 
@@ -509,7 +523,7 @@ static void FDECL(hup_exit_nhwindows, (const char *));
 static winid FDECL(hup_create_nhwindow, (int));
 static int FDECL(hup_select_menu, (winid, int, MENU_ITEM_P **));
 static void FDECL(hup_add_menu, (winid, int, const anything *, CHAR_P, CHAR_P,
-                                 int, const char *, BOOLEAN_P));
+                                 int, const char *, unsigned int));
 static void FDECL(hup_end_menu, (winid, const char *));
 static void FDECL(hup_putstr, (winid, int, const char *));
 static void FDECL(hup_print_glyph, (winid, XCHAR_P, XCHAR_P, int, int));
@@ -695,13 +709,13 @@ struct mi **menu_list UNUSED;
 
 /*ARGSUSED*/
 static void
-hup_add_menu(window, glyph, identifier, sel, grpsel, attr, txt, preselected)
+hup_add_menu(window, glyph, identifier, sel, grpsel, attr, txt, itemflags)
 winid window UNUSED;
 int glyph UNUSED, attr UNUSED;
 const anything *identifier UNUSED;
 char sel UNUSED, grpsel UNUSED;
 const char *txt UNUSED;
-boolean preselected UNUSED;
+unsigned int itemflags UNUSED;
 {
     return;
 }
@@ -874,7 +888,6 @@ const char *status_fieldnm[MAXBLSTATS];
 const char *status_fieldfmt[MAXBLSTATS];
 char *status_vals[MAXBLSTATS];
 boolean status_activefields[MAXBLSTATS];
-NEARDATA winid WIN_STATUS;
 
 void
 genl_status_init()
@@ -1099,17 +1112,13 @@ unsigned long *colormasks UNUSED;
     putmixed(WIN_STATUS, 0, newbot2); /* putmixed() due to GOLD glyph */
 }
 
-/*************/
-/* DUMP LOGS */
-/*************/
-STATIC_VAR struct window_procs dumplog_windowprocs_backup;
-STATIC_VAR int menu_headings_backup;
-
-STATIC_VAR FILE *dumplog_file;
-STATIC_VAR FILE *dumphtml_file;
+static struct window_procs dumplog_windowprocs_backup;
+static int menu_headings_backup;
+static FILE *dumplog_file;
+static FILE *dumphtml_file;
 
 #if defined(DUMPLOG) || defined(DUMPHTML)
-STATIC_VAR time_t dumplog_now;
+static time_t dumplog_now;
 
 char *
 dump_fmtstr(fmt, buf, fullsubs)
@@ -1175,7 +1184,7 @@ boolean fullsubs; /* True -> full substitution for file name, False ->
                 else
                     Strcpy(tmpbuf, "{current date+time}");
                 break;
-            case 'v': /* version, eg. "3.6.4-0" */
+            case 'v': /* version, eg. "3.7.0-0" */
                 Sprintf(tmpbuf, "%s", version_string(verbuf));
                 break;
             case 'u': /* UID */
@@ -1183,13 +1192,13 @@ boolean fullsubs; /* True -> full substitution for file name, False ->
                 break;
             case 'n': /* player name */
                 if (fullsubs)
-                    Sprintf(tmpbuf, "%s", *plname ? plname : "unknown");
+                    Sprintf(tmpbuf, "%s", *g.plname ? g.plname : "unknown");
                 else
                     Strcpy(tmpbuf, "{hero name}");
                 break;
             case 'N': /* first character of player name */
                 if (fullsubs)
-                    Sprintf(tmpbuf, "%c", *plname ? *plname : 'u');
+                    Sprintf(tmpbuf, "%c", *g.plname ? *g.plname : 'u');
                 else
                     Strcpy(tmpbuf, "{hero initial}");
                 break;
@@ -1268,7 +1277,7 @@ boolean fullsubs; /* True -> full substitution for file name, False ->
    then delimit the item with <li></li>
    for preformatted text, we don't mess with any existing bullet list, but try to
    keep consecutive preformatted strings in a single block.  */
-STATIC_OVL
+static
 void
 html_write_tags(fp, win, attr, before)
 FILE *fp;
@@ -1324,7 +1333,7 @@ boolean before; /* Tags before/after string */
 }
 
 /* Write HTML-escaped char to a file */
-STATIC_OVL void
+static void
 html_dump_char(fp, c)
 FILE *fp;
 char c;
@@ -1355,7 +1364,7 @@ char c;
 }
 
 /* Write HTML-escaped string to a file */
-STATIC_OVL void
+static void
 html_dump_str(fp, str)
 FILE *fp;
 const char *str;
@@ -1366,7 +1375,7 @@ const char *str;
         html_dump_char(fp, *p);
 }
 
-STATIC_OVL void
+static void
 html_dump_line(fp, win, attr, str)
 FILE *fp;
 winid win;
@@ -1407,7 +1416,7 @@ dump_end_screendump()
 }
 
 /* Status and map highlighting */
-STATIC_OVL void
+static void
 dump_set_color_attr(coloridx, attrmask, onoff)
 int coloridx, attrmask;
 boolean onoff;
@@ -1449,7 +1458,7 @@ boolean onoff;
 
 static int htmlsym[SYM_MAX] = DUMMY;
 
-STATIC_OVL void
+static void
 html_init_sym()
 {
     /* see https://html-css-js.com/html/character-codes/drawing/ */
@@ -1480,7 +1489,7 @@ html_init_sym()
 
 /* convert 'special' flags returned from mapglyph to
   highlight attrs (currently just inverse) */
-STATIC_OVL unsigned
+static unsigned
 mg_hl_attr(special)
 unsigned special;
 {
@@ -1592,7 +1601,7 @@ unsigned long *bmarray;
     return NO_COLOR;
 }
 
-STATIC_OVL int
+static int
 condattr(bm, bmarray)
 long bm;
 unsigned long *bmarray;
@@ -1634,7 +1643,7 @@ unsigned long *bmarray;
    No truncation is done as we'd prefer to see all info in the dumplog
    and allow the lines to be a little longer if necessary */
 
-STATIC_OVL void
+static void
 dump_render_status()
 {
     long mask, bits;
@@ -1866,7 +1875,7 @@ unsigned long *colormasks;
 
 /** HTML Headers and footers **/
 
-STATIC_OVL void
+static void
 dump_headers()
 {
 #ifdef DUMPHTML
@@ -1894,7 +1903,7 @@ dump_headers()
 #endif
 }
 
-STATIC_OVL void
+static void
 dump_footers()
 {
 #ifdef DUMPHTML
@@ -1906,7 +1915,7 @@ dump_footers()
 }
 
 #ifdef DUMPHTML
-STATIC_OVL void
+static void
 dump_css()
 {
     int c = 0;
@@ -1924,7 +1933,7 @@ dump_css()
     fclose(css);
 }
 
-STATIC_OVL void
+static void
 dump_outrip(win, how, when)
 winid win;
 int how;
@@ -2009,7 +2018,7 @@ int no_forward;
 
 #if defined(DUMPLOG) || defined (DUMPHTML)
 /*ARGSUSED*/
-STATIC_OVL void
+static void
 dump_putstr(win, attr, str)
 winid win;
 int attr;
@@ -2029,7 +2038,7 @@ const char *str;
 #endif
 }
 
-STATIC_OVL winid
+static winid
 dump_create_nhwindow(dummy)
 int dummy;
 {
@@ -2037,7 +2046,7 @@ int dummy;
 }
 
 /*ARGUSED*/
-STATIC_OVL void
+static void
 dump_clear_nhwindow(win)
 winid win UNUSED;
 {
@@ -2045,7 +2054,7 @@ winid win UNUSED;
 }
 
 /*ARGSUSED*/
-STATIC_OVL void
+static void
 dump_display_nhwindow(win, p)
 winid win UNUSED;
 boolean p UNUSED;
@@ -2054,7 +2063,7 @@ boolean p UNUSED;
 }
 
 /*ARGUSED*/
-STATIC_OVL void
+static void
 dump_destroy_nhwindow(win)
 winid win UNUSED;
 {
@@ -2062,7 +2071,7 @@ winid win UNUSED;
 }
 
 /*ARGUSED*/
-STATIC_OVL void
+static void
 dump_start_menu(win)
 winid win UNUSED;
 {
@@ -2070,16 +2079,16 @@ winid win UNUSED;
 }
 
 /*ARGSUSED*/
-STATIC_OVL void
-dump_add_menu(win, glyph, identifier, ch, gch, attr, str, preselected)
-winid win;
+static void
+dump_add_menu(win, glyph, identifier, ch, gch, attr, str, itemflags)
+winid win UNUSED;
 int glyph;
 const anything *identifier UNUSED;
 char ch;
 char gch UNUSED;
 int attr;
 const char *str;
-boolean preselected UNUSED;
+unsigned int itemflags UNUSED;
 {
     if (dumplog_file) {
         if (glyph == NO_GLYPH)
@@ -2110,7 +2119,7 @@ boolean preselected UNUSED;
 }
 
 /*ARGSUSED*/
-STATIC_OVL void
+static void
 dump_end_menu(win, str)
 winid win UNUSED;
 const char *str;
@@ -2127,7 +2136,7 @@ const char *str;
 #endif
 }
 
-STATIC_OVL int
+static int
 dump_select_menu(win, how, item)
 winid win UNUSED;
 int how UNUSED;

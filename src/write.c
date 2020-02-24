@@ -3,8 +3,8 @@
 
 #include "hack.h"
 
-STATIC_DCL boolean FDECL(label_known, (int, struct obj *));
-STATIC_DCL char *FDECL(new_book_description, (int, char *));
+static boolean FDECL(label_known, (int, struct obj *));
+static char *FDECL(new_book_description, (int, char *));
 
 /*
  * returns basecost of a scroll or a spellbook
@@ -17,7 +17,7 @@ short otyp;
         return (10 * objects[otyp].oc_level);
 
     switch (otyp) {
-#ifdef MAIL
+#ifdef MAIL_STRUCTURES
     case SCR_MAIL:
         return 2;
 #endif
@@ -60,7 +60,7 @@ short otyp;
    unfortunately, we can't track things that haven't been added to
    the discoveries list and aren't present in current inventory,
    so some scrolls with ought to yield True will end up False */
-STATIC_OVL boolean
+static boolean
 label_known(scrolltype, objlist)
 int scrolltype;
 struct obj *objlist;
@@ -86,7 +86,7 @@ struct obj *objlist;
     return FALSE;
 }
 
-STATIC_OVL int
+static int
 write_ok(obj)
 struct obj *obj;
 {
@@ -111,7 +111,7 @@ register struct obj *pen;
     boolean by_descr = FALSE;
     const char *typeword;
 
-    if (nohands(youmonst.data)) {
+    if (nohands(g.youmonst.data)) {
         You("need hands to be able to write!");
         return 0;
     } else if (Glib) {
@@ -171,8 +171,8 @@ register struct obj *pen;
 
     deferred = 0;       /* not any scroll or book */
     deferralchance = 0; /* incremented for each oc_uname match */
-    first = bases[(int) paper->oclass];
-    last = bases[(int) paper->oclass + 1] - 1;
+    first = g.bases[(int) paper->oclass];
+    last = g.bases[(int) paper->oclass + 1] - 1;
     for (i = first; i <= last; i++) {
         /* extra shufflable descr not representing a real object */
         if (!OBJ_NAME(objects[i]))
@@ -296,7 +296,7 @@ found:
     /* if known, then either by-name or by-descr works */
     if (!objects[new_obj->otyp].oc_name_known
         /* else if named, then only by-descr works */
-        && !(by_descr && label_known(new_obj->otyp, invent))
+        && !(by_descr && label_known(new_obj->otyp, g.invent))
         /* and Luck might override after both checks have failed */
         && rnl(Role_if(PM_WIZARD) ? 5 : 15)) {
         You("%s to write that.", by_descr ? "fail" : "don't know how");
@@ -310,7 +310,7 @@ found:
                 Strcpy(namebuf, OBJ_DESCR(objects[new_obj->otyp]));
                 wipeout_text(namebuf, (6 + MAXULEV - u.ulevel) / 6, 0);
             } else
-                Sprintf(namebuf, "%s was here!", plname);
+                Sprintf(namebuf, "%s was here!", g.plname);
             You("write \"%s\" and the scroll disappears.", namebuf);
             useup(paper);
         }
@@ -342,7 +342,7 @@ found:
     }
     new_obj->blessed = (curseval > 0);
     new_obj->cursed = (curseval < 0);
-#ifdef MAIL
+#ifdef MAIL_STRUCTURES
     if (new_obj->otyp == SCR_MAIL)
         /* 0: delivered in-game via external event (or randomly for fake mail);
            1: from bones or wishing; 2: written with marker */
@@ -352,7 +352,7 @@ found:
        specifically chosen item so hero recognizes it even if blind;
        the exception is for being lucky writing an undiscovered scroll,
        where the label associated with the type-name isn't known yet */
-    new_obj->dknown = label_known(new_obj->otyp, invent) ? 1 : 0;
+    new_obj->dknown = label_known(new_obj->otyp, g.invent) ? 1 : 0;
 
     new_obj = hold_another_object(new_obj, "Oops!  %s out of your grasp!",
                                   The(aobjnam(new_obj, "slip")),
@@ -368,7 +368,7 @@ found:
    looks funny, so we want to insert "into " prior to such descriptions;
    even that's rather iffy, indicating that such descriptions probably
    ought to be eliminated (especially "cloth"!) */
-STATIC_OVL char *
+static char *
 new_book_description(booktype, outbuf)
 int booktype;
 char *outbuf;

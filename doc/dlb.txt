@@ -16,14 +16,16 @@ DESCRIPTION
        specified  as  a  continuous  string  and are followed by any arguments
        required in the same order as the option specifiers.
 
-       This facility is optional but is included in  this  NetHack  configura‐
-       tion.
+       ^?ALLDOCS This facility is optional and may be excluded during  NetHack
+       configuration.   ^:  ^?DLB This facility is optional but is included in
+       this NetHack configuration.  ^:  This  facility  is  optional  and  was
+       excluded from this NetHack configuration.  ^.  ^.
 
 COMMANDS
        The  x  command  causes dlb to extract the contents of the archive into
        the current directory.
 
-       The c command causes dlb to create a new archive from files in the cur‐
+       The c command causes dlb to create a new archive from files in the cur-
        rent directory.
 
        The t command lists the files in the archive.
@@ -60,6 +62,11 @@ BUGS
        NetHack can be read out of an archive; examining the source is the only
        way to know which files can be.
 
+COPYRIGHT
+       This file is  Copyright  (C)  Kenneth  Lorber  and  was  last  modified
+       2018/04/25  (version  NetHack-3.6.0:1.7).  NetHack may be freely redis-
+       tributed.  See license for details.
 
 
-4th Berkeley Distribution         28 Oct 1993                           DLB(6)
+
+NETHACK                           25 May 2015                           DLB(6)

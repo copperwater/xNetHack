@@ -62,30 +62,30 @@ newhp()
 
     if (u.ulevel == 0) {
         /* Initialize hit points */
-        hp = urole.hpadv.infix + urace.hpadv.infix;
-        if (urole.hpadv.inrnd > 0)
-            hp += rnd(urole.hpadv.inrnd);
-        if (urace.hpadv.inrnd > 0)
-            hp += rnd(urace.hpadv.inrnd);
-        if (moves <= 1L) { /* initial hero; skip for polyself to new man */
+        hp = g.urole.hpadv.infix + g.urace.hpadv.infix;
+        if (g.urole.hpadv.inrnd > 0)
+            hp += rnd(g.urole.hpadv.inrnd);
+        if (g.urace.hpadv.inrnd > 0)
+            hp += rnd(g.urace.hpadv.inrnd);
+        if (g.moves <= 1L) { /* initial hero; skip for polyself to new man */
             /* Initialize alignment stuff */
             u.ualign.type = aligns[flags.initalign].value;
-            u.ualign.record = urole.initrecord;
+            u.ualign.record = g.urole.initrecord;
         }
         /* no Con adjustment for initial hit points */
     } else {
         if (u.ulevel < ROLE_XLEV_CUTOFF) {
-            hp = urole.hpadv.lofix + urace.hpadv.lofix;
-            if (urole.hpadv.lornd > 0)
-                hp += rnd(urole.hpadv.lornd);
-            if (urace.hpadv.lornd > 0)
-                hp += rnd(urace.hpadv.lornd);
+            hp = g.urole.hpadv.lofix + g.urace.hpadv.lofix;
+            if (g.urole.hpadv.lornd > 0)
+                hp += rnd(g.urole.hpadv.lornd);
+            if (g.urace.hpadv.lornd > 0)
+                hp += rnd(g.urace.hpadv.lornd);
         } else {
-            hp = urole.hpadv.hifix + urace.hpadv.hifix;
-            if (urole.hpadv.hirnd > 0)
-                hp += rnd(urole.hpadv.hirnd);
-            if (urace.hpadv.hirnd > 0)
-                hp += rnd(urace.hpadv.hirnd);
+            hp = g.urole.hpadv.hifix + g.urace.hpadv.hifix;
+            if (g.urole.hpadv.hirnd > 0)
+                hp += rnd(g.urole.hpadv.hirnd);
+            if (g.urace.hpadv.hirnd > 0)
+                hp += rnd(g.urace.hpadv.hirnd);
         }
         if (ACURR(A_CON) <= 3)
             conplus = -2;
@@ -117,19 +117,19 @@ newpw()
     int en = 0, enrnd, enfix;
 
     if (u.ulevel == 0) {
-        en = urole.enadv.infix + urace.enadv.infix;
-        if (urole.enadv.inrnd > 0)
-            en += rnd(urole.enadv.inrnd);
-        if (urace.enadv.inrnd > 0)
-            en += rnd(urace.enadv.inrnd);
+        en = g.urole.enadv.infix + g.urace.enadv.infix;
+        if (g.urole.enadv.inrnd > 0)
+            en += rnd(g.urole.enadv.inrnd);
+        if (g.urace.enadv.inrnd > 0)
+            en += rnd(g.urace.enadv.inrnd);
     } else {
         enrnd = (int) ACURR(A_WIS) / 2;
         if (u.ulevel < ROLE_XLEV_CUTOFF) {
-            enrnd += urole.enadv.lornd + urace.enadv.lornd;
-            enfix = urole.enadv.lofix + urace.enadv.lofix;
+            enrnd += g.urole.enadv.lornd + g.urace.enadv.lornd;
+            enfix = g.urole.enadv.lofix + g.urace.enadv.lofix;
         } else {
-            enrnd += urole.enadv.hirnd + urace.enadv.hirnd;
-            enfix = urole.enadv.hifix + urace.enadv.hifix;
+            enrnd += g.urole.enadv.hirnd + g.urace.enadv.hirnd;
+            enfix = g.urole.enadv.hifix + g.urace.enadv.hifix;
         }
         en = rn1(enrnd, enfix);
         /* energy gain "modifier" */
@@ -210,7 +210,7 @@ register int nk;
     if (mtmp->m_lev > 8)
         tmp += 50;
 
-#ifdef MAIL
+#ifdef MAIL_STRUCTURES
     /* Mail daemons put up no fight. */
     if (mtmp->data == &mons[PM_MAIL_DAEMON])
         tmp = 1;
@@ -260,19 +260,19 @@ register int exper, rexp;
     if (newexp != oldexp) {
         u.uexp = newexp;
         if (flags.showexp)
-            context.botl = TRUE;
+            g.context.botl = TRUE;
         /* even when experience points aren't being shown, experience level
            might be highlighted with a percentage highlight rule and that
            percentage depends upon experience points */
-        if (!context.botl && exp_percent_changing())
-            context.botl = TRUE;
+        if (!g.context.botl && exp_percent_changing())
+            g.context.botl = TRUE;
     }
     /* newrexp will always differ from oldrexp unless they're LONG_MAX */
     if (newrexp != oldrexp) {
         u.urexp = newrexp;
 #ifdef SCORE_ON_BOTL
         if (flags.showscore)
-            context.botl = TRUE;
+            g.context.botl = TRUE;
 #endif
     }
     if (u.urexp >= (Role_if(PM_WIZARD) ? 1000 : 2000))
@@ -290,7 +290,7 @@ const char *drainer; /* cause of death, if drain should be fatal */
        wizard mode request to reduce level; never fatal though */
     if (drainer && !strcmp(drainer, "#levelchange"))
         drainer = 0;
-    else if (resists_drli(&youmonst) || item_catches_drain(&youmonst))
+    else if (resists_drli(&g.youmonst) || item_catches_drain(&g.youmonst))
         return;
 
     if (u.ulevel > 1) {
@@ -299,9 +299,9 @@ const char *drainer; /* cause of death, if drain should be fatal */
         adjabil(u.ulevel + 1, u.ulevel);
     } else {
         if (drainer) {
-            killer.format = KILLED_BY;
-            if (killer.name != drainer)
-                Strcpy(killer.name, drainer);
+            g.killer.format = KILLED_BY;
+            if (g.killer.name != drainer)
+                Strcpy(g.killer.name, drainer);
             done(DIED);
         }
         /* no drainer or lifesaved */
@@ -331,18 +331,18 @@ const char *drainer; /* cause of death, if drain should be fatal */
         u.uexp = newuexp(u.ulevel) - 1;
 
     if (Upolyd) {
-        num = monhp_per_lvl(&youmonst);
+        num = monhp_per_lvl(&g.youmonst);
         u.mhmax -= num;
         u.mh -= num;
         if (u.mh <= 0) {
             /* in case we die here */
-            Strcpy(killer.name, "fragility");
-            killer.format = KILLED_BY;
+            Strcpy(g.killer.name, "fragility");
+            g.killer.format = KILLED_BY;
             rehumanize();
         }
     }
 
-    context.botl = TRUE;
+    g.context.botl = TRUE;
 }
 
 /*
@@ -370,7 +370,7 @@ boolean incr; /* true iff via incremental experience growth */
     /* increase hit points (when polymorphed, do monster form first
        in order to retain normal human/whatever increase for later) */
     if (Upolyd) {
-        hpinc = monhp_per_lvl(&youmonst);
+        hpinc = monhp_per_lvl(&g.youmonst);
         u.mhmax += hpinc;
         u.mh += hpinc;
     }
@@ -401,7 +401,7 @@ boolean incr; /* true iff via incremental experience growth */
             u.ulevelmax = u.ulevel;
         adjabil(u.ulevel - 1, u.ulevel); /* give new intrinsics */
     }
-    context.botl = TRUE;
+    g.context.botl = TRUE;
 }
 
 /* compute a random amount of experience points suitable for the hero's

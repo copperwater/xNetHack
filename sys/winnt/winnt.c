@@ -241,11 +241,11 @@ VA_DECL(const char *, s)
         end_screen();
     if (WINDOWPORT("tty")) {
         buf[0] = '\n';
-        (void) vsprintf(&buf[1], s, VA_ARGS);
+        (void) vsnprintf(&buf[1], sizeof buf - (1 + sizeof "\n"), s, VA_ARGS);
         Strcat(buf, "\n");
         msmsg(buf);
     } else {
-        (void) vsprintf(buf, s, VA_ARGS);
+        (void) vsnprintf(buf, sizeof buf - sizeof "\n", s, VA_ARGS);
         Strcat(buf, "\n");
         raw_printf(buf);
     }
@@ -517,8 +517,10 @@ int code;
            a little cleaner than the stdio one */
         windowprocs.win_nhgetch = windows_console_custom_nhgetch;
     }
-    if (getreturn_enabled)
+    if (getreturn_enabled) {
+        raw_print("\n");
         wait_synch();
+    }
     exit(code);
 }
 

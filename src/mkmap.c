@@ -8,39 +8,37 @@
 #define HEIGHT (ROWNO - 1)
 #define WIDTH (COLNO - 2)
 
-STATIC_DCL void FDECL(init_map, (SCHAR_P));
-STATIC_DCL void FDECL(init_fill, (SCHAR_P, SCHAR_P));
-STATIC_DCL schar FDECL(get_map, (int, int, SCHAR_P));
-STATIC_DCL void FDECL(pass_one, (SCHAR_P, SCHAR_P));
-STATIC_DCL void FDECL(pass_two, (SCHAR_P, SCHAR_P));
-STATIC_DCL void FDECL(pass_three, (SCHAR_P, SCHAR_P));
-STATIC_DCL void NDECL(wallify_map);
-STATIC_DCL void FDECL(join_map, (SCHAR_P, SCHAR_P));
-STATIC_DCL void FDECL(finish_map,
+static void FDECL(init_map, (SCHAR_P));
+static void FDECL(init_fill, (SCHAR_P, SCHAR_P));
+static schar FDECL(get_map, (int, int, SCHAR_P));
+static void FDECL(pass_one, (SCHAR_P, SCHAR_P));
+static void FDECL(pass_two, (SCHAR_P, SCHAR_P));
+static void FDECL(pass_three, (SCHAR_P, SCHAR_P));
+static void NDECL(wallify_map);
+static void FDECL(join_map, (SCHAR_P, SCHAR_P));
+static void FDECL(finish_map,
                       (SCHAR_P, SCHAR_P, BOOLEAN_P, BOOLEAN_P, BOOLEAN_P));
-STATIC_DCL void FDECL(remove_room, (unsigned));
+static void FDECL(remove_room, (unsigned));
 void FDECL(mkmap, (lev_init *));
 
-static char *new_locations;
-int min_rx, max_rx, min_ry, max_ry; /* rectangle bounds for regions */
-static int n_loc_filled;
-
 /* Unconditionally sets the whole map's terrain to bg_typ. */
-STATIC_OVL void
+static void
 init_map(bg_typ)
 schar bg_typ;
 {
     register int i, j;
 
     for (i = 1; i < COLNO; i++)
-        for (j = 0; j < ROWNO; j++)
+        for (j = 0; j < ROWNO; j++) {
             levl[i][j].typ = bg_typ;
+            levl[i][j].lit = FALSE;
+        }
 }
 
 /* Randomly replaces 2/5 of squares on the level that have bg_typ terrain
  * with terrain of fg_typ.
  * Used to "seed" the random cavern-like generation. */
-STATIC_OVL void
+static void
 init_fill(bg_typ, fg_typ)
 schar bg_typ, fg_typ;
 {
@@ -62,7 +60,7 @@ schar bg_typ, fg_typ;
 /* Return the terrain type at the given location, or bg_typ if out of bounds.
  * Used in determining the count of "live" neighbors in cavernous generation
  * (outside the map all counts as dead). */
-STATIC_OVL schar
+static schar
 get_map(col, row, bg_typ)
 int col, row;
 schar bg_typ;
@@ -72,8 +70,8 @@ schar bg_typ;
     return levl[col][row].typ;
 }
 
-static int dirs[16] = { -1, -1 /**/, -1, 0 /**/,  -1, 1 /**/, 0, -1 /**/,
-                        0,  1 /**/,  1,  -1 /**/, 1,  0 /**/, 1, 1 };
+static const int dirs[16] = { -1, -1 /**/, -1, 0 /**/,  -1, 1 /**/, 0, -1 /**/,
+                               0,  1 /**/,  1,  -1 /**/, 1,  0 /**/, 1, 1 };
 
 /* First pass of the cavernous generation: essentially one iteration of
  * Conway's Game of Life applied to levl.
@@ -89,7 +87,7 @@ static int dirs[16] = { -1, -1 /**/, -1, 0 /**/,  -1, 1 /**/, 0, -1 /**/,
  * previous results. Not sure why it doesn't use new_locations like the other
  * pass_* functions do.
  */
-STATIC_OVL void
+static void
 pass_one(bg_typ, fg_typ)
 schar bg_typ, fg_typ;
 {
@@ -121,7 +119,7 @@ schar bg_typ, fg_typ;
         }
 }
 
-#define new_loc(i, j) *(new_locations + ((j) * (WIDTH + 1)) + (i))
+#define new_loc(i, j) *(g.new_locations + ((j) * (WIDTH + 1)) + (i))
 
 /* Second pass at the game of life cellular automaton, except unlike the last
  * time, all it is doing is converting cells with exactly 5 neighbors into dead
@@ -129,7 +127,7 @@ schar bg_typ, fg_typ;
  *
  * This time, it stores results in a temporary buffer, then copies them over
  * after it finishes. */
-STATIC_OVL void
+static void
 pass_two(bg_typ, fg_typ)
 schar bg_typ, fg_typ;
 {
@@ -160,7 +158,7 @@ schar bg_typ, fg_typ;
  * changes to levl until it's finished determining all the cell states.
  *
  * According to code below, this is used to tune map smoothing.*/
-STATIC_OVL void
+static void
 pass_three(bg_typ, fg_typ)
 schar bg_typ, fg_typ;
 {
@@ -210,10 +208,10 @@ boolean anyroom;
     sx++; /* compensate for extra decrement */
 
     /* assume sx,sy is valid */
-    if (sx < min_rx)
-        min_rx = sx;
-    if (sy < min_ry)
-        min_ry = sy;
+    if (sx < g.min_rx)
+        g.min_rx = sx;
+    if (sy < g.min_ry)
+        g.min_ry = sy;
 
     for (i = sx; i <= WIDTH && levl[i][sy].typ == fg_typ; i++) {
         levl[i][sy].roomno = rmno;
@@ -233,7 +231,7 @@ boolean anyroom;
                             levl[ii][jj].roomno = SHARED;
                     }
         }
-        n_loc_filled++;
+        g.n_loc_filled++;
     }
     nx = i;
 
@@ -274,17 +272,17 @@ boolean anyroom;
             }
     }
 
-    if (nx > max_rx)
-        max_rx = nx - 1; /* nx is just past valid region */
-    if (sy > max_ry)
-        max_ry = sy;
+    if (nx > g.max_rx)
+        g.max_rx = nx - 1; /* nx is just past valid region */
+    if (sy > g.max_ry)
+        g.max_ry = sy;
 }
 
 /*
  * If we have drawn a map without walls, this allows us to
  * auto-magically wallify it.  Taken from lev_main.c.
  */
-STATIC_OVL void
+static void
 wallify_map()
 {
     int x, y, xx, yy;
@@ -310,7 +308,7 @@ wallify_map()
  * already-connected rooms and some other room that isn't connected yet.
  * If any blob is of size 3 or less, it'll be removed instead of being
  * connected. */
-STATIC_OVL void
+static void
 join_map(bg_typ, fg_typ)
 schar bg_typ, fg_typ;
 {
@@ -325,25 +323,25 @@ schar bg_typ, fg_typ;
     for (i = 2; i <= WIDTH; i++)
         for (j = 1; j < HEIGHT; j++) {
             if (levl[i][j].typ == fg_typ && levl[i][j].roomno == NO_ROOM) {
-                min_rx = max_rx = i;
-                min_ry = max_ry = j;
-                n_loc_filled = 0;
-                flood_fill_rm(i, j, nroom + ROOMOFFSET, FALSE, FALSE);
-                if (n_loc_filled > 3) {
-                    add_room(min_rx, min_ry, max_rx, max_ry, FALSE, OROOM,
+                g.min_rx = g.max_rx = i;
+                g.min_ry = g.max_ry = j;
+                g.n_loc_filled = 0;
+                flood_fill_rm(i, j, g.nroom + ROOMOFFSET, FALSE, FALSE);
+                if (g.n_loc_filled > 3) {
+                    add_room(g.min_rx, g.min_ry, g.max_rx, g.max_ry, FALSE, OROOM,
                              TRUE);
-                    rooms[nroom - 1].irregular = TRUE;
-                    if (nroom >= (MAXNROFROOMS * 2))
+                    g.rooms[g.nroom - 1].irregular = TRUE;
+                    if (g.nroom >= (MAXNROFROOMS * 2))
                         goto joinm;
                 } else {
                     /*
                      * it's a tiny hole; erase it from the map to avoid
                      * having the player end up here with no way out.
                      */
-                    for (sx = min_rx; sx <= max_rx; sx++)
-                        for (sy = min_ry; sy <= max_ry; sy++)
+                    for (sx = g.min_rx; sx <= g.max_rx; sx++)
+                        for (sy = g.min_ry; sy <= g.max_ry; sy++)
                             if ((int) levl[sx][sy].roomno
-                                == nroom + ROOMOFFSET) {
+                                == g.nroom + ROOMOFFSET) {
                                 levl[sx][sy].typ = bg_typ;
                                 levl[sx][sy].roomno = NO_ROOM;
                             }
@@ -358,7 +356,7 @@ joinm:
      * so don't call sort_rooms(), which can screw up the roomno's
      * validity in the levl structure.
      */
-    for (croom = &rooms[0], croom2 = croom + 1; croom2 < &rooms[nroom];) {
+    for (croom = &g.rooms[0], croom2 = croom + 1; croom2 < &g.rooms[g.nroom];) {
         /* pick random starting and end locations for "corridor" */
         if (!somexy(croom, &sm) || !somexy(croom2, &em)) {
             /* ack! -- the level is going to be busted */
@@ -391,7 +389,7 @@ joinm:
  * than a moat.
  * Also automatically sets any lava terrain to be lit.
  */
-STATIC_OVL void
+static void
 finish_map(fg_typ, bg_typ, lit, walled, icedpools)
 schar fg_typ, bg_typ;
 boolean lit, walled, icedpools;
@@ -409,8 +407,8 @@ boolean lit, walled, icedpools;
                     || (bg_typ == TREE && levl[i][j].typ == bg_typ)
                     || (walled && IS_WALL(levl[i][j].typ)))
                     levl[i][j].lit = TRUE;
-        for (i = 0; i < nroom; i++)
-            rooms[i].rlit = 1;
+        for (i = 0; i < g.nroom; i++)
+            g.rooms[i].rlit = 1;
     }
     /* light lava even if everything's otherwise unlit;
        ice might be frozen pool rather than frozen moat */
@@ -439,8 +437,8 @@ int lx, ly, hx, hy;
     int i;
     struct mkroom *croom;
 
-    for (i = nroom - 1; i >= 0; --i) {
-        croom = &rooms[i];
+    for (i = g.nroom - 1; i >= 0; --i) {
+        croom = &g.rooms[i];
         if (croom->hx < lx || croom->lx >= hx || croom->hy < ly
             || croom->ly >= hy)
             continue; /* no overlap */
@@ -464,12 +462,12 @@ int lx, ly, hx, hy;
  * level structure contents corresponding to roomno have already been reset.
  * Currently handles only the removal of rooms that have no subrooms.
  */
-STATIC_OVL void
+static void
 remove_room(roomno)
 unsigned roomno;
 {
-    struct mkroom *croom = &rooms[roomno];
-    struct mkroom *maxroom = &rooms[--nroom];
+    struct mkroom *croom = &g.rooms[roomno];
+    struct mkroom *maxroom = &g.rooms[--g.nroom];
     int i, j;
     unsigned oroomno;
 
@@ -481,7 +479,7 @@ unsigned roomno;
                       sizeof(struct mkroom));
 
         /* since maxroom moved, update affected level roomno values */
-        oroomno = nroom + ROOMOFFSET;
+        oroomno = g.nroom + ROOMOFFSET;
         roomno += ROOMOFFSET;
         for (i = croom->lx; i <= croom->hx; ++i)
             for (j = croom->ly; j <= croom->hy; ++j) {
@@ -496,6 +494,15 @@ unsigned roomno;
 #define N_P1_ITER 1 /* tune map generation via this value */
 #define N_P2_ITER 1 /* tune map generation via this value */
 #define N_P3_ITER 2 /* tune map smoothing via this value */
+
+boolean
+litstate_rnd(litstate)
+int litstate;
+{
+    if (litstate < 0)
+        return (rnd(1 + abs(depth(&u.uz))) < 11 && rn2(77)) ? TRUE : FALSE;
+    return (boolean) litstate;
+}
 
 /* Fully create a level with the cavernous generation filler algorithm.
  * Extracts its parameters from the fields of its init_lev argument, which
@@ -514,11 +521,8 @@ lev_init *init_lev;
     xchar lit = init_lev->lit, walled = init_lev->walled;
     int i;
 
-    if (lit < 0) {
-        lit = (rnd(1 + abs(depth(&u.uz))) < 11 && rn2(77)) ? 1 : 0;
-    }
-    else if (lit == 2) { /* mineslight */
-        /* Always bright above Minetown, always dark below */
+    if (lit == 2) {
+        /* mineslight: Always bright above Minetown, always dark below */
         s_level *minetownslev = find_level("minetn");
         if (!minetownslev) {
             impossible("Failed to find Minetown! Setting mineslight randomly");
@@ -528,8 +532,11 @@ lev_init *init_lev;
             lit = (depth(&u.uz) < depth(&minetownslev->dlevel) ? 1 : 0);
         }
     }
+    else { /* random */
+        lit = litstate_rnd(lit);
+    }
 
-    new_locations = (char *) alloc((WIDTH + 1) * HEIGHT);
+    g.new_locations = (char *) alloc((WIDTH + 1) * HEIGHT);
 
     init_map(bg_typ);
     init_fill(bg_typ, fg_typ);
@@ -551,10 +558,10 @@ lev_init *init_lev;
                init_lev->icedpools);
     /* a walled, joined level is cavernous, not mazelike -dlc */
     if (walled && join) {
-        level.flags.is_maze_lev = FALSE;
-        level.flags.is_cavernous_lev = TRUE;
+        g.level.flags.is_maze_lev = FALSE;
+        g.level.flags.is_cavernous_lev = TRUE;
     }
-    free(new_locations);
+    free(g.new_locations);
 }
 
 /*mkmap.c*/
