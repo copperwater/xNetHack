@@ -314,17 +314,12 @@ results lately can hardly be called suitable for %ra!
 back only when you have purified yourself."]],
       },
       badlevel = {
-         synopsis = "[%rA not ready.  Go do other things.]",
+         synopsis = "[%pC, a mere %r is too inexperienced.]",
          output = "text",
-         text = [[
-"No, %p, you not ready to go on such hard quest as what me give you.
-
-"%rA can not do what it take to find %i, could not fight %n, could not
-bring back %o.
-
-"Go do more things.  You learn stuff you need.
-%d say so."
-         ]],
+         text = [["%p, you are yet too inexperienced to undertake such a demanding
+quest.  A mere %r could not possibly face the rigors demanded and
+survive.  Go forth, and come here again when your adventures have further
+taught you."]],
       },
       discourage = {
          "\"Try your best, %p.  You cannot defeat me.\"",
@@ -782,16 +777,30 @@ Go away and make self right.  Then maybe you can do this quest."
          ]],
       },
       badlevel = {
-         synopsis = "[\"%rA is too inexperienced.  Come back when you have progressed.\"]",
+         synopsis = "[%rA not ready.  Go do other things.]",
          output = "text",
-         text = [["Alas, %p, you are as yet too inexperienced to embark upon such
-a difficult quest as that I propose to give you.
+         text = [[
+"No, %p, you not ready to go on such hard quest as what me give you.
 
-"%rA could not possibly survive the rigors demanded to find
-%i, never mind to confront %n herself.
+"%rA can not do what it take to find %i, could not fight %n, could not
+bring back %o.
 
-"Adventure some more, and you will learn the skills you will require.
-%d decrees it."]],
+"Go do more things.  You learn stuff you need.
+%d say so."
+         ]],
+      },
+      banished = {
+         synopsis = "[You are banished from %H for betraying your allegiance to %d.]",
+         output = "text",
+         text = [[
+"You turn your back on us. You turn your back on %d!
+You not part of this tribe no more.
+
+Get out. You not come back ever.
+You never get God Thing now. You not get Bright Thing from %n.
+You not have Bright Thing, you not able to go to place of God Thing.
+
+Go! Or else we eat you.]],
       },
       discourage = {
          -- Note that Tiamat doesn't use caveman speak.
@@ -824,7 +833,7 @@ a difficult quest as that I propose to give you.
          text = [[
 You come to %H.  It not right.  There no meat in cave.
 There no mammoth hides.  Men are sad.  Things broke.  Fire
-not lit.  %H not right, make you sad.  You look for %l.
+not lit.  Caves not right, make you sad.  You look for %l.
 Him tell you what is wrong.
          ]],
       },

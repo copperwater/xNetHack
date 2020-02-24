@@ -294,7 +294,7 @@ chat_with_leader()
             exercise(A_WIS, TRUE);
             expulsion(FALSE);
         } else if (is_pure(TRUE) < 0) {
-            com_pager("banished");
+            qt_pager("banished");
             expulsion(TRUE);
         } else if (is_pure(TRUE) == 0) {
             qt_pager("badalign");

@@ -1,0 +1,29 @@
+xNetHack 5.1 Changelog
+
+This is a minor version of xNetHack. It is based directly on xNetHack 5.0, and
+consists largely of a merge of the upcoming NetHack 3.7 development code onto
+xNetHack.  See doc/fixes37.0 for the devteam's changes.
+
+The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
+attempts to describe these changes in a way that's better formatted and more
+friendly to players. However, the wiki page might be out of date; in case of
+conflicting information, this changelog and others in this directory are more
+up-to-date than the wiki page, and the commit messages are more up-to-date than
+this changelog.
+
+On top of any changes made by the NetHack devteam on 3.7, and any changes
+made in previous xNetHack versions, xNetHack 5.1 contains the following
+gameplay changes:
+
+
+
+
+It contains the following non-gameplay interface changes:
+
+Cavemen/women now get a role-specific message for being banished from the quest
+  for changing their alignment.
+
+
+It contains the following non-gameplay architectural changes:
+
+
