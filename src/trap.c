@@ -6151,7 +6151,7 @@ boolean override;
         "bottomless pit", "polymorphism trap", "devil teleporter",
         "falling boulder trap", "anti-anti-magic field", "weeping gas trap",
         "queasy board", "electrified web", "owlbear trap", "sand mine",
-        "vacillating triangle",
+        "vibrating triangle",
         /* some traps found in nethack variants */
         "death trap", "disintegration trap", "ice trap", "monochrome trap",
         /* plausible real-life traps */
