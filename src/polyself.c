@@ -1036,12 +1036,13 @@ boolean noisy;
         if ((otmp = uarmf) != 0) {
             if (donning(otmp))
                 cancel_don();
-            if (is_whirly(g.youmonst.data)) {
-                if (noisy)
+            if (noisy) {
+                if (is_whirly(g.youmonst.data)) {
                     Your("boots fall away!");
-            } else if (noisy) {
-                Your("boots %s off your feet!",
-                    verysmall(g.youmonst.data) ? "slide" : "are pushed");
+                } else {
+                    Your("boots %s off your feet!",
+                        verysmall(g.youmonst.data) ? "slide" : "are pushed");
+                }
             }
             (void) Boots_off();
             dropp(otmp);
