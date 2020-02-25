@@ -1456,6 +1456,12 @@ struct rm *lev;
         /* newly exposed door is closed */
         set_doorstate(lev, D_CLOSED);
     }
+    /* Secret doors use wall mode while secret in order to appear as walls,
+     * which uses the lower 3 bits of flags, overlapping with doormask. The
+     * lowest two bits are the state, which is fine because it gets overwritten
+     * here, but for the third bit D_LOCKED it's impossible to store what the
+     * door should be when exposed. So we have to just set it randomly. */
+    set_door_lock(lev, rn2(2));
 }
 
 /* find something at one location; it should find all somethings there
