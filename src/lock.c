@@ -785,11 +785,6 @@ int x, y;
         return res;
     }
 
-    if (verysmall(g.youmonst.data)) {
-        pline("You're too small to pull the door open.");
-        return res;
-    }
-
     if (!door_is_closed(door)) {
         const char *mesg = NULL;
         boolean locked = FALSE;
@@ -812,6 +807,11 @@ int x, y;
         if (locked && flags.autounlock && (unlocktool = autokey(TRUE)) != 0) {
             res = pick_lock(unlocktool, cc.x, cc.y, (struct obj *) 0);
         }
+        return res;
+    }
+
+    if (verysmall(g.youmonst.data)) {
+        pline("You're too small to pull the door open.");
         return res;
     }
 
