@@ -15,7 +15,7 @@ On top of any changes made by the NetHack devteam on 3.7, and any changes
 made in previous xNetHack versions, xNetHack 5.1 contains the following
 gameplay changes:
 
-
+Paper golems are instakilled by decay attacks.
 
 
 It contains the following non-gameplay interface changes:

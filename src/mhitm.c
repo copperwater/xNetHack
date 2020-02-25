@@ -1104,7 +1104,8 @@ register struct attack *mattk;
     case AD_DCAY:
         if (magr->mcan)
             break;
-        if (pd == &mons[PM_WOOD_GOLEM] || pd == &mons[PM_LEATHER_GOLEM]) {
+        if (pd == &mons[PM_PAPER_GOLEM] || pd == &mons[PM_WOOD_GOLEM]
+            || pd == &mons[PM_LEATHER_GOLEM]) {
             if (g.vis && canseemon(mdef))
                 pline("%s falls to pieces!", Monnam(mdef));
             mondied(mdef);

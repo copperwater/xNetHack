@@ -1527,7 +1527,8 @@ register struct attack *mattk;
         hitmsg(mtmp, mattk);
         if (mtmp->mcan)
             break;
-        if (u.umonnum == PM_WOOD_GOLEM || u.umonnum == PM_LEATHER_GOLEM) {
+        if (u.umonnum == PM_PAPER_GOLEM || u.umonnum == PM_WOOD_GOLEM
+            || u.umonnum == PM_LEATHER_GOLEM) {
             You("rot!");
             /* KMH -- this is okay with unchanging */
             Strcpy(g.killer.name, "rotted away");
