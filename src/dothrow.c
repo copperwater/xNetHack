@@ -19,12 +19,6 @@ static boolean FDECL(toss_up, (struct obj *, BOOLEAN_P));
 static void FDECL(sho_obj_return_to_u, (struct obj * obj));
 static boolean FDECL(mhurtle_step, (genericptr_t, int, int));
 
-static NEARDATA const char toss_objs[] = { ALLOW_COUNT, COIN_CLASS,
-                                           ALL_CLASSES, WEAPON_CLASS, 0 };
-/* different default choices when wielding a sling (gold must be included) */
-static NEARDATA const char bullets[] = { ALLOW_COUNT, COIN_CLASS, ALL_CLASSES,
-                                         GEM_CLASS, 0 };
-
 /* g.thrownobj (decl.c) tracks an object until it lands */
 
 static int

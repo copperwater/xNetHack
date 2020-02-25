@@ -4107,7 +4107,6 @@ struct obj *no_wish;
  wiztrap:
     if (wizard && !g.program_state.wizkit_wishing) {
         /* [inline code moved to separate routine to unclutter readobjnam] */
-        xchar doorstate = 0;
         if (locked)
             doorstate |= D_LOCKED;
         if (trapped)

@@ -24,7 +24,6 @@ static int FDECL(worn_wield_only, (struct obj *));
 static int FDECL(only_here, (struct obj *));
 static void FDECL(compactify, (char *));
 static boolean FDECL(taking_off, (const char *));
-static boolean FDECL(putting_on, (const char *));
 static int FDECL(ckvalidcat, (struct obj *));
 static int FDECL(ckunpaid, (struct obj *));
 static char *FDECL(safeq_xprname, (struct obj *));
@@ -1572,7 +1571,6 @@ boolean allow_floor;
     /* things on the floor for old-style prompts */
     if (feature && oldstyle) {
         struct trap *trap = t_at(u.ux, u.uy);
-        int sym = back_to_defsym(u.ux, u.uy, FALSE);
         char fbuf[BUFSZ];
 
         Sprintf(qbuf, "%s the %s?", upperwhat,

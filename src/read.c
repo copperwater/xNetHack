@@ -42,16 +42,8 @@ static void FDECL(p_glow1, (struct obj *));
 static void FDECL(p_glow2, (struct obj *, const char *));
 static void FDECL(flood_space, (int, int, genericptr_t));
 static void FDECL(unflood_space, (int, int, genericptr_t));
-static void FDECL(forget_single_object, (int));
-#if 0 /* not used */
-static void FDECL(forget_objclass, (int));
-#endif
-static void FDECL(randomize, (int *, int));
-static void FDECL(forget, (int));
 static int FDECL(maybe_tame, (struct monst *, struct obj *));
 static boolean FDECL(can_center_cloud, (int, int));
-static boolean FDECL(get_valid_stinking_cloud_pos, (int, int));
-static boolean FDECL(is_valid_stinking_cloud_pos, (int, int, BOOLEAN_P));
 static void FDECL(display_stinking_cloud_positions, (int));
 static void FDECL(set_lit, (int, int, genericptr));
 static void NDECL(do_class_genocide);

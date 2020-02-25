@@ -3211,7 +3211,6 @@ static int
 use_royal_jelly(obj)
 struct obj *obj;
 {
-    static const char allowall[2] = { ALL_CLASSES, 0 };
     int oldcorpsenm;
     unsigned was_timed;
     struct obj *eobj;
