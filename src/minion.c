@@ -326,7 +326,7 @@ register struct monst *mtmp;
                   Amonnam(mtmp), demand, currency(demand));
         }
         else if (canseemon(mtmp)) {
-            pline("%s seems to be demanding something.", Amonnam(mtmp));
+            pline("%s seems to be demanding your money.", Amonnam(mtmp));
         }
 
         offer = bribe(mtmp);
