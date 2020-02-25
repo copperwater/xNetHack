@@ -48,8 +48,7 @@ static boolean FDECL(spell_aim_step, (genericptr_t, int, int));
 /* The roles[] table lists the role-specific values for tuning
  * percent_success().
  *
- * Reasoning:
- *   spelbase, spelheal:
+ * Reasoning for spelbase:
  *      Arc are aware of magic through historical research
  *      Bar abhor magic (Conan finds it "interferes with his animal instincts")
  *      Cav are ignorant to magic

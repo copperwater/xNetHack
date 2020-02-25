@@ -179,13 +179,7 @@ const struct Role urole_init_data = {
     { 10, 0, 0, 8, 1, 0 }, /* Hit points */
     { 2, 0, 0, 2, 0, 3 },  /* Energy */
      0,
-    10,
-     0,
-     0,
-     4,
-    A_INT,
-     0,
-    -3
+    10
 };
 
 const struct Race urace_init_data = {

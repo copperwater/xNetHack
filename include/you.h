@@ -154,12 +154,6 @@ struct Role {
 
     /*** Spell statistics (from spell.c) ***/
     int spelbase; /* base spellcasting bonus */
-    int spelheal; /* penalty (-bonus) for healing spells */
-    int spelshld; /* penalty for wearing any shield */
-    int spelarmr; /* penalty for wearing metal armour */
-    int spelstat; /* which stat (A_) is used */
-    int spelspec; /* spell (SPE_) the class excels at */
-    int spelsbon; /* penalty (-bonus) for that spell */
 
     /*** Properties in variable-length arrays ***/
     /* intrinsics (see attrib.c) */

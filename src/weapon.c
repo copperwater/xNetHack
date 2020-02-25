@@ -1765,10 +1765,6 @@ const struct def_skill *class_skill;
             P_ADVANCE(skill) = practice_needed_to_advance(P_SKILL(skill) - 1);
         }
     }
-
-    /* each role has a special spell; allow at least basic for its type
-       (despite the function name, this works for spell skills too) */
-    unrestrict_weapon_skill(spell_skilltype(g.urole.spelspec));
 }
 
 void
