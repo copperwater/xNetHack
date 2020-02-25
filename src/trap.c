@@ -9,7 +9,6 @@ extern const char *const destroy_strings[][3]; /* from zap.c */
 
 static boolean FDECL(keep_saddle_with_steedcorpse, (unsigned, struct obj *,
                                                     struct obj *));
-static struct obj *FDECL(t_missile, (int, struct trap *));
 static char *FDECL(trapnote, (struct trap *, BOOLEAN_P));
 static int FDECL(steedintrap, (struct trap *, struct obj *));
 static void FDECL(launch_drop_spot, (struct obj *, XCHAR_P, XCHAR_P));
