@@ -2323,34 +2323,21 @@ struct obj *otmp;
         break;
     case LUMP_OF_ROYAL_JELLY: {
         /* This stuff seems to be VERY healthy! */
-        const char* rotten_jelly = "rotten lump of royal jelly";
-        gainstr(otmp, 1, TRUE);
-        if (Upolyd) {
-            u.mh += otmp->cursed ? -rnd(20) : rnd(20);
-            if (u.mh > u.mhmax) {
-                if (!rn2(17))
-                    u.mhmax++;
-                u.mh = u.mhmax;
-            } else if (u.mh <= 0) {
-                /* in case we die here */
-                Strcpy(g.killer.name, rotten_jelly);
-                g.killer.format = KILLED_BY_AN;
-                rehumanize();
-            }
-        } else {
-            u.uhp += otmp->cursed ? -rnd(20) : rnd(20);
-            if (u.uhp > u.uhpmax) {
-                if (!rn2(17))
-                    u.uhpmax++;
-                u.uhp = u.uhpmax;
-            } else if (u.uhp <= 0) {
-                g.killer.format = KILLED_BY_AN;
-                Strcpy(g.killer.name, rotten_jelly);
-                done(POISONING);
-            }
+        gainstr(otmp, 1, TRUE); /* will -1 if cursed */
+        if (otmp->cursed) {
+            losehp(rnd(20), "rotten lump of royal jelly", KILLED_BY_AN);
         }
-        if (!otmp->cursed)
+        else {
+            int *hp = Upolyd ? &u.mh : &u.uhp;
+            int *hpmax = Upolyd ? &u.mhmax : &u.uhpmax;
+            *hp += rnd(20);
+            if (*hp > *hpmax) {
+                if (!rn2(17))
+                    (*hpmax)++;
+                *hp = *hpmax;
+            }
             heal_legs(0);
+        }
         break;
     }
     case EGG:
