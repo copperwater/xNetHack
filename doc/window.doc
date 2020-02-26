@@ -303,11 +303,13 @@ display_nhwindow(window, boolean blocking)
 destroy_nhwindow(window)
 		-- Destroy will dismiss the window if the window has not
 		   already been dismissed.
-start_menu(window)
+start_menu(window, unsigned long mbehavior)
 		-- Start using window as a menu.  You must call start_menu()
 		   before add_menu().  After calling start_menu() you may not
 		   putstr() to the window.  Only windows of type NHW_MENU may
 		   be used for menus.
+		-- mbehavior allows flags to be passed to alter the appearance
+                   and/or behavior of the menu.
 add_menu(windid window, int glyph, const anything identifier,
 				char accelerator, char groupacc,
 				int attr, char *str, unsigned itemflags)
@@ -449,6 +451,7 @@ status_update(int fldindex, genericptr_t ptr, int chg, int percentage, int color
                         BL_MASK_TRAPPED      0x04000000L
                         BL_MASK_UNCONSC      0x08000000L
                         BL_MASK_WOUNDEDL     0x10000000L
+                        BL_MASK_HOLDING      0x20000000L
 		-- The value passed for BL_GOLD includes a leading
 		   symbol for GOLD "$:nnn". If the window port needs to use 
 		   the textual gold amount without the leading "$:" the port 

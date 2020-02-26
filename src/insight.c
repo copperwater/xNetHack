@@ -1,4 +1,4 @@
-/* NetHack 3.7	insight.c	$NHDT-Date: 1581362470 2020/02/10 19:21:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $ */
+/* NetHack 3.7	insight.c	$NHDT-Date: 1582321544 2020/02/21 21:45:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -275,7 +275,7 @@ int final; /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE, ENL_GAMEOVERDEAD */
     g.en_win = create_nhwindow(NHW_MENU);
     g.en_via_menu = !final;
     if (g.en_via_menu)
-        start_menu(g.en_win);
+        start_menu(g.en_win, MENU_BEHAVE_STANDARD);
 
     Strcpy(tmpbuf, g.plname);
     *tmpbuf = highc(*tmpbuf); /* same adjustment as bottom line */
@@ -937,15 +937,28 @@ int final;
         } else
             you_are(predicament, "");
     } /* (u.utrap) */
-    if (u.uswallow) {
-        Sprintf(buf, "swallowed by %s", a_monnam(u.ustuck));
+    if (u.uswallow) { /* implies u.ustuck is non-Null */
+        Sprintf(buf, "%s by %s",
+                is_animal(u.ustuck->data) ? "swallowed" : "engulfed",
+                a_monnam(u.ustuck));
+        if (dmgtype(u.ustuck->data, AD_DGST)) {
+            /* if final, death via digestion can be deduced by u.uswallow
+               still being True and u.uswldtim having been decremented to 0 */
+            if (final && !u.uswldtim)
+                Strcat(buf, " and got totally digested");
+            else
+                Sprintf(eos(buf), " and %s being digested",
+                        final ? "were" : "are");
+        }
         if (wizard)
             Sprintf(eos(buf), " (%u)", u.uswldtim);
         you_are(buf, "");
     } else if (u.ustuck) {
-        Sprintf(buf, "%s %s",
-                (Upolyd && sticks(g.youmonst.data)) ? "holding" : "held by",
-                a_monnam(u.ustuck));
+        boolean ustick = (Upolyd && sticks(g.youmonst.data));
+        int dx = u.ustuck->mx - u.ux, dy = u.ustuck->my - u.uy;
+
+        Sprintf(buf, "%s %s (%s)", ustick ? "holding" : "held by",
+                a_monnam(u.ustuck), dxdy_to_dist_descr(dx, dy, TRUE));
         you_are(buf, "");
     }
     if (Riding) {
@@ -967,7 +980,12 @@ int final;
                 enl_msg(buf, " has", " had", " wounded legs", "");
             }
         } else {
-            Sprintf(buf, "wounded %s", makeplural(body_part(LEG)));
+            long wl = (EWounded_legs & BOTH_SIDES);
+            const char *bp = body_part(LEG), *article = "a ";
+
+            if (wl == BOTH_SIDES)
+                bp = makeplural(bp), article = "";
+            Sprintf(buf, "%swounded %s", article, bp);
             you_have(buf, "");
         }
     }
@@ -2062,7 +2080,7 @@ set_vanq_order()
     int i, n, choice;
 
     tmpwin = create_nhwindow(NHW_MENU);
-    start_menu(tmpwin);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     any = cg.zeroany; /* zero out all bits */
     for (i = 0; i < SIZE(vanqorders); i++) {
         if (i == VANQ_ALPHA_MIX || i == VANQ_MCLS_HTOL) /* skip these */

@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.102 $ $NHDT-Date: 1581810078 2020/02/15 23:41:18 $
+$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.107 $ $NHDT-Date: 1582364458 2020/02/22 09:40:58 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -57,6 +57,8 @@ give feedback if controlled level teleport attempt fails because hero is
 	already on the bottom level and player tries to go even deeper
 unseen pet that drowned didn't give "you have a sad feeling" message
 prevent ravens from blinding other ravens: /corvus oculum corvi non eruit/
+have ^X provide more information when held or swallowed
+avoid divide by 0 crash if 'bogusmon' (file of bogus monster types) is empty
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -160,6 +162,9 @@ new glyph GLYPH_NOTHING was added so !dark_room has something to be set to
 	now that stone could be mapped to an entirely different symbol
 added several new status conditions all of which are opt-in except
 	the new cond_grab and cond_lava which are opt-out
+tipping your cap might get a response
+special levels can be flipped horizontally and/or vertically
+new special level initialization routine, "swamp"
 
 
 Platform- and/or Interface-Specific New Features
@@ -195,10 +200,14 @@ correct the Guidebook descriptions for msdos video_width and video_height to
 	state that they work with video:vesa; the video:vga setting that was 
 	described there forces the 640x480x16 mode where video_width and
 	video_height don't operate (github #294)
+redo rndmonst() to operate in a single pass (github pull request #286)
 
 
 Code Cleanup and Reorganization
 -------------------------------
+new core file insight.c - move enlightenment and conduct from cmd.c to it,
+	also move vanquished, genocided, and extinct monsters from end.c,
+	and move one-line stethoscope/probing feedback from priest.c
 move majority of global variables into instance_globals struct g
 move zeroobj, zeromonst, zeroany into const_globals struct cg
 remove STATIC_DCL, STATIC_OVL, STATIC_VAR, STATIC_PTR
@@ -207,6 +216,7 @@ more current Qt for Qt version 4 and 5 moved from win/Qt4 to win/Qt; qt4
 	moniker changed to qt_
 window-port-interface: add_menu() modified to take a more general itemflags
 	parameter to support uses beyond just 'preselected'
+window-port-interface: start_menu() modified to take a new mbehavior parameter
 add some bounds checking to tabexpand (doesn't prevent the apparent compiler
 	optimization bug that put homebrew OSX executable into endless loop)
 unified breamm and breamu

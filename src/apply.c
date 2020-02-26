@@ -1,4 +1,4 @@
-/* NetHack 3.6	apply.c	$NHDT-Date: 1581886857 2020/02/16 21:00:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.317 $ */
+/* NetHack 3.6	apply.c	$NHDT-Date: 1582155875 2020/02/19 23:44:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.318 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1747,18 +1747,7 @@ int magic; /* 0=Physical, otherwise skill level */
         You("lack the strength to jump!");
         return 0;
     } else if (!magic && Wounded_legs) {
-        long wl = (Wounded_legs & BOTH_SIDES);
-        const char *bp = body_part(LEG);
-
-        if (wl == BOTH_SIDES)
-            bp = makeplural(bp);
-        if (u.usteed)
-            pline("%s is in no shape for jumping.", Monnam(u.usteed));
-        else
-            Your("%s%s %s in no shape for jumping.",
-                 (wl == LEFT_SIDE) ? "left " : (wl == RIGHT_SIDE) ? "right "
-                                                                  : "",
-                 bp, (wl == BOTH_SIDES) ? "are" : "is");
+        legs_in_no_shape("jumping", u.usteed != 0);
         return 0;
     } else if (u.usteed && u.utrap) {
         pline("%s is stuck in a trap.", Monnam(u.usteed));
@@ -3270,7 +3259,7 @@ struct obj *obj;
 
         any = cg.zeroany; /* set all bits to zero */
         any.a_int = 1; /* use index+1 (cant use 0) as identifier */
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any.a_int++;
         Sprintf(buf, "an object on the %s", surface(cc.x, cc.y));
         add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE, buf,

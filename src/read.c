@@ -2132,7 +2132,6 @@ do_class_genocide()
                             livelog_printf(LL_GENOCIDE, "genocided class %c", def_monsyms[class].sym);
                     }
                     g.mvitals[i].mvflags |= (G_GENOD | G_NOCORPSE);
-                    reset_rndmonst(i);
                     kill_genocided_monsters();
                     update_inventory(); /* eggs & tins */
                     pline("Wiped out all %s.", nam);
@@ -2355,7 +2354,6 @@ int how;
         } else if (ptr == g.youmonst.data) {
             rehumanize();
         }
-        reset_rndmonst(mndx);
         kill_genocided_monsters();
         update_inventory(); /* in case identified eggs were affected */
     } else {

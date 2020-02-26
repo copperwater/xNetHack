@@ -1,4 +1,4 @@
-/* NetHack 3.6	do.c	$NHDT-Date: 1581886859 2020/02/16 21:00:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.227 $ */
+/* NetHack 3.6	do.c	$NHDT-Date: 1582155879 2020/02/19 23:44:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.228 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1053,7 +1053,8 @@ dodown()
 
     if (trap) {
         const char *down_or_thru = trap->ttyp == HOLE ? "down" : "through";
-        const char *actn = Flying ? "fly" : locomotion(g.youmonst.data, "jump");
+        const char *actn = Flying ? "fly"
+                                  : locomotion(g.youmonst.data, "jump");
 
         if (g.youmonst.data->msize >= MZ_HUGE) {
             char qbuf[QBUFSZ];
@@ -1461,7 +1462,6 @@ boolean at_stairs, falling, portal;
             || dunlev(&u.uz) < dunlev_reached(&u.uz))
             dunlev_reached(&u.uz) = dunlev(&u.uz);
     }
-    reset_rndmonst(NON_PM); /* u.uz change affects monster generation */
 
     /* set default level change destination areas */
     /* the special level code may override these */
@@ -2015,6 +2015,26 @@ dowipe()
     }
     Your("%s is already clean.", body_part(FACE));
     return 1;
+}
+
+/* common wounded legs feedback */
+void
+legs_in_no_shape(for_what, by_steed)
+const char *for_what; /* jumping, kicking, riding */
+boolean by_steed;
+{
+    if (by_steed && u.usteed) {
+        pline("%s is in no shape for %s.", Monnam(u.usteed), for_what);
+    } else {
+        long wl = (EWounded_legs & BOTH_SIDES);
+        const char *bp = body_part(LEG);
+
+        if (wl == BOTH_SIDES)
+            bp = makeplural(bp);
+        Your("%s%s %s in no shape for %s.",
+             (wl == LEFT_SIDE) ? "left " : (wl == RIGHT_SIDE) ? "right " : "",
+             bp, (wl == BOTH_SIDES) ? "are" : "is", for_what);
+    }
 }
 
 void
