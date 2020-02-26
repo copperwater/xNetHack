@@ -1267,8 +1267,10 @@ struct mkroom *croom;
     else
         class = 0;
 
-    if (class == MAXMCLASSES)
-        panic("create_monster: unknown monster class '%c'", m->class);
+    if (class == MAXMCLASSES) {
+        impossible("create_monster: unknown monster class '%c'", m->class);
+        return;
+    }
 
     amask = (m->align == AM_SPLEV_CO)
                ? Align2amask(u.ualignbase[A_ORIGINAL])
