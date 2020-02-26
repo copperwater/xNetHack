@@ -41,8 +41,6 @@ des.object("touchstone", stone[1])
 local eelplace = { {19,7},{56,5},{59,18} }
 shuffle(eelplace)
 des.monster("giant eel", eelplace[0])
--- Submerged wand of cold under the eel
-des.object({ class="/", id = "cold", coord = eelplace[0] })
 
 -- Random monsters
 des.monster("sewer rat")
@@ -119,6 +117,8 @@ des.object("blank paper")
 des.object("blank paper")
 -- these should be rotted, but the special level parser doesn't let you specify erosion
 des.object("high boots")
+-- this may be helpful in crossing water
+des.object({ class="/", id = "cold" })
 -- one of each soft gemstone
 des.object("chrysoberyl")
 des.object("amethyst")
