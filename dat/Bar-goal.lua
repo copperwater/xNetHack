@@ -97,7 +97,7 @@ for i=1,3 do
 end
 
 -- Ominous candles on the ground to see their approach
-local candleline = selection.line(29,00, 29,19)
+local candleline = selection.area(26,00, 30,19)
 for i=1,1 + d(5) do
   des.object({ id = "tallow candle", coord = { candleline:rndcoord(1) }, lit = 1 })
 end
