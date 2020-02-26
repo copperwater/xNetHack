@@ -1788,10 +1788,15 @@ register struct obj *obj; /* g.thrownobj or g.kickedobj or uwep */
                 boolean broken = FALSE;
                 int chance = (P_SKILL(weapon_type(obj))
                               * P_MAX_SKILL(weapon_type(obj)) * 2);
+                if (chance < 2) {
+                    /* must be restricted; even currently unskilled with ability
+                     * to advance to basic gives 1 * 2 * 2 = 4 */
+                    chance = 2; /* base 50% chance of breakage */
+                }
                 schar speadjust = obj->spe
                                   + (obj->blessed * 2)
                                   - (obj->cursed * 2);
-                if ((chance == 0 && rn2(2)) || !rn2(chance)) {
+                if (!rn2(chance)) {
                     /* Object will break unless positive enchantment saves it. */
                     broken = (speadjust <= 0) || !rn2(1 + speadjust);
                 } else {
