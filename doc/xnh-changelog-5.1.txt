@@ -18,6 +18,7 @@ gameplay changes:
 Paper golems are instakilled by decay attacks.
 The Gnomish Sewer's wand of cold is now randomly placed (rather than being
   submerged).
+The Ranger home level is now a regular floor instead of all grass.
 
 
 It contains the following non-gameplay interface changes:

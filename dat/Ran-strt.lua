@@ -9,39 +9,39 @@
 --	Here you meet your (besieged) class leader, Orion,
 --	and receive your quest assignment.
 --
-des.level_init({ style = "solidfill", fg = "g" });
+des.level_init({ style = "solidfill", fg = "." });
 
 des.level_flags("mazelevel");
 
 des.level_flags("noteleport", "hardfloor", "outdoors")
 des.map({ halign = "left", map = [[
-TTTTT,,TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT,TT,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,,
-TTTT,,,,TTTTTTTT,,TTT,,,,,,,,,TT,,,,,,TTTT,T,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,,
-TTT,,TTTTTT,,TTTT,,T,,TT,,,TT,,,,TTT,,,,TT,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,
-T,TT,,,,TTT,,,,TTT,,,TT,,,,,,,TT,TT,,,,,TTTT,,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,
-TT,,,TT,,,,,TT,,TT,,TTT,,TT,,TTT,,,,,,,TTTT,,,,,,,,,,,,,},},,,,,,,,,,,,,,,,,
-TTT,,TTTT,T,,,,,,,,,,,,,TTTT,,,,,,T,,,TTTTT,,,,,,,,,,,,,},},,,,,,,,,,,,,,,,,
-TT,,,,TT,,TTTTTT,,,,,,,,TTT,,,,,TT,,,,,,TTTT,,,,,,,,,,,,,},,,,,,,,,,,,,,,,,,
-T,,TT,,T,,,TTTT,,TTT,,,TTT,,,,TTTTT,,,,,,TTT,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,,
-T,,TT,,T,TTTTTTFFTTTFFFTTTFFTTTTTTTTT,,,,,TT,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,
-TT,TTTTTTTT,,,,,,,,,,,,,,,,,,,TTT,TTTT,,,,,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,
-TT,,,,,TTT,,,,,,,,,,,,,,,,,,,,,,,,TTTTTT,,TT,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,,
-TT,,TTTTTTT,,,,,,,,,,,,,,,,,,,TT,,,TTTTTTTTT,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,
-TTT,,,TTTTTTTTTFFTTTFFFTTTFFTTTT,,,,TTT,,,TT,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,
-TTTT,,,,TTTTTTT,,TTTT,,,TT,,,TTT,,,,,TT,,,TT,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,
-TTT,,,,,,,,,,T,,,TTT,,,,T,,T,,T,,,T,,,TT,,T,,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,
-TT,,,TT,,TTT,,,T,,T,,T,,,,,TT,,,TTTT,,TT,TT,,,,,,,,,,,,,,,,,},,,,,,,,,,,,,,,
-TT,,TTTTTTTT,TTTT,,,,TT,,,TTT,,,,TTTT,,,,TTT,,,,,,,,,,,,,,,},},,,,,,,,,,,,,,
-TT,,,,,TTT,,TTTT,,,,,TTTTTTT,,,,,,,T,,,,TT,T,,,,,,,,,,,,,,},,,}},,,,,,,,,,,,
-TTT,,,,,TT,,TTTT,,TT,,,,TT,,,,TT,,,,,,TTTTT,,,,,,,,,,,,,,,},,,,,}},,,,,,,,,,
-TTTTTT,,TTTTTTTTTTTTTT,,,,,,TTTTT,,,TTTTT,T,,,,,,,,,,,,,,},,,,,,,,}}},,,,,,,
-TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT,,T,,,,,,,,,,,,},,,,,,,,,,,,},,,,,,
+TTTTT..TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT.TT............}...................
+TTTT....TTTTTTTT..TTT.........TT......TTTT.T............}...................
+TTT..TTTTTT..TTTT..T..TT...TT....TTT....TT...............}..................
+T.TT....TTT....TTT...TT.......TT.TT.....TTTT.............}..................
+TT...TT.....TT..TT..TTT..TT..TTT.......TTTT.............}.}.................
+TTT..TTTT.T.............TTTT......T...TTTTT.............}.}.................
+TT....TT..TTTTTT........TTT.....TT......TTTT.............}..................
+T..TT..T...TTTT..TTT...TTT....TTTTT......TTT..............}.................
+T..TT..T.TTTTTTFFTTTFFFTTTFFTTTTTTTTT.....TT...............}................
+TT.TTTTTTTT...................TTT.TTTT.....................}................
+TT.....TTT........................TTTTTT..TT...............}................
+TT..TTTTTTT...................TT...TTTTTTTTT................}...............
+TTT...TTTTTTTTTFFTTTFFFTTTFFTTTT....TTT...TT.................}..............
+TTTT....TTTTTTT..TTTT...TT...TTT.....TT...TT.................}..............
+TTT..........T...TTT....T..T..T...T...TT..T..................}..............
+TT...TT..TTT...T..T..T.....TT...TTTT..TT.TT.................}...............
+TT..TTTTTTTT.TTTT....TT...TTT....TTTT....TTT...............}.}..............
+TT.....TTT..TTTT.....TTTTTTT.......T....TT.T..............}...}}............
+TTT.....TT..TTTT..TT....TT....TT......TTTTT...............}.....}}..........
+TTTTTT..TTTTTTTTTTTTTT......TTTTT...TTTTT.T..............}........}}}.......
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT..T............}............}......
 ]] })
 des.region(selection.area(00,00,77,21), "lit")
-des.replace_terrain({ region = {43,00,47,21}, fromterrain="g", toterrain="T", chance=30 })
-des.replace_terrain({ region = {43,00,47,21}, fromterrain="g", toterrain="T", chance=30 })
-des.replace_terrain({ region = {48,00,52,20}, fromterrain="g", toterrain="T", chance=15 })
-des.replace_terrain({ region = {53,00,77,20}, fromterrain="g", toterrain="T", chance=4 })
+des.replace_terrain({ region = {43,00,47,21}, fromterrain=".", toterrain="T", chance=30 })
+des.replace_terrain({ region = {43,00,47,21}, fromterrain=".", toterrain="T", chance=30 })
+des.replace_terrain({ region = {48,00,52,20}, fromterrain=".", toterrain="T", chance=15 })
+des.replace_terrain({ region = {53,00,77,20}, fromterrain=".", toterrain="T", chance=4 })
 
 -- Stairs
 local rightedge = selection.line(77,00, 77,21)
@@ -49,13 +49,27 @@ local dnstair = { rightedge:rndcoord() }
 des.stair({ dir = "down", coord = dnstair })
 
 -- Guarantee a treeless path from the stair to the forest entry
-des.terrain({ selection = selection.randline(77, dnstair[2], 43,09, 6), typ="g", lit=1 })
+des.terrain({ selection = selection.randline(77, dnstair[2], 43,09, 6), typ=".", lit=1 })
 
 -- Portal arrival point; just about anywhere on the right hand side of the map
 des.levregion({ region = {51,2,77,18}, exclude = {0,0,40,20}, region_islev = 1, type="branch" })
 
 -- Altar (entry text says there's one here)
 des.altar({ x=11, y=10, align="coaligned", type="altar" })
+
+-- -- Random grass patches 
+-- local grass = selection.new()
+-- local everything = selection.area(00, 00, 77, 21)
+-- for i=1,d(4,3) do
+--    local cx, cy = everything:rndcoord()
+--    local newpatch = selection.circle(cx, cy, 3)
+--    while percent(50) do
+--       newpatch:grow("random")
+--    end
+--    grass = grass | newpatch
+-- end
+-- -- TODO: Vanilla needs to implement replace_terrain with a selection.
+-- -- des.replace_terrain(
 
 -- Orion and his faithful dog
 des.monster("Orion", 20, 10)
