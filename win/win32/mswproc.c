@@ -405,7 +405,7 @@ prompt_for_player_selection(void)
             /* tty_putstr(BASE_WINDOW, 0, "Choosing Character's Role"); */
             /* Prompt for a role */
             win = create_nhwindow(NHW_MENU);
-            start_menu(win);
+            start_menu(win, MENU_BEHAVE_STANDARD);
             any = cg.zeroany; /* zero out all bits */
             for (i = 0; roles[i].name.m; i++) {
                 if (ok_role(i, flags.initrace, flags.initgend,
@@ -497,7 +497,7 @@ prompt_for_player_selection(void)
                 /* tty_clear_nhwindow(BASE_WINDOW); */
                 /* tty_putstr(BASE_WINDOW, 0, "Choosing Race"); */
                 win = create_nhwindow(NHW_MENU);
-                start_menu(win);
+                start_menu(win, MENU_BEHAVE_STANDARD);
                 any = cg.zeroany; /* zero out all bits */
                 for (i = 0; races[i].noun; i++)
                     if (ok_race(flags.initrole, i, flags.initgend,
@@ -571,7 +571,7 @@ prompt_for_player_selection(void)
                 /* tty_clear_nhwindow(BASE_WINDOW); */
                 /* tty_putstr(BASE_WINDOW, 0, "Choosing Gender"); */
                 win = create_nhwindow(NHW_MENU);
-                start_menu(win);
+                start_menu(win, MENU_BEHAVE_STANDARD);
                 any = cg.zeroany; /* zero out all bits */
                 for (i = 0; i < ROLE_GENDERS; i++)
                     if (ok_gend(flags.initrole, flags.initrace, i,
@@ -644,7 +644,7 @@ prompt_for_player_selection(void)
                 /* tty_clear_nhwindow(BASE_WINDOW); */
                 /* tty_putstr(BASE_WINDOW, 0, "Choosing Alignment"); */
                 win = create_nhwindow(NHW_MENU);
-                start_menu(win);
+                start_menu(win, MENU_BEHAVE_STANDARD);
                 any = cg.zeroany; /* zero out all bits */
                 for (i = 0; i < ROLE_ALIGNS; i++)
                     if (ok_align(flags.initrole, flags.initrace,
@@ -1074,9 +1074,9 @@ mswin_display_file(const char *filename, BOOLEAN_P must_exist)
    be used for menus.
 */
 void
-mswin_start_menu(winid wid)
+mswin_start_menu(winid wid, unsigned long mbehavior)
 {
-    logDebug("mswin_start_menu(%d)\n", wid);
+    logDebug("mswin_start_menu(%d, %lu)\n", wid, mbehavior);
     if ((wid >= 0) && (wid < MAXWINDOWS)) {
         if (GetNHApp()->windowlist[wid].win == NULL
             && GetNHApp()->windowlist[wid].type == NHW_MENU) {
@@ -2798,25 +2798,41 @@ NHMessageBox(HWND hWnd, LPCTSTR text, UINT type)
 
 static mswin_status_lines _status_lines;
 static mswin_status_string _status_strings[MAXBLSTATS];
-static mswin_status_string _condition_strings[BL_MASK_BITS];
+static mswin_status_string _condition_strings[CONDITION_COUNT];
 static mswin_status_field _status_fields[MAXBLSTATS];
 
-static mswin_condition_field _condition_fields[BL_MASK_BITS] = {
-    { BL_MASK_STONE, "Stone" },
-    { BL_MASK_SLIME, "Slime" },
-    { BL_MASK_STRNGL, "Strngl" },
-    { BL_MASK_FOODPOIS, "FoodPois" },
-    { BL_MASK_TERMILL, "TermIll" },
-    { BL_MASK_BLIND, "Blind" },
-    { BL_MASK_DEAF, "Deaf" },
-    { BL_MASK_STUN, "Stun" },
-    { BL_MASK_CONF, "Conf" },
-    { BL_MASK_HALLU, "Hallu" },
-    { BL_MASK_LEV, "Lev" },
-    { BL_MASK_FLY, "Fly" },
-    { BL_MASK_RIDE, "Ride" }
+static mswin_condition_field _condition_fields[CONDITION_COUNT] = {
+    { BL_MASK_BAREH,     "Bare" },
+    { BL_MASK_BLIND,     "Blind" },
+    { BL_MASK_BUSY,      "Busy" },
+    { BL_MASK_CONF,      "Conf" },
+    { BL_MASK_DEAF,      "Deaf" },
+    { BL_MASK_ELF_IRON,  "Iron" },
+    { BL_MASK_FLY,       "Fly" },
+    { BL_MASK_FOODPOIS,  "FoodPois" },
+    { BL_MASK_GLOWHANDS, "Glow" },
+    { BL_MASK_GRAB,      "Grab" },
+    { BL_MASK_HALLU,     "Hallu" },
+    { BL_MASK_HELD,      "Held" },
+    { BL_MASK_ICY,       "Icy" },
+    { BL_MASK_INLAVA,    "Lava" },
+    { BL_MASK_LEV,       "Lev" },
+    { BL_MASK_PARLYZ,    "Parlyz" },
+    { BL_MASK_RIDE,      "Ride" },
+    { BL_MASK_SLEEPING,  "Zzz" },
+    { BL_MASK_SLIME,     "Slime" },
+    { BL_MASK_SLIPPERY,  "Slip" },
+    { BL_MASK_STONE,     "Stone" },
+    { BL_MASK_STRNGL,    "Strngl" },
+    { BL_MASK_STUN,      "Stun" },
+    { BL_MASK_SUBMERGED, "Sub" },
+    { BL_MASK_TERMILL,   "TermIll" },
+    { BL_MASK_TETHERED,  "Teth" },
+    { BL_MASK_TRAPPED,   "Trap" },
+    { BL_MASK_UNCONSC,   "Out" },
+    { BL_MASK_WOUNDEDL,  "Legs" },
+    { BL_MASK_HOLDING,   "Uhold" },
 };
-
 
 extern winid WIN_STATUS;
 
@@ -2839,6 +2855,7 @@ void
 mswin_status_init(void)
 {
     logDebug("mswin_status_init()\n");
+    int ci;
 
     for (int i = 0; i < SIZE(_status_fields); i++) {
         mswin_status_field * status_field = &_status_fields[i];
@@ -2847,9 +2864,10 @@ mswin_status_init(void)
     }
 
     for (int i = 0; i < SIZE(_condition_fields); i++) {
-        mswin_condition_field * condition_field = &_condition_fields[i];
-        nhassert(condition_field->mask == (1 << i));
-        condition_field->bit_position = i;
+        ci = cond_idx[i];
+        mswin_condition_field * condition_field = &_condition_fields[ci];
+        nhassert(condition_field->mask == (1 << ci));
+        condition_field->bit_position = ci;
     }
 
     for (int i = 0; i < SIZE(_status_strings); i++) {
@@ -2858,7 +2876,8 @@ mswin_status_init(void)
     }
 
     for (int i = 0; i < SIZE(_condition_strings); i++) {
-        mswin_status_string * status_string = &_condition_strings[i];
+        ci = cond_idx[i];
+        mswin_status_string * status_string = &_condition_strings[ci];
         status_string->str = NULL;
     }
 
@@ -2883,10 +2902,11 @@ mswin_status_init(void)
                 &_status_strings[field_index];
 
             if (field_index == BL_CONDITION) {
-                for (int j = 0; j < BL_MASK_BITS; j++) {
+                for (int j = 0; j < CONDITION_COUNT; j++) {
+                    ci = cond_idx[j];
                     nhassert(status_strings->count <= SIZE(status_strings->status_strings));
                     status_strings->status_strings[status_strings->count++] =
-                        &_condition_strings[j];
+                        &_condition_strings[ci];
                 }
             }
         }
@@ -3043,7 +3063,7 @@ mswin_status_update(int idx, genericptr_t ptr, int chg, int percent, int color, 
     long cond, *condptr = (long *) ptr;
     char *text = (char *) ptr;
     MSNHMsgUpdateStatus update_cmd_data;
-    int ocolor, ochar;
+    int ocolor, ochar, ci;
     unsigned ospecial;
 
     logDebug("mswin_status_update(%d, %p, %d, %d, %x, %p)\n", idx, ptr, chg, percent, color, condmasks);
@@ -3067,14 +3087,16 @@ mswin_status_update(int idx, genericptr_t ptr, int chg, int percent, int color, 
 
         switch (idx) {
         case BL_CONDITION: {
-            mswin_condition_field * condition_field = _condition_fields;
+            mswin_condition_field * condition_field;
 
             nhassert(status_string->str == NULL);
 
             cond = *condptr;
 
-            for (int i = 0; i < BL_MASK_BITS; i++, condition_field++) {
-                status_string = &_condition_strings[i];
+            for (int i = 0; i < CONDITION_COUNT; i++) {
+                ci = cond_idx[i];
+                condition_field = &_condition_fields[ci];
+                status_string = &_condition_strings[ci];
 
                 if (condition_field->mask & cond) {
                     status_string->str = condition_field->name;

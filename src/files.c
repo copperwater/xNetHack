@@ -1211,12 +1211,7 @@ create_savefile()
         nhfp->fieldlevel = FALSE;
         nhfp->ftype = NHF_SAVEFILE;
         nhfp->mode = WRITING;
-#ifdef SYSCF
-        if (sysopt.saveformat[0] > historical &&
-            sysopt.saveformat[0] <= ascii)
-            do_historical = FALSE;
-#endif /* SYSCF */
-        if (g.program_state.in_self_recover) {
+        if (g.program_state.in_self_recover || do_historical) {
             do_historical = TRUE;       /* force it */
             nhfp->structlevel = TRUE;
             nhfp->fieldlevel = FALSE;
@@ -1272,7 +1267,7 @@ open_savefile()
         nhfp->fieldlevel = FALSE;
         nhfp->ftype = NHF_SAVEFILE;
         nhfp->mode = READING;
-        if (g.program_state.in_self_recover) {
+        if (g.program_state.in_self_recover || do_historical) {
             do_historical = TRUE;       /* force it */
             nhfp->structlevel = TRUE;
             nhfp->fieldlevel = FALSE;
@@ -3530,6 +3525,7 @@ int which_set;
     g.symset[which_set].explicitly = TRUE;
     g.chosen_symset_start = g.chosen_symset_end = FALSE;
     g.symset_which_set = which_set;
+    g.symset_count = 0;
 
     config_error_init(TRUE, "symbols", FALSE);
 
@@ -3647,6 +3643,7 @@ int which_set;
                     g.symset_list = tmpsp;
                 else
                     lastsp->next = tmpsp;
+                tmpsp->idx = g.symset_count++;
                 tmpsp->name = dupstr(bufp);
                 tmpsp->desc = (char *) 0;
                 tmpsp->handling = H_UNK;

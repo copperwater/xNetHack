@@ -1,4 +1,4 @@
-/* NetHack 3.6  decl.h  $NHDT-Date: 1573869061 2019/11/16 01:51:01 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.165 $ */
+/* NetHack 3.6  decl.h  $NHDT-Date: 1580600478 2020/02/01 23:41:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.221 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2007. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -213,6 +213,9 @@ E NEARDATA struct obj *uarm, *uarmc, *uarmh, *uarms, *uarmg, *uarmf,
 
 E NEARDATA struct obj *uchain; /* defined only when punished */
 E NEARDATA struct obj *uball;
+
+#include "engrave.h"
+E struct engr *head_engr;
 
 #include "you.h"
 E NEARDATA struct you u;
@@ -677,6 +680,7 @@ struct instance_globals {
 #endif
     unsigned long cond_hilites[BL_ATTCLR_MAX];
     int now_or_before_idx;   /* 0..1 for array[2][] first index */
+    int condmenu_sortorder;
 
     /* cmd.c */
     struct cmd Cmd; /* flag.h */
@@ -898,17 +902,18 @@ struct instance_globals {
     boolean chosen_symset_end;
     int symset_which_set;
     /* SAVESIZE, BONESSIZE, LOCKNAMESIZE are defined in "fnamesiz.h" */
-    char SAVEF[SAVESIZE]; /* holds relative path of save file from playground */
+    char SAVEF[SAVESIZE]; /* relative path of save file from playground */
 #ifdef MICRO
     char SAVEP[SAVESIZE]; /* holds path of directory for save file */
 #endif
     char bones[BONESSIZE];
     char lock[LOCKNAMESIZE];
 
-
     /* hack.c */
     anything tmp_anything;
     int wc; /* current weight_cap(); valid after call to inv_weight() */
+
+    /* insight.c */
 
     /* invent.c */
     int lastinvnr;  /* 0 ... 51 (never saved&restored) */
@@ -917,7 +922,7 @@ struct instance_globals {
     char *invbuf;
     unsigned invbufsiz;
     /* for perm_invent when operating on a partial inventory display, so that
-       the persistent one doesn't get shrunk during filtering for item selection
+       persistent one doesn't get shrunk during filtering for item selection
        then regrown to full inventory, possibly being resized in the process */
     winid cached_pickinv_win;
     /* query objlist callback: return TRUE if obj type matches "this_type" */
@@ -928,15 +933,10 @@ struct instance_globals {
     /* light.c */
     light_source *light_base;
 
-
     /* lock.c */
     struct xlock_s xlock;
 
     /* makemon.c */
-    struct {
-        int choice_count;
-        char mchoices[SPECIAL_PM]; /* value range is 0..127 */
-    } rndmonst_state;
 
     /* mhitm.c */
     boolean vis;
@@ -1126,27 +1126,19 @@ struct instance_globals {
     /* auto-response flag for/from "sell foo?" 'a' => 'y', 'q' => 'n' */
     char sell_response;
     int sell_how;
-    /* can't just use sell_response='y' for auto_credit because the 'a' response
+    /* can't just use sell_response='y' for auto_credit because 'a' response
        shouldn't carry over from ordinary selling to credit selling */
     boolean auto_credit;
     struct repo repo;
-   long int followmsg; /* last time of follow message */
-
+    long int followmsg; /* last time of follow message */
 
     /* sp_lev.c */
     char *lev_message;
     lev_region *lregions;
     int num_lregions;
-    /* positions touched by level elements explicitly defined in des-file */
-    char SpLev_Map[COLNO][ROWNO];
     struct sp_coder *coder;
     xchar xstart, ystart;
-    char xsize, ysize;
-    boolean splev_init_present;
-    boolean icedpools;
-    struct obj *container_obj[MAX_CONTAINMENT];
-    int container_idx;
-    struct monst *invent_carrying_monster;
+    xchar xsize, ysize;
 
     /* spells.c */
     int spl_sortmode;   /* index into spl_sortchoices[] */

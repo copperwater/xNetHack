@@ -49,7 +49,8 @@ enum lvlinit_types {
     LVLINIT_SOLIDFILL,
     LVLINIT_MAZEGRID,
     LVLINIT_MINES,
-    LVLINIT_ROGUE
+    LVLINIT_ROGUE,
+    LVLINIT_SWAMP
 };
 
 /* max. nested depth of subrooms */
@@ -96,6 +97,7 @@ struct sp_coder {
     int n_subroom;
     int lvl_is_joined;
     boolean check_inaccessibles;
+    int allow_flips;
 };
 
 /*

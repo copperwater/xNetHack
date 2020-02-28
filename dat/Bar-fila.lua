@@ -1,7 +1,7 @@
 -- NetHack 3.6	Barb.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
 -- NetHack may be freely redistributed.  See license for details.
 --
-des.level_flags("mazelevel","outdoors","hardfloor","inaccessibles");
+des.level_flags("mazelevel", "outdoors", "hardfloor", "inaccessibles", "noflip");
 
 des.level_init({ style = "solidfill", fg = ".", lit=1 });
 

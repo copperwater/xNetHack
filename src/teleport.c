@@ -1,4 +1,4 @@
-/* NetHack 3.6	teleport.c	$NHDT-Date: 1576288434 2019/12/14 01:53:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.106 $ */
+/* NetHack 3.6	teleport.c	$NHDT-Date: 1581886867 2020/02/16 21:01:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.113 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -320,7 +320,7 @@ int teleds_flags;
         }
     }
     reset_utrap(FALSE);
-    u.ustuck = 0;
+    set_ustuck((struct monst *) 0);
     u.ux0 = u.ux;
     u.uy0 = u.uy;
 
@@ -601,7 +601,7 @@ dotelecmd()
         int i, tmode;
 
         win = create_nhwindow(NHW_MENU);
-        start_menu(win);
+        start_menu(win, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         for (i = 0; i < SIZE(tports); ++i) {
             any.a_int = (int) tports[i].menulet;
@@ -792,6 +792,7 @@ boolean break_the_rules; /* True: wizard mode ^T */
 void
 level_tele()
 {
+    static const char get_there_from[] = "get there from %s.";
     register int newlev;
     d_level newlevel;
     const char *escape_by_flying = 0; /* when surviving dest of -N */
@@ -907,7 +908,7 @@ level_tele()
          * status line, and consequently it should be incremented to
          * the value of the logical depth of the target level.
          *
-         * we let negative values requests fall into the "heaven" loop.
+         * we let negative values requests fall into the "heaven" handling.
          */
         if (In_quest(&u.uz) && newlev > 0)
             newlev = newlev + g.dungeons[u.uz.dnum].depth_start - 1;
@@ -931,7 +932,7 @@ level_tele()
         int llimit = dunlevs_in_dungeon(&u.uz);
 
         if (newlev >= 0 || newlev <= -llimit) {
-            You_cant("get there from here.");
+            You_cant(get_there_from, "here");
             return;
         }
         newlevel.dnum = u.uz.dnum;
@@ -1002,25 +1003,34 @@ level_tele()
          * This doesn't give an answer to that, but at least it states that
          * there's some reason that you can't. */
         pline("But mortals cannot enter the Mazes of Menace more than once...");
-        newlevel.dnum = 0;   /* specify main dungeon */
-        newlevel.dlevel = 0; /* escape the dungeon */
         /* [dlevel used to be set to 1, but it doesn't make sense to
             teleport out of the dungeon and float or fly down to the
             surface but then actually arrive back inside the dungeon] */
+        newlevel.dnum = 0;   /* specify main dungeon */
+        newlevel.dlevel = 0; /* escape the dungeon */
+    } else if (force_dest) {
+        /* wizard mode menu; no further validation needed */
+        ;
     } else if (u.uz.dnum == medusa_level.dnum
                && newlev >= g.dungeons[u.uz.dnum].depth_start
                                 + dunlevs_in_dungeon(&u.uz)) {
-        if (!(wizard && force_dest))
-            find_hell(&newlevel);
+        find_hell(&newlevel);
     } else {
+        /* FIXME: we should avoid using hard-coded knowledge of
+           which branches don't connect to anything deeper;
+           mainly used to distinguish "can't get there from here"
+           vs "from anywhere" rather than to control destination */
+        d_level *branch = In_quest(&u.uz) ? &qstart_level
+                          : In_mines(&u.uz) ? &mineend_level
+                            : &sanctum_level;
+        int deepest = g.dungeons[branch->dnum].depth_start
+                      + dunlevs_in_dungeon(branch) - 1;
+
         /* if invocation did not yet occur, teleporting into
          * the last level of Gehennom is forbidden.
          */
-        if (!wizard && Inhell && !u.uevent.invoked
-            && newlev >= (g.dungeons[u.uz.dnum].depth_start
-                          + dunlevs_in_dungeon(&u.uz) - 1)) {
-            newlev = g.dungeons[u.uz.dnum].depth_start
-                     + dunlevs_in_dungeon(&u.uz) - 2;
+        if (!wizard && Inhell && !u.uevent.invoked && newlev >= deepest) {
+            newlev = deepest - 1;
             pline("Sorry...");
         }
         /* no teleporting out of quest dungeon */
@@ -1030,18 +1040,23 @@ level_tele()
          * we must translate newlev to a number relative to the
          * current dungeon.
          */
-        if (!(wizard && force_dest))
-            get_level(&newlevel, newlev);
-    }
-    if (newlevel.dnum != u.uz.dnum || newlevel.dlevel != u.uz.dlevel) {
-        schedule_goto(&newlevel, FALSE, FALSE, 0, (char *) 0,
-            flags.verbose ? "You materialize on a different level!" : (char *)0);
+        get_level(&newlevel, newlev);
 
-        /* in case player just read a scroll and is about to be asked to
-        call it something, we can't defer until the end of the turn */
-        if (u.utotype && !g.context.mon_moving)
-            deferred_goto();
+        if (on_level(&newlevel, &u.uz) && newlev != depth(&u.uz)) {
+            You_cant(get_there_from,
+                     (newlev > deepest) ? "anywhere" : "here");
+            return;
+        }
     }
+
+    schedule_goto(&newlevel, FALSE, FALSE, 0, (char *) 0,
+                  flags.verbose ? "You materialize on a different level!"
+                                : (char *) 0);
+
+    /* in case player just read a scroll and is about to be asked to
+       call it something, we can't defer until the end of the turn */
+    if (u.utotype && !g.context.mon_moving)
+        deferred_goto();
 }
 
 void

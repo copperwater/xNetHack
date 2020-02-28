@@ -46,9 +46,9 @@ des.levregion({ type="stair-down", region={61,03,75,19}, region_islev=1,
 
 -- Define areas of the map:
 -- inside the walls
-local inside = selection.floodfill(selection.new(), 18,8)
+local inside = selection.floodfill(18,8)
 -- near the temple
-local near_temple = selection.area(selection.new(), 17,8, 23,14) & inside
+local near_temple = selection.area(17,8, 23,14) & inside
 
 -- One shopkeeper managed to barricade their shop with boulders, and they live!
 des.region({ region={4,4,6,7}, lit=1, type="shop", prefilled=0 })

@@ -1,4 +1,4 @@
-/* NetHack 3.6  makedefs.c  $NHDT-Date: 1575161967 2019/12/01 00:59:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.168 $ */
+/* NetHack 3.6  makedefs.c  $NHDT-Date: 1582403492 2020/02/22 20:31:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.177 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Kenneth Lorber, Kensington, Maryland, 2015. */
 /* Copyright (c) M. Stephenson, 1990, 1991.                       */
@@ -177,7 +177,7 @@ static void FDECL(do_ext_makedefs, (int, char **));
 static char *FDECL(xcrypt, (const char *));
 static unsigned long FDECL(read_rumors_file,
                            (const char *, int *, long *, unsigned long));
-static void FDECL(do_rnd_access_file, (const char *));
+static void FDECL(do_rnd_access_file, (const char *, const char *));
 static boolean FDECL(d_filter, (char *));
 static boolean FDECL(h_filter, (char *));
 static void FDECL(opt_out_words, (char *, int *));
@@ -341,10 +341,26 @@ char *options;
             break;
         case 's':
         case 'S':
-            do_rnd_access_file(EPITAPHFILE);
-            do_rnd_access_file(ENGRAVEFILE);
-            do_rnd_access_file(BOGUSMONFILE);
-            do_rnd_access_file(SHIRTFILE);
+
+            /*
+             * post-3.6.5:
+             *  File must not be empty to avoid divide by 0
+             *  in core's rn2(), so provide a default entry.
+             */
+            do_rnd_access_file(EPITAPHFILE,
+                /* default epitaph:  parody of the default engraving */
+                               "No matter where I went, here I am.");
+            do_rnd_access_file(ENGRAVEFILE,
+                /* default engraving:  popularized by "The Adventures of
+                   Buckaroo Bonzai Across the 8th Dimenstion" but predates
+                   that 1984 movie; some attribute it to Confucius */
+                               "No matter where you go, there you are.");
+            do_rnd_access_file(BOGUSMONFILE,
+                /* default bogusmon:  iconic monster that isn't in nethack */
+                               "grue");
+            do_rnd_access_file(SHIRTFILE,
+                /* default shirt:  announcing you're a character in nethack */
+                               "@");
             break;
         case 'h':
         case 'H':
@@ -933,8 +949,9 @@ unsigned long old_rumor_offset;
 }
 
 static void
-do_rnd_access_file(fname)
+do_rnd_access_file(fname, deflt_content)
 const char *fname;
+const char *deflt_content;
 {
     char *line;
 
@@ -954,6 +971,11 @@ const char *fname;
         exit(EXIT_FAILURE);
     }
     Fprintf(ofp, "%s", Dont_Edit_Data);
+    /* write out the default content entry unconditionally instead of
+       waiting to see whether there are no regular output lines; if it
+       matches a regular entry (bogusmon "grue"), that entry will become
+       more likely to be picked than normal but it's nothing to worry about */
+    (void) fputs(xcrypt(deflt_content), ofp);
 
     tfp = getfp(DATA_TEMPLATE, "grep.tmp", WRTMODE);
     grep0(ifp, tfp);
@@ -962,7 +984,7 @@ const char *fname;
     while ((line = fgetline(ifp)) != 0) {
         if (line[0] != '#' && line[0] != '\n')
             (void) fputs(xcrypt(line), ofp);
-        free(line);
+        free((genericptr_t) line);
     }
     Fclose(ifp);
     Fclose(ofp);

@@ -139,6 +139,7 @@ struct obj *wep;
 {
     /* Separated function so swapping works easily */
     int res = 0;
+    boolean had_wep = (uwep != 0);
 
     if (!wep) {
         /* No weapon */
@@ -223,6 +224,8 @@ struct obj *wep;
             }
         }
     }
+    if ((had_wep != (uwep != 0)) && condtests[bl_bareh].enabled)
+        g.context.botl = 1;
     return res;
 }
 

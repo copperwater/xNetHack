@@ -490,7 +490,7 @@ struct obj *corpse;
         for (y = 0; y < ROWNO; y++) {
             levl[x][y].seenv = 0;
             levl[x][y].waslit = 0;
-            levl[x][y].glyph = cmap_to_glyph(S_stone);
+            levl[x][y].glyph = GLYPH_UNEXPLORED;
             g.lastseentyp[x][y] = 0;
         }
 
@@ -651,7 +651,7 @@ getbones()
         } else {
             register struct monst *mtmp;
 
-            getlev(nhfp, 0, 0, TRUE);
+            getlev(nhfp, 0, 0);
 
             /* Note that getlev() now keeps tabs on unique
              * monsters such as demon lords, and tracks the

@@ -1,4 +1,4 @@
-/* NetHack 3.6	spell.c	$NHDT-Date: 1546565814 2019/01/04 01:36:54 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.88 $ */
+/* NetHack 3.6	spell.c	$NHDT-Date: 1581322667 2020/02/10 08:17:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.102 $ */
 /*      Copyright (c) M. Stephenson 1988                          */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -254,6 +254,7 @@ struct obj *book2;
             /* successful invocation */
             mkinvokearea();
             u.uevent.invoked = 1;
+            record_achievement(ACH_INVK);
             /* in case you haven't killed the Wizard yet, behave as if
                you just did */
             u.uevent.udemigod = 1; /* wizdead() */
@@ -454,7 +455,8 @@ register struct obj *spellbook;
         }
     }
 
-    if (g.context.spbook.delay && !confused && spellbook == g.context.spbook.book
+    if (g.context.spbook.delay && !confused
+        && spellbook == g.context.spbook.book
         /* handle the sequence: start reading, get interrupted, have
            g.context.spbook.book become erased somehow, resume reading it */
         && booktype != SPE_BLANK_PAPER) {
@@ -481,6 +483,7 @@ register struct obj *spellbook;
                 check_unpaid(spellbook);
                 makeknown(booktype);
                 if (!u.uevent.read_tribute) {
+                    record_achievement(ACH_NOVL);
                     /* give bonus of 20 xp and 4*20+0 pts */
                     more_experienced(20, 0);
                     newexplevel();
@@ -1472,7 +1475,7 @@ spellsortmenu()
     int i, n, choice;
 
     tmpwin = create_nhwindow(NHW_MENU);
-    start_menu(tmpwin);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     any = cg.zeroany; /* zero out all bits */
 
     for (i = 0; i < SIZE(spl_sortchoices); i++) {
@@ -1555,7 +1558,7 @@ int *spell_no;
     anything any;
 
     tmpwin = create_nhwindow(NHW_MENU);
-    start_menu(tmpwin);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     any = cg.zeroany; /* zero out all bits */
 
     /*

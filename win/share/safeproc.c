@@ -96,11 +96,7 @@ struct window_procs safe_procs = {
     safe_getmsghistory, safe_putmsghistory,
     safe_status_init,
     safe_status_finish, safe_status_enablefield,
-#ifdef STATUS_HILITES
     safe_status_update,
-#else
-    safe_status_update,
-#endif
     safe_can_suspend,
 };
 
@@ -230,8 +226,9 @@ boolean complain;
 }
 
 void
-safe_start_menu(window)
+safe_start_menu(window, mbehavior)
 winid window;
+unsigned long mbehavior;
 {
     return;
 }
@@ -495,7 +492,6 @@ boolean enable;
 {
 }
 
-#ifdef STATUS_HILITES
 /* call once for each field, then call with BL_FLUSH to output the result */
 void
 safe_status_update(idx, ptr, chg, percent, color, colormasks)
@@ -505,7 +501,6 @@ int chg UNUSED, percent UNUSED, color UNUSED;
 unsigned long *colormasks UNUSED;
 {
 }
-#endif /* STATUS_HILITES */
 
 /**************************************************************
  * These are some optionally selectable routines that add

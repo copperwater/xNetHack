@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.84 $ $NHDT-Date: 1580504296 2020/01/31 20:58:16 $
+$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.107 $ $NHDT-Date: 1582364458 2020/02/22 09:40:58 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -50,6 +50,15 @@ revamp achievement tracking for exploring Mine's End and Sokoban (by acquiring
 throttle long worm growth rate and HP accumulation
 poly'd hero was able to zap wands, apply tools, and #rub objects without
 	having any hands
+spellcasting monster got an extra move after casting
+allow defining #wizgenesis quantity in the prompt
+digging through iron bars from an adjacent pit made a pit on top of the bars
+give feedback if controlled level teleport attempt fails because hero is
+	already on the bottom level and player tries to go even deeper
+unseen pet that drowned didn't give "you have a sad feeling" message
+prevent ravens from blinding other ravens: /corvus oculum corvi non eruit/
+have ^X provide more information when held or swallowed
+avoid divide by 0 crash if 'bogusmon' (file of bogus monster types) is empty
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -82,12 +91,23 @@ level teleporation's "You materialize on a different level!" could be given
 	out of sequence with other arrival messages
 creating Mine Town variant 1 (Orcish Town) sometimes complained about being
 	unable to place lregion type 1 and failed to have any staircase up
+prevent "you materialize on a different level" after "a mysterious force
+	prevents you from descending" if you try to level teleport past the
+	stairs down from the quest home level before being granted access
+set g.context.botl for glove and wielding actions that could start or end
+	bare-handedness in support of condtests[bl_bareh]
+reinstate ranked ordering of the status condition fields
+grammar for messages about a monster removing items from a container was bad
+some new status conditions didn't always update when they should
 
 
 Platform- and/or Interface-Specific Fixes
 -----------------------------------------
+msdos:  Add -DSTATUES_LOOK_LIKE_MONSTERS to Makefile1.cross so the VESA mode
+	can display statue glyphs. 
 tty: role and race selection menus weren't filtering out potential choices
 	which got excluded by OPTIONS=align:!lawful or !neutral or !chaotic
+windows: update for new status condition fields
 
 
 General New Features
@@ -134,10 +154,23 @@ when 'color' if Off and 'use_inverse' is On, draw ice on the map in inverse
 new 'mention_decor' option; when On, describe dungeon features being stepped
 	on or floated/flown over even when they're not covered by objects
 applying royal jelly on an egg kills, revives, or changes the egg
+intelligent monsters pick up and rummage through containers
+toggling 'travel' option Off now only inhibits travel by mouse click, not by
+	'_' command where choosing the destination provides a chance to cancel
+different glyphs and symbols for stone and unexplored areas
+new glyph GLYPH_NOTHING was added so !dark_room has something to be set to
+	now that stone could be mapped to an entirely different symbol
+added several new status conditions all of which are opt-in except
+	the new cond_grab and cond_lava which are opt-out
+tipping your cap might get a response
+special levels can be flipped horizontally and/or vertically
+new special level initialization routine, "swamp"
 
 
 Platform- and/or Interface-Specific New Features
 ------------------------------------------------
+teach unix/Makefile.doc how to make Guidebook.dat, an unpaginated copy of
+	Guidebook.txt
 
 
 NetHack Community Patches (or Variation) Included
@@ -162,10 +195,19 @@ teach non-mindless monsters about the Castle trapdoors (github #265)
 always print a message when the hero teleports (github #265)
 always print a message when the hero level teleports (github #265)
 remove Sokoban luck penalties for actions you can't cheat with (github #260)
+sounds for minotaurs (github #298)
+correct the Guidebook descriptions for msdos video_width and video_height to
+	state that they work with video:vesa; the video:vga setting that was 
+	described there forces the 640x480x16 mode where video_width and
+	video_height don't operate (github #294)
+redo rndmonst() to operate in a single pass (github pull request #286)
 
 
 Code Cleanup and Reorganization
 -------------------------------
+new core file insight.c - move enlightenment and conduct from cmd.c to it,
+	also move vanquished, genocided, and extinct monsters from end.c,
+	and move one-line stethoscope/probing feedback from priest.c
 move majority of global variables into instance_globals struct g
 move zeroobj, zeromonst, zeroany into const_globals struct cg
 remove STATIC_DCL, STATIC_OVL, STATIC_VAR, STATIC_PTR
@@ -174,7 +216,15 @@ more current Qt for Qt version 4 and 5 moved from win/Qt4 to win/Qt; qt4
 	moniker changed to qt_
 window-port-interface: add_menu() modified to take a more general itemflags
 	parameter to support uses beyond just 'preselected'
+window-port-interface: start_menu() modified to take a new mbehavior parameter
 add some bounds checking to tabexpand (doesn't prevent the apparent compiler
 	optimization bug that put homebrew OSX executable into endless loop)
-
+unified breamm and breamu
+added some stair helper functions
+unified the code for finding a queen bee
+unified the code for multishot class bonus code
+unified the code for obtaining the inventory letter value for sortloot
+unified the code for (un)locking boxes in inventory
+unified the code for finding room pos for some features
+unified the code for revealing hiding monsters for mvm attacks
 

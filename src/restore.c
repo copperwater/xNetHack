@@ -1,4 +1,4 @@
-/* NetHack 3.7	restore.c	$NHDT-Date: 1575245087 2019/12/02 00:04:47 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.136 $ */
+/* NetHack 3.7	restore.c	$NHDT-Date: 1581886865 2020/02/16 21:01:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.163 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -23,11 +23,11 @@ static int NDECL(zerocomp_mgetc);
 
 static void NDECL(find_lev_obj);
 static void FDECL(restlevchn, (NHFILE *));
-static void FDECL(restdamage, (NHFILE *, BOOLEAN_P));
+static void FDECL(restdamage, (NHFILE *));
 static void FDECL(restobj, (NHFILE *, struct obj *));
-static struct obj *FDECL(restobjchn, (NHFILE *, BOOLEAN_P, BOOLEAN_P));
+static struct obj *FDECL(restobjchn, (NHFILE *, BOOLEAN_P));
 static void FDECL(restmon, (NHFILE *, struct monst *));
-static struct monst *FDECL(restmonchn, (NHFILE *, BOOLEAN_P));
+static struct monst *FDECL(restmonchn, (NHFILE *));
 static struct fruit *FDECL(loadfruitchn, (NHFILE *));
 static void FDECL(freefruitchn, (struct fruit *));
 static void FDECL(ghostfruit, (struct obj *));
@@ -142,13 +142,13 @@ NHFILE *nhfp;
 }
 
 static void
-restdamage(nhfp, ghostly)
+restdamage(nhfp)
 NHFILE *nhfp;
-boolean ghostly;
 {
     unsigned int dmgcount = 0;
     int counter;
     struct damage *tmp_dam;
+    boolean ghostly = (nhfp->ftype == NHF_BONESFILE);
 
     if (nhfp->structlevel)
         mread(nhfp->fd, (genericptr_t) &dmgcount, sizeof(dmgcount));
@@ -263,13 +263,14 @@ struct obj *otmp;
 }
 
 static struct obj *
-restobjchn(nhfp, ghostly, frozen)
+restobjchn(nhfp, frozen)
 NHFILE *nhfp;
-boolean ghostly, frozen;
+boolean frozen;
 {
     register struct obj *otmp, *otmp2 = 0;
     register struct obj *first = (struct obj *) 0;
     int buflen = 0;
+    boolean ghostly = (nhfp->ftype == NHF_BONESFILE);
 
     while (1) {
         if (nhfp->structlevel)
@@ -303,7 +304,7 @@ boolean ghostly, frozen;
         if (Has_contents(otmp)) {
             struct obj *otmp3;
 
-            otmp->cobj = restobjchn(nhfp, ghostly, Is_IceBox(otmp));
+            otmp->cobj = restobjchn(nhfp, Is_IceBox(otmp));
             /* restore container back pointers */
             for (otmp3 = otmp->cobj; otmp3; otmp3 = otmp3->nobj)
                 otmp3->ocontainer = otmp;
@@ -426,13 +427,13 @@ struct monst *mtmp;
 }
 
 static struct monst *
-restmonchn(nhfp, ghostly)
+restmonchn(nhfp)
 NHFILE *nhfp;
-boolean ghostly;
 {
     register struct monst *mtmp, *mtmp2 = 0;
     register struct monst *first = (struct monst *) 0;
     int offset, buflen = 0;
+    boolean ghostly = (nhfp->ftype == NHF_BONESFILE);
 
     while (1) {
         if (nhfp->structlevel)
@@ -463,7 +464,7 @@ boolean ghostly;
         }
         if (mtmp->minvent) {
             struct obj *obj;
-            mtmp->minvent = restobjchn(nhfp, ghostly, FALSE);
+            mtmp->minvent = restobjchn(nhfp, FALSE);
             /* restore monster back pointer */
             for (obj = mtmp->minvent; obj; obj = obj->nobj)
                 obj->ocarry = mtmp;
@@ -681,13 +682,13 @@ unsigned int *stuckid, *steedid;
 
     /* this stuff comes after potential aborted restore attempts */
     restore_killers(nhfp);
-    restore_timers(nhfp, RANGE_GLOBAL, FALSE, 0L);
+    restore_timers(nhfp, RANGE_GLOBAL, 0L);
     restore_light_sources(nhfp);
 
-    g.invent = restobjchn(nhfp, FALSE, FALSE);
+    g.invent = restobjchn(nhfp, FALSE);
 
     /* restore dangling (not on floor or in inventory) ball and/or chain */
-    bc_obj = restobjchn(nhfp, FALSE, FALSE);
+    bc_obj = restobjchn(nhfp, FALSE);
     while (bc_obj) {
         struct obj *nobj = bc_obj->nobj;
 
@@ -696,8 +697,8 @@ unsigned int *stuckid, *steedid;
         bc_obj->nobj = (struct obj *) 0;
         bc_obj = nobj;
     }
-    g.migrating_objs = restobjchn(nhfp, FALSE, FALSE);
-    g.migrating_mons = restmonchn(nhfp, FALSE);
+    g.migrating_objs = restobjchn(nhfp, FALSE);
+    g.migrating_mons = restmonchn(nhfp);
 
     if (nhfp->structlevel) {
         mread(nhfp->fd, (genericptr_t) g.mvitals, sizeof g.mvitals);
@@ -779,7 +780,7 @@ unsigned int stuckid, steedid;
                 break;
         if (!mtmp)
             panic("Cannot find the monster ustuck.");
-        u.ustuck = mtmp;
+        set_ustuck(mtmp);
     }
     if (steedid) {
         for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
@@ -868,7 +869,7 @@ NHFILE *nhfp;
 
     g.restoring = TRUE;
     get_plname_from_file(nhfp, g.plname);
-    getlev(nhfp, 0, (xchar) 0, FALSE);
+    getlev(nhfp, 0, (xchar) 0);
     if (!restgamestate(nhfp, &stuckid, &steedid)) {
         NHFILE tnhfp;
 
@@ -930,7 +931,7 @@ NHFILE *nhfp;
             if (restoreinfo.mread_flags == -1)
                 break;
         }
-        getlev(nhfp, 0, ltmp, FALSE);
+        getlev(nhfp, 0, ltmp);
 #ifdef MICRO
         curs(WIN_MAP, 1 + dotcnt++, dotrow);
         if (dotcnt >= (COLNO - 1)) {
@@ -951,7 +952,7 @@ NHFILE *nhfp;
     (void) validate(nhfp, (char *) 0);
     get_plname_from_file(nhfp, g.plname);
 
-    getlev(nhfp, 0, (xchar) 0, FALSE);
+    getlev(nhfp, 0, (xchar) 0);
     close_nhfile(nhfp);
     restlevelstate(stuckid, steedid);
     g.program_state.something_worth_saving = 1; /* useful data now exists */
@@ -1081,11 +1082,10 @@ char *reason;
 }
 
 void
-getlev(nhfp, pid, lev, ghostly)
+getlev(nhfp, pid, lev)
 NHFILE *nhfp;
 int pid;
 xchar lev;
-boolean ghostly;
 {
     register struct trap *trap;
     register struct monst *mtmp;
@@ -1094,6 +1094,7 @@ boolean ghostly;
     int hpid = 0;
     xchar dlvl = 0;
     int x, y;
+    boolean ghostly = (nhfp->ftype == NHF_BONESFILE);
 #ifdef TOS
     short tlev;
 #endif
@@ -1162,9 +1163,9 @@ boolean ghostly;
     else
         g.doorindex = 0;
 
-    restore_timers(nhfp, RANGE_LEVEL, ghostly, elapsed);
+    restore_timers(nhfp, RANGE_LEVEL, elapsed);
     restore_light_sources(nhfp);
-    fmon = restmonchn(nhfp, ghostly);
+    fmon = restmonchn(nhfp);
 
     rest_worm(nhfp); /* restore worm information */
     g.ftrap = 0;
@@ -1179,19 +1180,19 @@ boolean ghostly;
              * game. We don't read the stale pointer, other than to see whether an
              * object chain follows this trap. */
             if (trap->ammo) {
-                trap->ammo = restobjchn(nhfp, ghostly, FALSE);
+                trap->ammo = restobjchn(nhfp, FALSE);
             }
         } else
             break;
     }
     dealloc_trap(trap);
 
-    fobj = restobjchn(nhfp, ghostly, FALSE);
+    fobj = restobjchn(nhfp, FALSE);
     find_lev_obj();
     /* restobjchn()'s `frozen' argument probably ought to be a callback
        routine so that we can check for objects being buried under ice */
-    g.level.buriedobjlist = restobjchn(nhfp, ghostly, FALSE);
-    g.billobjs = restobjchn(nhfp, ghostly, FALSE);
+    g.level.buriedobjlist = restobjchn(nhfp, FALSE);
+    g.billobjs = restobjchn(nhfp, FALSE);
     rest_engravings(nhfp);
 
     /* reset level.monsters for new level */
@@ -1228,8 +1229,8 @@ boolean ghostly;
         if (ghostly || (elapsed > 00 && elapsed > (long) rnd(10)))
             hide_monst(mtmp);
     }
-    restdamage(nhfp, ghostly);
-    rest_regions(nhfp, ghostly);
+    restdamage(nhfp);
+    rest_regions(nhfp);
 
     if (ghostly) {
         /* Now get rid of all the temp fruits... */
@@ -1437,7 +1438,7 @@ winid bannerwin; /* if not WIN_ERR, clear window and show copyright in menu */
     saved = get_saved_games(); /* array of character names */
     if (saved && *saved) {
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany; /* no selection */
         if (bannerwin != WIN_ERR) {
             /* for tty; erase copyright notice and redo it in the menu */

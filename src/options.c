@@ -594,12 +594,12 @@ reglyph_darkroom()
                 || Is_rogue_level(&u.uz)) {
                 if (lev->glyph == cmap_to_glyph(S_darkroom))
                     lev->glyph = lev->waslit ? cmap_to_glyph(S_room)
-                                             : cmap_to_glyph(S_stone);
+                                             : GLYPH_NOTHING;
             } else {
                 if (lev->glyph == cmap_to_glyph(S_room) && lev->seenv
                     && lev->waslit && !cansee(x, y))
                     lev->glyph = cmap_to_glyph(S_darkroom);
-                else if (lev->glyph == cmap_to_glyph(S_stone)
+                else if (lev->glyph == GLYPH_NOTHING
                          && lev->typ == ROOM && lev->seenv && !cansee(x, y))
                     lev->glyph = cmap_to_glyph(S_darkroom);
             }
@@ -607,7 +607,7 @@ reglyph_darkroom()
     if (flags.dark_room && iflags.use_color)
         g.showsyms[S_darkroom] = g.showsyms[S_room];
     else
-        g.showsyms[S_darkroom] = g.showsyms[S_stone];
+        g.showsyms[S_darkroom] = g.showsyms[SYM_NOTHING + SYM_OFF_X];
 }
 
 /* check whether a user-supplied option string is a proper leading
@@ -710,7 +710,7 @@ initoptions_init()
         if (boolopt[i].addr)
             *(boolopt[i].addr) = boolopt[i].initvalue;
     }
-
+    condopt(0, (boolean *) 0, 0);  /* make the choices match defaults */
 #ifdef SYSFLAGS
     Strcpy(sysflags.sysflagsid, "sysflags");
     sysflags.sysflagsid[9] = (char) sizeof (struct sysflag);
@@ -1460,7 +1460,7 @@ const char *prompt;
     menu_item *picks = (menu_item *) 0;
 
     tmpwin = create_nhwindow(NHW_MENU);
-    start_menu(tmpwin);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     any = cg.zeroany;
     for (i = 0; i < SIZE(colornames); i++) {
         if (!colornames[i].name)
@@ -1506,7 +1506,7 @@ const char *prompt;
     if (prompt && strstri(prompt, "menu headings"))
         default_attr = iflags.menu_headings;
     tmpwin = create_nhwindow(NHW_MENU);
-    start_menu(tmpwin);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     any = cg.zeroany;
     for (i = 0; i < SIZE(attrnames); i++) {
         if (!attrnames[i].name)
@@ -1607,7 +1607,7 @@ query_msgtype()
     menu_item *picks = (menu_item *) 0;
 
     tmpwin = create_nhwindow(NHW_MENU);
-    start_menu(tmpwin);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     any = cg.zeroany;
     for (i = 0; i < SIZE(msgtype_names); i++)
         if (msgtype_names[i].descr) {
@@ -1992,6 +1992,8 @@ char c;
     return FALSE;
 }
 
+#define is_cond_option(x) (!strncmpi((x), "cond_", sizeof "cond_" - 1))
+
 boolean
 parseoptions(opts, tinitial, tfrom_file)
 register char *opts;
@@ -2063,6 +2065,29 @@ boolean tinitial, tfrom_file;
             return FALSE;
         } else
             flags.initgend = flags.female = negated;
+        return retval;
+    }
+
+    /* some prefix-based options */
+
+    if (is_cond_option(opts)) {
+        int reslt;
+
+        if ((reslt = parse_cond_option(negated, opts)) != 0) {
+            switch(reslt) {
+              case 3:
+                 config_error_add("Ambiguous condition option %s", opts);
+                 break;
+              case 1:
+              case 2:
+              default:
+                 config_error_add("Unknown condition option %s (%d)",
+                                 opts, reslt);
+                 break;
+            }
+            return FALSE;
+        }
+        g.opt_need_redraw = TRUE;
         return retval;
     }
 
@@ -3475,11 +3500,6 @@ boolean tinitial, tfrom_file;
         return retval;
     }
 #endif /* NO_TERMS */
-        } else if ((opts = string_for_env_opt(fullname, opts, FALSE))
-                                              == empty_optstr) {
-            return FALSE;
-        }
-    }
 #endif /* MSDOS */
 
     /* WINCAP
@@ -4223,6 +4243,7 @@ boolean tinitial, tfrom_file;
                    map if ascii map isn't supported? */
                 iflags.wc_ascii_map = negated;
             }
+
             /* only do processing below if setting with doset() */
             if (g.opt_initial)
                 return retval;
@@ -4574,6 +4595,18 @@ int nset;
     add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
 }
 
+static int
+count_cond(VOID_ARGS)
+{
+    int i, cnt = 0;
+
+    for (i = 0; i < CONDITION_COUNT; ++i) {
+        if (condtests[i].enabled)
+            cnt++;
+    }
+    return cnt;
+}
+
 int
 count_apes(VOID_ARGS)
 {
@@ -4589,6 +4622,7 @@ count_apes(VOID_ARGS)
 }
 
 enum opt_other_enums {
+    OPT_OTHER_COND = -5,
     OPT_OTHER_MSGTYPE = -4,
     OPT_OTHER_MENUCOLOR = -3,
     OPT_OTHER_STATHILITE = -2,
@@ -4603,6 +4637,8 @@ static struct other_opts {
     int NDECL((*othr_count_func));
 } othropt[] = {
     { "autopickup exceptions", SET_IN_GAME, OPT_OTHER_APEXC, count_apes },
+    { "status condition fields", SET_IN_GAME,
+      OPT_OTHER_COND, count_cond },
     { "menu colors", SET_IN_GAME, OPT_OTHER_MENUCOLOR, count_menucolors },
     { "message types", SET_IN_GAME, OPT_OTHER_MSGTYPE, msgtype_count },
 #ifdef STATUS_HILITES
@@ -4629,7 +4665,7 @@ doset() /* changing options via menu by Per Liboriussen */
     unsigned longest_name_len;
 
     tmpwin = create_nhwindow(NHW_MENU);
-    start_menu(tmpwin);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
 
 #ifdef notyet /* SYSCF */
     /* XXX I think this is still fragile.  Fixing initial/from_file and/or
@@ -4776,6 +4812,9 @@ doset() /* changing options via menu by Per Liboriussen */
             } else if (opt_indx == OPT_OTHER_MENUCOLOR) {
                     (void) special_handling("menu_colors", setinitial,
                                             fromfile);
+            } else if (opt_indx == OPT_OTHER_COND) {
+                    (void) special_handling("condition_options", setinitial,
+                                            fromfile);
             } else if (opt_indx == OPT_OTHER_MSGTYPE) {
                     (void) special_handling("msgtype", setinitial, fromfile);
             } else if (opt_indx < boolcount) {
@@ -4844,7 +4883,7 @@ int numtotal;
 
     opt_idx = 0;
     tmpwin = create_nhwindow(NHW_MENU);
-    start_menu(tmpwin);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     any = cg.zeroany;
     for (i = 0; i < SIZE(action_titles); i++) {
         char tmpbuf[BUFSZ];
@@ -4890,7 +4929,7 @@ boolean setinitial, setfromfile;
         menu_item *style_pick = (menu_item *) 0;
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         for (i = 0; i < SIZE(menutype); i++) {
             style_name = menutype[i];
@@ -4910,7 +4949,7 @@ boolean setinitial, setfromfile;
         menu_item *paranoia_picks = (menu_item *) 0;
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         for (i = 0; paranoia[i].flagmask != 0; ++i) {
             if (paranoia[i].flagmask == PARANOID_BONES && !wizard)
@@ -4942,7 +4981,7 @@ boolean setinitial, setfromfile;
         menu_item *burden_pick = (menu_item *) 0;
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         for (i = 0; i < SIZE(burdentype); i++) {
             burden_name = burdentype[i];
@@ -4973,7 +5012,7 @@ boolean setinitial, setfromfile;
         menu_item *disclosure_pick = (menu_item *) 0;
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         for (i = 0; i < NUM_DISCLOSURE_OPTIONS; i++) {
             Sprintf(buf, "%-12s[%c%c]", disclosure_names[i],
@@ -5001,7 +5040,7 @@ boolean setinitial, setfromfile;
                 Sprintf(buf, "Disclosure options for %s:",
                         disclosure_names[i]);
                 tmpwin = create_nhwindow(NHW_MENU);
-                start_menu(tmpwin);
+                start_menu(tmpwin, MENU_BEHAVE_STANDARD);
                 any = cg.zeroany;
                 /* 'y','n',and '+' work as alternate selectors; '-' doesn't */
                 any.a_char = DISCLOSE_NO_WITHOUT_PROMPT;
@@ -5050,7 +5089,7 @@ boolean setinitial, setfromfile;
         menu_item *mode_pick = (menu_item *) 0;
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         for (i = 0; i < SIZE(runmodes); i++) {
             mode_name = runmodes[i];
@@ -5070,7 +5109,7 @@ boolean setinitial, setfromfile;
         char gp = iflags.getpos_coords;
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         any.a_char = GPCOORDS_COMPASS;
         add_menu(tmpwin, NO_GLYPH, &any, GPCOORDS_COMPASS, 0, ATR_NONE,
@@ -5134,7 +5173,7 @@ boolean setinitial, setfromfile;
         char gf = iflags.getloc_filter;
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         any.a_char = (GFILTER_NONE + 1);
         add_menu(tmpwin, NO_GLYPH, &any, 'n',
@@ -5169,7 +5208,7 @@ boolean setinitial, setfromfile;
             menu_item *window_pick = (menu_item *) 0;
 
             tmpwin = create_nhwindow(NHW_MENU);
-            start_menu(tmpwin);
+            start_menu(tmpwin, MENU_BEHAVE_STANDARD);
             any = cg.zeroany;
             if (!WINDOWPORT("curses")) {
                 any.a_char = 's';
@@ -5200,7 +5239,7 @@ boolean setinitial, setfromfile;
         menu_item *sortl_pick = (menu_item *) 0;
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         for (i = 0; i < SIZE(sortltype); i++) {
             sortl_name = sortltype[i];
@@ -5227,7 +5266,7 @@ boolean setinitial, setfromfile;
         boolean msg = (*(optname + 6) == 'm');
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         any.a_int = ALIGN_TOP;
         add_menu(tmpwin, NO_GLYPH, &any, 't', 0, ATR_NONE, "top",
@@ -5262,7 +5301,7 @@ boolean setinitial, setfromfile;
         menu_item *mode_pick = (menu_item *) 0;
 
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any = cg.zeroany;
         for (i = 0; i < SIZE(npchoices); i++) {
             any.a_int = i + 1;
@@ -5339,7 +5378,7 @@ boolean setinitial, setfromfile;
             struct plinemsg_type *tmp = g.plinemsg_types;
 
             tmpwin = create_nhwindow(NHW_MENU);
-            start_menu(tmpwin);
+            start_menu(tmpwin, MENU_BEHAVE_STANDARD);
             any = cg.zeroany;
             mt_idx = 0;
             while (tmp) {
@@ -5419,7 +5458,7 @@ boolean setinitial, setfromfile;
             char clrbuf[QBUFSZ];
 
             tmpwin = create_nhwindow(NHW_MENU);
-            start_menu(tmpwin);
+            start_menu(tmpwin, MENU_BEHAVE_STANDARD);
             any = cg.zeroany;
             mc_idx = 0;
             while (tmp) {
@@ -5493,7 +5532,7 @@ boolean setinitial, setfromfile;
             menu_item *pick_list = (menu_item *) 0;
 
             tmpwin = create_nhwindow(NHW_MENU);
-            start_menu(tmpwin);
+            start_menu(tmpwin, MENU_BEHAVE_STANDARD);
             if (numapes) {
                 ape = g.apelist;
                 any = cg.zeroany;
@@ -5579,7 +5618,7 @@ boolean setinitial, setfromfile;
 
             Sprintf(fmtstr, "%%-%ds %%s", biggest + 2);
             tmpwin = create_nhwindow(NHW_MENU);
-            start_menu(tmpwin);
+            start_menu(tmpwin, MENU_BEHAVE_STANDARD);
             any = cg.zeroany;
             any.a_int = 1; /* -1 + 2 [see 'if (sl->name) {' below]*/
             if (!symset_name)
@@ -5696,7 +5735,8 @@ boolean setinitial, setfromfile;
             assign_graphics(PRIMARY);
         preference_update("symset");
         g.opt_need_redraw = TRUE;
-
+    } else if (!strcmp("condition_options", optname)) {
+        cond_menu();    /* in botl.c */
     } else {
         /* didn't match any of the special options */
         return FALSE;
@@ -6617,7 +6657,7 @@ char *class_select;
     next_accelerator = 'a';
     any = cg.zeroany;
     win = create_nhwindow(NHW_MENU);
-    start_menu(win);
+    start_menu(win, MENU_BEHAVE_STANDARD);
     while (*class_list) {
         const char *text;
         boolean selected;

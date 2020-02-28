@@ -596,10 +596,6 @@ fixup_special()
                 set_corpsenm(otmp, rndmonnum());
             }
         }
-    } else if (Is_wiz1_level(&u.uz)) {
-        croom = search_special(MORGUE);
-
-        create_secret_door(croom, W_SOUTH | W_EAST | W_WEST);
     } else if (Is_knox(&u.uz)) {
         /* using an unfilled morgue for rm id */
         croom = search_special(MORGUE);
@@ -614,10 +610,6 @@ fixup_special()
                     (void) maketrap(x, y, rn2(3) ? LANDMINE : SPIKED_PIT);
             }
         }
-    } else if (Is_sanctum(&u.uz)) {
-        croom = search_special(TEMPLE);
-
-        create_secret_door(croom, W_ANY);
     } else if (on_level(&u.uz, &orcus_level)) {
         struct monst *mtmp, *mtmp2;
 
@@ -1536,27 +1528,15 @@ coord *cc;
     return;
 }
 
-/* put a non-diggable boundary around the initial portion of a level map.
- * assumes that no level will initially put things beyond the isok() range.
- *
- * we can't bound unconditionally on the last line with something in it,
- * because that something might be a niche which was already reachable,
- * so the boundary would be breached
- *
- * we can't bound unconditionally on one beyond the last line, because
- * that provides a window of abuse for wallified special levels
- */
 void
-bound_digging()
+get_level_extends(left, top, right, bottom)
+int *left, *top, *right, *bottom;
 {
     int x, y;
     unsigned typ;
     struct rm *lev;
     boolean found, nonwall;
     int xmin, xmax, ymin, ymax;
-
-    if (Is_earthlevel(&u.uz))
-        return; /* everything diggable here */
 
     found = nonwall = FALSE;
     for (xmin = 0; !found && xmin <= COLNO; xmin++) {
@@ -1618,16 +1598,37 @@ bound_digging()
     }
     ymax += (nonwall || !g.level.flags.is_maze_lev) ? 2 : 1;
 
+    *left = xmin;
+    *right = xmax;
+    *top = ymin;
+    *bottom = ymax;
+}
+
+/* put a non-diggable boundary around the initial portion of a level map.
+ * assumes that no level will initially put things beyond the isok() range.
+ *
+ * we can't bound unconditionally on the last line with something in it,
+ * because that something might be a niche which was already reachable,
+ * so the boundary would be breached
+ *
+ * we can't bound unconditionally on one beyond the last line, because
+ * that provides a window of abuse for wallified special levels
+ */
+void
+bound_digging()
+{
+    int x, y;
+    int xmin, xmax, ymin, ymax;
+
+    if (Is_earthlevel(&u.uz))
+        return; /* everything diggable here */
+
+    get_level_extends(&xmin, &ymin, &xmax, &ymax);
+
     for (x = 0; x < COLNO; x++)
         for (y = 0; y < ROWNO; y++)
-            if (y <= ymin || y >= ymax || x <= xmin || x >= xmax) {
-#ifdef DCC30_BUG
-                lev = &levl[x][y];
-                lev->wall_info |= W_NONDIGGABLE;
-#else
+            if (y <= ymin || y >= ymax || x <= xmin || x >= xmax)
                 levl[x][y].wall_info |= W_NONDIGGABLE;
-#endif
-            }
 }
 
 /* Creates a magic portal at the given location, pointing to the given dungeon

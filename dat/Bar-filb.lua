@@ -3,7 +3,7 @@
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
 
-des.level_flags("mazelevel","outdoors","hardfloor","inaccessibles");
+des.level_flags("mazelevel", "outdoors", "hardfloor", "inaccessibles", "noflip");
 
 -- unlit, unlike the upper filler
 des.level_init({ style = "solidfill", fg = ".", lit=0 });

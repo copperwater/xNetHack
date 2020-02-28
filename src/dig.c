@@ -1682,6 +1682,7 @@ char *msg;
     } else if (ltyp == IRONBARS) {
         /* "set of iron bars" */
         Strcpy(msg, "The bars go much deeper than your pit.");
+        return FALSE;
 #if 0
     } else if (is_lava(cc->x, cc->y)) {
     } else if (is_ice(cc->x, cc->y)) {
@@ -1691,8 +1692,7 @@ char *msg;
     } else if (IS_SINK(ltyp)) {
         Strcpy(msg, "A tangled mass of plumbing remains below the sink.");
         return FALSE;
-    } else if ((cc->x == xupladder && cc->y == yupladder) /* ladder up */
-               || (cc->x == xdnladder && cc->y == ydnladder)) { /* " down */
+    } else if (On_ladder(cc->x, cc->y)) {
         Strcpy(msg, "The ladder is unaffected.");
         return FALSE;
     } else {
@@ -1704,15 +1704,8 @@ char *msg;
             supporting = "throne";
         else if (IS_ALTAR(ltyp))
             supporting = "altar";
-        else if ((cc->x == xupstair && cc->y == yupstair)
-                 || (cc->x == g.sstairs.sx && cc->y == g.sstairs.sy
-                     && g.sstairs.up))
-            /* "staircase up" */
-            supporting = "stairs";
-        else if ((cc->x == xdnstair && cc->y == ydnstair)
-                 || (cc->x == g.sstairs.sx && cc->y == g.sstairs.sy
-                     && !g.sstairs.up))
-            /* "staircase down" */
+        else if (On_stairs(cc->x, cc->y))
+            /* staircase up or down. On_ladder handled above. */
             supporting = "stairs";
         else if (ltyp == DRAWBRIDGE_DOWN   /* "lowered drawbridge" */
                  || ltyp == DBWALL)        /* "raised drawbridge" */

@@ -516,7 +516,7 @@ doclassdisco()
                    || flags.menu_style == MENU_COMBINATION);
     if (!traditional) {
         tmpwin = create_nhwindow(NHW_MENU);
-        start_menu(tmpwin);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
     }
     any = cg.zeroany;
     menulet = 'a';
@@ -676,7 +676,7 @@ rename_disco()
 
     any = cg.zeroany;
     tmpwin = create_nhwindow(NHW_MENU);
-    start_menu(tmpwin);
+    start_menu(tmpwin, MENU_BEHAVE_STANDARD);
 
     /*
      * Skip the "unique objects" section (each will appear within its

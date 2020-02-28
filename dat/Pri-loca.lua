@@ -5,7 +5,7 @@
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel", "hardfloor", "graveyard", "outdoors")
+des.level_flags("mazelevel", "hardfloor", "graveyard", "outdoors", "noflip")
 -- This is a kludge to init the level as a lit field.
 des.level_init({ style="mines", fg=".", bg=".", smoothed=false, joined=false, lit=1, walled=false })
 

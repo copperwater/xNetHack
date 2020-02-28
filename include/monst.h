@@ -205,15 +205,19 @@ struct monst {
     can_open_doors(mon->data) && \
     (monhaskey(mon, TRUE) || mon->iswiz || is_rider(mon->data))
 
-/* Get the maximum difficulty monsters that can currently be generated,
- * given the current level difficulty and the hero's level. */
-#define max_difficulty() ((level_difficulty() + u.ulevel) / 2)
-#define min_difficulty() (level_difficulty() / 6)
-
 /* Macros for whether a given monster is too strong for a specific level. */
 #define toostrong(monindx, lev) (mons[monindx].difficulty > lev)
 #define tooweak(monindx, lev) (mons[monindx].difficulty < lev)
 
 #define helpless(mon) ((mon)->msleeping || !(mon)->mcanmove)
+
+/* Get the maximum difficulty monsters that can currently be generated,
+   given the current level difficulty and the hero's level. */
+#define monmax_difficulty(levdif) (((levdif) + u.ulevel) / 2)
+#define monmin_difficulty(levdif) ((levdif) / 6)
+
+/* Macros for whether a type of monster is too strong for a specific level. */
+#define montoostrong(monindx, lev) (mons[monindx].difficulty > lev)
+#define montooweak(monindx, lev) (mons[monindx].difficulty < lev)
 
 #endif /* MONST_H */

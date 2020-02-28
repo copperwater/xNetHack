@@ -10,6 +10,7 @@
 /* conversion of result to int is reasonable */
 
 static int FDECL(mkmonst_in_room, (struct mkroom *));
+static boolean FDECL(find_okay_roompos, (struct mkroom *, coord *));
 static void NDECL(makevtele);
 void NDECL(clear_level_structures);
 static void NDECL(makelevel);
@@ -856,7 +857,7 @@ rand_roomtype()
 void
 clear_level_structures()
 {
-    static struct rm zerorm = { cmap_to_glyph(S_stone),
+    static struct rm zerorm = { GLYPH_UNEXPLORED,
                                 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     register int x, y;
     register struct rm *lev;
@@ -964,9 +965,9 @@ makelevel()
             /* named prototype file */
             makemaz("");
             return;
-        } else if (In_mines(&u.uz)) {
-            /* mines filler */
-            makemaz("minefill");
+        } else if (g.dungeons[u.uz.dnum].fill_lvl[0]) {
+            /* various types of filler, e.g. "minefill" */
+            makemaz(g.dungeons[u.uz.dnum].fill_lvl);
             return;
         } else if (In_quest(&u.uz)) {
             /* quest filler */
@@ -1962,6 +1963,23 @@ struct mkroom* croom;
     return num_monst;
 }
 
+static boolean
+find_okay_roompos(croom, crd)
+struct mkroom *croom;
+coord *crd;
+{
+    int tryct = 0;
+
+    do {
+        if (++tryct > 200)
+            return FALSE;
+        if (!somexy(croom, crd))
+            return FALSE;
+    } while (occupied(crd->x, crd->y) || bydoor(crd->x, crd->y)
+             || levl[crd->x][crd->y].typ != ROOM);
+    return TRUE;
+}
+
 /* Place the given dungeon feature in room croom.
  * If typ is 0, place an engraving instead. */
 void
@@ -1970,17 +1988,13 @@ xchar typ;
 struct mkroom *croom;
 {
     coord m;
-    register int tryct = 0;
+    int tryct = 0;
 
     if (!croom)
         return;
-    do {
-        if (++tryct > 200)
-            return;
-        else if (!somexy(croom, &m))
-            return;
-    } while (occupied(m.x, m.y) || bydoor(m.x, m.y)
-             || levl[m.x][m.y].typ != ROOM);
+
+    if (!find_okay_roompos(croom, &m))
+        return;
 
     if (typ == FOUNTAIN) {
         levl[m.x][m.y].typ = FOUNTAIN;

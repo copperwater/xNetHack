@@ -1,4 +1,4 @@
-/* NetHack 3.6	hack.h	$NHDT-Date: 1580252122 2020/01/28 22:55:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.127 $ */
+/* NetHack 3.6	hack.h	$NHDT-Date: 1580600495 2020/02/01 23:41:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.128 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -18,6 +18,7 @@
 #define BOLT_LIM 8        /* from this distance ranged attacks will be made */
 #define MAX_CARR_CAP 1000 /* so that boulders can be heavier */
 #define DUMMY { 0 }       /* array initializer, letting [1..N-1] default */
+#define DEF_NOTHING ' '   /* default symbol for NOTHING and UNEXPLORED  */
 
 /* The UNDEFINED macros are used to initialize variables whose
    initialized value is not relied upon.
@@ -84,18 +85,20 @@ enum dismount_types {
 #define MG_FLAG_NOOVERRIDE 0x01
 
 /* Special returns from mapglyph() */
-#define MG_CORPSE   0x00001
-#define MG_INVIS    0x00002
-#define MG_DETECT   0x00004
-#define MG_PET      0x00008
-#define MG_RIDDEN   0x00010
-#define MG_STATUE   0x00020
-#define MG_OBJPILE  0x00040 /* more than one stack of objects */
-#define MG_BW_LAVA  0x00080 /* 'black & white lava': highlight lava if it
+#define MG_CORPSE   0x0001
+#define MG_INVIS    0x0002
+#define MG_DETECT   0x0004
+#define MG_PET      0x0008
+#define MG_RIDDEN   0x0010
+#define MG_STATUE   0x0020
+#define MG_OBJPILE  0x0040  /* more than one stack of objects */
+#define MG_BW_LAVA  0x0080  /* 'black & white lava': highlight lava if it
                                can't be distringuished from water by color */
-#define MG_BW_ICE   0x00100 /* similar for ice vs floor */
-#define MG_STAIRS   0x00200 /* hidden stairs */
-#define MG_PEACEFUL 0x00400 /* peaceful monster */
+#define MG_BW_ICE   0x0100  /* similar for ice vs floor */
+#define MG_NOTHING  0x0200  /* char represents GLYPH_NOTHING */
+#define MG_UNEXPL   0x0400  /* char represents GLYPH_UNEXPLORED */
+#define MG_STAIRS   0x0800  /* hidden stairs */
+#define MG_PEACEFUL 0x1000  /* peaceful monster */
 
 /* sellobj_state() states */
 #define SELL_NORMAL (0)
@@ -172,9 +175,6 @@ typedef struct strbuf {
     char * str;
     char   buf[256];
 } strbuf_t;
-
-/* max. layers of object containment from sp_lev.h */
-#define MAX_CONTAINMENT 10
 
 /* str_or_len from sp_lev.h */
 typedef union str_or_len {

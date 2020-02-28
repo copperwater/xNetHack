@@ -12,7 +12,7 @@
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel");
+des.level_flags("mazelevel", "noflip");
 
 -- lit=2: mineslight: lit above Minetown and unlit beneath
 des.level_init({ style="mines", fg=".", bg=" ", smoothed=true ,joined=true, lit=2, walled=true })

@@ -161,6 +161,7 @@ dungeon = {
       range = 2,
       alignment = "lawful",
       flags = { "mazelike" },
+      lvlfill = "minefill",
       levels = {
          {
             name = "minetn",

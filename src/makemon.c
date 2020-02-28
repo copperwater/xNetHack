@@ -1598,26 +1598,28 @@ rndmonst()
 {
     register struct permonst *ptr;
     register int mndx;
+    int weight, totalweight, selected_mndx, zlevel, minmlev, maxmlev;
+    boolean elemlevel, upper;
 
     if (u.uz.dnum == quest_dnum && rn2(7) && (ptr = qt_montype()) != 0)
         return ptr;
 
-    /* determine the level of the weakest monster to make. */
-    int minmlev = min_difficulty();
-    /* determine the level of the strongest monster to make. */
-    int maxmlev = max_difficulty();
-    /* Only generate capital-letter monsters on the Rogue level. */
-    boolean uppercase = Is_rogue_level(&u.uz);
-    /* Only generate monsters appropriate to an Elemental Plane, if on plane. */
-    boolean elemlevel = In_endgame(&u.uz) && !Is_astralevel(&u.uz);
+    zlevel = level_difficulty();
+    minmlev = monmin_difficulty(zlevel);
+    maxmlev = monmax_difficulty(zlevel);
+    upper = Is_rogue_level(&u.uz); /* prefer uppercase only on rogue level */
+    elemlevel = In_endgame(&u.uz) && !Is_astralevel(&u.uz); /* elmntl plane */
 
-    int totalweight = 0;
-    int selected_mndx = NON_PM;
-    for (mndx = LOW_PM; mndx < SPECIAL_PM; mndx++) {
+    /* amount processed so far */
+    totalweight = 0;
+    selected_mndx = NON_PM;
+
+    for (mndx = LOW_PM; mndx < SPECIAL_PM; ++mndx) {
         ptr = &mons[mndx];
-        if (tooweak(mndx, minmlev) || toostrong(mndx, maxmlev))
+
+        if (montooweak(mndx, minmlev) || montoostrong(mndx, maxmlev))
             continue;
-        if (uppercase && !isupper((uchar) def_monsyms[(int) ptr->mlet].sym))
+        if (upper && !isupper((uchar) def_monsyms[(int) ptr->mlet].sym))
             continue;
         if (elemlevel && wrong_elem_type(ptr))
             continue;
@@ -1627,32 +1629,42 @@ rndmonst()
             continue;
         if (Inhell && (ptr->geno & G_NOHELL))
             continue;
-        /* Weighted reservoir sampling: select ptr with a
+
+        /*
+         * Weighted reservoir sampling:  select ptr with a
          * (ptr weight)/(total of all weights so far including ptr's)
-         * probability. For example, if the previous total is 10, and this is
-         * now looking at acid blobs with a frequency of 2, it has a 2/12 chance
-         * of abandoning ptr's previous value in favor of acid blobs, and a
-         * 10/12 chance of keeping it at whatever it was. Surprisingly, this does
-         * not bias results towards either the earlier or the later monsters:
-         * the smaller pool and better odds from being earlier are exactly
-         * canceled out by having more monsters to potentially steal its spot.
+         * probability.  For example, if the previous total is 10, and
+         * this is now looking at acid blobs with a frequency of 2, it
+         * has a 2/12 chance of abandoning ptr's previous value in favor
+         * of acid blobs, and 10/12 chance of keeping whatever it was.
+         *
+         * This does not bias results towards either the earlier or the
+         * later monsters:  the smaller pool and better odds from being
+         * earlier are exactly canceled out by having more monsters to
+         * potentially steal its spot.
          */
-        int weight = (int) (ptr->geno & G_FREQ) + align_shift(ptr);
+        weight = (int) (ptr->geno & G_FREQ) + align_shift(ptr);
         if (weight < 0 || weight > 127) {
             impossible("bad weight in rndmonst for mndx %d", mndx);
             weight = 0;
         }
-        totalweight += weight;
-        if (rn2(totalweight) < weight)
-            selected_mndx = mndx;
-        /*
-         *      Possible modification:  if choice_count is "too low",
-         *      expand minmlev..maxmlev range and try again.
-         */
+        /* was unconditional, but if weight==0, rn2() < 0 will always fail;
+           also need to avoid rn2(0) if totalweight is still 0 so far */
+        if (weight > 0) {
+            totalweight += weight; /* totalweight now guaranteed to be > 0 */
+            if (rn2(totalweight) < weight)
+                selected_mndx = mndx;
+        }
     }
-
-    if (selected_mndx == NON_PM || uncommon(selected_mndx)) { /* shouldn't happen */
-        impossible("rndmonst: bad `mndx' [#%d]", selected_mndx);
+    /*
+     * Possible modification:  if totalweight is "too low" or nothing
+     * viable was picked, expand minmlev..maxmlev range and try again.
+     */
+    if (selected_mndx == NON_PM || uncommon(selected_mndx)) {
+        /* maybe no common monsters left, or all are too weak or too strong */
+        if (selected_mndx != NON_PM)
+            debugpline1("rndmonst returning Null [uncommon 'mndx'=#%d]",
+                        selected_mndx);
         return (struct permonst *) 0;
     }
     return &mons[selected_mndx];
