@@ -153,13 +153,13 @@ char **argv;
     set_wc_option_mod_status(WC_ALIGN_MESSAGE | WC_ALIGN_STATUS
                                  | WC_TILE_WIDTH | WC_TILE_HEIGHT
                                  | WC_TILE_FILE,
-                             DISP_IN_GAME);
+                             set_gameview);
     set_wc_option_mod_status(
         WC_HILITE_PET | WC_SCROLL_MARGIN | WC_FONT_MESSAGE | WC_FONT_MAP
             | WC_FONT_STATUS | WC_FONT_MENU | WC_FONT_TEXT
             | WC_FONTSIZ_MESSAGE | WC_FONTSIZ_MAP | WC_FONTSIZ_STATUS
             | WC_FONTSIZ_MENU | WC_FONTSIZ_TEXT | WC_VARY_MSGCOUNT,
-        SET_IN_GAME);
+        set_in_game);
     if (iflags.wc_align_message == 0)
         iflags.wc_align_message = ALIGN_TOP;
     if (iflags.wc_align_status == 0)
