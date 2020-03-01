@@ -2125,7 +2125,7 @@ do_class_genocide()
                      */
                     if (!ll_done++) {
                         if (!num_genocides())
-                            livelog_printf(LL_CONDUCT|LL_GENOCIDE,
+                            livelog_printf(LL_CONDUCT | LL_GENOCIDE,
                                            "performed %s first genocide (class %c)",
                                            uhis(), def_monsyms[class].sym);
                         else
@@ -2310,9 +2310,9 @@ int how;
     if (how & REALLY) {
         if (!num_genocides())
             livelog_printf(LL_CONDUCT | LL_GENOCIDE,
-                           "performed %s first genocide (%s)", uhis(), buf);
+                           "performed %s first genocide (%s)", uhis(), makeplural(buf));
         else
-            livelog_printf(LL_GENOCIDE, "genocided %s", buf);
+            livelog_printf(LL_GENOCIDE, "genocided %s", makeplural(buf));
 
         /* setting no-corpse affects wishing and random tin generation */
         g.mvitals[mndx].mvflags |= (G_GENOD | G_NOCORPSE);
