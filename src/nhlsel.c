@@ -1,4 +1,4 @@
-/* NetHack 3.7	nhlua.c	$NHDT-Date: 1581562591 2020/02/13 02:56:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.9 $ */
+/* NetHack 3.7	nhlua.c	$NHDT-Date: 1582675449 2020/02/26 00:04:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.20 $ */
 /*      Copyright (c) 2018 by Pasi Kallinen */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -25,6 +25,8 @@ static int FDECL(l_selection_filter_mapchar, (lua_State *));
 static int FDECL(l_selection_flood, (lua_State *));
 static int FDECL(l_selection_circle, (lua_State *));
 static int FDECL(l_selection_ellipse, (lua_State *));
+static int FDECL(l_selection_gradient, (lua_State *));
+static int FDECL(l_selection_iterate, (lua_State *));
 static int FDECL(l_selection_gc, (lua_State *));
 static int FDECL(l_selection_not, (lua_State *));
 static int FDECL(l_selection_and, (lua_State *));
@@ -38,8 +40,6 @@ static int FDECL(l_selection_not, (lua_State *));
    if ifdef'd out the prototype here and the
    function body below.
  */
-static int FDECL(l_selection_gradient, (lua_State *));
-static int FDECL(l_selection_iterate, (lua_State *));
 static int FDECL(l_selection_add, (lua_State *));
 static int FDECL(l_selection_sub, (lua_State *));
 static int FDECL(l_selection_ipairs, (lua_State *));
@@ -298,10 +298,11 @@ static int
 l_selection_filter_percent(L)
 lua_State *L;
 {
-    struct selectionvar *sel = l_selection_check(L, 1);
     struct selectionvar *ret;
-    int p = (int) luaL_checkinteger(L, 2);
+    int p;
 
+    (void) l_selection_check(L, 1);
+    p = (int) luaL_checkinteger(L, 2);
     lua_pop(L, 1);
     (void) l_selection_clone(L);
     ret = l_selection_check(L, 1);
@@ -700,6 +701,97 @@ lua_State *L;
     return 1;
 }
 
+/* Gradients are versatile enough, with so many independently optional
+ * arguments, that it doesn't seem helpful to provide a non-table form with
+ * non-obvious argument order. */
+/* selection.gradient({ type = "radial", x = 3, y = 5, x2 = 10, y2 = 12,
+ *                      mindist = 4, maxdist = 10, limited = false });    */
+static int
+l_selection_gradient(L)
+lua_State *L;
+{
+    int argc = lua_gettop(L);
+    struct selectionvar *sel = (struct selectionvar *) 0;
+    /* if x2 and y2 aren't set, the gradient has a single center point of x,y;
+     * if they are set, the gradient is centered on a (x,y) to (x2,y2) line */
+    schar x = 0, y = 0, x2 = -1, y2 = -1;
+    /* points will not be added within mindist of the center; the chance for a
+     * point between mindist and maxdist to be added to the selection starts at
+     * 0% at mindist and increases linearly to 100% at maxdist */
+    xchar mindist = 0, maxdist = 0;
+    /* if limited is true, no points farther than maxdist will be added; if
+     * false, all points farther than maxdist will be added */
+    boolean limited = FALSE;
+    long type;
+    static const char *const gradtypes[] = {
+        "radial", "square", NULL
+    };
+    static const int gradtypes2i[] = {
+        SEL_GRADIENT_RADIAL, SEL_GRADIENT_SQUARE, -1 
+    };
+
+    if (argc == 1 && lua_type(L, 1) == LUA_TTABLE) {
+        lcheck_param_table(L);
+        type = gradtypes2i[get_table_option(L, "type", "radial", gradtypes)];
+        x = (schar) get_table_int(L, "x");
+        y = (schar) get_table_int(L, "y");
+        x2 = (schar) get_table_int_opt(L, "x2", -1);
+        y2 = (schar) get_table_int_opt(L, "y2", -1);
+        /* maxdist is required because there's no obvious default value for it,
+         * whereas mindist has an obvious defalt of 0 */
+        maxdist = get_table_int(L, "maxdist");
+        mindist = get_table_int_opt(L, "mindist", 0);
+        limited = get_table_boolean_opt(L, "limited", FALSE);
+
+        lua_pop(L, 1);
+        (void) l_selection_new(L);
+        sel = l_selection_check(L, 1);
+    } else {
+        nhl_error(L, "wrong parameters");
+        /* NOTREACHED */
+    }
+
+    /* someone might conceivably want to draw a gradient somewhere off-map. So
+     * the only coordinate that's "illegal" for that is (-1,-1).
+     * If a level designer really needs to draw a gradient line using that
+     * coordinate, they can do so by setting regular x and y to -1. */
+    if (x2 == -1 && y2 == -1) {
+        x2 = x;
+        y2 = y;
+    }
+
+    selection_do_gradient(sel, x, y, x2, y2, type, mindist, maxdist, limited);
+    lua_settop(L, 1);
+    return 1;
+}
+
+/* sel:iterate(function(x,y) ... end); */
+static int
+l_selection_iterate(L)
+lua_State *L;
+{
+    int argc = lua_gettop(L);
+    struct selectionvar *sel = (struct selectionvar *) 0;
+    int x, y;
+
+    if (argc == 2 && lua_type(L, 2) == LUA_TFUNCTION) {
+        sel = l_selection_check(L, 1);
+        lua_remove(L, 1);
+        for (y = 0; y < sel->hei; y++)
+            for (x = 0; x < sel->wid; x++)
+                if (selection_getpoint(x, y, sel)) {
+                    lua_pushvalue(L, 1);
+                    lua_pushinteger(L, x - g.xstart);
+                    lua_pushinteger(L, y - g.ystart);
+                    lua_call(L, 2, 0);
+                }
+    } else {
+        nhl_error(L, "wrong parameters");
+        /*NOTREACHED*/
+    }
+    return 0;
+}
+
 
 static const struct luaL_Reg l_selection_methods[] = {
     { "new", l_selection_new },
@@ -719,10 +811,8 @@ static const struct luaL_Reg l_selection_methods[] = {
     { "floodfill", l_selection_flood },
     { "circle", l_selection_circle },
     { "ellipse", l_selection_ellipse },
-    /* TODO:
-       { "gradient", l_selection_gradient },
-       { "iterate", l_selection_iterate },
-    */
+    { "gradient", l_selection_gradient },
+    { "iterate", l_selection_iterate },
     { NULL, NULL }
 };
 

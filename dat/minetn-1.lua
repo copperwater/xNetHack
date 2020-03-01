@@ -83,8 +83,8 @@ des.replace_terrain({ region={07,12,11,14}, fromterrain="|", toterrain=".", chan
 des.replace_terrain({ region={28,12,28,14}, fromterrain="|", toterrain=".", chance=33 })
 
 -- Rubble!
-for i=1,5 + math.random(2 - 1,2*5) do
-  if math.random(0,99) < 90 then
+for i=1,9 + d(2,5) do
+  if percent(90) then
     des.object("boulder")
   end
   des.object("rock")
@@ -155,11 +155,11 @@ des.monster({ id = "watch captain", dead = 1 })
 
 -- the Orcish Army
 
-for i=1,5 + math.random(1 - 1,1*10) do
-   if math.random(0, 99) < 50 then
+for i=1,5 + d(10) do
+   if percent(50) then
       des.monster({ id = "orc-captain", coord = { inside:rndcoord(1) }, peaceful=0 });
    else
-      if math.random(0, 99) < 80 then
+      if percent(80) then
          des.monster({ id = "Uruk-hai", coord = { inside:rndcoord(1) }, peaceful=0 })
       else
          des.monster({ id = "Mordor orc", coord = { inside:rndcoord(1) }, peaceful=0 })
@@ -167,12 +167,12 @@ for i=1,5 + math.random(1 - 1,1*10) do
    end
 end
 -- shamans can be hanging out in/near the temple
-for i=1,math.random(2 - 1,2*3) do
+for i=1,d(2,3) do
    des.monster({ id = "orc shaman", coord = { near_temple:rndcoord(0) }, peaceful=0 });
 end
 -- these are not such a big deal to run into outside the bars
-for i=1,9 + math.random(2 - 1,2*5) do
-   if math.random(0, 99) < 90 then
+for i=1,9 + d(2,5) do
+   if percent(90) then
       des.monster({ id = "hill orc", peaceful = 0 })
    else
       des.monster({ id = "goblin", peaceful = 0 })

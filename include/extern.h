@@ -387,6 +387,7 @@ E int FDECL(back_to_glyph, (XCHAR_P, XCHAR_P));
 E int FDECL(back_to_defsym, (XCHAR_P, XCHAR_P, BOOLEAN_P));
 E int FDECL(zapdir_to_glyph, (int, int, int));
 E int FDECL(glyph_at, (XCHAR_P, XCHAR_P));
+E void NDECL(reglyph_darkroom);
 E void NDECL(set_wall_state);
 E void FDECL(unset_seenv, (struct rm *, int, int, int, int));
 E int FDECL(warning_of, (struct monst *));
@@ -1913,7 +1914,6 @@ E int FDECL(shiny_obj, (CHAR_P));
 
 /* ### options.c ### */
 
-E void NDECL(reglyph_darkroom);
 E boolean FDECL(match_optname, (const char *, const char *, int, BOOLEAN_P));
 E void NDECL(initoptions);
 E void NDECL(initoptions_init);
@@ -2574,6 +2574,8 @@ E struct selectionvar *FDECL(selection_filter_mapchar, (struct selectionvar *,
 E void FDECL(set_floodfillchk_match_under, (XCHAR_P));
 E void FDECL(selection_do_ellipse, (struct selectionvar *,
                                     int, int, int, int, int));
+E void FDECL(selection_do_gradient, (struct selectionvar *, long, long,
+                                     long, long, long, long, long, long));
 E void NDECL(update_croom);
 E const char *FDECL(get_trapname_bytype, (int));
 E void FDECL(l_register_des, (lua_State *));
@@ -2632,6 +2634,7 @@ E boolean FDECL(stucksteed, (BOOLEAN_P));
 
 /* ### teleport.c ### */
 
+E boolean FDECL(noteleport_level, (struct monst *));
 E boolean FDECL(goodpos, (int, int, struct monst *, unsigned));
 E boolean FDECL(enexto, (coord *, XCHAR_P, XCHAR_P, struct permonst *));
 E boolean FDECL(enexto_core, (coord *, XCHAR_P, XCHAR_P,
