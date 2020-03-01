@@ -40,11 +40,10 @@ local leftedge = selection.line(00,00, 00,19)
 des.stair({ dir = "up", coord = { leftedge:rndcoord(1) } })
 
 -- Grass... none in the village, more outside it
--- Filter is necessary to prevent it from writing to x=1 and y=0.
--- TODO: implementing selection.gradient in lua is not within scope of initial
--- merge, so no grass for now.
---$grassy = selection: filter('.', gradient(radial,(11,80,unlimited),(55,08),(59,08)))
---TERRAIN:$grassy,'g'
+-- local grass = selection.gradient({ type="radial", mindist=11, maxdist=80, limited=false,
+--                                    x=55, y=8, x2=59, y2=8 })
+-- TODO: Vanilla needs to implement replace_terrain with a selection.
+-- des.replace_terrain({ selection = grass, fromterrain=".", toterrain="g" })
 
 -- Make some trees
 des.replace_terrain({ region = {00,00,31,19}, fromterrain="g", toterrain="T", chance = 2 })
