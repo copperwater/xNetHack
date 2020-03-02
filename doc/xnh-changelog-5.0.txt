@@ -83,7 +83,6 @@ Port the Free Fortune Cookie Patch: half of szechuan tins, if eaten, give you a
 Getting a critical hit on a vampire with a wooden piercing weapon can stake it
   through the heart and destroy it instantly.
 Magic lamps always release a djinni when rubbed instead of 1/3 of the time.
-Hallucination protects fully versus the gaze attack of floating eyes.
 1/30 of randomly generated tins are booby-trapped and will explode when opened.
 1/5 of nurses carry a scalpel.
 Wearing a charged ring of carrying will auto-identify it.
@@ -101,15 +100,14 @@ Acidic corpses can go moldy, but produce only green mold.
 Plastic has a much lower relative cost as a material.
 Group size now throttles on low dungeon levels rather than experience levels.
 Glass body armor may shatter if you are hit with a heavy object moving sideways.
-Hallucination is now effective against all gaze attacks made by monsters.
+Hallucination is effective at blocking all gaze attacks made by monsters.
 Falling rock traps no longer generate on outdoors levels.
 Amulets are worth 150 zorkmids each when the game ends regardless of material.
-Amulets of life saving only heal 50-100 HP if they save you from HP loss death.
+Amulets of life saving will not set your HP or max HP higher than 100.
 Chopping a web with a blade now factors in the weapon's enchantment.
 Shopkeepers' base level is adjusted from 12 to 13.
 Cockatrice hissing attacks begin stoning 1/5 of the time, but deafness blocks
   the attack entirely.
-Reading engravings stops capital-letter running.
 Aligned priests' maces are never cursed.
 Ghosts generate invisible 1/3 of the time.
 Gas clouds are a little random in how they spread out from a point; the edges of
