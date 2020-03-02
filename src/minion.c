@@ -521,7 +521,10 @@ gain_guardian_angel()
         verbalize("Thy desire for conflict shall be fulfilled!");
         /* send in some hostile angels instead */
         lose_guardian_angel((struct monst *) 0);
-    } else if (u.ualign.record > 8) { /* fervent */
+    } else if (u.ualign.record > 8 && u.uconduct.pets) { /* fervent */
+        /* Too nasty for the game to unexpectedly break petless conduct on
+         * the final level of the game. If you have been petless thus far, your
+         * god will respect your decision, and won't send an angel. */
         pline("A voice whispers:");
         verbalize("Thou hast been worthy of me!");
         mm.x = u.ux;
@@ -530,20 +533,15 @@ gain_guardian_angel()
             && (mtmp = mk_roamer(&mons[PM_ANGEL], u.ualign.type, mm.x, mm.y,
                                  TRUE)) != 0) {
             mtmp->mstrategy &= ~STRAT_APPEARMSG;
-            /* Too nasty for the game to unexpectedly break petless conduct on
-             * the final level of the game. The angel will still appear, but
-             * won't be tamed. */
-            if (u.uconduct.pets) {
-                /* guardian angel -- the one case mtame doesn't imply an
-                 * edog structure, so we don't want to call tamedog().
-                 * [Note: this predates mon->mextra which allows a monster
-                 * to have both emin and edog at the same time.]
-                 */
-                mtmp->mtame = 10;
-                u.uconduct.pets++;
-                /* for 'hilite_pet'; after making tame, before next message */
-                newsym(mtmp->mx, mtmp->my);
-            }
+            /* guardian angel -- the one case mtame doesn't imply an
+             * edog structure, so we don't want to call tamedog().
+             * [Note: this predates mon->mextra which allows a monster
+             * to have both emin and edog at the same time.]
+             */
+            mtmp->mtame = 10;
+            u.uconduct.pets++;
+            /* for 'hilite_pet'; after making tame, before next message */
+            newsym(mtmp->mx, mtmp->my);
             if (!Blind)
                 pline("An angel appears near you.");
             else

@@ -21,6 +21,8 @@ The Gnomish Sewer's wand of cold is now randomly placed (rather than being
 The Ranger home level is now a regular floor instead of all grass.
 Eating invisibility and see invisible rings grants 600+d200 turns of the
   respective intrinsic (the same as a blessed potion).
+If you arrive on Astral with petless conduct intact, your god will no longer
+  send any angel.
 
 
 It contains the following non-gameplay interface changes:
