@@ -1292,7 +1292,7 @@ struct obj * wpn;
         "%s of Omen",     "%s of Truth",   "%s of Virtue",   "%s of Bloodlust",
         "%s of Disaster", "%s of Torment", "%s of Doom",     "%s of the Gods",
         "%s of the Horde","%s of Gilgamesh","%s of the Planes",
-        "%s of Swift Defeat",
+        "%s of Excellence", "%s of Swift Defeat",
         "Righteous %s",   "Mighty %s",     "Unstoppable %s", "Sacred %s",
         "Holy %s",        "Lucky %s",      "Dudley's %s",    "Chaos %s",
         "Hungry %s",      "Inexorable %s", "Virtuous %s",    "Death %s",
