@@ -2085,10 +2085,15 @@ struct obj *otmp;
             if (!(u.uprops[objects[typ].oc_oprop].intrinsic & FROMOUTSIDE))
                 accessory_has_effect(otmp);
 
-            u.uprops[objects[typ].oc_oprop].intrinsic |= FROMOUTSIDE;
+            /* cases where we want to have effects but not grant a permanent
+             * intrinsic */
+            if (typ != RIN_SEE_INVISIBLE && typ != RIN_INVISIBILITY) {
+                u.uprops[objects[typ].oc_oprop].intrinsic |= FROMOUTSIDE;
+            }
 
             switch (typ) {
             case RIN_SEE_INVISIBLE:
+                incr_itimeout(&HSee_invisible, rnd(200) + 600);
                 set_mimic_blocking();
                 see_monsters();
                 if (Invis && !oldprop && !ESee_invisible
@@ -2099,6 +2104,7 @@ struct obj *otmp;
                 }
                 break;
             case RIN_INVISIBILITY:
+                incr_itimeout(&HInvis, rnd(200) + 600);
                 if (!oldprop && !EInvis && !BInvis && !See_invisible
                     && !Blind) {
                     newsym(u.ux, u.uy);
