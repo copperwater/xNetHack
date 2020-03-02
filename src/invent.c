@@ -2758,7 +2758,7 @@ long *out_cnt;
         char invheading[QBUFSZ];
         int wcap = weight_cap();
         Sprintf(invheading, "Inventory: %d/%d weight (%d/52 slots)",
-                inv_weight() + wcap, wcap, inv_cnt(TRUE));
+                inv_weight() + wcap, wcap, inv_cnt(FALSE));
         add_menu(win, NO_GLYPH, &any, 0, 0, ATR_BOLD, invheading,
                  MENU_ITEMFLAGS_NONE);
     }
