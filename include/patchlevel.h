@@ -4,7 +4,7 @@
 /* NetHack may be freely redistributed.  See license for details. */
 
 #define VERSION_MAJOR 5
-#define VERSION_MINOR 0
+#define VERSION_MINOR 1
 /*
  * PATCHLEVEL is updated for each release.
  */
@@ -13,7 +13,7 @@
  * Incrementing EDITLEVEL can be used to force invalidation of old bones
  * and save files.
  */
-#define EDITLEVEL 16
+#define EDITLEVEL 0
 
 #define COPYRIGHT_BANNER_A "xNetHack 5.0, Copyright 2020, based on NetHack, Copyright 1985-2020"
 #define COPYRIGHT_BANNER_B "by Stichting Mathematisch Centrum and M. Stephenson. See license for details."
@@ -29,7 +29,7 @@
  * PP = patch level, ee = edit level, L = literal suffix "L",
  * with all four numbers specified as two hexadecimal digits.
  */
-#define VERSION_COMPATIBILITY 0x05000000L
+#define VERSION_COMPATIBILITY 0x05010000L
 
 /*
  *  xNetHack changes are not documented here; see the changelog and wiki for
