@@ -896,7 +896,7 @@ short otyp;
         }
         else {
             Sprintf(buf, "Thrown missile using the %s skill.",
-                    skill_name(skill));
+                    skill_name(-skill));
         }
         OBJPUTSTR(buf);
         /* Ugh. Can we just get rid of dmgval() and put its damage bonuses into
