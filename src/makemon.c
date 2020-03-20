@@ -888,7 +888,9 @@ clone_mon(struct monst *mon,
      */
     m2->mhpmax = mon->mhpmax;
     m2->mhp = mon->mhp / 2;
-    mon->mhp -= m2->mhp;
+    if (mon->data != &mons[PM_JUIBLEX])
+        /* The "main" Juiblex doesn't lose any strength by splitting. */
+        mon->mhp -= m2->mhp;
 
     /* clone doesn't have mextra so mustn't retain special monster flags */
     m2->isshk = 0;
@@ -943,6 +945,11 @@ clone_mon(struct monst *mon,
         /* [TODO? some (most? all?) edog fields probably should be
            reinitialized rather that retain the 'parent's values] */
     }
+
+    /* copy clone's strategy (mainly for Juiblex case); but don't let cloned
+     * monster get APPEARMSG flag and produce duplicate appearance messages */
+    m2->mstrategy = mon->mstrategy & ~STRAT_APPEARMSG;
+
     set_malign(m2);
     newsym(m2->mx, m2->my); /* display the new monster */
 
@@ -970,7 +977,9 @@ propagate(int mndx, boolean tally, boolean ghostly)
     result = ((int) g.mvitals[mndx].born < lim && !gone) ? TRUE : FALSE;
 
     /* if it's unique, don't ever make it again */
-    if ((mons[mndx].geno & G_UNIQ) != 0 && mndx != PM_HIGH_CLERIC)
+    if ((mons[mndx].geno & G_UNIQ) != 0
+        && mndx != PM_HIGH_CLERIC
+        && mndx != PM_JUIBLEX)
         g.mvitals[mndx].mvflags |= G_EXTINCT;
 
     if (g.mvitals[mndx].born < 255 && tally && (!ghostly || result))

@@ -2598,14 +2598,14 @@
     /* Named demon lords & princes plus Arch-Devils.
      * (their order matters; see minion.c)
      */
-    MON("Juiblex", S_DEMON, LVL(50, 3, -7, 65, -15),
+    MON("Juiblex", S_DEMON, LVL(50, 6, -7, 65, -15),
         (G_HELL | G_NOCORPSE | G_NOGEN | G_UNIQ),
         A(ATTK(AT_ENGL, AD_DISE, 4, 10), ATTK(AT_SPIT, AD_ACID, 3, 6),
           NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK),
         SIZ(1500, 0, MS_GURGLE, MZ_GIGANTIC),
         MR_FIRE | MR_POISON | MR_ACID | MR_STONE, 0,
         M1_AMPHIBIOUS | M1_AMORPHOUS | M1_NOHEAD | M1_FLY | M1_SEE_INVIS
-            | M1_ACID | M1_POIS,
+            | M1_ACID | M1_POIS | M1_CLING | M1_HIDE,
         M2_NOPOLY | M2_DEMON | M2_STALK | M2_HOSTILE | M2_PNAME | M2_NASTY
             | M2_LORD | M2_MALE,
         M3_WAITFORU | M3_WANTSAMUL | M3_INFRAVISION, 26, CLR_BRIGHT_GREEN,

@@ -227,6 +227,10 @@ changes:
     attacks, which includes two new spells for teleporting away from the hero
     and entombing the hero in boulders and walls. He still summons nasties to
     distract the hero. He also gates in pit fiends 50% of the time.
+  - Juiblex can split himself in two, and also splits reactively like a pudding.
+    Killing him while there are clones of him on the level makes a random clone
+    become the "real" one. When angry, he will produce ooze-like monsters from
+    his body. He is now speed 6 instead of 3, and can hide on the ceiling.
 
 ### Interface changes
 

@@ -719,6 +719,33 @@ dochug(register struct monst* mtmp)
         }
         return 0;
     }
+    /* Juiblex may split himself if there are no copies of him on the level;
+     * if there are, some of him will split off into a lesser monster */
+    if (mdat == &mons[PM_JUIBLEX] && !mtmp->mpeaceful && !rn2(10)) {
+        struct monst *m2;
+        boolean dosplit = TRUE;
+        for (m2 = fmon; m2; m2 = m2->nmon) {
+            if (m2 != mtmp && m2->data == &mons[PM_JUIBLEX]) {
+                dosplit = FALSE;
+                break;
+            }
+        }
+        if (dosplit) {
+            if ((m2 = clone_mon(mtmp, 0, 0)) != (struct monst *) 0
+                && (canspotmon(mtmp) || canspotmon(m2))) {
+                pline("%s splits itself in two!", Monnam(mtmp));
+                return 0;
+            }
+        }
+        else if (rn2(2)) {
+            const char classes[] = { S_BLOB, S_JELLY, S_PUDDING };
+            m2 = makemon(mkclass(classes[rn2(SIZE(classes))], 0),
+                         mtmp->mx, mtmp->my,
+                         MM_ADJACENTOK | MM_ANGRY | MM_NOMSG);
+            pline("Some ooze rolls off %s and becomes %s.",
+                  mon_nam(mtmp), a_monnam(m2));
+        }
+    }
 
  toofar:
 

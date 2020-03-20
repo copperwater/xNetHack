@@ -1611,7 +1611,8 @@ hmon_hitmon(
         if (mon->mtame && !destroyed)
             monflee(mon, 10 * rnd(tmp), FALSE, FALSE);
     }
-    if ((mdat == &mons[PM_BLACK_PUDDING] || mdat == &mons[PM_BROWN_PUDDING])
+    if ((mdat == &mons[PM_BLACK_PUDDING] || mdat == &mons[PM_BROWN_PUDDING]
+         || mdat == &mons[PM_JUIBLEX])
         /* pudding is alive and healthy enough to split */
         && mon->mhp > 1 && !mon->mcan
         /* iron weapon using melee or polearm hit [3.6.1: metal weapon too;
@@ -1626,11 +1627,16 @@ hmon_hitmon(
         char withwhat[BUFSZ];
 
         if ((mclone = clone_mon(mon, 0, 0)) != 0) {
-            withwhat[0] = '\0';
-            if (u.twoweap && flags.verbose)
-                Sprintf(withwhat, " with %s", yname(obj));
-            pline("%s divides as you hit it%s!", Monnam(mon), withwhat);
-            hittxt = TRUE;
+            if (canspotmon(mclone) && !u.uswallow) {
+                withwhat[0] = '\0';
+                /* TODO: restore this line after 3.7 merge for xnh8.0
+                 * if (u.twoweap && Verbose(4, hmon_hitmon1)) */
+                if (u.twoweap && flags.verbose)
+                    Sprintf(withwhat, " with %s", yname(obj));
+                pline("%s divides as you hit it%s!", Monnam(mon),
+                        withwhat);
+                hittxt = TRUE;
+            }
             (void) mintrap(mclone, NO_TRAP_FLAGS);
         }
     }
@@ -3329,6 +3335,12 @@ mhitm_ad_slim(struct monst *magr, struct attack *mattk, struct monst *mdef,
             return; /* physical damage only */
         if (!rn2(4) && !slimeproof(pd)) {
             if (!munslime(mdef, FALSE) && !DEADMONSTER(mdef)) {
+                /* TODO: After 3.7 is merged in xnh8.0, uncomment this
+                unsigned ncflags = NO_NC_FLAGS;
+
+                if (gv.vis && canseemon(mdef))
+                    ncflags |= NC_SHOW_MSG;
+                if (newcham(mdef, &mons[PM_GREEN_SLIME], ncflags)) */
                 if (newcham(mdef, &mons[PM_GREEN_SLIME], FALSE,
                             (boolean) (g.vis && canseemon(mdef))))
                     pd = mdef->data;
