@@ -899,6 +899,20 @@ short otyp;
                     skill_name(-skill));
         }
         OBJPUTSTR(buf);
+
+        const char* dmgtyp = "blunt";
+        if (oc.oc_dir & PIERCE) {
+            dmgtyp = "piercing";
+            if (oc.oc_dir & SLASH) {
+                dmgtyp = "piercing/slashing";
+            }
+        }
+        else if (oc.oc_dir & SLASH) {
+            dmgtyp = "slashing";
+        }
+        Sprintf(buf, "Deals %s damage.", dmgtyp);
+        OBJPUTSTR(buf);
+
         /* Ugh. Can we just get rid of dmgval() and put its damage bonuses into
          * the object class? */
         const char* sdambon = "";
