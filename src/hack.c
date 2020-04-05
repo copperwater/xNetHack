@@ -1,4 +1,4 @@
-/* NetHack 3.6	hack.c	$NHDT-Date: 1584405116 2020/03/17 00:31:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.250 $ */
+/* NetHack 3.6	hack.c	$NHDT-Date: 1585993266 2020/04/04 09:41:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.254 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2094,8 +2094,16 @@ switch_terrain()
         if (Flying)
             You("start flying.");
     }
-    if ((!Levitation ^ was_levitating) || (!Flying ^ was_flying))
+    if ((!!Levitation ^ was_levitating) || (!!Flying ^ was_flying))
         g.context.botl = TRUE; /* update Lev/Fly status condition */
+}
+
+/* set or clear u.uinwater */
+void
+set_uinwater(in_out)
+int in_out;
+{
+    u.uinwater = in_out ? 1 : 0;
 }
 
 /* extracted from spoteffects; called by spoteffects to check for entering or
@@ -2110,13 +2118,15 @@ boolean newspot;             /* true if called by spoteffects */
         boolean still_inwater = FALSE; /* assume we're getting out */
 
         if (!is_pool(u.ux, u.uy)) {
-            if (Is_waterlevel(&u.uz))
+            if (Is_waterlevel(&u.uz)) {
                 You("pop into an air bubble.");
-            else if (is_lava(u.ux, u.uy))
+            } else if (is_lava(u.ux, u.uy)) {
                 You("leave the %s...", hliquid("water")); /* oops! */
-            else
+            } else {
                 You("are on solid %s again.",
                     is_ice(u.ux, u.uy) ? "ice" : "land");
+                iflags.last_msg = PLNMSG_BACK_ON_GROUND;
+            }
         } else if (Is_waterlevel(&u.uz)) {
             still_inwater = TRUE;
         } else if (Levitation) {
@@ -2131,7 +2141,7 @@ boolean newspot;             /* true if called by spoteffects */
         if (!still_inwater) {
             boolean was_underwater = (Underwater && !Is_waterlevel(&u.uz));
 
-            u.uinwater = 0;       /* leave the water */
+            set_uinwater(0); /* u.uinwater = 0; leave the water */
             if (was_underwater) { /* restore vision */
                 docrt();
                 g.vision_full_recalc = 1;

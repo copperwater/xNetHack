@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.142 $ $NHDT-Date: 1584872363 2020/03/22 10:19:23 $
+$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.151 $ $NHDT-Date: 1585993266 2020/04/04 09:41:06 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -91,6 +91,18 @@ praying on an unaligned altar outside of Gehennom behaved like an ordinary
 	prayer; make that always fail
 Discworld typo: Moving Pictures passage 12 "or" -> "of"
 unicorn corpses and wraith corpses could be sacrificed even if "too old"
+hero polymorphed into a hider and hiding was not unhidden when teleporting
+impose tighter restraints on 'summon nasties', both for spellcasting monsters
+	and post-Wizard harassment
+prevent swallowing monster ending up in a solid wall if it killed vault guard
+fix attached ball getting deallocated if swallowed, going down into a pit,
+	and saving
+level compiler creates correct novel with supplied name
+for farlook, describe water in the castle moat and in Juiblex's swamp as moat
+	and as swamp, respectively, rather than just as "water"
+make hezrous emit poison clouds when they move
+stepping from one type of terrain to another was triggering an unnecessary
+	status update
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -131,6 +143,8 @@ grammar for messages about a monster removing items from a container was bad
 some new status conditions didn't always update when they should
 fix flipping non-existent stairs and ladders (github #311)
 fix door created into random wall or position opening into solid wall
+'use_inverse' option was accidentally made Windows-only; change it back to
+	being more general; change its default to True
 
 
 Platform- and/or Interface-Specific Fixes
