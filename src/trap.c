@@ -5272,7 +5272,7 @@ register struct trap *trap;
     if (Sokoban && (trap->ttyp == PIT || trap->ttyp == HOLE))
         maybe_finish_sokoban();
     while (trap->ammo) {
-        impossible("deleting trap containing ammo?");
+        impossible("deleting trap (%d) containing ammo (%d)?", trap->ttyp, trap->ammo->otyp);
         struct obj* otmp = trap->ammo;
         extract_nobj(otmp, &trap->ammo);
         obfree(otmp, (struct obj *) 0);
