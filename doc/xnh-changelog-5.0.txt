@@ -118,7 +118,7 @@ Quarterstaves no longer block spellcasting if a cursed one is welded to both of
   your hands.
 Quarterstaves only do d4 damage to small monsters.
 Felines now attack rats.
-The portal to Fort Ludios now generates in the first vault generated on or below
+The portal to Fort Ludios now generates in the first vault generated below
   level 10.
 The titan on one Medusa level has been replaced with two golden nagas.
 Drop the level of the spellbook of invisibility from 4 to 1.
