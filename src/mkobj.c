@@ -906,6 +906,9 @@ boolean artif;
                 break;
             case SLIME_MOLD:
                 otmp->spe = g.context.current_fruit;
+                if (g.in_mklev && iseaster()) {
+                    otmp->spe = fruitadd("easter egg", NULL);
+                }
                 flags.made_fruit = TRUE;
                 break;
             case KELP_FROND:

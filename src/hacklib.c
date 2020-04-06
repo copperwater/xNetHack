@@ -68,6 +68,7 @@
         boolean         friday_13th     (void)
         int             night           (void)
         int             midnight        (void)
+        boolean         iseaster        (void)
         void            strbuf_init     (strbuf *, const char *)
         void            strbuf_append   (strbuf *, const char *)
         void            strbuf_reserve  (strbuf *, int)
@@ -1253,6 +1254,31 @@ int
 midnight()
 {
     return (getlt()->tm_hour == 0);
+}
+
+boolean
+iseaster()
+{
+    /* Modified form of Gauss's algorithm to compute the date of Easter, also
+     * known as the "Computus" algorithm. Relies on a not-inconsiderable amount
+     * of voodoo magic. */
+    int date = yyyymmdd((time_t) 0);
+    int year = date / 10000;
+    int a = year % 19;
+    int b = year / 100;
+    int c = year % 100;
+    int d = b / 4;
+    int e = b % 4;
+    int f = (b + 8) / 25;
+    int g = (b - f + 1) / 3;
+    int h = ((19 * a) + b - d - g + 15) % 30;
+    int i = c / 4;
+    int k = c % 4;
+    int L = (32 + (2 * e) + (2 * i) - h - k) % 7;
+    int m = (a + (11 * h) + (22 * L)) / 451;
+    int eastermonth = (h + L - (7 * m) + 114) / 31;
+    int easterday = (h + L - (7 * m) + 114) % 31 + 1;
+    return ((eastermonth * 100) + easterday == date % 10000);
 }
 
 /* strbuf_init() initializes strbuf state for use */
