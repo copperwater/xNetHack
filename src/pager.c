@@ -1796,6 +1796,7 @@ struct permonst **for_supplement;
                           : !(i == S_stone
                               || strcmp(x_str, "air") == 0
                               || strcmp(x_str, "land") == 0
+                              || strcmp(x_str, "grass") == 0
                               || water_or_lava);
 
             /* check if dark part of a room was already included above */
