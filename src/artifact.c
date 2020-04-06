@@ -1268,7 +1268,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
 
     /* poison damage is a 1/4 chance; use dieroll to make sure the message syncs
      * up with the poison effects */
-    if (permapoisoned(otmp) && realizes_damage && g.dieroll <= 5
+    if (permapoisoned(otmp) && realizes_damage && dieroll <= 5
         && !(youdefend ? Poison_resistance : resists_poison(mdef))) {
         pline_The("jagged blade poisons %s!", hittee);
         return TRUE;

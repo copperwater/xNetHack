@@ -1,4 +1,4 @@
-/* NetHack 3.6	cmd.c	$NHDT-Date: 1582594149 2020/02/25 01:29:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.406 $ */
+/* NetHack 3.6	cmd.c	$NHDT-Date: 1583704247 2020/03/08 21:50:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.408 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -778,35 +778,42 @@ boolean pre, wiztower;
     struct monst *mtmp;
 
     if (pre) {
+        /* keep steed and other adjacent pets after releasing them
+           from traps, stopping eating, &c as if hero were ascending */
+        /* (pets-only; normally we'd be using 'FALSE' here) */
+        keepdogs(TRUE, FALSE);
+
         rm_mapseen(ledger_no(&u.uz));
         for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+            int ndx = monsndx(mtmp->data);
             if (mtmp->isgd) { /* vault is going away; get rid of guard */
                 mtmp->isgd = 0;
                 mongone(mtmp);
             }
+            if (mtmp->data->geno & G_UNIQ)
+                g.mvitals[ndx].mvflags &= ~(G_EXTINCT);
+            if (g.mvitals[ndx].born)
+                g.mvitals[ndx].born--;
             if (DEADMONSTER(mtmp))
                 continue;
             if (mtmp->isshk)
                 setpaid(mtmp);
-            /* achievement tracking */
-            {
-                static const char Unachieve[] = "%s achievement revoked.";
+        }
+        {
+            static const char Unachieve[] = "%s achievement revoked.";
 
-                if (Is_mineend_level(&u.uz)) {
-                    if (remove_achievement(ACH_MINE_PRIZE))
-                        pline(Unachieve, "Mine's-end");
-                    g.context.achieveo.mines_prize_oid = 0;
-                } else if (Is_sokoend_level(&u.uz)) {
-                    if (remove_achievement(ACH_SOKO_PRIZE))
-                        pline(Unachieve, "Sokoban-end");
-                    g.context.achieveo.soko_prize_oid = 0;
-                }
+            /* achievement tracking; if replacing a level that has a
+               special prize, lose credit for previously finding it and
+               reset for the new instance of that prize */
+            if (Is_mineend_level(&u.uz)) {
+                if (remove_achievement(ACH_MINE_PRIZE))
+                    pline(Unachieve, "Mine's-end");
+                g.context.achieveo.mines_prize_oid = 0;
+            } else if (Is_sokoend_level(&u.uz)) {
+                if (remove_achievement(ACH_SOKO_PRIZE))
+                    pline(Unachieve, "Soko-prize");
+                g.context.achieveo.soko_prize_oid = 0;
             }
-            /* TODO?
-             *  Reduce 'born' tally for each monster about to be discarded
-             *  by savelev(), otherwise replacing heavily populated levels
-             *  tends to make their inhabitants become extinct.
-             */
         }
         if (Punished) {
             ballrelease(FALSE);
@@ -824,15 +831,13 @@ boolean pre, wiztower;
         /* escape from trap */
         reset_utrap(FALSE);
         check_special_room(TRUE); /* room exit */
+        (void) memset((genericptr_t)&g.dndest, 0, sizeof (dest_area));
+        (void) memset((genericptr_t)&g.updest, 0, sizeof (dest_area));
         u.ustuck = (struct monst *) 0;
         u.uswallow = u.uswldtim = 0;
-        u.uinwater = 0;
+        set_uinwater(0); /* u.uinwater = 0 */
         u.uundetected = 0; /* not hidden, even if means are available */
         dmonsfree(); /* purge dead monsters from 'fmon' */
-        /* keep steed and other adjacent pets after releasing them
-           from traps, stopping eating, &c as if hero were ascending */
-        /* (pets-only; normally we'd be using 'FALSE' here) */
-        keepdogs(TRUE, FALSE);
 
         /* discard current level; "saving" is used to release dynamic data */
         zero_nhfile(&tmpnhfp);  /* also sets fd to -1 as desired */
@@ -1891,6 +1896,8 @@ struct ext_func_tab extcmdlist[] = {
             dowhatis, IFBURIED | GENERALCMD },
     { 'w', "wield", "wield (put in use) a weapon", dowield },
     { M('w'), "wipe", "wipe off your face", dowipe, AUTOCOMPLETE },
+    { '\0', "wizborn", "show stats of monsters created",
+            doborn, IFBURIED | WIZMODECMD },
 #ifdef DEBUG
     { '\0', "wizbury", "bury objs under and around you",
             wiz_debug_cmd_bury, IFBURIED | AUTOCOMPLETE | WIZMODECMD },

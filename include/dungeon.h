@@ -154,16 +154,14 @@ typedef struct branch {
 #define MIGR_THIEFSTONE 10  /* thiefstone inter-level teleport */
 #define MIGR_NOBREAK 1024   /* bitmask: don't break on delivery */
 #define MIGR_NOSCATTER 2048 /* don't scatter on delivery */
-#define MIGR_TO_SPECIES 4096 /* migrating to species as they are made */ 
+#define MIGR_TO_SPECIES 4096 /* migrating to species as they are made */
 #define MIGR_LEFTOVERS 8192  /* grab remaining MIGR_TO_SPECIES objects */
 /* level information (saved via ledger number) */
 
 struct linfo {
     unsigned char flags;
 #define VISITED 0x01      /* hero has visited this level */
-#if 0 /* amnesia was removed from the game */
-#define FORGOTTEN 0x02    /* hero will forget this level when reached */
-#endif
+/* 0x02 was FORGOTTEN, when amnesia made you forget maps */
 #define LFILE_EXISTS 0x04 /* a level file exists for this level */
         /* Note:  VISITED and LFILE_EXISTS are currently almost always
          * set at the same time.  However they _mean_ different things.

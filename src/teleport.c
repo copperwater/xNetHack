@@ -1,4 +1,4 @@
-/* NetHack 3.6	teleport.c	$NHDT-Date: 1581886867 2020/02/16 21:01:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.113 $ */
+/* NetHack 3.6	teleport.c	$NHDT-Date: 1585211492 2020/03/26 08:31:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.118 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -298,9 +298,9 @@ teleds(nux, nuy, teleds_flags)
 int nux, nuy;
 int teleds_flags;
 {
-    boolean ball_active, ball_still_in_range;
-    boolean allow_drag = teleds_flags & TELEDS_ALLOW_DRAG;
-    boolean is_teleport = teleds_flags & TELEDS_TELEPORT;
+    boolean ball_active, ball_still_in_range = FALSE,
+            allow_drag = (teleds_flags & TELEDS_ALLOW_DRAG) != 0,
+            is_teleport = (teleds_flags & TELEDS_TELEPORT) != 0;
     struct monst *vault_guard = vault_occupied(u.urooms) ? findgd() : 0;
 
     if (u.utraptype == TT_BURIEDBALL) {
@@ -308,7 +308,10 @@ int teleds_flags;
         buried_ball_to_punishment();
     }
     ball_active = (Punished && uball->where != OBJ_FREE);
-    ball_still_in_range = FALSE;
+    if (!ball_active
+        || near_capacity() > SLT_ENCUMBER
+        || distmin(u.ux, u.uy, nux, nuy) > 1)
+        allow_drag = FALSE;
 
     /* If they have to move the ball, then drag if allow_drag is true;
      * otherwise they are teleporting, so unplacebc().
@@ -326,18 +329,10 @@ int teleds_flags;
      * rock in the way), in which case it teleports the ball on its own.
      */
     if (ball_active) {
-        if (!carried(uball) && distmin(nux, nuy, uball->ox, uball->oy) <= 2) {
+        if (!carried(uball) && distmin(nux, nuy, uball->ox, uball->oy) <= 2)
             ball_still_in_range = TRUE; /* don't have to move the ball */
-        } else {
-            /* have to move the ball */
-            if (!allow_drag || distmin(u.ux, u.uy, nux, nuy) > 1) {
-                /* we should not have dist > 1 and allow_drag at the same
-                 * time, but just in case, we must then revert to teleport.
-                 */
-                allow_drag = FALSE;
-                unplacebc();
-            }
-        }
+        else if (!allow_drag)
+            unplacebc(); /* have to move the ball */
     }
     reset_utrap(FALSE);
     set_ustuck((struct monst *) 0);
@@ -350,29 +345,24 @@ int teleds_flags;
     }
 
     if (u.uswallow) {
+        /* subset of unstuck() */
         u.uswldtim = u.uswallow = 0;
-        if (Punished && !ball_active) {
-            /* ensure ball placement, like unstuck */
-            ball_active = TRUE;
-            allow_drag = FALSE;
+        if (Punished) { /* ball&chain are off map while swallowed */
+            ball_active = TRUE; /* to put chain and non-carried ball on map */
+            ball_still_in_range = allow_drag = FALSE; /* (redundant) */
         }
         docrt();
     }
-    if (ball_active) {
-        if (ball_still_in_range || allow_drag) {
-            int bc_control;
-            xchar ballx, bally, chainx, chainy;
-            boolean cause_delay;
+    if (ball_active && (ball_still_in_range || allow_drag)) {
+        int bc_control;
+        xchar ballx, bally, chainx, chainy;
+        boolean cause_delay;
 
-            if (drag_ball(nux, nuy, &bc_control, &ballx, &bally, &chainx,
-                          &chainy, &cause_delay, allow_drag)) {
-                move_bc(0, bc_control, ballx, bally, chainx, chainy);
-            } else {
-                /* dragging fails if hero is encumbered beyond 'burdened' */
-                allow_drag = FALSE; /* teleport b&c to hero's new spot */
-                unplacebc(); /* to match placebc() below */
-            }
-        }
+        if (drag_ball(nux, nuy, &bc_control, &ballx, &bally, &chainx,
+                      &chainy, &cause_delay, allow_drag))
+            move_bc(0, bc_control, ballx, bally, chainx, chainy);
+        else /* dragging fails if hero is encumbered beyond 'burdened' */
+            unplacebc(); /* to match placebc() below */
     }
 
     if (is_teleport && flags.verbose)
@@ -383,10 +373,8 @@ int teleds_flags;
        the old position if allow_drag is true... */
     u_on_newpos(nux, nuy); /* set u.<x,y>, usteed-><mx,my>; cliparound() */
     fill_pit(u.ux0, u.uy0);
-    if (ball_active) {
-        if (!ball_still_in_range && !allow_drag)
-            placebc();
-    }
+    if (ball_active && uchain->where == OBJ_FREE)
+        placebc(); /* put back the ball&chain if they were taken off map */
     initrack(); /* teleports mess up tracking monsters without this */
     update_player_regions();
     /*
@@ -697,11 +685,9 @@ boolean break_the_rules; /* True: wizard mode ^T */
                 /* deliberate jumping will always take time even if it doesn't
                  * work */
                 return 1;
-            }
-            else
+            } else
                 trap = 0; /* continue with normal horizontal teleport */
-        }
-        else if (trap->ttyp == TELEP_TRAP) {
+        } else if (trap->ttyp == TELEP_TRAP) {
             trap_once = trap->once; /* trap may get deleted, save this */
             if (trap->once) {
                 pline("This is a vault teleport, usable once only.");
@@ -715,8 +701,7 @@ boolean break_the_rules; /* True: wizard mode ^T */
             if (trap)
                 You("%s onto the teleportation trap.",
                     locomotion(g.youmonst.data, "jump"));
-        }
-        else
+        } else
             trap = 0;
     }
     if (!trap) {
@@ -725,11 +710,7 @@ boolean break_the_rules; /* True: wizard mode ^T */
 
         if (!Teleportation || (u.ulevel < (Role_if(PM_WIZARD) ? 8 : 12)
                                && !can_teleport(g.youmonst.data))) {
-            /* Try to use teleport away spell.
-               Prior to 3.6.2 this used to require that you know the spellbook
-               (probably just intended as an optimization to skip the
-               lookup loop) but it is possible to know and cast a spell
-               after forgetting its book due to amnesia. */
+            /* Try to use teleport away spell. */
             for (sp_no = 0; sp_no < MAXSPELL; sp_no++)
                 if (g.spl_book[sp_no].sp_id == SPE_TELEPORT_AWAY)
                     break;

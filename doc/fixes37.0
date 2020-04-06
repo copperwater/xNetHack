@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.107 $ $NHDT-Date: 1582364458 2020/02/22 09:40:58 $
+$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.151 $ $NHDT-Date: 1585993266 2020/04/04 09:41:06 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -58,8 +58,64 @@ give feedback if controlled level teleport attempt fails because hero is
 unseen pet that drowned didn't give "you have a sad feeling" message
 prevent ravens from blinding other ravens: /corvus oculum corvi non eruit/
 have ^X provide more information when held or swallowed
-avoid divide by 0 crash if 'bogusmon' (file of bogus monster types) is empty
 display wasn't updating immediately after toggling hilite_pet option
+randomly choosing role could lead to crash via segfault
+if eel bite attack caused hero to move (killed + rehumanized + crawled out
+	of water), its grab attack could succeed even if no longer adjacent
+specifying a count when picking [part of] a stack of scrolls of scare monster
+	ignored that count and the whole stack was affected
+wizmakemap didn't account for unique monsters and didn't correct monster
+	birth counts
+generate objects (eg. statues) with genocided or extinct monster classes
+	in special levels, if requested
+if the orc-town version of mine town has been loaded, creation of orc zombies
+	or orc mummies would name them as part of the town raiding orc clan
+when punished, involuntarily teleporting and landing within chain range of
+	attached ball while encumbered worse than burdened could trigger
+	"remove_object: obj not on floor" panic on hero's next move
+inventory cursing caused by "this water's no good" effect when drinking from
+	a fountain didn't update persistent inventory window
+fix priest created inside temple wall
+fix vault guard occasionally encasing monsters in stone
+tone down scare monster by excluding humans and uniques
+lock the castle chest
+revamp amnesia to forget skills instead of objects or maps
+when Punished and carrying the iron ball and levitating, hurtling in the
+	opposite direction of a thrown object didn't bring along the chain
+recognize "kirin" as alias for "ki-rin" when asked to create a monster
+make unique swallowing monsters (Juiblex) resist magical digging from inside
+correctly account for fuel remaining when lit candles are attached
+	to candelabrum (the previous code would make the game unwinnable if
+	there were 15 or fewer turns remaining)
+praying on an unaligned altar outside of Gehennom behaved like an ordinary
+	prayer; make that always fail
+Discworld typo: Moving Pictures passage 12 "or" -> "of"
+unicorn corpses and wraith corpses could be sacrificed even if "too old"
+hero polymorphed into a hider and hiding was not unhidden when teleporting
+impose tighter restraints on 'summon nasties', both for spellcasting monsters
+	and post-Wizard harassment
+prevent swallowing monster ending up in a solid wall if it killed vault guard
+fix attached ball getting deallocated if swallowed, going down into a pit,
+	and saving
+level compiler creates correct novel with supplied name
+for farlook, describe water in the castle moat and in Juiblex's swamp as moat
+	and as swamp, respectively, rather than just as "water"
+make hezrous emit poison clouds when they move
+stepping from one type of terrain to another was triggering an unnecessary
+	status update
+make shriekers summon baby purple worms if purple worms would be too tough
+make non-tame (baby) purple worms eat corpses off the ground
+make baby purple worms attack shriekers
+make hero polymorphed into baby purple worm warned against shriekers
+confused scroll of light summons tame cancelled lights
+potions of hallucination can give enlightenment
+add a small chance of surviving food poisoning
+deliberate level teleporter activation ignores magic resistance
+auto-id scroll of remove curse when a known buc-state was changed
+demon lords hate Demonbane
+pets avoid eating shapeshifter corpses unless starving or nearly feral
+blessed scroll of teleportation gives a single controlled teleport
+allow opening a tin without interruption if slimed
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -70,8 +126,6 @@ revised "mysterious force" when climbing out of gehennom could generate
 	warnings about "rn2(0) attempted" or "rn2(-n) attempted"
 after 'w' on split stack patch, wielding '-' would cause an object_lost panic
 same patch allowed partial stack from getobj to replace cursed wielded weapon
-if the orc-town version of mine town has been loaded, creation of orc zombies
-	or orc mummies would name them as part of the town raiding orc clan
 autounlock of door or chest took no time; chest case depended on whether
 	anything got looted along with the unlocking
 autounlock with artifact unlocking tool didn't do touch check on that tool
@@ -100,6 +154,10 @@ set g.context.botl for glove and wielding actions that could start or end
 reinstate ranked ordering of the status condition fields
 grammar for messages about a monster removing items from a container was bad
 some new status conditions didn't always update when they should
+fix flipping non-existent stairs and ladders (github #311)
+fix door created into random wall or position opening into solid wall
+'use_inverse' option was accidentally made Windows-only; change it back to
+	being more general; change its default to True
 
 
 Platform- and/or Interface-Specific Fixes
@@ -109,6 +167,9 @@ msdos:  Add -DSTATUES_LOOK_LIKE_MONSTERS to Makefile1.cross so the VESA mode
 tty: role and race selection menus weren't filtering out potential choices
 	which got excluded by OPTIONS=align:!lawful or !neutral or !chaotic
 windows: update for new status condition fields
+X11: substantial overhaul of status display, both 'fancy' and 'tty-style'
+X11: extend fancy status one-turn inverse video status-change highlighting to
+	hunger, encumbrance, and conditions
 
 
 General New Features
@@ -167,12 +228,14 @@ tipping your cap might get a response
 special levels can be flipped horizontally and/or vertically
 new special level initialization routine, "swamp"
 demon lords and princes suppress teleporting in Gehennom
+for !fixinv option where inventory letters normally don't stick, try to put
+	a throw-and-return weapon back into the same inventory slot it gets
+	thrown from; only works if it does return and is successfully caught
+wizard mode #wizborn command
 
 
 Platform- and/or Interface-Specific New Features
 ------------------------------------------------
-teach unix/Makefile.doc how to make Guidebook.dat, an unpaginated copy of
-	Guidebook.txt
 
 
 NetHack Community Patches (or Variation) Included

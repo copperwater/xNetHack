@@ -324,6 +324,11 @@ typedef struct sortloot_item Loot;
 #define SHIFT_SEENMSG 0x01 /* put out a message if in sight */
 #define SHIFT_MSG 0x02     /* always put out a message */
 
+/* m_poisongas_ok() return values */
+#define M_POISONGAS_BAD   0 /* poison gas is bad */
+#define M_POISONGAS_MINOR 1 /* poison gas is ok, maybe causes coughing */
+#define M_POISONGAS_OK    2 /* ignores poison gas completely */
+
 /* flags for deliver_obj_to_mon */
 #define DF_NONE     0x00
 #define DF_RANDOM   0x01
@@ -488,6 +493,13 @@ enum bodypart_types {
 #define SPINACH_TIN (-1)
 #define RANDOM_TIN (-2)
 #define HEALTHY_TIN (-3)
+
+/* Corpse aging */
+#define TAINT_AGE (50L)          /* age when corpses go bad */
+#define TROLL_REVIVE_CHANCE 37   /* 1/37 chance for 50 turns ~ 75% chance */
+#define ZOMBIE_REVIVE_CHANCE 275 /* 1/275 chance for 250 turns ~ 60% chance */
+#define MOLDY_CHANCE 290         /* 1/290 chance for 200 turns ~ 50% chance */
+#define ROT_AGE (250L)           /* age when corpses rot away */
 
 /* Some misc definitions */
 #define POTION_OCCUPANT_CHANCE(n) (13 + 2 * (n))

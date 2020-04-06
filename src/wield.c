@@ -746,13 +746,20 @@ drop_uswapwep()
     dropx(obj);
 }
 
+void
+set_twoweap(on_off)
+boolean on_off;
+{
+    u.twoweap = on_off;
+}
+
 int
 dotwoweapon()
 {
     /* You can always toggle it off */
     if (u.twoweap) {
         You("switch to your primary weapon.");
-        u.twoweap = 0;
+        set_twoweap(FALSE); /* u.twoweap = FALSE */
         update_inventory();
         return 0;
     }
@@ -761,7 +768,7 @@ dotwoweapon()
     if (can_twoweapon()) {
         /* Success! */
         You("begin two-weapon combat.");
-        u.twoweap = 1;
+        set_twoweap(TRUE); /* u.twoweap = TRUE */
         update_inventory();
         return (rnd(20) > ACURR(A_DEX));
     }
@@ -812,7 +819,7 @@ untwoweapon()
 {
     if (u.twoweap) {
         You("can no longer use two weapons at once.");
-        u.twoweap = FALSE;
+        set_twoweap(FALSE); /* u.twoweap = FALSE */
         update_inventory();
     }
     return;

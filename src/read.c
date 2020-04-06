@@ -1,4 +1,4 @@
-/* NetHack 3.6	read.c	$NHDT-Date: 1561485713 2019/06/25 18:01:53 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.172 $ */
+/* NetHack 3.6	read.c	$NHDT-Date: 1583688568 2020/03/08 17:29:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.190 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -42,6 +42,7 @@ static void FDECL(p_glow1, (struct obj *));
 static void FDECL(p_glow2, (struct obj *, const char *));
 static void FDECL(flood_space, (int, int, genericptr_t));
 static void FDECL(unflood_space, (int, int, genericptr_t));
+static void FDECL(forget, (int));
 static int FDECL(maybe_tame, (struct monst *, struct obj *));
 static boolean FDECL(can_center_cloud, (int, int));
 static void FDECL(display_stinking_cloud_positions, (int));
@@ -808,6 +809,29 @@ int curse_bless;
     }
 }
 
+/*
+ * Forget some things (e.g. after reading a scroll of amnesia).  When called,
+ * the following are always forgotten:
+ *      - felt ball & chain
+ *      - skill training
+ *
+ * Other things are subject to flags:
+ *      howmuch & ALL_SPELLS    = forget all spells
+ */
+static void
+forget(howmuch)
+int howmuch;
+{
+    if (Punished)
+        u.bc_felt = 0; /* forget felt ball&chain */
+
+    if (howmuch & ALL_SPELLS)
+        losespells();
+
+    /* Forget some skills. */
+    drain_weapon_skill(rnd(howmuch ? 5 : 3));
+}
+
 /* monster is hit by scroll of taming's effect */
 static int
 maybe_tame(mtmp, sobj)
@@ -1407,22 +1431,31 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                     g.known = TRUE;
             }
         } else {
-            /* surround with cancelled tame lights which won't explode */
-            int numlights = rn1(2,3) + (sblessed * 2);
-            int i;
-            struct permonst * mptr = scursed ? &mons[PM_BLACK_LIGHT]
-                                             : &mons[PM_YELLOW_LIGHT];
-            for (i = 0; i < numlights; ++i) {
-                struct monst * mon = makemon(mptr, u.ux, u.uy,
-                                             MM_EDOG | NO_MINVENT);
-                initedog(mon);
-                u.uconduct.pets++;
-                mon->mcan = TRUE;
-                newsym(mon->mx, mon->my);
-            }
-            if (!Blind) {
-                pline("Lights appear all around you!");
-                g.known = TRUE;
+            int pm = scursed ? PM_BLACK_LIGHT : PM_YELLOW_LIGHT;
+
+            if ((g.mvitals[pm].mvflags & G_GONE)) {
+                pline("Tiny lights sparkle in the air momentarily.");
+            } else {
+                /* surround with cancelled tame lights which won't explode */
+                boolean sawlights = FALSE;
+                int numlights = rn1(2,3) + (sblessed * 2);
+                int i;
+
+                for (i = 0; i < numlights; ++i) {
+                    struct monst * mon = makemon(&mons[pm], u.ux, u.uy,
+                                                 MM_EDOG | NO_MINVENT);
+                    initedog(mon);
+                    u.uconduct.pets++;
+                    mon->msleeping = 0;
+                    mon->mcan = TRUE;
+                    if (canspotmon(mon))
+                        sawlights = TRUE;
+                    newsym(mon->mx, mon->my);
+                }
+                if (sawlights) {
+                    pline("Lights appear all around you!");
+                    g.known = TRUE;
+                }
             }
         }
         break;
@@ -1540,6 +1573,20 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             HConfusion = 0; /* restore */
             pline("Unfortunately, you can't grasp the details.");
         }
+        break;
+    case SCR_AMNESIA:
+        g.known = TRUE;
+        forget((!sblessed ? ALL_SPELLS : 0));
+        if (Hallucination) /* Ommmmmm! */
+            Your("mind releases itself from mundane concerns.");
+        else if (!strncmpi(g.plname, "Maud", 4))
+            pline(
+          "As your mind turns inward on itself, you forget everything else.");
+        else if (rn2(2))
+            pline("Who was that Maud person anyway?");
+        else
+            pline("Thinking of Maud you forget everything else.");
+        exercise(A_WIS, FALSE);
         break;
     case SCR_FIRE: {
         coord cc;
@@ -2517,17 +2564,25 @@ struct _create_particular_data *d;
     d->sleeping = d->saddled = d->invisible = d->hidden = FALSE;
 
     /* quantity */
-    if (digit(*bufp) && strcmp(bufp, "0")) {
+    if (digit(*bufp)) {
         d->quan = atoi(bufp);
         while (digit(*bufp))
             bufp++;
         while (*bufp == ' ')
             bufp++;
     }
+#define QUAN_LIMIT (ROWNO * (COLNO - 1))
+    /* maximum possible quantity is one per cell: (0..ROWNO-1) x (1..COLNO-1)
+       [21*79==1659 for default map size; could subtract 1 for hero's spot] */
+    if (d->quan < 1 || d->quan > QUAN_LIMIT)
+        d->quan = QUAN_LIMIT - monster_census(FALSE);
+#undef QUAN_LIMIT
+    /* gear -- extremely limited number of possibilities supported */
     if ((tmpp = strstri(bufp, "saddled ")) != 0) {
         d->saddled = TRUE;
         (void) memset(tmpp, ' ', sizeof "saddled " - 1);
     }
+    /* state -- limited number of possibilitie supported */
     if ((tmpp = strstri(bufp, "sleeping ")) != 0) {
         d->sleeping = TRUE;
         (void) memset(tmpp, ' ', sizeof "sleeping " - 1);

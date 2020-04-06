@@ -1,4 +1,4 @@
-/* NetHack 3.6	monmove.c	$NHDT-Date: 1580633722 2020/02/02 08:55:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.129 $ */
+/* NetHack 3.6	monmove.c	$NHDT-Date: 1586091452 2020/04/05 12:57:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.137 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -159,10 +159,13 @@ int x, y;
 struct monst *mtmp;
 {
     /* creatures who are directly resistant to magical scaring:
+     * humans aren't monsters
+     * uniques have ascended their base monster instincts
      * Rodney, lawful minions, Angels, the Riders, shopkeepers
      * inside their own shop, priests inside their own temple, uniques */
     if (mtmp->iswiz || is_lminion(mtmp) || mtmp->data == &mons[PM_ANGEL]
         || is_rider(mtmp->data)
+        || mtmp->data->mlet == S_HUMAN || unique_corpstat(mtmp->data)
         || (mtmp->isshk && inhishop(mtmp))
         || (mtmp->ispriest && inhistemple(mtmp))
         || (mtmp->data->geno & G_UNIQ))
@@ -684,6 +687,9 @@ register struct monst *mtmp;
     /*  Now the actual movement phase
      */
 
+    if (mtmp->data == &mons[PM_HEZROU]) /* stench */
+        create_gas_cloud(mtmp->mx, mtmp->my, 1, 8);
+
     if (mdat == &mons[PM_KILLER_BEE]
         /* could be smarter and deliberately move to royal jelly, but
            then we'd need to scan the level for queen bee in advance;
@@ -956,7 +962,7 @@ m_move(mtmp, after)
 register struct monst *mtmp;
 register int after;
 {
-    register int appr;
+    int appr, etmp;
     xchar gx, gy, nix, niy, chcnt;
     int chi; /* could be schar except for stupid Sun-2 compiler */
     boolean likegold = 0, likegems = 0, likeobjs = 0, likemagic = 0,
@@ -992,14 +998,12 @@ register int after;
         return 3; /* still eating */
     }
 
-    set_apparxy(mtmp);
-    /* where does mtmp think you are? */
-    /* Not necessary if m_move called from this file, but necessary in
-     * other calls of m_move (ex. leprechauns dodging)
-     */
+    /* Where does 'mtmp' think you are?  Not necessary if m_move() called
+       from this file, but needed for other calls of m_move(). */
+    set_apparxy(mtmp); /* set mtmp->mux, mtmp->muy */
+
     if (!Is_rogue_level(&u.uz))
         can_tunnel = tunnels(ptr);
-
     if (mtmp->wormno)
         goto not_special;
     /* my dog gets special treatment */
@@ -1130,8 +1134,8 @@ register int after;
 
     if ((!mtmp->mpeaceful || !rn2(10)) && (!Is_rogue_level(&u.uz))) {
         boolean in_line = (lined_up(mtmp)
-               && (distmin(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy)
-                   <= (throws_rocks(g.youmonst.data) ? 20 : ACURRSTR / 2 + 1)));
+             && (distmin(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy)
+                 <= (throws_rocks(g.youmonst.data) ? 20 : ACURRSTR / 2 + 1)));
 
         if (appr != 1 || !in_line) {
             /* Monsters in combat won't pick stuff up, avoiding the
@@ -1514,7 +1518,7 @@ register int after;
                     impossible("m_move: monster moving to closed door");
                 }
             } else if (levl[mtmp->mx][mtmp->my].typ == IRONBARS) {
-                /* As of 3.6.2: was using may_dig() but it doesn't handle bars */
+                /* 3.6.2: was using may_dig() but it doesn't handle bars */
                 if (!(levl[mtmp->mx][mtmp->my].wall_info & W_NONDIGGABLE)
                     && (dmgtype(ptr, AD_RUST) || dmgtype(ptr, AD_CORR))) {
                     if (canseemon(mtmp))
@@ -1529,7 +1533,8 @@ register int after;
             }
 
             /* possibly dig */
-            if (can_tunnel && mdig_tunnel(mtmp))
+            if (can_tunnel && may_dig(mtmp->mx, mtmp->my)
+                && mdig_tunnel(mtmp))
                 return 2; /* mon died (position already updated) */
 
             /* set also in domove(), hack.c */
@@ -1572,8 +1577,14 @@ register int after;
 
             /* Maybe a cube ate just about anything */
             if (ptr == &mons[PM_GELATINOUS_CUBE]) {
-                if (meatobj(mtmp) == 2)
-                    return 2; /* it died */
+                if ((etmp = meatobj(mtmp)) >= 2)
+                    return etmp; /* it died or got forced off the level */
+            }
+            /* Maybe a purple worm ate a corpse */
+            if (ptr == &mons[PM_PURPLE_WORM]
+                || ptr == &mons[PM_BABY_PURPLE_WORM]) {
+                if ((etmp = meatcorpse(mtmp)) >= 2)
+                    return etmp; /* it died or got forced off the level */
             }
 
             /* Maybe a purple worm ate a corpse */

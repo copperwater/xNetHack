@@ -37,6 +37,8 @@
      || ptr == &mons[PM_DEATH])
 /* is_were() doesn't handle hero in human form */
 
+#define immune_poisongas(ptr) ((ptr) == &mons[PM_HEZROU])
+
 #define is_lminion(mon) \
     (is_minion((mon)->data) && mon_aligntyp(mon) == A_LAWFUL)
 #define is_flyer(ptr) (((ptr)->mflags1 & M1_FLY) != 0L)

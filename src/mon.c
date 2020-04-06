@@ -1,12 +1,7 @@
-/* NetHack 3.6	mon.c	$NHDT-Date: 1581886863 2020/02/16 21:01:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.324 $ */
+/* NetHack 3.6	mon.c	$NHDT-Date: 1586091449 2020/04/05 12:57:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.333 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
-
-/* If you're using precompiled headers, you don't want this either */
-#ifdef MICROPORT_BUG
-#define MKROOM_H
-#endif
 
 #include "hack.h"
 #include "mfndpos.h"
@@ -243,6 +238,41 @@ boolean dotame;
 
 }
 
+/* Would monster be OK with poison gas? */
+/* Does not check for actual poison gas at the location. */
+/* Returns one of M_POISONGAS_foo */
+int
+m_poisongas_ok(mtmp)
+struct monst *mtmp;
+{
+    int px, py;
+    boolean is_you = (mtmp == &g.youmonst);
+
+    /* Non living, non breathing, immune monsters are not concerned */
+    if (nonliving(mtmp->data) || is_vampshifter(mtmp)
+        || breathless(mtmp->data) || immune_poisongas(mtmp->data))
+        return M_POISONGAS_OK;
+    /* not is_swimmer(); assume that non-fish are swimming on
+       the surface and breathing the air above it periodically
+       unless located at water spot on plane of water */
+    px = is_you ? u.ux : mtmp->mx;
+    py = is_you ? u.uy : mtmp->my;
+    if ((mtmp->data->mlet == S_EEL || Is_waterlevel(&u.uz))
+        && is_pool(px, py))
+        return M_POISONGAS_OK;
+    /* exclude monsters with poison gas breath attack:
+       adult green dragon and Tiamat (and iron golem, but nonliving()
+       and breathless() tests also catch that) */
+    if (attacktype_fordmg(mtmp->data, AT_BREA, AD_DRST)
+        || attacktype_fordmg(mtmp->data, AT_BREA, AD_RBRE))
+        return M_POISONGAS_OK;
+    if (is_you && (u.uinvulnerable || Breathless || Underwater))
+        return M_POISONGAS_OK;
+    if (is_you ? Poison_resistance : resists_poison(mtmp))
+        return M_POISONGAS_MINOR;
+    return M_POISONGAS_BAD;
+}
+
 /* convert the monster index of an undead to its living counterpart */
 int
 undead_to_corpse(mndx)
@@ -452,7 +482,7 @@ unsigned corpseflags;
         num = undead_to_corpse(mndx);
         corpstatflags |= CORPSTAT_INIT;
         obj = mkcorpstat(CORPSE, mtmp, &mons[num], x, y, corpstatflags);
-        obj->age -= 100; /* this is an *OLD* corpse */
+        obj->age -= (TAINT_AGE + 1); /* this is an *OLD* corpse */
         break;
     case PM_KOBOLD_ZOMBIE:
     case PM_DWARF_ZOMBIE:
@@ -475,7 +505,7 @@ unsigned corpseflags;
         num = undead_to_corpse(mndx);
         corpstatflags |= CORPSTAT_INIT;
         obj = mkcorpstat(CORPSE, mtmp, &mons[num], x, y, corpstatflags);
-        obj->age -= 100; /* this is an *OLD* corpse */
+        obj->age -= (TAINT_AGE + 1); /* this is an *OLD* corpse */
         break;
     case PM_IRON_GOLEM:
         num = d(2, 6);
@@ -1149,8 +1179,16 @@ struct monst *mtmp;
 
         /* touch sensitive items */
         if (otmp->otyp == CORPSE && is_rider(&mons[otmp->corpsenm])) {
+            int ox = otmp->ox, oy = otmp->oy;
+            boolean revived_it = revive_corpse(otmp, FALSE);
+
+            newsym(ox, oy);
             /* Rider corpse isn't just inedible; can't engulf it either */
-            (void) revive_corpse(otmp, FALSE);
+            if (!revived_it)
+                continue;
+            /* [should check whether revival forced 'mtmp' off the level
+               and return 3 in that situation (if possible...)] */
+            break;
 
         /* untouchable (or inaccessible) items */
         } else if ((otmp->otyp == CORPSE
@@ -1272,41 +1310,57 @@ int
 meatcorpse(mtmp) /* for purple worms and other voracious monsters */
 struct monst* mtmp;
 {
-    struct obj* otmp;
-    struct permonst *ptr, *original_ptr = mtmp->data;
+    struct obj *otmp;
+    struct permonst *ptr, *original_ptr = mtmp->data, *corpsepm;
     boolean poly, grow, heal, eyes = FALSE;
+    int x = mtmp->mx, y = mtmp->my;
 
     /* if a pet, eating is handled separately, in dog.c */
     if (mtmp->mtame)
         return 0;
 
-    for(otmp = g.level.objects[mtmp->mx][mtmp->my]; otmp; otmp = otmp->nexthere)
-    {
-        if (otmp->otyp != CORPSE)
-            continue;
+    for (otmp = sobj_at(CORPSE, x, y); otmp;
+         /* won't get back here if otmp is split or gets used up */
+         otmp = nxtobj(otmp, CORPSE, TRUE)) {
 
-        struct permonst* corpsepm = &mons[otmp->corpsenm];
-        if (is_rider(corpsepm)) {
-            revive_corpse(otmp, FALSE);
+        corpsepm = &mons[otmp->corpsenm];
+        /* skip some corpses */
+        if (vegan(corpsepm) /* ignore veggy corpse even if omnivorous */
+            /* don't eat harmful corpses */
+            || (touch_petrifies(corpsepm) && !resists_ston(mtmp)))
             continue;
+        if (is_rider(corpsepm)) {
+            boolean revived_it = revive_corpse(otmp, FALSE);
+
+            newsym(x, y); /* corpse is gone; mtmp might be too so do this now
+                             since we're bypassing the bottom of the loop */
+            if (!revived_it)
+                continue; /* revival failed? if so, corpse is gone */
+            /* Successful Rider revival; unlike skipped corpses, don't
+               just move on to next corpse as if nothing has happened.
+               [Can Rider revival bump 'mtmp' off level when it's full?
+               We ought to return 3 if that happens.] */
+            break;
         }
 
-        /* don't eat harmful corpses */
-        if (touch_petrifies(corpsepm) && !resists_ston(mtmp))
-            continue;
+        if (otmp->quan > 1)
+            otmp = splitobj(otmp, 1L);
 
-        if (cansee(mtmp->mx, mtmp->my) && canseemon(mtmp)) {
+        if (cansee(x, y) && canseemon(mtmp)) {
             if (flags.verbose)
                 pline("%s eats %s!", Monnam(mtmp), distant_name(otmp, doname));
-        }
-        else if (flags.verbose) {
-            You_hear("a masticating sound.");
+        } else {
+            if (flags.verbose)
+                You_hear("a masticating sound.");
         }
 
+        /* [should include quickmimic but can't handle that unless this
+           gets changed to set mtmp->meating] */
         poly = polyfodder(otmp);
         grow = mlevelgain(otmp);
         heal = mhealup(otmp);
-        eyes = (otmp->otyp == CARROT);
+        eyes = (otmp->otyp == CARROT); /*[always false since not a corpse]*/
+        ptr = original_ptr;
         delobj(otmp);
         if (poly) {
             if (newcham(mtmp, NULL, FALSE, FALSE))
@@ -1324,7 +1378,7 @@ struct monst* mtmp;
 
         /* Engulf & devour is instant, so don't set meating */
         if (mtmp->minvis)
-            newsym(mtmp->mx, mtmp->my);
+            newsym(x, y);
 
         return 1;
     }
@@ -1570,8 +1624,7 @@ long flag;
     lavaok = (!grounded(mdat) || likes_lava(mdat));
     if (mdat == &mons[PM_FLOATING_EYE]) /* prefers to avoid heat */
         lavaok = FALSE;
-    poisongas_ok = ((nonliving(mdat) || is_vampshifter(mon)
-                     || breathless(mdat)) || resists_poison(mon));
+    poisongas_ok = (m_poisongas_ok(mon) == M_POISONGAS_OK);
     in_poisongas = ((gas_reg = visible_region_at(x,y)) != 0
                     && gas_reg->glyph == gas_glyph);
 
@@ -2484,7 +2537,7 @@ struct monst *mdef;
        can't remove them from the game */
     mdrop_special_objs(mdef);
     /* release rest of monster's inventory--it is removed from game */
-    discard_minvent(mdef);
+    discard_minvent(mdef, FALSE);
     m_detach(mdef, mdef->data);
 }
 
@@ -3212,16 +3265,12 @@ struct monst *mtmp;
         }
         if (!rn2(10)) {
             if (!rn2(13)) {
-                /* don't generate purple worms if they would be too difficult */
-                if (toostrong(PM_PURPLE_WORM,
-                              monmax_difficulty(level_difficulty()))) {
-                    (void) makemon(&mons[PM_BABY_PURPLE_WORM], 0, 0, NO_MM_FLAGS);
-                }
-                else {
-                    (void) makemon(&mons[PM_PURPLE_WORM], 0, 0, NO_MM_FLAGS);
-                }
-            }
-            else {
+                /* don't generate purple worms if too difficult */
+                int pm = montoostrong(PM_PURPLE_WORM, monmax_difficulty_lev())
+                         ? PM_BABY_PURPLE_WORM : PM_PURPLE_WORM;
+
+                (void) makemon(&mons[pm], 0, 0, NO_MM_FLAGS);
+            } else {
                 (void) makemon((struct permonst *) 0, 0, 0, NO_MM_FLAGS);
             }
         }
@@ -3873,11 +3922,11 @@ struct monst *mon;
     switch (mon->cham) {
     case PM_SANDESTIN:
         if (rn2(7))
-            mndx = pick_nasty();
+            mndx = pick_nasty(mons[PM_ARCHON].difficulty - 1);
         break;
     case PM_DOPPELGANGER:
         if (!rn2(7)) {
-            mndx = pick_nasty();
+            mndx = pick_nasty(mons[PM_JABBERWOCK].difficulty - 1);
         } else if (rn2(3)) { /* role monsters */
             mndx = rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST);
         } else if (!rn2(3)) { /* quest guardians */
@@ -4223,16 +4272,7 @@ boolean msg;      /* "The oldmon turns into a newmon!" */
             unstuck(mtmp);
     }
 
-#ifndef DCC30_BUG
     if (mdat == &mons[PM_LONG_WORM] && (mtmp->wormno = get_wormno()) != 0) {
-#else
-    /* DICE 3.0 doesn't like assigning and comparing mtmp->wormno in the
-     * same expression.
-     */
-    if (mdat == &mons[PM_LONG_WORM]
-        && (mtmp->wormno = get_wormno(), mtmp->wormno != 0)) {
-#endif
-        /* we can now create worms with tails - 11/91 */
         initworm(mtmp, rn2(5));
         place_worm_tail_randomly(mtmp, mtmp->mx, mtmp->my);
     }
@@ -4529,6 +4569,22 @@ pacify_guards()
         if (is_watch(mtmp->data))
             mtmp->mpeaceful = 1;
     }
+}
+
+struct monst *
+find_ghost_with_name(str)
+char *str;
+{
+    struct monst *mtmp;
+
+    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+        if (DEADMONSTER(mtmp)
+            || mtmp->data != &mons[PM_GHOST] || !has_mname(mtmp))
+            continue;
+        if (!strcmpi(MNAME(mtmp), str))
+            return mtmp;
+    }
+    return (struct monst *) 0;
 }
 
 void

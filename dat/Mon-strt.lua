@@ -39,6 +39,8 @@ des.map([[
 -- Full level is lit
 des.region(selection.area(00,00,75,19), "lit")
 
+local spacelocs = selection.floodfill(05,04);
+
 -- Portal arrival point
 des.levregion({ region = {05,04,05,04}, type="branch" })
 
@@ -111,4 +113,3 @@ for i=1,4 do
 end
 des.monster({ id = "xorn", x=21, y=08, peaceful = 0})
 des.monster({ id = "xorn", x=21, y=11, peaceful = 0})
-

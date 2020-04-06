@@ -23,6 +23,10 @@ Eating invisibility and see invisible rings grants 600+d200 turns of the
   respective intrinsic (the same as a blessed potion).
 If you arrive on Astral with petless conduct intact, your god will no longer
   send any angel.
+Amnesia scrolls are re-introduced, and behave the same as vanilla 3.7, where
+  they make you forget spells and skills, not maps and object discoveries.
+  However, instead of having 35 probability like in vanilla, they have only 15
+  probability. The scroll of water is not removed.
 
 
 It contains the following non-gameplay interface changes:
@@ -33,4 +37,5 @@ Cavemen/women now get a role-specific message for being banished from the quest
 
 It contains the following non-gameplay architectural changes:
 
-
+Added a new function bury_sink_ring to unify codepaths for doing this between
+  regular and special level code.

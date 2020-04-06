@@ -1440,6 +1440,7 @@ int x, y;
 #ifdef CLIPPING
     cliparound(u.ux, u.uy);
 #endif
+    u.uundetected = 0;
     /* ridden steed always shares hero's location */
     if (u.usteed)
         u.usteed->mx = u.ux, u.usteed->my = u.uy;
@@ -1957,7 +1958,9 @@ const char *nam;
              || (u.uz.dnum == medusa_level.dnum
                  && dlev.dnum == valley_level.dnum))
             && (/* either wizard mode or else seen and not forgotten */
-                wizard || (g.level_info[idx].flags & VISITED))) {
+                wizard
+                || (g.level_info[idx].flags & (VISITED))
+                       == VISITED)) {
             lev = depth(&dlev);
         }
     } else { /* not a specific level; try branch names */
@@ -1969,10 +1972,12 @@ const char *nam;
         if (idx >= 0) {
             idxtoo = (idx >> 8) & 0x00FF;
             idx &= 0x00FF;
-            if (/* either wizard mode, or else _both_ sides of branch seen */
-                wizard
-                || ((g.level_info[idx].flags & VISITED)
-                    && (g.level_info[idxtoo].flags & VISITED))) {
+            /* either wizard mode, or else _both_ sides of branch seen */
+            if (wizard
+                || (((g.level_info[idx].flags & (VISITED))
+                     == VISITED)
+                    && ((g.level_info[idxtoo].flags & (VISITED))
+                        == VISITED))) {
                 if (ledger_to_dnum(idxtoo) == u.uz.dnum)
                     idx = idxtoo;
                 dlev.dnum = ledger_to_dnum(idx);

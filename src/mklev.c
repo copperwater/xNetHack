@@ -870,13 +870,6 @@ clear_level_structures()
         lev = &levl[x][0];
         for (y = 0; y < ROWNO; y++) {
             *lev++ = zerorm;
-            /*
-             * These used to be '#if MICROPORT_BUG',
-             * with use of memset(0) for '#if !MICROPORT_BUG' below,
-             * but memset is not appropriate for initializing pointers,
-             * so do these g.level.objects[][] and level.monsters[][]
-             * initializations unconditionally.
-             */
             g.level.objects[x][y] = (struct obj *) 0;
             g.level.monsters[x][y] = (struct monst *) 0;
         }
@@ -1901,7 +1894,7 @@ coord *tm;
         otmp = mkcorpstat(CORPSE, NULL, &mons[victim_mnum], m.x, m.y,
                           CORPSTAT_INIT);
         if (otmp)
-            otmp->age -= 51; /* died too long ago to eat */
+            otmp->age -= (TAINT_AGE + 1); /* died too long ago to eat */
     }
 }
 
@@ -1980,6 +1973,21 @@ coord *crd;
     return TRUE;
 }
 
+/* Add a ring under a sink. */
+void
+bury_sink_ring(x, y)
+xchar x, y;
+{
+    if (levl[x][y].typ != SINK) {
+        impossible("burying ring under non-sink %d at (%d,%d)?",
+                   levl[x][y].typ, x, y);
+    }
+    struct obj* ring = mkobj(RING_CLASS, TRUE);
+    ring->ox = x;
+    ring->oy = y;
+    add_to_buried(ring);
+}
+
 /* Place the given dungeon feature in room croom.
  * If typ is 0, place an engraving instead. */
 void
@@ -2006,10 +2014,7 @@ struct mkroom *croom;
     else if (typ == SINK) {
         levl[m.x][m.y].typ = SINK;
         /* All sinks have a ring stuck in the pipes below */
-        struct obj* ring = mkobj(RING_CLASS, TRUE);
-        ring->ox = m.x;
-        ring->oy = m.y;
-        add_to_buried(ring);
+        bury_sink_ring(m.x, m.y);
         g.level.flags.nsinks++;
     }
     else if (typ == ALTAR) {

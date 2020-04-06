@@ -1,4 +1,4 @@
-/* NetHack 3.7	objnam.c	$NHDT-Date: 1580070220 2020/01/26 20:23:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.291 $ */
+/* NetHack 3.7	objnam.c	$NHDT-Date: 1583315888 2020/03/04 09:58:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.293 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1415,7 +1415,8 @@ struct obj *otmp;
 const char *adjective;
 unsigned cxn_flags; /* bitmask of CXN_xxx values */
 {
-    char *nambuf = nextobuf();
+    /* some callers [aobjnam()] rely on prefix area that xname() sets aside */
+    char *nambuf = nextobuf() + PREFIX;
     int omndx = otmp->corpsenm;
     boolean ignore_quan = (cxn_flags & CXN_SINGULAR) != 0,
             /* suppress "the" from "the unique monster corpse" */
@@ -1566,8 +1567,7 @@ struct obj *obj;
 
     /* format the object */
     if (obj->otyp == CORPSE) {
-        buf = nextobuf();
-        Strcpy(buf, corpse_xname(obj, (const char *) 0, CXN_NORMAL));
+        buf = corpse_xname(obj, (const char *) 0, CXN_NORMAL);
     } else if (obj->otyp == SLIME_MOLD) {
         /* concession to "most unique deaths competition" in the annual
            devnull tournament, suppress player supplied fruit names because
@@ -3156,10 +3156,11 @@ xchar doorflags; /* contains all flags, including locked and trapped */
 
     if (madeterrain) {
         feel_newsym(x, y); /* map the spot where the wish occurred */
+
         /* hero started at <x,y> but might not be there anymore (create
            lava, decline to die, and get teleported away to safety) */
         if (u.uinwater && !is_pool(u.ux, u.uy)) {
-            u.uinwater = 0; /* leave the water */
+            set_uinwater(0); /* u.uinwater = 0; leave the water */
             docrt();
         } else {
             if (u.utrap && u.utraptype == TT_LAVA && !is_lava(u.ux, u.uy))
@@ -3173,6 +3174,7 @@ xchar doorflags; /* contains all flags, including locked and trapped */
                     unblock_point(x, y);
             }
         }
+
         /* fixups for replaced terrain that aren't handled above;
            for fountain placed on fountain or sink placed on sink, the
            increment above gets canceled out by the decrement here;
@@ -3195,6 +3197,11 @@ xchar doorflags; /* contains all flags, including locked and trapped */
         }
         /* note: lev->lit and lev->nondiggable retain their values even
            though those might not make sense with the new terrain */
+
+        /* might have changed terrain from something that blocked
+           levitation and flying to something that doesn't (levitating
+           while in xorn form and replacing solid stone with furniture) */
+        switch_terrain();
     }
     if (madeterrain || badterrain) {
         /* cast 'const' away; caller won't modify this */

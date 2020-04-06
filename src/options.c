@@ -1,4 +1,4 @@
-/* NetHack 3.7	options.c	$NHDT-Date: 1582748890 2020/02/26 20:28:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.451 $ */
+/* NetHack 3.7	options.c	$NHDT-Date: 1584350350 2020/03/16 09:19:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.459 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -87,7 +87,7 @@ enum window_option_types {
     TEXT_OPTION
 };
 
-enum {optn_err = 0, optn_ok};
+enum {optn_silenterr = -1, optn_err = 0, optn_ok};
 enum requests {do_nothing, do_init, do_set, do_handler, get_val};
 
 static struct allopt_t allopt[SIZE(allopt_init)];
@@ -107,7 +107,7 @@ extern char ttycolors[CLR_MAX]; /* in sys/msdos/video.c */
 #endif
 
 static char empty_optstr[] = { '\0' };
-boolean duplicate;
+boolean duplicate, using_alias;
 
 static const char def_inv_order[MAXOCLASSES] = {
     COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS,
@@ -317,6 +317,7 @@ boolean tinitial, tfrom_file;
     boolean retval = TRUE;
 
     duplicate = FALSE;
+    using_alias = FALSE;
     g.opt_initial = tinitial;
     g.opt_from_file = tfrom_file;
     if ((op = index(opts, ',')) != 0) {
@@ -411,6 +412,7 @@ boolean tinitial, tfrom_file;
                                       allopt[i].valok);
             if (got_match) {
                 matchidx = i;
+                using_alias = TRUE;
                 break;
             }
         }
@@ -467,6 +469,8 @@ boolean tinitial, tfrom_file;
         }
     }
 
+    if (optresult == optn_silenterr)
+        return FALSE;
     if (optresult == optn_ok)
         return retval;
 
@@ -518,7 +522,7 @@ char *op;
                 return optn_err;
             }
         } else
-            return optn_err;
+            return optn_silenterr;
         return optn_ok;
     }
     if (req == get_val) {
@@ -741,7 +745,10 @@ char *op UNUSED;
             clash = opts[0] ? 1 : 0;
         else if (opts[0] >= '1' && opts[0] < WARNCOUNT + '0')
             clash = 2;
-        if (clash) {
+        if (opts[0] < ' ') {
+            config_error_add("boulder symbol cannot be a control character");
+            return optn_ok;
+        } else if (clash) {
             /* symbol chosen matches a used monster or warning
                symbol which is not good - reject it */
             config_error_add("Badoption - boulder symbol '%s' would conflict "
@@ -1325,7 +1332,7 @@ char *op;
             } else
                 flags.female = flags.initgend;
         } else
-            return optn_err;
+            return optn_silenterr;
         return optn_ok;
     }
     if (req == get_val) {
@@ -3122,7 +3129,7 @@ char *op;
             } else /* Backwards compatibility */
                 g.pl_race = *op;
         } else
-            return optn_err;
+            return optn_silenterr;
         return optn_ok;
     }
     if (req == get_val) {
@@ -3197,7 +3204,7 @@ char *op;
             } else /* Backwards compatibility */
                 nmcpy(g.pl_character, op, PL_NSIZ);
         } else
-            return optn_err;
+            return optn_silenterr;
         return optn_ok;
     }
     if (req == get_val) {
@@ -4601,10 +4608,6 @@ char *op;
         if (!g.opt_initial && (allopt[optidx].setwhere == set_in_config))
             return optn_err;
 
-        /* 0 means boolean opts */
-        if (duplicate_opt_detection(optidx))
-            complain_about_duplicate(optidx);
-
         op = string_for_opt(opts, TRUE);
         if (op != empty_optstr) {
             if (negated) {
@@ -5884,7 +5887,7 @@ duplicate_opt_detection(optidx)
 int optidx;
 {
     if (g.opt_initial && g.opt_from_file)
-        return allopt[optidx].dupdetected;
+        return allopt[optidx].dupdetected++;
     return FALSE;
 }
 
@@ -5892,15 +5895,20 @@ static void
 complain_about_duplicate(optidx)
 int optidx;
 {
+    char buf[BUFSZ];
+
 #ifdef MAC
     /* the Mac has trouble dealing with the output of messages while
      * processing the config file.  That should get fixed one day.
      * For now just return.
      */
 #else /* !MAC */
-    config_error_add("%s option specified multiple times: %s",
+    buf[0] = '\0';
+    if (using_alias)
+        Sprintf(buf, " (via alias: %s)", allopt[optidx].alias);
+    config_error_add("%s option specified multiple times: %s%s",
                      (allopt[optidx].opttyp == CompOpt) ? "compound" : "boolean",
-                     allopt[optidx].name);
+                     allopt[optidx].name, buf);
 #endif /* ?MAC */
     return;
 }
@@ -6611,12 +6619,13 @@ char *str;
             c = colornames[i].color;
             break;
         }
-    if (i == SIZE(colornames) && (*str >= '0' && *str <= '9'))
+    if (i == SIZE(colornames) && digit(*str))
         c = atoi(str);
 
-    if (c == CLR_MAX)
-        config_error_add("Unknown color '%s'", str);
-
+    if (c < 0 || c >= CLR_MAX) {
+        config_error_add("Unknown color '%.60s'", str);
+        c = CLR_MAX; /* "none of the above" */
+    }
     return c;
 }
 
@@ -6647,7 +6656,7 @@ boolean complain;
         }
 
     if (a == -1 && complain)
-        config_error_add("Unknown text attribute '%s'", str);
+        config_error_add("Unknown text attribute '%.50s'", str);
 
     return a;
 }
@@ -7165,7 +7174,7 @@ char **opp;
                 return FALSE;
             }
         } else {
-            if (duplicate_opt_detection(optidx))
+            if (duplicate && !allopt[optidx].dupeok)
                 complain_about_duplicate(optidx);
             *opp = op;
             return TRUE;
@@ -7651,6 +7660,8 @@ doset() /* changing options via menu by Per Liboriussen */
         check_gold_symbol();
         reglyph_darkroom();
         (void) doredraw();
+    } else if (g.context.botl || g.context.botlx) {
+        bot();
     }
     return 0;
 }

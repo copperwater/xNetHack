@@ -740,18 +740,17 @@ register struct obj *otmp;
         if (Halluc_resistance) {
             g.potion_nothing++;
             break;
-        }
-        else if (Hallucination) {
+        } else if (Hallucination) {
             g.potion_nothing++;
         }
         (void) make_hallucinated(itimeout_incr(HHallucination,
                                           rn1(200, 600 - 300 * bcsign(otmp))),
                                  TRUE, 0L);
-        if ((otmp->blessed && !rn2(2)) || (otmp->cursed && !rn2(5))) {
-            You("see a vision..."); /* not You_see */
+        if ((otmp->blessed && !rn2(3)) || (!otmp->cursed && !rn2(6))) {
+            You("perceive yourself...");
             display_nhwindow(WIN_MESSAGE, FALSE);
             enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
-            pline_The("vision fades.");
+            Your("awareness re-normalizes.");
             exercise(A_WIS, TRUE);
             g.potion_nothing = 0;
         }

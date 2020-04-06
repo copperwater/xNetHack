@@ -91,7 +91,7 @@ boolean pushing;
             }
 
             if (fills_up && u.uinwater && distu(rx, ry) == 0) {
-                u.uinwater = 0;
+                set_uinwater(0); /* u.uinwater = 0 */
                 docrt();
                 g.vision_full_recalc = 1;
                 You("find yourself on dry land again!");
@@ -1049,6 +1049,14 @@ dodown()
         return 1; /* came out of hiding; might need '>' again to go down */
     }
 
+    if (u.ustuck) {
+        You("are %s, and cannot go down.",
+            !u.uswallow ? "being held" : is_animal(u.ustuck->data)
+                                             ? "swallowed"
+                                             : "engulfed");
+        return 1;
+    }
+
     if (!stairs_down && !ladder_down) {
         trap = t_at(u.ux, u.uy);
         if (trap && (uteetering_at_seen_pit(trap) || uescaped_shaft(trap))) {
@@ -1063,13 +1071,6 @@ dodown()
                 return 0;
             }
         }
-    }
-    if (u.ustuck) {
-        You("are %s, and cannot go down.",
-            !u.uswallow ? "being held" : is_animal(u.ustuck->data)
-                                             ? "swallowed"
-                                             : "engulfed");
-        return 1;
     }
     if (on_level(&valley_level, &u.uz) && !u.uevent.gehennom_entered) {
         You("are standing at the gate to Gehennom.");
@@ -1353,7 +1354,7 @@ boolean at_stairs, falling, portal;
     fill_pit(u.ux, u.uy);
     set_ustuck((struct monst *) 0); /* idem */
     u.uswallow = u.uswldtim = 0;
-    u.uinwater = 0;
+    set_uinwater(0); /* u.uinwater = 0 */
     u.uundetected = 0; /* not hidden, even if means are available */
     keepdogs(FALSE, at_stairs);
     recalc_mapseen(); /* recalculate map overview before we leave the level */
@@ -1438,13 +1439,15 @@ boolean at_stairs, falling, portal;
 
     if (!(g.level_info[new_ledger].flags & LFILE_EXISTS)) {
         /* entering this level for first time; make it now */
-        if (g.level_info[new_ledger].flags & VISITED) {
+        if (g.level_info[new_ledger].flags & (VISITED)) {
             impossible("goto_level: returning to discarded level?");
-            g.level_info[new_ledger].flags &= ~VISITED;
+            g.level_info[new_ledger].flags &= ~(VISITED);
         }
         mklev();
         new = TRUE; /* made the level */
         livelog_printf (LL_DEBUG, "entered new level %d, %s.", dunlev(&u.uz),dungeons[u.uz.dnum].dname );
+
+        familiar = (find_ghost_with_name(g.plname) != (struct monst *) 0);
     } else {
         /* returning to previously visited level; reload it */
         nhfp = open_levelfile(new_ledger, whynot);
@@ -1470,7 +1473,7 @@ boolean at_stairs, falling, portal;
         oinit(); /* reassign level dependent obj probabilities */
     }
     reglyph_darkroom();
-    u.uinwater = 0;
+    set_uinwater(0); /* u.uinwater = 0 */
     /* do this prior to level-change pline messages */
     vision_reset();         /* clear old level's line-of-sight */
     g.vision_full_recalc = 0; /* don't let that reenable vision yet */
@@ -1484,10 +1487,20 @@ boolean at_stairs, falling, portal;
             if (ttrap->ttyp == MAGIC_PORTAL)
                 break;
 
-        if (!ttrap)
-            panic("goto_level: no corresponding portal!");
-        seetrap(ttrap);
-        u_on_newpos(ttrap->tx, ttrap->ty);
+        if (!ttrap) {
+            if (u.uevent.qexpelled
+                && (Is_qstart(&u.uz0) || Is_qstart(&u.uz))) {
+                /* we're coming back from or going into the quest home level,
+                   after already getting expelled once. The portal back
+                   doesn't exist anymore - see expulsion(). */
+                u_on_rndspot(0);
+            } else {
+                panic("goto_level: no corresponding portal!");
+            }
+        } else {
+            seetrap(ttrap);
+            u_on_newpos(ttrap->tx, ttrap->ty);
+        }
     } else if (at_stairs && !In_endgame(&u.uz)) {
         if (up) {
             if (g.at_ladder)

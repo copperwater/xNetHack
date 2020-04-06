@@ -70,8 +70,8 @@ pfx_##a,
 #endif
 
 /* B:nm, ln, opt_*, setwhere?, on?, negat?, val?, dup?, hndlr? Alias, boolptr */
-/* C:nm, ln, opt_*, setwhere?, on?, negat?, val?, dup?, hndlr? Alias, descr  */
-/* P:pfx, ln, opt_*, setwhere?, on?, negat?, val?, dup?, hndlr? Alias, descr */
+/* C:nm, ln, opt_*, setwhere?, negateok?, valok?, dupok?, hndlr? Alias, desc */
+/* P:pfx, ln, opt_*, setwhere?, negateok?, valok?, dupok?, hndlr? Alias, desc*/
 
     NHOPTB(acoustics, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,
                &flags.acoustics)
@@ -504,13 +504,8 @@ pfx_##a,
                 NoAlias, &iflags.wc_underline_peacefuls)
     NHOPTB(use_darkgray, 0, opt_out, set_in_config, On, Yes, No, No, NoAlias,
                 &iflags.wc2_darkgray)
-#ifdef WIN32
     NHOPTB(use_inverse, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,
                 &iflags.wc_inverse)
-#else
-    NHOPTB(use_inverse, 0, opt_in, set_in_game, On, No, No, No, NoAlias,
-                (boolean *) 0)
-#endif
     NHOPTC(vary_msgcount, 20, opt_in, set_gameview, No, Yes, No, No, NoAlias,
                 "show more old messages at a time")
     NHOPTB(verbose, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,
@@ -520,7 +515,7 @@ pfx_##a,
                 "method of video updating")
 #endif
 #ifdef VIDEOSHADES
-    NHOPTC(videocolors, 40, opt_in, set_gameview, No, Yes, No, "videocolours",
+    NHOPTC(videocolors, 40, opt_in, set_gameview, No, Yes, No, No, "videocolours",
                 "color mappings for internal screen routines")
     NHOPTC(videoshades, 32, opt_in, set_gameview, No, Yes, No, No, NoAlias,
                 "gray shades to map to black/gray/white")
@@ -532,10 +527,10 @@ pfx_##a,
                 "video height")
 #endif
 #ifdef TTY_TILES_ESCCODES
-    NHOPTB(vt_tiledata, 0, opt_out, set_in_config, On, Yes, No, No, NoAlias,
+    NHOPTB(vt_tiledata, 0, opt_in, set_in_config, Off, Yes, No, No, NoAlias,
                 &iflags.vt_tiledata)
 #else
-    NHOPTB(vt_tiledata, 0, opt_out, set_in_config, On, Yes, No, No, NoAlias,
+    NHOPTB(vt_tiledata, 0, opt_in, set_in_config, Off, Yes, No, No, NoAlias,
                 (boolean *) 0)
 #endif
     NHOPTC(warnings, 10, opt_in, set_in_config, No, Yes, No, No, NoAlias,
@@ -570,7 +565,7 @@ pfx_##a,
                 "prefix for font options")
 #if defined(MICRO) && !defined(AMIGA)
     /* included for compatibility with old NetHack.cnf files */
-    NHOPTP(IBM_, 0, opt_in, set_hidden, No, No, Yes, NoAlias,
+    NHOPTP(IBM_, 0, opt_in, set_hidden, No, No, Yes, No, NoAlias,
                 "prefix for old micro IBM_ options")
 #endif /* MICRO */
 
