@@ -2430,6 +2430,45 @@ register struct monst *mtmp;
         nemdead();
     if (mtmp->data == &mons[PM_MEDUSA])
         record_achievement(ACH_MEDU);
+    /* Medusa falls into two livelog categories,
+     * we log one message flagged for both categories.
+     */
+    int numkills = g.mvitals[tmp].died;
+    if (mtmp->data == &mons[PM_MEDUSA]) {
+        livelog_write_string(LL_ACHIEVE|LL_UMONST, "killed Medusa");
+    }
+    else if (unique_corpstat(mtmp->data)
+             && (numkills == 1 || numkills == 5 || numkills == 10
+                 || numkills == 50 || numkills == 100 || numkills == 150
+                 || numkills == 200 || numkills == 250)) {
+        char wherebuf[BUFSZ];
+        char buf[BUFSZ];
+
+        wherebuf[0] = '\0';
+        if (mtmp->data == &mons[PM_WIZARD_OF_YENDOR]) {
+            /* special case to show dlvl */
+            if (In_endgame(&u.uz))
+                endgamelevelname(buf, depth(&u.uz));
+            else
+                describe_level(buf);
+            Sprintf(wherebuf, ", %s %s",
+                    (In_endgame(&u.uz) ? "on the"
+                        : (In_quest(&u.uz) || Is_knox(&u.uz)) ? "in"
+                                                              : "on"),
+                    buf);
+        }
+        buf[0] = '\0';
+        if (numkills > 1) {
+            Sprintf(buf, " (for the %dth time)", numkills);
+        }
+        livelog_printf(LL_UMONST, "%s %s%s%s",
+              nonliving(mtmp->data) ? "destroyed" : "killed",
+              noit_mon_nam(mtmp), wherebuf, buf);
+        pline( "%s %s%s%s",
+              nonliving(mtmp->data) ? "destroyed" : "killed",
+              noit_mon_nam(mtmp), buf, wherebuf);
+    }
+
     if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
         unmap_object(mtmp->mx, mtmp->my);
     m_detach(mtmp, mptr);
