@@ -1449,13 +1449,9 @@ struct rm *lev;
 {
     lev->typ = DOOR;
 
-    if (Is_rogue_level(&u.uz)) {
-        /* rogue didn't have doors, only doorways */
-        set_doorstate(lev, D_NODOOR);
-    } else {
-        /* newly exposed door is closed */
-        set_doorstate(lev, D_CLOSED);
-    }
+    /* newly exposed door is closed */
+    set_doorstate(lev, D_CLOSED);
+
     /* Secret doors use wall mode while secret in order to appear as walls,
      * which uses the lower 3 bits of flags, overlapping with doormask. The
      * lowest two bits are the state, which is fine because it gets overwritten

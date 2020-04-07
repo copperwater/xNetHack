@@ -2892,12 +2892,6 @@ char *origbuf;
         (void) get_uchars(bufp, translate, FALSE, WARNCOUNT,
                           "WARNINGS");
         assign_warnings(translate);
-    } else if (match_varname(buf, "ROGUESYMBOLS", 4)) {
-        if (!parsesymbols(bufp, ROGUESET)) {
-            config_error_add("Error in ROGUESYMBOLS definition '%s'", bufp);
-            retval = FALSE;
-        }
-        switch_symbols(TRUE);
     } else if (match_varname(buf, "SYMBOLS", 4)) {
         if (!parsesymbols(bufp, PRIMARY)) {
             config_error_add("Error in SYMBOLS definition '%s'", bufp);
@@ -3652,7 +3646,6 @@ int which_set;
                 /* initialize restriction bits */
                 tmpsp->nocolor = 0;
                 tmpsp->primary = 0;
-                tmpsp->rogue = 0;
                 break;
             case 2:
                 /* handler type identified */
@@ -3678,9 +3671,6 @@ int which_set;
                         case 0:
                             tmpsp->primary = 1;
                             break;
-                        case 1:
-                            tmpsp->rogue = 1;
-                            break;
                         }
                         break; /* while loop */
                     }
@@ -3699,9 +3689,7 @@ int which_set;
                     /* matches desired one */
                     g.chosen_symset_start = TRUE;
                     /* these init_*() functions clear symset fields too */
-                    if (which_set == ROGUESET)
-                        init_rogue_symbols();
-                    else if (which_set == PRIMARY)
+                    if (which_set == PRIMARY)
                         init_primary_symbols();
                 }
                 break;
@@ -3740,9 +3728,6 @@ int which_set;
                             case 0:
                                 g.symset[which_set].primary = 1;
                                 break;
-                            case 1:
-                                g.symset[which_set].rogue = 1;
-                                break;
                             }
                             break; /* while loop */
                         }
@@ -3756,8 +3741,6 @@ int which_set;
             if (g.chosen_symset_start) {
                 if (which_set == PRIMARY) {
                     update_primary_symset(symp, val);
-                } else if (which_set == ROGUESET) {
-                    update_rogue_symset(symp, val);
                 }
             }
         }

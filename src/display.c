@@ -666,8 +666,7 @@ xchar x, y;
                 do_room_glyph = TRUE;
             }
             if (do_room_glyph) {
-                lev->glyph = (flags.dark_room && iflags.use_color
-                              && !Is_rogue_level(&u.uz))
+                lev->glyph = (flags.dark_room && iflags.use_color)
                                  ? cmap_to_glyph(S_darkroom)
                                  : (lev->waslit ? cmap_to_glyph(S_room)
                                                 : cmap_to_glyph(S_stone));
@@ -871,14 +870,6 @@ register int x, y;
          * These checks and changes must be here and not in back_to_glyph().
          * They are dependent on the position being out of sight.
          */
-        } else if (Is_rogue_level(&u.uz)) {
-            if (lev->glyph == cmap_to_glyph(S_litcorr) && lev->typ == CORR)
-                show_glyph(x, y, lev->glyph = cmap_to_glyph(S_corr));
-            else if (lev->glyph == cmap_to_glyph(S_room) && lev->typ == ROOM
-                     && !lev->waslit)
-                show_glyph(x, y, lev->glyph = cmap_to_glyph(S_stone));
-            else
-                goto show_mem;
         } else if (!lev->waslit || (flags.dark_room && iflags.use_color)) {
             if (lev->glyph == cmap_to_glyph(S_litcorr) && lev->typ == CORR)
                 show_glyph(x, y, lev->glyph = cmap_to_glyph(S_corr));
@@ -1475,8 +1466,7 @@ reglyph_darkroom()
         for (y = 0; y < ROWNO; y++) {
             struct rm *lev = &levl[x][y];
 
-            if (!flags.dark_room || !iflags.use_color
-                || Is_rogue_level(&u.uz)) {
+            if (!flags.dark_room || !iflags.use_color) {
                 if (lev->glyph == cmap_to_glyph(S_darkroom))
                     lev->glyph = lev->waslit ? cmap_to_glyph(S_room)
                                              : GLYPH_NOTHING;

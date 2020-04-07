@@ -396,7 +396,6 @@ init_sco_cons()
         atexit(sco_mapon);
         sco_mapoff();
         load_symset("IBMGraphics", PRIMARY);
-        load_symset("RogueIBM", ROGUESET);
         switch_symbols(TRUE);
 #ifdef TEXTCOLOR
         if (has_colors())

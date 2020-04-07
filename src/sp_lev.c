@@ -2962,9 +2962,6 @@ lev_init *linit;
     case LVLINIT_MAZEGRID:
         lvlfill_maze_grid(2, 0, g.x_maze_max, g.y_maze_max, linit->bg);
         break;
-    case LVLINIT_ROGUE:
-        makeroguerooms();
-        break;
     case LVLINIT_MINES:
         if (linit->lit == -1)
             linit->lit = rn2(2);
@@ -3639,11 +3636,10 @@ lspo_level_init(L)
 lua_State *L;
 {
     static const char *const initstyles[] = {
-        "solidfill", "mazegrid", "rogue", "mines", "swamp", NULL
+        "solidfill", "mazegrid", "mines", "swamp", NULL
     };
     static const int initstyles2i[] = {
-        LVLINIT_SOLIDFILL, LVLINIT_MAZEGRID, LVLINIT_ROGUE,
-        LVLINIT_MINES, LVLINIT_SWAMP, 0
+        LVLINIT_SOLIDFILL, LVLINIT_MAZEGRID, LVLINIT_MINES, LVLINIT_SWAMP, 0
     };
     lev_init init_lev;
 

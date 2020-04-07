@@ -734,24 +734,24 @@ MAKEOBJS       = $(O)makedefs.o	$(O)monst.o	$(O)objects.o
 
 SPLEVOBJS	=$(O)lev_yacc.o $(O)lev_$(LEX).o $(O)lev_main.o \
 		$(O)alloc.o $(O)decl.o $(O)drawing.o $(O)monst.o \
-		$(O)objects.o $(O)panic.o $(O)stubvid.o 
+		$(O)objects.o $(O)panic.o $(O)stubvid.o
 
 DGNCOMPOBJS	=$(O)dgn_yacc.o $(O)dgn_$(LEX).o $(O)dgn_main.o \
-		$(O)alloc.o $(O)panic.o 
+		$(O)alloc.o $(O)panic.o
 
 RECOVOBJS      = $(O)recover.o
 
-GIFREADERS	=$(O)gifread.o $(O)alloc.o $(O)panic.o 
+GIFREADERS	=$(O)gifread.o $(O)alloc.o $(O)panic.o
 
 TEXT_IO	=$(O)tiletext.o $(O)tiletxt.o $(O)drawing.o \
-		$(O)decl.o $(O)monst.o $(O)objects.o $(O)stubvid.o 
+		$(O)decl.o $(O)monst.o $(O)objects.o $(O)stubvid.o
 
 PPMWRITERS     = $(O)ppmwrite.o	$(O)alloc.o	$(O)panic.o
 
-GIFREAD2	=$(O)gifread2.o $(O)alloc.o $(O)panic.o 
+GIFREAD2	=$(O)gifread2.o $(O)alloc.o $(O)panic.o
 
 TEXT_IO2	=$(O)tiletex2.o $(O)tiletxt2.o $(O)drawing.o \
-		$(O)decl.o $(O)monst.o $(O)objects.o $(O)stubvid.o 
+		$(O)decl.o $(O)monst.o $(O)objects.o $(O)stubvid.o
 
 PPMWRIT2       = $(O)ppmwrit2.o $(O)alloc.o	$(O)panic.o
 
@@ -778,7 +778,7 @@ OBJ01 =	$(O)alloc.o	$(RANDOM)	$(O)decl.o     	$(O)objects.o	\
 	$(O)bones.o	$(O)mklev.o	$(O)save.o	$(O)restore.o 	\
 	$(O)mkmaze.o	$(O)mkmap.o	$(O)end.o	$(O)o_init.o	\
 	$(O)options.o	$(O)rip.o       $(O)teleport.o	\
-	$(O)topten.o	$(O)tty.o	$(O)u_init.o	$(O)extralev.o 	\
+	$(O)topten.o	$(O)tty.o	$(O)u_init.o 	\
 	$(O)sp_lev.o	$(O)dig.o	$(O)pckeys.o	$(O)role.o	\
 	$(O)steed.o	$(O)region.o
 
@@ -1065,7 +1065,7 @@ $(U)lev_comp.exe:  $(SPLEVOBJS)
 	$(LINK) $(LFLAGSU) @&&!
 		$(O)stubvid.o $(O)panic.o $(O)objects.o $(O)monst.o +
 		$(O)drawing.o $(O)decl.o $(O)alloc.o $(O)lev_main.o +
-		$(O)lev_$(LEX).o $(O)lev_yacc.o 
+		$(O)lev_$(LEX).o $(O)lev_yacc.o
 		$@
 		$(@B)
 		$(BCMDL);
@@ -1134,7 +1134,7 @@ $(U)dgn_comp.exe: $(DGNCOMPOBJS)
     @echo Linking $@...
 	$(LINK) $(LFLAGSU) @&&!
 		$(O)panic.o $(O)alloc.o $(O)dgn_main.o $(O)dgn_$(LEX).o +
-		$(O)dgn_yacc.o 
+		$(O)dgn_yacc.o
 		$@
 		$(@B)
 		$(BCMDL);
@@ -1314,7 +1314,7 @@ $(U)tile2bin.exe: $(O)tile2bin.o $(TEXT_IO)
 	$(LINK) $(LFLAGSU) @&&!
 		$(O)tile2bin.o+
 		$(O)stubvid.o $(O)objects.o $(O)monst.o $(O)decl.o +
-		$(O)drawing.o $(O)tiletxt.o $(O)tiletext.o 
+		$(O)drawing.o $(O)tiletxt.o $(O)tiletext.o
 		$@
 		$(@B)
 		$(BCMDL);
@@ -1325,7 +1325,7 @@ $(U)til2bin2.exe: $(O)til2bin2.o $(TEXT_IO2)
 	$(LINK) $(LFLAGSU) @&&!
 		$(O)til2bin2.o+
 		$(O)stubvid.o $(O)objects.o $(O)monst.o $(O)decl.o +
-		$(O)drawing.o $(O)tiletxt2.o $(O)tiletex2.o 
+		$(O)drawing.o $(O)tiletxt2.o $(O)tiletex2.o
 		$@
 		$(@B)
 		$(BCMDL);
@@ -1811,7 +1811,6 @@ $(O)end.o:       $(SRC)\end.c      $(HACK_H) $(DLB_H)
 	@echo $(BCOPTS2) >> $(VROOMMCFG)
 	$(CC) $(CFLAGSN) $(COBJNAM)$@ $(SRC)\end.c
 $(O)exper.o:     $(PCHO) $(SRC)\exper.c    $(HACK_H)
-$(O)extralev.o:  $(PCHO) $(SRC)\extralev.c $(HACK_H)
 $(O)files.o:	 $(PCHO) $(SRC)\files.c    $(HACK_H) $(DLB_H)
 $(O)fountain.o:  $(PCHO) $(SRC)\fountain.c $(HACK_H)
 $(O)mapglyph.o:  $(PCHO) $(SRC)\mapglyph.c $(HACK_H)

@@ -452,7 +452,7 @@ HACK_H	= ../src/hack.h-t
 HACKCSRC = allmain.c alloc.c apply.c artifact.c attrib.c ball.c bones.c \
 	   botl.c cmd.c dbridge.c decl.c detect.c dig.c display.c dlb.c do.c \
 	   do_name.c do_wear.c dog.c dogmove.c dokick.c dothrow.c drawing.c \
-	   dungeon.c eat.c end.c engrave.c exper.c explode.c extralev.c \
+	   dungeon.c eat.c end.c engrave.c exper.c explode.c \
 	   files.c fountain.c hack.c hacklib.c \
 	   insight.c invent.c isaac64.c light.c \
 	   lock.c mail.c makemon.c mapglyph.c mcastu.c mdlib.c mhitm.c \
@@ -521,7 +521,7 @@ HOBJ = $(FIRSTOBJ) allmain.o alloc.o apply.o artifact.o attrib.o ball.o \
 	bones.o botl.o cmd.o dbridge.o decl.o detect.o dig.o display.o dlb.o \
 	do.o do_name.o do_wear.o dog.o dogmove.o dokick.o dothrow.o \
 	drawing.o dungeon.o eat.o end.o engrave.o exper.o explode.o \
-	extralev.o files.o fountain.o hack.o hacklib.o \
+	files.o fountain.o hack.o hacklib.o \
 	insight.o invent.o isaac64.o \
 	light.o lock.o mail.o makemon.o mapglyph.o mcastu.o mdlib.o mhitm.o \
 	mhitu.o minion.o mklev.o mkmap.o mkmaze.o mkobj.o mkroom.o mon.o \
@@ -1078,7 +1078,6 @@ end.o: end.c $(HACK_H) ../include/dlb.h
 engrave.o: engrave.c $(HACK_H)
 exper.o: exper.c $(HACK_H)
 explode.o: explode.c $(HACK_H)
-extralev.o: extralev.c $(HACK_H)
 files.o: files.c $(HACK_H) ../include/dlb.h #zlib.h
 fountain.o: fountain.c $(HACK_H)
 hack.o: hack.c $(HACK_H)

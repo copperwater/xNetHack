@@ -5,7 +5,7 @@
 // Qt Binding for NetHack 3.4
 //
 // Copyright (C) 1996-2001 by Warwick W. Allison (warwick@troll.no)
-// 
+//
 // Contributors:
 //    Michael Hohmuth <hohmuth@inf.tu-dresden.de>
 //       - Userid control
@@ -15,12 +15,12 @@
 //       - KDE support
 //       - SlashEm support
 //    and many others for bug reports.
-// 
+//
 // Unfortunately, this doesn't use Qt as well as I would like,
 // primarily because NetHack is fundamentally a getkey-type program
 // rather than being event driven (hence the ugly key and click buffer)
-// and also because this is my first major application of Qt.  
-// 
+// and also because this is my first major application of Qt.
+//
 // The problem of NetHack's getkey requirement is solved by intercepting
 // key events by overiding QApplicion::notify(...), and putting them in
 // a buffer.  Mouse clicks on the map window are treated with a similar
@@ -666,7 +666,7 @@ NetHackQtSettings::NetHackQtSettings(int w, int h) :
 	  case 's': default_fontsize = 3; break;
 	  case 't': default_fontsize = 4; break;
 	}
-	free(qt_fontsize); 
+	free(qt_fontsize);
     }
 
     theglyphs=new NetHackQtGlyphs();
@@ -994,16 +994,16 @@ NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks) :
 	  |         |   |         |   |  * Male      |
 	1 |         |   |         |   |  * Female    |
 	  |         |   |         |   +--------------+
-	  |         |   |         |   
+	  |         |   |         |
 	  |         |   |         |   + Alignment ---+
 	2 |         |   |         |   |  * Male      |
 	  |         |   |         |   |  * Female    |
 	  |         |   |         |   +--------------+
 	3 |         |   |         |   ...stretch...
-	  |         |   |         |   
+	  |         |   |         |
 	4 |         |   |         |   [  Play  ]
 	5 |         |   |         |   [  Quit  ]
-	  +---------+   +---------+   
+	  +---------+   +---------+
     */
 
     int marg=4;
@@ -1102,7 +1102,7 @@ NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks) :
 	}
     }
 
-    // make sure we have a valid combination, honoring 
+    // make sure we have a valid combination, honoring
     // the users request if possible.
     bool choose_race_first;
 #ifdef QT_CHOOSE_RACE_FIRST
@@ -1648,7 +1648,7 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 
     painter.begin(this);
 
-    if (Is_rogue_level(&u.uz) || iflags.wc_ascii_map)
+    if (iflags.wc_ascii_map)
     {
 	// You enter a VERY primitive world!
 
@@ -1733,27 +1733,18 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
     }
 
     if (garea.contains(cursor)) {
-	if (Is_rogue_level(&u.uz)) {
-#ifdef TEXTCOLOR
-	    painter.setPen( white );
-#else
-	    painter.setPen( green ); // REALLY primitive
-#endif
-	} else
-	{
-	    int hp100;
-	    if (u.mtimedone) {
-		hp100=u.mhmax ? u.mh*100/u.mhmax : 100;
-	    } else {
-		hp100=u.uhpmax ? u.uhp*100/u.uhpmax : 100;
-	    }
+        int hp100;
+        if (u.mtimedone) {
+            hp100=u.mhmax ? u.mh*100/u.mhmax : 100;
+        } else {
+            hp100=u.uhpmax ? u.uhp*100/u.uhpmax : 100;
+        }
 
-	    if (hp100 > 75) painter.setPen(white);
-	    else if (hp100 > 50) painter.setPen(yellow);
-	    else if (hp100 > 25) painter.setPen(QColor(0xff,0xbf,0x00)); // orange
-	    else if (hp100 > 10) painter.setPen(red);
-	    else painter.setPen(magenta);
-	}
+        if (hp100 > 75) painter.setPen(white);
+        else if (hp100 > 50) painter.setPen(yellow);
+        else if (hp100 > 25) painter.setPen(QColor(0xff,0xbf,0x00)); // orange
+        else if (hp100 > 10) painter.setPen(red);
+        else painter.setPen(magenta);
 
 	painter.drawRect(
 	    cursor.x()*qt_settings->glyphs().width(),cursor.y()*qt_settings->glyphs().height(),
@@ -2680,9 +2671,9 @@ void NetHackQtMenuDialog::done(int i)
 }
 
 // Table view columns:
-// 
+//
 // [pick-count] [accel] [glyph] [string]
-// 
+//
 // Maybe accel should be near string.  We'll see.
 // pick-count normally blank.
 //   double-clicking or click-on-count gives pop-up entry
@@ -3476,12 +3467,12 @@ void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
 {
     //  012
     //
-    //0 WhB   
-    //1 s"w   
-    //2 gCg   
-    //3 =A=   
-    //4  T    
-    //5  S    
+    //0 WhB
+    //1 s"w
+    //2 gCg
+    //3 =A=
+    //4  T
+    //5  S
 
     QPainter painter;
     painter.begin(this);
@@ -3951,7 +3942,7 @@ void NetHackQtMainWindow::resizeEvent(QResizeEvent*)
     layout();
 #ifdef KDE
     updateRects();
-#endif         
+#endif
 }
 
 void NetHackQtMainWindow::keyReleaseEvent(QKeyEvent* event)
@@ -4530,7 +4521,7 @@ void NetHackQtBind::qt_init_nhwindows(int* argc, char** argv)
 // calling XOpenDisplay(), and reset the euid afterwards.
 // Otherwise, it can't read the $HOME/.Xauthority file and whines about
 // not being able to open the X display (if a magic-cookie
-// authorization mechanism is being used). 
+// authorization mechanism is being used).
 
     uid_t gamesuid=geteuid();
     seteuid(getuid());
@@ -4656,7 +4647,7 @@ public:
     void lwc() { emit lastWindowClosed(); }
 };
 #endif
- 
+
 void NetHackQtBind::qt_exit_nhwindows(const char *)
 {
 #if defined(QWS)
@@ -4664,7 +4655,7 @@ void NetHackQtBind::qt_exit_nhwindows(const char *)
     ((TApp*)qApp)->lwc();
     qApp->quit();
 #endif
- 
+
     delete instance; // ie. qApp
 }
 
@@ -4712,7 +4703,7 @@ winid NetHackQtBind::qt_create_nhwindow(int type)
     window->nhid = id;
 
     // Note: use of isHidden does not work with Qt 2.1
-    if ( splash 
+    if ( splash
 #if QT_VERSION >= 300
         && !main->isHidden()
 #else
@@ -4981,9 +4972,9 @@ char NetHackQtBind::qt_yn_function(const char *question, const char *choices, CH
 	if (strcmp (choices,"ynq") == 0) {
 	    switch (QMessageBox::information (qApp->mainWidget(),"NetHack",question,"&Yes","&No","&Quit",0,2))
 	    {
-	      case 0: return 'y'; 
-	      case 1: return 'n'; 
-	      case 2: return 'q'; 
+	      case 0: return 'y';
+	      case 1: return 'n';
+	      case 2: return 'q';
 	    }
 	}
 
@@ -4991,7 +4982,7 @@ char NetHackQtBind::qt_yn_function(const char *question, const char *choices, CH
 	    switch (QMessageBox::information(qApp->mainWidget(),"NetHack",question,"&Yes", "&No",0,1))
 	    {
 	      case 0: return 'y';
-	      case 1: return 'n'; 
+	      case 1: return 'n';
 	    }
 	}
 #endif

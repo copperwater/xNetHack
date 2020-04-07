@@ -906,7 +906,7 @@ int glyph, bkglyph;
     /* Move the cursor. */
     Gem_curs(window, x, y);
 
-    mar_set_rogue(Is_rogue_level(&u.uz) ? TRUE : FALSE);
+    mar_set_rogue(FALSE);
 
     x--; /* MAR -- because x ranges from 1 to COLNO */
     if (mar_set_tile_mode(-1)) {
@@ -935,12 +935,6 @@ int glyph;
 
     /* map glyph to character and color */
     (void) mapglyph(glyph, &ch, &color, &special, x, y, 0);
-
-#ifdef TEXTCOLOR
-    /* Turn off color if rogue level. */
-    if (Is_rogue_level(&u.uz))
-        color = NO_COLOR;
-#endif /* TEXTCOLOR */
 
     mar_print_char(window, x, y, ch, color);
 }

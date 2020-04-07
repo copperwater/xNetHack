@@ -874,15 +874,14 @@ struct xwindow *wp;
     register int row;
     struct map_info_t *map_info = wp->map_information;
 
-    if ((Is_rogue_level(&u.uz) ? map_info->is_tile
-                               : (map_info->is_tile != iflags.wc_tiled_map))
+    if ((map_info->is_tile != iflags.wc_tiled_map)
         && map_info->tile_map.image_width) {
         /* changed map display mode, re-display the full map */
         (void) memset((genericptr_t) map_info->t_start, (char) 0,
                       sizeof(map_info->t_start));
         (void) memset((genericptr_t) map_info->t_stop, (char) (COLNO - 1),
                       sizeof(map_info->t_stop));
-        map_info->is_tile = iflags.wc_tiled_map && !Is_rogue_level(&u.uz);
+        map_info->is_tile = iflags.wc_tiled_map;
         XClearWindow(XtDisplay(wp->w), XtWindow(wp->w));
         set_map_size(wp, COLNO, ROWNO);
         check_cursor_visibility(wp);

@@ -604,7 +604,7 @@ onPaint(HWND hWnd)
                 + (ps.rcPaint.bottom - data->map_orig.y) / data->yScrTile + 1,
             ROWNO);
 
-        if (data->bAsciiMode || Is_rogue_level(&u.uz)) {
+        if (data->bAsciiMode) {
             /* You enter a VERY primitive world! */
             HGDIOBJ oldFont;
 

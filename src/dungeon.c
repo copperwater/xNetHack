@@ -90,8 +90,7 @@ dumpit()
                 DD.num_dunlevs, DD.dunlev_ureached);
         fprintf(stderr, "    depth_start %d, ledger_start %d\n",
                 DD.depth_start, DD.ledger_start);
-        fprintf(stderr, "    flags:%s%s%s\n",
-                DD.flags.rogue_like ? " rogue_like" : "",
+        fprintf(stderr, "    flags:%s%s\n",
                 DD.flags.maze_like ? " maze_like" : "",
                 DD.flags.hellish ? " hellish" : "");
         getchar();
@@ -100,8 +99,7 @@ dumpit()
     for (x = g.sp_levchn; x; x = x->next) {
         fprintf(stderr, "%s (%d): ", x->proto, x->rndlevs);
         fprintf(stderr, "on %d, %d; ", x->dlevel.dnum, x->dlevel.dlevel);
-        fprintf(stderr, "flags:%s%s%s%s\n",
-                x->flags.rogue_like ? " rogue_like" : "",
+        fprintf(stderr, "flags:%s%s%s\n",
                 x->flags.maze_like ? " maze_like" : "",
                 x->flags.hellish ? " hellish" : "",
                 x->flags.town ? " town" : "");
@@ -575,7 +573,6 @@ struct proto_dungeon *pd;
     new_level->flags.town = !!(tlevel->flags & TOWN);
     new_level->flags.hellish = !!(tlevel->flags & HELLISH);
     new_level->flags.maze_like = !!(tlevel->flags & MAZELIKE);
-    new_level->flags.rogue_like = !!(tlevel->flags & ROGUELIKE);
     new_level->flags.align = ((tlevel->flags & D_ALIGN_MASK) >> 4);
     if (!new_level->flags.align)
         new_level->flags.align =
@@ -710,7 +707,6 @@ static struct level_map {
                   { "medusa", &medusa_level },
                   { "oracle", &oracle_level },
                   { "orcus", &orcus_level },
-                  { "rogue", &rogue_level },
                   { "sanctum", &sanctum_level },
                   { "valley", &valley_level },
                   { "water", &water_level },
@@ -732,7 +728,7 @@ lua_State *L;
     static const char *const flagstrs[] = {
         "town", "hellish", "mazelike", "roguelike", NULL
     };
-    static const int flagstrs2i[] = { TOWN, HELLISH, MAZELIKE, ROGUELIKE, 0 };
+    static const int flagstrs2i[] = { TOWN, HELLISH, MAZELIKE, 0 };
 
     lua_getfield(L, -1, "flags");
     if (lua_type(L, -1) == LUA_TTABLE) {
@@ -1044,7 +1040,6 @@ init_dungeons()
 
         g.dungeons[i].flags.hellish = !!(dgn_flags & HELLISH);
         g.dungeons[i].flags.maze_like = !!(dgn_flags & MAZELIKE);
-        g.dungeons[i].flags.rogue_like = !!(dgn_flags & ROGUELIKE);
         g.dungeons[i].flags.align = dgn_align;
 
         /*
@@ -2626,7 +2621,7 @@ mapseen *mptr;
     if (mptr->flags.unreachable)
         return FALSE;
     /* level is of interest if it has an auto-generated annotation */
-    if (mptr->flags.oracle || mptr->flags.bigroom || mptr->flags.roguelevel
+    if (mptr->flags.oracle || mptr->flags.bigroom
         || mptr->flags.castle || mptr->flags.valley
         || mptr->flags.msanctum || mptr->flags.vibrating_square
         || mptr->flags.quest_summons || mptr->flags.questing)
@@ -2698,7 +2693,6 @@ recalc_mapseen()
     /* mptr->flags.bigroom retains previous value when hero can't see */
     if (!Blind)
         mptr->flags.bigroom = Is_bigroom(&u.uz);
-    mptr->flags.roguelevel = Is_rogue_level(&u.uz);
     mptr->flags.oracle = 0; /* recalculated during room traversal below */
     mptr->flags.castletune = 0;
     /* flags.quest_summons disabled once quest finished */
@@ -3282,8 +3276,6 @@ boolean printdun;
                 mptr->flags.sokosolved ? "Solved" : "Unsolved");
     } else if (mptr->flags.bigroom) {
         Sprintf(buf, "%sA very big room.", PREFIX);
-    } else if (mptr->flags.roguelevel) {
-        Sprintf(buf, "%sA primitive area.", PREFIX);
     } else if (on_level(&mptr->lev, &qstart_level)) {
         Sprintf(buf, "%sHome%s.", PREFIX,
                 mptr->flags.unreachable ? " (no way back...)" : "");

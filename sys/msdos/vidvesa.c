@@ -2085,9 +2085,8 @@ vesa_DrawCursor()
 {
     static boolean last_inmap = FALSE;
     unsigned x, y, left, top, right, bottom, width, height;
-    boolean isrogue = Is_rogue_level(&u.uz);
     boolean halfwidth =
-        (isrogue || iflags.over_view || iflags.traditional_view || !inmap);
+        (iflags.over_view || iflags.traditional_view || !inmap);
     int curtyp;
 
     if (inmap && !last_inmap) {
@@ -2198,9 +2197,8 @@ void
 vesa_HideCursor()
 {
     unsigned x, y, left, top, width, height;
-    boolean isrogue = Is_rogue_level(&u.uz);
     boolean halfwidth =
-        (isrogue || iflags.over_view || iflags.traditional_view || !inmap);
+        (iflags.over_view || iflags.traditional_view || !inmap);
 
     if (!cursor_type && inmap)
         return; /* CURSOR_INVIS - nothing to do */

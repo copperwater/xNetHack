@@ -396,9 +396,7 @@ const struct instance_globals g_init = {
     0, /* currentgraphics */
     DUMMY, /* showsyms */
     DUMMY, /* primary_syms */
-    DUMMY, /* rogue_syms */
     DUMMY, /* ov_primary_syms */
-    DUMMY, /* ov_rogue_syms */
     DUMMY, /* warnsyms */
 
     /* dungeon.c */
@@ -415,9 +413,6 @@ const struct instance_globals g_init = {
     UNDEFINED_VALUES,
     UNDEFINED_VALUES,
     VANQ_MLVL_MNDX,
-
-    /* extralev.c */
-    UNDEFINED_VALUES,
 
     /* files.c */
     UNDEFINED_VALUES, /* wizkit */

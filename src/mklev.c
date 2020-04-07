@@ -574,11 +574,6 @@ int type;
         }
     }
 
-    /* also done in roguecorr(); doing it here first prevents
-        making mimics in place of trapped doors on rogue level */
-    if (Is_rogue_level(&u.uz))
-        doorstate = D_NODOOR;
-
     set_doorstate(lev, doorstate);
     set_door_lock(lev, set_lock);
 
@@ -950,8 +945,8 @@ makelevel()
         register s_level *slev = Is_special(&u.uz);
 
         /* check for special levels */
-        if (slev && !Is_rogue_level(&u.uz)) {
-            /* special non-Rogue level */
+        if (slev) {
+            /* a special level */
             makemaz(slev->proto);
             return;
         } else if (g.dungeons[u.uz.dnum].proto[0]) {
@@ -985,14 +980,7 @@ makelevel()
     }
 
     /* otherwise, fall through - it's a "regular" level. */
-    if (Is_rogue_level(&u.uz)) {
-        /* place rooms and fake bones pile */
-        makeroguerooms();
-        makerogueghost();
-    } else {
-        /* regular dungeon fill level */
-        makerooms();
-    }
+    makerooms();
 
     /* order rooms[] by x-coordinate */
     sort_rooms();
@@ -1021,8 +1009,6 @@ makelevel()
     }
 
     branchp = Is_branchlev(&u.uz);    /* possible dungeon branch */
-    if (Is_rogue_level(&u.uz))
-        goto skip0;
     makecorridors();
     make_niches();
 
@@ -1072,7 +1058,6 @@ makelevel()
     else
         mkroom(rand_roomtype());
 
- skip0:
     /* Place multi-dungeon branch. */
     place_branch(branchp, 0, 0);
 
@@ -1102,8 +1087,6 @@ makelevel()
         /* maybe put some gold inside */
         if (!rn2(3))
             (void) mkgold(0L, somex(croom), somey(croom));
-        if (Is_rogue_level(&u.uz))
-            goto skip_nonrogue;
 
         /* maybe place some dungeon features inside */
         if (!rn2(10))
@@ -1159,7 +1142,6 @@ makelevel()
             mkfeature(0, croom);
         }
 
- skip_nonrogue:
         /* place a random object in the room, with a recursive 20% chance of
          * placing another */
         if (rnd(5) <= 2) {
@@ -1220,7 +1202,7 @@ boolean skip_lvl_checks;
     /* determine if it is even allowed;
        almost all special levels are excluded */
     if (!skip_lvl_checks
-        && (In_hell(&u.uz) || In_V_tower(&u.uz) || Is_rogue_level(&u.uz)
+        && (In_hell(&u.uz) || In_V_tower(&u.uz)
             || g.level.flags.arboreal
             || ((sp = Is_special(&u.uz)) != 0 && !Is_oracle_level(&u.uz)
                 && (!In_mines(&u.uz) || sp->flags.town))))
@@ -1376,8 +1358,6 @@ struct mkroom *croom;
     if ((int) levl[lowx][lowy].roomno == roomno || croom->irregular)
         return;
 #ifdef SPECIALIZATION
-    if (Is_rogue_level(&u.uz))
-        do_ordinary = TRUE; /* vision routine helper */
     if ((rtype != OROOM) || do_ordinary)
 #endif
         {
@@ -1645,31 +1625,6 @@ coord *tm;
 
     if (num > 0 && num < TRAPNUM) {
         kind = num;
-    } else if (Is_rogue_level(&u.uz)) {
-        /* presumably Rogue-specific traps */
-        switch (rn2(7)) {
-        default:
-            kind = BEAR_TRAP;
-            break; /* 0 */
-        case 1:
-            kind = ARROW_TRAP;
-            break;
-        case 2:
-            kind = DART_TRAP;
-            break;
-        case 3:
-            kind = TRAPDOOR;
-            break;
-        case 4:
-            kind = PIT;
-            break;
-        case 5:
-            kind = SLP_GAS_TRAP;
-            break;
-        case 6:
-            kind = RUST_TRAP;
-            break;
-        }
     } else if (Inhell && !rn2(5)) {
         /* bias the frequency of fire traps in Gehennom */
         kind = FIRE_TRAP;

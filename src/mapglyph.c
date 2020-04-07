@@ -48,19 +48,11 @@ static const int explcolors[] = {
 #define explode_color(n)
 #endif
 
-#if defined(USE_TILES) && defined(MSDOS)
-#define HAS_ROGUE_IBM_GRAPHICS \
-    (g.currentgraphics == ROGUESET && SYMHANDLING(H_IBM) && !iflags.grmode)
-#else
-#define HAS_ROGUE_IBM_GRAPHICS \
-    (g.currentgraphics == ROGUESET && SYMHANDLING(H_IBM))
-#endif
-
 #define is_objpile(x,y) (!Hallucination && g.level.objects[(x)][(y)] \
                          && g.level.objects[(x)][(y)]->nexthere)
 
 #define GMAP_SET                 0x00000001
-#define GMAP_ROGUELEVEL          0x00000002
+/* 0x00000002 used to be GMAP_ROGUELEVEL */
 #define GMAP_ALTARCOLOR          0x00000004
 
 /* Externify this array if it's ever needed anywhere else.
@@ -85,23 +77,17 @@ unsigned mgflags;
     nhsym ch;
     unsigned special = 0;
     /* condense multiple tests in macro version down to single */
-    boolean has_rogue_ibm_graphics = HAS_ROGUE_IBM_GRAPHICS,
-            is_you = (x == u.ux && y == u.uy),
-            has_rogue_color = (has_rogue_ibm_graphics
-                               && g.symset[g.currentgraphics].nocolor == 0);
+    boolean is_you = (x == u.ux && y == u.uy);
     struct engr* engr = engr_at(x, y);
 
     if (!g.glyphmap_perlevel_flags) {
         /*
          *    GMAP_SET                0x00000001
-         *    GMAP_ROGUELEVEL         0x00000002
          *    GMAP_ALTARCOLOR         0x00000004
          */
         g.glyphmap_perlevel_flags |= GMAP_SET;
 
-        if (Is_rogue_level(&u.uz)) {
-            g.glyphmap_perlevel_flags |= GMAP_ROGUELEVEL;
-        } else if ((Is_astralevel(&u.uz) || Is_sanctum(&u.uz))) {
+        if ((Is_astralevel(&u.uz) || Is_sanctum(&u.uz))) {
             g.glyphmap_perlevel_flags |= GMAP_ALTARCOLOR;
         }
     }
@@ -122,59 +108,34 @@ unsigned mgflags;
         special |= MG_UNEXPL;
     } else if ((offset = (glyph - GLYPH_STATUE_OFF)) >= 0) { /* a statue */
         idx = mons[offset].mlet + SYM_OFF_M;
-        if (has_rogue_color)
-            color = CLR_RED;
-        else {
-            struct obj* otmp = vobj_at(x, y);
-            if (iflags.use_color && otmp && otmp->otyp == STATUE
-                && otmp->material != MINERAL) {
-                color = materialclr[otmp->material];
-            }
-            else
-                obj_color(STATUE);
+        struct obj* otmp = vobj_at(x, y);
+        if (iflags.use_color && otmp && otmp->otyp == STATUE
+            && otmp->material != MINERAL) {
+            color = materialclr[otmp->material];
         }
+        else
+            obj_color(STATUE);
         special |= MG_STATUE;
         if (is_objpile(x,y))
             special |= MG_OBJPILE;
     } else if ((offset = (glyph - GLYPH_WARNING_OFF)) >= 0) { /* warn flash */
         idx = offset + SYM_OFF_W;
-        if (has_rogue_color)
-            color = NO_COLOR;
-        else
-            warn_color(offset);
+        warn_color(offset);
     } else if ((offset = (glyph - GLYPH_SWALLOW_OFF)) >= 0) { /* swallow */
         /* see swallow_to_glyph() in display.c */
         idx = (S_sw_tl + (offset & 0x7)) + SYM_OFF_P;
-        if (has_rogue_color && iflags.use_color)
-            color = NO_COLOR;
-        else
-            mon_color(offset >> 3);
+        mon_color(offset >> 3);
     } else if ((offset = (glyph - GLYPH_ZAP_OFF)) >= 0) { /* zap beam */
         /* see zapdir_to_glyph() in display.c */
         idx = (S_vbeam + (offset & 0x3)) + SYM_OFF_P;
-        if (has_rogue_color && iflags.use_color)
-            color = NO_COLOR;
-        else
-            zap_color((offset >> 2));
+        zap_color((offset >> 2));
     } else if ((offset = (glyph - GLYPH_EXPLODE_OFF)) >= 0) { /* explosion */
         idx = ((offset % MAXEXPCHARS) + S_explode1) + SYM_OFF_P;
         explode_color(offset / MAXEXPCHARS);
     } else if ((offset = (glyph - GLYPH_CMAP_OFF)) >= 0) { /* cmap */
         idx = offset + SYM_OFF_P;
-        if (has_rogue_color && iflags.use_color) {
-            if (offset >= S_vwall && offset <= S_hcdoor)
-                color = CLR_BROWN;
-            else if (offset >= S_arrow_trap && offset <= S_polymorph_trap)
-                color = CLR_MAGENTA;
-            else if (offset == S_corr || offset == S_litcorr)
-                color = CLR_GRAY;
-            else if (offset >= S_room && offset <= S_water
-                     && offset != S_darkroom)
-                color = CLR_GREEN;
-            else
-                color = NO_COLOR;
 #ifdef TEXTCOLOR
-        } else if (is_cmap_door(offset) && door_is_iron(&levl[x][y])) {
+        if (is_cmap_door(offset) && door_is_iron(&levl[x][y])) {
             color = HI_METAL;
         /* provide a visible difference if normal and lit corridor
            use the same symbol */
@@ -356,19 +317,6 @@ unsigned mgflags;
         if (On_stairs(x,y) && levl[x][y].seenv) special |= MG_STAIRS;
         if (offset == BOULDER)
             idx = SYM_BOULDER + SYM_OFF_X;
-        if (has_rogue_color && iflags.use_color) {
-            switch (objects[offset].oc_class) {
-            case COIN_CLASS:
-                color = CLR_YELLOW;
-                break;
-            case FOOD_CLASS:
-                color = CLR_RED;
-                break;
-            default:
-                color = CLR_BRIGHT_BLUE;
-                break;
-            }
-        } else
 #ifdef TEXTCOLOR
         if (iflags.use_color && otmp && otmp->otyp == offset
             && otmp->material != objects[offset].oc_material) {
@@ -380,70 +328,41 @@ unsigned mgflags;
             special |= MG_OBJPILE;
     } else if ((offset = (glyph - GLYPH_RIDDEN_OFF)) >= 0) { /* mon ridden */
         idx = mons[offset].mlet + SYM_OFF_M;
-        if (has_rogue_color)
-            /* This currently implies that the hero is here -- monsters */
-            /* don't ride (yet...).  Should we set it to yellow like in */
-            /* the monster case below?  There is no equivalent in rogue. */
-            color = NO_COLOR; /* no need to check iflags.use_color */
-        else
-            mon_color(offset);
+        mon_color(offset);
         special |= MG_RIDDEN;
     } else if ((offset = (glyph - GLYPH_BODY_OFF)) >= 0) { /* a corpse */
         if (On_stairs(x,y) && levl[x][y].seenv) special |= MG_STAIRS;
         idx = objects[CORPSE].oc_class + SYM_OFF_O;
-        if (has_rogue_color && iflags.use_color)
-            color = CLR_RED;
-        else
-            mon_color(offset);
+        mon_color(offset);
         special |= MG_CORPSE;
         if (is_objpile(x,y))
             special |= MG_OBJPILE;
     } else if ((offset = (glyph - GLYPH_DETECT_OFF)) >= 0) { /* mon detect */
         idx = mons[offset].mlet + SYM_OFF_M;
-        if (has_rogue_color)
-            color = NO_COLOR; /* no need to check iflags.use_color */
-        else
-            mon_color(offset);
+        mon_color(offset);
         /* Disabled for now; anyone want to get reverse video to work? */
         /* is_reverse = TRUE; */
         special |= MG_DETECT;
     } else if ((offset = (glyph - GLYPH_INVIS_OFF)) >= 0) { /* invisible */
         idx = SYM_INVISIBLE + SYM_OFF_X;
-        if (has_rogue_color)
-            color = NO_COLOR; /* no need to check iflags.use_color */
-        else
-            invis_color(offset);
+        invis_color(offset);
         special |= MG_INVIS;
     } else if ((offset = (glyph - GLYPH_PEACEFUL_OFF)) >= 0) { /* peaceful */
         idx = mons[offset].mlet + SYM_OFF_M;
-        if (has_rogue_color)
-            color = NO_COLOR; /* no need to check iflags.use_color */
-        else
-            mon_color(offset);
+        mon_color(offset);
         special |= MG_PEACEFUL;
     } else if ((offset = (glyph - GLYPH_PET_OFF)) >= 0) { /* a pet */
         idx = mons[offset].mlet + SYM_OFF_M;
-        if (has_rogue_color)
-            color = NO_COLOR; /* no need to check iflags.use_color */
-        else
-            pet_color(offset);
+        pet_color(offset);
         special |= MG_PET;
     } else { /* a monster */
         idx = mons[glyph].mlet + SYM_OFF_M;
-        if (has_rogue_color && iflags.use_color) {
-            if (is_you)
-                /* actually player should be yellow-on-gray if in corridor */
-                color = CLR_YELLOW;
-            else
-                color = NO_COLOR;
-        } else {
-            mon_color(glyph);
+        mon_color(glyph);
 #ifdef TEXTCOLOR
-            /* special case the hero for `showrace' option */
-            if (iflags.use_color && is_you && flags.showrace && !Upolyd)
-                color = HI_DOMESTIC;
+        /* special case the hero for `showrace' option */
+        if (iflags.use_color && is_you && flags.showrace && !Upolyd)
+            color = HI_DOMESTIC;
 #endif
-        }
     }
 
     /* Colored Walls/Floors Patch: The Valley of the Dead is monochrome, turning
@@ -458,25 +377,20 @@ unsigned mgflags;
 
         if ((special & MG_PET) != 0) {
             ovidx = SYM_PET_OVERRIDE + SYM_OFF_X;
-            if ((g.glyphmap_perlevel_flags & GMAP_ROGUELEVEL)
-                    ? g.ov_rogue_syms[ovidx]
-                    : g.ov_primary_syms[ovidx])
+            if (g.ov_primary_syms[ovidx])
                 idx = ovidx;
         }
         if (is_you) {
             ovidx = SYM_HERO_OVERRIDE + SYM_OFF_X;
-            if ((g.glyphmap_perlevel_flags & GMAP_ROGUELEVEL)
-                    ? g.ov_rogue_syms[ovidx]
-                    : g.ov_primary_syms[ovidx])
+            if (g.ov_primary_syms[ovidx])
                 idx = ovidx;
         }
     }
 
     ch = g.showsyms[idx];
 #ifdef TEXTCOLOR
-    /* Turn off color if no color defined, or rogue level w/o PC graphics. */
-    if (!has_color(color) ||
-            ((g.glyphmap_perlevel_flags & GMAP_ROGUELEVEL) && !has_rogue_color))
+    /* Turn off color if no color defined. */
+    if (!has_color(color))
 #endif
         color = NO_COLOR;
     *ochar = (int) ch;

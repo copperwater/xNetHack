@@ -610,14 +610,10 @@ E void FDECL(assign_graphics, (int));
 E void NDECL(init_symbols);
 E void NDECL(init_showsyms);
 E void NDECL(init_primary_symbols);
-E void NDECL(init_rogue_symbols);
 E void NDECL(init_ov_primary_symbols);
-E void NDECL(init_ov_rogue_symbols);
 E void FDECL(clear_symsetentry, (int, BOOLEAN_P));
 E void FDECL(update_primary_symset, (struct symparse *, int));
-E void FDECL(update_rogue_symset, (struct symparse *, int));
 E void FDECL(update_ov_primary_symset, (struct symparse *, int));
-E void FDECL(update_ov_rogue_symset, (struct symparse *, int));
 E boolean FDECL(cursed_object_at, (int, int));
 E nhsym FDECL(get_othersym, (int, int));
 
@@ -798,12 +794,6 @@ E void FDECL(explode, (int, int, int, int, CHAR_P, int));
 E long FDECL(scatter, (int, int, int, unsigned int, struct obj *));
 E void FDECL(splatter_burning_oil, (int, int, BOOLEAN_P));
 E void FDECL(explode_oil, (struct obj *, int, int));
-
-/* ### extralev.c ### */
-
-E void NDECL(makeroguerooms);
-E void FDECL(corr, (int, int));
-E void NDECL(makerogueghost);
 
 /* ### files.c ### */
 

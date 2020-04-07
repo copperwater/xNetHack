@@ -519,14 +519,7 @@ int difcap; /* if non-zero, try to make difficulty be lower than this */
 
     /* To do?  Possibly should filter for appropriate forms when
      * in the elemental planes or surrounded by water or lava.
-     *
-     * We want monsters represented by uppercase on rogue level,
-     * but we don't try very hard.
      */
-    if (Is_rogue_level(&u.uz)
-        && !('A' <= mons[res].mlet && mons[res].mlet <= 'Z'))
-        res = nasties[rn2(SIZE(nasties))];
-
     /* if genocided or too difficult or out of place, try a substitute
        when a suitable one exists
            arch-lich -> master lich,

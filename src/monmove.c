@@ -909,8 +909,7 @@ xchar nix,niy;
     boolean can_tunnel = 0;
     struct obj *mw_tmp = MON_WEP(mtmp);
 
-    if (!Is_rogue_level(&u.uz))
-        can_tunnel = tunnels(mtmp->data);
+    can_tunnel = tunnels(mtmp->data);
 
     if (can_tunnel && needspick(mtmp->data) && !mwelded(mw_tmp)
         && (may_dig(nix, niy)
@@ -1003,8 +1002,7 @@ register int after;
        from this file, but needed for other calls of m_move(). */
     set_apparxy(mtmp); /* set mtmp->mux, mtmp->muy */
 
-    if (!Is_rogue_level(&u.uz))
-        can_tunnel = tunnels(ptr);
+    can_tunnel = tunnels(ptr);
     if (mtmp->wormno)
         goto not_special;
     /* my dog gets special treatment */
@@ -1133,7 +1131,7 @@ register int after;
         }
     }
 
-    if ((!mtmp->mpeaceful || !rn2(10)) && (!Is_rogue_level(&u.uz))) {
+    if (!mtmp->mpeaceful || !rn2(10)) {
         boolean in_line = (lined_up(mtmp)
              && (distmin(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy)
                  <= (throws_rocks(g.youmonst.data) ? 20 : ACURRSTR / 2 + 1)));

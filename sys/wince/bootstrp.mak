@@ -1,12 +1,12 @@
 # NetHack 3.6	bootstrp.mak	$NHDT-Date: 1432512801 2015/05/25 00:13:21 $  $NHDT-Branch: master $:$NHDT-Revision: 1.13 $
 #       Copyright (c) Michael Allison
 #
-#       NetHack Windows CE bootstrap file for MS Visual C++ V6.x and 
+#       NetHack Windows CE bootstrap file for MS Visual C++ V6.x and
 #       above and MS NMAKE
 #
 #       This will:
 #         - build makedefs
-#         - 
+#         -
 #==============================================================================
 # Do not delete the following 3 lines.
 #
@@ -27,7 +27,7 @@ SSYS  = ..\sys\share # Shared system files
 NTSYS = ..\sys\winnt # NT Win32 specific files
 TTY   = ..\win\tty   # window port files (tty)
 WIN32 = ..\win\win32 # window port files (WINCE)
-WSHR  = ..\win\share # Tile support files 
+WSHR  = ..\win\share # Tile support files
 SWINCE= ..\wince 	   # wince files
 WINCE = ..\wince     # wince build area
 OBJ   = $(WINCE)\ceobj
@@ -281,7 +281,7 @@ $(O)sp_lev.tag:  $(DAT)\bigroom.des  $(DAT)\castle.des \
 #
 #  Utility Targets.
 #
-    
+
 #==========================================
 # Makedefs Stuff
 #==========================================
@@ -331,7 +331,7 @@ $(U)uudecode.exe: $(O)uudecode.o
 
 $(O)uudecode.o: $(SSYS)\uudecode.c
 
-$(SWINCE)\NetHack.ico : $(U)uudecode.exe $(SWINCE)\nhico.uu 
+$(SWINCE)\NetHack.ico : $(U)uudecode.exe $(SWINCE)\nhico.uu
 	chdir $(SWINCE)
 	..\util\uudecode.exe nhico.uu
 	chdir $(WINCE)
@@ -399,7 +399,7 @@ $(O)lev_main.o:	$(U)lev_main.c $(HACK_H)   $(SP_LEV_H)
 
 
 $(U)lev_yacc.c $(INCL)\lev_comp.h : $(U)lev_comp.y
-	   @echo We will copy the prebuilt lev_yacc.c and 
+	   @echo We will copy the prebuilt lev_yacc.c and
 	   @echo lev_comp.h from $(SSYS) into $(UTIL) and use them.
 	   @copy $(SSYS)\lev_yacc.c $(U)lev_yacc.c >nul
 	   @copy $(SSYS)\lev_comp.h $(INCL)\lev_comp.h >nul
@@ -407,7 +407,7 @@ $(U)lev_yacc.c $(INCL)\lev_comp.h : $(U)lev_comp.y
 	   @echo /**/ >>$(INCL)\lev_comp.h
 
 $(U)lev_$(LEX).c: $(U)lev_comp.l
-	   @echo We will copy the prebuilt lev_lex.c 
+	   @echo We will copy the prebuilt lev_lex.c
 	   @echo from $(SSYS) into $(UTIL) and use it.
 	   @copy $(SSYS)\lev_lex.c $@ >nul
 	   @echo /**/ >>$@
@@ -434,7 +434,7 @@ $(O)dgn_main.o:	$(HACK_H) $(U)dgn_main.c
 	$(CC) $(LEVCFLAGS) -W0 -Fo$@ $(U)dgn_main.c
 
 $(U)dgn_yacc.c $(INCL)\dgn_comp.h : $(U)dgn_comp.y
-	   @echo We will copy the prebuilt $(U)dgn_yacc.c and 
+	   @echo We will copy the prebuilt $(U)dgn_yacc.c and
 	   @echo dgn_comp.h from $(SSYS) into $(UTIL) and use them.
 	   @copy $(SSYS)\dgn_yacc.c $(U)dgn_yacc.c >nul
 	   @copy $(SSYS)\dgn_comp.h $(INCL)\dgn_comp.h >nul
@@ -442,7 +442,7 @@ $(U)dgn_yacc.c $(INCL)\dgn_comp.h : $(U)dgn_comp.y
 	   @echo /**/ >>$(INCL)\dgn_comp.h
 
 $(U)dgn_$(LEX).c: $(U)dgn_comp.l
-	   @echo We will copy the prebuilt dgn_lex.c 
+	   @echo We will copy the prebuilt dgn_lex.c
 	   @echo from $(SSYS) into $(UTIL) and use it.
 	   @copy $(SSYS)\dgn_lex.c $@ >nul
 	   @echo /**/ >>$@
@@ -497,7 +497,7 @@ $(U)dlb_main.exe: $(DLBOBJ) $(O)dlb.o
 
 $(O)dlb.o:	$(O)dlb_main.o $(O)alloc.o $(O)panic.o $(INCL)\dlb.h
 	$(CC) $(CFLAGSU) /Fo$@ $(SRC)\dlb.c
-	
+
 $(O)dlb_main.o: $(UTIL)\dlb_main.c $(INCL)\config.h $(INCL)\dlb.h
 	$(CC) $(CFLAGSU) /Fo$@ $(UTIL)\dlb_main.c
 
@@ -632,7 +632,7 @@ $(DAT)\dungeon: $(UTIL)\makedefs.exe  $(DAT)\dungeon.def
 #$(O)ntsound.o: $(HACK_H) $(NTSYS)\ntsound.c
 #	$(CC) $(CFLAGSU)  -Fo$@ $(NTSYS)\ntsound.c
 
-# 
+#
 # util dependencies
 #
 
@@ -640,8 +640,8 @@ $(O)panic.o:  $(U)panic.c $(CONFIG_H)
 	$(CC) $(CFLAGSU) -Fo$@ $(U)panic.c
 
 #
-# The rest are stolen from sys/unix/Makefile.src, 
-# with slashes changed to back-slashes 
+# The rest are stolen from sys/unix/Makefile.src,
+# with slashes changed to back-slashes
 # and -c (which is included in CFLAGSU) substituted
 # with -Fo$@ , but otherwise untouched. That
 # means that there is some irrelevant stuff
@@ -790,7 +790,6 @@ $(O)end.o: $(SRC)\end.c $(HACK_H) $(INCL)\dlb.h
 $(O)engrave.o: $(SRC)\engrave.c $(HACK_H)
 $(O)exper.o: $(SRC)\exper.c $(HACK_H)
 $(O)explode.o: $(SRC)\explode.c $(HACK_H)
-$(O)extralev.o: $(SRC)\extralev.c $(HACK_H)
 $(O)files.o: $(SRC)\files.c $(HACK_H) $(INCL)\dlb.h
 $(O)fountain.o: $(SRC)\fountain.c $(HACK_H)
 $(O)hack.o: $(SRC)\hack.c $(HACK_H)

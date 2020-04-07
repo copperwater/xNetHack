@@ -244,7 +244,7 @@ static void back_buffer_flip()
 void buffer_fill_to_end(cell_t * buffer, cell_t * fill, int x, int y)
 {
     nhassert(x >= 0 && x < console.width);
-    nhassert(y >= 0 && ((y < console.height) || (y == console.height && 
+    nhassert(y >= 0 && ((y < console.height) || (y == console.height &&
                                                  x == 0)));
 
     cell_t * dst = buffer + console.width * y + x;
@@ -259,7 +259,7 @@ void buffer_fill_to_end(cell_t * buffer, cell_t * fill, int x, int y)
 static void buffer_clear_to_end_of_line(cell_t * buffer, int x, int y)
 {
     nhassert(x >= 0 && x < console.width);
-    nhassert(y >= 0 && ((y < console.height) || (y == console.height && 
+    nhassert(y >= 0 && ((y < console.height) || (y == console.height &&
                                                  x == 0)));
     cell_t * dst = buffer + console.width * y + x;
     cell_t *sentinel = buffer + console.width * (y + 1);
@@ -717,7 +717,7 @@ raw_clear_screen()
 void
 clear_screen()
 {
-    buffer_fill_to_end(console.back_buffer, &clear_cell, 0, 0);    
+    buffer_fill_to_end(console.back_buffer, &clear_cell, 0, 0);
     home();
 }
 
@@ -1655,7 +1655,6 @@ check_font_widths()
     memset(used, 0, sizeof(used));
     for (int i = 0; i < SYM_MAX; i++) {
         used[g.primary_syms[i]] = TRUE;
-        used[g.rogue_syms[i]] = TRUE;
     }
 
     int wcUsedCount = 0;
@@ -1766,7 +1765,7 @@ void set_cp_map()
                 // code page 437 mappings.
                 if (console.cpMap[i] < 32)
                     console.cpMap[i] = cp437[console.cpMap[i]];
-            }        
+            }
         }
 
     }

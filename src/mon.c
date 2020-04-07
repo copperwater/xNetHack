@@ -28,8 +28,7 @@ static void FDECL(deal_with_overcrowding, (struct monst *));
 
 /* note: duplicated in dog.c */
 #define LEVEL_SPECIFIC_NOCORPSE(mdat) \
-    (Is_rogue_level(&u.uz)            \
-     || (g.level.flags.graveyard && is_undead(mdat) && rn2(3)))
+     (g.level.flags.graveyard && is_undead(mdat) && rn2(3))
 
 #if 0
 /* part of the original warning code which was replaced in 3.3.1 */
@@ -3752,11 +3751,6 @@ pick_animal()
         mon_animal_list(TRUE);
 
     res = g.animal_list[rn2(g.animal_list_count)];
-    /* rogue level should use monsters represented by uppercase letters
-       only, but since chameleons aren't generated there (not uppercase!)
-       we don't perform a lot of retries */
-    if (Is_rogue_level(&u.uz) && !isupper((uchar) mons[res].mlet))
-        res = g.animal_list[rn2(g.animal_list_count)];
     return res;
 }
 
@@ -3827,9 +3821,6 @@ pickvampshape(mon)
 struct monst *mon;
 {
     int mndx = mon->cham, wolfchance = 10;
-    /* avoid picking monsters with lowercase display symbols ('d' for wolf
-       and 'v' for fog cloud) on rogue level*/
-    boolean uppercase_only = Is_rogue_level(&u.uz);
 
     switch (mndx) {
     case PM_VLAD_THE_IMPALER:
@@ -3839,13 +3830,13 @@ struct monst *mon;
         wolfchance = 3;
     /*FALLTHRU*/
     case PM_VAMPIRE_LORD: /* vampire lord or Vlad can become wolf */
-        if (!rn2(wolfchance) && !uppercase_only) {
+        if (!rn2(wolfchance)) {
             mndx = PM_WOLF;
             break;
         }
     /*FALLTHRU*/
     case PM_VAMPIRE: /* any vampire can become fog or bat */
-        mndx = (!rn2(4) && !uppercase_only) ? PM_FOG_CLOUD : PM_VAMPIRE_BAT;
+        mndx = !rn2(4) ? PM_FOG_CLOUD : PM_VAMPIRE_BAT;
         break;
     }
     return mndx;
@@ -4087,9 +4078,6 @@ struct monst *mon;
         for (tmpndx = LOW_PM; tmpndx < SPECIAL_PM; ++tmpndx) {
             if (!validspecmon(mon, tmpndx))
                 continue;
-            /* select uppercase monster on rogue level */
-            if (Is_rogue_level(&u.uz) && !isupper((uchar) mons[tmpndx].mlet))
-                continue;
             /* don't pick an out-of-difficulty monster */
             if (toostrong(tmpndx, monmax_difficulty(level_difficulty())))
                 continue;
@@ -4204,14 +4192,7 @@ boolean msg;      /* "The oldmon turns into a newmon!" */
         do {
             mndx = select_newcham_form(mtmp);
             mdat = accept_newcham_form(mtmp, mndx);
-            /* for the first several tries we require upper-case on
-               the rogue level (after that, we take whatever we get) */
-            if (tryct > 15 && Is_rogue_level(&u.uz)
-                && mdat && !isupper((uchar) mdat->mlet))
-                mdat = 0;
-            if (mdat)
-                break;
-        } while (--tryct > 0);
+        } while (mdat == 0 && --tryct > 0);
         if (!tryct)
             return 0;
     } else if (g.mvitals[monsndx(mdat)].mvflags & G_GENOD)

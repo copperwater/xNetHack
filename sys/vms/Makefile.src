@@ -147,7 +147,7 @@ HACK_H	= $(SRC)hack.h-t
 HACKCSRC = allmain.c alloc.c apply.c artifact.c attrib.c ball.c bones.c \
 	   botl.c cmd.c dbridge.c decl.c detect.c dig.c display.c dlb.c do.c \
 	   do_name.c do_wear.c dog.c dogmove.c dokick.c dothrow.c drawing.c \
-	   dungeon.c eat.c end.c engrave.c exper.c explode.c extralev.c \
+	   dungeon.c eat.c end.c engrave.c exper.c explode.c \
 	   files.c fountain.c hack.c hacklib.c \
 	   insight.c invent.c light.c lock.c \
 	   mail.c makemon.c mapglyph.c mcastu.c mhitm.c mhitu.c minion.c \
@@ -195,7 +195,7 @@ HOBJ1 = allmain.obj,alloc.obj,apply.obj,artifact.obj,attrib.obj, \
 	detect.obj,dig.obj,display.obj,dlb.obj,do.obj,do_name.obj,do_wear.obj
 HOBJ2 = dog.obj,dogmove.obj,dokick.obj,dothrow.obj,drawing.obj, \
 	dungeon.obj,eat.obj,end.obj,engrave.obj,exper.obj,explode.obj, \
-	extralev.obj,files.obj,fountain.obj,hack.obj,hacklib.obj, \
+	files.obj,fountain.obj,hack.obj,hacklib.obj, \
 	insight.obj,invent.obj
 HOBJ3 = light.obj,lock.obj,mail.obj,makemon.obj,mapglyph.obj,mcastu.obj, \
 	mhitm.obj,mhitu.obj,minion.obj,mklev.obj,mkmap.obj,mkmaze.obj, \
@@ -452,7 +452,7 @@ winval.obj :	$(X11)winval.c $(HACK_H) $(INC)winX.h
 tile.obj :	$(SRC)tile.c $(HACK_H)
 vis_tab.obj :	vis_tab.c $(CONFIG_H) $(INC)vis_tab.h
 #	lua 5.3.5 code
-lapi.obj :	$(LUA)lapi.c	
+lapi.obj :	$(LUA)lapi.c
 lauxlib.obj :	$(LUA)lauxlib.c
 lbaselib.obj :	$(LUA)lbaselib.c
 lbitlib.obj :	$(LUA)lbitlib.c
@@ -516,7 +516,6 @@ end.obj :	end.c $(HACK_H) $(INC)dlb.h
 engrave.obj :	engrave.c $(HACK_H)
 exper.obj :	exper.c $(HACK_H)
 explode.obj :	explode.c $(HACK_H)
-extralev.obj :	extralev.c $(HACK_H)
 files.obj :	files.c $(HACK_H) $(INC)dlb.h $(INC)wintty.h #zlib.h
 fountain.obj :	fountain.c $(HACK_H)
 hack.obj :	hack.c $(HACK_H)

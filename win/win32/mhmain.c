@@ -189,7 +189,7 @@ static const char scanmap[] = {
     'b', 'n', 'm', ',', '.', '?' /* ... */
 };
 
-#define IDT_FUZZ_TIMER 100 
+#define IDT_FUZZ_TIMER 100
 
 /*
 //  FUNCTION: WndProc(HWND, unsigned, WORD, LONG)
@@ -1119,10 +1119,6 @@ mswin_select_map_mode(int mode)
     map_id = WIN_MAP;
     data =
         (PNHMainWindow) GetWindowLongPtr(GetNHApp()->hMainWnd, GWLP_USERDATA);
-
-    /* override for Rogue level */
-    if (Is_rogue_level(&u.uz) && !IS_MAP_ASCII(mode))
-        return;
 
     /* set map mode menu mark */
     if (IS_MAP_ASCII(mode)) {

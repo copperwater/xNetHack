@@ -1013,10 +1013,6 @@ mswin_select_map_mode(int mode)
     hmenuMap = _get_main_menu(ID_MAP);
 #endif
 
-    /* override for Rogue level */
-    if (Is_rogue_level(&u.uz) && !IS_MAP_ASCII(mode))
-        return;
-
     /* set map mode menu mark */
     if (IS_MAP_ASCII(mode)) {
         CheckMenuRadioItem(hmenuMap, IDM_MAP_TILES, IDM_MAP_FIT_TO_SCREEN,

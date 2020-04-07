@@ -822,18 +822,8 @@ mswin_clear_nhwindow(winid wid)
     if ((wid >= 0) && (wid < MAXWINDOWS)
         && (GetNHApp()->windowlist[wid].win != NULL)) {
         if (GetNHApp()->windowlist[wid].type == NHW_MAP) {
-            if (Is_rogue_level(&u.uz))
-                if (iflags.wc_map_mode == MAP_MODE_ASCII_FIT_TO_SCREEN ||
-                    iflags.wc_map_mode == MAP_MODE_TILES_FIT_TO_SCREEN)
-
-                    mswin_map_mode(mswin_hwnd_from_winid(WIN_MAP),
-                                   ROGUE_LEVEL_MAP_MODE_FIT_TO_SCREEN);
-                else
-                    mswin_map_mode(mswin_hwnd_from_winid(WIN_MAP),
-                                   ROGUE_LEVEL_MAP_MODE);
-            else
-                mswin_map_mode(mswin_hwnd_from_winid(WIN_MAP),
-                               iflags.wc_map_mode);
+            mswin_map_mode(mswin_hwnd_from_winid(WIN_MAP),
+                            iflags.wc_map_mode);
         }
 
         SendMessage(GetNHApp()->windowlist[wid].win, WM_MSNH_COMMAND,
@@ -1288,9 +1278,9 @@ print_glyph(window, x, y, glyph, bkglyph)
                    a 1-1 map between glyphs and distinct things on the map).
 		-- bkglyph is a background glyph for potential use by some
 		   graphical or tiled environments to allow the depiction
-		   to fall against a background consistent with the grid 
+		   to fall against a background consistent with the grid
 		   around x,y.
-                   
+
 */
 void
 mswin_print_glyph(winid wid, XCHAR_P x, XCHAR_P y, int glyph, int bkglyph)
@@ -3024,11 +3014,11 @@ status_update(int fldindex, genericptr_t ptr, int chg, int percent, int color, u
                    BL_XP, BL_AC, BL_HD, BL_TIME, BL_HUNGER, BL_HP, BL_HPMAX,
                    BL_LEVELDESC, BL_EXP, BL_CONDITION
 		-- fldindex could also be BL_FLUSH, which is not really
-		   a field index, but is a special trigger to tell the 
+		   a field index, but is a special trigger to tell the
 		   windowport that it should output all changes received
                    to this point. It marks the end of a bot() cycle.
 		-- fldindex could also be BL_RESET, which is not really
-		   a field index, but is a special advisory to to tell the 
+		   a field index, but is a special advisory to to tell the
 		   windowport that it should redisplay all its status fields,
 		   even if no changes have been presented to it.
                 -- ptr is usually a "char *", unless fldindex is BL_CONDITION.

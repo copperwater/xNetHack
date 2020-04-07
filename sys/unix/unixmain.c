@@ -410,7 +410,6 @@ char *argv[];
         case 'i':
             if (!strncmpi(*argv, "-IBMgraphics", l)) {
                 load_symset("IBMGraphics", PRIMARY);
-                load_symset("RogueIBM", ROGUESET);
                 switch_symbols(TRUE);
             } else {
                 raw_printf("Unknown option: %.60s", *argv);

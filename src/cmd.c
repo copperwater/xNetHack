@@ -1295,8 +1295,6 @@ wiz_map_levltyp(VOID_ARGS)
                 Strcat(dsc, " hellish");
             if (slev->flags.town)
                 Strcat(dsc, " town");
-            if (slev->flags.rogue_like)
-                Strcat(dsc, " roguelike");
             /* alignment currently omitted to save space */
         }
         /* level features */

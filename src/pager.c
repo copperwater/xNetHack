@@ -1877,8 +1877,7 @@ struct permonst **for_supplement;
     for (j = SYM_OFF_X; j < SYM_MAX; ++j) {
         if (j == (SYM_INVISIBLE + SYM_OFF_X))
             continue;       /* already handled above */
-        tmpsym = Is_rogue_level(&u.uz) ? g.ov_rogue_syms[j]
-                                       : g.ov_primary_syms[j];
+        tmpsym = g.ov_primary_syms[j];
         if (tmpsym && sym == tmpsym) {
             switch (j) {
             case SYM_BOULDER + SYM_OFF_X:

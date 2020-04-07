@@ -849,7 +849,7 @@ vga_Finish(void)
  * to a more standard values - MJA 94/04/23.
  *
  */
-static void 
+static void
 vga_NoBorder(int bc)
 {
 	union REGS regs;
@@ -858,7 +858,7 @@ vga_NoBorder(int bc)
 	regs.h.al = (char)0x01;
 	regs.h.bh = (char)bc;
 	regs.h.bl = 0;
-	(void) int86(VIDEO_BIOS, &regs, &regs);	
+	(void) int86(VIDEO_BIOS, &regs, &regs);
 }
 #endif
 
@@ -1280,9 +1280,8 @@ vga_DrawCursor()
     unsigned char first, second;
     /*	char on[2] =  {0xFF,0xFF}; */
     /*	char off[2] = {0x00,0x00}; */
-    boolean isrogue = Is_rogue_level(&u.uz);
     boolean singlebyte =
-        (isrogue || iflags.over_view || iflags.traditional_view || !inmap);
+        (iflags.over_view || iflags.traditional_view || !inmap);
     int curtyp;
 
     if (!cursor_type && inmap)
@@ -1492,9 +1491,8 @@ vga_HideCursor()
     int i, pixx, pixy, x, y;
     char __far *tmp1;
     char __far *tmp2;
-    boolean isrogue = Is_rogue_level(&u.uz);
     boolean singlebyte =
-        (isrogue || iflags.over_view || iflags.traditional_view || !inmap);
+        (iflags.over_view || iflags.traditional_view || !inmap);
     int curtyp;
 
     if (inmap && !cursor_type)

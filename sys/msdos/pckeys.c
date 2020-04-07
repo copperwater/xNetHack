@@ -58,14 +58,14 @@ unsigned char shift;
             userpan(0);
         break;
     case 0x3E: /* F4 = toggle overview mode */
-        if (iflags.tile_view && !opening_dialog && !Is_rogue_level(&u.uz)) {
+        if (iflags.tile_view && !opening_dialog) {
             iflags.traditional_view = FALSE;
             overview(iflags.over_view ? FALSE : TRUE);
             refresh();
         }
         break;
     case 0x3F: /* F5 = toggle traditional mode */
-        if (iflags.tile_view && !opening_dialog && !Is_rogue_level(&u.uz)) {
+        if (iflags.tile_view && !opening_dialog) {
             iflags.over_view = FALSE;
             traditional(iflags.traditional_view ? FALSE : TRUE);
             refresh();

@@ -56,7 +56,7 @@ typedef struct mswin_nethack_map_window {
     double backScale;           /* scaling from source to back buffer */
     double frontScale;          /* scaling from back to front */
     double monitorScale;        /* from 96dpi to monitor dpi*/
-    
+
     boolean cursorOn;
     int yNoBlinkCursor;         /* non-blinking cursor height inback buffer
                                    in pixels */
@@ -161,8 +161,7 @@ mswin_map_stretch(HWND hWnd, LPSIZE map_size, BOOL redraw)
     // calculate back buffer scale
     data->monitorScale = win10_monitor_scale(hWnd);
 
-    boolean bText = data->bAsciiMode ||
-                    (u.uz.dlevel != 0 && Is_rogue_level(&u.uz));
+    boolean bText = data->bAsciiMode;
 
     if (bText && !data->bFitToScreenMode)
         data->backScale = data->monitorScale;
@@ -268,7 +267,7 @@ mswin_map_stretch(HWND hWnd, LPSIZE map_size, BOOL redraw)
         HDC frontBufferDC = GetDC(hWnd);
         HBITMAP hBackBuffer = CreateCompatibleBitmap(frontBufferDC, backWidth, backHeight);
         ReleaseDC(hWnd, frontBufferDC);
-        
+
         if (data->hBackBuffer != NULL) {
             SelectBitmap(data->backBufferDC, hBackBuffer);
             DeleteObject(data->hBackBuffer);
@@ -287,7 +286,7 @@ mswin_map_stretch(HWND hWnd, LPSIZE map_size, BOOL redraw)
         double windowAspectRatio =
             (double) wnd_size.cx / (double) wnd_size.cy;
 
-        double backAspectRatio = 
+        double backAspectRatio =
             (double) data->backWidth / (double) data->backHeight;
 
         if (windowAspectRatio > backAspectRatio)
@@ -636,7 +635,7 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
     switch (wParam) {
     case MSNH_MSG_PRINT_GLYPH: {
         PMSNHMsgPrintGlyph msg_data = (PMSNHMsgPrintGlyph) lParam;
-        setGlyph(data, msg_data->x, msg_data->y, 
+        setGlyph(data, msg_data->x, msg_data->y,
             msg_data->glyph, msg_data->bkglyph);
     } break;
 
@@ -699,7 +698,7 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             data->xCur = msg_data->x;
             data->yCur = msg_data->y;
         }
- 
+
     } break;
 
     case MSNH_MSG_GETTEXT: {
@@ -877,7 +876,7 @@ paintTile(PNHMapWindow data, int i, int j, RECT * rect)
     }
 #endif
 
-    if (i == data->xCur && j == data->yCur && 
+    if (i == data->xCur && j == data->yCur &&
         (data->cursorOn || !win32_cursorblink))
         DrawFocusRect(data->backBufferDC, rect);
 }
@@ -962,7 +961,7 @@ paintGlyph(PNHMapWindow data, int i, int j, RECT * rect)
         (data->cursorOn || !win32_cursorblink)) {
         int yCursor = (win32_cursorblink ? data->yBlinkCursor :
                                            data->yNoBlinkCursor);
-        PatBlt(data->backBufferDC, 
+        PatBlt(data->backBufferDC,
                 rect->left, rect->bottom - yCursor,
                 rect->right - rect->left,
                 yCursor,
@@ -1023,7 +1022,7 @@ paint(PNHMapWindow data, int i, int j)
     rect.right = rect.left + data->xBackTile;
     rect.bottom = rect.top + data->yBackTile;
 
-    if (data->bAsciiMode || Is_rogue_level(&u.uz)) {
+    if (data->bAsciiMode) {
         paintGlyph(data, i, j, &rect);
     } else {
         paintTile(data, i, j, &rect);

@@ -785,8 +785,6 @@ curses_init_options()
     /* If we don't have a symset defined, load the curses symset by default */
     if (!g.symset[PRIMARY].explicitly)
         load_symset("curses", PRIMARY);
-    if (!g.symset[ROGUESET].explicitly)
-        load_symset("default", ROGUESET);
 
 #ifdef PDCURSES
     /* PDCurses for SDL, win32 and OS/2 has the ability to set the

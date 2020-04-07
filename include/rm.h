@@ -235,7 +235,7 @@ enum screen_symbols {
 #define MAXECHARS (S_explode9 - S_vbeam + 1) /* mapped effects characters */
 #define MAXEXPCHARS 9 /* number of explosion characters */
 
-#define DARKROOMSYM (Is_rogue_level(&u.uz) ? S_stone : S_darkroom)
+#define DARKROOMSYM (S_darkroom)
 
 #define is_cmap_trap(i) ((i) >= S_arrow_trap && (i) <= S_polymorph_trap)
 #define is_cmap_drawbridge(i) ((i) >= S_vodbridge && (i) <= S_hcdbridge)
@@ -285,7 +285,6 @@ struct symsetentry {
     int handling;             /* known handlers value                 */
     Bitfield(nocolor, 1);     /* don't use color if set               */
     Bitfield(primary, 1);     /* restricted for use as primary set    */
-    Bitfield(rogue, 1);       /* restricted for use as rogue lev set  */
     Bitfield(explicitly, 1);  /* explicit symset set                  */
                               /* 4 free bits */
 };
@@ -295,8 +294,7 @@ struct symsetentry {
  */
 #define DEFAULT_GRAPHICS 0 /* regular characters: '-', '+', &c */
 #define PRIMARY 0          /* primary graphics set        */
-#define ROGUESET 1         /* rogue graphics set          */
-#define NUM_GRAPHICS 2
+#define NUM_GRAPHICS 1
 
 /*
  * special symbol set handling types ( for invoking callbacks, etc.)

@@ -109,7 +109,7 @@ OBJSPEC = -o
 PNSPEC	= -o
 LNSPEC = -o
 CCLINK	= gcc -noixemul
-CLFLAGS = -O3 
+CLFLAGS = -O3
 INCLSPEC = -I
 DEFSPEC = -D
 IGNSPEC = -j
@@ -157,7 +157,7 @@ COMMOBJ = \
 	$(O)do_name.o	$(O)do_wear.o	$(O)dog.o	$(O)dogmove.o	\
 	$(O)dokick.o	$(O)dothrow.o	$(O)drawing.o	$(O)dungeon.o	\
 	$(O)eat.o	$(O)end.o	$(O)engrave.o	$(O)exper.o	\
-	$(O)explode.o	$(O)extralev.o	$(O)files.o 	$(O)fountain.o	\
+	$(O)explode.o	$(O)files.o 	$(O)fountain.o	\
 	$(O)hack.o	$(O)hacklib.o	$(O)invent.o	$(O)light.o	\
 	$(O)lock.o	$(O)mail.o	$(O)makemon.o	$(O)mapglyph.o	\
 	$(O)mcastu.o	$(O)mhitm.o	$(O)mhitu.o	$(O)minion.o	\
@@ -315,7 +315,7 @@ LIBFILES= \
 
 all:  $(COMPACT_HEADERS) $(SBIN)lev_comp $(SBIN)dgn_comp $(SBIN)NetHack \
 	$(SBIN)dlb $(NETHACK)recover #$(NETHACK)HackCli $(SBIN)splitter \
-#	$(NETHACK)HackWB 
+#	$(NETHACK)HackWB
 
 install: inst-data inst-dungeon inst-fonts inst-tiles \
 	 $(NETHACK)recover $(NETHACK)NetHack $(NETHACK)nhdat
@@ -401,7 +401,7 @@ spotless:  clean
 #	-delete $(WDFILES)
 	-delete $(I)onames.h $(I)pm.h $(I)date.h
 	-delete $(NHS)tile.c $(NHS)monstr.c
-	-delete $(I)tile.h 
+	-delete $(I)tile.h
 #	-echo to $(I)onames.h "" noline
 #	-c:wait 2
 #	-echo to $(I)pm.h "" noline
@@ -636,7 +636,7 @@ $(OO)splitter.o:	$(ASP)/splitter.c $(ASP)/split.h $(ASP)/amiout.h $(ASP)/arg.h
 		$(ASP)/splitter.c
 
 $(OO)arg.o:	$(ASP)/arg.c $(ASP)/arg.h
-	$(CC) $(WBCFLAGS) $(SPLFLAGS) $(OBJSPEC)$(OO)arg.o $(ASP)/arg.c 
+	$(CC) $(WBCFLAGS) $(SPLFLAGS) $(OBJSPEC)$(OO)arg.o $(ASP)/arg.c
 
 # Create/copy other stuff into NetHack: directory:
 
@@ -705,7 +705,7 @@ $(ENDGAME1):	$(SLIB)astral.lev
 $(SLIB)astral.lev:	$(DAT)endgame.des $(SBIN)lev_comp
 
 GEHENNOM1= $(SLIB)asmodeus.lev $(SLIB)baalz.lev $(SLIB)juiblex.lev \
-  $(SLIB)orcus.lev $(SLIB)sanctum.lev 
+  $(SLIB)orcus.lev $(SLIB)sanctum.lev
 $(GEHENNOM1):	$(SLIB)valley.lev
 
 $(SLIB)valley.lev:	$(DAT)gehennom.des $(SBIN)lev_comp
@@ -985,8 +985,6 @@ $(O)exper.o:  $(NHS)exper.c $(HDEP)
 
 $(O)explode.o:  $(NHS)explode.c $(HDEP)
 
-$(O)extralev.o:  $(NHS)extralev.c $(HDEP)
-
 $(O)files.o:  $(NHS)files.c $(HDEP) $(I)dlb.h $(I)date.h
 
 $(O)fountain.o:  $(NHS)fountain.c $(HDEP)
@@ -1182,9 +1180,9 @@ $(I)global.h:  $(I)coord.h $(I)pcconf.h $(I)amiconf.h
 	-setdate $(I)global.h
 	-c:wait 2
 
-$(I)hack.h:  $(I)config.h $(I)context.h $(I)trap.h $(I)decl.h $(I)dungeon.h 
-		$(I)monsym.h $(I)mkroom.h $(I)objclass.h $(I)flag.h $(I)rm.h 
-		$(I)vision.h $(I)display.h $(I)wintype.h $(I)engrave.h 
+$(I)hack.h:  $(I)config.h $(I)context.h $(I)trap.h $(I)decl.h $(I)dungeon.h
+		$(I)monsym.h $(I)mkroom.h $(I)objclass.h $(I)flag.h $(I)rm.h
+		$(I)vision.h $(I)display.h $(I)wintype.h $(I)engrave.h
 		$(I)rect.h $(I)region.h $(I)trampoli.h $(I)sys.h
 	-setdate $(I)hack.h
 	-c:wait 2

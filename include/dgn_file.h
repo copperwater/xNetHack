@@ -56,7 +56,6 @@ struct tmpbranch {
 #define TOWN 1 /* levels only */
 #define HELLISH 2
 #define MAZELIKE 4
-#define ROGUELIKE 8
 
 #define D_ALIGN_NONE 0
 #define D_ALIGN_CHAOTIC (AM_CHAOTIC << 4)

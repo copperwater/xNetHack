@@ -471,15 +471,6 @@ curses_convert_glyph(int ch, int glyph)
     if (!(ch & 0x80))
         return ch; /* no conversion needed */
 
-    /* this conversion routine is only called for SYMHANDLING(H_DEC) and
-       we decline to support special graphics symbols on the rogue level */
-    if (Is_rogue_level(&u.uz)) {
-        /* attempting to use line drawing characters will end up being
-           rendered as lowercase gibberish */
-        ch &= ~0x80;
-        return ch;
-    }
-
     /*
      * Curses has complete access to all characters that DECgraphics uses.
      * However, their character value isn't consistent between terminals

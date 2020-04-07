@@ -14,7 +14,6 @@
 struct dgn_topology { /* special dungeon levels for speed */
     d_level d_oracle_level;
     d_level d_bigroom_level; /* unused */
-    d_level d_rogue_level;
     d_level d_medusa_level;
     d_level d_stronghold_level;
     d_level d_valley_level;
@@ -45,7 +44,6 @@ struct dgn_topology { /* special dungeon levels for speed */
 /* clang-format off */
 #define oracle_level            (g.dungeon_topology.d_oracle_level)
 #define bigroom_level           (g.dungeon_topology.d_bigroom_level)
-#define rogue_level             (g.dungeon_topology.d_rogue_level)
 #define medusa_level            (g.dungeon_topology.d_medusa_level)
 #define stronghold_level        (g.dungeon_topology.d_stronghold_level)
 #define valley_level            (g.dungeon_topology.d_valley_level)
@@ -869,9 +867,7 @@ struct instance_globals {
     int currentgraphics;
     nhsym showsyms[SYM_MAX]; /* symbols to be displayed */
     nhsym primary_syms[SYM_MAX];   /* loaded primary symbols          */
-    nhsym rogue_syms[SYM_MAX];   /* loaded rogue symbols           */
     nhsym ov_primary_syms[SYM_MAX];   /* loaded primary symbols          */
-    nhsym ov_rogue_syms[SYM_MAX];   /* loaded rogue symbols           */
     nhsym warnsyms[WARNCOUNT]; /* the current warning display symbols */
 
     /* dungeon.c */
@@ -889,9 +885,6 @@ struct instance_globals {
     struct valuable_data amulets[LAST_AMULET + 1 - FIRST_AMULET];
     struct val_list valuables[3];
     int vanq_sortmode;
-
-    /* extralev.c */
-    struct rogueroom r[3][3];
 
     /* files.c */
     char wizkit[WIZKIT_MAX];

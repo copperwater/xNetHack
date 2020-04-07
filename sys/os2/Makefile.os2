@@ -553,7 +553,7 @@ VOBJ011 = $(OBJ)\allmain.o
 VOBJ012 = $(OBJ)\alloc.o
 VOBJ013 = $(OBJ)\apply.o
 VOBJ014 = $(OBJ)\artifact.o
-VOBJ021 = $(OBJ)\attrib.o 
+VOBJ021 = $(OBJ)\attrib.o
 VOBJ022 = $(OBJ)\ball.o
 VOBJ023 = $(OBJ)\bones.o
 VOBJ024 = $(OBJ)\botl.o
@@ -582,7 +582,6 @@ VOBJ072 = $(OBJ)\end.o
 VOBJ073 = $(OBJ)\engrave.o
 VOBJ074 = $(OBJ)\exper.o
 VOBJ081 = $(OBJ)\explode.o
-VOBJ082 = $(OBJ)\extralev.o
 VOBJ083 = $(OBJ)\files.o
 VOBJ084 = $(OBJ)\fountain.o
 VOBJ091 = $(OBJ)\hack.o
@@ -1564,8 +1563,6 @@ $(OBJ)\engrave.o  : $(SRC)\$(CB) $(HACK_H)
 $(OBJ)\exper.o    : $(SRC)\$(CB) $(HACK_H)
 	$(SRCCC)
 $(OBJ)\explode.o  : $(SRC)\$(CB) $(HACK_H)
-	$(SRCCC)
-$(OBJ)\extralev.o : $(SRC)\$(CB) $(HACK_H)
 	$(SRCCC)
 $(OBJ)\files.o    : $(SRC)\$(CB) $(HACK_H)
 	$(SRCCC)

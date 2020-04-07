@@ -65,7 +65,7 @@ unsigned _stklen = STKSIZ;
  * WinMain exist, the resulting executable won't work correctly.
  */
 int
-#ifndef __MINGW32__ 
+#ifndef __MINGW32__
 main(argc, argv)
 #else
 mingw_main(argc, argv)
@@ -211,7 +211,7 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
             }
 
             /* okay so we have the overriding and definitive locaton
-            for sysconf, but only in the event that there is not a 
+            for sysconf, but only in the event that there is not a
             sysconf file there (for whatever reason), check a secondary
             location rather than abort. */
 
@@ -577,7 +577,6 @@ char *argv[];
         case 'i':
             if (!strncmpi(argv[0] + 1, "IBM", 3)) {
                 load_symset("IBMGraphics", PRIMARY);
-                load_symset("RogueIBM", ROGUESET);
                 switch_symbols(TRUE);
             }
             break;

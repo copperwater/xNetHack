@@ -19,7 +19,7 @@
 
 const char invisexplain[] = "remembered, unseen, creature",
            altinvisexplain[] = "unseen creature"; /* for clairvoyance */
-           
+
 /* Default object class symbols.  See objclass.h.
  * {symbol, name, explain}
  *     name:    used in object_detect().
@@ -231,19 +231,6 @@ const struct symdef defsyms[MAXPCHARS] = {
        { '/', "", C(CLR_ORANGE) },        /* explosion bottom right */
 };
 
-/* default rogue level symbols */
-static const uchar def_r_oc_syms[MAXOCLASSES] = {
-/* 0*/ '\0', ILLOBJ_SYM, WEAPON_SYM, ']', /* armor */
-       RING_SYM,
-/* 5*/ ',',                     /* amulet */
-       TOOL_SYM, ':',           /* food */
-       POTION_SYM, SCROLL_SYM,
-/*10*/ SPBOOK_SYM, WAND_SYM,
-       GEM_SYM,                /* gold -- yes it's the same as gems */
-       GEM_SYM, ROCK_SYM,
-/*15*/ BALL_SYM, CHAIN_SYM, VENOM_SYM
-};
-
 #undef C
 
 #if defined(TERMLIB) || defined(CURSES_GRAPHICS)
@@ -298,7 +285,6 @@ char ch;
  * init_symbols()
  *                     Sets the current display symbols, the
  *                     loadable symbols to the default NetHack
- *                     symbols, including the rogue_syms rogue level
  *                     symbols. This would typically be done
  *                     immediately after execution begins. Any
  *                     previously loaded external symbol sets are
@@ -324,23 +310,14 @@ char ch;
  *                     This is used in the game core to toggle in and
  *                     out of other {rogue} level display modes.
  *
- *                     If arg is ROGUESET, this places the rogue level
- *                     symbols from g.rogue_syms into g.showsyms.
- *
  *                     If arg is PRIMARY, this places the symbols
  *                     from g.primary_syms into g.showsyms.
  *
  * update_primary_symset()
  *                     Update a member of the primary(primary_*) symbol set.
  *
- * update_rogue_symset()
- *                     Update a member of the rogue (rogue_*) symbol set.
- *
  * update_ov_primary_symset()
  *                     Update a member of the overrides for primary symbol set.
- *
- * update_ov_rogue_symset()
- *                     Update a member of the overrides for rogue symbol set.
  *
  */
 
@@ -348,10 +325,8 @@ void
 init_symbols()
 {
     init_ov_primary_symbols();
-    init_ov_rogue_symbols();
     init_primary_symbols();
     init_showsyms();
-    init_rogue_symbols();
 }
 
 void
@@ -371,15 +346,6 @@ init_showsyms()
         g.showsyms[i + SYM_OFF_X] = get_othersym(i, PRIMARY);
 }
 
-/* initialize defaults for the overrides to the rogue symset */
-void
-init_ov_rogue_symbols()
-{
-    register int i;
-
-    for (i = 0; i < SYM_MAX; i++)
-        g.ov_rogue_syms[i] = (nhsym) 0;
-}
 /* initialize defaults for the overrides to the primary symset */
 void
 init_ov_primary_symbols()
@@ -392,16 +358,12 @@ init_ov_primary_symbols()
 
 nhsym
 get_othersym(idx, which_set)
-int idx, which_set;
+int idx, which_set UNUSED;
 {
     nhsym sym = (nhsym) 0;
     int oidx = idx + SYM_OFF_X;
 
-    if (which_set == ROGUESET)
-        sym = g.ov_rogue_syms[oidx] ? g.ov_rogue_syms[oidx]
-                                  : g.rogue_syms[oidx];
-    else
-        sym = g.ov_primary_syms[oidx] ? g.ov_primary_syms[oidx]
+    sym = g.ov_primary_syms[oidx] ? g.ov_primary_syms[oidx]
                                   : g.primary_syms[oidx];
     if (!sym) {
         switch(idx) {
@@ -446,36 +408,6 @@ init_primary_symbols()
     clear_symsetentry(PRIMARY, FALSE);
 }
 
-/* initialize defaults for the rogue symset */
-void
-init_rogue_symbols()
-{
-    register int i;
-
-    /* These are defaults that can get overwritten
-       later by the roguesymbols option */
-
-    for (i = 0; i < MAXPCHARS; i++)
-        g.rogue_syms[i + SYM_OFF_P] = defsyms[i].sym;
-    g.rogue_syms[S_vodoor] = g.rogue_syms[S_hodoor] = g.rogue_syms[S_ndoor] = '+';
-    g.rogue_syms[S_upstair] = g.rogue_syms[S_dnstair] = '%';
-
-    for (i = 0; i < MAXOCLASSES; i++)
-        g.rogue_syms[i + SYM_OFF_O] = def_r_oc_syms[i];
-    for (i = 0; i < MAXMCLASSES; i++)
-        g.rogue_syms[i + SYM_OFF_M] = def_monsyms[i].sym;
-    for (i = 0; i < WARNCOUNT; i++)
-        g.rogue_syms[i + SYM_OFF_W] = def_warnsyms[i].sym;
-    for (i = 0; i < MAXOTHER; i++)
-        g.rogue_syms[i + SYM_OFF_X] = get_othersym(i, ROGUESET);
-
-    clear_symsetentry(ROGUESET, FALSE);
-    /* default on Rogue level is no color
-     * but some symbol sets can override that
-     */
-    g.symset[ROGUESET].nocolor = 1;
-}
-
 void
 assign_graphics(whichset)
 int whichset;
@@ -483,20 +415,6 @@ int whichset;
     register int i;
 
     switch (whichset) {
-    case ROGUESET:
-        /* Adjust graphics display characters on Rogue levels */
-
-        for (i = 0; i < SYM_MAX; i++)
-            g.showsyms[i] = g.ov_rogue_syms[i] ? g.ov_rogue_syms[i]
-                                           : g.rogue_syms[i];
-
-#if defined(MSDOS) && defined(USE_TILES)
-        if (iflags.grmode)
-            tileview(FALSE);
-#endif
-        g.currentgraphics = ROGUESET;
-        break;
-
     case PRIMARY:
     default:
         for (i = 0; i < SYM_MAX; i++)
@@ -556,27 +474,11 @@ int val;
 }
 
 void
-update_ov_rogue_symset(symp, val)
-struct symparse *symp;
-int val;
-{
-    g.ov_rogue_syms[symp->idx] = val;
-}
-
-void
 update_primary_symset(symp, val)
 struct symparse *symp;
 int val;
 {
     g.primary_syms[symp->idx] = val;
-}
-
-void
-update_rogue_symset(symp, val)
-struct symparse *symp;
-int val;
-{
-    g.rogue_syms[symp->idx] = val;
 }
 
 void
@@ -592,7 +494,6 @@ boolean name_too;
     g.symset[which_set].nocolor = 0;
     /* initialize restriction bits */
     g.symset[which_set].primary = 0;
-    g.symset[which_set].rogue = 0;
 
     if (name_too) {
         if (g.symset[which_set].name)
@@ -630,7 +531,7 @@ const char *known_handling[] = {
  *    - add the field to clear_symsetentry()
  */
 const char *known_restrictions[] = {
-    "primary", "rogue", (const char *) 0,
+    "primary", (const char *) 0,
 };
 
 const struct symparse loadsyms[] = {

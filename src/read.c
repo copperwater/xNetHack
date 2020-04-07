@@ -1655,8 +1655,8 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             }
             pline("The earth moves around you!");
         }
-        else if (!Is_rogue_level(&u.uz) && ceiling_exists()
-            && (!In_endgame(&u.uz) || Is_earthlevel(&u.uz))) {
+        else if (ceiling_exists()
+                 && (!In_endgame(&u.uz) || Is_earthlevel(&u.uz))) {
             register int x, y;
             int nboulders = 0;
 
@@ -1987,6 +1987,7 @@ struct obj *obj;
 {
     char is_lit; /* value is irrelevant; we use its address
                     as a `not null' flag for set_lit() */
+    int radius;
 
     /* first produce the text (provided you're not blind) */
     if (!on) {
@@ -2034,47 +2035,30 @@ struct obj *obj;
     if (Punished && !on && !Blind)
         move_bc(1, 0, uball->ox, uball->oy, uchain->ox, uchain->oy);
 
-    if (Is_rogue_level(&u.uz)) {
-        /* Can't use do_clear_area because MAX_RADIUS is too small */
-        /* rogue lighting must light the entire room */
-        int rnum = levl[u.ux][u.uy].roomno - ROOMOFFSET;
-        int rx, ry;
-
-        if (rnum >= 0) {
-            for (rx = g.rooms[rnum].lx - 1; rx <= g.rooms[rnum].hx + 1; rx++)
-                for (ry = g.rooms[rnum].ly - 1; ry <= g.rooms[rnum].hy + 1; ry++)
-                    set_lit(rx, ry,
-                            (genericptr_t) (on ? &is_lit : (char *) 0));
-            g.rooms[rnum].rlit = on;
-        }
-        /* hallways remain dark on the rogue level */
-    } else {
-        int radius;
-        if(obj && obj->oclass == SCROLL_CLASS) {
-            /* blessed scroll lights up entire level */
-            if(obj->blessed) {
-		int x, y;
-                radius = -1;
-		for (x = 1; x < COLNO; x++) {
-		    for (y = 1; y < ROWNO; y++) {
-                        set_lit(x, y, (on ? &is_lit : NULL));
-                    }
+    if(obj && obj->oclass == SCROLL_CLASS) {
+        /* blessed scroll lights up entire level */
+        if(obj->blessed) {
+            int x, y;
+            radius = -1;
+            for (x = 1; x < COLNO; x++) {
+                for (y = 1; y < ROWNO; y++) {
+                    set_lit(x, y, (on ? &is_lit : NULL));
                 }
-            }
-            else {
-                /* uncursed gets a much larger area than the
-                 * 5 it had previously */
-                radius = 11;
             }
         }
         else {
-            radius = 5;
+            /* uncursed gets a much larger area than the
+                * 5 it had previously */
+            radius = 11;
         }
+    }
+    else {
+        radius = 5;
+    }
 
-        if(radius > 0) {
-            do_clear_area(u.ux, u.uy, radius, set_lit,
-                          (genericptr_t) (on ? &is_lit : (char *) 0));
-        }
+    if(radius > 0) {
+        do_clear_area(u.ux, u.uy, radius, set_lit,
+                      (genericptr_t) (on ? &is_lit : (char *) 0));
     }
 
     /*

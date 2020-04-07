@@ -115,7 +115,6 @@
     <ClCompile Include="$(SrcDir)engrave.c" />
     <ClCompile Include="$(SrcDir)exper.c" />
     <ClCompile Include="$(SrcDir)explode.c" />
-    <ClCompile Include="$(SrcDir)extralev.c" />
     <ClCompile Include="$(SrcDir)files.c" />
     <ClCompile Include="$(SrcDir)fountain.c" />
     <ClCompile Include="$(SrcDir)hack.c" />

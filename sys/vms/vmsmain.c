@@ -286,7 +286,6 @@ char *argv[];
         case 'i':
             if (!strncmpi(argv[0] + 1, "IBM", 3)) {
                 load_symset("IBMGraphics", PRIMARY);
-                load_symset("RogueIBM", ROGUESET);
                 switch_symbols(TRUE);
             }
             break;

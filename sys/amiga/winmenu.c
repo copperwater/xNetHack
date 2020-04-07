@@ -84,7 +84,7 @@ register unsigned int itemflags;
     mip->identifier = *id;
     mip->selected = preselected;
     mip->attr = attr;
-    mip->glyph = Is_rogue_level(&u.uz) ? NO_GLYPH : glyph;
+    mip->glyph = glyph;
     mip->selector = 0;
     mip->gselector = gch;
     mip->count = -1;

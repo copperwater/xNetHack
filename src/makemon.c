@@ -142,8 +142,6 @@ register struct monst *mtmp;
     struct obj *otmp;
     int bias, w1, w2;
 
-    if (Is_rogue_level(&u.uz))
-        return;
     /*
      *  First a few special cases:
      *          giants get a boulder to throw sometimes
@@ -576,8 +574,6 @@ register struct monst *mtmp;
     register struct obj *otmp;
     register struct permonst *ptr = mtmp->data;
 
-    if (Is_rogue_level(&u.uz))
-        return;
     /*
      *  Soldiers get armour & rations - armour approximates their ac.
      *  Nymphs may get mirror or potion of object detection.
@@ -1618,7 +1614,7 @@ rndmonst()
     register struct permonst *ptr;
     register int mndx;
     int weight, totalweight, selected_mndx, zlevel, minmlev, maxmlev;
-    boolean elemlevel, upper;
+    boolean elemlevel;
 
     if (u.uz.dnum == quest_dnum && rn2(7) && (ptr = qt_montype()) != 0)
         return ptr;
@@ -1626,7 +1622,6 @@ rndmonst()
     zlevel = level_difficulty();
     minmlev = monmin_difficulty(zlevel);
     maxmlev = monmax_difficulty(zlevel);
-    upper = Is_rogue_level(&u.uz); /* prefer uppercase only on rogue level */
     elemlevel = In_endgame(&u.uz) && !Is_astralevel(&u.uz); /* elmntl plane */
 
     /* amount processed so far */
@@ -1637,8 +1632,6 @@ rndmonst()
         ptr = &mons[mndx];
 
         if (montooweak(mndx, minmlev) || montoostrong(mndx, maxmlev))
-            continue;
-        if (upper && !isupper((uchar) def_monsyms[(int) ptr->mlet].sym))
             continue;
         if (elemlevel && wrong_elem_type(ptr))
             continue;
@@ -2286,9 +2279,9 @@ register struct monst *mtmp;
                         || levl[mx - 1][my].typ == TDWALL
                         || levl[mx - 1][my].typ == CROSSWALL
                         || levl[mx - 1][my].typ == TUWALL))
-            appear = Is_rogue_level(&u.uz) ? S_hwall : S_hcdoor;
+            appear = S_hcdoor;
         else
-            appear = Is_rogue_level(&u.uz) ? S_vwall : S_vcdoor;
+            appear = S_vcdoor;
     } else if (g.level.flags.is_maze_lev && !In_sokoban(&u.uz) && rn2(2)) {
         ap_type = M_AP_OBJECT;
         appear = STATUE;

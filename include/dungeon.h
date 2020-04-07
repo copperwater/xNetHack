@@ -10,7 +10,6 @@ typedef struct d_flags {     /* dungeon/level type flags */
     Bitfield(town, 1);       /* is this a town? (levels only) */
     Bitfield(hellish, 1);    /* is this part of hell? */
     Bitfield(maze_like, 1);  /* is this a maze? */
-    Bitfield(rogue_like, 1); /* is this an old-fashioned presentation? */
     Bitfield(align, 3);      /* dungeon alignment. */
     Bitfield(unused, 1);     /* etc... */
 } d_flags;
@@ -120,7 +119,6 @@ typedef struct branch {
 #define Is_wiz3_level(x)    (Lcheck(x, &wiz3_level))
 #define Is_sanctum(x)       (Lcheck(x, &sanctum_level))
 #define Is_portal_level(x)  (Lcheck(x, &portal_level))
-#define Is_rogue_level(x)   (Lcheck(x, &rogue_level))
 #define Is_stronghold(x)    (Lcheck(x, &stronghold_level))
 #define Is_bigroom(x)       (Lcheck(x, &bigroom_level))
 #define Is_qstart(x)        (Lcheck(x, &qstart_level))
@@ -238,7 +236,6 @@ typedef struct mapseen {
         Bitfield(valley, 1);
         Bitfield(msanctum, 1);
         Bitfield(ludios, 1);
-        Bitfield(roguelevel, 1);
         /* quest annotations: quest_summons is for main dungeon level
            with entry portal and is reset once quest has been finished;
            questing is for quest home (level 1) */

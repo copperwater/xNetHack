@@ -4,7 +4,7 @@
 #==============================================================================
 # Build Tools Environment
 #
-#       NetHack 3.7 Work-in-progress Makefile for 
+#       NetHack 3.7 Work-in-progress Makefile for
 #       MS Visual Studio Visual C++ compiler
 #
 #       Visual Studio Compilers Tested:
@@ -22,11 +22,11 @@
 #
 #   BEFORE YOU START, in addition to your C compiler and linker,
 #
-#       o You will need a complete Lua source tree parallel to your 
+#       o You will need a complete Lua source tree parallel to your
 #         NetHack source tree. Lua is not an optional requirement,
 #         it is required in order to process the level and dungeon
-#         description files during the game. You can obtain the 
-#         Lua source from here: 
+#         description files during the game. You can obtain the
+#         Lua source from here:
 #             https://www.lua.org/download.html
 #
 #       o If you want to include the curses Window port in the non-GUI
@@ -37,7 +37,7 @@
 #         or via git from here:
 #             git clone https://github.com/wmcbrine/PDCurses.git ../pdcurses
 #
-#       o If you want your build of NetHack to include support for 
+#       o If you want your build of NetHack to include support for
 #         compressing your save files, or to be able to exchange and use
 #         compressed save files that originated on another platform such
 #         as Linux or a handheld phone or tablet, then you will need
@@ -60,16 +60,16 @@
 #
 # Build Options Decisions
 #
-#       There are currently 5 decisions that you can choose to make. 
-#       none of the 5 decisions are absolutely required because defaults 
+#       There are currently 5 decisions that you can choose to make.
+#       none of the 5 decisions are absolutely required because defaults
 #       are in place:
 #
 #	1. Where do you want your build results to end up?
 #       2. Do you want to include the optional curses port?
-#       3. Do you want to include compressed savefile support to 
+#       3. Do you want to include compressed savefile support to
 #          transfer compressed savefiles between platforms?
 #	4. Do you want debug information in the executable?
-#	5. Do you want to explicitly override auto-detection of 
+#	5. Do you want to explicitly override auto-detection of
 #          a 32-bit or 64-bit target?
 #
 # Mandatory Lua source Location (not optional)
@@ -88,13 +88,13 @@
 GAMEDIR = ..\binary               # Default game build directory
 #
 #------------------------------------------------------------------------------
-# OPTIONAL - Curses window port support 
+# OPTIONAL - Curses window port support
 #
 # 2. Uncomment these and set them appropriately if you want to
 #    include curses port support alongside TTY support in your
-#    NetHack.exe binary. 
+#    NetHack.exe binary.
 #
-#    You'll have to set PDCURSES_H to the correct location of the 
+#    You'll have to set PDCURSES_H to the correct location of the
 #    PDCurses header (.h) files and PDCURSES_C to the location
 #    of your PDCurses C files.
 #
@@ -112,13 +112,13 @@ GAMEDIR = ..\binary               # Default game build directory
 #
 #------------------------------------------------------------------------------
 # 4. Do you want debug information available to the executable?
-# 
+#
 DEBUGINFO = Y
 #
 #------------------------------------------------------------------------------
 # 5. This Makefile will attempt to auto-detect your selected target architecture
 #    based on Visual Studio command prompt configuration settins etc.
-#    However, if you want to manually override generation of a 
+#    However, if you want to manually override generation of a
 #    32-bit or 64-bit build target, you can uncomment the apppropriate
 #    TARGET_CPU line below.
 #
@@ -134,7 +134,7 @@ DEBUGINFO = Y
 #
 # Location of LUA
 #
-# Original source needs to be obtained from: 
+# Original source needs to be obtained from:
 #    http://www.lua.org/ftp/lua-5.3.5.tar.gz
 #
 #    This build assumes that the LUA sources are located
@@ -183,8 +183,8 @@ SSYS    = ..\sys\share   # Shared system files
 MSWSYS  = ..\sys\winnt   # mswin specific files
 TTY     = ..\win\tty     # window port files (tty)
 MSWIN   = ..\win\win32   # window port files (win32)
-WCURSES = ..\win\curses  # window port files (curses) 
-WSHR    = ..\win\share   # Tile support files 
+WCURSES = ..\win\curses  # window port files (curses)
+WSHR    = ..\win\share   # Tile support files
 
 #
 #  Object directory.
@@ -196,8 +196,8 @@ OBJ     = o
 #==========================================
 # Exe File Info.
 #==========================================
- 
-#        
+
+#
 #
 # Optional high-quality BSD random number generation routines
 # (see pcconf.h). Set to nothing if not used.
@@ -299,13 +299,13 @@ PPMWRITERS     = $(O)ppmwrite$(HOST).o $(O)alloc$(HOST).o $(O)panic$(HOST).o
 #
 
 VOBJ01 = $(O)allmain.o  $(O)alloc.o    $(O)apply.o    $(O)artifact.o
-VOBJ02 = $(O)attrib.o   $(O)ball.o     $(O)bones.o    $(O)botl.o    
-VOBJ03 = $(O)cmd.o      $(O)dbridge.o  $(O)decl.o     $(O)detect.o  
-VOBJ04 = $(O)dig.o      $(O)display.o  $(O)do.o       $(O)do_name.o 
-VOBJ05 = $(O)do_wear.o  $(O)dog.o      $(O)dogmove.o  $(O)dokick.o  
-VOBJ06 = $(O)dothrow.o  $(O)drawing.o  $(O)dungeon.o  $(O)eat.o     
-VOBJ07 = $(O)end.o      $(O)engrave.o  $(O)exper.o    $(O)explode.o 
-VOBJ08 = $(O)extralev.o $(O)files.o    $(O)fountain.o $(O)hack.o    
+VOBJ02 = $(O)attrib.o   $(O)ball.o     $(O)bones.o    $(O)botl.o
+VOBJ03 = $(O)cmd.o      $(O)dbridge.o  $(O)decl.o     $(O)detect.o
+VOBJ04 = $(O)dig.o      $(O)display.o  $(O)do.o       $(O)do_name.o
+VOBJ05 = $(O)do_wear.o  $(O)dog.o      $(O)dogmove.o  $(O)dokick.o
+VOBJ06 = $(O)dothrow.o  $(O)drawing.o  $(O)dungeon.o  $(O)eat.o
+VOBJ07 = $(O)end.o      $(O)engrave.o  $(O)exper.o    $(O)explode.o
+VOBJ08 = $(O)files.o    $(O)fountain.o $(O)hack.o
 VOBJ09 = $(O)hacklib.o  $(O)insight.o  $(O)invent.o   $(O)isaac64.o
 VOBJ10 = $(O)light.o    $(O)lock.o     $(O)mail.o     $(O)makemon.o
 VOBJ11 = $(O)mapglyph.o $(O)mcastu.o   $(O)mhitm.o    $(O)mhitu.o
@@ -354,7 +354,7 @@ CURSESOBJ= $(O)cursdial.o $(O)cursinit.o $(O)cursinvt.o $(O)cursmain.o \
 !ENDIF
 
 SOBJ   = $(O)windmain.o $(O)winnt.o $(O)win10.o \
-	$(O)safeproc.o $(O)nhlan.o $(SOUND) 
+	$(O)safeproc.o $(O)nhlan.o $(SOUND)
 
 OBJS   = $(MDLIB) \
 	$(VOBJ01) $(VOBJ02) $(VOBJ03) $(VOBJ04) $(VOBJ05) \
@@ -452,7 +452,7 @@ LUAOBJFILES =   $(LUAOBJFILES) $(O)lbitlib.o
 #        and removes lbitlib.c
 !ENDIF
 
-!IF "$(ADD_CURSES)" == "Y"	
+!IF "$(ADD_CURSES)" == "Y"
 #===============-=================================================
 # PDCurses build macros
 # Latest PDCurses from https://github.com/wmcbrine/PDCurses.git
@@ -480,7 +480,7 @@ PDCLIB = $(O)pdcurses.lib
 PDCINCL = /I$(PDCURSES_TOP) /I$(PDCSRC) /I$(PDCWINCON)
 
 !ELSE
-PDCLIB = 
+PDCLIB =
 !ENDIF
 
 #==========================================
@@ -529,7 +529,7 @@ DATABASE = $(DAT)\data.base
 # ctags options
 #
 #CTAGSCMD=ctags-orig.exe
-!IF "$(TRAVIS_BUILD_DIR)" != ""	
+!IF "$(TRAVIS_BUILD_DIR)" != ""
 CTAGSCMD=..\lib\ctags\ctags.exe
 !ELSE
 CTAGSCMD=..\..\..\ctags\ctags.exe
@@ -541,15 +541,15 @@ CTAGSOPT =--language-force=c --sort=no -D"Bitfield(x,n)=unsigned x : n" --excmd=
 #
 TINC = $(INCL:\=/)
 TSRC = $(SRC:\=/)
- 
+
 
 cc=cl
 cpp=cpp
 link=link
 rc=Rc
 
-# Before we get started, this section is used to determine the version of 
-# Visual Studio we are using.  We set VSVER to 0000 to flag any version that 
+# Before we get started, this section is used to determine the version of
+# Visual Studio we are using.  We set VSVER to 0000 to flag any version that
 # is too old or untested.
 #
 #NMAKE version 1421277022 is distributed with latest VS 2019
@@ -587,7 +587,7 @@ VSVER=2999              #untested future version
 !ELSEIF ($(VSVER) == 2999
 !MESSAGE The version of Visual Studio is newer than the most recent at
 !MESSAGE the time this Makefile was crafted (Visual Studio $(VSNEWEST)).
-!MESSAGE Because it is newer we'll proceed expecting that the 
+!MESSAGE Because it is newer we'll proceed expecting that the
 !MESSAGE VS$(VSNEWEST) processing will still work.
 !ELSEIF ($(VSVER) == 0000)
 !MESSAGE The version of Visual Studio appears to be quite old, older
@@ -861,26 +861,26 @@ install: $(INCL)\nhlua.h $(O)envchk.tag $(O)obj.tag $(O)utility.tag $(GAMEDIR)\N
 #  Main game targets.
 #==========================================
 
-#  The section for linking the NetHack image looks a little strange at 
-#  first, especially if you are used to UNIX makes, or NDMAKE.  It is 
-#  Microsoft nmake specific, and it gets around the problem of the 
-#  link command line being too long for the linker.  An "in-line" linker 
+#  The section for linking the NetHack image looks a little strange at
+#  first, especially if you are used to UNIX makes, or NDMAKE.  It is
+#  Microsoft nmake specific, and it gets around the problem of the
+#  link command line being too long for the linker.  An "in-line" linker
 #  response file is generated temporarily.
 #
 #  It takes advantage of the following features of nmake:
 #
-#  Inline files : 
+#  Inline files :
 #			Specifying the "<<" means to start an inline file.
-#                 	Another "<<" at the start of a line closes the 
+#                 	Another "<<" at the start of a line closes the
 #                 	inline file.
 #
 #  Substitution within Macros:
 #                       $(mymacro:string1=string2) replaces every
-#                       occurrence of string1 with string2 in the 
-#                       macro mymacro.  Special ascii key codes may be 
-#                       used in the substitution text by preceding it 
+#                       occurrence of string1 with string2 in the
+#                       macro mymacro.  Special ascii key codes may be
+#                       used in the substitution text by preceding it
 #                       with ^ as we have done below.  Every occurence
-#                       of a <tab> in $(ALLOBJ) is replaced by 
+#                       of a <tab> in $(ALLOBJ) is replaced by
 #                       <+><return><tab>.
 
 GAMEOBJ=$(ALLOBJ:^	=^
@@ -897,7 +897,7 @@ GAMEOBJ=$(GAMEOBJ:^ =^
 #    libs: $(LIBS) $(conlibs) $(guilibs) $(COMCTRL)
 #    objs: $(GAMEOBJ) $(TTYOBJ) $(O)nttty.o $(O)tile.o $(GUIOBJ)
 # otherwise:
-#    libs: $(LIBS) $(conlibs) 
+#    libs: $(LIBS) $(conlibs)
 #    objs: $(GAMEOBJ) $(TTYOBJ) $(O)tile.o $(O)guistub.o
 
 
@@ -1039,7 +1039,7 @@ $(O)utility.tag: $(INCL)\nhlua.h $(INCL)\date.h $(INCL)\onames.h $(INCL)\pm.h \
 	     @echo utilities made >$@
 	     @echo utilities made.
 
-$(INCL)\nhlua.h: 
+$(INCL)\nhlua.h:
 	@echo  /* nhlua.h - generated by Makefile */ > $@
 	@echo #include "../lib/lua-$(LUAVER)/src/lua.h" >> $@
 	@echo LUA_API int   (lua_error) (lua_State *L) NORETURN; >> $@
@@ -1062,7 +1062,7 @@ $(O)console.res: $(MSWSYS)\console.rc $(MSWSYS)\NetHack.ico
 #
 #  Secondary Targets.
 #
-    
+
 #==========================================
 # Makedefs Stuff
 #==========================================
@@ -1118,12 +1118,12 @@ $(U)uudecode.exe: $(O)uudecode$(HOST).o
 $(O)uudecode$(HOST).o: $(SSYS)\uudecode.c
 	@$(cc) $(cflagsBuild) $(CROSSCOMPILE) $(CROSSCOMPILE_HOST) /D_CRT_SECURE_NO_DEPRECATE -Fo$@ $(SSYS)\uudecode.c
 
-$(MSWSYS)\NetHack.ico : $(U)uudecode.exe $(MSWSYS)\nhico.uu 
+$(MSWSYS)\NetHack.ico : $(U)uudecode.exe $(MSWSYS)\nhico.uu
 	chdir $(MSWSYS)
 	..\..\util\uudecode.exe nhico.uu
 	chdir ..\..\src
 
-$(MSWIN)\NetHack.ico : $(U)uudecode.exe $(MSWSYS)\nhico.uu 
+$(MSWIN)\NetHack.ico : $(U)uudecode.exe $(MSWSYS)\nhico.uu
 	chdir $(MSWIN)
 	..\..\util\uudecode.exe ../../sys/winnt/nhico.uu
 	chdir ..\..\src
@@ -1220,7 +1220,7 @@ $(O)dlb$(HOST).o: $(O)dlb_main$(HOST).o $(O)alloc$(HOST).o $(O)panic$(HOST).o $(
 
 $(O)dlb.o: $(O)dlb_main.o $(O)alloc.o $(O)panic.o $(INCL)\dlb.h
 	@$(cc) $(cflagsBuild) $(CROSSCOMPILE) $(CROSSCOMPILE_HOST) /Fo$@ $(SRC)\dlb.c
-	
+
 !IFDEF CROSSCOMPILE_HOST
 $(O)dlb_main$(HOST).o: $(UTIL)\dlb_main.c $(INCL)\config.h $(INCL)\dlb.h
 	@$(cc) $(cflagsBuild) $(CROSSCOMPILE) $(CROSSCOMPILE_HOST) /Fo$@ $(UTIL)\dlb_main.c
@@ -1475,7 +1475,7 @@ $(O)curswins.o: $(WCURSES)\curswins.c $(WCURSES)\curswins.h $(INCL)\wincurs.h
 $(O)sfstruct.o: $(HACK_H) $(SRC)\sfstruct.c
 #	@$(cc) $(cflagsBuild) -Fo$@ $(SRC)\sfstruct.c
 
- 
+
 #===============================================================================
 # CROSSCOMPILE
 #===============================================================================
@@ -1640,7 +1640,7 @@ spotless: clean
 	if exist $(U)tilemap.exe         del $(U)tilemap.exe
 	if exist $(U)uudecode.exe        del $(U)uudecode.exe
 	if exist $(U)dlb.exe             del $(U)dlb.exe
-!IF "$(ADD_CURSES)" == "Y"	
+!IF "$(ADD_CURSES)" == "Y"
 	if exist $(O)pdcurses.lib        del $(O)pdcurses.lib
 !ENDIF
 	if exist $(DAT)\oracles		 del $(DAT)\oracles
@@ -1692,10 +1692,10 @@ clean:
 # OTHER DEPENDENCIES
 #===================================================================
 #
-# The rest are stolen from sys/unix/Makefile.src, 
+# The rest are stolen from sys/unix/Makefile.src,
 # with the following changes:
 #   * ../include changed to $(INCL)
-#   * slashes changed to back-slashes 
+#   * slashes changed to back-slashes
 #   * -c (which is included in CFLAGS) substituted with -Fo$@
 #   * $(CFLAGS) replaced with $(cflagsBuild)
 #   * $(CC) replaced with @$(cc)
@@ -2021,7 +2021,6 @@ $(O)end.o: end.c $(HACK_H) $(INCL)\dlb.h
 $(O)engrave.o: engrave.c $(HACK_H)
 $(O)exper.o: exper.c $(HACK_H)
 $(O)explode.o: explode.c $(HACK_H)
-$(O)extralev.o: extralev.c $(HACK_H)
 $(O)files.o: files.c $(HACK_H) $(INCL)\dlb.h #zlib.h
 $(O)fountain.o: fountain.c $(HACK_H)
 $(O)hack.o: hack.c $(HACK_H)

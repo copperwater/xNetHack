@@ -50,14 +50,6 @@ static const struct icp boxiprobs[] = { { 18, GEM_CLASS },
                                         { 5, RING_CLASS },
                                         { 1, AMULET_CLASS } };
 
-static const struct icp rogueprobs[] = { { 12, WEAPON_CLASS },
-                                         { 12, ARMOR_CLASS },
-                                         { 22, FOOD_CLASS },
-                                         { 22, POTION_CLASS },
-                                         { 22, SCROLL_CLASS },
-                                         { 5, WAND_CLASS },
-                                         { 5, RING_CLASS } };
-
 static const struct icp hellprobs[] = { { 20, WEAPON_CLASS },
                                         { 20, ARMOR_CLASS },
                                         { 16, FOOD_CLASS },
@@ -254,10 +246,8 @@ boolean artif;
     int first_obj, last_obj, total_prob;
 
     if (oclass == RANDOM_CLASS) {
-        const struct icp *iprobs = Is_rogue_level(&u.uz)
-                                   ? (const struct icp *) rogueprobs
-                                   : Inhell ? (const struct icp *) hellprobs
-                                            : (const struct icp *) mkobjprobs;
+        const struct icp *iprobs = Inhell ? (const struct icp *) hellprobs
+                                          : (const struct icp *) mkobjprobs;
 
         for (tprob = rnd(100); (tprob -= iprobs->iprob) > 0; iprobs++)
             continue;

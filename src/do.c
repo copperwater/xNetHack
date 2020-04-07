@@ -1408,8 +1408,6 @@ boolean at_stairs, falling, portal;
             remdun_mapseen(l_idx);
     }
 
-    if (Is_rogue_level(newlevel) || Is_rogue_level(&u.uz))
-        assign_graphics(Is_rogue_level(newlevel) ? ROGUESET : PRIMARY);
 #ifdef USE_TILES
     substitute_tiles(newlevel);
 #endif
@@ -1679,9 +1677,7 @@ boolean at_stairs, falling, portal;
         if (newdungeon)
             record_achievement(ACH_SOKO);
     } else {
-        if (new && Is_rogue_level(&u.uz)) {
-            You("enter what seems to be an older, more primitive world.");
-        } else if (new && Is_bigroom(&u.uz)) {
+        if (new && Is_bigroom(&u.uz)) {
             record_achievement(ACH_BGRM);
         }
         /* main dungeon message from your quest leader */

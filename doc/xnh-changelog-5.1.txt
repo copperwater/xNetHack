@@ -29,7 +29,7 @@ Amnesia scrolls are re-introduced, and behave the same as vanilla 3.7, where
   probability. The scroll of water is not removed.
 Monsters' once-per-twenty-turns regeneration of a hit point now depends on
   their monster ID, rather than all monsters simultaneously regenerating a
-  point on every 20th turn
+  point on every 20th turn.
 
 
 It contains the following non-gameplay interface changes:
@@ -42,3 +42,5 @@ It contains the following non-gameplay architectural changes:
 
 Added a new function bury_sink_ring to unify codepaths for doing this between
   regular and special level code.
+Remove all rogue level code, and everything that used it, including support for
+  the rogue symbol set. Remove extralev.c completely.

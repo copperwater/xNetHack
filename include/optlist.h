@@ -397,8 +397,6 @@ pfx_##a,
 #endif
     NHOPTB(rest_on_space, 0, opt_in, set_in_game, Off, Yes, No, No, NoAlias,
                 &flags.rest_on_space)
-    NHOPTC(roguesymset, 70, opt_in, set_in_game, No, Yes, No, Yes, NoAlias,
-                "load a set of rogue display symbols from the symbols file")
     NHOPTC(role, PL_CSIZ, opt_in, set_gameview, No, Yes, No, No, "character",
                 "your starting role (e.g., Barbarian, Valkyrie)")
     NHOPTC(runmode, sizeof "teleport", opt_in, set_in_game, Yes, Yes, No, Yes,

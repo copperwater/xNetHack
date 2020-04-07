@@ -98,7 +98,7 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
 
     painter.begin(this);
 
-    if (Is_rogue_level(&u.uz) || iflags.wc_ascii_map) {
+    if (iflags.wc_ascii_map) {
 	// You enter a VERY primitive world!
 
 	painter.setClipRect( event->rect() ); // (normally we don't clip)
@@ -190,27 +190,18 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
     }
 
     if (garea.contains(cursor)) {
-	if (Is_rogue_level(&u.uz)) {
-#ifdef TEXTCOLOR
-	    painter.setPen( Qt::white );
-#else
-	    painter.setPen( Qt::green ); // REALLY primitive
-#endif
-	} else
-	{
-	    int hp100;
-	    if (u.mtimedone) {
-		hp100=u.mhmax ? u.mh*100/u.mhmax : 100;
-	    } else {
-		hp100=u.uhpmax ? u.uhp*100/u.uhpmax : 100;
-	    }
+        int hp100;
+        if (u.mtimedone) {
+            hp100=u.mhmax ? u.mh*100/u.mhmax : 100;
+        } else {
+            hp100=u.uhpmax ? u.uhp*100/u.uhpmax : 100;
+        }
 
-	    if (hp100 > 75) painter.setPen(Qt::white);
-	    else if (hp100 > 50) painter.setPen(Qt::yellow);
-	    else if (hp100 > 25) painter.setPen(QColor(0xff,0xbf,0x00)); // orange
-	    else if (hp100 > 10) painter.setPen(Qt::red);
-	    else painter.setPen(Qt::magenta);
-	}
+        if (hp100 > 75) painter.setPen(Qt::white);
+        else if (hp100 > 50) painter.setPen(Qt::yellow);
+        else if (hp100 > 25) painter.setPen(QColor(0xff,0xbf,0x00)); // orange
+        else if (hp100 > 10) painter.setPen(Qt::red);
+        else painter.setPen(Qt::magenta);
 
 	painter.drawRect(
 	    cursor.x()*qt_settings->glyphs().width(),cursor.y()*qt_settings->glyphs().height(),
@@ -250,7 +241,7 @@ bool NetHackQtMapViewport::DrawWalls(
     unsigned linewidth;
     unsigned walls;
     int x1, y1, x2, y2, x3, y3;
- 
+
     linewidth = ((w < h) ? w : h)/8;
     if (linewidth == 0) linewidth = 1;
 
@@ -790,7 +781,7 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 
     painter.begin(this);
 
-    if (is_rogue_level(&u.uz) || iflags.wc_ascii_map) {
+    if (iflags.wc_ascii_map) {
 	// You enter a VERY primitive world!
 
 	painter.setClipRect( event->rect() ); // (normally we don't clip)
@@ -873,27 +864,18 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
     }
 
     if (garea.contains(cursor)) {
-	if (Is_rogue_level(&u.uz)) {
-#ifdef TEXTCOLOR
-	    painter.setPen( Qt::white );
-#else
-	    painter.setPen( Qt::green ); // REALLY primitive
-#endif
-	} else
-	{
-	    int hp100;
-	    if (u.mtimedone) {
-		hp100=u.mhmax ? u.mh*100/u.mhmax : 100;
-	    } else {
-		hp100=u.uhpmax ? u.uhp*100/u.uhpmax : 100;
-	    }
+        int hp100;
+        if (u.mtimedone) {
+            hp100=u.mhmax ? u.mh*100/u.mhmax : 100;
+        } else {
+            hp100=u.uhpmax ? u.uhp*100/u.uhpmax : 100;
+        }
 
-	    if (hp100 > 75) painter.setPen(Qt::white);
-	    else if (hp100 > 50) painter.setPen(Qt::yellow);
-	    else if (hp100 > 25) painter.setPen(QColor(0xff,0xbf,0x00)); // orange
-	    else if (hp100 > 10) painter.setPen(Qt::red);
-	    else painter.setPen(Qt::magenta);
-	}
+        if (hp100 > 75) painter.setPen(Qt::white);
+        else if (hp100 > 50) painter.setPen(Qt::yellow);
+        else if (hp100 > 25) painter.setPen(QColor(0xff,0xbf,0x00)); // orange
+        else if (hp100 > 10) painter.setPen(Qt::red);
+        else painter.setPen(Qt::magenta);
 
 	painter.drawRect(
 	    cursor.x()*qt_settings->glyphs().width(),cursor.y()*qt_settings->glyphs().height(),

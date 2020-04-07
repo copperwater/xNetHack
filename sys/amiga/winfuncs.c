@@ -1606,20 +1606,8 @@ register int x, y; /* not xchar: perhaps xchar is unsigned and
 
         if (WINVERS_AMIV) {
             if (cw->type == NHW_MAP) {
-                if (Is_rogue_level(&u.uz)) {
-#if 0
-int qqx= (x * w->RPort->TxWidth) + w->BorderLeft;
-int qqy= w->BorderTop + ( (y+1) * w->RPort->TxHeight ) + 1;
-printf("pos: (%d,%d)->(%d,%d)\n",x,y,qqx,qqy);
-#endif
-                    SetAPen(w->RPort,
-                            C_WHITE); /* XXX should be elsewhere (was 4)*/
-                    Move(rp, (x * w->RPort->TxWidth) + w->BorderLeft,
-                         w->BorderTop + ((y + 1) * w->RPort->TxHeight) + 1);
-                } else {
-                    Move(rp, (x * mxsize) + w->BorderLeft,
-                         w->BorderTop + ((y + 1) * mysize) + 1);
-                }
+                Move(rp, (x * mxsize) + w->BorderLeft,
+                     w->BorderTop + ((y + 1) * mysize) + 1);
             } else {
                 Move(rp, (x * w->RPort->TxWidth) + w->BorderLeft,
                      w->BorderTop + ((y + 1) * w->RPort->TxHeight)
@@ -1773,8 +1761,6 @@ winid window;
 
     if (WINVERS_AMIV && cw->type == NHW_MAP) {
         cursor_common(rp, x, y);
-        if (Is_rogue_level(&u.uz))
-            Move(rp, curx, cury);
     } else {
         ch = CURSOR_CHAR;
         Move(rp, x, y);
@@ -1823,7 +1809,7 @@ winid window;
 /* Save the current information */
 
 #ifdef DISPMAP
-    if (WINVERS_AMIV && cw->type == NHW_MAP && !Is_rogue_level(&u.uz))
+    if (WINVERS_AMIV && cw->type == NHW_MAP)
         x = cw->cursx = (rp->cp_x & -8) + 8;
     else
 #endif
@@ -1861,20 +1847,11 @@ int x, y;
 {
     int x1, x2, y1, y2;
 
-    if (Is_rogue_level(&u.uz)) {
-        x1 = x - 2;
-        y1 = y - rp->TxHeight;
-        x2 = x + rp->TxWidth + 1;
-        y2 = y + 3;
-        /*printf("COMM: (%d %d) (%d %d)  (%d %d) (%d
-         * %d)\n",x1,y1,x2,y2,x1+2,y1+2,x2-2,y2-2);*/
-    } else {
-        x1 = x;
-        y1 = y - mysize - 1;
-        x2 = x + mxsize - 1;
-        y2 = y - 2;
-        RectFill(rp, x1, y1, x2, y2);
-    }
+    x1 = x;
+    y1 = y - mysize - 1;
+    x2 = x + mxsize - 1;
+    y2 = y - 2;
+    RectFill(rp, x1, y1, x2, y2);
 
     RectFill(rp, x1 + 2, y1 + 2, x2 - 2, y2 - 2);
 }
@@ -1967,12 +1944,12 @@ int glyph, bkglyph;
 {
 static int x=-1;
 if(u.uz.dlevel != x){
- fprintf(stderr,"lvlchg: %d (%d)\n",u.uz.dlevel,Is_rogue_level(&u.uz));
+ fprintf(stderr,"lvlchg: %d\n",u.uz.dlevel);
  x = u.uz.dlevel;
 }
 }
 #endif
-    if (WINVERS_AMIV && !Is_rogue_level(&u.uz)) {
+    if (WINVERS_AMIV) {
         amii_curs(win, x, y);
         amiga_print_glyph(win, 0, glyph);
     } else /* AMII, or Rogue level in either version */
@@ -1988,10 +1965,6 @@ if(u.uz.dlevel != x){
             amii_curs(win, x, y + 2);
 
 #ifdef TEXTCOLOR
-            /* Turn off color if rogue level. */
-            if (Is_rogue_level(&u.uz))
-                color = NO_COLOR;
-
             amiga_print_glyph(win, color, ch);
 #else
             g_putch(ch); /* print the character */
@@ -2141,16 +2114,8 @@ register int x, y;
     if (!clipping) /* And 1 in anycase, cleaner, simpler, quicker */
         return;
 
-    if (Is_rogue_level(&u.uz)) {
-        struct Window *w = amii_wins[WIN_MAP]->win;
-        struct RastPort *rp = w->RPort;
-
-        COx = (w->Width - w->BorderLeft - w->BorderRight) / rp->TxWidth;
-        LIx = (w->Height - w->BorderTop - w->BorderBottom) / rp->TxHeight;
-    } else {
-        COx = CO;
-        LIx = LI;
-    }
+    COx = CO;
+    LIx = LI;
     /*
      * On a level change, move the clipping region so that for a
      * reasonablely large window extra motion is avoided; for
@@ -2195,13 +2160,8 @@ register int x, y;
         int savex, savey, savexmax, saveymax;
         int scrx, scry;
 
-        if (Is_rogue_level(&u.uz)) {
-            scrx = rp->TxWidth;
-            scry = rp->TxHeight;
-        } else {
-            scrx = mxsize;
-            scry = mysize;
-        }
+        scrx = mxsize;
+        scry = mysize;
 
         /* Ask that the glyph routines not draw the overview window */
         reclip = 2;
