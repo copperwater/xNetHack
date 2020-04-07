@@ -30,6 +30,8 @@ Amnesia scrolls are re-introduced, and behave the same as vanilla 3.7, where
 Monsters' once-per-twenty-turns regeneration of a hit point now depends on
   their monster ID, rather than all monsters simultaneously regenerating a
   point on every 20th turn.
+Figurines can generate as wood, plastic, metal, copper, or gold in addition to
+  being stone.
 
 
 It contains the following non-gameplay interface changes:

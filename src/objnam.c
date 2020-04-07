@@ -492,7 +492,10 @@ unsigned cxn_flags; /* bitmask of CXN_xxx values */
         else if (is_wet_towel(obj))
             Strcpy(buf, (obj->spe < 3) ? "moist " : "wet ");
 
-        if (obj->material != objects[obj->otyp].oc_material) {
+        if (obj->material != objects[obj->otyp].oc_material
+            /* figurines have non-obvious material so always show material even
+             * when default */
+            || obj->otyp == FIGURINE) {
             Strcat(buf, materialnm[obj->material]);
             Strcat(buf, " ");
         }

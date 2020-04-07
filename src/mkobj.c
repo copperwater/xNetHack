@@ -3388,6 +3388,14 @@ static const struct icp statue_materials[] = {
     { 4, COPPER},
     { 1, GOLD}
 };
+static const struct icp figurine_materials[] = {
+    {45, MINERAL},
+    {35, WOOD},
+    {10, PLASTIC},
+    { 5, METAL},
+    { 4, COPPER},
+    { 1, GOLD}
+};
 static const struct icp elvenhelm_materials[] = {
     {70, LEATHER},
     {20, COPPER},
@@ -3462,6 +3470,8 @@ struct obj* obj;
             return horn_materials;
         case STATUE:
             return statue_materials;
+        case FIGURINE:
+            return figurine_materials;
         default:
             break;
     }
