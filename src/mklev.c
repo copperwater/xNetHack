@@ -2138,8 +2138,10 @@ int dist;
     }
 
     /* clear traps */
-    if ((ttmp = t_at(x, y)) != 0)
-        deltrap(ttmp);
+    if ((ttmp = t_at(x, y)) != 0) {
+        /* this calls deltrap, burying any ammo */
+        remove_trap_ammo(ttmp, TRUE);
+    }
 
     /* clear boulders; leave some rocks for non-{moat|trap} locations */
     make_rocks = (dist != 1 && dist != 4 && dist != 5) ? TRUE : FALSE;
