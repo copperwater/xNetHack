@@ -197,6 +197,7 @@ Here lies Garfield, who ate a pan of cursed lasagna.
 Here lies Ilene Toofar. Fell off a cliff.
 Here lies Johnny Yeast.  Pardon me for not rising.
 Here lies Pinocchio
+Here lies Sid, ascended... and cracked his skull on the ceiling.
 Here lies The Lady's maid, died of a Vorpal Blade
 Here lies Tim Burr. Smashed by a tree.
 Here lies a programmer.  Killed by a fatal error.
@@ -324,6 +325,7 @@ Please don't dig me up.  I'm perfectly happy down here. -- Resident
 Please, not in front of those orcs!
 Postman, please note forwarding address: Gehennom, Asmodeus's Fortress, fifth lemure on the left
 Pour one out for me, will ya?
+Powered off.
 Prepare to meet me in Heaven
 Press F to pay respects
 R.I.P.
@@ -370,6 +372,7 @@ This side up
 This grave reserved for %p
 This was actually just a pit, but since there was a corpse, we filled it
 This way to the crypt
+Time Capsule: Do not open until T:4283852
 Tone it down a bit, I'm trying to get some rest here.
 Tu quoque, Brute?
 Upgrade to a mausoleum with our premium membership package
@@ -452,6 +455,7 @@ Jeanne -- She died and we did nothing
 # Discworld
 I ATEN'T DEAD
 Edward d'Eath - Gonne from this world
+Morturi Nolumus Mori
 
 # 2001: A Space Odyssey
 I can feel it.  My mind.  It's going.  I can feel it.
@@ -464,3 +468,12 @@ Smucky: He was Obediant.
 
 # The Enigma of Amigara Fault
 This is my hole! It was made for me!
+
+# 1984
+We are the dead.
+
+# Hamlet
+To sleep, perchance to dream, aye, there's the rub.
+
+# Oregon Trail
+Tried to get to Oregon. Died of dysentery.

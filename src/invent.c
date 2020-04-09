@@ -1316,6 +1316,8 @@ static const char *const currencies[] = {
     "zorkmid",               /* Zork, NetHack */
     "rupee",                 /* The Legend Of Zelda (also real life)*/
     "Platinum Yendorian Express Frequent Flier Mile", /* NetHack (?) */
+    "spondulix",             /* real life term for money */
+    "unit of filthy lucre",  /* real life idiom */
 };
 
 const char *

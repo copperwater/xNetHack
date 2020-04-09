@@ -11,10 +11,6 @@
 
 "So when I die, the first thing I will see in heaven is a score list?"
 :%p, will you marry me?
-1st Law of Hacking:  leaving is much more difficult than entering.
-2nd Law of Hacking:  first in, first out.
-3rd Law of Hacking:  the last blow counts most.
-4th Law of Hacking:  you will find the exit at the entrance.
 73% of statistics are made up on the spot.
 A chameleon imitating a mail daemon often delivers scrolls of fire.
 A cockatrice corpse is guaranteed to be untainted!
@@ -24,12 +20,16 @@ A fading corridor enlightens your insight.
 A giant named Andre could help with unarmed combat.
 A glowing potion is too hot to drink.
 A good amulet may protect you against guards.
+A hacker named Jonah once got swallowed by a sea monster, but his prayers forced it to expel him.
+A hacker named Leeroy Jenkins once read a scroll of charging while confused.
+A hacker named The Pied Piper once played a wooden flute and tamed rats.
 A knight knows armor.
 A lizard corpse is a good thing to turn undead.
 A long worm can be defined recursively.  So how should you attack it?
 A monstrous mind is a toy forever.
 A nymph will be very pleased if you call her by her real name:  Lorelei.
 A potion of acid is really just the same thing as a potion of hallucination.
+A really lucky hacker might find an empty bottle - only 4 of them ever got made!
 A ring of dungeon master control is a great find.
 A ring of extra ring finger is useless if not enchanted.
 A rope may form a trail in a maze.
@@ -42,6 +42,7 @@ A wand of vibration might bring the whole cave crashing about your ears.
 A winner never quits.  A quitter never wins.
 A wish?  Okay, make me a fortune cookie!
 A wizard knows wands.
+Adventurers who loot glass boxes shouldn't throw stones.
 Afraid of mimics?  Try to wear a ring of true seeing.
 All gems look like worthless glass at a distance. Even dilithium.
 All monsters are created evil, but some are more evil than others.
@@ -63,6 +64,7 @@ Beyond the 23rd level lies a happy retirement in a room of your own.
 Break a mirror. Shards bring good luck.
 Caution: potions of invisibility may cause premature beard growth.
 Changing your suit without dropping your sword?  You must be kidding!
+Charon's ferry is very overpriced.
 Chests may contain hidden compartments which only the correct key will open.
 Close the door!  You're letting the heat out!
 Cockatrice is a rare delicacy, if you know how to remove the stoning glands.
@@ -109,6 +111,7 @@ Ever seen your weapon glow plaid?
 Ever tamed a shopkeeper?
 Ever tried digging through a Vault Guard?
 Ever tried enchanting a rope?
+Every little byte counts.
 Floating eyes can't stand Hawaiian shirts.
 For any remedy there is a misery.
 Giant bats turn into giant vampires.
@@ -122,7 +125,9 @@ Housecats have nine lives, kittens only one.
 How long can you tread water?
 Hungry?  There is an abundance of food on the next level.
 I guess you've never hit a mail daemon with the Amulet of Yendor...
+I once saw a hacker with a +9 elven runesword!
 If it looks like fruit juice and tastes like fruit juice... it is fruit juice.
+If the prize isn't behind the first Sokoban door, there's a 2/3 chance that it's behind the second one.
 If you are the shopkeeper, you can take things for free.
 If you ask really nicely, the Wizard will give you the Amulet.
 If you can control a sandestin, you can cast unlimited spells.
@@ -149,19 +154,23 @@ Learn how to spell.  Play NetHack!
 Leprechauns hide their gold in a secret room.
 Let your fingers do the walking on the yulkjhnb keys.
 Let's face it:  this time you're not going to win.
+Levitation potions aren't as heavy as other potions.
 Liquor sellers do not drink; they hate to see you twice.
 Living light brings bad luck!
 Lunar eclipse tonight.  May as well quit now!
 Make sure to destroy any altars to the other gods you find.
 Meeting your own ghost decreases your luck considerably!
-Mithril is the spandex of the RPG universe.
 Military ants come in ranks, just like the Yendorian military does.
+Mithril is the spandex of the RPG universe.
 Money to invest?  Take it to the local branch of the Magic Memory Vault!
+Monks take a vow of poverty: those with many worldly possessions are cursed by the gods.
 Monsters sleep because you are boring, not because they ever get tired.
 Most monsters prefer minced meat.  That's why they are hitting you!
 Most of the bugs in NetHack are on the floor.
 Much ado about "Nothing happens".
 Multi-player NetHack is a myth.
+Narrow weapons like short swords aren't as good as broad weapons like broadswords.
+Need a wand of polymorph?  Try dipping another wand into a potion of polymorph.
 Never ask a shopkeeper for a price list.
 Never burn a tree, unless you like getting whacked with a +5 shovel.
 Never eat with glowing hands!
@@ -187,10 +196,13 @@ Only adventurers of evil alignment think of killing their dog.
 Only chaotic evils kill sleeping monsters.
 Only real trappers escape traps.
 Only real wizards can write scrolls.
+Only you can prevent fireballs.
+Owlbears just want a hug.  Is that so bad?
 Pets can go feral if you don't throw them food frequently.
 Please ignore previous rumor.
 Polymorph into an ettin; meet your opponents face to face to face.
 Polymorphing a fortune cookie will change its fortune.
+Polymorphing the Wizard of Yendor could turn him into the Lizard of Yendor.
 Praying will frighten demons.
 Row row row your boat gently down the stream, Charon Charon Charon Charon, death is but a dream.
 Running is good for your legs.
@@ -219,6 +231,8 @@ The use of dynamite is dangerous.
 There are no worms in the UNIX version.
 There is a powerful artifact hidden somewhere on this level.
 There is a trap on this level!
+There's no replacement for displacement!
+They say Charon's boat fee depends on charisma, experience doesn't matter.
 They say that Demogorgon, Asmodeus, Orcus, Yeenoghu & Juiblex is no law firm.
 They say that Geryon has an evil twin, beware!
 They say that Medusa would make a terrible pet.
@@ -378,6 +392,7 @@ They say that the Wizard of Yendor has a death wish.
 They say that the `hair of the dog' is sometimes an effective remedy.
 They say that the best time to save your game is now before it's too late.
 They say that the biggest obstacle in NetHack is your mind.
+They say that the bill bec-de-bardiche glaive-guisarme isn't really that great.
 They say that the gods are angry when they hit you with objects.
 They say that the priesthood are specially favored by the gods.
 They say that the way to make a unicorn happy is to give it what it wants.
@@ -460,10 +475,12 @@ Who's "they", and why do they say so much?
 :Why are you wasting time reading fortunes?
 Wish for a master key and open the Magic Memory Vault!
 :You are destined to be misled by a fortune.
+You can always tell a potion of levitation: it'll be the one floating in the air.
 You can get a genuine Amulet of Yendor by doing the following:  --More--
 You can make holy water by boiling the hell out of it.
 You can protect yourself from black dragons by doing the following:  --More--
 You can't get by the snake.
+You can't make an Amulet without breaking some eggs.
 You feel like someone is pulling your leg.
 You have to outwit the Sphynx or pay her.
 You may get rich selling letters, but beware of being blackmailed!

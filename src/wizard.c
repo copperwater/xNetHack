@@ -861,6 +861,7 @@ const char* impish_taunts[] = {
     "Thy broken corpse shall taste delicious lightly seasoned with nutmeg!",
     "Thy mother was a hamster and thy father smelt of elderberries!",
     "Talk to the claw!",
+    "Nyaaah!",
     /* hallucination-only */
 #define NUM_HALLU_IMP_TAUNTS 2
     "Come at me, bro!",

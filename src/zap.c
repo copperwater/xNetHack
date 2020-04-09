@@ -67,7 +67,7 @@ const char *const flash_types[] =       /* also used in buzzmu(mcastu.c) */
         "blast of poison gas", "blast of acid", "", ""
     };
 
-extern const char* const hallublasts[49]; /* hallucinatory blasts [mthrowu.c] */
+extern const char* const hallublasts[64]; /* hallucinatory blasts [mthrowu.c] */
 
 /*
  * Recognizing unseen wands by zapping:  in 3.4.3 and earlier, zapping

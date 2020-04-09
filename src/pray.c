@@ -2332,6 +2332,7 @@ static const char *hallu_gods[] = {
     "Aslan",                            /* Narnia */
     "Armok",                            /* Dwarf Fortress */
     "the God-Emperor",                  /* Warhammer 40K */
+    "the Invisible Pink Unicorn",       /* atheism */
 };
 
 /* hallucination handling for priest/minion names: select a random god

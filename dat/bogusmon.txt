@@ -33,6 +33,7 @@ Wizard of Splendor
 =Death with a Wand of Gnomes
 -Maud
 Demogorgonzola
++Plaid the Impaler
 Grid Bug Mk 2
 _Semigorgon
 ambulatory fortune cookie
@@ -71,9 +72,11 @@ voluptuous ampersand
 Gnome With The Wand Of Death
 Dev Team member
 Random Number God
+Evil Patch Idea
 astral call bug
 uncursed +10 bobble hat
 improved tin opener
+pit fiend egg
 speedrunner
 
 # self-deprecation
@@ -171,7 +174,11 @@ yellow wight
 ## Section 2 - other roguelike references
 
 # dNetHack
+incantifier
 orc of the ages of stars
+
+# UnNetHack
+-One-Eyed Sam
 
 # Slash'EM Extended
 dissolved undead potato
@@ -198,11 +205,8 @@ Greater Hell Beast
 # Rogue V5 http://rogue.rogueforge.net/vade-mecum/
 aquator
 emu
-griffin
 ice monster
 kestrel
-phantom
-quagga
 rattlesnake
 venus flytrap
 xeroc
@@ -251,6 +255,7 @@ sphinx
 # other folklore
 +Santa Claus
 -Baba Yaga
+Easter Bunny
 Lady of the Lake
 basilisk
 changeling
@@ -260,6 +265,7 @@ manticore
 roc
 sea serpent
 will-o'-the-wisp
+cephalophore
 
 # Monty Python
 Rabbit of Caerbannog
@@ -336,15 +342,19 @@ Borg
 +Darth Vader
 +Obi-Wan Kenobi
 +Jabba the Hutt
++Han Solo
++Grand Moff Tarkin
 Ewok
 Force
 Jedi
 Twi'lek
+animated lightsaber
 astromech droid
 bothan
 droid
 sarlacc
 Sith Lord
+tauntaun
 
 # Tonari no Totoro
 Totoro
@@ -374,8 +384,9 @@ boomer
 
 # Dr. Who ("Exterminate!")
 Dalek
+weeping angel
 
-# HGttG
+# HHGttG
 +Agrajag
 =Deep Thought
 Babel fish
@@ -384,6 +395,7 @@ Vogon
 hooloovoo
 microscopic space fleet
 small furry creature from Alpha Centauri
+hoopy frood
 
 # TMNT
 teenage mutant ninja turtle
@@ -440,6 +452,8 @@ hotel detective
 # Girl Genius
 smakken
 mimmoth
+Jagermonster
+hoomhoffer
 
 # KoL
 one-winged dewinged stab-bat
@@ -490,7 +504,7 @@ snow golem
 zergling
 
 # Roald Dahl
-Grand High Witch
+Grand High Witch Of All The World
 oompa-loompa
 vermicious knid
 
@@ -544,11 +558,17 @@ badger mole
 fire ferret
 platypus bear
 sky bison
+Fire Lord
+Melon Lord
 
 # Harry Potter
 +He Who Must Not Be Named
 +Voldemort
++CAPSLOCK HARRY
 crumple-horned snorkack
+dementor
+Devil's Snare
+house-elf
 niffler
 whomping willow
 
@@ -566,6 +586,7 @@ wallmaster
 # A Song Of Ice And Fire
 Other
 khalasar
+craven
 
 # Spongebob Squarepants
 Alaskan bull worm
@@ -609,9 +630,38 @@ smash ball
 # Austin Powers
 shark with frickin' laser beams
 
+# The Phantom of the Opera
+Phantom of the Opera
+
+# The Stormlight Archive
+greatshell
+chasmfiend
+axehound
+cremling
+larkin
+spren
+Stormfather
+Shardbearer
+Voidbringer
+Knight Radiant
+
+# Mistborn
+Allomancer
+Steel Inquisitor
+Lord Ruler
+mistwraith
+
+# A Series of Unfortunate Events
+Incredibly Deadly Viper
+snow gnat
+
+# The Far Side
+Tyrannosaurus Mex
+
 ## Section 4 - miscellaneous non-reference things
 
 # Actual creatures
+axolotl
 beluga whale
 chicken
 coelacanth
@@ -649,10 +699,12 @@ catoblepas
 chupacabra
 dropbear
 flying pig
+griffin
 hippocampus
 hippogriff
 jackalope
 kelpie
+phantom
 phoenix
 wendigo
 wild haggis
@@ -918,6 +970,7 @@ shadow
 shallow one
 sharknado
 shrinking violet
+skelephant
 sleazoid
 slinky
 small megabat
