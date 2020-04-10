@@ -726,14 +726,14 @@ set_whereisfile()
 {
 	char *p = (char *) strstr(whereis_file, "%n");
 	if (p) {
-		int new_whereis_len = strlen(whereis_file)+strlen(plname)-2; /* %n */
+		int new_whereis_len = strlen(whereis_file) + strlen(g.plname) - 2; /* %n */
 		char *new_whereis_fn = (char *) alloc((unsigned)(new_whereis_len+1));
 		char *q = new_whereis_fn;
 		strncpy(q, whereis_file, p-whereis_file);
 		q += p-whereis_file;
-		strncpy(q, plname, strlen(plname) + 1);
+		strncpy(q, g.plname, strlen(g.plname) + 1);
 		regularize(q);
-		q[strlen(plname)] = '\0';
+		q[strlen(g.plname)] = '\0';
 		q += strlen(q);
 		p += 2;   /* skip "%n" */
 		strncpy(q, p, strlen(p));
@@ -743,7 +743,7 @@ set_whereisfile()
 	}
 }
 
-/** Write out information about current game to plname.whereis. */
+/** Write out information about current game to [g.plname].whereis. */
 void
 write_whereis(playing)
 boolean playing; /**< True if game is running.  */
@@ -753,20 +753,20 @@ boolean playing; /**< True if game is running.  */
 	if (strstr(whereis_file, "%n")) set_whereisfile();
 	Sprintf(whereis_work,
 	        "player=%s:depth=%d:dnum=%d:dname=%s:hp=%d:maxhp=%d:turns=%ld:score=%ld:role=%s:race=%s:gender=%s:align=%s:conduct=0x%lx:amulet=%d:ascended=%d:playing=%d\n",
-	        plname,
+	        g.plname,
 	        depth(&u.uz),
 	        u.uz.dnum,
-	        dungeons[u.uz.dnum].dname,
+	        g.dungeons[u.uz.dnum].dname,
 	        u.uhp,
 	        u.uhpmax,
-	        moves,
+	        g.moves,
 #ifdef SCORE_ON_BOTL
 	        botl_score(),
 #else
 	        0L,
 #endif
-	        urole.filecode,
-	        urace.filecode,
+	        g.urole.filecode,
+	        g.urace.filecode,
 	        genders[flags.female].filecode,
 	        aligns[1 - u.ualign.type].filecode,
 #ifdef RECORD_CONDUCT
@@ -775,7 +775,7 @@ boolean playing; /**< True if game is running.  */
 	        0L,
 #endif
 	        u.uhave.amulet ? 1 : 0,
-	        u.uevent.ascended ? 2 : killer.name ? 1 : 0,
+	        u.uevent.ascended ? 2 : g.killer.name ? 1 : 0,
 	        playing);
 
 	fp = fopen_datafile(whereis_file,"w",LEVELPREFIX);
@@ -795,7 +795,7 @@ boolean playing; /**< True if game is running.  */
 /** Signal handler to update whereis information. */
 void
 signal_whereis(sig_unused)
-int sig_unused;
+int sig_unused UNUSED;
 {
 	touch_whereis();
 }
@@ -4789,7 +4789,7 @@ char *buffer;
     FILE* livelogfile;
 
     if(!(ll_type & sysopt.livelog)) return;
-    if((ll_type == LL_CONDUCT) && (moves < sysopt.ll_conduct_turns)) return;
+    if((ll_type == LL_CONDUCT) && (g.moves < sysopt.ll_conduct_turns)) return;
     if(lock_file(LIVELOGFILE, SCOREPREFIX, 10)) {
         if(!(livelogfile = fopen_datafile(LIVELOGFILE, "a", SCOREPREFIX))) {
             pline("Cannot open live log file!");
@@ -4806,17 +4806,17 @@ char *buffer;
             snprintf(tmpbuf, 1024, "lltype=%d%cplayer=%s%crole=%s%crace=%s%cgender=%s%calign=%s%cturns=%ld%cstarttime=%ld%ccurtime=%ld%cmessage=%s\n",
                      (ll_type & sysopt.livelog),
                      LLOG_SEP,
-                     plname,
+                     g.plname,
                      LLOG_SEP,
-                     urole.filecode,
+                     g.urole.filecode,
                      LLOG_SEP,
-                     urace.filecode,
+                     g.urace.filecode,
                      LLOG_SEP,
                      genders[flags.female].filecode,
                      LLOG_SEP,
                      aligns[1-u.ualign.type].filecode,
                      LLOG_SEP,
-                     moves,
+                     g.moves,
                      LLOG_SEP,
                      (long)ubirthday,
                      LLOG_SEP,

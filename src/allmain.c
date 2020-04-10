@@ -208,8 +208,8 @@ boolean resuming;
                     if (Conflict)
                         u.uconduct.conflicting++;
 #ifdef EXTRAINFO_FN
-                    if ((prev_dgl_extrainfo == 0) || (prev_dgl_extrainfo < (moves + 250))) {
-                        prev_dgl_extrainfo = moves;
+                    if ((prev_dgl_extrainfo == 0) || (prev_dgl_extrainfo < (g.moves + 250))) {
+                        prev_dgl_extrainfo = g.moves;
                         mk_dgl_extrainfo();
                     }
 #endif

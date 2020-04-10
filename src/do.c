@@ -1443,7 +1443,8 @@ boolean at_stairs, falling, portal;
         }
         mklev();
         new = TRUE; /* made the level */
-        livelog_printf (LL_DEBUG, "entered new level %d, %s.", dunlev(&u.uz),dungeons[u.uz.dnum].dname );
+        livelog_printf(LL_DEBUG, "entered new level %d, %s.", dunlev(&u.uz),
+                       g.dungeons[u.uz.dnum].dname);
 
         familiar = (find_ghost_with_name(g.plname) != (struct monst *) 0);
     } else {
