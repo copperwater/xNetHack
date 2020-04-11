@@ -4887,7 +4887,8 @@ int osym, dmgtyp;
 
     switch (dmgtyp) {
     case AD_COLD:
-        if (osym == POTION_CLASS && obj->otyp != POT_OIL) {
+        if (osym == POTION_CLASS && obj->otyp != POT_ACID
+            && obj->otyp != POT_OIL) {
             quan = obj->quan;
             dindx = 0;
             dmg = rnd(4);
