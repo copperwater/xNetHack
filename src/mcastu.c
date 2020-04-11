@@ -517,6 +517,14 @@ int spellnum;
         dmg = d(8, 6);
         if (Half_physical_damage)
             dmg = (dmg + 1) / 2;
+        if (u.umonnum == PM_IRON_GOLEM) {
+            You("rust!");
+            Strcpy(g.killer.name, "rusted away");
+            g.killer.format = NO_KILLER_PREFIX;
+            rehumanize();
+            dmg = 0; /* prevent further damage after rehumanization */
+        }
+        erode_armor(&g.youmonst, ERODE_RUST);
         break;
     case CLC_FIRE_PILLAR:
         pline("A pillar of fire strikes all around you!");

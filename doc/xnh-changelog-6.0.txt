@@ -15,7 +15,7 @@ On top of any changes made by the NetHack devteam on 3.7, and any changes
 made in previous xNetHack versions, xNetHack 6.0 contains the following
 gameplay changes:
 
-
+The geyser spell will rust armor and instakill you if you are an iron golem.
 
 It contains the following non-gameplay interface changes:
 
