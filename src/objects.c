@@ -1038,6 +1038,8 @@ WAND("lightning",      "curved", 40, 175, 1, RAY, IRON, HI_METAL),
 WAND(None,             "forked",  0, 150, 1, 0, WOOD, HI_WOOD),
 WAND(None,             "spiked",  0, 150, 1, 0, IRON, HI_METAL),
 WAND(None,            "jeweled",  0, 150, 1, 0, IRON, HI_MINERAL),
+WAND(None,               "gold",  0, 150, 1, 0, GOLD, HI_GOLD),
+WAND(None,             "gilded",  0, 150, 1, 0, GOLD, HI_GOLD),
 #undef WAND
 
 /* coins ... - so far, gold is all there is */

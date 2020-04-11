@@ -19,6 +19,8 @@ The geyser spell will rust armor and instakill you if you are an iron golem.
 Vault guards grudge leprechauns.
 Vampires grudge werewolves and vice versa.
 Potions of acid no longer freeze when hit with cold damage.
+Add two new random wand appearances "gold" and "gilded". Both are made out of
+  gold and can therefore be stolen by leprechauns.
 
 It contains the following non-gameplay interface changes:
 
