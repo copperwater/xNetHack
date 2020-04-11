@@ -1870,6 +1870,11 @@ struct monst *magr, *mdef;
     if (ma == &mons[PM_HOBBIT] && md == &mons[PM_NAZGUL])
         return ALLOW_M|ALLOW_TM;
 
+    /* vampires vs werewolves */
+    if ((is_vampire(ma) || is_vampshifter(magr))
+        && (md == &mons[PM_WEREWOLF] || md == &mons[PM_HUMAN_WEREWOLF]))
+        return ALLOW_M|ALLOW_TM;
+
     return 0;
 }
 
@@ -1889,15 +1894,16 @@ struct monst *magr, /* monster that is currently deciding where to move */
     /* Don't allow pets to fight each other. */
     if (magr->mtame && mdef->mtame)
         return 0;
+
+    /* Grudge patch. */
+    /* Put one-way aggressions below here, and two-way aggressions in
+     * mm_2way_aggression. */
+
     /* supposedly purple worms are attracted to shrieking because they
        like to eat shriekers, so attack the latter when feasible */
     if ((ma == &mons[PM_PURPLE_WORM] || ma == &mons[PM_BABY_PURPLE_WORM])
         && md == &mons[PM_SHRIEKER])
         return ALLOW_M | ALLOW_TM;
-
-    /* Grudge patch. */
-    /* Put one-way aggressions below here, and two-way aggressions in
-     * mm_2way_aggression. */
 
     /* woodchucks vs. The Oracle (she has a passive retaliation) */
     if (ma == &mons[PM_WOODCHUCK] && md == &mons[PM_ORACLE])
@@ -1918,6 +1924,10 @@ struct monst *magr, /* monster that is currently deciding where to move */
 
     /* cats vs rats */
     if (ma->mlet == S_FELINE && is_rat(md))
+        return ALLOW_M|ALLOW_TM;
+
+    /* guards vs leprechauns */
+    if (ma == &mons[PM_GUARD] && md == &mons[PM_LEPRECHAUN])
         return ALLOW_M|ALLOW_TM;
 
     /* now test all two-way aggressions both ways */
