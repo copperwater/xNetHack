@@ -19,6 +19,12 @@ The geyser spell will rust armor and instakill you if you are an iron golem.
 Vault guards grudge leprechauns.
 Vampires grudge werewolves and vice versa.
 Potions of acid no longer freeze when hit with cold damage.
+All nymphs are now herbivorous (mainly meaning that pet nymphs will eat veggy
+  food and polymorphing into one does not make you inediate).
+Salamanders, all Kops, and all corpse-leaving i-class monsters (imps, tengu,
+  quasits, homunculi, and leprechauns) are now carnivorous. This mainly means
+  that they are capable of eating meat when tamed and prefer it over veggy
+  food, and polymorphing into one does not make you inediate.
 
 
 It contains the following non-gameplay interface changes:
