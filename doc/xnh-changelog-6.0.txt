@@ -28,6 +28,9 @@ Salamanders, all Kops, and all corpse-leaving i-class monsters (imps, tengu,
 Ghosts cannot be renamed.
 Reading a scroll of identify while confused will "identify yourself" and give
   enlightenment.
+Port L's Cursed Wand Backfire Patch: zapping a cursed directional wand will
+  cause it to backfire and zap you 10% of the time. This is independent of the
+  1% chance that a cursed wand will blow up upon use.
 
 
 It contains the following non-gameplay interface changes:

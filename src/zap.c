@@ -2271,7 +2271,15 @@ dozap()
         if (!Blind)
             pline("%s glows and fades.", The(xname(obj)));
         /* make him pay for knowing !NODIR */
-    } else if (need_dir && !u.dx && !u.dy && !u.dz) {
+    } else if (need_dir
+               && ((!u.dx && !u.dy && !u.dz) || (obj->cursed && !rn2(10)))) {
+        /* if this is entirely due to the wand being cursed, give a message
+         * unfortunately, backfire() is a separate function (which prints
+         * nothing about backfiring), but the use of the word is more correct
+         * here */
+        if (u.dx || u.dy || u.dz) {
+            pline("%s backfires!", The(xname(obj)));
+        }
         if ((damage = zapyourself(obj, TRUE)) != 0) {
             char buf[BUFSZ];
 
