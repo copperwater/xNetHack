@@ -20,8 +20,11 @@ Vault guards grudge leprechauns.
 Vampires grudge werewolves and vice versa.
 Potions of acid no longer freeze when hit with cold damage.
 
+
 It contains the following non-gameplay interface changes:
 
+Light armor, studded armor, jackets, plain cloaks, and identified plain gloves
+  will display their default leather material when made out of leather.
 
 
 It contains the following non-gameplay architectural changes:
