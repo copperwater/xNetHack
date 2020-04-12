@@ -26,6 +26,8 @@ Salamanders, all Kops, and all corpse-leaving i-class monsters (imps, tengu,
   that they are capable of eating meat when tamed and prefer it over veggy
   food, and polymorphing into one does not make you inediate.
 Ghosts cannot be renamed.
+Reading a scroll of identify while confused will "identify yourself" and give
+  enlightenment.
 
 
 It contains the following non-gameplay interface changes:

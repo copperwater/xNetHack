@@ -1489,7 +1489,9 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         if (!already_known)
             (void) learnscrolltyp(SCR_IDENTIFY); /* always identifies self */
         if (confused) {
-            You("identify this as an identify scroll.");
+            You("identify yourself...");
+            display_nhwindow(WIN_MESSAGE, FALSE);
+            enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
             break;
         }
         else if (!already_known || !g.invent) {
