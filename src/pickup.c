@@ -46,7 +46,6 @@ static boolean FDECL(able_to_loot, (int, int, BOOLEAN_P, BOOLEAN_P));
 static boolean NDECL(reverse_loot);
 static boolean FDECL(mon_beside, (int, int));
 static int FDECL(do_loot_cont, (struct obj **, int, int));
-static void FDECL(tipcontainer, (struct obj *));
 
 /* define for query_objlist() and autopickup() */
 #define FOLLOW(curr, flags) \
@@ -3381,14 +3380,14 @@ dotip()
     return 0;
 }
 
-static void
+void
 tipcontainer(box)
 struct obj *box; /* or bag */
 {
     xchar ox = u.ux, oy = u.uy; /* #tip only works at hero's location */
     boolean empty_it = FALSE, maybeshopgoods;
 
-    /* box is either held or on floor at hero's spot; no need to check for
+    /* box is either held or on floor; no need to check for
        nesting; when held, we need to update its location to match hero's;
        for floor, the coordinate updating is redundant */
     if (get_obj_location(box, &ox, &oy, 0))
@@ -3468,21 +3467,29 @@ struct obj *box; /* or bag */
         box->cknown = 1;
     } else if (!Has_contents(box)) {
         box->cknown = 1;
-        pline("It's empty.");
+        if (box->otyp != STATUE) { /* not as obvious of a container */
+            pline("It's empty.");
+        }
     } else {
         empty_it = TRUE;
     }
 
     if (empty_it) {
         struct obj *otmp, *nobj;
-        boolean terse, highdrop = !can_reach_floor(TRUE),
-                altarizing = IS_ALTAR(levl[ox][oy].typ),
+        boolean held = carried(box),
+                terse,
+                distant = (ox != u.ux || oy != u.uy),
+                highdrop = (held && !can_reach_floor(TRUE)),
+                altarizing = IS_ALTAR(levl[ox][oy].typ) && !distant,
                 cursed_mbag = (Is_mbag(box) && box->cursed);
-        int held = carried(box);
         long loss = 0L;
 
-        if (u.uswallow)
+        if (held && u.uswallow)
             highdrop = altarizing = FALSE;
+        if (distant && highdrop) {
+            impossible("tipcontainer: distant levitating container?");
+            return;
+        }
         terse = !(highdrop || altarizing || costly_spot(box->ox, box->oy));
         box->cknown = 1;
         /* Terse formatting is
@@ -3490,9 +3497,15 @@ struct obj *box; /* or bag */
          * If any other messages intervene between objects, we revert to
          * "ObjK drops to the floor.", "ObjL drops to the floor.", &c.
          */
-        pline("%s out%c",
-              box->cobj->nobj ? "Objects spill" : "An object spills",
-              terse ? ':' : '.');
+        if (!distant || cansee(ox, oy)) {
+            boolean yourstatue = (held && box->otyp == STATUE);
+            pline("%s out%s%s%c",
+                  box->cobj->nobj ? "Objects spill" : "An object spills",
+                  distant || yourstatue ? " of " : "",
+                  distant ? thesimpleoname(box)
+                          : yourstatue ? ysimple_name(box) : "",
+                  terse && !distant ? ':' : '.');
+        }
         for (otmp = box->cobj; otmp; otmp = nobj) {
             nobj = otmp->nobj;
             obj_extract_self(otmp);
@@ -3515,6 +3528,10 @@ struct obj *box; /* or bag */
             if (highdrop) {
                 /* might break or fall down stairs; handles altars itself */
                 hitfloor(otmp, TRUE);
+            } else if (distant) {
+                /* "object(s) spill out of the container" is enough message */
+                place_object(otmp, ox, oy);
+                newsym(ox, oy);
             } else {
                 if (altarizing) {
                     doaltarobj(otmp);

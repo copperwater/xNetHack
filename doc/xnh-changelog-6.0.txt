@@ -33,6 +33,7 @@ Port L's Cursed Wand Backfire Patch: zapping a cursed directional wand will
   1% chance that a cursed wand will blow up upon use.
 Martial arts users, sasquatches, and players wearing kicking boots can no
   longer miss a monster completely with a clumsy kick.
+Statues hit by a wand of opening will drop their contents without breaking.
 
 
 It contains the following non-gameplay interface changes:
@@ -43,3 +44,5 @@ Light armor, studded armor, jackets, plain cloaks, and identified plain gloves
 
 It contains the following non-gameplay architectural changes:
 
+tipcontainer() is generalized to work for spilling objects out of a container
+  on some space other than the player' other than the player's.

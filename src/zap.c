@@ -2071,6 +2071,10 @@ struct obj *obj, *otmp;
             }
             break;
         case WAN_OPENING:
+            if (obj->otyp == STATUE && obj->cobj) {
+                tipcontainer(obj); /* spill any contents */
+            }
+            /* FALLTHRU */
         case SPE_KNOCK:
         case WAN_LOCKING:
         case SPE_WIZARD_LOCK:
@@ -2315,11 +2319,15 @@ struct obj *obj;
     boolean boxing = FALSE;
 
     /* (un)lock carried boxes */
-    for (otmp = g.invent; otmp; otmp = otmp->nobj)
+    for (otmp = g.invent; otmp; otmp = otmp->nobj) {
         if (Is_box(otmp)) {
             (void) boxlock(otmp, obj);
             boxing = TRUE;
         }
+        if (otmp->otyp == STATUE && obj->otyp == WAN_OPENING) {
+            tipcontainer(otmp);
+        }
+    }
     if (boxing)
         update_inventory(); /* in case any box->lknown has changed */
 }
