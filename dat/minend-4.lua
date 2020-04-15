@@ -115,7 +115,11 @@ des.object("=")
 des.object("=")
 des.object("blank paper")
 des.object("blank paper")
--- these should be rotted, but the special level parser doesn't let you specify erosion
+for i=1,2 do
+   des.object({ id="figurine", montype="j" })
+end
+-- these should be rotted, but the special level parser doesn't let you specify
+-- erosion
 des.object("high boots")
 -- this may be helpful in crossing water
 des.object({ class="/", id = "cold" })
