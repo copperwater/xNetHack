@@ -34,6 +34,7 @@ Port L's Cursed Wand Backfire Patch: zapping a cursed directional wand will
 Martial arts users, sasquatches, and players wearing kicking boots can no
   longer miss a monster completely with a clumsy kick.
 Statues hit by a wand of opening will drop their contents without breaking.
+Watch captains generate with a key.
 
 
 It contains the following non-gameplay interface changes:

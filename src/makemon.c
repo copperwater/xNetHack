@@ -174,8 +174,10 @@ register struct monst *mtmp;
             case PM_LIEUTENANT:
                 w1 = rn2(2) ? BROADSWORD : LONG_SWORD;
                 break;
-            case PM_CAPTAIN:
             case PM_WATCH_CAPTAIN:
+                w2 = SKELETON_KEY;
+                /* FALLTHRU */
+            case PM_CAPTAIN:
                 w1 = rn2(2) ? LONG_SWORD : SABER;
                 break;
             default:
