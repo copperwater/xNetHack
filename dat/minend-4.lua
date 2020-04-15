@@ -34,13 +34,13 @@ des.feature("fountain", 24,7)
 -- luckstone and touchstone used to be random but that's a bit too cruel
 local stone = { {2,4},{2,18},{21,9},{45,16},{64,14},{62,20},{74,18},{71,1},{59,8} }
 shuffle(stone)
-des.object({ id="luckstone", coord=stone[0], buc="not-cursed", achievement=1 })
-des.object("touchstone", stone[1])
+des.object({ id="luckstone", coord=stone[1], buc="not-cursed", achievement=1 })
+des.object("touchstone", stone[2])
 
 -- The predator of the depths
 local eelplace = { {19,7},{56,5},{59,18} }
 shuffle(eelplace)
-des.monster("giant eel", eelplace[0])
+des.monster("giant eel", eelplace[1])
 
 -- Random monsters
 des.monster("sewer rat")
@@ -104,8 +104,8 @@ else
 end
 
 -- Objects
--- Why so many rings? Well, a lot of rings get dropped down sinks, and they end
--- up in the sewer...
+-- Why so many rings? Well, a lot of rings fall down sinks, and they end up in
+-- the sewer...
 des.object("=")
 des.object("=")
 des.object("=")

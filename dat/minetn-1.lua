@@ -95,14 +95,14 @@ end
 -- so there should only be three dead shks here
 local shk_demise = { {09,05},{13,04},{26,04},{31,05},{30,14},{05,14},{10,13},{26,14},{27,13} }
 shuffle(shk_demise)
-des.monster({ id = "shopkeeper", coord = shk_demise[0], dead = 1 })
 des.monster({ id = "shopkeeper", coord = shk_demise[1], dead = 1 })
 des.monster({ id = "shopkeeper", coord = shk_demise[2], dead = 1 })
+des.monster({ id = "shopkeeper", coord = shk_demise[3], dead = 1 })
 -- Orcish Town is hard enough without the orcs picking up and using the
 -- shopkeepers' wands and potions.
-des.object({ id = "boulder", coord = shk_demise[0] })
 des.object({ id = "boulder", coord = shk_demise[1] })
 des.object({ id = "boulder", coord = shk_demise[2] })
+des.object({ id = "boulder", coord = shk_demise[3] })
 
 -- shop inventories... 9 items from a tool shop, 4 from a delicatessen, 6 from Izchak
 -- Ideally we could just call some routine to fill the shop objects with the
