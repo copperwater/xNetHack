@@ -1067,28 +1067,10 @@ makelevel()
         if (croom->rtype != OROOM)
             continue;
 
-        /* put a monster inside */
-        /* Note: monster may be on the stairs. This cannot be
-           avoided: maybe the player fell through a trap door
-           while a monster was on the stairs. Conclusion:
-           we have to check for monsters on the stairs anyway. */
-
-        if (u.uhave.amulet || !rn2(2)) {
-            mkmonst_in_room(croom);
-        }
-        /* put traps and mimics inside */
-        x = 8 - (level_difficulty() / 6);
-        if (x < 2)
-            /* maxes out at level_difficulty() == 36 */
-            x = 2;
-        while (!rn2(x) && (++trycnt < 1000))
-            mktrap(0, 0, croom, (coord *) 0);
-
-        /* maybe put some gold inside */
-        if (!rn2(3))
-            (void) mkgold(0L, somex(croom), somey(croom));
-
-        /* maybe place some dungeon features inside */
+        /* maybe place some dungeon features inside
+         * This should go first because it's capable of creating non-ACCESSIBLE
+         * terrain types; we don't want to embed any monsters, objects, or traps
+         * in a tree. */
         if (!rn2(10))
             mkfeature(FOUNTAIN, croom);
         if (!rn2(60))
@@ -1102,6 +1084,29 @@ makelevel()
             x = 2;
         if (!rn2(x))
             mkfeature(GRAVE, croom);
+
+        /* put traps and mimics inside */
+        x = 8 - (level_difficulty() / 6);
+        if (x < 2)
+            /* maxes out at level_difficulty() == 36 */
+            x = 2;
+        while (!rn2(x) && (++trycnt < 1000))
+            mktrap(0, 0, croom, (coord *) 0);
+
+        /* maybe put a monster inside */
+        if (u.uhave.amulet || !rn2(2)) {
+            mkmonst_in_room(croom);
+        }
+
+        /* maybe put some gold inside */
+        if (!rn2(3)) {
+            x = somex(croom);
+            y = somey(croom);
+            /* not occupied(); various walkable types of furniture are fine */
+            if (ACCESSIBLE(levl[x][y].typ)) {
+                (void) mkgold(0L, x, y);
+            }
+        }
 
         /* put statues inside */
         if (!rn2(20)) {
@@ -1577,8 +1582,8 @@ struct mkroom *aroom;
     dosdoor(x, y, aroom, doortyp);
 }
 
-/* Return TRUE if the given location contains a trap, dungeon furniture, liquid
- * terrain, or the vibrating square.
+/* Return TRUE if the given location contains a trap, dungeon furniture,
+ * inaccessible terrain, or the vibrating square.
  * Generally used for determining if a space is unsuitable for placing
  * something.
  */
@@ -1587,7 +1592,7 @@ occupied(x, y)
 register xchar x, y;
 {
     return (boolean) (t_at(x, y) || IS_FURNITURE(levl[x][y].typ)
-                      || is_lava(x, y) || is_pool(x, y)
+                      || !ACCESSIBLE(levl[x][y].typ) /* covers lava and water */
                       || invocation_pos(x, y));
 }
 
@@ -1898,7 +1903,8 @@ struct mkroom* croom;
     do {
         x = somex(croom);
         y = somey(croom);
-    } while (levl[x][y].typ == STAIRS || levl[x][y].typ == LADDER);
+    } while (!ACCESSIBLE(levl[x][y].typ)
+             || levl[x][y].typ == STAIRS || levl[x][y].typ == LADDER);
     tmonst = makemon((struct permonst *) 0, x, y, NO_MM_FLAGS);
     if (tmonst && tmonst->data == &mons[PM_GIANT_SPIDER]
         && !occupied(x, y)) {
