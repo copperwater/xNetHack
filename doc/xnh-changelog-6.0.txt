@@ -36,6 +36,9 @@ Martial arts users, sasquatches, and players wearing kicking boots can no
 Statues hit by a wand of opening will drop their contents without breaking.
 Watch captains generate with a key.
 The Gnomish Sewer now contains a couple figurines of jellies.
+The Gnomish Sewer's land spaces are now exclusively room spaces ("."); all
+  corridor spaces ("#") have been replaced with them. The land/water/stone
+  layout of the map is not changed.
 
 
 It contains the following non-gameplay interface changes:
