@@ -206,6 +206,7 @@ const struct {
                 { 'F', IRONBARS }, /* Fe = iron */
                 { 'x', MAX_TYPE }, /* "see-through" */
                 { 'B', CROSSWALL }, /* hack: boundary location */
+                { 'w', MATCH_WALL }, /* IS_STWALL() */
                 { '\0', STONE },
 };
 
@@ -927,6 +928,9 @@ lua_State *L;
 
     if (!strcmp(tkey, "inventory")) {
         nhl_push_obj(L, g.invent);
+        return 1;
+    } else if (!strcmp(tkey, "role")) {
+        lua_pushstring(L, g.urole.name.m);
         return 1;
     }
 

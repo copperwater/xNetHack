@@ -1,4 +1,4 @@
-/* NetHack 3.6	do.c	$NHDT-Date: 1582155879 2020/02/19 23:44:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.228 $ */
+/* NetHack 3.6	do.c	$NHDT-Date: 1586815086 2020/04/13 21:58:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.237 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -144,6 +144,8 @@ const char *verb;
 
     /* make sure things like water_damage() have no pointers to follow */
     obj->nobj = obj->nexthere = (struct obj *) 0;
+    /* erode_obj() needs this (called from water_damage() or lava_damage()) */
+    g.bhitpos.x = x, g.bhitpos.y = y;
 
     if (obj->otyp == BOULDER && boulder_hits_pool(obj, x, y, FALSE)) {
         return TRUE;
@@ -193,7 +195,7 @@ const char *verb;
                 if (!Passes_walls && !throws_rocks(g.youmonst.data)) {
                     losehp(Maybe_Half_Phys(rnd(15)),
                            "squished under a boulder", NO_KILLER_PREFIX);
-                    return FALSE; /* player remains trapped */
+                    goto deletedwithboulder;
                 } else
                     reset_utrap(TRUE);
             }
@@ -217,6 +219,7 @@ const char *verb;
          * Note:  trap might have gone away via ((hmon -> killed -> xkilled)
          *  || mondied) -> mondead -> m_detach -> fill_pit.
          */
+deletedwithboulder:
         if ((t = t_at(x, y)) != 0)
             deltrap(t);
         useupf(obj, 1L);
@@ -1972,9 +1975,22 @@ long timeout UNUSED;
     }
 }
 
+/* '.' command: do nothing == rest; also the
+   ' ' command iff 'rest_on_space' option is On */
 int
 donull()
 {
+    if (!iflags.menu_requested && !g.multi && monster_nearby()) {
+        char buf[QBUFSZ];
+
+        buf[0] = '\0';
+        if (iflags.cmdassist || !g.did_nothing_flag++)
+            Sprintf(buf, "  Use '%s' prefix to force a no-op (to rest).",
+                    visctrl(g.Cmd.spkeys[NHKF_REQMENU])); /* default is "m" */
+        Norep("Are you waiting to get hit?%s", buf);
+        return 0;
+    }
+    g.did_nothing_flag = 0; /* reset */
     return 1; /* Do nothing, but let other things happen */
 }
 

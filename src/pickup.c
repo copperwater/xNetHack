@@ -32,11 +32,12 @@ static int FDECL(lift_object, (struct obj *, struct obj *, long *,
                                    BOOLEAN_P));
 static boolean FDECL(mbag_explodes, (struct obj *, int));
 static boolean NDECL(is_boh_item_gone);
-static long FDECL(boh_loss, (struct obj *container, int));
+static void FDECL(do_boh_explosion, (struct obj *, BOOLEAN_P));
+static long FDECL(boh_loss, (struct obj *, int));
 static int FDECL(in_container, (struct obj *));
 static int FDECL(out_container, (struct obj *));
 static void FDECL(removed_from_icebox, (struct obj *));
-static long FDECL(mbag_item_gone, (int, struct obj *));
+static long FDECL(mbag_item_gone, (int, struct obj *, BOOLEAN_P));
 static void FDECL(explain_container_prompt, (BOOLEAN_P));
 static int FDECL(traditional_loot, (BOOLEAN_P));
 static int FDECL(menu_loot, (int, BOOLEAN_P));
@@ -287,6 +288,18 @@ boolean remotely;
     return TRUE;
 }
 
+void
+deferred_decor(setup)
+boolean setup; /* True: deferring, False: catching up */
+{
+    if (setup) {
+        iflags.defer_decor = TRUE;
+    } else {
+        describe_decor();
+        iflags.defer_decor = FALSE;
+    }
+}
+
 /* handle 'mention_decor' (when walking onto a dungeon feature such as
    stairs or altar, describe it even if it isn't covered up by an object) */
 static void
@@ -294,20 +307,38 @@ describe_decor()
 {
     char outbuf[BUFSZ], fbuf[QBUFSZ];
     boolean doorhere, waterhere, do_norep;
-    const char *dfeature = dfeature_at(u.ux, u.uy, fbuf);
-    int ltyp = levl[u.ux][u.uy].typ;
+    const char *dfeature;
+    int ltyp;
 
+    if (Fumbling && !iflags.defer_decor) {
+        /*
+         * In case Fumbling is due to walking on ice.
+         * Work around a message sequencing issue:  avoid
+         *  |You are back on floor.
+         *  |You trip over <object>.
+         * when the trip is being caused by moving on ice as hero
+         * steps off ice onto non-ice.
+         */
+        deferred_decor(TRUE);
+        return;
+    }
+
+    ltyp = levl[u.ux][u.uy].typ;
     if (ltyp == DRAWBRIDGE_UP) /* surface for spot in front of closed db */
         ltyp = db_under_typ(levl[u.ux][u.uy].drawbridgemask);
+    dfeature = dfeature_at(u.ux, u.uy, fbuf);
 
     /* we don't mention "ordinary" doors but do mention broken ones */
     doorhere = dfeature && (!strcmp(dfeature, "open door")
                             || !strcmp(dfeature, "doorway"));
     waterhere = dfeature && !strcmp(dfeature, "pool of water");
-    if (doorhere || (waterhere && Underwater))
+    if (doorhere || Underwater
+        || (ltyp == ICE && IS_POOL(iflags.prev_decor))) /* pooleffects() */
         dfeature = 0;
 
-    if (dfeature) {
+    if (ltyp == iflags.prev_decor && !IS_FURNITURE(ltyp)) {
+        ;
+    } else if (dfeature) {
         if (waterhere)
             dfeature = strcpy(fbuf, waterbody_name(u.ux, u.uy));
         if (strcmp(dfeature, "swamp"))
@@ -328,15 +359,13 @@ describe_decor()
             pline("%s", outbuf);
         else
             Norep("%s", outbuf);
-    } else {
-        if ((IS_POOL(iflags.prev_decor)
-             || iflags.prev_decor == LAVAPOOL
-             || iflags.prev_decor == ICE)) {
+    } else if (!Underwater) {
+        if (IS_POOL(iflags.prev_decor)
+            || iflags.prev_decor == LAVAPOOL
+            || iflags.prev_decor == ICE) {
             const char *ground = surface(u.ux, u.uy);
 
-            if (iflags.last_msg != PLNMSG_BACK_ON_GROUND
-                || (strcmpi(ground, "floor") && strcmpi(ground, "ground")
-                    && strcmpi(ground, "ice")))
+            if (iflags.last_msg != PLNMSG_BACK_ON_GROUND)
                 pline("%s %s %s.",
                       flags.verbose ? "You are back" : "Back",
                       (Levitation || Flying) ? "over" : "on",
@@ -354,6 +383,9 @@ boolean picked_some;
     register struct obj *obj;
     register int ct = 0;
 
+    if (flags.mention_decor)
+        describe_decor();
+
     /* count the objects here */
     for (obj = g.level.objects[u.ux][u.uy]; obj; obj = obj->nexthere) {
         if (obj != uchain)
@@ -369,8 +401,6 @@ boolean picked_some;
 
         iflags.prev_decor = STONE;
     } else {
-        if (flags.mention_decor)
-            describe_decor();
         read_engr_at(u.ux, u.uy);
     }
 }
@@ -2190,6 +2220,28 @@ is_boh_item_gone()
     return (boolean) (!rn2(13));
 }
 
+/* Scatter most of Bag of holding contents around.
+   Some items will be destroyed with the same chance as looting a cursed bag.
+ */
+static void
+do_boh_explosion(boh, on_floor)
+struct obj *boh;
+boolean on_floor;
+{
+    struct obj *otmp, *nobj;
+
+    for (otmp = boh->cobj; otmp; otmp = nobj) {
+        nobj = otmp->nobj;
+        if (is_boh_item_gone()) {
+            obj_extract_self(otmp);
+            mbag_item_gone(!on_floor, otmp, TRUE);
+        } else {
+            otmp->ox = u.ux, otmp->oy = u.uy;
+            (void) scatter(u.ux, u.uy, 4, MAY_HIT | MAY_DESTROY, otmp);
+        }
+    }
+}
+
 static long
 boh_loss(container, held)
 struct obj *container;
@@ -2204,7 +2256,7 @@ int held;
             otmp = curr->nobj;
             if (is_boh_item_gone()) {
                 obj_extract_self(curr);
-                loss += mbag_item_gone(held, curr);
+                loss += mbag_item_gone(held, curr, FALSE);
             }
         }
         return loss;
@@ -2322,6 +2374,8 @@ register struct obj *obj;
         /* did not actually insert obj yet */
         if (was_unpaid)
             addtobill(obj, FALSE, FALSE, TRUE);
+        if (obj->otyp == BAG_OF_HOLDING) /* putting bag of holding into another */
+            do_boh_explosion(obj, (obj->where == OBJ_FLOOR));
         obfree(obj, (struct obj *) 0);
         livelog_printf(LL_ACHIEVE, "just blew up %s bag of holding", uhis());
         /* if carried, shop goods will be flagged 'unpaid' and obfree() will
@@ -2337,7 +2391,8 @@ register struct obj *obj;
                so that useupf() doesn't double bill */
             g.current_container->no_charge = save_no_charge.no_charge;
         }
-        delete_contents(g.current_container);
+        do_boh_explosion(g.current_container, floor_container);
+
         if (!floor_container)
             useup(g.current_container);
         else if (obj_here(g.current_container, u.ux, u.uy))
@@ -2453,17 +2508,20 @@ struct obj *obj;
 
 /* an object inside a cursed bag of holding is being destroyed */
 static long
-mbag_item_gone(held, item)
+mbag_item_gone(held, item, silent)
 int held;
 struct obj *item;
+boolean silent;
 {
     struct monst *shkp;
     long loss = 0L;
 
-    if (item->dknown)
-        pline("%s %s vanished!", Doname2(item), otense(item, "have"));
-    else
-        You("%s %s disappear!", Blind ? "notice" : "see", doname(item));
+    if (!silent) {
+        if (item->dknown)
+            pline("%s %s vanished!", Doname2(item), otense(item, "have"));
+        else
+            You("%s %s disappear!", Blind ? "notice" : "see", doname(item));
+    }
 
     if (*u.ushops && (shkp = shop_keeper(*u.ushops)) != 0) {
         if (held ? (boolean) item->unpaid : costly_spot(u.ux, u.uy))
@@ -3320,7 +3378,7 @@ struct obj *box; /* or bag */
             if (box->otyp == ICE_BOX) {
                 removed_from_icebox(otmp); /* resume rotting for corpse */
             } else if (cursed_mbag && is_boh_item_gone()) {
-                loss += mbag_item_gone(held, otmp);
+                loss += mbag_item_gone(held, otmp, FALSE);
                 /* abbreviated drop format is no longer appropriate */
                 terse = FALSE;
                 continue;

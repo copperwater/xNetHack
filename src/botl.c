@@ -331,7 +331,8 @@ int *rank_indx, *title_length;
     register int i, j;
 
     /* Loop through each of the roles */
-    for (i = 0; roles[i].name.m; i++)
+    for (i = 0; roles[i].name.m; i++) {
+        /* loop through each of the rank titles for role #i */
         for (j = 0; j < 9; j++) {
             if (roles[i].rank[j].m
                 && !strncmpi(str, roles[i].rank[j].m,
@@ -353,6 +354,9 @@ int *rank_indx, *title_length;
                                                       : roles[i].malenum;
             }
         }
+    }
+    if (title_length)
+        *title_length = 0;
     return NON_PM;
 }
 

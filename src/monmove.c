@@ -503,8 +503,12 @@ register struct monst *mtmp;
 
     /* Monsters that want to acquire things */
     /* may teleport, so do it before inrange is set */
-    if (is_covetous(mdat))
+    if (is_covetous(mdat)) {
         (void) tactics(mtmp);
+        /* tactics -> mnexto -> deal_with_overcrowding */
+        if (mtmp->mstate)
+            return 0;
+    }
 
     /* check distance and scariness of attacks */
     distfleeck(mtmp, &inrange, &nearby, &scared);
@@ -993,6 +997,12 @@ register int after;
             && ((lepgold = findgold(mtmp->minvent))
                 && (lepgold->quan
                     > ((ygold = findgold(g.invent)) ? ygold->quan : 0L))))
+            appr = -1;
+
+        /* hostile monsters with ranged thrown weapons try to stay away */
+        if (!mtmp->mpeaceful
+            && (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) < 5*5)
+            && m_canseeu(mtmp) && m_has_launcher_and_ammo(mtmp))
             appr = -1;
 
         if (!should_see && can_track(ptr)) {

@@ -1,4 +1,4 @@
-/* NetHack 3.6	cmd.c	$NHDT-Date: 1586122255 2020/04/05 21:30:55 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.413 $ */
+/* NetHack 3.6	cmd.c	$NHDT-Date: 1587317999 2020/04/19 17:39:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.418 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -186,6 +186,8 @@ static int FDECL(ch2spkeys, (CHAR_P, int, int));
 static boolean FDECL(prefix_cmd, (CHAR_P));
 
 static int NDECL((*timed_occ_fn));
+static char *FDECL(doc_extcmd_flagstr, (winid, const struct ext_func_tab *,
+                                        BOOLEAN_P));
 
 static const char *readchar_queue = "";
 /* for rejecting attempts to use wizard mode commands */
@@ -338,12 +340,43 @@ doextcmd(VOID_ARGS)
     return retval;
 }
 
+static char *
+doc_extcmd_flagstr(menuwin, efp, doc)
+winid menuwin;
+const struct ext_func_tab *efp;
+boolean doc;
+{
+    static char buf[BUFSZ];
+
+    if (doc) {
+        anything any = cg.zeroany;
+
+        add_menu(menuwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
+                 "[A] Command autocompletes", MENU_ITEMFLAGS_NONE);
+        Sprintf(buf, "[m] Command accepts '%c' prefix",
+                g.Cmd.spkeys[NHKF_REQMENU]);
+        add_menu(menuwin, NO_GLYPH, &any, 0, 0, ATR_NONE, buf,
+                 MENU_ITEMFLAGS_NONE);
+        return (char *) 0;
+    } else {
+        buf[0] = '\0';
+        Sprintf(&buf[1], "%s%s",
+                (efp->flags & AUTOCOMPLETE) ? "A" : "",
+                accept_menu_prefix(efp->ef_funct) ? "m" : "");
+        if (buf[1]) {
+            buf[0] = '[';
+            Strcat(buf, "]");
+        }
+        return buf;
+    }
+}
+
 /* here after #? - now list all full-word commands and provid
    some navigation capability through the long list */
 int
 doextlist(VOID_ARGS)
 {
-    register const struct ext_func_tab *efp;
+    register const struct ext_func_tab *efp = (struct ext_func_tab *) 0;
     char buf[BUFSZ], searchbuf[BUFSZ], promptbuf[QBUFSZ];
     winid menuwin;
     anything any;
@@ -453,9 +486,9 @@ doextlist(VOID_ARGS)
                              MENU_ITEMFLAGS_NONE);
                     menushown[pass] = 1;
                 }
-                Sprintf(buf, " %-14s %-3s %s",
+                Sprintf(buf, " %-14s %-4s %s",
                         efp->ef_txt,
-                        (efp->flags & AUTOCOMPLETE) ? "[A]" : " ",
+                        doc_extcmd_flagstr(menuwin, efp, FALSE),
                         efp->ef_desc);
                 add_menu(menuwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
                          buf, MENU_ITEMFLAGS_NONE);
@@ -468,6 +501,8 @@ doextlist(VOID_ARGS)
         if (*searchbuf && !n)
             add_menu(menuwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
                      "no matches", MENU_ITEMFLAGS_NONE);
+        else
+            (void) doc_extcmd_flagstr(menuwin, efp, TRUE);
 
         end_menu(menuwin, (char *) 0);
         n = select_menu(menuwin, PICK_ONE, &selected);
@@ -686,7 +721,7 @@ domonability(VOID_ARGS)
         } else
             There("is no fountain here.");
     } else if (is_unicorn(g.youmonst.data)) {
-        use_unicorn_horn((struct obj *) 0);
+        use_unicorn_horn((struct obj **) 0);
         return 1;
     } else if (g.youmonst.data->msound == MS_SHRIEK) {
         You("shriek.");
@@ -2995,6 +3030,8 @@ int NDECL((*cmd_func));
         || cmd_func == doloot
         /* travel: pop up a menu of interesting targets in view */
         || cmd_func == dotravel
+        /* wait and search: allow even if next to a hostile monster */
+        || cmd_func == donull || cmd_func == dosearch
         /* wizard mode ^V and ^T */
         || cmd_func == wiz_level_tele || cmd_func == dotelecmd
         /* 'm' prefix allowed for some extended commands */

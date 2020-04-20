@@ -1804,26 +1804,14 @@ domove_core()
      * previous location using the same conditions as in attack().
      * there are special extenuating circumstances:
      * (1) if the pet dies then your god angers,
-     * (2) if the pet gets trapped then your god may disapprove,
-     * (3) if the pet was already trapped and you attempt to free it
-     * not only do you encounter the trap but you may frighten your
-     * pet causing it to go wild!  moral: don't abuse this privilege.
+     * (2) if the pet gets trapped then your god may disapprove.
      *
      * Ceiling-hiding pets are skipped by this section of code, to
      * be caught by the normal falling-monster code.
      */
     if (is_safepet(mtmp) && !(is_hider(mtmp->data) && mtmp->mundetected)) {
-        /* if trapped, there's a chance the pet goes wild */
-        if (mtmp->mtrapped) {
-            if (!rn2(mtmp->mtame)) {
-                mtmp->mtame = mtmp->mpeaceful = mtmp->msleeping = 0;
-                if (mtmp->mleashed)
-                    m_unleash(mtmp, TRUE);
-                growl(mtmp);
-            } else {
-                yelp(mtmp);
-            }
-        }
+        /* if it turns out we can't actually move */
+        boolean didnt_move = FALSE;
 
         /* seemimic/newsym should be done before moving hero, otherwise
            the display code will draw the hero here before we possibly
@@ -1832,40 +1820,46 @@ domove_core()
         mtmp->mundetected = 0;
         if (M_AP_TYPE(mtmp))
             seemimic(mtmp);
-        else if (!mtmp->mtame)
-            newsym(mtmp->mx, mtmp->my);
         u.ux = mtmp->mx, u.uy = mtmp->my; /* resume swapping positions */
 
         if (mtmp->mtrapped && (trap = t_at(mtmp->mx, mtmp->my)) != 0
             && is_pit(trap->ttyp)
             && sobj_at(BOULDER, trap->tx, trap->ty)) {
             /* can't swap places with pet pinned in a pit by a boulder */
-            u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
-            if (u.usteed)
-                u.usteed->mx = u.ux, u.usteed->my = u.uy;
+            didnt_move = TRUE;
         } else if (u.ux0 != x && u.uy0 != y && NODIAG(mtmp->data - mons)) {
             /* can't swap places when pet can't move to your spot */
-            u.ux = u.ux0, u.uy = u.uy0;
-            if (u.usteed)
-                u.usteed->mx = u.ux, u.usteed->my = u.uy;
             You("stop.  %s can't move diagonally.", upstart(y_monnam(mtmp)));
+            didnt_move = TRUE;
         } else if (u_with_boulder
                     && !(verysmall(mtmp->data)
                          && (!mtmp->minvent || (curr_mon_load(mtmp) <= 600)))) {
             /* can't swap places when pet won't fit there with the boulder */
-            u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
-            if (u.usteed)
-                u.usteed->mx = u.ux, u.usteed->my = u.uy;
             You("stop.  %s won't fit into the same spot that you're at.",
                  upstart(y_monnam(mtmp)));
+            didnt_move = TRUE;
         } else if (u.ux0 != x && u.uy0 != y && bad_rock(mtmp->data, x, u.uy0)
                    && bad_rock(mtmp->data, u.ux0, y)
                    && (bigmonst(mtmp->data) || (curr_mon_load(mtmp) > 600))) {
             /* can't swap places when pet won't fit thru the opening */
-            u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
-            if (u.usteed)
-                u.usteed->mx = u.ux, u.usteed->my = u.uy;
             You("stop.  %s won't fit through.", upstart(y_monnam(mtmp)));
+            didnt_move = TRUE;
+        } else if ((mtmp->mpeaceful || mtmp->mtame) && mtmp->mtrapped) {
+            /* Since peaceful monsters simply being unable to move out of traps
+             * was inconsistent with pets being able to but being untamed in the
+             * process, apply this logic equally to pets and peacefuls. */
+            You("stop.  %s can't move out of that trap.",
+                upstart(y_monnam(mtmp)));
+            didnt_move = TRUE;
+        } else if (mtmp->mpeaceful
+                   && (!goodpos(u.ux0, u.uy0, mtmp, 0)
+                       || t_at(u.ux0, u.uy0) != NULL
+                       || mundisplaceable(mtmp))) {
+            /* displacing peaceful into unsafe or trapped space, or trying to
+             * displace quest leader, Oracle, shopkeeper, or priest */
+            You("stop.  %s doesn't want to swap places.",
+                upstart(y_monnam(mtmp)));
+            didnt_move = TRUE;
         } else {
             char pnambuf[BUFSZ];
 
@@ -1877,7 +1871,7 @@ domove_core()
             newsym(x, y);
             newsym(u.ux0, u.uy0);
 
-            You("%s %s.", mtmp->mtame ? "swap places with" : "frighten",
+            You("%s %s.", mtmp->mpeaceful ? "swap places with" : "frighten",
                 pnambuf);
 
             /* check for displacing it into pools and traps */
@@ -1924,6 +1918,12 @@ domove_core()
                 pline("that's strange, unknown mintrap result!");
                 break;
             }
+        }
+
+        if (didnt_move) {
+            u.ux = u.ux0, u.uy = u.uy0; /* didn't move after all */
+            if (u.usteed)
+                u.usteed->mx = u.ux, u.usteed->my = u.uy;
         }
     }
 

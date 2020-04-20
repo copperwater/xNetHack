@@ -2897,13 +2897,19 @@ int xtra_prob; /* to force 0% random generation items to also be considered */
     int i, n = 0;
     short validobjs[NUM_OBJECTS];
     register const char *zn;
-    int prob, maxprob = 0;
+    int lo, hi, prob, maxprob = 0;
 
     if (!name || !*name)
         return STRANGE_OBJECT;
 
-    memset((genericptr_t) validobjs, 0, sizeof validobjs);
-
+    (void) memset((genericptr_t) validobjs, 0, sizeof validobjs);
+    if (oclass) {
+        lo = g.bases[(uchar) oclass];
+        hi = g.bases[(uchar) oclass + 1] - 1;
+    } else {
+        lo = STRANGE_OBJECT + 1;
+        hi = NUM_OBJECTS - 1;
+    }
     /* FIXME:
      * When this spans classes (the !oclass case), the item
      * probabilities are not very useful because they don't take
@@ -2912,9 +2918,7 @@ int xtra_prob; /* to force 0% random generation items to also be considered */
      * "blank" would have 10/11 chance to yield a blook even though
      * scrolls are supposed to be much more common than books.]
      */
-    for (i = oclass ? g.bases[(int) oclass] : STRANGE_OBJECT + 1;
-         i < NUM_OBJECTS && (!oclass || objects[i].oc_class == oclass);
-         ++i) {
+    for (i = lo; i <= hi; ++i) {
         /* don't match extra descriptions (w/o real name) */
         if ((zn = OBJ_NAME(objects[i])) == 0)
             continue;
@@ -3581,19 +3585,24 @@ struct obj *no_wish;
         && strncmpi(bp, "ninja-to", 8)     /* not the "ninja" rank */
         && strncmpi(bp, "master key", 10)  /* not the "master" rank */
         && strncmpi(bp, "magenta", 7)) {   /* not the "mage" rank */
+        const char *rest = 0;
+
         if (mntmp < LOW_PM && strlen(bp) > 2
-            && (mntmp = name_to_mon(bp)) >= LOW_PM) {
-            int mntmptoo, mntmplen; /* double check for rank title */
+            && (mntmp = name_to_monplus(bp, &rest)) >= LOW_PM) {
             char *obp = bp;
 
-            mntmptoo = title_to_mon(bp, (int *) 0, &mntmplen);
-            bp += (mntmp != mntmptoo) ? (int) strlen(mons[mntmp].mname)
-                                      : mntmplen;
+            /* 'rest' is a pointer past the matching portion; if that was
+               an alternate name or a rank title rather than the canonical
+               monster name we wouldn't otherwise know how much to skip */
+            bp = (char *) rest; /* cast away const */
+
             if (*bp == ' ') {
                 bp++;
-            } else if (!strncmpi(bp, "s ", 2)) {
+            } else if (!strncmpi(bp, "s ", 2)
+                       || (bp > origbp && !strncmpi(bp - 1, "s' ", 3))) {
                 bp += 2;
-            } else if (!strncmpi(bp, "es ", 3)) {
+            } else if (!strncmpi(bp, "es ", 3)
+                       || !strncmpi(bp, "'s ", 3)) {
                 bp += 3;
             } else if (!*bp && !actualn && !dn && !un && !oclass) {
                 /* no referent; they don't really mean a monster type */
@@ -3840,9 +3849,12 @@ struct obj *no_wish;
     }
 
     if (((typ = rnd_otyp_by_namedesc(actualn, oclass, 1)) != STRANGE_OBJECT)
-        || ((typ = rnd_otyp_by_namedesc(dn, oclass, 1)) != STRANGE_OBJECT)
+        || (dn != actualn
+            && (typ = rnd_otyp_by_namedesc(dn, oclass, 1)) != STRANGE_OBJECT)
         || ((typ = rnd_otyp_by_namedesc(un, oclass, 1)) != STRANGE_OBJECT)
-        || ((typ = rnd_otyp_by_namedesc(origbp, oclass, 1)) != STRANGE_OBJECT))
+        || (origbp != actualn
+            && ((typ = rnd_otyp_by_namedesc(origbp, oclass, 1))
+                != STRANGE_OBJECT)))
         goto typfnd;
     typ = 0;
 
@@ -4104,8 +4116,17 @@ struct obj *no_wish;
 
     /* set otmp->corpsenm or dragon scale [mail] */
     if (mntmp >= LOW_PM) {
+        int humanwere;
+
         if (mntmp == PM_LONG_WORM_TAIL)
             mntmp = PM_LONG_WORM;
+        /* werecreatures in beast form are all flagged no-corpse so for
+           corpses and tins, switch to their corresponding human form;
+           for figurines, override the can't-be-human restriction instead */
+        if (typ != FIGURINE && is_were(&mons[mntmp])
+            && (g.mvitals[mntmp].mvflags & G_NOCORPSE) != 0
+            && (humanwere = counter_were(mntmp)) != NON_PM)
+            mntmp = humanwere;
 
         switch (typ) {
         case TIN:
@@ -4132,7 +4153,8 @@ struct obj *no_wish;
             set_corpsenm(otmp, mntmp);
             break;
         case FIGURINE:
-            if (!(mons[mntmp].geno & G_UNIQ) && !is_human(&mons[mntmp])
+            if (!(mons[mntmp].geno & G_UNIQ)
+                && (!is_human(&mons[mntmp]) || is_were(&mons[mntmp]))
 #ifdef MAIL_STRUCTURES
                 && mntmp != PM_MAIL_DAEMON
 #endif
