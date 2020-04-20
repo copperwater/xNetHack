@@ -1754,8 +1754,13 @@ boolean called;
         char *name = MNAME(mtmp);
 
         if (is_bones_monster(mdat)) {
-            Sprintf(eos(buf), "%s %s", s_suffix(name), pm_name);
-            name_at_start = TRUE;
+            if (mdat == &mons[PM_GHOST]) {
+                Sprintf(eos(buf), "%s ghost", s_suffix(name));
+                name_at_start = TRUE;
+            } else {
+                Sprintf(eos(buf), "%s the %s", name, pm_name);
+                name_at_start = TRUE;
+            }
         } else if (called) {
             Sprintf(eos(buf), "%s called %s", pm_name, name);
             name_at_start = (boolean) type_is_pname(mdat);
