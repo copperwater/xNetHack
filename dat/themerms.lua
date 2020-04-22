@@ -79,12 +79,17 @@ themerooms = {
    -- Boulder room
    function()
       des.room({ type = "themed",
-                 contents = function()
-                    for i = 1, 3 + d(6) do
-                       des.object("boulder");
-                    end
-                    for i = 1, d(4) do
-                       des.trap("rolling boulder");
+                 contents = function(rm)
+                    for x = 0, rm.width do
+                       for y = 0, rm.height do
+                          if (percent(30)) then
+                             if (percent(50)) then
+                                des.object("boulder");
+                             else
+                                des.trap("rolling boulder");
+                             end
+                          end
+                       end
                     end
                  end
       });
@@ -93,9 +98,13 @@ themerooms = {
    -- Spider nest
    function()
       des.room({ type = "themed",
-                 contents = function()
-                    for i = 1, d(3,3) do
-                       des.trap("web");
+                 contents = function(rm)
+                    for x = 0, rm.width do
+                       for y = 0, rm.height do
+                          if (percent(30)) then
+                             des.trap("web", x, y);
+                          end
+                       end
                     end
                  end
       });
@@ -111,7 +120,7 @@ themerooms = {
                     shuffle(traps);
                     for x = 0, rm.width do
                        for y = 0, rm.height do
-                          if (percent(75)) then
+                          if (percent(30)) then
                              des.trap(traps[1], x, y);
                           end
                        end
@@ -154,6 +163,24 @@ themerooms = {
       });
    end,
 
+   -- Pillars
+   function()
+      des.room({ type = "themed", w = 10, h = 10,
+                 contents = function(rm)
+                    local terr = { "-", "-", "-", "-", "L", "P", "T" };
+                    shuffle(terr);
+                    for x = 0, (rm.width - 3) / 4 do
+                       for y = 0, (rm.height - 3) / 4 do
+                          des.terrain({ x = x * 4 + 2, y = y * 4 + 2, typ = terr[1], lit = -2 });
+                          des.terrain({ x = x * 4 + 3, y = y * 4 + 2, typ = terr[1], lit = -2 });
+                          des.terrain({ x = x * 4 + 2, y = y * 4 + 3, typ = terr[1], lit = -2 });
+                          des.terrain({ x = x * 4 + 3, y = y * 4 + 3, typ = terr[1], lit = -2 });
+                       end
+                    end
+                 end
+      });
+   end,
+
    -- Statuary
    function()
       des.room({ type = "themed",
@@ -190,26 +217,22 @@ themerooms = {
 
    -- Mausoleum
    function()
-      des.room({ type = "themed", w = 5,h = 5,
-                 contents = function()
-                    local pts = { {1,1}, {2,1}, {3,1},
-                                  {1,2},        {3,2},
-                                  {1,3}, {2,3}, {3,3} };
-                    for i = 1, #pts do
-                       des.terrain(pts[i], "-");
-                    end
-                    if (percent(50)) then
-                       local mons = { "M", "V", "L", "Z" };
-                       shuffle(mons);
-                       des.monster(mons[1], 2,2);
-                    else
-                       des.object({ id = "corpse", montype = "@", coord = {2,2} });
-                    end
-                    if (percent(20)) then
-                       local place = { {2,1}, {1,2}, {3,2}, {2,3} };
-                       shuffle(place);
-                       des.terrain(place[1], "S");
-                    end
+      des.room({ type = "themed", w = 5 + nh.rn2(3)*2, h = 5 + nh.rn2(3)*2,
+                 contents = function(rm)
+                    des.room({ type = "themed", x = (rm.width / 2), y = (rm.height / 2), w = 1, h = 1, joined = 0,
+                               contents = function()
+                                  if (percent(50)) then
+                                     local mons = { "M", "V", "L", "Z" };
+                                     shuffle(mons);
+                                     des.monster(mons[1], 0,0);
+                                  else
+                                     des.object({ id = "corpse", montype = "@", coord = {0,0} });
+                                  end
+                                  if (percent(20)) then
+                                     des.door({ state="secret", wall="all" });
+                                  end
+                               end
+                    });
                  end
       });
    end,

@@ -316,8 +316,8 @@ register struct obj *sobj;
 
     /* look for gold carried by monsters (might be in a container) */
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-        if (DEADMONSTER(mtmp))
-            continue; /* probably not needed in this case but... */
+        if (DEADMONSTER(mtmp) || (mtmp->isgd && !mtmp->mx))
+            continue;
         if (findgold(mtmp->minvent) || monsndx(mtmp->data) == PM_GOLD_GOLEM) {
             if (mtmp == u.usteed) {
                 steedgold = TRUE;
@@ -406,8 +406,8 @@ register struct obj *sobj;
             ugold = TRUE;
     }
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-        if (DEADMONSTER(mtmp))
-            continue; /* probably overkill here */
+        if (DEADMONSTER(mtmp) || (mtmp->isgd && !mtmp->mx))
+            continue;
         temp = 0;
         if (findgold(mtmp->minvent) || monsndx(mtmp->data) == PM_GOLD_GOLEM) {
             gold = cg.zeroobj; /* ensure oextra is cleared too */
@@ -476,7 +476,8 @@ register struct obj *sobj;
                 ct++;
         }
     for (mtmp = fmon; mtmp && (!ct || !ctu); mtmp = mtmp->nmon) {
-        /* no DEADMONSTER(mtmp) check needed -- dmons never have inventory */
+        if (DEADMONSTER(mtmp) || (mtmp->isgd && !mtmp->mx))
+            continue;
         for (obj = mtmp->minvent; obj; obj = obj->nobj)
             if (o_in(obj, oclass)) {
                 if (mtmp->mx == u.ux && mtmp->my == u.uy)
@@ -538,8 +539,9 @@ register struct obj *sobj;
                 }
                 map_object(temp, 1);
             }
-        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-            /* no DEADMONSTER() check needed -- dmons never have inventory */
+        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+            if (DEADMONSTER(mtmp) || (mtmp->isgd && !mtmp->mx))
+                continue;
             for (obj = mtmp->minvent; obj; obj = obj->nobj)
                 if ((temp = o_in(obj, oclass)) != 0) {
                     temp->ox = mtmp->mx;
@@ -547,6 +549,7 @@ register struct obj *sobj;
                     map_object(temp, 1);
                     break; /* skip rest of this monster's inventory */
                 }
+        }
         if (!ctu) {
             newsym(u.ux, u.uy);
             ter_typ |= TER_MON; /* for autodescribe of self */
@@ -608,7 +611,7 @@ int class;            /* an object class, 0 for all */
      * We can exclude checking the buried obj chain for boulders below.
      */
     sym = class ? def_oc_syms[class].sym : 0;
-    if (sym && g.showsyms[SYM_BOULDER + SYM_OFF_X] && sym == g.showsyms[SYM_BOULDER + SYM_OFF_X])
+    if (sym && sym == g.showsyms[SYM_BOULDER + SYM_OFF_X])
         boulder = ROCK_CLASS;
 
     if (Hallucination || (Confusion && class == SCROLL_CLASS))
@@ -648,7 +651,7 @@ int class;            /* an object class, 0 for all */
         u.usteed->mx = u.ux, u.usteed->my = u.uy;
 
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-        if (DEADMONSTER(mtmp))
+        if (DEADMONSTER(mtmp) || (mtmp->isgd && !mtmp->mx))
             continue;
         for (obj = mtmp->minvent; obj; obj = obj->nobj) {
             if ((!class && !boulder) || o_in(obj, class)
@@ -671,7 +674,6 @@ int class;            /* an object class, 0 for all */
                 strange_feeling(detector, "You feel a lack of something.");
             return 1;
         }
-
         You("sense %s nearby.", stuff);
         return 0;
     }
@@ -719,7 +721,7 @@ int class;            /* an object class, 0 for all */
 
     /* Objects in the monster's inventory override floor objects. */
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-        if (DEADMONSTER(mtmp))
+        if (DEADMONSTER(mtmp) || (mtmp->isgd && !mtmp->mx))
             continue;
         for (obj = mtmp->minvent; obj; obj = obj->nobj)
             if ((!class && !boulder) || (otmp = o_in(obj, class)) != 0
@@ -794,11 +796,12 @@ int mclass;                /* monster class, 0 for all */
      * presence of dmons, so we have to find at least one
      * with positive hit-points to know for sure.
      */
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-        if (!DEADMONSTER(mtmp)) {
-            mcnt++;
-            break;
-        }
+    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+        if (DEADMONSTER(mtmp) || (mtmp->isgd && !mtmp->mx))
+            continue;
+        ++mcnt;
+        break; /* no need for full count, just 1 or more vs 0 */
+    }
 
     if (!mcnt) {
         if (otmp)
@@ -813,7 +816,7 @@ int mclass;                /* monster class, 0 for all */
         cls();
         unconstrained = unconstrain_map();
         for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-            if (DEADMONSTER(mtmp))
+            if (DEADMONSTER(mtmp) || (mtmp->isgd && !mtmp->mx))
                 continue;
             if (!mclass || mtmp->data->mlet == mclass
                 || (mtmp->data == &mons[PM_LONG_WORM]
@@ -965,7 +968,7 @@ struct obj *sobj; /* null if crystal ball, *scroll if gold detection scroll */
             found = TRUE;
     }
     for (mon = fmon; mon; mon = mon->nmon) {
-        if (DEADMONSTER(mon))
+        if (DEADMONSTER(mon) || (mon->isgd && !mon->mx))
             continue;
         if ((tr = detect_obj_traps(mon->minvent, FALSE, 0)) != OTRAP_NONE) {
             if (tr & OTRAP_THERE)
@@ -1006,7 +1009,7 @@ struct obj *sobj; /* null if crystal ball, *scroll if gold detection scroll */
     (void) detect_obj_traps(fobj, TRUE, cursed_src);
     (void) detect_obj_traps(g.level.buriedobjlist, TRUE, cursed_src);
     for (mon = fmon; mon; mon = mon->nmon) {
-        if (DEADMONSTER(mon))
+        if (DEADMONSTER(mon) || (mon->isgd && !mon->mx))
             continue;
         (void) detect_obj_traps(mon->minvent, TRUE, cursed_src);
     }
