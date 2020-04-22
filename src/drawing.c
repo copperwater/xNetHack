@@ -170,7 +170,7 @@ const struct symdef defsyms[MAXPCHARS] = {
        { ' ', "air", C(CLR_CYAN) },                  /* open air */
 /*40*/ { '#', "cloud", C(CLR_GRAY) },                /* [part of] a cloud */
        { '}', "water", C(CLR_BLUE) },                /* under water */
-       { '"', "engraving", C(CLR_BROWN) },           /* engraving */
+       { '~', "engraving", C(CLR_BROWN) },           /* engraving */
        /* engraving color type-dependent; set in mapglyph.c */
        { '^', "arrow trap", C(HI_METAL) },           /* trap */
        { '^', "dart trap", C(HI_METAL) },            /* trap */
@@ -194,7 +194,7 @@ const struct symdef defsyms[MAXPCHARS] = {
        { '^', "magic trap", C(HI_ZAP) },               /* trap */
        { '^', "anti-magic field", C(HI_ZAP) },         /* trap */
        { '^', "polymorph trap", C(CLR_BRIGHT_GREEN) }, /* trap */
-       { '~', "vibrating square", C(CLR_MAGENTA) },    /* "trap" */
+       { '~', "vibrating square", C(CLR_YELLOW) },    /* "trap" */
        /* zap colors are changed by mapglyph() to match type of beam */
        { '|', "", C(CLR_GRAY) },                /* vbeam */
        { '-', "", C(CLR_GRAY) },                /* hbeam */
