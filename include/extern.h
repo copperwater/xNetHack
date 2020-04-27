@@ -597,6 +597,7 @@ E boolean FDECL(hurtle_step, (genericptr_t, int, int));
 #endif /* !MAKEDEFS_C && !MDLIB_C && !LEV_LEX_C */
 E int FDECL(def_char_to_objclass, (CHAR_P));
 E int FDECL(def_char_to_monclass, (CHAR_P));
+E int FDECL(def_char_is_furniture, (CHAR_P));
 #if !defined(MAKEDEFS_C) && !defined(MDLIB_C) && !defined(LEV_LEX_C)
 E void FDECL(switch_symbols, (int));
 E void FDECL(assign_graphics, (int));
@@ -1085,7 +1086,7 @@ E struct obj *FDECL(display_cinventory, (struct obj *));
 E struct obj *FDECL(display_minventory, (struct monst *, int, char *));
 E int NDECL(dotypeinv);
 E const char *FDECL(dfeature_at, (int, int, char *));
-E int FDECL(look_here, (int, BOOLEAN_P));
+E int FDECL(look_here, (int, unsigned));
 E int NDECL(dolook);
 E boolean FDECL(will_feel_cockatrice, (struct obj *, BOOLEAN_P));
 E void FDECL(feel_cockatrice, (struct obj *, BOOLEAN_P));
@@ -2762,8 +2763,10 @@ E void NDECL(port_help);
 #endif
 E void FDECL(sethanguphandler, (void (*)(int)));
 E boolean NDECL(authorize_wizard_mode);
+E void FDECL(append_slash, (char *));
 E boolean FDECL(check_user_string, (char *));
 E char *NDECL(get_login_name);
+E unsigned long NDECL(sys_random_seed);
 #endif /* UNIX */
 
 /* ### unixtty.c ### */

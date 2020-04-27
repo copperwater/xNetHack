@@ -157,6 +157,13 @@ monster or object detection found semi-dead vault guard at <0,0> while
 	monsters on level; likewise object detection and guard's minvent
 squadprob[] in mkroom.c was defined with 5 elements but initialized only 4
 	resulting in giant ants sometimes
+allow nurses heal attack when wielding a non-weapon/weaptool
+if riding or levitating, hero could apply bullwhip downward to pull up things
+	from underwater or lava; feedback implied the item was on the surface
+some monster code was checking whether pets or engulfers were eating green
+	slime by checking for green slime corpse instead of glob
+change light radius of stack of candles to square root
+could get redundate "mon hits other-mon" messages when mon wields an artifact
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -185,11 +192,14 @@ data.base lookup of an entry with any blank lines would falsely claim that
 using nhl_error() to report a Lua processing problem would clobber the stack
 level teleporation's "You materialize on a different level!" could be given
 	out of sequence with other arrival messages
-creating Mine Town variant 1 (Orcish Town) sometimes complained about being
-	unable to place lregion type 1 and failed to have any staircase up
+more sequencing: if wielding Sting or similar and level teleporting to a
+	level with different warning effect, the start-glowing or stop-glowing
+	message came before the materialize message on the destination level
 prevent "you materialize on a different level" after "a mysterious force
 	prevents you from descending" if you try to level teleport past the
 	stairs down from the quest home level before being granted access
+creating Mine Town variant 1 (Orcish Town) sometimes complained about being
+	unable to place lregion type 1 and failed to have any staircase up
 set g.context.botl for glove and wielding actions that could start or end
 	bare-handedness in support of condtests[bl_bareh]
 reinstate ranked ordering of the status condition fields
@@ -204,11 +214,14 @@ fix crash in water_damage_chain
 teleport feedback "you materialize at another location" was given too soon
 'mention_decore' was repeatedly reporting "you are back on bottom" when
 	moving around underwater
+revised 'mention_decor' was describing furniture or ice right before look-here
+	described the same thing when stepping onto object(s)
 poison gas clouds located over known but unlit pools were visible as known
 	clouds but steam clouds in that situation were not
 after the wish parsing change, wishing for "<something of monster>" or for
 	"<monster something>" worked as intended but wishing for "<monster>"
 	(where <monster> used the canonical spelling) triggered a crash
+fix new "objects[0] class #1 not in order!" panic if plain 'char' is unsigned
 tty: redraw unexplored locations as S_unexplored rather than <space> after
 	map has been partially overwritten by popup menu or text display
 tty: previous change resulted in remnants of previous level being shown on
@@ -297,6 +310,8 @@ item-using monsters will zap wand of undead turning at corpse-wielding hero
 	when the corpse is harmful
 boiling a pool or fountain now creates a temporary cloud of steam
 random themed rooms in the dungeons of doom
+extended achievement and conduct fields for xlogfile
+record amount of gold in hero's possession in xlogfile
 
 
 Platform- and/or Interface-Specific New Features
@@ -365,4 +380,6 @@ options overhaul: moved the option definitions into include/optlist.h;
 function reglyph_darkroom() relocated from options.c to display.c
 resurrect 'makedefs -m' to be able to derive default mons[].diffculty values
 	suitable for assigning to new or changed monsters
+convert obj->oextra->omid from pointer to scalar
+get rid of unused obj->oextra->olong
 
