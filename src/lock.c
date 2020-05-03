@@ -787,8 +787,6 @@ int x, y;
 
     if (!door_is_closed(door)) {
         const char *mesg = NULL;
-        boolean locked = FALSE;
-        struct obj* unlocktool;
 
         switch (doorstate(door)) {
         case D_BROKEN:
@@ -804,9 +802,6 @@ int x, y;
             impossible("doopen_indir: bad door state %d", door->doormask);
         }
         pline("This door%s.", mesg);
-        if (locked && flags.autounlock && (unlocktool = autokey(TRUE)) != 0) {
-            res = pick_lock(unlocktool, cc.x, cc.y, (struct obj *) 0);
-        }
         return res;
     }
 
@@ -821,6 +816,10 @@ int x, y;
 
     if (door_is_locked(door)) {
         pline("This door is locked.");
+        struct obj* unlocktool;
+        if (flags.autounlock && (unlocktool = autokey(TRUE)) != 0) {
+            res = pick_lock(unlocktool, cc.x, cc.y, (struct obj *) 0);
+        }
         return res;
     }
 
