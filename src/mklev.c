@@ -897,6 +897,7 @@ clear_level_structures()
     g.level.flags.arboreal = 0;
     g.level.flags.wizard_bones = 0;
     g.level.flags.corrmaze = 0;
+    g.level.flags.outdoors = 0;
 
     g.nroom = 0;
     g.rooms[0].hx = -1;
