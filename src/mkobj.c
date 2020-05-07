@@ -1421,6 +1421,10 @@ uncurse(otmp)
 register struct obj *otmp;
 {
     int old_light = 0;
+    /* note: welded() sets bknown = 1, so avoid it doing that if the hero
+     * somehow is wielding a welded weapon with bknown = 0 (maybe they got hit
+     * with a curse while wielding a non-bknown weapon?) */
+    boolean welded_wep = (otmp == uwep && otmp->bknown && welded(uwep));
 
     if (otmp->lamplit)
         old_light = arti_light_radius(otmp);
@@ -1434,9 +1438,12 @@ register struct obj *otmp;
     if (otmp->lamplit)
         maybe_adjust_light(otmp, old_light);
     if (otmp->where == OBJ_INVENT && otmp->owornmask && otmp->bknown) {
-        if (otmp->owornmask & W_WEP) {
+        if (welded_wep) {
+            const char* hand = body_part(HAND);
+            if (bimanual(uwep))
+                hand = makeplural(hand);
             pline("%s is no longer welded to your %s.",
-                  upstart(yname(otmp)), makeplural(body_part(HAND)));
+                  upstart(yname(otmp)), hand);
         }
         else if (otmp->owornmask & (W_ARMOR | W_ACCESSORY)) {
             if (Hallucination)
