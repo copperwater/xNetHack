@@ -1518,6 +1518,8 @@ int final;
             prot += uleft->spe;
         if (uright && uright->otyp == RIN_PROTECTION)
             prot += uright->spe;
+        if (uamul && uamul->otyp == AMULET_OF_GUARDING)
+            prot += 2;
         if (HProtection & INTRINSIC)
             prot += u.ublessed;
         prot += u.uspellprot;
@@ -1928,8 +1930,8 @@ static void
 show_achievements(final)
 int final; /* used "behind the curtain" by enl_foo() macros */
 {
-    int i, achidx, acnt;
-    char title[BUFSZ];
+    int i, achidx, absidx, acnt;
+    char title[QBUFSZ], buf[QBUFSZ];
     winid awin = WIN_ERR;
 
     /* unfortunately we can't show the achievements (at least not all of
@@ -1968,8 +1970,9 @@ int final; /* used "behind the curtain" by enl_foo() macros */
     }
     for (i = 0; i < acnt; ++i) {
         achidx = u.uachieved[i];
+        absidx = abs(achidx);
 
-        switch (achidx) {
+        switch (absidx) {
         case ACH_BLND:
             enl_msg(You_, "are exploring", "explored",
                     " without being able to see", "");
@@ -2059,10 +2062,19 @@ int final; /* used "behind the curtain" by enl_foo() macros */
             /* the ultimate achievement... */
             enlght_out(" You ascended!");
             break;
+
+        /* rank 0 is the starting condition, not an achievement; 8 is Xp 30 */
+        case ACH_RNK1: case ACH_RNK2: case ACH_RNK3: case ACH_RNK4:
+        case ACH_RNK5: case ACH_RNK6: case ACH_RNK7: case ACH_RNK8:
+            Sprintf(buf, "attained the rank of %s",
+                    rank_of(rank_to_xlev(absidx - (ACH_RNK1 - 1)),
+                            Role_switch, (achidx < 0) ? TRUE : FALSE));
+            you_have_X(buf);
+            break;
+
         default:
-            /* title[] has served its purpose, reuse it as a scratch buffer */
-            Sprintf(title, " [Unexpected achievement #%d.]", achidx);
-            enlght_out(title);
+            Sprintf(buf, " [Unexpected achievement #%d.]", achidx);
+            enlght_out(buf);
             break;
         } /* switch */
     } /* for */
@@ -2076,12 +2088,15 @@ int final; /* used "behind the curtain" by enl_foo() macros */
 /* record an achievement (add at end of list unless already present) */
 void
 record_achievement(achidx)
-xchar achidx;
+schar achidx;
 {
-    int i;
+    int i, absidx;
 
-    /* valid achievements range from 1 to N_ACH-1 */
-    if (achidx < 1 || achidx >= N_ACH) {
+    absidx = abs(achidx);
+    /* valid achievements range from 1 to N_ACH-1; however, ranks can be
+       stored as the complement (ie, negative) to track gender */
+    if ((achidx < 1 && (absidx < ACH_RNK1 || absidx > ACH_RNK8))
+        || achidx >= N_ACH) {
         impossible("Achievement #%d is out of range.", achidx);
         return;
     }
@@ -2092,7 +2107,7 @@ xchar achidx;
        an attempt to duplicate an achievement can happen if any of Bell,
        Candelabrum, Book, or Amulet is dropped then picked up again */
     for (i = 0; u.uachieved[i]; ++i)
-        if (u.uachieved[i] == achidx)
+        if (abs(u.uachieved[i]) == abs(achidx))
             return; /* already recorded, don't duplicate it */
     u.uachieved[i] = achidx;
     if (g.program_state.gameover)
@@ -2104,12 +2119,12 @@ xchar achidx;
 /* discard a recorded achievement; return True if removed, False otherwise */
 boolean
 remove_achievement(achidx)
-xchar achidx;
+schar achidx;
 {
     int i;
 
     for (i = 0; u.uachieved[i]; ++i)
-        if (u.uachieved[i] == achidx)
+        if (abs(u.uachieved[i]) == abs(achidx))
             break; /* stop when found */
     if (!u.uachieved[i]) /* not found */
         return FALSE;
@@ -2129,6 +2144,19 @@ count_achievements()
     for (i = 0; u.uachieved[i]; ++i)
         ++acnt;
     return acnt;
+}
+
+/* convert a rank index to an achievement number; encode it when female
+   in order to subsequently report gender-specific ranks accurately */
+schar
+achieve_rank(rank)
+int rank; /* 1..8 */
+{
+    schar achidx = (schar) ((rank - 1) + ACH_RNK1);
+
+    if (flags.female)
+        achidx = -achidx;
+    return achidx;
 }
 
 /*

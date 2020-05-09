@@ -42,10 +42,11 @@ boolean
 goodpos(x, y, mtmp, gpflags)
 int x, y;
 struct monst *mtmp;
-unsigned gpflags;
+long gpflags;
 {
     struct permonst *mdat = (struct permonst *) 0;
-    boolean ignorewater = ((gpflags & MM_IGNOREWATER) != 0);
+    boolean ignorewater = ((gpflags & MM_IGNOREWATER) != 0),
+            allow_u = ((gpflags & GP_ALLOW_U) != 0);
 
     if (!isok(x, y))
         return FALSE;
@@ -56,10 +57,12 @@ unsigned gpflags;
      * which could be co-located and thus get restricted a bit too much.
      * oh well.
      */
-    if (x == u.ux && y == u.uy
-        && mtmp != &g.youmonst && (mtmp != u.ustuck || !u.uswallow)
-        && (!u.usteed || mtmp != u.usteed))
-        return FALSE;
+    if (!allow_u) {
+        if (x == u.ux && y == u.uy && mtmp != &g.youmonst
+            && (mtmp != u.ustuck || !u.uswallow)
+            && (!u.usteed || mtmp != u.usteed))
+            return FALSE;
+    }
 
     if (mtmp) {
         struct monst *mtmp2 = m_at(x, y);
@@ -144,7 +147,7 @@ enexto_core(cc, xx, yy, mdat, entflags)
 coord *cc;
 xchar xx, yy;
 struct permonst *mdat;
-unsigned entflags;
+long entflags;
 {
 #define MAX_GOOD 15
     coord good[MAX_GOOD], *good_ptr;
@@ -248,28 +251,28 @@ int x1, y1, x2, y2;
         return FALSE;
     if (g.dndest.nlx > 0) {
         /* if inside a restricted region, can't teleport outside */
-        if (within_bounded_area(x1, y1, g.dndest.nlx, g.dndest.nly, g.dndest.nhx,
-                                g.dndest.nhy)
+        if (within_bounded_area(x1, y1, g.dndest.nlx, g.dndest.nly,
+                                g.dndest.nhx, g.dndest.nhy)
             && !within_bounded_area(x2, y2, g.dndest.nlx, g.dndest.nly,
                                     g.dndest.nhx, g.dndest.nhy))
             return FALSE;
         /* and if outside, can't teleport inside */
-        if (!within_bounded_area(x1, y1, g.dndest.nlx, g.dndest.nly, g.dndest.nhx,
-                                 g.dndest.nhy)
-            && within_bounded_area(x2, y2, g.dndest.nlx, g.dndest.nly, g.dndest.nhx,
-                                   g.dndest.nhy))
+        if (!within_bounded_area(x1, y1, g.dndest.nlx, g.dndest.nly,
+                                 g.dndest.nhx, g.dndest.nhy)
+            && within_bounded_area(x2, y2, g.dndest.nlx, g.dndest.nly,
+                                   g.dndest.nhx, g.dndest.nhy))
             return FALSE;
     }
     if (g.updest.nlx > 0) { /* ditto */
-        if (within_bounded_area(x1, y1, g.updest.nlx, g.updest.nly, g.updest.nhx,
-                                g.updest.nhy)
+        if (within_bounded_area(x1, y1, g.updest.nlx, g.updest.nly,
+                                g.updest.nhx, g.updest.nhy)
             && !within_bounded_area(x2, y2, g.updest.nlx, g.updest.nly,
                                     g.updest.nhx, g.updest.nhy))
             return FALSE;
-        if (!within_bounded_area(x1, y1, g.updest.nlx, g.updest.nly, g.updest.nhx,
-                                 g.updest.nhy)
-            && within_bounded_area(x2, y2, g.updest.nlx, g.updest.nly, g.updest.nhx,
-                                   g.updest.nhy))
+        if (!within_bounded_area(x1, y1, g.updest.nlx, g.updest.nly,
+                                 g.updest.nhx, g.updest.nhy)
+            && within_bounded_area(x2, y2, g.updest.nlx, g.updest.nly,
+                                   g.updest.nhx, g.updest.nhy))
             return FALSE;
     }
     return TRUE;
@@ -1123,7 +1126,7 @@ unsigned trflags;
     char verbbuf[BUFSZ];
     boolean intentional = FALSE;
 
-    if ((trflags & (VIASITTING|FORCETRAP)) != 0) {
+    if ((trflags & (VIASITTING | FORCETRAP)) != 0) {
         Strcpy(verbbuf, "trigger"); /* follows "You sit down." */
         intentional = TRUE;
     } else
@@ -1178,13 +1181,15 @@ struct monst *mtmp;
             return (within_bounded_area(x, y, g.updest.lx, g.updest.ly,
                                         g.updest.hx, g.updest.hy)
                     && (!g.updest.nlx
-                        || !within_bounded_area(x, y, g.updest.nlx, g.updest.nly,
+                        || !within_bounded_area(x, y,
+                                                g.updest.nlx, g.updest.nly,
                                                 g.updest.nhx, g.updest.nhy)));
         if (g.dndest.lx && (yy & 1) == 0) /* moving down */
             return (within_bounded_area(x, y, g.dndest.lx, g.dndest.ly,
                                         g.dndest.hx, g.dndest.hy)
                     && (!g.dndest.nlx
-                        || !within_bounded_area(x, y, g.dndest.nlx, g.dndest.nly,
+                        || !within_bounded_area(x, y,
+                                                g.dndest.nlx, g.dndest.nly,
                                                 g.dndest.nhx, g.dndest.nhy)));
     } else {
         /* [try to] prevent a shopkeeper or temple priest from being
@@ -1494,7 +1499,8 @@ register struct obj *obj;
              || (g.dndest.nlx && On_W_tower_level(&u.uz)
                  && within_bounded_area(tx, ty, g.dndest.nlx, g.dndest.nly,
                                         g.dndest.nhx, g.dndest.nhy)
-                    != within_bounded_area(otx, oty, g.dndest.nlx, g.dndest.nly,
+                    != within_bounded_area(otx, oty,
+                                           g.dndest.nlx, g.dndest.nly,
                                            g.dndest.nhx, g.dndest.nhy)));
 
     if (flooreffects(obj, tx, ty, "fall")) {
@@ -1563,8 +1569,8 @@ random_teleport_level()
         max_depth = bottom + (g.dungeons[u.uz.dnum].depth_start - 1);
     } else {
         min_depth = 1;
-        max_depth =
-            dunlevs_in_dungeon(&u.uz) + (g.dungeons[u.uz.dnum].depth_start - 1);
+        max_depth = dunlevs_in_dungeon(&u.uz)
+                    + (g.dungeons[u.uz.dnum].depth_start - 1);
         /* can't reach Sanctum if the invocation hasn't been performed */
         if (Inhell && !u.uevent.invoked)
             max_depth -= 1;

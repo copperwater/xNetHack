@@ -33,6 +33,7 @@ static NEARDATA const int nasties[] = {
     PM_XORN, PM_ZRUTY, PM_LEOCROTTA, PM_BALUCHITHERIUM,
     PM_CARNIVOROUS_APE, PM_FIRE_ELEMENTAL, PM_JABBERWOCK,
     PM_IRON_GOLEM, PM_OCHRE_JELLY, PM_GREEN_SLIME,
+    PM_DISPLACER_BEAST, PM_GENETIC_ENGINEER,
     /* chaotic */
     PM_BLACK_DRAGON, PM_RED_DRAGON, PM_ARCH_LICH, PM_VAMPIRE_LORD,
     PM_MASTER_MIND_FLAYER, PM_DISENCHANTER, PM_WINGED_GARGOYLE,
@@ -493,12 +494,15 @@ aggravate()
     }
 }
 
+/* "Double Trouble" spell cast by the Wizard; caller is responsible for
+   only casting this when there is currently one wizard in existence;
+   the clone can't use it unless/until its creator has been killed off */
 void
 clonewiz()
 {
     register struct monst *mtmp2;
 
-    if ((mtmp2 = makemon(&mons[PM_WIZARD_OF_YENDOR], u.ux, u.uy, NO_MM_FLAGS))
+    if ((mtmp2 = makemon(&mons[PM_WIZARD_OF_YENDOR], u.ux, u.uy, MM_NOWAIT))
         != 0) {
         mtmp2->msleeping = mtmp2->mtame = mtmp2->mpeaceful = 0;
         if (!u.uhave.amulet && rn2(2)) { /* give clone a fake */
@@ -594,8 +598,9 @@ struct monst *summoner;
         bypos.x = u.ux;
         bypos.y = u.uy;
         for (i = rnd(tmp); i > 0 && count < MAXNASTIES; --i) {
-            /* Of the 42 nasties[], 10 are lawful, 14 are chaotic,
-             * and 18 are neutral.
+            /* Of the 44 nasties[], 10 are lawful, 14 are chaotic,
+             * and 20 are neutral.  [These numbers are up date for
+             * 3.7.0; the ones in the next paragraph are not....]
              *
              * Neutral caster, used for late-game harrassment,
              * has 18/42 chance to stop the inner loop on each
