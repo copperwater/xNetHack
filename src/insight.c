@@ -2112,7 +2112,7 @@ schar achidx;
     u.uachieved[i] = achidx;
     if (g.program_state.gameover)
         return; /* don't livelog achievements recorded at end of game */
-    livelog_write_string(LL_ACHIEVE | (achidx == ACH_MEDU ? LL_UMONST : 0), achieve_str[achidx]);
+    livelog_write_string(LL_ACHIEVE | (achidx == ACH_MEDU ? LL_UMONST : 0), achieve_str[absidx]);
     return;
 }
 
