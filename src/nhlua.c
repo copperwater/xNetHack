@@ -16,6 +16,8 @@
 /* lua_CFunction prototypes */
 static int FDECL(nhl_test, (lua_State *));
 static int FDECL(nhl_getmap, (lua_State *));
+static void FDECL(nhl_add_table_entry_bool, (lua_State *, const char *, BOOLEAN_P));
+static char FDECL(splev_typ2chr, (SCHAR_P));
 static int FDECL(nhl_gettrap, (lua_State *));
 static int FDECL(nhl_deltrap, (lua_State *));
 #if 0
@@ -32,10 +34,14 @@ static int FDECL(nhl_ing_suffix, (lua_State *));
 static int FDECL(nhl_an, (lua_State *));
 static int FDECL(nhl_rn2, (lua_State *));
 static int FDECL(nhl_random, (lua_State *));
+static void FDECL(init_nhc_data, (lua_State *));
+static int FDECL(nhl_push_anything, (lua_State *, int, void *));
 static int FDECL(nhl_meta_u_index, (lua_State *));
 static int FDECL(nhl_meta_u_newindex, (lua_State *));
 static int FDECL(nhl_u_clear_inventory, (lua_State *));
 static int FDECL(nhl_u_giveobj, (lua_State *));
+static void FDECL(init_u_data, (lua_State *));
+static int FDECL(nhl_set_package_path, (lua_State *, const char *));
 static int FDECL(traceback_handler, (lua_State *));
 
 void
@@ -202,6 +208,7 @@ const struct {
                 { 'g', GRASS },
                 { 'x', MAX_TYPE }, /* "see-through" */
                 { 'B', CROSSWALL }, /* hack: boundary location */
+                { 'w', MATCH_WALL }, /* IS_STWALL() */
                 { '\0', STONE },
 };
 
@@ -226,7 +233,7 @@ const char *s;
     return INVALID_TYPE;
 }
 
-char
+static char
 splev_typ2chr(typ)
 schar typ;
 {
@@ -842,7 +849,7 @@ static const struct {
 };
 
 /* register and init the constants table */
-void
+static void
 init_nhc_data(L)
 lua_State *L;
 {
@@ -859,7 +866,7 @@ lua_State *L;
     lua_setglobal(L, "nhc");
 }
 
-int
+static int
 nhl_push_anything(L, anytype, src)
 lua_State *L;
 int anytype;
@@ -927,6 +934,9 @@ lua_State *L;
     if (!strcmp(tkey, "inventory")) {
         nhl_push_obj(L, g.invent);
         return 1;
+    } else if (!strcmp(tkey, "role")) {
+        lua_pushstring(L, g.urole.name.m);
+        return 1;
     }
 
     nhl_error(L, "Unknown u table index");
@@ -965,7 +975,7 @@ static const struct luaL_Reg nhl_u_functions[] = {
     { NULL, NULL }
 };
 
-void
+static void
 init_u_data(L)
 lua_State *L;
 {
@@ -980,7 +990,7 @@ lua_State *L;
     lua_setglobal(L, "u");
 }
 
-int
+static int
 nhl_set_package_path(L, path)
 lua_State *L;
 const char *path;

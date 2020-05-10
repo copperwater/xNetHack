@@ -1,4 +1,4 @@
-/* NetHack 3.6	eat.c	$NHDT-Date: 1584405116 2020/03/17 00:31:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.223 $ */
+/* NetHack 3.6	eat.c	$NHDT-Date: 1586303701 2020/04/07 23:55:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.225 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -733,10 +733,13 @@ register int pm;
         done(DIED);
         /* life-saving needed to reach here */
         exercise(A_WIS, FALSE);
-        /* It so happens that since we know these monsters */
-        /* cannot appear in tins, g.context.victual.piece will always */
-        /* be what we want, which is not generally true. */
-        if (revive_corpse(g.context.victual.piece, FALSE)) {
+        /* revive an actual corpse; can't do that if it was a tin;
+           3.7: this used to assume that such tins were impossible but
+           they can be wished for in wizard mode; they can't make it
+           to normal play though because bones creation empties them */
+        if (g.context.victual.piece /* Null for tins */
+            && g.context.victual.piece->otyp == CORPSE /* paranoia */
+            && revive_corpse(g.context.victual.piece, FALSE)) {
             g.context.victual.piece = (struct obj *) 0;
             g.context.victual.o_id = 0;
         }
@@ -1153,18 +1156,31 @@ int pm;
     case PM_CHAMELEON:
     case PM_DOPPELGANGER:
     case PM_SANDESTIN: /* moot--they don't leave corpses */
+    case PM_GENETIC_ENGINEER:
         if (Unchanging) {
             You_feel("momentarily different."); /* same as poly trap */
         } else {
-            You_feel("a change coming over you.");
+            You("%s.", (pm == PM_GENETIC_ENGINEER)
+                          ? "undergo a freakish metamorphosis"
+                          : "feel a change coming over you");
             polyself(0);
         }
+        break;
+    case PM_DISPLACER_BEAST:
+        if (!Displaced) /* give a message (before setting the timeout) */
+            toggle_displacement((struct obj *) 0, 0L, TRUE);
+        incr_itimeout(&HDisplaced, d(6, 6));
         break;
     case PM_DISENCHANTER:
         /* picks an intrinsic at random and removes it; there's
            no feedback if hero already lacks the chosen ability */
         debugpline0("using attrcurse to strip an intrinsic");
         attrcurse();
+        break;
+    case PM_DEATH:
+    case PM_PESTILENCE:
+    case PM_FAMINE:
+        /* life-saved; don't attempt to confer any intrinsics */
         break;
     case PM_MIND_FLAYER:
     case PM_MASTER_MIND_FLAYER:
@@ -1936,7 +1952,8 @@ struct obj *otmp;
             /* not cannibalism, but we use similar criteria
                for deciding whether to be sickened by this meal */
             if (rn2(2) && !CANNIBAL_ALLOWED())
-                make_vomiting((long) rn1(g.context.victual.reqtime, 14), FALSE);
+                make_vomiting((long) rn1(g.context.victual.reqtime, 14),
+                              FALSE);
         }
         break;
     case LEMBAS_WAFER:
@@ -2154,10 +2171,13 @@ struct obj *otmp;
                                                  RIN_INCREASE_DAMAGE);
             break;
         case RIN_PROTECTION:
+        case AMULET_OF_GUARDING:
             accessory_has_effect(otmp);
             HProtection |= FROMOUTSIDE;
-            u.ublessed = bounded_increase(u.ublessed, otmp->spe,
-                                          RIN_PROTECTION);
+            u.ublessed = bounded_increase(u.ublessed,
+                                          (typ == RIN_PROTECTION) ? otmp->spe
+                                           : 2, /* fixed amount for amulet */
+                                          typ);
             g.context.botl = 1;
             break;
         case RIN_FREE_ACTION:
@@ -2201,6 +2221,7 @@ struct obj *otmp;
         }
         case RIN_SUSTAIN_ABILITY:
         case AMULET_OF_LIFE_SAVING:
+        case AMULET_OF_FLYING:
         case AMULET_OF_REFLECTION: /* nice try */
             /* can't eat Amulet of Yendor or fakes,
              * and no oc_prop even if you could -3.
@@ -2979,7 +3000,9 @@ gethungry()
                    need to check whether both rings are +0 protection or
                    they'd both slip by the "is there another source?" test,
                    but don't do that for both rings or they will both be
-                   treated as supplying "MC" when only one matters */
+                   treated as supplying "MC" when only one matters;
+                   note: amulet of guarding overrides both +0 rings and
+                   is caught by the (EProtection & ~W_RINGx) == 0L tests */
                 && (uleft->spe
                     || !objects[uleft->otyp].oc_charged
                     || (uleft->otyp == RIN_PROTECTION

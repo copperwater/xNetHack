@@ -291,7 +291,7 @@ static void FDECL(wc_set_font_name, (int, char *));
 static int FDECL(wc_set_window_colors, (char *));
 static boolean FDECL(illegal_menu_cmd_key, (CHAR_P));
 #ifndef CHANGE_COLOR
-int FDECL(optfn_palette, (int, BOOLEAN_P, BOOLEAN_P, char *, char *));
+int FDECL(optfn_palette, (int, int, BOOLEAN_P, char *, char *));
 #endif
 #ifdef CURSES_GRAPHICS
 extern int curses_read_attrs(const char *attrs);
@@ -673,40 +673,6 @@ char *op UNUSED;
                 iflags.altkeyhandler[0] ? iflags.altkeyhandler : "default");
 #endif
         return optn_ok;
-    }
-    return optn_ok;
-}
-
-int
-optfn_altmeta(optidx, req, negated, opts, op)
-int optidx UNUSED;
-int req;
-boolean negated UNUSED;
-char *opts;
-char *op UNUSED;
-{
-    if (req == do_init) {
-        return optn_ok;
-    }
-    if (req == do_set) {
-        /* Amiga altmeta causes Alt+key to be converted into Meta+key by
-           low level nethack code; on by default, can be toggled off if
-           Alt+key is needed for some ASCII chars on non-ASCII keyboard */
-
-        /* non-Amiga altmeta causes nethack's top level command loop to treat
-           two character sequence "ESC c" as M-c, for terminals or emulators
-           which send "ESC c" when Alt+c is pressed; off by default, enabling
-           this can potentially make trouble if user types ESC when nethack
-           is honoring this conversion request (primarily after starting a
-           count prefix prior to a command and then deciding to cancel it) */
-
-        return optn_ok;
-    }
-    if (req == get_val) {
-        if (!opts)
-            return optn_err;
-        opts[0] = '\0';
-        return optn_err;
     }
     return optn_ok;
 }
@@ -1466,23 +1432,15 @@ char *op UNUSED;
     return optn_ok;
 }
 
+#if defined(BACKWARD_COMPAT) && defined(MAC_GRAPHICS_ENV)
 int
 optfn_MACgraphics(optidx, req, negated, opts, op)
-#if defined(MAC_GRAPHICS_ENV) && defined(BACKWARD_COMPAT)
 int optidx;
 int req;
 boolean negated;
 char *opts;
 char *op;
-#else
-int optidx UNUSED;
-int req;
-boolean negated UNUSED;
-char *opts UNUSED;
-char *op UNUSED;
-#endif
 {
-#if defined(MAC_GRAPHICS_ENV) && defined(BACKWARD_COMPAT)
     boolean badflag = FALSE;
 
     if (req == do_init) {
@@ -1515,20 +1473,9 @@ char *op UNUSED;
         opts[0] = '\0';
         return optn_ok;
     }
-#else
-    if (req == do_set) {
-        config_error_add("'%s' %s; use 'symset:%s' instead",
-                         allopt[optidx].name,
-#ifdef MAC_GRAPHICS_ENV /* implies BACKWARD_COMPAT is not defined */
-                         "no longer supported",
-#else
-                         "is not supported",
-#endif
-                         allopt[optidx].name);
-    }
-#endif
     return optn_ok;
 }
+#endif /* BACKWARD_COMPAT && MAC_GRAPHICS_ENV */
 
 int
 optfn_map_mode(optidx, req, negated, opts, op)
@@ -1943,36 +1890,6 @@ char *op UNUSED;
         if (!opts)
             return optn_err;
         Sprintf(opts, "%s", to_be_done);
-        return optn_ok;
-    }
-    return optn_ok;
-}
-
-int
-optfn_menucolor(optidx, req, negated, opts, op)
-int optidx;
-int req;
-boolean negated UNUSED;
-char *opts;
-char *op;
-{
-    if (req == do_init) {
-        return optn_ok;
-    }
-    if (req == do_set) {
-        /* menucolor:"regex_string"=color */
-        if ((op = string_for_env_opt(allopt[optidx].name, opts, FALSE))
-            != empty_optstr) {
-            if (!add_menu_coloring(op))
-                return optn_err;
-        } else
-            return optn_err;
-        return optn_ok;
-    }
-    if (req == get_val) {
-        if (!opts)
-            return optn_err;
-        opts[0] = '\0';
         return optn_ok;
     }
     return optn_ok;
@@ -2564,7 +2481,8 @@ char *op;
     return optn_ok;
 }
 
-int optfn_paranoid_confirmation(optidx, req, negated, opts, op)
+int
+optfn_paranoid_confirmation(optidx, req, negated, opts, op)
 int optidx;
 int req;
 boolean negated;
@@ -3497,6 +3415,7 @@ char *op;
     return optn_ok;
 }
 
+#ifdef WIN32
 int
 optfn_subkeyvalue(optidx, req, negated, opts, op)
 int optidx UNUSED;
@@ -3509,12 +3428,10 @@ char *op UNUSED;
         return optn_ok;
     }
     if (req == do_set) {
-#if defined(WIN32)
         if (op == empty_optstr)
             return optn_err;
 #ifdef TTY_GRAPHICS
         map_subkeyvalue(op);
-#endif
 #endif
         return optn_ok;
     }
@@ -3526,6 +3443,7 @@ char *op UNUSED;
     }
     return optn_ok;
 }
+#endif /* WIN32 */
 
 int
 optfn_suppress_alert(optidx, req, negated, opts, op)

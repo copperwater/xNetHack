@@ -560,6 +560,7 @@ int dieroll;
             char magr_name[BUFSZ];
 
             Strcpy(magr_name, Monnam(magr));
+            buf[0] = '\0';
             switch (mattk->aatyp) {
             case AT_BITE:
                 Sprintf(buf, "%s bites", magr_name);
@@ -583,9 +584,12 @@ int dieroll;
                 }
                 /*FALLTHRU*/
             default:
-                Sprintf(buf, "%s hits", magr_name);
+                if (!weaponhit || !mwep || !mwep->oartifact)
+                    Sprintf(buf, "%s hits", magr_name);
+                break;
             }
-            pline("%s %s.", buf, mon_nam_too(mdef, magr));
+            if (*buf)
+                pline("%s %s.", buf, mon_nam_too(mdef, magr));
 
             if (mwep && weaponhit
                 && mon_hates_material(mdef, mwep->material)) {
@@ -815,7 +819,7 @@ struct attack *mattk;
 /*
  *  See comment at top of mattackm(), for return values.
  */
-int
+static int
 mdamagem(magr, mdef, mattk, mwep, dieroll)
 struct monst *magr, *mdef;
 struct attack *mattk;
@@ -953,8 +957,20 @@ int dieroll;
             if (tmp < 1) /* is this necessary?  mhitu.c has it... */
                 tmp = 1;
             if (mwep->oartifact) {
-                (void) artifact_hit(magr, mdef, mwep, &tmp, dieroll);
-                if (DEADMONSTER(mdef))
+                /* when magr's weapon is an artifact, caller suppressed its
+                   usual 'hit' message in case artifact_hit() delivers one;
+                   now we'll know and might need to deliver skipped message
+                   (note: if there's no message there'll be no auxilliary
+                   damage so the message here isn't coming too late) */
+                if (!artifact_hit(magr, mdef, mwep, &tmp, dieroll)) {
+                    if (g.vis)
+                        pline("%s hits %s.", Monnam(magr),
+                              mon_nam_too(mdef, magr));
+                }
+                /* artifact_hit updates 'tmp' but doesn't inflict any
+                   damage; however, it might cause carried items to be
+                   destroyed and they might do so */
+               if (DEADMONSTER(mdef))
                     return (MM_DEF_DIED
                             | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
             }
@@ -1417,6 +1433,10 @@ int dieroll;
         /* there's no msomearmor() function, so just do damage */
         /* if (cancelled) break; */
         break;
+    case AD_POLY:
+        if (!magr->mcan && tmp < mdef->mhp)
+            tmp = mon_poly(magr, mdef, tmp);
+        break;
     default:
         tmp = 0;
         break;
@@ -1482,6 +1502,75 @@ int dieroll;
         return (MM_DEF_DIED | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
     }
     return (res == MM_AGR_DIED) ? MM_AGR_DIED : MM_HIT;
+}
+
+int
+mon_poly(magr, mdef, dmg)
+struct monst *magr, *mdef;
+int dmg;
+{
+    if (mdef == &g.youmonst) {
+        if (Antimagic) {
+            shieldeff(mdef->mx, mdef->my);
+        } else if (Unchanging) {
+            ; /* just take a little damage */
+        } else {
+            /* system shock might take place in polyself() */
+            if (u.ulycn == NON_PM) {
+                You("are subjected to a freakish metamorphosis.");
+                polyself(0);
+            } else if (u.umonnum != u.ulycn) {
+                You_feel("an unnatural urge coming on.");
+                you_were();
+            } else {
+                You_feel("a natural urge coming on.");
+                you_unwere(FALSE);
+            }
+            dmg = 0;
+        }
+    } else {
+        char Before[BUFSZ];
+
+        Strcpy(Before, Monnam(mdef));
+        if (resists_magm(mdef)) {
+            /* Magic resistance */
+            if (g.vis)
+                shieldeff(mdef->mx, mdef->my);
+        } else if (resist(mdef, WAND_CLASS, 0, TELL)) {
+            /* general resistance to magic... */
+            ;
+        } else if (!rn2(25) && mdef->cham == NON_PM
+                   && (mdef->mcan
+                       || pm_to_cham(monsndx(mdef->data)) != NON_PM)) {
+            /* system shock; this variation takes away half of mon's HP
+               rather than kill outright */
+            if (g.vis)
+                pline("%s shudders!", Before);
+
+            dmg += (mdef->mhpmax + 1) / 2;
+            mdef->mhp -= dmg;
+            dmg = 0;
+            if (DEADMONSTER(mdef)) {
+                if (magr == &g.youmonst)
+                    xkilled(mdef, XKILL_GIVEMSG | XKILL_NOCORPSE);
+                else
+                    monkilled(mdef, "", AD_RBRE);
+            }
+        } else if (newcham(mdef, (struct permonst *) 0, FALSE, FALSE)) {
+            if (g.vis && canspotmon(mdef))
+                pline("%s%s turns into %s.", Before,
+                      !flags.verbose ? ""
+                       : " undergoes a freakish metamorphosis and",
+                      x_monnam(mdef, ARTICLE_A, (char *) 0,
+                               (SUPPRESS_NAME | SUPPRESS_IT
+                                | SUPPRESS_INVISIBLE), FALSE));
+            dmg = 0;
+        } else {
+            if (g.vis && flags.verbose)
+                pline1(nothing_happens);
+        }
+    }
+    return dmg;
 }
 
 void

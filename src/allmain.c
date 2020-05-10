@@ -309,7 +309,7 @@ boolean resuming;
 
                     if (!uarmg && uwep && uwep->otyp == UNICORN_HORN
                         && !uwep->cursed) {
-                        use_unicorn_horn(uwep, TRUE);
+                        use_unicorn_horn(&uwep, TRUE);
                     }
 
                     if (Searching && g.multi >= 0)

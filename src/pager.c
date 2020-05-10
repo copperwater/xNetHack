@@ -1,4 +1,4 @@
-/* NetHack 3.6	pager.c	$NHDT-Date: 1585776162 2020/04/01 21:22:42 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.186 $ */
+/* NetHack 3.6	pager.c	$NHDT-Date: 1588778117 2020/05/06 15:15:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.188 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -31,9 +31,13 @@ static void NDECL(hmenu_dohistory);
 static void NDECL(hmenu_dowhatis);
 static void NDECL(hmenu_dowhatdoes);
 static void NDECL(hmenu_doextlist);
+static void NDECL(domenucontrols);
 #ifdef PORT_HELP
 extern void NDECL(port_help);
 #endif
+
+static const char invisexplain[] = "remembered, unseen, creature",
+           altinvisexplain[] = "unseen creature"; /* for clairvoyance */
 
 /* Returns "true" for characters that could represent a monster's stomach. */
 static boolean
@@ -620,6 +624,7 @@ static const char * damagetypes[] = {
     "disenchant",
     "corrode",
     "steal intrinsic",
+    "polymorph",
     "clerical",
     "arcane",
     "random breath",
@@ -1745,7 +1750,6 @@ struct permonst **for_supplement;
     }
 
     if (sym == DEF_INVISIBLE) {
-        extern const char altinvisexplain[]; /* drawing.c */
         /* for active clairvoyance, use alternate "unseen creature" */
         boolean usealt = (EDetect_monsters & I_SPECIAL) != 0L;
         const char *unseen_explain = !usealt ? invisexplain : altinvisexplain;
@@ -2843,7 +2847,7 @@ hmenu_doextlist(VOID_ARGS)
     (void) doextlist();
 }
 
-void
+static void
 domenucontrols(VOID_ARGS)
 {
     winid cwin = create_nhwindow(NHW_TEXT);

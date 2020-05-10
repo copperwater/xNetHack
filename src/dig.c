@@ -751,6 +751,8 @@ schar typ;
 struct trap *ttmp;
 const char *fillmsg;
 {
+    struct obj *objchain;
+    struct monst *mon;
     boolean u_spot = (x == u.ux && y == u.uy);
 
     if (ttmp)
@@ -760,11 +762,18 @@ const char *fillmsg;
 
     if (fillmsg)
         pline(fillmsg, hliquid(typ == LAVAPOOL ? "lava" : "water"));
-    if (u_spot && !(Levitation || Flying)) {
+    /* handle object damage before hero damage; affects potential bones */
+    if ((objchain = g.level.objects[x][y]) != 0) {
         if (typ == LAVAPOOL)
-            (void) lava_effects();
+            fire_damage_chain(objchain, TRUE, TRUE, x, y);
         else
-            (void) drown();
+            water_damage_chain(objchain, TRUE, 0, TRUE);
+    }
+    /* damage to the hero */
+    if (u_spot) {
+        (void) pooleffects(FALSE);
+    } else if ((mon = m_at(x, y)) != 0) {
+        (void) minliquid(mon);
     }
 }
 
@@ -1732,6 +1741,12 @@ pit_flow(trap, filltyp)
 struct trap *trap;
 schar filltyp;
 {
+    /*
+     * FIXME?
+     *  liquid_flow() -> pooleffects() -> {drown(),lava_effects()}
+     *  might kill the hero; the game will end and if that leaves bones,
+     *  remaining conjoined pits will be left unprocessed.
+     */
     if (trap && filltyp != ROOM && is_pit(trap->ttyp)) {
         struct trap t;
         int idx;

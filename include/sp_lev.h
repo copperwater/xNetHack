@@ -48,6 +48,7 @@ enum lvlinit_types {
     LVLINIT_NONE = 0,
     LVLINIT_SOLIDFILL,
     LVLINIT_MAZEGRID,
+    LVLINIT_MAZE,
     LVLINIT_MINES,
     LVLINIT_SWAMP
 };
@@ -124,6 +125,8 @@ typedef struct {
     boolean smoothed, joined;
     xchar lit, walled;
     boolean icedpools;
+    int corrwid, wallthick;
+    boolean rm_deadends;
 } lev_init;
 
 typedef struct {

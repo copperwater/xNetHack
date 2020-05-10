@@ -659,6 +659,10 @@ nh_timeout()
                     spoteffects(TRUE);
                 }
                 break;
+            case DISPLACED:
+                if (!Displaced) /* give a message */
+                    toggle_displacement((struct obj *) 0, 0L, FALSE);
+                break;
             case WARN_OF_MON:
                 /* timed Warn_of_mon is via #wizintrinsic only */
                 if (!Warn_of_mon) {
@@ -694,7 +698,7 @@ nh_timeout()
             case FUMBLING:
                 /* call this only when a move took place.  */
                 /* otherwise handle fumbling msgs locally. */
-                if (u.umoved && !Levitation) {
+                if (u.umoved && !(Levitation || Flying)) {
                     slip_or_trip();
                     nomul(-2);
                     g.multi_reason = "fumbling";
@@ -716,6 +720,12 @@ nh_timeout()
                 HFumbling &= ~FROMOUTSIDE;
                 if (Fumbling)
                     incr_itimeout(&HFumbling, rnd(20));
+
+                if (iflags.defer_decor) {
+                    /* 'mention_decor' was deferred for message sequencing
+                       reasons; catch up now */
+                    deferred_decor(FALSE);
+                }
                 break;
             case DETECT_MONSTERS:
                 see_monsters();

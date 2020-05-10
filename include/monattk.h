@@ -77,11 +77,12 @@
 #define AD_SLIM 40  /* turns you into green slime */
 #define AD_ENCH 41  /* remove enchantment (disenchanter) */
 #define AD_CORR 42  /* corrode armor (black pudding) */
-#define AD_CURS 43 /* random curse (ex. gremlin) */
-#define AD_CLRC 44 /* random clerical spell */
-#define AD_SPEL 45 /* random magic spell */
-#define AD_RBRE 46 /* random breath weapon */
-#define AD_SAMU 47 /* hits, may steal Amulet (Wizard) */
+#define AD_CURS 43  /* random curse (ex. gremlin) */
+#define AD_POLY 44  /* polymorph the target (genetic engineer) */
+#define AD_CLRC 45  /* random clerical spell */
+#define AD_SPEL 46  /* random magic spell */
+#define AD_RBRE 47  /* random breath weapon */
+#define AD_SAMU 48  /* hits, may steal Amulet (Wizard) */
 #define LAST_AD AD_SAMU
 
 /*

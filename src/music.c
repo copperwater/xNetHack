@@ -33,6 +33,7 @@ static void FDECL(charm_snakes, (int));
 static void FDECL(calm_nymphs, (int));
 static void FDECL(charm_monsters, (int));
 static void FDECL(do_earthquake, (int));
+static const char *NDECL(generic_lvl_desc);
 static int FDECL(do_improvisation, (struct obj *));
 
 /*
@@ -468,7 +469,7 @@ int force;
         }
 }
 
-const char *
+static const char *
 generic_lvl_desc()
 {
     if (Is_astralevel(&u.uz))

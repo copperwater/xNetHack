@@ -1,4 +1,4 @@
-/* NetHack 3.6	makemon.c	$NHDT-Date: 1585361050 2020/03/28 02:04:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.162 $ */
+/* NetHack 3.6	makemon.c	$NHDT-Date: 1587024537 2020/04/16 08:08:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.168 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -22,8 +22,7 @@ static void FDECL(m_initgrp, (struct monst *, int, int, int, int));
 static void FDECL(m_initthrow, (struct monst *, int, int));
 static void FDECL(m_initweap, (struct monst *));
 static void FDECL(m_initinv, (struct monst *));
-static boolean FDECL(makemon_rnd_goodpos, (struct monst *,
-                                               unsigned, coord *));
+static boolean FDECL(makemon_rnd_goodpos, (struct monst *, long, coord *));
 
 #define m_initsgrp(mtmp, x, y, mmf) m_initgrp(mtmp, x, y, 3, mmf)
 #define m_initlgrp(mtmp, x, y, mmf) m_initgrp(mtmp, x, y, 10, mmf)
@@ -1076,11 +1075,11 @@ newmextra()
 static boolean
 makemon_rnd_goodpos(mon, gpflags, cc)
 struct monst *mon;
-unsigned gpflags;
+long gpflags;
 coord *cc;
 {
     int tryct = 0;
-    int nx,ny;
+    int nx, ny;
     boolean good;
 
     do {
@@ -1149,7 +1148,7 @@ struct monst *
 makemon(ptr, x, y, mmflags)
 register struct permonst *ptr;
 register int x, y;
-int mmflags;
+long mmflags;
 {
     register struct monst *mtmp;
     struct monst fakemon;
@@ -1460,7 +1459,7 @@ int mmflags;
 struct monst *
 unmakemon(mon, mmflags)
 struct monst *mon;
-int mmflags;
+long mmflags;
 {
     boolean countbirth = ((mmflags & MM_NOCOUNTBIRTH) == 0);
     int mndx = monsndx(mon->data);
@@ -2064,11 +2063,10 @@ int otyp;
             }
         }
 
-        /* otmp might be merged into their inventory and freed. If that happens,
-         * we no longer have a pointer to the object here, so it's the caller's
-         * responsibility to check this return value. */
-        if (mpickobj(mtmp, otmp))
-            return NULL;
+        if (mpickobj(mtmp, otmp)) {
+            /* otmp was freed via merging with something else */
+            otmp = (struct obj *) 0;
+        }
     }
     return otmp;
 }
@@ -2230,7 +2228,7 @@ struct monst *mtmp;
 }
 
 static const NEARDATA char syms[] = {
-    MAXOCLASSES,  MAXOCLASSES + 1, RING_CLASS,   WAND_CLASS,   WEAPON_CLASS,
+    MAXOCLASSES,  MAXOCLASSES,     RING_CLASS,   WAND_CLASS,   WEAPON_CLASS,
     FOOD_CLASS,   COIN_CLASS,      SCROLL_CLASS, POTION_CLASS, ARMOR_CLASS,
     AMULET_CLASS, TOOL_CLASS,      ROCK_CLASS,   GEM_CLASS,    SPBOOK_CLASS,
     S_MIMIC_DEF,  S_MIMIC_DEF,
@@ -2284,7 +2282,9 @@ register struct monst *mtmp;
             appear = S_hcdoor;
         else
             appear = S_vcdoor;
-    } else if (g.level.flags.is_maze_lev && !In_sokoban(&u.uz) && rn2(2)) {
+    } else if (g.level.flags.is_maze_lev
+               && !(In_mines(&u.uz) && in_town(u.ux, u.uy))
+               && !In_sokoban(&u.uz) && rn2(2)) {
         ap_type = M_AP_OBJECT;
         appear = STATUE;
     } else if (roomno < 0 && !t_at(mx, my)) {
@@ -2315,17 +2315,28 @@ register struct monst *mtmp;
         if (s_sym < 0) {
             ap_type = M_AP_OBJECT;
             appear = -s_sym;
+        } else if (rt == FODDERSHOP && s_sym > MAXOCLASSES) {
+            /* health food store usually generates pseudo-class
+               VEGETARIAN_CLASS which is MAXOCLASSES+1; we don't bother
+               trying to select among all possible vegetarian food items */
+            ap_type = M_AP_OBJECT;
+            appear = rn2(2) ? LUMP_OF_ROYAL_JELLY : SLIME_MOLD;
         } else {
-            if (s_sym == RANDOM_CLASS)
-                s_sym = syms[rn2((int) sizeof(syms) - 2) + 2];
+            if (s_sym == RANDOM_CLASS || s_sym >= MAXOCLASSES)
+                s_sym = syms[rn2(SIZE(syms) - 2) + 2];
             goto assign_sym;
         }
     } else {
-        s_sym = syms[rn2((int) sizeof(syms))];
+        s_sym = syms[rn2(SIZE(syms))];
  assign_sym:
-        if (s_sym == MAXOCLASSES || s_sym == MAXOCLASSES + 1) {
+        if (s_sym == MAXOCLASSES) {
+            static const int furnsyms[] = {
+                S_upstair, S_upstair, S_dnstair, S_dnstair,
+                S_altar, S_grave, S_throne, S_sink
+            };
+
             ap_type = M_AP_FURNITURE;
-            appear = (s_sym == MAXOCLASSES) ? S_upstair : S_dnstair;
+            appear = furnsyms[rn2(SIZE(furnsyms))];
         } else {
             ap_type = M_AP_OBJECT;
             if (s_sym == S_MIMIC_DEF) {

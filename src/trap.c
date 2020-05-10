@@ -1,4 +1,4 @@
-/* NetHack 3.6	trap.c	$NHDT-Date: 1582799195 2020/02/27 10:26:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.353 $ */
+/* NetHack 3.6	trap.c	$NHDT-Date: 1586382778 2020/04/08 21:52:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.358 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -9,6 +9,8 @@ extern const char *const destroy_strings[][3]; /* from zap.c */
 
 static boolean FDECL(keep_saddle_with_steedcorpse, (unsigned, struct obj *,
                                                     struct obj *));
+static boolean FDECL(mu_maybe_destroy_web, (struct monst *, BOOLEAN_P,
+                                            struct trap *));
 static char *FDECL(trapnote, (struct trap *, BOOLEAN_P));
 static int FDECL(steedintrap, (struct trap *, struct obj *));
 static void FDECL(launch_drop_spot, (struct obj *, XCHAR_P, XCHAR_P));
@@ -852,7 +854,7 @@ struct obj *objchn, *saddle;
 
 /* monster or you go through and possibly destroy a web.
    return TRUE if could go through. */
-boolean
+static boolean
 mu_maybe_destroy_web(mtmp, domsg, trap)
 struct monst *mtmp;
 boolean domsg;
@@ -3610,6 +3612,10 @@ xchar x, y;
     struct obj *obj, *nobj;
     int num = 0;
 
+    /* erode_obj() relies on bhitpos if target objects aren't carried by
+       the hero or a monster, to check visibility controlling feedback */
+    g.bhitpos.x = x, g.bhitpos.y = y;
+
     for (obj = chain; obj; obj = nobj) {
         nobj = here ? obj->nexthere : obj->nobj;
         if (fire_damage(obj, force, x, y))
@@ -3881,6 +3887,10 @@ boolean do_container;
     struct obj *nobj;
     int i = 0, j;
     struct obj** to_damage = NULL;
+    xchar x, y;
+
+    if (!obj)
+        return;
 
     if (count >= 1) {
         /* reservoir sampling: setup */
@@ -3904,6 +3914,11 @@ boolean do_container;
        acid nor unseen have exploded during this water damage sequence */
     g.acid_ctx.dkn_boom = g.acid_ctx.unk_boom = 0;
     g.acid_ctx.ctx_valid = TRUE;
+
+    /* erode_obj() relies on bhitpos if target objects aren't carried by
+       the hero or a monster, to check visibility controlling feedback */
+    if (get_obj_location(obj, &x, &y, CONTAINED_TOO))
+        g.bhitpos.x = x, g.bhitpos.y = y;
 
     for (otmp = obj; otmp; otmp = nobj) {
         /* if acid explodes or other item destruction happens, otmp will be
@@ -4282,7 +4297,8 @@ struct trap *ttmp;
     if (!Punished
         || drag_ball(x, y, &bc, &bx, &by, &cx, &cy, &unused, TRUE)) {
         u.ux0 = u.ux, u.uy0 = u.uy;
-        u.ux = x, u.uy = y;
+        /* set u.ux,u.uy and u.usteed->mx,my plus handle CLIPPING */
+        u_on_newpos(x, y);
         u.umoved = TRUE;
         newsym(u.ux0, u.uy0);
         vision_recalc(1);
@@ -5173,7 +5189,10 @@ boolean disarm;
         case 18:
         case 17:
             pline("A cloud of noxious gas billows from %s.", the(xname(obj)));
-            poisoned("gas cloud", A_STR, "cloud of poison gas", 15, FALSE);
+            if (rn2(3))
+                poisoned("gas cloud", A_STR, "cloud of poison gas", 15, FALSE);
+            else
+                create_gas_cloud(obj->ox, obj->oy, 1, 8);
             exercise(A_CON, FALSE);
             break;
         case 16:

@@ -1938,13 +1938,14 @@ struct obj *obj;
 }
 
 void
-use_unicorn_horn(obj, passive)
-struct obj *obj;
+use_unicorn_horn(optr, passive)
+struct obj **optr;
 boolean passive;
 {
 #define PROP_COUNT 7           /* number of properties we're dealing with */
     int idx, val, val_limit, trouble_count, unfixable_trbl, did_prop;
     int trouble_list[PROP_COUNT];
+    struct obj *obj = (optr ? *optr : (struct obj *) 0);
 
     if (obj && obj->cursed) {
         long lcount = (long) rn1(90, 10);
@@ -1989,8 +1990,7 @@ boolean passive;
 /*
  * Entries in the trouble list use a very simple encoding scheme.
  */
-#define prop2trbl(X) ((X) + A_MAX)
-#define prop_trouble(X) trouble_list[trouble_count++] = prop2trbl(X)
+#define prop_trouble(X) trouble_list[trouble_count++] = (X)
 #define TimedTrouble(P) (((P) && !((P) & ~TIMEOUT)) ? ((P) & TIMEOUT) : 0L)
 
     trouble_count = unfixable_trbl = did_prop = 0;
@@ -2013,22 +2013,11 @@ boolean passive;
     if (TimedTrouble(HDeaf))
         prop_trouble(DEAF);
 
-    unfixable_trbl = unfixable_trouble_count(TRUE);
-
-    if (trouble_count == 0 && !passive) {
+    if (trouble_count == 0) {
         pline1(nothing_happens);
         return;
-    } else if (trouble_count > 1) { /* shuffle */
-        int i, j, k;
-
-        for (i = trouble_count - 1; i > 0; i--) {
-            if ((j = rn2(i + 1)) != i) {
-                k = trouble_list[j];
-                trouble_list[j] = trouble_list[i];
-                trouble_list[i] = k;
-            }
-        }
-    }
+    } else if (trouble_count > 1)
+        shuffle_int_array(trouble_list, trouble_count);
 
     /*
      *  Chances for number of troubles to be fixed
@@ -2045,31 +2034,31 @@ boolean passive;
         idx = trouble_list[val];
 
         switch (idx) {
-        case prop2trbl(SICK):
+        case SICK:
             make_sick(0L, (char *) 0, TRUE, SICK_ALL);
             did_prop++;
             break;
-        case prop2trbl(BLINDED):
+        case BLINDED:
             make_blinded((long) u.ucreamed, TRUE);
             did_prop++;
             break;
-        case prop2trbl(HALLUC):
+        case HALLUC:
             (void) make_hallucinated(0L, TRUE, 0L);
             did_prop++;
             break;
-        case prop2trbl(VOMITING):
+        case VOMITING:
             make_vomiting(0L, TRUE);
             did_prop++;
             break;
-        case prop2trbl(CONFUSION):
+        case CONFUSION:
             make_confused(0L, TRUE);
             did_prop++;
             break;
-        case prop2trbl(STUNNED):
+        case STUNNED:
             make_stunned(0L, TRUE);
             did_prop++;
             break;
-        case prop2trbl(DEAF):
+        case DEAF:
             make_deaf(0L, TRUE);
             did_prop++;
             break;
@@ -2079,12 +2068,13 @@ boolean passive;
         }
     }
 
-    if (!did_prop && !passive)
+    if (did_prop)
+        g.context.botl = TRUE;
+    else if (!passive)
         pline("Nothing seems to happen.");
 
     g.context.botl = did_prop;
 #undef PROP_COUNT
-#undef prop2trbl
 #undef prop_trouble
 #undef TimedTrouble
 }
@@ -2777,6 +2767,12 @@ struct obj *obj;
         if (u.usteed && !rn2(proficient + 2)) {
             You("whip %s!", mon_nam(u.usteed));
             kick_steed();
+            return 1;
+        }
+        if (is_pool_or_lava(u.ux, u.uy)) {
+            You("cause a small splash.");
+            if (is_lava(u.ux, u.uy))
+                (void) fire_damage(uwep, FALSE, u.ux, u.uy);
             return 1;
         }
         if (Levitation || u.usteed) {
@@ -3950,7 +3946,7 @@ doapply()
         use_figurine(&obj);
         break;
     case UNICORN_HORN:
-        use_unicorn_horn(obj, FALSE);
+        use_unicorn_horn(&obj, FALSE);
         break;
     case FLUTE:
     case MAGIC_FLUTE:

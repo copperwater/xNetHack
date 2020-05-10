@@ -1,4 +1,4 @@
-/* NetHack 3.6	mklev.c	$NHDT-Date: 1562455089 2019/07/06 23:18:09 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.63 $ */
+/* NetHack 3.6	mklev.c	$NHDT-Date: 1587291592 2020/04/19 10:19:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.85 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Alex Smith, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,6 +10,9 @@
 /* conversion of result to int is reasonable */
 
 static int FDECL(mkmonst_in_room, (struct mkroom *));
+static boolean FDECL(generate_stairs_room_good, (struct mkroom *, int));
+static struct mkroom *NDECL(generate_stairs_find_room);
+static void NDECL(generate_stairs);
 static boolean FDECL(find_okay_roompos, (struct mkroom *, coord *));
 static void NDECL(makevtele);
 void NDECL(clear_level_structures);
@@ -99,10 +102,14 @@ xchar xl, yl, xh, yh;
     return;
 }
 
-/* Sort the rooms array, using do_comp as the comparison function. */
+/* Sort rooms on the level so they're ordered from left to right on the map.
+   makecorridors() by default links rooms N and N+1 */
 void
 sort_rooms()
 {
+    int i, x, y;
+    int ri[MAXNROFROOMS+1];
+
 #if defined(SYSV) || defined(DGUX)
 #define CAST_nroom (unsigned) g.nroom
 #else
@@ -110,6 +117,17 @@ sort_rooms()
 #endif
     qsort((genericptr_t) g.rooms, CAST_nroom, sizeof (struct mkroom), do_comp);
 #undef CAST_nroom
+
+    /* Update the roomnos on the map */
+    for (i = 0; i < g.nroom; i++)
+        ri[g.rooms[i].roomnoidx] = i;
+
+    for (x = 1; x < COLNO; x++)
+        for (y = 0; y < ROWNO; y++) {
+            int rno = levl[x][y].roomno;
+            if (rno >= ROOMOFFSET && rno < MAXNROFROOMS+1)
+                levl[x][y].roomno = ri[rno - ROOMOFFSET] + ROOMOFFSET;
+        }
 }
 
 /* Initialize the croom struct and the portion of the level it sits on. This
@@ -160,6 +178,7 @@ boolean is_room;
     } else
         croom->rlit = 0;
 
+    croom->roomnoidx = (croom - g.rooms);
     croom->lx = lowx;
     croom->hx = hix;
     croom->ly = lowy;
@@ -176,6 +195,7 @@ boolean is_room;
     croom->nsubrooms = 0;
     croom->sbrooms[0] = (struct mkroom *) 0;
     if (!special) {
+        croom->needjoining = TRUE;
         for (x = lowx - 1; x <= hix + 1; x++)
             for (y = lowy - 1; y <= hiy + 1; y += (hiy - lowy + 2)) {
                 levl[x][y].typ = HWALL;
@@ -246,12 +266,50 @@ boolean special;
     g.nsubroom++;
 }
 
+void
+free_luathemes(keependgame)
+boolean keependgame; /* False: exiting, True: discarding main dungeon */
+{
+    int i;
+
+    for (i = 0; i < g.n_dgns; ++i) {
+        if (keependgame && i == astral_level.dnum)
+            continue;
+        if (g.luathemes[i]) {
+            lua_close((lua_State *) g.luathemes[i]);
+            g.luathemes[i] = (lua_State *) 0;
+        }
+    }
+}
+
 /* Repeatedly create rooms and place them on the map until we can't create any
  * more. */
 static void
 makerooms()
 {
     boolean tried_vault = FALSE;
+    int themeroom_tries = 0;
+    char *fname;
+    lua_State *themes = (lua_State *) g.luathemes[u.uz.dnum];
+
+    if (!themes && *(fname = g.dungeons[u.uz.dnum].themerms)) {
+        if ((themes = nhl_init()) != 0) {
+            if (!nhl_loadlua(themes, fname)) {
+                /* loading lua failed, don't use themed rooms */
+                lua_close(themes);
+                themes = (lua_State *) 0;
+            } else {
+                /* success; save state for this dungeon branch */
+                g.luathemes[u.uz.dnum] = (genericptr_t) themes;
+            }
+        }
+        if (!themes) /* don't try again when making next level */
+            *fname = '\0'; /* g.dungeons[u.uz.dnum].themerms */
+    }
+
+    if (themes) {
+        create_des_coder();
+    }
 
     /* rnd_rect() will return 0 if no more rects are available... */
     while (g.nroom < MAXNROFROOMS && rnd_rect()) {
@@ -269,14 +327,30 @@ makerooms()
                 g.rooms[g.nroom].hx = -1;
             }
         } else {
-            /* Try to create another random room. If it can't find anywhere for
-             * one to go, stop making rooms.
-             * Use the parameters for a totally random ordinary room. */
-            if (!create_room(-1, -1, -1, -1, -1, -1, OROOM, -1))
-                return;
+            if (themes) {
+                g.in_mk_themerooms = TRUE;
+                g.themeroom_failed = FALSE;
+                lua_getglobal(themes, "themerooms_generate");
+                lua_call(themes, 0, 0);
+                g.in_mk_themerooms = FALSE;
+                if (g.themeroom_failed
+                    && ((themeroom_tries++ > 10)
+                        || (g.nroom >= (MAXNROFROOMS / 6))))
+                    break;
+            } else {
+                /* Try to create another random room. If it can't find anywhere for
+                 * one to go, stop making rooms.
+                 * Use the parameters for a totally random ordinary room. */
+                if (!create_room(-1, -1, -1, -1, -1, -1, OROOM, -1))
+                    break;;
+            }
         }
     }
-    return;
+    if (themes) {
+        wallification(1, 0, COLNO - 1, ROWNO - 1);
+        free(g.coder);
+        g.coder = NULL;
+    }
 }
 
 /* Join rooms a and b together by drawing a corridor and placing doors.
@@ -298,6 +372,9 @@ boolean nxcor;
 
     croom = &g.rooms[a];
     troom = &g.rooms[b];
+
+    if (!croom->needjoining || !troom->needjoining)
+        return;
 
     /* find positions cc and tt for doors in croom and troom
        and direction for a corridor between them */
@@ -369,8 +446,8 @@ boolean nxcor;
     dest.x = tx;
     dest.y = ty;
 
-    if (!dig_corridor(&org, &dest, nxcor, g.level.flags.arboreal ? ROOM : CORR,
-                      STONE))
+    if (!dig_corridor(&org, &dest, nxcor,
+                      g.level.flags.arboreal ? ROOM : CORR, STONE))
         return;
 
     /* We succeeded in digging the corridor.
@@ -929,7 +1006,7 @@ clear_level_structures()
 static void
 makelevel()
 {
-    register struct mkroom *croom, *troom;
+    register struct mkroom *croom;
     register int tryct;
     register int x, y;
     branch *branchp;
@@ -986,28 +1063,7 @@ makelevel()
     /* order rooms[] by x-coordinate */
     sort_rooms();
 
-    /* construct stairs (up and down in different rooms if possible) */
-    croom = &g.rooms[rn2(g.nroom)];
-    if (!Is_botlevel(&u.uz))
-        mkstairs(somex(croom), somey(croom), 0); /* down */
-    if (g.nroom > 1) {
-        troom = croom;
-        croom = &g.rooms[rn2(g.nroom - 1)];
-        /* slight bias here for upstairs to be 1 room to the right of the
-         * downstairs room */
-        if (croom == troom)
-            croom++;
-    }
-
-    /* now do the upstairs */
-    if (u.uz.dlevel != 1) {
-        xchar sx, sy;
-        do {
-            sx = somex(croom);
-            sy = somey(croom);
-        } while (occupied(sx, sy));
-        mkstairs(sx, sy, 1); /* up */
-    }
+    generate_stairs(); /* up and down stairs */
 
     branchp = Is_branchlev(&u.uz);    /* possible dungeon branch */
     makecorridors();
@@ -1065,13 +1121,19 @@ makelevel()
     /* for each room: put things inside */
     for (croom = g.rooms; croom->hx > 0; croom++) {
         int trycnt = 0;
-        if (croom->rtype != OROOM)
+        coord pos;
+        if (croom->rtype != OROOM && croom->rtype != THEMEROOM)
+            continue;
+        if (!croom->needfill)
             continue;
 
         /* maybe place some dungeon features inside
          * This should go first because it's capable of creating non-ACCESSIBLE
          * terrain types; we don't want to embed any monsters, objects, or traps
-         * in a tree. */
+         * in a tree.
+         * [3.7]: Most or all of the below functions use somexyspace, which
+         * attempts to find a ROOM, CORR or ICE square, all of which are
+         * ACCESSIBLE. */
         if (!rn2(10))
             mkfeature(FOUNTAIN, croom);
         if (!rn2(60))
@@ -1100,34 +1162,24 @@ makelevel()
         }
 
         /* maybe put some gold inside */
-        if (!rn2(3)) {
-            x = somex(croom);
-            y = somey(croom);
-            /* not occupied(); various walkable types of furniture are fine */
-            if (ACCESSIBLE(levl[x][y].typ)) {
-                (void) mkgold(0L, x, y);
-            }
+        if (!rn2(3) && somexyspace(croom, &pos)) {
+            (void) mkgold(0L, pos.x, pos.y);
         }
 
         /* put statues inside */
-        if (!rn2(20)) {
-            x = somex(croom);
-            y = somey(croom);
-            if (ACCESSIBLE(levl[x][y].typ))
-                (void) mkcorpstat(STATUE, (struct monst *) 0,
-                                (struct permonst *) 0, x, y, CORPSTAT_INIT);
+        if (!rn2(20) && somexyspace(croom, &pos)) {
+            (void) mkcorpstat(STATUE, (struct monst *) 0,
+                              (struct permonst *) 0, pos.x,
+                              pos.y, CORPSTAT_INIT);
         }
         /* put box/chest inside;
          *  40% chance for at least 1 box, regardless of number
          *  of rooms; about 5 - 7.5% for 2 boxes, least likely
          *  when few rooms; chance for 3 or more is negligible.
          */
-        if (!rn2(g.nroom * 5 / 2)) {
-            x = somex(croom);
-            y = somey(croom);
-            if (ACCESSIBLE(levl[x][y].typ))
-                (void) mksobj_at((rn2(3)) ? LARGE_BOX : CHEST, x, y,
-                                 TRUE, FALSE);
+        if (!rn2(g.nroom * 5 / 2) && somexyspace(croom, &pos)) {
+            (void) mksobj_at((rn2(3)) ? LARGE_BOX : CHEST,
+                             pos.x, pos.y, TRUE, FALSE);
         }
 
         /* Maybe make some graffiti.
@@ -1139,33 +1191,20 @@ makelevel()
             char buf[BUFSZ];
             getrumor(1, buf, TRUE);
             do { /* avoid other features */
-                x = somex(croom);
-                y = somey(croom);
-            } while (levl[x][y].typ != ROOM || t_at(x, y));
-            make_engr_at(x, y, buf, 0, MARK);
+                somexyspace(croom, &pos);
+            } while (levl[pos.x][pos.y].typ != ROOM || t_at(pos.x, pos.y));
+            make_engr_at(pos.x, pos.y, buf, 0, MARK);
         }
         else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
             mkfeature(0, croom);
         }
 
-        /* place a random object in the room, with a recursive 20% chance of
-         * placing another */
-        if (rnd(5) <= 2) {
-            x = somex(croom);
-            y = somey(croom);
-            if (ACCESSIBLE(levl[x][y].typ))
-                (void) mkobj_at(0, x, y, TRUE);
-            tryct = 0;
-            while (!rn2(5)) {
-                if (++tryct > 100) {
-                    impossible("tryct overflow4");
-                    break;
-                }
-                x = somex(croom);
-                y = somey(croom);
-                if (ACCESSIBLE(levl[x][y].typ))
-                    (void) mkobj_at(0, x, y, TRUE);
-            }
+        /* place a random object in the room (40% chance), with a recursive 20%
+         * chance of placing another */
+        x = 2;
+        while (rnd(5) <= x && somexyspace(croom, &pos)) {
+            (void) mkobj_at(0, pos.x, pos.y, TRUE);
+            x = 1;
         }
     }
 }
@@ -1414,24 +1453,10 @@ coord *mp;
     if (g.nroom == 0) {
         mazexy(mp); /* already verifies location */
     } else {
-        int cnt = 0;
-        /* not perfect - there may be only one stairway */
-        if (g.nroom > 2) {
-            int tryct = 0;
+        croom = generate_stairs_find_room();
 
-            do
-                croom = &g.rooms[rn2(g.nroom)];
-            while ((has_upstairs(croom) || has_dnstairs(croom)
-                    || croom->rtype != OROOM) && (++tryct < 100));
-        } else
-            croom = &g.rooms[rn2(g.nroom)];
-
-        do {
-            if (!somexy(croom, mp))
-                impossible("Can't place branch!");
-        } while ((occupied(mp->x, mp->y)
-                 || (levl[mp->x][mp->y].typ != CORR
-                     && levl[mp->x][mp->y].typ != ROOM)) && (++cnt < 1000));
+        if (!somexyspace(croom, mp))
+            impossible("Can't place branch!");
     }
     return croom;
 }
@@ -1555,6 +1580,10 @@ xchar x, y;
     boolean near_door = bydoor(x, y);
 
     return ((levl[x][y].typ == HWALL || levl[x][y].typ == VWALL)
+            && ((isok(x - 1, y) && !IS_ROCK(levl[x - 1][y].typ))
+                || (isok(x + 1, y) && !IS_ROCK(levl[x + 1][y].typ))
+                || (isok(x, y - 1) && !IS_ROCK(levl[x][y - 1].typ))
+                || (isok(x, y + 1) && !IS_ROCK(levl[x][y + 1].typ)))
             && g.doorindex < DOORMAX && !near_door);
 }
 
@@ -1893,23 +1922,99 @@ char up; /* should probably be boolean... */
     levl[x][y].ladder = up ? LA_UP : LA_DOWN;
 }
 
+/* is room a good one to generate up or down stairs in? */
+/* phase values, smaller allows for more relaxed criteria:
+     2 == no relaxed criteria
+     1 == allow a themed room
+     0 == allow same room as existing up/downstairs
+    -1 == allow an unjoined room
+*/
+static boolean
+generate_stairs_room_good(croom, phase)
+struct mkroom *croom;
+int phase;
+{
+    return (croom && (croom->needjoining || (phase < 0))
+            && ((!has_upstairs(croom) && !has_dnstairs(croom))
+                || phase < 1)
+            && (croom->rtype == OROOM
+                || ((phase < 2) || croom->rtype == THEMEROOM)));
+}
+
+/* find a good room to generate an up or down stairs in */
+static struct mkroom *
+generate_stairs_find_room()
+{
+    struct mkroom *croom;
+    int i, phase, tryct = 0;
+
+    if (!g.nroom)
+        return (struct mkroom *) 0;
+
+    for (phase = 2; phase > -1; phase--) {
+        do {
+            croom = &g.rooms[rn2(g.nroom)];
+        } while (!generate_stairs_room_good(croom, phase) && (tryct++ < 50));
+        if (tryct < 50)
+            return croom;
+    }
+
+    for (phase = 2; phase > -2; phase--) {
+        for (i = 0; i < g.nroom; i++) {
+            croom = &g.rooms[i];
+            if (generate_stairs_room_good(croom, phase))
+                return croom;
+        }
+    }
+
+    croom = &g.rooms[rn2(g.nroom)];
+    return croom;
+}
+
+/* construct stairs up and down within the same branch,
+   up and down in different rooms if possible */
+static void
+generate_stairs()
+{
+    struct mkroom *croom = generate_stairs_find_room();
+    coord pos;
+
+    if (!Is_botlevel(&u.uz)) {
+        if (!somexyspace(croom, &pos)) {
+            pos.x = somex(croom);
+            pos.y = somey(croom);
+        }
+        mkstairs(pos.x, pos.y, 0); /* down */
+    }
+
+    if (g.nroom > 1)
+        croom = generate_stairs_find_room();
+
+    /* now do the upstairs */
+    if (u.uz.dlevel != 1) {
+        if (!somexyspace(croom, &pos)) {
+            pos.x = somex(croom);
+            pos.y = somey(croom);
+        }
+        mkstairs(pos.x, pos.y, 1); /* up */
+    }
+}
+
 /* Return number of monsters created. */
 int
 mkmonst_in_room(croom)
 struct mkroom* croom;
 {
-    int x,y;
     int num_monst = 1;
     struct monst *tmonst; /* always put a web with a spider */
-    do {
-        x = somex(croom);
-        y = somey(croom);
-    } while (!ACCESSIBLE(levl[x][y].typ)
-             || levl[x][y].typ == STAIRS || levl[x][y].typ == LADDER);
-    tmonst = makemon((struct permonst *) 0, x, y, NO_MM_FLAGS);
+    coord pos;
+    if (!somexyspace(croom, &pos)) {
+        return 0; /* can't place any monsters */
+    }
+    tmonst = makemon((struct permonst *) 0, pos.x, pos.y, MM_NOGRP);
     if (tmonst && tmonst->data == &mons[PM_GIANT_SPIDER]
-        && !occupied(x, y)) {
-        (void) maketrap(x, y, WEB);
+        && !occupied(pos.x, pos.y)) {
+        (void) maketrap(pos.x, pos.y, WEB);
     }
     /* maybe place another monster in the same room */
     if(!rn2(3)) {

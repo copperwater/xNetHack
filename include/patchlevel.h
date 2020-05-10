@@ -13,7 +13,7 @@
  * Incrementing EDITLEVEL can be used to force invalidation of old bones
  * and save files.
  */
-#define EDITLEVEL 0
+#define EDITLEVEL 1
 
 #define COPYRIGHT_BANNER_A "xNetHack 5.1, Copyright 2020, based on NetHack, Copyright 1985-2020"
 #define COPYRIGHT_BANNER_B "by Stichting Mathematisch Centrum and M. Stephenson. See license for details."
@@ -29,7 +29,7 @@
  * PP = patch level, ee = edit level, L = literal suffix "L",
  * with all four numbers specified as two hexadecimal digits.
  */
-#define VERSION_COMPATIBILITY 0x05010000L
+#define VERSION_COMPATIBILITY 0x05010001L
 
 /*
  *  xNetHack changes are not documented here; see the changelog and wiki for

@@ -26,7 +26,6 @@ static void FDECL(migrate_mon, (struct monst *, XCHAR_P, XCHAR_P));
 static boolean FDECL(ok_to_obliterate, (struct monst *));
 static void FDECL(deal_with_overcrowding, (struct monst *));
 
-/* note: duplicated in dog.c */
 #define LEVEL_SPECIFIC_NOCORPSE(mdat) \
      (g.level.flags.graveyard && is_undead(mdat) && rn2(3))
 
@@ -1086,7 +1085,7 @@ register struct monst *mtmp;
 {
     register struct obj *otmp;
     struct permonst *ptr;
-    int poly, grow, heal, mstone;
+    int poly, grow, heal, mstone, vis = canseemon(mtmp);
 
     /* If a pet, eating is handled separately, in dog.c */
     if (mtmp->mtame)
@@ -1103,18 +1102,19 @@ register struct monst *mtmp;
         if (is_metallic(otmp) && !obj_resists(otmp, 5, 95)
             && touch_artifact(otmp, mtmp)) {
             if (mtmp->data == &mons[PM_RUST_MONSTER] && otmp->oerodeproof) {
-                if (canseemon(mtmp) && flags.verbose) {
+                if (vis && flags.verbose) {
                     pline("%s eats %s!", Monnam(mtmp),
                           distant_name(otmp, doname));
                 }
                 /* The object's rustproofing is gone now */
                 otmp->oerodeproof = 0;
                 mtmp->mstun = 1;
-                if (canseemon(mtmp) && flags.verbose) {
+                if (vis && flags.verbose) {
                     pline("%s spits %s out in disgust!", Monnam(mtmp),
                           distant_name(otmp, doname));
                 }
             } else {
+                /* [should this be canseemon()?] */
                 if (cansee(mtmp->mx, mtmp->my) && flags.verbose)
                     pline("%s eats %s!", Monnam(mtmp),
                           distant_name(otmp, doname));
@@ -1133,39 +1133,49 @@ register struct monst *mtmp;
                 } else if (otmp == uchain) {
                     unpunish(); /* frees uchain */
                 } else {
+                    /* these can occur via eating metal if it's a tin
+                       [can't be slimed; that could only happen via glob] */
                     poly = polyfodder(otmp);
                     grow = mlevelgain(otmp);
                     heal = mhealup(otmp);
                     mstone = mstoning(otmp);
                     ptr = mtmp->data;
-
-                    if (poly || grow || heal || mstone || !rn2(7)) {
+                    if (poly) {
                         delobj(otmp);
-                        if (poly) {
-                            if (newcham(mtmp, (struct permonst *) 0, FALSE,
-                                        FALSE))
-                                ptr = mtmp->data;
-                        } else if (grow) {
-                            ptr = grow_up(mtmp, (struct monst *) 0);
-                        } else if (mstone) {
-                            if (poly_when_stoned(ptr)) {
-                                mon_to_stone(mtmp);
-                                ptr = mtmp->data;
-                            } else if (!resists_ston(mtmp)) {
-                                if (canseemon(mtmp))
-                                    pline("%s turns to stone!", Monnam(mtmp));
-                                monstone(mtmp);
+                        if (newcham(mtmp, (struct permonst *) 0, FALSE, vis))
+                            ptr = mtmp->data;
+                    } else if (grow) {
+                        delobj(otmp);
+                        ptr = grow_up(mtmp, (struct monst *) 0);
+                    } else if (mstone) {
+                        delobj(otmp);
+                        if (poly_when_stoned(ptr)) {
+                            mon_to_stone(mtmp);
+                            ptr = mtmp->data;
+                        } else if (!resists_ston(mtmp)) {
+                            if (vis)
+                                pline("%s turns to stone!", Monnam(mtmp));
+                            monstone(mtmp);
+                            /* might be life-saved if had a previous shape
+                               which was capable to putting on an amulet */
+                            if (DEADMONSTER(mtmp))
                                 ptr = (struct permonst *) 0;
-                            }
-                        } else if (heal) {
-                            mtmp->mhp = mtmp->mhpmax;
                         }
-                    }
-                    else {
-                        /* metal is slow to digest... put it in the monster's
-                         * "stomach" */
-                        obj_extract_self(otmp);
-                        add_to_minv(mtmp, otmp);
+                    } else if (heal) {
+                        delobj(otmp);
+                        mtmp->mhp = mtmp->mhpmax;
+                        mcureblindness(mtmp, canseemon(mtmp));
+                    } else {
+                        /* just eating a not-special metal object.
+                         * Metal is slow to digest... usually put it in the
+                         * monster's "stomach" */
+                        if (!rn2(7)) {
+                            delobj(otmp);
+                        }
+                        else {
+                            obj_extract_self(otmp);
+                            add_to_minv(mtmp, otmp);
+                        }
                     }
                     if (!ptr)
                         return 2; /* it died */
@@ -1188,7 +1198,7 @@ struct monst *mtmp;
 {
     struct obj *otmp, *otmp2;
     struct permonst *ptr, *original_ptr = mtmp->data;
-    int poly, grow, heal, eyes, count = 0, ecount = 0;
+    int poly, grow, heal, eyes, count = 0, ecount = 0, vis = canseemon(mtmp);
     char buf[BUFSZ];
 
     buf[0] = '\0';
@@ -1239,12 +1249,9 @@ struct monst *mtmp;
                        || otmp->otyp == RIN_SLOW_DIGESTION)
                    /* cockatrice corpses handled above; this
                       touch_petrifies() check catches eggs */
-                   || ((otmp->otyp == CORPSE || otmp->otyp == EGG
-                        || otmp->globby)
-                       && ((touch_petrifies(&mons[otmp->corpsenm])
-                            && !resists_ston(mtmp))
-                           || (otmp->corpsenm == PM_GREEN_SLIME
-                               && !slimeproof(mtmp->data))))) {
+                   || (mstoning(otmp) && !resists_ston(mtmp))
+                   || (otmp->otyp == GLOB_OF_GREEN_SLIME
+                       && !slimeproof(mtmp->data))) {
             /* engulf */
             ++ecount;
             if (ecount == 1)
@@ -1293,6 +1300,9 @@ struct monst *mtmp;
                     (void) mpickobj(mtmp, otmp3);
                 }
             }
+            /* possibility of being turned to stone or into slime can't
+               reach here (don't touch for cockatrice corpse, engulf rather
+               than eat for tin, cockatrice egg, or glob of green slime) */
             poly = polyfodder(otmp);
             grow = mlevelgain(otmp);
             heal = mhealup(otmp);
@@ -1300,7 +1310,7 @@ struct monst *mtmp;
             delobj(otmp); /* munch */
             ptr = mtmp->data;
             if (poly) {
-                if (newcham(mtmp, (struct permonst *) 0, FALSE, FALSE))
+                if (newcham(mtmp, (struct permonst *) 0, FALSE, vis))
                     ptr = mtmp->data;
             } else if (grow) {
                 ptr = grow_up(mtmp, (struct monst *) 0);
@@ -1337,13 +1347,14 @@ struct monst* mtmp;
 {
     struct obj *otmp;
     struct permonst *ptr, *original_ptr = mtmp->data, *corpsepm;
-    boolean poly, grow, heal, eyes = FALSE;
+    boolean poly, grow, heal, eyes = FALSE, vis = canseemon(mtmp);
     int x = mtmp->mx, y = mtmp->my;
 
     /* if a pet, eating is handled separately, in dog.c */
     if (mtmp->mtame)
         return 0;
 
+    /* skips past any globs */
     for (otmp = sobj_at(CORPSE, x, y); otmp;
          /* won't get back here if otmp is split or gets used up */
          otmp = nxtobj(otmp, CORPSE, TRUE)) {
@@ -1388,7 +1399,7 @@ struct monst* mtmp;
         ptr = original_ptr;
         delobj(otmp);
         if (poly) {
-            if (newcham(mtmp, NULL, FALSE, FALSE))
+            if (newcham(mtmp, (struct permonst *) 0, FALSE, vis))
                 ptr = mtmp->data;
         } else if (grow) {
             ptr = grow_up(mtmp, (struct monst *) 0);
@@ -1969,10 +1980,12 @@ struct monst *magr, /* monster that is currently deciding where to move */
     struct permonst *pa = magr->data, *pd = mdef->data;
 
     /* if attacker can't barge through, there's nothing to do;
-       or if defender can barge through too, don't let attacker
-       do so, otherwise they might just end up swapping places
-       again when defender gets its chance to move */
-    if ((pa->mflags3 & M3_DISPLACES) != 0 && (pd->mflags3 & M3_DISPLACES) == 0
+       or if defender can barge through too and has a level at least
+       as high as the attacker, don't let attacker do so, otherwise
+       they might just end up swapping places again when defender
+       gets its chance to move */
+    if ((pa->mflags3 & M3_DISPLACES) != 0
+        && ((pd->mflags3 & M3_DISPLACES) == 0 || magr->m_lev > mdef->m_lev)
         /* no displacing grid bugs diagonally */
         && !(magr->mx != mdef->mx && magr->my != mdef->my
              && NODIAG(monsndx(pd)))

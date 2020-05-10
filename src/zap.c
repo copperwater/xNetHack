@@ -1,4 +1,4 @@
-/* NetHack 3.6	zap.c	$NHDT-Date: 1580322890 2020/01/29 18:34:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.330 $ */
+/* NetHack 3.6	zap.c	$NHDT-Date: 1586633039 2020/04/11 19:23:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.335 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -855,6 +855,7 @@ boolean by_hero;
             if (one_of) /* could be simplified to ''corpse->quan = 1L;'' */
                 corpse->quan--;
             pline("%s glows iridescently.", upstart(buf));
+            iflags.last_msg = PLNMSG_OBJ_GLOWS; /* usually for BUC change */
         } else if (shkp) {
             /* need some prior description of the corpse since
                stolen_value() will refer to the object as "it" */
@@ -875,8 +876,7 @@ boolean by_hero;
         struct monst *ghost;
         struct obj *otmp;
 
-        (void) memcpy((genericptr_t) &m_id, (genericptr_t) OMID(corpse),
-                      sizeof m_id);
+        m_id = OMID(corpse);
         ghost = find_mid(m_id, FM_FMON);
         if (ghost && ghost->data == &mons[PM_GHOST]) {
             if (canseemon(ghost))
@@ -960,11 +960,11 @@ struct monst *mon;
     struct obj *otmp, *otmp2;
     struct monst *mtmp2;
     char owner[BUFSZ], corpse[BUFSZ];
-    boolean youseeit;
-    int res = 0;
+    boolean youseeit, different_type, is_u = (mon == &g.youmonst);
+    int corpsenm, res = 0;
 
-    youseeit = (mon == &g.youmonst) ? TRUE : canseemon(mon);
-    otmp2 = (mon == &g.youmonst) ? g.invent : mon->minvent;
+    youseeit = is_u ? TRUE : canseemon(mon);
+    otmp2 = is_u ? g.invent : mon->minvent;
     owner[0] = corpse[0] = '\0'; /* lint suppression */
 
     while ((otmp = otmp2) != 0) {
@@ -975,21 +975,57 @@ struct monst *mon;
             continue;
         /* save the name; the object is liable to go away */
         if (youseeit) {
-            Strcpy(corpse,
-                   corpse_xname(otmp, (const char *) 0, CXN_SINGULAR));
-            Shk_Your(owner, otmp); /* includes a trailing space */
+            Strcpy(corpse, corpse_xname(otmp, (const char *) 0, CXN_NORMAL));
+            /* shk_your/Shk_Your produces a value with a trailing space */
+            if (otmp->quan > 1L) {
+                Strcpy(owner, "One of ");
+                (void) shk_your(eos(owner), otmp);
+            } else
+                (void) Shk_Your(owner, otmp);
         }
-
-        /* for a stack, only one is revived */
+        /* for a stack, only one is revived; if is_u, revive() calls
+           useup() which calls update_inventory() but not encumber_msg() */
+        corpsenm = otmp->corpsenm;
         if ((mtmp2 = revive(otmp, !g.context.mon_moving)) != 0) {
             ++res;
+            /* might get revived as a zombie rather than corpse's monster */
+            different_type = (mtmp2->data != &mons[corpsenm]);
+            if (iflags.last_msg == PLNMSG_OBJ_GLOWS) {
+                /* when hero zaps undead turning at self (or breaks
+                   non-empty wand), revive() reports "[one of] your <mon>
+                   corpse[s] glows iridescently"; override saved corpse
+                   and owner names to say "It comes alive" [note: we did
+                   earlier setup because corpse gets used up but need to
+                   do the override here after revive() sets 'last_msg'] */
+                Strcpy(corpse, "It");
+                owner[0] = '\0';
+            }
             if (youseeit)
-                pline("%s%s suddenly comes alive!", owner, corpse);
+                pline("%s%s suddenly %s%s%s!", owner, corpse,
+                      nonliving(mtmp2->data) ? "reanimates" : "comes alive",
+                      different_type ? " as " : "",
+                      different_type ? an(mtmp2->data->mname) : "");
             else if (canseemon(mtmp2))
                 pline("%s suddenly appears!", Amonnam(mtmp2));
         }
     }
+    if (is_u && res)
+        (void) encumber_msg();
+
     return res;
+}
+
+void
+unturn_you()
+{
+    (void) unturn_dead(&g.youmonst); /* hit carried corpses and eggs */
+
+    if (is_undead(g.youmonst.data)) {
+        You_feel("frightened and %sstunned.", Stunned ? "even more " : "");
+        make_stunned((HStun & TIMEOUT) + (long) rnd(30), FALSE);
+    } else {
+        You("shudder in dread.");
+    }
 }
 
 /* cancel obj, possibly carried by you or a monster */
@@ -997,63 +1033,77 @@ void
 cancel_item(obj)
 register struct obj *obj;
 {
-    boolean u_ring = (obj == uleft || obj == uright);
     int otyp = obj->otyp;
 
-    switch (otyp) {
-    case RIN_GAIN_STRENGTH:
-        if ((obj->owornmask & W_RING) && u_ring) {
-            ABON(A_STR) -= obj->spe;
-            g.context.botl = 1;
+    if (carried(obj)) {
+        /* handle items being worn by hero */
+        switch (otyp) {
+        case RIN_GAIN_STRENGTH:
+            if ((obj->owornmask & W_RING) != 0L) {
+                ABON(A_STR) -= obj->spe;
+                g.context.botl = TRUE;
+            }
+            break;
+        case RIN_GAIN_CONSTITUTION:
+            if ((obj->owornmask & W_RING) != 0L) {
+                ABON(A_CON) -= obj->spe;
+                g.context.botl = TRUE;
+            }
+            break;
+        case RIN_ADORNMENT:
+            if ((obj->owornmask & W_RING) != 0L) {
+                ABON(A_CHA) -= obj->spe;
+                g.context.botl = TRUE;
+            }
+            break;
+        case RIN_INCREASE_ACCURACY:
+            if ((obj->owornmask & W_RING) != 0L)
+                u.uhitinc -= obj->spe;
+            break;
+        case RIN_INCREASE_DAMAGE:
+            if ((obj->owornmask & W_RING) != 0L)
+                u.udaminc -= obj->spe;
+            break;
+        case RIN_PROTECTION:
+            if ((obj->owornmask & W_RING) != 0L)
+                g.context.botl = TRUE;
+            break;
+        case GAUNTLETS_OF_DEXTERITY:
+            if ((obj->owornmask & W_ARMG) != 0L) {
+                ABON(A_DEX) -= obj->spe;
+                g.context.botl = TRUE;
+            }
+            break;
+        case HELM_OF_BRILLIANCE:
+            if ((obj->owornmask & W_ARMH) != 0L) {
+                ABON(A_INT) -= obj->spe;
+                ABON(A_WIS) -= obj->spe;
+                g.context.botl = TRUE;
+            }
+            break;
+        default:
+            if ((obj->owornmask & W_ARMOR) != 0L) /* AC */
+                g.context.botl = TRUE;
+            break;
         }
-        break;
-    case RIN_GAIN_CONSTITUTION:
-        if ((obj->owornmask & W_RING) && u_ring) {
-            ABON(A_CON) -= obj->spe;
-            g.context.botl = 1;
-        }
-        break;
-    case RIN_ADORNMENT:
-        if ((obj->owornmask & W_RING) && u_ring) {
-            ABON(A_CHA) -= obj->spe;
-            g.context.botl = 1;
-        }
-        break;
-    case RIN_INCREASE_ACCURACY:
-        if ((obj->owornmask & W_RING) && u_ring)
-            u.uhitinc -= obj->spe;
-        break;
-    case RIN_INCREASE_DAMAGE:
-        if ((obj->owornmask & W_RING) && u_ring)
-            u.udaminc -= obj->spe;
-        break;
-    case GAUNTLETS_OF_DEXTERITY:
-        if ((obj->owornmask & W_ARMG) && (obj == uarmg)) {
-            ABON(A_DEX) -= obj->spe;
-            g.context.botl = 1;
-        }
-        break;
-    case HELM_OF_BRILLIANCE:
-        if ((obj->owornmask & W_ARMH) && (obj == uarmh)) {
-            ABON(A_INT) -= obj->spe;
-            ABON(A_WIS) -= obj->spe;
-            g.context.botl = 1;
-        }
-        break;
-        /* case RIN_PROTECTION:  not needed */
     }
+    /* cancelled item might not be in hero's possession but
+       cancellation is presumed to be instigated by hero */
     if (objects[otyp].oc_magic
         || (obj->spe && (obj->oclass == ARMOR_CLASS
                          || obj->oclass == WEAPON_CLASS || is_weptool(obj)))
         || otyp == POT_ACID
         || otyp == POT_SICKNESS
         || (otyp == POT_WATER && (obj->blessed || obj->cursed))) {
-        if (obj->spe != ((obj->oclass == WAND_CLASS) ? -1 : 0)
+        int cancelled_spe = (obj->oclass == WAND_CLASS
+                             || obj->otyp == CRYSTAL_BALL) ? -1 : 0;
+
+        if (obj->spe != cancelled_spe
             && otyp != WAN_CANCELLATION /* can't cancel cancellation */
             && otyp != MAGIC_LAMP /* cancelling doesn't remove djinni */
             && otyp != CANDELABRUM_OF_INVOCATION) {
             costly_alteration(obj, COST_CANCEL);
-            obj->spe = (obj->oclass == WAND_CLASS) ? -1 : 0;
+            obj->spe = cancelled_spe;
         }
         switch (obj->oclass) {
         case SCROLL_CLASS:
@@ -1069,10 +1119,8 @@ register struct obj *obj;
             }
             break;
         case POTION_CLASS:
-            costly_alteration(obj,
-                              (otyp != POT_WATER)
-                                  ? COST_CANCEL
-                                  : obj->cursed ? COST_UNCURS : COST_UNBLSS);
+            costly_alteration(obj, (otyp != POT_WATER) ? COST_CANCEL
+                                   : obj->cursed ? COST_UNCURS : COST_UNBLSS);
             if (otyp == POT_SICKNESS || otyp == POT_SEE_INVISIBLE) {
                 /* sickness is "biologically contaminated" fruit juice;
                    cancel it and it just becomes fruit juice...
@@ -2023,6 +2071,7 @@ struct obj *obj, *otmp;
             } else if (obj->otyp == CORPSE) {
                 struct monst *mtmp;
                 xchar ox, oy;
+                boolean by_u = !g.context.mon_moving;
                 int corpsenm = corpse_revive_type(obj);
                 char *corpsname = cxname_singular(obj);
 
@@ -2038,7 +2087,7 @@ struct obj *obj, *otmp;
                         if (canspotmon(mtmp)) {
                             pline("%s is resurrected!",
                                   upstart(noname_monnam(mtmp, ARTICLE_THE)));
-                            learn_it = TRUE;
+                            learn_it = by_u ? TRUE : g.zap_oseen;
                         } else {
                             /* saw corpse but don't see monster: maybe
                                mtmp is invisible, or has been placed at
@@ -2057,7 +2106,7 @@ struct obj *obj, *otmp;
                                 You_hear("%s reviving.", corpsname);
                             else
                                 You_hear("a defibrillator.");
-                            learn_it = TRUE;
+                            learn_it = by_u ? TRUE : g.zap_oseen;
                         }
                         if (canspotmon(mtmp))
                             /* didn't see corpse but do see monster: it
@@ -2518,13 +2567,7 @@ boolean ordinary;
     case WAN_UNDEAD_TURNING:
     case SPE_TURN_UNDEAD:
         learn_it = TRUE;
-        (void) unturn_dead(&g.youmonst);
-        if (is_undead(g.youmonst.data)) {
-            You_feel("frightened and %sstunned.",
-                     Stunned ? "even more " : "");
-            make_stunned((HStun & TIMEOUT) + (long) rnd(30), FALSE);
-        } else
-            You("shudder in dread.");
+        unturn_you();
         break;
     case SPE_HEALING:
     case SPE_EXTRA_HEALING:
@@ -2767,10 +2810,10 @@ register struct monst *mdef;
 register struct obj *obj;
 boolean youattack, allow_cancel_kill, self_cancel;
 {
+    static const char
+        writing_vanishes[] = "Some writing vanishes from %s head!",
+        your[] = "your"; /* should be extern */
     boolean youdefend = (mdef == &g.youmonst);
-    static const char writing_vanishes[] =
-        "Some writing vanishes from %s head!";
-    static const char your[] = "your"; /* should be extern */
 
     if (youdefend ? (!youattack && Antimagic)
                   : resist(mdef, obj->oclass, 0, NOTELL))
@@ -2782,9 +2825,11 @@ boolean youattack, allow_cancel_kill, self_cancel;
         for (otmp = (youdefend ? g.invent : mdef->minvent); otmp;
              otmp = otmp->nobj)
             cancel_item(otmp);
+
         if (youdefend) {
             g.context.botl = 1; /* potential AC change */
             find_ac();
+            /* update_inventory(); -- handled by caller */
         }
     }
 
@@ -4503,21 +4548,29 @@ short exploding_wand_typ;
         if (is_ice(x, y)) {
             melt_ice(x, y, (char *) 0);
         } else if (is_pool(x, y)) {
+            boolean on_water_level = Is_waterlevel(&u.uz);
             const char *msgtxt = (!Deaf)
-                                     ? "You hear hissing gas." /* Deaf-aware */
-                                     : (type >= 0)
-                                         ? "That seemed remarkably uneventful."
-                                         : (const char *) 0;
+                                 ? "You hear hissing gas." /* Deaf-aware */
+                                 : (type >= 0)
+                                   ? "That seemed remarkably uneventful."
+                                   : (char *) 0;
 
-            if (lev->typ != POOL) { /* MOAT or DRAWBRIDGE_UP */
-                if (see_it)
+            /* don't create steam clouds on Plane of Water; air bubble
+               movement and gas regions don't understand each other */
+            if (!on_water_level)
+                create_gas_cloud(x, y, rnd(3), 0); /* radius 1..3, no damg */
+
+            if (lev->typ != POOL) { /* MOAT or DRAWBRIDGE_UP or WATER */
+                if (on_water_level)
+                    msgtxt = (see_it || !Deaf) ? "Some water boils." : 0;
+                else if (see_it)
                     msgtxt = "Some water evaporates.";
             } else {
                 rangemod -= 3;
                 lev->typ = ROOM, lev->flags = 0;
                 t = maketrap(x, y, PIT);
-                if (t)
-                    t->tseen = 1;
+                /*if (t) -- this was before the vapor cloud was added --
+                      t->tseen = 1;*/
                 if (see_it)
                     msgtxt = "The water evaporates.";
             }
@@ -4526,6 +4579,7 @@ short exploding_wand_typ;
             if (lev->typ == ROOM)
                 newsym(x, y);
         } else if (IS_FOUNTAIN(lev->typ)) {
+            create_gas_cloud(x, y, rnd(2), 0); /* radius 1..2, no damage */
             if (see_it)
                 pline("Steam billows from the fountain.");
             rangemod -= 1;

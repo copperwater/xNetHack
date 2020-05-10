@@ -16,6 +16,12 @@ const char *const enc_stat[] = { "",         "Burdened",  "Stressed",
 static const char *NDECL(rank);
 static void NDECL(bot_via_windowport);
 static void NDECL(stat_update_time);
+#ifdef STATUS_HILITES
+static unsigned long NDECL(query_conditions);
+static boolean FDECL(status_hilite_remove, (int));
+static boolean FDECL(status_hilite_menu_fld, (int));
+static void NDECL(status_hilites_viewall);
+#endif
 
 /* limit of the player's name in the status window */
 #define BOTL_NSIZ 16
@@ -267,18 +273,37 @@ int
 xlev_to_rank(xlev)
 int xlev;
 {
+    /*
+     *   1..2  => 0
+     *   3..5  => 1
+     *   6..9  => 2
+     *  10..13 => 3
+     *      ...
+     *  26..29 => 7
+     *    30   => 8
+     * Conversion is precise but only partially reversible.
+     */
     return (xlev <= 2) ? 0 : (xlev <= 30) ? ((xlev + 2) / 4) : 8;
 }
 
-#if 0 /* not currently needed */
 /* convert rank index (0..8) to experience level (1..30) */
 int
 rank_to_xlev(rank)
 int rank;
 {
-    return (rank <= 0) ? 1 : (rank <= 8) ? ((rank * 4) - 2) : 30;
+    /*
+     *  0 =>  1..2
+     *  1 =>  3..5
+     *  2 =>  6..9
+     *  3 => 10..13
+     *      ...
+     *  7 => 26..29
+     *  8 =>   30
+     * We return the low end of each range.
+     */
+    return (rank < 1) ? 1 : (rank < 2) ? 3
+           : (rank < 8) ? ((rank * 4) - 2) : 30;
 }
-#endif
 
 const char *
 rank_of(lev, monnum, female)
@@ -326,7 +351,8 @@ int *rank_indx, *title_length;
     register int i, j;
 
     /* Loop through each of the roles */
-    for (i = 0; roles[i].name.m; i++)
+    for (i = 0; roles[i].name.m; i++) {
+        /* loop through each of the rank titles for role #i */
         for (j = 0; j < 9; j++) {
             if (roles[i].rank[j].m
                 && !strncmpi(str, roles[i].rank[j].m,
@@ -348,6 +374,9 @@ int *rank_indx, *title_length;
                                                       : roles[i].malenum;
             }
         }
+    }
+    if (title_length)
+        *title_length = 0;
     return NON_PM;
 }
 
@@ -2647,7 +2676,7 @@ boolean from_configfile;
 
 #ifdef STATUS_HILITES
 
-unsigned long
+static unsigned long
 query_conditions()
 {
     int i,res;
@@ -3821,7 +3850,7 @@ choose_color:
     return TRUE;
 }
 
-boolean
+static boolean
 status_hilite_remove(id)
 int id;
 {
@@ -3871,7 +3900,7 @@ int id;
     return FALSE;
 }
 
-boolean
+static boolean
 status_hilite_menu_fld(fld)
 int fld;
 {
@@ -3993,7 +4022,7 @@ shlmenu_free:
     return acted;
 }
 
-void
+static void
 status_hilites_viewall()
 {
     winid datawin;

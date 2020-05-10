@@ -1,4 +1,4 @@
-/* NetHack 3.6	uhitm.c	$NHDT-Date: 1584405117 2020/03/17 00:31:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.228 $ */
+/* NetHack 3.6	uhitm.c	$NHDT-Date: 1586807928 2020/04/13 19:58:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.230 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -386,7 +386,7 @@ register struct monst *mtmp;
      * you'll usually just swap places if this is a movement command
      */
     /* Intelligent chaotic weapons (Stormbringer) want blood */
-    if (is_safepet(mtmp) && !g.context.forcefight) {
+    if (is_safemon(mtmp) && !g.context.forcefight) {
         if (!uwep || uwep->oartifact != ART_STORMBRINGER) {
             /* There are some additional considerations: this won't work
              * if in a shop or Punished or you miss a random roll or
@@ -884,6 +884,9 @@ int dieroll;
                 }
                 if (obj->oartifact
                     && artifact_hit(&g.youmonst, mon, obj, &tmp, dieroll)) {
+                    /* artifact_hit updates 'tmp' but doesn't inflict any
+                       damage; however, it might cause carried items to be
+                       destroyed and they might do so */
                     if (DEADMONSTER(mon)) /* artifact killed monster */
                         return FALSE;
                     if (tmp == 0)
@@ -1615,9 +1618,16 @@ struct attack *mattk;
     gold = findgold(mdef->minvent, TRUE);
 
     if (stealoid) { /* we will be taking everything */
-        if (gender(mdef) == (int) u.mfemale && g.youmonst.data->mlet == S_NYMPH)
-            You("charm %s.  She gladly hands over %sher possessions.",
-                mon_nam(mdef), !gold ? "" : "most of ");
+        char heshe[20];
+
+        /* 3.7: this uses hero's base gender rather than nymph feminimity
+           but was using hardcoded pronouns She/her for target monster;
+           switch to dynamic pronoun */
+        if (gender(mdef) == (int) u.mfemale
+            && g.youmonst.data->mlet == S_NYMPH)
+            You("charm %s.  %s gladly hands over %s%s possessions.",
+                mon_nam(mdef), upstart(strcpy(heshe, mhe(mdef))),
+                !gold ? "" : "most of ", mhis(mdef));
         else
             You("seduce %s and %s starts to take off %s clothes.",
                 mon_nam(mdef), mhe(mdef), mhis(mdef));
@@ -2090,6 +2100,10 @@ int specialdmg; /* blessed and/or silver bonus against various things */
                 pline("%s looks confused.", Monnam(mdef));
             mdef->mconf = 1;
         }
+        break;
+    case AD_POLY:
+        if (!negated && tmp < mdef->mhp)
+            tmp = mon_poly(&g.youmonst, mdef, tmp);
         break;
     default:
         tmp = 0;

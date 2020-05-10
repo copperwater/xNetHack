@@ -34,7 +34,7 @@ Returns a table with the following elements:
 | glyph      | integer  |
 | typ        | integer  | terrain type
 | typ_name   | text     | name of terrain type
-| mapchr     | text     | map character
+| mapchr     | text     | <<_map_characters,map character>>
 | seenv      | integer  | seen vector
 | horizontal | boolean  |
 | lit        | boolean  |
@@ -329,6 +329,7 @@ Example:
 
  des.level_init({ style = "solidfill", fg = " " });
  des.level_init({ style = "mines", fg = ".", bg = "}", smoothed=1, joined=1, lit=0 })
+ des.level_init({ style = "maze", corrwid = 3, wallthick = 1, deadends = false });
 
 === levregion
 
@@ -348,7 +349,7 @@ describing the map, or a table with multiple parameters.
 | coord     | Coordinates in table format.
 | halign    | Horizontal alignment on a rough 3x3 grid.
 | valign    | Vertical alignment on a rough 3x3 grid.
-| map       | Multi-line string describing the map.
+| map       | Multi-line string describing the map. See <<_map_characters>>
 | contents  | A function called with one parameter, a table with "width" and "height", the map width and height. All coordinates in the function will be relative to the map.
 |===
 
@@ -411,6 +412,51 @@ Example:
 
  des.non_passwall(selection);
  des.non_passwall();
+
+=== object
+
+Create an object. The table parameter accepts the following:
+
+[options="header"]
+|===
+| key         | type     | description
+| id          | string   | Specific object type name
+| class       | string   | Single character, object class
+| spe         | int      | obj-struct spe-field value. See table below. Also accepts "random".
+| buc         | string   | one of "random", "blessed", "uncursed", "cursed",
+                           "not-cursed", "not-uncursed", "not-blessed".
+                           Default is "random"
+| name        | string   | Object name
+| quantity    | int      | Number of items in this stack. Also accepts "random".
+| buried      | boolean  | Is the object buried?
+| lit         | boolean  | Is the object lit?
+| eroded      | int      | Object erosion
+| locked      | boolean  | Is the object locked?
+| trapped     | boolean  | Is the object trapped?
+| recharged   | boolean  | Is the object recharged?
+| greased     | boolean  | Is the object greased?
+| broken      | boolean  | Is the object broken?
+| achievement | boolean  | Is there an achievement attached to the object?
+| x, y        | int      | Coordinates on the level
+| coord       | table    | x,y coordinates in table format
+| montype     | string   | Monster id or class
+| historic    | boolean  | Is statue historic?
+| male        | boolean  | Is statue male?
+| female      | boolean  | Is statue female?
+| laid_by_you | boolean  | Is an egg laid by you?
+| contents    | function | Container contents
+|===
+
+Example:
+
+ des.object();
+ des.object("/");
+ des.object("sack");
+ des.object("scimitar", 6, 7);
+ des.object("scimitar", {6, 7});
+ des.object({ class = "%" });
+ des.object({ id = "boulder", x = 03, y = 12});
+ des.object({ id = "chest", coord = {03, 12}, locked = true, contents = function() des.object("rock"); end });
 
 === random_corridors
 
@@ -646,6 +692,14 @@ Example:
 
  local value = selection.get(sel, x, y);
 
+=== gradient
+
+Create a "gradient" of selected positions.
+
+Example:
+
+ local s = selection.gradient({ type = "radial", x = 3, y = 5, x2 = 10, y2 = 12, mindist = 4, maxdist = 10, limited = false });
+
 === grow
 
 Add locations to the selection by choosing unselected locations
@@ -742,3 +796,32 @@ Example:
  local sel = sel:set();
  local sel = selection.set(sel);
 
+== Map characters
+
+[%header, cols="10%,90%"]
+|===
+| Character | Dungeon feature
+| `" "`     | solid stone wall
+| `"#"`     | corridor
+| `"."`     | room floor
+| `"-"`     | horizontal wall
+| `"\|"`    | vertical wall
+| `"+"`     | door
+| `"A"`     | air
+| `"B"`     | crosswall / boundary symbol hack
+| `"C"`     | cloud
+| `"S"`     | secret door
+| `"H"`     | secret corridor
+| `"{"`     | fountain
+| `"\"`     | throne
+| `"K"`     | sink
+| `"}"`     | moat
+| `"P"`     | pool of water
+| `"L"`     | lava pool
+| `"I"`     | ice
+| `"W"`     | water
+| `"T"`     | tree
+| `"F"`     | iron bars
+| `"x"`     | "transparent" - used for <<_map>> parts.
+| `"w"`     | "any wall" - see <<_match>>
+|===

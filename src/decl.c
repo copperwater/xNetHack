@@ -1,4 +1,4 @@
-/* NetHack 3.6	decl.c	$NHDT-Date: 1583608833 2020/03/07 19:20:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.208 $ */
+/* NetHack 3.6	decl.c	$NHDT-Date: 1586815084 2020/04/13 21:58:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.209 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -300,8 +300,6 @@ const struct instance_globals g_init = {
     FALSE, /* mrg_to_wielded */
     NULL, /* plinemsg_types */
     UNDEFINED_VALUES, /* toplines */
-    UNDEFINED_PTR, /* upstairs_room */
-    UNDEFINED_PTR, /* dnstairs_room */
     UNDEFINED_PTR, /* sstairs_room */
     DUMMY, /* bhitpos */
     FALSE, /* in_steed_dismounting */
@@ -350,6 +348,9 @@ const struct instance_globals g_init = {
 #endif
     UNDEFINED_VALUES, /* program_state */
 
+    /* detect.c */
+    0, /* already_found_flag */
+
     /* dig.c */
     UNDEFINED_VALUE, /* did_dig_msg */
 
@@ -362,6 +363,7 @@ const struct instance_globals g_init = {
     FALSE, /* at_ladder */
     NULL, /* dfr_pre_msg */
     NULL, /* dfr_post_msg */
+    0, /* did_nothing_flag */
     { 0, 0 }, /* save_dlevel */
 
     /* do_name.c */
@@ -400,7 +402,7 @@ const struct instance_globals g_init = {
     DUMMY, /* warnsyms */
 
     /* dungeon.c */
-    UNDEFINED_VALUE, /* n_dgns */
+    0, /* n_dgns */
     NULL, /* branches */
     NULL, /* mapseenchn */
 
@@ -462,6 +464,7 @@ const struct instance_globals g_init = {
     UNDEFINED_VALUE, /* mhitu_dieroll */
 
     /* mklev.c */
+    UNDEFINED_VALUES, /* luathemes[] */
     UNDEFINED_VALUE, /* vault_x */
     UNDEFINED_VALUE, /* vault_y */
     UNDEFINED_VALUE, /* made_branch */
@@ -622,6 +625,8 @@ const struct instance_globals g_init = {
     UNDEFINED_VALUE, /* ystart */
     UNDEFINED_VALUE, /* xsize */
     UNDEFINED_VALUE, /* ysize */
+    FALSE, /* in_mk_themerooms */
+    FALSE, /* themeroom_failed */
 
     /* spells.c */
     0, /* spl_sortmode */

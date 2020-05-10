@@ -16,7 +16,7 @@ static boolean FDECL(query_classes, (char *, boolean *, boolean *,
                                          const char *, struct obj *,
                                          BOOLEAN_P, int *));
 static boolean FDECL(fatal_corpse_mistake, (struct obj *, BOOLEAN_P));
-static void NDECL(describe_decor);
+static boolean NDECL(describe_decor);
 static void FDECL(check_here, (BOOLEAN_P));
 static int FDECL(n_or_more, (struct obj *));
 static int FDECL(all_but_uchain, (struct obj *));
@@ -32,7 +32,8 @@ static int FDECL(lift_object, (struct obj *, struct obj *, long *,
                                    BOOLEAN_P));
 static boolean FDECL(mbag_explodes, (struct obj *, int));
 static boolean NDECL(is_boh_item_gone);
-static long FDECL(boh_loss, (struct obj *container, int));
+static void FDECL(do_boh_explosion, (struct obj *, BOOLEAN_P));
+static long FDECL(boh_loss, (struct obj *, int));
 static int FDECL(in_container, (struct obj *));
 static int FDECL(out_container, (struct obj *));
 static void FDECL(removed_from_icebox, (struct obj *));
@@ -286,27 +287,57 @@ boolean remotely;
     return TRUE;
 }
 
+void
+deferred_decor(setup)
+boolean setup; /* True: deferring, False: catching up */
+{
+    if (setup) {
+        iflags.defer_decor = TRUE;
+    } else {
+        (void) describe_decor();
+        iflags.defer_decor = FALSE;
+    }
+}
+
 /* handle 'mention_decor' (when walking onto a dungeon feature such as
    stairs or altar, describe it even if it isn't covered up by an object) */
-static void
+static boolean
 describe_decor()
 {
     char outbuf[BUFSZ], fbuf[QBUFSZ];
-    boolean doorhere, waterhere, do_norep;
-    const char *dfeature = dfeature_at(u.ux, u.uy, fbuf);
-    int ltyp = levl[u.ux][u.uy].typ;
+    boolean doorhere, waterhere, res = TRUE;
+    const char *dfeature;
+    int ltyp;
 
+    if ((HFumbling & TIMEOUT) == 1L && !iflags.defer_decor) {
+        /*
+         * Work around a message sequencing issue:  avoid
+         *  |You are back on floor.
+         *  |You trip over <object>.  or  You flounder.
+         * when the trip is being caused by moving on ice as hero
+         * steps off ice onto non-ice.
+         */
+        deferred_decor(TRUE);
+        return FALSE;
+    }
+
+    ltyp = levl[u.ux][u.uy].typ;
     if (ltyp == DRAWBRIDGE_UP) /* surface for spot in front of closed db */
         ltyp = db_under_typ(levl[u.ux][u.uy].drawbridgemask);
+    dfeature = dfeature_at(u.ux, u.uy, fbuf);
 
-    /* we don't mention "ordinary" doors but do mention broken ones */
+    /* we don't mention "ordinary" doors but do mention broken ones (and
+       closed ones, which will only happen for Passes_walls) */
     doorhere = dfeature && (!strcmp(dfeature, "open door")
                             || !strcmp(dfeature, "doorway"));
     waterhere = dfeature && !strcmp(dfeature, "pool of water");
-    if (doorhere || (waterhere && Underwater))
+    if (doorhere || Underwater
+        || (ltyp == ICE && IS_POOL(iflags.prev_decor))) /* pooleffects() */
         dfeature = 0;
 
-    if (dfeature) {
+    if (ltyp == iflags.prev_decor && !IS_FURNITURE(ltyp)) {
+        res = FALSE;
+    } else if (dfeature) {
         if (waterhere)
             dfeature = strcpy(fbuf, waterbody_name(u.ux, u.uy));
         if (strcmp(dfeature, "swamp"))
@@ -319,23 +350,14 @@ describe_decor()
                 Strcpy(fbuf, dfeature);
             Sprintf(outbuf, "%s.", upstart(fbuf));
         }
-        do_norep = (ltyp == iflags.prev_decor
-                    && (waterhere
-                        || !strcmp(dfeature, "molten lava")
-                        || !strcmp(dfeature, "ice")));
-        if (!do_norep)
-            pline("%s", outbuf);
-        else
-            Norep("%s", outbuf);
-    } else {
-        if ((IS_POOL(iflags.prev_decor)
-             || iflags.prev_decor == LAVAPOOL
-             || iflags.prev_decor == ICE)) {
+        pline("%s", outbuf);
+    } else if (!Underwater) {
+        if (IS_POOL(iflags.prev_decor)
+            || iflags.prev_decor == LAVAPOOL
+            || iflags.prev_decor == ICE) {
             const char *ground = surface(u.ux, u.uy);
 
-            if (iflags.last_msg != PLNMSG_BACK_ON_GROUND
-                || (strcmpi(ground, "floor") && strcmpi(ground, "ground")
-                    && strcmpi(ground, "ice")))
+            if (iflags.last_msg != PLNMSG_BACK_ON_GROUND)
                 pline("%s %s %s.",
                       flags.verbose ? "You are back" : "Back",
                       (Levitation || Flying) ? "over" : "on",
@@ -343,6 +365,7 @@ describe_decor()
         }
     }
     iflags.prev_decor = ltyp;
+    return res;
 }
 
 /* look at the objects at our location, unless there are too many of them */
@@ -352,6 +375,12 @@ boolean picked_some;
 {
     register struct obj *obj;
     register int ct = 0;
+    unsigned lhflags = picked_some ? LOOKHERE_PICKED_SOME : 0;
+
+    if (flags.mention_decor) {
+        if (describe_decor())
+            lhflags |= LOOKHERE_SKIP_DFEATURE;
+    }
 
     /* count the objects here */
     for (obj = g.level.objects[u.ux][u.uy]; obj; obj = obj->nexthere) {
@@ -364,12 +393,8 @@ boolean picked_some;
         if (g.context.run)
             nomul(0);
         flush_screen(1);
-        (void) look_here(ct, picked_some);
-
-        iflags.prev_decor = STONE;
+        (void) look_here(ct, lhflags);
     } else {
-        if (flags.mention_decor)
-            describe_decor();
         read_engr_at(u.ux, u.uy);
     }
 }
@@ -569,13 +594,13 @@ int what; /* should be a long */
                            || (is_pool(u.ux, u.uy) && !Underwater)
                            || is_lava(u.ux, u.uy))) {
             if (flags.mention_decor)
-                describe_decor();
+                (void) describe_decor();
             read_engr_at(u.ux, u.uy);
             return 0;
         }
         /* no pickup if levitating & not on air or water level */
         if (!can_reach_floor(TRUE)) {
-            describe_decor(); /* even when !flags.mention_decor */
+            (void) describe_decor(); /* even when !flags.mention_decor */
             if ((g.multi && !g.context.run) || (autopickup && !flags.pickup)
                 || ((t = t_at(u.ux, u.uy)) != 0
                     && (uteetering_at_seen_pit(t) || uescaped_shaft(t))))
@@ -601,8 +626,6 @@ int what; /* should be a long */
             && !g.context.nopick)
             nomul(0);
     }
-    /* for describe_decor()'s Norep handling */
-    iflags.prev_decor = STONE;
 
     add_valid_menu_class(0); /* reset */
     if (!u.uswallow) {
@@ -967,7 +990,7 @@ int FDECL((*allow), (OBJ_P));     /* allow function */
             if ((qflags & FEEL_COCKATRICE) && curr->otyp == CORPSE
                 && will_feel_cockatrice(curr, FALSE)) {
                 destroy_nhwindow(win); /* stop the menu and revert */
-                (void) look_here(0, FALSE);
+                (void) look_here(0, 0);
                 unsortloot(&sortedolist);
                 return 0;
             }
@@ -2396,6 +2419,28 @@ is_boh_item_gone()
     return (boolean) (!rn2(13));
 }
 
+/* Scatter most of Bag of holding contents around.
+   Some items will be destroyed with the same chance as looting a cursed bag.
+ */
+static void
+do_boh_explosion(boh, on_floor)
+struct obj *boh;
+boolean on_floor;
+{
+    struct obj *otmp, *nobj;
+
+    for (otmp = boh->cobj; otmp; otmp = nobj) {
+        nobj = otmp->nobj;
+        if (is_boh_item_gone()) {
+            obj_extract_self(otmp);
+            mbag_item_gone(!on_floor, otmp, TRUE);
+        } else {
+            otmp->ox = u.ux, otmp->oy = u.uy;
+            (void) scatter(u.ux, u.uy, 4, MAY_HIT | MAY_DESTROY, otmp);
+        }
+    }
+}
+
 static long
 boh_loss(container, held)
 struct obj *container;
@@ -2532,6 +2577,8 @@ register struct obj *obj;
         /* did not actually insert obj yet */
         if (was_unpaid)
             addtobill(obj, FALSE, FALSE, TRUE);
+        if (obj->otyp == BAG_OF_HOLDING) /* putting bag of holding into another */
+            do_boh_explosion(obj, (obj->where == OBJ_FLOOR));
         obfree(obj, (struct obj *) 0);
 
         /* instead of destroying everything in the bag, scatter most of its
@@ -2563,7 +2610,8 @@ register struct obj *obj;
                so that useupf() doesn't double bill */
             g.current_container->no_charge = save_no_charge.no_charge;
         }
-        delete_contents(g.current_container);
+        do_boh_explosion(g.current_container, floor_container);
+
         if (!floor_container)
             useup(g.current_container);
         else if (obj_here(g.current_container, u.ux, u.uy))
