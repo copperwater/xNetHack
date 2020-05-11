@@ -2512,9 +2512,6 @@ register struct monst *mtmp;
         livelog_printf(LL_UMONST, "%s %s%s%s",
               nonliving(mtmp->data) ? "destroyed" : "killed",
               noit_mon_nam(mtmp), wherebuf, buf);
-        pline( "%s %s%s%s",
-              nonliving(mtmp->data) ? "destroyed" : "killed",
-              noit_mon_nam(mtmp), buf, wherebuf);
     }
 
     if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
