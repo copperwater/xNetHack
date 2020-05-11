@@ -59,6 +59,8 @@ Light armor, studded armor, jackets, plain cloaks, and identified plain gloves
   will display their default leather material when made out of leather.
 Engravings now render as ~ (tilde) instead of " (quotation mark) by default.
 The Vibrating Square is colored yellow instead of purple.
+When water walking boots are identified by walking on liquid with them, a
+  message is printed.
 
 
 It contains the following non-gameplay architectural changes:

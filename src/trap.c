@@ -4026,6 +4026,9 @@ drown()
         /* maybe we were called because the hero moved or fell into a pool; if
          * so, assuming the only source of water walking is water walking
          * boots, identify them. */
+        if (!objects[WATER_WALKING_BOOTS].oc_name_known) {
+            Your("boots don't sink into the water!");
+        }
         makeknown(WATER_WALKING_BOOTS);
         return FALSE;
     }
@@ -5993,6 +5996,9 @@ lava_effects()
              * 2. Water walking boots are always burnable.
              * 3. To be walking on lava, they must be fireproof.
              */
+            if (!objects[WATER_WALKING_BOOTS].oc_name_known) {
+                Your("boots don't sink into the lava!");
+            }
             makeknown(WATER_WALKING_BOOTS);
             uarmf->rknown = 1;
             pline_The("%s here burns you!", hliquid("lava"));
