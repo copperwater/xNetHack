@@ -3192,7 +3192,7 @@ long hmask, emask; /* might cancel timeout */
          * Use knowledge of the two routines as a hack -- this
          * should really be handled differently -dlc
          */
-        if (is_pool(u.ux, u.uy))
+        if (is_pool(u.ux, u.uy) && !Swimming && !u.uinwater)
             no_msg = drown();
 
         if (is_lava(u.ux, u.uy)) {
