@@ -1915,7 +1915,7 @@ int final;
     }
 
     if (!u.uconduct.uncelibate) {
-        you_have_X("been celibate");
+        you_have_been("celibate");
     }
 
     if (!u.uconduct.conflicting) {
