@@ -1082,7 +1082,8 @@ coord *c;
         okay = somexy(croom, c) && isok(c->x, c->y) && !occupied(c->x, c->y)
             && (levl[c->x][c->y].typ == ROOM
                 || levl[c->x][c->y].typ == CORR
-                || levl[c->x][c->y].typ == ICE);
+                || levl[c->x][c->y].typ == ICE
+                || levl[c->x][c->y].typ == GRASS);
     } while (trycnt++ < 100 && !okay);
     return okay;
 }
