@@ -353,6 +353,7 @@ int x, y, typ;
     ttmp->once = 0;
     ttmp->tseen = (typ == HOLE); /* hide non-holes */
     ttmp->ttyp = typ;
+    set_trap_ammo(ttmp, NULL);
 
     switch (typ) {
     case SQKY_BOARD: {
@@ -473,16 +474,26 @@ int x, y, typ;
     return ttmp;
 }
 
-/* Assign obj to be the ammo of trap. Deletes any ammo currently in the trap. */
+/* Assign obj to be the ammo of trap. Deletes any ammo currently in the trap.
+ * obj can be set to NULL to delete the ammo without putting in anything else.
+ */
 void
 set_trap_ammo(trap, obj)
 struct trap *trap;
 struct obj *obj;
 {
+    if (!trap) {
+        impossible("set_trap_ammo: null trap!");
+        return;
+    }
     while (trap->ammo) {
         struct obj* oldobj = trap->ammo;
         extract_nobj(oldobj, &trap->ammo);
         obfree(oldobj, (struct obj *) 0);
+    }
+    if (!obj) {
+        trap->ammo = (struct obj *) 0;
+        return;
     }
     if (obj->where != OBJ_FREE) {
         panic("putting non-free object into trap");
@@ -4266,6 +4277,10 @@ boolean bury_it;
 {
     struct obj *otmp;
 
+    if (!ttmp) {
+        impossible("remove_trap_ammo: null trap!");
+        return;
+    }
     while (ttmp->ammo) {
         otmp = ttmp->ammo;
         extract_nobj(otmp, &ttmp->ammo);
