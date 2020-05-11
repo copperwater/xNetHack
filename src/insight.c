@@ -2126,7 +2126,7 @@ schar achidx;
     u.uachieved[i] = achidx;
     if (g.program_state.gameover)
         return; /* don't livelog achievements recorded at end of game */
-    if (absidx < ACH_RNK1 || absidx > ACH_RNK8) {
+    if (absidx >= ACH_RNK1 && absidx <= ACH_RNK8) {
         livelog_printf(achieve_msg[absidx].llflag, "attained the rank of %s",
                        rank_of(rank_to_xlev(absidx - (ACH_RNK1 - 1)),
                                Role_switch, (achidx < 0) ? TRUE : FALSE));
