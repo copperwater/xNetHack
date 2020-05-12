@@ -1599,9 +1599,11 @@ struct obj * obj;
 {
     int diff = matac[obj->material] - matac[objects[obj->otyp].oc_material];
 
-    /* don't allow the armor's base AC to go below 0 */
-    if (objects[obj->otyp].a_ac + diff < 0) {
-        diff = -(objects[obj->otyp].a_ac);
+    /* don't allow the armor's base AC to go below 0...
+     * or go below 1, if the armor is metallic */
+    const int min_ac = is_metallic(obj) ? 1 : 0;
+    if (objects[obj->otyp].a_ac + diff < min_ac) {
+        diff = min_ac - objects[obj->otyp].a_ac;
     }
     return diff;
 }

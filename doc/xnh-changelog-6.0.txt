@@ -51,6 +51,9 @@ Attempting to use a crystal ball while hallucinating will paralyze you for d2
   in xNetHack.)
 Monsters prefer to wear an amulet of life saving or reflection rather than an
   amulet of ESP or guarding.
+Metal armor won't provide less than 1 AC (not counting enchantments) if it
+  has a decreased AC from being a different material. For instance, copper
+  gauntlets of power will provide 1 AC instead of 0.
 
 
 It contains the following non-gameplay interface changes:
