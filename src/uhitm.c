@@ -754,17 +754,23 @@ int dieroll;
 
     wakeup(mon, TRUE);
     if (!obj) { /* attack with bare hands */
-        if (noncorporeal(mdat))
+        if (noncorporeal(mdat)) {
             tmp = 0;
-        else if (martial_bonus())
-            tmp = rnd(4); /* bonus for martial arts */
-        else
-            tmp = rnd(2);
+        }
+        else {
+            /* It's unfair to martial arts users that whenever they roll a natural
+             * 1 on their hit, they get no bonuses and hit for just that one
+             * point of damage.
+             * Also grant this bonus to bare handed combat users. */
+            valid_weapon_attack = TRUE;
 
-        /* It's unfair to martial arts users that whenever they roll a natural
-         * 1 on this d4, they get no bonuses and hit for just that one point of
-         * damage. */
-        valid_weapon_attack = TRUE;
+            if (martial_bonus()) {
+                tmp = rnd(4); /* bonus for martial arts */
+            }
+            else {
+                tmp = rnd(2);
+            }
+        }
 
         /* Blessed gloves give bonuses when fighting 'bare-handed'.  So do
            rings or gloves made of a hated material.  Note:  rings are worn
