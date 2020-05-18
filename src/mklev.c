@@ -16,6 +16,7 @@ static void NDECL(generate_stairs);
 static boolean FDECL(find_okay_roompos, (struct mkroom *, coord *));
 static void NDECL(makevtele);
 void NDECL(clear_level_structures);
+static void FDECL(fill_ordinary_room, (struct mkroom *));
 static void NDECL(makelevel);
 static boolean FDECL(bydoor, (XCHAR_P, XCHAR_P));
 static struct mkroom *FDECL(find_branch_room, (coord *));
@@ -999,6 +1000,112 @@ clear_level_structures()
     }
 }
 
+/* Fill a "random" room (i.e. a typical non-special room in the Dungeons of
+ * Doom) with random monsters, objects, and dungeon features.
+ */
+static void
+fill_ordinary_room(croom)
+struct mkroom *croom;
+{
+    int trycnt = 0;
+    coord pos;
+    struct monst *tmonst; /* always put a web with a spider */
+    int x, y;
+
+    if (croom->rtype != OROOM && croom->rtype != THEMEROOM)
+        return;
+
+    /* If there are subrooms, fill them now - we don't want an outer room
+     * that's specified to be unfilled to block an inner subroom that's
+     * specified to be filled. */
+    for (x = 0; x < croom->nsubrooms; ++x) {
+        fill_ordinary_room(croom->sbrooms[x]);
+    }
+
+    if (!croom->needfill)
+        return;
+
+    /* maybe place some dungeon features inside
+     * This should go first because it's capable of creating non-ACCESSIBLE
+     * terrain types; we don't want to embed any monsters, objects, or traps
+     * in a tree.
+     * [3.7]: Most or all of the below functions use somexyspace, which
+     * attempts to find a ROOM, CORR or ICE square, all of which are
+     * ACCESSIBLE. */
+    if (!rn2(10))
+        mkfeature(FOUNTAIN, croom);
+    if (!rn2(60))
+        mkfeature(SINK, croom);
+    if (!rn2(60))
+        mkfeature(ALTAR, croom);
+    if (!rn2(30 + (depth(&u.uz) * 5)))
+        mkfeature(TREE, croom);
+    x = 80 - (depth(&u.uz) * 2);
+    if (x < 2)
+        x = 2;
+    if (!rn2(x))
+        mkfeature(GRAVE, croom);
+
+    /* put traps and mimics inside */
+    x = 8 - (level_difficulty() / 6);
+    if (x < 2)
+        /* maxes out at level_difficulty() == 36 */
+        x = 2;
+    while (!rn2(x) && (++trycnt < 1000))
+        mktrap(0, 0, croom, (coord *) 0);
+
+    /* maybe put a monster inside */
+    if (u.uhave.amulet || !rn2(2)) {
+        mkmonst_in_room(croom);
+    }
+
+    /* maybe put some gold inside */
+    if (!rn2(3) && somexyspace(croom, &pos)) {
+        (void) mkgold(0L, pos.x, pos.y);
+    }
+
+    /* put statues inside */
+    if (!rn2(20) && somexyspace(croom, &pos)) {
+        (void) mkcorpstat(STATUE, (struct monst *) 0,
+                          (struct permonst *) 0, pos.x,
+                          pos.y, CORPSTAT_INIT);
+    }
+    /* put box/chest inside;
+     *  40% chance for at least 1 box, regardless of number
+     *  of rooms; about 5 - 7.5% for 2 boxes, least likely
+     *  when few rooms; chance for 3 or more is negligible.
+     */
+    if (!rn2(g.nroom * 5 / 2) && somexyspace(croom, &pos)) {
+        (void) mksobj_at((rn2(3)) ? LARGE_BOX : CHEST,
+                         pos.x, pos.y, TRUE, FALSE);
+    }
+
+    /* Maybe make some graffiti.
+     * Chance decreases the lower you get in the dungeon.
+     * On dlvl1, put a special graffiti in the starting room: this is always
+     * a true rumor, never a false one or random engraving, and is never
+     * damaged. */
+    if (depth(&u.uz) == 1 && has_upstairs(croom)) {
+        char buf[BUFSZ];
+        getrumor(1, buf, TRUE);
+        do { /* avoid other features */
+            somexyspace(croom, &pos);
+        } while (levl[pos.x][pos.y].typ != ROOM || t_at(pos.x, pos.y));
+        make_engr_at(pos.x, pos.y, buf, 0, MARK);
+    }
+    else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
+        mkfeature(0, croom);
+    }
+
+    /* place a random object in the room (40% chance), with a recursive 20%
+     * chance of placing another */
+    x = 2;
+    while (rnd(5) <= x && somexyspace(croom, &pos)) {
+        (void) mkobj_at(0, pos.x, pos.y, TRUE);
+        x = 1;
+    }
+}
+
 /* Full initialization of all level structures, map, objects, etc.
  * Handles any level - special levels will load that special level, Gehennom
  * will create mazes, and so on.
@@ -1007,8 +1114,6 @@ static void
 makelevel()
 {
     register struct mkroom *croom;
-    register int tryct;
-    register int x, y;
     branch *branchp;
 
     /* this is apparently used to denote that a lot of program state is
@@ -1085,7 +1190,7 @@ makelevel()
             add_room(g.vault_x, g.vault_y, g.vault_x + w, g.vault_y + h,
                      TRUE, VAULT, FALSE);
             g.level.flags.has_vault = 1;
-            fill_room(&g.rooms[g.nroom - 1], FALSE);
+            fill_special_room(&g.rooms[g.nroom - 1], FALSE);
             mk_knox_portal(g.vault_x + w, g.vault_y + h);
             /* Only put a vault teleporter with 1/3 chance;
              * a teleportation trap in a closet is a sure sign that a vault is
@@ -1120,92 +1225,7 @@ makelevel()
 
     /* for each room: put things inside */
     for (croom = g.rooms; croom->hx > 0; croom++) {
-        int trycnt = 0;
-        coord pos;
-        if (croom->rtype != OROOM && croom->rtype != THEMEROOM)
-            continue;
-        if (!croom->needfill)
-            continue;
-
-        /* maybe place some dungeon features inside
-         * This should go first because it's capable of creating non-ACCESSIBLE
-         * terrain types; we don't want to embed any monsters, objects, or traps
-         * in a tree.
-         * [3.7]: Most or all of the below functions use somexyspace, which
-         * attempts to find a ROOM, CORR or ICE square, all of which are
-         * ACCESSIBLE. */
-        if (!rn2(10))
-            mkfeature(FOUNTAIN, croom);
-        if (!rn2(60))
-            mkfeature(SINK, croom);
-        if (!rn2(60))
-            mkfeature(ALTAR, croom);
-        if (!rn2(30 + (depth(&u.uz) * 5)))
-            mkfeature(TREE, croom);
-        x = 80 - (depth(&u.uz) * 2);
-        if (x < 2)
-            x = 2;
-        if (!rn2(x))
-            mkfeature(GRAVE, croom);
-
-        /* put traps and mimics inside */
-        x = 8 - (level_difficulty() / 6);
-        if (x < 2)
-            /* maxes out at level_difficulty() == 36 */
-            x = 2;
-        while (!rn2(x) && (++trycnt < 1000))
-            mktrap(0, 0, croom, (coord *) 0);
-
-        /* maybe put a monster inside */
-        if (u.uhave.amulet || !rn2(2)) {
-            mkmonst_in_room(croom);
-        }
-
-        /* maybe put some gold inside */
-        if (!rn2(3) && somexyspace(croom, &pos)) {
-            (void) mkgold(0L, pos.x, pos.y);
-        }
-
-        /* put statues inside */
-        if (!rn2(20) && somexyspace(croom, &pos)) {
-            (void) mkcorpstat(STATUE, (struct monst *) 0,
-                              (struct permonst *) 0, pos.x,
-                              pos.y, CORPSTAT_INIT);
-        }
-        /* put box/chest inside;
-         *  40% chance for at least 1 box, regardless of number
-         *  of rooms; about 5 - 7.5% for 2 boxes, least likely
-         *  when few rooms; chance for 3 or more is negligible.
-         */
-        if (!rn2(g.nroom * 5 / 2) && somexyspace(croom, &pos)) {
-            (void) mksobj_at((rn2(3)) ? LARGE_BOX : CHEST,
-                             pos.x, pos.y, TRUE, FALSE);
-        }
-
-        /* Maybe make some graffiti.
-         * Chance decreases the lower you get in the dungeon.
-         * On dlvl1, put a special graffiti in the starting room: this is always
-         * a true rumor, never a false one or random engraving, and is never
-         * damaged. */
-        if (depth(&u.uz) == 1 && has_upstairs(croom)) {
-            char buf[BUFSZ];
-            getrumor(1, buf, TRUE);
-            do { /* avoid other features */
-                somexyspace(croom, &pos);
-            } while (levl[pos.x][pos.y].typ != ROOM || t_at(pos.x, pos.y));
-            make_engr_at(pos.x, pos.y, buf, 0, MARK);
-        }
-        else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
-            mkfeature(0, croom);
-        }
-
-        /* place a random object in the room (40% chance), with a recursive 20%
-         * chance of placing another */
-        x = 2;
-        while (rnd(5) <= x && somexyspace(croom, &pos)) {
-            (void) mkobj_at(0, pos.x, pos.y, TRUE);
-            x = 1;
-        }
+        fill_ordinary_room(croom);
     }
 }
 
