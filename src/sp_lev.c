@@ -2762,7 +2762,7 @@ fill_special_room(croom, prefilled)
 struct mkroom *croom;
 boolean prefilled;
 {
-    if (!croom || croom->rtype == OROOM)
+    if (!croom || croom->rtype == OROOM || croom->rtype == THEMEROOM)
         return;
 
     if (!prefilled) {
