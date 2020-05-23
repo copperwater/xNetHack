@@ -1009,7 +1009,6 @@ struct mkroom *croom;
 {
     int trycnt = 0;
     coord pos;
-    struct monst *tmonst; /* always put a web with a spider */
     int x, y;
 
     if (croom->rtype != OROOM && croom->rtype != THEMEROOM)
@@ -1022,7 +1021,7 @@ struct mkroom *croom;
         fill_ordinary_room(croom->sbrooms[x]);
     }
 
-    if (!croom->needfill)
+    if (croom->needfill != FILL_NORMAL)
         return;
 
     /* maybe place some dungeon features inside
@@ -1115,6 +1114,8 @@ makelevel()
 {
     register struct mkroom *croom;
     branch *branchp;
+    register s_level *slev = Is_special(&u.uz);
+    int i;
 
     /* this is apparently used to denote that a lot of program state is
      * uninitialized */
@@ -1123,109 +1124,104 @@ makelevel()
     oinit(); /* assign level dependent obj probabilities */
     clear_level_structures(); /* full level reset */
 
-    /* FIXME: pointless braces? */
-    {
-        register s_level *slev = Is_special(&u.uz);
+    /* check for special levels */
+    if (slev) {
+        /* a special level */
+        makemaz(slev->proto);
+    } else if (g.dungeons[u.uz.dnum].proto[0]) {
+        /* named prototype file */
+        makemaz("");
+    } else if (g.dungeons[u.uz.dnum].fill_lvl[0]) {
+        /* various types of filler, e.g. "minefill" */
+        makemaz(g.dungeons[u.uz.dnum].fill_lvl);
+    } else if (In_quest(&u.uz)) {
+        /* quest filler */
+        char fillname[9];
+        s_level *loc_lev;
 
-        /* check for special levels */
-        if (slev) {
-            /* a special level */
-            makemaz(slev->proto);
-            return;
-        } else if (g.dungeons[u.uz.dnum].proto[0]) {
-            /* named prototype file */
-            makemaz("");
-            return;
-        } else if (g.dungeons[u.uz.dnum].fill_lvl[0]) {
-            /* various types of filler, e.g. "minefill" */
-            makemaz(g.dungeons[u.uz.dnum].fill_lvl);
-            return;
-        } else if (In_quest(&u.uz)) {
-            /* quest filler */
-            char fillname[9];
-            s_level *loc_lev;
+        Sprintf(fillname, "%s-loca", g.urole.filecode);
+        loc_lev = find_level(fillname);
 
-            Sprintf(fillname, "%s-loca", g.urole.filecode);
-            loc_lev = find_level(fillname);
+        Sprintf(fillname, "%s-fil", g.urole.filecode);
+        Strcat(fillname,
+                (u.uz.dlevel < loc_lev->dlevel.dlevel) ? "a" : "b");
+        makemaz(fillname);
+    } else if (In_hell(&u.uz)
+                || (rn2(5) && u.uz.dnum == medusa_level.dnum
+                    && depth(&u.uz) > depth(&medusa_level))) {
+        /* Gehennom, or 80% of levels below Medusa - maze filler */
+        makemaz("");
+    } else {
+        /* otherwise, fall through - it's a "regular" level. */
+        makerooms();
 
-            Sprintf(fillname, "%s-fil", g.urole.filecode);
-            Strcat(fillname,
-                   (u.uz.dlevel < loc_lev->dlevel.dlevel) ? "a" : "b");
-            makemaz(fillname);
-            return;
-        } else if (In_hell(&u.uz)
-                   || (rn2(5) && u.uz.dnum == medusa_level.dnum
-                       && depth(&u.uz) > depth(&medusa_level))) {
-            /* Gehennom, or 80% of levels below Medusa - maze filler */
-            makemaz("");
-            return;
-        }
-    }
+        /* order rooms[] by x-coordinate */
+        sort_rooms();
 
-    /* otherwise, fall through - it's a "regular" level. */
-    makerooms();
+        generate_stairs(); /* up and down stairs */
 
-    /* order rooms[] by x-coordinate */
-    sort_rooms();
+        branchp = Is_branchlev(&u.uz);    /* possible dungeon branch */
+        makecorridors();
+        make_niches();
 
-    generate_stairs(); /* up and down stairs */
+        /* Did makerooms place a 2x2 unconnected room to be a vault? If so, fill
+         * it.
+         * Is there really a reason for do_vault() to be a macro? All it does is
+         * test whether vault_x is a real coordinate. It's only used here. */
+        if (do_vault()) {
+            xchar w, h;
 
-    branchp = Is_branchlev(&u.uz);    /* possible dungeon branch */
-    makecorridors();
-    make_niches();
-
-    /* Did makerooms place a 2x2 unconnected room to be a vault? If so, fill
-     * it.
-     * Is there really a reason for do_vault() to be a macro? All it does is
-     * test whether vault_x is a real coordinate. It's only used here. */
-    if (do_vault()) {
-        xchar w, h;
-
-        debugpline0("trying to make a vault...");
-        w = 1;
-        h = 1;
-        /* make sure vault can actually be placed */
-        if (check_room(&g.vault_x, &w, &g.vault_y, &h, TRUE)) {
+            debugpline0("trying to make a vault...");
+            w = 1;
+            h = 1;
+            /* make sure vault can actually be placed */
+            if (check_room(&g.vault_x, &w, &g.vault_y, &h, TRUE)) {
  fill_vault:
-            add_room(g.vault_x, g.vault_y, g.vault_x + w, g.vault_y + h,
-                     TRUE, VAULT, FALSE);
-            g.level.flags.has_vault = 1;
-            fill_special_room(&g.rooms[g.nroom - 1], FALSE);
-            mk_knox_portal(g.vault_x + w, g.vault_y + h);
-            /* Only put a vault teleporter with 1/3 chance;
-             * a teleportation trap in a closet is a sure sign that a vault is
-             * on the level, but a vault is not a sure sign of a vault
-             * teleporter. */
-            if (!g.level.flags.noteleport && !rn2(3))
-                makevtele();
-        } else if (rnd_rect() && create_vault()) {
-            /* If we didn't create a vault already, try once more. */
-            g.vault_x = g.rooms[g.nroom].lx;
-            g.vault_y = g.rooms[g.nroom].ly;
-            if (check_room(&g.vault_x, &w, &g.vault_y, &h, TRUE))
-                goto fill_vault;
-            else
-                g.rooms[g.nroom].hx = -1;
+                add_room(g.vault_x, g.vault_y, g.vault_x + w, g.vault_y + h,
+                        TRUE, VAULT, FALSE);
+                g.level.flags.has_vault = 1;
+                fill_special_room(&g.rooms[g.nroom - 1]);
+                mk_knox_portal(g.vault_x + w, g.vault_y + h);
+                /* Only put a vault teleporter with 1/3 chance;
+                 * a teleportation trap in a closet is a sure sign that a vault is
+                 * on the level, but a vault is not a sure sign of a vault
+                 * teleporter. */
+                if (!g.level.flags.noteleport && !rn2(3))
+                    makevtele();
+            } else if (rnd_rect() && create_vault()) {
+                /* If we didn't create a vault already, try once more. */
+                g.vault_x = g.rooms[g.nroom].lx;
+                g.vault_y = g.rooms[g.nroom].ly;
+                if (check_room(&g.vault_x, &w, &g.vault_y, &h, TRUE))
+                    goto fill_vault;
+                else
+                    g.rooms[g.nroom].hx = -1;
+            }
+        }
+
+        /* Try to create one special room on the level.
+         * The available special rooms depend on how deep you are.
+         * If a special room is selected and fails to be created (e.g. it tried
+         * to make a shop and failed because no room had exactly 1 door), it
+         * won't try to create the other types of available special rooms. */
+        if (wizard && nh_getenv("SHOPTYPE"))
+            /* special case that overrides everything else for wizard mode */
+            mkroom(SHOPBASE);
+        else
+            mkroom(rand_roomtype());
+
+        /* Place multi-dungeon branch. */
+        place_branch(branchp, 0, 0);
+
+        /* for each room: put things inside */
+        for (croom = g.rooms; croom->hx > 0; croom++) {
+            fill_ordinary_room(croom);
         }
     }
-
-    /* Try to create one special room on the level.
-     * The available special rooms depend on how deep you are.
-     * If a special room is selected and fails to be created (e.g. it tried
-     * to make a shop and failed because no room had exactly 1 door), it
-     * won't try to create the other types of available special rooms. */
-    if (wizard && nh_getenv("SHOPTYPE"))
-        /* special case that overrides everything else for wizard mode */
-        mkroom(SHOPBASE);
-    else
-        mkroom(rand_roomtype());
-
-    /* Place multi-dungeon branch. */
-    place_branch(branchp, 0, 0);
-
-    /* for each room: put things inside */
-    for (croom = g.rooms; croom->hx > 0; croom++) {
-        fill_ordinary_room(croom);
+    /* Fill all special rooms now, regardless of whether this is a special
+     * level, proto level, or ordinary level. */
+    for (i = 0; i < g.nroom; ++i) {
+        fill_special_room(&g.rooms[i]);
     }
 }
 

@@ -254,8 +254,10 @@ gottype:
     topologize(sroom);
 #endif
 
-    /* stock the room with a shopkeeper and artifacts */
-    stock_room(i, sroom);
+    /* The shop used to be stocked here, but this no longer happens - all we do
+     * is set its rtype, and it gets stocked at the end of makelevel() along
+     * with other special rooms. */
+    sroom->needfill = FILL_NORMAL;
 }
 
 /* Select a room on the level that is suitable to place a special room in.
@@ -299,7 +301,9 @@ int type;
 
     if ((sroom = pick_room(FALSE)) != 0) {
         sroom->rtype = type;
-        fill_zoo(sroom);
+        /* room does not get stocked at this time - it will get stocked at the
+         * end of makelevel() */
+        sroom->needfill = FILL_NORMAL;
     }
 }
 
@@ -349,6 +353,8 @@ struct mkroom *sroom;
     int rmno = (int) ((sroom - g.rooms) + ROOMOFFSET);
     coord mm;
 
+    /* Note: This doesn't check needfill; it assumes the caller has already done
+     * that. */
     sh = sroom->fdoor;
     switch (type) {
     case COURT:

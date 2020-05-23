@@ -98,7 +98,7 @@ init_ov_primary_symbols()
 
 nhsym
 get_othersym(idx, which_set)
-int idx, which_set;
+int idx, which_set UNUSED;
 {
     nhsym sym = (nhsym) 0;
     int oidx = idx + SYM_OFF_X;
