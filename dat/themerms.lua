@@ -31,6 +31,7 @@ themerooms = {
                     des.room({ type = "ordinary", x = 4,y = 3, w = 3,h = 3, filled = 1,
                                contents = function()
                                   des.door({ state="random", wall="all" });
+                                  des.feature("fountain", 1, 1);
                                end
                     });
                  end
@@ -543,6 +544,555 @@ xx|.....|xx
 end });
    end,
 
+   -- Four connected rooms
+   -- Note: they're all independent, meaning each one generates monsters,
+   -- objects, furniture etc separately.
+   function()
+      des.map({ map = [[
+-----x-----
+|...|x|...|
+|...+#+...|
+|...|x|...|
+--+--x--+--
+xx#xxxxx#xx
+--+--x--+--
+|...|x|...|
+|...+#+...|
+|...|x|...|
+-----x-----]],
+      contents = function(m)
+         des.region({ region={1,1,3,3}, type="ordinary", filled=1 });
+         des.region({ region={1,7,3,9}, type="ordinary", filled=1 });
+         des.region({ region={7,1,9,3}, type="ordinary", filled=1 });
+         des.region({ region={7,7,9,9}, type="ordinary", filled=1 });
+      end });
+   end,
+
+   -- Barbell-shaped room, horizontal
+   function()
+      des.map({ map = [[
+-----xxx-----
+|...-----...|
+|...........|
+|...-----...|
+-----xxx-----]],
+      contents = function(m)
+         des.region({ region={2,2,2,2}, type="themed", irregular=true, filled=1 });
+         des.door("random", 04, 02)
+         des.door("random", 08, 02)
+      end });
+   end,
+
+   -- Barbell-shaped room, vertical
+   function()
+      des.map({ map = [[
+-----
+|...|
+|...|
+|...|
+--.--
+x|.|x
+x|.|x
+x|.|x
+--.--
+|...|
+|...|
+|...|
+-----]],
+      contents = function(m)
+         des.region({ region={2,2,2,2}, type="themed", irregular=true, filled=1 });
+         des.door("random", 02, 04)
+         des.door("random", 02, 08)
+      end });
+   end,
+
+   -- Graffiti room
+   function()
+      des.room({ type = "themed", filled = 1,
+                 contents = function(rm)
+                     for x = 0, rm.width - 1 do
+                        for y = 0, rm.height - 1 do
+                           if percent(30) then
+                              des.engraving({ coord={x,y}, type="mark", text="" })
+                           end
+                        end
+                     end
+                 end
+      });
+   end,
+
+   -- Room with small pillars (also, possibly wood nymph room)
+   function()
+      des.room({ type = "themed", w = 5 + nh.rn2(3)*2, h = 5 + nh.rn2(3)*2, filled = 1,
+                 contents = function(rm)
+                    local grove = percent(20)
+                    local mapchr = (grove and 'T') or '-'
+                    for i = 0, (rm.width - 3) / 2 do
+                       for j = 0, (rm.height - 3) / 2 do
+                          des.terrain(i*2 + 1, j*2 + 1, mapchr)
+                       end
+                    end
+                    if grove then
+                        -- TODO: When object materials are added to the parser,
+                        -- these objects should be made of wood.
+                       if percent(50) then
+                          des.object({ id = "statue", montype = "wood nymph" })
+                       end
+                       if percent(20) then
+                          if percent(50) then
+                             des.object({ id = "statue", montype = "wood nymph" })
+                          else
+                             des.object({ id = "figurine", montype = "wood nymph" })
+                          end
+                       end
+                       local nnymphs = math.floor(d(nh.level_difficulty()) / 4)
+                       for i=1,nnymphs do
+                          des.monster("wood nymph")
+                       end
+                    end
+                 end
+      });
+   end,
+
+   -- Boomerang-shaped, rot 1
+   function()
+      des.map({ map = [[
+-----xxxxx
+|...---xxx
+|.....--xx
+--.....--x
+x----...--
+xxxx--...|
+xxxxx|...|
+xxxx--...|
+x----...--
+--.....--x
+|.....--xx
+|...---xxx
+-----xxxxx]], contents = function(m) des.region({ region={2,2,2,2}, type="ordinary", irregular=true, filled=1 }); end });
+   end,
+
+   -- Boomerang-shaped, rot 2
+   function()
+      des.map({ map = [[
+xxxxx-----
+xxx---...|
+xx--.....|
+x--.....--
+--...----x
+|...--xxxx
+|...|xxxxx
+|...--xxxx
+--...----x
+x--.....--
+xx--.....|
+xxx---...|
+xxxxx-----]], contents = function(rm)
+                  des.region({ region={7,1,7,1}, type="ordinary", irregular=true, filled=1 });
+              end
+      });
+   end,
+
+   -- Rectangular walled corridor
+   -- Note: a 5x5 version of this room could be confused for Mausoleum
+   function()
+      des.room({ type = "themed", filled = 1,
+                 contents = function(rm)
+                    for x = 1, rm.width - 2 do
+                       for y = 1, rm.height - 2 do
+                          des.terrain(x, y, "-");
+                       end
+                    end
+                 end
+       });
+    end,
+
+   -- Tiny cage, big monster
+   function()
+      des.map({ map = [[
+-------
+|.....|
+|.FFF.|
+|.F.F.|
+|.FFF.|
+|.....|
+-------]], contents = function(m)
+              des.region({ region={1,1,5,5}, type="themed", irregular=false, filled=1 });
+              if percent(80) then
+                 local mons = { 'M', 'Z', 'O', 'T' }
+                 if nh.level_difficulty() > 6 then
+                    table.insert(mons, 'H');
+                    if nh.level_difficulty() > 12 then
+                       table.insert(mons, 'D');
+                    end
+                 end
+                 shuffle(mons);
+                 des.monster(mons[1], 3,3);
+              else
+                 des.trap({ x = 3, y = 3});
+              end
+           end
+      });
+   end,
+
+   -- Split room
+   function()
+      des.room({ type = "ordinary", filled = 1, w = 3 + nh.rn2(10), h = 3 + nh.rn2(4),
+                 contents = function(rm)
+                    local doorstates = { "open", "closed", "locked" }
+                    if nh.level_difficulty() >= 5 then
+                       table.insert(doorstates, "secret")
+                    end
+                    shuffle(doorstates)
+
+                    local rndx = nh.rn2(rm.width - 2) + 1
+                    local rndy = nh.rn2(rm.height - 2) + 1
+
+                    if percent(50) then
+                       des.room({ type = "ordinary", x = 0, y = 0, w = rndx-1, h = rm.height, filled = 1,
+                                  contents = function()
+                                     des.door({ state = doorstates[1], wall = "east" })
+                                  end
+                       });
+                    else
+                       des.room({ type = "ordinary", x = 0, y = 0, w = rm.width, h = rndy-1, filled = 1,
+                                  contents = function()
+                                     des.door({ state = doorstates[1], wall = "south" })
+                                  end
+                       });
+                    end
+                 end
+      });
+   end,
+
+   -- Corner 2x2 subroom
+   function()
+      des.room({ type = "themed", filled = 1, w = 4 + nh.rn2(9), h = 4 + nh.rn2(3),
+                 contents = function(rm)
+                    local doorstates = { "open", "closed", "locked" }
+                    if nh.level_difficulty() >= 5 then
+                       table.insert(doorstates, "secret")
+                    end
+                    shuffle(doorstates)
+
+                    local rmx = 0
+                    local rmy = 0
+                    if percent(50) then
+                       rmx = rm.width - 2
+                    end
+                    if percent(50) then
+                       rmy = rm.height - 2
+                    end
+                    des.room({ type = "themed", x = rmx, y = rmy, w = 2, h = 2, filled = 1,
+                                contents = function()
+                                   des.door({ state = doorstates[1], wall = "random" })
+                                end
+                    });
+                 end
+      });
+   end,
+
+   -- Storeroom vault
+   {
+      maxdiff = 14,
+      contents = function()
+         des.room({ type = "themed", filled = 0, w = 2, h = 2, joined = 0,
+                    contents = function(rm)
+                       for i=1,d(2) do
+                          des.object("chest")
+                       end
+                    end
+         });
+      end
+   },
+
+   -- Crossed X of water
+   -- FIXME: This breaks the rule that the space in front of a door should
+   -- always be free of traps or dangerous terrain, but we can't address that
+   -- here since no doors exist yet.
+   function()
+      des.room({ type = "themed", filled = 1, w = 5 + nh.rn2(9), h = 5 + nh.rn2(3),
+                 contents = function(rm)
+                    des.terrain(selection.line(0, 0, rm.width - 1, rm.height - 1), "}");
+                    des.terrain(selection.line(0, rm.height - 1, rm.width - 1, 0), "}");
+                 end
+      });
+
+   end,
+
+   -- Mini maze
+   -- Warning: x and y must be odd for mazewalk not to break out of the walls.
+   -- The formulas for obtaining them assume ROWNO=21 and COLNO=80.
+   {
+      mindiff = 6,
+      contents = function()
+         des.map({ map = [[
+-----------
+-----------
+||.- - - ||
+||-------||
+|| - - - ||
+||-------||
+|| - - - ||
+||-------||
+|| - - - ||
+-----------
+-----------]], x = 3 + nh.rn2(32)*2, y = 3 + nh.rn2(4)*2, contents = function(m)
+            des.mazewalk({ x = 2, y = 2, dir = "east", stocked = false });
+            des.region({ region={2,2,2,2}, type="themed", irregular=true, filled=1, joined=true, lit=1 });
+         end
+
+         });
+      end
+   },
+
+   -- Bunch of closets
+   {
+      mindiff = 5,
+      contents = function()
+         des.room({ type = "themed", filled = 1, joined = 1, w = 3 + nh.rn2(6)*2, h = 5,
+                    contents = function(rm)
+                       for x = 0, rm.width - 1 do
+                          for y = 0, 4 do
+                             if y == 0 or y == 4 then
+                                -- closet row
+                                if x % 2 == 0 then
+                                   -- closet column
+                                   if percent(10) then
+                                      des.monster({ x = x, y = y })
+                                   end
+                                   if percent(10) then
+                                      des.object({ x = x, y = y })
+                                   end
+                                else
+                                   -- wall column
+                                   des.terrain(x, y, '|')
+                                end
+                             elseif y == 1 or y == 3 then
+                                -- wall row
+                                if x % 2 == 0 then
+                                   -- closet column
+                                   local doiron = percent(nh.level_difficulty()*4) and 1 or 0
+                                   des.door({ x = x, y = y, iron = doiron });
+                                else
+                                   -- wall column
+                                   des.terrain(x, y, '-')
+                                end
+                             end
+                          end
+                       end
+                    end
+         });
+      end
+   },
+
+   -- Beehives
+   {
+      mindiff = 10, -- minimum beehive depth in rand_roomtype()
+      contents = function()
+         local nhives = d(3)
+         des.room({ type = "themed", w = 1 + 5*nhives, h = 6,
+                    contents = function()
+                       for i=1,nhives do
+                          des.room({ type = "beehive", w = 2, h = 2, x = (i*5) - 3, y = 2, filled = 1,
+                                     contents = function()
+                                        des.door({ wall = "random" })
+                                     end
+                          });
+                       end
+                    end
+         });
+      end
+   },
+
+   -- Super Honeycomb
+   {
+      mindiff = 13,
+      contents = function()
+         des.map({ map = [[
+xxxx----xx----xxxx
+xxx--..----..--xxx
+xxx|....||....|xxx
+x----..----..----x
+--..----..----..--
+|....||....||....|
+--..----..----..--
+x----..----..----x
+xxx|....||....|xxx
+xxx--..----..--xxx
+xxxx----xx----xxxx]], contents=function(m)
+               -- The goal: connect adjacent cells until a spanning tree is formed.
+               -- The following tables {a,b,w,x,y,z} denote pairs of cells with
+               -- ids a and b that would become connected if positions (w,x)
+               -- and (y,z) became floor. Cell ids are 1-7 left to right then
+               -- top to bottom.
+               local conns = {
+                  {1,2, 08,02,09,02},
+                  {1,3, 04,03,04,04},
+                  {1,4, 07,03,07,04},
+                  {2,4, 10,03,10,04},
+                  {2,5, 13,03,13,04},
+                  {3,4, 05,05,06,05},
+                  {3,6, 04,06,04,07},
+                  {4,5, 11,05,12,05},
+                  {4,6, 07,06,07,07},
+                  {4,7, 10,06,10,07},
+                  {5,7, 13,06,13,07},
+                  {6,7, 08,08,09,08}
+               }
+               local reached = { false, false, false, false, false, false, false }
+               reached[d(7)] = true -- initial cell
+               local allconnected = false
+               while not allconnected do
+                  -- pick a random element of conns that adds a new cell
+                  local pick = d(#conns)
+                  while reached[conns[pick][1]] == reached[conns[pick][2]] do
+                     pick = d(#conns)
+                  end
+
+                  -- change those walls to floor
+                  des.terrain(conns[pick][3], conns[pick][4], '.')
+                  des.terrain(conns[pick][5], conns[pick][6], '.')
+
+                  -- update reached; one of the two must have been true so set both to true
+                  reached[conns[pick][1]] = true
+                  reached[conns[pick][2]] = true
+
+                  -- recompute allconnected
+                  allconnected = true
+                  for i=1,7 do
+                     allconnected = allconnected and reached[i]
+                  end
+               end
+               des.region({ region={05,01,05,01}, type="beehive", irregular=true, joined=true, filled=1 })
+            end
+         });
+      end
+   },
+
+   -- Random terrain room, except randomly applied to any square, not just the center
+   function()
+      des.room({ type="themed", filled=1, contents=function(rm)
+            -- des.terrain(selection.floodfill(1,1), "I");
+            local picks = selection.floodfill(1,1):percentage(30)
+            local feature = { "C", "I", 'g' };
+            -- These features can spawn next to and block off doors. Cope by
+            -- ensuring none of the real blockers can be created before the Mines.
+            if nh.level_difficulty() > 4 then
+               table.insert(feature, 'P')
+               table.insert(feature, 'T')
+               if nh.level_difficulty() > 10 then
+                  table.insert(feature, 'L')
+               end
+            end
+            shuffle(feature)
+            des.terrain(picks, feature[1])
+         end
+      });
+   end,
+
+   -- Swimming pool
+   function()
+      des.room({ type="themed", filled=0, contents=function(rm)
+            local poolarea = selection.fillrect(1,1,rm.width-2,rm.height-2)
+            des.terrain(poolarea, '}');
+            -- spice it up with some sea monsters
+            local waterarea = (rm.width-2)*(rm.height-2)
+            local nmonsters = math.min(d(5), waterarea/2);
+            for i=1,nmonsters do
+               des.monster('z')
+            end
+            -- sunken treasure
+            if percent(50) then
+               des.object({ id='chest', coord={poolarea:rndcoord(1)}, contents=function()
+                     for i=1,d(2,2) do
+                        des.object('*')
+                     end
+                     des.object({ id = "gold piece", quantity = d(80, 5) })
+                  end
+               });
+            end
+         end
+      });
+   end,
+
+   -- Thin long horizontal room
+   function()
+      local width = 14 + d(6)
+      des.room({ type="ordinary", filled=1, w=14+d(6), h=d(2) });
+   end,
+
+   -- Scummy moldy room
+   {
+      mindiff = 6,
+      contents = function()
+         des.room({ type="themed", filled=0, contents=function(rm)
+               mons = { 'gas spore', 'F', 'b', 'j', 'P' }
+               local nummons = math.min(rm.width * rm.height, d(4,3))
+               for i=1, nummons do
+                  -- Note: this is a bit different from the original UnNetHack room;
+                  -- that one picked one member from mons and filled the room with it,
+                  -- whereas this randomizes the member of mons each time.
+                  des.monster(mons[d(#mons)])
+               end
+            end
+         });
+      end
+   },
+
+   -- Ozymandias' Tomb
+   {
+      -- mindiff = 18,
+      contents = function()
+         des.room({ type="themed", filled=0, w=7, h=7, contents=function()
+               des.feature("throne", 3, 3)
+               -- FIXME: It should be possible to have webs appear without
+               -- giant spiders. Until then, no webs.
+               -- des.trap("web")
+               -- des.trap("web")
+               for i=1,4 do
+                  if percent(75) then
+                     des.trap('falling rock')
+                  end
+               end
+               for i=1,d(3)+1 do
+                  des.trap('hole')
+               end
+               des.object({ id = "chest", trapped = 1 });
+               for i=1,2 do
+                  des.trap('statue')
+               end
+               -- no statue of Ozymandias; it shouldn't be possible to reanimate it
+               local x=3
+               local y=3
+               if percent(50) then
+                  x = x + ((2 * nh.rn2(2)) - 1)
+               else
+                  y = y + ((2 * nh.rn2(2)) - 1)
+               end
+               des.engraving({ coord={x,y}, type="engrave", text="My name is Ozymandias, king of kings: Look on my works, ye Mighty, and despair!" })
+            end
+         });
+      end
+   },
+
+   -- Gas spore den
+   -- Tread carefully...
+   {
+      mindiff = 5,
+      contents = function()
+         des.room({ type="themed", filled=0, contents=function(rm)
+               for x=0,rm.width-1 do
+                  for y=0,rm.width-1 do
+                     if percent(math.min(100, 75 + nh.level_difficulty())) then
+                        des.monster({ id='gas spore', asleep=1 })
+                     end
+                  end
+               end
+            end
+         });
+      end
+   }
 };
 
 function is_eligible(room)
