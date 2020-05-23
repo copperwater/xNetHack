@@ -1087,10 +1087,9 @@ struct mkroom *croom;
     if (depth(&u.uz) == 1 && has_upstairs(croom)) {
         char buf[BUFSZ];
         getrumor(1, buf, TRUE);
-        do { /* avoid other features */
-            somexyspace(croom, &pos);
-        } while (levl[pos.x][pos.y].typ != ROOM || t_at(pos.x, pos.y));
-        make_engr_at(pos.x, pos.y, buf, 0, MARK);
+        if (find_okay_roompos(croom, &pos)) {
+            make_engr_at(pos.x, pos.y, buf, 0, MARK);
+        }
     }
     else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
         mkfeature(0, croom);
