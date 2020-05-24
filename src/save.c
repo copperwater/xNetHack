@@ -1,4 +1,4 @@
-/* NetHack 3.6	save.c	$NHDT-Date: 1581886866 2020/02/16 21:01:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.153 $ */
+/* NetHack 3.6	save.c	$NHDT-Date: 1590263454 2020/05/23 19:50:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.158 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1069,7 +1069,8 @@ NHFILE *nhfp;
     if (nhfp->structlevel) {
         bufoff(nhfp->fd);
         /* bwrite() before bufon() uses plain write() */
-        bwrite(nhfp->fd, (genericptr_t) &sfsaveinfo, (unsigned) sizeof sfsaveinfo);
+        bwrite(nhfp->fd, (genericptr_t) &sfsaveinfo,
+               (unsigned) sizeof sfsaveinfo);
         bufon(nhfp->fd);
     }
     return;
@@ -1160,7 +1161,11 @@ freedynamicdata()
     /* miscellaneous */
     /* free_pickinv_cache();  --  now done from really_done()... */
     free_symsets();
+#ifdef USER_SOUNDS
+    release_sound_mappings();
+#endif
 #endif /* FREE_ALL_MEMORY */
+
     if (VIA_WINDOWPORT())
         status_finish();
 #if defined(DUMPLOG) || defined(DUMPHTML)
