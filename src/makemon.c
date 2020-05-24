@@ -1531,7 +1531,13 @@ struct monst* creator;
         if (!mptr && in_water && enexto(&c, x, y, &mons[PM_GIANT_EEL]))
             x = c.x, y = c.y;
 
-        mon = makemon(mptr, x, y, MM_ADJACENTOK | MM_NOGRP);
+        /* Because mon gets read later, this needs to check the return value of
+         * makemon before assigning mon to anything; makemon could fail if e.g.
+         * the level is full */
+        struct monst *mtmp = makemon(mptr, x, y, MM_ADJACENTOK | MM_NOGRP);
+        if (mtmp != NULL) {
+            mon = mtmp;
+        }
     }
     newmons_ct = monster_census(TRUE) - old_census;
     if (newmons_ct > 0) {
