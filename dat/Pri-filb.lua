@@ -4,6 +4,7 @@
 -- NetHack may be freely redistributed.  See license for details.
 --
 --
+des.level_flags("graveyard")
 
 des.room({ type = "ordinary",
            contents = function()
