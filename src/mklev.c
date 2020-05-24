@@ -1953,7 +1953,7 @@ int phase;
             && ((!has_upstairs(croom) && !has_dnstairs(croom))
                 || phase < 1)
             && (croom->rtype == OROOM
-                || ((phase < 2) || croom->rtype == THEMEROOM)));
+                || ((phase < 2) && croom->rtype == THEMEROOM)));
 }
 
 /* find a good room to generate an up or down stairs in */
