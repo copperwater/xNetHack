@@ -808,22 +808,22 @@ Z = (195, 195, 195)
 }
 # tile 41 (displacer beast)
 {
-  MMMMMMMMMMMMMMMM
-  MMMMMMMMEMMMMMMM
-  MMMMMMMEMEMMAAMM
-  DEEEAMMAMEMMMMAM
-  MMMMEAMEMDMMMMAM
-  MAMMMAMEMMMMMMAM
-  MEAMAEAAAMMMMMAM
-  MAAAAAAAAAAMMAMM
-  MAAAAEAAAAAAAAMM
-  MHAHAEAAAAAAAAAM
-  MAAAAEAAAAAAAAAM
-  MAAAMAAAAAAAAAAM
-  MMMMMAEMAEEAMEAM
-  MMMMAEMAEMEAMEAM
-  MMMAEMAEMEAMEAMM
-  MMMMMMMMMMMMMMMM
+  ................
+  ........E.......
+  .......E.E..AA..
+  DEEEA..A.E....A.
+  ....EA.E.D....A.
+  .A...A.E......A.
+  .EA.AEAAA.....A.
+  .AAAAAAAAAA..A..
+  .AAAAEAAAAAAAA..
+  .HAHAEAAAAAAAAA.
+  .AAAAEAAAAAAAAA.
+  .AAAMAAAAAAAAAA.
+  .....AE.AEEA.EA.
+  ....AE.AE.EA.EA.
+  ...AE.AE.EA.EA..
+  ................
 }
 # tile 41 (gremlin)
 {
@@ -4305,6 +4305,7 @@ Z = (195, 195, 195)
 # tile 224 (Woodland-elf)
 {
   ................
+<<<<<<< HEAD
   ................
   .........K......
   .......KKJ......
@@ -4395,6 +4396,22 @@ Z = (195, 195, 195)
   .....IIFAFDAAA..
   ...IIKLAILKDI...
   ................
+=======
+  ......LLLL......
+  ...KIIKLKIIK....
+  ...INNILINNIL...
+  DGDIANIIIANIL...
+  GGGKIIKLKIIKL...
+  .GA..CLLLCCL....
+  .GLN.LLAALLAAAA.
+  .GLNN.LLLLJAAAA.
+  .GA.NNJJJJNAAA..
+  .GA.BNNNONNNAA..
+  ..GA.NNNONNLAA..
+  .....NPEPENA.A..
+  .....NPEPENN....
+  ....NAAEPAANN...
+>>>>>>> 7f71e4051c276fe63055d6c6557acbb683699f78
   ................
 }
 # tile 229 (rust monster)
@@ -7532,3 +7549,4 @@ Z = (195, 195, 195)
   .......AA.......
   ................
 }
+

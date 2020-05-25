@@ -447,7 +447,7 @@ int how;
              * the first polymon) */
             u.mh = u.mhmax;
         }
-        livelog_printf(LL_ARISE, "became permanently corrupted into a %s",
+        livelog_printf(LL_LIFESAVE, "became permanently corrupted into a %s",
                        mons[mon_nm].mname);
         /* bug: if u.uhp <= 0, monsters won't attack for some reason
          * set to max, not like you're ever going to need it again... */
@@ -486,11 +486,13 @@ struct monst *mtmp;
             Strcat(buf, "the ");
         g.killer.format = KILLED_BY;
     }
+#ifdef TRACK_REVENANTS
     /* _the_ <invisible> <distorted> ghost of Dudley */
-    if (mptr == &mons[PM_GHOST] && has_mname(mtmp)) {
+    if (is_bones_monster(mptr) && has_mname(mtmp)) {
         Strcat(buf, "the ");
         g.killer.format = KILLED_BY;
     }
+#endif
     if (mtmp->minvis)
         Strcat(buf, "invisible ");
     if (distorted)
@@ -528,10 +530,10 @@ struct monst *mtmp;
                                : "%s imitating %s",
                 realnm, shape);
         mptr = mtmp->data; /* reset for mimicker case */
-    } else if (mptr == &mons[PM_GHOST]) {
-        Strcat(buf, "ghost");
-        if (has_mname(mtmp))
-            Sprintf(eos(buf), " of %s", MNAME(mtmp));
+#ifdef TRACK_REVENANTS
+    } else if (is_bones_monster(mptr)) {
+        Strcpy(buf, m_monnam(mtmp));
+#endif
     } else if (mtmp->isshk) {
         const char *shknm = shkname(mtmp),
                    *honorific = shkname_is_pname(mtmp) ? ""
@@ -1267,6 +1269,7 @@ int how;
         } else {
             livelog_write_string(LL_LIFESAVE, "averted death");
             survive = TRUE;
+            livelog_write_string(LL_LIFESAVE, "averted death");
         }
     }
     /* maybe give the player a second chance if they were killed by the
@@ -1773,6 +1776,7 @@ int how;
         raw_print("");
         raw_print("");
     }
+    livelog_dump_url(LL_DUMP_ALL | (how == ASCENDED ? LL_DUMP_ASC : 0));
     nh_terminate(EXIT_SUCCESS);
 }
 

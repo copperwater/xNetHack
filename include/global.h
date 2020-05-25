@@ -420,6 +420,16 @@ struct savefile_info {
 #define PANICTRACE_GDB
 #endif
 
+/* Supply nethack_enter macro if not supplied by port */
+#ifndef nethack_enter
+#define nethack_enter(argc, argv) ((void) 0)
+#endif
+
+/* Supply nhassert macro if not supplied by port */
+#ifndef nhassert
+#define nhassert(e) ((void)0)
+#endif
+
 /* LIVELOG message type flags */
 #define LL_WISH       0x0001 /* Report stuff people type at the wish prompt. */
 #define LL_ACHIEVE    0x0002 /* Achievements bitfield + invocation, planes */
@@ -430,18 +440,10 @@ struct savefile_info {
 #define LL_ARTIFACT   0x0040 /* Excalibur, Sting, Orcrist, plus sac gifts and artwishes */
 #define LL_GENOCIDE   0x0080 /* Logging of genocides */
 #define LL_KILLEDPET  0x0100 /* Killed a tame monster */
-#define LL_ARISE      0x0200 /* sentient_arise: was killed, continue playing as monster */
-#define LL_ALIGNMENT  0x0400 /* changed alignment temporarily or permanently */
+#define LL_ALIGNMENT  0x0200 /* changed alignment temporarily or permanently */
+#define LL_DUMP_ASC   0x0400 /* Log URL for dumplog if ascended */
+#define LL_DUMP_ALL   0x0800 /* Log dumplog url for all games */
+#define LL_MINORAC    0x1000 /* Log 'minor' achievements - can be spammy */
 #define LL_DEBUG      0x8000 /* For debugging messages and other spam */
-
-/* Supply nethack_enter macro if not supplied by port */
-#ifndef nethack_enter
-#define nethack_enter(argc, argv) ((void) 0)
-#endif
-
-/* Supply nhassert macro if not supplied by port */
-#ifndef nhassert
-#define nhassert(e) ((void)0)
-#endif
 
 #endif /* GLOBAL_H */

@@ -1780,9 +1780,8 @@ register struct obj *obj; /* g.thrownobj or g.kickedobj or uwep */
 
             /* attack hits mon */
             if (hmode == HMON_APPLIED)
-                if(!u.uconduct.weaphit++)
-                    livelog_write_string(LL_CONDUCT,
-                                "hit with a wielded weapon for the first time");
+                if (!u.uconduct.weaphit++)
+                    livelog_write_string(LL_CONDUCT, "hit with a wielded weapon for the first time");
             if (hmon(mon, obj, hmode, dieroll)) { /* mon still alive */
                 if (mon->wormno)
                     cutworm(mon, g.bhitpos.x, g.bhitpos.y, chopper);

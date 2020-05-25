@@ -78,13 +78,13 @@ static void FDECL(dump_putstr, (winid, int, const char *));
 static void NDECL(dump_headers);
 static void NDECL(dump_footers);
 static void FDECL(dump_set_color_attr, (int, int, BOOLEAN_P));
-#endif /* DUMPLOG || DUMPHTML */
-
 #ifdef DUMPHTML
 static void NDECL(html_init_sym);
 static void NDECL(dump_css);
 static void FDECL(dump_outrip, (winid, int, time_t));
 #endif /* DUMPHTML */
+
+#endif /* DUMPLOG */
 
 #ifdef HANGUPHANDLING
 volatile
@@ -1124,6 +1124,7 @@ unsigned long *colormasks UNUSED;
 
 static struct window_procs dumplog_windowprocs_backup;
 static int menu_headings_backup;
+
 static FILE *dumplog_file;
 static FILE *dumphtml_file;
 
@@ -1906,6 +1907,7 @@ dump_headers()
     fprintf(dumphtml_file, "<meta name=\"generator\" content=\"xNetHack %s \" />\n", vers);
     fprintf(dumphtml_file, "<meta name=\"date\" content=\"%s\" />\n", iso8601);
     fprintf(dumphtml_file, "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n");
+    fprintf(dumphtml_file, "<link href=\"https://cdn.jsdelivr.net/gh/maxwell-k/dejavu-sans-mono-web-font@2.37/index.css\" title=\"Default\" rel=\"stylesheet\" type=\"text/css\" media=\"all\" />\n");
     fprintf(dumphtml_file, "<style type=\"text/css\">\n");
     dump_css();
     fprintf(dumphtml_file, "</style>\n</head>\n<body>\n");
@@ -1968,25 +1970,25 @@ dump_open_log(now)
 time_t now;
 {
 #if defined(DUMPLOG) || defined(DUMPHTML)
-    char buf[BUFSZ];
-    char *fname = (char *)0;
-
-    dumplog_now = now;
 #ifdef SYSCF
 #undef DUMPLOG_FILE
 #undef DUMPHTML_FILE
 #define DUMPLOG_FILE sysopt.dumplogfile
 #define DUMPHTML_FILE sysopt.dumphtmlfile
-    if (!sysopt.dumplogfile)
-        return;
-    fname = dump_fmtstr(sysopt.dumplogfile, buf, TRUE);
-#else
-    fname = dump_fmtstr(DUMPLOG_FILE, buf, TRUE);
 #endif
-    if (fname) dumplog_file = fopen(fname, "w");
+    char buf[BUFSZ];
+    char *fname = (char *)0;
+
+    dumplog_now = now;
+#ifdef DUMPLOG
+    fname = dump_fmtstr(DUMPLOG_FILE, buf, TRUE);
+    if (fname)
+        dumplog_file = fopen(fname, "w");
+#endif
 #ifdef DUMPHTML
     fname = dump_fmtstr(DUMPHTML_FILE, buf, TRUE);
-    if(fname) dumphtml_file = fopen(fname, "w");
+    if (fname)
+        dumphtml_file = fopen(fname, "w");
 #endif
     if (dumplog_file || dumphtml_file) {
         dumplog_windowprocs_backup = windowprocs;
@@ -2188,59 +2190,6 @@ boolean onoff_flag;
 }
 #endif
 
-#ifdef EXTRAINFO_FN
-/* This probably belongs in files.c, but it
- * uses dump_fmtstr() which is static here.
- */
-void
-mk_dgl_extrainfo()
-{
-    FILE *extrai = (FILE *)0;
-#ifdef UNIX
-    mode_t eimode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-#endif
-    char new_fn[512];
-
-    dump_fmtstr(EXTRAINFO_FN,new_fn, TRUE);
-
-    extrai = fopen(new_fn, "w");
-    if (!extrai) {
-    } else {
-        int sortval = 0;
-        char tmpdng[16];
-        sortval += (u.uhave.amulet ? 1024 : 0);
-        if (Is_knox(&u.uz)) {
-            Sprintf(tmpdng, "%s", "Knx");
-            sortval += 245;
-        } else if (In_quest(&u.uz)) {
-            Sprintf(tmpdng, "%s%i", "Q", dunlev(&u.uz));
-            sortval += 250+(dunlev(&u.uz));
-        } else if (In_endgame(&u.uz)) {
-            Sprintf(tmpdng, "%s", "End");
-            sortval += 256;
-        } else if (In_tower(&u.uz)) {
-            Sprintf(tmpdng, "T%i", dunlev(&u.uz));
-            sortval += 235+(depth(&u.uz));
-        } else if (In_sokoban(&u.uz)) {
-            Sprintf(tmpdng, "S%i", dunlev(&u.uz));
-            sortval += 225+(depth(&u.uz));
-        } else if (In_mines(&u.uz)) {
-            Sprintf(tmpdng, "M%i", dunlev(&u.uz));
-            sortval += 215+(dunlev(&u.uz));
-        } else {
-            Sprintf(tmpdng, "D%i", depth(&u.uz));
-            sortval += (depth(&u.uz));
-        }
-#ifdef UNIX
-        chmod(new_fn, eimode);
-#endif
-        fprintf(extrai, "%i|%c %s", sortval, (u.uhave.amulet ? 'A' : ' '), tmpdng);
-        fclose(extrai);
-    }
-}
-#endif /* EXTRAINFO_FN */
-
-
 #ifdef TTY_GRAPHICS
 #ifdef TEXTCOLOR
 #ifdef TOS
@@ -2263,6 +2212,79 @@ int color;
 #endif
 #endif
     );
+}
+
+#ifdef EXTRAINFO_FN
+/* This probably belongs in files.c, but it
+ * uses dump_fmtstr() which is static here.
+ */
+void
+mk_dgl_extrainfo()
+{
+    FILE *extrai = (FILE *) 0;
+#ifdef UNIX
+    mode_t eimode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+#endif
+    char new_fn[512];
+
+    dump_fmtstr(EXTRAINFO_FN, new_fn, TRUE);
+
+    extrai = fopen(new_fn, "w");
+    if (!extrai) {
+    } else {
+        int sortval = 0;
+        char tmpdng[16];
+        sortval += (u.uhave.amulet ? 1024 : 0);
+        if (Is_knox(&u.uz)) {
+            Sprintf(tmpdng, "%s", "Knx");
+            sortval += 245;
+        } else if (In_quest(&u.uz)) {
+            Sprintf(tmpdng, "%s%i", "Q", dunlev(&u.uz));
+            sortval += 250 + (dunlev(&u.uz));
+        } else if (In_endgame(&u.uz)) {
+            Sprintf(tmpdng, "%s", "End");
+            sortval += 256;
+        } else if (In_tower(&u.uz)) {
+            Sprintf(tmpdng, "T%i", dunlev(&u.uz));
+            sortval += 235 + (depth(&u.uz));
+        } else if (In_sokoban(&u.uz)) {
+            Sprintf(tmpdng, "S%i", dunlev(&u.uz));
+            sortval += 225 + (depth(&u.uz));
+        } else if (In_mines(&u.uz)) {
+            Sprintf(tmpdng, "M%i", dunlev(&u.uz));
+            sortval += 215 + (dunlev(&u.uz));
+        } else {
+            Sprintf(tmpdng, "D%i", depth(&u.uz));
+            sortval += (depth(&u.uz));
+        }
+#ifdef UNIX
+        chmod(new_fn, eimode);
+#endif
+        fprintf(extrai, "%i|%c %s", sortval, (u.uhave.amulet ? 'A' : ' '), tmpdng);
+        fclose(extrai);
+    }
+}
+#endif /* EXTRAINFO_FN */
+
+void
+livelog_dump_url(llflags)
+unsigned int llflags;
+{
+#ifdef DUMPLOG
+    char buf[BUFSZ];
+    char *dumpurl;
+
+#ifdef SYSCF
+    if (!sysopt.dumplogurl)
+        return;
+    dumpurl = dump_fmtstr(sysopt.dumplogurl, buf, TRUE);
+#else
+    dumpurl = dump_fmtstr(DUMPLOG_URL, buf, TRUE);
+#endif
+    livelog_write_string(llflags, dumpurl);
+#else
+    nhUse(llflags);
+#endif /*?DUMPLOG*/
 }
 
 /*windows.c*/

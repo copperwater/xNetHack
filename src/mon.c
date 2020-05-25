@@ -2476,6 +2476,11 @@ register struct monst *mtmp;
         wizdead();
     if (mtmp->data->msound == MS_NEMESIS)
         nemdead();
+    /* Medusa falls into two livelog categories,
+     * we log one message flagged for both categories,
+     * but only for the first kill. Subsequent kills are not an achievement.
+     * record_achievement() now handles this.
+     */
     if (mtmp->data == &mons[PM_MEDUSA])
         record_achievement(ACH_MEDU);
     /* Medusa falls into two livelog categories,
@@ -2510,8 +2515,8 @@ register struct monst *mtmp;
             Sprintf(buf, " (for the %dth time)", numkills);
         }
         livelog_printf(LL_UMONST, "%s %s%s%s",
-              nonliving(mtmp->data) ? "destroyed" : "killed",
-              noit_mon_nam(mtmp), wherebuf, buf);
+                       nonliving(mtmp->data) ? "destroyed" : "killed",
+                       noit_mon_nam(mtmp), wherebuf, buf);
     }
 
     if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
@@ -2804,8 +2809,8 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
 
     mtmp->mhp = 0; /* caller will usually have already done this */
     if (!noconduct) /* KMH, conduct */
-        if(!u.uconduct.killer++)
-            livelog_write_string (LL_CONDUCT,"killed for the first time");
+        if (!u.uconduct.killer++)
+            livelog_write_string (LL_CONDUCT, "killed for the first time");
 
     if (!nomsg) {
         boolean namedpet = has_mname(mtmp) && !Hallucination;
@@ -2993,6 +2998,17 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
     if (zombifying) {
         zombify(mtmp, TRUE);
     }
+
+#ifdef TRACK_REVENANTS
+    if (mtmp->former_rank && strlen(mtmp->former_rank) > 0) {
+        if (mtmp->data == &mons[PM_GHOST])
+            livelog_printf(LL_UMONST, "destroyed %s, the former %s",
+                           noit_mon_nam(mtmp), mtmp->former_rank);
+        else
+            livelog_printf(LL_UMONST, "destroyed %s, and former %s",
+                           noit_mon_nam(mtmp), mtmp->former_rank);
+    }
+#endif
 }
 
 /* changes the monster into a stone monster of the same type

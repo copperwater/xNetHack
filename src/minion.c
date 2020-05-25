@@ -336,7 +336,7 @@ register struct monst *mtmp;
             pline("%s vanishes, laughing about cowardly mortals.",
                   Amonnam(mtmp));
             livelog_printf(LL_UMONST, "bribed %s with %ld %s for safe passage",
-                  Amonnam(mtmp), offer, currency(offer));
+                           Amonnam(mtmp), offer, currency(offer));
         }
         else if (offer == cash && offer > 0 && cash >= demand / 2 && !rn2(50)) {
             /* monster may rarely take pity on you if you hand over everything

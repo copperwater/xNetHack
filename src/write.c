@@ -230,9 +230,9 @@ found:
     }
 
     /* KMH, conduct */
-    if(!u.uconduct.literate++)
+    if (!u.uconduct.literate++)
         livelog_printf(LL_CONDUCT,
-                "became literate by writing %s", an(typeword));
+                       "became literate by writing %s", an(typeword));
 
     new_obj = mksobj(i, FALSE, FALSE);
     new_obj->bknown = (paper->bknown && pen->bknown);

@@ -19,6 +19,10 @@ static void FDECL(regen_hp, (int));
 static void FDECL(interrupt_multi, (const char *));
 static void FDECL(debug_fields, (const char *));
 
+#ifdef EXTRAINFO_FN
+static long prev_dgl_extrainfo = 0;
+#endif
+
 void
 early_init()
 {
@@ -27,10 +31,6 @@ early_init()
     monst_globals_init();
     sys_early_init();
 }
-
-#ifdef EXTRAINFO_FN
-static long prev_dgl_extrainfo = 0;
-#endif
 
 void
 moveloop(resuming)
@@ -207,12 +207,14 @@ boolean resuming;
 
                     if (Conflict)
                         u.uconduct.conflicting++;
+
 #ifdef EXTRAINFO_FN
                     if ((prev_dgl_extrainfo == 0) || (prev_dgl_extrainfo < (g.moves + 250))) {
                         prev_dgl_extrainfo = g.moves;
                         mk_dgl_extrainfo();
                     }
 #endif
+
                     /* One possible result of prayer is healing.  Whether or
                      * not you get healed depends on your current hit points.
                      * If you are allowed to regenerate during the prayer,

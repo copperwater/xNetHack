@@ -1009,7 +1009,7 @@ struct mkroom *croom;
 {
     int trycnt = 0;
     coord pos;
-    int x, y;
+    int x;
 
     if (croom->rtype != OROOM && croom->rtype != THEMEROOM)
         return;

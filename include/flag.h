@@ -336,12 +336,12 @@ struct instance_flags {
 #ifdef TTY_TILES_ESCCODES
     boolean vt_tiledata;     /* output console codes for tile support in TTY */
 #endif
-    boolean msg_is_alert;    /* suggest windowport should grab player's attention
-                              * and request <TAB> acknowlegement */
     boolean clicklook;       /* allow right-clicking for look */
     boolean cmdassist;       /* provide detailed assistance for some comnds */
     boolean time_botl;       /* context.botl for 'time' (moves) only */
     boolean invweight;       /* display weights of items in inventory */
+    boolean msg_is_alert;    /* suggest windowport should grab player's attention
+                              * and request <TAB> acknowlegement */
     /*
      * Window capability support.
      */

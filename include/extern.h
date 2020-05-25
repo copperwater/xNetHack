@@ -170,6 +170,7 @@ E char *NDECL(do_statusline2);
 E void NDECL(bot);
 E void NDECL(timebot);
 E int FDECL(xlev_to_rank, (int));
+E const char *NDECL(rank);
 E int FDECL(rank_to_xlev, (int));
 E const char *FDECL(rank_of, (int, SHORT_P, BOOLEAN_P));
 E int FDECL(title_to_mon, (const char *, int *, int *));
@@ -870,15 +871,11 @@ E void NDECL(reveal_paths);
 E boolean FDECL(read_tribute, (const char *, const char *, int,
                                char *, int, unsigned));
 E boolean FDECL(Death_quote, (char *, int));
-E void FDECL(livelog_write_string, (unsigned int, char *));
-#ifdef LIVELOGFILE
-E void VDECL(livelog_printf, (unsigned int, const char *, ...)) PRINTF_F(2, 3);
-#else
-#define livelog_printf(...) do { } while(0)
-#endif
 #ifdef EXTRAINFO_FN
 E void NDECL(mk_dgl_extrainfo);
 #endif
+E void FDECL(livelog_write_string, (unsigned int, const char *));
+E void VDECL(livelog_printf, (unsigned int, const char *, ...)) PRINTF_F(2, 3);
 
 /* ### fountain.c ### */
 
@@ -2731,7 +2728,6 @@ E void NDECL(timer_sanity_check);
 #ifdef RECORD_CONDUCT
 E long FDECL(encodeconduct, (void));
 #endif
-
 E void FDECL(formatkiller, (char *, unsigned, int, BOOLEAN_P));
 E int FDECL(observable_depth, (d_level *));
 E void FDECL(topten, (int, time_t));
@@ -3130,6 +3126,7 @@ E void FDECL(genl_status_update, (int, genericptr_t, int, int, int,
                                   unsigned long *));
 #ifdef DUMPLOG
 E char *FDECL(dump_fmtstr, (const char *, char *, BOOLEAN_P));
+E void FDECL(livelog_dump_url, (unsigned int));
 #endif
 E void FDECL(dump_open_log, (time_t));
 E void NDECL(dump_close_log);

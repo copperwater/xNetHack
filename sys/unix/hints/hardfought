@@ -5,38 +5,40 @@
 #
 #-PRE
 # Linux hints file
-# This hints file provides a single-user tty build for Linux, specifically
+# This hints file provides a chrooted build for Linux, specifically
 # for Ubuntu dapper.
+# Does not copy required libraries or termcap files into the chroot.
 
+COMPILEREVISION?=1
 
-#PREFIX=/usr
-PREFIX=$(wildcard ~)/xnh/install
-HACKDIR=$(PREFIX)/games/lib/$(GAME)dir
-SHELLDIR = $(PREFIX)/games
-INSTDIR=$(HACKDIR)
-VARDIR = $(HACKDIR)
+# this is the chroot dir
+PREFIX=/opt/nethack/chroot
+
+# this is the dir where NetHack is inside the chroot
+HACKDIR=/nh370.20-hdf
+INSTDIR=$(PREFIX)$(HACKDIR)
+# DGL does not use the shell script launcher
+SHELLDIR=/tmp
+VARDIR=$(INSTDIR)/var
+
 
 POSTINSTALL=cp -n sys/unix/sysconf $(INSTDIR)/sysconf; $(CHOWN) $(GAMEUID) $(INSTDIR)/sysconf; $(CHGRP) $(GAMEGRP) $(INSTDIR)/sysconf; chmod $(VARFILEPERM) $(INSTDIR)/sysconf;
 
-CFLAGS=  -g -O0 -I../include -DNOTPARMDECL -DDLB
-# CFLAGS+= -DGCC_WARN -Wall -Wextra -Wformat=2 -Werror # warnings are Serious Business
-CFLAGS+= -DGCC_WARN -Wall -Wextra -Wformat=2 # warnings are Serious Business
-CFLAGS+= -Wno-format-overflow # unfortunately vanilla overflows formats all over the place
-CFLAGS+= -Wno-format-nonliteral # generated format strings are fairly common
-CFLAGS+= -Wno-stringop-truncation # vanilla often strncpy's to overwrite a part of a string, deliberately not copying terminating \0
-CFLAGS+= -Wno-missing-field-initializers # many places, especially in the cmd.c commands list
-CFLAGS+= -Wimplicit-fallthrough=2 # 3 usually ok, but nice to have /* else FALLTHRU */
-CFLAGS+=-DCOMPRESS=\"/bin/gzip\" -DCOMPRESS_EXTENSION=\".gz\"
+CFLAGS1=-DCOMPRESS=\"/bin/gzip\" -DCOMPRESS_EXTENSION=\".gz\"
+CFLAGS=-g -O0 -I../include -DNOTPARMDECL $(CFLAGS1) -DDLB
+CFLAGS+=-Wno-format-overflow
 CFLAGS+=-DSYSCF -DSYSCF_FILE=\"$(HACKDIR)/sysconf\" -DSECURE
 CFLAGS+=-DTIMED_DELAY
 CFLAGS+=-DHACKDIR=\"$(HACKDIR)\"
+CFLAGS+=-DVAR_PLAYGROUND=\"$(HACKDIR)/var\"
 CFLAGS+=-DCONFIG_ERROR_SECURE=FALSE
-CFLAGS+=-DEXTRA_SANITY_CHECKS
+CFLAGS+=-DCURSES_GRAPHICS
+CFLAGS+=-DPANICLOG_FMT2
+CFLAGS+=-DTTY_TILES_ESCCODES
 CFLAGS+=-DDGAMELAUNCH
-#CFLAGS+=-DEDIT_GETLIN
-#CFLAGS+=-DSCORE_ON_BOTL
-#CFLAGS+=-DMSGHANDLER
-#CFLAGS+=-DTTY_TILES_ESCCODES
+CFLAGS+=-DLIVELOG_ENABLE
+CFLAGS+=-DDUMPLOG
+CFLAGS+=-DDUMPHTML
 
 # when building liblua.a, avoid warning that use of tmpnam() should be
 # replaced by mkstemp(); the lua code doesn't use nethack's config.h so
@@ -51,14 +53,16 @@ WINSRC = $(WINTTYSRC) $(WINCURSESSRC)
 WINOBJ = $(WINTTYOBJ) $(WINCURSESOBJ)
 WINLIB = $(WINTTYLIB) $(WINCURSESLIB)
 
-WINTTYLIB=-lcurses -ltinfo
+WINTTYLIB=-lcurses
 
 # if TTY_TILES_ESCCODES
 WINSRC += tile.c
 WINOBJ += tile.o
 
-CHOWN=true
-CHGRP=true
+CHOWN=chown
+CHGRP=chgrp
+GAMEUID=games
+GAMEGRP=games
 
 VARDIRPERM = 0755
 VARFILEPERM = 0600

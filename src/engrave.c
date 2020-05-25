@@ -406,8 +406,9 @@ xchar e_type;
     Strcpy(ep->engr_txt, s);
     newsym(x, y);
     /* engraving Elbereth shows wisdom */
-    if (!g.in_mklev && !strcmp(s, "Elbereth"))
+    if (!g.in_mklev && !strcmpi(s, "Elbereth")) {
         exercise(A_WIS, TRUE);
+    }
     ep->engr_time = e_time;
     ep->engr_type = e_type > 0 ? e_type : rnd(N_ENGRAVE - 1);
     ep->engr_lth = smem;
@@ -1063,8 +1064,8 @@ doengrave()
 
     /* A single `x' is the traditional signature of an illiterate person */
     if (len != 1 || (!index(ebuf, 'x') && !index(ebuf, 'X')))
-        if(!u.uconduct.literate++)
-            livelog_printf(LL_CONDUCT,"became literate by engraving \"%s\"", ebuf);
+        if (!u.uconduct.literate++)
+            livelog_printf(LL_CONDUCT, "became literate by engraving \"%s\"", ebuf);
 
 
     /* Mix up engraving if surface or state of mind is unsound.

@@ -39,6 +39,10 @@ sys_early_init()
 #endif
 #ifdef DUMPLOG
     sysopt.dumplogfile = (char *) 0;
+    sysopt.dumplogurl = (char *) 0;
+#endif
+#ifdef DUMPHTML
+    sysopt.dumphtmlfile = (char *) 0;
 #endif
 #ifdef DUMPHTML
     sysopt.dumphtmlfile = (char *) 0;
@@ -49,6 +53,7 @@ sys_early_init()
     sysopt.genericusers = (char *) 0;
     sysopt.maxplayers = 0; /* XXX eventually replace MAX_NR_OF_PLAYERS */
     sysopt.bones_pools = 0;
+    sysopt.livelog = 0;
 
     /* record file */
     sysopt.persmax = PERSMAX;

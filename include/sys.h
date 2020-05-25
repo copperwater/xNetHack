@@ -17,6 +17,7 @@ struct sysopt {
     char *debugfiles; /* files to show debugplines in. '*' is all. */
 #ifdef DUMPLOG
     char *dumplogfile; /* where the dump file is saved */
+    char *dumplogurl;  /* url path for the above */
 #endif
 #ifdef DUMPHTML
     char *dumphtmlfile; /* where the html dump is saved */

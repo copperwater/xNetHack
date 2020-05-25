@@ -539,12 +539,15 @@ typedef unsigned char uchar;
 /* Livelogging: writing important events into a file that another program can
  * read from. By default, the name of this file is LIVELOGFILE in the
  * playground. */
+/* #define LIVELOG_ENABLE */
+#ifdef LIVELOG_ENABLE
 #define LIVELOGFILE "livelog" /* in-game events recorded live */
 #ifdef LIVELOGFILE
 /* LL_flags defined in global.h. Value below is ignored if SYSCF is enabled */
-/* #define LIVELOG_DETAIL (LL_WISH|LL_ACHIEVE|LL_UMONST) */
-#define LIVELOG_DETAIL 0xFFFF
+/* #define LIVELOG_DETAIL (LL_WISH | LL_ACHIEVE | LL_UMONST) */
+#define LIVELOG_DETAIL 0x1FFF
 #endif
+#endif /* LIVELOG_ENABLE */
 
 /* Extrainfo contains some brief bits of information that are useful to show in
  * a menu listing games that are currently in play on a server */

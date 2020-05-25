@@ -218,7 +218,7 @@ VA_DECL(const char *, line)
     (void) strncpy(g.prevmsg, line, BUFSZ), g.prevmsg[BUFSZ - 1] = '\0';
     switch (msgtyp) {
     case MSGTYP_ALERT:
-        iflags.msg_is_alert = TRUE;
+        iflags.msg_is_alert = TRUE; /* <TAB> */
         /* FALLTHRU */
     case MSGTYP_STOP:
         display_nhwindow(WIN_MESSAGE, TRUE); /* --more-- */

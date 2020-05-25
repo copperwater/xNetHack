@@ -1831,6 +1831,11 @@ boolean called;
         if (mdat == &mons[PM_GHOST]) {
             Sprintf(eos(buf), "%s ghost", s_suffix(name));
             name_at_start = TRUE;
+#ifdef TRACK_REVENANTS
+        } else if (/* is a former player... */) {
+            Sprintf(eos(buf), "%s the %s", name, pm_name);
+            name_at_start = TRUE;
+#endif
         } else if (called) {
             Sprintf(eos(buf), "%s called %s", pm_name, name);
             name_at_start = (boolean) type_is_pname(mdat);

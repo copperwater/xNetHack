@@ -681,11 +681,11 @@ struct obj *obj;
             pline("%s has no extremities the leash would fit.",
                   Monnam(mtmp));
         } else if (!leashable(mtmp)) {
-            pline("The leash won't fit onto %s%s.", spotmon ? "your " : "",
-                  l_monnam(mtmp));
+            pline("The leash won't fit onto %s.",
+                  spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
         } else {
-            You("slip the leash around %s%s.", spotmon ? "your " : "",
-                l_monnam(mtmp));
+            You("slip the leash around %s.",
+                spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
             mtmp->mleashed = 1;
             obj->leashmon = (int) mtmp->m_id;
             mtmp->msleeping = 0;
@@ -700,8 +700,8 @@ struct obj *obj;
         } else {
             mtmp->mleashed = 0;
             obj->leashmon = 0;
-            You("remove the leash from %s%s.",
-                spotmon ? "your " : "", l_monnam(mtmp));
+            You("remove the leash from %s.",
+                spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
         }
     }
     return 1;

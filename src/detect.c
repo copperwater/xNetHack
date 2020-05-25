@@ -33,6 +33,10 @@ static int NDECL(look_in_crystal_ball);
 extern void FDECL(html_dump_glyph, (int, int, int, int, int, unsigned));
 #endif
 
+#ifdef DUMPHTML
+extern void FDECL(html_dump_glyph, (int, int, int, int, int, unsigned));
+#endif
+
 /* bring hero out from underwater or underground or being engulfed;
    return True iff any change occurred */
 static boolean

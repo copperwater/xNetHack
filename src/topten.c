@@ -968,7 +968,7 @@ boolean so;
     else
         Strcat(linebuf, "   ");
 
-    Sprintf(eos(linebuf), " %10ld  %.10s", t1->points ? t1->points : u.urexp,
+    Sprintf(eos(linebuf), " %10ld  %.16s", t1->points ? t1->points : u.urexp,
             t1->name);
     Sprintf(eos(linebuf), "-%s", t1->plrole);
     if (t1->plrace[0] != '?')
