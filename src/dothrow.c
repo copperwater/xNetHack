@@ -2249,6 +2249,7 @@ struct obj* obj;
     /* now we are definitely breaking it */
 
     boolean your_fault = !g.context.mon_moving;
+    boolean ucarried = carried(obj);
 
     /* remove its worn flags */
     long unwornmask = obj->owornmask;
@@ -2256,7 +2257,7 @@ struct obj* obj;
         impossible("breaking non-equipped glass obj?");
         return FALSE;
     }
-    if (carried(obj)) { /* hero's item */
+    if (ucarried) { /* hero's item */
         if (obj->quan == 1L) {
             if (obj == uwep) {
                 g.unweapon = TRUE;
@@ -2294,7 +2295,7 @@ struct obj* obj;
         pline("One of %s breaks into pieces!", yname(obj));
     }
     breakobj(obj, obj->ox, obj->oy, your_fault, TRUE);
-    if (carried(obj))
+    if (ucarried)
         update_inventory();
     return TRUE;
 }
