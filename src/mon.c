@@ -3006,16 +3006,13 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
         zombify(mtmp, TRUE);
     }
 
-#ifdef TRACK_REVENANTS
-    if (mtmp->former_rank && strlen(mtmp->former_rank) > 0) {
-        if (mtmp->data == &mons[PM_GHOST])
-            livelog_printf(LL_UMONST, "destroyed %s, the former %s",
-                           noit_mon_nam(mtmp), mtmp->former_rank);
-        else
-            livelog_printf(LL_UMONST, "destroyed %s, and former %s",
-                           noit_mon_nam(mtmp), mtmp->former_rank);
+    if (has_ebones(mtmp)) {
+        livelog_printf(LL_UMONST, "destroyed %s, the former %s",
+                       noit_mon_nam(mtmp),
+                       rank_of(EBONES(mtmp)->deathlevel,
+                               roles[EBONES(mtmp)->role].malenum,
+                               EBONES(mtmp)->female));
     }
-#endif
 }
 
 /* changes the monster into a stone monster of the same type

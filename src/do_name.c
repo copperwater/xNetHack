@@ -1197,7 +1197,7 @@ do_mname()
         if (!alreadynamed(mtmp, monnambuf, buf))
             verbalize("I'm %s, not %s.", shkname(mtmp), buf);
     } else if (mtmp->ispriest || mtmp->isminion || mtmp->isshk
-               || mtmp->data == &mons[PM_GHOST]) {
+               || mtmp->data == &mons[PM_GHOST] || has_ebones(mtmp)) {
         if (!alreadynamed(mtmp, monnambuf, buf))
             pline("%s will not accept the name %s.", upstart(monnambuf), buf);
     } else
@@ -1831,11 +1831,9 @@ boolean called;
         if (mdat == &mons[PM_GHOST]) {
             Sprintf(eos(buf), "%s ghost", s_suffix(name));
             name_at_start = TRUE;
-#ifdef TRACK_REVENANTS
-        } else if (/* is a former player... */) {
-            Sprintf(eos(buf), "%s the %s", name, pm_name);
+        } else if (has_ebones(mtmp)) {
+            Sprintf(eos(buf), "the %s of %s", pm_name, name);
             name_at_start = TRUE;
-#endif
         } else if (called) {
             Sprintf(eos(buf), "%s called %s", pm_name, name);
             name_at_start = (boolean) type_is_pname(mdat);

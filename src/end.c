@@ -486,13 +486,11 @@ struct monst *mtmp;
             Strcat(buf, "the ");
         g.killer.format = KILLED_BY;
     }
-#ifdef TRACK_REVENANTS
     /* _the_ <invisible> <distorted> ghost of Dudley */
-    if (is_bones_monster(mptr) && has_mname(mtmp)) {
+    if (has_ebones(mtmp) && has_mname(mtmp)) {
         Strcat(buf, "the ");
         g.killer.format = KILLED_BY;
     }
-#endif
     if (mtmp->minvis)
         Strcat(buf, "invisible ");
     if (distorted)
@@ -547,8 +545,11 @@ struct monst *mtmp;
         Strcat(buf, m_monnam(mtmp));
     } else {
         Strcat(buf, mptr->mname);
-        if (has_mname(mtmp))
-            Sprintf(eos(buf), " called %s", MNAME(mtmp));
+        if (has_mname(mtmp)) {
+            Sprintf(eos(buf), " %s %s",
+                    has_ebones(mtmp) ? "of" : "called",
+                    MNAME(mtmp));
+        }
     }
 
     Strcpy(g.killer.name, buf);
