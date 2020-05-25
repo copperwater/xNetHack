@@ -54,6 +54,45 @@ Monsters prefer to wear an amulet of life saving or reflection rather than an
 Metal armor won't provide less than 1 AC (not counting enchantments) if it
   has a decreased AC from being a different material. For instance, copper
   gauntlets of power will provide 1 AC instead of 0.
+Some themed rooms have minimum and maximum level difficulty cutoffs. Notably,
+  the spider room will not appear above level 10.
+The "Fake Delphi" themed room now has one fountain in its center.
+21 new themed rooms:
+  - A cluster of four square interconnected 3x3 rooms.
+  - A barbell-shaped room connecting two 3x3 rooms with a doored, walled
+    corridor (vertical and horizontal).
+  - A room containing a bunch of graffiti.
+  - A room filled with small 1x1 pillars. Sometimes, these pillars will be
+    trees instead, and then the room will contain wood nymphs, and possibly
+    statues and a figurine of wood nymphs.
+  - A boomerang-shaped room (left and right rotations).
+  - A 1-wide rectangular corridor (surrounding a chunk of normal stone).
+  - A room featuring an O, M, Z, or T monster in a cage of iron bars.
+    It can also be a D below level 12. From EvilHack.
+  - A room split horizontally or vertically into two subrooms. From EvilHack.
+  - A room containing a 2x2 subroom in any corner. From EvilHack.
+  - A vault containing 1-2 chests with random contents, not connected to the
+    rest of the dungeon like a gold vault.
+  - A room containing an X of water connecting its corners.
+  - A miniature 7x7 maze.
+  - A horizontal corridor with a bunch of closets along the top and bottom,
+    some of them containing monsters or objects.
+  - A wide room containing 1 to 3 2x2 beehives.
+  - A large honeycomb-shaped room with randomly connected cells, which is a
+    beehive.
+  - A room where each square becomes cloud, ice, grass, lava, pool, or tree
+    with a 30% chance. From UnNetHack.
+  - A room containing a ring of floor tiles surrounding a "swimming pool"
+    filled with water, which contains a few random sea monsters and possibly a
+    chest with gold and gems. (Unlike the Gehennom submerged special room,
+    there is no magic lamp.)
+  - A long, narrow (height only 1 or 2) room. From UnNetHack.
+  - A room populated with several random F, b, j, P and gas spore monsters.
+    From UnNetHack.
+  - Ozymandias' Tomb, a 7x7 room with a throne, some traps, a couple statue
+    traps and an engraving. Only appears deep in the dungeon. From UnNetHack.
+  - A room filled mostly or entirely with gas spores, which should prove
+    extremely fun to blow up.
 
 
 It contains the following non-gameplay interface changes:
@@ -64,9 +103,18 @@ Engravings now render as ~ (tilde) instead of " (quotation mark) by default.
 The Vibrating Square is colored yellow instead of purple.
 When water walking boots are identified by walking on liquid with them, a
   message is printed.
+The code is brought to parity with the interface improvements in the
+  NHTangles/NetHack36 github repository, branch 3.7-hdf.
+Killing "player remnant" monsters (e.g. ghosts) from bones files is livelogged.
+Player remnant monsters cannot be renamed.
 
 
 It contains the following non-gameplay architectural changes:
 
 tipcontainer() is generalized to work for spilling objects out of a container
   on some space other than the player' other than the player's.
+A bunch of enhancements, fixes, and refactors of the level parser, initially
+  implemented as patches versus vanilla. In particular, themed room subrooms
+  and special rooms can now be filled.
+Monsters created in a bones file to represent a dead player (ghost, mummy, etc)
+  are tracked with a new "ebones" mextra struct.
