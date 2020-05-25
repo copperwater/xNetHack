@@ -2423,6 +2423,8 @@ boolean incl_wsegs;
             sz += (int) sizeof (struct emin);
         if (EDOG(mtmp))
             sz += (int) sizeof (struct edog);
+        if (EBONES(mtmp))
+            sz += (int) sizeof (struct ebones);
         /* mextra->mcorpsenm doesn't point to more memory */
     }
     return sz;

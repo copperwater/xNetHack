@@ -631,6 +631,7 @@ struct repo { /* repossession context */
 #define NUM_BP 4
 
 #define NUM_ROLES (13)
+#define NUM_RACES (5)
 struct role_filter {
     boolean roles[NUM_ROLES+1];
     short mask;

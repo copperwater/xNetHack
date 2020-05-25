@@ -2176,6 +2176,11 @@ struct monst *mtmp2, *mtmp1;
             newedog(mtmp2);
         *EDOG(mtmp2) = *EDOG(mtmp1);
     }
+    if (EBONES(mtmp1)) {
+        if (!EBONES(mtmp2))
+            newebones(mtmp2);
+        *EBONES(mtmp2) = *EBONES(mtmp1);
+    }
     if (has_mcorpsenm(mtmp1))
         MCORPSENM(mtmp2) = MCORPSENM(mtmp1);
 }
@@ -2199,6 +2204,8 @@ struct monst *m;
             free((genericptr_t) x->emin);
         if (x->edog)
             free((genericptr_t) x->edog);
+        if (x->ebones)
+            free((genericptr_t) x->ebones);
         /* [no action needed for x->mcorpsenm] */
 
         free((genericptr_t) x);

@@ -471,6 +471,27 @@ struct obj *corpse;
         mtmp->mhp = mtmp->mhpmax = u.uhpmax;
         mtmp->female = flags.female;
         mtmp->msleeping = 1;
+
+        newebones(mtmp);
+        int i;
+        for (i = 0; i <= NUM_ROLES; ++i) {
+            if (!strcmp(g.urole.name.m, roles[i].name.m)) {
+                EBONES(mtmp)->role = i;
+                break;
+            }
+        }
+        for (i = 0; i <= NUM_RACES; ++i) {
+            if (!strcmp(g.urace.noun, races[i].noun)) {
+                EBONES(mtmp)->race = i;
+                break;
+            }
+        }
+        EBONES(mtmp)->oldalign = u.ualign;
+        EBONES(mtmp)->female = flags.female;
+        EBONES(mtmp)->deathlevel = u.ulevel;
+        EBONES(mtmp)->luck = u.uluck; /* moreluck not included */
+        EBONES(mtmp)->demigod = u.uevent.udemigod;
+        EBONES(mtmp)->crowned = u.uevent.uhand_of_elbereth;
     }
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
         resetobjs(mtmp->minvent, FALSE);
@@ -703,6 +724,19 @@ getbones()
         return 0;
     }
     return ok;
+}
+
+/* Create a ebones structure on mtmp */
+void
+newebones(mtmp)
+struct monst *mtmp;
+{
+    if (!mtmp->mextra)
+        mtmp->mextra = newmextra();
+    if (!EBONES(mtmp)) {
+        EBONES(mtmp) = (struct ebones *) alloc(sizeof(struct ebones));
+        (void) memset((genericptr_t) EBONES(mtmp), 0, sizeof(struct ebones));
+    }
 }
 
 /*bones.c*/

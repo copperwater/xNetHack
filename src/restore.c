@@ -405,6 +405,14 @@ struct monst *mtmp;
             if (nhfp->structlevel)
                 mread(nhfp->fd, (genericptr_t) EDOG(mtmp), sizeof(struct edog));
         }
+        /* ebones - pet */
+        if (nhfp->structlevel)
+            mread(nhfp->fd, (genericptr_t) &buflen, sizeof(buflen));
+        if (buflen > 0) {
+            newebones(mtmp);
+            if (nhfp->structlevel)
+                mread(nhfp->fd, (genericptr_t) EBONES(mtmp), sizeof(struct ebones));
+        }
         /* mcorpsenm - obj->corpsenm for mimic posing as corpse or
            statue (inline int rather than pointer to something) */
         if (nhfp->structlevel)

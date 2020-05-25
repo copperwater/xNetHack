@@ -161,6 +161,7 @@ E void FDECL(drop_upon_death, (struct monst *, struct obj *, int, int));
 E boolean NDECL(can_make_bones);
 E void FDECL(savebones, (int, time_t, struct obj *));
 E int NDECL(getbones);
+E void FDECL(newebones, (struct monst *));
 
 /* ### botl.c ### */
 

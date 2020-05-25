@@ -13,7 +13,7 @@
  * Incrementing EDITLEVEL can be used to force invalidation of old bones
  * and save files.
  */
-#define EDITLEVEL 1
+#define EDITLEVEL 2
 
 #define COPYRIGHT_BANNER_A "xNetHack 5.1, Copyright 2020, based on NetHack, Copyright 1985-2020"
 #define COPYRIGHT_BANNER_B "by Stichting Mathematisch Centrum and M. Stephenson. See license for details."
