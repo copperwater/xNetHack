@@ -1042,6 +1042,8 @@ register struct attack *mattk;
             if (mattk->aatyp == AT_WEAP && otmp) {
                 struct obj *marmg;
                 int tmp;
+                int wepmaterial = otmp->material;
+                boolean was_poisoned = (otmp->opoisoned || permapoisoned(otmp));
 
                 if (otmp->otyp == CORPSE
                     && touch_petrifies(&mons[otmp->corpsenm])) {
@@ -1062,19 +1064,21 @@ register struct attack *mattk;
                     hitmsg(mtmp, mattk);
 
                 /* glass breakage from the attack */
-                break_glass_obj(MON_WEP(mtmp));
                 break_glass_obj(some_armor(&g.youmonst));
+                if (break_glass_obj(MON_WEP(mtmp))) {
+                    otmp = NULL;
+                }
 
                 if (!dmg)
                     break;
-                if (Hate_material(otmp->material)) {
-                    if (otmp->material == SILVER)
+                if (Hate_material(wepmaterial)) {
+                    if (wepmaterial == SILVER)
                         pline_The("silver sears your flesh!");
                     else
                         You("flinch at the touch of %s!",
-                            materialnm[otmp->material]);
+                            materialnm[wepmaterial]);
                     exercise(A_CON, FALSE);
-                    dmg += rnd(sear_damage(otmp->material));
+                    dmg += rnd(sear_damage(wepmaterial));
                 }
                 /* this redundancy necessary because you have
                    to take the damage _before_ being cloned;
@@ -1085,7 +1089,7 @@ register struct attack *mattk;
                 if (tmp < 1)
                     tmp = 1;
                 if (u.mh - tmp > 1
-                    && (otmp->material == IRON || otmp->material == METAL)
+                    && (wepmaterial == IRON || wepmaterial == METAL)
                         /* relevant 'metal' objects are scalpel and tsurugi */
                     && (u.umonnum == PM_BLACK_PUDDING
                         || u.umonnum == PM_BROWN_PUDDING)) {
@@ -1098,10 +1102,9 @@ register struct attack *mattk;
                     if (cloneu())
                         You("divide as %s hits you!", mon_nam(mtmp));
                 }
-                rustm(&g.youmonst, otmp);
+                rustm(&g.youmonst, otmp); /* safe if otmp is NULL */
 
-                if ((otmp->opoisoned || permapoisoned(otmp))
-                    && g.mhitu_dieroll <= 5) {
+                if (was_poisoned && g.mhitu_dieroll <= 5) {
                     /* similar to dopois code below, but we don't use the exact
                      * same values, nor do we want the same 1/8 chance of the
                      * poison taking (use 1/4, same as in uhitm.c). */
