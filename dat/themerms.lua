@@ -942,8 +942,8 @@ xxxx----xx----xxxx]], contents=function(m)
                }
                local reached = { false, false, false, false, false, false, false }
                reached[d(7)] = true -- initial cell
-               local allconnected = false
-               while not allconnected do
+               local nreached = 1
+               while nreached < 7 do
                   -- pick a random element of conns that adds a new cell
                   local pick = d(#conns)
                   while reached[conns[pick][1]] == reached[conns[pick][2]] do
@@ -959,10 +959,7 @@ xxxx----xx----xxxx]], contents=function(m)
                   reached[conns[pick][2]] = true
 
                   -- recompute allconnected
-                  allconnected = true
-                  for i=1,7 do
-                     allconnected = allconnected and reached[i]
-                  end
+                  nreached = nreached + 1
                end
                des.region({ region={05,01,05,01}, type="beehive", irregular=true, joined=true, filled=1 })
             end
