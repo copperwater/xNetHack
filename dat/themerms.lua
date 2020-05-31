@@ -749,13 +749,13 @@ xxxxx-----]], contents = function(rm)
                     local rndy = nh.rn2(rm.height - 2) + 1
 
                     if percent(50) then
-                       des.room({ type = "ordinary", x = 0, y = 0, w = rndx-1, h = rm.height, filled = 1,
+                       des.room({ type = "ordinary", x = 0, y = 0, w = rndx, h = rm.height, filled = 1,
                                   contents = function()
                                      des.door({ state = doorstates[1], wall = "east" })
                                   end
                        });
                     else
-                       des.room({ type = "ordinary", x = 0, y = 0, w = rm.width, h = rndy-1, filled = 1,
+                       des.room({ type = "ordinary", x = 0, y = 0, w = rm.width, h = rndy, filled = 1,
                                   contents = function()
                                      des.door({ state = doorstates[1], wall = "south" })
                                   end
