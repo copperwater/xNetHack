@@ -1179,6 +1179,7 @@ makelevel()
                 add_room(g.vault_x, g.vault_y, g.vault_x + w, g.vault_y + h,
                         TRUE, VAULT, FALSE);
                 g.level.flags.has_vault = 1;
+                g.rooms[g.nroom - 1].needfill = FILL_NORMAL;
                 fill_special_room(&g.rooms[g.nroom - 1]);
                 mk_knox_portal(g.vault_x + w, g.vault_y + h);
                 /* Only put a vault teleporter with 1/3 chance;
