@@ -51,7 +51,7 @@ short otyp;
         return 30;
     case SCR_BLANK_PAPER:
     default:
-        impossible("You can't write such a weird scroll!");
+        impossible("You can't write such a weird scroll %d!", otyp);
     }
     return 1000;
 }
