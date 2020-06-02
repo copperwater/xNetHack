@@ -279,7 +279,8 @@ struct obj *obj;
         return 0;
 
     if (!obj || obj->oclass == WEAPON_CLASS ||
-        (obj->oclass == TOOL_CLASS && is_weptool(obj)))
+        (obj->oclass == TOOL_CLASS && is_weptool(obj))
+        || obj->otyp == TIN_OPENER)
         return 2;
 
     return 1;
