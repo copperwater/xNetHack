@@ -1077,7 +1077,7 @@ int dieroll;
                                            ? the(mons[obj->corpsenm].mname)
                                            : (cnt > 1L) ? "some" : "an";
 
-                        if (strcmpi(mon->data->mname, "devil"))
+                        if (strstri(mon->data->mname, "devil"))
                             pline("Deviled egg%s!", plur(cnt));
                         else
                             You("hit %s with %s egg%s.", mon_nam(mon), eggp,
