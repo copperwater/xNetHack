@@ -2018,7 +2018,7 @@ boolean passive;
     if (TimedTrouble(HDeaf))
         prop_trouble(DEAF);
 
-    if (trouble_count == 0) {
+    if (trouble_count == 0 && !passive) {
         pline1(nothing_happens);
         return;
     } else if (trouble_count > 1)
