@@ -76,7 +76,7 @@ place:set(51,9);
 -- Where the player will land on arrival
 des.teleport_region({ region = {29,15,45,15}, exclude = {30,15,44,15} })
 -- Full-level lighting from the gods' power
-des.region({ region={01,01,76,20},lit=1,type="ordinary",prefilled=1 })
+des.region({ region={01,01,76,20},lit=1,type="ordinary" })
 -- A Sanctum for each alignment
 -- The shrines' alignments are shuffled for
 -- each game

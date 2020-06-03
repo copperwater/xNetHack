@@ -51,7 +51,7 @@ local inside = selection.floodfill(18,8)
 local near_temple = selection.area(17,8, 23,14) & inside
 
 -- One shopkeeper managed to barricade their shop with boulders, and they live!
-des.region({ region={4,4,6,7}, lit=1, type="shop", prefilled=0 })
+des.region({ region={4,4,6,7}, lit=1, type="shop", filled=1 })
 des.door("locked", 5, 8)
 des.object("boulder", 4, 9)
 des.object("boulder", 5, 9)
