@@ -84,7 +84,7 @@ enum achivements {
     ACH_MINE_PRIZE = 10, /* acquired Mines' End luckstone */
     ACH_SOKO_PRIZE = 11, /* acquired Sokoban bag or amulet */
     ACH_MEDU = 12, /* killed Medusa */
-    ACH_BLND = 13, /* hero was always blond, no, blind */
+    ACH_BLND = 13, /* hero was always blind */
     ACH_NUDE = 14, /* hero never wore armor */
     /* 1 through 14 were present in 3.6.x; the rest are newer; first,
        some easier ones so less skilled players can have achievements */

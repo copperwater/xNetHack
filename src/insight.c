@@ -71,13 +71,13 @@ static struct ll_achieve_msg achieve_msg [] = {
     { 0, "hero never wore armor" },
      /* */
     { LL_MINORAC, "entered the Gnomish Mines" },
-    { LL_ACHIEVE, "reached Mine Town" }, /* probably minor, but dnh logs it */
+    { LL_ACHIEVE, "reached Minetown" }, /* probably minor, but dnh logs it */
     { LL_MINORAC, "entered a shop" },
     { LL_MINORAC, "entered a temple" },
     { LL_ACHIEVE, "consulted the Oracle" }, /* minor, but rare enough */
     { LL_ACHIEVE, "read a Discworld novel" }, /* ditto */
     { LL_ACHIEVE, "entered Sokoban" }, /* Keep as major for turn comparison w/completed soko */
-    { LL_ACHIEVE, "entered the Bigroom" },
+    { LL_ACHIEVE, "entered the Big Room" },
     /* The following 8 are for advancing through the ranks
        messages differ by role so are created on the fly */
     { LL_MINORAC, "" },

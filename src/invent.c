@@ -823,29 +823,21 @@ struct obj *obj;
         /* Player will be able to discover if s/he has the real amulet
          * by monitoring the livelog - but only when it was picked up
          * for the first time */
-        if(!u.uachieved[ACH_AMUL])
-            livelog_write_string(LL_ACHIEVE, "acquired the Amulet of Yendor");
         record_achievement(ACH_AMUL);
     } else if (obj->otyp == CANDELABRUM_OF_INVOCATION) {
         if (u.uhave.menorah)
             impossible("already have candelabrum?");
         u.uhave.menorah = 1;
-        if(!u.uachieved[ACH_CNDL])
-            livelog_write_string(LL_ACHIEVE, "acquired the Candelabrum of Invocation");
         record_achievement(ACH_CNDL);
     } else if (obj->otyp == BELL_OF_OPENING) {
         if (u.uhave.bell)
             impossible("already have silver bell?");
         u.uhave.bell = 1;
-        if(!u.uachieved[ACH_BELL])
-            livelog_write_string(LL_ACHIEVE, "acquired the Bell of Opening");
         record_achievement(ACH_BELL);
     } else if (obj->otyp == SPE_BOOK_OF_THE_DEAD) {
         if (u.uhave.book)
             impossible("already have the book?");
         u.uhave.book = 1;
-        if(!u.uachieved[ACH_BOOK])
-            livelog_write_string(LL_ACHIEVE, "acquired the Book of the Dead");
         record_achievement(ACH_BOOK);
     } else if (obj->oartifact) {
         if (is_quest_artifact(obj)) {
@@ -860,15 +852,10 @@ struct obj *obj;
     /* "special achievements"; revealed in end of game disclosure and
        dumplog, originally just recorded in XLOGFILE */
     if (is_mines_prize(obj)) {
-        if(!u.uachieved[ACH_MINE_PRIZE])
-            livelog_write_string(LL_ACHIEVE,
-                                 "acquired the luckstone from Mines' End");
         record_achievement(ACH_MINE_PRIZE);
         g.context.achieveo.mines_prize_oid = 0; /* done with luckstone o_id */
         obj->nomerge = 0;
     } else if (is_soko_prize(obj)) {
-        if(!u.uachieved[ACH_SOKO_PRIZE])
-            livelog_write_string(LL_ACHIEVE, "completed Sokoban");
         record_achievement(ACH_SOKO_PRIZE);
         g.context.achieveo.soko_prize_oid = 0; /* done with bag/amulet o_id */
         obj->nomerge = 0;

@@ -1270,7 +1270,6 @@ int how;
         } else {
             livelog_write_string(LL_LIFESAVE, "averted death");
             survive = TRUE;
-            livelog_write_string(LL_LIFESAVE, "averted death");
         }
     }
     /* maybe give the player a second chance if they were killed by the

@@ -2490,17 +2490,11 @@ register struct monst *mtmp;
      */
     if (mtmp->data == &mons[PM_MEDUSA])
         record_achievement(ACH_MEDU);
-    /* Medusa falls into two livelog categories,
-     * we log one message flagged for both categories.
-     */
     int numkills = g.mvitals[tmp].died;
-    if (mtmp->data == &mons[PM_MEDUSA]) {
-        livelog_write_string(LL_ACHIEVE|LL_UMONST, "killed Medusa");
-    }
-    else if (unique_corpstat(mtmp->data)
-             && (numkills == 1 || numkills == 5 || numkills == 10
-                 || numkills == 50 || numkills == 100 || numkills == 150
-                 || numkills == 200 || numkills == 250)) {
+    if (unique_corpstat(mtmp->data) && (mtmp->data != &mons[PM_MEDUSA])
+        && (numkills == 1 || numkills == 5 || numkills == 10
+            || numkills == 50 || numkills == 100 || numkills == 150
+            || numkills == 200 || numkills == 250)) {
         char wherebuf[BUFSZ];
         char buf[BUFSZ];
 

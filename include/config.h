@@ -539,7 +539,7 @@ typedef unsigned char uchar;
 /* Livelogging: writing important events into a file that another program can
  * read from. By default, the name of this file is LIVELOGFILE in the
  * playground. */
-/* #define LIVELOG_ENABLE */
+#define LIVELOG_ENABLE
 #ifdef LIVELOG_ENABLE
 #define LIVELOGFILE "livelog" /* in-game events recorded live */
 #ifdef LIVELOGFILE
