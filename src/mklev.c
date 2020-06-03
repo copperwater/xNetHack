@@ -2267,8 +2267,7 @@ int dist;
 
     /* clear traps */
     if ((ttmp = t_at(x, y)) != 0) {
-        /* this calls deltrap, burying any ammo */
-        remove_trap_ammo(ttmp, TRUE);
+        deltrap_with_ammo(ttmp, DELTRAP_DESTROY_AMMO);
     }
 
     /* clear boulders; leave some rocks for non-{moat|trap} locations */

@@ -4268,39 +4268,6 @@ struct trap *ttmp;
     return rn2(chance);
 }
 
-/* Extract a trap's ammo, and place it on the trap's location (or possibly bury
- * it in the ground).  Helge Hafting */
-void
-remove_trap_ammo(ttmp, bury_it)
-struct trap *ttmp;
-boolean bury_it;
-{
-    struct obj *otmp;
-
-    if (!ttmp) {
-        impossible("remove_trap_ammo: null trap!");
-        return;
-    }
-    while (ttmp->ammo) {
-        otmp = ttmp->ammo;
-        extract_nobj(otmp, &ttmp->ammo);
-        place_object(otmp, ttmp->tx, ttmp->ty);
-        if (bury_it) {
-            /* magical digging first disarms this trap, then will unearth it */
-            (void) bury_an_obj(otmp, (boolean *) 0);
-        } else {
-            /* Sell your own traps only... */
-            if (ttmp->madeby_u)
-                sellobj(otmp, ttmp->tx, ttmp->ty);
-            stackobj(otmp);
-        }
-    }
-    newsym(ttmp->tx, ttmp->ty);
-    if (u.utrap && ttmp->tx == u.ux && ttmp->ty == u.uy)
-        reset_utrap(TRUE);
-    deltrap(ttmp);
-}
-
 /* while attempting to disarm an adjacent trap, we've fallen into it */
 static void
 move_into_trap(ttmp)
@@ -4473,7 +4440,7 @@ struct trap *ttmp;
     } else {
         if (ttmp->ttyp == BEAR_TRAP) {
             You("disarm %s bear trap.", the_your[ttmp->madeby_u]);
-            remove_trap_ammo(ttmp, FALSE);
+            deltrap_with_ammo(ttmp, DELTRAP_PLACE_AMMO);
         } else /* if (ttmp->ttyp == WEB) */ {
             You("succeed in removing %s web.", the_your[ttmp->madeby_u]);
             deltrap(ttmp);
@@ -4492,7 +4459,7 @@ struct trap *ttmp;
     if (fails < 2)
         return fails;
     You("disarm %s land mine.", the_your[ttmp->madeby_u]);
-    remove_trap_ammo(ttmp, FALSE);
+    deltrap_with_ammo(ttmp, DELTRAP_PLACE_AMMO);
     return 1;
 }
 
@@ -4561,7 +4528,7 @@ struct trap *ttmp;
     if (fails < 2)
         return fails;
     You("disarm %s trap.", the_your[ttmp->madeby_u]);
-    remove_trap_ammo(ttmp, FALSE);
+    deltrap_with_ammo(ttmp, DELTRAP_PLACE_AMMO);
     return 1;
 }
 
@@ -5299,6 +5266,13 @@ register struct trap *trap;
 {
     register struct trap *ttmp;
 
+    if (trap->ammo) {
+        impossible("deleting trap (%d) containing ammo (%d)?",
+                   trap->ttyp, trap->ammo->otyp);
+        /* deltrap (here) -> deltrap_with_ammo (destroys ammo) -> deltrap */
+        deltrap_with_ammo(trap, DELTRAP_DESTROY_AMMO);
+        return;
+    }
     clear_conjoined_pits(trap);
     if (trap == g.ftrap) {
         g.ftrap = g.ftrap->ntrap;
@@ -5312,13 +5286,62 @@ register struct trap *trap;
     }
     if (Sokoban && (trap->ttyp == PIT || trap->ttyp == HOLE))
         maybe_finish_sokoban();
-    while (trap->ammo) {
-        impossible("deleting trap (%d) containing ammo (%d)?", trap->ttyp, trap->ammo->otyp);
-        struct obj* otmp = trap->ammo;
-        extract_nobj(otmp, &trap->ammo);
-        obfree(otmp, (struct obj *) 0);
-    }
     dealloc_trap(trap);
+}
+
+/* Delete a trap, but handle any ammo in it.
+ * The values for do_what are the DELTRAP_*_AMMO constants.
+ * If called with a trap without ammo, this should function like deltrap.
+ * If called with DELTRAP_RETURN_AMMO, delete the trap but preserve the ammo as
+ * an object chain, and return it. */
+struct obj *
+deltrap_with_ammo(trap, do_what)
+struct trap *trap;
+int do_what;
+{
+    struct obj *otmp, *objchn = NULL;
+    if (!trap) {
+        impossible("deltrap_with_ammo: null trap!");
+        return NULL;
+    }
+    while (trap->ammo) {
+        otmp = trap->ammo;
+        extract_nobj(otmp, &trap->ammo);
+        if (objchn) {
+            otmp->nobj = objchn;
+        }
+        objchn = otmp;
+    }
+    if (do_what != DELTRAP_RETURN_AMMO) {
+        struct obj *nobj;
+        otmp = objchn;
+        while (otmp) {
+            nobj = otmp->nobj;
+            switch (do_what) {
+            case DELTRAP_DESTROY_AMMO:
+                obfree(otmp, NULL);
+                break;
+            case DELTRAP_PLACE_AMMO:
+                place_object(otmp, trap->tx, trap->ty);
+                /* Sell your own traps only... */
+                if (trap->madeby_u)
+                    sellobj(otmp, trap->tx, trap->ty);
+                stackobj(otmp);
+                break;
+            case DELTRAP_BURY_AMMO:
+                place_object(otmp, trap->tx, trap->ty);
+                (void) bury_an_obj(otmp, NULL);
+                break;
+            }
+            otmp = nobj;
+        }
+        objchn = NULL;
+    }
+    newsym(trap->tx, trap->ty);
+    if (u.utrap && trap->tx == u.ux && trap->ty == u.uy)
+        reset_utrap(TRUE);
+    deltrap(trap);
+    return objchn;
 }
 
 boolean

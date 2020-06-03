@@ -898,7 +898,9 @@ coord *cc;
             && (ttmp->ttyp == LANDMINE || ttmp->ttyp == BEAR_TRAP)) {
 
             /* convert trap into buried object (deletes trap) */
-            remove_trap_ammo(ttmp, (ttmp->ttyp == LANDMINE));
+            deltrap_with_ammo(ttmp,
+                              (ttmp->ttyp == LANDMINE ? DELTRAP_BURY_AMMO
+                                                      : DELTRAP_PLACE_AMMO));
         }
 
         /* finally we get to make a hole */

@@ -116,6 +116,14 @@ enum trap_immunities {
     TRAP_HIDDEN_IMMUNE
 };
 
+/* Values for deltrap_with_ammo */
+enum deltrap_handle_ammo {
+    DELTRAP_RETURN_AMMO = 0, /* return ammo to caller; do nothing with it */
+    DELTRAP_DESTROY_AMMO,    /* delete ammo */
+    DELTRAP_PLACE_AMMO,      /* place ammo on ground where trap was */
+    DELTRAP_BURY_AMMO        /* bury ammo under where trap was */
+};
+
 #define predoortrapped(x, y, mon, body, act) \
     doortrapped(x, y, mon, body, act, 0)
 #define postdoortrapped(x, y, mon, body, act) \
