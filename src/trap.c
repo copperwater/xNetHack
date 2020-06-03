@@ -2374,7 +2374,7 @@ register struct monst *mtmp;
             if (trap->ttyp == BEAR_TRAP) {
                 if (canseemon(mtmp))
                     pline("%s eats a bear trap!", Monnam(mtmp));
-                deltrap(trap);
+                deltrap_with_ammo(trap, DELTRAP_DESTROY_AMMO);
                 mtmp->meating = 5;
                 mtmp->mtrapped = 0;
             } else if (trap->ttyp == SPIKED_PIT) {
