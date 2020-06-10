@@ -2568,8 +2568,6 @@ register struct obj *obj;
                 obj->norevive = 1;
         }
     } else if (Is_mbag(g.current_container) && mbag_explodes(obj, 0)) {
-        struct obj * otmp;
-        struct obj * nobj;
 
         /* explicitly mention what item is triggering the explosion */
         pline("As you put %s inside, you are blasted by a magical explosion!",
@@ -2580,22 +2578,6 @@ register struct obj *obj;
         if (obj->otyp == BAG_OF_HOLDING) /* putting bag of holding into another */
             do_boh_explosion(obj, (obj->where == OBJ_FLOOR));
         obfree(obj, (struct obj *) 0);
-
-        /* instead of destroying everything in the bag, scatter most of its
-         * contents, though some will still be destroyed with the same chance
-         * as looting a cursed bag */
-        for(otmp = g.current_container->cobj; otmp; otmp = nobj) {
-            nobj = otmp->nobj;
-            obj_extract_self(otmp);
-            if (!rn2(13)) {
-                mbag_item_gone(!floor_container, otmp, TRUE);
-            }
-            else {
-                otmp->ox = u.ux;
-                otmp->oy = u.uy;
-                scatter(u.ux, u.uy, 4, MAY_HIT | MAY_DESTROY, otmp);
-            }
-        }
 
         livelog_printf(LL_ACHIEVE, "just blew up %s bag of holding", uhis());
         /* if carried, shop goods will be flagged 'unpaid' and obfree() will
