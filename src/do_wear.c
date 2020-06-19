@@ -1727,31 +1727,24 @@ struct obj *otmp;
         g.multi_reason = "disrobing";
         switch (objects[otmp->otyp].oc_armcat) {
         case ARM_SUIT:
-            what = suit_simple_name(otmp);
             g.afternmv = Armor_off;
             break;
         case ARM_SHIELD:
-            what = shield_simple_name(otmp);
             g.afternmv = Shield_off;
             break;
         case ARM_HELM:
-            what = helm_simple_name(otmp);
             g.afternmv = Helmet_off;
             break;
         case ARM_GLOVES:
-            what = gloves_simple_name(otmp);
             g.afternmv = Gloves_off;
             break;
         case ARM_BOOTS:
-            what = boots_simple_name(otmp);
             g.afternmv = Boots_off;
             break;
         case ARM_CLOAK:
-            what = cloak_simple_name(otmp);
             g.afternmv = Cloak_off;
             break;
         case ARM_SHIRT:
-            what = shirt_simple_name(otmp);
             g.afternmv = Shirt_off;
             break;
         default:
@@ -1759,6 +1752,7 @@ struct obj *otmp;
                        otmp->otyp, objects[otmp->otyp].oc_armcat, delay);
             break;
         }
+        what = gear_simple_name(otmp);
         if (what) {
             /* sizeof offdelaybuf == 60; increase it if this becomes longer */
             Sprintf(offdelaybuf, "You finish taking off your %s.", what);

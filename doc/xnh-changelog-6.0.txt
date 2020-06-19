@@ -119,3 +119,5 @@ A bunch of enhancements, fixes, and refactors of the level parser, initially
 Monsters created in a bones file to represent a dead player (ghost, mummy, etc)
   are tracked with a new "ebones" mextra struct.
 A new body part, TORSO, is added.
+New function gear_simple_name, which collects all the various foo_simple_name
+  functions for gear pieces into one function.
