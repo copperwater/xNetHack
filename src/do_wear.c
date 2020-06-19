@@ -43,6 +43,7 @@ static int FDECL(armor_or_accessory_off, (struct obj *));
 static int FDECL(accessory_or_armor_on, (struct obj *));
 static void FDECL(already_wearing, (const char *));
 static void FDECL(already_wearing2, (const char *, const char *));
+static int FDECL(wornmask_to_bodypart, (int));
 
 /* plural "fingers" or optionally "gloves" */
 const char *
@@ -151,6 +152,33 @@ boolean on;
     }
 }
 
+/* Print a weld message after equipping cursed gear, and make the cursed state
+ * known.
+ * Note on sequencing: the call to this should come after the "You finish
+ * [equipping] your [gear]" message but before any other special messages from
+ * that piece of gear. As such, it needs to be in the various Foo_off()
+ * functions.
+ */
+void
+cursed_gear_welds(obj)
+struct obj* obj;
+{
+    if (obj->cursed) {
+        const char* name = distant_name(obj, xname);
+        boolean the = (strncmp(name, "The ", 4)
+                        && !strncmp(The(name), "The ", 4));
+        const char* bodypart = body_part(wornmask_to_bodypart(obj->owornmask));
+        /* only plural items to wear (at once) are boots and gloves;
+         * this affects body part pluralization but NOT "themselves" vs "itself"
+         * because they will be "pair of X" */
+        boolean plur = (obj == uarmg || obj == uarmf);
+        pline("%s%s weld%s to your %s!", the ? "The " : "",
+              gear_simple_name(obj), plur ? " themselves" : "s itself",
+              plur ? makeplural(bodypart) : bodypart);
+        obj->bknown = TRUE;
+    }
+}
+
 /*
  * The Type_on() functions should be called *after* setworn().
  * The Type_off() functions call setworn() themselves.
@@ -162,6 +190,8 @@ Boots_on(VOID_ARGS)
 {
     long oldprop =
         u.uprops[objects[uarmf->otyp].oc_oprop].extrinsic & ~WORN_BOOTS;
+
+    cursed_gear_welds(uarmf);
 
     switch (uarmf->otyp) {
     case LOW_BOOTS:
@@ -281,6 +311,8 @@ Cloak_on(VOID_ARGS)
     long oldprop =
         u.uprops[objects[uarmc->otyp].oc_oprop].extrinsic & ~WORN_CLOAK;
 
+    cursed_gear_welds(uarmc);
+
     switch (uarmc->otyp) {
     case ORCISH_CLOAK:
     case DWARVISH_CLOAK:
@@ -385,6 +417,8 @@ static
 int
 Helmet_on(VOID_ARGS)
 {
+    cursed_gear_welds(uarmh);
+
     switch (uarmh->otyp) {
     case FEDORA:
     case HELMET:
@@ -501,6 +535,8 @@ Gloves_on(VOID_ARGS)
     long oldprop =
         u.uprops[objects[uarmg->otyp].oc_oprop].extrinsic & ~WORN_GLOVES;
 
+    cursed_gear_welds(uarmg);
+
     switch (uarmg->otyp) {
     case GLOVES:
         break;
@@ -608,6 +644,8 @@ Gloves_off(VOID_ARGS)
 static int
 Shield_on(VOID_ARGS)
 {
+    cursed_gear_welds(uarms);
+
     /* no shield currently requires special handling when put on, but we
        keep this uncommented in case somebody adds a new one which does
        [reflection is handled by setting u.uprops[REFLECTION].extrinsic
@@ -656,6 +694,8 @@ Shield_off(VOID_ARGS)
 static int
 Shirt_on(VOID_ARGS)
 {
+    cursed_gear_welds(uarmu);
+
     /* no shirt currently requires special handling when put on, but we
        keep this uncommented in case somebody adds a new one which does */
     switch (uarmu->otyp) {
@@ -693,6 +733,8 @@ static
 int
 Armor_on(VOID_ARGS)
 {
+    cursed_gear_welds(uarm);
+
     /*
      * No suits require special handling.  Special properties conferred by
      * suits are set up as intrinsics (actually 'extrinsics') by setworn()
@@ -738,6 +780,12 @@ Amulet_on()
         setuswapwep((struct obj *) 0);
     else if (uamul == uquiver)
         setuqwep((struct obj *) 0);
+
+    /* avoid amulet of change's messages but NOT strangulation - print cursed
+     * msg before strangulation */
+    if (uamul->otyp != AMULET_OF_CHANGE) {
+        cursed_gear_welds(uamul);
+    }
 
     switch (uamul->otyp) {
     case AMULET_OF_ESP:
@@ -944,6 +992,8 @@ register struct obj *obj;
         setuswapwep((struct obj *) 0);
     else if (obj == uquiver)
         setuqwep((struct obj *) 0);
+
+    cursed_gear_welds(obj);
 
     /* only mask out W_RING when we don't have both
        left and right rings of the same type */
@@ -1196,6 +1246,8 @@ struct obj *otmp;
         remove_worn_item(otmp, FALSE);
     setworn(otmp, W_TOOL);
     on_msg(otmp);
+
+    cursed_gear_welds(otmp);
 
     if (Blind && !already_blind) {
         changed = TRUE;
@@ -2265,6 +2317,40 @@ doputon()
     }
     otmp = getobj("put on", puton_ok, FALSE, FALSE);
     return otmp ? accessory_or_armor_on(otmp) : 0;
+}
+
+/* Convert a wornmask to the body part that armor is worn on. */
+static int
+wornmask_to_bodypart(wornmask)
+int wornmask;
+{
+    if (wornmask & (W_ARM | W_ARMC | W_ARMU)) {
+        return TORSO;
+    }
+    else if (wornmask & (W_ARMH | W_TOOL)) {
+        return HEAD;
+    }
+    else if (wornmask & W_ARMS) {
+        /* most shields are primarily worn on the arm; however, cursed shields
+         * block the use of the hand, so the hand has to be involved somehow */
+        return HAND;
+    }
+    else if (wornmask & (W_ARMG | W_WEP)) {
+        return HAND;
+    }
+    else if (wornmask & W_ARMF) {
+        return FOOT;
+    }
+    else if (wornmask & W_AMUL) {
+        return NECK;
+    }
+    else if (wornmask & (W_RINGL | W_RINGR)) {
+        return FINGER;
+    }
+    else {
+        impossible("wornmask_to_bodypart: bad mask %x", wornmask);
+        return NO_PART;
+    }
 }
 
 /* calculate current armor class */

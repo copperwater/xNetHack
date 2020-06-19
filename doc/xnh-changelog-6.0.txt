@@ -107,6 +107,8 @@ The code is brought to parity with the interface improvements in the
   NHTangles/NetHack36 github repository, branch 3.7-hdf.
 Killing "player remnant" monsters (e.g. ghosts) from bones files is livelogged.
 Player remnant monsters cannot be renamed.
+When you wear a cursed piece of gear, it will print a message about welding to
+  your body and immediately become identified as cursed.
 
 
 It contains the following non-gameplay architectural changes:
