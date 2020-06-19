@@ -118,3 +118,4 @@ A bunch of enhancements, fixes, and refactors of the level parser, initially
   and special rooms can now be filled.
 Monsters created in a bones file to represent a dead player (ghost, mummy, etc)
   are tracked with a new "ebones" mextra struct.
+A new body part, TORSO, is added.
