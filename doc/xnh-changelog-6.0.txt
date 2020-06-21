@@ -109,6 +109,7 @@ Killing "player remnant" monsters (e.g. ghosts) from bones files is livelogged.
 Player remnant monsters cannot be renamed.
 When you wear a cursed piece of gear, it will print a message about welding to
   your body and immediately become identified as cursed.
+Dying on a corridor or grass space now leaves a gravestone in the bones file.
 
 
 It contains the following non-gameplay architectural changes:

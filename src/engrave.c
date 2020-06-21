@@ -1340,7 +1340,9 @@ const char *str;
     char buf[BUFSZ];
 
     /* Can we put a grave here? */
-    if ((levl[x][y].typ != ROOM && levl[x][y].typ != GRAVE) || t_at(x, y))
+    if ((levl[x][y].typ != ROOM && levl[x][y].typ != CORR
+         && levl[x][y].typ != GRASS && levl[x][y].typ != GRAVE)
+        || t_at(x, y))
         return;
     /* Make the grave */
     levl[x][y].typ = GRAVE;
