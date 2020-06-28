@@ -494,6 +494,9 @@ struct obj * obj; /* the offending item, or &cg.zeroobj if your body */
         impossible("searmsg: nothing searing?");
         return;
     }
+    if (!canspotmon(mdef)) {
+        return;
+    }
 
     char onamebuf[BUFSZ];
     char whose[BUFSZ];
