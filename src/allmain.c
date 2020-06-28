@@ -665,7 +665,21 @@ newgame()
     init_artifacts(); /* before u_init() in case $WIZKIT specifies
                        * any artifacts */
     u_init();
+#ifndef NO_SIGNAL
+    (void) signal(SIGINT, (SIG_RET_TYPE) done1);
+#endif
+#ifdef NEWS
+    if (iflags.news)
+        display_file(NEWS, FALSE);
+#endif
+    /* quest_init();  --  Now part of role_init() */
+
+    mklev();
+    u_on_upstairs();
+
     if (Polyinit_mode) {
+        /* this must come after u_on_upstairs so that any objects dropped during
+         * polymon() don't get placed off the map and cause impossibles */
         if (!polyok(&mons[flags.polyinit_mnum])) {
             winid wwin = create_nhwindow(NHW_MENU);
 #define warn(str) putstr(wwin, 0, str)
@@ -682,17 +696,6 @@ newgame()
         HUnchanging |= FROMOUTSIDE;
     }
 
-#ifndef NO_SIGNAL
-    (void) signal(SIGINT, (SIG_RET_TYPE) done1);
-#endif
-#ifdef NEWS
-    if (iflags.news)
-        display_file(NEWS, FALSE);
-#endif
-    /* quest_init();  --  Now part of role_init() */
-
-    mklev();
-    u_on_upstairs();
     if (wizard)
         obj_delivery(FALSE); /* finish wizkit */
     vision_reset();          /* set up internals for level (after mklev) */
