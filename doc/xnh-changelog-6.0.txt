@@ -107,6 +107,7 @@ The code is brought to parity with the interface improvements in the
   NHTangles/NetHack36 github repository, branch 3.7-hdf.
 Killing "player remnant" monsters (e.g. ghosts) from bones files is livelogged.
 Player remnant monsters cannot be renamed.
+The 'checkpoint' option now defaults to true.
 
 
 It contains the following non-gameplay architectural changes:
