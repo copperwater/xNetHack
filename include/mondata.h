@@ -144,6 +144,7 @@
     (((ptr) == &mons[PM_SEWER_RAT]) || ((ptr) == &mons[PM_GIANT_RAT]) || \
      ((ptr) == &mons[PM_RABID_RAT]) || ((ptr) == &mons[PM_WERERAT]) || \
      ((ptr) == &mons[PM_HUMAN_WERERAT]))
+#define is_zombie(ptr) ((ptr)->mlet == S_ZOMBIE && strstri((ptr)->mname, "zombie"))
 #define is_domestic(ptr) (((ptr)->mflags2 & M2_DOMESTIC) != 0L)
 #define is_demon(ptr) (((ptr)->mflags2 & M2_DEMON) != 0L)
 #define is_mercenary(ptr) (((ptr)->mflags2 & M2_MERC) != 0L)
@@ -203,7 +204,8 @@
     ((ptr) == &mons[PM_ORC] || (ptr) == &mons[PM_GIANT] \
      || (ptr) == &mons[PM_ELF] || (ptr) == &mons[PM_HUMAN])
 /* return TRUE if the monster tends to revive */
-#define is_reviver(ptr) (is_rider(ptr) || (ptr)->mlet == S_TROLL)
+#define is_reviver(ptr) (is_rider(ptr) || is_zombie(ptr) \
+                         || (ptr)->mlet == S_TROLL)
 /* monsters whose corpses and statues need special handling;
    note that high priests and the Wizard of Yendor are flagged
    as unique even though they really aren't; that's ok here */

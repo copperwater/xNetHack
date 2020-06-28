@@ -93,6 +93,7 @@ The "Fake Delphi" themed room now has one fountain in its center.
     traps and an engraving. Only appears deep in the dungeon. From UnNetHack.
   - A room filled mostly or entirely with gas spores, which should prove
     extremely fun to blow up.
+Canceled or beheaded zombies or trolls don't rise from the dead.
 
 
 It contains the following non-gameplay interface changes:
