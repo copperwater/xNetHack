@@ -1681,16 +1681,23 @@ unsigned trflags;
                     Levitation ? (const char *) "float"
                                : locomotion(g.youmonst.data, "step"));
         You("%s a polymorph trap!", verbbuf);
-        if (Antimagic || Unchanging) {
+        /* your Antimagic also protects your steed; however, your Unchanging
+         * won't */
+        if (Antimagic) {
             shieldeff(u.ux, u.uy);
             You_feel("momentarily different.");
             /* Trap did nothing; don't remove it --KAA */
         } else {
-            (void) steedintrap(trap, (struct obj *) 0);
-            deltrap(trap);      /* delete trap before polymorph */
-            newsym(u.ux, u.uy); /* get rid of trap symbol */
-            You_feel("a change coming over you.");
-            polyself(0);
+            (void) steedintrap(trap, (struct obj *) 0); /* may call deltrap() */
+            if (!Unchanging) {
+                if (t_at(u.ux, u.uy)) {
+                    /* steed didn't call deltrap so must not have been affected */
+                    deltrap(trap);      /* delete trap before polymorph */
+                    newsym(u.ux, u.uy); /* get rid of trap symbol */
+                }
+                You_feel("a change coming over you.");
+                polyself(0);
+            }
         }
         break;
     }
@@ -1846,11 +1853,11 @@ struct obj *otmp;
         steedhit = TRUE;
         break;
     case POLY_TRAP:
-        deltrap(trap);
-        newsym(steed->mx, steed->my);
         if (!resists_magm(steed) && !resist(steed, WAND_CLASS, 0, NOTELL)) {
             struct permonst *mdat = steed->data;
 
+            deltrap(trap);
+            newsym(steed->mx, steed->my); /* get rid of trap symbol */
             (void) newcham(steed, (struct permonst *) 0, FALSE, TRUE);
             if (!can_saddle(steed) || !can_ride(steed)) {
                 dismount_steed(DISMOUNT_POLY);

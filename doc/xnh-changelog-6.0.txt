@@ -93,6 +93,8 @@ The "Fake Delphi" themed room now has one fountain in its center.
     traps and an engraving. Only appears deep in the dungeon. From UnNetHack.
   - A room filled mostly or entirely with gas spores, which should prove
     extremely fun to blow up.
+If you ride a steed into a polymorph trap, unchanging will not protect the
+  steed (but magic resistance still will).
 
 
 It contains the following non-gameplay interface changes:
