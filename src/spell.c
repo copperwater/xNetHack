@@ -108,12 +108,12 @@ struct obj *bp;
         else {
             if (bp->blessed) {
                 unbless(bp);
-                pline_The("book glows brown.");
+                pline_The("book glows %s.", hcolor("brown"));
             }
             else {
                 /* can't call curse() here because it will call cursed_book */
                 bp->cursed = 1;
-                pline_The("book glows %s.", NH_BLACK);
+                pline_The("book glows %s.", hcolor(NH_BLACK));
             }
             bp->bknown = TRUE;
         }
