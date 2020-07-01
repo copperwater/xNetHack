@@ -1,4 +1,4 @@
-/* NetHack 3.6	eat.c	$NHDT-Date: 1590346071 2020/05/24 18:47:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.229 $ */
+/* NetHack 3.6	eat.c	$NHDT-Date: 1590971980 2020/06/01 00:39:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.230 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1696,7 +1696,8 @@ struct obj *otmp;
     }
 
     /* delay is weight dependent */
-    g.context.victual.reqtime = 3 + ((!glob ? mons[mnum].cwt : otmp->owt) >> 6);
+    g.context.victual.reqtime
+        = 3 + ((!glob ? mons[mnum].cwt : otmp->owt) >> 6);
 
     if (!tp && !nonrotting_corpse(mnum) && (otmp->orotten || !rn2(7))) {
         if (rottenfood(otmp)) {
@@ -3140,9 +3141,9 @@ boolean incr;
                 You(!incr ? "now have a lesser case of the munchies."
                     : "are getting the munchies.");
             } else
-                You(!incr ? "only feel hungry now."
-                    : (u.uhunger < 145) ? "feel hungry."
-                      : "are beginning to feel hungry.");
+                You("%s.", !incr ? "only feel hungry now"
+                           : (u.uhunger < 145) ? "feel hungry"
+                             : "are beginning to feel hungry");
             if (incr && g.occupation
                 && (g.occupation != eatfood && g.occupation != opentin))
                 stop_occupation();
@@ -3150,7 +3151,7 @@ boolean incr;
             break;
         case WEAK:
             if (Hallucination)
-                pline((!incr) ? "You still have the munchies."
+                pline(!incr ? "You still have the munchies."
               : "The munchies are interfering with your motor capabilities.");
             else if (incr && (Role_if(PM_WIZARD) || Race_if(PM_ELF)
                               || Role_if(PM_VALKYRIE)))
@@ -3159,9 +3160,9 @@ boolean incr;
                           ? g.urole.name.m
                           : "Elf");
             else
-                You(!incr ? "feel weak now."
-                    : (u.uhunger < 45) ? "feel weak."
-                      : "are beginning to feel weak.");
+                You("%s weak.", !incr ? "are still"
+                                : (u.uhunger < 45) ? "feel"
+                                  : "are beginning to feel");
             if (incr && g.occupation
                 && (g.occupation != eatfood && g.occupation != opentin))
                 stop_occupation();

@@ -1,4 +1,4 @@
-/* NetHack 3.6	uhitm.c	$NHDT-Date: 1586807928 2020/04/13 19:58:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.230 $ */
+/* NetHack 3.6	uhitm.c	$NHDT-Date: 1593306911 2020/06/28 01:15:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.237 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1525,7 +1525,7 @@ steal_it(mdef, mattk)
 struct monst *mdef;
 struct attack *mattk;
 {
-    struct obj *otmp, *gold = 0, *stealoid, **minvent_ptr;
+    struct obj *otmp, *gold = 0, *ustealo, **minvent_ptr;
     long unwornmask;
 
     otmp = mdef->minvent;
@@ -1533,25 +1533,25 @@ struct attack *mattk;
         return; /* nothing to take */
 
     /* look for worn body armor */
-    stealoid = (struct obj *) 0;
+    ustealo = (struct obj *) 0;
     if (could_seduce(&g.youmonst, mdef, mattk)) {
         /* find armor, and move it to end of inventory in the process */
         minvent_ptr = &mdef->minvent;
         while ((otmp = *minvent_ptr) != 0)
             if (otmp->owornmask & W_ARM) {
-                if (stealoid)
+                if (ustealo)
                     panic("steal_it: multiple worn suits");
                 *minvent_ptr = otmp->nobj; /* take armor out of minvent */
-                stealoid = otmp;
-                stealoid->nobj = (struct obj *) 0;
+                ustealo = otmp;
+                ustealo->nobj = (struct obj *) 0;
             } else {
                 minvent_ptr = &otmp->nobj;
             }
-        *minvent_ptr = stealoid; /* put armor back into minvent */
+        *minvent_ptr = ustealo; /* put armor back into minvent */
     }
     gold = findgold(mdef->minvent);
 
-    if (stealoid) { /* we will be taking everything */
+    if (ustealo) { /* we will be taking everything */
         char heshe[20];
 
         /* 3.7: this uses hero's base gender rather than nymph feminimity
@@ -1593,7 +1593,7 @@ struct attack *mattk;
                move instead of waiting until it picks something up */
             mdef->misc_worn_check |= I_SPECIAL;
 
-            if (otmp == stealoid) /* special message for final item */
+            if (otmp == ustealo) /* special message for final item */
                 pline("%s finishes taking off %s suit.", Monnam(mdef),
                       mhis(mdef));
         }
@@ -1614,7 +1614,7 @@ struct attack *mattk;
                 break; /* can't continue stealing */
         }
 
-        if (!stealoid)
+        if (!ustealo)
             break; /* only taking one item */
 
         /* take gold out of minvent before making next selection; if it
@@ -1848,21 +1848,32 @@ int specialdmg; /* blessed and/or silver bonus against various things */
         }
         tmp = 0;
         break;
-    case AD_DRLI:
+    case AD_DRLI: /* drain life */
         if (!negated && !rn2(3) && !resists_drli(mdef)) {
-            int xtmp = d(2, 6);
-
-            pline("%s suddenly seems weaker!", Monnam(mdef));
-            mdef->mhpmax -= xtmp;
-            mdef->mhp -= xtmp;
+            tmp = d(2, 6); /* Stormbringer uses monhp_per_lvl(usually 1d8) */
+            pline("%s becomes weaker!", Monnam(mdef));
+            if (mdef->mhpmax - tmp > (int) mdef->m_lev) {
+                mdef->mhpmax -= tmp;
+            } else {
+                /* limit floor of mhpmax reduction to current m_lev + 1;
+                   avoid increasing it if somehow already less than that */
+                if (mdef->mhpmax > (int) mdef->m_lev)
+                    mdef->mhpmax = (int) mdef->m_lev + 1;
+            }
+            mdef->mhp -= tmp;
             /* !m_lev: level 0 monster is killed regardless of hit points
-               rather than drop to level -1 */
+               rather than drop to level -1; note: some non-living creatures
+               (golems, vortices) are subject to life-drain */
             if (DEADMONSTER(mdef) || !mdef->m_lev) {
-                pline("%s dies!", Monnam(mdef));
+                pline("%s %s!", Monnam(mdef),
+                      nonliving(mdef->data) ? "expires" : "dies");
                 xkilled(mdef, XKILL_NOMSG);
             } else
                 mdef->m_lev--;
-            tmp = 0;
+            tmp = 0; /* damage has already been inflicted */
+
+            /* unlike hitting with Stormbringer, wounded hero doesn't
+               heal any from the drained life */
         }
         break;
     case AD_RUST:
