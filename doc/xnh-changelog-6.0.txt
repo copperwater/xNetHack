@@ -95,6 +95,7 @@ The "Fake Delphi" themed room now has one fountain in its center.
     extremely fun to blow up.
 If you ride a steed into a polymorph trap, unchanging will not protect the
   steed (but magic resistance still will).
+Canceled or beheaded zombies or trolls don't rise from the dead.
 
 
 It contains the following non-gameplay interface changes:
@@ -110,6 +111,9 @@ The code is brought to parity with the interface improvements in the
 Killing "player remnant" monsters (e.g. ghosts) from bones files is livelogged.
 Player remnant monsters cannot be renamed.
 The 'checkpoint' option now defaults to true.
+When you wear a cursed piece of gear, it will print a message about welding to
+  your body and immediately become identified as cursed.
+Dying on a corridor or grass space now leaves a gravestone in the bones file.
 
 
 It contains the following non-gameplay architectural changes:
@@ -121,3 +125,6 @@ A bunch of enhancements, fixes, and refactors of the level parser, initially
   and special rooms can now be filled.
 Monsters created in a bones file to represent a dead player (ghost, mummy, etc)
   are tracked with a new "ebones" mextra struct.
+A new body part, TORSO, is added.
+New function gear_simple_name, which collects all the various foo_simple_name
+  functions for gear pieces into one function.

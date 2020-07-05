@@ -502,6 +502,7 @@ E int NDECL(take_off);
 E const char *FDECL(fingers_or_gloves, (BOOLEAN_P));
 E void FDECL(off_msg, (struct obj *));
 E void FDECL(toggle_displacement, (struct obj *, long, BOOLEAN_P));
+E void FDECL(cursed_gear_welds, (struct obj *));
 E void FDECL(set_wear, (struct obj *));
 E boolean FDECL(donning, (struct obj *));
 E boolean FDECL(doffing, (struct obj *));
@@ -1907,6 +1908,7 @@ E const char *FDECL(gloves_simple_name, (struct obj *));
 E const char *FDECL(boots_simple_name, (struct obj *));
 E const char *FDECL(shield_simple_name, (struct obj *));
 E const char *FDECL(shirt_simple_name, (struct obj *));
+E const char *FDECL(gear_simple_name, (struct obj *));
 E const char *FDECL(mimic_obj_name, (struct monst *));
 E char *FDECL(safe_qbuf, (char *, const char *, const char *, struct obj *,
                           char *(*)(OBJ_P), char *(*)(OBJ_P), const char *));
