@@ -976,8 +976,12 @@ register struct attack *mattk;
     struct permonst *olduasmon = g.youmonst.data;
     int res;
 
-    if (!canspotmon(mtmp))
+    if (!canspotmon(mtmp) && mdat != &mons[PM_GHOST]) {
+        /* Ghosts have an exception because if the hero can't spot it, their
+         * attack does absolutely nothing, and there's no indication of a
+         * monster being around. */
         map_invisible(mtmp->mx, mtmp->my);
+    }
 
     /* Awaken nearby monsters */
     if (!(is_silent(mdat) && g.multi < 0) && rn2(10)) {
@@ -1274,9 +1278,11 @@ register struct attack *mattk;
             boolean couldspot = canspotmon(mtmp);
             if (mtmp->minvis) {
                 mtmp->minvis = 0;
-                newsym(mtmp->mx, mtmp->my);
                 mtmp->mspec_used = d(2, 8);
-                if (canspotmon(mtmp) && !Unaware) {
+                /* canseemon rather than canspotmon; if you can spot but not see
+                 * the ghost, you won't notice that it became visible */
+                if (canseemon(mtmp) && !Unaware) {
+                    newsym(mtmp->mx, mtmp->my);
                     if (!couldspot) {
                         /* only works if you didn't know it was there before it
                         * turned visible */

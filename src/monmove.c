@@ -654,11 +654,12 @@ register struct monst *mtmp;
         mtmp->minvis = 1;
         if (couldsee && !canseemon(mtmp)) {
             pline("%s fades from view.", nam);
+            newsym(mtmp->mx, mtmp->my);
         }
         else if (couldsee && See_invisible) {
             pline("%s turns even more transparent.", nam);
+            newsym(mtmp->mx, mtmp->my);
         }
-        newsym(mtmp->mx, mtmp->my);
         return 0;
     }
 
