@@ -4724,7 +4724,7 @@ struct obj *shield;
     if (shield) {
         /* xname() describes unknown (unseen) reflection as smooth */
         if (shield->otyp == SHIELD_OF_REFLECTION)
-            return shield->dknown ? "silver shield" : "smooth shield";
+            return "smooth shield";
         /*
          * We might distinguish between wooden vs metallic or
          * light vs heavy to give small benefit to spell casters.
