@@ -652,11 +652,11 @@ clearlocks()
     /* can't access maxledgerno() before dungeons are created -dlc */
     for (x = (g.n_dgns ? maxledgerno() : 0); x >= 0; x--)
         delete_levelfile(x); /* not all levels need be present */
-}
 
 #ifdef WHEREIS_FILE
     delete_whereis();
 #endif
+}
 
 #if defined(SELECTSAVED)
 /* qsort comparison routine */
