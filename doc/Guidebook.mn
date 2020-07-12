@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.383 $ $NHDT-Date: 1593219357 2020/06/27 00:55:57 $
+.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.391 $ $NHDT-Date: 1594377460 2020/07/10 10:37:40 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" Guidebook.mn currently does *not* fully adhere to these guidelines.
@@ -35,7 +35,7 @@
 .ds vr "NetHack 3.7
 .ds f0 "\*(vr
 .ds f1
-.ds f2 "June 20, 2020
+.ds f2 "July 9, 2020
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -1554,7 +1554,12 @@ Autocompletes.
 Debug mode only.
 Default key is \(oq\(haF\(cq.
 .lp #wizrumorcheck
-Verify rumor boundaries.
+Verify rumor boundaries by displaying first and last true rumors and
+first and last false rumors.
+.lp ""
+Also displays first, second, and last random engravings, epitaphs,
+and hallucinatory monsters.
+.lp ""
 Autocompletes.
 Debug mode only.
 .lp #wizsmell
@@ -1742,28 +1747,77 @@ And some (giants) can smash doors.
 Secret doors are hidden and appear to be ordinary wall (from inside a
 room) or solid rock (from outside).
 You can find them with the \(oqs\(cq (search) command but it might
-take multiple tries.
+take multiple tries (possibly many tries if your luck is poor).
 Once found they are in all ways equivalent to normal doors.
 Mapping magic does not reveal secret doors.
 .hn 2
 Traps (\(oq\(ha\(cq)
 .pg
-There are traps throughout the dungeon to snare the unwary delver.
+There are traps throughout the dungeon to snare the unwary intruder.
 For example, you may suddenly fall into a pit and be stuck for a few
-turns trying to climb out.
-Traps don't appear on your map until you
-see one triggered by moving onto it, see something fall into it, or you
-discover it with the \(oqs\(cq (search) command.
-Monsters can fall prey to
-traps, too, which can be a very useful defensive strategy.
+turns trying to climb out (see below).
+A trap usually won't appear on your map until you trigger it by moving
+onto it, you see someone else trigger it, or you discover it with
+the \(oqs\(cq (search) command (multiple attempts are often needed;
+if your luck is poor, many attempts might be needed).
+\fIWands of secret door detection\fP and \fIspell of detect unseen\fP
+also reveal traps within a modest radius but only if the trap is also
+within line-of-sight (whether you can see at the time or not).
+There is also other magic which can reveal traps.
 .pg
-There is a special pre-mapped branch of the dungeon based on the
-classic computer game \(lqSokoban.\(rq
-The goal is to push the boulders into the pits or holes.
+Monsters can fall prey to
+traps, too, which can potentially be used as a defensive strategy.
+Unfortunately traps can be harmful to your pet(s) as well.
+Monsters, including pets, usually will avoid moving onto a trap which
+is shown on your map if they have encountered that type of trap before.
+.pg
+Some traps such as pits, bear traps, and webs hold you in one place.
+You can escape by simply trying to move to an adjacent spot and repeat
+as needed; eventually you will get free.
+.pg
+Other traps can send you to different locations.
+Teleporters send you elsewhere on the same dungeon level.
+Level teleporters send you to a random dungeon level, the destination
+chosen from a few levels lower all the way to the top.
+Trap doors and holes also send you to another level, but one which is
+always below the current level.
+Usually that will be the next level down but it can be farther.
+All of these traps choose a new destination each time they're activated.
+Magic portals also send you to a different level but behave differently.
+Some portals are two-way and their remote destination is always the same:
+another portal which can take you back.
+Others are one-way and send you to a specific destination level but not
+necessarily to a specific location there.
+.pg
+There is a special multi-level branch of the dungeon with pre-mapped levels
+based on the classic computer game \(lqSokoban.\(rq
+In that game, you operate as a warehouse worker who pushes crates around
+obstacles to position them at designated locations.
+In NetHack, the goal is to push boulders into pits or holes until those
+traps have all been nullified, giving access to whatever is beyond them.
+In the Sokoban game, you can only move in the four cardinal compass
+directions, and a crate in its final destination blocks further access
+to that spot.
+In the Sokoban levels of NetHack, you can move diagonally (unless that
+would let you pass between two neighboring boulders) but you can only
+push boulders in the four cardinal directions, and a boulder which fills
+a pit or hole removes both the boulder and the trap so opens up normal
+access to that spot.
 With careful foresight, it is possible to complete all of the levels
 according to the traditional rules of Sokoban.
-Some allowances are permitted in case the player gets stuck;
-however, they will lower your luck.
+(Hint: to solve Sokoban puzzles, you often need to move things away from
+their eventual destinations in order to open up more room to maneuver.)
+Since NetHack does not support an \fIundo\fP capability, some allowances
+are permitted in case you get stuck.
+For example, each level has at least one extra boulder.
+Also, it is possible to drop everything in order to be able to squeeze
+into the same location as a boulder (and then presumably move past it),
+or to destroy a boulder with magic or tools, or to create new boulders
+with a scroll of earth.
+However, doing such things will lower your luck without any specific
+message given about that.
+See the \fIConduct\fP section for information about getting feedback for
+your actions in Sokoban.
 .hn 2
 Stairs and ladders (\(oq<\(cq, \(oq>\(cq)
 .pg
@@ -2845,7 +2899,7 @@ In NetHack, a pacifist refuses to cause the death of any other monster
 difficult challenge, although it is still possible to gain experience
 by other means.
 .pg
-An illiterate character cannot read or write.
+An illiterate character does not read or write.
 This includes reading
 a scroll, spellbook, fortune cookie message, or t-shirt; writing a
 scroll; or making an engraving of anything other than a single \(lqX\(rq
@@ -2857,6 +2911,32 @@ The identity of scrolls and spellbooks (and
 knowledge of spells) in your starting inventory is assumed to be
 learned from your teachers prior to the start of the game and isn't
 counted.
+.pg
+There is a side-branch to the main dungeon called \(lqSokoban,\(rq briefly
+described in the earlier section about \fITraps\fP.
+As mentioned there, the goal is to push boulders into pits and/or holes
+to plug those in order to both get the boulders out of the way and be
+able to go past the traps.
+There are some special \(lqrules\(rq that are active when in that branch
+of the dungeon.
+Some rules can't be bypassed, such as being unable to push a boulder
+diagonally.
+Other rules can, such as not smashing boulders with magic or tools,
+but doing so causes you to receive a luck penalty.
+No message about that is given at the time, but it is tracked as a conduct.
+The #conduct command and end of game disclosure will report whether
+you have abided by the special rules of Sokoban, and if not, how many
+times you violated them, providing you with a way to discover which
+actions incur bad luck so that you can be better informed about whether
+or not to avoid repeating those actions in the future.
+(Note:  the Sokoban conduct will only be displayed if you have
+entered the Sokoban branch of the dungeon during the current game.
+Once that has happened, it becomes part of disclosed conduct even if
+you haven't done anything interesting there.
+Ending the game with \(lqnever broke the Sokoban rules\(rq conduct is most
+meaningful if you also manage to perform
+the \(lqobtained the Sokoban prize\(rq achievement
+(see \fIAchievements\fP below).)
 .pg
 There are several other challenges tracked by the game.
 It is possible
@@ -3343,13 +3423,6 @@ for more details.
 .lp checkpoint
 Save game state after each level change, for possible recovery after
 program crash (default on).  Persistent.
-.lp checkspace
-Check free disk space before writing files to disk (default on).
-You may have to turn this off if you have more than 2 GB free space
-on the partition used for your save and level files
-(because too much space might overflow the calculation and end up
-looking like insufficient space).
-Only applies when MFLOPPY was defined during compilation.
 .lp clicklook
 Allows looking at things on the screen by navigating the mouse
 over them and clicking the right mouse button (default off).
@@ -4653,7 +4726,7 @@ The directory that houses the sound files to be played.
 .lp SOUND
 An entry that maps a sound file to a user-specified message pattern.
 Each SOUND entry is broken down into the following parts:
-.PS "sound file"
+.PS "sound index"
 .PL MESG
 message window mapping (the only one supported in 3.6);
 .PL pattern
@@ -4661,7 +4734,9 @@ the pattern to match;
 .PL "sound file"
 the sound file to play;
 .PL volume
-the volume to be set while playing the sound file.
+the volume to be set while playing the sound file;
+.PL "sound index"
+optional; the index corresponding to a sound file.
 .PE
 .lp ""
 The pattern should be a POSIX extended regular expression.
@@ -5397,8 +5472,9 @@ He then coordinated a cast of thousands in enhancing and debugging
 NetHack 1.4 and released NetHack versions 2.2 and 2.3.
 .pg
 Later, Mike coordinated a major re-write of the game, heading a
-team which included \fBKen Arromdee\fP, \fBJean-Christophe Collet\fP, \fBSteve
-Creps\fP, \fBEric Hendrickson\fP, \fBIzchak Miller\fP, \fBJohn Rupley\fP,
+team which included \fBKen Arromdee\fP, \fBJean-Christophe Collet\fP,
+\fBSteve Creps\fP, \fBEric Hendrickson\fP, \fBIzchak Miller\fP,
+\fBEric S. Raymond\fP, \fBJohn Rupley\fP,
 \fBMike Threepoint\fP, and \fBJanet Walz\fP, to produce NetHack 3.0c.
 .pg
 NetHack 3.0 was ported to the Atari by \fBEric R. Smith\fP, to OS/2 by
@@ -5415,20 +5491,26 @@ revisions of 3.0.
 .pg
 Version 3.0 went through ten relatively rapidly released \(lqpatch-level\(rq
 revisions.
-Versions at the time were designated \(lq3.0 patchlevel 10\(rq
-or \(lq3.0pl10\(rq rather than 3.0.10; that three component numbering scheme
-began to be used with 3.1.0.
+Versions at the time were known as 3.0 for the base release and variously
+as \(lq3.0a\(rq through \(lq3.0j\(rq,
+\(lq3.0\ patchlevel\ 1\(rq through \(lq3.0\ patchlevel\ 10\(rq,
+or \(lq3.0pl1\(rq through \(lq3.0pl10\(rq
+rather than 3.0.0 and 3.0.1 through 3.0.10;
+the three component numbering scheme began to be used with 3.1.0.
 .pg
 Headed by \fBMike Stephenson\fP and coordinated by \fBIzchak Miller\fP and
 \fBJanet Walz\fP, the NetHack Development Team which now included
 \fBKen Arromdee\fP,
 \fBDavid Cohrs\fP, \fBJean-Christophe Collet\fP, \fBKevin Darcy\fP,
 \fBMatt Day\fP, \fBTimo Hakulinen\fP, \fBSteve Linhart\fP, \fBDean Luick\fP,
-\fBPat Rankin\fP, \fBEric Raymond\fP, and \fBEric Smith\fP undertook a radical
-revision of 3.0.  They re-structured the game's design, and re-wrote major
-parts of the code.  They added multiple dungeons, a new display, special
+\fBPat Rankin\fP, \fBEric Raymond\fP, and \fBEric Smith\fP undertook a
+radical revision of 3.0.
+They re-structured the game's design, and re-wrote major
+parts of the code.
+They added multiple dungeons, a new display, special
 individual character quests, a new endgame and many other new features, and
 produced NetHack 3.1.
+Version 3.1.0 was released in January of 1993.
 .pg
 \fBKen Lorber\fP, \fBGregg Wonderly\fP and \fBGreg Olson\fP, with help
 from \fBRichard Addison\fP, \fBMike Passaretti\fP, and \fBOlaf Seibert\fP,
@@ -5474,15 +5556,18 @@ The 3.2 NetHack Development Team, comprised of \fBMichael Allison\fP, \fBKen
 Arromdee\fP, \fBDavid Cohrs\fP, \fBJessie Collet\fP, \fBSteve Creps\fP,
 \fBKevin Darcy\fP, \fBTimo Hakulinen\fP, \fBSteve Linhart\fP, \fBDean
 Luick\fP, \fBPat Rankin\fP, \fBEric Smith\fP, \fBMike Stephenson\fP,
-\fBJanet Walz\fP, and \fBPaul Winner\fP, released version 3.2 in April of
+\fBJanet Walz\fP, and \fBPaul Winner\fP, released version 3.2.0 in April of
 1996.
 .pg
-Version 3.2 marked the tenth anniversary of the formation of the development
-team.  In a testament to their dedication to the game, all thirteen members
-of the original NetHack Development Team remained on the team at the start of work
-on that release.  During the interval between the release of 3.1.3
-and 3.2, one of the founding members of the NetHack Development Team, \fBDr. Izchak
-Miller\fP, was diagnosed with cancer and passed away.  That release of the
+Version 3.2 marked the tenth anniversary of the formation of the
+development team.
+In a testament to their dedication to the game, all thirteen members
+of the original NetHack Development Team remained on the team at the
+start of work on that release.
+During the interval between the release of 3.1.3
+and 3.2.0, one of the founding members of the NetHack Development Team,
+\fBDr. Izchak Miller\fP, was diagnosed with cancer and passed away.
+That release of the
 game was dedicated to him by the development and porting teams.
 .pg
 Version 3.2 proved to be more stable than previous versions.
@@ -5512,6 +5597,19 @@ of these ideas into NetHack 3.3.
 .pg
 The final update to 3.2 was the bug fix release 3.2.3, which was released
 simultaneously with 3.3.0 in December 1999 just in time for the Year 2000.
+Because of the newer version, 3.2.3 was released as a source code patch only,
+without any ready-to-play distribution for systems that usually had such.
+.pg
+(To anyone considering resurrecting an old version:  all versions before
+3.2.3 had a \fIY2K\fP bug.
+The high scores file and the log file contained
+dates which were formatted using a two-digit year, and 1999's year 99 was
+followed by 2000's year 100.
+That got written out successfully but it
+unintentionally introduced an extra column in the file layout which prevented
+score entries from being read back in correctly, interfering with insertion
+of new high scores and with retrieval of old character names to use for
+random ghost and statue names in the current game.)
 .pg
 The 3.3 NetHack Development Team, consisting of
 \fBMichael Allison\fP, \fBKen Arromdee\fP,
