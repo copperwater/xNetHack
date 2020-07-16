@@ -2333,7 +2333,8 @@ char *op;
     else if (req == get_val) {
         if (!opts)
             return optn_err;
-        Sprintf(opts, "%s", rolestring(flags.orientation, orientations, adj));
+        Sprintf(opts, "%s", rolestring(flags.orientation, orientations,
+                                       technical));
         return optn_ok;
     }
     return optn_ok;
