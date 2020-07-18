@@ -4263,7 +4263,7 @@ struct obj *no_wish;
     }
 
     /* if player specified a reasonable count, maybe honor it */
-    if (cnt > 1 && objects[typ].oc_merge
+    if (cnt > 0 && objects[typ].oc_merge
         && (wizard || oclass == COIN_CLASS
             || cnt < rnd(6) || (cnt <= 7 && Is_candle(otmp))
             || (cnt <= 20 && ((oclass == WEAPON_CLASS && is_ammo(otmp))
