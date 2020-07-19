@@ -667,7 +667,11 @@ struct permonst * pm;
             Strcat(buf, ", ");                          \
         Strcat(buf, str);                               \
     }
-#define MONPUTSTR(str) putstr(datawin, ATR_BOLD, str)
+#define MONPUTSTR(str) putstr(datawin, ATR_NONE, str)
+
+    Sprintf(buf, "Monster lookup for \"%s\":", pm->mname);
+    putstr(datawin, ATR_BOLD, buf);
+    MONPUTSTR("");
 
     /* Misc */
     Sprintf(buf, "Difficulty %d, speed %d, base AC %d, magic saving throw %d, weight %d.",
@@ -885,6 +889,10 @@ short otyp;
         if (*buf) { Strcat(buf, ", "); }    \
         Strcat(buf, str);                   \
     }
+
+    Sprintf(buf, "Object lookup for \"%s\":", safe_typename(otyp));
+    putstr(datawin, ATR_BOLD, buf);
+    OBJPUTSTR("");
 
     /* Object classes currently with no special messages here: amulets. */
     boolean weptool = (olet == TOOL_CLASS && oc.oc_skill != P_NONE);
@@ -1419,6 +1427,9 @@ char *supplemental_name;
         boolean yes_to_moreinfo, found_in_file, pass1found_in_file,
                 skipping_entry;
         char *sp, *ap, *alt = 0; /* alternate description */
+        char *encycl_matched = 0; /* which version of the string matched
+                                     (for later printing) */
+        char matcher[BUFSZ];      /* the string it matched against */
 
         /* adjust the input to remove "named " and "called " */
         if ((ep = strstri(dbase_str, " named ")) != 0) {
@@ -1489,15 +1500,25 @@ char *supplemental_name;
                     /* if we match a key that begins with "~", skip
                        this entry */
                     chk_skip = (*buf == '~') ? 1 : 0;
-                    if ((pass == 0 && (pmatch(&buf[chk_skip], dbase_str)
-                                       || pmatch(&buf[chk_skip],
-                                                 dbase_str_with_material)))
-                        || (pass == 1 && alt && pmatch(&buf[chk_skip], alt))) {
+                    encycl_matched = (char *) 0;
+                    if (pass == 0) {
+                        if (pmatch(&buf[chk_skip], dbase_str_with_material)) {
+                            encycl_matched = dbase_str_with_material;
+                        }
+                        else if (pmatch(&buf[chk_skip], dbase_str)) {
+                            encycl_matched = dbase_str;
+                        }
+                    }
+                    else if (pass == 1 && alt && pmatch(&buf[chk_skip], alt)) {
+                        encycl_matched = alt;
+                    }
+                    if (encycl_matched) {
                         if (chk_skip) {
                             skipping_entry = TRUE;
                             continue;
                         } else {
                             found_in_file = TRUE;
+                            Strcpy(matcher, buf);
                             if (pass == 1)
                                 pass1found_in_file = TRUE;
                             break;
@@ -1589,12 +1610,20 @@ char *supplemental_name;
 
                     /* encyclopedia entry */
                     if (found_in_file) {
+                        char titlebuf[BUFSZ];
                         if (dlb_fseek(fp, (long) txt_offset + entry_offset,
                                         SEEK_SET) < 0) {
                             pline("? Seek error on 'data' file!");
                             (void) dlb_fclose(fp);
                             return;
                         }
+
+                        Sprintf(titlebuf,
+                                "Encyclopedia entry for \"%s\" (matched to \"%s\"):",
+                                encycl_matched, matcher);
+                        putstr(datawin, ATR_BOLD, titlebuf);
+                        putstr(datawin, ATR_NONE, "");
+
                         for (i = 0; i < entry_count; i++) {
                             /* room for 1-tab or 8-space prefix + BUFSZ-1 + \0 */
                             char tabbuf[BUFSZ + 8], *tp;
