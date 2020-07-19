@@ -1290,10 +1290,10 @@ char *supplemental_name;
 {
     dlb *fp;
     char buf[BUFSZ], newstr[BUFSZ], givenname[BUFSZ];
-    char *ep, *dbase_str;
+    char *ep, *dbase_str, *dbase_str_with_material;
     unsigned long txt_offset = 0L;
     winid datawin = WIN_ERR;
-    short otyp;
+    short otyp, mat;
 
     fp = dlb_fopen(DATAFILE, "r");
     if (!fp) {
@@ -1390,6 +1390,28 @@ char *supplemental_name;
     if (!strncmp(dbase_str, "moist towel", 11))
         (void) strncpy(dbase_str += 2, "wet", 3); /* skip "mo" replace "ist" */
 
+    /* Remove material, if it exists, but store the original value in
+     * dbase_str_with_material. It should be cut out of dbase_str as a prefix
+     * in order for the alt handling below to function properly.
+     * Note that this assumes that material is always the last thing that needs
+     * to be stripped out (e.g. it will not strip things out if dbase_str is
+     * "silver +0 sword").
+     * This is clunky in how it adds a third possibility that needs to be
+     * pmatch()'ed; a better future refactor of this code would be to collect an
+     * arbitrary number of possible strings as needed, then iterate through
+     * them. */
+    dbase_str_with_material = dbase_str;
+    for (mat = 1; mat < NUM_MATERIAL_TYPES; ++mat) {
+        unsigned int len = strlen(materialnm[mat]);
+        /* check for e.g. "gold " without constructing it as a string */
+        if (!strncmp(dbase_str, materialnm[mat], len) && strlen(dbase_str) > len
+            && dbase_str[len] == ' ') {
+            dbase_str_with_material = dbase_str;
+            dbase_str += len + 1;
+            break;
+        }
+    }
+
     /* Make sure the name is non-empty. */
     if (*dbase_str) {
         long pass1offset = -1L;
@@ -1467,7 +1489,9 @@ char *supplemental_name;
                     /* if we match a key that begins with "~", skip
                        this entry */
                     chk_skip = (*buf == '~') ? 1 : 0;
-                    if ((pass == 0 && pmatch(&buf[chk_skip], dbase_str))
+                    if ((pass == 0 && (pmatch(&buf[chk_skip], dbase_str)
+                                       || pmatch(&buf[chk_skip],
+                                                 dbase_str_with_material)))
                         || (pass == 1 && alt && pmatch(&buf[chk_skip], alt))) {
                         if (chk_skip) {
                             skipping_entry = TRUE;
@@ -1503,16 +1527,22 @@ char *supplemental_name;
                 }
             }
 
-            /* monster lookup: try to parse as a monster */
+            /* monster lookup: try to parse as a monster
+             * use dbase_str_with_material here; if it differs from
+             * dbase_str, then it's likely that dbase_str stripped off the
+             * "iron" from "iron golem" or something. */
             pm = NULL;
-            int mndx = name_to_mon(dbase_str);
+            int mndx = name_to_mon(dbase_str_with_material);
             if (mndx != NON_PM) {
                 pm = &mons[mndx];
             }
 
-            /* object lookup: try to parse as an object */
-            otyp = name_to_otyp(dbase_str);
-
+            /* object lookup: try to parse as an object, and try the material
+             * version of the string first */
+            otyp = name_to_otyp(dbase_str_with_material);
+            if (otyp == STRANGE_OBJECT) {
+                otyp = name_to_otyp(dbase_str);
+            }
 
             /* prompt for more info (if using whatis to navigate the map) */
             yes_to_moreinfo = FALSE;
