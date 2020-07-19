@@ -3190,13 +3190,6 @@ const char *msg_override;
         g.nomovemsg = You_can_move_again;
     if (*g.nomovemsg) {
         pline("%s", g.nomovemsg);
-        /* follow "you survived that attempt on your life" with a message
-           about current form if it's not the default; primarily for
-           life-saving while turning into green slime but is also a reminder
-           if life-saved while poly'd and Unchanging (explore or wizard mode
-           declining to die since can't be both Unchanging and Lifesaved) */
-        if (Upolyd && !strncmpi(g.nomovemsg, "You survived that ", 18))
-            You("are %s.", an(mons[u.umonnum].mname)); /* (ignore Hallu) */
     }
     g.nomovemsg = 0;
     u.usleep = 0;
