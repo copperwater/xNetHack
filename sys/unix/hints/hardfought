@@ -39,6 +39,7 @@ CFLAGS+=-DDGAMELAUNCH
 CFLAGS+=-DLIVELOG_ENABLE
 CFLAGS+=-DDUMPLOG
 CFLAGS+=-DDUMPHTML
+CFLAGS+=-DSCORE_ON_BOTL
 
 # when building liblua.a, avoid warning that use of tmpnam() should be
 # replaced by mkstemp(); the lua code doesn't use nethack's config.h so
