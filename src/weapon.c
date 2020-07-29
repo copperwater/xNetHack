@@ -358,8 +358,7 @@ struct monst *mon;
     }
 
     /* Put weapon vs. monster type damage bonuses in below: */
-    if (Is_weapon || otmp->oclass == GEM_CLASS || otmp->oclass == BALL_CLASS
-        || otmp->oclass == CHAIN_CLASS) {
+    {
         int bonus = 0;
 
         if (otmp->blessed

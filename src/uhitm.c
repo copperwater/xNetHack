@@ -1196,8 +1196,8 @@ int dieroll;
                      * we need another check for that.
                      */
                     if (mon_hates_material(mon, obj->material)) {
+                        /* dmgval() already added damage, but track hated_obj */
                         hated_obj = obj;
-                        tmp += rnd(sear_damage(obj->material));
                     }
                 }
             }
