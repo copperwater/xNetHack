@@ -393,85 +393,93 @@ struct monst *mon;
     return  tmp;
 }
 
-/* check whether blessed and/or material damage applies for *non-weapon* hit;
-   return value is the amount of the extra damage */
+/* Find an object that magr is wearing (or even magr's body itself) that has a
+ * special damaging effect on mdef, and return the amount of bonus damage done.
+ * The most damaging source has precedence; each source that causes special
+ * damage makes its own roll for damage, and the highest roll will be applied.
+ */
 int
 special_dmgval(magr, mdef, armask, out_obj)
 struct monst *magr, *mdef;
-long armask; /* armor mask, multiple bits accepted for W_ARMC|W_ARM|W_ARMU
-              * or W_ARMG|W_RINGL|W_RINGR only */
+long armask; /* armor mask of all the slots that can be touching mdef */
 struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
 {
-    struct obj *obj;
-    struct permonst *ptr = mdef->data;
-    boolean left_ring = (armask & W_RINGL) ? TRUE : FALSE,
-            right_ring = (armask & W_RINGR) ? TRUE : FALSE;
+    boolean youattack = (magr == &g.youmonst);
+    const int magr_material = monmaterial(monsndx(magr->data));
     int bonus = 0;
+    int tmpbonus = 0;
+    boolean try_body = FALSE;
+    struct obj *gloves    = which_armor(magr, W_ARMG),
+               *helm      = which_armor(magr, W_ARMH),
+               *shield    = which_armor(magr, W_ARMS),
+               *boots     = which_armor(magr, W_ARMF),
+               *armor     = which_armor(magr, W_ARM),
+               *cloak     = which_armor(magr, W_ARMC),
+               *shirt     = which_armor(magr, W_ARMU),
+               *leftring  = (youattack ? uleft : which_armor(magr, W_RINGL)),
+               *rightring = (youattack ? uright : which_armor(magr, W_RINGR));
 
-    obj = 0;
-    if (out_obj)
+    if (out_obj) {
         *out_obj = 0;
-    if (armask & (W_ARMC | W_ARM | W_ARMU)) {
-        if ((armask & W_ARMC) != 0L
-            && (obj = which_armor(magr, W_ARMC)) != 0)
-            armask = W_ARMC;
-        else if ((armask & W_ARM) != 0L
-                 && (obj = which_armor(magr, W_ARM)) != 0)
-            armask = W_ARM;
-        else if ((armask & W_ARMU) != 0L
-                 && (obj = which_armor(magr, W_ARMU)) != 0)
-            armask = W_ARMU;
-        else
-            armask = 0L;
-    } else if (armask & (W_ARMG | W_RINGL | W_RINGR)) {
-        armask = ((obj = which_armor(magr, W_ARMG)) != 0) ?  W_ARMG : 0L;
-    } else {
-        obj = which_armor(magr, armask);
     }
 
-    if (obj) {
-        if (obj->blessed
-            && (is_undead(ptr) || is_demon(ptr) || is_vampshifter(mdef)))
-            bonus += rnd(4);
-        if (mon_hates_material(mdef, obj->material)) {
-            bonus += rnd(sear_damage(obj->material));
-            if (out_obj)
-                *out_obj = obj;
-        }
+    /* Simple exclusions where we ignore a certain type of armor because it is
+     * covered by some other equipment. */
+    if (gloves) {
+        leftring = rightring = NULL;
+    }
+    if (cloak) {
+        armor = shirt = NULL;
+    }
+    if (armor) {
+        shirt = NULL;
+    }
 
-    /* when no gloves we check for rings made of hated material (blessed rings
-     * ignored) */
-    } else if (magr == &g.youmonst) {
-        if (left_ring && uleft
-            && mon_hates_material(mdef, uleft->material)) {
-            bonus += rnd(sear_damage(uleft->material));
-            if (out_obj)
-                *out_obj = uleft;
-        }
-        if (right_ring && uright
-            && mon_hates_material(mdef, uright->material)) {
-            /* What if an enemy hates two kinds of materials and you're
-             * wearing one of each?
-             * The most appropriate flavor is that you're only hitting with
-             * one hand at a time, so if both would apply material damage,
-             * take one or the other hand randomly. */
-            if (*out_obj == uleft && rn2(2)) {
-                /* nothing in this function could have set bonus to 0 before
-                 * this except the left ring case above */
-                bonus = 0;
-                bonus += rnd(sear_damage(uright->material));
-                if (out_obj)
-                    *out_obj = uright;
-            }
-        }
-        /* only apply damage from current form's material if nothing else has
-         * applied damage */
-        if (bonus == 0) {
-            int umaterial = monmaterial(monsndx(g.youmonst.data));
-            if (mon_hates_material(mdef, umaterial)) {
-                bonus += rnd(sear_damage(umaterial));
-                if (out_obj)
-                    *out_obj = (struct obj *) &cg.zeroobj;
+    /* Cases where we want to count magr's body: the caller indicates a certain
+     * slot is making contact, and magr is not wearing anything in that slot, so
+     * their body must be making contact.
+     * Note: in the gloves case, rings don't prevent magr's body from making
+     * contact. */
+    if (((armask & W_ARMG) && !gloves)
+        || ((armask & W_ARMF) && !boots)
+        || ((armask & W_ARMH) && !helm)
+        || ((armask & (W_ARMC | W_ARM | W_ARMU))
+            && !cloak && !armor && !shirt)) {
+        try_body = TRUE;
+    }
+
+    if (try_body && mon_hates_material(mdef, magr_material)) {
+        bonus = sear_damage(magr_material);
+        if (out_obj)
+            *out_obj = (struct obj *) &cg.zeroobj;
+    }
+
+    /* The order of armor slots in this array doesn't really matter because we
+     * roll for everything that applies and take the highest damage. */
+    struct {
+        long mask;
+        struct obj* obj;
+    } array[9] = {
+        { W_ARMG, gloves },
+        { W_ARMH, helm   },
+        { W_ARMS, shield },
+        { W_ARMF, boots  },
+        { W_ARM,  armor  },
+        { W_ARMC, cloak  },
+        { W_ARMU, shirt  },
+        { W_RINGL, leftring },
+        { W_RINGR, rightring }
+    };
+
+    int i;
+    for (i = 0; i < 9; ++i) {
+        if (array[i].obj && (armask & array[i].mask)) {
+            tmpbonus = dmgval(array[i].obj, mdef);
+            if (tmpbonus > bonus) {
+                bonus = tmpbonus;
+                if (out_obj) {
+                    *out_obj = array[i].obj;
+                }
             }
         }
     }
