@@ -89,7 +89,7 @@ boolean clumsy;
         dmg += uarmf->spe;
     }
     if (specialdmg && hated_obj)
-        searmsg(&g.youmonst, mon, hated_obj);
+        searmsg(&g.youmonst, mon, hated_obj, TRUE);
     dmg += u.udaminc; /* add ring(s) of increase damage */
     if (dmg > 0)
         mon->mhp -= dmg;
@@ -202,7 +202,8 @@ xchar x, y;
                 continue;
 
             kickdieroll = rnd(20);
-            specialdmg = special_dmgval(&g.youmonst, mon, W_ARMF, NULL);
+            struct obj* hated_obj;
+            specialdmg = special_dmgval(&g.youmonst, mon, W_ARMF, &hated_obj);
             if (noncorporeal(mon->data) && !specialdmg) {
                 /* doesn't matter whether it would have hit or missed,
                    and shades have no passive counterattack */
@@ -211,6 +212,9 @@ xchar x, y;
             } else if (tmp > kickdieroll) {
                 You("kick %s.", mon_nam(mon));
                 sum = damageum(mon, uattk, specialdmg);
+                if (hated_obj) {
+                    searmsg(&g.youmonst, mon, hated_obj, FALSE);
+                }
                 (void) passive(mon, uarmf, (boolean) (sum > 0),
                                (sum != 2), AT_KICK, FALSE);
                 if (sum == 2)
@@ -537,6 +541,12 @@ xchar x, y;
                     killer_xname(g.kickedobj));
             instapetrify(g.killer.name);
         }
+    }
+
+    if (!uarmf && Hate_material(g.kickedobj->material)) {
+        searmsg(NULL, &g.youmonst, g.kickedobj, FALSE);
+        losehp(rnd(sear_damage(g.kickedobj->material)),
+               "kicking something disagreeable", KILLED_BY);
     }
 
     isgold = (g.kickedobj->oclass == COIN_CLASS);
@@ -1321,6 +1331,11 @@ dokick()
             feel_location(x, y); /* we know we hit it */
         exercise(A_STR, TRUE);
         pline("WHAMMM!!!");
+        if (door_is_iron(g.maploc) && Hate_material(IRON) && !uarmf) {
+            You("recoil from the door's iron!");
+            losehp(Maybe_Half_Phys(sear_damage(IRON)), "kicking an iron door",
+                   KILLED_BY);
+        }
         if (!predoortrapped(x, y, &g.youmonst, FOOT, D_BROKEN)
             && door_is_iron(g.maploc)) {
             pline("The door doesn't budge an inch.");

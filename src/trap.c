@@ -5949,6 +5949,10 @@ boolean nocorpse;
             dam = dmgval(obj, mon);
             if (dam < 1)
                 dam = 1;
+            if (mon_hates_material(mon, obj->material)) {
+                /* extra damage already applied by dmgval() */
+                searmsg(NULL, mon, obj, TRUE);
+            }
         }
         mon->mhp -= dam;
         if (DEADMONSTER(mon)) {

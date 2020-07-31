@@ -489,19 +489,23 @@ struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
 /* give a "silver <item> sears <target>" message (or similar for other
  * material); in addition to weapon hit, this is used for rings, boots for kick,
  * gloves for punch, or helm for headbutt.
- * This also handles the case where magr is made of a material that mdef hates.
  */
 void
-searmsg(magr, mdef, obj)
-struct monst *magr UNUSED;
+searmsg(magr, mdef, obj, minimal)
+struct monst *magr;
 struct monst *mdef;
-struct obj * obj; /* the offending item, or &cg.zeroobj if your body */
+const struct obj * obj; /* the offending item, or &cg.zeroobj if magr's body */
+boolean minimal;        /* print a shorter message leaving out obj details */
 {
+    boolean youattack = (magr == &g.youmonst);
+    boolean youdefend = (mdef == &g.youmonst);
+    boolean has_flesh = (!noncorporeal(mdef->data) && !amorphous(mdef->data));
+
     if (!obj) {
         impossible("searmsg: nothing searing?");
         return;
     }
-    if (!canspotmon(mdef)) {
+    if (!youdefend && !canspotmon(mdef)) {
         return;
     }
 
@@ -510,32 +514,83 @@ struct obj * obj; /* the offending item, or &cg.zeroobj if your body */
     int mat;
 
     if (obj == &cg.zeroobj) {
-        mat = monmaterial(monsndx(g.youmonst.data));
-        Strcpy(whose, "your ");
+        mat = monmaterial(monsndx(magr->data));
         Sprintf(onamebuf, "%s touch", materialnm[mat]);
+        if (youattack) {
+            Strcpy(whose, "your ");
+        }
+        else if (!magr) {
+            impossible("searmsg: non-weapon attack with no aggressor?");
+            return;
+        }
+        else {
+            Strcpy(whose, s_suffix(y_monnam(magr)));
+            Strcat(whose, " ");
+        }
     }
     else {
         mat = obj->material;
         const char* matname = materialnm[mat];
 
-        /* Make it explicit to the player that this effect is from the material.
-         * If the object name doesn't already contain the material name, add it
-         * (e.g. "engraved silver bell" shouldn't turn into "silver engraved
-         * silver bell") */
-        boolean alreadyin = (strstri(cxname(obj), matname) != NULL);
+        /* Why doesn't cxname receive a const struct obj? */
+        char* cxnameobj = cxname((struct obj *) obj);
+
+        /* Make it explicit to the player that this effect is from the material,
+         * by prepending the material, but only if the object's name doesn't
+         * already contain the material string somewhere.  (e.g. "sword" should
+         * turn into "iron sword", but "engraved silver bell" shouldn't turn
+         * into "silver engraved silver bell") */
+        boolean alreadyin = (strstri(cxnameobj, matname) != NULL);
         if (!alreadyin) {
-            Sprintf(onamebuf, "%s %s", matname, cxname(obj));
+            Sprintf(onamebuf, "%s %s", matname, cxnameobj);
         }
         else {
-            Strcpy(onamebuf, cxname(obj));
+            Strcpy(onamebuf, cxnameobj);
         }
-        shk_your(whose, obj);
+        shk_your(whose, (struct obj *) obj);
     }
 
+    if (minimal) {
+        /* instead of "foo's obj", it will be "the [touch of] <material>;
+         * whose becomes "the" in both cases */
+        Strcpy(whose, "the ");
+        if (mat == SILVER) { /* different formatting */
+            Strcpy(onamebuf, "silver");
+        }
+        else {
+            Sprintf(onamebuf, "touch of %s", materialnm[mat]);
+        }
+    }
+
+    /* "Extra-minimal" case where we don't know what is doing the searing.
+     * Note that this can assume it will be formatting some non-player entity
+     * because it only applies when the player isn't involved. */
+    if (!youattack && !youdefend && !canseemon(mdef) && minimal) {
+        if (mat == SILVER) {
+            char defender[BUFSZ];
+            if (has_flesh) {
+                Sprintf(defender, "%s flesh", s_suffix(Monnam(mdef)));
+            }
+            else {
+                Strcpy(defender, Monnam(mdef));
+            }
+            pline("%s is seared!", defender);
+        }
+        else {
+            pline("%s recoils!", Monnam(mdef));
+        }
+        return;
+    }
+
+    /* char* whom = youdefend ? "you" : mon_nam(mdef); */
     char* whom = mon_nam(mdef);
+    if (youdefend) {
+        Strcpy(whom, "you");
+    }
+
     if (mat == SILVER) { /* more dramatic effects than other materials */
         /* note: s_suffix returns a modifiable buffer */
-        if (!noncorporeal(mdef->data) && !amorphous(mdef->data))
+        if (has_flesh)
             whom = strcat(s_suffix(whom), " flesh");
 
         pline("%s%s %s %s!", upstart(whose), onamebuf,
@@ -543,7 +598,8 @@ struct obj * obj; /* the offending item, or &cg.zeroobj if your body */
     }
     else {
         whom = upstart(whom);
-        pline("%s flinches from %s%s!", whom, whose, onamebuf);
+        pline("%s recoil%s from %s%s!", whom, (youdefend ? "" : "s"),
+              whose, onamebuf);
     }
 }
 

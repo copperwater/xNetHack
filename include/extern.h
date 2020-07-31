@@ -1319,6 +1319,7 @@ E int FDECL(gazemu, (struct monst *, struct attack *));
 E void FDECL(mdamageu, (struct monst *, int));
 E int FDECL(could_seduce, (struct monst *, struct monst *, struct attack *));
 E int FDECL(doseduce, (struct monst *));
+E long FDECL(attack_contact_slots, (struct monst *, int));
 
 /* ### minion.c ### */
 
@@ -3045,7 +3046,8 @@ E int FDECL(hitval, (struct obj *, struct monst *));
 E int FDECL(dmgval, (struct obj *, struct monst *));
 E int FDECL(special_dmgval, (struct monst *, struct monst *, long,
                              struct obj **));
-E void FDECL(searmsg, (struct monst *, struct monst *, struct obj *));
+E void FDECL(searmsg, (struct monst *, struct monst *, const struct obj *,
+                       BOOLEAN_P));
 E struct obj *FDECL(select_rwep, (struct monst *));
 E boolean FDECL(monmightthrowwep, (struct obj *));
 E struct obj *FDECL(select_hwep, (struct monst *));

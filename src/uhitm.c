@@ -900,8 +900,8 @@ int dieroll;
                     hittxt = TRUE;
                 }
                 if (mon_hates_material(mon, obj->material)) {
+                    /* dmgval() already added bonus damage */
                     hated_obj = obj;
-                    tmp += rnd(sear_damage(obj->material));
                 }
                 if (artifact_light(obj) && obj->lamplit
                     && mon_hates_light(mon))
@@ -988,6 +988,10 @@ int dieroll;
                 case HEAVY_IRON_BALL: /* 1d25 */
                 case IRON_CHAIN:      /* 1d4+1 */
                     tmp = dmgval(obj, mon);
+                    if (mon_hates_material(mon, obj->material)) {
+                        /* dmgval() already added damage, but track hated_obj */
+                        hated_obj = obj;
+                    }
                     break;
                 case MIRROR:
                     if (breaktest(obj)) {
@@ -1349,7 +1353,7 @@ int dieroll;
     }
 
     if (hated_obj) {
-        searmsg(&g.youmonst, mon, hated_obj);
+        searmsg(&g.youmonst, mon, hated_obj, FALSE);
     }
     if (lightobj) {
         const char *fmt;
@@ -2455,32 +2459,18 @@ register struct monst *mon;
 {
     struct attack *mattk, alt_attk;
     struct obj *weapon, **originalweapon;
-    boolean altwep = FALSE, weapon_used = FALSE, odd_claw = TRUE,
-            stop_attacking = FALSE;
+    boolean altwep = FALSE, weapon_used = FALSE, stop_attacking = FALSE;
     int i, tmp, armorpenalty, sum[NATTK], nsum = 0, dhit = 0, attknum = 0;
-    int dieroll, multi_claw = 0;
+    int dieroll;
 
-    /* with just one touch/claw/weapon attack, both rings matter;
-       with more than one, alternate right and left when checking
-       whether silver ring causes successful hit */
     for (i = 0; i < NATTK; i++) {
         sum[i] = 0;
-        mattk = getmattk(&g.youmonst, mon, i, sum, &alt_attk);
-        if (mattk->aatyp == AT_WEAP
-            || mattk->aatyp == AT_CLAW || mattk->aatyp == AT_TUCH)
-            ++multi_claw;
-    }
-    multi_claw = (multi_claw > 1); /* switch from count to yes/no */
-
-    for (i = 0; i < NATTK; i++) {
-        /* sum[i] = 0; -- now done above */
         mattk = getmattk(&g.youmonst, mon, i, sum, &alt_attk);
         weapon = 0;
         switch (mattk->aatyp) {
         case AT_WEAP:
             /* if (!uwep) goto weaponless; */
  use_weapon:
-            odd_claw = !odd_claw; /* see case AT_CLAW,AT_TUCH below */
             /* if we've already hit with a two-handed weapon, we don't
                get to make another weapon attack (note:  monsters who
                use weapons do not have this restriction, but they also
@@ -2586,28 +2576,24 @@ register struct monst *mon;
                     break;
                 }
                 wakeup(mon, TRUE);
-                specialdmg = 0; /* blessed and/or silver bonus */
+                /* There used to be a bunch of code here to ensure that W_RINGL
+                 * and W_RINGR slots got chosen on alternating claw/touch
+                 * attacks. There's no such logic for monsters, and if you know
+                 * that the ring on one of your hands will be especially
+                 * effective, you'll probably keep hitting with that hand. So
+                 * just do the default and take whatever the most damaging piece
+                 * of gear is. */
+                specialdmg = special_dmgval(&g.youmonst, mon,
+                                            attack_contact_slots(&g.youmonst,
+                                                                 mattk->aatyp),
+                                            &hated_obj);
                 switch (mattk->aatyp) {
                 case AT_CLAW:
-                case AT_TUCH:
                     /* verb=="claws" may be overridden below */
-                    verb = (mattk->aatyp == AT_TUCH) ? "touch" : "claws";
-                    /* decide if silver-hater will be hit by silver ring(s);
-                       for 'multi_claw' where attacks alternate right/left,
-                       assume 'even' claw or touch attacks use right hand
-                       or paw, 'odd' ones use left for ring interaction;
-                       even vs odd is based on actual attacks rather
-                       than on index into mon->dat->mattk[] so that {bite,
-                       claw,claw} instead of {claw,claw,bite} doesn't
-                       make poly'd hero mysteriously become left-handed */
-                    odd_claw = !odd_claw;
-                    specialdmg = special_dmgval(&g.youmonst, mon,
-                                                W_ARMG
-                                                | ((odd_claw || !multi_claw)
-                                                   ? W_RINGL : 0L)
-                                                | ((!odd_claw || !multi_claw)
-                                                   ? W_RINGR : 0L),
-                                                &hated_obj);
+                    verb = "claws";
+                    break;
+                case AT_TUCH:
+                    verb = "touch";
                     break;
                 case AT_TENT:
                     /* assumes mind flayer's tentacles-on-head rather
@@ -2616,16 +2602,9 @@ register struct monst *mon;
                     break;
                 case AT_KICK:
                     verb = "kick";
-                    specialdmg = special_dmgval(&g.youmonst, mon, W_ARMF,
-                                                &hated_obj);
                     break;
                 case AT_BUTT:
                     verb = "head butt"; /* mbodypart(mon,HEAD)=="head" */
-                    /* hypothetical; if any form with a head-butt attack
-                       could wear a helmet, it would hit shades when
-                       wearing a blessed (or silver) one */
-                    specialdmg = special_dmgval(&g.youmonst, mon, W_ARMH,
-                                                &hated_obj);
                     break;
                 case AT_BITE:
                     verb = "bite";
@@ -2651,7 +2630,7 @@ register struct monst *mon;
                             verb = "hit"; /* not "claws" */
                         You("%s %s.", verb, mon_nam(mon));
                         if (hated_obj && flags.verbose)
-                            searmsg(&g.youmonst, mon, hated_obj);
+                            searmsg(&g.youmonst, mon, hated_obj, FALSE);
                     }
                     sum[i] = damageum(mon, mattk, specialdmg);
                 }
@@ -2684,11 +2663,9 @@ register struct monst *mon;
                already grabbed in a previous attack */
             dhit = 1;
             wakeup(mon, TRUE);
-            /* choking hug/throttling grab uses hands (gloves or rings);
-               normal hug uses outermost of cloak/suit/shirt */
             specialdmg = special_dmgval(&g.youmonst, mon,
-                                        byhand ? (W_ARMG | W_RINGL | W_RINGR)
-                                               : (W_ARMC | W_ARM | W_ARMU),
+                                        attack_contact_slots(&g.youmonst,
+                                                             AT_HUGS),
                                         &hated_obj);
             if (unconcerned) {
                 /* strangling something which can't be strangled */
@@ -2715,7 +2692,7 @@ register struct monst *mon;
                 if (specialdmg) {
                     You("%s %s%s", verb, mon_nam(mon), exclam(specialdmg));
                     if (hated_obj && flags.verbose)
-                        searmsg(&g.youmonst, mon, hated_obj);
+                        searmsg(&g.youmonst, mon, hated_obj, FALSE);
                     sum[i] = damageum(mon, mattk, specialdmg);
                 } else {
                     Your("%s passes harmlessly through %s.",
@@ -2730,7 +2707,7 @@ register struct monst *mon;
                       /* extra feedback for non-breather being choked */
                       unconcerned ? " but doesn't seem concerned" : "");
                 if (hated_obj && flags.verbose)
-                    searmsg(&g.youmonst, mon, hated_obj);
+                    searmsg(&g.youmonst, mon, hated_obj, FALSE);
                 sum[i] = damageum(mon, mattk, specialdmg);
             } else if (i >= 2 && sum[i - 1] && sum[i - 2]) {
                 /* in case we're hugging a new target while already
@@ -2741,7 +2718,7 @@ register struct monst *mon;
                 You("grab %s!", mon_nam(mon));
                 set_ustuck(mon);
                 if (hated_obj && flags.verbose)
-                    searmsg(&g.youmonst, mon, hated_obj);
+                    searmsg(&g.youmonst, mon, hated_obj, FALSE);
                 sum[i] = damageum(mon, mattk, specialdmg);
             }
             break; /* AT_HUGS */

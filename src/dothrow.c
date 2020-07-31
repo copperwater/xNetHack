@@ -659,10 +659,15 @@ int x, y;
             return FALSE;
         }
         if (levl[x][y].typ == IRONBARS) {
-            You("crash into some iron bars.  Ouch!");
+            You("crash into some iron bars.");
             dmg = rnd(2 + *range);
-            if (Hate_material(IRON))
+            if (Hate_material(IRON)) {
+                pline("The iron hurts to touch!");
                 dmg += sear_damage(IRON);
+            }
+            else {
+                pline("Ouch!");
+            }
             losehp(Maybe_Half_Phys(dmg), "crashing into iron bars",
                    KILLED_BY);
             wake_nearto(x,y, 20);
@@ -1125,6 +1130,11 @@ boolean hitsroof;
             g.thrownobj = 0;  /* now either gone or on floor */
             done(STONING);
             return obj ? TRUE : FALSE;
+        }
+        else if (Hate_material(obj->material)) {
+            /* dmgval() already added extra damage */
+            searmsg(&g.youmonst, &g.youmonst, obj, FALSE);
+            exercise(A_CON, FALSE);
         }
         hitfloor(obj, TRUE);
         g.thrownobj = 0;

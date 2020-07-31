@@ -309,6 +309,12 @@ int material;
     /* extra case: shapeshifted vampires still hate silver */
     if (material == SILVER && is_vampshifter(mon))
         return TRUE;
+
+    /* extra extra case: lycanthrope player (monster lycanthropes all fall under
+     * hates_material, and non-lycanthropes can't currently be infected) */
+    if (mon == &g.youmonst && material == SILVER && u.ulycn >= LOW_PM)
+        return TRUE;
+
     return FALSE;
 }
 
@@ -331,7 +337,7 @@ int material;
     }
     else if (material == IRON) {
         /* cold iron: fairy/fae creatures hate it */
-        return (ptr->mlet == S_ELF || ptr->mlet == S_NYMPH
+        return (ptr->mlet == S_ELF || is_elf(ptr) || ptr->mlet == S_NYMPH
                 || ptr->mlet == S_IMP);
     }
     else if (material == COPPER) {
