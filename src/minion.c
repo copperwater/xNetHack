@@ -297,7 +297,8 @@ register struct monst *mtmp;
     if (is_dprince(mtmp->data)) {
         mtmp->minvis = mtmp->perminvis = 0;
         if ((mtmp->mstrategy & STRAT_APPEARMSG) && !boss_entrance(mtmp)) {
-            impossible("demon_talk: still can't see monster?");
+            /* you still can't see the demon; this can happen if you are blind
+             * and non-telepathic. */
             mtmp->mstrategy &= ~STRAT_APPEARMSG;
         }
         newsym(mtmp->mx, mtmp->my);
