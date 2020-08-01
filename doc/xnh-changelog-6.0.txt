@@ -96,6 +96,9 @@ The "Fake Delphi" themed room now has one fountain in its center.
 If you ride a steed into a polymorph trap, unchanging will not protect the
   steed (but magic resistance still will).
 Canceled or beheaded zombies or trolls don't rise from the dead.
+You can opt to cast the non-advanced version of fireball or cone of cold if you
+  are Skilled or above in attack spells. If you do cast the non-advanced
+  version, the energy cost is reduced by up to half.
 
 
 It contains the following non-gameplay interface changes:

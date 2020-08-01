@@ -1034,7 +1034,7 @@ boolean atme;
      */
     case SPE_FIREBALL:
     case SPE_CONE_OF_COLD:
-        if (role_skill >= P_SKILLED) {
+        if (role_skill >= P_SKILLED && yn("Cast advanced spell?") == 'y') {
             if (throwspell()) {
                 cc.x = u.dx;
                 cc.y = u.dy;
@@ -1066,7 +1066,11 @@ boolean atme;
                 }
             }
             break;
-        } /* else */
+        } else if (role_skill >= P_SKILLED) {
+            /* player said not to cast advanced spell; return up to half of the
+             * magical energy */
+            u.uen += rnd(energy / 2);
+        }
         /*FALLTHRU*/
 
     /* these spells are all duplicates of wand effects */
