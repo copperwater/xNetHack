@@ -1888,7 +1888,7 @@ struct monst *magr, *mdef;
        NOTE: But don't let still-peaceful guardians fight hostile guardians if
        the hero manages to annoy one of them! */
     if (ma->msound==MS_GUARDIAN && mdef->mpeaceful==FALSE
-        && !(md->msound == MS_GUARDIAN))
+        && !(md->msound == MS_GUARDIAN || md->msound == MS_LEADER))
         return ALLOW_M|ALLOW_TM;
 
     /* elves vs. orcs */
