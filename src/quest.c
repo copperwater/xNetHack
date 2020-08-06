@@ -131,8 +131,8 @@ struct obj *obj;
 boolean
 ok_to_quest()
 {
-    return (boolean) ((Qstat(got_quest) || Qstat(got_thanks))
-                      && is_pure(FALSE) > 0);
+    return (((Qstat(got_quest) || Qstat(got_thanks)) && is_pure(FALSE) > 0)
+            || Qstat(leader_is_dead));
 }
 
 static boolean
@@ -281,8 +281,11 @@ chat_with_leader()
             qt_pager("leader_first");
             Qstat(met_leader) = TRUE;
             Qstat(not_ready) = 0;
-        } else
+        } else if (!Qstat(pissed_off)) {
             qt_pager("leader_next");
+        } else {
+            qt_pager("leader_malediction");
+        }
 
         /* the quest leader might have passed through the portal into
            the regular dungeon; none of the remaining make sense there */
@@ -294,14 +297,19 @@ chat_with_leader()
             exercise(A_WIS, TRUE);
             expulsion(FALSE);
         } else if (is_pure(TRUE) < 0) {
-            qt_pager("banished");
-            expulsion(TRUE);
+            /* Don't keep lecturing once the player's been kicked out once. */
+            if (!Qstat(pissed_off)) {
+                qt_pager("banished");
+                Qstat(pissed_off) = TRUE;
+                expulsion(FALSE);
+            }
         } else if (is_pure(TRUE) == 0) {
-            qt_pager("badalign");
             if (Qstat(not_ready) == MAX_QUEST_TRIES) {
                 qt_pager("leader_last");
-                expulsion(TRUE);
+                Qstat(pissed_off) = TRUE;
+                expulsion(FALSE);
             } else {
+                qt_pager("badalign");
                 Qstat(not_ready)++;
                 exercise(A_WIS, TRUE);
                 expulsion(FALSE);
@@ -320,6 +328,11 @@ struct monst *mtmp;
 {
     /* maybe you attacked leader? */
     if (!mtmp->mpeaceful) {
+        if (!Qstat(pissed_off)) {
+            /* Alternate way of showing the leader_last message, but only once
+             * per game. */
+            qt_pager("leader_last");
+        }
         Qstat(pissed_off) = TRUE;
         mtmp->mstrategy &= ~STRAT_WAITMASK; /* end the inaction */
     }
@@ -328,11 +341,15 @@ struct monst *mtmp;
     if (!on_level(&u.uz, &qstart_level))
         return;
 
-    if (Qstat(pissed_off)) {
-        qt_pager("leader_last");
-        expulsion(TRUE);
-    } else
+    if (!Qstat(pissed_off)) {
         chat_with_leader();
+    }
+
+    /* leader might have been angered during the chat */
+    if (Qstat(pissed_off)) {
+        mtmp->mstrategy &= ~STRAT_WAITMASK;
+        setmangry(mtmp, FALSE); /* to anger guardians as well */
+    }
 }
 
 static void

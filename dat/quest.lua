@@ -85,6 +85,10 @@ resides.
 
 Go now!  You are banished from this place.]],
       },
+      leader_malediction = {
+         "\"Dead or alive, you shall never abide here again!\"",
+         "\"Accept your exile or die!\""
+      },
       legacy = {
          synopsis = "[%dC has chosen you to recover the Amulet of Yendor for %dI.]",
          output = "menu",

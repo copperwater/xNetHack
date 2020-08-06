@@ -470,6 +470,11 @@ nh_timeout()
     if (flags.friday13)
         baseluck -= 1;
 
+    /* letting your quest leader die brings bad luck */
+    if (g.quest_status.leader_is_dead) {
+        baseluck = -4;
+    }
+
     if (u.uluck != baseluck
         && g.moves % ((u.uhave.amulet || u.ugangr) ? 300 : 600) == 0) {
         /* Cursed luckstones stop bad luck from timing out; blessed luckstones

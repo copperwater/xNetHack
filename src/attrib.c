@@ -355,6 +355,11 @@ boolean parameter; /* So I can't think up of a good name.  So sue me. --KAA */
     register struct obj *otmp;
     register long bonchance = 0;
 
+    /* Your quest leader dying casts a pall over your fortunes... */
+    if (g.quest_status.leader_is_dead) {
+        return -1;
+    }
+
     for (otmp = g.invent; otmp; otmp = otmp->nobj)
         if (confers_luck(otmp)) {
             if (otmp->cursed)

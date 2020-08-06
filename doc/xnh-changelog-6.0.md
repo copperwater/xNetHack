@@ -101,6 +101,20 @@ changes:
 - You can opt to cast the non-advanced version of fireball or cone of cold if
   you are Skilled or above in attack spells. If you do cast the non-advanced
   version, the energy cost is reduced by up to half.
+- You can no longer be permanently expelled from the quest. Doing the things
+  that got you permanently expelled still expel you, but temporarily, and the
+  leader will get mad if you return.
+- You can enter the quest if your quest leader is dead.
+- When your quest leader is dead, your Luck will time out to -4 (regardless of
+  Friday the 13th or a full moon), good luck always times out for you, and bad
+  luck never times out for you, regardless of any luck items you are carrying.
+  Luckstones continue to be able to provide +3 or -3 luck.
+- Directly killing your quest leader sets your Luck to its minimum and
+  increments god anger by 7 in addition to its huge alignment penalty.
+- You only gain an alignment bonus for killing your quest nemesis if your quest
+  leader is still alive.
+- Directly killing a quest guardian decreases your Luck by 4 and increments god
+  anger by 1 in addition to its sizeable alignment penalty.
 
 ### Interface changes
 
