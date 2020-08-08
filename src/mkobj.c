@@ -22,6 +22,7 @@ static void FDECL(check_glob, (struct obj *, const char *));
 static void FDECL(sanity_check_worn, (struct obj *));
 static void FDECL(init_thiefstone, (struct obj *));
 static const struct icp* FDECL(material_list, (struct obj *));
+static boolean FDECL(invalid_obj_material, (struct obj *, int));
 
 struct icp {
     int iprob;   /* probability of an item type */
@@ -3286,10 +3287,9 @@ static const struct icp cloth_materials[] = {
 
 /* for objects which are normally leather */
 static const struct icp leather_materials[] = {
-    {75, LEATHER},
+    {76, LEATHER},
     {17, CLOTH},
     { 7, PLASTIC},
-    { 1, PAPER}
 };
 
 /* for objects of dwarvish make */
@@ -3304,11 +3304,11 @@ static const struct icp dwarvish_materials[] = {
 
 /* for objects of orcish make - no valuables */
 static const struct icp crude_materials[] = {
-    {80, IRON}, /* default to base type, iron or metal */
+    {60, 0}, /* use base */
+    {20, IRON},
     { 8, BONE},
-    { 5, PLASTIC},
-    { 5, WOOD},
-    { 2, GLASS}
+    { 7, WOOD},
+    { 5, MINERAL}
 };
 
 /* for armor-y objects of elven make - no iron!
@@ -3409,6 +3409,13 @@ struct obj* obj;
         case WORM_TOOTH:
         case CRYSKNIFE:
         case ELVEN_BOOTS:
+        case LEATHER_DRUM:
+        case DRUM_OF_EARTHQUAKE:
+        case LAND_MINE:
+        case BEARTRAP:
+        case TOWEL:
+        case AMULET_OF_YENDOR:
+        case FAKE_AMULET_OF_YENDOR:
             return NULL;
         /* Any other cases for specific object types go here. */
         case SHIELD_OF_REFLECTION:
@@ -3421,18 +3428,12 @@ struct obj* obj;
             return bow_materials;
         case ELVEN_HELM:
             return elvenhelm_materials;
-        case CHEST:
-        case LARGE_BOX:
-            return wood_materials;
-        case SKELETON_KEY:
-        case LOCK_PICK:
-        case TIN_OPENER:
-            return metal_materials;
         case BELL:
         case BUGLE:
         case LANTERN:
         case OIL_LAMP:
         case MAGIC_LAMP:
+        case PEA_WHISTLE:
         case MAGIC_WHISTLE:
         case FLUTE:
         case MAGIC_FLUTE:
@@ -3463,13 +3464,12 @@ struct obj* obj;
     else if (is_orcish_obj(obj) && default_material != CLOTH) {
         return crude_materials;
     }
-    else if (obj->oclass == AMULET_CLASS && otyp != AMULET_OF_YENDOR
-             && otyp != FAKE_AMULET_OF_YENDOR) {
+    else if (obj->oclass == AMULET_CLASS) {
         /* could use metal_materials too */
         return shiny_materials;
     }
-    else if (obj->oclass == WEAPON_CLASS || is_weptool(obj)
-             || obj->oclass == ARMOR_CLASS) {
+    else if (obj->oclass == WEAPON_CLASS || obj->oclass == ARMOR_CLASS
+             || obj->oclass == TOOL_CLASS) {
         if (default_material == IRON || default_material == METAL) {
             return metal_materials;
         }
@@ -3492,7 +3492,10 @@ init_obj_material(obj)
 struct obj* obj;
 {
     const struct icp* materials = material_list(obj);
-    unsigned short otyp = obj->otyp;
+
+    /* always set the material to its base, this is the default for objects
+     * which do not have a list */
+    set_material(obj, objects[obj->otyp].oc_material);
 
     if (materials) {
         int i = rnd(100);
@@ -3502,22 +3505,42 @@ struct obj* obj;
             i -= materials->iprob;
             materials++;
         }
-        if (materials->iclass)
+        /* Only set the new material if:
+         * 1) it is not marked as invalid for this specific object
+         * 2) iclass is non-zero (a zero indicates base material should be used)
+         */
+        if (!invalid_obj_material(obj, materials->iclass)
+            && materials->iclass != 0) {
             set_material(obj, materials->iclass);
-        else
-            /* can use a 0 in the list to default to the base material */
-            set_material(obj, objects[obj->otyp].oc_material);
+        }
     }
-    else {
-        /* default case for other items: always use base material... */
-        set_material(obj, objects[obj->otyp].oc_material);
+}
+
+/* Return TRUE iff an object-material combination is specifically *invalid*,
+ * usually a bad or illogical material combination that is OK according to the
+ * material lists, but shouldn't exist in practice, such as a glass digging
+ * tool. This avoids having to create new lists for those specific items which
+ * are basically the same as the regular list but excluding one or two
+ * materials.
+ * This should be treated as subsidiary to valid_obj_material. */
+static boolean
+invalid_obj_material(obj, mat)
+struct obj* obj;
+int mat;
+{
+    int oclass = obj->oclass;
+
+    /* flimsy/brittle digging tools... */
+    if (is_pick(obj) && (mat == PLASTIC || mat == GLASS)) {
+        return TRUE;
     }
 
-    /* Do any post-fixups here for bad or illogical material combinations */
-    if ((otyp == PICK_AXE || otyp == DWARVISH_MATTOCK) &&
-        (obj->material == PLASTIC || obj->material == GLASS)) {
-        set_material(obj, objects[obj->otyp].oc_material);
+    /* paper weapons and armor... */
+    if ((oclass == WEAPON_CLASS || oclass == ARMOR_CLASS) && mat == PAPER) {
+        return TRUE;
     }
+
+    return FALSE;
 }
 
 /* Return TRUE if mat is a valid material for a given object of obj's type
@@ -3538,6 +3561,9 @@ int mat;
         return TRUE;
     }
     else {
+        if (invalid_obj_material(obj, mat)) {
+            return FALSE;
+        }
         const struct icp* materials = material_list(obj);
 
         if (materials) {

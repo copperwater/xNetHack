@@ -118,6 +118,13 @@ changes:
 - Monsters will ignore Elbereth and scare monster scrolls if you are generating
   conflict.
 - A cursed amulet of life saving only works 50% of the time.
+- Leather items can no longer generate as paper.
+- Cloth weapon and armor items and towels can no longer generate as paper.
+- More tools are made eligible for material randomization; in particular, bags
+  can now be leather, plastic, or paper. Leashes, saddles, and blindfolds can
+  also now get different materials.
+- Orcish items can no longer generate as plastic or glass, but can now generate
+  as stone.
 
 ### Interface changes
 
@@ -163,3 +170,6 @@ changes:
   xhity-compatible.
 - polymon() now takes a second argument of a bitmask of flags, rather than a
   boolean, for finer-grained control of which types of messages it will print.
+- New function invalid_obj_material(), used only by other object material
+  functions to check for a specific otyp-to-material invalidity.
+  valid_obj_material remains the main function accessible outside mkobj.c.
