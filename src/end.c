@@ -1256,20 +1256,30 @@ int how;
         pline("But wait...");
         makeknown(AMULET_OF_LIFE_SAVING);
         Your("medallion %s!", !Blind ? "begins to glow" : "feels warm");
-        if (how == CHOKING)
-            You("vomit ...");
-        You_feel("much better!");
-        pline_The("medallion crumbles to dust!");
-        if (uamul)
+        /* It's cursed? Well, that's just too bad. */
+        if (uamul->cursed && !rn2(2)) {
+            pline("But... the chain on your medallion breaks and it falls to the %s!",
+                  surface(u.ux, u.uy));
+            You_hear(Hallucination ? "someone playing Yakety Sax!"
+                                   : "the sound of a distant trombone...");
             useup(uamul);
+        }
+        else {
+            if (how == CHOKING)
+                You("vomit ...");
+            You_feel("much better!");
+            pline_The("medallion crumbles to dust!");
+            if (uamul)
+                useup(uamul);
 
-        (void) adjattrib(A_CON, -1, TRUE);
-        savelife(how);
-        if (how == GENOCIDED) {
-            pline("Unfortunately you are still genocided...");
-        } else {
-            livelog_write_string(LL_LIFESAVE, "averted death");
-            survive = TRUE;
+            (void) adjattrib(A_CON, -1, TRUE);
+            savelife(how);
+            if (how == GENOCIDED) {
+                pline("Unfortunately you are still genocided...");
+            } else {
+                livelog_write_string(LL_LIFESAVE, "averted death");
+                survive = TRUE;
+            }
         }
     }
     /* maybe give the player a second chance if they were killed by the

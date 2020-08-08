@@ -117,6 +117,7 @@ changes:
   anger by 1 in addition to its sizeable alignment penalty.
 - Monsters will ignore Elbereth and scare monster scrolls if you are generating
   conflict.
+- A cursed amulet of life saving only works 50% of the time.
 
 ### Interface changes
 
