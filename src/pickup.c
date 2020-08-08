@@ -260,7 +260,8 @@ boolean remotely;
         || !touch_petrifies(&mons[obj->corpsenm]) || Stone_resistance)
         return FALSE;
 
-    if (poly_when_stoned(g.youmonst.data) && polymon(PM_STONE_GOLEM, TRUE)) {
+    if (poly_when_stoned(g.youmonst.data)
+        && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS)) {
         display_nhwindow(WIN_MESSAGE, FALSE); /* --More-- */
         return FALSE;
     }

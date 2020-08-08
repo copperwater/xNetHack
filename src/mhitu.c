@@ -1355,7 +1355,7 @@ register struct attack *mattk;
  do_stone:
                     if (!Stoned && !Stone_resistance
                         && !(poly_when_stoned(g.youmonst.data)
-                             && polymon(PM_STONE_GOLEM, TRUE))) {
+                             && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
                         int kformat = KILLED_BY_AN;
                         const char *kname = mtmp->data->mname;
 
@@ -2372,7 +2372,8 @@ struct attack *mattk;
             && !Stone_resistance) {
             You("meet %s gaze.", s_suffix(mon_nam(mtmp)));
             stop_occupation();
-            if (poly_when_stoned(g.youmonst.data) && polymon(PM_STONE_GOLEM, TRUE))
+            if (poly_when_stoned(g.youmonst.data)
+                && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))
                 break;
             You("turn to stone...");
             g.killer.format = KILLED_BY;

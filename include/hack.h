@@ -513,6 +513,15 @@ enum bodypart_types {
 #define TELEDS_ALLOW_DRAG 0x1
 #define TELEDS_TELEPORT   0x2
 
+/* Flags to control polymon() message printing */
+#define POLYMON_NO_MSGS       0x00
+#define POLYMON_TRANSFORM_MSG 0x01 /* "You become a [monster]!" etc. */
+#define POLYMON_STATUS_MSG    0x02 /* "You no longer feel sick." etc. */
+#define POLYMON_GEAR_MSG      0x04 /* "Your cloak tears apart!" etc. */
+#define POLYMON_INFO_MSG      0x08 /* "Use #monster to do..." */
+#define POLYMON_ENCUMBER_MSG  0x10 /* whether to call encumber_msg() */
+#define POLYMON_ALL_MSGS      0x1F
+
 /*
  * option setting restrictions
  */

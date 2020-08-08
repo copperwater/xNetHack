@@ -692,7 +692,7 @@ newgame()
             destroy_nhwindow(wwin);
 #undef warn
         }
-        polymon(flags.polyinit_mnum, FALSE);
+        polymon(flags.polyinit_mnum, POLYMON_NO_MSGS);
         HUnchanging |= FROMOUTSIDE;
     }
 

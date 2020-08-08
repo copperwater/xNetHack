@@ -161,3 +161,5 @@ changes:
   will come in contact with a monster being attacked.
 - searmsg(), special_dmgval(), and mon_hates_material() are all
   xhity-compatible.
+- polymon() now takes a second argument of a bitmask of flags, rather than a
+  boolean, for finer-grained control of which types of messages it will print.

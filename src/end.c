@@ -439,7 +439,7 @@ int how;
         if (mon_nm != PM_GREEN_SLIME) {
             /* slimed_to_death() already polyed us into green slime, we don't
              * want to call it again as that will trigger newman() */
-            polymon(mon_nm, TRUE);
+            polymon(mon_nm, POLYMON_ALL_MSGS);
         }
         else {
             /* but... at the same time, need to undo done()'s setting of mh to 0

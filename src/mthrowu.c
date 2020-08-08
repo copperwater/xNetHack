@@ -650,7 +650,7 @@ struct obj *obj;         /* missile (or stack providing it) */
             if (hitu && singleobj->otyp == EGG) {
                 if (!Stoned && !Stone_resistance
                     && !(poly_when_stoned(g.youmonst.data)
-                         && polymon(PM_STONE_GOLEM, TRUE))) {
+                         && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
                     make_stoned(5L, (char *) 0, KILLED_BY, "");
                 }
             }

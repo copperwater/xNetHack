@@ -2929,7 +2929,7 @@ struct obj *obj;
                         && touch_petrifies(&mons[otmp->corpsenm]) && !uarmg
                         && !Stone_resistance
                         && !(poly_when_stoned(g.youmonst.data)
-                             && polymon(PM_STONE_GOLEM, TRUE))) {
+                             && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
                         char kbuf[BUFSZ];
 
                         Sprintf(kbuf, "%s corpse",
