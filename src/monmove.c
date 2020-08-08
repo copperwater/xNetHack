@@ -181,6 +181,10 @@ struct monst *mtmp;
         && (mtmp->data->mlet == S_VAMPIRE || is_vampshifter(mtmp)))
         return TRUE;
 
+    /* Conflicted monsters ignore scary things on the floor. */
+    if (Conflict)
+        return FALSE;
+
     /* the scare monster scroll doesn't have any of the below
      * restrictions, being its own source of power */
     if (sobj_at(SCR_SCARE_MONSTER, x, y))

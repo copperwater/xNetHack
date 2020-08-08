@@ -115,6 +115,8 @@ changes:
   leader is still alive.
 - Directly killing a quest guardian decreases your Luck by 4 and increments god
   anger by 1 in addition to its sizeable alignment penalty.
+- Monsters will ignore Elbereth and scare monster scrolls if you are generating
+  conflict.
 
 ### Interface changes
 
