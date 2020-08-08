@@ -410,7 +410,9 @@ struct kinfo *kptr;
     save_mvflags = g.mvitals[PM_GREEN_SLIME].mvflags;
     g.mvitals[PM_GREEN_SLIME].mvflags = save_mvflags & ~G_GENOD;
     /* become a green slime; also resets youmonst.m_ap_type+.mappearance */
-    (void) polymon(PM_GREEN_SLIME, FALSE);
+    /* suppress the transformation message to avoid "You have become a green
+     * slime.  You turn into a green slime!" */
+    (void) polymon(PM_GREEN_SLIME, (POLYMON_ALL_MSGS & ~POLYMON_TRANSFORM_MSG));
     g.mvitals[PM_GREEN_SLIME].mvflags = save_mvflags;
     done_timeout(TURNED_SLIME, SLIMED);
     return;
