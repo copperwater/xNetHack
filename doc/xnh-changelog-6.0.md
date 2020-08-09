@@ -176,3 +176,6 @@ changes:
 - New function invalid_obj_material(), used only by other object material
   functions to check for a specific otyp-to-material invalidity.
   valid_obj_material remains the main function accessible outside mkobj.c.
+- New macro livelog_mon_nam(), which is a wrapper around x_monnam()
+  specifically suppressing hallucination so that livelogs don't print a
+  hallucinatory monster.

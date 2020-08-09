@@ -29,6 +29,13 @@ static void FDECL(deal_with_overcrowding, (struct monst *));
 #define LEVEL_SPECIFIC_NOCORPSE(mdat) \
      (g.level.flags.graveyard && is_undead(mdat) && rn2(3))
 
+/* A specific combination of x_monnam flags for livelogging. The livelog
+ * shouldn't show that you killed a hallucinatory monster and not what it
+ * actually is. */
+#define livelog_mon_nam(mtmp) \
+    x_monnam(mtmp, ARTICLE_THE, (char *) 0,                 \
+             (SUPPRESS_IT | SUPPRESS_HALLUCINATION), FALSE)
+
 #if 0
 /* part of the original warning code which was replaced in 3.3.1 */
 const char *warnings[] = {
@@ -2517,9 +2524,7 @@ register struct monst *mtmp;
         }
         livelog_printf(LL_UMONST, "%s %s%s%s",
                        nonliving(mtmp->data) ? "destroyed" : "killed",
-                       x_monnam(mtmp, ARTICLE_THE, (char *) 0,
-                                SUPPRESS_IT | SUPPRESS_HALLUCINATION, FALSE),
-                       wherebuf, buf);
+                       livelog_mon_nam(mtmp), wherebuf, buf);
     }
 
     if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
@@ -3010,7 +3015,7 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
 
     if (has_ebones(mtmp)) {
         livelog_printf(LL_UMONST, "destroyed %s, the former %s",
-                       noit_mon_nam(mtmp),
+                       livelog_mon_nam(mtmp),
                        rank_of(EBONES(mtmp)->deathlevel,
                                roles[EBONES(mtmp)->role].malenum,
                                EBONES(mtmp)->female));
