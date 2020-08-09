@@ -66,39 +66,37 @@ des.object({ id = "luckstone", coord = {57,08}, buc="blessed", name = "The Heart
 -- Thoth Amon's attendants
 local towncenter = selection.floodfill(57,08)
 for i=1,3 do
-  des.monster({ id = "ogre king", coord = { towncenter:rndcoord(1) } })
+  des.monster({ id = "ogre king", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
 end
 for i=1,2 do
-  des.monster({ id = "orc-captain", coord = { towncenter:rndcoord(1) } })
-  des.monster({ id = "Olog-hai", coord = { towncenter:rndcoord(1) } })
+  des.monster({ id = "orc-captain", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
+  des.monster({ id = "Olog-hai", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
 end
-des.monster({ id = "kobold lord", coord = { towncenter:rndcoord(1) } })
+des.monster({ id = "kobold lord", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
 
 -- Wish there were some higher-level rampaging-type monsters that are also spellcasters...
-des.monster({ id = "orc shaman", coord = {57,05}, asleep = 1 }) 
-des.monster({ id = "orc shaman", coord = {53,07}, asleep = 1 }) 
-des.monster({ id = "orc shaman", coord = {61,07}, asleep = 1 }) 
-des.monster({ id = "orc shaman", coord = {54,10}, asleep = 1 }) 
-des.monster({ id = "orc shaman", coord = {60,10}, asleep = 1 }) 
+des.monster({ id = "orc shaman", coord = {57,05}, asleep = 1, peaceful = 0 })
+des.monster({ id = "orc shaman", coord = {53,07}, asleep = 1, peaceful = 0 })
+des.monster({ id = "orc shaman", coord = {61,07}, asleep = 1, peaceful = 0 })
+des.monster({ id = "orc shaman", coord = {54,10}, asleep = 1, peaceful = 0 })
+des.monster({ id = "orc shaman", coord = {60,10}, asleep = 1, peaceful = 0 })
 
 -- Thoth Amon's horde
--- For some reason, filtering with $outsidetown makes it include all of
--- $outsidetown, so this doesn't work. Bleah.
 local outsidetown = selection.floodfill(01,01)
 local hordestart = selection.fillrect(31,00,41,19) & outsidetown
 for i=1,8 do
-  des.monster({ id = "ogre", coord = { hordestart:rndcoord(1) } })
-  des.monster({ id = "rock troll", coord = { hordestart:rndcoord(1) } })
+  des.monster({ id = "ogre", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
+  des.monster({ id = "rock troll", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
 end
 for i=1,6 do
-  des.monster({ class = "O", coord = { hordestart:rndcoord(1) } })
-  des.monster({ class = "T", coord = { hordestart:rndcoord(1) } })
+  des.monster({ class = "O", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
+  des.monster({ class = "T", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
 end
 for i=1,4 do
-  des.monster({ class = "o", coord = { hordestart:rndcoord(1) } })
+  des.monster({ class = "o", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
 end
 for i=1,3 do
-  des.monster({ class = "k", coord = { hordestart:rndcoord(1) } })
+  des.monster({ class = "k", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
 end
 
 -- Ominous candles on the ground to see their approach

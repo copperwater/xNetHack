@@ -48,10 +48,10 @@ end
 
 -- Monsters
 for i=1,2 + d(3) do
-  des.monster("E")
+  des.monster({ class="E", peaceful=0 })
 end
 for i=1,3 do
-  des.monster("xorn")
+  des.monster({ class="xorn", peaceful=0 })
 end
 
 -- Objects

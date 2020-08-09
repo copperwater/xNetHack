@@ -45,14 +45,14 @@ for i=1,4 do
   des.trap()
 end
 for i=1,7 do
-  des.monster("ogre")
+  des.monster({ id="ogre", peaceful=0 })
 end
 for i=1,7 do
-  des.monster("rock troll")
+  des.monster({ id="rock troll", peaceful=0 })
 end
-des.monster({ class="O" })
-des.monster({ class="T" })
-des.monster({ class="o" })
+des.monster({ class="O", peaceful=0 })
+des.monster({ class="T", peaceful=0 })
+des.monster({ class="o", peaceful=0 })
 
 -- wallify the rock promontories
 -- we don't want to wallify the stone left and right map edges, so need to limit the range

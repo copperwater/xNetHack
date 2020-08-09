@@ -53,7 +53,7 @@ des.room({ type = "ordinary",
            contents = function()
               des.object()
               des.trap()
-              des.monster("earth elemental")
+              des.monster({ id="earth elemental", peaceful=0 })
            end
 })
 
