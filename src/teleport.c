@@ -510,6 +510,9 @@ struct obj *scroll;
             pline("A mysterious force prevents you from teleporting!");
             return TRUE;
         }
+        else {
+            pline("Overriding non-teleport flag.");
+        }
     }
 
     /* don't show trap if "Sorry..." */
