@@ -125,6 +125,7 @@ changes:
   also now get different materials.
 - Orcish items can no longer generate as plastic or glass, but can now generate
   as stone.
+- Nazgul are ungenocideable.
 
 ### Interface changes
 
