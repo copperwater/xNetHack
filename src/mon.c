@@ -2999,9 +2999,12 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
             You_hear("the rumble of distant thunder...");
         else
             You_hear("the studio audience applaud!");
-        if (!unique_corpstat(mdat) && has_mname(mtmp)) {
-            livelog_printf(LL_KILLEDPET, "murdered %s, %s faithful %s",
-                           MNAME(mtmp), uhis(), mdat->mname);
+        if (!unique_corpstat(mdat)) {
+            boolean mname = has_mname(mtmp);
+            livelog_printf(LL_KILLEDPET, "murdered %s%s%s faithful %s",
+                           mname ? MNAME(mtmp) : "",
+                           mname ? ", " : "",
+                           uhis(), mdat->mname);
         }
     } else if (mtmp->mpeaceful)
         adjalign(-5);
