@@ -5,7 +5,7 @@
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel", "hardfloor", "outdoors")
+des.level_flags("mazelevel", "hardfloor", "outdoors", "noteleport")
 --         1         2         3         4         5         6         7 
 --123456789012345678901234567890123456789012345678901234567890123456789012345
 des.map([[
@@ -34,6 +34,10 @@ TTT.B.}.       }}......}}       ..}......T.             ................
 des.region(selection.area(00,00,75,18), "lit")
 -- darken the fortress
 des.region(selection.area(62,03,72,11), "unlit")
+
+-- Constrain arrival location by levelport
+des.teleport_region({ region={00,00,06,04}, exclude_islev=1, dir="down" })
+des.teleport_region({ region={62,03,72,11}, exclude_islev=1, dir="up" })
 
 -- Stairs
 des.stair("up", 00,00)
