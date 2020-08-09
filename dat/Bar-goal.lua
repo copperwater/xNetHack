@@ -33,7 +33,13 @@ des.map([[
 des.region(selection.area(00,00,75,19), "unlit")
 
 -- Don't levelport or fall into the interesting part of the level
-des.teleport_region({ region = {38,00,75,19} })
+des.teleport_region({ region = {00,00,75,19}, exclude = {06,00,75,19}, dir="down" })
+
+-- This is a bit of a hack to prevent the hero from walking beyond x=6 and then
+-- being able to teleport to Thoth Amon straight away. You can't enter this
+-- level from below, but having dir=up will somehow keep both regions distinct
+-- and active at the same time.
+des.teleport_region({ region = {00,00,75,19}, exclude = {41,00,75,19}, dir="up" })
 
 -- Stair
 local leftedge = selection.line(00,00, 00,19)
