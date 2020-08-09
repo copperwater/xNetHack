@@ -153,6 +153,8 @@ changes:
 - Viewing an encyclopedia entry now prints the string that was used to find an
   entry in the encyclopedia and the string in data.base that matched it.
 - The livelog for life saving prints the would-be cause of death.
+- The #conduct command (and thus the dumplog) shows how many items you have
+  polymorphed during your game, outside of wizard mode.
 
 ### Architectural changes
 
