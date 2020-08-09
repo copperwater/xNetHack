@@ -126,6 +126,8 @@ changes:
 - Orcish items can no longer generate as plastic or glass, but can now generate
   as stone.
 - Nazgul are ungenocideable.
+- In wizard mode, you can choose to teleport into locations that you can't
+  teleport into in normal play (e.g. into a wall or across no-teleport zones).
 
 ### Interface changes
 

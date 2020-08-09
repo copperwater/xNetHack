@@ -538,7 +538,9 @@ struct obj *scroll;
                 return TRUE; /* abort */
             /* possible extensions: introduce a small error if
                magic power is low; allow transfer to solid rock */
-            if (teleok(cc.x, cc.y, FALSE)) {
+            if (teleok(cc.x, cc.y, FALSE)
+                || (wizard
+                    && yn("You can't normally teleport here. Do it anyway?") == 'y')) {
                 /* for scroll, discover it regardless of destination */
                 if (scroll)
                     learnscroll(scroll);
