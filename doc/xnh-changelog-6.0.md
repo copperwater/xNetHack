@@ -131,6 +131,7 @@ changes:
 - In wizard mode, a message prints when you teleport on a non-teleport level.
 - Grass is restored to the Barbarian quest goal level.
 - Undead iron-haters do not recoil from the touch of iron.
+- Wood and paper golems instakilled by Fire Brand do not drop items.
 
 ### Interface changes
 
@@ -184,3 +185,7 @@ changes:
 - New macro livelog_mon_nam(), which is a wrapper around x_monnam()
   specifically suppressing hallucination so that livelogs don't print a
   hallucinatory monster.
+- New monster flag alias golem_destroyed, which is actually mrevived and
+  indicates that the monster was completely wiped out and should drop no items
+  from its body. Only should be used on monsters for which mrevived is never
+  set.

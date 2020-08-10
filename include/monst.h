@@ -229,4 +229,8 @@ struct monst {
 #define montoostrong(monindx, lev) (mons[monindx].difficulty > lev)
 #define montooweak(monindx, lev) (mons[monindx].difficulty < lev)
 
+/* Override mrevived to track when a golem has been completely destroyed and
+ * shouldn't drop items from its body. */
+#define golem_destroyed mrevived
+
 #endif /* MONST_H */

@@ -576,7 +576,7 @@ unsigned corpseflags;
             mkcorpstat(STATUE, (struct monst *) 0, mdat, x, y, corpstatflags);
         break;
     case PM_WOOD_GOLEM:
-        num = d(2, 4);
+        num = mtmp->golem_destroyed ? 0 : d(2, 4);
         while (num--) {
             obj = mkobj_at(RANDOM_CLASS, x, y, FALSE);
             if (!valid_obj_material(obj, WOOD)) {
@@ -612,7 +612,7 @@ unsigned corpseflags;
         free_mname(mtmp);
         break;
     case PM_PAPER_GOLEM:
-        num = rnd(4);
+        num = mtmp->golem_destroyed ? 0 : rnd(4);
         while (num--) {
             obj = mkobj_at(RANDOM_CLASS, x, y, FALSE);
             if (!valid_obj_material(obj, PAPER) || obj->oclass == SCROLL_CLASS
@@ -632,8 +632,13 @@ unsigned corpseflags;
     case PM_BLACK_PUDDING:
         /* we have to do this here because most other places
            expect there to be an object coming back; not this one */
-        obj = mksobj_at(GLOB_OF_BLACK_PUDDING - (PM_BLACK_PUDDING - mndx),
-                        x, y, TRUE, FALSE);
+        if (!mtmp->golem_destroyed) {
+            /* Yes, these monsters aren't golems, but golem_destroyed aliases
+             * mrevived and none of them can be revived due to not having a
+             * corpse */
+            obj = mksobj_at(GLOB_OF_BLACK_PUDDING - (PM_BLACK_PUDDING - mndx),
+                            x, y, TRUE, FALSE);
+        }
 
         while (obj && (otmp = obj_nexto(obj)) != (struct obj *) 0) {
             pudding_merge_message(obj, otmp);

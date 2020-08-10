@@ -1214,7 +1214,8 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                 }
                 else {
                     pline("%s ignites and turns to ash!", Monnam(mdef));
-                    mondead(mdef);
+                    *dmgptr = mdef->mhp + FATAL_DAMAGE_MODIFIER;
+                    mdef->golem_destroyed = 1;
                 }
             }
         }
