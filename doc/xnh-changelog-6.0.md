@@ -130,6 +130,7 @@ changes:
   teleport into in normal play (e.g. into a wall or across no-teleport zones).
 - In wizard mode, a message prints when you teleport on a non-teleport level.
 - Grass is restored to the Barbarian quest goal level.
+- Undead iron-haters do not recoil from the touch of iron.
 
 ### Interface changes
 

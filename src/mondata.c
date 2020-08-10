@@ -336,6 +336,9 @@ int material;
                 || (ptr->mlet == S_IMP));
     }
     else if (material == IRON) {
+        if (is_undead(ptr)) {
+            return FALSE;
+        }
         /* cold iron: fairy/fae creatures hate it */
         return (ptr->mlet == S_ELF || is_elf(ptr) || ptr->mlet == S_NYMPH
                 || ptr->mlet == S_IMP);
