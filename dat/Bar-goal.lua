@@ -45,11 +45,19 @@ des.teleport_region({ region = {00,00,75,19}, exclude = {41,00,75,19}, dir="up" 
 local leftedge = selection.line(00,00, 00,19)
 des.stair({ dir = "up", coord = { leftedge:rndcoord(1) } })
 
--- Grass... none in the village, more outside it
--- local grass = selection.gradient({ type="radial", mindist=11, maxdist=80, limited=false,
---                                    x=55, y=8, x2=59, y2=8 })
--- TODO: Vanilla needs to implement replace_terrain with a selection.
--- des.replace_terrain({ selection = grass, fromterrain=".", toterrain="g" })
+-- Define a selection containing all the building interiors for later use
+local inbuildings = selection.floodfill(32,05) | selection.floodfill(50,00) |
+                    selection.floodfill(45,06) | selection.floodfill(45,09) | 
+                    selection.floodfill(45,13) | selection.floodfill(53,13) |
+                    selection.floodfill(60,13) | selection.floodfill(65,02) |
+                    selection.floodfill(65,08) | selection.floodfill(70,09) |
+                    selection.floodfill(61,04)
+
+-- Grass... none in the village or buildings, more outside it
+local grass = selection.gradient({ type="radial", mindist=6, maxdist=60, limited=false,
+                                   x=55, y=8, x2=59, y2=8 })
+              & selection.negate(inbuildings)
+des.replace_terrain({ selection = grass, fromterrain=".", toterrain="g" })
 
 -- Make some trees
 des.replace_terrain({ region = {00,00,31,19}, fromterrain="g", toterrain="T", chance = 2 })
@@ -105,12 +113,7 @@ for i=1,1 + d(5) do
   des.object({ id = "tallow candle", coord = { candleline:rndcoord(1) }, lit = 1 })
 end
 
--- Random objects, scattered through the buildings. TODO: add all the buildings.
-local inbuildings = selection.floodfill(32,05) | selection.floodfill(50,00) |
-                    selection.floodfill(45,06) | selection.floodfill(45,09) | 
-                    selection.floodfill(45,13) | selection.floodfill(53,13) |
-                    selection.floodfill(60,13) | selection.floodfill(65,02) |
-                    selection.floodfill(65,08) | selection.floodfill(70,09)
+-- Random objects, scattered through the buildings.
 for i=1,14 do
   des.object({ coord = { inbuildings:rndcoord(1) } })
 end

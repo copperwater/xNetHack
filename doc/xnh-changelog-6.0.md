@@ -129,6 +129,7 @@ changes:
 - In wizard mode, you can choose to teleport into locations that you can't
   teleport into in normal play (e.g. into a wall or across no-teleport zones).
 - In wizard mode, a message prints when you teleport on a non-teleport level.
+- Grass is restored to the Barbarian quest goal level.
 
 ### Interface changes
 
