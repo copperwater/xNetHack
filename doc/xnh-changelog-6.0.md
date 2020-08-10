@@ -158,6 +158,7 @@ changes:
 - The livelog for life saving prints the would-be cause of death.
 - The #conduct command (and thus the dumplog) shows how many items you have
   polymorphed during your game, outside of wizard mode.
+- Add encyclopedia entry for Ozymandias.
 
 ### Architectural changes
 
