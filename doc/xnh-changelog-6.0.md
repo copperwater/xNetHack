@@ -136,6 +136,7 @@ changes:
 - All A-class monsters are now immune to death magic.
 - Couatls and ki-rin are now shock, sleep, and poison resistant. Ki-rin are
   additionally cold resistant.
+- Mindless monsters and werewolves are now sleep resistant.
 
 ### Interface changes
 

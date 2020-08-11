@@ -15,7 +15,8 @@
     ((mon)->data->mresists | (mon)->mextrinsics | (mon)->mintrinsics)
 #define resists_fire(mon) ((mon_resistancebits(mon) & MR_FIRE) != 0)
 #define resists_cold(mon) ((mon_resistancebits(mon) & MR_COLD) != 0)
-#define resists_sleep(mon) ((mon_resistancebits(mon) & MR_SLEEP) != 0)
+#define resists_sleep(mon) ((mon_resistancebits(mon) & MR_SLEEP) != 0 \
+                            || mindless((mon)->data))
 #define resists_disint(mon) ((mon_resistancebits(mon) & MR_DISINT) != 0)
 #define resists_elec(mon) ((mon_resistancebits(mon) & MR_ELEC) != 0)
 #define resists_poison(mon) ((mon_resistancebits(mon) & MR_POISON) != 0)
