@@ -1371,6 +1371,16 @@ pickentry:
     return tt;
 }
 
+/* Return a random player name from the high score list as a string. */
+const char *
+tt_name()
+{
+    struct toptenentry *tt = get_rnd_toptenentry();
+    if (!tt) {
+        return NULL;
+    }
+    return tt->name;
+}
 
 /*
  * Attach random player name and class from high score list

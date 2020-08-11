@@ -137,6 +137,7 @@ changes:
 - Couatls and ki-rin are now shock, sleep, and poison resistant. Ki-rin are
   additionally cold resistant.
 - Mindless monsters and werewolves are now sleep resistant.
+- Randomly named weapons can now use names from the top 10 list.
 
 ### Interface changes
 
@@ -195,3 +196,4 @@ changes:
   indicates that the monster was completely wiped out and should drop no items
   from its body. Only should be used on monsters for which mrevived is never
   set.
+- New function tt_name(), which returns a random name from the top 10 list.

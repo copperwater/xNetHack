@@ -1305,18 +1305,30 @@ struct obj * wpn;
         "%s of Omen",     "%s of Truth",   "%s of Virtue",   "%s of Bloodlust",
         "%s of Disaster", "%s of Torment", "%s of Doom",     "%s of the Gods",
         "%s of the Horde","%s of Gilgamesh","%s of the Planes",
-        "%s of Excellence", "%s of Swift Defeat",
+        "%s of Excellence", "%s of Vengeance", "%s of Swift Defeat",
+        "%s of Protection", "%s of Insanity",
         "Righteous %s",   "Mighty %s",     "Unstoppable %s", "Sacred %s",
         "Holy %s",        "Lucky %s",      "Dudley's %s",    "Chaos %s",
         "Hungry %s",      "Inexorable %s", "Virtuous %s",    "Death %s",
+        "Unlimited %s",   "Infinite %s",   "Chaos %s",       "Peerless %s",
         "Due Process",    "Puddingbane",   "Vladsbane",      "Newtsbane",
         "Monster Slayer", "Orphan Maker",  "Aggressive Negotiation",
-        "Old Reliable",   "Barman's Friend"
+        "Old Reliable",   "Punisher",      "Barman's Friend"
     };
 
+    char buf[BUFSZ];
+    if (!rn2(25 - (2 * wpn->spe))) {
+        char nbuf[PL_NSIZ+1];
+        const char* ttname = tt_name();
+        if (ttname) {
+            Strcpy(nbuf, ttname);
+            Sprintf(buf, "%s of %s", upstart(basename), upstart(nbuf));
+            return oname(wpn, buf);
+        }
+        /* if a name couldn't be found, fall through to default */
+    }
     const char* name = wpn_names[rn2(SIZE(wpn_names))];
     if (strstri(name, "%s")) {
-        char buf[BUFSZ];
         Sprintf(buf, name, upstart(basename));
         return oname(wpn, buf);
     }
