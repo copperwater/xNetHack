@@ -133,6 +133,7 @@ changes:
 - Undead iron-haters do not recoil from the touch of iron.
 - Wood and paper golems instakilled by Fire Brand do not drop items.
 - A lot of the doors in Fort Ludios are now iron.
+- All A-class monsters are now immune to death magic.
 
 ### Interface changes
 

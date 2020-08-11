@@ -2550,7 +2550,8 @@ boolean ordinary;
 
     case WAN_DEATH:
     case SPE_FINGER_OF_DEATH:
-        if (nonliving(g.youmonst.data) || is_demon(g.youmonst.data)) {
+        if (nonliving(g.youmonst.data) || is_demon(g.youmonst.data)
+            || g.youmonst.data->mlet == S_ANGEL) {
             pline((obj->otyp == WAN_DEATH)
                       ? "The wand shoots an apparently harmless beam at you."
                       : "You seem no deader than before.");
@@ -3771,7 +3772,8 @@ struct obj **ootmp; /* to return worn armor for caller to disintegrate */
                 break;
             }
             if (nonliving(mon->data) || is_demon(mon->data)
-                || is_vampshifter(mon) || resists_magm(mon)) {
+                || is_vampshifter(mon) || resists_magm(mon)
+                || mon->data->mlet == S_ANGEL) {
                 /* similar to player */
                 sho_shieldeff = TRUE;
                 break;
@@ -3940,7 +3942,8 @@ xchar sx, sy;
                 (void) destroy_arm(uarmc, FALSE);
             if (uarmu)
                 (void) destroy_arm(uarmu, FALSE);
-        } else if (nonliving(g.youmonst.data) || is_demon(g.youmonst.data)) {
+        } else if (nonliving(g.youmonst.data) || is_demon(g.youmonst.data)
+                   || g.youmonst.data->mlet == S_ANGEL) {
             shieldeff(sx, sy);
             You("seem unaffected.");
             break;
