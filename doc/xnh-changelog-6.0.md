@@ -134,6 +134,8 @@ changes:
 - Wood and paper golems instakilled by Fire Brand do not drop items.
 - A lot of the doors in Fort Ludios are now iron.
 - All A-class monsters are now immune to death magic.
+- Couatls and ki-rin are now shock, sleep, and poison resistant. Ki-rin are
+  additionally cold resistant.
 
 ### Interface changes
 
