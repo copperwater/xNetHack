@@ -48,9 +48,11 @@ else
    des.terrain(43,09, "\\")
    des.terrain(43,10, ".")
 end
+fortentrancedoor = {47,10}
 if percent(50) then
    des.terrain(47,09, "S")
    des.terrain(47,10, "|")
+   fortentrancedoor = {47,09}
 end
 
 --   The Vault
@@ -70,9 +72,11 @@ local treasury = selection.area(21,08,35,11);
 treasury:iterate(treasure_spot);
 
 --   Vault entrance also varies
+vaultentrancedoor = {36,09}
 if percent(50) then
    des.terrain(36,09, "|")
    des.terrain(36,10, "S")
+   vaultentrancedoor = {36, 10} 
 end
 --   Corner towers
 des.region(selection.area(19,06,21,06),"lit")
@@ -110,18 +114,25 @@ des.region(selection.area(05,14,09,14),"unlit")
 
 --   Barracks
 des.region({ region={62,03,71,04},lit=1,type="barracks",filled=1,irregular=1 })
--- Doors
+des.door({ state="open", x=63, y=05, iron=1 })
+des.door({ state="open", x=66, y=05, iron=1 })
+des.door({ state="open", x=68, y=08, iron=1 })
+des.door({ state="open", x=68, y=11, iron=1 })
+des.door({ state="closed", x=63, y=14, iron=1 })
+des.door({ state="closed", x=66, y=14, iron=1 })
+-- Doors on starting side of the map
 des.door("closed",06,14)
-des.door("closed",09,03)
-des.door("open",63,05)
-des.door("open",66,05)
-des.door("open",68,08)
-des.door("locked",08,11)
-des.door("open",68,11)
-des.door("closed",63,14)
-des.door("closed",66,14)
+des.door({ state="closed", x=09, y=03, iron=1 })
+des.door({ state="locked", x=08, y=11, iron=1 })
 des.door("closed",04,03)
 des.door("closed",04,09)
+-- Doors in the fort itself
+des.door({ state="secret", locked=1, coord=fortentrancedoor, iron=1 })
+des.door({ state="secret", locked=1, coord=vaultentrancedoor, iron=1 })
+des.door({ state="secret", locked=1, coord={21,07}, iron=1 })
+des.door({ state="secret", locked=1, coord={21,12}, iron=1 })
+des.door({ state="secret", locked=1, coord={46,07}, iron=1 })
+des.door({ state="secret", locked=1, coord={46,12}, iron=1 })
 -- Soldiers guarding the fort
 des.monster("soldier",12,14)
 des.monster("soldier",12,13)

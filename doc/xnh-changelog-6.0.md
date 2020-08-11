@@ -132,6 +132,7 @@ changes:
 - Grass is restored to the Barbarian quest goal level.
 - Undead iron-haters do not recoil from the touch of iron.
 - Wood and paper golems instakilled by Fire Brand do not drop items.
+- A lot of the doors in Fort Ludios are now iron.
 
 ### Interface changes
 
