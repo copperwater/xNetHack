@@ -2086,6 +2086,15 @@ boolean loseit;    /* whether to drop it if hero can longer touch it */
         if (!hatemat && !bane)
             return 1;
 
+        /* another case where nothing should happen: hero is wearing gloves
+         * which protect them from directly touching a weapon of a material they
+         * hate
+         * (no other gear slots are considered to completely block touching an
+         * outer piece of gear; e.g. wearing body armor doesn't protect from
+         * touching a worn cloak) */
+        if (!bane && obj == uwep && uarmg)
+            return 1;
+
         /* hero can't handle this object, but didn't get touch_artifact()'s
            "<obj> evades your grasp|control" message; give an alternate one */
 
