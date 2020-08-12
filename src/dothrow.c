@@ -1420,6 +1420,7 @@ struct obj *oldslot; /* for thrown-and-return used with !fixinv */
                         setuqwep((struct obj *) 0);
                     setuwep(obj);
                     set_twoweap(twoweap); /* u.twoweap = twoweap */
+                    retouch_object(&obj, TRUE);
                     if (cansee(g.bhitpos.x, g.bhitpos.y))
                         newsym(g.bhitpos.x, g.bhitpos.y);
                 } else {
@@ -1440,6 +1441,11 @@ struct obj *oldslot; /* for thrown-and-return used with !fixinv */
                         if (obj->oartifact)
                             (void) artifact_hit((struct monst *) 0,
                                                 &g.youmonst, obj, &dmg, 0);
+                        if (Hate_material(obj->material)) {
+                            dmg += rnd(sear_damage(obj->material));
+                            exercise(A_CON, FALSE);
+                            searmsg(NULL, &g.youmonst, obj, TRUE);
+                        }
                         losehp(Maybe_Half_Phys(dmg), killer_xname(obj),
                                KILLED_BY);
                     }
