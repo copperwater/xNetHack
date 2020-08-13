@@ -1153,14 +1153,15 @@ char *hittee;              /* target's name: "you" or mon_nam(mdef) */
 }
 
 /* Function used when someone attacks someone else with an artifact
- * weapon.  Only adds the special (artifact) damage, and returns a 1 if it
- * did something special (in which case the caller won't print the normal
- * hit message).  This should be called once upon every artifact attack;
- * dmgval() no longer takes artifact bonuses into account.  Possible
- * extension: change the killer so that when an orc kills you with
- * Stormbringer it's "killed by Stormbringer" instead of "killed by an orc".
+ * weapon.  Only adds the special (artifact) damage, and returns a bitmask of
+ * the ARTIFACTHIT flags defined in hack.h indicating what messages it
+ * printed, so that the caller can avoid printing messages as needed.
+ * This should be called once upon every artifact attack; dmgval() no longer
+ * takes artifact bonuses into account.  Possible extension: change the killer
+ * so that when an orc kills you with Stormbringer it's "killed by Stormbringer"
+ * instead of "killed by an orc".
  */
-boolean
+int
 artifact_hit(magr, mdef, otmp, dmgptr, dieroll)
 struct monst *magr, *mdef;
 struct obj *otmp;
@@ -1172,6 +1173,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
     boolean vis = (!youattack && magr && cansee(magr->mx, magr->my))
                   || (!youdefend && cansee(mdef->mx, mdef->my))
                   || (youattack && u.uswallow && mdef == u.ustuck && !Blind);
+    int retval = ARTIFACTHIT_NOMSG;
     boolean realizes_damage;
     const char *wepdesc;
     static const char you[] = "you";
@@ -1187,7 +1189,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
 
     if (youattack && youdefend) {
         impossible("attacking yourself with weapon?");
-        return FALSE;
+        return ARTIFACTHIT_NOMSG;
     }
 
     realizes_damage = (youdefend || vis
@@ -1205,6 +1207,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                                 ? "vaporizes part of"
                                 : "burns",
                       hittee, !g.spec_dbon_applies ? '.' : '!');
+            retval |= ARTIFACTHIT_GAVEMSG;
             if (completelyburns(mdef->data) || is_wooden(mdef->data)
                 || mdef->data == &mons[PM_GREEN_SLIME]) {
                 if (youdefend) {
@@ -1217,6 +1220,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                     *dmgptr = mdef->mhp + FATAL_DAMAGE_MODIFIER;
                     mdef->golem_destroyed = 1;
                 }
+                retval |= ARTIFACTHIT_INSTAKILLMSG;
             }
         }
         if (!rn2(4))
@@ -1227,22 +1231,26 @@ int dieroll; /* needed for Magicbane and vorpal blades */
             (void) destroy_mitem(mdef, SPBOOK_CLASS, AD_FIRE);
         if (youdefend && Slimed)
             burn_away_slime();
-        return realizes_damage;
+        return retval;
     }
     if (attacks(AD_COLD, otmp)) {
-        if (realizes_damage)
+        if (realizes_damage) {
             pline_The("ice-cold blade %s %s%c",
                       !g.spec_dbon_applies ? "hits" : "freezes", hittee,
                       !g.spec_dbon_applies ? '.' : '!');
+            retval |= ARTIFACTHIT_GAVEMSG;
+        }
         if (!rn2(4))
             (void) destroy_mitem(mdef, POTION_CLASS, AD_COLD);
-        return realizes_damage;
+        return retval;
     }
     if (attacks(AD_ELEC, otmp)) {
-        if (realizes_damage)
+        if (realizes_damage) {
             pline_The("massive hammer hits%s %s%c",
                       !g.spec_dbon_applies ? "" : "!  Lightning strikes",
                       hittee, !g.spec_dbon_applies ? '.' : '!');
+            retval |= ARTIFACTHIT_GAVEMSG;
+        }
         if (g.spec_dbon_applies)
             wake_nearto(mdef->mx, mdef->my, 4 * 4);
         if (!rn2(5))
@@ -1250,21 +1258,28 @@ int dieroll; /* needed for Magicbane and vorpal blades */
         if (!rn2(5))
             (void) destroy_mitem(mdef, WAND_CLASS, AD_ELEC);
         wake_nearto(mdef->mx, mdef->my, 6 * 6); /* thunder */
-        return realizes_damage;
+        return retval;
     }
     if (attacks(AD_MAGM, otmp)) {
-        if (realizes_damage)
+        if (realizes_damage) {
             pline_The("imaginary widget hits%s %s%c",
                       !g.spec_dbon_applies
                           ? ""
                           : "!  A hail of magic missiles strikes",
                       hittee, !g.spec_dbon_applies ? '.' : '!');
-        return realizes_damage;
+            retval |= ARTIFACTHIT_GAVEMSG;
+        }
+        return retval;
     }
 
     if (attacks(AD_STUN, otmp) && dieroll <= MB_MAX_DIEROLL) {
         /* Magicbane's special attacks (possibly modifies hittee[]) */
-        return Mb_hit(magr, mdef, otmp, dmgptr, dieroll, vis, hittee);
+        if (Mb_hit(magr, mdef, otmp, dmgptr, dieroll, vis, hittee)) {
+            return ARTIFACTHIT_GAVEMSG;
+        }
+        else {
+            return ARTIFACTHIT_NOMSG;
+        }
     }
 
     /* poison damage is a 1/4 chance; use dieroll to make sure the message syncs
@@ -1272,13 +1287,13 @@ int dieroll; /* needed for Magicbane and vorpal blades */
     if (permapoisoned(otmp) && realizes_damage && dieroll <= 5
         && !(youdefend ? Poison_resistance : resists_poison(mdef))) {
         pline_The("jagged blade poisons %s!", hittee);
-        return TRUE;
+        return ARTIFACTHIT_GAVEMSG;
     }
 
     if (!g.spec_dbon_applies) {
         /* since damage bonus didn't apply, nothing more to do;
            no further attacks have side-effects on inventory */
-        return FALSE;
+        return ARTIFACTHIT_NOMSG;
     }
 
     /* We really want "on a natural 20" but Nethack does it in */
@@ -1290,12 +1305,12 @@ int dieroll; /* needed for Magicbane and vorpal blades */
             if (youattack && u.uswallow && mdef == u.ustuck) {
                 You("slice %s wide open!", mon_nam(mdef));
                 *dmgptr = 2 * mdef->mhp + FATAL_DAMAGE_MODIFIER;
-                return TRUE;
+                return ARTIFACTHIT_INSTAKILLMSG | ARTIFACTHIT_GAVEMSG;
             }
             if (!youdefend) {
                 /* allow normal cutworm() call to add extra damage */
                 if (g.notonhead)
-                    return FALSE;
+                    return ARTIFACTHIT_NOMSG;
 
                 if (bigmonst(mdef->data)) {
                     if (youattack)
@@ -1304,18 +1319,18 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                         pline("%s cuts deeply into %s!", Monnam(magr),
                               hittee);
                     *dmgptr *= 2;
-                    return TRUE;
+                    return ARTIFACTHIT_GAVEMSG;
                 }
                 *dmgptr = 2 * mdef->mhp + FATAL_DAMAGE_MODIFIER;
                 pline("%s cuts %s in half!", wepdesc, mon_nam(mdef));
                 otmp->dknown = TRUE;
-                return TRUE;
+                return ARTIFACTHIT_INSTAKILLMSG | ARTIFACTHIT_GAVEMSG;
             } else {
                 if (bigmonst(g.youmonst.data)) {
                     pline("%s cuts deeply into you!",
                           magr ? Monnam(magr) : wepdesc);
                     *dmgptr *= 2;
-                    return TRUE;
+                    return ARTIFACTHIT_GAVEMSG;
                 }
 
                 /* Players with negative AC's take less damage instead
@@ -1326,7 +1341,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                 *dmgptr = 2 * (Upolyd ? u.mh : u.uhp) + FATAL_DAMAGE_MODIFIER;
                 pline("%s cuts you in half!", wepdesc);
                 otmp->dknown = TRUE;
-                return TRUE;
+                return ARTIFACTHIT_INSTAKILLMSG | ARTIFACTHIT_GAVEMSG;
             }
         } else if (otmp->oartifact == ART_VORPAL_BLADE
                    && (dieroll == 1 || mdef->data == &mons[PM_JABBERWOCK])) {
@@ -1334,21 +1349,25 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                                                        "%s decapitates %s!" };
 
             if (youattack && u.uswallow && mdef == u.ustuck)
-                return FALSE;
+                return ARTIFACTHIT_NOMSG;
             wepdesc = artilist[ART_VORPAL_BLADE].name;
             if (!youdefend) {
                 if (!has_head(mdef->data) || g.notonhead || u.uswallow) {
-                    if (youattack)
+                    if (youattack) {
                         pline("Somehow, you miss %s wildly.", mon_nam(mdef));
-                    else if (vis)
+                        retval |= ARTIFACTHIT_GAVEMSG;
+                    }
+                    else if (vis) {
                         pline("Somehow, %s misses wildly.", mon_nam(magr));
+                        retval |= ARTIFACTHIT_GAVEMSG;
+                    }
                     *dmgptr = 0;
-                    return (boolean) (youattack || vis);
+                    return retval;
                 }
                 if (noncorporeal(mdef->data) || amorphous(mdef->data)) {
                     pline("%s slices through %s %s.", wepdesc,
                           s_suffix(mon_nam(mdef)), mbodypart(mdef, NECK));
-                    return TRUE;
+                    return ARTIFACTHIT_GAVEMSG;
                 }
                 *dmgptr = 2 * mdef->mhp + FATAL_DAMAGE_MODIFIER;
                 pline(behead_msg[rn2(SIZE(behead_msg))], wepdesc,
@@ -1363,25 +1382,25 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                     mdef->mcan = 1;
                 }
                 otmp->dknown = TRUE;
-                return TRUE;
+                return ARTIFACTHIT_INSTAKILLMSG | ARTIFACTHIT_GAVEMSG;
             } else {
                 if (!has_head(g.youmonst.data)) {
                     pline("Somehow, %s misses you wildly.",
                           magr ? mon_nam(magr) : wepdesc);
                     *dmgptr = 0;
-                    return TRUE;
+                    return ARTIFACTHIT_GAVEMSG;
                 }
                 if (noncorporeal(g.youmonst.data)
                     || amorphous(g.youmonst.data)) {
                     pline("%s slices through your %s.", wepdesc,
                           body_part(NECK));
-                    return TRUE;
+                    return ARTIFACTHIT_GAVEMSG;
                 }
                 *dmgptr = 2 * (Upolyd ? u.mh : u.uhp) + FATAL_DAMAGE_MODIFIER;
                 pline(behead_msg[rn2(SIZE(behead_msg))], wepdesc, "you");
                 otmp->dknown = TRUE;
                 /* Should amulets fall off? */
-                return TRUE;
+                return ARTIFACTHIT_INSTAKILLMSG | ARTIFACTHIT_GAVEMSG;
             }
         }
     }
@@ -1391,10 +1410,12 @@ int dieroll; /* needed for Magicbane and vorpal blades */
             wepdesc = artilist[ART_OGRESMASHER].name;
 
             if (youdefend) {
+                otmp->dknown = TRUE;
                 if (smallmonst) {
                     pline("%s crushes you!", wepdesc);
                     *dmgptr = 2 * (Upolyd ? u.mh : u.uhp)
                               + FATAL_DAMAGE_MODIFIER;
+                    return ARTIFACTHIT_INSTAKILLMSG | ARTIFACTHIT_GAVEMSG;
                 }
                 else {
                     pline("%s smashes into you!", wepdesc);
@@ -1403,14 +1424,15 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                     if (HFast)
                         u_slow_down(); /* avoid multiple "You slow down" */
                     make_stunned((HStun & TIMEOUT) + (long) rn1(5, 5), TRUE);
+                    return ARTIFACTHIT_GAVEMSG;
                 }
-                otmp->dknown = TRUE;
             }
             else {
                 if (smallmonst) {
                     if (vis) {
                         pline("%s crushes %s!", wepdesc, mon_nam(mdef));
                         otmp->dknown = TRUE;
+                        retval |= ARTIFACTHIT_INSTAKILLMSG | ARTIFACTHIT_GAVEMSG;
                     }
                     *dmgptr = 2 * mdef->mhp + FATAL_DAMAGE_MODIFIER;
                 }
@@ -1422,12 +1444,13 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                             pline("%s smashes %s into %s!", Monnam(magr),
                                   wepdesc, mon_nam(mdef));
                         otmp->dknown = TRUE;
+                        retval |= ARTIFACTHIT_GAVEMSG;
                     }
                     mon_adjust_speed(mdef, -2, NULL);
                     mdef->mstun = 1;
                 }
+                return retval;
             }
-            return TRUE;
         }
     }
     if (spec_ability(otmp, SPFX_DRLI)) {
@@ -1438,9 +1461,9 @@ int dieroll; /* needed for Magicbane and vorpal blades */
             /* This has to go here rather than along with the resists_drli
              * check; otherwise a drainable item gets drained even if the
              * attack is a miss.
-             * Return FALSE because no special draining damage happened so we
-             * want the attack to do its regular non-artifact damage. */
-            return FALSE;
+             * Return NOMSG because even though item_catches_drain would have
+             * printed something, artifact_hit didn't. */
+            return ARTIFACTHIT_NOMSG;
         }
 
         if (!youdefend) {
@@ -1452,6 +1475,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                     pline("%s draws the %s from %s!",
                           The(distant_name(otmp, xname)), life,
                           mon_nam(mdef));
+                retval |= ARTIFACTHIT_GAVEMSG;
             }
             if (mdef->m_lev == 0) {
                 /* losing a level when at 0 is fatal */
@@ -1474,7 +1498,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                     }
                 }
             }
-            return vis;
+            return retval;
         } else { /* youdefend */
             int oldhpmax = u.uhpmax;
 
@@ -1495,10 +1519,10 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                 if (magr->mhp > magr->mhpmax)
                     magr->mhp = magr->mhpmax;
             }
-            return TRUE;
+            return ARTIFACTHIT_GAVEMSG;
         }
     }
-    return FALSE;
+    return ARTIFACTHIT_NOMSG;
 }
 
 static int

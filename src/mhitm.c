@@ -948,6 +948,7 @@ int dieroll;
             tmp = 0;
         } else if (mwep) { /* non-Null 'mwep' implies AT_WEAP || AT_CLAW */
             struct obj *marmg;
+            int artimsg = ARTIFACTHIT_NOMSG;
 
             if (mwep->otyp == CORPSE
                 && touch_petrifies(&mons[mwep->corpsenm]))
@@ -965,7 +966,8 @@ int dieroll;
                    now we'll know and might need to deliver skipped message
                    (note: if there's no message there'll be no auxilliary
                    damage so the message here isn't coming too late) */
-                if (!artifact_hit(magr, mdef, mwep, &tmp, dieroll)) {
+                artimsg = artifact_hit(magr, mdef, mwep, &tmp, dieroll);
+                if (artimsg == ARTIFACTHIT_NOMSG) {
                     if (g.vis)
                         pline("%s hits %s.", Monnam(magr),
                               mon_nam_too(mdef, magr));
@@ -977,7 +979,8 @@ int dieroll;
                     return (MM_DEF_DIED
                             | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
             }
-            if (mon_hates_material(mdef, mwep->material)) {
+            if (mon_hates_material(mdef, mwep->material)
+                && (artimsg & ARTIFACTHIT_INSTAKILLMSG) == 0) {
                 /* extra damage already applied by dmgval() */
                 searmsg(magr, mdef, mwep, TRUE);
             }

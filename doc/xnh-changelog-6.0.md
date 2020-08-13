@@ -197,3 +197,7 @@ changes:
   from its body. Only should be used on monsters for which mrevived is never
   set.
 - New function tt_name(), which returns a random name from the top 10 list.
+- artifact_hit now returns a bitmask of two flags: one for having printed any
+  special message (and the caller doesn't need to print a normal hit message),
+  and one for specifically printing an instakill message (for the caller to
+  suppress more messages in certain circumstances).

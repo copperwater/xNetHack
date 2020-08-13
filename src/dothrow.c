@@ -1077,7 +1077,8 @@ boolean hitsroof;
         }
         return FALSE;
     } else { /* neither potion nor other breaking object */
-        boolean less_damage = uarmh && is_hard(uarmh), artimsg = FALSE;
+        boolean less_damage = uarmh && is_hard(uarmh);
+        int artimsg = ARTIFACTHIT_NOMSG;
         int dmg = dmgval(obj, &g.youmonst);
 
         if (obj->oartifact)
@@ -1106,7 +1107,7 @@ boolean hitsroof;
             if (obj->owt >= 400 && is_brittle(uarmh) && break_glass_obj(uarmh)) {
                 ;
             } else if (less_damage && dmg < (Upolyd ? u.mh : u.uhp)) {
-                if (!artimsg) {
+                if ((artimsg & ARTIFACTHIT_GAVEMSG) == 0) {
                     if (dmg > 2)
                         Your("helmet only slightly protects you.");
                     else
@@ -1133,7 +1134,9 @@ boolean hitsroof;
         }
         else if (Hate_material(obj->material)) {
             /* dmgval() already added extra damage */
-            searmsg(&g.youmonst, &g.youmonst, obj, FALSE);
+            if ((artimsg & ARTIFACTHIT_INSTAKILLMSG) == 0) {
+                searmsg(&g.youmonst, &g.youmonst, obj, FALSE);
+            }
             exercise(A_CON, FALSE);
         }
         hitfloor(obj, TRUE);
@@ -1433,18 +1436,22 @@ struct obj *oldslot; /* for thrown-and-return used with !fixinv */
                               Levitation ? "beneath" : "at",
                               makeplural(body_part(FOOT)));
                     } else {
+                        int artimsg = ARTIFACTHIT_NOMSG;
                         dmg += rnd(3);
                         pline(Blind ? "%s your %s!"
                                     : "%s back toward you, hitting your %s!",
                               Tobjnam(obj, Blind ? "hit" : "fly"),
                               body_part(ARM));
-                        if (obj->oartifact)
-                            (void) artifact_hit((struct monst *) 0,
-                                                &g.youmonst, obj, &dmg, 0);
+                        if (obj->oartifact) {
+                            artimsg = artifact_hit((struct monst *) 0,
+                                                   &g.youmonst, obj, &dmg, 0);
+                        }
                         if (Hate_material(obj->material)) {
                             dmg += rnd(sear_damage(obj->material));
                             exercise(A_CON, FALSE);
-                            searmsg(NULL, &g.youmonst, obj, TRUE);
+                            if ((artimsg & ARTIFACTHIT_INSTAKILLMSG) == 0) {
+                                searmsg(NULL, &g.youmonst, obj, TRUE);
+                            }
                         }
                         losehp(Maybe_Half_Phys(dmg), killer_xname(obj),
                                KILLED_BY);

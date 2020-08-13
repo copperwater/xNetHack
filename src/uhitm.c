@@ -738,6 +738,7 @@ int dieroll;
                             || (thrown == HMON_APPLIED && is_pole(uwep)));
     int jousting = 0;
     struct obj *hated_obj = NULL;
+    int artimsg = ARTIFACTHIT_NOMSG;
     int wtype;
     struct obj *monwep;
     char saved_oname[BUFSZ];
@@ -888,16 +889,18 @@ int dieroll;
                     }
                     hittxt = TRUE;
                 }
-                if (obj->oartifact
-                    && artifact_hit(&g.youmonst, mon, obj, &tmp, dieroll)) {
+                if (obj->oartifact) {
+                    artimsg = artifact_hit(&g.youmonst, mon, obj, &tmp, dieroll);
                     /* artifact_hit updates 'tmp' but doesn't inflict any
                        damage; however, it might cause carried items to be
                        destroyed and they might do so */
-                    if (DEADMONSTER(mon)) /* artifact killed monster */
-                        return FALSE;
-                    if (tmp == 0)
-                        return TRUE;
-                    hittxt = TRUE;
+                    if (artimsg) {
+                        if (DEADMONSTER(mon)) /* artifact killed monster */
+                            return FALSE;
+                        if (tmp == 0)
+                            return TRUE;
+                        hittxt = TRUE;
+                    }
                 }
                 if (mon_hates_material(mon, obj->material)) {
                     /* dmgval() already added bonus damage */
@@ -1352,7 +1355,7 @@ int dieroll;
                 mon_nam(mon), canseemon(mon) ? exclam(tmp) : ".");
     }
 
-    if (hated_obj) {
+    if (hated_obj && ((artimsg & ARTIFACTHIT_INSTAKILLMSG) == 0)) {
         searmsg(&g.youmonst, mon, hated_obj, FALSE);
     }
     if (lightobj) {

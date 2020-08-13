@@ -522,6 +522,15 @@ enum bodypart_types {
 #define POLYMON_ENCUMBER_MSG  0x10 /* whether to call encumber_msg() */
 #define POLYMON_ALL_MSGS      0x1F
 
+/* Flags used in the return from artifact_hit()
+ * note that anywhere that returns INSTAKILLMSG should probably also return
+ * GAVEMSG since INSTAKILLMSG implies a message was given.
+ * message is by definition a specially printed message. */
+#define ARTIFACTHIT_NOMSG        0x0
+#define ARTIFACTHIT_GAVEMSG      0x1 /* printed any special message at all,
+                                        incl. things like "miss wildly" */
+#define ARTIFACTHIT_INSTAKILLMSG 0x2 /* "Vorpal Blade decapitates foo!" &c */
+
 /*
  * option setting restrictions
  */

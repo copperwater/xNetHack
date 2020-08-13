@@ -1047,6 +1047,7 @@ register struct attack *mattk;
                 struct obj *marmg;
                 int tmp;
                 int wepmaterial = otmp->material;
+                int artimsg = ARTIFACTHIT_NOMSG;
                 boolean was_poisoned = (otmp->opoisoned || permapoisoned(otmp));
 
                 if (otmp->otyp == CORPSE
@@ -1063,8 +1064,12 @@ register struct attack *mattk;
                     dmg += rn1(4, 3); /* 3..6 */
                 if (dmg <= 0)
                     dmg = 1;
-                if (!(otmp->oartifact && artifact_hit(mtmp, &g.youmonst, otmp,
-                                                      &dmg, g.mhitu_dieroll)))
+
+                if (otmp->oartifact) {
+                    artimsg = artifact_hit(mtmp, &g.youmonst, otmp, &dmg,
+                                                g.mhitu_dieroll);
+                }
+                if (artimsg == ARTIFACTHIT_NOMSG)
                     hitmsg(mtmp, mattk);
 
                 /* glass breakage from the attack */
@@ -1077,7 +1082,9 @@ register struct attack *mattk;
                     break;
                 if (Hate_material(wepmaterial)) {
                     /* dmgval() already added extra damage */
-                    searmsg(mtmp, &g.youmonst, otmp, TRUE);
+                    if ((artimsg & ARTIFACTHIT_INSTAKILLMSG) == 0) {
+                        searmsg(mtmp, &g.youmonst, otmp, TRUE);
+                    }
                     exercise(A_CON, FALSE);
                 }
                 /* this redundancy necessary because you have
