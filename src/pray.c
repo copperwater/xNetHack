@@ -923,6 +923,9 @@ gcrownu()
                 u.ugifts++;
                 u.uconduct.artitouch++;
             }
+            if (obj->spe < 3) {
+                obj->spe = 3;
+            }
         }
         /* acquire Excalibur's skill regardless of weapon or gift */
         unrestrict_weapon_skill(P_LONG_SWORD);

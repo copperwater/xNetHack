@@ -138,6 +138,9 @@ changes:
   additionally cold resistant.
 - Mindless monsters and werewolves are now sleep resistant.
 - Randomly named weapons can now use names from the top 10 list.
+- Creating Excalibur via fountain will set its enchantment to +0 if it was
+  negative, and obtaining it via crowning will set its enchantment to +3 if it
+  was lower than that.
 
 ### Interface changes
 
