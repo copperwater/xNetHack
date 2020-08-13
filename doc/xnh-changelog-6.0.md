@@ -141,6 +141,7 @@ changes:
 - Creating Excalibur via fountain will set its enchantment to +0 if it was
   negative, and obtaining it via crowning will set its enchantment to +3 if it
   was lower than that.
+- Tame V-class monsters won't shapeshift from vampire form into something else.
 
 ### Interface changes
 

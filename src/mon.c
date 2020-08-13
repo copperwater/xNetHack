@@ -3859,6 +3859,11 @@ int shiftflags;
          * If we're shifted and getting low on hp, maybe shift back, or
          * if we're a fog cloud at full hp, maybe pick a different shape.
          * If we're not already shifted and in good health, maybe shift.
+         *
+         * If we're tame, don't shift into anything (the player might have given
+         * us equipment that would be lost/destroyed by transforming). TODO:
+         * when player-given gear is tracked, only block transforming if we have
+         * at least one player-given item.
          */
         if (mon->data->mlet != S_VAMPIRE) {
             if ((mon->mhp <= (mon->mhpmax + 5) / 6) && rn2(4)
@@ -3880,7 +3885,7 @@ int shiftflags;
                 }
             }
         } else {
-            if (mon->mhp >= 9 * mon->mhpmax / 10 && !rn2(6)
+            if (mon->mhp >= 9 * mon->mhpmax / 10 && !rn2(6) && !mon->mtame
                 && (!canseemon(mon)
                     || distu(mon->mx, mon->my) > BOLT_LIM * BOLT_LIM))
                 dochng = TRUE; /* 'ptr' stays Null */
