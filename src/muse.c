@@ -1052,13 +1052,14 @@ struct monst *mtmp;
 #define MUSE_SCR_FIRE 8
 #define MUSE_POT_PARALYSIS 9
 #define MUSE_POT_BLINDNESS 10
-#define MUSE_POT_CONFUSION 11
-#define MUSE_FROST_HORN 12
-#define MUSE_FIRE_HORN 13
-#define MUSE_POT_ACID 14
+#define MUSE_POT_HALLUCINATION 11
+#define MUSE_POT_CONFUSION 12
+#define MUSE_FROST_HORN 13
+#define MUSE_FIRE_HORN 14
 /*#define MUSE_WAN_TELEPORTATION 15*/
-#define MUSE_POT_SLEEPING 16
-#define MUSE_SCR_EARTH 17
+#define MUSE_POT_ACID 16
+#define MUSE_POT_SLEEPING 17
+#define MUSE_SCR_EARTH 18
 /*#define MUSE_WAN_UNDEAD_TURNING 20*/ /* also a defensive item so don't
                                      * redefine; nonconsecutive value is ok */
 
@@ -1196,6 +1197,11 @@ struct monst *mtmp;
         if (obj->otyp == POT_BLINDNESS && !attacktype(mtmp->data, AT_GAZE)) {
             g.m.offensive = obj;
             g.m.has_offense = MUSE_POT_BLINDNESS;
+        }
+        nomore(MUSE_POT_HALLUCINATION);
+        if (obj->otyp == POT_HALLUCINATION && !attacktype(mtmp->data, AT_GAZE)) {
+            g.m.offensive = obj;
+            g.m.has_offense = MUSE_POT_HALLUCINATION;
         }
         nomore(MUSE_POT_CONFUSION);
         if (obj->otyp == POT_CONFUSION) {
@@ -1623,6 +1629,7 @@ struct monst *mtmp;
 #endif /* 0 */
     case MUSE_POT_PARALYSIS:
     case MUSE_POT_BLINDNESS:
+    case MUSE_POT_HALLUCINATION:
     case MUSE_POT_CONFUSION:
     case MUSE_POT_SLEEPING:
     case MUSE_POT_ACID:
@@ -1678,7 +1685,7 @@ struct monst *mtmp;
     case 4:
         return POT_BLINDNESS;
     case 5:
-        return POT_SLEEPING;
+        return rn2(3) ? POT_SLEEPING : POT_HALLUCINATION;
     case 6:
         return POT_PARALYSIS;
     case 7:

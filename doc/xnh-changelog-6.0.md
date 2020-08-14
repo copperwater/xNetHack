@@ -149,6 +149,9 @@ changes:
   - Sleeping makes you fall asleep for 5+d5 turns.
   - Speed gives you fast speed for d10 turns.
   - Blindness and hallucination make you blind/hallucinating for 20+d20 turns.
+- Monsters can now generate with a potion of hallucination as an offensive
+  item, and will throw it at the player. They generate with a potion of
+  sleeping a little less often.
 
 ### Interface changes
 
