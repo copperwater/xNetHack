@@ -142,6 +142,13 @@ changes:
   negative, and obtaining it via crowning will set its enchantment to +3 if it
   was lower than that.
 - Tame V-class monsters won't shapeshift from vampire form into something else.
+- Potion vapor effects are buffed:
+  - Full healing vapors restore 13 HP, extra healing 3, and healing 1.
+  - Booze vapors no longer do anything except cause you to smell alcohol.
+  - Confusion confuses you for 5+d10 turns.
+  - Sleeping makes you fall asleep for 5+d5 turns.
+  - Speed gives you fast speed for d10 turns.
+  - Blindness and hallucination make you blind/hallucinating for 20+d20 turns.
 
 ### Interface changes
 

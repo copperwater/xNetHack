@@ -1795,25 +1795,32 @@ register struct obj *obj;
         unambiguous = TRUE;
         break;
     case POT_FULL_HEALING:
-        if (Upolyd && u.mh < u.mhmax)
-            u.mh++, g.context.botl = 1;
-        if (u.uhp < u.uhpmax)
-            u.uhp++, g.context.botl = 1;
+        if (Upolyd)
+            u.mh += 10;
+        else
+            u.uhp += 10;
         cureblind = TRUE;
         /*FALLTHRU*/
     case POT_EXTRA_HEALING:
-        if (Upolyd && u.mh < u.mhmax)
-            u.mh++, g.context.botl = 1;
-        if (u.uhp < u.uhpmax)
-            u.uhp++, g.context.botl = 1;
+        if (Upolyd)
+            u.mh += 2;
+        else
+            u.uhp += 2;
         if (!obj->cursed)
             cureblind = TRUE;
         /*FALLTHRU*/
     case POT_HEALING:
-        if (Upolyd && u.mh < u.mhmax)
-            u.mh++, g.context.botl = 1;
-        if (u.uhp < u.uhpmax)
-            u.uhp++, g.context.botl = 1;
+        if (Upolyd)
+            u.mh++;
+        else
+            u.uhp++;
+        if (u.mh > u.mhmax) {
+            u.mh = u.mhmax;
+        }
+        if (u.uhp > u.uhpmax) {
+            u.uhp = u.uhpmax;
+        }
+        g.context.botl = 1;
         if (obj->blessed)
             cureblind = TRUE;
         if (cureblind) {
@@ -1845,14 +1852,41 @@ register struct obj *obj;
         }
         break;
     case POT_HALLUCINATION:
-        You("have a momentary vision.");
-        unambiguous = TRUE;
+        if (!(dmgtype(g.youmonst.data, AD_HALU)
+              || dmgtype(g.youmonst.data, AD_STUN)
+              || g.youmonst.data == &mons[PM_VIOLET_FUNGUS])) {
+            /* This has a longer effect than other potions because the
+             * effect if quaffed is considerably longer than those other
+             * potions. Also the case for blindness vapors. */
+            if (!make_hallucinated(itimeout_incr(HHallucination, rn1(20, 20)),
+                                   TRUE, 0L)) {
+                /* either hallu is blocked, or we were already hallucinating */
+                if (Hallucination) {
+                    pline("The cosmicness around you exacerbates.");
+                }
+                else {
+                    pline("You have a momentary vision.");
+                }
+            }
+            unambiguous = TRUE;
+        }
+        else {
+            pline("Nothing seems to happen.");
+        }
+        break;
+    case POT_BOOZE:
+        /* a whiff of alcohol isn't going to instantly confuse anyone */
+        if (cansmell) {
+            /* "peculiar odor" or "puff of vapor" message printed before this */
+            pline("It smells like alcohol.");
+            unambiguous = TRUE;
+        }
         break;
     case POT_CONFUSION:
-    case POT_BOOZE:
         if (!Confusion)
             You_feel("somewhat dizzy.");
-        make_confused(itimeout_incr(HConfusion, rnd(5)), FALSE);
+        make_confused(itimeout_incr(HConfusion, rn1(10, 5)), FALSE);
+        unambiguous = TRUE;
         break;
     case POT_INVISIBILITY:
         if (!Blind && !Invis) {
@@ -1872,7 +1906,7 @@ register struct obj *obj;
     case POT_SLEEPING:
         if (!Free_action && !Sleep_resistance) {
             You_feel("rather tired.");
-            nomul(-rnd(5));
+            nomul(-rn1(5, 5));
             g.multi_reason = "sleeping off a magical draught";
             g.nomovemsg = You_can_move_again;
             exercise(A_DEX, FALSE);
@@ -1890,7 +1924,7 @@ register struct obj *obj;
             Your("knees seem more flexible now.");
         }
         unambiguous = TRUE;
-        incr_itimeout(&HFast, rnd(5));
+        incr_itimeout(&HFast, rnd(10));
         exercise(A_DEX, TRUE);
         break;
     case POT_BLINDNESS:
@@ -1898,7 +1932,7 @@ register struct obj *obj;
             pline("It suddenly gets dark.");
             unambiguous = TRUE;
         }
-        make_blinded(itimeout_incr(Blinded, rnd(5)), FALSE);
+        make_blinded(itimeout_incr(Blinded, rn1(20, 20)), FALSE);
         if (!Blind && !Unaware)
             Your1(vision_clears);
         break;
@@ -1941,6 +1975,10 @@ register struct obj *obj;
         /* FALLTHRU */
     case POT_LEVITATION:
         You_feel("slightly elevated.");
+        /* Strictly speaking, this is only unambiguous if the player has showexp
+         * turned on or has it off but gains a level in the process, but it's
+         * probably better not to make the identification here not based on the
+         * current options. */
         unambiguous = TRUE;
         break;
     case POT_SEE_INVISIBLE:
