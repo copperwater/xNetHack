@@ -219,3 +219,5 @@ changes:
   suppress more messages in certain circumstances).
 - Rearrange the logic in mm_displacement() into a series of if statements
   rather than one big if.
+- New function autoreturning_wep(), an xhity-compatible function that
+  determines if a thrown weapon should return to its user.

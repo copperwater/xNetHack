@@ -18,6 +18,7 @@ static void FDECL(check_shop_obj, (struct obj *, XCHAR_P, XCHAR_P,
 static boolean FDECL(toss_up, (struct obj *, BOOLEAN_P));
 static void FDECL(sho_obj_return_to_u, (struct obj * obj));
 static boolean FDECL(mhurtle_step, (genericptr_t, int, int));
+static boolean FDECL(autoreturning_wep, (struct obj *, struct monst *));
 
 /* g.thrownobj (decl.c) tracks an object until it lands */
 
@@ -28,11 +29,13 @@ struct obj *obj;
     if (!obj || obj == &cg.zeroobj)
         return 0;
 
-    if (obj && obj->quan == 1 &&
-        (obj == uwep || (obj == uswapwep && u.twoweap)))
+    if (obj == uwep && autoreturning_wep(uwep, &g.youmonst))
+        return 2;
+
+    if (obj->quan == 1 && (obj == uwep || (obj == uswapwep && u.twoweap)))
         return 1;
 
-    if (!obj || obj->oclass == WEAPON_CLASS || obj->oclass == COIN_CLASS)
+    if (obj->oclass == WEAPON_CLASS || obj->oclass == COIN_CLASS)
         return 2;
 
     if (uslinging() && obj->oclass == GEM_CLASS)
@@ -2397,6 +2400,40 @@ struct obj *obj;
     stackobj(obj);
     newsym(g.bhitpos.x, g.bhitpos.y);
     return 1;
+}
+
+/* Return TRUE if obj has the capacity to return when thrown (it might not
+ * actually return when thrown, but as long as it could).
+ * Note that this is for linearly autoreturning weapons, not boomerangs, which
+ * use their own code. */
+static boolean
+autoreturning_wep(obj, user)
+struct obj* obj;
+struct monst* user;
+{
+    if (!obj) {
+        impossible("autoreturning_wep: null obj");
+        return FALSE;
+    }
+    /* the only returning objects currently need to be wielded */
+    if ((obj->owornmask & W_WEP) == 0) {
+        return FALSE;
+    }
+    boolean isyou = (user == &g.youmonst);
+    /* aklyses */
+    if (obj->otyp == AKLYS) {
+        return TRUE;
+    }
+    /* Mjollnir, only if the wielder is a valkyrie */
+    if (obj->oartifact == ART_MJOLLNIR) {
+        if (isyou && Role_if(PM_VALKYRIE)) {
+            return TRUE;
+        }
+        else if (!isyou && user->data == &mons[PM_VALKYRIE]) {
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 /*dothrow.c*/
