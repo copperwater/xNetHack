@@ -152,6 +152,8 @@ changes:
 - Monsters can now generate with a potion of hallucination as an offensive
   item, and will throw it at the player. They generate with a potion of
   sleeping a little less often.
+- Monsters can displace peacefuls out of their way like the player can, unless
+  the peaceful is larger than them.
 
 ### Interface changes
 
@@ -215,3 +217,5 @@ changes:
   special message (and the caller doesn't need to print a normal hit message),
   and one for specifically printing an instakill message (for the caller to
   suppress more messages in certain circumstances).
+- Rearrange the logic in mm_displacement() into a series of if statements
+  rather than one big if.

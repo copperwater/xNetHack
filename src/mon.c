@@ -1991,22 +1991,47 @@ struct monst *magr, /* monster that is currently deciding where to move */
 {
     struct permonst *pa = magr->data, *pd = mdef->data;
 
-    /* if attacker can't barge through, there's nothing to do;
-       or if defender can barge through too and has a level at least
-       as high as the attacker, don't let attacker do so, otherwise
-       they might just end up swapping places again when defender
-       gets its chance to move */
-    if ((pa->mflags3 & M3_DISPLACES) != 0
-        && ((pd->mflags3 & M3_DISPLACES) == 0 || magr->m_lev > mdef->m_lev)
-        /* no displacing grid bugs diagonally */
-        && !(magr->mx != mdef->mx && magr->my != mdef->my
-             && NODIAG(monsndx(pd)))
-        /* no displacing trapped monsters or multi-location longworms */
-        && !mdef->mtrapped && (!mdef->wormno || !count_wsegs(mdef))
-        /* riders can move anything; others, same size or smaller only */
-        && (is_rider(pa) || pa->msize >= pd->msize))
+    /* no displacing if the moving monster is peaceful and non-tame */
+    if (magr->mpeaceful && !magr->mtame) {
+        return 0;
+    }
+
+    /* no displacing grid bugs diagonally */
+    if (magr->mx != mdef->mx && magr->my != mdef->my && NODIAG(monsndx(pd))) {
+        return 0;
+    }
+
+    /* no displacing trapped monsters or multi-location longworms */
+    if (mdef->mtrapped || (mdef->wormno && count_wsegs(mdef) > 0)) {
+        return 0;
+    }
+
+    /* riders can move anything; others, same size or smaller only */
+    if (!is_rider(pa) && pa->msize < pd->msize) {
+        return 0;
+    }
+
+    /* if defender is peaceful and non-tame, allow aggressor to displace it even
+     * if it's not is_displacer - the same as for players */
+    if (mdef->mpeaceful && !mdef->mtame) {
         return ALLOW_MDISP;
-    return 0L;
+    }
+
+    /* defender isn't peaceful and won't let attacker past willingly; if
+     * attacker can't barge through, there's nothing to do */
+    if (!is_displacer(pa)) {
+        return 0;
+    }
+
+    /* if defender can barge through too and has a level at least as high as the
+     * attacker, don't let attacker do so, otherwise they might just end up
+     * swapping places again when defender gets its chance to move */
+    if (is_displacer(pd) && mdef->m_lev >= magr->m_lev) {
+        return 0;
+    }
+
+    /* if no check above failed to block displacement, now allow it */
+    return ALLOW_MDISP;
 }
 
 /* Is the square close enough for the monster to move or attack into? */
