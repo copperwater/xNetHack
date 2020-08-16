@@ -1428,7 +1428,9 @@ struct obj *oldslot; /* for thrown-and-return used with !fixinv */
                     sho_obj_return_to_u(obj); /* display its flight */
 
                 if (!impaired && rn2(100)) {
-                    pline("%s to your hand!", Tobjnam(obj, "return"));
+                    pline("%s to your %s!", Tobjnam(obj, "return"),
+                          bimanual(obj) ? makeplural(body_part(HAND))
+                                        : body_part(HAND));
                     obj = addinv_before(obj, oldslot);
                     (void) encumber_msg();
                     /* addinv autoquivers an aklys if quiver is empty;
