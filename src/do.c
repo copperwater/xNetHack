@@ -1876,9 +1876,9 @@ boolean moldy;
         case OBJ_INVENT:
             if (is_uwep) {
                 if (moldy) {
-                    pline_The("moldy corpse in your %s grows into a %s!",
-                        body_part(HAND), canspotmon(mtmp) ? a_monnam(mtmp)
-                                                          : "a monster");
+                    pline_The("moldy %s in your %s grows into a %s!", cname,
+                              body_part(HAND), canspotmon(mtmp) ? a_monnam(mtmp)
+                                                                : "a monster");
                 }
                 else
                     pline_The("%s writhes out of your grasp!", cname);
