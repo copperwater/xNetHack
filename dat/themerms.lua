@@ -1039,7 +1039,7 @@ xxxx----xx----xxxx]], contents=function(m)
 
    -- Ozymandias' Tomb
    {
-      -- mindiff = 18,
+      mindiff = 18,
       contents = function()
          des.room({ type="themed", filled=0, w=7, h=7, contents=function()
                des.feature("throne", 3, 3)
