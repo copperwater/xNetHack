@@ -154,6 +154,8 @@ changes:
   sleeping a little less often.
 - Monsters can displace peacefuls out of their way like the player can, unless
   the peaceful is larger than them.
+- Having unchanging while turning to slime only pauses the slime timer; it does
+  not cancel the slime effect entirely.
 
 ### Interface changes
 

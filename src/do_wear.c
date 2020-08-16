@@ -796,8 +796,10 @@ Amulet_on()
     case FAKE_AMULET_OF_YENDOR:
         break;
     case AMULET_OF_UNCHANGING:
-        if (Slimed)
-            make_slimed(0L, (char *) 0);
+        if (Slimed) {
+            pline("The slime stops progressing, but does not vanish.");
+            makeknown(AMULET_OF_UNCHANGING);
+        }
         break;
     case AMULET_OF_CHANGE: {
         int orig_sex = poly_gender();
@@ -883,8 +885,12 @@ Amulet_off()
     case AMULET_VERSUS_POISON:
     case AMULET_OF_REFLECTION:
     case AMULET_OF_CHANGE:
-    case AMULET_OF_UNCHANGING:
     case FAKE_AMULET_OF_YENDOR:
+        break;
+    case AMULET_OF_UNCHANGING:
+        if (Slimed) {
+            pline("The slime resumes its progression.");
+        }
         break;
     case AMULET_OF_MAGICAL_BREATHING:
         if (Underwater) {

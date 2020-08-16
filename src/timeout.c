@@ -317,6 +317,12 @@ slime_dialogue()
 {
     register long i = (Slimed & TIMEOUT) / 2L;
 
+    if (Unchanging) {
+        /* prevent this message from showing up if sliming is suspended due to
+         * Unchanging */
+        return;
+    }
+
     if (i == 1L) {
         /* display as green slime during "You have become green slime."
            but don't worry about not being able to see self; if already
@@ -535,8 +541,21 @@ nh_timeout()
     }
 
     was_flying = Flying;
-    for (upp = u.uprops; upp < u.uprops + SIZE(u.uprops); upp++)
-        if ((upp->intrinsic & TIMEOUT) && !(--upp->intrinsic & TIMEOUT)) {
+    for (upp = u.uprops; upp < u.uprops + SIZE(u.uprops); upp++) {
+        boolean timed_out = FALSE;
+        if ((upp->intrinsic & TIMEOUT) > 0) {
+            if (!(upp - u.uprops == SLIMED && Unchanging)) {
+                /* the actual tick down; Slimed doesn't tick if you have
+                 * unchanging */
+                upp->intrinsic--;
+                if ((upp->intrinsic & TIMEOUT) == 0) {
+                    timed_out = TRUE;
+                }
+            }
+        }
+
+        /* now, did it time out? */
+        if (timed_out) {
             kptr = find_delayed_killer((int) (upp - u.uprops));
             switch (upp - u.uprops) {
             case STONED:
@@ -742,6 +761,7 @@ nh_timeout()
                 break;
             }
         }
+    }
 
     run_timers();
 }
