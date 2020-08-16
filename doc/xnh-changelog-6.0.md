@@ -156,6 +156,8 @@ changes:
   the peaceful is larger than them.
 - Having unchanging while turning to slime only pauses the slime timer; it does
   not cancel the slime effect entirely.
+- You can determine the species of a non-stale egg by listening to it with a
+  blessed stethoscope.
 
 ### Interface changes
 
@@ -226,3 +228,5 @@ changes:
   rather than one big if.
 - New function autoreturning_wep(), an xhity-compatible function that
   determines if a thrown weapon should return to its user.
+- The its_dead() function now takes a fourth argument, the stethoscope being
+  used to listen to floor objects.
