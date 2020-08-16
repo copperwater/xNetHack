@@ -181,6 +181,9 @@ changes:
 - The #conduct command (and thus the dumplog) shows how many items you have
   polymorphed during your game, outside of wizard mode.
 - Add encyclopedia entry for Ozymandias.
+- If you have nothing quivered but are wielding a weapon that can return to
+  your hand when thrown, the f (fire) command will choose that to throw (unless
+  autoquiver is on and it finds something else to quiver).
 
 ### Architectural changes
 

@@ -422,12 +422,23 @@ dofire()
         return 0;
 
     if ((obj = uquiver) == 0) {
+        /* If nothing is quivered but wielding an autoreturning weapon, pick
+         * that if we don't find anything else to throw via autoquivering. */
+        boolean returnwep = (uwep && autoreturning_wep(uwep, &g.youmonst));
         if (!flags.autoquiver) {
-            You("have no ammunition readied.");
+            if (!returnwep) {
+                You("have no ammunition readied.");
+            }
         } else {
             autoquiver();
-            if ((obj = uquiver) == 0)
+            if ((obj = uquiver) == 0 && !returnwep) {
                 You("have nothing appropriate for your quiver.");
+            }
+        }
+        /* need to check uquiver again because autoquiver might have picked
+         * something and placed it into quiver */
+        if (!uquiver && returnwep) {
+            obj = uwep;
         }
         /* if autoquiver is disabled or has failed, prompt for missile;
            fill quiver with it if it's not wielded or worn */
