@@ -159,6 +159,7 @@ changes:
   corrupting or polyinit mode does not pause sliming at all.
 - You can determine the species of a non-stale egg by listening to it with a
   blessed stethoscope.
+- Monsters will not wear objects made of a material they hate.
 
 ### Interface changes
 
