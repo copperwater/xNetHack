@@ -155,7 +155,8 @@ changes:
 - Monsters can displace peacefuls out of their way like the player can, unless
   the peaceful is larger than them.
 - Having unchanging while turning to slime only pauses the slime timer; it does
-  not cancel the slime effect entirely.
+  not cancel the slime effect entirely. Unchanging conferred by dying and
+  corrupting or polyinit mode does not pause sliming at all.
 - You can determine the species of a non-stale egg by listening to it with a
   blessed stethoscope.
 
@@ -230,3 +231,6 @@ changes:
   determines if a thrown weapon should return to its user.
 - The its_dead() function now takes a fourth argument, the stethoscope being
   used to listen to floor objects.
+- New function can_slime_with_unchanging(), which determines whether you have a
+  certain form of unchanging that should not impede turning to slime (such as
+  polyinit mode).

@@ -1766,7 +1766,8 @@ register struct attack *mattk;
         if (flaming(g.youmonst.data)) {
             pline_The("slime burns away!");
             dmg = 0;
-        } else if (Unchanging || noncorporeal(g.youmonst.data)
+        } else if ((Unchanging && !can_slime_with_unchanging())
+                   || noncorporeal(g.youmonst.data)
                    || g.youmonst.data == &mons[PM_GREEN_SLIME]) {
             You("are unaffected.");
             dmg = 0;
@@ -2153,7 +2154,8 @@ struct attack *mattk;
             /* kills the slime from the inside out */
             xkilled(mtmp, XKILL_NOMSG | XKILL_NOCORPSE | XKILL_NOCONDUCT);
             mon_killed = TRUE;
-        } else if (Unchanging || noncorporeal(g.youmonst.data)
+        } else if ((Unchanging && !can_slime_with_unchanging())
+                   || noncorporeal(g.youmonst.data)
                    || g.youmonst.data == &mons[PM_GREEN_SLIME]) {
             You("are covered in slime, but seem unaffected.");
         } else if (!Slimed) {

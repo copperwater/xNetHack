@@ -2696,6 +2696,7 @@ E void FDECL(substitute_tiles, (d_level *));
 
 /* ### timeout.c ### */
 
+E boolean NDECL(can_slime_with_unchanging);
 E void NDECL(burn_away_slime);
 E void NDECL(nh_timeout);
 E void FDECL(fall_asleep, (int, BOOLEAN_P));

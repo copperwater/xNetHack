@@ -97,6 +97,30 @@ const struct propname {
     {  0, 0 },
 };
 
+/* Someone whose only source of unchanging is polyinit mode or corruption on
+ * death can still turn into slime.
+ * TODO: Add a tracker for permanent corruption and check specifically for that
+ * and Polyinit_mode here, to guard against future ways of getting HUnchanging
+ * intrinsically.
+ */
+boolean
+can_slime_with_unchanging() {
+    /* caller should have checked this but just in case... */
+    if (!Unchanging) {
+        return TRUE;
+    }
+    /* extrinsic always blocks sliming */
+    if (EUnchanging) {
+        return FALSE;
+    }
+    /* any sources of unchanging besides FROMOUTSIDE? if so, sliming is blocked
+     */
+    if (HUnchanging & ~FROMOUTSIDE) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
 /* He is being petrified - dialogue by inmet!tower */
 static NEARDATA const char *const stoned_texts[] = {
     "You are slowing down.",            /* 5 */
@@ -317,7 +341,7 @@ slime_dialogue()
 {
     register long i = (Slimed & TIMEOUT) / 2L;
 
-    if (Unchanging) {
+    if (Unchanging && !can_slime_with_unchanging()) {
         /* prevent this message from showing up if sliming is suspended due to
          * Unchanging */
         return;
@@ -544,9 +568,12 @@ nh_timeout()
     for (upp = u.uprops; upp < u.uprops + SIZE(u.uprops); upp++) {
         boolean timed_out = FALSE;
         if ((upp->intrinsic & TIMEOUT) > 0) {
-            if (!(upp - u.uprops == SLIMED && Unchanging)) {
-                /* the actual tick down; Slimed doesn't tick if you have
-                 * unchanging */
+            /* pause sliming only if hero has unchanging and the unchanging is
+             * not obtained through e.g. polyinit mode;
+             * currently no other timeouts can be paused */
+            if (!(upp - u.uprops == SLIMED && Unchanging
+                  && !can_slime_with_unchanging())) {
+                /* the actual tick down */
                 upp->intrinsic--;
                 if ((upp->intrinsic & TIMEOUT) == 0) {
                     timed_out = TRUE;
