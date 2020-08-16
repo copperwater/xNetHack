@@ -190,6 +190,7 @@ changes:
 - If you have nothing quivered but are wielding a weapon that can return to
   your hand when thrown, the f (fire) command will choose that to throw (unless
   autoquiver is on and it finds something else to quiver).
+- Riders now have unique messages for when they resurrect.
 
 ### Architectural changes
 

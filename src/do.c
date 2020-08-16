@@ -1889,14 +1889,26 @@ boolean moldy;
 
         case OBJ_FLOOR:
             if (cansee(mtmp->mx, mtmp->my)) {
-                if (moldy)
+                if (moldy) {
                     pline("%s grows on a moldy corpse!", Amonnam(mtmp));
-                else
-                    pline("%s rises from %s!",
-                        chewed ? Adjmonnam(mtmp, "bite-covered")
-                                : Monnam(mtmp),
-                        (mtmp->data == &mons[PM_DEATH] ? "a short nap"
-                                                        : "the dead"));
+                }
+                else if (mtmp->data == &mons[PM_DEATH]) {
+                    pline("%s rises from the dead in a whirl of spectral skulls!",
+                        Monnam(mtmp));
+                }
+                else if (mtmp->data == &mons[PM_PESTILENCE]) {
+                    pline("%s rises from the dead in a churning pillar of flies!",
+                        Monnam(mtmp));
+                }
+                else if (mtmp->data == &mons[PM_FAMINE]) {
+                    pline("%s rises from the dead in a ring of withering crops!",
+                        Monnam(mtmp));
+                }
+                else {
+                    pline("%s rises from the dead!",
+                          chewed ? Adjmonnam(mtmp, "bite-covered")
+                                 : Monnam(mtmp));
+                }
             }
             break;
 
