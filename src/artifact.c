@@ -1375,7 +1375,8 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                 if (Hallucination && !flags.female)
                     pline("Good job Henry, but that wasn't Anne.");
                 if (is_reviver(mdef->data) && !is_rider(mdef->data)
-                    && !mlifesaver(mdef)) {
+                    && (!mlifesaver(mdef)
+                        || faulty_lifesaver(mlifesaver(mdef)))) {
                     /* kind of hard to revive if you've lost your head...
                      * if they'll be lifesaved, however, we shouldn't cancel
                      * them, because we assume that'll fix them. */

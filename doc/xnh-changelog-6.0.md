@@ -236,3 +236,6 @@ changes:
 - New function can_slime_with_unchanging(), which determines whether you have a
   certain form of unchanging that should not impede turning to slime (such as
   polyinit mode).
+- New function faulty_lifesaver(), which unifies the logic for deciding when an
+  amulet of life saving will fail.
+

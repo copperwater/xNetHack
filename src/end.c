@@ -1257,7 +1257,7 @@ int how;
         makeknown(AMULET_OF_LIFE_SAVING);
         Your("medallion %s!", !Blind ? "begins to glow" : "feels warm");
         /* It's cursed? Well, that's just too bad. */
-        if (uamul->cursed && !rn2(2)) {
+        if (faulty_lifesaver(uamul)) {
             pline("But... the chain on your medallion breaks and it falls to the %s!",
                   surface(u.ux, u.uy));
             You_hear(Hallucination ? "someone playing Yakety Sax!"

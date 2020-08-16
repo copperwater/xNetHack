@@ -2309,7 +2309,29 @@ struct permonst *mptr; /* reflects mtmp->data _prior_ to mtmp's death */
     iflags.purge_monsters++;
 }
 
-/* find the worn amulet of life saving which will save a monster */
+/* given an amulet of life saving, determine whether it will fail */
+boolean
+faulty_lifesaver(obj)
+struct obj* obj;
+{
+    if (!obj) {
+        impossible("faulty_lifesaver with null object");
+    }
+    if (objects[obj->otyp].oc_oprop != LIFESAVED) {
+        impossible("faulty_lifesaver with non-life-saving object");
+        return FALSE;
+    }
+    if (!obj->cursed) {
+        return FALSE;
+    }
+    return (hash1(obj->o_id) % 2 == 0);
+}
+
+/* find the worn amulet of life saving which can save a monster
+ * NOTE: this will return an amulet of life saving even if it's cursed and
+ * doomed to fail! The reason is that mlifesaver is used in various bits of code
+ * to determine whether mon has an amulet of life saving that should activate
+ * later, and we don't want it to just die as if the amulet weren't there. */
 struct obj *
 mlifesaver(mon)
 struct monst *mon;
@@ -2339,15 +2361,25 @@ struct monst *mtmp;
             pline("But wait...");
             pline("%s medallion begins to glow!", s_suffix(Monnam(mtmp)));
             makeknown(AMULET_OF_LIFE_SAVING);
-            /* amulet is visible, but monster might not be */
-            if (canseemon(mtmp)) {
-                if (attacktype(mtmp->data, AT_EXPL)
-                    || attacktype(mtmp->data, AT_BOOM))
-                    pline("%s reconstitutes!", Monnam(mtmp));
-                else
-                    pline("%s looks much better!", Monnam(mtmp));
+            if (faulty_lifesaver(lifesave)) {
+                pline("But the chain breaks and it falls to the %s!",
+                      surface(mtmp->mx, mtmp->my));
+                m_useup(mtmp, lifesave);
+                pline("%s %s after all.", Monnam(mtmp),
+                      !nonliving(mtmp->data) ? "dies" : "is destroyed");
+                return;
             }
-            pline_The("medallion crumbles to dust!");
+            else {
+                /* amulet is visible, but monster might not be */
+                if (canseemon(mtmp)) {
+                    if (attacktype(mtmp->data, AT_EXPL)
+                        || attacktype(mtmp->data, AT_BOOM))
+                        pline("%s reconstitutes!", Monnam(mtmp));
+                    else
+                        pline("%s looks much better!", Monnam(mtmp));
+                }
+                pline_The("medallion crumbles to dust!");
+            }
         }
         m_useup(mtmp, lifesave);
         /* equip replacement amulet, if any, on next move */

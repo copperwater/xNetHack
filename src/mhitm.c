@@ -1468,7 +1468,7 @@ int dieroll;
          * If it's determined later that the zombie revival process should
          * happen less than 100% of the time, add a limiting clause here. */
         if (zombie_maker(pa) && zombie_form(pd) != NON_PM
-            && !mlifesaver(mdef)) {
+            && (!mlifesaver(mdef) || faulty_lifesaver(mlifesaver(mdef)))) {
             if (canspotmon(mdef)) {
                 /* Since we're not going to call monkilled, need to give the
                  * standard killed message here.
