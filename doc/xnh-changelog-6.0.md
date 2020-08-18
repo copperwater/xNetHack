@@ -160,6 +160,9 @@ changes:
 - You can determine the species of a non-stale egg by listening to it with a
   blessed stethoscope.
 - Monsters will not wear objects made of a material they hate.
+- Monsters will not equip gear when they think the player is close by.
+- Monsters can no longer start equipping gear in zero turns after doing other
+  actions.
 
 ### Interface changes
 
@@ -239,4 +242,6 @@ changes:
   polyinit mode).
 - New function faulty_lifesaver(), which unifies the logic for deciding when an
   amulet of life saving will fail.
-
+- New function check_gear_next_turn(), which sets a flag on a monster that it
+  should reassess its worn equipment for anything better at the beginning of its
+  next turn.

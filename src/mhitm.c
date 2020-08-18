@@ -1344,7 +1344,7 @@ int dieroll;
                 update_mon_intrinsics(mdef, obj, FALSE, FALSE);
                 /* give monster a chance to wear other equipment on its next
                    move instead of waiting until it picks something up */
-                mdef->misc_worn_check |= I_SPECIAL;
+                check_gear_next_turn(mdef);
             }
             /* add_to_minv() might free 'obj' [if it merges] */
             if (g.vis)

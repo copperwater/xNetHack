@@ -1712,7 +1712,7 @@ struct monst * mdef;
         update_mon_intrinsics(mdef, obj, FALSE, FALSE);
         /* give monster a chance to wear other equipment on its next
            move instead of waiting until it picks something up */
-        mdef->misc_worn_check |= I_SPECIAL;
+        check_gear_next_turn(mdef);
     }
     /* give the object to the character */
     obj = hold_another_object(obj, "You snatched but dropped %s.",
