@@ -166,6 +166,7 @@ changes:
 - Cancelled thiefstones can be reactivated by dipping them in a non-cursed
   potion of restore ability. This will key them to the level and space where
   the player is currently standing.
+- Monkeys get a short, one-time burst of speed after stealing an item.
 
 ### Interface changes
 

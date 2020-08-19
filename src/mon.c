@@ -998,8 +998,6 @@ movemon()
             continue;
 
         mtmp->movement -= NORMAL_SPEED;
-        if (mtmp->movement >= NORMAL_SPEED)
-            somebody_can_move = TRUE;
 
         if (g.vision_full_recalc)
             vision_recalc(0); /* vision! */
@@ -1063,8 +1061,14 @@ movemon()
                 && fightm(mtmp))
                 continue; /* mon might have died */
         }
-        if (dochugw(mtmp)) /* otherwise just move the monster */
-            continue;
+        if (dochugw(mtmp))
+            continue; /* otherwise just move the monster */
+
+        /* this check used to be directly after subtracting NORMAL_SPEED, but
+         * since monsters can sometimes gain extra movement points during the
+         * dochugw call chain, it needs to be checked at the end */
+        if (mtmp->movement >= NORMAL_SPEED)
+            somebody_can_move = TRUE;
     }
 
     if (any_light_source())
