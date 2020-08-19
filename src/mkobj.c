@@ -1372,7 +1372,7 @@ register struct obj *otmp;
         if (!already_cursed)
             book_cursed(otmp);
     }
-    if (otmp->owornmask && !already_cursed) {
+    if (otmp->where == OBJ_INVENT && otmp->owornmask && !already_cursed) {
         cursed_gear_welds(otmp);
     }
     if (otmp->lamplit)
