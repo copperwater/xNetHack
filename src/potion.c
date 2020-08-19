@@ -2410,6 +2410,21 @@ dodip()
         useup(potion);
         return 1;
     }
+
+    /* resetting a cancelled thiefstone */
+    if (potion->otyp == POT_RESTORE_ABILITY
+        && obj->otyp == THIEFSTONE && obj->keyed_ledger == 0
+        && !In_endgame(&u.uz)) { /* thiefstones can't key to endgame levels */
+        if (potion->cursed) {
+            pline("%s.", Tobjnam(obj, "twitch"));
+        }
+        else {
+            obj->keyed_ledger = ledger_no(&u.uz);
+            set_keyed_loc(obj, u.ux, u.uy);
+            pline("%s for an instant.", Tobjnam(obj, "quiver"));
+        }
+        goto poof;
+    }
  more_dips:
 
     /* Allow filling of MAGIC_LAMPs to prevent identification by player */

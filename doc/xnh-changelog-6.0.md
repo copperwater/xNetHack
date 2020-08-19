@@ -163,6 +163,9 @@ changes:
 - Monsters will not equip gear when they think the player is close by.
 - Monsters can no longer start equipping gear in zero turns after doing other
   actions.
+- Cancelled thiefstones can be reactivated by dipping them in a non-cursed
+  potion of restore ability. This will key them to the level and space where
+  the player is currently standing.
 
 ### Interface changes
 
