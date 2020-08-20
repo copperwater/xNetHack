@@ -2009,6 +2009,8 @@ int otyp;
             otmp->cursed = FALSE;
             if (otmp->spe < 0)
                 otmp->spe = 0;
+            otmp->oeroded = 0;
+            otmp->oeroded2 = 0;
             otmp->oerodeproof = TRUE;
         } else if (is_mplayer(mtmp->data) && is_sword(otmp)) {
             otmp->spe = (3 + rn2(4));
@@ -2032,11 +2034,15 @@ int otyp;
                 otmp->spe = 1;
             else if (otmp->oclass == ARMOR_CLASS && otmp->spe < 0)
                 otmp->spe = 0;
+            otmp->oeroded = 0;
+            otmp->oeroded2 = 0;
         }
         else if (is_lord(mtmp->data)) {
             if ((otmp->oclass == WEAPON_CLASS || otmp->oclass == ARMOR_CLASS)
                 && otmp->spe < 0)
                 otmp->spe = 0;
+            otmp->oeroded = 0;
+            otmp->oeroded2 = 0;
         }
 
         /* if mtmp would hate the material of the object they're getting,

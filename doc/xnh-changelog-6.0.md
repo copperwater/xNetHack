@@ -167,6 +167,7 @@ changes:
   potion of restore ability. This will key them to the level and space where
   the player is currently standing.
 - Monkeys get a short, one-time burst of speed after stealing an item.
+- 1/40 of randomly generated erodable items will have some amount of erosion.
 
 ### Interface changes
 

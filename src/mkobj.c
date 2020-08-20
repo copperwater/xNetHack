@@ -798,9 +798,29 @@ boolean artif;
 
             if (artif && !rn2(20))
                 otmp = mk_artifact(otmp, (aligntyp) A_NONE);
-            else if (!rn2(40))
-                otmp->oerodeproof = 1;
+            else if (is_damageable(otmp) && erosion_matters(otmp)) {
+                /* A small fraction of non-artifact items will generate eroded
+                 * or possibly erodeproof. An item that generates eroded will
+                 * never be erodeproof, and vice versa. */
+                if (!rn2(40)) {
+                    otmp->oerodeproof = 1;
+                }
+                else if (!rn2(40)) {
+                    if (is_flammable(otmp) || is_rustprone(otmp)) {
+                        do {
+                            otmp->oeroded++;
+                        } while (otmp->oeroded < 3 && !rn2(9));
+                    }
+                    if (is_rottable(otmp) || is_corrodeable(otmp)) {
+                        do {
+                            otmp->oeroded2++;
+                        } while (otmp->oeroded2 < 3 && !rn2(9));
+                    }
+                }
+            }
 
+            /* check oartifact here because mk_artifact isn't guaranteed to
+             * create an artifact */
             if (!otmp->oartifact && !otmp->cursed
                 && (otmp->spe + otmp->oerodeproof > rnd(5)))
                 otmp = weapon_oname(otmp);
