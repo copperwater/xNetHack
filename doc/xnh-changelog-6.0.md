@@ -168,6 +168,10 @@ changes:
   the player is currently standing.
 - Monkeys get a short, one-time burst of speed after stealing an item.
 - 1/40 of randomly generated erodable items will have some amount of erosion.
+- Lieutenants count as lords, preventing them from getting bad gear and
+  increasing their multishot by 1.
+- Captains count as princes, giving them slightly better gear and increasing
+  their multishot by 2.
 
 ### Interface changes
 

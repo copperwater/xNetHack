@@ -2403,14 +2403,14 @@ struct permonst _mons2[] = {
           NO_ATTK, NO_ATTK, NO_ATTK),
         SIZ(WT_HUMAN, 400, MS_SOLDIER, MZ_HUMAN), 0, 0,
         M1_HUMANOID | M1_OMNIVORE, M2_NOPOLY | M2_HUMAN | M2_MERC | M2_STALK
-                                       | M2_HOSTILE | M2_STRONG | M2_COLLECT,
+                             | M2_LORD | M2_HOSTILE | M2_STRONG | M2_COLLECT,
         M3_INFRAVISIBLE, 12, CLR_GREEN),
     MON("captain", S_HUMAN, LVL(12, 10, 10, 15, -5), (G_GENO | 1),
         A(ATTK(AT_WEAP, AD_PHYS, 4, 4), ATTK(AT_WEAP, AD_PHYS, 4, 4), NO_ATTK,
           NO_ATTK, NO_ATTK, NO_ATTK),
         SIZ(WT_HUMAN, 400, MS_SOLDIER, MZ_HUMAN), 0, 0,
         M1_HUMANOID | M1_OMNIVORE, M2_NOPOLY | M2_HUMAN | M2_MERC | M2_STALK
-                                       | M2_HOSTILE | M2_STRONG | M2_COLLECT,
+                           | M2_PRINCE | M2_HOSTILE | M2_STRONG | M2_COLLECT,
         M3_INFRAVISIBLE, 14, CLR_BLUE),
     MON("watchman", S_HUMAN, LVL(6, 10, 10, 0, -2),
         (G_SGROUP | G_NOGEN | G_GENO | 1),
