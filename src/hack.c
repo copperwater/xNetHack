@@ -2465,42 +2465,9 @@ boolean pick;
     if ((mtmp = m_at(u.ux, u.uy)) && !u.uswallow) {
         mtmp->mundetected = mtmp->msleeping = 0;
         switch (mtmp->data->mlet) {
-        case S_PIERCER: {
-            int dmg = d(4, 6);
-            if (Half_physical_damage)
-                dmg = (dmg + 1) / 2;
-            pline("%s suddenly drops from the %s!", Amonnam(mtmp),
-                  ceiling(u.ux, u.uy));
-            if (mtmp->mtame) { /* jumps to greet you, not attack */
-                ;
-            } else if (u.uac + 3 <= rnd(20)) {
-                You("are almost hit by %s!",
-                    x_monnam(mtmp, ARTICLE_A, "falling", 0, TRUE));
-            } else if (uarmh) {
-                if (breaktest(uarmh) && (mtmp->data == &mons[PM_GLASS_PIERCER]
-                                         && uarmh->material == GLASS)) {
-                    struct obj* helm = uarmh;
-                    pline("It pierces and shatters your helm!");
-                    setworn(NULL, W_ARMH);
-                    update_inventory();
-                    breakobj(helm, u.ux, u.uy, FALSE, TRUE);
-                    /* glass piercer actually piercing glass. Give it some bonus
-                     * damage. */
-                    dmg += rnd(6);
-                }
-                else if (is_hard(uarmh)) {
-                    pline("Its blow glances off your %s.",
-                        helm_simple_name(uarmh));
-                    dmg = (dmg + 1) / 2;
-                }
-                mdamageu(mtmp, dmg);
-            } else {
-                You("are hit by %s!",
-                    x_monnam(mtmp, ARTICLE_A, "falling", 0, TRUE));
-                mdamageu(mtmp, dmg);
-            }
+        case S_PIERCER:
+            piercer_hit(mtmp, &g.youmonst);
             break;
-        }
         default: /* monster surprises you. */
             if (mtmp->mtame)
                 pline("%s jumps near you from the %s.", Amonnam(mtmp),

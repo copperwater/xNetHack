@@ -172,6 +172,8 @@ changes:
   increasing their multishot by 1.
 - Captains count as princes, giving them slightly better gear and increasing
   their multishot by 2.
+- The chance of a falling piercer missing its target is now a Dex% chance for
+  the player, and monster speed% chance for monsters.
 
 ### Interface changes
 
@@ -254,3 +256,5 @@ changes:
 - New function check_gear_next_turn(), which sets a flag on a monster that it
   should reassess its worn equipment for anything better at the beginning of its
   next turn.
+- New function piercer_hit(), an xhity-compatible function that handles what
+  happens when a piercer attacks something by falling.
