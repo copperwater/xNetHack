@@ -7,15 +7,6 @@
 extern "C" {
 #include "hack.h"
 }
-#undef Invisible
-#undef Warning
-#undef index
-#undef msleep
-#undef rindex
-#undef wizard
-#undef yn
-#undef min
-#undef max
 
 #include "qt_pre.h"
 #include <QtGui/QtGui>
@@ -119,9 +110,27 @@ NetHackQtBind::NetHackQtBind(int& argc, char** argv) :
     } else {
 	splash = 0;
     }
+
+    // these used to be in MainWindow but we want them before QtSettings
+    // which we want before MainWindow...
+    QCoreApplication::setOrganizationName("The NetHack DevTeam");
+    QCoreApplication::setOrganizationDomain("nethack.org");
+    QCoreApplication::setApplicationName("NetHack-Qt"); // Qt NetHack
+    {
+        char cvers[BUFSZ];
+        QString qvers = version_string(cvers);
+        QCoreApplication::setApplicationVersion(qvers);
+    }
+#ifdef MACOSX
+    /* without this, neither control+x nor option+x do anything;
+       with it, control+x is ^X and option+x still does nothing */
+    QCoreApplication::setAttribute(Qt::AA_MacDontSwapCtrlAndMeta);
+#endif
+
+    qt_settings = new NetHackQtSettings(); /*(main->width(),main->height());*/
+
     main = new NetHackQtMainWindow(keybuffer);
     connect(qApp, SIGNAL(lastWindowClosed()), qApp, SLOT(quit()));
-    qt_settings=new NetHackQtSettings(main->width(),main->height());
     msgs_strings = new QStringList();
     msgs_initd = false;
     msgs_saved = false;
@@ -191,14 +200,16 @@ void NetHackQtBind::qt_askname()
     free_saved_games(saved);
 
     switch (ch) {
-      case -1:
-	if ( splash ) splash->hide();
-	if (NetHackQtPlayerSelector(keybuffer).Choose())
-	    return;
-      case -2:
-	break;
-      default:
-	return;
+    case -1:
+        if (splash)
+            splash->hide();
+        if (NetHackQtPlayerSelector(keybuffer).Choose())
+            return;
+        /*FALLTHRU*/
+    case -2:
+        break;
+    default:
+        return;
     }
 
     // Quit
@@ -254,22 +265,30 @@ winid NetHackQtBind::qt_create_nhwindow(int type)
     NetHackQtWindow* window=0;
 
     switch (type) {
-     case NHW_MAP: {
+    case NHW_MAP: {
 	NetHackQtMapWindow2* w=new NetHackQtMapWindow2(clickbuffer);
 	main->AddMapWindow(w);
 	window=w;
-    } break; case NHW_MESSAGE: {
+        break;
+    }
+    case NHW_MESSAGE: {
 	NetHackQtMessageWindow* w=new NetHackQtMessageWindow;
 	main->AddMessageWindow(w);
 	window=w;
-    } break; case NHW_STATUS: {
+        break;
+    }
+    case NHW_STATUS: {
 	NetHackQtStatusWindow* w=new NetHackQtStatusWindow;
 	main->AddStatusWindow(w);
 	window=w;
-    } break; case NHW_MENU:
+        break;
+    }
+    case NHW_MENU:
 	window=new NetHackQtMenuOrTextWindow(mainWidget());
-    break; case NHW_TEXT:
+        break;
+    case NHW_TEXT:
 	window=new NetHackQtTextWindow(mainWidget());
+        break;
     }
 
     window->nhid = id;
@@ -281,8 +300,7 @@ winid NetHackQtBind::qt_create_nhwindow(int type)
 #else
 	&& main->isVisible()
 #endif
-	)
-    {
+	) {
 	delete splash;
 	splash = 0;
     }
@@ -805,7 +823,7 @@ struct window_procs Qt_procs = {
 
 #ifndef WIN32
 #if defined(USER_SOUNDS) && !defined(QT_NO_SOUND)
-extern "C" void play_usersound(const char* filename, int volume)
+extern "C" void play_usersound(const char* filename, int volume UNUSED)
 #else
 extern "C" void play_usersound(const char* filename UNUSED, int volume UNUSED)
 #endif

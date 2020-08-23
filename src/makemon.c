@@ -1,4 +1,4 @@
-/* NetHack 3.6	makemon.c	$NHDT-Date: 1594771378 2020/07/15 00:02:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.174 $ */
+/* NetHack 3.7	makemon.c	$NHDT-Date: 1596498176 2020/08/03 23:42:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.177 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1038,19 +1038,23 @@ int mndx;
     }
 }
 
+static const struct mextra zeromextra = DUMMY;
+
+static void
+init_mextra(mex)
+struct mextra *mex;
+{
+    *mex = zeromextra;
+    mex->mcorpsenm = NON_PM;
+}
+
 struct mextra *
 newmextra()
 {
     struct mextra *mextra;
 
     mextra = (struct mextra *) alloc(sizeof(struct mextra));
-    mextra->mname = 0;
-    mextra->egd = 0;
-    mextra->epri = 0;
-    mextra->eshk = 0;
-    mextra->emin = 0;
-    mextra->edog = 0;
-    mextra->mcorpsenm = NON_PM;
+    init_mextra(mextra);
     return mextra;
 }
 

@@ -1,4 +1,4 @@
-# NetHack 3.6 sysconf $NHDT-Date: 1589575728 2020/05/15 20:48:48 $ $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.38 $
+# NetHack 3.7 sysconf $NHDT-Date: 1596498296 2020/08/03 23:44:56 $ $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.39 $
 # Copyright (c) 2015 by Kenneth Lorber, Kensington, Maryland
 # NetHack may be freely redistributed.  See license for details.
 #
@@ -53,7 +53,7 @@ MAXPLAYERS=0
 
 # If not null, added to string "To get local support, " in the support
 # information help.
-SUPPORT=Contact K2 on freenode irc channel #hardfought
+SUPPORT=Contact K2 or Tangles on freenode irc channel #hardfought
 
 # If not null, displayed at the end of a panic-save sequence.
 #RECOVER=Run the recover program.

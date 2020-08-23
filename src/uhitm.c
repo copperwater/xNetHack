@@ -1,4 +1,4 @@
-/* NetHack 3.6	uhitm.c	$NHDT-Date: 1595621524 2020/07/24 20:12:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.238 $ */
+/* NetHack 3.7	uhitm.c	$NHDT-Date: 1596498221 2020/08/03 23:43:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.240 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1982,6 +1982,10 @@ int specialdmg; /* blessed and/or silver bonus against various things */
 
         if (g.notonhead || !has_head(pd)) {
             pline("%s doesn't seem harmed.", Monnam(mdef));
+            /* hero should skip remaining AT_TENT+AD_DRIN attacks
+               because they'll be just as harmless as this one (and also
+               to reduce verbosity) */
+            g.skipdrin = TRUE;
             tmp = 0;
             if (!Unchanging && pd == &mons[PM_GREEN_SLIME]) {
                 if (!Slimed) {
@@ -2448,9 +2452,13 @@ register struct monst *mon;
     }
     multi_claw = (multi_claw > 1); /* switch from count to yes/no */
 
+    g.skipdrin = FALSE; /* [see mattackm(mhitm.c)] */
+
     for (i = 0; i < NATTK; i++) {
         /* sum[i] = 0; -- now done above */
         mattk = getmattk(&g.youmonst, mon, i, sum, &alt_attk);
+        if (g.skipdrin && mattk->aatyp == AT_TENT && mattk->adtyp == AD_DRIN)
+            continue;
         weapon = 0;
         switch (mattk->aatyp) {
         case AT_WEAP:

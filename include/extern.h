@@ -1,4 +1,4 @@
-/* NetHack 3.6	extern.h	$NHDT-Date: 1594168620 2020/07/08 00:37:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.851 $ */
+/* NetHack 3.7	extern.h	$NHDT-Date: 1597069374 2020/08/10 14:22:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.855 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -205,6 +205,7 @@ E void FDECL(random_response, (char *, int));
 E int NDECL(rnd_extcmd_idx);
 E int NDECL(domonability);
 E char FDECL(cmd_from_func, (int NDECL((*))));
+E const char *FDECL(cmdname_from_func, (int NDECL((*)), char *, BOOLEAN_P));
 E boolean FDECL(redraw_cmd, (CHAR_P));
 E const char *FDECL(levltyp_to_name, (int));
 #ifdef USE_TRAMPOLI
@@ -1055,6 +1056,7 @@ E int FDECL(ggetobj, (const char *, int (*)(OBJ_P), int,
                       BOOLEAN_P, unsigned *));
 E int FDECL(askchain, (struct obj **, const char *, int, int (*)(OBJ_P),
                        int (*)(OBJ_P), int, const char *));
+E void FDECL(set_cknown_lknown, (struct obj *));
 E void FDECL(fully_identify_obj, (struct obj *));
 E int FDECL(identify, (struct obj *));
 E int FDECL(count_unidentified, (struct obj *));
@@ -2168,6 +2170,8 @@ E long NDECL(random);
 
 E void FDECL(learnscroll, (struct obj *));
 E char *FDECL(tshirt_text, (struct obj *, char *));
+E const char *FDECL(candy_wrapper_text, (struct obj *));
+E void FDECL(assign_candy_wrapper, (struct obj *));
 E int NDECL(doread);
 E boolean FDECL(is_chargeable, (struct obj *));
 E void FDECL(recharge, (struct obj *, int));
