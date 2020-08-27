@@ -528,10 +528,6 @@ struct monst *mtmp;
                                : "%s imitating %s",
                 realnm, shape);
         mptr = mtmp->data; /* reset for mimicker case */
-#ifdef TRACK_REVENANTS
-    } else if (is_bones_monster(mptr)) {
-        Strcpy(buf, m_monnam(mtmp));
-#endif
     } else if (mtmp->isshk) {
         const char *shknm = shkname(mtmp),
                    *honorific = shkname_is_pname(mtmp) ? ""
