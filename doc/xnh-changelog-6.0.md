@@ -174,6 +174,8 @@ changes:
   their multishot by 2.
 - The chance of a falling piercer missing its target is now a Dex% chance for
   the player, and monster speed% chance for monsters.
+- Monsters fighting the player in melee with weapon attacks will use ranged
+  weapons if they have no melee weapon available.
 
 ### Interface changes
 
@@ -258,3 +260,5 @@ changes:
   next turn.
 - New function piercer_hit(), an xhity-compatible function that handles what
   happens when a piercer attacks something by falling.
+- The thrwmu function now returns boolean instead of void, used to determine
+  whether the monster actually took any action.

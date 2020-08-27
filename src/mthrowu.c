@@ -887,8 +887,9 @@ struct obj *obj;
     }
 }
 
-/* monster attempts ranged weapon attack against player */
-void
+/* monster attempts ranged weapon attack against player
+ * returns TRUE if it did something; FALSE if it decided not to attack */
+boolean
 thrwmu(mtmp)
 struct monst *mtmp;
 {
@@ -901,22 +902,22 @@ struct monst *mtmp;
         mtmp->weapon_check = NEED_RANGED_WEAPON;
         /* mon_wield_item resets weapon_check as appropriate */
         if (mon_wield_item(mtmp) != 0)
-            return;
+            return TRUE;
     }
 
     /* Pick a weapon */
     otmp = select_rwep(mtmp);
     if (!otmp)
-        return;
+        return FALSE;
 
     if (is_pole(otmp)) {
         int dam, hitv;
 
         if (otmp != MON_WEP(mtmp))
-            return; /* polearm must be wielded */
+            return FALSE; /* polearm must be wielded */
         if (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) > POLE_LIM
             || !couldsee(mtmp->mx, mtmp->my))
-            return; /* Out of range, or intervening wall */
+            return FALSE; /* Out of range, or intervening wall */
 
         if (canseemon(mtmp)) {
             onm = xname(otmp);
@@ -936,7 +937,7 @@ struct monst *mtmp;
 
         (void) thitu(hitv, dam, &otmp, (char *) 0);
         stop_occupation();
-        return;
+        return TRUE;
     }
 
     x = mtmp->mx;
@@ -949,11 +950,12 @@ struct monst *mtmp;
     if (!lined_up(mtmp)
         || (URETREATING(x, y)
             && rn2(BOLT_LIM - distmin(x, y, mtmp->mux, mtmp->muy))))
-        return;
+        return FALSE;
 
     mwep = MON_WEP(mtmp); /* wielded weapon */
     monshoot(mtmp, otmp, mwep); /* multishot shooting or throwing */
     nomul(0);
+    return TRUE;
 }
 
 /* monster spits substance at you */
