@@ -1304,16 +1304,19 @@ struct obj * wpn;
         "%s of Redress",  "%s of Fate",    "%s of Punition", "%s of Reckoning",
         "%s of Omen",     "%s of Truth",   "%s of Virtue",   "%s of Bloodlust",
         "%s of Disaster", "%s of Torment", "%s of Doom",     "%s of the Gods",
-        "%s of the Horde","%s of Gilgamesh","%s of the Planes",
+        "%s of the Horde","%s of Gilgamesh","%s of the Planes", "%s of Love",
         "%s of Excellence", "%s of Vengeance", "%s of Swift Defeat",
-        "%s of Protection", "%s of Insanity",
+        "%s of Protection", "%s of Insanity",  "%s of a Quarrel",
+        "%s of Paranoia", "%s of Grace",   "%s of Respect",  "%s of Hubris",
         "Righteous %s",   "Mighty %s",     "Unstoppable %s", "Sacred %s",
         "Holy %s",        "Lucky %s",      "Dudley's %s",    "Chaos %s",
         "Hungry %s",      "Inexorable %s", "Virtuous %s",    "Death %s",
         "Unlimited %s",   "Infinite %s",   "Chaos %s",       "Peerless %s",
+        "Elegant %s", "Artful %s", "Wicked %s", "Clever %s", "Smoking %s",
         "Due Process",    "Puddingbane",   "Vladsbane",      "Newtsbane",
         "Monster Slayer", "Orphan Maker",  "Aggressive Negotiation",
-        "Old Reliable",   "Punisher",      "Barman's Friend"
+        "Old Reliable",   "Punisher",      "Barman's Friend", "Vagabond",
+        "Juice Maker",    "Blood Pulper",  "Demogorgon's Toothpick"
     };
 
     char buf[BUFSZ];
