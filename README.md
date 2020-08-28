@@ -32,3 +32,9 @@ The ideas and proposals that xNetHack draws from are archived on [the NetHack
 YANI Archive](https://nethack-yanis.github.io), which is maintained by the
 xNetHack author.
 
+## Installation
+
+For installation instructions, please refer to the `README` file also found in
+this directory, which is the unchanged README provided by the NetHack devteam.
+It will direct you to the appropriate documentation for your system, in
+particular the `sys/*/Install.*` files.
