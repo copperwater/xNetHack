@@ -771,6 +771,9 @@ register struct monst *mtmp;
         if (ptr == &mons[PM_LEPRECHAUN]) {
             mkmonmoney(mtmp, (long) d(level_difficulty(), 30));
         }
+        if (ptr == &mons[PM_QUASIT] && !rn2(4)) {
+            mtmp->minvis = mtmp->perminvis = 1;
+        }
         break;
     case S_DEMON:
         /* moved here from m_initweap() because these don't

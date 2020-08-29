@@ -178,6 +178,13 @@ changes:
   weapons if they have no melee weapon available.
 - Candles, lamps, and other ignitable things can be ignited by sources of fire
   (typically in situations when other burnables also catch fire).
+- Quasits are buffed:
+  - Speed raised from 15 to 18.
+  - Their bite attacks can drain 1d4 points of Dexterity (up from 1d2).
+  - They generate in small groups.
+  - 25% of them generate invisible.
+  - They can see invisible.
+  - Difficulty is raised from 7 to 9.
 
 ### Interface changes
 
