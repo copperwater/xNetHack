@@ -176,6 +176,8 @@ changes:
   the player, and monster speed% chance for monsters.
 - Monsters fighting the player in melee with weapon attacks will use ranged
   weapons if they have no melee weapon available.
+- Candles, lamps, and other ignitable things can be ignited by sources of fire
+  (typically in situations when other burnables also catch fire).
 
 ### Interface changes
 
@@ -262,3 +264,5 @@ changes:
   happens when a piercer attacks something by falling.
 - The thrwmu function now returns boolean instead of void, used to determine
   whether the monster actually took any action.
+- New function ignite_items, which makes items in an object chain (candles,
+  lamps, etc) light on fire.

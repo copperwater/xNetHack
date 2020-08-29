@@ -1030,6 +1030,7 @@ int dieroll;
         }
         /* only potions damage resistant players in destroy_item */
         tmp += destroy_mitem(mdef, POTION_CLASS, AD_FIRE);
+        ignite_items(mdef->minvent);
         break;
     case AD_COLD:
         if (cancelled) {

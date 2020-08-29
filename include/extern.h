@@ -2809,6 +2809,7 @@ E boolean NDECL(lava_effects);
 E void NDECL(sink_into_lava);
 E void NDECL(sokoban_guilt);
 E const char * FDECL(trapname, (int, BOOLEAN_P));
+E void FDECL(ignite_items, (struct obj *));
 
 /* ### u_init.c ### */
 
