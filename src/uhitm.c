@@ -849,9 +849,11 @@ int dieroll;
                      * guaranteed from the above if) */
                     tmp -= weapon_dam_bonus(uwep);
                 }
-                else if (mon->mflee && Role_if(PM_ROGUE) && !Upolyd
+                else if (Role_if(PM_ROGUE) && !Upolyd && hand_to_hand
                            /* multi-shot throwing is too powerful here */
-                           && hand_to_hand) {
+                         && (mon->mflee || mon->mtrapped || mon->mfrozen
+                             || !mon->mcanmove || mon->msleeping || mon->mstun
+                             || mon->mconf || mon->mblinded)) {
                     /* Cap the contribution of ulevel based on skill level.
                      * Restricted (or no associated skill) - d2 maximum
                      * Unskilled                           - d4 maximum
@@ -862,6 +864,29 @@ int dieroll;
                      * tied to ulevel.
                      */
                     int cap = 2, bonus = 0;
+                    const char *adjective, *adverb1, *adverb2;
+                    adjective = NULL; /* not "" because it goes to adj_monnam */
+                    adverb1 = "deftly ";
+                    adverb2 = "";
+                    /* "You [adverb1] strike the [adjective] foo [adverb2]!" */
+                    if (mon->msleeping) {
+                        adjective = "sleeping";
+                    }
+                    else if (mon->mblinded) {
+                        adjective = "blinded";
+                    }
+                    else if (mon->mconf || mon->mstun) {
+                        adjective = "off-balance";
+                    }
+                    else if (mon->mtrapped || mon->mfrozen || !mon->mcanmove) {
+                        adjective = "helpless";
+                    }
+                    else if (mon->mflee) {
+                        adverb1 = "";
+                        adverb2 = " from behind";
+                    }
+                    You("%sstrike %s%s!", adverb1, adj_monnam(mon, adjective),
+                        adverb2);
                     if ((wtype = uwep_skill_type()) != P_NONE) {
                         if (P_SKILL(wtype) == P_UNSKILLED) {
                             cap = 4;
@@ -874,7 +899,6 @@ int dieroll;
                     if (u.ulevel < cap) {
                         cap = u.ulevel; /* e.g. Expert but only XL 10 */
                     }
-                    You("strike %s from behind!", mon_nam(mon));
                     tmp += rnd(cap) + bonus;
                     hittxt = TRUE;
                 } else if (dieroll == 2 && obj == uwep
