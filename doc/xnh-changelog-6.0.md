@@ -185,6 +185,9 @@ changes:
   - 25% of them generate invisible.
   - They can see invisible.
   - Difficulty is raised from 7 to 9.
+- The amount of backstab bonus Rogues can get is capped based on their skill
+  level in the weapon they attack with, but also gains a flat bonus based on
+  skill level.
 
 ### Interface changes
 

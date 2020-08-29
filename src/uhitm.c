@@ -852,8 +852,30 @@ int dieroll;
                 else if (mon->mflee && Role_if(PM_ROGUE) && !Upolyd
                            /* multi-shot throwing is too powerful here */
                            && hand_to_hand) {
+                    /* Cap the contribution of ulevel based on skill level.
+                     * Restricted (or no associated skill) - d2 maximum
+                     * Unskilled                           - d4 maximum
+                     * Basic                               - d10 maximum
+                     * Skilled                             - d20 maximum
+                     * Expert                              - d30 maximum
+                     * Then give Basic and above a small flat bonus that is not
+                     * tied to ulevel.
+                     */
+                    int cap = 2, bonus = 0;
+                    if ((wtype = uwep_skill_type()) != P_NONE) {
+                        if (P_SKILL(wtype) == P_UNSKILLED) {
+                            cap = 4;
+                        }
+                        else {
+                            cap = (P_SKILL(wtype) - 1) * 10;
+                            bonus = P_SKILL(wtype) - 1;
+                        }
+                    }
+                    if (u.ulevel < cap) {
+                        cap = u.ulevel; /* e.g. Expert but only XL 10 */
+                    }
                     You("strike %s from behind!", mon_nam(mon));
-                    tmp += rnd(u.ulevel);
+                    tmp += rnd(cap) + bonus;
                     hittxt = TRUE;
                 } else if (dieroll == 2 && obj == uwep
                            && obj->oclass == WEAPON_CLASS
