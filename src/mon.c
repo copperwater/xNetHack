@@ -2500,7 +2500,8 @@ register struct monst *mtmp;
     }
 
     if (be_sad)
-        You("have a sad feeling for a moment, then it passes.");
+        You("have a %s feeling for a moment, then it passes.",
+            Hallucination ? "woebegone" : "sad");
 
     /* dead vault guard is actually kept at coordinate <0,0> until
        his temporary corridor to/from the vault has been removed;
@@ -2955,7 +2956,8 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
     }
 
     if (be_sad)
-        You("have a sad feeling for a moment, then it passes.");
+        You("have a %s feeling for a moment, then it passes.",
+            Hallucination ? "woebegone" : "sad");
 
     mdat = mtmp->data; /* note: mondead can change mtmp->data */
     mndx = monsndx(mdat);

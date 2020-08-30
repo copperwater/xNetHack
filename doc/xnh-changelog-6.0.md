@@ -223,6 +223,7 @@ changes:
 - Riders now have unique messages for when they resurrect.
 - A couple more major Oracle consultations.
 - Monks now have role-specific hello/goodbye messages like several other roles.
+- An offscreen pet death will make you feel "woebegone" if hallucinating.
 
 ### Architectural changes
 
