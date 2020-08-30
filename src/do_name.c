@@ -1710,6 +1710,7 @@ rndghostname()
  * l_monnam:    newt            it      invisible orc           dog called Fido
  * Monnam:      The newt        It      The invisible orc       Fido
  * noit_Monnam: The newt (as if detected) The invisible orc     Fido
+ * adj_monnam:  the poor newt   It      the poor invisible orc  the poor Fido
  * Adjmonnam:   The poor newt   It      The poor invisible orc  The poor Fido
  * Amonnam:     A newt          It      An invisible orc        Fido
  * a_monnam:    a newt          it      an invisible orc        Fido
@@ -1995,13 +1996,21 @@ struct monst *mtmp;
 }
 
 char *
+adj_monnam(mtmp, adj)
+struct monst *mtmp;
+const char *adj;
+{
+    return x_monnam(mtmp, ARTICLE_THE, adj,
+                    has_mname(mtmp) ? SUPPRESS_SADDLE : 0, FALSE);
+}
+
+/* Equivalent to adj_monnam(), but uppercases the result. */
+char *
 Adjmonnam(mtmp, adj)
 struct monst *mtmp;
 const char *adj;
 {
-    char *bp = x_monnam(mtmp, ARTICLE_THE, adj,
-                        has_mname(mtmp) ? SUPPRESS_SADDLE : 0, FALSE);
-
+    char *bp = adj_monnam(mtmp, adj);
     *bp = highc(*bp);
     return  bp;
 }

@@ -276,3 +276,5 @@ changes:
   whether the monster actually took any action.
 - New function ignite_items, which makes items in an object chain (candles,
   lamps, etc) light on fire.
+- New function adj_monnam(), which contains the logic from Adjmonnam but
+  doesn't force the first character to be uppercase. Adjmonnam now calls this.

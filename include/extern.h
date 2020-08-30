@@ -465,6 +465,7 @@ E char *FDECL(noit_Monnam, (struct monst *));
 E char *FDECL(noname_monnam, (struct monst *, int));
 E char *FDECL(m_monnam, (struct monst *));
 E char *FDECL(y_monnam, (struct monst *));
+E char *FDECL(adj_monnam, (struct monst *, const char *));
 E char *FDECL(Adjmonnam, (struct monst *, const char *));
 E char *FDECL(Amonnam, (struct monst *));
 E char *FDECL(a_monnam, (struct monst *));
