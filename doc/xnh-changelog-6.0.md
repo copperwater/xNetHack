@@ -190,6 +190,7 @@ changes:
   skill level.
 - Rogues get backstab bonus on trapped, frozen, unmoving, sleeping, stunned,
   confused, and blinded monsters in addition to fleeing ones.
+- Orcish Town's general store shopkeeper is replaced with Izchak.
 
 ### Interface changes
 

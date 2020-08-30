@@ -50,12 +50,12 @@ local inside = selection.floodfill(18,8)
 -- near the temple
 local near_temple = selection.area(17,8, 23,14) & inside
 
--- One shopkeeper managed to barricade their shop with boulders, and they live!
-des.region({ region={4,4,6,7}, lit=1, type="shop", filled=1 })
-des.door("locked", 5, 8)
-des.object("boulder", 4, 9)
-des.object("boulder", 5, 9)
-des.object("boulder", 6, 9)
+-- Izchak managed to barricade his shop with boulders, and he lives!
+des.region({ region={26,4,28,6}, lit=1, type="candle shop", filled=1 })
+des.door("locked", 27, 7)
+des.object("boulder", 26, 8)
+des.object("boulder", 27, 8)
+des.object("boulder", 28, 8)
 
 -- shame we can't make polluted fountains
 des.feature("fountain",16,09)
@@ -65,10 +65,10 @@ des.feature("fountain",25,09)
 des.altar({ x=20,y=13,align="noalign", type="shrine" })
 
 -- set up the shop doors; could be broken down
+des.door("random",5,8)
 des.door("random",9,8)
 des.door("random",13,7)
 des.door("random",22,5)
-des.door("random",27,7)
 des.door("random",31,7)
 des.door("random",5,10)
 des.door("random",9,10)
@@ -77,8 +77,7 @@ des.door("random",25,13)
 des.door("random",31,11)
 
 -- knock a few holes in the shop interior walls
-des.replace_terrain({ region={11,04,11,06}, fromterrain="|", toterrain=".", chance=18 })
-des.replace_terrain({ region={25,04,29,06}, fromterrain="|", toterrain=".", chance=18 })
+des.replace_terrain({ region={07,04,11,06}, fromterrain="|", toterrain=".", chance=18 })
 des.replace_terrain({ region={07,12,11,14}, fromterrain="|", toterrain=".", chance=18 })
 des.replace_terrain({ region={28,12,28,14}, fromterrain="|", toterrain=".", chance=33 })
 
@@ -91,9 +90,9 @@ for i=1,9 + d(2,5) do
 end
 
 -- Shopkeeper "bones" piles. One spot each in most shops...
--- there were 4 shops in Frontier Town; the general store shk is still present
+-- there were 4 shops in Frontier Town; Izchak is still present
 -- so there should only be three dead shks here
-local shk_demise = { {09,05},{13,04},{26,04},{31,05},{30,14},{05,14},{10,13},{26,14},{27,13} }
+local shk_demise = { {05,07},{09,05},{13,04},{31,05},{30,14},{05,14},{10,13},{26,14},{27,13} }
 shuffle(shk_demise)
 des.monster({ id = "shopkeeper", coord = shk_demise[1], dead = 1 })
 des.monster({ id = "shopkeeper", coord = shk_demise[2], dead = 1 })
@@ -104,7 +103,7 @@ des.object({ id = "boulder", coord = shk_demise[1] })
 des.object({ id = "boulder", coord = shk_demise[2] })
 des.object({ id = "boulder", coord = shk_demise[3] })
 
--- shop inventories... 9 items from a tool shop, 4 from a delicatessen, 6 from Izchak
+-- shop inventories... 9 items from a tool shop, 4 from a delicatessen
 -- Ideally we could just call some routine to fill the shop objects with the
 -- appropriate probabilities for their shops and not put in the shopkeepers,
 -- but that can't be made to work without a refactor of room-filling semantics
@@ -116,27 +115,6 @@ end
 -- For now, only FOOD_CLASS items from deli.
 for i=1,4 do
   des.object({ class = "%", coord = { inside:rndcoord(1) } })
-end
--- probabilities not exactly the same, no potion of oil, but otherwise close.
--- Notably, overall 5% chance of a magic lamp per placement, up from 3%.
-for i=1,6 do
-  if math.random(0,99) < 80 then
-    if math.random(0,99) < 50 then
-      des.object({ id = "wax candle", coord = { inside:rndcoord(1) }, quantity = math.random(1,4) })
-    else
-      des.object({ id = "tallow candle", coord = { inside:rndcoord(1) }, quantity = math.random(1,4) })
-    end
-  else
-    if math.random(0,99) < 50 then
-      des.object({ id = "oil lamp", coord = { inside:rndcoord(1) } })
-    else
-      if math.random(0,99) < 50 then
-        des.object({ id = "lantern", coord = { inside:rndcoord(1) } })
-      else
-        des.object({ id = "magic lamp", coord = { inside:rndcoord(1) } })
-      end
-    end
-  end
 end
 
 -- priest spoils
