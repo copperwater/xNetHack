@@ -2031,6 +2031,8 @@ struct monst *mtmp;
     switch (Role_switch) {
     case PM_KNIGHT:
         return "Salutations"; /* Olde English */
+    case PM_MONK:
+        return "Namaste"; /* Sanskrit */
     case PM_SAMURAI:
         return (mtmp && mtmp->data == &mons[PM_SHOPKEEPER])
                     ? "Irasshaimase"
@@ -2054,6 +2056,8 @@ Goodbye()
     switch (Role_switch) {
     case PM_KNIGHT:
         return "Fare thee well"; /* Olde English */
+    case PM_MONK:
+        return "Punardarsanaya"; /* Sanskrit */
     case PM_SAMURAI:
         return "Sayonara"; /* Japanese */
     case PM_TOURIST:
