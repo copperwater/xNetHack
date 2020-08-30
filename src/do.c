@@ -541,7 +541,7 @@ register struct obj *obj;
             pline_The("sink looks as good as new.");
             break;
         case RIN_INVISIBILITY:
-            You("don't see anything happen to the sink.");
+            pline_The("%s flow momentarily vanishes.", hliquid("water"));
             break;
         case RIN_FREE_ACTION:
             You_see("the ring slide right down the drain!");
@@ -569,14 +569,17 @@ register struct obj *obj;
                       hcolor((obj->spe < 0) ? NH_BLACK : NH_SILVER));
             break;
         case RIN_WARNING:
-            pline_The("sink glows %s for a moment.", hcolor(NH_WHITE));
+            pline_The("sink glows %s for a moment.", hcolor(NH_RED));
             break;
         case RIN_TELEPORT_CONTROL:
             pline_The("sink looks like it is being beamed aboard somewhere.");
             break;
         case RIN_POLYMORPH_CONTROL:
             pline_The(
-                  "sink momentarily looks like a regularly erupting geyser.");
+                  "sink transforms into another sink.");
+            /* this resets puddings and dishwashers but does not create a new
+             * buried ring nor affect currently buried rings */
+            levl[u.ux][u.uy].looted = 0;
             break;
         case RIN_CARRYING:
             pline_The("sink looks like it can hold %s water than before.",

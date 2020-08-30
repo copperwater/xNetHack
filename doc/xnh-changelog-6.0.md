@@ -191,6 +191,8 @@ changes:
 - Rogues get backstab bonus on trapped, frozen, unmoving, sleeping, stunned,
   confused, and blinded monsters in addition to fleeing ones.
 - Orcish Town's general store shopkeeper is replaced with Izchak.
+- Dropping a ring of polymorph control into a sink causes it to change into
+  another sink, which allows a new pudding and foocubus to be generated from it.
 
 ### Interface changes
 
