@@ -472,3 +472,4 @@ changes:
 - retouch_object() now takes a third argument which indicates the caller thinks
   the object isn't in contact with your body and there should be no damage due
   to hating the material.
+- New function armor_bonus(), which is converted from the ARM_BONUS macro.

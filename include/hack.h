@@ -608,11 +608,6 @@ enum optset_restrictions {
 #endif
 #define plur(x) (((x) == 1) ? "" : "s")
 
-#define ARM_BONUS(obj)                      \
-    (objects[(obj)->otyp].a_ac + (obj)->spe + material_bonus(obj) \
-     - min((int) greatest_erosion(obj), \
-           objects[(obj)->otyp].a_ac + material_bonus(obj)))
-
 #define makeknown(x) discover_object((x), TRUE, TRUE)
 #define distu(xx, yy) dist2((int)(xx), (int)(yy), (int) u.ux, (int) u.uy)
 #define onlineu(xx, yy) online2((int)(xx), (int)(yy), (int) u.ux, (int) u.uy)

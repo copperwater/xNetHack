@@ -475,8 +475,8 @@ register struct monst *mon;
             if (obj->otyp == AMULET_OF_GUARDING)
                 base -= 2; /* fixed amount, not impacted by erosion */
             else
-                base -= ARM_BONUS(obj);
-            /* since ARM_BONUS is positive, subtracting it increases AC */
+                base -= armor_bonus(obj);
+            /* since armor_bonus is positive, subtracting it increases AC */
         }
     }
     return base;
@@ -635,8 +635,8 @@ boolean racialexception;
          * it would forget spe and once again think the object is better
          * than what it already has.
          */
-        if (best && (ARM_BONUS(best) + extra_pref(mon, best)
-                     >= ARM_BONUS(obj) + extra_pref(mon, obj)))
+        if (best && (armor_bonus(best) + extra_pref(mon, best)
+                     >= armor_bonus(obj) + extra_pref(mon, obj)))
             continue;
         best = obj;
     }
@@ -1122,4 +1122,32 @@ boolean silently; /* doesn't affect all possible messages, just
         mwepgone(mon); /* unwields and sets weapon_check to NEED_WEAPON */
     }
 }
+
+/* Return the armor bonus of a piece of armor: the amount by which it directly
+ * lowers the AC of the wearer. */
+int
+armor_bonus(armor)
+struct obj *armor;
+{
+    int bon = 0;
+    if (!armor) {
+        impossible("armor_bonus was passed a null obj");
+        return 0;
+    }
+    /* start with its base AC value */
+    bon = objects[armor->otyp].a_ac;
+    /* adjust for material */
+    bon += material_bonus(armor);
+    /* subtract erosion */
+    bon -= (int) greatest_erosion(armor);
+    /* erosion is not allowed to make the armor worse than wearing nothing;
+     * only negative enchantment can do that. */
+    if (bon < 0) {
+        bon = 0;
+    }
+    /* add enchantment (could be negative) */
+    bon += armor->spe;
+    return bon;
+}
+
 /*worn.c*/

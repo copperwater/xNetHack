@@ -126,7 +126,7 @@ struct objclass {
     schar oc_oc1, oc_oc2;
 #define oc_hitbon oc_oc1 /* weapons: "to hit" bonus */
 
-#define a_ac oc_oc1     /* armor class, used in ARM_BONUS in do.c */
+#define a_ac oc_oc1     /* armor class, used in armor_bonus in worn.c */
 #define a_can oc_oc2    /* armor: used in mhitu.c */
 #define oc_level oc_oc2 /* books: spell level */
 
