@@ -1883,6 +1883,7 @@ E const char *FDECL(gloves_simple_name, (struct obj *));
 E const char *FDECL(boots_simple_name, (struct obj *));
 E const char *FDECL(shield_simple_name, (struct obj *));
 E const char *FDECL(shirt_simple_name, (struct obj *));
+E char *FDECL(dragon_scales_color, (struct obj *));
 E const char *FDECL(mimic_obj_name, (struct monst *));
 E char *FDECL(safe_qbuf, (char *, const char *, const char *, struct obj *,
                           char *(*)(OBJ_P), char *(*)(OBJ_P), const char *));
@@ -2083,6 +2084,7 @@ E const char *FDECL(mbodypart, (struct monst *, int));
 E const char *FDECL(body_part, (int));
 E int NDECL(poly_gender);
 E void FDECL(ugolemeffects, (int, int));
+E int FDECL(armor_to_dragon, (struct monst *));
 E boolean NDECL(ugenocided);
 E const char *NDECL(udeadinside);
 
@@ -3218,6 +3220,7 @@ E int FDECL(racial_exception, (struct monst *, struct obj *));
 E void FDECL(extract_from_minvent, (struct monst *, struct obj *, BOOLEAN_P,
                                     BOOLEAN_P));
 E int FDECL(armor_bonus, (struct obj *));
+E long FDECL(armor_provides_extrinsic, (struct obj *));
 
 /* ### write.c ### */
 

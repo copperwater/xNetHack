@@ -69,7 +69,7 @@ long mask;
                     if (wp->w_mask & ~(W_SWAPWEP | W_QUIVER)) {
                         /* leave as "x = x <op> y", here and below, for broken
                          * compilers */
-                        p = objects[oobj->otyp].oc_oprop;
+                        p = armor_provides_extrinsic(oobj);
                         u.uprops[p].extrinsic =
                             u.uprops[p].extrinsic & ~wp->w_mask;
                         if ((p = w_blocks(oobj, mask)) != 0)
@@ -92,7 +92,7 @@ long mask;
                     if (wp->w_mask & ~(W_SWAPWEP | W_QUIVER)) {
                         if (obj->oclass == WEAPON_CLASS || is_weptool(obj)
                             || mask != W_WEP) {
-                            p = objects[obj->otyp].oc_oprop;
+                            p = armor_provides_extrinsic(obj);
                             u.uprops[p].extrinsic =
                                 u.uprops[p].extrinsic | wp->w_mask;
                             if ((p = w_blocks(obj, mask)) != 0)
@@ -132,7 +132,7 @@ register struct obj *obj;
             cancel_doff(obj, wp->w_mask);
 
             *(wp->w_obj) = (struct obj *) 0;
-            p = objects[obj->otyp].oc_oprop;
+            p = armor_provides_extrinsic(obj);
             u.uprops[p].extrinsic = u.uprops[p].extrinsic & ~wp->w_mask;
             obj->owornmask &= ~wp->w_mask;
             if (obj->oartifact)
@@ -351,7 +351,7 @@ boolean on, silently;
     int unseen;
     unsigned short mask;
     struct obj *otmp;
-    int which = (int) objects[obj->otyp].oc_oprop;
+    int which = (int) armor_provides_extrinsic(obj);
 
     unseen = !canseemon(mon);
     if (!which)
@@ -886,8 +886,8 @@ boolean polyspot;
 
     if (breakarm(mdat)) {
         if ((otmp = which_armor(mon, W_ARM)) != 0) {
-            if ((Is_dragon_scales(otmp) && mdat == Dragon_scales_to_pm(otmp))
-                || (Is_dragon_mail(otmp) && mdat == Dragon_mail_to_pm(otmp)))
+            if (Is_dragon_armor(otmp)
+                && mdat == &mons[Dragon_armor_to_pm(otmp)])
                 ; /* no message here;
                      "the dragon merges with his scaly armor" is odd
                      and the monster's previous form is already gone */
@@ -906,7 +906,11 @@ boolean polyspot;
                     bypass_obj(otmp);
                 m_lose_armor(mon, otmp);
             } else {
-                if (vis)
+                if (Is_dragon_armor(otmp)
+                    && mdat == &mons[Dragon_armor_to_pm(otmp)]) {
+                    ; /* same as above; no message here */
+                }
+                else if (vis)
                     pline("%s %s tears apart!", s_suffix(Monnam(mon)),
                           cloak_simple_name(otmp));
                 else
@@ -1147,7 +1151,27 @@ struct obj *armor;
     }
     /* add enchantment (could be negative) */
     bon += armor->spe;
+    /* add bonus for dragon-scaled armor */
+    if (Is_dragon_scaled_armor(armor)) {
+        bon += 3;
+    }
     return bon;
+}
+
+/* Determine the extrinsic property a piece of armor provides.
+ * Based on item_provides_extrinsic in NetHack Fourk, but less general. */
+long
+armor_provides_extrinsic(armor)
+struct obj *armor;
+{
+    if (!armor) {
+        return 0;
+    }
+    long prop = objects[armor->otyp].oc_oprop;
+    if (!prop && Is_dragon_armor(armor)) {
+        return objects[Dragon_armor_to_scales(armor)].oc_oprop;
+    }
+    return prop;
 }
 
 /*worn.c*/

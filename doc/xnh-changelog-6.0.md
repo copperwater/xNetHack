@@ -336,6 +336,45 @@ changes:
 - Certain tools that have corresponding magical counterparts can be enchanted
   with a scroll of enchant weapon while wielded, turning them into their
   counterparts.
+- The "dtsund-DSM" proposal is implemented, which replaces dragon scale mail
+  with dragon-scaled armor of other types.
+  - All dragon scale mail is removed and no longer exists as objects. Wishing
+    for dragon scale mail now gives the corresponding set of dragon scales.
+  - Dragon scales are now worn in the cloak slot. Their stats are unchanged:
+    3 AC, 0 MC, providing the same extrinsics.
+  - Reading enchant armor with scales equipped will always target the scales.
+  - Enchanting scales with body armor underneath will meld the scales into the
+    body armor, causing that piece of armor to provide the dragon extrinsic
+    associated with the scales as well as gaining 3 AC.
+    - The armor does not become erodeproof, but will become uneroded and
+      blessed if the scroll is blessed.
+    - This process does not change the enchantment of the armor.
+    - If the scroll is cursed, the resulting scaled armor proceeds to lose a
+      point of enchantment and become cursed, like normal for a cursed enchant
+      armor scroll.
+    - If you are confused, the scales will meld and then you will polymorph
+      into the associated type of dragon (see below). This skips the cursed
+      behavior.
+    - Melding scales into armor that already has scales will replace the old
+      color of scales with the new one.
+  - Enchanting scales without body armor underneath causes a polymorph into the
+    type of dragon matching the scales. Wearing a shirt does not affect this,
+    but polymorph control allows you to choose whether you wish to become a
+    dragon. A blessed scroll gives you a longer duration as a dragon and a
+    cursed scroll gives you a shorter duration.
+  - Reading a scroll of enchant armor while wearing a set of scales will always
+    try to do something with that set of scales; it will not choose an armor
+    piece randomly.
+  - Merging with scaled armor while polymorphing does not unfuse the scales
+    from the armor or cause any other sort of reversion; changing back will
+    restore the armor as it was.
+  - Scales' enchantment does not get transferred onto armor. It should not be
+    possible to obtain a set of scales with some enchantment other than +0,
+    apart from wishing for one.
+  - Player monsters that would receive dragon scale mail now instead receive a
+    standard body armor suit that is scaled with a random color of dragon
+    scales.
+  - Scaled armor cannot be wished for, it must be crafted.
 
 ### Interface changes
 
@@ -473,3 +512,20 @@ changes:
   the object isn't in contact with your body and there should be no damage due
   to hating the material.
 - New function armor_bonus(), which is converted from the ARM_BONUS macro.
+- New function dragon_scales_color(), which returns just the color string from
+  a set of dragon scales or dragon-scaled armor.
+- armor_to_dragon() is externified and takes a monst instead of an otyp. It
+  unifies player and monster logic of figuring out what dragon a creature
+  should polymorph into based on what it's wearing.
+- New function armor_provides_extrinsic(), which finds the extrinsic property a
+  piece of dragon-scaled armor should provide.
+- Define constants FIRST_DRAGON, LAST_DRAGON, FIRST_DRAGON_SCALES and
+  LAST_DRAGON_SCALES for better semantics where they are used in the code.
+- The Is_dragon_mail and Dragon_to_scales macros are removed.
+- The Dragon_scales_to_pm and Dragon_mail_to_pm macros are replaced by
+  Dragon_armor_to_pm, which unifies them.
+- New macros Is_dragon_scaled_armor, Dragon_armor_to_scales,
+  Dragon_armor_to_pm, and mndx_to_dragon_scales.
+- An argument of 4 to polyself() indicates a polymorph from trying to enchant
+  dragon scales onto oneself (so that polymorph control only allows the player
+  to decline to turn into a dragon rather than being able to become anything).

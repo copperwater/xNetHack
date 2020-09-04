@@ -2955,8 +2955,8 @@ struct obj *obj;
                 what = embedded ? "skin" : "suit";
             break;
         case W_ARMC:
-            if (obj != uarmc)
-                what = "cloak";
+            if (obj != (embedded ? uskin : uarmc))
+                what = embedded ? "skin" : "cloak";
             break;
         case W_ARMH:
             if (obj != uarmh)
@@ -3031,9 +3031,7 @@ struct obj *obj;
         if (owornmask & W_ARMOR) {
             if (obj->oclass != ARMOR_CLASS)
                 what = "armor";
-            /* 3.6: dragon scale mail reverts to dragon scales when
-               becoming embedded in poly'd hero's skin */
-            if (embedded && !Is_dragon_scales(obj))
+            if (embedded && !Is_dragon_armor(obj))
                 what = "skin";
         } else if (owornmask & W_WEAPONS) {
             /* monsters don't maintain alternate weapon or quiver */

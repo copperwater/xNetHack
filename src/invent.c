@@ -4019,19 +4019,9 @@ boolean report_uskin;
     if (!uskin || !report_uskin) {
         You("are not wearing any armor.");
     } else {
-        char *p, *uskinname, buf[BUFSZ];
-
-        uskinname = strcpy(buf, simpleonames(uskin));
-        /* shorten "set of <color> dragon scales" to "<color> scales"
-           and "<color> dragon scale mail" to "<color> scale mail" */
-        if (!strncmpi(uskinname, "set of ", 7))
-            uskinname += 7;
-        if ((p = strstri(uskinname, " dragon ")) != 0)
-            while ((p[1] = p[8]) != '\0')
-                ++p;
-
-        You("are not wearing armor but have %s embedded in your skin.",
-            uskinname);
+        You("are not wearing armor but your %s%s embedded in your skin.",
+            dragon_scales_color(uskin),
+            Is_dragon_scales(uskin) ? " scales are" : "-scaled armor is");
     }
 }
 

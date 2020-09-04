@@ -311,17 +311,24 @@ Boots_off(VOID_ARGS)
 static int
 Cloak_on(VOID_ARGS)
 {
+    int otyp = uarmc->otyp;
     long oldprop =
         u.uprops[objects[uarmc->otyp].oc_oprop].extrinsic & ~WORN_CLOAK;
 
+    if (Is_dragon_scales(uarmc)) {
+        /* all scales are handled the same in this function */
+        otyp = GRAY_DRAGON_SCALES;
+    }
+
     cursed_gear_welds(uarmc);
 
-    switch (uarmc->otyp) {
+    switch (otyp) {
     case ORCISH_CLOAK:
     case DWARVISH_CLOAK:
     case CLOAK_OF_MAGIC_RESISTANCE:
     case ROBE:
     case PLAIN_CLOAK:
+    case GRAY_DRAGON_SCALES:
         break;
     case CLOAK_OF_PROTECTION:
         makeknown(uarmc->otyp);
@@ -372,6 +379,11 @@ Cloak_off(VOID_ARGS)
     int otyp = otmp->otyp;
     long oldprop = u.uprops[objects[otyp].oc_oprop].extrinsic & ~WORN_CLOAK;
 
+    if (Is_dragon_scales(uarmc)) {
+        /* all scales are handled the same in this function */
+        otyp = GRAY_DRAGON_SCALES;
+    }
+
     g.context.takeoff.mask &= ~W_ARMC;
     /* For mummy wrapping, taking it off first resets `Invisible'. */
     setworn((struct obj *) 0, W_ARMC);
@@ -383,6 +395,7 @@ Cloak_off(VOID_ARGS)
     case OILSKIN_CLOAK:
     case ROBE:
     case PLAIN_CLOAK:
+    case GRAY_DRAGON_SCALES:
         break;
     case ELVEN_CLOAK:
         toggle_stealth(otmp, oldprop, FALSE);
@@ -1717,12 +1730,8 @@ dotakeoff()
 
     count_worn_stuff(&otmp, FALSE);
     if (!Narmorpieces && !Naccessories) {
-        /* assert( GRAY_DRAGON_SCALES > YELLOW_DRAGON_SCALE_MAIL ); */
         if (uskin)
-            pline_The("%s merged with your skin!",
-                      uskin->otyp >= GRAY_DRAGON_SCALES
-                          ? "dragon scales are"
-                          : "dragon scale mail is");
+            pline("Your scaly armor is merged with your skin!");
         else
             pline("Not wearing any armor or accessories.");
         return 0;

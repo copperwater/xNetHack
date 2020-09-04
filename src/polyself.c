@@ -26,7 +26,6 @@ static void FDECL(polyman, (const char *, const char *));
 static void FDECL(dropp, (struct obj *));
 static void FDECL(break_armor, (BOOLEAN_P));
 static void FDECL(drop_weapon, (int, BOOLEAN_P));
-static int FDECL(armor_to_dragon, (int));
 static void NDECL(newman);
 static void NDECL(polysense);
 
@@ -400,7 +399,8 @@ int psflags;
     boolean forcecontrol = (psflags == 1),
             monsterpoly = (psflags == 2),
             formrevert = (psflags == 3),
-            draconian = (uarm && Is_dragon_armor(uarm)),
+            draconian = (psflags == 4), /* implies dragon scale armor is being
+                                           worn */
             iswere = (u.ulycn >= LOW_PM),
             isvamp = (is_vampire(g.youmonst.data)
                       || is_vampshifter(&g.youmonst)),
@@ -430,6 +430,8 @@ int psflags;
     }
     if (monsterpoly && isvamp)
         goto do_vampyr;
+    if (draconian)
+        goto do_merge;
 
     if (controllable_poly || forcecontrol) {
         tryct = 5;
@@ -503,7 +505,7 @@ int psflags;
         if (!tryct)
             pline1(thats_enough_tries);
         /* allow skin merging, even when polymorph is controlled */
-        if (draconian && (tryct <= 0 || mntmp == armor_to_dragon(uarm->otyp)))
+        if (draconian && (tryct <= 0 || mntmp == armor_to_dragon(&g.youmonst)))
             goto do_merge;
         if (isvamp && (tryct <= 0 || mntmp == PM_WOLF || mntmp == PM_FOG_CLOUD
                        || is_bat(&mons[mntmp])))
@@ -512,35 +514,32 @@ int psflags;
         /* special changes that don't require polyok() */
         if (draconian) {
  do_merge:
-            mntmp = armor_to_dragon(uarm->otyp);
+            /* armor_to_dragon will return uskin if uskin turned you into a
+             * dragon; thus, the assumption here is that a hero who turned into
+             * a dragon by merging with armor won't be able to wear other types
+             * of dragon armor while polymorphed. */
+            mntmp = armor_to_dragon(&g.youmonst);
+            if (controllable_poly) {
+                Sprintf(buf, "Become %s?", an(mons[mntmp].mname));
+                if (yn(buf) != 'y') {
+                    return;
+                }
+            }
             if (!(g.mvitals[mntmp].mvflags & G_GENOD)) {
                 /* allow G_EXTINCT */
-                if (Is_dragon_scales(uarm)) {
-                    /* dragon scales remain intact as uskin */
-                    You("merge with your scaly armor.");
-                } else { /* dragon scale mail */
-                    /* d.scale mail first reverts to scales */
-                    char *p, *dsmail;
-
-                    /* similar to noarmor(invent.c),
-                       shorten to "<color> scale mail" */
-                    dsmail = strcpy(buf, simpleonames(uarm));
-                    if ((p = strstri(dsmail, " dragon ")) != 0)
-                        while ((p[1] = p[8]) != '\0')
-                            ++p;
-                    /* tricky phrasing; dragon scale mail
-                       is singular, dragon scales are plural */
-                    Your("%s reverts to scales as you merge with them.",
-                         dsmail);
-                    /* uarm->spe enchantment remains unchanged;
-                       re-converting scales to mail poses risk
-                       of evaporation due to over enchanting */
-                    uarm->otyp += GRAY_DRAGON_SCALES - GRAY_DRAGON_SCALE_MAIL;
-                    uarm->dknown = 1;
-                    g.context.botl = 1; /* AC is changing */
+                You("merge with your scaly armor.");
+                if (uskin) {
+                    impossible("Already merged with some armor!");
                 }
-                uskin = uarm;
-                uarm = (struct obj *) 0;
+                else if (uarm && Is_dragon_scaled_armor(uarm)) {
+                    uskin = uarm;
+                    uarm = NULL;
+                    /* dragon scales remain intact as uskin */
+                }
+                else if (uarmc && Is_dragon_scales(uarmc)) {
+                    uskin = uarmc;
+                    uarmc = NULL;
+                }
                 /* save/restore hack */
                 uskin->owornmask |= I_SPECIAL;
                 update_inventory();
@@ -751,7 +750,7 @@ int mntmp, msgflags;
 #endif
     }
 
-    if (uskin && mntmp != armor_to_dragon(uskin->otyp))
+    if (uskin && mntmp != armor_to_dragon(&g.youmonst))
         skinback(!(msgflags & POLYMON_GEAR_MSG));
     break_armor((msgflags & POLYMON_GEAR_MSG));
     drop_weapon(1, (msgflags & POLYMON_GEAR_MSG));
@@ -1728,12 +1727,13 @@ skinback(noisy)
 boolean noisy;
 {
     if (uskin) {
+        struct obj **slot = (Is_dragon_scales(uskin) ? &uarmc : &uarm);
         if (noisy)
             Your("skin returns to its original form.");
-        uarm = uskin;
+        *slot = uskin;
         uskin = (struct obj *) 0;
         /* undo save/restore hack */
-        uarm->owornmask &= ~I_SPECIAL;
+        (*slot)->owornmask &= ~I_SPECIAL;
     }
 }
 
@@ -1954,46 +1954,38 @@ int damtype, dam;
     }
 }
 
-static int
-armor_to_dragon(atyp)
-int atyp;
+/* Given a monster, return the sort of dragon it will polymorph into.
+ * This is evaluated in three steps from innermost to outermost:
+ * 1) Armor embedded in the skin (player only).
+ * 2) Dragon-scaled armor worn in the body armor slot.
+ * 3) Dragon scales worn in the cloak slot.
+ */
+int
+armor_to_dragon(mon)
+struct monst *mon;
 {
-    switch (atyp) {
-    case GRAY_DRAGON_SCALE_MAIL:
-    case GRAY_DRAGON_SCALES:
-        return PM_GRAY_DRAGON;
-    case SILVER_DRAGON_SCALE_MAIL:
-    case SILVER_DRAGON_SCALES:
-        return PM_SILVER_DRAGON;
-#if 0 /* DEFERRED */
-    case SHIMMERING_DRAGON_SCALE_MAIL:
-    case SHIMMERING_DRAGON_SCALES:
-        return PM_SHIMMERING_DRAGON;
-#endif
-    case RED_DRAGON_SCALE_MAIL:
-    case RED_DRAGON_SCALES:
-        return PM_RED_DRAGON;
-    case ORANGE_DRAGON_SCALE_MAIL:
-    case ORANGE_DRAGON_SCALES:
-        return PM_ORANGE_DRAGON;
-    case WHITE_DRAGON_SCALE_MAIL:
-    case WHITE_DRAGON_SCALES:
-        return PM_WHITE_DRAGON;
-    case BLACK_DRAGON_SCALE_MAIL:
-    case BLACK_DRAGON_SCALES:
-        return PM_BLACK_DRAGON;
-    case BLUE_DRAGON_SCALE_MAIL:
-    case BLUE_DRAGON_SCALES:
-        return PM_BLUE_DRAGON;
-    case GREEN_DRAGON_SCALE_MAIL:
-    case GREEN_DRAGON_SCALES:
-        return PM_GREEN_DRAGON;
-    case YELLOW_DRAGON_SCALE_MAIL:
-    case YELLOW_DRAGON_SCALES:
-        return PM_YELLOW_DRAGON;
-    default:
-        return -1;
+    struct obj* array[3]; /* skin, body, cloak */
+    int i;
+
+    if (mon == &g.youmonst) {
+        array[0] = uskin;
+        array[1] = uarm;
+        array[2] = uarmc;
     }
+    else {
+        array[0] = NULL;
+        array[1] = which_armor(mon, W_ARM);
+        array[2] = which_armor(mon, W_ARMC);
+    }
+
+    for (i = 0; i < 3; ++i) {
+        if (array[i] != NULL) {
+            if (Is_dragon_armor(array[i])) {
+                return Dragon_armor_to_pm(array[i]);
+            }
+        }
+    }
+    return NON_PM;
 }
 
 /* some species have awareness of other species */

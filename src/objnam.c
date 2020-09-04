@@ -551,7 +551,7 @@ unsigned cxn_flags; /* bitmask of CXN_xxx values */
         break;
     case ARMOR_CLASS:
         /* depends on order of the dragon scales objects */
-        if (typ >= GRAY_DRAGON_SCALES && typ <= YELLOW_DRAGON_SCALES) {
+        if (typ >= FIRST_DRAGON_SCALES && typ <= LAST_DRAGON_SCALES) {
             Sprintf(buf, "set of %s", actualn);
             break;
         }
@@ -1143,6 +1143,11 @@ unsigned doname_flags;
             if (obj == uarmg && Glib) /* just appended "(something)",
                                        * change to "(something; slippery)" */
                 Strcpy(rindex(bp, ')'), "; slippery)");
+        }
+        if (Is_dragon_scaled_armor(obj)) {
+            char scalebuf[30];
+            Sprintf(scalebuf, "%s-scaled ", dragon_scales_color(obj));
+            Strcat(prefix, scalebuf);
         }
         /*FALLTHRU*/
     case WEAPON_CLASS:
@@ -2932,10 +2937,8 @@ static NEARDATA const struct o_range o_ranges[] = {
     { "shoes", ARMOR_CLASS, LOW_BOOTS, DWARVISH_BOOTS },
     { "cloak", ARMOR_CLASS, MUMMY_WRAPPING, CLOAK_OF_DISPLACEMENT },
     { "shirt", ARMOR_CLASS, HAWAIIAN_SHIRT, T_SHIRT },
-    { "dragon scales", ARMOR_CLASS, GRAY_DRAGON_SCALES,
-      YELLOW_DRAGON_SCALES },
-    { "dragon scale mail", ARMOR_CLASS, GRAY_DRAGON_SCALE_MAIL,
-      YELLOW_DRAGON_SCALE_MAIL },
+    { "dragon scales", ARMOR_CLASS, FIRST_DRAGON_SCALES,
+                       LAST_DRAGON_SCALES },
     { "sword", WEAPON_CLASS, SHORT_SWORD, KATANA },
     { "venom", VENOM_CLASS, BLINDING_VENOM, ACID_VENOM },
     { "gray stone", GEM_CLASS, LUCKSTONE, FLINT },
@@ -2954,7 +2957,6 @@ static const struct alt_spellings {
     { "whip", BULLWHIP },
     { "sabre", SABER },
     { "smooth shield", SHIELD_OF_REFLECTION },
-    { "grey dragon scale mail", GRAY_DRAGON_SCALE_MAIL },
     { "grey dragon scales", GRAY_DRAGON_SCALES },
     { "iron ball", HEAVY_IRON_BALL },
     { "lantern", LANTERN },
@@ -2993,6 +2995,18 @@ static const struct alt_spellings {
     { "thief stone", THIEFSTONE },
     { "flintstone", FLINT },
     { "scroll of flood", SCR_WATER }, /* unnethack name for it */
+    /* dragon scale mail no longer formally exists; a wish for it will get you
+     * scales instead */
+    { "gray dragon scale mail",   GRAY_DRAGON_SCALES },
+    { "grey dragon scale mail",   GRAY_DRAGON_SCALES },
+    { "silver dragon scale mail", SILVER_DRAGON_SCALES },
+    { "red dragon scale mail",    RED_DRAGON_SCALES },
+    { "white dragon scale mail",  WHITE_DRAGON_SCALES },
+    { "orange dragon scale mail", ORANGE_DRAGON_SCALES },
+    { "black dragon scale mail",  BLACK_DRAGON_SCALES },
+    { "blue dragon scale mail",   BLUE_DRAGON_SCALES },
+    { "green dragon scale mail",  GREEN_DRAGON_SCALES },
+    { "yellow dragon scale mail", YELLOW_DRAGON_SCALES },
     { (const char *) 0, 0 },
 };
 
@@ -3817,6 +3831,29 @@ struct _readobjnam_data *d;
         }
     }
 
+    /* Alternate spellings (pick-ax, silver sabre, &c) */
+    {
+        const struct alt_spellings *as = spellings;
+
+        while (as->sp) {
+            if (wishymatch(d->bp, as->sp, TRUE)) {
+                d->typ = as->ob;
+                return 2; /*goto typfnd;*/
+            }
+            as++;
+        }
+        /* can't use spellings list for this one due to shuffling */
+        if (!strncmpi(d->bp, "grey spell", 10))
+            *(d->bp + 2) = 'a';
+
+        if ((d->p = strstri(d->bp, "armour")) != 0) {
+            /* skip past "armo", then copy remainder beyond "u" */
+            d->p += 4;
+            while ((*d->p = *(d->p + 1)) != '\0')
+                ++d->p; /* self terminating */
+        }
+    }
+
     /* Find corpse type w/o "of" (red dragon scale mail, yeti corpse) */
     if (strncmpi(d->bp, "samurai sword", 13)  /* not the "samurai" monster! */
         && strncmpi(d->bp, "wizard lock", 11) /* not the "wizard" monster! */
@@ -3874,33 +3911,10 @@ struct _readobjnam_data *d;
         }
     }
 
-    /* Alternate spellings (pick-ax, silver sabre, &c) */
-    {
-        const struct alt_spellings *as = spellings;
-
-        while (as->sp) {
-            if (wishymatch(d->bp, as->sp, TRUE)) {
-                d->typ = as->ob;
-                return 2; /*goto typfnd;*/
-            }
-            as++;
-        }
-        /* can't use spellings list for this one due to shuffling */
-        if (!strncmpi(d->bp, "grey spell", 10))
-            *(d->bp + 2) = 'a';
-
-        if ((d->p = strstri(d->bp, "armour")) != 0) {
-            /* skip past "armo", then copy remainder beyond "u" */
-            d->p += 4;
-            while ((*d->p = *(d->p + 1)) != '\0')
-                ++d->p; /* self terminating */
-        }
-    }
-
     /* dragon scales - assumes order of dragons */
-    if (!strcmpi(d->bp, "scales") && d->mntmp >= PM_GRAY_DRAGON
-        && d->mntmp <= PM_YELLOW_DRAGON) {
-        d->typ = GRAY_DRAGON_SCALES + d->mntmp - PM_GRAY_DRAGON;
+    if (!strcmpi(d->bp, "scales") && d->mntmp >= FIRST_DRAGON
+        && d->mntmp <= LAST_DRAGON) {
+        d->typ = mndx_to_dragon_scales(d->mntmp);
         d->mntmp = NON_PM; /* no monster */
         return 2; /*goto typfnd;*/
     }
@@ -4552,12 +4566,6 @@ struct obj *no_wish;
                 delete_contents(d.otmp); /* no spellbook */
             d.otmp->spe = d.ishistoric ? STATUE_HISTORIC : 0;
             break;
-        case SCALE_MAIL:
-            /* Dragon mail - depends on the order of objects & dragons. */
-            if (d.mntmp >= PM_GRAY_DRAGON && d.mntmp <= PM_YELLOW_DRAGON)
-                d.otmp->otyp = GRAY_DRAGON_SCALE_MAIL
-                              + d.mntmp - PM_GRAY_DRAGON;
-            break;
         }
     }
 
@@ -4784,10 +4792,6 @@ struct obj *suit;
     const char *suitnm, *esuitp;
 
     if (suit) {
-        if (Is_dragon_mail(suit))
-            return "dragon mail"; /* <color> dragon scale mail */
-        else if (Is_dragon_scales(suit))
-            return "dragon scales";
         suitnm = OBJ_NAME(objects[suit->otyp]);
         esuitp = eos((char *) suitnm);
         if (strlen(suitnm) > 5 && !strcmp(esuitp - 5, " mail"))
@@ -4804,6 +4808,9 @@ cloak_simple_name(cloak)
 struct obj *cloak;
 {
     if (cloak) {
+        if (Is_dragon_scales(cloak)) {
+            return "dragon scales";
+        }
         switch (cloak->otyp) {
         case ROBE:
             return "robe";
@@ -4917,6 +4924,35 @@ shirt_simple_name(shirt)
 struct obj *shirt UNUSED;
 {
     return "shirt";
+}
+
+/* Return the dragon color associated with a piece of dragon armor.
+ * E.g. red-scaled chain mail => "red"; blue dragon scales => "blue". */
+char *
+dragon_scales_color(obj)
+struct obj *obj;
+{
+    if (!obj) {
+        impossible("dragon_scales_color: null obj");
+        return NULL;
+    }
+    if (!Is_dragon_armor(obj)) {
+        impossible("getting color of non-dragon-armor (otyp=%d, scales=%d)",
+                   obj->otyp, obj->dragonscales);
+        return "bugged color";
+    }
+    const struct permonst *pm = &mons[Dragon_armor_to_pm(obj)];
+    char* buf = nextobuf();
+    const char* endp = strstri(pm->mname, " dragon");
+    if (!endp) {
+        impossible("dragon_scales_color found non-dragon monster (%s)",
+                   pm->mname);
+        return "bugged color";
+    }
+    int colorlen = endp - pm->mname;
+    strncpy(buf, pm->mname, colorlen);
+    buf[colorlen] = '\0';
+    return buf;
 }
 
 const char *

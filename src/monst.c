@@ -1176,11 +1176,10 @@ NEARDATA struct permonst mons_init[] = {
     /*
      * Dragons
      */
-    /* The order of the dragons is VERY IMPORTANT.  Quite a few
-     * pieces of code depend on gray being first and yellow being last.
-     * The code also depends on the *order* being the same as that for
-     * dragon scale mail and dragon scales in objects.c.  Baby dragons
-     * cannot confer intrinsics, to avoid polyself/egg abuse.
+    /* The order of the dragons is VERY IMPORTANT.
+     * The code depends on the *order* being the same as that for dragon scales
+     * in objects.c.  Baby dragons cannot confer intrinsics, to avoid
+     * polyself/egg abuse.
      *
      * As reptiles, dragons are cold-blooded and thus aren't seen
      * with infravision.  Red dragons are the exception.

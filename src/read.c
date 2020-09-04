@@ -1089,8 +1089,14 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         register schar s;
         boolean special_armor;
         boolean same_color;
+        boolean draconic = (uarmc && Is_dragon_scales(uarmc));
 
         otmp = some_armor(&g.youmonst);
+        if (draconic) {
+            /* if player is trying to enchant scales onto armor, override random
+             * armor selection */
+            otmp = uarmc;
+        }
         if (!otmp) {
             strange_feeling(sobj, !Blind
                                       ? "Your skin glows then fades."
@@ -1100,7 +1106,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             exercise(A_STR, !scursed);
             break;
         }
-        if (confused) {
+        if (confused && !draconic) {
             old_erodeproof = (otmp->oerodeproof != 0);
             new_erodeproof = !scursed;
             otmp->oerodeproof = 0; /* for messages */
@@ -1132,17 +1138,73 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         special_armor = is_elven_armor(otmp)
                         || (Role_if(PM_WIZARD) && otmp->otyp == CORNUTHAUM);
         if (scursed)
-            same_color = (otmp->otyp == BLACK_DRAGON_SCALE_MAIL
-                          || otmp->otyp == BLACK_DRAGON_SCALES);
+            same_color = (otmp->otyp == BLACK_DRAGON_SCALES);
         else
-            same_color = (otmp->otyp == SILVER_DRAGON_SCALE_MAIL
-                          || otmp->otyp == SILVER_DRAGON_SCALES
+            same_color = (otmp->otyp == SILVER_DRAGON_SCALES
                           || otmp->otyp == SHIELD_OF_REFLECTION);
         if (Blind)
             same_color = FALSE;
 
         /* KMH -- catch underflow */
         s = scursed ? -otmp->spe : otmp->spe;
+
+        /* Dragon scales that are worn over body armor will cause the armor to
+         * become scaled. */
+        if (draconic) { /* guarantees that worn cloak is scales, but does NOT
+                           guarantee existence of uarm */
+            /* no body armor under the scales = the scales are enchanted
+             * directly onto you (no such thing as a scaled shirt). The wearer
+             * will polymorph. Also caused by a confused scroll, _after_ the
+             * scales meld. */
+            boolean poly_after_merge = (!uarm || confused);
+            if (uarm) {
+                struct obj *scales = uarmc;
+                struct obj *armor = uarm;
+
+                pline("%s melds into your %s%s", Yname2(scales),
+                      suit_simple_name(armor),
+                      Is_dragon_scaled_armor(armor) ? "." : "!");
+
+                if (Is_dragon_scaled_armor(armor)) {
+                    if (Dragon_armor_to_scales(armor) == scales->otyp) {
+                        /* scales match armor already; just use up scales */
+                        pline("Its scales still seem %s.",
+                              dragon_scales_color(armor));
+                    }
+                    else {
+                        /* armor is already scaled but the new scales are
+                         * different and will replace the old ones */
+                        pline("Its scales change from %s to %s!",
+                              dragon_scales_color(armor),
+                              dragon_scales_color(scales));
+                    }
+                }
+                setnotworn(armor);
+                armor->dragonscales = scales->otyp;
+                armor->cursed = 0;
+                if (sblessed) {
+                    armor->oeroded = armor->oeroded2 = 0;
+                    armor->blessed = 1;
+                }
+                setworn(armor, W_ARM);
+                g.known = TRUE;
+                useup(scales);
+            }
+            if (poly_after_merge) {
+                polyself(4);
+                /* adjust duration for scroll beatitude - a blessed scroll will
+                 * give you more time as a dragon, a cursed scroll less */
+                u.mtimedone = (u.mtimedone * (bcsign(sobj) + 2) / 2);
+            }
+            if (!scursed || !uarm) {
+                break;
+            }
+            else {
+                /* continue with regular cursed-enchant logic on the resulting
+                 * armor piece */
+                otmp = uarm;
+            }
+        }
         if (s > (special_armor ? 5 : 3) && rn2(s)) {
             otmp->in_use = TRUE;
             pline("%s violently %s%s%s for a while, then %s.", Yname2(otmp),
@@ -1161,24 +1223,6 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                        : sblessed
                           ? rnd(3 - otmp->spe / 3)
                           : 1;
-        if (s >= 0 && Is_dragon_scales(otmp)) {
-            /* dragon scales get turned into dragon scale mail */
-            pline("%s merges and hardens!", Yname2(otmp));
-            setworn((struct obj *) 0, W_ARM);
-            /* assumes same order */
-            otmp->otyp += GRAY_DRAGON_SCALE_MAIL - GRAY_DRAGON_SCALES;
-            if (sblessed) {
-                otmp->spe++;
-                if (!otmp->blessed)
-                    bless(otmp);
-            } else if (otmp->cursed)
-                uncurse(otmp);
-            otmp->known = 1;
-            setworn(otmp, W_ARM);
-            if (otmp->unpaid)
-                alter_cost(otmp, 0L); /* shop bill */
-            break;
-        }
         pline("%s %s%s%s%s for a %s.", Yname2(otmp),
               s == 0 ? "violently " : "",
               otense(otmp, Blind ? "vibrate" : "glow"),

@@ -498,7 +498,7 @@ unsigned corpseflags;
         /* Make dragon scales.  This assumes that the order of the
            dragons is the same as the order of the scales. */
         if (!rn2(mtmp->mrevived ? 20 : 3)) {
-            num = GRAY_DRAGON_SCALES + monsndx(mdat) - PM_GRAY_DRAGON;
+            num = mndx_to_dragon_scales(monsndx(mdat));
             obj = mksobj_at(num, x, y, FALSE, FALSE);
             obj->spe = 0;
             obj->cursed = obj->blessed = FALSE;
@@ -4338,14 +4338,8 @@ struct monst *mon;
         mndx = pickvampshape(mon);
         break;
     case NON_PM: /* ordinary */
-      {
-        struct obj *m_armr = which_armor(mon, W_ARM);
-
-        if (m_armr && Is_dragon_scales(m_armr))
-            mndx = (int) (Dragon_scales_to_pm(m_armr) - mons);
-        else if (m_armr && Is_dragon_mail(m_armr))
-            mndx = (int) (Dragon_mail_to_pm(m_armr) - mons);
-      }
+        /* might become a dragon based on worn armor */
+        mndx = armor_to_dragon(mon);
         break;
     }
 

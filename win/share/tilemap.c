@@ -70,7 +70,6 @@ struct conditionals {
     { MON_GLYPH, PM_TIAMAT, "Goblin King" },
     { MON_GLYPH, PM_NEANDERTHAL, "High-elf" },
     /* objects commented out in objects.c at present */
-    { OBJ_GLYPH, SILVER_DRAGON_SCALE_MAIL, "shimmering dragon scale mail" },
     { OBJ_GLYPH, SILVER_DRAGON_SCALES, "shimmering dragon scales" },
 /* allow slime mold to look like slice of pizza, since we
  * don't know what a slime mold should look like when renamed anyway
