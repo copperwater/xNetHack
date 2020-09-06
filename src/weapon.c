@@ -397,12 +397,15 @@ struct monst *mon;
  * special damaging effect on mdef, and return the amount of bonus damage done.
  * The most damaging source has precedence; each source that causes special
  * damage makes its own roll for damage, and the highest roll will be applied.
+ *
+ * hated_obj is set only on objects that cause material hatred; if none of the
+ * applicable objects are of a hated material, it will not be set.
  */
 int
-special_dmgval(magr, mdef, armask, out_obj)
+special_dmgval(magr, mdef, armask, hated_obj)
 struct monst *magr, *mdef;
 long armask; /* armor mask of all the slots that can be touching mdef */
-struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
+struct obj **hated_obj; /* ptr to offending object, can be NULL if not wanted */
 {
     boolean youattack = (magr == &g.youmonst);
     const int magr_material = monmaterial(monsndx(magr->data));
@@ -419,8 +422,8 @@ struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
                *leftring  = (youattack ? uleft : which_armor(magr, W_RINGL)),
                *rightring = (youattack ? uright : which_armor(magr, W_RINGR));
 
-    if (out_obj) {
-        *out_obj = 0;
+    if (hated_obj) {
+        *hated_obj = 0;
     }
 
     /* Simple exclusions where we ignore a certain type of armor because it is
@@ -450,8 +453,8 @@ struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
 
     if (try_body && mon_hates_material(mdef, magr_material)) {
         bonus = sear_damage(magr_material);
-        if (out_obj)
-            *out_obj = (struct obj *) &cg.zeroobj;
+        if (hated_obj)
+            *hated_obj = (struct obj *) &cg.zeroobj;
     }
 
     /* The order of armor slots in this array doesn't really matter because we
@@ -477,8 +480,23 @@ struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
             tmpbonus = dmgval(array[i].obj, mdef);
             if (tmpbonus > bonus) {
                 bonus = tmpbonus;
-                if (out_obj) {
-                    *out_obj = array[i].obj;
+                if (hated_obj) {
+                    /* Select hated_obj based on the maximum possible amount of
+                     * damage that can be caused by its material, not the actual
+                     * random amount of damage.
+                     * E.g. if you manage to hit a monster that hates both
+                     * silver and iron with a silver and an iron item at the
+                     * same time, silver has a more severe effect dealing more
+                     * damage so hated_obj should always be set to the silver
+                     * one, so that searmsg will get called with the most
+                     * appropriate message.
+                     */
+                    if (mon_hates_material(mdef, array[i].obj->material)
+                        && (*hated_obj == NULL
+                            || (sear_damage(array[i].obj->material)
+                                > sear_damage((*hated_obj)->material)))) {
+                        *hated_obj = array[i].obj;
+                    }
                 }
             }
         }
