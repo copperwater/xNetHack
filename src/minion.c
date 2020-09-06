@@ -238,6 +238,12 @@ struct monst* mtmp;
         return FALSE;
     }
 
+    if (mdat->msound == MS_NEMESIS || mdat->msound == MS_LEADER) {
+        /* this could be a demon quest nemesis/leader, who will have their own
+         * dialog */
+        return FALSE;
+    }
+
     if (g.mvitals[mondx].died > 0) {
         /* Never print entrance message if the player already killed it. */
         return FALSE;
