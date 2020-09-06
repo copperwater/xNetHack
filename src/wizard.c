@@ -897,7 +897,7 @@ register struct monst *mtmp;
             verbalize("%s %s!",
                       random_malediction[rn2(SIZE(random_malediction))],
                       random_insult[rn2(SIZE(random_insult))]);
-    } else if (is_lminion(mtmp)
+    } else if (is_minion(mtmp->data)
                && !(mtmp->isminion && EMIN(mtmp)->renegade)) {
         char buf[BUFSZ];
         int max = SIZE(angelic_taunts);
