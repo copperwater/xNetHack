@@ -1392,8 +1392,17 @@ register struct obj *otmp;
         if (!already_cursed)
             book_cursed(otmp);
     }
-    if (otmp->where == OBJ_INVENT && otmp->owornmask && !already_cursed) {
-        cursed_gear_welds(otmp);
+    if (otmp->where == OBJ_INVENT && !already_cursed) {
+        /* Can't just check owornmask here, as some slots (e.g. W_ART) don't
+         * actually indicate having otmp equipped. W_SWAPWEP is trickier as it
+         * depends on whether the player is currently dual-wielding. */
+        long really_wornmask = W_ARMOR | W_ACCESSORY | W_WEP;
+        if (u.twoweap) {
+            really_wornmask |= W_SWAPWEP;
+        }
+        if (otmp->owornmask & really_wornmask) {
+            cursed_gear_welds(otmp);
+        }
     }
     if (otmp->lamplit)
         maybe_adjust_light(otmp, old_light);

@@ -2341,7 +2341,7 @@ int wornmask;
          * block the use of the hand, so the hand has to be involved somehow */
         return HAND;
     }
-    else if (wornmask & (W_ARMG | W_WEP)) {
+    else if (wornmask & (W_ARMG | W_WEP | W_SWAPWEP)) {
         return HAND;
     }
     else if (wornmask & W_ARMF) {
@@ -2350,7 +2350,7 @@ int wornmask;
     else if (wornmask & W_AMUL) {
         return NECK;
     }
-    else if (wornmask & (W_RINGL | W_RINGR)) {
+    else if (wornmask & W_RING) {
         return FINGER;
     }
     else {
