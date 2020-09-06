@@ -1892,6 +1892,7 @@ struct trap *trap;
     int x = trap->tx, y = trap->ty, dbx, dby;
     struct rm *lev = &levl[x][y];
 
+    set_trap_ammo(trap, NULL); /* useup the land mine obj */
     (void) scatter(x, y, 4,
                    MAY_DESTROY | MAY_HIT | MAY_FRACTURE | VIS_EFFECTS,
                    (struct obj *) 0);
