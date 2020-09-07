@@ -3313,6 +3313,7 @@ mnexto(mtmp)
 struct monst *mtmp;
 {
     coord mm;
+    boolean couldspot = canspotmon(mtmp);
 
     if (mtmp == u.usteed) {
         /* Keep your steed in sync with you instead */
@@ -3332,7 +3333,7 @@ struct monst *mtmp;
      * message */
     if (!g.in_mklev && (mtmp->mstrategy & STRAT_APPEARMSG)
         && canspotmon(mtmp)
-        && !boss_entrance(mtmp)) {
+        && !boss_entrance(mtmp) && !couldspot) {
             pline("%s suddenly %s!", Amonnam(mtmp),
                   canseemon(mtmp) ? "appears" : "arrives");
             mtmp->mstrategy &= ~STRAT_APPEARMSG; /* one chance only */
