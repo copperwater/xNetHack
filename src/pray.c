@@ -1525,7 +1525,6 @@ dosacrifice()
                 if ((pm = dlord(altaralign)) != NON_PM
                     && (dmon = makemon(&mons[pm], u.ux, u.uy, NO_MM_FLAGS))
                            != 0) {
-
                     pline("Something's being summoned!");
                     boss_entrance(dmon);
                     if (sgn(u.ualign.type) == sgn(dmon->data->maligntyp))

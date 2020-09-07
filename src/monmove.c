@@ -559,7 +559,6 @@ register struct monst *mtmp;
     /* Dramatic entrance messages if it's a boss */
     if (canseemon(mtmp)) {
         boss_entrance(mtmp);
-        mtmp->mstrategy &= ~STRAT_APPEARMSG;
     }
 
     if (find_defensive(mtmp)) {
