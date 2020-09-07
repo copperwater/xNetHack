@@ -168,13 +168,14 @@ struct obj* obj;
         boolean the = (strncmp(name, "The ", 4)
                         && !strncmp(The(name), "The ", 4));
         const char* bodypart = body_part(wornmask_to_bodypart(obj->owornmask));
-        /* only plural items to wear (at once) are boots and gloves;
-         * this affects body part pluralization but NOT "themselves" vs "itself"
-         * because they will be "pair of X" */
-        boolean plur = (obj == uarmg || obj == uarmf);
+        /* need to pluralize "themselves"/"itself" separately from pluralizing
+         * the body part; boots and gloves pluralize both, but dragon scales
+         * shouldn't pluralize the body part */
+        boolean bodyplur = (obj == uarmg || obj == uarmf);
+        boolean themselves = (bodyplur || Is_dragon_scales(obj));
         pline("%s%s weld%s to your %s!", the ? "The " : "",
-              gear_simple_name(obj), plur ? " themselves" : "s itself",
-              plur ? makeplural(bodypart) : bodypart);
+              gear_simple_name(obj), themselves ? " themselves" : "s itself",
+              bodyplur ? makeplural(bodypart) : bodypart);
         obj->bknown = TRUE;
     }
 }
