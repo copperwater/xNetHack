@@ -232,8 +232,8 @@ struct monst* mtmp;
     char name_appears[BUFSZ]; /* holds "Foo_appears", as lua key */
     char* iter;
 
-    if (!(is_ndemon(mdat) || is_rider(mdat) || mondx == PM_VLAD_THE_IMPALER
-          || mondx == PM_WIZARD_OF_YENDOR)) {
+    if (!(is_dlord(mdat) || is_dprince(mdat) || is_rider(mdat)
+          || mondx == PM_VLAD_THE_IMPALER || mondx == PM_WIZARD_OF_YENDOR)) {
         /* no appearance message exists for this type of monster */
         return FALSE;
     }
