@@ -195,6 +195,7 @@ changes:
   another sink, which allows a new pudding and foocubus to be generated from it.
 - Cleaver does not hit enemies in an arc if there is a known peaceful or tame
   monster at either of the two additional spots it hits.
+- Grimtooth confers poison resistance when wielded.
 
 ### Interface changes
 

@@ -29,6 +29,7 @@ static const char *artifact_names[] = {
 #define     FIRE(a,b)   {0,AD_FIRE,a,b}
 #define     ELEC(a,b)   {0,AD_ELEC,a,b}         /* electrical shock */
 #define     STUN(a,b)   {0,AD_STUN,a,b}         /* magical attack */
+#define     POIS(a,b)   {0,AD_DRST,a,b}         /* poison */
 /* clang-format on */
 
 static NEARDATA struct artifact artilist[] = {
@@ -81,7 +82,7 @@ static NEARDATA struct artifact artilist[] = {
      *      (handled as special case in spec_dbon()).
      */
     A("Grimtooth", ORCISH_DAGGER, (SPFX_RESTR | SPFX_WARN | SPFX_DFLAG2),
-      0, M2_ELF, PHYS(2, 6), NO_DFNS,
+      0, M2_ELF, PHYS(2, 6), POIS(0, 0),
       NO_CARY, 0, A_CHAOTIC, NON_PM, PM_ORC, 1000L, CLR_RED),
     /*
      *      Orcrist and Sting have same alignment as elves.
