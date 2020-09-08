@@ -11,6 +11,7 @@ static boolean FDECL(known_hitum, (struct monst *, struct obj *, int *,
 static boolean FDECL(theft_petrifies, (struct obj *));
 static void FDECL(steal_it, (struct monst *, struct attack *));
 static boolean FDECL(really_steal, (struct obj *, struct monst *));
+static boolean NDECL(should_cleave);
 static boolean FDECL(hitum_cleave, (struct monst *, struct attack *));
 static boolean FDECL(hitum, (struct monst *, struct attack *));
 static boolean FDECL(hmon_hitmon, (struct monst *, struct obj *, int,
@@ -562,6 +563,38 @@ int dieroll;
     return malive;
 }
 
+/* return TRUE iff no peaceful targets are found in cleaving range to the left
+ * and right of the target space
+ * assumes u.dx and u.dy have been set */
+static boolean
+should_cleave()
+{
+    int i;
+    boolean bystanders = FALSE;
+    /* find the direction toward primary target */
+    int dir = xytod(u.dx, u.dy);
+    if (dir > 7) {
+        impossible("should_cleave: unknown target direction");
+        return FALSE; /* better safe than sorry */
+    }
+    /* loop over dir+1 % 8 and dir+7 % 8 (the clockwise and anticlockwise
+     * directions); a monster standing at dir itself is NOT checked */
+    for (i = dir + 1; i <= dir + 7; i += 6) {
+        int realdir = i % 8;
+        struct monst *mtmp = m_at(u.ux + xdir[realdir], u.uy + ydir[realdir]);
+        if (mtmp && canspotmon(mtmp) && mtmp->mpeaceful) {
+            bystanders = TRUE;
+        }
+    }
+    if (bystanders) {
+        pline("You will hit peaceful creatures if you attack in an arc.");
+        if (!paranoid_query(ParanoidHit, "Do it anyway?")) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
 /* hit the monster next to you and the monsters to the left and right of it;
    return False if the primary target is killed, True otherwise */
 static boolean
@@ -662,7 +695,7 @@ struct attack *uattk;
        it can't be part of dual-wielding but we guard against that anyway;
        cleave return value reflects status of primary target ('mon') */
     if (uwep && uwep->oartifact == ART_CLEAVER && !u.twoweap
-        && !u.uswallow && !u.ustuck && !NODIAG(u.umonnum))
+        && !u.uswallow && !u.ustuck && !NODIAG(u.umonnum) && should_cleave())
         return hitum_cleave(mon, uattk);
 
     if (tmp > dieroll)

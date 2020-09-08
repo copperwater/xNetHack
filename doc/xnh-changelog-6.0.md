@@ -193,6 +193,8 @@ changes:
 - Orcish Town's general store shopkeeper is replaced with Izchak.
 - Dropping a ring of polymorph control into a sink causes it to change into
   another sink, which allows a new pudding and foocubus to be generated from it.
+- Cleaver does not hit enemies in an arc if there is a known peaceful or tame
+  monster at either of the two additional spots it hits.
 
 ### Interface changes
 
@@ -285,3 +287,5 @@ changes:
   lamps, etc) light on fire.
 - New function adj_monnam(), which contains the logic from Adjmonnam but
   doesn't force the first character to be uppercase. Adjmonnam now calls this.
+- New function should_cleave(), which determines whether there would be
+  peaceful monsters in the path of Cleaver.
