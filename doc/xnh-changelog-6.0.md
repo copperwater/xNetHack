@@ -196,6 +196,8 @@ changes:
 - Cleaver does not hit enemies in an arc if there is a known peaceful or tame
   monster at either of the two additional spots it hits.
 - Grimtooth confers poison resistance when wielded.
+- Piranha now have two 2d6 bite attacks instead of one. Their speed is raised
+  from 12 to 18.
 
 ### Interface changes
 
