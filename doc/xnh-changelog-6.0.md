@@ -198,6 +198,8 @@ changes:
 - Grimtooth confers poison resistance when wielded.
 - Piranha now have two 2d6 bite attacks instead of one. Their speed is raised
   from 12 to 18.
+- The Big Room now appears (if it appears at all) on levels 13-15 instead of
+  10-12.
 
 ### Interface changes
 
