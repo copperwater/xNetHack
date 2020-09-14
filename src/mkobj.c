@@ -1400,6 +1400,11 @@ register struct obj *otmp;
         if (u.twoweap) {
             really_wornmask |= W_SWAPWEP;
         }
+        if ((really_wornmask & W_WEP) && !will_weld(otmp)) {
+            /* if player is wielding something that won't weld to their hand,
+             * like a potion, suppress the weld message */
+            really_wornmask &= ~W_WEP;
+        }
         if (otmp->owornmask & really_wornmask) {
             cursed_gear_welds(otmp);
         }

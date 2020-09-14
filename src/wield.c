@@ -55,16 +55,6 @@
 static boolean FDECL(cant_wield_corpse, (struct obj *));
 static int FDECL(ready_weapon, (struct obj *));
 
-/* used by will_weld() */
-/* probably should be renamed */
-#define erodeable_wep(optr)                             \
-    ((optr)->oclass == WEAPON_CLASS || is_weptool(optr) \
-     || (optr)->otyp == HEAVY_IRON_BALL || (optr)->otyp == IRON_CHAIN)
-
-/* used by welded(), and also while wielding */
-#define will_weld(optr) \
-    ((optr)->cursed && (erodeable_wep(optr) || (optr)->otyp == TIN_OPENER))
-
 /* to dual-wield, 'obj' must be a weapon or a weapon-tool, and not a bow
    or arrow or missile (dart, shuriken, boomerang), so not matching the
    one-handed weapons which yield "you begin bashing" if used for melee;

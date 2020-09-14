@@ -213,6 +213,14 @@ struct obj {
 #define uslinging() (uwep && objects[uwep->otyp].oc_skill == P_SLING)
 /* 'is_quest_artifact()' only applies to the current role's artifact */
 #define any_quest_artifact(o) ((o)->oartifact >= ART_ORB_OF_DETECTION)
+/* used by will_weld() */
+/* probably should be renamed */
+#define erodeable_wep(optr)                             \
+    ((optr)->oclass == WEAPON_CLASS || is_weptool(optr) \
+     || (optr)->otyp == HEAVY_IRON_BALL || (optr)->otyp == IRON_CHAIN)
+/* used by welded(), and also while wielding */
+#define will_weld(optr) \
+    ((optr)->cursed && (erodeable_wep(optr) || (optr)->otyp == TIN_OPENER))
 
 /* Armor */
 #define is_shield(otmp)          \

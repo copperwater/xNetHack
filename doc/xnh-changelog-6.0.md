@@ -294,3 +294,4 @@ changes:
   doesn't force the first character to be uppercase. Adjmonnam now calls this.
 - New function should_cleave(), which determines whether there would be
   peaceful monsters in the path of Cleaver.
+- Move will_weld() macro up to obj.h so that it can be used outside wield.c.
