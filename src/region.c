@@ -1075,6 +1075,7 @@ genericptr_t p2;
  * breadth-first search.
  * cloudsize is the number of squares the cloud will attempt to fill.
  * damage is how much it deals to afflicted creatures. */
+#define MAX_CLOUD_SIZE 150
 NhRegion *
 create_gas_cloud(x, y, cloudsize, damage)
 xchar x, y;
@@ -1086,12 +1087,17 @@ int damage;
     NhRect tmprect;
 
     /* store visited coords */
-    xchar xcoords[cloudsize];
-    xchar ycoords[cloudsize];
+    xchar xcoords[MAX_CLOUD_SIZE];
+    xchar ycoords[MAX_CLOUD_SIZE];
     xcoords[0] = x;
     ycoords[0] = y;
     int curridx;
     int newidx = 1; /* initial spot is already taken */
+
+    if (cloudsize > MAX_CLOUD_SIZE) {
+        impossible("create_gas_cloud: cloud too large (%d)!", cloudsize);
+        cloudsize = MAX_CLOUD_SIZE;
+    }
 
     for (curridx = 0; curridx < newidx; curridx++) {
         if (newidx >= cloudsize)

@@ -1612,8 +1612,7 @@ boolean allow_floor;
 
     /* create an uppercase version of what, for menustyle:non-full with floor
        prompts */
-    int whatlen = strlen(what);
-    char upperwhat[whatlen + 1];
+    char upperwhat[BUFSZ];
     Strcpy(upperwhat, what);
     *upperwhat = highc(*upperwhat);
 

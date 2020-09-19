@@ -295,3 +295,5 @@ changes:
 - New function should_cleave(), which determines whether there would be
   peaceful monsters in the path of Cleaver.
 - Move will_weld() macro up to obj.h so that it can be used outside wield.c.
+- Gas clouds are now capped at 150 squares (nothing that creates a cloud
+  currently uses this much area).
