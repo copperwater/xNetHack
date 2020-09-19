@@ -46,13 +46,11 @@ boolean clumsy;
     if (thick_skinned(mon->data))
         dmg = 0;
 
-    /* attacking a shade is normally useless */
-    if (noncorporeal(mon->data))
-        dmg = 0;
-
     specialdmg = special_dmgval(&g.youmonst, mon, W_ARMF, &hated_obj);
 
-    if (noncorporeal(mon->data) && !specialdmg) {
+    /* attacking a shade is normally useless */
+    if (noncorporeal(mon->data) && !specialdmg
+        && !(uarmf && uarmf->material == BONE)) {
         pline_The("%s.", kick_passes_thru);
         /* doesn't exercise skill or abuse alignment or frighten pet,
            and shades have no passive counterattack */
@@ -204,7 +202,8 @@ xchar x, y;
             kickdieroll = rnd(20);
             struct obj* hated_obj;
             specialdmg = special_dmgval(&g.youmonst, mon, W_ARMF, &hated_obj);
-            if (noncorporeal(mon->data) && !specialdmg) {
+            if (noncorporeal(mon->data) && !specialdmg
+                && !(uarmf && uarmf->material == BONE)) {
                 /* doesn't matter whether it would have hit or missed,
                    and shades have no passive counterattack */
                 Your("%s %s.", kick_passes_thru, mon_nam(mon));
