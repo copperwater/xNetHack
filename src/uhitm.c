@@ -921,7 +921,10 @@ int dieroll;
                     You("%sstrike %s%s!", adverb1, adj_monnam(mon, adjective),
                         adverb2);
                     if ((wtype = uwep_skill_type()) != P_NONE) {
-                        if (P_SKILL(wtype) == P_UNSKILLED) {
+                        if (P_SKILL(wtype) == P_ISRESTRICTED) {
+                            cap = 2;
+                        }
+                        else if (P_SKILL(wtype) == P_UNSKILLED) {
                             cap = 4;
                         }
                         else {
