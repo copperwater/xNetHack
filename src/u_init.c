@@ -16,6 +16,7 @@ struct trobj {
 static void FDECL(ini_inv, (struct trobj *));
 static void FDECL(knows_object, (int));
 static void FDECL(knows_class, (CHAR_P));
+static void FDECL(set_skill_cap_minimum, (int, int));
 static boolean FDECL(restricted_spell_discipline, (int));
 
 #define UNDEF_TYP 0
@@ -579,6 +580,16 @@ register char sym;
             knows_object(ct);
 }
 
+/* Adjust a skill cap to a specified minimum. */
+void
+set_skill_cap_minimum(skill, minimum)
+int skill, minimum;
+{
+    if (P_MAX_SKILL(skill) < minimum) {
+        P_MAX_SKILL(skill) = minimum;
+    }
+}
+
 void
 u_init()
 {
@@ -838,6 +849,8 @@ u_init()
         knows_object(ELVEN_SHIELD);
         knows_object(ELVEN_BOOTS);
         knows_object(ELVEN_CLOAK);
+        /* All elves have a natural affinity for enchantments */
+        set_skill_cap_minimum(P_ENCHANTMENT_SPELL, P_BASIC);
         break;
 
     case PM_DWARF:
@@ -849,9 +862,14 @@ u_init()
         knows_object(DWARVISH_RING_MAIL);
         knows_object(DWARVISH_CLOAK);
         knows_object(DWARVISH_ROUNDSHIELD);
+        /* All dwarves have skill with digging tools */
+        set_skill_cap_minimum(P_PICK_AXE, P_SKILLED);
         break;
 
     case PM_GNOME:
+        /* All gnomes are familiar with crossbows and aklyses */
+        set_skill_cap_minimum(P_CROSSBOW, P_BASIC);
+        set_skill_cap_minimum(P_CLUB, P_BASIC);
         break;
 
     case PM_ORC:
@@ -869,6 +887,8 @@ u_init()
         knows_object(ORCISH_SHIELD);
         knows_object(URUK_HAI_SHIELD);
         knows_object(ORCISH_CLOAK);
+        /* All orcs are familiar with scimitars */
+        set_skill_cap_minimum(P_SCIMITAR, P_SKILLED);
         break;
 
     default: /* impossible */
