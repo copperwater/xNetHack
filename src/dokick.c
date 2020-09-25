@@ -1010,9 +1010,12 @@ dokick()
                         || doorstate(g.maploc) == D_NODOOR)
                         unblock_point(x, y); /* vision */
                 }
-                return 1;
-            } else
-                goto ouch;
+            } else {
+                /* Don't reveal whether secret door or secret corridor. */
+                pline(Deaf ? "The wall gives way a little."
+                           : "The wall responds with a hollow thump.");
+            }
+            return 1;
         }
         if (g.maploc->typ == SCORR) {
             if (!Levitation && rn2(30) < avrg_attrib) {
@@ -1021,9 +1024,12 @@ dokick()
                 g.maploc->typ = CORR;
                 feel_newsym(x, y); /* we know it's gone */
                 unblock_point(x, y); /* vision */
-                return 1;
-            } else
-                goto ouch;
+            } else {
+                /* Don't reveal whether secret door or secret corridor. */
+                pline(Deaf ? "The wall gives way a little."
+                           : "The wall responds with a hollow thump.");
+            }
+            return 1;
         }
         if (IS_THRONE(g.maploc->typ)) {
             register int i;

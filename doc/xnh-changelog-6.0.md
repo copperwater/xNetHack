@@ -200,6 +200,8 @@ changes:
   from 12 to 18.
 - The Big Room now appears (if it appears at all) on levels 13-15 instead of
   10-12.
+- Kicking open secret doors and corridors is easier, and never causes you to
+  hurt your legs.
 
 ### Interface changes
 
