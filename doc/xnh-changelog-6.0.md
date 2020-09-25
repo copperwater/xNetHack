@@ -202,6 +202,7 @@ changes:
   10-12.
 - Kicking open secret doors and corridors is easier, and never causes you to
   hurt your legs.
+- A tiny fraction of erodable items will generate greased.
 
 ### Interface changes
 

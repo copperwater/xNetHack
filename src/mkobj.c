@@ -817,6 +817,11 @@ boolean artif;
                         } while (otmp->oeroded2 < 3 && !rn2(9));
                     }
                 }
+                /* and an extremely small fraction of the time, erodable items
+                 * will generate greased */
+                if (!rn2(23263)) {
+                    otmp->greased = 1;
+                }
             }
 
             /* check oartifact here because mk_artifact isn't guaranteed to
