@@ -1089,7 +1089,31 @@ xxxx----xx----xxxx]], contents=function(m)
             end
          });
       end
-   }
+   },
+
+   -- Pool room: a homage to the /dev/null pool challenge
+   function()
+      des.room({ type="ordinary", w=9, h=9, contents = function(rm)
+            des.trap('hole', 0, 0)
+            des.trap('hole', 0, 4)
+            des.trap('hole', 0, 8)
+            des.trap('hole', 8, 0)
+            des.trap('hole', 8, 4)
+            des.trap('hole', 8, 8)
+            for i=1,9 do
+               -- pick x and y to avoid placing the boulders on the pockets
+               bx = 0
+               by = 0
+               while ((bx == 0 or bx == 8) and (by % 4 == 0)) do
+                  bx = nh.rn2(9)
+                  by = nh.rn2(9)
+               end
+               des.object({ id = 'boulder', x = bx, y = by, name = tostring(i) })
+            end
+         end
+      });
+   end
+
 };
 
 function is_eligible(room)
