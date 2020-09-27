@@ -1324,4 +1324,31 @@ int mndx;
     }
 }
 
+/* Return the radius at which a monster is supposed to emit light, or 0 if it
+ * does not emit any light. (The return value is also commonly used as a boolean
+ * expression.)
+ * This was moved out of mondata.h because it was becoming a rather complex
+ * macro.
+ */
+int
+emits_light(ptr)
+struct permonst *ptr;
+{
+    if (!ptr) {
+        impossible("emits_light: null permonst!");
+        return 0;
+    }
+    if (ptr->mlet == S_LIGHT) {
+        return 1;
+    }
+    switch(monsndx(ptr)) {
+    case PM_FLAMING_SPHERE:
+    case PM_SHOCKING_SPHERE:
+    case PM_FIRE_VORTEX:
+    case PM_FIRE_ELEMENTAL:
+        return 1;
+    }
+    return 0;
+}
+
 /*mondata.c*/

@@ -1625,6 +1625,7 @@ E const char *FDECL(on_fire, (struct permonst *, struct attack *));
 E const struct permonst *FDECL(raceptr, (struct monst *));
 E boolean FDECL(olfaction, (struct permonst *));
 E int FDECL(monmaterial, (int));
+E int FDECL(emits_light, (struct permonst *));
 
 /* ### monmove.c ### */
 
