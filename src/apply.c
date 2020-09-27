@@ -2464,14 +2464,14 @@ struct obj *tstone;
         int flint_made = rnd(10) - 9;
         struct obj * flint = NULL;
 
-        if (tstone->otyp == TOUCHSTONE) {
+        if (Role_if(PM_CAVEMAN)) {
+            /* experts on banging rocks together */
+            flint_made += 3;
+        }
+        else if (tstone->otyp == TOUCHSTONE) {
             /* a rock can be broken on any other rock, but breaking it on a
              * touchstone will yield the most */
             flint_made += 2;
-        }
-        else if (Role_if(PM_CAVEMAN)) {
-            /* experts on banging rocks together */
-            flint_made += 3;
         }
         pline("You bang %s%s on %s.", ((obj->quan > 1L) ? "one of " : ""),
               the(xname(obj)), the(xname(tstone)));
