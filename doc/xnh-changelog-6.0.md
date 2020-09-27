@@ -223,6 +223,8 @@ changes:
 - Skilled and above slingers can instakill any H monster on a critical hit.
 - Statues may generate near cockatrices that generate at level creation time
   and not in a special room.
+- Tool shops now stock touchstones as 2% of items rather than 7%.
+- Tool shops stock potions of oil as 3% of items.
 
 ### Interface changes
 
