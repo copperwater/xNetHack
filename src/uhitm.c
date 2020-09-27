@@ -869,11 +869,12 @@ int dieroll;
                     && which_armor(mon, W_ARM) == 0 && dieroll == 1) {
                     /* Critical hit with a piercing wooden weapon = staked
                      * through the heart! */
-                    tmp = mon->mhp;
+                    tmp = mon->mhp + 100;
                     if (Hallucination)
                         pline("Staked through the heart, and you're to blame!");
                     else
                         You("stake %s through the heart!", mon_nam(mon));
+                    hittxt = TRUE;
                     /* don't let negative daminc prevent from killing (and
                      * positive won't matter anyway) */
                     get_dmg_bonus = FALSE;
