@@ -1654,9 +1654,8 @@ register xchar x, y;
  * will keep trying until it picks something valid.
  *
  * If a fallthru trap is created on a undiggable-floor level, it defaults to
- * ROCKTRAP. If a WEB is created, a giant spider is created on top of it.
+ * PIT. If a WEB is created, a giant spider is created on top of it.
  * Finally, if it is very early in the dungeon, and the trap is potentially
- *
  * lethal, create a minimal fake bones pile on the trap.
  */
 void
@@ -1737,7 +1736,7 @@ coord *tm;
     }
 
     if (is_hole(kind) && !Can_fall_thru(&u.uz))
-        kind = ROCKTRAP;
+        kind = PIT;
 
     if (tm) {
         m = *tm;
