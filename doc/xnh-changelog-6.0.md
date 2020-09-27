@@ -207,6 +207,14 @@ changes:
 - Gnomish characters can always reach Basic in club and crossbow skill.
 - Elvish characters can always reach Basic in enchantment spell skill.
 - Orcish characters can always reach Skilled in scimitar skill.
+- Flint stones and hard gems break 50% less often when used as projectiles due
+  to hardness.
+- Hobbits that generate with a sling will also generate with a stack of 4 + 1d6
+  flint stones (75% of the time) or rocks (25% of the time).
+- The caveperson role no longer starts with rocks. Instead, they now start with
+  20 + 1d10 flint stones (formerly 10 + 1d10).
+- Flint stones weigh 2 (up from previous weight of 1, but still lower than the
+  10 they weigh in vanilla NetHack).
 
 ### Interface changes
 

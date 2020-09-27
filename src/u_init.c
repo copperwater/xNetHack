@@ -53,8 +53,7 @@ static struct trobj Cave_man[] = {
 #define C_AMMO 2
     { CLUB, 1, WEAPON_CLASS, 1, UNDEF_BLESS },
     { SLING, 2, WEAPON_CLASS, 1, UNDEF_BLESS },
-    { FLINT, 0, GEM_CLASS, 15, UNDEF_BLESS }, /* quan is variable */
-    { ROCK, 0, GEM_CLASS, 3, 0 },             /* yields 18..33 */
+    { FLINT, 0, GEM_CLASS, 15, UNDEF_BLESS }, /* trquan is overridden below */
     { LIGHT_ARMOR, 0, ARMOR_CLASS, 1, UNDEF_BLESS },
     { 0, 0, 0, 0, 0 }
 };
@@ -707,7 +706,7 @@ u_init()
         skill_init(Skill_B);
         break;
     case PM_CAVEMAN:
-        Cave_man[C_AMMO].trquan = rn1(11, 10); /* 10..20 */
+        Cave_man[C_AMMO].trquan = rn1(11, 20); /* 20..30 */
         ini_inv(Cave_man);
         skill_init(Skill_C);
         break;

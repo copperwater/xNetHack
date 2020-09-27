@@ -1865,6 +1865,13 @@ register struct obj *obj; /* g.thrownobj or g.kickedobj or uwep */
                     /* Object survives unless negative enchantment dooms it. */
                     broken = (speadjust < 0) && rn2(1 - speadjust);
                 }
+                /* Flint and hard gems get an additional chance because they
+                 * don't break easily. */
+                if (((obj->oclass == GEM_CLASS && objects[otyp].oc_tough)
+                     || obj->otyp == FLINT)
+                    && !rn2(2)) {
+                    broken = FALSE;
+                }
 
                 if (broken) {
                     if (*u.ushops || obj->unpaid)

@@ -342,7 +342,11 @@ register struct monst *mtmp;
                 (void) mongets(mtmp, ELVEN_DAGGER);
                 break;
             case 2:
-                (void) mongets(mtmp, SLING);
+                {
+                    struct obj* otmp = mongets(mtmp, rn2(4) ? FLINT : ROCK);
+                    otmp->quan = 4 + rnd(6);
+                    (void) mongets(mtmp, SLING);
+                }
                 break;
             }
             if (!rn2(10)) {
