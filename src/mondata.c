@@ -1339,13 +1339,17 @@ struct permonst *ptr;
         return 0;
     }
     if (ptr->mlet == S_LIGHT) {
+        if (ptr == &mons[PM_YELLOW_LIGHT]) {
+            return 2;
+        }
         return 1;
     }
     switch(monsndx(ptr)) {
+    case PM_FIRE_ELEMENTAL:
+        return 2;
     case PM_FLAMING_SPHERE:
     case PM_SHOCKING_SPHERE:
     case PM_FIRE_VORTEX:
-    case PM_FIRE_ELEMENTAL:
         return 1;
     }
     return 0;

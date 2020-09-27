@@ -225,6 +225,7 @@ changes:
   and not in a special room.
 - Tool shops now stock touchstones as 2% of items rather than 7%.
 - Tool shops stock potions of oil as 3% of items.
+- Yellow lights and fire elementals emit light in a radius of 2.
 
 ### Interface changes
 
