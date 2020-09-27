@@ -215,6 +215,8 @@ changes:
   20 + 1d10 flint stones (formerly 10 + 1d10).
 - Flint stones weigh 2 (up from previous weight of 1, but still lower than the
   10 they weigh in vanilla NetHack).
+- The melee strength bonus is applied to ammunition thrown from a sling.
+- Skilled and above slingers can instakill any H monster on a critical hit.
 
 ### Interface changes
 
