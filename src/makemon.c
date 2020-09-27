@@ -1291,6 +1291,27 @@ long mmflags;
     case S_MIMIC:
         set_mimic_sym(mtmp);
         break;
+    case S_COCKATRICE:
+        if (g.in_mklev && touch_petrifies(ptr)
+            && !(ptr == &mons[PM_CHICKATRICE] && rn2(3))
+            && (getroomtype(x, y) == OROOM
+                || getroomtype(x, y) == THEMEROOM)) {
+            /* Generate a couple random statues near a petrifier, but only if
+             * it's not being generated in a zoo or nest or other special room.
+             */
+            do {
+                int tries = 20;
+                while (tries--) {
+                    int dx = 5 - rn2(11), dy = 5 - rn2(11); /* -5 .. +5 */
+                    if (isok(x + dx, y + dy)
+                        && ACCESSIBLE(levl[x + dx][y + dy].typ)) {
+                        mksobj_at(STATUE, x + dx, y + dy, TRUE, FALSE);
+                        break;
+                    }
+                }
+            } while (!rn2(4)); /* recursive 1/4 chance for another statue */
+        }
+        break;
     case S_SPIDER:
     case S_SNAKE:
         if (g.in_mklev)

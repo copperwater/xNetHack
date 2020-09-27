@@ -217,6 +217,8 @@ changes:
   10 they weigh in vanilla NetHack).
 - The melee strength bonus is applied to ammunition thrown from a sling.
 - Skilled and above slingers can instakill any H monster on a critical hit.
+- Statues may generate near cockatrices that generate at level creation time
+  and not in a special room.
 
 ### Interface changes
 
