@@ -882,8 +882,68 @@ boolean artif;
                 break;
             case SLIME_MOLD:
                 otmp->spe = g.context.current_fruit;
-                if (g.in_mklev && iseaster()) {
-                    otmp->spe = fruitadd("easter egg", NULL);
+                if (g.in_mklev) {
+                    int holiday = current_holidays();
+                    const char* foods[10];
+                    int idx = 0;
+                    if (holiday & HOLIDAY_VALENTINES_DAY) {
+                        foods[idx++] = "box of chocolates";
+                    }
+                    if (holiday & HOLIDAY_PI_DAY) {
+                        foods[idx++] = "irrational pie";
+                        foods[idx++] = "perfectly circular pie";
+                    }
+                    if (holiday & HOLIDAY_EASTER) {
+                        foods[idx++] = "easter egg";
+                    }
+                    if (holiday & HOLIDAY_CANADA_DAY) {
+                        foods[idx++] = "maple sugar candy";
+                    }
+                    if (holiday & HOLIDAY_HALLOWEEN) {
+                        foods[idx++] = "bag of candy corn";
+                        foods[idx++] = "lollipop";
+                        foods[idx++] = "popcorn ball";
+                    }
+                    if (holiday & HOLIDAY_THANKSGIVING) {
+                        foods[idx++] = "roast turkey drumstick";
+                        foods[idx++] = "mashed potato with gravy";
+                        foods[idx++] = "cup of cranberry sauce";
+                        foods[idx++] = "slice of pumpkin pie";
+                    }
+                    if (holiday & HOLIDAY_EID_AL_FITR) {
+                        foods[idx++] = "ma'amoul";
+                        foods[idx++] = "baklava";
+                        foods[idx++] = "kleicha";
+                    }
+                    if (holiday & HOLIDAY_LOS_MUERTOS) {
+                        foods[idx++] = "pan de muerto";
+                    }
+                    if (holiday & HOLIDAY_ROSH_HASHANAH) {
+                        foods[idx++] = "honeyed apple";
+                    }
+                    if (holiday & HOLIDAY_PASSOVER) {
+                        foods[idx++] = "matzo ball";
+                    }
+                    if (holiday & HOLIDAY_HANUKKAH) {
+                        foods[idx++] = "latke";
+                        foods[idx++] = "sufganiyah";
+                    }
+                    if (holiday & HOLIDAY_CHRISTMAS) {
+                        foods[idx++] = "sugar plum";
+                        foods[idx++] = "candy cane";
+                        foods[idx++] = "figgy pudding";
+                        foods[idx++] = "fruitcake";
+                    }
+                    if (idx >= 10) {
+                        impossible("Too many holiday foods!");
+                        idx = 9;
+                    }
+                    if (idx > 0) {
+                        /* fruitadd requires a modifiable string */
+                        char foodbuf[BUFSZ];
+                        Strcpy(foodbuf, foods[rn2(idx)]);
+                        otmp->spe = fruitadd(foodbuf, NULL);
+                    }
                 }
                 flags.made_fruit = TRUE;
                 break;

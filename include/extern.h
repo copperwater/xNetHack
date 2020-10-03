@@ -1007,7 +1007,7 @@ E int NDECL(phase_of_the_moon);
 E boolean NDECL(friday_13th);
 E int NDECL(night);
 E int NDECL(midnight);
-E boolean NDECL(iseaster);
+E int NDECL(current_holidays);
 E void FDECL(strbuf_init, (strbuf_t *));
 E void FDECL(strbuf_append, (strbuf_t *, const char *));
 E void FDECL(strbuf_reserve, (strbuf_t *, int));

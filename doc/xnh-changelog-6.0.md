@@ -226,6 +226,7 @@ changes:
 - Tool shops now stock touchstones as 2% of items rather than 7%.
 - Tool shops stock potions of oil as 3% of items.
 - Yellow lights and fire elementals emit light in a radius of 2.
+- Fruits generate with holiday-themed names for a number of different holidays.
 
 ### Interface changes
 
@@ -324,3 +325,6 @@ changes:
 - Gas clouds are now capped at 150 squares (nothing that creates a cloud
   currently uses this much area).
 - Convert the emits_light macro into a function in mondata.c.
+- New function weekday(), which returns the day of the week in a 0-6 range.
+- New function days_since_epoch(), which returns the number of days since
+  1/1/0000.

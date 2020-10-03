@@ -2233,6 +2233,7 @@ static const struct sing_plur one_off[] = {
     { "rtex", "rtices" }, /* vortex */
     { "serum", "sera" },
     { "staff", "staves" },
+    { "sufganiyah", "sufganiyot" },
     { "tooth", "teeth" },
     { 0, 0 }
 };
@@ -2429,6 +2430,12 @@ const char *oldstr;
      */
     if (!strncmpi(str, "pair of ", 8))
         goto bottom;
+
+    /* Avoid changing "pan de muerto" to "pans de muerto". This has to come
+     * before singplur_compound() so that it doesn't cut off the "de muerto". */
+    if (!strcmp(str, "pan de muerto")) {
+        goto bottom;
+    }
 
     /* look for "foo of bar" so that we can focus on "foo" */
     if ((spot = singplur_compound(str)) != 0) {

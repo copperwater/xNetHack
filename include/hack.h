@@ -531,6 +531,24 @@ enum bodypart_types {
                                         incl. things like "miss wildly" */
 #define ARTIFACTHIT_INSTAKILLMSG 0x2 /* "Vorpal Blade decapitates foo!" &c */
 
+/* Return values from current_holidays(). */
+#define HOLIDAY_NEW_YEARS      0x0001
+#define HOLIDAY_VALENTINES_DAY 0x0002
+#define HOLIDAY_PI_DAY         0x0004
+#define HOLIDAY_APRIL_FOOLS    0x0008
+#define HOLIDAY_EASTER         0x0010
+#define HOLIDAY_CANADA_DAY     0x0020
+#define HOLIDAY_HALLOWEEN      0x0040
+#define HOLIDAY_THANKSGIVING   0x0080
+#define HOLIDAY_RAMADAN        0x0100
+#define HOLIDAY_EID_AL_FITR    0x0200
+#define HOLIDAY_ROSH_HASHANAH  0x0400
+#define HOLIDAY_YOM_KIPPUR     0x0800
+#define HOLIDAY_PASSOVER       0x1000
+#define HOLIDAY_HANUKKAH       0x2000
+#define HOLIDAY_CHRISTMAS      0x4000
+#define HOLIDAY_LOS_MUERTOS    0x8000
+
 /*
  * option setting restrictions
  */
