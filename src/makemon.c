@@ -2293,7 +2293,7 @@ register struct monst *mtmp;
     /* only valid for INSIDE of room */
     roomno = levl[mx][my].roomno - ROOMOFFSET;
     if (roomno >= 0)
-        rt = g.rooms[roomno].rtype;
+        rt = g.rooms[roomno].orig_rtype;
 #ifdef SPECIALIZATION
     else if (IS_ROOM(typ))
         rt = OROOM, roomno = 0;
@@ -2331,7 +2331,7 @@ register struct monst *mtmp;
     } else if (roomno < 0 && !t_at(mx, my)) {
         ap_type = M_AP_OBJECT;
         appear = BOULDER;
-    } else if (rt == ZOO || rt == VAULT) {
+    } else if (rt == ZOO || rt == VAULT || rt == LEPREHALL) {
         ap_type = M_AP_OBJECT;
         appear = GOLD_PIECE;
     } else if (rt == DELPHI) {
@@ -2342,15 +2342,24 @@ register struct monst *mtmp;
             ap_type = M_AP_FURNITURE;
             appear = S_fountain;
         }
-    } else if (rt == TEMPLE) {
+    } else if (rt == TEMPLE || rt == SEMINARY) {
         ap_type = M_AP_FURNITURE;
         appear = S_altar;
-
-    /*
-     * We won't bother with beehives, morgues, barracks, throne rooms
-     * since they shouldn't contain too many mimics anyway...
-     */
-
+    } else if (rt == MORGUE) {
+        ap_type = M_AP_FURNITURE;
+        appear = S_grave;
+    } else if (rt == BEEHIVE) {
+        ap_type = M_AP_OBJECT;
+        appear = LUMP_OF_ROYAL_JELLY;
+    } else if (rt == COURT) {
+        ap_type = M_AP_FURNITURE;
+        appear = S_throne;
+    } else if (rt == BARRACKS) {
+        ap_type = M_AP_OBJECT;
+        appear = CHEST;
+    } else if (rt == COCKNEST || rt == STATUARY) {
+        ap_type = M_AP_OBJECT;
+        appear = STATUE;
     } else if (rt >= SHOPBASE) {
         s_sym = get_shop_item(rt - SHOPBASE);
         if (s_sym < 0) {

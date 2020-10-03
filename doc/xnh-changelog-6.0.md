@@ -227,6 +227,7 @@ changes:
 - Tool shops stock potions of oil as 3% of items.
 - Yellow lights and fire elementals emit light in a radius of 2.
 - Fruits generate with holiday-themed names for a number of different holidays.
+- Mimics have additional special-cased things to mimic in special rooms.
 
 ### Interface changes
 
