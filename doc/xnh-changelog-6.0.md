@@ -228,6 +228,8 @@ changes:
 - Yellow lights and fire elementals emit light in a radius of 2.
 - Fruits generate with holiday-themed names for a number of different holidays.
 - Mimics have additional special-cased things to mimic in special rooms.
+- The scroll of stinking cloud can be centered at a little over 7 spaces away
+  instead of slightly over 5. Strictly speaking, the radius is sqrt(50).
 
 ### Interface changes
 

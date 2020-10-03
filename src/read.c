@@ -879,7 +879,7 @@ int x, y;
 {
     if (!valid_cloud_pos(x, y))
         return FALSE;
-    return (cansee(x, y) && distu(x, y) < 32);
+    return (cansee(x, y) && distu(x, y) < 50);
 }
 
 static void
