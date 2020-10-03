@@ -150,6 +150,7 @@ register struct rm *lev;
 {
     struct obj *obj;
     struct monst *mon;
+    int i;
 
     /* Features that block . . */
     if (IS_ROCK(lev->typ) || lev->typ == TREE
@@ -169,6 +170,16 @@ register struct rm *lev;
     if ((mon = m_at(x, y)) && (!mon->minvis || See_invisible)
         && is_lightblocker_mappear(mon))
         return 1;
+
+    /* Clouds (poisonous or not) block light. */
+    for (i = 0; i < g.n_regions; i++) {
+        /* Ignore regions with ttl == 0 - expire_gas_cloud must unblock its
+         * points prior to being removed itself. */
+        if (g.regions[i]->ttl > 0 && g.regions[i]->visible
+            && inside_region(g.regions[i], x, y)) {
+            return 1;
+        }
+    }
 
     return 0;
 }

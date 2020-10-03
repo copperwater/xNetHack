@@ -230,6 +230,7 @@ changes:
 - Mimics have additional special-cased things to mimic in special rooms.
 - The scroll of stinking cloud can be centered at a little over 7 spaces away
   instead of slightly over 5. Strictly speaking, the radius is sqrt(50).
+- Gas clouds block line-of-sight.
 
 ### Interface changes
 
@@ -331,3 +332,4 @@ changes:
 - New function weekday(), which returns the day of the week in a 0-6 range.
 - New function days_since_epoch(), which returns the number of days since
   1/1/0000.
+- Externify the inside_region function.

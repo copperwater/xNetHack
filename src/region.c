@@ -15,7 +15,6 @@
 boolean FDECL(inside_gas_cloud, (genericptr, genericptr));
 boolean FDECL(expire_gas_cloud, (genericptr, genericptr));
 boolean FDECL(inside_rect, (NhRect *, int, int));
-boolean FDECL(inside_region, (NhRegion *, int, int));
 NhRegion *FDECL(create_region, (NhRect *, int));
 void FDECL(add_rect_to_reg, (NhRegion *, NhRect *));
 void FDECL(add_mon_to_reg, (NhRegion *, struct monst *));
@@ -308,10 +307,13 @@ NhRegion *reg;
             /* Some regions can cross the level boundaries */
             if (!isok(i, j))
                 continue;
-            if (MON_AT(i, j) && inside_region(reg, i, j))
+            boolean i_j_inside = inside_region(reg, i, j);
+            if (MON_AT(i, j) && i_j_inside)
                 add_mon_to_reg(reg, g.level.monsters[i][j]);
             if (reg->visible) {
-                /*block_point(i, j);*/
+                if (i_j_inside) {
+                    block_point(i, j); /* vision */
+                }
                 if (cansee(i, j))
                     newsym(i, j);
             }
@@ -989,6 +991,9 @@ genericptr_t p2 UNUSED;
 {
     NhRegion *reg;
     int damage;
+    int x, y;
+    boolean dissipation_seen = FALSE;
+    boolean dissipation_within = FALSE;
 
     reg = (NhRegion *) p1;
     damage = reg->arg.a_int;
@@ -1000,6 +1005,26 @@ genericptr_t p2 UNUSED;
         reg->arg.a_int = damage;
         reg->ttl = 2L; /* Here's the trick : reset ttl */
         return FALSE;  /* THEN return FALSE, means "still there" */
+    }
+    /* The cloud no longer blocks vision. */
+    for (x = reg->bounding_box.lx; x <= reg->bounding_box.hx; x++) {
+        for (y = reg->bounding_box.ly; y <= reg->bounding_box.hy; y++) {
+            if (inside_region(reg, x, y) && !does_block(x, y, &levl[x][y])) {
+                unblock_point(x, y);
+            }
+            if (x == u.ux && y == u.uy) {
+                dissipation_within = TRUE;
+            }
+            if (cansee(x, y)) {
+                dissipation_seen = TRUE;
+            }
+        }
+    }
+    if (dissipation_within) {
+        pline("The gas cloud enveloping you dissipates.");
+    }
+    else if (dissipation_seen) {
+        You_see("a gas cloud dissipate.");
     }
     return TRUE; /* OK, it's gone, you can free it! */
 }
@@ -1228,11 +1253,9 @@ region_safety()
         safe_teleds(TELEDS_TELEPORT);
     } else if (r) {
         remove_region(r);
-        pline_The("gas cloud enveloping you dissipates.");
-    } else {
-        /* cloud dissipated on its own, so nothing needs to be done */
-        pline_The("gas cloud has dissipated.");
     }
+    /* else cloud dissipated on its own, so nothing needs to be done */
+
     /* maybe cure blindness too */
     if ((Blinded & TIMEOUT) == 1L)
         make_blinded(0L, TRUE);

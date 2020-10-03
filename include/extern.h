@@ -2274,6 +2274,7 @@ E void FDECL(add_rect, (NhRect *));
 E void FDECL(split_rects, (NhRect *, NhRect *));
 
 /* ## region.c ### */
+E boolean FDECL(inside_region, (NhRegion *, int, int));
 E void NDECL(clear_regions);
 E void NDECL(run_regions);
 E boolean FDECL(in_out_region, (XCHAR_P, XCHAR_P));
