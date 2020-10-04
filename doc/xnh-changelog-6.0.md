@@ -232,6 +232,8 @@ changes:
   instead of slightly over 5. Strictly speaking, the radius is sqrt(50).
 - Gas clouds block line-of-sight.
 - Hallucination prevents petrification (because you are already stoned).
+- Mordor orcs and Uruk-hai can generate with orcish spears.
+- Any monster that generates with a spear can generate with a stack of them.
 
 ### Interface changes
 

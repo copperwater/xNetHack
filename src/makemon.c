@@ -400,7 +400,7 @@ register struct monst *mtmp;
                 : rn2(2) ? PM_MORDOR_ORC : PM_URUK_HAI) {
         case PM_MORDOR_ORC:
             if (!rn2(3))
-                (void) mongets(mtmp, SCIMITAR);
+                (void) mongets(mtmp, rn2(3) ? SCIMITAR : ORCISH_SPEAR);
             if (!rn2(3))
                 (void) mongets(mtmp, ORCISH_SHIELD);
             if (!rn2(3))
@@ -412,7 +412,7 @@ register struct monst *mtmp;
             if (!rn2(3))
                 (void) mongets(mtmp, ORCISH_CLOAK);
             if (!rn2(3))
-                (void) mongets(mtmp, ORCISH_SHORT_SWORD);
+                (void) mongets(mtmp, rn2(3) ? ORCISH_SHORT_SWORD : ORCISH_SPEAR);
             if (!rn2(3))
                 (void) mongets(mtmp, DWARVISH_BOOTS);
                 /* maybe they nicked it off a dwarf */
@@ -2102,6 +2102,12 @@ int otyp;
                     break;
                 }
             }
+        }
+
+        /* Any monster that gets a spear may get a stack of them. */
+        if (is_spear(otmp)) {
+            otmp->quan = rne(2);
+            otmp->owt = weight(otmp);
         }
 
         if (mpickobj(mtmp, otmp)) {
