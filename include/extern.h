@@ -3098,6 +3098,7 @@ E void FDECL(set_ulycn, (int));
 E void FDECL(setuwep, (struct obj *));
 E void FDECL(setuqwep, (struct obj *));
 E void FDECL(setuswapwep, (struct obj *));
+E boolean FDECL(cant_wield_corpse, (struct obj *));
 E int NDECL(dowield);
 E int NDECL(doswapweapon);
 E int NDECL(dowieldquiver);

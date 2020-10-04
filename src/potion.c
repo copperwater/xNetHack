@@ -432,6 +432,18 @@ long mask; /* nonzero if resistance status should change by mask */
         g.context.botl = TRUE;
         if (talk)
             pline(message, verb);
+
+        /* Hallucination blocks stoning, so if it is being removed, check to see
+         * if there is anything that should be causing stoning but wasn't
+         * because of hallucination */
+        if (!Hallucination || Halluc_resistance) {
+            /* At the moment, wielding a c corpse should be the only such
+             * case... */
+            if (uwep && cant_wield_corpse(uwep)) {
+                /* lifesaved; unwield the corpse if we can't handle it */
+                uwepgone(); /* calls update_inventory() */
+            }
+        }
     }
     return changed;
 }

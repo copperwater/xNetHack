@@ -231,6 +231,7 @@ changes:
 - The scroll of stinking cloud can be centered at a little over 7 spaces away
   instead of slightly over 5. Strictly speaking, the radius is sqrt(50).
 - Gas clouds block line-of-sight.
+- Hallucination prevents petrification (because you are already stoned).
 
 ### Interface changes
 
@@ -333,3 +334,4 @@ changes:
 - New function days_since_epoch(), which returns the number of days since
   1/1/0000.
 - Externify the inside_region function.
+- Externify the cant_wield_corpse function.

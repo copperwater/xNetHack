@@ -1354,6 +1354,10 @@ register struct attack *mattk;
                 if (!rn2(6) || !Deaf
                     || (flags.moonphase == NEW_MOON && !have_lizard())) {
  do_stone:
+                    if (Hallucination) {
+                        You("are already stoned.");
+                        return 1;
+                    }
                     if (!Stoned && !Stone_resistance
                         && !(poly_when_stoned(g.youmonst.data)
                              && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {

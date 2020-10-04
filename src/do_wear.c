@@ -580,8 +580,10 @@ boolean voluntary; /* taking gloves off on purpose? */
         Sprintf(kbuf, "%s gloves while wielding %s",
                 voluntary ? "removing" : "losing", killer_xname(obj));
         instapetrify(kbuf);
-        /* life-saved; can't continue wielding cockatrice corpse though */
-        remove_worn_item(obj, FALSE);
+        if (!Hallucination) {
+            /* life-saved; can't continue wielding cockatrice corpse though */
+            remove_worn_item(obj, FALSE);
+        }
     }
 }
 

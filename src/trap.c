@@ -2956,6 +2956,12 @@ const char *str;
 {
     if (Stone_resistance)
         return;
+    if (Hallucination) {
+        /* This will follow messages such as "Touching a cockatrice corpse is a
+         * fatal mistake" that imply the game is ending; contradict that */
+        pline("But you are already stoned.");
+        return;
+    }
     if (poly_when_stoned(g.youmonst.data)
         && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))
         return;
@@ -3005,7 +3011,7 @@ const char *arg;
         Sprintf(kbuf, "%s corpse", an(mons[uwep->corpsenm].mname));
         instapetrify(kbuf);
         /* life-saved; unwield the corpse if we can't handle it */
-        if (!uarmg && !Stone_resistance)
+        if (!uarmg && !Stone_resistance && !Hallucination)
             uwepgone();
     }
     /* Or your secondary weapon, if wielded [hypothetical; we don't
@@ -3016,7 +3022,7 @@ const char *arg;
         Sprintf(kbuf, "%s corpse", an(mons[uswapwep->corpsenm].mname));
         instapetrify(kbuf);
         /* life-saved; unwield the corpse */
-        if (!uarmg && !Stone_resistance)
+        if (!uarmg && !Stone_resistance && !Hallucination)
             uswapwepgone();
     }
 }

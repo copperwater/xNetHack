@@ -52,7 +52,6 @@
  * No item may be in more than one of these slots.
  */
 
-static boolean FDECL(cant_wield_corpse, (struct obj *));
 static int FDECL(ready_weapon, (struct obj *));
 
 /* to dual-wield, 'obj' must be a weapon or a weapon-tool, and not a bow
@@ -117,7 +116,7 @@ register struct obj *obj;
         g.unweapon = TRUE; /* for "bare hands" message */
 }
 
-static boolean
+boolean
 cant_wield_corpse(obj)
 struct obj *obj;
 {
@@ -125,10 +124,15 @@ struct obj *obj;
 
     if (uarmg || obj->otyp != CORPSE || !touch_petrifies(&mons[obj->corpsenm])
         || Stone_resistance)
+        /* no Hallucination check here; instapetrify() takes care of that */
         return FALSE;
 
     /* Prevent wielding cockatrice when not wearing gloves --KAA */
-    You("wield %s in your bare %s.",
+    /* note that hallucination wearing off while wielding cockatrice can trigger
+     * this function - that should be the only case for which obj is already
+     * uwep, since we otherwise check this before actually wielding it. */
+    You("%s %s in your bare %s.",
+        obj == uwep ? "are still wielding" : "wield",
         corpse_xname(obj, (const char *) 0, CXN_PFX_THE),
         makeplural(body_part(HAND)));
     Sprintf(kbuf, "wielding %s bare-handed", killer_xname(obj));
@@ -152,7 +156,8 @@ struct obj *wep;
             res++;
         } else
             You("are already empty %s.", body_part(HANDED));
-    } else if (wep->otyp == CORPSE && cant_wield_corpse(wep)) {
+    } else if (wep->otyp == CORPSE && cant_wield_corpse(wep)
+               && !Hallucination) {
         /* hero must have been life-saved to get here; use a turn */
         res++; /* corpse won't be wielded */
     } else if (uarms && bimanual(wep)) {
