@@ -1276,7 +1276,6 @@ int how;
                 char killbuf[BUFSZ];
                 formatkiller(killbuf, BUFSZ, how, FALSE);
                 livelog_printf(LL_LIFESAVE, "averted death (%s)", killbuf);
-                pline("averted death (%s)", killbuf);
                 survive = TRUE;
             }
         }
