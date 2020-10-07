@@ -234,6 +234,8 @@ changes:
 - Hallucination prevents petrification (because you are already stoned).
 - Mordor orcs and Uruk-hai can generate with orcish spears.
 - Any monster that generates with a spear can generate with a stack of them.
+- If a monster dies to damage from a trap on the player's turn, the player is
+  considered responsible.
 
 ### Interface changes
 

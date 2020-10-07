@@ -5969,7 +5969,15 @@ boolean nocorpse;
         if (DEADMONSTER(mon)) {
             int xx = mon->mx, yy = mon->my;
 
-            monkilled(mon, "", nocorpse ? -AD_RBRE : AD_PHYS);
+            /* If a monster dies in a trap on the player's turn (e.g. forced
+             * onto one by jousting or staggering blow), the player is probably
+             * responsible. */
+            if (g.context.mon_moving) {
+                monkilled(mon, "", nocorpse ? -AD_RBRE : AD_PHYS);
+            }
+            else {
+                xkilled(mon, nocorpse ? XKILL_NOCORPSE : 0);
+            }
             if (DEADMONSTER(mon)) {
                 newsym(xx, yy);
                 trapkilled = TRUE;
