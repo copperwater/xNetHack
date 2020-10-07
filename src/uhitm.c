@@ -2221,6 +2221,13 @@ int specialdmg; /* blessed and/or silver bonus against various things */
         if (!negated && tmp < mdef->mhp)
             tmp = mon_poly(&g.youmonst, mdef, tmp);
         break;
+    case AD_PITS:
+        if (!u.uswallow) {
+            if (!create_pit_under(mdef, &g.youmonst)) {
+                tmp = 0;
+            }
+        }
+        break;
     default:
         tmp = 0;
         break;

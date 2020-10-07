@@ -1812,6 +1812,18 @@ register struct attack *mattk;
         if (uncancelled && Maybe_Half_Phys(dmg) < (Upolyd ? u.mh : u.uhp))
             dmg = mon_poly(mtmp, &g.youmonst, dmg);
         break;
+    case AD_PITS:
+        /* For some reason, the uhitm code calls this for any AT_HUGS attack,
+         * but the mhitu code doesn't. */
+        if (mattk->aatyp == AT_HUGS) {
+            set_ustuck(mtmp);
+        }
+        if (!mtmp->mcan) {
+            if (!create_pit_under(&g.youmonst, mtmp)) {
+                dmg = 0;
+            }
+        }
+        break;
     default:
         dmg = 0;
         break;

@@ -2577,7 +2577,7 @@ struct permonst _mons2[] = {
     MON("pit fiend", S_DEMON, LVL(13, 6, -3, 65, -13),
         (G_HELL | G_NOCORPSE | 2),
         A(ATTK(AT_WEAP, AD_PHYS, 4, 2), ATTK(AT_WEAP, AD_PHYS, 4, 2),
-          ATTK(AT_HUGS, AD_PHYS, 2, 4), NO_ATTK, NO_ATTK, NO_ATTK),
+          ATTK(AT_HUGS, AD_PITS, 4, 4), NO_ATTK, NO_ATTK, NO_ATTK),
         SIZ(WT_HUMAN, 400, MS_GROWL, MZ_LARGE), MR_FIRE | MR_POISON, 0,
         M1_SEE_INVIS | M1_POIS,
         M2_DEMON | M2_STALK | M2_HOSTILE | M2_NASTY | M2_COLLECT,

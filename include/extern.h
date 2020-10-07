@@ -355,6 +355,7 @@ E void FDECL(bury_obj, (struct obj *));
 #ifdef DEBUG
 extern int NDECL(wiz_debug_cmd_bury);
 #endif
+E boolean FDECL(create_pit_under, (struct monst *, struct monst *));
 
 
 /* ### display.c ### */

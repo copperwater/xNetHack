@@ -1122,6 +1122,13 @@ unsigned trflags;
 
     nomul(0);
 
+    /* Correct conj_pit and adj_pit if the player isn't moving; this function
+     * can also be called by a pit fiend hurling you into a pit on its turn,
+     * which has nothing to do with moving between pits */
+    if (!g.context.mon_moving) {
+        conj_pit = adj_pit = FALSE;
+    }
+
     /* KMH -- You can't escape the Sokoban level traps */
     if (Sokoban && (is_pit(ttype) || is_hole(ttype))) {
         /* The "air currents" message is still appropriate -- even when

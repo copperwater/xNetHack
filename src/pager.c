@@ -625,6 +625,7 @@ static const char * damagetypes[] = {
     "corrode",
     "steal intrinsic",
     "polymorph",
+    "create pit",
     "clerical",
     "arcane",
     "random breath",

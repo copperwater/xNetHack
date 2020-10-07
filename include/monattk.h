@@ -79,10 +79,11 @@
 #define AD_CORR 42  /* corrode armor (black pudding) */
 #define AD_CURS 43  /* random curse (ex. gremlin) */
 #define AD_POLY 44  /* polymorph the target (genetic engineer) */
-#define AD_CLRC 45  /* random clerical spell */
-#define AD_SPEL 46  /* random magic spell */
-#define AD_RBRE 47  /* random breath weapon */
-#define AD_SAMU 48  /* hits, may steal Amulet (Wizard) */
+#define AD_PITS 45  /* create pit under target */
+#define AD_CLRC 46  /* random clerical spell */
+#define AD_SPEL 47  /* random magic spell */
+#define AD_RBRE 48  /* random breath weapon */
+#define AD_SAMU 49  /* hits, may steal Amulet (Wizard) */
 #define LAST_AD AD_SAMU
 
 /*

@@ -1448,6 +1448,13 @@ int dieroll;
         if (!magr->mcan && tmp < mdef->mhp)
             tmp = mon_poly(magr, mdef, tmp);
         break;
+    case AD_PITS:
+        if (!magr->mcan) {
+            if (!create_pit_under(mdef, magr)) {
+                tmp = 0;
+            }
+        }
+        break;
     default:
         tmp = 0;
         break;

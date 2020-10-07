@@ -236,6 +236,10 @@ changes:
 - Any monster that generates with a spear can generate with a stack of them.
 - If a monster dies to damage from a trap on the player's turn, the player is
   considered responsible.
+- Pit fiends' hug attack now creates a pit underneath their target, followed by
+  them hurling the target down into the pit. Sometimes a pit may be enlarged
+  into a hole. Levitation and flying prevent getting trapped in the pit, but
+  do not prevent damage dealt by being hurled down to the bottom.
 
 ### Interface changes
 
@@ -339,3 +343,5 @@ changes:
   1/1/0000.
 - Externify the inside_region function.
 - Externify the cant_wield_corpse function.
+- New function create_pit_under(), an xhity-compatible function that has an
+  aggressor create a pit beneath a target monster and throw them down into it.

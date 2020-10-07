@@ -1395,8 +1395,12 @@ int in_sight;
 {
     int tt = (trap ? trap->ttyp : NO_TRAP);
 
-    if (mtmp == u.ustuck) /* probably a vortex */
+    if (mtmp == u.ustuck && g.context.mon_moving) {
+        /* ustuck case is probably a vortex, but check mon_moving so that if
+         * hero is forcing a monster into a trap (i.e. with an AD_PITS attack),
+         * this will proc correctly. */
         return 0;         /* temporary? kludge */
+    }
     if (teleport_pet(mtmp, force_it)) {
         d_level tolevel;
         int migrate_typ = MIGR_RANDOM;
