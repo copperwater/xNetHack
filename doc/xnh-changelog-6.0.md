@@ -242,6 +242,8 @@ changes:
   do not prevent damage dealt by being hurled down to the bottom.
 - Anything that polymorphs into a snaky form that is nonhumanoid and not
   Gigantic will not break its armor. Instead, it will slither out of its armor.
+- Chaotics no longer incur a -1 alignment record penalty for angering peaceful
+  monsters.
 
 ### Interface changes
 
