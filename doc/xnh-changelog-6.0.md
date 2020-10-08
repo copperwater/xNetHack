@@ -244,6 +244,10 @@ changes:
   Gigantic will not break its armor. Instead, it will slither out of its armor.
 - Chaotics no longer incur a -1 alignment record penalty for angering peaceful
   monsters.
+- Chaotics no longer incur a -1 alignment record penalty for casting healing
+  spells at their pets (but they still do for healing peacefuls).
+- There are no alignment record adjustments at all for casting healing spells
+  at a monster which is already at maximum HP.
 
 ### Interface changes
 
