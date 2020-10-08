@@ -282,6 +282,8 @@ changes:
 - A couple more major Oracle consultations.
 - Monks now have role-specific hello/goodbye messages like several other roles.
 - An offscreen pet death will make you feel "woebegone" if hallucinating.
+- If you had a travel destination saved that you hadn't yet reached, a
+  controlled teleport will suggest that destination at its prompt.
 
 ### Architectural changes
 
