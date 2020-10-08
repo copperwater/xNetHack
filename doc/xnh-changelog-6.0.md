@@ -248,6 +248,8 @@ changes:
   spells at their pets (but they still do for healing peacefuls).
 - There are no alignment record adjustments at all for casting healing spells
   at a monster which is already at maximum HP.
+- Summon nasties scales based on the summoner's level, not the player's, and
+  always creates at least 3 monsters.
 
 ### Interface changes
 

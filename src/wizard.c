@@ -585,12 +585,12 @@ struct monst *summoner;
         s_cls = summoner ? summoner->data->mlet : 0;
         difcap = summoner ? summoner->data->difficulty : 0; /* spellcasters */
         castalign = summoner ? sgn(summoner->data->maligntyp) : 0;
-        tmp = (u.ulevel > 3) ? u.ulevel / 3 : 1;
+        tmp = 2 + rnd((summoner->m_lev / 5) + 1);
         /* if we don't have a casting monster, nasties appear around hero,
            otherwise they'll appear around spot summoner thinks she's at */
         bypos.x = u.ux;
         bypos.y = u.uy;
-        for (i = rnd(tmp); i > 0 && count < MAXNASTIES; --i) {
+        for (i = tmp; i > 0 && count < MAXNASTIES; --i) {
             /* Of the 44 nasties[], 10 are lawful, 14 are chaotic,
              * and 20 are neutral.  [These numbers are up date for
              * 3.7.0; the ones in the next paragraph are not....]
