@@ -462,7 +462,9 @@ sliparm(ptr)
 register struct permonst *ptr;
 {
     return (boolean) (is_whirly(ptr) || ptr->msize <= MZ_SMALL
-                      || noncorporeal(ptr));
+                      || noncorporeal(ptr)
+                      || (slithy(ptr) && !humanoid(ptr)
+                          && ptr->msize < MZ_GIGANTIC));
 }
 
 /* creature will break out of armor */

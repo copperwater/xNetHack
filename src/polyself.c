@@ -961,8 +961,12 @@ boolean noisy;
         if ((otmp = uarm) != 0 && racial_exception(&g.youmonst, otmp) < 1) {
             if (donning(otmp))
                 cancel_don();
-            if (noisy)
-                Your("armor falls around you!");
+            if (noisy) {
+                if (slithy(g.youmonst.data))
+                    You("slither out of your armor!");
+                else
+                    Your("armor falls around you!");
+            }
             (void) Armor_gone();
             dropp(otmp);
         }
@@ -971,7 +975,9 @@ boolean noisy;
                 if (is_whirly(g.youmonst.data))
                     Your("%s falls, unsupported!", cloak_simple_name(otmp));
                 else
-                    You("shrink out of your %s!", cloak_simple_name(otmp));
+                    You("%s out of your %s!",
+                        slithy(g.youmonst.data) ? "slither" : "shrink",
+                        cloak_simple_name(otmp));
             }
             (void) Cloak_off();
             dropp(otmp);
@@ -980,6 +986,8 @@ boolean noisy;
             if (noisy) {
                 if (is_whirly(g.youmonst.data))
                     You("seep right through your shirt!");
+                else if (slithy(g.youmonst.data))
+                    You("slither out of your shirt!");
                 else
                     You("become much too small for your shirt!");
             }

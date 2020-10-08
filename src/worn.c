@@ -905,9 +905,14 @@ boolean polyspot;
         }
     } else if (sliparm(mdat)) {
         if ((otmp = which_armor(mon, W_ARM)) != 0) {
-            if (vis)
-                pline("%s armor falls around %s!", s_suffix(Monnam(mon)),
-                      pronoun);
+            if (vis) {
+                if (slithy(mon->data))
+                    pline("%s slithers out of %s armor!", Monnam(mon),
+                          ppronoun);
+                else
+                    pline("%s armor falls around %s!", s_suffix(Monnam(mon)),
+                          pronoun);
+            }
             else
                 You_hear("a thud.");
             if (polyspot)
@@ -920,7 +925,8 @@ boolean polyspot;
                     pline("%s %s falls, unsupported!", s_suffix(Monnam(mon)),
                           cloak_simple_name(otmp));
                 else
-                    pline("%s shrinks out of %s %s!", Monnam(mon), ppronoun,
+                    pline("%s %ss out of %s %s!", Monnam(mon),
+                          slithy(mon->data) ? "slither" : "shrink", ppronoun,
                           cloak_simple_name(otmp));
             }
             if (polyspot)
@@ -929,8 +935,11 @@ boolean polyspot;
         }
         if ((otmp = which_armor(mon, W_ARMU)) != 0) {
             if (vis) {
-                if (sliparm(mon->data))
+                if (sliparm(mdat))
                     pline("%s seeps right through %s shirt!", Monnam(mon),
+                          ppronoun);
+                else if (slithy(mon->data))
+                    pline("%s slithers out of %s shirt!", Monnam(mon),
                           ppronoun);
                 else
                     pline("%s becomes much too small for %s shirt!",

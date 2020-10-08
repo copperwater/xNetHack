@@ -240,6 +240,8 @@ changes:
   them hurling the target down into the pit. Sometimes a pit may be enlarged
   into a hole. Levitation and flying prevent getting trapped in the pit, but
   do not prevent damage dealt by being hurled down to the bottom.
+- Anything that polymorphs into a snaky form that is nonhumanoid and not
+  Gigantic will not break its armor. Instead, it will slither out of its armor.
 
 ### Interface changes
 
