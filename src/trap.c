@@ -4549,7 +4549,7 @@ struct trap *ttmp;
     if (fails < 2)
         return fails;
     You("disarm %s trap.", the_your[ttmp->madeby_u]);
-    deltrap_with_ammo(ttmp, DELTRAP_PLACE_AMMO);
+    deltrap_with_ammo(ttmp, DELTRAP_TAKE_AMMO);
     return 1;
 }
 
@@ -5340,6 +5340,9 @@ int do_what;
         while (otmp) {
             nobj = otmp->nobj;
             switch (do_what) {
+            default:
+                impossible("Bad deltrap constant! Destroying ammo instead");
+                /* FALLTHRU */
             case DELTRAP_DESTROY_AMMO:
                 obfree(otmp, NULL);
                 break;
@@ -5353,6 +5356,10 @@ int do_what;
             case DELTRAP_BURY_AMMO:
                 place_object(otmp, trap->tx, trap->ty);
                 (void) bury_an_obj(otmp, NULL);
+                break;
+            case DELTRAP_TAKE_AMMO:
+                hold_another_object(otmp, "You remove, but drop, %s.",
+                                    doname(otmp), NULL);
                 break;
             }
             otmp = nobj;

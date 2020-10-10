@@ -252,6 +252,8 @@ changes:
   always creates at least 3 monsters.
 - Add L's Wounds patch, which allows healers to receive messages showing how
   wounded a monster is, and obtain the same information from farlook.
+- When disarming a shooting trap, its ammo is placed directly into your
+  inventory.
 
 ### Interface changes
 

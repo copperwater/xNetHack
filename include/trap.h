@@ -121,7 +121,8 @@ enum deltrap_handle_ammo {
     DELTRAP_RETURN_AMMO = 0, /* return ammo to caller; do nothing with it */
     DELTRAP_DESTROY_AMMO,    /* delete ammo */
     DELTRAP_PLACE_AMMO,      /* place ammo on ground where trap was */
-    DELTRAP_BURY_AMMO        /* bury ammo under where trap was */
+    DELTRAP_BURY_AMMO,       /* bury ammo under where trap was */
+    DELTRAP_TAKE_AMMO        /* put ammo into player's inventory */
 };
 
 #define predoortrapped(x, y, mon, body, act) \
