@@ -1357,4 +1357,30 @@ struct permonst *ptr;
     return 0;
 }
 
+/* Return TRUE if the monster has flesh. */
+boolean
+is_fleshy(ptr)
+const struct permonst *ptr;
+{
+    if (vegetarian(ptr)) {
+        /* vegetarian monsters generally don't have flesh */
+        return FALSE;
+    }
+    if (noncorporeal(ptr)) {
+        /* these certainly don't have flesh */
+        return FALSE;
+    }
+    if (!nonliving(ptr)) {
+        /* nonvegetarian, alive monsters generally do */
+        return TRUE;
+    }
+    if (ptr->mlet == S_MUMMY || ptr->mlet == S_VAMPIRE
+        || (ptr->mlet == S_ZOMBIE && ptr != &mons[PM_SKELETON])
+        || ptr == &mons[PM_FLESH_GOLEM]) {
+        /* Exceptions: non-living monsters that do have flesh */
+        return TRUE;
+    }
+    return FALSE;
+}
+
 /*mondata.c*/

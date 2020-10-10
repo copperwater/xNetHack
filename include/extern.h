@@ -1627,6 +1627,7 @@ E const struct permonst *FDECL(raceptr, (struct monst *));
 E boolean FDECL(olfaction, (struct permonst *));
 E int FDECL(monmaterial, (int));
 E int FDECL(emits_light, (struct permonst *));
+E boolean FDECL(is_fleshy, (const struct permonst *));
 
 /* ### monmove.c ### */
 

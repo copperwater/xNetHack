@@ -518,7 +518,7 @@ boolean minimal;        /* print a shorter message leaving out obj details */
 {
     boolean youattack = (magr == &g.youmonst);
     boolean youdefend = (mdef == &g.youmonst);
-    boolean has_flesh = (!noncorporeal(mdef->data) && !amorphous(mdef->data));
+    boolean has_flesh = is_fleshy(mdef->data);
 
     if (!obj) {
         impossible("searmsg: nothing searing?");

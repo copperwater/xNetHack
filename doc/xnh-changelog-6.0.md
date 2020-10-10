@@ -357,3 +357,4 @@ changes:
 - Externify the cant_wield_corpse function.
 - New function create_pit_under(), an xhity-compatible function that has an
   aggressor create a pit beneath a target monster and throw them down into it.
+- New function is_fleshy(), which determines if a monster has flesh or not.
