@@ -775,6 +775,7 @@ int dieroll;
     int wtype;
     struct obj *monwep;
     char saved_oname[BUFSZ];
+    int saved_mhp = mon->mhp;
 
     saved_oname[0] = '\0';
 
@@ -1510,6 +1511,9 @@ int dieroll;
     if (unpoisonmsg)
         Your("%s %s no longer poisoned.", saved_oname,
              vtense(saved_oname, "are"));
+    if (!destroyed) {
+        print_mon_wounded(mon, saved_mhp);
+    }
 
     return destroyed ? FALSE : TRUE;
 }

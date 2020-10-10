@@ -287,6 +287,7 @@ int x, y;
 {
     char *name, monnambuf[BUFSZ];
     boolean accurate = !Hallucination;
+    char *mwounds;
 
     name = (mtmp->data == &mons[PM_COYOTE] && accurate)
               ? coyotename(mtmp, monnambuf)
@@ -301,6 +302,11 @@ int x, y;
                     ? "peaceful "
                     : "",
             name);
+    mwounds = mon_wounds(mtmp);
+    if (mwounds) {
+        Strcat(buf, ", ");
+        Strcat(buf, mwounds);
+    }
     if (u.ustuck == mtmp) {
         if (u.uswallow || iflags.save_uswallow) /* monster detection */
             Strcat(buf, is_animal(mtmp->data)

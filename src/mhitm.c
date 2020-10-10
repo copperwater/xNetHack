@@ -288,7 +288,8 @@ register struct monst *magr, *mdef;
         attk,       /* attack attempted this time */
         struck = 0, /* hit at least once */
         res[NATTK], /* results of all attacks */
-        dieroll = 0;
+        dieroll = 0,
+        saved_mhp = (mdef ? mdef->mhp : 0); /* for print_mon_wounded() */
     struct attack *mattk, alt_attk;
     struct obj *mwep;
     struct permonst *pa, *pd;
@@ -523,6 +524,9 @@ register struct monst *magr, *mdef;
             return res[i];
         if (res[i] & MM_HIT)
             struck = 1; /* at least one hit */
+    }
+    if (struck && mdef->mtame) {
+        print_mon_wounded(mdef, saved_mhp);
     }
 
     return (struck ? MM_HIT : MM_MISS);

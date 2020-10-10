@@ -250,6 +250,8 @@ changes:
   at a monster which is already at maximum HP.
 - Summon nasties scales based on the summoner's level, not the player's, and
   always creates at least 3 monsters.
+- Add L's Wounds patch, which allows healers to receive messages showing how
+  wounded a monster is, and obtain the same information from farlook.
 
 ### Interface changes
 
