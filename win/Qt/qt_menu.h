@@ -56,12 +56,14 @@ public:
 
 	virtual QWidget* Widget();
 
-	virtual void StartMenu();
+	virtual void StartMenu(bool using_WIN_INVEN = false);
         virtual void AddMenu(int glyph, const ANY_P *identifier,
                              char ch, char gch, int attr,
                              const QString& str, unsigned itemflags);
 	virtual void EndMenu(const QString& prompt);
 	virtual int SelectMenu(int how, MENU_ITEM_P **menu_list);
+
+        bool is_invent;         // using core's WIN_INVEN
 
 public slots:
 	void All();
@@ -129,6 +131,7 @@ private:
 	void AddRow(int row, const MenuItem& mi);
 	void WidenColumn(int column, int width);
         void PadMenuColumns(bool split_descr);
+        void MenuResize();
         void UpdateCountColumn(long newcount);
 
         void ClearSearch();
@@ -168,7 +171,7 @@ private:
 class NetHackQtMenuOrTextWindow : public NetHackQtWindow {
 private:
 	NetHackQtWindow* actual;
-    QWidget *parent;
+        QWidget *parent;
 
 public:
 	NetHackQtMenuOrTextWindow(QWidget *parent = NULL);
@@ -182,7 +185,7 @@ public:
 	virtual void PutStr(int attr, const QString& text);
 
 	// Menu
-	virtual void StartMenu();
+        virtual void StartMenu(bool using_WIN_INVENT = false);
         virtual void AddMenu(int glyph, const ANY_P *identifier,
                              char ch, char gch, int attr,
                              const QString& str, unsigned itemflags);

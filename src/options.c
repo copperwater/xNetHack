@@ -304,7 +304,10 @@ register char *opts;
 boolean tinitial, tfrom_file;
 {
     char *op;
-    boolean negated, got_match = FALSE, has_val = FALSE;
+    boolean negated, got_match = FALSE;
+#if 0
+    boolean has_val = FALSE;
+#endif
     int i, matchidx = -1, optresult = optn_err, optlen, optlen_wo_val;
     boolean retval = TRUE;
 
@@ -345,11 +348,16 @@ boolean tinitial, tfrom_file;
     optlen = (int) strlen(opts);
     optlen_wo_val = length_without_val(opts, optlen);
     if (optlen_wo_val < optlen) {
+#if 0
         has_val = TRUE;
+#endif
         optlen = optlen_wo_val;
-    } else {
+    }
+#if 0
+    else {
         has_val = FALSE;
     }
+#endif
 
     for (i = 0; i < OPTCOUNT; ++i) {
         got_match = FALSE;
@@ -5730,8 +5738,8 @@ int len;
    substring of a particular option name; option string might have
    a colon or equals sign and arbitrary value appended to it */
 boolean
-match_optname(user_string, opt_name, min_length, val_allowed)
-const char *user_string, *opt_name;
+match_optname(user_string, optn_name, min_length, val_allowed)
+const char *user_string, *optn_name;
 int min_length;
 boolean val_allowed;
 {
@@ -5741,7 +5749,7 @@ boolean val_allowed;
         len = length_without_val(user_string, len);
 
     return (boolean) (len >= min_length
-                      && !strncmpi(opt_name, user_string, len));
+                      && !strncmpi(optn_name, user_string, len));
 }
 
 void
@@ -7580,7 +7588,7 @@ doset() /* changing options via menu by Per Liboriussen */
                     (void) parseoptions(buf, setinitial, fromfile);
                 } else {
                     /* compound option */
-                    int k = opt_indx, reslt;
+                    int k = opt_indx, reslt UNUSED;
 
                     if (allopt[k].has_handler && allopt[k].optfn) {
                         reslt = (*allopt[k].optfn)(allopt[k].idx, do_handler,

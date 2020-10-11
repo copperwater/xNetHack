@@ -1,4 +1,4 @@
-/* NetHack 3.7	extern.h	$NHDT-Date: 1600933440 2020/09/24 07:44:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.859 $ */
+/* NetHack 3.7	extern.h	$NHDT-Date: 1602270114 2020/10/09 19:01:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.867 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -47,6 +47,7 @@ E void FDECL(check_leash, (XCHAR_P, XCHAR_P));
 E boolean FDECL(um_dist, (XCHAR_P, XCHAR_P, XCHAR_P));
 E boolean FDECL(snuff_candle, (struct obj *));
 E boolean FDECL(snuff_lit, (struct obj *));
+E boolean FDECL(splash_lit, (struct obj *));
 E boolean FDECL(catch_lit, (struct obj *));
 E void FDECL(use_unicorn_horn, (struct obj **));
 E boolean FDECL(tinnable, (struct obj *));
@@ -425,6 +426,7 @@ E void FDECL(schedule_goto, (d_level *, BOOLEAN_P, BOOLEAN_P, int,
 E void NDECL(deferred_goto);
 E boolean FDECL(revive_corpse, (struct obj *));
 E void FDECL(revive_mon, (ANY_P *, long));
+E boolean FDECL(cmd_safety_prevention, (const char *, const char *, int *));
 E int NDECL(donull);
 E int NDECL(dowipe);
 E void FDECL(legs_in_no_shape, (const char *, BOOLEAN_P));
@@ -2160,7 +2162,7 @@ E void NDECL(deliver_splev_message);
 /* ### random.c ### */
 
 #if defined(RANDOM) && !defined(__GO32__) /* djgpp has its own random */
-#ifndef AMIGA_CROSS
+#ifndef CROSS_TO_AMIGA
 E void FDECL(srandom, (unsigned));
 E char *FDECL(initstate, (unsigned, char *, int));
 E char *FDECL(setstate, (char *));
@@ -2729,6 +2731,7 @@ E boolean NDECL(lava_effects);
 E void NDECL(sink_into_lava);
 E void NDECL(sokoban_guilt);
 E const char * FDECL(trapname, (int, BOOLEAN_P));
+E void FDECL(ignite_items, (struct obj *));
 
 /* ### u_init.c ### */
 

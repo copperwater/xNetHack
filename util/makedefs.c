@@ -1136,8 +1136,6 @@ do_date()
     char *c, cbuf[60], buf[BUFSZ];
     const char *ul_sfx;
 #if defined(CROSSCOMPILE) && !defined(CROSSCOMPILE_TARGET)
-    int steps = 0;
-    const char ind[] = "    ";
     const char *xpref = "HOST_";
 #else
     const char *xpref = (const char *) 0;
@@ -1267,10 +1265,18 @@ do_date()
 #endif
     Fprintf(ofp, "#define VERSION_SANITY1 0x%08lx%s\n", version.entity_count,
             ul_sfx);
+#ifndef __EMSCRIPTEN__
     Fprintf(ofp, "#define VERSION_SANITY2 0x%08lx%s\n", version.struct_sizes1,
             ul_sfx);
     Fprintf(ofp, "#define VERSION_SANITY3 0x%08lx%s\n", version.struct_sizes2,
             ul_sfx);
+#else /* __EMSCRIPTEN__ */
+    Fprintf(ofp, "#define VERSION_SANITY2 0x%08llx%s\n", version.struct_sizes1,
+            ul_sfx);
+    Fprintf(ofp, "#define VERSION_SANITY3 0x%08llx%s\n", version.struct_sizes2,
+            ul_sfx);
+#endif /* !__EMSCRIPTEN__ */
+
     Fprintf(ofp, "\n");
     Fprintf(ofp, "#define VERSION_STRING \"%s\"\n", version_string(buf, "."));
     Fprintf(ofp, "#define VERSION_ID \\\n \"%s\"\n",
@@ -1288,7 +1294,9 @@ do_date()
         Fprintf(ofp, "#define NETHACK_%sGIT_BRANCH \"%s\"\n",
                 xpref, gitbranch);
     }
+#if !defined(CROSSCOMPILE) || !defined(CROSSCOMPILE_TARGET)
     Fprintf(ofp, "#endif /* !CROSSCOMPILE || !CROSSCOMPILE_TARGET */\n");
+#endif
     Fprintf(ofp, "\n");
 #ifdef AMIGA
     {
@@ -1921,7 +1929,7 @@ void
 do_monstr()
 {
     struct permonst *ptr;
-    int i, j;
+    int i;
 
     /* Don't break anything for ports that haven't been updated. */
     printf("DEPRECATION WARNINGS:\n");
@@ -1963,7 +1971,7 @@ do_monstr()
 
     /* output derived monstr values as a comment */
     Fprintf(ofp, "\n\n/*\n * default mons[].difficulty values\n *\n");
-    for (ptr = &mons[0], j = 0; ptr->mlet; ptr++) {
+    for (ptr = &mons[0]; ptr->mlet; ptr++) {
         i = mstrength(ptr);
         Fprintf(ofp, "%-24s %2u\n", ptr->mname, (unsigned int) (uchar) i);
     }

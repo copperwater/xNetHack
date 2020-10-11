@@ -956,7 +956,7 @@ void NetHackQtMainWindow::doQuit(bool)
     case 0:
         // quit -- bypass the prompting preformed by done2()
         g.program_state.stopprint++;
-        done(QUIT);
+        ::done(QUIT);
         /*NOTREACHED*/
         break;
     case 1:
@@ -982,12 +982,26 @@ void NetHackQtMainWindow::doGuidebook(bool)
 }
 #endif
 
+void NetHackQtMainWindow::doKeys(const char *cmds)
+{
+    keysink.Put(cmds);
+    qApp->exit();
+}
+
 void NetHackQtMainWindow::doKeys(const QString& k)
 {
     /* [this should probably be using toLocal8Bit();
        toAscii() is not offered as an alternative...] */
-    keysink.Put(k.toLatin1().constData());
-    qApp->exit();
+    doKeys(k.toLatin1().constData());
+}
+
+// queue up the command name for a function, as if user had typed it
+void NetHackQtMainWindow::FuncAsCommand(int NDECL((*func)))
+{
+    char cmdbuf[32];
+    Strcpy(cmdbuf, "#");
+    (void) cmdname_from_func(func, &cmdbuf[1], FALSE);
+    doKeys(cmdbuf);
 }
 
 void NetHackQtMainWindow::AddMessageWindow(NetHackQtMessageWindow* window)
@@ -1225,10 +1239,10 @@ void NetHackQtMainWindow::keyPressEvent(QKeyEvent* event)
 	if (message) message->Scroll(0,+1);
         break;
     case Qt::Key_Space:
-	if ( flags.rest_on_space ) {
-	    event->ignore();
-	    return;
-	}
+        //if (flags.rest_on_space) {
+        event->ignore(); // punt to NetHackQtBind::notify()
+        return;
+        //}
     case Qt::Key_Enter:
 	if ( map )
 	    map->clickCursor();
@@ -1260,7 +1274,7 @@ void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
             // quit -- bypass the prompting preformed by done2()
             ok = 1;
             g.program_state.stopprint++;
-            done(QUIT);
+            ::done(QUIT);
             /*NOTREACHED*/
             break;
 	}

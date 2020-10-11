@@ -396,13 +396,13 @@ void NetHackQtStatusWindow::fadeHighlighting()
  * the other.  So only do our update when we update the second line.
  *
  * Information on the first line:
- *    name, attributes, alignment, score
+ *    name, Str/Dex/&c characteristics, alignment, score
  *
  * Information on the second line:
  *    dlvl, gold, hp, power, ac, {level & exp or HD **}
  *    status (hunger, encumbrance, sick, stun, conf, halu, blind), time
  *
- * [**] HD is shown instead of level and exp if mtimedone is non-zero.
+ * [**] HD is shown instead of level and exp when hero is polymorphed.
  */
 void NetHackQtStatusWindow::updateStats()
 {
@@ -553,8 +553,7 @@ void NetHackQtStatusWindow::updateStats()
 	score.setLabel("");
     }
 
-    if (first_set)
-    {
+    if (first_set) {
 	first_set=false;
 
 	name.highlightWhenChanging();
@@ -602,6 +601,13 @@ void NetHackQtStatusWindow::updateStats()
  */
 void NetHackQtStatusWindow::checkTurnEvents()
 {
+}
+
+// clicking on status window runs #attributes (^X)
+void NetHackQtStatusWindow::mousePressEvent(QMouseEvent *event UNUSED)
+{
+    QWidget *main = NetHackQtBind::mainWidget();
+    (static_cast <NetHackQtMainWindow *> (main))->FuncAsCommand(doattributes);
 }
 
 } // namespace nethack_qt_
