@@ -31,6 +31,13 @@ static void FDECL(deal_with_overcrowding, (struct monst *));
     (Is_rogue_level(&u.uz)            \
      || (g.level.flags.graveyard && is_undead(mdat) && rn2(3)))
 
+/* A specific combination of x_monnam flags for livelogging. The livelog
+ * shouldn't show that you killed a hallucinatory monster and not what it
+ * actually is. */
+#define livelog_mon_nam(mtmp) \
+    x_monnam(mtmp, ARTICLE_THE, (char *) 0,                 \
+             (SUPPRESS_IT | SUPPRESS_HALLUCINATION), FALSE)
+
 #if 0
 /* part of the original warning code which was replaced in 3.3.1 */
 const char *warnings[] = {
@@ -2281,7 +2288,7 @@ register struct monst *mtmp;
         switch (g.mvitals[tmp].died) {
             case 1:
                 livelog_printf(LL_UMONST, "put %s down for a little nap",
-                               noit_mon_nam(mtmp));
+                               livelog_mon_nam(mtmp));
                 break;
             case 5:
             case 10:
@@ -2291,7 +2298,7 @@ register struct monst *mtmp;
             case 200:
             case 250:
                 livelog_printf(LL_UMONST, "put %s down for a little nap (%d times)",
-                               noit_mon_nam(mtmp), g.mvitals[tmp].died);
+                               livelog_mon_nam(mtmp), g.mvitals[tmp].died);
                 break;
             default:
                 /* don't spam the log every time */
@@ -2303,7 +2310,7 @@ register struct monst *mtmp;
                 if (mtmp->data != &mons[PM_MEDUSA])
                     livelog_printf(LL_UMONST, "%s %s",
                                nonliving(mtmp->data) ? "destroyed" : "killed",
-                               noit_mon_nam(mtmp));
+                               livelog_mon_nam(mtmp));
                 break;
             case 5:
             case 10:
@@ -2314,7 +2321,7 @@ register struct monst *mtmp;
             case 250:
                 livelog_printf(LL_UMONST, "%s %s (%d times)",
                                nonliving(mtmp->data) ? "destroyed" : "killed",
-                               noit_mon_nam(mtmp), g.mvitals[tmp].died);
+                               livelog_mon_nam(mtmp), g.mvitals[tmp].died);
                 break;
             default:
                 /* don't spam the log every time */
@@ -2780,9 +2787,12 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
             You_hear("the rumble of distant thunder...");
         else
             You_hear("the studio audience applaud!");
-        if (!unique_corpstat(mdat) && has_mname(mtmp)) {
-            livelog_printf(LL_KILLEDPET, "murdered %s, %s faithful %s",
-                           MNAME(mtmp), uhis(), mdat->mname);
+        if (!unique_corpstat(mdat)) {
+            boolean mname = has_mname(mtmp);
+            livelog_printf(LL_KILLEDPET, "murdered %s%s%s faithful %s",
+                           mname ? MNAME(mtmp) : "",
+                           mname ? ", " : "",
+                           uhis(), mdat->mname);
         }
     } else if (mtmp->mpeaceful)
         adjalign(-5);
@@ -2794,10 +2804,10 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
         && mtmp->former_rank && strlen(mtmp->former_rank) > 0) {
         if (mtmp->data == &mons[PM_GHOST])
             livelog_printf(LL_UMONST, "destroyed %s, the former %s",
-                           noit_mon_nam(mtmp), mtmp->former_rank);
+                           livelog_mon_nam(mtmp), mtmp->former_rank);
         else
             livelog_printf(LL_UMONST, "destroyed %s, and former %s",
-                           noit_mon_nam(mtmp), mtmp->former_rank);
+                           livelog_mon_nam(mtmp), mtmp->former_rank);
     }
 }
 

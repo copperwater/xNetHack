@@ -1170,8 +1170,10 @@ int how;
         if (how == GENOCIDED) {
             pline("Unfortunately you are still genocided...");
         } else {
+            char killbuf[BUFSZ];
+            formatkiller(killbuf, BUFSZ, how, FALSE);
+            livelog_printf(LL_LIFESAVE, "averted death (%s)", killbuf);
             survive = TRUE;
-            livelog_write_string(LL_LIFESAVE, "averted death");
         }
     }
     /* explore and wizard modes offer player the option to keep playing */
