@@ -15,7 +15,7 @@ COMPILEREVISION?=1
 PREFIX=/opt/nethack/chroot
 
 # this is the dir where NetHack is inside the chroot
-HACKDIR=/nh370.22-hdf
+HACKDIR=/nh370.23-hdf
 INSTDIR=$(PREFIX)$(HACKDIR)
 # DGL does not use the shell script launcher
 SHELLDIR=/tmp
@@ -54,14 +54,14 @@ WINSRC = $(WINTTYSRC) $(WINCURSESSRC)
 WINOBJ = $(WINTTYOBJ) $(WINCURSESOBJ)
 WINLIB = $(WINTTYLIB) $(WINCURSESLIB)
 
-WINTTYLIB=-lcurses
+WINTTYLIB=-lcurses -ltinfo
 
 # if TTY_TILES_ESCCODES
 WINSRC += tile.c
 WINOBJ += tile.o
 
-CHOWN=chown
-CHGRP=chgrp
+CHOWN=true
+CHGRP=true
 GAMEUID=games
 GAMEGRP=games
 
