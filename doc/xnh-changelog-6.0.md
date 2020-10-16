@@ -254,6 +254,13 @@ changes:
   wounded a monster is, and obtain the same information from farlook.
 - When disarming a shooting trap, its ammo is placed directly into your
   inventory.
+- Spheres' explosions are now real explosions, hitting the 8 squares around
+  them and items on the floor in addition to their target. Note: real
+  explosions can destroy items!
+- When the player explodes as a sphere, their carried gear is safe from any
+  elemental damage the explosion would normally cause.
+- Flaming and freezing spheres are difficulty 9 (up from 8), and shocking
+  spheres are difficulty 10 (up from 8).
 
 ### Interface changes
 

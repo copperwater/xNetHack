@@ -4562,6 +4562,11 @@ short exploding_wand_typ;
     boolean see_it = cansee(x, y), yourzap;
     int rangemod = 0, abstype = abs(type) % 10;
 
+    if (type == PHYS_EXPL_TYPE) {
+        /* this won't have any effect on the floor */
+        return -1000; /* not a zap anyway, shouldn't matter */
+    }
+
     switch (abstype) {
     case ZT_FIRE:
         t = t_at(x, y);
