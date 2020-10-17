@@ -1617,12 +1617,18 @@ struct mkroom *aroom;
         return;
     }
 
-    /* Probability of a random door being a secret door:
-     * sqrt(depth-3) / 35, or depth-3 / 1225.
-     * If depth <= 3, probability is 0. */
+    /* Probability of a random door being a secret door: sqrt(depth-3) / 35.
+     * If depth <= 3, probability is 0.
+     * Math here: random[0..1)      < sqrt(depth - 3) / 35
+     *            random[0..35)     < sqrt(depth - 3)
+     *            random[0..35) ^ 2 < depth - 3
+     * It's important to compute one random number and square it, rather than
+     * taking two rn2(35) and multiplying them, or going for a uniform
+     * rn2(35*35) distribution. */
     xchar doortyp = DOOR;
     schar u_depth = depth(&u.uz);
-    if (u_depth > 3 && rn2(1225) < u_depth - 3) {
+    int r = rn2(35);
+    if (u_depth > 3 && (r * r) < u_depth - 3) {
         doortyp = SDOOR;
     }
     dosdoor(x, y, aroom, doortyp);
