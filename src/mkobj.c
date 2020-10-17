@@ -3545,6 +3545,10 @@ struct obj* obj;
         case HORN_OF_PLENTY:
             return horn_materials;
         case STATUE:
+            if (Is_medusa_level(&u.uz) && g.in_mklev) {
+                /* All statues generated with the Medusa level must be stone. */
+                return NULL;
+            }
             return statue_materials;
         case FIGURINE:
             return figurine_materials;
