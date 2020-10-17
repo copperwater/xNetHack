@@ -261,6 +261,10 @@ changes:
   elemental damage the explosion would normally cause.
 - Flaming and freezing spheres are difficulty 9 (up from 8), and shocking
   spheres are difficulty 10 (up from 8).
+- Digging out of an engulfer's stomach cuts its HP in half rather than setting
+  it to 1. If the engulfer is amorphous, its HP is only cut by 25%. There's no
+  longer a special case for unique engulfers (Juiblex counts under the
+  amorphous rule).
 
 ### Interface changes
 

@@ -1458,10 +1458,10 @@ zap_dig()
             if (is_animal(mtmp->data))
                 You("pierce %s %s wall!", s_suffix(mon_nam(mtmp)),
                     mbodypart(mtmp, STOMACH));
-            if (unique_corpstat(mtmp->data))
-                mtmp->mhp = (mtmp->mhp + 1) / 2;
+            if (amorphous(mtmp->data)) /* this won't do a ton of damage */
+                mtmp->mhp = (mtmp->mhp * 3) / 4;
             else
-                mtmp->mhp = 1; /* almost dead */
+                mtmp->mhp = (mtmp->mhp + 1) / 2;
             expels(mtmp, mtmp->data, !is_animal(mtmp->data));
         }
         return;
