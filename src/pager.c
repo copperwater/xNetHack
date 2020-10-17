@@ -1070,6 +1070,9 @@ short otyp;
         if (otyp == SPE_BLANK_PAPER) {
             OBJPUTSTR("Spellbook.");
         }
+        else if (otyp == SPE_NOVEL || otyp == SPE_BOOK_OF_THE_DEAD) {
+            OBJPUTSTR("Book.");
+        }
         else {
             Sprintf(buf, "Level %d spellbook, in the %s school. %s spell.",
                     oc.oc_level, spelltypemnemonic(oc.oc_skill), dir);
@@ -1164,6 +1167,9 @@ short otyp;
     if (olet == SCROLL_CLASS || olet == SPBOOK_CLASS) {
         if (otyp == SCR_BLANK_PAPER || otyp == SPE_BLANK_PAPER) {
             OBJPUTSTR("Can be written on.");
+        }
+        else if (otyp == SPE_NOVEL || otyp == SPE_BOOK_OF_THE_DEAD) {
+            OBJPUTSTR("Cannot be written.");
         }
         else {
             Sprintf(buf, "Takes %d to %d ink to write.",
