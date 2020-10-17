@@ -3561,6 +3561,9 @@ xchar x, y;
         return FALSE;
 
     if (Is_container(obj)) {
+        if (!is_flammable(obj)) {
+            return FALSE; /* immune */
+        }
         switch (obj->otyp) {
         case ICE_BOX:
             return FALSE; /* Immune */
