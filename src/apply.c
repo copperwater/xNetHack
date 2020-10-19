@@ -2483,6 +2483,7 @@ struct obj *tstone;
         }
         flint = mksobj(FLINT, TRUE, FALSE);
         flint->quan = flint_made;
+        flint->owt = weight(flint);
         flint = hold_another_object(flint, "Oops!  %s out of your grasp!",
                                     The(aobjnam(flint, "slip")),
                                     (const char*) 0);
