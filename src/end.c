@@ -1268,7 +1268,16 @@ int how;
             if (uamul)
                 useup(uamul);
 
-            (void) adjattrib(A_CON, -1, TRUE);
+            /* Getting lifesaved isn't great for your overall health.
+             * Current and maximum Con go down by 2 (e.g. if max Con was
+             * formerly 16, you'll need exercise/gain ability to restore them,
+             * not just restore ability.
+             * A possible extension here is to reduce ATTRMAX by 1, making your
+             * Con cap permanently lower no matter what the player does, but
+             * this currently isn't saved. */
+            (void) adjattrib(A_CON, -2, TRUE);
+            AMAX(A_CON) = (AMAX(A_CON) >= 5 ? AMAX(A_CON) - 2 : 3);
+
             savelife(how);
             if (how == GENOCIDED) {
                 pline("Unfortunately you are still genocided...");

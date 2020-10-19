@@ -265,6 +265,7 @@ changes:
   it to 1. If the engulfer is amorphous, its HP is only cut by 25%. There's no
   longer a special case for unique engulfers (Juiblex counts under the
   amorphous rule).
+- Getting lifesaved lowers current and maximum Con by 2, to a minimum of 3.
 
 ### Interface changes
 
