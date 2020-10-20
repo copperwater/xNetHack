@@ -108,10 +108,17 @@ register struct obj *obj;
      * 3.2.2:  Wielding arbitrary objects will give bashing message too.
      */
     if (obj) {
+        int skill = weapon_type(obj); /* non-weapons => P_NONE */
         g.unweapon = (obj->oclass == WEAPON_CLASS)
                        ? is_launcher(obj) || is_ammo(obj) || is_missile(obj)
                              || (is_pole(obj) && !u.usteed)
                        : !is_weptool(obj) && !is_wet_towel(obj);
+        if (skill != P_NONE && P_SKILL(skill) < P_BASIC
+            && g.moves > 1) {
+            /* check moves because starting weapon is wielded before skills are
+             * initialized */
+            g.unweapon = TRUE;
+        }
     } else
         g.unweapon = TRUE; /* for "bare hands" message */
 }

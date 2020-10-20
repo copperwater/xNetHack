@@ -302,6 +302,8 @@ changes:
 - An offscreen pet death will make you feel "woebegone" if hallucinating.
 - If you had a travel destination saved that you hadn't yet reached, a
   controlled teleport will suggest that destination at its prompt.
+- Wielded weapons you are not at least Basic in are treated as non-weapons for
+  the purpose of "You begin bashing" messages.
 
 ### Architectural changes
 
