@@ -491,7 +491,7 @@ enum bodypart_types {
 #define TAINT_AGE (50L)          /* age when corpses go bad */
 #define TROLL_REVIVE_CHANCE 37   /* 1/37 chance for 50 turns ~ 75% chance */
 #define ZOMBIE_REVIVE_CHANCE 275 /* 1/275 chance for 250 turns ~ 60% chance */
-#define MOLDY_CHANCE 290         /* 1/290 chance for 200 turns ~ 50% chance */
+#define MOLDY_CHANCE 3900        /* 1/3900 chance for 200 turns ~ 5% chance */
 #define ROT_AGE (250L)           /* age when corpses rot away */
 
 /* Some misc definitions */

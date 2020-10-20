@@ -266,6 +266,7 @@ changes:
   longer a special case for unique engulfers (Juiblex counts under the
   amorphous rule).
 - Getting lifesaved lowers current and maximum Con by 2, to a minimum of 3.
+- Mold grows on corpses roughly 5% of the time rather than 50%.
 
 ### Interface changes
 
