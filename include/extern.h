@@ -1920,7 +1920,6 @@ E const char *FDECL(gloves_simple_name, (struct obj *));
 E const char *FDECL(boots_simple_name, (struct obj *));
 E const char *FDECL(shield_simple_name, (struct obj *));
 E const char *FDECL(shirt_simple_name, (struct obj *));
-E const char *FDECL(gear_simple_name, (struct obj *));
 E const char *FDECL(mimic_obj_name, (struct monst *));
 E char *FDECL(safe_qbuf, (char *, const char *, const char *, struct obj *,
                           char *(*)(OBJ_P), char *(*)(OBJ_P), const char *));

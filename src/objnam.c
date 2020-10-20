@@ -4762,48 +4762,6 @@ struct obj *shirt UNUSED;
     return "shirt";
 }
 
-/* callable on any generic piece of wearable gear */
-const char *
-gear_simple_name(obj)
-struct obj* obj;
-{
-    if (obj->oclass == AMULET_CLASS) {
-        return "amulet";
-    }
-    else if (obj->oclass == RING_CLASS) {
-        return "ring";
-    }
-    else if (obj->oclass == TOOL_CLASS) { /* blindfold, towel */
-        return OBJ_NAME(objects[obj->otyp]);
-    }
-    else if (obj->oclass == ARMOR_CLASS) {
-        const int armtype = objects[obj->otyp].oc_armcat;
-        switch (armtype) {
-        case ARM_SUIT:
-            return suit_simple_name(obj);
-        case ARM_SHIELD:
-            return shield_simple_name(obj);
-        case ARM_HELM:
-            return helm_simple_name(obj);
-        case ARM_GLOVES:
-            return gloves_simple_name(obj);
-        case ARM_BOOTS:
-            return boots_simple_name(obj);
-        case ARM_CLOAK:
-            return cloak_simple_name(obj);
-        case ARM_SHIRT:
-            return shirt_simple_name(obj);
-        default:
-            impossible("gear_simple_name: weird armor type %d?", armtype);
-            return NULL;
-        }
-    }
-    else {
-        impossible("gear_simple_name: weird otyp %d?", obj->otyp);
-        return NULL;
-    }
-}
-
 const char *
 mimic_obj_name(mtmp)
 struct monst *mtmp;
