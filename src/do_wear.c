@@ -171,11 +171,13 @@ struct obj* obj;
         /* need to pluralize "themselves"/"itself" separately from pluralizing
          * the body part; boots and gloves pluralize both, but a multiple
          * wielded item shouldn't pluralize the body part */
+        /* can't use otense() here because it will try to produce "pair of boots
+         * welds itself", and we want "pair of boots weld themselves" */
         boolean bodyplur = (obj == uarmg || obj == uarmf);
         boolean themselves = (bodyplur || obj->quan > 1);
-        pline("%s%s %s %s to your %s!", the ? "The " : "",
-              simpleonames(obj), otense(obj, "weld"),
-              themselves ? " themselves" : "itself",
+        pline("%s%s weld%s to your %s!", the ? "The " : "",
+              simpleonames(obj),
+              themselves ? " themselves" : "s itself",
               bodyplur ? makeplural(bodypart) : bodypart);
         obj->bknown = TRUE;
     }
