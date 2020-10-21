@@ -1804,28 +1804,32 @@ coord *tm;
            generate objects. */
         struct obj *otmp = NULL;
         int victim_mnum; /* race of the victim */
+        int quan = rnd(4); /* amount of ammo to dump */
 
         /* Not all trap types have special handling here; only the ones
            that kill in a specific way that's obvious after the fact. */
         switch (kind) {
         case ARROW_TRAP:
-            otmp = mksobj(ARROW, TRUE, FALSE);
-            otmp->opoisoned = 0;
-            /* don't adjust the quantity; maybe the trap shot multiple
-               times, there was an untrapping attempt, etc... */
-            break;
         case DART_TRAP:
-            otmp = mksobj(DART, TRUE, FALSE);
-            break;
         case ROCKTRAP:
-            otmp = mksobj(ROCK, TRUE, FALSE);
-            break;
+            /* Make sure there is some ammo left in the trap after splitting
+             * some out of it. */
+            if (t->ammo) {
+                if (t->ammo->quan <= quan) {
+                    t->ammo->quan = quan + 1;
+                }
+                otmp = splitobj(t->ammo, quan); /* this handles weights */
+                if (otmp) {
+                    extract_nobj(otmp, &t->ammo);
+                    place_object(otmp, m.x, m.y);
+                }
+            }
+            else {
+                impossible("fresh trap %d without ammo?", t->ttyp);
+            }
         default:
             /* no item dropped by the trap */
             break;
-        }
-        if (otmp) {
-            place_object(otmp, m.x, m.y);
         }
 
         /* now otmp is reused for other items we're placing */
