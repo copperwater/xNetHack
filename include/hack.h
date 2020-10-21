@@ -559,6 +559,7 @@ enum bodypart_types {
 /* message flags for dump_container() */
 #define DUMPCONT_NORMAL 0x0
 #define DUMPCONT_QUIET  0x1 /* suppress most messages */
+#define DUMPCONT_BYPOLY 0x2 /* "Objects spill out as [cont] polymorphs" */
 
 /*
  * option setting restrictions

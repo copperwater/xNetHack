@@ -1441,6 +1441,12 @@ struct obj *obj;
             obj = splitobj(obj, (long) rnd((int) obj->quan - 1));
     }
 
+    /* Contained objects just get spilled, rather than silently destroyed.
+     * See also the comment in poly_obj(). */
+    if (Has_contents(obj)) {
+        dump_container(obj, DUMPCONT_BYPOLY);
+    }
+
     /* appropriately add damage to bill */
     if (costly_spot(obj->ox, obj->oy)) {
         if (*u.ushops)
@@ -1479,6 +1485,21 @@ int id;
     long old_wornmask, new_wornmask = 0L;
     boolean can_merge = (id == STRANGE_OBJECT);
     int obj_location = obj->where;
+
+    (void) get_obj_location(obj, &ox, &oy, BURIED_TOO | CONTAINED_TOO);
+
+    /* If obj has contents, spill them out now. It's cruel to totally destroy a
+     * player's stash or dropped bag that got hit with a wayward polymorph beam.
+     * Because the spilled objects get placed at the start of the
+     * g.level.objects chain, the possible loop in bhitpile() which is calling
+     * this function doesn't hit them, which means there's no need to manipulate
+     * the bypass flag on them. */
+    if (Has_contents(obj)) {
+        /* hack for if this is called by dipping a container in polymorph */
+        obj->ox = ox;
+        obj->oy = oy;
+        dump_container(obj, DUMPCONT_BYPOLY);
+    }
 
     if (obj->otyp == BOULDER)
         sokoban_guilt();
@@ -1588,7 +1609,10 @@ int id;
         }
     }
 
-    /* no box contents --KAA */
+    /* no box contents --KAA
+     * Note: this doesn't delete the contents of the original container being
+     * polymorphed; it forces the object produced by polymorph to be empty (i.e.
+     * no free new items). */
     if (Has_contents(otmp))
         delete_contents(otmp);
 
@@ -1655,7 +1679,6 @@ int id;
      * ** we are now done adjusting the object (except possibly wearing it) **
      */
 
-    (void) get_obj_location(obj, &ox, &oy, BURIED_TOO | CONTAINED_TOO);
     old_wornmask = obj->owornmask & ~(W_ART | W_ARTI);
     /* swap otmp for obj */
     replace_object(obj, otmp);

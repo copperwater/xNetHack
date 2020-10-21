@@ -3546,11 +3546,12 @@ int msgflags;
      */
     if (!quiet && (!distant || cansee(ox, oy))) {
         boolean yourstatue = (held && box->otyp == STATUE);
-        pline("%s out%s%s%c",
+        pline("%s out%s%s%s%c",
               box->cobj->nobj ? "Objects spill" : "An object spills",
               distant || yourstatue ? " of " : "",
               distant ? thesimpleoname(box)
                       : yourstatue ? ysimple_name(box) : "",
+              (msgflags & DUMPCONT_BYPOLY) ? " as it polymorphs" : "",
               terse && !distant ? ':' : '.');
     }
     for (otmp = box->cobj; otmp; otmp = nobj) {

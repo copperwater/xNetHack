@@ -267,6 +267,8 @@ changes:
   amorphous rule).
 - Getting lifesaved lowers current and maximum Con by 2, to a minimum of 3.
 - Mold grows on corpses roughly 5% of the time rather than 50%.
+- When a container is polymorphed, its contents are spilled out rather than
+  silently deleted.
 
 ### Interface changes
 
