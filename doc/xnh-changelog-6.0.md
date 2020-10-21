@@ -377,3 +377,6 @@ changes:
 - New function create_pit_under(), an xhity-compatible function that has an
   aggressor create a pit beneath a target monster and throw them down into it.
 - New function is_fleshy(), which determines if a monster has flesh or not.
+- New function dump_container(), which contains the logic extracted from
+  tipcontainer() that deals with actually dumping the items out on the floor.
+  Various item-spillage bits of code now call this.

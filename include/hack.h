@@ -556,6 +556,10 @@ enum bodypart_types {
  * it.  */
 #define PHYS_EXPL_TYPE -1
 
+/* message flags for dump_container() */
+#define DUMPCONT_NORMAL 0x0
+#define DUMPCONT_QUIET  0x1 /* suppress most messages */
+
 /*
  * option setting restrictions
  */

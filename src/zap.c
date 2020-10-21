@@ -1838,22 +1838,11 @@ struct obj *obj;
                 newquan = mons[obj->corpsenm].cwt / 10;
             if (newquan == 0)
                 newquan++;
-            if (Has_contents(obj)) {
-                /* Drop contents; similar to break_statue, this does not check
-                 * for shops or anything else. It also assumes that ice boxes
-                 * won't be made out of stone and thus doesn't need to handle
-                 * starting rot timers on objects. */
-                struct obj *otmp;
-                while ((otmp = obj->cobj) != 0) {
-                    bypass_obj(otmp); /* make stone-to-flesh miss it */
-                    obj_extract_self(otmp);
-                    place_object(otmp, obj->ox, obj->oy);
-                }
-                obj_extract_self(obj);
-                place_object(obj, obj->ox, obj->oy); /* put back on top */
-            }
+            dump_container(obj, DUMPCONT_QUIET);
             obj = poly_obj(obj, MEATBALL);
-            obj->quan =  newquan;
+            obj->quan = newquan;
+            obj_extract_self(obj);
+            place_object(obj, obj->ox, obj->oy); /* put back on top */
         }
         obj->owt = weight(obj);
         smell = TRUE;
@@ -4915,7 +4904,6 @@ register struct obj *obj;
 {
     /* [obj is assumed to be on floor, so no get_obj_location() needed] */
     struct trap *trap = t_at(obj->ox, obj->oy);
-    struct obj *item;
     boolean by_you = !g.context.mon_moving;
 
     if (trap && trap->ttyp == STATUE_TRAP
@@ -4927,10 +4915,7 @@ register struct obj *obj;
         return FALSE;
     }
     /* drop any objects contained inside the statue */
-    while ((item = obj->cobj) != 0) {
-        obj_extract_self(item);
-        place_object(item, obj->ox, obj->oy);
-    }
+    dump_container(obj, DUMPCONT_QUIET);
     if (by_you && Role_if(PM_ARCHEOLOGIST) && (obj->spe & STATUE_HISTORIC)) {
         You_feel("guilty about damaging such a historic statue.");
         adjalign(-1);

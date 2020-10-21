@@ -2081,6 +2081,7 @@ E int NDECL(dotip);
 E struct autopickup_exception *FDECL(check_autopickup_exceptions, (struct obj *));
 E boolean FDECL(autopick_testobj, (struct obj *, BOOLEAN_P));
 E void FDECL(tipcontainer, (struct obj *));
+E void FDECL(dump_container, (struct obj *, BOOLEAN_P));
 
 /* ### pline.c ### */
 
