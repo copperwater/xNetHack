@@ -66,7 +66,8 @@ changes:
   - A room containing a bunch of graffiti.
   - A room filled with small 1x1 pillars. Sometimes, these pillars will be
     trees instead, and then the room will contain wood nymphs, and possibly
-    statues and a figurine of wood nymphs.
+    statues and a figurine of wood nymphs. This only happens at depths at or
+    above wood nymphs' difficulty.
   - A boomerang-shaped room (left and right rotations).
   - A 1-wide rectangular corridor (surrounding a chunk of normal stone).
   - A room featuring an O, M, Z, or T monster in a cage of iron bars.

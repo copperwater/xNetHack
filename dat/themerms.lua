@@ -626,6 +626,9 @@ x|.|x
       des.room({ type = "themed", w = 5 + nh.rn2(3)*2, h = 5 + nh.rn2(3)*2, filled = 1,
                  contents = function(rm)
                     local grove = percent(20)
+                    if nh.level_difficulty() < nh.mon_difficulty("wood nymph") then
+                       grove = false
+                    end
                     local mapchr = (grove and 'T') or '-'
                     for i = 0, (rm.width - 3) / 2 do
                        for j = 0, (rm.height - 3) / 2 do
