@@ -678,6 +678,28 @@ lua_State *L;
     return 1;
 }
 
+/* mon_difficulty("water troll") => mons[PM_WATER_TROLL].difficulty */
+static int
+nhl_mon_difficulty(L)
+lua_State *L;
+{
+    int argc = lua_gettop(L);
+    if (argc == 1) {
+        const char *species = luaL_checkstring(L, 1);
+        int mnum = find_montype(L, species);
+        if (mnum != NON_PM) {
+            lua_pushinteger(L, mons[mnum].difficulty);
+        }
+        else {
+            nhl_error(L, "Unknown monster for difficulty lookup");
+        }
+    }
+    else {
+        nhl_error(L, "mon_difficulty takes only one arg");
+    }
+    return 1;
+}
+
 /* get mandatory integer value from table */
 int
 get_table_int(L, name)
@@ -853,6 +875,7 @@ static const struct luaL_Reg nhl_functions[] = {
     {"rn2", nhl_rn2},
     {"random", nhl_random},
     {"level_difficulty", nhl_level_difficulty},
+    {"mon_difficulty", nhl_mon_difficulty},
     {NULL, NULL}
 };
 

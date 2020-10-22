@@ -382,3 +382,5 @@ changes:
 - New function dump_container(), which contains the logic extracted from
   tipcontainer() that deals with actually dumping the items out on the floor.
   Various item-spillage bits of code now call this.
+- Add nh.mon_difficulty() as a Lua function which returns the difficulty of a
+  given monster species.

@@ -111,7 +111,6 @@ static long FDECL(line_dist_coord, (long, long, long, long, long, long));
 static void FDECL(l_push_wid_hei_table, (lua_State *, int, int));
 static int FDECL(get_table_align, (lua_State *));
 static int FDECL(get_table_monclass, (lua_State *));
-static int FDECL(find_montype, (lua_State *, const char *));
 static int FDECL(get_table_montype, (lua_State *));
 static int FDECL(get_table_int_or_random, (lua_State *, const char *, int));
 static int FDECL(get_table_buc, (lua_State *));
@@ -3147,7 +3146,7 @@ lua_State *L;
     return ret;
 }
 
-static int
+int
 find_montype(L, s)
 lua_State *L;
 const char *s;
