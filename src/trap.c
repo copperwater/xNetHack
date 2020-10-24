@@ -105,7 +105,7 @@ struct monst *victim;
             return TRUE;
         case 2:
             item = hitting_u ? uarms : which_armor(victim, W_ARMS);
-            if (!burn_dmg(item, "wooden shield"))
+            if (!burn_dmg(item, "shield"))
                 continue;
             break;
         case 3:
