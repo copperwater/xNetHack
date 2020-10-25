@@ -149,7 +149,7 @@ static NEARDATA struct artifact artilist[] = {
      *      allowing those at all causes more problems than worth the effort).
      */
     A("Vorpal Blade", LONG_SWORD, (SPFX_RESTR | SPFX_BEHEAD), 0, 0,
-      PHYS(5, 1), NO_DFNS, NO_CARY, 0, A_NEUTRAL, NON_PM, NON_PM, 4000L,
+      PHYS(5, 8), NO_DFNS, NO_CARY, 0, A_NEUTRAL, NON_PM, NON_PM, 4000L,
       NO_COLOR),
     /*
      *      Ah, never shall I forget the cry,
