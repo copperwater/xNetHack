@@ -264,6 +264,9 @@ register struct monst *mtmp;
             if (otmp)
                 otmp->material = GOLD;
         }
+        else if (mm == PM_ANARAXIS_THE_BLACK) {
+            mongets(mtmp, CLOAK_OF_MAGIC_RESISTANCE);
+        }
         else if (mm == PM_NURSE && !rn2(5)) {
             (void) mongets(mtmp, SCALPEL);
         }
