@@ -1216,7 +1216,8 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                 continue;
             if (cansee(mtmp->mx, mtmp->my)) {
                 if (confused || scursed) {
-                    mtmp->mflee = mtmp->mfrozen = mtmp->msleeping = 0;
+                    mtmp->mflee = mtmp->mfrozen = 0;
+                    wakeup(mtmp, FALSE);
                     mtmp->mcanmove = 1;
                 } else if (!resist(mtmp, sobj->oclass, 0, NOTELL))
                     monflee(mtmp, 0, FALSE, FALSE);

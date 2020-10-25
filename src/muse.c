@@ -1267,9 +1267,7 @@ register struct obj *otmp;
     boolean reveal_invis = FALSE, hits_you = (mtmp == &g.youmonst);
 
     if (!hits_you && otmp->otyp != WAN_UNDEAD_TURNING) {
-        mtmp->msleeping = 0;
-        if (mtmp->m_ap_type)
-            seemimic(mtmp);
+        wakeup(mtmp, FALSE);
     }
     switch (otmp->otyp) {
     case WAN_STRIKING:

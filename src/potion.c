@@ -1696,10 +1696,7 @@ int how;
         }
         /* target might have been killed */
         if (!DEADMONSTER(mon)) {
-            if (angermon)
-                wakeup(mon, TRUE);
-            else
-                mon->msleeping = 0;
+            wakeup(mon, angermon);
         }
     }
 

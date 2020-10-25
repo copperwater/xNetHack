@@ -265,7 +265,7 @@ register struct monst *mtmp;
             || (mtmp->data->mlet == S_DOG || mtmp->data->mlet == S_HUMAN)
             || (!rn2(7) && M_AP_TYPE(mtmp) != M_AP_FURNITURE
                 && M_AP_TYPE(mtmp) != M_AP_OBJECT))) {
-        mtmp->msleeping = 0;
+        wakeup(mtmp, FALSE);
         return 1;
     }
     return 0;
@@ -641,7 +641,7 @@ register struct monst *mtmp;
                 if (DEADMONSTER(m2))
                     monkilled(m2, "", AD_DRIN);
                 else
-                    m2->msleeping = 0;
+                    wakeup(m2, FALSE);
             }
         }
     }

@@ -1593,7 +1593,7 @@ domove_core()
                     if (!u.ustuck->mcanmove) {
                         /* it's free to move on next turn */
                         u.ustuck->mfrozen = 1;
-                        u.ustuck->msleeping = 0;
+                        wakeup(u.ustuck, FALSE);
                     }
                 /*FALLTHRU*/
                 default:
@@ -2787,7 +2787,7 @@ boolean newlev;
                     if (DEADMONSTER(mtmp))
                         continue;
                     if (!Stealth && !rn2(3))
-                        mtmp->msleeping = 0;
+                        wakeup(mtmp, FALSE);
                 }
         }
     }

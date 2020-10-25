@@ -3631,6 +3631,7 @@ wakeup(mtmp, via_attack)
 register struct monst *mtmp;
 boolean via_attack;
 {
+    boolean was_sleeping = mtmp->msleeping;
     mtmp->msleeping = 0;
     if (M_AP_TYPE(mtmp)) {
         seemimic(mtmp);
@@ -3638,6 +3639,9 @@ boolean via_attack;
                && mtmp->mundetected) {
         mtmp->mundetected = 0;
         newsym(mtmp->mx, mtmp->my);
+    }
+    if (was_sleeping && canseemon(mtmp)) {
+        pline("%s wakes up.", Monnam(mtmp));
     }
     finish_meating(mtmp);
     if (via_attack)
@@ -3664,7 +3668,7 @@ int x, y, distance;
         if (distance == 0 || dist2(mtmp->mx, mtmp->my, x, y) < distance) {
             /* sleep for N turns uses mtmp->mfrozen, but so does paralysis
                so we leave mfrozen monsters alone */
-            mtmp->msleeping = 0; /* wake indeterminate sleep */
+            wakeup(mtmp, FALSE); /* wake indeterminate sleep */
             if (!(mtmp->data->geno & G_UNIQ))
                 mtmp->mstrategy &= ~STRAT_WAITMASK; /* wake 'meditation' */
             if (g.context.mon_moving)

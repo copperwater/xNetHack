@@ -349,12 +349,12 @@ boolean verbose;    /* give message(s) even when you can't see what happened */
     } else if (otmp->oclass == POTION_CLASS) {
         if (ismimic)
             seemimic(mtmp);
-        mtmp->msleeping = 0;
         if (vis)
             otmp->dknown = 1;
         /* probably thrown by a monster rather than 'other', but the
            distinction only matters when hitting the hero */
         potionhit(mtmp, otmp, POTHIT_OTHER_THROW);
+        wakeup(mtmp, FALSE);
         return 1;
     } else {
         damage = dmgval(otmp, mtmp);

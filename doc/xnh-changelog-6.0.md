@@ -316,6 +316,8 @@ changes:
   controlled teleport will suggest that destination at its prompt.
 - Wielded weapons you are not at least Basic in are treated as non-weapons for
   the purpose of "You begin bashing" messages.
+- When a monster wakes up, a message is printed indicating that, unless there
+  is a more specific message already being shown.
 
 ### Architectural changes
 

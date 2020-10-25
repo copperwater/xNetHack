@@ -217,9 +217,8 @@ boolean quietly;
     if (M_AP_TYPE(mdef) && M_AP_TYPE(mdef) != M_AP_MONSTER)
         seemimic(mdef);
     /* wake up the displaced defender */
-    mdef->msleeping = 0;
+    wakeup(mdef, FALSE);
     mdef->mstrategy &= ~STRAT_WAITMASK;
-    finish_meating(mdef);
 
     /*
      * Set up the visibility of action.
@@ -310,7 +309,7 @@ register struct monst *magr, *mdef;
     tmp = find_mac(mdef) + magr->m_lev;
     if (mdef->mconf || !mdef->mcanmove || mdef->msleeping) {
         tmp += 4;
-        mdef->msleeping = 0;
+        wakeup(mdef, FALSE);
     }
 
     /* undetect monsters become un-hidden if they are attacked */

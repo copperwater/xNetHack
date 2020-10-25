@@ -2176,7 +2176,7 @@ doturn()
         if (!mtmp->mpeaceful
             && (is_undead(mtmp->data) || is_vampshifter(mtmp)
                 || (is_demon(mtmp->data) && (u.ulevel > (MAXULEV / 2))))) {
-            mtmp->msleeping = 0;
+            wakeup(mtmp, FALSE);
             if (Confusion) {
                 if (!once++)
                     pline("Unfortunately, your voice falters.");

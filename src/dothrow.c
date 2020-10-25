@@ -1574,7 +1574,7 @@ boolean mon_notices;
     if (mon->msleeping) {
         tmp += 2;
         if (mon_notices)
-            mon->msleeping = 0;
+            wakeup(mon, FALSE);
     }
     /* ditto for immobilized target */
     if (!mon->mcanmove || !mon->data->mmove) {
@@ -1927,7 +1927,7 @@ register struct obj *obj; /* g.thrownobj or g.kickedobj or uwep */
             return 1; /* obj is gone */
         } else {
             tmiss(obj, mon, FALSE);
-            mon->msleeping = 0;
+            wakeup(mon, FALSE);
             mon->mstrategy &= ~STRAT_WAITMASK;
         }
     } else if (guaranteed_hit) {

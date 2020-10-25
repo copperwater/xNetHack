@@ -715,7 +715,7 @@ struct obj *obj;
                 spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
             mtmp->mleashed = 1;
             obj->leashmon = (int) mtmp->m_id;
-            mtmp->msleeping = 0;
+            wakeup(mtmp, FALSE);
         }
     } else {
         /* applying a leash which is currently in use */

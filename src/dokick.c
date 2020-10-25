@@ -315,8 +315,7 @@ register struct obj *gold;
     } else {
         long umoney, value = gold->quan * objects[gold->otyp].oc_cost;
 
-        mtmp->msleeping = 0;
-        finish_meating(mtmp);
+        wakeup(mtmp, FALSE);
         if (!mtmp->isgd && !rn2(4)) /* not always pleasing */
             setmangry(mtmp, TRUE);
         /* greedy monsters catch gold */
@@ -911,7 +910,6 @@ dokick()
             return g.context.move;
     }
 
-    wake_nearby();
     u_wipe_engr(2);
 
     if (!isok(x, y)) {
@@ -968,12 +966,14 @@ dokick()
                 range = 1;
             hurtle(-u.dx, -u.dy, range, TRUE);
         }
+        wake_nearby();
         return 1;
     }
     (void) unmap_invisible(x, y);
     if (is_pool(x, y) ^ !!u.uinwater) {
         /* objects normally can't be removed from water by kicking */
         You("splash some %s around.", hliquid("water"));
+        wake_nearby();
         return 1;
     }
 
@@ -982,6 +982,7 @@ dokick()
         if (kick_object(x, y, kickobjnam)) {
             if (Is_airlevel(&u.uz))
                 hurtle(-u.dx, -u.dy, 1, TRUE); /* assume it's light */
+            wake_nearby();
             return 1;
         }
         goto ouch;
@@ -1015,6 +1016,7 @@ dokick()
                 pline(Deaf ? "The wall gives way a little."
                            : "The wall responds with a hollow thump.");
             }
+            wake_nearby();
             return 1;
         }
         if (g.maploc->typ == SCORR) {
@@ -1029,6 +1031,7 @@ dokick()
                 pline(Deaf ? "The wall gives way a little."
                            : "The wall responds with a hollow thump.");
             }
+            wake_nearby();
             return 1;
         }
         if (IS_THRONE(g.maploc->typ)) {
@@ -1046,6 +1049,7 @@ dokick()
                     newsym(x, y);
                 }
                 exercise(A_DEX, TRUE);
+                wake_nearby();
                 return 1;
             } else if (Luck > 0 && !rn2(3) && !g.maploc->looted) {
                 (void) mkgold((long) rn1(201, 300), x, y);
@@ -1064,6 +1068,7 @@ dokick()
                 }
                 /* prevent endless milking */
                 g.maploc->looted = T_LOOTED;
+                wake_nearby();
                 return 1;
             } else if (!rn2(4)) {
                 if (dunlev(&u.uz) < dunlevs_in_dungeon(&u.uz)) {
@@ -1079,6 +1084,7 @@ dokick()
                 goto dumb;
             You("kick %s.", (Blind ? something : "the altar"));
             altar_wrath(x, y);
+            wake_nearby();
             if (!rn2(3))
                 goto ouch;
             exercise(A_DEX, TRUE);
@@ -1088,6 +1094,7 @@ dokick()
             if (Levitation)
                 goto dumb;
             You("kick %s.", (Blind ? something : "the fountain"));
+            wake_nearby();
             if (!rn2(3))
                 goto ouch;
             /* make metal boots rust */
@@ -1119,6 +1126,7 @@ dokick()
                 pline_The("headstone topples over and breaks!");
                 newsym(x, y);
             }
+            wake_nearby();
             return 1;
         }
         if (g.maploc->typ == IRONBARS)
@@ -1126,6 +1134,7 @@ dokick()
         if (IS_TREE(g.maploc->typ)) {
             struct obj *treefruit;
 
+            wake_nearby();
             /* nothing, fruit or trouble? 75:23.5:1.5% */
             if (rn2(3)) {
                 if (!rn2(6) && !(g.mvitals[PM_KILLER_BEE].mvflags & G_GONE))
@@ -1199,6 +1208,7 @@ dokick()
                 else
                     pline("Klunk!");
                 exercise(A_DEX, TRUE);
+                wake_nearby();
                 return 1;
             } else if (!(g.maploc->looted & S_LPUDDING) && !rn2(3)
                        && !(g.mvitals[PM_BLACK_PUDDING].mvflags & G_GONE)) {
@@ -1211,6 +1221,7 @@ dokick()
                 exercise(A_DEX, TRUE);
                 newsym(x, y);
                 g.maploc->looted |= S_LPUDDING;
+                wake_nearby();
                 return 1;
             } else if (!(g.maploc->looted & S_LDWASHER) && !rn2(3)
                        && !(g.mvitals[washerndx].mvflags & G_GONE)) {
@@ -1220,6 +1231,7 @@ dokick()
                     newsym(x, y);
                 g.maploc->looted |= S_LDWASHER;
                 exercise(A_DEX, TRUE);
+                wake_nearby();
                 return 1;
             } else if (!rn2(3)) {
                 if (Blind && Deaf)
@@ -1239,6 +1251,7 @@ dokick()
                     exercise(A_DEX, TRUE);
                     exercise(A_WIS, TRUE); /* a discovery! */
                 }
+                wake_nearby();
                 return 1;
             }
             goto ouch;
@@ -1251,6 +1264,7 @@ dokick()
             pline("Ouch!  That hurts!");
             exercise(A_DEX, FALSE);
             exercise(A_STR, FALSE);
+            wake_nearby();
             if (isok(x, y)) {
                 if (Blind)
                     feel_location(x, y); /* we know we hit it */
@@ -1287,6 +1301,7 @@ dokick()
         }
         if ((Is_airlevel(&u.uz) || Levitation) && rn2(2))
             hurtle(-u.dx, -u.dy, 1, TRUE);
+        wake_nearby();
         return 1; /* uses a turn */
     }
 
@@ -1364,6 +1379,7 @@ dokick()
                 }
             }
     }
+    wake_nearby();
     return 1;
 }
 

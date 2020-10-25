@@ -4637,8 +4637,7 @@ struct trap *ttmp;
     if (uprob) {
         You("try to grab %s, but cannot get a firm grasp.", mon_nam(mtmp));
         if (mtmp->msleeping) {
-            mtmp->msleeping = 0;
-            pline("%s awakens.", Monnam(mtmp));
+            wakeup(mtmp, FALSE);
         }
         return 1;
     }
@@ -4647,8 +4646,7 @@ struct trap *ttmp;
         mon_nam(mtmp));
 
     if (mtmp->msleeping) {
-        mtmp->msleeping = 0;
-        pline("%s awakens.", Monnam(mtmp));
+        wakeup(mtmp, FALSE);
     } else if (mtmp->mfrozen && !rn2(mtmp->mfrozen)) {
         /* After such manhandling, perhaps the effect wears off */
         mtmp->mcanmove = 1;

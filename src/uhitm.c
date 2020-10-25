@@ -176,7 +176,8 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
     if (mtmp->mundetected && !canseemon(mtmp)
         && !glyph_is_warning(glyph)
         && (hides_under(mtmp->data) || mtmp->data->mlet == S_EEL)) {
-        mtmp->mundetected = mtmp->msleeping = 0;
+        mtmp->mundetected = 0;
+        wakeup(mtmp, FALSE);
         newsym(mtmp->mx, mtmp->my);
         if (glyph_is_invisible(glyph)) {
             seemimic(mtmp);
@@ -324,7 +325,7 @@ int *attk_count, *role_roll_penalty;
         tmp += 2;
 
     if (mtmp->msleeping) {
-        mtmp->msleeping = 0;
+        wakeup(mtmp, FALSE);
         tmp += 2;
     }
     if (!mtmp->mcanmove) {
@@ -1220,7 +1221,6 @@ int dieroll;
                     break;
                 case CREAM_PIE:
                 case BLINDING_VENOM:
-                    mon->msleeping = 0;
                     if (can_blnd(&g.youmonst, mon,
                                  (uchar) ((obj->otyp == BLINDING_VENOM)
                                              ? AT_SPIT
@@ -1257,6 +1257,7 @@ int dieroll;
                         pline(obj->otyp == CREAM_PIE ? "Splat!" : "Splash!");
                         setmangry(mon, TRUE);
                     }
+                    wakeup(mon, TRUE);
                     if (thrown)
                         obfree(obj, (struct obj *) 0);
                     else
@@ -1574,7 +1575,7 @@ boolean thrown, verbose;
             map_invisible(mdef->mx, mdef->my);
     }
     if (!youdef)
-        mdef->msleeping = 0;
+        wakeup(mdef, FALSE);
     return TRUE;
 }
 
