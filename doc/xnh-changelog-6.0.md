@@ -272,6 +272,10 @@ changes:
   silently deleted.
 - Anaraxis the Black wears a cloak of magic resistance.
 - Sokoban levels are not eligible to be flipped.
+- Magic missile damage is no longer completely negated by magic resistance.
+  Instead, it halves the damage.
+- Half spell damage reduces the damage taken by magic missiles by half. This
+  stacks with the halving from magic resistance.
 
 ### Interface changes
 

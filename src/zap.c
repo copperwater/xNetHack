@@ -2484,12 +2484,15 @@ boolean ordinary;
     case WAN_MAGIC_MISSILE:
     case SPE_MAGIC_MISSILE:
         learn_it = TRUE;
+        damage = d(4, 6);
+        pline("Idiot!  You've shot yourself!");
         if (Antimagic) {
             shieldeff(u.ux, u.uy);
-            pline_The("missiles bounce!");
-        } else {
-            damage = d(4, 6);
-            pline("Idiot!  You've shot yourself!");
+            pline("Some of the missiles bounce off!");
+            damage = (damage + 1) / 2;
+        }
+        if (Half_spell_damage) { /* stacks with Antimagic */
+            damage = (damage + 1) / 2;
         }
         break;
 
@@ -3736,13 +3739,16 @@ struct obj **ootmp; /* to return worn armor for caller to disintegrate */
     *ootmp = (struct obj *) 0;
     switch (abstype) {
     case ZT_MAGIC_MISSILE:
-        if (resists_magm(mon)) {
-            sho_shieldeff = TRUE;
-            break;
-        }
         tmp = d(nd, 6);
         if (spellcaster)
             tmp = spell_damage_bonus(tmp);
+        if (resists_magm(mon)) {
+            tmp = (tmp + 1) / 2;
+            sho_shieldeff = TRUE;
+            /* it would be nice to have "Some missiles bounce off" here but that
+             * would appear before the hit message and look weird */
+        }
+        /* no Half_spell_damage for monsters */
         break;
     case ZT_FIRE:
         if (resists_fire(mon)) {
@@ -3897,13 +3903,15 @@ xchar sx, sy;
 
     switch (abstyp % 10) {
     case ZT_MAGIC_MISSILE:
+        dam = d(nd, 6);
+        exercise(A_STR, FALSE);
         if (Antimagic) {
             shieldeff(sx, sy);
-            pline_The("missiles bounce off!");
-        } else {
-            dam = d(nd, 6);
-            exercise(A_STR, FALSE);
+            pline("Some missiles bounce off!");
+            dam = (dam + 1) / 2;
         }
+        /* Half spell damage stacks with Antimagic, but is already counted after
+         * this switch */
         break;
     case ZT_FIRE:
         if (Fire_resistance) {
