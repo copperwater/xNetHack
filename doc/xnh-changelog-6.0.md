@@ -271,6 +271,7 @@ changes:
 - When a container is polymorphed, its contents are spilled out rather than
   silently deleted.
 - Anaraxis the Black wears a cloak of magic resistance.
+- Sokoban levels are not eligible to be flipped.
 
 ### Interface changes
 
