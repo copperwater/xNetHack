@@ -278,6 +278,8 @@ changes:
   stacks with the halving from magic resistance.
 - Half physical damage no longer applies when you zap yourself with a wand
   unless the wand is striking.
+- Alchemic blasts deal twice as much damage ((# mixing potions + d9) * 2), but
+  acid resistance halves this (bringing it back to its vanilla level).
 
 ### Interface changes
 

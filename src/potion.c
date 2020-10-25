@@ -2269,6 +2269,7 @@ dodip()
                of the message, but we can't because we need to keep it
                around for potionbreathe() [and we can't set obj->in_use
                to 'amt' because that's not implemented] */
+            int dmg = (amt + rnd(9)) * (Acid_resistance ? 1 : 2);
             obj->in_use = 1;
             pline("%sThey explode!", !Deaf ? "BOOM!  " : "");
             wake_nearto(u.ux, u.uy, (BOLT_LIM + 1) * (BOLT_LIM + 1));
@@ -2276,7 +2277,7 @@ dodip()
             if (!breathless(g.youmonst.data) || haseyes(g.youmonst.data))
                 potionbreathe(obj);
             useupall(obj);
-            losehp(amt + rnd(9), /* not physical damage */
+            losehp(dmg, /* not physical damage */
                    "alchemic blast", KILLED_BY_AN);
             return 1;
         }
