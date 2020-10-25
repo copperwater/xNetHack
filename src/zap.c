@@ -2356,8 +2356,11 @@ dozap()
         if ((damage = zapyourself(obj, TRUE)) != 0) {
             char buf[BUFSZ];
 
+            if (obj->otyp == WAN_STRIKING) { /* physical damage source */
+                damage = Maybe_Half_Phys(damage);
+            }
             Sprintf(buf, "zapped %sself with a wand", uhim());
-            losehp(Maybe_Half_Phys(damage), buf, NO_KILLER_PREFIX);
+            losehp(damage, buf, NO_KILLER_PREFIX);
         }
     } else {
         /*      Are we having fun yet?

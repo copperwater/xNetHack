@@ -276,6 +276,8 @@ changes:
   Instead, it halves the damage.
 - Half spell damage reduces the damage taken by magic missiles by half. This
   stacks with the halving from magic resistance.
+- Half physical damage no longer applies when you zap yourself with a wand
+  unless the wand is striking.
 
 ### Interface changes
 
