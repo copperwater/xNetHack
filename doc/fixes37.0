@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.326 $ $NHDT-Date: 1602355548 2020/10/10 18:45:48 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.341 $ $NHDT-Date: 1603666043 2020/10/25 22:47:23 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -134,7 +134,8 @@ male hero poly'd into nymph chooses charm vs seduce message based on being
 	male rather than on all nymphs being female but charm message was
 	using hardcoded pronouns She,her for target monster--wrong for male
 	target and noticable if "<mon> finishes taking off his suit" is given
-hostile monsters with launcher and ammo try to stay away from melee range
+hostile monsters with a spit attack or launcher and ammo try to stay away
+	from melee range
 allow displacing peaceful creatures
 unicorn horns don't restore attribute loss anymore
 when a shop is changed from food to health food, change room type to match
@@ -276,6 +277,16 @@ when reporting that hero can't repair a chest's broken lock with key/pick/card
 	just describe the base item without BUC, user assigned name, &c since
 	"You can't repair a chest's lock with an uncursed key." implicitly
 	suggests that you might be able to do so with a blessed or cursed one
+pre-populate teleport destination prompt with travel destination
+ghosts cannot be renamed
+tossed upwards objects got two times half physical damage reduction
+monster xorns could pass through iron bars but not eat them; monster rock
+	moles could no neither; now they can eat bars when adjacent and will
+	do so if the bars are blocking their path
+hero poly'd into rust monster could implicitly eat bars when adjacent by
+	trying to move there, now when in rock mole form too; in xorn form
+	can explicitly eat them via 'e' after moving onto their spot
+monster hiding under an egg that hatched was kept hidden
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -359,6 +370,8 @@ replace worm tail placement code that reportedly led to a sanity_check warning
 learn scroll of teleportation after reading even when random destination is
 	right by starting spot
 fix off-by-one bug in dimensions of theme rooms
+fire/frost horn feedback when zapped by monster was inaccurate (falsely
+	claimed that it was "directed at self" when attacking hero)
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
@@ -439,7 +452,13 @@ Qt: implement --More-- prompt to support MSGTYPE=stop
 Qt: for menu search, don't require clicking on the search target popup before
 	typing target string (was using typed letters to make menu selections
 	if player didn't click on the popup first)
-Qt+QSX: fix control key
+Qt: rest ("Zz") button on the toolbar only worked when 'rest_on_space' was On
+	(core issue, not Qt's fault)
+Qt: rename toolbar button "Get" and action menu choice "Get" to "Pick up"
+Qt: status icons for alignment|hunger|encumbrance which started out centered
+	relative to the label text below them would shift to being left
+	justified when status got updated
+Qt+OSX: fix control key
 Qt+OSX: rename menu entry "nethack->Preferences..." for invoking nethack's
 	'O' command to "Game->Run-time options" and entry "Game->Qt settings"
 	for making persistent Qt customizations to "nethack->Preferences..."
@@ -559,6 +578,8 @@ add section marker [] support to run-time config file; CHOOSE section1,section2
 render the color names in the corresponding color when using the pick-a-color
 	menu for adding status highlights or menu colors via 'O'
 reading blessed scroll of teleportation confers one-shot teleport control
+mild zombie apocalypse
+list lamps and lanterns in charging prompt
 
 
 Platform- and/or Interface-Specific New Features
@@ -572,10 +593,14 @@ Qt: the "paper doll" inventory subset can be controlled via the "Qt Settings"
 	dialog box ("Preferences..." on OSX)
 Qt: draw a border around each tile in the paper doll inventory; when BUC is
 	known for a doll item, change the border's color and thicken it
+Qt: letting the mouse hover over the paper doll shows a tool tip describing
+	the object--or lack of same--in the slot under the pointer
 Qt: clicking on the paper doll runs the #seeall command (inventory of wielded
 	and worn items plus tools [lamps, leashes] actively in use; in other
 	words, same set of things whose tiles are used to populate the doll)
 Qt: clicking on the status window runs the #attributes command (^X)
+Qt: add a Search button to the toolbar
+Qt: support the 'hitpointbar' option
 
 
 NetHack Community Patches (or Variation) Included
