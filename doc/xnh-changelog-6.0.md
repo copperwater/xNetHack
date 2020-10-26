@@ -281,6 +281,8 @@ changes:
 - Alchemic blasts deal twice as much damage ((# mixing potions + d9) * 2), but
   acid resistance halves this (bringing it back to its vanilla level).
 - Vorpal Blade now deals +1d8 bonus damage instead of +1.
+- When you kill the Wizard or perform the Invocation, the upper limit on which
+  difficulty monsters can randomly generate is removed.
 
 ### Interface changes
 
