@@ -283,6 +283,10 @@ changes:
 - Vorpal Blade now deals +1d8 bonus damage instead of +1.
 - When you kill the Wizard or perform the Invocation, the upper limit on which
   difficulty monsters can randomly generate is removed.
+- The 3.6.1 change in which your Int+Cha is capped at 32 for the purposes of
+  foocubus encounters is removed; there is no longer a cap.
+- The denominator of the seduction success formula is no longer a constant 35;
+  it is now 25 + 5 times the seducer's level, plus 20 if in Gehennom.
 
 ### Interface changes
 

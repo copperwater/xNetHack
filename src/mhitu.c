@@ -2783,12 +2783,19 @@ struct monst *mon;
     pline("Time stands still while you and %s lie in each other's arms...",
           noit_mon_nam(mon));
     u.uconduct.uncelibate++;
-    /* 3.6.1: a combined total for charisma plus intelligence of 35-1
-       used to guarantee successful outcome; now total maxes out at 32
-       as far as deciding what will happen; chance for bad outcome when
-       Cha+Int is 32 or more is 2/35, a bit over 5.7% */
+    int threshold = 25 + (mon->m_lev * 5) + (Inhell ? 20 : 0);
+    /* The player has a (Int+Cha)/threshold chance of a positive outcome.
+     * threshold depends on two factors: the seducer's monster level, and
+     * whether this is happening in Gehennom.
+     * This makes some assumptions about the behavior of adj_lev() in makemon.c
+     * for assigning m_lev, namely that a monster's m_lev will not be less than
+     * 1 below its data->mlevel and not more than 3/2 of its data->mlevel.
+     * For foocubi, with a mlevel of 6, this puts their m_lev range at 5 to 9.
+     * Vanilla uses a fixed threshold of 35, but since the sum of Int and Cha
+     * can go up to 32, it was not difficult for the player to almost guarantee
+     * positive outcomes. */
     attr_tot = ACURR(A_CHA) + ACURR(A_INT);
-    if (rn2(35) > min(attr_tot, 32)) {
+    if (attr_tot < rn2(threshold)) {
         /* Don't bother with mspec_used here... it didn't get tired! */
         pline("%s seems to have enjoyed it more than you...",
               noit_Monnam(mon));
