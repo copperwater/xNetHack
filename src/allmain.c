@@ -485,6 +485,8 @@ boolean resuming;
     }
 }
 
+#define U_CAN_REGEN() (Regeneration || (Sleepy && u.usleep))
+
 /* maybe recover some lost health (or lose some when an eel out of water) */
 static void
 regen_hp(wtcap)
@@ -505,7 +507,7 @@ int wtcap;
                 && (!Half_physical_damage || !(g.moves % 2L)))
                 heal = -1;
         } else if (u.mh < u.mhmax) {
-            if (Regeneration || (encumbrance_ok && !(g.moves % 20L)))
+            if (U_CAN_REGEN() || (encumbrance_ok && !(g.moves % 20L)))
                 heal = 1;
         }
         if (heal) {
@@ -520,7 +522,7 @@ int wtcap;
            no !Upolyd check here, so poly'd hero recovered lost u.uhp
            once u.mh reached u.mhmax; that may have been convenient
            for the player, but it didn't make sense for gameplay...] */
-        if (u.uhp < u.uhpmax && (encumbrance_ok || Regeneration)) {
+        if (u.uhp < u.uhpmax && (encumbrance_ok || U_CAN_REGEN())) {
             if (u.ulevel > 9) {
                 if (!(g.moves % 3L)) {
                     int Con = (int) ACURR(A_CON);
@@ -537,8 +539,10 @@ int wtcap;
                 if (!(g.moves % (long) ((MAXULEV + 12) / (u.ulevel + 2) + 1)))
                     heal = 1;
             }
-            if (Regeneration && !heal)
+            if (U_CAN_REGEN() && !heal)
                 heal = 1;
+            if (Sleepy && u.usleep)
+                heal++;
 
             if (heal) {
                 g.context.botl = TRUE;
@@ -554,6 +558,8 @@ int wtcap;
     if (reached_full)
         interrupt_multi("You are in full health.");
 }
+
+#undef U_CAN_REGEN
 
 void
 stop_occupation()
