@@ -327,6 +327,9 @@ changes:
   the purpose of "You begin bashing" messages.
 - When a monster wakes up, a message is printed indicating that, unless there
   is a more specific message already being shown.
+- When you #loot while standing over a single container, and there is no
+  adjacent monster for you to loot, it will automatically loot that container
+  without prompting.
 
 ### Architectural changes
 

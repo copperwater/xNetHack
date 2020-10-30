@@ -2166,18 +2166,20 @@ doloot()
             }
             if (n != 0)
                 c = 'y';
-        } else {
+        } else { /* num_conts <= 1 */
             for (cobj = g.level.objects[cc.x][cc.y]; cobj; cobj = nobj) {
                 nobj = cobj->nexthere;
 
                 if (Is_container(cobj)) {
-                    c = ynq(safe_qbuf(qbuf, "There is ", " here, loot it?",
-                                      cobj, doname, ansimpleoname,
-                                      "a container"));
-                    if (c == 'q')
-                        return timepassed;
-                    if (c == 'n')
-                        continue;
+                    if (num_conts != 1 || mon_beside(u.ux, u.uy)) {
+                        c = ynq(safe_qbuf(qbuf, "There is ", " here, loot it?",
+                                        cobj, doname, ansimpleoname,
+                                        "a container"));
+                        if (c == 'q')
+                            return timepassed;
+                        if (c == 'n')
+                            continue;
+                    }
                     anyfound = TRUE;
 
                     timepassed |= do_loot_cont(&cobj, 1, 1);
