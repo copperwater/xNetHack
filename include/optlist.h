@@ -125,7 +125,7 @@ pfx_##a,
     NHOPTB(checkpoint, 0, opt_out, set_in_sysconf, On, Yes, No, No, NoAlias,
                 &flags.ins_chkpt)
 #else
-    NHOPTB(checkpoint, 0, opt_out, set_in_sysconf, On, No, No, No, NoAlias,
+    NHOPTB(checkpoint, 0, opt_out, set_in_sysconf, Off, No, No, No, NoAlias,
                 (boolean *) 0)
 #endif
     NHOPTB(clicklook, 0, opt_in, set_in_game, Off, Yes, No, No, NoAlias,
