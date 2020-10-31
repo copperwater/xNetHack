@@ -331,6 +331,7 @@ changes:
 - When you #loot while standing over a single container, and there is no
   adjacent monster for you to loot, it will automatically loot that container
   without prompting.
+- Monster lookup additionally shows the base level of the monster.
 
 ### Architectural changes
 

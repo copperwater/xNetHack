@@ -681,8 +681,8 @@ struct permonst * pm;
     MONPUTSTR("");
 
     /* Misc */
-    Sprintf(buf, "Difficulty %d, speed %d, base AC %d, magic saving throw %d, weight %d.",
-            pm->difficulty, pm->mmove, pm->ac, pm->mr, pm->cwt);
+    Sprintf(buf, "Difficulty %d, speed %d, base level %d, base AC %d, magic saving throw %d, weight %d.",
+            pm->difficulty, pm->mmove, pm->mlevel, pm->ac, pm->mr, pm->cwt);
     MONPUTSTR(buf);
 
     /* Generation */
