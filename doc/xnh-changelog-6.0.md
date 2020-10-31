@@ -288,6 +288,10 @@ changes:
 - The denominator of the seduction success formula is no longer a constant 35;
   it is now 25 + 5 times the seducer's level, plus 20 if in Gehennom.
 - Secret corridors never randomly generate except as part of some closets.
+- Wood nymphs are slower than an unhasted player (10 speed).
+- Water nymphs have a slightly increased base level (4) and difficulty (6).
+- Mountain nymphs have an increased base level (5), speed (15), and difficulty
+  (7).
 
 ### Interface changes
 
