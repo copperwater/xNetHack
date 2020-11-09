@@ -37,7 +37,8 @@ NetHackQtYnDialog::NetHackQtYnDialog(QWidget *parent, const QString &q,
     question(q), choices(ch), def(df),
     keypress('\033'),
     allow_count(false),
-    le((QLineEdit *) NULL)
+    le((QLineEdit *) NULL),
+    y_btn((QPushButton *) NULL)
 {
     setWindowTitle("NetHack: Question");
 
@@ -153,6 +154,8 @@ char NetHackQtYnDialog::Exec()
 	QButtonGroup *bgroup = new QButtonGroup(group);
 
 	int nchoices=ch.length();
+        // note: is_ynaq covers nyaq too because the choices string is
+        // "ynaq" for both; only the default differs; likewise for nyNaq
         bool is_ynaq = (ch == QString("ynaq") // [Yes ][ No ][All ][Stop]
                         || ch == QString("yn#aq")
                         || ch == altchoices), // alternate "yn#aq"
@@ -182,6 +185,7 @@ char NetHackQtYnDialog::Exec()
 
         QPushButton *button;
         for (int i = 0; i < nchoices; ++i) {
+            bool making_y = false;
             if (ch[i] == '\033')
                 break; // ESC and anything after are hidden
             if (ch[i] == '#' && allow_count)
@@ -193,6 +197,7 @@ char NetHackQtYnDialog::Exec()
                 switch (ch[i].cell()) {
                 case 'y':
                     button_name = "Yes";
+                    making_y = true;
                     break;
                 case 'n':
                     button_name = "No";
@@ -260,6 +265,8 @@ char NetHackQtYnDialog::Exec()
                 }
             }
             button=new QPushButton(button_name);
+            if (making_y && allow_count)
+                y_btn = button; // to change default in keyPressEvent()
             if (!enable.isNull()) {
                 if (!enable.contains(ch[i]))
                     button->setEnabled(false);
@@ -284,11 +291,11 @@ char NetHackQtYnDialog::Exec()
 
         QLabel *lb = 0;
         if (allow_count) {
-            // put the Count widget in between [y] and [n][a][q]
+            // insert Count widget in front of [n], between [y] and [n][a][q]
             lb = new QLabel("Count:");
-            groupbox->insertWidget(1, lb); // [n] button is item #1
+            groupbox->insertWidget(1, lb); // [y] button is item #0, [n] is #1
             le = new QLineEdit();
-            groupbox->insertWidget(2, le); // [n] became #2, Count label #1
+            groupbox->insertWidget(2, le); // [n] became #2, Count label is #1
             le->setPlaceholderText(QString("#")); // grayed out
 	}
         // add an invisible right-most field to left justify the buttons
@@ -394,17 +401,9 @@ void NetHackQtYnDialog::keyPressEvent(QKeyEvent* event)
             le->setAttribute(Qt::WA_KeyboardFocusChange, true);
             // this is definitely useful...
             le->setFocus(Qt::ActiveWindowFocusReason);
-            //
-            // TODO: 'No' is highlighted as default for result if player
-            // types <return>, but once count entry starts that should
-            // be changed because this LineEdit dialog has now become
-            // the defacto default.  We can't just turn off the default
-            // setting for the 'No' button because <return> only works
-            // if there is a default explicitly set.  Unfortunately the
-            // LineEdit widget isn't a viable candidate for that because
-            // it isn't a button.  [Maybe just highlight 'Yes' instead?]
-            //
-
+            // change default button from 'n' to 'y'
+            if (y_btn)
+                y_btn->setDefault(true);
 	} else if (where != -1) {
             this->done(where + 1000);
 

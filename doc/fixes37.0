@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.344 $ $NHDT-Date: 1603836614 2020/10/27 22:10:14 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.349 $ $NHDT-Date: 1604880453 2020/11/09 00:07:33 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -288,6 +288,8 @@ hero poly'd into rust monster could implicitly eat bars when adjacent by
 	can explicitly eat them via 'e' after moving onto their spot
 monster hiding under an egg that hatched was kept hidden
 restful sleep regenerates hit points
+attacking non-adjacent concealed mimic by applying a polearm would make the
+	hero be stuck to that mimic
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -373,6 +375,8 @@ learn scroll of teleportation after reading even when random destination is
 fix off-by-one bug in dimensions of theme rooms
 fire/frost horn feedback when zapped by monster was inaccurate (falsely
 	claimed that it was "directed at self" when attacking hero)
+tins of spinach and 'dead' eggs could cause out of array bounds access
+	attempting to index into mons[] by polyfodder() macro
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
@@ -467,6 +471,10 @@ Qt: don't clobber an existing save file after choosing "new game" in the
 	saved game selection widget
 Qt: don't get stuck in a loop after choosing "play" while the character name
 	field is empty in the character selection widget
+Qt: {maybe just Qt+OSX:} when viewing a text window ('V' to look at 'history'
+	for instance), clicking on [Search], entering a search target in the
+	resulting popup and clicking on [Okay] or typing <return>, the text
+	window got pushed underneath the main window so seemed to go away
 Qt+OSX: fix control key
 Qt+OSX: rename menu entry "nethack->Preferences..." for invoking nethack's
 	'O' command to "Game->Run-time options" and entry "Game->Qt settings"
@@ -644,8 +652,8 @@ fix the "stuck pets" issue (github #329)
 allow themed room subrooms to be filled (github #347)
 allow rereading spellbooks to refresh memory at any time (github #261)
 allow themed rooms constrained by level difficulty (github #344)
-add a varied form of LIBNH nethack library contribution (github #385)
-add cross-compile to WASM (github #385)
+add a varied form of LIBNH nethack library contribution (github #385, #403)
+add cross-compile to WASM (github #385, #403)
 
 
 Code Cleanup and Reorganization
