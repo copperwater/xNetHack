@@ -165,7 +165,7 @@ unsigned mgflags;
         /* show branch stairs in a different color */
         } else if (iflags.use_color
                    && (offset == S_upstair || offset == S_dnstair)
-                   && (x == g.sstairs.sx && y == g.sstairs.sy)
+                   && (x == g.stairs->sx && y == g.stairs->sy)
                    && (g.showsyms[idx] == g.showsyms[S_upstair + SYM_OFF_P]
                        || g.showsyms[idx] == g.showsyms[S_dnstair + SYM_OFF_P])) {
             color = CLR_YELLOW;
