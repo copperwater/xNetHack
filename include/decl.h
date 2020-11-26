@@ -75,16 +75,6 @@ struct dgn_topology { /* special dungeon levels for speed */
 #define sokoend_level           (g.dungeon_topology.d_sokoend_level)
 /* clang-format on */
 
-#define xdnstair (g.dnstair.sx)
-#define ydnstair (g.dnstair.sy)
-#define xupstair (g.upstair.sx)
-#define yupstair (g.upstair.sy)
-
-#define xdnladder (g.dnladder.sx)
-#define ydnladder (g.dnladder.sy)
-#define xupladder (g.upladder.sx)
-#define yupladder (g.upladder.sy)
-
 #define dunlev_reached(x) (g.dungeons[(x)->dnum].dunlev_ureached)
 
 #include "quest.h"
@@ -727,10 +717,7 @@ struct instance_globals {
     int y_maze_max;
     int otg_temp; /* used by object_to_glyph() [otg] */
     int in_doagain;
-    stairway dnstair; /* stairs down */
-    stairway upstair; /* stairs up */
-    stairway dnladder; /* ladder down */
-    stairway upladder; /* ladder up */
+    stairway *stairs;
     int smeq[MAXNROFROOMS + 1];
     int doorindex;
     char *save_cm;
@@ -755,7 +742,6 @@ struct instance_globals {
        number of shots, index of current one, validity check, shoot vs throw */
     struct multishot m_shot;
     dungeon dungeons[MAXDUNGEON]; /* ini'ed by init_dungeon() */
-    stairway sstairs;
     dest_area updest;
     dest_area dndest;
     coord inv_pos;
@@ -766,9 +752,6 @@ struct instance_globals {
     boolean mrg_to_wielded; /* weapon picked is merged with wielded one */
     struct plinemsg_type *plinemsg_types;
     char toplines[TBUFSZ];
-    struct mkroom *upstairs_room;
-    struct mkroom *dnstairs_room;
-    struct mkroom *sstairs_room;
     coord bhitpos; /* place where throw or zap hits or stops */
     boolean in_steed_dismounting;
     coord doors[DOORMAX];
@@ -821,8 +804,8 @@ struct instance_globals {
 
     /* display.c */
     gbuf_entry gbuf[ROWNO][COLNO];
-    char gbuf_start[ROWNO];
-    char gbuf_stop[ROWNO];
+    xchar gbuf_start[ROWNO];
+    xchar gbuf_stop[ROWNO];
 
 
     /* do.c */
@@ -846,7 +829,7 @@ struct instance_globals {
     int petname_used; /* user preferred pet name has been used */
     xchar gtyp;  /* type of dog's current goal */
     xchar gx; /* x position of dog's current goal */
-    char  gy; /* y position of dog's current goal */
+    xchar gy; /* y position of dog's current goal */
     char dogname[PL_PSIZ];
     char catname[PL_PSIZ];
     char horsename[PL_PSIZ];
@@ -1187,9 +1170,9 @@ struct instance_globals {
                                       Stormbringer's maliciousness. */
 
     /* vision.c */
-    char **viz_array; /* used in cansee() and couldsee() macros */
-    char *viz_rmin;			/* min could see indices */
-    char *viz_rmax;			/* max could see indices */
+    xchar **viz_array; /* used in cansee() and couldsee() macros */
+    xchar *viz_rmin;			/* min could see indices */
+    xchar *viz_rmax;			/* max could see indices */
     boolean vision_full_recalc;
 
     /* weapon.c */

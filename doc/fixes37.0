@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.349 $ $NHDT-Date: 1604880453 2020/11/09 00:07:33 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.363 $ $NHDT-Date: 1606343573 2020/11/25 22:32:53 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -290,6 +290,27 @@ monster hiding under an egg that hatched was kept hidden
 restful sleep regenerates hit points
 attacking non-adjacent concealed mimic by applying a polearm would make the
 	hero be stuck to that mimic
+hero could break a wand ("raising the wand high over your head, you break it
+	in two") even if hands were welded to a two-handed weapon or to a
+	one-handed weapon and also to a shield
+if a monster threw a cocktrice egg at the hero but hit and petrified another
+	monster, the hero would get credit/blame for killing it
+update persistent inventory when putting on a helmet causes it to auto-curse
+since ki-rin look quite a bit like unicorns, make them be more like one:
+	allow them to use their own horn to cure themselves; remove M1_ANIMAL,
+	change MS_NEIGH to MS_SPELL, add MR_POISON, use horse body parts;
+	they're still 'A' rather than 'u' and don't care about gems
+wand/scroll of create monster or bag of tricks that makes a new monster which
+	can be seen or sensed becomes discovered, but was doing so even for a
+	concealed mimic seen as furniture or an object
+'showscore' could be used to determine how much gold was inside a container
+	whose contents were unknown
+wizard mode (only way to get timed flying): if levitation and flying time out
+	on same turn, player was told "You have stopped levitating and are
+	now flying."; status line wasn't updated to remove stale Fly condition
+throwing or kicking a shop container (that's light enough to move) made the
+	hero pay for any gold inside, then didn't refund that amount if the
+	container landed inside the shop
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -380,6 +401,8 @@ tins of spinach and 'dead' eggs could cause out of array bounds access
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
+Qt: at Xp levels above 20 with 'showexp' On, the combined status field
+	"Level:NN/nnnnnnnn" was too big and truncated by a char at each end
 tty: redraw unexplored locations as S_unexplored rather than <space> after
 	map has been partially overwritten by popup menu or text display
 tty: previous change resulted in remnants of previous level being shown on
@@ -489,6 +512,7 @@ Qt+OSX: since menu entry help->"About Qt NetHack" gets hijacked and becomes
 tiles: add indicator of thonged portion to aklys tile
 tty: role and race selection menus weren't filtering out potential choices
 	which got excluded by OPTIONS=align:!lawful or !neutral or !chaotic
+tty: '$' can now select gold in a menu even when it isn't on current page
 Unix: when user name is used as default character name, keep hyphenated value
 	intact instead stripping off dash and whatever follows as if that
 	specified role/race/&c (worked once upon a time; broken since 3.3.0)
@@ -644,7 +668,7 @@ always print a message when the hero level teleports (github #265)
 remove Sokoban luck penalties for actions you can't cheat with (github #260)
 sounds for minotaurs (github #298)
 correct the Guidebook descriptions for msdos video_width and video_height to
-	state that they work with video:vesa; the video:vga setting that was 
+	state that they work with video:vesa; the video:vga setting that was
 	described there forces the 640x480x16 mode where video_width and
 	video_height don't operate (github #294)
 redo rndmonst() to operate in a single pass (github pull request #286)
@@ -653,7 +677,7 @@ allow themed room subrooms to be filled (github #347)
 allow rereading spellbooks to refresh memory at any time (github #261)
 allow themed rooms constrained by level difficulty (github #344)
 add a varied form of LIBNH nethack library contribution (github #385, #403)
-add cross-compile to WASM (github #385, #403)
+add cross-compile to WASM (github #385, #403, #412)
 
 
 Code Cleanup and Reorganization
@@ -690,7 +714,7 @@ resurrect 'makedefs -m' to be able to derive default mons[].diffculty values
 	suitable for assigning to new or changed monsters
 convert obj->oextra->omid from pointer to scalar
 get rid of unused obj->oextra->olong
-relocated unmaintained code to outdated folder, specifically sys/amiga, 
+relocated unmaintained code to outdated folder, specifically sys/amiga,
 	sys/atari, sys/be, sys/mac, sys/os2, sys/wince, win/Qt3, win/gem,
 	win/gnome, include/amiconf.h, include/beconf.h, include/def_os2.h,
 	include/os2conf.h, include/macconf.h, include/tosconf.h,
@@ -703,4 +727,4 @@ get rid of 3.6.1 workaround needed to retain compatibility with 3.6.0 bones
 add an additional note to mextra.h and obj.h comments that reminds people to
 	appropriately init new fields if they need to initialize to something
 	other than zero
-
+rework stairs structure into a linked list

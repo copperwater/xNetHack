@@ -1476,6 +1476,16 @@ struct obj *obj;
     delobj(obj);
 }
 
+/* Returns TRUE if obj resists polymorphing */
+boolean
+obj_unpolyable(obj)
+struct obj *obj;
+{
+    return (unpolyable(obj)
+            || obj == uball || obj == uskin
+            || obj_resists(obj, 5, 95));
+}
+
 /* classes of items whose current charge count carries over across polymorph
  */
 static const char charged_objs[] = { WAND_CLASS, WEAPON_CLASS, ARMOR_CLASS,
@@ -1964,8 +1974,7 @@ struct obj *obj, *otmp;
         switch (otmp->otyp) {
         case WAN_POLYMORPH:
         case SPE_POLYMORPH:
-            if (obj->otyp == WAN_POLYMORPH || obj->otyp == SPE_POLYMORPH
-                || obj->otyp == POT_POLYMORPH || obj_resists(obj, 5, 95)) {
+            if (obj_unpolyable(obj)) {
                 res = 0;
                 break;
             }
@@ -2892,6 +2901,7 @@ struct obj *obj; /* wand or spell */
     struct engr *e;
     struct trap *ttmp;
     char buf[BUFSZ];
+    stairway *stway = g.stairs;
 
     /* some wands have special effects other than normal bhitpile */
     /* drawbridge might change <u.ux,u.uy> */
@@ -2914,11 +2924,16 @@ struct obj *obj; /* wand or spell */
         return TRUE; /* we've done our own bhitpile */
     case WAN_OPENING:
     case SPE_KNOCK:
+        while (stway) {
+            if (!stway->isladder && !stway->up && stway->tolev.dnum == u.uz.dnum)
+                break;
+            stway = stway->next;
+        }
         /* up or down, but at closed portcullis only */
         if (is_db_wall(x, y) && find_drawbridge(&xx, &yy)) {
             open_drawbridge(xx, yy);
             disclose = TRUE;
-        } else if (u.dz > 0 && (x == xdnstair && y == ydnstair)
+        } else if (u.dz > 0 && stway && stway->sx == x && stway->sy == y
                    /* can't use the stairs down to quest level 2 until
                       leader "unlocks" them; give feedback if you try */
                    && on_level(&u.uz, &qstart_level) && !ok_to_quest()) {

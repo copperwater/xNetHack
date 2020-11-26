@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.395 $ $NHDT-Date: 1596785362 2020/08/07 07:29:22 $
+.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.400 $ $NHDT-Date: 1606328499 2020/11/25 18:21:39 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" Guidebook.mn currently does *not* fully adhere to these guidelines.
@@ -35,7 +35,7 @@
 .ds vr "NetHack 3.7
 .ds f0 "\*(vr
 .ds f1
-.ds f2 "October 2, 2020
+.ds f2 "November 25, 2020
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -103,7 +103,7 @@ travel, you see the ancient ruins that mark the entrance to the
 Mazes of Menace.  It is late at night, so you make camp at the entrance
 and spend the night sleeping under the open skies.  In the morning, you
 gather your gear, eat what may be your last meal outside, and enter the
-dungeon...
+dungeon....
 .
 .hn 1
 What is going on here?
@@ -1991,6 +1991,23 @@ The
 .op run_mode
 option controls how frequently the map gets redrawn when moving more
 than one step in a single command (so when rushing, running, or traveling).
+.hn 2
+Rogue level
+.pg
+One dungeon level (occurring in mid to late teens of the main dungeon)
+is a tribute to the ancestor game \fIhack\fP's inspiration \fIrogue\fP.
+.pg
+It is usually displayed differently from other levels: possibly in
+characters instead of tiles, or without line-drawing symbols if already
+in characters; also, gold is shown as \f(CR*\fP rather than \f(CR$\fP
+and stairs are shown as \f(CR%\fP rather than \f(CR<\fP and \f(CR>\fP.
+There are some minor differences in actual game play: doorways lack
+doors; a scroll, wand, or spell of light used in a room lights up the
+whole room rather than within a radius around your character.
+And monsters represented by lower-case letters aren't randomly
+generated on the rogue level.
+.pg
+The slight strangeness of this level is a feature, not a bug....
 .
 .hn 1
 Monsters
@@ -4172,7 +4189,19 @@ Where to align or place the message window (top, bottom, left, or right)
 .lp align_status
 Where to align or place the status window (top, bottom, left, or right).
 .lp ascii_map
-If NetHack can, it should display an ascii character map if it can.
+.hw DECgraphics IBMgraphics \" don't hyphenate these
+If NetHack can, it should display the map using simple
+characters (letters and punctuation) rather than \fItiles\fP graphics.
+In some cases, characters can be augmented with line-drawing symbols;
+use the
+.op symset
+option to select a symbol set such as \fIDECgraphics\fP
+or \fIIBMgraphics\fP if your display supports them.
+Setting
+.op ascii_map
+to \fITrue\fP forces
+.op tiled_map
+to be \fIFalse\fP.
 .lp color
 If NetHack can, it should display color if it can for different monsters,
 objects, and dungeon features.
@@ -4241,8 +4270,33 @@ If NetHack can, it should display an opening splash screen when it starts
 up (default yes).
 .lp statuslines
 Number of lines for traditional below-the-map status display.
-Acceptable values are 2 and 3 (default is 2).
-Curses and tty interfaces only.
+Acceptable values are \f(CR2\fP and \f(CR3\fP (default is \f(CR2\fP).
+.lp ""
+For \f(CR3\fP, the \f(CRtty\fP interface moves some fields around and
+mainly shows status conditions on their own line.
+A display capable of showing at least 25 lines is recommended.
+The value can be toggled back and forth during the game with the \(oqO\(cq
+command.
+.lp ""
+The \f(CRcurses\fP interface does likewise if the
+.op align_status
+option is set to \fItop\fP or \fIbottom\fP but ignores
+.op statuslines
+when set to \fIleft\fP or \fIright\fP.
+.lp ""
+The \f(CRQt\fP interface already displays more than 3 lines for status
+so uses the
+.op statuslines
+value differently.
+A value of \f(CR3\fP renders status in the \f(CRQt\fP interface's
+original format, with the status window spread out vertically.
+A value of \f(CR2\fP makes status be slightly condensed, moving some
+fields to different lines to eliminate one whole line, reducing the
+height needed.
+For \f(CRQt\fP,
+.op statuslines
+can only be set in the configuration file or via NETHACKOPTIONS, not
+with the \(oqO\(cq command.
 .lp "term_cols\ \ \fIand\fP"
 .lp term_rows
 Curses interface only.
@@ -4250,14 +4304,21 @@ Number of columns and rows to use for the display.
 Curses will attempt to resize to the values specified but will settle
 for smaller sizes if they are too big.
 Default is the current window size.
-.lp tiled_map
-If NetHack can, it should display a tiled map if it can.
 .lp tile_file
 Specify the name of an alternative tile file to override the default.
 .lp tile_height
 Specify the preferred height of each tile in a tile capable port.
 .lp tile_width
 Specify the preferred width of each tile in a tile capable port
+.lp tiled_map
+If NetHack can, it should display the map using \fItiles\fP graphics
+rather than simple characters (letters and punctuation, possibly
+augmented by line-drawing symbols).
+Setting
+.op tiled_map
+to \fITrue\fP forces
+.op ascii_map
+to be \fIFalse\fP.
 .lp use_darkgray
 Use bold black instead of blue for black glyphs (TTY only).
 .lp use_inverse

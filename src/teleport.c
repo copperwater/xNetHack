@@ -1,4 +1,4 @@
-/* NetHack 3.7	teleport.c	$NHDT-Date: 1600468454 2020/09/18 22:34:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.127 $ */
+/* NetHack 3.7	teleport.c	$NHDT-Date: 1605305493 2020/11/13 22:11:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.134 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -941,7 +941,7 @@ level_tele()
         }
         newlevel.dnum = u.uz.dnum;
         newlevel.dlevel = llimit + newlev;
-        schedule_goto(&newlevel, FALSE, FALSE, 0, (char *) 0, (char *) 0);
+        schedule_goto(&newlevel, UTOTYPE_NONE, (char *) 0, (char *) 0);
         return;
     }
 
@@ -1049,7 +1049,7 @@ level_tele()
         }
     }
 
-    schedule_goto(&newlevel, FALSE, FALSE, 0, (char *) 0,
+    schedule_goto(&newlevel, UTOTYPE_NONE, (char *) 0,
                   flags.verbose ? "You materialize on a different level!"
                                 : (char *) 0);
 
@@ -1090,7 +1090,7 @@ register struct trap *ttmp;
     }
 
     target_level = ttmp->dst;
-    schedule_goto(&target_level, FALSE, FALSE, 1,
+    schedule_goto(&target_level, UTOTYPE_PORTAL,
                   "You feel dizzy for a moment, but the sensation passes.",
                   (char *) 0);
 }
@@ -1258,6 +1258,22 @@ register int x, y;
        the latter only happens if you've attacked them with polymorph */
     if (resident_shk && !inhishop(mtmp))
         make_angry_shk(mtmp, oldx, oldy);
+
+    /* trapped monster teleported away */
+    if (mtmp->mtrapped && !mtmp->wormno)
+        (void) mintrap(mtmp);
+}
+
+static stairway *
+stairway_find_forwiz(isladder, up)
+boolean isladder, up;
+{
+    stairway *stway = g.stairs;
+
+    while (stway && !(stway->isladder == isladder
+                      && stway->up == up && stway->tolev.dnum == u.uz.dnum))
+        stway = stway->next;
+    return stway;
 }
 
 /* place a monster at a random location, typically due to teleport */
@@ -1268,6 +1284,7 @@ struct monst *mtmp; /* mx==0 implies migrating monster arrival */
 boolean suppress_impossible;
 {
     register int x, y, trycount;
+    stairway *stway;
 
     if (mtmp == u.usteed) {
         tele();
@@ -1275,12 +1292,19 @@ boolean suppress_impossible;
     }
 
     if (mtmp->iswiz && mtmp->mx) { /* Wizard, not just arriving */
-        if (!In_W_tower(u.ux, u.uy, &u.uz))
-            x = xupstair, y = yupstair;
-        else if (!xdnladder) /* bottom level of tower */
-            x = xupladder, y = yupladder;
-        else
-            x = xdnladder, y = ydnladder;
+        if (!In_W_tower(u.ux, u.uy, &u.uz)) {
+            stway = stairway_find_forwiz(FALSE, TRUE);
+            x = stway->sx;
+            y = stway->sy;
+        } else if (!stairway_find_forwiz(TRUE, FALSE)) { /* bottom level of tower */
+            stway = stairway_find_forwiz(TRUE, TRUE);
+            x = stway->sx;
+            y = stway->sy;
+        } else {
+            stway = stairway_find_forwiz(TRUE, FALSE);
+            x = stway->sx;
+            y = stway->sy;
+        }
         /* if the wiz teleports away to heal, try the up staircase,
            to block the player's escaping before he's healed
            (deliberately use `goodpos' rather than `rloc_pos_ok' here) */

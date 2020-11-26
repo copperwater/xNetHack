@@ -953,10 +953,9 @@ int
 dodown()
 {
     struct trap *trap = 0;
-    boolean stairs_down = ((u.ux == xdnstair && u.uy == ydnstair)
-                           || (u.ux == g.sstairs.sx && u.uy == g.sstairs.sy
-                               && !g.sstairs.up)),
-            ladder_down = (u.ux == xdnladder && u.uy == ydnladder);
+    stairway *stway = stairway_at(u.ux, u.uy);
+    boolean stairs_down = (stway && !stway->up && !stway->isladder),
+            ladder_down = (stway && !stway->up &&  stway->isladder);
 
     if (u_rooted())
         return 1;
@@ -1108,6 +1107,8 @@ dodown()
 int
 doup()
 {
+    stairway *stway = stairway_at(u.ux,u.uy);
+
     if (u_rooted())
         return 1;
 
@@ -1117,10 +1118,7 @@ doup()
         return 1;
     }
 
-    if ((u.ux != xupstair || u.uy != yupstair)
-        && (!xupladder || u.ux != xupladder || u.uy != yupladder)
-        && (!g.sstairs.sx || u.ux != g.sstairs.sx || u.uy != g.sstairs.sy
-            || !g.sstairs.up)) {
+    if (!stway || (stway && !stway->up)) {
         You_cant("go up here.");
         return 0;
     }
@@ -1455,7 +1453,7 @@ boolean at_stairs, falling, portal;
     assign_level(&u.uz0, &u.uz);
     assign_level(&u.uz, newlevel);
     assign_level(&u.utolev, newlevel);
-    u.utotype = 0;
+    u.utotype = UTOTYPE_NONE;
     if (!builds_up(&u.uz)) { /* usual case */
         if (dunlev(&u.uz) > dunlev_reached(&u.uz))
             dunlev_reached(&u.uz) = dunlev(&u.uz);
@@ -1465,6 +1463,7 @@ boolean at_stairs, falling, portal;
             dunlev_reached(&u.uz) = dunlev(&u.uz);
     }
 
+    stairway_free_all();
     /* set default level change destination areas */
     /* the special level code may override these */
     (void) memset((genericptr_t) &g.updest, 0, sizeof g.updest);
@@ -1536,8 +1535,9 @@ boolean at_stairs, falling, portal;
         }
     } else if (at_stairs && !In_endgame(&u.uz)) {
         if (up) {
-            if (g.at_ladder)
-                u_on_newpos(xdnladder, ydnladder);
+            stairway *stway = stairway_find_from(&u.uz0, g.at_ladder);
+            if (stway)
+                u_on_newpos(stway->sx, stway->sy);
             else if (newdungeon)
                 u_on_sstairs(1);
             else
@@ -1552,8 +1552,9 @@ boolean at_stairs, falling, portal;
                       (Flying && g.at_ladder) ? " along" : "",
                       g.at_ladder ? "ladder" : "stairs");
         } else { /* down */
-            if (g.at_ladder)
-                u_on_newpos(xupladder, yupladder);
+            stairway *stway = stairway_find_from(&u.uz0, g.at_ladder);
+            if (stway)
+                u_on_newpos(stway->sx, stway->sy);
             else if (newdungeon)
                 u_on_sstairs(0);
             else
@@ -1790,24 +1791,13 @@ final_level()
 
 /* change levels at the end of this turn, after monsters finish moving */
 void
-schedule_goto(tolev, at_stairs, falling, portal_flag, pre_msg, post_msg)
+schedule_goto(tolev, utotype_flags, pre_msg, post_msg)
 d_level *tolev;
-boolean at_stairs, falling;
-int portal_flag;
+int utotype_flags;
 const char *pre_msg, *post_msg;
 {
-    int typmask = 0100; /* non-zero triggers `deferred_goto' */
-
-    /* destination flags (`goto_level' args) */
-    if (at_stairs)
-        typmask |= 1;
-    if (falling)
-        typmask |= 2;
-    if (portal_flag)
-        typmask |= 4;
-    if (portal_flag < 0)
-        typmask |= 0200; /* flag for portal removal */
-    u.utotype = typmask;
+    /* UTOTYPE_DEFERRED is used, so UTOTYPE_NONE can trigger deferred_goto() */
+    u.utotype = utotype_flags | UTOTYPE_DEFERRED;
     /* destination level */
     assign_level(&u.utolev, tolev);
 
@@ -1829,8 +1819,10 @@ deferred_goto()
         assign_level(&oldlev, &u.uz);
         if (g.dfr_pre_msg)
             pline1(g.dfr_pre_msg);
-        goto_level(&dest, !!(typmask & 1), !!(typmask & 2), !!(typmask & 4));
-        if (typmask & 0200) { /* remove portal */
+        goto_level(&dest, !!(typmask & UTOTYPE_ATSTAIRS),
+                   !!(typmask & UTOTYPE_FALLING),
+                   !!(typmask & UTOTYPE_PORTAL));
+        if (typmask & UTOTYPE_RMPORTAL) { /* remove portal */
             struct trap *t = t_at(u.ux, u.uy);
 
             if (t) {
@@ -1841,7 +1833,7 @@ deferred_goto()
         if (g.dfr_post_msg && !on_level(&u.uz, &oldlev))
             pline1(g.dfr_post_msg);
     }
-    u.utotype = 0; /* our caller keys off of this */
+    u.utotype = UTOTYPE_NONE; /* our caller keys off of this */
     if (g.dfr_pre_msg)
         free((genericptr_t) g.dfr_pre_msg), g.dfr_pre_msg = 0;
     if (g.dfr_post_msg)

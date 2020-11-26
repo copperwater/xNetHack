@@ -46,6 +46,7 @@ NetHackQtInvUsageWindow::NetHackQtInvUsageWindow(QWidget* parent) :
     // needed to enable tool tips
     setMouseTracking(true);
 
+    // paperdoll is 6x3 but the indices are column oriented: 0..2x0..5
     for (int x = 0; x <= 2; ++x)
         for (int y = 0; y <= 5; ++y)
             tips[x][y] = NULL;
@@ -61,10 +62,13 @@ NetHackQtInvUsageWindow::~NetHackQtInvUsageWindow()
 
 void NetHackQtInvUsageWindow::drawWorn(QPainter &painter, obj *nhobj,
                                        int x, int y, // cell index, not pixels
-                                       const char *alttip, bool canbe)
+                                       const char *alttip, int flags)
 {
     short int glyph;
     int border;
+    char tipstr[1 + BUFSZ + 1]; // extra room for leading and trailing space
+    bool rev = (flags == dollReverse),
+         canbe = (flags != dollUnused);
 
     if (nhobj) {
         border = BORDER_DEFAULT;
@@ -78,33 +82,43 @@ void NetHackQtInvUsageWindow::drawWorn(QPainter &painter, obj *nhobj,
                        : BORDER_BLESSED;
 
         // set up a tool tip describing the item that will be displayed here
-        char *itmnam = xprname(nhobj, (char *) 0, nhobj->invlet, TRUE, 0L, 0L);
-        if (tips[x][y] && strlen(itmnam) > strlen(tips[x][y]))
+        Sprintf(tipstr, " %s ", // extra spaces for enhanced readability
+                // xprname: invlet, space, dash, space, object description
+                xprname(nhobj, (char *) NULL, nhobj->invlet, FALSE, 0L, 0L));
+        // tips are managed with nethack's alloc(); we don't track allocation
+        // amount; allocated buffers get reused when big enough (usual case
+        // since paperdoll updates occur more often than equipment changes)
+        if (tips[x][y] && strlen(tipstr) > strlen(tips[x][y]))
             free((void *) tips[x][y]), tips[x][y] = NULL;
 
         if (tips[x][y])
-            Strcpy(tips[x][y], itmnam);
+            Strcpy(tips[x][y], tipstr); // guaranteed to fit
         else
-            tips[x][y] = dupstr(itmnam);
+            tips[x][y] = dupstr(tipstr);
 #endif
         glyph = obj_to_glyph(nhobj, rn2_on_display_rng);
     } else {
         border = NO_BORDER;
 #ifdef ENHANCED_PAPERDOLL
-        // caller passes an alternative tool tip for empty cells
-        if (tips[x][y] && (!alttip || strlen(alttip) > strlen(tips[x][y])))
+        // caller usually passes an alternate tool tip for empty cells
+        size_t altlen = alttip ? 1U + strlen(alttip) + 1U : 0U;
+        if (tips[x][y] && (!alttip || altlen > strlen(tips[x][y])))
             free((void *) tips[x][y]), tips[x][y] = NULL;
 
-        if (tips[x][y]) // above guarantees that test fails if alttip is Null
-            Strcpy(tips[x][y], alttip);
-        else if (alttip)
-            tips[x][y] = dupstr(alttip);
+        if (alttip) {
+            Sprintf(tipstr, " %s ", alttip);
+            if (tips[x][y])
+                Strcpy(tips[x][y], tipstr); // guaranteed to fit
+            else
+                tips[x][y] = dupstr(tipstr);
+        }
 #else
         nhUse(alttip);
 #endif
+        // an empty slot is shown as floor tile unless it's always empty
         glyph = canbe ? cmap_to_glyph(S_room) : GLYPH_UNEXPLORED;
     }
-    qt_settings->glyphs().drawBorderedCell(painter, glyph, x, y, border);
+    qt_settings->glyphs().drawBorderedCell(painter, glyph, x, y, border, rev);
 }
 
 // called to update the paper doll inventory subset
@@ -135,16 +149,14 @@ void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
     //      show lit lamp/lantern/candle/candelabrum on lower right side;
     //      show leash-in-use on lower left side
     //
-    // Possible enhancement:  for two-handed weapon, show the left hand
-    // instance as a mirror image of the normal right hand one.
-    //
+    // Actually indexed by grid[column][row].
 
 #ifdef ENHANCED_PAPERDOLL
     if (iflags.wc_ascii_map)
         qt_settings->doll_is_shown = false;
     if (!qt_settings->doll_is_shown)
         return;
-    // set glyphs() for the paperdoll; might be different size than map's
+    // set glyphs() for the paper doll; might be different size than map's
     qt_settings->glyphs().setSize(qt_settings->dollWidth,
                                   qt_settings->dollHeight);
 
@@ -165,15 +177,15 @@ void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
        never be Null when the corresponding tests pass */
     if (u.twoweap)
         drawWorn(painter, uswapwep, 0, 1, NULL); // secondary weapon, in use
-    else if (uwep && bimanual(uwep))
-        drawWorn(painter, uwep,     0, 1, NULL); // two-handed uwep shown twice
+    else if (uwep && bimanual(uwep)) // show two-handed uwep twice
+        drawWorn(painter, uwep,     0, 1, NULL, dollReverse); // uwep on left
     else
         drawWorn(painter, uarms,    0, 1, "no shield");
     drawWorn(painter, uarmg,        0, 2, "no gloves");
     drawWorn(painter, uleft,        0, 3, "no left ring");
     /* light source and leash aren't unique and don't have pointers defined */
     drawWorn(painter, find_tool(LEASH), 0, 4, "no leashes in use");
-    drawWorn(painter, NULL,         0, 5, NULL, false); // always blank
+    drawWorn(painter, NULL,         0, 5, NULL, dollUnused); // always blank
 
     //  middle column; no unused slots
     drawWorn(painter, uarmh,   1, 0, "no helmet");
@@ -198,7 +210,7 @@ void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
        (and might also duplicate Sunsword when it is wielded--hence lit--
        depending upon whether another light source precedes it in invent) */
     drawWorn(painter, find_tool(OIL_LAMP), 2, 4, "no active light sources");
-    drawWorn(painter, NULL,    2, 5, NULL, false); // always blank
+    drawWorn(painter, NULL,    2, 5, NULL, dollUnused); // always blank
 
     painter.end();
 
@@ -219,13 +231,13 @@ QSize NetHackQtInvUsageWindow::sizeHint(void) const
         if (iflags.wc_ascii_map)
             qt_settings->doll_is_shown = false;
         if (qt_settings->doll_is_shown) {
-            w = (1 + qt_settings->dollWidth + 1) * 3;
-            h = (1 + qt_settings->dollHeight + 1) * 6;
+            w += (1 + qt_settings->dollWidth + 1) * 3;
+            h += (1 + qt_settings->dollHeight + 1) * 6;
         }
 #else
         if (iflags.wc_tiled_map) {
-            w = (1 + qt_settings->glyphs().width() + 1) * 3;
-            h = (1 + qt_settings->glyphs().height() + 1) * 6;
+            w += (1 + qt_settings->glyphs().width() + 1) * 3;
+            h += (1 + qt_settings->glyphs().height() + 1) * 6;
         }
 #endif
         return QSize(w, h);
