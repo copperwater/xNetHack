@@ -208,7 +208,7 @@ changes:
 - Kicking open secret doors and corridors is easier, and never causes you to
   hurt your legs.
 - A tiny fraction of erodable items will generate greased.
-- Dwarvish characters can always reach Basic in pick-axe skill.
+- Dwarvish characters can always reach Skilled in pick-axe skill.
 - Gnomish characters can always reach Basic in club and crossbow skill.
 - Elvish characters can always reach Basic in enchantment spell skill.
 - Orcish characters can always reach Skilled in scimitar skill.
