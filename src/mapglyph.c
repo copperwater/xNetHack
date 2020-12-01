@@ -71,6 +71,7 @@ int *ochar;
 unsigned *ospecial;
 unsigned mgflags;
 {
+    struct stairway *sway = stairway_at(x, y);
     register int offset, idx;
     int color = NO_COLOR;
     nhsym ch;
@@ -165,7 +166,8 @@ unsigned mgflags;
         /* show branch stairs in a different color */
         } else if (iflags.use_color
                    && (offset == S_upstair || offset == S_dnstair)
-                   && (x == g.stairs->sx && y == g.stairs->sy)
+                   && ((sway = stairway_at(x, y)) != 0 && sway->tolev.dnum != u.uz.dnum)
+                   /* && (x == g.stairs->sx && y == g.stairs->sy) */
                    && (g.showsyms[idx] == g.showsyms[S_upstair + SYM_OFF_P]
                        || g.showsyms[idx] == g.showsyms[S_dnstair + SYM_OFF_P])) {
             color = CLR_YELLOW;
