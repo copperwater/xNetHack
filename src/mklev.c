@@ -66,6 +66,32 @@ const genericptr vy;
 #endif /* LINT */
 }
 
+/* Return TRUE if a door placed at (x, y) which otherwise passes okdoor() checks
+ * would be connecting into an area that was declared as joined = 0.
+ * Checking for this in finddpos() enables us to have rooms with sub-areas (such
+ * as shops) that will never randomly generate unwanted doors in order to
+ * connect them up to other areas.
+ */
+boolean
+door_into_nonjoined(x, y)
+xchar x, y;
+{
+    schar tx, ty, diridx;
+    for (diridx = 0; diridx <= 6; diridx += 2) {
+        tx = x + xdir[diridx];
+        ty = y + ydir[diridx];
+        if (!isok(tx, ty) || IS_ROCK(levl[tx][ty].typ)) {
+            continue;
+        }
+        /* Is this connecting to a room that doesn't want joining? */
+        if (levl[tx][ty].roomno >= ROOMOFFSET &&
+            !g.rooms[levl[tx][ty].roomno - ROOMOFFSET].needjoining) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 /* Find a valid position to place a door within the rectangle bounded by
  * (xl, yl, xh, yh), as defined by okdoor(). First, try to pick a single random
  * spot, then iterate over the entire area.
@@ -81,20 +107,22 @@ xchar xl, yl, xh, yh;
 
     x = rn1(xh - xl + 1, xl);
     y = rn1(yh - yl + 1, yl);
-    if (okdoor(x, y))
+    /* Avoid placing doors connecting to !needjoining areas. */
+    if (okdoor(x, y) && !door_into_nonjoined(x, y))
         goto gotit;
 
     for (x = xl; x <= xh; x++)
         for (y = yl; y <= yh; y++)
-            if (okdoor(x, y))
+            if (okdoor(x, y) && !door_into_nonjoined(x, y))
                 goto gotit;
 
     for (x = xl; x <= xh; x++)
         for (y = yl; y <= yh; y++)
             if (IS_DOOR(levl[x][y].typ) || levl[x][y].typ == SDOOR)
                 goto gotit;
-    /* cannot find something reasonable -- strange.
-     * should this be impossible()? */
+    /* cannot find something reasonable -- strange. */
+    impossible("couldn't find an okdoor pos within (%d, %d, %d, %d)!",
+               xl, yl, xh, yh);
     x = xl;
     y = yh;
  gotit:

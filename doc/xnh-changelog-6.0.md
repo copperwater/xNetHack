@@ -413,3 +413,5 @@ changes:
   Various item-spillage bits of code now call this.
 - Add nh.mon_difficulty() as a Lua function which returns the difficulty of a
   given monster species.
+- Add door_into_nonjoined() which checks if a potential door location would
+  connect to an area marked as non-joined.
