@@ -585,7 +585,7 @@ struct monst *summoner;
         s_cls = summoner ? summoner->data->mlet : 0;
         difcap = summoner ? summoner->data->difficulty : 0; /* spellcasters */
         castalign = summoner ? sgn(summoner->data->maligntyp) : 0;
-        tmp = 2 + rnd((summoner->m_lev / 5) + 1);
+        tmp = 2 + rnd(((summoner ? summoner->m_lev : 30) / 5) + 1);
         /* if we don't have a casting monster, nasties appear around hero,
            otherwise they'll appear around spot summoner thinks she's at */
         bypos.x = u.ux;
