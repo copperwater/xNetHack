@@ -13,7 +13,7 @@
  * the code that permits the user to set the contents of the symbol structure.
  *
  * The door representation was changed by Ari
- * Huttunen(ahuttune@niksula.hut.fi)
+ * Huttunen(ahuttune@niksula.hut.fi) and later by aosdict
  */
 
 /*

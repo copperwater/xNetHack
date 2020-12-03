@@ -39,7 +39,6 @@ static void NDECL(remove_boundary_syms);
 static void FDECL(set_door_orientation, (int, int));
 static void FDECL(maybe_add_door, (int, int, struct mkroom *));
 static void NDECL(link_doors_rooms);
-static int NDECL(rnddoor);
 static int NDECL(rndtrap);
 static void FDECL(get_location, (schar *, schar *, int, struct mkroom *));
 static boolean FDECL(is_ok_location, (SCHAR_P, SCHAR_P, int));
@@ -1042,25 +1041,6 @@ link_doors_rooms()
 }
 
 /*
- * Choose randomly the state (nodoor, open, closed or locked) for a door
- * TODO: merge this logic with dosdoor() in mklev.c
- */
-static int
-rnddoor()
-{
-    /* Assume order is D_NODOOR = 0, D_BROKEN, D_ISOPEN, D_CLOSED,
-     * and we are not going to generate broken doors */
-    int i = rn2(3);
-    if (i > D_NODOOR)
-        i++;
-
-    if (i == D_CLOSED && !rn2(3))
-        i |= D_LOCKED;
-
-    return i;
-}
-
-/*
  * Select a random trap
  */
 static int
@@ -1718,30 +1698,8 @@ struct mkroom *broom;
     if (dd->secret == -1)
         dd->secret = rn2(2);
 
-    if (dd->doormask == -1) {
-        /* is it a locked door, closed, or a doorway? */
-        if (!dd->secret) {
-            if (!rn2(3)) {
-                if (rn2(5)) {
-                    set_doorstate(dd, D_CLOSED);
-                    if(!rn2(6)) {
-                        set_door_lock(dd, TRUE);
-                    }
-                    if(!rn2(25)) {
-                        set_door_trap(dd, TRUE);
-                    }
-                } else {
-                    set_doorstate(dd, D_ISOPEN);
-                }
-            } else
-                set_doorstate(dd, D_NODOOR);
-        } else {
-            set_doorstate(dd, D_CLOSED);
-            if (!rn2(5))
-                set_door_lock(dd, TRUE);
-            if (!rn2(20))
-                set_door_trap(dd, TRUE);
-        }
+    if (dd->doormask == -1) { /* random */
+        dd->doormask = random_door_mask(dd->secret ? SDOOR : DOOR, FALSE);
     }
 
     do {
@@ -1809,6 +1767,7 @@ struct mkroom *broom;
     }
     levl[x][y].typ = (dd->secret ? SDOOR : DOOR);
     levl[x][y].doormask = dd->doormask;
+    clear_nonsense_doortraps(x, y);
 }
 
 /*
@@ -5012,6 +4971,7 @@ genericptr_t arg;
     }
     set_door_orientation(x, y); /* set/clear levl[x][y].horizontal */
     levl[x][y].doormask = typ;
+    clear_nonsense_doortraps(x, y);
     SpLev_Map[x][y] = 1;
 }
 
@@ -5037,9 +4997,8 @@ lua_State *L;
     static const int doorstates2i[] = {
         -1, D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR, D_BROKEN, D_SECRET
     };
-    int msk;
+    xchar msk;
     schar x,y;
-    xchar typ;
     int argc = lua_gettop(L);
 
     create_des_coder();
@@ -5072,8 +5031,6 @@ lua_State *L;
         msk |= D_CLOSED;
     }
 
-    typ = (msk == -1) ? rnddoor() : (xchar) msk;
-
     if (x == -1 && y == -1) {
         static const char *const walldirs[] = {
             "all", "random", "north", "west", "east", "south", NULL
@@ -5083,7 +5040,7 @@ lua_State *L;
         };
         room_door tmpd;
 
-        tmpd.secret = (typ == D_SECRET) ? 1 : 0;
+        tmpd.secret = ((msk & D_SECRET) != 0);
         tmpd.doormask = msk;
         tmpd.pos = get_table_int_opt(L, "pos", -1);
         tmpd.wall = walldirs2i[get_table_option(L, "wall", "all", walldirs)];
@@ -5096,7 +5053,7 @@ lua_State *L;
                            SP_COORD_PACK(x,y));
         if (!isok(x,y))
             nhl_error(L, "door coord not ok");
-        sel_set_door(x, y, (genericptr_t) &typ);
+        sel_set_door(x, y, (genericptr_t) &msk);
     }
 
     return 0;

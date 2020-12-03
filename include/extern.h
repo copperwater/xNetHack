@@ -1358,6 +1358,8 @@ E void FDECL(add_subroom, (struct mkroom *, int, int, int, int, BOOLEAN_P,
 E void FDECL(free_luathemes, (BOOLEAN_P));
 E void NDECL(makecorridors);
 E void FDECL(add_door, (int, int, struct mkroom *));
+E xchar FDECL(random_door_mask, (int, BOOLEAN_P));
+E void FDECL(clear_nonsense_doortraps, (XCHAR_P, XCHAR_P));
 E int NDECL(rand_roomtype);
 E void NDECL(clear_level_structures);
 E void NDECL(mklev);

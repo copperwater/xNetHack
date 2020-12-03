@@ -415,3 +415,9 @@ changes:
   given monster species.
 - Add door_into_nonjoined() which checks if a potential door location would
   connect to an area marked as non-joined.
+- Unify the probabilities for random door generation between regular dungeon
+  levels and other levels: how often they generate closed, trapped, iron, etc.
+  into a new function random_door_mask().
+- New function clear_nonsense_doortraps() to delete traps on doors where the
+  trap type doesn't make any sense.
+- Remove the rnddoor() function.

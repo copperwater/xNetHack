@@ -609,9 +609,106 @@ register struct mkroom *aroom;
     g.doors[aroom->fdoor].y = y;
 }
 
+/* Generate the door mask for a random door. Contains the random probabilities
+ * that determine what doorstate the door gets, and whether it becomes trapped,
+ * but does not actually set any level structures.
+ * typ is either DOOR or SDOOR.
+ */
+xchar
+random_door_mask(typ, shdoor)
+int typ;
+boolean shdoor;
+{
+    struct rm tmprm; /* so we can use various set_door_*() */
+
+    tmprm.doormask = 0;
+
+    if (!IS_DOOR(typ) && typ != SDOOR) {
+        impossible("random_door_mask: bad typ %d", typ);
+    }
+
+    /* is it a locked door, closed, or a doorway? */
+    if (!rn2(3) || typ == SDOOR || g.level.flags.is_maze_lev) {
+        /* 1/3 of random doorways have a physical door, unless it's a maze level
+         * in which case 100% of random doorways do, for some reason. */
+        if (rn2(5) || typ == SDOOR) {
+            /* 80% of doorways with a door have it closed. Secret doors must be
+             * closed. */
+            set_doorstate(&tmprm, D_CLOSED);
+            if (!rn2(4)) {
+                /* 25% of closed doors are locked. */
+                set_door_lock(&tmprm, TRUE);
+            }
+        }
+        else {
+            set_doorstate(&tmprm, D_ISOPEN);
+        }
+    } else {
+        /* 2/3 of random doorways lack a physical door... but shop doors need a
+         * real one so force a real door to exist */
+        set_doorstate(&tmprm, shdoor ? D_ISOPEN : D_NODOOR);
+    }
+
+    /* We don't have the x, y coordinates for the door, so we can't determine
+     * whether the trap that would generate there would be suitable for the
+     * initial door state. Set the trap flag based on probability only; the
+     * caller must check to see if it's valid. */
+    if (!rn2(25) && !shdoor) {
+        set_door_trap(&tmprm, TRUE);
+    }
+
+    /* chance of an iron door on deeper levels */
+    if (doorstate(&tmprm) != D_NODOOR && rn1(40, 10) < level_difficulty()) {
+        set_door_iron(&tmprm, TRUE);
+    }
+
+    return tmprm.doormask;
+}
+
+/* Determine whether a door trap at a given x, y coordinate would not make sense
+ * with the door's state, and if it's nonsensical, remove the trap.
+ * Return TRUE if nonsense is found. */
+void
+clear_nonsense_doortraps(x, y)
+xchar x, y;
+{
+    const int traptype = getdoortrap(x, y);
+    struct rm *lev = &levl[x][y];
+
+    if (!IS_DOOR(lev->typ) && lev->typ != SDOOR) {
+        impossible("trying to check trap on non-door at %d %d?", x, y);
+    }
+
+    if (!door_is_trapped(lev)) {
+        return; /* no trap = nothing to do */
+    }
+
+    switch (traptype) {
+    case SELF_LOCK:
+    case HINGE_SCREECH:
+    case STATIC_SHOCK:
+    case ROCKFALL:
+    case HOT_KNOB:
+        /* traps that require an actual unbroken door */
+        if (doorstate(lev) != D_ISOPEN && doorstate(lev) != D_CLOSED) {
+            set_door_trap(lev, FALSE);
+        }
+        break;
+    case WATER_BUCKET:
+    case HINGELESS_FORWARD:
+    case HINGELESS_BACKWARD:
+    case FIRE_BLAST:
+        /* traps that require a closed door */
+        if (doorstate(lev) != D_CLOSED)
+            set_door_trap(lev, FALSE);
+        break;
+    default:
+        impossible("clear_nonsense_doortrap: bad door trap type %d", traptype);
+    }
+}
+
 /* Create a door or a secret door (using type) in aroom at location (x,y).
- * Sets the doormask randomly. Contains the guts of the random probabilities
- * that determine what doorstate the door gets, and whether it becomes trapped.
+ * Sets the doormask randomly.
  *
  * Doors are never generated broken. Shop doors tend to be generated open, and
  * never generate trapped. (They can be locked, though, in which case the shop
@@ -623,67 +720,15 @@ register xchar x, y;
 struct mkroom *aroom;
 int type;
 {
-    boolean shdoor = *in_rooms(x, y, SHOPBASE) ? TRUE : FALSE;
-    int doorstate = D_NODOOR;
-    boolean set_lock = FALSE;
-    boolean set_trap = FALSE;
     struct rm* lev = &levl[x][y];
 
     if (!IS_WALL(lev->typ)) /* avoid SDOORs on already made doors */
         type = DOOR;
     lev->typ = type;
 
-    /* is it a locked door, closed, or a doorway? */
-    if (!rn2(3) || type == SDOOR || g.level.flags.is_maze_lev) {
-        if (rn2(5) || type == SDOOR) {
-            doorstate = D_CLOSED;
-            if (!rn2(4)) {
-                set_lock = TRUE;
-            }
-        }
-        else {
-            doorstate = D_ISOPEN;
-        }
-    } else {
-        /* door would be absent, but shop doors need a real one */
-        if (shdoor)
-            doorstate = D_ISOPEN;
-        else
-            doorstate = D_NODOOR;
-    }
+    lev->doormask = random_door_mask(type, *in_rooms(x, y, SHOPBASE));
 
-    /* Is the trap that would generate at this location suitable for this
-        * initial door state? */
-    if (!rn2(23) && !shdoor) {
-        switch (getdoortrap(x, y)) {
-        case SELF_LOCK:
-            set_lock = FALSE;
-            /* FALLTHRU */
-        case HINGE_SCREECH:
-        case STATIC_SHOCK:
-        case ROCKFALL:
-        case HOT_KNOB:
-            /* traps that require only an actual door */
-            if ((doorstate == D_ISOPEN || doorstate == D_CLOSED))
-                set_trap = TRUE;
-            break;
-        case WATER_BUCKET:
-        case HINGELESS_FORWARD:
-        case HINGELESS_BACKWARD:
-        case FIRE_BLAST:
-            /* traps that require a closed door */
-            if (doorstate == D_CLOSED)
-                set_trap = TRUE;
-            break;
-        default:
-            impossible("dosdoor: bad door trap type");
-        }
-    }
-
-    set_doorstate(lev, doorstate);
-    set_door_lock(lev, set_lock);
-
-    if (set_trap) {
+    if (door_is_trapped(lev)) {
         struct monst *mtmp;
 
         if (level_difficulty() >= 9 && !rn2(7) && type != SDOOR
@@ -691,26 +736,15 @@ int type;
                     && (g.mvitals[PM_LARGE_MIMIC].mvflags & G_GONE)
                     && (g.mvitals[PM_GIANT_MIMIC].mvflags & G_GONE))) {
             /* make a mimic instead */
+            set_door_trap(lev, FALSE);
             set_doorstate(lev, D_NODOOR);
             mtmp = makemon(mkclass(S_MIMIC, 0), x, y, NO_MM_FLAGS);
             if (mtmp)
                 set_mimic_sym(mtmp);
         }
-        else {
-            set_door_trap(lev, TRUE);
-        }
-    }
-    /* newsym(x,y); */
-
-    /* iron door generation */
-    if (doorstate(lev) != D_NODOOR && rn1(40, 10) < level_difficulty()) {
-        set_door_iron(lev, TRUE);
-    }
-    else {
-        /* clean up any uninitialized bit here */
-        set_door_iron(lev, FALSE);
     }
 
+    clear_nonsense_doortraps(x, y);
     add_door(x, y, aroom);
 }
 
