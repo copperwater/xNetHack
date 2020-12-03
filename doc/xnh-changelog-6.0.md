@@ -59,7 +59,7 @@ changes:
 - Some themed rooms have minimum and maximum level difficulty cutoffs. Notably,
   the spider room will not appear above level 10.
 - The "Fake Delphi" themed room now has one fountain in its center.
-- 22 new themed rooms:
+- 23 new themed rooms:
   - A cluster of four square interconnected 3x3 rooms.
   - A barbell-shaped room connecting two 3x3 rooms with a doored, walled
     corridor (vertical and horizontal).
@@ -100,6 +100,8 @@ changes:
     a 9x9 room with six holes for "pockets" and nine numbered boulders. (It
     does not contain a way to launch the boulders or bounce them off each
     other.)
+  - A room containing two 3x3 shops, one weapons and one armor, with an aisle
+    around them.
 - If you ride a steed into a polymorph trap, unchanging will not protect the
   steed (but magic resistance still will).
 - Canceled or beheaded zombies or trolls don't rise from the dead.
