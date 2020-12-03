@@ -96,6 +96,34 @@ char *buf;
     return erode_obj_text(tshirt, buf);
 }
 
+char *
+hawaiian_design(shirt, buf)
+struct obj *shirt;
+char *buf;
+{
+    unsigned style, bg;
+    static const char *hawaiian_styles[] = {
+        "flamingos", "parrots", "toucans", "birds of paradise", /* birds */
+        "angelfish", "tropical fish", "sea turtles", "giant eels", /* sea creatures */
+        "plumerias", "orchids", "hibiscus flowers", "palm leaves", "palm trees", /* plants */
+        "hula dancers", "sailboats", "surfboards", "ukuleles", /* other */
+    };
+    static const char *hawaiian_bgs[] = {
+        "purple", "yellow", "red", "blue", "orange", "black", "green", /* solid colors */
+        "abstract", "geometric", "patterned", "naturalistic", /* adjectives */
+    };
+
+    /* tourists' starting shirt always has a consistent o_id, so we need to
+     * introduce additional randomness or else its design will never differ */
+    style = shirt->o_id ^ (unsigned) ubirthday;
+    bg = shirt->o_id ^ (unsigned) ~ubirthday;
+
+    Sprintf(buf, "%s on %s background",
+            hawaiian_styles[style % SIZE(hawaiian_styles)],
+            an(hawaiian_bgs[bg % SIZE(hawaiian_bgs)]));
+    return buf;
+}
+
 static char *
 apron_text(apron, buf)
 struct obj *apron;
@@ -141,7 +169,8 @@ doread()
                                      "became literate by reading a fortune cookie");
         useup(scroll);
         return 1;
-    } else if (scroll->otyp == T_SHIRT || scroll->otyp == ALCHEMY_SMOCK) {
+    } else if (scroll->otyp == T_SHIRT || scroll->otyp == ALCHEMY_SMOCK
+               || scroll->otyp == HAWAIIAN_SHIRT) {
         char buf[BUFSZ], *mesg;
         const char *endpunct;
 
@@ -150,28 +179,36 @@ doread()
             return 0;
         }
         /* can't read shirt worn under suit (under cloak is ok though) */
-        if (scroll->otyp == T_SHIRT && uarm && scroll == uarmu) {
+        if ((scroll->otyp == T_SHIRT || scroll->otyp == HAWAIIAN_SHIRT)
+            && uarm && scroll == uarmu) {
             pline("%s shirt is obscured by %s%s.",
                   scroll->unpaid ? "That" : "Your", shk_your(buf, uarm),
                   suit_simple_name(uarm));
             return 0;
         }
-        if (!u.uconduct.literate++)
-            livelog_printf(LL_CONDUCT, "became literate by reading %s",
-                           (scroll->otyp == T_SHIRT) ? "a T-shirt" : "an apron");
         /* populate 'buf[]' */
         mesg = (scroll->otyp == T_SHIRT) ? tshirt_text(scroll, buf)
-                                         : apron_text(scroll, buf);
-        endpunct = "";
-        if (flags.verbose) {
-            int ln = (int) strlen(mesg);
+                                         : (scroll->otyp == HAWAIIAN_SHIRT)
+                                            ? hawaiian_design(scroll, buf)
+                                            : apron_text(scroll, buf);
+        if (scroll->otyp == HAWAIIAN_SHIRT) {
+            pline("%s features %s.", flags.verbose ? "The design" : "It",
+                    mesg);
+        } else {
+            if (!u.uconduct.literate++)
+                livelog_printf(LL_CONDUCT, "became literate by reading %s",
+                            (scroll->otyp == T_SHIRT) ? "a T-shirt" : "an apron");
+            endpunct = "";
+            if (flags.verbose) {
+                int ln = (int) strlen(mesg);
 
-            /* we will be displaying a sentence; need ending punctuation */
-            if (ln > 0 && !index(".!?", mesg[ln - 1]))
-                endpunct = ".";
-            pline("It reads:");
+                /* we will be displaying a sentence; need ending punctuation */
+                if (ln > 0 && !index(".!?", mesg[ln - 1]))
+                    endpunct = ".";
+                pline("It reads:");
+            }
+            pline("\"%s\"%s", mesg, endpunct);
         }
-        pline("\"%s\"%s", mesg, endpunct);
         return 1;
     } else if (scroll->otyp == CREDIT_CARD) {
         static const char *card_msgs[] = {
