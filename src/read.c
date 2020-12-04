@@ -307,7 +307,7 @@ doread()
 #define LABEL_FRUIT_START 2
 #define NUM_FRUIT_LABELS 2
 #define LABEL_MONST_START 4
-#define NUM_MONST_LABELS 9
+#define NUM_MONST_LABELS 10
             NULL,                                                /* unlabeled */
             "Rare Meat of a Genocided %s",       /* add hallucinatory monster */
             "Patent Pending %s Puree",                /* insert the fruitname */
