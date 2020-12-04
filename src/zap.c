@@ -2228,6 +2228,16 @@ register struct obj *wand;
     return 1;
 }
 
+void
+do_enlightenment_effect()
+{
+    You_feel("self-knowledgeable...");
+    display_nhwindow(WIN_MESSAGE, FALSE);
+    enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
+    pline_The("feeling subsides.");
+    exercise(A_WIS, TRUE);
+}
+
 /*
  * zapnodir - zaps a NODIR wand/spell.
  * added by GAN 11/03/86
@@ -2268,11 +2278,7 @@ register struct obj *obj;
         break;
     case WAN_ENLIGHTENMENT:
         known = TRUE;
-        You_feel("self-knowledgeable...");
-        display_nhwindow(WIN_MESSAGE, FALSE);
-        enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
-        pline_The("feeling subsides.");
-        exercise(A_WIS, TRUE);
+        do_enlightenment_effect();
         break;
     }
     if (known) {

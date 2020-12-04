@@ -1,4 +1,4 @@
-/* NetHack 3.7	extern.h	$NHDT-Date: 1606343573 2020/11/25 22:32:53 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.882 $ */
+/* NetHack 3.7	extern.h	$NHDT-Date: 1606919254 2020/12/02 14:27:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.886 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -907,6 +907,7 @@ E int NDECL(wiz_debug_cmd_traveldisplay);
 #endif
 E boolean NDECL(u_rooted);
 E void NDECL(domove);
+E void NDECL(overexert_hp);
 E boolean NDECL(overexertion);
 E void NDECL(invocation_message);
 E void NDECL(switch_terrain);
@@ -1492,6 +1493,7 @@ E boolean FDECL(mpickstuff, (struct monst *, const char *));
 E int FDECL(curr_mon_load, (struct monst *));
 E int FDECL(max_mon_load, (struct monst *));
 E int FDECL(can_carry, (struct monst *, struct obj *));
+E long FDECL(mon_allowflags, (struct monst *));
 E int FDECL(mfndpos, (struct monst *, coord *, long *, long));
 E boolean FDECL(monnear, (struct monst *, int, int));
 E void NDECL(dmonsfree);
@@ -3135,6 +3137,7 @@ E void FDECL(flip_worm_segs_horizontal, (struct monst *, int, int));
 
 E void FDECL(setworn, (struct obj *, long));
 E void FDECL(setnotworn, (struct obj *));
+E void NDECL(allunworn);
 E struct obj *FDECL(wearmask_to_obj, (long));
 E long FDECL(wearslot, (struct obj *));
 E void FDECL(mon_set_minvis, (struct monst *));
@@ -3180,6 +3183,7 @@ E int FDECL(bhito, (struct obj *, struct obj *));
 E int FDECL(bhitpile,
             (struct obj *, int (*)(OBJ_P, OBJ_P), int, int, SCHAR_P));
 E int FDECL(zappable, (struct obj *));
+E void NDECL(do_enlightenment_effect);
 E void FDECL(zapnodir, (struct obj *));
 E int NDECL(dozap);
 E int FDECL(zapyourself, (struct obj *, BOOLEAN_P));

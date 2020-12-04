@@ -1,4 +1,4 @@
-/* NetHack 3.7	mon.c	$NHDT-Date: 1604880454 2020/11/09 00:07:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.351 $ */
+/* NetHack 3.7	mon.c	$NHDT-Date: 1606623308 2020/11/29 04:15:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.357 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1548,6 +1548,66 @@ struct obj *otmp;
     return iquan;
 }
 
+/* return flags based on monster data, for mfndpos() */
+long
+mon_allowflags(mtmp)
+struct monst *mtmp;
+{
+    long allowflags = 0L;
+    boolean can_open = !(nohands(mtmp->data) || verysmall(mtmp->data));
+    boolean can_unlock = ((can_open && monhaskey(mtmp, TRUE))
+                          || mtmp->iswiz || is_rider(mtmp->data));
+    boolean doorbuster = is_giant(mtmp->data);
+
+    if (mtmp->mtame)
+        allowflags |= ALLOW_M | ALLOW_TRAPS | ALLOW_SANCT | ALLOW_SSM;
+    else if (mtmp->mpeaceful)
+        allowflags |= ALLOW_SANCT | ALLOW_SSM;
+    else
+        allowflags |= ALLOW_U;
+    if (Conflict && !resist(mtmp, RING_CLASS, 0, 0))
+        allowflags |= ALLOW_U;
+    if (mtmp->isshk)
+        allowflags |= ALLOW_SSM;
+    if (mtmp->ispriest)
+        allowflags |= ALLOW_SSM | ALLOW_SANCT;
+    if (passes_walls(mtmp->data))
+        allowflags |= (ALLOW_ROCK | ALLOW_WALL);
+    if (throws_rocks(mtmp->data))
+        allowflags |= ALLOW_ROCK;
+    if (tunnels(mtmp->data)
+        && !Is_rogue_level(&u.uz)) /* same restriction as m_move() */
+        allowflags |= ALLOW_DIG;
+    if (doorbuster)
+        allowflags |= BUSTDOOR;
+    if (can_open)
+        allowflags |= OPENDOOR;
+    if (can_unlock)
+        allowflags |= UNLOCKDOOR;
+    if (passes_bars(mtmp->data))
+        allowflags |= ALLOW_BARS;
+    if (is_displacer(mtmp->data))
+        allowflags |= ALLOW_MDISP;
+    if (is_minion(mtmp->data) || is_rider(mtmp->data))
+        allowflags |= ALLOW_SANCT;
+    /* unicorn may not be able to avoid hero on a noteleport level */
+    if (is_unicorn(mtmp->data) && !noteleport_level(mtmp))
+        allowflags |= NOTONL;
+    if (passes_walls(mtmp->data))
+        allowflags |= (ALLOW_WALL | ALLOW_ROCK);
+    if (passes_bars(mtmp->data))
+        allowflags |= ALLOW_BARS;
+    if (is_human(mtmp->data) || mtmp->data == &mons[PM_MINOTAUR])
+        allowflags |= ALLOW_SSM;
+    if ((is_undead(mtmp->data) && mtmp->data->mlet != S_GHOST)
+        || is_vampshifter(mtmp))
+        allowflags |= NOGARLIC;
+    if (throws_rocks(mtmp->data))
+        allowflags |= ALLOW_ROCK;
+
+    return allowflags;
+}
+
 /* return number of acceptable neighbour positions */
 int
 mfndpos(mon, poss, info, flag)
@@ -2639,20 +2699,41 @@ struct monst *mdef;
 const char *fltxt;
 int how;
 {
-    if ((mdef->wormno ? worm_known(mdef) : cansee(mdef->mx, mdef->my))
-        && fltxt)
+    struct permonst *mptr = mdef->data;
+
+    if (fltxt && (mdef->wormno ? worm_known(mdef)
+                               : cansee(mdef->mx, mdef->my)))
         pline("%s is %s%s%s!", Monnam(mdef),
-              nonliving(mdef->data) ? "destroyed" : "killed",
+              nonliving(mptr) ? "destroyed" : "killed",
               *fltxt ? " by the " : "", fltxt);
     else
-        iflags.sad_feeling = (mdef->mtame != 0);
+        /* sad feeling is deferred until after potential life-saving */
+        iflags.sad_feeling = mdef->mtame ? TRUE : FALSE;
 
-    /* no corpses if digested or disintegrated */
-    g.disintegested = (how == AD_DGST || how == -AD_RBRE);
+    /* no corpse if digested or disintegrated or flammable golem burnt up;
+       no corpse for a paper golem means no scrolls; golems that rust or
+       rot completely are described as "falling to pieces" so they do
+       leave a corpse (which means staves for wood golem, leather armor for
+       leather golem, iron chains for iron golem, not a regular corpse) */
+    g.disintegested = (how == AD_DGST || how == -AD_RBRE
+                       || (how == AD_FIRE && completelyburns(mptr)));
     if (g.disintegested)
-        mondead(mdef);
+        mondead(mdef); /* never leaves a corpse */
     else
-        mondied(mdef);
+        mondied(mdef); /* calls mondead() and maybe leaves a corpse */
+
+    if (!DEADMONSTER(mdef))
+        return; /* life-saved */
+    /* extra message if pet golem is completely destroyed;
+       if not visible, this will follow "you have a sad feeling" */
+    if (mdef->mtame) {
+        const char *rxt = (how == AD_FIRE && completelyburns(mptr)) ? "roast"
+                          : (how == AD_RUST && completelyrusts(mptr)) ? "rust"
+                            : (how == AD_DCAY && completelyrots(mptr)) ? "rot"
+                              :  0;
+        if (rxt)
+            pline("May %s %s in peace.", noit_mon_nam(mdef), rxt);
+    }
 }
 
 void
