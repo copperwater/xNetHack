@@ -22,9 +22,9 @@ COMPRESSBIN="/bin/gzip"
 NH_GIT="/home/build/NetHack37"
 NH_BRANCH="3.7-hdf" # will probably need to make another hdf branch for this one
 # HACKDIR from include/config.h; aka nethack subdir inside chroot
-NHSUBDIR="nh370.27-hdf"
+NHSUBDIR="nh370.28-hdf"
 # VAR_PLAYGROUND from include/unixconf.h
-NH_VAR_PLAYGROUND="/nh370.27-hdf/var/"
+NH_VAR_PLAYGROUND="/nh370.28-hdf/var/"
 # only define this if dgl was configured with --enable-sqlite
 SQLITE_DBFILE="/dgldir/dgamelaunch.db"
 # END OF CONFIG
@@ -51,8 +51,8 @@ set -e
 umask 022
 
 echo "Creating inprogress and extrainfo directories"
-mkdir -p "$NAO_CHROOT/dgldir/inprogress-nh370.27-hdf"
-chown "$USRGRP" "$NAO_CHROOT/dgldir/inprogress-nh370.27-hdf"
+mkdir -p "$NAO_CHROOT/dgldir/inprogress-nh370.28-hdf"
+chown "$USRGRP" "$NAO_CHROOT/dgldir/inprogress-nh370.28-hdf"
 mkdir -p "$NAO_CHROOT/dgldir/extrainfo-nh370"
 chown "$USRGRP" "$NAO_CHROOT/dgldir/extrainfo-nh370"
 
