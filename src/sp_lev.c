@@ -5040,7 +5040,7 @@ lua_State *L;
         };
         room_door tmpd;
 
-        tmpd.secret = ((msk & D_SECRET) != 0);
+        tmpd.secret = (msk == -1 ? -1 : ((msk & D_SECRET) != 0));
         tmpd.doormask = msk;
         tmpd.pos = get_table_int_opt(L, "pos", -1);
         tmpd.wall = walldirs2i[get_table_option(L, "wall", "all", walldirs)];
