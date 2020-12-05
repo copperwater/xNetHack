@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.371 $ $NHDT-Date: 1606954304 2020/12/03 00:11:44 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.373 $ $NHDT-Date: 1607079461 2020/12/04 10:57:41 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -315,9 +315,11 @@ try to fix message sequencing for tame golems that "roast/rot/rust in peace"
 autodescribe when moving the cursor was erroneously honoring MSGTYPE=stop
 	and potentially delivering sounds
 reduce the number of "seeXYZ" commands by renaming some: #seenv -> #wizseenv,
-	#seespells -> #showspells, and #seetrap -> #showtrap
+	#seegold -> #showgold, #seespells -> #showspells, #seetrap -> #showtrap
 when saving while punished or game ends while punished, handling for ball and
 	chain might access freed memory with unpredictable consequences
+brown pudding monster hitting another monster with decay attack corroded armor
+	instead of rotting it
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -748,5 +750,7 @@ rework stairs structure into a linked list
 move 'restoring' to the program_state struct; add corresponding 'saving';
 	both used to enforce no updating of status lines or of persistent
 	inventory when the relevant activity is in progress
+unify special attack damages from separate you-hit-monster, monster-hits-you,
+	and monster-hits-monster into functions by damage type
 
 
