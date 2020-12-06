@@ -1695,13 +1695,6 @@ struct mkroom *broom;
     int x = 0, y = 0;
     int trycnt = 0, wtry = 0;
 
-    if (dd->secret == -1)
-        dd->secret = rn2(2);
-
-    if (dd->doormask == -1) { /* random */
-        dd->doormask = random_door_mask(dd->secret ? SDOOR : DOOR, FALSE);
-    }
-
     do {
         register int dwall, dpos;
 
@@ -4979,56 +4972,99 @@ genericptr_t arg;
 /* door({ coord = {1, 1}, state = "nodoor" }); */
 /* door({ wall = "north", pos = 3, state="secret", locked = 1, iron = 1 }); */
 /* door("nodoor", 1, 2); */
-/* Currently randomly choosing between iron/noniron isn't supported. If you
- * specify iron, you get iron.
- * The 3-arg form of door() is limited to non-trapped, non-locked, non-iron
- * doors. Except that a "random" door could get any of those randomly. */
+/* The 3-arg form of door() cannot force a door to be trapped or iron (except
+ * that a "random" door might randomly get any combination of locked, trapped,
+ * and iron). If more specificity is needed, the table form must be used. */
 int
 lspo_door(L)
 lua_State *L;
 {
-    /* Note: in xNetHack locked isn't a door state, but we allow the level
-     * compiler to specify it. It is equivalent to state = "closed", locked = 1.
+    /* Note: in xNetHack locked and secret aren't door states, but we allow the
+     * level compiler to specify it. They both imply state = "closed", and
+     * locked also implies locked = 1.
      */
+    const int UNSPECIFIED = -1;
     static const char *const doorstates[] = {
         "random", "open", "closed", "locked", "nodoor", "broken",
         "secret", NULL
     };
     static const int doorstates2i[] = {
-        -1, D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR, D_BROKEN, D_SECRET
+        UNSPECIFIED, D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR, D_BROKEN, D_SECRET
     };
     xchar msk;
+    /* ds is one of the values in doorstates2i. */
+    int typ, ds, locked, trapped, iron;
     schar x,y;
     int argc = lua_gettop(L);
+
+    typ = ds = locked = trapped = iron = UNSPECIFIED;
+
+    /* The approach here for determining the door state and flags:
+     * 1. Collect all specifications for the door from the lua file.
+     * 2. Generate an entirely random door state.
+     * 3. Override the parts of door state that were specified in part 1.
+     * This approach enables doors to be "partially random" with the important
+     * bits specified.
+     */
 
     create_des_coder();
 
     if (argc == 3) {
-        msk = doorstates2i[luaL_checkoption(L, 1, "random", doorstates)];
+        ds = doorstates2i[luaL_checkoption(L, 1, "random", doorstates)];
         x = luaL_checkinteger(L, 2);
         y = luaL_checkinteger(L, 3);
-
     } else {
         int dx, dy;
         lcheck_param_table(L);
 
         get_table_xy_or_coord(L, &dx, &dy);
         x = dx, y = dy;
-        msk = doorstates2i[get_table_option(L, "state", "random", doorstates)];
-        if (get_table_int_opt(L, "locked", 0)) {
-            msk |= (D_CLOSED & D_LOCKED);
-        }
-        if (get_table_int_opt(L, "trapped", 0)) {
-            msk |= D_TRAPPED;
-        }
-        if (get_table_int_opt(L, "iron", 0)) {
-            msk |= D_IRON;
-        }
+        ds = doorstates2i[get_table_option(L, "state", "random", doorstates)];
+        locked = get_table_int_opt(L, "locked", UNSPECIFIED);
+        trapped = get_table_int_opt(L, "trapped", UNSPECIFIED);
+        iron = get_table_int_opt(L, "iron", UNSPECIFIED);
     }
-    if (msk & D_LOCKED) {
-        /* catch possible "locked" specified door in either non-table or table
-         * syntax forms; just ensure the door is closed... */
-        msk |= D_CLOSED;
+
+    /* Determine if the door is specified as secret or not.
+     * By existing convention, doors specified with any state besides "secret"
+     * or "random" are not secret.
+     * Random doors or doors where a state is not specified have a 50% chance of
+     * being secret. */
+    typ = DOOR;
+    if (ds == D_SECRET || (ds == UNSPECIFIED && !rn2(2))) {
+        typ = SDOOR;
+        ds = D_CLOSED;
+    }
+
+    /* catch possible "locked" specified door in either non-table or table
+     * syntax forms; just ensure the door is closed... */
+    if (ds == D_LOCKED) {
+        ds = D_CLOSED;
+        locked = 1;
+    }
+    /* ds should now be either a valid value for doorstate() or UNSPECIFIED */
+
+    /* shdoor = FALSE because we really don't have any idea whether this will be
+     * a shop door. The Lua author has to be trusted to not specify
+     * random/nodoor/broken shop doors. */
+    msk = random_door_mask(typ, FALSE);
+
+    /* now override parts of the random mask with specified things */
+    if (ds != UNSPECIFIED) {
+        msk &= ~D_STATEMASK; /* zero these bits */
+        msk |= ds;
+    }
+    if (locked != UNSPECIFIED) {
+        msk &= ~D_LOCKED;
+        msk |= (locked ? D_LOCKED : 0);
+    }
+    if (trapped != UNSPECIFIED) {
+        msk &= ~D_TRAPPED;
+        msk |= (trapped ? D_TRAPPED : 0);
+    }
+    if (iron != UNSPECIFIED) {
+        msk &= ~D_IRON;
+        msk |= (iron ? D_IRON : 0);
     }
 
     if (x == -1 && y == -1) {
@@ -5039,9 +5075,8 @@ lua_State *L;
             W_ANY, W_ANY, W_NORTH, W_WEST, W_EAST, W_SOUTH, 0
         };
         room_door tmpd;
-
-        tmpd.secret = (msk == -1 ? -1 : ((msk & D_SECRET) != 0));
         tmpd.doormask = msk;
+        tmpd.secret = (typ == SDOOR);
         tmpd.pos = get_table_int_opt(L, "pos", -1);
         tmpd.wall = walldirs2i[get_table_option(L, "wall", "all", walldirs)];
 
