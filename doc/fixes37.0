@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.373 $ $NHDT-Date: 1607079461 2020/12/04 10:57:41 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.377 $ $NHDT-Date: 1607373999 2020/12/07 20:46:39 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -411,6 +411,7 @@ options help ('? g') listed all boolean options, then repeated them among
 	the compound options; on OSX they showed a description of "(null)"
 	but for other sprintf implementations they might cause a crash
 change name of #wizlevelflip to #wizfliplevel
+dwarves could sometimes pass through walls without digging their way
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
@@ -640,6 +641,7 @@ render the color names in the corresponding color when using the pick-a-color
 reading blessed scroll of teleportation confers one-shot teleport control
 mild zombie apocalypse
 list lamps and lanterns in charging prompt
+let tourists read conical hats
 
 
 Platform- and/or Interface-Specific New Features
@@ -661,6 +663,12 @@ Qt: clicking on the paper doll runs the #seeall command (inventory of wielded
 Qt: clicking on the status window runs the #attributes command (^X)
 Qt: add a Search button to the toolbar
 Qt: support the 'hitpointbar' option
+Qt: add Filter, Layout, and Reset buttons to the extended command selector;
+	Filter is only useful in wizard mode, allowing changing the set of
+	extended commands between "all", "normal mode only", "extra wizard
+	mode only"; Layout redisplays the grid of command buttons, toggling
+	from down columns to across rows or vice versa; Reset puts both back
+	to their default settings and clears any pending typed input
 
 
 NetHack Community Patches (or Variation) Included
