@@ -5367,10 +5367,10 @@ int do_what;
         }
         objchn = NULL;
     }
-    newsym(trap->tx, trap->ty);
     if (u.utrap && trap->tx == u.ux && trap->ty == u.uy)
         reset_utrap(TRUE);
     deltrap(trap);
+    newsym(trap->tx, trap->ty);
     return objchn;
 }
 
