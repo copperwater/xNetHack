@@ -26,11 +26,6 @@ struct obj *obj;
     if (obj->oclass == SCROLL_CLASS || obj->oclass == SPBOOK_CLASS)
         return 2;
 
-    if (obj->otyp == TIN || obj->otyp == T_SHIRT || obj->otyp == CANDY_BAR
-        || obj->otyp == C_RATION || obj->otyp == K_RATION
-        || obj->otyp == MAGIC_MARKER)
-        return 2;
-
     return 1;
 }
 
