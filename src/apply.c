@@ -3060,9 +3060,13 @@ static boolean
 get_valid_polearm_position(x, y)
 int x, y;
 {
-    return (isok(x, y) && ACCESSIBLE(levl[x][y].typ)
-            && distu(x, y) >= g.polearm_range_min
-            && distu(x, y) <= g.polearm_range_max);
+    struct monst *mtmp;
+
+    mtmp = m_at(x, y);
+    return (isok(x, y) && distu(x, y) >= g.polearm_range_min
+            && distu(x, y) <= g.polearm_range_max
+            && ((mtmp && sensemon(mtmp) && couldsee(x, y))
+                || cansee(x, y)));
 }
 
 static void
@@ -3142,7 +3146,7 @@ struct obj *obj;
     cc.x = u.ux;
     cc.y = u.uy;
     if (!find_poleable_mon(&cc, min_range, max_range) && hitm
-        && !DEADMONSTER(hitm) && cansee(hitm->mx, hitm->my)
+        && !DEADMONSTER(hitm) && couldsee(hitm->mx, hitm->my)
         && distu(hitm->mx, hitm->my) <= max_range
         && distu(hitm->mx, hitm->my) >= min_range) {
         cc.x = hitm->mx;
