@@ -2747,7 +2747,7 @@ boolean newlev;
             intemple(roomno + ROOMOFFSET);
         /*FALLTHRU*/
         default:
-            msg_given = (rt == TEMPLE);
+            msg_given = (rt == TEMPLE || rt == SEMINARY);
             rt = 0;
             break;
         }
