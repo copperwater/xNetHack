@@ -7,7 +7,11 @@
 
 #include "mfndpos.h"
 
+/* Controls the satiation threshold of pets.
+ * Pets will ignore food on the ground when they're more than this many turns
+ * away from getting hungry again. */
 #define DOG_SATIATED 800
+
 static boolean FDECL(dog_hunger, (struct monst *, struct edog *));
 static int FDECL(dog_invent, (struct monst *, struct edog *, int));
 static int FDECL(dog_goal, (struct monst *, struct edog *, int, int, int));
@@ -601,7 +605,9 @@ int after, udist, whappr;
                 if (!could_reach_item(mtmp, nx, ny)
                     || !can_reach_location(mtmp, mtmp->mx, mtmp->my, nx, ny))
                     continue;
-                if (otyp < MANFOOD) {
+                if (otyp < MANFOOD
+                    && (otyp < ACCFOOD || edog->hungrytime <= g.monstermoves)
+                    && edog->hungrytime < g.monstermoves + DOG_SATIATED) {
                     if (otyp < g.gtyp || DDIST(nx, ny) < DDIST(g.gx, g.gy)) {
                         g.gx = nx;
                         g.gy = ny;
