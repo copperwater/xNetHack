@@ -5323,10 +5323,13 @@ struct trap *trap;
 int do_what;
 {
     struct obj *otmp, *objchn = NULL;
+    xchar tx, ty;
     if (!trap) {
         impossible("deltrap_with_ammo: null trap!");
         return NULL;
     }
+    tx = trap->tx;
+    ty = trap->ty;
     while (trap->ammo) {
         otmp = trap->ammo;
         extract_nobj(otmp, &trap->ammo);
@@ -5367,10 +5370,10 @@ int do_what;
         }
         objchn = NULL;
     }
-    newsym(trap->tx, trap->ty);
     if (u.utrap && trap->tx == u.ux && trap->ty == u.uy)
         reset_utrap(TRUE);
     deltrap(trap);
+    newsym(tx, ty);
     return objchn;
 }
 
