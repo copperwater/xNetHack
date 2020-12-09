@@ -1546,12 +1546,12 @@ boolean accessory;
 
     /* removing non-worn equipment */
     if (removing && !obj->owornmask)
-        return 0;
+        return 1;
 
     long mask = 0;
     if (obj->oclass == ARMOR_CLASS && !removing &&
         !canwearobj(obj, &mask, FALSE))
-        return 0;
+        return 1;
 
     /* check for putting on accessories in already filled slots */
     if (!removing &&
@@ -1559,12 +1559,12 @@ boolean accessory;
           uleft && uright) ||
          (obj->oclass == AMULET_CLASS && uamul) ||
          (obj->oclass == TOOL_CLASS && ublindf)))
-        return 0;
+        return 1;
 
     /* removing inaccessible equipment */
     if (removing &&
         inaccessible_equipment(obj, NULL, (obj->oclass == RING_CLASS)))
-        return 0;
+        return 1;
 
     /* all good to go */
     return 2;
