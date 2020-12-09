@@ -2361,6 +2361,44 @@ struct obj *obj;
 }
 
 static int
+thiefstone_ok(obj)
+struct obj* obj;
+{
+    if (!obj)
+        return 1;
+
+    if (obj == &cg.zeroobj)
+        return 0;
+
+    /* gems and coins should be included */
+    if ((obj->oclass == GEM_CLASS && !is_graystone(obj) && obj->otyp != ROCK)
+            || obj->oclass == COIN_CLASS)
+        return 2;
+
+    /* inherently magical classes should be encouraged by default; they may have
+     * some non-magical exceptions that should be discouraged if known */
+    if (obj->oclass == AMULET_CLASS || obj->oclass == SPBOOK_CLASS
+            || obj->oclass == RING_CLASS || obj->oclass == SCROLL_CLASS
+            || obj->oclass == POTION_CLASS) {
+        if (!objects[obj->otyp].oc_magic && objects[obj->otyp].oc_name_known)
+            return 1;
+        else
+            return 2;
+    }
+
+    /* magical objects from default non-magical classes should be encouraged if
+     * known to be magical */
+    if (objects[obj->otyp].oc_magic) {
+        if (objects[obj->otyp].oc_name_known)
+            return 2;
+        else
+            return 1;
+    }
+
+    return 1;
+}
+
+static int
 touchstone_ok(obj)
 struct obj *obj;
 {
@@ -2393,8 +2431,7 @@ struct obj *tstone;
     boolean do_scratch;
     const char *streak_color;
     char stonebuf[QBUFSZ];
-    boolean known_touchstone = tstone->otyp == TOUCHSTONE && tstone->dknown
-                               && objects[TOUCHSTONE].oc_name_known;
+    boolean known = tstone->dknown && objects[tstone->otyp].oc_name_known;
     int oclass;
 
     if (nohands(g.youmonst.data)) {
@@ -2407,8 +2444,18 @@ struct obj *tstone;
     /* when the touchstone is fully known, don't bother listing extra
        junk as likely candidates for rubbing */
     Sprintf(stonebuf, "rub on the stone%s", plur(tstone->quan));
-    if (known_touchstone)
-        obj = getobj(stonebuf, touchstone_ok, FALSE, FALSE);
+    if (known)
+        switch (tstone->otyp) {
+        case TOUCHSTONE:
+            obj = getobj(stonebuf, touchstone_ok, FALSE, FALSE);
+            break;
+        case THIEFSTONE:
+            obj = getobj(stonebuf, thiefstone_ok, FALSE, FALSE);
+            break;
+        default:
+            obj = getobj(stonebuf, allow_any, FALSE, FALSE);
+            break;
+        }
     else
         obj = getobj(stonebuf, allow_any, FALSE, FALSE);
 
@@ -2417,7 +2464,7 @@ struct obj *tstone;
 
     if (obj == &cg.zeroobj) {
         if (g.youmonst.data == &mons[PM_GLASS_GOLEM]) {
-            if (known_touchstone)
+            if (known && tstone->otyp == TOUCHSTONE)
                 You_feel("worthless.");
             else
                 pline("You make scratch marks on the stone.");
