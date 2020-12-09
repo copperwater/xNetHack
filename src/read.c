@@ -306,7 +306,7 @@ doread()
             NULL,                                                /* unlabeled */
             "Rare Meat of a Genocided %s",       /* add hallucinatory monster */
             "Patent Pending %s Puree",                /* insert the fruitname */
-            "100% Pasteurized %s Juice",              /* insert the fruitname */
+            "100%% Pasteurized %s Juice",              /* insert the fruitname */
             "Grade AAA - Finest %s",    /* potential contents, sometimes true */
             "Delicious %s - Tinned in Sparkling Fountain Water",     /* ditto */
             "%s Casserole with Gravy",                               /* ditto */
