@@ -2741,6 +2741,7 @@ boolean newlev;
             break;
         case ABBATOIR:
             You("enter a horrific slaughterhouse!");
+            abbatoir_sickness();
             break;
         case TEMPLE:
         case SEMINARY:
@@ -3411,6 +3412,28 @@ struct obj *otmp;
         otmp = otmp->nobj;
     }
     return 0L;
+}
+
+/* Maybe get nauseated as the effect of stepping into or being inside an
+ * abbatoir.
+ * This sometimes skips confusion and stunning to get to vomiting faster. */
+void
+abbatoir_sickness()
+{
+    if (Vomiting) {
+        return;
+    }
+    /* timeout of 15 would immediately produce a "mildly nauseated" message, so
+     * 14 is the upper bound; timeout of 3 would immediately produce "about to
+     * vomit", so that is the lower bound.
+     * At the higher/medium part of the range, it will inflict confusion and
+     * stunning; at the lower end, vomiting and helplessness will come shortly.
+     */
+    int timeout = rn1(12,3);
+    if (rn2(70) >= ACURR(A_CON)) {
+        pline("This room is making you sick to your %s.", body_part(STOMACH));
+        make_vomiting(timeout, FALSE);
+    }
 }
 
 /*hack.c*/

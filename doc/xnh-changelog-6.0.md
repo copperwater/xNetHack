@@ -302,6 +302,9 @@ changes:
 - Water nymphs have a slightly increased base level (4) and difficulty (6).
 - Mountain nymphs have an increased base level (5), speed (15), and difficulty
   (7).
+- Being inside an abbatoir can inflict you with nausea, with a Con-dependent
+  chance. Entering an abbatoir for the first time also triggers this with a
+  higher chance.
 
 ### Interface changes
 

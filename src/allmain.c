@@ -314,6 +314,10 @@ boolean resuming;
                         use_unicorn_horn(&uwep, TRUE);
                     }
 
+                    if (getroomtype(u.ux, u.uy) == ABBATOIR && !rn2(7)) {
+                        abbatoir_sickness();
+                    }
+
                     if (Searching && g.multi >= 0)
                         (void) dosearch0(1);
                     if (Warning)
