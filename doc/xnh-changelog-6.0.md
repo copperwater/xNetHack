@@ -305,6 +305,8 @@ changes:
 - Being inside an abbatoir can inflict you with nausea, with a Con-dependent
   chance. Entering an abbatoir for the first time also triggers this with a
   higher chance.
+- The items inside Vlad's Tower are no longer guaranteed (except the candles,
+  which there will still be at least 8 of).
 
 ### Interface changes
 

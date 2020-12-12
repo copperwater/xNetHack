@@ -34,17 +34,31 @@ des.monster("hell hound pup",place[3])
 des.monster("winter wolf",place[4])
 des.object({ id = "chest", coord = place[5],
              contents = function()
-                des.object("amulet of life saving")
+                if percent(50) then
+                   des.object("amulet of life saving")
+                else
+                   des.object("amulet of change")
+                end
              end
 });
 des.object({ id = "chest", coord = place[6],
              contents = function()
-                des.object("amulet of strangulation")
+                if percent(50) then
+                   des.object("amulet of strangulation")
+                else
+                   des.object("amulet of restful sleep")
+                end
              end
 });
-des.object("water walking boots",place[7])
-des.object("crystal plate mail",place[8])
-des.object("invisibility",place[9])
+if percent(60) then
+   des.object("water walking boots",place[7])
+end
+if percent(60) then
+   des.object("crystal plate mail",place[8])
+end
+if percent(60) then
+   des.object("invisibility",place[9])
+end
 -- Walls in the tower are non diggable
 des.non_diggable(selection.area(00,00,14,10))
 

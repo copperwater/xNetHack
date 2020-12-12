@@ -38,13 +38,21 @@ des.monster()
 des.monster()
 des.monster()
 des.monster()
-des.object("long sword",place[4])
+if percent(75) then
+   des.object("long sword",place[4])
+end
 des.trap({ coord = place[4] })
-des.object("lock pick",place[1])
+if percent(75) then
+   des.object("lock pick",place[1])
+end
 des.trap({ coord = place[1] })
-des.object("elven cloak",place[2])
+if percent(75) then
+   des.object("elven cloak",place[2])
+end
 des.trap({ coord = place[2] })
-des.object("blindfold",place[3])
+if percent(75) then
+   des.object("blindfold",place[3])
+end
 des.trap({ coord = place[3] })
 -- Walls in the tower are non diggable
 des.non_diggable(selection.area(00,00,18,12))
