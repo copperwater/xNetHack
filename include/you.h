@@ -1,4 +1,4 @@
-/* NetHack 3.6	you.h	$NHDT-Date: 1586375530 2020/04/08 19:52:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.44 $ */
+/* NetHack 3.6	you.h	$NHDT-Date: 1593768079 2020/07/03 09:21:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.46 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -158,6 +158,7 @@ struct u_conduct {     /* number of times... */
     long scares;       /* scared a monster by standing in a certain spot */
     long uncelibate;   /* interacted with a foocubus */
     long conflicting;  /* generated conflict */
+    long sokocheat;    /* violated special 'rules' in Sokoban */
     /* genocides already listed at end of game */
 };
 
