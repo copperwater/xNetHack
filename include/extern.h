@@ -475,7 +475,7 @@ E char *FDECL(mon_nam_too, (struct monst *, struct monst *));
 E char *FDECL(monverbself, (struct monst *, char *,
                             const char *, const char *));
 E char *FDECL(minimal_monnam, (struct monst *, BOOLEAN_P));
-E char *FDECL(bogusmon, (char *, char *));
+E char *FDECL(bogusmon, (char *, char *, int));
 E char *FDECL(rndmonnam, (char *));
 E const char *FDECL(hcolor, (const char *));
 E const char *NDECL(rndcolor);

@@ -602,7 +602,7 @@ int spellnum;
         seecaster = canseemon(mtmp) || tp_sensemon(mtmp) || Detect_monsters;
         what = (let == S_SNAKE) ? "snakes" : "insects";
         if (Hallucination)
-            what = makeplural(bogusmon(whatbuf, (char *) 0));
+            what = makeplural(bogusmon(whatbuf, (char *) 0, -1));
 
         fmt = 0;
         if (!seecaster) {
