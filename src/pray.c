@@ -5,7 +5,7 @@
 #include "hack.h"
 
 static int FDECL(countfood, (struct obj *));
-static boolean NDECL(starving);
+static boolean NDECL(insufficient_food);
 static int NDECL(prayer_done);
 static struct obj *NDECL(worst_cursed_item);
 static int NDECL(in_trouble);
@@ -217,22 +217,20 @@ struct obj* item;
     return totnut;
 }
 
-/* Return True if your hunger should be classified as a major problem, because
- * you are currently going to starve to death with nothing to eat.
+/* Return True if you are not carrying enough food to get you out of being
+ * Hungry (unless slow digesting in which you can survive a fair bit longer).
  */
 static boolean
-starving()
+insufficient_food()
 {
-    if (u.uhs < WEAK) /* not a major problem */
-        return FALSE;
-
     int totalfood = countfood(NULL);
 
-    if (Slow_digestion)
+    if (Slow_digestion) {
         /* Even the least nutritious of foods will keep you going for a while
          * with slow digestion, so it's only a serious problem if you are about
          * to faint and have no food. */
         return (u.uhunger + totalfood < 10);
+    }
 
     /* It is a big problem if your food stores are insufficient to get you out
      * of HUNGRY range into NOT_HUNGRY (150). */
@@ -258,6 +256,7 @@ in_trouble()
 {
     struct obj *otmp;
     int i;
+    boolean nofood = insufficient_food();
 
     /*
      * major troubles
@@ -272,12 +271,16 @@ in_trouble()
         return TROUBLE_LAVA;
     if (Sick)
         return TROUBLE_SICK;
-    if (starving())
+    /* Yes, TROUBLE_STARVING is returned twice; being Fainting at low HP is
+     * worse than being Weak at low HP */
+    if (u.uhs >= FAINTING && nofood)
         return TROUBLE_STARVING;
     if (region_danger())
         return TROUBLE_REGION;
     if (critically_low_hp(FALSE))
         return TROUBLE_HIT;
+    if (u.uhs >= WEAK && nofood)
+        return TROUBLE_STARVING;
     if (u.ulycn >= LOW_PM)
         return TROUBLE_LYCANTHROPE;
     if (near_capacity() >= EXT_ENCUMBER && AMAX(A_STR) - ABASE(A_STR) > 3)

@@ -307,6 +307,9 @@ changes:
   higher chance.
 - The items inside Vlad's Tower are no longer guaranteed (except the candles,
   which there will still be at least 8 of).
+- If you pray while Weak, not carrying much food, and at critically low HP,
+  your god will fix your HP rather than your hunger. (If you're Fainting and
+  don't have enough food, they'll still fix your hunger first.)
 
 ### Interface changes
 
