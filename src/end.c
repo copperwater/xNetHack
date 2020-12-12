@@ -41,7 +41,7 @@ extern void NDECL(dump_end_screendump);
 static void FDECL(dump_everything, (int, time_t));
 
 #if defined(__BEOS__) || defined(MICRO) || defined(OS2) || defined(WIN32)
-extern void FDECL(nethack_exit, (int));
+extern void FDECL(nethack_exit, (int)) NORETURN;
 #else
 #define nethack_exit exit
 #endif

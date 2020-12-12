@@ -1,4 +1,4 @@
-/* NetHack 3.6	uhitm.c	$NHDT-Date: 1586807928 2020/04/13 19:58:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.230 $ */
+/* NetHack 3.6	uhitm.c	$NHDT-Date: 1591017421 2020/06/01 13:17:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.236 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,7 +10,7 @@ static boolean FDECL(known_hitum, (struct monst *, struct obj *, int *,
                                        int, int, struct attack *, int));
 static boolean FDECL(theft_petrifies, (struct obj *));
 static void FDECL(steal_it, (struct monst *, struct attack *));
-static boolean FDECL(really_steal, (struct obj *, struct monst *));
+static int FDECL(really_steal, (struct obj *, struct monst *));
 static boolean NDECL(should_cleave);
 static boolean FDECL(hitum_cleave, (struct monst *, struct attack *));
 static boolean FDECL(hitum, (struct monst *, struct attack *));
@@ -27,6 +27,13 @@ static void FDECL(nohandglow, (struct monst *));
 static boolean FDECL(shade_aware, (struct obj *));
 
 #define PROJECTILE(obj) ((obj) && is_ammo(obj))
+
+/* return values from really_steal() */
+enum really_steal_returns {
+    STEAL_SUCCESS = 0,
+    STEAL_DROPPED = 1, /* stole item but it didn't get into inventory */
+    STEAL_ABORT   = 2  /* something made us stop stealing (petrification) */
+};
 
 void
 erode_armor(mdef, hurt)
@@ -1711,32 +1718,32 @@ steal_it(mdef, mattk)
 struct monst *mdef;
 struct attack *mattk;
 {
-    struct obj *otmp, *gold = 0, *stealoid, **minvent_ptr;
+    struct obj *otmp, *gold = 0, *ustealo, **minvent_ptr;
 
     otmp = mdef->minvent;
     if (!otmp || (otmp->oclass == COIN_CLASS && !otmp->nobj))
         return; /* nothing to take */
 
     /* look for worn body armor */
-    stealoid = (struct obj *) 0;
+    ustealo = (struct obj *) 0;
     if (could_seduce(&g.youmonst, mdef, mattk)) {
         /* find armor, and move it to end of inventory in the process */
         minvent_ptr = &mdef->minvent;
         while ((otmp = *minvent_ptr) != 0)
             if (otmp->owornmask & W_ARM) {
-                if (stealoid)
+                if (ustealo)
                     panic("steal_it: multiple worn suits");
                 *minvent_ptr = otmp->nobj; /* take armor out of minvent */
-                stealoid = otmp;
-                stealoid->nobj = (struct obj *) 0;
+                ustealo = otmp;
+                ustealo->nobj = (struct obj *) 0;
             } else {
                 minvent_ptr = &otmp->nobj;
             }
-        *minvent_ptr = stealoid; /* put armor back into minvent */
+        *minvent_ptr = ustealo; /* put armor back into minvent */
     }
     gold = findgold(mdef->minvent, TRUE);
 
-    if (stealoid) { /* we will be taking everything */
+    if (ustealo) { /* we will be taking everything */
         char heshe[20];
 
         /* 3.7: this uses hero's base gender rather than nymph feminimity
@@ -1762,19 +1769,21 @@ struct attack *mattk;
         obj_extract_self(gold);
 
     while ((otmp = mdef->minvent) != 0) {
+        int stealresult;
         if (gold) /* put 'mdef's gold back after remembering mdef->minvent */
             mpickobj(mdef, gold), gold = 0;
         if (!Upolyd)
             break; /* no longer have ability to steal */
-        if (otmp == stealoid) /* special message for final item */
+
+        if (otmp == ustealo) /* special message for final item */
             pline("%s finishes taking off %s suit.", Monnam(mdef),
                     mhis(mdef));
-        if (really_steal(otmp, mdef)) /* hero got interrupted... */
+        stealresult = really_steal(otmp, mdef);
+        if (stealresult == STEAL_ABORT) /* hero got interrupted... */
             break;
-        /* might have dropped otmp, and it might have broken or left level */
-        if (!otmp || otmp->where != OBJ_INVENT)
+        if (stealresult == STEAL_DROPPED)
             continue;
-        if (!stealoid)
+        if (!ustealo)
             break; /* only taking one item */
 
         /* take gold out of minvent before making next selection; if it
@@ -1797,10 +1806,8 @@ struct attack *mattk;
  * armor, etc.
  * Assumes caller handles whatever other messages are necessary; this takes care
  * of the "You steal e - an imaginary widget" message.
- * Returns TRUE if and only if the player has done something that should
- * interrupt multi-stealing, such as stealing a cockatrice corpse and getting
- * petrified, but then getting lifesaved.*/
-static boolean
+ * Returns one of the STEAL_* values. */
+static int
 really_steal(obj, mdef)
 struct obj * obj;
 struct monst * mdef;
@@ -1821,17 +1828,20 @@ struct monst * mdef;
     /* give the object to the character */
     obj = hold_another_object(obj, "You snatched but dropped %s.",
                                doname(obj), "You steal: ");
+    /* might have dropped otmp, and it might have broken or left level */
+    if (!obj || obj->where != OBJ_INVENT)
+        return STEAL_DROPPED;
     if (theft_petrifies(obj))
-        return TRUE; /* stop thieving even though hero survived */
+        return STEAL_ABORT; /* stop thieving even though hero survived */
     /* more take-away handling, after theft message */
     if (unwornmask & W_WEP) { /* stole wielded weapon */
         possibly_unwield(mdef, FALSE);
     } else if (unwornmask & W_ARMG) { /* stole worn gloves */
         mselftouch(mdef, (const char *) 0, TRUE);
         if (DEADMONSTER(mdef)) /* it's now a statue */
-            return TRUE;       /* can't continue stealing */
+            return STEAL_ABORT;       /* can't continue stealing */
     }
-    return FALSE;
+    return STEAL_SUCCESS;
 }
 
 int
