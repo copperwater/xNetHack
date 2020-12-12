@@ -312,6 +312,8 @@ changes:
   don't have enough food, they'll still fix your hunger first.)
 - When evaluating if you're carrying enough food, your god will ignore any food
   you're carrying if you have maintained the foodless conduct.
+- The Amulet now blocks teleport control instead of all intra-level teleports.
+  (It still blocks 1/3 of intra-level teleports, as in vanilla.)
 
 ### Interface changes
 
