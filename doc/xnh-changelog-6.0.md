@@ -310,6 +310,8 @@ changes:
 - If you pray while Weak, not carrying much food, and at critically low HP,
   your god will fix your HP rather than your hunger. (If you're Fainting and
   don't have enough food, they'll still fix your hunger first.)
+- When evaluating if you're carrying enough food, your god will ignore any food
+  you're carrying if you have maintained the foodless conduct.
 
 ### Interface changes
 

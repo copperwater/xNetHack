@@ -223,6 +223,11 @@ struct obj* item;
 static boolean
 insufficient_food()
 {
+    if (!u.uconduct.food) {
+        /* (most likely) foodless - even if carrying food, they won't eat it */
+        return (u.uhunger < 150);
+    }
+
     int totalfood = countfood(NULL);
 
     if (Slow_digestion) {
