@@ -7,15 +7,6 @@
 extern "C" {
 #include "hack.h"
 }
-#undef Invisible
-#undef Warning
-#undef index
-#undef msleep
-#undef rindex
-#undef wizard
-#undef yn
-#undef min
-#undef max
 
 #include "qt_pre.h"
 #include <QtGui/QtGui>
@@ -72,7 +63,8 @@ NetHackQtMapViewport::NetHackQtMapViewport(NetHackQtClickBuffer& click_sink) :
 	clicksink(click_sink),
 	change(10)
 {
-    pet_annotation = QPixmap(qt_compact_mode ? pet_mark_small_xpm : pet_mark_xpm);
+    pet_annotation = QPixmap(qt_compact_mode ? pet_mark_small_xpm
+                                             : pet_mark_xpm);
     pile_annotation = QPixmap(pile_mark_xpm);
 
     Clear();
@@ -162,9 +154,13 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
 		}
 #ifdef TEXTCOLOR
 		if (((special & MG_PET) != 0) && ::iflags.hilite_pet) {
-                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(), j*qt_settings->glyphs().height()), pet_annotation);
+                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
+                                             j*qt_settings->glyphs().height()),
+                                       pet_annotation);
                 } else if (((special & MG_OBJPILE) != 0) && ::iflags.hilite_pile) {
-                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(), j*qt_settings->glyphs().height()), pile_annotation);
+                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
+                                             j*qt_settings->glyphs().height()),
+                                       pile_annotation);
                 }
 #endif
             }
@@ -182,9 +178,13 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
 		qt_settings->glyphs().drawCell(painter, g, i, j);
 #ifdef TEXTCOLOR
 		if (((special & MG_PET) != 0) && ::iflags.hilite_pet) {
-                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(), j*qt_settings->glyphs().height()), pet_annotation);
+                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
+                                             j*qt_settings->glyphs().height()),
+                                       pet_annotation);
                 } else if (((special & MG_OBJPILE) != 0) && ::iflags.hilite_pile) {
-                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(), j*qt_settings->glyphs().height()), pile_annotation);
+                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
+                                             j*qt_settings->glyphs().height()),
+                                       pile_annotation);
                 }
 #endif
 	    }
@@ -646,7 +646,8 @@ NetHackQtMapWindow::NetHackQtMapWindow(NetHackQtClickBuffer& click_sink) :
     palette.setColor(viewport.backgroundRole(), Qt::black);
     viewport.setPalette(palette);
 
-    pet_annotation = QPixmap(qt_compact_mode ? pet_mark_small_xpm : pet_mark_xpm);
+    pet_annotation = QPixmap(qt_compact_mode ? pet_mark_small_xpm
+                                             : pet_mark_xpm);
     pile_annotation = QPixmap(pile_mark_xpm);
 
     cursor.setX(0);
@@ -836,9 +837,13 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 		);
 #ifdef TEXTCOLOR
 		if (((special & MG_PET) != 0) && ::iflags.hilite_pet) {
-                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(), j*qt_settings->glyphs().height()), pet_annotation);
+                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
+                                             j*qt_settings->glyphs().height()),
+                                       pet_annotation);
                 } else if (((special & MG_OBJPILE) != 0) && ::iflags.hilite_pile) {
-                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(), j*qt_settings->glyphs().height()), pile_annotation);
+                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
+                                             j*qt_settings->glyphs().height()),
+                                       pile_annotation);
                 }
 #endif
 	    }
@@ -856,9 +861,13 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 		qt_settings->glyphs().drawCell(painter, g, i, j);
 #ifdef TEXTCOLOR
 		if (((special & MG_PET) != 0) && ::iflags.hilite_pet) {
-                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(), j*qt_settings->glyphs().height()), pet_annotation);
+                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
+                                             j*qt_settings->glyphs().height()),
+                                       pet_annotation);
                 } else if (((special & MG_OBJPILE) != 0) && ::iflags.hilite_pile) {
-                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(), j*qt_settings->glyphs().height()), pile_annotation);
+                    painter.drawPixmap(QPoint(i*qt_settings->glyphs().width(),
+                                             j*qt_settings->glyphs().height()),
+                                       pile_annotation);
                 }
 #endif
 	    }

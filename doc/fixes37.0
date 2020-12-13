@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.280 $ $NHDT-Date: 1597069374 2020/08/10 14:22:54 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.289 $ $NHDT-Date: 1597967807 2020/08/20 23:56:47 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -243,6 +243,10 @@ wizard mode #wizintrinsic: setting Levitation wouldn't block Flying as
 chatting to the quest leader in wizard mode with sufficient experience level
 	and insufficient piety, player is asked whether alignment should be
 	boosted; answering 'n' resulted in being prompted a second time
+leashing or unleashing pets wasn't updating persistent inventory window
+end of game inventory disclosure passed an inappropriate argument to the
+	inventory display routine; not noticeable for tty and curses,
+	noticeable but not harmful for X11, and slightly harmful for Qt
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -318,6 +322,7 @@ the fix to make worm visibility checks work as intended forced the coordinates
 	the worm instead of leaving it off the map; place_worm_tail_randomly()
 	reverses the segments and can throw some away if there isn't room,
 	but throwing away the extra segment removed the worm from the map
+using 'O' to try to change 'symset' was a no-op; 'roguesymset' worked
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
@@ -344,6 +349,7 @@ curses: for vertical status, line up conditions in columns; usually two but
 msdos: add -DSTATUES_LOOK_LIKE_MONSTERS to Makefile1.cross so the VESA mode
 	can display statue glyphs
 Qt: quit if can't load tiles file instead of continuing and then segfaulting
+Qt: [later] tiles load failure at startup now continues using an ascii map
 Qt: use more columns for extended command selection dialog so that the number
 	of rows needed doesn't result in some commands being unaccessible
 Qt: suppress wizard mode commands from '#' handling when not in wizard mode
@@ -369,6 +375,20 @@ Qt: menu commands are now working; commands invoked via M-c were having that
 	send #abc with just enough letters to disambiguate from other commands
 	("Compilation" is one remaining problem; it yields "#version" which
 	brings up '#' menu subset with choices of "version" and "versionshort")
+Qt: "paper doll" subset of persistent inventory has undergone several changes:
+	show previously missing quiver below weapon instead of duplicating
+	gloves there; show secondary weapon in shield slot and blank out
+	alternate weapon slot when two-weapon combat is active; show wielded
+	two-handed weapon in both the shield and primary weapon slots; show
+	first active light source in a previously unused slot on lower right;
+	show first leash-in-use in a previously unused slot on lower left
+Qt: paper doll inventory view was inconsistently updated during Hallucination
+Qt: when hero died, gold on tombstone only included gold in inventory, not
+	any additional gold inside carried containers; also, inventory gold
+	will be zero if bones get created for all 3.6.x and for 3.4.x+GOLDOBJ
+Qt: tombstone showed newly constructed date instead of the value set up at
+	time of death; it only shows year but that could be wrong if player
+	stared at or ignored prior --More-- for long enough on 31 December
 Qt+QSX: fix control key
 Qt+OSX: rename menu entry "nethack->Preferences..." for invoking nethack's
 	'O' command to "Game->Run-time options" and entry "Game->Qt settings"
@@ -495,6 +515,10 @@ user_sounds: provide an experimental mechanism for terminal-side sounds similar
 	requires compile-time definition of TTY_SOUND_ESCCODES (also requires
 	terminal-side code external to NetHack to recognize the sequence and
 	act on it)
+Qt: the "paper doll" inventory subset can be controlled via the "Qt Settings"
+	dialog box ("Preferences..." on OSX)
+Qt: draw a border around each tile in the paper door inventory; when BUC is
+	known for a doll item, change the border's color and thicken it
 
 
 NetHack Community Patches (or Variation) Included

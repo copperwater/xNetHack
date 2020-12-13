@@ -7,15 +7,6 @@
 extern "C" {
 #include "hack.h"
 }
-#undef Invisible
-#undef Warning
-#undef index
-#undef msleep
-#undef rindex
-#undef wizard
-#undef yn
-#undef min
-#undef max
 
 #include "qt_pre.h"
 #include <QtGui/QtGui>
@@ -517,20 +508,6 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
     addToolBar(toolbar);
     menubar = menuBar();
 
-    QCoreApplication::setOrganizationName("The NetHack DevTeam");
-    QCoreApplication::setOrganizationDomain("nethack.org");
-    QCoreApplication::setApplicationName("NetHack");
-    {
-        char cvers[BUFSZ];
-        QString qvers = version_string(cvers);
-        QCoreApplication::setApplicationVersion(qvers);
-    }
-#ifdef MACOSX
-    /* without this, neither control+x nor option+x do anything;
-       with it, control+x is ^X and option+x still does nothing */
-    QCoreApplication::setAttribute(Qt::AA_MacDontSwapCtrlAndMeta);
-#endif
-
     setWindowTitle("Qt NetHack");
     setWindowIcon(QIcon(QPixmap(qt_compact_mode ? nh_icon_small : nh_icon)));
 
@@ -702,8 +679,16 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
                 actchar[0] = actchar[1] = '\0';
                 if (item[i].funct) {
                     actchar[0] = cmd_from_func(item[i].funct);
-                    /* M-c won't work */
-                    if ((actchar[0] & 0x7f) != actchar[0])
+                    if (actchar[0]
+                        /* M-c won't work; translation between character
+                           sets by the QString class can classify such
+                           characters as erroneous and change them to '?' */
+                        && ((actchar[0] & 0x7f) != actchar[0]
+                        /* the vi movement keys won't work reliably
+                           because toggling number_pad affects them but
+                           doesn't redo these menus */
+                            || strchr("hjklyubnHJKLYUBN", actchar[0])
+                            || strchr("hjklyubn", (actchar[0] | 0x60))))
                         actchar[0] = '\0';
                 }
                 if (actchar[0] && !qt_compact_mode)
@@ -1052,8 +1037,9 @@ void NetHackQtMainWindow::RemoveWindow(NetHackQtWindow* window)
 
 void NetHackQtMainWindow::updateInventory()
 {
-    if ( invusage )
+    if (invusage) {
 	invusage->repaint();
+    }
 }
 
 void NetHackQtMainWindow::fadeHighlighting()
@@ -1085,6 +1071,76 @@ void NetHackQtMainWindow::layout()
 				   toph,c->width(),maph);
     }
 #endif
+
+    if (qt_settings && !qt_compact_mode
+        && map && message && status && invusage) {
+        // For the initial PaperDoll sizing, message window
+        // and/or status window might still be empty;
+        // widen them before changing PaperDoll to use saved settings.
+        QList<int> splittersizes = hsplitter->sizes();
+#define MIN_WIN_WIDTH 400
+        if (splittersizes[0] < MIN_WIN_WIDTH
+            || splittersizes[2] < MIN_WIN_WIDTH) {
+            if (splittersizes[0] < MIN_WIN_WIDTH)
+                splittersizes[0] = MIN_WIN_WIDTH;
+#ifndef ENHANCED_PAPERDOLL
+            if (splittersizes[1] < 6) // TILEWMIN
+                splittersizes[1] = 16; // 16x16
+#endif
+            if (splittersizes[2] < MIN_WIN_WIDTH)
+                splittersizes[2] = MIN_WIN_WIDTH;
+            hsplitter->setSizes(splittersizes);
+        }
+#ifdef ENHANCED_PAPERDOLL
+        // call resizePaperDoll() indirectly...
+        qt_settings->resizeDoll();
+#endif
+    }
+}
+
+void NetHackQtMainWindow::resizePaperDoll(bool showdoll)
+{
+#ifdef ENHANCED_PAPERDOLL
+    // this is absurd...
+    NetHackQtInvUsageWindow *w = static_cast <NetHackQtMainWindow *>
+                                 (NetHackQtBind::mainWidget())->invusage;
+    QList<int> hsplittersizes = hsplitter->sizes(),
+              vsplittersizes = vsplitter->sizes();
+    w->resize(w->sizeHint());
+
+    int oldwidth = hsplittersizes[1],
+        newwidth = w->width();
+    if (newwidth != oldwidth) {
+        if (oldwidth > newwidth)
+            hsplittersizes[0] += (oldwidth - newwidth);
+        else
+            hsplittersizes[2] += (newwidth - oldwidth);
+        hsplittersizes[1] = newwidth;
+        hsplitter->setSizes(hsplittersizes);
+    }
+
+    // Height limit is 48 pixels per doll cell;
+    // values greater than 44 need taller window which pushes the map down.
+    // FIXME: this doesn't shrink the window back if size is reduced from 45+
+    int oldheight = vsplittersizes[0],
+        newheight = w->height();
+    if (newheight > oldheight && oldheight > 0 && vsplittersizes[1] > 0) {
+        vsplittersizes[0] = newheight;
+        vsplitter->setSizes(vsplittersizes);
+    }
+
+    if (showdoll) {
+        if (w->isHidden())
+            w->show();
+        else
+            w->repaint();
+    } else {
+        if (w->isVisible())
+            w->hide();
+    }
+#else
+    nhUse(showdoll);
+#endif /* ENHANCED_PAPERDOLL */
 }
 
 void NetHackQtMainWindow::resizeEvent(QResizeEvent*)
