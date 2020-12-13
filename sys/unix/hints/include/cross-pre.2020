@@ -5,6 +5,7 @@
 #
 
 ifdef CROSS_TO_MSDOS
+CROSS=1
 BUILD_TARGET_LUA=1
 BUILD_PDCURSES=1
 CROSS_SHARED=1
@@ -15,6 +16,7 @@ override TARGET_LIBS=
 endif
 
 ifdef CROSS_TO_AMIGA
+CROSS=1
 BUILD_TARGET_LUA=1
 BUILD_PDCURSES=1
 CROSS_SHARED=1
@@ -25,11 +27,19 @@ override TARGET_LIBS=
 endif
 
 ifdef CROSS_TO_WASM
+CROSS=1
 BUILD_TARGET_LUA=1
 override TARGET = wasm
 override TARGETDIR=../targets/$(TARGET)
 override TARGETPFX = $(TARGETDIR)/
 override TARGET_LIBS= 
+endif
+
+ifdef CROSS
+override PREGAME=
+override BUILDMORE=
+override CLEANMORE=
+override PACKAGE=
 endif
 
 ifdef BUILD_TARGET_LUA
@@ -61,7 +71,8 @@ LUAOBJFILES4 =  $(TARGETPFX)lstring.o $(TARGETPFX)lstrlib.o \
 LUALIBOBJS = $(LUAOBJFILES1) $(LUAOBJFILES2) $(LUAOBJFILES3) $(LUAOBJFILES4)
 LUACROSSLIB = $(TARGETPFX)lua$(subst .,,$(LUA_VERSION)).a
 LUAINCL  = -I$(LUASRCDIR)
-BUILDMORE += $(LUACROSSLIB)
+override BUILDMORE += $(LUACROSSLIB)
+override CLEANMORE += rm -f $(LUACROSSLIB) ;
 override TARGET_LIBS += $(LUACROSSLIB) -lm
 else
 LUAINCL=
@@ -110,7 +121,8 @@ ifdef CROSS_TO_AMIGA
 PDCINCL += -I$(PDCTOP)/sdl1 -I/opt/amiga/m68k-amigaos/include/SDL
 override TARGET_LIBS += -lSDL
 endif
-BUILDMORE += $(PDCLIB)
+override BUILDMORE += $(PDCLIB)
+override CLEANMORE += rm -f $(PDCLIB) ;
 # Rules for PDCurses files
 $(TARGETPFX)%.o : $(PDCTOP)/pdcurses/%.c
 	$(TARGET_CC) $(PDCINCL) $(TARGET_CFLAGS) -o$@  $<
@@ -151,7 +163,7 @@ override TARGET_AR = $(TOOLTOP1)/i586-pc-msdosdjgpp-gcc-ar
 override TARGET_STUBEDIT = ../lib/djgpp/i586-pc-msdosdjgpp/bin/stubedit
 override TARGET_CFLAGS = -c -O -I../include -I../sys/msdos -I../win/share \
 	$(LUAINCL) -DDLB $(PDCURSESDEF) \
-	-DUSE_TILES -DCROSSCOMPILE -DCROSSCOMPILE_TARGET
+	-DUSE_TILES -DCROSSCOMPILE -DCROSSCOMPILE_TARGET -DCROSS_TO_MSDOS
 override TARGET_CXXFLAGS = $(TARGET_CFLAGS)
 override TARGET_LINK = $(TOOLTOP1)/i586-pc-msdosdjgpp-gcc
 override TARGET_LFLAGS=
@@ -173,10 +185,10 @@ override SYSOBJ= $(TARGETPFX)pcmain.o $(TARGETPFX)msdos.o \
 override WINLIB=
 override LUALIB=
 override GAMEBIN = $(TARGETPFX)nethack.exe
-override PACKAGE= dospkg
+override PACKAGE = dospkg
+override PREGAME += mkdir -p $(TARGETDIR) ;
+override CLEANMORE += rm -f -r $(TARGETDIR) ;
 VARDATND += nhtiles.bmp
-PREGAME = mkdir -p $(TARGETDIR)
-CLEANMORE += rm -f -r $(TARGETDIR)
 #
 ifdef WANT_WIN_CURSES
 # rules for pdcurses dos-specific files
@@ -223,9 +235,9 @@ override TARGET_STUBEDIT=
 override TARGET_CFLAGS = -c -O $(TOOLARCH) \
 	-I../include -I../outdated/include \
 	-I../outdated/sys/amiga -I../win/share \
-	$(LUAINCL) -DAMIGA -DAMIGA_CROSS $(PDCURSESDEF) \
-	-DUSE_TILES -DCROSSCOMPILE -DCROSSCOMPILE_TARGET \
-	-DAMIGA_VERSION_STRING=\""VER: NetHack 3.7.0 \(12.13.2020)\""
+	$(LUAINCL) -DAMIGA -DUSE_TILES $(PDCURSESDEF) \
+	-DCROSSCOMPILE -DCROSSCOMPILE_TARGET -DCROSS_TO_AMIGA \
+	-DAMIGA_VERSION_STRING=\""VER: NetHack 3.7.0\""
 override TARGET_CXXFLAGS = $(TARGET_CFLAGS)
 ifeq "$(REGEXOBJ)" "$(TARGETPFX)cppregex.o"
 override TARGET_LINK = $(TARGET_CXX)
@@ -262,9 +274,9 @@ override SYSOBJ = $(TARGETPFX)amidos.o $(TARGETPFX)amigst.o \
 override WINLIB=
 override LUALIB=
 override GAMEBIN = $(TARGETPFX)nethack
-override PACKAGE= amigapkg
-PREGAME = mkdir -p $(TARGETDIR)
-CLEANMORE += rm -r $(TARGETDIR)
+override PACKAGE = amigapkg
+override PREGAME += mkdir -p $(TARGETDIR) ;
+override CLEANMORE += rm -r $(TARGETDIR) ;
 #		../util/txt2iff
 #
 ifdef WANT_WIN_CURSES
@@ -284,9 +296,10 @@ ifdef CROSS_TO_WASM
 # originally from https://github.com/NetHack/NetHack/pull/385
 #===============-=================================================
 #
-WASM_DATA_DIR = $(TARGETPFX)wasm-data/
+WASM_DATA_DIR = $(TARGETPFX)wasm-data
 WASM_TARGET = $(TARGETPFX)nethack.js
-EMCC_LFLAGS = -s SINGLE_FILE=1
+EMCC_LFLAGS =
+#EMCC_LFLAGS += -s SINGLE_FILE=1
 EMCC_LFLAGS += -s WASM=1
 EMCC_LFLAGS += -s ALLOW_TABLE_GROWTH
 EMCC_LFLAGS += -s ASYNCIFY -s ASYNCIFY_IMPORTS='["local_callback"]'
@@ -303,7 +316,7 @@ EMCC_LFLAGS += --embed-file $(WASM_DATA_DIR)
 # WASM C flags
 EMCC_CFLAGS=
 EMCC_CFLAGS += -Wall
-EMCC_CFLAGS += -Werror
+#EMCC_CFLAGS += -Werror
 #EMCC_CFLAGS += -s DISABLE_EXCEPTION_CATCHING=0
 EMCC_DEBUG_CFLAGS += -s ASSERTIONS=1
 #EMCC_DEBUG_CFLAGS += -s ASSERTIONS=2
@@ -325,11 +338,30 @@ endif
 override TARGET_CC = emcc
 override TARGET_CXX = emcc
 override TARGET_AR = emar
-override TARGET_CFLAGS = $(EMCC_CFLAGS) -c \
-	-I../include \
-	$(LUAINCL) -DDLB $(PDCURSESDEF) \
-	-DNOTTYGRAPHICS -DSHIM_GRAPHICS -DDEFAULT_WINDOW_SYS=\"shim\" \
-	-DCROSSCOMPILE -DCROSSCOMPILE_TARGET -DCROSS_TO_WASM -DLIBNH
+WASM_CFLAGS = -Wall -Wextra -Wno-missing-field-initializers
+WASM_CFLAGS += -Wimplicit -Wreturn-type -Wunused -Wformat -Wswitch
+WASM_CFLAGS += -Wshadow
+# WASM_CFLAGS += -Wwrite-strings
+# WASM_CFLAGS += -Werror
+# Nethack C flags
+WASM_CFLAGS += $(WINCFLAGS)   #WINCFLAGS set from multiw-2.2020
+WASM_CFLAGS += -DSYSCF -DSYSCF_FILE=\"/sysconf\" -DSECURE
+WASM_CFLAGS += -g -I../include -DNOTPARMDECL
+WASM_CFLAGS += -DGCC_WARN
+# NetHack sources control
+WASM_CFLAGS += -DDLB
+WASM_CFLAGS += -DHACKDIR=\"$(HACKDIR)\"
+WASM_CFLAGS += -DDEFAULT_WINDOW_SYS=\"shim\" \
+#override TARGET_CFLAGS += -DGREPPATH=\"/usr/bin/grep\"
+WASM_CFLAGS += -DNOMAIL
+WASM_CFLAGS += $(LUAINCL)
+WASM_CFLAGS += -DNOTTYGRAPHICS -DSHIM_GRAPHICS -DLIBNH
+WASM_CFLAGS += -DCROSSCOMPILE
+WASM_TARGET_CFLAGS = -DCROSSCOMPILE_TARGET -DCROSS_TO_WASM
+# For src Makefile 
+override CFLAGS = $(WASM_CFLAGS)
+override TARGET_CFLAGS = $(EMCC_CFLAGS) $(WASM_CFLAGS) $(WASM_TARGET_CFLAGS)
+#
 override TARGET_CXXFLAGS = $(TARGET_CFLAGS)
 override TARGET_LINK = $(TARGET_CC)
 override TARGET_LFLAGS= $(EMCC_LFLAGS)
@@ -343,14 +375,17 @@ override SYSOBJ= $(TARGETPFX)libnethackmain.o \
 		$(TARGETPFX)winshim.o
 override WINLIB = emranlib 
 override LUALIB=
-override PACKAGE= wasmpkg
 override REGEXOBJ = $(TARGETPFX)posixregex.o
+override WINOBJ=
+# don't bother Making regular NetHack executable
+override GAME=
+# the real VARDAT hasn't been defined yet for use in ALLDEP override
+WASM_DAT = bogusmon data engrave epitaph oracles options quest.lua rumors
+override ALLDEP = include/nhlua.h $(WASM_DAT) spec_levs check-dlb wasm
+override PREGAME += mkdir -p $(TARGETDIR)/wasm-data ;
+override CLEANMORE += rm -rf $(TARGETDIR) ;
 RANLIB=$(EMRANLIB)
 #VARDATND += nhtiles.bmp
-override GAME=
-MOREALL += ( cd src ; $(MAKE) pregame ; $(MAKE) $(WASM_TARGET) )
-PREGAME = mkdir -p $(TARGETDIR)
-CLEANMORE += rm -f -r $(TARGETDIR)
 # Rule for file in sys/unix
 $(TARGETPFX)%.o : ../sys/unix/%.c
 	$(TARGET_CC) $(TARGET_CFLAGS) -c -o$@ $<
@@ -367,23 +402,23 @@ ifdef WANT_WIN_CURSES
 ifdef BUILD_PDCURSES
 # Rules for PDCurses files
 $(TARGETPFX)%.o : $(PDCTOP)/pdcurses/%.c
-	$(TARGET_CC) $(PDCINCL) $(TARGET_CFLAGS) -o$@  $<
+	$(TARGET_CC) $(PDCINCL) $(TARGET_CFLAGS) -c -o$@  $<
 endif  # BUILD_PDCURSES
 endif  # WANT_WIN_CURSES
 
 ifdef CROSS_SHARED
 # Rules for win/share files
 $(TARGETPFX)%.o : ../win/share/%.c
-	$(TARGET_CC) $(TARGET_CFLAGS) -o$@ $<
+	$(TARGET_CC) $(TARGET_CFLAGS) -c -o$@ $<
 # Rules for util files heading for target
 $(TARGETPFX)%.o : ../util/%.c
-	$(TARGET_CC) $(TARGET_CFLAGS) -o$@ $<
+	$(TARGET_CC) $(TARGET_CFLAGS) -c -o$@ $<
 endif  # CROSS_SHARED
 
 ifdef BUILD_TARGET_LUA
 # Rule for LUA files
 $(TARGETPFX)%.o : $(LUATOP)/src/%.c
-	$(TARGET_CC) $(TARGET_CFLAGS) $(LUA_FLAGS) -o$@ $<
+	$(TARGET_CC) $(TARGET_CFLAGS) -c $(LUA_FLAGS) -o$@ $<
 endif  # BUILD_TARGET_LUA
 #
 # End of cross-compiling -PRE section

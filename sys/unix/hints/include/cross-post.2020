@@ -120,30 +120,31 @@ amigapkg: $(GAMEBIN) $(TARGETPFX)recover.exe ../dat/nhtiles.bmp
 endif  # CROSS_TO_AMIGA
 
 ifdef CROSS_TO_WASM
-$(WASM_TARGET): $(HOBJ) $(LUACROSSLIB) Makefile $(WASM_DATA_DIR)
+$(WASM_TARGET): pregame $(HOSTOBJ) $(HOBJ) $(LUACROSSLIB) $(WASM_DATA_DIR)
 	-rm $@
-	$(TARGET_CC) $(EMCC_LFLAGS) $(EMCC_CFLAGS) -o $@ \
+	$(TARGET_CC) $(TARGET_LFLAGS) $(TARGET_CFLAGS) -o $@ \
 		$(HOBJ) $(TARGET_LIBS)
 
-$(WASM_DATA_DIR):
-	-mkdir -p $(WASM_DATA_DIR)
+$(WASM_DATA_DIR): $(WASM_DATA_DIR)/nhdat
 	touch $(WASM_DATA_DIR)/perm
 	touch $(WASM_DATA_DIR)/record
 	touch $(WASM_DATA_DIR)/logfile
 	touch $(WASM_DATA_DIR)/xlogfile
-	( cd ..; $(MAKE) dlb )
-	( cd ..; $(MAKE) dofiles-dlb )
 	cp ../sys/lib/sysconf $(WASM_DATA_DIR)/sysconf
+
+$(WASM_DATA_DIR)/nhdat:
+	( cd ..; $(MAKE) INSTDIR='$(WASM_DATA_DIR)' dlb )
+	( cd ..; $(MAKE) INSTDIR='$(WASM_DATA_DIR)' dofiles-dlb )
+
 #
-.PHONY: wasmpkg
-wasmpkg:
-	@echo "$(WASM_TARGET) done."
 $(TARGETPFX)unixmain.o : ../sys/unix/unixmain.c $(HACK_H)
 $(TARGETPFX)unixres.o : ../sys/unix/unixres.c $(HACK_H)
 $(TARGETPFX)unixunix.o : ../sys/unix/unixunix.c $(HACK_H)
 $(TARGETPFX)ioctl.o : ../sys/share/ioctl.c $(HACK_H)
 $(TARGETPFX)unixtty.o : ../sys/share/unixtty.c $(HACK_H)
 $(TARGETPFX)winshim.o : ../win/shim/winshim.c $(HACK_H)
+$(TARGETPFX)libnethackmain.o : ../sys/lib/libnethackmain.c \
+		$(HACK_H) ../include/date.h
 endif  # CROSS_TO_WASM
 #
 

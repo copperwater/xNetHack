@@ -6,8 +6,15 @@
 
 //
 // TODO:
-//  search behaves weirdly unless you click in the line-edit dialog box
-//    after clicking on the [search] button to pop that up;
+//  inventory menus reuse the same menu window over and over (in the core);
+//    it isn't resizing properly to reflect each new instance's content;
+//    [temporary 'fix' allocates at least 15 lines in case a really short
+//    subset is displayed before a full inventory; but all inventory menus
+//    will be padded to that length when they might otherwise show all the
+//    entries with less, and inventories which have more will need to be
+//    scrolled to see the excess even if a taller menu would fit on the
+//    screen; code now has to distinguish between inventory menu and
+//    'other' menu so that the latter isn't padded too]
 //  implement next_page, prev_page, first_page, and last_page to work
 //    like they do for X11:  scroll menu window as if it were paginated;
 //  entering a count that uses more digits than the previous biggest count
@@ -67,35 +74,93 @@ int NetHackQtMenuListBox::TotalWidth() const
 
 int NetHackQtMenuListBox::TotalHeight() const
 {
-    int height = 0;
+    int row, rowheight, height = 0;
 
-    for (int row = 0; row < rowCount(); ++row) {
+    for (row = 0; row < rowCount(); ++row) {
 	height += rowHeight(row);
     }
+    // 20: arbitrary; should always have at least 1 row so it shouldn't matter
+    rowheight = (row > 0) ? rowHeight(row - 1) : 20;
+
+    //
+    // FIXME:
+    //  The core reuses one window for inventory displays and this
+    //  part of sizeHint() is working for the initial size but is
+    //  ineffective for later resizes.
+    //
+
+    // TEMPORARY:
+    // in case first inventory menu displayed is a short one pad it
+    // with blank lines so later long ones won't be far too short
+    if ((dynamic_cast <NetHackQtMenuWindow *> (parent()))->is_invent) {
+        if (row < 15)
+            height += (15 - row) * rowheight;
+    }
+
+    // include extra height so that there will be a blank gap after the
+    // last entry to show that there is nothing to scroll forward too
+    height += rowheight / 2;
     return height;
 }
 
 QSize NetHackQtMenuListBox::sizeHint() const
 {
-    QScrollBar *hscroll = horizontalScrollBar();
-    int hsize = hscroll ? hscroll->height() : 0;
-    return QSize(TotalWidth()+hsize, TotalHeight()+hsize);
+    QScrollBar *hscroll = horizontalScrollBar(),
+               *vscroll = verticalScrollBar();
+    int hsize = (hscroll && hscroll->isVisible()) ? hscroll->height() : 0,
+        vsize = (vscroll && vscroll->isVisible()) ? vscroll->width() : 0;
+    hsize += MENU_WIDTH_SLOP, vsize += MENU_WIDTH_SLOP;
+    // note: a vertical scrollbar affects widget width, a horizontal one height
+    return QSize(TotalWidth() + vsize, TotalHeight() + hsize);
+}
+
+//
+//  FIXME:
+//      Inventory displays reuse the same menu window and so far this
+//      is not updating the size as intended.  The size of the first
+//      instance persists.
+//
+
+// resize current menu window and the table (rows of entries) inside it
+void NetHackQtMenuWindow::MenuResize()
+{
+    // when this was just 'adjustSize()', our sizeHints() was not
+    // being called so explicitly indicate the table widget
+    table->adjustSize();
+    this->adjustSize();
+
+    // Temporary? workaround for scrolling becoming wedged if using
+    // all/none/invert removes all counts so we narrow a non-empty
+    // count column to empty.  [That can take away the horizontal
+    // scroll bar but should not be affecting the vertical one, yet
+    // is (Qt 5.11.3).]  Typing any digit restored normal scrolling
+    // and the only significant thing about that is that it updates
+    // the prompt line which is outside the table of menu items where
+    // scrolling takes place.  Oddly, both prompt changes are needed
+    // (possibly the unnecessary space in the first is being optimized
+    // away but the second call to remove it isn't aware of that, or
+    // perhaps the 'fix' only happens when the line gets shorter).
+    prompt.setText(promptstr + " ");
+    prompt.setText(promptstr);
+    // [Later: becoming wedged doesn't just occur after shrinking the
+    // count column and seems to be triggered by table->adjustSize().]
 }
 
 // Table view columns (0..4):
 // 
-// [pick-count] [check-box] [glyph] [accel] [string]
+// [pick-count] [check-box] [object-glyph] [selector-letter] [description]
 // 
 // pick-count is normally empty and gets wider as needed.
 //
 NetHackQtMenuWindow::NetHackQtMenuWindow(QWidget *parent) :
     QDialog(parent),
+    is_invent(false), // reset to True when window is core's WIN_INVEN
     table(new NetHackQtMenuListBox()),
     prompt(0),
     biggestcount(0L), // largest subset amount that user has entered
     countdigits(0),   // number of digits needed by biggestcount
     counting(false),  // user has typed a digit and more might follow
-    searching(false)
+    searching(false)  // user has begun entering a search target string
 {
     // setFont() was in SelectMenu(), in time to be rendered but too late
     // when measuring the width and height that will be needed
@@ -157,11 +222,24 @@ NetHackQtMenuWindow::~NetHackQtMenuWindow()
 
 QWidget* NetHackQtMenuWindow::Widget() { return this; }
 
-void NetHackQtMenuWindow::StartMenu()
+//
+//  Note:  inventory menus reuse the same menu window over and over
+//         so StartMenu(), AddMenu(), EndMenu(), and SelectMenu()
+//         can't rely on the MenuWindow constructor for initialization.
+//
+
+void NetHackQtMenuWindow::StartMenu(bool using_WIN_INVEN)
 {
-    table->setRowCount((itemcount=0));
-    next_accel=0;
-    has_glyphs=false;
+    itemcount = 0;
+    table->setRowCount(itemcount);
+    next_accel = 0;
+    has_glyphs = false;
+    biggestcount = 0L;
+    countdigits = 0;
+    ClearCount(); // reset 'counting' flag and digit string 'countstr'
+    ClearSearch(); // reset 'searching' flag
+
+    is_invent = using_WIN_INVEN;
 }
 
 NetHackQtMenuWindow::MenuItem::MenuItem() :
@@ -260,10 +338,11 @@ int NetHackQtMenuWindow::SelectMenu(int h, MENU_ITEM_P **menu_list)
     }
     PadMenuColumns(::iflags.menu_tab_sep ? true : false);
 
+    MenuResize();
+
     //old FIXME:  size for compact mode
     //resize(this->width(), parent()->height()*7/8);
     move(0, 0);
-    adjustSize();
     centerOnMain(this);
 
     exec();
@@ -398,23 +477,7 @@ void NetHackQtMenuWindow::UpdateCountColumn(long newcount)
 
     PadMenuColumns(false);
 
-    // Temporary? workaround for scrolling becoming wedged if using
-    // all/none/invert removes all counts so we narrow a non-empty
-    // count column to empty.  [That can take away the horizontal
-    // scroll bar but should not be affecting the vertical one, yet
-    // is (Qt 5.11.3).]  Typing any digit restored normal scrolling
-    // and the only significant thing about that is that it updates
-    // the prompt line which is outside the table of menu items where
-    // scrolling takes place.  Oddly, both prompt changes are needed
-    // (possibly the unnecessary space in the first is being optimized
-    // away but the second call to remove it isn't aware of that).
-    prompt.setText(promptstr + " ");
-    prompt.setText(promptstr);
-
-    // when this was just 'adjustSize()', our sizeHints() was not
-    // being called so explicitly indicate the table widget
-    table->adjustSize();
-    this->adjustSize();
+    MenuResize();
     table->repaint();
 }
 
@@ -601,7 +664,7 @@ void NetHackQtMenuWindow::WidenColumn(int column, int width)
 
 void NetHackQtMenuWindow::InputCount(char key)
 {
-    if (key == '\b' || key == '\177') {
+    if (key == '\b' || key == '\177' || how == PICK_NONE) {
 	if (counting) {
 	    if (countstr.isEmpty())
 		ClearCount();
@@ -610,6 +673,15 @@ void NetHackQtMenuWindow::InputCount(char key)
 	}
     } else {
 	counting = true;
+        // starting a count (enforced by caller) with '#' is optional;
+        // if used, show visible '0'
+        if (key == '#')
+            key = '0';
+        // if we have non-zero digit and are currently showing visible '0',
+        // replace instead of append; doesn't attempt to handle multiple
+        // leading zeroes--they won't affect the outcome, just look odd
+        else if (key > '0' && countstr == "0")
+            countstr = "";
 	countstr += QChar(key);
     }
     if (counting)
@@ -657,7 +729,9 @@ void NetHackQtMenuWindow::keyPressEvent(QKeyEvent *key_event)
             reject();
     } else if (key == '\r' || key == '\n' || key == ' ') {
         accept();
-    } else if (('0' <= key && key <= '9') || key == '\b' || key == '\177') {
+    } else if (('0' <= key && key <= '9')
+               || (key == '#' && !counting)
+               || key == '\b' || key == '\177') {
         InputCount(key);
     } else if (key == MENU_SELECT_ALL || key == MENU_SELECT_PAGE) {
         All();
@@ -927,12 +1001,12 @@ void NetHackQtTextWindow::UseRIP(int how, time_t when)
 {
 // Code from X11 windowport
 #define STONE_LINE_LEN 16    /* # chars that fit on one line */
-#define NAME_LINE 0	/* line # for player name */
-#define GOLD_LINE 1	/* line # for amount of gold */
+#define NAME_LINE  0	/* line # for player name */
+#define GOLD_LINE  1	/* line # for amount of gold */
 #define DEATH_LINE 2	/* line # for death description */
-#define YEAR_LINE 6	/* line # for year */
+#define YEAR_LINE  6	/* line # for year */
 
-static char** rip_line=0;
+    static char **rip_line = 0;
     if (!rip_line) {
 	rip_line=new char*[YEAR_LINE+1];
 	for (int i=0; i<YEAR_LINE+1; i++) {
@@ -1107,10 +1181,10 @@ void NetHackQtMenuOrTextWindow::PutStr(int attr, const QString& text)
 }
 
 // Menu
-void NetHackQtMenuOrTextWindow::StartMenu()
+void NetHackQtMenuOrTextWindow::StartMenu(bool using_WIN_INVEN)
 {
     if (!actual) actual=new NetHackQtMenuWindow(parent);
-    actual->StartMenu();
+    actual->StartMenu(using_WIN_INVEN);
 }
 void NetHackQtMenuOrTextWindow::AddMenu(int glyph, const ANY_P* identifier,
                                         char ch, char gch, int attr,
