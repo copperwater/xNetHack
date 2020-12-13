@@ -1,4 +1,4 @@
-/* NetHack 3.6	makemon.c	$NHDT-Date: 1591178397 2020/06/03 09:59:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.173 $ */
+/* NetHack 3.6	makemon.c	$NHDT-Date: 1594771378 2020/07/15 00:02:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.174 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1028,10 +1028,16 @@ monmaxhp(ptr, m_lev)
 struct permonst *ptr;
 uchar m_lev; /* not just a struct mon because polyself code also uses this */
 {
+    int basehp = 0;
+    int hpmax = 0;
+
     if (is_golem(ptr)) {
+        /* golems have a fixed amount of HP, varying by golem type */
         return golemhp(monsndx(ptr));
     } else if (is_rider(ptr)) {
         /* we want low HP, but a high mlevel so they can attack well */
+        /* the fake basehp (weaker level) is 10, but we guarantee at least 10 HP
+         * by having 40 here */
         return 40 + d(8, 8);
     } else if (ptr->mlevel > 49) {
         /* "special" fixed hp monster
@@ -1040,13 +1046,22 @@ uchar m_lev; /* not just a struct mon because polyself code also uses this */
          * above the 1..49 that indicate "normal" monster levels */
         return 2 * (ptr->mlevel - 6);
     } else if (m_lev == 0) {
-        return rnd(4);
+        basehp = 1; /* minimum is 1, increased to 2 below */
+        hpmax = rnd(4);
     } else {
-        int hpmax = d(m_lev, hd_size(ptr));
+        basehp = m_lev; /* minimum possible is one per level */
+        hpmax = d(m_lev, hd_size(ptr));
         if (is_home_elemental(ptr))
             hpmax *= 2;
-        return hpmax;
     }
+
+    /* if d(X,8) rolled a 1 all X times, give a boost;
+       most beneficial for level 0 and level 1 monsters, making mhpmax
+       and starting mhp always be at least 2 */
+    if (hpmax == basehp) {
+        hpmax += 1;
+    }
+    return hpmax;
 }
 
 /* set up a new monster's initial level and hit points;

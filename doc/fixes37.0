@@ -1,4 +1,4 @@
-$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.240 $ $NHDT-Date: 1593772051 2020/07/03 10:27:31 $
+$NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.250 $ $NHDT-Date: 1595006054 2020/07/17 17:14:14 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -206,11 +206,25 @@ reading the Book of the Dead while blind is allowed; doing so gives
 	becomes discovered, but the object wasn't being flagged as 'dknown'
 	so if not seen yet it remained "a spellbook" in hero's inventory
 reading cursed Book of the Dead while blind gave feedback for sighted hero
-reading non-cursed Book of the Dead without having prepped the other tools
-	referred to those as "artifacts" even though they aren't; use "relics"
+reading non-cursed Book of the Dead after prepping with the other tools gave
+	a message referring to those as "artifacts" if either of them were
+	cursed; those unique items aren't artifacts so use "relics" instead
 zapping a line of boulders with striking or force bolt was updating 'couldsee'
 	but deferring 'cansee', resulting in seeing the first boulder fracture
 	and only hearing that happen for the others despite coming into view
+the default engraving, epitaph, and bogus monster inserted by 'makedefs -s'
+	(3.6.6 fix for empty source data file) lacked terminating newline, so
+	when the corresponding file wasn't actually empty its first line ended
+	up concatenated; default portion of the bad combined entry would be
+	decrypted properly but the portion from the file's first line wouldn't
+if the Wizard of Yendor fled up the stairs on level 1, the game would behave
+	as if he was still in play, but he wouldn't be on migrating monsters
+	list so couldn't be brought back and wouldn't appear on Plane of Earth
+	(stale non-zero value for context.no_of_wizards)
+if a mind flayer's psychic blast targetted a hidden monster, feedback named
+	the monster but it wasn't brought out of hiding
+hero poly'd into a mind flayer who used #monster to emit a psychic blast was
+	able to harm mindless monsters with it
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -273,6 +287,8 @@ only generate shop items on solid floor squares
 avoid gcc 10 warning by removing duplicate definition of 'head_engr'
 if a monster removed a corpse from an ice box, the corpse would never rot away
 monster creation on quest levels could make genocided creatures
+enabling wizard mode 'sanity_check' option would complain about invalid mhpmax
+	value for level N monsters created with a d8 value of 1 for all N d8's
 
 tty: redraw unexplored locations as S_unexplored rather than <space> after
 	map has been partially overwritten by popup menu or text display
@@ -391,6 +407,9 @@ give feedback for '#chat' directed at walls
 add 'Sokoban' conduct, tracking the number of times the special Sokoban rules
 	which incur luck penalties have been violated; don't report it
 	unless/until Sokoban branch has been entered
+reduce verbosity when a mind flayer attacks a headless monster; when a
+	tentacle-to-head attack hits but fails to accomplish anything skip
+	remaining attacks (mind flayer has 3, master mind flayer has 5)
 
 
 Platform- and/or Interface-Specific New Features
@@ -473,3 +492,7 @@ relocated unmaintained code to outdated folder, specifically sys/amiga,
 	include/wceconf.h
 removed SYSFLAGS conditional code
 removed MFLOPPY conditional code
+get rid of 3.6.1 workaround needed to retain compatibility with 3.6.0 bones
+	files after fix for 3.3.0 through 3.6.0 bug for invalid 'bonesid'
+	designation in bones of quest levels
+
