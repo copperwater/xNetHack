@@ -431,6 +431,7 @@ E void NDECL(deferred_goto);
 E boolean FDECL(revive_corpse, (struct obj *, boolean));
 E void FDECL(revive_mon, (ANY_P *, long));
 E void FDECL(moldy_corpse, (ANY_P *, long));
+E boolean FDECL(cmd_safety_prevention, (char *, char *, int *));
 E int NDECL(donull);
 E int NDECL(dowipe);
 E void FDECL(legs_in_no_shape, (const char *, BOOLEAN_P));

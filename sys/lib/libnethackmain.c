@@ -7,6 +7,7 @@
 
 #include "hack.h"
 #include "dlb.h"
+#include "date.h"
 
 #include <ctype.h>
 #include <sys/stat.h>
@@ -14,6 +15,14 @@
 #include <pwd.h>
 #ifndef O_RDONLY
 #include <fcntl.h>
+#endif
+
+/* for cross-compiling to WebAssembly (WASM) */
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+void js_helpers_init();
+void js_constants_init();
+void js_globals_init();
 #endif
 
 #if !defined(_BULL_SOURCE) && !defined(__sgi) && !defined(_M_UNIX)
@@ -45,20 +54,22 @@ static void NDECL(wd_message);
 static boolean wiz_error_flag = FALSE;
 static struct passwd *NDECL(get_unix_pw);
 
-#if defined(CROSSCOMPILE_TARGET) && defined(CROSS_TO_WASM)
-/* for cross-compiling to WebAssembly (WASM) */
-#include <emscripten/emscripten.h>
+#ifdef __EMSCRIPTEN__
 /* if WebAssembly, export this API and don't optimize it out */
-#define KEEP EMSCRIPTEN_KEEPALIVE
-#else
-#define KEEP
-#endif
-
-
-int KEEP
+EMSCRIPTEN_KEEPALIVE
+int
 main(argc, argv)
 int argc;
 char *argv[];
+
+#else /* !__EMSCRIPTEN__ */
+
+int
+nhmain(argc, argv)
+int argc;
+char *argv[];
+
+#endif /* __EMSCRIPTEN__ */
 {
 #ifdef CHDIR
     register char *dir;
@@ -67,40 +78,12 @@ char *argv[];
     boolean exact_username;
     boolean resuming = FALSE; /* assume new game */
     boolean plsel_once = FALSE;
+    // int i;
+    // for (i = 0; i < argc; i++) {
+    //     printf ("argv[%d]: %s\n", i, argv[i]);
+    // }
 
     early_init();
-
-#if defined(__APPLE__)
-    {
-/* special hack to change working directory to a resource fork when
-   running from finder --sam */
-#define MAC_PATH_VALUE ".app/Contents/MacOS/"
-        char mac_cwd[1024], *mac_exe = argv[0], *mac_tmp;
-        int arg0_len = strlen(mac_exe), mac_tmp_len, mac_lhs_len = 0;
-        getcwd(mac_cwd, 1024);
-        if (mac_exe[0] == '/' && !strcmp(mac_cwd, "/")) {
-            if ((mac_exe = strrchr(mac_exe, '/')))
-                mac_exe++;
-            else
-                mac_exe = argv[0];
-            mac_tmp_len = (strlen(mac_exe) * 2) + strlen(MAC_PATH_VALUE);
-            if (mac_tmp_len <= arg0_len) {
-                mac_tmp = malloc(mac_tmp_len + 1);
-                sprintf(mac_tmp, "%s%s%s", mac_exe, MAC_PATH_VALUE, mac_exe);
-                if (!strcmp(argv[0] + (arg0_len - mac_tmp_len), mac_tmp)) {
-                    mac_lhs_len =
-                        (arg0_len - mac_tmp_len) + strlen(mac_exe) + 5;
-                    if (mac_lhs_len > mac_tmp_len - 1)
-                        mac_tmp = realloc(mac_tmp, mac_lhs_len);
-                    strncpy(mac_tmp, argv[0], mac_lhs_len);
-                    mac_tmp[mac_lhs_len] = '\0';
-                    chdir(mac_tmp);
-                }
-                free(mac_tmp);
-            }
-        }
-    }
-#endif
 
     g.hname = argv[0];
     g.hackpid = getpid();
@@ -219,6 +202,11 @@ char *argv[];
 #ifdef WINCHAIN
     commit_windowchain();
 #endif
+#ifdef __EMSCRIPTEN__
+    js_helpers_init();
+    js_constants_init();
+    js_globals_init();
+#endif
     init_nhwindows(&argc, argv); /* now we can set up window system */
 #ifdef _M_UNIX
     init_sco_cons();
@@ -248,9 +236,11 @@ char *argv[];
         /* use character name rather than lock letter for file names */
         g.locknum = 0;
     } else {
+#ifndef NO_SIGNAL
         /* suppress interrupts while processing lock file */
         (void) signal(SIGQUIT, SIG_IGN);
         (void) signal(SIGINT, SIG_IGN);
+#endif
     }
 
     dlb_init(); /* must be before newgame() */
@@ -408,6 +398,7 @@ char *argv[];
         case 'i':
             if (!strncmpi(*argv, "-IBMgraphics", l)) {
                 load_symset("IBMGraphics", PRIMARY);
+                load_symset("RogueIBM", ROGUESET);
                 switch_symbols(TRUE);
             } else {
                 raw_printf("Unknown option: %.60s", *argv);
@@ -569,6 +560,7 @@ void
 sethanguphandler(handler)
 void FDECL((*handler), (int));
 {
+#ifndef NO_SIGNAL
 #ifdef SA_RESTART
     /* don't want reads to restart.  If SA_RESTART is defined, we know
      * sigaction exists and can be used to ensure reads won't restart.
@@ -589,10 +581,8 @@ void FDECL((*handler), (int));
 #ifdef SIGXCPU
     (void) signal(SIGXCPU, (SIG_RET_TYPE) handler);
 #endif
-#ifdef WHEREIS_FILE
-    (void) signal(SIGUSR1, (SIG_RET_TYPE) signal_whereis);
-#endif
 #endif /* ?SA_RESTART */
+#endif /* !NO_SIGNAL */
 }
 
 #ifdef PORT_HELP
@@ -738,44 +728,6 @@ get_login_name()
     return buf;
 }
 
-#ifdef __APPLE__
-extern int errno;
-
-void
-port_insert_pastebuf(buf)
-char *buf;
-{
-    /* This should be replaced when there is a Cocoa port. */
-    const char *errfmt;
-    size_t len;
-    FILE *PB = popen("/usr/bin/pbcopy", "w");
-
-    if (!PB) {
-        errfmt = "Unable to start pbcopy (%d)\n";
-        goto error;
-    }
-
-    len = strlen(buf);
-    /* Remove the trailing \n, carefully. */
-    if (buf[len - 1] == '\n')
-        len--;
-
-    /* XXX Sorry, I'm too lazy to write a loop for output this short. */
-    if (len != fwrite(buf, 1, len, PB)) {
-        errfmt = "Error sending data to pbcopy (%d)\n";
-        goto error;
-    }
-
-    if (pclose(PB) != -1) {
-        return;
-    }
-    errfmt = "Error finishing pbcopy (%d)\n";
-
- error:
-    raw_printf(errfmt, strerror(errno));
-}
-#endif /* __APPLE__ */
-
 unsigned long
 sys_random_seed()
 {
@@ -808,4 +760,368 @@ sys_random_seed()
     return seed;
 }
 
-/*unixmain.c*/
+#ifdef __EMSCRIPTEN__
+/***
+ * Helpers
+ ***/
+EM_JS(void, js_helpers_init, (), {
+    globalThis.nethackGlobal = globalThis.nethackGlobal || {};
+    globalThis.nethackGlobal.helpers = globalThis.nethackGlobal.helpers || {};
+
+    installHelper(mapglyphHelper);
+    installHelper(displayInventory);
+    installHelper(getPointerValue);
+    installHelper(setPointerValue);
+
+    // used by print_glyph
+    function mapglyphHelper(glyph, x, y, mgflags) {
+        let ochar = _malloc(4);
+        let ocolor = _malloc(4);
+        let ospecial = _malloc(4);
+
+        _mapglyph(glyph, ochar, ocolor, ospecial, x, y, mgflags);
+
+        let ch = getValue(ochar, "i32");
+        let color = getValue(ocolor, "i32");
+        let special = getValue(ospecial, "i32");
+
+        _free (ochar);
+        _free (ocolor);
+        _free (ospecial);
+
+        return {
+            glyph,
+            ch,
+            color,
+            special,
+            x,
+            y,
+            mgflags
+        };
+    }
+
+    // used by update_inventory
+    function displayInventory() {
+        // Asyncify.handleAsync(async () => {
+            return _display_inventory(0, 0);
+        // });
+    }
+
+    // convert 'ptr' to the type indicated by 'type'
+    function getPointerValue(name, ptr, type) {
+        // console.log("getPointerValue", name, "0x" + ptr.toString(16), type);
+        switch(type) {
+        case "s": // string
+            // var value = UTF8ToString(getValue(ptr, "*"));
+            return UTF8ToString(ptr);
+        case "p": // pointer
+            if(!ptr) return 0; // null pointer
+            return getValue(ptr, "*");
+        case "c": // char
+            return String.fromCharCode(getValue(ptr, "i8"));
+        case "0": /* 2^0 = 1 byte */
+            return getValue(ptr, "i8");
+        case "1": /* 2^1 = 2 bytes */
+            return getValue(ptr, "i16");
+        case "2": /* 2^2 = 4 bytes */
+        case "i": // integer
+        case "n": // number
+            return getValue(ptr, "i32");
+        case "f": // float
+            return getValue(ptr, "float");
+        case "d": // double
+            return getValue(ptr, "double");
+        case "o": // overloaded: multiple types
+            return ptr;
+        default:
+            throw new TypeError ("unknown type:" + type);
+        }
+    }
+
+    // sets the return value of the function to the type expected
+    function setPointerValue(name, ptr, type, value = 0) {
+        // console.log("setPointerValue", name, "0x" + ptr.toString(16), type, value);
+        switch (type) {
+        case "p":
+            throw new Error("not implemented");
+        case "s":
+            if(typeof value !== "string")
+                throw new TypeError(`expected ${name} return type to be string`);
+            // value=value?value:"(no value)";
+            // var strPtr = getValue(ptr, "i32");
+            stringToUTF8(value, ptr, 1024); // TODO: uhh... danger will robinson
+            break;
+        case "i":
+            if(typeof value !== "number" || !Number.isInteger(value))
+                throw new TypeError(`expected ${name} return type to be integer`);
+            setValue(ptr, value, "i32");
+            break;
+        case "c":
+            if(typeof value !== "number" || value < 0 || value > 128)
+                throw new TypeError(`expected ${name} return type to be integer representing an ASCII character`);
+            setValue(ptr, value, "i8");
+            break;
+        case "f":
+            if(typeof value !== "number" || isFloat(value))
+                throw new TypeError(`expected ${name} return type to be float`);
+            // XXX: I'm not sure why 'double' works and 'float' doesn't
+            setValue(ptr, value, "double");
+            break;
+        case "d":
+            if(typeof value !== "number" || isFloat(value))
+                throw new TypeError(`expected ${name} return type to be double`);
+            setValue(ptr, value, "double");
+            break;
+        case "v":
+            break;
+        default:
+            throw new Error("unknown type");
+        }
+
+        function isFloat(n){
+            return n === +n && n !== (n|0) && !Number.isInteger(n);
+        }
+    }
+
+
+    function installHelper(fn, name) {
+        name = name || fn.name;
+        globalThis.nethackGlobal.helpers[name] = fn;
+    }
+})
+
+/***
+ * Constants
+ ***/
+#define SET_CONSTANT(scope, name) set_const(scope, #name, name);
+EM_JS(void, set_const, (char *scope_str, char *name_str, int num), {
+    let scope = UTF8ToString(scope_str);
+    let name = UTF8ToString(name_str);
+
+    globalThis.nethackGlobal.constants[scope] = globalThis.nethackGlobal.constants[scope] || {};
+    globalThis.nethackGlobal.constants[scope][name] = num;
+    globalThis.nethackGlobal.constants[scope][num] = name;
+});
+#define SET_CONSTANT_STRING(scope, name) set_const_str(scope, #name, name);
+EM_JS(void, set_const_str, (char *scope_str, char *name_str, char *input_str), {
+    let scope = UTF8ToString(scope_str);
+    let name = UTF8ToString(name_str);
+    let str = UTF8ToString(input_str);
+
+    globalThis.nethackGlobal.constants[scope] = globalThis.nethackGlobal.constants[scope] || {};
+    globalThis.nethackGlobal.constants[scope][name] = str;
+});
+
+void js_constants_init() {
+    EM_ASM({
+        globalThis.nethackGlobal = globalThis.nethackGlobal || {};
+        globalThis.nethackGlobal.constants = globalThis.nethackGlobal.constants || {};
+    });
+
+    // create_nhwindow
+    SET_CONSTANT("WIN_TYPE", NHW_MESSAGE)
+    SET_CONSTANT("WIN_TYPE", NHW_STATUS)
+    SET_CONSTANT("WIN_TYPE", NHW_MAP)
+    SET_CONSTANT("WIN_TYPE", NHW_MENU)
+    SET_CONSTANT("WIN_TYPE", NHW_TEXT)
+
+    // status_update
+    SET_CONSTANT("STATUS_FIELD", BL_CHARACTERISTICS)
+    SET_CONSTANT("STATUS_FIELD", BL_RESET)
+    SET_CONSTANT("STATUS_FIELD", BL_FLUSH)
+    SET_CONSTANT("STATUS_FIELD", BL_TITLE)
+    SET_CONSTANT("STATUS_FIELD", BL_STR)
+    SET_CONSTANT("STATUS_FIELD", BL_DX)
+    SET_CONSTANT("STATUS_FIELD", BL_CO)
+    SET_CONSTANT("STATUS_FIELD", BL_IN)
+    SET_CONSTANT("STATUS_FIELD", BL_WI)
+    SET_CONSTANT("STATUS_FIELD", BL_CH)
+    SET_CONSTANT("STATUS_FIELD", BL_ALIGN)
+    SET_CONSTANT("STATUS_FIELD", BL_SCORE)
+    SET_CONSTANT("STATUS_FIELD", BL_CAP)
+    SET_CONSTANT("STATUS_FIELD", BL_GOLD)
+    SET_CONSTANT("STATUS_FIELD", BL_ENE)
+    SET_CONSTANT("STATUS_FIELD", BL_ENEMAX)
+    SET_CONSTANT("STATUS_FIELD", BL_XP)
+    SET_CONSTANT("STATUS_FIELD", BL_AC)
+    SET_CONSTANT("STATUS_FIELD", BL_HD)
+    SET_CONSTANT("STATUS_FIELD", BL_TIME)
+    SET_CONSTANT("STATUS_FIELD", BL_HUNGER)
+    SET_CONSTANT("STATUS_FIELD", BL_HP)
+    SET_CONSTANT("STATUS_FIELD", BL_HPMAX)
+    SET_CONSTANT("STATUS_FIELD", BL_LEVELDESC)
+    SET_CONSTANT("STATUS_FIELD", BL_EXP)
+    SET_CONSTANT("STATUS_FIELD", BL_CONDITION)
+    SET_CONSTANT("STATUS_FIELD", MAXBLSTATS)
+
+    // text attributes
+    SET_CONSTANT("ATTR", ATR_NONE);
+    SET_CONSTANT("ATTR", ATR_BOLD);
+    SET_CONSTANT("ATTR", ATR_DIM);
+    SET_CONSTANT("ATTR", ATR_ULINE);
+    SET_CONSTANT("ATTR", ATR_BLINK);
+    SET_CONSTANT("ATTR", ATR_INVERSE);
+    SET_CONSTANT("ATTR", ATR_URGENT);
+    SET_CONSTANT("ATTR", ATR_NOHISTORY);
+
+    // conditions
+    SET_CONSTANT("CONDITION", BL_MASK_BAREH);
+    SET_CONSTANT("CONDITION", BL_MASK_BLIND);
+    SET_CONSTANT("CONDITION", BL_MASK_BUSY);
+    SET_CONSTANT("CONDITION", BL_MASK_CONF);
+    SET_CONSTANT("CONDITION", BL_MASK_DEAF);
+    SET_CONSTANT("CONDITION", BL_MASK_ELF_IRON);
+    SET_CONSTANT("CONDITION", BL_MASK_FLY);
+    SET_CONSTANT("CONDITION", BL_MASK_FOODPOIS);
+    SET_CONSTANT("CONDITION", BL_MASK_GLOWHANDS);
+    SET_CONSTANT("CONDITION", BL_MASK_GRAB);
+    SET_CONSTANT("CONDITION", BL_MASK_HALLU);
+    SET_CONSTANT("CONDITION", BL_MASK_HELD);
+    SET_CONSTANT("CONDITION", BL_MASK_ICY);
+    SET_CONSTANT("CONDITION", BL_MASK_INLAVA);
+    SET_CONSTANT("CONDITION", BL_MASK_LEV);
+    SET_CONSTANT("CONDITION", BL_MASK_PARLYZ);
+    SET_CONSTANT("CONDITION", BL_MASK_RIDE);
+    SET_CONSTANT("CONDITION", BL_MASK_SLEEPING);
+    SET_CONSTANT("CONDITION", BL_MASK_SLIME);
+    SET_CONSTANT("CONDITION", BL_MASK_SLIPPERY);
+    SET_CONSTANT("CONDITION", BL_MASK_STONE);
+    SET_CONSTANT("CONDITION", BL_MASK_STRNGL);
+    SET_CONSTANT("CONDITION", BL_MASK_STUN);
+    SET_CONSTANT("CONDITION", BL_MASK_SUBMERGED);
+    SET_CONSTANT("CONDITION", BL_MASK_TERMILL);
+    SET_CONSTANT("CONDITION", BL_MASK_TETHERED);
+    SET_CONSTANT("CONDITION", BL_MASK_TRAPPED);
+    SET_CONSTANT("CONDITION", BL_MASK_UNCONSC);
+    SET_CONSTANT("CONDITION", BL_MASK_WOUNDEDL);
+    SET_CONSTANT("CONDITION", BL_MASK_HOLDING);
+
+    // menu
+    SET_CONSTANT("MENU_SELECT", PICK_NONE);
+    SET_CONSTANT("MENU_SELECT", PICK_ONE);
+    SET_CONSTANT("MENU_SELECT", PICK_ANY);
+
+    // copyright
+    SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_A);
+    SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_B);
+    SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_C);
+    SET_CONSTANT_STRING("COPYRIGHT", COPYRIGHT_BANNER_D);
+
+    // glyphs
+    SET_CONSTANT("GLYPH", GLYPH_MON_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_PET_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_INVIS_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_DETECT_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_BODY_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_RIDDEN_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_OBJ_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_CMAP_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_EXPLODE_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_ZAP_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_SWALLOW_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_WARNING_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_STATUE_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_UNEXPLORED_OFF);
+    SET_CONSTANT("GLYPH", GLYPH_NOTHING_OFF);
+    SET_CONSTANT("GLYPH", MAX_GLYPH);
+    SET_CONSTANT("GLYPH", NO_GLYPH);
+    SET_CONSTANT("GLYPH", GLYPH_INVISIBLE);
+    SET_CONSTANT("GLYPH", GLYPH_UNEXPLORED);
+    SET_CONSTANT("GLYPH", GLYPH_NOTHING);
+
+    // colors
+    SET_CONSTANT("COLORS", CLR_BLACK);
+    SET_CONSTANT("COLORS", CLR_RED);
+    SET_CONSTANT("COLORS", CLR_GREEN);
+    SET_CONSTANT("COLORS", CLR_BROWN);
+    SET_CONSTANT("COLORS", CLR_BLUE);
+    SET_CONSTANT("COLORS", CLR_MAGENTA);
+    SET_CONSTANT("COLORS", CLR_CYAN);
+    SET_CONSTANT("COLORS", CLR_GRAY);
+    SET_CONSTANT("COLORS", NO_COLOR);
+    SET_CONSTANT("COLORS", CLR_ORANGE);
+    SET_CONSTANT("COLORS", CLR_BRIGHT_GREEN);
+    SET_CONSTANT("COLORS", CLR_YELLOW);
+    SET_CONSTANT("COLORS", CLR_BRIGHT_BLUE);
+    SET_CONSTANT("COLORS", CLR_BRIGHT_MAGENTA);
+    SET_CONSTANT("COLORS", CLR_BRIGHT_CYAN);
+    SET_CONSTANT("COLORS", CLR_WHITE);
+    SET_CONSTANT("COLORS", CLR_MAX);
+
+    // color attributes (?)
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_DIM);
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_BLINK);
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_ULINE);
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_INVERSE);
+    SET_CONSTANT("COLOR_ATTR", HL_ATTCLR_BOLD);
+    SET_CONSTANT("COLOR_ATTR", BL_ATTCLR_MAX);
+}
+
+/***
+ * Globals
+ ***/
+#define CREATE_GLOBAL(var, type) create_global(#var, (void *)&var, type);
+#define CREATE_GLOBAL_FROM_ARRAY(base, iter, path, end_expr, type) \
+    for(iter = 0; end_expr; iter++) { \
+        snprintf(buf, BUFSZ, #base ".%d." #path, iter); \
+        create_global(buf, (void *)(&(base[iter].path)), type); \
+    }
+
+void create_global (char *name, void *ptr, char *type);
+
+void js_globals_init() {
+    // int i;
+    // char buf[BUFSZ];
+    printf("js_globals_init\n");
+
+    EM_ASM({
+        globalThis.nethackGlobal = globalThis.nethackGlobal || {};
+        globalThis.nethackGlobal.globals = globalThis.nethackGlobal.globals || {};
+    });
+
+    /* globals */
+    CREATE_GLOBAL(g.plname, "s");
+
+    /* window globals */
+    CREATE_GLOBAL(WIN_MAP, "i");
+    CREATE_GLOBAL(WIN_MESSAGE, "i");
+    CREATE_GLOBAL(WIN_INVEN, "i");
+    CREATE_GLOBAL(WIN_STATUS, "i");
+}
+
+EM_JS(void, create_global, (char *name_str, void *ptr, char *type_str), {
+    let name = UTF8ToString(name_str);
+    let type = UTF8ToString(type_str);
+
+    // get helpers
+    let getPointerValue = globalThis.nethackGlobal.helpers.getPointerValue;
+    let setPointerValue = globalThis.nethackGlobal.helpers.setPointerValue;
+
+    let { obj, prop } = createPath(globalThis.nethackGlobal.globals, name);
+
+    // setters / getters with bound pointers
+    Object.defineProperty(obj, prop, {
+        get: getPointerValue.bind(null, name, ptr, type),
+        set: setPointerValue.bind(null, name, ptr, type),
+        configurable: true,
+        enumerable: true
+    });
+
+    function createPath(obj, path) {
+        path = path.split(".");
+        let i;
+        for (i = 0; i < path.length - 1; i++) {
+            // obj[path[i]] = obj[path[i]] || {};
+            if (obj[path[i]] === undefined) {
+                obj[path[i]] = {};
+            }
+            obj = obj[path[i]];
+        }
+
+        return { obj, prop: path[i] };
+    }
+})
+
+#endif
+
+/*libnethack.c*/

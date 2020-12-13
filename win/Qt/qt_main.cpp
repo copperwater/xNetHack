@@ -956,7 +956,7 @@ void NetHackQtMainWindow::doQuit(bool)
     case 0:
         // quit -- bypass the prompting preformed by done2()
         g.program_state.stopprint++;
-        done(QUIT);
+        ::done(QUIT);
         /*NOTREACHED*/
         break;
     case 1:
@@ -1225,10 +1225,10 @@ void NetHackQtMainWindow::keyPressEvent(QKeyEvent* event)
 	if (message) message->Scroll(0,+1);
         break;
     case Qt::Key_Space:
-	if ( flags.rest_on_space ) {
-	    event->ignore();
-	    return;
-	}
+        //if (flags.rest_on_space) {
+        event->ignore(); // punt to NetHackQtBind::notify()
+        return;
+        //}
     case Qt::Key_Enter:
 	if ( map )
 	    map->clickCursor();
@@ -1260,7 +1260,7 @@ void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
             // quit -- bypass the prompting preformed by done2()
             ok = 1;
             g.program_state.stopprint++;
-            done(QUIT);
+            ::done(QUIT);
             /*NOTREACHED*/
             break;
 	}
