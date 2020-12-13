@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.289 $ $NHDT-Date: 1597967807 2020/08/20 23:56:47 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.296 $ $NHDT-Date: 1599184888 2020/09/04 02:01:28 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -247,6 +247,8 @@ leashing or unleashing pets wasn't updating persistent inventory window
 end of game inventory disclosure passed an inappropriate argument to the
 	inventory display routine; not noticeable for tty and curses,
 	noticeable but not harmful for X11, and slightly harmful for Qt
+turning into slime rendered hero as slime one turn too soon
+avoid potential infinite loop if hangup occurs at ring "right or left?" prompt
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -389,6 +391,14 @@ Qt: when hero died, gold on tombstone only included gold in inventory, not
 Qt: tombstone showed newly constructed date instead of the value set up at
 	time of death; it only shows year but that could be wrong if player
 	stared at or ignored prior --More-- for long enough on 31 December
+Qt: menu choices All, None, Invert were setting, unsetting, or toggling menu
+	entry checkboxes internally but didn't redraw the menu to show that
+Qt: fix the F1/F2/Tab macro keys to not require that number_pad be On
+Qt: unhighlight highlighted message (last one issued) after player has seen it
+Qt: update message window's last message with player's response if it's a
+	prompt string for a single-character of input (ynaq or invent letter)
+Qt: for line input, display the prompt+response in the message window
+Qt: enable the popup_dialog WC option (result is a bit flakey but usable)
 Qt+QSX: fix control key
 Qt+OSX: rename menu entry "nethack->Preferences..." for invoking nethack's
 	'O' command to "Game->Run-time options" and entry "Game->Qt settings"

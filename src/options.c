@@ -3521,9 +3521,6 @@ char *op;
             Strcat(opts, ", active");
         return optn_ok;
     }
-    if (req == do_handler) {
-        return handler_symset(optidx);
-    }
     return optn_ok;
 }
 
