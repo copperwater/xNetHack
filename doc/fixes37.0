@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.262 $ $NHDT-Date: 1596162338 2020/07/31 02:25:38 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.269 $ $NHDT-Date: 1596395887 2020/08/02 19:18:07 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -236,6 +236,13 @@ uncancel an ice troll if its corpse is put into an ice box; give corpse a
 splitting a stack of candy bars gave new wrapper text depending upon the
 	obj->o_id value assigned; keep existing text for both halves of stack
 	(side-effect: separate candy bars usually won't merge anymore)
+describing tin variety (deep fried, pureed, &c) relied on the 'contents known'
+	flag but object identification wasn't setting obj->cknown for tins
+wizard mode #wizintrinsic: setting Levitation wouldn't block Flying as
+	intended because the check for that was being made too soon
+chatting to the quest leader in wizard mode with sufficient experience level
+	and insufficient piety, player is asked whether alignment should be
+	boosted; answering 'n' resulted in being prompted a second time
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -301,8 +308,11 @@ if a monster removed a corpse from an ice box, the corpse would never rot away
 monster creation on quest levels could make genocided creatures
 enabling wizard mode 'sanity_check' option would complain about invalid mhpmax
 	value for level N monsters created with a d8 value of 1 for all N d8's
+disable that extra check because gremlim HP split after cloning triggers it
 some versions of tiles processing (not X11's) complained about the rename of
 	"{acid,blinding} venom" to "splash of {acid,blinding} venom"
+wizard mode #timeout changed to show timed Displacement in 'can be timed in
+	normal play' section instead of 'timed via #wizintrinsic only' section
 
 tty: redraw unexplored locations as S_unexplored rather than <space> after
 	map has been partially overwritten by popup menu or text display
@@ -335,6 +345,7 @@ Qt: when selecting an extended command by typing its name, support <delete>
 Qt: switch to fixed-width font for menus
 Qt: don't disable [cancel] button when viewing inventory or other pick-none
 	menus; ESC works to dismiss those and [cancel] should be the same
+Qt: bring status conditions up to 3.6 levels but new ones lack pictures
 tiles: add indicator of thonged portion to aklys tile
 tty: role and race selection menus weren't filtering out potential choices
 	which got excluded by OPTIONS=align:!lawful or !neutral or !chaotic
@@ -522,5 +533,6 @@ get rid of 3.6.1 workaround needed to retain compatibility with 3.6.0 bones
 	files after fix for 3.3.0 through 3.6.0 bug for invalid 'bonesid'
 	designation in bones of quest levels
 add an additional note to mextra.h and obj.h comments that reminds people to
-	zero out added mextra and oextra fields in the appropriate function
+	appropriately init new fields if they need to initialize to something
+	other than zero
 

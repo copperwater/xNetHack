@@ -1,4 +1,4 @@
-/* NetHack 3.6	obj.h	$NHDT-Date: 1596162340 2020/07/31 02:25:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.70 $ */
+/* NetHack 3.6	obj.h	$NHDT-Date: 1596226442 2020/07/31 20:14:02 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.75 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -109,11 +109,11 @@ struct obj {
     Bitfield(was_thrown, 1); /* thrown by hero since last picked up */
 
     Bitfield(material, 5); /* material this obj is made of */
-    Bitfield(in_use, 1);   /* for magic items before useup items */
-    Bitfield(bypass, 1);   /* mark this as an object to be skipped by bhito() */
-    Bitfield(cknown, 1);   /* contents of container assumed to be known */
-
-    Bitfield(lknown, 1);   /* locked/unlocked status is known */
+    Bitfield(in_use, 1); /* for magic items before useup items */
+    Bitfield(bypass, 1); /* mark this as an object to be skipped by bhito() */
+    Bitfield(cknown, 1); /* for containers (including statues): the contents
+                          * are known; also applicable to tins */
+    Bitfield(lknown, 1); /* locked/unlocked status is known */
     /* 7 free bits */
 
     int corpsenm;         /* type of corpse is mons[corpsenm] */
@@ -417,8 +417,8 @@ struct obj {
  *       4. Add a testing macro after the set of referencing macros
  *          (see has_oname(), has_omonst(), has_omailcmd(), and has_omin(),
  *          for examples).
- *       5. Zero out the pointer to your struct in newmoextra() in
- *          src/mkobj.c.
+ *       5. If your new field isn't a pointer and requires a non-zero value
+ *          on initialization, add code to init_oextra() in src/mkobj.c.
  *       6. Create newXX(otmp) function and possibly free_XX(otmp) function
  *          in an appropriate new or existing source file and add a prototype
  *          for it to include/extern.h.  The majority of these are currently
