@@ -1265,7 +1265,9 @@ makelevel()
          * The available special rooms depend on how deep you are.
          * If a special room is selected and fails to be created (e.g. it tried
          * to make a shop and failed because no room had exactly 1 door), it
-         * won't try to create the other types of available special rooms. */
+         * won't try to create the other types of available special rooms.
+         * Note that mkroom doesn't guarantee a room gets created, and that this
+         * step only sets the room's rtype - it doesn't fill it yet. */
         if (wizard && nh_getenv("SHOPTYPE"))
             /* special case that overrides everything else for wizard mode */
             mkroom(SHOPBASE);
