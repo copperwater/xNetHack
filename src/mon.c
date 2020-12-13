@@ -1,4 +1,4 @@
-/* NetHack 3.7	mon.c	$NHDT-Date: 1598575089 2020/08/28 00:38:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.344 $ */
+/* NetHack 3.7	mon.c	$NHDT-Date: 1599559379 2020/09/08 10:02:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.346 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -157,6 +157,8 @@ mon_sanity_check()
     for (mtmp = g.migrating_mons; mtmp; mtmp = mtmp->nmon) {
         sanity_check_single_mon(mtmp, FALSE, "migr");
     }
+
+    wormno_sanity_check(); /* test for bogus worm tail */
 }
 
 /* Return TRUE if this monster is capable of converting other monsters into
@@ -2119,6 +2121,9 @@ struct monst *mtmp, *mtmp2;
         otmp->ocarry = mtmp2;
     }
     mtmp->minvent = 0;
+    /* before relmon(mtmp), because it could clear polearm.hitmon */
+    if (g.context.polearm.hitmon == mtmp)
+        g.context.polearm.hitmon = mtmp2;
 
     /* remove the old monster from the map and from `fmon' list */
     relmon(mtmp, (struct monst **) 0);
@@ -2127,7 +2132,7 @@ struct monst *mtmp, *mtmp2;
     if (mtmp != u.usteed) /* don't place steed onto the map */
         place_monster(mtmp2, mtmp2->mx, mtmp2->my);
     if (mtmp2->wormno)      /* update level.monsters[wseg->wx][wseg->wy] */
-        place_wsegs(mtmp2, NULL); /* locations to mtmp2 not mtmp. */
+        place_wsegs(mtmp2, mtmp); /* locations to mtmp2 not mtmp. */
     if (emits_light(mtmp2->data)) {
         /* since this is so rare, we don't have any `mon_move_light_source' */
         new_light_source(mtmp2->mx, mtmp2->my, emits_light(mtmp2->data),
@@ -2162,6 +2167,9 @@ struct monst **monst_list; /* &g.migrating_mons or &g.mydogs or null */
 
     if (!fmon)
         panic("relmon: no fmon available.");
+
+    if (mon == g.context.polearm.hitmon)
+        g.context.polearm.hitmon = (struct monst *) 0;
 
     if (unhide) {
         /* can't remain hidden across level changes (exception: wizard

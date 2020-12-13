@@ -1,4 +1,4 @@
-/* NetHack 3.7	sp_lev.c	$NHDT-Date: 1596498212 2020/08/03 23:43:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.201 $ */
+/* NetHack 3.7	sp_lev.c	$NHDT-Date: 1599434249 2020/09/06 23:17:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.202 $ */
 /*      Copyright (c) 1989 by Jean-Christophe Collet */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -5209,12 +5209,15 @@ lua_State *L;
     return 0;
 }
 
-/* terrain({ x=NN, y=NN, typ=MAPCHAR, lit=BOOL }); */
-/* terrain({ coord={X, Y}, typ=MAPCHAR, lit=BOOL }); */
-/* terrain({ selection=SELECTION, typ=MAPCHAR, lit=BOOL }); */
-/* terrain( SELECTION, MAPCHAR [, BOOL ] ); */
-/* terrain({x,y}, MAPCHAR); */
-/* terrain(x,y, MAPCHAR); */
+/*
+ * [lit_state: 1 On, 0 Off, -1 random, -2 leave as-is]
+ * terrain({ x=NN, y=NN, typ=MAPCHAR, lit=lit_state });
+ * terrain({ coord={X, Y}, typ=MAPCHAR, lit=lit_state });
+ * terrain({ selection=SELECTION, typ=MAPCHAR, lit=lit_state });
+ * terrain( SELECTION, MAPCHAR [, lit_state ] );
+ * terrain({x,y}, MAPCHAR);
+ * terrain(x,y, MAPCHAR);
+ */
 int
 lspo_terrain(L)
 lua_State *L;
@@ -5274,10 +5277,16 @@ lua_State *L;
     return 0;
 }
 
-/* replace_terrain({ x1=NN,y1=NN, x2=NN,y2=NN, fromterrain=MAPCHAR, toterrain=MAPCHAR, lit=N, chance=NN }); */
-/* replace_terrain({ region={x1,y1, x2,y2}, fromterrain=MAPCHAR, toterrain=MAPCHAR, lit=N, chance=NN }); */
-/* replace_terrain({ selection=selection.area(2,5, 40,10), fromterrain=MAPCHAR, toterrain=MAPCHAR }); */
-/* replace_terrain({ selection=SEL, mapfragment=[[...]], toterrain=MAPCHAR }); */
+/*
+ * replace_terrain({ x1=NN,y1=NN, x2=NN,y2=NN, fromterrain=MAPCHAR,
+ *                   toterrain=MAPCHAR, lit=N, chance=NN });
+ * replace_terrain({ region={x1,y1, x2,y2}, fromterrain=MAPCHAR,
+ *                   toterrain=MAPCHAR, lit=N, chance=NN });
+ * replace_terrain({ selection=selection.area(2,5, 40,10),
+ *                   fromterrain=MAPCHAR, toterrain=MAPCHAR });
+ * replace_terrain({ selection=SEL, mapfragment=[[...]],
+ *                   toterrain=MAPCHAR });
+ */
 int
 lspo_replace_terrain(L)
 lua_State *L;
