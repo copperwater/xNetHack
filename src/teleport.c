@@ -497,7 +497,7 @@ struct obj *scroll;
             learnscroll(scroll); /* this is obviously a teleport scroll */
         if (!wizard) {
             pline("A mysterious force prevents you from teleporting!");
-            return TRUE;
+            return;
         }
         else {
             pline("Overriding non-teleport flag.");
