@@ -18,9 +18,56 @@ extern "C" {
 #include "qt_map.moc"
 #include "qt_click.h"
 #include "qt_glyph.h"
-#include "qt_xpms.h"
 #include "qt_set.h"
 #include "qt_str.h"
+
+// pet- and pile-mark xpm arrays moved out of qt_xpms.h so that we don't
+// include it here anymore; including that header in two files resulted in
+// two copies of all the static xpm data and all the rest is for qt_stat.cpp
+//
+/* XPM */
+static const char *pet_mark_xpm[] = {
+/* width height ncolors chars_per_pixel */
+"8 7 2 1",
+/* colors */
+". c None",
+"  c #FF0000",
+/* pixels */
+"........",
+"..  .  .",
+".       ",
+".       ",
+"..     .",
+"...   ..",
+".... ..."
+};
+/* XPM */
+static const char *pet_mark_small_xpm[] = {
+/* width height ncolors chars_per_pixel */
+"5 5 2 1",
+/* colors */
+". c None",
+"X c #FF0000",
+/* pixels */
+".X.X.",
+"XXXXX",
+".XXX.",
+"..X.."
+};
+/* XPM */
+static const char *pile_mark_xpm[] = {
+/* width height ncolors chars_per_pixel */
+"5 5 2 1",
+/* colors */
+". c None",
+"X c #00FF00",
+/* pixels */
+"..X..",
+"..X..",
+"XXXXX",
+"..X..",
+"..X.."
+};
 
 // temporary
 extern int qt_compact_mode;
@@ -31,26 +78,31 @@ namespace nethack_qt_ {
 #ifdef TEXTCOLOR
 static const QPen& nhcolor_to_pen(int c)
 {
-    static QPen* pen=0;
-    if ( !pen ) {
-	pen = new QPen[17];
-	pen[0] = QColor(64,64,64);
-	pen[1] = QColor(Qt::red);
-	pen[2] = QColor(0,191,0);
-	pen[3] = QColor(127,127,0);
-	pen[4] = QColor(Qt::blue);
-	pen[5] = QColor(Qt::magenta);
-	pen[6] = QColor(Qt::cyan);
-	pen[7] = QColor(Qt::gray);
-	pen[8] = QColor(Qt::white); // no color
-	pen[9] = QColor(255,127,0);
-	pen[10] = QColor(127,255,127);
-	pen[11] = QColor(Qt::yellow);
-	pen[12] = QColor(127,127,255);
-	pen[13] = QColor(255,127,255);
-	pen[14] = QColor(127,255,255);
-	pen[15] = QColor(Qt::white);
-	pen[16] = QColor(Qt::black);
+    static QPen *pen = (QPen *) 0;
+    if (!pen) {
+        pen = new QPen[17];
+        //
+        // FIXME:  these are duplicated in qt_menu.cpp
+        //
+        pen[ 0] = QColor(64, 64, 64);    // black
+        pen[ 1] = QColor(Qt::red);
+        pen[ 2] = QColor(0, 191, 0);     // green
+        pen[ 3] = QColor(127, 127, 0);   // brownish
+        pen[ 4] = QColor(Qt::blue);
+        pen[ 5] = QColor(Qt::magenta);
+        pen[ 6] = QColor(Qt::cyan);
+        pen[ 7] = QColor(Qt::gray);
+        // on tty, "light" variations are "bright" instead; here they're paler
+        pen[ 8] = QColor(Qt::white);     // no color
+        pen[ 9] = QColor(255, 127, 0);   // orange
+        pen[10] = QColor(127, 255, 127); // light green
+        pen[11] = QColor(Qt::yellow);
+        pen[12] = QColor(127, 127, 255); // light blue
+        pen[13] = QColor(255, 127, 255); // light magenta
+        pen[14] = QColor(127, 255, 255); // light cyan
+        pen[15] = QColor(Qt::white);
+        // ? out of range for 0..15
+        pen[16] = QColor(Qt::black);
     }
 
     return pen[c];
@@ -493,12 +545,13 @@ void NetHackQtMapViewport::clickCursor()
 
 void NetHackQtMapViewport::Clear()
 {
-    unsigned short stone=cmap_to_glyph(S_stone);
-
-    for (int j=0; j<ROWNO; j++) {
-	for (int i=0; i<COLNO; i++) {
-	    Glyph(i,j)=stone;
-	}
+    for (int j = 0; j < ROWNO; ++j) {
+        //
+        // FIXME:  map column 0 should be surpressed from being displayed
+        //
+        Glyph(0, j) = GLYPH_NOTHING;
+        for (int i = 1; i < COLNO; ++i)
+            Glyph(i, j) = GLYPH_UNEXPLORED;
     }
 
     change.clear();
@@ -761,12 +814,10 @@ void NetHackQtMapWindow::Scroll(int dx, int dy)
 
 void NetHackQtMapWindow::Clear()
 {
-    unsigned short stone=cmap_to_glyph(S_stone);
-
-    for (int j=0; j<ROWNO; j++) {
-	for (int i=0; i<COLNO; i++) {
-	    Glyph(i,j)=stone;
-	}
+    for (int j = 0; j < ROWNO; ++j) {
+        Glyph(0, j) = GLYPH_NOTHING;
+        for (int i = 1; i < COLNO; ++i)
+            Glyph(i, j) = GLYPH_UNEXPLORED;
     }
 
     change.clear();
