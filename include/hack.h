@@ -562,6 +562,11 @@ enum bodypart_types {
 #define DUMPCONT_QUIET  0x1 /* suppress most messages */
 #define DUMPCONT_BYPOLY 0x2 /* "Objects spill out as [cont] polymorphs" */
 
+/* to-hit penalty for wearing body armor as a Monk; used to be a 'spelarmr'
+ * stat in the role struct but it wasn't used for any other roles and probably
+ * was never going to be, so it's now a constant. */
+#define CUMBERSOME_ARMOR_PENALTY 20
+
 /*
  * option setting restrictions
  */
