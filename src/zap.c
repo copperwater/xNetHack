@@ -4130,8 +4130,8 @@ boolean u_caused;
             }
         }
     }
-    /* This also ignites floor items, but does not change cnt based on them
-     * because they weren't consumed. */
+    /* This also ignites floor items, but does not change cnt
+       because they weren't consumed. */
     ignite_items(g.level.objects[x][y]);
     return cnt;
 }

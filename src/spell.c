@@ -503,21 +503,18 @@ register struct obj *spellbook;
             return 0;
         }
 
+        /* currently level * 10 */
+        g.context.spbook.delay = -objects[booktype].oc_delay;
+
         /* check to see if we already know it and want to refresh our memory */
         for (i = 0; i < MAXSPELL; i++)
             if (spellid(i) == booktype || spellid(i) == NO_SPELL)
                 break;
         if (spellid(i) == booktype && spellknow(i) > KEEN / 10) {
-            char qbuf[QBUFSZ];
-            Sprintf(qbuf,
-              "You know \"%s\" quite well already. Refresh your memory anyway?",
-              OBJ_NAME(objects[booktype]));
-            if (yn(qbuf) == 'n')
+            You("know \"%s\" quite well already.", OBJ_NAME(objects[booktype]));
+            if (yn("Refresh your memory anyway?") == 'n')
                 return 0;
         }
-
-        /* currently level * 10 */
-        g.context.spbook.delay = -objects[booktype].oc_delay;
 
         /* Books are often wiser than their readers (Rus.) */
         spellbook->in_use = TRUE;

@@ -6333,22 +6333,20 @@ struct obj *objchn;
 {
     struct obj *obj;
     boolean vis = FALSE;
-    if (!objchn) {
+    if (!objchn)
         return;
-    }
-    if (objchn->where == OBJ_INVENT) {
-        vis = TRUE;
-    }
-    else if (objchn->where == OBJ_MINVENT) {
+
+    if (objchn->where == OBJ_INVENT)
+        vis = TRUE; /* even when blind; lit-state can be seen in inventory */
+    else if (objchn->where == OBJ_MINVENT)
         vis = canseemon(objchn->ocarry);
-    }
-    else if (objchn->where == OBJ_FLOOR) {
+    else if (objchn->where == OBJ_FLOOR)
         vis = cansee(objchn->ox, objchn->oy);
-    }
     else {
         impossible("igniting item in a weird location %d", objchn->where);
         return;
     }
+
     for (obj = objchn; obj; obj = obj->nobj) {
         if (!(ignitable(obj) || obj->otyp == MAGIC_LAMP)
             /* The Candelabrum requires intention to be lit */
@@ -6359,11 +6357,9 @@ struct obj *objchn;
             continue;
         }
         begin_burn(obj, FALSE);
-        if (vis) {
+        if (vis)
             pline("%s on fire!", Yobjnam2(obj, "catch"));
-        }
     }
 }
-
 
 /*trap.c*/

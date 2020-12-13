@@ -441,9 +441,8 @@ int expltype;
                 idamnonres += destroy_mitem(mtmp, WAND_CLASS, (int) adtyp);
                 idamnonres += destroy_mitem(mtmp, RING_CLASS, (int) adtyp);
 
-                if (adtyp == AD_FIRE) {
+                if (adtyp == AD_FIRE)
                     ignite_items(mtmp->minvent);
-                }
 
                 if (explmask[i][j] == 1) {
                     golemeffects(mtmp, (int) adtyp, dam + idamres);

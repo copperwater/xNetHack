@@ -95,35 +95,3 @@ if [ ! -d "lib/lua-$LUA_VERSION/src" ]; then
         exit 0
 fi
 
-#echo after dos extender
-
-cd src
-
-mkdir -p ../msdos-binary
-cp ../dat/data.base ../dat/data.bas
-cp ../include/patchlevel.h ../include/patchlev.h
-cp ../doc/Guidebook.txt ../doc/guidebk.txt
-cp ../sys/share/posixregex.c ../sys/share/posixreg.c
-#cp ../sys/msdos/Makefile1.cross ../src/Makefile1
-#cp ../sys/msdos/Makefile2.cross ../src/Makefile2
-make -f ../sys/msdos/Makefile1.cross
-#cat ../include/date.h
-export GCC_EXEC_PREFIX=$DJGPP_TOP/lib/gcc/
-# export
-
-#pwd
-
-make -f ../sys/msdos/Makefile2.cross
-unset GCC_EXEC_PREFIX
-#pwd
-
-if [ -f ../lib/djgpp/cwsdpmi/bin/CWSDPMI.EXE ]; then
-    cp  ../lib/djgpp/cwsdpmi/bin/CWSDPMI.EXE ../msdos-binary/CWSDPMI.EXE;
-fi
-
-# ls -l ../msdos-binary
-cd ../msdos-binary
-zip -9 ../lib/NH370DOS.ZIP *
-cd ../
-ls -l lib/NH370DOS.ZIP
-
