@@ -217,23 +217,23 @@ timeout.c   topten.c    track.c     trap.c      u_init.c    uhitm.c
 vault.c     version.c   vision.c    weapon.c    were.c      wield.c
 windows.c   wizard.c    worm.c      worn.c      write.c     zap.c
 
-sys/lib:
+sys/libnh:
 (files in top directory)
-README.md         libnethackmain.c  sysconf
+README.md    libnhmain.c  sysconf
 
-sys/lib/npm-package:
+sys/libnh/npm-package:
 (files in top directory)
 LICENSE.md         README.md          package-lock.json  package.json
 
-sys/lib/npm-package/src:
+sys/libnh/npm-package/src:
 (file in top directory)
 nethackShim.js
 
-sys/lib/npm-package/test:
+sys/libnh/npm-package/test:
 (file in top directory)
 test.js
 
-sys/lib/test:
+sys/libnh/test:
 (files in top directory)
 README.md  libtest.c  run.sh
 
@@ -428,8 +428,8 @@ record.uu              resource.h             rip.uu
 splash.uu              tiles-mingw32.mak      tiles.mak
 winMS.h
 
-win/win32/vs2017:
-(files for Visual Studio 2017 Community Edition builds)
+win/win32/vs:
+(files for Visual Studio 2017 or 2019 Community Edition builds)
 NetHack.sln                   NetHack.vcxproj
 NetHackPackage.appxmanifest   NetHackPackage.wapproj
 NetHackProperties.props       NetHackW.vcxproj
@@ -451,8 +451,8 @@ recover.vcxproj               tile2bmp.vcxproj
 tilemap.vcxproj               tiles.vcxproj
 travisci.sh                   uudecode.vcxproj
 
-win/win32/vs2017/Images:
-(files for Visual Studio 2017 Community Edition builds)
+win/win32/vs/Images:
+(files for Visual Studio 2017 or 2019 Community Edition builds)
 BadgeLogo.scale-100.png
 BadgeLogo.scale-125.png
 BadgeLogo.scale-150.png

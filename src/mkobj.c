@@ -205,7 +205,7 @@ boolean init, artif;
     otmp = mksobj(otyp, init, artif);
     add_to_migration(otmp);
     otmp->owornmask = (long) MIGR_TO_SPECIES;
-    otmp->corpsenm = mflags2;
+    otmp->migr_species = mflags2;
     return otmp;
 }
 
@@ -1327,7 +1327,14 @@ struct obj *body;
                 break;
             }
         }
-    } else if (body->zombie_corpse && !body->norevive) {
+    } else if (!no_revival && g.zombify
+               && zombie_form(&mons[body->corpsenm]) != NON_PM) {
+        action = ZOMBIFY_MON;
+        when = 5 + rn2(15);
+        if (g.zombify == ZOMBIFY_TAME) {
+            body->tamed_zombie = 1;
+        }
+    } else if (body->zombie_corpse && !no_revival) {
         long age;
         for (age = 2; age <= ROT_AGE; age++) {
             if (!rn2(ZOMBIE_REVIVE_CHANCE)) { /* zombie revives */
@@ -1761,10 +1768,9 @@ int x, y;
 }
 
 /* return TRUE if the corpse has special timing;
-   lizards and lichen don't rot, trolls and Riders auto-revive */
+   lizards and lichen don't rot, trolls and Riders and zombies auto-revive */
 #define special_corpse(num) \
-    (((num) == PM_LIZARD || (num) == PM_LICHEN)                 \
-     || (mons[num].mlet == S_TROLL || is_rider(&mons[num])))
+    (((num) == PM_LIZARD || (num) == PM_LICHEN) || is_reviver(&mons[num]))
 
 /* mkcorpstat: make a corpse or statue; never returns Null.
  *
@@ -1821,7 +1827,7 @@ unsigned corpstatflags;
 
         otmp->corpsenm = monsndx(ptr);
         otmp->owt = weight(otmp);
-        if (otmp->otyp == CORPSE && (special_corpse(old_corpsenm)
+        if (otmp->otyp == CORPSE && (g.zombify || special_corpse(old_corpsenm)
                                      || special_corpse(otmp->corpsenm))) {
             obj_stop_timers(otmp);
             if (mtmp && is_reviver(mtmp->data) && !is_rider(mtmp->data)

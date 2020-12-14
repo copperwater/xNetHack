@@ -856,6 +856,11 @@ boolean by_hero;
     if (M_AP_TYPE(mtmp))
         seemimic(mtmp);
 
+    /* if the revived is a zombie, it might be specified as tame */
+    if (corpse->tamed_zombie) {
+        tamedog(mtmp, (struct obj *) 0, FALSE);
+    }
+
     one_of = (corpse->quan > 1L);
     if (one_of)
         corpse = splitobj(corpse, 1L);

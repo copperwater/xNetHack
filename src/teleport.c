@@ -533,7 +533,7 @@ struct obj *scroll;
                 learnscroll(scroll);
             cc.x = u.ux;
             cc.y = u.uy;
-            if (iflags.travelcc.x != 0 || iflags.travelcc.y != 0) {
+            if (isok(iflags.travelcc.x, iflags.travelcc.y)) {
                 /* The player showed some interest in traveling here;
                  * pre-suggest this coordinate. */
                 cc = iflags.travelcc;
@@ -547,6 +547,8 @@ struct obj *scroll;
                     && yn("You can't normally teleport here. Do it anyway?") == 'y')) {
                 /* for scroll, discover it regardless of destination */
                 teleds(cc.x, cc.y, TELEDS_TELEPORT);
+                if (iflags.travelcc.x == u.ux && iflags.travelcc.y == u.uy)
+                    iflags.travelcc.x = iflags.travelcc.y = 0;
                 return;
             }
             pline("Sorry...");
@@ -1201,10 +1203,10 @@ struct monst *mtmp;
            sent out of his room (caller might resort to goodpos() if
            we report failure here, so this isn't full prevention) */
         if (mtmp->isshk && inhishop(mtmp)) {
-            if (levl[x][y].roomno != ESHK(mtmp)->shoproom)
+            if (levl[x][y].roomno != (unsigned char) ESHK(mtmp)->shoproom)
                 return FALSE;
         } else if (mtmp->ispriest && inhistemple(mtmp)) {
-            if (levl[x][y].roomno != EPRI(mtmp)->shroom)
+            if (levl[x][y].roomno !=  (unsigned char) EPRI(mtmp)->shroom)
                 return FALSE;
         }
         /* current location is <xx,yy> */

@@ -980,6 +980,7 @@ struct instance_globals {
     /* mon.c */
     boolean vamp_rise_msg;
     boolean disintegested;
+    xchar zombify;
     short *animal_list; /* list of PM values for animal monsters */
     int animal_list_count;
 

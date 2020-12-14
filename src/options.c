@@ -1,4 +1,4 @@
-/* NetHack 3.7	options.c	$NHDT-Date: 1599893947 2020/09/12 06:59:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.473 $ */
+/* NetHack 3.7	options.c	$NHDT-Date: 1603666043 2020/10/25 22:47:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.478 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -309,7 +309,10 @@ register char *opts;
 boolean tinitial, tfrom_file;
 {
     char *op;
-    boolean negated, got_match = FALSE, has_val = FALSE;
+    boolean negated, got_match = FALSE;
+#if 0
+    boolean has_val = FALSE;
+#endif
     int i, matchidx = -1, optresult = optn_err, optlen, optlen_wo_val;
     boolean retval = TRUE;
 
@@ -350,11 +353,16 @@ boolean tinitial, tfrom_file;
     optlen = (int) strlen(opts);
     optlen_wo_val = length_without_val(opts, optlen);
     if (optlen_wo_val < optlen) {
+#if 0
         has_val = TRUE;
+#endif
         optlen = optlen_wo_val;
-    } else {
+    }
+#if 0
+    else {
         has_val = FALSE;
     }
+#endif
 
     for (i = 0; i < OPTCOUNT; ++i) {
         got_match = FALSE;
@@ -4627,6 +4635,12 @@ char *op;
                 /* [is reassessment really needed here?] */
                 status_initialize(REASSESS_ONLY);
                 g.opt_need_redraw = TRUE;
+#ifdef QT_GRAPHICS
+            } else if (WINDOWPORT("Qt")) {
+                /* Qt doesn't support HILITE_STATUS or FLUSH_STATUS so fails
+                   VIA_WINDOWPORT(), but it does support WC2_HITPOINTBAR */
+                g.context.botlx = TRUE;
+#endif
             }
             break;
         case opt_color:
@@ -7428,7 +7442,7 @@ doset() /* changing options via menu by Per Liboriussen */
                     (void) parseoptions(buf, setinitial, fromfile);
                 } else {
                     /* compound option */
-                    int k = opt_indx, reslt;
+                    int k = opt_indx, reslt UNUSED;
 
                     if (allopt[k].has_handler && allopt[k].optfn) {
                         reslt = (*allopt[k].optfn)(allopt[k].idx, do_handler,
@@ -7461,7 +7475,8 @@ doset() /* changing options via menu by Per Liboriussen */
         check_gold_symbol();
         reglyph_darkroom();
         (void) doredraw();
-    } else if (g.context.botl || g.context.botlx) {
+    }
+    if (g.context.botl || g.context.botlx) {
         bot();
     }
     return 0;

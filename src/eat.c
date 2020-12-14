@@ -1,4 +1,4 @@
-/* NetHack 3.7	eat.c	$NHDT-Date: 1599258557 2020/09/04 22:29:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.233 $ */
+/* NetHack 3.7	eat.c	$NHDT-Date: 1603507384 2020/10/24 02:43:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.235 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -70,13 +70,15 @@ register struct obj *obj;
 
     if (obj == &cg.zeroobj) {
         struct trap *ttmp = t_at(u.ux, u.uy);
-        if (!ttmp || !ttmp->tseen || ttmp->ttyp != BEAR_TRAP)
-            return 0;
-
         if (!metallivorous(g.youmonst.data))
-            return 0;
+            return 0; /* the only floor eatables are certain traps and bars */
 
-        return 2;
+        if (ttmp && ttmp->tseen && ttmp->ttyp == BEAR_TRAP)
+            return 2;
+        else if (levl[u.ux][u.uy].typ == IRONBARS)
+            return 2;
+
+        return 0;
     }
 
     if (!obj)
@@ -1542,7 +1544,8 @@ opentin(VOID_ARGS)
 {
     /* perhaps it was stolen (although that should cause interruption) */
     if (!carried(g.context.tin.tin)
-        && (!obj_here(g.context.tin.tin, u.ux, u.uy) || !can_reach_floor(TRUE)))
+        && (!obj_here(g.context.tin.tin, u.ux, u.uy)
+            || !can_reach_floor(TRUE)))
         return 0; /* %% probably we should use tinoid */
     if (g.context.tin.usedtime++ >= 50) {
         You("give up your attempt to open the tin.");
@@ -2619,6 +2622,18 @@ doeat()
         }
     }
 
+    /* from floorfood(), &zeroobj means iron bars at current spot */
+    if (otmp == &cg.zeroobj) {
+        /* hero in metallivore form is eating [diggable] iron bars
+           at current location so skip the other assorted checks;
+           operates as if digging rather than via the eat occupation */
+        if (still_chewing(u.ux, u.uy) && levl[u.ux][u.uy].typ == IRONBARS) {
+            /* this is verbose, but player will see the hero rather than the
+               bars so wouldn't know that more turns of eating are required */
+            You("pause to swallow.");
+        }
+        return 1;
+    }
     /* We have to make non-foods take 1 move to eat, unless we want to
      * do ridiculous amounts of coding to deal with partly eaten plate
      * mails, players who polymorph back to human in the middle of their
@@ -3364,15 +3379,15 @@ int corpsecheck; /* 0, no check, 1, corpses, 2, tinnable corpses */
     register struct obj *otmp;
     char qbuf[QBUFSZ];
     char c;
-    boolean feeding = !strcmp(verb, "eat"),    /* corpsecheck==0 */
-        offering = !strcmp(verb, "sacrifice"); /* corpsecheck==1 */
+    struct permonst *uptr = g.youmonst.data;
+    boolean feeding = !strcmp(verb, "eat"),        /* corpsecheck==0 */
+            offering = !strcmp(verb, "sacrifice"); /* corpsecheck==1 */
 
     boolean floor_ok = TRUE;
     if (iflags.menu_requested /* command was preceded by 'm' prefix */
         || !can_reach_floor(TRUE) || (feeding && u.usteed)
         || (is_pool_or_lava(u.ux, u.uy)
-            && (Wwalking || is_clinger(g.youmonst.data)
-                || (Flying && !Breathless))))
+            && (Wwalking || is_clinger(uptr) || (Flying && !Breathless))))
         floor_ok = FALSE;
 
     if (feeding)
@@ -3389,31 +3404,57 @@ int corpsecheck; /* 0, no check, 1, corpses, 2, tinnable corpses */
     }
 
     if (otmp == &cg.zeroobj) { /* trap */
+        /* already verified that hero is metallivorous in is_edible */
         struct trap *trap = t_at(u.ux, u.uy);
-        if (!trap) {
-            impossible("Eating non-trap dungeon feature?");
-            return NULL;
-        }
+        if (!trap && levl[u.ux][u.uy].typ == IRONBARS) {
+            boolean nodig = (levl[u.ux][u.uy].wall_info & W_NONDIGGABLE) != 0;
 
-        if (trap->tseen && trap->ttyp == BEAR_TRAP) {
+            c = 'n';
+            Strcpy(qbuf, "There are iron bars here");
+            if (nodig || u.uhunger > 1500) {
+                pline("%s but you %s eat them.", qbuf,
+                      nodig ? "cannot" : "are too full to");
+                return (struct obj *) 0;
+            } else {
+                Strcat(qbuf, ((!g.context.digging.chew
+                               || g.context.digging.pos.x != u.ux
+                               || g.context.digging.pos.y != u.uy
+                               || !on_level(&g.context.digging.level, &u.uz))
+                              ? "; eat them?"
+                              : "; resume eating them?"));
+                c = yn_function(qbuf, ynqchars, 'n');
+            }
+            if (c == 'y')
+                return (struct obj *) &cg.zeroobj; /* csst away 'const' */
+            else if (c == 'q')
+                return (struct obj *) 0;
+        }
+        else if (trap && trap->tseen && trap->ttyp == BEAR_TRAP) {
             boolean u_in_beartrap = (u.utrap && u.utraptype == TT_BEARTRAP);
 
             /* If not already stuck in the trap, perhaps there should
                be a chance to becoming trapped?  Probably not, because
                then the trap would just get eaten on the _next_ turn... */
-            Sprintf(qbuf, "There is a bear trap here (%s); eat it?",
+            Sprintf(qbuf, "There is a bear trap here (%s)",
                     u_in_beartrap ? "holding you" : "armed");
+            if (g.youmonst.data == &mons[PM_RUST_MONSTER] &&
+                trap->ammo->material != IRON) {
+                pline("%s, but you cannot eat it.", qbuf);
+                return (struct obj *) 0;
+            }
+            Strcat(qbuf, "; eat it?");
             if ((c = yn_function(qbuf, ynqchars, 'n')) == 'y') {
-                deltrap(trap);
                 if (u_in_beartrap)
                     reset_utrap(TRUE);
-                return mksobj(BEARTRAP, TRUE, FALSE);
+                return deltrap_with_ammo(trap, DELTRAP_RETURN_AMMO);
             } else if (c == 'q') {
                 return (struct obj *) 0;
             }
         }
-        impossible("Eating weird or unseen floor trap %d?", trap->ttyp);
-        return NULL;
+        else {
+            impossible("Eating non-trap non-ironbars feature?");
+            return NULL;
+        }
     }
 
     if (corpsecheck && otmp && !(offering && otmp->oclass == AMULET_CLASS) &&

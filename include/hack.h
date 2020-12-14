@@ -569,6 +569,12 @@ enum bodypart_types {
  * was never going to be, so it's now a constant. */
 #define CUMBERSOME_ARMOR_PENALTY 20
 
+/* values for g.zombify; 0 is assumed to be "off" and not in zombify mode */
+enum zombify_values {
+    ZOMBIFY_HOSTILE = 1, /* zombie will revive hostile */
+    ZOMBIFY_TAME    = 2, /* zombie will revive tame */
+};
+
 /*
  * option setting restrictions
  */

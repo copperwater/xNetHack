@@ -52,7 +52,7 @@ register xchar omx, omy, gx, gy;
     schar chcnt, cnt;
     coord poss[9];
     long info[9];
-    long ninfo;
+    long ninfo = 0;
     long allowflags;
 #if 0 /* dead code; see below */
     struct obj *ib = (struct obj *) 0;
@@ -131,7 +131,7 @@ pick_move:
             /* mtmp is deciding it would like to attack this turn.
              * Returns from m_move_aggress don't correspond to the same things
              * as this function should return, so we need to translate. */
-            switch(m_move_aggress(mtmp, nix, niy)) {
+            switch (m_move_aggress(mtmp, nix, niy)) {
             case 2:
                 return -2; /* died making the attack */
             case 3:

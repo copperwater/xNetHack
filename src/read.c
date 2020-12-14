@@ -615,11 +615,21 @@ struct obj *obj;
         (obj->known || (!obj->dknown && objects[obj->otyp].oc_name_known)))
         return 2;
 
-    if (obj->oclass == TOOL_CLASS && !is_weptool(obj) &&
-        objects[obj->otyp].oc_charged)
-        return 2;
+    if (is_weptool(obj)) /* specific check before general tools */
+        return 0;
 
-    return 1;
+    if (obj->oclass == TOOL_CLASS) {
+        if (obj->otyp == LANTERN
+            || (obj->otyp == OIL_LAMP)
+            /* only list magic lamps if they are not identified yet */
+            || (obj->otyp == MAGIC_LAMP
+                && !objects[MAGIC_LAMP].oc_name_known)) {
+            return 2;
+        }
+        return objects[obj->otyp].oc_charged ? 2 : 0;
+    }
+
+    return 0; /* why are weapons/armor considered charged anyway? */
 }
 
 /* recharge an object; curse_bless is -1 if the recharging implement

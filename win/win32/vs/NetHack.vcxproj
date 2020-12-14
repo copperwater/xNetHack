@@ -2,8 +2,9 @@
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="config.props" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CEC5D360-8804-454F-8591-002184C23499}</ProjectGuid>
-    <RootNamespace>NetHackW</RootNamespace>
+    <ProjectGuid>{609BC774-C6F8-4B2B-AA7D-5B3D0EA95751}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>NetHack</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="default.props" />
@@ -20,31 +21,36 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="NetHackProperties.props" />
   </ImportGroup>
+  <Import Project="console.props" />
   <Import Project="common.props" />
   <Import Project="dirs.props" />
   <Import Project="files.props" />
   <PropertyGroup>
     <OutDir>$(BinDir)</OutDir>
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="Exists('$(PDCURSES)')">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(PDCURSES);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>CURSES_GRAPHICS;CHTYPE_32;PDC_NCMOUSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(ToolsDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PDCurses.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalOptions>/Gs /Oi- %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>$(WinWin32Dir);$(IncDir);$(SysWinntDir);$(SysShareDir);$(WinShareDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>TILES;_WINDOWS;DLB;MSWIN_GRAPHICS;SAFEPROCS;NOTTYGRAPHICS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TILES;WIN32CON;DLB;MSWIN_GRAPHICS;SAFEPROCS;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-    </ResourceCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>comctl32.lib;winmm.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;Winmm.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <Manifest>
-      <AdditionalManifestFiles>$(WinWin32Dir)NethackW.exe.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
-    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(LuaDir)lapi.c" />
@@ -116,8 +122,8 @@
     <ClCompile Include="$(SrcDir)fountain.c" />
     <ClCompile Include="$(SrcDir)hack.c" />
     <ClCompile Include="$(SrcDir)hacklib.c" />
-    <ClCompile Include="$(SrcDir)invent.c" />
     <ClCompile Include="$(SrcDir)insight.c" />
+    <ClCompile Include="$(SrcDir)invent.c" />
     <ClCompile Include="$(SrcDir)isaac64.c" />
     <ClCompile Include="$(SrcDir)light.c" />
     <ClCompile Include="$(SrcDir)lock.c" />
@@ -189,7 +195,6 @@
     <ClCompile Include="$(SrcDir)vault.c" />
     <ClCompile Include="$(SrcDir)version.c" />
     <ClCompile Include="$(SrcDir)vision.c" />
-    <ClCompile Include="$(SrcDir)vis_tab.c" />
     <ClCompile Include="$(SrcDir)weapon.c" />
     <ClCompile Include="$(SrcDir)were.c" />
     <ClCompile Include="$(SrcDir)wield.c" />
@@ -203,58 +208,98 @@
     <ClCompile Include="$(SysShareDir)nhlan.c" />
     <ClCompile Include="$(SysShareDir)random.c" />
     <ClCompile Include="$(SysWinntDir)ntsound.c" />
+    <ClCompile Include="$(SysWinntDir)nttty.c" />
     <ClCompile Include="$(SysWinntDir)stubs.c">
-      <PreprocessorDefinitions>TTYSTUB;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GUISTUB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="$(SysWinntDir)windmain.c" />
     <ClCompile Include="$(SysWinntDir)winnt.c" />
-    <ClCompile Include="$(SysWinntDir)win10.c" />
     <ClCompile Include="$(WinShareDir)safeproc.c" />
-    <ClCompile Include="$(WinWin32Dir)mhaskyn.c" />
-    <ClCompile Include="$(WinWin32Dir)mhdlg.c" />
-    <ClCompile Include="$(WinWin32Dir)mhfont.c" />
-    <ClCompile Include="$(WinWin32Dir)mhinput.c" />
-    <ClCompile Include="$(WinWin32Dir)mhmain.c" />
-    <ClCompile Include="$(WinWin32Dir)mhmap.c" />
-    <ClCompile Include="$(WinWin32Dir)mhmenu.c" />
-    <ClCompile Include="$(WinWin32Dir)mhmsgwnd.c" />
-    <ClCompile Include="$(WinWin32Dir)mhrip.c" />
-    <ClCompile Include="$(WinWin32Dir)mhsplash.c" />
-    <ClCompile Include="$(WinWin32Dir)mhstatus.c" />
-    <ClCompile Include="$(WinWin32Dir)mhtext.c" />
-    <ClCompile Include="$(WinWin32Dir)mswproc.c" />
-    <ClCompile Include="$(WinWin32Dir)NetHackW.c" />
+    <ClCompile Include="$(WinTtyDir)getline.c" />
+    <ClCompile Include="$(WinTtyDir)topl.c" />
+    <ClCompile Include="$(WinTtyDir)wintty.c" />
+    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursdial.c" />
+    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursinit.c" />
+    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursinvt.c" />
+    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursmain.c" />
+    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursmesg.c" />
+    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursmisc.c" />
+    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)cursstat.c" />
+    <ClCompile Condition="Exists('$(PDCURSES)')" Include="$(WinCursDir)curswins.c" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="$(WinWin32Dir)NetHackW.rc" />
+    <ClInclude Include="$(IncDir)align.h" />
+    <ClInclude Include="$(IncDir)artifact.h" />
+    <ClInclude Include="$(IncDir)artilist.h" />
+    <ClInclude Include="$(IncDir)attrib.h" />
+    <ClInclude Include="$(IncDir)botl.h" />
+    <ClInclude Include="$(IncDir)color.h" />
+    <ClInclude Include="$(IncDir)config.h" />
+    <ClInclude Include="$(IncDir)config1.h" />
+    <ClInclude Include="$(IncDir)context.h" />
+    <ClInclude Include="$(IncDir)coord.h" />
+    <ClInclude Include="$(IncDir)date.h" />
+    <ClInclude Include="$(IncDir)decl.h" />
+    <ClInclude Include="$(IncDir)display.h" />
+    <ClInclude Include="$(IncDir)dlb.h" />
+    <ClInclude Include="$(IncDir)dungeon.h" />
+    <ClInclude Include="$(IncDir)engrave.h" />
+    <ClInclude Include="$(IncDir)extern.h" />
+    <ClInclude Include="$(IncDir)flag.h" />
+    <ClInclude Include="$(IncDir)func_tab.h" />
+    <ClInclude Include="$(IncDir)global.h" />
+    <ClInclude Include="$(IncDir)hack.h" />
+    <ClInclude Include="$(IncDir)isaac64.h" />
+    <ClInclude Include="$(IncDir)mextra.h" />
+    <ClInclude Include="$(IncDir)mfndpos.h" />
+    <ClInclude Include="$(IncDir)mkroom.h" />
+    <ClInclude Include="$(IncDir)monattk.h" />
+    <ClInclude Include="$(IncDir)mondata.h" />
+    <ClInclude Include="$(IncDir)monflag.h" />
+    <ClInclude Include="$(IncDir)monst.h" />
+    <ClInclude Include="$(IncDir)monsym.h" />
+    <ClInclude Include="$(IncDir)nhlua.h" />
+    <ClInclude Include="$(IncDir)ntconf.h" />
+    <ClInclude Include="$(IncDir)obj.h" />
+    <ClInclude Include="$(IncDir)objclass.h" />
+    <ClInclude Include="$(IncDir)onames.h" />
+    <ClInclude Include="$(IncDir)patchlevel.h" />
+    <ClInclude Include="$(IncDir)permonst.h" />
+    <ClInclude Include="$(IncDir)pm.h" />
+    <ClInclude Include="$(IncDir)prop.h" />
+    <ClInclude Include="$(IncDir)quest.h" />
+    <ClInclude Include="$(IncDir)rect.h" />
+    <ClInclude Include="$(IncDir)region.h" />
+    <ClInclude Include="$(IncDir)rm.h" />
+    <ClInclude Include="$(IncDir)skills.h" />
+    <ClInclude Include="$(IncDir)spell.h" />
+    <ClInclude Include="$(IncDir)sp_lev.h" />
+    <ClInclude Include="$(IncDir)timeout.h" />
+    <ClInclude Include="$(IncDir)tradstdc.h" />
+    <ClInclude Include="$(IncDir)trap.h" />
+    <ClInclude Include="$(IncDir)vision.h" />
+    <ClInclude Include="$(IncDir)winprocs.h" />
+    <ClInclude Include="$(IncDir)wintty.h" />
+    <ClInclude Include="$(IncDir)wintype.h" />
+    <ClInclude Include="$(IncDir)you.h" />
+    <ClInclude Include="$(IncDir)youprop.h" />
+    <ClInclude Include="$(WinWin32Dir)nhresource.h" />
+    <ClInclude Include="$(WinCursDir)cursdial.h" />
+    <ClInclude Include="$(WinCursDir)cursinit.h" />
+    <ClInclude Include="$(WinCursDir)cursinvt.h" />
+    <ClInclude Include="$(WinCursDir)cursmesg.h" />
+    <ClInclude Include="$(WinCursDir)cursmisc.h" />
+    <ClInclude Include="$(WinCursDir)cursstat.h" />
+    <ClInclude Include="$(WinCursDir)curswins.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(WinWin32Dir)mhaskyn.h" />
-    <ClInclude Include="$(WinWin32Dir)mhdlg.h" />
-    <ClInclude Include="$(WinWin32Dir)mhfont.h" />
-    <ClInclude Include="$(WinWin32Dir)mhinput.h" />
-    <ClInclude Include="$(WinWin32Dir)mhmain.h" />
-    <ClInclude Include="$(WinWin32Dir)mhmap.h" />
-    <ClInclude Include="$(WinWin32Dir)mhmenu.h" />
-    <ClInclude Include="$(WinWin32Dir)mhmsg.h" />
-    <ClInclude Include="$(WinWin32Dir)mhmsgwnd.h" />
-    <ClInclude Include="$(WinWin32Dir)mhrip.h" />
-    <ClInclude Include="$(WinWin32Dir)mhsplash.h" />
-    <ClInclude Include="$(WinWin32Dir)mhstatus.h" />
-    <ClInclude Include="$(WinWin32Dir)mhtext.h" />
-    <ClInclude Include="$(WinWin32Dir)winMS.h" />
-    <ClInclude Include="..\resource.h" />
+    <ResourceCompile Include="$(WinWin32Dir)NetHack.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\mnsel.bmp" />
-    <Image Include="..\mnselcnt.bmp" />
-    <Image Include="..\mnunsel.bmp" />
-    <Image Include="..\NETHACK.ICO" />
-    <Image Include="..\petmark.bmp" />
-    <Image Include="..\pilemark.bmp" />
-    <Image Include="..\rip.bmp" />
-    <Image Include="..\splash.bmp" />
-    <Image Include="..\tiles.bmp" />
+    <Image Include="$(WinWin32Dir)nethack.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Target Name="AfterBuild">
