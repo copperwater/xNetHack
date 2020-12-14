@@ -61,10 +61,11 @@ NetHackQtInvUsageWindow::~NetHackQtInvUsageWindow()
 
 void NetHackQtInvUsageWindow::drawWorn(QPainter &painter, obj *nhobj,
                                        int x, int y, // cell index, not pixels
-                                       const char *alttip, bool canbe)
+                                       const char *alttip, int flags)
 {
     short int glyph;
     int border;
+    bool rev = false;
 
     if (nhobj) {
         border = BORDER_DEFAULT;
@@ -86,6 +87,8 @@ void NetHackQtInvUsageWindow::drawWorn(QPainter &painter, obj *nhobj,
             Strcpy(tips[x][y], itmnam);
         else
             tips[x][y] = dupstr(itmnam);
+
+        rev = (flags == dollReverse);
 #endif
         glyph = obj_to_glyph(nhobj, rn2_on_display_rng);
     } else {
@@ -102,35 +105,49 @@ void NetHackQtInvUsageWindow::drawWorn(QPainter &painter, obj *nhobj,
 #else
         nhUse(alttip);
 #endif
-        glyph = canbe ? cmap_to_glyph(S_room) : GLYPH_UNEXPLORED;
+        // an empty slot is shown as floor tile unless it's always empty
+        glyph = (flags != dollUnused) ? cmap_to_glyph(S_room)
+                                      : GLYPH_UNEXPLORED;
     }
-    qt_settings->glyphs().drawBorderedCell(painter, glyph, x, y, border);
+    qt_settings->glyphs().drawBorderedCell(painter, glyph, x, y, border, rev);
 }
 
+// called to update the paper doll inventory subset
 void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
 {
-    //    0 1 2      two        dual
-    //               hander     wielding
-    // 0  b H q      b H q      b H q
-    // 1  S " w      W " W      X " w
-    // 2  G C x      G C x      G C .
-    // 3  = A =      = A =      = A =
-    // 4  l U L      l U L      l U L
-    // 5  . F .      . F .      . F .
+    // Paper doll is a 6 row by 3 column grid of worn and wielded
+    // equipment showing the map tiles that the inventory objects
+    // would be displayed as if they were on the floor.
     //
-    // 3.7: use a different legend for the layout
-    //      show quiver instead of repeating gloves on both sides;
+    //    0 1 2            two-    dual
+    //   [ old ]   normal  hander  wielding              legend
+    // 0 [x H b]   b H q   b H q   b H q     b eyewear  H helmet  q quiver
+    // 1 [S " w]   S " w   W " W   X " w     S shield   " amulet  w weapon
+    // 2 [G C G]   G C x   G C x   G C .     G gloves   C cloak   x alt-weap
+    // 3 [= A =]   = A =   = A =   = A =     = left rg  A suit    = right ring
+    // 4 [. U .]   l U L   l U L   l U L     l leash    U shirt   L light
+    // 5 [. F .]   . F .   . F .   . F .     . blank    F boots   . blank
+    //                                       W wielded two-handed weapon
+    //                                       X wielded secondary weapon
+    //
+    // 3.7: use a different legend for the layout:
+    //      show gloves in only one slot;
+    //      move alternate weapon to former right hand glove slot;
+    //      move blindfold to former alternate weapon slot;
+    //      add quiver to former blindfold slot;
     //      show secondary weapon in shield slot when two-weapon is active;
     //      show two-handed primary weapon in both shield and uwep slots;
     //      show lit lamp/lantern/candle/candelabrum on lower right side;
     //      show leash-in-use on lower left side
+    //
+    // Actually indexed by grid[column][row].
 
 #ifdef ENHANCED_PAPERDOLL
     if (iflags.wc_ascii_map)
         qt_settings->doll_is_shown = false;
     if (!qt_settings->doll_is_shown)
         return;
-    // set glyphs() for the paperdoll; might be different size than map's
+    // set glyphs() for the paper doll; might be different size than map's
     qt_settings->glyphs().setSize(qt_settings->dollWidth,
                                   qt_settings->dollHeight);
 
@@ -151,15 +168,15 @@ void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
        never be Null when the corresponding tests pass */
     if (u.twoweap)
         drawWorn(painter, uswapwep, 0, 1, NULL); // secondary weapon, in use
-    else if (uwep && bimanual(uwep))
-        drawWorn(painter, uwep,     0, 1, NULL); // two-handed uwep shown twice
+    else if (uwep && bimanual(uwep)) // show two-handed uwep twice
+        drawWorn(painter, uwep,     0, 1, NULL, dollReverse); // uwep on left
     else
         drawWorn(painter, uarms,    0, 1, "no shield");
     drawWorn(painter, uarmg,        0, 2, "no gloves");
     drawWorn(painter, uleft,        0, 3, "no left ring");
     /* light source and leash aren't unique and don't have pointers defined */
     drawWorn(painter, find_tool(LEASH), 0, 4, "no leashes in use");
-    drawWorn(painter, NULL,         0, 5, NULL, false); // always blank
+    drawWorn(painter, NULL,         0, 5, NULL, dollUnused); // always blank
 
     //  middle column; no unused slots
     drawWorn(painter, uarmh,   1, 0, "no helmet");
@@ -184,7 +201,7 @@ void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
        (and might also duplicate Sunsword when it is wielded--hence lit--
        depending upon whether another light source precedes it in invent) */
     drawWorn(painter, find_tool(OIL_LAMP), 2, 4, "no active light sources");
-    drawWorn(painter, NULL,    2, 5, NULL, false); // always blank
+    drawWorn(painter, NULL,    2, 5, NULL, dollUnused); // always blank
 
     painter.end();
 
