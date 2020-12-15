@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.402 $ $NHDT-Date: 1606781766 2020/12/01 00:16:06 $
+.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.407 $ $NHDT-Date: 1607936398 2020/12/14 08:59:58 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" Guidebook.mn currently does *not* fully adhere to these guidelines.
@@ -35,7 +35,7 @@
 .ds vr "NetHack 3.7
 .ds f0 "\*(vr
 .ds f1
-.ds f2 "November 30, 2020
+.ds f2 "December 13, 2020
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -1036,7 +1036,7 @@ Tell what equipment you are using.
 Combines the preceding five type-specific
 commands into one.
 .lp $
-Count your gold pieces.
+Report the gold you're carrying, possibly shop credit and/or debt too.
 .lp +
 List the spells you know.
 .lp ""
@@ -1060,6 +1060,20 @@ Show discovered types for one class of objects.
 .lp !
 Escape to a shell.
 See \(lq#shell\(rq below for more details.
+.lp Del
+Show map without obstructions.
+You can view the explored portion of the current level's map without
+monsters; without monsters and objects; or without monsters, objects,
+and traps.
+.lp ""
+The <del> key is also shown as <delete> on some keyboards or <rubout>
+on others.
+It is sometimes displayed as \(ha? even though that is not an actual
+control character.
+.lp ""
+Many terminals have an option to swap the <delete> and <backspace> keys,
+so typing the <del> key might not execute this command.
+If that happens, you can use the extended command \(lq#terrain\(rq instead.
 .lp #
 Perform an extended command.
 .lp ""
@@ -1387,9 +1401,6 @@ Default key is \(oq\(dq\(cq. \" double quote
 .lp #seearmor
 Show the armor currently worn.
 Default key is \(oq[\(cq.
-.lp "#seegold "
-Count your gold.
-Default key is \(oq$\(cq.
 .lp #seerings
 Show the ring(s) currently worn.
 Default key is \(oq=\(cq.
@@ -1406,11 +1417,20 @@ When enabled, access for specific users can be controlled by the system
 configuration file.
 Use the shell command \(oq\f(CRexit\fP\(cq to return to the game.
 Default key is \(oq!\(cq.
+.lp "#showgold"
+Report the gold in your inventory and if you are inside a shop,
+report any credit or debt you have in that shop.
+Does not report on any gold inside containers you're carrying.
+Default key is \(oq$\(cq.
 .lp #showspells
 List and reorder known spells.
 Default key is \(oq+\(cq.
 .lp "#showtrap"
-Show the type of an adjacent trap.
+Describe an adjacent trap, possibly covered by objects or a monster.
+To be eligible, the trap must already be discovered.
+(The \(lq#terrain\(rq command can display your map with all objects and
+monsters temporarily removed, making it possible to see all discovered
+traps.)
 Default key is \(oq\(ha\(cq. \" 'hat' (circumflex character)
 .lp "#sit     "
 Sit down.
@@ -1441,8 +1461,17 @@ Default key is \(oqA\(cq.
 Teleport around the level.
 Default key is \(oq\(haT\(cq.
 .lp "#terrain "
-Show bare map without displaying monsters, objects, or traps.
+Show map without obstructions.
+In normal play you can view the explored portion of the current level's
+map without monsters; without monsters and objects; or without monsters,
+objects, and traps.
+.lp ""
+In explore mode, you can choose to view the full map rather than just
+its explored portion.
+In debug mode there are additional choices.
+.lp ""
 Autocompletes.
+Default key is \(oq<del>\(cq or \(oq<delete>\(cq (see \fIDel\fP above).
 .lp #therecmdmenu
 Show a menu of possible actions in a location next to you.
 .lp "#throw   "
@@ -1496,10 +1525,17 @@ Autocompletes.
 Debug mode only.
 .lp "#version "
 Print compile time options for this version of NetHack.
+.lp ""
+The second paragraph lists the user interface(s) that are included.
+If there are more than one, you can use the
+.op windowtype
+option in your run-time configuration file to select the one you want.
+.lp ""
 Autocompletes.
 Default key is \(oqM-v\(cq.
 .lp #versionshort
-Show version string.
+Show the program's version number, plus the date and time that the
+running copy was built from sources (not the version's release date).
 Default key is \(oqv\(cq.
 .lp "#vision  "
 Show vision array.
@@ -4700,10 +4736,20 @@ Prefix key to run towards a direction.
 With
 .op number_pad
 only.
-Default is \(oq5\(cq.
+.lp ""
+Default is \(oq5\(cq when number_pad is set to 1 or 3,
+otherwise \(oqM-5\(cq when it is set to 2 or 4.
 .lp rush
 Prefix key to rush towards a direction.
 Default is \(oqg\(cq.
+.lp rush.numpad
+Prefix key to rush towards a direction.
+With
+.op number_pad
+only.
+.lp ""
+Default is \(oqM-5\(cq when number_pad is set to 1 or 3,
+otherwise \(oq5\(cq when it is set to 2 or 4.
 .hn 2
 Configuring Message Types
 .pg

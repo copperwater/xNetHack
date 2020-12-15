@@ -1,31 +1,90 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 strategy:
   matrix:
-    linux:
+    linux_focal_gcc8_minimal:
       imageName: 'ubuntu-20.04'
-    mac:
+      ccName: gcc-8
+      cxxName: g++-8
+      buildMinimalSetting: true
+    linux_focal_clang_all:
+      imageName: 'ubuntu-20.04'
+      ccName: clang
+      cxxName: clang++
+      buildMinimalSetting: false
+    linux_focal_gcc8_all:
+      imageName: 'ubuntu-20.04'
+      ccName: gcc-8
+      cxxName: g++-8
+      buildMinimalSetting: false
+    linux_focal_gcc9_all:
+      imageName: 'ubuntu-20.04'
+      ccName: gcc-9
+      cxxName: g++-9
+      buildMinimalSetting: false
+    linux_bionic_gcc7_all:
+      imageName: 'ubuntu-18.04'
+      ccName: gcc-7
+      cxxName: g++-7
+      buildMinimalSetting: false
+# build is currently broken
+#    mac_catalina_gcc8_all:
+#      imageName: 'macOS-10.15'
+#      ccName: gcc-8
+#      cxxName: g++-8
+#      buildMinimalSetting: false
+    mac_catalina_clang_all:
       imageName: 'macOS-10.15'
-    windows:
-      imageName: 'windows-latest'
+      ccName: clang
+      cxxName: clang++
+      buildMinimalSetting: false
+    windows-visualstudio:
+      imageName: 'windows-2019'
+      buildMinimalSetting: false
+      vsBuildSetting: true
+      mingwBuildSetting: false
+    windows-mingw:
+      imageName: 'windows-2019'
+      buildMinimalSetting: false
+      vsBuildSetting: false
+      mingwBuildSetting: true
 
 pool:
   vmImage: $(imageName)
 
-resources:
-  repositories:
-  - repository: luarepo
-    type: github
-    name: lua/lua
-    ref: refs/tags/v5.4.1
-    endpoint: github.com_barthouse
+# resources:
+#  repositories:
+#  - repository: pdcursesrepo
+#    type: github
+#    name: wmcbrine/PDCurses
+#    ref: refs/heads/master
+#    endpoint: github.com_barthouse
+
+variables:
+  buildMinimal: $(buildMinimalSetting)
+  mingwBuild: $(mingwBuildSetting)
+  vsBuild: $(vsBuildSetting)
+  ${{ if eq( variables['Agent.OS'], 'Windows_NT') }}:
+    NetHackPath: s\NetHack
+  ${{ if ne( variables['Agent.OS'], 'Windows_NT') }}:
+    NetHackPath: s/NetHack
+    CC: $(ccName)
+    CXX: $(cxxName)
 
 steps:
-- checkout: git://NetHack/NHsource@NetHack-3.7  # $(Agent.BuildDirectory)\s\NHsource
-- checkout: luarepo  # $(Agent.BuildDirectory)\s\lua
+# - bash: |
+#     echo 'mingwBuildSetting' '$(mingwBuildSetting)'
+#     echo 'mingwBuild' '$(mingwBuild)'
+#     echo 'vsBuild' '$(vsBuild)'
+#     echo 'NetHackPath' '$(NetHackPath)'
+#     echo 'CC' '$(CC)'
+#     echo 'CXX' '$(CXX)'
+
+- checkout: git://NetHack/NetHack@NetHack-3.7  # $(Agent.BuildDirectory)\s\NetHack
+  submodules: true
+  path: $(NetHackPath)
+
+# - checkout: pdcursesrepo
+#   path: s\NetHack\lib\pdcurses
+#   condition: and( eq( variables['Agent.OS'], 'Windows_NT' ), eq( variables.mingwBuild, true))
 
 - task: DownloadSecureFile@1
   name: storeKey
@@ -35,39 +94,88 @@ steps:
   condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
 - task: CopyFiles@2
-  inputs: 
+  inputs:
     contents: NetHackPackage_StoreKey.pfx
     SourceFolder: $(Agent.TempDirectory)
-    TargetFolder: $(Agent.BuildDirectory)\s\NHsource\win\win32\vs
+    TargetFolder: $(Agent.BuildDirectory)\s\NetHack\win\win32\vs
   condition: eq( variables['Agent.OS'], 'Windows_NT' )
-
-- task: CopyFiles@2
-  inputs: 
-    SourceFolder: $(Agent.BuildDirectory)\s\lua
-    TargetFolder: $(Agent.BuildDirectory)\s\NHsource\lib\lua-5.4.1\src
-  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: 'Copying store key'
 
 - task: MSBuild@1
   inputs:
-    solution: $(Agent.BuildDirectory)\s\NHsource\win\win32\vs\NetHack.sln
+    solution: $(Agent.BuildDirectory)\s\NetHack\win\win32\vs\NetHack.sln
     platform: Win32
     configuration: Debug
-  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  condition: and( eq( variables['Agent.OS'], 'Windows_NT' ), eq( variables.vsBuild, true))
+  displayName: 'Windows MSBuild'
 
 - bash: |
-    cd NHsource/sys/unix
+    echo 'gcc --version'
+    gcc --version
+    export ADD_CURSES=Y
+    export PDCURSES_TOP=../lib/pdcurses
+    export LUA_VERSION=5.4.2
+    export TRAVIS_COMPILER=1
+    cp ../sys/winnt/Makefile.gcc ./Makefile
+    mingw32-make LUA_VERSION=$LUA_VERSION install
+  condition: and( eq( variables['Agent.OS'], 'Windows_NT' ), eq( variables.mingwBuild, true))
+  displayName: 'Windows MinGW Build'
+  workingDirectory: $(Agent.BuildDirectory)/s/NetHack/src
+
+- bash: |
+    sudo apt-get -qq -y update
+    sudo apt-get -qq -y install libncurses5-dev
+    sudo apt-get -qq -y install libx11-dev libxaw7-dev xfonts-utils qtbase5-dev qtmultimedia5-dev qtbase5-dev-tools
+  condition: eq( variables['Agent.OS'], 'Linux' )
+  displayName: 'Getting linux build dependencies'
+  workingDirectory: $(Agent.BuildDirectory)/s/NetHack
+
+- bash: |
+    cd sys/unix
+    sh setup.sh hints/linux-minimal
+    cd ../..
+    sed -i '/^#define CLIPPING/d'       include/config.h
+    sed -i '/^#define COMPRESS/d'       include/config.h
+    #sed -i '/^#define DOAGAIN/d'        include/config.h
+    sed -i '/^#define DUMPLOG/d'        include/config.h
+    #sed -i '/^#define GDBPATH/d'        include/config.h
+    #sed -i '/^#define GREPPATH/d'       include/config.h
+    sed -i '/^#define INSURANCE/d'      include/config.h
+    sed -i '/^#define LOGFILE/d'        include/config.h
+    sed -i '/^#define NEWS/d'           include/config.h
+    sed -i '/^#define PANICLOG/d'       include/config.h
+    #sed -i '/^#define STATUS_HILITES/d' include/config.h
+    sed -i '/^#define SYSCF/d'          include/config.h
+    sed -i '/^#define USER_SOUNDS/d'    include/config.h
+    sed -i '/^#define XLOGFILE/d'       include/config.h
+
+    sed -i '/^#define MAIL/d'           include/unixconf.h
+    sed -i '/^#define SHELL/d'          include/unixconf.h
+    sed -i '/^#define SUSPEND/d'        include/unixconf.h
+    sed -i 's/^#define TEXTCOLOR//'     include/unixconf.h
+    cat include/config.h
+    make fetch-lua
+    make WANT_WIN_ALL=1 all
+  condition: and(eq( variables['Agent.OS'], 'Linux' ), eq( variables.buildMinimal, true))
+  displayName: 'Building linux minimal build'
+  workingDirectory: $(Agent.BuildDirectory)/s/NetHack
+
+- bash: |
+    cd sys/unix
     sh setup.sh hints/linux.2020
     cd ../..
     make fetch-lua
-    make all
-  condition: eq( variables['Agent.OS'], 'Linux' )
-  displayName: 'Linux Build'
+    make WANT_WIN_ALL=1 QT_SELECT=5 MOC=moc all
+  condition: and(eq( variables['Agent.OS'], 'Linux' ), eq( variables.buildMinimal, false))
+  displayName: 'Building linux full build'
+  workingDirectory: $(Agent.BuildDirectory)/s/NetHack
 
 - bash: |
-    cd NHsource/sys/unix
-    sh setup.sh hints/macosx10.14
+    cd sys/unix
+    sh setup.sh hints/macos.2020
     cd ../..
     make fetch-lua
     make all
   condition: eq( variables['Agent.OS'], 'Darwin' )
   displayName: 'Mac Build'
+  workingDirectory: $(Agent.BuildDirectory)/s/NetHack

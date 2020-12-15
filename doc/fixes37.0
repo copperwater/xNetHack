@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.377 $ $NHDT-Date: 1607373999 2020/12/07 20:46:39 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.392 $ $NHDT-Date: 1607936398 2020/12/14 08:59:58 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -320,6 +320,23 @@ when saving while punished or game ends while punished, handling for ball and
 	chain might access freed memory with unpredictable consequences
 brown pudding monster hitting another monster with decay attack corroded armor
 	instead of rotting it
+<?> -> <full key bindings> omitted 'n' prefix and M-digit for number_pad mode,
+	and ^A/re-do was suppressed due lack of obsolete '#define REDO'
+add missing key binding support for rush.numpad; default is M-5 for numpad==1
+	or plain 5 for numpad==2 where behavior of 5 and M-5 are swapped
+allow monsters to use wand of undead turning to revive corpses on floor
+	in some situations
+selling a container to a shop for gold leaves any contents that the shop
+	doesn't ordinarily buy and sell owned by the hero, but selling the
+	container for credit resulted in the shop taking poesession of such
+	contents without giving any additional credit; mark out of place
+	contents 'no_charge' so that hero can reclaim them without buying
+add some new demonic and angelic maledictions
+when fire damage dried a wet towel, it would never reduce the wetness to 0
+when water damage wet a towel, the new wetness might randomly become less
+when the wetness of a towel in inventory changed, persistent inventory wasn't
+	updated to show that
+make Death revive earlier, and all the Riders after 67 turns at latest
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -413,11 +430,16 @@ options help ('? g') listed all boolean options, then repeated them among
 change name of #wizlevelflip to #wizfliplevel
 dwarves could sometimes pass through walls without digging their way
 fix genetic engineers dropping Schroedinger's cat box
+the checks and handling for fountains, sinks, and drawbridges were being
+	missed during liquid_flow
+monster movement flags unification allowed displacer beasts to displace Riders
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
 Qt: at Xp levels above 20 with 'showexp' On, the combined status field
 	"Level:NN/nnnnnnnn" was too big and truncated by a char at each end
+Qt: searching a text window for something that wasn't found and then searching
+	for some other target could crash
 tty: redraw unexplored locations as S_unexplored rather than <space> after
 	map has been partially overwritten by popup menu or text display
 tty: previous change resulted in remnants of previous level being shown on
@@ -530,6 +552,8 @@ Qt+OSX: add a separate nethack->Quit menu entry with different functionality;
 Qt+OSX: since menu entry help->"About Qt NetHack" gets hijacked and becomes
 	"nethack->About nethack", add a separate help->_About_Qt_NetHack_
 	which stays where intended and brings up the same information
+Qt+OSX: suppress unwanted "Search [______]" action from being inserted as the
+	first entry in the menubar's "Help" dropdown menu
 tiles: add indicator of thonged portion to aklys tile
 tty: role and race selection menus weren't filtering out potential choices
 	which got excluded by OPTIONS=align:!lawful or !neutral or !chaotic
@@ -643,6 +667,10 @@ reading blessed scroll of teleportation confers one-shot teleport control
 mild zombie apocalypse
 list lamps and lanterns in charging prompt
 let tourists read conical hats
+when "?i" (show key bindings) displays commands and their keys, also show
+	commands without any key (so useable via '#', or possibly menu, only;
+	the majority are debugging commands)
+assign default key binding for <del> or <delete> to execute #terrain
 
 
 Platform- and/or Interface-Specific New Features
@@ -670,6 +698,8 @@ Qt: add Filter, Layout, and Reset buttons to the extended command selector;
 	mode only"; Layout redisplays the grid of command buttons, toggling
 	from down columns to across rows or vice versa; Reset puts both back
 	to their default settings and clears any pending typed input
+Unix: can define NOSUSPEND in config.h or src/Makefile's CFLAGS to prevent
+	unixconf.h from enabling SUSPEND without need to modify unixconf.h
 
 
 NetHack Community Patches (or Variation) Included
@@ -761,5 +791,6 @@ move 'restoring' to the program_state struct; add corresponding 'saving';
 	inventory when the relevant activity is in progress
 unify special attack damages from separate you-hit-monster, monster-hits-you,
 	and monster-hits-monster into functions by damage type
+unify trap effects for hero and monster stepping on the trap by trap type
 
 
