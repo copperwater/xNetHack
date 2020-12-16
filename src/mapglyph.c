@@ -134,6 +134,7 @@ unsigned mgflags;
         explode_color(offset / MAXEXPCHARS);
     } else if ((offset = (glyph - GLYPH_CMAP_OFF)) >= 0) { /* cmap */
         idx = offset + SYM_OFF_P;
+        struct stairway *stairs = stairway_at(x, y);
 #ifdef TEXTCOLOR
         if (is_cmap_door(offset) && door_is_iron(&levl[x][y])) {
             color = HI_METAL;
@@ -145,7 +146,7 @@ unsigned mgflags;
         /* show branch stairs in a different color */
         } else if (iflags.use_color
                    && (offset == S_upstair || offset == S_dnstair)
-                   && (x == g.sstairs.sx && y == g.sstairs.sy)
+                   && (stairs && stairs->tolev.dnum != u.uz.dnum)
                    && (g.showsyms[idx] == g.showsyms[S_upstair + SYM_OFF_P]
                        || g.showsyms[idx] == g.showsyms[S_dnstair + SYM_OFF_P])) {
             color = CLR_YELLOW;

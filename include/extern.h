@@ -649,6 +649,15 @@ E void FDECL(next_level, (BOOLEAN_P));
 E void FDECL(prev_level, (BOOLEAN_P));
 E void FDECL(u_on_newpos, (int, int));
 E void FDECL(u_on_rndspot, (int));
+E void FDECL(stairway_add, (int,int, BOOLEAN_P, BOOLEAN_P, d_level *));
+E void NDECL(stairway_print);
+E void NDECL(stairway_free_all);
+E stairway *FDECL(stairway_at, (int, int));
+E stairway *FDECL(stairway_find, (d_level *));
+E stairway *FDECL(stairway_find_from, (d_level *, BOOLEAN_P));
+E stairway *FDECL(stairway_find_dir, (BOOLEAN_P));
+E stairway *FDECL(stairway_find_type_dir, (BOOLEAN_P, BOOLEAN_P));
+E stairway *FDECL(stairway_find_special_dir, (BOOLEAN_P));
 E void FDECL(u_on_sstairs, (int));
 E void NDECL(u_on_upstairs);
 E void NDECL(u_on_dnstairs);
@@ -1152,7 +1161,7 @@ E int NDECL(dosuspend);
 
 E void FDECL(new_light_source, (XCHAR_P, XCHAR_P, int, int, ANY_P *));
 E void FDECL(del_light_source, (int, ANY_P *));
-E void FDECL(do_light_sources, (char **));
+E void FDECL(do_light_sources, (xchar **));
 E void FDECL(show_transient_light, (struct obj *, int, int));
 E void NDECL(transient_light_cleanup);
 E struct monst *FDECL(find_mid, (unsigned, unsigned));
@@ -2577,17 +2586,17 @@ E void FDECL(set_selection_floodfillchk, (int FDECL((*), (int,int))));
 E void FDECL(selection_floodfill, (struct selectionvar *, int, int,
                                    BOOLEAN_P));
 E boolean FDECL(pm_good_location, (int, int, struct permonst *));
-E void FDECL(get_location_coord, (schar *, schar *, int, struct mkroom *,
+E void FDECL(get_location_coord, (xchar *, xchar *, int, struct mkroom *,
                                   long));
 E void FDECL(selection_setpoint, (int, int, struct selectionvar *, XCHAR_P));
 E struct selectionvar * FDECL(selection_not, (struct selectionvar *));
 E void FDECL(selection_filter_percent, (struct selectionvar *, int));
-E int FDECL(selection_rndcoord, (struct selectionvar *, schar *, schar *,
+E int FDECL(selection_rndcoord, (struct selectionvar *, xchar *, xchar *,
                                  BOOLEAN_P));
 E void FDECL(selection_do_grow, (struct selectionvar *, int));
-E void FDECL(selection_do_line, (SCHAR_P, SCHAR_P, SCHAR_P, SCHAR_P,
+E void FDECL(selection_do_line, (XCHAR_P, XCHAR_P, XCHAR_P, XCHAR_P,
                                  struct selectionvar *));
-E void FDECL(selection_do_randline, (SCHAR_P, SCHAR_P, SCHAR_P, SCHAR_P,
+E void FDECL(selection_do_randline, (XCHAR_P, XCHAR_P, XCHAR_P, XCHAR_P,
                                      SCHAR_P, SCHAR_P, struct selectionvar *));
 E struct selectionvar *FDECL(selection_filter_mapchar, (struct selectionvar *,
                                                         XCHAR_P, int));

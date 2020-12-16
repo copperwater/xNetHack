@@ -131,6 +131,8 @@ struct obj {
 #define migrateflags owornmask /* migrating objects can't be worn anyway */
     xchar mgrx, mgry;       /* when migrating, travel to these coords */
     unsigned lua_ref_cnt;  /* # of lua script references for this object */
+    xchar omigr_from_dnum; /* where obj is migrating from */
+    xchar omigr_from_dlevel; /* where obj is migrating from */
     struct oextra *oextra; /* pointer to oextra struct */
 };
 

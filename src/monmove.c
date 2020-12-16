@@ -963,16 +963,26 @@ static int
 count_webbing_walls(x, y)
 xchar x, y;
 {
-#define holds_up_web(X, Y) ((!isok((X), (Y))                              \
-                             || IS_ROCK(levl[X][Y].typ)                   \
-                             || (levl[X][Y].typ == STAIRS                 \
-                                 && (X) == xupstair && (Y) == yupstair)   \
-                             || (levl[X][Y].typ == LADDER                 \
-                                 && (X) == xupladder && (Y) == yupladder) \
-                             || levl[X][Y].typ == IRONBARS) ? 1 : 0)
-    return (holds_up_web(x, y - 1) + holds_up_web(x + 1, y)
-            + holds_up_web(x, y + 1) + holds_up_web(x - 1, y));
-#undef holds_up_web
+    int xx, yy;
+    int ct = 0;
+    for (xx = x - 1; xx <= x + 1; xx++) {
+        for (yy = y - 1; yy <= y + 1; yy++) {
+            if (xx != x && yy != y) {
+                /* only do orthogonal adjacencies */
+                continue;
+            }
+            if (!isok(xx, yy)) {
+                continue;
+            }
+            struct stairway *stairs = stairs_at(xx, yy);
+            if (IS_ROCK(levl[xx][yy].typ) || levl[xx][yy].typ == IRONBARS
+                || (stairs && stairs->up)) {
+                /* both upstair and upladder are valid here */
+                ct++;
+            }
+        }
+    }
+    return ct;
 }
 
 /* Return values:

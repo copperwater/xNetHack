@@ -977,16 +977,14 @@ has_stairs(sroom, up)
 register struct mkroom *sroom;
 boolean up;
 {
-    if (up) {
-        return (inside_room(sroom, xupstair, yupstair)
-                || (g.sstairs.up
-                    && inside_room(sroom, g.sstairs.sx, g.sstairs.sy)));
+    stairway *stway = g.stairs;
+
+    while (stway) {
+        if (up == stway->up && inside_room(sroom, stway->sx, stway->sy))
+            return TRUE;
+        stway = stway->next;
     }
-    else {
-        return (inside_room(sroom, xdnstair, ydnstair)
-                || (!g.sstairs.up
-                    && inside_room(sroom, g.sstairs.sx, g.sstairs.sy)));
-    }
+    return FALSE;
 }
 
 /* Return a random x coordinate within the x limits of a room. */
