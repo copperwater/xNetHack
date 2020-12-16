@@ -1,4 +1,4 @@
-/* NetHack 3.7	dokick.c	$NHDT-Date: 1596498160 2020/08/03 23:42:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.155 $ */
+/* NetHack 3.7	dokick.c	$NHDT-Date: 1606009001 2020/11/22 01:36:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.159 $ */
 /* Copyright (c) Izchak Miller, Mike Stephenson, Steve Linhart, 1989. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -355,14 +355,12 @@ register struct obj *gold;
                out of the vault.  If he did do that, player
                could try fighting, then weasle out of being
                killed by throwing his/her gold when losing. */
-            verbalize(
-                umoney
-                    ? "Drop the rest and follow me."
-                    : hidden_gold()
-                          ? "You still have hidden gold.  Drop it now."
-                          : mtmp->mpeaceful
-                                ? "I'll take care of that; please move along."
-                                : "I'll take that; now get moving.");
+            verbalize(umoney ? "Drop the rest and follow me."
+                      : hidden_gold(TRUE)
+                        ? "You still have hidden gold.  Drop it now."
+                        : mtmp->mpeaceful
+                          ? "I'll take care of that; please move along."
+                          : "I'll take that; now get moving.");
         } else if (is_mercenary(mtmp->data)) {
             long goldreqd = 0L;
 
@@ -1678,7 +1676,7 @@ obj_delivery(near_hero)
 boolean near_hero;
 {
     register struct obj *otmp, *otmp2;
-    register int nx, ny;
+    int nx = 0, ny = 0;
     int where;
     boolean nobreak, noscatter;
     stairway *stway;
@@ -1711,14 +1709,13 @@ boolean near_hero;
         switch (where) {
         case MIGR_LADDER_UP:
             isladder = TRUE;
-            /* FALLTHRU */
+            /*FALLTHRU*/
         case MIGR_STAIRS_UP:
         case MIGR_SSTAIRS:
             if ((stway = stairway_find_from(&fromdlev, isladder)) != 0) {
                 nx = stway->sx;
                 nx = stway->sy;
             }
-            break;
             break;
         case MIGR_WITH_HERO:
             nx = u.ux, ny = u.uy;

@@ -1,4 +1,4 @@
-/* NetHack 3.7	extern.h	$NHDT-Date: 1603507384 2020/10/24 02:43:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.873 $ */
+/* NetHack 3.7	extern.h	$NHDT-Date: 1606008997 2020/11/22 01:36:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.880 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -426,7 +426,7 @@ E void NDECL(save_currentstate);
 E void FDECL(u_collide_m, (struct monst *));
 E void FDECL(goto_level, (d_level *, BOOLEAN_P, BOOLEAN_P, BOOLEAN_P));
 E void NDECL(maybe_lvltport_feedback);
-E void FDECL(schedule_goto, (d_level *, BOOLEAN_P, BOOLEAN_P, int,
+E void FDECL(schedule_goto, (d_level *, int,
                              const char *, const char *));
 E void NDECL(deferred_goto);
 E boolean FDECL(revive_corpse, (struct obj *, boolean));
@@ -2481,7 +2481,7 @@ E void NDECL(finish_paybill);
 E struct obj *FDECL(find_oid, (unsigned));
 E long FDECL(contained_cost,
              (struct obj *, struct monst *, long, BOOLEAN_P, BOOLEAN_P));
-E long FDECL(contained_gold, (struct obj *));
+E long FDECL(contained_gold, (struct obj *, BOOLEAN_P));
 E void FDECL(picked_container, (struct obj *));
 E void FDECL(gem_learned, (int));
 E void FDECL(alter_cost, (struct obj *, long));
@@ -2866,7 +2866,7 @@ E void NDECL(port_help);
 E void FDECL(sethanguphandler, (void (*)(int)));
 E boolean NDECL(authorize_wizard_mode);
 E void FDECL(append_slash, (char *));
-E boolean FDECL(check_user_string, (char *));
+E boolean FDECL(check_user_string, (const char *));
 E char *NDECL(get_login_name);
 E unsigned long NDECL(sys_random_seed);
 #endif /* UNIX */
@@ -2921,7 +2921,7 @@ E void FDECL(uleftvault, (struct monst *));
 E void NDECL(invault);
 E int FDECL(gd_move, (struct monst *));
 E void FDECL(paygd, (BOOLEAN_P));
-E long NDECL(hidden_gold);
+E long FDECL(hidden_gold, (BOOLEAN_P));
 E boolean NDECL(gd_sound);
 E void FDECL(vault_gd_watching, (unsigned int));
 
@@ -3049,6 +3049,9 @@ E char *NDECL(verify_termcap);
 #if defined(CHDIR) || defined(SHELL) || defined(SECURE)
 E void NDECL(privoff);
 E void NDECL(privon);
+#endif
+#ifdef SYSCF
+E boolean FDECL(check_user_string, (const char *));
 #endif
 #ifdef SHELL
 E int NDECL(dosh);
@@ -3254,6 +3257,7 @@ E int FDECL(unturn_dead, (struct monst *));
 E void NDECL(unturn_you);
 E void FDECL(cancel_item, (struct obj *));
 E boolean FDECL(drain_item, (struct obj *, BOOLEAN_P));
+E boolean FDECL(obj_unpolyable, (struct obj *));
 E struct obj *FDECL(poly_obj, (struct obj *, int));
 E boolean FDECL(obj_resists, (struct obj *, int, int));
 E boolean FDECL(obj_shudders, (struct obj *));

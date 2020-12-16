@@ -1,4 +1,4 @@
-/* NetHack 3.7	makemon.c	$NHDT-Date: 1596498176 2020/08/03 23:42:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.177 $ */
+/* NetHack 3.7	makemon.c	$NHDT-Date: 1606033928 2020/11/22 08:32:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.180 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */

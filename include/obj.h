@@ -378,6 +378,10 @@ struct obj {
 #define pair_of(o) ((o)->otyp == LENSES || is_gloves(o) || is_boots(o))
 #define undroppable(o) ( FALSE )
 
+#define unpolyable(o) ((o)->otyp == WAN_POLYMORPH \
+                       || (o)->otyp == SPE_POLYMORPH \
+                       || (o)->otyp == POT_POLYMORPH)
+
 /* achievement tracking; 3.6.x did this differently */
 #define is_mines_prize(o) ((o)->o_id == g.context.achieveo.mines_prize_oid)
 #define is_soko_prize(o) ((o)->o_id == g.context.achieveo.soko_prize_oid)

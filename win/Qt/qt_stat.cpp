@@ -14,31 +14,71 @@
 //      six characteristic texts ("Str:18/03", "Dex:15", &c)
 //      separator line
 //      five status fields without icons (some containing two values:
-//        Gold, HP/HPmax, Energy/Enmax, AC, XpLevel/ExpPoints or HD)
-//      optional line with two text fields (Time:1234, Score:89)
+//        HP/HPmax, Energy/Enmax, AC, XpLevel/ExpPoints or HD, [blank], Gold)
 //      separator line
+//      line with two optional text fields (Time:1234, Score:89), maybe blank
 //      varying number of icons (one or more, each paired with...)
 //      corresponding text (Alignment plus zero or more status conditions
 //        including Hunger if not "normal" and encumbrance if not "normal")
 //
 // The hitpoint bar spans the width of the status window when enabled.
 // Title and location are centered.
-// The icons and text for the size characteristics are evenly spaced.
-// The five main stats are padded with an empty sixth and spaced to
-//   match the characteristics.
-// Time and Score are spaced as if each were three fields wide.
+// The icons and text for the six characteristics are evenly spaced;
+//   this pair of lines is sometimes referred to as "row 1" below.
+// The five main stats or slash-separated stat pairs are padded with an
+//   empty slot between Xp and Gold; adding the sixth makes that row
+//   line up with the characteristics; this line is sometimes referred
+//   to as "row 2".
+// Time and Score are spaced as if each were three fields wide; their
+//   line is "row 3" relative to statuslines:2 vs statuslines:3.
 // Icons and texts for alignment and conditions are left justified.
 // The separator lines are thin and don't take up much vertical space.
-// The hitpoint bar line and the Time+Score line are omitted when the
-//   corresponding items are disabled.
+// When enabled, the hitpoint bar bisects the margin above Title,
+//   increasing the overall status height by 9 pixels; when disabled,
+//   the status shifts up by those 9 pixels.
+// When row 3 (Time, Score) is blank, it still takes up the vertical
+//   space that would be used to show those values.
+//
+// The above is for statuslines:3, which used to be the default.  For
+//   statuslines:2, rows 1 and 2 are extended from six to seven fields
+//   and row 3 (optional Time, Score) is eliminated.  Alignment is
+//   moved from the beginning of the Conditions pair (icon over text)
+//   of lines up to the end of row 1, the Characteristics pair of lines,
+//   with a separator between Cha:NN and it.  Time, when active, is
+//   placed after Gold.  Score, if enabled and active, is shown in the
+//   filler slot before Gold.  When there are no Conditions to display,
+//   there is an an invisible fake one (blank icon over blank text)
+//   rendered in order to preserve the vertical space they need.
 //
 // FIXME:
 //  When hitpoint bar is shown, attempting to resize horizontally won't
 //    do anything.  Toggling it off, then resizing, and back On works.
+//    (Caused by specifying min-width and max-width constraints in the
+//    style sheets used to control color, but removing those constraints
+//    causes the bar display to get screwed up.)
+//  There are separate icons for Satiated and Hungry, but Weak, Fainting,
+//    and Fainted all share the Hungry one.  Weak should have its own,
+//    Fainting+Fainted should have another.  The current two depict
+//    plates with cutlery which is a bit of an anachronism.  Statiated
+//    could be replaced by a figure in profile with a bulging belly,
+//    Hungry similar but with a slightly concave belly, Weak either a
+//    collapsing figure or a much larger concavity or both, Fainting/
+//    Fainted a fully collapsed figure.
 //
 // TODO:
 //  If/when status conditions become too wide for the status window, scale
 //    down their icons and switch their text to a smaller font to match.
+//  Title and Location are explicitly rendered with a bigger font than
+//    the rest of status.  That takes up more space, which is ok, but it
+//    also increases the vertical margin in between them by more than is
+//    necessary.  Should squeeze some of that excess blank space out.
+//  Highlighting of Xp/Exp needs work when 'showexp' is toggled On or Off.
+//    The field passed to xp.setLabel() for its better vs worse comparison
+//    gets swapped from Xp to Exp or vice versa, yielding a nonsensical
+//    comparison for the first status update after the 'showexp' toggle.
+//  Toggling 'showscore' while Score is highlighted leaves the highlight
+//    on blank space until it times out.  (Time isn't highlighted and Exp
+//    is combined with Xp so always updated; only Score is affected.)
 //
 
 extern "C" {
@@ -65,46 +105,58 @@ extern int qt_compact_mode;
 namespace nethack_qt_ {
 
 NetHackQtStatusWindow::NetHackQtStatusWindow() :
+    /* first three rows:  hitpoint bar, title (plname the Rank), location */
+    hpbar_health(this),
+    hpbar_injury(this),
     name(this,"(name)"),
     dlevel(this,"(dlevel)"),
+    /* next two rows:  icon over text label for the six characteristics */
     str(this, "Str"),
     dex(this, "Dex"),
     con(this, "Con"),
     intel(this, "Int"),
     wis(this, "Wis"),
     cha(this, "Cha"),
-    gold(this,"Gold"),
+    /* sixth row, text only:  some contain two slash-separated values */
     hp(this,"Hit Points"),
     power(this,"Power"),
-    ac(this,"Armour Class"),
-    level(this,"Level"),
-    exp(this, "_"), // exp displayed as Xp/Exp but exp widget used for padding
+    ac(this,"Armor Class"),
+    level(this,"Level"), // Xp level, with "/"+Exp points optionally appended
+    blank1(this, ""),    // used for padding to align columns (was once 'exp')
+    gold(this,"Gold"),   // gold used to be this row's first column, now last
+    /* seventh row:  two optionally displayed values (just text, no icons) */
+    time(this,"Time"),   // if 'time' option On
+    score(this,"Score"), // if SCORE_ON_BOTL defined and 'showscore' option On
+    /* last two rows:  alignment followed by conditions (icons over text) */
     align(this,"Alignment"),
-    time(this,"Time"),
-    score(this,"Score"),
+    blank2(this, " "),   // used to prevent Conditions row from being empty
     hunger(this,""),
     encumber(this,""),
-    stoned(this,"Stone"),
+    stoned(this,"Stone"),     // major conditions
     slimed(this,"Slime"),
     strngld(this,"Strngl"),
     sick_fp(this,"FoodPois"),
     sick_il(this,"TermIll"),
-    stunned(this,"Stun"),
+    stunned(this,"Stun"),     // minor conditions
     confused(this,"Conf"),
     hallu(this,"Hallu"),
-    blind(this,""),
+    blind(this,"Blind"),
     deaf(this,"Deaf"),
-    lev(this,"Lev"),
+    lev(this,"Lev"),          // 'other' conditions
     fly(this,"Fly"),
     ride(this,"Ride"),
-    hpbar_health(this),
-    hpbar_injury(this),
-    hline1(this),
+    hline1(this),             // separators
     hline2(this),
     hline3(this),
+    vline1(this), // vertical separator between Characteristics and Alignment
+    vline2(this), // padding for row 2 to match row 1's separator; not shown
+    /* miscellaneous; not display fields */
     cursy(0),
     first_set(true),
-    alreadyfullhp(false)
+    alreadyfullhp(false),
+    was_polyd(false),
+    had_exp(false),
+    had_score(false)
 {
     if (!qt_compact_mode) {
         int w = NetHackQtBind::mainWidget()->width();
@@ -122,6 +174,7 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
     p_chaotic = QPixmap(chaotic_xpm);
     p_neutral = QPixmap(neutral_xpm);
     p_lawful = QPixmap(lawful_xpm);
+    p_blank2 = QPixmap(blank_xpm);
 
     p_satiated = QPixmap(satiated_xpm);
     p_hungry = QPixmap(hungry_xpm);
@@ -154,6 +207,7 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
     cha.setIcon(p_cha);
 
     align.setIcon(p_neutral);
+    blank2.setIcon(p_blank2); // used for spacing when Conditions row is empty
     hunger.setIcon(p_hungry);
     encumber.setIcon(p_encumber[0]);
 
@@ -172,69 +226,116 @@ NetHackQtStatusWindow::NetHackQtStatusWindow() :
     ride.setIcon(p_ride);
 
     // separator lines
-    hline1.setFrameStyle(QFrame::HLine|QFrame::Sunken);
-    hline2.setFrameStyle(QFrame::HLine|QFrame::Sunken);
-    hline3.setFrameStyle(QFrame::HLine|QFrame::Sunken);
+    hline1.setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    hline2.setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    hline3.setFrameStyle(QFrame::HLine | QFrame::Sunken);
     hline1.setLineWidth(1);
     hline2.setLineWidth(1);
     hline3.setLineWidth(1);
+    // vertical separators for condensed layout (statuslines:2)
+    vline1.setFrameStyle(QFrame::VLine | QFrame::Sunken);
+    vline2.setFrameStyle(QFrame::VLine | QFrame::Sunken);
+    vline1.setLineWidth(1); // separates Alignment from Charisma
+    vline2.setLineWidth(1);
+    vline2.hide(); // padding to keep row 2 aligned with row 1, never shown
 
+    // set up last but shown first (above name) via layout below */
     QHBoxLayout *hpbar = InitHitpointBar();
+
+    // 'statuslines' takes a value of 2 or 3; we use 3 as a request to put
+    // Alignment in front of status conditions so that line is never empty
+    // and to show Time and/or Score on their own line which might be empty
+    boolean spreadout = (::iflags.wc2_statuslines != 2);
 
 #if 1 //RLC
     name.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     dlevel.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     QVBoxLayout *vbox = new QVBoxLayout();
     vbox->setSpacing(0);
-    vbox->addLayout(hpbar);
+    vbox->addLayout(hpbar); // when 'hitpointbar' is enabled, it comes first
     vbox->addWidget(&name);
     vbox->addWidget(&dlevel);
     vbox->addWidget(&hline1);
-    QHBoxLayout *atr1box = new QHBoxLayout();
-	atr1box->addWidget(&str);
-	atr1box->addWidget(&dex);
-	atr1box->addWidget(&con);
-	atr1box->addWidget(&intel);
-	atr1box->addWidget(&wis);
-	atr1box->addWidget(&cha);
-    vbox->addLayout(atr1box);
+    QHBoxLayout *charbox = new QHBoxLayout(); // Characteristics
+        charbox->addWidget(&str);
+        charbox->addWidget(&dex);
+        charbox->addWidget(&con);
+        charbox->addWidget(&intel);
+        charbox->addWidget(&wis);
+        charbox->addWidget(&cha);
+        if (!spreadout) {
+            // when condensed, include Alignment with Characteristics
+            charbox->addWidget(&vline1); // show a short vertical separator
+            charbox->addWidget(&align);
+        }
+    vbox->addLayout(charbox);
     vbox->addWidget(&hline2);
-    QHBoxLayout *atr2box = new QHBoxLayout();
-	atr2box->addWidget(&gold);
-	atr2box->addWidget(&hp);
-	atr2box->addWidget(&power);
-	atr2box->addWidget(&ac);
-	atr2box->addWidget(&level);
-	atr2box->addWidget(&exp);
-    vbox->addLayout(atr2box);
-    vbox->addWidget(&hline3);
-    QHBoxLayout *timebox = new QHBoxLayout();
-	timebox->addWidget(&time);
-	timebox->addWidget(&score);
-    vbox->addLayout(timebox);
-    QHBoxLayout *statbox = new QHBoxLayout();
-	statbox->addWidget(&align);
-	statbox->addWidget(&hunger);
-	statbox->addWidget(&encumber);
-	statbox->addWidget(&stoned);
-	statbox->addWidget(&slimed);
-	statbox->addWidget(&strngld);
-	statbox->addWidget(&sick_fp);
-	statbox->addWidget(&sick_il);
-	statbox->addWidget(&stunned);
-	statbox->addWidget(&confused);
-	statbox->addWidget(&hallu);
-	statbox->addWidget(&blind);
-	statbox->addWidget(&deaf);
-	statbox->addWidget(&lev);
-	statbox->addWidget(&fly);
-	statbox->addWidget(&ride);
-    statbox->setAlignment(Qt::AlignLeft|Qt::AlignVCenter);
+    QHBoxLayout *statbox = new QHBoxLayout(); // core status fields
+        statbox->addWidget(&hp);
+        statbox->addWidget(&power);
+        statbox->addWidget(&ac);
+        statbox->addWidget(&level);
+        if (spreadout) {
+            // when not condensed, put a blank field in front of Gold;
+            // Time and Score will be shown on their own separate line
+            statbox->addWidget(&blank1); // empty column #5 of 6
+            statbox->addWidget(&gold);
+        } else {
+            // when condensed, display Time and Score on HP,...,Gold row
+#ifndef SCORE_ON_BOTL
+            statbox->addWidget(&blank1); // empty column #5 of 7
+#else
+            statbox->addWidget(&score);  // usually empty column #5
+#endif
+            statbox->addWidget(&gold);   // columns 6 and maybe empty 7
+            statbox->addWidget(&vline2); // padding between 6 and 7; not shown
+            statbox->addWidget(&time);
+        }
     vbox->addLayout(statbox);
+    vbox->addWidget(&hline3); // separtor before Time+Score or Conditions
+    if (spreadout) {
+        // when not condensed, put Time and Score on an extra row; since
+        // they're both optionally displayed, their row might be empty
+        // TODO? when neither will be shown, set their heights smaller
+        // and if either gets toggled On, set height back to normal
+        QHBoxLayout *timebox = new QHBoxLayout();
+            timebox->addWidget(&time);
+            timebox->addWidget(&score);
+        vbox->addLayout(timebox);
+    }
+    QHBoxLayout *condbox = new QHBoxLayout(); // Conditions
+        if (spreadout) {
+            // when not condensed, include Alignment with Conditions to
+            // spread things out and also so that their row is never empty
+            condbox->addWidget(&align);
+        } else {
+            // otherwise place a padding widget on this row; it will be
+            // hidden if any Conditions are shown, or shown (with blank
+            // icon and empty text) when there aren't any, reserving
+            // space (the height of the row) for later conditions
+            condbox->addWidget(&blank2);
+        }
+        condbox->addWidget(&hunger);
+        condbox->addWidget(&encumber);
+        condbox->addWidget(&stoned);
+        condbox->addWidget(&slimed);
+        condbox->addWidget(&strngld);
+        condbox->addWidget(&sick_fp);
+        condbox->addWidget(&sick_il);
+        condbox->addWidget(&stunned);
+        condbox->addWidget(&confused);
+        condbox->addWidget(&hallu);
+        condbox->addWidget(&blind);
+        condbox->addWidget(&deaf);
+        condbox->addWidget(&lev);
+        condbox->addWidget(&fly);
+        condbox->addWidget(&ride);
+    condbox->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    vbox->addLayout(condbox);
     setLayout(vbox);
 #endif
 
-    connect(qt_settings,SIGNAL(fontChanged()),this,SLOT(doUpdate()));
+    connect(qt_settings, SIGNAL(fontChanged()), this, SLOT(doUpdate()));
     doUpdate();
 }
 
@@ -251,15 +352,23 @@ void NetHackQtStatusWindow::doUpdate()
     intel.setFont(normal);
     wis.setFont(normal);
     cha.setFont(normal);
-    gold.setFont(normal);
     hp.setFont(normal);
     power.setFont(normal);
     ac.setFont(normal);
     level.setFont(normal);
-    //exp.setFont(normal);
-    align.setFont(normal);
+    blank1.setFont(normal); // padding
+    gold.setFont(normal);
     time.setFont(normal);
     score.setFont(normal);
+    align.setFont(normal);
+    // blank2 is used as a dummy condition when Alignment has been moved
+    // elsewhere (statuslines:2) and no other conditions currently apply;
+    // it has a blank icon with a label of a single space (if the label
+    // is completely empty, the rest of status shifts down a little when
+    // one or more real conditions replace it and shifts up again when
+    // all conditions are removed and this one is reinstated--as if "" is
+    // slightly taller than " ")
+    blank2.setFont(normal);
     hunger.setFont(normal);
     encumber.setFont(normal);
     stoned.setFont(normal);
@@ -415,10 +524,9 @@ void NetHackQtStatusWindow::fadeHighlighting()
     power.dissipateHighlight();
     ac.dissipateHighlight();
     level.dissipateHighlight();
-    //exp.dissipateHighlight();
     align.dissipateHighlight();
 
-    time.dissipateHighlight();
+    //time.dissipateHighlight();
     score.dissipateHighlight();
 
     hunger.dissipateHighlight();
@@ -521,8 +629,10 @@ void NetHackQtStatusWindow::HitpointBar()
             w = geoH.right() - geoH.left() + 1; // might yield 0 (ie, if dead)
             styleH.sprintf(styleformat, barcolors[colorindx][0], w, w);
             hpbar_health.setStyleSheet(styleH);
-            // style sheet should be doing this but width was sticking at full
-            hpbar_health.setMaximumWidth(w);
+            // when healing, having the old injury-side shown while the new
+            // health-side expands pushes the injury farther right and it's
+            // momentarily visible there before it gets recalculated+redrawn
+            hpbar_injury.hide(); // will re-show below
             hpbar_health.show(); // don't need to hide() if/when width is 0
 
             int oldleft = geoI.left();
@@ -550,7 +660,6 @@ void NetHackQtStatusWindow::HitpointBar()
             w = geoH.right() - geoH.left() + 1;
             styleH.sprintf(styleformat, barcolors[colorindx][0], w, w);
             hpbar_health.setStyleSheet(styleH);
-            hpbar_health.setMaximumWidth(w); // (see above)
             hpbar_health.show();
 
             alreadyfullhp = true;
@@ -580,12 +689,19 @@ void NetHackQtStatusWindow::HitpointBar()
 void NetHackQtStatusWindow::updateStats()
 {
     if (!parentWidget()) return;
+    if (cursy != 0) return; /* do a complete update when line 0 is done */
 
     QString buf;
-    const char *text;
 
-    if (cursy != 0) return;    /* do a complete update when line 0 is done */
-
+    if (first_set) {
+        was_polyd = Upolyd ? true : false;
+        had_exp = ::flags.showexp ? true : false;
+        // not '#ifndef SCORE_ON_BOTL' here; use the variable and the widget
+        had_score = ::flags.showscore ? true : false; // false when disabled
+        score.setLabel(""); // init if enabled, one-time set if disabled
+    }
+    // display hitpoint bar if it is active; it isn't subject to field
+    // highlighting so we don't track whether it has just been toggled On|Off
     HitpointBar();
 
     int st = ACURR(A_STR);
@@ -605,6 +721,9 @@ void NetHackQtStatusWindow::updateStats()
     wis.setLabel("Wis:", (long) ACURR(A_WIS));
     cha.setLabel("Cha:", (long) ACURR(A_CHA));
 
+    boolean spreadout = (::iflags.wc2_statuslines != 2);
+    int k = 0; // number of conditions shown
+
     const char* hung=hu_stat[u.uhs];
     if (hung[0]==' ') {
 	hunger.hide();
@@ -612,7 +731,7 @@ void NetHackQtStatusWindow::updateStats()
 	hunger.setIcon(u.uhs ? p_hungry : p_satiated);
 	hunger.setLabel(hung);
         hunger.ForceResize();
-	hunger.show();
+	++k, hunger.show();
     }
     const char *enc = enc_stat[near_capacity()];
     if (enc[0]==' ' || !enc[0]) {
@@ -621,20 +740,20 @@ void NetHackQtStatusWindow::updateStats()
 	encumber.setIcon(p_encumber[near_capacity() - 1]);
 	encumber.setLabel(enc);
         encumber.ForceResize();
-	encumber.show();
+	++k, encumber.show();
     }
-    if (Stoned) stoned.show(); else stoned.hide();
-    if (Slimed) slimed.show(); else slimed.hide();
-    if (Strangled) strngld.show(); else strngld.hide();
+    if (Stoned) ++k, stoned.show(); else stoned.hide();
+    if (Slimed) ++k, slimed.show(); else slimed.hide();
+    if (Strangled) ++k, strngld.show(); else strngld.hide();
     if (Sick) {
         /* FoodPois or TermIll or both */
 	if (u.usick_type & SICK_VOMITABLE) { /* food poisoning */
-	    sick_fp.show();
+	    ++k, sick_fp.show();
 	} else {
 	    sick_fp.hide();
 	}
 	if (u.usick_type & SICK_NONVOMITABLE) { /* terminally ill */
-	    sick_il.show();
+	    ++k, sick_il.show();
 	} else {
 	    sick_il.hide();
 	}
@@ -642,21 +761,16 @@ void NetHackQtStatusWindow::updateStats()
 	sick_fp.hide();
 	sick_il.hide();
     }
-    if (Stunned) stunned.show(); else stunned.hide();
-    if (Confusion) confused.show(); else confused.hide();
-    if (Hallucination) hallu.show(); else hallu.hide();
-    // [pr - Why is blind handled differently from other on/off conditions?]
-    if (Blind) {
-	blind.setLabel("Blind");
-	blind.show();
-    } else {
-	blind.hide();
-    }
-    if (Deaf) deaf.show(); else deaf.hide();
+    if (Stunned) ++k, stunned.show(); else stunned.hide();
+    if (Confusion) ++k, confused.show(); else confused.hide();
+    if (Hallucination) ++k, hallu.show(); else hallu.hide();
+    if (Blind) ++k, blind.show(); else blind.hide();
+    if (Deaf) ++k, deaf.show(); else deaf.hide();
+
     // flying is blocked when levitating, so Lev and Fly are mutually exclusive
-    if (Levitation) lev.show(); else lev.hide();
-    if (Flying) fly.show(); else fly.hide();
-    if (u.usteed) ride.show(); else ride.hide();
+    if (Levitation) ++k, lev.show(); else lev.hide();
+    if (Flying) ++k, fly.show(); else fly.hide();
+    if (u.usteed) ++k, ride.show(); else ride.hide();
 
     if (Upolyd) {
 	buf = nh_capitalize_words(mons[u.umonnum].mname);
@@ -664,20 +778,23 @@ void NetHackQtStatusWindow::updateStats()
 	buf = rank_of(u.ulevel, g.pl_character[0], ::flags.female);
     }
     QString buf2;
-    buf2.sprintf("%s the %s", g.plname, buf.toLatin1().constData());
+    char buf3[BUFSZ];
+    buf2.sprintf("%s the %s", upstart(strcpy(buf3, g.plname)),
+                 buf.toLatin1().constData());
     name.setLabel(buf2, NetHackQtLabelledIcon::NoNum, u.ulevel);
 
-    char buf3[BUFSZ];
     if (!describe_level(buf3)) {
 	Sprintf(buf3, "%s, level %d",
                 g.dungeons[u.uz.dnum].dname, ::depth(&u.uz));
     }
-    // false: always highlight as 'change for the better' regardless of
-    // new depth compared to old
-    dlevel.setLabel(buf3, false);
+    dlevel.setLabel(buf3);
 
-    gold.setLabel("Au:", money_cnt(g.invent));
-
+    int poly_toggled = !was_polyd ^ !Upolyd;
+    if (poly_toggled) {
+        // for this update, changed values aren't better|worse, just different
+        hp.setCompareMode(NeitherIsBetter);
+        level.setCompareMode(NeitherIsBetter);
+    }
     if (Upolyd) {
         // You're a monster!
         buf.sprintf("/%d", u.mhmax);
@@ -689,66 +806,131 @@ void NetHackQtStatusWindow::updateStats()
         buf.sprintf("/%d", u.uhpmax);
         hp.setLabel("HP:", std::max((long) u.uhp, 0L), buf);
         // if Exp points are to be displayed, append them to Xp level;
-        // up/down highlighting becomes tricky--don't try very hard
-        if (::flags.showexp) {
-            buf.sprintf("%ld/%ld", (long) u.ulevel, (long) u.uexp);
-            // at levels above 20, "Level:NN/nnnnnnnn" doesn't fit so
-            // shorten "Level" to "Lvl" at that stage;
-            // at level 30, a few pixels are truncated from the start
-            // and end of "Lvl:30/nnnnnnnnn" but the result is ledgible
-            level.setLabel(((u.ulevel <= 20) ? "Level:" : "Lvl:") + buf,
-                           NetHackQtLabelledIcon::NoNum, (long) u.uexp);
+        // up/down highlighting becomes tricky--don't try very hard;
+        // depending upon font size and status layout, "Level:NN/nnnnnnnn"
+        // might be too wide to fit
+#if 0   /* not yet */
+        int exp_toggled = !had_exp ^ !::flags.showexp;
+#endif
+        static const char *const lvllbl[3] = { "Level:", "Lvl:", "L:" };
+        QFontMetrics fm(level.label->font());
+        for (int i = ::flags.showexp ? 0 : 3; i < 4; ++i) {
+            // passes 0,1,2 are with Exp, 3 is without Exp and always fits
+            if (i < 3) {
+                buf.sprintf("%s%ld/%ld", lvllbl[i], (long) u.ulevel, u.uexp);
+            } else {
+                buf.sprintf("%s%ld", lvllbl[i - 3], (long) u.ulevel);
+            }
+            // +2: allow a couple of pixels at either end to be clipped off
+            if (fm.size(0, buf).width() <= (2 + level.label->width() + 2))
+                break;
+        }
+        level.setLabel(buf, NetHackQtLabelledIcon::NoNum,
+                       // if we intended to show Exp but must settle
+                       // for Xp due to width, we still want to use
+                       // Exp for setLabel()'s Up|Down highlighting
+                       ::flags.showexp ? u.uexp : (long) u.ulevel);
+    }
+    if (poly_toggled) {
+        // for next update, changed values will be better|worse as usual
+        hp.setCompareMode(BiggerIsBetter);
+        level.setCompareMode(BiggerIsBetter);
+    }
+    was_polyd = Upolyd ? true : false;
+    had_exp = (::flags.showexp && !was_polyd) ? true : false;
+
+    buf.sprintf("/%d", u.uenmax);
+    power.setLabel("Pow:", (long) u.uen, buf);
+    ac.setLabel("AC:", (long) u.uac);
+    // gold prefix used to be "Au:", tty uses "$:"; never too wide to fit;
+    // practical limit due to carrying capacity limit is less than 300K
+    long goldamt = money_cnt(g.invent);
+    goldamt = std::max(goldamt, 0L); // sanity; core's botl() does likewise
+    goldamt = std::min(goldamt, 99999999L); // ditto
+    gold.setLabel("Gold:", goldamt);
+
+    const char *text = NULL;
+    if (u.ualign.type == A_LAWFUL) {
+        align.setIcon(p_lawful);
+        text = "Lawful";
+    } else if (u.ualign.type == A_NEUTRAL) {
+        align.setIcon(p_neutral);
+        text = "Neutral";
+    } else {
+        // Unaligned should never happen but handle it sanely if it does
+        align.setIcon(p_chaotic);
+        text = (u.ualign.type == A_CHAOTIC) ? "Chaotic"
+               : (u.ualign.type == A_NONE) ? "unaligned"
+                 : "other?";
+    }
+    align.setLabel(QString(text));
+    // without this, the ankh pixmap shifts from centered to left
+    // justified relative to the label text for some unknown reason...
+    align.ForceResize();
+    if (spreadout)
+        ++k; // when not condensed, Alignment is shown on the Conditions row
+
+    if (!k) {
+        blank2.show(); // for vertical spacing: force the row to be non-empty
+    } else
+        blank2.hide();
+
+    // Time isn't highlighted (due to constantly changing) so we don't keep
+    // track of whether it has just been toggled On or Off
+    if (::flags.time) {
+        // hypothetically Time could grow to enough digits to have trouble
+        // fitting, but it's not worth worrying about
+        time.setLabel("Time:", (long) g.moves);
+    } else {
+        time.setLabel("");
+    }
+#ifdef SCORE_ON_BOTL
+    int score_toggled = !had_score ^ !::flags.showscore;
+    if (::flags.showscore) {
+        if (score_toggled) // toggled On
+            score.setCompareMode(NeitherIsBetter);
+        long pts = botl_score();
+        if (spreadout) {
+            // plenty of room; Time and Score both have the width of 3 fields
+            score.setLabel("Score:", pts);
         } else {
-            level.setLabel("Level:", (long) u.ulevel);
+            // depending upon font size and status layout, "Score:nnnnnnnn"
+            // might be too wide to fit (simpler version of Level:NN/nnnnnnnn)
+            static const char *const scrlbl[3] = { "Score:", "Scr:", "S:" };
+            QFontMetrics fm(score.label->font());
+            for (int i = 0; i < 3; ++i) {
+                buf.sprintf("%s%ld", scrlbl[i], pts);
+                // +2: allow couple of pixels at either end to be clipped off
+                if (fm.size(0, buf).width() <= (2 + score.width() + 2))
+                    break;
+            }
+            score.setLabel(buf, NetHackQtLabelledIcon::NoNum, pts);
+            // with Xp/Exp, we fallback to Xp if the shortest label prefix
+            // is still too long; here we just show a clipped value and
+            // let user either live with it or turn 'showscore' off (or
+            // set statuslines:3 to take advantage of the extra room that
+            // the spread out status layout provides)
+        }
+    } else {
+        if (score_toggled) { // toggled Off; if already Off, no need to set ""
+            score.setCompareMode(NoCompare);
+            score.setLabel(""); // blank when not active
         }
     }
-    buf.sprintf("/%d", u.uenmax);
-    power.setLabel("Pow:", u.uen, buf);
-    ac.setLabel("AC:", (long) u.uac);
-    //if (::flags.showexp) {
-    //    exp.setLabel("Exp:", (long) u.uexp);
-    //} else {
-        // 'exp' is now only used to pad the line that Xp/Exp is displayed on
-        exp.setLabel("");
-    //}
-    text = NULL;
-    if (u.ualign.type==A_CHAOTIC) {
-	align.setIcon(p_chaotic);
-	text = "Chaotic";
-    } else if (u.ualign.type==A_NEUTRAL) {
-	align.setIcon(p_neutral);
-	text = "Neutral";
-    } else {
-	align.setIcon(p_lawful);
-	text = "Lawful";
-    }
-    if (text) {
-        // false: don't highlight as 'became lower' even if the internal
-        // numeric value is becoming lower (N -> C, L -> N || C)
-        align.setLabel(text, false);
-        // without this, the ankh pixmap shifts from centered to left
-        // justified relative to the label text for some unknown reason...
-        align.ForceResize();
-    }
-
-    if (::flags.time)
-        time.setLabel("Time:", (long) g.moves);
-    else
-        time.setLabel("");
-#ifdef SCORE_ON_BOTL
-    if (::flags.showscore) {
-        score.setLabel("Score:", (long) botl_score());
-    } else
-#endif
-    {
-	score.setLabel("");
-    }
+    if (score_toggled)
+        score.setCompareMode(BiggerIsBetter);
+    had_score = ::flags.showscore ? true : false;
+#endif /* SCORE_ON_BOTL */
 
     if (first_set) {
 	first_set=false;
 
+        was_polyd = Upolyd ? true : false;
+        had_exp = ::flags.showexp ? true : false;
+        had_score = ::flags.showscore ? true : false;
+
 	name.highlightWhenChanging();
-	dlevel.highlightWhenChanging();
+	dlevel.highlightWhenChanging(); dlevel.setCompareMode(NeitherIsBetter);
 
 	str.highlightWhenChanging();
 	dex.highlightWhenChanging();
@@ -757,17 +939,18 @@ void NetHackQtStatusWindow::updateStats()
 	wis.highlightWhenChanging();
 	cha.highlightWhenChanging();
 
-	gold.highlightWhenChanging();
 	hp.highlightWhenChanging();
 	power.highlightWhenChanging();
-	ac.highlightWhenChanging(); ac.lowIsGood();
+	ac.highlightWhenChanging(); ac.setCompareMode(SmallerIsBetter);
 	level.highlightWhenChanging();
-        //exp.highlightWhenChanging(); -- 'exp' is just padding
-	align.highlightWhenChanging();
+	gold.highlightWhenChanging();
 
         // don't highlight 'time' because it changes almost continuously
-        //time.highlightWhenChanging();
+        // [if we did highlight it, we wouldn't show increase as 'Better']
+        //time.highlightWhenChanging(); time.setCompareMode(NeitherIsBetter);
 	score.highlightWhenChanging();
+
+	align.highlightWhenChanging(); align.setCompareMode(NeitherIsBetter);
 
 	hunger.highlightWhenChanging();
 	encumber.highlightWhenChanging();

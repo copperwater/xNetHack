@@ -974,7 +974,7 @@ xchar x, y;
             if (!isok(xx, yy)) {
                 continue;
             }
-            struct stairway *stairs = stairs_at(xx, yy);
+            struct stairway *stairs = stairway_at(xx, yy);
             if (IS_ROCK(levl[xx][yy].typ) || levl[xx][yy].typ == IRONBARS
                 || (stairs && stairs->up)) {
                 /* both upstair and upladder are valid here */

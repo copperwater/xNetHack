@@ -2196,11 +2196,7 @@ dodip()
             goto poof;
     } else if (obj->otyp == POT_POLYMORPH || potion->otyp == POT_POLYMORPH) {
         /* some objects can't be polymorphed */
-        if (obj->otyp == potion->otyp /* both POT_POLY */
-            || obj->otyp == WAN_POLYMORPH || obj->otyp == SPE_POLYMORPH
-            || obj == uball || obj == uskin
-            || obj_resists(obj->otyp == POT_POLYMORPH ? potion : obj,
-                           5, 95)) {
+        if (obj_unpolyable(obj->otyp == POT_POLYMORPH ? potion : obj)) {
             pline1(nothing_happens);
         } else {
             short save_otyp = obj->otyp;
