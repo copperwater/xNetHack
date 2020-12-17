@@ -232,7 +232,7 @@
 
 #define hates_light(ptr) ((ptr) == &mons[PM_GREMLIN])
 
-/* used to vary a few messages */
+/* used to vary a few messages; also nonliving monsters don't get life-saved */
 #define weirdnonliving(ptr) (is_golem(ptr) || (ptr)->mlet == S_VORTEX)
 #define nonliving(ptr) \
     (is_undead(ptr) || (ptr) == &mons[PM_MANES] || weirdnonliving(ptr))
@@ -241,7 +241,8 @@
 #define completelyburns(ptr) \
     ((ptr) == &mons[PM_PAPER_GOLEM] || (ptr) == &mons[PM_STRAW_GOLEM])
 #define completelyrots(ptr) \
-    ((ptr) == &mons[PM_WOOD_GOLEM] || (ptr) == &mons[PM_LEATHER_GOLEM])
+    ((ptr) == &mons[PM_WOOD_GOLEM] || (ptr) == &mons[PM_LEATHER_GOLEM] \
+     || (ptr) == &mons[PM_PAPER_GOLEM] || (ptr) == &mons[PM_STRAW_GOLEM])
 #define completelyrusts(ptr) ((ptr) == &mons[PM_IRON_GOLEM])
 
 /* Used for conduct with corpses, tins, and digestion attacks */
