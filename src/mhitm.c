@@ -1,4 +1,4 @@
-/* NetHack 3.7	mhitm.c	$NHDT-Date: 1596498178 2020/08/03 23:42:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.140 $ */
+/* NetHack 3.7	mhitm.c	$NHDT-Date: 1606558747 2020/11/28 10:19:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.145 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -336,8 +336,8 @@ register struct monst *magr, *mdef;
         tmp++;
 
     /* Set up the visibility of action */
-    g.vis = (cansee(magr->mx, magr->my) && cansee(mdef->mx, mdef->my)
-           && (canspotmon(magr) || canspotmon(mdef)));
+    g.vis = ((cansee(magr->mx, magr->my) && canspotmon(magr))
+             || (cansee(mdef->mx, mdef->my) && canspotmon(mdef)));
 
     /* Set flag indicating monster has moved this turn.  Necessary since a
      * monster might get an attack out of sequence (i.e. before its move) in
@@ -370,7 +370,7 @@ register struct monst *magr, *mdef;
                 /* D: Do a ranged attack here! */
                 strike = thrwmm(magr, mdef);
                 if (strike)
-                    /* We don't really know if we hit or not; pretend we did. */
+                    /* don't really know if we hit or not; pretend we did */
                     res[i] |= MM_HIT;
                 if (DEADMONSTER(mdef))
                     res[i] = MM_DEF_DIED;
@@ -1037,13 +1037,15 @@ int dieroll;
         if (g.vis && canseemon(mdef))
             pline("%s is %s!", Monnam(mdef), on_fire(pd, mattk));
         if (completelyburns(pd)) { /* paper golem or straw golem */
+            /* note: the life-saved case is hypothetical because
+               life-saving doesn't work for golems */
             if (g.vis && canseemon(mdef))
-                pline("%s burns completely!", Monnam(mdef));
-            mondead(mdef); /* was mondied() but that dropped paper scrolls */
+                pline("%s %s!", Monnam(mdef),
+                      !mlifesaver(mdef) ? "burns completely"
+                                        : "is totally engulfed in flames");
+            monkilled(mdef, (char *) 0, AD_FIRE);
             if (!DEADMONSTER(mdef))
                 return 0;
-            else if (mdef->mtame && !g.vis)
-                pline("May %s roast in peace.", mon_nam(mdef));
             return (MM_DEF_DIED | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
         }
         tmp += destroy_mitem(mdef, SCROLL_CLASS, AD_FIRE);
@@ -1115,14 +1117,13 @@ int dieroll;
     case AD_RUST:
         if (magr->mcan)
             break;
-        if (pd == &mons[PM_IRON_GOLEM]) {
+        if (completelyrusts(pd)) { /* PM_IRON_GOLEM */
             if (g.vis && canseemon(mdef))
-                pline("%s falls to pieces!", Monnam(mdef));
-            mondied(mdef);
+                pline("%s %s to pieces!", Monnam(mdef),
+                      !mlifesaver(mdef) ? "falls" : "starts to fall");
+            monkilled(mdef, (char *) 0, AD_RUST);
             if (!DEADMONSTER(mdef))
                 return 0;
-            else if (mdef->mtame && !g.vis)
-                pline("May %s rust in peace.", mon_nam(mdef));
             return (MM_DEF_DIED | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
         }
         erode_armor(mdef, ERODE_RUST);
@@ -1139,15 +1140,15 @@ int dieroll;
     case AD_DCAY:
         if (magr->mcan)
             break;
-        if (pd == &mons[PM_PAPER_GOLEM] || pd == &mons[PM_WOOD_GOLEM]
-            || pd == &mons[PM_LEATHER_GOLEM]) {
+        if (completelyrots(pd)) {
+            /* note: the life-saved case is hypothetical because
+               life-saving doesn't work for golems */
             if (g.vis && canseemon(mdef))
-                pline("%s falls to pieces!", Monnam(mdef));
-            mondied(mdef);
+                pline("%s %s to pieces!", Monnam(mdef),
+                      !mlifesaver(mdef) ? "falls" : "starts to fall");
+            monkilled(mdef, (char *) 0, AD_DCAY);
             if (!DEADMONSTER(mdef))
                 return 0;
-            else if (mdef->mtame && !g.vis)
-                pline("May %s rot in peace.", mon_nam(mdef));
             return (MM_DEF_DIED | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
         }
         erode_armor(mdef, ERODE_CORRODE);

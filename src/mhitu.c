@@ -1,4 +1,4 @@
-/* NetHack 3.7	mhitu.c	$NHDT-Date: 1596498179 2020/08/03 23:42:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.194 $ */
+/* NetHack 3.7	mhitu.c	$NHDT-Date: 1606473488 2020/11/27 10:38:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.196 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1561,7 +1561,7 @@ register struct attack *mattk;
         hitmsg(mtmp, mattk);
         if (mtmp->mcan)
             break;
-        if (u.umonnum == PM_IRON_GOLEM) {
+        if (completelyrusts(g.youmonst.data)) {
             You("rust!");
             /* KMH -- this is okay with unchanging */
             Strcpy(g.killer.name, "rusted away");
@@ -1581,8 +1581,7 @@ register struct attack *mattk;
         hitmsg(mtmp, mattk);
         if (mtmp->mcan)
             break;
-        if (u.umonnum == PM_PAPER_GOLEM || u.umonnum == PM_WOOD_GOLEM
-            || u.umonnum == PM_LEATHER_GOLEM) {
+        if (completelyrots(g.youmonst.data)) {
             You("rot!");
             /* KMH -- this is okay with unchanging */
             Strcpy(g.killer.name, "rotted away");

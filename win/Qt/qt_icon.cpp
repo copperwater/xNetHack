@@ -63,8 +63,8 @@ NetHackQtLabelledIcon::NetHackQtLabelledIcon(QWidget *parent, const char *l,
 }
 
 // set up the style sheet strings used to specify color for status field
-// labels [done "once", but once for each LabelledIcon that's constucted,
-// so more than 20 copies overall]
+// labels [done "once", but once for each LabelledIcon that's constructed,
+// so about 30 copies overall with 3.6's status conditions]
 void NetHackQtLabelledIcon::initHighlight()
 {
     // note: string "green" is much darker than enum Qt::green
@@ -90,6 +90,11 @@ void NetHackQtLabelledIcon::setLabel(const QString &t, bool lower)
                       : (comp_mode == (lower ? SmallerIsBetter
                                              : BiggerIsBetter)) ? hl_better
                         : hl_worse);
+        } else if (turn_count) {
+            // if we don't want to highlight this status field but it is
+            // currently highlighted (perhaps optional Score recently went
+            // up and has just been toggled off), remove the highlight
+            unhighlight();
         }
     }
 }
@@ -128,19 +133,16 @@ void NetHackQtLabelledIcon::setFont(const QFont& f)
     if (label) label->setFont(f);
 }
 
-// [pr] this might no longer be needed; it seems to have been responsible
-// for highlighting the blank space where an optional field like Score
-// was just toggled off; we don't need or want that anymore...
+// used to highlight status conditions going from Off (blank) to On as "Worse"
 void NetHackQtLabelledIcon::show()
 {
-    if (
-#if QT_VERSION >= 300
-        isHidden()
-#else
-        !isVisible()
-#endif
-        && comp_mode != NoCompare)
-	highlight(hl_worse);
+    // Hunger and Encumbrance are worse when going from not shown
+    // to anything and they're set to SmallerIsBetter, so both
+    // BiggerIsBetter and SmallerIsBetter warrant hl_worse here.
+    // Fly, Lev, and Ride are set NeitherIsBetter so that when
+    // they appear they won't be classified as worse.
+    if (isHidden() && comp_mode != NoCompare)
+	highlight((comp_mode != NeitherIsBetter) ? hl_worse : hl_changd);
     QWidget::show();
 }
 

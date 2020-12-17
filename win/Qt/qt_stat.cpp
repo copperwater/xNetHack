@@ -72,13 +72,6 @@
 //    the rest of status.  That takes up more space, which is ok, but it
 //    also increases the vertical margin in between them by more than is
 //    necessary.  Should squeeze some of that excess blank space out.
-//  Highlighting of Xp/Exp needs work when 'showexp' is toggled On or Off.
-//    The field passed to xp.setLabel() for its better vs worse comparison
-//    gets swapped from Xp to Exp or vice versa, yielding a nonsensical
-//    comparison for the first status update after the 'showexp' toggle.
-//  Toggling 'showscore' while Score is highlighted leaves the highlight
-//    on blank space until it times out.  (Time isn't highlighted and Exp
-//    is combined with Xp so always updated; only Score is affected.)
 //
 
 extern "C" {
@@ -694,9 +687,10 @@ void NetHackQtStatusWindow::updateStats()
     QString buf;
 
     if (first_set) {
+        // set toggle-detection flags for optional fields
         was_polyd = Upolyd ? true : false;
         had_exp = ::flags.showexp ? true : false;
-        // not '#ifndef SCORE_ON_BOTL' here; use the variable and the widget
+        // not conditionalized upon '#ifdef SCORE_ON_BOTL' here
         had_score = ::flags.showscore ? true : false; // false when disabled
         score.setLabel(""); // init if enabled, one-time set if disabled
     }
@@ -724,24 +718,45 @@ void NetHackQtStatusWindow::updateStats()
     boolean spreadout = (::iflags.wc2_statuslines != 2);
     int k = 0; // number of conditions shown
 
-    const char* hung=hu_stat[u.uhs];
+    long qt_uhs = 0L;
+    const char *hung = hu_stat[u.uhs];
     if (hung[0]==' ') {
-	hunger.hide();
+        if (!hunger.isHidden()) {
+            hunger.setLabel("", NetHackQtLabelledIcon::NoNum, qt_uhs);
+            hunger.hide();
+        }
     } else {
+        // satiated is worse (due to risk of death from overeating)
+        // than not-hungry and we'll treat it as also worse than hungry,
+        // but better than weak or fainting; the u.uhs enum values
+        // order them differently so we jump through a hoop
+        switch (u.uhs) {
+        case NOT_HUNGRY: qt_uhs = 0L; break;
+        case HUNGRY:     qt_uhs = 1L; break;
+        case SATIATED:   qt_uhs = 2L; break;
+        case WEAK:       qt_uhs = 3L; break;
+        case FAINTING:   qt_uhs = 4L; break;
+        default:         qt_uhs = 5L; break; // fainted, starved
+        }
 	hunger.setIcon(u.uhs ? p_hungry : p_satiated);
-	hunger.setLabel(hung);
+        hunger.setLabel(hung, NetHackQtLabelledIcon::NoNum, qt_uhs);
         hunger.ForceResize();
 	++k, hunger.show();
     }
-    const char *enc = enc_stat[near_capacity()];
+    long encindx = (long) near_capacity();
+    const char *enc = enc_stat[encindx];
     if (enc[0]==' ' || !enc[0]) {
-	encumber.hide();
+        if (!encumber.isHidden()) {
+            encumber.setLabel("", NetHackQtLabelledIcon::NoNum, encindx);
+            encumber.hide();
+        }
     } else {
-	encumber.setIcon(p_encumber[near_capacity() - 1]);
-	encumber.setLabel(enc);
+        encumber.setIcon(p_encumber[encindx - 1]);
+        encumber.setLabel(enc, NetHackQtLabelledIcon::NoNum, encindx);
         encumber.ForceResize();
 	++k, encumber.show();
     }
+
     if (Stoned) ++k, stoned.show(); else stoned.hide();
     if (Slimed) ++k, slimed.show(); else slimed.hide();
     if (Strangled) ++k, strngld.show(); else strngld.hide();
@@ -790,11 +805,12 @@ void NetHackQtStatusWindow::updateStats()
     dlevel.setLabel(buf3);
 
     int poly_toggled = !was_polyd ^ !Upolyd;
-    if (poly_toggled) {
+    int exp_toggled = !had_exp ^ !::flags.showexp;
+    if (poly_toggled)
         // for this update, changed values aren't better|worse, just different
         hp.setCompareMode(NeitherIsBetter);
+    if (poly_toggled || exp_toggled)
         level.setCompareMode(NeitherIsBetter);
-    }
     if (Upolyd) {
         // You're a monster!
         buf.sprintf("/%d", u.mhmax);
@@ -809,9 +825,6 @@ void NetHackQtStatusWindow::updateStats()
         // up/down highlighting becomes tricky--don't try very hard;
         // depending upon font size and status layout, "Level:NN/nnnnnnnn"
         // might be too wide to fit
-#if 0   /* not yet */
-        int exp_toggled = !had_exp ^ !::flags.showexp;
-#endif
         static const char *const lvllbl[3] = { "Level:", "Lvl:", "L:" };
         QFontMetrics fm(level.label->font());
         for (int i = ::flags.showexp ? 0 : 3; i < 4; ++i) {
@@ -831,11 +844,11 @@ void NetHackQtStatusWindow::updateStats()
                        // Exp for setLabel()'s Up|Down highlighting
                        ::flags.showexp ? u.uexp : (long) u.ulevel);
     }
-    if (poly_toggled) {
+    if (poly_toggled)
         // for next update, changed values will be better|worse as usual
         hp.setCompareMode(BiggerIsBetter);
+    if (poly_toggled || exp_toggled)
         level.setCompareMode(BiggerIsBetter);
-    }
     was_polyd = Upolyd ? true : false;
     had_exp = (::flags.showexp && !was_polyd) ? true : false;
 
@@ -925,12 +938,13 @@ void NetHackQtStatusWindow::updateStats()
     if (first_set) {
 	first_set=false;
 
-        was_polyd = Upolyd ? true : false;
-        had_exp = ::flags.showexp ? true : false;
-        had_score = ::flags.showscore ? true : false;
-
+        /*
+         * Default compareMode is BiggerIsBetter:  an increased value
+         * is an improvement.
+         */
 	name.highlightWhenChanging();
-	dlevel.highlightWhenChanging(); dlevel.setCompareMode(NeitherIsBetter);
+        dlevel.highlightWhenChanging();
+            dlevel.setCompareMode(NeitherIsBetter);
 
 	str.highlightWhenChanging();
 	dex.highlightWhenChanging();
@@ -941,7 +955,8 @@ void NetHackQtStatusWindow::updateStats()
 
 	hp.highlightWhenChanging();
 	power.highlightWhenChanging();
-	ac.highlightWhenChanging(); ac.setCompareMode(SmallerIsBetter);
+        ac.highlightWhenChanging();
+            ac.setCompareMode(SmallerIsBetter);
 	level.highlightWhenChanging();
 	gold.highlightWhenChanging();
 
@@ -950,10 +965,13 @@ void NetHackQtStatusWindow::updateStats()
         //time.highlightWhenChanging(); time.setCompareMode(NeitherIsBetter);
 	score.highlightWhenChanging();
 
-	align.highlightWhenChanging(); align.setCompareMode(NeitherIsBetter);
+        align.highlightWhenChanging();
+            align.setCompareMode(NeitherIsBetter);
 
 	hunger.highlightWhenChanging();
+            hunger.setCompareMode(SmallerIsBetter);
 	encumber.highlightWhenChanging();
+            encumber.setCompareMode(SmallerIsBetter);
 	stoned.highlightWhenChanging();
 	slimed.highlightWhenChanging();
 	strngld.highlightWhenChanging();
@@ -964,9 +982,15 @@ void NetHackQtStatusWindow::updateStats()
 	hallu.highlightWhenChanging();
 	blind.highlightWhenChanging();
 	deaf.highlightWhenChanging();
+        // the default behavior is to highlight a newly shown condition
+        // as "worse" but that isn't appropriate for 'other' conds;
+        // NetHackQtLabelledIcon::show() uses NeitherIsBetter to handle it
 	lev.highlightWhenChanging();
+            lev.setCompareMode(NeitherIsBetter);
 	fly.highlightWhenChanging();
+            fly.setCompareMode(NeitherIsBetter);
 	ride.highlightWhenChanging();
+            ride.setCompareMode(NeitherIsBetter);
     }
 }
 

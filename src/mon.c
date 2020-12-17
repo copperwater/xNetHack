@@ -1,4 +1,4 @@
-/* NetHack 3.7	mon.c	$NHDT-Date: 1604880454 2020/11/09 00:07:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.351 $ */
+/* NetHack 3.7	mon.c	$NHDT-Date: 1606623308 2020/11/29 04:15:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.357 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -106,6 +106,29 @@ const char *msg;
     /* guardian angel on astral level is tame but has emin rather than edog */
     if (mtmp->mtame && !has_edog(mtmp) && !mtmp->isminion)
         impossible("pet without edog (%s)", msg);
+
+    if (mtmp->mtrapped) {
+        if (mtmp->wormno) {
+            /* TODO: how to check worm in trap? */
+        } else if (!t_at(mtmp->mx, mtmp->my))
+            impossible("trapped without a trap (%s)", msg);
+    }
+
+    /* monster is hiding? */
+    if (mtmp->mundetected) {
+        struct trap *t;
+
+        if (mtmp == u.ustuck)
+            impossible("hiding monster stuck to you (%s)", msg);
+        if (m_at(mtmp->mx, mtmp->my) == mtmp && hides_under(mtmp->data) && !OBJ_AT(mtmp->mx, mtmp->my))
+            impossible("mon hiding under nonexistent obj (%s)", msg);
+        if (mtmp->data->mlet == S_EEL && !is_pool(mtmp->mx, mtmp->my) && !Is_waterlevel(&u.uz))
+            impossible("eel hiding out of water (%s)", msg);
+        if (mtmp->mtrapped && (t = t_at(mtmp->mx, mtmp->my)) != 0
+            && !(t->ttyp == PIT || t->ttyp == SPIKED_PIT))
+            impossible("hiding while trapped in a non-pit (%s)", msg);
+    }
+
 }
 
 void
@@ -1600,6 +1623,62 @@ struct obj *otmp;
     return iquan;
 }
 
+/* return flags based on monster data, for mfndpos() */
+long
+mon_allowflags(mtmp)
+struct monst *mtmp;
+{
+    long allowflags = 0L;
+    boolean doorbuster = is_giant(mtmp->data);
+
+    if (mtmp->mtame)
+        allowflags |= ALLOW_M | ALLOW_TRAPS | ALLOW_SANCT | ALLOW_SSM;
+    else if (mtmp->mpeaceful)
+        allowflags |= ALLOW_SANCT | ALLOW_SSM;
+    else
+        allowflags |= ALLOW_U;
+    if (Conflict && !resist(mtmp, RING_CLASS, 0, 0))
+        allowflags |= ALLOW_U;
+    if (mtmp->isshk)
+        allowflags |= ALLOW_SSM;
+    if (mtmp->ispriest)
+        allowflags |= ALLOW_SSM | ALLOW_SANCT;
+    if (passes_walls(mtmp->data))
+        allowflags |= (ALLOW_ROCK | ALLOW_WALL);
+    if (throws_rocks(mtmp->data))
+        allowflags |= ALLOW_ROCK;
+    if (tunnels(mtmp->data)) /* same restriction as m_move() */
+        allowflags |= ALLOW_DIG;
+    if (doorbuster)
+        allowflags |= BUSTDOOR;
+    if (can_open_doors(mtmp->data))
+        allowflags |= OPENDOOR;
+    if (can_unlock(mtmp))
+        allowflags |= UNLOCKDOOR;
+    if (passes_bars(mtmp->data))
+        allowflags |= ALLOW_BARS;
+    if (is_displacer(mtmp->data))
+        allowflags |= ALLOW_MDISP;
+    if (is_minion(mtmp->data) || is_rider(mtmp->data))
+        allowflags |= ALLOW_SANCT;
+    /* unicorn may not be able to avoid hero on a noteleport level */
+    if (is_unicorn(mtmp->data) && !noteleport_level(mtmp))
+        allowflags |= NOTONL;
+    if (passes_walls(mtmp->data))
+        allowflags |= (ALLOW_WALL | ALLOW_ROCK);
+    if (passes_bars(mtmp->data))
+        allowflags |= ALLOW_BARS;
+    if (is_human(mtmp->data) || mtmp->data == &mons[PM_MINOTAUR])
+        allowflags |= ALLOW_SSM;
+    if ((is_undead(mtmp->data) && !noncorporeal(mtmp->data))
+        || is_vampshifter(mtmp))
+        allowflags |= NOGARLIC;
+    if (throws_rocks(mtmp->data))
+        allowflags |= ALLOW_ROCK;
+
+    return allowflags;
+}
+
 /* return number of acceptable neighbour positions */
 int
 mfndpos(mon, poss, info, flag)
@@ -2796,20 +2875,41 @@ struct monst *mdef;
 const char *fltxt;
 int how;
 {
-    if ((mdef->wormno ? worm_known(mdef) : cansee(mdef->mx, mdef->my))
-        && fltxt)
+    struct permonst *mptr = mdef->data;
+
+    if (fltxt && (mdef->wormno ? worm_known(mdef)
+                               : cansee(mdef->mx, mdef->my)))
         pline("%s is %s%s%s!", Monnam(mdef),
-              nonliving(mdef->data) ? "destroyed" : "killed",
+              nonliving(mptr) ? "destroyed" : "killed",
               *fltxt ? " by the " : "", fltxt);
     else
-        iflags.sad_feeling = (mdef->mtame != 0);
+        /* sad feeling is deferred until after potential life-saving */
+        iflags.sad_feeling = mdef->mtame ? TRUE : FALSE;
 
-    /* no corpses if digested or disintegrated */
-    g.disintegested = (how == AD_DGST || how == -AD_RBRE);
+    /* no corpse if digested or disintegrated or flammable golem burnt up;
+       no corpse for a paper golem means no scrolls; golems that rust or
+       rot completely are described as "falling to pieces" so they do
+       leave a corpse (which means staves for wood golem, leather armor for
+       leather golem, iron chains for iron golem, not a regular corpse) */
+    g.disintegested = (how == AD_DGST || how == -AD_RBRE
+                       || (how == AD_FIRE && completelyburns(mptr)));
     if (g.disintegested)
-        mondead(mdef);
+        mondead(mdef); /* never leaves a corpse */
     else
-        mondied(mdef);
+        mondied(mdef); /* calls mondead() and maybe leaves a corpse */
+
+    if (!DEADMONSTER(mdef))
+        return; /* life-saved */
+    /* extra message if pet golem is completely destroyed;
+       if not visible, this will follow "you have a sad feeling" */
+    if (mdef->mtame) {
+        const char *rxt = (how == AD_FIRE && completelyburns(mptr)) ? "roast"
+                          : (how == AD_RUST && completelyrusts(mptr)) ? "rust"
+                            : (how == AD_DCAY && completelyrots(mptr)) ? "rot"
+                              :  0;
+        if (rxt)
+            pline("May %s %s in peace.", noit_mon_nam(mdef), rxt);
+    }
 }
 
 void
@@ -3823,6 +3923,19 @@ register struct monst *mtmp;
     }
 
     return FALSE;
+}
+
+/* reveal a monster at x,y hiding under an object,
+   if there are no objects there */
+void
+maybe_unhide_at(x, y)
+xchar x, y;
+{
+    struct monst *mtmp;
+
+    if (!OBJ_AT(x, y) && (mtmp = m_at(x, y)) != 0
+        && mtmp->mundetected && hides_under(mtmp->data))
+        (void) hideunder(mtmp);
 }
 
 /* monster/hero tries to hide under something at the current location.

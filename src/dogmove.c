@@ -1006,17 +1006,7 @@ int after; /* this is extra fast monster movement */
     if (appr == -2)
         return 0;
 
-    allowflags = ALLOW_M | ALLOW_TRAPS | ALLOW_SSM | ALLOW_SANCT;
-    if (passes_walls(mtmp->data))
-        allowflags |= (ALLOW_ROCK | ALLOW_WALL);
-    if (passes_bars(mtmp->data))
-        allowflags |= ALLOW_BARS;
-    if (throws_rocks(mtmp->data))
-        allowflags |= ALLOW_ROCK;
-    if (is_displacer(mtmp->data))
-        allowflags |= ALLOW_MDISP;
     if (Conflict && !resist(mtmp, RING_CLASS, 0, 0)) {
-        allowflags |= ALLOW_U;
         if (!has_edog) {
             /* Guardian angel refuses to be conflicted; rather,
              * it disappears, angrily, and sends in some nasties
@@ -1032,17 +1022,7 @@ int after; /* this is extra fast monster movement */
         You("get released!");
     }
 #endif
-    if (can_open_doors(mtmp->data)) {
-        allowflags |= OPENDOOR;
-        if (monhaskey(mtmp, TRUE))
-            allowflags |= UNLOCKDOOR;
-        /* note:  the Wizard and Riders can unlock doors without a key;
-           they won't use that ability if someone manages to tame them */
-    }
-    if (is_giant(mtmp->data))
-        allowflags |= BUSTDOOR;
-    if (tunnels(mtmp->data)) /* same restriction as m_move() */
-        allowflags |= ALLOW_DIG;
+    allowflags = mon_allowflags(mtmp);
     cnt = mfndpos(mtmp, poss, info, allowflags);
 
     /* Normally dogs don't step on cursed items, but if they have no

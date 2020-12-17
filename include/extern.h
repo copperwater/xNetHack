@@ -1,4 +1,4 @@
-/* NetHack 3.7	extern.h	$NHDT-Date: 1606008997 2020/11/22 01:36:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.880 $ */
+/* NetHack 3.7	extern.h	$NHDT-Date: 1606343573 2020/11/25 22:32:53 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.882 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -928,6 +928,7 @@ E int NDECL(wiz_debug_cmd_traveldisplay);
 #endif
 E boolean NDECL(u_rooted);
 E void NDECL(domove);
+E void NDECL(overexert_hp);
 E boolean NDECL(overexertion);
 E void NDECL(invocation_message);
 E void NDECL(switch_terrain);
@@ -1539,6 +1540,7 @@ E boolean FDECL(mpickstuff, (struct monst *, boolean (*)(OBJ_P)));
 E int FDECL(curr_mon_load, (struct monst *));
 E int FDECL(max_mon_load, (struct monst *));
 E int FDECL(can_carry, (struct monst *, struct obj *));
+E long FDECL(mon_allowflags, (struct monst *));
 E int FDECL(mfndpos, (struct monst *, coord *, long *, long));
 E long FDECL(mm_aggression, (struct monst *, struct monst *));
 E boolean FDECL(monnear, (struct monst *, int, int));
@@ -1574,6 +1576,7 @@ E void FDECL(seemimic, (struct monst *));
 E void NDECL(rescham);
 E void NDECL(restartcham);
 E void FDECL(restore_cham, (struct monst *));
+E void FDECL(maybe_unhide_at, (XCHAR_P, XCHAR_P));
 E boolean FDECL(hideunder, (struct monst *));
 E void FDECL(hide_monst, (struct monst *));
 E void FDECL(mon_animal_list, (BOOLEAN_P));
@@ -2490,8 +2493,9 @@ E boolean FDECL(billable, (struct monst **, struct obj *, CHAR_P, BOOLEAN_P));
 E void FDECL(addtobill, (struct obj *, BOOLEAN_P, BOOLEAN_P, BOOLEAN_P));
 E void FDECL(splitbill, (struct obj *, struct obj *));
 E void FDECL(subfrombill, (struct obj *, struct monst *));
-E long FDECL(stolen_value,
-             (struct obj *, XCHAR_P, XCHAR_P, BOOLEAN_P, BOOLEAN_P));
+E long FDECL(stolen_value, (struct obj *, XCHAR_P, XCHAR_P,
+                            BOOLEAN_P, BOOLEAN_P));
+E void FDECL(donate_gold, (long, struct monst *, BOOLEAN_P));
 E void FDECL(sellobj_state, (int));
 E void FDECL(sellobj, (struct obj *, XCHAR_P, XCHAR_P));
 E int FDECL(doinvbill, (int));
@@ -3266,6 +3270,7 @@ E int FDECL(bhito, (struct obj *, struct obj *));
 E int FDECL(bhitpile,
             (struct obj *, int (*)(OBJ_P, OBJ_P), int, int, SCHAR_P));
 E int FDECL(zappable, (struct obj *));
+E void NDECL(do_enlightenment_effect);
 E void FDECL(zapnodir, (struct obj *));
 E int NDECL(dozap);
 E int FDECL(zapyourself, (struct obj *, BOOLEAN_P));
