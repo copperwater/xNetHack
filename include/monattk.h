@@ -86,6 +86,15 @@
 #define AD_SAMU 49  /* hits, may steal Amulet (Wizard) */
 #define LAST_AD AD_SAMU
 
+struct mhitm_data {
+    int damage;
+    int hitflags; /* MM_DEF_DIED | MM_AGR_DIED | ... */
+    boolean done;
+    boolean permdmg;
+    int specialdmg;
+    int dieroll;
+};
+
 /*
  *  Monster to monster attacks.  When a monster attacks another (mattackm),
  *  any or all of the following can be returned.  See mattackm() for more
