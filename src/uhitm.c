@@ -2744,7 +2744,7 @@ struct mhitm_data *mhm;
             if (u.umonnum == PM_CLAY_GOLEM) {
                 pline("Some writing vanishes from your head!");
                 /* KMH -- this is okay with unchanging */
-                Sprintf(g.killer.name, "was deactivated");
+                Sprintf(g.killer.name, "identity theft");
                 g.killer.format = KILLED_BY;
                 rehumanize();
                 return;

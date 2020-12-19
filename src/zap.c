@@ -2930,10 +2930,16 @@ boolean youattack, allow_cancel_kill, self_cancel;
                     You_feel("%s headed.", Hallucination ? "dark" : "light");
                 u.mh = 0; /* fatal; death handled by rehumanize() */
             }
-            if (Unchanging && u.mh > 0)
-                Your("amulet grows hot for a moment, then cools.");
-            else
+            if (Unchanging && u.mh > 0) {
+                if (uamul && uamul->otyp == AMULET_OF_UNCHANGING) {
+                    Your("amulet grows hot for a moment, then cools.");
+                }
+            }
+            else {
+                Strcpy(g.killer.name, "identity theft");
+                g.killer.format = KILLED_BY;
                 rehumanize();
+            }
         }
     } else {
         mdef->mcan = 1;
