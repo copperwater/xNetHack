@@ -2583,6 +2583,7 @@ E void FDECL(create_secret_door, (struct mkroom *, XCHAR_P));
 E boolean FDECL(dig_corridor, (coord *, coord *, BOOLEAN_P, SCHAR_P, SCHAR_P));
 E void FDECL(fill_special_room, (struct mkroom *));
 E int FDECL(find_montype, (lua_State *, const char *));
+E void FDECL(wallify_map, (int, int, int, int));
 E boolean FDECL(load_special, (const char *));
 E xchar FDECL(selection_getpoint, (int, int, struct selectionvar *));
 E void FDECL(lvlfill_maze_grid, (int, int, int, int, SCHAR_P));

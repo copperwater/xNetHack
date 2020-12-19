@@ -756,7 +756,7 @@ register struct monst *mtmp;
             (void) mongets(mtmp, MUMMY_WRAPPING);
         break;
     case S_ABERRATION:
-        if (ptr == &mons[PM_QUANTUM_MECHANIC] && !rn2(20)) {
+        if (!rn2(20) && ptr == &mons[PM_QUANTUM_MECHANIC]) {
             struct obj *catcorpse;
             otmp = mksobj(LARGE_BOX, FALSE, FALSE);
             /* we used to just set the flag, which resulted in weight()

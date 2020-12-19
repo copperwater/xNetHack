@@ -13,6 +13,7 @@
 
 static boolean NDECL(unconstrain_map);
 static void NDECL(reconstrain_map);
+static void NDECL(map_redisplay);
 static void FDECL(browse_map, (int, const char *));
 static void FDECL(map_monst, (struct monst *, BOOLEAN_P));
 static void FDECL(do_dknown_of, (struct obj *));
@@ -59,6 +60,17 @@ reconstrain_map()
     u.uinwater = iflags.save_uinwater, iflags.save_uinwater = 0; /* set_uinwater() */
     u.uburied  = iflags.save_uburied,  iflags.save_uburied  = 0;
     u.uswallow = iflags.save_uswallow, iflags.save_uswallow = 0;
+}
+
+static void
+map_redisplay()
+{
+    reconstrain_map();
+    docrt(); /* redraw the screen to remove unseen traps from the map */
+    if (Underwater)
+        under_water(2);
+    if (u.uburied)
+        under_ground(2);
 }
 
 /* use getpos()'s 'autodescribe' to view whatever is currently shown on map */
@@ -472,13 +484,14 @@ boolean passive;
 
         browse_map(ter_typ, "gold");
 
-        reconstrain_map();
-        docrt();
+        map_redisplay();
     }
-    if (Underwater)
-        under_water(2);
-    if (u.uburied)
-        under_ground(2);
+    else {
+        if (Underwater)
+            under_water(2);
+        if (u.uburied)
+            under_ground(2);
+    }
     return 0;
 }
 
@@ -597,12 +610,7 @@ register struct obj *sobj;
 
         browse_map(ter_typ, "food");
 
-        reconstrain_map();
-        docrt();
-        if (Underwater)
-            under_water(2);
-        if (u.uburied)
-            under_ground(2);
+        map_redisplay();
     }
     return 0;
 }
@@ -799,12 +807,7 @@ int class;            /* an object class, 0 for all */
     else
         browse_map(ter_typ, "object");
 
-    reconstrain_map();
-    docrt(); /* this will correctly reset vision */
-    if (Underwater)
-        under_water(2);
-    if (u.uburied)
-        under_ground(2);
+    map_redisplay();
     return 0;
 }
 
@@ -878,12 +881,7 @@ int mclass;                /* monster class, 0 for all */
             EDetect_monsters &= ~I_SPECIAL;
         }
 
-        reconstrain_map();
-        docrt(); /* redraw the screen to remove unseen monsters from map */
-        if (Underwater)
-            under_water(2);
-        if (u.uburied)
-            under_ground(2);
+        map_redisplay();
     }
     return 0;
 }
@@ -1066,12 +1064,7 @@ struct obj *sobj; /* null if crystal ball, *scroll if gold detection scroll */
 
     browse_map(ter_typ, "trap of interest");
 
-    reconstrain_map();
-    docrt(); /* redraw the screen to remove unseen traps from the map */
-    if (Underwater)
-        under_water(2);
-    if (u.uburied)
-        under_ground(2);
+    map_redisplay();
     return 0;
 }
 
@@ -1116,12 +1109,7 @@ furniture_detect()
         browse_map(TER_DETECT | TER_MAP | TER_TRP | TER_OBJ | TER_MON,
                    "location");
 
-    reconstrain_map();
-    docrt(); /* redraw everything */
-    if (Underwater)
-        under_water(2);
-    if (u.uburied)
-        under_ground(2);
+    map_redisplay();
     return 0;
 }
 
@@ -2097,12 +2085,7 @@ int which_subset; /* when not full, whether to suppress objs and/or traps */
     which_subset |= TER_MAP; /* guarantee non-zero */
     browse_map(which_subset, "anything of interest");
 
-    reconstrain_map();
-    docrt(); /* redraw the screen, restoring regular map */
-    if (Underwater)
-        under_water(2);
-    if (u.uburied)
-        under_ground(2);
+    map_redisplay();
 }
 
 /* Detect out-of-sight gold across the level, silently. */
