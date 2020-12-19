@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.371 $ $NHDT-Date: 1606954304 2020/12/03 00:11:44 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.376 $ $NHDT-Date: 1607252278 2020/12/06 10:57:58 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -315,9 +315,11 @@ try to fix message sequencing for tame golems that "roast/rot/rust in peace"
 autodescribe when moving the cursor was erroneously honoring MSGTYPE=stop
 	and potentially delivering sounds
 reduce the number of "seeXYZ" commands by renaming some: #seenv -> #wizseenv,
-	#seespells -> #showspells, and #seetrap -> #showtrap
+	#seegold -> #showgold, #seespells -> #showspells, #seetrap -> #showtrap
 when saving while punished or game ends while punished, handling for ball and
 	chain might access freed memory with unpredictable consequences
+brown pudding monster hitting another monster with decay attack corroded armor
+	instead of rotting it
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -638,6 +640,7 @@ render the color names in the corresponding color when using the pick-a-color
 reading blessed scroll of teleportation confers one-shot teleport control
 mild zombie apocalypse
 list lamps and lanterns in charging prompt
+let tourists read conical hats
 
 
 Platform- and/or Interface-Specific New Features
@@ -659,6 +662,12 @@ Qt: clicking on the paper doll runs the #seeall command (inventory of wielded
 Qt: clicking on the status window runs the #attributes command (^X)
 Qt: add a Search button to the toolbar
 Qt: support the 'hitpointbar' option
+Qt: add Filter, Layout, and Reset buttons to the extended command selector;
+	Filter is only useful in wizard mode, allowing changing the set of
+	extended commands between "all", "normal mode only", "extra wizard
+	mode only"; Layout redisplays the grid of command buttons, toggling
+	from down columns to across rows or vice versa; Reset puts both back
+	to their default settings and clears any pending typed input
 
 
 NetHack Community Patches (or Variation) Included
@@ -748,5 +757,7 @@ rework stairs structure into a linked list
 move 'restoring' to the program_state struct; add corresponding 'saving';
 	both used to enforce no updating of status lines or of persistent
 	inventory when the relevant activity is in progress
+unify special attack damages from separate you-hit-monster, monster-hits-you,
+	and monster-hits-monster into functions by damage type
 
 

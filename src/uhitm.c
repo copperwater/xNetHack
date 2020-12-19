@@ -1,4 +1,4 @@
-/* NetHack 3.7	uhitm.c	$NHDT-Date: 1606558760 2020/11/28 10:19:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.244 $ */
+/* NetHack 3.7	uhitm.c	$NHDT-Date: 1607076540 2020/12/04 10:09:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.288 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,15 +10,14 @@ static const char brief_feeling[] =
 
 static boolean FDECL(attack_check_conducts, (struct obj *));
 static boolean FDECL(known_hitum, (struct monst *, struct obj *, int *,
-                                       int, int, struct attack *, int));
+                                   int, int, struct attack *, int));
 static boolean FDECL(theft_petrifies, (struct obj *));
 static void FDECL(steal_it, (struct monst *, struct attack *));
 static int FDECL(really_steal, (struct obj *, struct monst *));
 static boolean NDECL(should_cleave);
 static boolean FDECL(hitum_cleave, (struct monst *, struct attack *));
 static boolean FDECL(hitum, (struct monst *, struct attack *));
-static boolean FDECL(hmon_hitmon, (struct monst *, struct obj *, int,
-                                       int));
+static boolean FDECL(hmon_hitmon, (struct monst *, struct obj *, int, int));
 static int FDECL(joust, (struct monst *, struct obj *));
 static void NDECL(demonpet);
 static boolean FDECL(m_slips_free, (struct monst *, struct attack *));
@@ -1964,8 +1963,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         erode_armor(mdef, ERODE_CORRODE);
@@ -2038,7 +2035,7 @@ struct mhitm_data *mhm;
             mhm->hitflags = (MM_DEF_DIED | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
             return;
         }
-        erode_armor(mdef, ERODE_CORRODE);
+        erode_armor(mdef, ERODE_ROT);
         mdef->mstrategy &= ~STRAT_WAITFORU;
         mhm->damage = 0;
     }
@@ -2051,8 +2048,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -2091,8 +2086,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -2297,8 +2290,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -2364,8 +2355,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -2437,8 +2426,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         if (resists_acid(mdef))
@@ -2560,8 +2547,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -2662,8 +2647,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         if (can_blnd(magr, mdef, mattk->aatyp, (struct obj *) 0)) {
@@ -2771,10 +2754,11 @@ struct mhitm_data *mhm;
                     mhm->hitflags = MM_MISS;
                     mhm->done = TRUE;
                     return;
-                }
-                else if (mdef->mtame && !g.vis)
+                } else if (mdef->mtame && !g.vis) {
                     You(brief_feeling, "strangely sad");
-                mhm->hitflags = (MM_DEF_DIED | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
+                }
+                mhm->hitflags = (MM_DEF_DIED
+                                 | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
                 mhm->done = TRUE;
                 return;
             }
@@ -2820,7 +2804,6 @@ struct monst *mdef;
 struct mhitm_data *mhm;
 {
     struct permonst *pa = magr->data;
-    struct permonst *pd = mdef->data;
 
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3086,8 +3069,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -3172,7 +3153,7 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
+    mhm->damage = 0; /* no HP damage */
 
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3306,7 +3287,7 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
+    mhm->damage = 0; /* no HP damage */
 
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3359,7 +3340,7 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
+    mhm->damage = 0; /* no HP damage */
 
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3405,8 +3386,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         if (!mdef->mconf) {
@@ -3444,12 +3423,10 @@ struct mhitm_data *mhm;
 void
 mhitm_ad_poly(magr, mattk, mdef, mhm)
 struct monst *magr;
-struct attack *mattk;
+struct attack *mattk UNUSED; /* implied */
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -3463,13 +3440,11 @@ struct mhitm_data *mhm;
         int armpro = magic_negation(mdef);
         boolean uncancelled = !magr->mcan && (rn2(10) >= 3 * armpro);
 
-        if (uncancelled && Maybe_Half_Phys(mhm->damage) < (Upolyd ? u.mh : u.uhp))
+        if (uncancelled
+            && Maybe_Half_Phys(mhm->damage) < (Upolyd ? u.mh : u.uhp))
             mhm->damage = mon_poly(magr, mdef, mhm->damage);
     } else {
         /* mhitm */
-        int armpro = magic_negation(mdef);
-        boolean cancelled = magr->mcan || !(rn2(10) >= 3 * armpro);
-
         if (!magr->mcan && mhm->damage < mdef->mhp)
             mhm->damage = mon_poly(magr, mdef, mhm->damage);
     }
@@ -3511,12 +3486,10 @@ struct mhitm_data *mhm;
 void
 mhitm_ad_famn(magr, mattk, mdef, mhm)
 struct monst *magr;
-struct attack *mattk;
+struct attack *mattk UNUSED;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         mhm->damage = 0;
@@ -3536,7 +3509,7 @@ struct mhitm_data *mhm;
 void
 mhitm_ad_pest(magr, mattk, mdef, mhm)
 struct monst *magr;
-struct attack *mattk;
+struct attack *mattk UNUSED;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
@@ -3559,7 +3532,7 @@ struct mhitm_data *mhm;
 void
 mhitm_ad_deth(magr, mattk, mdef, mhm)
 struct monst *magr;
-struct attack *mattk;
+struct attack *mattk UNUSED;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
@@ -3612,7 +3585,7 @@ struct mhitm_data *mhm;
 void
 mhitm_ad_halu(magr, mattk, mdef, mhm)
 struct monst *magr;
-struct attack *mattk;
+struct attack *mattk UNUSED;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
@@ -3626,9 +3599,6 @@ struct mhitm_data *mhm;
         mhm->damage = 0;
     } else {
         /* mhitm */
-        int armpro = magic_negation(mdef);
-        boolean cancelled = magr->mcan || !(rn2(10) >= 3 * armpro);
-
         if (!magr->mcan && haseyes(pd) && mdef->mcansee) {
             if (g.vis && canseemon(mdef))
                 pline("%s looks %sconfused.", Monnam(mdef),
@@ -3665,11 +3635,10 @@ struct monst *mtmp;
 void
 do_stone_mon(magr, mattk, mdef, mhm)
 struct monst *magr;
-struct attack *mattk;
+struct attack *mattk UNUSED;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pa = magr->data;
     struct permonst *pd = mdef->data;
 
     /* may die from the acid if it eats a stone-curing corpse */
@@ -3689,10 +3658,11 @@ struct mhitm_data *mhm;
             mhm->hitflags = MM_MISS;
             mhm->done = TRUE;
             return;
-        }
-        else if (mdef->mtame && !g.vis)
+        } else if (mdef->mtame && !g.vis) {
             You(brief_feeling, "peculiarly sad");
-        mhm->hitflags = (MM_DEF_DIED | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
+        }
+        mhm->hitflags = (MM_DEF_DIED
+                         | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
         mhm->done = TRUE;
         return;
     }
@@ -3712,10 +3682,6 @@ struct mhitm_data *mhm;
 
     if (magr == &g.youmonst) {
         /* uhitm */
-        int armpro = magic_negation(mdef);
-        /* since hero can't be cancelled, only defender's armor applies */
-        boolean negated = !(rn2(10) >= 3 * armpro);
-
         if (noncorporeal(pd)) {
             mhm->damage = 0;
             if (!mhm->specialdmg)
@@ -3748,9 +3714,6 @@ struct mhitm_data *mhm;
         }
     } else if (mdef == &g.youmonst) {
         /* mhitu */
-        int armpro = magic_negation(mdef);
-        boolean uncancelled = !magr->mcan && (rn2(10) >= 3 * armpro);
-
         if (mattk->aatyp == AT_HUGS && !sticks(pd)) {
             if (!u.ustuck && rn2(2)) {
                 if (u_slip_free(magr, mattk)) {
@@ -3858,8 +3821,6 @@ struct mhitm_data *mhm;
         }
     } else {
         /* mhitm */
-        int armpro = magic_negation(mdef);
-        boolean cancelled = magr->mcan || !(rn2(10) >= 3 * armpro);
         struct obj *mwep = MON_WEP(magr);
 
         if (mattk->aatyp != AT_WEAP && mattk->aatyp != AT_CLAW)
@@ -3941,8 +3902,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         if (!munstone(mdef, TRUE))
@@ -3991,7 +3950,6 @@ struct monst *mdef;
 struct mhitm_data *mhm;
 {
     struct permonst *pa = magr->data;
-    struct permonst *pd = mdef->data;
 
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -4035,9 +3993,6 @@ struct mhitm_data *mhm;
             return;
     } else if (mdef == &g.youmonst) {
         /* mhitu */
-        int armpro = magic_negation(mdef);
-        boolean uncancelled = !magr->mcan && (rn2(10) >= 3 * armpro);
-
         /* a cancelled nurse is just an ordinary monster,
          * nurses don't heal those that cause petrification */
         if (magr->mcan || (Upolyd && touch_petrifies(pd))) {
@@ -4156,8 +4111,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
 #if 0
@@ -4171,9 +4124,6 @@ struct mhitm_data *mhm;
             return;
     } else if (mdef == &g.youmonst) {
         /* mhitu */
-        int armpro = magic_negation(mdef);
-        boolean uncancelled = !magr->mcan && (rn2(10) >= 3 * armpro);
-
         long side = rn2(2) ? RIGHT_SIDE : LEFT_SIDE;
         const char *sidestr = (side == RIGHT_SIDE) ? "right" : "left",
                    *Monst_name = Monnam(magr), *leg = body_part(LEG);
@@ -4226,7 +4176,7 @@ struct mhitm_data *mhm;
 void
 mhitm_ad_dgst(magr, mattk, mdef, mhm)
 struct monst *magr;
-struct attack *mattk;
+struct attack *mattk UNUSED;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
@@ -4305,8 +4255,6 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
-    struct permonst *pd = mdef->data;
-
     if (magr == &g.youmonst) {
         /* uhitm */
         mhm->damage = 0;
@@ -4332,7 +4280,6 @@ struct monst *mdef;
 struct mhitm_data *mhm;
 {
     struct permonst *pa = magr->data;
-    struct permonst *pd = mdef->data;
 
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -4356,7 +4303,6 @@ struct monst *mdef;
 struct mhitm_data *mhm;
 {
     struct permonst *pa = magr->data;
-    struct permonst *pd = mdef->data;
 
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -4364,8 +4310,6 @@ struct mhitm_data *mhm;
         mhm->damage = 0;
     } else if (mdef == &g.youmonst) {
         /* mhitu */
-        int armpro = magic_negation(mdef);
-        boolean uncancelled = !magr->mcan && (rn2(10) >= 3 * armpro);
         char buf[BUFSZ];
 
         if (is_animal(magr->data)) {
@@ -4385,7 +4329,7 @@ struct mhitm_data *mhm;
                   : "makes some remarks about how difficult theft is lately");
             if (!tele_restrict(magr))
                 (void) rloc(magr, TRUE);
-            mhm->hitflags = MM_HIT | MM_DEF_DIED; /* return 3??? */
+            mhm->hitflags = MM_AGR_DONE; /* return 3??? */
             mhm->done = TRUE;
             return;
         } else {
@@ -4399,7 +4343,7 @@ struct mhitm_data *mhm;
                 if (rn2(3)) {
                     if (!tele_restrict(magr))
                         (void) rloc(magr, TRUE);
-                    mhm->hitflags = MM_HIT | MM_DEF_DIED; /* return 3??? */
+                    mhm->hitflags = MM_AGR_DONE; /* return 3??? */
                     mhm->done = TRUE;
                     return;
                 }
@@ -4409,7 +4353,7 @@ struct mhitm_data *mhm;
         buf[0] = '\0';
         switch (steal(magr, buf)) {
         case -1:
-            mhm->hitflags = MM_DEF_DIED; /* return 2??? */
+            mhm->hitflags = MM_AGR_DIED; /* return 2??? */
             mhm->done = TRUE;
             return;
         case 0:
@@ -4423,14 +4367,12 @@ struct mhitm_data *mhm;
                           locomotion(magr->data, "run"), buf);
             }
             monflee(magr, 0, FALSE, FALSE);
-            mhm->hitflags = MM_HIT | MM_DEF_DIED; /* return 3??? */
+            mhm->hitflags = MM_AGR_DONE; /* return 3??? */
             mhm->done = TRUE;
             return;
         }
     } else {
         /* mhitm */
-        int armpro = magic_negation(mdef);
-        boolean cancelled = magr->mcan || !(rn2(10) >= 3 * armpro);
         struct obj *obj;
 
         if (magr->mcan)
@@ -4509,7 +4451,7 @@ struct mhitm_data *mhm;
             if (could_seduce(magr, mdef, mattk) == 1 && !magr->mcan) {
                 mintroduce(magr);
                 if (doseduce(magr)) {
-                    mhm->hitflags = MM_HIT | MM_DEF_DIED; /* return 3??? */
+                    mhm->hitflags = MM_AGR_DONE;
                     mhm->done = TRUE;
                     return;
                 }
@@ -4524,42 +4466,6 @@ struct mhitm_data *mhm;
         mhitm_ad_sedu(magr, mattk, mdef, mhm);
         if (mhm->done)
             return;
-    }
-}
-
-
-/* Template for monster hits monster for AD_FOO.
-   - replace "break" with return
-   - replace "return" with mhm->done = TRUE
-*/
-void
-mhitm_ad_FOO(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
-{
-    struct permonst *pd = mdef->data;
-
-    if (magr == &g.youmonst) {
-        /* uhitm */
-        int armpro = magic_negation(mdef);
-        /* since hero can't be cancelled, only defender's armor applies */
-        boolean negated = !(rn2(10) >= 3 * armpro);
-
-        /* TODO */
-    } else if (mdef == &g.youmonst) {
-        /* mhitu */
-        int armpro = magic_negation(mdef);
-        boolean uncancelled = !magr->mcan && (rn2(10) >= 3 * armpro);
-
-        /* TODO */
-    } else {
-        /* mhitm */
-        int armpro = magic_negation(mdef);
-        boolean cancelled = magr->mcan || !(rn2(10) >= 3 * armpro);
-
-        /* TODO */
     }
 }
 
@@ -4625,7 +4531,6 @@ register struct monst *mdef;
 register struct attack *mattk;
 int specialdmg; /* blessed and/or silver bonus against various things */
 {
-    register struct permonst *pd = mdef->data;
     int armpro;
     boolean negated;
     struct mhitm_data mhm;
@@ -4633,6 +4538,7 @@ int specialdmg; /* blessed and/or silver bonus against various things */
     mhm.hitflags = MM_MISS;
     mhm.permdmg = 0;
     mhm.specialdmg = specialdmg;
+    mhm.done = FALSE;
 
     armpro = magic_negation(mdef);
     /* since hero can't be cancelled, only defender's armor applies */
@@ -4642,7 +4548,7 @@ int specialdmg; /* blessed and/or silver bonus against various things */
         && u.umonnum != PM_SUCCUBUS && u.umonnum != PM_INCUBUS
         && u.umonnum != PM_BALROG) {
         demonpet();
-        return 0;
+        return MM_MISS;
     }
 
     mhitm_adtyping(&g.youmonst, mattk, mdef, &mhm);
@@ -4662,9 +4568,9 @@ int specialdmg; /* blessed and/or silver bonus against various things */
                 xkilled(mdef, XKILL_NOMSG);
         } else if (mhm.damage)
             killed(mdef);
-        return 2;
+        return MM_DEF_DIED;
     }
-    return 1;
+    return MM_HIT;
 }
 
 /* Hero, as a monster which is capable of an exploding attack mattk, is
@@ -4703,13 +4609,13 @@ register struct attack *mattk;
         if (mdef && DEADMONSTER(mdef)) {
             /* Other monsters may have died too, but return 2 if the actual
              * target died. */
-            return 2;
+            return MM_DEF_DIED;
         }
         break;
     default:
         break;
     }
-    return 1;
+    return MM_HIT;
 }
 
 static void
@@ -4760,7 +4666,7 @@ register struct attack *mattk;
      */
 
     if (!engulf_target(&g.youmonst, mdef))
-        return 0;
+        return MM_MISS;
 
     if (u.uhunger < 1500 && !u.uswallow) {
         for (otmp = mdef->minvent; otmp; otmp = otmp->nobj)
@@ -4775,7 +4681,7 @@ register struct attack *mattk;
                 pline("It turns into %s.", a_monnam(mdef));
             else
                 map_invisible(mdef->mx, mdef->my);
-            return 1;
+            return MM_HIT;
         }
 
         /* engulfing a cockatrice or digesting a Rider or Medusa */
@@ -4808,7 +4714,7 @@ register struct attack *mattk;
                             pd->mname);
                     g.killer.format = NO_KILLER_PREFIX;
                     done(DIED);
-                    return 0; /* lifesaved */
+                    return MM_MISS; /* lifesaved */
                 }
 
                 if (Slow_digestion) {
@@ -4864,7 +4770,7 @@ register struct attack *mattk;
                         exercise(A_CON, TRUE);
                 }
                 end_engulf();
-                return 2;
+                return MM_DEF_DIED;
             case AD_PHYS:
                 if (g.youmonst.data == &mons[PM_FOG_CLOUD]) {
                     pline("%s is laden with your moisture.", Monnam(mdef));
@@ -4940,7 +4846,7 @@ register struct attack *mattk;
             if (DEADMONSTER(mdef)) {
                 killed(mdef);
                 if (DEADMONSTER(mdef)) /* not lifesaved */
-                    return 2;
+                    return MM_DEF_DIED;
             }
             You("%s %s!", is_animal(g.youmonst.data) ? "regurgitate" : "expel",
                 mon_nam(mdef));
@@ -4950,7 +4856,7 @@ register struct attack *mattk;
             }
         }
     }
-    return 0;
+    return MM_MISS;
 }
 
 void
@@ -4980,13 +4886,13 @@ register struct monst *mon;
     struct attack *mattk, alt_attk;
     struct obj *weapon, **originalweapon;
     boolean altwep = FALSE, weapon_used = FALSE, stop_attacking = FALSE;
-    int i, tmp, armorpenalty, sum[NATTK], nsum = 0, dhit = 0, attknum = 0;
+    int i, tmp, armorpenalty, sum[NATTK], nsum = MM_MISS, dhit = 0, attknum = 0;
     int dieroll;
 
     g.skipdrin = FALSE; /* [see mattackm(mhitm.c)] */
 
     for (i = 0; i < NATTK; i++) {
-        sum[i] = 0;
+        sum[i] = MM_MISS;
         mattk = getmattk(&g.youmonst, mon, i, sum, &alt_attk);
         if (g.skipdrin && mattk->aatyp == AT_TENT && mattk->adtyp == AD_DRIN)
             continue;
@@ -4999,7 +4905,7 @@ register struct monst *mon;
                get to make another weapon attack (note:  monsters who
                use weapons do not have this restriction, but they also
                never have the opportunity to use two weapons) */
-            if (weapon_used && sum[i - 1] && uwep && bimanual(uwep))
+            if (weapon_used && (sum[i - 1] > MM_MISS) && uwep && bimanual(uwep))
                 continue;
             /* Certain monsters don't use weapons when encountered as enemies,
              * but players who polymorph into them have hands or claws and
@@ -5047,10 +4953,10 @@ register struct monst *mon;
             if (!known_hitum(mon, weapon, &dhit, tmp,
                              armorpenalty, mattk, dieroll)) {
                 /* enemy dead, before any special abilities used */
-                sum[i] = 2;
+                sum[i] = MM_DEF_DIED;
                 break;
             } else
-                sum[i] = dhit;
+                sum[i] = dhit ? MM_HIT : MM_MISS;
             /* originalweapon points to an equipment slot which might
                now be empty if the weapon was destroyed during the hit;
                passive(,weapon,...) won't call passive_obj() in that case */
@@ -5233,7 +5139,7 @@ register struct monst *mon;
                 if (hated_obj && flags.verbose)
                     searmsg(&g.youmonst, mon, hated_obj, FALSE);
                 sum[i] = damageum(mon, mattk, specialdmg);
-            } else if (i >= 2 && sum[i - 1] && sum[i - 2]) {
+            } else if (i >= 2 && (sum[i - 1] > MM_MISS) && (sum[i - 2] > MM_MISS)) {
                 /* in case we're hugging a new target while already
                    holding something else; yields feedback
                    "<u.ustuck> is no longer in your clutches" */
@@ -5260,11 +5166,11 @@ register struct monst *mon;
                                    &attknum, &armorpenalty);
             if ((dhit = (tmp > rnd(20 + i)))) {
                 wakeup(mon, TRUE);
-                if (noncorporeal(mon->data))
+                if (noncorporeal(mon->data)) {
                     Your("attempt to surround %s is harmless.", mon_nam(mon));
-                else {
+                } else {
                     sum[i] = gulpum(mon, mattk);
-                    if (sum[i] == 2 && (mon->data->mlet == S_ZOMBIE
+                    if (sum[i] == MM_DEF_DIED && (mon->data->mlet == S_ZOMBIE
                                         || mon->data->mlet == S_MUMMY)
                         && rn2(5) && !Sick_resistance) {
                         You_feel("%ssick.", (Sick) ? "very " : "");
@@ -5306,14 +5212,13 @@ register struct monst *mon;
             g.killer.format = NO_KILLER_PREFIX;
             rehumanize();
         }
-        stop_attacking = FALSE;
-        if (sum[i] == 2) {
+        if (sum[i] == MM_DEF_DIED) {
             /* defender dead */
             (void) passive(mon, weapon, 1, 0, mattk->aatyp, FALSE);
             stop_attacking = TRUE; /* zombification; DEADMONSTER is false */
-            nsum = 0; /* return value below used to be 'nsum > 0' */
+            nsum = MM_MISS; /* return value below used to be 'nsum > 0' */
         } else {
-            (void) passive(mon, weapon, sum[i], 1, mattk->aatyp, FALSE);
+            (void) passive(mon, weapon, (sum[i] != MM_MISS), 1, mattk->aatyp, FALSE);
             nsum |= sum[i];
         }
 
@@ -5345,16 +5250,18 @@ register struct monst *mon;
 /*      Special (passive) attacks on you by monsters done here.
  */
 int
-passive(mon, weapon, mhit, malive, aatyp, wep_was_destroyed)
+passive(mon, weapon, mhitb, maliveb, aatyp, wep_was_destroyed)
 struct monst *mon;
 struct obj *weapon; /* uwep or uswapwep or uarmg or uarmf or Null */
-boolean mhit;
-int malive;
+boolean mhitb;
+boolean maliveb;
 uchar aatyp;
 boolean wep_was_destroyed;
 {
     register struct permonst *ptr = mon->data;
     register int i, tmp;
+    int mhit = mhitb ? MM_HIT : MM_MISS;
+    int malive = maliveb ? MM_HIT : MM_MISS;
 
     for (i = 0;; i++) {
         if (i >= NATTK)
@@ -5374,7 +5281,7 @@ boolean wep_was_destroyed;
      */
     switch (ptr->mattk[i].adtyp) {
     case AD_FIRE:
-        if (mhit && !mon->mcan && weapon) {
+        if (mhitb && !mon->mcan && weapon) {
             if (aatyp == AT_KICK) {
                 if (uarmf && !rn2(6))
                     (void) erode_obj(uarmf, xname(uarmf), ERODE_BURN,
@@ -5385,7 +5292,7 @@ boolean wep_was_destroyed;
         }
         break;
     case AD_ACID:
-        if (mhit && rn2(2)) {
+        if (mhitb && rn2(2)) {
             if (Blind || !flags.verbose)
                 You("are splashed!");
             else
@@ -5397,7 +5304,7 @@ boolean wep_was_destroyed;
             if (!rn2(30))
                 erode_armor(&g.youmonst, ERODE_CORRODE);
         }
-        if (mhit && weapon) {
+        if (mhitb && weapon) {
             if (aatyp == AT_KICK) {
                 if (uarmf && !rn2(6))
                     (void) erode_obj(uarmf, xname(uarmf), ERODE_CORRODE,
@@ -5409,7 +5316,7 @@ boolean wep_was_destroyed;
         exercise(A_STR, FALSE);
         break;
     case AD_STON:
-        if (mhit) { /* successful attack */
+        if (mhitb) { /* successful attack */
             long protector = attk_protection((int) aatyp);
 
             /* hero using monsters' AT_MAGC attack is hitting hand to
@@ -5427,13 +5334,13 @@ boolean wep_was_destroyed;
                     && !(poly_when_stoned(g.youmonst.data)
                          && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
                     done_in_by(mon, STONING); /* "You turn to stone..." */
-                    return 2;
+                    return MM_DEF_DIED;
                 }
             }
         }
         break;
     case AD_RUST:
-        if (mhit && !mon->mcan && weapon) {
+        if (mhitb && !mon->mcan && weapon) {
             if (aatyp == AT_KICK) {
                 if (uarmf)
                     (void) erode_obj(uarmf, xname(uarmf), ERODE_RUST,
@@ -5444,7 +5351,7 @@ boolean wep_was_destroyed;
         }
         break;
     case AD_CORR:
-        if (mhit && !mon->mcan && weapon) {
+        if (mhitb && !mon->mcan && weapon) {
             if (aatyp == AT_KICK) {
                 if (uarmf)
                     (void) erode_obj(uarmf, xname(uarmf), ERODE_CORRODE,
@@ -5465,7 +5372,7 @@ boolean wep_was_destroyed;
         }
         break;
     case AD_ENCH: /* KMH -- remove enchantment (disenchanter) */
-        if (mhit) {
+        if (mhitb) {
             if (aatyp == AT_KICK) {
                 if (!weapon)
                     break;

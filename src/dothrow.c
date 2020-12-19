@@ -1,4 +1,4 @@
-/* NetHack 3.7	dothrow.c	$NHDT-Date: 1606343578 2020/11/25 22:32:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.190 $ */
+/* NetHack 3.7	dothrow.c	$NHDT-Date: 1607200366 2020/12/05 20:32:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.191 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -35,7 +35,8 @@ struct obj *obj;
     if (obj->quan == 1 && (obj == uwep || (obj == uswapwep && u.twoweap)))
         return 1;
 
-    if (obj->oclass == WEAPON_CLASS || obj->oclass == COIN_CLASS)
+    if ((!uslinging() && obj->oclass == WEAPON_CLASS)
+        || obj->oclass == COIN_CLASS)
         return 2;
 
     if (uslinging() && obj->oclass == GEM_CLASS)
