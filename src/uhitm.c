@@ -3956,9 +3956,11 @@ struct mhitm_data *mhm;
                 if (!Deaf)
                     You_hear("a cough from %s!", mon_nam(magr));
             } else {
-                if (!Deaf)
+                if (Deaf)
+                    return; /* no hiss = no stoning */
+                else
                     You_hear("%s hissing!", s_suffix(mon_nam(magr)));
-                if (!rn2(6) || !Deaf
+                if (!rn2(6)
                     || (flags.moonphase == NEW_MOON && !have_lizard())) {
                     if (Hallucination) {
                         You("are already stoned.");
