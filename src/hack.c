@@ -2043,7 +2043,7 @@ domove_core()
             You("stop.  %s can't move out of that trap.",
                 upstart(y_monnam(mtmp)));
             didnt_move = TRUE;
-        } else if (mtmp->mpeaceful && !mtmp->mtame
+        } else if (mtmp->mpeaceful
                    && (!goodpos(u.ux0, u.uy0, mtmp, 0)
                        || t_at(u.ux0, u.uy0) != NULL
                        || mundisplaceable(mtmp))) {
