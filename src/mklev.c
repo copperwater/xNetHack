@@ -31,6 +31,7 @@ static void FDECL(do_room_or_subroom, (struct mkroom *, int, int,
                                            int, int, BOOLEAN_P,
                                            SCHAR_P, BOOLEAN_P, BOOLEAN_P));
 static void NDECL(makerooms);
+static boolean FDECL(door_into_nonjoined, (XCHAR_P, XCHAR_P));
 static void FDECL(finddpos, (coord *, XCHAR_P, XCHAR_P,
                                  XCHAR_P, XCHAR_P));
 static void FDECL(mkinvpos, (XCHAR_P, XCHAR_P, int));
@@ -71,17 +72,18 @@ const genericptr vy;
  * as shops) that will never randomly generate unwanted doors in order to
  * connect them up to other areas.
  */
-boolean
+static boolean
 door_into_nonjoined(x, y)
 xchar x, y;
 {
-    schar tx, ty, diridx;
+    xchar tx, ty, diridx;
+
     for (diridx = 0; diridx <= 6; diridx += 2) {
         tx = x + xdir[diridx];
         ty = y + ydir[diridx];
-        if (!isok(tx, ty) || IS_ROCK(levl[tx][ty].typ)) {
+        if (!isok(tx, ty) || IS_ROCK(levl[tx][ty].typ))
             continue;
-        }
+
         /* Is this connecting to a room that doesn't want joining? */
         if (levl[tx][ty].roomno >= ROOMOFFSET &&
             !g.rooms[levl[tx][ty].roomno - ROOMOFFSET].needjoining) {
@@ -124,6 +126,8 @@ xchar xl, yl, xh, yh;
                xl, yl, xh, yh);
     x = xl;
     y = yh;
+    impossible("finddpos: couldn't find door pos within (%d,%d,%d,%d)",
+               xl, yl, xh, yh);
  gotit:
     cc->x = x;
     cc->y = y;

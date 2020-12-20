@@ -176,6 +176,7 @@ unplacebc_core()
     obj_extract_self(uchain);
     if (Blind && (u.bc_felt & BC_CHAIN)) /* drop glyph */
         levl[uchain->ox][uchain->oy].glyph = u.cglyph;
+    maybe_unhide_at(uchain->ox, uchain->oy);
 
     newsym(uchain->ox, uchain->oy);
     u.bc_felt = 0; /* feel nothing */

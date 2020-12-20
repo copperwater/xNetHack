@@ -1146,7 +1146,7 @@ xxxx----xx----xxxx]], contents=function(m)
                }
                ltype,rtype = "weapon shop","armor shop"
                if percent(50) then
-                  ltype,rtype = "armor shop","weapon shop"
+                  ltype,rtype = rtype,ltype
                end
                shopdoorstate = function()
                   if percent(1) then

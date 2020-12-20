@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.392 $ $NHDT-Date: 1607936398 2020/12/14 08:59:58 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.396 $ $NHDT-Date: 1608335163 2020/12/18 23:46:03 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -337,6 +337,10 @@ when water damage wet a towel, the new wetness might randomly become less
 when the wetness of a towel in inventory changed, persistent inventory wasn't
 	updated to show that
 make Death revive earlier, and all the Riders after 67 turns at latest
+when protection from shape changers begins, force mimic out of concealment
+	even if hero can't see its location; for locations that can be seen,
+	don't make double-trouble Wizard concealed as another monster--or pet
+	temporarily mimicking something while eating mimic corpse--fall asleep
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -433,6 +437,10 @@ fix genetic engineers dropping Schroedinger's cat box
 the checks and handling for fountains, sinks, and drawbridges were being
 	missed during liquid_flow
 monster movement flags unification allowed displacer beasts to displace Riders
+a long worm with no visible segments (but one internal segment) might trigger
+	warning: tail 'segement' at <0,some_y>, worm at <mx,my> if teleported
+adding displacer beast inadvertently introduced a regression in swapping with
+	pets, allowing them to be pulled into water by hero on/over water
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
@@ -671,6 +679,8 @@ when "?i" (show key bindings) displays commands and their keys, also show
 	commands without any key (so useable via '#', or possibly menu, only;
 	the majority are debugging commands)
 assign default key binding for <del> or <delete> to execute #terrain
+assign M-X to #exploremode
+make #herecmdmenu and #therecmdmenu autocomplete
 
 
 Platform- and/or Interface-Specific New Features
