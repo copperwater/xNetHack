@@ -1,4 +1,4 @@
-/* NetHack 3.7	read.c	$NHDT-Date: 1607200174 2020/12/05 20:29:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.204 $ */
+/* NetHack 3.7	read.c	$NHDT-Date: 1607945439 2020/12/14 11:30:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.205 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -31,7 +31,6 @@ struct obj *obj;
 
 static boolean FDECL(learnscrolltyp, (SHORT_P));
 static char *FDECL(erode_obj_text, (struct obj *, char *));
-static char *FDECL(apron_text, (struct obj *, char *));
 static void FDECL(stripspe, (struct obj *));
 static void FDECL(p_glow1, (struct obj *));
 static void FDECL(p_glow2, (struct obj *, const char *));
@@ -91,7 +90,7 @@ char *buf;
     return erode_obj_text(tshirt, buf);
 }
 
-static char *
+char *
 apron_text(apron, buf)
 struct obj *apron;
 char *buf;
@@ -106,6 +105,13 @@ char *buf;
         "If you can't stand the heat, get out of Gehennom!",
         "If we weren't meant to eat animals, why are they made out of meat?",
         "If you don't like the food, I'll stab you",
+        /* In the movie "The Sum of All Fears", a Russian worker in a weapons
+           facility wears a T-shirt that a translator says reads, "I am a
+           bomb technician, if you see me running ... try to catch up."
+           In nethack, the quote is far more suitable to an alchemy smock
+           (particularly since so many of these others are about cooking)
+           than a T-shirt and is paraphrased to simplify/shorten it. */
+        "If you see me running, try to keep up...",
     };
 
     Strcpy(buf, apron_msgs[apron->o_id % SIZE(apron_msgs)]);

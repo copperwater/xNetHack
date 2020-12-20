@@ -1262,6 +1262,7 @@ register int x, y;
         }
     }
 
+    maybe_unhide_at(x, y);
     newsym(x, y);      /* update new location */
     set_apparxy(mtmp); /* orient monster */
 
@@ -1296,7 +1297,6 @@ struct monst *mtmp; /* mx==0 implies migrating monster arrival */
 boolean suppress_impossible;
 {
     register int x, y, trycount;
-    stairway *stway;
 
     if (mtmp == u.usteed) {
         tele();
@@ -1304,19 +1304,19 @@ boolean suppress_impossible;
     }
 
     if (mtmp->iswiz && mtmp->mx) { /* Wizard, not just arriving */
+        stairway *stway;
+
         if (!In_W_tower(u.ux, u.uy, &u.uz)) {
             stway = stairway_find_forwiz(FALSE, TRUE);
-            x = stway->sx;
-            y = stway->sy;
         } else if (!stairway_find_forwiz(TRUE, FALSE)) { /* bottom level of tower */
             stway = stairway_find_forwiz(TRUE, TRUE);
-            x = stway->sx;
-            y = stway->sy;
         } else {
             stway = stairway_find_forwiz(TRUE, FALSE);
-            x = stway->sx;
-            y = stway->sy;
         }
+
+        x = stway ? stway->sx : 0;
+        y = stway ? stway->sy : 0;
+
         /* if the wiz teleports away to heal, try the up staircase,
            to block the player's escaping before he's healed
            (deliberately use `goodpos' rather than `rloc_pos_ok' here) */

@@ -3127,6 +3127,9 @@ static const char
     cant_see_spot[] = "won't hit anything if you can't see that spot.",
     cant_reach[] = "can't reach that spot from here.";
 
+#define glyph_is_poleable(G) \
+    (glyph_is_monster(G) || glyph_is_invisible(G) || glyph_is_statue(G))
+
 /* find pos of monster in range, if only one monster */
 static boolean
 find_poleable_mon(pos, min_range, max_range)
@@ -3138,8 +3141,6 @@ int min_range, max_range;
     boolean impaired;
     int x, y, lo_x, hi_x, lo_y, hi_y, rt, glyph;
 
-    if (Blind)
-        return FALSE; /* must be able to see target location */
     impaired = (Confusion || Stunned || Hallucination);
     mpos.x = mpos.y = 0; /* no candidate location yet */
     rt = isqrt(max_range);
@@ -3156,10 +3157,8 @@ int min_range, max_range;
                 && (mtmp = m_at(x, y)) != 0
                 && (mtmp->mtame || (mtmp->mpeaceful && flags.confirm)))
                 continue;
-            if (glyph_is_monster(glyph)
-                || glyph_is_warning(glyph)
-                || glyph_is_invisible(glyph)
-                || (glyph_is_statue(glyph) && impaired)) {
+            if (glyph_is_poleable(glyph)
+                    && (!glyph_is_statue(glyph) || impaired)) {
                 if (mpos.x)
                     return FALSE; /* more than one candidate location */
                 mpos.x = x, mpos.y = y;
@@ -3176,13 +3175,14 @@ static boolean
 get_valid_polearm_position(x, y)
 int x, y;
 {
-    struct monst *mtmp;
+    int glyph;
 
-    mtmp = m_at(x, y);
+    glyph = glyph_at(x, y);
+
     return (isok(x, y) && distu(x, y) >= g.polearm_range_min
             && distu(x, y) <= g.polearm_range_max
-            && ((mtmp && sensemon(mtmp) && couldsee(x, y))
-                || cansee(x, y)));
+            && (cansee(x, y) || (couldsee(x, y)
+                                 && glyph_is_poleable(glyph))));
 }
 
 static void
@@ -3262,7 +3262,7 @@ struct obj *obj;
     cc.x = u.ux;
     cc.y = u.uy;
     if (!find_poleable_mon(&cc, min_range, max_range) && hitm
-        && !DEADMONSTER(hitm) && couldsee(hitm->mx, hitm->my)
+        && !DEADMONSTER(hitm) && sensemon(hitm)
         && distu(hitm->mx, hitm->my) <= max_range
         && distu(hitm->mx, hitm->my) >= min_range) {
         cc.x = hitm->mx;
@@ -3279,8 +3279,7 @@ struct obj *obj;
     } else if (distu(cc.x, cc.y) < min_range) {
         pline("Too close!");
         return res;
-    } else if (!cansee(cc.x, cc.y) && !glyph_is_monster(glyph)
-               && !glyph_is_invisible(glyph) && !glyph_is_statue(glyph)) {
+    } else if (!cansee(cc.x, cc.y) && !glyph_is_poleable(glyph)) {
         You(cant_see_spot);
         return res;
     } else if (!couldsee(cc.x, cc.y)) { /* Eyes of the Overworld */
