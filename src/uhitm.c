@@ -3478,7 +3478,7 @@ struct mhitm_data *mhm;
             return;
         }
     }
-    if (!create_pit_under(mdef, &g.youmonst)) {
+    if (!create_pit_under(mdef, magr)) {
         mhm->damage = 0;
     }
 }
