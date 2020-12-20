@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.379 $ $NHDT-Date: 1607461111 2020/12/08 20:58:31 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.383 $ $NHDT-Date: 1607641577 2020/12/10 23:06:17 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -320,6 +320,10 @@ when saving while punished or game ends while punished, handling for ball and
 	chain might access freed memory with unpredictable consequences
 brown pudding monster hitting another monster with decay attack corroded armor
 	instead of rotting it
+<?> -> <full key bindings> omitted 'n' prefix and M-digit for number_pad mode,
+	and ^A/re-do was suppressed due lack of obsolete '#define REDO'
+add missing key binding support for rush.numpad; default is M-5 for numpad==1
+	or plain 5 for numpad==2 where behavior of 5 and M-5 are swapped
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -643,6 +647,9 @@ reading blessed scroll of teleportation confers one-shot teleport control
 mild zombie apocalypse
 list lamps and lanterns in charging prompt
 let tourists read conical hats
+when "?i" (show key bindings) displays commands and their keys, also show
+	commands without any key (so useable via '#', or possibly menu, only;
+	the majority are debugging commands)
 
 
 Platform- and/or Interface-Specific New Features
@@ -763,5 +770,6 @@ move 'restoring' to the program_state struct; add corresponding 'saving';
 	inventory when the relevant activity is in progress
 unify special attack damages from separate you-hit-monster, monster-hits-you,
 	and monster-hits-monster into functions by damage type
+unify trap effects for hero and monster stepping on the trap by trap type
 
 
