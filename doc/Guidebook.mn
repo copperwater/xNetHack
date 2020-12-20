@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.403 $ $NHDT-Date: 1607590842 2020/12/10 09:00:42 $
+.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.405 $ $NHDT-Date: 1607693152 2020/12/11 13:25:52 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" Guidebook.mn currently does *not* fully adhere to these guidelines.
@@ -35,7 +35,7 @@
 .ds vr "NetHack 3.7
 .ds f0 "\*(vr
 .ds f1
-.ds f2 "December 9, 2020
+.ds f2 "December 11, 2020
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -1505,7 +1505,7 @@ Print compile time options for this version of NetHack.
 .lp ""
 The second paragraph lists the user interface(s) that are included.
 If there are more than one, you can use the
-.op window_type
+.op windowtype
 option in your run-time configuration file to select the one you want.
 .lp ""
 Autocompletes.
@@ -4716,10 +4716,20 @@ Prefix key to run towards a direction.
 With
 .op number_pad
 only.
-Default is \(oq5\(cq.
+.lp ""
+Default is \(oq5\(cq when number_pad is set to 1 or 3,
+otherwise \(oqM-5\(cq when it is set to 2 or 4.
 .lp rush
 Prefix key to rush towards a direction.
 Default is \(oqg\(cq.
+.lp rush.numpad
+Prefix key to rush towards a direction.
+With
+.op number_pad
+only.
+.lp ""
+Default is \(oqM-5\(cq when number_pad is set to 1 or 3,
+otherwise \(oq5\(cq when it is set to 2 or 4.
 .hn 2
 Configuring Message Types
 .pg
