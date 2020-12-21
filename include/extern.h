@@ -647,7 +647,7 @@ E void FDECL(find_hell, (d_level *));
 E void FDECL(goto_hell, (BOOLEAN_P, BOOLEAN_P));
 E void FDECL(assign_level, (d_level *, d_level *));
 E void FDECL(assign_rnd_level, (d_level *, d_level *, int));
-E int FDECL(induced_align, (int));
+E unsigned int FDECL(induced_align, (int));
 E boolean FDECL(Invocation_lev, (d_level *));
 E xchar NDECL(level_difficulty);
 E schar FDECL(lev_by_name, (const char *));

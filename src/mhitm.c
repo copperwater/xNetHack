@@ -850,8 +850,6 @@ struct obj *mwep;
 int dieroll;
 {
     struct permonst *pa = magr->data, *pd = mdef->data;
-    int armpro;
-    boolean cancelled;
     struct mhitm_data mhm;
     mhm.damage = d((int) mattk->damn, (int) mattk->damd);
     mhm.hitflags = MM_MISS;
@@ -886,10 +884,6 @@ int dieroll;
             return MM_AGR_DIED;
         }
     }
-
-    /* cancellation factor is the same as when attacking the hero */
-    armpro = magic_negation(mdef);
-    cancelled = magr->mcan || !(rn2(10) >= 3 * armpro);
 
     /* check for special damage sources (e.g. hated material) */
     long armask = attack_contact_slots(magr, mattk->aatyp);

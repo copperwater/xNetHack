@@ -835,6 +835,7 @@ d_level *lev;
 #ifdef VMS
     Strcat(dptr, ";1");
 #endif
+    nhUse(idx);
     return dptr;
 }
 
@@ -974,6 +975,7 @@ char **bonesid;
                 failed = errno;
         }
     }
+    nhUse(failed);
     nhfp = viable_nhfile(nhfp);
     return nhfp;
 }
@@ -1019,6 +1021,7 @@ boolean regularize_it;
         */
         idx = historical;
     }
+    nhUse(idx);
 #ifdef VMS
     Sprintf(g.SAVEF, "[.save]%d%s", getuid(), g.plname);
     regoffset = 7;
@@ -1198,6 +1201,7 @@ create_savefile()
 #define getuid() vms_getuid()
 #endif /* VMS && !SECURE */
 
+    nhUse(failed);
     nhfp = viable_nhfile(nhfp);
     return nhfp;
 }
@@ -1239,6 +1243,7 @@ open_savefile()
                 failed = errno;
         }
     }
+    nhUse(failed);
     nhfp = viable_nhfile(nhfp);
     return nhfp;
 }

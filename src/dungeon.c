@@ -1955,7 +1955,7 @@ int range;
         dest->dlevel = 1;
 }
 
-int
+unsigned int
 induced_align(pct)
 int pct;
 {
