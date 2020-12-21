@@ -464,10 +464,14 @@ boolean talk;
     if ((xtime != 0L) ^ (old != 0L)) {
         g.context.botl = TRUE;
         if (talk) {
-            if (old && can_hear_now)
-                You("can hear again.");
-            else
+            if (old) {
+                if (can_hear_now)
+                    You("can hear again.");
+                /* else possibly permadeaf */
+            }
+            else {
                 You("are unable to hear anything.");
+            }
         }
     }
 }
