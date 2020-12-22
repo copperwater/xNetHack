@@ -1596,17 +1596,14 @@ struct monst* creator;
         else {
             /* mon will still hold the last created monster - so we can use
              * Amonnam to describe the whole group, if mptr is set. */
-            char buf[BUFSZ];
-            buf[0] = '\0';
+            const char *who;
             if (mptr) {
-                /* TODO: we lack a monster pluralization function */
-                Sprintf(buf, "%ss", mptr->mname);
-                upstart(buf);
+                who = upstart(makeplural(mptr->mname));
             }
             else {
-                Strcpy(buf, "Monsters");
+                who = "Monsters";
             }
-            pline("%s appear from nowhere!", buf);
+            pline("%s appear from nowhere!", who);
         }
     }
     return newmons_ct;
