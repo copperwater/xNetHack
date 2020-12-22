@@ -3590,7 +3590,8 @@ struct monst *mtmp;
         if (!rn2(10)) {
             if (!rn2(13)) {
                 /* don't generate purple worms if too difficult */
-                int pm = montoostrong(PM_PURPLE_WORM, monmax_difficulty_lev())
+                int pm = montoostrong(PM_PURPLE_WORM,
+                                      monmax_difficulty(level_difficulty()))
                          ? PM_BABY_PURPLE_WORM : PM_PURPLE_WORM;
 
                 (void) makemon(&mons[pm], 0, 0, NO_MM_FLAGS);

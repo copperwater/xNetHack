@@ -225,7 +225,6 @@ struct monst {
 #define monmax_difficulty(levdif) \
     (u.uevent.udemigod ? 256 : (((levdif) + u.ulevel) / 2))
 #define monmin_difficulty(levdif) ((levdif) / 6)
-#define monmax_difficulty_lev() (monmax_difficulty(level_difficulty()))
 
 /* Macros for whether a type of monster is too strong for a specific level. */
 #define montoostrong(monindx, lev) (mons[monindx].difficulty > lev)
