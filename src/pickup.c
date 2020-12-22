@@ -3337,15 +3337,18 @@ struct obj *obj;
     if (!obj || obj == &cg.zeroobj)
         return 0;
 
-    /* floor containers */
-    if (obj->where != OBJ_INVENT) {
-        if (Is_container(obj)) {
-            if (able_to_loot(obj->ox, obj->oy, FALSE, TRUE))
-                return 2;
+    /* containers can be tipped even if they are on the ground */
+    if (Is_container(obj)) {
+        if (obj->where == OBJ_INVENT
+            || able_to_loot(obj->ox, obj->oy, FALSE, TRUE))
+            return 2;
+        else
             return 1;
-        }
-        return 0;
     }
+
+    /* non-container items on the ground can't be tipped */
+    if (obj->where != OBJ_INVENT)
+        return 0;
 
     /* also encourage known horns of plenty. */
     if (obj->otyp == HORN_OF_PLENTY && obj->dknown &&
