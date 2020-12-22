@@ -1004,17 +1004,6 @@ register struct trobj *trop;
         otyp = (int) trop->trotyp;
         if (otyp != UNDEF_TYP) {
             obj = mksobj(otyp, TRUE, FALSE);
-            /* Don't allow materials to be start scummed for */
-            set_material(obj, objects[otyp].oc_material);
-            /* Don't give elves objects made of iron (e.g. Priest's mace) */
-            if (Race_if(PM_ELF) && obj->material == IRON
-                && (obj->oclass == WEAPON_CLASS || obj->oclass == ARMOR_CLASS
-                    || obj->oclass == TOOL_CLASS)) {
-                obj->material = COPPER;
-            }
-            /* Don't allow weapons to roll high enchantment and get an oname
-             * when they'll then have their enchantment set after this */
-            free_oname(obj);
         } else { /* UNDEF_TYP */
             int trycnt = 0;
             /*
@@ -1055,20 +1044,17 @@ register struct trobj *trop;
                    || (obj->oclass == SPBOOK_CLASS
                        && (objects[otyp].oc_level > 3
                            || restricted_spell_discipline(otyp)))
-                   || otyp == SPE_NOVEL) {
+                   || otyp == SPE_NOVEL
+                   /* items that will be iron for elves (rings/wands perhaps)
+                    * that can't become copper */
+                   || (Race_if(PM_ELF) && objects[otyp].oc_material == IRON
+                       && !valid_obj_material(obj, COPPER))) {
                 dealloc_obj(obj);
                 obj = mkobj(trop->trclass, FALSE);
                 otyp = obj->otyp;
                 if (++trycnt > 1000)
                     break;
             }
-
-            /* Don't allow materials to be start scummed for */
-            set_material(obj, objects[otyp].oc_material);
-
-            /* Don't start with +0 or negative rings */
-            if (objects[otyp].oc_charged && obj->spe <= 0)
-                obj->spe = rne(3);
 
             /* Heavily relies on the fact that 1) we create wands
              * before rings, 2) that we create rings before
@@ -1091,6 +1077,29 @@ register struct trobj *trop;
             if (obj->oclass == RING_CLASS || obj->oclass == SPBOOK_CLASS)
                 g.nocreate4 = otyp;
         }
+        /* Put post-creation object adjustments that don't depend on whether it
+         * was UNDEF_TYP or not after this. */
+
+        /* Don't start with +0 or negative rings */
+        if (objects[otyp].oc_charged && obj->spe <= 0)
+            obj->spe = rne(3);
+
+        /* Don't allow materials to be start scummed for */
+        set_material(obj, objects[otyp].oc_material);
+
+        /* Replace iron objects (e.g. Priest's mace) with copper for elves */
+        if (Race_if(PM_ELF) && obj->material == IRON) {
+            set_material(obj, COPPER);
+        }
+
+        /* Don't allow weapons to roll high enchantment and get an oname
+         * when they'll then have their enchantment set after this */
+        if (has_oname(obj)) {
+            free_oname(obj);
+        }
+
+        /* Don't have erosion or erosionproofing */
+        obj->oeroded = obj->oeroded2 = obj->oerodeproof = 0;
 
         if (g.urace.malenum != PM_HUMAN) {
             /* substitute race-specific items; this used to be in
