@@ -316,6 +316,8 @@ changes:
   (It still blocks 1/3 of intra-level teleports, as in vanilla.)
 - Paper and straw golems (in addition to wood and leather golems) will rot and
   instantly die when hit with a decay attack.
+- A wished-for thiefstone will be keyed to the spot the player is currently
+  standing on.
 
 ### Interface changes
 

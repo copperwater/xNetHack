@@ -4643,6 +4643,14 @@ struct obj *no_wish;
     if (d.otmp->otyp == TIN && d.tvariety >= 0 && (rn2(4) || wizard))
         set_tin_variety(d.otmp, d.tvariety);
 
+    /* set thiefstone coordinates
+     * player doesn't get to wish for coordinates - it will key to their current
+     * spot as if it's been reset */
+    if (d.otmp->otyp == THIEFSTONE) {
+        /* keyed_ledger ought to be set to the current level already */
+        set_keyed_loc(d.otmp, u.ux, u.uy);
+    }
+
     if (d.name) {
         const char *aname;
         short objtyp;
