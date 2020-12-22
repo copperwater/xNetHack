@@ -282,8 +282,8 @@ struct obj *stethoscope;
             else {
                 You("listen to the egg and guess... %s!",
                     mons[egg->corpsenm].mname);
+                egg->known = 1;
             }
-            egg->known = 1;
         }
         else {
             You("can't quite tell what's inside the egg.");
