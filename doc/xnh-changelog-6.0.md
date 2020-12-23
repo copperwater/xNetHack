@@ -373,8 +373,6 @@ changes:
 - Monsters created in a bones file to represent a dead player (ghost, mummy,
   etc) are tracked with a new "ebones" mextra struct.
 - A new body part, TORSO, is added.
-- New function gear_simple_name, which collects all the various foo_simple_name
-  functions for gear pieces into one function.
 - Overhaul special_dmgval(); it now checks all possible sources of special
   damage and returns the one that had the highest damage roll.
 - New function attack_contact_slots, which returns the worn gear slots which
