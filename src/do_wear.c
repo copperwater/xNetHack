@@ -38,7 +38,6 @@ static struct obj *NDECL(do_takeoff);
 static int NDECL(take_off);
 static int FDECL(menu_remarm, (int));
 static void FDECL(count_worn_stuff, (struct obj **, BOOLEAN_P));
-static boolean FDECL(will_touch_skin, (long));
 static int FDECL(armor_or_accessory_off, (struct obj *));
 static int FDECL(accessory_or_armor_on, (struct obj *));
 static void FDECL(already_wearing, (const char *));
@@ -642,7 +641,9 @@ Gloves_off(VOID_ARGS)
 
     /* you may now be touching some material you hate */
     if (uwep)
-        retouch_object(&uwep, FALSE);
+        retouch_object(&uwep, FALSE, FALSE); /* would be protectable by gloves
+                                                normally, but this is
+                                                Gloves_off()... */
 
     /* KMH -- ...or your secondary weapon when you're wielding it
        [This case can't actually happen; twoweapon mode won't
@@ -2075,10 +2076,12 @@ boolean noisy;
 
 /* Return TRUE iff wearing a potential new piece of armor with the given mask
  * will touch the hero's skin. */
-static boolean
+boolean
 will_touch_skin(mask)
 long mask;
 {
+    if ((mask == W_WEP || mask == W_SWAPWEP) && uarmg)
+        return FALSE;
     if (mask == W_ARMC && (uarm || uarmu))
         return FALSE;
     else if (mask == W_ARM && uarmu)
@@ -2231,7 +2234,7 @@ struct obj *obj;
 
     /* don't retouch and take material damage if it's a non-artifact object and
      * your skin is covered */
-    if ((obj->oartifact || will_touch_skin(mask)) && !retouch_object(&obj, FALSE))
+    if (!retouch_object(&obj, FALSE, !will_touch_skin(mask)))
         return 1; /* costs a turn even though it didn't get worn */
 
     if (armor) {

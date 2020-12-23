@@ -447,3 +447,6 @@ changes:
 - New function clear_nonsense_doortraps() to delete traps on doors where the
   trap type doesn't make any sense.
 - Remove the rnddoor() function.
+- retouch_object() now takes a third argument which indicates the caller thinks
+  the object isn't in contact with your body and there should be no damage due
+  to hating the material.

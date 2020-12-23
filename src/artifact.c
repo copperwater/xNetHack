@@ -1567,7 +1567,7 @@ doinvoke()
     obj = getobj("invoke", invocable, FALSE, FALSE);
     if (!obj)
         return 0;
-    if (!retouch_object(&obj, FALSE))
+    if (!retouch_object(&obj, FALSE, FALSE))
         return 1;
     return arti_invoke(obj);
 }
@@ -2107,9 +2107,11 @@ int orc_count; /* new count (warn_obj_cnt is old count); -1 is a flag value */
    after undergoing a transformation (alignment change, lycanthropy,
    polymorph) which might affect item access */
 int
-retouch_object(objp, loseit)
+retouch_object(objp, loseit, protected_by_gear)
 struct obj **objp; /* might be destroyed or unintentionally dropped */
 boolean loseit;    /* whether to drop it if hero can longer touch it */
+boolean protected_by_gear; /* whether the player has gear that will protect them
+                              from touching *obj if it is a hated material */
 {
     struct obj *obj = *objp;
 
@@ -2135,7 +2137,7 @@ boolean loseit;    /* whether to drop it if hero can longer touch it */
          * (no other gear slots are considered to completely block touching an
          * outer piece of gear; e.g. wearing body armor doesn't protect from
          * touching a worn cloak) */
-        if (!bane && obj == uwep && uarmg)
+        if (!bane && protected_by_gear)
             return 1;
 
         /* hero can't handle this object, but didn't get touch_artifact()'s
@@ -2230,7 +2232,8 @@ boolean drop_untouchable;
     }
 
     if (beingworn || carryeffect || invoked) {
-        if (!retouch_object(&obj, drop_untouchable)) {
+        if (!retouch_object(&obj, drop_untouchable,
+                            !will_touch_skin(obj->owornmask & wearmask))) {
             /* "<artifact> is beyond your control" or "you can't handle
                <object>" has been given and it is now unworn/unwielded
                and possibly dropped (depending upon caller); if dropped,

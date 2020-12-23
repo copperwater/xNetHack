@@ -2647,7 +2647,7 @@ doeat()
         /* let them eat rings */
         You_cant("eat %s you're wearing.", something);
         return 0;
-    } else if (!(carried(otmp) ? retouch_object(&otmp, FALSE)
+    } else if (!(carried(otmp) ? retouch_object(&otmp, FALSE, FALSE)
                                : touch_artifact(otmp, &g.youmonst))) {
         return 1; /* got blasted so use a turn */
     }

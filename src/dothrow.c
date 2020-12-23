@@ -1445,7 +1445,7 @@ struct obj *oldslot; /* for thrown-and-return used with !fixinv */
                         setuqwep((struct obj *) 0);
                     setuwep(obj);
                     set_twoweap(twoweap); /* u.twoweap = twoweap */
-                    retouch_object(&obj, TRUE);
+                    retouch_object(&obj, TRUE, (uarmg != NULL));
                     if (cansee(g.bhitpos.x, g.bhitpos.y))
                         newsym(g.bhitpos.x, g.bhitpos.y);
                 } else {
