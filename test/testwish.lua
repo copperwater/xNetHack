@@ -76,6 +76,7 @@ local wishtest_objects = {
                                   local oc = obj.class(obj.new("orange"));
                                   return (oc.nutrition // 2);
                              end },
+   ["water"] = { otyp_name = "water", oclass = "!" }, -- shouldn't ever give scroll of water
 };
 
 for str, tbl in pairs(wishtest_objects) do

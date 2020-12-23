@@ -4039,6 +4039,15 @@ struct _readobjnam_data *d;
 {
     int i;
 
+    /* a wish for "water" would match both the potion of water and the scroll of
+     * water and give either one randomly; force it to resolve to the potion
+     * here because a wish for water is much more likely to be for the potion
+     * (e.g. "[un]holy water" than it is to be for the scroll */
+    if (!BSTRCMPI(d->bp, d->p - 5, "water")) {
+        d->typ = POT_WATER;
+        return 2; /*goto typfnd;*/
+    }
+
     /* "grey stone" check must be before general "stone" */
     for (i = 0; i < SIZE(o_ranges); i++)
         if (!strcmpi(d->bp, o_ranges[i].name)) {
