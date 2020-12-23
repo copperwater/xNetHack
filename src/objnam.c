@@ -3577,6 +3577,7 @@ struct _readobjnam_data *d;
             /* check for materials */
             if (!strncmpi(d->bp, "silver dragon", l = 13)
                 || !strcmp(d->bp, "gold")
+                || !strncmpi(d->bp, "wax candle", l = 10)
                 || !strncmpi(d->bp, "platinum yendorian express card", l = 31)
                 || !strncmpi(d->bp, "iron bars", l = 9)) {
                 /* hack so that silver dragon scales/mail doesn't get
