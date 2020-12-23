@@ -4575,6 +4575,15 @@ struct obj *no_wish;
         curse(d.otmp);
     }
 
+    /* reset material if mksobj picked a different one (wishes are always base
+     * material -- unless in wizard mode, in which case the specified material
+     * is picked later -- mainly for balance reasons, but also to prevent
+     * problems like wishing for arrows and randomly getting glass arrows which
+     * will shatter.
+     * This must happen before erosion/dilution is set because set_material
+     * zeroes those when the material makes erosion irrelevant. */
+    set_material(d.otmp, objects[d.otmp->otyp].oc_material);
+
     /* set eroded and erodeproof */
     if (erosion_matters(d.otmp)) {
         if (d.eroded && (is_flammable(d.otmp) || is_rustprone(d.otmp)))
@@ -4711,16 +4720,8 @@ struct obj *no_wish;
         }
         set_material(d.otmp, d.material);
     }
-    else if (d.otmp->oartifact) {
-        /* oname() handles the assignment of a specific material for any
-         * possible artifact. Do nothing here. */
-    }
-    else {
-        /* for now, material in wishes will always be base; this is to prevent
-         * problems like wishing for arrows and getting glass arrows which will
-         * shatter. */
-        set_material(d.otmp, objects[d.otmp->otyp].oc_material);
-    }
+    /* if oartifact is true, oname() will have handled the assignment of a
+     * specific material for any possible artifact. */
 
     if (d.halfeaten && d.otmp->oclass == FOOD_CLASS) {
         if (d.otmp->otyp == CORPSE)
