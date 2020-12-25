@@ -620,7 +620,7 @@ nh_timeout()
                     You("have recovered from your illness.");
                     make_sick(0, NULL, FALSE, SICK_ALL);
                     exercise(A_CON, FALSE);
-                    adjattrib(A_CON, -1, 1);
+                    adjattrib(A_CON, -1, AA_NOMSG);
                     break;
                 }
                 You("die from your illness.");

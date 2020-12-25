@@ -914,16 +914,16 @@ u_init()
         if (!rn2(20)) {
             register int xd = rn2(7) - 2; /* biased variation */
 
-            (void) adjattrib(i, xd, TRUE);
+            (void) adjattrib(i, xd, AA_NOMSG);
             if (ABASE(i) < AMAX(i))
                 AMAX(i) = ABASE(i);
         }
 
     /* make sure you can carry all you have - especially for Tourists */
     while (inv_weight() > 0) {
-        if (adjattrib(A_STR, 1, TRUE))
+        if (adjattrib(A_STR, 1, AA_NOMSG) == AA_CURRCHNG)
             continue;
-        if (adjattrib(A_CON, 1, TRUE))
+        if (adjattrib(A_CON, 1, AA_NOMSG) == AA_CURRCHNG)
             continue;
         /* only get here when didn't boost strength or constitution */
         break;

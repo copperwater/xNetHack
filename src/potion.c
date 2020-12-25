@@ -1040,8 +1040,8 @@ register struct obj *otmp;
                 i = (otmp->blessed ? i + 1 : rn2(A_MAX));
                 /* only give "your X is already as high as it can get"
                    message on last attempt (except blessed potions) */
-                itmp = (otmp->blessed || ii == 1) ? 0 : -1;
-                if (adjattrib(i, 1, itmp) && !otmp->blessed)
+                itmp = (otmp->blessed || ii == 1) ? AA_YESMSG : AA_CONDMSG;
+                if (adjattrib(i, 1, itmp) != AA_NOCHNG && !otmp->blessed)
                     break;
             }
         }

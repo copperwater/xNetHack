@@ -562,6 +562,19 @@ enum zombify_values {
     ZOMBIFY_TAME    = 2, /* zombie will revive tame */
 };
 
+/* values for 'msgflag' input to adjattrib() and its return value */
+enum adjattrib_msgflag {
+    AA_CONDMSG = -1, /* print msg conditionally (only if there is a change) */
+    AA_YESMSG  =  0, /* always print msg */
+    AA_NOMSG   =  1  /* never print msg */
+};
+enum adjattrib_return {
+    AA_NOCHNG   = 0, /* nothing at all changed */
+    AA_BASECHNG = 1, /* base value changed but current didn't (e.g. gained
+                        strength wearing gauntlets of power) */
+    AA_CURRCHNG = 2  /* current value changed */
+};
+
 /*
  * option setting restrictions
  */

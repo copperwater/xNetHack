@@ -781,7 +781,7 @@ aligntyp resp_god;
                   : "art arrogant",
               g.youmonst.data->mlet == S_HUMAN ? "mortal" : "creature");
         verbalize("Thou must relearn thy lessons!");
-        (void) adjattrib(A_WIS, -1, FALSE);
+        (void) adjattrib(A_WIS, -1, AA_YESMSG);
         losexp((char *) 0);
         break;
     case 6:
@@ -1547,7 +1547,7 @@ dosacrifice()
             if (u.ualign.type != A_CHAOTIC) {
                 adjalign(-5);
                 u.ugangr += 3;
-                (void) adjattrib(A_WIS, -1, TRUE);
+                (void) adjattrib(A_WIS, -1, AA_NOMSG);
                 if (!Inhell)
                     angrygods(u.ualign.type);
                 change_luck(-5);
@@ -1587,7 +1587,7 @@ dosacrifice()
                 pline("Such an action is an insult to %s!",
                       (unicalign == A_CHAOTIC) ? "chaos"
                          : unicalign ? "law" : "balance");
-                (void) adjattrib(A_WIS, -1, TRUE);
+                (void) adjattrib(A_WIS, -1, AA_NOMSG);
                 value = -5;
             } else if (u.ualign.type == altaralign) {
                 /* When different from altar, and altar is same as yours,
@@ -1759,7 +1759,7 @@ dosacrifice()
                     pline("%s rejects your sacrifice!", a_gname());
                     godvoice(altaralign, "Suffer, infidel!");
                     change_luck(-5);
-                    (void) adjattrib(A_WIS, -2, TRUE);
+                    (void) adjattrib(A_WIS, -2, AA_NOMSG);
                     if (!Inhell)
                         angrygods(u.ualign.type);
                 }
@@ -2439,7 +2439,7 @@ register int x, y;
 
     if (u.ualign.type == altaralign && u.ualign.record > -rn2(4)) {
         godvoice(altaralign, "How darest thou desecrate my altar!");
-        (void) adjattrib(A_WIS, -1, FALSE);
+        (void) adjattrib(A_WIS, -1, AA_YESMSG);
         u.ualign.record--;
     } else {
         pline("%s %s%s:",

@@ -1190,7 +1190,7 @@ int pm;
         if (ABASE(A_INT) < ATTRMAX(A_INT)) {
             if (!rn2(2)) {
                 pline("Yum!  That was real brain food!");
-                (void) adjattrib(A_INT, 1, FALSE);
+                (void) adjattrib(A_INT, 1, AA_YESMSG);
                 break; /* don't give them telepathy, too */
             }
         } else {
@@ -2154,17 +2154,17 @@ struct obj *otmp;
 
         case RIN_ADORNMENT:
             accessory_has_effect(otmp);
-            if (adjattrib(A_CHA, otmp->spe, -1))
+            if (adjattrib(A_CHA, otmp->spe, AA_CONDMSG) == AA_CURRCHNG)
                 makeknown(typ);
             break;
         case RIN_GAIN_STRENGTH:
             accessory_has_effect(otmp);
-            if (adjattrib(A_STR, otmp->spe, -1))
+            if (adjattrib(A_STR, otmp->spe, AA_CONDMSG) == AA_CURRCHNG)
                 makeknown(typ);
             break;
         case RIN_GAIN_CONSTITUTION:
             accessory_has_effect(otmp);
-            if (adjattrib(A_CON, otmp->spe, -1))
+            if (adjattrib(A_CON, otmp->spe, AA_CONDMSG) == AA_CURRCHNG)
                 makeknown(typ);
             break;
         case RIN_INCREASE_ACCURACY:

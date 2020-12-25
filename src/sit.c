@@ -165,11 +165,11 @@ dosit()
         if (rnd(6) > 4) {
             switch (rnd(13)) {
             case 1:
-                (void) adjattrib(rn2(A_MAX), -rn1(4, 3), FALSE);
+                (void) adjattrib(rn2(A_MAX), -rn1(4, 3), AA_YESMSG);
                 losehp(rnd(10), "cursed throne", KILLED_BY_AN);
                 break;
             case 2:
-                (void) adjattrib(rn2(A_MAX), 1, FALSE);
+                (void) adjattrib(rn2(A_MAX), 1, AA_YESMSG);
                 break;
             case 3:
                 pline("A%s electric shock shoots through your body!",

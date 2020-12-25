@@ -3813,7 +3813,7 @@ domagictrap()
             int i, j;
             struct monst *mtmp;
 
-            (void) adjattrib(A_CHA, 1, FALSE);
+            (void) adjattrib(A_CHA, 1, AA_YESMSG);
             for (i = -1; i <= 1; i++)
                 for (j = -1; j <= 1; j++) {
                     if (!isok(u.ux + i, u.uy + j))

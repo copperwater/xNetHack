@@ -1990,13 +1990,13 @@ struct monst *mon;
             break;
         case 1:
             You("are down in the dumps.");
-            (void) adjattrib(A_CON, -1, TRUE);
+            (void) adjattrib(A_CON, -1, AA_NOMSG);
             exercise(A_CON, FALSE);
             g.context.botl = 1;
             break;
         case 2:
             Your("senses are dulled.");
-            (void) adjattrib(A_WIS, -1, TRUE);
+            (void) adjattrib(A_WIS, -1, AA_NOMSG);
             exercise(A_WIS, FALSE);
             g.context.botl = 1;
             break;
@@ -2032,13 +2032,13 @@ struct monst *mon;
             break;
         case 1:
             You_feel("good enough to do it again.");
-            (void) adjattrib(A_CON, 1, TRUE);
+            (void) adjattrib(A_CON, 1, AA_NOMSG);
             exercise(A_CON, TRUE);
             g.context.botl = 1;
             break;
         case 2:
             You("will always remember %s...", noit_mon_nam(mon));
-            (void) adjattrib(A_WIS, 1, TRUE);
+            (void) adjattrib(A_WIS, 1, AA_NOMSG);
             exercise(A_WIS, TRUE);
             g.context.botl = 1;
             break;

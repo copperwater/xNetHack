@@ -1282,7 +1282,7 @@ int how;
              * A possible extension here is to reduce ATTRMAX by 1, making your
              * Con cap permanently lower no matter what the player does, but
              * this currently isn't saved. */
-            (void) adjattrib(A_CON, -2, TRUE);
+            (void) adjattrib(A_CON, -2, AA_NOMSG);
             AMAX(A_CON) = (AMAX(A_CON) >= 5 ? AMAX(A_CON) - 2 : 3);
 
             savelife(how);

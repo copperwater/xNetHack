@@ -250,7 +250,9 @@ drinkfountain()
         /* gain ability, blessed if "natural" luck is high */
         i = rn2(A_MAX); /* start at a random attribute */
         for (ii = 0; ii < A_MAX; ii++) {
-            if (adjattrib(i, 1, littleluck ? -1 : 0) && littleluck)
+            if ((adjattrib(i, 1, littleluck ? AA_CONDMSG : AA_YESMSG)
+                     == AA_CURRCHNG)
+                && littleluck)
                 break;
             if (++i >= A_MAX)
                 i = 0;

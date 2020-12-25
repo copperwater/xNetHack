@@ -2923,7 +2923,7 @@ struct mhitm_data *mhm;
                 return;
         }
         /* adjattrib gives dunce cap message when appropriate */
-        (void) adjattrib(A_INT, -rnd(2), FALSE);
+        (void) adjattrib(A_INT, -rnd(2), AA_YESMSG);
     } else {
         /* mhitm */
         char buf[BUFSZ];

@@ -110,23 +110,23 @@ static const struct innate *FDECL(role_abil, (int));
 static const struct innate *FDECL(check_innate_abil, (long *, long));
 static int FDECL(innately, (long *));
 
-/* adjust an attribute; return TRUE if change is made, FALSE otherwise */
+/* adjust an attribute; return an adjattrib_return value */
 boolean
 adjattrib(ndx, incr, msgflg)
 int ndx, incr;
-int msgflg; /* positive => no message, zero => message, and */
-{           /* negative => conditional (msg if change made) */
+int msgflg; /* adjattrib_msgflag value */
+{
     int old_acurr, old_abase, old_amax, decr;
     boolean abonflg;
     const char *attrstr;
 
     if (Fixed_abil || !incr)
-        return FALSE;
+        return AA_NOCHNG;
 
     if ((ndx == A_INT || ndx == A_WIS) && uarmh && uarmh->otyp == DUNCE_CAP) {
-        if (msgflg == 0)
+        if (msgflg == AA_YESMSG)
             Your("cap constricts briefly, then relaxes again.");
-        return FALSE;
+        return AA_NOCHNG;
     }
 
     old_acurr = ACURR(ndx);
@@ -170,27 +170,30 @@ int msgflg; /* positive => no message, zero => message, and */
         abonflg = (ABON(ndx) > 0);
     }
     if (ACURR(ndx) == old_acurr) {
-        if (msgflg == 0 && flags.verbose) {
-            if (ABASE(ndx) == old_abase && AMAX(ndx) == old_amax) {
+        if (ABASE(ndx) == old_abase && AMAX(ndx) == old_amax) {
+            if (msgflg == AA_YESMSG && flags.verbose) {
                 attrstr = staticattr[ndx];
                 pline("You're %s as %s as you can get.",
-                      abonflg ? "currently" : "already", attrstr);
-            } else {
-                /* current stayed the same but base value changed, or
-                   base is at minimum and reduction caused max to drop */
+                        abonflg ? "currently" : "already", attrstr);
+            }
+            return AA_NOCHNG;
+        } else {
+            /* current stayed the same but base value changed, or
+               base is at minimum and reduction caused max to drop */
+            if (msgflg != AA_NOMSG && flags.verbose) {
                 Your("innate %s has %s.", attrname[ndx],
                      (incr > 0) ? "improved" : "declined");
             }
+            return AA_BASECHNG;
         }
-        return FALSE;
     }
 
-    if (msgflg <= 0)
+    if (msgflg != AA_NOMSG)
         You_feel("%s%s!", (incr > 1 || incr < -1) ? "much " : "", attrstr);
     g.context.botl = TRUE;
     if (g.program_state.in_moveloop && (ndx == A_STR || ndx == A_CON))
         (void) encumber_msg();
-    return TRUE;
+    return AA_CURRCHNG;
 }
 
 void
@@ -210,7 +213,7 @@ boolean givemsg;
             num = 1;
     }
     (void) adjattrib(A_STR, (otmp && otmp->cursed) ? -num : num,
-                     givemsg ? -1 : 1);
+                     givemsg ? AA_CONDMSG : AA_NOMSG);
 }
 
 /* may kill you; cause may be poison or monster like 'a' */
@@ -231,7 +234,7 @@ register int num;
             u.uhpmax -= 6;
         }
     }
-    (void) adjattrib(A_STR, -num, 1);
+    (void) adjattrib(A_STR, -num, AA_NOMSG);
 }
 
 static const struct poison_effect_message {
@@ -324,7 +327,7 @@ boolean thrown_weapon; /* thrown weapons are less deadly */
            maximum HP will occur once strength has dropped down to 3 */
         loss = (thrown_weapon || !hpdamchance) ? 1 : d(2, 2); /* was rn1(3,3) */
 	/* check that a stat change was made */
-        if (adjattrib(typ, -loss, 1))
+        if (adjattrib(typ, -loss, AA_NOMSG) == AA_CURRCHNG)
             poisontell(typ, TRUE);
     }
 
@@ -597,7 +600,7 @@ exerchk()
                 goto nextattrib;
 
             debugpline1("exerchk: changing %d.", i);
-            if (adjattrib(i, mod_val, -1)) {
+            if (adjattrib(i, mod_val, AA_CONDMSG) != AA_NOCHNG) {
                 debugpline1("exerchk: changed %d.", i);
                 /* if you actually changed an attrib - zero accumulation */
                 AEXE(i) = ax = 0;
