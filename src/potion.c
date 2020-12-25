@@ -1032,17 +1032,68 @@ register struct obj *otmp;
             g.potion_unkn++;
         } else if (Fixed_abil) {
             g.potion_nothing++;
-        } else {      /* If blessed, increase all; if not, try up to */
-            int itmp; /* 6 times to find one which can be increased. */
+        } else {
+            char response = '*'; /* random by default */
+            xchar attr_selected;
+            /* Ability scores are defined in a different order than they're
+             * displayed on the status line. The menu presents them in display
+             * order, so we need to map them to their real order in the case of
+             * a blessed potion that presented a menu. */
+            int attribs[A_MAX] = {A_STR, A_DEX, A_CON, A_INT, A_WIS, A_CHA};
+            if (otmp->blessed) {
+                /* Allow the player to choose what to increase, and give a bit
+                 * more increase than an uncursed potion. */
+                menu_item *choice = (menu_item *) 0;
+                winid win = create_nhwindow(NHW_MENU);
+                anything any;
+                static const char* attrnames[A_MAX] = {
+                    "Strength", "Dexterity", "Constitution", "Intelligence",
+                    "Wisdom", "Charisma"
+                };
+                start_menu(win, MENU_BEHAVE_STANDARD);
+                any.a_char = 'a';
+                for (ii = 0; ii < A_MAX; ii++) {
+                    add_menu(win, NO_GLYPH, &any, 0, '\0', ATR_NONE,
+                             attrnames[ii], MENU_ITEMFLAGS_NONE);
+                    any.a_char++; /* go to b, c, d, e, f */
+                }
+                any.a_char = '*';
+                add_menu(win, NO_GLYPH, &any, 0, '*', ATR_NONE,
+                         "pick one randomly", MENU_ITEMFLAGS_NONE);
+                end_menu(win, "What attribute do you want to increase?");
+                if (select_menu(win, PICK_ONE, &choice) <= 0) {
+                    /* cancelled; pick one randomly */
+                    response = '*';
+                }
+                else {
+                    response = choice->item.a_char;
+                    free((genericptr_t) choice);
+                }
+                destroy_nhwindow(win);
+            }
 
-            i = -1;   /* increment to 0 */
-            for (ii = A_MAX; ii > 0; ii--) {
-                i = (otmp->blessed ? i + 1 : rn2(A_MAX));
-                /* only give "your X is already as high as it can get"
-                   message on last attempt (except blessed potions) */
-                itmp = (otmp->blessed || ii == 1) ? AA_YESMSG : AA_CONDMSG;
-                if (adjattrib(i, 1, itmp) != AA_NOCHNG && !otmp->blessed)
-                    break;
+            if (response == '*') {
+                /* Shuffle the attributes. (Fisher-Yates) */
+                for (ii = A_MAX-1; ii >= 1; ii--) {
+                    int tmp = attribs[ii];
+                    i = rn2(ii + 1);
+                    attribs[ii] = attribs[i];
+                    attribs[i] = tmp;
+                }
+                for (ii = 0; ii < A_MAX; ii++) {
+                    /* only give "your X is already as high as it can get"
+                       message on last attempt */
+                    if (adjattrib(attribs[ii], otmp->blessed ? rnd(2) : 1,
+                                  (ii == A_MAX - 1) ? AA_YESMSG : AA_CONDMSG)
+                            != AA_NOCHNG) {
+                        break;
+                    }
+                }
+            }
+            else {
+                /* non-* response should always mean blessed potion */
+                attr_selected = attribs[response - 'a'];
+                adjattrib(attr_selected, rnd(2), AA_YESMSG);
             }
         }
         break;

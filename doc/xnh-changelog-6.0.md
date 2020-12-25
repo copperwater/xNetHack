@@ -318,6 +318,12 @@ changes:
   instantly die when hit with a decay attack.
 - A wished-for thiefstone will be keyed to the spot the player is currently
   standing on.
+- Blessed gain ability potions now increase a single attribute by 1-2 points
+  (the player chooses which) instead of raising all by 1 point.
+- Gain ability (uncursed or blessed) trying to raise an attribute randomly will
+  always succeed provided there is something raiseable. "Innate improvement"
+  attributes, e.g. strength while wearing gauntlets of power but when the base
+  value isn't maxed yet, now count as raiseable.
 
 ### Interface changes
 
