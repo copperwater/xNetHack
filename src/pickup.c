@@ -1121,7 +1121,7 @@ int how;               /* type of query */
     int n;
     winid win;
     struct obj *curr;
-    char *pack;
+    char *pack, packbuf[MAXOCLASSES + 1];
     anything any;
     boolean collected_type_name;
     char invlet;
@@ -1181,7 +1181,7 @@ int how;               /* type of query */
     win = create_nhwindow(NHW_MENU);
     start_menu(win, MENU_BEHAVE_STANDARD);
 
-    pack = flags.inv_order;
+    pack = strcpy(packbuf, flags.inv_order);
     if (qflags & INCLUDE_VENOM)
         (void) strkitten(pack, VENOM_CLASS); /* venom is not in inv_order */
 
