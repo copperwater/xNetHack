@@ -45,7 +45,7 @@
 %.au
 \author{Original version - Eric S. Raymond\\
 (Edited and expanded for 3.7 by Mike Stephenson and others)}
-\date{December 13, 2020}
+\date{December 19, 2020}
 
 \maketitle
 
@@ -1059,9 +1059,9 @@ the exchange still takes place.
 Toggle two-weapon combat, if your character can do it.  Also available
 via the ``{\tt \#twoweapon}'' extended command.\\
 %.lp ""
-(In versions prior to 3.6 this was the command to switch from normal
+(In versions prior to 3.6 this keystroke ran the command to switch from normal
 play to ``explore mode'', also known as ``discovery mode'', which has now
-been moved to ``{\tt \#exploremode}''.)
+been moved to ``{\tt \#exploremode}'' and M-X.)
 %.lp
 \item[\tb{\^{}X}]
 Display basic information about your character.\\
@@ -1154,9 +1154,15 @@ ordering.)
 %.lp
 \item[\tb{$\backslash$}]
 Show what types of objects have been discovered.
+\\
+%.lp ""
+May be preceded by `{\tt m}' to select preferred display order.
 %.lp
 \item[\tb{\`}]
 Show discovered types for one class of objects.
+\\
+.lp ""
+May be preceded by `{\tt m}' to select preferred display order.
 %.lp
 \item[\tb{!}]
 Escape to a shell.
@@ -1282,7 +1288,8 @@ Advance or check weapon and spell skills. Autocompletes.
 Default key is `{\tt M-e}'.
 %.lp
 \item[\tb{\#exploremode}]
-Enter the explore mode.\\
+Switch from normal play to non-scoring explore mode.
+Default key is `{\tt M-X}'.\\
 %.lp ""
 Requires confirmation; default response is `{\tt n}' (no).
 To really switch to explore mode, respond with `{\tt y}'.
@@ -1305,7 +1312,14 @@ Default key is `{\tt ?}',
 and also `{\tt h}' if {\it number\verb+_+pad\/} is on.
 %.lp
 \item[\tb{\#herecmdmenu}]
-Show a menu of possible actions in your current location.
+Show a menu of possible actions directed at your current location.
+The menu is limited to a subset of the likeliest actions, not an
+exhaustive set of all possibilities.
+Autocompletes.\\
+%.lp ""
+If mouse support is enabled and the {\it herecmd\verb+_+menu\/}
+option is On, clicking on the hero (or steed when mounted) will
+execute this command.
 %.lp
 \item[\tb{\#history}]
 Show long version and game history. Default key is `{\tt V}'.
@@ -1332,10 +1346,18 @@ and also `{\tt k}' if {\it number\verb+_+pad\/} is on.
 \item[\tb{\#known}]
 Show what object types have been discovered.
 Default key is `{\tt $\backslash$}'.
+\\
+%.lp ""
+The `{\tt m}' prefix allows assigning a new value to the
+{\it sortdiscoveries\/}
+option to control the order in which the discoveries are displayed.
 %.lp
 \item[\tb{\#knownclass}]
 Show discovered types for one class of objects.
 Default key is `{\tt `}'.
+\\
+%.lp ""
+The `{\tt m}' prefix operates the same as for \(lq#known\(rq.
 %.lp
 \item[\tb{\#levelchange}]
 Change your experience level.
@@ -1565,7 +1587,15 @@ Autocompletes.
 Default key is `<del>' or `<delete>' (see {\it Del\/} above).
 %.lp
 \item[\tb{\#therecmdmenu}]
-Show a menu of possible actions in a location next to you.
+Show a menu of possible actions directed at a location next to you.
+The menu is limited to a subset of the likeliest actions, not an
+exhaustive set of all possibilities.
+Autocompletes.
+%%--invoking it by mouse seems to be broken
+%% \\
+%% .lp ""
+%% If mouse support is enabled and the {\it herecmd\verb+_+menu\/}
+%% option is On, clicking on an adjacent location will execute this command.
 %.lp
 \item[\tb{\#throw}]
 Throw something. Default key is `{\tt t}'.
@@ -1750,13 +1780,26 @@ Help menu:  get the list of available extended commands.
 with another key, modifies it by setting the `meta' [8th, or `high']
 bit), you can invoke many extended commands by meta-ing the first
 letter of the command.
-In {\it Windows, OS/2, PC\/ {\rm and} ST NetHack},
-the `Alt' key can be used in this fashion;
-on the {\it Amiga}, set the {\it altmeta\/} option to get this behavior.
+
+On {\it Windows\/} and {\it MS-DOS\/},
+the `Alt' key can be used in this fashion.
+%% On the {\it Amiga}, set the {\it altmeta\/} option to get this behavior.
 On other systems, if typing `Alt' plus another key transmits a
 two character sequence consisting of an {\tt Escape}
 followed by the other key, you may set the {\it altmeta\/}
 option to have {\it NetHack\/} combine them into meta\+key.
+(This combining action only takes place when NetHack is expecting a
+command to execute, not when accepting input to name something or to
+make a wish.)
+
+%.pg
+Unlike control characters, where ^{}x and ^{}X denote the same thing,
+meta characters are case-sensitive:  M-x and M-X represent different things.
+Some commands which can be run via a meta character require that the
+letter be capitalized because the lower-case equivalent is used for
+another command, so the three key combination meta+shift+letter is needed.
+
+%.BR 1
 \blist{}
 %.lp
 \item[\tb{M-?}]
@@ -1836,6 +1879,9 @@ option to have {\it NetHack\/} combine them into meta\+key.
 %.lp
 \item[\tb{M-w}]
 {\tt\#wipe}
+%.lp
+\item[\tb{M-X}]
+{\tt\#exploremode}
 \elist
 
 %.pg
@@ -4418,17 +4464,44 @@ Persistent.
 \item[\ib{silent}]
 Suppress terminal beeps (default on).  Persistent.
 %.lp
+\item[\ib{sortdiscoveries}]
+Controls the sorting behavior for the output of the `{\tt $\backslash$}'
+and `{\tt \`}' commands.
+Persistent.
+\\
+%.lp ""
+The possible values are:
+%.PS o
+%.PL o
+(\tt o} --- list object types by class, in discovery order within each class;
+default;
+%.PL s
+{\tt s} --- list object types by {\it sortloot\/}
+classification: by class, by sub-class within class for classes which
+have substantial groupings (like helmets, boots, gloves, and so forth
+for armor), with object types partly-discovered via assigned name coming
+before fully identified types;
+\\
+%.PL c
+{\tt c} --- list by class, alphabetically within each class;\\
+%.PL a
+{\tt a} --- list alphabetically across all classes.\\
+%.PE
+Can be interactively set via the `{\tt O}' command or via using
+the `{\tt m}' prefix before the `{\tt $\backslash$}'
+or `{\tt \`}' command.
+%.lp
 \item[\ib{sortloot}]
 Controls the sorting behavior of pickup lists for inventory
 and \#loot commands and some others.  Persistent.
-
+\\
 The possible values are:
 %.sd
 %.si
 {\tt full} --- always sort the lists;\\
 {\tt loot} --- only sort the lists that don't use inventory
        letters, like with the \#loot and pickup commands;\\
-{\tt none} --- show lists the traditional way without sorting.
+{\tt none} --- show lists the traditional way without sorting; default.
 %.ei
 %.ed
 %.lp
@@ -4710,7 +4783,7 @@ Number of lines for traditional below-the-map status display.
 Acceptable values are {\tt 2} and {\tt 3} (default is {\tt 2}).
 
 %.lp ""
-For {\tt 3}, the {\tt tty} interface moves some fields around and
+When set to {\tt 3}, the {\tt tty} interface moves some fields around and
 mainly shows status conditions on their own line.
 A display capable of showing at least 25 lines is recommended.
 The value can be toggled back and forth during the game with the `O'
@@ -4733,10 +4806,6 @@ original format, with the status window spread out vertically.
 A value of {\tt 2} makes status be slightly condensed, moving some
 fields to different lines to eliminate one whole line, reducing the
 height needed.
-For {\tt Qt},
-{\it statuslines\/}
-can only be set in the configuration file or via NETHACKOPTIONS, not
-with the `O' command.
 %.lp
 \item[\ib{term\verb+_+cols} {\normalfont and}]
 %.lp

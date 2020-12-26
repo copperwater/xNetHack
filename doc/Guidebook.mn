@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.407 $ $NHDT-Date: 1607936398 2020/12/14 08:59:58 $
+.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.410 $ $NHDT-Date: 1608664223 2020/12/22 19:10:23 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" Guidebook.mn currently does *not* fully adhere to these guidelines.
@@ -35,7 +35,7 @@
 .ds vr "NetHack 3.7
 .ds f0 "\*(vr
 .ds f1
-.ds f2 "December 13, 2020
+.ds f2 "December 19, 2020
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -969,9 +969,9 @@ the exchange still takes place.
 Toggle two-weapon combat, if your character can do it.  Also available
 via the \(lq#twoweapon\(rq extended command.
 .lp ""
-(In versions prior to 3.6 this was the command to switch from normal
+(In versions prior to 3.6 this keystroke ran the command to switch from normal
 play to \(lqexplore mode\(rq, also known as \(lqdiscovery mode\(rq,
-which has now been moved to \(lq#exploremode\(rq.)
+which has now been moved to \(lq#exploremode\(rq and M-X.)
 .lp \(haX
 Display basic information about your character.
 .lp ""
@@ -1055,8 +1055,12 @@ be added to the end of the list rather than be inserted into the sorted
 ordering.)
 .lp \\\\
 Show what types of objects have been discovered.
+.lp ""
+May be preceded by \(oq\f(CRm\fP\(cq to select preferred display order.
 .lp \`
 Show discovered types for one class of objects.
+.lp ""
+May be preceded by \(oq\f(CRm\fP\(cq to select preferred display order.
 .lp !
 Escape to a shell.
 See \(lq#shell\(rq below for more details.
@@ -1199,7 +1203,8 @@ Advance or check weapon and spell skills.
 Autocompletes.
 Default key is \(oqM-e\(cq.
 .lp #exploremode
-Enter the explore mode.
+Switch from normal play to non-scoring explore mode.
+Default key is \(oqM-X\(cq.
 .lp ""
 Requires confirmation; default response is \f(CRn\fP (no).
 To really switch to explore mode, respond with \f(CRy\fP.
@@ -1222,7 +1227,15 @@ Default key is \(oq?\(cq, and also \(oqh\(cq if
 .op number_pad
 is on.
 .lp #herecmdmenu
-Show a menu of possible actions in your current location.
+Show a menu of possible actions directed at your current location.
+The menu is limited to a subset of the likeliest actions, not an
+exhaustive set of all possibilities.
+Autocompletes.
+.lp ""
+If mouse support is enabled and the
+.op herecmd_menu
+option is On, clicking on the hero (or steed when mounted) will
+execute this command.
 .lp "#history "
 Show long version and game history.
 Default key is \(oqV\(cq.
@@ -1249,10 +1262,16 @@ Default key is \(oq\(haD\(cq, and \(oqk\(cq if
 is on.
 .lp "#known   "
 Show what object types have been discovered.
-Default key is \(oq\\\(cq.
+Default key is \(oq\f(CR\\\fP\(cq.
+.lp ""
+The \(oq\f(CRm\fP\(cq prefix allows assigning a new value to the
+.op sortdiscoveries
+option to control the order in which the discoveries are displayed.
 .lp #knownclass
 Show discovered types for one class of objects.
-Default key is \(oq\`\(cq.
+Default key is \(oq\f(CR\`\fP\(cq.
+.lp ""
+The \(oq\f(CRm\fP\(cq prefix operates the same as for \(lq#known\(rq.
 .lp #levelchange
 Change your experience level.
 Autocompletes.
@@ -1473,7 +1492,15 @@ In debug mode there are additional choices.
 Autocompletes.
 Default key is \(oq<del>\(cq or \(oq<delete>\(cq (see \fIDel\fP above).
 .lp #therecmdmenu
-Show a menu of possible actions in a location next to you.
+Show a menu of possible actions directed at a location next to you.
+The menu is limited to a subset of the likeliest actions, not an
+exhaustive set of all possibilities.
+Autocompletes.
+.\"--invoking it by mouse seems to be broken
+.\" .lp ""
+.\" If mouse support is enabled and the
+.\" .op herecmd_menu
+.\" option is On, clicking on an adjacent location will execute this command.
 .lp "#throw   "
 Throw something.
 Default key is \(oqt\(cq.
@@ -1642,16 +1669,27 @@ with another key, modifies it by setting the \(lqmeta\(rq [8th,
 or \(lqhigh\(rq] bit), you can invoke many extended commands by meta-ing
 the first letter of the command.
 .pg
-In \fIWindows\fP, \fIOS/2\fP, \fIPC\fP and \fIST\fP \fINetHack\fP,
-the \(lqAlt\(rq key can be used in this fashion;
-on the \fIAmiga\fP, set the
-.op altmeta
-option to get this behavior.
+On \fIWindows\fP and \fIMS-DOS\fP,
+the \(lqAlt\(rq key can be used in this fashion.
+.\" On the \fIAmiga\fP, set the
+.\" .op altmeta
+.\" option to get this behavior.
 On other systems, if typing \(lqAlt\(rq plus another key transmits a
 two character sequence consisting of an \fBEscape\fP
 followed by the other key, you may set the
 .op altmeta
 option to have NetHack combine them into meta+key.
+(This combining action only takes place when NetHack is expecting a
+command to execute, not when accepting input to name something or to
+make a wish.)
+.pg
+Unlike control characters, where \(hax and \(haX denote the same thing,
+meta characters are case-sensitive:  M-x and M-X represent different things.
+Some commands which can be run via a meta character require that the
+letter be capitalized because the lower-case equivalent is used for
+another command, so the three key combination meta+shift+letter is needed.
+.BR 1
+.
 .lp M-?
 #? (not supported by all platforms)
 .lp M-2
@@ -1706,6 +1744,8 @@ option is enabled)
 #version
 .lp M-w
 #wipe
+.lp M-X
+#exploremode
 .lp ""
 .pg
 If the
@@ -4079,19 +4119,47 @@ Persistent.
 Show your approximate accumulated score on bottom line (default off).
 Persistent.
 .lp "silent  "
-Suppress terminal beeps (default on).  Persistent.
+Suppress terminal beeps (default on).
+Persistent.
+.lp sortdiscoveries
+Controls the sorting behavior for the output of the \(oq\f(CR\\\fP\(cq
+and \(oq\f(CR\`\fP\(cq commands.
+Persistent.
+.lp ""
+The possible values are:
+.PS o
+.PL o
+list object types by class, in discovery order within each class;
+default;
+.PL s
+list object types by
+.op sortloot
+classification: by class, by sub-class within class for classes which
+have substantial groupings (like helmets, boots, gloves, and so forth
+for armor), with object types partly-discovered via assigned name coming
+before fully identified types;
+.PL c
+list by class, alphabetically within each class;
+.PL a
+list alphabetically across all classes.
+.PE
+Can be interactively set via the \(oq\f(CRO\fP\(cq command or via using
+the \(oq\f(CRm\fP\(cq prefix before the \(oq\f(CR\\\fP\(cq
+or \(oq\f(CR\`\fP\(cq command.
 .lp sortloot
 Controls the sorting behavior of the pickup lists for inventory
 and #loot commands and some others.  Persistent.
+.lp ""
 The possible values are:
-.PS full
+.PS none \" note: with proportional font, "none" is wider than "full" or "loot"
 .PL full
 always sort the lists;
 .PL loot
 only sort the lists that don't use inventory letters, like with
 the #loot and pickup commands;
 .PL none
-show lists the traditional way without sorting.
+show lists the traditional way without sorting;
+default.
 .PE
 .lp sortpack
 Sort the pack contents by type when displaying inventory (default on).
@@ -4319,7 +4387,7 @@ up (default yes).
 Number of lines for traditional below-the-map status display.
 Acceptable values are \f(CR2\fP and \f(CR3\fP (default is \f(CR2\fP).
 .lp ""
-For \f(CR3\fP, the \f(CRtty\fP interface moves some fields around and
+When set to \f(CR3\fP, the \f(CRtty\fP interface moves some fields around and
 mainly shows status conditions on their own line.
 A display capable of showing at least 25 lines is recommended.
 The value can be toggled back and forth during the game with the \(oqO\(cq
@@ -4340,10 +4408,6 @@ original format, with the status window spread out vertically.
 A value of \f(CR2\fP makes status be slightly condensed, moving some
 fields to different lines to eliminate one whole line, reducing the
 height needed.
-For \f(CRQt\fP,
-.op statuslines
-can only be set in the configuration file or via NETHACKOPTIONS, not
-with the \(oqO\(cq command.
 .lp "term_cols\ \ \fIand\fP"
 .lp term_rows
 Curses interface only.

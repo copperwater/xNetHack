@@ -1,4 +1,4 @@
-/* NetHack 3.7	do_name.c	$NHDT-Date: 1606504240 2020/11/27 19:10:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.184 $ */
+/* NetHack 3.7	do_name.c	$NHDT-Date: 1608749030 2020/12/23 18:43:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.186 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -6,7 +6,8 @@
 #include "hack.h"
 
 static char *NDECL(nextmbuf);
-static void FDECL(getpos_help_keyxhelp, (winid, const char *, const char *, int));
+static void FDECL(getpos_help_keyxhelp, (winid, const char *,
+                                         const char *, int));
 static void FDECL(getpos_help, (BOOLEAN_P, const char *));
 static int FDECL(CFDECLSPEC cmp_coord_distu, (const void *, const void *));
 static int FDECL(gloc_filter_classify_glyph, (int));
@@ -1338,7 +1339,7 @@ const char *name;
 
 static NEARDATA const char callable[] = {
     SCROLL_CLASS, POTION_CLASS, WAND_CLASS,  RING_CLASS, AMULET_CLASS,
-    GEM_CLASS,    SPBOOK_CLASS, ARMOR_CLASS, TOOL_CLASS, 0
+    GEM_CLASS,    SPBOOK_CLASS, ARMOR_CLASS, TOOL_CLASS, VENOM_CLASS, 0
 };
 
 boolean

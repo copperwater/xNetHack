@@ -1,4 +1,4 @@
-/* NetHack 3.7	options.c	$NHDT-Date: 1607692223 2020/12/11 13:10:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.486 $ */
+/* NetHack 3.7	options.c	$NHDT-Date: 1608606126 2020/12/22 03:02:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.489 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -3252,6 +3252,66 @@ char *op;
         else
             Strcpy(opts, defopt);
         return optn_ok;
+    }
+    return optn_ok;
+}
+
+int
+optfn_sortdiscoveries(optidx, req, negated, opts, op)
+int optidx;
+int req;
+boolean negated;
+char *opts;
+char *op;
+{
+    if (req == do_init) {
+        flags.discosort = 'o';
+        return optn_ok;
+    }
+    if (req == do_set) {
+        op = string_for_env_opt(allopt[optidx].name, opts, FALSE);
+        if (negated) {
+            flags.discosort = 'o';
+        } else if (op != empty_optstr) {
+            switch (lowc(*op)) {
+            case '0':
+            case 'o': /* order of discovery */
+                flags.discosort = 'o';
+                break;
+            case '1':
+            case 's': /* sortloot order (subclasses for some classes) */
+                flags.discosort = 's';
+                break;
+            case '2':
+            case 'c': /* alphabetical within each class */
+                flags.discosort = 'c';
+                break;
+            case '3':
+            case 'a': /* alphabetical across all classes */
+                flags.discosort = 'a';
+                break;
+            default:
+                config_error_add("Unknown %s parameter '%s'",
+                                 allopt[optidx].name, op);
+                return optn_silenterr;
+            }
+        } else
+            return optn_err;
+        return optn_ok;
+    }
+    if (req == get_val) {
+        extern const char *const disco_orders_descr[]; /* o_init.c */
+        extern const char disco_order_let[];
+        const char *p = index(disco_order_let, flags.discosort);
+
+        if (!p)
+            flags.discosort = 'o', p = disco_order_let;
+        Strcpy(opts, disco_orders_descr[p - disco_order_let]);
+        return optn_ok;
+    }
+    if (req == do_handler) {
+        /* return handler_sortdiscoveries(); */
+        (void) choose_disco_sort(0); /* o_init.c */
     }
     return optn_ok;
 }
@@ -8168,6 +8228,7 @@ void
 option_help()
 {
     char buf[BUFSZ], buf2[BUFSZ];
+    const char *optname;
     register int i;
     winid datawin;
 
@@ -8179,22 +8240,28 @@ option_help()
 
     /* Boolean options */
     for (i = 0; allopt[i].name; i++) {
-        if (allopt[i].addr) {
-            if (allopt[i].addr == &iflags.sanity_check && !wizard)
-                continue;
-            if (allopt[i].addr == &iflags.menu_tab_sep && !wizard)
-                continue;
-            next_opt(datawin, allopt[i].name);
-        }
+        if ((allopt[i].opttyp != BoolOpt || !allopt[i].addr)
+            || (allopt[i].setwhere == set_wizonly && !wizard))
+            continue;
+        optname = allopt[i].name;
+        if ((is_wc_option(optname) && !wc_supported(optname))
+            || (is_wc2_option(optname) && !wc2_supported(optname)))
+            continue;
+        next_opt(datawin, optname);
     }
     next_opt(datawin, "");
 
     /* Compound options */
     putstr(datawin, 0, "Compound options:");
     for (i = 0; allopt[i].name; i++) {
-        if (allopt[i].opttyp != CompOpt) /* skip booleans */
+        if (allopt[i].opttyp != CompOpt
+            || (allopt[i].setwhere == set_wizonly && !wizard))
             continue;
-        Sprintf(buf2, "`%s'", allopt[i].name);
+        optname = allopt[i].name;
+        if ((is_wc_option(optname) && !wc_supported(optname))
+            || (is_wc2_option(optname) && !wc2_supported(optname)))
+            continue;
+        Sprintf(buf2, "`%s'", optname);
         Sprintf(buf, "%-20s - %s%c", buf2, allopt[i].descr,
                 allopt[i + 1].name ? ',' : '.');
         putstr(datawin, 0, buf);
@@ -8249,7 +8316,7 @@ const char *str;
     char *s;
 
     if (!buf)
-        *(buf = (char *) alloc(BUFSZ)) = '\0';
+        *(buf = (char *) alloc(COLBUFSZ)) = '\0';
 
     if (!*str) {
         s = eos(buf);

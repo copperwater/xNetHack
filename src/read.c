@@ -1,4 +1,4 @@
-/* NetHack 3.7	read.c	$NHDT-Date: 1607945439 2020/12/14 11:30:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.205 $ */
+/* NetHack 3.7	read.c	$NHDT-Date: 1608846072 2020/12/24 21:41:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.207 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -17,6 +17,7 @@ static NEARDATA const char readable[] = { ALL_CLASSES, SCROLL_CLASS,
 static const char all_count[] = { ALLOW_COUNT, ALL_CLASSES, 0 };
 
 static boolean FDECL(learnscrolltyp, (SHORT_P));
+static void FDECL(cap_spe, (struct obj *));
 static char *FDECL(erode_obj_text, (struct obj *, char *));
 static void FDECL(stripspe, (struct obj *));
 static void FDECL(p_glow1, (struct obj *));
@@ -52,6 +53,17 @@ struct obj *sobj;
        we couldn't be reading this scroll otherwise */
     if (sobj->oclass != SPBOOK_CLASS)
         (void) learnscrolltyp(sobj->otyp);
+}
+
+/* max spe is +99, min is -99 */
+static void
+cap_spe(obj)
+struct obj *obj;
+{
+    if (obj) {
+        if (abs(obj->spe) > SPE_LIM)
+            obj->spe = sgn(obj->spe) * SPE_LIM;
+    }
 }
 
 static char *
@@ -440,7 +452,7 @@ doread()
     }
 
     confused = (Confusion != 0);
-#ifdef MAIL
+#ifdef MAIL_STRUCTURES
     if (otyp == SCR_MAIL) {
         confused = FALSE; /* override */
         /* reading mail is a convenience for the player and takes
@@ -698,11 +710,10 @@ int curse_bless;
         case MAGIC_MARKER:
         case TINNING_KIT:
         case EXPENSIVE_CAMERA:
-            if (is_cursed)
+            if (is_cursed) {
                 stripspe(obj);
-            else if (rechrg
-                     && obj->otyp
-                            == MAGIC_MARKER) { /* previously recharged */
+            } else if (rechrg && obj->otyp == MAGIC_MARKER) {
+                /* previously recharged */
                 obj->recharged = 1; /* override increment done above */
                 if (obj->spe < 3)
                     Your("marker seems permanently dried out.");
@@ -728,8 +739,9 @@ int curse_bless;
                     obj->spe = 50;
                 else {
                     int chrg = (int) obj->spe;
-                    if ((chrg + n) > 127)
-                        obj->spe = 127;
+
+                    if (chrg + n > SPE_LIM)
+                        obj->spe = SPE_LIM;
                     else
                         obj->spe += n;
                 }
@@ -843,9 +855,12 @@ int curse_bless;
         } /* switch */
 
     } else {
-    not_chargable:
+ not_chargable:
         You("have a feeling of loss.");
     }
+
+    /* prevent enchantment from getting out of range */
+    cap_spe(obj);
 }
 
 /*
@@ -957,22 +972,38 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                      || objects[otyp].oc_name_known);
 
     switch (otyp) {
-#ifdef MAIL
-    case SCR_MAIL:
+#ifdef MAIL_STRUCTURES
+    case SCR_MAIL: {
+        boolean odd = (sobj->o_id % 2) == 1;
+
         g.known = TRUE;
-        if (sobj->spe == 2)
+        switch (sobj->spe) {
+        case 2:
             /* "stamped scroll" created via magic marker--without a stamp */
-            pline("This scroll is marked \"postage due\".");
-        else if (sobj->spe)
+            pline("This scroll is marked \"%s\".",
+                  odd ? "Postage Due" : "Return to Sender");
+            break;
+        case 1:
             /* scroll of mail obtained from bones file or from wishing;
-             * note to the puzzled: the game Larn actually sends you junk
-             * mail if you win!
-             */
-            pline(
-    "This seems to be junk mail addressed to the finder of the Eye of Larn.");
-        else
+               note to the puzzled: the game Larn actually sends you junk
+               mail if you win! */
+            pline("This seems to be %s.",
+                  odd ? "a chain letter threatening your luck"
+                  : "junk mail addressed to the finder of the Eye of Larn");
+            break;
+        default:
+#ifdef MAIL
             readmail(sobj);
+#else
+            /* unreachable since with MAIL undefined, sobj->spe won't be 0;
+               as a precaution, be prepared to give arbitrary feedback;
+               caller has already reported that it disappears upon reading */
+            pline("That was a scroll of mail?");
+#endif
+            break;
+        }
         break;
+    }
 #endif
     case SCR_ENCHANT_ARMOR: {
         register schar s;
@@ -1058,6 +1089,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             otmp->otyp += GRAY_DRAGON_SCALE_MAIL - GRAY_DRAGON_SCALES;
             if (sblessed) {
                 otmp->spe++;
+                cap_spe(otmp);
                 if (!otmp->blessed)
                     bless(otmp);
             } else if (otmp->cursed)
@@ -1069,7 +1101,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
             break;
         }
         pline("%s %s%s%s%s for a %s.", Yname2(otmp),
-              s == 0 ? "violently " : "",
+              (s == 0) ? "violently " : "",
               otense(otmp, Blind ? "vibrate" : "glow"),
               (!Blind && !same_color) ? " " : "",
               (Blind || same_color)
@@ -1086,8 +1118,15 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         else if (!scursed && otmp->cursed)
             uncurse(otmp);
         if (s) {
+            int oldspe = otmp->spe;
+            /* despite being schar, it shouldn't be possible for spe to wrap
+               here because it has been capped at 99 and s is quite small;
+               however, might need to change s if it takes spe past 99 */
             otmp->spe += s;
-            adj_abon(otmp, s);
+            cap_spe(otmp); /* make sure that it doesn't exceed SPE_LIM */
+            s = otmp->spe - oldspe; /* cap_spe() might have throttled 's' */
+            if (s) /* skip if it got changed to 0 */
+                adj_abon(otmp, s); /* adjust armor bonus for Dex or Int+Wis */
             g.known = otmp->known;
             /* update shop bill to reflect new higher price */
             if (s > 0 && otmp->unpaid)
@@ -1350,6 +1389,8 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                                  : sblessed ? rnd(3 - uwep->spe / 3)
                                    : 1))
             sobj = 0; /* nothing enchanted: strange_feeling -> useup */
+        if (uwep)
+            cap_spe(uwep);
         break;
     case SCR_TAMING:
     case SPE_CHARM_MONSTER: {
