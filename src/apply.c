@@ -3902,6 +3902,9 @@ struct obj *obj;
     if (obj->oclass == TOOL_CLASS || is_pole(obj) || is_axe(obj))
         return 2;
 
+    if (obj->oclass == WAND_CLASS)
+        return 2;
+
     if (obj->oclass == POTION_CLASS &&
         (obj->otyp == POT_OIL || !obj->dknown ||
          (!objects[obj->otyp].oc_name_known &&
