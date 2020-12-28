@@ -2844,7 +2844,7 @@ struct mhitm_data *mhm;
         boolean cancelled = magr->mcan || !(rn2(10) >= 3 * armpro);
 
         if (!cancelled && !rn2(8)) {
-            mhitm_really_poison(magr, mdef, mattk, mhm);
+            mhitm_really_poison(magr, mattk, mdef, mhm);
         }
     }
 }
@@ -3882,7 +3882,7 @@ struct mhitm_data *mhm;
                  * uhitm and mhitu cases. But since we don't need to call
                  * any special functions or go through tangled hmon_hitmon
                  * code, we can just jump straight to the poisoning. */
-                mhitm_really_poison(magr, mdef, mattk, mhm);
+                mhitm_really_poison(magr, mattk, mdef, mhm);
             }
         } else if (pa == &mons[PM_PURPLE_WORM] && pd == &mons[PM_SHRIEKER]) {
             /* hack to enhance mm_aggression(); we don't want purple
