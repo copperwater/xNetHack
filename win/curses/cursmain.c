@@ -646,25 +646,34 @@ curses_cliparound(int x, int y)
 }
 
 /*
-print_glyph(window, x, y, glyph, bkglyph)
+print_glyph(window, x, y, glyph, bkglyph, glyphmod)
                 -- Print the glyph at (x,y) on the given window.  Glyphs are
                    integers at the interface, mapped to whatever the window-
                    port wants (symbol, font, color, attributes, ...there's
                    a 1-1 map between glyphs and distinct things on the map).
                    bkglyph is to render the background behind the glyph.
                    It's not used here.
+                -- glyphmod (glyphmod[NUM_GLYPHNOD]) provides extended
+                   information about the glyph that window ports can use to
+                   enhance the display in various ways.
+
 */
 void
 curses_print_glyph(winid wid, XCHAR_P x, XCHAR_P y, int glyph,
-                   int bkglyph UNUSED)
+                   int bkglyph UNUSED, unsigned *glyphmod)
 {
     int ch;
     int color;
     unsigned int special;
     int attr = -1;
 
+#if 0
     /* map glyph to character and color */
-    mapglyph(glyph, &ch, &color, &special, x, y, 0);
+    mapglyph(glyph, &ch, &color, &special, x, y, 0); */
+#endif
+    special = glyphmod[GM_FLAGS];
+    ch = (int) glyphmod[GM_TTYCHAR];
+    color = (int) glyphmod[GM_COLOR];
     if ((special & MG_PET) && iflags.hilite_pet) {
         attr = iflags.wc2_petattr;
     }
@@ -689,7 +698,7 @@ curses_print_glyph(winid wid, XCHAR_P x, XCHAR_P y, int glyph,
         /* water and lava look the same except for color; when color is off,
            render lava in inverse video so that they look different */
         if ((special & (MG_BW_LAVA | MG_BW_ICE)) != 0 && iflags.use_inverse) {
-            attr = A_REVERSE; /* mapglyph() only sets this if color is off */
+            attr = A_REVERSE; /* map_glyphmod() only sets this if color is off */
         }
     }
 

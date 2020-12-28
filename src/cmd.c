@@ -1844,6 +1844,8 @@ struct ext_func_tab extcmdlist[] = {
             wiz_level_change, IFBURIED | AUTOCOMPLETE | WIZMODECMD },
     { '\0', "lightsources", "show mobile light sources",
             wiz_light_sources, IFBURIED | AUTOCOMPLETE | WIZMODECMD },
+    { '\0', "wizmgender", "force added info about monster gender",
+            wiz_mgender, IFBURIED | AUTOCOMPLETE | WIZMODECMD },
     { ':', "look", "look at what is here", dolook, IFBURIED },
     { M('l'), "loot", "loot a box on the floor", doloot, AUTOCOMPLETE },
 #ifdef DEBUG_MIGRATING_MONS
@@ -2623,8 +2625,8 @@ boolean incl_wsegs;
 
     if (mtmp->mextra) {
         sz += (int) sizeof (struct mextra);
-        if (MNAME(mtmp))
-            sz += (int) strlen(MNAME(mtmp)) + 1;
+        if (MGIVENNAME(mtmp))
+            sz += (int) strlen(MGIVENNAME(mtmp)) + 1;
         if (EGD(mtmp))
             sz += (int) sizeof (struct egd);
         if (EPRI(mtmp))
@@ -4241,7 +4243,7 @@ boolean doit;
 #if 0
     if (Upolyd) { /* before objects */
         Sprintf(buf, "Use %s special ability",
-                s_suffix(mons[u.umonnum].mname));
+                s_suffix(pmname(&mons[u.umonnum], Ugender)));
         add_herecmd_menuitem(win, domonability, buf);
     }
 #endif

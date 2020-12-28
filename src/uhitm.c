@@ -961,7 +961,7 @@ int dieroll;
                         pline("Splat!  You hit %s with %s %s egg%s!",
                               mon_nam(mon),
                               obj->known ? "the" : cnt > 1L ? "some" : "a",
-                              obj->known ? mons[obj->corpsenm].mname
+                              obj->known ? mons[obj->corpsenm].pmnames[NEUTRAL]
                                          : "petrifying",
                               plur(cnt));
                         obj->known = 1; /* (not much point...) */
@@ -974,8 +974,8 @@ int dieroll;
                     } else { /* ordinary egg(s) */
                         const char *eggp = (obj->corpsenm != NON_PM
                                             && obj->known)
-                                           ? the(mons[obj->corpsenm].mname)
-                                           : (cnt > 1L) ? "some" : "an";
+                                    ? the(mons[obj->corpsenm].pmnames[NEUTRAL])
+                                    : (cnt > 1L) ? "some" : "an";
 
                         You("hit %s with %s egg%s.", mon_nam(mon), eggp,
                             plur(cnt));
@@ -2596,7 +2596,7 @@ struct mhitm_data *mhm;
         if (uncancelled && !rn2(8)) {
             Sprintf(buf, "%s %s", s_suffix(Monnam(magr)),
                     mpoisons_subj(magr, mattk));
-            poisoned(buf, ptmp, pa->mname, 30, FALSE);
+            poisoned(buf, ptmp, pmname(pa, Mgender(magr)), 30, FALSE);
         }
     } else {
         /* mhitm */
@@ -2817,7 +2817,7 @@ struct mhitm_data *mhm;
                     g.killer.format = KILLED_BY_AN;
                     Sprintf(g.killer.name, "%s by %s",
                             moat ? "moat" : "pool of water",
-                            an(magr->data->mname));
+                            an(pmname(magr->data, Mgender(magr))));
                     done(DROWNING);
                 } else if (mattk->aatyp == AT_HUGS) {
                     You("are being crushed.");
@@ -2995,7 +2995,8 @@ struct mhitm_data *mhm;
         } else if (!Slimed) {
             You("don't feel very well.");
             make_slimed(10L, (char *) 0);
-            delayed_killer(SLIMED, KILLED_BY_AN, magr->data->mname);
+            delayed_killer(SLIMED, KILLED_BY_AN,
+                           pmname(magr->data, Mgender(magr)));
         } else
             pline("Yuck!");
     } else {
@@ -3329,7 +3330,7 @@ struct monst *mtmp;
         && !(poly_when_stoned(g.youmonst.data)
              && polymon(PM_STONE_GOLEM))) {
         int kformat = KILLED_BY_AN;
-        const char *kname = mtmp->data->mname;
+        const char *kname = pmname(mtmp->data, Mgender(mtmp));
 
         if (mtmp->data->geno & G_UNIQ) {
             if (!type_is_pname(mtmp->data))
@@ -3449,7 +3450,7 @@ struct mhitm_data *mhm;
                     && touch_petrifies(&mons[otmp->corpsenm])) {
                     mhm->damage = 1;
                     pline("%s hits you with the %s corpse.", Monnam(magr),
-                          mons[otmp->corpsenm].mname);
+                          mons[otmp->corpsenm].pmnames[NEUTRAL]);
                     if (!Stoned) {
                         if (do_stone_u(magr)) {
                             mhm->hitflags = MM_HIT;
@@ -4203,8 +4204,7 @@ int specialdmg; /* blessed and/or silver bonus against various things */
     negated = !(rn2(10) >= 3 * armpro);
 
     if (is_demon(g.youmonst.data) && !rn2(13) && !uwep
-        && u.umonnum != PM_SUCCUBUS && u.umonnum != PM_INCUBUS
-        && u.umonnum != PM_BALROG) {
+        && u.umonnum != PM_AMOROUS_DEMON && u.umonnum != PM_BALROG) {
         demonpet();
         return MM_MISS;
     }
@@ -4361,12 +4361,12 @@ register struct attack *mattk;
 
         if (fatal_gulp && !is_rider(pd)) { /* petrification */
             char kbuf[BUFSZ];
-            const char *mname = pd->mname;
+            const char *mnam = pmname(pd, Mgender(mdef));
 
             if (!type_is_pname(pd))
-                mname = an(mname);
+                mnam = an(mnam);
             You("englut %s.", mon_nam(mdef));
-            Sprintf(kbuf, "swallowing %s whole", mname);
+            Sprintf(kbuf, "swallowing %s whole", mnam);
             instapetrify(kbuf);
         } else {
             start_engulf(mdef);
@@ -4377,7 +4377,7 @@ register struct attack *mattk;
                     pline("Unfortunately, digesting any of it is fatal.");
                     end_engulf();
                     Sprintf(g.killer.name, "unwisely tried to eat %s",
-                            pd->mname);
+                            pmname(pd, Mgender(mdef)));
                     g.killer.format = NO_KILLER_PREFIX;
                     done(DIED);
                     return MM_MISS; /* lifesaved */
@@ -4428,7 +4428,7 @@ register struct attack *mattk;
                         pline1(msgbuf);
                     if (pd == &mons[PM_GREEN_SLIME]) {
                         Sprintf(msgbuf, "%s isn't sitting well with you.",
-                                The(pd->mname));
+                                The(pmname(pd, Mgender(mdef))));
                         if (!Unchanging) {
                             make_slimed(5L, (char *) 0);
                         }

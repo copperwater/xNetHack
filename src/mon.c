@@ -1,4 +1,4 @@
-/* NetHack 3.7	mon.c	$NHDT-Date: 1608332750 2020/12/18 23:05:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.361 $ */
+/* NetHack 3.7	mon.c	$NHDT-Date: 1609075599 2020/12/27 13:26:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.363 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -91,14 +91,17 @@ const char *msg;
             /* bad if not fmons list or if not vault guard */
             if (strcmp(msg, "fmon") || !mtmp->isgd)
                 impossible("dead monster on %s; %s at <%d,%d>",
-                           msg, mons[mndx].mname, mx, my);
+                           msg, mons[mndx].pmnames[NEUTRAL],
+                           mx, my);
 #endif
             return;
         }
         if (chk_geno && (g.mvitals[mndx].mvflags & G_GENOD) != 0)
-            impossible("genocided %s in play (%s)", mons[mndx].mname, msg);
+            impossible("genocided %s in play (%s)",
+                        pmname(&mons[mndx], Mgender(mtmp)), msg);
         if (mtmp->mtame && !mtmp->mpeaceful)
-            impossible("tame %s is not peaceful (%s)", mons[mndx].mname, msg);
+            impossible("tame %s is not peaceful (%s)",
+                        pmname(&mons[mndx], Mgender(mtmp)), msg);
     }
     if (mtmp->isshk && !has_eshk(mtmp))
         impossible("shk without eshk (%s)", msg);
@@ -158,7 +161,8 @@ const char *msg;
            but only until the pet finishes eating a mimic corpse */
         if (!(is_mimic || mtmp->meating))
             impossible("non-mimic (%s) posing as %s (%s)",
-                       mptr->mname, what, msg);
+                       mptr->pmnames[NEUTRAL], what, msg);
+#if 0   /* mimics who end up in strange locations do still hide while there */
         if (!(accessible(mx, my) || passes_walls(mptr))) {
             char buf[BUFSZ];
             const char *typnam = levltyp_to_name(levl[mx][my].typ);
@@ -170,6 +174,7 @@ const char *msg;
             impossible("mimic%s concealed in inaccessible location: %s (%s)",
                        is_mimic ? "" : "ker", typnam, msg);
         }
+#endif
     }
 }
 
@@ -344,7 +349,7 @@ int mndx;
         mndx = PM_ELF;
         break;
     case PM_VAMPIRE:
-    case PM_VAMPIRE_LORD:
+    case PM_VAMPIRE_LEADER:
 #if 0 /* DEFERRED */
     case PM_VAMPIRE_MAGE:
 #endif
@@ -385,7 +390,7 @@ int mndx, mode;
         mndx = mode ? PM_BARBARIAN : PM_HUMAN;
         break;
     case PM_NEANDERTHAL:
-        mndx = mode ? PM_CAVEMAN : PM_HUMAN;
+        mndx = mode ? PM_CAVE_DWELLER : PM_HUMAN;
         break;
     case PM_ATTENDANT:
         mndx = mode ? PM_HEALER : PM_HUMAN;
@@ -397,7 +402,7 @@ int mndx, mode;
         mndx = mode ? PM_MONK : PM_HUMAN;
         break;
     case PM_ACOLYTE:
-        mndx = mode ? PM_PRIEST : PM_HUMAN;
+        mndx = mode ? PM_CLERIC : PM_HUMAN;
         break;
     case PM_HUNTER:
         mndx = mode ? PM_RANGER : PM_HUMAN;
@@ -521,7 +526,7 @@ unsigned corpseflags;
         (void) mksobj_at(WORM_TOOTH, x, y, TRUE, FALSE);
         goto default_1;
     case PM_VAMPIRE:
-    case PM_VAMPIRE_LORD:
+    case PM_VAMPIRE_LEADER:
         /* include mtmp in the mkcorpstat() call */
         num = undead_to_corpse(mndx);
         corpstatflags |= CORPSTAT_INIT;
@@ -553,19 +558,19 @@ unsigned corpseflags;
         num = d(2, 6);
         while (num--)
             obj = mksobj_at(IRON_CHAIN, x, y, TRUE, FALSE);
-        free_mname(mtmp); /* don't christen obj */
+        free_mgivenname(mtmp); /* don't christen obj */
         break;
     case PM_GLASS_GOLEM:
         num = d(2, 4); /* very low chance of creating all glass gems */
         while (num--)
             obj = mksobj_at((LAST_GEM + rnd(9)), x, y, TRUE, FALSE);
-        free_mname(mtmp);
+        free_mgivenname(mtmp);
         break;
     case PM_CLAY_GOLEM:
         obj = mksobj_at(ROCK, x, y, FALSE, FALSE);
         obj->quan = (long) (rn2(20) + 50);
         obj->owt = weight(obj);
-        free_mname(mtmp);
+        free_mgivenname(mtmp);
         break;
     case PM_STONE_GOLEM:
         corpstatflags &= ~CORPSTAT_INIT;
@@ -577,24 +582,24 @@ unsigned corpseflags;
         while (num--) {
             obj = mksobj_at(QUARTERSTAFF, x, y, TRUE, FALSE);
         }
-        free_mname(mtmp);
+        free_mgivenname(mtmp);
         break;
     case PM_LEATHER_GOLEM:
         num = d(2, 4);
         while (num--)
             obj = mksobj_at(LEATHER_ARMOR, x, y, TRUE, FALSE);
-        free_mname(mtmp);
+        free_mgivenname(mtmp);
         break;
     case PM_GOLD_GOLEM:
         /* Good luck gives more coins */
         obj = mkgold((long) (200 - rnl(101)), x, y);
-        free_mname(mtmp);
+        free_mgivenname(mtmp);
         break;
     case PM_PAPER_GOLEM:
         num = rnd(4);
         while (num--)
             obj = mksobj_at(SCR_BLANK_PAPER, x, y, TRUE, FALSE);
-        free_mname(mtmp);
+        free_mgivenname(mtmp);
         break;
     /* expired puddings will congeal into a large blob;
        like dragons, relies on the order remaining consistent */
@@ -611,7 +616,7 @@ unsigned corpseflags;
             pudding_merge_message(obj, otmp);
             obj = obj_meld(&obj, &otmp);
         }
-        free_mname(mtmp);
+        free_mgivenname(mtmp);
         return obj;
     default:
  default_1:
@@ -642,8 +647,8 @@ unsigned corpseflags;
     if (g.context.bypasses)
         bypass_obj(obj);
 
-    if (has_mname(mtmp))
-        obj = oname(obj, MNAME(mtmp));
+    if (has_mgivenname(mtmp))
+        obj = oname(obj, MGIVENNAME(mtmp));
 
     /*  Avoid "It was hidden under a green mold corpse!"
      *  during Blind combat. An unseen monster referred to as "it"
@@ -2125,9 +2130,9 @@ struct monst *mtmp2, *mtmp1;
 
     if (!mtmp2->mextra)
         mtmp2->mextra = newmextra();
-    if (MNAME(mtmp1)) {
-        new_mname(mtmp2, (int) strlen(MNAME(mtmp1)) + 1);
-        Strcpy(MNAME(mtmp2), MNAME(mtmp1));
+    if (MGIVENNAME(mtmp1)) {
+        new_mgivenname(mtmp2, (int) strlen(MGIVENNAME(mtmp1)) + 1);
+        Strcpy(MGIVENNAME(mtmp2), MGIVENNAME(mtmp1));
     }
     if (EGD(mtmp1)) {
         if (!EGD(mtmp2))
@@ -2165,8 +2170,8 @@ struct monst *m;
     struct mextra *x = m->mextra;
 
     if (x) {
-        if (x->mname)
-            free((genericptr_t) x->mname);
+        if (x->mgivenname)
+            free((genericptr_t) x->mgivenname);
         if (x->egd)
             free((genericptr_t) x->egd);
         if (x->epri)
@@ -2571,7 +2576,7 @@ boolean was_swallowed; /* digestion */
                 if (magr == &g.youmonst) {
                     There("is an explosion in your %s!", body_part(STOMACH));
                     Sprintf(g.killer.name, "%s explosion",
-                            s_suffix(mdat->mname));
+                            s_suffix(pmname(mdat, Mgender(mon))));
                     losehp(Maybe_Half_Phys(tmp), g.killer.name, KILLED_BY_AN);
                 } else {
                     You_hear("an explosion.");
@@ -2588,7 +2593,8 @@ boolean was_swallowed; /* digestion */
                 return FALSE;
             }
 
-            Sprintf(g.killer.name, "%s explosion", s_suffix(mdat->mname));
+            Sprintf(g.killer.name, "%s explosion",
+                    s_suffix(pmname(mdat, Mgender(mon))));
             g.killer.format = KILLED_BY_AN;
             explode(mon->mx, mon->my, -1, tmp, MON_EXPLODE, EXPL_NOXIOUS);
             g.killer.name[0] = '\0';
@@ -2706,8 +2712,8 @@ struct monst *mdef;
            so that saved monster traits won't retain any stale
            item-conferred attributes */
         otmp = mkcorpstat(STATUE, mdef, mdef->data, x, y, CORPSTAT_NONE);
-        if (has_mname(mdef))
-            otmp = oname(otmp, MNAME(mdef));
+        if (has_mgivenname(mdef))
+            otmp = oname(otmp, MGIVENNAME(mdef));
         while ((obj = oldminvent) != 0) {
             oldminvent = obj->nobj;
             obj->nobj = 0; /* avoid merged-> obfree-> dealloc_obj-> panic */
@@ -2856,7 +2862,7 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
             livelog_write_string (LL_CONDUCT, "killed for the first time");
 
     if (!nomsg) {
-        boolean namedpet = has_mname(mtmp) && !Hallucination;
+        boolean namedpet = has_mgivenname(mtmp) && !Hallucination;
 
         You("%s %s!",
             nonliving(mtmp->data) ? "destroy" : "kill",
@@ -3062,7 +3068,7 @@ struct monst *mtmp;
             pline("%s solidifies...", Monnam(mtmp));
         if (newcham(mtmp, &mons[PM_STONE_GOLEM], FALSE, FALSE)) {
             if (canseemon(mtmp))
-                pline("Now it's %s.", an(mtmp->data->mname));
+                pline("Now it's %s.", an(pmname(mtmp->data, Mgender(mtmp))));
         } else {
             if (canseemon(mtmp))
                 pline("... and returns to normal.");
@@ -3490,7 +3496,7 @@ boolean via_attack;
             }
         }
         if (got_mad && !Hallucination) {
-            const char *who = q_guardian->mname;
+            const char *who = q_guardian->pmnames[NEUTRAL];
 
             if (got_mad > 1)
                 who = makeplural(who);
@@ -3963,7 +3969,7 @@ struct monst *mon;
             break; /* leave mndx as is */
         wolfchance = 3;
     /*FALLTHRU*/
-    case PM_VAMPIRE_LORD: /* vampire lord or Vlad can become wolf */
+    case PM_VAMPIRE_LEADER: /* vampire lord or Vlad can become wolf */
         if (!rn2(wolfchance) && !uppercase_only) {
             mndx = PM_WOLF;
             break;
@@ -4114,7 +4120,7 @@ struct monst *mon;
             mndx = pick_animal();
         break;
     case PM_VLAD_THE_IMPALER:
-    case PM_VAMPIRE_LORD:
+    case PM_VAMPIRE_LEADER:
     case PM_VAMPIRE:
         mndx = pickvampshape(mon);
         break;
@@ -4172,7 +4178,7 @@ struct monst *mon;
                 mndx = NON_PM;
                 break;
             }
-            mndx = name_to_mon(buf);
+            mndx = name_to_mon(buf, (int *) 0);
             if (mndx == NON_PM) {
                 /* didn't get a type, so check whether it's a class
                    (single letter or text match with def_monsyms[]) */
@@ -4297,7 +4303,7 @@ boolean msg;      /* "The oldmon turns into a newmon!" */
     }
     /* we need this one whether msg is true or not */
     Strcpy(l_oldname, x_monnam(mtmp, ARTICLE_THE, (char *) 0,
-                               has_mname(mtmp) ? SUPPRESS_SADDLE : 0, FALSE));
+                               has_mgivenname(mtmp) ? SUPPRESS_SADDLE : 0, FALSE));
 
     /* mdat = 0 -> caller wants a random monster shape */
     if (mdat == 0) {
@@ -4330,7 +4336,7 @@ boolean msg;      /* "The oldmon turns into a newmon!" */
      * polymorphed, so dropping rank for mplayers seems reasonable.
      */
     if (In_endgame(&u.uz) && is_mplayer(olddata)
-        && has_mname(mtmp) && (p = strstr(MNAME(mtmp), " the ")) != 0)
+        && has_mgivenname(mtmp) && (p = strstr(MGIVENNAME(mtmp), " the ")) != 0)
         *p = '\0';
 
     if (mtmp->wormno) { /* throw tail away */
@@ -4721,9 +4727,9 @@ char *str;
 
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
         if (DEADMONSTER(mtmp)
-            || mtmp->data != &mons[PM_GHOST] || !has_mname(mtmp))
+            || mtmp->data != &mons[PM_GHOST] || !has_mgivenname(mtmp))
             continue;
-        if (!strcmpi(MNAME(mtmp), str))
+        if (!strcmpi(MGIVENNAME(mtmp), str))
             return mtmp;
     }
     return (struct monst *) 0;
@@ -4769,8 +4775,7 @@ struct permonst *mdat;
             You("notice a bovine smell.");
             msg_given = TRUE;
             break;
-        case PM_CAVEMAN:
-        case PM_CAVEWOMAN:
+        case PM_CAVE_DWELLER:
         case PM_BARBARIAN:
         case PM_NEANDERTHAL:
             You("smell body odor.");

@@ -1,4 +1,4 @@
- /* NetHack 3.7	wintty.c	$NHDT-Date: 1608861214 2020/12/25 01:53:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.264 $ */
+/* NetHack 3.7	wintty.c	$NHDT-Date: 1608861214 2020/12/25 01:53:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.264 $ */
 /* Copyright (c) David Cohrs, 1991                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -3415,15 +3415,19 @@ int x, y;
  */
 
 void
-tty_print_glyph(window, x, y, glyph, bkglyph)
+tty_print_glyph(window, x, y, glyph, bkglyph, glyphmod)
 winid window;
 xchar x, y;
+#ifdef TTY_TILES_ESCCODES
 int glyph;
+#else
+int glyph UNUSED;
+#endif
 int bkglyph UNUSED;
+unsigned *glyphmod;     /* don't mark UNUSED as we need to revisit */
 {
-    int ch;
     boolean inverse_on = FALSE;
-    int color;
+    int ch, color;
     unsigned special;
 
     HUPSKIP();
@@ -3433,8 +3437,10 @@ int bkglyph UNUSED;
             return;
     }
 #endif
-    /* map glyph to character and color */
-    (void) mapglyph(glyph, &ch, &color, &special, x, y, 0);
+    /* get glyph ttychar, color, and special flags */
+    ch = (int) glyphmod[GM_TTYCHAR];
+    color = (int) glyphmod[GM_COLOR];
+    special = glyphmod[GM_FLAGS];
 
     print_vt_code2(AVTC_SELECT_WINDOW, window);
 
@@ -3451,7 +3457,14 @@ int bkglyph UNUSED;
 #endif
 
 #ifdef TEXTCOLOR
-    if (color != ttyDisplay->color) {
+    if (iflags.wizmgender && (special & MG_FEMALE) && iflags.use_inverse) {
+        if (ttyDisplay->color != NO_COLOR)
+            term_end_color();
+        term_start_attr(ATR_INVERSE);
+        inverse_on = TRUE;
+        ttyDisplay->color = CLR_RED;
+        term_start_color(ttyDisplay->color);
+    } else if (color != ttyDisplay->color) {
         if (ttyDisplay->color != NO_COLOR)
             term_end_color();
         ttyDisplay->color = color;

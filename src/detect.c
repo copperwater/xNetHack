@@ -30,7 +30,7 @@ static int FDECL(reveal_terrain_getglyph, (int, int, int,
                                                unsigned, int, int));
 
 #ifdef DUMPHTML
-extern void FDECL(html_dump_glyph, (int, int, int, int, int, unsigned));
+extern void FDECL(html_dump_glyph, (int, int, const unsigned *));
 #endif
 
 /* bring hero out from underwater or underground or being engulfed;
@@ -2008,18 +2008,18 @@ dump_map()
         blankrow = TRUE; /* assume blank until we discover otherwise */
         lastnonblank = -1; /* buf[] index rather than map's x */
         for (x = 1; x < COLNO; x++) {
-            int ch, color, sym;
-            unsigned special;
+            int ch;
+            unsigned glyphmod[NUM_GLYPHMOD];
 
             glyph = reveal_terrain_getglyph(x, y, FALSE, u.uswallow,
                                             default_glyph, subset);
-            sym = mapglyph(glyph, &ch, &color, &special, x, y, 0);
-
+            map_glyphmod(x, y, glyph, 0, glyphmod);
 #ifdef DUMPHTML
             /* HTML map prints in a defined rectangle, so
                just render every glyph - no skipping. */
-            html_dump_glyph(x, y, sym, ch, color, special);
+            html_dump_glyph(x, y, glyphmod);
 #endif
+            ch = (int) glyphmod[GM_TTYCHAR];
             buf[x - 1] = ch;
             if (ch != ' ') {
                 blankrow = FALSE;
@@ -2102,6 +2102,17 @@ int which_subset; /* when not full, whether to suppress objs and/or traps */
         map_redisplay();
     }
     return;
+}
+
+int
+wiz_mgender(VOID_ARGS)
+{
+    iflags.wizmgender = !iflags.wizmgender;
+    pline("wizmgender toggled %s", iflags.wizmgender ? "on" : "off");
+    if (!u.uswallow)
+        see_monsters();
+    map_redisplay();
+    return 0;  /* no time */
 }
 
 /*detect.c*/

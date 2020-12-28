@@ -532,7 +532,7 @@ static void FDECL(hup_add_menu, (winid, int, const anything *, CHAR_P, CHAR_P,
                                  int, const char *, unsigned int));
 static void FDECL(hup_end_menu, (winid, const char *));
 static void FDECL(hup_putstr, (winid, int, const char *));
-static void FDECL(hup_print_glyph, (winid, XCHAR_P, XCHAR_P, int, int));
+static void FDECL(hup_print_glyph, (winid, XCHAR_P, XCHAR_P, int, int, unsigned *));
 static void FDECL(hup_outrip, (winid, int, time_t));
 static void FDECL(hup_curs, (winid, int, int));
 static void FDECL(hup_display_nhwindow, (winid, BOOLEAN_P));
@@ -748,11 +748,12 @@ const char *text UNUSED;
 
 /*ARGSUSED*/
 static void
-hup_print_glyph(window, x, y, glyph, bkglyph)
+hup_print_glyph(window, x, y, glyph, bkglyph, glyphmod)
 winid window UNUSED;
 xchar x UNUSED, y UNUSED;
 int glyph UNUSED;
 int bkglyph UNUSED;
+unsigned *glyphmod UNUSED;
 {
     return;
 }
@@ -1523,15 +1524,17 @@ unsigned special;
 }
 
 void
-html_dump_glyph(x, y, sym, ch, color, special)
-int x, y, sym, ch, color;
-unsigned special;
+html_dump_glyph(x, y, glyphmod)
+int x, y;
+unsigned *glyphmod;
 {
     char buf[BUFSZ]; /* do_screen_description requires this :( */
     const char *firstmatch = "unknown"; /* and this */
     coord cc;
     int desc_found = 0;
     unsigned attr;
+    unsigned color;
+    unsigned sym,
 
     if (!dumphtml_file) return;
 
@@ -1539,15 +1542,17 @@ unsigned special;
         fprintf(dumphtml_file, "<span class=\"nh_screen\">  "); /* 2 space left margin */
     cc.x = x;
     cc.y = y;
-    desc_found = do_screen_description(cc, TRUE, ch, buf, &firstmatch, (struct permonst **) 0);
+    desc_found = do_screen_description(cc, TRUE, glyphmod[GM_TTYCHAR], buf, &firstmatch, (struct permonst **) 0);
     if (desc_found)
         fprintf(dumphtml_file, "<div class=\"tooltip\">");
-    attr = mg_hl_attr(special);
+    attr = mg_hl_attr(glyphmod[GM_FLAGS]);
+    color = glyphmod[GM_COLOR];
+    sym = glyphmod[GM_TTYCHAR];
     dump_set_color_attr(color, attr, TRUE);
     if (htmlsym[sym])
         fprintf(dumphtml_file, "&#%d;", htmlsym[sym]);
     else
-        html_dump_char(dumphtml_file, (char)ch);
+        html_dump_char(dumphtml_file, (char)sym);
     dump_set_color_attr(color, attr, FALSE);
     if (desc_found)
        fprintf(dumphtml_file, "<span class=\"tooltiptext\">%s</span></div>", firstmatch);
