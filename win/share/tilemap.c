@@ -518,7 +518,7 @@ init_tilemap()
     /* statue patch: statues still use the same glyph as in vanilla */
 
     for (i = 0; i < NUMMONS; i++) {
-        tilemap[GLYPH_STATUE_OFF + i].tilenum = tilemap[GLYPH_OBJ_OFF + STATUE];
+        tilemap[GLYPH_STATUE_OFF + i].tilenum = tilemap[GLYPH_OBJ_OFF + STATUE].tilenum;
 #ifdef OBTAIN_TILEMAP
         Sprintf(tilemap[GLYPH_STATUE_OFF + i].name, "%s (%d)",
                 tilename(OTH_GLYPH, file_entry, 0), file_entry);
