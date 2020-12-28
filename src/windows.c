@@ -1534,7 +1534,7 @@ unsigned *glyphmod;
     int desc_found = 0;
     unsigned attr;
     unsigned color;
-    unsigned sym,
+    unsigned sym;
 
     if (!dumphtml_file) return;
 
