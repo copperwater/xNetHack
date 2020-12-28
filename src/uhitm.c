@@ -14,6 +14,8 @@ static boolean FDECL(known_hitum, (struct monst *, struct obj *, int *,
 static boolean FDECL(theft_petrifies, (struct obj *));
 static void FDECL(steal_it, (struct monst *, struct attack *));
 static int FDECL(really_steal, (struct obj *, struct monst *));
+static void FDECL(mhitm_really_poison, (struct monst *, struct attack *,
+                                        struct monst *, struct mhitm_data *));
 static boolean NDECL(should_cleave);
 static boolean FDECL(hitum_cleave, (struct monst *, struct attack *));
 static boolean FDECL(hitum, (struct monst *, struct attack *));
@@ -2777,7 +2779,7 @@ struct mhitm_data *mhm;
  * cancellation or a 1/8 chance roll.
  * In this specific case, the "mhitm" in the name ACTUALLY means just that -
  * this should be called only for monster versus monster situations. */
-void
+static void
 mhitm_really_poison(magr, mattk, mdef, mhm)
 struct monst *magr;
 struct attack *mattk;
@@ -2844,7 +2846,7 @@ struct mhitm_data *mhm;
         boolean cancelled = magr->mcan || !(rn2(10) >= 3 * armpro);
 
         if (!cancelled && !rn2(8)) {
-            mhitm_really_poison(magr, mdef, mattk, mhm);
+            mhitm_really_poison(magr, mattk, mdef, mhm);
         }
     }
 }
@@ -3882,7 +3884,7 @@ struct mhitm_data *mhm;
                  * uhitm and mhitu cases. But since we don't need to call
                  * any special functions or go through tangled hmon_hitmon
                  * code, we can just jump straight to the poisoning. */
-                mhitm_really_poison(magr, mdef, mattk, mhm);
+                mhitm_really_poison(magr, mattk, mdef, mhm);
             }
         } else if (pa == &mons[PM_PURPLE_WORM] && pd == &mons[PM_SHRIEKER]) {
             /* hack to enhance mm_aggression(); we don't want purple
