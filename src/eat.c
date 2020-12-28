@@ -480,17 +480,17 @@ struct permonst *pd;
 {
     int ll_conduct = 0;
     if (!u.uconduct.food++) {
-        livelog_printf(LL_CONDUCT, "ate for the first time - %s", pd->mname);
+        livelog_printf(LL_CONDUCT, "ate for the first time - %s", pd->pmnames[NEUTRAL]);
         ll_conduct++;
     }
     if (!vegan(pd))
         if (!u.uconduct.unvegan++ && !ll_conduct) {
-            livelog_printf(LL_CONDUCT, "consumed animal products (%s) for the first time", pd->mname);
+            livelog_printf(LL_CONDUCT, "consumed animal products (%s) for the first time", pd->pmnames[NEUTRAL]);
             ll_conduct++;
         }
     if (!vegetarian(pd)) {
         if (!u.uconduct.unvegetarian && !ll_conduct)
-            livelog_printf(LL_CONDUCT, "tasted meat (%s) for the first time", pd->mname );
+            livelog_printf(LL_CONDUCT, "tasted meat (%s) for the first time", pd->pmnames[NEUTRAL] );
         violated_vegetarian();
     }
 }

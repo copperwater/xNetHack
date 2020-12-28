@@ -3033,11 +3033,11 @@ int xkill_flags; /* 1: suppress message, 2: suppress corpse, 4: pacifist */
         else
             You_hear("the studio audience applaud!");
         if (!unique_corpstat(mdat)) {
-            boolean mname = has_mname(mtmp);
+            boolean mname = has_mgivenname(mtmp);
             livelog_printf(LL_KILLEDPET, "murdered %s%s%s faithful %s",
-                           mname ? MNAME(mtmp) : "",
+                           mname ? MGIVENNAME(mtmp) : "",
                            mname ? ", " : "",
-                           uhis(), mdat->mname);
+                           uhis(), pmname(mdat, Mgender(mtmp)));
         }
     } else if (mtmp->mpeaceful)
         adjalign(-5);
