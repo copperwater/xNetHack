@@ -3914,8 +3914,10 @@ struct obj *obj;
     if (is_graystone(obj)) {
         /* The only case where we _don't_ apply a gray stone is if we KNOW it
          * isn't a touchstone or a thiefstone. */
-        if (obj->otyp != TOUCHSTONE && objects[TOUCHSTONE].oc_name_known
-            && obj->otyp != THIEFSTONE && objects[THIEFSTONE].oc_name_known
+        if ((obj->otyp != TOUCHSTONE && obj->otyp != THIEFSTONE)
+            && (objects[obj->otyp].oc_name_known
+                || (objects[TOUCHSTONE].oc_name_known
+                    && objects[THIEFSTONE].oc_name_known))
             && obj->dknown)
             return 0;
         else
