@@ -2487,7 +2487,8 @@ struct _create_particular_data *d;
     d->quan = 1 + ((g.multi > 0) ? g.multi : 0);
     d->monclass = MAXMCLASSES;
     d->which = g.urole.malenum; /* an arbitrary index into mons[] */
-    d->fem = -1; /* gender not specified */
+    d->fem = -1;     /* gender not specified */
+    d->genderconf = -1;  /* no confusion on which gender to assign */
     d->randmonst = FALSE;
     d->maketame = d->makepeaceful = d->makehostile = FALSE;
     d->sleeping = d->saddled = d->invisible = d->hidden = FALSE;
@@ -2554,9 +2555,19 @@ struct _create_particular_data *d;
     /*
      * With the introduction of male and female monster names
      * in 3.7, preserve that detail.
+     *
+     * If d->fem is already set to MALE or FEMALE at this juncture, it means
+     * one of those terms was explicitly specified.
      */
-    if (gender_name_var != NEUTRAL)
+    if (d->fem == MALE || d->fem == FEMALE) {     /* explicity expressed */
+        if ((gender_name_var != NEUTRAL) && (d->fem != gender_name_var)) {
+            /* apparent selection incompatibility */
+            d->genderconf = gender_name_var;        /* resolve later */
+        }
+        /* otherwise keep the value of d->fem, as it's okay */
+    } else {  /* no explicit gender term was specified */
         d->fem = gender_name_var;
+    }
     if (d->which >= LOW_PM)
         return TRUE; /* got one */
     d->monclass = name_to_monclass(bufp, &d->which);
@@ -2604,11 +2615,40 @@ struct _create_particular_data *d;
         whichpm = &mons[d->which];
     }
     for (i = 0; i < d->quan; i++) {
+        long mmflags = NO_MM_FLAGS;
+
         if (d->monclass != MAXMCLASSES)
             whichpm = mkclass(d->monclass, 0);
         else if (d->randmonst)
             whichpm = rndmonst();
-        mtmp = makemon(whichpm, u.ux, u.uy, NO_MM_FLAGS);
+        if (d->genderconf == -1) {
+            /* no confict exists between explicit gender term and
+               the specified monster name */
+            if (d->fem != -1 && !is_male(whichpm) && !is_female(whichpm))
+                mmflags |= (d->fem == FEMALE) ? MM_FEMALE
+                               : (d->fem == MALE) ? MM_MALE : 0;
+        } else {
+            /* conundrum alert: an explicit gender term conflicts with an
+               explicit gender-tied naming term (i.e. male cavewoman) */
+
+            /* option not gone with: name overrides the explicit gender as
+               commented out here */
+            /*  d->fem = d->genderconf; */
+
+            /*  option chosen: let the explicit gender term (male or female)
+                override the gender-tied naming term, so leave d->fem as-is */
+
+               mmflags |= (d->fem == FEMALE) ? MM_FEMALE
+                               : (d->fem == MALE) ? MM_MALE : 0;
+
+            /* another option would be to consider it a faulty specification
+               and reject the request completely and produce a random monster
+               with a gender matching that specified instead (i.e. there is
+               no such thing as a male cavewoman) */
+            /* whichpm = rndmonst(); */
+            /* mmflags |= (d->fem == FEMALE) ? MM_FEMALE : MM_MALE; */
+        }
+        mtmp = makemon(whichpm, u.ux, u.uy, mmflags);
         if (!mtmp) {
             /* quit trying if creation failed and is going to repeat */
             if (d->monclass == MAXMCLASSES && !d->randmonst)
@@ -2618,8 +2658,6 @@ struct _create_particular_data *d;
         }
         mx = mtmp->mx, my = mtmp->my;
         /* 'is_FOO()' ought to be called 'always_FOO()' */
-        if (d->fem != -1 && !is_male(mtmp->data) && !is_female(mtmp->data))
-            mtmp->female = d->fem; /* ignored for is_neuter() */
         if (d->maketame) {
             (void) tamedog(mtmp, (struct obj *) 0);
         } else if (d->makepeaceful || d->makehostile) {
