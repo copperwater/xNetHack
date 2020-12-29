@@ -1524,17 +1524,15 @@ unsigned special;
 }
 
 void
-html_dump_glyph(x, y, glyphmod)
-int x, y;
-unsigned *glyphmod;
+html_dump_glyph(x, y, sym, ch, color, special)
+int x, y, sym, ch, color;
+unsigned special;
 {
     char buf[BUFSZ]; /* do_screen_description requires this :( */
     const char *firstmatch = "unknown"; /* and this */
     coord cc;
     int desc_found = 0;
     unsigned attr;
-    unsigned color;
-    unsigned sym;
 
     if (!dumphtml_file) return;
 
@@ -1542,17 +1540,15 @@ unsigned *glyphmod;
         fprintf(dumphtml_file, "<span class=\"nh_screen\">  "); /* 2 space left margin */
     cc.x = x;
     cc.y = y;
-    desc_found = do_screen_description(cc, TRUE, glyphmod[GM_TTYCHAR], buf, &firstmatch, (struct permonst **) 0);
+    desc_found = do_screen_description(cc, TRUE, ch, buf, &firstmatch, (struct permonst **) 0);
     if (desc_found)
         fprintf(dumphtml_file, "<div class=\"tooltip\">");
-    attr = mg_hl_attr(glyphmod[GM_FLAGS]);
-    color = glyphmod[GM_COLOR];
-    sym = glyphmod[GM_TTYCHAR];
+    attr = mg_hl_attr(special);
     dump_set_color_attr(color, attr, TRUE);
     if (htmlsym[sym])
         fprintf(dumphtml_file, "&#%d;", htmlsym[sym]);
     else
-        html_dump_char(dumphtml_file, (char)sym);
+        html_dump_char(dumphtml_file, (char)ch);
     dump_set_color_attr(color, attr, FALSE);
     if (desc_found)
        fprintf(dumphtml_file, "<span class=\"tooltiptext\">%s</span></div>", firstmatch);
