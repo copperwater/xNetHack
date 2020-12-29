@@ -2138,6 +2138,7 @@ xchar x, y;
 int glyph;
 unsigned mgflags, *glyphmod;
 {
+    struct stairway *sway = stairway_at(x, y);
     register int offset, idx;
     int color = NO_COLOR;
     unsigned special = 0;
@@ -2240,6 +2241,13 @@ unsigned mgflags, *glyphmod;
         } else if (iflags.use_color && offset == S_litcorr
                    && g.showsyms[idx] == g.showsyms[S_corr + SYM_OFF_P]) {
             color = CLR_WHITE;
+        /* show branch stairs in a different color */
+        } else if (iflags.use_color
+                   && (offset == S_upstair || offset == S_dnstair)
+                   && ((sway = stairway_at(x, y)) != 0 && sway->tolev.dnum != u.uz.dnum)
+                   && (g.showsyms[idx] == g.showsyms[S_upstair + SYM_OFF_P]
+                       || g.showsyms[idx] == g.showsyms[S_dnstair + SYM_OFF_P])) {
+            color = CLR_YELLOW;
 #endif
         /* try to provide a visible difference between water and lava
            if they use the same symbol and color is disabled */
@@ -2263,7 +2271,7 @@ unsigned mgflags, *glyphmod;
                 color = CLR_BRIGHT_MAGENTA;
             } else {
                 switch (amsk & AM_MASK) {
-#if 0   /*
+        /*
          * On OSX with TERM=xterm-color256 these render as
          *  white -> tty: gray, curses: ok
          *  gray  -> both tty and curses: black
@@ -2283,7 +2291,7 @@ unsigned mgflags, *glyphmod;
                 case AM_CHAOTIC: /* 1 */
                     color = CLR_BLACK;
                     break;
-#else /* !0: TEMP? */
+#if 0
                 case AM_LAWFUL:  /* 4 */
                 case AM_NEUTRAL: /* 2 */
                 case AM_CHAOTIC: /* 1 */

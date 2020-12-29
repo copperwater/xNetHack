@@ -168,7 +168,6 @@ unsigned mgflags;
         } else if (iflags.use_color
                    && (offset == S_upstair || offset == S_dnstair)
                    && ((sway = stairway_at(x, y)) != 0 && sway->tolev.dnum != u.uz.dnum)
-                   /* && (x == g.stairs->sx && y == g.stairs->sy) */
                    && (g.showsyms[idx] == g.showsyms[S_upstair + SYM_OFF_P]
                        || g.showsyms[idx] == g.showsyms[S_dnstair + SYM_OFF_P])) {
             color = CLR_YELLOW;
