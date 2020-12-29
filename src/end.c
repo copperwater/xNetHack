@@ -460,8 +460,8 @@ int how;
                                : "%s imitating %s",
                 realnm, shape);
         mptr = mtmp->data; /* reset for mimicker case */
-    } else if (mptr == &mons[PM_GHOST]) {
-        Strcat(buf, "ghost");
+    } else if (is_bones_monster(mptr)) {
+        Strcat(buf, m_monnam(mtmp));
         if (has_mgivenname(mtmp))
             Sprintf(eos(buf), " of %s", MGIVENNAME(mtmp));
     } else if (mtmp->isshk) {
