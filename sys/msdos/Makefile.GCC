@@ -1,6 +1,6 @@
-# NetHack 3.6	Makefile.GCC	$NHDT-Date: 1519600525 2018/02/25 23:15:25 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.34 $
+# NetHack 3.7	Makefile.GCC	$NHDT-Date: 1596498268 2020/08/03 23:44:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.53 $
 #	Copyright (c) NetHack PC Development Team 1996-2019.
-#	PC NetHack 3.6 Makefile for djgpp V2
+#	PC NetHack 3.7 Makefile for djgpp V2
 #
 #	Gnu gcc compiler for msdos (djgpp)
 #	Requires Gnu Make utility (V3.79.1 or greater) supplied with djgpp
@@ -28,21 +28,27 @@ GAMEDIR =../binary
 # Optional PDCurses support
 #    Uncomment these and set them appropriately if you want to
 #    include curses port support alongside TTY support in your
-#    NetHack.exe binary.
+#    NetHack.exe binary. 
 #
-#    You'll have to set PDCURSES_H to the correct location of the
+#    You'll have to set PDCURSES_H to the correct location of the 
 #    PDCurses header (.h) files and PDCURSES_C to the location
-#    of your PDCurses C files which must already be resident on
+#    of your PDCurses C files which must already be resident on 
 #    your machine.
 #
 ADD_CURSES=Y
 PDCURSES_TOP=../../pdcurses
 
 #---------------------------------------------------------------
+ifeq "$(LUA_VERSION)" "5.3.5"
+LUAVER=5.3.5
+else
+LUAVER=5.4.2
+endif
+#---------------------------------------------------------------
 # Location of LUA
 #
-# Original source needs to be obtained from:
-#    http://www.lua.org/ftp/lua-5.3.5.tar.gz
+# Original source needs to be obtained from: 
+#    http://www.lua.org/ftp/lua-5.4.2.tar.gz
 #
 #    This build assumes that the LUA sources are located
 #    at the specified location. If they are actually elsewhere
@@ -50,8 +56,7 @@ PDCURSES_TOP=../../pdcurses
 #    successfully build NetHack-3.7.
 #
 ADD_LUA=Y
-LUATOP=../lib/lua535
-
+LUATOP=../lib/lua$(subst .,, $(LUAVER))
 #
 #==============================================================================
 # This marks the end of the BUILD DECISIONS section.
@@ -99,7 +104,7 @@ LIBRARIES = $(LIBS) $(TERMLIB)
 
 USE_DLB = Y
 
-# djgpp includes ls.exe and touch.exe in fil41b.zip from the v2gnu
+# djgpp includes ls.exe and touch.exe in fil41b.zip from the v2gnu 
 # folder so be sure to include that when downloading djgpp. Doing
 # so will make changing this unnecessary.
 
@@ -111,14 +116,14 @@ LS = ls -1		# ls.exe from djgpp distribution
 # set SUPPRESS_GRAPHICS to Y
 # (Note: binary will require ANSI.SYS driver or equivalent loaded)
 # SUPPRESS_GRAPHICS = Y
-SUPPRESS_GRAPHICS =
+SUPPRESS_GRAPHICS = 
 
 # ZLIB Support
 # To support zlib compression in bones and save files, you must
 # define ZLIB_COMP in include/config.h.
 # You must also have a zlib library to link NetHack with, and
 # for the djgpp build, you need one compatible with djgpp.
-# At the time that this was written (post-NetHack 3.4.3) the
+# At the time that this was written (post-NetHack 3.4.3) the 
 # following URL was a valid place to get a pre-built djgpp library
 # to add to your djgpp tools directory tree.
 # http://www.delorie.com/pub/djgpp/current/v2tk/zlib114b.zip
@@ -203,13 +208,13 @@ TILOBJ2      =
 TEXTIO       =
 TEXTIO2      =
 TILE_BMP     =
-TILEUTIL     =
-TILEFILES    =
-TILEFILES2   =
-GIFREADERS   =
-GIFREAD2     =
-PPMWRITERS   =
-PPMWRIT2     =
+TILEUTIL     = 
+TILEFILES    = 
+TILEFILES2   = 
+GIFREADERS   = 
+GIFREAD2     = 
+PPMWRITERS   = 
+PPMWRIT2     = 
 
 else
 
@@ -254,7 +259,7 @@ VOBJ02 = $(O)ball.o     $(O)bones.o    $(O)botl.o     $(O)cmd.o      $(O)dbridge
 VOBJ03 = $(O)decl.o     $(O)detect.o   $(O)display.o  $(O)do.o       $(O)do_name.o
 VOBJ04 = $(O)do_wear.o  $(O)dog.o      $(O)dogmove.o  $(O)dokick.o   $(O)dothrow.o
 VOBJ05 = $(O)drawing.o  $(O)dungeon.o  $(O)eat.o      $(O)end.o      $(O)engrave.o
-VOBJ06 = $(O)exper.o    $(O)explode.o  $(O)files.o    $(O)fountain.o
+VOBJ06 = $(O)exper.o    $(O)explode.o  $(O)extralev.o $(O)files.o    $(O)fountain.o
 VOBJ07 = $(O)getline.o  $(O)hack.o     $(O)hacklib.o  $(O)isaac64.o  $(O)invent.o
 VOBJ08 = $(O)lock.o     $(O)mail.o     $(O)main.o     $(O)makemon.o  $(O)mapglyph.o
 VOBJ09 = $(O)mcastu.o   $(O)mhitm.o    $(O)mhitu.o    $(O)minion.o   $(O)mkmap.o
@@ -272,7 +277,7 @@ VOBJ20 = $(O)u_init.o   $(O)uhitm.o    $(O)vault.o    $(O)vision.o   $(O)vis_tab
 VOBJ21 = $(O)weapon.o   $(O)were.o     $(O)wield.o    $(O)windows.o  $(O)wintty.o
 VOBJ22 = $(O)wizard.o   $(O)worm.o     $(O)worn.o     $(O)write.o    $(O)zap.o
 VOBJ23 = $(O)light.o    $(O)dlb.o      $(O)dig.o      $(O)teleport.o $(O)region.o
-VOBJ24 = $(REGEX)
+VOBJ24 = $(REGEX)         
 
 SOBJ   = $(O)msdos.o    $(O)pcsys.o    $(O)tty.o	    $(O)unix.o \
 	 $(O)video.o    $(O)vidtxt.o  $(O)pckeys.o
@@ -300,12 +305,12 @@ ALLOBJ = $(VOBJ) $(SOBJ) $(TILOBJ) $(TILOBJ2) $(VVOBJ)
 
 #===============-=================================================
 # LUA library
-# Source from http://www.lua.org/ftp/lua-5.3.5.tar.gz
+# Source from http://www.lua.org/ftp/lua-5.4.2.tar.gz
 #=================================================================
 
 LUASRC   = $(LUATOP)/src
-LUALIB   = $(O)lua535s.a
-LUADLL   = $(O)lua535.a
+LUALIB   = $(O)lua$(subst .,, $(LUAVER))s.a
+LUADLL   = $(O)lua$(subst .,, $(LUAVER)).a
 LUAINCL  = -I$(LUASRC)
 #LUAFLAGS = unix added -lm here?
 LUATARGETS = lua.exe luac.exe $(LUADLL) $(LUALIB)
@@ -359,7 +364,7 @@ PDCLIB = $(O)pdcurses.a
 
 PDCINCL = -I$(PDCURSES_TOP) -I$(PDCSRC) -I$(PDCDOS)
 else
-PDCLIB =
+PDCLIB = 
 endif
 
 #==========================================
@@ -395,7 +400,7 @@ HACK_H	   = $(CONFIG_H)	$(INCL)/context.h  $(DUNGEON_H)	       \
 	     $(INCL)/mkroom.h	$(INCL)/objclass.h $(INCL)/trap.h      \
 	     $(INCL)/flag.h     $(RM_H)		   $(INCL)/vision.h    \
 	     $(INCL)/wintype.h  $(INCL)/engrave.h  $(INCL)/rect.h      \
-	     $(INCL)/trampoli.h $(INCL)/hack.h     $(REGION_H)	       \
+	     $(INCL)/hack.h     $(REGION_H)	       \
 	     $(INCL)/sys.h
 DLB_H      = $(INCL)/dlb.h
 
@@ -535,7 +540,7 @@ $(OBJ)/%.o : $(LUASRC)/%.c
 
 all :   install
 
-install: $(GAMEFILE) $(O)install.tag
+install: $(GAMEFILE) $(O)install.tag 
 	@echo Done.
 
 default: $(GAMEFILE)
@@ -723,7 +728,7 @@ $(U)til2bin2.exe: $(O)til2bin2.o $(TEXTIO2)
 	@ar ru temp.a $(TEXTIO2)
 	$(LINK) $(LFLAGS) -o$@ $(O)til2bin2.o temp.a
 
-$(U)thintile.exe: $(O)thintile.o
+$(U)thintile.exe: $(O)thintile.o 
 	$(LINK) $(LFLAGS) -o$@ $(O)thintile.o
 
 $(O)thintile.o:  $(HACK_H) $(WSHR)/tile.h $(WSHR)/thintile.c
@@ -750,7 +755,7 @@ $(O)tiletex2.o:  $(CONFIG_H) $(TILE_H) $(WSHR)/tiletext.c
 
 $(O)tiletxt.o: $(CONFIG_H) $(TILE_H) $(WSHR)/tilemap.c
 	$(CC) $(cflags) -I$(MSYS) -I$(WSHR) -DTILETEXT -o$@ $(WSHR)/tilemap.c
-
+  
 $(O)tiletxt2.o: $(CONFIG_H) $(TILE_H) $(WSHR)/tilemap.c
 	$(CC) $(cflags) -I$(MSYS) -I$(WSHR) -DTILETEXT -DTILE_X=8 -o$@ $(WSHR)/tilemap.c
 #
@@ -948,17 +953,17 @@ $(PATCHLEV_H):
 # LUA
 #=============================================================
 
-lua.exe: $(O)lua.o $(LUALIB)
+lua.exe: $(O)lua.o $(LUALIB) 
 	$(link) $(LFLAGS) -o$@ $(O)lua.o $(LUALIB)
 
-luac.exe: $(O)luac.o $(O)lua535s.a
+luac.exe: $(O)luac.o $(O)lua$(subst .,, $(LUAVER))s.a
 	$(link) $(LFLAGSU) -o$@ $(O)luac.o $(LUALIB)
 
-$(O)lua535.a: $(LUAOBJFILES)
+$(O)lua$(subst .,, $(LUAVER)).a: $(LUAOBJFILES)
 	$(cc) -shared -Wl,--export-all-symbols \
 		-Wl,--add-stdcall-alias -o $@ $<
 
-$(O)lua535s.a: $(LUAOBJFILES)
+$(O)lua$(subst .,, $(LUAVER))s.a: $(LUAOBJFILES)
 	ar rcS $@ $(LUAOBJFILES1)
 	ar rcS $@ $(LUAOBJFILES2)
 	ar rcs $@ $(LUAOBJFILES3)
@@ -1086,11 +1091,9 @@ $(O)stubvid.o : $(HACK_H) $(MSYS)/pcvideo.h $(MSYS)/video.c
 #
 # The rest are stolen from sys/unix/Makefile.src,
 # with the following changes:
-#  o -c (which is included in cflags) substituted with -o$@ ,
-#  o an explicit build instruction for dlb.o because it requires
+#  o -c (which is included in cflags) substituted with -o$@ , 
+#  o an explicit build instruction for dlb.o because it requires 
 #    a .h file in ../sys/msdos.
-#  o the PATCHLEV_H macro is substitued for $(INCL)/patchlevel.h
-#    to work around a long filename issue.
 #  o $(CFLAGS) changed to $(cflags)
 # Other than that, these dependencies are untouched.
 # That means that there is some irrelevant stuff
@@ -1126,7 +1129,7 @@ $(O)termcap.o: ../win/tty/termcap.c $(HACK_H) $(INCL)/tcap.h
 $(O)topl.o: ../win/tty/topl.c $(HACK_H) $(INCL)/tcap.h
 	$(CC) $(cflags) -o$@ ../win/tty/topl.c
 $(O)wintty.o: ../win/tty/wintty.c $(HACK_H) $(INCL)/dlb.h \
-		$(INCL)/date.h $(PATCHLEV_H) $(INCL)/tcap.h
+		$(INCL)/date.h $(INCL)/tcap.h
 	$(CC) $(cflags) -o$@ ../win/tty/wintty.c
 $(O)Window.o: ../win/X11/Window.c $(INCL)/xwindowp.h $(INCL)/xwindow.h \
 		$(CONFIG_H)
@@ -1134,8 +1137,7 @@ $(O)Window.o: ../win/X11/Window.c $(INCL)/xwindowp.h $(INCL)/xwindow.h \
 $(O)dialogs.o: ../win/X11/dialogs.c $(CONFIG_H)
 	$(CC) $(cflags) -o$@ ../win/X11/dialogs.c
 $(O)winX.o: ../win/X11/winX.c $(HACK_H) $(INCL)/winX.h $(INCL)/dlb.h \
-		$(PATCHLEV_H) ../win/X11/nh72icon \
-		../win/X11/nh56icon ../win/X11/nh32icon
+		../win/X11/nh72icon ../win/X11/nh56icon ../win/X11/nh32icon
 	$(CC) $(cflags) -o$@ ../win/X11/winX.c
 $(O)winmap.o: ../win/X11/winmap.c $(INCL)/xwindow.h $(HACK_H) $(INCL)/dlb.h \
 		$(INCL)/winX.h $(INCL)/tile2x11.h
@@ -1196,7 +1198,7 @@ $(O)gnworn.o: ../win/gnome/gnworn.c ../win/gnome/gnworn.h ../win/gnome/gnglyph.h
 $(O)gnyesno.o: ../win/gnome/gnyesno.c ../win/gnome/gnbind.h ../win/gnome/gnyesno.h
 	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnyesno.c
 $(O)wingem.o: ../win/gem/wingem.c $(HACK_H) $(INCL)/func_tab.h $(INCL)/dlb.h \
-		$(PATCHLEV_H) $(INCL)/wingem.h
+		$(INCL)/wingem.h
 	$(CC) $(cflags) -o$@ ../win/gem/wingem.c
 $(O)wingem1.o: ../win/gem/wingem1.c $(INCL)/gem_rsc.h $(INCL)/load_img.h \
 		$(INCL)/gr_rect.h $(INCL)/wintype.h $(INCL)/wingem.h
@@ -1207,7 +1209,7 @@ $(O)gr_rect.o: ../win/gem/gr_rect.c $(INCL)/gr_rect.h
 	$(CC) $(cflags) -o$@ ../win/gem/gr_rect.c
 $(O)tile.o: tile.c $(HACK_H)
 $(O)qt_win.o: ../win/Qt/qt_win.cpp $(HACK_H) $(INCL)/func_tab.h \
-		$(INCL)/dlb.h $(PATCHLEV_H) $(INCL)/tile2x11.h \
+		$(INCL)/dlb.h $(INCL)/tile2x11.h \
 		$(INCL)/qt_win.h $(INCL)/qt_clust.h $(INCL)/qt_kde0.h \
 		$(INCL)/qt_xpms.h qt_win.moc qt_kde0.moc qttableview.moc
 	$(CXX) $(CXXFLAGS) -o$@ ../win/Qt/qt_win.cpp
@@ -1247,6 +1249,7 @@ $(O)end.o: end.c $(HACK_H) $(INCL)/dlb.h
 $(O)engrave.o: engrave.c $(HACK_H)
 $(O)exper.o: exper.c $(HACK_H)
 $(O)explode.o: explode.c $(HACK_H)
+$(O)extralev.o: extralev.c $(HACK_H)
 $(O)files.o: files.c $(HACK_H) $(INCL)/dlb.h
 $(O)fountain.o: fountain.c $(HACK_H)
 $(O)hack.o: hack.c $(HACK_H)
@@ -1315,13 +1318,13 @@ $(O)symbols.o: symbols.c $(HACK_H) $(INCL)/tcap.h
 $(O)sys.o: sys.c $(HACK_H)
 $(O)teleport.o: teleport.c $(HACK_H)
 $(O)timeout.o: timeout.c $(HACK_H)
-$(O)topten.o: topten.c $(HACK_H) $(INCL)/dlb.h $(PATCHLEV_H)
+$(O)topten.o: topten.c $(HACK_H) $(INCL)/dlb.h
 $(O)track.o: track.c $(HACK_H)
 $(O)trap.o: trap.c $(HACK_H)
 $(O)u_init.o: u_init.c $(HACK_H)
 $(O)uhitm.o: uhitm.c $(HACK_H)
 $(O)vault.o: vault.c $(HACK_H)
-$(O)version.o: version.c $(HACK_H) $(INCL)/date.h $(PATCHLEV_H)
+$(O)version.o: version.c $(HACK_H) $(INCL)/date.h
 $(O)vision.o: vision.c $(HACK_H) $(INCL)/vis_tab.h
 $(O)weapon.o: weapon.c $(HACK_H)
 $(O)were.o: were.c $(HACK_H)

@@ -1,4 +1,4 @@
-/* NetHack 3.6	zap.c	$NHDT-Date: 1589491666 2020/05/14 21:27:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.340 $ */
+/* NetHack 3.7	zap.c	$NHDT-Date: 1596498233 2020/08/03 23:43:53 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.346 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -596,6 +596,12 @@ boolean adjacentok; /* False: at obj's spot only, True: nearby is allowed */
             return (struct monst *) 0;
         mtmp = makemon(mtmp2->data, cc->x, cc->y,
                        (NO_MINVENT | MM_NOWAIT | MM_NOCOUNTBIRTH
+                        /* in case mtmp2 is a long worm; saved traits for
+                           long worm don't include tail segments so don't
+                           give mtmp any; it will be given a new 'wormno'
+                           though (unless those are exhausted) so be able
+                           to grow new tail segments */
+                        | MM_NOTAIL
                         | (adjacentok ? MM_ADJACENTOK : 0)));
         if (!mtmp) {
             /* mtmp2 is a copy of obj's object->oextra->omonst extension
@@ -604,8 +610,23 @@ boolean adjacentok; /* False: at obj's spot only, True: nearby is allowed */
             return (struct monst *) 0;
         }
 
-        /* heal the monster */
-        if (mtmp->mhpmax > mtmp2->mhpmax && is_rider(mtmp2->data))
+        /* heal the monster; lower than normal level might come from
+           adj_lev() but we assume it has come from 'mtmp' being level
+           drained before finally killed; give a chance to restore
+           some levels so that trolls and Riders can't be drained to
+           level 0 and then trivially killed repeatedly */
+        if ((int) mtmp->m_lev < mtmp->data->mlevel) {
+            int ltmp = rnd(mtmp->data->mlevel + 1);
+
+            if (ltmp > (int) mtmp->m_lev) {
+                while ((int) mtmp->m_lev < ltmp) {
+                    mtmp->m_lev++;
+                    mtmp->mhpmax += monhp_per_lvl(mtmp);
+                }
+                mtmp2->m_lev = mtmp->m_lev;
+            }
+        }
+        if (mtmp->mhpmax > mtmp2->mhpmax) /* &&is_rider(mtmp2->data)*/
             mtmp2->mhpmax = mtmp->mhpmax;
         mtmp2->mhp = mtmp2->mhpmax;
         /* Get these ones from mtmp */
@@ -834,6 +855,11 @@ boolean by_hero;
     }
     if (M_AP_TYPE(mtmp))
         seemimic(mtmp);
+
+    /* if the revived is a zombie, it might be specified as tame */
+    if (corpse->tamed_zombie) {
+        tamedog(mtmp, (struct obj *) 0, FALSE);
+    }
 
     one_of = (corpse->quan > 1L);
     if (one_of)
@@ -1142,6 +1168,19 @@ register struct obj *obj;
             break;
         }
     }
+    /* cancelling a troll's corpse prevents it from reviving (on its own;
+       does not affect undead turning induced revival) */
+    if (obj->otyp == CORPSE && obj->timed
+        && !is_rider(&mons[obj->corpsenm])) {
+        anything a = *obj_to_any(obj);
+        long timout = peek_timer(REVIVE_MON, &a);
+
+        if (timout) {
+            (void) stop_timer(REVIVE_MON, &a);
+            (void) start_timer(timout, TIMER_OBJECT, ROT_CORPSE, &a);
+        }
+    }
+
     unbless(obj);
     uncurse(obj);
     return;
@@ -1457,6 +1496,16 @@ struct obj *obj;
 
     /* zap the object */
     delobj(obj);
+}
+
+/* Returns TRUE if obj resists polymorphing */
+boolean
+obj_unpolyable(obj)
+struct obj *obj;
+{
+    return (unpolyable(obj)
+            || obj == uball || obj == uskin
+            || obj_resists(obj, 5, 95));
 }
 
 /* classes of items whose current charge count carries over across polymorph
@@ -1970,8 +2019,7 @@ struct obj *obj, *otmp;
         switch (otmp->otyp) {
         case WAN_POLYMORPH:
         case SPE_POLYMORPH:
-            if (obj->otyp == WAN_POLYMORPH || obj->otyp == SPE_POLYMORPH
-                || obj->otyp == POT_POLYMORPH || obj_resists(obj, 5, 95)) {
+            if (obj_unpolyable(obj)) {
                 res = 0;
                 break;
             }
@@ -2234,6 +2282,16 @@ register struct obj *wand;
     return 1;
 }
 
+void
+do_enlightenment_effect()
+{
+    You_feel("self-knowledgeable...");
+    display_nhwindow(WIN_MESSAGE, FALSE);
+    enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
+    pline_The("feeling subsides.");
+    exercise(A_WIS, TRUE);
+}
+
 /*
  * zapnodir - zaps a NODIR wand/spell.
  * added by GAN 11/03/86
@@ -2274,11 +2332,7 @@ register struct obj *obj;
         break;
     case WAN_ENLIGHTENMENT:
         known = TRUE;
-        You_feel("self-knowledgeable...");
-        display_nhwindow(WIN_MESSAGE, FALSE);
-        enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
-        pline_The("feeling subsides.");
-        exercise(A_WIS, TRUE);
+        do_enlightenment_effect();
         break;
     }
     if (known) {
@@ -2876,10 +2930,16 @@ boolean youattack, allow_cancel_kill, self_cancel;
                     You_feel("%s headed.", Hallucination ? "dark" : "light");
                 u.mh = 0; /* fatal; death handled by rehumanize() */
             }
-            if (Unchanging && u.mh > 0)
-                Your("amulet grows hot for a moment, then cools.");
-            else
+            if (Unchanging && u.mh > 0) {
+                if (uamul && uamul->otyp == AMULET_OF_UNCHANGING) {
+                    Your("amulet grows hot for a moment, then cools.");
+                }
+            }
+            else {
+                Strcpy(g.killer.name, "identity theft");
+                g.killer.format = KILLED_BY;
                 rehumanize();
+            }
         }
     } else {
         mdef->mcan = 1;
@@ -2924,6 +2984,7 @@ struct obj *obj; /* wand or spell */
     struct engr *e;
     struct trap *ttmp;
     char buf[BUFSZ];
+    stairway *stway = g.stairs;
 
     /* some wands have special effects other than normal bhitpile */
     /* drawbridge might change <u.ux,u.uy> */
@@ -2946,11 +3007,16 @@ struct obj *obj; /* wand or spell */
         return TRUE; /* we've done our own bhitpile */
     case WAN_OPENING:
     case SPE_KNOCK:
+        while (stway) {
+            if (!stway->isladder && !stway->up && stway->tolev.dnum == u.uz.dnum)
+                break;
+            stway = stway->next;
+        }
         /* up or down, but at closed portcullis only */
         if (is_db_wall(x, y) && find_drawbridge(&xx, &yy)) {
             open_drawbridge(xx, yy);
             disclose = TRUE;
-        } else if (u.dz > 0 && (x == xdnstair && y == ydnstair)
+        } else if (u.dz > 0 && stway && stway->sx == x && stway->sy == y
                    /* can't use the stairs down to quest level 2 until
                       leader "unlocks" them; give feedback if you try */
                    && on_level(&u.uz, &qstart_level) && !ok_to_quest()) {
@@ -4096,8 +4162,8 @@ boolean u_caused;
             }
         }
     }
-    /* This also ignites floor items, but does not change cnt based on them
-     * because they weren't consumed. */
+    /* This also ignites floor items, but does not change cnt
+       because they weren't consumed. */
     ignite_items(g.level.objects[x][y]);
     return cnt;
 }
@@ -4924,8 +4990,12 @@ register struct obj *obj; /* no texts here! */
     if (obj->where == OBJ_FLOOR) {
         obj_extract_self(obj); /* move rocks back on top */
         place_object(obj, obj->ox, obj->oy);
-        if (!does_block(obj->ox, obj->oy, &levl[obj->ox][obj->oy]))
+        if (!does_block(obj->ox, obj->oy, &levl[obj->ox][obj->oy])) {
             unblock_point(obj->ox, obj->oy);
+            /* need immediate update in case this is a striking/force bolt
+               zap that is about hit more things */
+            vision_recalc(0);
+        }
         if (cansee(obj->ox, obj->oy))
             newsym(obj->ox, obj->oy);
     }

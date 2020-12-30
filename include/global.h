@@ -1,4 +1,4 @@
-/* NetHack 3.7	global.h	$NHDT-Date: 1574982019 2019/11/28 23:00:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.92 $ */
+/* NetHack 3.7	global.h	$NHDT-Date: 1594032649 2020/07/06 10:50:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.104 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7,23 +7,6 @@
 #define GLOBAL_H
 
 #include <stdio.h>
-
-/*
- * Development status possibilities.
- */
-#define NH_STATUS_RELEASED    0         /* Released */
-#define NH_STATUS_WIP         1         /* Work in progress */
-#define NH_STATUS_BETA        2         /* BETA testing */
-#define NH_STATUS_POSTRELEASE 3         /* patch commit point only */
-
-/*
- * Development status of this NetHack version.
- */
-#define NH_DEVEL_STATUS NH_STATUS_RELEASED
-
-#ifndef DEBUG  /* allow tool chains to define without causing warnings */
-#define DEBUG
-#endif
 
 /*
  * Files expected to exist in the playground directory.
@@ -67,9 +50,8 @@
 #endif /* DUMB */
 
 /*
- * type xchar: small integers in the range 0 - 127, usually coordinates
- * although they are nonnegative they must not be declared unsigned
- * since otherwise comparisons with signed quantities are done incorrectly
+ * type xchar: small integers (typedef'd as signed char,
+ * so in the range -127 - 127), usually coordinates.
  */
 typedef schar xchar;
 
@@ -176,36 +158,16 @@ extern struct cross_target_s cross_target;
 #include "unixconf.h"
 #endif
 
-#ifdef OS2
-#include "os2conf.h"
-#endif
-
 #ifdef MSDOS
 #include "pcconf.h"
 #endif
 
-#ifdef TOS
-#include "tosconf.h"
+#ifdef WIN32
+#include "ntconf.h"
 #endif
 
 #ifdef AMIGA
 #include "amiconf.h"
-#endif
-
-#ifdef MAC
-#include "macconf.h"
-#endif
-
-#ifdef __BEOS__
-#include "beconf.h"
-#endif
-
-#ifdef WIN32
-#ifdef WIN_CE
-#include "wceconf.h"
-#else
-#include "ntconf.h"
-#endif
 #endif
 
 /* Displayable name of this port; don't redefine if defined in *conf.h */
@@ -255,9 +217,11 @@ extern struct cross_target_s cross_target;
 #endif
 #endif
 
+#if !defined(CROSSCOMPILE)
 #if defined(MICRO)
 #if !defined(AMIGA) && !defined(TOS) && !defined(OS2_HPFS)
 #define SHORT_FILENAMES /* filenames are 8.3 */
+#endif
 #endif
 #endif
 
@@ -311,11 +275,42 @@ extern struct cross_target_s cross_target;
 #define Vsprintf (void) vsprintf
 #endif
 
-/* primitive memory leak debugging; see alloc.c */
+/*
+ *  Memory allocation.  Functions are declared here rather than in
+ *  extern.h so that source files which use config.h instead of hack.h
+ *  will see the declarations.
+ *
+ *  NetHack does not use malloc() [except to implement alloc() in alloc.c]
+ *  or realloc() or calloc().  They return Null if memory runs out and
+ *  nethack's code relies on alloc() to intercept that so that a zillion
+ *  callers don't need to test for Null result.  alloc() never returns
+ *  Null; if memory runs out, it calls panic() and does not return at all.
+ */
+
+/* dupstr() is unconditional in alloc.c but not used when MONITOR_HEAP
+   is enabled; some utility programs link with alloc.{o,obj} and need it
+   if nethack is built with MONITOR_HEAP enabled and they aren't; this
+   declaration has been moved out of the '#else' below to avoid getting
+   a complaint from -Wmissing-prototypes when building with MONITOR_HEAP */
+extern char *FDECL(dupstr, (const char *));
+
+/*
+ * MONITOR_HEAP is conditionally used for primitive memory leak debugging.
+ * When enabled, NH_HEAPLOG (if defined in the environment) is used as the
+ * name of a log file to create for capturing allocations and releases.
+ * [The 'heaputil' program to analyze that file isn't included in releases.]
+ *
+ * See alloc.c.
+ */
 #ifdef MONITOR_HEAP
+/* plain alloc() is not declared except in alloc.c */
 extern long *FDECL(nhalloc, (unsigned int, const char *, int));
 extern void FDECL(nhfree, (genericptr_t, const char *, int));
 extern char *FDECL(nhdupstr, (const char *, const char *, int));
+/* this predates C99's __func__; that is trickier to use conditionally
+   because it is not implemented as a preprocessor macro; MONITOR_HEAP
+   wouldn't gain much benefit from it anyway so continue to live without it;
+   if func's caller were accessible, that would be a very different issue */
 #ifndef __FILE__
 #define __FILE__ ""
 #endif
@@ -326,9 +321,9 @@ extern char *FDECL(nhdupstr, (const char *, const char *, int));
 #define free(a) nhfree(a, __FILE__, (int) __LINE__)
 #define dupstr(s) nhdupstr(s, __FILE__, (int) __LINE__)
 #else /* !MONITOR_HEAP */
+/* declare alloc.c's alloc(); allocations made with it use ordinary free() */
 extern long *FDECL(alloc, (unsigned int));  /* alloc.c */
-extern char *FDECL(dupstr, (const char *)); /* ditto */
-#endif
+#endif /* ?MONITOR_HEAP */
 
 /* Used for consistency checks of various data files; declare it here so
    that utility programs which include config.h but not hack.h can see it. */
@@ -376,6 +371,13 @@ struct savefile_info {
 #define TBUFSZ 300 /* g.toplines[] buffer max msg: 3 81char names */
 /* plus longest prefix plus a few extra words */
 
+/* COLBUFSZ is the larger of BUFSZ and COLNO */
+#if BUFSZ > COLNO
+#define COLBUFSZ BUFSZ
+#else
+#define COLBUFSZ COLNO
+#endif
+
 #define PL_NSIZ 32 /* name of player, ghost, shopkeeper */
 #define PL_CSIZ 32 /* sizeof pl_character */
 #define PL_FSIZ 32 /* fruit name */
@@ -404,11 +406,14 @@ struct savefile_info {
 #ifdef UNIX
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
 /* see end.c */
+#if !defined(CROSS_TO_WASM)
 #ifndef PANICTRACE
 #define PANICTRACE
-#endif
-#endif
-#endif
+#endif  /* PANICTRACE */
+#endif  /* CROSS_TO_WASM */
+#endif  /* NH_DEVEL_STATUS != NH_STATUS_RELEASED */
+#endif  /* UNIX */
+
 /* The following are meaningless if PANICTRACE is not defined: */
 #if defined(__linux__) && defined(__GLIBC__) && (__GLIBC__ >= 2)
 #define PANICTRACE_LIBC
@@ -417,7 +422,9 @@ struct savefile_info {
 #define PANICTRACE_LIBC
 #endif
 #ifdef UNIX
+#if !defined(CROSS_TO_WASM) /* no popen in WASM */
 #define PANICTRACE_GDB
+#endif
 #endif
 
 /* Supply nethack_enter macro if not supplied by port */
@@ -427,7 +434,8 @@ struct savefile_info {
 
 /* Supply nhassert macro if not supplied by port */
 #ifndef nhassert
-#define nhassert(e) ((void)0)
+#define nhassert(expression) (void)((!!(expression)) || \
+        (nhassert_failed(#expression, __FILE__, __LINE__), 0))
 #endif
 
 /* LIVELOG message type flags */

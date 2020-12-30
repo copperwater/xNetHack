@@ -1,4 +1,4 @@
-/* NetHack 3.6	makemon.c	$NHDT-Date: 1587024537 2020/04/16 08:08:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.168 $ */
+/* NetHack 3.7	makemon.c	$NHDT-Date: 1606033928 2020/11/22 08:32:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.180 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -16,7 +16,7 @@
 
 static boolean FDECL(uncommon, (int));
 static int FDECL(align_shift, (struct permonst *));
-static boolean FDECL(mk_gen_ok, (int, int, int));
+static boolean FDECL(mk_gen_ok, (int, unsigned, unsigned));
 static boolean FDECL(wrong_elem_type, (struct permonst *));
 static void FDECL(m_initgrp, (struct monst *, int, int, int, int));
 static void FDECL(m_initthrow, (struct monst *, int, int));
@@ -756,7 +756,7 @@ register struct monst *mtmp;
             (void) mongets(mtmp, MUMMY_WRAPPING);
         break;
     case S_ABERRATION:
-        if (ptr == &mons[PM_QUANTUM_MECHANIC] && !rn2(20)) {
+        if (!rn2(20) && ptr == &mons[PM_QUANTUM_MECHANIC]) {
             struct obj *catcorpse;
             otmp = mksobj(LARGE_BOX, FALSE, FALSE);
             /* we used to just set the flag, which resulted in weight()
@@ -1028,10 +1028,16 @@ monmaxhp(ptr, m_lev)
 struct permonst *ptr;
 uchar m_lev; /* not just a struct mon because polyself code also uses this */
 {
+    int basehp = 0;
+    int hpmax = 0;
+
     if (is_golem(ptr)) {
+        /* golems have a fixed amount of HP, varying by golem type */
         return golemhp(monsndx(ptr));
     } else if (is_rider(ptr)) {
         /* we want low HP, but a high mlevel so they can attack well */
+        /* the fake basehp (weaker level) is 10, but we guarantee at least 10 HP
+         * by having 40 here */
         return 40 + d(8, 8);
     } else if (ptr->mlevel > 49) {
         /* "special" fixed hp monster
@@ -1040,13 +1046,22 @@ uchar m_lev; /* not just a struct mon because polyself code also uses this */
          * above the 1..49 that indicate "normal" monster levels */
         return 2 * (ptr->mlevel - 6);
     } else if (m_lev == 0) {
-        return rnd(4);
+        basehp = 1; /* minimum is 1, increased to 2 below */
+        hpmax = rnd(4);
     } else {
-        int hpmax = d(m_lev, hd_size(ptr));
+        basehp = m_lev; /* minimum possible is one per level */
+        hpmax = d(m_lev, hd_size(ptr));
         if (is_home_elemental(ptr))
             hpmax *= 2;
-        return hpmax;
     }
+
+    /* if d(X,8) rolled a 1 all X times, give a boost;
+       most beneficial for level 0 and level 1 monsters, making mhpmax
+       and starting mhp always be at least 2 */
+    if (hpmax == basehp) {
+        hpmax += 1;
+    }
+    return hpmax;
 }
 
 /* set up a new monster's initial level and hit points;
@@ -1066,20 +1081,23 @@ int mndx;
     }
 }
 
+static const struct mextra zeromextra = DUMMY;
+
+static void
+init_mextra(mex)
+struct mextra *mex;
+{
+    *mex = zeromextra;
+    mex->mcorpsenm = NON_PM;
+}
+
 struct mextra *
 newmextra()
 {
     struct mextra *mextra;
 
     mextra = (struct mextra *) alloc(sizeof(struct mextra));
-    mextra->mname = 0;
-    mextra->egd = 0;
-    mextra->epri = 0;
-    mextra->eshk = 0;
-    mextra->emin = 0;
-    mextra->edog = 0;
-    mextra->ebones = 0;
-    mextra->mcorpsenm = NON_PM;
+    init_mextra(mextra);
     return mextra;
 }
 
@@ -1120,20 +1138,16 @@ coord *cc;
                         goto gotgood;
                 }
             if (bl == 0 && (!mon || mon->data->mmove)) {
+                stairway *stway = g.stairs;
                 /* all map positions are visible (or not good),
                    try to pick something logical */
-                if (g.dnstair.sx && !rn2(2)) {
-                    nx = g.dnstair.sx;
-                    ny = g.dnstair.sy;
-                } else if (g.upstair.sx && !rn2(2)) {
-                    nx = g.upstair.sx;
-                    ny = g.upstair.sy;
-                } else if (g.dnladder.sx && !rn2(2)) {
-                    nx = g.dnladder.sx;
-                    ny = g.dnladder.sy;
-                } else if (g.upladder.sx && !rn2(2)) {
-                    nx = g.upladder.sx;
-                    ny = g.upladder.sy;
+                while (stway) {
+                    if (stway->tolev.dnum == u.uz.dnum && !rn2(2)) {
+                        nx = stway->sx;
+                        ny = stway->sy;
+                        break;
+                    }
+                    stway = stway->next;
                 }
                 if (goodpos(nx, ny, mon, gpflags))
                     goto gotgood;
@@ -1165,10 +1179,11 @@ long mmflags;
     struct monst fakemon;
     coord cc;
     int mndx, mcham, ct, mitem;
-    boolean anymon = (!ptr);
-    boolean byyou = (x == u.ux && y == u.uy);
-    boolean allow_minvent = ((mmflags & NO_MINVENT) == 0);
-    boolean countbirth = ((mmflags & MM_NOCOUNTBIRTH) == 0);
+    boolean anymon = !ptr,
+            byyou = (x == u.ux && y == u.uy),
+            allow_minvent = ((mmflags & NO_MINVENT) == 0),
+            countbirth = ((mmflags & MM_NOCOUNTBIRTH) == 0),
+            allowtail = ((mmflags & MM_NOTAIL) == 0);
     unsigned gpflags = (mmflags & MM_IGNOREWATER) ? MM_IGNOREWATER : 0;
 
     fakemon = cg.zeromonst;
@@ -1415,7 +1430,7 @@ long mmflags;
             mtmp->mpeaceful = mtmp->mtame = FALSE;
     }
     if (mndx == PM_LONG_WORM && (mtmp->wormno = get_wormno()) != 0) {
-        initworm(mtmp, rn2(5));
+        initworm(mtmp, allowtail ? rn2(5) : 0);
         if (count_wsegs(mtmp))
             place_worm_tail_randomly(mtmp, x, y);
     }
@@ -1581,17 +1596,14 @@ struct monst* creator;
         else {
             /* mon will still hold the last created monster - so we can use
              * Amonnam to describe the whole group, if mptr is set. */
-            char buf[BUFSZ];
-            buf[0] = '\0';
+            const char *who;
             if (mptr) {
-                /* TODO: we lack a monster pluralization function */
-                Sprintf(buf, "%ss", mptr->mname);
-                upstart(buf);
+                who = upstart(makeplural(mptr->mname));
             }
             else {
-                Strcpy(buf, "Monsters");
+                who = "Monsters";
             }
-            pline("%s appear from nowhere!", buf);
+            pline("%s appear from nowhere!", who);
         }
     }
     return newmons_ct;
@@ -1724,11 +1736,12 @@ rndmonst()
 /* decide whether it's ok to generate a candidate monster by mkclass() */
 static boolean
 mk_gen_ok(mndx, mvflagsmask, genomask)
-int mndx, mvflagsmask, genomask;
+int mndx;
+unsigned mvflagsmask, genomask;
 {
     struct permonst *ptr = &mons[mndx];
 
-    if ((g.mvitals[mndx].mvflags & mvflagsmask) && !(genomask & G_IGNORE))
+    if (g.mvitals[mndx].mvflags & mvflagsmask)
         return FALSE;
     if (ptr->geno & genomask)
         return FALSE;
@@ -1758,13 +1771,13 @@ int spc;
 struct permonst *
 mkclass_aligned(class, spc, atyp)
 char class;
-int spc;
+int spc; /* special mons[].geno handling */
 aligntyp atyp;
 {
     register int first, last, num = 0;
     int k, nums[SPECIAL_PM + 1]; /* +1: insurance for final return value */
-    int ignore = (spc & G_IGNORE);
-    int maxmlev, mask = (G_NOGEN | G_UNIQ) & ~spc;
+    int maxmlev, gehennom = Inhell != 0;
+    unsigned mv_mask, gn_mask;
 
     (void) memset((genericptr_t) nums, 0, sizeof nums);
     maxmlev = level_difficulty() >> 1;
@@ -1786,13 +1799,30 @@ aligntyp atyp;
         return (struct permonst *) 0;
     }
 
+    mv_mask = G_GONE; /* G_GENOD | G_EXTINCT */
+    if ((spc & G_IGNORE) != 0) {
+        mv_mask = 0; /* mv_mask &= ~G_GONE; */
+        /* G_IGNORE is not a mons[].geno mask so get rid of it now */
+        spc &= ~G_IGNORE;
+    }
+
     /*  Assumption #2:  monsters of a given class are presented in ascending
      *                  order of strength.
      */
     for (last = first; last < SPECIAL_PM && mons[last].mlet == class; last++) {
         if (atyp != A_NONE && sgn(mons[last].maligntyp) != sgn(atyp))
             continue;
-        if (mk_gen_ok(last, G_GONE, mask|ignore)) {
+        /* traditionally mkclass() ignored hell-only and never-in-hell;
+           now we usually honor those but not all the time, mostly so that
+           the majority of major demons aren't constrained to Gehennom;
+           arch- and master liches are always so constrained (for creation;
+           lesser liches might grow up into them elsewhere) */
+        gn_mask = (G_NOGEN | G_UNIQ);
+        if (rn2(9) || class == S_LICH)
+            gn_mask |= (gehennom ? G_NOHELL : G_HELL);
+        gn_mask &= ~spc;
+
+        if (mk_gen_ok(last, mv_mask, gn_mask)) {
             /* consider it; don't reject a toostrong() monster if we
                don't have anything yet (num==0) or if it is the same
                (or lower) difficulty as preceding candidate (non-zero
@@ -1836,6 +1866,7 @@ mkclass_poly(class)
 int class;
 {
     register int first, last, num = 0;
+    unsigned gmask;
 
     for (first = LOW_PM; first < SPECIAL_PM; first++)
         if (mons[first].mlet == class)
@@ -1843,14 +1874,20 @@ int class;
     if (first == SPECIAL_PM)
         return NON_PM;
 
+    gmask = (G_NOGEN | G_UNIQ);
+    /* mkclass() does this on a per monster type basis, but doing that here
+       would make the two loops inconsistent with each other for non L */
+    if (rn2(9) || class == S_LICH)
+        gmask |= (Inhell ? G_NOHELL : G_HELL);
+
     for (last = first; last < SPECIAL_PM && mons[last].mlet == class; last++)
-        if (mk_gen_ok(last, G_GENOD, (G_NOGEN | G_UNIQ)))
+        if (mk_gen_ok(last, G_GENOD, gmask))
             num += mons[last].geno & G_FREQ;
     if (!num)
         return NON_PM;
 
     for (num = rnd(num); num > 0; first++)
-        if (mk_gen_ok(first, G_GENOD, (G_NOGEN | G_UNIQ)))
+        if (mk_gen_ok(first, G_GENOD, gmask))
             num -= mons[first].geno & G_FREQ;
     first--; /* correct an off-by-one error */
 

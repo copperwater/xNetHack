@@ -1,4 +1,4 @@
-/* NetHack 3.7	invent.c	$NHDT-Date: 1589491665 2020/05/14 21:27:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.298 $ */
+/* NetHack 3.7	invent.c	$NHDT-Date: 1606765212 2020/11/30 19:40:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.308 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -13,7 +13,6 @@
 #define CONTAINED_SYM '>' /* designator for inside a container */
 #define HANDS_SYM '-'
 
-static void FDECL(loot_classify, (Loot *, struct obj *));
 static char *FDECL(loot_xname, (struct obj *));
 static int FDECL(invletter_value, (CHAR_P));
 static int FDECL(CFDECLSPEC sortloot_cmp, (const genericptr,
@@ -53,7 +52,7 @@ static char FDECL(obj_to_let, (struct obj *));
 static const char venom_inv[] = { VENOM_CLASS, 0 }; /* (constant) */
 
 /* sortloot() classification; called at most once [per sort] for each object */
-static void
+void
 loot_classify(sort_item, obj)
 Loot *sort_item;
 struct obj *obj;
@@ -1235,8 +1234,10 @@ register struct obj *obj;
     }
     update_map = (obj->where == OBJ_FLOOR);
     obj_extract_self(obj);
-    if (update_map)
+    if (update_map) {
+        maybe_unhide_at(obj->ox, obj->oy);
         newsym(obj->ox, obj->oy);
+    }
     obfree(obj, (struct obj *) 0); /* frees contents also */
 }
 
@@ -1471,6 +1472,14 @@ const char *action;
            !strcmp(action, "destroy");
 }
 
+/* match the prompt for either 'W' or 'P' command */
+static boolean
+putting_on(action)
+const char *action;
+{
+    return !strcmp(action, "wear") || !strcmp(action, "put on");
+}
+
 /* Basic callbacks for getobj that allows any floor item and anything. */
 
 /* Allow floor objects only */
@@ -1501,6 +1510,157 @@ struct obj *obj;
     if (obj != &cg.zeroobj)
         return 2;
     return 0;
+}
+
+/* helper for getobj(), exclude obj if it cannot be used to do word */
+static boolean
+getobj_obj_exclude(word, otmp)
+const char *word;
+struct obj *otmp;
+{
+    return ((taking_off(word) /* exclude if not worn */
+            && !(otmp->owornmask & (W_ARMOR | W_ACCESSORY)))
+        || (putting_on(word) /* exclude if already worn */
+            && (otmp->owornmask & (W_ARMOR | W_ACCESSORY)))
+#if 0 /* 3.4.1 -- include currently wielded weapon among 'wield' choices */
+        || (!strcmp(word, "wield")
+            && (otmp->owornmask & W_WEP))
+#endif
+        || (!strcmp(word, "ready")    /* exclude when wielded... */
+            && ((otmp == uwep || (otmp == uswapwep && u.twoweap))
+                && otmp->quan == 1L)) /* ...unless more than one */
+        || ((!strcmp(word, "dip") || !strcmp(word, "grease"))
+            && inaccessible_equipment(otmp, (const char *) 0, FALSE)));
+}
+
+/* helper for getobj(), exclude obj if it cannot be used to do word */
+static boolean
+getobj_obj_exclude_too(word, otmp)
+const char *word;
+struct obj *otmp;
+{
+    short otyp = otmp->otyp;
+
+    return ((putting_on(word)
+             && ((otmp->oclass == FOOD_CLASS && otyp != MEAT_RING)
+                 || (otmp->oclass == TOOL_CLASS && otyp != BLINDFOLD
+                     && otyp != TOWEL && otyp != LENSES)))
+            || (!strcmp(word, "wield")
+                && (otmp->oclass == TOOL_CLASS && !is_weptool(otmp)))
+            || (!strcmp(word, "eat") && !is_edible(otmp))
+            || (!strcmp(word, "sacrifice")
+                && (otyp != CORPSE && otyp != AMULET_OF_YENDOR
+                    && otyp != FAKE_AMULET_OF_YENDOR))
+        || (!strcmp(word, "write with")
+            && (otmp->oclass == TOOL_CLASS
+                && otyp != MAGIC_MARKER && otyp != TOWEL))
+            || (!strcmp(word, "tin")
+                && (otyp != CORPSE || !tinnable(otmp)))
+        || (!strcmp(word, "rub")
+            && ((otmp->oclass == TOOL_CLASS && otyp != OIL_LAMP
+                 && otyp != MAGIC_LAMP && otyp != LANTERN)
+                || (otmp->oclass == GEM_CLASS && !is_graystone(otmp))
+                || (otmp->oclass == FOOD_CLASS
+                    && otmp->otyp != LUMP_OF_ROYAL_JELLY)))
+            || (!strcmp(word, "use or apply")
+                /* Picks, axes, pole-weapons, bullwhips */
+                && ((otmp->oclass == WEAPON_CLASS
+                     && !is_pick(otmp) && !is_axe(otmp)
+                     && !is_pole(otmp) && otyp != BULLWHIP)
+                    || (otmp->oclass == POTION_CLASS
+                        /* only applicable potion is oil, and it will only
+                           be offered as a choice when already discovered */
+                        && (otyp != POT_OIL || !otmp->dknown
+                            || !objects[POT_OIL].oc_name_known))
+                    || (otmp->oclass == FOOD_CLASS
+                        && otyp != CREAM_PIE && otyp != EUCALYPTUS_LEAF
+                        && otyp != LUMP_OF_ROYAL_JELLY)
+                    || (otmp->oclass == GEM_CLASS && !is_graystone(otmp))))
+            || (!strcmp(word, "rub the royal jelly on") && otmp->otyp != EGG)
+            || (!strcmp(word, "invoke")
+                && !otmp->oartifact
+                && !objects[otyp].oc_unique
+                && (otyp != FAKE_AMULET_OF_YENDOR || otmp->known)
+                && otyp != CRYSTAL_BALL /* synonym for apply */
+                /* note: presenting the possibility of invoking non-artifact
+                   mirrors and/or lamps is simply a cruel deception... */
+                && otyp != MIRROR
+                && otyp != MAGIC_LAMP
+                && (otyp != OIL_LAMP /* don't list known oil lamp */
+                    || (otmp->dknown && objects[OIL_LAMP].oc_name_known)))
+            || (!strcmp(word, "untrap with")
+                && ((otmp->oclass == TOOL_CLASS && otyp != CAN_OF_GREASE)
+                    || (otmp->oclass == POTION_CLASS
+                        /* only applicable potion is oil, and it will only
+                           be offered as a choice when already discovered */
+                        && (otyp != POT_OIL || !otmp->dknown
+                            || !objects[POT_OIL].oc_name_known))))
+            || (!strcmp(word, "tip") && !Is_container(otmp)
+                /* include horn of plenty if sufficiently discovered */
+                && (otmp->otyp != HORN_OF_PLENTY || !otmp->dknown
+                    || !objects[HORN_OF_PLENTY].oc_name_known))
+            || (!strcmp(word, "charge") && !is_chargeable(otmp))
+            || (!strcmp(word, "open") && otyp != TIN)
+            || (!strcmp(word, "call") && !objtyp_is_callable(otyp)));
+}
+
+/* helper for getobj(), obj is acceptable but not listed */
+static boolean
+getobj_obj_acceptable_unlisted(word, otmp, let)
+const char *word;
+struct obj *otmp;
+char let;
+{
+    long dummymask;
+    short otyp = otmp->otyp;
+
+    return (/* ugly check for unworn armor that can't be worn */
+            (putting_on(word) && let == ARMOR_CLASS
+             && !canwearobj(otmp, &dummymask, FALSE))
+            /* or armor with 'P' or 'R' or accessory with 'W' or 'T' */
+            || ((putting_on(word) || taking_off(word))
+                && ((let == ARMOR_CLASS) ^ (otmp->oclass == ARMOR_CLASS)))
+            /* or unsuitable items rubbed on known touchstone */
+            || (!strncmp(word, "rub on the stone", 16)
+                && let == GEM_CLASS && otmp->dknown
+                && objects[otyp].oc_name_known)
+            /* suppress corpses on astral, amulets elsewhere */
+            || (!strcmp(word, "sacrifice")
+                /* (!astral && amulet) || (astral && !amulet) */
+                && (!Is_astralevel(&u.uz) ^ (otmp->oclass != AMULET_CLASS)))
+            /* suppress container being stashed into */
+            || (!strcmp(word, "stash") && !ck_bag(otmp))
+            /* worn armor (shirt, suit) covered by worn armor (suit, cloak)
+               or accessory (ring) covered by cursed worn armor (gloves) */
+            || (taking_off(word)
+                && inaccessible_equipment(otmp, (const char *) 0,
+                                      (boolean) (otmp->oclass == RING_CLASS)))
+            || (!strcmp(word, "write on")
+                && (!(otyp == SCR_BLANK_PAPER || otyp == SPE_BLANK_PAPER)
+                    || !otmp->dknown || !objects[otyp].oc_name_known)));
+}
+
+void
+mime_action(word)
+const char *word;
+{
+    char buf[BUFSZ];
+    char *bp = buf;
+    char *suf = (char *) 0;
+
+    strcpy(buf, word);
+    if ((bp = strstr(buf, " on the ")) != 0) {
+        /* rub on the stone[s] */
+        *bp = '\0';
+        suf = (bp + 1);
+    }
+    if ((bp = strstr(buf, " or ")) != 0) {
+        *bp = '\0';
+        bp = (rn2(2) ? buf : (bp + 4));
+    } else
+        bp = buf;
+    You("mime %s something%s%s.", ing_suffix(bp), suf ? " " : "",
+        suf ? suf : "");
 }
 
 /*
@@ -1786,7 +1946,7 @@ boolean allow_floor;
         if (index(quitchars, ilet)) {
             if (flags.verbose)
                 pline1(Never_mind);
-            return NULL;
+            return (struct obj *) 0;
         }
 
         if (ilet == HANDS_SYM) {
@@ -1896,11 +2056,14 @@ boolean allow_floor;
 void
 silly_thing(word, otmp)
 const char *word;
+#ifdef OBSOLETE_HANDLING
 struct obj *otmp;
-{
-#if 1 /* 'P','R' vs 'W','T' handling is obsolete */
-    nhUse(otmp);
 #else
+struct obj *otmp UNUSED;
+#endif
+{
+#ifdef OBSOLETE_HANDLING
+    /* 'P','R' vs 'W','T' handling is obsolete */
     const char *s1, *s2, *s3;
     int ocls = otmp->oclass, otyp = otmp->otyp;
 
@@ -2114,9 +2277,7 @@ unsigned *resultflags;
             }
         }
 
-        if (oc_of_sym == COIN_CLASS && !combo) {
-            g.context.botl = 1;
-        } else if (sym == 'a') {
+        if (sym == 'a') {
             allflag = TRUE;
         } else if (sym == 'A') {
             ; /* same as the default */
@@ -2130,11 +2291,11 @@ unsigned *resultflags;
             m_seen = TRUE;
         } else if (oc_of_sym == MAXOCLASSES) {
             You("don't have any %c's.", sym);
-        } else if (oc_of_sym != VENOM_CLASS) { /* suppress venom */
+        } else {
             if (!index(olets, oc_of_sym)) {
                 add_valid_menu_class(oc_of_sym);
                 olets[oletct++] = oc_of_sym;
-                olets[oletct] = 0;
+                olets[oletct] = '\0';
             }
         }
     }
@@ -2145,11 +2306,6 @@ unsigned *resultflags;
                ? -2 : -3;
     } else if (flags.menu_style != MENU_TRADITIONAL && combo && !allflag) {
         return 0;
-#if 0
-    /* !!!! test gold dropping */
-    } else if (allowgold == 2 && !oletct) {
-        return 1; /* you dropped gold (or at least tried to)  */
-#endif
     } else {
         int cnt = askchain(&g.invent, olets, allflag, fn, ckfn, mx, word);
         /*
@@ -2327,6 +2483,20 @@ int FDECL((*fn), (OBJ_P)), FDECL((*ckfn), (OBJ_P));
  *      Object identification routines:
  */
 
+/* set the cknown and lknown flags on an object if they're applicable */
+void
+set_cknown_lknown(obj)
+struct obj *obj;
+{
+    if (Is_container(obj) || obj->otyp == STATUE)
+        obj->cknown = obj->lknown = 1;
+    else if (obj->otyp == TIN)
+        obj->cknown = 1;
+    /* TODO? cknown might be extended to candy bar, where it would mean that
+       wrapper's text was known which in turn indicates candy bar's content */
+    return;
+}
+
 /* make an object actually be identified; no display updating */
 void
 fully_identify_obj(otmp)
@@ -2336,8 +2506,7 @@ struct obj *otmp;
     if (otmp->oartifact)
         discover_artifact((xchar) otmp->oartifact);
     otmp->known = otmp->dknown = otmp->bknown = otmp->rknown = 1;
-    if (Is_container(otmp) || otmp->otyp == STATUE)
-        otmp->cknown = otmp->lknown = 1;
+    set_cknown_lknown(otmp); /* set otmp->{cknown,lknown} if applicable */
     if (otmp->otyp == EGG && otmp->corpsenm != NON_PM)
         learn_egg_type(otmp->corpsenm);
 }
@@ -2366,7 +2535,7 @@ int id_limit;
         Sprintf(buf, "What would you like to identify %s?",
                 first ? "first" : "next");
         n = query_objlist(buf, &g.invent, (SIGNAL_NOMENU | SIGNAL_ESCAPE
-                                         | USE_INVLET | INVORDER_SORT),
+                                           | USE_INVLET | INVORDER_SORT),
                           &pick_list, PICK_ANY, not_fully_identified);
 
         if (n > 0) {
@@ -2414,8 +2583,8 @@ boolean learning_id; /* true if we just read unknown identify scroll */
     int n, unid_cnt = count_unidentified(g.invent);
 
     if (!unid_cnt) {
-        You("have already identified all %sof your possessions.",
-            learning_id ? "the rest " : "");
+        You("have already identified %s of your possessions.",
+            !learning_id ? "all" : "the rest");
     } else if (!id_limit || id_limit >= unid_cnt) {
         /* identify everything */
         /* TODO:  use fully_identify_obj and cornline/menu/whatever here */
@@ -2472,7 +2641,7 @@ learn_unseen_invent()
 void
 update_inventory()
 {
-    if (g.restoring)
+    if (g.program_state.saving || g.program_state.restoring)
         return;
 
     /*
@@ -3260,6 +3429,7 @@ dotypeinv()
                 i |= BUC_CURSED;
             if (xcnt)
                 i |= BUC_UNKNOWN;
+            i |= INCLUDE_VENOM;
             n = query_category(prompt, g.invent, i, &pick_list, PICK_ONE);
             if (!n)
                 return 0;
@@ -3268,8 +3438,7 @@ dotypeinv()
         }
     }
     if (traditional) {
-        /* collect a list of classes of objects carried, for use as a prompt
-         */
+        /* collect list of classes of objects carried, for use as a prompt */
         types[0] = 0;
         class_count = collect_obj_classes(types, g.invent, FALSE,
                                           (int FDECL((*), (OBJ_P))) 0,
@@ -3385,7 +3554,7 @@ dotypeinv()
     }
     if (query_objlist((char *) 0, &g.invent,
                       ((flags.invlet_constant ? USE_INVLET : 0)
-                       | INVORDER_SORT),
+                       | INVORDER_SORT | INCLUDE_VENOM),
                       &pick_list, PICK_NONE, this_type_only) > 0)
         free((genericptr_t) pick_list);
     return 0;
@@ -3402,6 +3571,7 @@ char *buf;
     int ltyp = lev->typ, cmap = -1;
     const char *dfeature = 0;
     static char altbuf[BUFSZ];
+    stairway *stway = stairway_at(x,y);
 
     if (IS_DOOR(ltyp)) {
         switch (doorstate(lev)) {
@@ -3446,15 +3616,13 @@ char *buf;
                 a_gname(),
                 align_str(Amask2align(lev->altarmask & ~AM_SHRINE)));
         dfeature = altbuf;
-    } else if ((x == xupstair && y == yupstair)
-               || (x == g.sstairs.sx && y == g.sstairs.sy && g.sstairs.up))
+    } else if (stway && !stway->isladder && stway->up)
         cmap = S_upstair; /* "staircase up" */
-    else if ((x == xdnstair && y == ydnstair)
-             || (x == g.sstairs.sx && y == g.sstairs.sy && !g.sstairs.up))
+    else if (stway && !stway->isladder && !stway->up)
         cmap = S_dnstair; /* "staircase down" */
-    else if (x == xupladder && y == yupladder)
+    else if (stway && stway->isladder && stway->up)
         cmap = S_upladder; /* "ladder up" */
-    else if (x == xdnladder && y == ydnladder)
+    else if (stway && stway->isladder && !stway->up)
         cmap = S_dnladder; /* "ladder down" */
     else if (ltyp == DRAWBRIDGE_DOWN)
         cmap = S_vodbridge; /* "lowered drawbridge" */

@@ -1,4 +1,4 @@
-/* NetHack 3.6	sp_lev.c	$NHDT-Date: 1585569501 2020/03/30 11:58:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.185 $ */
+/* NetHack 3.7	sp_lev.c	$NHDT-Date: 1605779812 2020/11/19 09:56:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.216 $ */
 /*      Copyright (c) 1989 by Jean-Christophe Collet */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -40,11 +40,11 @@ static void FDECL(set_door_orientation, (int, int));
 static void FDECL(maybe_add_door, (int, int, struct mkroom *));
 static void NDECL(link_doors_rooms);
 static int NDECL(rndtrap);
-static void FDECL(get_location, (schar *, schar *, int, struct mkroom *));
-static boolean FDECL(is_ok_location, (SCHAR_P, SCHAR_P, int));
+static void FDECL(get_location, (xchar *, xchar *, int, struct mkroom *));
+static boolean FDECL(is_ok_location, (XCHAR_P, XCHAR_P, int));
 static unpacked_coord FDECL(get_unpacked_coord, (long, int));
-static void FDECL(get_room_loc, (schar *, schar *, struct mkroom *));
-static void FDECL(get_free_room_loc, (schar *, schar *,
+static void FDECL(get_room_loc, (xchar *, xchar *, struct mkroom *));
+static void FDECL(get_free_room_loc, (xchar *, xchar *,
                                           struct mkroom *, packed_coord));
 static boolean FDECL(create_subroom, (struct mkroom *, XCHAR_P, XCHAR_P,
                                       XCHAR_P, XCHAR_P, XCHAR_P, XCHAR_P));
@@ -58,11 +58,9 @@ static void FDECL(create_object, (object *, struct mkroom *));
 static void FDECL(create_altar, (altar *, struct mkroom *));
 static boolean FDECL(search_door, (struct mkroom *,
                                        xchar *, xchar *, XCHAR_P, int));
-/* static void NDECL(fix_stair_rooms); */
 static void FDECL(create_corridor, (corridor *));
 static struct mkroom *FDECL(build_room, (room *, struct mkroom *));
 static void FDECL(light_region, (region *));
-static void FDECL(wallify_map, (int, int, int, int));
 static void FDECL(maze1xy, (coord *, int));
 static void NDECL(fill_empty_maze);
 static void FDECL(splev_initlev, (lev_init *));
@@ -188,6 +186,9 @@ static struct monst *invent_carrying_monster = (struct monst *) 0;
      * end of no 'g.'
      */
 
+#define TYP_CANNOT_MATCH(typ) \
+    ((typ) == MAX_TYPE || (typ) == INVALID_TYPE)
+
 /* Does typ match with levl[][].typ, considering special types
    MATCH_WALL and MAX_TYPE (aka transparency)? */
 static boolean
@@ -268,7 +269,7 @@ struct mapfragment *mf;
     else if (!mapfrag_canmatch(mf)) {
         mapfrag_free(&mf);
         return "mapfragment needs to have odd height and width";
-    } else if (mapfrag_get(mf, (mf->wid/2), (mf->hei/2)) >= MAX_TYPE) {
+    } else if (TYP_CANNOT_MATCH(mapfrag_get(mf, (mf->wid/2), (mf->hei/2)))) {
         mapfrag_free(&mf);
         return "mapfragment center must be valid terrain";
     }
@@ -410,7 +411,7 @@ struct rm *lev;
     }
 }
 
-/* for #wizlevelflip; not needed when flipping during level creation;
+/* for #wizfliplevel; not needed when flipping during level creation;
    update seen vector for whole flip area and glyph for known walls */
 static void
 flip_visuals(flp, minx, miny, maxx, maxy)
@@ -487,7 +488,7 @@ flip_encoded_direction_bits(int flp, int val)
     } while (0)
 
 /* transpose top with bottom or left with right or both; sometimes called
-   for new special levels, or for any level via the #wizlevelflip command */
+   for new special levels, or for any level via the #wizfliplevel command */
 void
 flip_level(flp, extras)
 int flp;
@@ -503,6 +504,7 @@ boolean extras;
     struct mkroom *sroom;
     timer_element *timer;
     boolean ball_active = FALSE, ball_fliparea = FALSE;
+    stairway *stway;
 
     /* nothing to do unless (flp & 1) or (flp & 2) or both */
     if ((flp & 3) == 0)
@@ -540,29 +542,11 @@ boolean extras;
     }
 
     /* stairs and ladders */
-    if (flp & 1) {
-        if (xupstair)
-            yupstair = FlipY(yupstair);
-        if (xdnstair)
-            ydnstair = FlipY(ydnstair);
-        if (xupladder)
-            yupladder = FlipY(yupladder);
-        if (xdnladder)
-            ydnladder = FlipY(ydnladder);
-        if (g.sstairs.sx)
-            g.sstairs.sy = FlipY(g.sstairs.sy);
-    }
-    if (flp & 2) {
-        if (xupstair)
-            xupstair = FlipX(xupstair);
-        if (xdnstair)
-            xdnstair = FlipX(xdnstair);
-        if (xupladder)
-            xupladder = FlipX(xupladder);
-        if (xdnladder)
-            xdnladder = FlipX(xdnladder);
-        if (g.sstairs.sx)
-            g.sstairs.sx = FlipX(g.sstairs.sx);
+    for (stway = g.stairs; stway; stway = stway->next) {
+        if (flp & 1)
+            stway->sy = FlipY(stway->sy);
+        if (flp & 2)
+            stway->sx = FlipX(stway->sx);
     }
 
     /* traps */
@@ -829,7 +813,7 @@ boolean extras;
         }
     }
 
-    if (extras) { /* for #wizlevelflip rather than during level creation */
+    if (extras) { /* for #wizfliplevel rather than during level creation */
         /* flip hero location only if inside the flippable area */
         if (inFlipArea(u.ux, u.uy)) {
             if (flp & 1)
@@ -1087,7 +1071,7 @@ rndtrap()
  */
 static void
 get_location(x, y, humidity, croom)
-schar *x, *y;
+xchar *x, *y;
 int humidity;
 struct mkroom *croom;
 {
@@ -1157,7 +1141,7 @@ struct mkroom *croom;
 
 static boolean
 is_ok_location(x, y, humidity)
-register schar x, y;
+register xchar x, y;
 register int humidity;
 {
     register int typ;
@@ -1219,7 +1203,7 @@ int defhumidity;
 
 void
 get_location_coord(x, y, humidity, croom, crd)
-schar *x, *y;
+xchar *x, *y;
 int humidity;
 struct mkroom *croom;
 long crd;
@@ -1242,7 +1226,7 @@ long crd;
 
 static void
 get_room_loc(x, y, croom)
-schar *x, *y;
+xchar *x, *y;
 struct mkroom *croom;
 {
     coord c;
@@ -1269,11 +1253,11 @@ struct mkroom *croom;
  */
 static void
 get_free_room_loc(x, y, croom, pos)
-schar *x, *y;
+xchar *x, *y;
 struct mkroom *croom;
 packed_coord pos;
 {
-    schar try_x, try_y;
+    xchar try_x, try_y;
     register int trycnt = 0;
 
     get_location_coord(&try_x, &try_y, DRY, croom, pos);
@@ -1695,13 +1679,6 @@ struct mkroom *broom;
     int x = 0, y = 0;
     int trycnt = 0, wtry = 0;
 
-    if (dd->secret == -1)
-        dd->secret = rn2(2);
-
-    if (dd->doormask == -1) { /* random */
-        dd->doormask = random_door_mask(dd->secret ? SDOOR : DOOR, FALSE);
-    }
-
     do {
         register int dwall, dpos;
 
@@ -1826,7 +1803,7 @@ create_trap(t, croom)
 spltrap *t;
 struct mkroom *croom;
 {
-    schar x = -1, y = -1;
+    xchar x = -1, y = -1;
     coord tm;
 
     if (croom) {
@@ -1910,7 +1887,7 @@ monster *m;
 struct mkroom *croom;
 {
     struct monst *mtmp;
-    schar x, y;
+    xchar x, y;
     char class;
     aligntyp amask;
     coord cc;
@@ -2181,7 +2158,7 @@ object *o;
 struct mkroom *croom;
 {
     struct obj *otmp;
-    schar x, y;
+    xchar x, y;
     char c;
     boolean named; /* has a name been supplied in level description? */
 
@@ -2417,7 +2394,8 @@ create_altar(a, croom)
 altar *a;
 struct mkroom *croom;
 {
-    schar sproom, x = -1, y = -1;
+    schar sproom;
+    xchar x = -1, y = -1;
     aligntyp amask;
     boolean croom_is_temple = TRUE;
     int oldtyp;
@@ -2735,6 +2713,9 @@ struct mkroom *croom;
         case LEPREHALL:
         case MORGUE:
         case BARRACKS:
+        case DEMONDEN:
+        case LAVAROOM:
+        case ABBATOIR:
             fill_zoo(croom);
             break;
         }
@@ -2829,7 +2810,7 @@ region *tmpregion;
     }
 }
 
-static void
+void
 wallify_map(x1, y1, x2, y2)
 int x1, y1, x2, y2;
 {
@@ -2884,7 +2865,7 @@ int humidity;
         if (--tryct < 0)
             break; /* give up */
     } while (!(x % 2) || !(y % 2) || SpLev_Map[x][y]
-             || !is_ok_location((schar) x, (schar) y, humidity));
+             || !is_ok_location((xchar) x, (xchar) y, humidity));
 
     m->x = (xchar) x, m->y = (xchar) y;
 }
@@ -3100,7 +3081,7 @@ lua_State *L;
 
 int
 find_montype(L, s)
-lua_State *L;
+lua_State *L UNUSED;
 const char *s;
 {
     int i;
@@ -3108,7 +3089,6 @@ const char *s;
     for (i = LOW_PM; i < NUMMONS; i++)
         if (!strcmpi(mons[i].mname, s))
             return i;
-    nhUse(L);
     return NON_PM;
 }
 
@@ -3782,6 +3762,12 @@ static const struct {
     { "anthole", ANTHOLE },
     { "cocknest", COCKNEST },
     { "leprehall", LEPREHALL },
+    { "demon den", DEMONDEN },
+    { "abbatoir", ABBATOIR },
+    { "submerged", SUBMERGED },
+    { "lava room", LAVAROOM },
+    { "statuary", STATUARY },
+    { "seminary", SEMINARY },
     { "shop", SHOPBASE },
     { "armor shop", ARMORSHOP },
     { "scroll shop", SCROLLSHOP },
@@ -3883,7 +3869,8 @@ lua_State *L;
                 lua_getfield(L, 1, "contents");
                 if (lua_type(L, -1) == LUA_TFUNCTION) {
                     lua_remove(L, -2);
-                    l_push_wid_hei_table(L, 1 + tmpcr->hx - tmpcr->lx, 1 + tmpcr->hy - tmpcr->ly);
+                    l_push_wid_hei_table(L, 1 + tmpcr->hx - tmpcr->lx,
+                                         1 + tmpcr->hy - tmpcr->ly);
                     lua_call(L, 1, 0);
                 } else
                     lua_pop(L, 1);
@@ -3974,12 +3961,18 @@ boolean using_ladder;
     if (using_ladder) {
         levl[x][y].typ = LADDER;
         if (up) {
-            xupladder = x;
-            yupladder = y;
+            d_level dest;
+
+            dest.dnum = u.uz.dnum;
+            dest.dlevel = u.uz.dlevel - 1;
+            stairway_add(x, y, TRUE, TRUE, &dest);
             levl[x][y].ladder = LA_UP;
         } else {
-            xdnladder = x;
-            ydnladder = y;
+            d_level dest;
+
+            dest.dnum = u.uz.dnum;
+            dest.dlevel = u.uz.dlevel + 1;
+            stairway_add(x, y, FALSE, TRUE, &dest);
             levl[x][y].ladder = LA_DOWN;
         }
     } else {
@@ -4022,7 +4015,7 @@ lspo_grave(L)
 lua_State *L;
 {
     int argc = lua_gettop(L);
-    schar x, y;
+    xchar x, y;
     long scoord;
     int ax,ay;
     char *txt;
@@ -4234,7 +4227,7 @@ lspo_gold(L)
 lua_State *L;
 {
     int argc = lua_gettop(L);
-    schar x, y;
+    xchar x, y;
     long amount;
     long gcoord;
     int gx, gy;
@@ -4434,7 +4427,7 @@ int lit;
                     break;
                 case 0:
                 case 1:
-                    if (levl[x][y].lit == lit)
+                    if (levl[x][y].lit == (unsigned int) lit)
                         selection_setpoint(x, y, ret, 1);
                     break;
                 }
@@ -4460,7 +4453,7 @@ int percent;
 int
 selection_rndcoord(ov, x, y, removeit)
 struct selectionvar *ov;
-schar *x, *y;
+xchar *x, *y;
 boolean removeit;
 {
     int idx = 0;
@@ -4816,7 +4809,7 @@ long x, y, x2, y2, gtyp, mind, maxd, limit;
 /* bresenham line algo */
 void
 selection_do_line(x1, y1, x2, y2, ov)
-schar x1, y1, x2, y2;
+xchar x1, y1, x2, y2;
 struct selectionvar *ov;
 {
     int d0, dx, dy, ai, bi, xi, yi;
@@ -4870,7 +4863,8 @@ struct selectionvar *ov;
 
 void
 selection_do_randline(x1, y1, x2, y2, rough, rec, ov)
-schar x1, y1, x2, y2, rough, rec;
+xchar x1, y1, x2, y2;
+schar rough, rec;
 struct selectionvar *ov;
 {
     int mx, my;
@@ -4979,56 +4973,99 @@ genericptr_t arg;
 /* door({ coord = {1, 1}, state = "nodoor" }); */
 /* door({ wall = "north", pos = 3, state="secret", locked = 1, iron = 1 }); */
 /* door("nodoor", 1, 2); */
-/* Currently randomly choosing between iron/noniron isn't supported. If you
- * specify iron, you get iron.
- * The 3-arg form of door() is limited to non-trapped, non-locked, non-iron
- * doors. Except that a "random" door could get any of those randomly. */
+/* The 3-arg form of door() cannot force a door to be trapped or iron (except
+ * that a "random" door might randomly get any combination of locked, trapped,
+ * and iron). If more specificity is needed, the table form must be used. */
 int
 lspo_door(L)
 lua_State *L;
 {
-    /* Note: in xNetHack locked isn't a door state, but we allow the level
-     * compiler to specify it. It is equivalent to state = "closed", locked = 1.
+    /* Note: in xNetHack locked and secret aren't door states, but we allow the
+     * level compiler to specify it. They both imply state = "closed", and
+     * locked also implies locked = 1.
      */
+    const int UNSPECIFIED = -1;
     static const char *const doorstates[] = {
         "random", "open", "closed", "locked", "nodoor", "broken",
         "secret", NULL
     };
     static const int doorstates2i[] = {
-        -1, D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR, D_BROKEN, D_SECRET
+        UNSPECIFIED, D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR, D_BROKEN, D_SECRET
     };
     xchar msk;
-    schar x,y;
+    /* ds is one of the values in doorstates2i. */
+    int typ, ds, locked, trapped, iron;
+    xchar x,y;
     int argc = lua_gettop(L);
+
+    typ = ds = locked = trapped = iron = UNSPECIFIED;
+
+    /* The approach here for determining the door state and flags:
+     * 1. Collect all specifications for the door from the lua file.
+     * 2. Generate an entirely random door state.
+     * 3. Override the parts of door state that were specified in part 1.
+     * This approach enables doors to be "partially random" with the important
+     * bits specified.
+     */
 
     create_des_coder();
 
     if (argc == 3) {
-        msk = doorstates2i[luaL_checkoption(L, 1, "random", doorstates)];
+        ds = doorstates2i[luaL_checkoption(L, 1, "random", doorstates)];
         x = luaL_checkinteger(L, 2);
         y = luaL_checkinteger(L, 3);
-
     } else {
         int dx, dy;
         lcheck_param_table(L);
 
         get_table_xy_or_coord(L, &dx, &dy);
         x = dx, y = dy;
-        msk = doorstates2i[get_table_option(L, "state", "random", doorstates)];
-        if (get_table_int_opt(L, "locked", 0)) {
-            msk |= (D_CLOSED & D_LOCKED);
-        }
-        if (get_table_int_opt(L, "trapped", 0)) {
-            msk |= D_TRAPPED;
-        }
-        if (get_table_int_opt(L, "iron", 0)) {
-            msk |= D_IRON;
-        }
+        ds = doorstates2i[get_table_option(L, "state", "random", doorstates)];
+        locked = get_table_int_opt(L, "locked", UNSPECIFIED);
+        trapped = get_table_int_opt(L, "trapped", UNSPECIFIED);
+        iron = get_table_int_opt(L, "iron", UNSPECIFIED);
     }
-    if (msk & D_LOCKED) {
-        /* catch possible "locked" specified door in either non-table or table
-         * syntax forms; just ensure the door is closed... */
-        msk |= D_CLOSED;
+
+    /* Determine if the door is specified as secret or not.
+     * By existing convention, doors specified with any state besides "secret"
+     * or "random" are not secret.
+     * Random doors or doors where a state is not specified have a 50% chance of
+     * being secret. */
+    typ = DOOR;
+    if (ds == D_SECRET || (ds == UNSPECIFIED && !rn2(2))) {
+        typ = SDOOR;
+        ds = D_CLOSED;
+    }
+
+    /* catch possible "locked" specified door in either non-table or table
+     * syntax forms; just ensure the door is closed... */
+    if (ds == D_LOCKED) {
+        ds = D_CLOSED;
+        locked = 1;
+    }
+    /* ds should now be either a valid value for doorstate() or UNSPECIFIED */
+
+    /* shdoor = FALSE because we really don't have any idea whether this will be
+     * a shop door. The Lua author has to be trusted to not specify
+     * random/nodoor/broken shop doors. */
+    msk = random_door_mask(typ, FALSE);
+
+    /* now override parts of the random mask with specified things */
+    if (ds != UNSPECIFIED) {
+        msk &= ~D_STATEMASK; /* zero these bits */
+        msk |= ds;
+    }
+    if (locked != UNSPECIFIED) {
+        msk &= ~D_LOCKED;
+        msk |= (locked ? D_LOCKED : 0);
+    }
+    if (trapped != UNSPECIFIED) {
+        msk &= ~D_TRAPPED;
+        msk |= (trapped ? D_TRAPPED : 0);
+    }
+    if (iron != UNSPECIFIED) {
+        msk &= ~D_IRON;
+        msk |= (iron ? D_IRON : 0);
     }
 
     if (x == -1 && y == -1) {
@@ -5039,9 +5076,8 @@ lua_State *L;
             W_ANY, W_ANY, W_NORTH, W_WEST, W_EAST, W_SOUTH, 0
         };
         room_door tmpd;
-
-        tmpd.secret = ((msk & D_SECRET) != 0);
         tmpd.doormask = msk;
+        tmpd.secret = (typ == SDOOR);
         tmpd.pos = get_table_int_opt(L, "pos", -1);
         tmpd.wall = walldirs2i[get_table_option(L, "wall", "all", walldirs)];
 
@@ -5090,7 +5126,7 @@ lua_State *L;
                                             "throne", "tree", NULL };
     static const int features2i[] = { FOUNTAIN, SINK, POOL,
                                       THRONE, TREE, STONE };
-    schar x,y;
+    xchar x,y;
     int typ;
     int argc = lua_gettop(L);
     boolean can_have_flags = FALSE;
@@ -5165,12 +5201,15 @@ lua_State *L;
     return 0;
 }
 
-/* terrain({ x=NN, y=NN, typ=MAPCHAR, lit=BOOL }); */
-/* terrain({ coord={X, Y}, typ=MAPCHAR, lit=BOOL }); */
-/* terrain({ selection=SELECTION, typ=MAPCHAR, lit=BOOL }); */
-/* terrain( SELECTION, MAPCHAR [, BOOL ] ); */
-/* terrain({x,y}, MAPCHAR); */
-/* terrain(x,y, MAPCHAR); */
+/*
+ * [lit_state: 1 On, 0 Off, -1 random, -2 leave as-is]
+ * terrain({ x=NN, y=NN, typ=MAPCHAR, lit=lit_state });
+ * terrain({ coord={X, Y}, typ=MAPCHAR, lit=lit_state });
+ * terrain({ selection=SELECTION, typ=MAPCHAR, lit=lit_state });
+ * terrain( SELECTION, MAPCHAR [, lit_state ] );
+ * terrain({x,y}, MAPCHAR);
+ * terrain(x,y, MAPCHAR);
+ */
 int
 lspo_terrain(L)
 lua_State *L;
@@ -5230,10 +5269,16 @@ lua_State *L;
     return 0;
 }
 
-/* replace_terrain({ x1=NN,y1=NN, x2=NN,y2=NN, fromterrain=MAPCHAR, toterrain=MAPCHAR, lit=N, chance=NN }); */
-/* replace_terrain({ region={x1,y1, x2,y2}, fromterrain=MAPCHAR, toterrain=MAPCHAR, lit=N, chance=NN }); */
-/* replace_terrain({ selection=selection.area(2,5, 40,10), fromterrain=MAPCHAR, toterrain=MAPCHAR }); */
-/* replace_terrain({ selection=SEL, mapfragment=[[...]], toterrain=MAPCHAR }); */
+/*
+ * replace_terrain({ x1=NN,y1=NN, x2=NN,y2=NN, fromterrain=MAPCHAR,
+ *                   toterrain=MAPCHAR, lit=N, chance=NN });
+ * replace_terrain({ region={x1,y1, x2,y2}, fromterrain=MAPCHAR,
+ *                   toterrain=MAPCHAR, lit=N, chance=NN });
+ * replace_terrain({ selection=selection.area(2,5, 40,10),
+ *                   fromterrain=MAPCHAR, toterrain=MAPCHAR });
+ * replace_terrain({ selection=SEL, mapfragment=[[...]],
+ *                   toterrain=MAPCHAR });
+ */
 int
 lspo_replace_terrain(L)
 lua_State *L;
@@ -5295,7 +5340,7 @@ lua_State *L;
         if (x1 == -1 && y1 == -1 && x2 == -1 && y2 == -1) {
             (void) selection_not(sel);
         } else {
-            schar rx1, ry1, rx2, ry2;
+            xchar rx1, ry1, rx2, ry2;
             rx1 = x1, ry1 = y1, rx2 = x2, ry2 = x2;
             get_location(&rx1, &ry1, ANY_LOC, g.coder->croom);
             get_location(&rx2, &ry2, ANY_LOC, g.coder->croom);
@@ -5335,7 +5380,7 @@ struct selectionvar *ov;
         WAN_TELEPORTATION, SCR_TELEPORTATION, RIN_TELEPORTATION
     };
     struct selectionvar *ov2 = selection_new(), *ov3;
-    schar x, y;
+    xchar x, y;
     boolean res = TRUE;
 
     selection_floodfill(ov2, nx, ny, TRUE);
@@ -5403,17 +5448,15 @@ ensure_way_out()
     struct trap *ttmp = g.ftrap;
     int x,y;
     boolean ret = TRUE;
+    stairway *stway = g.stairs;
 
     set_selection_floodfillchk(floodfillchk_match_accessible);
 
-    if (xupstair && !selection_getpoint(xupstair, yupstair, ov))
-        selection_floodfill(ov, xupstair, yupstair, TRUE);
-    if (xdnstair && !selection_getpoint(xdnstair, ydnstair, ov))
-        selection_floodfill(ov, xdnstair, ydnstair, TRUE);
-    if (xupladder && !selection_getpoint(xupladder, yupladder, ov))
-        selection_floodfill(ov, xupladder, yupladder, TRUE);
-    if (xdnladder && !selection_getpoint(xdnladder, ydnladder, ov))
-        selection_floodfill(ov, xdnladder, ydnladder, TRUE);
+    while (stway) {
+        if (stway->tolev.dnum == u.uz.dnum)
+            selection_floodfill(ov, stway->sx, stway->sy, TRUE);
+        stway = stway->next;
+    }
 
     while (ttmp) {
         if ((ttmp->ttyp == MAGIC_PORTAL || ttmp->ttyp == VIBRATING_SQUARE
@@ -5955,7 +5998,7 @@ lua_State *L;
 {
     static const char *const wprops[] = { "nondiggable", "nonpasswall", NULL };
     static const int wprop2i[] = { W_NONDIGGABLE, W_NONPASSWALL, -1 };
-    schar dx1 = -1, dy1 = -1, dx2 = -1, dy2 = -1;
+    xchar dx1 = -1, dy1 = -1, dx2 = -1, dy2 = -1;
     int wprop;
 
     create_des_coder();

@@ -1,4 +1,4 @@
-/* NetHack 3.6	wintty.h	$NHDT-Date: 1558330405 2019/05/20 05:33:25 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.34 $ */
+/* NetHack 3.7	wintty.h	$NHDT-Date: 1596498572 2020/08/03 23:49:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.44 $ */
 /* Copyright (c) David Cohrs, 1991,1992				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -51,6 +51,12 @@ struct WinDesc {
 #define WIN_CANCELLED 1
 #define WIN_STOP 1        /* for NHW_MESSAGE; stops output */
 #define WIN_LOCKHISTORY 2 /* for NHW_MESSAGE; suppress history updates */
+
+/* topline states */
+#define TOPLINE_EMPTY          0 /* empty */
+#define TOPLINE_NEED_MORE      1 /* non-empty, need --More-- */
+#define TOPLINE_NON_EMPTY      2 /* non-empty, no --More-- required */
+#define TOPLINE_SPECIAL_PROMPT 3 /* special prompt state */
 
 /* descriptor for tty-based displays -- all the per-display data */
 struct DisplayDesc {

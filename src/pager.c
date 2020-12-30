@@ -1,4 +1,4 @@
-/* NetHack 3.6	pager.c	$NHDT-Date: 1588778117 2020/05/06 15:15:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.188 $ */
+/* NetHack 3.7	pager.c	$NHDT-Date: 1607735717 2020/12/12 01:15:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.191 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2091,7 +2091,8 @@ coord *click_cc;
             any.a_char = '?';
             add_menu(win, NO_GLYPH, &any,
                      flags.lootabc ? 0 : any.a_char, 'n', ATR_NONE,
-                     "something else (by symbol or name)", MENU_ITEMFLAGS_NONE);
+                     "something else (by symbol or name)",
+                     MENU_ITEMFLAGS_NONE);
             if (!u.uswallow && !Hallucination) {
                 any = cg.zeroany;
                 add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE,
@@ -2328,7 +2329,10 @@ boolean do_mons; /* True => monsters, False => objects */
                         Sprintf(outbuf, "All %s currently shown on the map:",
                                 which);
                     putstr(win, 0, outbuf);
-                    putstr(win, 0, "");
+                    /* hack alert! Qt watches a text window for any line
+                       with 4 consecutive spaces and renders the window
+                       in a fixed-width font it if finds at least one */
+                    putstr(win, 0, "    "); /* separator */
                 }
                 /* prefix: "coords  C  " where 'C' is mon or obj symbol */
                 Sprintf(outbuf, (cmode == GPCOORDS_SCREEN) ? "%s  "
@@ -2941,9 +2945,9 @@ static const struct {
     { hmenu_dowhatdoes, "Info on what a given key does." },
     { option_help, "List of game options." },
     { dispfile_optionfile, "Longer explanation of game options." },
-    { dokeylist, "Full list of keyboard commands" },
+    { dokeylist, "Full list of keyboard commands." },
     { hmenu_doextlist, "List of extended commands." },
-    { domenucontrols, "List menu control keys" },
+    { domenucontrols, "List menu control keys." },
     { dispfile_license, "The NetHack license." },
     { docontact, "Support information." },
 #ifdef PORT_HELP

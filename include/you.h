@@ -1,4 +1,4 @@
-/* NetHack 3.6	you.h	$NHDT-Date: 1586375530 2020/04/08 19:52:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.44 $ */
+/* NetHack 3.7	you.h	$NHDT-Date: 1596498576 2020/08/03 23:49:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.48 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -158,6 +158,7 @@ struct u_conduct {     /* number of times... */
     long scares;       /* scared a monster by standing in a certain spot */
     long uncelibate;   /* interacted with a foocubus */
     long conflicting;  /* generated conflict */
+    long sokocheat;    /* violated special 'rules' in Sokoban */
     /* genocides already listed at end of game */
 };
 
@@ -343,6 +344,15 @@ enum utraptypes {
     TT_BURIEDBALL = 5
 };
 
+enum utotypes {
+    UTOTYPE_NONE     = 0x00,
+    UTOTYPE_ATSTAIRS = 0x01,
+    UTOTYPE_FALLING  = 0x02,
+    UTOTYPE_PORTAL   = 0x04,
+    UTOTYPE_RMPORTAL = 0x10,  /* remove portal */
+    UTOTYPE_DEFERRED = 0x20   /* deferred_goto */
+};
+
 /*** Information about the player ***/
 struct you {
     xchar ux, uy;       /* current map coordinates */
@@ -368,7 +378,7 @@ struct you {
     char ushops_entered[5]; /* ditto, shops entered this turn */
     char ushops_left[5];    /* ditto, shops exited this turn */
 
-    int uhunger;  /* refd only in eat.c and shk.c */
+    int uhunger;  /* refd only in eat.c and shk.c (also insight.c) */
     unsigned uhs; /* hunger state - see eat.c */
 
     struct prop uprops[LAST_PROP + 1];

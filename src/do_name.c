@@ -1,4 +1,4 @@
-/* NetHack 3.6	do_name.c	$NHDT-Date: 1586940208 2020/04/15 08:43:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.178 $ */
+/* NetHack 3.7	do_name.c	$NHDT-Date: 1608343467 2020/12/19 02:04:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.185 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -556,7 +556,7 @@ int cx, cy;
     if (do_screen_description(cc, TRUE, sym, tmpbuf, &firstmatch,
                               (struct permonst **) 0)) {
         (void) coord_desc(cx, cy, tmpbuf, iflags.getpos_coords);
-        custompline(SUPPRESS_HISTORY,
+        custompline((SUPPRESS_HISTORY | OVERRIDE_MSGTYPE),
                     "%s%s%s%s%s", firstmatch, *tmpbuf ? " " : "", tmpbuf,
                     (iflags.autodescribe
                      && getpos_getvalid && !(*getpos_getvalid)(cx, cy))
@@ -1407,7 +1407,7 @@ const char *name;
 
 static NEARDATA const char callable[] = {
     SCROLL_CLASS, POTION_CLASS, WAND_CLASS,  RING_CLASS, AMULET_CLASS,
-    GEM_CLASS,    SPBOOK_CLASS, ARMOR_CLASS, TOOL_CLASS, 0
+    GEM_CLASS,    SPBOOK_CLASS, ARMOR_CLASS, TOOL_CLASS, VENOM_CLASS, 0
 };
 
 static int

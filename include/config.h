@@ -1,4 +1,4 @@
-/* NetHack 3.6	config.h	$NHDT-Date: 1575245033 2019/12/02 00:03:53 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.126 $ */
+/* NetHack 3.7	config.h	$NHDT-Date: 1596498529 2020/08/03 23:48:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.143 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -38,6 +38,16 @@
 
 #include "config1.h" /* should auto-detect MSDOS, MAC, AMIGA, and WIN32 */
 
+/*
+ * Consolidated version, patchlevel, development status.
+ */
+#ifdef SHORT_FILENAMES
+#include "patchlev.h"
+#else
+#include "patchlevel.h"
+#endif
+
+
 /* Windowing systems...
  * Define all of those you want supported in your binary.
  * Some combinations make no sense.  See the installation document.
@@ -49,14 +59,13 @@
 /* #define CURSES_GRAPHICS *//* Curses interface - Karl Garrison*/
 /* #define X11_GRAPHICS */   /* X11 interface */
 /* #define QT_GRAPHICS */    /* Qt interface */
-/* #define GNOME_GRAPHICS */ /* Gnome interface */
 /* #define MSWIN_GRAPHICS */ /* Windows NT, CE, Graphics */
 
 /*
  * Define the default window system.  This should be one that is compiled
  * into your system (see defines above).  Known window systems are:
  *
- *      tty, X11, mac, amii, BeOS, Qt, Gem, Gnome
+ *      tty, X11, mac, amii, BeOS, Qt, Gem, Gnome, shim
  */
 
 /* MAC also means MAC windows */
@@ -94,16 +103,24 @@
 #ifndef NOUSER_SOUNDS
 #define USER_SOUNDS /* Use sounds */
 #endif
+#ifndef USE_XPM
 #define USE_XPM           /* Use XPM format for images (required) */
+#endif
+#ifndef GRAPHIC_TOMBSTONE
 #define GRAPHIC_TOMBSTONE /* Use graphical tombstone (rip.ppm) */
+#endif
 #ifndef DEFAULT_WINDOW_SYS
 #define DEFAULT_WINDOW_SYS "Qt"
 #endif
 #endif
 
 #ifdef GNOME_GRAPHICS
+#ifndef USE_XPM
 #define USE_XPM           /* Use XPM format for images (required) */
+#endif
+#ifndef GRAPHIC_TOMBSTONE
 #define GRAPHIC_TOMBSTONE /* Use graphical tombstone (rip.ppm) */
+#endif
 #ifndef DEFAULT_WINDOW_SYS
 #define DEFAULT_WINDOW_SYS "Gnome"
 #endif
@@ -116,13 +133,21 @@
 #define HACKDIR "\\nethack"
 #endif
 
+#ifdef TTY_GRAPHICS
 #ifndef DEFAULT_WINDOW_SYS
 #define DEFAULT_WINDOW_SYS "tty"
+#endif
 #endif
 
 #ifdef CURSES_GRAPHICS
 #ifndef DEFAULT_WINDOW_SYS
 #define DEFAULT_WINDOW_SYS "curses"
+#endif
+#endif
+
+#ifdef SHIM_GRAPHICS
+#ifndef DEFAULT_WINDOW_SYS
+#define DEFAULT_WINDOW_SYS "shim"
 #endif
 #endif
 
@@ -137,7 +162,9 @@
  */
 /* # define USE_XPM */ /* Disable if you do not have the XPM library */
 #ifdef USE_XPM
+#ifndef GRAPHIC_TOMBSTONE
 #define GRAPHIC_TOMBSTONE /* Use graphical tombstone (rip.xpm) */
+#endif
 #endif
 #ifndef DEFAULT_WC_TILED_MAP
 #define DEFAULT_WC_TILED_MAP /* Default to tiles */
@@ -479,7 +506,10 @@ typedef unsigned char uchar;
  */
 
 /* TTY_TILES_ESCCODES: Enable output of special console escape codes
- * which act as hints for external programs such as EbonHack.
+ * which act as hints for external programs such as EbonHack, or hterm.
+ *
+ * TTY_SOUND_ESCCODES: Enable output of special console escape codes
+ * which act as hints for theoretical external programs to play sound effect.
  *
  * Only for TTY_GRAPHICS.
  *
@@ -487,12 +517,14 @@ typedef unsigned char uchar;
  * one or more positive integer values, separated by semicolons.
  * For example ESC [ 1 ; 0 ; 120 z
  *
- * Possible codes are:
+ * Possible TTY_TILES_ESCCODES codes are:
  *  ESC [ 1 ; 0 ; n ; m z   Start a glyph (aka a tile) number n, with flags m
  *  ESC [ 1 ; 1 z           End a glyph.
  *  ESC [ 1 ; 2 ; n z       Select a window n to output to.
  *  ESC [ 1 ; 3 z           End of data. NetHack has finished sending data,
  *                          and is waiting for input.
+ * Possible TTY_SOUND_ESCCODES codes are:
+ *  ESC [ 1 ; 4 ; n ; m z   Play specified sound n, volume m
  *
  * Whenever NetHack outputs anything, it will first output the "select window"
  * code. Whenever NetHack outputs a tile, it will first output the "start
@@ -501,9 +533,10 @@ typedef unsigned char uchar;
  *
  * To compile NetHack with this, add tile.c to WINSRC and tile.o to WINOBJ
  * in the hints file or Makefile.
- * Set boolean option vt_tiledata in your config file to turn this on.
+ * Set boolean option vt_xdata in your config file to turn either of these on.
  * Note that gnome-terminal at least doesn't work with this. */
 /* #define TTY_TILES_ESCCODES */
+/* #define TTY_SOUND_ESCCODES */
 
 /* NetHack will execute an external program whenever a new message-window
  * message is shown.  The program to execute is given in environment variable

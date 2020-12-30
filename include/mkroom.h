@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkroom.h	$NHDT-Date: 1560851014 2019/06/18 09:43:34 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.16 $ */
+/* NetHack 3.7	mkroom.h	$NHDT-Date: 1596498547 2020/08/03 23:49:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.22 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -9,7 +9,7 @@
 /* mkroom.h - types and structures for room and shop initialization */
 
 struct mkroom {
-    schar lx, hx, ly, hy; /* usually xchar, but hx may be -1 */
+    xchar lx, hx, ly, hy; /* usually xchar, but hx may be -1 */
     schar rtype;          /* type of room (zoo, throne, etc...) */
     schar orig_rtype;     /* same as rtype, but not zeroed later */
     schar rlit;           /* is the room lit ? */

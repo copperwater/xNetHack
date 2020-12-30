@@ -1,4 +1,4 @@
-/* NetHack 3.6	artifact.c	$NHDT-Date: 1581886858 2020/02/16 21:00:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.153 $ */
+/* NetHack 3.7	artifact.c	$NHDT-Date: 1606765210 2020/11/30 19:40:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.161 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -541,7 +541,8 @@ long wp_mask;
             u.uroleplay.hallu = FALSE;
             pline_The("world no longer makes any sense to you!");
         }
-        (void) make_hallucinated((long) !on, g.restoring ? FALSE : TRUE,
+        (void) make_hallucinated((long) !on,
+                                 g.program_state.restoring ? FALSE : TRUE,
                                  wp_mask);
     }
     if (spfx & SPFX_ESP) {
@@ -1457,8 +1458,8 @@ int dieroll; /* needed for Magicbane and vorpal blades */
         }
     }
     if (spec_ability(otmp, SPFX_DRLI)) {
-        /* some non-living creatures (golems, vortices) are
-           vulnerable to life drain effects */
+        /* some non-living creatures (golems, vortices) are vulnerable to
+           life drain effects so can get "<Arti> draws the <life>" feedback */
         const char *life = nonliving(mdef->data) ? "animating force" : "life";
         if (item_catches_drain(mdef)) {
             /* This has to go here rather than along with the resists_drli
@@ -1470,6 +1471,16 @@ int dieroll; /* needed for Magicbane and vorpal blades */
         }
 
         if (!youdefend) {
+            int m_lev = (int) mdef->m_lev, /* will be 0 for 1d4 mon */
+                mhpmax = mdef->mhpmax,
+                drain = monhp_per_lvl(mdef); /* usually 1d8 */
+                /* note: DRLI attack uses 2d6, attacker doesn't get healed */
+
+            /* stop draining HP if it drops too low (still drains level;
+               also caller still inflicts regular weapon damage) */
+            if (mhpmax - drain <= m_lev)
+                drain = (mhpmax > m_lev) ? (mhpmax - (m_lev + 1)) : 0;
+
             if (vis) {
                 if (otmp->oartifact == ART_STORMBRINGER)
                     pline_The("%s blade draws the %s from %s!",
@@ -1484,21 +1495,20 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                 /* losing a level when at 0 is fatal */
                 *dmgptr = 2 * mdef->mhp + FATAL_DAMAGE_MODIFIER;
             } else {
-                int drain = monhp_per_lvl(mdef);
-
                 *dmgptr += drain;
                 mdef->mhpmax -= drain;
                 mdef->m_lev--;
-                drain /= 2;
-                if (drain) {
-                    /* attacker heals in proportion to amount drained */
-                    if (youattack) {
-                        healup(drain, 0, FALSE, FALSE);
-                    } else {
-                        magr->mhp += drain;
-                        if (magr->mhp > magr->mhpmax)
-                            magr->mhp = magr->mhpmax;
-                    }
+            }
+
+            if (drain > 0) {
+                /* drain: was target's damage, now heal attacker by half */
+                drain = (drain + 1) / 2; /* drain/2 rounded up */
+                if (youattack) {
+                    healup(drain, 0, FALSE, FALSE);
+                } else {
+                    magr->mhp += drain;
+                    if (magr->mhp > magr->mhpmax)
+                        magr->mhp = magr->mhpmax;
                 }
             }
             return retval;
@@ -1518,7 +1528,7 @@ int dieroll; /* needed for Magicbane and vorpal blades */
                       life);
             losexp("life drainage");
             if (magr && magr->mhp < magr->mhpmax) {
-                magr->mhp += (oldhpmax - u.uhpmax) / 2;
+                magr->mhp += (oldhpmax - u.uhpmax + 1) / 2;
                 if (magr->mhp > magr->mhpmax)
                     magr->mhp = magr->mhpmax;
             }
@@ -1557,7 +1567,7 @@ doinvoke()
     obj = getobj("invoke", invocable, FALSE, FALSE);
     if (!obj)
         return 0;
-    if (!retouch_object(&obj, FALSE))
+    if (!retouch_object(&obj, FALSE, FALSE))
         return 1;
     return arti_invoke(obj);
 }
@@ -2097,11 +2107,19 @@ int orc_count; /* new count (warn_obj_cnt is old count); -1 is a flag value */
    after undergoing a transformation (alignment change, lycanthropy,
    polymorph) which might affect item access */
 int
-retouch_object(objp, loseit)
+retouch_object(objp, loseit, protected_by_gear)
 struct obj **objp; /* might be destroyed or unintentionally dropped */
 boolean loseit;    /* whether to drop it if hero can longer touch it */
+boolean protected_by_gear; /* whether the player has gear that will protect them
+                              from touching *obj if it is a hated material */
 {
     struct obj *obj = *objp;
+
+    /* allow hero in silver-hating form to try to perform invocation ritual */
+    if (obj->otyp == BELL_OF_OPENING
+        && invocation_pos(u.ux, u.uy) && !On_stairs(u.ux, u.uy)) {
+        return 1;
+    }
 
     if (touch_artifact(obj, &g.youmonst)) {
         char buf[BUFSZ];
@@ -2119,7 +2137,7 @@ boolean loseit;    /* whether to drop it if hero can longer touch it */
          * (no other gear slots are considered to completely block touching an
          * outer piece of gear; e.g. wearing body armor doesn't protect from
          * touching a worn cloak) */
-        if (!bane && obj == uwep && uarmg)
+        if (!bane && protected_by_gear)
             return 1;
 
         /* hero can't handle this object, but didn't get touch_artifact()'s
@@ -2214,7 +2232,8 @@ boolean drop_untouchable;
     }
 
     if (beingworn || carryeffect || invoked) {
-        if (!retouch_object(&obj, drop_untouchable)) {
+        if (!retouch_object(&obj, drop_untouchable,
+                            !will_touch_skin(obj->owornmask & wearmask))) {
             /* "<artifact> is beyond your control" or "you can't handle
                <object>" has been given and it is now unworn/unwielded
                and possibly dropped (depending upon caller); if dropped,

@@ -1,4 +1,4 @@
-/* NetHack 3.6	dogmove.c	$NHDT-Date: 1557094801 2019/05/05 22:20:01 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.74 $ */
+/* NetHack 3.7	dogmove.c	$NHDT-Date: 1607374000 2020/12/07 20:46:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.94 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7,7 +7,11 @@
 
 #include "mfndpos.h"
 
+/* Controls the satiation threshold of pets.
+ * Pets will ignore food on the ground when they're more than this many turns
+ * away from getting hungry again. */
 #define DOG_SATIATED 800
+
 static boolean FDECL(dog_hunger, (struct monst *, struct edog *));
 static int FDECL(dog_invent, (struct monst *, struct edog *, int));
 static int FDECL(dog_goal, (struct monst *, struct edog *, int, int, int));
@@ -601,7 +605,9 @@ int after, udist, whappr;
                 if (!could_reach_item(mtmp, nx, ny)
                     || !can_reach_location(mtmp, mtmp->mx, mtmp->my, nx, ny))
                     continue;
-                if (otyp < MANFOOD) {
+                if (otyp < MANFOOD
+                    && (otyp < ACCFOOD || edog->hungrytime <= g.monstermoves)
+                    && edog->hungrytime < g.monstermoves + DOG_SATIATED) {
                     if (otyp < g.gtyp || DDIST(nx, ny) < DDIST(g.gx, g.gy)) {
                         g.gx = nx;
                         g.gy = ny;
@@ -1000,17 +1006,7 @@ int after; /* this is extra fast monster movement */
     if (appr == -2)
         return 0;
 
-    allowflags = ALLOW_M | ALLOW_TRAPS | ALLOW_SSM | ALLOW_SANCT;
-    if (passes_walls(mtmp->data))
-        allowflags |= (ALLOW_ROCK | ALLOW_WALL);
-    if (passes_bars(mtmp->data))
-        allowflags |= ALLOW_BARS;
-    if (throws_rocks(mtmp->data))
-        allowflags |= ALLOW_ROCK;
-    if (is_displacer(mtmp->data))
-        allowflags |= ALLOW_MDISP;
     if (Conflict && !resist(mtmp, RING_CLASS, 0, 0)) {
-        allowflags |= ALLOW_U;
         if (!has_edog) {
             /* Guardian angel refuses to be conflicted; rather,
              * it disappears, angrily, and sends in some nasties
@@ -1026,17 +1022,7 @@ int after; /* this is extra fast monster movement */
         You("get released!");
     }
 #endif
-    if (can_open_doors(mtmp->data)) {
-        allowflags |= OPENDOOR;
-        if (monhaskey(mtmp, TRUE))
-            allowflags |= UNLOCKDOOR;
-        /* note:  the Wizard and Riders can unlock doors without a key;
-           they won't use that ability if someone manages to tame them */
-    }
-    if (is_giant(mtmp->data))
-        allowflags |= BUSTDOOR;
-    if (tunnels(mtmp->data)) /* same restriction as m_move() */
-        allowflags |= ALLOW_DIG;
+    allowflags = mon_allowflags(mtmp);
     cnt = mfndpos(mtmp, poss, info, allowflags);
 
     /* Normally dogs don't step on cursed items, but if they have no
@@ -1241,11 +1227,17 @@ int after; /* this is extra fast monster movement */
 
         /* Hungry pets are unlikely to use breath/spit attacks */
         if (mtarg && (!hungry || !rn2(5))) {
-            int mstatus;
+            int mstatus = MM_MISS;
 
             if (mtarg == &g.youmonst) {
                 if (mattacku(mtmp))
                     return 2;
+                /* Treat this as the pet having initiated an attack even if it
+                 * didn't, so it will lose its move. This isn't entirely fair,
+                 * but mattacku doesn't distinguish between "did not attack" and
+                 * "attacked but didn't die" cases, and this is preferable to
+                 * letting the pet attack the player and continuing to move */
+                mstatus = MM_HIT;
             } else {
                 mstatus = mattackm(mtmp, mtarg);
 
@@ -1272,7 +1264,18 @@ int after; /* this is extra fast monster movement */
                     }
                 }
             }
-            return 3;
+            /* Only return 3 if the pet actually made a ranged attack, and thus
+             * should lose the rest of its move.
+             * There's a chain of assumptions here:
+             * 1. score_targ and best_target will never select a monster that
+             *    can be attacked in melee, so the mattackm call can only ever
+             *    try ranged options
+             * 2. if the only attacks available to mattackm are ranged options,
+             *    and the monster cannot make a ranged attack, it will return
+             *    MM_MISS.
+             */
+            if (mstatus != MM_MISS)
+                return 3;
         }
     }
 

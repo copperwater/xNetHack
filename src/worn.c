@@ -1,4 +1,4 @@
-/* NetHack 3.6	worn.c	$NHDT-Date: 1550524569 2019/02/18 21:16:09 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.56 $ */
+/* NetHack 3.7	worn.c	$NHDT-Date: 1606919259 2020/12/02 14:27:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.70 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -57,9 +57,7 @@ long mask;
         uskin = obj;
         /* assert( !uarm ); */
     } else {
-        if ((mask & W_ARMOR))
-            u.uroleplay.nudist = FALSE;
-        for (wp = worn; wp->w_mask; wp++)
+        for (wp = worn; wp->w_mask; wp++) {
             if (wp->w_mask & mask) {
                 oobj = *(wp->w_obj);
                 if (oobj && !(oobj->owornmask & wp->w_mask))
@@ -105,6 +103,11 @@ long mask;
                     }
                 }
             }
+        }
+        if (obj && (obj->owornmask & W_ARMOR) != 0L)
+            u.uroleplay.nudist = FALSE;
+        /* tux -> tuxedo -> "monkey suit" -> monk's suit */
+        iflags.tux_penalty = (uarm && Role_if(PM_MONK));
     }
     update_inventory();
 }
@@ -128,7 +131,7 @@ register struct obj *obj;
                is pending (via 'A' command for multiple items) */
             cancel_doff(obj, wp->w_mask);
 
-            *(wp->w_obj) = 0;
+            *(wp->w_obj) = (struct obj *) 0;
             p = objects[obj->otyp].oc_oprop;
             u.uprops[p].extrinsic = u.uprops[p].extrinsic & ~wp->w_mask;
             obj->owornmask &= ~wp->w_mask;
@@ -137,8 +140,28 @@ register struct obj *obj;
             if ((p = w_blocks(obj, wp->w_mask)) != 0)
                 u.uprops[p].blocked &= ~wp->w_mask;
         }
+    if (!uarm)
+        iflags.tux_penalty = FALSE;
     update_inventory();
 }
+
+/* called when saving with FREEING flag set has just discarded inventory */
+void
+allunworn()
+{
+    const struct worn *wp;
+
+    u.twoweap = 0; /* uwep and uswapwep are going away */
+    /* remove stale pointers; called after the objects have been freed
+       (without first being unworn) while saving invent during game save;
+       note: uball and uchain might not be freed yet but we clear them
+       here anyway (savegamestate() and its callers deal with them) */
+    for (wp = worn; wp->w_mask; wp++) {
+        /* object is already gone so we don't/can't update is owornmask */
+        *(wp->w_obj) = (struct obj *) 0;
+    }
+}
+
 
 /* return item worn in slot indiciated by wornmask; needed by poly_obj() */
 struct obj *
@@ -904,6 +927,9 @@ boolean polyspot;
             m_useup(mon, otmp);
         }
     } else if (sliparm(mdat)) {
+        /* sliparm checks whirly, noncorporeal, and small or under */
+        boolean passes_thru_clothes = !(mdat->msize <= MZ_SMALL);
+
         if ((otmp = which_armor(mon, W_ARM)) != 0) {
             if (vis) {
                 if (slithy(mon->data))
@@ -935,7 +961,7 @@ boolean polyspot;
         }
         if ((otmp = which_armor(mon, W_ARMU)) != 0) {
             if (vis) {
-                if (sliparm(mdat))
+                if (passes_thru_clothes)
                     pline("%s seeps right through %s shirt!", Monnam(mon),
                           ppronoun);
                 else if (slithy(mon->data))

@@ -1,15 +1,10 @@
-/* NetHack 3.6	topten.c	$NHDT-Date: 1581322668 2020/02/10 08:17:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
+/* NetHack 3.7	topten.c	$NHDT-Date: 1606009004 2020/11/22 01:36:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.74 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 #include "dlb.h"
-#ifdef SHORT_FILENAMES
-#include "patchlev.h"
-#else
-#include "patchlevel.h"
-#endif
 
 /* If UPDATE_RECORD_IN_PLACE is defined, we don't want to rewrite the
  * whole file, because that entails creating a new version which
@@ -388,7 +383,10 @@ int how;
             genders[flags.initgend].filecode, XLOG_SEP,
             aligns[1 - u.ualignbase[A_ORIGINAL]].filecode);
     Fprintf(rfile, "%cflags=0x%lx", XLOG_SEP, encodexlogflags());
-    Fprintf(rfile, "%cgold=%ld", XLOG_SEP, money_cnt(g.invent) + hidden_gold());
+    Fprintf(rfile, "%cgold=%ld", XLOG_SEP,
+            money_cnt(g.invent) + hidden_gold(TRUE));
+    Fprintf(rfile, "%cwish_cnt=%ld", XLOG_SEP, u.uconduct.wishes);
+    Fprintf(rfile, "%carti_wish_cnt=%ld", XLOG_SEP, u.uconduct.wisharti);
     Fprintf(rfile, "\n");
 #undef XLOG_SEP
 }
@@ -464,6 +462,15 @@ encodeconduct()
         e |= 1L << 20;
     if (u.uconduct.conflicting)
         e |= 1L << 21;
+    /* one bit isn't really adequate for sokoban conduct:
+       reporting "obeyed sokoban rules" is misleading if sokoban wasn't
+       completed or at least attempted; however, suppressing that when
+       sokoban was never entered, as we do here, risks reporting
+       "violated sokoban rules" when no such thing occured; this can
+       be disambiguated in xlogfile post-processors by testing the
+       entered-sokoban bit in the 'achieve' field */
+    if (!u.uconduct.sokocheat && sokoban_in_play())
+        e |= 1L << 22;
 
     return e;
 }
@@ -616,6 +623,8 @@ encode_extended_conducts()
     add_achieveX(buf, "wishless",     !u.uconduct.wishes);
     add_achieveX(buf, "artiwishless", !u.uconduct.wisharti);
     add_achieveX(buf, "genocideless", !num_genocides());
+    if (sokoban_in_play())
+        add_achieveX(buf, "sokoban",  !u.uconduct.sokocheat);
     add_achieveX(buf, "blind",        u.uroleplay.blind);
     add_achieveX(buf, "nudist",       u.uroleplay.nudist);
 

@@ -1,4 +1,4 @@
-/* NetHack 3.6	dothrow.c	$NHDT-Date: 1584398443 2020/03/16 22:40:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.184 $ */
+/* NetHack 3.7	dothrow.c	$NHDT-Date: 1607200366 2020/12/05 20:32:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.191 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -35,7 +35,8 @@ struct obj *obj;
     if (obj->quan == 1 && (obj == uwep || (obj == uswapwep && u.twoweap)))
         return 1;
 
-    if (obj->oclass == WEAPON_CLASS || obj->oclass == COIN_CLASS)
+    if ((!uslinging() && obj->oclass == WEAPON_CLASS)
+        || obj->oclass == COIN_CLASS)
         return 2;
 
     if (uslinging() && obj->oclass == GEM_CLASS)
@@ -984,10 +985,15 @@ boolean broken;
         /* ushops0: in case we threw while levitating and recoiled
            out of shop (most likely to the shk's spot in front of door) */
         if (*oshops == *u.ushops || *oshops == *u.ushops0) {
-            if (is_unpaid(obj))
+            if (is_unpaid(obj)) {
+                long gt = Has_contents(obj) ? contained_gold(obj, TRUE) : 0L;
+
                 subfrombill(obj, shkp);
-            else if (x != shkp->mx || y != shkp->my)
+                if (gt > 0L)
+                    donate_gold(gt, shkp, TRUE);
+            } else if (x != shkp->mx || y != shkp->my) {
                 sellobj(obj, x, y);
+            }
         }
     }
 }
@@ -1155,7 +1161,7 @@ boolean hitsroof;
         }
         hitfloor(obj, TRUE);
         g.thrownobj = 0;
-        losehp(Maybe_Half_Phys(dmg), "falling object", KILLED_BY_AN);
+        losehp(dmg, "falling object", KILLED_BY_AN);
     }
     return TRUE;
 }
@@ -1439,7 +1445,7 @@ struct obj *oldslot; /* for thrown-and-return used with !fixinv */
                         setuqwep((struct obj *) 0);
                     setuwep(obj);
                     set_twoweap(twoweap); /* u.twoweap = twoweap */
-                    retouch_object(&obj, TRUE);
+                    retouch_object(&obj, TRUE, (uarmg != NULL));
                     if (cansee(g.bhitpos.x, g.bhitpos.y))
                         newsym(g.bhitpos.x, g.bhitpos.y);
                 } else {
@@ -1707,7 +1713,13 @@ register struct obj *obj; /* g.thrownobj or g.kickedobj or uwep */
         tmp += 1000; /* Guaranteed hit */
     }
 
-    if (obj->oclass == GEM_CLASS && is_unicorn(mon->data)) {
+    /* throwing real gems to co-aligned unicorns boosts Luck,
+       to cross-aligned unicorns changes Luck by random amount;
+       throwing worthless glass doesn't affect Luck but doesn't anger them;
+       3.7: treat rocks and gray stones as attacks rather than like glass
+       and also treat gems or glass shot via sling as attacks */
+    if (obj->oclass == GEM_CLASS && is_unicorn(mon->data)
+        && objects[obj->otyp].oc_material != MINERAL && !uslinging()) {
         if (mon->msleeping || !mon->mcanmove) {
             tmiss(obj, mon, FALSE);
             return 0;
@@ -1724,8 +1736,8 @@ register struct obj *obj; /* g.thrownobj or g.kickedobj or uwep */
        at leader... (kicked artifact is ok too; HMON_APPLIED could
        occur if quest artifact polearm or grapnel ever gets added) */
     if (hmode != HMON_APPLIED && quest_arti_hits_leader(obj, mon)) {
-        /* AIS: changes to wakeup() means that it's now less inappropriate here
-           than it used to be, but the manual version works just as well */
+        /* AIS: changes to wakeup() means that it's now less inappropriate
+           here than it used to be, but manual version works just as well */
         mon->msleeping = 0;
         mon->mstrategy &= ~STRAT_WAITMASK;
 
@@ -1958,15 +1970,16 @@ gem_accept(mon, obj)
 register struct monst *mon;
 register struct obj *obj;
 {
+    static NEARDATA const char
+        nogood[]     = " is not interested in your junk.",
+        acceptgift[] = " accepts your gift.",
+        maybeluck[]  = " hesitatingly",
+        noluck[]     = " graciously",
+        addluck[]    = " gratefully";
     char buf[BUFSZ];
     boolean is_buddy = sgn(mon->data->maligntyp) == sgn(u.ualign.type);
     boolean is_gem = obj->material == GEMSTONE;
     int ret = 0;
-    static NEARDATA const char nogood[] = " is not interested in your junk.";
-    static NEARDATA const char acceptgift[] = " accepts your gift.";
-    static NEARDATA const char maybeluck[] = " hesitatingly";
-    static NEARDATA const char noluck[] = " graciously";
-    static NEARDATA const char addluck[] = " gratefully";
 
     Strcpy(buf, Monnam(mon));
     mon->mpeaceful = 1;
@@ -1986,7 +1999,8 @@ register struct obj *obj;
             Strcat(buf, nogood);
             goto nopick;
         }
-        /* making guesses */
+
+    /* making guesses */
     } else if (has_oname(obj) || objects[obj->otyp].oc_uname) {
         if (is_gem) {
             if (is_buddy) {
@@ -2000,7 +2014,8 @@ register struct obj *obj;
             Strcat(buf, nogood);
             goto nopick;
         }
-        /* value completely unknown to @ */
+
+    /* value completely unknown to @ */
     } else {
         if (is_gem) {
             if (is_buddy) {

@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkroom.c	$NHDT-Date: 1446887530 2015/11/07 09:12:10 $  $NHDT-Branch: master $:$NHDT-Revision: 1.24 $ */
+/* NetHack 3.7	mkroom.c	$NHDT-Date: 1596498184 2020/08/03 23:43:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.45 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -977,16 +977,14 @@ has_stairs(sroom, up)
 register struct mkroom *sroom;
 boolean up;
 {
-    if (up) {
-        return (inside_room(sroom, xupstair, yupstair)
-                || (g.sstairs.up
-                    && inside_room(sroom, g.sstairs.sx, g.sstairs.sy)));
+    stairway *stway = g.stairs;
+
+    while (stway) {
+        if (up == stway->up && inside_room(sroom, stway->sx, stway->sy))
+            return TRUE;
+        stway = stway->next;
     }
-    else {
-        return (inside_room(sroom, xdnstair, ydnstair)
-                || (!g.sstairs.up
-                    && inside_room(sroom, g.sstairs.sx, g.sstairs.sy)));
-    }
+    return FALSE;
 }
 
 /* Return a random x coordinate within the x limits of a room. */

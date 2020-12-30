@@ -1,4 +1,4 @@
-/* NetHack 3.6	botl.c	$NHDT-Date: 1585647484 2020/03/31 09:38:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.187 $ */
+/* NetHack 3.7	botl.c	$NHDT-Date: 1606765211 2020/11/30 19:40:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.193 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -240,7 +240,8 @@ void
 bot()
 {
     /* dosave() flags completion by setting u.uhp to -1 */
-    if ((u.uhp != -1) && g.youmonst.data && iflags.status_updates) {
+    if (u.uhp != -1 && g.youmonst.data && iflags.status_updates
+        && !g.program_state.saving && !g.program_state.restoring) {
         if (VIA_WINDOWPORT()) {
             bot_via_windowport();
         } else {
@@ -256,7 +257,8 @@ bot()
 void
 timebot()
 {
-    if (flags.time && iflags.status_updates) {
+    if (flags.time && iflags.status_updates
+        && !g.program_state.saving && !g.program_state.restoring) {
         if (VIA_WINDOWPORT()) {
             stat_update_time();
         } else {
@@ -400,7 +402,8 @@ botl_score()
     long deepest = deepest_lev_reached(FALSE);
     long utotal;
 
-    utotal = money_cnt(g.invent) + hidden_gold();
+    /* hidden_gold(False): only gold in containers whose contents are known */
+    utotal = money_cnt(g.invent) + hidden_gold(FALSE);
     if ((utotal -= u.umoney0) < 0L)
         utotal = 0L;
     utotal += u.urexp + (50 * (deepest - 1))

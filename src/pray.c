@@ -1,11 +1,11 @@
-/* NetHack 3.6	pray.c	$NHDT-Date: 1584872363 2020/03/22 10:19:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.142 $ */
+/* NetHack 3.7	pray.c	$NHDT-Date: 1596498198 2020/08/03 23:43:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.144 $ */
 /* Copyright (c) Benson I. Margulies, Mike Stephenson, Steve Linhart, 1989. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
 static int FDECL(countfood, (struct obj *));
-static boolean NDECL(starving);
+static boolean NDECL(insufficient_food);
 static int NDECL(prayer_done);
 static struct obj *NDECL(worst_cursed_item);
 static int NDECL(in_trouble);
@@ -217,22 +217,25 @@ struct obj* item;
     return totnut;
 }
 
-/* Return True if your hunger should be classified as a major problem, because
- * you are currently going to starve to death with nothing to eat.
+/* Return True if you are not carrying enough food to get you out of being
+ * Hungry (unless slow digesting in which you can survive a fair bit longer).
  */
 static boolean
-starving()
+insufficient_food()
 {
-    if (u.uhs < WEAK) /* not a major problem */
-        return FALSE;
+    if (!u.uconduct.food) {
+        /* (most likely) foodless - even if carrying food, they won't eat it */
+        return (u.uhunger < 150);
+    }
 
     int totalfood = countfood(NULL);
 
-    if (Slow_digestion)
+    if (Slow_digestion) {
         /* Even the least nutritious of foods will keep you going for a while
          * with slow digestion, so it's only a serious problem if you are about
          * to faint and have no food. */
         return (u.uhunger + totalfood < 10);
+    }
 
     /* It is a big problem if your food stores are insufficient to get you out
      * of HUNGRY range into NOT_HUNGRY (150). */
@@ -258,6 +261,7 @@ in_trouble()
 {
     struct obj *otmp;
     int i;
+    boolean nofood = insufficient_food();
 
     /*
      * major troubles
@@ -272,12 +276,16 @@ in_trouble()
         return TROUBLE_LAVA;
     if (Sick)
         return TROUBLE_SICK;
-    if (starving())
+    /* Yes, TROUBLE_STARVING is returned twice; being Fainting at low HP is
+     * worse than being Weak at low HP */
+    if (u.uhs >= FAINTING && nofood)
         return TROUBLE_STARVING;
     if (region_danger())
         return TROUBLE_REGION;
     if (critically_low_hp(FALSE))
         return TROUBLE_HIT;
+    if (u.uhs >= WEAK && nofood)
+        return TROUBLE_STARVING;
     if (u.ulycn >= LOW_PM)
         return TROUBLE_LYCANTHROPE;
     if (near_capacity() >= EXT_ENCUMBER && AMAX(A_STR) - ABASE(A_STR) > 3)
@@ -773,7 +781,7 @@ aligntyp resp_god;
                   : "art arrogant",
               g.youmonst.data->mlet == S_HUMAN ? "mortal" : "creature");
         verbalize("Thou must relearn thy lessons!");
-        (void) adjattrib(A_WIS, -1, FALSE);
+        (void) adjattrib(A_WIS, -1, AA_YESMSG);
         losexp((char *) 0);
         break;
     case 6:
@@ -1539,7 +1547,7 @@ dosacrifice()
             if (u.ualign.type != A_CHAOTIC) {
                 adjalign(-5);
                 u.ugangr += 3;
-                (void) adjattrib(A_WIS, -1, TRUE);
+                (void) adjattrib(A_WIS, -1, AA_NOMSG);
                 if (!Inhell)
                     angrygods(u.ualign.type);
                 change_luck(-5);
@@ -1579,7 +1587,7 @@ dosacrifice()
                 pline("Such an action is an insult to %s!",
                       (unicalign == A_CHAOTIC) ? "chaos"
                          : unicalign ? "law" : "balance");
-                (void) adjattrib(A_WIS, -1, TRUE);
+                (void) adjattrib(A_WIS, -1, AA_NOMSG);
                 value = -5;
             } else if (u.ualign.type == altaralign) {
                 /* When different from altar, and altar is same as yours,
@@ -1751,7 +1759,7 @@ dosacrifice()
                     pline("%s rejects your sacrifice!", a_gname());
                     godvoice(altaralign, "Suffer, infidel!");
                     change_luck(-5);
-                    (void) adjattrib(A_WIS, -2, TRUE);
+                    (void) adjattrib(A_WIS, -2, AA_NOMSG);
                     if (!Inhell)
                         angrygods(u.ualign.type);
                 }
@@ -2431,7 +2439,7 @@ register int x, y;
 
     if (u.ualign.type == altaralign && u.ualign.record > -rn2(4)) {
         godvoice(altaralign, "How darest thou desecrate my altar!");
-        (void) adjattrib(A_WIS, -1, FALSE);
+        (void) adjattrib(A_WIS, -1, AA_YESMSG);
         u.ualign.record--;
     } else {
         pline("%s %s%s:",

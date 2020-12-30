@@ -1,4 +1,4 @@
-/* NetHack 3.6	hack.c	$NHDT-Date: 1585993266 2020/04/04 09:41:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.254 $ */
+/* NetHack 3.7	hack.c	$NHDT-Date: 1608335164 2020/12/18 23:46:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.273 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -9,7 +9,6 @@
 
 static void NDECL(maybe_wail);
 static int NDECL(moverock);
-static int FDECL(still_chewing, (XCHAR_P, XCHAR_P));
 static void NDECL(dosinkfall);
 static boolean FDECL(findtravelpath, (int));
 static boolean FDECL(trapmove, (int, int, struct trap *));
@@ -393,7 +392,7 @@ moverock()
  *  Chew on a wall, door, or boulder.  [What about statues?]
  *  Returns TRUE if still eating, FALSE when done.
  */
-static int
+int
 still_chewing(x, y)
 xchar x, y;
 {
@@ -427,7 +426,15 @@ xchar x, y;
                         : "hard stone");
         nomul(0);
         return 1;
-    } else if (g.context.digging.pos.x != x || g.context.digging.pos.y != y
+    } else if (lev->typ == IRONBARS
+               && metallivorous(g.youmonst.data) && u.uhunger > 1500) {
+        /* finishing eating via 'morehungry()' doesn't handle choking */
+        You("are too full to eat the bars.");
+        nomul(0);
+        return 1;
+    } else if (!g.context.digging.chew
+               || g.context.digging.pos.x != x
+               || g.context.digging.pos.y != y
                || !on_level(&g.context.digging.level, &u.uz)) {
         g.context.digging.down = FALSE;
         g.context.digging.chew = TRUE;
@@ -528,7 +535,20 @@ xchar x, y;
         digtxt = "chew through the tree.";
         lev->typ = ROOM;
     } else if (lev->typ == IRONBARS) {
-        digtxt = "eat through the bars.";
+        if (metallivorous(g.youmonst.data)) { /* should always be True here */
+            /* arbitrary amount; unlike proper eating, nutrition is
+               bestowed in a lump sum at the end */
+            int nut = (int) objects[HEAVY_IRON_BALL].oc_weight;
+
+            /* lesshungry() requires that victual be set up, so skip it;
+               morehungry() of a negative amount will increase nutrition
+               without any possibility of choking to death on the meal;
+               updates hunger state and requests status update if changed */
+            morehungry(-nut);
+        }
+        digtxt = (x == u.ux && y == u.uy)
+                 ? "devour the iron bars."
+                 : "eat through the bars.";
         dissolve_bars(x, y);
     } else if (lev->typ == SDOOR) {
         if (!postdoortrapped(x, y, &g.youmonst, FACE, D_BROKEN)) {
@@ -570,6 +590,7 @@ register xchar ox, oy;
 {
     /* optimize by leaving on the fobj chain? */
     remove_object(obj);
+    maybe_unhide_at(obj->ox, obj->oy);
     newsym(obj->ox, obj->oy);
     place_object(obj, ox, oy);
     newsym(ox, oy);
@@ -763,8 +784,10 @@ int mode;
                 pline("There is an obstacle there.");
             return FALSE;
         } else if (tmpr->typ == IRONBARS) {
-            if ((dmgtype(g.youmonst.data, AD_RUST)
-                 || dmgtype(g.youmonst.data, AD_CORR)) && mode == DO_MOVE
+            if (mode == DO_MOVE
+                && (dmgtype(g.youmonst.data, AD_RUST)
+                    || dmgtype(g.youmonst.data, AD_CORR)
+                    || metallivorous(g.youmonst.data))
                 && still_chewing(x, y)) {
                 return FALSE;
             }
@@ -2014,14 +2037,12 @@ domove_core()
             /* can't swap places when pet won't fit thru the opening */
             You("stop.  %s won't fit through.", upstart(y_monnam(mtmp)));
             didnt_move = TRUE;
-        } else if ((mtmp->mpeaceful || mtmp->mtame) && mtmp->mtrapped) {
-            /* Since peaceful monsters simply being unable to move out of traps
-             * was inconsistent with pets being able to but being untamed in
-             * the process, apply this logic equally to pets and peacefuls. */
+        } else if (mtmp->mpeaceful && mtmp->mtrapped) {
+            /* all mtame are also mpeaceful, so this affects pets too */
             You("stop.  %s can't move out of that trap.",
                 upstart(y_monnam(mtmp)));
             didnt_move = TRUE;
-        } else if (mtmp->mpeaceful && !mtmp->mtame
+        } else if (mtmp->mpeaceful
                    && (!goodpos(u.ux0, u.uy0, mtmp, 0)
                        || t_at(u.ux0, u.uy0) != NULL
                        || mundisplaceable(mtmp))) {
@@ -2188,6 +2209,22 @@ int x1, y1, x2, y2;
     }
 }
 
+/* HP loss or passing out from overexerting yourself */
+void
+overexert_hp()
+{
+    int *hp = (!Upolyd ? &u.uhp : &u.mh);
+
+    if (*hp > 1) {
+        *hp -= 1;
+        g.context.botl = TRUE;
+    } else {
+        You("pass out from exertion!");
+        exercise(A_CON, FALSE);
+        fall_asleep(-10, FALSE);
+    }
+}
+
 /* combat increases metabolism */
 boolean
 overexertion()
@@ -2197,15 +2234,7 @@ overexertion()
        execute if you decline to attack a peaceful monster */
     gethungry();
     if ((g.moves % 3L) != 0L && near_capacity() >= HVY_ENCUMBER) {
-        int *hp = (!Upolyd ? &u.uhp : &u.mh);
-
-        if (*hp > 1) {
-            *hp -= 1;
-        } else {
-            You("pass out from exertion!");
-            exercise(A_CON, FALSE);
-            fall_asleep(-10, FALSE);
-        }
+        overexert_hp();
     }
     return (boolean) (g.multi < 0); /* might have fainted (forced to sleep) */
 }
@@ -2741,13 +2770,14 @@ boolean newlev;
             break;
         case ABBATOIR:
             You("enter a horrific slaughterhouse!");
+            abbatoir_sickness();
             break;
         case TEMPLE:
         case SEMINARY:
             intemple(roomno + ROOMOFFSET);
         /*FALLTHRU*/
         default:
-            msg_given = (rt == TEMPLE);
+            msg_given = (rt == TEMPLE || rt == SEMINARY);
             rt = 0;
             break;
         }
@@ -3106,12 +3136,13 @@ monster_nearby()
         for (y = u.uy - 1; y <= u.uy + 1; y++) {
             if (!isok(x, y) || (x == u.ux && y == u.uy))
                 continue;
-            if ((mtmp = m_at(x, y)) && M_AP_TYPE(mtmp) != M_AP_FURNITURE
+            if ((mtmp = m_at(x, y)) != 0
+                && M_AP_TYPE(mtmp) != M_AP_FURNITURE
                 && M_AP_TYPE(mtmp) != M_AP_OBJECT
-                && (!mtmp->mpeaceful || Hallucination)
+                && (Hallucination
+                    || (!mtmp->mpeaceful && !noattacks(mtmp->data)))
                 && (!is_hider(mtmp->data) || !mtmp->mundetected)
-                && !noattacks(mtmp->data) && mtmp->mcanmove
-                && !mtmp->msleeping  /* aplvax!jcn */
+                && mtmp->mcanmove && !mtmp->msleeping
                 && !onscary(u.ux, u.uy, mtmp) && canspotmon(mtmp))
                 return 1;
         }
@@ -3411,6 +3442,28 @@ struct obj *otmp;
         otmp = otmp->nobj;
     }
     return 0L;
+}
+
+/* Maybe get nauseated as the effect of stepping into or being inside an
+ * abbatoir.
+ * This sometimes skips confusion and stunning to get to vomiting faster. */
+void
+abbatoir_sickness()
+{
+    if (Vomiting) {
+        return;
+    }
+    /* timeout of 15 would immediately produce a "mildly nauseated" message, so
+     * 14 is the upper bound; timeout of 3 would immediately produce "about to
+     * vomit", so that is the lower bound.
+     * At the higher/medium part of the range, it will inflict confusion and
+     * stunning; at the lower end, vomiting and helplessness will come shortly.
+     */
+    int timeout = rn1(12,3);
+    if (rn2(70) >= ACURR(A_CON)) {
+        pline("This room is making you sick to your %s.", body_part(STOMACH));
+        make_vomiting(timeout, FALSE);
+    }
 }
 
 /*hack.c*/

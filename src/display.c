@@ -1,4 +1,4 @@
-/* NetHack 3.6	display.c	$NHDT-Date: 1587248921 2020/04/18 22:28:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.131 $ */
+/* NetHack 3.7	display.c	$NHDT-Date: 1606919261 2020/12/02 14:27:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.139 $ */
 /* Copyright (c) Dean Luick, with acknowledgements to Kevin Darcy */
 /* and Dave Cohrs, 1990.                                          */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1334,9 +1334,16 @@ void
 see_objects()
 {
     register struct obj *obj;
+
     for (obj = fobj; obj; obj = obj->nobj)
         if (vobj_at(obj->ox, obj->oy) == obj)
             newsym(obj->ox, obj->oy);
+
+    /* Qt's "paper doll" subset of persistent inventory shows map tiles
+       for objects which aren't on the floor so not handled by above loop;
+       inventory which includes glyphs should also be affected, so do this
+       for all interfaces in case any feature that for persistent inventory */
+    update_inventory();
 }
 
 /*
@@ -1680,6 +1687,10 @@ int cursor_on_u;
     static int flushing = 0;
     static int delay_flushing = 0;
     register int x, y;
+
+    /* 3.7: don't update map, status, or perm_invent during save/restore */
+    if (g.program_state.saving || g.program_state.restoring)
+        return;
 
     if (cursor_on_u == -1)
         delay_flushing = !delay_flushing;
@@ -2098,16 +2109,14 @@ int x, y, a, b, c;
 /* Return the wall mode for a T wall. */
 static int
 set_twall(x0, y0, x1, y1, x2, y2, x3, y3)
+#ifdef WA_VERBOSE
 int x0, y0; /* used #if WA_VERBOSE */
+#else
+int x0 UNUSED, y0 UNUSED;
+#endif
 int x1, y1, x2, y2, x3, y3;
 {
     int wmode, is_1, is_2, is_3;
-
-#ifndef WA_VERBOSE
-    /* non-verbose more_than_one() doesn't use these */
-    nhUse(x0);
-    nhUse(y0);
-#endif
 
     is_1 = check_pos(x1, y1, WM_T_LONG);
     is_2 = check_pos(x2, y2, WM_T_BL);

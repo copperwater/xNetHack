@@ -1,4 +1,4 @@
-/* NetHack 3.6	pcmain.c	$NHDT-Date: 1543465755 2018/11/29 04:29:15 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.101 $ */
+/* NetHack 3.7	pcmain.c	$NHDT-Date: 1596498282 2020/08/03 23:44:42 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.121 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -42,7 +42,7 @@ static void FDECL(process_options, (int argc, char **argv));
 static void NDECL(nhusage);
 
 #if defined(MICRO) || defined(OS2)
-extern void FDECL(nethack_exit, (int));
+extern void FDECL(nethack_exit, (int)) NORETURN;
 #else
 #define nethack_exit exit
 #endif
@@ -268,7 +268,7 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
     if (argc == 0)
         chdirx(HACKDIR, 1);
 #endif
-    ami_wininit_data();
+    ami_wininit_data(WININIT);
 #endif
     initoptions();
 
@@ -383,13 +383,6 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
     process_options(argc, argv);
 #endif
 
-#ifdef MFLOPPY
-    set_lock_and_bones();
-#ifndef AMIGA
-    copybones(FROMPERM);
-#endif
-#endif
-
     /* strip role,race,&c suffix; calls askname() if plname[] is empty
        or holds a generic user name like "player" or "games" */
     plnamesuffix();
@@ -428,15 +421,13 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
     Strcat(g.lock, g.plname);
     Strcat(g.lock, ".99");
 #else
-#ifndef MFLOPPY
-    /* I'm not sure what, if anything, is left here, but MFLOPPY has
+    /* I'm not sure what, if anything, is left here, but old MFLOPPY had
      * conflicts with set_lock_and_bones() in files.c.
      */
     Strcpy(g.lock, g.plname);
     Strcat(g.lock, ".99");
     regularize(g.lock); /* is this necessary? */
                       /* not compatible with full path a la AMIGA */
-#endif
 #endif
 #endif /* PC_LOCKING */
 
@@ -451,9 +442,6 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
             write(nhfp->fd, (genericptr_t) &g.hackpid, sizeof(g.hackpid));
         close_nhfile(nhfp);
     }
-#ifdef MFLOPPY
-    level_info[0].where = ACTIVE;
-#endif
 
     /*
      *  Initialize the vision system.  This must be before mklev() on a
@@ -621,15 +609,6 @@ char *argv[];
                     flags.initrace = i;
             }
             break;
-#ifdef MFLOPPY
-#ifndef AMIGA
-        /* Player doesn't want to use a RAM disk
-         */
-        case 'R':
-            g.ramdisk = FALSE;
-            break;
-#endif
-#endif
 #ifdef AMIGA
         /* interlaced and non-interlaced screens */
         case 'L':
@@ -685,11 +664,6 @@ nhusage()
 #endif
 #ifndef AMIGA
     ADD_USAGE(" [-I] [-i] [-d]");
-#endif
-#ifdef MFLOPPY
-#ifndef AMIGA
-    ADD_USAGE(" [-R]");
-#endif
 #endif
 #ifdef AMIGA
     ADD_USAGE(" [-[lL]]");
@@ -778,5 +752,41 @@ char *str;
     return tmp;
 }
 #endif /* EXEPATH */
+
+#ifdef CROSS_TO_AMIGA
+void msmsg
+VA_DECL(const char *, fmt)
+{
+    VA_START(fmt);
+    VA_INIT(fmt, const char *);
+    Vprintf(fmt, VA_ARGS);
+    flushout();
+    VA_END();
+    return;
+}
+
+unsigned long
+sys_random_seed()
+{
+    unsigned long seed = 0L;
+    unsigned long pid = (unsigned long) getpid();
+    boolean no_seed = TRUE;
+
+#ifdef AMIGA_STRONG_RANDOM_SEED_HERE
+    /* hypothetical - strong seed code is required */
+    /* then has_strong_seed could be set */
+#endif
+    if (no_seed) {
+        seed = (unsigned long) getnow(); /* time((TIME_type) 0) */
+        /* Quick dirty band-aid to prevent PRNG prediction */
+        if (pid) {
+            if (!(pid & 3L))
+                pid -= 1L;
+            seed *= pid;
+        }
+    }
+    return seed;
+}
+#endif
 
 /*pcmain.c*/

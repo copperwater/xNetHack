@@ -1,4 +1,4 @@
-/* NetHack 3.6	fountain.c	$NHDT-Date: 1583926845 2020/03/11 11:40:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.67 $ */
+/* NetHack 3.7	fountain.c	$NHDT-Date: 1596498170 2020/08/03 23:42:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.69 $ */
 /*      Copyright Scott R. Turner, srt@ucla, 10/27/86 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -250,7 +250,9 @@ drinkfountain()
         /* gain ability, blessed if "natural" luck is high */
         i = rn2(A_MAX); /* start at a random attribute */
         for (ii = 0; ii < A_MAX; ii++) {
-            if (adjattrib(i, 1, littleluck ? -1 : 0) && littleluck)
+            if ((adjattrib(i, 1, littleluck ? AA_CONDMSG : AA_YESMSG)
+                     == AA_CURRCHNG)
+                && littleluck)
                 break;
             if (++i >= A_MAX)
                 i = 0;

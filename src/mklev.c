@@ -1,4 +1,4 @@
-/* NetHack 3.6	mklev.c	$NHDT-Date: 1587291592 2020/04/19 10:19:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.85 $ */
+/* NetHack 3.7	mklev.c	$NHDT-Date: 1605305491 2020/11/13 22:11:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.96 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Alex Smith, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -20,7 +20,6 @@ static void FDECL(fill_ordinary_room, (struct mkroom *));
 static void NDECL(makelevel);
 static boolean FDECL(bydoor, (XCHAR_P, XCHAR_P));
 static struct mkroom *FDECL(find_branch_room, (coord *));
-static struct mkroom *FDECL(pos_to_room, (XCHAR_P, XCHAR_P));
 static boolean FDECL(place_niche, (struct mkroom *, int *, int *, int *));
 static void FDECL(makeniche, (int));
 static void NDECL(make_niches);
@@ -32,6 +31,7 @@ static void FDECL(do_room_or_subroom, (struct mkroom *, int, int,
                                            int, int, BOOLEAN_P,
                                            SCHAR_P, BOOLEAN_P, BOOLEAN_P));
 static void NDECL(makerooms);
+static boolean FDECL(door_into_nonjoined, (XCHAR_P, XCHAR_P));
 static void FDECL(finddpos, (coord *, XCHAR_P, XCHAR_P,
                                  XCHAR_P, XCHAR_P));
 static void FDECL(mkinvpos, (XCHAR_P, XCHAR_P, int));
@@ -72,17 +72,18 @@ const genericptr vy;
  * as shops) that will never randomly generate unwanted doors in order to
  * connect them up to other areas.
  */
-boolean
+static boolean
 door_into_nonjoined(x, y)
 xchar x, y;
 {
-    schar tx, ty, diridx;
+    xchar tx, ty, diridx;
+
     for (diridx = 0; diridx <= 6; diridx += 2) {
         tx = x + xdir[diridx];
         ty = y + ydir[diridx];
-        if (!isok(tx, ty) || IS_ROCK(levl[tx][ty].typ)) {
+        if (!isok(tx, ty) || IS_ROCK(levl[tx][ty].typ))
             continue;
-        }
+
         /* Is this connecting to a room that doesn't want joining? */
         if (levl[tx][ty].roomno >= ROOMOFFSET &&
             !g.rooms[levl[tx][ty].roomno - ROOMOFFSET].needjoining) {
@@ -125,6 +126,8 @@ xchar xl, yl, xh, yh;
                xl, yl, xh, yh);
     x = xl;
     y = yh;
+    impossible("finddpos: couldn't find door pos within (%d,%d,%d,%d)",
+               xl, yl, xh, yh);
  gotit:
     cc->x = x;
     cc->y = y;
@@ -1046,10 +1049,7 @@ clear_level_structures()
     g.doorindex = 0;
     init_rect();
     init_vault();
-    xdnstair = ydnstair = xupstair = yupstair = 0;
-    g.sstairs.sx = g.sstairs.sy = 0;
-    xdnladder = ydnladder = xupladder = yupladder = 0;
-    g.sstairs_room = (struct mkroom *) 0;
+    stairway_free_all();
     g.made_branch = FALSE;
     clear_regions();
     g.xstart = 1;
@@ -1265,7 +1265,9 @@ makelevel()
          * The available special rooms depend on how deep you are.
          * If a special room is selected and fails to be created (e.g. it tried
          * to make a shop and failed because no room had exactly 1 door), it
-         * won't try to create the other types of available special rooms. */
+         * won't try to create the other types of available special rooms.
+         * Note that mkroom doesn't guarantee a room gets created, and that this
+         * step only sets the room's rtype - it doesn't fill it yet. */
         if (wizard && nh_getenv("SHOPTYPE"))
             /* special case that overrides everything else for wizard mode */
             mkroom(SHOPBASE);
@@ -1439,13 +1441,6 @@ mklev()
     for (ridx = 0; ridx < SIZE(g.rooms); ridx++)
         g.rooms[ridx].orig_rtype = g.rooms[ridx].rtype;
 
-    /* something like this usually belongs in clear_level_structures()
-       but these aren't saved and restored so might not retain their
-       values for the life of the current level; reset them to default
-       now so that they never do and no one will be tempted to introduce
-       a new use of them for anything on this level */
-    g.sstairs_room = (struct mkroom *) 0;
-
     reseed_random(rn2);
     reseed_random(rn2_on_display_rng);
 }
@@ -1539,21 +1534,6 @@ coord *mp;
     return croom;
 }
 
-/* Find the room for (x,y).  Return null if not in a room. */
-static struct mkroom *
-pos_to_room(x, y)
-xchar x, y;
-{
-    int i;
-    struct mkroom *curr;
-
-    for (curr = g.rooms, i = 0; i < g.nroom; curr++, i++)
-        if (inside_room(curr, x, y))
-            return curr;
-    ;
-    return (struct mkroom *) 0;
-}
-
 /* Place a branch staircase or ladder for branch br at the coordinates (x,y).
  * If x is zero, pick the branch room and coordinates within it randomly.
  * If br is null, or the global made_branch is TRUE, do nothing. */
@@ -1565,7 +1545,6 @@ xchar x, y; /* location */
     coord m;
     d_level *dest;
     boolean make_stairs;
-    struct mkroom *br_room;
 
     /*
      * Return immediately if there is no branch to make or we have
@@ -1577,11 +1556,9 @@ xchar x, y; /* location */
         return;
 
     if (!x) { /* find random coordinates for branch */
-        br_room = find_branch_room(&m);
+        (void) find_branch_room(&m);
         x = m.x;
         y = m.y;
-    } else {
-        br_room = pos_to_room(x, y);
     }
 
     if (on_level(&br->end1, &u.uz)) {
@@ -1597,14 +1574,11 @@ xchar x, y; /* location */
     if (br->type == BR_PORTAL) {
         mkportal(x, y, dest->dnum, dest->dlevel);
     } else if (make_stairs) {
-        g.sstairs.sx = x;
-        g.sstairs.sy = y;
-        g.sstairs.up =
-            (char) on_level(&br->end1, &u.uz) ? br->end1_up : !br->end1_up;
-        assign_level(&g.sstairs.tolev, dest);
-        g.sstairs_room = br_room;
+        boolean goes_up = on_level(&br->end1, &u.uz) ? br->end1_up
+                                                     : !br->end1_up;
 
-        levl[x][y].ladder = g.sstairs.up ? LA_UP : LA_DOWN;
+        stairway_add(x,y, goes_up, FALSE, dest);
+        levl[x][y].ladder = goes_up ? LA_UP : LA_DOWN;
         levl[x][y].typ = STAIRS;
     }
     /*
@@ -1981,8 +1955,10 @@ coord *tm;
 void
 mkstairs(x, y, up)
 xchar x, y;
-char up; /* should probably be boolean... */
+char up;	/* [why 'char' when usage is boolean?] */
 {
+    d_level dest;
+
     if (!x) {
         impossible("mkstairs:  bogus stair attempt at <%d,%d>", x, y);
         return;
@@ -1997,13 +1973,9 @@ char up; /* should probably be boolean... */
         || (dunlev(&u.uz) == dunlevs_in_dungeon(&u.uz) && !up))
         return;
 
-    if (up) {
-        xupstair = x;
-        yupstair = y;
-    } else {
-        xdnstair = x;
-        ydnstair = y;
-    }
+    dest.dnum = u.uz.dnum;
+    dest.dlevel = u.uz.dlevel + (up ? -1 : 1);
+    stairway_add(x, y, up ? TRUE : FALSE, FALSE, &dest);
 
     levl[x][y].typ = STAIRS;
     levl[x][y].ladder = up ? LA_UP : LA_DOWN;
@@ -2022,7 +1994,7 @@ struct mkroom *croom;
 int phase;
 {
     return (croom && (croom->needjoining || (phase < 0))
-            && ((!has_upstairs(croom) && !has_dnstairs(croom))
+            && ((!has_dnstairs(croom) && !has_upstairs(croom))
                 || phase < 1)
             && (croom->rtype == OROOM
                 || ((phase < 2) && croom->rtype == THEMEROOM)));

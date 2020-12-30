@@ -1,4 +1,4 @@
-/* NetHack 3.6	end.c	$NHDT-Date: 1583190253 2020/03/02 23:04:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.208 $ */
+/* NetHack 3.7	end.c	$NHDT-Date: 1606009001 2020/11/22 01:36:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.215 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -41,7 +41,7 @@ extern void NDECL(dump_end_screendump);
 static void FDECL(dump_everything, (int, time_t));
 
 #if defined(__BEOS__) || defined(MICRO) || defined(OS2) || defined(WIN32)
-extern void FDECL(nethack_exit, (int));
+extern void FDECL(nethack_exit, (int)) NORETURN;
 #else
 #define nethack_exit exit
 #endif
@@ -576,6 +576,8 @@ int how;
         u.ugrave_arise = PM_WRAITH;
     else if (mptr->mlet == S_MUMMY && g.urace.mummynum != NON_PM)
         u.ugrave_arise = g.urace.mummynum;
+    else if (zombie_maker(mptr) && zombie_form(g.youmonst.data) != NON_PM)
+        u.ugrave_arise = zombie_form(g.youmonst.data);
     else if (mptr->mlet == S_VAMPIRE && Race_if(PM_HUMAN))
         u.ugrave_arise = PM_VAMPIRE;
     else if (mptr == &mons[PM_GHOUL])
@@ -878,7 +880,7 @@ boolean taken;
         c = ask ? yn_function(qbuf, ynqchars, defquery) : defquery;
         if (c == 'y') {
             /* caller has already ID'd everything */
-            (void) display_inventory((char *) 0, TRUE);
+            (void) display_inventory((char *) 0, FALSE);
             container_contents(g.invent, TRUE, TRUE, FALSE);
         }
         if (c == 'q')
@@ -912,9 +914,14 @@ boolean taken;
         if (should_query_disclose_option('c', &defquery)) {
             int acnt = count_achievements();
 
-            Sprintf(qbuf, "Do you want to see your conduct%s%s?",
-                    (acnt > 0) ? " and achievement" : "",
-                    (acnt > 1) ? "s" : "");
+            Sprintf(qbuf, "Do you want to see your conduct%s?",
+                    /* this was distinguishing between one achievement and
+                       multiple achievements, but "conduct and achievement"
+                       looked strange if multiple conducts got shown (which
+                       is usual for an early game death); we could switch
+                       to plural vs singular for conducts but the less
+                       specific "conduct and achievements" is sufficient */
+                    (acnt > 0) ? " and achievements" : "");
             c = yn_function(qbuf, ynqchars, defquery);
         } else {
             c = defquery;
@@ -1275,7 +1282,7 @@ int how;
              * A possible extension here is to reduce ATTRMAX by 1, making your
              * Con cap permanently lower no matter what the player does, but
              * this currently isn't saved. */
-            (void) adjattrib(A_CON, -2, TRUE);
+            (void) adjattrib(A_CON, -2, AA_NOMSG);
             AMAX(A_CON) = (AMAX(A_CON) >= 5 ? AMAX(A_CON) - 2 : 3);
 
             savelife(how);
@@ -1448,8 +1455,7 @@ int how;
         for (obj = g.invent; obj; obj = obj->nobj) {
             discover_object(obj->otyp, TRUE, FALSE);
             obj->known = obj->bknown = obj->dknown = obj->rknown = 1;
-            if (Is_container(obj) || obj->otyp == STATUE)
-                obj->cknown = obj->lknown = 1;
+            set_cknown_lknown(obj); /* set flags when applicable */
             /* we resolve Schroedinger's cat now in case of both
                disclosure and dumplog, where the 50:50 chance for
                live cat has to be the same both times */
@@ -1517,8 +1523,8 @@ int how;
 
         umoney = money_cnt(g.invent);
         tmp = u.umoney0;
-        umoney += hidden_gold(); /* accumulate gold from containers */
-        tmp = umoney - tmp;      /* net gain */
+        umoney += hidden_gold(TRUE); /* accumulate gold from containers */
+        tmp = umoney - tmp;          /* net gain */
 
         /* There's not really any particular reason that a dungeon that was 52
          * levels deep should be worth more than a dungeon that was 45 levels

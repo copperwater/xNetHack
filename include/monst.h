@@ -1,4 +1,4 @@
-/* NetHack 3.6	monst.h	$NHDT-Date: 1559994623 2019/06/08 11:50:23 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.32 $ */
+/* NetHack 3.7	monst.h	$NHDT-Date: 1596498550 2020/08/03 23:49:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.42 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -82,6 +82,7 @@ struct monst {
     xchar mx, my;
     xchar mux, muy;       /* where the monster thinks you are */
 #define MTSZ 4
+    /* mtrack[0..2] is used to keep extra data when migrating the monster */
     coord mtrack[MTSZ];   /* monster track */
     int mhp, mhpmax;
     unsigned mappearance; /* for undetected mimics and the wiz */
@@ -224,7 +225,6 @@ struct monst {
 #define monmax_difficulty(levdif) \
     (u.uevent.udemigod ? 256 : (((levdif) + u.ulevel) / 2))
 #define monmin_difficulty(levdif) ((levdif) / 6)
-#define monmax_difficulty_lev() (monmax_difficulty(level_difficulty()))
 
 /* Macros for whether a type of monster is too strong for a specific level. */
 #define montoostrong(monindx, lev) (mons[monindx].difficulty > lev)

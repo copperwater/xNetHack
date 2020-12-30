@@ -1,4 +1,4 @@
-/* NetHack 3.6	shknam.c	$NHDT-Date: 1587024023 2020/04/16 08:00:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.54 $ */
+/* NetHack 3.7	shknam.c	$NHDT-Date: 1596498209 2020/08/03 23:43:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.57 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -508,7 +508,7 @@ const char *const *nlp;
     int i, trycnt, names_avail;
     const char *shname = 0;
     struct monst *mtmp;
-    int name_wanted;
+    int name_wanted = shk->m_id;
     s_level *sptr;
 
     if (nlp == shklight && In_mines(&u.uz)
@@ -523,13 +523,15 @@ const char *const *nlp;
            use ledger_no rather than depth to keep minetown distinct. */
         int nseed = (int) ((long) ubirthday / 257L);
 
-        name_wanted = ledger_no(&u.uz) + (nseed % 13) - (nseed % 5);
+        name_wanted += ledger_no(&u.uz) + (nseed % 13) - (nseed % 5);
         if (name_wanted < 0)
             name_wanted += (13 + 5);
         shk->female = name_wanted & 1;
 
         for (names_avail = 0; nlp[names_avail]; names_avail++)
             continue;
+
+        name_wanted = name_wanted % names_avail;
 
         for (trycnt = 0; trycnt < 50; trycnt++) {
             if (nlp == shktools) {
@@ -558,6 +560,7 @@ const char *const *nlp;
                     continue;
                 if (strcmp(ESHK(mtmp)->shknam, shname))
                     continue;
+                name_wanted = names_avail; /* try a random name */
                 break;
             }
             if (!mtmp)

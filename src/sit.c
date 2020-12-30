@@ -1,4 +1,4 @@
-/* NetHack 3.6	sit.c	$NHDT-Date: 1559670609 2019/06/04 17:50:09 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.61 $ */
+/* NetHack 3.7	sit.c	$NHDT-Date: 1596498210 2020/08/03 23:43:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.70 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -165,11 +165,11 @@ dosit()
         if (rnd(6) > 4) {
             switch (rnd(13)) {
             case 1:
-                (void) adjattrib(rn2(A_MAX), -rn1(4, 3), FALSE);
+                (void) adjattrib(rn2(A_MAX), -rn1(4, 3), AA_YESMSG);
                 losehp(rnd(10), "cursed throne", KILLED_BY_AN);
                 break;
             case 2:
-                (void) adjattrib(rn2(A_MAX), 1, FALSE);
+                (void) adjattrib(rn2(A_MAX), 1, AA_YESMSG);
                 break;
             case 3:
                 pline("A%s electric shock shoots through your body!",

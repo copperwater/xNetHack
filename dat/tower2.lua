@@ -1,4 +1,4 @@
--- NetHack 3.6	tower.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+-- NetHack 3.7	tower.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 -- NetHack may be freely redistributed.  See license for details.
 --
@@ -34,17 +34,31 @@ des.monster("hell hound pup",place[3])
 des.monster("winter wolf",place[4])
 des.object({ id = "chest", coord = place[5],
              contents = function()
-                des.object("amulet of life saving")
+                if percent(50) then
+                   des.object("amulet of life saving")
+                else
+                   des.object("amulet of change")
+                end
              end
 });
 des.object({ id = "chest", coord = place[6],
              contents = function()
-                des.object("amulet of strangulation")
+                if percent(50) then
+                   des.object("amulet of strangulation")
+                else
+                   des.object("amulet of restful sleep")
+                end
              end
 });
-des.object("water walking boots",place[7])
-des.object("crystal plate mail",place[8])
-des.object("invisibility",place[9])
+if percent(60) then
+   des.object("water walking boots",place[7])
+end
+if percent(60) then
+   des.object("crystal plate mail",place[8])
+end
+if percent(60) then
+   des.object("invisibility",place[9])
+end
 -- Walls in the tower are non diggable
 des.non_diggable(selection.area(00,00,14,10))
 

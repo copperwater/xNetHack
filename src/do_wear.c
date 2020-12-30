@@ -1,4 +1,4 @@
-/* NetHack 3.6	do_wear.c	$NHDT-Date: 1586125907 2020/04/05 22:31:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.130 $ */
+/* NetHack 3.7	do_wear.c	$NHDT-Date: 1605578866 2020/11/17 02:07:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.136 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -38,7 +38,6 @@ static struct obj *NDECL(do_takeoff);
 static int NDECL(take_off);
 static int FDECL(menu_remarm, (int));
 static void FDECL(count_worn_stuff, (struct obj **, BOOLEAN_P));
-static boolean FDECL(will_touch_skin, (long));
 static int FDECL(armor_or_accessory_off, (struct obj *));
 static int FDECL(accessory_or_armor_on, (struct obj *));
 static void FDECL(already_wearing, (const char *));
@@ -463,6 +462,14 @@ Helmet_on(VOID_ARGS)
                 pline("%s %s for a moment.", Tobjnam(uarmh, "glow"),
                       hcolor(NH_BLACK));
             curse(uarmh);
+            /* curse() doesn't touch bknown so doesn't update persistent
+               inventory; do so now [set_bknown() calls update_inventory()] */
+            if (Blind)
+                set_bknown(uarmh, 0); /* lose bknown if previously set */
+            else if (Role_if(PM_PRIEST))
+                set_bknown(uarmh, 1); /* (bknown should already be set) */
+            else if (uarmh->bknown)
+                update_inventory(); /* keep bknown as-is; display the curse */
         }
         g.context.botl = 1; /* reveal new alignment or INT & WIS */
         if (Hallucination) {
@@ -634,7 +641,9 @@ Gloves_off(VOID_ARGS)
 
     /* you may now be touching some material you hate */
     if (uwep)
-        retouch_object(&uwep, FALSE);
+        retouch_object(&uwep, FALSE, FALSE); /* would be protectable by gloves
+                                                normally, but this is
+                                                Gloves_off()... */
 
     /* KMH -- ...or your secondary weapon when you're wielding it
        [This case can't actually happen; twoweapon mode won't
@@ -1546,12 +1555,12 @@ boolean accessory;
 
     /* removing non-worn equipment */
     if (removing && !obj->owornmask)
-        return 0;
+        return 1;
 
     long mask = 0;
     if (obj->oclass == ARMOR_CLASS && !removing &&
         !canwearobj(obj, &mask, FALSE))
-        return 0;
+        return 1;
 
     /* check for putting on accessories in already filled slots */
     if (!removing &&
@@ -1559,12 +1568,12 @@ boolean accessory;
           uleft && uright) ||
          (obj->oclass == AMULET_CLASS && uamul) ||
          (obj->oclass == TOOL_CLASS && ublindf)))
-        return 0;
+        return 1;
 
     /* removing inaccessible equipment */
     if (removing &&
         inaccessible_equipment(obj, NULL, (obj->oclass == RING_CLASS)))
-        return 0;
+        return 1;
 
     /* all good to go */
     return 2;
@@ -2067,10 +2076,12 @@ boolean noisy;
 
 /* Return TRUE iff wearing a potential new piece of armor with the given mask
  * will touch the hero's skin. */
-static boolean
+boolean
 will_touch_skin(mask)
 long mask;
 {
+    if ((mask == W_WEP || mask == W_SWAPWEP) && uarmg)
+        return FALSE;
     if (mask == W_ARMC && (uarm || uarmu))
         return FALSE;
     else if (mask == W_ARM && uarmu)
@@ -2146,6 +2157,7 @@ struct obj *obj;
                     answer = yn_function(qbuf, "rl", '\0');
                     switch (answer) {
                     case '\0':
+                    case '\033':
                         return 0;
                     case 'l':
                     case 'L':
@@ -2222,7 +2234,7 @@ struct obj *obj;
 
     /* don't retouch and take material damage if it's a non-artifact object and
      * your skin is covered */
-    if ((obj->oartifact || will_touch_skin(mask)) && !retouch_object(&obj, FALSE))
+    if (!retouch_object(&obj, FALSE, !will_touch_skin(mask)))
         return 1; /* costs a turn even though it didn't get worn */
 
     if (armor) {
@@ -2237,13 +2249,13 @@ struct obj *obj;
          * to change so armor's +/- value is evident via the status line.
          * We used to set it here because of that, but then it would stick
          * if a nymph stole the armor before it was fully worn.  Delay it
-         * until the aftermv action.  The player may still know this armor's
+         * until the afternmv action.  The player may still know this armor's
          * +/- amount if donning gets interrupted, but the hero won't.
          *
         obj->known = 1;
          */
         setworn(obj, mask);
-        /* if there's no delay, we'll execute 'aftermv' immediately */
+        /* if there's no delay, we'll execute 'afternmv' immediately */
         if (obj == uarm)
             g.afternmv = Armor_on;
         else if (obj == uarmh)
@@ -2267,7 +2279,7 @@ struct obj *obj;
             g.multi_reason = "dressing up";
             g.nomovemsg = "You finish your dressing maneuver.";
         } else {
-            unmul(""); /* call aftermv, clear it+nomovemsg+multi_reason */
+            unmul(""); /* call afternmv, clear it+nomovemsg+multi_reason */
             on_msg(obj);
         }
         g.context.takeoff.mask = g.context.takeoff.what = 0L;

@@ -1,4 +1,4 @@
-/* NetHack 3.6	potion.c	$NHDT-Date: 1581810073 2020/02/15 23:41:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.180 $ */
+/* NetHack 3.7	potion.c	$NHDT-Date: 1596498197 2020/08/03 23:43:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.182 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -464,10 +464,14 @@ boolean talk;
     if ((xtime != 0L) ^ (old != 0L)) {
         g.context.botl = TRUE;
         if (talk) {
-            if (old && can_hear_now)
-                You("can hear again.");
-            else
+            if (old) {
+                if (can_hear_now)
+                    You("can hear again.");
+                /* else possibly permadeaf */
+            }
+            else {
                 You("are unable to hear anything.");
+            }
         }
     }
 }
@@ -847,11 +851,7 @@ register struct obj *otmp;
                 (void) adjattrib(A_INT, 1, FALSE);
                 (void) adjattrib(A_WIS, 1, FALSE);
             }
-            You_feel("self-knowledgeable...");
-            display_nhwindow(WIN_MESSAGE, FALSE);
-            enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
-            pline_The("feeling subsides.");
-            exercise(A_WIS, TRUE);
+            do_enlightenment_effect();
         }
         break;
     case SPE_INVISIBILITY:
@@ -1032,17 +1032,68 @@ register struct obj *otmp;
             g.potion_unkn++;
         } else if (Fixed_abil) {
             g.potion_nothing++;
-        } else {      /* If blessed, increase all; if not, try up to */
-            int itmp; /* 6 times to find one which can be increased. */
+        } else {
+            char response = '*'; /* random by default */
+            xchar attr_selected;
+            /* Ability scores are defined in a different order than they're
+             * displayed on the status line. The menu presents them in display
+             * order, so we need to map them to their real order in the case of
+             * a blessed potion that presented a menu. */
+            int attribs[A_MAX] = {A_STR, A_DEX, A_CON, A_INT, A_WIS, A_CHA};
+            if (otmp->blessed) {
+                /* Allow the player to choose what to increase, and give a bit
+                 * more increase than an uncursed potion. */
+                menu_item *choice = (menu_item *) 0;
+                winid win = create_nhwindow(NHW_MENU);
+                anything any;
+                static const char* attrnames[A_MAX] = {
+                    "Strength", "Dexterity", "Constitution", "Intelligence",
+                    "Wisdom", "Charisma"
+                };
+                start_menu(win, MENU_BEHAVE_STANDARD);
+                any.a_char = 'a';
+                for (ii = 0; ii < A_MAX; ii++) {
+                    add_menu(win, NO_GLYPH, &any, 0, '\0', ATR_NONE,
+                             attrnames[ii], MENU_ITEMFLAGS_NONE);
+                    any.a_char++; /* go to b, c, d, e, f */
+                }
+                any.a_char = '*';
+                add_menu(win, NO_GLYPH, &any, 0, '*', ATR_NONE,
+                         "pick one randomly", MENU_ITEMFLAGS_NONE);
+                end_menu(win, "What attribute do you want to increase?");
+                if (select_menu(win, PICK_ONE, &choice) <= 0) {
+                    /* cancelled; pick one randomly */
+                    response = '*';
+                }
+                else {
+                    response = choice->item.a_char;
+                    free((genericptr_t) choice);
+                }
+                destroy_nhwindow(win);
+            }
 
-            i = -1;   /* increment to 0 */
-            for (ii = A_MAX; ii > 0; ii--) {
-                i = (otmp->blessed ? i + 1 : rn2(A_MAX));
-                /* only give "your X is already as high as it can get"
-                   message on last attempt (except blessed potions) */
-                itmp = (otmp->blessed || ii == 1) ? 0 : -1;
-                if (adjattrib(i, 1, itmp) && !otmp->blessed)
-                    break;
+            if (response == '*') {
+                /* Shuffle the attributes. (Fisher-Yates) */
+                for (ii = A_MAX-1; ii >= 1; ii--) {
+                    int tmp = attribs[ii];
+                    i = rn2(ii + 1);
+                    attribs[ii] = attribs[i];
+                    attribs[i] = tmp;
+                }
+                for (ii = 0; ii < A_MAX; ii++) {
+                    /* only give "your X is already as high as it can get"
+                       message on last attempt */
+                    if (adjattrib(attribs[ii], otmp->blessed ? rnd(2) : 1,
+                                  (ii == A_MAX - 1) ? AA_YESMSG : AA_CONDMSG)
+                            != AA_NOCHNG) {
+                        break;
+                    }
+                }
+            }
+            else {
+                /* non-* response should always mean blessed potion */
+                attr_selected = attribs[response - 'a'];
+                adjattrib(attr_selected, rnd(2), AA_YESMSG);
             }
         }
         break;
@@ -1157,9 +1208,7 @@ register struct obj *otmp;
             HLevitation &= ~I_SPECIAL; /* can't descend upon demand */
             if (BLevitation) {
                 ; /* rising via levitation is blocked */
-            } else if ((u.ux == xupstair && u.uy == yupstair)
-                    || (g.sstairs.up && u.ux == g.sstairs.sx && u.uy == g.sstairs.sy)
-                    || (xupladder && u.ux == xupladder && u.uy == yupladder)) {
+            } else if (stairway_find_dir(TRUE)) {
                 (void) doup();
                 /* in case we're already Levitating, which would have
                    resulted in incrementing 'nothing' */
@@ -2198,11 +2247,7 @@ dodip()
             goto poof;
     } else if (obj->otyp == POT_POLYMORPH || potion->otyp == POT_POLYMORPH) {
         /* some objects can't be polymorphed */
-        if (obj->otyp == potion->otyp /* both POT_POLY */
-            || obj->otyp == WAN_POLYMORPH || obj->otyp == SPE_POLYMORPH
-            || obj == uball || obj == uskin
-            || obj_resists(obj->otyp == POT_POLYMORPH ? potion : obj,
-                           5, 95)) {
+        if (obj_unpolyable(obj->otyp == POT_POLYMORPH ? potion : obj)) {
             pline1(nothing_happens);
         } else {
             short save_otyp = obj->otyp;

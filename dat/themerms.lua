@@ -108,8 +108,8 @@ themerooms = {
       contents = function()
          des.room({ type = "themed",
                   contents = function(rm)
-                     for x = 0, rm.width do
-                        for y = 0, rm.height do
+                     for x = 0, rm.width - 1 do
+                        for y = 0, rm.height - 1 do
                            if (percent(30)) then
                               des.trap("web", x, y);
                            end
@@ -229,7 +229,9 @@ themerooms = {
    function()
       des.room({ type = "themed", w = 5 + nh.rn2(3)*2, h = 5 + nh.rn2(3)*2,
                  contents = function(rm)
-                    des.room({ type = "themed", x = (rm.width - 1)/ 2, y = (rm.height - 1) / 2, w = 1, h = 1, joined = 0,
+                    des.room({ type = "themed",
+			       x = (rm.width - 1) / 2, y = (rm.height - 1) / 2,
+			       w = 1, h = 1, joined = 0,
                                contents = function()
                                   if (percent(50)) then
                                      local mons = { "M", "V", "L", "Z" };
@@ -255,7 +257,8 @@ themerooms = {
                  contents = function(rm)
                     local feature = { "C", "L", "I", "P", "T" };
                     shuffle(feature);
-                    des.terrain((rm.width - 1) / 2, (rm.height - 1) / 2, feature[1]);
+                    des.terrain((rm.width - 1) / 2, (rm.height - 1) / 2,
+				feature[1]);
                  end
       });
    end,
@@ -1143,7 +1146,7 @@ xxxx----xx----xxxx]], contents=function(m)
                }
                ltype,rtype = "weapon shop","armor shop"
                if percent(50) then
-                  ltype,rtype = "armor shop","weapon shop"
+                  ltype,rtype = rtype,ltype
                end
                shopdoorstate = function()
                   if percent(1) then
@@ -1169,6 +1172,98 @@ xxxx----xx----xxxx]], contents=function(m)
          });
       end
    },
+
+   -- Four-way circle-and-cross room
+   function()
+      des.map({ map = [[
+xxxx---xxxx
+xxxx|.|xxxx
+xxx--.--xxx
+xx--...--xx
+---.....---
+|.........|
+---.....---
+xx--...--xx
+xxx--.--xxx
+xxxx|.|xxxx
+xxxx---xxxx]], contents = function(m)
+         centerfeature = percent(15)
+         des.region({ region = {5,1,5,1}, type=centerfeature and "themed" or "ordinary", irregular=1 })
+         if centerfeature then
+            des.terrain(5, 5, percent(20) and 'T' or '{')
+         end
+      end })
+   end,
+
+   -- Four 3x3 rooms, directly adjacent
+   -- Like the other four-room cluster, each room generates its own monsters,
+   -- items and features.
+   function()
+      des.room({ type="ordinary", w=7, h=7, filled=1, contents=function()
+         des.room({ type="ordinary", x=1, y=1, w=3, h=3, filled=1 })
+         des.room({ type="ordinary", x=4, y=1, w=3, h=3, filled=1, contents=function()
+               des.door({ state="random", wall = "west" })
+               des.door({ state="random", wall = "south" })
+            end
+         })
+         des.room({ type="ordinary", x=1, y=4, w=3, h=3, filled=1, contents=function()
+               des.door({ state="random", wall = "north" })
+               des.door({ state="random", wall = "east" })
+            end
+         })
+         -- the southeast room is just the parent room and doesn't need to
+         -- be defined specially; in fact, if it is, the level generator may
+         -- stumble on trying to place a feature in the parent room and not
+         -- finding any open spaces for it.
+      end })
+   end,
+
+   -- Prison cell
+   {
+      mindiff = 8,
+      contents = function()
+         des.map({ map = [[
+--------
+|......|
+|......|
+|FFFF..|
+|...F..|
+|...+..|
+--------]], contents = function()
+            des.door({ state = "locked", x=4, y=5, iron=1 })
+            if percent(70) then
+               des.monster({ id="prisoner", x=d(3), y=3+d(2), peaceful=1, asleep=1 })
+               -- and a rat for company
+               rats = {"sewer rat", "giant rat", "rabid rat"} -- no 'r' = rock moles to break them out!
+               des.monster(rats[d(#rats)])
+            end
+            des.region({ region={01,01,01,01}, type="themed", irregular=true, filled=1, joined=true })
+            des.region({ region={01,04,03,05}, type="themed", irregular=true, filled=0, joined=false })
+         end })
+      end
+   },
+
+   -- Mirrored obstacles, sort of like a Rorschasch figure
+   {
+      mindiff = 5, -- obstacles can impede stairways in unlucky cases; put this after Mines
+      contents = function()
+         width = 5 + nh.rn2(10)
+         height = 5 + nh.rn2(4)
+         des.room({ type="themed", w=width, h=height, contents=function(rm)
+            obstacles = { 'T', '}', 'F', 'L', 'C' } -- no grass/ice; not obstacles
+            terrain = obstacles[d(#obstacles)]
+            for x = 1,rm.width/2 do
+               for y = 1,rm.height-2 do
+                  if percent(40) then
+                     des.terrain(x, y, terrain)
+                     des.terrain(rm.width - x - 1, y, terrain)
+                  end
+               end
+            end
+         end })
+      end
+   },
+
 };
 
 function is_eligible(room)

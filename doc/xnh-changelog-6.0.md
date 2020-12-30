@@ -59,7 +59,7 @@ changes:
 - Some themed rooms have minimum and maximum level difficulty cutoffs. Notably,
   the spider room will not appear above level 10.
 - The "Fake Delphi" themed room now has one fountain in its center.
-- 23 new themed rooms:
+- 27 new themed rooms:
   - A cluster of four square interconnected 3x3 rooms.
   - A barbell-shaped room connecting two 3x3 rooms with a doored, walled
     corridor (vertical and horizontal).
@@ -102,6 +102,14 @@ changes:
     other.)
   - A room containing two 3x3 shops, one weapons and one armor, with an aisle
     around them.
+  - A four-way circle-and-cross room, possibly containing a central tree or
+    fountain.
+  - Four square 3x3 rooms, but all directly connected as part of one larger
+    room instead of separated by corridors.
+  - A prison cell in the corner of a room, possibly containing a prisoner and
+    rat.
+  - A large room containing some type of obstacle terrain in a vertically
+    symmetric shape.
 - If you ride a steed into a polymorph trap, unchanging will not protect the
   steed (but magic resistance still will).
 - Canceled or beheaded zombies or trolls don't rise from the dead.
@@ -294,6 +302,28 @@ changes:
 - Water nymphs have a slightly increased base level (4) and difficulty (6).
 - Mountain nymphs have an increased base level (5), speed (15), and difficulty
   (7).
+- Being inside an abbatoir can inflict you with nausea, with a Con-dependent
+  chance. Entering an abbatoir for the first time also triggers this with a
+  higher chance.
+- The items inside Vlad's Tower are no longer guaranteed (except the candles,
+  which there will still be at least 8 of).
+- If you pray while Weak, not carrying much food, and at critically low HP,
+  your god will fix your HP rather than your hunger. (If you're Fainting and
+  don't have enough food, they'll still fix your hunger first.)
+- When evaluating if you're carrying enough food, your god will ignore any food
+  you're carrying if you have maintained the foodless conduct.
+- The Amulet now blocks teleport control instead of all intra-level teleports.
+  (It still blocks 1/3 of intra-level teleports, as in vanilla.)
+- Paper and straw golems (in addition to wood and leather golems) will rot and
+  instantly die when hit with a decay attack.
+- A wished-for thiefstone will be keyed to the spot the player is currently
+  standing on.
+- Blessed gain ability potions now increase a single attribute by 1-2 points
+  (the player chooses which) instead of raising all by 1 point.
+- Gain ability (uncursed or blessed) trying to raise an attribute randomly will
+  always succeed provided there is something raiseable. "Innate improvement"
+  attributes, e.g. strength while wearing gauntlets of power but when the base
+  value isn't maxed yet, now count as raiseable.
 
 ### Interface changes
 
@@ -349,8 +379,6 @@ changes:
 - Monsters created in a bones file to represent a dead player (ghost, mummy,
   etc) are tracked with a new "ebones" mextra struct.
 - A new body part, TORSO, is added.
-- New function gear_simple_name, which collects all the various foo_simple_name
-  functions for gear pieces into one function.
 - Overhaul special_dmgval(); it now checks all possible sources of special
   damage and returns the one that had the highest damage roll.
 - New function attack_contact_slots, which returns the worn gear slots which
@@ -423,3 +451,6 @@ changes:
 - New function clear_nonsense_doortraps() to delete traps on doors where the
   trap type doesn't make any sense.
 - Remove the rnddoor() function.
+- retouch_object() now takes a third argument which indicates the caller thinks
+  the object isn't in contact with your body and there should be no damage due
+  to hating the material.

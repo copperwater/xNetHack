@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkmaze.c	$NHDT-Date: 1577674536 2019/12/30 02:55:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.104 $ */
+/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1596498182 2020/08/03 23:43:02 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.114 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1300,6 +1300,7 @@ const char *s;
         mazexy(&mm);
         mkstairs(mm.x, mm.y, 0); /* down */
     } else { /* choose "vibrating square" location */
+        stairway *stway;
         int trycnt = 0;
 #define x_maze_min 2
 #define y_maze_min 2
@@ -1332,10 +1333,11 @@ const char *s;
                to be on a spot that's already in use (wall|trap) */
             if (++trycnt > 1000)
                 break;
-        } while (x == xupstair || y == yupstair /*(direct line)*/
-                 || abs(x - xupstair) == abs(y - yupstair)
-                 || distmin(x, y, xupstair, yupstair) <= INVPOS_DISTANCE
-                 || !SPACE_POS(levl[x][y].typ) || occupied(x, y));
+        } while (((stway = stairway_find_dir(TRUE)) != 0)
+                 && (x == stway->sx || y == stway->sy /*(direct line)*/
+                 || abs(x - stway->sx) == abs(y - stway->sy)
+                 || distmin(x, y, stway->sx, stway->sy) <= INVPOS_DISTANCE
+                 || !SPACE_POS(levl[x][y].typ) || occupied(x, y)));
         g.inv_pos.x = x;
         g.inv_pos.y = y;
         maketrap(g.inv_pos.x, g.inv_pos.y, VIBRATING_SQUARE);

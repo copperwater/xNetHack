@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkobj.c	$NHDT-Date: 1585361051 2020/03/28 02:04:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.176 $ */
+/* NetHack 3.7	mkobj.c	$NHDT-Date: 1606343579 2020/11/25 22:32:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.191 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -62,16 +62,22 @@ static const struct icp hellprobs[] = { { 20, WEAPON_CLASS },
                                         { 8, RING_CLASS },
                                         { 4, AMULET_CLASS } };
 
+static const struct oextra zerooextra = DUMMY;
+
+static void
+init_oextra(oex)
+struct oextra *oex;
+{
+    *oex = zerooextra;
+}
+
 struct oextra *
 newoextra()
 {
     struct oextra *oextra;
 
     oextra = (struct oextra *) alloc(sizeof (struct oextra));
-    oextra->oname = 0;
-    oextra->omonst = 0;
-    oextra->omailcmd = 0;
-    oextra->omid = 0;
+    init_oextra(oextra);
     return oextra;
 }
 
@@ -199,7 +205,7 @@ boolean init, artif;
     otmp = mksobj(otyp, init, artif);
     add_to_migration(otmp);
     otmp->owornmask = (long) MIGR_TO_SPECIES;
-    otmp->corpsenm = mflags2;
+    otmp->migr_species = mflags2;
     return otmp;
 }
 
@@ -641,9 +647,7 @@ register struct obj *otmp;
     *dummy = *otmp;
     dummy->oextra = (struct oextra *) 0;
     dummy->where = OBJ_FREE;
-    dummy->o_id = g.context.ident++;
-    if (!dummy->o_id)
-        dummy->o_id = g.context.ident++; /* ident overflowed */
+    dummy->o_id = nextoid(otmp, dummy);
     dummy->timed = 0;
     copy_oextra(dummy, otmp);
     if (has_omid(dummy))
@@ -655,8 +659,8 @@ register struct obj *otmp;
     if (cost)
         alter_cost(dummy, -cost);
     /* no_charge is only valid for some locations */
-    otmp->no_charge =
-        (otmp->where == OBJ_FLOOR || otmp->where == OBJ_CONTAINED) ? 1 : 0;
+    otmp->no_charge = (otmp->where == OBJ_FLOOR
+                       || otmp->where == OBJ_CONTAINED) ? 1 : 0;
     otmp->unpaid = 0;
     return;
 }
@@ -949,6 +953,12 @@ boolean artif;
                 break;
             case KELP_FROND:
                 otmp->quan = (long) rnd(2);
+                break;
+            case CANDY_BAR:
+                /* set otmp->spe */
+                assign_candy_wrapper(otmp);
+                break;
+            default:
                 break;
             }
             if (Is_pudding(otmp)) {
@@ -1264,6 +1274,23 @@ int id;
     }
 }
 
+/* Return the number of turns after which a Rider corpse revives */
+long
+rider_revival_time(body, retry)
+struct obj *body;
+boolean retry;
+{
+    long when;
+    long minturn = retry ? 3L : (body->corpsenm == PM_DEATH) ? 6L : 12L;
+
+    /* Riders have a 1/3 chance per turn of reviving after 12, 6, or 3 turns.
+       Always revive by 67. */
+    for (when = minturn; when < 67L; when++)
+        if (!rn2(3))
+            break;
+    return when;
+}
+
 /*
  * Start a corpse decay or revive timer.
  * This takes the age of the corpse into consideration as of 3.4.0.
@@ -1276,6 +1303,11 @@ struct obj *body;
     long corpse_age; /* age of corpse          */
     int rot_adjust;
     short action;
+    boolean no_revival;
+
+    /* if a troll corpse was frozen, it won't get a revive timer */
+    no_revival = (body->norevive != 0);
+    body->norevive = 0; /* always clear corpse's 'frozen' flag */
 
     /* lizards and lichen don't rot or revive */
     if (body->corpsenm == PM_LIZARD || body->corpsenm == PM_LICHEN)
@@ -1291,17 +1323,11 @@ struct obj *body;
     when += (long) (rnz(rot_adjust) - rot_adjust);
 
     if (is_rider(&mons[body->corpsenm])) {
-        /*
-         * Riders always revive.  They have a 1/3 chance per turn
-         * of reviving after 12 turns.  Always revive by 500.
-         */
         action = REVIVE_MON;
-        for (when = 12L; when < 500L; when++)
-            if (!rn2(3))
-                break;
-
-    } else if (mons[body->corpsenm].mlet == S_TROLL && !body->norevive) {
+        when = rider_revival_time(body, FALSE);
+    } else if (mons[body->corpsenm].mlet == S_TROLL && !no_revival) {
         long age;
+
         for (age = 2; age <= TAINT_AGE; age++) {
             if (!rn2(TROLL_REVIVE_CHANCE)) { /* troll revives */
                 action = REVIVE_MON;
@@ -1309,7 +1335,14 @@ struct obj *body;
                 break;
             }
         }
-    } else if (body->zombie_corpse && !body->norevive) {
+    } else if (!no_revival && g.zombify
+               && zombie_form(&mons[body->corpsenm]) != NON_PM) {
+        action = ZOMBIFY_MON;
+        when = 5 + rn2(15);
+        if (g.zombify == ZOMBIFY_TAME) {
+            body->tamed_zombie = 1;
+        }
+    } else if (body->zombie_corpse && !no_revival) {
         long age;
         for (age = 2; age <= ROT_AGE; age++) {
             if (!rn2(ZOMBIE_REVIVE_CHANCE)) { /* zombie revives */
@@ -1334,8 +1367,6 @@ struct obj *body;
         }
     }
 
-    if (body->norevive)
-        body->norevive = 0;
     (void) start_timer(when, TIMER_OBJECT, action, obj_to_any(body));
 }
 
@@ -1745,10 +1776,9 @@ int x, y;
 }
 
 /* return TRUE if the corpse has special timing;
-   lizards and lichen don't rot, trolls and Riders auto-revive */
+   lizards and lichen don't rot, trolls and Riders and zombies auto-revive */
 #define special_corpse(num) \
-    (((num) == PM_LIZARD || (num) == PM_LICHEN)                 \
-     || (mons[num].mlet == S_TROLL || is_rider(&mons[num])))
+    (((num) == PM_LIZARD || (num) == PM_LICHEN) || is_reviver(&mons[num]))
 
 /* mkcorpstat: make a corpse or statue; never returns Null.
  *
@@ -1792,6 +1822,10 @@ unsigned corpstatflags;
 
         if (!ptr)
             ptr = mtmp->data;
+
+        /* don't give a revive timer to a cancelled troll's corpse */
+        if (mtmp->mcan && !is_rider(ptr))
+            otmp->norevive = 1;
     }
 
     /* when 'ptr' is non-null it comes from our caller or from 'mtmp';
@@ -1801,7 +1835,7 @@ unsigned corpstatflags;
 
         otmp->corpsenm = monsndx(ptr);
         otmp->owt = weight(otmp);
-        if (otmp->otyp == CORPSE && (special_corpse(old_corpsenm)
+        if (otmp->otyp == CORPSE && (g.zombify || special_corpse(old_corpsenm)
                                      || special_corpse(otmp->corpsenm))) {
             obj_stop_timers(otmp);
             if (mtmp && is_reviver(mtmp->data) && !is_rider(mtmp->data)
@@ -1863,6 +1897,7 @@ struct monst *mtmp;
     if (!has_omonst(obj))
         newomonst(obj);
     if (has_omonst(obj)) {
+        int baselevel = mtmp->data->mlevel;
         struct monst *mtmp2 = OMONST(obj);
 
         *mtmp2 = *mtmp;
@@ -1877,6 +1912,19 @@ struct monst *mtmp;
         mtmp2->minvent = (struct obj *) 0;
         if (mtmp->mextra)
             copy_mextra(mtmp2, mtmp);
+        /* if mtmp is a long worm with segments, its saved traits will
+           be one without any segments */
+        mtmp2->wormno = 0;
+        /* mtmp might have been killed by repeated life draining; make sure
+           mtmp2 can survive if revived ('baselevel' will be 0 for 1d4 mon) */
+        if (mtmp2->mhpmax <= baselevel)
+            mtmp2->mhpmax = baselevel + 1;
+        /* mtmp is assumed to be dead but we don't kill it or its saved
+           traits, just force those to have a sane value for current HP */
+        if (mtmp2->mhp > mtmp2->mhpmax)
+            mtmp2->mhp = mtmp2->mhpmax;
+        if (mtmp2->mhp < 1)
+            mtmp2->mhp = 0;
     }
     return obj;
 }
@@ -1905,6 +1953,7 @@ boolean copyof;
             /* Never insert this returned pointer into mon chains! */
             mnew = mtmp;
         }
+        mnew->data = &mons[mnew->mnum];
     }
     return mnew;
 }
@@ -2390,6 +2439,8 @@ struct obj *obj;
 
     obj->where = OBJ_MIGRATING;
     obj->nobj = g.migrating_objs;
+    obj->omigr_from_dnum = u.uz.dnum;
+    obj->omigr_from_dlevel = u.uz.dlevel;
     g.migrating_objs = obj;
 }
 
