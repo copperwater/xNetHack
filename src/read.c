@@ -1,4 +1,4 @@
-/* NetHack 3.7	read.c	$NHDT-Date: 1608846072 2020/12/24 21:41:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.207 $ */
+/* NetHack 3.7	read.c	$NHDT-Date: 1609323865 2020/12/30 10:24:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.214 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2624,7 +2624,8 @@ struct _create_particular_data *d;
         if (d->genderconf == -1) {
             /* no confict exists between explicit gender term and
                the specified monster name */
-            if (d->fem != -1 && !is_male(whichpm) && !is_female(whichpm))
+            if (d->fem != -1
+                && (!whichpm || (!is_male(whichpm) && !is_female(whichpm))))
                 mmflags |= (d->fem == FEMALE) ? MM_FEMALE
                                : (d->fem == MALE) ? MM_MALE : 0;
         } else {
@@ -2657,7 +2658,6 @@ struct _create_particular_data *d;
             continue;
         }
         mx = mtmp->mx, my = mtmp->my;
-        /* 'is_FOO()' ought to be called 'always_FOO()' */
         if (d->maketame) {
             (void) tamedog(mtmp, (struct obj *) 0);
         } else if (d->makepeaceful || d->makehostile) {
@@ -2723,12 +2723,15 @@ struct _create_particular_data *d;
 boolean
 create_particular()
 {
-    char buf[BUFSZ] = DUMMY, *bufp;
-    int  tryct = 5;
+#define CP_TRYLIM 5
     struct _create_particular_data d;
+    char *bufp, buf[BUFSZ], prompt[QBUFSZ];
+    int  tryct = CP_TRYLIM;
 
+    buf[0] = '\0'; /* for EDIT_GETLIN */
+    Strcpy(prompt, "Create what kind of monster?");
     do {
-        getlin("Create what kind of monster? [type the name or symbol]", buf);
+        getlin(prompt, buf);
         bufp = mungspaces(buf);
         if (*bufp == '\033')
             return FALSE;
@@ -2738,6 +2741,9 @@ create_particular()
 
         /* no good; try again... */
         pline("I've never heard of such monsters.");
+        /* when a second try is needed, expand the prompt */
+        if (tryct == CP_TRYLIM)
+            Strcat(prompt, " [type name or symbol]");
     } while (--tryct > 0);
 
     if (!tryct)
