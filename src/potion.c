@@ -1,4 +1,4 @@
-/* NetHack 3.6	potion.c	$NHDT-Date: 1581810073 2020/02/15 23:41:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.180 $ */
+/* NetHack 3.7	potion.c	$NHDT-Date: 1596498197 2020/08/03 23:43:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.182 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -432,6 +432,18 @@ long mask; /* nonzero if resistance status should change by mask */
         g.context.botl = TRUE;
         if (talk)
             pline(message, verb);
+
+        /* Hallucination blocks stoning, so if it is being removed, check to see
+         * if there is anything that should be causing stoning but wasn't
+         * because of hallucination */
+        if (!Hallucination || Halluc_resistance) {
+            /* At the moment, wielding a c corpse should be the only such
+             * case... */
+            if (uwep && cant_wield_corpse(uwep)) {
+                /* lifesaved; unwield the corpse if we can't handle it */
+                uwepgone(); /* calls update_inventory() */
+            }
+        }
     }
     return changed;
 }
@@ -452,10 +464,14 @@ boolean talk;
     if ((xtime != 0L) ^ (old != 0L)) {
         g.context.botl = TRUE;
         if (talk) {
-            if (old && can_hear_now)
-                You("can hear again.");
-            else
+            if (old) {
+                if (can_hear_now)
+                    You("can hear again.");
+                /* else possibly permadeaf */
+            }
+            else {
                 You("are unable to hear anything.");
+            }
         }
     }
 }
@@ -835,11 +851,7 @@ register struct obj *otmp;
                 (void) adjattrib(A_INT, 1, FALSE);
                 (void) adjattrib(A_WIS, 1, FALSE);
             }
-            You_feel("self-knowledgeable...");
-            display_nhwindow(WIN_MESSAGE, FALSE);
-            enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
-            pline_The("feeling subsides.");
-            exercise(A_WIS, TRUE);
+            do_enlightenment_effect();
         }
         break;
     case SPE_INVISIBILITY:
@@ -1020,17 +1032,68 @@ register struct obj *otmp;
             g.potion_unkn++;
         } else if (Fixed_abil) {
             g.potion_nothing++;
-        } else {      /* If blessed, increase all; if not, try up to */
-            int itmp; /* 6 times to find one which can be increased. */
+        } else {
+            char response = '*'; /* random by default */
+            xchar attr_selected;
+            /* Ability scores are defined in a different order than they're
+             * displayed on the status line. The menu presents them in display
+             * order, so we need to map them to their real order in the case of
+             * a blessed potion that presented a menu. */
+            int attribs[A_MAX] = {A_STR, A_DEX, A_CON, A_INT, A_WIS, A_CHA};
+            if (otmp->blessed) {
+                /* Allow the player to choose what to increase, and give a bit
+                 * more increase than an uncursed potion. */
+                menu_item *choice = (menu_item *) 0;
+                winid win = create_nhwindow(NHW_MENU);
+                anything any;
+                static const char* attrnames[A_MAX] = {
+                    "Strength", "Dexterity", "Constitution", "Intelligence",
+                    "Wisdom", "Charisma"
+                };
+                start_menu(win, MENU_BEHAVE_STANDARD);
+                any.a_char = 'a';
+                for (ii = 0; ii < A_MAX; ii++) {
+                    add_menu(win, NO_GLYPH, &any, 0, '\0', ATR_NONE,
+                             attrnames[ii], MENU_ITEMFLAGS_NONE);
+                    any.a_char++; /* go to b, c, d, e, f */
+                }
+                any.a_char = '*';
+                add_menu(win, NO_GLYPH, &any, 0, '*', ATR_NONE,
+                         "pick one randomly", MENU_ITEMFLAGS_NONE);
+                end_menu(win, "What attribute do you want to increase?");
+                if (select_menu(win, PICK_ONE, &choice) <= 0) {
+                    /* cancelled; pick one randomly */
+                    response = '*';
+                }
+                else {
+                    response = choice->item.a_char;
+                    free((genericptr_t) choice);
+                }
+                destroy_nhwindow(win);
+            }
 
-            i = -1;   /* increment to 0 */
-            for (ii = A_MAX; ii > 0; ii--) {
-                i = (otmp->blessed ? i + 1 : rn2(A_MAX));
-                /* only give "your X is already as high as it can get"
-                   message on last attempt (except blessed potions) */
-                itmp = (otmp->blessed || ii == 1) ? 0 : -1;
-                if (adjattrib(i, 1, itmp) && !otmp->blessed)
-                    break;
+            if (response == '*') {
+                /* Shuffle the attributes. (Fisher-Yates) */
+                for (ii = A_MAX-1; ii >= 1; ii--) {
+                    int tmp = attribs[ii];
+                    i = rn2(ii + 1);
+                    attribs[ii] = attribs[i];
+                    attribs[i] = tmp;
+                }
+                for (ii = 0; ii < A_MAX; ii++) {
+                    /* only give "your X is already as high as it can get"
+                       message on last attempt */
+                    if (adjattrib(attribs[ii], otmp->blessed ? rnd(2) : 1,
+                                  (ii == A_MAX - 1) ? AA_YESMSG : AA_CONDMSG)
+                            != AA_NOCHNG) {
+                        break;
+                    }
+                }
+            }
+            else {
+                /* non-* response should always mean blessed potion */
+                attr_selected = attribs[response - 'a'];
+                adjattrib(attr_selected, rnd(2), AA_YESMSG);
             }
         }
         break;
@@ -1145,9 +1208,7 @@ register struct obj *otmp;
             HLevitation &= ~I_SPECIAL; /* can't descend upon demand */
             if (BLevitation) {
                 ; /* rising via levitation is blocked */
-            } else if ((u.ux == xupstair && u.uy == yupstair)
-                    || (g.sstairs.up && u.ux == g.sstairs.sx && u.uy == g.sstairs.sy)
-                    || (xupladder && u.ux == xupladder && u.uy == yupladder)) {
+            } else if (stairway_find_dir(TRUE)) {
                 (void) doup();
                 /* in case we're already Levitating, which would have
                    resulted in incrementing 'nothing' */
@@ -1684,10 +1745,7 @@ int how;
         }
         /* target might have been killed */
         if (!DEADMONSTER(mon)) {
-            if (angermon)
-                wakeup(mon, TRUE);
-            else
-                mon->msleeping = 0;
+            wakeup(mon, angermon);
         }
     }
 
@@ -1795,25 +1853,32 @@ register struct obj *obj;
         unambiguous = TRUE;
         break;
     case POT_FULL_HEALING:
-        if (Upolyd && u.mh < u.mhmax)
-            u.mh++, g.context.botl = 1;
-        if (u.uhp < u.uhpmax)
-            u.uhp++, g.context.botl = 1;
+        if (Upolyd)
+            u.mh += 10;
+        else
+            u.uhp += 10;
         cureblind = TRUE;
         /*FALLTHRU*/
     case POT_EXTRA_HEALING:
-        if (Upolyd && u.mh < u.mhmax)
-            u.mh++, g.context.botl = 1;
-        if (u.uhp < u.uhpmax)
-            u.uhp++, g.context.botl = 1;
+        if (Upolyd)
+            u.mh += 2;
+        else
+            u.uhp += 2;
         if (!obj->cursed)
             cureblind = TRUE;
         /*FALLTHRU*/
     case POT_HEALING:
-        if (Upolyd && u.mh < u.mhmax)
-            u.mh++, g.context.botl = 1;
-        if (u.uhp < u.uhpmax)
-            u.uhp++, g.context.botl = 1;
+        if (Upolyd)
+            u.mh++;
+        else
+            u.uhp++;
+        if (u.mh > u.mhmax) {
+            u.mh = u.mhmax;
+        }
+        if (u.uhp > u.uhpmax) {
+            u.uhp = u.uhpmax;
+        }
+        g.context.botl = 1;
         if (obj->blessed)
             cureblind = TRUE;
         if (cureblind) {
@@ -1845,14 +1910,41 @@ register struct obj *obj;
         }
         break;
     case POT_HALLUCINATION:
-        You("have a momentary vision.");
-        unambiguous = TRUE;
+        if (!(dmgtype(g.youmonst.data, AD_HALU)
+              || dmgtype(g.youmonst.data, AD_STUN)
+              || g.youmonst.data == &mons[PM_VIOLET_FUNGUS])) {
+            /* This has a longer effect than other potions because the
+             * effect if quaffed is considerably longer than those other
+             * potions. Also the case for blindness vapors. */
+            if (!make_hallucinated(itimeout_incr(HHallucination, rn1(20, 20)),
+                                   TRUE, 0L)) {
+                /* either hallu is blocked, or we were already hallucinating */
+                if (Hallucination) {
+                    pline("The cosmicness around you exacerbates.");
+                }
+                else {
+                    pline("You have a momentary vision.");
+                }
+            }
+            unambiguous = TRUE;
+        }
+        else {
+            pline("Nothing seems to happen.");
+        }
+        break;
+    case POT_BOOZE:
+        /* a whiff of alcohol isn't going to instantly confuse anyone */
+        if (cansmell) {
+            /* "peculiar odor" or "puff of vapor" message printed before this */
+            pline("It smells like alcohol.");
+            unambiguous = TRUE;
+        }
         break;
     case POT_CONFUSION:
-    case POT_BOOZE:
         if (!Confusion)
             You_feel("somewhat dizzy.");
-        make_confused(itimeout_incr(HConfusion, rnd(5)), FALSE);
+        make_confused(itimeout_incr(HConfusion, rn1(10, 5)), FALSE);
+        unambiguous = TRUE;
         break;
     case POT_INVISIBILITY:
         if (!Blind && !Invis) {
@@ -1872,7 +1964,7 @@ register struct obj *obj;
     case POT_SLEEPING:
         if (!Free_action && !Sleep_resistance) {
             You_feel("rather tired.");
-            nomul(-rnd(5));
+            nomul(-rn1(5, 5));
             g.multi_reason = "sleeping off a magical draught";
             g.nomovemsg = You_can_move_again;
             exercise(A_DEX, FALSE);
@@ -1890,7 +1982,7 @@ register struct obj *obj;
             Your("knees seem more flexible now.");
         }
         unambiguous = TRUE;
-        incr_itimeout(&HFast, rnd(5));
+        incr_itimeout(&HFast, rnd(10));
         exercise(A_DEX, TRUE);
         break;
     case POT_BLINDNESS:
@@ -1898,7 +1990,7 @@ register struct obj *obj;
             pline("It suddenly gets dark.");
             unambiguous = TRUE;
         }
-        make_blinded(itimeout_incr(Blinded, rnd(5)), FALSE);
+        make_blinded(itimeout_incr(Blinded, rn1(20, 20)), FALSE);
         if (!Blind && !Unaware)
             Your1(vision_clears);
         break;
@@ -1941,6 +2033,10 @@ register struct obj *obj;
         /* FALLTHRU */
     case POT_LEVITATION:
         You_feel("slightly elevated.");
+        /* Strictly speaking, this is only unambiguous if the player has showexp
+         * turned on or has it off but gains a level in the process, but it's
+         * probably better not to make the identification here not based on the
+         * current options. */
         unambiguous = TRUE;
         break;
     case POT_SEE_INVISIBLE:
@@ -2151,17 +2247,13 @@ dodip()
             goto poof;
     } else if (obj->otyp == POT_POLYMORPH || potion->otyp == POT_POLYMORPH) {
         /* some objects can't be polymorphed */
-        if (obj->otyp == potion->otyp /* both POT_POLY */
-            || obj->otyp == WAN_POLYMORPH || obj->otyp == SPE_POLYMORPH
-            || obj == uball || obj == uskin
-            || obj_resists(obj->otyp == POT_POLYMORPH ? potion : obj,
-                           5, 95)) {
+        if (obj_unpolyable(obj->otyp == POT_POLYMORPH ? potion : obj)) {
             pline1(nothing_happens);
         } else {
             short save_otyp = obj->otyp;
 
             /* KMH, conduct */
-            if(!u.uconduct.polypiles++)
+            if (!u.uconduct.polypiles++)
                 livelog_printf(LL_CONDUCT, "polymorphed %s first item", uhis());
 
             obj = poly_obj(obj, STRANGE_OBJECT);
@@ -2222,6 +2314,7 @@ dodip()
                of the message, but we can't because we need to keep it
                around for potionbreathe() [and we can't set obj->in_use
                to 'amt' because that's not implemented] */
+            int dmg = (amt + rnd(9)) * (Acid_resistance ? 1 : 2);
             obj->in_use = 1;
             pline("%sThey explode!", !Deaf ? "BOOM!  " : "");
             wake_nearto(u.ux, u.uy, (BOLT_LIM + 1) * (BOLT_LIM + 1));
@@ -2229,7 +2322,7 @@ dodip()
             if (!breathless(g.youmonst.data) || haseyes(g.youmonst.data))
                 potionbreathe(obj);
             useupall(obj);
-            losehp(amt + rnd(9), /* not physical damage */
+            losehp(dmg, /* not physical damage */
                    "alchemic blast", KILLED_BY_AN);
             return 1;
         }
@@ -2371,6 +2464,21 @@ dodip()
             makeknown(potion->otyp);
         useup(potion);
         return 1;
+    }
+
+    /* resetting a cancelled thiefstone */
+    if (potion->otyp == POT_RESTORE_ABILITY
+        && obj->otyp == THIEFSTONE && obj->keyed_ledger == 0
+        && !In_endgame(&u.uz)) { /* thiefstones can't key to endgame levels */
+        if (potion->cursed) {
+            pline("%s.", Tobjnam(obj, "twitch"));
+        }
+        else {
+            obj->keyed_ledger = ledger_no(&u.uz);
+            set_keyed_loc(obj, u.ux, u.uy);
+            pline("%s for an instant.", Tobjnam(obj, "quiver"));
+        }
+        goto poof;
     }
  more_dips:
 

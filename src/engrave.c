@@ -1,11 +1,10 @@
-/* NetHack 3.6	engrave.c	$NHDT-Date: 1570318925 2019/10/05 23:42:05 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.75 $ */
+/* NetHack 3.7	engrave.c	$NHDT-Date: 1596498167 2020/08/03 23:42:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.98 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-struct engr *head_engr;
 static void FDECL(engraving_learn_wand, (struct obj*));
 static const char *NDECL(blengr);
 
@@ -407,8 +406,9 @@ xchar e_type;
     Strcpy(ep->engr_txt, s);
     newsym(x, y);
     /* engraving Elbereth shows wisdom */
-    if (!g.in_mklev && !strcmp(s, "Elbereth"))
+    if (!g.in_mklev && !strcmpi(s, "Elbereth")) {
         exercise(A_WIS, TRUE);
+    }
     ep->engr_time = e_time;
     ep->engr_type = e_type > 0 ? e_type : rnd(N_ENGRAVE - 1);
     ep->engr_lth = smem;
@@ -1064,8 +1064,8 @@ doengrave()
 
     /* A single `x' is the traditional signature of an illiterate person */
     if (len != 1 || (!index(ebuf, 'x') && !index(ebuf, 'X')))
-        if(!u.uconduct.literate++)
-            livelog_printf(LL_CONDUCT,"became literate by engraving \"%s\"", ebuf);
+        if (!u.uconduct.literate++)
+            livelog_printf(LL_CONDUCT, "became literate by engraving \"%s\"", ebuf);
 
 
     /* Mix up engraving if surface or state of mind is unsound.
@@ -1340,7 +1340,9 @@ const char *str;
     char buf[BUFSZ];
 
     /* Can we put a grave here? */
-    if ((levl[x][y].typ != ROOM && levl[x][y].typ != GRAVE) || t_at(x, y))
+    if ((levl[x][y].typ != ROOM && levl[x][y].typ != CORR
+         && levl[x][y].typ != GRASS && levl[x][y].typ != GRAVE)
+        || t_at(x, y))
         return;
     /* Make the grave */
     levl[x][y].typ = GRAVE;

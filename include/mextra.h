@@ -1,4 +1,4 @@
-/* NetHack 3.6	mextra.h	$NHDT-Date: 1574722861 2019/11/25 23:01:01 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.24 $ */
+/* NetHack 3.7	mextra.h	$NHDT-Date: 1596498545 2020/08/03 23:49:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.30 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -19,7 +19,9 @@
  *          file.
  *       3. Add a referencing macro at bottom of this file after the mextra
  *          struct (see MNAME, EGD, EPRI, ESHK, EMIN, or EDOG for examples).
- *       4. Create a newXX(mtmp) function and possibly a free_XX(mtmp)
+ *       4. If your new field isn't a pointer and requires a non-zero value
+ *          on initialization, add code to init_mextra() in src/makemon.c
+ *       5. Create a newXX(mtmp) function and possibly a free_XX(mtmp)
  *          function in an appropriate new or existing source file and add
  *          a prototype for it to include/extern.h.
  *
@@ -39,7 +41,7 @@
  *                  }
  *              }
  *
- *       5. Consider adding a new makemon flag MM_XX flag to include/hack.h
+ *       6. Consider adding a new makemon flag MM_XX flag to include/hack.h
  *          and a corresponding change to makemon() if you require your
  *          structure to be added at monster creation time.  Initialize your
  *          struct after a successful return from makemon().
@@ -47,14 +49,14 @@
  *              src/makemon.c:  if (mmflags & MM_XX) newXX(mtmp);
  *              your new code:  mon = makemon(&mons[mnum], x, y, MM_XX);
  *
- *       6. Adjust size_monst() in src/cmd.c appropriately.
- *       7. Adjust dealloc_mextra() in src/mon.c to clean up
+ *       7. Adjust size_monst() in src/cmd.c appropriately.
+ *       8. Adjust dealloc_mextra() in src/mon.c to clean up
  *          properly during monst deallocation.
- *       8. Adjust copy_mextra() in src/mon.c to make duplicate
+ *       9. Adjust copy_mextra() in src/mon.c to make duplicate
  *          copies of your struct or data on another monst struct.
- *       9. Adjust restmon() in src/restore.c to deal with your
+ *      10. Adjust restmon() in src/restore.c to deal with your
  *          struct or data during a restore.
- *      10. Adjust savemon() in src/save.c to deal with your
+ *      11. Adjust savemon() in src/save.c to deal with your
  *          struct or data during a save.
  */
 
@@ -170,6 +172,20 @@ struct edog {
 };
 
 /***
+ **     extension tracking a player's remnant monster (ghost, mummy etc.)
+ */
+struct ebones {
+    uchar role;             /* index into roles[] */
+    uchar race;             /* index into races[] */
+    align oldalign;         /* character alignment */
+    Bitfield(female, 1);    /* was female */
+    uchar deathlevel;       /* level when dying (m_lev may differ) */
+    schar luck;             /* luck when dying */
+    Bitfield(demigod, 1);   /* had killed wiz or invoked */
+    Bitfield(crowned, 1);   /* had been crowned */
+};
+
+/***
  **     mextra.h -- collection of all monster extensions
  */
 struct mextra {
@@ -179,6 +195,7 @@ struct mextra {
     struct eshk *eshk;
     struct emin *emin;
     struct edog *edog;
+    struct ebones *ebones;
     int mcorpsenm; /* obj->corpsenm for mimic posing as statue or corpse,
                     * obj->spe (fruit index) for one posing as a slime mold,
                     * or an alignment mask for one posing as an altar */
@@ -190,6 +207,7 @@ struct mextra {
 #define ESHK(mon) ((mon)->mextra->eshk)
 #define EMIN(mon) ((mon)->mextra->emin)
 #define EDOG(mon) ((mon)->mextra->edog)
+#define EBONES(mon) ((mon)->mextra->ebones)
 #define MCORPSENM(mon) ((mon)->mextra->mcorpsenm)
 
 #define has_mname(mon) ((mon)->mextra && MNAME(mon))
@@ -198,6 +216,7 @@ struct mextra {
 #define has_eshk(mon)  ((mon)->mextra && ESHK(mon))
 #define has_emin(mon)  ((mon)->mextra && EMIN(mon))
 #define has_edog(mon)  ((mon)->mextra && EDOG(mon))
+#define has_ebones(mon) ((mon)->mextra && EBONES(mon))
 #define has_mcorpsenm(mon) ((mon)->mextra && MCORPSENM(mon) != NON_PM)
 
 #endif /* MEXTRA_H */

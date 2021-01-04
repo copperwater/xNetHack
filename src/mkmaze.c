@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkmaze.c	$NHDT-Date: 1577674536 2019/12/30 02:55:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.104 $ */
+/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1596498182 2020/08/03 23:43:02 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.114 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,6 +10,7 @@ static int FDECL(iswall, (int, int));
 static int FDECL(iswall_or_stone, (int, int));
 static boolean FDECL(is_solid, (int, int));
 static int FDECL(extend_spine, (int[3][3], int, int, int));
+static void FDECL(wall_cleanup, (int, int, int, int));
 static boolean FDECL(okay, (int, int, int));
 static void FDECL(maze0xy, (coord *));
 static boolean FDECL(put_lregion_here, (XCHAR_P, XCHAR_P, XCHAR_P,
@@ -21,7 +22,9 @@ static void NDECL(unsetup_waterlevel);
 static void FDECL(check_ransacked, (char *));
 static void FDECL(migr_booty_item, (int, const char *));
 static void FDECL(migrate_orc, (struct monst *, unsigned long));
+static void FDECL(shiny_orc_stuff, (struct monst *));
 static void NDECL(stolen_booty);
+static void FDECL(maze_remove_deadends, (XCHAR_P));
 
 /* adjust a coordinate one step in the specified direction */
 #define mz_move(X, Y, dir) \
@@ -126,7 +129,7 @@ int wall_there, dx, dy;
 
 /* Remove walls totally surrounded by stone.
  * Arguments specify the rectangle in which to do this. */
-void
+static void
 wall_cleanup(x1, y1, x2, y2)
 int x1, y1, x2, y2;
 {
@@ -568,7 +571,7 @@ fixup_special()
         struct obj *otmp;
         int tryct;
 
-        croom = &g.rooms[0]; /* only one room on the medusa level */
+        croom = &g.rooms[0]; /* the first room defined on the medusa level */
         for (tryct = rnd(4); tryct; tryct--) {
             x = somex(croom);
             y = somey(croom);
@@ -595,15 +598,6 @@ fixup_special()
                 /* set_corpsenm() handles weight too */
                 set_corpsenm(otmp, rndmonnum());
             }
-        }
-    } else if (on_level(&u.uz, &orcus_level)) {
-        struct monst *mtmp, *mtmp2;
-
-        /* it's a ghost town, get rid of shopkeepers */
-        for (mtmp = fmon; mtmp; mtmp = mtmp2) {
-            mtmp2 = mtmp->nmon;
-            if (mtmp->isshk)
-                mongone(mtmp);
         }
     } else if (on_level(&u.uz, &baalzebub_level)) {
         /* custom wallify the "beetle" potion of the level */
@@ -661,7 +655,7 @@ unsigned long mflags;
     migrate_to_level(mtmp, ledger_no(&dest), MIGR_RANDOM, (coord *) 0);
 }
 
-void
+static void
 shiny_orc_stuff(mtmp)
 struct monst *mtmp;
 {
@@ -837,7 +831,7 @@ xchar x, y;
  * wall between them with whatever terrain typ is.
  * If it decides to remove the dead end in a direction that goes into a room,
  * create a door there instead. */
-void
+static void
 maze_remove_deadends(typ)
 xchar typ;
 {
@@ -1098,9 +1092,9 @@ int attempts;
  * TODO: rewrite walkfrom so it works on temp space, not levl
  */
 void
-create_maze(corrwid, wallthick)
-int corrwid;
-int wallthick;
+create_maze(corrwid, wallthick, rmdeadends)
+int corrwid, wallthick;
+boolean rmdeadends;
 {
     int x,y;
     coord mm;
@@ -1109,6 +1103,12 @@ int wallthick;
     int rdx = 0;
     int rdy = 0;
     int scale;
+
+    if (corrwid == -1)
+        corrwid = rnd(4);
+
+    if (wallthick == -1)
+        wallthick = rnd(4) - corrwid;
 
     if (wallthick < 1)
         wallthick = 1;
@@ -1164,7 +1164,7 @@ int wallthick;
 
     walkfrom((int) mm.x, (int) mm.y, 0);
 
-    if (!rn2(5))
+    if (rmdeadends)
         maze_remove_deadends((g.level.flags.corrmaze) ? CORR : ROOM);
 
     /* restore bounds */
@@ -1269,6 +1269,7 @@ const char *s;
     if (*protofile) {
         check_ransacked(protofile);
         Strcat(protofile, LEV_EXT);
+        g.in_mk_themerooms = FALSE;
         if (load_special(protofile)) {
             /* some levels can end up with monsters
                on dead mon list, including light source monsters */
@@ -1283,13 +1284,12 @@ const char *s;
 
     /*
     if (!Invocation_lev(&u.uz) && rn2(2)) {
-        int corrscale = rnd(4);
-        create_maze(corrscale,rnd(4)-corrscale);
+        create_maze(-1, -1, !rn2(5));
     } else {
-        create_maze(1,1);
+        create_maze(1, 1, FALSE);
     }
     */
-    create_maze(1,1);
+    create_maze(1, 1, !rn2(5));
 
     if (!g.level.flags.corrmaze)
         wallification(2, 2, g.x_maze_max, g.y_maze_max);
@@ -1300,6 +1300,7 @@ const char *s;
         mazexy(&mm);
         mkstairs(mm.x, mm.y, 0); /* down */
     } else { /* choose "vibrating square" location */
+        stairway *stway;
         int trycnt = 0;
 #define x_maze_min 2
 #define y_maze_min 2
@@ -1332,10 +1333,11 @@ const char *s;
                to be on a spot that's already in use (wall|trap) */
             if (++trycnt > 1000)
                 break;
-        } while (x == xupstair || y == yupstair /*(direct line)*/
-                 || abs(x - xupstair) == abs(y - yupstair)
-                 || distmin(x, y, xupstair, yupstair) <= INVPOS_DISTANCE
-                 || !SPACE_POS(levl[x][y].typ) || occupied(x, y));
+        } while (((stway = stairway_find_dir(TRUE)) != 0)
+                 && (x == stway->sx || y == stway->sy /*(direct line)*/
+                 || abs(x - stway->sx) == abs(y - stway->sy)
+                 || distmin(x, y, stway->sx, stway->sy) <= INVPOS_DISTANCE
+                 || !SPACE_POS(levl[x][y].typ) || occupied(x, y)));
         g.inv_pos.x = x;
         g.inv_pos.y = y;
         maketrap(g.inv_pos.x, g.inv_pos.y, VIBRATING_SQUARE);

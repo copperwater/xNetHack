@@ -1,4 +1,4 @@
-/* NetHack 3.6  artilist.h      $NHDT-Date: 1564351548 2019/07/28 22:05:48 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.20 $ */
+/* NetHack 3.7  artilist.h      $NHDT-Date: 1596498526 2020/08/03 23:48:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.23 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -29,6 +29,7 @@ static const char *artifact_names[] = {
 #define     FIRE(a,b)   {0,AD_FIRE,a,b}
 #define     ELEC(a,b)   {0,AD_ELEC,a,b}         /* electrical shock */
 #define     STUN(a,b)   {0,AD_STUN,a,b}         /* magical attack */
+#define     POIS(a,b)   {0,AD_DRST,a,b}         /* poison */
 /* clang-format on */
 
 static NEARDATA struct artifact artilist[] = {
@@ -81,7 +82,7 @@ static NEARDATA struct artifact artilist[] = {
      *      (handled as special case in spec_dbon()).
      */
     A("Grimtooth", ORCISH_DAGGER, (SPFX_RESTR | SPFX_WARN | SPFX_DFLAG2),
-      0, M2_ELF, PHYS(2, 6), NO_DFNS,
+      0, M2_ELF, PHYS(2, 6), POIS(0, 0),
       NO_CARY, 0, A_CHAOTIC, NON_PM, PM_ORC, 1000L, CLR_RED),
     /*
      *      Orcrist and Sting have same alignment as elves.
@@ -148,7 +149,7 @@ static NEARDATA struct artifact artilist[] = {
      *      allowing those at all causes more problems than worth the effort).
      */
     A("Vorpal Blade", LONG_SWORD, (SPFX_RESTR | SPFX_BEHEAD), 0, 0,
-      PHYS(5, 1), NO_DFNS, NO_CARY, 0, A_NEUTRAL, NON_PM, NON_PM, 4000L,
+      PHYS(5, 8), NO_DFNS, NO_CARY, 0, A_NEUTRAL, NON_PM, NON_PM, 4000L,
       NO_COLOR),
     /*
      *      Ah, never shall I forget the cry,

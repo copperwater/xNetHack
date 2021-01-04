@@ -1,4 +1,4 @@
--- NetHack 3.6	knox.des	$NHDT-Date: 1547343821 2019/01/13 01:43:41 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.13 $
+-- NetHack 3.7	knox.des	$NHDT-Date: 1547343821 2019/01/13 01:43:41 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.13 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1992 by Izchak Miller
 -- NetHack may be freely redistributed.  See license for details.
@@ -39,7 +39,7 @@ des.levregion({ region = {08,16,08,16}, type="branch" });
 des.teleport_region({ region = {06,15,09,16}, dir="up" })
 des.teleport_region({ region = {06,15,09,16}, dir="down" })
 --   Throne room, with Croesus on the throne
-des.region({ x1=37,y1=08,x2=46,y2=11, lit=1, type="throne", prefilled=0 })
+des.region({ x1=37,y1=08,x2=46,y2=11, lit=1, type="throne", filled=1 })
 --   50% chance each to move throne and/or fort's entry secret door up one row
 if percent(50) then
    des.monster({ id = "Croesus", x=43, y=10, peaceful = 0 })
@@ -48,9 +48,11 @@ else
    des.terrain(43,09, "\\")
    des.terrain(43,10, ".")
 end
+fortentrancedoor = {47,10}
 if percent(50) then
    des.terrain(47,09, "S")
    des.terrain(47,10, "|")
+   fortentrancedoor = {47,09}
 end
 
 --   The Vault
@@ -70,9 +72,11 @@ local treasury = selection.area(21,08,35,11);
 treasury:iterate(treasure_spot);
 
 --   Vault entrance also varies
+vaultentrancedoor = {36,09}
 if percent(50) then
    des.terrain(36,09, "|")
    des.terrain(36,10, "S")
+   vaultentrancedoor = {36, 10} 
 end
 --   Corner towers
 des.region(selection.area(19,06,21,06),"lit")
@@ -80,10 +84,10 @@ des.region(selection.area(46,06,48,06),"lit")
 des.region(selection.area(19,13,21,13),"lit")
 des.region(selection.area(46,13,48,13),"lit")
 --   A welcoming committee
-des.region({ region={03,10,07,13},lit=1,type="zoo",prefilled=0,irregular=1 })
+des.region({ region={03,10,07,13},lit=1,type="zoo",filled=1,irregular=1 })
 --   arrival chamber; needs to be a real room to control migrating monsters,
 --   and `unfilled' is a kludge to force an ordinary room to remain a room
-des.region({ region={06,15,09,16},lit=0,type="ordinary",prefilled=0 })
+des.region({ region={06,15,09,16},lit=0,type="ordinary",arrival_room=true })
 
 --   3.6.2:  Entering level carrying a lit candle would show the whole entry
 --   chamber except for its top right corner even though some of the revealed
@@ -109,19 +113,26 @@ des.region(selection.area(05,14,09,14),"unlit")
 --   it is expected to work.)
 
 --   Barracks
-des.region({ region={62,03,71,04},lit=1,type="barracks",prefilled=0,irregular=1 })
--- Doors
+des.region({ region={62,03,71,04},lit=1,type="barracks",filled=1,irregular=1 })
+des.door({ state="open", x=63, y=05, iron=1 })
+des.door({ state="open", x=66, y=05, iron=1 })
+des.door({ state="open", x=68, y=08, iron=1 })
+des.door({ state="open", x=68, y=11, iron=1 })
+des.door({ state="closed", x=63, y=14, iron=1 })
+des.door({ state="closed", x=66, y=14, iron=1 })
+-- Doors on starting side of the map
 des.door("closed",06,14)
-des.door("closed",09,03)
-des.door("open",63,05)
-des.door("open",66,05)
-des.door("open",68,08)
-des.door("locked",08,11)
-des.door("open",68,11)
-des.door("closed",63,14)
-des.door("closed",66,14)
+des.door({ state="closed", x=09, y=03, iron=1 })
+des.door({ state="locked", x=08, y=11, iron=1 })
 des.door("closed",04,03)
 des.door("closed",04,09)
+-- Doors in the fort itself
+des.door({ state="secret", locked=1, coord=fortentrancedoor, iron=1 })
+des.door({ state="secret", locked=1, coord=vaultentrancedoor, iron=1 })
+des.door({ state="secret", locked=1, coord={21,07}, iron=1 })
+des.door({ state="secret", locked=1, coord={21,12}, iron=1 })
+des.door({ state="secret", locked=1, coord={46,07}, iron=1 })
+des.door({ state="secret", locked=1, coord={46,12}, iron=1 })
 -- Soldiers guarding the fort
 des.monster("soldier",12,14)
 des.monster("soldier",12,13)

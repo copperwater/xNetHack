@@ -1,4 +1,4 @@
-/* NetHack 3.6	minion.c	$NHDT-Date: 1583688543 2020/03/08 17:29:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.53 $ */
+/* NetHack 3.7	minion.c	$NHDT-Date: 1596498180 2020/08/03 23:43:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.55 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -232,9 +232,15 @@ struct monst* mtmp;
     char name_appears[BUFSZ]; /* holds "Foo_appears", as lua key */
     char* iter;
 
-    if (!(is_ndemon(mdat) || is_rider(mdat) || mondx == PM_VLAD_THE_IMPALER
-          || mondx == PM_WIZARD_OF_YENDOR)) {
+    if (!(is_dlord(mdat) || is_dprince(mdat) || is_rider(mdat)
+          || mondx == PM_VLAD_THE_IMPALER || mondx == PM_WIZARD_OF_YENDOR)) {
         /* no appearance message exists for this type of monster */
+        return FALSE;
+    }
+
+    if (mdat->msound == MS_NEMESIS || mdat->msound == MS_LEADER) {
+        /* this could be a demon quest nemesis/leader, who will have their own
+         * dialog */
         return FALSE;
     }
 
@@ -297,7 +303,8 @@ register struct monst *mtmp;
     if (is_dprince(mtmp->data)) {
         mtmp->minvis = mtmp->perminvis = 0;
         if ((mtmp->mstrategy & STRAT_APPEARMSG) && !boss_entrance(mtmp)) {
-            impossible("demon_talk: still can't see monster?");
+            /* you still can't see the demon; this can happen if you are blind
+             * and non-telepathic. */
             mtmp->mstrategy &= ~STRAT_APPEARMSG;
         }
         newsym(mtmp->mx, mtmp->my);
@@ -336,7 +343,7 @@ register struct monst *mtmp;
             pline("%s vanishes, laughing about cowardly mortals.",
                   Amonnam(mtmp));
             livelog_printf(LL_UMONST, "bribed %s with %ld %s for safe passage",
-                  Amonnam(mtmp), offer, currency(offer));
+                           Amonnam(mtmp), offer, currency(offer));
         }
         else if (offer == cash && offer > 0 && cash >= demand / 2 && !rn2(50)) {
             /* monster may rarely take pity on you if you hand over everything

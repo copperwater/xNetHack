@@ -1,4 +1,4 @@
-/* NetHack 3.6	mondata.c	$NHDT-Date: 1581803740 2020/02/15 21:55:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.77 $ */
+/* NetHack 3.7	mondata.c	$NHDT-Date: 1606473489 2020/11/27 10:38:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.87 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -265,7 +265,8 @@ struct obj *obj; /* aatyp == AT_WEAP, AT_SPIT */
     if (check_visor) {
         o = (mdef == &g.youmonst) ? g.invent : mdef->minvent;
         for (; o; o = o->nobj)
-            if ((o->owornmask & W_ARMH) && objdescr_is(o, "visored helmet"))
+            if ((o->owornmask & W_ARMH)
+                && objdescr_is(o, "visored helmet"))
                 return FALSE;
     }
 
@@ -309,6 +310,12 @@ int material;
     /* extra case: shapeshifted vampires still hate silver */
     if (material == SILVER && is_vampshifter(mon))
         return TRUE;
+
+    /* extra extra case: lycanthrope player (monster lycanthropes all fall under
+     * hates_material, and non-lycanthropes can't currently be infected) */
+    if (mon == &g.youmonst && material == SILVER && u.ulycn >= LOW_PM)
+        return TRUE;
+
     return FALSE;
 }
 
@@ -330,8 +337,11 @@ int material;
                 || (ptr->mlet == S_IMP));
     }
     else if (material == IRON) {
+        if (is_undead(ptr)) {
+            return FALSE;
+        }
         /* cold iron: fairy/fae creatures hate it */
-        return (ptr->mlet == S_ELF || ptr->mlet == S_NYMPH
+        return (ptr->mlet == S_ELF || is_elf(ptr) || ptr->mlet == S_NYMPH
                 || ptr->mlet == S_IMP);
     }
     else if (material == COPPER) {
@@ -373,7 +383,10 @@ struct permonst *mptr;
 {
     return (boolean) (passes_walls(mptr) || amorphous(mptr) || unsolid(mptr)
                       || is_whirly(mptr) || verysmall(mptr)
-                      || dmgtype(mptr, AD_CORR) || dmgtype(mptr, AD_RUST)
+                      /* rust monsters and some puddings can destroy bars */
+                      || dmgtype(mptr, AD_RUST) || dmgtype(mptr, AD_CORR)
+                      /* rock moles can eat bars */
+                      || metallivorous(mptr)
                       || (slithy(mptr) && !bigmonst(mptr)));
 }
 
@@ -453,7 +466,9 @@ sliparm(ptr)
 register struct permonst *ptr;
 {
     return (boolean) (is_whirly(ptr) || ptr->msize <= MZ_SMALL
-                      || noncorporeal(ptr));
+                      || noncorporeal(ptr)
+                      || (slithy(ptr) && !humanoid(ptr)
+                          && ptr->msize < MZ_GIGANTIC));
 }
 
 /* creature will break out of armor */
@@ -545,7 +560,7 @@ int
 max_passive_dmg(mdef, magr)
 register struct monst *mdef, *magr;
 {
-    int i, dmg = 0, multi2 = 0;
+    int i, dmg, multi2 = 0;
     uchar adtyp;
 
     /* each attack by magr can result in passive damage */
@@ -567,25 +582,29 @@ register struct monst *mdef, *magr;
             break;
         }
 
+    dmg = 0;
     for (i = 0; i < NATTK; i++)
         if (mdef->data->mattk[i].aatyp == AT_NONE
             || mdef->data->mattk[i].aatyp == AT_BOOM) {
             adtyp = mdef->data->mattk[i].adtyp;
-            if ((adtyp == AD_ACID && !resists_acid(magr))
-                || (adtyp == AD_COLD && !resists_cold(magr))
-                || (adtyp == AD_FIRE && !resists_fire(magr))
-                || (adtyp == AD_ELEC && !resists_elec(magr))
-                || adtyp == AD_PHYS) {
+            if ((adtyp == AD_FIRE && completelyburns(magr->data))
+                || (adtyp == AD_DCAY && completelyrots(magr->data))
+                || (adtyp == AD_RUST && completelyrusts(magr->data))) {
+                dmg = magr->mhp;
+            } else if ((adtyp == AD_ACID && !resists_acid(magr))
+                       || (adtyp == AD_COLD && !resists_cold(magr))
+                       || (adtyp == AD_FIRE && !resists_fire(magr))
+                       || (adtyp == AD_ELEC && !resists_elec(magr))
+                       || adtyp == AD_PHYS) {
                 dmg = mdef->data->mattk[i].damn;
                 if (!dmg)
                     dmg = mdef->data->mlevel + 1;
                 dmg *= mdef->data->mattk[i].damd;
-            } else
-                dmg = 0;
-
-            return dmg * multi2;
+            }
+            dmg *= multi2;
+            break;
         }
-    return 0;
+    return dmg;
 }
 
 /* determine whether two monster types are from the same species */
@@ -713,10 +732,23 @@ struct alt_spl {
     short pm_val;
 };
 
-/* figure out what type of monster a user-supplied string is specifying */
+/* figure out what type of monster a user-supplied string is specifying;
+   ingore anything past the monster name */
 int
 name_to_mon(in_str)
 const char *in_str;
+{
+    return name_to_monplus(in_str, (const char **) 0);
+}
+
+/* figure out what type of monster a user-supplied string is specifying;
+   return a pointer to whatever is past the monster name--necessary if
+   caller wants to strip off the name and it matches one of the alternate
+   names rather the canonical mons[].mname */
+int
+name_to_monplus(in_str, remainder_p)
+const char *in_str;
+const char **remainder_p;
 {
     /* Be careful.  We must check the entire string in case it was
      * something such as "ettin zombie corpse".  The calling routine
@@ -735,6 +767,9 @@ const char *in_str;
     register char *s, *str, *term;
     char buf[BUFSZ];
     int len, slen;
+
+    if (remainder_p)
+        *remainder_p = (const char *) 0;
 
     str = strcpy(buf, in_str);
 
@@ -789,6 +824,15 @@ const char *in_str;
             { "woodland nymph", PM_WOOD_NYMPH },
             { "halfling", PM_HOBBIT },    /* potential guess for polyself */
             { "genie", PM_DJINNI }, /* potential guess for ^G/#wizgenesis */
+            /* prefix used to workaround duplicate monster names for
+               monsters with alternate forms */
+            { "human wererat", PM_HUMAN_WERERAT },
+            { "human werejackal", PM_HUMAN_WEREJACKAL },
+            { "human werewolf", PM_HUMAN_WEREWOLF },
+            /* for completeness */
+            { "rat wererat", PM_WERERAT },
+            { "jackal werejackal", PM_WEREJACKAL },
+            { "wolf werewolf", PM_WEREWOLF },
             /* Hyphenated names -- it would be nice to handle these via
                fuzzymatch() but it isn't able to ignore trailing stuff */
             { "ki rin", PM_KI_RIN },
@@ -802,6 +846,7 @@ const char *in_str;
             { "elf lord", PM_ELF_LORD },
             { "olog hai", PM_OLOG_HAI },
             { "arch lich", PM_ARCH_LICH },
+            { "archlich", PM_ARCH_LICH },
             /* Some irregular plurals */
             { "incubi", PM_INCUBUS },
             { "succubi", PM_SUCCUBUS },
@@ -820,9 +865,16 @@ const char *in_str;
         };
         register const struct alt_spl *namep;
 
-        for (namep = names; namep->name; namep++)
-            if (!strncmpi(str, namep->name, (int) strlen(namep->name)))
+        for (namep = names; namep->name; namep++) {
+            len = (int) strlen(namep->name);
+            if (!strncmpi(str, namep->name, len)
+                /* force full word (which could conceivably be possessive) */
+                && (!str[len] || str[len] == ' ' || str[len] == '\'')) {
+                if (remainder_p)
+                    *remainder_p = in_str + (&str[len] - buf);
                 return namep->pm_val;
+            }
+        }
     }
 
     for (len = 0, i = LOW_PM; i < NUMMONS; i++) {
@@ -831,6 +883,7 @@ const char *in_str;
         if (m_i_len > len && !strncmpi(mons[i].mname, str, m_i_len)) {
             if (m_i_len == slen) {
                 mntmp = i;
+                len = m_i_len;
                 break; /* exact match */
             } else if (slen > m_i_len
                        && (str[m_i_len] == ' '
@@ -848,7 +901,9 @@ const char *in_str;
         }
     }
     if (mntmp == NON_PM)
-        mntmp = title_to_mon(str, (int *) 0, (int *) 0);
+        mntmp = title_to_mon(str, (int *) 0, &len);
+    if (len && remainder_p)
+        *remainder_p = in_str + (&str[len] - buf);
     return mntmp;
 }
 
@@ -1277,6 +1332,63 @@ int mndx;
     default:
         return 0;
     }
+}
+
+/* Return the radius at which a monster is supposed to emit light, or 0 if it
+ * does not emit any light. (The return value is also commonly used as a boolean
+ * expression.)
+ * This was moved out of mondata.h because it was becoming a rather complex
+ * macro.
+ */
+int
+emits_light(ptr)
+struct permonst *ptr;
+{
+    if (!ptr) {
+        impossible("emits_light: null permonst!");
+        return 0;
+    }
+    if (ptr->mlet == S_LIGHT) {
+        if (ptr == &mons[PM_YELLOW_LIGHT]) {
+            return 2;
+        }
+        return 1;
+    }
+    switch(monsndx(ptr)) {
+    case PM_FIRE_ELEMENTAL:
+        return 2;
+    case PM_FLAMING_SPHERE:
+    case PM_SHOCKING_SPHERE:
+    case PM_FIRE_VORTEX:
+        return 1;
+    }
+    return 0;
+}
+
+/* Return TRUE if the monster has flesh. */
+boolean
+is_fleshy(ptr)
+const struct permonst *ptr;
+{
+    if (vegetarian(ptr)) {
+        /* vegetarian monsters generally don't have flesh */
+        return FALSE;
+    }
+    if (noncorporeal(ptr)) {
+        /* these certainly don't have flesh */
+        return FALSE;
+    }
+    if (!nonliving(ptr)) {
+        /* nonvegetarian, alive monsters generally do */
+        return TRUE;
+    }
+    if (ptr->mlet == S_MUMMY || ptr->mlet == S_VAMPIRE
+        || (ptr->mlet == S_ZOMBIE && ptr != &mons[PM_SKELETON])
+        || ptr == &mons[PM_FLESH_GOLEM]) {
+        /* Exceptions: non-living monsters that do have flesh */
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /*mondata.c*/

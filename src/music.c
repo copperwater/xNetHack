@@ -1,4 +1,4 @@
-/* NetHack 3.6	music.c	$NHDT-Date: 1578252632 2020/01/05 19:30:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.67 $ */
+/* NetHack 3.7	music.c	$NHDT-Date: 1596498191 2020/08/03 23:43:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.69 $ */
 /*      Copyright (c) 1989 by Jean-Christophe Collet */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -33,6 +33,7 @@ static void FDECL(charm_snakes, (int));
 static void FDECL(calm_nymphs, (int));
 static void FDECL(charm_monsters, (int));
 static void FDECL(do_earthquake, (int));
+static const char *NDECL(generic_lvl_desc);
 static int FDECL(do_improvisation, (struct obj *));
 
 /*
@@ -50,7 +51,7 @@ int distance;
         if (DEADMONSTER(mtmp))
             continue;
         if ((distm = distu(mtmp->mx, mtmp->my)) < distance) {
-            mtmp->msleeping = 0;
+            wakeup(mtmp, FALSE);
             mtmp->mcanmove = 1;
             mtmp->mfrozen = 0;
             /* may scare some monsters -- waiting monsters excluded */
@@ -143,7 +144,7 @@ int distance;
             continue;
         if (mtmp->data->mlet == S_NYMPH && mtmp->mcanmove
             && distu(mtmp->mx, mtmp->my) < distance) {
-            mtmp->msleeping = 0;
+            wakeup(mtmp, FALSE);
             mtmp->mpeaceful = 1;
             mtmp->mavenge = 0;
             mtmp->mstrategy &= ~STRAT_WAITMASK;
@@ -182,7 +183,7 @@ struct monst *bugler; /* monster that played instrument */
                                  ? distu(mtmp->mx, mtmp->my)
                                  : dist2(bugler->mx, bugler->my, mtmp->mx,
                                          mtmp->my))) < distance) {
-            mtmp->msleeping = 0;
+            wakeup(mtmp, FALSE);
             mtmp->mcanmove = 1;
             mtmp->mfrozen = 0;
             /* may scare some monsters -- waiting monsters excluded */
@@ -468,7 +469,7 @@ int force;
         }
 }
 
-const char *
+static const char *
 generic_lvl_desc()
 {
     if (Is_astralevel(&u.uz))

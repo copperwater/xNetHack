@@ -1,4 +1,4 @@
-/* NetHack 3.6	light.c	$NHDT-Date: 1559994625 2019/06/08 11:50:25 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.30 $ */
+/* NetHack 3.7	light.c	$NHDT-Date: 1604442297 2020/11/03 22:24:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.46 $ */
 /* Copyright (c) Dean Luick, 1994                                       */
 /* NetHack may be freely redistributed.  See license for details.       */
 
@@ -41,26 +41,42 @@
 #define LSF_SHOW 0x1        /* display the light source */
 #define LSF_NEEDS_FIXUP 0x2 /* need oid fixup */
 
+static light_source *FDECL(new_light_core, (XCHAR_P, XCHAR_P, int, int,
+                                            anything *));
+static void NDECL(discard_flashes);
 static void FDECL(write_ls, (NHFILE *, light_source *));
 static int FDECL(maybe_write_ls, (NHFILE *, int, BOOLEAN_P));
 
 /* imported from vision.c, for small circles */
-extern char circle_data[];
-extern char circle_start[];
+extern xchar circle_data[];
+extern xchar circle_start[];
 
 
-/* Create a new light source.  */
+/* Create a new light source.  Caller (and extern.h) doesn't need to know
+   anything about type 'light_source'. */
 void
 new_light_source(x, y, range, type, id)
     xchar x, y;
     int range, type;
     anything *id;
 {
+    (void) new_light_core(x, y, range, type, id);
+}
+
+/* Create a new light source and return it.  Only used within this file. */
+static light_source *
+new_light_core(x, y, range, type, id)
+    xchar x, y;
+    int range, type;
+    anything *id;
+{
     light_source *ls;
 
-    if (range > MAX_RADIUS || range < 1) {
-	impossible("new_light_source:  illegal range %d", range);
-	return;
+    if (range > MAX_RADIUS || range < 0
+        /* camera flash uses radius 0 and passes Null object */
+        || (range == 0 && (type != LS_OBJECT || id->a_obj != 0))) {
+        impossible("new_light_source:  illegal range %d", range);
+	return (light_source *) 0;
     }
 
     ls = (light_source *) alloc(sizeof *ls);
@@ -75,6 +91,7 @@ new_light_source(x, y, range, type, id)
     g.light_base = ls;
 
     g.vision_full_recalc = 1; /* make the source show up */
+    return ls;
 }
 
 /*
@@ -95,7 +112,7 @@ anything *id;
        (in particular: chameleon vs prot. from shape changers) */
     switch (type) {
     case LS_OBJECT:
-        tmp_id.a_uint = id->a_obj->o_id;
+        tmp_id.a_uint = id->a_obj ? id->a_obj->o_id : 0;
         break;
     case LS_MONSTER:
         tmp_id.a_uint = id->a_monst->m_id;
@@ -127,13 +144,13 @@ anything *id;
 /* Mark locations that are temporarily lit via mobile light sources. */
 void
 do_light_sources(cs_rows)
-char **cs_rows;
+xchar **cs_rows;
 {
     int x, y, min_x, max_x, max_y, offset;
-    char *limits;
+    xchar *limits;
     short at_hero_range = 0;
     light_source *ls;
-    char *row;
+    xchar *row;
 
     for (ls = g.light_base; ls; ls = ls->next) {
         ls->flags &= ~LSF_SHOW;
@@ -145,7 +162,8 @@ char **cs_rows;
          * vision recalc.
          */
         if (ls->type == LS_OBJECT) {
-            if (get_obj_location(ls->id.a_obj, &ls->x, &ls->y, 0))
+            if (ls->range == 0 /* camera flash; caller has set ls->{x,y} */
+                || get_obj_location(ls->id.a_obj, &ls->x, &ls->y, 0))
                 ls->flags |= LSF_SHOW;
         } else if (ls->type == LS_MONSTER) {
             if (get_mon_location(ls->id.a_monst, &ls->x, &ls->y, 0))
@@ -177,8 +195,8 @@ char **cs_rows;
             for (; y <= max_y; y++) {
                 row = cs_rows[y];
                 offset = limits[abs(y - ls->y)];
-                if ((min_x = (ls->x - offset)) < 0)
-                    min_x = 0;
+                if ((min_x = (ls->x - offset)) < 1)
+                    min_x = 1;
                 if ((max_x = (ls->x + offset)) >= COLNO)
                     max_x = COLNO - 1;
 
@@ -210,75 +228,120 @@ char **cs_rows;
 
 /* lit 'obj' has been thrown or kicked and is passing through x,y on the
    way to its destination; show its light so that hero has a chance to
-   remember terrain, objects, and monsters being revealed */
+   remember terrain, objects, and monsters being revealed;
+   if 'obj' is Null, <x,y> is being hit by a camera's light flash */
 void
 show_transient_light(obj, x, y)
 struct obj *obj;
 int x, y;
 {
-    light_source *ls;
+    light_source *ls = 0;
+    anything cameraflash;
     struct monst *mon;
     int radius_squared;
 
-    /* caller has verified obj->lamplit and that hero is not Blind;
-       validate light source and obtain its radius (for monster sightings) */
-    for (ls = g.light_base; ls; ls = ls->next) {
-        if (ls->type != LS_OBJECT)
-            continue;
-        if (ls->id.a_obj == obj)
-            break;
+    /* Null object indicates camera flash */
+    if (!obj) {
+        /* no need to temporarily light an already lit spot */
+        if (levl[x][y].lit)
+            return;
+
+        cameraflash = cg.zeroany;
+        /* radius 0 will just light <x,y>; cameraflash.a_obj is Null */
+        ls = new_light_core(x, y, 0, LS_OBJECT, &cameraflash);
+    } else {
+        /* thrown or kicked object which is emitting light; validate its
+           light source to obtain its radius (for monster sightings) */
+        for (ls = g.light_base; ls; ls = ls->next) {
+            if (ls->type != LS_OBJECT)
+                continue;
+            if (ls->id.a_obj == obj)
+                break;
+        }
     }
-    if (!ls || obj->where != OBJ_FREE) {
+    if (!ls || (obj && obj->where != OBJ_FREE)) {
         impossible("transient light %s %s is not %s?",
                    obj->lamplit ? "lit" : "unlit", xname(obj),
                    !ls ? "a light source" : "free");
-    } else {
-        /* "expensive" but rare */
-        place_object(obj, g.bhitpos.x, g.bhitpos.y); /* temporarily put on map */
-        vision_recalc(0);
-        flush_screen(0);
-        delay_output();
-        remove_object(obj); /* take back off of map */
+        return;
+    }
 
-        radius_squared = ls->range * ls->range;
-        for (mon = fmon; mon; mon = mon->nmon) {
-            if (DEADMONSTER(mon))
-                continue;
-            /* light range is the radius of a circle and we're limiting
-               canseemon() to a square exclosing that circle, but setting
-               mtemplit 'erroneously' for a seen monster is not a problem;
-               it just flags monsters for another canseemon() check when
-               'obj' has reached its destination after missile traversal */
-            if (dist2(mon->mx, mon->my, x, y) <= radius_squared
-                && canseemon(mon))
+    if (obj) /* put lit candle or lamp temporarily on the map */
+        place_object(obj, g.bhitpos.x, g.bhitpos.y);
+    else /* camera flash:  no object; directly set light source's location */
+        ls->x = x, ls->y = y;
+
+    /* full recalc; runs do_light_sources() */
+    vision_recalc(0);
+    flush_screen(0);
+
+    radius_squared = ls->range * ls->range;
+    for (mon = fmon; mon; mon = mon->nmon) {
+        if (DEADMONSTER(mon) || (mon->isgd && !mon->mx))
+            continue;
+        /* light range is the radius of a circle and we're limiting
+           canseemon() to a square exclosing that circle, but setting
+           mtemplit 'erroneously' for a seen monster is not a problem;
+           it just flags monsters for another canseemon() check when
+           'obj' has reached its destination after missile traversal */
+        if (dist2(mon->mx, mon->my, x, y) <= radius_squared) {
+            if (canseemon(mon))
                 mon->mtemplit = 1;
-            /* [what about worm tails?] */
         }
+        /* [what about worm tails?] */
+    }
+
+    if (obj) { /* take thrown/kicked candle or lamp off the map */
+        delay_output();
+        remove_object(obj);
     }
 }
 
-/* draw "remembered, unseen monster" glyph at locations where a monster
-   was flagged for being visible during transient light movement but can't
-   be seen now */
+/* delete any camera flash light sources and draw "remembered, unseen
+   monster" glyph at locations where a monster was flagged for being
+   visible during transient light movement but can't be seen now */
 void
 transient_light_cleanup()
 {
     struct monst *mon;
-    int mtempcount = 0;
+    int mtempcount;
 
+    /* in case we're cleaning up a camera flash, remove all object light
+       sources which aren't associated with a specific object */
+    discard_flashes();
+    if (g.vision_full_recalc) /* set by del_light_source() */
+        vision_recalc(0);
+
+    /* for thrown/kicked candle or lamp or for camera flash, some
+       monsters may have been mapped in light which has now gone away
+       so need to be replaced by "remembered, unseen monster" glyph */
+    mtempcount = 0;
     for (mon = fmon; mon; mon = mon->nmon) {
         if (DEADMONSTER(mon))
             continue;
         if (mon->mtemplit) {
             mon->mtemplit = 0;
             ++mtempcount;
-            if (!canseemon(mon))
+            if (!canspotmon(mon))
                 map_invisible(mon->mx, mon->my);
         }
     }
-    if (mtempcount) {
-        vision_recalc(0);
+    if (mtempcount)
         flush_screen(0);
+}
+
+/* camera flashes have Null object; caller wants to get rid of them now */
+static void
+discard_flashes()
+{
+    light_source *ls, *nxt_ls;
+
+    for (ls = g.light_base; ls; ls = nxt_ls) {
+        nxt_ls = ls->next;
+        if (ls->type != LS_OBJECT)
+            continue;
+        if (!ls->id.a_obj)
+            del_light_source(LS_OBJECT, &ls->id);
     }
 }
 
@@ -318,6 +381,13 @@ int range;
     int count, actual, is_global;
     light_source **prev, *curr;
 
+    /* camera flash light sources have Null object and would trigger
+       impossible("no id!") below; they can only happen here if we're
+       in the midst of a panic save and they wouldn't be useful after
+       restore so just throw any that are present away */
+    discard_flashes();
+    g.vision_full_recalc = 0;
+
     if (perform_bwrite(nhfp)) {
         count = maybe_write_ls(nhfp, range, FALSE);
         if (nhfp->structlevel) {
@@ -330,7 +400,7 @@ int range;
     }
     
      if (release_data(nhfp)) {
-        for (prev = &g.light_base; (curr = *prev) != 0;) {
+        for (prev = &g.light_base; (curr = *prev) != 0; ) {
             if (!curr->id.a_monst) {
                 impossible("save_light_sources: no id! [range=%d]", range);
                 is_global = 0;
@@ -621,8 +691,7 @@ boolean
 obj_is_burning(obj)
 struct obj *obj;
 {
-    return (boolean) (obj->lamplit && (obj->otyp == MAGIC_LAMP
-                                       || ignitable(obj)
+    return (boolean) (obj->lamplit && (ignitable(obj)
                                        || artifact_light(obj)));
 }
 

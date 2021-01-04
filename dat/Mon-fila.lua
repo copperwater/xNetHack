@@ -1,4 +1,4 @@
--- NetHack 3.6	Monk.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
+-- NetHack 3.7	Monk.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -48,10 +48,10 @@ end
 
 -- Monsters
 for i=1,2 + d(3) do
-  des.monster("E")
+  des.monster({ class="E", peaceful=0 })
 end
 for i=1,3 do
-  des.monster("xorn")
+  des.monster({ class="xorn", peaceful=0 })
 end
 
 -- Objects

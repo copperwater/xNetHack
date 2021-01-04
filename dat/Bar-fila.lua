@@ -1,4 +1,6 @@
--- NetHack 3.6	Barb.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+-- NetHack 3.7	Barb.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+--	Copyright (c) 1989 by Jean-Christophe Collet
+--	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
 --
 des.level_flags("mazelevel", "outdoors", "hardfloor", "inaccessibles", "noflip");
@@ -43,10 +45,10 @@ for i=1,4 do
   des.trap()
 end
 for i=1,3 do
-  des.monster("ogre")
+  des.monster({ id="ogre", peaceful=0 })
 end
-des.monster({ class="O" })
-des.monster({ class="T" })
+des.monster({ class="O", peaceful=0 })
+des.monster({ class="T", peaceful=0 })
 
 -- wallify the rock promontories
 -- we don't want to wallify the stone left and right map edges, so need to limit the range

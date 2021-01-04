@@ -1,11 +1,11 @@
-/* NetHack 3.6	pray.c	$NHDT-Date: 1584872363 2020/03/22 10:19:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.142 $ */
+/* NetHack 3.7	pray.c	$NHDT-Date: 1596498198 2020/08/03 23:43:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.144 $ */
 /* Copyright (c) Benson I. Margulies, Mike Stephenson, Steve Linhart, 1989. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
 static int FDECL(countfood, (struct obj *));
-static boolean NDECL(starving);
+static boolean NDECL(insufficient_food);
 static int NDECL(prayer_done);
 static struct obj *NDECL(worst_cursed_item);
 static int NDECL(in_trouble);
@@ -217,22 +217,25 @@ struct obj* item;
     return totnut;
 }
 
-/* Return True if your hunger should be classified as a major problem, because
- * you are currently going to starve to death with nothing to eat.
+/* Return True if you are not carrying enough food to get you out of being
+ * Hungry (unless slow digesting in which you can survive a fair bit longer).
  */
 static boolean
-starving()
+insufficient_food()
 {
-    if (u.uhs < WEAK) /* not a major problem */
-        return FALSE;
+    if (!u.uconduct.food) {
+        /* (most likely) foodless - even if carrying food, they won't eat it */
+        return (u.uhunger < 150);
+    }
 
     int totalfood = countfood(NULL);
 
-    if (Slow_digestion)
+    if (Slow_digestion) {
         /* Even the least nutritious of foods will keep you going for a while
          * with slow digestion, so it's only a serious problem if you are about
          * to faint and have no food. */
         return (u.uhunger + totalfood < 10);
+    }
 
     /* It is a big problem if your food stores are insufficient to get you out
      * of HUNGRY range into NOT_HUNGRY (150). */
@@ -258,6 +261,7 @@ in_trouble()
 {
     struct obj *otmp;
     int i;
+    boolean nofood = insufficient_food();
 
     /*
      * major troubles
@@ -272,12 +276,16 @@ in_trouble()
         return TROUBLE_LAVA;
     if (Sick)
         return TROUBLE_SICK;
-    if (starving())
+    /* Yes, TROUBLE_STARVING is returned twice; being Fainting at low HP is
+     * worse than being Weak at low HP */
+    if (u.uhs >= FAINTING && nofood)
         return TROUBLE_STARVING;
     if (region_danger())
         return TROUBLE_REGION;
     if (critically_low_hp(FALSE))
         return TROUBLE_HIT;
+    if (u.uhs >= WEAK && nofood)
+        return TROUBLE_STARVING;
     if (u.ulycn >= LOW_PM)
         return TROUBLE_LYCANTHROPE;
     if (near_capacity() >= EXT_ENCUMBER && AMAX(A_STR) - ABASE(A_STR) > 3)
@@ -773,7 +781,7 @@ aligntyp resp_god;
                   : "art arrogant",
               g.youmonst.data->mlet == S_HUMAN ? "mortal" : "creature");
         verbalize("Thou must relearn thy lessons!");
-        (void) adjattrib(A_WIS, -1, FALSE);
+        (void) adjattrib(A_WIS, -1, AA_YESMSG);
         losexp((char *) 0);
         break;
     case 6:
@@ -837,7 +845,6 @@ gcrownu()
     int sp_no;
 #define ok_wep(o) ((o) && ((o)->oclass == WEAPON_CLASS || is_weptool(o)))
 
-    HSee_invisible |= FROMOUTSIDE;
     HFire_resistance |= FROMOUTSIDE;
     HCold_resistance |= FROMOUTSIDE;
     HShock_resistance |= FROMOUTSIDE;
@@ -866,7 +873,7 @@ gcrownu()
         u.uevent.uhand_of_elbereth = 1;
         verbalize("I crown thee...  The Hand of Elbereth!");
         livelog_printf(LL_DIVINEGIFT,
-                "was crowned \"The Hand of Elbereth\" by %s", u_gname());
+                       "was crowned \"The Hand of Elbereth\" by %s", u_gname());
         break;
     case A_NEUTRAL:
         u.uevent.uhand_of_elbereth = 2;
@@ -875,7 +882,7 @@ gcrownu()
             exist_artifact(LONG_SWORD, artiname(ART_VORPAL_BLADE));
         verbalize("Thou shalt be my Envoy of Balance!");
         livelog_printf(LL_DIVINEGIFT, "became %s Envoy of Balance",
-                s_suffix(u_gname()));
+                       s_suffix(u_gname()));
         break;
     case A_CHAOTIC:
         u.uevent.uhand_of_elbereth = 3;
@@ -887,9 +894,10 @@ gcrownu()
                    || class_gift != STRANGE_OBJECT) ? "take lives"
                   : "steal souls");
         livelog_printf(LL_DIVINEGIFT, "was chosen to %s for the Glory of %s",
-                (already_exists && !in_hand)
-                 || class_gift != STRANGE_OBJECT ? "take lives" : "steal souls",
-                u_gname());
+                       ((already_exists && !in_hand)
+                        || class_gift != STRANGE_OBJECT) ? "take lives"
+                       : "steal souls",
+                       u_gname());
         break;
     }
 
@@ -921,6 +929,9 @@ gcrownu()
             if (obj && obj->oartifact == ART_EXCALIBUR) {
                 u.ugifts++;
                 u.uconduct.artitouch++;
+            }
+            if (obj->spe < 3) {
+                obj->spe = 3;
             }
         }
         /* acquire Excalibur's skill regardless of weapon or gift */
@@ -1301,6 +1312,14 @@ aligntyp g_align;
     if (kick_on_butt)
         u.ublesscnt += kick_on_butt * rnz(1000);
 
+    /* Avoid games that go into infinite loops of copy-pasted commands with no
+       human interaction; this is a DoS vector against the computer running
+       NetHack. Once the turn counter is over 100000, every additional 100 turns
+       increases the prayer timeout by 1, thus eventually nutrition prayers will
+       fail and some other source of nutrition will be required. */
+    if (g.moves > 100000L)
+        u.ublesscnt += (g.moves - 100000L) / 100;
+
     return;
 }
 
@@ -1442,11 +1461,11 @@ dosacrifice()
         struct monst *mtmp;
 
         /* KMH, conduct */
-        if(!u.uconduct.gnostic++)
+        if (!u.uconduct.gnostic++)
             livelog_printf(LL_CONDUCT,
-                    "rejected atheism by offering %s on an altar of %s",
-                    corpse_xname(otmp, (const char *)0, CXN_ARTICLE),
-                    a_gname());
+                           "rejected atheism by offering %s on an altar of %s",
+                           corpse_xname(otmp, (const char *) 0, CXN_ARTICLE),
+                           a_gname());
 
         /* you're handling this corpse, even if it was killed upon the altar
          */
@@ -1513,7 +1532,6 @@ dosacrifice()
                 if ((pm = dlord(altaralign)) != NON_PM
                     && (dmon = makemon(&mons[pm], u.ux, u.uy, NO_MM_FLAGS))
                            != 0) {
-
                     pline("Something's being summoned!");
                     boss_entrance(dmon);
                     if (sgn(u.ualign.type) == sgn(dmon->data->maligntyp))
@@ -1529,7 +1547,7 @@ dosacrifice()
             if (u.ualign.type != A_CHAOTIC) {
                 adjalign(-5);
                 u.ugangr += 3;
-                (void) adjattrib(A_WIS, -1, TRUE);
+                (void) adjattrib(A_WIS, -1, AA_NOMSG);
                 if (!Inhell)
                     angrygods(u.ualign.type);
                 change_luck(-5);
@@ -1569,7 +1587,7 @@ dosacrifice()
                 pline("Such an action is an insult to %s!",
                       (unicalign == A_CHAOTIC) ? "chaos"
                          : unicalign ? "law" : "balance");
-                (void) adjattrib(A_WIS, -1, TRUE);
+                (void) adjattrib(A_WIS, -1, AA_NOMSG);
                 value = -5;
             } else if (u.ualign.type == altaralign) {
                 /* When different from altar, and altar is same as yours,
@@ -1741,7 +1759,7 @@ dosacrifice()
                     pline("%s rejects your sacrifice!", a_gname());
                     godvoice(altaralign, "Suffer, infidel!");
                     change_luck(-5);
-                    (void) adjattrib(A_WIS, -2, TRUE);
+                    (void) adjattrib(A_WIS, -2, AA_NOMSG);
                     if (!Inhell)
                         angrygods(u.ualign.type);
                 }
@@ -1870,10 +1888,9 @@ dosacrifice()
                     u.ublesscnt = rnz(300 + (50 * u.ugifts));
                     exercise(A_WIS, TRUE);
                     livelog_printf (LL_DIVINEGIFT|LL_ARTIFACT,
-                            "had %s bestowed upon %s by %s",
-                            artiname(otmp->oartifact),
-                            uhim(),
-                            align_gname(u.ualign.type));
+                                    "had %s bestowed upon %s by %s",
+                                    artiname(otmp->oartifact),
+                                    uhim(), align_gname(u.ualign.type));
                     /* make sure we can use this weapon */
                     unrestrict_weapon_skill(weapon_type(otmp));
                     if (!Hallucination && !Blind) {
@@ -1964,7 +1981,7 @@ dopray()
     if (ParanoidPray && yn("Are you sure you want to pray?") != 'y')
         return 0;
 
-    if(!u.uconduct.gnostic++)
+    if (!u.uconduct.gnostic++)
         /* breaking conduct should probably occur in can_pray() at
          * "You begin praying to %s", as demons who find praying repugnant
          * should not break conduct.  Also we can add more detail to the
@@ -2113,7 +2130,7 @@ doturn()
         return 0;
     }
 
-    if(!u.uconduct.gnostic++)
+    if (!u.uconduct.gnostic++)
         livelog_write_string(LL_CONDUCT, "rejected atheism by turning undead");
 
     Gname = halu_gname(u.ualign.type);
@@ -2167,7 +2184,7 @@ doturn()
         if (!mtmp->mpeaceful
             && (is_undead(mtmp->data) || is_vampshifter(mtmp)
                 || (is_demon(mtmp->data) && (u.ulevel > (MAXULEV / 2))))) {
-            mtmp->msleeping = 0;
+            wakeup(mtmp, FALSE);
             if (Confusion) {
                 if (!once++)
                     pline("Unfortunately, your voice falters.");
@@ -2422,7 +2439,7 @@ register int x, y;
 
     if (u.ualign.type == altaralign && u.ualign.record > -rn2(4)) {
         godvoice(altaralign, "How darest thou desecrate my altar!");
-        (void) adjattrib(A_WIS, -1, FALSE);
+        (void) adjattrib(A_WIS, -1, AA_YESMSG);
         u.ualign.record--;
     } else {
         pline("%s %s%s:",

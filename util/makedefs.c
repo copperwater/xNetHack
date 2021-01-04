@@ -1,4 +1,4 @@
-/* NetHack 3.6  makedefs.c  $NHDT-Date: 1582403492 2020/02/22 20:31:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.177 $ */
+/* NetHack 3.7  makedefs.c  $NHDT-Date: 1600855420 2020/09/23 10:03:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.188 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Kenneth Lorber, Kensington, Maryland, 2015. */
 /* Copyright (c) M. Stephenson, 1990, 1991.                       */
@@ -22,13 +22,6 @@
 #include "context.h"
 #include "flag.h"
 #include "dlb.h"
-
-/* version information */
-#ifdef SHORT_FILENAMES
-#include "patchlev.h"
-#else
-#include "patchlevel.h"
-#endif
 
 #include <ctype.h>
 #ifdef MAC
@@ -131,6 +124,7 @@ static struct version_info version;
 /* Use this as an out-of-bound value in the close table.  */
 #define CLOSE_OFF_TABLE_STRING "99" /* for the close table */
 #define FAR_OFF_TABLE_STRING "0xff" /* for the far table */
+#define FLG_TEMPFILE  0x01              /* flag for temp file */
 
 #define sign(z) ((z) < 0 ? -1 : ((z) ? 1 : 0))
 #ifdef VISION_TABLES
@@ -171,8 +165,7 @@ extern void NDECL(monst_globals_init);   /* monst.c */
 extern void NDECL(objects_globals_init); /* objects.c */
 
 static char *FDECL(name_file, (const char *, const char *));
-static void FDECL(delete_file, (const char *template, const char *));
-static FILE *FDECL(getfp, (const char *, const char *, const char *));
+static FILE *FDECL(getfp, (const char *, const char *, const char *, int));
 static void FDECL(do_ext_makedefs, (int, char **));
 static char *FDECL(xcrypt, (const char *));
 static unsigned long FDECL(read_rumors_file,
@@ -393,6 +386,9 @@ const char *tag;
     return namebuf;
 }
 
+#ifdef HAS_NO_MKSTEMP
+static void FDECL(delete_file, (const char *template, const char *));
+
 static void
 delete_file(template, tag)
 const char *template;
@@ -402,19 +398,43 @@ const char *tag;
 
     Unlink(name);
 }
+#endif
 
 static FILE *
-getfp(template, tag, mode)
+getfp(template, tag, mode, flg)
 const char *template;
 const char *tag;
 const char *mode;
+#ifndef HAS_NO_MKSTEMP
+int flg;
+#else
+int flg UNUSED;
+#endif
 {
     char *name = name_file(template, tag);
-    FILE *rv = fopen(name, mode);
+    FILE *rv = (FILE *) 0;
+#ifndef HAS_NO_MKSTEMP
+    boolean istemp = (flg & FLG_TEMPFILE) != 0;
+    char tmpfbuf[MAXFNAMELEN];
+    int tmpfd;
 
+    if (istemp) {
+        (void) snprintf(tmpfbuf, sizeof tmpfbuf, DATA_TEMPLATE, "mdXXXXXX");
+        tmpfd = mkstemp(tmpfbuf);
+        if (tmpfd >= 0) {
+            rv = fdopen(tmpfd, WRTMODE);   /* temp file is always read+write */
+            Unlink(tmpfbuf);
+        }
+    } else
+#endif
+    rv = fopen(name, mode);
     if (!rv) {
-        Fprintf(stderr, "Can't open '%s'.\n", name);
-        exit(EXIT_FAILURE);
+        Fprintf(stderr, "Can't open '%s'.\n",
+#ifndef HAS_NO_MKSTEMP
+                istemp ? tmpfbuf :
+#endif
+                 name);
+            exit(EXIT_FAILURE);
     }
     return rv;
 }
@@ -437,7 +457,7 @@ static int FDECL(grep_check_id, (const char *));
 static void FDECL(grep_show_wstack, (const char *));
 static char *FDECL(do_grep_control, (char *));
 static void NDECL(do_grep);
-static void FDECL(grep0, (FILE *, FILE *));
+static void FDECL(grep0, (FILE *, FILE *, int));
 
 static int grep_trace = 0;
 
@@ -786,7 +806,7 @@ char *buf;
 }
 #endif
 
-static void grep0(FILE *, FILE *);
+static void grep0(FILE *, FILE *, int);
 
 static void
 do_grep()
@@ -801,14 +821,26 @@ do_grep()
         exit(EXIT_FAILURE);
     }
 
-    grep0(inputfp, outputfp);
+    grep0(inputfp, outputfp, 0);
 }
 
 static void
-grep0(inputfp0, outputfp0)
+grep0(inputfp0, outputfp0, flg)
 FILE *inputfp0;
 FILE *outputfp0;
+#ifndef HAS_NO_MKSTEMP
+int flg;
+#else
+int flg UNUSED;
+#endif
 {
+#ifndef HAS_NO_MKSTEMP
+    /* if grep0 is passed FLG_TEMPFILE flag, it will
+       leave the output file open when it returns.
+       The caller will have to take care of calling
+       fclose() when it is done with the file */
+    boolean istemp = (flg & FLG_TEMPFILE) != 0;
+#endif
     char buf[16384]; /* looong, just in case */
 
     while (!feof(inputfp0) && !ferror(inputfp0)) {
@@ -848,7 +880,12 @@ FILE *outputfp0;
         exit(EXIT_FAILURE);
     }
     fclose(inputfp0);
-    fclose(outputfp0);
+#ifndef HAS_NO_MKSTEMP
+    if (istemp)
+        rewind(outputfp0);
+    else
+#endif
+        fclose(outputfp0);
     if (grep_sp) {
         Fprintf(stderr, "%d unterminated conditional level%s\n", grep_sp,
                 grep_sp == 1 ? "" : "s");
@@ -905,8 +942,10 @@ unsigned long old_rumor_offset;
     /* copy the rumors */
     while ((line = fgetline(ifp)) != 0) {
         /* skip comments and blank lines */
-        if (line[0] == '#' || line[0] == '\n')
+        if (line[0] == '#' || line[0] == '\n') {
+            free(line);
             continue;
+        }
 #ifdef PAD_RUMORS_TO
         /* rumor selection is accomplished by seeking to a random
            position in the file, advancing to newline, and taking
@@ -953,7 +992,7 @@ do_rnd_access_file(fname, deflt_content)
 const char *fname;
 const char *deflt_content;
 {
-    char *line;
+    char *line, buf[BUFSZ];
 
     Sprintf(filename, DATA_IN_TEMPLATE, fname);
     Strcat(filename, ".txt");
@@ -971,16 +1010,23 @@ const char *deflt_content;
         exit(EXIT_FAILURE);
     }
     Fprintf(ofp, "%s", Dont_Edit_Data);
+    /* lines from the file include trailing newline so make sure that the
+       default one does too */
+    if (!index(deflt_content, '\n'))
+        deflt_content = strcat(strcpy(buf, deflt_content), "\n");
     /* write out the default content entry unconditionally instead of
        waiting to see whether there are no regular output lines; if it
        matches a regular entry (bogusmon "grue"), that entry will become
        more likely to be picked than normal but it's nothing to worry about */
     (void) fputs(xcrypt(deflt_content), ofp);
 
-    tfp = getfp(DATA_TEMPLATE, "grep.tmp", WRTMODE);
-    grep0(ifp, tfp);
-    ifp = getfp(DATA_TEMPLATE, "grep.tmp", RDTMODE);
-
+    tfp = getfp(DATA_TEMPLATE, "grep.tmp", WRTMODE, FLG_TEMPFILE);
+    grep0(ifp, tfp, FLG_TEMPFILE);
+#ifndef HAS_NO_MKSTEMP
+    ifp = tfp;
+#else
+    ifp = getfp(DATA_TEMPLATE, "grep.tmp", RDTMODE, 0);
+#endif
     while ((line = fgetline(ifp)) != 0) {
         if (line[0] != '#' && line[0] != '\n')
             (void) fputs(xcrypt(line), ofp);
@@ -989,7 +1035,9 @@ const char *deflt_content;
     Fclose(ifp);
     Fclose(ofp);
 
+#ifdef HAS_NO_MKSTEMP
     delete_file(DATA_TEMPLATE, "grep.tmp");
+#endif
     return;
 }
 
@@ -1096,13 +1144,11 @@ do_date()
     char githash[BUFSZ], gitbranch[BUFSZ];
     char *c, cbuf[60], buf[BUFSZ];
     const char *ul_sfx;
-#if defined(CROSSCOMPILE) && defined(CROSSCOMPILE_HOST)
-    int steps = 0;
-    const char ind[] = "    ";
+#if defined(CROSSCOMPILE) && !defined(CROSSCOMPILE_TARGET)
     const char *xpref = "HOST_";
 #else
     const char *xpref = (const char *) 0;
-#endif /* CROSSCOMPILE && CROSSCOMPILE_HOST */
+#endif /* CROSSCOMPILE && !CROSSCOMPILE_TARGET */
 
     /* before creating date.h, make sure that xxx_GRAPHICS and
        DEFAULT_WINDOW_SYS have been set up in a viable fashion */
@@ -1204,10 +1250,10 @@ do_date()
     ul_sfx = "L";
 #endif
 
-#if !defined(CROSSCOMPILE) || defined(CROSSCOMPILE_HOST)
+#if !defined(CROSSCOMPILE) || !defined(CROSSCOMPILE_TARGET)
     Fprintf(ofp,
-            "\n#if !defined(CROSSCOMPILE) || defined(CROSSCOMPILE_HOST)\n");
-#endif /* CROSSCOMPILE || CROSSCOMPILE_HOST */
+            "\n#if !defined(CROSSCOMPILE) || !defined(CROSSCOMPILE_TARGET)\n");
+#endif /* CROSSCOMPILE || !CROSSCOMPILE_TARGET */
     if (date_via_env)
         Fprintf(ofp, "#define SOURCE_DATE_EPOCH (%lu%s) /* via getenv() */\n",
                 (unsigned long) clocktim, ul_sfx);
@@ -1228,10 +1274,18 @@ do_date()
 #endif
     Fprintf(ofp, "#define VERSION_SANITY1 0x%08lx%s\n", version.entity_count,
             ul_sfx);
+#ifndef __EMSCRIPTEN__
     Fprintf(ofp, "#define VERSION_SANITY2 0x%08lx%s\n", version.struct_sizes1,
             ul_sfx);
     Fprintf(ofp, "#define VERSION_SANITY3 0x%08lx%s\n", version.struct_sizes2,
             ul_sfx);
+#else /* __EMSCRIPTEN__ */
+    Fprintf(ofp, "#define VERSION_SANITY2 0x%08llx%s\n", version.struct_sizes1,
+            ul_sfx);
+    Fprintf(ofp, "#define VERSION_SANITY3 0x%08llx%s\n", version.struct_sizes2,
+            ul_sfx);
+#endif /* !__EMSCRIPTEN__ */
+
     Fprintf(ofp, "\n");
     Fprintf(ofp, "#define VERSION_STRING \"%s\"\n", version_string(buf, "."));
     Fprintf(ofp, "#define VERSION_ID \\\n \"%s\"\n",
@@ -1243,13 +1297,15 @@ do_date()
         Fprintf(ofp, "#define NETHACK_GIT_BRANCH \"%s\"\n", gitbranch);
     }
     if (xpref && get_gitinfo(githash, gitbranch)) {
-        Fprintf(ofp, "#else /* !CROSSCOMPILE || CROSSCOMPILE_HOST */\n");
+        Fprintf(ofp, "#else /* !CROSSCOMPILE || !CROSSCOMPILE_TARGET */\n");
         Fprintf(ofp, "#define NETHACK_%sGIT_SHA \"%s\"\n",
                 xpref, githash);
         Fprintf(ofp, "#define NETHACK_%sGIT_BRANCH \"%s\"\n",
                 xpref, gitbranch);
     }
-    Fprintf(ofp, "#endif /* !CROSSCOMPILE || CROSSCOMPILE_HOST */\n");
+#if !defined(CROSSCOMPILE) || !defined(CROSSCOMPILE_TARGET)
+    Fprintf(ofp, "#endif /* !CROSSCOMPILE || !CROSSCOMPILE_TARGET */\n");
+#endif
     Fprintf(ofp, "\n");
 #ifdef AMIGA
     {
@@ -1757,10 +1813,13 @@ do_dungeon()
     }
     Fprintf(ofp, "%s", Dont_Edit_Data);
 
-    tfp = getfp(DATA_TEMPLATE, "grep.tmp", WRTMODE);
-    grep0(ifp, tfp);
-    ifp = getfp(DATA_TEMPLATE, "grep.tmp", RDTMODE);
-
+    tfp = getfp(DATA_TEMPLATE, "grep.tmp", WRTMODE, FLG_TEMPFILE);
+    grep0(ifp, tfp, FLG_TEMPFILE);
+#ifndef HAS_NO_MKSTEMP
+    ifp = tfp;
+#else
+    ifp = getfp(DATA_TEMPLATE, "grep.tmp", RDTMODE, 0);
+#endif
     while ((line = fgetline(ifp)) != 0) {
         SpinCursor(3);
 
@@ -1774,13 +1833,113 @@ do_dungeon()
     Fclose(ifp);
     Fclose(ofp);
 
+#ifdef HAS_NO_MKSTEMP
     delete_file(DATA_TEMPLATE, "grep.tmp");
+#endif
     return;
+}
+
+/*
+ * In 3.4.3 and earlier, this code was used to construct monstr[] array
+ * in generated file src/monstr.c.  It wasn't used in 3.6.  For 3.7 it
+ * has been reincarnated as a way to generate default monster strength
+ * values:
+ *      add new monster(s) to src/monst.c with placeholder value for
+ *          the monstr field;
+ *      run 'makedefs -m' to create src/monstr.c; ignore the complaints
+ *          about it being deprecated;
+ *      transfer relevant generated monstr values to src/monst.c;
+ *      delete src/monstr.c.
+ */
+static int FDECL(mstrength, (struct permonst *));
+static boolean FDECL(ranged_attk, (struct permonst *));
+
+ /*
+ * This routine is designed to return an integer value which represents
+ * an approximation of monster strength.  It uses a similar method of
+ * determination as "experience()" to arrive at the strength.
+ */
+static int
+mstrength(ptr)
+struct permonst *ptr;
+{
+    int	i, tmp2, n, tmp = ptr->mlevel;
+
+    if (tmp > 49)		/* special fixed hp monster */
+        tmp = 2 * (tmp - 6) / 4;
+
+    /*	For creation in groups */
+    n = (!!(ptr->geno & G_SGROUP));
+    n += (!!(ptr->geno & G_LGROUP)) << 1;
+
+    /*	For ranged attacks */
+    if (ranged_attk(ptr))
+        n++;
+
+    /*	For higher ac values */
+    n += (ptr->ac < 4);
+    n += (ptr->ac < 0);
+
+    /*	For very fast monsters */
+    n += (ptr->mmove >= 18);
+
+    /*	For each attack and "special" attack */
+    for (i = 0; i < NATTK; i++) {
+        tmp2 = ptr->mattk[i].aatyp;
+        n += (tmp2 > 0);
+        n += (tmp2 == AT_MAGC);
+        n += (tmp2 == AT_WEAP && (ptr->mflags2 & M2_STRONG));
+    }
+
+    /*	For each "special" damage type */
+    for (i = 0; i < NATTK; i++) {
+        tmp2 = ptr->mattk[i].adtyp;
+        if ((tmp2 == AD_DRLI) || (tmp2 == AD_STON) || (tmp2 == AD_DRST)
+            || (tmp2 == AD_DRDX) || (tmp2 == AD_DRCO) || (tmp2 == AD_WERE))
+            n += 2;
+        else if (strcmp(ptr->mname, "grid bug"))
+            n += (tmp2 != AD_PHYS);
+        n += ((int) (ptr->mattk[i].damd * ptr->mattk[i].damn) > 23);
+    }
+
+    /*	Leprechauns are special cases.  They have many hit dice so they
+	can hit and are hard to kill, but they don't really do much damage. */
+    if (!strcmp(ptr->mname, "leprechaun"))
+        n -= 2;
+
+    /*	Finally, adjust the monster level  0 <= n <= 24 (approx.) */
+    if (n == 0)
+        tmp--;
+    else if (n >= 6)
+        tmp += (n / 2);
+    else
+        tmp += (n / 3 + 1);
+
+    return (tmp >= 0) ? tmp : 0;
+}
+
+/* returns True if monster can attack at range */
+static boolean
+ranged_attk(ptr)
+register struct permonst *ptr;
+{
+    register int i, j;
+    register int atk_mask = (1 << AT_BREA) | (1 << AT_SPIT) | (1 << AT_GAZE);
+
+    for (i = 0; i < NATTK; i++) {
+        if ((j = ptr->mattk[i].aatyp) >= AT_WEAP
+            || (j < 32 && (atk_mask & (1 << j)) != 0))
+            return TRUE;
+    }
+    return FALSE;
 }
 
 void
 do_monstr()
 {
+    struct permonst *ptr;
+    int i;
+
     /* Don't break anything for ports that haven't been updated. */
     printf("DEPRECATION WARNINGS:\n");
     printf("'makedefs -m' is deprecated.  Remove all references\n");
@@ -1815,8 +1974,17 @@ do_monstr()
     Fprintf(ofp, "  it from the build process.\n");
     Fprintf(ofp, "monstr[] is deprecated.  Replace monstr[x] with\n");
     Fprintf(ofp, "  mons[x].difficulty\n");
-    Fprintf(ofp, "monstr_init() is deprecated.  Remove all references to it.\n");
+    Fprintf(ofp,
+            "monstr_init() is deprecated.  Remove all references to it.\n");
     Fprintf(ofp, "*/\n");
+
+    /* output derived monstr values as a comment */
+    Fprintf(ofp, "\n\n/*\n * default mons[].difficulty values\n *\n");
+    for (ptr = &mons[0]; ptr->mlet; ptr++) {
+        i = mstrength(ptr);
+        Fprintf(ofp, "%-24s %2u\n", ptr->mname, (unsigned int) (uchar) i);
+    }
+    Fprintf(ofp, " *\n */\n\n");
 
     Fprintf(ofp, "\nvoid NDECL(monstr_init);\n");
     Fprintf(ofp, "\nvoid\n");
@@ -1986,8 +2154,18 @@ do_objs()
                 break;
             }
             /*FALLTHRU*/
+        case VENOM_CLASS:
+            /* fall-through from gem class is ok; objects[] used to have
+                { "{acid,blinding} venom", "splash of venom" }
+               but those have been changed to
+                { "splash of {acid,blinding} venom", "splash of venom" }
+               so strip the extra "splash of " off to keep same macros */
+            if (!strncmp(objnam, "SPLASH_OF_", 10))
+                objnam += 10;
+            /*FALLTHRU*/
         default:
             Fprintf(ofp, "#define\t");
+            break;
         }
         if (prefix >= 0)
             Fprintf(ofp, "%s\t%d\n", limit(objnam, prefix), i);

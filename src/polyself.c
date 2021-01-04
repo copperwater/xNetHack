@@ -1,4 +1,4 @@
-/* NetHack 3.6	polyself.c	$NHDT-Date: 1583073991 2020/03/01 14:46:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.152 $ */
+/* NetHack 3.7	polyself.c	$NHDT-Date: 1605959204 2020/11/21 11:46:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.157 $ */
 /*      Copyright (C) 1987, 1988, 1989 by Ken Arromdee */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -573,7 +573,7 @@ int psflags;
         if (mntmp == PM_HUMAN)
             newman(); /* werecritter */
         else
-            (void) polymon(mntmp, TRUE);
+            (void) polymon(mntmp, POLYMON_ALL_MSGS);
         goto made_change; /* maybe not, but this is right anyway */
     }
 
@@ -595,7 +595,7 @@ int psflags;
         || your_race(&mons[mntmp])) {
         newman();
     } else {
-        (void) polymon(mntmp, TRUE);
+        (void) polymon(mntmp, POLYMON_ALL_MSGS);
     }
     g.sex_change_ok--; /* reset */
 
@@ -614,11 +614,10 @@ int psflags;
 
 /* (try to) make a mntmp monster out of the player;
    returns 1 if polymorph successful.
-   If noisy is FALSE, print nothing. */
+   msgflags are POLYMON_* constants in hack.h. */
 int
-polymon(mntmp, noisy)
-int mntmp;
-boolean noisy;
+polymon(mntmp, msgflags)
+int mntmp, msgflags;
 {
     char buf[BUFSZ];
     boolean sticky = sticks(g.youmonst.data) && u.ustuck && !u.uswallow,
@@ -626,17 +625,17 @@ boolean noisy;
     int mlvl;
 
     if (g.mvitals[mntmp].mvflags & G_GENOD) { /* allow G_EXTINCT */
-        if (noisy)
+        if (msgflags & POLYMON_TRANSFORM_MSG)
             You_feel("rather %s-ish.", mons[mntmp].mname);
         exercise(A_WIS, TRUE);
         return 0;
     }
 
     /* KMH, conduct */
-    if(!Polyinit_mode && !u.uconduct.polyselfs++)
+    if (!Polyinit_mode && !u.uconduct.polyselfs++)
         livelog_printf(LL_CONDUCT,
-            "changed form for the first time, becoming %s",
-            an(mons[mntmp].mname));
+                       "changed form for the first time, becoming %s",
+                       an(mons[mntmp].mname));
 
     /* exercise used to be at the very end but only Wis was affected
        there since the polymorph was always in effect by then */
@@ -685,7 +684,7 @@ boolean noisy;
                        ? "" : flags.female ? "female " : "male ");
     }
     Strcat(buf, mons[mntmp].mname);
-    if (noisy)
+    if (msgflags & POLYMON_TRANSFORM_MSG)
         You("%s %s!", (u.umonnum != mntmp) ? "turn into" : "feel like",
             an(buf));
 
@@ -706,24 +705,29 @@ boolean noisy;
         ABASE(A_STR) = AMAX(A_STR) = STR18(100);
 
     if (Stone_resistance && Stoned) { /* parnes@eniac.seas.upenn.edu */
-        make_stoned(0L, noisy ? "You no longer seem to be petrifying." : "", 0,
+        make_stoned(0L,
+                    (msgflags & POLYMON_STATUS_MSG) ?
+                        "You no longer seem to be petrifying."
+                      : "",
+                    0,
                     (char *) 0);
     }
     if (Sick_resistance && Sick) {
         make_sick(0L, (char *) 0, FALSE, SICK_ALL);
-        if (noisy)
+        if (msgflags & POLYMON_STATUS_MSG)
             You("no longer feel sick.");
     }
     if (Slimed) {
         if (flaming(g.youmonst.data)) {
-            if (noisy)
+            if (msgflags & POLYMON_STATUS_MSG)
                 make_slimed(0L, "The slime burns away!");
         } else if (mntmp == PM_GREEN_SLIME) {
             /* do it silently */
             make_slimed(0L, (char *) 0);
         }
     }
-    check_strangling(FALSE, noisy); /* maybe stop strangling */
+    /* maybe stop strangling */
+    check_strangling(FALSE, (msgflags & POLYMON_STATUS_MSG));
     if (nohands(g.youmonst.data))
         make_glib(0);
 
@@ -748,9 +752,9 @@ boolean noisy;
     }
 
     if (uskin && mntmp != armor_to_dragon(uskin->otyp))
-        skinback(!noisy);
-    break_armor(noisy);
-    drop_weapon(1, noisy);
+        skinback(!(msgflags & POLYMON_GEAR_MSG));
+    break_armor((msgflags & POLYMON_GEAR_MSG));
+    drop_weapon(1, (msgflags & POLYMON_GEAR_MSG));
     (void) hideunder(&g.youmonst);
 
     if (u.utrap && u.utraptype == TT_PIT) {
@@ -772,9 +776,10 @@ boolean noisy;
 
     if (u.usteed) {
         if (touch_petrifies(u.usteed->data) && !Stone_resistance && rnl(3)) {
-            if (noisy)
-                pline("%s touch %s.", no_longer_petrify_resistant,
-                      mon_nam(u.usteed));
+            /* This isn't controlled by msgflags because there's no real reason
+             * it shouldn't print in any circumstance. */
+            pline("%s touch %s.", no_longer_petrify_resistant,
+                    mon_nam(u.usteed));
             Sprintf(buf, "riding %s", an(u.usteed->data->mname));
             instapetrify(buf);
         }
@@ -782,7 +787,7 @@ boolean noisy;
             dismount_steed(DISMOUNT_POLY);
     }
 
-    if (flags.verbose && noisy) {
+    if (flags.verbose && (msgflags & POLYMON_INFO_MSG)) {
         static const char use_thec[] = "Use the command #%s to %s.";
         static const char monsterc[] = "monster";
 
@@ -832,28 +837,28 @@ boolean noisy;
     if (Passes_walls && u.utrap
         && (u.utraptype == TT_INFLOOR || u.utraptype == TT_BURIEDBALL)) {
         if (u.utraptype == TT_INFLOOR) {
-            if (noisy)
+            if (msgflags & POLYMON_STATUS_MSG)
                 pline_The("rock seems to no longer trap you.");
         } else {
-            if (noisy)
+            if (msgflags & POLYMON_STATUS_MSG)
                 pline_The("buried ball is no longer bound to you.");
             buried_ball_to_freedom();
         }
         reset_utrap(TRUE);
     } else if (likes_lava(g.youmonst.data) && u.utrap
                && u.utraptype == TT_LAVA) {
-        if (noisy)
+        if (msgflags & POLYMON_STATUS_MSG)
             pline_The("%s now feels soothing.", hliquid("lava"));
         reset_utrap(TRUE);
     }
     if (amorphous(g.youmonst.data) || is_whirly(g.youmonst.data)
         || unsolid(g.youmonst.data)) {
         if (Punished) {
-            if (noisy)
+            if (msgflags & POLYMON_STATUS_MSG)
                 You("slip out of the iron chain.");
             unpunish();
         } else if (u.utrap && u.utraptype == TT_BURIEDBALL) {
-            if (noisy)
+            if (msgflags & POLYMON_STATUS_MSG)
                 You("slip free of the buried ball and chain.");
             buried_ball_to_freedom();
         }
@@ -862,23 +867,24 @@ boolean noisy;
         && (amorphous(g.youmonst.data) || is_whirly(g.youmonst.data)
             || unsolid(g.youmonst.data) || (g.youmonst.data->msize <= MZ_SMALL
                                           && u.utraptype == TT_BEARTRAP))) {
-        if (noisy)
+        if (msgflags & POLYMON_STATUS_MSG)
             You("are no longer stuck in the %s.",
                 u.utraptype == TT_WEB ? "web" : "bear trap");
         /* probably should burn webs too if PM_FIRE_ELEMENTAL */
         reset_utrap(TRUE);
     }
     if (webmaker(g.youmonst.data) && u.utrap && u.utraptype == TT_WEB) {
-        if (noisy)
+        if (msgflags & POLYMON_STATUS_MSG)
             You("orient yourself on the web.");
         reset_utrap(TRUE);
     }
-    check_strangling(TRUE, noisy); /* maybe start strangling */
+    /* maybe start strangling */
+    check_strangling(TRUE, (msgflags & POLYMON_STATUS_MSG));
 
     g.context.botl = 1;
     g.vision_full_recalc = 1;
     see_monsters();
-    if (noisy)
+    if (msgflags & POLYMON_ENCUMBER_MSG)
         (void) encumber_msg();
 
     retouch_equipment(2);
@@ -955,8 +961,12 @@ boolean noisy;
         if ((otmp = uarm) != 0 && racial_exception(&g.youmonst, otmp) < 1) {
             if (donning(otmp))
                 cancel_don();
-            if (noisy)
-                Your("armor falls around you!");
+            if (noisy) {
+                if (slithy(g.youmonst.data))
+                    You("slither out of your armor!");
+                else
+                    Your("armor falls around you!");
+            }
             (void) Armor_gone();
             dropp(otmp);
         }
@@ -965,7 +975,9 @@ boolean noisy;
                 if (is_whirly(g.youmonst.data))
                     Your("%s falls, unsupported!", cloak_simple_name(otmp));
                 else
-                    You("shrink out of your %s!", cloak_simple_name(otmp));
+                    You("%s out of your %s!",
+                        slithy(g.youmonst.data) ? "slither" : "shrink",
+                        cloak_simple_name(otmp));
             }
             (void) Cloak_off();
             dropp(otmp);
@@ -974,6 +986,8 @@ boolean noisy;
             if (noisy) {
                 if (is_whirly(g.youmonst.data))
                     You("seep right through your shirt!");
+                else if (slithy(g.youmonst.data))
+                    You("slither out of your shirt!");
                 else
                     You("become much too small for your shirt!");
             }
@@ -1490,6 +1504,8 @@ dogaze()
                         (void) destroy_mitem(mtmp, POTION_CLASS, AD_FIRE);
                     if (lev > rn2(25))
                         (void) destroy_mitem(mtmp, SPBOOK_CLASS, AD_FIRE);
+                    if (lev > rn2(20))
+                        ignite_items(mtmp->minvent);
                     if (dmg)
                         mtmp->mhp -= dmg;
                     if (DEADMONSTER(mtmp))
@@ -1646,10 +1662,12 @@ dopoly()
     return 1;
 }
 
+/* #monster for hero-as-mind_flayer giving psychic blast */
 int
 domindblast()
 {
     struct monst *mtmp, *nmon;
+    int dmg;
 
     if (u.uen < 10) {
         You("concentrate but lack the energy to maintain doing so.");
@@ -1670,12 +1688,21 @@ domindblast()
             continue;
         if (mtmp->mpeaceful)
             continue;
+        if (mindless(mtmp->data))
+            continue;
         u_sen = has_telepathy(mtmp) && !mtmp->mcansee;
         if (u_sen || (has_telepathy(mtmp) && rn2(2)) || !rn2(10)) {
+            dmg = rnd(15);
+            /* wake it up first, to bring hidden monster out of hiding;
+               but in case it is currently peaceful, don't make it hostile
+               unless it will survive the psychic blast, otherwise hero
+               would avoid the penalty for killing it while peaceful */
+            wakeup(mtmp, (dmg > mtmp->mhp) ? TRUE : FALSE);
             You("lock in on %s %s.", s_suffix(mon_nam(mtmp)),
                 u_sen ? "telepathy"
-                      : has_telepathy(mtmp) ? "latent telepathy" : "mind");
-            mtmp->mhp -= rnd(15);
+                : telepathic(mtmp->data) ? "latent telepathy"
+                  : "mind");
+            mtmp->mhp -= dmg;
             if (DEADMONSTER(mtmp))
                 killed(mtmp);
         }
@@ -1727,70 +1754,70 @@ int part;
                               "fingertip", "foot", "hand",         "handed",
                               "head",      "leg",  "light headed", "neck",
                               "spine",     "toe",  "hair",         "blood",
-                              "lung",      "nose", "stomach" },
+                              "lung",      "nose", "stomach",      "torso" },
         *jelly_parts[] = { "", "pseudopod", "dark spot", "front",
                            "pseudopod extension", "pseudopod extremity",
                            "pseudopod root", "grasp", "grasped",
                            "cerebral area", "lower pseudopod", "viscous",
                            "middle", "surface", "pseudopod extremity",
                            "ripples", "juices", "surface", "sensor",
-                           "stomach" },
+                           "stomach", "central mass" },
         *animal_parts[] = { "", "forelimb", "eye",           "face",
                             "foreclaw",     "claw tip",      "rear claw",
                             "foreclaw",     "clawed",        "head",
                             "rear limb",    "light headed",  "neck",
                             "spine",        "rear claw tip", "fur",
                             "blood",        "lung",          "nose",
-                            "stomach" },
+                            "stomach",      "torso" },
         *bird_parts[] = { "", "wing", "eye",  "face",         "wing",
                           "wing tip", "foot", "wing",         "winged",
                           "head",     "leg",  "light headed", "neck",
                           "spine",    "toe",  "feathers",     "blood",
-                          "lung",     "bill", "stomach" },
+                          "lung",     "bill", "stomach",      "body" },
         *horse_parts[] = { "", "foreleg", "eye",           "face",
                            "forehoof",    "hoof tip",      "rear hoof",
                            "forehoof",    "hooved",        "head",
                            "rear leg",    "light headed",  "neck",
                            "backbone",    "rear hoof tip", "mane",
                            "blood",       "lung",          "nose",
-                           "stomach" },
+                           "stomach",     "torso" },
         *sphere_parts[] = { "", "appendage", "optic nerve", "body", "tentacle",
                             "tentacle tip", "lower appendage", "tentacle",
                             "tentacled", "body", "lower tentacle",
                             "rotational", "equator", "body",
                             "lower tentacle tip", "cilia", "life force",
-                            "retina", "olfactory nerve", "interior" },
+                            "retina", "olfactory nerve", "interior", "body" },
         *fungus_parts[] = { "", "mycelium", "visual area", "front",
                             "hypha",        "hypha",       "root",
                             "strand",       "stranded",    "cap area",
                             "rhizome",      "sporulated",  "stalk",
                             "root",         "rhizome tip", "spores",
                             "juices",       "gill",        "gill",
-                            "interior" },
+                            "interior",     "body" },
         *vortex_parts[] = { "", "region",    "eye",           "front",
                             "minor current", "minor current", "lower current",
                             "swirl",         "swirled",       "central core",
                             "lower current", "addled",        "center",
                             "currents",      "edge",          "currents",
                             "life force",    "center",        "leading edge",
-                            "interior" },
+                            "interior",      "central core" },
         *snake_parts[] = { "", "vestigial limb", "eye", "face", "large scale",
                            "large scale tip", "rear region", "scale gap",
                            "scale gapped", "head", "rear region",
                            "light headed", "neck", "length", "rear scale",
                            "scales", "blood", "lung", "forked tongue",
-                           "stomach" },
+                           "stomach", "midsection" },
         *worm_parts[] = { "", "anterior segment", "light sensitive cell",
                           "clitellum", "setae", "setae", "posterior segment",
                           "segment", "segmented", "anterior segment",
                           "posterior", "over stretched", "clitellum",
                           "length", "posterior setae", "setae", "blood",
-                          "skin", "prostomium", "stomach" },
+                          "skin", "prostomium", "stomach", "midsection" },
         *fish_parts[] = { "", "fin", "eye", "premaxillary", "pelvic axillary",
                           "pelvic fin", "anal fin", "pectoral fin", "finned",
                           "head", "peduncle", "played out", "gills",
                           "dorsal fin", "caudal fin", "scales", "blood",
-                          "gill", "nostril", "stomach" };
+                          "gill", "nostril", "stomach", "midsection" };
     /* claw attacks are overloaded in mons[]; most humanoids with
        such attacks should still reference hands rather than claws */
     static const char not_claws[] = {
@@ -1843,6 +1870,7 @@ int part;
     if (mptr == &mons[PM_RAVEN])
         return bird_parts[part];
     if (mptr->mlet == S_CENTAUR || mptr->mlet == S_UNICORN
+        || mptr == &mons[PM_KI_RIN]
         || (mptr == &mons[PM_ROTHE] && part != HAIR))
         return horse_parts[part];
     if (mptr->mlet == S_LIGHT) {

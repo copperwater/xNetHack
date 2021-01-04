@@ -1,4 +1,4 @@
-/* NetHack 3.6	botl.c	$NHDT-Date: 1585647484 2020/03/31 09:38:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.187 $ */
+/* NetHack 3.7	botl.c	$NHDT-Date: 1606765211 2020/11/30 19:40:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.193 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -13,9 +13,14 @@ extern const char *hu_stat[]; /* defined in eat.c */
 const char *const enc_stat[] = { "",         "Burdened",  "Stressed",
                                  "Strained", "Overtaxed", "Overloaded" };
 
-static const char *NDECL(rank);
 static void NDECL(bot_via_windowport);
 static void NDECL(stat_update_time);
+#ifdef STATUS_HILITES
+static unsigned long NDECL(query_conditions);
+static boolean FDECL(status_hilite_remove, (int));
+static boolean FDECL(status_hilite_menu_fld, (int));
+static void NDECL(status_hilites_viewall);
+#endif
 
 /* limit of the player's name in the status window */
 #define BOTL_NSIZ 16
@@ -235,7 +240,8 @@ void
 bot()
 {
     /* dosave() flags completion by setting u.uhp to -1 */
-    if ((u.uhp != -1) && g.youmonst.data && iflags.status_updates) {
+    if (u.uhp != -1 && g.youmonst.data && iflags.status_updates
+        && !g.program_state.saving && !g.program_state.restoring) {
         if (VIA_WINDOWPORT()) {
             bot_via_windowport();
         } else {
@@ -251,7 +257,8 @@ bot()
 void
 timebot()
 {
-    if (flags.time && iflags.status_updates) {
+    if (flags.time && iflags.status_updates
+        && !g.program_state.saving && !g.program_state.restoring) {
         if (VIA_WINDOWPORT()) {
             stat_update_time();
         } else {
@@ -267,18 +274,37 @@ int
 xlev_to_rank(xlev)
 int xlev;
 {
+    /*
+     *   1..2  => 0
+     *   3..5  => 1
+     *   6..9  => 2
+     *  10..13 => 3
+     *      ...
+     *  26..29 => 7
+     *    30   => 8
+     * Conversion is precise but only partially reversible.
+     */
     return (xlev <= 2) ? 0 : (xlev <= 30) ? ((xlev + 2) / 4) : 8;
 }
 
-#if 0 /* not currently needed */
 /* convert rank index (0..8) to experience level (1..30) */
 int
 rank_to_xlev(rank)
 int rank;
 {
-    return (rank <= 0) ? 1 : (rank <= 8) ? ((rank * 4) - 2) : 30;
+    /*
+     *  0 =>  1..2
+     *  1 =>  3..5
+     *  2 =>  6..9
+     *  3 => 10..13
+     *      ...
+     *  7 => 26..29
+     *  8 =>   30
+     * We return the low end of each range.
+     */
+    return (rank < 1) ? 1 : (rank < 2) ? 3
+           : (rank < 8) ? ((rank * 4) - 2) : 30;
 }
-#endif
 
 const char *
 rank_of(lev, monnum, female)
@@ -312,7 +338,7 @@ boolean female;
     return "Player";
 }
 
-static const char *
+const char *
 rank()
 {
     return rank_of(u.ulevel, Role_switch, flags.female);
@@ -326,7 +352,8 @@ int *rank_indx, *title_length;
     register int i, j;
 
     /* Loop through each of the roles */
-    for (i = 0; roles[i].name.m; i++)
+    for (i = 0; roles[i].name.m; i++) {
+        /* loop through each of the rank titles for role #i */
         for (j = 0; j < 9; j++) {
             if (roles[i].rank[j].m
                 && !strncmpi(str, roles[i].rank[j].m,
@@ -348,6 +375,9 @@ int *rank_indx, *title_length;
                                                       : roles[i].malenum;
             }
         }
+    }
+    if (title_length)
+        *title_length = 0;
     return NON_PM;
 }
 
@@ -372,7 +402,8 @@ botl_score()
     long deepest = deepest_lev_reached(FALSE);
     long utotal;
 
-    utotal = money_cnt(g.invent) + hidden_gold();
+    /* hidden_gold(False): only gold in containers whose contents are known */
+    utotal = money_cnt(g.invent) + hidden_gold(FALSE);
     if ((utotal -= u.umoney0) < 0L)
         utotal = 0L;
     utotal += u.urexp + (50 * (deepest - 1))
@@ -2647,7 +2678,7 @@ boolean from_configfile;
 
 #ifdef STATUS_HILITES
 
-unsigned long
+static unsigned long
 query_conditions()
 {
     int i,res;
@@ -3821,7 +3852,7 @@ choose_color:
     return TRUE;
 }
 
-boolean
+static boolean
 status_hilite_remove(id)
 int id;
 {
@@ -3871,7 +3902,7 @@ int id;
     return FALSE;
 }
 
-boolean
+static boolean
 status_hilite_menu_fld(fld)
 int fld;
 {
@@ -3993,7 +4024,7 @@ shlmenu_free:
     return acted;
 }
 
-void
+static void
 status_hilites_viewall()
 {
     winid datawin;

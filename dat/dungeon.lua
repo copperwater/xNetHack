@@ -6,6 +6,7 @@ dungeon = {
       base = 25,
       range = 5,
       alignment = "unaligned",
+      themerooms = "themerms.lua",
       branches = {
          {
             name = "The Gnomish Mines",
@@ -56,7 +57,7 @@ dungeon = {
          {
             name = "bigrm",
             bonetag = "B",
-            base = 10,
+            base = 13,
             range = 3,
             chance = 40,
             nlevels = 10

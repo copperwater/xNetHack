@@ -1,4 +1,4 @@
-/* NetHack 3.6	mondata.h	$NHDT-Date: 1576626512 2019/12/17 23:48:32 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.39 $ */
+/* NetHack 3.7	mondata.h	$NHDT-Date: 1606473485 2020/11/27 10:38:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.45 $ */
 /* Copyright (c) 1989 Mike Threepoint				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -15,7 +15,8 @@
     ((mon)->data->mresists | (mon)->mextrinsics | (mon)->mintrinsics)
 #define resists_fire(mon) ((mon_resistancebits(mon) & MR_FIRE) != 0)
 #define resists_cold(mon) ((mon_resistancebits(mon) & MR_COLD) != 0)
-#define resists_sleep(mon) ((mon_resistancebits(mon) & MR_SLEEP) != 0)
+#define resists_sleep(mon) ((mon_resistancebits(mon) & MR_SLEEP) != 0 \
+                            || mindless((mon)->data))
 #define resists_disint(mon) ((mon_resistancebits(mon) & MR_DISINT) != 0)
 #define resists_elec(mon) ((mon_resistancebits(mon) & MR_ELEC) != 0)
 #define resists_poison(mon) ((mon_resistancebits(mon) & MR_POISON) != 0)
@@ -144,6 +145,7 @@
     (((ptr) == &mons[PM_SEWER_RAT]) || ((ptr) == &mons[PM_GIANT_RAT]) || \
      ((ptr) == &mons[PM_RABID_RAT]) || ((ptr) == &mons[PM_WERERAT]) || \
      ((ptr) == &mons[PM_HUMAN_WERERAT]))
+#define is_zombie(ptr) ((ptr)->mlet == S_ZOMBIE && strstri((ptr)->mname, "zombie"))
 #define is_domestic(ptr) (((ptr)->mflags2 & M2_DOMESTIC) != 0L)
 #define is_demon(ptr) (((ptr)->mflags2 & M2_DEMON) != 0L)
 #define is_mercenary(ptr) (((ptr)->mflags2 & M2_MERC) != 0L)
@@ -159,7 +161,15 @@
 #define strongmonst(ptr) (((ptr)->mflags2 & M2_STRONG) != 0L)
 #define can_breathe(ptr) attacktype(ptr, AT_BREA)
 #define cantwield(ptr) (nohands(ptr) || verysmall(ptr))
-#define could_twoweap(ptr) ((ptr)->mattk[1].aatyp == AT_WEAP)
+/* Does this type of monster have multiple weapon attacks?  If so,
+   hero poly'd into this form can use two-weapon combat.  It used
+   to just check mattk[1] and assume mattk[0], which was suitable
+   for mons[] at the time but somewhat fragile.  This is more robust
+   without going to the extreme of checking all six slots. */
+#define could_twoweap(ptr) \
+    ((  ((ptr)->mattk[0].aatyp == AT_WEAP)              \
+      + ((ptr)->mattk[1].aatyp == AT_WEAP)              \
+      + ((ptr)->mattk[2].aatyp == AT_WEAP)  ) > 1)
 #define cantweararm(ptr) (breakarm(ptr) || sliparm(ptr))
 #define throws_rocks(ptr) (((ptr)->mflags2 & M2_ROCKTHROW) != 0L)
 #define type_is_pname(ptr) (((ptr)->mflags2 & M2_PNAME) != 0L)
@@ -195,21 +205,13 @@
     ((ptr) == &mons[PM_ORC] || (ptr) == &mons[PM_GIANT] \
      || (ptr) == &mons[PM_ELF] || (ptr) == &mons[PM_HUMAN])
 /* return TRUE if the monster tends to revive */
-#define is_reviver(ptr) (is_rider(ptr) || (ptr)->mlet == S_TROLL)
+#define is_reviver(ptr) (is_rider(ptr) || is_zombie(ptr) \
+                         || (ptr)->mlet == S_TROLL)
 /* monsters whose corpses and statues need special handling;
    note that high priests and the Wizard of Yendor are flagged
    as unique even though they really aren't; that's ok here */
 #define unique_corpstat(ptr) (((ptr)->geno & G_UNIQ) != 0)
 
-/* this returns the light's range, or 0 if none; if we add more light emitting
-   monsters, we'll likely have to add a new light range field to mons[] */
-#define emits_light(ptr)                                          \
-    (((ptr)->mlet == S_LIGHT || (ptr) == &mons[PM_FLAMING_SPHERE] \
-      || (ptr) == &mons[PM_SHOCKING_SPHERE]                       \
-      || (ptr) == &mons[PM_FIRE_VORTEX])                          \
-         ? 1                                                      \
-         : ((ptr) == &mons[PM_FIRE_ELEMENTAL]) ? 1 : 0)
-/*	[note: the light ranges above were reduced to 1 for performance...] */
 #define likes_lava(ptr) \
     (ptr == &mons[PM_FIRE_ELEMENTAL] || ptr == &mons[PM_SALAMANDER])
 #define pm_invisible(ptr) \
@@ -230,14 +232,18 @@
 
 #define hates_light(ptr) ((ptr) == &mons[PM_GREMLIN])
 
-/* used to vary a few messages */
+/* used to vary a few messages; also nonliving monsters don't get life-saved */
 #define weirdnonliving(ptr) (is_golem(ptr) || (ptr)->mlet == S_VORTEX)
 #define nonliving(ptr) \
     (is_undead(ptr) || (ptr) == &mons[PM_MANES] || weirdnonliving(ptr))
 
-/* no corpse (ie, blank scrolls) if killed by fire */
+/* no corpse (ie, blank scrolls) if killed by fire; special case instakill  */
 #define completelyburns(ptr) \
     ((ptr) == &mons[PM_PAPER_GOLEM] || (ptr) == &mons[PM_STRAW_GOLEM])
+#define completelyrots(ptr) \
+    ((ptr) == &mons[PM_WOOD_GOLEM] || (ptr) == &mons[PM_LEATHER_GOLEM] \
+     || (ptr) == &mons[PM_PAPER_GOLEM] || (ptr) == &mons[PM_STRAW_GOLEM])
+#define completelyrusts(ptr) ((ptr) == &mons[PM_IRON_GOLEM])
 
 /* Used for conduct with corpses, tins, and digestion attacks */
 /* G_NOCORPSE monsters might still be swallowed as a purple worm */

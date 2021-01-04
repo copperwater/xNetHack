@@ -69,7 +69,8 @@ struct obj *otmp;
         char kbuf[BUFSZ];
 
         You("touch %s.", mon_nam(mtmp));
-        if (!(poly_when_stoned(g.youmonst.data) && polymon(PM_STONE_GOLEM, TRUE))) {
+        if (!(poly_when_stoned(g.youmonst.data)
+              && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
             Sprintf(kbuf, "attempting to saddle %s", an(mtmp->data->mname));
             instapetrify(kbuf);
         }

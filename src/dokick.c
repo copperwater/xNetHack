@@ -1,4 +1,4 @@
-/* NetHack 3.6	dokick.c	$NHDT-Date: 1582155880 2020/02/19 23:44:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.153 $ */
+/* NetHack 3.7	dokick.c	$NHDT-Date: 1606343576 2020/11/25 22:32:56 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.160 $ */
 /* Copyright (c) Izchak Miller, Mike Stephenson, Steve Linhart, 1989. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -18,8 +18,8 @@ static void FDECL(kick_monster, (struct monst *, XCHAR_P, XCHAR_P));
 static int FDECL(kick_object, (XCHAR_P, XCHAR_P, char *));
 static int FDECL(really_kick_object, (XCHAR_P, XCHAR_P));
 static char *FDECL(kickstr, (char *, const char *));
-static void FDECL(otransit_msg, (struct obj *, BOOLEAN_P, long));
-static void FDECL(drop_to, (coord *, SCHAR_P));
+static void FDECL(otransit_msg, (struct obj *, BOOLEAN_P, BOOLEAN_P, long));
+static void FDECL(drop_to, (coord *, SCHAR_P, XCHAR_P, XCHAR_P));
 
 static const char kick_passes_thru[] = "kick passes harmlessly through";
 
@@ -46,13 +46,11 @@ boolean clumsy;
     if (thick_skinned(mon->data))
         dmg = 0;
 
-    /* attacking a shade is normally useless */
-    if (noncorporeal(mon->data))
-        dmg = 0;
-
     specialdmg = special_dmgval(&g.youmonst, mon, W_ARMF, &hated_obj);
 
-    if (noncorporeal(mon->data) && !specialdmg) {
+    /* attacking a shade is normally useless */
+    if (noncorporeal(mon->data) && !specialdmg
+        && !(uarmf && uarmf->material == BONE)) {
         pline_The("%s.", kick_passes_thru);
         /* doesn't exercise skill or abuse alignment or frighten pet,
            and shades have no passive counterattack */
@@ -89,7 +87,7 @@ boolean clumsy;
         dmg += uarmf->spe;
     }
     if (specialdmg && hated_obj)
-        searmsg(&g.youmonst, mon, hated_obj);
+        searmsg(&g.youmonst, mon, hated_obj, TRUE);
     dmg += u.udaminc; /* add ring(s) of increase damage */
     if (dmg > 0)
         mon->mhp -= dmg;
@@ -202,8 +200,10 @@ xchar x, y;
                 continue;
 
             kickdieroll = rnd(20);
-            specialdmg = special_dmgval(&g.youmonst, mon, W_ARMF, NULL);
-            if (noncorporeal(mon->data) && !specialdmg) {
+            struct obj* hated_obj;
+            specialdmg = special_dmgval(&g.youmonst, mon, W_ARMF, &hated_obj);
+            if (noncorporeal(mon->data) && !specialdmg
+                && !(uarmf && uarmf->material == BONE)) {
                 /* doesn't matter whether it would have hit or missed,
                    and shades have no passive counterattack */
                 Your("%s %s.", kick_passes_thru, mon_nam(mon));
@@ -211,6 +211,9 @@ xchar x, y;
             } else if (tmp > kickdieroll) {
                 You("kick %s.", mon_nam(mon));
                 sum = damageum(mon, uattk, specialdmg);
+                if (hated_obj) {
+                    searmsg(&g.youmonst, mon, hated_obj, FALSE);
+                }
                 (void) passive(mon, uarmf, (boolean) (sum > 0),
                                (sum != 2), AT_KICK, FALSE);
                 if (sum == 2)
@@ -226,9 +229,17 @@ xchar x, y;
     i = -inv_weight();
     j = weight_cap();
 
+    /* What the following confusing if statements mean:
+     * If you are over 70% of carrying capacity, you go through a "deal no
+     * damage" check, and if that fails, a "clumsy kick" check.
+     * At this % of carrycap | Chance of no damage | Chance of clumsiness
+     *             [70%-80%) |                 1/4 |                  1/3
+     *             [80%-90%) |                 1/3 |                  1/2
+     *            [90%-100%) |                 1/2 |                   1
+     */
     if (i < (j * 3) / 10) {
         if (!rn2((i < j / 10) ? 2 : (i < j / 5) ? 3 : 4)) {
-            if (martial() && !rn2(2))
+            if (martial())
                 goto doit;
             Your("clumsy kick does no damage.");
             (void) passive(mon, uarmf, FALSE, 1, AT_KICK, FALSE);
@@ -304,8 +315,7 @@ register struct obj *gold;
     } else {
         long umoney, value = gold->quan * objects[gold->otyp].oc_cost;
 
-        mtmp->msleeping = 0;
-        finish_meating(mtmp);
+        wakeup(mtmp, FALSE);
         if (!mtmp->isgd && !rn2(4)) /* not always pleasing */
             setmangry(mtmp, TRUE);
         /* greedy monsters catch gold */
@@ -345,14 +355,12 @@ register struct obj *gold;
                out of the vault.  If he did do that, player
                could try fighting, then weasle out of being
                killed by throwing his/her gold when losing. */
-            verbalize(
-                umoney
-                    ? "Drop the rest and follow me."
-                    : hidden_gold()
-                          ? "You still have hidden gold.  Drop it now."
-                          : mtmp->mpeaceful
-                                ? "I'll take care of that; please move along."
-                                : "I'll take that; now get moving.");
+            verbalize(umoney ? "Drop the rest and follow me."
+                      : hidden_gold(TRUE)
+                        ? "You still have hidden gold.  Drop it now."
+                        : mtmp->mpeaceful
+                          ? "I'll take care of that; please move along."
+                          : "I'll take that; now get moving.");
         } else if (is_mercenary(mtmp->data)) {
             long goldreqd = 0L;
 
@@ -517,11 +525,13 @@ xchar x, y;
         u.uconduct.artitouch++;
 
     if (!uarmf && g.kickedobj->otyp == CORPSE
-        && touch_petrifies(&mons[g.kickedobj->corpsenm]) && !Stone_resistance) {
+        && touch_petrifies(&mons[g.kickedobj->corpsenm])
+        && !Stone_resistance) {
         You("kick %s with your bare %s.",
             corpse_xname(g.kickedobj, (const char *) 0, CXN_PFX_THE),
             makeplural(body_part(FOOT)));
-        if (poly_when_stoned(g.youmonst.data) && polymon(PM_STONE_GOLEM, TRUE)) {
+        if (poly_when_stoned(g.youmonst.data)
+            && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS)) {
             ; /* hero has been transformed but kick continues */
         } else {
             /* normalize body shape here; foot, not body_part(FOOT) */
@@ -529,6 +539,12 @@ xchar x, y;
                     killer_xname(g.kickedobj));
             instapetrify(g.killer.name);
         }
+    }
+
+    if (!uarmf && Hate_material(g.kickedobj->material)) {
+        searmsg(NULL, &g.youmonst, g.kickedobj, FALSE);
+        losehp(rnd(sear_damage(g.kickedobj->material)),
+               "kicking something disagreeable", KILLED_BY);
     }
 
     isgold = (g.kickedobj->oclass == COIN_CLASS);
@@ -714,12 +730,23 @@ xchar x, y;
         else
             (void) stolen_value(g.kickedobj, x, y, (boolean) shkp->mpeaceful,
                                 FALSE);
+        costly = FALSE; /* already billed */
     }
 
     if (flooreffects(g.kickedobj, g.bhitpos.x, g.bhitpos.y, "fall"))
         return 1;
-    if (g.kickedobj->unpaid)
-        subfrombill(g.kickedobj, shkp);
+    if (costly) {
+        long gt = 0L;
+
+        /* costly + landed outside shop handled above; must be inside shop */
+        if (g.kickedobj->unpaid)
+            subfrombill(g.kickedobj, shkp);
+
+        /* if billed for contained gold during kick, get a refund now */
+        if (Has_contents(g.kickedobj)
+            && (gt = contained_gold(g.kickedobj, TRUE)) > 0L)
+            donate_gold(gt, shkp, FALSE);
+    }
     place_object(g.kickedobj, g.bhitpos.x, g.bhitpos.y);
     stackobj(g.kickedobj);
     newsym(g.kickedobj->ox, g.kickedobj->oy);
@@ -893,7 +920,6 @@ dokick()
             return g.context.move;
     }
 
-    wake_nearby();
     u_wipe_engr(2);
 
     if (!isok(x, y)) {
@@ -950,12 +976,14 @@ dokick()
                 range = 1;
             hurtle(-u.dx, -u.dy, range, TRUE);
         }
+        wake_nearby();
         return 1;
     }
     (void) unmap_invisible(x, y);
     if (is_pool(x, y) ^ !!u.uinwater) {
         /* objects normally can't be removed from water by kicking */
         You("splash some %s around.", hliquid("water"));
+        wake_nearby();
         return 1;
     }
 
@@ -964,6 +992,7 @@ dokick()
         if (kick_object(x, y, kickobjnam)) {
             if (Is_airlevel(&u.uz))
                 hurtle(-u.dx, -u.dy, 1, TRUE); /* assume it's light */
+            wake_nearby();
             return 1;
         }
         goto ouch;
@@ -992,9 +1021,13 @@ dokick()
                         || doorstate(g.maploc) == D_NODOOR)
                         unblock_point(x, y); /* vision */
                 }
-                return 1;
-            } else
-                goto ouch;
+            } else {
+                /* Don't reveal whether secret door or secret corridor. */
+                pline(Deaf ? "The wall gives way a little."
+                           : "The wall responds with a hollow thump.");
+            }
+            wake_nearby();
+            return 1;
         }
         if (g.maploc->typ == SCORR) {
             if (!Levitation && rn2(30) < avrg_attrib) {
@@ -1003,9 +1036,13 @@ dokick()
                 g.maploc->typ = CORR;
                 feel_newsym(x, y); /* we know it's gone */
                 unblock_point(x, y); /* vision */
-                return 1;
-            } else
-                goto ouch;
+            } else {
+                /* Don't reveal whether secret door or secret corridor. */
+                pline(Deaf ? "The wall gives way a little."
+                           : "The wall responds with a hollow thump.");
+            }
+            wake_nearby();
+            return 1;
         }
         if (IS_THRONE(g.maploc->typ)) {
             register int i;
@@ -1022,6 +1059,7 @@ dokick()
                     newsym(x, y);
                 }
                 exercise(A_DEX, TRUE);
+                wake_nearby();
                 return 1;
             } else if (Luck > 0 && !rn2(3) && !g.maploc->looted) {
                 (void) mkgold((long) rn1(201, 300), x, y);
@@ -1040,6 +1078,7 @@ dokick()
                 }
                 /* prevent endless milking */
                 g.maploc->looted = T_LOOTED;
+                wake_nearby();
                 return 1;
             } else if (!rn2(4)) {
                 if (dunlev(&u.uz) < dunlevs_in_dungeon(&u.uz)) {
@@ -1055,6 +1094,7 @@ dokick()
                 goto dumb;
             You("kick %s.", (Blind ? something : "the altar"));
             altar_wrath(x, y);
+            wake_nearby();
             if (!rn2(3))
                 goto ouch;
             exercise(A_DEX, TRUE);
@@ -1064,6 +1104,7 @@ dokick()
             if (Levitation)
                 goto dumb;
             You("kick %s.", (Blind ? something : "the fountain"));
+            wake_nearby();
             if (!rn2(3))
                 goto ouch;
             /* make metal boots rust */
@@ -1095,6 +1136,7 @@ dokick()
                 pline_The("headstone topples over and breaks!");
                 newsym(x, y);
             }
+            wake_nearby();
             return 1;
         }
         if (g.maploc->typ == IRONBARS)
@@ -1102,6 +1144,7 @@ dokick()
         if (IS_TREE(g.maploc->typ)) {
             struct obj *treefruit;
 
+            wake_nearby();
             /* nothing, fruit or trouble? 75:23.5:1.5% */
             if (rn2(3)) {
                 if (!rn2(6) && !(g.mvitals[PM_KILLER_BEE].mvflags & G_GONE))
@@ -1175,6 +1218,7 @@ dokick()
                 else
                     pline("Klunk!");
                 exercise(A_DEX, TRUE);
+                wake_nearby();
                 return 1;
             } else if (!(g.maploc->looted & S_LPUDDING) && !rn2(3)
                        && !(g.mvitals[PM_BLACK_PUDDING].mvflags & G_GONE)) {
@@ -1187,6 +1231,7 @@ dokick()
                 exercise(A_DEX, TRUE);
                 newsym(x, y);
                 g.maploc->looted |= S_LPUDDING;
+                wake_nearby();
                 return 1;
             } else if (!(g.maploc->looted & S_LDWASHER) && !rn2(3)
                        && !(g.mvitals[washerndx].mvflags & G_GONE)) {
@@ -1196,6 +1241,7 @@ dokick()
                     newsym(x, y);
                 g.maploc->looted |= S_LDWASHER;
                 exercise(A_DEX, TRUE);
+                wake_nearby();
                 return 1;
             } else if (!rn2(3)) {
                 if (Blind && Deaf)
@@ -1215,6 +1261,7 @@ dokick()
                     exercise(A_DEX, TRUE);
                     exercise(A_WIS, TRUE); /* a discovery! */
                 }
+                wake_nearby();
                 return 1;
             }
             goto ouch;
@@ -1227,6 +1274,7 @@ dokick()
             pline("Ouch!  That hurts!");
             exercise(A_DEX, FALSE);
             exercise(A_STR, FALSE);
+            wake_nearby();
             if (isok(x, y)) {
                 if (Blind)
                     feel_location(x, y); /* we know we hit it */
@@ -1263,6 +1311,7 @@ dokick()
         }
         if ((Is_airlevel(&u.uz) || Levitation) && rn2(2))
             hurtle(-u.dx, -u.dy, 1, TRUE);
+        wake_nearby();
         return 1; /* uses a turn */
     }
 
@@ -1313,6 +1362,11 @@ dokick()
             feel_location(x, y); /* we know we hit it */
         exercise(A_STR, TRUE);
         pline("WHAMMM!!!");
+        if (door_is_iron(g.maploc) && Hate_material(IRON) && !uarmf) {
+            You("recoil from the door's iron!");
+            losehp(Maybe_Half_Phys(sear_damage(IRON)), "kicking an iron door",
+                   KILLED_BY);
+        }
         if (!predoortrapped(x, y, &g.youmonst, FOOT, D_BROKEN)
             && door_is_iron(g.maploc)) {
             pline("The door doesn't budge an inch.");
@@ -1335,14 +1389,18 @@ dokick()
                 }
             }
     }
+    wake_nearby();
     return 1;
 }
 
 static void
-drop_to(cc, loc)
+drop_to(cc, loc, x,y)
 coord *cc;
 schar loc;
+xchar x,y;
 {
+    stairway *stway = stairway_at(x, y);
+
     /* cover all the MIGR_xxx choices generated by down_gate() */
     switch (loc) {
     case MIGR_RANDOM: /* trap door or hole */
@@ -1357,12 +1415,14 @@ schar loc;
         /*FALLTHRU*/
     case MIGR_STAIRS_UP:
     case MIGR_LADDER_UP:
-        cc->x = u.uz.dnum;
-        cc->y = u.uz.dlevel + 1;
-        break;
     case MIGR_SSTAIRS:
-        cc->x = g.sstairs.tolev.dnum;
-        cc->y = g.sstairs.tolev.dlevel;
+        if (stway) {
+            cc->x = stway->tolev.dnum;
+            cc->y = stway->tolev.dlevel;
+        } else {
+            cc->x = u.uz.dnum;
+            cc->y = u.uz.dlevel + 1;
+        }
         break;
     default:
     case MIGR_NOWHERE:
@@ -1390,7 +1450,7 @@ xchar dlev;          /* if !0 send to dlev near player */
         return;
 
     toloc = down_gate(x, y);
-    drop_to(&cc, toloc);
+    drop_to(&cc, toloc, x, y);
     if (!cc.y)
         return;
 
@@ -1512,14 +1572,14 @@ boolean shop_floor_obj;
     coord cc;
     struct obj *obj;
     struct trap *t;
-    boolean nodrop, unpaid, container, impact = FALSE;
+    boolean nodrop, unpaid, container, impact = FALSE, chainthere = FALSE;
     long n = 0L;
 
     if (!otmp)
         return FALSE;
     if ((toloc = down_gate(x, y)) == MIGR_NOWHERE)
         return FALSE;
-    drop_to(&cc, toloc);
+    drop_to(&cc, toloc, x, y);
     if (!cc.y)
         return FALSE;
 
@@ -1532,9 +1592,12 @@ boolean shop_floor_obj;
     unpaid = is_unpaid(otmp);
 
     if (OBJ_AT(x, y)) {
-        for (obj = g.level.objects[x][y]; obj; obj = obj->nexthere)
-            if (obj != otmp)
+        for (obj = g.level.objects[x][y]; obj; obj = obj->nexthere) {
+            if (obj == uchain)
+                chainthere = TRUE;
+            else if (obj != otmp)
                 n += obj->quan;
+        }
         if (n)
             impact = TRUE;
     }
@@ -1548,7 +1611,7 @@ boolean shop_floor_obj;
     }
 
     if (cansee(x, y))
-        otransit_msg(otmp, nodrop, n);
+        otransit_msg(otmp, nodrop, chainthere, n);
 
     if (nodrop) {
         if (impact)
@@ -1602,6 +1665,7 @@ boolean shop_floor_obj;
     otmp->ox = cc.x;
     otmp->oy = cc.y;
     otmp->migrateflags = (long) toloc;
+
     /* boulder from rolling boulder trap, no longer part of the trap */
     if (otmp->otyp == BOULDER)
         otmp->otrapped = 0;
@@ -1627,9 +1691,12 @@ obj_delivery(near_hero)
 boolean near_hero;
 {
     register struct obj *otmp, *otmp2;
-    register int nx, ny;
+    int nx = 0, ny = 0;
     int where;
     boolean nobreak, noscatter;
+    stairway *stway;
+    d_level fromdlev;
+    boolean isladder;
 
     for (otmp = g.migrating_objs; otmp; otmp = otmp2) {
         otmp2 = otmp->nobj;
@@ -1649,16 +1716,21 @@ boolean near_hero;
 
         obj_extract_self(otmp);
         otmp->migrateflags = 0L;
+        fromdlev.dnum = otmp->omigr_from_dnum;
+        fromdlev.dlevel = otmp->omigr_from_dlevel;
+
+        isladder = FALSE;
 
         switch (where) {
-        case MIGR_STAIRS_UP:
-            nx = xupstair, ny = yupstair;
-            break;
         case MIGR_LADDER_UP:
-            nx = xupladder, ny = yupladder;
-            break;
+            isladder = TRUE;
+            /*FALLTHRU*/
+        case MIGR_STAIRS_UP:
         case MIGR_SSTAIRS:
-            nx = g.sstairs.sx, ny = g.sstairs.sy;
+            if ((stway = stairway_find_from(&fromdlev, isladder)) != 0) {
+                nx = stway->sx;
+                ny = stway->sy;
+            }
             break;
         case MIGR_WITH_HERO:
             nx = u.ux, ny = u.uy;
@@ -1672,6 +1744,8 @@ boolean near_hero;
             nx = ny = 0;
             break;
         }
+        otmp->omigr_from_dnum = 0;
+        otmp->omigr_from_dlevel = 0;
         if (nx > 0) {
             if (where == MIGR_THIEFSTONE) {
                 struct obj* cobj;
@@ -1744,7 +1818,9 @@ unsigned long deliverflags;
         if ((where & MIGR_TO_SPECIES) == 0)
             continue;
 
-        if ((mtmp->data->mflags2 & DELIVER_PM) == otmp->corpsenm) {
+        if (otmp->migr_species != NON_PM
+            && ((mtmp->data->mflags2 & DELIVER_PM)
+                == (unsigned) otmp->migr_species)) {
             obj_extract_self(otmp);
             otmp->owornmask = 0L;
             otmp->ox = otmp->oy = 0;
@@ -1761,7 +1837,9 @@ unsigned long deliverflags;
                 }
                 free_oname(otmp);
             }
-            otmp->corpsenm = NON_PM;
+            otmp->migr_species = NON_PM;
+            otmp->omigr_from_dnum = 0;
+            otmp->omigr_from_dlevel = 0;
             (void) add_to_minv(mtmp, otmp);
             cnt++;
             if (maxobj && cnt >= maxobj)
@@ -1772,9 +1850,9 @@ unsigned long deliverflags;
 }
 
 static void
-otransit_msg(otmp, nodrop, num)
+otransit_msg(otmp, nodrop, chainthere, num)
 register struct obj *otmp;
-register boolean nodrop;
+boolean nodrop, chainthere;
 long num;
 {
     char *optr = 0, obuf[BUFSZ], xbuf[BUFSZ];
@@ -1788,15 +1866,20 @@ long num;
     }
     Strcpy(obuf, optr);
 
-    if (num) { /* means: other objects are impacted */
+    if (num || chainthere) {
         /* As of 3.6.2: use a separate buffer for the suffix to avoid risk of
            overrunning obuf[] (let pline() handle truncation if necessary) */
-        Sprintf(xbuf, " %s %s object%s", otense(otmp, "hit"),
-                (num == 1L) ? "another" : "other", (num > 1L) ? "s" : "");
+        if (num) { /* means: other objects are impacted */
+            Sprintf(xbuf, " %s %s object%s", otense(otmp, "hit"),
+                    (num == 1L) ? "another" : "other", (num > 1L) ? "s" : "");
+        } else { /* chain-only msg */
+            Sprintf(xbuf, " %s your chain", otense(otmp, "rattle"));
+        }
         if (nodrop)
             Sprintf(eos(xbuf), ".");
         else
-            Sprintf(eos(xbuf), " and %s %s.", otense(otmp, "fall"), g.gate_str);
+            Sprintf(eos(xbuf), " and %s %s.",
+                    otense(otmp, "fall"), g.gate_str);
         pline("%s%s", obuf, xbuf);
     } else if (!nodrop)
         pline("%s %s %s.", obuf, otense(otmp, "fall"), g.gate_str);
@@ -1808,19 +1891,19 @@ down_gate(x, y)
 xchar x, y;
 {
     struct trap *ttmp;
+    stairway *stway = stairway_at(x, y);
 
     g.gate_str = 0;
     /* this matches the player restriction in goto_level() */
     if (on_level(&u.uz, &qstart_level) && !ok_to_quest())
         return MIGR_NOWHERE;
 
-    if ((xdnstair == x && ydnstair == y)
-        || (g.sstairs.sx == x && g.sstairs.sy == y && !g.sstairs.up)) {
+    if (stway && !stway->up && !stway->isladder) {
         g.gate_str = "down the stairs";
-        return (xdnstair == x && ydnstair == y) ? MIGR_STAIRS_UP
-                                                : MIGR_SSTAIRS;
+        return (stway->tolev.dnum == u.uz.dnum) ? MIGR_STAIRS_UP
+                                : MIGR_SSTAIRS;
     }
-    if (xdnladder == x && ydnladder == y) {
+    if (stway && !stway->up && stway->isladder) {
         g.gate_str = "down the ladder";
         return MIGR_LADDER_UP;
     }

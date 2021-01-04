@@ -1,4 +1,4 @@
-/* NetHack 3.6	sp_lev.h	$NHDT-Date: 1580434523 2020/01/31 01:35:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.33 $ */
+/* NetHack 3.7	sp_lev.h	$NHDT-Date: 1599434249 2020/09/06 23:17:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.39 $ */
 /* Copyright (c) 1989 by Jean-Christophe Collet			  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -48,6 +48,7 @@ enum lvlinit_types {
     LVLINIT_NONE = 0,
     LVLINIT_SOLIDFILL,
     LVLINIT_MAZEGRID,
+    LVLINIT_MAZE,
     LVLINIT_MINES,
     LVLINIT_SWAMP
 };
@@ -124,6 +125,8 @@ typedef struct {
     boolean smoothed, joined;
     xchar lit, walled;
     boolean icedpools;
+    int corrwid, wallthick;
+    boolean rm_deadends;
 } lev_init;
 
 typedef struct {
@@ -191,12 +194,29 @@ typedef struct _room {
     Str_or_Len parent;
     xchar x, y, w, h;
     xchar xalign, yalign;
-    xchar rtype, chance, rlit, filled, joined;
+    xchar rtype, chance, rlit, needfill, joined;
 } room;
 
 struct mapfragment {
     int wid, hei;
     char *data;
 };
+
+#define SET_TYPLIT(x, y, ttyp, llit) \
+    {                                                             \
+        if ((x) >= 1 && (y) >= 0 && (x) < COLNO && (y) < ROWNO) { \
+            if ((ttyp) < MAX_TYPE && levl[(x)][(y)].typ != STAIRS \
+                && levl[(x)][(y)].typ != LADDER)                  \
+                levl[(x)][(y)].typ = (ttyp);                      \
+            if ((ttyp) == LAVAPOOL)                               \
+                levl[(x)][(y)].lit = 1;                           \
+            else if ((schar)(llit) != SET_LIT_NOCHANGE) {         \
+                if ((schar)(llit) == SET_LIT_RANDOM)              \
+                    levl[(x)][(y)].lit = rn2(2);                  \
+                else                                              \
+                    levl[(x)][(y)].lit = (llit);                  \
+            }                                                     \
+        }                                                         \
+    }
 
 #endif /* SP_LEV_H */

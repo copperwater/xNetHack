@@ -1,4 +1,4 @@
-/* NetHack 3.7	insight.c	$NHDT-Date: 1582321544 2020/02/21 21:45:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $ */
+/* NetHack 3.7	insight.c	$NHDT-Date: 1608115734 2020/12/16 10:48:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.23 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -14,7 +14,7 @@
 
 #include "hack.h"
 
-static void FDECL(enlght_out_attr, (const char *, int));
+static void FDECL(enlght_out_attr, (int, const char *));
 static void FDECL(enlght_out, (const char *));
 static void FDECL(enlght_line, (const char *, const char *, const char *,
                                 const char *));
@@ -28,6 +28,7 @@ static void FDECL(basics_enlightenment, (int, int));
 static void FDECL(characteristics_enlightenment, (int, int));
 static void FDECL(one_characteristic, (int, int, int));
 static void FDECL(status_enlightenment, (int, int));
+static void FDECL(weapon_insight, (int));
 static void FDECL(attributes_enlightenment, (int, int));
 static void FDECL(show_achievements, (int));
 static int FDECL(CFDECLSPEC vanqsort_cmp, (const genericptr,
@@ -44,6 +45,52 @@ static const char You_[] = "You ", are[] = "are ", were[] = "were ",
 static const char have_been[] = "have been ", have_never[] = "have never ",
                   never[] = "never ";
 
+/* for livelogging: */
+struct ll_achieve_msg {
+    unsigned long llflag;
+    const char *msg;
+};
+/* ordered per 'enum achievements' in you.h */
+/* take care to keep them in sync! */
+static struct ll_achieve_msg achieve_msg [] = {
+    { 0, "" }, /* actual achievements are numbered from 1 */
+    { LL_ACHIEVE, "acquired the Bell of Opening" },
+    { LL_ACHIEVE, "entered Gehennom" },
+    { LL_ACHIEVE, "acquired the Candelabrum of Invocation" },
+    { LL_ACHIEVE, "acquired the Book of the Dead" },
+    { LL_ACHIEVE, "performed the invocation" },
+    { LL_ACHIEVE, "acquired The Amulet of Yendor" },
+    { LL_ACHIEVE, "entered the Planes" },
+    { LL_ACHIEVE, "entered the Astral Plane" },
+    { LL_ACHIEVE, "ascended" },
+    { LL_ACHIEVE, "acquired the Mines' End luckstone" },
+    { LL_ACHIEVE, "completed Sokoban" },
+    { LL_ACHIEVE|LL_UMONST, "killed Medusa" },
+     /* these two are not logged */
+    { 0, "hero was always blind" },
+    { 0, "hero never wore armor" },
+     /* */
+    { LL_MINORAC, "entered the Gnomish Mines" },
+    { LL_ACHIEVE, "reached Minetown" }, /* probably minor, but dnh logs it */
+    { LL_MINORAC, "entered a shop" },
+    { LL_MINORAC, "entered a temple" },
+    { LL_ACHIEVE, "consulted the Oracle" }, /* minor, but rare enough */
+    { LL_ACHIEVE, "read a Discworld novel" }, /* ditto */
+    { LL_ACHIEVE, "entered Sokoban" }, /* Keep as major for turn comparison w/completed soko */
+    { LL_ACHIEVE, "entered the Big Room" },
+    /* The following 8 are for advancing through the ranks
+       messages differ by role so are created on the fly */
+    { LL_MINORAC, "" },
+    { LL_MINORAC, "" },
+    { LL_MINORAC, "" },
+    { LL_MINORAC, "" },
+    { LL_ACHIEVE, "" },
+    { LL_ACHIEVE, "" },
+    { LL_ACHIEVE, "" },
+    { LL_ACHIEVE, "" },
+    { 0, "" } /* keep this one at the end */
+};
+
 #define enl_msg(prefix, present, past, suffix, ps) \
     enlght_line(prefix, final ? past : present, suffix, ps)
 #define you_are(attr, ps) enl_msg(You_, are, were, attr, ps)
@@ -56,7 +103,7 @@ static const char have_been[] = "have been ", have_never[] = "have never ",
     enl_msg(You_, have, (const char *) "", something, "")
 
 static void
-enlght_out_attr(buf, attr)
+enlght_out_attr(attr, buf)
 const char *buf;
 int attr;
 {
@@ -74,7 +121,7 @@ static void
 enlght_out(buf)
 const char *buf;
 {
-    enlght_out_attr(buf, ATR_NONE);
+    enlght_out_attr(ATR_NONE, buf);
 }
 
 static void
@@ -256,7 +303,7 @@ int final; /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE, ENL_GAMEOVERDEAD */
                 : g.urole.name.m);
 
     /* title */
-    enlght_out(buf); /* "Conan the Archeologist's attributes:" */
+    enlght_out_attr(ATR_HEADING, buf); /* "Conan the Archeologist's attributes:" */
     /* background and characteristics; ^X or end-of-game disclosure */
     if (mode & BASICENLIGHTENMENT) {
         /* role, race, alignment, deities, dungeon level, time, experience */
@@ -267,9 +314,7 @@ int final; /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE, ENL_GAMEOVERDEAD */
         characteristics_enlightenment(mode, final);
     }
     /* expanded status line information, including things which aren't
-       included there due to space considerations--such as obvious
-       alternative movement indicators (riding, levitation, &c), and
-       various troubles (turning to stone, trapped, confusion, &c);
+       included there due to space considerations;
        shown for both basic and magic enlightenment */
     status_enlightenment(mode, final);
     /* remaining attributes; shown for potion,&c or wizard mode and
@@ -277,6 +322,13 @@ int final; /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE, ENL_GAMEOVERDEAD */
     if (mode & MAGICENLIGHTENMENT) {
         /* intrinsics and other traditional enlightenment feedback */
         attributes_enlightenment(mode, final);
+    }
+    /* reminder to player and/or information for dumplog */
+    if ((mode & BASICENLIGHTENMENT) != 0 && (wizard || discover)) {
+        enlght_out(""); /* separator */
+        enlght_out("Miscellaneous:");
+        Sprintf(buf, "running in %s mode", wizard ? "debug" : "explore");
+        you_are(buf, "");
     }
 
     if (!g.en_via_menu) {
@@ -312,7 +364,7 @@ int final;
     rank_titl = rank_of(u.ulevel, Role_switch, innategend);
 
     enlght_out(""); /* separator after title */
-    enlght_out("Background:");
+    enlght_out_attr(ATR_SUBHEAD, "Background:");
 
     /* if polymorphed, report current shape before underlying role;
        will be repeated as first status: "you are transformed" and also
@@ -560,7 +612,7 @@ int final;
         pwmax = u.uenmax, hpmax = (Upolyd ? u.mhmax : u.uhpmax);
 
     enlght_out(""); /* separator after background */
-    enlght_out("Basics:");
+    enlght_out_attr(ATR_SUBHEAD, "Basics:");
 
     if (hp < 0)
         hp = 0;
@@ -639,7 +691,7 @@ int final;
 
     enlght_out("");
     Sprintf(buf, "%s Characteristics:", !final ? "Current" : "Final");
-    enlght_out(buf);
+    enlght_out_attr(ATR_SUBHEAD, buf);
 
     /* bottom line order */
     one_characteristic(mode, final, A_STR); /* strength */
@@ -752,7 +804,7 @@ int mode;
 int final;
 {
     boolean magic = (mode & MAGICENLIGHTENMENT) ? TRUE : FALSE;
-    int cap, wtype;
+    int cap;
     char buf[BUFSZ], youtoo[BUFSZ];
     boolean Riding = (u.usteed
                       /* if hero dies while dismounting, u.usteed will still
@@ -771,7 +823,7 @@ int final;
      *     should be discernible to the hero hence to the player)
     \*/
     enlght_out(""); /* separator after title or characteristics */
-    enlght_out(final ? "Final Status:" : "Current Status:");
+    enlght_out_attr(ATR_SUBHEAD, final ? "Final Status:" : "Current Status:");
 
     Strcpy(youtoo, You_);
     /* not a traditional status but inherently obvious to player; more
@@ -987,12 +1039,18 @@ int final;
     }
     Strcpy(buf, hu_stat[u.uhs]); /* hunger status; omitted if "normal" */
     mungspaces(buf);             /* strip trailing spaces */
-    if (*buf) {
+    /* status line doesn't show hunger when state is "not hungry", we do;
+       needed for wizard mode's reveal of u.uhunger but add it for everyone */
+    if (!*buf)
+        Strcpy(buf, "not hungry");
+    if (*buf) { /* (since "not hungry" was added, this will always be True) */
         *buf = lowc(*buf); /* override capitalization */
         if (!strcmp(buf, "weak"))
             Strcat(buf, " from severe hunger");
         else if (!strncmp(buf, "faint", 5)) /* fainting, fainted */
             Strcat(buf, " due to starvation");
+        if (wizard)
+            Sprintf(eos(buf), " <%d>", u.uhunger);
         you_are(buf, "");
     }
     /* encumbrance */
@@ -1018,6 +1076,8 @@ int final;
             adj = "not possible";
             break;
         }
+        if (wizard)
+            Sprintf(eos(buf), " <%d>", inv_weight());
         Sprintf(eos(buf), "; movement %s %s%s", !final ? "is" : "was", adj,
                 (cap < OVERLOADED) ? " slowed" : "");
         you_are(buf, "");
@@ -1025,60 +1085,22 @@ int final;
         /* last resort entry, guarantees Status section is non-empty
            (no longer needed for that purpose since weapon status added;
            still useful though) */
-        you_are("unencumbered", "");
-    }
-
-    /* report being weaponless; distinguish whether gloves are worn */
-    if (!uwep) {
-        you_are(uarmg ? "empty handed" /* gloves imply hands */
-                      : humanoid(g.youmonst.data)
-                         /* hands but no weapon and no gloves */
-                         ? "bare handed"
-                         /* alternate phrasing for paws or lack of hands */
-                         : "not wielding anything",
-                "");
-    /* two-weaponing implies hands (can't be polymorphed) and
-       a weapon or wep-tool (not other odd stuff) in each hand */
-    } else if (u.twoweap) {
-        you_are("wielding two weapons at once", "");
-    /* report most weapons by their skill class (so a katana will be
-       described as a long sword, for instance; mattock and hook are
-       exceptions), or wielded non-weapon item by its object class */
-    } else {
-        const char *what = weapon_descr(uwep);
-
-        if (!strcmpi(what, "armor") || !strcmpi(what, "food")
-            || !strcmpi(what, "venom"))
-            Sprintf(buf, "wielding some %s", what);
-        else
-            Sprintf(buf, "wielding %s",
-                    (uwep->quan == 1L) ? an(what) : makeplural(what));
+        Strcpy(buf, "unencumbered");
+        if (wizard)
+            Sprintf(eos(buf), " <%d>", inv_weight());
         you_are(buf, "");
     }
-    /*
-     * Skill with current weapon.  Might help players who've never
-     * noticed #enhance or decided that it was pointless.
-     */
-    if ((wtype = uwep_skill_type()) != P_NONE) {
-        char sklvlbuf[20];
-        int sklvl = P_SKILL(wtype);
-        boolean hav = (sklvl != P_UNSKILLED && sklvl != P_SKILLED);
-
-        if (sklvl == P_ISRESTRICTED)
-            Strcpy(sklvlbuf, "no");
-        else
-            (void) lcase(skill_level_name(wtype, sklvlbuf));
-        /* "you have no/basic/expert/master/grand-master skill with <skill>"
-           or "you are unskilled/skilled in <skill>" */
-        Sprintf(buf, "%s %s %s", sklvlbuf,
-                hav ? "skill with" : "in", skill_name(wtype));
-        if (can_advance(wtype, FALSE))
-            Sprintf(eos(buf), " and %s that",
-                    !final ? "can enhance" : "could have enhanced");
-        if (hav)
-            you_have(buf, "");
-        else
-            you_are(buf, "");
+    /* current weapon(s) and corresponding skill level(s) */
+    weapon_insight(final);
+    /* unlike ring of increase accuracy's effect, the monk's suit penalty
+       is too blatant to be restricted to magical enlightenment */
+    if (iflags.tux_penalty && !Upolyd) {
+        (void) enlght_combatinc("to hit", -CUMBERSOME_ARMOR_PENALTY, final,
+                                buf);
+        /* if from_what() ever gets extended from wizard mode to normal
+           play, it could be adapted to handle this */
+        Sprintf(eos(buf), " due to your %s", suit_simple_name(uarm));
+        you_have(buf, "");
     }
     /* report 'nudity' */
     if (!uarm && !uarmu && !uarmc && !uarms && !uarmg && !uarmf && !uarmh) {
@@ -1087,6 +1109,7 @@ int final;
         else
             you_are("not wearing any armor", "");
     }
+
     if (!final) {
         if (u.ulastprayed < 0)
             you_have_never("prayed");
@@ -1095,6 +1118,211 @@ int final;
             enlght_line(You_, "prayed", buf, "");
         }
     }
+}
+
+/* extracted from status_enlightenment() to reduce clutter there */
+static void
+weapon_insight(final)
+int final;
+{
+    char buf[BUFSZ];
+    int wtype;
+
+    /* report being weaponless; distinguish whether gloves are worn
+       [perhaps mention silver ring(s) when not wearning gloves?] */
+    if (!uwep) {
+        you_are(uarmg ? "empty handed" /* gloves imply hands */
+                      : humanoid(g.youmonst.data)
+                         /* hands but no weapon and no gloves */
+                         ? "bare handed"
+                         /* alternate phrasing for paws or lack of hands */
+                         : "not wielding anything",
+                "");
+
+    /* two-weaponing implies hands and
+       a weapon or wep-tool (not other odd stuff) in each hand */
+    } else if (u.twoweap) {
+        you_are("wielding two weapons at once", "");
+
+    /* report most weapons by their skill class (so a katana will be
+       described as a long sword, for instance; mattock, hook, and aklys
+       are exceptions), or wielded non-weapon item by its object class */
+    } else {
+        const char *what = weapon_descr(uwep);
+
+        /* [what about other silver items?] */
+        if (uwep->otyp == SHIELD_OF_REFLECTION)
+            what = shield_simple_name(uwep); /* silver|smooth shield */
+        else if (is_wet_towel(uwep))
+            what = /* (uwep->spe < 3) ? "moist towel" : */ "wet towel";
+
+        if (!strcmpi(what, "armor") || !strcmpi(what, "food")
+            || !strcmpi(what, "venom"))
+            Sprintf(buf, "wielding some %s", what);
+        else
+            /* [maybe include known blessed?] */
+            Sprintf(buf, "wielding %s",
+                    (uwep->quan == 1L) ? an(what) : makeplural(what));
+        you_are(buf, "");
+    }
+
+    /*
+     * Skill with current weapon.  Might help players who've never
+     * noticed #enhance or decided that it was pointless.
+     */
+    if ((wtype = weapon_type(uwep)) != P_NONE && (!uwep || !is_ammo(uwep))) {
+        char sklvlbuf[20];
+        int sklvl = P_SKILL(wtype);
+        boolean hav = (sklvl != P_UNSKILLED && sklvl != P_SKILLED);
+
+        if (sklvl == P_ISRESTRICTED)
+            Strcpy(sklvlbuf, "no");
+        else
+            (void) lcase(skill_level_name(sklvl, sklvlbuf));
+        /* "you have no/basic/expert/master/grand-master skill with <skill>"
+           or "you are unskilled/skilled in <skill>" */
+        Sprintf(buf, "%s %s %s", sklvlbuf,
+                hav ? "skill with" : "in", skill_name(wtype));
+        if (!u.twoweap) {
+            if (can_advance(wtype, FALSE))
+                Sprintf(eos(buf), " and %s that",
+                        !final ? "can enhance" : "could have enhanced");
+            if (hav)
+                you_have(buf, "");
+            else
+                you_are(buf, "");
+
+        } else { /* two-weapon */
+            static const char also_[] = "also ";
+            char pfx[QBUFSZ], sfx[QBUFSZ],
+                sknambuf2[20], sklvlbuf2[20], twobuf[20];
+            const char *also = "", *also2 = "", *also3 = (char *) 0,
+                       *verb_present, *verb_past;
+            int wtype2 = weapon_type(uswapwep),
+                sklvl2 = P_SKILL(wtype2),
+                twoskl = P_SKILL(P_TWO_WEAPON_COMBAT);
+            boolean a1, a2, ab,
+                    hav2 = (sklvl2 != P_UNSKILLED && sklvl2 != P_SKILLED);
+
+            /* normally hero must have access to two-weapon skill in
+               order to initiate u.twoweap, but not if polymorphed into
+               a form which has multiple weapon attacks, so we need to
+               avoid getting bitten by unexpected skill value */
+            if (twoskl == P_ISRESTRICTED) {
+                twoskl = P_UNSKILLED;
+                /* restricted is the same as unskilled as far as bonus
+                   or penalty goes, and it isn't ordinarily seen so
+                   skill_level_name() returns "Unknown" for it */
+                Strcpy(twobuf, "restricted");
+            } else {
+                (void) lcase(skill_level_name(twoskl, twobuf));
+            }
+
+            /* keep buf[] from above in case skill levels match */
+            pfx[0] = sfx[0] = '\0';
+            if (twoskl < sklvl) {
+                /* twoskil won't be restricted so sklvl is at least basic */
+                Sprintf(pfx, "Your skill in %s ", skill_name(wtype));
+                Sprintf(sfx, " limited by being %s with two weapons", twobuf);
+                also = also_;
+            } else if (twoskl > sklvl) {
+                /* sklvl might be restricted */
+                Strcpy(pfx, "Your two weapon skill ");
+                Strcpy(sfx, " limited by ");
+                if (sklvl > P_ISRESTRICTED)
+                    Sprintf(eos(sfx), "being %s", sklvlbuf);
+                else
+                    Sprintf(eos(sfx), "having no skill");
+                Sprintf(eos(sfx), " with %s", skill_name(wtype));
+                also2 = also_;
+            } else {
+                Strcat(buf, " and two weapons");
+                also3 = also_;
+            }
+            if (*pfx)
+                enl_msg(pfx, "is", "was", sfx, "");
+            else if (hav)
+                you_have(buf, "");
+            else
+                you_are(buf, "");
+
+            /* skip comparison between secondary and two-weapons if it is
+               identical to the comparison between primary and twoweap */
+            if (wtype2 != wtype) {
+                Strcpy(sknambuf2, skill_name(wtype2));
+                (void) lcase(skill_level_name(sklvl2, sklvlbuf2));
+                verb_present = "is", verb_past = "was";
+                pfx[0] = sfx[0] = buf[0] = '\0';
+                if (twoskl < sklvl2) {
+                    /* twoskil is at least unskilled, sklvl2 at least basic */
+                    Sprintf(pfx, "Your skill in %s ", sknambuf2);
+                    Sprintf(sfx, " %slimited by being %s with two weapons",
+                            also, twobuf);
+                } else if (twoskl > sklvl2) {
+                    /* sklvl2 might be restricted */
+                    Strcpy(pfx, "Your two weapon skill ");
+                    Sprintf(sfx, " %slimited by ", also2);
+                    if (sklvl2 > P_ISRESTRICTED)
+                        Sprintf(eos(sfx), "being %s with", sklvlbuf2);
+                    else
+                        Strcat(eos(sfx), "having no skill");
+                    Sprintf(eos(sfx), " with %s", sknambuf2);
+                } else {
+                    /* equal; two-weapon is at least unskilled, so sklvl2 is
+                       too; "you [also] have basic/expert/master/grand-master
+                       skill with <skill>" or "you [also] are unskilled/
+                       skilled in <skill> */
+                    Sprintf(buf, "%s %s %s", sklvlbuf2,
+                            hav2 ? "skill with" : "in", sknambuf2);
+                    Strcat(buf, " and two weapons");
+                    if (also3) {
+                        Strcpy(pfx, "You also ");
+                        Sprintf(sfx, " %s", buf), buf[0] = '\0';
+                        verb_present = hav2 ? "have" : "are";
+                        verb_past = hav2 ? "had" : "were";
+                    }
+                }
+                if (*pfx)
+                    enl_msg(pfx, verb_present, verb_past, sfx, "");
+                else if (hav2)
+                    you_have(buf, "");
+                else
+                    you_are(buf, "");
+            } /* wtype2 != wtype */
+
+            /* if training and available skill credits already allow
+               #enhance for any of primary, secondary, or two-weapon,
+               tell the player; avoid attempting figure out whether
+               spending skill credits enhancing one might make either
+               or both of the others become ineligible for enhancement */
+            a1 = can_advance(wtype, FALSE);
+            a2 = (wtype2 != wtype) ? can_advance(wtype2, FALSE) : FALSE;
+            ab = can_advance(P_TWO_WEAPON_COMBAT, FALSE);
+            if (a1 || a2 || ab) {
+                static const char also_wik_[] = " and also with ";
+
+                /* for just one, the conditionals yield
+                   1) "skill with <that one>"; for more than one:
+                   2) "skills with <primary> and also with <secondary>" or
+                   3) "skills with <primary> and also with two-weapons" or
+                   4) "skills with <secondary> and also with two-weapons" or
+                   5) "skills with <primary>, <secondary>, and two-weapons"
+                   (no 'also's or extra 'with's for case 5); when primary
+                   and secondary use the same skill, only cases 1 and 3 are
+                   possible because 'a2' gets forced to False above */
+                Sprintf(sfx, " skill%s with %s%s%s%s%s",
+                        ((int) a1 + (int) a2 + (int) ab > 1) ? "s" : "",
+                        a1 ? skill_name(wtype) : "",
+                        ((a1 && a2 && ab) ? ", "
+                         : (a1 && (a2 || ab)) ? also_wik_ : ""),
+                        a2 ? skill_name(wtype2) : "",
+                        ((a1 && a2 && ab) ? ", and "
+                         : (a2 && ab) ? also_wik_ : ""),
+                        ab ? "two weapons" : "");
+                enl_msg(You_, "can enhance", "could have enhanced", sfx, "");
+            }
+        } /* two-weapon */
+    } /* skill applies */
 }
 
 /* attributes: intrinsics and the like, other non-obvious capabilities */
@@ -1112,7 +1340,7 @@ int final;
      *  Attributes
     \*/
     enlght_out("");
-    enlght_out(final ? "Final Attributes:" : "Current Attributes:");
+    enlght_out_attr(ATR_SUBHEAD, final ? "Final Attributes:" : "Current Attributes:");
 
     if (u.uevent.uhand_of_elbereth) {
         static const char *const hofe_titles[3] = { "the Hand of Elbereth",
@@ -1331,8 +1559,18 @@ int final;
         enl_msg("You regenerate", "", "d", "", from_what(REGENERATION));
     if (Slow_digestion)
         you_have("slower digestion", from_what(SLOW_DIGESTION));
-    if (u.uhitinc)
-        you_have(enlght_combatinc("to hit", u.uhitinc, final, buf), "");
+    if (u.uhitinc) {
+        (void) enlght_combatinc("to hit", u.uhitinc, final, buf);
+        if (iflags.tux_penalty && !Upolyd)
+            Sprintf(eos(buf), " %s your suit's penalty",
+                    (u.uhitinc < 0) ? "increasing"
+                    : (u.uhitinc < 4 * CUMBERSOME_ARMOR_PENALTY / 5)
+                      ? "partly offsetting"
+                      : (u.uhitinc < CUMBERSOME_ARMOR_PENALTY)
+                        ? "nearly offseting"
+                        : "overcoming");
+        you_have(buf, "");
+    }
     if (u.udaminc)
         you_have(enlght_combatinc("damage", u.udaminc, final, buf), "");
     if (u.uspellprot || Protection) {
@@ -1342,6 +1580,8 @@ int final;
             prot += uleft->spe;
         if (uright && uright->otyp == RIN_PROTECTION)
             prot += uright->spe;
+        if (uamul && uamul->otyp == AMULET_OF_GUARDING)
+            prot += 2;
         if (HProtection & INTRINSIC)
             prot += u.ublessed;
         prot += u.uspellprot;
@@ -1676,7 +1916,7 @@ int final;
 
     if (!u.uconduct.literate) {
         you_have_been("illiterate");
-    } else if (wizard) {
+    } else {
         Sprintf(buf, "read items or engraved %ld time%s", u.uconduct.literate,
                 plur(u.uconduct.literate));
         you_have_X(buf);
@@ -1693,7 +1933,7 @@ int final;
 
     if (!u.uconduct.polypiles) {
         you_have_never("polymorphed an object");
-    } else if (wizard) {
+    } else {
         Sprintf(buf, "polymorphed %ld item%s", u.uconduct.polypiles,
                 plur(u.uconduct.polypiles));
         you_have_X(buf);
@@ -1757,11 +1997,38 @@ int final;
     }
 
     if (!u.uconduct.uncelibate) {
-        you_have_X("been celibate");
+        you_have_been("celibate");
     }
 
     if (!u.uconduct.conflicting) {
         you_have_never("generated conflict");
+    }
+
+    /* only report Sokoban conduct if the Sokoban branch has been entered */
+    if (sokoban_in_play()) {
+        const char *presentverb = "have violated", *pastverb = "violated";
+
+        Strcpy(buf, " the special Sokoban rules ");
+        switch (u.uconduct.sokocheat) {
+        case 0L:
+            presentverb = "have not violated";
+            pastverb = "did not violate";
+            Strcpy(buf, " any of the special Sokoban rules");
+            break;
+        case 1L:
+            Strcat(buf, "once");
+            break;
+        case 2L:
+            Strcat(buf, "twice");
+            break;
+        case 3L:
+            Strcat(buf, "thrice");
+            break;
+        default:
+            Sprintf(eos(buf), "%ld times", u.uconduct.sokocheat);
+            break;
+        }
+        enl_msg(You_, presentverb, pastverb, buf, "");
     }
 
     show_achievements(final);
@@ -1780,8 +2047,8 @@ static void
 show_achievements(final)
 int final; /* used "behind the curtain" by enl_foo() macros */
 {
-    int i, achidx, acnt;
-    char title[BUFSZ];
+    int i, achidx, absidx, acnt;
+    char title[QBUFSZ], buf[QBUFSZ];
     winid awin = WIN_ERR;
 
     /* unfortunately we can't show the achievements (at least not all of
@@ -1803,7 +2070,7 @@ int final; /* used "behind the curtain" by enl_foo() macros */
         awin = create_nhwindow(NHW_MENU);
     }
     Sprintf(title, "Achievement%s:", plur(acnt));
-    putstr(awin, 0, title);
+    putstr(awin, ATR_HEADING, title);
 
     /* display achievements in the order in which they were recorded;
        lone exception is to defer the Amulet if we just ascended;
@@ -1820,8 +2087,9 @@ int final; /* used "behind the curtain" by enl_foo() macros */
     }
     for (i = 0; i < acnt; ++i) {
         achidx = u.uachieved[i];
+        absidx = abs(achidx);
 
-        switch (achidx) {
+        switch (absidx) {
         case ACH_BLND:
             enl_msg(You_, "are exploring", "explored",
                     " without being able to see", "");
@@ -1833,7 +2101,7 @@ int final; /* used "behind the curtain" by enl_foo() macros */
             you_have_X("entered the Gnomish Mines");
             break;
         case ACH_TOWN:
-            you_have_X("entered Mine Town");
+            you_have_X("entered Minetown");
             break;
         case ACH_SHOP:
             you_have_X("entered a shop");
@@ -1911,10 +2179,19 @@ int final; /* used "behind the curtain" by enl_foo() macros */
             /* the ultimate achievement... */
             enlght_out(" You ascended!");
             break;
+
+        /* rank 0 is the starting condition, not an achievement; 8 is Xp 30 */
+        case ACH_RNK1: case ACH_RNK2: case ACH_RNK3: case ACH_RNK4:
+        case ACH_RNK5: case ACH_RNK6: case ACH_RNK7: case ACH_RNK8:
+            Sprintf(buf, "attained the rank of %s",
+                    rank_of(rank_to_xlev(absidx - (ACH_RNK1 - 1)),
+                            Role_switch, (achidx < 0) ? TRUE : FALSE));
+            you_have_X(buf);
+            break;
+
         default:
-            /* title[] has served its purpose, reuse it as a scratch buffer */
-            Sprintf(title, " [Unexpected achievement #%d.]", achidx);
-            enlght_out(title);
+            Sprintf(buf, " [Unexpected achievement #%d.]", achidx);
+            enlght_out(buf);
             break;
         } /* switch */
     } /* for */
@@ -1928,12 +2205,15 @@ int final; /* used "behind the curtain" by enl_foo() macros */
 /* record an achievement (add at end of list unless already present) */
 void
 record_achievement(achidx)
-xchar achidx;
+schar achidx;
 {
-    int i;
+    int i, absidx;
 
-    /* valid achievements range from 1 to N_ACH-1 */
-    if (achidx < 1 || achidx >= N_ACH) {
+    absidx = abs(achidx);
+    /* valid achievements range from 1 to N_ACH-1; however, ranks can be
+       stored as the complement (ie, negative) to track gender */
+    if ((achidx < 1 && (absidx < ACH_RNK1 || absidx > ACH_RNK8))
+        || achidx >= N_ACH) {
         impossible("Achievement #%d is out of range.", achidx);
         return;
     }
@@ -1944,21 +2224,30 @@ xchar achidx;
        an attempt to duplicate an achievement can happen if any of Bell,
        Candelabrum, Book, or Amulet is dropped then picked up again */
     for (i = 0; u.uachieved[i]; ++i)
-        if (u.uachieved[i] == achidx)
+        if (abs(u.uachieved[i]) == abs(achidx))
             return; /* already recorded, don't duplicate it */
     u.uachieved[i] = achidx;
+    if (g.program_state.gameover)
+        return; /* don't livelog achievements recorded at end of game */
+    if (absidx >= ACH_RNK1 && absidx <= ACH_RNK8) {
+        livelog_printf(achieve_msg[absidx].llflag, "attained the rank of %s",
+                       rank_of(rank_to_xlev(absidx - (ACH_RNK1 - 1)),
+                               Role_switch, (achidx < 0) ? TRUE : FALSE));
+    }
+    else
+        livelog_write_string(achieve_msg[absidx].llflag, achieve_msg[absidx].msg);
     return;
 }
 
 /* discard a recorded achievement; return True if removed, False otherwise */
 boolean
 remove_achievement(achidx)
-xchar achidx;
+schar achidx;
 {
     int i;
 
     for (i = 0; u.uachieved[i]; ++i)
-        if (u.uachieved[i] == achidx)
+        if (abs(u.uachieved[i]) == abs(achidx))
             break; /* stop when found */
     if (!u.uachieved[i]) /* not found */
         return FALSE;
@@ -1978,6 +2267,34 @@ count_achievements()
     for (i = 0; u.uachieved[i]; ++i)
         ++acnt;
     return acnt;
+}
+
+/* convert a rank index to an achievement number; encode it when female
+   in order to subsequently report gender-specific ranks accurately */
+schar
+achieve_rank(rank)
+int rank; /* 1..8 */
+{
+    schar achidx = (schar) ((rank - 1) + ACH_RNK1);
+
+    if (flags.female)
+        achidx = -achidx;
+    return achidx;
+}
+
+/* return True if sokoban branch has been entered, False otherwise */
+boolean
+sokoban_in_play()
+{
+    int achidx;
+
+    /* TODO? move this to dungeon.c and test furthest level reached of the
+       sokoban branch instead of relying on the entered-sokoban achievement */
+
+    for (achidx = 0; u.uachieved[achidx]; ++achidx)
+        if (u.uachieved[achidx] == ACH_SOKO)
+            return TRUE;
+    return FALSE;
 }
 
 /*
@@ -2209,7 +2526,7 @@ boolean ask;
                             || g.vanq_sortmode == VANQ_MCLS_HTOL);
 
             klwin = create_nhwindow(NHW_MENU);
-            putstr(klwin, 0, "Vanquished creatures:");
+            putstr(klwin, ATR_HEADING, "Vanquished creatures:");
             if (!dumping)
                 putstr(klwin, 0, "");
 
@@ -2271,7 +2588,7 @@ boolean ask;
                 if (!dumping)
                     putstr(klwin, 0, "");
                 Sprintf(buf, "%ld creatures vanquished.", total_killed);
-                putstr(klwin, 0, buf);
+                putstr(klwin, ATR_PREFORM, buf);
             }
             display_nhwindow(klwin, TRUE);
             destroy_nhwindow(klwin);
@@ -2279,7 +2596,7 @@ boolean ask;
     } else if (defquery == 'a') {
         /* #dovanquished rather than final disclosure, so pline() is ok */
         pline("No creatures have been vanquished.");
-#ifdef DUMPLOG
+#if defined(DUMPLOG) || defined(DUMPHTML)
     } else if (dumping) {
         putstr(0, 0, "No creatures were vanquished."); /* not pline() */
 #endif
@@ -2350,7 +2667,7 @@ boolean ask;
             Sprintf(buf, "%s%s species:",
                     (ngenocided) ? "Genocided" : "Extinct",
                     (nextinct && ngenocided) ? " or extinct" : "");
-            putstr(klwin, 0, buf);
+            putstr(klwin, ATR_SUBHEAD, buf);
             if (!dumping)
                 putstr(klwin, 0, "");
 
@@ -2376,17 +2693,17 @@ boolean ask;
                 putstr(klwin, 0, "");
             if (ngenocided > 0) {
                 Sprintf(buf, "%d species genocided.", ngenocided);
-                putstr(klwin, 0, buf);
+                putstr(klwin, ATR_PREFORM, buf);
             }
             if (nextinct > 0) {
                 Sprintf(buf, "%d species extinct.", nextinct);
-                putstr(klwin, 0, buf);
+                putstr(klwin, ATR_PREFORM, buf);
             }
 
             display_nhwindow(klwin, TRUE);
             destroy_nhwindow(klwin);
         }
-#ifdef DUMPLOG
+#if defined (DUMPLOG) || defined (DUMPHTML)
     } else if (dumping) {
         putstr(0, 0, "No species were genocided or became extinct.");
 #endif

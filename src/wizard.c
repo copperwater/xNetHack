@@ -1,4 +1,4 @@
-/* NetHack 3.6	wizard.c	$NHDT-Date: 1585361057 2020/03/28 02:04:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
+/* NetHack 3.7	wizard.c	$NHDT-Date: 1596498229 2020/08/03 23:43:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.68 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -17,6 +17,7 @@ static struct obj *FDECL(on_ground, (SHORT_P));
 static boolean FDECL(you_have, (int));
 static unsigned long FDECL(target_on, (int, struct monst *));
 static unsigned long FDECL(strategy, (struct monst *));
+static void FDECL(choose_stairs, (xchar *, xchar *));
 
 /* adding more neutral creatures will tend to reduce the number of monsters
    summoned by nasty(); adding more lawful creatures will reduce the number
@@ -32,6 +33,7 @@ static NEARDATA const int nasties[] = {
     PM_XORN, PM_LEOCROTTA, PM_BALUCHITHERIUM,
     PM_CARNIVOROUS_APE, PM_FIRE_ELEMENTAL, PM_JABBERWOCK,
     PM_IRON_GOLEM, PM_OCHRE_JELLY, PM_GREEN_SLIME,
+    PM_DISPLACER_BEAST, PM_GENETIC_ENGINEER,
     /* chaotic */
     PM_BLACK_DRAGON, PM_RED_DRAGON, PM_ARCH_LICH, PM_VAMPIRE_LORD,
     PM_MASTER_MIND_FLAYER, PM_DISENCHANTER, PM_WINGED_GARGOYLE,
@@ -89,7 +91,7 @@ amulet()
         if (DEADMONSTER(mtmp))
             continue;
         if (mtmp->iswiz && mtmp->msleeping && !rn2(40)) {
-            mtmp->msleeping = 0;
+            wakeup(mtmp, FALSE);
             if (distu(mtmp->mx, mtmp->my) > 2)
                 You(
       "get the creepy feeling that somebody noticed your taking the Amulet.");
@@ -321,34 +323,30 @@ register struct monst *mtmp;
     return dstrat;
 }
 
-void
+static void
 choose_stairs(sx, sy)
 xchar *sx;
 xchar *sy;
 {
     xchar x = 0, y = 0;
+    stairway *stway = g.stairs;
+    boolean stdir = !builds_up(&u.uz);
 
-    if (builds_up(&u.uz)) {
-        if (xdnstair) {
-            x = xdnstair;
-            y = ydnstair;
-        } else if (xdnladder) {
-            x = xdnladder;
-            y = ydnladder;
-        }
+    if ((stway = stairway_find_type_dir(FALSE, stdir)) != 0) {
+        x = stway->sx;
+        y = stway->sy;
+    } else if ((stway = stairway_find_type_dir(TRUE, stdir)) != 0) {
+        x = stway->sx;
+        y = stway->sy;
     } else {
-        if (xupstair) {
-            x = xupstair;
-            y = yupstair;
-        } else if (xupladder) {
-            x = xupladder;
-            y = yupladder;
+        while (stway) {
+            if (stway->tolev.dnum != u.uz.dnum) {
+                x = stway->sx;
+                y = stway->sy;
+                break;
+            }
+            stway = stway->next;
         }
-    }
-
-    if (!x && g.sstairs.sx) {
-        x = g.sstairs.sx;
-        y = g.sstairs.sy;
     }
 
     if (x && y) {
@@ -484,7 +482,7 @@ aggravate()
         if (in_w_tower != In_W_tower(mtmp->mx, mtmp->my, &u.uz))
             continue;
         mtmp->mstrategy &= ~STRAT_WAITFORU;
-        mtmp->msleeping = 0;
+        wakeup(mtmp, FALSE);
         if (!mtmp->mcanmove && !rn2(5)) {
             mtmp->mfrozen = 0;
             mtmp->mcanmove = 1;
@@ -492,12 +490,15 @@ aggravate()
     }
 }
 
+/* "Double Trouble" spell cast by the Wizard; caller is responsible for
+   only casting this when there is currently one wizard in existence;
+   the clone can't use it unless/until its creator has been killed off */
 void
 clonewiz()
 {
     register struct monst *mtmp2;
 
-    if ((mtmp2 = makemon(&mons[PM_WIZARD_OF_YENDOR], u.ux, u.uy, NO_MM_FLAGS))
+    if ((mtmp2 = makemon(&mons[PM_WIZARD_OF_YENDOR], u.ux, u.uy, MM_NOWAIT))
         != 0) {
         mtmp2->msleeping = mtmp2->mtame = mtmp2->mpeaceful = 0;
         if (!u.uhave.amulet && rn2(2)) { /* give clone a fake */
@@ -580,14 +581,15 @@ struct monst *summoner;
         s_cls = summoner ? summoner->data->mlet : 0;
         difcap = summoner ? summoner->data->difficulty : 0; /* spellcasters */
         castalign = summoner ? sgn(summoner->data->maligntyp) : 0;
-        tmp = (u.ulevel > 3) ? u.ulevel / 3 : 1;
+        tmp = 2 + rnd(((summoner ? summoner->m_lev : 30) / 5) + 1);
         /* if we don't have a casting monster, nasties appear around hero,
            otherwise they'll appear around spot summoner thinks she's at */
         bypos.x = u.ux;
         bypos.y = u.uy;
-        for (i = rnd(tmp); i > 0 && count < MAXNASTIES; --i) {
-            /* Of the 42 nasties[], 10 are lawful, 14 are chaotic,
-             * and 18 are neutral.
+        for (i = tmp; i > 0 && count < MAXNASTIES; --i) {
+            /* Of the 44 nasties[], 10 are lawful, 14 are chaotic,
+             * and 20 are neutral.  [These numbers are up date for
+             * 3.7.0; the ones in the next paragraph are not....]
              *
              * Neutral caster, used for late-game harrassment,
              * has 18/42 chance to stop the inner loop on each
@@ -806,68 +808,6 @@ const char *const random_malediction[] = {
     "Verily, thou shalt be one dead"
 };
 
-const char* angelic_taunts[] = {
-    "Repent, and thou shalt be saved!",
-    "Thou shalt pay for thine insolence!",
-    "Very soon, my child, thou shalt meet thy maker.",
-    "The great %D has sent me to make thee pay for thy sins!",
-    "The wrath of %D is now upon thee!",
-    "Thy life belongs to %D now!",
-    "Dost thou wish to receive thy final blessing?",
-    "Thou art but a godless void.",
-    "Thou art not worthy to seek the Amulet.",
-    "%d have mercy on thee, for I shall not!",
-    "Abandon this arrogance and accept your doom!",
-    "Begone, and do not return!",
-    "Depart, thou accursed, into everlasting fire!",
-    "Filthy mortal, thy life is forfeit!",
-    /* not using "thy" to keep the quote intact */
-    "I find your lack of faith disturbing.",
-    "Kneel, or thou shalt be knelt!",
-    "Say your prayers, %p!",
-    "Thou shalt not kill! That's my job!",
-    /* hallucination-only */
-#define NUM_HALLU_ANGEL_TAUNTS 2
-    "Just one more sinner, and I get a promotion!",
-    "No one expects the Spanish Inquisition!",
-};
-
-const char* impish_taunts[] = {
-    "I first mistook thee for a statue, when I regarded thy head of stone.",
-    "Come here often?",
-    "Doth pain excite thee?  Wouldst thou prefer the whip?",
-    "Thinkest thou it shall tickle as I rip out thy lungs?",
-    "Eat slime and die!",
-    "Go ahead, fetch thy mama!  I shall wait.",
-    "Go play leapfrog with a herd of unicorns!",
-    "Hast thou been drinking, or art thou always so clumsy?",
-"This time I shall let thee off with a spanking, but let it not happen again.",
-    "I've met smarter (and prettier) acid blobs.",
-    "Look!  Thy bootlace is undone!",
-    "Mercy!  Dost thou wish me to die of laughter?",
-    "Run away!  Live to flee another day!",
-    "Thou hadst best fight better than thou canst dress!",
-    "Twixt thy cousin and thee, Medusa is the prettier.",
-"Methinks thou wert unnaturally stirred by yon corpse back there, eh, varlet?",
-    "Up thy nose with a rubber hose!",
-    "Verily, thy corpse could not smell worse!",
-    "Wait!  I shall polymorph into a grid bug to give thee a fighting chance!",
-    "Why search for the Amulet?  Thou wouldst but lose it, cretin.",
-    "Art thou a dragon, or is that merely thy foul breath?",
-    "Go away, or I shall taunt thee again!",
-    "Hurry up and die already, I'm hungry!",
-    "I fart in thy general direction.",
-    "Thy self-esteem shall crumble beneath my vicious mockery!",
-    "Thy broken corpse shall taste delicious lightly seasoned with nutmeg!",
-    "Thy mother was a hamster and thy father smelt of elderberries!",
-    "Talk to the claw!",
-    "Nyaaah!",
-    /* hallucination-only */
-#define NUM_HALLU_IMP_TAUNTS 2
-    "Come at me, bro!",
-    "Ni!",
-};
-
 /* Insult or intimidate the player */
 void
 cuss(mtmp)
@@ -891,25 +831,14 @@ register struct monst *mtmp;
             verbalize("%s %s!",
                       random_malediction[rn2(SIZE(random_malediction))],
                       random_insult[rn2(SIZE(random_insult))]);
-    } else if (is_lminion(mtmp)
+    } else if (is_minion(mtmp->data)
                && !(mtmp->isminion && EMIN(mtmp)->renegade)) {
-        char buf[BUFSZ];
-        int max = SIZE(angelic_taunts);
-        if (!Hallucination)
-            max -= NUM_HALLU_ANGEL_TAUNTS;
-        convert_line(angelic_taunts[rn2(max)], buf);
-        verbalize1(buf);
+        com_pager("angel_cuss");
     } else {
         if (!rn2(is_minion(mtmp->data) ? 100 : 5))
             pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
-        else {
-            char buf[BUFSZ];
-            int max = SIZE(impish_taunts);
-            if (!Hallucination)
-                max -= NUM_HALLU_IMP_TAUNTS;
-            convert_line(impish_taunts[rn2(max)], buf);
-            verbalize1(buf);
-        }
+        else
+            com_pager("demon_cuss");
     }
 }
 

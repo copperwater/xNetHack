@@ -1,4 +1,4 @@
-/* NetHack 3.6	end.c	$NHDT-Date: 1583190253 2020/03/02 23:04:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.208 $ */
+/* NetHack 3.7	end.c	$NHDT-Date: 1606009001 2020/11/22 01:36:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.215 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -41,7 +41,7 @@ extern void NDECL(dump_end_screendump);
 static void FDECL(dump_everything, (int, time_t));
 
 #if defined(__BEOS__) || defined(MICRO) || defined(OS2) || defined(WIN32)
-extern void FDECL(nethack_exit, (int));
+extern void FDECL(nethack_exit, (int)) NORETURN;
 #else
 #define nethack_exit exit
 #endif
@@ -439,7 +439,7 @@ int how;
         if (mon_nm != PM_GREEN_SLIME) {
             /* slimed_to_death() already polyed us into green slime, we don't
              * want to call it again as that will trigger newman() */
-            polymon(mon_nm, TRUE);
+            polymon(mon_nm, POLYMON_ALL_MSGS);
         }
         else {
             /* but... at the same time, need to undo done()'s setting of mh to 0
@@ -447,7 +447,7 @@ int how;
              * the first polymon) */
             u.mh = u.mhmax;
         }
-        livelog_printf(LL_ARISE, "became permanently corrupted into a %s",
+        livelog_printf(LL_LIFESAVE, "became permanently corrupted into a %s",
                        mons[mon_nm].mname);
         /* bug: if u.uhp <= 0, monsters won't attack for some reason
          * set to max, not like you're ever going to need it again... */
@@ -487,7 +487,7 @@ struct monst *mtmp;
         g.killer.format = KILLED_BY;
     }
     /* _the_ <invisible> <distorted> ghost of Dudley */
-    if (mptr == &mons[PM_GHOST] && has_mname(mtmp)) {
+    if (has_ebones(mtmp) && has_mname(mtmp)) {
         Strcat(buf, "the ");
         g.killer.format = KILLED_BY;
     }
@@ -528,10 +528,6 @@ struct monst *mtmp;
                                : "%s imitating %s",
                 realnm, shape);
         mptr = mtmp->data; /* reset for mimicker case */
-    } else if (mptr == &mons[PM_GHOST]) {
-        Strcat(buf, "ghost");
-        if (has_mname(mtmp))
-            Sprintf(eos(buf), " of %s", MNAME(mtmp));
     } else if (mtmp->isshk) {
         const char *shknm = shkname(mtmp),
                    *honorific = shkname_is_pname(mtmp) ? ""
@@ -545,8 +541,11 @@ struct monst *mtmp;
         Strcat(buf, m_monnam(mtmp));
     } else {
         Strcat(buf, mptr->mname);
-        if (has_mname(mtmp))
-            Sprintf(eos(buf), " called %s", MNAME(mtmp));
+        if (has_mname(mtmp)) {
+            Sprintf(eos(buf), " %s %s",
+                    has_ebones(mtmp) ? "of" : "called",
+                    MNAME(mtmp));
+        }
     }
 
     Strcpy(g.killer.name, buf);
@@ -577,6 +576,8 @@ int how;
         u.ugrave_arise = PM_WRAITH;
     else if (mptr->mlet == S_MUMMY && g.urace.mummynum != NON_PM)
         u.ugrave_arise = g.urace.mummynum;
+    else if (zombie_maker(mptr) && zombie_form(g.youmonst.data) != NON_PM)
+        u.ugrave_arise = zombie_form(g.youmonst.data);
     else if (mptr->mlet == S_VAMPIRE && Race_if(PM_HUMAN))
         u.ugrave_arise = PM_VAMPIRE;
     else if (mptr == &mons[PM_GHOUL])
@@ -879,7 +880,7 @@ boolean taken;
         c = ask ? yn_function(qbuf, ynqchars, defquery) : defquery;
         if (c == 'y') {
             /* caller has already ID'd everything */
-            (void) display_inventory((char *) 0, TRUE);
+            (void) display_inventory((char *) 0, FALSE);
             container_contents(g.invent, TRUE, TRUE, FALSE);
         }
         if (c == 'q')
@@ -913,9 +914,14 @@ boolean taken;
         if (should_query_disclose_option('c', &defquery)) {
             int acnt = count_achievements();
 
-            Sprintf(qbuf, "Do you want to see your conduct%s%s?",
-                    (acnt > 0) ? " and achievement" : "",
-                    (acnt > 1) ? "s" : "");
+            Sprintf(qbuf, "Do you want to see your conduct%s?",
+                    /* this was distinguishing between one achievement and
+                       multiple achievements, but "conduct and achievement"
+                       looked strange if multiple conducts got shown (which
+                       is usual for an early game death); we could switch
+                       to plural vs singular for conducts but the less
+                       specific "conduct and achievements" is sufficient */
+                    (acnt > 0) ? " and achievements" : "");
             c = yn_function(qbuf, ynqchars, defquery);
         } else {
             c = defquery;
@@ -1253,20 +1259,41 @@ int how;
         pline("But wait...");
         makeknown(AMULET_OF_LIFE_SAVING);
         Your("medallion %s!", !Blind ? "begins to glow" : "feels warm");
-        if (how == CHOKING)
-            You("vomit ...");
-        You_feel("much better!");
-        pline_The("medallion crumbles to dust!");
-        if (uamul)
+        /* It's cursed? Well, that's just too bad. */
+        if (faulty_lifesaver(uamul)) {
+            pline("But... the chain on your medallion breaks and it falls to the %s!",
+                  surface(u.ux, u.uy));
+            You_hear(Hallucination ? "someone playing Yakety Sax!"
+                                   : "the sound of a distant trombone...");
             useup(uamul);
+        }
+        else {
+            if (how == CHOKING)
+                You("vomit ...");
+            You_feel("much better!");
+            pline_The("medallion crumbles to dust!");
+            if (uamul)
+                useup(uamul);
 
-        (void) adjattrib(A_CON, -1, TRUE);
-        savelife(how);
-        if (how == GENOCIDED) {
-            pline("Unfortunately you are still genocided...");
-        } else {
-            livelog_write_string(LL_LIFESAVE, "averted death");
-            survive = TRUE;
+            /* Getting lifesaved isn't great for your overall health.
+             * Current and maximum Con go down by 2 (e.g. if max Con was
+             * formerly 16, you'll need exercise/gain ability to restore them,
+             * not just restore ability.
+             * A possible extension here is to reduce ATTRMAX by 1, making your
+             * Con cap permanently lower no matter what the player does, but
+             * this currently isn't saved. */
+            (void) adjattrib(A_CON, -2, AA_NOMSG);
+            AMAX(A_CON) = (AMAX(A_CON) >= 5 ? AMAX(A_CON) - 2 : 3);
+
+            savelife(how);
+            if (how == GENOCIDED) {
+                pline("Unfortunately you are still genocided...");
+            } else {
+                char killbuf[BUFSZ];
+                formatkiller(killbuf, BUFSZ, how, FALSE);
+                livelog_printf(LL_LIFESAVE, "averted death (%s)", killbuf);
+                survive = TRUE;
+            }
         }
     }
     /* maybe give the player a second chance if they were killed by the
@@ -1428,8 +1455,7 @@ int how;
         for (obj = g.invent; obj; obj = obj->nobj) {
             discover_object(obj->otyp, TRUE, FALSE);
             obj->known = obj->bknown = obj->dknown = obj->rknown = 1;
-            if (Is_container(obj) || obj->otyp == STATUE)
-                obj->cknown = obj->lknown = 1;
+            set_cknown_lknown(obj); /* set flags when applicable */
             /* we resolve Schroedinger's cat now in case of both
                disclosure and dumplog, where the 50:50 chance for
                live cat has to be the same both times */
@@ -1497,8 +1523,8 @@ int how;
 
         umoney = money_cnt(g.invent);
         tmp = u.umoney0;
-        umoney += hidden_gold(); /* accumulate gold from containers */
-        tmp = umoney - tmp;      /* net gain */
+        umoney += hidden_gold(TRUE); /* accumulate gold from containers */
+        tmp = umoney - tmp;          /* net gain */
 
         /* There's not really any particular reason that a dungeon that was 52
          * levels deep should be worth more than a dungeon that was 45 levels
@@ -1773,6 +1799,7 @@ int how;
         raw_print("");
         raw_print("");
     }
+    livelog_dump_url(LL_DUMP_ALL | (how == ASCENDED ? LL_DUMP_ASC : 0));
     nh_terminate(EXIT_SUCCESS);
 }
 

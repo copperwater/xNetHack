@@ -1,4 +1,4 @@
-/* NetHack 3.6	hack.h	$NHDT-Date: 1580600495 2020/02/01 23:41:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.128 $ */
+/* NetHack 3.7	hack.h	$NHDT-Date: 1601595709 2020/10/01 23:41:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.141 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -138,6 +138,10 @@ enum cost_alteration_types {
 #define CXN_ARTICLE 8   /* include a/an/the prefix */
 #define CXN_NOCORPSE 16 /* suppress " corpse" suffix */
 
+/* flags for look_here() */
+#define LOOKHERE_PICKED_SOME   1
+#define LOOKHERE_SKIP_DFEATURE 2
+
 /* getpos() return values */
 enum getpos_retval {
     LOOK_TRADITIONAL = 0, /* '.' -- ask about "more info?" */
@@ -261,15 +265,14 @@ typedef struct sortloot_item Loot;
 
 /* FIXME: fix this kludge at next savebreak; see warn code in artifact.c */
 #define MATCH_WARN_OF_MON(mon)                                               \
-    (Warn_of_mon && ((g.context.warntype.obj                                   \
-                      && (((g.context.warntype.obj & 0x80000000) != 0) ?       \
-                          ((g.context.warntype.obj & 0x7FFFFFFF)               \
-                                      == (unsigned int) (mon)->data->mlet) :   \
-                          (g.context.warntype.obj & (mon)->data->mflags2)))    \
-                     || (g.context.warntype.polyd                              \
-                         && (g.context.warntype.polyd & (mon)->data->mflags2)) \
-                     || (g.context.warntype.species                            \
-                         && (g.context.warntype.species == (mon)->data))))
+    (Warn_of_mon                                                             \
+     && (((g.context.warntype.obj & 0x80000000) != 0                         \
+          && ((g.context.warntype.obj & 0x7FFFFFFF)                          \
+              == (unsigned int) (mon)->data->mlet))                          \
+         || (g.context.warntype.obj & (mon)->data->mflags2) != 0             \
+         || (g.context.warntype.polyd & (mon)->data->mflags2) != 0           \
+         || (g.context.warntype.species                                      \
+             && (g.context.warntype.species == (mon)->data))))
 
 #include "trap.h"
 #include "flag.h"
@@ -277,42 +280,31 @@ typedef struct sortloot_item Loot;
 #include "display.h"
 #include "engrave.h"
 
-#ifdef USE_TRAMPOLI /* this doesn't belong here, but we have little choice */
-#undef NDECL
-#define NDECL(f) f()
-#endif
-
 #include "extern.h"
 #include "winprocs.h"
 #include "sys.h"
 
-#ifdef USE_TRAMPOLI
-#include "wintty.h"
-#undef WINTTY_H
-#include "trampoli.h"
-#undef EXTERN_H
-#include "extern.h"
-#endif /* USE_TRAMPOLI */
-
-/* flags to control makemon(); goodpos() uses some plus has some of its own */
-#define NO_MM_FLAGS 0x00000 /* use this rather than plain 0 */
-#define NO_MINVENT  0x00001 /* suppress minvent when creating mon */
-#define MM_NOWAIT   0x00002 /* don't set STRAT_WAITMASK flags */
-#define MM_NOCOUNTBIRTH 0x00004 /* don't increment born count (for revival) */
-#define MM_IGNOREWATER  0x00008 /* ignore water when positioning */
-#define MM_ADJACENTOK   0x00010 /* acceptable to use adjacent coordinates */
-#define MM_ANGRY    0x00020 /* monster is created angry */
-#define MM_NONAME   0x00040 /* monster is not christened */
-#define MM_EGD      0x00100 /* add egd structure */
-#define MM_EPRI     0x00200 /* add epri structure */
-#define MM_ESHK     0x00400 /* add eshk structure */
-#define MM_EMIN     0x00800 /* add emin structure */
-#define MM_EDOG     0x01000 /* add edog structure */
-#define MM_ASLEEP   0x02000 /* monsters should be generated asleep */
-#define MM_NOGRP    0x04000 /* suppress creation of monster groups */
+/* flags to control makemon(); goodpos() uses some plus has some of its own*/
+#define NO_MM_FLAGS 0x000000L /* use this rather than plain 0 */
+#define NO_MINVENT  0x000001L /* suppress minvent when creating mon */
+#define MM_NOWAIT   0x000002L /* don't set STRAT_WAITMASK flags */
+#define MM_NOCOUNTBIRTH 0x0004L /* don't increment born count (for revival) */
+#define MM_IGNOREWATER  0x0008L /* ignore water when positioning */
+#define MM_ADJACENTOK   0x0010L /* acceptable to use adjacent coordinates */
+#define MM_ANGRY    0x000020L /* monster is created angry */
+#define MM_NONAME   0x000040L /* monster is not christened */
+#define MM_EGD      0x000100L /* add egd structure */
+#define MM_EPRI     0x000200L /* add epri structure */
+#define MM_ESHK     0x000400L /* add eshk structure */
+#define MM_EMIN     0x000800L /* add emin structure */
+#define MM_EDOG     0x001000L /* add edog structure */
+#define MM_ASLEEP   0x002000L /* monsters should be generated asleep */
+#define MM_NOGRP    0x004000L /* suppress creation of monster groups */
+#define MM_NOTAIL   0x008000L /* if a long worm, don't give it a tail */
 /* if more MM_ flag masks are added, skip or renumber the GP_ one(s) */
-#define GP_ALLOW_XY 0x08000 /* [actually used by enexto() to decide whether
-                             * to make an extra call to goodpos()]          */
+#define GP_ALLOW_XY 0x010000L /* [actually used by enexto() to decide whether
+                               * to make an extra call to goodpos()]        */
+#define GP_ALLOW_U  0x020000L /* don't reject hero's location */
 
 /* flags for make_corpse() and mkcorpstat() */
 #define CORPSTAT_NONE 0x00
@@ -350,29 +342,31 @@ typedef struct sortloot_item Loot;
 #define ALL_FINISHED 0x01 /* called routine already finished the job */
 
 /* flags to control query_objlist() */
-#define BY_NEXTHERE      0x01   /* follow objlist by nexthere field */
-#define AUTOSELECT_SINGLE 0x02 /* if only 1 object, don't ask */
-#define USE_INVLET       0x04   /* use object's invlet */
-#define INVORDER_SORT    0x08   /* sort objects by packorder */
-#define SIGNAL_NOMENU    0x10   /* return -1 rather than 0 if none allowed */
-#define SIGNAL_ESCAPE    0x20   /* return -2 rather than 0 for ESC */
-#define FEEL_COCKATRICE  0x40   /* engage cockatrice checks and react */
-#define INCLUDE_HERO     0x80   /* show hero among engulfer's inventory */
-#define HIDE_DISCOURAGED 0x100 /* only show objects where allow() returns 2 */
-#define INCLUDE_FEATURE  0x200 /* include dungeon features */
+#define BY_NEXTHERE       0x0001 /* follow objlist by nexthere field */
+#define INCLUDE_VENOM     0x0002 /* include venom objects if present */
+#define AUTOSELECT_SINGLE 0x0004 /* if only 1 object, don't ask */
+#define USE_INVLET        0x0008 /* use object's invlet */
+#define INVORDER_SORT     0x0010 /* sort objects by packorder */
+#define SIGNAL_NOMENU     0x0020 /* return -1 rather than 0 if none allowed */
+#define SIGNAL_ESCAPE     0x0040 /* return -2 rather than 0 for ESC */
+#define FEEL_COCKATRICE   0x0080 /* engage cockatrice checks and react */
+#define INCLUDE_HERO      0x0100 /* show hero among engulfer's inventory */
+#define HIDE_DISCOURAGED  0x0200 /* only show objects where allow() returns 2 */
+#define INCLUDE_FEATURE   0x0400 /* include dungeon features */
 
 /* Flags to control query_category() */
-/* BY_NEXTHERE used by query_category() too, so skip 0x01 */
-#define UNPAID_TYPES 0x002
-#define GOLD_TYPES   0x004
-#define WORN_TYPES   0x008
-#define ALL_TYPES    0x010
-#define BILLED_TYPES 0x020
-#define CHOOSE_ALL   0x040
-#define BUC_BLESSED  0x080
-#define BUC_CURSED   0x100
-#define BUC_UNCURSED 0x200
-#define BUC_UNKNOWN  0x400
+/* BY_NEXTHERE and INCLUDE_VENOM are used by query_category() too, so
+   skip 0x0001 and 0x0002 */
+#define UNPAID_TYPES      0x0004
+#define GOLD_TYPES        0x0008
+#define WORN_TYPES        0x0010
+#define ALL_TYPES         0x0020
+#define BILLED_TYPES      0x0040
+#define CHOOSE_ALL        0x0080
+#define BUC_BLESSED       0x0100
+#define BUC_CURSED        0x0200
+#define BUC_UNCURSED      0x0400
+#define BUC_UNKNOWN       0x0800
 #define BUC_ALLBKNOWN (BUC_BLESSED | BUC_CURSED | BUC_UNCURSED)
 #define BUCX_TYPES (BUC_ALLBKNOWN | BUC_UNKNOWN)
 #define ALL_TYPES_SELECTED -2
@@ -424,18 +418,6 @@ typedef struct sortloot_item Loot;
 #define LAUNCH_UNSEEN 0x40 /* hero neither caused nor saw it */
 #define LAUNCH_KNOWN 0x80  /* the hero caused this by explicit action */
 
-/* Macros for explosion types */
-enum explosion_types {
-    EXPL_DARK    = 0,
-    EXPL_NOXIOUS = 1,
-    EXPL_MUDDY   = 2,
-    EXPL_WET     = 3,
-    EXPL_MAGICAL = 4,
-    EXPL_FIERY   = 5,
-    EXPL_FROSTY  = 6,
-    EXPL_MAX     = 7
-};
-
 /* enlightenment control flags */
 #define BASICENLIGHTENMENT 1 /* show mundane stuff */
 #define MAGICENLIGHTENMENT 2 /* show intrinsics and such */
@@ -484,7 +466,8 @@ enum bodypart_types {
     BLOOD     = 16,
     LUNG      = 17,
     NOSE      = 18,
-    STOMACH   = 19
+    STOMACH   = 19,
+    TORSO     = 20
 };
 
 /* indices for some special tin types */
@@ -498,7 +481,7 @@ enum bodypart_types {
 #define TAINT_AGE (50L)          /* age when corpses go bad */
 #define TROLL_REVIVE_CHANCE 37   /* 1/37 chance for 50 turns ~ 75% chance */
 #define ZOMBIE_REVIVE_CHANCE 275 /* 1/275 chance for 250 turns ~ 60% chance */
-#define MOLDY_CHANCE 290         /* 1/290 chance for 200 turns ~ 50% chance */
+#define MOLDY_CHANCE 3900        /* 1/3900 chance for 200 turns ~ 5% chance */
 #define ROT_AGE (250L)           /* age when corpses rot away */
 
 /* Some misc definitions */
@@ -519,6 +502,78 @@ enum bodypart_types {
 #define TELEDS_NO_FLAGS   0x0
 #define TELEDS_ALLOW_DRAG 0x1
 #define TELEDS_TELEPORT   0x2
+
+/* Flags to control polymon() message printing */
+#define POLYMON_NO_MSGS       0x00
+#define POLYMON_TRANSFORM_MSG 0x01 /* "You become a [monster]!" etc. */
+#define POLYMON_STATUS_MSG    0x02 /* "You no longer feel sick." etc. */
+#define POLYMON_GEAR_MSG      0x04 /* "Your cloak tears apart!" etc. */
+#define POLYMON_INFO_MSG      0x08 /* "Use #monster to do..." */
+#define POLYMON_ENCUMBER_MSG  0x10 /* whether to call encumber_msg() */
+#define POLYMON_ALL_MSGS      0x1F
+
+/* Flags used in the return from artifact_hit()
+ * note that anywhere that returns INSTAKILLMSG should probably also return
+ * GAVEMSG since INSTAKILLMSG implies a message was given.
+ * message is by definition a specially printed message. */
+#define ARTIFACTHIT_NOMSG        0x0
+#define ARTIFACTHIT_GAVEMSG      0x1 /* printed any special message at all,
+                                        incl. things like "miss wildly" */
+#define ARTIFACTHIT_INSTAKILLMSG 0x2 /* "Vorpal Blade decapitates foo!" &c */
+
+/* Return values from current_holidays(). */
+#define HOLIDAY_NEW_YEARS      0x0001
+#define HOLIDAY_VALENTINES_DAY 0x0002
+#define HOLIDAY_PI_DAY         0x0004
+#define HOLIDAY_APRIL_FOOLS    0x0008
+#define HOLIDAY_EASTER         0x0010
+#define HOLIDAY_CANADA_DAY     0x0020
+#define HOLIDAY_HALLOWEEN      0x0040
+#define HOLIDAY_THANKSGIVING   0x0080
+#define HOLIDAY_RAMADAN        0x0100
+#define HOLIDAY_EID_AL_FITR    0x0200
+#define HOLIDAY_ROSH_HASHANAH  0x0400
+#define HOLIDAY_YOM_KIPPUR     0x0800
+#define HOLIDAY_PASSOVER       0x1000
+#define HOLIDAY_HANUKKAH       0x2000
+#define HOLIDAY_CHRISTMAS      0x4000
+#define HOLIDAY_LOS_MUERTOS    0x8000
+
+/* constant passed to explode() for gas spores because gas spores are weird
+ * Specifically, this is an exception to the whole "explode() uses dobuzz types"
+ * system (the range -1 to -9 isn't used by it, for some reason), where this is
+ * effectively an extra dobuzz type, and some zap.c code needs to be aware of
+ * it.  */
+#define PHYS_EXPL_TYPE -1
+
+/* message flags for dump_container() */
+#define DUMPCONT_NORMAL 0x0
+#define DUMPCONT_QUIET  0x1 /* suppress most messages */
+#define DUMPCONT_BYPOLY 0x2 /* "Objects spill out as [cont] polymorphs" */
+
+/* to-hit penalty for wearing body armor as a Monk; used to be a 'spelarmr'
+ * stat in the role struct but it wasn't used for any other roles and probably
+ * was never going to be, so it's now a constant. */
+#define CUMBERSOME_ARMOR_PENALTY 20
+
+/* values for g.zombify; 0 is assumed to be "off" and not in zombify mode */
+enum zombify_values {
+    ZOMBIFY_HOSTILE = 1, /* zombie will revive hostile */
+    ZOMBIFY_TAME    = 2, /* zombie will revive tame */
+};
+
+/* values for 'msgflag' input to adjattrib() and its return value */
+enum adjattrib_msgflag {
+    AA_CONDMSG = -1, /* print msg conditionally (only if there is a change) */
+    AA_YESMSG  =  0, /* always print msg */
+    AA_NOMSG   =  1  /* never print msg */
+};
+enum adjattrib_return {
+    AA_NOCHNG   = 0, /* nothing at all changed */
+    AA_BASECHNG = 1, /* base value changed but current didn't (e.g. gained
+                        strength wearing gauntlets of power) */
+    AA_CURRCHNG = 2  /* current value changed */
+};
 
 /*
  * option setting restrictions

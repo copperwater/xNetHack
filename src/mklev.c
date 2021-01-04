@@ -1,4 +1,4 @@
-/* NetHack 3.6	mklev.c	$NHDT-Date: 1562455089 2019/07/06 23:18:09 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.63 $ */
+/* NetHack 3.7	mklev.c	$NHDT-Date: 1605305491 2020/11/13 22:11:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.96 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Alex Smith, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,13 +10,16 @@
 /* conversion of result to int is reasonable */
 
 static int FDECL(mkmonst_in_room, (struct mkroom *));
+static boolean FDECL(generate_stairs_room_good, (struct mkroom *, int));
+static struct mkroom *NDECL(generate_stairs_find_room);
+static void NDECL(generate_stairs);
 static boolean FDECL(find_okay_roompos, (struct mkroom *, coord *));
 static void NDECL(makevtele);
 void NDECL(clear_level_structures);
+static void FDECL(fill_ordinary_room, (struct mkroom *));
 static void NDECL(makelevel);
 static boolean FDECL(bydoor, (XCHAR_P, XCHAR_P));
 static struct mkroom *FDECL(find_branch_room, (coord *));
-static struct mkroom *FDECL(pos_to_room, (XCHAR_P, XCHAR_P));
 static boolean FDECL(place_niche, (struct mkroom *, int *, int *, int *));
 static void FDECL(makeniche, (int));
 static void NDECL(make_niches);
@@ -28,6 +31,7 @@ static void FDECL(do_room_or_subroom, (struct mkroom *, int, int,
                                            int, int, BOOLEAN_P,
                                            SCHAR_P, BOOLEAN_P, BOOLEAN_P));
 static void NDECL(makerooms);
+static boolean FDECL(door_into_nonjoined, (XCHAR_P, XCHAR_P));
 static void FDECL(finddpos, (coord *, XCHAR_P, XCHAR_P,
                                  XCHAR_P, XCHAR_P));
 static void FDECL(mkinvpos, (XCHAR_P, XCHAR_P, int));
@@ -62,6 +66,33 @@ const genericptr vy;
 #endif /* LINT */
 }
 
+/* Return TRUE if a door placed at (x, y) which otherwise passes okdoor() checks
+ * would be connecting into an area that was declared as joined = 0.
+ * Checking for this in finddpos() enables us to have rooms with sub-areas (such
+ * as shops) that will never randomly generate unwanted doors in order to
+ * connect them up to other areas.
+ */
+static boolean
+door_into_nonjoined(x, y)
+xchar x, y;
+{
+    xchar tx, ty, diridx;
+
+    for (diridx = 0; diridx <= 6; diridx += 2) {
+        tx = x + xdir[diridx];
+        ty = y + ydir[diridx];
+        if (!isok(tx, ty) || IS_ROCK(levl[tx][ty].typ))
+            continue;
+
+        /* Is this connecting to a room that doesn't want joining? */
+        if (levl[tx][ty].roomno >= ROOMOFFSET &&
+            !g.rooms[levl[tx][ty].roomno - ROOMOFFSET].needjoining) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 /* Find a valid position to place a door within the rectangle bounded by
  * (xl, yl, xh, yh), as defined by okdoor(). First, try to pick a single random
  * spot, then iterate over the entire area.
@@ -77,32 +108,40 @@ xchar xl, yl, xh, yh;
 
     x = rn1(xh - xl + 1, xl);
     y = rn1(yh - yl + 1, yl);
-    if (okdoor(x, y))
+    /* Avoid placing doors connecting to !needjoining areas. */
+    if (okdoor(x, y) && !door_into_nonjoined(x, y))
         goto gotit;
 
     for (x = xl; x <= xh; x++)
         for (y = yl; y <= yh; y++)
-            if (okdoor(x, y))
+            if (okdoor(x, y) && !door_into_nonjoined(x, y))
                 goto gotit;
 
     for (x = xl; x <= xh; x++)
         for (y = yl; y <= yh; y++)
             if (IS_DOOR(levl[x][y].typ) || levl[x][y].typ == SDOOR)
                 goto gotit;
-    /* cannot find something reasonable -- strange.
-     * should this be impossible()? */
+    /* cannot find something reasonable -- strange. */
+    impossible("couldn't find an okdoor pos within (%d, %d, %d, %d)!",
+               xl, yl, xh, yh);
     x = xl;
     y = yh;
+    impossible("finddpos: couldn't find door pos within (%d,%d,%d,%d)",
+               xl, yl, xh, yh);
  gotit:
     cc->x = x;
     cc->y = y;
     return;
 }
 
-/* Sort the rooms array, using do_comp as the comparison function. */
+/* Sort rooms on the level so they're ordered from left to right on the map.
+   makecorridors() by default links rooms N and N+1 */
 void
 sort_rooms()
 {
+    int i, x, y;
+    int ri[MAXNROFROOMS+1];
+
 #if defined(SYSV) || defined(DGUX)
 #define CAST_nroom (unsigned) g.nroom
 #else
@@ -110,6 +149,17 @@ sort_rooms()
 #endif
     qsort((genericptr_t) g.rooms, CAST_nroom, sizeof (struct mkroom), do_comp);
 #undef CAST_nroom
+
+    /* Update the roomnos on the map */
+    for (i = 0; i < g.nroom; i++)
+        ri[g.rooms[i].roomnoidx] = i;
+
+    for (x = 1; x < COLNO; x++)
+        for (y = 0; y < ROWNO; y++) {
+            int rno = levl[x][y].roomno;
+            if (rno >= ROOMOFFSET && rno < MAXNROFROOMS+1)
+                levl[x][y].roomno = ri[rno - ROOMOFFSET] + ROOMOFFSET;
+        }
 }
 
 /* Initialize the croom struct and the portion of the level it sits on. This
@@ -160,6 +210,7 @@ boolean is_room;
     } else
         croom->rlit = 0;
 
+    croom->roomnoidx = (croom - g.rooms);
     croom->lx = lowx;
     croom->hx = hix;
     croom->ly = lowy;
@@ -176,6 +227,7 @@ boolean is_room;
     croom->nsubrooms = 0;
     croom->sbrooms[0] = (struct mkroom *) 0;
     if (!special) {
+        croom->needjoining = TRUE;
         for (x = lowx - 1; x <= hix + 1; x++)
             for (y = lowy - 1; y <= hiy + 1; y += (hiy - lowy + 2)) {
                 levl[x][y].typ = HWALL;
@@ -246,12 +298,50 @@ boolean special;
     g.nsubroom++;
 }
 
+void
+free_luathemes(keependgame)
+boolean keependgame; /* False: exiting, True: discarding main dungeon */
+{
+    int i;
+
+    for (i = 0; i < g.n_dgns; ++i) {
+        if (keependgame && i == astral_level.dnum)
+            continue;
+        if (g.luathemes[i]) {
+            lua_close((lua_State *) g.luathemes[i]);
+            g.luathemes[i] = (lua_State *) 0;
+        }
+    }
+}
+
 /* Repeatedly create rooms and place them on the map until we can't create any
  * more. */
 static void
 makerooms()
 {
     boolean tried_vault = FALSE;
+    int themeroom_tries = 0;
+    char *fname;
+    lua_State *themes = (lua_State *) g.luathemes[u.uz.dnum];
+
+    if (!themes && *(fname = g.dungeons[u.uz.dnum].themerms)) {
+        if ((themes = nhl_init()) != 0) {
+            if (!nhl_loadlua(themes, fname)) {
+                /* loading lua failed, don't use themed rooms */
+                lua_close(themes);
+                themes = (lua_State *) 0;
+            } else {
+                /* success; save state for this dungeon branch */
+                g.luathemes[u.uz.dnum] = (genericptr_t) themes;
+            }
+        }
+        if (!themes) /* don't try again when making next level */
+            *fname = '\0'; /* g.dungeons[u.uz.dnum].themerms */
+    }
+
+    if (themes) {
+        create_des_coder();
+    }
 
     /* rnd_rect() will return 0 if no more rects are available... */
     while (g.nroom < MAXNROFROOMS && rnd_rect()) {
@@ -269,14 +359,30 @@ makerooms()
                 g.rooms[g.nroom].hx = -1;
             }
         } else {
-            /* Try to create another random room. If it can't find anywhere for
-             * one to go, stop making rooms.
-             * Use the parameters for a totally random ordinary room. */
-            if (!create_room(-1, -1, -1, -1, -1, -1, OROOM, -1))
-                return;
+            if (themes) {
+                g.in_mk_themerooms = TRUE;
+                g.themeroom_failed = FALSE;
+                lua_getglobal(themes, "themerooms_generate");
+                lua_call(themes, 0, 0);
+                g.in_mk_themerooms = FALSE;
+                if (g.themeroom_failed
+                    && ((themeroom_tries++ > 10)
+                        || (g.nroom >= (MAXNROFROOMS / 6))))
+                    break;
+            } else {
+                /* Try to create another random room. If it can't find anywhere for
+                 * one to go, stop making rooms.
+                 * Use the parameters for a totally random ordinary room. */
+                if (!create_room(-1, -1, -1, -1, -1, -1, OROOM, -1))
+                    break;;
+            }
         }
     }
-    return;
+    if (themes) {
+        wallification(1, 0, COLNO - 1, ROWNO - 1);
+        free(g.coder);
+        g.coder = NULL;
+    }
 }
 
 /* Join rooms a and b together by drawing a corridor and placing doors.
@@ -298,6 +404,9 @@ boolean nxcor;
 
     croom = &g.rooms[a];
     troom = &g.rooms[b];
+
+    if (!croom->needjoining || !troom->needjoining)
+        return;
 
     /* find positions cc and tt for doors in croom and troom
        and direction for a corridor between them */
@@ -369,8 +478,8 @@ boolean nxcor;
     dest.x = tx;
     dest.y = ty;
 
-    if (!dig_corridor(&org, &dest, nxcor, g.level.flags.arboreal ? ROOM : CORR,
-                      STONE))
+    if (!dig_corridor(&org, &dest, nxcor,
+                      g.level.flags.arboreal ? ROOM : CORR, STONE))
         return;
 
     /* We succeeded in digging the corridor.
@@ -503,9 +612,106 @@ register struct mkroom *aroom;
     g.doors[aroom->fdoor].y = y;
 }
 
+/* Generate the door mask for a random door. Contains the random probabilities
+ * that determine what doorstate the door gets, and whether it becomes trapped,
+ * but does not actually set any level structures.
+ * typ is either DOOR or SDOOR.
+ */
+xchar
+random_door_mask(typ, shdoor)
+int typ;
+boolean shdoor;
+{
+    struct rm tmprm; /* so we can use various set_door_*() */
+
+    tmprm.doormask = 0;
+
+    if (!IS_DOOR(typ) && typ != SDOOR) {
+        impossible("random_door_mask: bad typ %d", typ);
+    }
+
+    /* is it a locked door, closed, or a doorway? */
+    if (!rn2(3) || typ == SDOOR || g.level.flags.is_maze_lev) {
+        /* 1/3 of random doorways have a physical door, unless it's a maze level
+         * in which case 100% of random doorways do, for some reason. */
+        if (rn2(5) || typ == SDOOR) {
+            /* 80% of doorways with a door have it closed. Secret doors must be
+             * closed. */
+            set_doorstate(&tmprm, D_CLOSED);
+            if (!rn2(4)) {
+                /* 25% of closed doors are locked. */
+                set_door_lock(&tmprm, TRUE);
+            }
+        }
+        else {
+            set_doorstate(&tmprm, D_ISOPEN);
+        }
+    } else {
+        /* 2/3 of random doorways lack a physical door... but shop doors need a
+         * real one so force a real door to exist */
+        set_doorstate(&tmprm, shdoor ? D_ISOPEN : D_NODOOR);
+    }
+
+    /* We don't have the x, y coordinates for the door, so we can't determine
+     * whether the trap that would generate there would be suitable for the
+     * initial door state. Set the trap flag based on probability only; the
+     * caller must check to see if it's valid. */
+    if (!rn2(25) && !shdoor) {
+        set_door_trap(&tmprm, TRUE);
+    }
+
+    /* chance of an iron door on deeper levels */
+    if (doorstate(&tmprm) != D_NODOOR && rn1(40, 10) < level_difficulty()) {
+        set_door_iron(&tmprm, TRUE);
+    }
+
+    return tmprm.doormask;
+}
+
+/* Determine whether a door trap at a given x, y coordinate would not make sense
+ * with the door's state, and if it's nonsensical, remove the trap.
+ * Return TRUE if nonsense is found. */
+void
+clear_nonsense_doortraps(x, y)
+xchar x, y;
+{
+    const int traptype = getdoortrap(x, y);
+    struct rm *lev = &levl[x][y];
+
+    if (!IS_DOOR(lev->typ) && lev->typ != SDOOR) {
+        impossible("trying to check trap on non-door at %d %d?", x, y);
+    }
+
+    if (!door_is_trapped(lev)) {
+        return; /* no trap = nothing to do */
+    }
+
+    switch (traptype) {
+    case SELF_LOCK:
+    case HINGE_SCREECH:
+    case STATIC_SHOCK:
+    case ROCKFALL:
+    case HOT_KNOB:
+        /* traps that require an actual unbroken door */
+        if (doorstate(lev) != D_ISOPEN && doorstate(lev) != D_CLOSED) {
+            set_door_trap(lev, FALSE);
+        }
+        break;
+    case WATER_BUCKET:
+    case HINGELESS_FORWARD:
+    case HINGELESS_BACKWARD:
+    case FIRE_BLAST:
+        /* traps that require a closed door */
+        if (doorstate(lev) != D_CLOSED)
+            set_door_trap(lev, FALSE);
+        break;
+    default:
+        impossible("clear_nonsense_doortrap: bad door trap type %d", traptype);
+    }
+}
+
 /* Create a door or a secret door (using type) in aroom at location (x,y).
- * Sets the doormask randomly. Contains the guts of the random probabilities
- * that determine what doorstate the door gets, and whether it becomes trapped.
+ * Sets the doormask randomly.
  *
  * Doors are never generated broken. Shop doors tend to be generated open, and
  * never generate trapped. (They can be locked, though, in which case the shop
@@ -517,67 +723,15 @@ register xchar x, y;
 struct mkroom *aroom;
 int type;
 {
-    boolean shdoor = *in_rooms(x, y, SHOPBASE) ? TRUE : FALSE;
-    int doorstate = D_NODOOR;
-    boolean set_lock = FALSE;
-    boolean set_trap = FALSE;
     struct rm* lev = &levl[x][y];
 
     if (!IS_WALL(lev->typ)) /* avoid SDOORs on already made doors */
         type = DOOR;
     lev->typ = type;
 
-    /* is it a locked door, closed, or a doorway? */
-    if (!rn2(3) || type == SDOOR || g.level.flags.is_maze_lev) {
-        if (rn2(5) || type == SDOOR) {
-            doorstate = D_CLOSED;
-            if (!rn2(4)) {
-                set_lock = TRUE;
-            }
-        }
-        else {
-            doorstate = D_ISOPEN;
-        }
-    } else {
-        /* door would be absent, but shop doors need a real one */
-        if (shdoor)
-            doorstate = D_ISOPEN;
-        else
-            doorstate = D_NODOOR;
-    }
+    lev->doormask = random_door_mask(type, *in_rooms(x, y, SHOPBASE));
 
-    /* Is the trap that would generate at this location suitable for this
-        * initial door state? */
-    if (!rn2(23) && !shdoor) {
-        switch (getdoortrap(x, y)) {
-        case SELF_LOCK:
-            set_lock = FALSE;
-            /* FALLTHRU */
-        case HINGE_SCREECH:
-        case STATIC_SHOCK:
-        case ROCKFALL:
-        case HOT_KNOB:
-            /* traps that require only an actual door */
-            if ((doorstate == D_ISOPEN || doorstate == D_CLOSED))
-                set_trap = TRUE;
-            break;
-        case WATER_BUCKET:
-        case HINGELESS_FORWARD:
-        case HINGELESS_BACKWARD:
-        case FIRE_BLAST:
-            /* traps that require a closed door */
-            if (doorstate == D_CLOSED)
-                set_trap = TRUE;
-            break;
-        default:
-            impossible("dosdoor: bad door trap type");
-        }
-    }
-
-    set_doorstate(lev, doorstate);
-    set_door_lock(lev, set_lock);
-
-    if (set_trap) {
+    if (door_is_trapped(lev)) {
         struct monst *mtmp;
 
         if (level_difficulty() >= 9 && !rn2(7) && type != SDOOR
@@ -585,26 +739,15 @@ int type;
                     && (g.mvitals[PM_LARGE_MIMIC].mvflags & G_GONE)
                     && (g.mvitals[PM_GIANT_MIMIC].mvflags & G_GONE))) {
             /* make a mimic instead */
+            set_door_trap(lev, FALSE);
             set_doorstate(lev, D_NODOOR);
             mtmp = makemon(mkclass(S_MIMIC, 0), x, y, NO_MM_FLAGS);
             if (mtmp)
                 set_mimic_sym(mtmp);
         }
-        else {
-            set_door_trap(lev, TRUE);
-        }
-    }
-    /* newsym(x,y); */
-
-    /* iron door generation */
-    if (doorstate(lev) != D_NODOOR && rn1(40, 10) < level_difficulty()) {
-        set_door_iron(lev, TRUE);
-    }
-    else {
-        /* clean up any uninitialized bit here */
-        set_door_iron(lev, FALSE);
     }
 
+    clear_nonsense_doortraps(x, y);
     add_door(x, y, aroom);
 }
 
@@ -897,6 +1040,7 @@ clear_level_structures()
     g.level.flags.arboreal = 0;
     g.level.flags.wizard_bones = 0;
     g.level.flags.corrmaze = 0;
+    g.level.flags.outdoors = 0;
 
     g.nroom = 0;
     g.rooms[0].hx = -1;
@@ -905,10 +1049,7 @@ clear_level_structures()
     g.doorindex = 0;
     init_rect();
     init_vault();
-    xdnstair = ydnstair = xupstair = yupstair = 0;
-    g.sstairs.sx = g.sstairs.sy = 0;
-    xdnladder = ydnladder = xupladder = yupladder = 0;
-    g.sstairs_room = (struct mkroom *) 0;
+    stairway_free_all();
     g.made_branch = FALSE;
     clear_regions();
     g.xstart = 1;
@@ -921,6 +1062,110 @@ clear_level_structures()
     }
 }
 
+/* Fill a "random" room (i.e. a typical non-special room in the Dungeons of
+ * Doom) with random monsters, objects, and dungeon features.
+ */
+static void
+fill_ordinary_room(croom)
+struct mkroom *croom;
+{
+    int trycnt = 0;
+    coord pos;
+    int x;
+
+    if (croom->rtype != OROOM && croom->rtype != THEMEROOM)
+        return;
+
+    /* If there are subrooms, fill them now - we don't want an outer room
+     * that's specified to be unfilled to block an inner subroom that's
+     * specified to be filled. */
+    for (x = 0; x < croom->nsubrooms; ++x) {
+        fill_ordinary_room(croom->sbrooms[x]);
+    }
+
+    if (croom->needfill != FILL_NORMAL)
+        return;
+
+    /* maybe place some dungeon features inside
+     * This should go first because it's capable of creating non-ACCESSIBLE
+     * terrain types; we don't want to embed any monsters, objects, or traps
+     * in a tree.
+     * [3.7]: Most or all of the below functions use somexyspace, which
+     * attempts to find a ROOM, CORR or ICE square, all of which are
+     * ACCESSIBLE. */
+    if (!rn2(10))
+        mkfeature(FOUNTAIN, croom);
+    if (!rn2(60))
+        mkfeature(SINK, croom);
+    if (!rn2(60))
+        mkfeature(ALTAR, croom);
+    if (!rn2(30 + (depth(&u.uz) * 5)))
+        mkfeature(TREE, croom);
+    x = 80 - (depth(&u.uz) * 2);
+    if (x < 2)
+        x = 2;
+    if (!rn2(x))
+        mkfeature(GRAVE, croom);
+
+    /* put traps and mimics inside */
+    x = 8 - (level_difficulty() / 6);
+    if (x < 2)
+        /* maxes out at level_difficulty() == 36 */
+        x = 2;
+    while (!rn2(x) && (++trycnt < 1000))
+        mktrap(0, 0, croom, (coord *) 0);
+
+    /* maybe put a monster inside */
+    if (u.uhave.amulet || !rn2(2)) {
+        mkmonst_in_room(croom);
+    }
+
+    /* maybe put some gold inside */
+    if (!rn2(3) && somexyspace(croom, &pos)) {
+        (void) mkgold(0L, pos.x, pos.y);
+    }
+
+    /* put statues inside */
+    if (!rn2(20) && somexyspace(croom, &pos)) {
+        (void) mkcorpstat(STATUE, (struct monst *) 0,
+                          (struct permonst *) 0, pos.x,
+                          pos.y, CORPSTAT_INIT);
+    }
+    /* put box/chest inside;
+     *  40% chance for at least 1 box, regardless of number
+     *  of rooms; about 5 - 7.5% for 2 boxes, least likely
+     *  when few rooms; chance for 3 or more is negligible.
+     */
+    if (!rn2(g.nroom * 5 / 2) && somexyspace(croom, &pos)) {
+        (void) mksobj_at((rn2(3)) ? LARGE_BOX : CHEST,
+                         pos.x, pos.y, TRUE, FALSE);
+    }
+
+    /* Maybe make some graffiti.
+     * Chance decreases the lower you get in the dungeon.
+     * On dlvl1, put a special graffiti in the starting room: this is always
+     * a true rumor, never a false one or random engraving, and is never
+     * damaged. */
+    if (depth(&u.uz) == 1 && has_upstairs(croom)) {
+        char buf[BUFSZ];
+        getrumor(1, buf, TRUE);
+        if (find_okay_roompos(croom, &pos)) {
+            make_engr_at(pos.x, pos.y, buf, 0, MARK);
+        }
+    }
+    else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
+        mkfeature(0, croom);
+    }
+
+    /* place a random object in the room (40% chance), with a recursive 20%
+     * chance of placing another */
+    x = 2;
+    while (rnd(5) <= x && somexyspace(croom, &pos)) {
+        (void) mkobj_at(0, pos.x, pos.y, TRUE);
+        x = 1;
+    }
+}
+
 /* Full initialization of all level structures, map, objects, etc.
  * Handles any level - special levels will load that special level, Gehennom
  * will create mazes, and so on.
@@ -928,10 +1173,10 @@ clear_level_structures()
 static void
 makelevel()
 {
-    register struct mkroom *croom, *troom;
-    register int tryct;
-    register int x, y;
+    register struct mkroom *croom;
     branch *branchp;
+    register s_level *slev = Is_special(&u.uz);
+    int i;
 
     /* this is apparently used to denote that a lot of program state is
      * uninitialized */
@@ -940,227 +1185,107 @@ makelevel()
     oinit(); /* assign level dependent obj probabilities */
     clear_level_structures(); /* full level reset */
 
-    /* FIXME: pointless braces? */
-    {
-        register s_level *slev = Is_special(&u.uz);
+    /* check for special levels */
+    if (slev) {
+        /* a special level */
+        makemaz(slev->proto);
+    } else if (g.dungeons[u.uz.dnum].proto[0]) {
+        /* named prototype file */
+        makemaz("");
+    } else if (g.dungeons[u.uz.dnum].fill_lvl[0]) {
+        /* various types of filler, e.g. "minefill" */
+        makemaz(g.dungeons[u.uz.dnum].fill_lvl);
+    } else if (In_quest(&u.uz)) {
+        /* quest filler */
+        char fillname[9];
+        s_level *loc_lev;
 
-        /* check for special levels */
-        if (slev) {
-            /* a special level */
-            makemaz(slev->proto);
-            return;
-        } else if (g.dungeons[u.uz.dnum].proto[0]) {
-            /* named prototype file */
-            makemaz("");
-            return;
-        } else if (g.dungeons[u.uz.dnum].fill_lvl[0]) {
-            /* various types of filler, e.g. "minefill" */
-            makemaz(g.dungeons[u.uz.dnum].fill_lvl);
-            return;
-        } else if (In_quest(&u.uz)) {
-            /* quest filler */
-            char fillname[9];
-            s_level *loc_lev;
+        Sprintf(fillname, "%s-loca", g.urole.filecode);
+        loc_lev = find_level(fillname);
 
-            Sprintf(fillname, "%s-loca", g.urole.filecode);
-            loc_lev = find_level(fillname);
+        Sprintf(fillname, "%s-fil", g.urole.filecode);
+        Strcat(fillname,
+                (u.uz.dlevel < loc_lev->dlevel.dlevel) ? "a" : "b");
+        makemaz(fillname);
+    } else if (In_hell(&u.uz)
+                || (rn2(5) && u.uz.dnum == medusa_level.dnum
+                    && depth(&u.uz) > depth(&medusa_level))) {
+        /* Gehennom, or 80% of levels below Medusa - maze filler */
+        makemaz("");
+    } else {
+        /* otherwise, fall through - it's a "regular" level. */
+        makerooms();
 
-            Sprintf(fillname, "%s-fil", g.urole.filecode);
-            Strcat(fillname,
-                   (u.uz.dlevel < loc_lev->dlevel.dlevel) ? "a" : "b");
-            makemaz(fillname);
-            return;
-        } else if (In_hell(&u.uz)
-                   || (rn2(5) && u.uz.dnum == medusa_level.dnum
-                       && depth(&u.uz) > depth(&medusa_level))) {
-            /* Gehennom, or 80% of levels below Medusa - maze filler */
-            makemaz("");
-            return;
-        }
-    }
+        /* order rooms[] by x-coordinate */
+        sort_rooms();
 
-    /* otherwise, fall through - it's a "regular" level. */
-    makerooms();
+        generate_stairs(); /* up and down stairs */
 
-    /* order rooms[] by x-coordinate */
-    sort_rooms();
+        branchp = Is_branchlev(&u.uz);    /* possible dungeon branch */
+        makecorridors();
+        make_niches();
 
-    /* construct stairs (up and down in different rooms if possible) */
-    croom = &g.rooms[rn2(g.nroom)];
-    if (!Is_botlevel(&u.uz))
-        mkstairs(somex(croom), somey(croom), 0); /* down */
-    if (g.nroom > 1) {
-        troom = croom;
-        croom = &g.rooms[rn2(g.nroom - 1)];
-        /* slight bias here for upstairs to be 1 room to the right of the
-         * downstairs room */
-        if (croom == troom)
-            croom++;
-    }
+        /* Did makerooms place a 2x2 unconnected room to be a vault? If so, fill
+         * it.
+         * Is there really a reason for do_vault() to be a macro? All it does is
+         * test whether vault_x is a real coordinate. It's only used here. */
+        if (do_vault()) {
+            xchar w, h;
 
-    /* now do the upstairs */
-    if (u.uz.dlevel != 1) {
-        xchar sx, sy;
-        do {
-            sx = somex(croom);
-            sy = somey(croom);
-        } while (occupied(sx, sy));
-        mkstairs(sx, sy, 1); /* up */
-    }
-
-    branchp = Is_branchlev(&u.uz);    /* possible dungeon branch */
-    makecorridors();
-    make_niches();
-
-    /* Did makerooms place a 2x2 unconnected room to be a vault? If so, fill
-     * it.
-     * Is there really a reason for do_vault() to be a macro? All it does is
-     * test whether vault_x is a real coordinate. It's only used here. */
-    if (do_vault()) {
-        xchar w, h;
-
-        debugpline0("trying to make a vault...");
-        w = 1;
-        h = 1;
-        /* make sure vault can actually be placed */
-        if (check_room(&g.vault_x, &w, &g.vault_y, &h, TRUE)) {
+            debugpline0("trying to make a vault...");
+            w = 1;
+            h = 1;
+            /* make sure vault can actually be placed */
+            if (check_room(&g.vault_x, &w, &g.vault_y, &h, TRUE)) {
  fill_vault:
-            add_room(g.vault_x, g.vault_y, g.vault_x + w, g.vault_y + h,
-                     TRUE, VAULT, FALSE);
-            g.level.flags.has_vault = 1;
-            fill_room(&g.rooms[g.nroom - 1], FALSE);
-            mk_knox_portal(g.vault_x + w, g.vault_y + h);
-            /* Only put a vault teleporter with 1/3 chance;
-             * a teleportation trap in a closet is a sure sign that a vault is
-             * on the level, but a vault is not a sure sign of a vault
-             * teleporter. */
-            if (!g.level.flags.noteleport && !rn2(3))
-                makevtele();
-        } else if (rnd_rect() && create_vault()) {
-            /* If we didn't create a vault already, try once more. */
-            g.vault_x = g.rooms[g.nroom].lx;
-            g.vault_y = g.rooms[g.nroom].ly;
-            if (check_room(&g.vault_x, &w, &g.vault_y, &h, TRUE))
-                goto fill_vault;
-            else
-                g.rooms[g.nroom].hx = -1;
-        }
-    }
-
-    /* Try to create one special room on the level.
-     * The available special rooms depend on how deep you are.
-     * If a special room is selected and fails to be created (e.g. it tried
-     * to make a shop and failed because no room had exactly 1 door), it
-     * won't try to create the other types of available special rooms. */
-    if (wizard && nh_getenv("SHOPTYPE"))
-        /* special case that overrides everything else for wizard mode */
-        mkroom(SHOPBASE);
-    else
-        mkroom(rand_roomtype());
-
-    /* Place multi-dungeon branch. */
-    place_branch(branchp, 0, 0);
-
-    /* for each room: put things inside */
-    for (croom = g.rooms; croom->hx > 0; croom++) {
-        int trycnt = 0;
-        if (croom->rtype != OROOM)
-            continue;
-
-        /* put a monster inside */
-        /* Note: monster may be on the stairs. This cannot be
-           avoided: maybe the player fell through a trap door
-           while a monster was on the stairs. Conclusion:
-           we have to check for monsters on the stairs anyway. */
-
-        if (u.uhave.amulet || !rn2(2)) {
-            mkmonst_in_room(croom);
-        }
-        /* put traps and mimics inside */
-        x = 8 - (level_difficulty() / 6);
-        if (x < 2)
-            /* maxes out at level_difficulty() == 36 */
-            x = 2;
-        while (!rn2(x) && (++trycnt < 1000))
-            mktrap(0, 0, croom, (coord *) 0);
-
-        /* maybe put some gold inside */
-        if (!rn2(3))
-            (void) mkgold(0L, somex(croom), somey(croom));
-
-        /* maybe place some dungeon features inside */
-        if (!rn2(10))
-            mkfeature(FOUNTAIN, croom);
-        if (!rn2(60))
-            mkfeature(SINK, croom);
-        if (!rn2(60))
-            mkfeature(ALTAR, croom);
-        if (!rn2(30 + (depth(&u.uz) * 5)))
-            mkfeature(TREE, croom);
-        x = 80 - (depth(&u.uz) * 2);
-        if (x < 2)
-            x = 2;
-        if (!rn2(x))
-            mkfeature(GRAVE, croom);
-
-        /* put statues inside */
-        if (!rn2(20)) {
-            x = somex(croom);
-            y = somey(croom);
-            if (ACCESSIBLE(levl[x][y].typ))
-                (void) mkcorpstat(STATUE, (struct monst *) 0,
-                                (struct permonst *) 0, x, y, CORPSTAT_INIT);
-        }
-        /* put box/chest inside;
-         *  40% chance for at least 1 box, regardless of number
-         *  of rooms; about 5 - 7.5% for 2 boxes, least likely
-         *  when few rooms; chance for 3 or more is negligible.
-         */
-        if (!rn2(g.nroom * 5 / 2)) {
-            x = somex(croom);
-            y = somey(croom);
-            if (ACCESSIBLE(levl[x][y].typ))
-                (void) mksobj_at((rn2(3)) ? LARGE_BOX : CHEST, x, y,
-                                 TRUE, FALSE);
-        }
-
-        /* Maybe make some graffiti.
-         * Chance decreases the lower you get in the dungeon.
-         * On dlvl1, put a special graffiti in the starting room: this is always
-         * a true rumor, never a false one or random engraving, and is never
-         * damaged. */
-        if (depth(&u.uz) == 1 && has_upstairs(croom)) {
-            char buf[BUFSZ];
-            getrumor(1, buf, TRUE);
-            do { /* avoid other features */
-                x = somex(croom);
-                y = somey(croom);
-            } while (levl[x][y].typ != ROOM || t_at(x, y));
-            make_engr_at(x, y, buf, 0, MARK);
-        }
-        else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
-            mkfeature(0, croom);
-        }
-
-        /* place a random object in the room, with a recursive 20% chance of
-         * placing another */
-        if (rnd(5) <= 2) {
-            x = somex(croom);
-            y = somey(croom);
-            if (ACCESSIBLE(levl[x][y].typ))
-                (void) mkobj_at(0, x, y, TRUE);
-            tryct = 0;
-            while (!rn2(5)) {
-                if (++tryct > 100) {
-                    impossible("tryct overflow4");
-                    break;
-                }
-                x = somex(croom);
-                y = somey(croom);
-                if (ACCESSIBLE(levl[x][y].typ))
-                    (void) mkobj_at(0, x, y, TRUE);
+                add_room(g.vault_x, g.vault_y, g.vault_x + w, g.vault_y + h,
+                        TRUE, VAULT, FALSE);
+                g.level.flags.has_vault = 1;
+                g.rooms[g.nroom - 1].needfill = FILL_NORMAL;
+                fill_special_room(&g.rooms[g.nroom - 1]);
+                mk_knox_portal(g.vault_x + w, g.vault_y + h);
+                /* Only put a vault teleporter with 1/3 chance;
+                 * a teleportation trap in a closet is a sure sign that a vault is
+                 * on the level, but a vault is not a sure sign of a vault
+                 * teleporter. */
+                if (!g.level.flags.noteleport && !rn2(3))
+                    makevtele();
+            } else if (rnd_rect() && create_vault()) {
+                /* If we didn't create a vault already, try once more. */
+                g.vault_x = g.rooms[g.nroom].lx;
+                g.vault_y = g.rooms[g.nroom].ly;
+                if (check_room(&g.vault_x, &w, &g.vault_y, &h, TRUE))
+                    goto fill_vault;
+                else
+                    g.rooms[g.nroom].hx = -1;
             }
         }
+
+        /* Try to create one special room on the level.
+         * The available special rooms depend on how deep you are.
+         * If a special room is selected and fails to be created (e.g. it tried
+         * to make a shop and failed because no room had exactly 1 door), it
+         * won't try to create the other types of available special rooms.
+         * Note that mkroom doesn't guarantee a room gets created, and that this
+         * step only sets the room's rtype - it doesn't fill it yet. */
+        if (wizard && nh_getenv("SHOPTYPE"))
+            /* special case that overrides everything else for wizard mode */
+            mkroom(SHOPBASE);
+        else
+            mkroom(rand_roomtype());
+
+        /* Place multi-dungeon branch. */
+        place_branch(branchp, 0, 0);
+
+        /* for each room: put things inside */
+        for (croom = g.rooms; croom->hx > 0; croom++) {
+            fill_ordinary_room(croom);
+        }
+    }
+    /* Fill all special rooms now, regardless of whether this is a special
+     * level, proto level, or ordinary level. */
+    for (i = 0; i < g.nroom; ++i) {
+        fill_special_room(&g.rooms[i]);
     }
 }
 
@@ -1316,13 +1441,6 @@ mklev()
     for (ridx = 0; ridx < SIZE(g.rooms); ridx++)
         g.rooms[ridx].orig_rtype = g.rooms[ridx].rtype;
 
-    /* something like this usually belongs in clear_level_structures()
-       but these aren't saved and restored so might not retain their
-       values for the life of the current level; reset them to default
-       now so that they never do and no one will be tempted to introduce
-       a new use of them for anything on this level */
-    g.sstairs_room = (struct mkroom *) 0;
-
     reseed_random(rn2);
     reseed_random(rn2_on_display_rng);
 }
@@ -1408,41 +1526,12 @@ coord *mp;
     if (g.nroom == 0) {
         mazexy(mp); /* already verifies location */
     } else {
-        int cnt = 0;
-        /* not perfect - there may be only one stairway */
-        if (g.nroom > 2) {
-            int tryct = 0;
+        croom = generate_stairs_find_room();
 
-            do
-                croom = &g.rooms[rn2(g.nroom)];
-            while ((has_upstairs(croom) || has_dnstairs(croom)
-                    || croom->rtype != OROOM) && (++tryct < 100));
-        } else
-            croom = &g.rooms[rn2(g.nroom)];
-
-        do {
-            if (!somexy(croom, mp))
-                impossible("Can't place branch!");
-        } while ((occupied(mp->x, mp->y)
-                 || (levl[mp->x][mp->y].typ != CORR
-                     && levl[mp->x][mp->y].typ != ROOM)) && (++cnt < 1000));
+        if (!somexyspace(croom, mp))
+            impossible("Can't place branch!");
     }
     return croom;
-}
-
-/* Find the room for (x,y).  Return null if not in a room. */
-static struct mkroom *
-pos_to_room(x, y)
-xchar x, y;
-{
-    int i;
-    struct mkroom *curr;
-
-    for (curr = g.rooms, i = 0; i < g.nroom; curr++, i++)
-        if (inside_room(curr, x, y))
-            return curr;
-    ;
-    return (struct mkroom *) 0;
 }
 
 /* Place a branch staircase or ladder for branch br at the coordinates (x,y).
@@ -1456,7 +1545,6 @@ xchar x, y; /* location */
     coord m;
     d_level *dest;
     boolean make_stairs;
-    struct mkroom *br_room;
 
     /*
      * Return immediately if there is no branch to make or we have
@@ -1468,11 +1556,9 @@ xchar x, y; /* location */
         return;
 
     if (!x) { /* find random coordinates for branch */
-        br_room = find_branch_room(&m);
+        (void) find_branch_room(&m);
         x = m.x;
         y = m.y;
-    } else {
-        br_room = pos_to_room(x, y);
     }
 
     if (on_level(&br->end1, &u.uz)) {
@@ -1488,14 +1574,11 @@ xchar x, y; /* location */
     if (br->type == BR_PORTAL) {
         mkportal(x, y, dest->dnum, dest->dlevel);
     } else if (make_stairs) {
-        g.sstairs.sx = x;
-        g.sstairs.sy = y;
-        g.sstairs.up =
-            (char) on_level(&br->end1, &u.uz) ? br->end1_up : !br->end1_up;
-        assign_level(&g.sstairs.tolev, dest);
-        g.sstairs_room = br_room;
+        boolean goes_up = on_level(&br->end1, &u.uz) ? br->end1_up
+                                                     : !br->end1_up;
 
-        levl[x][y].ladder = g.sstairs.up ? LA_UP : LA_DOWN;
+        stairway_add(x,y, goes_up, FALSE, dest);
+        levl[x][y].ladder = goes_up ? LA_UP : LA_DOWN;
         levl[x][y].typ = STAIRS;
     }
     /*
@@ -1549,6 +1632,10 @@ xchar x, y;
     boolean near_door = bydoor(x, y);
 
     return ((levl[x][y].typ == HWALL || levl[x][y].typ == VWALL)
+            && ((isok(x - 1, y) && !IS_ROCK(levl[x - 1][y].typ))
+                || (isok(x + 1, y) && !IS_ROCK(levl[x + 1][y].typ))
+                || (isok(x, y - 1) && !IS_ROCK(levl[x][y - 1].typ))
+                || (isok(x, y + 1) && !IS_ROCK(levl[x][y + 1].typ)))
             && g.doorindex < DOORMAX && !near_door);
 }
 
@@ -1566,19 +1653,25 @@ struct mkroom *aroom;
         return;
     }
 
-    /* Probability of a random door being a secret door:
-     * sqrt(depth-3) / 35, or depth-3 / 1225.
-     * If depth <= 3, probability is 0. */
+    /* Probability of a random door being a secret door: sqrt(depth-3) / 35.
+     * If depth <= 3, probability is 0.
+     * Math here: random[0..1)      < sqrt(depth - 3) / 35
+     *            random[0..35)     < sqrt(depth - 3)
+     *            random[0..35) ^ 2 < depth - 3
+     * It's important to compute one random number and square it, rather than
+     * taking two rn2(35) and multiplying them, or going for a uniform
+     * rn2(35*35) distribution. */
     xchar doortyp = DOOR;
     schar u_depth = depth(&u.uz);
-    if (u_depth > 3 && rn2(1225) < u_depth - 3) {
+    int r = rn2(35);
+    if (u_depth > 3 && (r * r) < u_depth - 3) {
         doortyp = SDOOR;
     }
     dosdoor(x, y, aroom, doortyp);
 }
 
-/* Return TRUE if the given location contains a trap, dungeon furniture, liquid
- * terrain, or the vibrating square.
+/* Return TRUE if the given location contains a trap, dungeon furniture,
+ * inaccessible terrain, or the vibrating square.
  * Generally used for determining if a space is unsuitable for placing
  * something.
  */
@@ -1587,7 +1680,7 @@ occupied(x, y)
 register xchar x, y;
 {
     return (boolean) (t_at(x, y) || IS_FURNITURE(levl[x][y].typ)
-                      || is_lava(x, y) || is_pool(x, y)
+                      || !ACCESSIBLE(levl[x][y].typ) /* covers lava and water */
                       || invocation_pos(x, y));
 }
 
@@ -1603,9 +1696,8 @@ register xchar x, y;
  * will keep trying until it picks something valid.
  *
  * If a fallthru trap is created on a undiggable-floor level, it defaults to
- * ROCKTRAP. If a WEB is created, a giant spider is created on top of it.
+ * PIT. If a WEB is created, a giant spider is created on top of it.
  * Finally, if it is very early in the dungeon, and the trap is potentially
- *
  * lethal, create a minimal fake bones pile on the trap.
  */
 void
@@ -1686,7 +1778,7 @@ coord *tm;
     }
 
     if (is_hole(kind) && !Can_fall_thru(&u.uz))
-        kind = ROCKTRAP;
+        kind = PIT;
 
     if (tm) {
         m = *tm;
@@ -1748,28 +1840,32 @@ coord *tm;
            generate objects. */
         struct obj *otmp = NULL;
         int victim_mnum; /* race of the victim */
+        int quan = rnd(4); /* amount of ammo to dump */
 
         /* Not all trap types have special handling here; only the ones
            that kill in a specific way that's obvious after the fact. */
         switch (kind) {
         case ARROW_TRAP:
-            otmp = mksobj(ARROW, TRUE, FALSE);
-            otmp->opoisoned = 0;
-            /* don't adjust the quantity; maybe the trap shot multiple
-               times, there was an untrapping attempt, etc... */
-            break;
         case DART_TRAP:
-            otmp = mksobj(DART, TRUE, FALSE);
-            break;
         case ROCKTRAP:
-            otmp = mksobj(ROCK, TRUE, FALSE);
-            break;
+            /* Make sure there is some ammo left in the trap after splitting
+             * some out of it. */
+            if (t->ammo) {
+                if (t->ammo->quan <= quan) {
+                    t->ammo->quan = quan + 1;
+                }
+                otmp = splitobj(t->ammo, quan); /* this handles weights */
+                if (otmp) {
+                    extract_nobj(otmp, &t->ammo);
+                    place_object(otmp, m.x, m.y);
+                }
+            }
+            else {
+                impossible("fresh trap %d without ammo?", t->ttyp);
+            }
         default:
             /* no item dropped by the trap */
             break;
-        }
-        if (otmp) {
-            place_object(otmp, m.x, m.y);
         }
 
         /* now otmp is reused for other items we're placing */
@@ -1859,8 +1955,10 @@ coord *tm;
 void
 mkstairs(x, y, up)
 xchar x, y;
-char up; /* should probably be boolean... */
+char up;	/* [why 'char' when usage is boolean?] */
 {
+    d_level dest;
+
     if (!x) {
         impossible("mkstairs:  bogus stair attempt at <%d,%d>", x, y);
         return;
@@ -1875,16 +1973,90 @@ char up; /* should probably be boolean... */
         || (dunlev(&u.uz) == dunlevs_in_dungeon(&u.uz) && !up))
         return;
 
-    if (up) {
-        xupstair = x;
-        yupstair = y;
-    } else {
-        xdnstair = x;
-        ydnstair = y;
-    }
+    dest.dnum = u.uz.dnum;
+    dest.dlevel = u.uz.dlevel + (up ? -1 : 1);
+    stairway_add(x, y, up ? TRUE : FALSE, FALSE, &dest);
 
     levl[x][y].typ = STAIRS;
     levl[x][y].ladder = up ? LA_UP : LA_DOWN;
+}
+
+/* is room a good one to generate up or down stairs in? */
+/* phase values, smaller allows for more relaxed criteria:
+     2 == no relaxed criteria
+     1 == allow a themed room
+     0 == allow same room as existing up/downstairs
+    -1 == allow an unjoined room
+*/
+static boolean
+generate_stairs_room_good(croom, phase)
+struct mkroom *croom;
+int phase;
+{
+    return (croom && (croom->needjoining || (phase < 0))
+            && ((!has_dnstairs(croom) && !has_upstairs(croom))
+                || phase < 1)
+            && (croom->rtype == OROOM
+                || ((phase < 2) && croom->rtype == THEMEROOM)));
+}
+
+/* find a good room to generate an up or down stairs in */
+static struct mkroom *
+generate_stairs_find_room()
+{
+    struct mkroom *croom;
+    int i, phase, tryct = 0;
+
+    if (!g.nroom)
+        return (struct mkroom *) 0;
+
+    for (phase = 2; phase > -1; phase--) {
+        do {
+            croom = &g.rooms[rn2(g.nroom)];
+        } while (!generate_stairs_room_good(croom, phase) && (tryct++ < 50));
+        if (tryct < 50)
+            return croom;
+    }
+
+    for (phase = 2; phase > -2; phase--) {
+        for (i = 0; i < g.nroom; i++) {
+            croom = &g.rooms[i];
+            if (generate_stairs_room_good(croom, phase))
+                return croom;
+        }
+    }
+
+    croom = &g.rooms[rn2(g.nroom)];
+    return croom;
+}
+
+/* construct stairs up and down within the same branch,
+   up and down in different rooms if possible */
+static void
+generate_stairs()
+{
+    struct mkroom *croom = generate_stairs_find_room();
+    coord pos;
+
+    if (!Is_botlevel(&u.uz)) {
+        if (!somexyspace(croom, &pos)) {
+            pos.x = somex(croom);
+            pos.y = somey(croom);
+        }
+        mkstairs(pos.x, pos.y, 0); /* down */
+    }
+
+    if (g.nroom > 1)
+        croom = generate_stairs_find_room();
+
+    /* now do the upstairs */
+    if (u.uz.dlevel != 1) {
+        if (!somexyspace(croom, &pos)) {
+            pos.x = somex(croom);
+            pos.y = somey(croom);
+        }
+        mkstairs(pos.x, pos.y, 1); /* up */
+    }
 }
 
 /* Return number of monsters created. */
@@ -1892,17 +2064,16 @@ int
 mkmonst_in_room(croom)
 struct mkroom* croom;
 {
-    int x,y;
     int num_monst = 1;
     struct monst *tmonst; /* always put a web with a spider */
-    do {
-        x = somex(croom);
-        y = somey(croom);
-    } while (levl[x][y].typ == STAIRS || levl[x][y].typ == LADDER);
-    tmonst = makemon((struct permonst *) 0, x, y, NO_MM_FLAGS);
+    coord pos;
+    if (!somexyspace(croom, &pos)) {
+        return 0; /* can't place any monsters */
+    }
+    tmonst = makemon((struct permonst *) 0, pos.x, pos.y, MM_NOGRP);
     if (tmonst && tmonst->data == &mons[PM_GIANT_SPIDER]
-        && !occupied(x, y)) {
-        (void) maketrap(x, y, WEB);
+        && !occupied(pos.x, pos.y)) {
+        (void) maketrap(pos.x, pos.y, WEB);
     }
     /* maybe place another monster in the same room */
     if(!rn2(3)) {
@@ -2111,7 +2282,6 @@ mkinvokearea()
     mkstairs(u.ux, u.uy, 0); /* down */
     newsym(u.ux, u.uy);
     g.vision_full_recalc = 1; /* everything changed */
-    livelog_write_string(LL_ACHIEVE, "performed the invocation");
 }
 
 /* Change level topology.  Boulders in the vicinity are eliminated.
@@ -2139,8 +2309,7 @@ int dist;
 
     /* clear traps */
     if ((ttmp = t_at(x, y)) != 0) {
-        /* this calls deltrap, burying any ammo */
-        remove_trap_ammo(ttmp, TRUE);
+        deltrap_with_ammo(ttmp, DELTRAP_DESTROY_AMMO);
     }
 
     /* clear boulders; leave some rocks for non-{moat|trap} locations */

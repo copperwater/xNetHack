@@ -1,4 +1,4 @@
-/* NetHack 3.6	dungeon.c	$NHDT-Date: 1580607225 2020/02/02 01:33:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.124 $ */
+/* NetHack 3.7	dungeon.c	$NHDT-Date: 1605305480 2020/11/13 22:11:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.138 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -49,6 +49,7 @@ static int FDECL(possible_places, (int, boolean *,
                                        struct proto_dungeon *));
 static xchar FDECL(pick_level, (boolean *, int));
 static boolean FDECL(place_level, (int, struct proto_dungeon *));
+static int FDECL(get_dgn_flags, (lua_State *));
 static boolean FDECL(unplaced_floater, (struct dungeon *));
 static boolean FDECL(unreachable_level, (d_level *, BOOLEAN_P));
 static void FDECL(tport_menu, (winid, char *, struct lchoice *, d_level *,
@@ -141,23 +142,24 @@ boolean perform_write, free_data;
             bwrite(nhfp->fd, (genericptr_t) &g.n_dgns, sizeof g.n_dgns);
             bwrite(nhfp->fd, (genericptr_t) g.dungeons,
                    sizeof(dungeon) * (unsigned) g.n_dgns);
-            bwrite(nhfp->fd, (genericptr_t) &g.dungeon_topology, sizeof g.dungeon_topology);
+            bwrite(nhfp->fd, (genericptr_t) &g.dungeon_topology,
+                   sizeof g.dungeon_topology);
             bwrite(nhfp->fd, (genericptr_t) g.tune, sizeof tune);
         }
         for (count = 0, curr = g.branches; curr; curr = curr->next)
             count++;
         if (nhfp->structlevel)
-            bwrite(nhfp->fd, (genericptr_t) &count, sizeof(count));
+            bwrite(nhfp->fd, (genericptr_t) &count, sizeof count);
 
         for (curr = g.branches; curr; curr = curr->next) {
           if (nhfp->structlevel)
-              bwrite(nhfp->fd, (genericptr_t) curr, sizeof(branch));
+              bwrite(nhfp->fd, (genericptr_t) curr, sizeof *curr);
         }
         count = maxledgerno();
         if (nhfp->structlevel) {
             bwrite(nhfp->fd, (genericptr_t) &count, sizeof count);
             bwrite(nhfp->fd, (genericptr_t) g.level_info,
-                   (unsigned) count * sizeof(struct linfo));
+                   (unsigned) count * sizeof (struct linfo));
             bwrite(nhfp->fd, (genericptr_t) &g.inv_pos, sizeof g.inv_pos);
         }
         for (count = 0, curr_ms = g.mapseenchn; curr_ms;
@@ -165,7 +167,7 @@ boolean perform_write, free_data;
             count++;
 
         if (nhfp->structlevel)
-            bwrite(nhfp->fd, (genericptr_t) &count, sizeof(count));
+            bwrite(nhfp->fd, (genericptr_t) &count, sizeof count);
 
         for (curr_ms = g.mapseenchn; curr_ms; curr_ms = curr_ms->next) {
             save_mapseen(nhfp, curr_ms);
@@ -200,20 +202,22 @@ NHFILE *nhfp;
     mapseen *curr_ms, *last_ms;
 
     if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) &g.n_dgns, sizeof(g.n_dgns));
-        mread(nhfp->fd, (genericptr_t) g.dungeons, sizeof(dungeon) * (unsigned) g.n_dgns);
-        mread(nhfp->fd, (genericptr_t) &g.dungeon_topology, sizeof g.dungeon_topology);
+        mread(nhfp->fd, (genericptr_t) &g.n_dgns, sizeof g.n_dgns);
+        mread(nhfp->fd, (genericptr_t) g.dungeons,
+              sizeof (dungeon) * (unsigned) g.n_dgns);
+        mread(nhfp->fd, (genericptr_t) &g.dungeon_topology,
+              sizeof g.dungeon_topology);
         mread(nhfp->fd, (genericptr_t) g.tune, sizeof tune);
     }
     last = g.branches = (branch *) 0;
 
     if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &count, sizeof(count));
+        mread(nhfp->fd, (genericptr_t) &count, sizeof count);
 
     for (i = 0; i < count; i++) {
-        curr = (branch *) alloc(sizeof(branch));
+        curr = (branch *) alloc(sizeof *curr);
         if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) curr, sizeof(branch));
+            mread(nhfp->fd, (genericptr_t) curr, sizeof *curr);
         curr->next = (branch *) 0;
         if (last)
             last->next = curr;
@@ -223,18 +227,18 @@ NHFILE *nhfp;
     }
 
     if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &count, sizeof(count));
+        mread(nhfp->fd, (genericptr_t) &count, sizeof count);
 
     if (count >= MAXLINFO)
         panic("level information count larger (%d) than allocated size",
               count);
     if (nhfp->structlevel)
         mread(nhfp->fd, (genericptr_t) g.level_info,
-              (unsigned) count * sizeof(struct linfo));
+              (unsigned) count * sizeof (struct linfo));
 
     if (nhfp->structlevel) {
         mread(nhfp->fd, (genericptr_t) &g.inv_pos, sizeof g.inv_pos);
-        mread(nhfp->fd, (genericptr_t) &count, sizeof(count));
+        mread(nhfp->fd, (genericptr_t) &count, sizeof count);
     }
 
     last_ms = (mapseen *) 0;
@@ -837,6 +841,7 @@ init_dungeons()
     i = 0;
     while (lua_next(L, tidx) != 0) {
         char *dgn_name, *dgn_bonetag, *dgn_protoname, *dgn_fill;
+        char *dgn_themerms;
         int dgn_base, dgn_range, dgn_align, dgn_entry, dgn_chance, dgn_flags;
 
         if (!lua_istable(L, -1))
@@ -853,6 +858,7 @@ init_dungeons()
         dgn_chance = get_table_int_opt(L, "chance", 100);
         dgn_flags = get_dgn_flags(L);
         dgn_fill = get_table_str_opt(L, "lvlfill", emptystr);
+        dgn_themerms = get_table_str_opt(L, "themerooms", emptystr);
 
         debugpline4("DUNGEON[%i]: %s, base=(%i,%i)",
                     i, dgn_name, dgn_base, dgn_range);
@@ -865,6 +871,7 @@ init_dungeons()
             free((genericptr_t) dgn_bonetag);
             free((genericptr_t) dgn_protoname);
             free((genericptr_t) dgn_fill);
+            free((genericptr_t) dgn_themerms);
             continue;
         }
 
@@ -1018,10 +1025,12 @@ init_dungeons()
         Strcpy(g.dungeons[i].fill_lvl, dgn_fill); /* FIXME: fill_lvl len */
         Strcpy(g.dungeons[i].dname, dgn_name); /* FIXME: dname length */
         Strcpy(g.dungeons[i].proto, dgn_protoname); /* FIXME: proto length */
+        Strcpy(g.dungeons[i].themerms, dgn_themerms); /* FIXME: length */
         g.dungeons[i].boneid = *dgn_bonetag ? *dgn_bonetag : 0;
         free((genericptr) dgn_fill);
         /* free((genericptr) dgn_protoname); -- stored in pd.tmpdungeon[] */
         free((genericptr) dgn_bonetag);
+        free((genericptr) dgn_themerms);
 
         if (dgn_range)
             g.dungeons[i].num_dunlevs = (xchar) rn1(dgn_range, dgn_base);
@@ -1384,13 +1393,14 @@ void
 next_level(at_stairs)
 boolean at_stairs;
 {
-    if (at_stairs && u.ux == g.sstairs.sx && u.uy == g.sstairs.sy) {
-        /* Taking a down dungeon branch. */
-        goto_level(&g.sstairs.tolev, at_stairs, FALSE, FALSE);
-    } else {
-        /* Going down a stairs or jump in a trap door. */
-        d_level newlevel;
+    stairway *stway = stairway_at(u.ux, u.uy);
+    d_level newlevel;
 
+    if (at_stairs && stway) {
+        newlevel.dnum = stway->tolev.dnum;
+        newlevel.dlevel = stway->tolev.dlevel;
+        goto_level(&newlevel, at_stairs, FALSE, FALSE);
+    } else {
         newlevel.dnum = u.uz.dnum;
         newlevel.dlevel = u.uz.dlevel + 1;
         goto_level(&newlevel, at_stairs, !at_stairs, FALSE);
@@ -1402,17 +1412,22 @@ void
 prev_level(at_stairs)
 boolean at_stairs;
 {
-    if (at_stairs && u.ux == g.sstairs.sx && u.uy == g.sstairs.sy) {
+    stairway *stway = stairway_at(u.ux, u.uy);
+    d_level newlevel;
+
+    if (at_stairs && stway && stway->tolev.dnum != u.uz.dnum) {
         /* Taking an up dungeon branch. */
         /* KMH -- Upwards branches are okay if not level 1 */
         /* (Just make sure it doesn't go above depth 1) */
         if (!u.uz.dnum && u.uz.dlevel == 1 && !u.uhave.amulet)
             done(ESCAPED);
-        else
-            goto_level(&g.sstairs.tolev, at_stairs, FALSE, FALSE);
+        else {
+            newlevel.dnum = stway->tolev.dnum;
+            newlevel.dlevel = stway->tolev.dlevel;
+            goto_level(&newlevel, at_stairs, FALSE, FALSE);
+        }
     } else {
         /* Going up a stairs or rising through the ceiling. */
-        d_level newlevel;
         newlevel.dnum = u.uz.dnum;
         newlevel.dlevel = u.uz.dlevel - 1;
         goto_level(&newlevel, at_stairs, FALSE, FALSE);
@@ -1478,13 +1493,134 @@ int upflag;
     switch_terrain();
 }
 
+void
+stairway_add(x, y, up, isladder, dest)
+int x, y;
+boolean up, isladder;
+d_level *dest;
+{
+    stairway *tmp = (stairway *)alloc(sizeof(stairway));
+
+    tmp->sx = x;
+    tmp->sy = y;
+    tmp->up = up;
+    tmp->isladder = isladder;
+    assign_level(&(tmp->tolev), dest);
+    tmp->next = g.stairs;
+    g.stairs = tmp;
+}
+
+void
+stairway_free_all()
+{
+    stairway *tmp = g.stairs;
+
+    while (tmp) {
+        stairway *tmp2 = tmp->next;
+        free(tmp);
+        tmp = tmp2;
+    }
+    g.stairs = NULL;
+}
+
+stairway *
+stairway_at(x,y)
+int x,y;
+{
+    stairway *tmp = g.stairs;
+
+    while (tmp && !(tmp->sx == x && tmp->sy == y))
+        tmp = tmp->next;
+    return tmp;
+}
+
+stairway *
+stairway_find(fromdlev)
+d_level *fromdlev;
+{
+    stairway *tmp = g.stairs;
+
+    while (tmp) {
+        if (tmp->tolev.dnum == fromdlev->dnum
+            && tmp->tolev.dlevel == fromdlev->dlevel)
+            break; /* return */
+        tmp = tmp->next;
+    }
+    return tmp;
+}
+
+stairway *
+stairway_find_from(fromdlev, isladder)
+d_level *fromdlev;
+boolean isladder;
+{
+    stairway *tmp = g.stairs;
+
+    while (tmp) {
+        if (tmp->tolev.dnum == fromdlev->dnum
+            && tmp->tolev.dlevel == fromdlev->dlevel
+            && tmp->isladder == isladder)
+            break; /* return */
+        tmp = tmp->next;
+    }
+    return tmp;
+}
+
+stairway *
+stairway_find_dir(up)
+boolean up;
+{
+    stairway *tmp = g.stairs;
+
+    while (tmp && !(tmp->up == up))
+        tmp = tmp->next;
+    return tmp;
+}
+
+stairway *
+stairway_find_ladder()
+{
+    stairway *tmp = g.stairs;
+
+    while (tmp && !tmp->isladder)
+        tmp = tmp->next;
+    return tmp;
+}
+
+stairway *
+stairway_find_type_dir(isladder, up)
+boolean isladder, up;
+{
+    stairway *tmp = g.stairs;
+
+    while (tmp && !(tmp->isladder == isladder && tmp->up == up))
+        tmp = tmp->next;
+    return tmp;
+}
+
+stairway *
+stairway_find_special_dir(up)
+boolean up;
+{
+    stairway *tmp = g.stairs;
+
+    while (tmp) {
+        if (tmp->tolev.dnum != u.uz.dnum && tmp->up != up)
+            return tmp;
+        tmp = tmp->next;
+    }
+    return tmp;
+}
+
 /* place you on the special staircase */
 void
 u_on_sstairs(upflag)
 int upflag;
 {
-    if (g.sstairs.sx)
-        u_on_newpos(g.sstairs.sx, g.sstairs.sy);
+    stairway *stway = stairway_find_special_dir(upflag);
+
+    if (stway)
+        u_on_newpos(stway->sx, stway->sy);
     else
         u_on_rndspot(upflag);
 }
@@ -1493,8 +1629,10 @@ int upflag;
 void
 u_on_upstairs()
 {
-    if (xupstair)
-        u_on_newpos(xupstair, yupstair);
+    stairway *stway = stairway_find_dir(TRUE);
+
+    if (stway)
+        u_on_newpos(stway->sx, stway->sy);
     else
         u_on_sstairs(0); /* destination upstairs implies moving down */
 }
@@ -1503,8 +1641,10 @@ u_on_upstairs()
 void
 u_on_dnstairs()
 {
-    if (xdnstair)
-        u_on_newpos(xdnstair, ydnstair);
+    stairway *stway = stairway_find_dir(FALSE);
+
+    if (stway)
+        u_on_newpos(stway->sx, stway->sy);
     else
         u_on_sstairs(1); /* destination dnstairs implies moving up */
 }
@@ -1513,37 +1653,34 @@ boolean
 On_stairs(x, y)
 xchar x, y;
 {
-    return (boolean) ((x == xupstair && y == yupstair)
-                      || (x == xdnstair && y == ydnstair)
-                      || (x == xdnladder && y == ydnladder)
-                      || (x == xupladder && y == yupladder)
-                      || (x == g.sstairs.sx && y == g.sstairs.sy));
+    return (stairway_at(x,y) != NULL);
 }
 
 boolean
 On_ladder(x, y)
 xchar x, y;
 {
-    return (boolean) ((x == xdnladder && y == ydnladder)
-                      || (x == xupladder && y == yupladder));
+    stairway *stway = stairway_at(x,y);
+
+    return (boolean) (stway && stway->isladder);
 }
 
 boolean
 On_stairs_up(x, y)
 xchar x, y;
 {
-    return ((x == xupstair && y == yupstair)
-            || (x == g.sstairs.sx && y == g.sstairs.sy && g.sstairs.up)
-            || (x == xupladder && y == yupladder));
+    stairway *stway = stairway_at(x,y);
+
+    return (boolean) (stway && stway->up);
 }
 
 boolean
 On_stairs_dn(x, y)
 xchar x, y;
 {
-    return ((x == xdnstair && y == ydnstair)
-            || (x == g.sstairs.sx && y == g.sstairs.sy && !g.sstairs.up)
-            || (x == xdnladder && y == ydnladder));
+    stairway *stway = stairway_at(x,y);
+
+    return (boolean) (stway && !stway->up);
 }
 
 boolean
@@ -1585,6 +1722,8 @@ Can_rise_up(x, y, lev)
 int x, y;
 d_level *lev;
 {
+    stairway *stway = stairway_find_special_dir(FALSE);
+
     /* can't rise up from inside the top of the Wizard's tower */
     /* KMH -- or in sokoban */
     if (In_endgame(lev) || In_sokoban(lev)
@@ -1593,7 +1732,7 @@ d_level *lev;
     return (boolean) (lev->dlevel > 1
                       || (g.dungeons[lev->dnum].entry_lev == 1
                           && ledger_no(lev) != 1
-                          && g.sstairs.sx && g.sstairs.up));
+                          && stway && stway->up));
 }
 
 /* Are we on a level that has a ceiling above us? */
@@ -1816,7 +1955,7 @@ int range;
         dest->dlevel = 1;
 }
 
-int
+unsigned int
 induced_align(pct)
 int pct;
 {
@@ -2658,8 +2797,8 @@ recalc_mapseen()
     struct monst *mtmp;
     struct cemetery *bp, **bonesaddr;
     struct trap *t;
-    unsigned i, ridx;
-    int x, y, ltyp, count, atmp;
+    unsigned i, ridx, atmp;
+    int x, y, ltyp, count;
 
     /* Should not happen in general, but possible if in the process
      * of being booted from the quest.  The mapseen object gets
@@ -2823,10 +2962,13 @@ recalc_mapseen()
                     mptr->feat.ngrave = count;
                 break;
             case ALTAR:
+                /* get the altarmask for this location; might be a mimic */
+                atmp = altarmask_at(x, y);
+                /* convert to index: 0..3 */
                 atmp = (Is_astralevel(&u.uz)
                         && (levl[x][y].seenv & SVALL) != SVALL)
                          ? MSA_NONE
-                         : Amask2msa(levl[x][y].altarmask);
+                         : Amask2msa(atmp);
                 if (!mptr->feat.naltar)
                     mptr->feat.msalign = atmp;
                 else if (mptr->feat.msalign != atmp)
@@ -3239,6 +3381,8 @@ boolean printdun;
                         an(shop_string(mptr->feat.shoptype)));
         }
         if (mptr->feat.naltar > 0) {
+            unsigned atmp;
+
             /* Temples + non-temple altars get munged into just "altars" */
             if (mptr->feat.ntemple != mptr->feat.naltar)
                 ADDNTOBUF("altar", mptr->feat.naltar);
@@ -3246,7 +3390,9 @@ boolean printdun;
                 ADDNTOBUF("temple", mptr->feat.ntemple);
 
             /* only print out altar's god if they are all to your god */
-            if (Amask2align(Msa2amask(mptr->feat.msalign)) == u.ualign.type)
+            atmp = mptr->feat.msalign;              /*    0,  1,  2,  3 */
+            atmp = Msa2amask(atmp);                 /*    0,  1,  2,  4 */
+            if (Amask2align(atmp) == u.ualign.type) /* -128, -1,  0, +1 */
                 Sprintf(eos(buf), " to %s", align_gname(u.ualign.type));
         }
         ADDNTOBUF("throne", mptr->feat.nthrone);

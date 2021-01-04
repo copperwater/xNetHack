@@ -1,4 +1,4 @@
-/* NetHack 3.6	quest.c	$NHDT-Date: 1505170343 2017/09/11 22:52:23 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.21 $ */
+/* NetHack 3.7	quest.c	$NHDT-Date: 1596498200 2020/08/03 23:43:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.29 $ */
 /*      Copyright 1991, M. Stephenson             */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -131,8 +131,8 @@ struct obj *obj;
 boolean
 ok_to_quest()
 {
-    return (boolean) ((Qstat(got_quest) || Qstat(got_thanks))
-                      && is_pure(FALSE) > 0);
+    return (((Qstat(got_quest) || Qstat(got_thanks)) && is_pure(FALSE) > 0)
+            || Qstat(leader_is_dead));
 }
 
 static boolean
@@ -182,13 +182,13 @@ boolean seal;
     branch *br;
     d_level *dest;
     struct trap *t;
-    int portal_flag;
+    int portal_flag = u.uevent.qexpelled ? UTOTYPE_NONE : UTOTYPE_PORTAL;
 
     br = dungeon_branch("The Quest");
     dest = (br->end1.dnum == u.uz.dnum) ? &br->end2 : &br->end1;
-    portal_flag = u.uevent.qexpelled ? 0 /* returned via artifact? */
-                                     : !seal ? 1 : -1;
-    schedule_goto(dest, FALSE, FALSE, portal_flag, (char *) 0, (char *) 0);
+    if (seal)
+        portal_flag |= UTOTYPE_RMPORTAL;
+    schedule_goto(dest, portal_flag, (char *) 0, (char *) 0);
     if (seal) { /* remove the portal to the quest - sealing it off */
         int reexpelled = u.uevent.qexpelled;
 
@@ -277,12 +277,17 @@ chat_with_leader()
 
     /* Rule 5: You aren't yet acceptable - or are you? */
     } else {
+        int purity = 0;
+
         if (!Qstat(met_leader)) {
             qt_pager("leader_first");
             Qstat(met_leader) = TRUE;
             Qstat(not_ready) = 0;
-        } else
+        } else if (!Qstat(pissed_off)) {
             qt_pager("leader_next");
+        } else {
+            qt_pager("leader_malediction");
+        }
 
         /* the quest leader might have passed through the portal into
            the regular dungeon; none of the remaining make sense there */
@@ -293,15 +298,20 @@ chat_with_leader()
             qt_pager("badlevel");
             exercise(A_WIS, TRUE);
             expulsion(FALSE);
-        } else if (is_pure(TRUE) < 0) {
-            qt_pager("banished");
-            expulsion(TRUE);
-        } else if (is_pure(TRUE) == 0) {
-            qt_pager("badalign");
+        } else if ((purity = is_pure(TRUE)) < 0) {
+            /* Don't keep lecturing once the player's been kicked out once. */
+            if (!Qstat(pissed_off)) {
+                qt_pager("banished");
+                Qstat(pissed_off) = TRUE;
+                expulsion(FALSE);
+            }
+        } else if (purity == 0) {
             if (Qstat(not_ready) == MAX_QUEST_TRIES) {
                 qt_pager("leader_last");
-                expulsion(TRUE);
+                Qstat(pissed_off) = TRUE;
+                expulsion(FALSE);
             } else {
+                qt_pager("badalign");
                 Qstat(not_ready)++;
                 exercise(A_WIS, TRUE);
                 expulsion(FALSE);
@@ -320,6 +330,11 @@ struct monst *mtmp;
 {
     /* maybe you attacked leader? */
     if (!mtmp->mpeaceful) {
+        if (!Qstat(pissed_off)) {
+            /* Alternate way of showing the leader_last message, but only once
+             * per game. */
+            qt_pager("leader_last");
+        }
         Qstat(pissed_off) = TRUE;
         mtmp->mstrategy &= ~STRAT_WAITMASK; /* end the inaction */
     }
@@ -328,11 +343,15 @@ struct monst *mtmp;
     if (!on_level(&u.uz, &qstart_level))
         return;
 
-    if (Qstat(pissed_off)) {
-        qt_pager("leader_last");
-        expulsion(TRUE);
-    } else
+    if (!Qstat(pissed_off)) {
         chat_with_leader();
+    }
+
+    /* leader might have been angered during the chat */
+    if (Qstat(pissed_off)) {
+        mtmp->mstrategy &= ~STRAT_WAITMASK;
+        setmangry(mtmp, FALSE); /* to anger guardians as well */
+    }
 }
 
 static void

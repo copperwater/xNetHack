@@ -1,4 +1,4 @@
-/* NetHack 3.6	winX.c	$NHDT-Date: 1577063125 2019/12/23 01:05:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.79 $ */
+/* NetHack 3.7	winX.c	$NHDT-Date: 1596498377 2020/08/03 23:46:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.87 $ */
 /* Copyright (c) Dean Luick, 1992                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -98,7 +98,7 @@ static XtSignalId X11_sig_id;
 /* Interface definition, for windows.c */
 struct window_procs X11_procs = {
     "X11",
-    ( WC_COLOR | WC_HILITE_PET | WC_ASCII_MAP | WC_TILED_MAP
+    ( WC_COLOR | WC_INVERSE | WC_HILITE_PET | WC_ASCII_MAP | WC_TILED_MAP
      | WC_PLAYER_SELECTION | WC_PERM_INVENT | WC_MOUSE_SUPPORT ),
     /* status requires VIA_WINDOWPORT(); WC2_FLUSH_STATUS ensures that */
     ( WC2_FLUSH_STATUS

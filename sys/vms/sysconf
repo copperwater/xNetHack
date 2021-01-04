@@ -1,4 +1,4 @@
-# NetHack 3.6 sysconf $NHDT-Date: 1524689429 2018/04/25 20:50:29 $ $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.2 $
+# NetHack 3.7 sysconf $NHDT-Date: 1596498305 2020/08/03 23:45:05 $ $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
 # Copyright (c) 2015 by Robert Patrick Rankin
 # NetHack may be freely redistributed.  See license for details.
 #
@@ -81,11 +81,6 @@
 # Enabled at compile time by defining LIVELOGFILE in config.h
 # LIVELOG=0x03FF
 
-# Do not livelog breaking of conducts before this turncount
-# Cuts down on spam
-# LLC_TURNS=3000
-
-
 # Show debugging information originating from these source files.
 # Use '*' for all, or list source files separated by spaces.
 # Only available if game has been compiled with DEBUG, and can be
@@ -94,7 +89,7 @@
 
 # Try to get more info in case of a program bug or crash.  Only used
 # if the program is built with the PANICTRACE compile-time option enabled.
-# By default PANICTRACE is enabled if (NH_DEVEL_STATUS != NH_STATUS_RELEASED), 
+# By default PANICTRACE is enabled if (NH_DEVEL_STATUS != NH_STATUS_RELEASED),
 # otherwise disabled.
 # (GDBPATH, GREPPATH, and PANICTRACE_LIBC aren't used on VMS.
 # PANICTRACE_GDB is repurposed, with nothing to do with 'gdb'.

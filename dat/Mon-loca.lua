@@ -1,11 +1,11 @@
--- NetHack 3.6	Monk.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
+-- NetHack 3.7	Monk.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel", "hardfloor", "outdoors")
+des.level_flags("mazelevel", "hardfloor", "outdoors", "noteleport")
 --         1         2         3         4         5         6         7 
 --123456789012345678901234567890123456789012345678901234567890123456789012345
 des.map([[
@@ -34,6 +34,10 @@ TTT.B.}.       }}......}}       ..}......T.             ................
 des.region(selection.area(00,00,75,18), "lit")
 -- darken the fortress
 des.region(selection.area(62,03,72,11), "unlit")
+
+-- Constrain arrival location by levelport
+des.teleport_region({ region={00,00,06,04}, exclude_islev=1, dir="down" })
+des.teleport_region({ region={62,03,72,11}, exclude_islev=1, dir="up" })
 
 -- Stairs
 des.stair("up", 00,00)
@@ -80,23 +84,23 @@ for i=1,3 + math.random(1 - 1,1*3) do
 end
 
 -- Random monsters.
-des.monster("earth elemental", 05, 17)
-des.monster("earth elemental", 13, 02)
-des.monster("earth elemental", 28, 01)
-des.monster("earth elemental", 24, 11)
-des.monster("earth elemental", 70, 17)
-des.monster("earth elemental", 72, 16)
-des.monster("E", 15, 01)
-des.monster("E", 45, 07)
-des.monster("xorn", 07, 16)
-des.monster("xorn", 42, 17)
-des.monster("xorn", 44, 16)
-des.monster("xorn", 63, 04)
-des.monster("xorn", 71, 04)
-des.monster("xorn", 63, 10)
-des.monster("xorn", 71, 10)
+des.monster({ id="earth elemental", coord={05,17}, peaceful=0 })
+des.monster({ id="earth elemental", coord={13,02}, peaceful=0 })
+des.monster({ id="earth elemental", coord={28,01}, peaceful=0 })
+des.monster({ id="earth elemental", coord={24,11}, peaceful=0 })
+des.monster({ id="earth elemental", coord={70,17}, peaceful=0 })
+des.monster({ id="earth elemental", coord={72,16}, peaceful=0 })
+des.monster({ class="E", coord={15,01}, peaceful=0 })
+des.monster({ class="E", coord={45,07}, peaceful=0 })
+des.monster({ id="xorn", coord={07,16}, peaceful=0 })
+des.monster({ id="xorn", coord={42,17}, peaceful=0 })
+des.monster({ id="xorn", coord={44,16}, peaceful=0 })
+des.monster({ id="xorn", coord={63,04}, peaceful=0 })
+des.monster({ id="xorn", coord={71,04}, peaceful=0 })
+des.monster({ id="xorn", coord={63,10}, peaceful=0 })
+des.monster({ id="xorn", coord={71,10}, peaceful=0 })
 local fortressarea = selection.area(58,00,75,13)
 for i=1,4 do
-  des.monster({ class = "E", coord = { fortressarea:rndcoord() } })
+  des.monster({ class = "E", coord = { fortressarea:rndcoord() }, peaceful=0 })
 end
 

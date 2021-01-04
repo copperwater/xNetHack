@@ -1,4 +1,4 @@
-/* NetHack 3.6	decl.c	$NHDT-Date: 1583608833 2020/03/07 19:20:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.208 $ */
+/* NetHack 3.7	decl.c	$NHDT-Date: 1606919256 2020/12/02 14:27:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.221 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -22,9 +22,6 @@ const schar zdir[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, -1 };
 
 NEARDATA struct flag flags;
 NEARDATA boolean has_strong_rngseed = FALSE;
-#ifdef SYSFLAGS
-NEARDATA struct sysflag sysflags;
-#endif
 NEARDATA struct instance_flags iflags;
 NEARDATA struct you u;
 NEARDATA time_t ubirthday;
@@ -266,10 +263,7 @@ const struct instance_globals g_init = {
     (ROWNO - 1) & ~1, /* y_maze_max */
     UNDEFINED_VALUE, /* otg_temp */
     0, /* in_doagain */
-    DUMMY, /* dnstair */
-    DUMMY, /* upstair */
-    DUMMY, /* dnladder */
-    DUMMY, /* upladder */
+    NULL, /* stairs */
     DUMMY, /* smeq */
     0, /* doorindex */
     NULL, /* save_cm */
@@ -278,6 +272,7 @@ const struct instance_globals g_init = {
     0L, /* domove_succeeded */
     NULL, /* nomovemsg */
     DUMMY, /* plname */
+    0, /* plnamelen */
     DUMMY, /* pl_character */
     '\0', /* pl_race */
     DUMMY, /* pl_fruit */
@@ -289,7 +284,6 @@ const struct instance_globals g_init = {
     UNDEFINED_PTR, /* sp_levchn */
     { 0, 0, STRANGE_OBJECT, FALSE }, /* m_shot */
     UNDEFINED_VALUES, /* dungeons */
-    { 0, 0, { 0, 0 }, 0 }, /* sstairs */
     { 0, 0, 0, 0, 0, 0, 0, 0 }, /* updest */
     { 0, 0, 0, 0, 0, 0, 0, 0 }, /* dndest */
     { 0, 0} , /* inv_pos */
@@ -300,9 +294,6 @@ const struct instance_globals g_init = {
     FALSE, /* mrg_to_wielded */
     NULL, /* plinemsg_types */
     UNDEFINED_VALUES, /* toplines */
-    UNDEFINED_PTR, /* upstairs_room */
-    UNDEFINED_PTR, /* dnstairs_room */
-    UNDEFINED_PTR, /* sstairs_room */
     DUMMY, /* bhitpos */
     FALSE, /* in_steed_dismounting */
     DUMMY, /* doors */
@@ -341,14 +332,10 @@ const struct instance_globals g_init = {
 #ifdef MICRO
     UNDEFINED_VALUES, /* levels */
 #endif /* MICRO */
-#ifdef MFLOPPY
-    UNDEFINED_VALUES, /* permbones */
-    FALSE,     /*ramdisk */
-    TRUE, /* saveprompt */
-    "levels.*", /* alllevels */
-    "bones*.*", /* allbones */
-#endif
     UNDEFINED_VALUES, /* program_state */
+
+    /* detect.c */
+    0, /* already_found_flag */
 
     /* dig.c */
     UNDEFINED_VALUE, /* did_dig_msg */
@@ -362,6 +349,7 @@ const struct instance_globals g_init = {
     FALSE, /* at_ladder */
     NULL, /* dfr_pre_msg */
     NULL, /* dfr_post_msg */
+    0, /* did_nothing_flag */
     { 0, 0 }, /* save_dlevel */
 
     /* do_name.c */
@@ -400,7 +388,7 @@ const struct instance_globals g_init = {
     DUMMY, /* warnsyms */
 
     /* dungeon.c */
-    UNDEFINED_VALUE, /* n_dgns */
+    0, /* n_dgns */
     NULL, /* branches */
     NULL, /* mapseenchn */
 
@@ -454,14 +442,16 @@ const struct instance_globals g_init = {
     /* makemon.c */
 
     /* mhitm.c */
-    UNDEFINED_VALUE, /* vis */
-    UNDEFINED_VALUE, /* far_noise */
-    UNDEFINED_VALUE, /* noisetime */
+    0L, /* noisetime */
+    FALSE, /* far_noise */
+    FALSE, /* vis */
+    FALSE, /* skipdrin */
 
     /* mhitu.c */
     UNDEFINED_VALUE, /* mhitu_dieroll */
 
     /* mklev.c */
+    UNDEFINED_VALUES, /* luathemes[] */
     UNDEFINED_VALUE, /* vault_x */
     UNDEFINED_VALUE, /* vault_y */
     UNDEFINED_VALUE, /* made_branch */
@@ -489,6 +479,7 @@ const struct instance_globals g_init = {
     /* mon.c */
     UNDEFINED_VALUE, /* vamp_rise_msg */
     UNDEFINED_VALUE, /* disintegested */
+    UNDEFINED_VALUE, /* zombify */
     NULL, /* animal_list */
     UNDEFINED_VALUE, /* animal_list_count */
 
@@ -517,17 +508,20 @@ const struct instance_globals g_init = {
     0, /* distantname */
 
     /* options.c */
-    NULL, /* symset_list */
+    (struct symsetentry *) 0, /* symset_list */
     UNDEFINED_VALUES, /* mapped_menu_cmds */
     UNDEFINED_VALUES, /* mapped_menu_op */
     0, /* n_menu_mapped */
-    UNDEFINED_VALUE, /* opt_initial */
-    UNDEFINED_VALUE, /* opt_from_file */
-    UNDEFINED_VALUE, /* opt_need_redraw */
+    FALSE, /* opt_initial */
+    FALSE, /* opt_from_file */
+    FALSE, /* opt_need_redraw */
+    FALSE, /* save_menucolors */
+    (struct menucoloring *) 0, /* save_colorings */
+    (struct menucoloring *) 0, /* color_colorings */
 
     /* pickup.c */
     0,  /* oldcap */
-    UNDEFINED_PTR, /* current_container */
+    (struct obj *) 0, /* current_container */
     UNDEFINED_VALUE, /* abort_looting */
     UNDEFINED_VALUE, /* val_for_n_or_more */
     UNDEFINED_VALUES, /* valid_menu_classes */
@@ -542,7 +536,7 @@ const struct instance_globals g_init = {
     0, /* saved_pline_index */
     UNDEFINED_VALUES,
 #endif
-    NULL, /* you_buf */
+    (char *) 0, /* you_buf */
     0, /* you_buf_siz */
 
     /* polyself.c */
@@ -605,6 +599,8 @@ const struct instance_globals g_init = {
     TRUE, /* havestate*/
     0, /* ustuck_id */
     0, /* usteed_id */
+    (struct obj *) 0, /* looseball */
+    (struct obj *) 0, /* loosechain */
 
     /* shk.c */
     'a', /* sell_response */
@@ -622,13 +618,18 @@ const struct instance_globals g_init = {
     UNDEFINED_VALUE, /* ystart */
     UNDEFINED_VALUE, /* xsize */
     UNDEFINED_VALUE, /* ysize */
+    FALSE, /* in_mk_themerooms */
+    FALSE, /* themeroom_failed */
 
     /* spells.c */
     0, /* spl_sortmode */
     NULL, /* spl_orderindx */
 
+    /* steal.c */
+    0, /* stealoid */
+    0, /* stealmid */
+
     /* teleport.c */
-    NULL, /* telescroll */
 
     /* timeout.c */
     UNDEFINED_PTR, /* timer_base */
@@ -723,9 +724,6 @@ decl_globals_init()
     g.subrooms = &g.rooms[MAXNROFROOMS + 1];
 
     ZERO(flags);
-#ifdef SYSFLAGS
-    ZERO(sysflags);
-#endif
     ZERO(iflags);
     ZERO(u);
     ZERO(ubirthday);

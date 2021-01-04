@@ -1,4 +1,4 @@
-/* NetHack 3.6	display.c	$NHDT-Date: 1585781359 2020/04/01 22:49:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.128 $ */
+/* NetHack 3.7	display.c	$NHDT-Date: 1606919261 2020/12/02 14:27:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.139 $ */
 /* Copyright (c) Dean Luick, with acknowledgements to Kevin Darcy */
 /* and Dave Cohrs, 1990.                                          */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -124,8 +124,8 @@
 #include "hack.h"
 
 static void FDECL(show_mon_or_warn, (int, int, int));
-static void FDECL(display_monster,
-                      (XCHAR_P, XCHAR_P, struct monst *, int, XCHAR_P));
+static void FDECL(display_monster, (XCHAR_P, XCHAR_P, struct monst *, int,
+                                    BOOLEAN_P));
 static int FDECL(swallow_to_glyph, (int, int));
 static void FDECL(display_warning, (struct monst *));
 
@@ -402,7 +402,7 @@ register xchar x, y;        /* display position */
 register struct monst *mon; /* monster to display */
 int sightflags;             /* 1 if the monster is physically seen;
                                2 if detected using Detect_monsters */
-xchar worm_tail;            /* mon is actually a worm tail */
+boolean worm_tail;          /* mon is actually a worm tail */
 {
     boolean mon_mimic = (M_AP_TYPE(mon) != M_AP_NOTHING);
     int sensed = (mon_mimic && (Protection_from_shape_changers
@@ -736,10 +736,10 @@ void
 newsym(x, y)
 register int x, y;
 {
-    register struct monst *mon;
+    struct monst *mon;
+    int see_it;
+    boolean worm_tail;
     register struct rm *lev = &(levl[x][y]);
-    register int see_it;
-    register xchar worm_tail;
 
     if (g.in_mklev)
         return;
@@ -783,13 +783,13 @@ register int x, y;
 
         /*
          * Normal region shown only on accessible positions, but
-         * poison clouds also shown above lava, pools and moats.
+         * poison clouds and steam clouds also shown above lava,
+         * pools and moats.
          * However, sensed monsters take precedence over all regions.
          */
         if (reg
             && (ACCESSIBLE(lev->typ)
-                || (reg->glyph == cmap_to_glyph(S_poisoncloud)
-                    && is_pool_or_lava(x, y)))
+                || (reg->visible && is_pool_or_lava(x, y)))
             && (!mon || worm_tail || !sensemon(mon))) {
             show_region(reg, x, y);
             return;
@@ -1290,6 +1290,7 @@ see_monsters()
         if (Warn_of_mon && (g.context.warntype.obj & mon->data->mflags2) != 0L)
             new_warn_obj_cnt++;
     }
+
     /*
      * Make Sting glow blue or stop glowing if required.
      */
@@ -1333,9 +1334,16 @@ void
 see_objects()
 {
     register struct obj *obj;
+
     for (obj = fobj; obj; obj = obj->nobj)
         if (vobj_at(obj->ox, obj->oy) == obj)
             newsym(obj->ox, obj->oy);
+
+    /* Qt's "paper doll" subset of persistent inventory shows map tiles
+       for objects which aren't on the floor so not handled by above loop;
+       inventory which includes glyphs should also be affected, so do this
+       for all interfaces in case any feature that for persistent inventory */
+    update_inventory();
 }
 
 /*
@@ -1603,44 +1611,57 @@ int x, y, glyph;
         }                                \
     }
 
-static const gbuf_entry nul_gbuf = { 0, GLYPH_UNEXPLORED };
 /*
- * Turn the 3rd screen into UNEXPLORED.
+ * Turn the 3rd screen into UNEXPLORED that needs to be refreshed.
  */
 void
 clear_glyph_buffer()
 {
     register int x, y;
-    register gbuf_entry *gptr;
+    register gbuf_entry *gptr, nul_gbuf;
+    int ch = ' ', color = NO_COLOR;
+    unsigned special = 0;
+
+    (void) mapglyph(GLYPH_UNEXPLORED, &ch, &color, &special, 0, 0, 0);
+    nul_gbuf.gnew = (ch != ' ' || color != NO_COLOR
+                     || (special & ~MG_UNEXPL) != 0) ? 1 : 0;
+    nul_gbuf.glyph = GLYPH_UNEXPLORED;
 
     for (y = 0; y < ROWNO; y++) {
         gptr = &g.gbuf[y][0];
         for (x = COLNO; x; x--) {
             *gptr++ = nul_gbuf;
         }
+        g.gbuf_start[y] = 1;
+        g.gbuf_stop[y] = COLNO - 1;
     }
-    reset_glyph_bbox();
 }
 
-/*
- * Assumes that the indicated positions are filled with GLYPH_UNEXPLORED glyphs.
- */
+/* used by tty after menu or text popup has temporarily overwritten the map
+   and it has been erased so shows spaces, not necessarily S_unexplored */
 void
 row_refresh(start, stop, y)
 int start, stop, y;
 {
-    register int x;
+    register int x, glyph;
+    register boolean force;
+    int ch = ' ', color = NO_COLOR;
+    unsigned special = 0;
 
-    for (x = start; x <= stop; x++)
-        if (g.gbuf[y][x].glyph != GLYPH_UNEXPLORED)
-            print_glyph(WIN_MAP, x, y, g.gbuf[y][x].glyph, get_bk_glyph(x, y));
+    (void) mapglyph(GLYPH_UNEXPLORED, &ch, &color, &special, 0, 0, 0);
+    force = (ch != ' ' || color != NO_COLOR || (special & ~MG_UNEXPL) != 0);
+
+    for (x = start; x <= stop; x++) {
+        glyph = g.gbuf[y][x].glyph;
+        if (force || glyph != GLYPH_UNEXPLORED)
+            print_glyph(WIN_MAP, x, y, glyph, get_bk_glyph(x, y));
+    }
 }
 
 void
 cls()
 {
     static boolean in_cls = 0;
-    int y, x, force_unexplored;
 
     if (in_cls)
         return;
@@ -1649,16 +1670,7 @@ cls()
     g.context.botlx = 1;                    /* force update of botl window */
     clear_nhwindow(WIN_MAP);              /* clear physical screen */
 
-    clear_glyph_buffer(); /* this is sort of an extra effort, but OK */
-    force_unexplored = (g.showsyms[SYM_UNEXPLORED + SYM_OFF_X] != ' ');
-    for (y = 0; y < ROWNO; y++) {
-        g.gbuf_start[y] = 1;
-        g.gbuf_stop[y] = COLNO - 1;
-        if (force_unexplored) {
-            for (x = 1; x < COLNO; x++)
-                g.gbuf[y][x].gnew = 1;
-        }
-    }
+    clear_glyph_buffer(); /* force gbuf[][].glyph to unexplored */
     in_cls = FALSE;
 }
 
@@ -1675,6 +1687,10 @@ int cursor_on_u;
     static int flushing = 0;
     static int delay_flushing = 0;
     register int x, y;
+
+    /* 3.7: don't update map, status, or perm_invent during save/restore */
+    if (g.program_state.saving || g.program_state.restoring)
+        return;
 
     if (cursor_on_u == -1)
         delay_flushing = !delay_flushing;
@@ -2093,16 +2109,14 @@ int x, y, a, b, c;
 /* Return the wall mode for a T wall. */
 static int
 set_twall(x0, y0, x1, y1, x2, y2, x3, y3)
+#ifdef WA_VERBOSE
 int x0, y0; /* used #if WA_VERBOSE */
+#else
+int x0 UNUSED, y0 UNUSED;
+#endif
 int x1, y1, x2, y2, x3, y3;
 {
     int wmode, is_1, is_2, is_3;
-
-#ifndef WA_VERBOSE
-    /* non-verbose more_than_one() doesn't use these */
-    nhUse(x0);
-    nhUse(y0);
-#endif
 
     is_1 = check_pos(x1, y1, WM_T_LONG);
     is_2 = check_pos(x2, y2, WM_T_BL);

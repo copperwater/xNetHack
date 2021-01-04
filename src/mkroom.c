@@ -1,4 +1,4 @@
-/* NetHack 3.6	mkroom.c	$NHDT-Date: 1446887530 2015/11/07 09:12:10 $  $NHDT-Branch: master $:$NHDT-Revision: 1.24 $ */
+/* NetHack 3.7	mkroom.c	$NHDT-Date: 1596498184 2020/08/03 23:43:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.45 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -22,6 +22,7 @@ static struct mkroom *FDECL(pick_room, (BOOLEAN_P));
 static void NDECL(mkshop);
 static void FDECL(mkzoo, (int));
 static void NDECL(mkswamp);
+static void FDECL(mk_zoo_thronemon, (int, int));
 static struct mkroom * NDECL(mktemple);
 static void NDECL(mkseminary);
 static void NDECL(mksubmerged);
@@ -253,8 +254,10 @@ gottype:
     topologize(sroom);
 #endif
 
-    /* stock the room with a shopkeeper and artifacts */
-    stock_room(i, sroom);
+    /* The shop used to be stocked here, but this no longer happens - all we do
+     * is set its rtype, and it gets stocked at the end of makelevel() along
+     * with other special rooms. */
+    sroom->needfill = FILL_NORMAL;
 }
 
 /* Select a room on the level that is suitable to place a special room in.
@@ -298,13 +301,15 @@ int type;
 
     if ((sroom = pick_room(FALSE)) != 0) {
         sroom->rtype = type;
-        fill_zoo(sroom);
+        /* room does not get stocked at this time - it will get stocked at the
+         * end of makelevel() */
+        sroom->needfill = FILL_NORMAL;
     }
 }
 
 /* Create an appropriate "king" monster at the given location (assumed to be on
  * a throne). */
-void
+static void
 mk_zoo_thronemon(x,y)
 int x,y;
 {
@@ -348,6 +353,8 @@ struct mkroom *sroom;
     int rmno = (int) ((sroom - g.rooms) + ROOMOFFSET);
     coord mm;
 
+    /* Note: This doesn't check needfill; it assumes the caller has already done
+     * that. */
     sh = sroom->fdoor;
     switch (type) {
     case COURT:
@@ -970,16 +977,14 @@ has_stairs(sroom, up)
 register struct mkroom *sroom;
 boolean up;
 {
-    if (up) {
-        return (inside_room(sroom, xupstair, yupstair)
-                || (g.sstairs.up
-                    && inside_room(sroom, g.sstairs.sx, g.sstairs.sy)));
+    stairway *stway = g.stairs;
+
+    while (stway) {
+        if (up == stway->up && inside_room(sroom, stway->sx, stway->sy))
+            return TRUE;
+        stway = stway->next;
     }
-    else {
-        return (inside_room(sroom, xdnstair, ydnstair)
-                || (!g.sstairs.up
-                    && inside_room(sroom, g.sstairs.sx, g.sstairs.sy)));
-    }
+    return FALSE;
 }
 
 /* Return a random x coordinate within the x limits of a room. */
@@ -1000,8 +1005,6 @@ register struct mkroom *croom;
 
 /* Return TRUE if the given position falls within both the x and y limits
  * of a room.
- * Assumes that the room is rectangular; this probably won't work on irregular
- * rooms. Also doesn't check roomno.
  */
 boolean
 inside_room(croom, x, y)
@@ -1071,6 +1074,24 @@ coord *c;
     return TRUE;
 }
 
+boolean
+somexyspace(croom, c)
+struct mkroom *croom;
+coord *c;
+{
+    int trycnt = 0;
+    boolean okay;
+
+    do {
+        okay = somexy(croom, c) && isok(c->x, c->y) && !occupied(c->x, c->y)
+            && (levl[c->x][c->y].typ == ROOM
+                || levl[c->x][c->y].typ == CORR
+                || levl[c->x][c->y].typ == ICE
+                || levl[c->x][c->y].typ == GRASS);
+    } while (trycnt++ < 100 && !okay);
+    return okay;
+}
+
 /*
  * Search for a special room given its type (zoo, court, etc...)
  *      Special values :
@@ -1122,15 +1143,13 @@ courtmon()
         return mkclass(S_KOBOLD, 0);
 }
 
-#define NSTYPES (PM_CAPTAIN - PM_SOLDIER + 1)
-
 static const struct {
     unsigned pm;
     unsigned prob;
-} squadprob[NSTYPES] = { { PM_SOLDIER, 80 },
-                         { PM_SERGEANT, 15 },
-                         { PM_LIEUTENANT, 4 },
-                         { PM_CAPTAIN, 1 } };
+} squadprob[] = { { PM_SOLDIER, 80 },
+                  { PM_SERGEANT, 15 },
+                  { PM_LIEUTENANT, 4 },
+                  { PM_CAPTAIN, 1 } };
 
 /* Return an appropriate Yendorian Army monster type for generating in
  * barracks. They will generate with the percentage odds given above. */
@@ -1142,14 +1161,14 @@ squadmon()
     sel_prob = rnd(80 + level_difficulty());
 
     cpro = 0;
-    for (i = 0; i < NSTYPES; i++) {
+    for (i = 0; i < SIZE(squadprob); i++) {
         cpro += squadprob[i].prob;
         if (cpro > sel_prob) {
             mndx = squadprob[i].pm;
             goto gotone;
         }
     }
-    mndx = squadprob[rn2(NSTYPES)].pm;
+    mndx = squadprob[rn2(SIZE(squadprob))].pm;
 gotone:
     if (!(g.mvitals[mndx].mvflags & G_GONE))
         return &mons[mndx];

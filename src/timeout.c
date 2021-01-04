@@ -1,4 +1,4 @@
-/* NetHack 3.6	timeout.c	$NHDT-Date: 1582925432 2020/02/28 21:30:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.112 $ */
+/* NetHack 3.7	timeout.c	$NHDT-Date: 1606243387 2020/11/24 18:43:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.122 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -46,9 +46,16 @@ const struct propname {
     { DETECT_MONSTERS, "monster detection" },
     { SEE_INVIS, "see invisible" },
     { INVIS, "invisible" },
-    /* properties beyond here don't have timed values during normal play,
-       so there's not much point in trying to order them sensibly;
-       they're either on or off based on equipment, role, actions, &c */
+    /* timed displacement is possible via eating a displacer beast corpse */
+    { DISPLACED, "displaced" },
+    /* timed pass-walls is a potential prayer result if surrounded by stone
+       with nowhere to be safely teleported to */
+    { PASSES_WALLS, "pass thru walls" },
+    /*
+     * Properties beyond here don't have timed values during normal play,
+     * so there's not much point in trying to order them sensibly.
+     * They're either on or off based on equipment, role, actions, &c.
+     */
     { FIRE_RES, "fire resistance" },
     { COLD_RES, "cold resistance" },
     { SLEEP_RES, "sleep resistance" },
@@ -70,7 +77,6 @@ const struct propname {
     { SEARCHING, "searching" },
     { INFRAVISION, "infravision" },
     { ADORNED, "adorned (+/- Cha)" },
-    { DISPLACED, "displaced" },
     { STEALTH, "stealthy" },
     { AGGRAVATE_MONSTER, "monster aggravation" },
     { CONFLICT, "conflict" },
@@ -80,7 +86,6 @@ const struct propname {
     { WWALKING, "water walking" },
     { SWIMMING, "swimming" },
     { MAGICAL_BREATHING, "magical breathing" },
-    { PASSES_WALLS, "pass thru walls" },
     { SLOW_DIGESTION, "slow digestion" },
     { HALF_SPDAM, "half spell damage" },
     { HALF_PHDAM, "half physical damage" },
@@ -96,6 +101,30 @@ const struct propname {
     { LIFESAVED, "life will be saved" },
     {  0, 0 },
 };
+
+/* Someone whose only source of unchanging is polyinit mode or corruption on
+ * death can still turn into slime.
+ * TODO: Add a tracker for permanent corruption and check specifically for that
+ * and Polyinit_mode here, to guard against future ways of getting HUnchanging
+ * intrinsically.
+ */
+boolean
+can_slime_with_unchanging() {
+    /* caller should have checked this but just in case... */
+    if (!Unchanging) {
+        return TRUE;
+    }
+    /* extrinsic always blocks sliming */
+    if (EUnchanging) {
+        return FALSE;
+    }
+    /* any sources of unchanging besides FROMOUTSIDE? if so, sliming is blocked
+     */
+    if (HUnchanging & ~FROMOUTSIDE) {
+        return FALSE;
+    }
+    return TRUE;
+}
 
 /* He is being petrified - dialogue by inmet!tower */
 static NEARDATA const char *const stoned_texts[] = {
@@ -315,16 +344,26 @@ static NEARDATA const char *const slime_texts[] = {
 static void
 slime_dialogue()
 {
-    register long i = (Slimed & TIMEOUT) / 2L;
+    long t = (Slimed & TIMEOUT), i = t / 2L;
 
-    if (i == 1L) {
+    if (Unchanging && !can_slime_with_unchanging()) {
+        /* prevent this message from showing up if sliming is suspended due to
+         * Unchanging */
+        return;
+    }
+
+    if (t == 1L) {
         /* display as green slime during "You have become green slime."
            but don't worry about not being able to see self; if already
            mimicking something else at the time, implicitly be revealed */
         g.youmonst.m_ap_type = M_AP_MONSTER;
         g.youmonst.mappearance = PM_GREEN_SLIME;
+        /* no message given when 't' is odd, so no automatic update of
+           self; force one */
+        newsym(u.ux, u.uy);
     }
-    if (((Slimed & TIMEOUT) % 2L) && i >= 0L && i < SIZE(slime_texts)) {
+
+    if ((t % 2L) != 0L && i >= 0L && i < SIZE(slime_texts)) {
         char buf[BUFSZ];
 
         Strcpy(buf, slime_texts[SIZE(slime_texts) - i - 1L]);
@@ -410,7 +449,9 @@ struct kinfo *kptr;
     save_mvflags = g.mvitals[PM_GREEN_SLIME].mvflags;
     g.mvitals[PM_GREEN_SLIME].mvflags = save_mvflags & ~G_GENOD;
     /* become a green slime; also resets youmonst.m_ap_type+.mappearance */
-    (void) polymon(PM_GREEN_SLIME, FALSE);
+    /* suppress the transformation message to avoid "You have become a green
+     * slime.  You turn into a green slime!" */
+    (void) polymon(PM_GREEN_SLIME, (POLYMON_ALL_MSGS & ~POLYMON_TRANSFORM_MSG));
     g.mvitals[PM_GREEN_SLIME].mvflags = save_mvflags;
     done_timeout(TURNED_SLIME, SLIMED);
     return;
@@ -470,6 +511,11 @@ nh_timeout()
     if (flags.friday13)
         baseluck -= 1;
 
+    /* letting your quest leader die brings bad luck */
+    if (g.quest_status.leader_is_dead) {
+        baseluck = -4;
+    }
+
     if (u.uluck != baseluck
         && g.moves % ((u.uhave.amulet || u.ugangr) ? 300 : 600) == 0) {
         /* Cursed luckstones stop bad luck from timing out; blessed luckstones
@@ -528,8 +574,24 @@ nh_timeout()
     }
 
     was_flying = Flying;
-    for (upp = u.uprops; upp < u.uprops + SIZE(u.uprops); upp++)
-        if ((upp->intrinsic & TIMEOUT) && !(--upp->intrinsic & TIMEOUT)) {
+    for (upp = u.uprops; upp < u.uprops + SIZE(u.uprops); upp++) {
+        boolean timed_out = FALSE;
+        if ((upp->intrinsic & TIMEOUT) > 0) {
+            /* pause sliming only if hero has unchanging and the unchanging is
+             * not obtained through e.g. polyinit mode;
+             * currently no other timeouts can be paused */
+            if (!(upp - u.uprops == SLIMED && Unchanging
+                  && !can_slime_with_unchanging())) {
+                /* the actual tick down */
+                upp->intrinsic--;
+                if ((upp->intrinsic & TIMEOUT) == 0) {
+                    timed_out = TRUE;
+                }
+            }
+        }
+
+        /* now, did it time out? */
+        if (timed_out) {
             kptr = find_delayed_killer((int) (upp - u.uprops));
             switch (upp - u.uprops) {
             case STONED:
@@ -558,7 +620,7 @@ nh_timeout()
                     You("have recovered from your illness.");
                     make_sick(0, NULL, FALSE, SICK_ALL);
                     exercise(A_CON, FALSE);
-                    adjattrib(A_CON, -1, 1);
+                    adjattrib(A_CON, -1, AA_NOMSG);
                     break;
                 }
                 You("die from your illness.");
@@ -649,6 +711,12 @@ nh_timeout()
                 }
                 break;
             case LEVITATION:
+                /* timed Flying is via #wizintrinsic only; still, we want to
+                   avoid float_down() reporting "you have stopped levitating
+                   and are now flying" if both are timing out together;
+                   relies on knowing that Lev timeout is handled before Fly */
+                if ((HFlying & TIMEOUT) == 1L)
+                    --HFlying; /* bypass pending 'case FLYING' */
                 (void) float_down(I_SPECIAL | TIMEOUT, 0L);
                 break;
             case FLYING:
@@ -658,6 +726,10 @@ nh_timeout()
                     You("land.");
                     spoteffects(TRUE);
                 }
+                break;
+            case DISPLACED:
+                if (!Displaced) /* give a message */
+                    toggle_displacement((struct obj *) 0, 0L, FALSE);
                 break;
             case WARN_OF_MON:
                 /* timed Warn_of_mon is via #wizintrinsic only */
@@ -694,7 +766,7 @@ nh_timeout()
             case FUMBLING:
                 /* call this only when a move took place.  */
                 /* otherwise handle fumbling msgs locally. */
-                if (u.umoved && !Levitation) {
+                if (u.umoved && !(Levitation || Flying)) {
                     slip_or_trip();
                     nomul(-2);
                     g.multi_reason = "fumbling";
@@ -716,6 +788,12 @@ nh_timeout()
                 HFumbling &= ~FROMOUTSIDE;
                 if (Fumbling)
                     incr_itimeout(&HFumbling, rnd(20));
+
+                if (iflags.defer_decor) {
+                    /* 'mention_decor' was deferred for message sequencing
+                       reasons; catch up now */
+                    deferred_decor(FALSE);
+                }
                 break;
             case DETECT_MONSTERS:
                 see_monsters();
@@ -725,6 +803,7 @@ nh_timeout()
                 break;
             }
         }
+    }
 
     run_timers();
 }
@@ -953,6 +1032,8 @@ long timeout;
             /* free egg here because we use it above */
             obj_extract_self(egg);
             obfree(egg, (struct obj *) 0);
+            if ((mon = m_at(x,y)) && !hideunder(mon) && cansee(x, y))
+                redraw = TRUE;
         }
         if (redraw)
             newsym(x, y);
@@ -1716,6 +1797,7 @@ static const ttable timeout_funcs[NUM_TIME_FUNCS] = {
     TTAB(rot_organic, (timeout_proc) 0, "rot_organic"),
     TTAB(rot_corpse, (timeout_proc) 0, "rot_corpse"),
     TTAB(revive_mon, (timeout_proc) 0, "revive_mon"),
+    TTAB(zombify_mon, (timeout_proc) 0, "zombify_mon"),
     TTAB(burn_object, cleanup_burn, "burn_object"),
     TTAB(hatch_egg, (timeout_proc) 0, "hatch_egg"),
     TTAB(fig_transform, (timeout_proc) 0, "fig_transform"),

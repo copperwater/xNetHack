@@ -1,7 +1,8 @@
 -- NetHack 3.6	oracle.des	$NHDT-Date: 1524689580 2018/04/25 20:53:00 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.10 $
 -- Copyright (c) 2015 by Pasi Kallinen
 -- NetHack may be freely redistributed.  See license for details.
---
+
+des.level_flags("noflip");
 
 des.room({ type ="delphi", lit = 1, x=39, y=10, xalign="center", yalign="center", w=11, h=9,
            contents = function()

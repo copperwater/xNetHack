@@ -1,4 +1,4 @@
-/* NetHack 3.6	allmain.c	$NHDT-Date: 1584405115 2020/03/17 00:31:55 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.143 $ */
+/* NetHack 3.7	allmain.c	$NHDT-Date: 1596498146 2020/08/03 23:42:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.145 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -19,6 +19,10 @@ static void FDECL(regen_hp, (int));
 static void FDECL(interrupt_multi, (const char *));
 static void FDECL(debug_fields, (const char *));
 
+#ifdef EXTRAINFO_FN
+static long prev_dgl_extrainfo = 0;
+#endif
+
 void
 early_init()
 {
@@ -27,10 +31,6 @@ early_init()
     monst_globals_init();
     sys_early_init();
 }
-
-#ifdef EXTRAINFO_FN
-static long prev_dgl_extrainfo = 0;
-#endif
 
 void
 moveloop(resuming)
@@ -207,12 +207,14 @@ boolean resuming;
 
                     if (Conflict)
                         u.uconduct.conflicting++;
+
 #ifdef EXTRAINFO_FN
                     if ((prev_dgl_extrainfo == 0) || (prev_dgl_extrainfo < (g.moves + 250))) {
                         prev_dgl_extrainfo = g.moves;
                         mk_dgl_extrainfo();
                     }
 #endif
+
                     /* One possible result of prayer is healing.  Whether or
                      * not you get healed depends on your current hit points.
                      * If you are allowed to regenerate during the prayer,
@@ -235,17 +237,7 @@ boolean resuming;
                     if (wtcap > MOD_ENCUMBER && u.umoved) {
                         if (!(wtcap < EXT_ENCUMBER ? g.moves % 30
                                                    : g.moves % 10)) {
-                            if (Upolyd && u.mh > 1) {
-                                u.mh--;
-                                g.context.botl = TRUE;
-                            } else if (!Upolyd && u.uhp > 1) {
-                                u.uhp--;
-                                g.context.botl = TRUE;
-                            } else {
-                                You("pass out from exertion!");
-                                exercise(A_CON, FALSE);
-                                fall_asleep(-10, FALSE);
-                            }
+                            overexert_hp();
                         }
                     }
 
@@ -309,7 +301,11 @@ boolean resuming;
 
                     if (!uarmg && uwep && uwep->otyp == UNICORN_HORN
                         && !uwep->cursed) {
-                        use_unicorn_horn(uwep, TRUE);
+                        use_unicorn_horn(&uwep, TRUE);
+                    }
+
+                    if (getroomtype(u.ux, u.uy) == ABBATOIR && !rn2(7)) {
+                        abbatoir_sickness();
                     }
 
                     if (Searching && g.multi >= 0)
@@ -509,6 +505,8 @@ boolean resuming;
     }
 }
 
+#define U_CAN_REGEN() (Regeneration || (Sleepy && u.usleep))
+
 /* maybe recover some lost health (or lose some when an eel out of water) */
 static void
 regen_hp(wtcap)
@@ -530,7 +528,7 @@ int wtcap;
                 && (!Half_physical_damage || !(g.moves % 2L)))
                 heal = -1;
         } else if (u.mh < u.mhmax) {
-            if (Regeneration || (encumbrance_ok && !(g.moves % 20L)))
+            if (U_CAN_REGEN() || (encumbrance_ok && !(g.moves % 20L)))
                 heal = 1;
         }
         if (heal) {
@@ -545,7 +543,7 @@ int wtcap;
            no !Upolyd check here, so poly'd hero recovered lost u.uhp
            once u.mh reached u.mhmax; that may have been convenient
            for the player, but it didn't make sense for gameplay...] */
-        if (u.uhp < u.uhpmax && (encumbrance_ok || Regeneration)) {
+        if (u.uhp < u.uhpmax && (encumbrance_ok || U_CAN_REGEN())) {
             if (u.ulevel > 9) {
                 if (!(g.moves % 3L)) {
                     int Con = (int) ACURR(A_CON);
@@ -562,8 +560,10 @@ int wtcap;
                 if (!(g.moves % (long) ((MAXULEV + 12) / (u.ulevel + 2) + 1)))
                     heal = 1;
             }
-            if (Regeneration && !heal)
+            if (U_CAN_REGEN() && !heal)
                 heal = 1;
+            if (Sleepy && u.usleep)
+                heal++;
 
             if (heal) {
                 g.context.botl = TRUE;
@@ -579,6 +579,8 @@ int wtcap;
     if (reached_full)
         interrupt_multi("You are in full health.");
 }
+
+#undef U_CAN_REGEN
 
 void
 stop_occupation()
@@ -636,10 +638,6 @@ newgame()
 {
     int i;
 
-#ifdef MFLOPPY
-    gameDiskPrompt();
-#endif
-
     g.context.botlx = TRUE;
     g.context.ident = 1;
     g.context.stethoscope_move = -1L;
@@ -663,7 +661,21 @@ newgame()
     init_artifacts(); /* before u_init() in case $WIZKIT specifies
                        * any artifacts */
     u_init();
+#ifndef NO_SIGNAL
+    (void) signal(SIGINT, (SIG_RET_TYPE) done1);
+#endif
+#ifdef NEWS
+    if (iflags.news)
+        display_file(NEWS, FALSE);
+#endif
+    /* quest_init();  --  Now part of role_init() */
+
+    mklev();
+    u_on_upstairs();
+
     if (Polyinit_mode) {
+        /* this must come after u_on_upstairs so that any objects dropped during
+         * polymon() don't get placed off the map and cause impossibles */
         if (!polyok(&mons[flags.polyinit_mnum])) {
             winid wwin = create_nhwindow(NHW_MENU);
 #define warn(str) putstr(wwin, 0, str)
@@ -676,21 +688,10 @@ newgame()
             destroy_nhwindow(wwin);
 #undef warn
         }
-        polymon(flags.polyinit_mnum, FALSE);
+        polymon(flags.polyinit_mnum, POLYMON_NO_MSGS);
         HUnchanging |= FROMOUTSIDE;
     }
 
-#ifndef NO_SIGNAL
-    (void) signal(SIGINT, (SIG_RET_TYPE) done1);
-#endif
-#ifdef NEWS
-    if (iflags.news)
-        display_file(NEWS, FALSE);
-#endif
-    /* quest_init();  --  Now part of role_init() */
-
-    mklev();
-    u_on_upstairs();
     if (wizard)
         obj_delivery(FALSE); /* finish wizkit */
     vision_reset();          /* set up internals for level (after mklev) */
@@ -768,43 +769,21 @@ do_positionbar()
 {
     static char pbar[COLNO];
     char *p;
+    stairway *stway = g.stairs;
 
     p = pbar;
-    /* up stairway */
-    if (g.upstair.sx
-        && (glyph_to_cmap(g.level.locations[g.upstair.sx][g.upstair.sy].glyph)
-                == S_upstair
-            || glyph_to_cmap(g.level.locations[g.upstair.sx][g.upstair.sy].glyph)
-                   == S_upladder)) {
-        *p++ = '<';
-        *p++ = g.upstair.sx;
-    }
-    if (g.sstairs.sx
-        && (glyph_to_cmap(g.level.locations[g.sstairs.sx][g.sstairs.sy].glyph)
-                == S_upstair
-            || glyph_to_cmap(g.level.locations[g.sstairs.sx][g.sstairs.sy].glyph)
-                   == S_upladder)) {
-        *p++ = '<';
-        *p++ = g.sstairs.sx;
-    }
+    /* TODO: use the same method as getpos() so objects don't cover stairs */
+    while (stway) {
+        int x = stway->sx;
+        int y = stway->sy;
+        int glyph = glyph_to_cmap(g.level.locations[x][y].glyph);
 
-    /* down stairway */
-    if (g.dnstair.sx
-        && (glyph_to_cmap(g.level.locations[g.dnstair.sx][g.dnstair.sy].glyph)
-                == S_dnstair
-            || glyph_to_cmap(g.level.locations[g.dnstair.sx][g.dnstair.sy].glyph)
-                   == S_dnladder)) {
-        *p++ = '>';
-        *p++ = g.dnstair.sx;
-    }
-    if (g.sstairs.sx
-        && (glyph_to_cmap(g.level.locations[g.sstairs.sx][g.sstairs.sy].glyph)
-                == S_dnstair
-            || glyph_to_cmap(g.level.locations[g.sstairs.sx][g.sstairs.sy].glyph)
-                   == S_dnladder)) {
-        *p++ = '>';
-        *p++ = g.sstairs.sx;
-    }
+        if (is_cmap_stairs(glyph)) {
+            *p++ = (stway->up ? '<' : '>');
+            *p++ = stway->sx;
+        }
+        stway = stway->next;
+     }
 
     /* hero location */
     if (u.ux) {

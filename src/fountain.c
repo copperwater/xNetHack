@@ -1,4 +1,4 @@
-/* NetHack 3.6	fountain.c	$NHDT-Date: 1583926845 2020/03/11 11:40:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.67 $ */
+/* NetHack 3.7	fountain.c	$NHDT-Date: 1596498170 2020/08/03 23:42:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.69 $ */
 /*      Copyright Scott R. Turner, srt@ucla, 10/27/86 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -204,15 +204,22 @@ boolean isyou;
             if (yn("Dry up fountain?") == 'n')
                 return;
         }
+        /* FIXME: sight-blocking clouds should use block_point() when
+           being created and unblock_point() when going away, then this
+           glyph hackery wouldn't be necessary */
+        if (cansee(x, y)) {
+            int glyph = glyph_at(x, y);
+
+            if (!glyph_is_cmap(glyph) || glyph_to_cmap(glyph) != S_cloud)
+                pline_The("fountain dries up!");
+        }
         /* replace the fountain with ordinary floor */
         levl[x][y].typ = ROOM, levl[x][y].flags = 0;
         levl[x][y].blessedftn = 0;
-        if (cansee(x, y))
-            pline_The("fountain dries up!");
+        g.level.flags.nfountains--;
         /* The location is seen if the hero/monster is invisible
            or felt if the hero is blind. */
         newsym(x, y);
-        g.level.flags.nfountains--;
         if (isyou && in_town(x, y))
             (void) angry_guards(FALSE);
     }
@@ -243,7 +250,9 @@ drinkfountain()
         /* gain ability, blessed if "natural" luck is high */
         i = rn2(A_MAX); /* start at a random attribute */
         for (ii = 0; ii < A_MAX; ii++) {
-            if (adjattrib(i, 1, littleluck ? -1 : 0) && littleluck)
+            if ((adjattrib(i, 1, littleluck ? AA_CONDMSG : AA_YESMSG)
+                     == AA_CURRCHNG)
+                && littleluck)
                 break;
             if (++i >= A_MAX)
                 i = 0;
@@ -364,6 +373,15 @@ drinkfountain()
     dryup(u.ux, u.uy, TRUE);
 }
 
+/* Monty Python and the Holy Grail */
+static const char *const excalmsgs[] = {
+    "had Excalibur thrown at them by some watery tart",
+    "received Excalibur from a strange woman laying about in a pond",
+    "signified by divine providence, was chosen to carry Excalibur",
+    "has been given Excalibur, and now enjoys supreme executive power",
+    "endured an absurd aquatic ceremony, and now wields Excalibur"
+};
+
 void
 dipfountain(obj)
 register struct obj *obj;
@@ -388,6 +406,7 @@ register struct obj *obj;
                 obj->spe--;
             obj->oerodeproof = FALSE;
             exercise(A_WIS, FALSE);
+            livelog_printf(LL_ARTIFACT, "was denied Excalibur! The Lady of the Lake has deemed %s unworthy", uhim());
         } else {
             /* The lady of the lake acts! - Eric Backus */
             /* Be *REAL* nice */
@@ -397,14 +416,16 @@ register struct obj *obj;
             obj = oname(obj, artiname(ART_EXCALIBUR));
             discover_artifact(ART_EXCALIBUR);
             bless(obj);
+            if (obj->spe < 0) {
+                obj->spe = 0;
+            }
             obj->oeroded = obj->oeroded2 = 0;
             obj->oerodeproof = TRUE;
             exercise(A_WIS, TRUE);
             /* even if not wielded, it's assumed you're touching Excalibur to
              * get it out of the water */
             u.uconduct.artitouch++;
-	    livelog_printf(LL_ARTIFACT,
-                    "had Excalibur thrown at %s by some watery tart", uhim());
+            livelog_printf(LL_ARTIFACT, "%s", excalmsgs[rn2(SIZE(excalmsgs))]);
         }
         update_inventory();
         levl[u.ux][u.uy].typ = ROOM, levl[u.ux][u.uy].flags = 0;

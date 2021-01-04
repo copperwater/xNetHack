@@ -1,4 +1,4 @@
-/* NetHack 3.6	worn.c	$NHDT-Date: 1550524569 2019/02/18 21:16:09 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.56 $ */
+/* NetHack 3.7	worn.c	$NHDT-Date: 1606919259 2020/12/02 14:27:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.70 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -57,9 +57,7 @@ long mask;
         uskin = obj;
         /* assert( !uarm ); */
     } else {
-        if ((mask & W_ARMOR))
-            u.uroleplay.nudist = FALSE;
-        for (wp = worn; wp->w_mask; wp++)
+        for (wp = worn; wp->w_mask; wp++) {
             if (wp->w_mask & mask) {
                 oobj = *(wp->w_obj);
                 if (oobj && !(oobj->owornmask & wp->w_mask))
@@ -105,6 +103,11 @@ long mask;
                     }
                 }
             }
+        }
+        if (obj && (obj->owornmask & W_ARMOR) != 0L)
+            u.uroleplay.nudist = FALSE;
+        /* tux -> tuxedo -> "monkey suit" -> monk's suit */
+        iflags.tux_penalty = (uarm && Role_if(PM_MONK));
     }
     update_inventory();
 }
@@ -128,7 +131,7 @@ register struct obj *obj;
                is pending (via 'A' command for multiple items) */
             cancel_doff(obj, wp->w_mask);
 
-            *(wp->w_obj) = 0;
+            *(wp->w_obj) = (struct obj *) 0;
             p = objects[obj->otyp].oc_oprop;
             u.uprops[p].extrinsic = u.uprops[p].extrinsic & ~wp->w_mask;
             obj->owornmask &= ~wp->w_mask;
@@ -137,8 +140,28 @@ register struct obj *obj;
             if ((p = w_blocks(obj, wp->w_mask)) != 0)
                 u.uprops[p].blocked &= ~wp->w_mask;
         }
+    if (!uarm)
+        iflags.tux_penalty = FALSE;
     update_inventory();
 }
+
+/* called when saving with FREEING flag set has just discarded inventory */
+void
+allunworn()
+{
+    const struct worn *wp;
+
+    u.twoweap = 0; /* uwep and uswapwep are going away */
+    /* remove stale pointers; called after the objects have been freed
+       (without first being unworn) while saving invent during game save;
+       note: uball and uchain might not be freed yet but we clear them
+       here anyway (savegamestate() and its callers deal with them) */
+    for (wp = worn; wp->w_mask; wp++) {
+        /* object is already gone so we don't/can't update is owornmask */
+        *(wp->w_obj) = (struct obj *) 0;
+    }
+}
+
 
 /* return item worn in slot indiciated by wornmask; needed by poly_obj() */
 struct obj *
@@ -448,9 +471,13 @@ register struct monst *mon;
     long mwflags = mon->misc_worn_check;
 
     for (obj = mon->minvent; obj; obj = obj->nobj) {
-        if (obj->owornmask & mwflags)
-            base -= ARM_BONUS(obj);
-        /* since ARM_BONUS is positive, subtracting it increases AC */
+        if (obj->owornmask & mwflags) {
+            if (obj->otyp == AMULET_OF_GUARDING)
+                base -= 2; /* fixed amount, not impacted by erosion */
+            else
+                base -= ARM_BONUS(obj);
+            /* since ARM_BONUS is positive, subtracting it increases AC */
+        }
     }
     return base;
 }
@@ -534,20 +561,32 @@ boolean racialexception;
     old = which_armor(mon, flag);
     if (old && old->cursed)
         return;
-    if (old && flag == W_AMUL)
-        return; /* no such thing as better amulets */
+    if (old && flag == W_AMUL && old->otyp != AMULET_OF_GUARDING)
+        return; /* no amulet better than life-saving or reflection */
     best = old;
 
     for (obj = mon->minvent; obj; obj = obj->nobj) {
+        if (mon_hates_material(mon, obj->material)) {
+            continue;
+        }
         switch (flag) {
         case W_AMUL:
             if (obj->oclass != AMULET_CLASS
                 || (obj->otyp != AMULET_OF_LIFE_SAVING
                     && obj->otyp != AMULET_OF_REFLECTION
-                    && obj->otyp != AMULET_OF_ESP))
+                    && obj->otyp != AMULET_OF_ESP
+                    && obj->otyp != AMULET_OF_GUARDING))
                 continue;
-            best = obj;
-            goto outer_break; /* no such thing as better amulets */
+            /* for 'best' to be non-Null, it must be an amulet of guarding;
+               life-saving and reflection don't get here due to early return
+               and other amulets of guarding can't be any better */
+            if (!best || (obj->otyp != AMULET_OF_GUARDING
+                          && obj->otyp != AMULET_OF_ESP)) {
+                best = obj;
+                if (best->otyp != AMULET_OF_GUARDING)
+                    goto outer_break; /* life-saving or reflection; use it */
+            }
+            continue; /* skip post-switch armor handling */
         case W_ARMU:
             if (!is_shirt(obj))
                 continue;
@@ -601,7 +640,7 @@ boolean racialexception;
             continue;
         best = obj;
     }
-outer_break:
+ outer_break:
     if (!best || best == old)
         return;
 
@@ -888,10 +927,18 @@ boolean polyspot;
             m_useup(mon, otmp);
         }
     } else if (sliparm(mdat)) {
+        /* sliparm checks whirly, noncorporeal, and small or under */
+        boolean passes_thru_clothes = !(mdat->msize <= MZ_SMALL);
+
         if ((otmp = which_armor(mon, W_ARM)) != 0) {
-            if (vis)
-                pline("%s armor falls around %s!", s_suffix(Monnam(mon)),
-                      pronoun);
+            if (vis) {
+                if (slithy(mon->data))
+                    pline("%s slithers out of %s armor!", Monnam(mon),
+                          ppronoun);
+                else
+                    pline("%s armor falls around %s!", s_suffix(Monnam(mon)),
+                          pronoun);
+            }
             else
                 You_hear("a thud.");
             if (polyspot)
@@ -904,7 +951,8 @@ boolean polyspot;
                     pline("%s %s falls, unsupported!", s_suffix(Monnam(mon)),
                           cloak_simple_name(otmp));
                 else
-                    pline("%s shrinks out of %s %s!", Monnam(mon), ppronoun,
+                    pline("%s %ss out of %s %s!", Monnam(mon),
+                          slithy(mon->data) ? "slither" : "shrink", ppronoun,
                           cloak_simple_name(otmp));
             }
             if (polyspot)
@@ -913,8 +961,11 @@ boolean polyspot;
         }
         if ((otmp = which_armor(mon, W_ARMU)) != 0) {
             if (vis) {
-                if (sliparm(mon->data))
+                if (passes_thru_clothes)
                     pline("%s seeps right through %s shirt!", Monnam(mon),
+                          ppronoun);
+                else if (slithy(mon->data))
+                    pline("%s slithers out of %s shirt!", Monnam(mon),
                           ppronoun);
                 else
                     pline("%s becomes much too small for %s shirt!",
@@ -985,7 +1036,7 @@ boolean polyspot;
         if (mon == u.usteed)
             goto noride;
     } else if (mon == u.usteed && !can_ride(mon)) {
-    noride:
+ noride:
         You("can no longer ride %s.", mon_nam(mon));
         if (touch_petrifies(u.usteed->data) && !Stone_resistance && rnl(3)) {
             char buf[BUFSZ];

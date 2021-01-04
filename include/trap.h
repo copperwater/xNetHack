@@ -1,4 +1,4 @@
-/* NetHack 3.6	trap.h	$NHDT-Date: 1547255912 2019/01/12 01:18:32 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.17 $ */
+/* NetHack 3.7	trap.h	$NHDT-Date: 1596498566 2020/08/03 23:49:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.19 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -114,6 +114,15 @@ enum trap_immunities {
     TRAP_NOT_IMMUNE = 0,
     TRAP_CLEARLY_IMMUNE,
     TRAP_HIDDEN_IMMUNE
+};
+
+/* Values for deltrap_with_ammo */
+enum deltrap_handle_ammo {
+    DELTRAP_RETURN_AMMO = 0, /* return ammo to caller; do nothing with it */
+    DELTRAP_DESTROY_AMMO,    /* delete ammo */
+    DELTRAP_PLACE_AMMO,      /* place ammo on ground where trap was */
+    DELTRAP_BURY_AMMO,       /* bury ammo under where trap was */
+    DELTRAP_TAKE_AMMO        /* put ammo into player's inventory */
 };
 
 #define predoortrapped(x, y, mon, body, act) \

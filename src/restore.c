@@ -1,4 +1,4 @@
-/* NetHack 3.7	restore.c	$NHDT-Date: 1581886865 2020/02/16 21:01:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.163 $ */
+/* NetHack 3.7	restore.c	$NHDT-Date: 1606765214 2020/11/30 19:40:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.173 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -33,7 +33,7 @@ static void FDECL(freefruitchn, (struct fruit *));
 static void FDECL(ghostfruit, (struct obj *));
 static boolean FDECL(restgamestate, (NHFILE *, unsigned int *, unsigned int *));
 static void FDECL(restlevelstate, (unsigned int, unsigned int));
-static int FDECL(restlevelfile, (NHFILE *, XCHAR_P));
+static int FDECL(restlevelfile, (XCHAR_P));
 static void FDECL(restore_msghistory, (NHFILE *));
 static void FDECL(reset_oattached_mids, (BOOLEAN_P));
 static void FDECL(rest_levl, (NHFILE *, BOOLEAN_P));
@@ -229,25 +229,6 @@ struct obj *otmp;
             restmon(nhfp, OMONST(otmp));
         }
 
-        /* omid - monster id number, connecting corpse to ghost */
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) &buflen, sizeof(buflen));
-
-        if (buflen > 0) {
-            newomid(otmp);
-            if (nhfp->structlevel)
-                mread(nhfp->fd, (genericptr_t) OMID(otmp), buflen);
-        }
-
-        /* olong - temporary gold */
-        if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) &buflen, sizeof(buflen));
-        if (buflen > 0) {
-            newolong(otmp);
-            if (nhfp->structlevel)
-                mread(nhfp->fd, (genericptr_t) OLONG(otmp), buflen);
-        }
-
         /* omailcmd - feedback mechanism for scroll of mail */
         if (nhfp->structlevel)
             mread(nhfp->fd, (genericptr_t) &buflen, sizeof(buflen));
@@ -259,6 +240,11 @@ struct obj *otmp;
             new_omailcmd(otmp, omailcmd);
             free((genericptr_t) omailcmd);
         }
+
+        /* omid - monster id number, connecting corpse to ghost */
+        newomid(otmp); /* superfluous; we're already allocated otmp->oextra */
+        if (nhfp->structlevel)
+            mread(nhfp->fd, (genericptr_t) &OMID(otmp), sizeof OMID(otmp));
     }
 }
 
@@ -308,27 +294,6 @@ boolean frozen;
             /* restore container back pointers */
             for (otmp3 = otmp->cobj; otmp3; otmp3 = otmp3->nobj)
                 otmp3->ocontainer = otmp;
-        } else if (SchroedingersBox(otmp)) {
-            struct obj *catcorpse;
-
-            /*
-             * TODO:  Remove this after 3.6.x save compatibility is dropped.
-             *
-             * As of 3.6.2, SchroedingersBox() always has a cat corpse in it.
-             * For 3.6.[01], it was empty and its weight was falsified
-             * to have the value it would have had if there was one inside.
-             * Put a non-rotting cat corpse in this box to convert to 3.6.2.
-             *
-             * [Note: after this fix up, future save/restore of this object
-             * will take the Has_contents() code path above.]
-             */
-            if ((catcorpse = mksobj(CORPSE, TRUE, FALSE)) != 0) {
-                otmp->spe = 1; /* flag for special SchroedingersBox */
-                set_corpsenm(catcorpse, PM_HOUSECAT);
-                (void) stop_timer(ROT_CORPSE, obj_to_any(catcorpse));
-                add_to_container(otmp, catcorpse);
-                otmp->owt = weight(otmp);
-            }
         }
         if (otmp->bypass)
             otmp->bypass = 0;
@@ -418,6 +383,14 @@ struct monst *mtmp;
             newedog(mtmp);
             if (nhfp->structlevel)
                 mread(nhfp->fd, (genericptr_t) EDOG(mtmp), sizeof(struct edog));
+        }
+        /* ebones - pet */
+        if (nhfp->structlevel)
+            mread(nhfp->fd, (genericptr_t) &buflen, sizeof(buflen));
+        if (buflen > 0) {
+            newebones(mtmp);
+            if (nhfp->structlevel)
+                mread(nhfp->fd, (genericptr_t) EBONES(mtmp), sizeof(struct ebones));
         }
         /* mcorpsenm - obj->corpsenm for mimic posing as corpse or
            statue (inline int rather than pointer to something) */
@@ -564,9 +537,6 @@ NHFILE *nhfp;
 unsigned int *stuckid, *steedid;
 {
     struct flag newgameflags;
-#ifdef SYSFLAGS
-    struct sysflag newgamesysflags;
-#endif
     struct context_info newgamecontext; /* all 0, but has some pointers */
     struct obj *otmp;
     struct obj *bc_obj;
@@ -624,12 +594,6 @@ unsigned int *stuckid, *steedid;
         /* specified by save file; check authorization now */
         set_playmode();
     }
-#ifdef SYSFLAGS
-    newgamesysflags = sysflags;
-    if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &sysflags, sizeof(struct sysflag));
-#endif
-
     role_init(); /* Reset the initial role, race, gender, and alignment */
 #ifdef AMII_GRAPHICS
     amii_setpens(amii_numcolors); /* use colors from save file */
@@ -670,9 +634,6 @@ unsigned int *stuckid, *steedid;
         iflags.deferred_X = FALSE;
         iflags.perm_invent = defer_perm_invent;
         flags = newgameflags;
-#ifdef SYSFLAGS
-        sysflags = newgamesysflags;
-#endif
         g.context = newgamecontext;
         g.youmonst = cg.zeromonst;
         return FALSE;
@@ -692,9 +653,9 @@ unsigned int *stuckid, *steedid;
     while (bc_obj) {
         struct obj *nobj = bc_obj->nobj;
 
+        bc_obj->nobj = (struct obj *) 0;
         if (bc_obj->owornmask)
             setworn(bc_obj, bc_obj->owornmask);
-        bc_obj->nobj = (struct obj *) 0;
         bc_obj = nobj;
     }
     g.migrating_objs = restobjchn(nhfp, FALSE);
@@ -795,66 +756,22 @@ unsigned int stuckid, steedid;
 
 /*ARGSUSED*/
 static int
-restlevelfile(nhfp, ltmp)
-NHFILE *nhfp; /* used in MFLOPPY only */
+restlevelfile(ltmp)
 xchar ltmp;
 {
     char whynot[BUFSZ];
-#ifdef MFLOPPY
-    int savemode;
-#endif
-    NHFILE *nnhfp = (NHFILE *) 0;
+    NHFILE *nhfp = (NHFILE *) 0;
 
-#ifndef MFLOPPY
-    nhUse(nhfp);
-#endif
-    nnhfp = create_levelfile(ltmp, whynot);
-    if (!nnhfp) {
+    nhfp = create_levelfile(ltmp, whynot);
+    if (!nhfp) {
         /* BUG: should suppress any attempt to write a panic
            save file if file creation is now failing... */
         panic("restlevelfile: %s", whynot);
     }
-#ifdef MFLOPPY
-    savemode = nnhfp->mode;
-    nnhfp->mode = COUNTING;
-    if (!savelev(nnhfp, ltmp)) {
-        /* The savelev can't proceed because the size required
-         * is greater than the available disk space.
-         */
-        pline("Not enough space on `%s' to restore your game.", levels);
-
-        /* Remove levels and bones that may have been created.
-         */
-        close_nhfile(nnhfp);
-#ifdef AMIGA
-        clearlocks();
-#else /* !AMIGA */
-        eraseall(levels, g.alllevels);
-        eraseall(levels, g.allbones);
-
-        /* Perhaps the person would like to play without a
-         * RAMdisk.
-         */
-        if (g.ramdisk) {
-            /* PlaywoRAMdisk may not return, but if it does
-             * it is certain that g.ramdisk will be 0.
-             */
-            playwoRAMdisk();
-            /* Rewind save file and try again */
-            rewind_nhfile(nhfp);
-            (void) validate(nhfp, (char *) 0); /* skip version etc */
-            return dorecover(nhfp);            /* 0 or 1 */
-        }
-#endif /* ?AMIGA */
-        pline("Be seeing you...");
-        nh_terminate(EXIT_SUCCESS);
-    }
-    nnhfp->mode = savemode;
-#endif /* MFLOPPY */
-    bufon(nnhfp->fd);
-    nnhfp->mode = WRITING | FREEING;
-    savelev(nnhfp, ltmp);
-    close_nhfile(nnhfp);
+    bufon(nhfp->fd);
+    nhfp->mode = WRITING | FREEING;
+    savelev(nhfp, ltmp);
+    close_nhfile(nhfp);
     return 2;
 }
 
@@ -867,7 +784,7 @@ NHFILE *nhfp;
     int rtmp;
     struct obj *otmp;
 
-    g.restoring = TRUE;
+    g.program_state.restoring = 1;
     get_plname_from_file(nhfp, g.plname);
     getlev(nhfp, 0, (xchar) 0);
     if (!restgamestate(nhfp, &stuckid, &steedid)) {
@@ -882,14 +799,14 @@ NHFILE *nhfp;
            is not really affiliated with an open file */
         close_nhfile(nhfp);
         (void) delete_savefile();
-        g.restoring = FALSE;
+        g.program_state.restoring = 0;
         return 0;
     }
     restlevelstate(stuckid, steedid);
 #ifdef INSURANCE
     savestateinlock();
 #endif
-    rtmp = restlevelfile(nhfp, ledger_no(&u.uz));
+    rtmp = restlevelfile(ledger_no(&u.uz));
     if (rtmp < 2)
         return rtmp; /* dorecover called recursively */
 
@@ -905,7 +822,7 @@ NHFILE *nhfp;
 #ifdef AMII_GRAPHICS
     {
         extern struct window_procs amii_procs;
-        if (WINDOWPORT("amii") {
+        if (WINDOWPORT("amii")) {
             extern winid WIN_BASE;
             clear_nhwindow(WIN_BASE); /* hack until there's a hook for this */
         }
@@ -943,7 +860,7 @@ NHFILE *nhfp;
         }
         mark_synch();
 #endif
-        rtmp = restlevelfile(nhfp, ltmp);
+        rtmp = restlevelfile(ltmp);
         if (rtmp < 2)
             return rtmp; /* dorecover called recursively */
     }
@@ -961,9 +878,6 @@ NHFILE *nhfp;
         (void) delete_savefile();
 #ifdef USE_TILES
     substitute_tiles(&u.uz);
-#endif
-#ifdef MFLOPPY
-    gameDiskPrompt();
 #endif
     max_rank_sz(); /* to recompute g.mrank_sz (botl.c) */
     /* take care of iron ball & chain */
@@ -992,14 +906,45 @@ NHFILE *nhfp;
     g.vision_full_recalc = 1; /* recompute vision (not saved) */
 
     run_timers(); /* expire all timers that have gone off while away */
+    g.program_state.restoring = 0; /* affects bot() so clear before docrt() */
     docrt();
-    g.restoring = FALSE;
     clear_nhwindow(WIN_MESSAGE);
 
     /* Success! */
     welcome(FALSE);
     check_special_room(FALSE);
     return 1;
+}
+
+void
+rest_stairs(nhfp)
+NHFILE *nhfp;
+{
+    int buflen = 0;
+    stairway stway;
+    int len = 0;
+
+    stairway_free_all();
+    while (1) {
+        if (nhfp->structlevel) {
+            len += (int) sizeof(buflen);
+            mread(nhfp->fd, (genericptr_t) &buflen, sizeof buflen);
+        }
+
+        if (buflen == -1)
+            break;
+
+        len += (int) sizeof (stairway);
+        if (nhfp->structlevel) {
+            mread(nhfp->fd, (genericptr_t) &stway, sizeof (stairway));
+        }
+        if (stway.tolev.dnum == u.uz.dnum) {
+            /* stairway dlevel is relative, make it absolute */
+            stway.tolev.dlevel += u.uz.dlevel;
+        }
+        stairway_add(stway.sx, stway.sy, stway.up, stway.isladder,
+                     &(stway.tolev));
+    }
 }
 
 void
@@ -1030,7 +975,11 @@ struct cemetery **cemeteryaddr;
 static void
 rest_levl(nhfp, rlecomp)
 NHFILE *nhfp;
+#ifdef RLECOMP
 boolean rlecomp;
+#else
+boolean rlecomp UNUSED;
+#endif
 {
 #ifdef RLECOMP
     short i, j;
@@ -1060,9 +1009,7 @@ boolean rlecomp;
         }
         return;
     }
-#else /* !RLECOMP */
-    nhUse(rlecomp);
-#endif /* ?RLECOMP */
+#endif /* RLECOMP */
     if (nhfp->structlevel) {
         mread(nhfp->fd, (genericptr_t) levl, sizeof levl);
     }
@@ -1145,11 +1092,7 @@ xchar lev;
     elapsed = g.monstermoves - g.omoves;
 
     if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t)&g.upstair, sizeof(stairway));
-        mread(nhfp->fd, (genericptr_t)&g.dnstair, sizeof(stairway));
-        mread(nhfp->fd, (genericptr_t)&g.upladder, sizeof(stairway));
-        mread(nhfp->fd, (genericptr_t)&g.dnladder, sizeof(stairway));
-        mread(nhfp->fd, (genericptr_t)&g.sstairs, sizeof(stairway));
+        rest_stairs(nhfp);
         mread(nhfp->fd, (genericptr_t)&g.updest, sizeof(dest_area));
         mread(nhfp->fd, (genericptr_t)&g.dndest, sizeof(dest_area));
         mread(nhfp->fd, (genericptr_t)&g.level.flags, sizeof(g.level.flags));
@@ -1203,6 +1146,8 @@ xchar lev;
         place_monster(mtmp, mtmp->mx, mtmp->my);
         if (mtmp->wormno)
             place_wsegs(mtmp, NULL);
+        if (hides_under(mtmp->data) && mtmp->mundetected)
+            (void) hideunder(mtmp);
 
         /* regenerate monsters while on another level */
         if (!u.uz.dlevel)
@@ -1231,16 +1176,27 @@ xchar lev;
     rest_regions(nhfp);
 
     if (ghostly) {
+        stairway *stway = g.stairs;
+        while (stway) {
+            if (!stway->isladder && !stway->up
+                && stway->tolev.dnum == u.uz.dnum)
+                break;
+            stway = stway->next;
+        }
+
         /* Now get rid of all the temp fruits... */
         freefruitchn(g.oldfruit), g.oldfruit = 0;
 
         if (lev > ledger_no(&medusa_level)
-            && lev < ledger_no(&stronghold_level) && xdnstair == 0) {
+            && lev < ledger_no(&stronghold_level) && !stway) {
             coord cc;
+            d_level dest;
+
+            dest.dnum = u.uz.dnum;
+            dest.dlevel = u.uz.dlevel + 1;
 
             mazexy(&cc);
-            xdnstair = cc.x;
-            ydnstair = cc.y;
+            stairway_add(cc.x, cc.y, FALSE, FALSE, &dest);
             levl[cc.x][cc.y].typ = STAIRS;
         }
 
@@ -1256,8 +1212,15 @@ xchar lev;
             switch (br->type) {
             case BR_STAIR:
             case BR_NO_END1:
-            case BR_NO_END2: /* OK to assign to g.sstairs if it's not used */
-                assign_level(&g.sstairs.tolev, &ltmp);
+            case BR_NO_END2:
+                stway = g.stairs;
+                while (stway) {
+                    if (stway->tolev.dnum != u.uz.dnum)
+                        break;
+                    stway = stway->next;
+                }
+                if (stway)
+                    assign_level(&(stway->tolev), &ltmp);
                 break;
             case BR_PORTAL: /* max of 1 portal per level */
                 for (trap = g.ftrap; trap; trap = trap->ntrap)
@@ -1400,6 +1363,7 @@ boolean ghostly;
 {
     struct obj *otmp;
     unsigned oldid, nid;
+
     for (otmp = fobj; otmp; otmp = otmp->nobj) {
         if (ghostly && has_omonst(otmp)) {
             struct monst *mtmp = OMONST(otmp);
@@ -1408,11 +1372,9 @@ boolean ghostly;
             mtmp->mpeaceful = mtmp->mtame = 0; /* pet's owner died! */
         }
         if (ghostly && has_omid(otmp)) {
-            (void) memcpy((genericptr_t) &oldid, (genericptr_t) OMID(otmp),
-                          sizeof(oldid));
+            oldid = OMID(otmp);
             if (lookup_id_mapping(oldid, &nid))
-                (void) memcpy((genericptr_t) OMID(otmp), (genericptr_t) &nid,
-                              sizeof(nid));
+                OMID(otmp) = nid;
             else
                 free_omid(otmp);
         }

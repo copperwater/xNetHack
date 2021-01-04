@@ -1,0 +1,285 @@
+## xNetHack 4.0 Changelog
+
+This is a major version of xNetHack. It is a fork off of the vanilla NetHack
+3.6.1 release, and is also based directly on xNetHack 3.0. See doc/fixes36.1 and
+doc/fixes36.2 for the devteam's changes.
+
+The xNetHack page at the NetHackWiki, https://nethackwiki.com/wiki/XNetHack,
+attempts to describe these changes in a way that's better formatted and more
+friendly to players. However, it might be out of date; in case of conflicting
+information, this changelog and others in this folder are more up-to-date than
+the wiki page, and the commit messages are more up-to-date than this changelog.
+
+On top of any changes made by the NetHack devteam on 3.6.1, and any changes
+made in previous xNetHack versions, xNetHack 4.0 contains the following
+changes:
+
+### Gameplay changes
+
+- Remove the scroll of amnesia. In its place, create the scroll of water, which
+  behaves mostly like UnNetHack's scroll of flood, except it will never create
+  a pool underneath the player. It costs 200 and takes 4-7 ink to write. It is
+  unblankable except by acid.
+- Also from UnNetHack, random graves may have a scroll of water placed on them,
+  and the epitaph is then "Apres moi, le deluge."
+- Remove mind flayers' amnesia. They still drain Int.
+- Monsters created along with rooms will never generate on top of stairs.
+- If the player enters a level on a spot where there is a monster, always
+  displace the monster away. (Previously this only happened 50% of the time,
+  and the other 50% the player was moved.)
+- Monster groups, small and large, now have their sizes fuzzed a bit.
+- Most create monster sources will no longer create groups of monsters.
+- Add polyinit mode: you begin the game permanently polymorphed into a monster
+  of your choice. This is a non-scoring mode like explore mode, and can be
+  combined with explore mode (and wizard mode of course). To enable, set
+  OPTIONS=polyinit:[monster] in your config file.
+  - You can polyinit to anything except player monsters and uniques. Any other
+    monsters are fair game, but if you can't polymorph into one in a normal
+    game, it's not officially supported. Beware of crashes.
+  - In polyinit mode, you will never leave bones.
+- Extrinsic sources of fire, cold, and shock resistance provide immunity to all
+  items in your inventory from that type of damage.
+- Eating mimic corpses no longer breaks polyselfless conduct.
+- Tourists now begin the game wearing low boots (walking shoes).
+- Martial arts attacks now always include skill damage bonuses, instead of
+  randomly not getting them 75% of the time.
+- Several more tools are now eligible to receive non-default object materials.
+  Mostly these are instruments: all whistles, harps, flutes, horns, and bugles.
+  Lanterns and lamps are also now eligible.
+  - Horns use their own new list; everything else made eligible uses a separate
+    new "resonant" list.
+  - Several items are renamed due to containing materials in the name:
+    - "wooden flute" -> "flute"
+    - "wooden harp" -> "harp"
+    - "tin whistle" -> "pea whistle"
+    - "brass lantern" -> "lantern"
+    - "silver bell" (for the Bell of Opening) -> "engraved silver bell"
+  - Boomerangs, while not a tool, are also eligible; they receive the same
+    materials as bows.
+- Slight tweak to the object material probabilities for bows.
+- Weapons made out of bone can hit shades (they don't get any bonuses though)
+- Silver-hating has been refactored and generalized into any-material-hating.
+  - Behavior for silver itself is NOT changed: all silver haters still hate
+    silver and it still sears them for d20 damage.
+  - Other material hatred does not cause searing, it causes pain and flinching
+    but does only d6 bonus damage, and the player can touch and use items made
+    of a material they hate (unlike silver, which if the player hates it will
+    be unhandleable.)
+  - Elves (including elvish players), nymphs, and all i-class monsters now hate
+    iron (including crashing into iron bars).
+  - Fungi, Pestilence, and anything else with a disease or rotting attack now
+    hates copper.
+- Copper antimicrobialness resists sickness: for each piece of copper armor you
+  wear, you have a stacking 20% chance to not fall Ill when you would have
+  otherwise.
+- Object material densities have been overhauled because the "ultra realistic"
+  ones did not make for good gameplay. They are now arbitrary units that will
+  hopefully preserve some realism while still making for good gameplay.
+- Object material prices per aum have also been updated, but only for gold,
+  platinum, and mithril, all of which have been made more expensive.
+- Object material AC has one slight tweak: MINERAL is reduced by 2 points.
+- Some base materials have been changed to make life easier for elvish players:
+  Runeswords, and therefore Stormbringer, are now metal.
+  Athames and therefore Magicbane are now metal.
+  All amulets, and therefore the Eye of the Aethiopica, are now metal.
+  The Mitre of Holiness is now silver.
+- You can now refresh your memory with a spellbook whenever you want, rather
+  than forcing you to wait until it dips below 10% retention.
+- Implement player-as-an-Archon blinding gaze attack (code by Pavel Braginskiy)
+- Silver items can corrode, and bone items can burn.
+- The Barbarian lower filler and goal levels are replaced.
+- The chance of a successful artifact wish is now 1/(# of artifact wishes + 1).
+  This means that randomly generated, named, and gifted artifacts do not count
+  against your chances. However, unsuccessful wishes still count against you.
+- The chance of a god gift on a sacrifice is now 1/(10 + 2 * gifts^2).
+  This again means that randomly generated, named, and wished-for artifacts do
+  not count against your chances.
+- Sokoban luck penalties for jumping, hurtling, and dragging yourself via
+  thrown ball are removed, since none of them can actually be cheated with.
+- The spiders-spinning-webs feature introduced in 1.0 ascended to vanilla, and
+  has been backported from there so that xNetHack's version now behaves the
+  same as vanilla.
+  Additionally, shopkeepers will also clean up webs spun in their shops.
+- The SLASH'EM feature in which corpses in the taint-risk stage can
+  spontaneously morph into living F monsters has been ported.
+- Force bolts (from the spell and the wand of striking) will smash through and
+  destroy iron bars in their path. If the bars are set nondiggable, they do not
+  interact with the force bolt.
+- Melee combat now awakens monsters in a radius dependent on the size of the
+  attacking monster. This is reduced but not eliminated for a stealthy player,
+  and does not affect other types of combat.
+- Make the rne() function not care about experience level. It now caps at 10
+  regardless of the player's stats.
+- Port FIQHack's charged ring initial enchantment math. The main thing is that
+  rings now use rne(2) instead of rne(3), making high enchantment more likely,
+  and zero enchantment extremely unlikely.  The math on whether the enchantment
+  is negative also uses a new formula. In general, blessed rings are very
+  likely to have positive enchantment, cursed rings are very likely to have
+  negative, and uncursed have positive enchantment about 2/3 of the time and
+  negative about 1/3. The formula for uncursed rings is slightly tweaked.
+- Demon lords are made hostile if you wield Demonbane, as well as Excalibur,
+  when they are generated or they approach you.
+- Archeologists begin the game knowing all varieties of worthless glass.
+- Ghosts are overhauled: while idle, hostile ones will turn invisible, and they
+  will then try to follow you invisibly and make themselves visible when
+  adjacent, which will scare you and freeze you for three turns if you didn't
+  see them beforehand. They can then turn invisible in another 2d8 turns. Their
+  1d1 damage is removed, meaning they cannot hurt you on their own.
+- Additionally, ghosts are now incorporeally immune to all of the same things
+  that shades are. Just like shades, objects that are silver, bone, blessed or
+  artifacts versus undead will hit them. However, silver does not cause silver
+  damage to ghosts.
+- Ghost stats are also changed: their base level is brought down from 10 to 4
+  (mainly to knock down their hit dice; they should be hard to land a hit on in
+  the first place but not actually be a tank once the player has something that
+  can hurt them), their speed is increased from 3 to 5, their AC is increased
+  (making them *easier* to hit) from -5 to 5, and their magic resistance is
+  increased from 50 to 80.
+- Silver items are now corrodeable.
+- Pets will no longer eat shapeshifter corpses unless starving or unless
+  tameness is so low that they are about to go feral.
+- Croesus' two-handed sword is gold, and he also gets either a chain mail or
+  plate mail, which is also gold.
+- Chameleons will no longer turn into too-high-difficulty forms. This goes for
+  other shapechangers too - but only in their failure cases where they turn
+  into random monsters. For instance, sandestins will still pick a nasty form
+  6/7 of the time even out of difficulty, and doppelgangers will still pick
+  nasties or player monsters if they are out of difficulty. Chameleons' special
+  case for animals, however, no longer allows it to select out-of-difficulty
+  animals.
+- Revert 3.1 change that did extra fuzzing on monster group sizes. Monster
+  group
+  sizes now are the same as vanilla again.
+- Corpses of F monsters will never have mold grow on them.
+- Blessed wands will wrest 1/7 of the time, and uncursed 1/23 of the time,
+  instead of 1/121 (cursed still wrests with this frequency).
+- A few doors in Vlad's Tower are now iron.
+- MAJOR wand of wishing changes: it will turn to dust when it runs out of
+  charges (so no wrest wishes), it will explode when recharged, and it will no
+  longer generate randomly. Instead of a single wand at the Castle, however,
+  there are multiple ones scattered throughout the later game:
+  - One (0:2) wand in the Castle chest.
+  - One (0:1) wand in Vlad's chest.
+  - One (0:1) wand in the Fake Wizard's Tower that has no portal.
+  - One (0:1) wand on the space occupied by the Wizard of Yendor.
+  - One (0:1) wand in the northeasternmost room of the Sanctum.
+- Make spellbooks' weight dependent on their level. The weight is 30 plus 5 per
+  spell level, so the overall range is 35 for a level 1 spellbook up to 65 for
+  a level 7 spellbook.
+- Dwarf lords and dwarf kings that generate with dwarvish ring mail have a
+  25%/50% chance of that mail being guaranteed mithril, if it wasn't already.
+- Positively enchanted, worn bone armor will intercept a incoming level drain,
+  losing one point of enchantment in the process.
+- Bone's relative material AC is decreased from 6 to 4 (on par with wood).
+- Naming artifacts no longer breaks illiterate conduct.
+- Wielding a spellbook will no longer bring the Pw cost of the spell below its
+  base 5\*level value, though the halving effect otherwise still works.
+- Make gnomish wizards, kobold shamans, and orc shamans telepathic. Their
+  corpses may now occasionally convey telepathy (infrequent, unlike floating
+  eyes).
+- The corpse of any casting monster now follows the same logic as newt corpses
+  to make the player regain some energy and maybe gain a point to their max.
+- Genociding green slime while turning to slime stops the sliming
+- Incorporate Malcolm Ryan's brewing patch, ported to NetHack 3.6. This enables
+  you to dissolve fungi corpses in fruit juice to ferment them into various
+  other potions:
+  - Green mold produces acid (NOT healing as in the original patch).
+  - Red mold produces booze (NOT sleeping as in the original patch).
+  - Brown mold produces sleeping (NOT booze as in the original patch).
+  - Yellow mold produces confusion.
+  - Violet fungus produces hallucination.
+  - Additionally unlike the original patch, you cannot ferment an entire stack
+    of potions with one corpse, and fermenting a shop-owned potion makes you
+    pay for its original cost.
+- Mold will not grow on a corpse when the corpse's spot is occupied by some
+  other creature.
+- Buff war hammers into a two-handed weapon that does 2d6 to small monsters and
+  2d8 to large.
+- Significantly buff Ogresmasher: it now deals d8 extra damage to all monsters,
+  and has heavy critical hits, which crush and instakill small or tiny monsters
+  and disable medium or larger monsters.
+- Change Dragonbane from a broadsword into a dwarvish spear.
+- Change Demonbane from a silver long sword into a silver mace.
+- Port Fourk's change to the Sceptre of Might: it is now the Priest quest
+  artifact instead of the Caveman quest artifact, and confers drain resistance
+  when wielded instead of magic resistance. Instead of conflict, its invoke
+  power is the same energy boost provided by the Mitre of Holiness, which is
+  removed. The new quest artifact for Cavemen is Big Stick, a club that confers
+  stealth when carried, magic resistance when wielded, and +d5 to hit and +d12
+  versus all monsters. Its invoke power is hungerless conflict, as the Sceptre
+  used to provide.
+- Fire and Frost Brand are now short swords that can be twoweaponed with each
+  other.
+
+### Interface changes
+
+- When you kill the Wizard of Yendor, the livelog prints where you are in the
+  dungeon.
+- If you die while stuck in creature form, your actual death reason is shown,
+  and the "while stuck in creature form" is recorded in the while field of the
+  xlogfile.
+- The livelogging patch is extended to include arising from the dead or slime
+  as a sentient copy of the monster. This is a livelog flag of 0x0200.
+- The #terrain command works while hallucinating, confused or stunned.
+- Cursed scrolls of remove curse no longer give "You feel like someone is
+  helping you", since they don't practically uncurse anything.
+- The spell menu now shows the exact number of turns of spell memory you have
+  in the "Retention" column, rather than vague percentages.
+- When a potion of oil fails to dilute in water, give a message and identify
+  the potion.
+- Usual update of more gravestone messages, random engravings, and shirt
+  messages.
+- Easter egg when you read a dwarvish ring mail.
+- Suppress "Unknown command 'foo'." messages in the dumplog.
+- YAFM when you break an identified wand of nothing.
+- Demon lords that ask for bribes now indicate their displeasure when you come
+  to them with no money (previously, they just silently attacked).
+- All demon lords, the Riders, Vlad, and the Wizard of Yendor all have a unique
+  multiline message that prints when you encounter them for the first time.
+- All wands that print an unambiguous message clue to their identity now
+  automatically type-identify when engraved with.
+- YAFM when you sit on a towel.
+- YAFM when starting or restoring a game while hallucinating.
+- Peaceful monsters are now underlined by default in both the tty and curses
+  windowports. It is controlled by the boolean option "underline_peacefuls"
+  (defaults to true).
+- Slightly more flavorful (ha) message when you get regurgitated on account of
+  slow digestion.
+- You no longer get additional score for reaching a deeper dungeon level than
+  45. This is mainly so that true min-score can be achieved in any game.
+- Track survivor as a full conduct. It exists as the 20th least significant bit
+  of the xlogfile conduct field (0x80000).
+- Give a hint message after feeling more confident in your skills that you
+  should use #enhance to enhance them.
+- If you hit the letter of something in your inventory while viewing it
+  normally (not at a prompt), it will open the encyclopedia for that item.
+- The wizweight option is changed to "invweight", now defaults to on, is now
+  accessible outside of wizard mode, and when enabled will show the weight of
+  items in your inventory.
+- The 'i' inventory command now shows how full your inventory is, both in terms
+  of weight/carrycap and n/52 items.
+- YAFM when hallucinating and you observe a monster grow up.
+- Neutral sacrifices disappear in a cloud of smoke instead of a burst of flame.
+- Reenable YAFM in the list of vanquished creatures if you die while
+  hallucinating.
+- Tiles are now supported again.
+
+### Architectural changes
+
+- Remove all (now dead) code relating to amnesia.
+- Add a makemon flag for suppressing the creation of monster groups.
+- Enable LIVELOGFLAGS in the sysconf. Livelogging is still disabled by default
+  in config.h.
+- Fix two critical bugs in the selection_do_grow code.
+- Since there needed to be two distinct calls to identifying a wand via
+  engraving, break out that small bit of logic into its own function
+  engraving_learn_wand.
+- Refactor both instances of ghosts scaring the player into one scary_ghost
+  function.
+- Most checks in the code for PM_SHADE are replaced with noncorporeal() checks.
+- Split steal_it into itself and really_steal, which contains the actual logic
+  for the player stealing from a monster.
+- Add peaceful monster glyph offset to the display code, and all the other
+  corresponding macros and defines that go along with that.
+- Refactor rndmonst to require only a single pass over the monsters array to
+  select its monster, removing the need for a rndmonst_state cache.

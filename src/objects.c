@@ -1,4 +1,4 @@
-/* NetHack 3.6	objects.c	$NHDT-Date: 1578855624 2020/01/12 19:00:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.61 $ */
+/* NetHack 3.7	objects.c	$NHDT-Date: 1596498192 2020/08/03 23:43:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.66 $ */
 /* Copyright (c) Mike Threepoint, 1989.                           */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -267,7 +267,7 @@ WEAPON("morning star", None,
        1, 0, 0, 12, 120,  10,  4,  6, 0, B,   P_MORNING_STAR, IRON, HI_METAL),
         /* +d4 small, +1 large */
 WEAPON("war hammer", None,
-        1, 0, 1, 15,  50,   5,  6,  8, 0, B,   P_HAMMER, IRON, HI_METAL),
+       1, 0, 1, 15,  50,   5,  6,  8, 0, B,   P_HAMMER, IRON, HI_METAL),
         /* +1 small */
 WEAPON("club", None,
        1, 0, 0, 12,  30,   3,  6,  3, 0, B,   P_CLUB, WOOD, HI_WOOD),
@@ -416,9 +416,9 @@ ARMOR("studded armor", None,
 ARMOR("ring mail", None,
       1, 0, 0,  0, 72, 5, 250, 100,  7, 1,  ARM_SUIT, IRON, HI_METAL),
 ARMOR("dwarvish ring mail", None,
-      1, 0, 0, 0,  10, 1, 240, 120,  6, 3,  ARM_SUIT, IRON, HI_METAL),
+      1, 0, 0, 0,  10, 1, 240, 120,  6, 1,  ARM_SUIT, IRON, HI_METAL),
 ARMOR("elven ring mail", None,
-      1, 0, 0, 0,  15, 1, 200, 100,  7, 3,  ARM_SUIT, COPPER, HI_COPPER),
+      1, 0, 0, 0,  15, 1, 200, 100,  7, 1,  ARM_SUIT, COPPER, HI_COPPER),
 ARMOR("orcish ring mail", "crude ring mail",
       0, 0, 0,  0, 20, 5, 250,  60,  8, 1,  ARM_SUIT, IRON, CLR_BLACK),
 ARMOR("light armor", None,
@@ -601,15 +601,20 @@ RING("carrying", "glittery",
     OBJECT(OBJ(name, desc),                                            \
            BITS(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, P_NONE, METAL),        \
            power, AMULET_CLASS, prob, 0, 20, 150, 0, 0, 0, 0, 20, HI_METAL)
-AMULET("amulet of ESP",                "circular", TELEPAT, 175),
+AMULET("amulet of ESP",                "circular", TELEPAT, 120),
 AMULET("amulet of life saving",       "spherical", LIFESAVED, 75),
-AMULET("amulet of strangulation",          "oval", STRANGLED, 135),
-AMULET("amulet of restful sleep",    "triangular", SLEEPY, 135),
-AMULET("amulet versus poison",        "pyramidal", POISON_RES, 165),
-AMULET("amulet of change",               "square", 0, 130),
-AMULET("amulet of unchanging",          "concave", UNCHANGING, 45),
+AMULET("amulet of strangulation",          "oval", STRANGLED, 115),
+AMULET("amulet of restful sleep",    "triangular", SLEEPY, 115),
+AMULET("amulet versus poison",        "pyramidal", POISON_RES, 115),
+AMULET("amulet of change",               "square", 0, 115),
+AMULET("amulet of unchanging",          "concave", UNCHANGING, 60),
 AMULET("amulet of reflection",        "hexagonal", REFLECTING, 75),
-AMULET("amulet of magical breathing", "octagonal", MAGICAL_BREATHING, 65),
+AMULET("amulet of magical breathing", "octagonal", MAGICAL_BREATHING, 75),
+        /* +2 AC and +2 MC; +2 takes naked hero past 'warded' to 'guarded' */
+AMULET("amulet of guarding",         "perforated", PROTECTION, 75),
+        /* cubical: some descriptions are already three dimensional and
+           parallelogrammatical (real word!) would be way over the top */
+AMULET("amulet of flying",              "cubical", FLYING, 60),
 /* fixed descriptions; description duplication is deliberate;
  * fake one must come before real one because selection for
  * description shuffling stops when a non-magic amulet is encountered
@@ -1110,7 +1115,7 @@ GEM("worthless piece of violet glass", "violet",
 ROCK("luckstone", "gray",  0,  10,  10, 60, 3, 3, 1, 10, 7, 1, 0, MINERAL, CLR_GRAY),
 ROCK("touchstone", "gray", 0,   8,  10, 45, 3, 3, 0, 10, 6, 1, 0, MINERAL, CLR_GRAY),
 ROCK("thiefstone", "gray", 0,  10,  10, 60, 3, 3, 1, 10, 6, 0, 1, MINERAL, CLR_GRAY),
-ROCK("flint", "gray",      0,  10,   1,  1, 6, 6, 0, 10, 7, 1, 0, MINERAL, CLR_GRAY),
+ROCK("flint", "gray",      0,  10,   2,  1, 6, 6, 0, 10, 7, 1, 0, MINERAL, CLR_GRAY),
 ROCK("rock", None,         1, 100,  10,  0, 3, 3, 0, 10, 7, 1, 0, MINERAL, CLR_GRAY),
 #undef GEM
 #undef ROCK
@@ -1140,10 +1145,10 @@ OBJECT(OBJ("iron chain", None),
 /* Venom is normally a transitory missile (spit by various creatures)
  * but can be wished for in wizard mode so could occur in bones data.
  */
-OBJECT(OBJ("blinding venom", "splash of venom"),
+OBJECT(OBJ("splash of blinding venom", "splash of venom"),
        BITS(0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, P_NONE, LIQUID), 0,
        VENOM_CLASS, 500, 0, 1, 0, 0, 0, 0, 0, 0, HI_ORGANIC),
-OBJECT(OBJ("acid venom", "splash of venom"),
+OBJECT(OBJ("splash of acid venom", "splash of venom"),
        BITS(0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, P_NONE, LIQUID), 0,
        VENOM_CLASS, 500, 0, 1, 0, 6, 6, 0, 0, 0, HI_ORGANIC),
         /* +d6 small or large */
@@ -1164,6 +1169,8 @@ OBJECT(OBJ(None, None),
 
 /* clang-format on */
 /* *INDENT-ON* */
+
+void NDECL(objects_globals_init); /* in hack.h but we're using config.h */
 
 struct objdescr obj_descr[SIZE(obj_descr_init)];
 struct objclass objects[SIZE(obj_init)];

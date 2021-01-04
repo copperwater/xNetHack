@@ -1,4 +1,4 @@
-/* NetHack 3.6	wield.c	$NHDT-Date: 1578190903 2020/01/05 02:21:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.72 $ */
+/* NetHack 3.7	wield.c	$NHDT-Date: 1607200367 2020/12/05 20:32:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.78 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -52,18 +52,20 @@
  * No item may be in more than one of these slots.
  */
 
-static boolean FDECL(cant_wield_corpse, (struct obj *));
 static int FDECL(ready_weapon, (struct obj *));
 
-/* used by will_weld() */
-/* probably should be renamed */
-#define erodeable_wep(optr)                             \
-    ((optr)->oclass == WEAPON_CLASS || is_weptool(optr) \
-     || (optr)->otyp == HEAVY_IRON_BALL || (optr)->otyp == IRON_CHAIN)
+/* to dual-wield, 'obj' must be a weapon or a weapon-tool, and not a bow
+   or arrow or missile (dart, shuriken, boomerang), so not matching the
+   one-handed weapons which yield "you begin bashing" if used for melee;
+   empty hands and two-handed weapons have to be handled separately */
+#define TWOWEAPOK(obj) \
+    (((obj)->oclass == WEAPON_CLASS)                            \
+     ? !(is_launcher(obj) ||is_ammo(obj) || is_missile(obj))    \
+     : is_weptool(obj))
 
-/* used by welded(), and also while wielding */
-#define will_weld(optr) \
-    ((optr)->cursed && (erodeable_wep(optr) || (optr)->otyp == TIN_OPENER))
+static const char
+    are_no_longer_twoweap[] = "are no longer using two weapons at once",
+    can_no_longer_twoweap[] = "can no longer wield two weapons at once";
 
 /*** Functions that place a given item in a slot ***/
 /* Proper usage includes:
@@ -106,15 +108,22 @@ register struct obj *obj;
      * 3.2.2:  Wielding arbitrary objects will give bashing message too.
      */
     if (obj) {
+        int skill = weapon_type(obj); /* non-weapons => P_NONE */
         g.unweapon = (obj->oclass == WEAPON_CLASS)
                        ? is_launcher(obj) || is_ammo(obj) || is_missile(obj)
                              || (is_pole(obj) && !u.usteed)
                        : !is_weptool(obj) && !is_wet_towel(obj);
+        if (skill != P_NONE && P_SKILL(skill) < P_BASIC
+            && g.moves > 1) {
+            /* check moves because starting weapon is wielded before skills are
+             * initialized */
+            g.unweapon = TRUE;
+        }
     } else
         g.unweapon = TRUE; /* for "bare hands" message */
 }
 
-static boolean
+boolean
 cant_wield_corpse(obj)
 struct obj *obj;
 {
@@ -122,10 +131,15 @@ struct obj *obj;
 
     if (uarmg || obj->otyp != CORPSE || !touch_petrifies(&mons[obj->corpsenm])
         || Stone_resistance)
+        /* no Hallucination check here; instapetrify() takes care of that */
         return FALSE;
 
     /* Prevent wielding cockatrice when not wearing gloves --KAA */
-    You("wield %s in your bare %s.",
+    /* note that hallucination wearing off while wielding cockatrice can trigger
+     * this function - that should be the only case for which obj is already
+     * uwep, since we otherwise check this before actually wielding it. */
+    You("%s %s in your bare %s.",
+        obj == uwep ? "are still wielding" : "wield",
         corpse_xname(obj, (const char *) 0, CXN_PFX_THE),
         makeplural(body_part(HAND)));
     Sprintf(kbuf, "wielding %s bare-handed", killer_xname(obj));
@@ -139,7 +153,7 @@ struct obj *wep;
 {
     /* Separated function so swapping works easily */
     int res = 0;
-    boolean had_wep = (uwep != 0);
+    boolean was_twoweap = u.twoweap, had_wep = (uwep != 0);
 
     if (!wep) {
         /* No weapon */
@@ -149,14 +163,15 @@ struct obj *wep;
             res++;
         } else
             You("are already empty %s.", body_part(HANDED));
-    } else if (wep->otyp == CORPSE && cant_wield_corpse(wep)) {
+    } else if (wep->otyp == CORPSE && cant_wield_corpse(wep)
+               && !Hallucination) {
         /* hero must have been life-saved to get here; use a turn */
         res++; /* corpse won't be wielded */
     } else if (uarms && bimanual(wep)) {
         You("cannot wield a two-handed %s while wearing a shield.",
             is_sword(wep) ? "sword" : wep->otyp == BATTLE_AXE ? "axe"
                                                               : "weapon");
-    } else if ((wep->oartifact || !uarmg) && !retouch_object(&wep, FALSE)) {
+    } else if (!retouch_object(&wep, FALSE, !will_touch_skin(W_WEP))) {
         /* don't retouch and take material damage if it's a non-artifact object
          * and you're wearing gloves */
         res++; /* takes a turn even though it doesn't get wielded */
@@ -194,7 +209,16 @@ struct obj *wep;
             prinv((char *) 0, wep, 0L);
             wep->owornmask = dummy;
         }
+
         setuwep(wep);
+        if (was_twoweap && !u.twoweap && flags.verbose) {
+            /* skip this message if we already got "empty handed" one above;
+               also, Null is not safe for neither TWOWEAPOK() or bimanual() */
+            if (uwep)
+                You("%s.", ((TWOWEAPOK(uwep) && !bimanual(uwep))
+                            ? are_no_longer_twoweap
+                            : can_no_longer_twoweap));
+        }
 
         /* KMH -- Talking artifacts are finally implemented */
         arti_speak(wep);
@@ -257,7 +281,8 @@ struct obj *obj;
         return 0;
 
     if (!obj || obj->oclass == WEAPON_CLASS ||
-        (obj->oclass == TOOL_CLASS && is_weptool(obj)))
+        (obj->oclass == TOOL_CLASS && is_weptool(obj))
+        || obj->otyp == TIN_OPENER)
         return 2;
 
     return 1;
@@ -592,7 +617,7 @@ dowieldquiver()
         You("are now empty %s.", body_part(HANDED));
         res = 1;
     } else if (was_twoweap && !u.twoweap) {
-        You("are no longer wielding two weapons at once.");
+        You("%s.", are_no_longer_twoweap);
         res = 1;
     }
     return res;
@@ -682,10 +707,6 @@ int
 can_twoweapon()
 {
     struct obj *otmp;
-
-    /* to dual-wield, must be a weapon-tool or a weapon other than a bow */
-#define TWOWEAPOK(obj) \
-    (((obj)->oclass == WEAPON_CLASS) ? !is_launcher(obj) : is_weptool(obj))
 
     if (!could_twoweap(g.youmonst.data)) {
         if (Upolyd)
@@ -818,7 +839,7 @@ void
 untwoweapon()
 {
     if (u.twoweap) {
-        You("can no longer use two weapons at once.");
+        You("%s.", can_no_longer_twoweap);
         set_twoweap(FALSE); /* u.twoweap = FALSE */
         update_inventory();
     }

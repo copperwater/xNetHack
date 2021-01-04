@@ -1,4 +1,4 @@
--- NetHack 3.6	Monk.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
+-- NetHack 3.7	Monk.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -27,7 +27,7 @@ des.map([[
 .........................+....+.....................|....,,,,..,...,--...--,
 ,...,,,T,,T,,T,,|,,......|..-.|.....................|.-...,,........|..{..|,
 ,,,,,,,,,,,,,,,,--,....---....|...-..-..-..-..-....--.........,,....--...--,
-,,,,,,,,,,,T,,,,,|,....T|...-.--..................--..-...........,.---.--,,
+,,,,,,,,,,,T,,,,,|,....T|...-.--..................--..-...........,.,--.--,,
 ,,,,T,,,,,,,,,,,,|,....---.....----------+---------....-----+-----,......,,,
 ,,,,,,,,,,,,,,,,,|,,....T|............................--K.......K--.....,T,,
 ,,,,,,,,,T,,,,,,,--,....--------...--------...--......+...........|..,,,,,,,
@@ -42,7 +42,7 @@ des.region(selection.area(00,00,75,19), "lit")
 local spacelocs = selection.floodfill(05,04);
 
 -- Portal arrival point
-des.levregion({ region = {05,04,05,04}, type="branch" })
+des.levregion({ region = {02,10,02,10}, type="branch" })
 
 -- Stairs
 des.stair("down", 75,06)

@@ -1,4 +1,4 @@
-/* NetHack 3.6	sys.c	$NHDT-Date: 1575665952 2019/12/06 20:59:12 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.46 $ */
+/* NetHack 3.7	sys.c	$NHDT-Date: 1596498215 2020/08/03 23:43:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.57 $ */
 /* Copyright (c) Kenneth Lorber, Kensington, Maryland, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -39,6 +39,10 @@ sys_early_init()
 #endif
 #ifdef DUMPLOG
     sysopt.dumplogfile = (char *) 0;
+    sysopt.dumplogurl = (char *) 0;
+#endif
+#ifdef DUMPHTML
+    sysopt.dumphtmlfile = (char *) 0;
 #endif
 #ifdef DUMPHTML
     sysopt.dumphtmlfile = (char *) 0;
@@ -49,6 +53,7 @@ sys_early_init()
     sysopt.genericusers = (char *) 0;
     sysopt.maxplayers = 0; /* XXX eventually replace MAX_NR_OF_PLAYERS */
     sysopt.bones_pools = 0;
+    sysopt.livelog = 0;
 
     /* record file */
     sysopt.persmax = PERSMAX;
@@ -142,9 +147,9 @@ extern const struct attack c_sa_no[NATTK];
 
 void
 sysopt_seduce_set(val)
+#if 0
 int val;
 {
-#if 0
 /*
  * Attack substitution is now done on the fly in getmattk(mhitu.c).
  */
@@ -156,8 +161,9 @@ int val;
         mons[PM_SUCCUBUS].mattk[x] = setval[x];
     }
 #else
-    nhUse(val);
-#endif /*0*/
+int val UNUSED;
+{
+#endif
     return;
 }
 

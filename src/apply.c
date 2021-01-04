@@ -1,4 +1,4 @@
-/* NetHack 3.6	apply.c	$NHDT-Date: 1582155875 2020/02/19 23:44:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.318 $ */
+/* NetHack 3.7	apply.c	$NHDT-Date: 1605184220 2020/11/12 12:30:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.331 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7,7 +7,7 @@
 
 static int FDECL(use_camera, (struct obj *));
 static int FDECL(use_towel, (struct obj *));
-static boolean FDECL(its_dead, (int, int, int *));
+static boolean FDECL(its_dead, (int, int, int *, struct obj *));
 static int FDECL(use_stethoscope, (struct obj *));
 static void FDECL(use_whistle, (struct obj *));
 static void FDECL(use_magic_whistle, (struct obj *));
@@ -75,11 +75,16 @@ struct obj *obj;
             (u.dz > 0) ? surface(u.ux, u.uy) : ceiling(u.ux, u.uy));
     } else if (!u.dx && !u.dy) {
         (void) zapyourself(obj, TRUE);
-    } else if ((mtmp = bhit(u.dx, u.dy, COLNO, FLASHED_LIGHT,
-                            (int FDECL((*), (MONST_P, OBJ_P))) 0,
-                            (int FDECL((*), (OBJ_P, OBJ_P))) 0, &obj)) != 0) {
-        obj->ox = u.ux, obj->oy = u.uy;
-        (void) flash_hits_mon(mtmp, obj);
+    } else {
+        mtmp = bhit(u.dx, u.dy, COLNO, FLASHED_LIGHT,
+                    (int FDECL((*), (MONST_P, OBJ_P))) 0,
+                    (int FDECL((*), (OBJ_P, OBJ_P))) 0, &obj);
+        obj->ox = u.ux, obj->oy = u.uy; /* flash_hits_mon() wants this */
+        if (mtmp)
+            (void) flash_hits_mon(mtmp, obj);
+        /* normally bhit() would do this but for FLASHED_LIGHT we want it
+           to be deferred until after flash_hits_mon() */
+        transient_light_cleanup();
     }
     return 1;
 }
@@ -172,40 +177,52 @@ struct obj *obj;
 
 /* maybe give a stethoscope message based on floor objects */
 static boolean
-its_dead(rx, ry, resp)
+its_dead(rx, ry, resp, stethoscope)
 int rx, ry, *resp;
+struct obj *stethoscope;
 {
     char buf[BUFSZ];
     boolean more_corpses;
     struct permonst *mptr;
-    struct obj *corpse = sobj_at(CORPSE, rx, ry),
-               *statue = sobj_at(STATUE, rx, ry);
+    struct obj *corpse, *statue, *egg, *otmp;
+    boolean floor = can_reach_floor(TRUE); /* levitation or unskilled riding */
 
-    if (!can_reach_floor(TRUE)) { /* levitation or unskilled riding */
-        corpse = 0;               /* can't reach corpse on floor */
+    /* Set only one of corpse, statue, and egg based on which is the topmost. */
+    corpse = statue = egg = NULL;
+    for (otmp = g.level.objects[rx][ry]; otmp; otmp = otmp->nexthere) {
+        /* can't reach corpse on floor */
+        if (otmp->otyp == CORPSE && floor) {
+            corpse = otmp;
+            more_corpses = (nxtobj(corpse, CORPSE, TRUE) != NULL);
+            break;
+        }
         /* you can't reach tiny statues (even though you can fight
            tiny monsters while levitating--consistency, what's that?) */
-        while (statue && mons[statue->corpsenm].msize == MZ_TINY)
-            statue = nxtobj(statue, STATUE, TRUE);
+        if (otmp->otyp == STATUE && (mons[otmp->corpsenm].msize > MZ_TINY
+                                     || floor)) {
+            statue = otmp;
+            break;
+        }
+        /* and you also can't reach eggs if you can't reach the floor */
+        if (otmp->otyp == EGG && floor) {
+            egg = otmp;
+            break;
+        }
     }
-    /* when both corpse and statue are present, pick the uppermost one */
-    if (corpse && statue) {
-        if (nxtobj(statue, CORPSE, TRUE) == corpse)
-            corpse = 0; /* corpse follows statue; ignore it */
-        else
-            statue = 0; /* corpse precedes statue; ignore statue */
-    }
-    more_corpses = (corpse && nxtobj(corpse, CORPSE, TRUE));
 
     /* additional stethoscope messages from jyoung@apanix.apana.org.au */
-    if (!corpse && !statue) {
-        ; /* nothing to do */
+    if (!corpse && !statue && !egg) {
+        return FALSE; /* nothing to do */
 
     } else if (Hallucination) {
-        if (!corpse) {
-            /* it's a statue */
+        if (egg) {
+            pline("This is indubitably a %s egg!", rndmonnam(NULL));
+        }
+        else if (statue) {
             Strcpy(buf, "You're both stoned");
-        } else if (corpse->quan == 1L && !more_corpses) {
+        }
+        /* else corpse... */
+        else if (corpse->quan == 1L && !more_corpses) {
             int gndr = 2; /* neuter: "it" */
             struct monst *mtmp = get_mtraits(corpse, FALSE);
 
@@ -257,6 +274,21 @@ int rx, ry, *resp;
             one ? "" : "s", one ? "is" : "are", reviver ? " mostly" : "");
         return TRUE;
 
+    } else if (egg) {
+        if (stethoscope->blessed) {
+            if (stale_egg(egg) || egg->corpsenm == NON_PM) {
+                pline("The egg doesn't make any noise at all.");
+            }
+            else {
+                You("listen to the egg and guess... %s!",
+                    mons[egg->corpsenm].mname);
+                egg->known = 1;
+            }
+        }
+        else {
+            You("can't quite tell what's inside the egg.");
+        }
+        return TRUE;
     } else { /* statue */
         const char *what, *how;
 
@@ -342,7 +374,7 @@ register struct obj *obj;
             You_hear("faint splashing.");
         else if (u.dz < 0 || !can_reach_floor(TRUE))
             cant_reach_floor(u.ux, u.uy, (u.dz < 0), TRUE);
-        else if (its_dead(u.ux, u.uy, &res))
+        else if (its_dead(u.ux, u.uy, &res, obj))
             ; /* message already given */
         else if (Is_stronghold(&u.uz))
             You_hear("the crackling of hellfire.");
@@ -440,7 +472,7 @@ register struct obj *obj;
         return res;
     }
 
-    if (!its_dead(rx, ry, &res))
+    if (!its_dead(rx, ry, &res, obj))
         You("hear nothing special."); /* not You_hear()  */
     return res;
 }
@@ -546,20 +578,23 @@ number_leashed()
 /* otmp is about to be destroyed or stolen */
 void
 o_unleash(otmp)
-register struct obj *otmp;
+struct obj *otmp;
 {
     register struct monst *mtmp;
 
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-        if (mtmp->m_id == (unsigned) otmp->leashmon)
+        if (mtmp->m_id == (unsigned) otmp->leashmon) {
             mtmp->mleashed = 0;
-    otmp->leashmon = 0;
+            otmp->leashmon = 0;
+            update_inventory();
+            break;
+        }
 }
 
 /* mtmp is about to die, or become untame */
 void
 m_unleash(mtmp, feedback)
-register struct monst *mtmp;
+struct monst *mtmp;
 boolean feedback;
 {
     register struct obj *otmp;
@@ -571,8 +606,11 @@ boolean feedback;
             Your("leash falls slack.");
     }
     for (otmp = g.invent; otmp; otmp = otmp->nobj)
-        if (otmp->otyp == LEASH && otmp->leashmon == (int) mtmp->m_id)
+        if (otmp->otyp == LEASH && (unsigned) otmp->leashmon == mtmp->m_id) {
             otmp->leashmon = 0;
+            update_inventory();
+            break;
+        }
     mtmp->mleashed = 0;
 }
 
@@ -676,14 +714,15 @@ struct obj *obj;
             pline("%s has no extremities the leash would fit.",
                   Monnam(mtmp));
         } else if (!leashable(mtmp)) {
-            pline("The leash won't fit onto %s%s.", spotmon ? "your " : "",
-                  l_monnam(mtmp));
+            pline("The leash won't fit onto %s.",
+                  spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
         } else {
-            You("slip the leash around %s%s.", spotmon ? "your " : "",
-                l_monnam(mtmp));
+            You("slip the leash around %s.",
+                spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
             mtmp->mleashed = 1;
             obj->leashmon = (int) mtmp->m_id;
-            mtmp->msleeping = 0;
+            wakeup(mtmp, FALSE);
+            update_inventory();
         }
     } else {
         /* applying a leash which is currently in use */
@@ -695,8 +734,9 @@ struct obj *obj;
         } else {
             mtmp->mleashed = 0;
             obj->leashmon = 0;
-            You("remove the leash from %s%s.",
-                spotmon ? "your " : "", l_monnam(mtmp));
+            update_inventory();
+            You("remove the leash from %s.",
+                spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
         }
     }
     return 1;
@@ -709,13 +749,10 @@ struct monst *mtmp;
 {
     struct obj *otmp;
 
-    otmp = g.invent;
-    while (otmp) {
-        if (otmp->otyp == LEASH && otmp->leashmon == (int) mtmp->m_id)
-            return otmp;
-        otmp = otmp->nobj;
-    }
-    return (struct obj *) 0;
+    for (otmp = g.invent; otmp; otmp = otmp->nobj)
+        if (otmp->otyp == LEASH && (unsigned) otmp->leashmon == mtmp->m_id)
+            break;
+    return otmp;
 }
 
 boolean
@@ -733,13 +770,14 @@ next_to_u()
             if (distu(mtmp->mx, mtmp->my) > 2) {
                 for (otmp = g.invent; otmp; otmp = otmp->nobj)
                     if (otmp->otyp == LEASH
-                        && otmp->leashmon == (int) mtmp->m_id) {
+                        && (unsigned) otmp->leashmon == mtmp->m_id) {
                         if (otmp->cursed)
                             return FALSE;
-                        You_feel("%s leash go slack.",
-                                 (number_leashed() > 1) ? "a" : "the");
                         mtmp->mleashed = 0;
                         otmp->leashmon = 0;
+                        update_inventory();
+                        You_feel("%s leash go slack.",
+                                 (number_leashed() > 1) ? "a" : "the");
                     }
             }
         }
@@ -1030,9 +1068,9 @@ struct obj **optr;
     struct monst *mtmp;
     boolean wakem = FALSE, learno = FALSE,
             ordinary = (obj->otyp != BELL_OF_OPENING || !obj->spe),
-            invoking =
-                (obj->otyp == BELL_OF_OPENING && invocation_pos(u.ux, u.uy)
-                 && !On_stairs(u.ux, u.uy));
+            invoking = (obj->otyp == BELL_OF_OPENING
+                        && invocation_pos(u.ux, u.uy)
+                        && !On_stairs(u.ux, u.uy));
 
     You("ring %s.", the(xname(obj)));
 
@@ -1336,15 +1374,72 @@ struct obj *obj;
     return FALSE;
 }
 
+/* called when lit object is hit by water */
+boolean
+splash_lit(obj)
+struct obj *obj;
+{
+    boolean result, dunk = FALSE;
+
+    /* lantern won't be extinguished by a rust trap or rust monster attack
+       but will be if submerged or placed into a container or swallowed by
+       a monster (for mobile light source handling, not because it ought
+       to stop being lit in all those situations...) */
+    if (obj->lamplit && obj->otyp == LANTERN) {
+        struct monst *mtmp;
+        boolean useeit = FALSE, uhearit = FALSE, snuff = TRUE;
+
+        if (obj->where == OBJ_INVENT) {
+            useeit = !Blind;
+            uhearit = !Deaf;
+            /* underwater light sources aren't allowed but if hero
+               is just entering water, Underwater won't be set yet */
+            dunk = (is_pool(u.ux, u.uy)
+                    && ((!Levitation && !Flying && !Wwalking)
+                        || Is_waterlevel(&u.uz)));
+            snuff = FALSE;
+        } else if (obj->where == OBJ_MINVENT
+                   /* don't assume that lit lantern has been swallowed;
+                      a nymph might have stolen it or picked it up */
+                   && ((mtmp = obj->ocarry), humanoid(mtmp->data))) {
+            xchar x, y;
+
+            useeit = get_obj_location(obj, &x, &y, 0) && cansee(x, y);
+            uhearit = couldsee(x, y) && distu(x, y) < 5 * 5;
+            dunk = (is_pool(mtmp->mx, mtmp->my)
+                    && ((!is_flyer(mtmp->data) && !is_floater(mtmp->data))
+                        || Is_waterlevel(&u.uz)));
+            snuff = FALSE;
+        }
+
+        if (useeit || uhearit)
+            pline("%s %s%s%s.", Yname2(obj),
+                  uhearit ? "crackles" : "",
+                  (uhearit && useeit) ? " and " : "",
+                  useeit ? "flickers" : "");
+        if (!dunk && !snuff)
+            return FALSE;
+    }
+
+    result = snuff_lit(obj);
+
+    /* this is simpler when we wait until after lantern has been snuffed */
+    if (dunk) {
+        /* drain some of the battery but don't short it out entirely */
+        obj->age -= (obj->age > 200L) ? 100L : (obj->age / 2L);
+    }
+    return result;
+}
+
 /* Called when potentially lightable object is affected by fire_damage().
-   Return TRUE if object was lit and FALSE otherwise --ALI */
+   Return TRUE if object becomes lit and FALSE otherwise --ALI */
 boolean
 catch_lit(obj)
 struct obj *obj;
 {
     xchar x, y;
 
-    if (!obj->lamplit && (obj->otyp == MAGIC_LAMP || ignitable(obj))) {
+    if (!obj->lamplit && ignitable(obj)) {
         if ((obj->otyp == MAGIC_LAMP
              || obj->otyp == CANDELABRUM_OF_INVOCATION) && obj->spe == 0)
             return FALSE;
@@ -1938,13 +2033,14 @@ struct obj *obj;
 }
 
 void
-use_unicorn_horn(obj, passive)
-struct obj *obj;
+use_unicorn_horn(optr, passive)
+struct obj **optr;
 boolean passive;
 {
 #define PROP_COUNT 7           /* number of properties we're dealing with */
     int idx, val, val_limit, trouble_count, unfixable_trbl, did_prop;
     int trouble_list[PROP_COUNT];
+    struct obj *obj = (optr ? *optr : (struct obj *) 0);
 
     if (obj && obj->cursed) {
         long lcount = (long) rn1(90, 10);
@@ -1989,8 +2085,7 @@ boolean passive;
 /*
  * Entries in the trouble list use a very simple encoding scheme.
  */
-#define prop2trbl(X) ((X) + A_MAX)
-#define prop_trouble(X) trouble_list[trouble_count++] = prop2trbl(X)
+#define prop_trouble(X) trouble_list[trouble_count++] = (X)
 #define TimedTrouble(P) (((P) && !((P) & ~TIMEOUT)) ? ((P) & TIMEOUT) : 0L)
 
     trouble_count = unfixable_trbl = did_prop = 0;
@@ -2013,22 +2108,11 @@ boolean passive;
     if (TimedTrouble(HDeaf))
         prop_trouble(DEAF);
 
-    unfixable_trbl = unfixable_trouble_count(TRUE);
-
     if (trouble_count == 0 && !passive) {
         pline1(nothing_happens);
         return;
-    } else if (trouble_count > 1) { /* shuffle */
-        int i, j, k;
-
-        for (i = trouble_count - 1; i > 0; i--) {
-            if ((j = rn2(i + 1)) != i) {
-                k = trouble_list[j];
-                trouble_list[j] = trouble_list[i];
-                trouble_list[i] = k;
-            }
-        }
-    }
+    } else if (trouble_count > 1)
+        shuffle_int_array(trouble_list, trouble_count);
 
     /*
      *  Chances for number of troubles to be fixed
@@ -2045,31 +2129,31 @@ boolean passive;
         idx = trouble_list[val];
 
         switch (idx) {
-        case prop2trbl(SICK):
+        case SICK:
             make_sick(0L, (char *) 0, TRUE, SICK_ALL);
             did_prop++;
             break;
-        case prop2trbl(BLINDED):
+        case BLINDED:
             make_blinded((long) u.ucreamed, TRUE);
             did_prop++;
             break;
-        case prop2trbl(HALLUC):
+        case HALLUC:
             (void) make_hallucinated(0L, TRUE, 0L);
             did_prop++;
             break;
-        case prop2trbl(VOMITING):
+        case VOMITING:
             make_vomiting(0L, TRUE);
             did_prop++;
             break;
-        case prop2trbl(CONFUSION):
+        case CONFUSION:
             make_confused(0L, TRUE);
             did_prop++;
             break;
-        case prop2trbl(STUNNED):
+        case STUNNED:
             make_stunned(0L, TRUE);
             did_prop++;
             break;
-        case prop2trbl(DEAF):
+        case DEAF:
             make_deaf(0L, TRUE);
             did_prop++;
             break;
@@ -2079,12 +2163,13 @@ boolean passive;
         }
     }
 
-    if (!did_prop && !passive)
+    if (did_prop)
+        g.context.botl = TRUE;
+    else if (!passive)
         pline("Nothing seems to happen.");
 
     g.context.botl = did_prop;
 #undef PROP_COUNT
-#undef prop2trbl
 #undef prop_trouble
 #undef TimedTrouble
 }
@@ -2339,6 +2424,53 @@ struct obj *obj;
 }
 
 static int
+thiefstone_ok(obj)
+struct obj* obj;
+{
+    if (!obj) {
+        return 1;
+    }
+
+    if (obj == &cg.zeroobj) {
+        return 0;
+    }
+
+    /* gems and coins should be included
+     * note that we don't know the beatitude of the thiefstone itself (if
+     * nonblessed, these aren't valid), but suggest them anyway */
+    if ((obj->oclass == GEM_CLASS && !is_graystone(obj) && obj->otyp != ROCK)
+        || obj->oclass == COIN_CLASS) {
+        return 2;
+    }
+
+    /* inherently magical classes should be encouraged by default; they may have
+     * some non-magical exceptions that should be discouraged if known */
+    if (obj->oclass == AMULET_CLASS || obj->oclass == SPBOOK_CLASS
+        || obj->oclass == RING_CLASS || obj->oclass == SCROLL_CLASS
+        || obj->oclass == POTION_CLASS) {
+        if (!objects[obj->otyp].oc_magic && objects[obj->otyp].oc_name_known) {
+            return 1;
+        }
+        else {
+            return 2;
+        }
+    }
+
+    /* magical objects from default non-magical classes should be encouraged if
+     * known to be magical */
+    if (objects[obj->otyp].oc_magic) {
+        if (objects[obj->otyp].oc_name_known) {
+            return 2;
+        }
+        else {
+            return 1;
+        }
+    }
+
+    return 1;
+}
+
+static int
 touchstone_ok(obj)
 struct obj *obj;
 {
@@ -2361,7 +2493,8 @@ struct obj *obj;
     return 1;
 }
 
-/* touchstones - by Ken Arnold */
+/* touchstones - by Ken Arnold
+ * also thiefstones */
 static void
 use_stone(tstone)
 struct obj *tstone;
@@ -2371,8 +2504,7 @@ struct obj *tstone;
     boolean do_scratch;
     const char *streak_color;
     char stonebuf[QBUFSZ];
-    boolean known_touchstone = tstone->otyp == TOUCHSTONE && tstone->dknown
-                               && objects[TOUCHSTONE].oc_name_known;
+    boolean known = tstone->dknown && objects[tstone->otyp].oc_name_known;
     int oclass;
 
     if (nohands(g.youmonst.data)) {
@@ -2382,20 +2514,26 @@ struct obj *tstone;
     /* in case it was acquired while blinded */
     if (!Blind)
         tstone->dknown = 1;
+
     /* when the touchstone is fully known, don't bother listing extra
        junk as likely candidates for rubbing */
     Sprintf(stonebuf, "rub on the stone%s", plur(tstone->quan));
-    if (known_touchstone)
+    if (known && tstone->otyp == TOUCHSTONE) {
         obj = getobj(stonebuf, touchstone_ok, FALSE, FALSE);
-    else
+    }
+    else if (known && tstone->otyp == THIEFSTONE) {
+        obj = getobj(stonebuf, thiefstone_ok, FALSE, FALSE);
+    }
+    else {
         obj = getobj(stonebuf, allow_any, FALSE, FALSE);
+    }
 
     if (!obj)
         return;
 
     if (obj == &cg.zeroobj) {
         if (g.youmonst.data == &mons[PM_GLASS_GOLEM]) {
-            if (known_touchstone)
+            if (known && tstone->otyp == TOUCHSTONE)
                 You_feel("worthless.");
             else
                 pline("You make scratch marks on the stone.");
@@ -2442,14 +2580,14 @@ struct obj *tstone;
         int flint_made = rnd(10) - 9;
         struct obj * flint = NULL;
 
-        if (tstone->otyp == TOUCHSTONE) {
+        if (Role_if(PM_CAVEMAN)) {
+            /* experts on banging rocks together */
+            flint_made += 3;
+        }
+        else if (tstone->otyp == TOUCHSTONE) {
             /* a rock can be broken on any other rock, but breaking it on a
              * touchstone will yield the most */
             flint_made += 2;
-        }
-        else if (Role_if(PM_CAVEMAN)) {
-            /* experts on banging rocks together */
-            flint_made += 3;
         }
         pline("You bang %s%s on %s.", ((obj->quan > 1L) ? "one of " : ""),
               the(xname(obj)), the(xname(tstone)));
@@ -2461,6 +2599,7 @@ struct obj *tstone;
         }
         flint = mksobj(FLINT, TRUE, FALSE);
         flint->quan = flint_made;
+        flint->owt = weight(flint);
         flint = hold_another_object(flint, "Oops!  %s out of your grasp!",
                                     The(aobjnam(flint, "slip")),
                                     (const char*) 0);
@@ -2592,10 +2731,10 @@ struct obj *otmp;
         what = "in water";
     else if (is_lava(u.ux, u.uy))
         what = "in lava";
-    else if (On_stairs(u.ux, u.uy))
-        what = (u.ux == xdnladder || u.ux == xupladder) ? "on the ladder"
-                                                        : "on the stairs";
-    else if (IS_FURNITURE(levtyp) || IS_ROCK(levtyp)
+    else if (On_stairs(u.ux, u.uy)) {
+        stairway *stway = stairway_at(u.ux, u.uy);
+        what = stway->isladder ? "on the ladder" : "on the stairs";
+    } else if (IS_FURNITURE(levtyp) || IS_ROCK(levtyp)
              || closed_door(u.ux, u.uy) || t_at(u.ux, u.uy))
         what = "here";
     else if (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz))
@@ -2779,6 +2918,12 @@ struct obj *obj;
             kick_steed();
             return 1;
         }
+        if (is_pool_or_lava(u.ux, u.uy)) {
+            You("cause a small splash.");
+            if (is_lava(u.ux, u.uy))
+                (void) fire_damage(uwep, FALSE, u.ux, u.uy);
+            return 1;
+        }
         if (Levitation || u.usteed) {
             /* Have a shot at snaring something on the floor */
             otmp = g.level.objects[u.ux][u.uy];
@@ -2928,7 +3073,7 @@ struct obj *obj;
                         && touch_petrifies(&mons[otmp->corpsenm]) && !uarmg
                         && !Stone_resistance
                         && !(poly_when_stoned(g.youmonst.data)
-                             && polymon(PM_STONE_GOLEM, TRUE))) {
+                             && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
                         char kbuf[BUFSZ];
 
                         Sprintf(kbuf, "%s corpse",
@@ -2982,6 +3127,9 @@ static const char
     cant_see_spot[] = "won't hit anything if you can't see that spot.",
     cant_reach[] = "can't reach that spot from here.";
 
+#define glyph_is_poleable(G) \
+    (glyph_is_monster(G) || glyph_is_invisible(G) || glyph_is_statue(G))
+
 /* find pos of monster in range, if only one monster */
 static boolean
 find_poleable_mon(pos, min_range, max_range)
@@ -2993,8 +3141,6 @@ int min_range, max_range;
     boolean impaired;
     int x, y, lo_x, hi_x, lo_y, hi_y, rt, glyph;
 
-    if (Blind)
-        return FALSE; /* must be able to see target location */
     impaired = (Confusion || Stunned || Hallucination);
     mpos.x = mpos.y = 0; /* no candidate location yet */
     rt = isqrt(max_range);
@@ -3011,10 +3157,8 @@ int min_range, max_range;
                 && (mtmp = m_at(x, y)) != 0
                 && (mtmp->mtame || (mtmp->mpeaceful && flags.confirm)))
                 continue;
-            if (glyph_is_monster(glyph)
-                || glyph_is_warning(glyph)
-                || glyph_is_invisible(glyph)
-                || (glyph_is_statue(glyph) && impaired)) {
+            if (glyph_is_poleable(glyph)
+                    && (!glyph_is_statue(glyph) || impaired)) {
                 if (mpos.x)
                     return FALSE; /* more than one candidate location */
                 mpos.x = x, mpos.y = y;
@@ -3031,9 +3175,14 @@ static boolean
 get_valid_polearm_position(x, y)
 int x, y;
 {
-    return (isok(x, y) && ACCESSIBLE(levl[x][y].typ)
-            && distu(x, y) >= g.polearm_range_min
-            && distu(x, y) <= g.polearm_range_max);
+    int glyph;
+
+    glyph = glyph_at(x, y);
+
+    return (isok(x, y) && distu(x, y) >= g.polearm_range_min
+            && distu(x, y) <= g.polearm_range_max
+            && (cansee(x, y) || (couldsee(x, y)
+                                 && glyph_is_poleable(glyph))));
 }
 
 static void
@@ -3113,7 +3262,7 @@ struct obj *obj;
     cc.x = u.ux;
     cc.y = u.uy;
     if (!find_poleable_mon(&cc, min_range, max_range) && hitm
-        && !DEADMONSTER(hitm) && cansee(hitm->mx, hitm->my)
+        && !DEADMONSTER(hitm) && sensemon(hitm)
         && distu(hitm->mx, hitm->my) <= max_range
         && distu(hitm->mx, hitm->my) >= min_range) {
         cc.x = hitm->mx;
@@ -3130,8 +3279,7 @@ struct obj *obj;
     } else if (distu(cc.x, cc.y) < min_range) {
         pline("Too close!");
         return res;
-    } else if (!cansee(cc.x, cc.y) && !glyph_is_monster(glyph)
-               && !glyph_is_invisible(glyph) && !glyph_is_statue(glyph)) {
+    } else if (!cansee(cc.x, cc.y) && !glyph_is_poleable(glyph)) {
         You(cant_see_spot);
         return res;
     } else if (!couldsee(cc.x, cc.y)) { /* Eyes of the Overworld */
@@ -3442,21 +3590,24 @@ struct obj *obj;
     boolean fillmsg = FALSE;
     int expltype = EXPL_MAGICAL;
     char confirm[QBUFSZ], buf[BUFSZ];
-    boolean is_fragile = objdescr_is(obj, "balsa");
-
-    if (!paranoid_query(ParanoidBreakwand,
-                       safe_qbuf(confirm,
-                                 "Are you really sure you want to break ",
-                                 "?", obj, yname, ysimple_name, "the wand")))
-        return 0;
+    boolean is_fragile = (objdescr_is(obj, "balsa")
+                          || objdescr_is(obj, "glass"));
 
     if (nohands(g.youmonst.data)) {
         You_cant("break %s without hands!", yname(obj));
+        return 0;
+    } else if (!freehand()) {
+        Your("%s are occupied!", makeplural(body_part(HAND)));
         return 0;
     } else if (ACURR(A_STR) < (is_fragile ? 5 : 10)) {
         You("don't have the strength to break %s!", yname(obj));
         return 0;
     }
+    if (!paranoid_query(ParanoidBreakwand,
+                        safe_qbuf(confirm,
+                                  "Are you really sure you want to break ",
+                                  "?", obj, yname, ysimple_name, "the wand")))
+        return 0;
     pline("Raising %s high above your %s, you %s it in two!", yname(obj),
           body_part(HEAD), is_fragile ? "snap" : "break");
 
@@ -3806,11 +3957,9 @@ doapply()
      * applied only with feet, or something. If wearing gloves of any sort, you
      * are shielded from harmful material effects of that item, though only if
      * it's not an artifact. */
-    if (obj->oartifact || !uarmg) {
-        if (!retouch_object(&obj, FALSE))
-            return 1; /* evading your grasp costs a turn; just be
-                         grateful that you don't drop it as well */
-    }
+    if (!retouch_object(&obj, FALSE, !will_touch_skin(W_WEP)))
+        return 1; /* evading your grasp costs a turn; just be grateful that you
+                     don't drop it as well */
 
     /* floor containers */
     if (obj->where != OBJ_INVENT)
@@ -3831,11 +3980,10 @@ doapply()
         } else if (!ublindf) {
             Blindf_on(obj);
         } else {
-            You("are already %s.", ublindf->otyp == TOWEL
-                                       ? "covered by a towel"
-                                       : ublindf->otyp == BLINDFOLD
-                                             ? "wearing a blindfold"
-                                             : "wearing lenses");
+            You("are already %s.",
+                (ublindf->otyp == TOWEL) ? "covered by a towel"
+                : (ublindf->otyp == BLINDFOLD) ? "wearing a blindfold"
+                  : "wearing lenses");
         }
         break;
     case CREAM_PIE:
@@ -3950,7 +4098,7 @@ doapply()
         use_figurine(&obj);
         break;
     case UNICORN_HORN:
-        use_unicorn_horn(obj, FALSE);
+        use_unicorn_horn(&obj, FALSE);
         break;
     case FLUTE:
     case MAGIC_FLUTE:

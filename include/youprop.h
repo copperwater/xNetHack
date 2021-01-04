@@ -1,4 +1,4 @@
-/* NetHack 3.6	youprop.h	$NHDT-Date: 1579655025 2020/01/22 01:03:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.30 $ */
+/* NetHack 3.7	youprop.h	$NHDT-Date: 1596498577 2020/08/03 23:49:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.32 $ */
 /* Copyright (c) 1989 Mike Threepoint				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -181,8 +181,9 @@
 #define Invisible (Invis && !See_invisible)
 /* Note: invisibility also hides inventory and steed */
 
-#define EDisplaced u.uprops[DISPLACED].extrinsic
-#define Displaced EDisplaced
+#define HDisplaced u.uprops[DISPLACED].intrinsic /* timed from corpse */
+#define EDisplaced u.uprops[DISPLACED].extrinsic /* worn cloak */
+#define Displaced (HDisplaced || EDisplaced)
 
 #define HStealth u.uprops[STEALTH].intrinsic
 #define EStealth u.uprops[STEALTH].extrinsic
@@ -374,10 +375,7 @@
 #define Unaware (g.multi < 0 && (unconscious() || is_fainted()))
 
 /* Whether the hero is in a form that dislikes a certain material */
-#define Hate_material(material) \
-    (hates_material(g.youmonst.data, material) \
-     || (material == SILVER && u.ulycn >= LOW_PM) \
-     || (material == IRON && !Upolyd && Race_if(PM_ELF)))
+#define Hate_material(material) mon_hates_material(&g.youmonst, material)
 
 /* _Hitchhikers_Guide_to_the_Galaxy_ on uses for 'towel': "wrap it round
    your head to ward off noxious fumes" [we require it to be damp or wet] */

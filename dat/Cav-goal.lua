@@ -1,4 +1,4 @@
--- NetHack 3.6	Caveman.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.8 $
+-- NetHack 3.7	Caveman.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.8 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -36,7 +36,7 @@ des.stair("up")
 -- Non diggable walls
 des.non_diggable(selection.area(00,00,75,19))
 -- Objects
-des.object({ id = "mace", x=23, y=10, buc="blessed", spe=0, name="Big Stick" })
+des.object({ id = "club", x=23, y=10, buc="blessed", spe=0, name="Big Stick" })
 des.object()
 des.object()
 des.object()

@@ -1,4 +1,4 @@
-/* NetHack 3.6	do_name.c	$NHDT-Date: 1582364431 2020/02/22 09:40:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.174 $ */
+/* NetHack 3.7	do_name.c	$NHDT-Date: 1608343467 2020/12/19 02:04:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.185 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -6,11 +6,16 @@
 #include "hack.h"
 
 static char *NDECL(nextmbuf);
+static void FDECL(getpos_help_keyxhelp, (winid, const char *, const char *, int));
 static void FDECL(getpos_help, (BOOLEAN_P, const char *));
 static int FDECL(CFDECLSPEC cmp_coord_distu, (const void *, const void *));
+static int FDECL(gloc_filter_classify_glyph, (int));
+static int FDECL(gloc_filter_floodfill_matcharea, (int, int));
+static void FDECL(gloc_filter_floodfill, (int, int));
+static void NDECL(gloc_filter_init);
+static void NDECL(gloc_filter_done);
 static boolean FDECL(gather_locs_interesting, (int, int, int));
 static void FDECL(gather_locs, (coord **, int *, int));
-static int FDECL(gloc_filter_floodfill_matcharea, (int, int));
 static void FDECL(auto_describe, (int, int));
 static void NDECL(do_mname);
 static boolean FDECL(alreadynamed, (struct monst *, char *, char *));
@@ -52,9 +57,10 @@ boolean FDECL((*gp_getvalidf), (int, int));
 static const char *const gloc_descr[NUM_GLOCS][4] = {
     { "any monsters", "monster", "next/previous monster", "monsters" },
     { "any items", "item", "next/previous object", "objects" },
-    { "any doors", "door", "next/previous door or doorway", "doors or doorways" },
+    { "any doors", "door", "next/previous door or doorway",
+      "doors or doorways" },
     { "any unexplored areas", "unexplored area", "unexplored location",
-      "unexplored locations" },
+      "locations next to unexplored locations" },
     { "anything interesting", "interesting thing", "anything interesting",
       "anything interesting" },
     { "any valid locations", "valid location", "valid location",
@@ -67,21 +73,31 @@ static const char *const gloc_filtertxt[NUM_GFILTER] = {
     " in this area"
 };
 
-void
+static void
 getpos_help_keyxhelp(tmpwin, k1, k2, gloc)
 winid tmpwin;
 const char *k1;
 const char *k2;
 int gloc;
 {
-    char sbuf[BUFSZ];
+    char sbuf[BUFSZ], fbuf[QBUFSZ];
+    const char *move_cursor_to = "move the cursor to ",
+               *filtertxt = gloc_filtertxt[iflags.getloc_filter];
 
+    if (gloc == GLOC_EXPLORE) {
+        /* default of "move to unexplored location" is inaccurate
+           because the position will be one spot short of that */
+        move_cursor_to = "move the cursor next to an ";
+        if (iflags.getloc_usemenu)
+            /* default is too wide for basic 80-column tty so shorten it
+               to avoid wrapping */
+            filtertxt = strsubst(strcpy(fbuf, filtertxt),
+                                 "this area", "area");
+    }
     Sprintf(sbuf, "Use '%s'/'%s' to %s%s%s.",
             k1, k2,
-            iflags.getloc_usemenu ? "get a menu of "
-                                  : "move the cursor to ",
-            gloc_descr[gloc][2 + iflags.getloc_usemenu],
-            gloc_filtertxt[iflags.getloc_filter]);
+            iflags.getloc_usemenu ? "get a menu of " : move_cursor_to,
+            gloc_descr[gloc][2 + iflags.getloc_usemenu], filtertxt);
     putstr(tmpwin, 0, sbuf);
 }
 
@@ -133,8 +149,8 @@ const char *goal;
                              visctrl(g.Cmd.spkeys[NHKF_GETPOS_UNEX_PREV]),
                              GLOC_EXPLORE);
         getpos_help_keyxhelp(tmpwin,
-                             visctrl(g.Cmd.spkeys[NHKF_GETPOS_INTERESTING_NEXT]),
-                             visctrl(g.Cmd.spkeys[NHKF_GETPOS_INTERESTING_PREV]),
+                          visctrl(g.Cmd.spkeys[NHKF_GETPOS_INTERESTING_NEXT]),
+                          visctrl(g.Cmd.spkeys[NHKF_GETPOS_INTERESTING_PREV]),
                              GLOC_INTERESTING);
     }
     Sprintf(sbuf, "Use '%s' to change fast-move mode to %s.",
@@ -239,15 +255,14 @@ const void *b;
 
 #define IS_UNEXPLORED_LOC(x,y) \
     (isok((x), (y))                                     \
-     && glyph_is_cmap(levl[(x)][(y)].glyph)             \
-     && levl[(x)][(y)].glyph == GLYPH_UNEXPLORED        \
+     && glyph_is_unexplored(levl[(x)][(y)].glyph)   \
      && !levl[(x)][(y)].seenv)
 
 #define GLOC_SAME_AREA(x,y)                                     \
     (isok((x), (y))                                             \
      && (selection_getpoint((x),(y), g.gloc_filter_map)))
 
-int
+static int
 gloc_filter_classify_glyph(glyph)
 int glyph;
 {
@@ -290,7 +305,7 @@ int x, y;
     return FALSE;
 }
 
-void
+static void
 gloc_filter_floodfill(x, y)
 int x, y;
 {
@@ -300,7 +315,7 @@ int x, y;
     selection_floodfill(g.gloc_filter_map, x, y, FALSE);
 }
 
-void
+static void
 gloc_filter_init()
 {
     if (iflags.getloc_filter == GFILTER_AREA) {
@@ -321,7 +336,7 @@ gloc_filter_init()
     }
 }
 
-void
+static void
 gloc_filter_done()
 {
     if (g.gloc_filter_map) {
@@ -335,10 +350,7 @@ static boolean
 gather_locs_interesting(x, y, gloc)
 int x, y, gloc;
 {
-    /* TODO: if glyph is a pile glyph, convert to ordinary one
-     *       in order to keep tail/boulder/rock check simple.
-     */
-    int glyph = glyph_at(x, y);
+    int glyph, sym;
 
     if (iflags.getloc_filter == GFILTER_VIEW && !cansee(x, y))
         return FALSE;
@@ -347,6 +359,8 @@ int x, y, gloc;
         && !GLOC_SAME_AREA(x + 1, y) && !GLOC_SAME_AREA(x, y + 1))
         return FALSE;
 
+    glyph = glyph_at(x, y);
+    sym = glyph_is_cmap(glyph) ? glyph_to_cmap(glyph) : -1;
     switch (gloc) {
     default:
     case GLOC_MONS:
@@ -360,43 +374,41 @@ int x, y, gloc;
                 && glyph != objnum_to_glyph(ROCK));
     case GLOC_DOOR:
         return (glyph_is_cmap(glyph)
-                && (is_cmap_door(glyph_to_cmap(glyph))
-                    || is_cmap_drawbridge(glyph_to_cmap(glyph))
-                    || glyph_to_cmap(glyph) == S_ndoor));
+                && (is_cmap_door(sym)
+                    || is_cmap_drawbridge(sym)
+                    || sym == S_ndoor));
     case GLOC_EXPLORE:
         return (glyph_is_cmap(glyph)
-                && (is_cmap_door(glyph_to_cmap(glyph))
-                    || is_cmap_drawbridge(glyph_to_cmap(glyph))
-                    || glyph_to_cmap(glyph) == S_ndoor
-                    || glyph_to_cmap(glyph) == S_room
-                    || glyph_to_cmap(glyph) == S_darkroom
-                    || glyph_to_cmap(glyph) == S_corr
-                    || glyph_to_cmap(glyph) == S_litcorr)
+                && !glyph_is_nothing(glyph_to_cmap(glyph))
+                && (is_cmap_door(sym)
+                    || is_cmap_drawbridge(sym)
+                    || sym == S_ndoor
+                    || is_cmap_room(sym)
+                    || is_cmap_corr(sym))
                 && (IS_UNEXPLORED_LOC(x + 1, y)
                     || IS_UNEXPLORED_LOC(x - 1, y)
                     || IS_UNEXPLORED_LOC(x, y + 1)
                     || IS_UNEXPLORED_LOC(x, y - 1)));
     case GLOC_VALID:
         if (getpos_getvalid)
-            return (*getpos_getvalid)(x,y);
+            return (*getpos_getvalid)(x, y);
         /*FALLTHRU*/
     case GLOC_INTERESTING:
-        return gather_locs_interesting(x,y, GLOC_DOOR)
-            || !(glyph_is_cmap(glyph)
-                 && (is_cmap_wall(glyph_to_cmap(glyph))
-                     || glyph_to_cmap(glyph) == S_tree
-                     || glyph_to_cmap(glyph) == S_bars
-                     || glyph_to_cmap(glyph) == S_ice
-                     || glyph_to_cmap(glyph) == S_air
-                     || glyph_to_cmap(glyph) == S_cloud
-                     || glyph_to_cmap(glyph) == S_lava
-                     || glyph_to_cmap(glyph) == S_water
-                     || glyph_to_cmap(glyph) == S_pool
-                     || glyph_to_cmap(glyph) == S_ndoor
-                     || glyph_to_cmap(glyph) == S_room
-                     || glyph_to_cmap(glyph) == S_darkroom
-                     || glyph_to_cmap(glyph) == S_corr
-                     || glyph_to_cmap(glyph) == S_litcorr));
+        return (gather_locs_interesting(x, y, GLOC_DOOR)
+                || !((glyph_is_cmap(glyph)
+                      && (is_cmap_wall(sym)
+                          || sym == S_tree
+                          || sym == S_bars
+                          || sym == S_ice
+                          || sym == S_air
+                          || sym == S_cloud
+                          || is_cmap_lava(sym)
+                          || is_cmap_water(sym)
+                          || sym == S_ndoor
+                          || is_cmap_room(sym)
+                          || is_cmap_corr(sym)))
+                     || glyph_is_nothing(glyph)
+                     || glyph_is_unexplored(glyph)));
     }
     /*NOTREACHED*/
     return FALSE;
@@ -544,7 +556,7 @@ int cx, cy;
     if (do_screen_description(cc, TRUE, sym, tmpbuf, &firstmatch,
                               (struct permonst **) 0)) {
         (void) coord_desc(cx, cy, tmpbuf, iflags.getpos_coords);
-        custompline(SUPPRESS_HISTORY,
+        custompline((SUPPRESS_HISTORY | OVERRIDE_MSGTYPE),
                     "%s%s%s%s%s", firstmatch, *tmpbuf ? " " : "", tmpbuf,
                     (iflags.autodescribe
                      && getpos_getvalid && !(*getpos_getvalid)(cx, cy))
@@ -574,7 +586,7 @@ int gloc;
     if (gcount < 2) { /* gcount always includes the hero */
         free((genericptr_t) garr);
         You("cannot %s %s.",
-            iflags.getloc_filter == GFILTER_VIEW ? "see" : "detect",
+            (iflags.getloc_filter == GFILTER_VIEW) ? "see" : "detect",
             gloc_descr[gloc][0]);
         return FALSE;
     }
@@ -1184,7 +1196,8 @@ do_mname()
                     || mtmp->data->msound <= MS_ANIMAL)) {
         if (!alreadynamed(mtmp, monnambuf, buf))
             verbalize("I'm %s, not %s.", shkname(mtmp), buf);
-    } else if (mtmp->ispriest || mtmp->isminion || mtmp->isshk) {
+    } else if (mtmp->ispriest || mtmp->isminion || mtmp->isshk
+               || mtmp->data == &mons[PM_GHOST] || has_ebones(mtmp)) {
         if (!alreadynamed(mtmp, monnambuf, buf))
             pline("%s will not accept the name %s.", upstart(monnambuf), buf);
     } else
@@ -1292,18 +1305,30 @@ struct obj * wpn;
         "%s of Omen",     "%s of Truth",   "%s of Virtue",   "%s of Bloodlust",
         "%s of Disaster", "%s of Torment", "%s of Doom",     "%s of the Gods",
         "%s of the Horde","%s of Gilgamesh","%s of the Planes",
-        "%s of Excellence", "%s of Swift Defeat",
+        "%s of Excellence", "%s of Vengeance", "%s of Swift Defeat",
+        "%s of Protection", "%s of Insanity",
         "Righteous %s",   "Mighty %s",     "Unstoppable %s", "Sacred %s",
         "Holy %s",        "Lucky %s",      "Dudley's %s",    "Chaos %s",
         "Hungry %s",      "Inexorable %s", "Virtuous %s",    "Death %s",
+        "Unlimited %s",   "Infinite %s",   "Chaos %s",       "Peerless %s",
         "Due Process",    "Puddingbane",   "Vladsbane",      "Newtsbane",
         "Monster Slayer", "Orphan Maker",  "Aggressive Negotiation",
-        "Old Reliable",   "Barman's Friend"
+        "Old Reliable",   "Punisher",      "Barman's Friend"
     };
 
+    char buf[BUFSZ];
+    if (!rn2(25 - (2 * wpn->spe))) {
+        char nbuf[PL_NSIZ+1];
+        const char* ttname = tt_name();
+        if (ttname) {
+            Strcpy(nbuf, ttname);
+            Sprintf(buf, "%s of %s", upstart(basename), upstart(nbuf));
+            return oname(wpn, buf);
+        }
+        /* if a name couldn't be found, fall through to default */
+    }
     const char* name = wpn_names[rn2(SIZE(wpn_names))];
     if (strstri(name, "%s")) {
-        char buf[BUFSZ];
         Sprintf(buf, name, upstart(basename));
         return oname(wpn, buf);
     }
@@ -1382,7 +1407,7 @@ const char *name;
 
 static NEARDATA const char callable[] = {
     SCROLL_CLASS, POTION_CLASS, WAND_CLASS,  RING_CLASS, AMULET_CLASS,
-    GEM_CLASS,    SPBOOK_CLASS, ARMOR_CLASS, TOOL_CLASS, 0
+    GEM_CLASS,    SPBOOK_CLASS, ARMOR_CLASS, TOOL_CLASS, VENOM_CLASS, 0
 };
 
 static int
@@ -1685,6 +1710,7 @@ rndghostname()
  * l_monnam:    newt            it      invisible orc           dog called Fido
  * Monnam:      The newt        It      The invisible orc       Fido
  * noit_Monnam: The newt (as if detected) The invisible orc     Fido
+ * adj_monnam:  the poor newt   It      the poor invisible orc  the poor Fido
  * Adjmonnam:   The poor newt   It      The poor invisible orc  The poor Fido
  * Amonnam:     A newt          It      An invisible orc        Fido
  * a_monnam:    a newt          it      an invisible orc        Fido
@@ -1817,6 +1843,9 @@ boolean called;
 
         if (mdat == &mons[PM_GHOST]) {
             Sprintf(eos(buf), "%s ghost", s_suffix(name));
+            name_at_start = TRUE;
+        } else if (has_ebones(mtmp)) {
+            Sprintf(eos(buf), "the %s of %s", pm_name, name);
             name_at_start = TRUE;
         } else if (called) {
             Sprintf(eos(buf), "%s called %s", pm_name, name);
@@ -1967,13 +1996,21 @@ struct monst *mtmp;
 }
 
 char *
+adj_monnam(mtmp, adj)
+struct monst *mtmp;
+const char *adj;
+{
+    return x_monnam(mtmp, ARTICLE_THE, adj,
+                    has_mname(mtmp) ? SUPPRESS_SADDLE : 0, FALSE);
+}
+
+/* Equivalent to adj_monnam(), but uppercases the result. */
+char *
 Adjmonnam(mtmp, adj)
 struct monst *mtmp;
 const char *adj;
 {
-    char *bp = x_monnam(mtmp, ARTICLE_THE, adj,
-                        has_mname(mtmp) ? SUPPRESS_SADDLE : 0, FALSE);
-
+    char *bp = adj_monnam(mtmp, adj);
     *bp = highc(*bp);
     return  bp;
 }
@@ -2454,6 +2491,104 @@ struct monst *mtmp;
         }
     }
     return;
+}
+
+/* Return a string describing how wounded a monster is.
+ * This is in do_name.c only because it gives us access to nextmbuf().
+ */
+char *
+mon_wounds(mon)
+struct monst *mon;
+{
+    char *outbuf;
+    const struct permonst *mdat = mon->data;
+    const char *adverb, *adjective;
+
+    /* Cases where you can't see wounds. */
+    if (!Role_if(PM_HEALER) || !canseemon(mon)
+        || (u.uswallow && mon == u.ustuck && Blind)) {
+        return NULL;
+    }
+    if (mon->mhp == mon->mhpmax || DEADMONSTER(mon)) {
+        return NULL;
+    }
+
+    adjective = is_fleshy(mdat) ? "wounded" : "damaged";
+
+    if (Hallucination) {
+        const char *wound_adverbs[] = {
+            "mildly", "mostly", "somewhat", "lightly", "massively", "extremely",
+            "flagrantly", "flamboyantly", "supremely", "excessively", "truly",
+            "terribly", "incredibly", "unbelievably", "obscenely", "insanely",
+            "amazingly", "absolutely"
+        };
+        const char *wound_adjectives[] = {
+            "bloodied", "bruised", "crushed", "marred", "blemished",
+            "dinged up", "totaled", "wrecked", "beaten up", "defaced",
+            "pulverized", "battered", "tarnished", "ruined", "mangled"
+        };
+        adverb = wound_adverbs[rn2(SIZE(wound_adverbs))];
+        adjective = wound_adjectives[rn2(SIZE(wound_adjectives))];
+    }
+    else if (mon->mhp * 6 <= mon->mhpmax) {     /* <= 16.6% */
+        adverb = "critically";
+    }
+    else if (mon->mhp * 4 <= mon->mhpmax) {     /* <= 25%   */
+        adverb = "badly";
+    }
+    else if (mon->mhp * 3 <= mon->mhpmax) {     /* <= 33.3% */
+        adverb = "seriously";
+    }
+    else if (mon->mhp * 4 <= mon->mhpmax * 3) { /* <= 75%   */
+        adverb = "moderately";
+    }
+    else {                                      /*  < 100%  */
+        adverb = "slightly";
+    }
+
+    outbuf = nextmbuf();
+    Sprintf(outbuf, "%s %s", adverb, adjective);
+    return outbuf;
+}
+
+/* Print a message indicating that mon is wounded.
+ * It will only print something if the monster's wound adjective changes (e.g.
+ * if it goes from slightly wounded to moderately wounded).
+ * pre_wound_hp is its HP amount before being damaged in the caller of this
+ * function; the caller must save its initial HP to pass through to this.
+ */
+void
+print_mon_wounded(mon, pre_wound_hp)
+struct monst *mon;
+int pre_wound_hp;
+{
+    int mcurrhp;
+    char *m_old_wounds, *m_curr_wounds;
+
+    if (!mon) {
+        impossible("print_mon_wounded: null mon!");
+        return;
+    }
+    if (!Role_if(PM_HEALER)) {
+        return;  /* optimization; redundant with healer check in mon_wounds */
+    }
+    if (mon->mhp == pre_wound_hp && !Hallucination) {
+        /* impossible for adjective to change */
+        return;
+    }
+
+    mcurrhp = mon->mhp;
+    mon->mhp = pre_wound_hp;
+    m_old_wounds = mon_wounds(mon);
+    mon->mhp = mcurrhp;
+
+    m_curr_wounds = mon_wounds(mon);
+
+    if (m_curr_wounds != NULL
+        && (Hallucination || m_old_wounds == NULL
+            || strcmp(m_old_wounds, m_curr_wounds))) {
+        pline("%s is %s.", Monnam(mon), m_curr_wounds);
+    }
 }
 
 /*do_name.c*/

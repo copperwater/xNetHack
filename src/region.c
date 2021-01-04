@@ -1,4 +1,4 @@
-/* NetHack 3.6	region.c	$NHDT-Date: 1579655029 2020/01/22 01:03:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.60 $ */
+/* NetHack 3.7	region.c	$NHDT-Date: 1596498203 2020/08/03 23:43:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.65 $ */
 /* Copyright (c) 1996 by Jean-Christophe Collet  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -15,7 +15,6 @@
 boolean FDECL(inside_gas_cloud, (genericptr, genericptr));
 boolean FDECL(expire_gas_cloud, (genericptr, genericptr));
 boolean FDECL(inside_rect, (NhRect *, int, int));
-boolean FDECL(inside_region, (NhRegion *, int, int));
 NhRegion *FDECL(create_region, (NhRect *, int));
 void FDECL(add_rect_to_reg, (NhRegion *, NhRect *));
 void FDECL(add_mon_to_reg, (NhRegion *, struct monst *));
@@ -308,10 +307,16 @@ NhRegion *reg;
             /* Some regions can cross the level boundaries */
             if (!isok(i, j))
                 continue;
-            if (MON_AT(i, j) && inside_region(reg, i, j))
+            boolean i_j_inside = inside_region(reg, i, j);
+            if (MON_AT(i, j) && i_j_inside)
                 add_mon_to_reg(reg, g.level.monsters[i][j]);
-            if (reg->visible && cansee(i, j))
-                newsym(i, j);
+            if (reg->visible) {
+                if (i_j_inside) {
+                    block_point(i, j); /* vision */
+                }
+                if (cansee(i, j))
+                    newsym(i, j);
+            }
         }
     /* Check for player now... */
     if (inside_region(reg, u.ux, u.uy))
@@ -345,8 +350,12 @@ NhRegion *reg;
     if (reg->visible)
         for (x = reg->bounding_box.lx; x <= reg->bounding_box.hx; x++)
             for (y = reg->bounding_box.ly; y <= reg->bounding_box.hy; y++)
-                if (isok(x, y) && inside_region(reg, x, y) && cansee(x, y))
-                    newsym(x, y);
+                if (isok(x, y) && inside_region(reg, x, y)) {
+                    /*if (!sobj_at(BOULDER, x, y))
+                          unblock_point(x, y);*/
+                    if (cansee(x, y))
+                        newsym(x, y);
+                }
 
     free_region(reg);
 }
@@ -532,7 +541,8 @@ update_player_regions()
     register int i;
 
     for (i = 0; i < g.n_regions; i++)
-        if (!g.regions[i]->attach_2_u && inside_region(g.regions[i], u.ux, u.uy))
+        if (!g.regions[i]->attach_2_u
+            && inside_region(g.regions[i], u.ux, u.uy))
             set_hero_inside(g.regions[i]);
         else
             clear_hero_inside(g.regions[i]);
@@ -981,6 +991,9 @@ genericptr_t p2 UNUSED;
 {
     NhRegion *reg;
     int damage;
+    int x, y;
+    boolean dissipation_seen = FALSE;
+    boolean dissipation_within = FALSE;
 
     reg = (NhRegion *) p1;
     damage = reg->arg.a_int;
@@ -993,26 +1006,48 @@ genericptr_t p2 UNUSED;
         reg->ttl = 2L; /* Here's the trick : reset ttl */
         return FALSE;  /* THEN return FALSE, means "still there" */
     }
+    /* The cloud no longer blocks vision. */
+    for (x = reg->bounding_box.lx; x <= reg->bounding_box.hx; x++) {
+        for (y = reg->bounding_box.ly; y <= reg->bounding_box.hy; y++) {
+            if (inside_region(reg, x, y) && !does_block(x, y, &levl[x][y])) {
+                unblock_point(x, y);
+            }
+            if (x == u.ux && y == u.uy) {
+                dissipation_within = TRUE;
+            }
+            if (cansee(x, y)) {
+                dissipation_seen = TRUE;
+            }
+        }
+    }
+    if (dissipation_within) {
+        pline("The gas cloud enveloping you dissipates.");
+    }
+    else if (dissipation_seen) {
+        You_see("a gas cloud dissipate.");
+    }
     return TRUE; /* OK, it's gone, you can free it! */
 }
 
+/* returns True if p2 is killed by region p1, False otherwise */
 boolean
 inside_gas_cloud(p1, p2)
 genericptr_t p1;
 genericptr_t p2;
 {
-    NhRegion *reg;
-    struct monst *mtmp;
-    int dam;
+    NhRegion *reg = (NhRegion *) p1;
+    struct monst *mtmp = (struct monst *) p2;
+    int dam = reg->arg.a_int;
 
     /*
      * Gas clouds can't be targetted at water locations, but they can
      * start next to water and spread over it.
      */
 
-    reg = (NhRegion *) p1;
-    dam = reg->arg.a_int;
-    if (p2 == (genericptr_t) 0) { /* This means *YOU* Bozo! */
+    if (dam < 1)
+        return FALSE; /* if no damage then there's nothing to do here... */
+
+    if (!mtmp) { /* hero is indicated by Null rather than by &youmonst */
         if (m_poisongas_ok(&g.youmonst) == M_POISONGAS_OK)
             return FALSE;
         if (!Blind) {
@@ -1065,6 +1100,7 @@ genericptr_t p2;
  * breadth-first search.
  * cloudsize is the number of squares the cloud will attempt to fill.
  * damage is how much it deals to afflicted creatures. */
+#define MAX_CLOUD_SIZE 150
 NhRegion *
 create_gas_cloud(x, y, cloudsize, damage)
 xchar x, y;
@@ -1076,12 +1112,17 @@ int damage;
     NhRect tmprect;
 
     /* store visited coords */
-    xchar xcoords[cloudsize];
-    xchar ycoords[cloudsize];
+    xchar xcoords[MAX_CLOUD_SIZE];
+    xchar ycoords[MAX_CLOUD_SIZE];
     xcoords[0] = x;
     ycoords[0] = y;
     int curridx;
     int newidx = 1; /* initial spot is already taken */
+
+    if (cloudsize > MAX_CLOUD_SIZE) {
+        impossible("create_gas_cloud: cloud too large (%d)!", cloudsize);
+        cloudsize = MAX_CLOUD_SIZE;
+    }
 
     for (curridx = 0; curridx < newidx; curridx++) {
         if (newidx >= cloudsize)
@@ -1212,11 +1253,9 @@ region_safety()
         safe_teleds(TELEDS_TELEPORT);
     } else if (r) {
         remove_region(r);
-        pline_The("gas cloud enveloping you dissipates.");
-    } else {
-        /* cloud dissipated on its own, so nothing needs to be done */
-        pline_The("gas cloud has dissipated.");
     }
+    /* else cloud dissipated on its own, so nothing needs to be done */
+
     /* maybe cure blindness too */
     if ((Blinded & TIMEOUT) == 1L)
         make_blinded(0L, TRUE);

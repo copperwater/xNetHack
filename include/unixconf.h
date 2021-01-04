@@ -1,4 +1,4 @@
-/* NetHack 3.6	unixconf.h	$NHDT-Date: 1555361298 2019/04/15 20:48:18 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.42 $ */
+/* NetHack 3.7	unixconf.h	$NHDT-Date: 1607461111 2020/12/08 20:58:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.49 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -185,7 +185,7 @@
    read within game, from demon-delivered mail scrolls.
    The mail spool file will be deleted once the player
    has read the message. */
-#define SIMPLE_MAIL 
+#define SIMPLE_MAIL
 
 #ifndef MAILCKFREQ
 /* How often mail spool file is checked for new messages, in turns */
@@ -197,7 +197,7 @@
 /* If SERVER_ADMIN_MSG is defined and the file exists, players get
    a message from the user defined in the file.  The file format
    is "sender:message" all in one line. */
-#define SERVER_ADMIN_MSG "adminmsg" 
+#define SERVER_ADMIN_MSG "adminmsg"
 #ifndef SERVER_ADMIN_MSG_CKFREQ
 /* How often admin message file is checked for new messages, in turns */
 #define SERVER_ADMIN_MSG_CKFREQ 25
@@ -273,8 +273,11 @@
 #endif
 #endif
 #endif
+
+#ifndef NOSUSPEND
 #if defined(BSD_JOB_CONTROL) || defined(POSIX_JOB_CONTROL) || defined(AUX)
-#define SUSPEND /* let ^Z suspend the game */
+#define SUSPEND /* let ^Z suspend the game (push to background) */
+#endif
 #endif
 
 /*
@@ -389,7 +392,7 @@
 #endif /* LINUX */
 #endif /* GNOME_GRAPHICS */
 
-#ifdef MACOSX
+#if defined(MACOSX) && !defined(LIBNH)
 # define RUNTIME_PASTEBUF_SUPPORT
 #endif
 

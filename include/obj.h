@@ -1,4 +1,4 @@
-/* NetHack 3.6	obj.h	$NHDT-Date: 1580036271 2020/01/26 10:57:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.66 $ */
+/* NetHack 3.7	obj.h	$NHDT-Date: 1604620981 2020/11/06 00:03:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.79 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -16,15 +16,14 @@ union vptrs {
 };
 
 /****
- ***	oextra -- collection of all object extensions
- **	(see the note at the bottom of this file before adding oextra fields)
+ ***    oextra -- collection of all object extensions
+ **     (see the note at the bottom of this file before adding oextra fields)
  */
 struct oextra {
     char *oname;          /* ptr to name of object */
     struct monst *omonst; /* ptr to attached monst struct */
-    unsigned *omid;       /* ptr to m_id */
-    long *olong;          /* ptr to misc long (temporary gold object) */
-    char *omailcmd;       /* response_cmd for mail deliver */
+    char *omailcmd;       /* response_cmd for mail delivery */
+    unsigned omid;        /* for corpse; m_id of corpse's ghost */
 };
 
 struct obj {
@@ -45,6 +44,7 @@ struct obj {
                   number of charges for wand or charged tool ( >= -1 );
                   number of candles attached to candelabrum;
                   marks your eggs, tin variety and spinach tins;
+                  candy bar wrapper index;
                   Schroedinger's Box (1) or royal coffers for a court (2);
                   tells which fruit a fruit is;
                   special for uball and amulet;
@@ -90,11 +90,12 @@ struct obj {
 #define MAX_ERODE 3
 #define orotten oeroded  /* rotten food */
 #define odiluted oeroded /* diluted potions */
-#define norevive oeroded2
+#define norevive oeroded2 /* frozen corpse */
     Bitfield(oerodeproof, 1); /* erodeproof weapon/armor */
     Bitfield(olocked, 1);     /* object is locked */
     Bitfield(obroken, 1);     /* lock has been broken */
 #define degraded_horn obroken /* unicorn horn will poly to non-magic */
+#define tamed_zombie obroken  /* corpse is a zombie that will revive tame */
     Bitfield(otrapped, 1);    /* container is trapped */
 /* or accidental tripped rolling boulder trap */
 #define opoisoned otrapped /* object (weapon) is coated with poison */
@@ -109,17 +110,18 @@ struct obj {
     Bitfield(was_thrown, 1); /* thrown by hero since last picked up */
 
     Bitfield(material, 5); /* material this obj is made of */
-    Bitfield(in_use, 1);   /* for magic items before useup items */
-    Bitfield(bypass, 1);   /* mark this as an object to be skipped by bhito() */
-    Bitfield(cknown, 1);   /* contents of container assumed to be known */
-
-    Bitfield(lknown, 1);   /* locked/unlocked status is known */
+    Bitfield(in_use, 1); /* for magic items before useup items */
+    Bitfield(bypass, 1); /* mark this as an object to be skipped by bhito() */
+    Bitfield(cknown, 1); /* for containers (including statues): the contents
+                          * are known; also applicable to tins */
+    Bitfield(lknown, 1); /* locked/unlocked status is known */
     /* 7 free bits */
 
     int corpsenm;         /* type of corpse is mons[corpsenm] */
 #define leashmon corpsenm /* gets m_id of attached pet */
 #define fromsink corpsenm /* a potion from a sink */
 #define novelidx corpsenm /* 3.6 tribute - the index of the novel title */
+#define migr_species corpsenm /* species to endow for MIGR_TO_SPECIES */
     int usecount;           /* overloaded for various things that tally */
 #define spestudied usecount /* # of times a spellbook has been studied */
 #define tinseed usecount    /* seed for tin labels */
@@ -129,38 +131,38 @@ struct obj {
 #define migrateflags owornmask /* migrating objects can't be worn anyway */
     xchar mgrx, mgry;       /* when migrating, travel to these coords */
     unsigned lua_ref_cnt;  /* # of lua script references for this object */
+    xchar omigr_from_dnum; /* where obj is migrating from */
+    xchar omigr_from_dlevel; /* where obj is migrating from */
     struct oextra *oextra; /* pointer to oextra struct */
 };
 
 #define newobj() (struct obj *) alloc(sizeof(struct obj))
 
 /***
- **	oextra referencing and testing macros
+ **     oextra referencing and testing macros
  */
 
 #define ONAME(o) ((o)->oextra->oname)
-#define OMID(o) ((o)->oextra->omid)
 #define OMONST(o) ((o)->oextra->omonst)
-#define OLONG(o) ((o)->oextra->olong)
 #define OMAILCMD(o) ((o)->oextra->omailcmd)
+#define OMID(o) ((o)->oextra->omid) /* non-zero => set, zero => not set */
 
 #define has_oname(o) ((o)->oextra && ONAME(o))
-#define has_omid(o) ((o)->oextra && OMID(o))
 #define has_omonst(o) ((o)->oextra && OMONST(o))
-#define has_olong(o) ((o)->oextra && OLONG(o))
 #define has_omailcmd(o) ((o)->oextra && OMAILCMD(o))
+#define has_omid(o) ((o)->oextra && OMID(o))
 
 /* Weapons and weapon-tools */
 /* KMH -- now based on skill categories.  Formerly:
- *	#define is_sword(otmp)	(otmp->oclass == WEAPON_CLASS && \
- *			 objects[otmp->otyp].oc_wepcat == WEP_SWORD)
- *	#define is_blade(otmp)	(otmp->oclass == WEAPON_CLASS && \
- *			 (objects[otmp->otyp].oc_wepcat == WEP_BLADE || \
- *			  objects[otmp->otyp].oc_wepcat == WEP_SWORD))
- *	#define is_weptool(o)	((o)->oclass == TOOL_CLASS && \
- *			 objects[(o)->otyp].oc_weptool)
- *	#define is_multigen(otyp) (otyp <= SHURIKEN)
- *	#define is_poisonable(otyp) (otyp <= BEC_DE_CORBIN)
+ *      #define is_sword(otmp)  (otmp->oclass == WEAPON_CLASS && \
+ *                       objects[otmp->otyp].oc_wepcat == WEP_SWORD)
+ *      #define is_blade(otmp)  (otmp->oclass == WEAPON_CLASS && \
+ *                       (objects[otmp->otyp].oc_wepcat == WEP_BLADE || \
+ *                        objects[otmp->otyp].oc_wepcat == WEP_SWORD))
+ *      #define is_weptool(o)   ((o)->oclass == TOOL_CLASS && \
+ *                       objects[(o)->otyp].oc_weptool)
+ *      #define is_multigen(otyp) (otyp <= SHURIKEN)
+ *      #define is_poisonable(otyp) (otyp <= BEC_DE_CORBIN)
  */
 #define is_blade(otmp)                           \
     (otmp->oclass == WEAPON_CLASS                \
@@ -216,6 +218,14 @@ struct obj {
 #define uslinging() (uwep && objects[uwep->otyp].oc_skill == P_SLING)
 /* 'is_quest_artifact()' only applies to the current role's artifact */
 #define any_quest_artifact(o) ((o)->oartifact >= ART_ORB_OF_DETECTION)
+/* used by will_weld() */
+/* probably should be renamed */
+#define erodeable_wep(optr)                             \
+    ((optr)->oclass == WEAPON_CLASS || is_weptool(optr) \
+     || (optr)->otyp == HEAVY_IRON_BALL || (optr)->otyp == IRON_CHAIN)
+/* used by welded(), and also while wielding */
+#define will_weld(optr) \
+    ((optr)->cursed && (erodeable_wep(optr) || (optr)->otyp == TIN_OPENER))
 
 /* Armor */
 #define is_shield(otmp)          \
@@ -257,11 +267,16 @@ struct obj {
 #define stale_egg(egg) \
     ((g.monstermoves - (egg)->age) > (2 * MAX_EGG_HATCH_TIME))
 #define ofood(o) ((o)->otyp == CORPSE || (o)->otyp == EGG || (o)->otyp == TIN)
-#define polyfodder(obj) (ofood(obj) && pm_to_cham((obj)->corpsenm) != NON_PM)
+    /* note: sometimes eggs and tins have special corpsenm values that
+       shouldn't be used as an index into mons[]                       */
+#define polyfodder(obj) \
+    (ofood(obj) && (obj)->corpsenm >= LOW_PM                            \
+     && (pm_to_cham((obj)->corpsenm) != NON_PM                          \
+                    || dmgtype(&mons[(obj)->corpsenm], AD_POLY)))
 #define mlevelgain(obj) (ofood(obj) && (obj)->corpsenm == PM_WRAITH)
 #define mhealup(obj) (ofood(obj) && (obj)->corpsenm == PM_NURSE)
-#define Is_pudding(o)                                                 \
-    (o->otyp == GLOB_OF_GRAY_OOZE || o->otyp == GLOB_OF_BROWN_PUDDING \
+#define Is_pudding(o) \
+    (o->otyp == GLOB_OF_GRAY_OOZE || o->otyp == GLOB_OF_BROWN_PUDDING   \
      || o->otyp == GLOB_OF_GREEN_SLIME || o->otyp == GLOB_OF_BLACK_PUDDING)
 
 /* Containers */
@@ -316,22 +331,26 @@ struct obj {
     (otmp->otyp == TALLOW_CANDLE || otmp->otyp == WAX_CANDLE)
 #define MAX_OIL_IN_FLASK 400 /* maximum amount of oil in a potion of oil */
 
-/* MAGIC_LAMP intentionally excluded below */
-/* age field of this is relative age rather than absolute */
-#define age_is_relative(otmp)                                       \
+/* age field of this is relative age rather than absolute; does not include
+   magic lamp */
+#define age_is_relative(otmp) \
     ((otmp)->otyp == LANTERN || (otmp)->otyp == OIL_LAMP      \
      || (otmp)->otyp == CANDELABRUM_OF_INVOCATION                   \
      || (otmp)->otyp == TALLOW_CANDLE || (otmp)->otyp == WAX_CANDLE \
      || (otmp)->otyp == POT_OIL)
-/* object can be ignited */
-#define ignitable(otmp)                                             \
+/* object can be ignited; magic lamp used to excluded here too but all
+   usage of this macro ended up testing
+     (ignitable(obj) || obj->otyp == MAGIC_LAMP)
+   so include it; brass lantern can be lit but not by fire */
+#define ignitable(otmp) \
     ((otmp)->otyp == LANTERN || (otmp)->otyp == OIL_LAMP      \
+     || ((otmp)->otyp == MAGIC_LAMP && (otmp)->spe > 0)             \
      || (otmp)->otyp == CANDELABRUM_OF_INVOCATION                   \
      || (otmp)->otyp == TALLOW_CANDLE || (otmp)->otyp == WAX_CANDLE \
      || (otmp)->otyp == POT_OIL)
 
 /* things that can be read */
-#define is_readable(otmp)                                                    \
+#define is_readable(otmp) \
     ((otmp)->otyp == FORTUNE_COOKIE || (otmp)->otyp == T_SHIRT               \
      || (otmp)->otyp == ALCHEMY_SMOCK || (otmp)->otyp == CREDIT_CARD         \
      || (otmp)->otyp == CAN_OF_GREASE || (otmp)->otyp == MAGIC_MARKER        \
@@ -358,6 +377,10 @@ struct obj {
          && !undiscovered_artifact(ART_EYES_OF_THE_OVERWORLD)))
 #define pair_of(o) ((o)->otyp == LENSES || is_gloves(o) || is_boots(o))
 #define undroppable(o) ( FALSE )
+
+#define unpolyable(o) ((o)->otyp == WAN_POLYMORPH \
+                       || (o)->otyp == SPE_POLYMORPH \
+                       || (o)->otyp == POT_POLYMORPH)
 
 /* achievement tracking; 3.6.x did this differently */
 #define is_mines_prize(o) ((o)->o_id == g.context.achieveo.mines_prize_oid)
@@ -401,43 +424,46 @@ struct obj {
 /*
  *  Notes for adding new oextra structures:
  *
- *	 1. Add the structure definition and any required macros in an
+ *       1. Add the structure definition and any required macros in an
  *          appropriate header file that precedes this one.
- *	 2. Add a pointer to your new struct to oextra struct in this file.
- *	 3. Add a referencing macro to this file after the newobj macro above
- *	    (see ONAME, OMONST, OMIN, OLONG, or OMAILCMD for examples).
- *	 4. Add a testing macro after the set of referencing macros
- *	    (see has_oname(), has_omonst(), has_omin(), has_olong(),
- *	    has_omailcmd() for examples).
- *	 5. Create newXX(otmp) function and possibly free_XX(otmp) function
- *	    in an appropriate new or existing source file and add a prototype
- *	    for it to include/extern.h.  The majority of these are currently
- *	    located in mkobj.c for convenience.
+ *       2. Add a pointer to your new struct to oextra struct in this file.
+ *       3. Add a referencing macro to this file after the newobj macro above
+ *          (see ONAME, OMONST, OMAILCMD, or OMIN for examples).
+ *       4. Add a testing macro after the set of referencing macros
+ *          (see has_oname(), has_omonst(), has_omailcmd(), and has_omin(),
+ *          for examples).
+ *       5. If your new field isn't a pointer and requires a non-zero value
+ *          on initialization, add code to init_oextra() in src/mkobj.c.
+ *       6. Create newXX(otmp) function and possibly free_XX(otmp) function
+ *          in an appropriate new or existing source file and add a prototype
+ *          for it to include/extern.h.  The majority of these are currently
+ *          located in mkobj.c for convenience.
  *
- *		void FDECL(newXX, (struct obj *));
- *	        void FDECL(free_XX, (struct obj *));
+ *          void FDECL(newXX, (struct obj *));
+ *          void FDECL(free_XX, (struct obj *));
  *
- *	          void
- *	          newxx(otmp)
- *	          struct obj *otmp;
- *	          {
- *	              if (!otmp->oextra) otmp->oextra = newoextra();
- *	              if (!XX(otmp)) {
- *	                  XX(otmp) = (struct XX *)alloc(sizeof(struct xx));
- *	                  (void) memset((genericptr_t) XX(otmp),
- *	                             0, sizeof(struct xx));
- *	              }
- *	          }
+ *          void
+ *          newxx(otmp)
+ *          struct obj *otmp;
+ *          {
+ *              if (!otmp->oextra)
+ *                  otmp->oextra = newoextra();
+ *              if (!XX(otmp)) {
+ *                  XX(otmp) = (struct XX *) alloc(sizeof (struct xx));
+ *                  (void) memset((genericptr_t) XX(otmp),
+ *                                0, sizeof (struct xx));
+ *              }
+ *         }
  *
- *	 6. Adjust size_obj() in src/cmd.c appropriately.
- *	 7. Adjust dealloc_oextra() in src/mkobj.c to clean up
- *	    properly during obj deallocation.
- *	 8. Adjust copy_oextra() in src/mkobj.c to make duplicate
- *	    copies of your struct or data onto another obj struct.
- *	 9. Adjust restobj() in src/restore.c to deal with your
- *	    struct or data during a restore.
- *	10. Adjust saveobj() in src/save.c to deal with your
- *	    struct or data during a save.
+ *       7. Adjust size_obj() in src/cmd.c appropriately.
+ *       8. Adjust dealloc_oextra() in src/mkobj.c to clean up
+ *          properly during obj deallocation.
+ *       9. Adjust copy_oextra() in src/mkobj.c to make duplicate
+ *          copies of your struct or data onto another obj struct.
+ *      10. Adjust restobj() in src/restore.c to deal with your
+ *          struct or data during a restore.
+ *      11. Adjust saveobj() in src/save.c to deal with your
+ *          struct or data during a save.
  */
 
 #endif /* OBJ_H */

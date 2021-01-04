@@ -1,4 +1,4 @@
-/* NetHack 3.6	weapon.c	$NHDT-Date: 1579648295 2020/01/21 23:11:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.82 $ */
+/* NetHack 3.7	weapon.c	$NHDT-Date: 1607811730 2020/12/12 22:22:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.89 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -11,6 +11,7 @@
 #include "hack.h"
 
 static void FDECL(give_may_advance_msg, (int));
+static void FDECL(finish_towel_change, (struct obj *obj, int));
 static boolean FDECL(could_advance, (int));
 static boolean FDECL(peaked_skill, (int));
 static int FDECL(slots_required, (int));
@@ -50,7 +51,7 @@ static NEARDATA const char *const odd_skill_names[] = {
     "attack spells", "healing spells", "divination spells",
     "enchantment spells", "clerical spells", "escape spells", "matter spells",
 };
-/* indexed vis `is_martial() */
+/* indexed via is_martial() */
 static NEARDATA const char *const barehands_or_martial[] = {
     "bare handed combat", "martial arts"
 };
@@ -302,37 +303,38 @@ struct monst *mon;
     }
     if (Is_weapon) {
         tmp += otmp->spe;
-    }
 
-    /* adjust for various materials */
+        /* adjust for various materials */
 #define is_odd_material(obj, mat) \
     ((obj)->material == (mat) && !(objects[(obj)->otyp].oc_material == (mat)))
-    if (is_odd_material(otmp, GLASS)
-        && (objects[otmp->otyp].oc_dir & (PIERCE | SLASH))) {
-        /* glass is sharp */
-        tmp += 3;
-    }
-    else if (is_odd_material(otmp, GOLD) || is_odd_material(otmp, PLATINUM)) {
-        /* heavy metals */
-        if (objects[otmp->otyp].oc_dir == WHACK) {
-            tmp += 2;
+        if (is_odd_material(otmp, GLASS)
+            && (objects[otmp->otyp].oc_dir & (PIERCE | SLASH))) {
+            /* glass is sharp */
+            tmp += 3;
         }
-    }
-    else if (is_odd_material(otmp, MINERAL)) {
-        /* stone is heavy */
-        if (objects[otmp->otyp].oc_dir == WHACK) {
-            tmp += 1;
+        else if (is_odd_material(otmp, GOLD) || is_odd_material(otmp, PLATINUM)) {
+            /* heavy metals */
+            if (objects[otmp->otyp].oc_dir == WHACK) {
+                tmp += 2;
+            }
         }
-    }
-    else if (is_odd_material(otmp, PLASTIC) || is_odd_material(otmp, PAPER)) {
-        /* just terrible weapons all around */
-        tmp -= 2;
-    }
-    else if (is_odd_material(otmp, WOOD)) {
-        /* poor at holding an edge */
-        if (is_blade(otmp)) {
-            tmp -= 1;
+        else if (is_odd_material(otmp, MINERAL)) {
+            /* stone is heavy */
+            if (objects[otmp->otyp].oc_dir == WHACK) {
+                tmp += 1;
+            }
         }
+        else if (is_odd_material(otmp, PLASTIC) || is_odd_material(otmp, PAPER)) {
+            /* just terrible weapons all around */
+            tmp -= 2;
+        }
+        else if (is_odd_material(otmp, WOOD)) {
+            /* poor at holding an edge */
+            if (is_blade(otmp)) {
+                tmp -= 1;
+            }
+        }
+#undef is_odd_material
     }
 
     /* negative modifiers mustn't produce negative damage */
@@ -358,8 +360,7 @@ struct monst *mon;
     }
 
     /* Put weapon vs. monster type damage bonuses in below: */
-    if (Is_weapon || otmp->oclass == GEM_CLASS || otmp->oclass == BALL_CLASS
-        || otmp->oclass == CHAIN_CLASS) {
+    {
         int bonus = 0;
 
         if (otmp->blessed
@@ -394,85 +395,111 @@ struct monst *mon;
     return  tmp;
 }
 
-/* check whether blessed and/or material damage applies for *non-weapon* hit;
-   return value is the amount of the extra damage */
+/* Find an object that magr is wearing (or even magr's body itself) that has a
+ * special damaging effect on mdef, and return the amount of bonus damage done.
+ * The most damaging source has precedence; each source that causes special
+ * damage makes its own roll for damage, and the highest roll will be applied.
+ *
+ * hated_obj is set only on objects that cause material hatred; if none of the
+ * applicable objects are of a hated material, it will not be set.
+ */
 int
-special_dmgval(magr, mdef, armask, out_obj)
+special_dmgval(magr, mdef, armask, hated_obj)
 struct monst *magr, *mdef;
-long armask; /* armor mask, multiple bits accepted for W_ARMC|W_ARM|W_ARMU
-              * or W_ARMG|W_RINGL|W_RINGR only */
-struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
+long armask; /* armor mask of all the slots that can be touching mdef */
+struct obj **hated_obj; /* ptr to offending object, can be NULL if not wanted */
 {
-    struct obj *obj;
-    struct permonst *ptr = mdef->data;
-    boolean left_ring = (armask & W_RINGL) ? TRUE : FALSE,
-            right_ring = (armask & W_RINGR) ? TRUE : FALSE;
+    boolean youattack = (magr == &g.youmonst);
+    const int magr_material = monmaterial(monsndx(magr->data));
     int bonus = 0;
+    int tmpbonus = 0;
+    boolean try_body = FALSE;
+    struct obj *gloves    = which_armor(magr, W_ARMG),
+               *helm      = which_armor(magr, W_ARMH),
+               *shield    = which_armor(magr, W_ARMS),
+               *boots     = which_armor(magr, W_ARMF),
+               *armor     = which_armor(magr, W_ARM),
+               *cloak     = which_armor(magr, W_ARMC),
+               *shirt     = which_armor(magr, W_ARMU),
+               *leftring  = (youattack ? uleft : which_armor(magr, W_RINGL)),
+               *rightring = (youattack ? uright : which_armor(magr, W_RINGR));
 
-    obj = 0;
-    if (out_obj)
-        *out_obj = 0;
-    if (armask & (W_ARMC | W_ARM | W_ARMU)) {
-        if ((armask & W_ARMC) != 0L
-            && (obj = which_armor(magr, W_ARMC)) != 0)
-            armask = W_ARMC;
-        else if ((armask & W_ARM) != 0L
-                 && (obj = which_armor(magr, W_ARM)) != 0)
-            armask = W_ARM;
-        else if ((armask & W_ARMU) != 0L
-                 && (obj = which_armor(magr, W_ARMU)) != 0)
-            armask = W_ARMU;
-        else
-            armask = 0L;
-    } else if (armask & (W_ARMG | W_RINGL | W_RINGR)) {
-        armask = ((obj = which_armor(magr, W_ARMG)) != 0) ?  W_ARMG : 0L;
-    } else {
-        obj = which_armor(magr, armask);
+    if (hated_obj) {
+        *hated_obj = 0;
     }
 
-    if (obj) {
-        if (obj->blessed
-            && (is_undead(ptr) || is_demon(ptr) || is_vampshifter(mdef)))
-            bonus += rnd(4);
-        if (mon_hates_material(mdef, obj->material)) {
-            bonus += rnd(sear_damage(obj->material));
-            if (out_obj)
-                *out_obj = obj;
-        }
+    /* Simple exclusions where we ignore a certain type of armor because it is
+     * covered by some other equipment. */
+    if (gloves) {
+        leftring = rightring = NULL;
+    }
+    if (cloak) {
+        armor = shirt = NULL;
+    }
+    if (armor) {
+        shirt = NULL;
+    }
 
-    /* when no gloves we check for rings made of hated material (blessed rings
-     * ignored) */
-    } else if (magr == &g.youmonst) {
-        if (left_ring && uleft
-            && mon_hates_material(mdef, uleft->material)) {
-            bonus += rnd(sear_damage(uleft->material));
-            if (out_obj)
-                *out_obj = uleft;
-        }
-        if (right_ring && uright
-            && mon_hates_material(mdef, uright->material)) {
-            /* What if an enemy hates two kinds of materials and you're
-             * wearing one of each?
-             * The most appropriate flavor is that you're only hitting with
-             * one hand at a time, so if both would apply material damage,
-             * take one or the other hand randomly. */
-            if (*out_obj == uleft && rn2(2)) {
-                /* nothing in this function could have set bonus to 0 before
-                 * this except the left ring case above */
-                bonus = 0;
-                bonus += rnd(sear_damage(uright->material));
-                if (out_obj)
-                    *out_obj = uright;
-            }
-        }
-        /* only apply damage from current form's material if nothing else has
-         * applied damage */
-        if (bonus == 0) {
-            int umaterial = monmaterial(monsndx(g.youmonst.data));
-            if (mon_hates_material(mdef, umaterial)) {
-                bonus += rnd(sear_damage(umaterial));
-                if (out_obj)
-                    *out_obj = (struct obj *) &cg.zeroobj;
+    /* Cases where we want to count magr's body: the caller indicates a certain
+     * slot is making contact, and magr is not wearing anything in that slot, so
+     * their body must be making contact.
+     * Note: in the gloves case, rings don't prevent magr's body from making
+     * contact. */
+    if (((armask & W_ARMG) && !gloves)
+        || ((armask & W_ARMF) && !boots)
+        || ((armask & W_ARMH) && !helm)
+        || ((armask & (W_ARMC | W_ARM | W_ARMU))
+            && !cloak && !armor && !shirt)) {
+        try_body = TRUE;
+    }
+
+    if (try_body && mon_hates_material(mdef, magr_material)) {
+        bonus = sear_damage(magr_material);
+        if (hated_obj)
+            *hated_obj = (struct obj *) &cg.zeroobj;
+    }
+
+    /* The order of armor slots in this array doesn't really matter because we
+     * roll for everything that applies and take the highest damage. */
+    struct {
+        long mask;
+        struct obj* obj;
+    } array[9] = {
+        { W_ARMG, gloves },
+        { W_ARMH, helm   },
+        { W_ARMS, shield },
+        { W_ARMF, boots  },
+        { W_ARM,  armor  },
+        { W_ARMC, cloak  },
+        { W_ARMU, shirt  },
+        { W_RINGL, leftring },
+        { W_RINGR, rightring }
+    };
+
+    int i;
+    for (i = 0; i < 9; ++i) {
+        if (array[i].obj && (armask & array[i].mask)) {
+            tmpbonus = dmgval(array[i].obj, mdef);
+            if (tmpbonus > bonus) {
+                bonus = tmpbonus;
+                if (hated_obj) {
+                    /* Select hated_obj based on the maximum possible amount of
+                     * damage that can be caused by its material, not the actual
+                     * random amount of damage.
+                     * E.g. if you manage to hit a monster that hates both
+                     * silver and iron with a silver and an iron item at the
+                     * same time, silver has a more severe effect dealing more
+                     * damage so hated_obj should always be set to the silver
+                     * one, so that searmsg will get called with the most
+                     * appropriate message.
+                     */
+                    if (mon_hates_material(mdef, array[i].obj->material)
+                        && (*hated_obj == NULL
+                            || (sear_damage(array[i].obj->material)
+                                > sear_damage((*hated_obj)->material)))) {
+                        *hated_obj = array[i].obj;
+                    }
+                }
             }
         }
     }
@@ -482,16 +509,23 @@ struct obj **out_obj; /* ptr to offending object, can be NULL if not wanted */
 /* give a "silver <item> sears <target>" message (or similar for other
  * material); in addition to weapon hit, this is used for rings, boots for kick,
  * gloves for punch, or helm for headbutt.
- * This also handles the case where magr is made of a material that mdef hates.
  */
 void
-searmsg(magr, mdef, obj)
-struct monst *magr UNUSED;
+searmsg(magr, mdef, obj, minimal)
+struct monst *magr;
 struct monst *mdef;
-struct obj * obj; /* the offending item, or &cg.zeroobj if your body */
+const struct obj * obj; /* the offending item, or &cg.zeroobj if magr's body */
+boolean minimal;        /* print a shorter message leaving out obj details */
 {
+    boolean youattack = (magr == &g.youmonst);
+    boolean youdefend = (mdef == &g.youmonst);
+    boolean has_flesh = is_fleshy(mdef->data);
+
     if (!obj) {
         impossible("searmsg: nothing searing?");
+        return;
+    }
+    if (!youdefend && !canspotmon(mdef)) {
         return;
     }
 
@@ -500,32 +534,83 @@ struct obj * obj; /* the offending item, or &cg.zeroobj if your body */
     int mat;
 
     if (obj == &cg.zeroobj) {
-        mat = monmaterial(monsndx(g.youmonst.data));
-        Strcpy(whose, "your ");
+        mat = monmaterial(monsndx(magr->data));
         Sprintf(onamebuf, "%s touch", materialnm[mat]);
+        if (youattack) {
+            Strcpy(whose, "your ");
+        }
+        else if (!magr) {
+            impossible("searmsg: non-weapon attack with no aggressor?");
+            return;
+        }
+        else {
+            Strcpy(whose, s_suffix(y_monnam(magr)));
+            Strcat(whose, " ");
+        }
     }
     else {
         mat = obj->material;
         const char* matname = materialnm[mat];
 
-        /* Make it explicit to the player that this effect is from the material.
-         * If the object name doesn't already contain the material name, add it
-         * (e.g. "engraved silver bell" shouldn't turn into "silver engraved
-         * silver bell") */
-        boolean alreadyin = (strstri(cxname(obj), matname) != NULL);
+        /* Why doesn't cxname receive a const struct obj? */
+        char* cxnameobj = cxname((struct obj *) obj);
+
+        /* Make it explicit to the player that this effect is from the material,
+         * by prepending the material, but only if the object's name doesn't
+         * already contain the material string somewhere.  (e.g. "sword" should
+         * turn into "iron sword", but "engraved silver bell" shouldn't turn
+         * into "silver engraved silver bell") */
+        boolean alreadyin = (strstri(cxnameobj, matname) != NULL);
         if (!alreadyin) {
-            Sprintf(onamebuf, "%s %s", matname, cxname(obj));
+            Sprintf(onamebuf, "%s %s", matname, cxnameobj);
         }
         else {
-            Strcpy(onamebuf, cxname(obj));
+            Strcpy(onamebuf, cxnameobj);
         }
-        shk_your(whose, obj);
+        shk_your(whose, (struct obj *) obj);
     }
 
+    if (minimal) {
+        /* instead of "foo's obj", it will be "the [touch of] <material>;
+         * whose becomes "the" in both cases */
+        Strcpy(whose, "the ");
+        if (mat == SILVER) { /* different formatting */
+            Strcpy(onamebuf, "silver");
+        }
+        else {
+            Sprintf(onamebuf, "touch of %s", materialnm[mat]);
+        }
+    }
+
+    /* "Extra-minimal" case where we don't know what is doing the searing.
+     * Note that this can assume it will be formatting some non-player entity
+     * because it only applies when the player isn't involved. */
+    if (!youattack && !youdefend && !canseemon(mdef) && minimal) {
+        if (mat == SILVER) {
+            char defender[BUFSZ];
+            if (has_flesh) {
+                Sprintf(defender, "%s flesh", s_suffix(Monnam(mdef)));
+            }
+            else {
+                Strcpy(defender, Monnam(mdef));
+            }
+            pline("%s is seared!", defender);
+        }
+        else {
+            pline("%s recoils!", Monnam(mdef));
+        }
+        return;
+    }
+
+    /* char* whom = youdefend ? "you" : mon_nam(mdef); */
     char* whom = mon_nam(mdef);
+    if (youdefend) {
+        Strcpy(whom, "you");
+    }
+
     if (mat == SILVER) { /* more dramatic effects than other materials */
         /* note: s_suffix returns a modifiable buffer */
-        if (!noncorporeal(mdef->data) && !amorphous(mdef->data))
+        if (has_flesh)
             whom = strcat(s_suffix(whom), " flesh");
 
         pline("%s%s %s %s!", upstart(whose), onamebuf,
@@ -533,7 +618,8 @@ struct obj * obj; /* the offending item, or &cg.zeroobj if your body */
     }
     else {
         whom = upstart(whom);
-        pline("%s flinches from %s%s!", whom, whose, onamebuf);
+        pline("%s recoil%s from %s%s!", whom, (youdefend ? "" : "s"),
+              whose, onamebuf);
     }
 }
 
@@ -1012,6 +1098,26 @@ dbon()
         return 6;
 }
 
+/* called when wet_a_towel() or dry_a_towel() is changing a towel's wetness */
+static void
+finish_towel_change(obj, newspe)
+struct obj *obj;
+int newspe;
+{
+    /* towel wetness is always between 0 (dry) and 7, inclusive */
+    newspe = min(newspe, 7);
+    obj->spe = max(newspe, 0);
+
+    /* if hero is wielding this towel, don't give "you begin bashing with
+       your [wet] towel" message if it's wet, do give one if it's dry */
+    if (obj == uwep)
+        g.unweapon = !is_wet_towel(obj);
+
+    /* description might change: "towel" vs "moist towel" vs "wet towel" */
+    if (carried(obj))
+        update_inventory();
+}
+
 /* increase a towel's wetness */
 void
 wet_a_towel(obj, amt, verbose)
@@ -1036,22 +1142,19 @@ boolean verbose;
                       xname(obj), wetness);
         }
     }
-    obj->spe = min(newspe, 7);
 
-    /* if hero is wielding this towel, don't give "you begin bashing
-       with your wet towel" message on next attack with it */
-    if (obj == uwep)
-        g.unweapon = !is_wet_towel(obj);
+    if (newspe != obj->spe)
+        finish_towel_change(obj, newspe);
 }
 
-/* decrease a towel's wetness */
+/* decrease a towel's wetness; unlike when wetting, 0 is not a no-op */
 void
 dry_a_towel(obj, amt, verbose)
 struct obj *obj;
-int amt; /* positive: new value; negative: decrement by -amt; zero: no-op */
+int amt; /* positive or zero: new value; negative: decrement by abs(amt) */
 boolean verbose;
 {
-    int newspe = (amt <= 0) ? obj->spe + amt : amt;
+    int newspe = (amt < 0) ? obj->spe + amt : amt;
 
     /* new state is only reported if it's a decrease */
     if (newspe < obj->spe) {
@@ -1064,13 +1167,9 @@ boolean verbose;
                       xname(obj), !newspe ? " out" : "");
         }
     }
-    newspe = min(newspe, 7);
-    obj->spe = max(newspe, 0);
 
-    /* if hero is wielding this towel and it is now dry, give "you begin
-       bashing with your towel" message on next attack with it */
-    if (obj == uwep)
-        g.unweapon = !is_wet_towel(obj);
+    if (newspe != obj->spe)
+        finish_towel_change(obj, newspe);
 }
 
 /* Express progress of training of a skill as a percentage, where every 100%

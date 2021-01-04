@@ -1,4 +1,4 @@
-/* NetHack 3.6	recover.c	$NHDT-Date: 1550103078 2019/02/14 00:11:18 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.19 $ */
+/* NetHack 3.7	recover.c	$NHDT-Date: 1596498262 2020/08/03 23:44:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.22 $ */
 /*	Copyright (c) Janet Walz, 1992.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -38,6 +38,64 @@ static void nhce_message(FILE *, const char *, ...);
 
 #define Close (void) close
 
+
+#if 0
+#ifdef UNIX
+#define SAVESIZE (PL_NSIZ + 13) /* save/99999player.e */
+#else
+#ifdef VMS
+#define SAVESIZE (PL_NSIZ + 22) /* [.save]<uid>player.e;1 */
+#else
+#ifdef WIN32
+#define SAVESIZE (PL_NSIZ + 40) /* username-player.NetHack-saved-game */
+#else
+#define SAVESIZE FILENAME /* from macconf.h or pcconf.h */
+#endif
+#endif
+#endif
+#endif
+
+/* This needs to match NetHack itself */
+
+#define INDEXT ".xxxxxx"           /* largest indicator suffix */
+#define INDSIZE sizeof(INDEXT)
+
+#if defined(UNIX) || defined(__BEOS__)
+#define SAVEX "save/99999.e"
+#ifndef SAVE_EXTENSION
+#define SAVE_EXTENSION ""
+#endif
+#else /* UNIX || __BEOS__ */
+#ifdef VMS
+#define SAVEX "[.save]nnnnn.e;1"
+#ifndef SAVE_EXTENSION
+#define SAVE_EXTENSION ""
+#endif
+#else /* VMS */
+#if defined(WIN32) || defined(MICRO)
+#define SAVEX ""
+#if !defined(SAVE_EXTENSION)
+#ifdef MICRO
+#define SAVE_EXTENSION ".svh"
+#endif
+#ifdef WIN32
+#define SAVE_EXTENSION ".NetHack-saved-game"
+#endif
+#endif /* !SAVE_EXTENSION */
+#endif /* WIN32 || MICRO */
+#endif /* else !VMS */
+#endif /* else !(UNIX || __BEOS__) */
+
+#ifndef SAVE_EXTENSION
+#define SAVE_EXTENSION ""
+#endif
+
+#ifdef MICRO
+#define SAVESIZE FILENAME
+#else
+#define SAVESIZE (PL_NSIZ + sizeof(SAVEX) + sizeof(SAVE_EXTENSION) + INDSIZE)
+#endif
+
 #if defined(EXEPATH)
 char *FDECL(exepath, (char *));
 #endif
@@ -45,8 +103,6 @@ char *FDECL(exepath, (char *));
 #if defined(__BORLANDC__) && !defined(_WIN32)
 extern unsigned _stklen = STKSIZ;
 #endif
-
-/* SAVESIZE is defined in "fnamesiz.h" */
 char savename[SAVESIZE]; /* holds relative path of save file from playground */
 
 int
@@ -466,3 +522,4 @@ nhce_message(FILE *f, const char *str, ...)
 #endif
 
 /*recover.c*/
+

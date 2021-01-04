@@ -1,4 +1,4 @@
-/* NetHack 3.6	dig.c	$NHDT-Date: 1584350347 2020/03/16 09:19:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.138 $ */
+/* NetHack 3.7	dig.c	$NHDT-Date: 1596498156 2020/08/03 23:42:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.142 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -13,6 +13,7 @@ static int NDECL(dig);
 static void FDECL(dig_up_grave, (coord *));
 static int FDECL(adj_pit_checks, (coord *, char *));
 static void FDECL(pit_flow, (struct trap *, SCHAR_P));
+static boolean FDECL(furniture_handled, (int, int, BOOLEAN_P));
 
 /* Indices returned by dig_typ() */
 enum dig_types {
@@ -199,7 +200,8 @@ int x, y;
         (madeby == BY_YOU && uwep && is_axe(uwep)) ? "chop" : "dig in";
 
     if (On_stairs(x, y)) {
-        if (x == xdnladder || x == xupladder) {
+        stairway *stway = stairway_at(x, y);
+        if (stway->isladder) {
             if (verbose)
                 pline_The("ladder resists your effort.");
         } else if (verbose)
@@ -342,6 +344,11 @@ dig(VOID_ARGS)
                 else if (uarmf)
                     dmg = (dmg + 1) / 2;
                 You("hit yourself in the %s.", body_part(FOOT));
+                if (Hate_material(uwep->material)) {
+                    /* extra damage already applied by dmgval() */
+                    searmsg(&g.youmonst, &g.youmonst, uwep, FALSE);
+                    exercise(A_CON, FALSE);
+                }
                 Sprintf(kbuf, "chopping off %s own %s", uhis(),
                         body_part(FOOT));
                 losehp(Maybe_Half_Phys(dmg), kbuf, KILLED_BY);
@@ -500,6 +507,33 @@ dig(VOID_ARGS)
     return 1;
 }
 
+static boolean
+furniture_handled(x, y, madeby_u)
+int x, y;
+boolean madeby_u;
+{
+    struct rm *lev = &levl[x][y];
+
+    if (IS_FOUNTAIN(lev->typ)) {
+        dogushforth(FALSE);
+        SET_FOUNTAIN_WARNED(x, y); /* force dryup */
+        dryup(x, y, madeby_u);
+    } else if (IS_SINK(lev->typ)) {
+        breaksink(x, y);
+    } else if (lev->typ == DRAWBRIDGE_DOWN
+               || (is_drawbridge_wall(x, y) >= 0)) {
+        int bx = x, by = y;
+
+        /* if under the portcullis, the bridge is adjacent */
+        (void) find_drawbridge(&bx, &by);
+        destroy_drawbridge(bx, by);
+    } else {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+
 /* When will hole be finished? Very rough indication used by shopkeeper. */
 int
 holetime()
@@ -569,25 +603,8 @@ int ttyp;
             reset_utrap(FALSE);
     }
 
-    /* these furniture checks were in dighole(), but wand
-       breaking bypasses that routine and calls us directly */
-    if (IS_FOUNTAIN(lev->typ)) {
-        dogushforth(FALSE);
-        SET_FOUNTAIN_WARNED(x, y); /* force dryup */
-        dryup(x, y, madeby_u);
+    if (furniture_handled(x, y, madeby_u))
         return;
-    } else if (IS_SINK(lev->typ)) {
-        breaksink(x, y);
-        return;
-    } else if (lev->typ == DRAWBRIDGE_DOWN
-               || (is_drawbridge_wall(x, y) >= 0)) {
-        int bx = x, by = y;
-
-        /* if under the portcullis, the bridge is adjacent */
-        (void) find_drawbridge(&bx, &by);
-        destroy_drawbridge(bx, by);
-        return;
-    }
 
     if (ttyp != PIT && (!Can_dig_down(&u.uz) && !lev->candig)) {
         impossible("digactualhole: can't dig %s on this level.",
@@ -751,6 +768,8 @@ schar typ;
 struct trap *ttmp;
 const char *fillmsg;
 {
+    struct obj *objchain;
+    struct monst *mon;
     boolean u_spot = (x == u.ux && y == u.uy);
 
     if (ttmp)
@@ -760,11 +779,18 @@ const char *fillmsg;
 
     if (fillmsg)
         pline(fillmsg, hliquid(typ == LAVAPOOL ? "lava" : "water"));
-    if (u_spot && !(Levitation || Flying)) {
+    /* handle object damage before hero damage; affects potential bones */
+    if ((objchain = g.level.objects[x][y]) != 0) {
         if (typ == LAVAPOOL)
-            (void) lava_effects();
+            fire_damage_chain(objchain, TRUE, TRUE, x, y);
         else
-            (void) drown();
+            water_damage_chain(objchain, TRUE, 0, TRUE);
+    }
+    /* damage to the hero */
+    if (u_spot) {
+        (void) pooleffects(FALSE);
+    } else if ((mon = m_at(x, y)) != 0) {
+        (void) minliquid(mon);
     }
 }
 
@@ -878,9 +904,11 @@ coord *cc;
 
         lev->flags = 0;
         if (typ != ROOM) {
-            lev->typ = typ;
-            liquid_flow(dig_x, dig_y, typ, ttmp,
-                        "As you dig, the hole fills with %s!");
+            if (!furniture_handled((int) dig_x, (int) dig_y, TRUE)) {
+                lev->typ = typ;
+                liquid_flow(dig_x, dig_y, typ, ttmp,
+                            "As you dig, the hole fills with %s!");
+            }
             return TRUE;
         }
 
@@ -889,7 +917,9 @@ coord *cc;
             && (ttmp->ttyp == LANDMINE || ttmp->ttyp == BEAR_TRAP)) {
 
             /* convert trap into buried object (deletes trap) */
-            remove_trap_ammo(ttmp, (ttmp->ttyp == LANDMINE));
+            deltrap_with_ammo(ttmp,
+                              (ttmp->ttyp == LANDMINE ? DELTRAP_BURY_AMMO
+                                                      : DELTRAP_PLACE_AMMO));
         }
 
         /* finally we get to make a hole */
@@ -1442,10 +1472,10 @@ zap_dig()
             if (is_animal(mtmp->data))
                 You("pierce %s %s wall!", s_suffix(mon_nam(mtmp)),
                     mbodypart(mtmp, STOMACH));
-            if (unique_corpstat(mtmp->data))
-                mtmp->mhp = (mtmp->mhp + 1) / 2;
+            if (amorphous(mtmp->data)) /* this won't do a ton of damage */
+                mtmp->mhp = (mtmp->mhp * 3) / 4;
             else
-                mtmp->mhp = 1; /* almost dead */
+                mtmp->mhp = (mtmp->mhp + 1) / 2;
             expels(mtmp, mtmp->data, !is_animal(mtmp->data));
         }
         return;
@@ -1455,12 +1485,12 @@ zap_dig()
         if (!Is_airlevel(&u.uz) && !Is_waterlevel(&u.uz) && !Underwater) {
             if (u.dz < 0 || On_stairs(u.ux, u.uy)) {
                 int dmg;
-                if (On_stairs(u.ux, u.uy))
+                if (On_stairs(u.ux, u.uy)) {
+                    stairway *stway = stairway_at(u.ux, u.uy);
                     pline_The("beam bounces off the %s and hits the %s.",
-                              (u.ux == xdnladder || u.ux == xupladder)
-                                  ? "ladder"
-                                  : "stairs",
+                              stway->isladder ? "ladder" : "stairs",
                               ceiling(u.ux, u.uy));
+                }
                 You("loosen a rock from the %s.", ceiling(u.ux, u.uy));
                 pline("It falls on your %s!", body_part(HEAD));
                 dmg = rnd((uarmh && is_hard(uarmh)) ? 2 : 6);
@@ -1732,6 +1762,12 @@ pit_flow(trap, filltyp)
 struct trap *trap;
 schar filltyp;
 {
+    /*
+     * FIXME?
+     *  liquid_flow() -> pooleffects() -> {drown(),lava_effects()}
+     *  might kill the hero; the game will end and if that leaves bones,
+     *  remaining conjoined pits will be left unprocessed.
+     */
     if (trap && filltyp != ROOM && is_pit(trap->ttyp)) {
         struct trap t;
         int idx;
@@ -2192,5 +2228,182 @@ wiz_debug_cmd_bury()
     return 0;
 }
 #endif /* DEBUG */
+
+/* magr is attempting to create a pit under mdef via an AD_PITS attack.
+ * This may fail on certain terrains, or if there is a trap there, and do
+ * nothing. With other terrains and traps it has other effects, but all of them
+ * aimed towards getting the target in the bottom of a pit.
+ * Return value: TRUE if AD_PITS damage dice should still be applied; FALSE if
+ * not (because of falling down a hole mainly; it would be nice to also exempt
+ * further damage if the monster is lifesaved, but there's sadly no good way to
+ * check that)
+ */
+boolean
+create_pit_under(mdef, magr)
+struct monst *mdef, *magr;
+{
+    boolean youdefend = (mdef == &g.youmonst);
+    boolean youattack = (magr == &g.youmonst);
+    int x = youdefend ? u.ux : mdef->mx;
+    int y = youdefend ? u.uy : mdef->my;
+    const int typ = levl[x][y].typ;
+    struct trap *trap = t_at(x, y);
+    const boolean canseexy = cansee(x, y);
+    struct obj *boulder = sobj_at(BOULDER, x, y);
+    boolean sent_down_hole = FALSE;
+
+    /* check for illegalities: out of bounds, terrain unsuitable for traps,
+     * or trap types that should not be deleted and replaced with pits */
+    if (!isok(x, y) || !SPACE_POS(typ) || IS_FURNITURE(typ) || IS_AIR(typ)
+        || (trap &&
+            (trap->ttyp == MAGIC_PORTAL || trap->ttyp == VIBRATING_SQUARE))
+        || (In_endgame(&u.uz) && !Is_earthlevel(&u.uz))) {
+        if (youattack) {
+            You("fail to create a pit on the %s under %s.", surface(x, y),
+                mon_nam(mdef));
+        }
+        else if (canseemon(magr)) {
+            pline("%s looks rather piteous.", Monnam(magr));
+        }
+        return FALSE;
+    }
+    /* player should only be able to do this while polyselfed */
+    if (youattack && !Upolyd) {
+        impossible("player creating pit while not polyselfed?");
+        return FALSE;
+    }
+
+    if (flags.verbose) {
+        if (youattack) {
+            pline("You stomp the ground!");
+        }
+        else {
+            pline("%s stomps the ground!", Monnam(magr));
+        }
+    }
+
+    /* First, do terrain modifications. mdef doesn't react until after this. */
+    if (trap && (trap->ttyp == PIT || trap->ttyp == SPIKED_PIT
+                 || trap->ttyp == HOLE)) {
+        /* The existing chasm grows larger. A pit creator that is low on health
+         * is more likely to dig all the way through and turn it into a hole. */
+        if (canseexy) {
+            pline("The %s below %s grows deeper!",
+                  trap->ttyp == HOLE ? "chasm" : "pit",
+                  youdefend ? "you" : mon_nam(mdef));
+        }
+        boolean make_hole = !rn2(40);
+        if ((youattack && u.mh * 5 <= u.mhmax)
+            || (!youattack && mdef->mhp * 5 <= mdef->mhpmax)) {
+            make_hole = !rn2(10);
+        }
+        if (!Can_dig_down(&u.uz) || trap->ttyp == HOLE) {
+            make_hole = FALSE;
+        }
+        if (make_hole) {
+            deltrap(trap);
+            trap = maketrap(x, y, HOLE);
+        }
+    }
+    else if (trap && trap->ttyp == TRAPDOOR) {
+        /* There's already a hole under this, so the attack just enlarges it and
+         * removes the door (making it HOLE).
+         * Assume that since there's a trap door already, Can_dig_down is true.
+         */
+        if (canseexy) {
+            pline("%s trap door breaks apart as a chasm widens beneath it!",
+                  trap->tseen ? "The" : "A");
+        }
+        deltrap(trap);
+        trap = maketrap(x, y, HOLE);
+    }
+    else if (trap && trap->ttyp == LANDMINE) {
+        /* Blow it up. It will become a pit (but nothing falls in yet). */
+        if (!canseexy && !Deaf) {
+            pline("Kaablamm!  You hear an explosion in the distance!");
+        }
+        else if (canseexy) {
+            pline("%sA land mine blows up!", !Deaf ? "KAABLAMM!!! " : "");
+        }
+        blow_up_landmine(trap);
+    }
+    else { /* also includes case of no trap there in the first place */
+        if (trap) {
+            /* Silently delete whatever other sort of trap this is. */
+            deltrap_with_ammo(trap, DELTRAP_DESTROY_AMMO);
+        }
+        /* Now we know there is no trap; create a pit. */
+        if (canseexy) {
+            pline("A pit opens up beneath %s!",
+                  youdefend ? "you" : mon_nam(mdef));
+        }
+        trap = maketrap(x, y, PIT);
+    }
+    if (canseexy || youdefend) {
+        trap->tseen = 1;
+    }
+    if (youattack) {
+        trap->madeby_u = 1;
+    }
+
+    /* Now that terrain has been modified, take care of mdef.
+     * We have guaranteed that (x,y) now contains either a pit, spiked pit, or
+     * hole. */
+    const char *to_the_bottom = is_pit(trap->ttyp) ? " to the bottom" : "";
+    if (youdefend) {
+        reset_utrap(FALSE);
+        pline("%s hurls you down%s!", Monnam(magr), to_the_bottom);
+        /* Use FORCETRAP to avoid messages about not falling into the pit if
+         * flying or levitating; however, like the !youdefend case below, either
+         * will cause you to skip the pit's actual effects (but you will take
+         * the regular damage from the hurling attack). */
+        dotrap(trap, FORCETRAP);
+        if (u.utotype) { /* nonzero = will goto_level after this */
+            sent_down_hole = TRUE;
+        }
+        else if (Levitation || Flying) {
+            You("%s back up.", Flying ? "fly" : "float");
+            /* utrap should not have been set at all */
+        }
+    }
+    else {
+        wakeup(mdef, FALSE);
+        /* We want to make them be in the trap anew - they won't fall into holes
+         * and such if this is left as 1. */
+        mdef->mtrapped = 0;
+        pline("%s hurl%s %s down%s!", youattack ? "You" : Monnam(magr),
+              youattack ? "" : "s", mon_nam(mdef), to_the_bottom);
+        /* This does not set g.force_mintrap - which for some reason causes
+         * flying monsters not to fall into a pit if true. Thus, they will not
+         * get extra damage for the trap, but will still take the normal damage
+         * from being hurled in. */
+        if (mintrap(mdef) == 3) { /* 3 == went off level */
+            sent_down_hole = TRUE;
+        }
+        else if (is_flyer(mdef->data) || is_floater(mdef->data)) {
+            pline("%s %s back up.", Monnam(mdef),
+                  is_flyer(mdef->data) ? "flies" : "floats");
+            mdef->mtrapped = 0; /* maybe still held, but not stuck in pit */
+        }
+    }
+
+    if (boulder) {
+        /* Boulder falls in, plugging the newly created pit and possibly
+         * damaging whoever might have gotten trapped inside. */
+        obj_extract_self(boulder);
+        if (!(youdefend && sent_down_hole)) {
+            /* We still always want to plug the hole with the boulder, but it'd
+             * be weird to print this after the player gets messages about
+             * falling through the hole. */
+            pline("KADOOM!"); /* ... "The boulder falls into the pit" */
+        }
+        flooreffects(boulder, x, y, "fall");
+    }
+
+    if (sent_down_hole || (!youdefend && DEADMONSTER(mdef))) {
+        return FALSE;
+    }
+    return TRUE;
+}
 
 /*dig.c*/

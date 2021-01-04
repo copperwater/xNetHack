@@ -1,4 +1,4 @@
--- NetHack 3.6	Barb.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+-- NetHack 3.7	Barb.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -33,17 +33,31 @@ des.map([[
 des.region(selection.area(00,00,75,19), "unlit")
 
 -- Don't levelport or fall into the interesting part of the level
-des.teleport_region({ region = {38,00,75,19} })
+des.teleport_region({ region = {00,00,75,19}, exclude = {06,00,75,19}, dir="down" })
+
+-- This is a bit of a hack to prevent the hero from walking beyond x=6 and then
+-- being able to teleport to Thoth Amon straight away. You can't enter this
+-- level from below, but having dir=up will somehow keep both regions distinct
+-- and active at the same time.
+des.teleport_region({ region = {00,00,75,19}, exclude = {41,00,75,19}, dir="up" })
 
 -- Stair
 local leftedge = selection.line(00,00, 00,19)
 des.stair({ dir = "up", coord = { leftedge:rndcoord(1) } })
 
--- Grass... none in the village, more outside it
--- local grass = selection.gradient({ type="radial", mindist=11, maxdist=80, limited=false,
---                                    x=55, y=8, x2=59, y2=8 })
--- TODO: Vanilla needs to implement replace_terrain with a selection.
--- des.replace_terrain({ selection = grass, fromterrain=".", toterrain="g" })
+-- Define a selection containing all the building interiors for later use
+local inbuildings = selection.floodfill(32,05) | selection.floodfill(50,00) |
+                    selection.floodfill(45,06) | selection.floodfill(45,09) | 
+                    selection.floodfill(45,13) | selection.floodfill(53,13) |
+                    selection.floodfill(60,13) | selection.floodfill(65,02) |
+                    selection.floodfill(65,08) | selection.floodfill(70,09) |
+                    selection.floodfill(61,04)
+
+-- Grass... none in the village or buildings, more outside it
+local grass = selection.gradient({ type="radial", mindist=6, maxdist=60, limited=false,
+                                   x=55, y=8, x2=59, y2=8 })
+              & selection.negate(inbuildings)
+des.replace_terrain({ selection = grass, fromterrain=".", toterrain="g" })
 
 -- Make some trees
 des.replace_terrain({ region = {00,00,31,19}, fromterrain="g", toterrain="T", chance = 2 })
@@ -60,39 +74,37 @@ des.object({ id = "luckstone", coord = {57,08}, buc="blessed", name = "The Heart
 -- Thoth Amon's attendants
 local towncenter = selection.floodfill(57,08)
 for i=1,3 do
-  des.monster({ id = "ogre king", coord = { towncenter:rndcoord(1) } })
+  des.monster({ id = "ogre king", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
 end
 for i=1,2 do
-  des.monster({ id = "orc-captain", coord = { towncenter:rndcoord(1) } })
-  des.monster({ id = "Olog-hai", coord = { towncenter:rndcoord(1) } })
+  des.monster({ id = "orc-captain", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
+  des.monster({ id = "Olog-hai", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
 end
-des.monster({ id = "kobold lord", coord = { towncenter:rndcoord(1) } })
+des.monster({ id = "kobold lord", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
 
 -- Wish there were some higher-level rampaging-type monsters that are also spellcasters...
-des.monster({ id = "orc shaman", coord = {57,05}, asleep = 1 }) 
-des.monster({ id = "orc shaman", coord = {53,07}, asleep = 1 }) 
-des.monster({ id = "orc shaman", coord = {61,07}, asleep = 1 }) 
-des.monster({ id = "orc shaman", coord = {54,10}, asleep = 1 }) 
-des.monster({ id = "orc shaman", coord = {60,10}, asleep = 1 }) 
+des.monster({ id = "orc shaman", coord = {57,05}, asleep = 1, peaceful = 0 })
+des.monster({ id = "orc shaman", coord = {53,07}, asleep = 1, peaceful = 0 })
+des.monster({ id = "orc shaman", coord = {61,07}, asleep = 1, peaceful = 0 })
+des.monster({ id = "orc shaman", coord = {54,10}, asleep = 1, peaceful = 0 })
+des.monster({ id = "orc shaman", coord = {60,10}, asleep = 1, peaceful = 0 })
 
 -- Thoth Amon's horde
--- For some reason, filtering with $outsidetown makes it include all of
--- $outsidetown, so this doesn't work. Bleah.
 local outsidetown = selection.floodfill(01,01)
 local hordestart = selection.fillrect(31,00,41,19) & outsidetown
 for i=1,8 do
-  des.monster({ id = "ogre", coord = { hordestart:rndcoord(1) } })
-  des.monster({ id = "rock troll", coord = { hordestart:rndcoord(1) } })
+  des.monster({ id = "ogre", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
+  des.monster({ id = "rock troll", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
 end
 for i=1,6 do
-  des.monster({ class = "O", coord = { hordestart:rndcoord(1) } })
-  des.monster({ class = "T", coord = { hordestart:rndcoord(1) } })
+  des.monster({ class = "O", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
+  des.monster({ class = "T", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
 end
 for i=1,4 do
-  des.monster({ class = "o", coord = { hordestart:rndcoord(1) } })
+  des.monster({ class = "o", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
 end
 for i=1,3 do
-  des.monster({ class = "k", coord = { hordestart:rndcoord(1) } })
+  des.monster({ class = "k", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
 end
 
 -- Ominous candles on the ground to see their approach
@@ -101,12 +113,7 @@ for i=1,1 + d(5) do
   des.object({ id = "tallow candle", coord = { candleline:rndcoord(1) }, lit = 1 })
 end
 
--- Random objects, scattered through the buildings. TODO: add all the buildings.
-local inbuildings = selection.floodfill(32,05) | selection.floodfill(50,00) |
-                    selection.floodfill(45,06) | selection.floodfill(45,09) | 
-                    selection.floodfill(45,13) | selection.floodfill(53,13) |
-                    selection.floodfill(60,13) | selection.floodfill(65,02) |
-                    selection.floodfill(65,08) | selection.floodfill(70,09)
+-- Random objects, scattered through the buildings.
 for i=1,14 do
   des.object({ coord = { inbuildings:rndcoord(1) } })
 end

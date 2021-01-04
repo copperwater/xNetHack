@@ -1,5 +1,5 @@
-# NetHack 3.6	data.base
-# $NHDT-Date: 1581206724 2020/02/09 00:05:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.93 $
+# NetHack 3.7	data.base
+# $NHDT-Date: 1605726848 2020/11/18 19:14:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.98 $
 #	Copyright (c) 1994, 1995, 1996 by the NetHack Development Team
 #	Copyright (c) 1994 by Boudewijn Wayers
 #	NetHack may be freely redistributed.  See license for details.
@@ -365,6 +365,9 @@ sack
 	is outside it; and whatever is outside it, is inside it.  So
 	you have all the wealth of the world in that leetle Purse!"
 		[ Sylvie and Bruno Concluded, by Lewis Carroll ]
+baklava
+        A very sweet pastry consisting of many layers of thin dough and
+        filled with chopped nuts, held together with syrup.
 b*lzebub
 	The "lord of the flies" is a translation of the Hebrew
 	Ba'alzevuv (Beelzebub in Greek).  It has been suggested that
@@ -1093,7 +1096,6 @@ crom
 	aura of evil magic in the air.  Without thought, he readies
 	his weapon, and mutters under his breath:
 	"By Crom, there will be blood spilt today."
-
 	    [ Conan the Avenger by Robert E. Howard, Bjorn Nyberg,
 		and L. Sprague de Camp ]
 crossbow*
@@ -1274,6 +1276,17 @@ dispater
 	Wealth".  It refers to the wealth of precious stone below the
 	earth.
 		[ Encyclopedia Mythica, ed. M.F. Lindemans ]
+# 3.7; monster adapted from slash'em based on an AD&D Monster Manual entry;
+# slash'em lacked a description so this entry has been created from scratch;
+# the puma comparison is how the AD&D monster is described (except that
+# that creature has six legs and two tentacles!) but the actual monster's
+# behavior is substantially different
+displacer beast
+	This strange creature appears to be mutant form of puma (aka
+	cougar or mountain lion) which lives in underground settings
+	rather than outdoor wilderness.  It is capable of exchanging
+	positions with people or creatures in its path and is not
+	fooled by displaced images of others.
 djinn*
 	The djinn are genies from the elemental plane of Air.  There,
 	among their kind, they have their own societies.  They are
@@ -1550,6 +1563,7 @@ emerald
 	What matter, so there is but fire
 	In you, in me?'
 		[ The Mask, by W.B. Yeats ]
+~engraved silver bell
 engrav*
 A.S*
 	Presently we reached a place where the beach narrowed; the sea
@@ -1869,6 +1883,14 @@ gem or rock
 	same as for jewels:  it is always the false ones that look the
 	most real, the most brilliant.
 		[ Salvador Dali ]
+# 3.7; monster derived from slash'em which lacked a description so this
+# entry has been created from scratch
+genetic engineer
+	These very odd people have mastered the ability to insert gene
+	sequences from one organism into another, usually triggering
+	immediate mutations in the subject.  Far from needing an
+	elaborate laboratory to accomplish such abominations, a mere
+	touch seems to be all that is necessary.
 geryon
 	Forthwith that image vile of fraud appear'd,
 	His head and upper part expos'd on land,
@@ -2680,10 +2702,11 @@ kelp*
 	specimens in their native setting.
 		[ 20,000 Leagues Under the Sea, by Jules Verne ]
 ki-rin
-	The ki-rin is a strange-looking flying creature.  It has
-	scales, a mane like a lion, a tail, hooves, and a horn.  It
-	is brightly colored, and can usually be found flying in the
-	sky looking for good deeds to reward.
+	The ki-rin is a strange-looking wingless flying creature.
+	It has scales, a mane like a lion, a tail, four legs with
+	hooves, and a horn like a unicorn's.  It is brightly colored,
+	and can usually be found flying in the sky looking for good
+	deeds to reward.
 king arthur
 *arthur
 	Ector took both his sons to the church before which the
@@ -2709,6 +2732,8 @@ king arthur
 	bishop to impart to him what had passed.
 	   [ Van Gouden Tijden Zingen de Harpen, by Vladimir Hulpach,
 		Emanuel Frynta, and Vackav Cibula ]
+kleicha
+        A rolled or filled cardamom cookie popular in the Middle East.
 knife
 stiletto
 	Possibly perceiving an expression of dubiosity on their
@@ -2864,6 +2889,8 @@ land mine
 	battery powered.  A discreet little switch is marked "on/off"
 	in elaborate lettering.
 		[ Adventure 770, by Mike Arnautov ]
+latke
+        A fried potato pancake, often prepared to celebrate Hanukkah.
 lava
 * lava
 	You are on the edge of a breath-taking view.  Far below you
@@ -3122,6 +3149,9 @@ lynx
 	in the affections of her lover. If she kills the lynx, she
 	will overcome her rival.
 		[ 10,000 Dreams Interpreted, by Gustavus Hindman Miller ]
+ma*amoul
+        A Middle Eastern holiday cookie, made from semolina flour and
+        filled with chopped nuts, figs or dates.
 ~*sceptre of might
 mace
 sceptre
@@ -3266,6 +3296,11 @@ mastodon
 	Ages of Europe, the mattock served as an improvised shafted
 	weapon for the poorer classes.
 		[ Wikipedia, the free encyclopedia ]
+matz*
+        A type of unleavened flatbread, typically made with only flour
+        and water, and traditionally eaten at Passover.  It is also
+        commonly mashed into a meal to make matzo balls and served in
+        matzo-ball soup.
 meat*
 huge chunk of meat
 	Some hae meat and canna eat,
@@ -3845,6 +3880,22 @@ owlbear
 	the name might already suggest, owlbears are a cross between
 	a giant owl and a bear.  They are covered with fur and
 	feathers.
+ozymandias
+        I met a Traveller from an antique land,
+        Who said, "Two vast and trunkless legs of stone
+        Stand in the desert.  Near them, on the sand,
+        Half sunk, a shattered visage lies, whose frown,
+        And wrinkled lip, and sneer of cold command,
+        Tell that its sculptor well those passions read,
+        Which yet survive, stamped on these lifeless things,
+        The hand that mocked them and the heart that fed:
+        And on the pedestal these words appear:
+        'My name is Ozymandias, king of kings.
+        Look on my works ye Mighty, and despair!'
+        Nothing beside remains. Round the decay
+        Of that Colossal Wreck, boundless and bare,
+        The lone and level sands stretch far away.
+                [ Ozymandias, by Percy Bysshe Shelley ]
 page
 	A male servant or attendant; specifically, in chivalry,
 	a lad or young man in training for knighthood, or a youth
@@ -3858,6 +3909,10 @@ page
 	Greeks called themselves _gens palliata,_ and the Romans
 	called themselves _gens togata._
 		[ Brewer's Concise Dictionary of Phrase and Fable ]
+pan* de muerto
+        A sweetbread which is typically embossed with the shapes of
+        finger bones and baked for Dia de Muertos celebrations. Its name
+        translates to "bread of the dead".
 panther
 	And lo! almost where the ascent began,
 	A panther light and swift exceedingly,
@@ -4967,6 +5022,9 @@ straw golem
 	figure was raised above the stalks of corn by means of the
 	pole stuck up its back.
 		[ The Wonderful Wizard of Oz, by L. Frank Baum ]
+sufganiy*
+        A round pastry doughnut filled with jam or custard, especially
+        popular during Hanukkah celebrations.
 sunsword
 	What you seek is a blade of light,
 	a weapon for vengeance.
@@ -5525,7 +5583,6 @@ whistle
 
 	Well, the best way to find out is evidently to whistle
 	for him.'
-
 		[Ghost Stories of an Antiquary, by Montague Rhodes James
 		 'Oh, Whistle, and I'll Come to You My Lad']
 # werecritter -- see "lycanthrope"

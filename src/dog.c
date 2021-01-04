@@ -1,4 +1,4 @@
-/* NetHack 3.6	dog.c	$NHDT-Date: 1554580624 2019/04/06 19:57:04 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.85 $ */
+/* NetHack 3.7	dog.c	$NHDT-Date: 1599330917 2020/09/05 18:35:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.104 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -311,6 +311,8 @@ boolean with_you;
     xchar xlocale, ylocale, xyloc, xyflags, wander;
     int num_segs;
     boolean failed_to_place = FALSE;
+    stairway *stway;
+    d_level fromdlev;
 
     fuzl_mtmp("mon_arrive", mtmp);
     mtmp->nmon = fmon;
@@ -337,6 +339,8 @@ boolean with_you;
     xyflags = mtmp->mtrack[0].y;
     xlocale = mtmp->mtrack[1].x;
     ylocale = mtmp->mtrack[1].y;
+    fromdlev.dnum = mtmp->mtrack[2].x;
+    fromdlev.dlevel = mtmp->mtrack[2].y;
     memset(mtmp->mtrack, 0, sizeof mtmp->mtrack);
 
     if (mtmp == u.usteed)
@@ -382,19 +386,34 @@ boolean with_you;
         xlocale = u.ux, ylocale = u.uy;
         break;
     case MIGR_STAIRS_UP:
-        xlocale = xupstair, ylocale = yupstair;
+        if ((stway = stairway_find_from(&fromdlev, FALSE)) != 0) {
+            xlocale = stway->sx;
+            ylocale = stway->sy;
+        }
         break;
     case MIGR_STAIRS_DOWN:
-        xlocale = xdnstair, ylocale = ydnstair;
+        if ((stway = stairway_find_from(&fromdlev, FALSE)) != 0) {
+            xlocale = stway->sx;
+            ylocale = stway->sy;
+        }
         break;
     case MIGR_LADDER_UP:
-        xlocale = xupladder, ylocale = yupladder;
+        if ((stway = stairway_find_from(&fromdlev, TRUE)) != 0) {
+            xlocale = stway->sx;
+            ylocale = stway->sy;
+        }
         break;
     case MIGR_LADDER_DOWN:
-        xlocale = xdnladder, ylocale = ydnladder;
+        if ((stway = stairway_find_from(&fromdlev, TRUE)) != 0) {
+            xlocale = stway->sx;
+            ylocale = stway->sy;
+        }
         break;
     case MIGR_SSTAIRS:
-        xlocale = g.sstairs.sx, ylocale = g.sstairs.sy;
+        if ((stway = stairway_find(&fromdlev)) != 0) {
+            xlocale = stway->sx;
+            ylocale = stway->sy;
+        }
         break;
     case MIGR_PORTAL:
         if (In_endgame(&u.uz)) {
@@ -734,6 +753,8 @@ coord *cc;   /* optional destination coordinates */
         xyflags |= 2;
     mtmp->wormno = num_segs;
     mtmp->mlstmv = g.monstermoves;
+    mtmp->mtrack[2].x = u.uz.dnum; /* migrating from this dungeon */
+    mtmp->mtrack[2].y = u.uz.dlevel; /* migrating from this dungeon level */
     mtmp->mtrack[1].x = cc ? cc->x : mtmp->mx;
     mtmp->mtrack[1].y = cc ? cc->y : mtmp->my;
     mtmp->mtrack[0].x = xyloc;
@@ -741,8 +762,6 @@ coord *cc;   /* optional destination coordinates */
     mtmp->mux = new_lev.dnum;
     mtmp->muy = new_lev.dlevel;
     mtmp->mx = mtmp->my = 0; /* this implies migration */
-    if (mtmp == g.context.polearm.hitmon)
-        g.context.polearm.hitmon = (struct monst *) 0;
 }
 
 /* return quality of food; the lower the better */
@@ -819,21 +838,17 @@ register struct obj *obj;
                 || (acidic(fptr) && !resists_acid(mon))
                 || (poisonous(fptr) && !resists_poison(mon)))
                 return POISON;
-            /* turning into slime is preferable to starvation */
-            else if (fptr == &mons[PM_GREEN_SLIME] && !slimeproof(mon->data))
-                return starving ? ACCFOOD : POISON;
-            /* polymorphing is preferable to starvation, and the pet might also
-             * want to take their chances on it if they've been mistreated */
+            /* polymorphing is preferable to starvation, and pet might also
+               want to take its chances on that if they've been mistreated */
             else if (is_shapeshifter(fptr)) {
                 if (mon->mtame == 1) {
-                    /* A herbivore still won't eat a nonvegan corpse, but in any
-                     * other circumstance a pet with tameness 1 will happily eat
-                     * a shapeshifter. */
+                    /* A herbivore still won't eat a nonvegan corpse, but
+                       in any other circumstance a pet with tameness 1 will
+                       happily eat a shapeshifter. */
                     return (herbi && !vegan(fptr)) ? MANFOOD : CADAVER;
                 }
                 return starving ? ACCFOOD : MANFOOD;
-            }
-            else if (vegan(fptr))
+            } else if (vegan(fptr))
                 return herbi ? CADAVER : MANFOOD;
             /* most humanoids will avoid cannibalism unless starving;
                arbitrary: elves won't eat other elves even then */
@@ -843,6 +858,9 @@ register struct obj *obj;
                 return (starving && carni && !is_elf(mptr)) ? ACCFOOD : TABU;
             else
                 return carni ? CADAVER : MANFOOD;
+        case GLOB_OF_GREEN_SLIME: /* other globs use the default case */
+            /* turning into slime is preferable to starvation */
+            return (starving || slimeproof(mon->data)) ? ACCFOOD : POISON;
         case CLOVE_OF_GARLIC:
             return (is_undead(mptr) || is_vampshifter(mon))
                       ? TABU

@@ -1,4 +1,4 @@
-/* NetHack 3.6	do_wear.c	$NHDT-Date: 1579649788 2020/01/21 23:36:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.127 $ */
+/* NetHack 3.7	do_wear.c	$NHDT-Date: 1605578866 2020/11/17 02:07:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.136 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -22,7 +22,6 @@ static NEARDATA const long takeoff_order[] = {
 
 static void FDECL(on_msg, (struct obj *));
 static void FDECL(toggle_stealth, (struct obj *, long, BOOLEAN_P));
-static void FDECL(toggle_displacement, (struct obj *, long, BOOLEAN_P));
 static int NDECL(Armor_on);
 /* int NDECL(Boots_on); -- moved to extern.h */
 static int NDECL(Cloak_on);
@@ -39,11 +38,11 @@ static struct obj *NDECL(do_takeoff);
 static int NDECL(take_off);
 static int FDECL(menu_remarm, (int));
 static void FDECL(count_worn_stuff, (struct obj **, BOOLEAN_P));
-static boolean FDECL(will_touch_skin, (long));
 static int FDECL(armor_or_accessory_off, (struct obj *));
 static int FDECL(accessory_or_armor_on, (struct obj *));
 static void FDECL(already_wearing, (const char *));
 static void FDECL(already_wearing2, (const char *, const char *));
+static int FDECL(wornmask_to_bodypart, (int));
 
 /* plural "fingers" or optionally "gloves" */
 const char *
@@ -115,10 +114,11 @@ boolean on;
     }
 }
 
-/* putting on or taking off an item which confers displacement;
+/* putting on or taking off an item which confers displacement, or gaining
+   or losing timed displacement after eating a displacer beast corpse or tin;
    give feedback and discover it iff displacement state is changing *and*
-   hero is able to see self (or sense monsters) */
-static
+   hero is able to see self (or sense monsters); for timed, 'obj' is Null
+   and this is only called for the message */
 void
 toggle_displacement(obj, oldprop, on)
 struct obj *obj;
@@ -129,8 +129,8 @@ boolean on;
         return;
 
     if (!oldprop /* extrinsic displacement from something else */
-        && !(u.uprops[DISPLACED].intrinsic) /* (theoretical) */
-        && !(u.uprops[DISPLACED].blocked) /* (also theoretical) */
+        && !(u.uprops[DISPLACED].intrinsic) /* timed, from eating */
+        && !(u.uprops[DISPLACED].blocked) /* (theoretical) */
         /* we don't use canseeself() here because it augments vision
            with touch, which isn't appropriate for deciding whether
            we'll notice that monsters have trouble spotting the hero */
@@ -143,10 +143,42 @@ boolean on;
             || (Unblind_telepat
                 || (Blind_telepat && Blind)
                 || Detect_monsters))) {
-        makeknown(obj->otyp);
+        if (obj)
+            makeknown(obj->otyp);
 
         You_feel("that monsters%s have difficulty pinpointing your location.",
                  on ? "" : " no longer");
+    }
+}
+
+/* Print a weld message after equipping cursed gear, and make the cursed state
+ * known.
+ * Note on sequencing: the call to this should come after the "You finish
+ * [equipping] your [gear]" message but before any other special messages from
+ * that piece of gear. As such, it needs to be in the various Foo_off()
+ * functions.
+ */
+void
+cursed_gear_welds(obj)
+struct obj* obj;
+{
+    if (obj->cursed) {
+        const char* name = distant_name(obj, xname);
+        boolean the = (strncmp(name, "The ", 4)
+                        && !strncmp(The(name), "The ", 4));
+        const char* bodypart = body_part(wornmask_to_bodypart(obj->owornmask));
+        /* need to pluralize "themselves"/"itself" separately from pluralizing
+         * the body part; boots and gloves pluralize both, but a multiple
+         * wielded item shouldn't pluralize the body part */
+        /* can't use otense() here because it will try to produce "pair of boots
+         * welds itself", and we want "pair of boots weld themselves" */
+        boolean bodyplur = (obj == uarmg || obj == uarmf);
+        boolean themselves = (bodyplur || obj->quan > 1);
+        pline("%s%s weld%s to your %s!", the ? "The " : "",
+              simpleonames(obj),
+              themselves ? " themselves" : "s itself",
+              bodyplur ? makeplural(bodypart) : bodypart);
+        obj->bknown = TRUE;
     }
 }
 
@@ -161,6 +193,8 @@ Boots_on(VOID_ARGS)
 {
     long oldprop =
         u.uprops[objects[uarmf->otyp].oc_oprop].extrinsic & ~WORN_BOOTS;
+
+    cursed_gear_welds(uarmf);
 
     switch (uarmf->otyp) {
     case LOW_BOOTS:
@@ -280,6 +314,8 @@ Cloak_on(VOID_ARGS)
     long oldprop =
         u.uprops[objects[uarmc->otyp].oc_oprop].extrinsic & ~WORN_CLOAK;
 
+    cursed_gear_welds(uarmc);
+
     switch (uarmc->otyp) {
     case ORCISH_CLOAK:
     case DWARVISH_CLOAK:
@@ -384,6 +420,8 @@ static
 int
 Helmet_on(VOID_ARGS)
 {
+    cursed_gear_welds(uarmh);
+
     switch (uarmh->otyp) {
     case FEDORA:
     case HELMET:
@@ -424,6 +462,14 @@ Helmet_on(VOID_ARGS)
                 pline("%s %s for a moment.", Tobjnam(uarmh, "glow"),
                       hcolor(NH_BLACK));
             curse(uarmh);
+            /* curse() doesn't touch bknown so doesn't update persistent
+               inventory; do so now [set_bknown() calls update_inventory()] */
+            if (Blind)
+                set_bknown(uarmh, 0); /* lose bknown if previously set */
+            else if (Role_if(PM_PRIEST))
+                set_bknown(uarmh, 1); /* (bknown should already be set) */
+            else if (uarmh->bknown)
+                update_inventory(); /* keep bknown as-is; display the curse */
         }
         g.context.botl = 1; /* reveal new alignment or INT & WIS */
         if (Hallucination) {
@@ -500,6 +546,8 @@ Gloves_on(VOID_ARGS)
     long oldprop =
         u.uprops[objects[uarmg->otyp].oc_oprop].extrinsic & ~WORN_GLOVES;
 
+    cursed_gear_welds(uarmg);
+
     switch (uarmg->otyp) {
     case GLOVES:
         break;
@@ -541,8 +589,10 @@ boolean voluntary; /* taking gloves off on purpose? */
         Sprintf(kbuf, "%s gloves while wielding %s",
                 voluntary ? "removing" : "losing", killer_xname(obj));
         instapetrify(kbuf);
-        /* life-saved; can't continue wielding cockatrice corpse though */
-        remove_worn_item(obj, FALSE);
+        if (!Hallucination) {
+            /* life-saved; can't continue wielding cockatrice corpse though */
+            remove_worn_item(obj, FALSE);
+        }
     }
 }
 
@@ -591,7 +641,9 @@ Gloves_off(VOID_ARGS)
 
     /* you may now be touching some material you hate */
     if (uwep)
-        retouch_object(&uwep, FALSE);
+        retouch_object(&uwep, FALSE, FALSE); /* would be protectable by gloves
+                                                normally, but this is
+                                                Gloves_off()... */
 
     /* KMH -- ...or your secondary weapon when you're wielding it
        [This case can't actually happen; twoweapon mode won't
@@ -607,6 +659,8 @@ Gloves_off(VOID_ARGS)
 static int
 Shield_on(VOID_ARGS)
 {
+    cursed_gear_welds(uarms);
+
     /* no shield currently requires special handling when put on, but we
        keep this uncommented in case somebody adds a new one which does
        [reflection is handled by setting u.uprops[REFLECTION].extrinsic
@@ -655,6 +709,8 @@ Shield_off(VOID_ARGS)
 static int
 Shirt_on(VOID_ARGS)
 {
+    cursed_gear_welds(uarmu);
+
     /* no shirt currently requires special handling when put on, but we
        keep this uncommented in case somebody adds a new one which does */
     switch (uarmu->otyp) {
@@ -692,6 +748,8 @@ static
 int
 Armor_on(VOID_ARGS)
 {
+    cursed_gear_welds(uarm);
+
     /*
      * No suits require special handling.  Special properties conferred by
      * suits are set up as intrinsics (actually 'extrinsics') by setworn()
@@ -738,6 +796,12 @@ Amulet_on()
     else if (uamul == uquiver)
         setuqwep((struct obj *) 0);
 
+    /* avoid amulet of change's messages but NOT strangulation - print cursed
+     * msg before strangulation */
+    if (uamul->otyp != AMULET_OF_CHANGE) {
+        cursed_gear_welds(uamul);
+    }
+
     switch (uamul->otyp) {
     case AMULET_OF_ESP:
     case AMULET_OF_LIFE_SAVING:
@@ -747,8 +811,10 @@ Amulet_on()
     case FAKE_AMULET_OF_YENDOR:
         break;
     case AMULET_OF_UNCHANGING:
-        if (Slimed)
-            make_slimed(0L, (char *) 0);
+        if (Slimed) {
+            pline("The slime stops progressing, but does not vanish.");
+            makeknown(AMULET_OF_UNCHANGING);
+        }
         break;
     case AMULET_OF_CHANGE: {
         int orig_sex = poly_gender();
@@ -789,7 +855,31 @@ Amulet_on()
            gotten set by previously eating one of these amulets */
         if (newnap < oldnap || oldnap == 0L)
             HSleepy = (HSleepy & ~TIMEOUT) | newnap;
-    } break;
+        break;
+    }
+    case AMULET_OF_FLYING:
+        /* setworn() has already set extrinisic flying */
+        float_vs_flight(); /* block flying if levitating */
+        if (Flying) {
+            boolean already_flying;
+
+            /* to determine whether this flight is new we have to muck
+               about in the Flying intrinsic (actually extrinsic) */
+            EFlying &= ~W_AMUL;
+            already_flying = !!Flying;
+            EFlying |= W_AMUL;
+
+            if (!already_flying) {
+                makeknown(AMULET_OF_FLYING);
+                g.context.botl = TRUE; /* status: 'Fly' On */
+                You("are now in flight.");
+            }
+        }
+        break;
+    case AMULET_OF_GUARDING:
+        makeknown(AMULET_OF_GUARDING);
+        find_ac();
+        break;
     case AMULET_OF_YENDOR:
         break;
     }
@@ -810,8 +900,12 @@ Amulet_off()
     case AMULET_VERSUS_POISON:
     case AMULET_OF_REFLECTION:
     case AMULET_OF_CHANGE:
-    case AMULET_OF_UNCHANGING:
     case FAKE_AMULET_OF_YENDOR:
+        break;
+    case AMULET_OF_UNCHANGING:
+        if (Slimed) {
+            pline("The slime resumes its progression.");
+        }
         break;
     case AMULET_OF_MAGICAL_BREATHING:
         if (Underwater) {
@@ -843,6 +937,26 @@ Amulet_off()
         if (!ESleepy && !(HSleepy & ~TIMEOUT))
             HSleepy &= ~TIMEOUT; /* clear timeout bits */
         return;
+    case AMULET_OF_FLYING: {
+        boolean was_flying = !!Flying;
+
+        /* remove amulet 'early' to determine whether Flying changes */
+        setworn((struct obj *) 0, W_AMUL);
+        float_vs_flight(); /* probably not needed here */
+        if (was_flying && !Flying) {
+            makeknown(AMULET_OF_FLYING);
+            g.context.botl = TRUE; /* status: 'Fly' Off */
+            You("%s.", (is_pool_or_lava(u.ux, u.uy)
+                        || Is_waterlevel(&u.uz) || Is_airlevel(&u.uz))
+                          ? "stop flying"
+                          : "land");
+            spoteffects(TRUE);
+        }
+        break;
+    }
+    case AMULET_OF_GUARDING:
+        find_ac();
+        break;
     case AMULET_OF_YENDOR:
         break;
     }
@@ -899,6 +1013,8 @@ register struct obj *obj;
         setuswapwep((struct obj *) 0);
     else if (obj == uquiver)
         setuqwep((struct obj *) 0);
+
+    cursed_gear_welds(obj);
 
     /* only mask out W_RING when we don't have both
        left and right rings of the same type */
@@ -1151,6 +1267,8 @@ struct obj *otmp;
         remove_worn_item(otmp, FALSE);
     setworn(otmp, W_TOOL);
     on_msg(otmp);
+
+    cursed_gear_welds(otmp);
 
     if (Blind && !already_blind) {
         changed = TRUE;
@@ -1437,12 +1555,12 @@ boolean accessory;
 
     /* removing non-worn equipment */
     if (removing && !obj->owornmask)
-        return 0;
+        return 1;
 
     long mask = 0;
     if (obj->oclass == ARMOR_CLASS && !removing &&
         !canwearobj(obj, &mask, FALSE))
-        return 0;
+        return 1;
 
     /* check for putting on accessories in already filled slots */
     if (!removing &&
@@ -1450,12 +1568,12 @@ boolean accessory;
           uleft && uright) ||
          (obj->oclass == AMULET_CLASS && uamul) ||
          (obj->oclass == TOOL_CLASS && ublindf)))
-        return 0;
+        return 1;
 
     /* removing inaccessible equipment */
     if (removing &&
         inaccessible_equipment(obj, NULL, (obj->oclass == RING_CLASS)))
-        return 0;
+        return 1;
 
     /* all good to go */
     return 2;
@@ -1958,10 +2076,12 @@ boolean noisy;
 
 /* Return TRUE iff wearing a potential new piece of armor with the given mask
  * will touch the hero's skin. */
-static boolean
+boolean
 will_touch_skin(mask)
 long mask;
 {
+    if ((mask == W_WEP || mask == W_SWAPWEP) && uarmg)
+        return FALSE;
     if (mask == W_ARMC && (uarm || uarmu))
         return FALSE;
     else if (mask == W_ARM && uarmu)
@@ -2037,6 +2157,7 @@ struct obj *obj;
                     answer = yn_function(qbuf, "rl", '\0');
                     switch (answer) {
                     case '\0':
+                    case '\033':
                         return 0;
                     case 'l':
                     case 'L':
@@ -2113,7 +2234,7 @@ struct obj *obj;
 
     /* don't retouch and take material damage if it's a non-artifact object and
      * your skin is covered */
-    if ((obj->oartifact || will_touch_skin(mask)) && !retouch_object(&obj, FALSE))
+    if (!retouch_object(&obj, FALSE, !will_touch_skin(mask)))
         return 1; /* costs a turn even though it didn't get worn */
 
     if (armor) {
@@ -2128,13 +2249,13 @@ struct obj *obj;
          * to change so armor's +/- value is evident via the status line.
          * We used to set it here because of that, but then it would stick
          * if a nymph stole the armor before it was fully worn.  Delay it
-         * until the aftermv action.  The player may still know this armor's
+         * until the afternmv action.  The player may still know this armor's
          * +/- amount if donning gets interrupted, but the hero won't.
          *
         obj->known = 1;
          */
         setworn(obj, mask);
-        /* if there's no delay, we'll execute 'aftermv' immediately */
+        /* if there's no delay, we'll execute 'afternmv' immediately */
         if (obj == uarm)
             g.afternmv = Armor_on;
         else if (obj == uarmh)
@@ -2158,7 +2279,7 @@ struct obj *obj;
             g.multi_reason = "dressing up";
             g.nomovemsg = "You finish your dressing maneuver.";
         } else {
-            unmul(""); /* call (*g.aftermv)(), clear it+g.nomovemsg+g.multi_reason */
+            unmul(""); /* call afternmv, clear it+nomovemsg+multi_reason */
             on_msg(obj);
         }
         g.context.takeoff.mask = g.context.takeoff.what = 0L;
@@ -2228,6 +2349,40 @@ doputon()
     return otmp ? accessory_or_armor_on(otmp) : 0;
 }
 
+/* Convert a wornmask to the body part that armor is worn on. */
+static int
+wornmask_to_bodypart(wornmask)
+int wornmask;
+{
+    if (wornmask & (W_ARM | W_ARMC | W_ARMU)) {
+        return TORSO;
+    }
+    else if (wornmask & (W_ARMH | W_TOOL)) {
+        return HEAD;
+    }
+    else if (wornmask & W_ARMS) {
+        /* most shields are primarily worn on the arm; however, cursed shields
+         * block the use of the hand, so the hand has to be involved somehow */
+        return HAND;
+    }
+    else if (wornmask & (W_ARMG | W_WEP | W_SWAPWEP)) {
+        return HAND;
+    }
+    else if (wornmask & W_ARMF) {
+        return FOOT;
+    }
+    else if (wornmask & W_AMUL) {
+        return NECK;
+    }
+    else if (wornmask & W_RING) {
+        return FINGER;
+    }
+    else {
+        impossible("wornmask_to_bodypart: bad mask %x", wornmask);
+        return NO_PART;
+    }
+}
+
 /* calculate current armor class */
 void
 find_ac()
@@ -2253,6 +2408,8 @@ find_ac()
         uac -= uleft->spe;
     if (uright && uright->otyp == RIN_PROTECTION)
         uac -= uright->spe;
+    if (uamul && uamul->otyp == AMULET_OF_GUARDING)
+        uac -= 2; /* fixed amount; main benefit is to MC */
 
     /* armor class from other sources */
     if (HProtection & INTRINSIC)
@@ -2562,19 +2719,23 @@ static struct obj *
 do_takeoff()
 {
     struct obj *otmp = (struct obj *) 0;
+    boolean was_twoweap = u.twoweap;
     struct takeoff_info *doff = &g.context.takeoff;
 
     g.context.takeoff.mask |= I_SPECIAL; /* set flag for cancel_doff() */
     if (doff->what == W_WEP) {
         if (!cursed(uwep)) {
             setuwep((struct obj *) 0);
-            You("are empty %s.", body_part(HANDED));
-            set_twoweap(FALSE); /* u.twoweap = FALSE [ought to be in setuwep()] */
+            if (was_twoweap)
+                You("are no longer wielding either weapon.");
+            else
+                You("are empty %s.", body_part(HANDED));
         }
     } else if (doff->what == W_SWAPWEP) {
         setuswapwep((struct obj *) 0);
-        You("no longer have a second weapon readied.");
-        set_twoweap(FALSE); /* u.twoweap = FALSE; [ought to be in setuswapwep()] */
+        You("%sno longer %s.", was_twoweap ? "are " : "",
+            was_twoweap ? "wielding two weapons at once"
+                        : "have a second weapon readied");
     } else if (doff->what == W_QUIVER) {
         setuqwep((struct obj *) 0);
         You("no longer have ammunition readied.");
@@ -2752,13 +2913,13 @@ doddoremarm()
         result = menu_remarm(result);
 
     if (g.context.takeoff.mask) {
-        /* default activity for armor and/or accessories,
-           possibly combined with weapons */
-        (void) strncpy(g.context.takeoff.disrobing, "disrobing", CONTEXTVERBSZ);
-        /* specific activity when handling weapons only */
-        if (!(g.context.takeoff.mask & ~W_WEAPONS))
-            (void) strncpy(g.context.takeoff.disrobing, "disarming",
-                           CONTEXTVERBSZ);
+        (void) strncpy(g.context.takeoff.disrobing,
+                       (((g.context.takeoff.mask & ~W_WEAPONS) != 0)
+                        /* default activity for armor and/or accessories,
+                           possibly combined with weapons */
+                        ? "disrobing"
+                        /* specific activity when handling weapons only */
+                        : "disarming"), CONTEXTVERBSZ);
         (void) take_off();
     }
     /* The time to perform the command is already completely accounted for

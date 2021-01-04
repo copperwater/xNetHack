@@ -1,4 +1,4 @@
-/* NetHack 3.6	monmove.c	$NHDT-Date: 1586091452 2020/04/05 12:57:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.137 $ */
+/* NetHack 3.7	monmove.c	$NHDT-Date: 1603507386 2020/10/24 02:43:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.146 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -138,16 +138,18 @@ register struct monst *mtmp;
 
     /* a similar check is in monster_nearby() in hack.c */
     /* check whether hero notices monster and stops current activity */
-    if (g.occupation && !rd && !Confusion && (!mtmp->mpeaceful || Hallucination)
+    if (g.occupation && !rd
+        /* monster is hostile and can attack (or hallu distorts knowledge) */
+        && (Hallucination || (!mtmp->mpeaceful && !noattacks(mtmp->data)))
         /* it's close enough to be a threat */
-        && distu(x, y) <= (BOLT_LIM + 1) * (BOLT_LIM + 1)
+        && distu(mtmp->mx, mtmp->my) <= (BOLT_LIM + 1) * (BOLT_LIM + 1)
         /* and either couldn't see it before, or it was too far away */
         && (!already_saw_mon || !couldsee(x, y)
             || distu(x, y) > (BOLT_LIM + 1) * (BOLT_LIM + 1))
         /* can see it now, or sense it and would normally see it */
-        && (canseemon(mtmp) || (sensemon(mtmp) && couldsee(x, y)))
-        && mtmp->mcanmove && !noattacks(mtmp->data)
-        && !onscary(u.ux, u.uy, mtmp))
+        && canspotmon(mtmp) && couldsee(mtmp->mx, mtmp->my)
+        /* monster isn't paralyzed or afraid (scare monster/Elbereth) */
+        && mtmp->mcanmove && !onscary(u.ux, u.uy, mtmp))
         stop_occupation();
 
     return rd;
@@ -180,6 +182,10 @@ struct monst *mtmp;
     if (IS_ALTAR(levl[x][y].typ)
         && (mtmp->data->mlet == S_VAMPIRE || is_vampshifter(mtmp)))
         return TRUE;
+
+    /* Conflicted monsters ignore scary things on the floor. */
+    if (Conflict)
+        return FALSE;
 
     /* the scare monster scroll doesn't have any of the below
      * restrictions, being its own source of power */
@@ -261,7 +267,7 @@ register struct monst *mtmp;
             || (mtmp->data->mlet == S_DOG || mtmp->data->mlet == S_HUMAN)
             || (!rn2(7) && M_AP_TYPE(mtmp) != M_AP_FURNITURE
                 && M_AP_TYPE(mtmp) != M_AP_OBJECT))) {
-        mtmp->msleeping = 0;
+        wakeup(mtmp, FALSE);
         return 1;
     }
     return 0;
@@ -542,8 +548,12 @@ register struct monst *mtmp;
 
     /* Monsters that want to acquire things */
     /* may teleport, so do it before inrange is set */
-    if (is_covetous(mdat))
+    if (is_covetous(mdat)) {
         (void) tactics(mtmp);
+        /* tactics -> mnexto -> deal_with_overcrowding */
+        if (mtmp->mstate)
+            return 0;
+    }
 
     /* check distance and scariness of attacks */
     distfleeck(mtmp, &inrange, &nearby, &scared);
@@ -551,7 +561,6 @@ register struct monst *mtmp;
     /* Dramatic entrance messages if it's a boss */
     if (canseemon(mtmp)) {
         boss_entrance(mtmp);
-        mtmp->mstrategy &= ~STRAT_APPEARMSG;
     }
 
     if (find_defensive(mtmp)) {
@@ -603,13 +612,27 @@ register struct monst *mtmp;
             && (!Conflict || resist(mtmp, RING_CLASS, 0, 0))) {
             pline("It feels quite soothing.");
         } else if (!u.uinvulnerable) {
-            register boolean m_sen = sensemon(mtmp);
+            int dmg;
+            boolean m_sen = sensemon(mtmp);
 
             if (m_sen || (Blind_telepat && rn2(2)) || !rn2(10)) {
-                int dmg;
+                /* hiding monsters are brought out of hiding when hit by
+                   a psychic blast, so do the same for hiding poly'd hero */
+                if (u.uundetected) {
+                    u.uundetected = 0;
+                    newsym(u.ux, u.uy);
+                } else if (U_AP_TYPE != M_AP_NOTHING
+                           /* hero has no way to hide as monster but
+                              check for that theoretical case anyway */
+                           && U_AP_TYPE != M_AP_MONSTER) {
+                    g.youmonst.m_ap_type = M_AP_NOTHING;
+                    g.youmonst.mappearance = 0;
+                    newsym(u.ux, u.uy);
+                }
                 pline("It locks on to your %s!",
-                      m_sen ? "telepathy" : Blind_telepat ? "latent telepathy"
-                                                          : "mind");
+                      m_sen ? "telepathy"
+                      : Blind_telepat ? "latent telepathy"
+                        : "mind"); /* note: hero is never mindless */
                 dmg = rnd(15);
                 if (Half_spell_damage)
                     dmg = (dmg + 1) / 2;
@@ -628,13 +651,13 @@ register struct monst *mtmp;
                 continue;
             if ((has_telepathy(m2) && (rn2(2) || m2->mblinded))
                 || !rn2(10)) {
+                /* wake it up first, to bring hidden monster out of hiding */
+                wakeup(m2, FALSE);
                 if (cansee(m2->mx, m2->my))
                     pline("It locks on to %s.", mon_nam(m2));
                 m2->mhp -= rnd(15);
                 if (DEADMONSTER(m2))
                     monkilled(m2, "", AD_DRIN);
-                else
-                    m2->msleeping = 0;
             }
         }
     }
@@ -650,11 +673,12 @@ register struct monst *mtmp;
         mtmp->minvis = 1;
         if (couldsee && !canseemon(mtmp)) {
             pline("%s fades from view.", nam);
+            newsym(mtmp->mx, mtmp->my);
         }
         else if (couldsee && See_invisible) {
             pline("%s turns even more transparent.", nam);
+            newsym(mtmp->mx, mtmp->my);
         }
-        newsym(mtmp->mx, mtmp->my);
         return 0;
     }
 
@@ -939,16 +963,26 @@ static int
 count_webbing_walls(x, y)
 xchar x, y;
 {
-#define holds_up_web(X, Y) ((!isok((X), (Y))                              \
-                             || IS_ROCK(levl[X][Y].typ)                   \
-                             || (levl[X][Y].typ == STAIRS                 \
-                                 && (X) == xupstair && (Y) == yupstair)   \
-                             || (levl[X][Y].typ == LADDER                 \
-                                 && (X) == xupladder && (Y) == yupladder) \
-                             || levl[X][Y].typ == IRONBARS) ? 1 : 0)
-    return (holds_up_web(x, y - 1) + holds_up_web(x + 1, y)
-            + holds_up_web(x, y + 1) + holds_up_web(x - 1, y));
-#undef holds_up_web
+    int xx, yy;
+    int ct = 0;
+    for (xx = x - 1; xx <= x + 1; xx++) {
+        for (yy = y - 1; yy <= y + 1; yy++) {
+            if (xx != x && yy != y) {
+                /* only do orthogonal adjacencies */
+                continue;
+            }
+            if (!isok(xx, yy)) {
+                continue;
+            }
+            struct stairway *stairs = stairway_at(xx, yy);
+            if (IS_ROCK(levl[xx][yy].typ) || levl[xx][yy].typ == IRONBARS
+                || (stairs && stairs->up)) {
+                /* both upstair and upladder are valid here */
+                ct++;
+            }
+        }
+    }
+    return ct;
 }
 
 /* Return values:
@@ -1120,6 +1154,13 @@ register int after;
                     > ((ygold = findgold(g.invent, TRUE)) ? ygold->quan : 0L))))
             appr = -1;
 
+        /* hostiles with ranged weapons or spit attack try to stay away */
+        if (!mtmp->mpeaceful
+            && (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) < 5*5)
+            && m_canseeu(mtmp) &&
+            (m_has_launcher_and_ammo(mtmp) || attacktype(mtmp->data, AT_SPIT)))
+            appr = -1;
+
         if (!should_see && can_track(ptr)) {
             register coord *cp;
 
@@ -1271,34 +1312,7 @@ register int after;
 
     nix = omx;
     niy = omy;
-    flag = 0L;
-    if (mtmp->mpeaceful && (!Conflict || resist(mtmp, RING_CLASS, 0, 0)))
-        flag |= (ALLOW_SANCT | ALLOW_SSM);
-    else
-        flag |= ALLOW_U;
-    if (is_minion(ptr) || is_rider(ptr))
-        flag |= ALLOW_SANCT;
-    /* unicorn may not be able to avoid hero on a noteleport level */
-    if (is_unicorn(ptr) && !noteleport_level(mtmp))
-        flag |= NOTONL;
-    if (passes_walls(ptr))
-        flag |= (ALLOW_WALL | ALLOW_ROCK);
-    if (passes_bars(ptr))
-        flag |= ALLOW_BARS;
-    if (can_tunnel)
-        flag |= ALLOW_DIG;
-    if (is_human(ptr) || ptr == &mons[PM_MINOTAUR])
-        flag |= ALLOW_SSM;
-    if ((is_undead(ptr) && !noncorporeal(ptr)) || is_vampshifter(mtmp))
-        flag |= NOGARLIC;
-    if (throws_rocks(ptr))
-        flag |= ALLOW_ROCK;
-    if (can_open_doors(mtmp->data))
-        flag |= OPENDOOR;
-    if (can_unlock(mtmp))
-        flag |= UNLOCKDOOR;
-    if (is_giant(ptr))
-        flag |= BUSTDOOR;
+    flag = mon_allowflags(mtmp);
     {
         register int i, j, nx, ny, nearer;
         int jcnt, cnt;
@@ -1401,10 +1415,8 @@ register int after;
          * Pets get taken care of above and shouldn't reach this code.
          * Conflict gets handled even farther away (movemon()).
          */
-
-        if ((info[chi] & ALLOW_M) || (nix == mtmp->mux && niy == mtmp->muy)) {
+        if ((info[chi] & ALLOW_M) || (nix == mtmp->mux && niy == mtmp->muy))
             return m_move_aggress(mtmp, nix, niy);
-        }
 
         /* hiding-under monsters will attack things from their hiding spot but
          * are less likely to venture out */
@@ -1517,9 +1529,12 @@ register int after;
                     impossible("m_move: monster moving to closed door");
                 }
             } else if (levl[mtmp->mx][mtmp->my].typ == IRONBARS) {
-                /* 3.6.2: was using may_dig() but it doesn't handle bars */
+                /* 3.6.2: was using may_dig() but that doesn't handle bars;
+                   AD_RUST catches rust monsters but metallivorous() is
+                   needed for xorns and rock moles */
                 if (!(levl[mtmp->mx][mtmp->my].wall_info & W_NONDIGGABLE)
-                    && (dmgtype(ptr, AD_RUST) || dmgtype(ptr, AD_CORR))) {
+                    && (dmgtype(ptr, AD_RUST) || dmgtype(ptr, AD_CORR)
+                        || metallivorous(ptr))) {
                     if (canseemon(mtmp))
                         pline("%s eats through the iron bars.", Monnam(mtmp));
                     dissolve_bars(mtmp->mx, mtmp->my);
@@ -1729,6 +1744,8 @@ register int x, y;
     levl[x][y].typ = (Is_special(&u.uz) || *in_rooms(x, y, 0)) ? ROOM : CORR;
     levl[x][y].flags = 0;
     newsym(x, y);
+    if (x == u.ux && y == u.uy)
+        switch_terrain();
 }
 
 boolean
@@ -1757,8 +1774,8 @@ void
 set_apparxy(mtmp)
 register struct monst *mtmp;
 {
-    boolean notseen, gotu;
-    register int disp, mx = mtmp->mux, my = mtmp->muy;
+    boolean notseen, notthere, gotu;
+    int disp, mx = mtmp->mux, my = mtmp->muy;
     long umoney = money_cnt(g.invent);
 
     /*
@@ -1779,24 +1796,25 @@ register struct monst *mtmp;
         goto found_you;
 
     notseen = (!mtmp->mcansee || (Invis && !perceives(mtmp->data)));
+    notthere = (Displaced && mtmp->data != &mons[PM_DISPLACER_BEAST]);
     /* add cases as required.  eg. Displacement ... */
-    if (notseen || Underwater) {
+    if (Underwater) {
+        disp = 1;
+    } else if (notseen) {
         /* Xorns can smell quantities of valuable metal
-            like that in solid gold coins, treat as seen */
-        if ((mtmp->data == &mons[PM_XORN]) && umoney && !Underwater)
-            disp = 0;
-        else
-            disp = 1;
-    } else if (Displaced) {
+           like that in solid gold coins, treat as seen */
+        disp = (mtmp->data == &mons[PM_XORN] && umoney) ? 0 : 1;
+    } else if (notthere) {
         disp = couldsee(mx, my) ? 2 : 1;
-    } else
+    } else {
         disp = 0;
+    }
     if (!disp)
         goto found_you;
 
     /* without something like the following, invisibility and displacement
        are too powerful */
-    gotu = notseen ? !rn2(3) : Displaced ? !rn2(4) : FALSE;
+    gotu = notseen ? !rn2(3) : notthere ? !rn2(4) : FALSE;
 
     if (!gotu) {
         register int try_cnt = 0;

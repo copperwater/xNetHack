@@ -1,4 +1,4 @@
-/* NetHack 3.6	priest.c	$NHDT-Date: 1578895348 2020/01/13 06:02:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.57 $ */
+/* NetHack 3.7	priest.c	$NHDT-Date: 1597931337 2020/08/20 13:48:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.63 $ */
 /* Copyright (c) Izchak Miller, Steve Linhart, 1989.              */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -52,7 +52,7 @@ register xchar omx, omy, gx, gy;
     schar chcnt, cnt;
     coord poss[9];
     long info[9];
-    long ninfo;
+    long ninfo = 0;
     long allowflags;
 #if 0 /* dead code; see below */
     struct obj *ib = (struct obj *) 0;
@@ -67,23 +67,7 @@ register xchar omx, omy, gx, gy;
 
     nix = omx;
     niy = omy;
-    if (mtmp->isshk)
-        allowflags = ALLOW_SSM;
-    else
-        allowflags = ALLOW_SSM | ALLOW_SANCT;
-    if (passes_walls(mtmp->data))
-        allowflags |= (ALLOW_ROCK | ALLOW_WALL);
-    if (throws_rocks(mtmp->data))
-        allowflags |= ALLOW_ROCK;
-    if (tunnels(mtmp->data))
-        allowflags |= ALLOW_DIG;
-    if (!nohands(mtmp->data) && !verysmall(mtmp->data)) {
-        allowflags |= OPENDOOR;
-        if (monhaskey(mtmp, TRUE))
-            allowflags |= UNLOCKDOOR;
-    }
-    if (is_giant(mtmp->data))
-        allowflags |= BUSTDOOR;
+    allowflags = mon_allowflags(mtmp);
     cnt = mfndpos(mtmp, poss, info, allowflags);
 
     if (mtmp->isshk && avoid && uondoor) { /* perhaps we cannot avoid him */
@@ -131,7 +115,7 @@ pick_move:
             /* mtmp is deciding it would like to attack this turn.
              * Returns from m_move_aggress don't correspond to the same things
              * as this function should return, so we need to translate. */
-            switch(m_move_aggress(mtmp, nix, niy)) {
+            switch (m_move_aggress(mtmp, nix, niy)) {
             case 2:
                 return -2; /* died making the attack */
             case 3:
@@ -254,7 +238,7 @@ boolean sanctum; /* is it the seat of the high priest? */
     struct monst *priest;
     struct obj *otmp;
     int cnt;
-    int px, py, i, si = rn2(8);
+    int px = 0, py = 0, i, si = rn2(8);
     struct permonst *prim = &mons[sanctum ? PM_HIGH_PRIEST : PM_ALIGNED_PRIEST];
 
     for (i = 0; i < 8; i++) {
@@ -585,10 +569,10 @@ register struct monst *priest;
     boolean strayed = (u.ualign.record < 0);
 
     /* KMH, conduct */
-    if(!u.uconduct.gnostic++)
+    if (!u.uconduct.gnostic++)
         livelog_printf(LL_CONDUCT,
-               "rejected atheism by consulting with %s",
-               mon_nam(priest));
+                       "rejected atheism by consulting with %s",
+                       mon_nam(priest));
 
     if (priest->mflee || (!priest->ispriest && coaligned && strayed)) {
         pline("%s doesn't want anything to do with you!", Monnam(priest));
@@ -674,7 +658,7 @@ register struct monst *priest;
                    && (!(HProtection & INTRINSIC)
                        || (u.ublessed < 20
                            && (u.ublessed < 9 || !rn2(u.ublessed))))) {
-            verbalize("Thy devotion has been rewarded.");
+            verbalize("Thou hast been rewarded for thy devotion.");
             if (!(HProtection & INTRINSIC)) {
                 HProtection |= FROMOUTSIDE;
                 if (!u.ublessed)

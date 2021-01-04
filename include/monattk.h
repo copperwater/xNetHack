@@ -1,4 +1,4 @@
-/* NetHack 3.6	monattk.h	$NHDT-Date: 1432512775 2015/05/25 00:12:55 $  $NHDT-Branch: master $:$NHDT-Revision: 1.11 $ */
+/* NetHack 3.7	monattk.h	$NHDT-Date: 1596498548 2020/08/03 23:49:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.13 $ */
 /* NetHack may be freely redistributed.  See license for details. */
 /* Copyright 1988, M. Stephenson */
 
@@ -77,12 +77,23 @@
 #define AD_SLIM 40  /* turns you into green slime */
 #define AD_ENCH 41  /* remove enchantment (disenchanter) */
 #define AD_CORR 42  /* corrode armor (black pudding) */
-#define AD_CURS 43 /* random curse (ex. gremlin) */
-#define AD_CLRC 44 /* random clerical spell */
-#define AD_SPEL 45 /* random magic spell */
-#define AD_RBRE 46 /* random breath weapon */
-#define AD_SAMU 47 /* hits, may steal Amulet (Wizard) */
+#define AD_CURS 43  /* random curse (ex. gremlin) */
+#define AD_POLY 44  /* polymorph the target (genetic engineer) */
+#define AD_PITS 45  /* create pit under target */
+#define AD_CLRC 46  /* random clerical spell */
+#define AD_SPEL 47  /* random magic spell */
+#define AD_RBRE 48  /* random breath weapon */
+#define AD_SAMU 49  /* hits, may steal Amulet (Wizard) */
 #define LAST_AD AD_SAMU
+
+struct mhitm_data {
+    int damage;
+    int hitflags; /* MM_DEF_DIED | MM_AGR_DIED | ... */
+    boolean done;
+    boolean permdmg;
+    int specialdmg;
+    int dieroll;
+};
 
 /*
  *  Monster to monster attacks.  When a monster attacks another (mattackm),
@@ -93,5 +104,6 @@
 #define MM_HIT 0x1      /* aggressor hit defender */
 #define MM_DEF_DIED 0x2 /* defender died */
 #define MM_AGR_DIED 0x4 /* aggressor died */
+#define MM_AGR_DONE 0x8 /* aggressor is done with their turn */
 
 #endif /* MONATTK_H */
