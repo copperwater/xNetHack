@@ -370,6 +370,9 @@ changes:
   adjacent monster for you to loot, it will automatically loot that container
   without prompting.
 - Monster lookup additionally shows the base level of the monster.
+- The xlogfile now contains a "polyinit=" field for all games, showing the
+  monster species the player polyinitted as, or "none" if the game was not in
+  polyinit mode.
 
 ### Architectural changes
 

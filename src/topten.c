@@ -387,6 +387,8 @@ int how;
             money_cnt(g.invent) + hidden_gold(TRUE));
     Fprintf(rfile, "%cwish_cnt=%ld", XLOG_SEP, u.uconduct.wishes);
     Fprintf(rfile, "%carti_wish_cnt=%ld", XLOG_SEP, u.uconduct.wisharti);
+    Fprintf(rfile, "%cpolyinit=%s", XLOG_SEP,
+            Polyinit_mode ? mons[u.umonnum].mname : "none");
     Fprintf(rfile, "\n");
 #undef XLOG_SEP
 }
