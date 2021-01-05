@@ -448,6 +448,10 @@ changes:
   simply having the bones option off.
 - The xlogfile "flags" field is rearranged (xNetHack flags now start at the
   highest bit and count down, and it no longer stores the number of bones).
+- You can now set monster colors to recolor a monster species: either via
+  "MONSTERCOLOR=species:color" in the configuration file, or via in-game
+  options. They do not persist when the game is saved and restored, but
+  configuration file changes will be reloaded upon restore.
 
 ### Architectural changes
 

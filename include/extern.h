@@ -1900,6 +1900,7 @@ extern boolean msgtype_parse_add(char *);
 extern int msgtype_type(const char *, boolean);
 extern void hide_unhide_msgtypes(boolean, int);
 extern void msgtype_free(void);
+extern boolean add_monstercolor(char *);
 
 /* ### pager.c ### */
 
