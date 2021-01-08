@@ -30,8 +30,14 @@ static int FDECL(reveal_terrain_getglyph, (int, int, int,
                                                unsigned, int, int));
 
 #ifdef DUMPHTML
-extern void FDECL(html_dump_glyph, (int, int, int, int, int, unsigned));
+extern void FDECL(html_print_glyph,
+                      (winid, xchar, xchar, const glyph_info *,
+                           const glyph_info *));
 #endif
+
+/* wildcard class for clear_stale_map - this used to be used as a getobj() input
+ * but it's no longer used for that function */
+#define ALL_CLASSES (MAXOCLASSES + 1)
 
 /* bring hero out from underwater or underground or being engulfed;
    return True iff any change occurred */
@@ -2009,22 +2015,16 @@ dump_map()
         lastnonblank = -1; /* buf[] index rather than map's x */
         for (x = 1; x < COLNO; x++) {
             int ch;
-            unsigned glyphmod[NUM_GLYPHMOD];
+            glyph_info glyphinfo;
 
             glyph = reveal_terrain_getglyph(x, y, FALSE, u.uswallow,
                                             default_glyph, subset);
+            map_glyphinfo(x, y, glyph, 0, &glyphinfo);
+            ch = glyphinfo.ttychar;
 #ifdef DUMPHTML
             /* HTML map prints in a defined rectangle, so
                just render every glyph - no skipping. */
-            {
-                int color, sym;
-                unsigned special;
-                sym = mapglyph(glyph, &ch, &color, &special, x, y, 0);
-                html_dump_glyph(x, y, sym, ch, color, special);
-            }
-#else
-            map_glyphmod(x, y, glyph, 0, glyphmod);
-            ch = (int) glyphmod[GM_TTYCHAR];
+            html_print_glyph(NHW_DUMPHTML, x, y, &glyphinfo, NULL);
 #endif
             buf[x - 1] = ch;
             if (ch != ' ') {

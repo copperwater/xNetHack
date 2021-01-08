@@ -58,7 +58,7 @@ int func(CHAR_P arg) { ... }
 
 typedef struct nhmi {
     winid wid;                  /* NetHack window id */
-    int glyph;                  /* Menu glyphs */
+    glyph_info glyphinfo;       /* holds menu glyph and additional glyph info */
     anything identifier;        /* Value returned if item selected */
     CHAR_P accelerator;         /* Character used to select item from menu */
     CHAR_P group_accel;         /* Group accelerator for menu item, if any */
@@ -131,7 +131,8 @@ curses_line_input_dialog(const char *prompt, char *answer, int buffer)
     int map_height, map_width, maxwidth, remaining_buf, winx, winy, count;
     WINDOW *askwin, *bwin;
     char *tmpstr;
-    int prompt_width, prompt_height = 1, height = prompt_height;
+    int prompt_width, prompt_height = 1, height = prompt_height,
+        answerx = 0, answery = 0, trylim;
     char input[BUFSZ];
 
     /* if messages were being suppressed for the remainder of the turn,
@@ -185,11 +186,28 @@ curses_line_input_dialog(const char *prompt, char *answer, int buffer)
                 wmove(askwin, count + 1, 0);
         }
         free(tmpstr);
+        /* remember where user's typed response will start, in case we
+           need to re-prompt */
+        getyx(askwin, answery, answerx);
     }
 
     echo();
     curs_set(1);
-    wgetnstr(askwin, input, buffer - 1);
+    trylim = 10;
+    do {
+        /* move and clear are only needed for 2nd and subsequent passes */
+        wmove(askwin, answery, answerx);
+        wclrtoeol(askwin);
+
+        wgetnstr(askwin, input, buffer - 1);
+        /* ESC after some input kills that input and tries again;
+           ESC at the start cancels, leaving ESC in the result buffer.
+           [Note: wgetnstr() treats <escape> as an ordinary character
+           so user has to type <escape><return> for it to behave the
+           way we want it to.] */
+        if (input[0] != '\033' && index(input, '\033') != 0)
+             input[0] = '\0';
+    } while (--trylim > 0 && !input[0]);
     curs_set(0);
     Strcpy(answer, input);
     werase(bwin);
@@ -582,7 +600,7 @@ curs_new_menu_item(winid wid, const char *str)
     curses_rtrim(new_str);
     new_item = (nhmenu_item *) alloc((unsigned) sizeof (nhmenu_item));
     new_item->wid = wid;
-    new_item->glyph = NO_GLYPH;
+    new_item->glyphinfo = nul_glyphinfo;
     new_item->identifier = cg.zeroany;
     new_item->accelerator = '\0';
     new_item->group_accel = '\0';
@@ -601,8 +619,9 @@ curs_new_menu_item(winid wid, const char *str)
 /* Add a menu item to the given menu window */
 
 void
-curses_add_nhmenu_item(winid wid, int glyph, const ANY_P *identifier,
-                       CHAR_P accelerator, CHAR_P group_accel, int attr,
+curses_add_nhmenu_item(winid wid, const glyph_info *glyphinfo,
+                       const ANY_P *identifier, CHAR_P accelerator,
+                       CHAR_P group_accel, int attr,
                        const char *str, unsigned itemflags)
 {
     nhmenu_item *new_item, *current_items, *menu_item_ptr;
@@ -620,7 +639,7 @@ curses_add_nhmenu_item(winid wid, int glyph, const ANY_P *identifier,
     }
 
     new_item = curs_new_menu_item(wid, str);
-    new_item->glyph = glyph;
+    new_item->glyphinfo = *glyphinfo;
     new_item->identifier = *identifier;
     new_item->accelerator = accelerator;
     new_item->group_accel = group_accel;
@@ -1037,7 +1056,8 @@ menu_win_size(nhmenu *menu)
             /* Add space for accelerator (selector letter) */
             curentrywidth += 4;
 #if 0 /* FIXME: menu glyphs */
-            if (menu_item_ptr->glyph != NO_GLYPH && iflags.use_menu_glyphs)
+            if (menu_item_ptr->glyphinfo.glyph != NO_GLYPH
+                && iflags.use_menu_glyphs)
                 curentrywidth += 2;
 #endif
         }
@@ -1179,11 +1199,8 @@ menu_display_page(nhmenu *menu, WINDOW * win, int page_num, char *selectors)
         }
 #if 0
         /* FIXME: menuglyphs not implemented yet */
-        if (menu_item_ptr->glyph != NO_GLYPH && iflags.use_menu_glyphs) {
-            unsigned special;  /*notused */
-
-            /*mapglyph(menu_item_ptr->glyph, &curletter, &color, &special,
-                       0, 0, 0);*/
+        if (menu_item_ptr->glyphinfo.glyph != NO_GLYPH && iflags.use_menu_glyphs) {
+            color = (int) menu_item_ptr->glyphinfo.color;
             curses_toggle_color_attr(win, color, NONE, ON);
             mvwaddch(win, menu_item_ptr->line_num + 1, start_col, curletter);
             curses_toggle_color_attr(win, color, NONE, OFF);

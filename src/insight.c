@@ -110,7 +110,7 @@ int attr;
         anything any;
 
         any = cg.zeroany;
-        add_menu(g.en_win, NO_GLYPH, &any, 0, 0, attr, buf,
+        add_menu(g.en_win, &nul_glyphinfo, &any, 0, 0, attr, buf,
                  MENU_ITEMFLAGS_NONE);
     } else
         putstr(g.en_win, attr, buf);
@@ -2378,7 +2378,8 @@ set_vanq_order()
         if (i == VANQ_ALPHA_MIX || i == VANQ_MCLS_HTOL) /* skip these */
             continue;
         any.a_int = i + 1;
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE, vanqorders[i],
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
+                 vanqorders[i],
                  (i == g.vanq_sortmode)
                     ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
     }

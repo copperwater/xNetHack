@@ -39,7 +39,6 @@ struct engr *head_engr;
 #ifdef TEXTCOLOR
 /*
  *  This must be the same order as used for buzz() in zap.c.
- *  (They're only used in mapglyph.c so probably shouldn't be here.)
  */
 const int zapcolors[NUM_ZAP] = {
     HI_ZAP,     /* 0 - missile */
@@ -700,6 +699,10 @@ const struct const_globals cg = {
     DUMMY, /* zeromonst */
     DUMMY, /* zeroany */
 };
+
+/* glyph, color, ttychar, symidx, glyphflags */
+const glyph_info nul_glyphinfo =
+    { NO_GLYPH, NO_COLOR, ' ', 0, MG_UNEXPL };
 
 #define ZERO(x) memset(&x, 0, sizeof(x))
 

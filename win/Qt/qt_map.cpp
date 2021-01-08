@@ -181,20 +181,9 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
 
         for (int j = garea.top(); j <= garea.bottom(); j++) {
             for (int i = garea.left(); i <= garea.right(); i++) {
-#if 0
-                unsigned short g = Glyph(i, j);
-                int colortmp;
-                int chtmp;
-		unsigned special;
-		/* map glyph to character and color */
-                mapglyph(g, &chtmp, &colortmp, &special, i, j, 0);
-                unsigned short ch = (unsigned short) chtmp,
-                               color = (unsigned short) colortmp;
-#else
 		unsigned short color = Glyphcolor(i, j);
 		unsigned short ch = Glyphttychar(i, j);
 		unsigned special = Glyphflags(i, j);
-#endif
 		ch = cp437(ch);
 #ifdef TEXTCOLOR
 		painter.setPen( nhcolor_to_pen(color) );
@@ -223,14 +212,7 @@ void NetHackQtMapViewport::paintEvent(QPaintEvent* event)
         for (int j = garea.top(); j <= garea.bottom(); j++) {
             for (int i = garea.left(); i <= garea.right(); i++) {
                 unsigned short g = Glyph(i,j);
-#if 0
-		int color;
-		int ch;
-		unsigned special;
-		mapglyph(g, &ch, &color, &special, i, j, 0);
-#else
 		unsigned special = Glyphflags(i, j);
-#endif
                 bool femflag = (special & MG_FEMALE) ? true : false;
                 glyphs.drawCell(painter, g, i, j, femflag);
 
@@ -554,13 +536,13 @@ void NetHackQtMapViewport::CursorTo(int x,int y)
     Changed(cursor.x(), cursor.y());
 }
 
-void NetHackQtMapViewport::PrintGlyph(int x, int y, int theglyph,
-                                      unsigned *glyphmod)
+void NetHackQtMapViewport::PrintGlyph(int x, int y,
+                                      const glyph_info *glyphinfo)
 {
-    Glyph(x, y) = (unsigned short) theglyph;
-    Glyphttychar(x, y) = (unsigned short) glyphmod[GM_TTYCHAR];
-    Glyphcolor(x, y) = (unsigned short) glyphmod[GM_COLOR];
-    Glyphflags(x, y) = glyphmod[GM_FLAGS];
+    Glyph(x, y) = (unsigned short) glyphinfo->glyph;
+    Glyphttychar(x, y) = (unsigned short) glyphinfo->ttychar;
+    Glyphcolor(x, y) = (unsigned short) glyphinfo->color;
+    Glyphflags(x, y) = glyphinfo->glyphflags;
     Changed(x, y);
 }
 
@@ -665,9 +647,10 @@ void NetHackQtMapWindow2::ClipAround(int x,int y)
     ensureVisible(x,y,width()*0.45,height()*0.45);
 }
 
-void NetHackQtMapWindow2::PrintGlyph(int x,int y,int glyph, unsigned *glyphmod)
+void NetHackQtMapWindow2::PrintGlyph(int x,int y,
+                                     const glyph_info *glyphinfo)
 {
-    m_viewport->PrintGlyph(x, y, glyph, glyphmod);
+    m_viewport->PrintGlyph(x, y, glyphinfo);
 }
 
 #if 0 //RLC
@@ -878,8 +861,6 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 		unsigned special = Glyphflags(i,j);
 #endif
 		painter.setPen( Qt::green );
-		/* map glyph to character and color */
-//    		mapglyph(g, &ch, &color, &special, i, j, 0);
 #ifdef TEXTCOLOR
 		painter.setPen( nhcolor_to_pen(color) );
 #endif
@@ -911,16 +892,9 @@ void NetHackQtMapWindow::paintEvent(QPaintEvent* event)
 	for (int j=garea.top(); j<=garea.bottom(); j++) {
 	    for (int i=garea.left(); i<=garea.right(); i++) {
 		unsigned short g=Glyph(i,j);
-#if 0
-		int color;
-		int ch;
-		unsigned special;
-		mapglyph(g, &ch, &color, &special, i, j, 0);
-#else
 		int color = Glyphcolor(i,j);
 		int ch = Glyphttychar(i,j);
 		unsigned special = Glyphflags(i,j);
-#endif
                 bool femflag = (special & MG_FEMALE) ? true : false;
                 qt_settings->glyphs().drawCell(painter, g, i, j, femflag);
 #ifdef TEXTCOLOR
@@ -1031,12 +1005,12 @@ void NetHackQtMapWindow::ClipAround(int x,int y)
     viewport.center(x,y,0.45,0.45);
 }
 
-void NetHackQtMapWindow::PrintGlyph(int x,int y,int glyph, unsigned *glyphmod)
+void NetHackQtMapWindow::PrintGlyph(int x,int y, const glyph_info *glyphinfo)
 {
-    Glyph(x,y)=glyph;
-    Glyphttychar(x,y)=glyphmod[GM_TTYCHAR];
-    Glyphcolor(x,y)=glyphmod[GM_COLOR];
-    Glyphflags(x,y)=glyphmod[GM_FLAGS];
+    Glyph(x,y)=glyphinfo->glyph;
+    Glyphttychar(x,y)=glyphinfo->ttychar;
+    Glyphcolor(x,y)=glyphinfo->color;
+    Glyphflags(x,y)=glyphinfo->glyphflags;
     Changed(x,y);
 }
 

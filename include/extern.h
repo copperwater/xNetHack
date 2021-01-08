@@ -162,6 +162,7 @@ E void FDECL(drop_upon_death, (struct monst *, struct obj *, int, int));
 E boolean NDECL(can_make_bones);
 E void FDECL(savebones, (int, time_t, struct obj *));
 E int NDECL(getbones);
+E boolean FDECL(bones_include_name, (const char *));
 
 /* ### botl.c ### */
 
@@ -376,7 +377,7 @@ E void NDECL(reglyph_darkroom);
 E void NDECL(set_wall_state);
 E void FDECL(unset_seenv, (struct rm *, int, int, int, int));
 E int FDECL(warning_of, (struct monst *));
-E void FDECL(map_glyphmod, (XCHAR_P, XCHAR_P, int, unsigned, unsigned *));
+E void FDECL(map_glyphinfo, (XCHAR_P, XCHAR_P, int, unsigned, glyph_info *));
 
 /* ### do.c ### */
 
@@ -1021,7 +1022,8 @@ E boolean NDECL(wearing_armor);
 E boolean FDECL(is_worn, (struct obj *));
 E struct obj *FDECL(g_at, (int, int));
 E boolean FDECL(splittable, (struct obj *));
-E struct obj *FDECL(getobj, (const char *, const char *));
+E int FDECL(any_obj_ok, (struct obj *));
+E struct obj *FDECL(getobj, (const char *, int (*)(OBJ_P), unsigned int));
 E int FDECL(ggetobj, (const char *, int (*)(OBJ_P), int,
                       BOOLEAN_P, unsigned *));
 E int FDECL(askchain, (struct obj **, const char *, int, int (*)(OBJ_P),
@@ -1210,14 +1212,6 @@ E void FDECL(mkmonmoney, (struct monst *, long));
 E int FDECL(bagotricks, (struct obj *, BOOLEAN_P, int *));
 E boolean FDECL(propagate, (int, BOOLEAN_P, BOOLEAN_P));
 E boolean FDECL(usmellmon, (struct permonst *));
-
-/* ### mapglyph.c ### */
-
-E int FDECL(mapglyph, (int, int *, int *, unsigned *, int, int, unsigned));
-E char *FDECL(encglyph, (int));
-E char *FDECL(decode_mixed, (char *, const char *));
-E void FDECL(genl_putmixed, (winid, int, const char *));
-E boolean FDECL(menuitem_invert_test, (int, unsigned, BOOLEAN_P));
 
 /* ### mcastu.c ### */
 
@@ -1497,7 +1491,6 @@ E void NDECL(kill_genocided_monsters);
 E void FDECL(golemeffects, (struct monst *, int, int));
 E boolean FDECL(angry_guards, (BOOLEAN_P));
 E void NDECL(pacify_guards);
-E struct monst *FDECL(find_ghost_with_name, (char *));
 E void FDECL(decide_to_shapeshift, (struct monst *, int));
 E boolean FDECL(vamp_stone, (struct monst *));
 
@@ -2143,7 +2136,7 @@ E char *FDECL(apron_text, (struct obj *, char *));
 E const char *FDECL(candy_wrapper_text, (struct obj *));
 E void FDECL(assign_candy_wrapper, (struct obj *));
 E int NDECL(doread);
-E boolean FDECL(is_chargeable, (struct obj *));
+E int FDECL(charge_ok, (struct obj *));
 E void FDECL(recharge, (struct obj *, int));
 E int FDECL(seffects, (struct obj *));
 E void FDECL(drop_boulder_on_player,
@@ -3059,6 +3052,12 @@ E void NDECL(dump_close_log);
 E void FDECL(dump_redirect, (BOOLEAN_P));
 E void FDECL(dump_forward_putstr, (winid, int, const char*, int));
 E int FDECL(has_color, (int));
+E int FDECL(glyph2ttychar, (int));
+E int FDECL(glyph2symidx, (int));
+E char *FDECL(encglyph, (int));
+E char *FDECL(decode_mixed, (char *, const char *));
+E void FDECL(genl_putmixed, (winid, int, const char *));
+E boolean FDECL(menuitem_invert_test, (int, unsigned, BOOLEAN_P));
 
 /* ### winnt.c ### */
 #ifdef WIN32

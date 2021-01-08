@@ -73,7 +73,7 @@ static void FDECL(dump_clear_nhwindow, (winid));
 static void FDECL(dump_display_nhwindow, (winid, BOOLEAN_P));
 static void FDECL(dump_destroy_nhwindow, (winid));
 static void FDECL(dump_start_menu, (winid, unsigned long));
-static void FDECL(dump_add_menu, (winid, int, const ANY_P *, CHAR_P,
+static void FDECL(dump_add_menu, (winid, const glyph_info *, const ANY_P *, CHAR_P,
                                       CHAR_P, int, const char *, unsigned int));
 static void FDECL(dump_end_menu, (winid, const char *));
 static int FDECL(dump_select_menu, (winid, int, MENU_ITEM_P **));
@@ -528,11 +528,13 @@ static void FDECL(hup_init_nhwindows, (int *, char **));
 static void FDECL(hup_exit_nhwindows, (const char *));
 static winid FDECL(hup_create_nhwindow, (int));
 static int FDECL(hup_select_menu, (winid, int, MENU_ITEM_P **));
-static void FDECL(hup_add_menu, (winid, int, const anything *, CHAR_P, CHAR_P,
-                                 int, const char *, unsigned int));
+static void FDECL(hup_add_menu, (winid, const glyph_info *, const anything *,
+                                 CHAR_P, CHAR_P, int, const char *,
+                                 unsigned int));
 static void FDECL(hup_end_menu, (winid, const char *));
 static void FDECL(hup_putstr, (winid, int, const char *));
-static void FDECL(hup_print_glyph, (winid, XCHAR_P, XCHAR_P, int, int, unsigned *));
+static void FDECL(hup_print_glyph, (winid, XCHAR_P, XCHAR_P,
+                                    const glyph_info *, const glyph_info *));
 static void FDECL(hup_outrip, (winid, int, time_t));
 static void FDECL(hup_curs, (winid, int, int));
 static void FDECL(hup_display_nhwindow, (winid, BOOLEAN_P));
@@ -716,9 +718,10 @@ struct mi **menu_list UNUSED;
 
 /*ARGSUSED*/
 static void
-hup_add_menu(window, glyph, identifier, sel, grpsel, attr, txt, itemflags)
+hup_add_menu(window, glyphinfo, identifier, sel, grpsel, attr, txt, itemflags)
 winid window UNUSED;
-int glyph UNUSED, attr UNUSED;
+const glyph_info *glyphinfo UNUSED;
+int attr UNUSED;
 const anything *identifier UNUSED;
 char sel UNUSED, grpsel UNUSED;
 const char *txt UNUSED;
@@ -748,12 +751,11 @@ const char *text UNUSED;
 
 /*ARGSUSED*/
 static void
-hup_print_glyph(window, x, y, glyph, bkglyph, glyphmod)
+hup_print_glyph(window, x, y, glyphinfo, bkglyphinfo)
 winid window UNUSED;
 xchar x UNUSED, y UNUSED;
-int glyph UNUSED;
-int bkglyph UNUSED;
-unsigned *glyphmod UNUSED;
+const glyph_info *glyphinfo UNUSED;
+const glyph_info *bkglyphinfo UNUSED;
 {
     return;
 }
@@ -1525,9 +1527,11 @@ unsigned special;
 }
 
 void
-html_dump_glyph(x, y, sym, ch, color, special)
-int x, y, sym, ch, color;
-unsigned special;
+html_print_glyph(win, x, y, glyphinfo, bkglyphinfo)
+winid win UNUSED;
+xchar x, y;
+const glyph_info *glyphinfo;
+const glyph_info *bkglyphinfo UNUSED;
 {
     char buf[BUFSZ]; /* do_screen_description requires this :( */
     const char *firstmatch = "unknown"; /* and this */
@@ -1537,24 +1541,26 @@ unsigned special;
 
     if (!dumphtml_file) return;
 
-    if (x == 1) /* start row */
-        fprintf(dumphtml_file, "<span class=\"nh_screen\">  "); /* 2 space left margin */
+    if (x == 1) /* start row - 2 space left margin: */
+        fprintf(dumphtml_file, "<span class=\"nh_screen\">  ");
     cc.x = x;
     cc.y = y;
-    desc_found = do_screen_description(cc, TRUE, ch, buf, &firstmatch, (struct permonst **) 0);
+    desc_found = do_screen_description(cc, TRUE, glyphinfo->symidx, buf,
+                                       &firstmatch, (struct permonst **) 0);
     if (desc_found)
         fprintf(dumphtml_file, "<div class=\"tooltip\">");
-    attr = mg_hl_attr(special);
-    dump_set_color_attr(color, attr, TRUE);
-    if (htmlsym[sym])
-        fprintf(dumphtml_file, "&#%d;", htmlsym[sym]);
+    attr = mg_hl_attr(glyphinfo->glyphflags);
+    dump_set_color_attr(glyphinfo->color, attr, TRUE);
+    if (htmlsym[glyphinfo->symidx])
+        fprintf(dumphtml_file, "&#%d;", htmlsym[glyphinfo->symidx]);
     else
-        html_dump_char(dumphtml_file, (char)ch);
-    dump_set_color_attr(color, attr, FALSE);
+        html_dump_char(dumphtml_file, (char)glyphinfo->ttychar);
+    dump_set_color_attr(glyphinfo->color, attr, FALSE);
     if (desc_found)
-       fprintf(dumphtml_file, "<span class=\"tooltiptext\">%s</span></div>", firstmatch);
-    if (x == COLNO-1)
-        fprintf(dumphtml_file, "  </span>\n"); /* 2 trailing spaces and newline */
+       fprintf(dumphtml_file,
+               "<span class=\"tooltiptext\">%s</span></div>", firstmatch);
+    if (x == COLNO-1) /* end row - 2 trailing spaces and newline: */
+        fprintf(dumphtml_file, "  </span>\n");
 }
 
 #endif /* DUMPHTML */
@@ -2101,9 +2107,9 @@ unsigned long mbehavior UNUSED;
 
 /*ARGSUSED*/
 static void
-dump_add_menu(win, glyph, identifier, ch, gch, attr, str, itemflags)
+dump_add_menu(win, glyphinfo, identifier, ch, gch, attr, str, itemflags)
 winid win UNUSED;
-int glyph;
+const glyph_info *glyphinfo;
 const anything *identifier UNUSED;
 char ch;
 char gch UNUSED;
@@ -2112,7 +2118,7 @@ const char *str;
 unsigned int itemflags UNUSED;
 {
     if (dumplog_file) {
-        if (glyph == NO_GLYPH)
+        if (glyphinfo->glyph == NO_GLYPH)
             fprintf(dumplog_file, " %s\n", str);
         else
             fprintf(dumplog_file, "  %c - %s\n", ch, str);
@@ -2122,14 +2128,14 @@ unsigned int itemflags UNUSED;
         int color;
         boolean iscolor = FALSE;
         /* Don't use NHW_MENU for inv items as this makes bullet points */
-        if (!attr && glyph != NO_GLYPH)
+        if (!attr && glyphinfo->glyph != NO_GLYPH)
             win = (winid)0;
         html_write_tags(dumphtml_file, win, attr, TRUE);
         if (iflags.use_menu_color && get_menu_coloring(str, &color, &attr)) {
             iscolor = TRUE;
             fprintf(dumphtml_file, "<span class=\"nh_color_%d\">", color);
         }
-        if (glyph != NO_GLYPH) {
+        if (glyphinfo->glyph != NO_GLYPH) {
             fprintf(dumphtml_file, "<span class=\"nh_item_letter\">%c</span> - ", ch);
         }
         html_dump_str(dumphtml_file, str);
@@ -2292,6 +2298,164 @@ unsigned int llflags;
 #else
     nhUse(llflags);
 #endif /*?DUMPLOG*/
+}
+
+int
+glyph2ttychar(glyph)
+int glyph;
+{
+    glyph_info glyphinfo;
+
+    map_glyphinfo(0, 0, glyph, 0, &glyphinfo);
+    return glyphinfo.ttychar;
+}
+
+int
+glyph2symidx(glyph)
+int glyph;
+{
+    glyph_info glyphinfo;
+
+    map_glyphinfo(0, 0, glyph, 0, &glyphinfo);
+    return glyphinfo.symidx;
+}
+
+char *
+encglyph(glyph)
+int glyph;
+{
+    static char encbuf[20]; /* 10+1 would suffice */
+
+    Sprintf(encbuf, "\\G%04X%04X", g.context.rndencode, glyph);
+    return encbuf;
+}
+
+char *
+decode_mixed(buf, str)
+char *buf;
+const char *str;
+{
+    static const char hex[] = "00112233445566778899aAbBcCdDeEfF";
+    char *put = buf;
+    glyph_info glyphinfo = nul_glyphinfo;
+
+    if (!str)
+        return strcpy(buf, "");
+
+    while (*str) {
+        if (*str == '\\') {
+            int rndchk, dcount, so, gv;
+            const char *dp, *save_str;
+
+            save_str = str++;
+            switch (*str) {
+            case 'G': /* glyph value \GXXXXNNNN*/
+                rndchk = dcount = 0;
+                for (++str; *str && ++dcount <= 4; ++str)
+                    if ((dp = index(hex, *str)) != 0)
+                        rndchk = (rndchk * 16) + ((int) (dp - hex) / 2);
+                    else
+                        break;
+                if (rndchk == g.context.rndencode) {
+                    gv = dcount = 0;
+                    for (; *str && ++dcount <= 4; ++str)
+                        if ((dp = index(hex, *str)) != 0)
+                            gv = (gv * 16) + ((int) (dp - hex) / 2);
+                        else
+                            break;
+                    map_glyphinfo(0, 0, gv, 0, &glyphinfo);
+                    so = glyphinfo.symidx;
+                    *put++ = g.showsyms[so];
+                    /* 'str' is ready for the next loop iteration and '*str'
+                       should not be copied at the end of this iteration */
+                    continue;
+                } else {
+                    /* possible forgery - leave it the way it is */
+                    str = save_str;
+                }
+                break;
+#if 0
+            case 'S': /* symbol offset */
+                so = rndchk = dcount = 0;
+                for (++str; *str && ++dcount <= 4; ++str)
+                    if ((dp = index(hex, *str)) != 0)
+                        rndchk = (rndchk * 16) + ((int) (dp - hex) / 2);
+                    else
+                        break;
+                if (rndchk == g.context.rndencode) {
+                    dcount = 0;
+                    for (; *str && ++dcount <= 2; ++str)
+                        if ((dp = index(hex, *str)) != 0)
+                            so = (so * 16) + ((int) (dp - hex) / 2);
+                        else
+                            break;
+                }
+                *put++ = g.showsyms[so];
+                break;
+#endif
+            case '\\':
+                break;
+            case '\0':
+                /* String ended with '\\'.  This can happen when someone
+                   names an object with a name ending with '\\', drops the
+                   named object on the floor nearby and does a look at all
+                   nearby objects. */
+                /* brh - should we perhaps not allow things to have names
+                   that contain '\\' */
+                str = save_str;
+                break;
+            }
+        }
+        *put++ = *str++;
+    }
+    *put = '\0';
+    return buf;
+}
+
+/*
+ * This differs from putstr() because the str parameter can
+ * contain a sequence of characters representing:
+ *        \GXXXXNNNN    a glyph value, encoded by encglyph().
+ *
+ * For window ports that haven't yet written their own
+ * XXX_putmixed() routine, this general one can be used.
+ * It replaces the encoded glyph sequence with a single
+ * showsyms[] char, then just passes that string onto
+ * putstr().
+ */
+
+void
+genl_putmixed(window, attr, str)
+winid window;
+int attr;
+const char *str;
+{
+    char buf[BUFSZ];
+
+    /* now send it to the normal putstr */
+    putstr(window, attr, decode_mixed(buf, str));
+}
+
+/*
+ * Window port helper function for menu invert routines to move the decision
+ * logic into one place instead of 7 different window-port routines.
+ */
+boolean
+menuitem_invert_test(mode, itemflags, is_selected)
+int mode;
+unsigned itemflags;     /* The itemflags for the item               */
+boolean is_selected;    /* The current selection status of the item */
+{
+    boolean skipinvert = (itemflags & MENU_ITEMFLAGS_SKIPINVERT) != 0;
+
+    if ((iflags.menuinvertmode == 1 || iflags.menuinvertmode == 2)
+        && !mode && skipinvert && !is_selected)
+        return FALSE;
+    else if (iflags.menuinvertmode == 2
+        && !mode && skipinvert && is_selected)
+        return TRUE;
+    else
+        return TRUE;
 }
 
 /*windows.c*/

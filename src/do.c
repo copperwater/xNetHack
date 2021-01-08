@@ -19,18 +19,16 @@ static NHFILE *NDECL(currentlevel_rewrite);
 static void NDECL(final_level);
 /* static boolean FDECL(badspot, (XCHAR_P,XCHAR_P)); */
 
-static NEARDATA const char drop_types[] = { ALLOW_COUNT, COIN_CLASS,
-                                            ALL_CLASSES, 0 };
-
 /* 'd' command: drop one inventory item */
 int
 dodrop()
 {
-    int result, i = (g.invent) ? 0 : (SIZE(drop_types) - 1);
+    int result;
 
     if (*u.ushops)
         sellobj_state(SELL_DELIBERATE);
-    result = drop(getobj(&drop_types[i], "drop"));
+    result = drop(getobj("drop", any_obj_ok,
+                         GETOBJ_PROMPT | GETOBJ_ALLOWCNT));
     if (*u.ushops)
         sellobj_state(SELL_NORMAL);
     if (result)
@@ -1481,7 +1479,7 @@ boolean at_stairs, falling, portal;
         new = TRUE; /* made the level */
         livelog_printf (LL_DEBUG, "entered new level %d, %s.", dunlev(&u.uz), g.dungeons[u.uz.dnum].dname );
 
-        familiar = (find_ghost_with_name(g.plname) != (struct monst *) 0);
+        familiar = bones_include_name(g.plname);
     } else {
         /* returning to previously visited level; reload it */
         nhfp = open_levelfile(new_ledger, whynot);
@@ -1625,7 +1623,7 @@ boolean at_stairs, falling, portal;
 
     /* Reset the screen. */
     vision_reset(); /* reset the blockages */
-    g.glyphmap_perlevel_flags = 0L; /* force per-level mapglyph() changes */
+    g.glyphmap_perlevel_flags = 0L; /* force per-level map_glyphinfo() changes */
     docrt();        /* does a full vision recalc */
     flush_screen(-1);
 

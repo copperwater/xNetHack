@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.410 $ $NHDT-Date: 1609281273 2020/12/29 22:34:33 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.423 $ $NHDT-Date: 1609977590 2021/01/06 23:59:50 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -9,8 +9,8 @@ hero polymorphed into a vampire can use #monster to shape-shift rather than
 adjust bones filename buffer sizes to accommodate suffix
 fix internal self-recover to work with recent fields added to checkpoint file
 improvements to pronoun usage when hallucinating
-function calls made from mapglyph based on dungeon level are now called once
-	per level
+function calls made from map_glyphinfo() based on dungeon level are now called
+	once per level
 fast hero could have random clairvoyance happen more than once on same turn
 using 'Q' on wielded weapon would offer to split stack; make using 'w' on a
 	quivered stack behave similarly
@@ -134,8 +134,7 @@ male hero poly'd into nymph chooses charm vs seduce message based on being
 	male rather than on all nymphs being female but charm message was
 	using hardcoded pronouns She,her for target monster--wrong for male
 	target and noticable if "<mon> finishes taking off his suit" is given
-hostile monsters with a spit attack or launcher and ammo try to stay away
-	from melee range
+hostile monsters with a ranged attack try to stay away from melee range
 allow displacing peaceful creatures
 unicorn horns don't restore attribute loss anymore
 when a shop is changed from food to health food, change room type to match
@@ -354,6 +353,12 @@ if a prefix key was bound to some character which ordinarily ran a regular
 reqmenu (the request-a-menu prefix supported by a handful of non-movement
 	commands) could be bound to some key other than 'm' but it only
 	worked if the new key was also a movement prefix
+when telepathically sensed pet ate a mimic corpse and temporarily took on
+	a different shape, you were told that you sensed it changing into
+	something but the map continued to show its true shape (telepathy
+	overrides mimic hiding); give a different message in that case
+when a pet ate a mimic corpse and tried to temporarily look like a sink it
+	ended up looking like a throne (terrain type SINK == symbol S_throne)
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -468,10 +473,19 @@ arbitrate when there is a conflict between gender term (male or female) and
 wizard mode sanity check complained about Wizard's clone mimicking a monster
 new ^G gender-naming handling code required a guard against null permonst
 	pointer which could occur under some circumstances
-replace some monster names in .lua files with their new equivalents
+replace "aligned priest" entries in Pri-loca.lua, astral.lua, minetn-1.lua,
+	and sanctum.lua, with "aligned cleric"
+attempting to swap places with a peaceful monster might cause it to flee
+gender-specific monster names can be used in .lua files with the gender upheld
+remove unused vision tables
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
+curses: line input that doesn't take place on the bottom line of the message
+	window uses a canned curses routine and doesn't support ESC to kill
+	partial input or to cancel; "Who are you?" prompt was willing to name
+	a character "^["; have the popup version of getlin() fake the usual
+	ESC handling, but player has to type <escape><return> for that to work
 Qt: at Xp levels above 20 with 'showexp' On, the combined status field
 	"Level:NN/nnnnnnnn" was too big and truncated by a char at each end
 Qt: searching a text window for something that wasn't found and then searching
@@ -733,6 +747,7 @@ user_sounds: provide an experimental mechanism for terminal-side sounds similar
 	requires compile-time definition of TTY_SOUND_ESCCODES (also requires
 	terminal-side code external to NetHack to recognize the sequence and
 	act on it)
+curses: implement save file selection menu
 Qt: the "paper doll" inventory subset can be controlled via the "Qt Settings"
 	dialog box ("Preferences..." on OSX)
 Qt: draw a border around each tile in the paper doll inventory; when BUC is
@@ -793,6 +808,7 @@ allow themed rooms constrained by level difficulty (github #344)
 add a varied form of LIBNH nethack library contribution (github #385, #403)
 add cross-compile to WASM (github #385, #403, #412)
 differentiating gendered monster tiles from NullCGT (#430)
+check bones data directly for deja vu messages (#374)
 
 
 Code Cleanup and Reorganization
@@ -851,6 +867,7 @@ unify special attack damages from separate you-hit-monster, monster-hits-you,
 unify trap effects for hero and monster stepping on the trap by trap type
 replace the single permonst mname field with male, female, and gender-neutral
 	names pmnames[NUM_MGENDERS] fields
-add a new glyphmod parameter to window interface *_print_glyph() to be used
-	to provide additional details to the window port beyond the glyph;
-	begin to phase out the mapglyph() calls from within windows ports
+adjust window port interface to pass a pointer to a glyph_info struct which
+	contains the glyph itself, the ttychar, the color, the glyphflags,
+	and the symset index; this affects two window port calls that get
+	passed glyphs: print_glyph() and add_menu().

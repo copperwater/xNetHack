@@ -37,9 +37,11 @@ static long FDECL(boh_loss, (struct obj *, int));
 static int FDECL(in_container, (struct obj *));
 static int FDECL(out_container, (struct obj *));
 static long FDECL(mbag_item_gone, (int, struct obj *, BOOLEAN_P));
+static int FDECL(stash_ok, (struct obj *));
 static void FDECL(explain_container_prompt, (BOOLEAN_P));
 static int FDECL(traditional_loot, (BOOLEAN_P));
 static int FDECL(menu_loot, (int, BOOLEAN_P));
+static int FDECL(tip_ok, (struct obj *));
 static char FDECL(in_or_out_menu, (const char *, struct obj *, BOOLEAN_P,
                                        BOOLEAN_P, BOOLEAN_P, BOOLEAN_P));
 static boolean FDECL(able_to_loot, (int, int, BOOLEAN_P));
@@ -907,7 +909,7 @@ menu_item **pick_list;            /* return list of items picked */
 int how;                          /* type of query */
 boolean FDECL((*allow), (OBJ_P)); /* allow function */
 {
-    int i, n;
+    int i, n, tmpglyph;
     winid win;
     struct obj *curr, *last, fake_hero_object, *olist = *olist_p;
     char *pack, packbuf[MAXOCLASSES + 1];
@@ -917,6 +919,7 @@ boolean FDECL((*allow), (OBJ_P)); /* allow function */
             engulfer = (qflags & INCLUDE_HERO) != 0,
             engulfer_minvent;
     unsigned sortflags;
+    glyph_info tmpglyphinfo = nul_glyphinfo;
     Loot *sortedolist, *srtoli;
 
     *pick_list = (menu_item *) 0;
@@ -990,7 +993,8 @@ boolean FDECL((*allow), (OBJ_P)); /* allow function */
                 /* if sorting, print type name (once only) */
                 if (sorted && !printed_type_name) {
                     any = cg.zeroany;
-                    add_menu(win, NO_GLYPH, &any, 0, 0, iflags.menu_headings,
+                    add_menu(win, &nul_glyphinfo, &any, 0, 0,
+                             iflags.menu_headings,
                              let_to_name(*pack, FALSE,
                                          ((how != PICK_NONE)
                                           && iflags.menu_head_objsym)),
@@ -999,7 +1003,9 @@ boolean FDECL((*allow), (OBJ_P)); /* allow function */
                 }
 
                 any.a_obj = curr;
-                add_menu(win, obj_to_glyph(curr, rn2_on_display_rng), &any,
+                tmpglyph = obj_to_glyph(curr, rn2_on_display_rng);
+                map_glyphinfo(0, 0, tmpglyph, 0U, &tmpglyphinfo);
+                add_menu(win, &tmpglyphinfo, &any,
                          (qflags & USE_INVLET) ? curr->invlet
                            : (first && curr->oclass == COIN_CLASS) ? '$' : 0,
                          def_oc_syms[(int) objects[curr->otyp].oc_class].sym,
@@ -1018,13 +1024,15 @@ boolean FDECL((*allow), (OBJ_P)); /* allow function */
         if (sorted && n > 1) {
             Sprintf(buf, "%s Creatures",
                     is_animal(u.ustuck->data) ? "Swallowed" : "Engulfed");
-            add_menu(win, NO_GLYPH, &any, 0, 0, iflags.menu_headings, buf,
+            add_menu(win, &nul_glyphinfo, &any, 0, 0, iflags.menu_headings, buf,
                      MENU_ITEMFLAGS_NONE);
         }
         fake_hero_object = cg.zeroobj;
         fake_hero_object.quan = 1L; /* not strictly necessary... */
         any.a_obj = &fake_hero_object;
-        add_menu(win, mon_to_glyph(&g.youmonst, rn2_on_display_rng), &any,
+        tmpglyph = mon_to_glyph(&g.youmonst, rn2_on_display_rng);
+        map_glyphinfo(0, 0, tmpglyph, 0U, &tmpglyphinfo);
+        add_menu(win, &tmpglyphinfo, &any,
                  /* fake inventory letter, no group accelerator */
                  CONTAINED_SYM, 0, ATR_NONE, an(self_lookat(buf)),
                  MENU_ITEMFLAGS_NONE);
@@ -1166,13 +1174,14 @@ int how;               /* type of query */
         any = cg.zeroany;
         any.a_int = 'A';
         itemflags = MENU_ITEMFLAGS_SKIPINVERT;
-        add_menu(win, NO_GLYPH, &any, invlet, 0, ATR_NONE,
+        add_menu(win, &nul_glyphinfo, &any, invlet, 0, ATR_NONE,
                  (qflags & WORN_TYPES) ? "Auto-select every item being worn"
                                        : "Auto-select every item",
                  itemflags);
 
         any = cg.zeroany;
-        add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE, "", MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, 0, 0,
+                 ATR_NONE, "", MENU_ITEMFLAGS_NONE);
     }
 
     if ((qflags & ALL_TYPES) && (ccount > 1)) {
@@ -1180,7 +1189,7 @@ int how;               /* type of query */
         any = cg.zeroany;
         any.a_int = ALL_TYPES_SELECTED;
         itemflags = MENU_ITEMFLAGS_SKIPINVERT;
-        add_menu(win, NO_GLYPH, &any, invlet, 0, ATR_NONE,
+        add_menu(win, &nul_glyphinfo, &any, invlet, 0, ATR_NONE,
                  (qflags & WORN_TYPES) ? "All worn types" : "All types",
                  itemflags);
         invlet = 'b';
@@ -1196,7 +1205,7 @@ int how;               /* type of query */
                     any = cg.zeroany;
                     any.a_int = curr->oclass;
                     add_menu(
-                        win, NO_GLYPH, &any, invlet++,
+                        win, &nul_glyphinfo, &any, invlet++,
                         def_oc_syms[(int) objects[curr->otyp].oc_class].sym,
                         ATR_NONE, let_to_name(*pack, FALSE,
                                               (how != PICK_NONE)
@@ -1217,7 +1226,8 @@ int how;               /* type of query */
     if (do_unpaid || (qflags & BILLED_TYPES) || do_blessed || do_cursed
         || do_uncursed || do_buc_unknown) {
         any = cg.zeroany;
-        add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE, "", MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, 0, 0,
+                 ATR_NONE, "", MENU_ITEMFLAGS_NONE);
     }
 
     /* unpaid items if there are any */
@@ -1225,15 +1235,15 @@ int how;               /* type of query */
         invlet = 'u';
         any = cg.zeroany;
         any.a_int = 'u';
-        add_menu(win, NO_GLYPH, &any, invlet, 0, ATR_NONE, "Unpaid items",
-                 MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, invlet, 0,
+                 ATR_NONE, "Unpaid items", MENU_ITEMFLAGS_NONE);
     }
     /* billed items: checked by caller, so always include if BILLED_TYPES */
     if (qflags & BILLED_TYPES) {
         invlet = 'x';
         any = cg.zeroany;
         any.a_int = 'x';
-        add_menu(win, NO_GLYPH, &any, invlet, 0, ATR_NONE,
+        add_menu(win, &nul_glyphinfo, &any, invlet, 0, ATR_NONE,
                  "Unpaid items already used up", MENU_ITEMFLAGS_NONE);
     }
 
@@ -1245,28 +1255,28 @@ int how;               /* type of query */
         invlet = 'B';
         any = cg.zeroany;
         any.a_int = 'B';
-        add_menu(win, NO_GLYPH, &any, invlet, 0, ATR_NONE,
+        add_menu(win, &nul_glyphinfo, &any, invlet, 0, ATR_NONE,
                  "Items known to be Blessed", itemflags);
     }
     if (do_cursed) {
         invlet = 'C';
         any = cg.zeroany;
         any.a_int = 'C';
-        add_menu(win, NO_GLYPH, &any, invlet, 0, ATR_NONE,
+        add_menu(win, &nul_glyphinfo, &any, invlet, 0, ATR_NONE,
                  "Items known to be Cursed", itemflags);
     }
     if (do_uncursed) {
         invlet = 'U';
         any = cg.zeroany;
         any.a_int = 'U';
-        add_menu(win, NO_GLYPH, &any, invlet, 0, ATR_NONE,
+        add_menu(win, &nul_glyphinfo, &any, invlet, 0, ATR_NONE,
                  "Items known to be Uncursed", itemflags);
     }
     if (do_buc_unknown) {
         invlet = 'X';
         any = cg.zeroany;
         any.a_int = 'X';
-        add_menu(win, NO_GLYPH, &any, invlet, 0, ATR_NONE,
+        add_menu(win, &nul_glyphinfo, &any, invlet, 0, ATR_NONE,
                  "Items of unknown Bless/Curse status", itemflags);
     }
     end_menu(win, qstr);
@@ -1943,8 +1953,8 @@ doloot()
                  cobj = cobj->nexthere)
                 if (Is_container(cobj)) {
                     any.a_obj = cobj;
-                    add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE,
-                             doname(cobj), MENU_ITEMFLAGS_NONE);
+                    add_menu(win, &nul_glyphinfo, &any, 0, 0,
+                             ATR_NONE, doname(cobj), MENU_ITEMFLAGS_NONE);
                 }
             end_menu(win, "Loot which containers?");
             n = select_menu(win, PICK_ANY, &pick_list);
@@ -2660,7 +2670,22 @@ u_handsy()
     return TRUE;
 }
 
-static const char stashable[] = { ALLOW_COUNT, COIN_CLASS, ALL_CLASSES, 0 };
+/* getobj callback for object to be stashed into a container */
+int
+stash_ok(obj)
+struct obj *obj;
+{
+    if (!obj)
+        return GETOBJ_EXCLUDE;
+
+    /* downplay the container being stashed into */
+    if (!ck_bag(obj))
+        return GETOBJ_EXCLUDE_SELECTABLE;
+    /* Possible extension: downplay things too big to fit into containers (in
+     * which case extract in_container()'s logic.) */
+
+    return GETOBJ_SUGGEST;
+}
 
 int
 use_container(objp, held, more_containers)
@@ -2856,7 +2881,8 @@ boolean more_containers; /* True iff #loot multiple and this isn't last one */
         add_valid_menu_class(0);
     } else if (stash_one) {
         /* put one item into container */
-        if ((otmp = getobj(stashable, "stash")) != 0) {
+        if ((otmp = getobj("stash", stash_ok,
+                           GETOBJ_PROMPT | GETOBJ_ALLOWCNT)) != 0) {
             if (in_container(otmp)) {
                 used = 1;
             } else {
@@ -3056,47 +3082,49 @@ boolean outokay, inokay, alreadyused, more_containers;
 
     any.a_int = 1; /* ':' */
     Sprintf(buf, "Look inside %s", thesimpleoname(obj));
-    add_menu(win, NO_GLYPH, &any, menuselector[any.a_int], 0, ATR_NONE, buf,
-             MENU_ITEMFLAGS_NONE);
+    add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+             ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
     if (outokay) {
         any.a_int = 2; /* 'o' */
         Sprintf(buf, "take %s out", something);
-        add_menu(win, NO_GLYPH, &any, menuselector[any.a_int], 0, ATR_NONE,
-                 buf, MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+                 ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
     }
     if (inokay) {
         any.a_int = 3; /* 'i' */
         Sprintf(buf, "put %s in", something);
-        add_menu(win, NO_GLYPH, &any, menuselector[any.a_int], 0, ATR_NONE,
-                 buf, MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+                 ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
     }
     if (outokay) {
         any.a_int = 4; /* 'b' */
         Sprintf(buf, "%stake out, then put in", inokay ? "both; " : "");
-        add_menu(win, NO_GLYPH, &any, menuselector[any.a_int], 0, ATR_NONE,
-                 buf, MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+                 ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
     }
     if (inokay) {
         any.a_int = 5; /* 'r' */
         Sprintf(buf, "%sput in, then take out",
                 outokay ? "both reversed; " : "");
-        add_menu(win, NO_GLYPH, &any, menuselector[any.a_int], 0, ATR_NONE,
-                 buf, MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+                 ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
         any.a_int = 6; /* 's' */
         Sprintf(buf, "stash one item into %s", thesimpleoname(obj));
-        add_menu(win, NO_GLYPH, &any, menuselector[any.a_int], 0, ATR_NONE,
-                 buf, MENU_ITEMFLAGS_NONE);
+        add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+                 ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
     }
     any.a_int = 0;
-    add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE, "", MENU_ITEMFLAGS_NONE);
+    add_menu(win, &nul_glyphinfo, &any, 0, 0,
+             ATR_NONE, "", MENU_ITEMFLAGS_NONE);
     if (more_containers) {
         any.a_int = 7; /* 'n' */
-        add_menu(win, NO_GLYPH, &any, menuselector[any.a_int], 0, ATR_NONE,
-                 "loot next container", MENU_ITEMFLAGS_SELECTED);
+        add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+                 ATR_NONE, "loot next container", MENU_ITEMFLAGS_SELECTED);
     }
     any.a_int = 8; /* 'q' */
     Strcpy(buf, alreadyused ? "done" : "do nothing");
-    add_menu(win, NO_GLYPH, &any, menuselector[any.a_int], 0, ATR_NONE, buf,
+    add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+             ATR_NONE, buf,
              more_containers ? MENU_ITEMFLAGS_NONE : MENU_ITEMFLAGS_SELECTED);
 
     end_menu(win, prompt);
@@ -3113,7 +3141,26 @@ boolean outokay, inokay, alreadyused, more_containers;
     return (n == 0 && more_containers) ? 'n' : 'q'; /* next or quit */
 }
 
-static const char tippables[] = { ALL_CLASSES, TOOL_CLASS, 0 };
+/* getobj callback for object to tip */
+static int
+tip_ok(obj)
+struct obj *obj;
+{
+    if (!obj || obj->oclass == COIN_CLASS)
+        return GETOBJ_EXCLUDE;
+
+    if (Is_container(obj)) {
+        return GETOBJ_SUGGEST;
+    }
+
+    /* include horn of plenty if sufficiently discovered */
+    if (obj->otyp == HORN_OF_PLENTY && obj->dknown &&
+        objects[obj->otyp].oc_name_known)
+        return GETOBJ_SUGGEST;
+
+    /* allow trying anything else in inventory */
+    return GETOBJ_DOWNPLAY;
+}
 
 /* #tip command -- empty container contents onto floor */
 int
@@ -3156,18 +3203,18 @@ dotip()
                     if (Is_container(cobj)) {
                         ++i;
                         any.a_obj = cobj;
-                        add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE,
-                                 doname(cobj), MENU_ITEMFLAGS_NONE);
+                        add_menu(win, &nul_glyphinfo, &any, 0, 0,
+                                 ATR_NONE, doname(cobj), MENU_ITEMFLAGS_NONE);
                     }
                 if (g.invent) {
                     any = cg.zeroany;
-                    add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE,
+                    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
                              "", MENU_ITEMFLAGS_NONE);
                     any.a_obj = &dummyobj;
                     /* use 'i' for inventory unless there are so many
                        containers that it's already being used */
                     i = (i <= 'i' - 'a' && !flags.lootabc) ? 'i' : 0;
-                    add_menu(win, NO_GLYPH, &any, i, 0, ATR_NONE,
+                    add_menu(win, &nul_glyphinfo, &any, i, 0, ATR_NONE,
                              "tip something being carried", MENU_ITEMFLAGS_SELECTED);
                 }
                 end_menu(win, "Tip which container?");
@@ -3213,7 +3260,7 @@ dotip()
     }
 
     /* either no floor container(s) or couldn't tip one or didn't tip any */
-    cobj = getobj(tippables, "tip");
+    cobj = getobj("tip", tip_ok, GETOBJ_PROMPT);
     if (!cobj)
         return 0;
 
