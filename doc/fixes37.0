@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.423 $ $NHDT-Date: 1609977590 2021/01/06 23:59:50 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.425 $ $NHDT-Date: 1610138674 2021/01/08 20:44:34 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -359,6 +359,8 @@ when telepathically sensed pet ate a mimic corpse and temporarily took on
 	overrides mimic hiding); give a different message in that case
 when a pet ate a mimic corpse and tried to temporarily look like a sink it
 	ended up looking like a throne (terrain type SINK == symbol S_throne)
+have dowhatdoes ('&') catch up with '?i' to describe ^A, ESC, and movement
+	prefix keystrokes correctly instead of reporting "no such command"
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -591,7 +593,7 @@ Qt: {maybe just Qt+OSX:} when viewing a text window ('V' to look at 'history'
 	for instance), clicking on [Search], entering a search target in the
 	resulting popup and clicking on [Okay] or typing <return>, the text
 	window got pushed underneath the main window so seemed to go away
-Qt+OSX: fix control key
+Qt+OSX: fix control key (fixed all except for ^V); handle ^V as a shortcut key
 Qt+OSX: rename menu entry "nethack->Preferences..." for invoking nethack's
 	'O' command to "Game->Run-time options" and entry "Game->Qt settings"
 	for making persistent Qt customizations to "nethack->Preferences..."
