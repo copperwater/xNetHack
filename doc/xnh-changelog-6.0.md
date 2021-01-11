@@ -326,6 +326,7 @@ changes:
   always succeed provided there is something raiseable. "Innate improvement"
   attributes, e.g. strength while wearing gauntlets of power but when the base
   value isn't maxed yet, now count as raiseable.
+- New Big Room "Tea Party", containing a number of obstacles.
 
 ### Interface changes
 
