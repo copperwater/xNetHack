@@ -515,44 +515,49 @@ struct obj *scroll;
         if (!wizard || yn("Override?") != 'y')
             return;
     }
-    if (((Teleport_control || (scroll && scroll->blessed)) && !Stunned)
-        || wizard) {
-        if (unconscious()) {
-            pline("Being unconscious, you cannot control your teleport.");
-        }
-        else if (u.uhave.amulet) {
-            pline("A mysterious force disrupts your teleport control.");
-        } else {
-            char whobuf[BUFSZ];
 
-            Strcpy(whobuf, "you");
-            if (u.usteed)
-                Sprintf(eos(whobuf), " and %s", mon_nam(u.usteed));
-            pline("Where do %s want to be teleported?", whobuf);
-            if (scroll)
-                learnscroll(scroll);
-            cc.x = u.ux;
-            cc.y = u.uy;
-            if (isok(iflags.travelcc.x, iflags.travelcc.y)) {
-                /* The player showed some interest in traveling here;
-                 * pre-suggest this coordinate. */
-                cc = iflags.travelcc;
-            }
-            if (getpos(&cc, TRUE, "the desired position") < 0)
-                return; /* abort */
-            /* possible extensions: introduce a small error if
-               magic power is low; allow transfer to solid rock */
-            if (teleok(cc.x, cc.y, FALSE)
-                || (wizard
-                    && yn("You can't normally teleport here. Do it anyway?") == 'y')) {
-                /* for scroll, discover it regardless of destination */
-                teleds(cc.x, cc.y, TELEDS_TELEPORT);
-                if (iflags.travelcc.x == u.ux && iflags.travelcc.y == u.uy)
-                    iflags.travelcc.x = iflags.travelcc.y = 0;
-                return;
-            }
-            pline("Sorry...");
+    /* does some means of teleport control apply here? */
+    boolean controlled = ((Teleport_control || (scroll && scroll->blessed))
+                          && !Stunned) || wizard;
+
+    if (unconscious()) {
+        pline("Being unconscious, you cannot control your teleport.");
+        controlled = FALSE;
+    } else if (u.uhave.amulet) {
+        pline("A mysterious force disrupts your teleport control.");
+        if (!wizard || yn("Override?") != 'y')
+            controlled = FALSE;
+    }
+    if (controlled) {
+        char whobuf[BUFSZ];
+
+        Strcpy(whobuf, "you");
+        if (u.usteed)
+            Sprintf(eos(whobuf), " and %s", mon_nam(u.usteed));
+        pline("Where do %s want to be teleported?", whobuf);
+        if (scroll)
+            learnscroll(scroll);
+        cc.x = u.ux;
+        cc.y = u.uy;
+        if (isok(iflags.travelcc.x, iflags.travelcc.y)) {
+            /* The player showed some interest in traveling here;
+                * pre-suggest this coordinate. */
+            cc = iflags.travelcc;
         }
+        if (getpos(&cc, TRUE, "the desired position") < 0)
+            return; /* abort */
+        /* possible extensions: introduce a small error if
+            magic power is low; allow transfer to solid rock */
+        if (teleok(cc.x, cc.y, FALSE)
+            || (wizard
+                && yn("You can't normally teleport here. Do it anyway?") == 'y')) {
+            /* for scroll, discover it regardless of destination */
+            teleds(cc.x, cc.y, TELEDS_TELEPORT);
+            if (iflags.travelcc.x == u.ux && iflags.travelcc.y == u.uy)
+                iflags.travelcc.x = iflags.travelcc.y = 0;
+            return;
+        }
+        pline("Sorry...");
     }
 
     /* we used to suppress discovery if hero teleported to a nearby
