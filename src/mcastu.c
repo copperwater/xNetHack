@@ -507,6 +507,7 @@ struct monst *mtmp;
 int dmg;
 int spellnum;
 {
+    int orig_dmg = 0;
     if (dmg == 0 && !is_undirected_spell(AD_CLRC, spellnum)) {
         impossible("cast directed cleric spell (%d) with dmg=0?", spellnum);
         return;
@@ -532,24 +533,23 @@ int spellnum;
         break;
     case CLC_FIRE_PILLAR:
         pline("A pillar of fire strikes all around you!");
+        orig_dmg = dmg = d(8, 6);
         if (Fire_resistance) {
             shieldeff(u.ux, u.uy);
             dmg = 0;
-        } else
-            dmg = d(8, 6);
+        }
         if (Half_spell_damage)
             dmg = (dmg + 1) / 2;
         burn_away_slime();
         (void) burnarmor(&g.youmonst);
-        destroy_item(SCROLL_CLASS, AD_FIRE);
-        destroy_item(POTION_CLASS, AD_FIRE);
-        destroy_item(SPBOOK_CLASS, AD_FIRE);
+        (void) destroy_items(&g.youmonst, AD_FIRE, orig_dmg);
         ignite_items(g.invent);
         (void) burn_floor_objects(u.ux, u.uy, TRUE, FALSE);
         break;
     case CLC_LIGHTNING: {
         pline("A bolt of lightning strikes down at you from above!");
         const char* reflectsrc = ureflectsrc();
+        orig_dmg = dmg = d(8, 6);
         if (reflectsrc || Shock_resistance) {
             shieldeff(u.ux, u.uy);
             dmg = 0;
@@ -557,12 +557,10 @@ int spellnum;
                 pline("It bounces off your %s.", reflectsrc);
                 break;
             }
-        } else
-            dmg = d(8, 6);
+        }
         if (Half_spell_damage)
             dmg = (dmg + 1) / 2;
-        destroy_item(WAND_CLASS, AD_ELEC);
-        destroy_item(RING_CLASS, AD_ELEC);
+        (void) destroy_items(&g.youmonst, AD_ELEC, orig_dmg);
         (void) flashburn((long) rnd(100));
         break;
     }
