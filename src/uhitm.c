@@ -2171,6 +2171,7 @@ struct monst *mdef;
 struct mhitm_data *mhm;
 {
     struct permonst *pd = mdef->data;
+    const int orig_dmg = mhm->damage; /* damage coming into the function */
 
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -2200,8 +2201,6 @@ struct mhitm_data *mhm;
             return;
             /* Don't return yet; keep hp<1 and mhm.damage=0 for pet msg */
         }
-        mhm->damage += destroy_mitem(mdef, SCROLL_CLASS, AD_FIRE);
-        mhm->damage += destroy_mitem(mdef, SPBOOK_CLASS, AD_FIRE);
         if (resists_fire(mdef)) {
             if (!Blind)
                 pline_The("fire doesn't heat %s!", mon_nam(mdef));
@@ -2209,8 +2208,7 @@ struct mhitm_data *mhm;
             shieldeff(mdef->mx, mdef->my);
             mhm->damage = 0;
         }
-        /* only potions damage resistant players in destroy_item */
-        mhm->damage += destroy_mitem(mdef, POTION_CLASS, AD_FIRE);
+        mhm->damage += destroy_items(mdef, AD_FIRE, orig_dmg);
         ignite_items(mdef->minvent);
     } else if (mdef == &g.youmonst) {
         /* mhitu */
@@ -2231,14 +2229,10 @@ struct mhitm_data *mhm;
                 pline_The("fire doesn't feel hot!");
                 mhm->damage = 0;
             }
-            if ((int) magr->m_lev > rn2(20))
-                destroy_item(SCROLL_CLASS, AD_FIRE);
-            if ((int) magr->m_lev > rn2(20))
-                destroy_item(POTION_CLASS, AD_FIRE);
-            if ((int) magr->m_lev > rn2(25))
-                destroy_item(SPBOOK_CLASS, AD_FIRE);
-            if ((int) magr->m_lev > rn2(20))
+            if ((int) magr->m_lev > rn2(20)) {
+                (void) destroy_items(&g.youmonst, AD_FIRE, orig_dmg);
                 ignite_items(g.invent);
+            }
             burn_away_slime();
         } else
             mhm->damage = 0;
@@ -2270,8 +2264,6 @@ struct mhitm_data *mhm;
             mhm->done = TRUE;
             return;
         }
-        mhm->damage += destroy_mitem(mdef, SCROLL_CLASS, AD_FIRE);
-        mhm->damage += destroy_mitem(mdef, SPBOOK_CLASS, AD_FIRE);
         if (resists_fire(mdef)) {
             if (g.vis && canseemon(mdef))
                 pline_The("fire doesn't seem to burn %s!", mon_nam(mdef));
@@ -2279,8 +2271,7 @@ struct mhitm_data *mhm;
             golemeffects(mdef, AD_FIRE, mhm->damage);
             mhm->damage = 0;
         }
-        /* only potions damage resistant players in destroy_item */
-        mhm->damage += destroy_mitem(mdef, POTION_CLASS, AD_FIRE);
+        mhm->damage += destroy_items(mdef, AD_FIRE, orig_dmg);
         ignite_items(mdef->minvent);
     }
 }
@@ -2292,6 +2283,8 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
+    const int orig_dmg = mhm->damage;
+
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -2311,7 +2304,7 @@ struct mhitm_data *mhm;
             golemeffects(mdef, AD_COLD, mhm->damage);
             mhm->damage = 0;
         }
-        mhm->damage += destroy_mitem(mdef, POTION_CLASS, AD_COLD);
+        mhm->damage += destroy_items(mdef, AD_COLD, orig_dmg);
     } else if (mdef == &g.youmonst) {
         /* mhitu */
         int armpro = magic_negation(mdef);
@@ -2325,7 +2318,7 @@ struct mhitm_data *mhm;
                 mhm->damage = 0;
             }
             if ((int) magr->m_lev > rn2(20))
-                destroy_item(POTION_CLASS, AD_COLD);
+                (void) destroy_items(&g.youmonst, AD_COLD, orig_dmg);
         } else
             mhm->damage = 0;
     } else {
@@ -2346,7 +2339,7 @@ struct mhitm_data *mhm;
             golemeffects(mdef, AD_COLD, mhm->damage);
             mhm->damage = 0;
         }
-        mhm->damage += destroy_mitem(mdef, POTION_CLASS, AD_COLD);
+        mhm->damage += destroy_items(mdef, AD_COLD, orig_dmg);
     }
 }
 
@@ -2357,6 +2350,8 @@ struct attack *mattk;
 struct monst *mdef;
 struct mhitm_data *mhm;
 {
+    const int orig_dmg = mhm->damage;
+
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -2369,7 +2364,6 @@ struct mhitm_data *mhm;
         }
         if (!Blind)
             pline("%s is zapped!", Monnam(mdef));
-        mhm->damage += destroy_mitem(mdef, WAND_CLASS, AD_ELEC);
         if (resists_elec(mdef)) {
             if (!Blind)
                 pline_The("zap doesn't shock %s!", mon_nam(mdef));
@@ -2377,8 +2371,7 @@ struct mhitm_data *mhm;
             shieldeff(mdef->mx, mdef->my);
             mhm->damage = 0;
         }
-        /* only rings damage resistant players in destroy_item */
-        mhm->damage += destroy_mitem(mdef, RING_CLASS, AD_ELEC);
+        mhm->damage += destroy_items(mdef, AD_ELEC, orig_dmg);
     } else if (mdef == &g.youmonst) {
         /* mhitu */
         int armpro = magic_negation(mdef);
@@ -2392,9 +2385,7 @@ struct mhitm_data *mhm;
                 mhm->damage = 0;
             }
             if ((int) magr->m_lev > rn2(20))
-                destroy_item(WAND_CLASS, AD_ELEC);
-            if ((int) magr->m_lev > rn2(20))
-                destroy_item(RING_CLASS, AD_ELEC);
+                (void) destroy_items(&g.youmonst, AD_ELEC, orig_dmg);
         } else
             mhm->damage = 0;
     } else {
@@ -2408,7 +2399,6 @@ struct mhitm_data *mhm;
         }
         if (g.vis && canseemon(mdef))
             pline("%s gets zapped!", Monnam(mdef));
-        mhm->damage += destroy_mitem(mdef, WAND_CLASS, AD_ELEC);
         if (resists_elec(mdef)) {
             if (g.vis && canseemon(mdef))
                 pline_The("zap doesn't shock %s!", mon_nam(mdef));
@@ -2416,8 +2406,7 @@ struct mhitm_data *mhm;
             golemeffects(mdef, AD_ELEC, mhm->damage);
             mhm->damage = 0;
         }
-        /* only rings damage resistant players in destroy_item */
-        mhm->damage += destroy_mitem(mdef, RING_CLASS, AD_ELEC);
+        mhm->damage += destroy_items(mdef, AD_ELEC, orig_dmg);
     }
 }
 

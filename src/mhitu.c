@@ -1629,7 +1629,7 @@ struct attack *mattk;
             if (cancelled) {
                 react = rn1(2, 4); /* "irritated" || "inflamed" */
             } else {
-                int dmg = d(2, 6), lev = (int) mtmp->m_lev;
+                int dmg = d(2, 6), orig_dmg = dmg, lev = (int) mtmp->m_lev;
 
                 pline("%s attacks you with a fiery gaze!", Monnam(mtmp));
                 stop_occupation();
@@ -1638,14 +1638,10 @@ struct attack *mattk;
                     dmg = 0;
                 }
                 burn_away_slime();
-                if (lev > rn2(20))
-                    destroy_item(SCROLL_CLASS, AD_FIRE);
-                if (lev > rn2(20))
-                    destroy_item(POTION_CLASS, AD_FIRE);
-                if (lev > rn2(25))
-                    destroy_item(SPBOOK_CLASS, AD_FIRE);
-                if (lev > rn2(20))
+                if (lev > rn2(20)) {
+                    (void) destroy_items(&g.youmonst, AD_FIRE, orig_dmg);
                     ignite_items(g.invent);
+                }
                 if (dmg)
                     mdamageu(mtmp, dmg);
             }

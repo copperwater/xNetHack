@@ -3619,9 +3619,9 @@ struct obj *obj;
         costly_alteration(obj, COST_DSTROY);
     }
 
-    g.current_wand = obj; /* destroy_item might reset this */
-    freeinv(obj);       /* hide it from destroy_item instead... */
-    setnotworn(obj);    /* so we need to do this ourselves */
+    g.current_wand = obj; /* destroy_items might reset this */
+    freeinv(obj);         /* hide it from destroy_items instead... */
+    setnotworn(obj);      /* so we need to do this ourselves */
 
     /* If you know the wand you're breaking is a wand of nothing,
      * it should say something different.
@@ -3806,7 +3806,7 @@ struct obj *obj;
         litroom(TRUE, obj); /* only needs to be done once */
 
 discard_broken_wand:
-    obj = g.current_wand; /* [see dozap() and destroy_item()] */
+    obj = g.current_wand; /* [see dozap() and destroy_items()] */
     g.current_wand = 0;
     if (obj)
         delobj(obj);

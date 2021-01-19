@@ -1573,6 +1573,7 @@ unsigned trflags UNUSED;
         boolean see_it = cansee(mtmp->mx, mtmp->my);
         boolean trapkilled = FALSE;
         struct permonst *mptr = mtmp->data;
+        int orig_dmg = d(2, 4);
 
         if (in_sight)
             pline("A %s erupts from the %s under %s!", tower_of_flame,
@@ -1587,7 +1588,7 @@ unsigned trflags UNUSED;
                 pline("%s is uninjured.", Monnam(mtmp));
             }
         } else {
-            int num = d(2, 4), alt;
+            int num = orig_dmg, alt;
             boolean immolate = FALSE;
 
             /* paper burns very fast, assume straw is tightly packed
@@ -1623,10 +1624,10 @@ unsigned trflags UNUSED;
                 mtmp->mhpmax -= rn2(num + 1);
         }
         if (burnarmor(mtmp) || rn2(3)) {
-            (void) destroy_mitem(mtmp, SCROLL_CLASS, AD_FIRE);
-            (void) destroy_mitem(mtmp, SPBOOK_CLASS, AD_FIRE);
-            (void) destroy_mitem(mtmp, POTION_CLASS, AD_FIRE);
+            mtmp->mhp -= destroy_items(mtmp, AD_FIRE, orig_dmg);
             ignite_items(mtmp->minvent);
+            if (DEADMONSTER(mtmp))
+                trapkilled = TRUE;
         }
         if (burn_floor_objects(mtmp->mx, mtmp->my, see_it, FALSE)
             && !see_it && distu(mtmp->mx, mtmp->my) <= 3 * 3)
@@ -3660,7 +3661,8 @@ dofiretrap(box)
 struct obj *box; /* null for floor trap */
 {
     boolean see_it = !Blind;
-    int num, alt;
+    int orig_dmg, num, alt;
+    orig_dmg = num = d(2, 4);
 
     /* Bug: for box case, the equivalent of burn_floor_objects() ought
      * to be done upon its contents.
@@ -3681,7 +3683,6 @@ struct obj *box; /* null for floor trap */
         shieldeff(u.ux, u.uy);
         num = rn2(2);
     } else if (Upolyd) {
-        num = d(2, 4);
         switch (u.umonnum) {
         case PM_PAPER_GOLEM:
             alt = u.mhmax;
@@ -3704,7 +3705,6 @@ struct obj *box; /* null for floor trap */
         if (u.mhmax > mons[u.umonnum].mlevel)
             u.mhmax -= rn2(min(u.mhmax, num + 1)), g.context.botl = 1;
     } else {
-        num = d(2, 4);
         if (u.uhpmax > u.ulevel)
             u.uhpmax -= rn2(min(u.uhpmax, num + 1)), g.context.botl = 1;
     }
@@ -3715,9 +3715,7 @@ struct obj *box; /* null for floor trap */
     burn_away_slime();
 
     if (burnarmor(&g.youmonst) || rn2(3)) {
-        destroy_item(SCROLL_CLASS, AD_FIRE);
-        destroy_item(SPBOOK_CLASS, AD_FIRE);
-        destroy_item(POTION_CLASS, AD_FIRE);
+        (void) destroy_items(&g.youmonst, AD_FIRE, orig_dmg);
         ignite_items(g.invent);
     }
     if (!box && burn_floor_objects(u.ux, u.uy, see_it, TRUE) && !see_it)
@@ -5528,17 +5526,15 @@ boolean disarm;
         case 8:
         case 7:
         case 6: {
-            int dmg;
+            int dmg = d(4, 4), orig_dmg = dmg;
 
             You("are jolted by a surge of electricity!");
             if (Shock_resistance) {
                 shieldeff(u.ux, u.uy);
                 You("don't seem to be affected.");
                 dmg = 0;
-            } else
-                dmg = d(4, 4);
-            destroy_item(RING_CLASS, AD_ELEC);
-            destroy_item(WAND_CLASS, AD_ELEC);
+            }
+            (void) destroy_items(&g.youmonst, AD_ELEC, orig_dmg);
             if (dmg)
                 losehp(dmg, "electric shock", KILLED_BY_AN);
             break;
@@ -6338,7 +6334,7 @@ boolean
 lava_effects()
 {
     register struct obj *obj, *obj2;
-    int dmg = d(6, 6); /* only applicable for water walking */
+    const int dmg = d(6, 6); /* only applicable for water walking */
     boolean usurvive, boil_away;
 
     feel_newsym(u.ux, u.uy); /* in case Blind, map the lava here */
@@ -6351,7 +6347,7 @@ lava_effects()
      * A timely interrupt might manage to salvage your life
      * but not your gear.  For scrolls and potions this
      * will destroy whole stacks, where fire resistant hero
-     * survivor only loses partial stacks via destroy_item().
+     * survivor only loses partial stacks via destroy_items().
      *
      * Flag items to be destroyed before any messages so
      * that player causing hangup at --More-- won't get an
@@ -6465,9 +6461,7 @@ lava_effects()
     }
 
  burn_stuff:
-    destroy_item(SCROLL_CLASS, AD_FIRE);
-    destroy_item(SPBOOK_CLASS, AD_FIRE);
-    destroy_item(POTION_CLASS, AD_FIRE);
+    (void) destroy_items(&g.youmonst, AD_FIRE, dmg);
     ignite_items(g.invent);
     return FALSE;
 }
@@ -6632,7 +6626,7 @@ boolean override;
 /* Ignite ignitable items in the given object chain, due to some external
  * source of fire.  The object chain should be somewhere exposed, like
  * someone's open inventory or the floor.
- * This is modeled after destroy_item() somewhat and hopefully will be able to
+ * This is modeled after destroy_items() somewhat and hopefully will be able to
  * merge into it in the future.
  */
 void
