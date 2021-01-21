@@ -1283,8 +1283,6 @@ struct obj * wpn;
         Strcpy(basename, "Claymore");
     else if (is_sword(wpn))
         Strcpy(basename, "Sword");
-    else if (wpn->otyp == LUCERN_HAMMER)
-        Strcpy(basename, "Lucern Hammer");
     else if (wpn->otyp == MORNING_STAR)
         Strcpy(basename, "Morning Star");
     else if (wpn->otyp == RUBBER_HOSE)

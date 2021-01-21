@@ -443,7 +443,7 @@ register struct monst *mtmp;
         if (!rn2(2))
             switch (rn2(4)) {
             case 0:
-                (void) mongets(mtmp, RANSEUR);
+                (void) mongets(mtmp, HALBERD);
                 break;
             case 1:
                 (void) mongets(mtmp, PARTISAN);
@@ -452,7 +452,7 @@ register struct monst *mtmp;
                 (void) mongets(mtmp, GLAIVE);
                 break;
             case 3:
-                (void) mongets(mtmp, SPETUM);
+                (void) mongets(mtmp, BEC_DE_CORBIN);
                 break;
             }
         break;
@@ -546,7 +546,7 @@ register struct monst *mtmp;
             break;
         case 5:
             if (strongmonst(ptr))
-                (void) mongets(mtmp, LUCERN_HAMMER);
+                (void) mongets(mtmp, BEC_DE_CORBIN);
             else
                 (void) mongets(mtmp, AKLYS);
             break;

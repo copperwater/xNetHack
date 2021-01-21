@@ -327,6 +327,10 @@ changes:
   attributes, e.g. strength while wearing gauntlets of power but when the base
   value isn't maxed yet, now count as raiseable.
 - New Big Room "Tea Party", containing a number of obstacles.
+- 8 polearms are removed: ranseur, spetum, bardiche, voulge, fauchard,
+  guisarme, bill-guisarme, lucern hammer.
+- The bec de corbin's damage stats are now those of the lucern hammer
+  (2d4 vs small / d6 vs large) instead of its former d8/d6.
 
 ### Interface changes
 

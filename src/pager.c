@@ -945,21 +945,15 @@ short otyp;
         case CROSSBOW_BOLT:
         case MACE:
         case FLAIL:
-        case SPETUM:
         case TRIDENT:
             sdambon = "+1";
             break;
         case BATTLE_AXE:
-        case BARDICHE:
-        case BILL_GUISARME:
-        case GUISARME:
-        case LUCERN_HAMMER:
         case MORNING_STAR:
-        case RANSEUR:
         case BROADSWORD:
         case ELVEN_BROADSWORD:
         case RUNESWORD:
-        case VOULGE:
+        case BEC_DE_CORBIN:
             sdambon = "+1d4";
             break;
         case WAR_HAMMER:
@@ -977,19 +971,15 @@ short otyp;
             ldambon = "+1";
             break;
         case FLAIL:
-        case RANSEUR:
-        case VOULGE:
             ldambon = "+1d4";
             break;
         case HALBERD:
-        case SPETUM:
             ldambon = "+1d6";
             break;
         case WAR_HAMMER:
             ldambon = "+1d8";
             break;
         case BATTLE_AXE:
-        case BARDICHE:
         case TRIDENT:
             ldambon = "+2d4";
             break;

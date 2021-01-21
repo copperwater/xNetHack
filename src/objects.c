@@ -218,46 +218,22 @@ WEAPON("runesword", "runed broadsword",
 /* polearms */
 /* spear-type */
 WEAPON("partisan", "vulgar polearm",
-       0, 0, 1,  5,  80,  10,  6,  6, 0, P,   P_POLEARMS, IRON, HI_METAL),
+       0, 0, 1, 16,  80,  10,  6,  6, 0, P,   P_POLEARMS, IRON, HI_METAL),
         /* +1 large */
-WEAPON("ranseur", "hilted polearm",
-       0, 0, 1,  5,  50,   6,  4,  4, 0, P,   P_POLEARMS, IRON, HI_METAL),
-        /* +d4 both */
-WEAPON("spetum", "forked polearm",
-       0, 0, 1,  5,  50,   5,  6,  6, 0, P,   P_POLEARMS, IRON, HI_METAL),
-        /* +1 small, +d6 large */
 WEAPON("glaive", "single-edged polearm",
-       0, 0, 1,  8,  75,   6,  6, 10, 0, S,   P_POLEARMS, IRON, HI_METAL),
+       0, 0, 1, 17,  75,   6,  6, 10, 0, S,   P_POLEARMS, IRON, HI_METAL),
 WEAPON("lance", None,
        1, 0, 0,  4, 180,  10,  6,  8, 0, P,   P_LANCE, IRON, HI_METAL),
         /* +2d10 when jousting with lance as primary weapon */
 /* axe-type */
 WEAPON("halberd", "angled poleaxe",
-       0, 0, 1,  8, 150,  10, 10,  6, 0, P|S, P_POLEARMS, IRON, HI_METAL),
+       0, 0, 1, 14, 150,  10, 10,  6, 0, P|S, P_POLEARMS, IRON, HI_METAL),
         /* +1d6 large */
-WEAPON("bardiche", "long poleaxe",
-       0, 0, 1,  4, 120,   7,  4,  4, 0, S,   P_POLEARMS, IRON, HI_METAL),
-        /* +1d4 small, +2d4 large */
-WEAPON("voulge", "pole cleaver",
-       0, 0, 1,  4, 125,   5,  4,  4, 0, S,   P_POLEARMS, IRON, HI_METAL),
-        /* +d4 both */
 WEAPON("dwarvish mattock", "broad pick",
        0, 0, 1, 13, 120,  50, 12,  8, -1, B,  P_PICK_AXE, IRON, HI_METAL),
-/* curved/hooked */
-WEAPON("fauchard", "pole sickle",
-       0, 0, 1,  6,  60,   5,  6,  8, 0, P|S, P_POLEARMS, IRON, HI_METAL),
-WEAPON("guisarme", "pruning hook",
-       0, 0, 1,  6,  80,   5,  4,  8, 0, S,   P_POLEARMS, IRON, HI_METAL),
-        /* +1d4 small */
-WEAPON("bill-guisarme", "hooked polearm",
-       0, 0, 1,  4, 120,   7,  4, 10, 0, P|S, P_POLEARMS, IRON, HI_METAL),
-        /* +1d4 small */
 /* other */
-WEAPON("lucern hammer", "pronged polearm",
-       0, 0, 1,  5, 150,   7,  4,  6, 0, B|P, P_POLEARMS, IRON, HI_METAL),
-        /* +1d4 small */
 WEAPON("bec de corbin", "beaked polearm",
-       0, 0, 1,  4, 100,   8,  8,  6, 0, B|P, P_POLEARMS, IRON, HI_METAL),
+       0, 0, 1, 17, 100,   8,  4,  6, 0, B|P, P_POLEARMS, IRON, HI_METAL),
 
 /* bludgeons */
 WEAPON("mace", None,

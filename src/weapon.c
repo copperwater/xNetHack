@@ -233,7 +233,6 @@ struct monst *mon;
         case IRON_CHAIN:
         case CROSSBOW_BOLT:
         case MORNING_STAR:
-        case PARTISAN:
         case RUNESWORD:
         case ELVEN_BROADSWORD:
         case BROADSWORD:
@@ -241,14 +240,11 @@ struct monst *mon;
             break;
 
         case FLAIL:
-        case RANSEUR:
-        case VOULGE:
             tmp += rnd(4);
             break;
 
         case ACID_VENOM:
         case HALBERD:
-        case SPETUM:
             tmp += rnd(6);
             break;
 
@@ -257,7 +253,6 @@ struct monst *mon;
             break;
 
         case BATTLE_AXE:
-        case BARDICHE:
         case TRIDENT:
             tmp += d(2, 4);
             break;
@@ -276,22 +271,16 @@ struct monst *mon;
         case CROSSBOW_BOLT:
         case MACE:
         case FLAIL:
-        case SPETUM:
         case TRIDENT:
             tmp++;
             break;
 
         case BATTLE_AXE:
-        case BARDICHE:
-        case BILL_GUISARME:
-        case GUISARME:
-        case LUCERN_HAMMER:
+        case BEC_DE_CORBIN:
         case MORNING_STAR:
-        case RANSEUR:
         case BROADSWORD:
         case ELVEN_BROADSWORD:
         case RUNESWORD:
-        case VOULGE:
             tmp += rnd(4);
             break;
 
@@ -657,11 +646,8 @@ static NEARDATA const int rwep[] = {
     FLINT, ROCK, LUCKSTONE, DART, /* BOOMERANG, */ CREAM_PIE
 };
 
-static NEARDATA const int pwep[] = { HALBERD,       BARDICHE, SPETUM,
-                                     BILL_GUISARME, VOULGE,   RANSEUR,
-                                     GUISARME,      GLAIVE,   LUCERN_HAMMER,
-                                     BEC_DE_CORBIN, FAUCHARD, PARTISAN,
-                                     LANCE };
+static NEARDATA const int pwep[] = { HALBERD,  GLAIVE, BEC_DE_CORBIN,
+                                     PARTISAN, LANCE };
 
 /* select a ranged weapon for the monster */
 struct obj *
