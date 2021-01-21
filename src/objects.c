@@ -161,9 +161,7 @@ WEAPON("athame", None,
 WEAPON("scalpel", None,
        1, 1, 0,  0,   5,   6,  5,  7, 2, S,   P_KNIFE, METAL, HI_METAL),
 WEAPON("knife", None,
-       1, 1, 0, 20,   5,   4,  3,  2, 0, P|S, P_KNIFE, IRON, HI_METAL),
-WEAPON("stiletto", None,
-       1, 1, 0,  5,   5,   4,  3,  2, 0, P|S, P_KNIFE, IRON, HI_METAL),
+       1, 1, 0, 25,   5,   4,  3,  2, 0, P|S, P_KNIFE, IRON, HI_METAL),
 /* 3.6: worm teeth and crysknives now stack;
    when a stack of teeth is enchanted at once, they fuse into one crysknife;
    when a stack of crysknives drops, the whole stack reverts to teeth */

@@ -1594,7 +1594,6 @@ struct obj *otmp;
         case ORCISH_DAGGER:
         case ATHAME:
         case KNIFE:
-        case STILETTO:
         case CRYSKNIFE:
             tmp = 3;
             break;

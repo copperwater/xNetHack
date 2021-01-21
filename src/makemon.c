@@ -485,7 +485,7 @@ register struct monst *mtmp;
     case S_LIZARD:
         if (mm == PM_SALAMANDER)
             (void) mongets(mtmp,
-                           (rn2(7) ? SPEAR : rn2(3) ? TRIDENT : STILETTO));
+                           (rn2(7) ? SPEAR : rn2(3) ? TRIDENT : KNIFE));
         break;
     case S_DEMON:
         switch (mm) {
