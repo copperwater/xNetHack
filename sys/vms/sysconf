@@ -36,6 +36,13 @@
 # incubi to use nymphs' charm behavior rather than their own seduce behavior.
 #SEDUCE=0
 
+# Number added into the game's deterministic hash functions to prevent
+# players from computing the result of said functions. Mostly useful on
+# multi-user installs.
+# Do NOT keep this default value of 100, choose an arbitrary one, and don't
+# disclose it to your players.
+#SERVERSEED=100
+
 # Uncomment to disable savefile UID checking.
 #CHECK_SAVE_UID=0
 

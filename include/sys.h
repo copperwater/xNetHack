@@ -35,6 +35,7 @@ struct sysopt {
     int check_save_uid; /* restoring savefile checks UID? */
     int check_plname; /* use plname for checking wizards/explorers/shellers */
     int bones_pools;
+    int serverseed; /* added to ubirthday to prevent relying on it on servers */
 
     /* record file */
     int persmax;

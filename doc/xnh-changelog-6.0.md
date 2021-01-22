@@ -378,6 +378,9 @@ changes:
 - The xlogfile now contains a "polyinit=" field for all games, showing the
   monster species the player polyinitted as, or "none" if the game was not in
   polyinit mode.
+- New SERVERSEED sysconf option, which is intended for server operators to
+  obfuscate the values returned by the game's deterministic hash functions so
+  players can't compute them.
 
 ### Architectural changes
 

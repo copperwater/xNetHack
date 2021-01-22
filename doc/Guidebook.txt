@@ -6217,6 +6217,11 @@
             SEDUCE = 0  or 1 to disable or enable, respectively, the SEDUCE
             option.  When disabled, incubi and succubi behave like nymphs.
 
+            SERVERSEED = A number that is added into the game's
+            deterministic hash functions.  Intended for use on multi-user
+            systems where the administrator wants to prevent players from
+            being able to calculate the hash result.
+
             CHECK_PLNAME = Setting this to 1 will make the EXPLORERS,  WIZ-
             ARDS, and SHELLERS check for the player name instead of the us-
             er's login name.
