@@ -66,7 +66,7 @@ enum roomtype_types {
     DEMONDEN   = 14, /* demons */
     SUBMERGED  = 15, /* water floor, sea monsters */
     LAVAROOM   = 16, /* lava floor, fire monsters */
-    ABBATOIR   = 17, /* corpses, blood, leashes */
+    ABATTOIR   = 17, /* corpses, blood, leashes */
     STATUARY   = 18, /* lined with empty statues */
     SEMINARY   = 19, /* some roaming priests */
     SHOPBASE   = 20, /* everything above this is a shop */

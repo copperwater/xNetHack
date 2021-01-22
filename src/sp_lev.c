@@ -2715,7 +2715,7 @@ struct mkroom *croom;
         case BARRACKS:
         case DEMONDEN:
         case LAVAROOM:
-        case ABBATOIR:
+        case ABATTOIR:
             fill_zoo(croom);
             break;
         }
@@ -3763,7 +3763,7 @@ static const struct {
     { "cocknest", COCKNEST },
     { "leprehall", LEPREHALL },
     { "demon den", DEMONDEN },
-    { "abbatoir", ABBATOIR },
+    { "abattoir", ABATTOIR },
     { "submerged", SUBMERGED },
     { "lava room", LAVAROOM },
     { "statuary", STATUARY },

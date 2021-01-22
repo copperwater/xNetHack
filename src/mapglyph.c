@@ -162,7 +162,7 @@ unsigned mgflags;
             else if (In_mines(&u.uz)) /* no in_rooms check */
                 color = CLR_BROWN;
             else if (In_hell(&u.uz) && !Is_valley(&u.uz)) {
-                if (getroomtype(x, y) == ABBATOIR)
+                if (getroomtype(x, y) == ABATTOIR)
                     color = CLR_RED;
                 else if (getroomtype(x, y) == SEMINARY)
                     color = CLR_WHITE;

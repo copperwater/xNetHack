@@ -908,7 +908,7 @@ E int NDECL(max_capacity);
 E boolean FDECL(check_capacity, (const char *));
 E int FDECL(inv_cnt, (BOOLEAN_P));
 E long FDECL(money_cnt, (struct obj *));
-E void NDECL(abbatoir_sickness);
+E void NDECL(abattoir_sickness);
 
 /* ### hacklib.c ### */
 

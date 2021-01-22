@@ -2768,9 +2768,9 @@ boolean newlev;
         case SUBMERGED:
             You("enter a flooded room!");
             break;
-        case ABBATOIR:
+        case ABATTOIR:
             You("enter a horrific slaughterhouse!");
-            abbatoir_sickness();
+            abattoir_sickness();
             break;
         case TEMPLE:
         case SEMINARY:
@@ -3445,10 +3445,10 @@ struct obj *otmp;
 }
 
 /* Maybe get nauseated as the effect of stepping into or being inside an
- * abbatoir.
+ * abattoir.
  * This sometimes skips confusion and stunning to get to vomiting faster. */
 void
-abbatoir_sickness()
+abattoir_sickness()
 {
     if (Vomiting) {
         return;
