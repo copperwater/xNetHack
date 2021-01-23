@@ -741,13 +741,14 @@ int x0, y0, x1, y1;
 
 /* Deterministic hash of three coordinates (intended to be x, y, and z, but
  * they don't actually have to be). In a lot of cases, z should probably also
- * be ledger_no(&u.uz) so that the "z" is actually unique among levels.
- * Throws ubirthday into the hash so that the hash should be (mostly) unique
- * among the same coordinates in different games, and so the player shouldn't
- * be able to get the result out of the visible game state (assuming they
- * didn't actually guess it or track it otherwise... if this becomes a problem,
- * the game may need to generate a hidden random number on startup and use that
- * instead, or add a server secret.)
+ * be ledger_no(&u.uz) so that the "z" is actually unique among levels; mere
+ * depth is not unique due to having levels in multiple branches at the same
+ * depth.
+ * Throws ubirthday and sysopt.serverseed into the hash so that the hash should
+ * be (practically) unique among the same coordinates in different games, so the
+ * player shouldn't be able to get the result out of the visible game state.
+ * (Note that sysopt.serverseed is the value of SERVERSEED plus a random number
+ * generated at game start).
  */
 unsigned int
 coord_hash(x, y, z)

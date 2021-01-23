@@ -77,7 +77,7 @@ char *buf;
 
     if (erosion)
         wipeout_text(buf, (int) (strlen(buf) * erosion / (2 * MAX_ERODE)),
-                     otmp->o_id ^ (unsigned) ubirthday);
+                     hash1(otmp->o_id));
     return buf;
 }
 

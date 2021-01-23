@@ -816,7 +816,7 @@ d_level *lev;
     if (sysopt.bones_pools > 1) {
         unsigned poolnum = min((unsigned) sysopt.bones_pools, 10);
 
-        poolnum = (unsigned) ubirthday % poolnum; /* 0..9 */
+        poolnum = hash1(0x9001) % poolnum; /* 0..9 */
         Sprintf(eos(file), "%u", poolnum);
     }
 #endif
