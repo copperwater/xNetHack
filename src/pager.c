@@ -692,7 +692,7 @@ char *supplemental_name;
        (note: strncpy() only terminates output string if the specified
        count is bigger than the length of the substring being copied) */
     if (!strncmp(dbase_str, "moist towel", 11))
-        (void) strncpy(dbase_str += 2, "wet", 3); /* skip "mo" replace "ist" */
+        memcpy(dbase_str += 2, "wet", 3); /* skip "mo" replace "ist" */
 
     /* Make sure the name is non-empty. */
     if (*dbase_str) {
@@ -1207,13 +1207,13 @@ struct permonst **for_supplement;
 
             *firstmatch = look_buf;
             if (*(*firstmatch)) {
-                Sprintf(temp_buf, " (%s)", *firstmatch);
+                Snprintf(temp_buf, sizeof(temp_buf), " (%s)", *firstmatch);
                 (void) strncat(out_str, temp_buf,
                                BUFSZ - strlen(out_str) - 1);
                 found = 1; /* we have something to look up */
             }
             if (monbuf[0]) {
-                Sprintf(temp_buf, " [seen: %s]", monbuf);
+                Snprintf(temp_buf, sizeof(temp_buf), " [seen: %s]", monbuf);
                 (void) strncat(out_str, temp_buf,
                                BUFSZ - strlen(out_str) - 1);
             }

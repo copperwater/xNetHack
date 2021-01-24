@@ -1,4 +1,4 @@
-/* NetHack 3.7	files.c	$NHDT-Date: 1610153478 2021/01/09 00:51:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.322 $ */
+/* NetHack 3.7	files.c	$NHDT-Date: 1610587460 2021/01/14 01:24:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.323 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -49,7 +49,7 @@ const
 #endif
 #endif
 
-#if defined(UNIX) && defined(QT_GRAPHICS)
+#if defined(UNIX) && defined(SELECTSAVED)
 #include <sys/types.h>
 #include <dirent.h>
 #include <stdlib.h>
@@ -136,12 +136,6 @@ extern char *FDECL(translate_path_variables, (const char *, char *));
 
 #ifdef USER_SOUNDS
 extern char *sounddir; /* defined in sounds.c */
-#endif
-
-#if defined(UNIX) && defined(QT_GRAPHICS)
-#ifndef SELECTSAVED
-#define SELECTSAVED
-#endif
 #endif
 
 static NHFILE *NDECL(new_nhfile);
@@ -797,7 +791,6 @@ set_bonesfile_name(file, lev)
 char *file;
 d_level *lev;
 {
-    int idx = 0;
     s_level *sptr;
     char *dptr;
 
@@ -832,9 +825,6 @@ d_level *lev;
         Sprintf(eos(dptr), ".%c", sptr->boneid);
     else
         Sprintf(eos(dptr), ".%d", lev->dlevel);
-#ifdef SYSCF
-    idx = sysopt.bonesformat[0];
-#endif
 #ifdef VMS
     Strcat(dptr, ";1");
 #endif
@@ -954,7 +944,6 @@ d_level *lev;
 char **bonesid;
 {
     const char *fq_bones;
-    int failed = 0;
     NHFILE *nhfp = (NHFILE *) 0;
 
     *bonesid = set_bonesfile_name(g.bones, lev);
@@ -973,8 +962,6 @@ char **bonesid;
 #else
             nhfp->fd = open(fq_bones, O_RDONLY | O_BINARY, 0);
 #endif
-            if (nhfp->fd < 0)
-                failed = errno;
         }
     }
     nhfp = viable_nhfile(nhfp);
@@ -1007,7 +994,7 @@ void
 set_savefile_name(regularize_it)
 boolean regularize_it;
 {
-    int idx = historical, regoffset = 0, overflow = 0,  
+    int regoffset = 0, overflow = 0,
         indicator_spot = 0; /* 0=no indicator, 1=before ext, 2=after ext */
     const char *postappend = (const char *) 0,
                *sfindicator = (const char *) 0;
@@ -1015,16 +1002,6 @@ boolean regularize_it;
     char tmp[BUFSZ];
 #endif
 
-    if (g.program_state.in_self_recover) {
-        /* self_recover needs to be done as historical
-           structlevel content until that process is
-           re-written to use something other than
-           copy_bytes() to retrieve data content from
-           level files (which are structlevel) and
-           place it into the save file.
-        */
-        idx = historical;
-    }
 #ifdef VMS
     Sprintf(g.SAVEF, "[.save]%d%s", getuid(), g.plname);
     regoffset = 7;
@@ -1157,7 +1134,6 @@ set_error_savefile()
 NHFILE *
 create_savefile()
 {
-    int failed = 0;
     const char *fq_save;
     NHFILE *nhfp = (NHFILE *) 0;
     boolean do_historical = TRUE;
@@ -1190,8 +1166,6 @@ create_savefile()
             nhfp->fd = creat(fq_save, FCMASK);
 #endif
 #endif /* MICRO || WIN32 */
-            if (nhfp->fd < 0)
-                failed = errno;
         }
     }
 #if defined(VMS) && !defined(SECURE)
@@ -1213,7 +1187,6 @@ create_savefile()
 NHFILE *
 open_savefile()
 {
-    int failed = 0;
     const char *fq_save;
     NHFILE *nhfp = (NHFILE *) 0;
     boolean do_historical = TRUE;
@@ -1242,8 +1215,6 @@ open_savefile()
 #else
             nhfp->fd = open(fq_save, O_RDONLY | O_BINARY, 0);
 #endif
-            if (nhfp->fd < 0)
-                failed = errno;
         }
     }
     nhfp = viable_nhfile(nhfp);
@@ -1289,7 +1260,14 @@ const char *filename;
 
     Strcpy(g.SAVEF, filename);
 #ifdef COMPRESS_EXTENSION
-    g.SAVEF[strlen(g.SAVEF) - strlen(COMPRESS_EXTENSION)] = '\0';
+    {
+        /* if COMPRESS_EXTENSION is present, strip it off */
+        int sln = (int) strlen(g.SAVEF),
+            xln = (int) strlen(COMPRESS_EXTENSION);
+
+        if (sln > xln && !strcmp(&g.SAVEF[sln - xln], COMPRESS_EXTENSION))
+            g.SAVEF[sln - xln] = '\0';
+    }
 #endif
     nh_uncompress(g.SAVEF);
     if ((nhfp = open_savefile()) != 0) {
@@ -1405,7 +1383,7 @@ get_saved_games()
 
     }
 #endif
-#if defined(UNIX) && defined(QT_GRAPHICS)
+#ifdef UNIX
     /* posixly correct version */
     int myuid = getuid();
     DIR *dir;
@@ -1488,8 +1466,15 @@ FILE *stream;
 boolean uncomp;
 {
     if (freopen(filename, mode, stream) == (FILE *) 0) {
-        (void) fprintf(stderr, "freopen of %s for %scompress failed\n",
-                       filename, uncomp ? "un" : "");
+        const char *details;
+
+#if defined(NHSTDC) && !defined(NOTSTDC)
+        if ((details = strerror(errno)) == 0)
+#endif
+            details = "";
+        (void) fprintf(stderr,
+                       "freopen of %s for %scompress failed; (%d) %s\n",
+                       filename, uncomp ? "un" : "", errno, details);
         nh_terminate(EXIT_FAILURE);
     }
 }
@@ -1506,7 +1491,7 @@ docompress_file(filename, uncomp)
 const char *filename;
 boolean uncomp;
 {
-    char cfn[80];
+    char cfn[SAVESIZE];
     FILE *cf;
     const char *args[10];
 #ifdef COMPRESS_OPTIONS

@@ -1,4 +1,4 @@
-/* NetHack 3.7	trap.c	$NHDT-Date: 1606558763 2020/11/28 10:19:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.367 $ */
+/* NetHack 3.7	trap.c	$NHDT-Date: 1611182256 2021/01/20 22:37:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.398 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1497,6 +1497,11 @@ unsigned trflags;
         int steed_article = ARTICLE_THE;
         int oldumort;
 
+        /* suppress article in various steed messages when using its
+           name (which won't occur when hallucinating) */
+        if (u.usteed && has_mgivenname(u.usteed) && !Hallucination)
+            steed_article = ARTICLE_NONE;
+
         /* KMH -- You can't escape the Sokoban level traps */
         if (!Sokoban && (Levitation || (Flying && !plunged)))
             return 0;
@@ -1764,6 +1769,11 @@ unsigned trflags;
                              || (trflags & FAILEDUNTRAP) != 0);
         boolean viasitting = (trflags & VIASITTING) != 0;
         int steed_article = ARTICLE_THE;
+
+        /* suppress article in various steed messages when using its
+           name (which won't occur when hallucinating) */
+        if (u.usteed && has_mgivenname(u.usteed) && !Hallucination)
+            steed_article = ARTICLE_NONE;
 
         feeltrap(trap);
         if (mu_maybe_destroy_web(&g.youmonst, webmsgok, trap))
@@ -2060,6 +2070,11 @@ unsigned trflags;
         boolean viasitting = (trflags & VIASITTING) != 0;
         int steed_article = ARTICLE_THE;
         char verbbuf[BUFSZ];
+
+        /* suppress article in various steed messages when using its
+           name (which won't occur when hallucinating) */
+        if (u.usteed && has_mgivenname(u.usteed) && !Hallucination)
+            steed_article = ARTICLE_NONE;
 
         seetrap(trap);
         if (viasitting)
@@ -2392,7 +2407,6 @@ unsigned trflags;
             plunged = (trflags & TOOKPLUNGE) != 0,
             conj_pit = conjoined_pits(trap, t_at(u.ux0, u.uy0), TRUE),
             adj_pit = adj_nonconjoined_pit(trap);
-    int steed_article = ARTICLE_THE;
 
     nomul(0);
 
@@ -2428,13 +2442,8 @@ unsigned trflags;
         }
     }
 
-    if (u.usteed) {
+    if (u.usteed)
         u.usteed->mtrapseen |= (1 << (ttype - 1));
-        /* suppress article in various steed messages when using its
-           name (which won't occur when hallucinating) */
-        if (has_mgivenname(u.usteed) && !Hallucination)
-            steed_article = ARTICLE_NONE;
-    }
 
     /*
      * Note:
@@ -2931,8 +2940,8 @@ long ocount;
     register int tmp;
     schar dx, dy;
     int distance;
-    coord cc;
-    coord bcc;
+    coord cc = UNDEFINED_VALUES,
+          bcc = UNDEFINED_VALUES;
     int trycount = 0;
     boolean success = FALSE;
     int mindist = 4;
@@ -3062,8 +3071,7 @@ register struct monst *mtmp;
         }
     } else {
         register int tt = trap->ttyp;
-        boolean in_sight, see_it,
-                inescapable = (g.force_mintrap
+        boolean inescapable = (g.force_mintrap
                                || ((tt == HOLE || tt == PIT)
                                    && Sokoban && !trap->madeby_u));
 
@@ -3083,12 +3091,6 @@ register struct monst *mtmp;
            unreasonable; everybody has their own style. */
         if (trap->madeby_u && rnl(5))
             setmangry(mtmp, TRUE);
-
-        in_sight = canseemon(mtmp);
-        see_it = cansee(mtmp->mx, mtmp->my);
-        /* assume hero can tell what's going on for the steed */
-        if (mtmp == u.usteed)
-            in_sight = TRUE;
 
         return trapeffect_selector(mtmp, trap, 0);
     }
@@ -4838,11 +4840,14 @@ boolean force;
                     trap_skipped = TRUE;
                     deal_with_floor_trap = FALSE;
                 } else {
-                    Sprintf(
-                        qbuf, "There %s and %s here.  %s %s?",
-                        (boxcnt == 1) ? "is a container" : "are containers",
-                        an(trapdescr),
-                        (ttmp->ttyp == WEB) ? "Remove" : "Disarm", the_trap);
+                    Snprintf(qbuf, sizeof(qbuf),
+                             "There %s and %s here.  %s %s?",
+                             (boxcnt == 1) ? "is a container"
+                                           : "are containers",
+                             an(trapdescr),
+                             (ttmp->ttyp == WEB) ? "Remove"
+                                                 : "Disarm",
+                             the_trap);
                     switch (ynq(qbuf)) {
                     case 'q':
                         return 0;
@@ -5941,44 +5946,20 @@ boolean override;
     return defsyms[trap_to_defsym(ttyp)].explanation;
 }
 
-/* Ignite ignitable items in the given object chain, due to some external
- * source of fire.  The object chain should be somewhere exposed, like
- * someone's open inventory or the floor.
- * This is modeled after destroy_item() somewhat and hopefully will be able to
- * merge into it in the future.
- */
+/* Ignite ignitable items (limited to light sources) in the given object
+   chain, due to some external source of fire.  The object chain should
+   be somewhere exposed, like someone's open inventory or the floor. */
 void
 ignite_items(objchn)
 struct obj *objchn;
 {
     struct obj *obj;
-    boolean vis = FALSE;
-    if (!objchn)
-        return;
+    boolean bynexthere = (objchn && objchn->where == OBJ_FLOOR);
 
-    if (objchn->where == OBJ_INVENT)
-        vis = TRUE; /* even when blind; lit-state can be seen in inventory */
-    else if (objchn->where == OBJ_MINVENT)
-        vis = canseemon(objchn->ocarry);
-    else if (objchn->where == OBJ_FLOOR)
-        vis = cansee(objchn->ox, objchn->oy);
-    else {
-        impossible("igniting item in a weird location %d", objchn->where);
-        return;
-    }
-
-    for (obj = objchn; obj; obj = obj->nobj) {
-        if (!ignitable(obj)
-            /* The Candelabrum requires intention to be lit */
-            || obj->otyp == CANDELABRUM_OF_INVOCATION
-            || obj->otyp == BRASS_LANTERN /* doesn't ignite via fire */
-            || obj->in_use     /* not available */
-            || obj->lamplit) { /* already burning */
-            continue;
-        }
-        begin_burn(obj, FALSE);
-        if (vis)
-            pline("%s on fire!", Yobjnam2(obj, "catch"));
+    for (obj = objchn; obj; obj = bynexthere ? obj->nexthere : obj->nobj) {
+        /* ignitable items like lamps and candles will catch fire */
+        if (!obj->lamplit && !obj->in_use)
+            catch_lit(obj);
     }
 }
 

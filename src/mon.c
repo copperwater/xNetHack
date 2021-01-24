@@ -2480,6 +2480,7 @@ register struct monst *mtmp;
                 (void) makemon(mtmp->data, stway->sx, stway->sy, NO_MM_FLAGS);
                 break;
             }
+            /* fall-through */
         case 2: /* randomly */
             (void) makemon(mtmp->data, 0, 0, NO_MM_FLAGS);
             break;

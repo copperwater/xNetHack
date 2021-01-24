@@ -1583,16 +1583,6 @@ boolean up;
 }
 
 stairway *
-stairway_find_ladder()
-{
-    stairway *tmp = g.stairs;
-
-    while (tmp && !tmp->isladder)
-        tmp = tmp->next;
-    return tmp;
-}
-
-stairway *
 stairway_find_type_dir(isladder, up)
 boolean isladder, up;
 {
@@ -3537,8 +3527,8 @@ boolean printdun;
                 (void) strsubst(tmpbuf, " herself", " yourself");
                 (void) strsubst(tmpbuf, " his ", " your ");
                 (void) strsubst(tmpbuf, " her ", " your ");
-                Sprintf(buf, "%s%syou, %s%c", PREFIX, TAB, tmpbuf,
-                        --kncnt ? ',' : '.');
+                Snprintf(buf, sizeof(buf), "%s%syou, %s%c", PREFIX, TAB,
+                         tmpbuf, --kncnt ? ',' : '.');
                 putstr(win, ATR_PREFORM, buf);
             }
             for (bp = mptr->final_resting_place; bp; bp = bp->next) {
