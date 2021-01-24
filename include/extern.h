@@ -3215,6 +3215,8 @@ E void FDECL(bypass_objlist, (struct obj *, BOOLEAN_P));
 E struct obj *FDECL(nxt_unbypassed_obj, (struct obj *));
 E struct obj *FDECL(nxt_unbypassed_loot, (Loot *, struct obj *));
 E int FDECL(racial_exception, (struct monst *, struct obj *));
+E void FDECL(extract_from_minvent, (struct monst *, struct obj *, BOOLEAN_P,
+                                    BOOLEAN_P));
 
 /* ### write.c ### */
 

@@ -2348,8 +2348,6 @@ boolean *prev_loot;
      *  *prev_loot is set to TRUE if something was actually acquired in here.
      */
     if (mtmp && mtmp != u.usteed && (otmp = which_armor(mtmp, W_SADDLE))) {
-        long unwornmask;
-
         if (passed_info)
             *passed_info = 1;
         Sprintf(qbuf, "Do you want to remove the saddle from %s?",
@@ -2367,12 +2365,7 @@ boolean *prev_loot;
                 /* the attempt costs you time */
                 return 1;
             }
-            obj_extract_self(otmp);
-            if ((unwornmask = otmp->owornmask) != 0L) {
-                mtmp->misc_worn_check &= ~unwornmask;
-                otmp->owornmask = 0L;
-                update_mon_intrinsics(mtmp, otmp, FALSE, FALSE);
-            }
+            extract_from_minvent(mtmp, otmp, TRUE, FALSE);
             otmp = hold_another_object(otmp, "You drop %s!", doname(otmp),
                                        (const char *) 0);
             nhUse(otmp);
