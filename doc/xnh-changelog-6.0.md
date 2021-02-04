@@ -324,6 +324,10 @@ changes:
   always succeed provided there is something raiseable. "Innate improvement"
   attributes, e.g. strength while wearing gauntlets of power but when the base
   value isn't maxed yet, now count as raiseable.
+- You can use #loot on adjacent pets to give them items and take items from
+  them. They will reevaluate their gear choices if you give or take anything.
+  Equipped items are valid selections; trying to take one will get the pet to
+  take it off. In wizard mode, this can be done to anyone, not just pets.
 
 ### Interface changes
 
