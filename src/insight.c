@@ -101,7 +101,7 @@ static struct ll_achieve_msg achieve_msg [] = {
     enl_msg(You_, have, (const char *) "", something, "")
 
 static void
-enlght_out_attr(const char *buf, int attr)
+enlght_out_attr(int attr, const char *buf)
 {
     if (g.en_via_menu) {
         anything any;
