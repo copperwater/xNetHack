@@ -20,24 +20,24 @@
 int dotcnt, dotrow; /* also used in restore */
 #endif
 
-static void FDECL(savelevchn, (NHFILE *));
-static void FDECL(savelevl, (NHFILE *,BOOLEAN_P));
-static void FDECL(savedamage, (NHFILE *));
-static void FDECL(save_stairs, (NHFILE *));
-static void FDECL(saveobj, (NHFILE *,struct obj *));
-static void FDECL(saveobjchn, (NHFILE *,struct obj **));
-static void FDECL(savemon, (NHFILE *,struct monst *));
-static void FDECL(savemonchn, (NHFILE *,struct monst *));
-static void FDECL(savetrapchn, (NHFILE *,struct trap *));
-static void FDECL(savegamestate, (NHFILE *));
-static void FDECL(save_msghistory, (NHFILE *));
+static void savelevchn(NHFILE *);
+static void savelevl(NHFILE *,boolean);
+static void savedamage(NHFILE *);
+static void save_stairs(NHFILE *);
+static void saveobj(NHFILE *,struct obj *);
+static void saveobjchn(NHFILE *,struct obj **);
+static void savemon(NHFILE *,struct monst *);
+static void savemonchn(NHFILE *,struct monst *);
+static void savetrapchn(NHFILE *,struct trap *);
+static void savegamestate(NHFILE *);
+static void save_msghistory(NHFILE *);
 
 #ifdef ZEROCOMP
-static void FDECL(zerocomp_bufon, (int));
-static void FDECL(zerocomp_bufoff, (int));
-static void FDECL(zerocomp_bflush, (int));
-static void FDECL(zerocomp_bwrite, (int, genericptr_t, unsigned int));
-static void FDECL(zerocomp_bputc, (int));
+static void zerocomp_bufon(int);
+static void zerocomp_bufoff(int);
+static void zerocomp_bflush(int);
+static void zerocomp_bwrite(int, genericptr_t, unsigned int);
+static void zerocomp_bputc(int);
 #endif
 
 #if defined(UNIX) || defined(VMS) || defined(__EMX__) || defined(WIN32)
@@ -47,7 +47,7 @@ static void FDECL(zerocomp_bputc, (int));
 #endif
 
 int
-dosave()
+dosave(void)
 {
     if (iflags.debug_fuzzer)
         return 0;
@@ -76,7 +76,7 @@ dosave()
 
 /* returns 1 if save successful */
 int
-dosave0()
+dosave0(void)
 {
     const char *fq_save;
     xchar ltmp;
@@ -107,7 +107,7 @@ dosave0()
     fq_save = fqname(g.SAVEF, SAVEPREFIX, 1); /* level files take 0 */
 #ifndef NO_SIGNAL
 #if defined(UNIX) || defined(VMS)
-    sethanguphandler((void FDECL((*), (int) )) SIG_IGN);
+    sethanguphandler((void (*)(int) ) SIG_IGN);
 #endif
     (void) signal(SIGINT, SIG_IGN);
 #endif
@@ -237,8 +237,7 @@ dosave0()
 }
 
 static void
-savegamestate(nhfp)
-NHFILE *nhfp;
+savegamestate(NHFILE* nhfp)
 {
     unsigned long uid;
     struct obj *bc_objs = (struct obj *)0;
@@ -331,9 +330,7 @@ NHFILE *nhfp;
 
 /* potentially called from goto_level(do.c) as well as savestateinlock() */
 boolean
-tricked_fileremoved(nhfp, whynot)
-NHFILE *nhfp;
-char *whynot;
+tricked_fileremoved(NHFILE* nhfp, char* whynot)
 {
     if (!nhfp) {
         pline1(whynot);
@@ -347,7 +344,7 @@ char *whynot;
 
 #ifdef INSURANCE
 void
-savestateinlock()
+savestateinlock(void)
 {
     int hpid = 0;
     char whynot[BUFSZ];
@@ -429,9 +426,7 @@ savestateinlock()
 #endif
 
 void
-savelev(nhfp, lev)
-NHFILE *nhfp;
-xchar lev;
+savelev(NHFILE* nhfp, xchar lev)
 {
 #ifdef TOS
     short tlev;
@@ -546,9 +541,7 @@ xchar lev;
 }
 
 static void
-savelevl(nhfp, rlecomp)
-NHFILE *nhfp;
-boolean rlecomp;
+savelevl(NHFILE* nhfp, boolean rlecomp)
 {
 #ifdef RLECOMP
     struct rm *prm, *rgrm;
@@ -609,9 +602,7 @@ boolean rlecomp;
 
 /* used when saving a level and also when saving dungeon overview data */
 void
-savecemetery(nhfp, cemeteryaddr)
-NHFILE *nhfp;
-struct cemetery **cemeteryaddr;
+savecemetery(NHFILE* nhfp, struct cemetery** cemeteryaddr)
 {
     struct cemetery *thisbones, *nextbones;
     int flag;
@@ -636,8 +627,7 @@ struct cemetery **cemeteryaddr;
 }
 
 static void
-savedamage(nhfp)
-NHFILE *nhfp;
+savedamage(NHFILE* nhfp)
 {
     register struct damage *damageptr, *tmp_dam;
     unsigned int xl = 0;
@@ -664,8 +654,7 @@ NHFILE *nhfp;
 }
 
 static void
-save_stairs(nhfp)
-NHFILE *nhfp;
+save_stairs(NHFILE* nhfp)
 {
     stairway *stway = g.stairs;
     int buflen = (int) sizeof *stway;
@@ -698,9 +687,7 @@ NHFILE *nhfp;
 /* save one object;
    caveat: this is only for perform_bwrite(); caller handles release_data() */
 static void
-saveobj(nhfp, otmp)
-NHFILE *nhfp;
-struct obj *otmp;
+saveobj(NHFILE* nhfp, struct obj* otmp)
 {
     int buflen, zerobuf = 0;
 
@@ -744,9 +731,7 @@ struct obj *otmp;
 /* save an object chain; sets head of list to Null when done;
    handles release_data() for each object in the list */
 static void
-saveobjchn(nhfp, obj_p)
-NHFILE *nhfp;
-struct obj **obj_p;
+saveobjchn(NHFILE* nhfp, struct obj** obj_p)
 {
     register struct obj *otmp = *obj_p;
     struct obj *otmp2;
@@ -804,9 +789,7 @@ struct obj **obj_p;
 }
 
 static void
-savemon(nhfp, mtmp)
-NHFILE *nhfp;
-struct monst *mtmp;
+savemon(NHFILE* nhfp, struct monst* mtmp)
 {
     int buflen;
 
@@ -869,9 +852,7 @@ struct monst *mtmp;
 }
 
 static void
-savemonchn(nhfp, mtmp)
-NHFILE *nhfp;
-register struct monst *mtmp;
+savemonchn(NHFILE* nhfp, register struct monst* mtmp)
 {
     register struct monst *mtmp2;
     int minusone = -1;
@@ -904,9 +885,7 @@ register struct monst *mtmp;
 
 /* save traps; g.ftrap is the only trap chain so the 2nd arg is superfluous */
 static void
-savetrapchn(nhfp, trap)
-NHFILE *nhfp;
-register struct trap *trap;
+savetrapchn(NHFILE* nhfp, register struct trap* trap)
 {
     static struct trap zerotrap;
     register struct trap *trap2;
@@ -933,8 +912,7 @@ register struct trap *trap;
  * level routine marks nonexistent fruits by making the fid negative.
  */
 void
-savefruitchn(nhfp)
-NHFILE *nhfp;
+savefruitchn(NHFILE* nhfp)
 {
     static struct fruit zerofruit;
     register struct fruit *f2, *f1;
@@ -961,8 +939,7 @@ NHFILE *nhfp;
 
 
 static void
-savelevchn(nhfp)
-NHFILE *nhfp;
+savelevchn(NHFILE* nhfp)
 {
     s_level *tmplev, *tmplev2;
     int cnt = 0;
@@ -987,8 +964,7 @@ NHFILE *nhfp;
 }
 
 void
-store_plname_in_file(nhfp)
-NHFILE *nhfp;
+store_plname_in_file(NHFILE* nhfp)
 {
     int plsiztmp = PL_NSIZ;
 
@@ -1003,8 +979,7 @@ NHFILE *nhfp;
 }
 
 static void
-save_msghistory(nhfp)
-NHFILE *nhfp;
+save_msghistory(NHFILE* nhfp)
 {
     char *msg;
     int msgcount = 0, msglen;
@@ -1036,8 +1011,7 @@ NHFILE *nhfp;
 }
 
 void
-store_savefileinfo(nhfp)
-NHFILE *nhfp;
+store_savefileinfo(NHFILE* nhfp)
 {
     /* sfcap (decl.c) describes the savefile feature capabilities
      * that are supported by this port/platform build.
@@ -1062,7 +1036,7 @@ NHFILE *nhfp;
 
 /* also called by prscore(); this probably belongs in dungeon.c... */
 void
-free_dungeons()
+free_dungeons(void)
 {
 #ifdef FREE_ALL_MEMORY
     NHFILE tnhfp;
@@ -1077,7 +1051,7 @@ free_dungeons()
 }
 
 void
-freedynamicdata()
+freedynamicdata(void)
 {
     NHFILE tnhfp;
 

@@ -577,7 +577,7 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
 	QMenu* menu;
 	const char* name;
 	int flags;
-        int NDECL((*funct));
+        int (*funct)(void);
     } item[] = {
         { game,    0, 3},
         { game,    "Version",            3, doversion},
@@ -914,7 +914,7 @@ void NetHackQtMainWindow::CtrlV()
 
 // add a toolbar button to invoke command 'name' via function '(*func)()'
 void NetHackQtMainWindow::AddToolButton(QToolBar *toolbar, QSignalMapper *sm,
-                                        const char *name, int NDECL((*func)),
+                                        const char *name, int (*func)(void),
                                         QPixmap xpm)
 {
     char actchar[2];
@@ -1084,7 +1084,7 @@ void NetHackQtMainWindow::doKeys(const QString& k)
 }
 
 // queue up the command name for a function, as if user had typed it
-void NetHackQtMainWindow::FuncAsCommand(int NDECL((*func)))
+void NetHackQtMainWindow::FuncAsCommand(int (*func)(void))
 {
     char cmdbuf[32];
     Strcpy(cmdbuf, "#");
@@ -1384,7 +1384,7 @@ void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
                               "&Save and exit", "&Quit without saving", 0, 1);
 	switch (act) {
         case 0:
-            // See dosave() function
+            // save portion of save-and-exit
             ok = dosave0();
             break;
         case 1:
@@ -1400,6 +1400,7 @@ void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
         ok = 1;
     }
     /* if !ok, we should try to continue, but we don't... */
+    nhUse(ok);
     u.uhp = -1;
     NetHackQtBind::qt_exit_nhwindows(0);
     nh_terminate(EXIT_SUCCESS);

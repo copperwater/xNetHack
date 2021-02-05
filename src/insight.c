@@ -14,26 +14,25 @@
 
 #include "hack.h"
 
-static void FDECL(enlght_out, (const char *));
-static void FDECL(enlght_line, (const char *, const char *, const char *,
-                                const char *));
-static char *FDECL(enlght_combatinc, (const char *, int, int, char *));
-static void FDECL(enlght_halfdmg, (int, int));
-static boolean NDECL(walking_on_water);
-static boolean FDECL(cause_known, (int));
-static char *FDECL(attrval, (int, int, char *));
-static void FDECL(background_enlightenment, (int, int));
-static void FDECL(basics_enlightenment, (int, int));
-static void FDECL(characteristics_enlightenment, (int, int));
-static void FDECL(one_characteristic, (int, int, int));
-static void FDECL(status_enlightenment, (int, int));
-static void FDECL(weapon_insight, (int));
-static void FDECL(attributes_enlightenment, (int, int));
-static void FDECL(show_achievements, (int));
-static int FDECL(CFDECLSPEC vanqsort_cmp, (const genericptr,
-                                           const genericptr));
-static int NDECL(set_vanq_order);
-static int NDECL(num_extinct);
+static void enlght_out(const char *);
+static void enlght_line(const char *, const char *, const char *,
+                        const char *);
+static char *enlght_combatinc(const char *, int, int, char *);
+static void enlght_halfdmg(int, int);
+static boolean walking_on_water(void);
+static boolean cause_known(int);
+static char *attrval(int, int, char *);
+static void background_enlightenment(int, int);
+static void basics_enlightenment(int, int);
+static void characteristics_enlightenment(int, int);
+static void one_characteristic(int, int, int);
+static void status_enlightenment(int, int);
+static void weapon_insight(int);
+static void attributes_enlightenment(int, int);
+static void show_achievements(int);
+static int QSORTCALLBACK vanqsort_cmp(const genericptr, const genericptr);
+static int set_vanq_order(void);
+static int num_extinct(void);
 
 extern const char *hu_stat[];  /* hunger status from eat.c */
 extern const char *enc_stat[]; /* encumbrance status from botl.c */
@@ -102,9 +101,7 @@ static struct ll_achieve_msg achieve_msg [] = {
     enl_msg(You_, have, (const char *) "", something, "")
 
 static void
-enlght_out_attr(attr, buf)
-const char *buf;
-int attr;
+enlght_out_attr(const char *buf, int attr)
 {
     if (g.en_via_menu) {
         anything any;
@@ -117,15 +114,14 @@ int attr;
 }
 
 static void
-enlght_out(buf)
-const char *buf;
+enlght_out(const char *buf)
 {
     enlght_out_attr(ATR_NONE, buf);
 }
 
 static void
-enlght_line(start, middle, end, ps)
-const char *start, *middle, *end, *ps;
+enlght_line(const char *start, const char *middle, const char *end,
+            const char *ps)
 {
     char buf[BUFSZ];
 
@@ -135,10 +131,7 @@ const char *start, *middle, *end, *ps;
 
 /* format increased chance to hit or damage or defense (Protection) */
 static char *
-enlght_combatinc(inctyp, incamt, final, outbuf)
-const char *inctyp;
-int incamt, final;
-char *outbuf;
+enlght_combatinc(const char *inctyp, int incamt, int final, char *outbuf)
 {
     const char *modif, *bonus;
     boolean invrt;
@@ -175,9 +168,7 @@ char *outbuf;
 
 /* report half physical or half spell damage */
 static void
-enlght_halfdmg(category, final)
-int category;
-int final;
+enlght_halfdmg(int category, int final)
 {
     const char *category_name;
     char buf[BUFSZ];
@@ -200,7 +191,7 @@ int final;
 
 /* is hero actively using water walking capability on water (or lava)? */
 static boolean
-walking_on_water()
+walking_on_water(void)
 {
     if (u.uinwater || Levitation || Flying)
         return FALSE;
@@ -210,10 +201,7 @@ walking_on_water()
 
 /* describe u.utraptype; used by status_enlightenment() and self_lookat() */
 char *
-trap_predicament(outbuf, final, wizxtra)
-char *outbuf;
-int final;
-boolean wizxtra;
+trap_predicament(char *outbuf, int final, boolean wizxtra)
 {
     struct trap *t;
 
@@ -247,8 +235,7 @@ boolean wizxtra;
    confers the target property; item must have been seen and its type
    discovered but it doesn't necessarily have to be fully identified */
 static boolean
-cause_known(propindx)
-int propindx; /* index of a property which can be conveyed by worn item */
+cause_known(int propindx) /* index of a property which can be conveyed by worn item */
 {
     register struct obj *o;
     long mask = W_ARMOR | W_AMUL | W_RING | W_TOOL;
@@ -267,9 +254,8 @@ int propindx; /* index of a property which can be conveyed by worn item */
 
 /* format a characteristic value, accommodating Strength's strangeness */
 static char *
-attrval(attrindx, attrvalue, resultbuf)
-int attrindx, attrvalue;
-char resultbuf[]; /* should be at least [7] to hold "18/100\0" */
+attrval(int attrindx, int attrvalue,
+        char resultbuf[]) /* should be at least [7] to hold "18/100\0" */
 {
     if (attrindx != A_STR || attrvalue <= 18)
         Sprintf(resultbuf, "%d", attrvalue);
@@ -281,9 +267,9 @@ char resultbuf[]; /* should be at least [7] to hold "18/100\0" */
 }
 
 void
-enlightenment(mode, final)
-int mode;  /* BASICENLIGHTENMENT | MAGICENLIGHTENMENT (| both) */
-int final; /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE, ENL_GAMEOVERDEAD */
+enlightenment(int mode,  /* BASICENLIGHTENMENT | MAGICENLIGHTENMENT (| both) */
+              int final) /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE,
+                            ENL_GAMEOVERDEAD */
 {
     char buf[BUFSZ], tmpbuf[BUFSZ];
 
@@ -359,9 +345,7 @@ int final; /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE, ENL_GAMEOVERDEAD */
 /*ARGSUSED*/
 /* display role, race, alignment and such to en_win */
 static void
-background_enlightenment(unused_mode, final)
-int unused_mode UNUSED;
-int final;
+background_enlightenment(int unused_mode UNUSED, int final)
 {
     const char *role_titl, *rank_titl;
     int innategend, difgend, difalgn;
@@ -613,9 +597,7 @@ int final;
    doesn't fit very well in other categories */
 /*ARGSUSED*/
 static void
-basics_enlightenment(mode, final)
-int mode UNUSED;
-int final;
+basics_enlightenment(int mode UNUSED, int final)
 {
     static char Power[] = "energy points (spell power)";
     char buf[BUFSZ];
@@ -698,9 +680,7 @@ int final;
 
 /* characteristics: expanded version of bottom line strength, dexterity, &c */
 static void
-characteristics_enlightenment(mode, final)
-int mode;
-int final;
+characteristics_enlightenment(int mode, int final)
 {
     char buf[BUFSZ];
 
@@ -719,8 +699,7 @@ int final;
 
 /* display one attribute value for characteristics_enlightenment() */
 static void
-one_characteristic(mode, final, attrindx)
-int mode, final, attrindx;
+one_characteristic(int mode, int final, int attrindx)
 {
     extern const char *const attrname[]; /* attrib.c */
     boolean hide_innate_value = FALSE, interesting_alimit;
@@ -814,9 +793,7 @@ int mode, final, attrindx;
 
 /* status: selected obvious capabilities, assorted troubles */
 static void
-status_enlightenment(mode, final)
-int mode;
-int final;
+status_enlightenment(int mode, int final)
 {
     boolean magic = (mode & MAGICENLIGHTENMENT) ? TRUE : FALSE;
     int cap;
@@ -1127,8 +1104,7 @@ int final;
 
 /* extracted from status_enlightenment() to reduce clutter there */
 static void
-weapon_insight(final)
-int final;
+weapon_insight(int final)
 {
     char buf[BUFSZ];
     int wtype;
@@ -1333,9 +1309,7 @@ int final;
 
 /* attributes: intrinsics and the like, other non-obvious capabilities */
 static void
-attributes_enlightenment(unused_mode, final)
-int unused_mode UNUSED;
-int final;
+attributes_enlightenment(int unused_mode UNUSED, int final)
 {
     static NEARDATA const char if_surroundings_permitted[] =
         " if surroundings permitted";
@@ -1796,7 +1770,7 @@ int final;
 
 /* ^X command */
 int
-doattributes(VOID_ARGS)
+doattributes(void)
 {
     int mode = BASICENLIGHTENMENT;
 
@@ -1809,9 +1783,8 @@ doattributes(VOID_ARGS)
 }
 
 void
-youhiding(via_enlghtmt, msgflag)
-boolean via_enlghtmt; /* englightment line vs topl message */
-int msgflag;          /* for variant message phrasing */
+youhiding(boolean via_enlghtmt, /* englightment line vs topl message */
+          int msgflag)          /* for variant message phrasing */
 {
     char *bp, buf[BUFSZ];
 
@@ -1869,7 +1842,7 @@ int msgflag;          /* for variant message phrasing */
 
 /* #conduct command [KMH]; shares enlightenment's tense handling */
 int
-doconduct(VOID_ARGS)
+doconduct(void)
 {
     show_conduct(0);
     return 0;
@@ -1877,8 +1850,7 @@ doconduct(VOID_ARGS)
 
 /* display conducts; for doconduct(), also disclose() and dump_everything() */
 void
-show_conduct(final)
-int final;
+show_conduct(int final)
 {
     char buf[BUFSZ];
     int ngenocided;
@@ -2026,8 +1998,7 @@ int final;
  */
 
 static void
-show_achievements(final)
-int final; /* used "behind the curtain" by enl_foo() macros */
+show_achievements(int final) /* used "behind the curtain" by enl_foo() macros */
 {
     int i, achidx, absidx, acnt;
     char title[QBUFSZ], buf[QBUFSZ];
@@ -2186,8 +2157,7 @@ int final; /* used "behind the curtain" by enl_foo() macros */
 
 /* record an achievement (add at end of list unless already present) */
 void
-record_achievement(achidx)
-schar achidx;
+record_achievement(schar achidx)
 {
     int i, absidx;
 
@@ -2223,8 +2193,7 @@ schar achidx;
 
 /* discard a recorded achievement; return True if removed, False otherwise */
 boolean
-remove_achievement(achidx)
-schar achidx;
+remove_achievement(schar achidx)
 {
     int i;
 
@@ -2242,7 +2211,7 @@ schar achidx;
 
 /* used to decide whether there are any achievements to display */
 int
-count_achievements()
+count_achievements(void)
 {
     int i, acnt = 0;
 
@@ -2254,8 +2223,7 @@ count_achievements()
 /* convert a rank index to an achievement number; encode it when female
    in order to subsequently report gender-specific ranks accurately */
 schar
-achieve_rank(rank)
-int rank; /* 1..8 */
+achieve_rank(int rank) /* 1..8 */
 {
     schar achidx = (schar) ((rank - 1) + ACH_RNK1);
 
@@ -2266,7 +2234,7 @@ int rank; /* 1..8 */
 
 /* return True if sokoban branch has been entered, False otherwise */
 boolean
-sokoban_in_play()
+sokoban_in_play(void)
 {
     int achidx;
 
@@ -2294,10 +2262,8 @@ static const char *vanqorders[NUM_VANQ_ORDER_MODES] = {
     "by count, low to high, by internal index within tied count",
 };
 
-static int CFDECLSPEC
-vanqsort_cmp(vptr1, vptr2)
-const genericptr vptr1;
-const genericptr vptr2;
+static int QSORTCALLBACK
+vanqsort_cmp(const genericptr vptr1, const genericptr vptr2)
 {
     int indx1 = *(short *) vptr1, indx2 = *(short *) vptr2,
         mlev1, mlev2, mstr1, mstr2, uniq1, uniq2, died1, died2, res;
@@ -2377,7 +2343,7 @@ const genericptr vptr2;
 
 /* returns -1 if cancelled via ESC */
 static int
-set_vanq_order()
+set_vanq_order(void)
 {
     winid tmpwin;
     menu_item *selected;
@@ -2413,15 +2379,17 @@ set_vanq_order()
 
 /* #vanquished command */
 int
-dovanquished()
+dovanquished(void)
 {
     list_vanquished('a', FALSE);
     return 0;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 /* #wizborn extended command */
 int
-doborn()
+doborn(void)
 {
     static const char fmt[] = "%4i %4i %c %-30s";
     int i;
@@ -2452,6 +2420,8 @@ doborn()
     return 0;
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /* high priests aren't unique but are flagged as such to simplify something */
 #define UniqCritterIndx(mndx) ((mons[mndx].geno & G_UNIQ) \
                                && mndx != PM_HIGH_CLERIC)
@@ -2459,9 +2429,7 @@ doborn()
 #define done_stopprint g.program_state.stopprint
 
 void
-list_vanquished(defquery, ask)
-char defquery;
-boolean ask;
+list_vanquished(char defquery, boolean ask)
 {
     register int i;
     int pfx, nkilled;
@@ -2591,7 +2559,7 @@ boolean ask;
 
 /* number of monster species which have been genocided */
 int
-num_genocides()
+num_genocides(void)
 {
     int i, n = 0;
 
@@ -2607,7 +2575,7 @@ num_genocides()
 }
 
 static int
-num_extinct()
+num_extinct(void)
 {
     int i, n = 0;
 
@@ -2621,9 +2589,7 @@ num_extinct()
 }
 
 void
-list_genocided(defquery, ask)
-char defquery;
-boolean ask;
+list_genocided(char defquery, boolean ask)
 {
     register int i;
     int ngenocided, nextinct;
@@ -2703,8 +2669,7 @@ boolean ask;
  */
 
 const char *
-align_str(alignment)
-aligntyp alignment;
+align_str(aligntyp alignment)
 {
     switch ((int) alignment) {
     case A_CHAOTIC:
@@ -2721,9 +2686,7 @@ aligntyp alignment;
 
 /* used for self-probing */
 char *
-piousness(showneg, suffix)
-boolean showneg;
-const char *suffix;
+piousness(boolean showneg, const char *suffix)
 {
     static char buf[32]; /* bigger than "insufficiently neutral" */
     const char *pio;
@@ -2763,8 +2726,7 @@ const char *suffix;
 
 /* stethoscope or probing applied to monster -- one-line feedback */
 void
-mstatusline(mtmp)
-struct monst *mtmp;
+mstatusline(struct monst *mtmp)
 {
     aligntyp alignment = mon_aligntyp(mtmp);
     char info[BUFSZ], monnambuf[BUFSZ];
@@ -2861,7 +2823,7 @@ struct monst *mtmp;
 
 /* stethoscope or probing applied to hero -- one-line feedback */
 void
-ustatusline()
+ustatusline(void)
 {
     char info[BUFSZ];
 

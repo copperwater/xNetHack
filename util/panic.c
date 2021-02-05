@@ -15,12 +15,14 @@
 #define abort() exit()
 #endif
 #ifdef VMS
-extern void NDECL(vms_abort);
+extern void vms_abort(void);
 #endif
 
 /*VARARGS1*/
 boolean panicking;
-void VDECL(panic, (const char *, ...));
+void panic(const char *, ...);
+
+DISABLE_WARNING_FORMAT_NONLITERAL
 
 void panic
 VA_DECL(const char *, str)
@@ -46,6 +48,8 @@ VA_DECL(const char *, str)
     exit(EXIT_FAILURE); /* redundant */
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 #ifdef ALLOCA_HACK
 /*
  * In case bison-generated foo_yacc.c tries to use alloca(); if we don't
@@ -53,8 +57,7 @@ VA_DECL(const char *, str)
  * systems, but they should either use yacc or get a real alloca routine.
  */
 long *
-alloca(cnt)
-unsigned cnt;
+alloca(unsigned int cnt)
 {
     return cnt ? alloc(cnt) : (long *) 0;
 }

@@ -11,28 +11,26 @@
 #include "hack.h"
 #include "artifact.h"
 
-static boolean NDECL(unconstrain_map);
-static void NDECL(reconstrain_map);
-static void NDECL(map_redisplay);
-static void FDECL(browse_map, (int, const char *));
-static void FDECL(map_monst, (struct monst *, BOOLEAN_P));
-static void FDECL(do_dknown_of, (struct obj *));
-static boolean FDECL(check_map_spot, (int, int, CHAR_P, unsigned));
-static boolean FDECL(clear_stale_map, (CHAR_P, unsigned));
-static void FDECL(sense_trap, (struct trap *, XCHAR_P, XCHAR_P, int));
-static int FDECL(detect_obj_traps, (struct obj *, BOOLEAN_P, int));
-static int NDECL(furniture_detect);
-static void FDECL(show_map_spot, (int, int));
-static void FDECL(findone, (int, int, genericptr_t));
-static void FDECL(openone, (int, int, genericptr_t));
-static int FDECL(mfind0, (struct monst *, BOOLEAN_P));
-static int FDECL(reveal_terrain_getglyph, (int, int, int,
-                                               unsigned, int, int));
+static boolean unconstrain_map(void);
+static void reconstrain_map(void);
+static void map_redisplay(void);
+static void browse_map(int, const char *);
+static void map_monst(struct monst *, boolean);
+static void do_dknown_of(struct obj *);
+static boolean check_map_spot(int, int, char, unsigned);
+static boolean clear_stale_map(char, unsigned);
+static void sense_trap(struct trap *, xchar, xchar, int);
+static int detect_obj_traps(struct obj *, boolean, int);
+static int furniture_detect(void);
+static void show_map_spot(int, int);
+static void findone(int, int, genericptr_t);
+static void openone(int, int, genericptr_t);
+static int mfind0(struct monst *, boolean);
+static int reveal_terrain_getglyph(int, int, int, unsigned, int, int);
 
 #ifdef DUMPHTML
-extern void FDECL(html_print_glyph,
-                      (winid, xchar, xchar, const glyph_info *,
-                           const glyph_info *));
+extern void html_print_glyph(winid, xchar, xchar, const glyph_info *,
+                             const glyph_info *);
 #endif
 
 /* wildcard class for clear_stale_map - this used to be used as a getobj() input
@@ -42,7 +40,7 @@ extern void FDECL(html_print_glyph,
 /* bring hero out from underwater or underground or being engulfed;
    return True iff any change occurred */
 static boolean
-unconstrain_map()
+unconstrain_map(void)
 {
     boolean res = u.uinwater || u.uburied || u.uswallow;
 
@@ -56,7 +54,7 @@ unconstrain_map()
 
 /* put hero back underwater or underground or engulfed */
 static void
-reconstrain_map()
+reconstrain_map(void)
 {
     u.uinwater = iflags.save_uinwater, iflags.save_uinwater = 0; /* set_uinwater() */
     u.uburied  = iflags.save_uburied,  iflags.save_uburied  = 0;
@@ -64,7 +62,7 @@ reconstrain_map()
 }
 
 static void
-map_redisplay()
+map_redisplay(void)
 {
     reconstrain_map();
     docrt(); /* redraw the screen to remove unseen traps from the map */
@@ -76,9 +74,7 @@ map_redisplay()
 
 /* use getpos()'s 'autodescribe' to view whatever is currently shown on map */
 static void
-browse_map(ter_typ, ter_explain)
-int ter_typ;
-const char *ter_explain;
+browse_map(int ter_typ, const char *ter_explain)
 {
     coord dummy_pos; /* don't care whether player actually picks a spot */
     boolean save_autodescribe;
@@ -94,9 +90,7 @@ const char *ter_explain;
 
 /* extracted from monster_detection() so can be shared by do_vicinity_map() */
 static void
-map_monst(mtmp, showtail)
-struct monst *mtmp;
-boolean showtail;
+map_monst(struct monst *mtmp, boolean showtail)
 {
     if (def_monsyms[(int) mtmp->data->mlet].sym == ' ')
         show_glyph(mtmp->mx, mtmp->my,
@@ -113,9 +107,7 @@ boolean showtail;
 /* this is checking whether a trap symbol represents a trapped chest,
    not whether a trapped chest is actually present */
 boolean
-trapped_chest_at(ttyp, x, y)
-int ttyp;
-int x, y;
+trapped_chest_at(int ttyp, int x, int y)
 {
     struct monst *mtmp;
     struct obj *otmp;
@@ -158,9 +150,7 @@ int x, y;
 /* this is checking whether a trap symbol represents a trapped door,
    not whether the door here is actually trapped */
 boolean
-trapped_door_at(ttyp, x, y)
-int ttyp;
-int x, y;
+trapped_door_at(int ttyp, int x, int y)
 {
     struct rm *lev;
 
@@ -179,9 +169,7 @@ int x, y;
 
 /* recursively search obj for an object in class oclass, return 1st found */
 struct obj *
-o_in(obj, oclass)
-struct obj *obj;
-char oclass;
+o_in(struct obj *obj, char oclass)
 {
     register struct obj *otmp;
     struct obj *temp;
@@ -209,9 +197,7 @@ char oclass;
  * Return first found.
  */
 struct obj *
-o_material(obj, material)
-struct obj *obj;
-unsigned material;
+o_material(struct obj *obj, unsigned material)
 {
     register struct obj *otmp;
     struct obj *temp;
@@ -231,8 +217,7 @@ unsigned material;
 }
 
 static void
-do_dknown_of(obj)
-struct obj *obj;
+do_dknown_of(struct obj *obj)
 {
     struct obj *otmp;
 
@@ -245,10 +230,7 @@ struct obj *obj;
 
 /* Check whether the location has an outdated object displayed on it. */
 static boolean
-check_map_spot(x, y, oclass, material)
-int x, y;
-char oclass;
-unsigned material;
+check_map_spot(int x, int y, char oclass, unsigned material)
 {
     int glyph;
     register struct obj *otmp;
@@ -302,9 +284,7 @@ unsigned material;
  * change occurs.
  */
 static boolean
-clear_stale_map(oclass, material)
-char oclass;
-unsigned material;
+clear_stale_map(char oclass, unsigned material)
 {
     register int zx, zy;
     boolean change_made = FALSE;
@@ -321,8 +301,7 @@ unsigned material;
 
 /* look for gold, on the floor or in monsters' possession */
 int
-gold_detect(sobj)
-register struct obj *sobj;
+gold_detect(struct obj *sobj)
 {
     register struct obj *obj;
     register struct monst *mtmp;
@@ -468,8 +447,7 @@ register struct obj *sobj;
 
 /* returns 1 if nothing was detected, 0 if something was detected */
 int
-food_detect(sobj)
-register struct obj *sobj;
+food_detect(struct obj *sobj)
 {
     register struct obj *obj;
     register struct monst *mtmp;
@@ -593,9 +571,8 @@ register struct obj *sobj;
  *      0 - something was detected
  */
 int
-object_detect(detector, class)
-struct obj *detector; /* object doing the detecting */
-int class;            /* an object class, 0 for all */
+object_detect(struct obj *detector, /* object doing the detecting */
+              int class)            /* an object class, 0 for all */
 {
     register int x, y;
     char stuff[BUFSZ];
@@ -788,9 +765,8 @@ int class;            /* an object class, 0 for all */
  * Returns 0 if something was detected.
  */
 int
-monster_detect(otmp, mclass)
-register struct obj *otmp; /* detecting object (if any) */
-int mclass;                /* monster class, 0 for all */
+monster_detect(struct obj *otmp, /* detecting object (if any) */
+               int mclass)       /* monster class, 0 for all */
 {
     register struct monst *mtmp;
     int mcnt = 0;
@@ -857,10 +833,7 @@ int mclass;                /* monster class, 0 for all */
 }
 
 static void
-sense_trap(trap, x, y, src_cursed)
-struct trap *trap;
-xchar x, y;
-int src_cursed;
+sense_trap(struct trap *trap, xchar x, xchar y, int src_cursed)
 {
     if (Hallucination || src_cursed) {
         struct obj obj; /* fake object */
@@ -900,10 +873,8 @@ int src_cursed;
    2 if found at some other spot, 3 if both, 0 otherwise; optionally
    update the map to show where such traps were found */
 static int
-detect_obj_traps(objlist, show_them, how)
-struct obj *objlist;
-boolean show_them;
-int how; /* 1 for misleading map feedback */
+detect_obj_traps(struct obj *objlist, boolean show_them,
+                 int how) /* 1 for misleading map feedback */
 {
     struct obj *otmp;
     xchar x, y;
@@ -933,8 +904,8 @@ int how; /* 1 for misleading map feedback */
  * returns 0 if something was detected
  */
 int
-trap_detect(sobj)
-struct obj *sobj; /* null if crystal ball, *scroll if gold detection scroll */
+trap_detect(struct obj *sobj) /* null if crystal ball,
+                                 *scroll if gold detection scroll */
 {
     register struct trap *ttmp;
     struct monst *mon;
@@ -1039,7 +1010,7 @@ struct obj *sobj; /* null if crystal ball, *scroll if gold detection scroll */
 }
 
 static int
-furniture_detect()
+furniture_detect(void)
 {
     struct monst *mon;
     int x, y, glyph, sym, found = 0, revealed = 0;
@@ -1084,8 +1055,7 @@ furniture_detect()
 }
 
 const char *
-level_distance(where)
-d_level *where;
+level_distance(d_level *where)
 {
     register schar ll = depth(&u.uz) - depth(where);
     register boolean indun = (u.uz.dnum == where->dnum);
@@ -1145,8 +1115,7 @@ static const struct crystalballlevels {
 };
 
 void
-use_crystal_ball(optr)
-struct obj **optr;
+use_crystal_ball(struct obj **optr)
 {
     char ch;
     int oops;
@@ -1311,8 +1280,7 @@ struct obj **optr;
 }
 
 static void
-show_map_spot(x, y)
-register int x, y;
+show_map_spot(int x, int y)
 {
     struct rm *lev;
     struct trap *t;
@@ -1356,7 +1324,7 @@ register int x, y;
 }
 
 void
-do_mapping()
+do_mapping(void)
 {
     register int zx, zy;
     boolean unconstrained;
@@ -1379,8 +1347,7 @@ do_mapping()
 
 /* clairvoyance */
 void
-do_vicinity_map(sobj)
-struct obj *sobj; /* scroll--actually fake spellbook--object */
+do_vicinity_map(struct obj *sobj) /* scroll--actually fake spellbook--object */
 {
     register int zx, zy;
     struct monst *mtmp;
@@ -1520,8 +1487,7 @@ struct obj *sobj; /* scroll--actually fake spellbook--object */
 
 /* convert a secret door into a normal door */
 void
-cvt_sdoor_to_door(lev)
-struct rm *lev;
+cvt_sdoor_to_door(struct rm *lev)
 {
     int newmask = lev->doormask & ~WM_MASK;
 
@@ -1540,9 +1506,7 @@ struct rm *lev;
 /* find something at one location; it should find all somethings there
    since it is used for magical detection rather than physical searching */
 static void
-findone(zx, zy, num)
-int zx, zy;
-genericptr_t num;
+findone(int zx, int zy, genericptr_t num)
 {
     register struct trap *ttmp;
     register struct monst *mtmp;
@@ -1596,9 +1560,7 @@ genericptr_t num;
 }
 
 static void
-openone(zx, zy, num)
-int zx, zy;
-genericptr_t num;
+openone(int zx, int zy, genericptr_t num)
 {
     register struct trap *ttmp;
     register struct obj *otmp;
@@ -1659,7 +1621,7 @@ genericptr_t num;
 
 /* returns number of things found */
 int
-findit()
+findit(void)
 {
     int num = 0;
 
@@ -1671,7 +1633,7 @@ findit()
 
 /* returns number of things found and opened */
 int
-openit()
+openit(void)
 {
     int num = 0;
 
@@ -1692,15 +1654,13 @@ openit()
 
 /* callback hack for overriding vision in do_clear_area() */
 boolean
-detecting(func)
-void FDECL((*func), (int, int, genericptr_t));
+detecting(void (*func)(int, int, genericptr_t))
 {
     return (func == findone || func == openone);
 }
 
 void
-find_trap(trap)
-struct trap *trap;
+find_trap(struct trap *trap)
 {
     boolean cleared = FALSE;
 
@@ -1729,9 +1689,7 @@ struct trap *trap;
 }
 
 static int
-mfind0(mtmp, via_warning)
-struct monst *mtmp;
-boolean via_warning;
+mfind0(struct monst *mtmp, boolean via_warning)
 {
     int x = mtmp->mx, y = mtmp->my;
     boolean found_something = FALSE;
@@ -1779,8 +1737,7 @@ boolean via_warning;
 }
 
 int
-dosearch0(aflag)
-register int aflag; /* intrinsic autosearch vs explicit searching */
+dosearch0(int aflag) /* intrinsic autosearch vs explicit searching */
 {
     xchar x, y;
     register struct trap *trap;
@@ -1858,7 +1815,7 @@ register int aflag; /* intrinsic autosearch vs explicit searching */
 
 /* the 's' command -- explicit searching */
 int
-dosearch()
+dosearch(void)
 {
     if (cmd_safety_prevention("another search",
                           "You already found a monster.",
@@ -1868,7 +1825,7 @@ dosearch()
 }
 
 void
-warnreveal()
+warnreveal(void)
 {
     int x, y;
     struct monst *mtmp;
@@ -1885,7 +1842,7 @@ warnreveal()
 
 /* Pre-map the sokoban levels */
 void
-sokoban_detect()
+sokoban_detect(void)
 {
     register int x, y;
     register struct trap *ttmp;
@@ -1912,10 +1869,8 @@ sokoban_detect()
 }
 
 static int
-reveal_terrain_getglyph(x, y, full, swallowed, default_glyph, which_subset)
-int x, y, full;
-unsigned swallowed;
-int default_glyph, which_subset;
+reveal_terrain_getglyph(int x, int y, int full, unsigned swallowed,
+                        int default_glyph, int which_subset)
 {
     int glyph, levl_glyph;
     uchar seenv;
@@ -1993,7 +1948,7 @@ int default_glyph, which_subset;
 
 #if defined(DUMPLOG) || defined(DUMPHTML)
 void
-dump_map()
+dump_map(void)
 {
     int x, y, glyph, skippedrows, lastnonblank;
     int subset = TER_MAP | TER_TRP | TER_OBJ | TER_MON;
@@ -2054,9 +2009,10 @@ dump_map()
 /* idea from crawl; show known portion of map without any monsters,
    objects, or traps occluding the view of the underlying terrain */
 void
-reveal_terrain(full, which_subset)
-int full; /* wizard|explore modes allow player to request full map */
-int which_subset; /* when not full, whether to suppress objs and/or traps */
+reveal_terrain(int full,          /* wizard|explore modes allow player
+                                     to request full map */
+               int which_subset)  /* when not full, whether to suppress
+                                     objs and/or traps */
 {
     if ((Hallucination || Stunned || Confusion) && !full) {
         You("are too disoriented for this.");
@@ -2111,7 +2067,7 @@ int which_subset; /* when not full, whether to suppress objs and/or traps */
 }
 
 int
-wiz_mgender(VOID_ARGS)
+wiz_mgender(void)
 {
     iflags.wizmgender = !iflags.wizmgender;
     pline("wizmgender toggled %s", iflags.wizmgender ? "on" : "off");

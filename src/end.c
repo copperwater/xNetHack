@@ -1,4 +1,4 @@
-/* NetHack 3.7	end.c	$NHDT-Date: 1608749031 2020/12/23 18:43:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.216 $ */
+/* NetHack 3.7	end.c	$NHDT-Date: 1612316744 2021/02/03 01:45:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.220 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -20,28 +20,28 @@
 #define nowrap_add(a, b) (a = ((a + b) < 0 ? LONG_MAX : (a + b)))
 
 #ifndef NO_SIGNAL
-static void FDECL(done_intr, (int));
+static void done_intr(int);
 #if defined(UNIX) || defined(VMS) || defined(__EMX__)
-static void FDECL(done_hangup, (int));
+static void done_hangup(int);
 #endif
 #endif
-static void FDECL(disclose, (int, BOOLEAN_P));
-static void FDECL(get_valuables, (struct obj *));
-static void FDECL(sort_valuables, (struct valuable_data *, int));
-static void NDECL(done_object_cleanup);
-static void FDECL(artifact_score, (struct obj *, BOOLEAN_P, winid));
-static void FDECL(really_done, (int)) NORETURN;
-static void FDECL(savelife, (int));
-static boolean FDECL(should_query_disclose_option, (int, char *));
+static void disclose(int, boolean);
+static void get_valuables(struct obj *);
+static void sort_valuables(struct valuable_data *, int);
+static void done_object_cleanup(void);
+static void artifact_score(struct obj *, boolean, winid);
+static void really_done(int) NORETURN;
+static void savelife(int);
+static boolean should_query_disclose_option(int, char *);
 #if defined(DUMPLOG) || defined(DUMPHTML)
-static void NDECL(dump_plines);
-extern void NDECL(dump_start_screendump); /* defined in windows.c */
-extern void NDECL(dump_end_screendump);
+static void dump_plines(void);
+extern void dump_start_screendump(void); /* defined in windows.c */
+extern void dump_end_screendump(void);
 #endif
-static void FDECL(dump_everything, (int, time_t));
+static void dump_everything(int, time_t);
 
 #if defined(__BEOS__) || defined(MICRO) || defined(OS2) || defined(WIN32)
-extern void FDECL(nethack_exit, (int)) NORETURN;
+extern void nethack_exit(int) NORETURN;
 #else
 #define nethack_exit exit
 #endif
@@ -96,19 +96,18 @@ extern void FDECL(nethack_exit, (int)) NORETURN;
 #endif
 #endif
 
-static void NDECL(NH_abort);
+static void NH_abort(void);
 #ifndef NO_SIGNAL
-static void FDECL(panictrace_handler, (int));
+static void panictrace_handler(int);
 #endif
-static boolean NDECL(NH_panictrace_libc);
-static boolean NDECL(NH_panictrace_gdb);
+static boolean NH_panictrace_libc(void);
+static boolean NH_panictrace_gdb(void);
 
 #ifndef NO_SIGNAL
 /* called as signal() handler, so sent at least one arg */
 /*ARGUSED*/
 void
-panictrace_handler(sig_unused)
-int sig_unused UNUSED;
+panictrace_handler(int sig_unused UNUSED)
 {
 #define SIG_MSG "\nSignal received.\n"
     int f2;
@@ -119,8 +118,7 @@ int sig_unused UNUSED;
 }
 
 void
-panictrace_setsignals(set)
-boolean set;
+panictrace_setsignals(boolean set)
 {
 #define SETSIGNAL(sig) \
     (void) signal(sig, set ? (SIG_RET_TYPE) panictrace_handler : SIG_DFL);
@@ -156,7 +154,7 @@ boolean set;
 #endif /* NO_SIGNAL */
 
 static void
-NH_abort()
+NH_abort(void)
 {
     int gdb_prio = SYSOPT_PANICTRACE_GDB;
     int libc_prio = SYSOPT_PANICTRACE_LIBC;
@@ -192,14 +190,14 @@ NH_abort()
 }
 
 static boolean
-NH_panictrace_libc()
+NH_panictrace_libc(void)
 {
 #ifdef PANICTRACE_LIBC
     void *bt[20];
     size_t count, x;
     char **info, buf[BUFSZ];
 
-    raw_print("Generating more information you may report:\n");
+    raw_print("  Generating more information you may report:\n");
     count = backtrace(bt, SIZE(bt));
     info = backtrace_symbols(bt, count);
     for (x = 0; x < count; x++) {
@@ -231,7 +229,7 @@ NH_panictrace_libc()
 #endif /* PANICTRACE_GDB */
 
 static boolean
-NH_panictrace_gdb()
+NH_panictrace_gdb(void)
 {
 #ifdef PANICTRACE_GDB
     /* A (more) generic method to get a stack trace - invoke
@@ -250,7 +248,7 @@ NH_panictrace_gdb()
             gdbpath, ARGV0, getpid(), greppath);
     gdb = popen(buf, "w");
     if (gdb) {
-        raw_print("Generating more information you may report:\n");
+        raw_print("  Generating more information you may report:\n");
         fprintf(gdb, "bt\nquit\ny");
         fflush(gdb);
         sleep(4); /* ugly */
@@ -289,10 +287,10 @@ static NEARDATA const char *ends[] = {
 
 static boolean Schroedingers_cat = FALSE;
 
+/* called as signal() handler, so sent at least one arg */
 /*ARGSUSED*/
 void
-done1(sig_unused) /* called as signal() handler, so sent at least one arg */
-int sig_unused UNUSED;
+done1(int sig_unused UNUSED)
 {
 #ifndef NO_SIGNAL
     (void) signal(SIGINT, SIG_IGN);
@@ -313,7 +311,7 @@ int sig_unused UNUSED;
 
 /* "#quit" command or keyboard interrupt */
 int
-done2()
+done2(void)
 {
     if (iflags.debug_fuzzer)
         return 0;
@@ -363,10 +361,10 @@ done2()
 }
 
 #ifndef NO_SIGNAL
+/* called as signal() handler, so sent at least 1 arg */
 /*ARGSUSED*/
 static void
-done_intr(sig_unused) /* called as signal() handler, so sent at least 1 arg */
-int sig_unused UNUSED;
+done_intr(int sig_unused UNUSED)
 {
     done_stopprint++;
     (void) signal(SIGINT, SIG_IGN);
@@ -379,21 +377,21 @@ int sig_unused UNUSED;
 #if defined(UNIX) || defined(VMS) || defined(__EMX__)
 /* signal() handler */
 static void
-done_hangup(sig)
-int sig;
+done_hangup(int sig)
 {
     g.program_state.done_hup++;
-    sethanguphandler((void FDECL((*), (int) )) SIG_IGN);
+    sethanguphandler((void (*)(int)) SIG_IGN);
     done_intr(sig);
     return;
 }
 #endif
 #endif /* NO_SIGNAL */
 
+DISABLE_WARNING_FORMAT_NONLITERAL /* one compiler warns if the format
+                                     string is the result of a ? x : y */
+
 void
-done_in_by(mtmp, how)
-struct monst *mtmp;
-int how;
+done_in_by(struct monst *mtmp, int how)
 {
     char buf[BUFSZ];
     struct permonst *mptr = mtmp->data,
@@ -511,6 +509,8 @@ int how;
     return;
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /* some special cases for overriding while-helpless reason */
 static const struct {
     int why, unmulti;
@@ -529,8 +529,7 @@ static const struct {
 /* clear away while-helpless when the cause of death caused that
    helplessness (ie, "petrified by <foo> while getting stoned") */
 static void
-fixup_death(how)
-int how;
+fixup_death(int how)
 {
     int i;
 
@@ -552,6 +551,8 @@ int how;
 #if defined(WIN32) && !defined(SYSCF)
 #define NOTIFY_NETHACK_BUGS
 #endif
+
+DISABLE_WARNING_FORMAT_NONLITERAL
 
 /*VARARGS1*/
 void panic
@@ -633,10 +634,10 @@ VA_DECL(const char *, str)
     really_done(PANICKED);
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 static boolean
-should_query_disclose_option(category, defquery)
-int category;
-char *defquery;
+should_query_disclose_option(int category, char *defquery)
 {
     int idx;
     char disclose, *dop;
@@ -678,7 +679,7 @@ char *defquery;
 
 #if defined(DUMPLOG) || defined(DUMPHTML)
 static void
-dump_plines()
+dump_plines(void)
 {
     int i, j;
     char buf[BUFSZ], **strp;
@@ -701,9 +702,8 @@ dump_plines()
 
 /*ARGSUSED*/
 static void
-dump_everything(how, when)
-int how;
-time_t when; /* date+time at end of game */
+dump_everything(int how,
+                time_t when) /* date+time at end of game */
 {
 #if defined(DUMPLOG) || defined(DUMPHTML)
     char pbuf[BUFSZ], datetimebuf[24]; /* [24]: room for 64-bit bogus value */
@@ -778,9 +778,7 @@ time_t when; /* date+time at end of game */
 }
 
 static void
-disclose(how, taken)
-int how;
-boolean taken;
+disclose(int how, boolean taken)
 {
     char c = '\0', defquery;
     char qbuf[QBUFSZ];
@@ -863,8 +861,7 @@ boolean taken;
 
 /* try to get the player back in a viable state after being killed */
 static void
-savelife(how)
-int how;
+savelife(int how)
 {
     int uhpmin = max(2 * u.ulevel, 10);
 
@@ -911,8 +908,7 @@ int how;
  * intact.
  */
 static void
-get_valuables(list)
-struct obj *list; /* inventory or container contents */
+get_valuables(struct obj *list) /* inventory or container contents */
 {
     register struct obj *obj;
     register int i;
@@ -946,9 +942,8 @@ struct obj *list; /* inventory or container contents */
  *  as easily use qsort, but we don't care about efficiency here.
  */
 static void
-sort_valuables(list, size)
-struct valuable_data list[];
-int size; /* max value is less than 20 */
+sort_valuables(struct valuable_data list[],
+               int size) /* max value is less than 20 */
 {
     register int i, j;
     struct valuable_data ltmp;
@@ -974,14 +969,12 @@ int size; /* max value is less than 20 */
  * odds_and_ends() was used for 3.6.0 and 3.6.1.
  * Schroedinger's Cat is handled differently as of 3.6.2.
  */
-static boolean FDECL(odds_and_ends, (struct obj *, int));
+static boolean odds_and_ends(struct obj *, int);
 
 #define CAT_CHECK 2
 
 static boolean
-odds_and_ends(list, what)
-struct obj *list;
-int what;
+odds_and_ends(struct obj *list, int what)
 {
     struct obj *otmp;
 
@@ -1002,7 +995,7 @@ int what;
 
 /* deal with some objects which may be in an abnormal state at end of game */
 static void
-done_object_cleanup()
+done_object_cleanup(void)
 {
     int ox, oy;
 
@@ -1058,10 +1051,10 @@ done_object_cleanup()
 
 /* called twice; first to calculate total, then to list relevant items */
 static void
-artifact_score(list, counting, endwin)
-struct obj *list;
-boolean counting; /* true => add up points; false => display them */
-winid endwin;
+artifact_score(struct obj *list,
+               boolean counting, /* true => add up points;
+                                    false => display them */
+               winid endwin)
 {
     char pbuf[BUFSZ];
     struct obj *otmp;
@@ -1095,8 +1088,7 @@ winid endwin;
 
 /* Be careful not to call panic from here! */
 void
-done(how)
-int how;
+done(int how)
 {
     boolean survive = FALSE;
 
@@ -1207,8 +1199,7 @@ int how;
 
 /* separated from done() in order to specify the __noreturn__ attribute */
 static void
-really_done(how)
-int how;
+really_done(int how)
 {
     boolean taken;
     char pbuf[BUFSZ];
@@ -1652,9 +1643,8 @@ int how;
 }
 
 void
-container_contents(list, identified, all_containers, reportempty)
-struct obj *list;
-boolean identified, all_containers, reportempty;
+container_contents(struct obj *list, boolean identified,
+                   boolean all_containers, boolean reportempty)
 {
     register struct obj *box, *obj;
     char buf[BUFSZ];
@@ -1694,7 +1684,7 @@ boolean identified, all_containers, reportempty;
                                      ? SORTLOOT_LOOT : 0)
                                  | (flags.sortpack ? SORTLOOT_PACK : 0));
                     sortedcobj = sortloot(&box->cobj, sortflags, FALSE,
-                                          (boolean FDECL((*), (OBJ_P))) 0);
+                                          (boolean (*)(OBJ_P)) 0);
                     for (srtc = sortedcobj; ((obj = srtc->obj) != 0); ++srtc) {
                         if (identified) {
                             discover_object(obj->otyp, TRUE, FALSE);
@@ -1730,8 +1720,7 @@ boolean identified, all_containers, reportempty;
 
 /* should be called with either EXIT_SUCCESS or EXIT_FAILURE */
 void
-nh_terminate(status)
-int status;
+nh_terminate(int status)
 {
     g.program_state.in_moveloop = 0; /* won't be returning to normal play */
 #ifdef MAC
@@ -1761,10 +1750,7 @@ int status;
 
 /* set a delayed killer, ensure non-delayed killer is cleared out */
 void
-delayed_killer(id, format, killername)
-int id;
-int format;
-const char *killername;
+delayed_killer(int id, int format, const char *killername)
 {
     struct kinfo *k = find_delayed_killer(id);
 
@@ -1783,8 +1769,7 @@ const char *killername;
 }
 
 struct kinfo *
-find_delayed_killer(id)
-int id;
+find_delayed_killer(int id)
 {
     struct kinfo *k;
 
@@ -1796,8 +1781,7 @@ int id;
 }
 
 void
-dealloc_killer(kptr)
-struct kinfo *kptr;
+dealloc_killer(struct kinfo *kptr)
 {
     struct kinfo *prev = &g.killer, *k;
 
@@ -1819,8 +1803,7 @@ struct kinfo *kptr;
 }
 
 void
-save_killers(nhfp)
-NHFILE *nhfp;
+save_killers(NHFILE *nhfp)
 {
     struct kinfo *kptr;
 
@@ -1840,8 +1823,7 @@ NHFILE *nhfp;
 }
 
 void
-restore_killers(nhfp)
-NHFILE *nhfp;
+restore_killers(NHFILE *nhfp)
 {
     struct kinfo *kptr;
 
@@ -1855,8 +1837,7 @@ NHFILE *nhfp;
 }
 
 static int
-wordcount(p)
-char *p;
+wordcount(char *p)
 {
     int words = 0;
 
@@ -1872,8 +1853,7 @@ char *p;
 }
 
 static void
-bel_copy1(inp, out)
-char **inp, *out;
+bel_copy1(char **inp, char *out)
 {
     char *in = *inp;
 
@@ -1887,8 +1867,7 @@ char **inp, *out;
 }
 
 char *
-build_english_list(in)
-char *in;
+build_english_list(char *in)
 {
     char *out, *p = in;
     int len = (int) strlen(p), words = wordcount(p);
