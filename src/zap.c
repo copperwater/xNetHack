@@ -5295,6 +5295,9 @@ int dmgtyp,  /* AD_**** - currently only cold, fire, elec */
          * items_to_destroy */
         limit = MAX_ITEMS_DESTROYED;
     }
+    if (limit < 1) {
+        return 0; /* nothing destroyed */
+    }
 
     /* Sometimes destroying an item can change inventory aside from
      * the item itself (cited case was a potion of unholy water; when
