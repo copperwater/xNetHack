@@ -331,6 +331,8 @@ changes:
   guisarme, bill-guisarme, lucern hammer.
 - The bec de corbin's damage stats are now those of the lucern hammer
   (2d4 vs small / d6 vs large) instead of its former d8/d6.
+- Wielded rings can be enchanted with a scroll of enchant weapon, which has
+  identical effects to a charging scroll of the same beatitude.
 
 ### Interface changes
 

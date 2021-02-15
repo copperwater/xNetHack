@@ -856,7 +856,9 @@ register int amount;
     boolean multiple;
     int otyp = STRANGE_OBJECT;
 
-    if (!uwep || (uwep->oclass != WEAPON_CLASS && !is_weptool(uwep))) {
+    if (!uwep || (uwep->oclass != WEAPON_CLASS && !is_weptool(uwep)
+                  && !(uwep->oclass == RING_CLASS
+                       && objects[uwep->otyp].oc_charged))) {
         char buf[BUFSZ];
 
         if (amount >= 0 && uwep && will_weld(uwep)) { /* cursed tin opener */
@@ -921,6 +923,14 @@ register int amount;
             makeknown(otyp);
         if (multiple)
             encumber_msg();
+        return 1;
+    }
+
+    if (uwep->oclass == RING_CLASS) {
+        /* charge the ring; this shouldn't print "feeling of loss" message for
+         * failing to charge because we've ruled out non-chargeable rings above
+         */
+        recharge(uwep, bcsign(otmp));
         return 1;
     }
 
