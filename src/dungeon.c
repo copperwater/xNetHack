@@ -1175,7 +1175,7 @@ init_dungeons(void)
            so that it's hidden from '#wizwhere' feedback. */
     }
 
-    lua_close(L);
+    nhl_done(L);
 
     for (i = 0; i < pd.n_brs; i++) {
         free((genericptr_t) pd.tmpbranch[i].name);
@@ -1869,7 +1869,8 @@ assign_rnd_level(d_level *dest, d_level *src, int range)
         dest->dlevel = 1;
 }
 
-int
+/* return an alignment mask */
+unsigned int
 induced_align(int pct)
 {
     s_level *lev = Is_special(&u.uz);

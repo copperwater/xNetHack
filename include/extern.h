@@ -622,7 +622,7 @@ extern void find_hell(d_level *);
 extern void goto_hell(boolean, boolean);
 extern void assign_level(d_level *, d_level *);
 extern void assign_rnd_level(d_level *, d_level *, int);
-extern int induced_align(int);
+extern unsigned int induced_align(int);
 extern boolean Invocation_lev(d_level *);
 extern xchar level_difficulty(void);
 extern schar lev_by_name(const char *);
@@ -744,6 +744,9 @@ extern void makerogueghost(void);
 
 /* ### files.c ### */
 
+#if !defined(CROSSCOMPILE) || defined(CROSSCOMPILE_TARGET)
+extern int l_get_config_errors(lua_State *);
+#endif
 extern char *fname_encode(const char *, char, char *, char *, int);
 extern char *fname_decode(char, char *, char *, int);
 extern const char *fqname(const char *, int, int);
@@ -1657,6 +1660,7 @@ extern int l_obj_register(lua_State *);
 
 #if !defined(CROSSCOMPILE) || defined(CROSSCOMPILE_TARGET)
 extern lua_State * nhl_init(void);
+extern void nhl_done(lua_State *);
 extern boolean nhl_loadlua(lua_State *, const char *);
 extern boolean load_lua(const char *);
 extern void nhl_error(lua_State *, const char *) NORETURN;
