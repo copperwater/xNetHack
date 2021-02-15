@@ -333,6 +333,9 @@ changes:
   (2d4 vs small / d6 vs large) instead of its former d8/d6.
 - Wielded rings can be enchanted with a scroll of enchant weapon, which has
   identical effects to a charging scroll of the same beatitude.
+- Certain tools that have corresponding magical counterparts can be enchanted
+  with a scroll of enchant weapon while wielded, turning them into their
+  counterparts.
 
 ### Interface changes
 

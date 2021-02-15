@@ -857,6 +857,7 @@ register int amount;
     int otyp = STRANGE_OBJECT;
 
     if (!uwep || (uwep->oclass != WEAPON_CLASS && !is_weptool(uwep)
+                  && uwep->oclass != TOOL_CLASS
                   && !(uwep->oclass == RING_CLASS
                        && objects[uwep->otyp].oc_charged))) {
         char buf[BUFSZ];
@@ -932,6 +933,62 @@ register int amount;
          */
         recharge(uwep, bcsign(otmp));
         return 1;
+    }
+    else if (uwep->oclass == TOOL_CLASS && !is_weptool(uwep) && !otmp->cursed) {
+        /* enchant a non-magical tool into a magical counterpart; not all tools
+         * have such a counterpart, however */
+        short old_otyp = uwep->otyp;
+        char *old_yname = Yname2(uwep);
+        if (uwep->otyp == HARP) {
+            /* may not get any charges; blessed guarantees at least 1 charge */
+            uwep->otyp = MAGIC_HARP;
+            uwep->recharged = 0;
+            uwep->spe = rn2(2) + (otmp->blessed ? 1 : 0);
+        }
+        else if (uwep->otyp == TOOLED_HORN && rn2(3)) {
+            /* can't become a horn of plenty; it only turns into "instrumental"
+             * type horns */
+            uwep->otyp = rnd_class(FROST_HORN, FIRE_HORN);
+            uwep->recharged = 0;
+            uwep->spe = rn2(2) + (otmp->blessed ? 1 : 0);
+        }
+        else if (uwep->otyp == FLUTE) {
+            uwep->otyp = MAGIC_FLUTE;
+            uwep->recharged = 0;
+            uwep->spe = rn2(1) + (otmp->blessed ? 1 : 0);
+        }
+        else if (uwep->otyp == PEA_WHISTLE && !rn2(3)) {
+            uwep->otyp = MAGIC_WHISTLE;
+        }
+        else if (uwep->otyp == SACK && !rn2(6)) {
+            uwep->otyp = rnd_class(BAG_OF_HOLDING, BAG_OF_TRICKS);
+            if (uwep->otyp == BAG_OF_TRICKS) {
+                uwep->recharged = 0;
+                uwep->spe = rn2(2) + (otmp->blessed ? 1 : 0);
+            }
+        }
+        else if (uwep->otyp == LEATHER_DRUM) {
+            uwep->otyp = DRUM_OF_EARTHQUAKE;
+            uwep->recharged = 0;
+            uwep->spe = rn2(2) + (otmp->blessed ? 1 : 0);
+        }
+
+        if (uwep->otyp != old_otyp) {
+            if (!valid_obj_material(uwep, uwep->material)) {
+                impossible("tool enchanted into incompatible material");
+                uwep->material = objects[uwep->otyp].oc_material;
+            }
+            pline("%s glitters and warps in your %s!", old_yname,
+                  body_part(HAND));
+            uwep->owt = weight(uwep);
+            makeknown(otyp);
+            return 1;
+        }
+        else { /* failed to enchant, or non-enchantable tool */
+            strange_feeling(otmp, "Nothing seems to happen.");
+                /* pline()+docall()+useup() */
+            return 0;
+        }
     }
 
     if (has_oname(uwep))
