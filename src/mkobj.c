@@ -892,6 +892,13 @@ boolean artif;
                     int idx = 0;
                     if (holiday & HOLIDAY_VALENTINES_DAY) {
                         foods[idx++] = "box of chocolates";
+                        foods[idx++] = "chocolate-covered strawberry";
+                    }
+                    if (holiday & HOLIDAY_MARDI_GRAS) {
+                        foods[idx++] = "slice of king cake";
+                        foods[idx++] = "beignet";
+                        foods[idx++] = "bowl of gumbo";
+                        foods[idx++] = "bowl of jambalaya";
                     }
                     if (holiday & HOLIDAY_PI_DAY) {
                         foods[idx++] = "irrational pie";
@@ -899,6 +906,8 @@ boolean artif;
                     }
                     if (holiday & HOLIDAY_EASTER) {
                         foods[idx++] = "easter egg";
+                        foods[idx++] = "chocolate bunny";
+                        foods[idx++] = "bag of jelly beans";
                     }
                     if (holiday & HOLIDAY_CANADA_DAY) {
                         foods[idx++] = "maple sugar candy";

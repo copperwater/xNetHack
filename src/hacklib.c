@@ -1319,6 +1319,7 @@ current_holidays()
     const int year = ymd / 10000;
     const int month = (ymd % 10000) / 100; /* 1..12 */
     const int date = ymd % 100;            /* 1..31 */
+    const int today_epoch = days_since_epoch(ymd);
     int i;
     int retmask = 0;
 
@@ -1374,6 +1375,13 @@ current_holidays()
         if (month == eastermonth && date == easterday) {
             retmask |= HOLIDAY_EASTER;
         }
+        /* Mardi Gras is based on Easter, 47 days before it */
+        {
+            int easterymd = year * 10000 + eastermonth * 100 + easterday;
+            if (days_since_epoch(easterymd) - today_epoch == 47) {
+                retmask |= HOLIDAY_MARDI_GRAS;
+            }
+        }
     }
 
     {
@@ -1399,7 +1407,7 @@ current_holidays()
                                1,0,1,0,0,1,0,0,1,0,1,0,0,1,0 };
 
         /* There are 166 days in the partial year 622. Start with that. */
-        int date_delta = days_since_epoch(ymd) - days_since_epoch(6220719);
+        int date_delta = today_epoch - days_since_epoch(6220719);
 
         /* Now cut off as many 30-year periods as possible. */
         date_delta = date_delta % 10631;
@@ -1466,12 +1474,12 @@ current_holidays()
             impossible("no data for Hebrew calendar in year %d", year);
         }
         else {
-            int epoch_today = days_since_epoch(ymd);
+            int tmp_epoch_today = today_epoch;
             /* The Gregorian day begins at midnight, but the Hebrew day begins
              * at sunset. Assume sunset is at 6 PM; if it's after that, advance
              * the day by 1. */
             if (getlt()->tm_hour >= 18) {
-                epoch_today += 1;
+                tmp_epoch_today += 1;
             }
             /* ymd is no longer safe to use in this computation */
 
@@ -1483,7 +1491,7 @@ current_holidays()
                 epoch_last_newyear = days_since_epoch(heb_new_year[index]);
                 epoch_next_newyear = days_since_epoch(heb_new_year[index + 1]);
                 index++;
-            } while (epoch_next_newyear <= epoch_today);
+            } while (epoch_next_newyear <= tmp_epoch_today);
 
             int heb_year_length = epoch_next_newyear - epoch_last_newyear;
 
@@ -1505,7 +1513,7 @@ current_holidays()
                 heb_month_len[1] += 1; /* add 1 day to Cheshvan */
             }
             int hebrew_month, hebrew_date;
-            int date_delta = epoch_today - epoch_last_newyear;
+            int date_delta = tmp_epoch_today - epoch_last_newyear;
             for (i = 0; i < 13; ++i) {
                 if (date_delta < heb_month_len[i]) {
                     hebrew_month = i + 1;
