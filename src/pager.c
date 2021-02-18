@@ -1305,7 +1305,7 @@ short otyp;
 void
 checkfile(inp, pm, user_typed_name, without_asking, supplemental_name)
 char *inp;
-struct permonst *pm;
+struct permonst *pm; /* only set if looking at a monster with / */
 boolean user_typed_name, without_asking;
 char *supplemental_name;
 {
@@ -1315,6 +1315,7 @@ char *supplemental_name;
     unsigned long txt_offset = 0L;
     winid datawin = WIN_ERR;
     short otyp, mat;
+    boolean lookat_mon = (pm != (struct permonst *) 0);
 
     fp = dlb_fopen(DATAFILE, "r");
     if (!fp) {
@@ -1565,10 +1566,12 @@ char *supplemental_name;
              * use dbase_str_with_material here; if it differs from
              * dbase_str, then it's likely that dbase_str stripped off the
              * "iron" from "iron golem" or something. */
-            pm = NULL;
-            int mndx = name_to_mon(dbase_str_with_material);
-            if (mndx != NON_PM) {
-                pm = &mons[mndx];
+            if (!lookat_mon) {
+                pm = (struct permonst *) 0; /* just to be safe */
+                int mndx = name_to_mon(dbase_str_with_material);
+                if (mndx != NON_PM) {
+                    pm = &mons[mndx];
+                }
             }
 
             /* object lookup: try to parse as an object, and try the material
@@ -1605,10 +1608,29 @@ char *supplemental_name;
                      */
                 }
                 else {
+                    boolean do_obj_lookup = FALSE, do_mon_lookup = FALSE;
+                    if (pm) {
+                        do_mon_lookup = TRUE;
+                        if (!lookat_mon && otyp != STRANGE_OBJECT) {
+                            /* found matches for both and player is NOT looking
+                             * at a monster; ask which they want to see */
+                            /* TODO: this would ideally be better generalized so
+                             * that the caller could communicate that an object
+                             * is being looked at, too */
+                            pline("That matches both a monster and an object.");
+                            if (yn("Show the monster information?") != 'y') {
+                                do_obj_lookup = TRUE;
+                                do_mon_lookup = FALSE;
+                            }
+                        }
+                    }
+                    else if (otyp != STRANGE_OBJECT) {
+                        do_obj_lookup = TRUE;
+                    }
                     datawin = create_nhwindow(NHW_MENU);
 
                     /* object lookup info */
-                    if (otyp != STRANGE_OBJECT) {
+                    if (do_obj_lookup) {
                         add_obj_info(datawin, otyp);
                         putstr(datawin, 0, "");
                     }
@@ -1616,7 +1638,7 @@ char *supplemental_name;
                     /* secondary to object lookup because there are some
                      * monsters whose names are substrings of objects, like
                      * "skeleton" and "skeleton key". */
-                    else if (pm) {
+                    else if (do_mon_lookup) {
                         add_mon_info(datawin, pm);
                         putstr(datawin, 0, "");
                     }
@@ -2153,7 +2175,8 @@ coord *click_cc;
                     break;
                 }
             if (*out_str)
-                checkfile(out_str, pm, TRUE, TRUE, (char *) 0);
+                checkfile(out_str, (struct permonst *) 0, TRUE, TRUE,
+                          (char *) 0);
             return 0;
           }
         case '?':
@@ -2250,7 +2273,7 @@ coord *click_cc;
 
                 supplemental_name[0] = '\0';
                 Strcpy(temp_buf, firstmatch);
-                checkfile(temp_buf, pm, FALSE,
+                checkfile(temp_buf, supplemental_pm, FALSE,
                           (boolean) (ans == LOOK_VERBOSE), supplemental_name);
                 if (supplemental_pm)
                     do_supplemental_info(supplemental_name, supplemental_pm,
