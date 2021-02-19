@@ -1802,8 +1802,6 @@ register struct obj *obj; /* g.thrownobj or g.kickedobj or uwep */
                 /* prevent hero from paying for thiefstone */
                 obj->no_charge = 1;
                 if (canspotmon(mon)) {
-                    /* only instance of thiefstone teleporting something not on
-                     * the hero's space */
                     pline("%s touches %s, and they both disappear!",
                           Yname2(obj), mon_nam(mon));
                     makeknown(THIEFSTONE);

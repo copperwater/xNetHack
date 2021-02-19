@@ -1771,7 +1771,8 @@ struct monst* mon;
     else {
         if (ledger == ledger_no(&u.uz)) {
             /* same level, just do horizontal teleport */
-            enexto(&cc, keyed_x(stone), keyed_y(stone), mon->data);
+            if (!goodpos(cc.x, cc.y, mon, 0))
+                enexto(&cc, cc.x, cc.y, mon->data);
             rloc_to(mon, cc.x, cc.y);
         } else {
             /* level teleport mon */

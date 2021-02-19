@@ -506,6 +506,9 @@ register struct monst *mtmp;
      */
     if (g.context.forcefight && !DEADMONSTER(mtmp) && !canspotmon(mtmp)
         && !glyph_is_invisible(levl[u.ux + u.dx][u.uy + u.dy].glyph)
+        /* thiefstone may have teleported target */
+        && (m_at(u.ux + u.dx, u.uy + u.dy) == mtmp
+            || !cansee(u.ux + u.dx, u.uy + u.dy))
         && !(u.uswallow && mtmp == u.ustuck))
         map_invisible(u.ux + u.dx, u.uy + u.dy);
 
@@ -844,21 +847,33 @@ int dieroll;
                     hated_obj = obj;
                     tmp += rnd(sear_damage(obj->material));
                 }
-                if (!thrown && obj == uwep && obj->otyp == BOOMERANG
-                    && rnl(4) == 4 - 1) {
-                    boolean more_than_1 = (obj->quan > 1L);
+                if (!thrown && obj == uwep) {
+                    if (obj->otyp == THIEFSTONE && obj->blessed
+                        && mon->data == &mons[PM_GOLD_GOLEM]
+                        && !mon_has_amulet(mon)) {
+                        if (canspotmon(mon)) {
+                            pline("%s vanishes as you hit %s with %s!",
+                                  Monnam(mon), mhim(mon), yname(obj));
+                            makeknown(THIEFSTONE);
+                            hittxt = TRUE;
+                        }
+                        thiefstone_tele_mon(obj, mon);
+                    }
+                    else if (obj->otyp == BOOMERANG && rnl(4) == 4 - 1) {
+                        boolean more_than_1 = (obj->quan > 1L);
 
-                    pline("As you hit %s, %s%s breaks into splinters.",
-                          mon_nam(mon), more_than_1 ? "one of " : "",
-                          yname(obj));
-                    if (!more_than_1)
-                        uwepgone(); /* set g.unweapon */
-                    useup(obj);
-                    if (!more_than_1)
-                        obj = (struct obj *) 0;
-                    hittxt = TRUE;
-                    if (noncorporeal(mdat))
-                        tmp++;
+                        pline("As you hit %s, %s%s breaks into splinters.",
+                            mon_nam(mon), more_than_1 ? "one of " : "",
+                            yname(obj));
+                        if (!more_than_1)
+                            uwepgone(); /* set g.unweapon */
+                        useup(obj);
+                        if (!more_than_1)
+                            obj = (struct obj *) 0;
+                        hittxt = TRUE;
+                        if (noncorporeal(mdat))
+                            tmp++;
+                    }
                 }
             } else {
                 /* "normal" weapon usage */
