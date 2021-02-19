@@ -2538,6 +2538,11 @@ struct obj *tstone;
             else
                 pline("You make scratch marks on the stone.");
         }
+        else if (g.youmonst.data == &mons[PM_GOLD_GOLEM]
+                 && tstone->otyp == THIEFSTONE && tstone->blessed
+                 && !u.uhave.amulet) {
+            thiefstone_tele_mon(tstone, &g.youmonst);
+        }
         else {
             pline("You rub the stone on your %s.", body_part(HAND));
             pline("It's not very interesting.");
