@@ -1735,7 +1735,7 @@ struct obj* obj;
 }
 
 /* Thiefstone teleports a monster, presumably a valuable monster. */
-void
+boolean
 thiefstone_tele_mon(stone, mon)
 struct obj* stone;
 struct monst* mon;
@@ -1744,7 +1744,13 @@ struct monst* mon;
     coord cc;
     if (mon->data != &mons[PM_GOLD_GOLEM]) {
         impossible("thiefstone_tele_mon: bad monster to teleport");
-        return;
+        return FALSE;
+    }
+    if (!stone->blessed) {
+        /* no such thing as a monster made of gems or magical items that an
+         * uncursed stone would teleport */
+        impossible("thiefstone_tele_mon: stone is not blessed");
+        return FALSE;
     }
 
     cc.x = keyed_x(stone);
@@ -1752,12 +1758,13 @@ struct monst* mon;
 
     if (mon == &g.youmonst) {
         /* the thiefstone sees you as valuable treasure and steals you away! */
-        /* can't use a thiefstone to skip the ascension run */
-        if (u.uhave.amulet)
-            return;
-        /* prevent it from angering a shopkeeper, if you're in a shop */
-        stone->no_charge = 1;
-        pline_The("thiefstone steals you away!");
+        if (ledger == ledger_no(&u.uz) && u.ux == cc.x && u.uy == cc.y) {
+            return FALSE; /* already on keyed location */
+        }
+        if (u.uhave.amulet) {
+            return FALSE; /* no skipping the ascension run */
+        }
+        pline("%s you away!", Tobjnam(stone, "steal"));
         if (ledger == ledger_no(&u.uz)) {
             teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
         } else {
@@ -1769,16 +1776,36 @@ struct monst* mon;
         }
     }
     else {
+        if (ledger == ledger_no(&u.uz) && mon->mx == cc.x && mon->my == cc.y) {
+            return FALSE; /* already on keyed location */
+        }
+        if (mon_has_amulet(mon)) {
+            return FALSE; /* no skipping the ascension run */
+        }
+        boolean couldspot = canspotmon(mon);
+        const char *reappears = "";
+        char *saved_name = mon_nam(mon);
         if (ledger == ledger_no(&u.uz)) {
             /* same level, just do horizontal teleport */
-            if (!goodpos(cc.x, cc.y, mon, 0))
+            if (!goodpos(cc.x, cc.y, mon, 0)) {
                 enexto(&cc, cc.x, cc.y, mon->data);
+            }
             rloc_to(mon, cc.x, cc.y);
+            if (canseemon(mon)) {
+                reappears = " and reappears elsewhere";
+            }
         } else {
             /* level teleport mon */
             migrate_to_level(mon, ledger, MIGR_EXACT_XY, &cc);
         }
+        if (couldspot) {
+            pline("%s touches %s, who disappears%s!", Yname2(stone),
+                  saved_name, reappears);
+        }
     }
+    /* if you got here, you saw the thiefstone teleport something */
+    makeknown(THIEFSTONE);
+    return TRUE;
 }
 
 /*

@@ -849,15 +849,10 @@ int dieroll;
                 }
                 if (!thrown && obj == uwep) {
                     if (obj->otyp == THIEFSTONE && obj->blessed
-                        && mon->data == &mons[PM_GOLD_GOLEM]
-                        && !mon_has_amulet(mon)) {
-                        if (canspotmon(mon)) {
-                            pline("%s vanishes as you hit %s with %s!",
-                                  Monnam(mon), mhim(mon), yname(obj));
-                            makeknown(THIEFSTONE);
+                        && mon->data == &mons[PM_GOLD_GOLEM]) {
+                        if (thiefstone_tele_mon(obj, mon)) {
                             hittxt = TRUE;
                         }
-                        thiefstone_tele_mon(obj, mon);
                     }
                     else if (obj->otyp == BOOMERANG && rnl(4) == 4 - 1) {
                         boolean more_than_1 = (obj->quan > 1L);

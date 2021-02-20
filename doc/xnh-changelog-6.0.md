@@ -328,6 +328,11 @@ changes:
   them. They will reevaluate their gear choices if you give or take anything.
   Equipped items are valid selections; trying to take one will get the pet to
   take it off. In wizard mode, this can be done to anyone, not just pets.
+- You can #rub a thiefstone on your hand as a gold golem in order to teleport
+  yourself to your stash with it.
+- Thiefstones no longer teleport themselves along with a gold golem that they
+  steal away, unless you are a gold golem rubbing it on your own hand, in which
+  case it stays with you.
 
 ### Interface changes
 
