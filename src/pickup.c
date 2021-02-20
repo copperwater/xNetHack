@@ -1746,15 +1746,38 @@ struct monst* mon;
         impossible("thiefstone_tele_mon: bad monster to teleport");
         return;
     }
-    if (ledger == ledger_no(&u.uz)) {
-        /* same level, just do horizontal teleport */
-        enexto(&cc, keyed_x(stone), keyed_y(stone), mon->data);
-        rloc_to(mon, cc.x, cc.y);
-    } else {
-        /* level teleport mon */
-        cc.x = keyed_x(stone);
-        cc.y = keyed_y(stone);
-        migrate_to_level(mon, ledger, MIGR_EXACT_XY, &cc);
+
+    cc.x = keyed_x(stone);
+    cc.y = keyed_y(stone);
+
+    if (mon == &g.youmonst) {
+        /* the thiefstone sees you as valuable treasure and steals you away! */
+        /* can't use a thiefstone to skip the ascension run */
+        if (u.uhave.amulet)
+            return;
+        /* prevent it from angering a shopkeeper, if you're in a shop */
+        stone->no_charge = 1;
+        pline_The("thiefstone steals you away!");
+        if (ledger == ledger_no(&u.uz)) {
+            teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
+        } else {
+            d_level newlev;
+            newlev.dnum = ledger_to_dnum(ledger);
+            newlev.dlevel = ledger_to_dlev(ledger);
+            goto_level(&newlev, FALSE, FALSE, FALSE);
+            teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
+        }
+    }
+    else {
+        if (ledger == ledger_no(&u.uz)) {
+            /* same level, just do horizontal teleport */
+            if (!goodpos(cc.x, cc.y, mon, 0))
+                enexto(&cc, cc.x, cc.y, mon->data);
+            rloc_to(mon, cc.x, cc.y);
+        } else {
+            /* level teleport mon */
+            migrate_to_level(mon, ledger, MIGR_EXACT_XY, &cc);
+        }
     }
 }
 
