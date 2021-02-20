@@ -1691,6 +1691,8 @@ register struct obj *obj;
         return (int) obj->owt; /* kludge for "very" heavy iron ball */
     } else if (obj->otyp == CANDELABRUM_OF_INVOCATION && obj->spe) {
         return wt + obj->spe * (int) objects[TALLOW_CANDLE].oc_weight;
+    } else if (obj->oclass == ARMOR_CLASS && (obj->owornmask & W_ARMOR)) {
+        return ((wt * 3) + 3) / 4;
     }
     return (wt ? wt * (int) obj->quan : ((int) obj->quan + 1) >> 1);
 }

@@ -375,6 +375,7 @@ changes:
     standard body armor suit that is scaled with a random color of dragon
     scales.
   - Scaled armor cannot be wished for, it must be crafted.
+- Worn armor weighs 75% of its listed weight.
 
 ### Interface changes
 

@@ -66,6 +66,7 @@ long mask;
                     if (u.twoweap && (oobj->owornmask & (W_WEP | W_SWAPWEP)))
                         set_twoweap(FALSE); /* u.twoweap = FALSE */
                     oobj->owornmask &= ~wp->w_mask;
+                    oobj->owt = weight(oobj); /* undo armor weight reduction */
                     if (wp->w_mask & ~(W_SWAPWEP | W_QUIVER)) {
                         /* leave as "x = x <op> y", here and below, for broken
                          * compilers */
@@ -84,6 +85,7 @@ long mask;
                 *(wp->w_obj) = obj;
                 if (obj) {
                     obj->owornmask |= wp->w_mask;
+                    obj->owt = weight(obj); /* armor weight reduction */
                     /* Prevent getting/blocking intrinsics from wielding
                      * potions, through the quiver, etc.
                      * Allow weapon-tools, too.
@@ -135,6 +137,7 @@ register struct obj *obj;
             p = armor_provides_extrinsic(obj);
             u.uprops[p].extrinsic = u.uprops[p].extrinsic & ~wp->w_mask;
             obj->owornmask &= ~wp->w_mask;
+            obj->owt = weight(obj); /* remove armor weight reduction */
             if (obj->oartifact)
                 set_artifact_intrinsic(obj, 0, wp->w_mask);
             if ((p = w_blocks(obj, wp->w_mask)) != 0)
@@ -656,8 +659,10 @@ boolean racialexception;
     if (old)
         m_delay += objects[old->otyp].oc_delay;
 
-    if (old) /* do this first to avoid "(being worn)" */
+    if (old) { /* do this first to avoid "(being worn)" */
         old->owornmask = 0L;
+        old->owt = weight(old); /* remove armor weight reduction */
+    }
     if (!creation) {
         if (canseemon(mon)) {
             char buf[BUFSZ];
@@ -682,6 +687,7 @@ boolean racialexception;
         update_mon_intrinsics(mon, old, FALSE, creation);
     mon->misc_worn_check |= flag;
     best->owornmask |= flag;
+    best->owt = weight(best); /* armor weight reduction */
     if (autocurse)
         curse(best);
     update_mon_intrinsics(mon, best, TRUE, creation);
@@ -1113,6 +1119,7 @@ boolean silently; /* doesn't affect all possible messages, just
     obj_extract_self(obj);
     obj->owornmask = 0L;
     if (unwornmask) {
+        obj->owt = weight(obj); /* reset armor to base weight */
         if (!DEADMONSTER(mon) && do_intrinsics) {
             update_mon_intrinsics(mon, obj, FALSE, silently);
         }
