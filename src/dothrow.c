@@ -1034,27 +1034,11 @@ boolean hitsroof;
     if (obj->oclass == POTION_CLASS) {
         potionhit(&g.youmonst, obj, POTHIT_HERO_THROW);
     } else if (obj->otyp == THIEFSTONE && obj->blessed &&
-               g.youmonst.data == &mons[PM_GOLD_GOLEM] &&
-               !u.uhave.amulet) {
-        /* the thiefstone sees you as valuable treasure and steals you away! */
-        /* prevent it from angering a shopkeeper, if you're in a shop */
-        obj->no_charge = 1;
-        pline_The("thiefstone steals you away!");
-        if (obj->keyed_ledger == ledger_no(&u.uz)) {
-            teleds(keyed_x(obj), keyed_y(obj), TELEDS_NO_FLAGS);
-        } else {
-            d_level newlev;
-            newlev.dnum = ledger_to_dnum(obj->keyed_ledger);
-            newlev.dlevel = ledger_to_dlev(obj->keyed_ledger);
-            /* goto_level currently doesn't allow you to arrive at an exact
-             * location so let's assume that arriving on the same level is good
-             * enough */
-            /* schedule_goto(&newlev, FALSE, FALSE, FALSE, NULL, NULL); */
-            goto_level(&newlev, FALSE, FALSE, FALSE);
-            teleds(keyed_x(obj), keyed_y(obj), TELEDS_NO_FLAGS);
+               g.youmonst.data == &mons[PM_GOLD_GOLEM]) {
+        dropy(obj);
+        if (thiefstone_tele_mon(obj, &g.youmonst)) {
+            return FALSE;
         }
-        thiefstone_teleport(obj, obj);
-        return FALSE;
     } else if (breaktest(obj)) {
         int otyp = obj->otyp;
         int blindinc;
@@ -1814,19 +1798,10 @@ register struct obj *obj; /* g.thrownobj or g.kickedobj or uwep */
             /* thiefstone does no damage to gold golems, but instead tries to
              * "steal" them */
             if (obj->otyp == THIEFSTONE && obj->blessed
-                && mon->data == &mons[PM_GOLD_GOLEM] && !mon_has_amulet(mon)) {
-                /* prevent hero from paying for thiefstone */
-                obj->no_charge = 1;
-                if (canspotmon(mon)) {
-                    /* only instance of thiefstone teleporting something not on
-                     * the hero's space */
-                    pline("%s touches %s, and they both disappear!",
-                          Yname2(obj), mon_nam(mon));
-                    makeknown(THIEFSTONE);
+                && mon->data == &mons[PM_GOLD_GOLEM]) {
+                if (thiefstone_tele_mon(obj, mon)) {
+                    return 0;
                 }
-                thiefstone_teleport(obj, obj);
-                thiefstone_tele_mon(obj, mon);
-                return 1; /* obj is long gone */
             }
 
             /* attack hits mon */

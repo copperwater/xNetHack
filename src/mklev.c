@@ -977,7 +977,7 @@ rand_roomtype()
         else if (chance < 75)
             return LAVAROOM;
         else if (chance < 90)
-            return ABBATOIR;
+            return ABATTOIR;
         else if (chance < 95)
             return SEMINARY;
         else if (chance < 99)

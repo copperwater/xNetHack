@@ -2538,6 +2538,10 @@ struct obj *tstone;
             else
                 pline("You make scratch marks on the stone.");
         }
+        else if (g.youmonst.data == &mons[PM_GOLD_GOLEM]
+                 && tstone->otyp == THIEFSTONE && tstone->blessed) {
+            (void) thiefstone_tele_mon(tstone, &g.youmonst);
+        }
         else {
             pline("You rub the stone on your %s.", body_part(HAND));
             pline("It's not very interesting.");
@@ -3619,9 +3623,9 @@ struct obj *obj;
         costly_alteration(obj, COST_DSTROY);
     }
 
-    g.current_wand = obj; /* destroy_item might reset this */
-    freeinv(obj);       /* hide it from destroy_item instead... */
-    setnotworn(obj);    /* so we need to do this ourselves */
+    g.current_wand = obj; /* destroy_items might reset this */
+    freeinv(obj);         /* hide it from destroy_items instead... */
+    setnotworn(obj);      /* so we need to do this ourselves */
 
     /* If you know the wand you're breaking is a wand of nothing,
      * it should say something different.
@@ -3806,7 +3810,7 @@ struct obj *obj;
         litroom(TRUE, obj); /* only needs to be done once */
 
 discard_broken_wand:
-    obj = g.current_wand; /* [see dozap() and destroy_item()] */
+    obj = g.current_wand; /* [see dozap() and destroy_items()] */
     g.current_wand = 0;
     if (obj)
         delobj(obj);
@@ -3902,6 +3906,9 @@ struct obj *obj;
     if (obj->oclass == TOOL_CLASS || is_pole(obj) || is_axe(obj))
         return 2;
 
+    if (obj->oclass == WAND_CLASS)
+        return 2;
+
     if (obj->oclass == POTION_CLASS &&
         (obj->otyp == POT_OIL || !obj->dknown ||
          (!objects[obj->otyp].oc_name_known &&
@@ -3911,8 +3918,10 @@ struct obj *obj;
     if (is_graystone(obj)) {
         /* The only case where we _don't_ apply a gray stone is if we KNOW it
          * isn't a touchstone or a thiefstone. */
-        if (obj->otyp != TOUCHSTONE && objects[TOUCHSTONE].oc_name_known
-            && obj->otyp != THIEFSTONE && objects[THIEFSTONE].oc_name_known
+        if ((obj->otyp != TOUCHSTONE && obj->otyp != THIEFSTONE)
+            && (objects[obj->otyp].oc_name_known
+                || (objects[TOUCHSTONE].oc_name_known
+                    && objects[THIEFSTONE].oc_name_known))
             && obj->dknown)
             return 0;
         else

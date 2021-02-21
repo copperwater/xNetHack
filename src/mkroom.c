@@ -32,7 +32,7 @@ static struct permonst *NDECL(morguemon);
 static struct permonst *NDECL(squadmon);
 static struct permonst *NDECL(zoomon);
 static struct permonst *NDECL(demondenmon);
-static struct permonst *NDECL(abbatoirmon);
+static struct permonst *NDECL(abattoirmon);
 static void FDECL(save_room, (NHFILE *, struct mkroom *));
 static void FDECL(rest_room, (NHFILE *, struct mkroom *));
 
@@ -76,7 +76,7 @@ int roomtype;
         case ANTHOLE:
         case DEMONDEN:
         case LAVAROOM:
-        case ABBATOIR:
+        case ABATTOIR:
             /* all of these just call mkzoo directly */
             mkzoo(roomtype);
             break;
@@ -169,7 +169,7 @@ mkshop()
                 return;
             }
             if (*ep == 'A') {
-                mkzoo(ABBATOIR);
+                mkzoo(ABATTOIR);
                 return;
             }
             if (*ep == 'd' || *ep == 'D') {
@@ -450,8 +450,8 @@ struct mkroom *sroom;
             else if (type == LAVAROOM) {
                 fillermon = rn2(5) ? NULL : &mons[PM_SALAMANDER];
             }
-            else if (type == ABBATOIR) {
-                fillermon = abbatoirmon();
+            else if (type == ABATTOIR) {
+                fillermon = abattoirmon();
             }
 
             mon = NULL;
@@ -465,7 +465,7 @@ struct mkroom *sroom;
                         mon->mpeaceful = 0;
                         set_malign(mon);
                     }
-                    if (type == ABBATOIR || (type == DEMONDEN && !rn2(3))) {
+                    if (type == ABATTOIR || (type == DEMONDEN && !rn2(3))) {
                         /* undo its sleep */
                         mon->msleeping = 0;
                     }
@@ -541,7 +541,7 @@ struct mkroom *sroom;
                     levl[sx][sy].typ = LAVAPOOL;
                 }
                 break;
-            case ABBATOIR:
+            case ABATTOIR:
                 /* scatter some corpses, leashes, knives, blood */
                 if (!rn2(7)) {
                     struct obj* sobj = mksobj_at(CORPSE, sx, sy, TRUE, FALSE);
@@ -710,7 +710,7 @@ demondenmon()
 }
 
 struct permonst *
-abbatoirmon()
+abattoirmon()
 {
     if (!rn2(10)) {
         if (!rn2(6)) {

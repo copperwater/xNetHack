@@ -304,8 +304,8 @@ changes:
 - Water nymphs have a slightly increased base level (4) and difficulty (6).
 - Mountain nymphs have an increased base level (5), speed (15), and difficulty
   (7).
-- Being inside an abbatoir can inflict you with nausea, with a Con-dependent
-  chance. Entering an abbatoir for the first time also triggers this with a
+- Being inside an abattoir can inflict you with nausea, with a Con-dependent
+  chance. Entering an abattoir for the first time also triggers this with a
   higher chance.
 - The items inside Vlad's Tower are no longer guaranteed (except the candles,
   which there will still be at least 8 of).
@@ -376,6 +376,15 @@ changes:
     scales.
   - Scaled armor cannot be wished for, it must be crafted.
 - Worn armor weighs 75% of its listed weight.
+- You can use #loot on adjacent pets to give them items and take items from
+  them. They will reevaluate their gear choices if you give or take anything.
+  Equipped items are valid selections; trying to take one will get the pet to
+  take it off. In wizard mode, this can be done to anyone, not just pets.
+- You can #rub a thiefstone on your hand as a gold golem in order to teleport
+  yourself to your stash with it.
+- Thiefstones no longer teleport themselves along with a gold golem that they
+  steal away, unless you are a gold golem rubbing it on your own hand, in which
+  case it stays with you.
 
 ### Interface changes
 

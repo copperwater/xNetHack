@@ -1735,7 +1735,7 @@ struct obj* obj;
 }
 
 /* Thiefstone teleports a monster, presumably a valuable monster. */
-void
+boolean
 thiefstone_tele_mon(stone, mon)
 struct obj* stone;
 struct monst* mon;
@@ -1744,18 +1744,68 @@ struct monst* mon;
     coord cc;
     if (mon->data != &mons[PM_GOLD_GOLEM]) {
         impossible("thiefstone_tele_mon: bad monster to teleport");
-        return;
+        return FALSE;
     }
-    if (ledger == ledger_no(&u.uz)) {
-        /* same level, just do horizontal teleport */
-        enexto(&cc, keyed_x(stone), keyed_y(stone), mon->data);
-        rloc_to(mon, cc.x, cc.y);
-    } else {
-        /* level teleport mon */
-        cc.x = keyed_x(stone);
-        cc.y = keyed_y(stone);
-        migrate_to_level(mon, ledger, MIGR_EXACT_XY, &cc);
+    if (!stone->blessed) {
+        /* no such thing as a monster made of gems or magical items that an
+         * uncursed stone would teleport */
+        impossible("thiefstone_tele_mon: stone is not blessed");
+        return FALSE;
     }
+
+    cc.x = keyed_x(stone);
+    cc.y = keyed_y(stone);
+
+    if (mon == &g.youmonst) {
+        /* the thiefstone sees you as valuable treasure and steals you away! */
+        if (ledger == ledger_no(&u.uz) && u.ux == cc.x && u.uy == cc.y) {
+            return FALSE; /* already on keyed location */
+        }
+        if (u.uhave.amulet) {
+            return FALSE; /* no skipping the ascension run */
+        }
+        pline("%s you away!", Tobjnam(stone, "steal"));
+        if (ledger == ledger_no(&u.uz)) {
+            teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
+        } else {
+            d_level newlev;
+            newlev.dnum = ledger_to_dnum(ledger);
+            newlev.dlevel = ledger_to_dlev(ledger);
+            goto_level(&newlev, FALSE, FALSE, FALSE);
+            teleds(cc.x, cc.y, TELEDS_NO_FLAGS);
+        }
+    }
+    else {
+        if (ledger == ledger_no(&u.uz) && mon->mx == cc.x && mon->my == cc.y) {
+            return FALSE; /* already on keyed location */
+        }
+        if (mon_has_amulet(mon)) {
+            return FALSE; /* no skipping the ascension run */
+        }
+        boolean couldspot = canspotmon(mon);
+        const char *reappears = "";
+        char *saved_name = mon_nam(mon);
+        if (ledger == ledger_no(&u.uz)) {
+            /* same level, just do horizontal teleport */
+            if (!goodpos(cc.x, cc.y, mon, 0)) {
+                enexto(&cc, cc.x, cc.y, mon->data);
+            }
+            rloc_to(mon, cc.x, cc.y);
+            if (canseemon(mon)) {
+                reappears = " and reappears elsewhere";
+            }
+        } else {
+            /* level teleport mon */
+            migrate_to_level(mon, ledger, MIGR_EXACT_XY, &cc);
+        }
+        if (couldspot) {
+            pline("%s touches %s, who disappears%s!", Yname2(stone),
+                  saved_name, reappears);
+        }
+    }
+    /* if you got here, you saw the thiefstone teleport something */
+    makeknown(THIEFSTONE);
+    return TRUE;
 }
 
 /*
@@ -2086,7 +2136,7 @@ doloot()
     struct monst *mtmp;
     char qbuf[BUFSZ];
     int prev_inquiry = 0;
-    boolean prev_loot = FALSE;
+    boolean mon_interact = FALSE;
     int num_conts = 0;
 
     g.abort_looting = FALSE;
@@ -2221,7 +2271,7 @@ doloot()
         }
         mtmp = m_at(cc.x, cc.y);
         if (mtmp)
-            timepassed = loot_mon(mtmp, &prev_inquiry, &prev_loot);
+            timepassed = loot_mon(mtmp, &prev_inquiry, &mon_interact);
         /* always use a turn when choosing a direction is impaired,
            even if you've successfully targetted a saddled creature
            and then answered "no" to the "remove its saddle?" prompt */
@@ -2232,19 +2282,17 @@ doloot()
          * Adjust this if-block to allow container looting
          * from one square away to change that in the future.
          */
-        if (!underfoot) {
+        if (!mon_interact && !underfoot) {
             if (container_at(cc.x, cc.y, FALSE)) {
                 if (mtmp) {
                     You_cant("loot anything %sthere with %s in the way.",
                              prev_inquiry ? "else " : "", mon_nam(mtmp));
-                    return timepassed;
                 } else {
                     You("have to be at a container to loot it.");
                 }
             } else {
                 You("%s %sthere to loot.", dont_find_anything,
-                    (prev_inquiry || prev_loot) ? "else " : "");
-                return timepassed;
+                    prev_inquiry ? "else " : "");
             }
         }
     } else if (c != 'y' && c != 'n') {
@@ -2330,13 +2378,172 @@ reverse_loot()
     return TRUE;
 }
 
-/* loot_mon() returns amount of time passed.
- */
+/* Give or take items from mtmp.
+ * Assumes the hero can see mtmp as a monster in its natural state.
+ * Return the amount of time passed */
+static int
+exchange_objects_with_mon(struct monst *mtmp, boolean taking)
+{
+    int i, n, transferred = 0;
+    menu_item *pick_list;
+    const char *qstr = taking ? "Take what?" : "Give what?";
+
+    if (taking && !mtmp->minvent) {
+        pline("%s isn't carrying anything.", Monnam(mtmp));
+        return 0;
+    }
+    else if (!taking && !g.invent) {
+        You("aren't carrying anything.");
+        return 0;
+    }
+    if (mtmp->msleeping || mtmp->mfrozen || !mtmp->mcanmove) {
+        pline("%s doesn't respond.", Monnam(mtmp));
+        return 0;
+    }
+    if (mtmp->meating) {
+        pline("%s is eating noisily.", Monnam(mtmp));
+        return 0;
+    }
+
+    n = query_objlist(qstr, taking ? &mtmp->minvent : &g.invent,
+                      INVORDER_SORT, &pick_list, PICK_ANY, allow_any_obj);
+
+    for (i = 0; i < n; ++i) {
+        struct obj* otmp = pick_list[i].item.a_obj;
+        long maxquan = min(pick_list[i].count, otmp->quan);
+        long unwornmask = otmp->owornmask;
+        boolean petri = (otmp->otyp == CORPSE
+                         && touch_petrifies(&mons[otmp->corpsenm]));
+        boolean mtmp_would_ston = (!taking && petri
+                                   && !which_armor(mtmp, W_ARMG)
+                                   && !resists_ston(mtmp));
+
+        /* Clear inapplicable wornmask bits */
+        unwornmask &= ~(W_ART | W_ARTI | W_QUIVER);
+        if (!taking || !u.twoweap) {
+            unwornmask &= ~W_SWAPWEP;
+        }
+
+        if (!taking) {
+            int carryamt;
+            if ((unwornmask & W_WEAPONS) && otmp->cursed) {
+                weldmsg(otmp);
+                continue;
+            }
+            if (!canletgo(otmp, "give away")) {
+                /* this prints its own messages */
+                continue;
+            }
+            if (!mindless(mtmp->data) && mtmp_would_ston) {
+                pline("%s refuses to take %s.", Monnam(mtmp), yname(otmp));
+                continue;
+            }
+            carryamt = can_carry(mtmp, otmp);
+            if (nohands(mtmp->data) && mtmp->minvent) {
+                /* this isn't a hard and fast rule, but dog_invent in practice
+                 * doesn't let monsters carry around multiple items. */
+                carryamt = 0;
+            }
+            if (carryamt == 0) {
+                /* note: this includes both "can't carry" and "won't carry", but
+                 * doesn't distinguish them */
+                pline("%s can't carry %s.", Monnam(mtmp), yname(otmp));
+                /* debatable whether to continue or break here; if the player
+                 * overloads the monster with too many items, breaking would be
+                 * preferable, but if they just can't take this one otmp for
+                 * whatever reason, we should continue instead. It remains to
+                 * be seen which is the more common scenario. */
+                continue;
+            }
+            else if (carryamt < otmp->quan) {
+                maxquan = min(maxquan, carryamt);
+            }
+            if (maxquan < otmp->quan) {
+                otmp = splitobj(otmp, maxquan);
+            }
+            pline("You give %s %s.", mon_nam(mtmp), yname(otmp));
+            obj_extract_self(otmp);
+            if (add_to_minv(mtmp, otmp)) {
+                otmp = (struct obj *) 0; /* merged with something in minvent */
+            }
+            transferred++;
+            /* Possible extension: if you give edible food to a pet, it should
+             * eat it directly. But that should probably go into the pet AI
+             * code, not here. */
+        }
+        else {
+            /* cursed weapons, armor, accessories, etc treated the same */
+            if (unwornmask && otmp->cursed) {
+                pline("%s won't come off!", Yname2(otmp));
+                otmp->bknown = 1;
+                continue;
+            }
+            if (unwornmask & (W_ARMOR | W_ACCESSORY | W_SADDLE)) {
+                int m_delay = objects[otmp->otyp].oc_delay;
+                if ((unwornmask & (W_ARM | W_ARMU)) != 0
+                    && (mtmp->misc_worn_check & W_ARMC)) {
+                    /* extra delay for removing a cloak */
+                    m_delay += 2;
+                }
+                pline("%s %s %s %s.", Monnam(mtmp),
+                      m_delay > 1 ? "begins removing" : "removes",
+                      mhis(mtmp), xname(otmp));
+                mtmp->mfrozen = m_delay;
+                /* unwear the item now */
+                update_mon_intrinsics(mtmp, otmp, FALSE, FALSE);
+                otmp->owornmask = 0;
+                if (mtmp->mfrozen) { /* might be 0 */
+                    mtmp->mcanmove = 0;
+                    /* monster is now occupied, won't hand over other things */
+                    break;
+                }
+                /* This isn't an ideal solution, since there's no way to
+                 * communicate directly to the player when the monster unfreezes
+                 * that it is done taking the item off. They also could try to
+                 * rewear it soon after they begin moving again.
+                 * The alternative is to make this an occupation: the hero
+                 * stands next to the monster for the duration of its disrobing,
+                 * and assuming they're both still in place at the end, the hero
+                 * is given the item directly. But that's more complex and has
+                 * a lot more edge cases; this may suffice. */
+            }
+            if (maxquan < otmp->quan) {
+                otmp = splitobj(otmp, maxquan);
+            }
+            else {
+                extract_from_minvent(mtmp, otmp, TRUE, TRUE);
+            }
+            addtobill(otmp, FALSE, FALSE, FALSE);
+            otmp = hold_another_object(otmp, "You take, but drop, %s.",
+                                         doname(otmp), "You take: ");
+            transferred++;
+        }
+        if (otmp && petri) {
+            if (taking && !uarmg && !Stone_resistance) {
+                instapetrify(corpse_xname(otmp, (const char *) 0,
+                             CXN_ARTICLE));
+                break; /* if life-saved, stop taking items */
+            }
+            else if (mtmp_would_ston) {
+                minstapetrify(mtmp, TRUE);
+                break;
+            }
+        }
+    }
+    if (transferred > 0) {
+        /* They might have gained some gear they would want to wear, or lost
+         * some and now have a different option. Reassess next turn and see. */
+        check_gear_next_turn(mtmp);
+    }
+    return (n > 0 ? 1 : 0);
+}
+
+/* loot_mon() returns amount of time passed. */
 int
-loot_mon(mtmp, passed_info, prev_loot)
+loot_mon(mtmp, passed_info, mon_interact)
 struct monst *mtmp;
 int *passed_info;
-boolean *prev_loot;
+boolean *mon_interact;
 {
     int c = -1;
     int timepassed = 0;
@@ -2344,7 +2551,9 @@ boolean *prev_loot;
     char qbuf[QBUFSZ];
 
     /* 3.3.1 introduced the ability to remove saddle from a steed.
-     *  *passed_info is set to TRUE if a loot query was given.
+     *  *passed_info is set to TRUE if a loot query was given, though it also
+     *  does double duty where it actually holds information from the caller, in
+     *  the case of picking items up from an engulfer.
      *  *prev_loot is set to TRUE if something was actually acquired in here.
      */
     if (mtmp && mtmp != u.usteed && (otmp = which_armor(mtmp, W_SADDLE))) {
@@ -2369,9 +2578,10 @@ boolean *prev_loot;
             otmp = hold_another_object(otmp, "You drop %s!", doname(otmp),
                                        (const char *) 0);
             nhUse(otmp);
-            timepassed = rnd(3);
-            if (prev_loot)
-                *prev_loot = TRUE;
+            timepassed = rnd(3); /* note: this doesn't actually take extra time,
+                                    rhack() just treats it like 1 */
+            if (mon_interact)
+                *mon_interact = 1;
         } else if (c == 'q') {
             return 0;
         }
@@ -2381,6 +2591,31 @@ boolean *prev_loot;
         int count = passed_info ? *passed_info : 0;
 
         timepassed = pickup(count);
+    }
+    if (mtmp && (mtmp->mtame || wizard) && canspotmon(mtmp)
+        && !(mtmp->mundetected || mtmp->m_ap_type)) {
+        /* Possible future extension: using this to steal items from peaceful
+         * and hostile monsters. */
+        if (passed_info)
+            *passed_info = 1;
+        Sprintf(qbuf, "Do you want to take something from %s?", mon_nam(mtmp));
+        if ((c = yn_function(qbuf, ynqchars, 'n')) == 'y') {
+            if (mon_interact)
+                *mon_interact = 1;
+            return exchange_objects_with_mon(mtmp, TRUE);
+        }
+        else if (c == 'q') {
+            return 0;
+        }
+        Sprintf(qbuf, "Do you want to give something to %s?", mon_nam(mtmp));
+        if ((c = yn_function(qbuf, ynqchars, 'n')) == 'y') {
+            if (mon_interact)
+                *mon_interact = 1;
+            return exchange_objects_with_mon(mtmp, FALSE);
+        }
+        else { /* 'n' or 'q' */
+            return 0;
+        }
     }
     return timepassed;
 }

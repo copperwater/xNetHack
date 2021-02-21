@@ -304,8 +304,8 @@ boolean resuming;
                         use_unicorn_horn(&uwep, TRUE);
                     }
 
-                    if (getroomtype(u.ux, u.uy) == ABBATOIR && !rn2(7)) {
-                        abbatoir_sickness();
+                    if (getroomtype(u.ux, u.uy) == ABATTOIR && !rn2(7)) {
+                        abattoir_sickness();
                     }
 
                     if (Searching && g.multi >= 0)
@@ -737,9 +737,6 @@ boolean new_game; /* false => restoring an old game */
         return;
     }
 
-    if (Hallucination)
-        pline("NetHack is filmed in front of an undead studio audience.");
-
     /*
      * The "welcome back" message always describes your innate form
      * even when polymorphed or wearing a helm of opposite alignment.
@@ -763,7 +760,7 @@ boolean new_game; /* false => restoring an old game */
           (currentgend && g.urole.name.f) ? g.urole.name.f : g.urole.name.m);
 
     if (Hallucination)
-        pline("xNetHack is filmed in front of a live studio audience.");
+        pline("xNetHack is filmed in front of an undead studio audience.");
 }
 
 #ifdef POSITIONBAR

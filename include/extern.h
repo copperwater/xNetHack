@@ -908,7 +908,7 @@ E int NDECL(max_capacity);
 E boolean FDECL(check_capacity, (const char *));
 E int FDECL(inv_cnt, (BOOLEAN_P));
 E long FDECL(money_cnt, (struct obj *));
-E void NDECL(abbatoir_sickness);
+E void NDECL(abattoir_sickness);
 
 /* ### hacklib.c ### */
 
@@ -2017,7 +2017,7 @@ E int FDECL(pickup, (int));
 E int FDECL(pickup_object, (struct obj *, long, BOOLEAN_P));
 E boolean FDECL(thiefstone_accepts, (struct obj *, struct obj *));
 E void FDECL(thiefstone_teleport, (struct obj *, struct obj *));
-E void FDECL(thiefstone_tele_mon, (struct obj *, struct monst *));
+E boolean FDECL(thiefstone_tele_mon, (struct obj *, struct monst *));
 E int FDECL(query_category, (const char *, struct obj *, int,
                              menu_item **, int));
 E int FDECL(query_objlist, (const char *, struct obj **, int,
@@ -3281,8 +3281,7 @@ E void FDECL(melt_ice_away, (ANY_P *, long));
 E int FDECL(zap_over_floor, (XCHAR_P, XCHAR_P, int, boolean *, SHORT_P));
 E void FDECL(fracture_rock, (struct obj *));
 E boolean FDECL(break_statue, (struct obj *));
-E void FDECL(destroy_item, (int, int));
-E int FDECL(destroy_mitem, (struct monst *, int, int));
+E int FDECL(destroy_items, (struct monst *, int, int));
 E int FDECL(resist, (struct monst *, CHAR_P, int, int));
 E void NDECL(makewish);
 E const char* FDECL(flash_str, (int, BOOLEAN_P));

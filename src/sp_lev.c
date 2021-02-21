@@ -2715,7 +2715,7 @@ struct mkroom *croom;
         case BARRACKS:
         case DEMONDEN:
         case LAVAROOM:
-        case ABBATOIR:
+        case ABATTOIR:
             fill_zoo(croom);
             break;
         }
@@ -3763,7 +3763,7 @@ static const struct {
     { "cocknest", COCKNEST },
     { "leprehall", LEPREHALL },
     { "demon den", DEMONDEN },
-    { "abbatoir", ABBATOIR },
+    { "abattoir", ABATTOIR },
     { "submerged", SUBMERGED },
     { "lava room", LAVAROOM },
     { "statuary", STATUARY },
@@ -4984,7 +4984,7 @@ lua_State *L;
      * level compiler to specify it. They both imply state = "closed", and
      * locked also implies locked = 1.
      */
-    const int UNSPECIFIED = -1;
+#define UNSPECIFIED -1
     static const char *const doorstates[] = {
         "random", "open", "closed", "locked", "nodoor", "broken",
         "secret", NULL
@@ -5094,6 +5094,7 @@ lua_State *L;
 
     return 0;
 }
+#undef UNSPECIFIED
 
 static void
 l_table_getset_feature_flag(L, x,y, name, flag)

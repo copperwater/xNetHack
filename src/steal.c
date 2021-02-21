@@ -67,10 +67,22 @@ findgold(chain, only_coins)
 register struct obj *chain;
 boolean only_coins;
 {
-    while (chain && (chain->material != GOLD
-                     || (only_coins && chain->otyp != GOLD_PIECE)))
+    struct obj* gold = (struct obj *) 0;
+    int ngoldobjs = 0;
+    while (chain) {
+        if (only_coins && chain->otyp == GOLD_PIECE) {
+            /* assume no multiple gold stacks */
+            return chain;
+        }
+        else if (!only_coins && chain->material == GOLD) {
+            ngoldobjs++;
+            if (!rn2(ngoldobjs)) {
+                gold = chain;
+            }
+        }
         chain = chain->nobj;
-    return chain;
+    }
+    return gold;
 }
 
 /*
