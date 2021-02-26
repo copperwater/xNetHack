@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.453 $ $NHDT-Date: 1613292825 2021/02/14 08:53:45 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.463 $ $NHDT-Date: 1614291055 2021/02/25 22:10:55 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -381,8 +381,12 @@ prevent wish request "death wand" from matching Death monster and producing a
 	random wand instead of a wand of death
 grammar bit: "you hear a [AEF] note squeak in the distance" (should be "an")
 curses interface failed to honor menu_xxx option settings for menu interaction
-during engraving, spaces were counted instead of non-spaces
 when an explosion scatters objects, make any that fly over sinks stop there
+output message when changing fastmove mode while cursor targetting
+messages when Minetown watchmen become angry could report "you see an angry
+	guard approaching" even if he was invisible and hero can't see invis
+when autopickup is on but disabled due to being inside a shop, have ^X say so
+don't force fake player monks to always be male
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -509,6 +513,9 @@ changes accompanying sorting of discoveries resulted in omitting very last
 change to can_reach_floor() resulted in hero being unable to reach the floor
 	when held by a lichen
 panic if lua init fails
+change wizard mode command #wizmgender to wizard mode option 'wizmgender'
+engraving with non-blade dulled the weapon anyway (pr #464)
+during engraving, spaces were counted instead of non-spaces
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
@@ -533,6 +540,8 @@ X11: for text map without color, add support for black&white ice; draw it in
 	inverse video to distinguish from ordinary floor
 X11: if perm_invent is set in NETHACKOPTIONS or config file, start with the
 	persistent inventory window displayed
+X11: use visctrl(response) when X11_yn_function() echoes prompt+response in
+	message window
 X11+OSX: after the "bad Atom" fix (below), the persistent inventory window
 	crept downward every time it got updated
 
@@ -668,6 +677,8 @@ X11: avoid 'bad Atom X Error' when perm_invent is enabled (seemingly window
 	manager dependent)
 X11: toggling 'perm_invent' off via 'O' didn't dismiss persistent inventory
 	window
+X11: with 'slow' resource set to False, the pop up yn_function didn't always
+	resize properly when re-used
 X11: (possibly X11+OSX): if persistent inventory was displayed at time of
 	end-of-game prompting, prompting would stall until that window was
 	manually dismissed
@@ -786,12 +797,13 @@ consolidate several monsters that differed only by their gender into their
 	single species
 added wizmgender debugging command to display female monsters in red inverse;
 	helpful for debugging gender-related matters on tty; currently ignored
-	on other window ports
+	on other window ports [later: changed from command to boolean option]
 record number of encountered bones levels in xlogfile
 add bonesless to extended conducts field in xlogfile
 show bones levels information in enlightenment at end of game or in explore
 	and wizmode
 for #wizintrinsic, use any counts entered during menu selection
+give feedback when boolean options are toggled interactively ('O' command)
 
 
 Platform- and/or Interface-Specific New Features
@@ -829,6 +841,8 @@ tiles: male and female variations in monsters.txt; tested only with tile2bmp
 Unix: can define NOSUSPEND in config.h or src/Makefile's CFLAGS to prevent
 	unixconf.h from enabling SUSPEND without need to modify unixconf.h
 X11: implement 'selectsaved', restore via menu of saved games
+X11: echo getline prompt and response (wishes, applying names) to message
+	window and dumplog message history
 
 
 NetHack Community Patches (or Variation) Included
