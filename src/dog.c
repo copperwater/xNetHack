@@ -5,11 +5,10 @@
 
 #include "hack.h"
 
-static int NDECL(pet_type);
+static int pet_type(void);
 
 void
-newedog(mtmp)
-struct monst *mtmp;
+newedog(struct monst *mtmp)
 {
     if (!mtmp->mextra)
         mtmp->mextra = newmextra();
@@ -20,8 +19,7 @@ struct monst *mtmp;
 }
 
 void
-free_edog(mtmp)
-struct monst *mtmp;
+free_edog(struct monst *mtmp)
 {
     if (mtmp->mextra && EDOG(mtmp)) {
         free((genericptr_t) EDOG(mtmp));
@@ -31,8 +29,7 @@ struct monst *mtmp;
 }
 
 void
-initedog(mtmp)
-register struct monst *mtmp;
+initedog(struct monst *mtmp)
 {
     mtmp->mtame = is_domestic(mtmp->data) ? 10 : 5;
     mtmp->mpeaceful = 1;
@@ -54,7 +51,7 @@ register struct monst *mtmp;
 }
 
 static int
-pet_type()
+pet_type(void)
 {
     if (g.urole.petnum != NON_PM)
         return  g.urole.petnum;
@@ -67,10 +64,7 @@ pet_type()
 }
 
 struct monst *
-make_familiar(otmp, x, y, quietly)
-register struct obj *otmp;
-xchar x, y;
-boolean quietly;
+make_familiar(struct obj *otmp, xchar x, xchar y, boolean quietly)
 {
     struct permonst *pm;
     struct monst *mtmp = 0;
@@ -151,7 +145,7 @@ boolean quietly;
 }
 
 struct monst *
-makedog()
+makedog(void)
 {
     register struct monst *mtmp;
     register struct obj *otmp;
@@ -174,7 +168,7 @@ makedog()
     /* default pet names */
     if (!*petname && pettype == PM_LITTLE_DOG) {
         /* All of these names were for dogs. */
-        if (Role_if(PM_CAVEMAN))
+        if (Role_if(PM_CAVE_DWELLER))
             petname = "Slasher"; /* The Warrior */
         if (Role_if(PM_SAMURAI))
             petname = "Hachi"; /* Shibuya Station */
@@ -206,7 +200,7 @@ makedog()
 /* record `last move time' for all monsters prior to level save so that
    mon_arrive() can catch up for lost time when they're restored later */
 void
-update_mlstmv()
+update_mlstmv(void)
 {
     struct monst *mon;
 
@@ -220,7 +214,7 @@ update_mlstmv()
 }
 
 void
-losedogs()
+losedogs(void)
 {
     register struct monst *mtmp, *mtmp0, *mtmp2;
     int dismissKops = 0;
@@ -303,9 +297,7 @@ losedogs()
 
 /* called from resurrect() in addition to losedogs() */
 void
-mon_arrive(mtmp, with_you)
-struct monst *mtmp;
-boolean with_you;
+mon_arrive(struct monst *mtmp, boolean with_you)
 {
     struct trap *t;
     xchar xlocale, ylocale, xyloc, xyflags, wander;
@@ -487,9 +479,8 @@ boolean with_you;
 
 /* heal monster for time spent elsewhere */
 void
-mon_catchup_elapsed_time(mtmp, nmv)
-struct monst *mtmp;
-long nmv; /* number of moves */
+mon_catchup_elapsed_time(struct monst *mtmp,
+                         long nmv) /* number of moves */
 {
     int imv = 0; /* avoid zillions of casts and lint warnings */
 
@@ -587,9 +578,8 @@ long nmv; /* number of moves */
 
 /* called when you move to another level */
 void
-keepdogs(pets_only, stairs)
-boolean pets_only; /* true for ascension or final escape */
-boolean stairs;
+keepdogs(boolean pets_only, /* true for ascension or final escape */
+         boolean stairs)
 {
     register struct monst *mtmp, *mtmp2;
     register struct obj *obj;
@@ -706,11 +696,10 @@ boolean stairs;
 }
 
 void
-migrate_to_level(mtmp, tolev, xyloc, cc)
-register struct monst *mtmp;
-xchar tolev; /* destination level */
-xchar xyloc; /* MIGR_xxx destination xy location: */
-coord *cc;   /* optional destination coordinates */
+migrate_to_level(struct monst *mtmp,
+                 xchar tolev, /* destination level */
+                 xchar xyloc, /* MIGR_xxx destination xy location: */
+                 coord *cc)   /* optional destination coordinates */
 {
     struct obj *obj;
     d_level new_lev;
@@ -767,9 +756,7 @@ coord *cc;   /* optional destination coordinates */
 /* return quality of food; the lower the better */
 /* fungi will eat even tainted food */
 int
-dogfood(mon, obj)
-struct monst *mon;
-register struct obj *obj;
+dogfood(struct monst *mon, struct obj *obj)
 {
     struct permonst *mptr = mon->data, *fptr = 0;
     boolean carni = carnivorous(mptr), herbi = herbivorous(mptr),
@@ -915,10 +902,7 @@ register struct obj *obj;
  * succeeded.
  */
 boolean
-tamedog(mtmp, obj, pacify_only)
-register struct monst *mtmp;
-register struct obj *obj;
-boolean pacify_only;
+tamedog(struct monst *mtmp, struct obj *obj, boolean pacify_only)
 {
     /* The Wiz, Medusa and the quest nemeses aren't even made peaceful. */
     if (mtmp->iswiz || mtmp->data == &mons[PM_MEDUSA]
@@ -1017,9 +1001,7 @@ boolean pacify_only;
  * If the pet wasn't abused and was very tame, it might revive tame.
  */
 void
-wary_dog(mtmp, was_dead)
-struct monst *mtmp;
-boolean was_dead;
+wary_dog(struct monst *mtmp, boolean was_dead)
 {
     struct edog *edog;
     boolean quietly = was_dead;
@@ -1088,8 +1070,7 @@ boolean was_dead;
 }
 
 void
-abuse_dog(mtmp)
-struct monst *mtmp;
+abuse_dog(struct monst *mtmp)
 {
     if (!mtmp->mtame)
         return;

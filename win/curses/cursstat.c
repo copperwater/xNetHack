@@ -30,18 +30,18 @@ static int curses_status_colors[MAXBLSTATS];
 static int hpbar_percent, hpbar_color;
 static int vert_status_dirty;
 
-static void NDECL(draw_status);
-static void FDECL(draw_vertical, (BOOLEAN_P));
-static void FDECL(draw_horizontal, (BOOLEAN_P));
+static void draw_status(void);
+static void draw_vertical(boolean);
+static void draw_horizontal(boolean);
 static void curs_HPbar(char *, int);
 static void curs_stat_conds(int, int, int *, int *, char *, boolean *);
 static void curs_vert_status_vals(int);
 #ifdef STATUS_HILITES
 #ifdef TEXTCOLOR
-static int FDECL(condcolor, (long, unsigned long *));
+static int condcolor(long, unsigned long *);
 #endif
-static int FDECL(condattr, (long, unsigned long *));
-static int FDECL(nhattr2curses, (int));
+static int condattr(long, unsigned long *);
+static int nhattr2curses(int);
 #endif /* STATUS_HILITES */
 
 /* width of a single line in vertical status orientation (one field per line;
@@ -49,7 +49,7 @@ static int FDECL(nhattr2curses, (int));
 #define STATVAL_WIDTH 60 /* overkill; was MAXCO (200), massive overkill */
 
 void
-curses_status_init()
+curses_status_init(void)
 {
     int i;
 
@@ -68,7 +68,7 @@ curses_status_init()
 }
 
 void
-curses_status_finish()
+curses_status_finish(void)
 {
     int i;
 
@@ -136,12 +136,11 @@ curses_status_finish()
 
 static int changed_fields = 0;
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 void
-curses_status_update(fldidx, ptr, chg, percent, color_and_attr, colormasks)
-int fldidx, chg UNUSED,
-    percent, color_and_attr;
-genericptr_t ptr;
-unsigned long *colormasks;
+curses_status_update(int fldidx, genericptr_t ptr, int chg UNUSED, int percent,
+                     int color_and_attr, unsigned long *colormasks)
 {
     long *condptr = (long *) ptr;
     char *text = (char *) ptr;
@@ -205,8 +204,10 @@ unsigned long *colormasks;
     }
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 static void
-draw_status()
+draw_status(void)
 {
     WINDOW *win = curses_get_nhwin(STATUS_WIN);
     orient statorient = (orient) curses_get_window_orientation(STATUS_WIN);
@@ -244,8 +245,7 @@ draw_status()
 
 /* horizontal layout on 2 or 3 lines */
 static void
-draw_horizontal(border)
-boolean border;
+draw_horizontal(boolean border)
 {
 #define blPAD BL_FLUSH
     /* almost all fields already come with a leading space;
@@ -319,12 +319,21 @@ boolean border;
      *  for gold so would recover only 2 columns.  n >>= 10 might have
      *  greater geek appeal but could lead to bug reports and couldn't
      *  be accomplished via simple string truncation.)
+     *
      *  For experience point and score suppression, might try that first
      *  (better chance for column recovery, with "/nM" freeing 5 out of
      *  7+ digits; in rare instances, "/nG" could free 8 out of 10+ digits)
      *  before deciding to remove them altogether.
      *  tty's shorter condition designations combined with comparable
      *  trimming of hunger and encumbrance would be better overall.
+     *
+     *  For first line when hitpointbar is off, treat trailing spaces
+     *  on Title as discardable leading spaces on Str.  (Enabling
+     *  perm_invent without having a wide terminal size results in status
+     *  being narrower than usual and possibly truncating by omitting
+     *  right hand fields, emphasizing the wasted space devoted to
+     *  title's trailing spaces.  Same issue without perm_invent if main
+     *  window gets clipped to fit a narrow terminal.)
      */
 
     number_of_lines = (iflags.wc2_statuslines < 3) ? 2 : 3;
@@ -650,8 +659,7 @@ boolean border;
 
 /* vertical layout, to left or right of map */
 static void
-draw_vertical(border)
-boolean border;
+draw_vertical(boolean border)
 {
     /* for blank lines, the digit prefix is the order in which they get
        removed if we need to shrink to fit within height limit (very rare) */
@@ -986,6 +994,8 @@ curs_HPbar(char *text, /* pre-padded with trailing spaces if short */
 extern const struct conditions_t conditions[]; /* botl.c */
 extern int cond_idx[CONDITION_COUNT];
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 static void
 curs_stat_conds(
     int vert_cond,     /* 0 => horizontal, 1 => vertical */
@@ -1108,6 +1118,8 @@ curs_stat_conds(
     }
     return;
 }
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 /* status_update() sets up values for horizontal status; do vertical */
 void
@@ -1258,9 +1270,7 @@ curs_vert_status_vals(int win_width)
  * be displayed in based on user settings.
  */
 static int
-condcolor(bm, bmarray)
-long bm;
-unsigned long *bmarray;
+condcolor(long bm, unsigned long *bmarray)
 {
     int i;
 
@@ -1274,9 +1284,7 @@ unsigned long *bmarray;
 #endif /* TEXTCOLOR */
 
 static int
-condattr(bm, bmarray)
-long bm;
-unsigned long *bmarray;
+condattr(long bm, unsigned long *bmarray)
 {
     int i, attr = 0;
 
@@ -1310,8 +1318,7 @@ unsigned long *bmarray;
 /* convert tty attributes to curses attributes;
    despite similar names, the mask fields have different values */
 static int
-nhattr2curses(attrmask)
-int attrmask;
+nhattr2curses(int attrmask)
 {
     int result = 0;
 
@@ -1468,7 +1475,7 @@ get_playerrank(char *rank)
     if (Upolyd) {
         int k = 0;
 
-        Strcpy(buf, mons[u.umonnum].mname);
+        Strcpy(buf, pmname(&mons[u.umonnum], flags.female ? FEMALE : MALE));
         while(buf[k] != 0) {
             if ((k == 0 || (k > 0 && buf[k-1] == ' ')) &&
                 'a' <= buf[k] && buf[k] <= 'z')

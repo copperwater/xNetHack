@@ -13,8 +13,7 @@
  * actually represent - newuexp(1) returns how many points are required to
  * achieve experience level 2, etc. */
 long
-newuexp(lev)
-int lev;
+newuexp(int lev)
 {
     /* keep this synced with the status-drawing code in the clients */
     switch (lev) {
@@ -56,7 +55,7 @@ int lev;
 
 /* calculate hp max increase for new level */
 int
-newhp()
+newhp(void)
 {
     int hp, conplus;
 
@@ -112,7 +111,7 @@ newhp()
 
 /* calculate spell power/energy points for new level */
 int
-newpw()
+newpw(void)
 {
     int en = 0, enrnd, enfix;
 
@@ -134,7 +133,7 @@ newpw()
         en = rn1(enrnd, enfix);
         /* energy gain "modifier" */
         switch (Role_switch) {
-        case PM_PRIEST:
+        case PM_CLERIC:
         case PM_WIZARD:
             en *= 2;
             break;
@@ -156,9 +155,7 @@ newpw()
 
 /* return # of exp points for mtmp after nk killed */
 int
-experience(mtmp, nk)
-register struct monst *mtmp;
-register int nk;
+experience(register struct monst *mtmp, register int nk)
 {
     register struct permonst *ptr = mtmp->data;
     int i, tmp, tmp2;
@@ -242,8 +239,7 @@ register int nk;
 }
 
 void
-more_experienced(exper, rexp)
-register int exper, rexp;
+more_experienced(register int exper, register int rexp)
 {
     long oldexp = u.uexp,
          oldrexp = u.urexp,
@@ -281,8 +277,7 @@ register int exper, rexp;
 
 /* e.g., hit by drain life attack */
 void
-losexp(drainer)
-const char *drainer; /* cause of death, if drain should be fatal */
+losexp(const char *drainer) /* cause of death, if drain should be fatal */
 {
     register int num;
 
@@ -352,15 +347,14 @@ const char *drainer; /* cause of death, if drain should be fatal */
  * at a dragon created with a wand of polymorph??
  */
 void
-newexplevel()
+newexplevel(void)
 {
     if (u.ulevel < MAXULEV && u.uexp >= newuexp(u.ulevel))
         pluslvl(TRUE);
 }
 
 void
-pluslvl(incr)
-boolean incr; /* true iff via incremental experience growth */
+pluslvl(boolean incr) /* true iff via incremental experience growth */
 {             /*        (false for potion of gain level)    */
     int hpinc, eninc;
 
@@ -414,8 +408,7 @@ boolean incr; /* true iff via incremental experience growth */
    experience level:  base number of points needed to reach the current
    level plus a random portion of what it takes to get to the next level */
 long
-rndexp(gaining)
-boolean gaining; /* gaining XP via potion vs setting XP for polyself */
+rndexp(boolean gaining) /* gaining XP via potion vs setting XP for polyself */
 {
     long minexp, maxexp, diff, factor, result;
 

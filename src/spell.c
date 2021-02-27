@@ -1,4 +1,4 @@
-/* NetHack 3.7	spell.c	$NHDT-Date: 1607980325 2020/12/14 21:12:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.110 $ */
+/* NetHack 3.7	spell.c	$NHDT-Date: 1611522041 2021/01/24 21:00:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.113 $ */
 /*      Copyright (c) M. Stephenson 1988                          */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -25,25 +25,24 @@
 #define spellet(spell) \
     ((char) ((spell < 26) ? ('a' + spell) : ('A' + spell - 26)))
 
-static int FDECL(spell_let_to_idx, (CHAR_P));
-static boolean FDECL(cursed_book, (struct obj * bp));
-static boolean FDECL(confused_book, (struct obj *));
-static void FDECL(deadbook, (struct obj *));
-static int NDECL(learn);
-static boolean NDECL(rejectcasting);
-static boolean FDECL(getspell, (int *));
-static int FDECL(CFDECLSPEC spell_cmp, (const genericptr,
-                                            const genericptr));
-static void NDECL(sortspells);
-static boolean NDECL(spellsortmenu);
-static boolean FDECL(dospellmenu, (const char *, int, int *));
-static int FDECL(percent_success, (int));
-static int FDECL(energy_cost, (int));
-static int NDECL(throwspell);
-static void NDECL(cast_protection);
-static void FDECL(spell_backfire, (int));
-static int FDECL(spell_hunger, (int));
-static boolean FDECL(spell_aim_step, (genericptr_t, int, int));
+static int spell_let_to_idx(char);
+static boolean cursed_book(struct obj * bp);
+static boolean confused_book(struct obj *);
+static void deadbook(struct obj *);
+static int learn(void);
+static boolean rejectcasting(void);
+static boolean getspell(int *);
+static int QSORTCALLBACK spell_cmp(const genericptr, const genericptr);
+static void sortspells(void);
+static boolean spellsortmenu(void);
+static boolean dospellmenu(const char *, int, int *);
+static int percent_success(int);
+static int energy_cost(int);
+static int throwspell(void);
+static void cast_protection(void);
+static void spell_backfire(int);
+static int spell_hunger(int);
+static boolean spell_aim_step(genericptr_t, int, int);
 
 /* The roles[] table lists the role-specific values for tuning
  * percent_success().
@@ -75,8 +74,7 @@ static const char explodes[] = "radiates explosive energy";
 
 /* convert a letter into a number in the range 0..51, or -1 if not a letter */
 static int
-spell_let_to_idx(ilet)
-char ilet;
+spell_let_to_idx(char ilet)
 {
     int indx;
 
@@ -91,8 +89,7 @@ char ilet;
 
 /* TRUE: book should be destroyed by caller */
 static boolean
-cursed_book(bp)
-struct obj *bp;
+cursed_book(struct obj* bp)
 {
     boolean was_in_use;
     int lev = objects[bp->otyp].oc_level;
@@ -175,8 +172,7 @@ struct obj *bp;
 
 /* study while confused: returns TRUE if the book is destroyed */
 static boolean
-confused_book(spellbook)
-struct obj *spellbook;
+confused_book(struct obj* spellbook)
 {
     if (!rn2(3) && spellbook->otyp != SPE_BOOK_OF_THE_DEAD) {
         spellbook->in_use = TRUE; /* in case called from learn */
@@ -199,8 +195,7 @@ struct obj *spellbook;
 /* special effects for The Book of the Dead; reading it while blind is
    allowed so that needs to be taken into account too */
 static void
-deadbook(book2)
-struct obj *book2;
+deadbook(struct obj* book2)
 {
     struct monst *mtmp, *mtmp2;
     coord mm;
@@ -330,16 +325,17 @@ struct obj *book2;
 /* 'book' has just become cursed; if we're reading it and realize it is
    now cursed, interrupt */
 void
-book_cursed(book)
-struct obj *book;
+book_cursed(struct obj* book)
 {
     if (g.occupation == learn && g.context.spbook.book == book
         && book->cursed && book->bknown && g.multi >= 0)
         stop_occupation();
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 static int
-learn(VOID_ARGS)
+learn(void)
 {
     int i;
     short booktype;
@@ -435,9 +431,10 @@ learn(VOID_ARGS)
     return 0;
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 int
-study_book(spellbook)
-register struct obj *spellbook;
+study_book(register struct obj* spellbook)
 {
     int booktype = spellbook->otyp, i;
     boolean confused = (Confusion != 0);
@@ -586,8 +583,7 @@ register struct obj *spellbook;
 /* a spellbook has been destroyed or the character has changed levels;
    the stored address for the current book is no longer valid */
 void
-book_disappears(obj)
-struct obj *obj;
+book_disappears(struct obj* obj)
 {
     if (obj == g.context.spbook.book) {
         g.context.spbook.book = (struct obj *) 0;
@@ -599,8 +595,7 @@ struct obj *obj;
    so the sequence start reading, get interrupted, name the book, resume
    reading would read the "new" book from scratch */
 void
-book_substitution(old_obj, new_obj)
-struct obj *old_obj, *new_obj;
+book_substitution(struct obj* old_obj, struct obj* new_obj)
 {
     if (old_obj == g.context.spbook.book) {
         g.context.spbook.book = new_obj;
@@ -611,7 +606,7 @@ struct obj *old_obj, *new_obj;
 
 /* called from moveloop() */
 void
-age_spells()
+age_spells(void)
 {
     int i;
     /*
@@ -629,7 +624,7 @@ age_spells()
 /* return True if spellcasting is inhibited;
    only covers a small subset of reasons why casting won't work */
 static boolean
-rejectcasting()
+rejectcasting(void)
 {
     /* rejections which take place before selecting a particular spell */
     if (Stunned) {
@@ -657,8 +652,7 @@ rejectcasting()
  * parameter.  Otherwise return FALSE.
  */
 static boolean
-getspell(spell_no)
-int *spell_no;
+getspell(int* spell_no)
 {
     int nspells, idx;
     char ilet, lets[BUFSZ], qbuf[QBUFSZ];
@@ -687,7 +681,8 @@ int *spell_no;
             Sprintf(lets, "a-zA-%c", 'A' + nspells - 27);
 
         for (;;) {
-            Sprintf(qbuf, "Cast which spell? [%s *?]", lets);
+            Snprintf(qbuf, sizeof(qbuf), "Cast which spell? [%s *?]",
+                     lets);
             ilet = yn_function(qbuf, (char *) 0, '\0');
             if (ilet == '*' || ilet == '?')
                 break; /* use menu mode */
@@ -709,7 +704,7 @@ int *spell_no;
 
 /* the 'Z' command -- cast a spell */
 int
-docast()
+docast(void)
 {
     int spell_no;
 
@@ -719,8 +714,7 @@ docast()
 }
 
 const char *
-spelltypemnemonic(skill)
-int skill;
+spelltypemnemonic(int skill)
 {
     switch (skill) {
     case P_ATTACK_SPELL:
@@ -744,14 +738,13 @@ int skill;
 }
 
 int
-spell_skilltype(booktype)
-int booktype;
+spell_skilltype(int booktype)
 {
     return objects[booktype].oc_skill;
 }
 
 static void
-cast_protection()
+cast_protection(void)
 {
     int l = u.ulevel, loglev = 0,
         gain, natac = u.uac + u.uspellprot;
@@ -832,8 +825,7 @@ cast_protection()
 
 /* attempting to cast a forgotten spell will cause disorientation */
 static void
-spell_backfire(spell)
-int spell;
+spell_backfire(int spell)
 {
     long duration = (long) ((spellev(spell) + 1) * 3), /* 6..24 */
          old_stun = (HStun & TIMEOUT), old_conf = (HConfusion & TIMEOUT);
@@ -875,8 +867,7 @@ int spell;
  * be reduced to. High-intelligence Wizards get to cast spells with less or no
  * hunger penalty. */
 static int
-spell_hunger(hungr)
-int hungr;
+spell_hunger(int hungr)
 {
     /* If hero is a wizard, their current intelligence
      * (bonuses + temporary + current)
@@ -907,9 +898,7 @@ int hungr;
 #define spell_would_hunger() (spell_hunger(100) > 0)
 
 int
-spelleffects(spell, atme)
-int spell;
-boolean atme;
+spelleffects(int spell, boolean atme)
 {
     int energy, damage, n;
     int otyp, skill, role_skill, res = 0;
@@ -1214,9 +1203,7 @@ boolean atme;
 
 /*ARGSUSED*/
 static boolean
-spell_aim_step(arg, x, y)
-genericptr_t arg UNUSED;
-int x, y;
+spell_aim_step(genericptr_t arg UNUSED, int x, int y)
 {
     if (!isok(x,y))
         return FALSE;
@@ -1228,7 +1215,7 @@ int x, y;
 
 /* Choose location where spell takes effect. */
 static int
-throwspell()
+throwspell(void)
 {
     coord cc, uc;
     struct monst *mtmp;
@@ -1246,6 +1233,8 @@ throwspell()
     cc.y = u.uy;
     if (getpos(&cc, TRUE, "the desired position") < 0)
         return 0; /* user pressed ESC */
+    clear_nhwindow(WIN_MESSAGE); /* discard any autodescribe feedback */
+
     /* The number of moves from hero to where the spell drops.*/
     if (distmin(u.ux, u.uy, cc.x, cc.y) > 10) {
         pline_The("spell dissipates over the distance!");
@@ -1256,7 +1245,7 @@ throwspell()
         u.dx = 0;
         u.dy = 0;
         return 1;
-    } else if ((!cansee(cc.x, cc.y)
+    } else if (((cc.x != u.ux || cc.y != u.uy) && !cansee(cc.x, cc.y)
                 && (!(mtmp = m_at(cc.x, cc.y)) || !canspotmon(mtmp)))
                || IS_STWALL(levl[cc.x][cc.y].typ)) {
         Your("mind fails to lock onto that location!");
@@ -1276,8 +1265,7 @@ throwspell()
 /* add/hide/remove/unhide teleport-away on behalf of dotelecmd() to give
    more control to behavior of ^T when used in wizard mode */
 int
-tport_spell(what)
-int what;
+tport_spell(int what)
 {
     static struct tport_hideaway {
         struct spell savespell;
@@ -1333,7 +1321,7 @@ int what;
    they used to be lost entirely, as if never learned, but now we
    just set the memory retention to zero so that they can't be cast */
 void
-losespells()
+losespells(void)
 {
     int n, nzap, i;
 
@@ -1439,10 +1427,8 @@ static const char *spl_sortchoices[NUM_SPELL_SORTBY] = {
 };
 
 /* qsort callback routine */
-static int CFDECLSPEC
-spell_cmp(vptr1, vptr2)
-const genericptr vptr1;
-const genericptr vptr2;
+static int QSORTCALLBACK
+spell_cmp(const genericptr vptr1, const genericptr vptr2)
 {
     /*
      * gather up all of the possible parameters except spell name
@@ -1499,7 +1485,7 @@ const genericptr vptr2;
    list (sortmode == SORTBY_xxx), or sort the spellbook itself to make
    the current display order stick (sortmode == SORTRETAINORDER) */
 static void
-sortspells()
+sortspells(void)
 {
     int i;
 #if defined(SYSV) || defined(DGUX)
@@ -1547,7 +1533,7 @@ sortspells()
 
 /* called if the [sort spells] entry in the view spells menu gets chosen */
 static boolean
-spellsortmenu()
+spellsortmenu(void)
 {
     winid tmpwin;
     menu_item *selected;
@@ -1564,13 +1550,14 @@ spellsortmenu()
             let = 'z'; /* assumes fewer than 26 sort choices... */
             /* separate final choice from others with a blank line */
             any.a_int = 0;
-            add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE, "",
-                     MENU_ITEMFLAGS_NONE);
+            add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
+                     ATR_NONE, "", MENU_ITEMFLAGS_NONE);
         } else {
             let = 'a' + i;
         }
         any.a_int = i + 1;
-        add_menu(tmpwin, NO_GLYPH, &any, let, 0, ATR_NONE, spl_sortchoices[i],
+        add_menu(tmpwin, &nul_glyphinfo, &any, let, 0,
+                 ATR_NONE, spl_sortchoices[i],
                  (i == g.spl_sortmode) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
     }
     end_menu(tmpwin, "View known spells list sorted");
@@ -1591,7 +1578,7 @@ spellsortmenu()
 
 /* the '+' command -- view known spells */
 int
-dovspell()
+dovspell(void)
 {
     char qbuf[QBUFSZ];
     int splnum, othnum;
@@ -1625,11 +1612,13 @@ dovspell()
     return 0;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 static boolean
-dospellmenu(prompt, splaction, spell_no)
-const char *prompt;
-int splaction; /* SPELLMENU_CAST, SPELLMENU_VIEW, or g.spl_book[] index */
-int *spell_no;
+dospellmenu(
+    const char *prompt,
+    int splaction, /* SPELLMENU_CAST, SPELLMENU_VIEW, or g.spl_book[] index */
+    int *spell_no)
 {
     winid tmpwin;
     int i, n, how, splnum;
@@ -1657,8 +1646,8 @@ int *spell_no;
         Sprintf(buf, "Name\tLevel\tCategory\tPw\tRetention");
         fmt = "%s\t%-d\t%s\t%s\t%d";
     }
-    add_menu(tmpwin, NO_GLYPH, &any, 0, 0, iflags.menu_headings, buf,
-             MENU_ITEMFLAGS_NONE);
+    add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
+             iflags.menu_headings, buf, MENU_ITEMFLAGS_NONE);
     for (i = 0; i < MAXSPELL && spellid(i) != NO_SPELL; i++) {
         splnum = !g.spl_orderindx ? i : g.spl_orderindx[i];
         if (energy_cost(splnum) < 0) {
@@ -1672,8 +1661,10 @@ int *spell_no;
                 pw_buf, spellknow(splnum));
 
         any.a_int = splnum + 1; /* must be non-zero */
-        add_menu(tmpwin, NO_GLYPH, &any, spellet(splnum), 0, ATR_NONE, buf,
-                 (splnum == splaction) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
+        add_menu(tmpwin, &nul_glyphinfo, &any, spellet(splnum), 0,
+                 ATR_NONE, buf,
+                 (splnum == splaction)
+                    ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
     }
     how = PICK_ONE;
     if (splaction == SPELLMENU_VIEW) {
@@ -1683,8 +1674,8 @@ int *spell_no;
         } else {
             /* more than 1 spell, add an extra menu entry */
             any.a_int = SPELLMENU_SORT + 1;
-            add_menu(tmpwin, NO_GLYPH, &any, '+', 0, ATR_NONE,
-                     "[sort spells]", MENU_ITEMFLAGS_NONE);
+            add_menu(tmpwin, &nul_glyphinfo, &any, '+', 0,
+                     ATR_NONE, "[sort spells]", MENU_ITEMFLAGS_NONE);
         }
     }
     end_menu(tmpwin, prompt);
@@ -1711,6 +1702,8 @@ int *spell_no;
     }
     return FALSE;
 }
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 struct spellwand {
     short spell;
@@ -1746,8 +1739,7 @@ static const struct spellwand wand_combos[] = {
  * how much extra Pw a difficult spell will take to cast.
  * Original formula by FIQ, with some modifications. */
 static int
-percent_success(spell)
-int spell;
+percent_success(int spell)
 {
     int chance;
     int skill;
@@ -1865,8 +1857,7 @@ int spell;
    Return -1 if the success rate would be 0 and the spell cannot be cast.
 */
 static int
-energy_cost(spell)
-int spell;
+energy_cost(int spell)
 {
     int base_energy = (spellev(spell) * 5); /* 5 <= energy <= 35 */
     int energy = base_energy;
@@ -1897,8 +1888,7 @@ int spell;
 
 /* Learn a spell during creation of the initial inventory */
 void
-initialspell(obj)
-struct obj *obj;
+initialspell(struct obj* obj)
 {
     int i, otyp = obj->otyp;
 

@@ -1,4 +1,4 @@
-/* NetHack 3.7	read.c	$NHDT-Date: 1607945439 2020/12/14 11:30:39 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.205 $ */
+/* NetHack 3.7	read.c	$NHDT-Date: 1613870658 2021/02/21 01:24:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.219 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -12,42 +12,27 @@
     ((mndx) == g.urace.malenum \
      || (g.urace.femalenum != NON_PM && (mndx) == g.urace.femalenum))
 
-/* Allow reading anything (except bare hands), but only encourage scrolls and
-   books.
-   TODO: arguably we want to allow reading the floor, but with !menustyle:full,
-   this would get annoying quick... */
-static int
-readable(obj)
-struct obj *obj;
-{
-    if (!obj)
-        return 0;
-
-    if (obj->oclass == SCROLL_CLASS || obj->oclass == SPBOOK_CLASS)
-        return 2;
-
-    return 1;
-}
-
-static boolean FDECL(learnscrolltyp, (SHORT_P));
-static char *FDECL(erode_obj_text, (struct obj *, char *));
-static void FDECL(stripspe, (struct obj *));
-static void FDECL(p_glow1, (struct obj *));
-static void FDECL(p_glow2, (struct obj *, const char *));
-static void FDECL(flood_space, (int, int, genericptr_t));
-static void FDECL(unflood_space, (int, int, genericptr_t));
-static void FDECL(forget, (int));
-static int FDECL(maybe_tame, (struct monst *, struct obj *));
-static boolean FDECL(can_center_cloud, (int, int));
-static void FDECL(display_stinking_cloud_positions, (int));
-static void FDECL(set_lit, (int, int, genericptr));
-static void NDECL(do_class_genocide);
-static boolean FDECL(create_particular_parse, (char *, struct _create_particular_data *));
-static struct monst * FDECL(create_particular_creation, (struct _create_particular_data *));
+static boolean learnscrolltyp(short);
+static void cap_spe(struct obj *);
+static char *erode_obj_text(struct obj *, char *);
+static int read_ok(struct obj *);
+static void stripspe(struct obj *);
+static void p_glow1(struct obj *);
+static void p_glow2(struct obj *, const char *);
+static void flood_space(int, int, genericptr);
+static void unflood_space(int, int, genericptr);
+static void forget(int);
+static int maybe_tame(struct monst *, struct obj *);
+static boolean can_center_cloud(int, int);
+static void display_stinking_cloud_positions(int);
+static void set_lit(int, int, genericptr);
+static void do_class_genocide(void);
+static boolean create_particular_parse(char *,
+                                       struct _create_particular_data *);
+static struct monst *create_particular_creation(struct _create_particular_data *);
 
 static boolean
-learnscrolltyp(scrolltyp)
-short scrolltyp;
+learnscrolltyp(short scrolltyp)
 {
     if (!objects[scrolltyp].oc_name_known) {
         makeknown(scrolltyp);
@@ -59,8 +44,7 @@ short scrolltyp;
 
 /* also called from teleport.c for scroll of teleportation */
 void
-learnscroll(sobj)
-struct obj *sobj;
+learnscroll(struct obj* sobj)
 {
     /* it's implied that sobj->dknown is set;
        we couldn't be reading this scroll otherwise */
@@ -68,10 +52,18 @@ struct obj *sobj;
         (void) learnscrolltyp(sobj->otyp);
 }
 
+/* max spe is +99, min is -99 */
+static void
+cap_spe(struct obj* obj)
+{
+    if (obj) {
+        if (abs(obj->spe) > SPE_LIM)
+            obj->spe = sgn(obj->spe) * SPE_LIM;
+    }
+}
+
 static char *
-erode_obj_text(otmp, buf)
-struct obj *otmp;
-char *buf;
+erode_obj_text(struct obj* otmp, char* buf)
 {
     int erosion = greatest_erosion(otmp);
 
@@ -82,18 +74,14 @@ char *buf;
 }
 
 char *
-tshirt_text(tshirt, buf)
-struct obj *tshirt;
-char *buf;
+tshirt_text(struct obj* tshirt, char* buf)
 {
     get_rnd_text(SHIRTFILE, buf, hash1(tshirt->o_id), rn2);
     return erode_obj_text(tshirt, buf);
 }
 
 char *
-apron_text(apron, buf)
-struct obj *apron;
-char *buf;
+apron_text(struct obj* apron, char* buf)
 {
     static const char *apron_msgs[] = {
         "Kiss the cook",
@@ -110,8 +98,12 @@ char *buf;
            bomb technician, if you see me running ... try to catch up."
            In nethack, the quote is far more suitable to an alchemy smock
            (particularly since so many of these others are about cooking)
-           than a T-shirt and is paraphrased to simplify/shorten it. */
-        "If you see me running, try to keep up...",
+           than a T-shirt and is paraphrased to simplify/shorten it.
+           [later... turns out that this is already a T-shirt message:
+            "I am a Valkyrie.  If you see me running, try to keep up."
+           so this one has been revised a little:  added alchemist prefix,
+           changed "keep up" to original source's "catch up"] */
+        "I am an alchemist; if you see me running, try to catch up...",
     };
 
     Strcpy(buf, apron_msgs[apron->o_id % SIZE(apron_msgs)]);
@@ -132,8 +124,7 @@ static const char *candy_wrappers[] = {
 
 /* return the text of a candy bar's wrapper */
 const char *
-candy_wrapper_text(obj)
-struct obj *obj;
+candy_wrapper_text(struct obj* obj)
 {
     /* modulo operation is just bullet proofing; 'spe' is already in range */
     return candy_wrappers[obj->spe % SIZE(candy_wrappers)];
@@ -141,8 +132,7 @@ struct obj *obj;
 
 /* assign a wrapper to a candy bar stack */
 void
-assign_candy_wrapper(obj)
-struct obj *obj;
+assign_candy_wrapper(struct obj* obj)
 {
     if (obj->otyp == CANDY_BAR) {
         /* skips candy_wrappers[0] */
@@ -151,9 +141,22 @@ struct obj *obj;
     return;
 }
 
+/* getobj callback for object to read */
+static int
+read_ok(struct obj* obj)
+{
+    if (!obj)
+        return GETOBJ_EXCLUDE;
+
+    if (obj->oclass == SCROLL_CLASS || obj->oclass == SPBOOK_CLASS)
+        return GETOBJ_SUGGEST;
+
+    return GETOBJ_DOWNPLAY;
+}
+
 /* the 'r' command; read a scroll or spell book or various other things */
 int
-doread()
+doread(void)
 {
     static const char find_any_braille[] = "feel any Braille writing.";
     register struct obj *scroll;
@@ -181,7 +184,7 @@ doread()
     if (check_capacity((char *) 0))
         return 0;
 
-    scroll = getobj("read", readable, FALSE, FALSE);
+    scroll = getobj("read", read_ok, GETOBJ_PROMPT);
     if (!scroll)
         return 0;
     otyp = scroll->otyp;
@@ -446,7 +449,7 @@ doread()
                 if (food == SPINACH_TIN) {
                     Strcpy(format_arg, "spinach");
                 } else {
-                    Strcpy(format_arg, mons[scroll->corpsenm].mname);
+                    Strcpy(format_arg, mons[scroll->corpsenm].pmnames[NEUTRAL]);
                 }
                 up_all_words(format_arg);
             }
@@ -474,7 +477,7 @@ doread()
                         mndx = (hash1(seed) % (SPECIAL_PM - LOW_PM)) + LOW_PM;
                         seed += mndx;
                     } while ((mons[mndx].geno & forbidden_geno) != 0);
-                    Strcpy(format_arg, mons[mndx].mname);
+                    Strcpy(format_arg, mons[mndx].pmnames[NEUTRAL]);
                     up_all_words(format_arg);
                 }
                 else {
@@ -534,7 +537,7 @@ doread()
     }
 
     confused = (Confusion != 0);
-#ifdef MAIL
+#ifdef MAIL_STRUCTURES
     if (otyp == SCR_MAIL) {
         confused = FALSE; /* override */
         /* reading mail is a convenience for the player and takes
@@ -604,8 +607,7 @@ doread()
 }
 
 static void
-stripspe(obj)
-register struct obj *obj;
+stripspe(register struct obj* obj)
 {
     if (obj->blessed || obj->spe <= 0) {
         pline1(nothing_happens);
@@ -620,61 +622,55 @@ register struct obj *obj;
 }
 
 static void
-p_glow1(otmp)
-register struct obj *otmp;
+p_glow1(register struct obj* otmp)
 {
     pline("%s briefly.", Yobjnam2(otmp, Blind ? "vibrate" : "glow"));
 }
 
 static void
-p_glow2(otmp, color)
-register struct obj *otmp;
-register const char *color;
+p_glow2(register struct obj* otmp, register const char* color)
 {
     pline("%s%s%s for a moment.", Yobjnam2(otmp, Blind ? "vibrate" : "glow"),
           Blind ? "" : " ", Blind ? "" : hcolor(color));
 }
 
-/* Is the object chargeable?  For purposes of inventory display; it is
-   possible to be able to charge things for which this returns FALSE. */
+/* getobj callback for object to charge */
 int
-is_chargeable(obj)
-struct obj *obj;
+charge_ok(struct obj* obj)
 {
-    if (!obj || obj == &cg.zeroobj)
-        return 0;
+    if (!obj)
+        return GETOBJ_EXCLUDE;
 
     if (obj->oclass == WAND_CLASS)
-        return 2;
+        return GETOBJ_SUGGEST;
 
-    /* known && !oc_name_known is possible after amnesia/mind flayer */
-    if (obj->oclass == RING_CLASS && objects[obj->otyp].oc_charged &&
-        (obj->known || (!obj->dknown && objects[obj->otyp].oc_name_known)))
-        return 2;
+    if (obj->oclass == RING_CLASS && objects[obj->otyp].oc_charged
+        && obj->dknown && objects[obj->otyp].oc_name_known)
+        return GETOBJ_SUGGEST;
 
     if (is_weptool(obj)) /* specific check before general tools */
-        return 0;
+        return GETOBJ_EXCLUDE;
 
     if (obj->oclass == TOOL_CLASS) {
+        /* suggest tools that aren't oc_charged but can still be recharged */
         if (obj->otyp == LANTERN
             || (obj->otyp == OIL_LAMP)
             /* only list magic lamps if they are not identified yet */
             || (obj->otyp == MAGIC_LAMP
                 && !objects[MAGIC_LAMP].oc_name_known)) {
-            return 2;
+            return GETOBJ_SUGGEST;
         }
-        return objects[obj->otyp].oc_charged ? 2 : 0;
+        return objects[obj->otyp].oc_charged ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE;
     }
-
-    return 0; /* why are weapons/armor considered charged anyway? */
+    /* why are weapons/armor considered charged anyway?
+     * make them selectable even so for "feeling of loss" message */
+    return GETOBJ_EXCLUDE_SELECTABLE;
 }
 
 /* recharge an object; curse_bless is -1 if the recharging implement
    was cursed, +1 if blessed, 0 otherwise. */
 void
-recharge(obj, curse_bless)
-struct obj *obj;
-int curse_bless;
+recharge(struct obj* obj, int curse_bless)
 {
     register int n;
     boolean is_cursed, is_blessed;
@@ -792,11 +788,10 @@ int curse_bless;
         case MAGIC_MARKER:
         case TINNING_KIT:
         case EXPENSIVE_CAMERA:
-            if (is_cursed)
+            if (is_cursed) {
                 stripspe(obj);
-            else if (rechrg
-                     && obj->otyp
-                            == MAGIC_MARKER) { /* previously recharged */
+            } else if (rechrg && obj->otyp == MAGIC_MARKER) {
+                /* previously recharged */
                 obj->recharged = 1; /* override increment done above */
                 if (obj->spe < 3)
                     Your("marker seems permanently dried out.");
@@ -822,8 +817,9 @@ int curse_bless;
                     obj->spe = 50;
                 else {
                     int chrg = (int) obj->spe;
-                    if ((chrg + n) > 127)
-                        obj->spe = 127;
+
+                    if (chrg + n > SPE_LIM)
+                        obj->spe = SPE_LIM;
                     else
                         obj->spe += n;
                 }
@@ -901,6 +897,9 @@ int curse_bless;
     not_chargable:
         You("have a feeling of loss.");
     }
+
+    /* prevent enchantment from getting out of range */
+    cap_spe(obj);
 }
 
 /*
@@ -913,8 +912,7 @@ int curse_bless;
  *      howmuch & ALL_SPELLS    = forget all spells
  */
 static void
-forget(howmuch)
-int howmuch;
+forget(int howmuch)
 {
     if (Punished)
         u.bc_felt = 0; /* forget felt ball&chain */
@@ -928,9 +926,7 @@ int howmuch;
 
 /* monster is hit by scroll of taming's effect */
 static int
-maybe_tame(mtmp, sobj)
-struct monst *mtmp;
-struct obj *sobj;
+maybe_tame(struct monst* mtmp, struct obj* sobj)
 {
     int was_tame = mtmp->mtame;
     unsigned was_peaceful = mtmp->mpeaceful;
@@ -954,8 +950,7 @@ struct obj *sobj;
  * NOT the same thing as can_center_cloud.
  */
 boolean
-valid_cloud_pos(x, y)
-int x,y;
+valid_cloud_pos(int x, int y)
 {
     if (!isok(x,y))
         return FALSE;
@@ -966,8 +961,7 @@ int x,y;
  * should have its regular effects, or not because it was out of range.
  */
 boolean
-can_center_cloud(x, y)
-int x, y;
+can_center_cloud(int x, int y)
 {
     if (!valid_cloud_pos(x, y))
         return FALSE;
@@ -975,8 +969,7 @@ int x, y;
 }
 
 static void
-display_stinking_cloud_positions(state)
-int state;
+display_stinking_cloud_positions(int state)
 {
     if (state == 0) {
         tmp_at(DISP_BEAM, cmap_to_glyph(S_goodpos));
@@ -998,9 +991,7 @@ int state;
 
 /* Flood a space. This is a callback function. */
 static void
-flood_space(x, y, poolcnt)
-int x, y;
-genericptr_t poolcnt;
+flood_space(int x, int y, genericptr_t poolcnt)
 {
     struct monst *mtmp;
     struct trap *ttmp;
@@ -1034,9 +1025,7 @@ genericptr_t poolcnt;
 
 /* Unflood (dry up) a space. This is a callback function. */
 static void
-unflood_space(x, y, drycnt)
-int x, y;
-genericptr_t drycnt;
+unflood_space(int x, int y, genericptr_t drycnt)
 {
     if ((levl[x][y].typ != POOL) &&
         (levl[x][y].typ != MOAT) &&
@@ -1053,8 +1042,7 @@ genericptr_t drycnt;
 /* scroll effects; return 1 if we use up the scroll and possibly make it
    become discovered, 0 if caller should take care of those side-effects */
 int
-seffects(sobj)
-struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
+seffects(struct obj* sobj) /* sobj - scroll, or fake spellbook object for scroll-like spell */
 {
     int cval, otyp = sobj->otyp;
     boolean confused = (Confusion != 0), sblessed = sobj->blessed,
@@ -1068,22 +1056,38 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                      || objects[otyp].oc_name_known);
 
     switch (otyp) {
-#ifdef MAIL
-    case SCR_MAIL:
+#ifdef MAIL_STRUCTURES
+    case SCR_MAIL: {
+        boolean odd = (sobj->o_id % 2) == 1;
+
         g.known = TRUE;
-        if (sobj->spe == 2)
+        switch (sobj->spe) {
+        case 2:
             /* "stamped scroll" created via magic marker--without a stamp */
-            pline("This scroll is marked \"postage due\".");
-        else if (sobj->spe)
+            pline("This scroll is marked \"%s\".",
+                  odd ? "Postage Due" : "Return to Sender");
+            break;
+        case 1:
             /* scroll of mail obtained from bones file or from wishing;
-             * note to the puzzled: the game Larn actually sends you junk
-             * mail if you win!
-             */
-            pline(
-    "This seems to be junk mail addressed to the finder of the Eye of Larn.");
-        else
+               note to the puzzled: the game Larn actually sends you junk
+               mail if you win! */
+            pline("This seems to be %s.",
+                  odd ? "a chain letter threatening your luck"
+                  : "junk mail addressed to the finder of the Eye of Larn");
+            break;
+        default:
+#ifdef MAIL
             readmail(sobj);
+#else
+            /* unreachable since with MAIL undefined, sobj->spe won't be 0;
+               as a precaution, be prepared to give arbitrary feedback;
+               caller has already reported that it disappears upon reading */
+            pline("That was a scroll of mail?");
+#endif
         break;
+        }
+        break;
+    }
 #endif
     case SCR_ENCHANT_ARMOR: {
         register schar s;
@@ -1224,7 +1228,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                           ? rnd(3 - otmp->spe / 3)
                           : 1;
         pline("%s %s%s%s%s for a %s.", Yname2(otmp),
-              s == 0 ? "violently " : "",
+              (s == 0) ? "violently " : "",
               otense(otmp, Blind ? "vibrate" : "glow"),
               (!Blind && !same_color) ? " " : "",
               (Blind || same_color)
@@ -1241,8 +1245,15 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
         else if (!scursed && otmp->cursed)
             uncurse(otmp);
         if (s) {
+            int oldspe = otmp->spe;
+            /* despite being schar, it shouldn't be possible for spe to wrap
+               here because it has been capped at 99 and s is quite small;
+               however, might need to change s if it takes spe past 99 */
             otmp->spe += s;
-            adj_abon(otmp, s);
+            cap_spe(otmp); /* make sure that it doesn't exceed SPE_LIM */
+            s = otmp->spe - oldspe; /* cap_spe() might have throttled 's' */
+            if (s) /* skip if it got changed to 0 */
+                adj_abon(otmp, s); /* adjust armor bonus for Dex or Int+Wis */
             g.known = otmp->known;
             /* update shop bill to reflect new higher price */
             if (s > 0 && otmp->unpaid)
@@ -1511,6 +1522,8 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
                                  : sblessed ? rnd(3 - uwep->spe / 3)
                                    : 1))
             sobj = 0; /* nothing enchanted: strange_feeling -> useup */
+        if (uwep)
+            cap_spe(uwep);
         break;
     case SCR_TAMING:
     case SPE_CHARM_MONSTER: {
@@ -1686,7 +1699,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
            was already delivered */
         useup(sobj);
         sobj = 0; /* it's gone */
-        otmp = getobj("charge", is_chargeable, TRUE, FALSE);
+        otmp = getobj("charge", charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT);
         if (otmp)
             recharge(otmp, scursed ? -1 : sblessed ? 1 : 0);
         break;
@@ -1913,8 +1926,7 @@ struct obj *sobj; /* scroll, or fake spellbook object for scroll-like spell */
 }
 
 void
-drop_boulder_on_player(confused, helmet_protects, byu, skip_uswallow)
-boolean confused, helmet_protects, byu, skip_uswallow;
+drop_boulder_on_player(boolean confused, boolean helmet_protects, boolean byu, boolean skip_uswallow)
 {
     int dmg;
     struct obj *otmp2;
@@ -1968,9 +1980,7 @@ boolean confused, helmet_protects, byu, skip_uswallow;
 }
 
 boolean
-drop_boulder_on_monster(x, y, confused, byu)
-int x, y;
-boolean confused, byu;
+drop_boulder_on_monster(int x, int y, boolean confused, boolean byu)
 {
     register struct obj *otmp2;
     register struct monst *mtmp;
@@ -2054,9 +2064,7 @@ boolean confused, byu;
 
 /* overcharging any wand or zapping/engraving cursed wand */
 void
-wand_explode(obj, chg)
-struct obj *obj;
-int chg; /* recharging */
+wand_explode(struct obj* obj, int chg /* recharging */)
 {
     const char *expl = !chg ? "suddenly" : "vibrates violently and";
     int dmg, n, k;
@@ -2113,9 +2121,7 @@ static struct litmon *gremlins = 0;
  * Low-level lit-field update routine.
  */
 static void
-set_lit(x, y, val)
-int x, y;
-genericptr_t val;
+set_lit(int x, int y, genericptr_t val)
 {
     struct monst *mtmp;
     struct litmon *gremlin;
@@ -2135,9 +2141,7 @@ genericptr_t val;
 }
 
 void
-litroom(on, obj)
-register boolean on;
-struct obj *obj;
+litroom(register boolean on, struct obj* obj)
 {
     char is_lit; /* value is irrelevant; we use its address
                     as a `not null' flag for set_lit() */
@@ -2247,7 +2251,7 @@ struct obj *obj;
 }
 
 static void
-do_class_genocide()
+do_class_genocide(void)
 {
     int i, j, immunecnt, gonecnt, goodcnt, class, feel_dead = 0, ll_done = 0;
     char buf[BUFSZ] = DUMMY;
@@ -2268,7 +2272,7 @@ do_class_genocide()
             return;
 
         class = name_to_monclass(buf, (int *) 0);
-        if (class == 0 && (i = name_to_mon(buf)) != NON_PM)
+        if (class == 0 && (i = name_to_mon(buf, (int *) 0)) != NON_PM)
             class = mons[i].mlet;
         immunecnt = gonecnt = goodcnt = 0;
         for (i = LOW_PM; i < NUMMONS; i++) {
@@ -2310,7 +2314,7 @@ do_class_genocide()
             if (mons[i].mlet == class) {
                 char nam[BUFSZ];
 
-                Strcpy(nam, makeplural(mons[i].mname));
+                Strcpy(nam, makeplural(mons[i].pmnames[NEUTRAL]));
                 /* Although "genus" is Latin for race, the hero benefits
                  * from both race and role; thus genocide affects either.
                  */
@@ -2386,12 +2390,12 @@ do_class_genocide()
                         named = type_is_pname(&mons[i]) ? TRUE : FALSE;
                         uniq = (mons[i].geno & G_UNIQ) ? TRUE : FALSE;
                         /* one special case */
-                        if (i == PM_HIGH_PRIEST)
+                        if (i == PM_HIGH_CLERIC)
                             uniq = FALSE;
 
                         You("aren't permitted to genocide %s%s.",
                             (uniq && !named) ? "the " : "",
-                            (uniq || named) ? mons[i].mname : nam);
+                            (uniq || named) ? mons[i].pmnames[NEUTRAL] : nam);
                     }
                 }
             }
@@ -2410,8 +2414,8 @@ do_class_genocide()
 #define PLAYER 2
 #define ONTHRONE 4
 void
-do_genocide(how)
-int how;
+do_genocide(int how)
+/* how: */
 /* 0 = no genocide; create monsters (cursed scroll) */
 /* 1 = normal genocide */
 /* 3 = forced genocide of player */
@@ -2426,7 +2430,7 @@ int how;
     if (how & PLAYER) {
         mndx = u.umonster; /* non-polymorphed mon num */
         ptr = &mons[mndx];
-        Strcpy(buf, ptr->mname);
+        Strcpy(buf, pmname(ptr, Ugender));
         killplayer++;
     } else {
         for (i = 0;; i++) {
@@ -2451,7 +2455,7 @@ int how;
                 return;
             }
 
-            mndx = name_to_mon(buf);
+            mndx = name_to_mon(buf, (int *) 0);
             if (mndx == NON_PM || (g.mvitals[mndx].mvflags & G_GENOD)) {
                 pline("Such creatures %s exist in this world.",
                       (mndx == NON_PM) ? "do not" : "no longer");
@@ -2497,15 +2501,15 @@ int how;
     which = "all ";
     if (Hallucination) {
         if (Upolyd)
-            Strcpy(buf, g.youmonst.data->mname);
+            Strcpy(buf, pmname(g.youmonst.data, flags.female ? FEMALE : MALE));
         else {
             Strcpy(buf, (flags.female && g.urole.name.f) ? g.urole.name.f
                                                        : g.urole.name.m);
             buf[0] = lowc(buf[0]);
         }
     } else {
-        Strcpy(buf, ptr->mname); /* make sure we have standard singular */
-        if ((ptr->geno & G_UNIQ) && ptr != &mons[PM_HIGH_PRIEST])
+        Strcpy(buf, ptr->pmnames[NEUTRAL]); /* make sure we have standard singular */
+        if ((ptr->geno & G_UNIQ) && ptr != &mons[PM_HIGH_CLERIC])
             which = !type_is_pname(ptr) ? "the " : "";
     }
     if (how & REALLY) {
@@ -2584,8 +2588,7 @@ int how;
 }
 
 void
-punish(sobj)
-struct obj *sobj;
+punish(struct obj* sobj)
 {
     struct obj *reuse_ball = (sobj && sobj->otyp == HEAVY_IRON_BALL)
                                 ? sobj : (struct obj *) 0;
@@ -2613,7 +2616,6 @@ struct obj *sobj;
         setworn(mkobj(BALL_CLASS, TRUE), W_BALL);
     else
         setworn(reuse_ball, W_BALL);
-    uball->spe = 1; /* special ball (see save) */
 
     /*
      *  Place ball & chain if not swallowed.  If swallowed, the ball & chain
@@ -2629,7 +2631,7 @@ struct obj *sobj;
 
 /* remove the ball and chain */
 void
-unpunish()
+unpunish(void)
 {
     struct obj *savechain = uchain;
 
@@ -2638,8 +2640,7 @@ unpunish()
     newsym(uchain->ox, uchain->oy);
     setworn((struct obj *) 0, W_CHAIN); /* sets 'uchain' to Null */
     dealloc_obj(savechain);
-    /* ball persists */
-    uball->spe = 0;
+    /* the chain is gone but the no longer attached ball persists */
     setworn((struct obj *) 0, W_BALL); /* sets 'uball' to Null */
 }
 
@@ -2648,14 +2649,11 @@ unpunish()
  * revive one, the disoriented creature becomes a zombie
  */
 boolean
-cant_revive(mtype, revival, from_obj)
-int *mtype;
-boolean revival;
-struct obj *from_obj;
+cant_revive(int* mtype, boolean revival, struct obj* from_obj)
 {
     /* SHOPKEEPERS can be revived now */
     if (*mtype == PM_GUARD || (*mtype == PM_SHOPKEEPER && !revival)
-        || *mtype == PM_HIGH_PRIEST || *mtype == PM_ALIGNED_PRIEST
+        || *mtype == PM_HIGH_CLERIC || *mtype == PM_ALIGNED_CLERIC
         || *mtype == PM_ANGEL) {
         *mtype = PM_HUMAN_ZOMBIE;
         return TRUE;
@@ -2673,10 +2671,9 @@ struct obj *from_obj;
 }
 
 static boolean
-create_particular_parse(str, d)
-char *str;
-struct _create_particular_data *d;
+create_particular_parse(char* str, struct _create_particular_data* d)
 {
+    int gender_name_var = NEUTRAL;
     char *bufp = str;
     char *tmpp;
 
@@ -2684,6 +2681,7 @@ struct _create_particular_data *d;
     d->monclass = MAXMCLASSES;
     d->which = g.urole.malenum; /* an arbitrary index into mons[] */
     d->fem = -1; /* gender not specified */
+    d->genderconf = -1;  /* no confusion on which gender to assign */
     d->randmonst = FALSE;
     d->maketame = d->makepeaceful = d->makehostile = FALSE;
     d->sleeping = d->saddled = d->invisible = d->hidden = FALSE;
@@ -2746,7 +2744,23 @@ struct _create_particular_data *d;
         d->randmonst = TRUE;
         return TRUE;
     }
-    d->which = name_to_mon(bufp);
+    d->which = name_to_mon(bufp, &gender_name_var);
+    /*
+     * With the introduction of male and female monster names
+     * in 3.7, preserve that detail.
+     *
+     * If d->fem is already set to MALE or FEMALE at this juncture, it means
+     * one of those terms was explicitly specified.
+     */
+    if (d->fem == MALE || d->fem == FEMALE) {     /* explicity expressed */
+        if ((gender_name_var != NEUTRAL) && (d->fem != gender_name_var)) {
+            /* apparent selection incompatibility */
+            d->genderconf = gender_name_var;        /* resolve later */
+        }
+        /* otherwise keep the value of d->fem, as it's okay */
+    } else {  /* no explicit gender term was specified */
+        d->fem = gender_name_var;
+    }
     if (d->which >= LOW_PM)
         return TRUE; /* got one */
     d->monclass = name_to_monclass(bufp, &d->which);
@@ -2770,8 +2784,7 @@ struct _create_particular_data *d;
 }
 
 static struct monst *
-create_particular_creation(d)
-struct _create_particular_data *d;
+create_particular_creation(struct _create_particular_data* d)
 {
     struct permonst *whichpm = NULL;
     int i, mx, my, firstchoice = NON_PM;
@@ -2785,18 +2798,49 @@ struct _create_particular_data *d;
             char buf[BUFSZ];
 
             Sprintf(buf, "Creating %s instead; force %s?",
-                    mons[d->which].mname, mons[firstchoice].mname);
+                    mons[d->which].pmnames[NEUTRAL],
+                    mons[firstchoice].pmnames[NEUTRAL]);
             if (yn(buf) == 'y')
                 d->which = firstchoice;
         }
         whichpm = &mons[d->which];
     }
     for (i = 0; i < d->quan; i++) {
+        long mmflags = NO_MM_FLAGS;
+
         if (d->monclass != MAXMCLASSES)
             whichpm = mkclass(d->monclass, 0);
         else if (d->randmonst)
             whichpm = rndmonst();
-        mtmp = makemon(whichpm, u.ux, u.uy, NO_MM_FLAGS);
+        if (d->genderconf == -1) {
+            /* no confict exists between explicit gender term and
+               the specified monster name */
+            if (d->fem != -1
+                && (!whichpm || (!is_male(whichpm) && !is_female(whichpm))))
+                mmflags |= (d->fem == FEMALE) ? MM_FEMALE
+                               : (d->fem == MALE) ? MM_MALE : 0;
+        } else {
+            /* conundrum alert: an explicit gender term conflicts with an
+               explicit gender-tied naming term (i.e. male cavewoman) */
+
+            /* option not gone with: name overrides the explicit gender as
+               commented out here */
+            /*  d->fem = d->genderconf; */
+
+            /*  option chosen: let the explicit gender term (male or female)
+                override the gender-tied naming term, so leave d->fem as-is */
+
+               mmflags |= (d->fem == FEMALE) ? MM_FEMALE
+                               : (d->fem == MALE) ? MM_MALE : 0;
+
+            /* another option would be to consider it a faulty specification
+               and reject the request completely and produce a random monster
+               with a gender matching that specified instead (i.e. there is
+               no such thing as a male cavewoman) */
+            /* whichpm = rndmonst(); */
+            /* mmflags |= (d->fem == FEMALE) ? MM_FEMALE : MM_MALE; */
+        }
+        mtmp = makemon(whichpm, u.ux, u.uy, mmflags);
         if (!mtmp) {
             /* quit trying if creation failed and is going to repeat */
             if (d->monclass == MAXMCLASSES && !d->randmonst)
@@ -2805,9 +2849,6 @@ struct _create_particular_data *d;
             continue;
         }
         mx = mtmp->mx, my = mtmp->my;
-        /* 'is_FOO()' ought to be called 'always_FOO()' */
-        if (d->fem != -1 && !is_male(mtmp->data) && !is_female(mtmp->data))
-            mtmp->female = d->fem; /* ignored for is_neuter() */
         if (d->maketame) {
             (void) tamedog(mtmp, (struct obj *) 0, FALSE);
         } else if (d->makepeaceful || d->makehostile) {
@@ -2877,14 +2918,17 @@ struct _create_particular_data *d;
  * created.
  */
 struct monst *
-create_particular()
+create_particular(void)
 {
-    char buf[BUFSZ] = DUMMY, *bufp;
-    int  tryct = 5;
+#define CP_TRYLIM 5
     struct _create_particular_data d;
+    char *bufp, buf[BUFSZ], prompt[QBUFSZ];
+    int  tryct = CP_TRYLIM, altmsg = 0;
 
+    buf[0] = '\0'; /* for EDIT_GETLIN */
+    Strcpy(prompt, "Create what kind of monster?");
     do {
-        getlin("Create what kind of monster? [type the name or symbol]", buf);
+        getlin(prompt, buf);
         bufp = mungspaces(buf);
         if (*bufp == '\033')
             return NULL;
@@ -2893,7 +2937,15 @@ create_particular()
             break;
 
         /* no good; try again... */
+        if (*bufp || altmsg || tryct < 2) {
         pline("I've never heard of such monsters.");
+        } else {
+            pline("Try again (type * for random, ESC to cancel).");
+            ++altmsg;
+        }
+        /* when a second try is needed, expand the prompt */
+        if (tryct == CP_TRYLIM)
+            Strcat(prompt, " [type name or symbol]");
     } while (--tryct > 0);
 
     if (!tryct)

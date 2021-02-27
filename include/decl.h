@@ -532,6 +532,9 @@ struct trapinfo {
 typedef struct {
     xchar gnew; /* perhaps move this bit into the rm structure. */
     int glyph;
+#ifndef UNBUFFERED_GLYPHINFO
+    glyph_info glyphinfo;
+#endif
 } gbuf_entry;
 
 enum vanq_order_modes {
@@ -634,7 +637,8 @@ struct role_filter {
 struct _create_particular_data {
     int quan;
     int which;
-    int fem;
+    int fem;        /* -1, MALE, FEMALE, NEUTRAL */
+    int genderconf;    /* conflicting gender */
     char monclass;
     boolean randmonst;
     boolean maketame, makepeaceful, makehostile;
@@ -706,19 +710,21 @@ struct instance_globals {
     coord clicklook_cc;
     winid en_win;
     boolean en_via_menu;
-    int last_multi;
+    long last_command_count;
 
     /* dbridge.c */
     struct entity occupants[ENTITIES];
 
     /* decl.c */
-    int NDECL((*occupation));
-    int NDECL((*afternmv));
+    int (*occupation)(void);
+    int (*afternmv)(void);
     const char *hname; /* name of the game (argv[0] of main) */
     int hackpid; /* current process id */
     char chosen_windowtype[WINTYPELEN];
     int bases[MAXOCLASSES + 1];
     int multi;
+    char command_line[COLNO];
+    long command_count;
     const char *multi_reason;
     int nroom;
     int nsubroom;
@@ -1218,6 +1224,8 @@ struct const_globals {
 };
 
 E const struct const_globals cg;
+
+E const glyph_info nul_glyphinfo;
 
 #undef E
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-#set -x
+set -x
 
 if [ -z "$TRAVIS_BUILD_DIR" ]; then
 	export DJGPP_TOP=$(pwd)/lib/djgpp
@@ -8,7 +8,7 @@ else
 fi
 
 if [ -z "$GCCVER" ]; then
-	export GCCVER=gcc1010
+	export GCCVER=gcc1020
 fi
 
 if [ -z "$LUA_VERSION" ]; then
@@ -21,7 +21,8 @@ if [ ! -d "$(pwd)/lib" ]; then
 fi
 
 #DJGPP_URL="https://github.com/andrewwutw/build-djgpp/releases/download/v2.9/"
-DJGPP_URL="https://github.com/andrewwutw/build-djgpp/releases/download/v3.0/"
+#DJGPP_URL="https://github.com/andrewwutw/build-djgpp/releases/download/v3.0/"
+DJGPP_URL="https://github.com/andrewwutw/build-djgpp/releases/download/v3.1/"
 if [ "$(uname)" = "Darwin" ]; then
     #Mac
     DJGPP_FILE="djgpp-osx-$GCCVER.tar.bz2"
@@ -56,7 +57,7 @@ if [ ! -f "$DJGPP_FILE" ]; then
         #Mac
 	curl -L $DJGPP_URL -o $DJGPP_FILE
    else
-        wget --no-hsts "$DJGPP_URL"
+        wget --quiet --no-hsts "$DJGPP_URL"
    fi
 fi
 
@@ -71,7 +72,7 @@ if [ ! -d djgpp/cwsdpmi ]; then
       	#Mac
 	curl http://sandmann.dotster.com/cwsdpmi/csdpmi7b.zip -o csdpmi7b.zip
     else
-	wget --no-hsts http://sandmann.dotster.com/cwsdpmi/csdpmi7b.zip
+	wget --quiet --no-hsts http://sandmann.dotster.com/cwsdpmi/csdpmi7b.zip
     fi
     cd djgpp
     mkdir -p cwsdpmi

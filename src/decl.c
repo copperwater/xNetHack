@@ -39,7 +39,6 @@ struct engr *head_engr;
 #ifdef TEXTCOLOR
 /*
  *  This must be the same order as used for buzz() in zap.c.
- *  (They're only used in mapglyph.c so probably shouldn't be here.)
  */
 const int zapcolors[NUM_ZAP] = {
     HI_ZAP,     /* 0 - missile */
@@ -154,9 +153,6 @@ NEARDATA struct savefile_info sfcap, sfrestinfo, sfsaveinfo;
 const char *ARGV0;
 #endif
 
-/* support for lint.h */
-unsigned nhUse_dummy = 0;
-
 #define IVMAGIC 0xdeadbeef
 
 #ifdef GCC_WARN
@@ -240,7 +236,7 @@ const struct instance_globals g_init = {
     UNDEFINED_VALUES, /* clicklook_cc */
     WIN_ERR, /* en_win */
     FALSE, /* en_via_menu */
-    UNDEFINED_VALUE, /* last_multi */
+    UNDEFINED_VALUE, /* last_command_count */
 
     /* dbridge.c */
     UNDEFINED_VALUES, /* occupants */
@@ -253,7 +249,9 @@ const struct instance_globals g_init = {
     UNDEFINED_VALUES, /* chosen_windowtype */
     DUMMY, /* bases */
     0, /* multi */
-    NULL, /* g.multi_reason */
+    UNDEFINED_VALUES, /* command_line */
+    0, /* command_count */
+    NULL, /* multi_reason */
     0, /* nroom */
     0, /* nsubroom */
     0, /* occtime */
@@ -692,10 +690,14 @@ const struct const_globals cg = {
 char *fuzzer_log[FUZZER_LOG_SIZE] = DUMMY;
 long fuzzer_log_idx = 0;
 
+/* glyph, color, ttychar, symidx, glyphflags */
+const glyph_info nul_glyphinfo =
+    { NO_GLYPH, NO_COLOR, ' ', 0, MG_UNEXPL };
+
 #define ZERO(x) memset(&x, 0, sizeof(x))
 
 void
-decl_globals_init()
+decl_globals_init(void)
 {
     g = g_init;
 

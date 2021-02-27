@@ -70,6 +70,16 @@ Example:
  local loc = nh.getmap(x,y);
  nh.pline("Map location at (" .. x .. "," .. y .. ) is " .. (loc.lit ? "lit" : "unlit") );
 
+
+=== get_config
+
+Get current value of a boolean or a compound configuration option.
+
+Example:
+
+ local wt = nh.get_config("windowtype");
+
+
 === gettrap
 
 Get trap info at x,y
@@ -156,6 +166,27 @@ Example:
 
  local selected = nh.menu("prompt", default, pickX, { "a" = "option a", "b" = "option b" });
  local selected = nh.menu("prompt", default, pickX, { {key:"a", text:"option a"}, {key:"b", text:"option b"} } );
+
+
+=== parse_config
+
+Parse string as if it was read from a config file.
+Always call parse_config_errors afterwards to check for any parsing errors.
+
+Example:
+
+ nh.parse_config("OPTIONS=color");
+
+
+=== parse_config_errors
+
+Returns any errors found when parsing a config file string with parse_config.
+
+Example:
+
+ nh.parse_config("OPTIONS=color\nOPTIONS=!color");
+ local errors = nh.parse_config_errors();
+ nh.pline("Line: " .. errors[1].line .. ", " .. errors[1].error);
 
 
 === pline
@@ -337,7 +368,7 @@ Initialize the map with a random generator of a certain type.
 Example:
 
  des.level_init({ style = "solidfill", fg = " " });
- des.level_init({ style = "mines", fg = ".", bg = "}", smoothed=1, joined=1, lit=0 })
+ des.level_init({ style = "mines", fg = ".", bg = "}", smoothed=true, joined=true, lit=0 })
  des.level_init({ style = "maze", corrwid = 3, wallthick = 1, deadends = false });
 
 === levregion
@@ -522,7 +553,7 @@ fields:
 | yalign    | Vertical alignment on a rough 3x3 grid. Default is "random".
 | lit       | Is the room lit or unlit? Defaults to -1 (random).
 | filled    | Is the room filled as per the room type. Defaults to 1 (filled).
-| joined    | Is the room joined to the rest of the level with corridors? Default is 1 (joined).
+| joined    | Is the room joined to the rest of the level with corridors? Default is true.
 | contents  | A function called with one parameter, a table with "width" and "height", the room width and height, excluding the walls. All coordinates in the function will be relative to the room.
 |===
 

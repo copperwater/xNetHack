@@ -40,10 +40,11 @@
  *                       random intervals.
  */
 
-static boolean FDECL(md_start, (coord *));
-static boolean FDECL(md_stop, (coord *, coord *));
-static boolean FDECL(md_rush, (struct monst *, int, int));
-static void FDECL(newmail, (struct mail_info *));
+static boolean md_start(coord *);
+static boolean md_stop(coord *, coord *);
+static boolean md_rush(struct monst *, int, int);
+static void newmail(struct mail_info *);
+static void read_simplemail(const char *, boolean);
 
 #if !defined(UNIX) && !defined(VMS)
 int mustgetmail = -1;
@@ -57,9 +58,9 @@ int mustgetmail = -1;
 #if !defined(SUNOS4) && !(defined(ULTRIX) && defined(__GNUC__))
 /* DO trust all SVR4 to typedef uid_t in <sys/types.h> (probably to a long) */
 #if defined(POSIX_TYPES) || defined(SVR4) || defined(HPUX)
-extern struct passwd *FDECL(getpwuid, (uid_t));
+extern struct passwd *getpwuid(uid_t);
 #else
-extern struct passwd *FDECL(getpwuid, (int));
+extern struct passwd *getpwuid(int);
 #endif
 #endif
 #endif
@@ -84,14 +85,14 @@ static long laststattime;
 #endif
 
 void
-free_maildata()
+free_maildata(void)
 {
     if (mailbox)
         free((genericptr_t) mailbox), mailbox = (char *) 0;
 }
 
 void
-getmailstatus()
+getmailstatus(void)
 {
     if (mailbox) {
         ; /* no need to repeat the setup */
@@ -143,8 +144,7 @@ getmailstatus()
  * from newmail() and newphone().
  */
 static boolean
-md_start(startp)
-coord *startp;
+md_start(coord *startp)
 {
     coord testcc;     /* scratch coordinates */
     int row;          /* current row we are checking */
@@ -242,9 +242,8 @@ coord *startp;
  * its point randomly, which is not what we want.
  */
 static boolean
-md_stop(stopp, startp)
-coord *stopp;  /* stopping position (we fill it in) */
-coord *startp; /* starting position (read only) */
+md_stop(coord *stopp,  /* stopping position (we fill it in) */
+        coord *startp) /* starting position (read only) */
 {
     int x, y, distance, min_distance = -1;
 
@@ -283,9 +282,8 @@ static NEARDATA const char *mail_text[] = { "Gangway!", "Look out!",
  * TRUE otherwise.
  */
 static boolean
-md_rush(md, tx, ty)
-struct monst *md;
-register int tx, ty; /* destination of mail daemon */
+md_rush(struct monst *md,
+        register int tx, register int ty) /* destination of mail daemon */
 {
     struct monst *mon;            /* displaced monster */
     register int dx, dy;          /* direction counters */
@@ -386,8 +384,7 @@ register int tx, ty; /* destination of mail daemon */
 /* Deliver a scroll of mail. */
 /*ARGSUSED*/
 static void
-newmail(info)
-struct mail_info *info;
+newmail(struct mail_info *info)
 {
     struct monst *md;
     coord start, stop;
@@ -437,7 +434,7 @@ struct mail_info *info;
 #if !defined(UNIX) && !defined(VMS)
 
 void
-ckmailstatus()
+ckmailstatus(void)
 {
     if (u.uswallow || !flags.biff)
         return;
@@ -456,10 +453,11 @@ ckmailstatus()
     }
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 /*ARGSUSED*/
 void
-readmail(otmp)
-struct obj *otmp UNUSED;
+readmail(struct obj *otmp UNUSED)
 {
     static const char *junk[] = {
         "Report bugs to <%s>.", /*** must be first entry ***/
@@ -527,12 +525,14 @@ struct obj *otmp UNUSED;
         pline("It reads:  \"%s\"", junk[rn2(SIZE(junk))]);
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 #endif /* !UNIX && !VMS */
 
 #ifdef UNIX
 
 void
-ckmailstatus()
+ckmailstatus(void)
 {
     ck_server_admin_msg();
 
@@ -569,10 +569,8 @@ ckmailstatus()
 }
 
 #if defined(SIMPLE_MAIL) || defined(SERVER_ADMIN_MSG)
-void
-read_simplemail(mbox, adminmsg)
-char *mbox;
-boolean adminmsg;
+static void
+read_simplemail(const char *mbox, boolean adminmsg)
 {
     FILE* mb = fopen(mbox, "r");
     char curline[128], *msg;
@@ -657,7 +655,7 @@ boolean adminmsg;
 #endif /* SIMPLE_MAIL || ADMIN_MSG */
 
 void
-ck_server_admin_msg()
+ck_server_admin_msg(void)
 {
 #ifdef SERVER_ADMIN_MSG
     static struct stat ost,nst;
@@ -676,8 +674,7 @@ ck_server_admin_msg()
 
 /*ARGSUSED*/
 void
-readmail(otmp)
-struct obj *otmp UNUSED;
+readmail(struct obj *otmp UNUSED)
 {
 #ifdef DEF_MAILREADER /* This implies that UNIX is defined */
     register const char *mr = 0;
@@ -712,12 +709,12 @@ struct obj *otmp UNUSED;
 
 #ifdef VMS
 
-extern NDECL(struct mail_info *parse_next_broadcast);
+extern struct mail_info *parse_next_broadcast(void);
 
 volatile int broadcasts = 0;
 
 void
-ckmailstatus()
+ckmailstatus(void)
 {
     struct mail_info *brdcst;
 
@@ -736,8 +733,7 @@ ckmailstatus()
 }
 
 void
-readmail(otmp)
-struct obj *otmp;
+readmail(struct obj *otmp)
 {
 #ifdef SHELL /* can't access mail reader without spawning subprocess */
     const char *txt, *cmd;

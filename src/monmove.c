@@ -7,45 +7,42 @@
 #include "mfndpos.h"
 #include "artifact.h"
 
-static void FDECL(watch_on_duty, (struct monst *));
-static int FDECL(disturb, (struct monst *));
-static void FDECL(release_hero, (struct monst *));
-static void FDECL(distfleeck, (struct monst *, int *, int *, int *));
-static int FDECL(m_arrival, (struct monst *));
-static boolean FDECL(stuff_prevents_passage, (struct monst *));
-static int FDECL(vamp_shift, (struct monst *, struct permonst *,
-                                  BOOLEAN_P));
+static void watch_on_duty(struct monst *);
+static int disturb(struct monst *);
+static void release_hero(struct monst *);
+static void distfleeck(struct monst *, int *, int *, int *);
+static int m_arrival(struct monst *);
+static boolean mitem_practical(struct obj *);
+static boolean mitem_magical(struct obj *);
+static boolean mitem_indigestion(struct obj *);
+static boolean mitem_rock(struct obj *);
+static boolean mitem_gem(struct obj *);
+static boolean m_balks_at_approaching(struct monst *);
+static boolean stuff_prevents_passage(struct monst *);
+static int vamp_shift(struct monst *, struct permonst *, boolean);
 
 void
-fuzl_mtmp(s, mtmp)
-char *s;
-struct monst *mtmp;
+fuzl_mtmp(const char *s, struct monst *mtmp)
 {
     char buf[BUFSZ];
     if (mtmp)
-        Sprintf(buf, "%s(%p, %i,%i)", s, mtmp, mtmp->mx, mtmp->my);
+        Sprintf(buf, "%s(%p, %i,%i)", s, (void *) mtmp, mtmp->mx, mtmp->my);
     else
         Sprintf(buf, "ERROR %s has null monster", s);
     FUZLOG(buf);
 }
 
 void
-fuzl_p2(str, s1, m1, s2, m2)
-char *str;
-char *s1;
-struct monst *m1;
-char *s2;
-struct monst *m2;
+fuzl_p2(const char *str, const char *s1, struct monst *m1, const char *s2,
+        struct monst *m2)
 {
     char buf[BUFSZ];
-    Sprintf(buf, "%s(%s=%p,%s=%p)", str, s1, m1, s2,m2);
+    Sprintf(buf, "%s(%s=%p,%s=%p)", str, s1, (void *) m1, s2, (void *) m2);
     FUZLOG(buf);
 }
 
 void
-fuzl_xy(str, x, y)
-char *str;
-int x,y;
+fuzl_xy(const char *str, int x, int y)
 {
     char buf[BUFSZ];
     Sprintf(buf, "%s(%i,%i)", str, x,y);
@@ -53,9 +50,7 @@ int x,y;
 }
 
 void
-fuzl_xyi(str, x, y, i)
-char *str;
-int x,y,i;
+fuzl_xyi(const char *str, int x, int y, int  i)
 {
     char buf[BUFSZ];
     Sprintf(buf, "%s(%i, %i,%i)", str, i,x,y);
@@ -64,9 +59,9 @@ int x,y,i;
 
 /* check whether a monster is carrying a locking/unlocking tool */
 boolean
-monhaskey(mon, for_unlocking)
-struct monst *mon;
-boolean for_unlocking; /* true => credit card ok, false => not ok */
+monhaskey(
+    struct monst *mon,
+    boolean for_unlocking) /* true => credit card ok, false => not ok */
 {
     if (for_unlocking && m_carrying(mon, CREDIT_CARD))
         return TRUE;
@@ -74,9 +69,7 @@ boolean for_unlocking; /* true => credit card ok, false => not ok */
 }
 
 void
-mon_yells(mon, shout)
-struct monst *mon;
-const char *shout;
+mon_yells(struct monst* mon, const char* shout)
 {
     if (Deaf) {
         if (canspotmon(mon))
@@ -99,8 +92,7 @@ const char *shout;
 }
 
 static void
-watch_on_duty(mtmp)
-register struct monst *mtmp;
+watch_on_duty(register struct monst* mtmp)
 {
     int x, y;
 
@@ -127,8 +119,7 @@ register struct monst *mtmp;
 }
 
 int
-dochugw(mtmp)
-register struct monst *mtmp;
+dochugw(register struct monst* mtmp)
 {
     int x = mtmp->mx, y = mtmp->my;
     boolean already_saw_mon = !g.occupation ? 0 : canspotmon(mtmp);
@@ -156,9 +147,7 @@ register struct monst *mtmp;
 }
 
 boolean
-onscary(x, y, mtmp)
-int x, y;
-struct monst *mtmp;
+onscary(int x, int y, struct monst* mtmp)
 {
     /* creatures who are directly resistant to magical scaring:
      * humans aren't monsters
@@ -217,9 +206,7 @@ struct monst *mtmp;
 
 /* regenerate lost hit points */
 void
-mon_regen(mon, digest_meal)
-struct monst *mon;
-boolean digest_meal;
+mon_regen(struct monst* mon, boolean digest_meal)
 {
     if (mon->mhp < mon->mhpmax && (g.moves % 20 == mon->m_id % 20
                                    || regenerates(mon->data)))
@@ -240,8 +227,7 @@ boolean digest_meal;
  * jolted awake.
  */
 static int
-disturb(mtmp)
-register struct monst *mtmp;
+disturb(register struct monst* mtmp)
 {
     /*
      * + Ettins are hard to surprise.
@@ -275,8 +261,7 @@ register struct monst *mtmp;
 
 /* ungrab/expel held/swallowed hero */
 static void
-release_hero(mon)
-struct monst *mon;
+release_hero(struct monst* mon)
 {
     if (mon == u.ustuck) {
         if (u.uswallow) {
@@ -289,8 +274,7 @@ struct monst *mon;
 }
 
 struct monst *
-find_pmmonst(pm)
-int pm;
+find_pmmonst(int pm)
 {
     struct monst *mtmp = 0;
 
@@ -309,9 +293,7 @@ int pm;
    will eat it if there is no queen bee on the level; return 1: mon died,
    0: mon ate jelly and lived; -1: mon didn't eat jelly to use its move */
 int
-bee_eat_jelly(mon, obj)
-struct monst *mon;
-struct obj *obj;
+bee_eat_jelly(struct monst* mon, struct obj* obj)
 {
     int m_delay;
     struct monst *mtmp = find_pmmonst(PM_QUEEN_BEE);
@@ -350,11 +332,11 @@ struct obj *obj;
  * if first, only adds fleetime if monster isn't already fleeing
  * if fleemsg, prints a message about new flight, otherwise, caller should */
 void
-monflee(mtmp, fleetime, first, fleemsg)
-struct monst *mtmp;
-int fleetime;
-boolean first;
-boolean fleemsg;
+monflee(
+    struct monst *mtmp,
+    int fleetime,
+    boolean first,
+    boolean fleemsg)
 {
     /* shouldn't happen; maybe warrants impossible()? */
     if (DEADMONSTER(mtmp))
@@ -398,9 +380,7 @@ boolean fleemsg;
 }
 
 static void
-distfleeck(mtmp, inrange, nearby, scared)
-register struct monst *mtmp;
-int *inrange, *nearby, *scared;
+distfleeck(register struct monst* mtmp, int* inrange, int* nearby, int* scared)
 {
     int seescaryx, seescaryy;
     boolean sawscary = FALSE;
@@ -447,8 +427,7 @@ int *inrange, *nearby, *scared;
 /* perform a special one-time action for a monster; returns -1 if nothing
    special happened, 0 if monster uses up its turn, 1 if monster is killed */
 static int
-m_arrival(mon)
-struct monst *mon;
+m_arrival(struct monst* mon)
 {
     mon->mstrategy &= ~STRAT_ARRIVE; /* always reset */
 
@@ -460,8 +439,7 @@ struct monst *mon;
  * code. --KAA
  */
 int
-dochug(mtmp)
-register struct monst *mtmp;
+dochug(register struct monst* mtmp)
 {
     register struct permonst *mdat;
     register int tmp = 0;
@@ -821,9 +799,8 @@ register struct monst *mtmp;
 }
 
 /* Return true if a "practical" monster should be interested in this obj. */
-boolean
-mitem_practical(obj)
-struct obj * obj;
+static boolean
+mitem_practical(struct obj *obj)
 {
     switch(obj->oclass) {
     case WEAPON_CLASS:
@@ -838,41 +815,36 @@ struct obj * obj;
 
 /* Return true if a monster that likes magical items should be interested in
  * this obj. */
-boolean
-mitem_magical(obj)
-struct obj * obj;
+static boolean
+mitem_magical(struct obj *obj)
 {
     return objects[obj->otyp].oc_magic;
 }
 
 /* Return true if a monster (gelatinous cube) shouldn't try to eat this obj. */
-boolean
-mitem_indigestion(obj)
-struct obj * obj;
+static boolean
+mitem_indigestion(struct obj *obj)
 {
     return (obj->oclass == BALL_CLASS || obj->oclass == ROCK_CLASS);
 }
 
 /* Return true if a giant should be interested in this obj. (They like all
  * rocks.)*/
-boolean
-mitem_rock(obj)
-struct obj * obj;
+static boolean
+mitem_rock(struct obj *obj)
 {
     return (obj->oclass == ROCK_CLASS);
 }
 
 /* Return true if a gem-liking monster should be interested in this obj. */
-boolean
-mitem_gem(obj)
-struct obj * obj;
+static boolean
+mitem_gem(struct obj *obj)
 {
     return (obj->oclass == GEM_CLASS);
 }
 
 boolean
-itsstuck(mtmp)
-register struct monst *mtmp;
+itsstuck(register struct monst* mtmp)
 {
     if (sticks(g.youmonst.data) && mtmp == u.ustuck && !u.uswallow) {
         pline("%s cannot escape from you!", Monnam(mtmp));
@@ -889,12 +861,13 @@ register struct monst *mtmp;
  * those should be used instead. This function does that evaluation.
  */
 boolean
-should_displace(mtmp, poss, info, cnt, gx, gy)
-struct monst *mtmp;
-coord *poss; /* coord poss[9] */
-long *info;  /* long info[9] */
-int cnt;
-xchar gx, gy;
+should_displace(
+    struct monst *mtmp,
+    coord *poss, /* coord poss[9] */
+    long *info,  /* long info[9] */
+    int cnt,
+    xchar gx,
+    xchar gy)
 {
     int shortest_with_displacing = -1;
     int shortest_without_displacing = -1;
@@ -926,9 +899,7 @@ xchar gx, gy;
 }
 
 boolean
-m_digweapon_check(mtmp, nix, niy)
-struct monst *mtmp;
-xchar nix,niy;
+m_digweapon_check(struct monst* mtmp, xchar nix, xchar niy)
 {
     boolean can_tunnel = 0;
     struct obj *mw_tmp = MON_WEP(mtmp);
@@ -960,8 +931,7 @@ xchar nix,niy;
 /* returns the number of walls in the four cardinal directions that could
    hold up a web */
 static int
-count_webbing_walls(x, y)
-xchar x, y;
+count_webbing_walls(xchar x, xchar y)
 {
     int xx, yy;
     int ct = 0;
@@ -985,6 +955,35 @@ xchar x, y;
     return ct;
 }
 
+/* does monster want to avoid you? */
+static boolean
+m_balks_at_approaching(struct monst* mtmp)
+{
+    /* peaceful, far away, or can't see you */
+    if (mtmp->mpeaceful
+        || (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) >= 5*5)
+        || !m_canseeu(mtmp))
+        return FALSE;
+
+    /* has ammo+launcher or can spit */
+    if (m_has_launcher_and_ammo(mtmp)
+        || attacktype(mtmp->data, AT_SPIT))
+        return TRUE;
+
+    /* is using a polearm and in range */
+    if (MON_WEP(mtmp) && is_pole(MON_WEP(mtmp))
+        && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= MON_POLE_DIST)
+        return TRUE;
+
+    /* breath attack, and hp loss or breath not used */
+    if (attacktype(mtmp->data, AT_BREA)
+        && ((mtmp->mhp < (mtmp->mhpmax+1) / 3)
+            || !mtmp->mspec_used))
+        return TRUE;
+
+    return FALSE;
+}
+
 /* Return values:
  * 0: did not move, but can still attack and do other stuff.
  * 1: moved, possibly can attack.
@@ -992,9 +991,7 @@ xchar x, y;
  * 3: did not move, and can't do anything else either.
  */
 int
-m_move(mtmp, after)
-register struct monst *mtmp;
-register int after;
+m_move(register struct monst* mtmp, register int after)
 {
     int appr, etmp;
     xchar gx, gy, nix, niy, chcnt;
@@ -1154,11 +1151,8 @@ register int after;
                     > ((ygold = findgold(g.invent, TRUE)) ? ygold->quan : 0L))))
             appr = -1;
 
-        /* hostiles with ranged weapons or spit attack try to stay away */
-        if (!mtmp->mpeaceful
-            && (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) < 5*5)
-            && m_canseeu(mtmp) &&
-            (m_has_launcher_and_ammo(mtmp) || attacktype(mtmp->data, AT_SPIT)))
+        /* hostiles with ranged weapon or attack try to stay away */
+        if (m_balks_at_approaching(mtmp))
             appr = -1;
 
         if (!should_see && can_track(ptr)) {
@@ -1685,9 +1679,7 @@ register int after;
  * (mtmp died) or 3 (mtmp made its move).
  */
 int
-m_move_aggress(mtmp, x, y)
-struct monst * mtmp;
-xchar x, y;
+m_move_aggress(struct monst* mtmp, xchar x, xchar y)
 {
     struct monst *mtmp2;
     int mstatus;
@@ -1719,8 +1711,7 @@ xchar x, y;
  * Return 0 if the monster can't conceal itself.
  */
 int
-concealed_spot(x, y)
-register int x, y;
+concealed_spot(int x, int y)
 {
     if (OBJ_AT(x, y))
         return 2;
@@ -1738,8 +1729,7 @@ register int x, y;
 }
 
 void
-dissolve_bars(x, y)
-register int x, y;
+dissolve_bars(register int x, register int y)
 {
     levl[x][y].typ = (Is_special(&u.uz) || *in_rooms(x, y, 0)) ? ROOM : CORR;
     levl[x][y].flags = 0;
@@ -1749,16 +1739,14 @@ register int x, y;
 }
 
 boolean
-closed_door(x, y)
-register int x, y;
+closed_door(register int x, register int y)
 {
     return (boolean) (IS_DOOR(levl[x][y].typ)
                       && door_is_closed(&levl[x][y]));
 }
 
 boolean
-accessible(x, y)
-register int x, y;
+accessible(register int x, register int y)
 {
     int levtyp = levl[x][y].typ;
 
@@ -1771,8 +1759,7 @@ register int x, y;
 
 /* decide where the monster thinks you are standing */
 void
-set_apparxy(mtmp)
-register struct monst *mtmp;
+set_apparxy(register struct monst* mtmp)
 {
     boolean notseen, notthere, gotu;
     int disp, mx = mtmp->mux, my = mtmp->muy;
@@ -1850,9 +1837,10 @@ register struct monst *mtmp;
  * location however.
  */
 boolean
-undesirable_disp(mtmp, x, y)
-struct monst *mtmp; /* barging creature */
-xchar x, y; /* spot 'mtmp' is considering moving to */
+undesirable_disp(
+    struct monst *mtmp, /* barging creature */
+    xchar x,
+    xchar y) /* spot 'mtmp' is considering moving to */
 {
     boolean is_pet = (mtmp && mtmp->mtame && !mtmp->isminion);
     struct trap *trap = t_at(x, y);
@@ -1891,8 +1879,7 @@ xchar x, y; /* spot 'mtmp' is considering moving to */
  * Used by can_ooze() and can_fog().
  */
 static boolean
-stuff_prevents_passage(mtmp)
-struct monst *mtmp;
+stuff_prevents_passage(struct monst* mtmp)
 {
     struct obj *chain, *obj;
 
@@ -1929,8 +1916,7 @@ struct monst *mtmp;
 }
 
 boolean
-can_ooze(mtmp)
-struct monst *mtmp;
+can_ooze(struct monst* mtmp)
 {
     if (!amorphous(mtmp->data) || stuff_prevents_passage(mtmp))
         return FALSE;
@@ -1939,8 +1925,7 @@ struct monst *mtmp;
 
 /* monster can change form into a fog if necessary */
 boolean
-can_fog(mtmp)
-struct monst *mtmp;
+can_fog(struct monst* mtmp)
 {
     if (!(g.mvitals[PM_FOG_CLOUD].mvflags & G_GENOD) && is_vampshifter(mtmp)
         && !Protection_from_shape_changers && !stuff_prevents_passage(mtmp))
@@ -1949,10 +1934,10 @@ struct monst *mtmp;
 }
 
 static int
-vamp_shift(mon, ptr, domsg)
-struct monst *mon;
-struct permonst *ptr;
-boolean domsg;
+vamp_shift(
+    struct monst *mon,
+    struct permonst *ptr,
+    boolean domsg)
 {
     int reslt = 0;
     char oldmtype[BUFSZ];
@@ -1987,9 +1972,7 @@ boolean domsg;
  * Because of doortraps, if TRUE is returned, the caller should check to see if
  * the monster died during the process. */
 boolean
-mon_open_door(mtmp, x, y)
-struct monst * mtmp;
-xchar x, y;
+mon_open_door(struct monst * mtmp, xchar x, xchar y)
 {
     struct rm *here = &levl[x][y];
     boolean can_open = can_open_doors(mtmp->data);

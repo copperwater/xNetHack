@@ -5,14 +5,13 @@
 
 #include "hack.h"
 
-static boolean FDECL(no_bones_level, (d_level *));
-static void FDECL(goodfruit, (int));
-static void FDECL(resetobjs, (struct obj *, BOOLEAN_P));
-static boolean FDECL(fixuporacle, (struct monst *));
+static boolean no_bones_level(d_level *);
+static void goodfruit(int);
+static void resetobjs(struct obj *, boolean);
+static boolean fixuporacle(struct monst *);
 
 static boolean
-no_bones_level(lev)
-d_level *lev;
+no_bones_level(d_level *lev)
 {
     s_level *sptr;
 
@@ -36,8 +35,7 @@ d_level *lev;
  * chain of fruit types, we know to only save the types that exist.
  */
 static void
-goodfruit(id)
-int id;
+goodfruit(int id)
 {
     struct fruit *f = fruit_from_indx(-id);
 
@@ -46,9 +44,7 @@ int id;
 }
 
 static void
-resetobjs(ochain, restore)
-struct obj *ochain;
-boolean restore;
+resetobjs(struct obj *ochain, boolean restore)
 {
     struct obj *otmp, *nobj;
 
@@ -202,8 +198,7 @@ boolean restore;
 /* while loading bones, strip out text possibly supplied by old player
    that might accidentally or maliciously disrupt new player's display */
 void
-sanitize_name(namebuf)
-char *namebuf;
+sanitize_name(char *namebuf)
 {
     int c;
     boolean strip_8th_bit = (WINDOWPORT("tty")
@@ -229,10 +224,9 @@ char *namebuf;
 
 /* called by savebones(); also by finish_paybill(shk.c) */
 void
-drop_upon_death(mtmp, cont, x, y)
-struct monst *mtmp; /* monster if hero turned into one (other than ghost) */
-struct obj *cont; /* container if hero is turned into a statue */
-int x, y;
+drop_upon_death(struct monst *mtmp, /* monster if hero turned into one (other than ghost) */
+                struct obj *cont,   /* container if hero is turned into a statue */
+                int x, int y)
 {
     struct obj *otmp;
 
@@ -274,8 +268,7 @@ int x, y;
 /* possibly restore oracle's room and/or put her back inside it; returns
    False if she's on the wrong level and should be removed, True otherwise */
 static boolean
-fixuporacle(oracle)
-struct monst *oracle;
+fixuporacle(struct monst *oracle)
 {
     coord cc;
     int ridx, o_ridx;
@@ -324,7 +317,7 @@ struct monst *oracle;
 /* check whether bones are feasible on this level; not whether bones *will* be
  * made from this level, but whether bones *could* be made from this level */
 boolean
-can_make_bones()
+can_make_bones(void)
 {
     register struct trap *ttmp;
 
@@ -353,10 +346,7 @@ can_make_bones()
 
 /* save bones and possessions of a deceased adventurer */
 void
-savebones(how, when, corpse)
-int how;
-time_t when;
-struct obj *corpse;
+savebones(int how, time_t when, struct obj *corpse)
 {
     int x, y;
     struct trap *ttmp;
@@ -572,7 +562,7 @@ struct obj *corpse;
 }
 
 int
-getbones()
+getbones(void)
 {
     int ok;
     NHFILE *nhfp = (NHFILE *) 0;
@@ -644,12 +634,12 @@ getbones()
              * set to the magic DEFUNCT_MONSTER cookie value.
              */
             for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-                if (has_mname(mtmp))
-                    sanitize_name(MNAME(mtmp));
+                if (has_mgivenname(mtmp))
+                    sanitize_name(MGIVENNAME(mtmp));
                 if (mtmp->mhpmax == DEFUNCT_MONSTER) {
                     if (wizard) {
                         debugpline1("Removing defunct monster %s from bones.",
-                                    mtmp->data->mname);
+                                    mtmp->data->pmnames[NEUTRAL]);
                     }
                     mongone(mtmp);
                 } else
@@ -685,8 +675,7 @@ getbones()
 
 /* Create a ebones structure on mtmp */
 void
-newebones(mtmp)
-struct monst *mtmp;
+newebones(struct monst *mtmp)
 {
     if (!mtmp->mextra)
         mtmp->mextra = newmextra();
@@ -694,6 +683,28 @@ struct monst *mtmp;
         EBONES(mtmp) = (struct ebones *) alloc(sizeof(struct ebones));
         (void) memset((genericptr_t) EBONES(mtmp), 0, sizeof(struct ebones));
     }
+}
+
+/* check whether current level contains bones from a particular player */
+boolean
+bones_include_name(const char *name)
+{
+    struct cemetery *bp;
+    int len;
+    char buf[BUFSZ];
+
+    /* prepare buffer by appending terminal hyphen to name, to avoid partial
+     * matches producing false positives */
+    Strcpy(buf, name);
+    Strcat(buf, "-");
+    len = strlen(buf);
+
+    for (bp = g.level.bonesinfo; bp; bp = bp->next) {
+        if (!strncmp(bp->who, buf, len))
+            return TRUE;
+    }
+
+    return FALSE;
 }
 
 /*bones.c*/

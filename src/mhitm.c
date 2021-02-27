@@ -9,24 +9,22 @@
 static const char brief_feeling[] =
     "have a %s feeling for a moment, then it passes.";
 
-static int FDECL(hitmm, (struct monst *, struct monst *,
-                         struct attack *, struct obj *, int));
-static int FDECL(gazemm, (struct monst *, struct monst *, struct attack *));
-static int FDECL(gulpmm, (struct monst *, struct monst *, struct attack *));
-static int FDECL(explmm, (struct monst *, struct monst *, struct attack *));
-static int FDECL(mdamagem, (struct monst *, struct monst *,
-                            struct attack *, struct obj *, int));
-static void FDECL(mswingsm, (struct monst *, struct monst *, struct obj *));
-static void FDECL(noises, (struct monst *, struct attack *));
-static void FDECL(pre_mm_attack, (struct monst *, struct monst *));
-static void FDECL(missmm, (struct monst *, struct monst *, struct attack *));
-static int FDECL(passivemm, (struct monst *, struct monst *,
-                             BOOLEAN_P, int, struct obj *));
+static int hitmm(struct monst *, struct monst *, struct attack *, struct obj *,
+                 int);
+static int gazemm(struct monst *, struct monst *, struct attack *);
+static int gulpmm(struct monst *, struct monst *, struct attack *);
+static int explmm(struct monst *, struct monst *, struct attack *);
+static int mdamagem(struct monst *, struct monst *, struct attack *,
+                    struct obj *, int);
+static void mswingsm(struct monst *, struct monst *, struct obj *);
+static void noises(struct monst *, struct attack *);
+static void pre_mm_attack(struct monst *, struct monst *);
+static void missmm(struct monst *, struct monst *, struct attack *);
+static int passivemm(struct monst *, struct monst *, boolean, int,
+                     struct obj *);
 
 static void
-noises(magr, mattk)
-register struct monst *magr;
-register struct attack *mattk;
+noises(register struct monst *magr, register struct attack *mattk)
 {
     boolean farq = (distu(magr->mx, magr->my) > 15);
 
@@ -40,8 +38,7 @@ register struct attack *mattk;
 }
 
 static void
-pre_mm_attack(magr, mdef)
-struct monst *magr, *mdef;
+pre_mm_attack(struct monst *magr, struct monst *mdef)
 {
     boolean showit = FALSE;
 
@@ -74,11 +71,12 @@ struct monst *magr, *mdef;
     }
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 static
 void
-missmm(magr, mdef, mattk)
-register struct monst *magr, *mdef;
-struct attack *mattk;
+missmm(register struct monst *magr, register struct monst *mdef,
+       struct attack *mattk)
 {
     const char *fmt;
     char buf[BUFSZ];
@@ -95,6 +93,8 @@ struct attack *mattk;
         noises(magr, mattk);
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /*
  *  fightm()  -- fight some other monster
  *
@@ -108,8 +108,7 @@ struct attack *mattk;
  */
  /* have monsters fight each other */
 int
-fightm(mtmp)
-register struct monst *mtmp;
+fightm(register struct monst *mtmp)
 {
     register struct monst *mon, *nmon;
     int result, has_u_swallowed;
@@ -183,9 +182,8 @@ register struct monst *mtmp;
  *                 returns same results as mattackm().
  */
 int
-mdisplacem(magr, mdef, quietly)
-register struct monst *magr, *mdef;
-boolean quietly;
+mdisplacem(register struct monst *magr, register struct monst *mdef,
+           boolean quietly)
 {
     struct permonst *pa, *pd;
     int tx, ty, fx, fy;
@@ -200,7 +198,7 @@ boolean quietly;
     if (m_at(fx, fy) != magr || m_at(tx, ty) != mdef)
         return MM_MISS;
 
-    /* The 1 in 7 failure below matches the chance in attack()
+    /* The 1 in 7 failure below matches the chance in do_attack()
      * for pet displacement.
      */
     if (!rn2(7))
@@ -279,8 +277,7 @@ boolean quietly;
  * In the case of exploding monsters, the monster dies as well.
  */
 int
-mattackm(magr, mdef)
-register struct monst *magr, *mdef;
+mattackm(register struct monst *magr, register struct monst *mdef)
 {
     int i,          /* loop counter */
         tmp,        /* amour class difference */
@@ -549,11 +546,8 @@ register struct monst *magr, *mdef;
 
 /* Returns the result of mdamagem(). */
 static int
-hitmm(magr, mdef, mattk, mwep, dieroll)
-register struct monst *magr, *mdef;
-struct attack *mattk;
-struct obj *mwep;
-int dieroll;
+hitmm(register struct monst *magr, register struct monst *mdef,
+      struct attack *mattk, struct obj *mwep, int dieroll)
 {
     boolean weaponhit = ((mattk->aatyp == AT_WEAP
                           || (mattk->aatyp == AT_CLAW && mwep)));
@@ -582,29 +576,29 @@ int dieroll;
             buf[0] = '\0';
             switch (mattk->aatyp) {
             case AT_BITE:
-                Sprintf(buf, "%s bites", magr_name);
+                Snprintf(buf, sizeof(buf), "%s bites", magr_name);
                 break;
             case AT_STNG:
-                Sprintf(buf, "%s stings", magr_name);
+                Snprintf(buf, sizeof(buf), "%s stings", magr_name);
                 break;
             case AT_BUTT:
-                Sprintf(buf, "%s butts", magr_name);
+                Snprintf(buf, sizeof(buf), "%s butts", magr_name);
                 break;
             case AT_TUCH:
-                Sprintf(buf, "%s touches", magr_name);
+                Snprintf(buf, sizeof(buf), "%s touches", magr_name);
                 break;
             case AT_TENT:
-                Sprintf(buf, "%s tentacles suck", s_suffix(magr_name));
+                Snprintf(buf, sizeof(buf), "%s tentacles suck", s_suffix(magr_name));
                 break;
             case AT_HUGS:
                 if (magr != u.ustuck) {
-                    Sprintf(buf, "%s squeezes", magr_name);
+                    Snprintf(buf, sizeof(buf), "%s squeezes", magr_name);
                     break;
                 }
                 /*FALLTHRU*/
             default:
                 if (!weaponhit || !mwep || !mwep->oartifact)
-                    Sprintf(buf, "%s hits", magr_name);
+                    Snprintf(buf, sizeof(buf), "%s hits", magr_name);
                 break;
             }
             if (*buf)
@@ -618,9 +612,8 @@ int dieroll;
 
 /* Returns the same values as mdamagem(). */
 static int
-gazemm(magr, mdef, mattk)
-register struct monst *magr, *mdef;
-struct attack *mattk;
+gazemm(register struct monst *magr, register struct monst *mdef,
+       struct attack *mattk)
 {
     char buf[BUFSZ];
 
@@ -672,8 +665,7 @@ struct attack *mattk;
 
 /* return True if magr is allowed to swallow mdef, False otherwise */
 boolean
-engulf_target(magr, mdef)
-struct monst *magr, *mdef;
+engulf_target(struct monst *magr, struct monst *mdef)
 {
     struct rm *lev;
     int dx, dy;
@@ -704,9 +696,8 @@ struct monst *magr, *mdef;
 
 /* Returns the same values as mattackm(). */
 static int
-gulpmm(magr, mdef, mattk)
-register struct monst *magr, *mdef;
-register struct attack *mattk;
+gulpmm(register struct monst *magr, register struct monst *mdef,
+       register struct attack *mattk)
 {
     xchar ax, ay, dx, dy;
     int status;
@@ -794,9 +785,7 @@ register struct attack *mattk;
 }
 
 static int
-explmm(magr, mdef, mattk)
-struct monst *magr, *mdef;
-struct attack *mattk;
+explmm(struct monst *magr, struct monst *mdef, struct attack *mattk)
 {
     int result;
 
@@ -843,11 +832,8 @@ struct attack *mattk;
  *  See comment at top of mattackm(), for return values.
  */
 static int
-mdamagem(magr, mdef, mattk, mwep, dieroll)
-struct monst *magr, *mdef;
-struct attack *mattk;
-struct obj *mwep;
-int dieroll;
+mdamagem(struct monst *magr, struct monst *mdef,
+         struct attack *mattk, struct obj *mwep, int dieroll)
 {
     struct permonst *pa = magr->data, *pd = mdef->data;
     struct mhitm_data mhm;
@@ -945,9 +931,7 @@ int dieroll;
 }
 
 int
-mon_poly(magr, mdef, dmg)
-struct monst *magr, *mdef;
-int dmg;
+mon_poly(struct monst *magr, struct monst *mdef, int dmg)
 {
     if (mdef == &g.youmonst) {
         if (Antimagic) {
@@ -1014,9 +998,7 @@ int dmg;
 }
 
 void
-paralyze_monst(mon, amt)
-struct monst *mon;
-int amt;
+paralyze_monst(struct monst *mon, int amt)
 {
     if (amt > 127)
         amt = 127;
@@ -1029,9 +1011,7 @@ int amt;
 
 /* `mon' is hit by a sleep attack; return 1 if it's affected, 0 otherwise */
 int
-sleep_monst(mon, amt, how)
-struct monst *mon;
-int amt, how;
+sleep_monst(struct monst *mon, int amt, int how)
 {
     if (resists_sleep(mon)
         || (how >= 0 && resist(mon, (char) how, 0, NOTELL))) {
@@ -1052,8 +1032,7 @@ int amt, how;
 
 /* sleeping grabber releases, engulfer doesn't; don't use for paralysis! */
 void
-slept_monst(mon)
-struct monst *mon;
+slept_monst(struct monst *mon)
 {
     if ((mon->msleeping || !mon->mcanmove) && mon == u.ustuck
         && !sticks(g.youmonst.data) && !u.uswallow) {
@@ -1063,9 +1042,7 @@ struct monst *mon;
 }
 
 void
-rustm(mdef, obj)
-struct monst *mdef;
-struct obj *obj;
+rustm(struct monst *mdef, struct obj *obj)
 {
     int dmgtyp = -1, chance = 1;
 
@@ -1088,9 +1065,7 @@ struct obj *obj;
 }
 
 static void
-mswingsm(magr, mdef, otemp)
-struct monst *magr, *mdef;
-struct obj *otemp;
+mswingsm(struct monst *magr, struct monst *mdef, struct obj *otemp)
 {
     if (flags.verbose && !Blind && mon_visible(magr)) {
         pline("%s %s %s%s %s at %s.", Monnam(magr),
@@ -1105,11 +1080,8 @@ struct obj *otemp;
  * handled above.  Returns same values as mattackm.
  */
 static int
-passivemm(magr, mdef, mhitb, mdead, mwep)
-register struct monst *magr, *mdef;
-boolean mhitb;
-int mdead;
-struct obj *mwep;
+passivemm(register struct monst *magr, register struct monst *mdef,
+          boolean mhitb, int mdead, struct obj *mwep)
 {
     register struct permonst *mddat = mdef->data;
     register struct permonst *madat = magr->data;
@@ -1278,9 +1250,7 @@ struct obj *mwep;
 
 /* hero or monster has successfully hit target mon with drain energy attack */
 void
-xdrainenergym(mon, givemsg)
-struct monst *mon;
-boolean givemsg;
+xdrainenergym(struct monst *mon, boolean givemsg)
 {
     if (mon->mspec_used < 20 /* limit draining */
         && (attacktype(mon->data, AT_MAGC)
@@ -1294,8 +1264,7 @@ boolean givemsg;
 /* "aggressive defense"; what type of armor prevents specified attack
    from touching its target? */
 long
-attk_protection(aatyp)
-int aatyp;
+attk_protection(int aatyp)
 {
     long w_mask = 0L;
 

@@ -1,20 +1,19 @@
-/* NetHack 3.7	o_init.c	$NHDT-Date: 1596498193 2020/08/03 23:43:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.43 $ */
+/* NetHack 3.7	o_init.c	$NHDT-Date: 1611882611 2021/01/29 01:10:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.48 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-static void FDECL(setgemprobs, (d_level *));
-static void FDECL(shuffle, (int, int, BOOLEAN_P));
-static void NDECL(shuffle_all);
-static boolean FDECL(interesting_to_discover, (int));
-static int FDECL(CFDECLSPEC discovered_cmp, (const genericptr,
-                                             const genericptr));
-static char *FDECL(oclass_to_name, (CHAR_P, char *));
+static void setgemprobs(d_level *);
+static void shuffle(int, int, boolean);
+static void shuffle_all(void);
+static boolean interesting_to_discover(int);
+static int QSORTCALLBACK discovered_cmp(const genericptr, const genericptr);
+static char *oclass_to_name(char, char *);
 
 #ifdef USE_TILES
-static void NDECL(shuffle_tiles);
+static void shuffle_tiles(void);
 extern short glyph2tile[]; /* from tile.c */
 
 /* Shuffle tile assignments to match descriptions, so a red potion isn't
@@ -27,7 +26,7 @@ extern short glyph2tile[]; /* from tile.c */
  * another routine.
  */
 static void
-shuffle_tiles()
+shuffle_tiles(void)
 {
     int i;
     short tmp_tilemap[NUM_OBJECTS];
@@ -41,8 +40,7 @@ shuffle_tiles()
 #endif /* USE_TILES */
 
 static void
-setgemprobs(dlev)
-d_level *dlev;
+setgemprobs(d_level* dlev)
 {
     int j, first, lev;
 
@@ -68,9 +66,7 @@ d_level *dlev;
 
 /* shuffle descriptions on objects o_low to o_high */
 static void
-shuffle(o_low, o_high, domaterial)
-int o_low, o_high;
-boolean domaterial;
+shuffle(int o_low, int o_high, boolean domaterial)
 {
     int i, j, num_to_shuffle;
     short sw;
@@ -108,7 +104,7 @@ boolean domaterial;
 }
 
 void
-init_objects()
+init_objects(void)
 {
     int i, first, last, prevoclass;
     char oclass;
@@ -194,9 +190,9 @@ init_objects()
 
 /* retrieve the range of objects that otyp shares descriptions with */
 void
-obj_shuffle_range(otyp, lo_p, hi_p)
-int otyp;         /* input: representative item */
-int *lo_p, *hi_p; /* output: range that item belongs among */
+obj_shuffle_range(
+    int otyp,         /* input: representative item */
+    int *lo_p, int *hi_p) /* output: range that item belongs among */
 {
     int i, ocls = objects[otyp].oc_class;
 
@@ -247,7 +243,7 @@ int *lo_p, *hi_p; /* output: range that item belongs among */
 
 /* randomize object descriptions */
 static void
-shuffle_all()
+shuffle_all(void)
 {
     /* entire classes; obj_shuffle_range() handles their exceptions */
     static char shuffle_classes[] = {
@@ -276,9 +272,7 @@ shuffle_all()
 /* Return TRUE if the provided string matches the unidentified description of
  * the provided object. */
 boolean
-objdescr_is(obj, descr)
-struct obj *obj;
-const char *descr;
+objdescr_is(struct obj* obj, const char * descr)
 {
     const char *objdescr;
 
@@ -295,14 +289,13 @@ const char *descr;
 
 /* level dependent initialization */
 void
-oinit()
+oinit(void)
 {
     setgemprobs(&u.uz);
 }
 
 void
-savenames(nhfp)
-NHFILE *nhfp;
+savenames(NHFILE* nhfp)
 {
     int i;
     unsigned int len;
@@ -335,8 +328,7 @@ NHFILE *nhfp;
 }
 
 void
-restnames(nhfp)
-NHFILE *nhfp;
+restnames(NHFILE* nhfp)
 {
     int i;
     unsigned int len = 0;
@@ -364,10 +356,7 @@ NHFILE *nhfp;
 }
 
 void
-discover_object(oindx, mark_as_known, credit_hero)
-register int oindx;
-boolean mark_as_known;
-boolean credit_hero;
+discover_object(int oindx, boolean mark_as_known, boolean credit_hero)
 {
     if (!objects[oindx].oc_name_known) {
         register int dindx, acls = objects[oindx].oc_class;
@@ -397,8 +386,7 @@ boolean credit_hero;
 
 /* if a class name has been cleared, we may need to purge it from disco[] */
 void
-undiscover_object(oindx)
-register int oindx;
+undiscover_object(int oindx)
 {
     if (!objects[oindx].oc_name_known) {
         register int dindx, acls = objects[oindx].oc_class;
@@ -426,8 +414,7 @@ register int oindx;
 }
 
 static boolean
-interesting_to_discover(i)
-register int i;
+interesting_to_discover(int i)
 {
     /* Pre-discovered objects are now printed with a '*' */
     return (boolean) (objects[i].oc_uname != (char *) 0
@@ -442,10 +429,8 @@ static const short uniq_objs[] = {
 };
 
 /* discoveries qsort comparison function */
-static int CFDECLSPEC
-discovered_cmp(v1, v2)
-const genericptr v1;
-const genericptr v2;
+static int QSORTCALLBACK
+discovered_cmp(const genericptr v1, const genericptr v2)
 {
     const char *s1 = *(const char **) v1;
     const char *s2 = *(const char **) v2;
@@ -459,9 +444,7 @@ const genericptr v2;
 }
 
 static char *
-sortloot_descr(otyp, outbuf)
-int otyp;
-char *outbuf;
+sortloot_descr(int otyp,char * outbuf)
 {
     Loot sl_cookie;
     struct obj o;
@@ -502,8 +485,8 @@ const char *const disco_orders_descr[] = {
 };
 
 int
-choose_disco_sort(mode)
-int mode; /* 0 => 'O' cmd, 1 => full discoveries; 2 => class discoveries */
+choose_disco_sort(
+    int mode) /* 0 => 'O' cmd, 1 => full discoveries; 2 => class discoveries */
 {
     winid tmpwin;
     menu_item *selected;
@@ -515,7 +498,8 @@ int mode; /* 0 => 'O' cmd, 1 => full discoveries; 2 => class discoveries */
     any = cg.zeroany; /* zero out all bits */
     for (i = 0; disco_orders_descr[i]; ++i) {
         any.a_int = disco_order_let[i];
-        add_menu(tmpwin, NO_GLYPH, &any, (char) any.a_int, 0, ATR_NONE,
+        add_menu(tmpwin, &nul_glyphinfo, &any, (char) any.a_int,
+                 0, ATR_NONE,
                  disco_orders_descr[i],
                  (disco_order_let[i] == flags.discosort)
                     ? MENU_ITEMFLAGS_SELECTED
@@ -526,15 +510,15 @@ int mode; /* 0 => 'O' cmd, 1 => full discoveries; 2 => class discoveries */
            (only showing one class so can't span all classes) but the
            chosen sort will stick and also apply to '\' usage */
         any = cg.zeroany;
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
                  "", MENU_ITEMFLAGS_NONE);
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
                  "Note: full alphabetical and alphabetical within class",
                  MENU_ITEMFLAGS_NONE);
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
                  "      are equivalent for single class discovery, but",
                  MENU_ITEMFLAGS_NONE);
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
                  "      will matter for future use of total discoveries.",
                  MENU_ITEMFLAGS_NONE);
     }
@@ -555,7 +539,7 @@ int mode; /* 0 => 'O' cmd, 1 => full discoveries; 2 => class discoveries */
 
 /* the '\' command - show discovered object types */
 int
-dodiscovered() /* free after Robert Viduya */
+dodiscovered(void) /* free after Robert Viduya */
 {
     winid tmpwin;
     char *s, *p, oclass, prev_class,
@@ -674,9 +658,7 @@ dodiscovered() /* free after Robert Viduya */
 
 /* lower case let_to_name() output, which differs from def_oc_syms[].name */
 static char *
-oclass_to_name(oclass, buf)
-char oclass;
-char *buf;
+oclass_to_name(char oclass, char *buf)
 {
     char *s;
 
@@ -688,7 +670,7 @@ char *buf;
 
 /* the '`' command - show discovered object types for one class */
 int
-doclassdisco()
+doclassdisco(void)
 {
     static NEARDATA const char
         prompt[] = "View discoveries for which sort of objects?",
@@ -730,8 +712,8 @@ doclassdisco()
             Strcat(discosyms, "u");
             if (!traditional) {
                 any.a_int = 'u';
-                add_menu(tmpwin, NO_GLYPH, &any, menulet++, 0, ATR_NONE,
-                         unique_items, MENU_ITEMFLAGS_NONE);
+                add_menu(tmpwin, &nul_glyphinfo, &any, menulet++,
+                         0, ATR_NONE, unique_items, MENU_ITEMFLAGS_NONE);
             }
             break;
         }
@@ -741,8 +723,8 @@ doclassdisco()
         Strcat(discosyms, "a");
         if (!traditional) {
             any.a_int = 'a';
-            add_menu(tmpwin, NO_GLYPH, &any, menulet++, 0, ATR_NONE,
-                     artifact_items, MENU_ITEMFLAGS_NONE);
+            add_menu(tmpwin, &nul_glyphinfo, &any, menulet++,
+                     0, ATR_NONE, artifact_items, MENU_ITEMFLAGS_NONE);
         }
     }
 
@@ -762,8 +744,9 @@ doclassdisco()
                     Sprintf(eos(discosyms), "%c", c);
                     if (!traditional) {
                         any.a_int = c;
-                        add_menu(tmpwin, NO_GLYPH, &any, menulet++, c,
-                                 ATR_NONE, oclass_to_name(oclass, buf),
+                        add_menu(tmpwin, &nul_glyphinfo, &any,
+                                 menulet++, c, ATR_NONE,
+                                 oclass_to_name(oclass, buf),
                                  MENU_ITEMFLAGS_NONE);
                     }
                 }
@@ -850,7 +833,7 @@ doclassdisco()
                   : "alphabetical order");
         putstr(tmpwin, 0, buf); /* skip iflags.menu_headings */
         sorted_ct = 0;
-        for (i = g.bases[(int) oclass]; i < g.bases[oclass + 1] - 1; ++i) {
+        for (i = g.bases[(int) oclass]; i <= g.bases[oclass + 1] - 1; ++i) {
             if ((dis = g.disco[i]) != 0 && interesting_to_discover(dis)) {
                 ++ct;
                 Strcpy(buf,  objects[dis].oc_pre_discovered ? "* " : "  ");
@@ -888,7 +871,7 @@ doclassdisco()
 
 /* put up nameable subset of discoveries list as a menu */
 void
-rename_disco()
+rename_disco(void)
 {
     register int i, dis;
     int ct = 0, mn = 0, sl;
@@ -924,13 +907,15 @@ rename_disco()
 
             if (oclass != prev_class) {
                 any.a_int = 0;
-                add_menu(tmpwin, NO_GLYPH, &any, 0, 0, iflags.menu_headings,
+                add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
+                         iflags.menu_headings,
                          let_to_name(oclass, FALSE, FALSE),
                          MENU_ITEMFLAGS_NONE);
                 prev_class = oclass;
             }
             any.a_int = dis;
-            add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
+            add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
+                     ATR_NONE,
                      obj_typename(dis), MENU_ITEMFLAGS_NONE);
         }
     }

@@ -10,6 +10,8 @@ extern "C" {
 
 #include "qt_pre.h"
 #include <QtGui/QtGui>
+#include <QtWidgets/QShortcut>
+
 #if QT_VERSION >= 0x050000
 #include <QtWidgets/QtWidgets>
 #endif
@@ -548,6 +550,13 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
      *  setMenuRole() can be used to override this behavior.
      */
 #endif
+
+#ifdef CTRL_V_HACK
+    // NetHackQtBind::notify() sees all control characters except for ^V
+    QShortcut *c_V = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_V), this);
+    connect(c_V, &QShortcut::activated, this, &NetHackQtMainWindow::CtrlV);
+#endif
+
     QMenu* game=new QMenu;
     QMenu* apparel=new QMenu;
     QMenu* act1=new QMenu;
@@ -568,7 +577,7 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
 	QMenu* menu;
 	const char* name;
 	int flags;
-        int NDECL((*funct));
+        int (*funct)(void);
     } item[] = {
         { game,    0, 3},
         { game,    "Version",            3, doversion},
@@ -814,7 +823,8 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
     QSignalMapper* sm = new QSignalMapper(this);
     connect(sm, SIGNAL(mapped(const QString&)),
             this, SLOT(doKeys(const QString&)));
-    // 'donull' is a placeholder here; AddToolButton() will fix it up
+    // 'donull' is a placeholder here; AddToolButton() will fix it up;
+    // button will be omitted if DOAGAIN is bound to '\0'
     AddToolButton(toolbar, sm, "Again", donull, QPixmap(again_xpm));
     // this used to be called "Get" which is confusing to experienced players
     AddToolButton(toolbar, sm, "Pick up", dopickup, QPixmap(pickup_xpm));
@@ -888,20 +898,43 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
     }
 }
 
+#ifdef CTRL_V_HACK
+#ifndef C
+#define C(c) (0x1f & (c))
+#endif
+
+// called when ^V is typed while the main window has keyboard focus;
+// all other control characters go through NetHackQtBind::notify()
+void NetHackQtMainWindow::CtrlV()
+{
+    static const char cV[] = { C('V'), '\0' };
+    doKeys(cV);
+}
+#endif
+
+// add a toolbar button to invoke command 'name' via function '(*func)()'
 void NetHackQtMainWindow::AddToolButton(QToolBar *toolbar, QSignalMapper *sm,
-                                        const char *name, int NDECL((*func)),
+                                        const char *name, int (*func)(void),
                                         QPixmap xpm)
 {
-    QToolButton *tb = new SmallToolButton(xpm, QString(name), "Action",
-                                          sm, SLOT(map()), toolbar);
-    char actchar[32];
+    char actchar[2];
+    uchar key;
+
     // the ^A command is just a keystroke, not a full blown command function
-    if (!strcmp(name, "Again"))
-        (void) strkitten(actchar, ::g.Cmd.spkeys[NHKF_DOAGAIN]);
-    else
-        Sprintf(actchar, "%c", cmd_from_func(func));
-    sm->setMapping(tb, actchar);
-    toolbar->addWidget(tb);
+    if (!strcmp(name, "Again")) {
+        key = ::g.Cmd.spkeys[NHKF_DOAGAIN];
+    } else
+        key = (uchar) cmd_from_func(func);
+
+    // if key is valid, add a button for it; otherwise omit the command
+    // (won't work as intended if a different command is bound to same key)
+    if (key) {
+        QToolButton *tb = new SmallToolButton(xpm, QString(name), "Action",
+                                              sm, SLOT(map()), toolbar);
+        actchar[0] = '\0';
+        sm->setMapping(tb, strkitten(actchar, (char) key));
+        toolbar->addWidget(tb);
+    }
 }
 
 void NetHackQtMainWindow::zoomMap()
@@ -1051,7 +1084,7 @@ void NetHackQtMainWindow::doKeys(const QString& k)
 }
 
 // queue up the command name for a function, as if user had typed it
-void NetHackQtMainWindow::FuncAsCommand(int NDECL((*func)))
+void NetHackQtMainWindow::FuncAsCommand(int (*func)(void))
 {
     char cmdbuf[32];
     Strcpy(cmdbuf, "#");
@@ -1180,14 +1213,14 @@ void NetHackQtMainWindow::layout()
     }
 }
 
-#ifdef DYNAMIC_STATUSLINES  // leave disabled; this doesn't work as intended
+#ifdef DYNAMIC_STATUSLINES
 // called when 'statuslines' changes from 2 to 3 or vice versa; simpler to
 // destroy and recreate the status window than to adjust existing fields
-void NetHackQtMainWindow::redoStatus()
+NetHackQtWindow *NetHackQtMainWindow::redoStatus()
 {
     NetHackQtStatusWindow *oldstatus = this->status;
     if (!oldstatus)
-        return; // not ready yet?
+        return NULL; // not ready yet?
     this->status = new NetHackQtStatusWindow;
 
     if (!qt_compact_mode)
@@ -1195,6 +1228,8 @@ void NetHackQtMainWindow::redoStatus()
 
     delete oldstatus;
     ShowIfReady();
+
+    return (NetHackQtWindow *) this->status;
 }
 #endif
 
@@ -1349,7 +1384,7 @@ void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
                               "&Save and exit", "&Quit without saving", 0, 1);
 	switch (act) {
         case 0:
-            // See dosave() function
+            // save portion of save-and-exit
             ok = dosave0();
             break;
         case 1:
@@ -1365,6 +1400,7 @@ void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
         ok = 1;
     }
     /* if !ok, we should try to continue, but we don't... */
+    nhUse(ok);
     u.uhp = -1;
     NetHackQtBind::qt_exit_nhwindows(0);
     nh_terminate(EXIT_SUCCESS);

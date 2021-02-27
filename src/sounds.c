@@ -4,17 +4,15 @@
 
 #include "hack.h"
 
-static boolean FDECL(mon_is_gecko, (struct monst *));
-static int FDECL(domonnoise, (struct monst *));
-static int NDECL(dochat);
-static struct monst *FDECL(responsive_mon_at, (int, int));
-static int FDECL(mon_in_room, (struct monst *, int));
+static boolean mon_is_gecko(struct monst *);
+static int domonnoise(struct monst *);
+static int dochat(void);
+static struct monst *responsive_mon_at(int, int);
+static int mon_in_room(struct monst *, int);
 
 /* this easily could be a macro, but it might overtax dumb compilers */
 static int
-mon_in_room(mon, rmtyp)
-struct monst *mon;
-int rmtyp;
+mon_in_room(struct monst* mon, int rmtyp)
 {
     int rno = levl[mon->mx][mon->my].roomno;
     if (rno >= ROOMOFFSET)
@@ -26,9 +24,7 @@ int rmtyp;
  * Uses orig_rtyp, so ignores things like the room type being cleared
  * after the player first enters it. */
 int
-getroomtype(x, y)
-xchar x;
-xchar y;
+getroomtype(xchar x, xchar y)
 {
     int rno = levl[x][y].roomno;
     if (rno >= ROOMOFFSET) {
@@ -40,13 +36,10 @@ xchar y;
 
 
 void
-dosounds()
+dosounds(void)
 {
     register struct mkroom *sroom;
     register int hallu, vx, vy;
-#if defined(AMIGA) && defined(AZTEC_C_WORKAROUND)
-    int xx;
-#endif
     struct monst *mtmp;
 
     if (Deaf || !flags.acoustics || u.uswallow || Underwater)
@@ -113,16 +106,8 @@ dosounds()
                     for (vy = sroom->ly; vy <= sroom->hy; vy++)
                         if (g_at(vx, vy))
                             gold_in_vault = TRUE;
-#if defined(AMIGA) && defined(AZTEC_C_WORKAROUND)
-                /* Bug in aztec assembler here. Workaround below */
-                xx = ROOM_INDEX(sroom) + ROOMOFFSET;
-                xx = (xx != vault_occupied(u.urooms));
-                if (xx)
-#else
                 if (vault_occupied(u.urooms)
-                    != (ROOM_INDEX(sroom) + ROOMOFFSET))
-#endif /* AZTEC_C_WORKAROUND */
-                {
+                    != (ROOM_INDEX(sroom) + ROOMOFFSET)) {
                     if (gold_in_vault)
                         You_hear(!hallu
                                      ? "someone counting gold coins."
@@ -201,8 +186,8 @@ dosounds()
                 continue;
             if (is_mercenary(mtmp->data)
 #if 0 /* don't bother excluding these */
-                && !strstri(mtmp->data->mname, "watch")
-                && !strstri(mtmp->data->mname, "guard")
+                && !strstri(mtmp->data->pmnames[NEUTRAL], "watch")
+                && !strstri(mtmp->data->pmnames[NEUTRAL], "guard")
 #endif
                 && mon_in_room(mtmp, BARRACKS)
                 /* sleeping implies not-yet-disturbed (usually) */
@@ -334,8 +319,7 @@ static const char *const h_sounds[] = {
 };
 
 const char *
-growl_sound(mtmp)
-register struct monst *mtmp;
+growl_sound(register struct monst* mtmp)
 {
     const char *ret;
 
@@ -383,8 +367,7 @@ register struct monst *mtmp;
 
 /* the sounds of a seriously abused pet, including player attacking it */
 void
-growl(mtmp)
-register struct monst *mtmp;
+growl(register struct monst* mtmp)
 {
     register const char *growl_verb = 0;
 
@@ -407,8 +390,7 @@ register struct monst *mtmp;
 
 /* the sounds of mistreated pets */
 void
-yelp(mtmp)
-register struct monst *mtmp;
+yelp(register struct monst* mtmp)
 {
     register const char *yelp_verb = 0;
 
@@ -450,8 +432,7 @@ register struct monst *mtmp;
 
 /* the sounds of distressed pets */
 void
-whimper(mtmp)
-register struct monst *mtmp;
+whimper(register struct monst* mtmp)
 {
     register const char *whimper_verb = 0;
 
@@ -484,8 +465,7 @@ register struct monst *mtmp;
 
 /* pet makes "I'm hungry" noises */
 void
-beg(mtmp)
-register struct monst *mtmp;
+beg(register struct monst* mtmp)
 {
     if (mtmp->msleeping || !mtmp->mcanmove
         || !(carnivorous(mtmp->data) || herbivorous(mtmp->data)))
@@ -511,8 +491,7 @@ register struct monst *mtmp;
 
 /* hero has attacked a peaceful monster within 'mon's view */
 const char *
-maybe_gasp(mon)
-struct monst *mon;
+maybe_gasp(struct monst* mon)
 {
     static const char *const Exclam[] = {
         "Gasp!", "Uh-oh.", "Oh my!", "What?", "Why?",
@@ -579,8 +558,7 @@ struct monst *mon;
 
 /* return True if mon is a gecko or seems to look like one (hallucination) */
 static boolean
-mon_is_gecko(mon)
-struct monst *mon;
+mon_is_gecko(struct monst* mon)
 {
     int glyph;
 
@@ -597,9 +575,10 @@ struct monst *mon;
     return (boolean) (glyph_to_mon(glyph) == PM_GECKO);
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 static int
-domonnoise(mtmp)
-register struct monst *mtmp;
+domonnoise(register struct monst* mtmp)
 {
     char verbuf[BUFSZ];
     register const char *pline_msg = 0, /* Monnam(mtmp) will be prepended */
@@ -661,7 +640,7 @@ register struct monst *mtmp;
          * night */
         boolean isnight = night();
         boolean kindred = (Upolyd && (u.umonnum == PM_VAMPIRE
-                                      || u.umonnum == PM_VAMPIRE_LORD));
+                                      || u.umonnum == PM_VAMPIRE_LEADER));
         boolean nightchild =
             (Upolyd && (u.umonnum == PM_WOLF || u.umonnum == PM_WINTER_WOLF
                         || u.umonnum == PM_WINTER_WOLF_CUB));
@@ -723,7 +702,8 @@ register struct monst *mtmp;
                     verbl_msg = verbuf;
                 } else if (vampindex == 1) {
                     Sprintf(verbuf, vampmsg[vampindex],
-                            Upolyd ? an(mons[u.umonnum].mname)
+                            Upolyd ? an(pmname(&mons[u.umonnum],
+                                               flags.female ? FEMALE : MALE))
                                    : an(racenoun));
                     verbl_msg = verbuf;
                 } else
@@ -1104,9 +1084,11 @@ register struct monst *mtmp;
     return 1;
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /* #chat command */
 int
-dotalk()
+dotalk(void)
 {
     int result;
 
@@ -1115,14 +1097,15 @@ dotalk()
 }
 
 static int
-dochat()
+dochat(void)
 {
     struct monst *mtmp;
     int tx, ty;
     struct obj *otmp;
 
     if (is_silent(g.youmonst.data)) {
-        pline("As %s, you cannot speak.", an(g.youmonst.data->mname));
+        pline("As %s, you cannot speak.",
+              an(pmname(g.youmonst.data, flags.female ? FEMALE : MALE)));
         return 0;
     }
     if (Strangled) {
@@ -1266,8 +1249,7 @@ dochat()
 
 /* is there a monster at <x,y> that can see the hero and react? */
 static struct monst *
-responsive_mon_at(x, y)
-int x, y;
+responsive_mon_at(int x, int y)
 {
     struct monst *mtmp = isok(x, y) ? m_at(x, y) : 0;
 
@@ -1281,7 +1263,7 @@ int x, y;
 
 /* player chose 'uarmh' for #tip (pickup.c); visual #chat, sort of... */
 int
-tiphat()
+tiphat(void)
 {
     struct monst *mtmp;
     struct obj *otmp;
@@ -1396,10 +1378,10 @@ tiphat()
 #ifdef USER_SOUNDS
 
 #if defined(WIN32) || defined(QT_GRAPHICS)
-extern void FDECL(play_usersound, (const char *, int));
+extern void play_usersound(const char *, int);
 #endif
 #if defined(TTY_SOUND_ESCCODES)
-extern void FDECL(play_usersound_via_idx, (int, int));
+extern void play_usersound_via_idx(int, int);
 #endif
 
 typedef struct audio_mapping_rec {
@@ -1411,14 +1393,13 @@ typedef struct audio_mapping_rec {
 } audio_mapping;
 
 static audio_mapping *soundmap = 0;
-static audio_mapping *FDECL(sound_matches_message, (const char *));
+static audio_mapping *sound_matches_message(const char *);
 
 char *sounddir = 0; /* set in files.c */
 
 /* adds a sound file mapping, returns 0 on failure, 1 on success */
 int
-add_sound_mapping(mapping)
-const char *mapping;
+add_sound_mapping(const char* mapping)
 {
     char text[256];
     char filename[256];
@@ -1437,7 +1418,7 @@ const char *mapping;
             raw_print("sound file name too long");
             return 0;
 	}
-        Sprintf(filespec, "%s/%s", sounddir, filename);
+        Snprintf(filespec, sizeof filespec, "%s/%s", sounddir, filename);
 
         if (idx >= 0 || can_read_file(filespec)) {
             new_map = (audio_mapping *) alloc(sizeof *new_map);
@@ -1472,8 +1453,7 @@ const char *mapping;
 }
 
 static audio_mapping *
-sound_matches_message(msg)
-const char *msg;
+sound_matches_message(const char* msg)
 {
     audio_mapping *snd = soundmap;
 
@@ -1486,8 +1466,7 @@ const char *msg;
 }
 
 void
-play_sound_for_message(msg)
-const char *msg;
+play_sound_for_message(const char* msg)
 {
     audio_mapping *snd = sound_matches_message(msg);
 
@@ -1496,8 +1475,7 @@ const char *msg;
 }
 
 void
-maybe_play_sound(msg)
-const char *msg;
+maybe_play_sound(const char* msg)
 {
 #if defined(WIN32) || defined(QT_GRAPHICS) || defined(TTY_SOUND_ESCCODES)
     audio_mapping *snd = sound_matches_message(msg);
@@ -1524,7 +1502,7 @@ const char *msg;
 }
 
 void
-release_sound_mappings()
+release_sound_mappings(void)
 {
     audio_mapping *nextsound = 0;
 

@@ -3,15 +3,15 @@
 
 #include "hack.h"
 
-static boolean FDECL(label_known, (int, struct obj *));
-static char *FDECL(new_book_description, (int, char *));
+static boolean label_known(int, struct obj *);
+static int write_ok(struct obj *);
+static char *new_book_description(int, char *);
 
 /*
  * returns basecost of a scroll or a spellbook
  */
 int
-ink_cost(otyp)
-short otyp;
+ink_cost(short otyp)
 {
     if (objects[otyp].oc_class == SPBOOK_CLASS)
         return (10 * objects[otyp].oc_level);
@@ -61,9 +61,7 @@ short otyp;
    the discoveries list and aren't present in current inventory,
    so some scrolls with ought to yield True will end up False */
 static boolean
-label_known(scrolltype, objlist)
-int scrolltype;
-struct obj *objlist;
+label_known(int scrolltype, struct obj *objlist)
 {
     struct obj *otmp;
 
@@ -86,20 +84,22 @@ struct obj *objlist;
     return FALSE;
 }
 
+/* getobj callback for object to write on */
 static int
-write_ok(obj)
-struct obj *obj;
+write_ok(struct obj *obj)
 {
-    if (obj &&
-        (obj->oclass == SCROLL_CLASS || obj->oclass == SPBOOK_CLASS))
-        return 2;
-    return 0;
+    if (!obj || (obj->oclass != SCROLL_CLASS && obj->oclass != SPBOOK_CLASS))
+        return GETOBJ_EXCLUDE;
+
+    if (obj->otyp == SCR_BLANK_PAPER || obj->otyp == SPE_BLANK_PAPER)
+        return GETOBJ_SUGGEST;
+
+    return GETOBJ_DOWNPLAY;
 }
 
 /* write -- applying a magic marker */
 int
-dowrite(pen)
-register struct obj *pen;
+dowrite(struct obj *pen)
 {
     register struct obj *paper;
     char namebuf[BUFSZ] = DUMMY, *nm, *bp;
@@ -122,7 +122,7 @@ register struct obj *pen;
     }
 
     /* get paper to write on */
-    paper = getobj("write on", write_ok, FALSE, FALSE);
+    paper = getobj("write on", write_ok, GETOBJ_NOFLAGS);
     if (!paper)
         return 0;
     /* can't write on a novel (unless/until it's been converted into a blank
@@ -165,7 +165,7 @@ register struct obj *pen;
         nm += 3;
 
     if ((bp = strstri(nm, " armour")) != 0) {
-        (void) strncpy(bp, " armor ", 7); /* won't add '\0' */
+        memcpy(bp, " armor ", 7);
         (void) mungspaces(bp + 1);        /* remove the extra space */
     }
 
@@ -369,9 +369,7 @@ found:
    even that's rather iffy, indicating that such descriptions probably
    ought to be eliminated (especially "cloth"!) */
 static char *
-new_book_description(booktype, outbuf)
-int booktype;
-char *outbuf;
+new_book_description(int booktype, char *outbuf)
 {
     /* subset of description strings from objects.c; if it grows
        much, we may need to add a new flag field to objects[] instead */

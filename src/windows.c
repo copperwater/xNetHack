@@ -1,4 +1,4 @@
-/* NetHack 3.7	windows.c	$NHDT-Date: 1596498228 2020/08/03 23:43:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.75 $ */
+/* NetHack 3.7	windows.c	$NHDT-Date: 1612127121 2021/01/31 21:05:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.82 $ */
 /* Copyright (c) D. Cohrs, 1993. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -16,32 +16,32 @@ extern struct window_procs curses_procs;
 /* Cannot just blindly include winX.h without including all of X11 stuff
    and must get the order of include files right.  Don't bother. */
 extern struct window_procs X11_procs;
-extern void FDECL(win_X11_init, (int));
+extern void win_X11_init(int);
 #endif
 #ifdef QT_GRAPHICS
 extern struct window_procs Qt_procs;
 #endif
 #ifdef GEM_GRAPHICS
-#include "wingem.h"
+/*#include "wingem.h"*/
 #endif
 #ifdef MAC
 extern struct window_procs mac_procs;
 #endif
 #ifdef BEOS_GRAPHICS
 extern struct window_procs beos_procs;
-extern void FDECL(be_win_init, (int));
+extern void be_win_init(int);
 FAIL /* be_win_init doesn't exist? XXX*/
 #endif
 #ifdef AMIGA_INTUITION
 extern struct window_procs amii_procs;
 extern struct window_procs amiv_procs;
-extern void FDECL(ami_wininit_data, (int));
+extern void ami_wininit_data(int);
 #endif
 #ifdef WIN32_GRAPHICS
 extern struct window_procs win32_procs;
 #endif
 #ifdef GNOME_GRAPHICS
-#include "winGnome.h"
+/*#include "winGnome.h"*/
 extern struct window_procs Gnome_procs;
 #endif
 #ifdef MSWIN_GRAPHICS
@@ -52,39 +52,39 @@ extern struct window_procs shim_procs;
 #endif
 #ifdef WINCHAIN
 extern struct window_procs chainin_procs;
-extern void FDECL(chainin_procs_init, (int));
-extern void *FDECL(chainin_procs_chain, (int, int, void *, void *, void *));
+extern void chainin_procs_init(int);
+extern void *chainin_procs_chain(int, int, void *, void *, void *);
 
 extern struct chain_procs chainout_procs;
-extern void FDECL(chainout_procs_init, (int));
-extern void *FDECL(chainout_procs_chain, (int, int, void *, void *, void *));
+extern void chainout_procs_init(int);
+extern void *chainout_procs_chain(int, int, void *, void *, void *);
 
 extern struct chain_procs trace_procs;
-extern void FDECL(trace_procs_init, (int));
-extern void *FDECL(trace_procs_chain, (int, int, void *, void *, void *));
+extern void trace_procs_init(int);
+extern void *trace_procs_chain(int, int, void *, void *, void *);
 #endif
 
-static void FDECL(def_raw_print, (const char *s));
-static void NDECL(def_wait_synch);
+static void def_raw_print(const char *s);
+static void def_wait_synch(void);
 
 #if defined(DUMPLOG) || defined(DUMPHTML)
-static winid FDECL(dump_create_nhwindow, (int));
-static void FDECL(dump_clear_nhwindow, (winid));
-static void FDECL(dump_display_nhwindow, (winid, BOOLEAN_P));
-static void FDECL(dump_destroy_nhwindow, (winid));
-static void FDECL(dump_start_menu, (winid, unsigned long));
-static void FDECL(dump_add_menu, (winid, int, const ANY_P *, CHAR_P,
-                                      CHAR_P, int, const char *, unsigned int));
-static void FDECL(dump_end_menu, (winid, const char *));
-static int FDECL(dump_select_menu, (winid, int, MENU_ITEM_P **));
-static void FDECL(dump_putstr, (winid, int, const char *));
-static void NDECL(dump_headers);
-static void NDECL(dump_footers);
-static void FDECL(dump_set_color_attr, (int, int, BOOLEAN_P));
+static winid dump_create_nhwindow(int);
+static void dump_clear_nhwindow(winid);
+static void dump_display_nhwindow(winid, boolean);
+static void dump_destroy_nhwindow(winid);
+static void dump_start_menu(winid, unsigned long);
+static void dump_add_menu(winid, const glyph_info *, const ANY_P *, char,
+                          char, int, const char *, unsigned int);
+static void dump_end_menu(winid, const char *);
+static int dump_select_menu(winid, int, MENU_ITEM_P **);
+static void dump_putstr(winid, int, const char *);
+static void dump_headers(void);
+static void dump_footers(void);
+static void dump_set_color_attr(int, int, boolean);
 #ifdef DUMPHTML
-static void NDECL(html_init_sym);
-static void NDECL(dump_css);
-static void FDECL(dump_outrip, (winid, int, time_t));
+static void html_init_sym(void);
+static void dump_css(void);
+static void dump_outrip(winid, int, time_t);
 #endif /* DUMPHTML */
 
 #endif /* DUMPLOG */
@@ -102,9 +102,9 @@ volatile
 
 static struct win_choices {
     struct window_procs *procs;
-    void FDECL((*ini_routine), (int)); /* optional (can be 0) */
+    void (*ini_routine)(int); /* optional (can be 0) */
 #ifdef WINCHAIN
-    void *FDECL((*chain_routine), (int, int, void *, void *, void *));
+    void *(*chain_routine)(int, int, void *, void *, void *);
 #endif
 } winchoices[] = {
 #ifdef TTY_GRAPHICS
@@ -168,7 +168,7 @@ struct winlink {
 static struct winlink *chain = 0;
 
 static struct winlink *
-wl_new()
+wl_new(void)
 {
     struct winlink *wl = (struct winlink *) alloc(sizeof *wl);
 
@@ -204,28 +204,27 @@ wl_addtail(struct winlink *wl)
 #endif /* WINCHAIN */
 
 boolean
-genl_can_suspend_no(VOID_ARGS)
+genl_can_suspend_no(void)
 {
     return FALSE;
 }
 
 boolean
-genl_can_suspend_yes(VOID_ARGS)
+genl_can_suspend_yes(void)
 {
     return TRUE;
 }
 
 static
 void
-def_raw_print(s)
-const char *s;
+def_raw_print(const char *s)
 {
     puts(s);
 }
 
 static
 void
-def_wait_synch(VOID_ARGS)
+def_wait_synch(void)
 {
     /* Config file error handling routines
      * call wait_sync() without checking to
@@ -241,8 +240,7 @@ def_wait_synch(VOID_ARGS)
 
 #ifdef WINCHAIN
 static struct win_choices *
-win_choices_find(s)
-const char *s;
+win_choices_find(const char *s)
 {
     register int i;
 
@@ -256,8 +254,7 @@ const char *s;
 #endif
 
 void
-choose_windows(s)
-const char *s;
+choose_windows(const char *s)
 {
     int i;
     char *tmps = 0;
@@ -333,8 +330,7 @@ const char *s;
 
 #ifdef WINCHAIN
 void
-addto_windowchain(s)
-const char *s;
+addto_windowchain(const char *s)
 {
     register int i;
 
@@ -364,7 +360,7 @@ const char *s;
 }
 
 void
-commit_windowchain()
+commit_windowchain(void)
 {
     struct winlink *p;
     int n;
@@ -443,10 +439,9 @@ commit_windowchain()
  */
 /*ARGSUSED*/
 char
-genl_message_menu(let, how, mesg)
-char let UNUSED;
-int how UNUSED;
-const char *mesg;
+genl_message_menu(char let UNUSED,
+                  int how UNUSED,
+                  const char *mesg)
 {
     pline("%s", mesg);
     return 0;
@@ -454,8 +449,7 @@ const char *mesg;
 
 /*ARGSUSED*/
 void
-genl_preference_update(pref)
-const char *pref UNUSED;
+genl_preference_update(const char *pref UNUSED)
 {
     /* window ports are expected to provide
        their own preference update routine
@@ -466,8 +460,7 @@ const char *pref UNUSED;
 }
 
 char *
-genl_getmsghistory(init)
-boolean init UNUSED;
+genl_getmsghistory(boolean init UNUSED)
 {
     /* window ports can provide
        their own getmsghistory() routine to
@@ -484,9 +477,7 @@ boolean init UNUSED;
 }
 
 void
-genl_putmsghistory(msg, is_restoring)
-const char *msg;
-boolean is_restoring;
+genl_putmsghistory(const char *msg, boolean is_restoring)
 {
     /* window ports can provide
        their own putmsghistory() routine to
@@ -520,42 +511,43 @@ boolean is_restoring;
  * in order to avoid all terminal I/O after hangup/disconnect.
  */
 
-static int NDECL(hup_nhgetch);
-static char FDECL(hup_yn_function, (const char *, const char *, CHAR_P));
-static int FDECL(hup_nh_poskey, (int *, int *, int *));
-static void FDECL(hup_getlin, (const char *, char *));
-static void FDECL(hup_init_nhwindows, (int *, char **));
-static void FDECL(hup_exit_nhwindows, (const char *));
-static winid FDECL(hup_create_nhwindow, (int));
-static int FDECL(hup_select_menu, (winid, int, MENU_ITEM_P **));
-static void FDECL(hup_add_menu, (winid, int, const anything *, CHAR_P, CHAR_P,
-                                 int, const char *, unsigned int));
-static void FDECL(hup_end_menu, (winid, const char *));
-static void FDECL(hup_putstr, (winid, int, const char *));
-static void FDECL(hup_print_glyph, (winid, XCHAR_P, XCHAR_P, int, int));
-static void FDECL(hup_outrip, (winid, int, time_t));
-static void FDECL(hup_curs, (winid, int, int));
-static void FDECL(hup_display_nhwindow, (winid, BOOLEAN_P));
-static void FDECL(hup_display_file, (const char *, BOOLEAN_P));
+static int hup_nhgetch(void);
+static char hup_yn_function(const char *, const char *, char);
+static int hup_nh_poskey(int *, int *, int *);
+static void hup_getlin(const char *, char *);
+static void hup_init_nhwindows(int *, char **);
+static void hup_exit_nhwindows(const char *);
+static winid hup_create_nhwindow(int);
+static int hup_select_menu(winid, int, MENU_ITEM_P **);
+static void hup_add_menu(winid, const glyph_info *, const anything *, char,
+                         char, int, const char *, unsigned int);
+static void hup_end_menu(winid, const char *);
+static void hup_putstr(winid, int, const char *);
+static void hup_print_glyph(winid, xchar, xchar, const glyph_info *,
+                            const glyph_info *);
+static void hup_outrip(winid, int, time_t);
+static void hup_curs(winid, int, int);
+static void hup_display_nhwindow(winid, boolean);
+static void hup_display_file(const char *, boolean);
 #ifdef CLIPPING
-static void FDECL(hup_cliparound, (int, int));
+static void hup_cliparound(int, int);
 #endif
 #ifdef CHANGE_COLOR
-static void FDECL(hup_change_color, (int, long, int));
+static void hup_change_color(int, long, int);
 #ifdef MAC
-static short FDECL(hup_set_font_name, (winid, char *));
+static short hup_set_font_name(winid, char *);
 #endif
-static char *NDECL(hup_get_color_string);
+static char *hup_get_color_string(void);
 #endif /* CHANGE_COLOR */
-static void FDECL(hup_status_update, (int, genericptr_t, int, int, int,
-                                      unsigned long *));
+static void hup_status_update(int, genericptr_t, int, int, int,
+                              unsigned long *);
 
-static int NDECL(hup_int_ndecl);
-static void NDECL(hup_void_ndecl);
-static void FDECL(hup_void_fdecl_int, (int));
-static void FDECL(hup_void_fdecl_winid, (winid));
-static void FDECL(hup_void_fdecl_winid_ulong, (winid, unsigned long));
-static void FDECL(hup_void_fdecl_constchar_p, (const char *));
+static int hup_int_ndecl(void);
+static void hup_void_ndecl(void);
+static void hup_void_fdecl_int(int);
+static void hup_void_fdecl_winid(winid);
+static void hup_void_fdecl_winid_ulong(winid, unsigned long);
+static void hup_void_fdecl_constchar_p(const char *);
 
 static struct window_procs hup_procs = {
     "hup", 0L, 0L,
@@ -578,7 +570,7 @@ static struct window_procs hup_procs = {
     hup_cliparound,
 #endif
 #ifdef POSITIONBAR
-    (void FDECL((*), (char *))) hup_void_fdecl_constchar_p,
+    (void (*)(char *)) hup_void_fdecl_constchar_p,
                                                       /* update_positionbar */
 #endif
     hup_print_glyph,
@@ -607,13 +599,13 @@ static struct window_procs hup_procs = {
     genl_can_suspend_no,
 };
 
-static void FDECL((*previnterface_exit_nhwindows), (const char *)) = 0;
+static void (*previnterface_exit_nhwindows)(const char *) = 0;
 
 /* hangup has occurred; switch to no-op user interface */
 void
-nhwindows_hangup()
+nhwindows_hangup(void)
 {
-    char *FDECL((*previnterface_getmsghistory), (BOOLEAN_P)) = 0;
+    char *(*previnterface_getmsghistory)(boolean) = 0;
 
 #ifdef ALTMETA
     /* command processor shouldn't look for 2nd char after seeing ESC */
@@ -639,8 +631,7 @@ nhwindows_hangup()
 }
 
 static void
-hup_exit_nhwindows(lastgasp)
-const char *lastgasp;
+hup_exit_nhwindows(const char *lastgasp)
 {
     /* core has called exit_nhwindows(); call the previous interface's
        shutdown routine now; xxx_exit_nhwindows() needs to call other
@@ -654,16 +645,16 @@ const char *lastgasp;
 }
 
 static int
-hup_nhgetch(VOID_ARGS)
+hup_nhgetch(void)
 {
     return '\033'; /* ESC */
 }
 
 /*ARGSUSED*/
 static char
-hup_yn_function(prompt, resp, deflt)
-const char *prompt UNUSED, *resp UNUSED;
-char deflt;
+hup_yn_function(const char *prompt UNUSED,
+                const char *resp UNUSED,
+                char deflt)
 {
     if (!deflt)
         deflt = '\033';
@@ -672,124 +663,102 @@ char deflt;
 
 /*ARGSUSED*/
 static int
-hup_nh_poskey(x, y, mod)
-int *x UNUSED, *y UNUSED, *mod UNUSED;
+hup_nh_poskey(int *x UNUSED, int *y UNUSED, int *mod UNUSED)
 {
     return '\033';
 }
 
 /*ARGSUSED*/
 static void
-hup_getlin(prompt, outbuf)
-const char *prompt UNUSED;
-char *outbuf;
+hup_getlin(const char *prompt UNUSED, char *outbuf)
 {
     Strcpy(outbuf, "\033");
 }
 
 /*ARGSUSED*/
 static void
-hup_init_nhwindows(argc_p, argv)
-int *argc_p UNUSED;
-char **argv UNUSED;
+hup_init_nhwindows(int *argc_p UNUSED, char **argv UNUSED)
 {
     iflags.window_inited = 1;
 }
 
 /*ARGUSED*/
 static winid
-hup_create_nhwindow(type)
-int type UNUSED;
+hup_create_nhwindow(int type UNUSED)
 {
     return WIN_ERR;
 }
 
 /*ARGSUSED*/
 static int
-hup_select_menu(window, how, menu_list)
-winid window UNUSED;
-int how UNUSED;
-struct mi **menu_list UNUSED;
+hup_select_menu(winid window UNUSED, int how UNUSED,
+                struct mi **menu_list UNUSED)
 {
     return -1;
 }
 
 /*ARGSUSED*/
 static void
-hup_add_menu(window, glyph, identifier, sel, grpsel, attr, txt, itemflags)
-winid window UNUSED;
-int glyph UNUSED, attr UNUSED;
-const anything *identifier UNUSED;
-char sel UNUSED, grpsel UNUSED;
-const char *txt UNUSED;
-unsigned int itemflags UNUSED;
+hup_add_menu(winid window UNUSED,
+             const glyph_info *glyphinfo UNUSED,
+             const anything *identifier UNUSED,
+             char sel UNUSED,
+             char grpsel UNUSED,
+             int attr UNUSED,
+             const char *txt UNUSED,
+             unsigned int itemflags UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 static void
-hup_end_menu(window, prompt)
-winid window UNUSED;
-const char *prompt UNUSED;
+hup_end_menu(winid window UNUSED, const char *prompt UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 static void
-hup_putstr(window, attr, text)
-winid window UNUSED;
-int attr UNUSED;
-const char *text UNUSED;
+hup_putstr(winid window UNUSED, int attr UNUSED, const char *text UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 static void
-hup_print_glyph(window, x, y, glyph, bkglyph)
-winid window UNUSED;
-xchar x UNUSED, y UNUSED;
-int glyph UNUSED;
-int bkglyph UNUSED;
+hup_print_glyph(winid window UNUSED,
+                xchar x UNUSED, xchar y UNUSED,
+                const glyph_info *glyphinfo UNUSED,
+                const glyph_info *bkglyphinfo UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 static void
-hup_outrip(tmpwin, how, when)
-winid tmpwin UNUSED;
-int how UNUSED;
-time_t when UNUSED;
+hup_outrip(winid tmpwin UNUSED, int how UNUSED, time_t when UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 static void
-hup_curs(window, x, y)
-winid window UNUSED;
-int x UNUSED, y UNUSED;
+hup_curs(winid window UNUSED, int x UNUSED, int y UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 static void
-hup_display_nhwindow(window, blocking)
-winid window UNUSED;
-boolean blocking UNUSED;
+hup_display_nhwindow(winid window UNUSED, boolean blocking UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 static void
-hup_display_file(fname, complain)
-const char *fname UNUSED;
-boolean complain UNUSED;
+hup_display_file(const char *fname UNUSED, boolean complain UNUSED)
 {
     return;
 }
@@ -797,8 +766,7 @@ boolean complain UNUSED;
 #ifdef CLIPPING
 /*ARGSUSED*/
 static void
-hup_cliparound(x, y)
-int x UNUSED, y UNUSED;
+hup_cliparound(int x UNUSED, int y UNUSED)
 {
     return;
 }
@@ -807,9 +775,7 @@ int x UNUSED, y UNUSED;
 #ifdef CHANGE_COLOR
 /*ARGSUSED*/
 static void
-hup_change_color(color, rgb, reverse)
-int color, reverse;
-long rgb;
+hup_change_color(int color, int reverse, long rgb)
 {
     return;
 }
@@ -817,16 +783,14 @@ long rgb;
 #ifdef MAC
 /*ARGSUSED*/
 static short
-hup_set_font_name(window, fontname)
-winid window;
-char *fontname;
+hup_set_font_name(winid window, char *fontname)
 {
     return 0;
 }
 #endif /* MAC */
 
 static char *
-hup_get_color_string(VOID_ARGS)
+hup_get_color_string(void)
 {
     return (char *) 0;
 }
@@ -834,12 +798,9 @@ hup_get_color_string(VOID_ARGS)
 
 /*ARGSUSED*/
 static void
-hup_status_update(idx, ptr, chg, pc, color, colormasks)
-int idx UNUSED;
-genericptr_t ptr UNUSED;
-int chg UNUSED, pc UNUSED, color UNUSED;
-unsigned long *colormasks UNUSED;
-
+hup_status_update(int idx UNUSED, genericptr_t ptr UNUSED, int chg UNUSED,
+                  int pc UNUSED, int color UNUSED,
+                  unsigned long *colormasks UNUSED)
 {
     return;
 }
@@ -849,46 +810,42 @@ unsigned long *colormasks UNUSED;
  */
 
 static int
-hup_int_ndecl(VOID_ARGS)
+hup_int_ndecl(void)
 {
     return -1;
 }
 
 static void
-hup_void_ndecl(VOID_ARGS)
+hup_void_ndecl(void)
 {
     return;
 }
 
 /*ARGUSED*/
 static void
-hup_void_fdecl_int(arg)
-int arg UNUSED;
+hup_void_fdecl_int(int arg UNUSED)
 {
     return;
 }
 
 /*ARGUSED*/
 static void
-hup_void_fdecl_winid(window)
-winid window UNUSED;
+hup_void_fdecl_winid(winid window UNUSED)
 {
     return;
 }
 
 /*ARGUSED*/
 static void
-hup_void_fdecl_winid_ulong(window, mbehavior)
-winid window UNUSED;
-unsigned long mbehavior UNUSED;
+hup_void_fdecl_winid_ulong(winid window UNUSED,
+                           unsigned long mbehavior UNUSED)
 {
     return;
 }
 
 /*ARGUSED*/
 static void
-hup_void_fdecl_constchar_p(string)
-const char *string UNUSED;
+hup_void_fdecl_constchar_p(const char *string UNUSED)
 {
     return;
 }
@@ -906,7 +863,7 @@ char *status_vals[MAXBLSTATS];
 boolean status_activefields[MAXBLSTATS];
 
 void
-genl_status_init()
+genl_status_init(void)
 {
     int i;
 
@@ -922,7 +879,7 @@ genl_status_init()
 }
 
 void
-genl_status_finish()
+genl_status_finish(void)
 {
     /* tear down routine */
     int i;
@@ -935,24 +892,21 @@ genl_status_finish()
 }
 
 void
-genl_status_enablefield(fieldidx, nm, fmt, enable)
-int fieldidx;
-const char *nm;
-const char *fmt;
-boolean enable;
+genl_status_enablefield(int fieldidx, const char *nm, const char *fmt,
+                        boolean enable)
 {
     status_fieldfmt[fieldidx] = fmt;
     status_fieldnm[fieldidx] = nm;
     status_activefields[fieldidx] = enable;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 /* call once for each field, then call with BL_FLUSH to output the result */
 void
-genl_status_update(idx, ptr, chg, percent, color, colormasks)
-int idx;
-genericptr_t ptr;
-int chg UNUSED, percent UNUSED, color UNUSED;
-unsigned long *colormasks UNUSED;
+genl_status_update(int idx, genericptr_t ptr, int chg UNUSED,
+                   int percent UNUSED, int color UNUSED,
+                   unsigned long *colormasks UNUSED)
 {
     char newbot1[MAXCO], newbot2[MAXCO];
     long cond, *condptr = (long *) ptr;
@@ -1128,6 +1082,8 @@ unsigned long *colormasks UNUSED;
     putmixed(WIN_STATUS, 0, newbot2); /* putmixed() due to GOLD glyph */
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 static struct window_procs dumplog_windowprocs_backup;
 static int menu_headings_backup;
 
@@ -1138,12 +1094,11 @@ static FILE *dumphtml_file;
 static time_t dumplog_now;
 
 char *
-dump_fmtstr(fmt, buf, fullsubs)
-const char *fmt;
-char *buf;
-boolean fullsubs; /* True -> full substitution for file name, False ->
-                   * partial substitution for '--showpaths' feedback
-                   * where there's no game in progress when executed */
+dump_fmtstr(const char *fmt, char *buf,
+            boolean fullsubs) /* True -> full substitution for file name,
+                                 False -> partial substitution for
+                                          '--showpaths' feedback where there's
+                                          no game in progress when executed */
 {
     const char *fp = fmt;
     char *bp = buf;
@@ -1294,13 +1249,9 @@ boolean fullsubs; /* True -> full substitution for file name, False ->
    then delimit the item with <li></li>
    for preformatted text, we don't mess with any existing bullet list, but try to
    keep consecutive preformatted strings in a single block.  */
-static
-void
-html_write_tags(fp, win, attr, before)
-FILE *fp;
-winid win;
-int attr;
-boolean before; /* Tags before/after string */
+static void
+html_write_tags(FILE *fp, winid win, int attr,
+                boolean before) /* Tags before/after string */
 {
     static boolean in_list = FALSE;
     static boolean in_preform = FALSE;
@@ -1351,9 +1302,7 @@ boolean before; /* Tags before/after string */
 
 /* Write HTML-escaped char to a file */
 static void
-html_dump_char(fp, c)
-FILE *fp;
-char c;
+html_dump_char(FILE *fp, char c)
 {
     if (!fp) return;
     switch (c) {
@@ -1382,9 +1331,7 @@ char c;
 
 /* Write HTML-escaped string to a file */
 static void
-html_dump_str(fp, str)
-FILE *fp;
-const char *str;
+html_dump_str(FILE *fp, const char *str)
 {
     const char *p;
     if (!fp) return;
@@ -1393,11 +1340,7 @@ const char *str;
 }
 
 static void
-html_dump_line(fp, win, attr, str)
-FILE *fp;
-winid win;
-int attr;
-const char *str;
+html_dump_line(FILE *fp, winid win, int attr, const char *str)
 {
     if (strlen(str) == 0) {
        /* if it's a blank line, just print a blank line */
@@ -1414,7 +1357,7 @@ const char *str;
 /** HTML Map and status bar (collectively, the 'screendump') **/
 
 void
-dump_start_screendump()
+dump_start_screendump(void)
 {
 #ifdef DUMPHTML
     if (!dumphtml_file) return;
@@ -1424,7 +1367,7 @@ dump_start_screendump()
 }
 
 void
-dump_end_screendump()
+dump_end_screendump(void)
 {
 #ifdef DUMPHTML
     if (dumphtml_file)
@@ -1434,9 +1377,7 @@ dump_end_screendump()
 
 /* Status and map highlighting */
 static void
-dump_set_color_attr(coloridx, attrmask, onoff)
-int coloridx, attrmask;
-boolean onoff;
+dump_set_color_attr(int coloridx, int attrmask, boolean onoff)
 {
 #ifdef DUMPHTML
     if (!dumphtml_file) return;
@@ -1476,7 +1417,7 @@ boolean onoff;
 static int htmlsym[SYM_MAX] = DUMMY;
 
 static void
-html_init_sym()
+html_init_sym(void)
 {
     /* see https://html-css-js.com/html/character-codes/drawing/ */
 
@@ -1507,8 +1448,7 @@ html_init_sym()
 /* convert 'special' flags returned from mapglyph to
   highlight attrs (currently just inverse) */
 static unsigned
-mg_hl_attr(special)
-unsigned special;
+mg_hl_attr(unsigned special)
 {
     unsigned hl = 0;
     if ((special & MG_PET) && iflags.hilite_pet)
@@ -1523,9 +1463,9 @@ unsigned special;
 }
 
 void
-html_dump_glyph(x, y, sym, ch, color, special)
-int x, y, sym, ch, color;
-unsigned special;
+html_print_glyph(winid win UNUSED, xchar x, xchar y,
+                 const glyph_info *glyphinfo,
+                 const glyph_info *bkglyphinfo UNUSED)
 {
     char buf[BUFSZ]; /* do_screen_description requires this :( */
     const char *firstmatch = "unknown"; /* and this */
@@ -1535,24 +1475,26 @@ unsigned special;
 
     if (!dumphtml_file) return;
 
-    if (x == 1) /* start row */
-        fprintf(dumphtml_file, "<span class=\"nh_screen\">  "); /* 2 space left margin */
+    if (x == 1) /* start row - 2 space left margin: */
+        fprintf(dumphtml_file, "<span class=\"nh_screen\">  ");
     cc.x = x;
     cc.y = y;
-    desc_found = do_screen_description(cc, TRUE, ch, buf, &firstmatch, (struct permonst **) 0);
+    desc_found = do_screen_description(cc, TRUE, glyphinfo->symidx, buf,
+                                       &firstmatch, (struct permonst **) 0);
     if (desc_found)
         fprintf(dumphtml_file, "<div class=\"tooltip\">");
-    attr = mg_hl_attr(special);
-    dump_set_color_attr(color, attr, TRUE);
-    if (htmlsym[sym])
-        fprintf(dumphtml_file, "&#%d;", htmlsym[sym]);
+    attr = mg_hl_attr(glyphinfo->glyphflags);
+    dump_set_color_attr(glyphinfo->color, attr, TRUE);
+    if (htmlsym[glyphinfo->symidx])
+        fprintf(dumphtml_file, "&#%d;", htmlsym[glyphinfo->symidx]);
     else
-        html_dump_char(dumphtml_file, (char)ch);
-    dump_set_color_attr(color, attr, FALSE);
+        html_dump_char(dumphtml_file, (char)glyphinfo->ttychar);
+    dump_set_color_attr(glyphinfo->color, attr, FALSE);
     if (desc_found)
-       fprintf(dumphtml_file, "<span class=\"tooltiptext\">%s</span></div>", firstmatch);
-    if (x == COLNO-1)
-        fprintf(dumphtml_file, "  </span>\n"); /* 2 trailing spaces and newline */
+       fprintf(dumphtml_file,
+               "<span class=\"tooltiptext\">%s</span></div>", firstmatch);
+    if (x == COLNO-1) /* end row - 2 trailing spaces and newline: */
+        fprintf(dumphtml_file, "  </span>\n");
 }
 
 #endif /* DUMPHTML */
@@ -1602,9 +1544,7 @@ static int hpbar_percent, hpbar_color;
  */
 
 static int
-condcolor(bm, bmarray)
-long bm;
-unsigned long *bmarray;
+condcolor(long bm, unsigned long *bmarray)
 {
 #if defined(STATUS_HILITES) && defined(TEXTCOLOR)
     int i;
@@ -1619,9 +1559,7 @@ unsigned long *bmarray;
 }
 
 static int
-condattr(bm, bmarray)
-long bm;
-unsigned long *bmarray;
+condattr(long bm, unsigned long *bmarray)
 {
     int attr = 0;
 #ifdef STATUS_HILITES
@@ -1661,7 +1599,7 @@ unsigned long *bmarray;
    and allow the lines to be a little longer if necessary */
 
 static void
-dump_render_status()
+dump_render_status(void)
 {
     long mask, bits;
     int i, idx, c, row, num_rows, coloridx = 0, attrmask = 0;
@@ -1669,7 +1607,7 @@ dump_render_status()
     struct condition_t { /* auto, since this only gets called once */
         long mask;
         const char *text;
-    } conditions[] = {
+    } Sconditions[] = {
         /* The sequence order of these matters */
         { BL_MASK_STONE,     "Stone"    },
         { BL_MASK_SLIME,     "Slime"    },
@@ -1702,8 +1640,8 @@ dump_render_status()
             if (idx == BL_CONDITION) {
                 /* | Condition Codes | */
                 bits = dump_condition_bits;
-                for (c = 0; c < SIZE(conditions) && bits != 0L; ++c) {
-                    mask = conditions[c].mask;
+                for (c = 0; c < SIZE(Sconditions) && bits != 0L; ++c) {
+                    mask = Sconditions[c].mask;
                     if (bits & mask) {
                         putstr(NHW_STATUS, 0, " ");
                         pad--;
@@ -1714,8 +1652,8 @@ dump_render_status()
                             dump_set_color_attr(coloridx, attrmask, TRUE);
                         }
 #endif
-                        putstr(NHW_STATUS, 0, conditions[c].text);
-                        pad -= strlen(conditions[c].text);
+                        putstr(NHW_STATUS, 0, Sconditions[c].text);
+                        pad -= strlen(Sconditions[c].text);
 #ifdef STATUS_HILITES
                         if (iflags.hilite_delta) {
                             dump_set_color_attr(coloridx, attrmask, FALSE);
@@ -1799,11 +1737,11 @@ dump_render_status()
     return;
 }
 
-void
-dump_status_update(fldidx, ptr, chg, percent, color, colormasks)
-int fldidx, chg UNUSED, percent, color;
-genericptr_t ptr;
-unsigned long *colormasks;
+DISABLE_WARNING_FORMAT_NONLITERAL
+
+static void
+dump_status_update(int fldidx, genericptr_t ptr, int chg UNUSED, int percent,
+                   int color, unsigned long *colormasks)
 {
     int attrmask;
     long *condptr = (long *) ptr;
@@ -1890,10 +1828,12 @@ unsigned long *colormasks;
     return;
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /** HTML Headers and footers **/
 
 static void
-dump_headers()
+dump_headers(void)
 {
 #ifdef DUMPHTML
     char vers[16]; /* buffer for short version string */
@@ -1922,7 +1862,7 @@ dump_headers()
 }
 
 static void
-dump_footers()
+dump_footers(void)
 {
 #ifdef DUMPHTML
     if (dumphtml_file) {
@@ -1934,7 +1874,7 @@ dump_footers()
 
 #ifdef DUMPHTML
 static void
-dump_css()
+dump_css(void)
 {
     int c = 0;
     FILE *css;
@@ -1952,10 +1892,7 @@ dump_css()
 }
 
 static void
-dump_outrip(win, how, when)
-winid win;
-int how;
-time_t when;
+dump_outrip(winid win, int how, time_t when)
 {
    if (dumphtml_file) {
        html_write_tags(dumphtml_file, 0, 0, TRUE); /* </ul>, </pre> if needed */
@@ -1972,8 +1909,7 @@ time_t when;
 /** Dump file handling **/
 
 void
-dump_open_log(now)
-time_t now;
+dump_open_log(time_t now)
 {
 #if defined(DUMPLOG) || defined(DUMPHTML)
 #ifdef SYSCF
@@ -2007,7 +1943,7 @@ time_t now;
 }
 
 void
-dump_close_log()
+dump_close_log(void)
 {
     dump_footers();
     if (dumplog_file) {
@@ -2021,11 +1957,7 @@ dump_close_log()
 }
 
 void
-dump_forward_putstr(win, attr, str, no_forward)
-winid win;
-int attr;
-const char *str;
-int no_forward;
+dump_forward_putstr(winid win, int attr, const char *str, int no_forward)
 {
 #if defined(DUMPLOG) || defined (DUMPHTML)
     dump_putstr(win, attr, str);
@@ -2037,10 +1969,7 @@ int no_forward;
 #if defined(DUMPLOG) || defined (DUMPHTML)
 /*ARGSUSED*/
 static void
-dump_putstr(win, attr, str)
-winid win;
-int attr;
-const char *str;
+dump_putstr(winid win, int attr, const char *str)
 {
     /* Suppress newline for NHW_STATUS
        Send NHW_STATUS to HTML only */
@@ -2057,60 +1986,52 @@ const char *str;
 }
 
 static winid
-dump_create_nhwindow(dummy)
-int dummy;
+dump_create_nhwindow(int dummy)
 {
     return dummy;
 }
 
 /*ARGUSED*/
 static void
-dump_clear_nhwindow(win)
-winid win UNUSED;
+dump_clear_nhwindow(winid win UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 static void
-dump_display_nhwindow(win, p)
-winid win UNUSED;
-boolean p UNUSED;
+dump_display_nhwindow(winid win UNUSED, boolean p UNUSED)
 {
     return;
 }
 
 /*ARGUSED*/
 static void
-dump_destroy_nhwindow(win)
-winid win UNUSED;
+dump_destroy_nhwindow(winid win UNUSED)
 {
     return;
 }
 
 /*ARGUSED*/
 static void
-dump_start_menu(win, mbehavior)
-winid win UNUSED;
-unsigned long mbehavior UNUSED;
+dump_start_menu(winid win UNUSED, unsigned long mbehavior UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 static void
-dump_add_menu(win, glyph, identifier, ch, gch, attr, str, itemflags)
-winid win UNUSED;
-int glyph;
-const anything *identifier UNUSED;
-char ch;
-char gch UNUSED;
-int attr;
-const char *str;
-unsigned int itemflags UNUSED;
+dump_add_menu(winid win UNUSED,
+              const glyph_info *glyphinfo,
+              const anything *identifier UNUSED,
+              char ch,
+              char gch UNUSED,
+              int attr,
+              const char *str,
+              unsigned int itemflags UNUSED)
 {
     if (dumplog_file) {
-        if (glyph == NO_GLYPH)
+        if (glyphinfo->glyph == NO_GLYPH)
             fprintf(dumplog_file, " %s\n", str);
         else
             fprintf(dumplog_file, "  %c - %s\n", ch, str);
@@ -2120,14 +2041,14 @@ unsigned int itemflags UNUSED;
         int color;
         boolean iscolor = FALSE;
         /* Don't use NHW_MENU for inv items as this makes bullet points */
-        if (!attr && glyph != NO_GLYPH)
+        if (!attr && glyphinfo->glyph != NO_GLYPH)
             win = (winid)0;
         html_write_tags(dumphtml_file, win, attr, TRUE);
         if (iflags.use_menu_color && get_menu_coloring(str, &color, &attr)) {
             iscolor = TRUE;
             fprintf(dumphtml_file, "<span class=\"nh_color_%d\">", color);
         }
-        if (glyph != NO_GLYPH) {
+        if (glyphinfo->glyph != NO_GLYPH) {
             fprintf(dumphtml_file, "<span class=\"nh_item_letter\">%c</span> - ", ch);
         }
         html_dump_str(dumphtml_file, str);
@@ -2139,9 +2060,7 @@ unsigned int itemflags UNUSED;
 
 /*ARGSUSED*/
 static void
-dump_end_menu(win, str)
-winid win UNUSED;
-const char *str;
+dump_end_menu(winid win UNUSED, const char *str)
 {
     if (dumplog_file) {
         if (str)
@@ -2156,18 +2075,14 @@ const char *str;
 }
 
 static int
-dump_select_menu(win, how, item)
-winid win UNUSED;
-int how UNUSED;
-menu_item **item;
+dump_select_menu(winid win UNUSED, int how UNUSED, menu_item **item)
 {
     *item = (menu_item *) 0;
     return 0;
 }
 
 void
-dump_redirect(onoff_flag)
-boolean onoff_flag;
+dump_redirect(boolean onoff_flag)
 {
     if (dumplog_file || dumphtml_file) {
         if (onoff_flag) {
@@ -2207,8 +2122,7 @@ extern NEARDATA char *hilites[CLR_MAX];
 #endif
 
 int
-has_color(color)
-int color;
+has_color(int color)
 {
     return (iflags.use_color && windowprocs.name
             && (windowprocs.wincap & WC_COLOR) && windowprocs.has_color[color]
@@ -2225,7 +2139,7 @@ int color;
  * uses dump_fmtstr() which is static here.
  */
 void
-mk_dgl_extrainfo()
+mk_dgl_extrainfo(void)
 {
     FILE *extrai = (FILE *) 0;
 #ifdef UNIX
@@ -2273,8 +2187,7 @@ mk_dgl_extrainfo()
 #endif /* EXTRAINFO_FN */
 
 void
-livelog_dump_url(llflags)
-unsigned int llflags;
+livelog_dump_url(unsigned int llflags)
 {
 #ifdef DUMPLOG
     char buf[BUFSZ];
@@ -2291,6 +2204,156 @@ unsigned int llflags;
 #else
     nhUse(llflags);
 #endif /*?DUMPLOG*/
+}
+
+int
+glyph2ttychar(int glyph)
+{
+    glyph_info glyphinfo;
+
+    map_glyphinfo(0, 0, glyph, 0, &glyphinfo);
+    return glyphinfo.ttychar;
+}
+
+int
+glyph2symidx(int glyph)
+{
+    glyph_info glyphinfo;
+
+    map_glyphinfo(0, 0, glyph, 0, &glyphinfo);
+    return glyphinfo.symidx;
+}
+
+char *
+encglyph(int glyph)
+{
+    static char encbuf[20]; /* 10+1 would suffice */
+
+    Sprintf(encbuf, "\\G%04X%04X", g.context.rndencode, glyph);
+    return encbuf;
+}
+
+char *
+decode_mixed(char *buf, const char *str)
+{
+    static const char hex[] = "00112233445566778899aAbBcCdDeEfF";
+    char *put = buf;
+    glyph_info glyphinfo = nul_glyphinfo;
+
+    if (!str)
+        return strcpy(buf, "");
+
+    while (*str) {
+        if (*str == '\\') {
+            int rndchk, dcount, so, gv;
+            const char *dp, *save_str;
+
+            save_str = str++;
+            switch (*str) {
+            case 'G': /* glyph value \GXXXXNNNN*/
+                rndchk = dcount = 0;
+                for (++str; *str && ++dcount <= 4; ++str)
+                    if ((dp = index(hex, *str)) != 0)
+                        rndchk = (rndchk * 16) + ((int) (dp - hex) / 2);
+                    else
+                        break;
+                if (rndchk == g.context.rndencode) {
+                    gv = dcount = 0;
+                    for (; *str && ++dcount <= 4; ++str)
+                        if ((dp = index(hex, *str)) != 0)
+                            gv = (gv * 16) + ((int) (dp - hex) / 2);
+                        else
+                            break;
+                    map_glyphinfo(0, 0, gv, 0, &glyphinfo);
+                    so = glyphinfo.symidx;
+                    *put++ = g.showsyms[so];
+                    /* 'str' is ready for the next loop iteration and '*str'
+                       should not be copied at the end of this iteration */
+                    continue;
+                } else {
+                    /* possible forgery - leave it the way it is */
+                    str = save_str;
+                }
+                break;
+#if 0
+            case 'S': /* symbol offset */
+                so = rndchk = dcount = 0;
+                for (++str; *str && ++dcount <= 4; ++str)
+                    if ((dp = index(hex, *str)) != 0)
+                        rndchk = (rndchk * 16) + ((int) (dp - hex) / 2);
+                    else
+                        break;
+                if (rndchk == g.context.rndencode) {
+                    dcount = 0;
+                    for (; *str && ++dcount <= 2; ++str)
+                        if ((dp = index(hex, *str)) != 0)
+                            so = (so * 16) + ((int) (dp - hex) / 2);
+                        else
+                            break;
+                }
+                *put++ = g.showsyms[so];
+                break;
+#endif
+            case '\\':
+                break;
+            case '\0':
+                /* String ended with '\\'.  This can happen when someone
+                   names an object with a name ending with '\\', drops the
+                   named object on the floor nearby and does a look at all
+                   nearby objects. */
+                /* brh - should we perhaps not allow things to have names
+                   that contain '\\' */
+                str = save_str;
+                break;
+            }
+        }
+        *put++ = *str++;
+    }
+    *put = '\0';
+    return buf;
+}
+
+/*
+ * This differs from putstr() because the str parameter can
+ * contain a sequence of characters representing:
+ *        \GXXXXNNNN    a glyph value, encoded by encglyph().
+ *
+ * For window ports that haven't yet written their own
+ * XXX_putmixed() routine, this general one can be used.
+ * It replaces the encoded glyph sequence with a single
+ * showsyms[] char, then just passes that string onto
+ * putstr().
+ */
+
+void
+genl_putmixed(winid window, int attr, const char *str)
+{
+    char buf[BUFSZ];
+
+    /* now send it to the normal putstr */
+    putstr(window, attr, decode_mixed(buf, str));
+}
+
+/*
+ * Window port helper function for menu invert routines to move the decision
+ * logic into one place instead of 7 different window-port routines.
+ */
+boolean
+menuitem_invert_test(int mode,
+                     unsigned itemflags,     /* The itemflags for the item */
+                     boolean is_selected)    /* The current selection status
+                                                of the item */
+{
+    boolean skipinvert = (itemflags & MENU_ITEMFLAGS_SKIPINVERT) != 0;
+
+    if ((iflags.menuinvertmode == 1 || iflags.menuinvertmode == 2)
+        && !mode && skipinvert && !is_selected)
+        return FALSE;
+    else if (iflags.menuinvertmode == 2
+        && !mode && skipinvert && is_selected)
+        return TRUE;
+    else
+        return TRUE;
 }
 
 /*windows.c*/

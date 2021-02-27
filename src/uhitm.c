@@ -1,4 +1,4 @@
-/* NetHack 3.7	uhitm.c	$NHDT-Date: 1607076540 2020/12/04 10:09:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.288 $ */
+/* NetHack 3.7	uhitm.c	$NHDT-Date: 1609442602 2020/12/31 19:23:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.292 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -8,27 +8,27 @@
 static const char brief_feeling[] =
     "have a %s feeling for a moment, then it passes.";
 
-static boolean FDECL(attack_check_conducts, (struct obj *));
-static boolean FDECL(known_hitum, (struct monst *, struct obj *, int *,
-                                   int, int, struct attack *, int));
-static boolean FDECL(theft_petrifies, (struct obj *));
-static void FDECL(steal_it, (struct monst *, struct attack *));
-static int FDECL(really_steal, (struct obj *, struct monst *));
-static void FDECL(mhitm_really_poison, (struct monst *, struct attack *,
-                                        struct monst *, struct mhitm_data *));
-static boolean NDECL(should_cleave);
-static boolean FDECL(hitum_cleave, (struct monst *, struct attack *));
-static boolean FDECL(hitum, (struct monst *, struct attack *));
-static boolean FDECL(hmon_hitmon, (struct monst *, struct obj *, int, int));
-static int FDECL(joust, (struct monst *, struct obj *));
-static void NDECL(demonpet);
-static boolean FDECL(m_slips_free, (struct monst *, struct attack *));
-static void FDECL(start_engulf, (struct monst *));
-static void NDECL(end_engulf);
-static int FDECL(gulpum, (struct monst *, struct attack *));
-static boolean FDECL(hmonas, (struct monst *));
-static void FDECL(nohandglow, (struct monst *));
-static boolean FDECL(shade_aware, (struct obj *));
+static boolean attack_check_conducts(struct obj *);
+static boolean known_hitum(struct monst *, struct obj *, int *, int, int,
+                           struct attack *, int);
+static boolean theft_petrifies(struct obj *);
+static void steal_it(struct monst *, struct attack *);
+static int really_steal(struct obj *, struct monst *);
+static void mhitm_really_poison(struct monst *, struct attack *,
+                                struct monst *, struct mhitm_data *);
+static boolean should_cleave(void);
+static boolean hitum_cleave(struct monst *, struct attack *);
+static boolean hitum(struct monst *, struct attack *);
+static boolean hmon_hitmon(struct monst *, struct obj *, int, int);
+static int joust(struct monst *, struct obj *);
+static void demonpet(void);
+static boolean m_slips_free(struct monst *, struct attack *);
+static void start_engulf(struct monst *);
+static void end_engulf(void);
+static int gulpum(struct monst *, struct attack *);
+static boolean hmonas(struct monst *);
+static void nohandglow(struct monst *);
+static boolean shade_aware(struct obj *);
 
 #define PROJECTILE(obj) ((obj) && is_ammo(obj))
 
@@ -40,9 +40,7 @@ enum really_steal_returns {
 };
 
 void
-erode_armor(mdef, hurt)
-struct monst *mdef;
-int hurt;
+erode_armor(struct monst *mdef, int hurt)
 {
     struct obj *target;
 
@@ -105,9 +103,8 @@ int hurt;
 
 /* FALSE means it's OK to attack */
 boolean
-attack_checks(mtmp, wep)
-register struct monst *mtmp;
-struct obj *wep; /* uwep for attack(), null for kick_monster() */
+attack_checks(struct monst *mtmp,
+              struct obj *wep) /* uwep for do_attack(), null for kick_monster() */
 {
     int glyph;
 
@@ -257,8 +254,7 @@ struct obj *wep; /* uwep for attack(), null for kick_monster() */
  * (so that it takes no time) if the player elects not to attack.
  */
 static boolean
-attack_check_conducts(wep)
-struct obj* wep;
+attack_check_conducts(struct obj* wep)
 {
     /* Weaponless: about to break weaponless conduct as a non-beginner
      * (common situation is forgetting to unwield a pick-axe) */
@@ -291,8 +287,7 @@ struct obj* wep;
  * It is unchivalrous for a knight to attack the defenseless or from behind.
  */
 void
-check_caitiff(mtmp)
-struct monst *mtmp;
+check_caitiff(struct monst *mtmp)
 {
     if (u.ualign.record <= -10)
         return;
@@ -310,11 +305,11 @@ struct monst *mtmp;
 }
 
 int
-find_roll_to_hit(mtmp, aatyp, weapon, attk_count, role_roll_penalty)
-register struct monst *mtmp;
-uchar aatyp;        /* usually AT_WEAP or AT_KICK */
-struct obj *weapon; /* uwep or uswapwep or NULL */
-int *attk_count, *role_roll_penalty;
+find_roll_to_hit(struct monst *mtmp,
+                 uchar aatyp,        /* usually AT_WEAP or AT_KICK */
+                 struct obj *weapon, /* uwep or uswapwep or NULL */
+                 int *attk_count,
+                 int *role_roll_penalty)
 {
     int tmp, tmp2;
 
@@ -383,8 +378,7 @@ int *attk_count, *role_roll_penalty;
 /* try to attack; return False if monster evaded;
    u.dx and u.dy must be set */
 boolean
-attack(mtmp)
-register struct monst *mtmp;
+do_attack(struct monst *mtmp)
 {
     register struct permonst *mdat = mtmp->data;
 
@@ -406,9 +400,14 @@ register struct monst *mtmp;
              * if your pet is a long worm with a tail.
              * There's also a chance of displacing a "frozen" monster:
              * sleeping monsters might magically walk in their sleep.
+             * This block of code used to only be called for pets; now
+             * that it also applies to peacefuls, non-pets mustn't be
+             * forced to flee.
              */
             boolean foo = (Punished || !rn2(7)
-                           || (is_longworm(mtmp->data) && mtmp->wormno)),
+                           || (is_longworm(mtmp->data) && mtmp->wormno)
+                           || (IS_ROCK(levl[u.ux][u.uy].typ)
+                               && !passes_walls(mtmp->data))),
                     inshop = FALSE;
             char *p;
 
@@ -420,17 +419,17 @@ register struct monst *mtmp;
                         break;
                     }
             }
-            if (inshop || foo || (IS_ROCK(levl[u.ux][u.uy].typ)
-                                  && !passes_walls(mtmp->data))) {
+            if (inshop || foo) {
                 char buf[BUFSZ];
 
+                if (mtmp->mtame) /* see 'additional considerations' above */
                 monflee(mtmp, rnd(6), FALSE, FALSE);
                 Strcpy(buf, y_monnam(mtmp));
                 buf[0] = highc(buf[0]);
                 You("stop.  %s is in the way!", buf);
                 end_running(TRUE);
                 return TRUE;
-            } else if (mtmp->mfrozen || mtmp->msleeping || (!mtmp->mcanmove)
+            } else if (mtmp->mfrozen || mtmp->msleeping || !mtmp->mcanmove
                        || (mtmp->data->mmove == 0 && rn2(6))) {
                 pline("%s doesn't seem to move!", Monnam(mtmp));
                 end_running(TRUE);
@@ -517,13 +516,10 @@ register struct monst *mtmp;
 
 /* really hit target monster; returns TRUE if it still lives */
 static boolean
-known_hitum(mon, weapon, mhit, rollneeded, armorpenalty, uattk, dieroll)
-register struct monst *mon;
-struct obj *weapon;
-int *mhit;
-int rollneeded, armorpenalty; /* for monks */
-struct attack *uattk;
-int dieroll;
+known_hitum(struct monst *mon, struct obj *weapon, int *mhit, int rollneeded,
+            int armorpenalty, /* for monks */
+            struct attack *uattk,
+            int dieroll)
 {
     boolean malive = TRUE,
             /* hmon() might destroy weapon; remember aspect for cutworm */
@@ -581,7 +577,7 @@ int dieroll;
  * and right of the target space
  * assumes u.dx and u.dy have been set */
 static boolean
-should_cleave()
+should_cleave(void)
 {
     int i;
     boolean bystanders = FALSE;
@@ -612,9 +608,10 @@ should_cleave()
 /* hit the monster next to you and the monsters to the left and right of it;
    return False if the primary target is killed, True otherwise */
 static boolean
-hitum_cleave(target, uattk)
-struct monst *target; /* non-Null; forcefight at nothing doesn't cleave... */
-struct attack *uattk; /* ... but we don't enforce that here; Null works ok */
+hitum_cleave(struct monst *target, /* non-Null; forcefight at nothing doesn't
+                                      cleave... */
+             struct attack *uattk) /* ... but we don't enforce that here; Null
+                                      works ok */
 {
     /* swings will be delivered in alternate directions; with consecutive
        attacks it will simulate normal swing and backswing; when swings
@@ -671,7 +668,8 @@ struct attack *uattk; /* ... but we don't enforce that here; Null works ok */
                                &attknum, &armorpenalty);
         dieroll = rnd(20);
         mhit = (tmp > dieroll);
-        g.bhitpos.x = tx, g.bhitpos.y = ty; /* normally set up by attack() */
+        g.bhitpos.x = tx, g.bhitpos.y = ty; /* normally set up by
+					       do_attack() */
         (void) known_hitum(mtmp, uwep, &mhit, tmp, armorpenalty,
                            uattk, dieroll);
         (void) passive(mtmp, uwep, mhit, !DEADMONSTER(mtmp), AT_WEAP, !uwep);
@@ -693,9 +691,7 @@ struct attack *uattk; /* ... but we don't enforce that here; Null works ok */
 
 /* hit target monster; returns TRUE if it still lives */
 static boolean
-hitum(mon, uattk)
-struct monst *mon;
-struct attack *uattk;
+hitum(struct monst *mon, struct attack *uattk)
 {
     boolean malive, wep_was_destroyed = FALSE;
     struct obj *wepbefore = uwep;
@@ -739,11 +735,10 @@ struct attack *uattk;
 
 /* general "damage monster" routine; return True if mon still alive */
 boolean
-hmon(mon, obj, thrown, dieroll)
-struct monst *mon;
-struct obj *obj;
-int thrown; /* HMON_xxx (0 => hand-to-hand, other => ranged) */
-int dieroll;
+hmon(struct monst *mon,
+     struct obj *obj,
+     int thrown, /* HMON_xxx (0 => hand-to-hand, other => ranged) */
+     int dieroll)
 {
     boolean result, anger_guards;
 
@@ -759,11 +754,10 @@ int dieroll;
 
 /* guts of hmon() */
 static boolean
-hmon_hitmon(mon, obj, thrown, dieroll)
-struct monst *mon;
-struct obj *obj;
-int thrown; /* HMON_xxx (0 => hand-to-hand, other => ranged) */
-int dieroll;
+hmon_hitmon(struct monst *mon,
+           struct obj *obj,
+           int thrown, /* HMON_xxx (0 => hand-to-hand, other => ranged) */
+           int dieroll)
 {
     int tmp;
     struct permonst *mdat = mon->data;
@@ -1190,7 +1184,7 @@ int dieroll;
                         pline("Splat!  You hit %s with %s %s egg%s!",
                               mon_nam(mon),
                               obj->known ? "the" : cnt > 1L ? "some" : "a",
-                              obj->known ? mons[obj->corpsenm].mname
+                              obj->known ? mons[obj->corpsenm].pmnames[NEUTRAL]
                                          : "petrifying",
                               plur(cnt));
                         obj->known = 1; /* (not much point...) */
@@ -1203,10 +1197,10 @@ int dieroll;
                     } else { /* ordinary egg(s) */
                         const char *eggp = (obj->corpsenm != NON_PM
                                             && obj->known)
-                                           ? the(mons[obj->corpsenm].mname)
+                                    ? the(mons[obj->corpsenm].pmnames[NEUTRAL])
                                            : (cnt > 1L) ? "some" : "an";
 
-                        if (strstri(mon->data->mname, "devil"))
+                        if (strstri(pmname(mon->data, Mgender(mon)), "devil"))
                             pline("Deviled egg%s!", plur(cnt));
                         else
                             You("hit %s with %s egg%s.", mon_nam(mon), eggp,
@@ -1590,8 +1584,7 @@ int dieroll;
 }
 
 static boolean
-shade_aware(obj)
-struct obj *obj;
+shade_aware(struct obj *obj)
 {
     if (!obj)
         return FALSE;
@@ -1615,10 +1608,8 @@ struct obj *obj;
 /* used for hero vs monster and monster vs monster; also handles
    monster vs hero but that won't happen because hero can't be a shade */
 boolean
-shade_miss(magr, mdef, obj, thrown, verbose)
-struct monst *magr, *mdef;
-struct obj *obj;
-boolean thrown, verbose;
+shade_miss(struct monst *magr, struct monst *mdef, struct obj *obj,
+           boolean thrown, boolean verbose)
 {
     const char *what, *whose, *target;
     boolean youagr = (magr == &g.youmonst), youdef = (mdef == &g.youmonst);
@@ -1653,9 +1644,7 @@ boolean thrown, verbose;
 /* check whether slippery clothing protects from hug or wrap attack */
 /* [currently assumes that you are the attacker] */
 static boolean
-m_slips_free(mdef, mattk)
-struct monst *mdef;
-struct attack *mattk;
+m_slips_free(struct monst *mdef, struct attack *mattk)
 {
     struct obj *obj;
 
@@ -1697,9 +1686,8 @@ struct attack *mattk;
 /* used when hitting a monster with a lance while mounted;
    1: joust hit; 0: ordinary hit; -1: joust but break lance */
 static int
-joust(mon, obj)
-struct monst *mon; /* target */
-struct obj *obj;   /* weapon */
+joust(struct monst *mon, /* target */
+      struct obj *obj)   /* weapon */
 {
     int skill_rating, joust_dieroll;
 
@@ -1735,7 +1723,7 @@ struct obj *obj;   /* weapon */
  * Pulling it out makes it work.
  */
 static void
-demonpet()
+demonpet(void)
 {
     int i;
     struct permonst *pm;
@@ -1750,8 +1738,7 @@ demonpet()
 }
 
 static boolean
-theft_petrifies(otmp)
-struct obj *otmp;
+theft_petrifies(struct obj *otmp)
 {
     if (uarmg || otmp->otyp != CORPSE
         || !touch_petrifies(&mons[otmp->corpsenm]) || Stone_resistance)
@@ -1778,9 +1765,7 @@ struct obj *otmp;
  * otherwise, take one object.  [Is this really the behavior we want?]
  */
 static void
-steal_it(mdef, mattk)
-struct monst *mdef;
-struct attack *mattk;
+steal_it(struct monst *mdef, struct attack *mattk)
 {
     struct obj *otmp, *gold = 0, *ustealo, **minvent_ptr;
 
@@ -1839,7 +1824,9 @@ struct attack *mattk;
         if (!Upolyd)
             break; /* no longer have ability to steal */
 
-        if (otmp == ustealo) /* special message for final item */
+        /* special message for final item; no need to check owornmask because
+         * ustealo is only set on objects with (owornmask & W_ARM) */
+        if (otmp == ustealo)
             pline("%s finishes taking off %s suit.", Monnam(mdef),
                     mhis(mdef));
         stealresult = really_steal(otmp, mdef);
@@ -1872,9 +1859,7 @@ struct attack *mattk;
  * of the "You steal e - an imaginary widget" message.
  * Returns one of the STEAL_* values. */
 static int
-really_steal(obj, mdef)
-struct obj * obj;
-struct monst * mdef;
+really_steal(struct obj *obj, struct monst *mdef)
 {
     long unwornmask = obj->owornmask;
     /* take the object away from the monster */
@@ -1899,11 +1884,8 @@ struct monst * mdef;
 }
 
 void
-mhitm_ad_rust(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_rust(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -1959,11 +1941,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_corr(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_corr(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -1986,11 +1965,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_dcay(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_dcay(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -2044,11 +2020,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_dren(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_dren(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -2082,11 +2055,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_drli(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_drli(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -2164,11 +2134,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_fire(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_fire(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
     const int orig_dmg = mhm->damage; /* damage coming into the function */
@@ -2277,11 +2244,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_cold(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_cold(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     const int orig_dmg = mhm->damage;
 
@@ -2344,11 +2308,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_elec(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_elec(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     const int orig_dmg = mhm->damage;
 
@@ -2411,11 +2372,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_acid(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_acid(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -2458,11 +2416,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_sgld(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_sgld(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pa = magr->data;
     struct permonst *pd = mdef->data;
@@ -2532,11 +2487,8 @@ struct mhitm_data *mhm;
 
 
 void
-mhitm_ad_tlpt(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_tlpt(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -2632,11 +2584,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_blnd(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_blnd(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -2679,11 +2628,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_curs(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_curs(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pa = magr->data;
     struct permonst *pd = mdef->data;
@@ -2769,11 +2715,8 @@ struct mhitm_data *mhm;
  * In this specific case, the "mhitm" in the name ACTUALLY means just that -
  * this should be called only for monster versus monster situations. */
 static void
-mhitm_really_poison(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_really_poison(struct monst *magr, struct attack *mattk,
+                    struct monst *mdef, struct mhitm_data *mhm)
 {
     if (g.vis && canspotmon(magr))
         pline("%s %s was poisoned!", s_suffix(Monnam(magr)),
@@ -2788,11 +2731,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_drst(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_drst(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pa = magr->data;
 
@@ -2827,7 +2767,7 @@ struct mhitm_data *mhm;
         if (uncancelled && !rn2(8)) {
             Sprintf(buf, "%s %s", s_suffix(Monnam(magr)),
                     mpoisons_subj(magr, mattk));
-            poisoned(buf, ptmp, pa->mname, 30, FALSE);
+            poisoned(buf, ptmp, pmname(pa, Mgender(magr)), 30, FALSE);
         }
     } else {
         /* mhitm */
@@ -2841,11 +2781,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_drin(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_drin(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -2942,11 +2879,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_stck(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_stck(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -2978,11 +2912,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_wrap(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_wrap(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -3033,7 +2964,7 @@ struct mhitm_data *mhm;
                     g.killer.format = KILLED_BY_AN;
                     Sprintf(g.killer.name, "%s by %s",
                             moat ? "moat" : "pool of water",
-                            an(magr->data->mname));
+                            an(pmname(magr->data, Mgender(magr))));
                     done(DROWNING);
                 } else if (mattk->aatyp == AT_HUGS) {
                     You("are being crushed.");
@@ -3054,11 +2985,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_plys(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_plys(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3138,14 +3066,9 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_slee(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_slee(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm UNUSED)
 {
-    mhm->damage = 0; /* no HP damage */
-
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -3191,11 +3114,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_slim(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_slim(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -3242,7 +3162,8 @@ struct mhitm_data *mhm;
         } else if (!Slimed) {
             You("don't feel very well.");
             make_slimed(10L, (char *) 0);
-            delayed_killer(SLIMED, KILLED_BY_AN, magr->data->mname);
+            delayed_killer(SLIMED, KILLED_BY_AN,
+                           pmname(magr->data, Mgender(magr)));
         } else
             pline("Yuck!");
     } else {
@@ -3272,14 +3193,9 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_ench(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_ench(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm UNUSED)
 {
-    mhm->damage = 0; /* no HP damage */
-
     if (magr == &g.youmonst) {
         /* uhitm */
         /* there's no msomearmor() function, so just do damage */
@@ -3325,14 +3241,9 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_slow(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_slow(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm UNUSED)
 {
-    mhm->damage = 0; /* no HP damage */
-
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
@@ -3371,11 +3282,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_conf(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_conf(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3412,11 +3320,10 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_poly(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk UNUSED; /* implied */
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_poly(struct monst *magr,
+              struct attack *mattk UNUSED, /* implied */
+              struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3442,11 +3349,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_pits(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_pits(struct monst *magr, struct attack *mattk,
+              struct monst *mdef, struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3475,11 +3379,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_famn(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk UNUSED;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_famn(struct monst *magr, struct attack *mattk UNUSED,
+              struct monst *mdef, struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3498,11 +3399,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_pest(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk UNUSED;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_pest(struct monst *magr, struct attack *mattk UNUSED,
+              struct monst *mdef, struct mhitm_data *mhm)
 {
     struct permonst *pa = magr->data;
 
@@ -3521,11 +3419,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_deth(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk UNUSED;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_deth(struct monst *magr, struct attack *mattk UNUSED,
+              struct monst *mdef, struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -3574,11 +3469,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_halu(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk UNUSED;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_halu(struct monst *magr, struct attack *mattk UNUSED,
+              struct monst *mdef, struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -3602,14 +3494,13 @@ struct mhitm_data *mhm;
 }
 
 boolean
-do_stone_u(mtmp)
-struct monst *mtmp;
+do_stone_u(struct monst *mtmp)
 {
     if (!Stoned && !Stone_resistance
         && !(poly_when_stoned(g.youmonst.data)
              && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
         int kformat = KILLED_BY_AN;
-        const char *kname = mtmp->data->mname;
+        const char *kname = pmname(mtmp->data, Mgender(mtmp));
 
         if (mtmp->data->geno & G_UNIQ) {
             if (!type_is_pname(mtmp->data))
@@ -3624,11 +3515,8 @@ struct monst *mtmp;
 }
 
 void
-do_stone_mon(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk UNUSED;
-struct monst *mdef;
-struct mhitm_data *mhm;
+do_stone_mon(struct monst *magr, struct attack *mattk UNUSED,
+             struct monst *mdef, struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -3661,11 +3549,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_phys(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_phys(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pa = magr->data;
     struct permonst *pd = mdef->data;
@@ -3732,7 +3617,7 @@ struct mhitm_data *mhm;
                     && touch_petrifies(&mons[otmp->corpsenm])) {
                     mhm->damage = 1;
                     pline("%s hits you with the %s corpse.", Monnam(magr),
-                          mons[otmp->corpsenm].mname);
+                          mons[otmp->corpsenm].pmnames[NEUTRAL]);
                     if (!Stoned) {
                         if (do_stone_u(magr)) {
                             mhm->hitflags = MM_HIT;
@@ -3804,7 +3689,8 @@ struct mhitm_data *mhm;
                      * strength-based. With hpdamchance = 10, HP damage occurs
                      * 1/2 of the time and it will hit Str the rest of the time.
                      * (This is the same as poisoned ammo.) */
-                    poisoned(buf, A_STR, magr->data->mname, 10, FALSE);
+                    poisoned(buf, A_STR, pmname(magr->data, Mgender(magr)),
+                             10, FALSE);
                 }
             } else if (mattk->aatyp != AT_TUCH || mhm->damage != 0
                        || magr != u.ustuck)
@@ -3887,11 +3773,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_ston(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_ston(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -3934,11 +3817,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_were(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_were(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pa = magr->data;
 
@@ -3969,11 +3849,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_heal(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_heal(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -4057,11 +3934,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_stun(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_stun(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -4096,11 +3970,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_legs(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_legs(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -4165,11 +4036,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_dgst(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk UNUSED;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_dgst(struct monst *magr, struct attack *mattk UNUSED,
+              struct monst *mdef, struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
 
@@ -4240,11 +4108,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_samu(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_samu(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -4264,11 +4129,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_dise(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_dise(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pa = magr->data;
 
@@ -4287,11 +4149,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_sedu(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_sedu(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     struct permonst *pa = magr->data;
 
@@ -4415,11 +4274,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_ad_ssex(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_ad_ssex(struct monst *magr, struct attack *mattk, struct monst *mdef,
+              struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -4451,11 +4307,8 @@ struct mhitm_data *mhm;
 }
 
 void
-mhitm_adtyping(magr, mattk, mdef, mhm)
-struct monst *magr;
-struct attack *mattk;
-struct monst *mdef;
-struct mhitm_data *mhm;
+mhitm_adtyping(struct monst *magr, struct attack *mattk, struct monst *mdef,
+               struct mhitm_data *mhm)
 {
     switch (mattk->adtyp) {
     case AD_STUN: mhitm_ad_stun(magr, mattk, mdef, mhm); break;
@@ -4507,13 +4360,9 @@ struct mhitm_data *mhm;
 }
 
 int
-damageum(mdef, mattk, specialdmg)
-register struct monst *mdef;
-register struct attack *mattk;
-int specialdmg; /* blessed and/or silver bonus against various things */
+damageum(struct monst *mdef, struct attack *mattk,
+         int specialdmg) /* blessed and/or silver bonus against various things */
 {
-    int armpro;
-    boolean negated;
     struct mhitm_data mhm;
     mhm.damage = d((int) mattk->damn, (int) mattk->damd);
     mhm.hitflags = MM_MISS;
@@ -4521,13 +4370,8 @@ int specialdmg; /* blessed and/or silver bonus against various things */
     mhm.specialdmg = specialdmg;
     mhm.done = FALSE;
 
-    armpro = magic_negation(mdef);
-    /* since hero can't be cancelled, only defender's armor applies */
-    negated = !(rn2(10) >= 3 * armpro);
-
     if (is_demon(g.youmonst.data) && !rn2(13) && !uwep
-        && u.umonnum != PM_SUCCUBUS && u.umonnum != PM_INCUBUS
-        && u.umonnum != PM_BALROG) {
+        && u.umonnum != PM_AMOROUS_DEMON && u.umonnum != PM_BALROG) {
         demonpet();
         return MM_MISS;
     }
@@ -4559,9 +4403,7 @@ int specialdmg; /* blessed and/or silver bonus against various things */
  * forcefight) if mdef is null.
  */
 int
-explum(mdef, mattk)
-register struct monst *mdef;
-register struct attack *mattk;
+explum(struct monst *mdef, struct attack *mattk)
 {
     register int tmp = d((int) mattk->damn, (int) mattk->damd);
 
@@ -4600,8 +4442,7 @@ register struct attack *mattk;
 }
 
 static void
-start_engulf(mdef)
-struct monst *mdef;
+start_engulf(struct monst *mdef)
 {
     if (!Invisible) {
         map_location(u.ux, u.uy, TRUE);
@@ -4614,7 +4455,7 @@ struct monst *mdef;
 }
 
 static void
-end_engulf()
+end_engulf(void)
 {
     if (!Invisible) {
         tmp_at(DISP_END, 0);
@@ -4623,9 +4464,7 @@ end_engulf()
 }
 
 static int
-gulpum(mdef, mattk)
-register struct monst *mdef;
-register struct attack *mattk;
+gulpum(struct monst *mdef, struct attack *mattk)
 {
 #ifdef LINT /* static char msgbuf[BUFSZ]; */
     char msgbuf[BUFSZ];
@@ -4676,12 +4515,12 @@ register struct attack *mattk;
 
         if (fatal_gulp && !is_rider(pd)) { /* petrification */
             char kbuf[BUFSZ];
-            const char *mname = pd->mname;
+            const char *mnam = pmname(pd, Mgender(mdef));
 
             if (!type_is_pname(pd))
-                mname = an(mname);
+                mnam = an(mnam);
             You("englut %s.", mon_nam(mdef));
-            Sprintf(kbuf, "swallowing %s whole", mname);
+            Sprintf(kbuf, "swallowing %s whole", mnam);
             instapetrify(kbuf);
         } else {
             start_engulf(mdef);
@@ -4692,7 +4531,7 @@ register struct attack *mattk;
                     pline("Unfortunately, digesting any of it is fatal.");
                     end_engulf();
                     Sprintf(g.killer.name, "unwisely tried to eat %s",
-                            pd->mname);
+                            pmname(pd, Mgender(mdef)));
                     g.killer.format = NO_KILLER_PREFIX;
                     done(DIED);
                     return MM_MISS; /* lifesaved */
@@ -4743,7 +4582,7 @@ register struct attack *mattk;
                         pline1(msgbuf);
                     if (pd == &mons[PM_GREEN_SLIME]) {
                         Sprintf(msgbuf, "%s isn't sitting well with you.",
-                                The(pd->mname));
+                                The(pmname(pd, Mgender(mdef))));
                         if (!Unchanging) {
                             make_slimed(5L, (char *) 0);
                         }
@@ -4841,10 +4680,7 @@ register struct attack *mattk;
 }
 
 void
-missum(mdef, mattk, wouldhavehit)
-register struct monst *mdef;
-register struct attack *mattk;
-boolean wouldhavehit;
+missum(struct monst *mdef, struct attack *mattk, boolean wouldhavehit)
 {
     if (wouldhavehit) /* monk is missing due to penalty for wearing suit */
         Your("armor is rather cumbersome...");
@@ -4861,8 +4697,7 @@ boolean wouldhavehit;
 
 /* attack monster as a monster; returns True if mon survives */
 static boolean
-hmonas(mon)
-register struct monst *mon;
+hmonas(struct monst *mon)
 {
     struct attack *mattk, alt_attk;
     struct obj *weapon, **originalweapon;
@@ -5228,13 +5063,12 @@ register struct monst *mon;
 /*      Special (passive) attacks on you by monsters done here.
  */
 int
-passive(mon, weapon, mhitb, maliveb, aatyp, wep_was_destroyed)
-struct monst *mon;
-struct obj *weapon; /* uwep or uswapwep or uarmg or uarmf or Null */
-boolean mhitb;
-boolean maliveb;
-uchar aatyp;
-boolean wep_was_destroyed;
+passive(struct monst *mon,
+        struct obj *weapon, /* uwep or uswapwep or uarmg or uarmf or Null */
+        boolean mhitb,
+        boolean maliveb,
+        uchar aatyp,
+        boolean wep_was_destroyed)
 {
     register struct permonst *ptr = mon->data;
     register int i, tmp;
@@ -5467,10 +5301,9 @@ boolean wep_was_destroyed;
  * Assumes the attack was successful.
  */
 void
-passive_obj(mon, obj, mattk)
-struct monst *mon;
-struct obj *obj;          /* null means pick uwep, uswapwep or uarmg */
-struct attack *mattk;     /* null means we find one internally */
+passive_obj(struct monst *mon,
+            struct obj *obj,      /* null means pick uwep, uswapwep or uarmg */
+            struct attack *mattk) /* null means we find one internally */
 {
     struct permonst *ptr = mon->data;
     int i;
@@ -5539,8 +5372,7 @@ struct attack *mattk;     /* null means we find one internally */
  * enchantment. Currently implemented only for bone armor with a positive
  * enchantment. */
 boolean
-item_catches_drain(mdef)
-struct monst* mdef;
+item_catches_drain(struct monst *mdef)
 {
     int bone_armor_ct = 0;
     struct obj *otmp, *interceptor = NULL;
@@ -5567,8 +5399,7 @@ struct monst* mdef;
 
 /* Note: caller must ascertain mtmp is mimicking... */
 void
-stumble_onto_mimic(mtmp)
-struct monst *mtmp;
+stumble_onto_mimic(struct monst *mtmp)
 {
     const char *fmt = "Wait!  That's %s!", *generic = "a monster", *what = 0;
 
@@ -5610,8 +5441,7 @@ struct monst *mtmp;
 }
 
 static void
-nohandglow(mon)
-struct monst *mon;
+nohandglow(struct monst *mon)
 {
     char *hands = makeplural(body_part(HAND));
 
@@ -5633,9 +5463,8 @@ struct monst *mon;
 
 /* returns 1 if light flash has noticeable effect on 'mtmp', 0 otherwise */
 int
-flash_hits_mon(mtmp, otmp)
-struct monst *mtmp;
-struct obj *otmp; /* source of flash */
+flash_hits_mon(struct monst *mtmp,
+               struct obj *otmp) /* source of flash */
 {
     struct rm *lev;
     int tmp, amt, useeit, res = 0;
@@ -5689,9 +5518,7 @@ struct obj *otmp; /* source of flash */
 }
 
 void
-light_hits_gremlin(mon, dmg)
-struct monst *mon;
-int dmg;
+light_hits_gremlin(struct monst *mon, int dmg)
 {
     if (canspotmon(mon)) {
         pline("%s %s!", Monnam(mon),

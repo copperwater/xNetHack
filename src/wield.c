@@ -52,7 +52,9 @@
  * No item may be in more than one of these slots.
  */
 
-static int FDECL(ready_weapon, (struct obj *));
+static int ready_weapon(struct obj *);
+static int ready_ok(struct obj *);
+static int wield_ok(struct obj *);
 
 /* to dual-wield, 'obj' must be a weapon or a weapon-tool, and not a bow
    or arrow or missile (dart, shuriken, boomerang), so not matching the
@@ -83,8 +85,7 @@ static const char
  * to print the appropriate messages.
  */
 void
-setuwep(obj)
-register struct obj *obj;
+setuwep(struct obj *obj)
 {
     struct obj *olduwep = uwep;
 
@@ -124,8 +125,7 @@ register struct obj *obj;
 }
 
 boolean
-cant_wield_corpse(obj)
-struct obj *obj;
+cant_wield_corpse(struct obj *obj)
 {
     char kbuf[BUFSZ];
 
@@ -148,8 +148,7 @@ struct obj *obj;
 }
 
 static int
-ready_weapon(wep)
-struct obj *wep;
+ready_weapon(struct obj *wep)
 {
     /* Separated function so swapping works easily */
     int res = 0;
@@ -254,8 +253,7 @@ struct obj *wep;
 }
 
 void
-setuqwep(obj)
-register struct obj *obj;
+setuqwep(struct obj *obj)
 {
     setworn(obj, W_QUIVER);
     /* no extra handling needed; this used to include a call to
@@ -264,54 +262,58 @@ register struct obj *obj;
 }
 
 void
-setuswapwep(obj)
-register struct obj *obj;
+setuswapwep(struct obj *obj)
 {
     setworn(obj, W_SWAPWEP);
     return;
 }
 
-/*** Commands to change particular slot(s) ***/
-
+/* getobj callback for object to ready for throwing/shooting */
 static int
-wield_ok(obj)
-struct obj *obj;
+ready_ok(struct obj *obj)
 {
-    if (obj == &cg.zeroobj || (obj && obj->oclass == COIN_CLASS))
-        return 0;
+    if (!obj)
+        return GETOBJ_SUGGEST;
 
-    if (!obj || obj->oclass == WEAPON_CLASS ||
-        (obj->oclass == TOOL_CLASS && is_weptool(obj))
-        || obj->otyp == TIN_OPENER)
-        return 2;
+    /* exclude when wielded... */
+    if ((obj == uwep || (obj == uswapwep && u.twoweap))
+        && obj->quan == 1) /* ...unless more than one */
+        return GETOBJ_EXCLUDE_INACCESS;
 
-    return 1;
+    if (obj->oclass == WEAPON_CLASS || obj->oclass == COIN_CLASS)
+        return GETOBJ_SUGGEST;
+    /* Possible extension: exclude weapons that make no sense to throw, such as
+     * whips, bows, slings, rubber hoses. */
+
+    /* Include gems/stones as likely candidates if either primary
+       or secondary weapon is a sling. */
+    if (obj->oclass == GEM_CLASS
+        && (uslinging()
+            || (uswapwep && objects[uswapwep->otyp].oc_skill == P_SLING)))
+        return GETOBJ_SUGGEST;
+
+    return GETOBJ_DOWNPLAY;
 }
 
+/* getobj callback for object to wield */
 static int
-ready_ok(obj)
-struct obj *obj;
+wield_ok(struct obj *obj)
 {
-    if (obj == &cg.zeroobj)
-        return 0;
+    if (!obj)
+        return GETOBJ_SUGGEST;
 
-    if (obj && obj->quan == 1 &&
-        (obj == uwep || (obj == uswapwep && u.twoweap)))
-        return 1;
+    if (obj->oclass == COIN_CLASS)
+        return GETOBJ_EXCLUDE;
 
-    if (!obj || obj->oclass == WEAPON_CLASS || obj->oclass == COIN_CLASS)
-        return 2;
+    if (obj->oclass == WEAPON_CLASS
+        || (obj->oclass == TOOL_CLASS && is_weptool(obj)))
+        return GETOBJ_SUGGEST;
 
-    if ((uslinging() || (uswapwep &&
-                         objects[uswapwep->otyp].oc_skill == P_SLING)) &&
-        obj->oclass == GEM_CLASS)
-        return 2;
-
-    return 1;
+    return GETOBJ_DOWNPLAY;
 }
 
 int
-dowield()
+dowield(void)
 {
     char qbuf[QBUFSZ];
     struct obj *wep, *oldwep;
@@ -327,7 +329,7 @@ dowield()
 
     /* Prompt for a new weapon */
     clear_splitobjs();
-    if (!(wep = getobj("wield", wield_ok, FALSE, FALSE))) {
+    if (!(wep = getobj("wield", wield_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT))) {
         /* Cancelled */
         return 0;
     } else if (wep == uwep) {
@@ -421,7 +423,7 @@ dowield()
 }
 
 int
-doswapweapon()
+doswapweapon(void)
 {
     register struct obj *oldwep, *oldswap;
     int result = 0;
@@ -464,7 +466,7 @@ doswapweapon()
 }
 
 int
-dowieldquiver()
+dowieldquiver(void)
 {
     char qbuf[QBUFSZ];
     struct obj *newquiver;
@@ -475,13 +477,11 @@ dowieldquiver()
     /* Since the quiver isn't in your hands, don't check cantwield(), */
     /* will_weld(), touch_petrifies(), etc. */
     g.multi = 0;
-    /* forget last splitobj() before calling getobj() with ALLOW_COUNT */
+    /* forget last splitobj() before calling getobj() with GETOBJ_ALLOWCNT */
     clear_splitobjs();
 
-    /* Prompt for a new quiver: "What do you want to ready?"
-       (Include gems/stones as likely candidates if either primary
-       or secondary weapon is a sling.) */
-    newquiver = getobj("ready", ready_ok, FALSE, FALSE);
+    /* Prompt for a new quiver: "What do you want to ready?" */
+    newquiver = getobj("ready", ready_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT);
 
     if (!newquiver) {
         /* Cancelled */
@@ -625,9 +625,8 @@ dowieldquiver()
 
 /* used for #rub and for applying pick-axe, whip, grappling hook or polearm */
 boolean
-wield_tool(obj, verb)
-struct obj *obj;
-const char *verb; /* "rub",&c */
+wield_tool(struct obj *obj,
+           const char *verb) /* "rub",&c */
 {
     const char *what;
     boolean more_than_1;
@@ -704,7 +703,7 @@ const char *verb; /* "rub",&c */
 }
 
 int
-can_twoweapon()
+can_twoweapon(void)
 {
     struct obj *otmp;
 
@@ -756,7 +755,7 @@ can_twoweapon()
 }
 
 void
-drop_uswapwep()
+drop_uswapwep(void)
 {
     char str[BUFSZ];
     struct obj *obj = uswapwep;
@@ -768,14 +767,13 @@ drop_uswapwep()
 }
 
 void
-set_twoweap(on_off)
-boolean on_off;
+set_twoweap(boolean on_off)
 {
     u.twoweap = on_off;
 }
 
 int
-dotwoweapon()
+dotwoweapon(void)
 {
     /* You can always toggle it off */
     if (u.twoweap) {
@@ -803,7 +801,7 @@ dotwoweapon()
  * 2.  Making an item disappear for a bones pile.
  */
 void
-uwepgone()
+uwepgone(void)
 {
     if (uwep) {
         if (artifact_light(uwep) && uwep->lamplit) {
@@ -818,7 +816,7 @@ uwepgone()
 }
 
 void
-uswapwepgone()
+uswapwepgone(void)
 {
     if (uswapwep) {
         setworn((struct obj *) 0, W_SWAPWEP);
@@ -827,7 +825,7 @@ uswapwepgone()
 }
 
 void
-uqwepgone()
+uqwepgone(void)
 {
     if (uquiver) {
         setworn((struct obj *) 0, W_QUIVER);
@@ -836,7 +834,7 @@ uqwepgone()
 }
 
 void
-untwoweapon()
+untwoweapon(void)
 {
     if (u.twoweap) {
         You("%s.", can_no_longer_twoweap);
@@ -847,9 +845,7 @@ untwoweapon()
 }
 
 int
-chwepon(otmp, amount)
-register struct obj *otmp;
-register int amount;
+chwepon(struct obj *otmp, int amount)
 {
     const char *color = hcolor((amount < 0) ? NH_BLACK : NH_BLUE);
     const char *xtime, *wepname = "";
@@ -1051,8 +1047,7 @@ register int amount;
 }
 
 int
-welded(obj)
-register struct obj *obj;
+welded(struct obj *obj)
 {
     if (obj && obj == uwep && will_weld(obj)) {
         set_bknown(obj, 1);
@@ -1062,8 +1057,7 @@ register struct obj *obj;
 }
 
 void
-weldmsg(obj)
-register struct obj *obj;
+weldmsg(struct obj *obj)
 {
     long savewornmask;
 
@@ -1076,8 +1070,7 @@ register struct obj *obj;
 
 /* test whether monster's wielded weapon is stuck to hand/paw/whatever */
 boolean
-mwelded(obj)
-struct obj *obj;
+mwelded(struct obj *obj)
 {
     /* caller is responsible for making sure this is a monster's item */
     if (obj && (obj->owornmask & W_WEP) && will_weld(obj))

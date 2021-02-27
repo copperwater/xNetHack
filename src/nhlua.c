@@ -14,41 +14,40 @@
 /*  */
 
 /* lua_CFunction prototypes */
-static int FDECL(nhl_test, (lua_State *));
-static int FDECL(nhl_getmap, (lua_State *));
-static void FDECL(nhl_add_table_entry_bool, (lua_State *, const char *, BOOLEAN_P));
-static char FDECL(splev_typ2chr, (SCHAR_P));
-static int FDECL(nhl_gettrap, (lua_State *));
-static int FDECL(nhl_deltrap, (lua_State *));
+static int nhl_test(lua_State *);
+static int nhl_getmap(lua_State *);
+static void nhl_add_table_entry_bool(lua_State *, const char *, boolean);
+static char splev_typ2chr(schar);
+static int nhl_gettrap(lua_State *);
+static int nhl_deltrap(lua_State *);
 #if 0
-static int FDECL(nhl_setmap, (lua_State *));
+static int nhl_setmap(lua_State *);
 #endif
-static int FDECL(nhl_pline, (lua_State *));
-static int FDECL(nhl_verbalize, (lua_State *));
-static int FDECL(nhl_menu, (lua_State *));
-static int FDECL(nhl_getlin, (lua_State *));
-static int FDECL(nhl_makeplural, (lua_State *));
-static int FDECL(nhl_makesingular, (lua_State *));
-static int FDECL(nhl_s_suffix, (lua_State *));
-static int FDECL(nhl_ing_suffix, (lua_State *));
-static int FDECL(nhl_an, (lua_State *));
-static int FDECL(nhl_rn2, (lua_State *));
-static int FDECL(nhl_random, (lua_State *));
-static int FDECL(nhl_level_difficulty, (lua_State *));
-static void FDECL(init_nhc_data, (lua_State *));
-static int FDECL(nhl_push_anything, (lua_State *, int, void *));
-static int FDECL(nhl_meta_u_index, (lua_State *));
-static int FDECL(nhl_meta_u_newindex, (lua_State *));
-static int FDECL(nhl_u_clear_inventory, (lua_State *));
-static int FDECL(nhl_u_giveobj, (lua_State *));
-static void FDECL(init_u_data, (lua_State *));
-static int FDECL(nhl_set_package_path, (lua_State *, const char *));
-static int FDECL(traceback_handler, (lua_State *));
+static int nhl_pline(lua_State *);
+static int nhl_verbalize(lua_State *);
+static int nhl_parse_config(lua_State *);
+static int nhl_menu(lua_State *);
+static int nhl_getlin(lua_State *);
+static int nhl_makeplural(lua_State *);
+static int nhl_makesingular(lua_State *);
+static int nhl_s_suffix(lua_State *);
+static int nhl_ing_suffix(lua_State *);
+static int nhl_an(lua_State *);
+static int nhl_rn2(lua_State *);
+static int nhl_random(lua_State *);
+static int nhl_level_difficulty(lua_State *);
+static void init_nhc_data(lua_State *);
+static int nhl_push_anything(lua_State *, int, void *);
+static int nhl_meta_u_index(lua_State *);
+static int nhl_meta_u_newindex(lua_State *);
+static int nhl_u_clear_inventory(lua_State *);
+static int nhl_u_giveobj(lua_State *);
+static void init_u_data(lua_State *);
+static int nhl_set_package_path(lua_State *, const char *);
+static int traceback_handler(lua_State *);
 
 void
-nhl_error(L, msg)
-lua_State *L;
-const char *msg;
+nhl_error(lua_State *L, const char *msg)
 {
     lua_Debug ar;
     char buf[BUFSZ];
@@ -72,8 +71,7 @@ const char *msg;
 /* Check that parameters are nothing but single table,
    or if no parameters given, put empty table there */
 void
-lcheck_param_table(L)
-lua_State *L;
+lcheck_param_table(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -87,9 +85,7 @@ lua_State *L;
 }
 
 schar
-get_table_mapchr(L, name)
-lua_State *L;
-const char *name;
+get_table_mapchr(lua_State *L, const char *name)
 {
     char *ter;
     xchar typ;
@@ -104,10 +100,7 @@ const char *name;
 }
 
 schar
-get_table_mapchr_opt(L, name, defval)
-lua_State *L;
-const char *name;
-schar defval;
+get_table_mapchr_opt(lua_State *L, const char *name, schar defval)
 {
     char *ter;
     xchar typ;
@@ -125,10 +118,7 @@ schar defval;
 }
 
 void
-nhl_add_table_entry_int(L, name, value)
-lua_State *L;
-const char *name;
-int value;
+nhl_add_table_entry_int(lua_State *L, const char *name, int value)
 {
     lua_pushstring(L, name);
     lua_pushinteger(L, value);
@@ -136,10 +126,7 @@ int value;
 }
 
 void
-nhl_add_table_entry_char(L, name, value)
-lua_State *L;
-const char *name;
-char value;
+nhl_add_table_entry_char(lua_State *L, const char *name, char value)
 {
     char buf[2];
     Sprintf(buf, "%c", value);
@@ -149,20 +136,14 @@ char value;
 }
 
 void
-nhl_add_table_entry_str(L, name, value)
-lua_State *L;
-const char *name;
-const char *value;
+nhl_add_table_entry_str(lua_State *L, const char *name, const char *value)
 {
     lua_pushstring(L, name);
     lua_pushstring(L, value);
     lua_rawset(L, -3);
 }
 void
-nhl_add_table_entry_bool(L, name, value)
-lua_State *L;
-const char *name;
-boolean value;
+nhl_add_table_entry_bool(lua_State *L, const char *name, boolean value)
 {
     lua_pushstring(L, name);
     lua_pushboolean(L, value);
@@ -214,8 +195,7 @@ const struct {
 };
 
 schar
-splev_chr2typ(c)
-char c;
+splev_chr2typ(char c)
 {
     int i;
 
@@ -226,8 +206,7 @@ char c;
 }
 
 schar
-check_mapchr(s)
-const char *s;
+check_mapchr(const char *s)
 {
     if (s && strlen(s) == 1)
         return splev_chr2typ(s[0]);
@@ -235,8 +214,7 @@ const char *s;
 }
 
 static char
-splev_typ2chr(typ)
-schar typ;
+splev_typ2chr(schar typ)
 {
     int i;
 
@@ -248,8 +226,7 @@ schar typ;
 
 /* local t = gettrap(x,y); */
 static int
-nhl_gettrap(L)
-lua_State *L;
+nhl_gettrap(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -297,8 +274,7 @@ lua_State *L;
 
 /* deltrap(x,y); */
 static int
-nhl_deltrap(L)
-lua_State *L;
+nhl_deltrap(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -316,10 +292,11 @@ lua_State *L;
     return 0;
 }
 
+DISABLE_WARNING_UNREACHABLE_CODE
+
 /* local loc = getmap(x,y) */
 static int
-nhl_getmap(L)
-lua_State *L;
+nhl_getmap(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -411,10 +388,11 @@ lua_State *L;
     return 1;
 }
 
+RESTORE_WARNING_CONDEXPR_IS_CONSTANT
+
 /* pline("It hits!") */
 static int
-nhl_pline(L)
-lua_State *L;
+nhl_pline(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -428,8 +406,7 @@ lua_State *L;
 
 /* verbalize("Fool!") */
 static int
-nhl_verbalize(L)
-lua_State *L;
+nhl_verbalize(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -441,12 +418,40 @@ lua_State *L;
     return 0;
 }
 
+/* parse_config("OPTIONS=!color") */
+static int
+nhl_parse_config(lua_State *L)
+{
+    int argc = lua_gettop(L);
+
+    if (argc == 1)
+        parse_conf_str(luaL_checkstring(L, 1), parse_config_line);
+    else
+        nhl_error(L, "Wrong args");
+
+    return 0;
+}
+
+/* local windowtype = get_config("windowtype"); */
+static int
+nhl_get_config(lua_State *L)
+{
+    int argc = lua_gettop(L);
+
+    if (argc == 1) {
+        lua_pushstring(L, get_option_value(luaL_checkstring(L, 1)));
+        return 1;
+    } else
+        nhl_error(L, "Wrong args");
+
+    return 0;
+}
+
 /*
   str = getlin("What do you want to call this dungeon level?");
  */
 static int
-nhl_getlin(L)
-lua_State *L;
+nhl_getlin(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -470,8 +475,7 @@ lua_State *L;
  selected = menu("prompt", default, pickX,
                 { {key:"a", text:"option a"}, {key:"b", text:"option b"}, ... } ) */
 static int
-nhl_menu(L)
-lua_State *L;
+nhl_menu(lua_State *L)
 {
     static const char *const pickX[] = {"none", "one", "any"}; /* PICK_x */
     int argc = lua_gettop(L);
@@ -523,7 +527,7 @@ lua_State *L;
         any = cg.zeroany;
         if (*key)
             any.a_char = key[0];
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE, str,
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, str,
                  (*defval && *key && defval[0] == key[0])
                     ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
 
@@ -557,8 +561,7 @@ lua_State *L;
 
 /* makeplural("zorkmid") */
 static int
-nhl_makeplural(L)
-lua_State *L;
+nhl_makeplural(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -572,8 +575,7 @@ lua_State *L;
 
 /* makesingular("zorkmids") */
 static int
-nhl_makesingular(L)
-lua_State *L;
+nhl_makesingular(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -587,8 +589,7 @@ lua_State *L;
 
 /* s_suffix("foo") */
 static int
-nhl_s_suffix(L)
-lua_State *L;
+nhl_s_suffix(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -602,8 +603,7 @@ lua_State *L;
 
 /* ing_suffix("foo") */
 static int
-nhl_ing_suffix(L)
-lua_State *L;
+nhl_ing_suffix(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -617,8 +617,7 @@ lua_State *L;
 
 /* an("foo") */
 static int
-nhl_an(L)
-lua_State *L;
+nhl_an(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -632,8 +631,7 @@ lua_State *L;
 
 /* rn2(10) */
 static int
-nhl_rn2(L)
-lua_State *L;
+nhl_rn2(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -648,8 +646,7 @@ lua_State *L;
 /* random(10);  -- is the same as rn2(10); */
 /* random(5,8); -- same as 5 + rn2(8); */
 static int
-nhl_random(L)
-lua_State *L;
+nhl_random(lua_State *L)
 {
     int argc = lua_gettop(L);
 
@@ -665,8 +662,7 @@ lua_State *L;
 
 /* level_difficulty() */
 static int
-nhl_level_difficulty(L)
-lua_State *L;
+nhl_level_difficulty(lua_State *L)
 {
     int argc = lua_gettop(L);
     if (argc == 0) {
@@ -680,13 +676,12 @@ lua_State *L;
 
 /* mon_difficulty("water troll") => mons[PM_WATER_TROLL].difficulty */
 static int
-nhl_mon_difficulty(L)
-lua_State *L;
+nhl_mon_difficulty(lua_State *L)
 {
     int argc = lua_gettop(L);
     if (argc == 1) {
         const char *species = luaL_checkstring(L, 1);
-        int mnum = find_montype(L, species);
+        int mnum = find_montype(L, species, (int *) 0);
         if (mnum != NON_PM) {
             lua_pushinteger(L, mons[mnum].difficulty);
         }
@@ -702,9 +697,7 @@ lua_State *L;
 
 /* get mandatory integer value from table */
 int
-get_table_int(L, name)
-lua_State *L;
-const char *name;
+get_table_int(lua_State *L, const char *name)
 {
     int ret;
 
@@ -716,10 +709,7 @@ const char *name;
 
 /* get optional integer value from table */
 int
-get_table_int_opt(L, name, defval)
-lua_State *L;
-const char *name;
-int defval;
+get_table_int_opt(lua_State *L, const char *name, int defval)
 {
     int ret = defval;
 
@@ -732,9 +722,7 @@ int defval;
 }
 
 char *
-get_table_str(L, name)
-lua_State *L;
-const char *name;
+get_table_str(lua_State *L, const char *name)
 {
     char *ret;
 
@@ -747,10 +735,7 @@ const char *name;
 /* get optional string value from table.
    return value must be freed by caller. */
 char *
-get_table_str_opt(L, name, defval)
-lua_State *L;
-const char *name;
-char *defval;
+get_table_str_opt(lua_State *L, const char *name, char *defval)
 {
     const char *ret;
 
@@ -765,9 +750,7 @@ char *defval;
 }
 
 int
-get_table_boolean(L, name)
-lua_State *L;
-const char *name;
+get_table_boolean(lua_State *L, const char *name)
 {
     static const char *const boolstr[] = {
         "true", "false", "yes", "no", NULL
@@ -795,10 +778,7 @@ const char *name;
 }
 
 int
-get_table_boolean_opt(L, name, defval)
-lua_State *L;
-const char *name;
-int defval;
+get_table_boolean_opt(lua_State *L, const char *name, int defval)
 {
     int ret = defval;
 
@@ -811,12 +791,12 @@ int defval;
     return ret;
 }
 
+/* opts[] is a null-terminated list */
 int
-get_table_option(L, name, defval, opts)
-lua_State *L;
-const char *name;
-const char *defval;
-const char *const opts[]; /* NULL-terminated list */
+get_table_option(lua_State *L,
+                 const char *name,
+                 const char *defval,
+                 const char *const opts[])
 {
     int ret;
 
@@ -830,8 +810,7 @@ const char *const opts[]; /* NULL-terminated list */
   test( { x = 123, y = 456 } );
 */
 static int
-nhl_test(L)
-lua_State *L;
+nhl_test(lua_State *L)
 {
     int x, y;
     char *name, Player[] = "Player";
@@ -876,6 +855,9 @@ static const struct luaL_Reg nhl_functions[] = {
     {"random", nhl_random},
     {"level_difficulty", nhl_level_difficulty},
     {"mon_difficulty", nhl_mon_difficulty},
+    {"parse_config", nhl_parse_config},
+    {"get_config", nhl_get_config},
+    {"get_config_errors", l_get_config_errors},
     {NULL, NULL}
 };
 
@@ -890,8 +872,7 @@ static const struct {
 
 /* register and init the constants table */
 static void
-init_nhc_data(L)
-lua_State *L;
+init_nhc_data(lua_State *L)
 {
     int i;
 
@@ -907,10 +888,7 @@ lua_State *L;
 }
 
 static int
-nhl_push_anything(L, anytype, src)
-lua_State *L;
-int anytype;
-void *src;
+nhl_push_anything(lua_State *L, int anytype, void *src)
 {
     anything any = cg.zeroany;
 
@@ -929,8 +907,7 @@ void *src;
 }
 
 static int
-nhl_meta_u_index(L)
-lua_State *L;
+nhl_meta_u_index(lua_State *L)
 {
     static const struct {
         const char *name;
@@ -984,16 +961,14 @@ lua_State *L;
 }
 
 static int
-nhl_meta_u_newindex(L)
-lua_State *L;
+nhl_meta_u_newindex(lua_State *L)
 {
     nhl_error(L, "Cannot set u table values");
     return 0;
 }
 
 static int
-nhl_u_clear_inventory(L)
-lua_State *L UNUSED;
+nhl_u_clear_inventory(lua_State *L UNUSED)
 {
     while (g.invent)
         useupall(g.invent);
@@ -1003,8 +978,7 @@ lua_State *L UNUSED;
 /* Put object into player's inventory */
 /* u.giveobj(obj.new("rock")); */
 static int
-nhl_u_giveobj(L)
-lua_State *L;
+nhl_u_giveobj(lua_State *L)
 {
     return nhl_obj_u_giveobj(L);
 }
@@ -1016,8 +990,7 @@ static const struct luaL_Reg nhl_u_functions[] = {
 };
 
 static void
-init_u_data(L)
-lua_State *L;
+init_u_data(lua_State *L)
 {
     lua_newtable(L);
     luaL_setfuncs(L, nhl_u_functions, 0);
@@ -1031,9 +1004,7 @@ lua_State *L;
 }
 
 static int
-nhl_set_package_path(L, path)
-lua_State *L;
-const char *path;
+nhl_set_package_path(lua_State *L, const char *path)
 {
     lua_getglobal(L, "package");
     lua_pushstring(L, path);
@@ -1043,8 +1014,7 @@ const char *path;
 }
 
 static int
-traceback_handler(L)
-lua_State *L;
+traceback_handler(lua_State *L)
 {
     luaL_traceback(L, L, lua_tostring(L, 1), 0);
     /* TODO: call impossible() if fuzzing? */
@@ -1054,9 +1024,7 @@ lua_State *L;
 /* read lua code/data from a dlb module or an external file
    into a string buffer and feed that to lua */
 boolean
-nhl_loadlua(L, fname)
-lua_State *L;
-const char *fname;
+nhl_loadlua(lua_State *L, const char *fname)
 {
 #define LOADCHUNKSIZE (1L << 13) /* 8K */
     boolean ret = TRUE;
@@ -1166,10 +1134,11 @@ const char *fname;
 }
 
 lua_State *
-nhl_init()
+nhl_init(void)
 {
     lua_State *L = luaL_newstate();
 
+    iflags.in_lua = TRUE;
     luaL_openlibs(L);
     nhl_set_package_path(L, "./?.lua");
 
@@ -1190,16 +1159,22 @@ nhl_init()
     l_obj_register(L);
 
     if (!nhl_loadlua(L, "nhlib.lua")) {
-        lua_close(L);
+        nhl_done(L);
         return (lua_State *) 0;
     }
 
     return L;
 }
 
+void
+nhl_done(lua_State *L)
+{
+    lua_close(L);
+    iflags.in_lua = FALSE;
+}
+
 boolean
-load_lua(name)
-const char *name;
+load_lua(const char *name)
 {
     boolean ret = TRUE;
     lua_State *L = nhl_init();
@@ -1215,13 +1190,15 @@ const char *name;
     }
 
  give_up:
-    lua_close(L);
+    nhl_done(L);
 
     return ret;
 }
 
+DISABLE_WARNING_CONDEXPR_IS_CONSTANT
+
 const char *
-get_lua_version()
+get_lua_version(void)
 {
     size_t len = (size_t) 0;
     const char *vs = (const char *) 0;
@@ -1251,3 +1228,8 @@ get_lua_version()
     }
     return (const char *) g.lua_ver;
 }
+
+RESTORE_WARNINGS
+
+
+

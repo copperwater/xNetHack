@@ -35,22 +35,19 @@ enum mcast_cleric_spells {
     CLC_GEYSER
 };
 
-static void FDECL(cursetxt, (struct monst *, BOOLEAN_P));
-static int FDECL(choose_magic_spell, (int));
-static int FDECL(choose_clerical_spell, (int));
-static int FDECL(m_cure_self, (struct monst *, int));
-static void FDECL(cast_wizard_spell, (struct monst *, int, int));
-static void FDECL(cast_cleric_spell, (struct monst *, int, int));
-static boolean FDECL(is_undirected_spell, (unsigned int, int));
+static void cursetxt(struct monst *, boolean);
+static int choose_magic_spell(int);
+static int choose_clerical_spell(int);
+static int m_cure_self(struct monst *, int);
+static void cast_wizard_spell(struct monst *, int, int);
+static void cast_cleric_spell(struct monst *, int, int);
+static boolean is_undirected_spell(unsigned int, int);
 static boolean
-FDECL(spell_would_be_useless, (struct monst *, unsigned int, int));
+spell_would_be_useless(struct monst *, unsigned int, int);
 
 /* feedback when frustrated monster couldn't cast a spell */
-static
-void
-cursetxt(mtmp, undirected)
-struct monst *mtmp;
-boolean undirected;
+static void
+cursetxt(struct monst *mtmp, boolean undirected)
 {
     if (canseemon(mtmp) && couldsee(mtmp->mx, mtmp->my)) {
         const char *point_msg; /* spellcasting monsters are impolite */
@@ -77,8 +74,7 @@ boolean undirected;
 /* convert a level based random selection into a specific mage spell;
    inappropriate choices will be screened out by spell_would_be_useless() */
 static int
-choose_magic_spell(spellval)
-int spellval;
+choose_magic_spell(int spellval)
 {
     /* for 3.4.3 and earlier, val greater than 22 selected default spell */
     while (spellval > 24 && rn2(25))
@@ -131,8 +127,7 @@ int spellval;
 
 /* convert a level based random selection into a specific cleric spell */
 static int
-choose_clerical_spell(spellnum)
-int spellnum;
+choose_clerical_spell(int spellnum)
 {
     /* for 3.4.3 and earlier, num greater than 13 selected the default spell
      */
@@ -178,11 +173,10 @@ int spellnum;
  * 0: unsuccessful spell
  */
 int
-castmu(mtmp, mattk, thinks_it_foundyou, foundyou)
-register struct monst *mtmp;
-register struct attack *mattk;
-boolean thinks_it_foundyou;
-boolean foundyou;
+castmu(register struct monst *mtmp,
+       register struct attack *mattk,
+       boolean thinks_it_foundyou,
+       boolean foundyou)
 {
     int dmg, ml = mtmp->m_lev;
     int ret;
@@ -337,9 +331,7 @@ boolean foundyou;
 }
 
 static int
-m_cure_self(mtmp, dmg)
-struct monst *mtmp;
-int dmg;
+m_cure_self(struct monst *mtmp, int dmg)
 {
     if (mtmp->mhp < mtmp->mhpmax) {
         if (canseemon(mtmp))
@@ -363,10 +355,7 @@ int dmg;
  */
 static
 void
-cast_wizard_spell(mtmp, dmg, spellnum)
-struct monst *mtmp;
-int dmg;
-int spellnum;
+cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
 {
     if (dmg == 0 && !is_undirected_spell(AD_SPEL, spellnum)) {
         impossible("cast directed wizard spell (%d) with dmg=0?", spellnum);
@@ -500,12 +489,8 @@ int spellnum;
         mdamageu(mtmp, dmg);
 }
 
-static
-void
-cast_cleric_spell(mtmp, dmg, spellnum)
-struct monst *mtmp;
-int dmg;
-int spellnum;
+static void
+cast_cleric_spell(struct monst *mtmp, int dmg, int spellnum)
 {
     int orig_dmg = 0;
     if (dmg == 0 && !is_undirected_spell(AD_CLRC, spellnum)) {
@@ -717,11 +702,8 @@ int spellnum;
         mdamageu(mtmp, dmg);
 }
 
-static
-boolean
-is_undirected_spell(adtyp, spellnum)
-unsigned int adtyp;
-int spellnum;
+static boolean
+is_undirected_spell(unsigned int adtyp, int spellnum)
 {
     if (adtyp == AD_SPEL) {
         switch (spellnum) {
@@ -748,12 +730,8 @@ int spellnum;
 }
 
 /* Some spells are useless under some circumstances. */
-static
-boolean
-spell_would_be_useless(mtmp, adtyp, spellnum)
-struct monst *mtmp;
-unsigned int adtyp;
-int spellnum;
+static boolean
+spell_would_be_useless(struct monst *mtmp, unsigned int adtyp, int spellnum)
 {
     /* Some spells don't require the player to really be there and can be cast
      * by the monster when you're invisible, yet still shouldn't be cast when
@@ -824,9 +802,7 @@ int spellnum;
 
 /* monster uses spell (ranged) */
 int
-buzzmu(mtmp, mattk)
-register struct monst *mtmp;
-register struct attack *mattk;
+buzzmu(register struct monst *mtmp, register struct attack *mattk)
 {
     /* don't print constant stream of curse messages for 'normal'
        spellcasting monsters at range */

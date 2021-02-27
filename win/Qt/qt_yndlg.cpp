@@ -16,6 +16,7 @@ extern "C" {
 #include "qt_post.h"
 #include "qt_yndlg.h"
 #include "qt_yndlg.moc"
+#include "qt_key.h" // for keyValue()
 #include "qt_str.h"
 
 // temporary
@@ -76,7 +77,7 @@ NetHackQtYnDialog::NetHackQtYnDialog(QWidget *parent, const QString &q,
 char NetHackQtYnDialog::Exec()
 {
     QString ch(QString::fromLatin1(choices));
-    int ch_per_line=6;
+//    int ch_per_line=6;
     QString qlabel;
     QString enable;
     if ( qt_compact_mode && !choices ) {
@@ -128,7 +129,7 @@ char NetHackQtYnDialog::Exec()
 	    ch.append(d[5]);
 	    ch.append(d[8]);
 	    ch.append(d[9]);
-	    ch_per_line = 3;
+//	    ch_per_line = 3;
 	    def = ' ';
 	} else {
 	    // Hmm... they'll have to use a virtual keyboard
@@ -369,14 +370,12 @@ void NetHackQtYnDialog::AltChoice(char ans, char res)
     }
 }
 
-void NetHackQtYnDialog::keyPressEvent(QKeyEvent* event)
+void NetHackQtYnDialog::keyPressEvent(QKeyEvent *event)
 {
-    keypress = '\0';
-    QString text(event->text());
-    if (text.isEmpty())  /* && event->modifiers()) */
+    keypress = keyValue(event);
+    if (!keypress)
         return;
 
-    keypress = text.at(0).cell();
     char *p = NULL;
     if (*alt_answer && (p = strchr(alt_answer, keypress)) != 0)
         keypress = alt_result[p - alt_answer];
@@ -388,13 +387,13 @@ void NetHackQtYnDialog::keyPressEvent(QKeyEvent* event)
 	int where = QString::fromLatin1(choices).indexOf(QChar(keypress));
 
         if (allow_count && strchr("#0123456789", keypress)) {
-            if (text == "#") {
+            if (keypress == '#') {
                 // 0 will be preselected; typing anything replaces it
                 le->setText(QString("0"));
                 le->home(true);
             } else {
                 // digit will not be preselected; typing another appends
-                le->setText(text);
+                le->setText(QChar(keypress));
                 le->end(false);
             }
             // (don't know whether this actually does anything useful)

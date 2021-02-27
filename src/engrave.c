@@ -1,16 +1,17 @@
-/* NetHack 3.7	engrave.c	$NHDT-Date: 1596498167 2020/08/03 23:42:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.98 $ */
+/* NetHack 3.7	engrave.c	$NHDT-Date: 1612055954 2021/01/31 01:19:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.102 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-static void FDECL(engraving_learn_wand, (struct obj*));
-static const char *NDECL(blengr);
+static int stylus_ok(struct obj *);
+static int engrave(void);
+static void engraving_learn_wand(struct obj*);
+static const char *blengr(void);
 
 char *
-random_engraving(outbuf)
-char *outbuf;
+random_engraving(char *outbuf)
 {
     const char *rumor;
 
@@ -78,10 +79,8 @@ static const struct {
 
 /* degrade some of the characters in a string */
 void
-wipeout_text(engr, cnt, seed)
-char *engr;
-int cnt;
-unsigned seed; /* for semi-controlled randomization */
+wipeout_text(char *engr, int cnt,
+             unsigned seed) /* for semi-controlled randomization */
 {
     char *s;
     int i, j, nxt, use_rubout, lth = (int) strlen(engr);
@@ -142,32 +141,38 @@ unsigned seed; /* for semi-controlled randomization */
 
 /* check whether hero can reach something at ground level */
 boolean
-can_reach_floor(check_pit)
-boolean check_pit;
+can_reach_floor(boolean check_pit)
 {
     struct trap *t;
 
-    if (u.uswallow)
+    if (u.uswallow
+        || (u.ustuck && !sticks(g.youmonst.data)
+            /* assume that arms are pinned rather than that the hero
+               has been lifted up above the floor [doesn't explain
+               how hero can attack the creature holding him or her;
+               that's life in nethack...] */
+            && attacktype(u.ustuck->data, AT_HUGS))
+        || (Levitation && !(Is_airlevel(&u.uz) || Is_waterlevel(&u.uz))))
         return FALSE;
     /* Restricted/unskilled riders can't reach the floor */
     if (u.usteed && P_SKILL(P_RIDING) < P_BASIC)
         return FALSE;
-    if (check_pit && !Flying
-        && (t = t_at(u.ux, u.uy)) != 0
+    if (u.uundetected && ceiling_hider(g.youmonst.data))
+        return FALSE;
+
+    if (Flying || g.youmonst.data->msize >= MZ_HUGE)
+        return TRUE;
+
+    if (check_pit && (t = t_at(u.ux, u.uy)) != 0
         && (uteetering_at_seen_pit(t) || uescaped_shaft(t)))
         return FALSE;
 
-    return (boolean) ((!Levitation || Is_airlevel(&u.uz)
-                       || Is_waterlevel(&u.uz))
-                      && (!u.uundetected || !is_hider(g.youmonst.data)
-                          || u.umonnum == PM_TRAPPER));
+    return TRUE;
 }
 
 /* give a message after caller has determined that hero can't reach */
 void
-cant_reach_floor(x, y, up, check_pit)
-int x, y;
-boolean up, check_pit;
+cant_reach_floor(int x, int y, boolean up, boolean check_pit)
 {
     You("can't reach the %s.",
         up ? ceiling(x, y)
@@ -177,8 +182,7 @@ boolean up, check_pit;
 }
 
 const char *
-surface(x, y)
-register int x, y;
+surface(register int x, register int y)
 {
     register struct rm *lev = &levl[x][y];
 
@@ -209,8 +213,7 @@ register int x, y;
 }
 
 const char *
-ceiling(x, y)
-register int x, y;
+ceiling(register int x, register int y)
 {
     register struct rm *lev = &levl[x][y];
     const char *what;
@@ -241,8 +244,7 @@ register int x, y;
 }
 
 struct engr *
-engr_at(x, y)
-xchar x, y;
+engr_at(xchar x, xchar y)
 {
     register struct engr *ep = head_engr;
 
@@ -262,10 +264,7 @@ xchar x, y;
  * present if it is intact and is the entire content of the engraving.
  */
 int
-sengr_at(s, x, y, strict)
-const char *s;
-xchar x, y;
-boolean strict;
+sengr_at(const char *s, xchar x, xchar y, boolean strict)
 {
     register struct engr *ep = engr_at(x, y);
 
@@ -278,17 +277,14 @@ boolean strict;
 }
 
 void
-u_wipe_engr(cnt)
-int cnt;
+u_wipe_engr(int cnt)
 {
     if (can_reach_floor(TRUE))
         wipe_engr_at(u.ux, u.uy, cnt, FALSE);
 }
 
 void
-wipe_engr_at(x, y, cnt, magical)
-xchar x, y, cnt;
-boolean magical;
+wipe_engr_at(xchar x, xchar y, xchar cnt, boolean magical)
 {
     register struct engr *ep = engr_at(x, y);
 
@@ -310,8 +306,7 @@ boolean magical;
 }
 
 void
-read_engr_at(x, y)
-int x, y;
+read_engr_at(int x, int y)
 {
     register struct engr *ep = engr_at(x, y);
     int sensed = 0;
@@ -385,11 +380,7 @@ int x, y;
 }
 
 void
-make_engr_at(x, y, s, e_time, e_type)
-int x, y;
-const char *s;
-long e_time;
-xchar e_type;
+make_engr_at(int x, int y, const char *s, long e_time, xchar e_type)
 {
     struct engr *ep;
     unsigned smem = strlen(s) + 1;
@@ -416,8 +407,7 @@ xchar e_type;
 
 /* delete any engraving at location <x,y> */
 void
-del_engr_at(x, y)
-int x, y;
+del_engr_at(int x, int y)
 {
     register struct engr *ep = engr_at(x, y);
 
@@ -429,24 +419,32 @@ int x, y;
  * freehand - returns true if player has a free hand
  */
 int
-freehand()
+freehand(void)
 {
     return (!uwep || !welded(uwep)
             || (!bimanual(uwep) && (!uarms || !uarms->cursed)));
 }
 
+/* getobj callback for an object to engrave with */
 static int
-stylus(obj)
-struct obj *obj;
+stylus_ok(struct obj *obj)
 {
-    if (!obj || obj->oclass == TOOL_CLASS || obj->oclass == WEAPON_CLASS ||
-        obj->oclass == WAND_CLASS || obj->oclass == GEM_CLASS ||
-        obj->oclass == RING_CLASS)
-        return 2;
+    if (!obj)
+        return GETOBJ_SUGGEST;
 
-    if (obj != &cg.zeroobj)
-        return 1;
-    return 0;
+    /* Potential extension: exclude weapons that don't make any sense (such as
+     * bullwhips) and downplay rings and gems that wouldn't be good to write
+     * with (such as glass and non-gem rings) */
+    if (obj->oclass == WEAPON_CLASS || obj->oclass == WAND_CLASS
+        || obj->oclass == GEM_CLASS || obj->oclass == RING_CLASS)
+        return GETOBJ_SUGGEST;
+
+    /* Only markers and towels are recommended tools. */
+    if (obj->oclass == TOOL_CLASS
+        && (obj->otyp == TOWEL || obj->otyp == MAGIC_MARKER))
+        return GETOBJ_SUGGEST;
+
+    return GETOBJ_EXCLUDE;
 }
 
 /* Mohs' Hardness Scale:
@@ -478,7 +476,7 @@ struct obj *obj;
 
 /* return 1 if action took 1 (or more) moves, 0 if error or aborted */
 int
-doengrave()
+doengrave(void)
 {
     boolean dengr = FALSE;     /* TRUE if we wipe out the current engraving */
     boolean doblind = FALSE;   /* TRUE if engraving blinds the player */
@@ -500,7 +498,6 @@ doengrave()
     const char *eloc; /* Where the engraving is (ie dust/floor/...) */
     char *sp;         /* Place holder for space count of engr text */
     int len;          /* # of nonspace chars of new engraving text */
-    int maxelen;      /* Max allowable length of engraving text */
     struct engr *oep = engr_at(u.ux, u.uy);
     /* The current engraving */
     struct obj *otmp; /* Object selected with which to engrave */
@@ -512,7 +509,6 @@ doengrave()
     buf[0] = (char) 0;
     ebuf[0] = (char) 0;
     post_engr_text[0] = (char) 0;
-    maxelen = BUFSZ - 1;
     if (oep)
         oetype = oep->engr_type;
     if (is_demon(g.youmonst.data) || is_vampire(g.youmonst.data))
@@ -555,7 +551,7 @@ doengrave()
      * Edited by GAN 10/20/86 so as not to change weapon wielded.
      */
 
-    otmp = getobj("write with", stylus, FALSE, FALSE);
+    otmp = getobj("write with", stylus_ok, GETOBJ_PROMPT);
     if (!otmp) /* otmp == cg.zeroobj if fingers */
         return 0;
 
@@ -1086,95 +1082,14 @@ doengrave()
         oep = (struct engr *) 0;
     }
 
-    /* Figure out how long it took to engrave, and if player has
-     * engraved too much.
-     */
-    switch (type) {
-    default:
-        g.multi = -(len / 10);
-        if (g.multi)
-            g.nomovemsg = "You finish your weird engraving.";
-        break;
-    case DUST:
-        g.multi = -(len / 10);
-        if (g.multi)
-            g.nomovemsg = "You finish writing in the dust.";
-        break;
-    case HEADSTONE:
-    case ENGRAVE:
-        g.multi = -(len / 10);
-        if (otmp->oclass == WEAPON_CLASS
-            && (otmp->otyp != ATHAME || otmp->cursed)) {
-            g.multi = -len;
-            maxelen = ((otmp->spe + 3) * 2) + 1;
-            /* -2 => 3, -1 => 5, 0 => 7, +1 => 9, +2 => 11
-             * Note: this does not allow a +0 anything (except an athame)
-             * to engrave "Elbereth" all at once.
-             * However, you can engrave "Elb", then "ere", then "th".
-             */
-            pline("%s dull.", Yobjnam2(otmp, "get"));
-            costly_alteration(otmp, COST_DEGRD);
-            if (len > maxelen) {
-                g.multi = -maxelen;
-                otmp->spe = -3;
-            } else if (len > 1)
-                otmp->spe -= len >> 1;
-            else
-                otmp->spe -= 1; /* Prevent infinite engraving */
-        } else if (otmp->oclass == RING_CLASS || otmp->oclass == GEM_CLASS) {
-            g.multi = -len;
-        }
-        if (g.multi)
-            g.nomovemsg = "You finish engraving.";
-        break;
-    case BURN:
-        g.multi = -(len / 10);
-        if (g.multi)
-            g.nomovemsg = is_ice(u.ux, u.uy)
-                          ? "You finish melting your message into the ice."
-                          : "You finish burning your message into the floor.";
-        break;
-    case MARK:
-        g.multi = -(len / 10);
-        if (otmp->otyp == MAGIC_MARKER) {
-            maxelen = otmp->spe * 2; /* one charge / 2 letters */
-            if (len > maxelen) {
-                Your("marker dries out.");
-                otmp->spe = 0;
-                g.multi = -(maxelen / 10);
-            } else if (len > 1)
-                otmp->spe -= len >> 1;
-            else
-                otmp->spe -= 1; /* Prevent infinite graffiti */
-        }
-        if (g.multi)
-            g.nomovemsg = "You finish defacing the dungeon.";
-        break;
-    case ENGR_BLOOD:
-        g.multi = -(len / 10);
-        if (g.multi)
-            g.nomovemsg = "You finish scrawling.";
-        break;
-    }
-
-    /* Chop engraving down to size if necessary */
-    if (len > maxelen) {
-        for (sp = ebuf; maxelen && *sp; sp++)
-            if (*sp == ' ')
-                maxelen--;
-        if (!maxelen && *sp) {
-            *sp = '\0';
-            if (g.multi)
-                g.nomovemsg = "You cannot write any more.";
-            You("are only able to write \"%s\".", ebuf);
-        }
-    }
-
-    if (oep) /* add to existing engraving */
-        Strcpy(buf, oep->engr_txt);
-    (void) strncat(buf, ebuf, BUFSZ - (int) strlen(buf) - 1);
-    /* Put the engraving onto the map */
-    make_engr_at(u.ux, u.uy, buf, g.moves - g.multi, type);
+    Strcpy(g.context.engraving.text, ebuf);
+    g.context.engraving.nextc = g.context.engraving.text;
+    g.context.engraving.stylus = otmp;
+    g.context.engraving.type = type;
+    g.context.engraving.pos.x = u.ux;
+    g.context.engraving.pos.y = u.uy;
+    g.context.engraving.actionct = 0;
+    set_occupation(engrave, "engraving", 0);
 
     if (post_engr_text[0]) {
         pline("%s", post_engr_text);
@@ -1188,13 +1103,203 @@ doengrave()
         if (!Blind)
             Your1(vision_clears);
     }
-    return 1;
+
+    /* Engraving will always take at least one action via being run as an
+     * occupation, so do not count this setup as taking time. */
+    return 0;
+}
+
+/* occupation callback for engraving some text */
+static int
+engrave(void)
+{
+    struct engr *oep;
+    char buf[BUFSZ]; /* holds the post-this-action engr text, including anything
+                      * already there */
+    const char *finishverb; /* "You finish [foo]." */
+    struct obj * stylus; /* shorthand for g.context.engraving.stylus */
+    boolean firsttime = (g.context.engraving.actionct == 0);
+    int rate = 10; /* # characters we are capable of engraving in this action */
+    boolean truncate = FALSE;
+
+    boolean carving = (g.context.engraving.type == ENGRAVE
+                       || g.context.engraving.type == HEADSTONE);
+    boolean dulling_wep, marker;
+    char *endc; /* points at character 1 beyond the last character to engrave
+                   this action */
+    int i;
+
+    if (g.context.engraving.pos.x != u.ux
+        || g.context.engraving.pos.y != u.uy) { /* teleported? */
+        pline("You are unable to continue engraving.");
+        return 0;
+    }
+    /* Stylus might have been taken out of inventory and destroyed somehow.
+     * Not safe to dereference stylus until after this. */
+    if (g.context.engraving.stylus == &cg.zeroobj) { /* bare finger */
+        stylus = (struct obj *) 0;
+    }
+    else {
+        for (stylus = g.invent; stylus; stylus = stylus->nobj) {
+            if (stylus == g.context.engraving.stylus) {
+                break;
+            }
+        }
+        if (!stylus) {
+            pline("You are unable to continue engraving.");
+            return 0;
+        }
+    }
+
+    dulling_wep = (carving && stylus && stylus->oclass == WEAPON_CLASS
+                   && (stylus->otyp != ATHAME || stylus->cursed));
+    marker = (stylus && stylus->otyp == MAGIC_MARKER);
+
+    g.context.engraving.actionct++;
+
+    /* sanity checks */
+    if (dulling_wep && !is_blade(stylus)) {
+        impossible("carving with non-bladed weapon");
+    }
+    else if (g.context.engraving.type == MARK && !marker) {
+        impossible("making graffiti with non-marker stylus");
+    }
+
+    /* Step 1: Compute rate. */
+    if (carving && stylus
+        && (dulling_wep || stylus->oclass == RING_CLASS
+            || stylus->oclass == GEM_CLASS)) {
+        /* slow engraving methods */
+        rate = 1;
+    }
+    else if (marker) {
+        /* one charge / 2 letters */
+        rate = min(rate, stylus->spe * 2);
+    }
+
+    /* Step 2: Compute last character that can be engraved this action. */
+    i = rate;
+    for (endc = g.context.engraving.nextc; *endc && i > 0; endc++) {
+        if (*endc != ' ') {
+            i--;
+        }
+    }
+
+    /* Step 3: affect stylus from engraving - it might wear out. */
+    if (dulling_wep) {
+        /* Dull the weapon at a rate of -1 enchantment per 2 characters,
+         * rounding down.
+         * The number of characters obtainable given starting enchantment:
+         * -2 => 3, -1 => 5, 0 => 7, +1 => 9, +2 => 11
+         * Note: this does not allow a +0 anything (except an athame) to
+         * engrave "Elbereth" all at once.
+         * However, you can engrave "Elb", then "ere", then "th", by taking
+         * advantage of the rounding down. */
+        if (firsttime) {
+            pline("%s dull.", Yobjnam2(stylus, "get"));
+        }
+        if (g.context.engraving.actionct % 2 == 1) { /* 1st, 3rd, ... action */
+            /* deduct a point on 1st, 3rd, 5th, ... turns, unless this is the
+             * last character being engraved (a rather convoluted way to round
+             * down).
+             * Check for truncation *before* deducting a point - otherwise,
+             * attempting to e.g. engrave 3 characters with a -2 weapon will
+             * stop at the 1st. */
+            if (stylus->spe <= -3) {
+                if (firsttime) {
+                    impossible("<= -3 weapon valid for engraving");
+                }
+                truncate = TRUE;
+            }
+            else if (*endc) {
+                stylus->spe -= 1;
+            }
+        }
+    }
+    else if (marker) {
+        int ink_cost = max(rate / 2, 1); /* Prevent infinite graffiti */
+        if (stylus->spe < ink_cost) {
+            impossible("dry marker valid for graffiti");
+            truncate = TRUE;
+        }
+        stylus->spe -= ink_cost;
+        if (stylus->spe == 0) {
+            /* can't engrave any further; truncate the string */
+            Your("marker dries out.");
+            truncate = TRUE;
+        }
+    }
+
+    switch (g.context.engraving.type) {
+    default:
+        finishverb = "your weird engraving";
+        break;
+    case DUST:
+        finishverb = "writing in the dust";
+        break;
+    case HEADSTONE:
+    case ENGRAVE:
+        finishverb = "engraving";
+        break;
+    case BURN:
+        finishverb = is_ice(u.ux, u.uy) ? "melting your message into the ice"
+                                        : "burning your message into the floor";
+        break;
+    case MARK:
+        finishverb = "defacing the dungeon";
+        break;
+    case ENGR_BLOOD:
+        finishverb = "scrawling";
+    }
+
+    /* actions that happen at the end of every engraving action go here */
+
+    /* If the stylus did wear out mid-engraving, truncate the input so that we
+     * can't go any further. */
+    if (truncate && *endc != '\0') {
+        *endc = '\0';
+        You("are only able to write \"%s\".", g.context.engraving.text);
+    }
+    else {
+        /* input was not truncated; stylus may still have worn out on the last
+         * character, though */
+        truncate = FALSE;
+    }
+
+    Strcpy(buf, "");
+    oep = engr_at(u.ux, u.uy);
+    if (oep) /* add to existing engraving */
+        Strcpy(buf, oep->engr_txt);
+    (void) strncat(buf, g.context.engraving.nextc,
+                   endc - g.context.engraving.nextc);
+    make_engr_at(u.ux, u.uy, buf, g.moves - g.multi, g.context.engraving.type);
+
+    if (*endc) {
+        g.context.engraving.nextc = endc;
+        return 1; /* not yet finished this turn */
+    }
+    else { /* finished engraving */
+        /* actions that happen after the engraving is finished go here */
+
+        if (truncate) {
+            /* Now that "You are only able to write 'foo'" also prints at the
+             * end of engraving, this might be redundant. */
+            You("cannot write any more.");
+        }
+        else if (!firsttime) {
+            /* only print this if engraving took multiple actions */
+            You("finish %s.", finishverb);
+        }
+        g.context.engraving.text[0] = '\0';
+        g.context.engraving.nextc = (char *) 0;
+        g.context.engraving.stylus = (struct obj *) 0;
+    }
+    return 0;
 }
 
 /* Learn what a wand is by engraving with it. */
 static void
-engraving_learn_wand(obj)
-struct obj* obj;
+engraving_learn_wand(struct obj *obj)
 {
     learnwand(obj);
     /* For some reason, this gives 10 points even if you already knew the
@@ -1206,7 +1311,7 @@ struct obj* obj;
 /* while loading bones, clean up text which might accidentally
    or maliciously disrupt player's terminal when displayed */
 void
-sanitize_engravings()
+sanitize_engravings(void)
 {
     struct engr *ep;
 
@@ -1216,8 +1321,7 @@ sanitize_engravings()
 }
 
 void
-save_engravings(nhfp)
-NHFILE *nhfp;
+save_engravings(NHFILE *nhfp)
 {
     struct engr *ep, *ep2;
     unsigned no_more_engr = 0;
@@ -1242,8 +1346,7 @@ NHFILE *nhfp;
 }
 
 void
-rest_engravings(nhfp)
-NHFILE *nhfp;
+rest_engravings(NHFILE *nhfp)
 {
     struct engr *ep;
     unsigned lth = 0;
@@ -1269,12 +1372,11 @@ NHFILE *nhfp;
     }
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 /* to support '#stats' wizard-mode command */
 void
-engr_stats(hdrfmt, hdrbuf, count, size)
-const char *hdrfmt;
-char *hdrbuf;
-long *count, *size;
+engr_stats(const char *hdrfmt, char *hdrbuf, long *count, long *size)
 {
     struct engr *ep;
 
@@ -1286,9 +1388,10 @@ long *count, *size;
     }
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 void
-del_engr(ep)
-register struct engr *ep;
+del_engr(register struct engr *ep)
 {
     if (ep == head_engr) {
         head_engr = ep->nxt_engr;
@@ -1311,8 +1414,7 @@ register struct engr *ep;
 
 /* randomly relocate an engraving */
 void
-rloc_engr(ep)
-struct engr *ep;
+rloc_engr(struct engr *ep)
 {
     int tx, ty, tryct = 200;
     newsym(ep->engr_x, ep->engr_y); /* gone from old spot */
@@ -1333,9 +1435,7 @@ struct engr *ep;
  * The caller is responsible for newsym(x, y).
  */
 void
-make_grave(x, y, str)
-int x, y;
-const char *str;
+make_grave(int x, int y, const char *str)
 {
     char buf[BUFSZ];
 
@@ -1376,7 +1476,7 @@ static const char blind_writing[][21] = {
 };
 
 static const char *
-blengr(VOID_ARGS)
+blengr(void)
 {
     return blind_writing[rn2(SIZE(blind_writing))];
 }

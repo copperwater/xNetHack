@@ -1,4 +1,4 @@
-/* NetHack 3.7	allmain.c	$NHDT-Date: 1596498146 2020/08/03 23:42:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.145 $ */
+/* NetHack 3.7	allmain.c	$NHDT-Date: 1613292825 2021/02/14 08:53:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.151 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -13,18 +13,18 @@
 #endif
 
 #ifdef POSITIONBAR
-static void NDECL(do_positionbar);
+static void do_positionbar(void);
 #endif
-static void FDECL(regen_hp, (int));
-static void FDECL(interrupt_multi, (const char *));
-static void FDECL(debug_fields, (const char *));
+static void regen_hp(int);
+static void interrupt_multi(const char *);
+static void debug_fields(const char *);
 
 #ifdef EXTRAINFO_FN
 static long prev_dgl_extrainfo = 0;
 #endif
 
 void
-early_init()
+early_init(void)
 {
     decl_globals_init();
     objects_globals_init();
@@ -33,8 +33,7 @@ early_init()
 }
 
 void
-moveloop(resuming)
-boolean resuming;
+moveloop(boolean resuming)
 {
 #if defined(MICRO) || defined(WIN32)
     char ch;
@@ -74,7 +73,6 @@ boolean resuming;
         g.context.seer_turn = (long) rnd(30);
     }
     g.context.botlx = TRUE; /* for STATUS_HILITES */
-    update_inventory(); /* for perm_invent */
     if (resuming) { /* restoring old game */
         read_engr_at(u.ux, u.uy); /* subset of pickup() */
     }
@@ -95,6 +93,11 @@ boolean resuming;
 #ifdef WHEREIS_FILE
     touch_whereis();
 #endif
+
+    /* for perm_invent preset at startup, display persistent inventory after
+       invent is fully populated and the in_moveloop flag has been set */
+    if (iflags.perm_invent)
+        update_inventory();
 
     for (;;) {
 #ifdef SAFERHANGUP
@@ -480,7 +483,8 @@ boolean resuming;
                 domove();
             } else {
                 --g.multi;
-                rhack(g.save_cm);
+                nhassert(g.command_count != 0);
+                rhack(g.command_line);
             }
         } else if (g.multi == 0) {
 #ifdef MAIL
@@ -509,8 +513,7 @@ boolean resuming;
 
 /* maybe recover some lost health (or lose some when an eel out of water) */
 static void
-regen_hp(wtcap)
-int wtcap;
+regen_hp(int wtcap)
 {
     int heal = 0;
     boolean reached_full = FALSE,
@@ -583,7 +586,7 @@ int wtcap;
 #undef U_CAN_REGEN
 
 void
-stop_occupation()
+stop_occupation(void)
 {
     if (g.occupation) {
         if (!maybe_finished_meal(TRUE))
@@ -598,7 +601,7 @@ stop_occupation()
 }
 
 void
-display_gamewindows()
+display_gamewindows(void)
 {
     WIN_MESSAGE = create_nhwindow(NHW_MESSAGE);
     if (VIA_WINDOWPORT()) {
@@ -634,7 +637,7 @@ display_gamewindows()
 }
 
 void
-newgame()
+newgame(void)
 {
     int i;
 
@@ -724,8 +727,7 @@ newgame()
 
 /* show "welcome [back] to nethack" message at program startup */
 void
-welcome(new_game)
-boolean new_game; /* false => restoring an old game */
+welcome(boolean new_game) /* false => restoring an old game */
 {
     char buf[BUFSZ];
     boolean currentgend = Upolyd ? u.mfemale : flags.female;
@@ -765,7 +767,7 @@ boolean new_game; /* false => restoring an old game */
 
 #ifdef POSITIONBAR
 static void
-do_positionbar()
+do_positionbar(void)
 {
     static char pbar[COLNO];
     char *p;
@@ -798,8 +800,7 @@ do_positionbar()
 #endif
 
 static void
-interrupt_multi(msg)
-const char *msg;
+interrupt_multi(const char *msg)
 {
     if (g.multi > 0 && !g.context.travel && !g.context.run) {
         nomul(0);
@@ -831,7 +832,7 @@ static const struct early_opt earlyopts[] = {
 };
 
 #ifdef WIN32
-extern int FDECL(windows_early_options, (const char *));
+extern int windows_early_options(const char *);
 #endif
 
 /*
@@ -842,10 +843,7 @@ extern int FDECL(windows_early_options, (const char *));
  */
 
 int
-argcheck(argc, argv, e_arg)
-int argc;
-char *argv[];
-enum earlyarg e_arg;
+argcheck(int argc, char *argv[], enum earlyarg e_arg)
 {
     int i, idx;
     boolean match = FALSE;
@@ -934,8 +932,7 @@ enum earlyarg e_arg;
  *                    can be debugged without buffering.
  */
 static void
-debug_fields(opts)
-const char *opts;
+debug_fields(const char *opts)
 {
     char *op;
     boolean negated = FALSE;

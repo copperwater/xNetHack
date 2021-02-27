@@ -565,6 +565,8 @@ QHBoxLayout *NetHackQtStatusWindow::InitHitpointBar()
     return hpbar; // caller will add our result to vbox layout
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 // when hitpoint bar is enabled, calculate and draw it, otherwise remove it
 void NetHackQtStatusWindow::HitpointBar()
 {
@@ -664,6 +666,8 @@ void NetHackQtStatusWindow::HitpointBar()
         alreadyfullhp = false;
     }
 }
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 /*
  * Update the displayed status.  The current code in botl.c updates
@@ -788,7 +792,8 @@ void NetHackQtStatusWindow::updateStats()
     if (u.usteed) ++k, ride.show(); else ride.hide();
 
     if (Upolyd) {
-	buf = nh_capitalize_words(mons[u.umonnum].mname);
+	buf = nh_capitalize_words(pmname(&mons[u.umonnum],
+                                  ::flags.female ? FEMALE : MALE));
     } else {
 	buf = rank_of(u.ulevel, g.pl_character[0], ::flags.female);
     }

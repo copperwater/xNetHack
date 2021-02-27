@@ -120,7 +120,7 @@ end
 -- priest spoils
 -- have to manually provide the spellbooks because those are given to a priest
 -- when initialized as a shrine attendant - which this priest is not.
-des.monster({ id = "aligned priest", x = 20, y = 12, dead = 1 })
+des.monster({ id = "aligned cleric", x = 20, y = 12, dead = 1 })
 for i = 1, 1 + math.random(1,3) do
   des.object({ class = "+", x = 20, y = 12 })
 end

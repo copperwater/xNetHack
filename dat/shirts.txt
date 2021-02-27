@@ -30,6 +30,8 @@ Hey, black dragon!  Disintegrate THIS!
 I <3 Maud
 I <3 Sokoban
 I Hate Mondays
+# note: there is a similarly worded apron (alchemy smock) slogan
+I am a Valkyrie.  If you see me running, try to keep up.
 I am not a pack rat - I am a collector
 I ascended and all I got was this lousy excuse for divine robes.
 I couldn't afford this T-shirt so I stole it!
@@ -102,3 +104,8 @@ Valar morghulis.
 
 # Les Miserables
 24601
+
+# expanded "rock--paper--scissors" featured in TV show "Big Bang
+# Theory" although they didn't create it (and an actual T-shirt
+# with pentagonal diagram showing which choices defeat which)
+rock--paper--scissors--lizard--Spock!

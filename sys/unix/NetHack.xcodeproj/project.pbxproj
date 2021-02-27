@@ -15,7 +15,6 @@
 		31B8A37D21A238060055BD01 /* restore.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A31721A238000055BD01 /* restore.c */; };
 		31B8A37E21A238060055BD01 /* steal.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A31821A238000055BD01 /* steal.c */; };
 		31B8A38021A238060055BD01 /* sit.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A31A21A238000055BD01 /* sit.c */; };
-		31B8A38121A238060055BD01 /* mapglyph.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A31B21A238000055BD01 /* mapglyph.c */; };
 		31B8A38221A238060055BD01 /* teleport.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A31C21A238000055BD01 /* teleport.c */; };
 		31B8A38321A238060055BD01 /* mhitu.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A31D21A238000055BD01 /* mhitu.c */; };
 		31B8A38421A238060055BD01 /* do_name.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A31E21A238000055BD01 /* do_name.c */; };
@@ -113,7 +112,6 @@
 		31B8A3E221A238500055BD01 /* display.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A3E121A2384F0055BD01 /* display.c */; };
 		31B8A3E521A238B30055BD01 /* dlb.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A3E321A238B30055BD01 /* dlb.c */; };
 		31B8A3E621A238B30055BD01 /* dog.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A3E421A238B30055BD01 /* dog.c */; };
-		31B8A3E821A23AB50055BD01 /* vis_tab.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A3E721A23AB50055BD01 /* vis_tab.c */; };
 		31B8A3EC21A23CF20055BD01 /* posixregex.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A3EB21A23CF20055BD01 /* posixregex.c */; };
 		31B8A3EF21A23D420055BD01 /* ioctl.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A3ED21A23D420055BD01 /* ioctl.c */; };
 		31B8A3F021A23D420055BD01 /* unixtty.c in Sources */ = {isa = PBXBuildFile; fileRef = 31B8A3EE21A23D420055BD01 /* unixtty.c */; };
@@ -245,7 +243,6 @@
 		3186A37A21A4B0FA0052BF02 /* integer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = integer.h; path = ../../include/integer.h; sourceTree = "<group>"; };
 		3186A37B21A4B0FA0052BF02 /* region.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = region.h; path = ../../include/region.h; sourceTree = "<group>"; };
 		3186A37C21A4B0FA0052BF02 /* rect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rect.h; path = ../../include/rect.h; sourceTree = "<group>"; };
-		3186A37D21A4B0FA0052BF02 /* wingem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wingem.h; path = ../../include/wingem.h; sourceTree = "<group>"; };
 		3186A37E21A4B0FA0052BF02 /* vision.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vision.h; path = ../../include/vision.h; sourceTree = "<group>"; };
 		3186A37F21A4B0FA0052BF02 /* prop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = prop.h; path = ../../include/prop.h; sourceTree = "<group>"; };
 		3186A38121A4B0FB0052BF02 /* pcconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pcconf.h; path = ../../include/pcconf.h; sourceTree = "<group>"; };
@@ -257,7 +254,6 @@
 		3186A38821A4B0FB0052BF02 /* artifact.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = artifact.h; path = ../../include/artifact.h; sourceTree = "<group>"; };
 		3186A38A21A4B0FB0052BF02 /* system.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = system.h; path = ../../include/system.h; sourceTree = "<group>"; };
 		3186A38B21A4B0FC0052BF02 /* onames.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = onames.h; path = ../../include/onames.h; sourceTree = "<group>"; };
-		3186A38D21A4B0FC0052BF02 /* vis_tab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vis_tab.h; path = ../../include/vis_tab.h; sourceTree = "<group>"; };
 		3186A38E21A4B0FC0052BF02 /* dlb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = dlb.h; path = ../../include/dlb.h; sourceTree = "<group>"; };
 		3186A38F21A4B0FC0052BF02 /* monflag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = monflag.h; path = ../../include/monflag.h; sourceTree = "<group>"; };
 		3186A39121A4B0FC0052BF02 /* micro.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = micro.h; path = ../../include/micro.h; sourceTree = "<group>"; };
@@ -265,7 +261,6 @@
 		3186A39421A4B0FC0052BF02 /* tileset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tileset.h; path = ../../include/tileset.h; sourceTree = "<group>"; };
 		3186A39521A4B0FC0052BF02 /* obj.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = obj.h; path = ../../include/obj.h; sourceTree = "<group>"; };
 		3186A39721A4B0FC0052BF02 /* rm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rm.h; path = ../../include/rm.h; sourceTree = "<group>"; };
-		3186A39921A4B0FD0052BF02 /* load_img.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = load_img.h; path = ../../include/load_img.h; sourceTree = "<group>"; };
 		3186A39A21A4B0FD0052BF02 /* wintty.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wintty.h; path = ../../include/wintty.h; sourceTree = "<group>"; };
 		3186A39B21A4B0FD0052BF02 /* ntconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ntconf.h; path = ../../include/ntconf.h; sourceTree = "<group>"; };
 		3186A39C21A4B0FD0052BF02 /* mkroom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mkroom.h; path = ../../include/mkroom.h; sourceTree = "<group>"; };
@@ -283,7 +278,6 @@
 		3186A3AC21A4B0FD0052BF02 /* dungeon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = dungeon.h; path = ../../include/dungeon.h; sourceTree = "<group>"; };
 		3186A3AD21A4B0FD0052BF02 /* unixconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = unixconf.h; path = ../../include/unixconf.h; sourceTree = "<group>"; };
 		3186A3B021A4B0FD0052BF02 /* date.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = date.h; path = ../../include/date.h; sourceTree = "<group>"; };
-		3186A3B121A4B0FD0052BF02 /* bitmfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bitmfile.h; path = ../../include/bitmfile.h; sourceTree = "<group>"; };
 		3186A3B321A4B0FD0052BF02 /* mfndpos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mfndpos.h; path = ../../include/mfndpos.h; sourceTree = "<group>"; };
 		3186A3B521A4B0FD0052BF02 /* flag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = flag.h; path = ../../include/flag.h; sourceTree = "<group>"; };
 		3186A3B621A4B0FD0052BF02 /* sp_lev.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sp_lev.h; path = ../../include/sp_lev.h; sourceTree = "<group>"; };
@@ -303,9 +297,7 @@
 		3186A3C821A4B0FE0052BF02 /* mondata.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mondata.h; path = ../../include/mondata.h; sourceTree = "<group>"; };
 		3186A3CA21A4B0FE0052BF02 /* timeout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = timeout.h; path = ../../include/timeout.h; sourceTree = "<group>"; };
 		3186A3CB21A4B0FE0052BF02 /* sys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sys.h; path = ../../include/sys.h; sourceTree = "<group>"; };
-		3186A3CC21A4B0FE0052BF02 /* gem_rsc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gem_rsc.h; path = ../../include/gem_rsc.h; sourceTree = "<group>"; };
 		3186A3CD21A4B0FE0052BF02 /* trap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = trap.h; path = ../../include/trap.h; sourceTree = "<group>"; };
-		3186A3CE21A4B0FE0052BF02 /* winGnome.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = winGnome.h; path = ../../include/winGnome.h; sourceTree = "<group>"; };
 		3186A3D021A4B0FE0052BF02 /* decl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = decl.h; path = ../../include/decl.h; sourceTree = "<group>"; };
 		3186A3D321A4B14B0052BF02 /* cursstat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cursstat.h; path = ../../win/curses/cursstat.h; sourceTree = "<group>"; };
 		3186A3D421A4B14B0052BF02 /* cursdial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cursdial.h; path = ../../win/curses/cursdial.h; sourceTree = "<group>"; };
@@ -325,7 +317,6 @@
 		31B8A31721A238000055BD01 /* restore.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = restore.c; path = ../../src/restore.c; sourceTree = "<group>"; };
 		31B8A31821A238000055BD01 /* steal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = steal.c; path = ../../src/steal.c; sourceTree = "<group>"; };
 		31B8A31A21A238000055BD01 /* sit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sit.c; path = ../../src/sit.c; sourceTree = "<group>"; };
-		31B8A31B21A238000055BD01 /* mapglyph.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mapglyph.c; path = ../../src/mapglyph.c; sourceTree = "<group>"; };
 		31B8A31C21A238000055BD01 /* teleport.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = teleport.c; path = ../../src/teleport.c; sourceTree = "<group>"; };
 		31B8A31D21A238000055BD01 /* mhitu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mhitu.c; path = ../../src/mhitu.c; sourceTree = "<group>"; };
 		31B8A31E21A238000055BD01 /* do_name.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = do_name.c; path = ../../src/do_name.c; sourceTree = "<group>"; };
@@ -424,7 +415,6 @@
 		31B8A3E121A2384F0055BD01 /* display.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = display.c; path = ../../src/display.c; sourceTree = "<group>"; };
 		31B8A3E321A238B30055BD01 /* dlb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dlb.c; path = ../../src/dlb.c; sourceTree = "<group>"; };
 		31B8A3E421A238B30055BD01 /* dog.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dog.c; path = ../../src/dog.c; sourceTree = "<group>"; };
-		31B8A3E721A23AB50055BD01 /* vis_tab.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vis_tab.c; path = ../../src/vis_tab.c; sourceTree = "<group>"; };
 		31B8A3EB21A23CF20055BD01 /* posixregex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = posixregex.c; path = ../share/posixregex.c; sourceTree = "<group>"; };
 		31B8A3ED21A23D420055BD01 /* ioctl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ioctl.c; path = ../share/ioctl.c; sourceTree = "<group>"; };
 		31B8A3EE21A23D420055BD01 /* unixtty.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = unixtty.c; path = ../share/unixtty.c; sourceTree = "<group>"; };
@@ -570,7 +560,6 @@
 				31B8A34921A238030055BD01 /* lock.c */,
 				31B8A33221A238010055BD01 /* mail.c */,
 				31B8A34021A238020055BD01 /* makemon.c */,
-				31B8A31B21A238000055BD01 /* mapglyph.c */,
 				31B8A32E21A238010055BD01 /* mcastu.c */,
 				31B8A33D21A238020055BD01 /* mhitm.c */,
 				31B8A31D21A238000055BD01 /* mhitu.c */,
@@ -628,7 +617,6 @@
 				31B8A34721A238030055BD01 /* uhitm.c */,
 				31B8A37321A238050055BD01 /* vault.c */,
 				31B8A32721A238010055BD01 /* version.c */,
-				31B8A3E721A23AB50055BD01 /* vis_tab.c */,
 				31B8A33E21A238020055BD01 /* vision.c */,
 				31B8A34221A238020055BD01 /* weapon.c */,
 				31B8A32D21A238010055BD01 /* were.c */,
@@ -663,7 +651,6 @@
 				3186A38821A4B0FB0052BF02 /* artifact.h */,
 				3186A3AB21A4B0FD0052BF02 /* artilist.h */,
 				3186A37421A4B0FA0052BF02 /* attrib.h */,
-				3186A3B121A4B0FD0052BF02 /* bitmfile.h */,
 				3186A36E21A4B0FA0052BF02 /* botl.h */,
 				3186A38721A4B0FB0052BF02 /* color.h */,
 				31B8A30A21A20D730055BD01 /* config.h */,
@@ -680,12 +667,10 @@
 				3186A37021A4B0FA0052BF02 /* extern.h */,
 				3186A3B521A4B0FD0052BF02 /* flag.h */,
 				3186A37321A4B0FA0052BF02 /* func_tab.h */,
-				3186A3CC21A4B0FE0052BF02 /* gem_rsc.h */,
 				3186A3C121A4B0FD0052BF02 /* global.h */,
 				3186A3A521A4B0FD0052BF02 /* hack.h */,
 				3186A37A21A4B0FA0052BF02 /* integer.h */,
 				3186A3BC21A4B0FD0052BF02 /* lint.h */,
-				3186A39921A4B0FD0052BF02 /* load_img.h */,
 				3186A3B821A4B0FD0052BF02 /* mail.h */,
 				3186A38521A4B0FB0052BF02 /* mextra.h */,
 				3186A3B321A4B0FD0052BF02 /* mfndpos.h */,
@@ -721,13 +706,10 @@
 				3186A3C721A4B0FE0052BF02 /* tradstdc.h */,
 				3186A3CD21A4B0FE0052BF02 /* trap.h */,
 				3186A3AD21A4B0FD0052BF02 /* unixconf.h */,
-				3186A38D21A4B0FC0052BF02 /* vis_tab.h */,
 				3186A37E21A4B0FA0052BF02 /* vision.h */,
 				3186A3BE21A4B0FD0052BF02 /* vmsconf.h */,
 				3186A3AA21A4B0FD0052BF02 /* winami.h */,
 				3186A37621A4B0FA0052BF02 /* wincurs.h */,
-				3186A37D21A4B0FA0052BF02 /* wingem.h */,
-				3186A3CE21A4B0FE0052BF02 /* winGnome.h */,
 				3186A36F21A4B0FA0052BF02 /* winprocs.h */,
 				3186A39A21A4B0FD0052BF02 /* wintty.h */,
 				3186A3C021A4B0FD0052BF02 /* wintype.h */,
@@ -974,7 +956,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd ${NH_DAT_DIR}\n${NH_UTIL_DIR}/makedefs -r\n";
+			shellScript = "cd \"${NH_DAT_DIR}\"\n\"${NH_UTIL_DIR}\"/makedefs -r\n";
 		};
 		317E7C4B21A35F0500F6E4E5 /* Copy makedefs */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -994,7 +976,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp ${BUILT_PRODUCTS_DIR}/makedefs ${NH_UTIL_DIR}/makedefs\n";
+			shellScript = "cp \"${BUILT_PRODUCTS_DIR}\"/makedefs \"${NH_UTIL_DIR}\"/makedefs\n";
 		};
 		317E7C4E21A3697300F6E4E5 /* Build options and headers */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1013,12 +995,10 @@
 				"$(NH_UTIL_DIR)/options",
 				"$(NH_INC_DIR)/date.h",
 				"$(NH_INC_DIR)/onames.h",
-				"$(NH_INC_DIR)/vis_tab.h",
-				"$(NH_SRC_DIR)/vis_tab.c",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd ${NH_DAT_DIR}\n${NH_UTIL_DIR}/makedefs -v\ncd ${NH_UTIL_DIR}\n./makedefs -o\n./makedefs -p\n./makedefs -z\n";
+			shellScript = "cd \"${NH_DAT_DIR}\"\n\"${NH_UTIL_DIR}\"/makedefs -v\ncd \"${NH_UTIL_DIR}\"\n./makedefs -o\n./makedefs -p\n";
 		};
 		317E7C4F21A36A5700F6E4E5 /* Build engrave, epitaph and bogusmon */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1042,7 +1022,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd ${NH_DAT_DIR}\n${NH_UTIL_DIR}/makedefs -s\n";
+			shellScript = "cd \"${NH_DAT_DIR}\"\n\"${NH_UTIL_DIR}\"/makedefs -s\n";
 		};
 		317E7C5421A3804400F6E4E5 /* Build Guidebook */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1065,7 +1045,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd ${NH_DOC_DIR}\ncat Guidebook.mn | ${NH_UTIL_DIR}/makedefs --grep --input - --output - | tbl tmac.n - | nroff -c -Tascii | col -bx > Guidebook\n";
+			shellScript = "cd \"${NH_DOC_DIR}\"\ncat Guidebook.mn | ${NH_UTIL_DIR}/makedefs --grep --input - --output - | tbl tmac.n - | nroff -c -Tascii | col -bx > Guidebook\n";
 		};
 		317E7C5521A3912D00F6E4E5 /* Build nhdat */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1075,75 +1055,35 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"$(NH_DAT_DIR)/bogusmon",
+				"$(NH_DAT_DIR)/cmdhelp",
+				"$(NH_DAT_DIR)/data",
+				"$(NH_DAT_DIR)/engrave",
+				"$(NH_DAT_DIR)/epitaph",
+				"$(NH_DAT_DIR)/help",
+				"$(NH_DAT_DIR)/hh",
+				"$(NH_DAT_DIR)/history",
+				"$(NH_DAT_DIR)/keyhelp",
+				"$(NH_DAT_DIR)/opthelp",
+				"$(NH_DAT_DIR)/options",
+				"$(NH_DAT_DIR)/oracles",
+				"$(NH_DAT_DIR)/rumors",
+				"$(NH_DAT_DIR)/tribute",
+				"$(NH_DAT_DIR)/wizhelp",
+				"$(NH_DAT_DIR)/air.lua",
 				"$(NH_DAT_DIR)/Arc-fila.lua",
 				"$(NH_DAT_DIR)/Arc-filb.lua",
 				"$(NH_DAT_DIR)/Arc-goal.lua",
 				"$(NH_DAT_DIR)/Arc-loca.lua",
 				"$(NH_DAT_DIR)/Arc-strt.lua",
+				"$(NH_DAT_DIR)/asmodeus.lua",
+				"$(NH_DAT_DIR)/astral.lua",
+				"$(NH_DAT_DIR)/baalz.lua",
 				"$(NH_DAT_DIR)/Bar-fila.lua",
 				"$(NH_DAT_DIR)/Bar-filb.lua",
 				"$(NH_DAT_DIR)/Bar-goal.lua",
 				"$(NH_DAT_DIR)/Bar-loca.lua",
 				"$(NH_DAT_DIR)/Bar-strt.lua",
-				"$(NH_DAT_DIR)/Cav-fila.lua",
-				"$(NH_DAT_DIR)/Cav-filb.lua",
-				"$(NH_DAT_DIR)/Cav-goal.lua",
-				"$(NH_DAT_DIR)/Cav-loca.lua",
-				"$(NH_DAT_DIR)/Cav-strt.lua",
-				"$(NH_DAT_DIR)/Hea-fila.lua",
-				"$(NH_DAT_DIR)/Hea-filb.lua",
-				"$(NH_DAT_DIR)/Hea-goal.lua",
-				"$(NH_DAT_DIR)/Hea-loca.lua",
-				"$(NH_DAT_DIR)/Hea-strt.lua",
-				"$(NH_DAT_DIR)/Kni-fila.lua",
-				"$(NH_DAT_DIR)/Kni-filb.lua",
-				"$(NH_DAT_DIR)/Kni-goal.lua",
-				"$(NH_DAT_DIR)/Kni-loca.lua",
-				"$(NH_DAT_DIR)/Kni-strt.lua",
-				"$(NH_DAT_DIR)/Mon-fila.lua",
-				"$(NH_DAT_DIR)/Mon-filb.lua",
-				"$(NH_DAT_DIR)/Mon-goal.lua",
-				"$(NH_DAT_DIR)/Mon-loca.lua",
-				"$(NH_DAT_DIR)/Mon-strt.lua",
-				"$(NH_DAT_DIR)/Pri-fila.lua",
-				"$(NH_DAT_DIR)/Pri-filb.lua",
-				"$(NH_DAT_DIR)/Pri-goal.lua",
-				"$(NH_DAT_DIR)/Pri-loca.lua",
-				"$(NH_DAT_DIR)/Pri-strt.lua",
-				"$(NH_DAT_DIR)/Ran-fila.lua",
-				"$(NH_DAT_DIR)/Ran-filb.lua",
-				"$(NH_DAT_DIR)/Ran-goal.lua",
-				"$(NH_DAT_DIR)/Ran-loca.lua",
-				"$(NH_DAT_DIR)/Ran-strt.lua",
-				"$(NH_DAT_DIR)/Rog-fila.lua",
-				"$(NH_DAT_DIR)/Rog-filb.lua",
-				"$(NH_DAT_DIR)/Rog-goal.lua",
-				"$(NH_DAT_DIR)/Rog-loca.lua",
-				"$(NH_DAT_DIR)/Rog-strt.lua",
-				"$(NH_DAT_DIR)/Sam-fila.lua",
-				"$(NH_DAT_DIR)/Sam-filb.lua",
-				"$(NH_DAT_DIR)/Sam-goal.lua",
-				"$(NH_DAT_DIR)/Sam-loca.lua",
-				"$(NH_DAT_DIR)/Sam-strt.lua",
-				"$(NH_DAT_DIR)/Tou-fila.lua",
-				"$(NH_DAT_DIR)/Tou-filb.lua",
-				"$(NH_DAT_DIR)/Tou-goal.lua",
-				"$(NH_DAT_DIR)/Tou-loca.lua",
-				"$(NH_DAT_DIR)/Tou-strt.lua",
-				"$(NH_DAT_DIR)/Val-fila.lua",
-				"$(NH_DAT_DIR)/Val-filb.lua",
-				"$(NH_DAT_DIR)/Val-goal.lua",
-				"$(NH_DAT_DIR)/Val-loca.lua",
-				"$(NH_DAT_DIR)/Val-strt.lua",
-				"$(NH_DAT_DIR)/Wiz-fila.lua",
-				"$(NH_DAT_DIR)/Wiz-filb.lua",
-				"$(NH_DAT_DIR)/Wiz-goal.lua",
-				"$(NH_DAT_DIR)/Wiz-loca.lua",
-				"$(NH_DAT_DIR)/Wiz-strt.lua",
-				"$(NH_DAT_DIR)/air.lua",
-				"$(NH_DAT_DIR)/asmodeus.lua",
-				"$(NH_DAT_DIR)/astral.lua",
-				"$(NH_DAT_DIR)/baalz.lua",
 				"$(NH_DAT_DIR)/bigrm-1.lua",
 				"$(NH_DAT_DIR)/bigrm-10.lua",
 				"$(NH_DAT_DIR)/bigrm-2.lua",
@@ -1154,22 +1094,28 @@
 				"$(NH_DAT_DIR)/bigrm-7.lua",
 				"$(NH_DAT_DIR)/bigrm-8.lua",
 				"$(NH_DAT_DIR)/bigrm-9.lua",
-				"$(NH_DAT_DIR)/bogusmon",
 				"$(NH_DAT_DIR)/castle.lua",
-				"$(NH_DAT_DIR)/cmdhelp",
-				"$(NH_DAT_DIR)/data",
+				"$(NH_DAT_DIR)/Cav-fila.lua",
+				"$(NH_DAT_DIR)/Cav-filb.lua",
+				"$(NH_DAT_DIR)/Cav-goal.lua",
+				"$(NH_DAT_DIR)/Cav-loca.lua",
+				"$(NH_DAT_DIR)/Cav-strt.lua",
 				"$(NH_DAT_DIR)/dungeon.lua",
 				"$(NH_DAT_DIR)/earth.lua",
-				"$(NH_DAT_DIR)/engrave",
-				"$(NH_DAT_DIR)/epitaph",
 				"$(NH_DAT_DIR)/fakewiz1.lua",
 				"$(NH_DAT_DIR)/fakewiz2.lua",
 				"$(NH_DAT_DIR)/fire.lua",
-				"$(NH_DAT_DIR)/help",
-				"$(NH_DAT_DIR)/hh",
-				"$(NH_DAT_DIR)/history",
+				"$(NH_DAT_DIR)/Hea-fila.lua",
+				"$(NH_DAT_DIR)/Hea-filb.lua",
+				"$(NH_DAT_DIR)/Hea-goal.lua",
+				"$(NH_DAT_DIR)/Hea-loca.lua",
+				"$(NH_DAT_DIR)/Hea-strt.lua",
 				"$(NH_DAT_DIR)/juiblex.lua",
-				"$(NH_DAT_DIR)/keyhelp",
+				"$(NH_DAT_DIR)/Kni-fila.lua",
+				"$(NH_DAT_DIR)/Kni-filb.lua",
+				"$(NH_DAT_DIR)/Kni-goal.lua",
+				"$(NH_DAT_DIR)/Kni-loca.lua",
+				"$(NH_DAT_DIR)/Kni-strt.lua",
 				"$(NH_DAT_DIR)/knox.lua",
 				"$(NH_DAT_DIR)/medusa-1.lua",
 				"$(NH_DAT_DIR)/medusa-2.lua",
@@ -1186,13 +1132,35 @@
 				"$(NH_DAT_DIR)/minetn-5.lua",
 				"$(NH_DAT_DIR)/minetn-6.lua",
 				"$(NH_DAT_DIR)/minetn-7.lua",
-				"$(NH_DAT_DIR)/opthelp",
-				"$(NH_DAT_DIR)/options",
+				"$(NH_DAT_DIR)/Mon-fila.lua",
+				"$(NH_DAT_DIR)/Mon-filb.lua",
+				"$(NH_DAT_DIR)/Mon-goal.lua",
+				"$(NH_DAT_DIR)/Mon-loca.lua",
+				"$(NH_DAT_DIR)/Mon-strt.lua",
+				"$(NH_DAT_DIR)/nhlib.lua",
 				"$(NH_DAT_DIR)/oracle.lua",
-				"$(NH_DAT_DIR)/oracles",
 				"$(NH_DAT_DIR)/orcus.lua",
+				"$(NH_DAT_DIR)/Pri-fila.lua",
+				"$(NH_DAT_DIR)/Pri-filb.lua",
+				"$(NH_DAT_DIR)/Pri-goal.lua",
+				"$(NH_DAT_DIR)/Pri-loca.lua",
+				"$(NH_DAT_DIR)/Pri-strt.lua",
 				"$(NH_DAT_DIR)/quest.lua",
-				"$(NH_DAT_DIR)/rumors",
+				"$(NH_DAT_DIR)/Ran-fila.lua",
+				"$(NH_DAT_DIR)/Ran-filb.lua",
+				"$(NH_DAT_DIR)/Ran-goal.lua",
+				"$(NH_DAT_DIR)/Ran-loca.lua",
+				"$(NH_DAT_DIR)/Ran-strt.lua",
+				"$(NH_DAT_DIR)/Rog-fila.lua",
+				"$(NH_DAT_DIR)/Rog-filb.lua",
+				"$(NH_DAT_DIR)/Rog-goal.lua",
+				"$(NH_DAT_DIR)/Rog-loca.lua",
+				"$(NH_DAT_DIR)/Rog-strt.lua",
+				"$(NH_DAT_DIR)/Sam-fila.lua",
+				"$(NH_DAT_DIR)/Sam-filb.lua",
+				"$(NH_DAT_DIR)/Sam-goal.lua",
+				"$(NH_DAT_DIR)/Sam-loca.lua",
+				"$(NH_DAT_DIR)/Sam-strt.lua",
 				"$(NH_DAT_DIR)/sanctum.lua",
 				"$(NH_DAT_DIR)/soko1-1.lua",
 				"$(NH_DAT_DIR)/soko1-2.lua",
@@ -1202,16 +1170,30 @@
 				"$(NH_DAT_DIR)/soko3-2.lua",
 				"$(NH_DAT_DIR)/soko4-1.lua",
 				"$(NH_DAT_DIR)/soko4-2.lua",
+				"$(NH_DAT_DIR)/themerms.lua",
+				"$(NH_DAT_DIR)/Tou-fila.lua",
+				"$(NH_DAT_DIR)/Tou-filb.lua",
+				"$(NH_DAT_DIR)/Tou-goal.lua",
+				"$(NH_DAT_DIR)/Tou-loca.lua",
+				"$(NH_DAT_DIR)/Tou-strt.lua",
 				"$(NH_DAT_DIR)/tower1.lua",
 				"$(NH_DAT_DIR)/tower2.lua",
 				"$(NH_DAT_DIR)/tower3.lua",
-				"$(NH_DAT_DIR)/tribute",
+				"$(NH_DAT_DIR)/Val-fila.lua",
+				"$(NH_DAT_DIR)/Val-filb.lua",
+				"$(NH_DAT_DIR)/Val-goal.lua",
+				"$(NH_DAT_DIR)/Val-loca.lua",
+				"$(NH_DAT_DIR)/Val-strt.lua",
 				"$(NH_DAT_DIR)/valley.lua",
 				"$(NH_DAT_DIR)/water.lua",
+				"$(NH_DAT_DIR)/Wiz-fila.lua",
+				"$(NH_DAT_DIR)/Wiz-filb.lua",
+				"$(NH_DAT_DIR)/Wiz-goal.lua",
+				"$(NH_DAT_DIR)/Wiz-loca.lua",
+				"$(NH_DAT_DIR)/Wiz-strt.lua",
 				"$(NH_DAT_DIR)/wizard1.lua",
 				"$(NH_DAT_DIR)/wizard2.lua",
 				"$(NH_DAT_DIR)/wizard3.lua",
-				"$(NH_DAT_DIR)/wizhelp",
 			);
 			name = "Build nhdat";
 			outputFileListPaths = (
@@ -1221,7 +1203,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd ${NH_DAT_DIR}\n${NH_UTIL_DIR}/dlb cf nhdat help hh cmdhelp keyhelp history opthelp wizhelp dungeon.lua tribute asmodeus.lua baalz.lua bigrm-*.lua castle.lua fakewiz?.lua juiblex.lua knox.lua medusa-?.lua minend-?.lua minefill.lua minetn-?.lua oracle.lua orcus.lua sanctum.lua soko?-?.lua tower?.lua valley.lua wizard?.lua astral.lua air.lua earth.lua fire.lua water.lua ???-goal.lua ???-fil?.lua ???-loca.lua ???-strt.lua bogusmon data engrave epitaph oracles options quest.lua rumors\n\n";
+			shellScript = "cd \"${NH_DAT_DIR}\"\n\"${NH_UTIL_DIR}\"/dlb cf nhdat help hh cmdhelp keyhelp history opthelp wizhelp dungeon.lua tribute asmodeus.lua baalz.lua bigrm-*.lua castle.lua fakewiz?.lua juiblex.lua knox.lua medusa-?.lua minend-?.lua minefill.lua minetn-?.lua oracle.lua orcus.lua sanctum.lua soko?-?.lua tower?.lua valley.lua wizard?.lua nhlib.lua themerms.lua astral.lua air.lua earth.lua fire.lua water.lua ???-goal.lua ???-fil?.lua ???-loca.lua ???-strt.lua bogusmon data engrave epitaph oracles options quest.lua rumors\n";
 		};
 		3192867021A39F6A00325BEB /* Install */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1252,7 +1234,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "mkdir -p ${NH_INSTALL_DIR}/save\ncd ${NH_DAT_DIR}\ncp nhdat license symbols ${NH_INSTALL_DIR}\ncp ${NH_SRC_DIR}/nethack ${NH_INSTALL_DIR}\ncp ${NH_UTIL_DIR}/recover ${NH_INSTALL_DIR}\ntouch ${NH_INSTALL_DIR}/perm\ntouch ${NH_INSTALL_DIR}/record\ntouch ${NH_INSTALL_DIR}/logfile\ntouch ${NH_INSTALL_DIR}/xlogfile\ncd ${NH_UNIX_DIR}\nsh hints/macosx.sh editsysconf sysconf ${NH_INSTALL_DIR}/sysconf\n";
+			shellScript = "mkdir -p \"${NH_INSTALL_DIR}\"/save\ncd \"${NH_DAT_DIR}\"\ncp nhdat license symbols \"${NH_INSTALL_DIR}\"\ncp \"${NH_SRC_DIR}\"/nethack \"${NH_INSTALL_DIR}\"\ncp \"${NH_UTIL_DIR}\"/recover \"${NH_INSTALL_DIR}\"\ntouch \"${NH_INSTALL_DIR}\"/perm\ntouch \"${NH_INSTALL_DIR}\"/record\ntouch \"${NH_INSTALL_DIR}\"/logfile\ntouch \"${NH_INSTALL_DIR}\"/xlogfile\ncd \"${NH_UNIX_DIR}\"\nsh hints/macosx.sh editsysconf sysconf \"${NH_INSTALL_DIR}\"/sysconf\n";
 		};
 		3192867121A3A2D500325BEB /* Copy nethack */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1272,7 +1254,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp ${BUILT_PRODUCTS_DIR}/nethack ${NH_SRC_DIR}/nethack\n";
+			shellScript = "cp \"${BUILT_PRODUCTS_DIR}\"/nethack \"${NH_SRC_DIR}\"/nethack\n";
 		};
 		3192867221A3AA5700325BEB /* copy dlb */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1292,7 +1274,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp ${BUILT_PRODUCTS_DIR}/dlb ${NH_UTIL_DIR}/dlb\n";
+			shellScript = "cp \"${BUILT_PRODUCTS_DIR}\"/dlb \"${NH_UTIL_DIR}\"/dlb\n";
 		};
 		3192867F21A3AF8000325BEB /* Build oracles */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1312,7 +1294,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd ${NH_DAT_DIR}\n${NH_UTIL_DIR}/makedefs -h\n";
+			shellScript = "cd \"${NH_DAT_DIR}\"\n\"${NH_UTIL_DIR}\"/makedefs -h\n";
 		};
 		319CBA3821A3458100150830 /* Build data */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1333,7 +1315,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# make data from data.base\ncd ${NH_DAT_DIR}\n${NH_UTIL_DIR}/makedefs -d\n";
+			shellScript = "# make data from data.base\ncd \"${NH_DAT_DIR}\"\n\"${NH_UTIL_DIR}\"/makedefs -d\n";
 		};
 		544768B223995106004B9739 /* Build nhlua header */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1352,7 +1334,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ncd ${NH_INC_DIR}\necho '/* nhlua.h - generated by Xcode script */' > nhlua.h\necho '#include \"../lib/lua-5.4.2/src/lua.h\"' >> nhlua.h\nsed -e '/(lua_error)/!d' -e '/(lua_error)/s/;/ NORETURN;/1' < ${NH_LIB_DIR}/lua-5.4.2/src/lua.h >> nhlua.h\necho '#include \"../lib/lua-5.4.2/src/lualib.h\"' >> nhlua.h\necho '#include \"../lib/lua-5.4.2/src/lauxlib.h\"' >> nhlua.h\necho '/*nhlua.h*/' >> nhlua.h\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ncd \"${NH_INC_DIR}\"\necho '/* nhlua.h - generated by Xcode script */' > nhlua.h\necho '#include \"../lib/lua-5.4.2/src/lua.h\"' >> nhlua.h\nsed -e '/(lua_error)/!d' -e '/(lua_error)/s/;/ NORETURN;/1' < \"${NH_LIB_DIR}\"/lua-5.4.2/src/lua.h >> nhlua.h\necho '#include \"../lib/lua-5.4.2/src/lualib.h\"' >> nhlua.h\necho '#include \"../lib/lua-5.4.2/src/lauxlib.h\"' >> nhlua.h\necho '/*nhlua.h*/' >> nhlua.h\n";
 		};
 		544768B8239954B9004B9739 /* Build Lua library */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1371,7 +1353,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ncd ${NH_LIB_DIR}\nmkdir -p lua\ncd ${NH_LIB_DIR}/lua-5.4.2/src\nmake a\ncp liblua.a ../../lua\ncd ../../..\n\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ncd \"${NH_LIB_DIR}\"\nmkdir -p lua\ncd \"${NH_LIB_DIR}\"/lua-5.4.2/src\nmake a\ncp liblua.a ../../lua\ncd ../../..\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1393,7 +1375,6 @@
 				31B8A3C621A238060055BD01 /* dbridge.c in Sources */,
 				31B8A38521A238060055BD01 /* rnd.c in Sources */,
 				31B8A38B21A238060055BD01 /* topten.c in Sources */,
-				31B8A38121A238060055BD01 /* mapglyph.c in Sources */,
 				5462D14823E7B19200969423 /* insight.c in Sources */,
 				31B8A41321A23F650055BD01 /* version.c in Sources */,
 				31B8A3BB21A238060055BD01 /* allmain.c in Sources */,
@@ -1454,7 +1435,6 @@
 				31B8A3DD21A238060055BD01 /* dothrow.c in Sources */,
 				31B8A39421A238060055BD01 /* mcastu.c in Sources */,
 				31B8A3C221A238060055BD01 /* role.c in Sources */,
-				31B8A3E821A23AB50055BD01 /* vis_tab.c in Sources */,
 				31B8A38821A238060055BD01 /* shknam.c in Sources */,
 				31B8A3A521A238060055BD01 /* ball.c in Sources */,
 				31B8A39E21A238060055BD01 /* mthrowu.c in Sources */,

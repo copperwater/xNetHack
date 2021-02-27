@@ -185,7 +185,7 @@ struct monst {
 #define DEADMONSTER(mon) ((mon)->mhp < 1)
 #define is_starting_pet(mon) ((mon)->m_id == g.context.startingpet_mid)
 #define is_vampshifter(mon)                                      \
-    ((mon)->cham == PM_VAMPIRE || (mon)->cham == PM_VAMPIRE_LORD \
+    ((mon)->cham == PM_VAMPIRE || (mon)->cham == PM_VAMPIRE_LEADER \
      || (mon)->cham == PM_VLAD_THE_IMPALER)
 #define vampshifted(mon) (is_vampshifter((mon)) && !is_vampire((mon)->data))
 
@@ -233,5 +233,9 @@ struct monst {
 /* Override mrevived to track when a golem has been completely destroyed and
  * shouldn't drop items from its body. */
 #define golem_destroyed mrevived
+
+#ifdef PMNAME_MACROS
+#define Mgender(mon) ((mon)->female ? FEMALE : MALE)
+#endif
 
 #endif /* MONST_H */

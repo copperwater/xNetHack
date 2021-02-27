@@ -1,54 +1,55 @@
-/* NetHack 3.7	apply.c	$NHDT-Date: 1605184220 2020/11/12 12:30:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.331 $ */
+/* NetHack 3.7	apply.c	$NHDT-Date: 1611182249 2021/01/20 22:37:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.337 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-static int FDECL(use_camera, (struct obj *));
-static int FDECL(use_towel, (struct obj *));
-static boolean FDECL(its_dead, (int, int, int *, struct obj *));
-static int FDECL(use_stethoscope, (struct obj *));
-static void FDECL(use_whistle, (struct obj *));
-static void FDECL(use_magic_whistle, (struct obj *));
-static int FDECL(use_leash, (struct obj *));
-static int FDECL(use_mirror, (struct obj *));
-static void FDECL(use_bell, (struct obj **));
-static void FDECL(use_candelabrum, (struct obj *));
-static void FDECL(use_candle, (struct obj **));
-static void FDECL(use_lamp, (struct obj *));
-static void FDECL(light_cocktail, (struct obj **));
-static void FDECL(display_jump_positions, (int));
-static void FDECL(use_tinning_kit, (struct obj *));
-static void FDECL(use_figurine, (struct obj **));
-static void FDECL(use_grease, (struct obj *));
-static void FDECL(use_trap, (struct obj *));
-static void FDECL(use_stone, (struct obj *));
-static int NDECL(set_trap); /* occupation callback */
-static int FDECL(use_whip, (struct obj *));
-static void FDECL(display_polearm_positions, (int));
-static int FDECL(use_pole, (struct obj *));
-static int FDECL(use_cream_pie, (struct obj *));
-static int FDECL(use_royal_jelly, (struct obj *));
-static int FDECL(use_grapple, (struct obj *));
-static int FDECL(do_break_wand, (struct obj *));
-static int FDECL(flip_through_book, (struct obj *));
-static boolean FDECL(figurine_location_checks, (struct obj *,
-                                                    coord *, BOOLEAN_P));
-static void FDECL(add_class, (char *, CHAR_P));
-static void FDECL(setapplyclasses, (char *));
-static boolean FDECL(check_jump, (genericptr_t, int, int));
-static boolean FDECL(is_valid_jump_pos, (int, int, int, BOOLEAN_P));
-static boolean FDECL(get_valid_jump_position, (int, int));
-static boolean FDECL(get_valid_polearm_position, (int, int));
-static boolean FDECL(find_poleable_mon, (coord *, int, int));
+static int use_camera(struct obj *);
+static int use_towel(struct obj *);
+static boolean its_dead(int, int, int *, struct obj *);
+static int use_stethoscope(struct obj *);
+static void use_whistle(struct obj *);
+static void use_magic_whistle(struct obj *);
+static int use_leash(struct obj *);
+static int use_mirror(struct obj *);
+static void use_bell(struct obj **);
+static void use_candelabrum(struct obj *);
+static void use_candle(struct obj **);
+static void use_lamp(struct obj *);
+static void light_cocktail(struct obj **);
+static int rub_ok(struct obj *);
+static void display_jump_positions(int);
+static void use_tinning_kit(struct obj *);
+static void use_figurine(struct obj **);
+static int grease_ok(struct obj *);
+static void use_grease(struct obj *);
+static void use_trap(struct obj *);
+static int touchstone_ok(struct obj *);
+static void use_stone(struct obj *);
+static int set_trap(void); /* occupation callback */
+static int use_whip(struct obj *);
+static void display_polearm_positions(int);
+static int use_pole(struct obj *);
+static int use_cream_pie(struct obj *);
+static int jelly_ok(struct obj *);
+static int use_royal_jelly(struct obj *);
+static int use_grapple(struct obj *);
+static int do_break_wand(struct obj *);
+static int apply_ok(struct obj *);
+static int flip_through_book(struct obj *);
+static boolean figurine_location_checks(struct obj *, coord *, boolean);
+static boolean check_jump(genericptr_t, int, int);
+static boolean is_valid_jump_pos(int, int, int, boolean);
+static boolean get_valid_jump_position(int, int);
+static boolean get_valid_polearm_position(int, int);
+static boolean find_poleable_mon(coord *, int, int);
 
 static const char no_elbow_room[] =
     "don't have enough elbow-room to maneuver.";
 
 static int
-use_camera(obj)
-struct obj *obj;
+use_camera(struct obj *obj)
 {
     struct monst *mtmp;
 
@@ -77,8 +78,8 @@ struct obj *obj;
         (void) zapyourself(obj, TRUE);
     } else {
         mtmp = bhit(u.dx, u.dy, COLNO, FLASHED_LIGHT,
-                    (int FDECL((*), (MONST_P, OBJ_P))) 0,
-                    (int FDECL((*), (OBJ_P, OBJ_P))) 0, &obj);
+                    (int (*) (MONST_P, OBJ_P)) 0,
+                    (int (*) (OBJ_P, OBJ_P)) 0, &obj);
         obj->ox = u.ux, obj->oy = u.uy; /* flash_hits_mon() wants this */
         if (mtmp)
             (void) flash_hits_mon(mtmp, obj);
@@ -90,8 +91,7 @@ struct obj *obj;
 }
 
 static int
-use_towel(obj)
-struct obj *obj;
+use_towel(struct obj *obj)
 {
     boolean drying_feedback = (obj == uwep);
 
@@ -177,9 +177,7 @@ struct obj *obj;
 
 /* maybe give a stethoscope message based on floor objects */
 static boolean
-its_dead(rx, ry, resp, stethoscope)
-int rx, ry, *resp;
-struct obj *stethoscope;
+its_dead(int rx, int ry, int *resp, struct obj *stethoscope)
 {
     char buf[BUFSZ];
     boolean more_corpses;
@@ -281,7 +279,7 @@ struct obj *stethoscope;
             }
             else {
                 You("listen to the egg and guess... %s!",
-                    mons[egg->corpsenm].mname);
+                    mons[egg->corpsenm].pmnames[NEUTRAL]);
                 egg->known = 1;
             }
         }
@@ -299,7 +297,7 @@ struct obj *stethoscope;
                     humanoid(mptr) ? "person" : "creature");
             what = buf;
         } else {
-            what = mptr->mname;
+            what = pmname(mptr, NEUTRAL);
             if (!type_is_pname(mptr))
                 what = The(what);
         }
@@ -326,8 +324,7 @@ static const char hollow_str[] = "a hollow sound.  This must be a secret %s!";
    almost useless.  As a compromise, one use per turn is free, another
    uses up the turn; this makes curse status have a tangible effect. */
 static int
-use_stethoscope(obj)
-register struct obj *obj;
+use_stethoscope(struct obj *obj)
 {
     struct monst *mtmp;
     struct rm *lev;
@@ -435,7 +432,7 @@ register struct obj *obj;
                               || odummy->otyp == LENSES);
                 break;
             case M_AP_MONSTER: /* ignore Hallucination here */
-                what = mons[mtmp->mappearance].mname;
+                what = pmname(&mons[mtmp->mappearance], Mgender(mtmp));
                 break;
             case M_AP_FURNITURE:
                 what = defsyms[mtmp->mappearance].explanation;
@@ -481,8 +478,7 @@ static const char whistle_str[] = "produce a %s whistling sound.",
                   alt_whistle_str[] = "produce a %s, sharp vibration.";
 
 static void
-use_whistle(obj)
-struct obj *obj;
+use_whistle(struct obj *obj)
 {
     if (!can_blow(&g.youmonst)) {
         You("are incapable of using the whistle.");
@@ -500,8 +496,7 @@ struct obj *obj;
 }
 
 static void
-use_magic_whistle(obj)
-struct obj *obj;
+use_magic_whistle(struct obj *obj)
 {
     register struct monst *mtmp, *nextmon;
 
@@ -557,14 +552,13 @@ struct obj *obj;
 }
 
 boolean
-um_dist(x, y, n)
-xchar x, y, n;
+um_dist(xchar x, xchar y, xchar n)
 {
     return (boolean) (abs(u.ux - x) > n || abs(u.uy - y) > n);
 }
 
 int
-number_leashed()
+number_leashed(void)
 {
     int i = 0;
     struct obj *obj;
@@ -577,8 +571,7 @@ number_leashed()
 
 /* otmp is about to be destroyed or stolen */
 void
-o_unleash(otmp)
-struct obj *otmp;
+o_unleash(struct obj *otmp)
 {
     register struct monst *mtmp;
 
@@ -593,9 +586,7 @@ struct obj *otmp;
 
 /* mtmp is about to die, or become untame */
 void
-m_unleash(mtmp, feedback)
-struct monst *mtmp;
-boolean feedback;
+m_unleash(struct monst *mtmp, boolean feedback)
 {
     register struct obj *otmp;
 
@@ -616,7 +607,7 @@ boolean feedback;
 
 /* player is about to die (for bones) */
 void
-unleash_all()
+unleash_all(void)
 {
     register struct obj *otmp;
     register struct monst *mtmp;
@@ -631,8 +622,7 @@ unleash_all()
 #define MAXLEASHED 2
 
 boolean
-leashable(mtmp)
-struct monst *mtmp;
+leashable(struct monst *mtmp)
 {
     return (boolean) (mtmp->mnum != PM_LONG_WORM
                        && !unsolid(mtmp->data)
@@ -641,8 +631,7 @@ struct monst *mtmp;
 
 /* ARGSUSED */
 static int
-use_leash(obj)
-struct obj *obj;
+use_leash(struct obj *obj)
 {
     coord cc;
     struct monst *mtmp;
@@ -744,8 +733,7 @@ struct obj *obj;
 
 /* assuming mtmp->mleashed has been checked */
 struct obj *
-get_mleash(mtmp)
-struct monst *mtmp;
+get_mleash(struct monst *mtmp)
 {
     struct obj *otmp;
 
@@ -756,7 +744,7 @@ struct monst *mtmp;
 }
 
 boolean
-next_to_u()
+next_to_u(void)
 {
     register struct monst *mtmp;
     register struct obj *otmp;
@@ -789,8 +777,7 @@ next_to_u()
 }
 
 void
-check_leash(x, y)
-register xchar x, y;
+check_leash(xchar x, xchar y)
 {
     register struct obj *otmp;
     register struct monst *mtmp;
@@ -860,7 +847,7 @@ register xchar x, y;
 /* charisma is supposed to include qualities like leadership and personal
    magnetism rather than just appearance, but it has devolved to this... */
 const char *
-beautiful()
+beautiful(void)
 {
     const char *res;
     int cha = ACURR(A_CHA);
@@ -881,8 +868,7 @@ beautiful()
 static const char look_str[] = "look %s.";
 
 static int
-use_mirror(obj)
-struct obj *obj;
+use_mirror(struct obj *obj)
 {
     const char *mirror, *uvisage;
     struct monst *mtmp;
@@ -932,7 +918,7 @@ struct obj *obj;
             } else if (u.uhs >= WEAK) {
                 You(look_str, "undernourished");
             } else if (Upolyd) {
-                You("look like %s.", an(mons[u.umonnum].mname));
+                You("look like %s.", an(pmname(&mons[u.umonnum], Ugender)));
             } else {
                 You("look as %s as ever.", uvisage);
             }
@@ -958,8 +944,8 @@ struct obj *obj;
         return 1;
     }
     mtmp = bhit(u.dx, u.dy, COLNO, INVIS_BEAM,
-                (int FDECL((*), (MONST_P, OBJ_P))) 0,
-                (int FDECL((*), (OBJ_P, OBJ_P))) 0, &obj);
+                (int (*) (MONST_P, OBJ_P)) 0,
+                (int (*) (OBJ_P, OBJ_P)) 0, &obj);
     if (!mtmp || !haseyes(mtmp->data) || g.notonhead)
         return 1;
 
@@ -1013,8 +999,8 @@ struct obj *obj;
         if (vis)
             pline("%s confuses itself!", Monnam(mtmp));
         mtmp->mconf = 1;
-    } else if (monable && (mlet == S_NYMPH || mtmp->data == &mons[PM_SUCCUBUS]
-                           || mtmp->data == &mons[PM_INCUBUS])) {
+    } else if (monable &&
+               (mlet == S_NYMPH || mtmp->data == &mons[PM_AMOROUS_DEMON])) {
         if (vis) {
             char buf[BUFSZ]; /* "She" or "He" */
 
@@ -1061,8 +1047,7 @@ struct obj *obj;
 }
 
 static void
-use_bell(optr)
-struct obj **optr;
+use_bell(struct obj **optr)
 {
     register struct obj *obj = *optr;
     struct monst *mtmp;
@@ -1178,8 +1163,7 @@ struct obj **optr;
 }
 
 static void
-use_candelabrum(obj)
-register struct obj *obj;
+use_candelabrum(struct obj *obj)
 {
     const char *s = (obj->spe != 1) ? "candles" : "candle";
 
@@ -1247,8 +1231,7 @@ register struct obj *obj;
 }
 
 static void
-use_candle(optr)
-struct obj **optr;
+use_candle(struct obj **optr)
 {
     register struct obj *obj = *optr;
     register struct obj *otmp;
@@ -1328,8 +1311,7 @@ struct obj **optr;
 
 /* call in drop, throw, and put in box, etc. */
 boolean
-snuff_candle(otmp)
-struct obj *otmp;
+snuff_candle(struct obj *otmp)
 {
     boolean candle = Is_candle(otmp);
 
@@ -1354,8 +1336,7 @@ struct obj *otmp;
    you've been swallowed by a monster; obj might be in transit while
    being thrown or dropped so don't assume that its location is valid */
 boolean
-snuff_lit(obj)
-struct obj *obj;
+snuff_lit(struct obj *obj)
 {
     xchar x, y;
 
@@ -1376,8 +1357,7 @@ struct obj *obj;
 
 /* called when lit object is hit by water */
 boolean
-splash_lit(obj)
-struct obj *obj;
+splash_lit(struct obj *obj)
 {
     boolean result, dunk = FALSE;
 
@@ -1434,33 +1414,40 @@ struct obj *obj;
 /* Called when potentially lightable object is affected by fire_damage().
    Return TRUE if object becomes lit and FALSE otherwise --ALI */
 boolean
-catch_lit(obj)
-struct obj *obj;
+catch_lit(struct obj *obj)
 {
     xchar x, y;
 
-    if (!obj->lamplit && ignitable(obj)) {
-        if ((obj->otyp == MAGIC_LAMP
+    if (!obj->lamplit && ignitable(obj) && get_obj_location(obj, &x, &y, 0)) {
+        if (((obj->otyp == MAGIC_LAMP /* spe==0 => no djinni inside */
+              /* spe==0 => no candles attached */
              || obj->otyp == CANDELABRUM_OF_INVOCATION) && obj->spe == 0)
-            return FALSE;
-        else if (obj->otyp != MAGIC_LAMP && obj->age == 0)
-            return FALSE;
-        if (!get_obj_location(obj, &x, &y, 0))
+            /* age_is_relative && age==0 && still-exists means out of fuel */
+            || (age_is_relative(obj) && obj->age == 0)
+            /* lantern is classified as ignitable() but not by fire */
+            || obj->otyp == LANTERN)
             return FALSE;
         if (obj->otyp == CANDELABRUM_OF_INVOCATION && obj->cursed)
             return FALSE;
-        if ((obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
-             || obj->otyp == LANTERN) && obj->cursed && !rn2(2))
+        if ((obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP)
+            /* once lit, cursed lamp is as good as non-cursed one, so failure
+               to light is a minor inconvenience to make cursed be worse */
+            && obj->cursed && !rn2(2))
             return FALSE;
-        if (obj->where == OBJ_MINVENT ? cansee(x, y) : !Blind)
-            pline("%s %s light!", Yname2(obj), otense(obj, "catch"));
+
+        if (obj->where == OBJ_INVENT || cansee(x, y))
+            pline("%s %s %s", Yname2(obj),
+                  /* "catches light!" or "feels warm." */
+                  otense(obj, Blind ? "feel" : "catch"),
+                  Blind ? "warm." : "light!");
         if (obj->otyp == POT_OIL)
             makeknown(obj->otyp);
         if (carried(obj) && obj->unpaid && costly_spot(u.ux, u.uy)) {
             /* if it catches while you have it, then it's your tough luck */
             check_unpaid(obj);
             verbalize("That's in addition to the cost of %s %s, of course.",
-                      yname(obj), obj->quan == 1L ? "itself" : "themselves");
+                      yname(obj),
+                      (obj->quan == 1L) ? "itself" : "themselves");
             bill_dummy_object(obj);
         }
         begin_burn(obj, FALSE);
@@ -1470,8 +1457,7 @@ struct obj *obj;
 }
 
 static void
-use_lamp(obj)
-struct obj *obj;
+use_lamp(struct obj *obj)
 {
     char buf[BUFSZ];
 
@@ -1523,8 +1509,7 @@ struct obj *obj;
 }
 
 static void
-light_cocktail(optr)
-struct obj **optr;
+light_cocktail(struct obj **optr)
 {
     struct obj *obj = *optr; /* obj is a potion of oil */
     char buf[BUFSZ];
@@ -1580,29 +1565,32 @@ struct obj **optr;
     *optr = obj;
 }
 
+/* getobj callback for object to be rubbed - not selecting a secondary object to
+ * rub on a gray stone or rub jelly on */
 static int
-rub_ok(obj)
-struct obj *obj;
+rub_ok(struct obj *obj)
 {
-    if (obj &&
-        (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP ||
-         obj->otyp == LANTERN || is_graystone(obj) ||
-         obj->otyp == LUMP_OF_ROYAL_JELLY))
-        return 2;
+    if (!obj)
+        return GETOBJ_EXCLUDE;
 
-    return 0;
+    if (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
+        || obj->otyp == LANTERN || is_graystone(obj)
+        || obj->otyp == LUMP_OF_ROYAL_JELLY)
+        return GETOBJ_SUGGEST;
+
+    return GETOBJ_EXCLUDE;
 }
 
 int
-dorub()
+dorub(void)
 {
+    struct obj *obj;
+
     if (nohands(g.youmonst.data)) {
         You("can't rub anything together without hands.");
         return 0;
     }
-
-    struct obj *obj = getobj("rub", rub_ok, FALSE, FALSE);
-
+    obj = getobj("rub", rub_ok, GETOBJ_NOFLAGS);
     if (!obj) {
         return 0;
     }
@@ -1649,7 +1637,7 @@ dorub()
 }
 
 int
-dojump()
+dojump(void)
 {
     /* Physical jump */
     return jump(0);
@@ -1664,9 +1652,7 @@ enum jump_trajectory {
 
 /* callback routine for walk_path() */
 static boolean
-check_jump(arg, x, y)
-genericptr arg;
-int x, y;
+check_jump(genericptr arg, int x, int y)
 {
     int traj = *(int *) arg;
     struct rm *lev = &levl[x][y];
@@ -1697,9 +1683,7 @@ int x, y;
 }
 
 static boolean
-is_valid_jump_pos(x, y, magic, showmsg)
-int x, y, magic;
-boolean showmsg;
+is_valid_jump_pos(int x, int y, int magic, boolean showmsg)
 {
     if (!magic && !(HJumping & ~INTRINSIC) && !EJumping && distu(x, y) != 5) {
         /* The Knight jumping restriction still applies when riding a
@@ -1765,8 +1749,7 @@ boolean showmsg;
 }
 
 static boolean
-get_valid_jump_position(x,y)
-int x,y;
+get_valid_jump_position(int x, int y)
 {
     return (isok(x, y)
             && (ACCESSIBLE(levl[x][y].typ) || Passes_walls)
@@ -1774,8 +1757,7 @@ int x,y;
 }
 
 static void
-display_jump_positions(state)
-int state;
+display_jump_positions(int state)
 {
     if (state == 0) {
         tmp_at(DISP_BEAM, cmap_to_glyph(S_goodpos));
@@ -1795,8 +1777,7 @@ int state;
 }
 
 int
-jump(magic)
-int magic; /* 0=Physical, otherwise skill level */
+jump(int magic) /* 0=Physical, otherwise skill level */
 {
     coord cc;
 
@@ -1950,8 +1931,7 @@ int magic; /* 0=Physical, otherwise skill level */
 }
 
 boolean
-tinnable(corpse)
-struct obj *corpse;
+tinnable(struct obj *corpse)
 {
     if (corpse->oeaten)
         return 0;
@@ -1961,8 +1941,7 @@ struct obj *corpse;
 }
 
 static void
-use_tinning_kit(obj)
-struct obj *obj;
+use_tinning_kit(struct obj *obj)
 {
     struct obj *corpse, *can;
 
@@ -1985,12 +1964,12 @@ struct obj *obj;
 
         if (poly_when_stoned(g.youmonst.data))
             You("tin %s without wearing gloves.",
-                an(mons[corpse->corpsenm].mname));
+                an(mons[corpse->corpsenm].pmnames[NEUTRAL]));
         else {
             pline("Tinning %s without wearing gloves is a fatal mistake...",
-                  an(mons[corpse->corpsenm].mname));
+                  an(mons[corpse->corpsenm].pmnames[NEUTRAL]));
             Sprintf(kbuf, "trying to tin %s without gloves",
-                    an(mons[corpse->corpsenm].mname));
+                    an(mons[corpse->corpsenm].pmnames[NEUTRAL]));
         }
         instapetrify(kbuf);
     }
@@ -2033,9 +2012,7 @@ struct obj *obj;
 }
 
 void
-use_unicorn_horn(optr, passive)
-struct obj **optr;
-boolean passive;
+use_unicorn_horn(struct obj **optr, boolean passive)
 {
 #define PROP_COUNT 7           /* number of properties we're dealing with */
     int idx, val, val_limit, trouble_count, unfixable_trbl, did_prop;
@@ -2178,9 +2155,7 @@ boolean passive;
  * Timer callback routine: turn figurine into monster
  */
 void
-fig_transform(arg, timeout)
-anything *arg;
-long timeout;
+fig_transform(anything *arg, long timeout)
 {
     struct obj *figurine = arg->a_obj;
     struct monst *mtmp;
@@ -2295,10 +2270,7 @@ long timeout;
 }
 
 static boolean
-figurine_location_checks(obj, cc, quietly)
-struct obj *obj;
-coord *cc;
-boolean quietly;
+figurine_location_checks(struct obj *obj, coord *cc, boolean quietly)
 {
     xchar x, y;
 
@@ -2331,8 +2303,7 @@ boolean quietly;
 }
 
 static void
-use_figurine(optr)
-struct obj **optr;
+use_figurine(struct obj **optr)
 {
     register struct obj *obj = *optr;
     xchar x, y;
@@ -2370,9 +2341,26 @@ struct obj **optr;
     *optr = 0;
 }
 
+/* getobj callback for object to apply grease to */
+static int
+grease_ok(struct obj *obj)
+{
+    if (!obj)
+        return GETOBJ_SUGGEST;
+
+    if (obj->oclass == COIN_CLASS)
+        return GETOBJ_EXCLUDE;
+
+    if (inaccessible_equipment(obj, (const char *) 0, FALSE))
+        return GETOBJ_EXCLUDE_INACCESS;
+
+    /* Possible extension: don't suggest greasing objects which are already
+     * greased. */
+    return GETOBJ_SUGGEST;
+}
+
 static void
-use_grease(obj)
-struct obj *obj;
+use_grease(struct obj *obj)
 {
     struct obj *otmp;
 
@@ -2394,7 +2382,7 @@ struct obj *obj;
             dropx(obj);
             return;
         }
-        otmp = getobj("grease", allow_any, FALSE, FALSE);
+        otmp = getobj("grease", grease_ok, GETOBJ_PROMPT);
         if (!otmp)
             return;
         if (inaccessible_equipment(otmp, "grease", FALSE))
@@ -2423,16 +2411,12 @@ struct obj *obj;
     update_inventory();
 }
 
+/* getobj callback for the object to rub on a known thiefstone */
 static int
-thiefstone_ok(obj)
-struct obj* obj;
+thiefstone_ok(struct obj *obj)
 {
     if (!obj) {
-        return 1;
-    }
-
-    if (obj == &cg.zeroobj) {
-        return 0;
+        return GETOBJ_EXCLUDE;
     }
 
     /* gems and coins should be included
@@ -2440,7 +2424,7 @@ struct obj* obj;
      * nonblessed, these aren't valid), but suggest them anyway */
     if ((obj->oclass == GEM_CLASS && !is_graystone(obj) && obj->otyp != ROCK)
         || obj->oclass == COIN_CLASS) {
-        return 2;
+        return GETOBJ_SUGGEST;
     }
 
     /* inherently magical classes should be encouraged by default; they may have
@@ -2449,10 +2433,10 @@ struct obj* obj;
         || obj->oclass == RING_CLASS || obj->oclass == SCROLL_CLASS
         || obj->oclass == POTION_CLASS) {
         if (!objects[obj->otyp].oc_magic && objects[obj->otyp].oc_name_known) {
-            return 1;
+            return GETOBJ_DOWNPLAY;
         }
         else {
-            return 2;
+            return GETOBJ_SUGGEST;
         }
     }
 
@@ -2460,44 +2444,42 @@ struct obj* obj;
      * known to be magical */
     if (objects[obj->otyp].oc_magic) {
         if (objects[obj->otyp].oc_name_known) {
-            return 2;
+            return GETOBJ_SUGGEST;
         }
         else {
-            return 1;
+            return GETOBJ_DOWNPLAY;
         }
     }
 
-    return 1;
+    return GETOBJ_DOWNPLAY;
 }
 
+/* getobj callback for object to rub on a known touchstone */
 static int
-touchstone_ok(obj)
-struct obj *obj;
+touchstone_ok(struct obj *obj)
 {
     if (!obj)
-        return 1;
+        return GETOBJ_EXCLUDE;
 
-    if (obj == &cg.zeroobj)
-        return 0;
+    /* Gold being suggested as a rub target is questionable - it fits the
+     * real-world historic use of touchstones, but doesn't do anything
+     * significant in the game. */
+    if (obj->oclass == COIN_CLASS)
+        return GETOBJ_SUGGEST;
 
-    if (is_graystone(obj))
-        return 1;
+    /* don't suggest identified gems */
+    if (obj->oclass == GEM_CLASS
+        && !(obj->dknown && objects[obj->otyp].oc_name_known))
+        return GETOBJ_SUGGEST;
 
-    if (obj->oclass == GEM_CLASS) {
-        if (objects[obj->otyp].oc_name_known)
-            return 1;
-        else
-            return 2;
-    }
-
-    return 1;
+    return GETOBJ_DOWNPLAY;
 }
+
 
 /* touchstones - by Ken Arnold
  * also thiefstones */
 static void
-use_stone(tstone)
-struct obj *tstone;
+use_stone(struct obj *tstone)
 {
     static const char scritch[] = "\"scritch, scritch\"";
     struct obj *obj;
@@ -2515,17 +2497,17 @@ struct obj *tstone;
     if (!Blind)
         tstone->dknown = 1;
 
+    Sprintf(stonebuf, "rub on the stone%s", plur(tstone->quan));
     /* when the touchstone is fully known, don't bother listing extra
        junk as likely candidates for rubbing */
-    Sprintf(stonebuf, "rub on the stone%s", plur(tstone->quan));
     if (known && tstone->otyp == TOUCHSTONE) {
-        obj = getobj(stonebuf, touchstone_ok, FALSE, FALSE);
+        obj = getobj(stonebuf, touchstone_ok, GETOBJ_PROMPT);
     }
     else if (known && tstone->otyp == THIEFSTONE) {
-        obj = getobj(stonebuf, thiefstone_ok, FALSE, FALSE);
+        obj = getobj(stonebuf, thiefstone_ok, GETOBJ_PROMPT);
     }
     else {
-        obj = getobj(stonebuf, allow_any, FALSE, FALSE);
+        obj = getobj(stonebuf, any_obj_ok, GETOBJ_PROMPT);
     }
 
     if (!obj)
@@ -2584,7 +2566,7 @@ struct obj *tstone;
         int flint_made = rnd(10) - 9;
         struct obj * flint = NULL;
 
-        if (Role_if(PM_CAVEMAN)) {
+        if (Role_if(PM_CAVE_DWELLER)) {
             /* experts on banging rocks together */
             flint_made += 3;
         }
@@ -2703,7 +2685,7 @@ struct obj *tstone;
 }
 
 void
-reset_trapset()
+reset_trapset(void)
 {
     g.trapinfo.tobj = 0;
     g.trapinfo.force_bungle = 0;
@@ -2711,8 +2693,7 @@ reset_trapset()
 
 /* Place a landmine/bear trap.  Helge Hafting */
 static void
-use_trap(otmp)
-struct obj *otmp;
+use_trap(struct obj *otmp)
 {
     int ttyp, tmp;
     const char *what = (char *) 0;
@@ -2807,7 +2788,7 @@ struct obj *otmp;
 }
 
 static int
-set_trap()
+set_trap(void)
 {
     struct obj *otmp = g.trapinfo.tobj;
     struct trap *ttmp;
@@ -2854,8 +2835,7 @@ set_trap()
 }
 
 static int
-use_whip(obj)
-struct obj *obj;
+use_whip(struct obj *obj)
 {
     char buf[BUFSZ];
     struct monst *mtmp;
@@ -2904,7 +2884,7 @@ struct obj *obj;
     if (proficient < 0)
         proficient = 0;
 
-    if (u.uswallow && attack(u.ustuck)) {
+    if (u.uswallow && do_attack(u.ustuck)) {
         There("is not enough room to flick your bullwhip.");
 
     } else if (Underwater) {
@@ -2978,7 +2958,7 @@ struct obj *obj;
             if (bigmonst(mtmp->data)) {
                 wrapped_what = strcpy(buf, mon_nam(mtmp));
             } else if (proficient) {
-                if (attack(mtmp))
+                if (do_attack(mtmp))
                     return 1;
                 else
                     pline1(msg_snap);
@@ -3081,7 +3061,7 @@ struct obj *obj;
                         char kbuf[BUFSZ];
 
                         Sprintf(kbuf, "%s corpse",
-                                an(mons[otmp->corpsenm].mname));
+                                an(mons[otmp->corpsenm].pmnames[NEUTRAL]));
                         pline("Snatching %s is a fatal mistake.", kbuf);
                         instapetrify(kbuf);
                     }
@@ -3108,7 +3088,7 @@ struct obj *obj;
             else
                 You("flick your bullwhip towards %s.", mon_nam(mtmp));
             if (proficient) {
-                if (attack(mtmp))
+                if (do_attack(mtmp))
                     return 1;
                 else
                     pline1(msg_snap);
@@ -3136,9 +3116,7 @@ static const char
 
 /* find pos of monster in range, if only one monster */
 static boolean
-find_poleable_mon(pos, min_range, max_range)
-coord *pos;
-int min_range, max_range;
+find_poleable_mon(coord *pos, int min_range, int max_range)
 {
     struct monst *mtmp;
     coord mpos;
@@ -3176,8 +3154,7 @@ int min_range, max_range;
 }
 
 static boolean
-get_valid_polearm_position(x, y)
-int x, y;
+get_valid_polearm_position(int x, int y)
 {
     int glyph;
 
@@ -3190,8 +3167,7 @@ int x, y;
 }
 
 static void
-display_polearm_positions(state)
-int state;
+display_polearm_positions(int state)
 {
     if (state == 0) {
         tmp_at(DISP_BEAM, cmap_to_glyph(S_goodpos));
@@ -3213,8 +3189,7 @@ int state;
 
 /* Distance attacks by pole-weapons */
 static int
-use_pole(obj)
-struct obj *obj;
+use_pole(struct obj *obj)
 {
     int res = 0, typ, max_range, min_range, glyph;
     coord cc;
@@ -3329,8 +3304,7 @@ struct obj *obj;
 }
 
 static int
-use_cream_pie(obj)
-struct obj *obj;
+use_cream_pie(struct obj *obj)
 {
     boolean wasblind = Blind;
     boolean wascreamed = u.ucreamed;
@@ -3366,9 +3340,18 @@ struct obj *obj;
     return 0;
 }
 
+/* getobj callback for object to rub royal jelly on */
 static int
-use_royal_jelly(obj)
-struct obj *obj;
+jelly_ok(struct obj *obj)
+{
+    if (obj && obj->otyp == EGG)
+        return GETOBJ_SUGGEST;
+
+    return GETOBJ_EXCLUDE;
+}
+
+static int
+use_royal_jelly(struct obj *obj)
 {
     int oldcorpsenm;
     unsigned was_timed;
@@ -3381,7 +3364,7 @@ struct obj *obj;
     freeinv(obj);
 
     /* right now you can rub one royal jelly on an entire stack of eggs */
-    eobj = getobj("rub the royal jelly on", allow_any, FALSE, FALSE);
+    eobj = getobj("rub the royal jelly on", jelly_ok, GETOBJ_PROMPT);
     if (!eobj) {
         addinv(obj); /* put the unused lump back; if it came from
                       * a split, it should merge back */
@@ -3432,8 +3415,7 @@ struct obj *obj;
 }
 
 static int
-use_grapple(obj)
-struct obj *obj;
+use_grapple(struct obj *obj)
 {
     int res = 0, typ, max_range = 4, tohit;
     boolean save_confirm;
@@ -3493,14 +3475,14 @@ struct obj *obj;
         start_menu(tmpwin, MENU_BEHAVE_STANDARD);
         any.a_int++;
         Sprintf(buf, "an object on the %s", surface(cc.x, cc.y));
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE, buf,
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, buf,
                  MENU_ITEMFLAGS_NONE);
         any.a_int++;
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE, "a monster",
-                 MENU_ITEMFLAGS_NONE);
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
+                 "a monster", MENU_ITEMFLAGS_NONE);
         any.a_int++;
         Sprintf(buf, "the %s", surface(cc.x, cc.y));
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE, buf,
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, buf,
                  MENU_ITEMFLAGS_NONE);
         end_menu(tmpwin, "Aim for what?");
         tohit = rn2(4);
@@ -3582,8 +3564,7 @@ struct obj *obj;
 
 /* return 1 if the wand is broken, hence some time elapsed */
 static int
-do_break_wand(obj)
-struct obj *obj;
+do_break_wand(struct obj *obj)
 {
     static const char nothing_else_happens[] = "But nothing else happens...";
     register int i, x, y;
@@ -3818,130 +3799,62 @@ discard_broken_wand:
     return 1;
 }
 
-static void
-add_class(cl, class)
-char *cl;
-char class;
-{
-    char tmp[2];
-
-    tmp[0] = class;
-    tmp[1] = '\0';
-    Strcat(cl, tmp);
-}
-
-static const char tools[] = { TOOL_CLASS, WEAPON_CLASS, WAND_CLASS, 0 };
-
-/* augment tools[] if various items are carried */
-static void
-setapplyclasses(class_list)
-char class_list[];
-{
-    register struct obj *otmp;
-    int otyp;
-    boolean knowoil, knowtouchstone, knowthiefstone;
-    boolean addpotions, addstones, addfood, addspellbooks;
-
-    knowoil = objects[POT_OIL].oc_name_known;
-    knowtouchstone = objects[TOUCHSTONE].oc_name_known;
-    knowthiefstone = objects[THIEFSTONE].oc_name_known;
-    addpotions = addstones = addfood = addspellbooks = FALSE;
-    for (otmp = g.invent; otmp; otmp = otmp->nobj) {
-        otyp = otmp->otyp;
-        if (otyp == POT_OIL
-            || (otmp->oclass == POTION_CLASS
-                && (!otmp->dknown
-                    || (!knowoil && !objects[otyp].oc_name_known))))
-            addpotions = TRUE;
-        if (otyp == TOUCHSTONE || otyp == THIEFSTONE
-            || (is_graystone(otmp)
-                && (!otmp->dknown
-                    || ((!knowtouchstone || !knowthiefstone)
-                        && !objects[otyp].oc_name_known))))
-            addstones = TRUE;
-        if (otyp == CREAM_PIE || otyp == EUCALYPTUS_LEAF
-            || otyp == LUMP_OF_ROYAL_JELLY)
-            addfood = TRUE;
-        if (otmp->oclass == SPBOOK_CLASS)
-            addspellbooks = TRUE;
-    }
-
-    class_list[0] = '\0';
-    if (addpotions || addstones)
-        add_class(class_list, ALL_CLASSES);
-    Strcat(class_list, tools);
-    if (addpotions)
-        add_class(class_list, POTION_CLASS);
-    if (addstones)
-        add_class(class_list, GEM_CLASS);
-    if (addfood)
-        add_class(class_list, FOOD_CLASS);
-    if (addspellbooks)
-        add_class(class_list, SPBOOK_CLASS);
-}
-
+/* getobj callback for object to apply - this is more complex than most other
+ * callbacks because there are a lot of appliables */
 static int
-apply_ok(obj)
-struct obj *obj;
+apply_ok(struct obj *obj)
 {
-    /* for a YAFM */
     if (!obj)
-        return 1;
+        return GETOBJ_DOWNPLAY; /* for a YAFM */
 
-    /* maybe we should allow triggering traps? */
-    if (obj == &cg.zeroobj)
-        return 0;
+    /* all tools, all wands (breaking), all spellbooks (flipping through -
+     * including blank/novel/Book of the Dead) */
+    if (obj->oclass == TOOL_CLASS || obj->oclass == WAND_CLASS
+        || obj->oclass == SPBOOK_CLASS)
+        return GETOBJ_SUGGEST;
 
-    /* Okay, this is a bit of a contentious issue. Should floor lootables be
-     * applyable?
-     * For players playing with menustyle non-full, this is a minor annoyance
-     * to muscle memory whenever trying to apply something while standing on
-     * top of a container, since it will prompt them every time. This is
-     * exacerbated if the player stands on more than one container. For those
-     * with full, it only shows , as an option and is not really a problem.
-     * Since you can also loot easily with the o command, experimentally,
-     * disable floor lootables being applyable.
-     */
+    /* certain weapons */
+    if (obj->oclass == WEAPON_CLASS
+        && (is_pick(obj) || is_axe(obj) || is_pole(obj)
+            || obj->otyp == BULLWHIP))
+        return GETOBJ_SUGGEST;
 
-    if (obj->oclass == TOOL_CLASS || is_pole(obj) || is_axe(obj))
-        return 2;
+    /* only applicable potion is oil, and it will only be offered as a choice
+     * when already discovered */
+    if (obj->otyp == POT_OIL && obj->dknown
+        && objects[obj->otyp].oc_name_known)
+        return GETOBJ_SUGGEST;
 
-    if (obj->oclass == WAND_CLASS)
-        return 2;
-
-    if (obj->oclass == POTION_CLASS &&
-        (obj->otyp == POT_OIL || !obj->dknown ||
-         (!objects[obj->otyp].oc_name_known &&
-          !objects[POT_OIL].oc_name_known)))
-        return 2;
+    /* certain foods */
+    if (obj->otyp == CREAM_PIE || obj->otyp == EUCALYPTUS_LEAF
+        || obj->otyp == LUMP_OF_ROYAL_JELLY)
+        return GETOBJ_SUGGEST;
 
     if (is_graystone(obj)) {
-        /* The only case where we _don't_ apply a gray stone is if we KNOW it
-         * isn't a touchstone or a thiefstone. */
+        /* The only case where we don't suggest a gray stone is if we KNOW it
+         * isn't a touchstone or thiefstone. */
+        if (!obj->dknown)
+            return GETOBJ_SUGGEST;
+
         if ((obj->otyp != TOUCHSTONE && obj->otyp != THIEFSTONE)
             && (objects[obj->otyp].oc_name_known
                 || (objects[TOUCHSTONE].oc_name_known
                     && objects[THIEFSTONE].oc_name_known))
             && obj->dknown)
-            return 0;
-        else
-            return 2;
+            return GETOBJ_EXCLUDE;
+
+        return GETOBJ_SUGGEST;
     }
 
-    if (obj->otyp == CREAM_PIE || obj->otyp == EUCALYPTUS_LEAF
-        || obj->otyp == LUMP_OF_ROYAL_JELLY)
-        return 2;
-
-    return 1;
+    return GETOBJ_EXCLUDE;
 }
 
 /* the 'a' command */
 int
-doapply()
+doapply(void)
 {
     struct obj *obj;
     register int res = 1;
-    char class_list[MAXOCLASSES + 2];
 
     if (nohands(g.youmonst.data)) {
         You("aren't able to use or apply tools in your current form.");
@@ -3950,8 +3863,7 @@ doapply()
     if (check_capacity((char *) 0))
         return 0;
 
-    setapplyclasses(class_list); /* tools[] */
-    obj = getobj("use or apply", apply_ok, TRUE, FALSE);
+    obj = getobj("use or apply", apply_ok, GETOBJ_NOFLAGS);
     if (!obj)
         return 0;
 
@@ -4157,8 +4069,7 @@ doapply()
  * great.
  */
 int
-unfixable_trouble_count(is_horn)
-boolean is_horn;
+unfixable_trouble_count(boolean is_horn)
 {
     int unfixable_trbl = 0;
 
@@ -4198,8 +4109,7 @@ boolean is_horn;
 }
 
 static int
-flip_through_book(obj)
-struct obj *obj;
+flip_through_book(struct obj *obj)
 {
     if (Underwater) {
         pline("You don't want to get the pages even more soggy, do you?");

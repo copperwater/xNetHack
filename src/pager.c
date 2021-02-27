@@ -1,4 +1,4 @@
-/* NetHack 3.7	pager.c	$NHDT-Date: 1607735717 2020/12/12 01:15:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.191 $ */
+/* NetHack 3.7	pager.c	$NHDT-Date: 1608749031 2020/12/23 18:43:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.192 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -9,31 +9,30 @@
 #include "hack.h"
 #include "dlb.h"
 
-static boolean FDECL(is_swallow_sym, (int));
-static int FDECL(append_str, (char *, const char *));
-static void FDECL(look_at_object, (char *, int, int, int));
-static void FDECL(look_at_monster, (char *, char *,
-                                        struct monst *, int, int));
-static struct permonst *FDECL(lookat, (int, int, char *, char *));
-static void FDECL(add_mon_info, (winid, struct permonst *));
-static void FDECL(add_obj_info, (winid, short));
-static void FDECL(look_all, (BOOLEAN_P,BOOLEAN_P));
-static void FDECL(do_supplemental_info, (char *, struct permonst *, BOOLEAN_P));
-static void NDECL(whatdoes_help);
-static void NDECL(docontact);
-static void NDECL(dispfile_help);
-static void NDECL(dispfile_shelp);
-static void NDECL(dispfile_optionfile);
-static void NDECL(dispfile_license);
-static void NDECL(dispfile_debughelp);
-static void NDECL(hmenu_doextversion);
-static void NDECL(hmenu_dohistory);
-static void NDECL(hmenu_dowhatis);
-static void NDECL(hmenu_dowhatdoes);
-static void NDECL(hmenu_doextlist);
-static void NDECL(domenucontrols);
+static boolean is_swallow_sym(int);
+static int append_str(char *, const char *);
+static void look_at_object(char *, int, int, int);
+static void look_at_monster(char *, char *, struct monst *, int, int);
+static struct permonst *lookat(int, int, char *, char *);
+static void add_mon_info(winid, struct permonst *);
+static void add_obj_info(winid, short);
+static void look_all(boolean,boolean);
+static void do_supplemental_info(char *, struct permonst *, boolean);
+static void whatdoes_help(void);
+static void docontact(void);
+static void dispfile_help(void);
+static void dispfile_shelp(void);
+static void dispfile_optionfile(void);
+static void dispfile_license(void);
+static void dispfile_debughelp(void);
+static void hmenu_doextversion(void);
+static void hmenu_dohistory(void);
+static void hmenu_dowhatis(void);
+static void hmenu_dowhatdoes(void);
+static void hmenu_doextlist(void);
+static void domenucontrols(void);
 #ifdef PORT_HELP
-extern void NDECL(port_help);
+extern void port_help(void);
 #endif
 
 static const char invisexplain[] = "remembered, unseen, creature",
@@ -41,8 +40,7 @@ static const char invisexplain[] = "remembered, unseen, creature",
 
 /* Returns "true" for characters that could represent a monster's stomach. */
 static boolean
-is_swallow_sym(c)
-int c;
+is_swallow_sym(int c)
 {
     int i;
 
@@ -58,9 +56,7 @@ int c;
  * It is expected that buf is of size BUFSZ.
  */
 static int
-append_str(buf, new_str)
-char *buf;
-const char *new_str;
+append_str(char *buf, const char *new_str)
 {
     int space_left; /* space remaining in buf */
 
@@ -77,8 +73,7 @@ const char *new_str;
 
 /* shared by monster probing (via query_objlist!) as well as lookat() */
 char *
-self_lookat(outbuf)
-char *outbuf;
+self_lookat(char *outbuf)
 {
     char race[QBUFSZ], trapbuf[QBUFSZ];
 
@@ -89,7 +84,7 @@ char *outbuf;
     Sprintf(outbuf, "%s%s%s called %s",
             /* being blinded may hide invisibility from self */
             (Invis && (senseself() || !Blind)) ? "invisible " : "", race,
-            mons[u.umonnum].mname, g.plname);
+            pmname(&mons[u.umonnum], Ugender), g.plname);
     if (u.usteed)
         Sprintf(eos(outbuf), ", mounted on %s", y_monnam(u.usteed));
     if (u.uundetected || (Upolyd && U_AP_TYPE))
@@ -105,10 +100,10 @@ char *outbuf;
 /* describe a hidden monster; used for look_at during extended monster
    detection and for probing; also when looking at self */
 void
-mhidden_description(mon, altmon, outbuf)
-struct monst *mon;
-boolean altmon; /* for probing: if mimicking a monster, say so */
-char *outbuf;
+mhidden_description(struct monst *mon,
+                    boolean altmon, /* for probing: if mimicking a monster,
+                                       say so */
+                    char *outbuf)
 {
     struct obj *otmp;
     boolean fakeobj, isyou = (mon == &g.youmonst);
@@ -141,7 +136,7 @@ char *outbuf;
     } else if (M_AP_TYPE(mon) == M_AP_MONSTER) {
         if (altmon)
             Sprintf(outbuf, ", masquerading as %s",
-                    an(mons[mon->mappearance].mname));
+                    an(pmname(&mons[mon->mappearance], Mgender(mon))));
     } else if (isyou ? u.uundetected : mon->mundetected) {
         Strcpy(outbuf, ", hiding");
         if (hides_under(mon->data)) {
@@ -169,9 +164,7 @@ char *outbuf;
 
 /* extracted from lookat(); also used by namefloorobj() */
 boolean
-object_from_map(glyph, x, y, obj_p)
-int glyph, x, y;
-struct obj **obj_p;
+object_from_map(int glyph, int x, int y, struct obj **obj_p)
 {
     boolean fakeobj = FALSE, mimic_obj = FALSE;
     struct monst *mtmp;
@@ -245,9 +238,8 @@ struct obj **obj_p;
 }
 
 static void
-look_at_object(buf, x, y, glyph)
-char *buf; /* output buffer */
-int x, y, glyph;
+look_at_object(char *buf, /* output buffer */
+               int x, int y, int glyph)
 {
     struct obj *otmp = 0;
     boolean fakeobj = object_from_map(glyph, x, y, &otmp);
@@ -280,33 +272,29 @@ int x, y, glyph;
 }
 
 static void
-look_at_monster(buf, monbuf, mtmp, x, y)
-char *buf, *monbuf; /* buf: output, monbuf: optional output */
-struct monst *mtmp;
-int x, y;
+look_at_monster(char *buf,
+                char *monbuf, /* buf: output, monbuf: optional output */
+                struct monst *mtmp,
+                int x, int y)
 {
     char *name, monnambuf[BUFSZ];
     boolean accurate = !Hallucination;
-    char *mwounds;
+    char *mwounds = mon_wounds(mtmp, TRUE, FALSE);
 
     name = (mtmp->data == &mons[PM_COYOTE] && accurate)
               ? coyotename(mtmp, monnambuf)
               : distant_monnam(mtmp, ARTICLE_NONE, monnambuf);
-    Sprintf(buf, "%s%s%s",
+    Sprintf(buf, "%s%s%s%s",
             (mtmp->mx != x || mtmp->my != y)
                 ? ((mtmp->isshk && accurate) ? "tail of " : "tail of a ")
                 : "",
+            mwounds ? mwounds : "",
             (mtmp->mtame && accurate)
                 ? "tame "
                 : (mtmp->mpeaceful && accurate)
                     ? "peaceful "
                     : "",
             name);
-    mwounds = mon_wounds(mtmp);
-    if (mwounds) {
-        Strcat(buf, ", ");
-        Strcat(buf, mwounds);
-    }
     if (u.ustuck == mtmp) {
         if (u.uswallow || iflags.save_uswallow) /* monster detection */
             Strcat(buf, is_animal(mtmp->data)
@@ -388,7 +376,7 @@ int x, y;
                                         : (mW & M2_ELF & m2) ? "elf"
                                           : (mW & M2_ORC & m2) ? "orc"
                                             : (mW & M2_DEMON & m2) ? "demon"
-                                              : mtmp->data->mname);
+                                              : pmname(mtmp->data, Mgender(mtmp)));
 
                     Sprintf(eos(monbuf), "warned of %s", makeplural(whom));
                 }
@@ -410,9 +398,7 @@ int x, y;
  * If not hallucinating and the glyph is a monster, also monster data.
  */
 static struct permonst *
-lookat(x, y, buf, monbuf)
-int x, y;
-char *buf, *monbuf;
+lookat(int x, int y, char *buf, char *monbuf)
 {
     struct monst *mtmp = (struct monst *) 0;
     struct permonst *pm = (struct permonst *) 0;
@@ -641,9 +627,7 @@ static const char * damagetypes[] = {
 /* Add some information to an encyclopedia window which is printing information
  * about a monster. */
 static void
-add_mon_info(datawin, pm)
-winid datawin;
-struct permonst * pm;
+add_mon_info(winid datawin, struct permonst * pm)
 {
     char buf[BUFSZ];
     char buf2[BUFSZ];
@@ -676,7 +660,7 @@ struct permonst * pm;
     }
 #define MONPUTSTR(str) putstr(datawin, ATR_NONE, str)
 
-    Sprintf(buf, "Monster lookup for \"%s\":", pm->mname);
+    Sprintf(buf, "Monster lookup for \"%s\":", pm->pmnames[NEUTRAL]);
     putstr(datawin, ATR_BOLD, buf);
     MONPUTSTR("");
 
@@ -717,7 +701,7 @@ struct permonst * pm;
     /* ADDRESIST(SICK_RES, "sickness"); */
     ADDRESIST(resists_mgc(pm), "magic");
     if (*buf) {
-        Sprintf(buf2, "Resists %s.", buf);
+        Snprintf(buf2, BUFSZ, "Resists %s.", buf);
         MONPUTSTR(buf2);
     }
     else {
@@ -740,7 +724,7 @@ struct permonst * pm;
         Sprintf(buf2, "Provides %d nutrition when eaten.", pm->cnutrit);
         MONPUTSTR(buf2);
         if (*buf) {
-            Sprintf(buf2, "Corpse may convey %s.", buf);
+            Snprintf(buf2, BUFSZ, "Corpse may convey %s.", buf);
             MONPUTSTR(buf2);
         }
         else
@@ -786,7 +770,7 @@ struct permonst * pm;
     if (!is_undead(pm))
         APPENDC(nonliving(pm), "nonliving");
     if (*buf) {
-        Sprintf(buf2, "Is %s.", buf);
+        Snprintf(buf2, BUFSZ, "Is %s.", buf);
         MONPUTSTR(buf2);
         buf[0] = '\0';
     }
@@ -805,7 +789,7 @@ struct permonst * pm;
     if (!needspick(pm))
         APPENDC(tunnels(pm), "dig");
     if (*buf) {
-        Sprintf(buf2, "Can %s.", buf);
+        Snprintf(buf2, BUFSZ, "Can %s.", buf);
         MONPUTSTR(buf2);
         buf[0] = '\0';
     }
@@ -825,7 +809,7 @@ struct permonst * pm;
         else if (vegetarian(pm))
             MONPUTSTR("May be eaten by vegetarians.");
     }
-    Sprintf(buf, "Is %sa valid polymorph form.",
+    Snprintf(buf, BUFSZ, "Is %sa valid polymorph form.",
             polyok(pm) ? "" : "not ");
     MONPUTSTR(buf);
 
@@ -864,7 +848,7 @@ struct permonst * pm;
         }
     }
     if (*buf) {
-        Sprintf(buf2, "Attacks: %s", buf);
+        Snprintf(buf2, BUFSZ, "Attacks: %s", buf);
         MONPUTSTR(buf2);
     }
     else
@@ -878,9 +862,7 @@ struct permonst * pm;
 /* Add some information to an encyclopedia window which is printing information
  * about an object. */
 static void
-add_obj_info(datawin, otyp)
-winid datawin;
-short otyp;
+add_obj_info(winid datawin, short otyp)
 {
     struct objclass oc = objects[otyp];
     char olet = oc.oc_class;
@@ -1237,7 +1219,7 @@ short otyp;
     ADDCLASSPROP(oc.oc_magic, "inherently magical");
     ADDCLASSPROP(oc.oc_nowish, "not wishable");
     if (*buf) {
-        Sprintf(buf2, "Is %s.", buf);
+        Snprintf(buf2, BUFSZ, "Is %s.", buf);
         OBJPUTSTR(buf2);
     }
 
@@ -1293,11 +1275,8 @@ short otyp;
  *       Therefore, we create a copy of inp _just_ for data.base lookup.
  */
 void
-checkfile(inp, pm, user_typed_name, without_asking, supplemental_name)
-char *inp;
-struct permonst *pm; /* only set if looking at a monster with / */
-boolean user_typed_name, without_asking;
-char *supplemental_name;
+checkfile(char *inp, struct permonst *pm, boolean user_typed_name,
+          boolean without_asking, char *supplemental_name)
 {
     dlb *fp;
     char buf[BUFSZ], newstr[BUFSZ], givenname[BUFSZ];
@@ -1324,7 +1303,7 @@ char *supplemental_name;
      * user_typed_name and picked name.
      */
     if (pm != (struct permonst *) 0 && !user_typed_name)
-        dbase_str = strcpy(newstr, pm->mname);
+        dbase_str = strcpy(newstr, pm->pmnames[NEUTRAL]);
     else
         dbase_str = strcpy(newstr, inp);
     (void) lcase(dbase_str);
@@ -1400,7 +1379,7 @@ char *supplemental_name;
        (note: strncpy() only terminates output string if the specified
        count is bigger than the length of the substring being copied) */
     if (!strncmp(dbase_str, "moist towel", 11))
-        (void) strncpy(dbase_str += 2, "wet", 3); /* skip "mo" replace "ist" */
+        memcpy(dbase_str += 2, "wet", 3); /* skip "mo" replace "ist" */
 
     /* Remove material, if it exists, but store the original value in
      * dbase_str_with_material. It should be cut out of dbase_str as a prefix
@@ -1558,7 +1537,7 @@ char *supplemental_name;
              * "iron" from "iron golem" or something. */
             if (!lookat_mon) {
                 pm = (struct permonst *) 0; /* just to be safe */
-                int mndx = name_to_mon(dbase_str_with_material);
+                int mndx = name_to_mon(dbase_str_with_material, (int *) 0);
                 if (mndx != NON_PM) {
                     pm = &mons[mndx];
                 }
@@ -1643,7 +1622,7 @@ char *supplemental_name;
                             return;
                         }
 
-                        Sprintf(titlebuf,
+                        Snprintf(titlebuf, BUFSZ,
                                 "Encyclopedia entry for \"%s\" (matched to \"%s\"):",
                                 encycl_matched, matcher);
                         putstr(datawin, ATR_BOLD, titlebuf);
@@ -1699,13 +1678,9 @@ char *supplemental_name;
 }
 
 int
-do_screen_description(cc, looked, sym, out_str, firstmatch, for_supplement)
-coord cc;
-boolean looked;
-int sym;
-char *out_str;
-const char **firstmatch;
-struct permonst **for_supplement;
+do_screen_description(coord cc, boolean looked, int sym, char *out_str,
+                      const char **firstmatch,
+                      struct permonst **for_supplement)
 {
     static const char mon_interior[] = "the interior of a monster",
                       unreconnoitered[] = "unreconnoitered";
@@ -1718,17 +1693,15 @@ struct permonst **for_supplement;
             hallucinate = (Hallucination && !g.program_state.gameover);
     const char *x_str;
     nhsym tmpsym;
+    glyph_info glyphinfo = nul_glyphinfo;
 
     gobbledygook[0] = '\0'; /* no hallucinatory liquid (yet) */
     if (looked) {
-        int oc;
-        unsigned os;
-
         glyph = glyph_at(cc.x, cc.y);
         /* Convert glyph at selected position to a symbol for use below. */
-        (void) mapglyph(glyph, &sym, &oc, &os, cc.x, cc.y, 0);
-
-        Sprintf(prefix, "%s        ", encglyph(glyph));
+        map_glyphinfo(cc.x, cc.y, glyph, 0, &glyphinfo);
+        sym = glyphinfo.ttychar;
+        Sprintf(prefix, "%s        ", encglyph(glyphinfo.glyph));
     } else
         Sprintf(prefix, "%c        ", sym);
 
@@ -1979,12 +1952,9 @@ struct permonst **for_supplement;
                 break;
             case SYM_PET_OVERRIDE + SYM_OFF_X:
                 if (looked) {
-                    int oc = 0;
-                    unsigned os = 0;
-
                     /* convert to symbol without override in effect */
-                    (void) mapglyph(glyph, &sym, &oc, &os,
-                                    cc.x, cc.y, MG_FLAG_NOOVERRIDE);
+                    map_glyphinfo(cc.x, cc.y, glyph, MG_FLAG_NOOVERRIDE, &glyphinfo);
+                    sym = glyphinfo.ttychar;
                     goto check_monsters;
                 }
                 break;
@@ -2037,13 +2007,13 @@ struct permonst **for_supplement;
 
             *firstmatch = look_buf;
             if (*(*firstmatch)) {
-                Sprintf(temp_buf, " (%s)", *firstmatch);
+                Snprintf(temp_buf, sizeof(temp_buf), " (%s)", *firstmatch);
                 (void) strncat(out_str, temp_buf,
                                BUFSZ - strlen(out_str) - 1);
                 found = 1; /* we have something to look up */
             }
             if (monbuf[0]) {
-                Sprintf(temp_buf, " [seen: %s]", monbuf);
+                Snprintf(temp_buf, sizeof(temp_buf), " [seen: %s]", monbuf);
                 (void) strncat(out_str, temp_buf,
                                BUFSZ - strlen(out_str) - 1);
             }
@@ -2059,9 +2029,7 @@ struct permonst **for_supplement;
 const char what_is_an_unknown_object[] = "an unknown object";
 
 int
-do_look(mode, click_cc)
-int mode;
-coord *click_cc;
+do_look(int mode, coord *click_cc)
 {
     boolean quick = (mode == 1); /* use cursor; don't search for "more info" */
     boolean clicklook = (mode == 2); /* right mouse-click method */
@@ -2093,21 +2061,21 @@ coord *click_cc;
             any.a_char = '/';
             /* 'y' and 'n' to keep backwards compatibility with previous
                versions: "Specify unknown object by cursor?" */
-            add_menu(win, NO_GLYPH, &any,
+            add_menu(win, &nul_glyphinfo, &any,
                      flags.lootabc ? 0 : any.a_char, 'y', ATR_NONE,
                      "something on the map", MENU_ITEMFLAGS_NONE);
             any.a_char = 'i';
-            add_menu(win, NO_GLYPH, &any,
+            add_menu(win, &nul_glyphinfo, &any,
                      flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
                      "something you're carrying", MENU_ITEMFLAGS_NONE);
             any.a_char = '?';
-            add_menu(win, NO_GLYPH, &any,
+            add_menu(win, &nul_glyphinfo, &any,
                      flags.lootabc ? 0 : any.a_char, 'n', ATR_NONE,
                      "something else (by symbol or name)",
                      MENU_ITEMFLAGS_NONE);
             if (!u.uswallow && !Hallucination) {
                 any = cg.zeroany;
-                add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE,
+                add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
                          "", MENU_ITEMFLAGS_NONE);
                 /* these options work sensibly for the swallowed case,
                    but there's no reason for the player to use them then;
@@ -2115,19 +2083,19 @@ coord *click_cc;
                    symbol/monster class letter doesn't match up with
                    bogus monster type, so suppress when hallucinating */
                 any.a_char = 'm';
-                add_menu(win, NO_GLYPH, &any,
+                add_menu(win, &nul_glyphinfo, &any,
                          flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
                          "nearby monsters", MENU_ITEMFLAGS_NONE);
                 any.a_char = 'M';
-                add_menu(win, NO_GLYPH, &any,
+                add_menu(win, &nul_glyphinfo, &any,
                          flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
                          "all monsters shown on map", MENU_ITEMFLAGS_NONE);
                 any.a_char = 'o';
-                add_menu(win, NO_GLYPH, &any,
+                add_menu(win, &nul_glyphinfo, &any,
                          flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
                          "nearby objects", MENU_ITEMFLAGS_NONE);
                 any.a_char = 'O';
-                add_menu(win, NO_GLYPH, &any,
+                add_menu(win, &nul_glyphinfo, &any,
                          flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
                          "all objects shown on map", MENU_ITEMFLAGS_NONE);
             }
@@ -2278,10 +2246,11 @@ coord *click_cc;
     return 0;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL /* RESTORE is after do_supplemental_info() */
+
 static void
-look_all(nearby, do_mons)
-boolean nearby; /* True => within BOLTLIM, False => entire map */
-boolean do_mons; /* True => monsters, False => objects */
+look_all(boolean nearby,  /* True => within BOLTLIM, False => entire map */
+         boolean do_mons) /* True => monsters, False => objects */
 {
     winid win;
     int x, y, lo_x, lo_y, hi_x, hi_y, glyph, count = 0;
@@ -2392,10 +2361,7 @@ static const char *suptext2[] = {
 };
 
 static void
-do_supplemental_info(name, pm, without_asking)
-char *name;
-struct permonst *pm;
-boolean without_asking;
+do_supplemental_info(char *name, struct permonst *pm, boolean without_asking)
 {
     const char **textp;
     winid datawin = WIN_ERR;
@@ -2457,23 +2423,25 @@ boolean without_asking;
     }
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /* the '/' command */
 int
-dowhatis()
+dowhatis(void)
 {
     return do_look(0, (coord *) 0);
 }
 
 /* the ';' command */
 int
-doquickwhatis()
+doquickwhatis(void)
 {
     return do_look(1, (coord *) 0);
 }
 
 /* the '^' command */
 int
-doidtrap()
+doidtrap(void)
 {
     register struct trap *trap;
     int x, y, tt, glyph;
@@ -2561,7 +2529,7 @@ doidtrap()
 */
 
 static void
-whatdoes_help()
+whatdoes_help(void)
 {
     dlb *fp;
     char *p, buf[BUFSZ];
@@ -2595,14 +2563,10 @@ struct wd_stack_frame {
     Bitfield(else_seen, 1);
 };
 
-static boolean FDECL(whatdoes_cond, (char *, struct wd_stack_frame *,
-                                         int *, int));
+static boolean whatdoes_cond(char *, struct wd_stack_frame *, int *, int);
 
 static boolean
-whatdoes_cond(buf, stack, depth, lnum)
-char *buf;
-struct wd_stack_frame *stack;
-int *depth, lnum;
+whatdoes_cond(char *buf, struct wd_stack_frame *stack, int *depth, int lnum)
 {
     const char badstackfmt[] = "cmdhlp: too many &%c directives at line %d.";
     boolean newcond, neg, gotopt;
@@ -2721,9 +2685,7 @@ int *depth, lnum;
 #endif /* 0 */
 
 char *
-dowhatdoes_core(q, cbuf)
-char q;
-char *cbuf;
+dowhatdoes_core(char q, char *cbuf)
 {
     char buf[BUFSZ];
 #if 0
@@ -2802,7 +2764,7 @@ char *cbuf;
 }
 
 int
-dowhatdoes()
+dowhatdoes(void)
 {
     static boolean once = FALSE;
     char bufr[BUFSZ];
@@ -2847,7 +2809,7 @@ dowhatdoes()
 }
 
 static void
-docontact(VOID_ARGS)
+docontact(void)
 {
     winid cwin = create_nhwindow(NHW_TEXT);
     char buf[BUFSZ];
@@ -2877,67 +2839,67 @@ docontact(VOID_ARGS)
 }
 
 static void
-dispfile_help(VOID_ARGS)
+dispfile_help(void)
 {
     display_file(HELP, TRUE);
 }
 
 static void
-dispfile_shelp(VOID_ARGS)
+dispfile_shelp(void)
 {
     display_file(SHELP, TRUE);
 }
 
 static void
-dispfile_optionfile(VOID_ARGS)
+dispfile_optionfile(void)
 {
     display_file(OPTIONFILE, TRUE);
 }
 
 static void
-dispfile_license(VOID_ARGS)
+dispfile_license(void)
 {
     display_file(LICENSE, TRUE);
 }
 
 static void
-dispfile_debughelp(VOID_ARGS)
+dispfile_debughelp(void)
 {
     display_file(DEBUGHELP, TRUE);
 }
 
 static void
-hmenu_doextversion(VOID_ARGS)
+hmenu_doextversion(void)
 {
     (void) doextversion();
 }
 
 static void
-hmenu_dohistory(VOID_ARGS)
+hmenu_dohistory(void)
 {
     (void) dohistory();
 }
 
 static void
-hmenu_dowhatis(VOID_ARGS)
+hmenu_dowhatis(void)
 {
     (void) dowhatis();
 }
 
 static void
-hmenu_dowhatdoes(VOID_ARGS)
+hmenu_dowhatdoes(void)
 {
     (void) dowhatdoes();
 }
 
 static void
-hmenu_doextlist(VOID_ARGS)
+hmenu_doextlist(void)
 {
     (void) doextlist();
 }
 
 static void
-domenucontrols(VOID_ARGS)
+domenucontrols(void)
 {
     winid cwin = create_nhwindow(NHW_TEXT);
     show_menu_controls(cwin, FALSE);
@@ -2947,7 +2909,7 @@ domenucontrols(VOID_ARGS)
 
 /* data for dohelp() */
 static const struct {
-    void NDECL((*f));
+    void (*f)(void);
     const char *text;
 } help_menu_items[] = {
     { hmenu_doextversion, "About NetHack (version information)." },
@@ -2967,12 +2929,14 @@ static const struct {
     { port_help, "%s-specific help and commands." },
 #endif
     { dispfile_debughelp, "List of wizard-mode commands." },
-    { (void NDECL((*))) 0, (char *) 0 }
+    { (void (*)(void)) 0, (char *) 0 }
 };
+
+DISABLE_WARNING_FORMAT_NONLITERAL
 
 /* the '?' command */
 int
-dohelp()
+dohelp(void)
 {
     winid tmpwin = create_nhwindow(NHW_MENU);
     char helpbuf[QBUFSZ];
@@ -2993,7 +2957,7 @@ dohelp()
             Strcpy(helpbuf, help_menu_items[i].text);
         }
         any.a_int = i + 1;
-        add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
                  helpbuf, MENU_ITEMFLAGS_NONE);
     }
     end_menu(tmpwin, "Select one item:");
@@ -3007,9 +2971,11 @@ dohelp()
     return 0;
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /* the 'V' command; also a choice for '?' */
 int
-dohistory()
+dohistory(void)
 {
     display_file(HISTORY, TRUE);
     return 0;

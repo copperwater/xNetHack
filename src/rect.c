@@ -4,9 +4,9 @@
 
 #include "hack.h"
 
-int FDECL(get_rect_ind, (NhRect *));
+int get_rect_ind(NhRect *);
 
-static boolean FDECL(intersect, (NhRect *, NhRect *, NhRect *));
+static boolean intersect(NhRect *, NhRect *, NhRect *);
 
 /*
  * In this file, we will handle the various rectangle functions we
@@ -33,7 +33,7 @@ static int rect_cnt;
  * otherwise?
  */
 void
-init_rect()
+init_rect(void)
 {
     rect_cnt = 1;
     rect[0].lx = rect[0].ly = 0;
@@ -44,8 +44,7 @@ init_rect()
 /* Find and return the index of one precise NhRect, or -1 if it doesn't exist
  * in the rect array. */
 int
-get_rect_ind(r)
-NhRect *r;
+get_rect_ind(NhRect* r)
 {
     register NhRect *rectp;
     register int lx, ly, hx, hy;
@@ -66,8 +65,7 @@ NhRect *r;
  * the given rectangle, and return it, or NULL if no such rectangle exists.
  */
 NhRect *
-get_rect(r)
-NhRect *r;
+get_rect(NhRect* r)
 {
     register NhRect *rectp;
     register int lx, ly, hx, hy;
@@ -86,7 +84,7 @@ NhRect *r;
 
 /* Pick and return a random NhRect. */
 NhRect *
-rnd_rect()
+rnd_rect(void)
 {
     return rect_cnt > 0 ? &rect[rn2(rect_cnt)] : 0;
 }
@@ -97,8 +95,7 @@ rnd_rect()
  * If they do, set r3 to be the intersection, and return TRUE.
  */
 static boolean
-intersect(r1, r2, r3)
-NhRect *r1, *r2, *r3;
+intersect(NhRect* r1, NhRect* r2, NhRect* r3)
 {
     if (r2->lx > r1->hx || r2->ly > r1->hy || r2->hx < r1->lx
         || r2->hy < r1->ly)
@@ -116,8 +113,7 @@ NhRect *r1, *r2, *r3;
 
 /* Remove the given rectangle from the rect array. */
 void
-remove_rect(r)
-NhRect *r;
+remove_rect(NhRect* r)
 {
     int ind;
 
@@ -128,8 +124,7 @@ NhRect *r;
 
 /* Add the given rectangle to the rect array. */
 void
-add_rect(r)
-NhRect *r;
+add_rect(NhRect* r)
 {
     if (rect_cnt >= MAXRECT) {
         if (wizard)
@@ -154,8 +149,7 @@ NhRect *r;
  * anywhere that isn't directly in line with r2.
  */
 void
-split_rects(r1, r2)
-NhRect *r1, *r2;
+split_rects(NhRect* r1, NhRect* r2)
 {
     NhRect r, old_r;
     int i;

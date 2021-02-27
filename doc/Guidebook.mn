@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.408 $ $NHDT-Date: 1608175317 2020/12/17 03:21:57 $
+.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.414 $ $NHDT-Date: 1613011698 2021/02/11 02:48:18 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" Guidebook.mn currently does *not* fully adhere to these guidelines.
@@ -35,7 +35,7 @@
 .ds vr "NetHack 3.7
 .ds f0 "\*(vr
 .ds f1
-.ds f2 "December 19, 2020
+.ds f2 "February 11, 2021
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -621,8 +621,8 @@ y  k  u	\ 	7  8  9\ 	\"
 h\- . \-l	\ 	4\- . \-6\ 	\"
 / | \\	\ 	/ | \\\ 	\"
 b  j  n	\ 	1  2  3\ 	\"
-\fR\ 	\ 	(if \fBnumber_pad\fP is set)\ 	\fP\"
-\fR\ 	Figure 3\ 	\ 	\fP\"
+\fR\ 	\ 	(if \fBnumber_pad\fR is set)\ 	\"
+\fR\ 	Figure 3\ 	\ 	\"
 .TE
 .ft
 .ED
@@ -633,22 +633,29 @@ Go in that direction until you hit a wall or run into something.
 Prefix:  move without picking up objects or fighting (even if you remember
 a monster there).
 .lp ""
-A few non-movement commands use the \(oqm\(cq prefix to request operating
-via menu (to temporarily override the
+A few non-movement commands use the \(oq\f(CRm\fP\(cq prefix to request
+operating via menu (to temporarily override the
 .op menustyle:Traditional
 option).
-Primarily useful for \(oq,\(cq (pickup) when there is only one class of
-objects present (where there won't be any \(lqwhat kinds of objects?\(rq
-prompt,
-so no opportunity to answer \(oqm\(cq at that prompt).
+Primarily useful for \(oq\f(CR,\fP\(cq (pickup) when there is only one class
+of objects present (where there won't be any \(lqwhat kinds of objects?\(rq
+prompt, so no opportunity to answer \(oqm\(cq at that prompt).
 .lp ""
-A few other commands (eat food, offer sacrifice, apply tinning-kit) use
-the \(oqm\(cq prefix to skip checking for applicable objects on the floor
-and go straight to checking inventory,
-or (for \(lq#loot\(rq to remove a saddle),
-skip containers and go straight to adjacent monsters.
 The prefix will
 make \(lq#travel\(rq command show a menu of interesting targets in sight.
+It can also be used with the \(oq\f(CR\\\fP\(cq (known, show a
+list of all discovered objects) and the \(oq\f(CR\`\fP\(cq (knownclass,
+show a list of discovered objects in a particular class) commands to offer
+a menu of several sorting alternatives (which sets a new value for the
+.op sortdiscoveries
+option).
+.lp ""
+A few other commands (eat food, offer sacrifice, apply tinning-kit) use
+the \(oq\f(CRm\fP\(cq prefix to skip checking for applicable objects on
+the floor and go straight to checking inventory,
+or (for \(lq#loot\(rq to remove a saddle),
+skip containers and go straight to adjacent monsters.
+.lp ""
 In debug mode (aka \(lqwizard mode\(rq), the \(oqm\(cq prefix may also be
 used with the \(lq#teleport\(rq and \(lq#wizlevelport\(rq commands.
 .lp F[yuhjklbn]
@@ -3511,8 +3518,11 @@ Persistent.
 .lp "autopickup  "
 Automatically pick up things onto which you move (default on).
 Persistent.
+.lp ""
 See
 .op pickup_types
+and also
+.op autopickup_exception
 to refine the behavior.
 .lp "autoquiver  "
 This option controls what happens when you attempt the \(oqf\(cq (fire)
@@ -3748,10 +3758,12 @@ Enable coloring menu lines (default off).
 See \(lqConfiguring Menu Colors\(rq on how to configure the colors.
 .lp menustyle
 Controls the interface used when you need to choose various objects (in
-response to the Drop command, for instance).  The value specified should
-be the first letter of one of the following:  traditional, combination,
-full, or partial.
-Traditional was the only interface available for
+response to the Drop command, for instance).
+The value specified should be the first letter of one of the following:
+traditional, combination, full, or partial.
+Persistent.
+.lp ""
+Traditional was the only interface available for very
 early versions; it consists of a prompt for object class characters,
 followed by an object-by-object prompt for all items matching the selected
 object class(es).
@@ -3763,7 +3775,6 @@ object classes rather than a character prompt, and then a menu of matching
 objects for selection.
 Partial skips the object class filtering and
 immediately displays a menu of all objects.
-Persistent.
 .lp menu_deselect_all
 Menu character accelerator to deselect all items in a menu.
 Implemented by the Amiga, Gem, X11 and tty ports.
@@ -4005,15 +4016,30 @@ If this option is on and
 .op autopickup
 is also on, try to pick up things that you threw, even if they aren't in
 .op pickup_types
-or match an autopickup exception.  Default is on.  Persistent.
+or match an autopickup exception.
+Default is on.
+Persistent.
 .lp pickup_types
 Specify the object types to be picked up when
 .op autopickup
-is on.  Default is all types.  You can use
+is on.
+Default is all types.
+Persistent.
+.lp ""
+The value is a list of object symbols, such as
+\f(CRpickup_types:$?!\fP to pick up gold, scrolls, and potions.
+You can use
 .op autopickup_exception
-configuration file lines to further refine
-.op autopickup
-behavior.  Persistent.
+configuration file lines to further refine \f(CRautopickup\fP behavior.
+.lp ""
+There is no way to set \f(CRpickup_types\fP to \(lq\fInone\fP\(rq.
+(Setting it to an empty value reverts to \(lq\fIall\fP\(rq.)
+If you want to avoid automatically picking up any types of items but do
+want to have \f(CRautopickup\fP on in order to have
+\f(CRautopickup_exception\fP settings control what you do and don't pick
+up, you can set \f(CRpickup_types\fP to \(oq\f(CR.\fP\(cq.
+That is the type symbol for \fIvenom\fP and you won't come across
+any venom items so won't unintentionally pick such up.
 .lp pile_limit
 When walking across a pile of objects on the floor, threshold at which
 the message \(lqthere are few/several/many objects here\(rq is given instead
@@ -4390,7 +4416,7 @@ up (default yes).
 Number of lines for traditional below-the-map status display.
 Acceptable values are \f(CR2\fP and \f(CR3\fP (default is \f(CR2\fP).
 .lp ""
-For \f(CR3\fP, the \f(CRtty\fP interface moves some fields around and
+When set to \f(CR3\fP, the \f(CRtty\fP interface moves some fields around and
 mainly shows status conditions on their own line.
 A display capable of showing at least 25 lines is recommended.
 The value can be toggled back and forth during the game with the \(oqO\(cq
@@ -4411,10 +4437,6 @@ original format, with the status window spread out vertically.
 A value of \f(CR2\fP makes status be slightly condensed, moving some
 fields to different lines to eliminate one whole line, reducing the
 height needed.
-For \f(CRQt\fP,
-.op statuslines
-can only be set in the configuration file or via NETHACKOPTIONS, not
-with the \(oqO\(cq command.
 .lp "term_cols\ \ \fIand\fP"
 .lp term_rows
 Curses interface only.
@@ -4453,18 +4475,29 @@ Acceptable values are
 .si
 .CC 0 "off, never show borders"
 .CC 1 "on, always show borders"
-.CC 2 "auto, on if display is at least (24+2)x(80+2)\ \ (default)"
+.CC 2 "auto, on if display is at least (24+2)x(80+2) [default]"
+.CC 3 "on, except forced off for perm_invent"
+.CC 4 "auto, except forced off for perm_invent"
 .ei
 .ed
 .lp ""
 (The 26x82 size threshold for \(oq2\(cq refers to number of rows and
 columns of the display.
-A width of at least 110 columns (80+2+26+2) is needed for
+A width of at least 110 columns (80+2+26+2) is needed to show borders if
 .op align_status
-set to \f(CRleft\fP or \f(CRright\fP.)
+is set to \f(CRleft\fP or \f(CRright\fP.)
+.lp ""
+The persistent inventory window, when enabled, can grow until it is
+too big to fit on most displays, resulting in truncation of its contents.
+If borders are forced on (1) or the display is big enough to show them (2),
+setting the value to 3 or 4 instead will keep borders for the map, message,
+and status windows but have room for two additional lines of inventory
+plus widen each inventory line by two columns.
 .lp windowcolors
 If NetHack can, it should display windows with the specified
-foreground/background colors. Windows GUI only. The format is
+foreground/background colors.
+Windows GUI only.
+The format is
 .si
 .lp "OPTION=windowcolors:wintype foreground/background"
 .ei

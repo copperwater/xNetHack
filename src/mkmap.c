@@ -8,22 +8,20 @@
 #define HEIGHT (ROWNO - 1)
 #define WIDTH (COLNO - 2)
 
-static void FDECL(init_map, (SCHAR_P));
-static void FDECL(init_fill, (SCHAR_P, SCHAR_P));
-static schar FDECL(get_map, (int, int, SCHAR_P));
-static void FDECL(pass_one, (SCHAR_P, SCHAR_P));
-static void FDECL(pass_two, (SCHAR_P, SCHAR_P));
-static void FDECL(pass_three, (SCHAR_P, SCHAR_P));
-static void FDECL(join_map, (SCHAR_P, SCHAR_P));
-static void FDECL(finish_map,
-                      (SCHAR_P, SCHAR_P, BOOLEAN_P, BOOLEAN_P, BOOLEAN_P));
-static void FDECL(remove_room, (unsigned));
-void FDECL(mkmap, (lev_init *));
+static void init_map(schar);
+static void init_fill(schar, schar);
+static schar get_map(int, int, schar);
+static void pass_one(schar, schar);
+static void pass_two(schar, schar);
+static void pass_three(schar, schar);
+static void join_map(schar, schar);
+static void finish_map(schar, schar, boolean, boolean, boolean);
+static void remove_room(unsigned);
+void mkmap(lev_init *);
 
 /* Unconditionally sets the whole map's terrain to bg_typ. */
 static void
-init_map(bg_typ)
-schar bg_typ;
+init_map(schar bg_typ)
 {
     register int i, j;
 
@@ -38,8 +36,7 @@ schar bg_typ;
  * with terrain of fg_typ.
  * Used to "seed" the random cavern-like generation. */
 static void
-init_fill(bg_typ, fg_typ)
-schar bg_typ, fg_typ;
+init_fill(schar bg_typ, schar fg_typ)
 {
     register int i, j;
     long limit, count;
@@ -60,9 +57,7 @@ schar bg_typ, fg_typ;
  * Used in determining the count of "live" neighbors in cavernous generation
  * (outside the map all counts as dead). */
 static schar
-get_map(col, row, bg_typ)
-int col, row;
-schar bg_typ;
+get_map(int col, int row, schar bg_typ)
 {
     if (col <= 0 || row < 0 || col > WIDTH || row >= HEIGHT)
         return bg_typ;
@@ -87,8 +82,7 @@ static const int dirs[16] = { -1, -1 /**/, -1, 0 /**/,  -1, 1 /**/, 0, -1 /**/,
  * pass_* functions do.
  */
 static void
-pass_one(bg_typ, fg_typ)
-schar bg_typ, fg_typ;
+pass_one(schar bg_typ, schar fg_typ)
 {
     register int i, j;
     short count, dr;
@@ -127,8 +121,7 @@ schar bg_typ, fg_typ;
  * This time, it stores results in a temporary buffer, then copies them over
  * after it finishes. */
 static void
-pass_two(bg_typ, fg_typ)
-schar bg_typ, fg_typ;
+pass_two(schar bg_typ, schar fg_typ)
 {
     register int i, j;
     short count, dr;
@@ -158,8 +151,7 @@ schar bg_typ, fg_typ;
  *
  * According to code below, this is used to tune map smoothing.*/
 static void
-pass_three(bg_typ, fg_typ)
-schar bg_typ, fg_typ;
+pass_three(schar bg_typ, schar fg_typ)
 {
     register int i, j;
     short count, dr;
@@ -188,12 +180,12 @@ schar bg_typ, fg_typ;
  * exactly matching levl[sx][sy].typ and walls are included as well.
  */
 void
-flood_fill_rm(sx, sy, rmno, lit, anyroom)
-int sx;
-register int sy;
-register int rmno;
-boolean lit;
-boolean anyroom;
+flood_fill_rm(
+    int sx,
+    register int sy,
+    register int rmno,
+    boolean lit,
+    boolean anyroom)
 {
     register int i;
     int nx;
@@ -288,8 +280,7 @@ boolean anyroom;
  * If any blob is of size 3 or less, it'll be removed instead of being
  * connected. */
 static void
-join_map(bg_typ, fg_typ)
-schar bg_typ, fg_typ;
+join_map(schar bg_typ, schar fg_typ)
 {
     register struct mkroom *croom, *croom2;
 
@@ -369,9 +360,12 @@ joinm:
  * Also automatically sets any lava terrain to be lit.
  */
 static void
-finish_map(fg_typ, bg_typ, lit, walled, icedpools)
-schar fg_typ, bg_typ;
-boolean lit, walled, icedpools;
+finish_map(
+    schar fg_typ, 
+    schar bg_typ, 
+    boolean lit, 
+    boolean walled, 
+    boolean icedpools)
 {
     int i, j;
 
@@ -410,8 +404,7 @@ boolean lit, walled, icedpools;
  * region are all set.
  */
 void
-remove_rooms(lx, ly, hx, hy)
-int lx, ly, hx, hy;
+remove_rooms(int lx, int ly, int hx, int hy)
 {
     int i;
     struct mkroom *croom;
@@ -442,8 +435,7 @@ int lx, ly, hx, hy;
  * Currently handles only the removal of rooms that have no subrooms.
  */
 static void
-remove_room(roomno)
-unsigned roomno;
+remove_room(unsigned int roomno)
 {
     struct mkroom *croom = &g.rooms[roomno];
     struct mkroom *maxroom = &g.rooms[--g.nroom];
@@ -475,8 +467,7 @@ unsigned roomno;
 #define N_P3_ITER 2 /* tune map smoothing via this value */
 
 boolean
-litstate_rnd(litstate)
-int litstate;
+litstate_rnd(int litstate)
 {
     if (litstate < 0)
         return (rnd(1 + abs(depth(&u.uz))) < 11 && rn2(77)) ? TRUE : FALSE;
@@ -492,8 +483,7 @@ int litstate;
  * TRUE, regardless of what N_P3_ITER is.
  */
 void
-mkmap(init_lev)
-lev_init *init_lev;
+mkmap(lev_init* init_lev)
 {
     schar bg_typ = init_lev->bg, fg_typ = init_lev->fg;
     boolean smooth = init_lev->smoothed, join = init_lev->joined;

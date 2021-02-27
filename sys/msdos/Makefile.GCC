@@ -256,27 +256,27 @@ DLBOBJ = $(O)dlb.o
 
 VOBJ01 = $(O)allmain.o  $(O)alloc.o    $(O)apply.o    $(O)artifact.o $(O)attrib.o
 VOBJ02 = $(O)ball.o     $(O)bones.o    $(O)botl.o     $(O)cmd.o      $(O)dbridge.o
-VOBJ03 = $(O)decl.o     $(O)detect.o   $(O)display.o  $(O)do.o       $(O)do_name.o
-VOBJ04 = $(O)do_wear.o  $(O)dog.o      $(O)dogmove.o  $(O)dokick.o   $(O)dothrow.o
-VOBJ05 = $(O)drawing.o  $(O)dungeon.o  $(O)eat.o      $(O)end.o      $(O)engrave.o
-VOBJ06 = $(O)exper.o    $(O)explode.o  $(O)extralev.o $(O)files.o    $(O)fountain.o
-VOBJ07 = $(O)getline.o  $(O)hack.o     $(O)hacklib.o  $(O)isaac64.o  $(O)invent.o
-VOBJ08 = $(O)lock.o     $(O)mail.o     $(O)main.o     $(O)makemon.o  $(O)mapglyph.o
+VOBJ03 = $(O)decl.o     $(O)detect.o   $(O)dig.o      $(O)display.o  $(O)do.o
+VOBJ04 = $(O)do_name.o  $(O)do_wear.o  $(O)dog.o      $(O)dogmove.o  $(O)dokick.o
+VOBJ05 = $(O)dothrow.o  $(O)drawing.o  $(O)dungeon.o  $(O)eat.o      $(O)end.o
+VOBJ06 = $(O)engrave.o  $(O)exper.o    $(O)explode.o  $(O)extralev.o $(O)files.o
+VOBJ07 = $(O)fountain.o $(O)getline.o  $(O)hack.o     $(O)hacklib.o  $(O)invent.o
+VOBJ08 = $(O)isaac64.o  $(O)lock.o     $(O)mail.o     $(O)main.o     $(O)makemon.o
 VOBJ09 = $(O)mcastu.o   $(O)mhitm.o    $(O)mhitu.o    $(O)minion.o   $(O)mkmap.o
 VOBJ10 = $(O)mklev.o    $(O)mkmaze.o   $(O)mkobj.o    $(O)mkroom.o   $(O)mon.o
 VOBJ11 = $(O)mondata.o  $(O)monmove.o  $(O)monst.o    $(O)mplayer.o  $(O)mthrowu.o
 VOBJ12 = $(O)muse.o     $(O)music.o    $(O)o_init.o   $(O)objects.o  $(O)objnam.o
 VOBJ13 = $(O)options.o  $(O)pickup.o   $(O)pline.o    $(O)polyself.o $(O)potion.o
 VOBJ14 = $(O)quest.o    $(O)questpgr.o $(O)pager.o    $(O)pray.o     $(O)priest.o
-VOBJ15 = $(O)read.o     $(O)rect.o     $(O)restore.o  $(O)rip.o      $(O)rnd.o
-VOBJ16 = $(O)role.o     $(O)rumors.o   $(O)save.o     $(O)sfstruct.o $(O)shk.o
-VOBJ17 = $(O)shknam.o   $(O)sit.o      $(O)sounds.o   $(O)sp_lev.o   $(O)spell.o
-VOBJ18 = $(O)steal.o    $(O)steed.o    $(O)symbols.o  $(O)sys.o      $(O)termcap.o
-VOBJ19 = $(O)timeout.o  $(O)topl.o     $(O)topten.o   $(O)track.o    $(O)trap.o
-VOBJ20 = $(O)u_init.o   $(O)uhitm.o    $(O)vault.o    $(O)vision.o   $(O)vis_tab.o
-VOBJ21 = $(O)weapon.o   $(O)were.o     $(O)wield.o    $(O)windows.o  $(O)wintty.o
-VOBJ22 = $(O)wizard.o   $(O)worm.o     $(O)worn.o     $(O)write.o    $(O)zap.o
-VOBJ23 = $(O)light.o    $(O)dlb.o      $(O)dig.o      $(O)teleport.o $(O)region.o
+VOBJ15 = $(O)read.o     $(O)rect.o     $(O)region.o   $(O)restore.o  $(O)rip.o
+VOBJ16 = $(O)rnd.o      $(O)role.o     $(O)rumors.o   $(O)save.o     $(O)sfstruct.o
+VOBJ17 = $(O)shk.o      $(O)shknam.o   $(O)sit.o      $(O)sounds.o   $(O)sp_lev.o
+VOBJ18 = $(O)spell.o    $(O)steal.o    $(O)steed.o    $(O)symbols.o  $(O)sys.o
+VOBJ19 = $(O)teleport.o $(O)termcap.o  $(O)timeout.o  $(O)topl.o     $(O)topten.o
+VOBJ20 = $(O)track.o    $(O)trap.o     $(O)u_init.o   $(O)uhitm.o    $(O)vault.o
+VOBJ21 = $(O)vision.o   $(O)weapon.o   $(O)were.o     $(O)wield.o    $(O)windows.o
+VOBJ22 = $(O)wintty.o   $(O)wizard.o   $(O)worm.o     $(O)worn.o     $(O)write.o
+VOBJ23 = $(O)zap.o      $(O)light.o    $(O)dlb.o
 VOBJ24 = $(REGEX)         
 
 SOBJ   = $(O)msdos.o    $(O)pcsys.o    $(O)tty.o	    $(O)unix.o \
@@ -548,7 +548,7 @@ default: $(GAMEFILE)
 util: $(O)utility.tag
 
 $(O)utility.tag: $(INCL)/date.h $(INCL)/trap.h    $(INCL)/onames.h \
-	$(INCL)/pm.h	  vis_tab.c $(TILEUTIL)
+	$(INCL)/pm.h	  $(TILEUTIL)
 	$(subst /,\,echo utilities made > $@)
 
 tileutil: $(U)gif2txt.exe $(U)txt2ppm.exe
@@ -652,12 +652,6 @@ $(INCL)/onames.h: $(U)makedefs.exe
 
 $(INCL)/pm.h: $(U)makedefs.exe
 	-$(subst /,\,$(U)makedefs -p)
-
-$(INCL)/vis_tab.h: $(U)makedefs.exe
-	-$(subst /,\,$(U)makedefs -z)
-
-vis_tab.c: $(U)makedefs.exe
-	-$(subst /,\,$(U)makedefs -z)
 
 #==========================================
 #  Makedefs Stuff
@@ -913,12 +907,10 @@ spotless: clean
 	$(subst /,\,if exist $(U)til2bin2.exe del $(U)til2bin2.exe)
 	$(subst /,\,if exist $(U)thintile.exe del $(U)thintile.exe)
 	$(subst /,\,if exist $(U)dlb_main.exe del $(U)dlb_main.exe)
-	$(subst /,\,if exist $(INCL)/vis_tab.h del $(INCL)/vis_tab.h)
 	$(subst /,\,if exist $(INCL)/onames.h del $(INCL)/onames.h)
 	$(subst /,\,if exist $(INCL)/pm.h del $(INCL)/pm.h)
 	$(subst /,\,if exist $(INCL)/date.h del $(INCL)/date.h)
 	$(subst /,\,if exist $(SRC)/monstr.c del $(SRC)/monstr.c)
-	$(subst /,\,if exist $(SRC)/vis_tab.c del $(SRC)/vis_tab.c)
 	$(subst /,\,if exist $(SRC)/tile.c del $(SRC)/tile.c)
 	$(subst /,\,if exist $(DAT)/options del $(DAT)/options)
 	$(subst /,\,if exist $(DAT)/data del $(DAT)/data)
@@ -996,11 +988,9 @@ spotless: clean
 	$(subst /,\,if exist $(U)til2bin2.exe del $(U)til2bin2.exe)
 	$(subst /,\,if exist $(U)thintile.exe del $(U)thintile.exe)
 	$(subst /,\,if exist $(U)dlb_main.exe del $(U)dlb_main.exe)
-	$(subst /,\,if exist $(INCL)/vis_tab.h del $(INCL)/vis_tab.h)
 	$(subst /,\,if exist $(INCL)/onames.h del $(INCL)/onames.h)
 	$(subst /,\,if exist $(INCL)/pm.h del $(INCL)/pm.h)
 	$(subst /,\,if exist $(INCL)/date.h del $(INCL)/date.h)
-	$(subst /,\,if exist $(SRC)/vis_tab.c del $(SRC)/vis_tab.c)
 	$(subst /,\,if exist $(SRC)/tile.c del $(SRC)/tile.c)
 	$(subst /,\,if exist $(DAT)/options del $(DAT)/options)
 	$(subst /,\,if exist $(DAT)/data del $(DAT)/data)
@@ -1156,58 +1146,6 @@ $(O)wintext.o: ../win/X11/wintext.c $(HACK_H) $(INCL)/winX.h $(INCL)/xwindow.h
 $(O)winval.o: ../win/X11/winval.c $(HACK_H) $(INCL)/winX.h
 	$(CC) $(cflags) -o$@ ../win/X11/winval.c
 $(O)tile.o: tile.c $(HACK_H)
-$(O)gnaskstr.o: ../win/gnome/gnaskstr.c ../win/gnome/gnaskstr.h \
-		../win/gnome/gnmain.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnaskstr.c
-$(O)gnbind.o: ../win/gnome/gnbind.c ../win/gnome/gnbind.h ../win/gnome/gnmain.h \
-		../win/gnome/gnaskstr.h ../win/gnome/gnyesno.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnbind.c
-$(O)gnglyph.o: ../win/gnome/gnglyph.c ../win/gnome/gnglyph.h $(INCL)/tile2x11.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnglyph.c
-$(O)gnmain.o: ../win/gnome/gnmain.c ../win/gnome/gnmain.h ../win/gnome/gnsignal.h \
-		../win/gnome/gnbind.h ../win/gnome/gnopts.h $(HACK_H) \
-		$(INCL)/date.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnmain.c
-$(O)gnmap.o: ../win/gnome/gnmap.c ../win/gnome/gnmap.h ../win/gnome/gnglyph.h \
-		../win/gnome/gnsignal.h $(HACK_H)
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnmap.c
-$(O)gnmenu.o: ../win/gnome/gnmenu.c ../win/gnome/gnmenu.h ../win/gnome/gnmain.h \
-		../win/gnome/gnbind.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnmenu.c
-$(O)gnmesg.o: ../win/gnome/gnmesg.c ../win/gnome/gnmesg.h ../win/gnome/gnsignal.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnmesg.c
-$(O)gnopts.o: ../win/gnome/gnopts.c ../win/gnome/gnopts.h ../win/gnome/gnglyph.h \
-		../win/gnome/gnmain.h ../win/gnome/gnmap.h $(HACK_H)
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnopts.c
-$(O)gnplayer.o: ../win/gnome/gnplayer.c ../win/gnome/gnplayer.h \
-		../win/gnome/gnmain.h $(HACK_H)
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnplayer.c
-$(O)gnsignal.o: ../win/gnome/gnsignal.c ../win/gnome/gnsignal.h \
-		../win/gnome/gnmain.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnsignal.c
-$(O)gnstatus.o: ../win/gnome/gnstatus.c ../win/gnome/gnstatus.h \
-		../win/gnome/gnsignal.h ../win/gnome/gn_xpms.h \
-		../win/gnome/gnomeprv.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnstatus.c
-$(O)gntext.o: ../win/gnome/gntext.c ../win/gnome/gntext.h ../win/gnome/gnmain.h \
-		../win/gnome/gn_rip.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gntext.c
-$(O)gnworn.o: ../win/gnome/gnworn.c ../win/gnome/gnworn.h ../win/gnome/gnglyph.h \
-		../win/gnome/gnsignal.h ../win/gnome/gnomeprv.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnworn.c
-$(O)gnyesno.o: ../win/gnome/gnyesno.c ../win/gnome/gnbind.h ../win/gnome/gnyesno.h
-	$(CC) $(cflags) $(GNOMEINC) -o$@ ../win/gnome/gnyesno.c
-$(O)wingem.o: ../win/gem/wingem.c $(HACK_H) $(INCL)/func_tab.h $(INCL)/dlb.h \
-		$(INCL)/wingem.h
-	$(CC) $(cflags) -o$@ ../win/gem/wingem.c
-$(O)wingem1.o: ../win/gem/wingem1.c $(INCL)/gem_rsc.h $(INCL)/load_img.h \
-		$(INCL)/gr_rect.h $(INCL)/wintype.h $(INCL)/wingem.h
-	$(CC) $(cflags) -o$@ ../win/gem/wingem1.c
-$(O)load_img.o: ../win/gem/load_img.c $(INCL)/load_img.h
-	$(CC) $(cflags) -o$@ ../win/gem/load_img.c
-$(O)gr_rect.o: ../win/gem/gr_rect.c $(INCL)/gr_rect.h
-	$(CC) $(cflags) -o$@ ../win/gem/gr_rect.c
-$(O)tile.o: tile.c $(HACK_H)
 $(O)qt_win.o: ../win/Qt/qt_win.cpp $(HACK_H) $(INCL)/func_tab.h \
 		$(INCL)/dlb.h $(INCL)/tile2x11.h \
 		$(INCL)/qt_win.h $(INCL)/qt_clust.h $(INCL)/qt_kde0.h \
@@ -1218,7 +1156,6 @@ $(O)qt_clust.o: ../win/Qt/qt_clust.cpp $(INCL)/qt_clust.h
 $(O)qttableview.o: ../win/Qt/qttableview.cpp $(INCL)/qttableview.h
 	$(CXX) $(CXXFLAGS) -o$@ ../win/Qt/qttableview.cpp
 $(O)monstr.o: monstr.c $(CONFIG_H)
-$(O)vis_tab.o: vis_tab.c $(CONFIG_H) $(INCL)/vis_tab.h
 $(O)allmain.o: allmain.c $(HACK_H)
 $(O)alloc.o: alloc.c $(CONFIG_H)
 $(O)apply.o: apply.c $(HACK_H)
@@ -1259,7 +1196,6 @@ $(O)light.o: light.c $(HACK_H)
 $(O)lock.o: lock.c $(HACK_H)
 $(O)mail.o: mail.c $(HACK_H) $(INCL)/mail.h
 $(O)makemon.o: makemon.c $(HACK_H)
-$(O)mapglyph.o: mapglyph.c $(HACK_H)
 $(O)mcastu.o: mcastu.c $(HACK_H)
 $(O)mhitm.o: mhitm.c $(HACK_H) $(INCL)/artifact.h
 $(O)mhitu.o: mhitu.c $(HACK_H) $(INCL)/artifact.h
@@ -1325,11 +1261,11 @@ $(O)u_init.o: u_init.c $(HACK_H)
 $(O)uhitm.o: uhitm.c $(HACK_H)
 $(O)vault.o: vault.c $(HACK_H)
 $(O)version.o: version.c $(HACK_H) $(INCL)/date.h
-$(O)vision.o: vision.c $(HACK_H) $(INCL)/vis_tab.h
+$(O)vision.o: vision.c $(HACK_H)
 $(O)weapon.o: weapon.c $(HACK_H)
 $(O)were.o: were.c $(HACK_H)
 $(O)wield.o: wield.c $(HACK_H)
-$(O)windows.o: windows.c $(HACK_H) $(INCL)/wingem.h $(INCL)/winGnome.h
+$(O)windows.o: windows.c $(HACK_H)
 $(O)wizard.o: wizard.c $(HACK_H)
 $(O)worm.o: worm.c $(HACK_H)
 $(O)worn.o: worn.c $(HACK_H)

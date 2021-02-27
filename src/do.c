@@ -1,4 +1,4 @@
-/* NetHack 3.7	do.c	$NHDT-Date: 1601595709 2020/10/01 23:41:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.249 $ */
+/* NetHack 3.7	do.c	$NHDT-Date: 1608673689 2020/12/22 21:48:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.256 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7,25 +7,27 @@
 
 #include "hack.h"
 
-static boolean NDECL(teleport_sink);
-static void FDECL(dosinkring, (struct obj *));
-static int FDECL(drop, (struct obj *));
-static boolean FDECL(engulfer_digests_food, (struct obj *));
-static int NDECL(wipeoff);
-static int FDECL(menu_drop, (int));
-static NHFILE *NDECL(currentlevel_rewrite);
-static void NDECL(final_level);
-/* static boolean FDECL(badspot, (XCHAR_P,XCHAR_P)); */
+static boolean teleport_sink(void);
+static void dosinkring(struct obj *);
+static int drop(struct obj *);
+static boolean engulfer_digests_food(struct obj *);
+static int wipeoff(void);
+static int menu_drop(int);
+static NHFILE *currentlevel_rewrite(void);
+static void final_level(void);
+
+/* static boolean badspot(xchar,xchar); */
 
 /* 'd' command: drop one inventory item */
 int
-dodrop()
+dodrop(void)
 {
     int result;
 
     if (*u.ushops)
         sellobj_state(SELL_DELIBERATE);
-    result = drop(getobj("drop", allow_any_obj, TRUE, FALSE));
+    result = drop(getobj("drop", any_obj_ok,
+                         GETOBJ_PROMPT | GETOBJ_ALLOWCNT));
     if (*u.ushops)
         sellobj_state(SELL_NORMAL);
     if (result)
@@ -39,10 +41,7 @@ dodrop()
  * it's gone for good...  If the destination is not a pool, returns FALSE.
  */
 boolean
-boulder_hits_pool(otmp, rx, ry, pushing)
-struct obj *otmp;
-register int rx, ry;
-boolean pushing;
+boulder_hits_pool(struct obj *otmp, int rx, int ry, boolean pushing)
 {
     if (!otmp || otmp->otyp != BOULDER) {
         impossible("Not a boulder?");
@@ -124,10 +123,7 @@ boolean pushing;
  * away.
  */
 boolean
-flooreffects(obj, x, y, verb)
-struct obj *obj;
-int x, y;
-const char *verb;
+flooreffects(struct obj *obj, int x, int y, const char *verb)
 {
     struct trap *t;
     struct monst *mtmp;
@@ -249,6 +245,8 @@ deletedwithboulder:
             pline("%s %s into %s %s.", The(xname(obj)),
                   otense(obj, "tumble"), the_your[t->madeby_u],
                   is_pit(t->ttyp) ? "pit" : "hole");
+        if (is_hole(t->ttyp) && ship_object(obj, x, y, FALSE))
+            return TRUE;
     } else if (obj->globby) {
         /* Globby things like puddings might stick together */
         while (obj && (otmp = obj_nexto_xy(obj, x, y, TRUE)) != 0) {
@@ -264,8 +262,7 @@ deletedwithboulder:
 
 /* obj is an object dropped on an altar */
 void
-doaltarobj(obj)
-register struct obj *obj;
+doaltarobj(struct obj *obj)
 {
     if (Blind)
         return;
@@ -339,8 +336,7 @@ register struct obj *obj;
 }
 
 void
-trycall(obj)
-register struct obj *obj;
+trycall(struct obj *obj)
 {
     if (!objects[obj->otyp].oc_name_known && !objects[obj->otyp].oc_uname)
         docall(obj);
@@ -349,7 +345,7 @@ register struct obj *obj;
 /* Transforms the sink at the player's position into
    a fountain, throne, altar or grave. */
 void
-polymorph_sink()
+polymorph_sink(void)
 {
     uchar sym = S_sink;
     boolean sinklooted;
@@ -406,7 +402,7 @@ polymorph_sink()
 /* Teleports the sink at the player's position;
    return True if sink teleported. */
 static boolean
-teleport_sink()
+teleport_sink(void)
 {
     int cx, cy;
     int cnt = 0;
@@ -437,8 +433,7 @@ teleport_sink()
 
 /* obj is a ring being dropped over a kitchen sink */
 static void
-dosinkring(obj)
-register struct obj *obj;
+dosinkring(struct obj *obj)
 {
     struct obj *otmp, *otmp2;
     boolean ideed = TRUE;
@@ -610,9 +605,7 @@ register struct obj *obj;
 
 /* some common tests when trying to drop or throw items */
 boolean
-canletgo(obj, word)
-struct obj *obj;
-const char *word;
+canletgo(struct obj *obj, const char *word)
 {
     if (obj->owornmask & (W_ARMOR | W_ACCESSORY)) {
         if (*word)
@@ -641,8 +634,7 @@ const char *word;
 }
 
 static int
-drop(obj)
-register struct obj *obj;
+drop(struct obj *obj)
 {
     if (!obj)
         return 0;
@@ -706,8 +698,7 @@ register struct obj *obj;
    called in several places - may produce output
    (eg ship_object() and dropy() -> sellobj() both produce output) */
 void
-dropx(obj)
-register struct obj *obj;
+dropx(struct obj *obj)
 {
     freeinv(obj);
     if (!u.uswallow) {
@@ -721,17 +712,14 @@ register struct obj *obj;
 
 /* dropy - put dropped object at destination; called from lots of places */
 void
-dropy(obj)
-struct obj *obj;
+dropy(struct obj *obj)
 {
     dropz(obj, FALSE);
 }
 
 /* dropz - really put dropped object at its destination... */
 void
-dropz(obj, with_impact)
-struct obj *obj;
-boolean with_impact;
+dropz(struct obj *obj, boolean with_impact)
 {
     if (obj == uwep)
         setuwep((struct obj *) 0);
@@ -740,8 +728,6 @@ boolean with_impact;
     if (obj == uswapwep)
         setuswapwep((struct obj *) 0);
 
-    if (!u.uswallow && flooreffects(obj, u.ux, u.uy, "drop"))
-        return;
     if (u.uswallow) {
         /* hero has dropped an item while inside an engulfer */
         if (obj != uball) { /* mon doesn't pick up ball */
@@ -753,6 +739,8 @@ boolean with_impact;
                 (void) mpickobj(u.ustuck, obj);
         }
     } else {
+        if (flooreffects(obj, u.ux, u.uy, "drop"))
+            return;
         place_object(obj, u.ux, u.uy);
         if (with_impact)
             container_impact_dmg(obj, u.ux, u.uy);
@@ -771,8 +759,7 @@ boolean with_impact;
    for purple worm, immediately eat any corpse, glob, or special meat item
    from object polymorph; return True if object is used up, False otherwise */
 static boolean
-engulfer_digests_food(obj)
-struct obj *obj;
+engulfer_digests_food(struct obj *obj)
 {
     /* animal swallower (purple worn, trapper, lurker above) eats any
        corpse, glob, or meat <item> but not other types of food */
@@ -816,8 +803,7 @@ struct obj *obj;
 /* things that must change when not held; recurse into containers.
    Called for both player and monsters */
 void
-obj_no_longer_held(obj)
-struct obj *obj;
+obj_no_longer_held(struct obj *obj)
 {
     if (!obj) {
         return;
@@ -849,7 +835,7 @@ struct obj *obj;
 
 /* 'D' command: drop several things */
 int
-doddrop()
+doddrop(void)
 {
     int result = 0;
 
@@ -873,8 +859,7 @@ doddrop()
 
 /* Drop things from the hero's inventory, using a menu. */
 static int
-menu_drop(retry)
-int retry;
+menu_drop(int retry)
 {
     int n, i, n_dropped = 0;
     long cnt;
@@ -943,7 +928,7 @@ int retry;
         n = query_objlist("What would you like to drop?", &g.invent,
                           (USE_INVLET | INVORDER_SORT | INCLUDE_VENOM),
                           &pick_list, PICK_ANY,
-                          all_categories ? allow_any_obj : allow_category);
+                          all_categories ? allow_all : allow_category);
         if (n > 0) {
             /*
              * picklist[] contains a set of pointers into inventory, but
@@ -987,7 +972,7 @@ int retry;
 
 /* the '>' command */
 int
-dodown()
+dodown(void)
 {
     struct trap *trap = 0;
     stairway *stway = stairway_at(u.ux, u.uy);
@@ -1142,7 +1127,7 @@ dodown()
 
 /* the '<' command */
 int
-doup()
+doup(void)
 {
     stairway *stway = stairway_at(u.ux,u.uy);
 
@@ -1193,7 +1178,7 @@ doup()
 
 /* check that we can write out the current level */
 static NHFILE *
-currentlevel_rewrite()
+currentlevel_rewrite(void)
 {
     NHFILE *nhfp;
     char whynot[BUFSZ];
@@ -1220,7 +1205,7 @@ currentlevel_rewrite()
 
 #ifdef INSURANCE
 void
-save_currentstate()
+save_currentstate(void)
 {
     NHFILE *nhfp;
 
@@ -1243,8 +1228,7 @@ save_currentstate()
 
 /*
 static boolean
-badspot(x, y)
-register xchar x, y;
+badspot(register xchar x, register xchar y)
 {
     return (boolean) ((levl[x][y].typ != ROOM
                        && levl[x][y].typ != AIR
@@ -1256,8 +1240,7 @@ register xchar x, y;
 /* when arriving on a level, if hero and a monster are trying to share same
    spot, move one; extracted from goto_level(); also used by wiz_makemap() */
 void
-u_collide_m(mtmp)
-struct monst *mtmp;
+u_collide_m(struct monst *mtmp)
 {
     if (!mtmp || mtmp == u.usteed || mtmp != m_at(u.ux, u.uy)) {
         impossible("level arrival collision: %s?",
@@ -1284,10 +1267,10 @@ struct monst *mtmp;
     }
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 void
-goto_level(newlevel, at_stairs, falling, portal)
-d_level *newlevel;
-boolean at_stairs, falling, portal;
+goto_level(d_level *newlevel, boolean at_stairs, boolean falling, boolean portal)
 {
     int l_idx, save_mode;
     NHFILE *nhfp;
@@ -1454,7 +1437,7 @@ boolean at_stairs, falling, portal;
         livelog_printf(LL_DEBUG, "entered new level %d, %s.", dunlev(&u.uz),
                        g.dungeons[u.uz.dnum].dname);
 
-        familiar = (find_ghost_with_name(g.plname) != (struct monst *) 0);
+        familiar = bones_include_name(g.plname);
     } else {
         /* returning to previously visited level; reload it */
         nhfp = open_levelfile(new_ledger, whynot);
@@ -1598,7 +1581,7 @@ boolean at_stairs, falling, portal;
 
     /* Reset the screen. */
     vision_reset(); /* reset the blockages */
-    g.glyphmap_perlevel_flags = 0L; /* force per-level mapglyph() changes */
+    g.glyphmap_perlevel_flags = 0L; /* force per-level map_glyphinfo() changes */
     docrt();        /* does a full vision recalc */
     flush_screen(-1);
 
@@ -1729,9 +1712,11 @@ boolean at_stairs, falling, portal;
 #endif
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /* usually called from goto_level(); might be called from Sting_effects() */
 void
-maybe_lvltport_feedback()
+maybe_lvltport_feedback(void)
 {
     if (g.dfr_post_msg && !strncmpi(g.dfr_post_msg, "You materialize", 15)) {
         /* "You materialize on a different level." */
@@ -1741,7 +1726,7 @@ maybe_lvltport_feedback()
 }
 
 static void
-final_level()
+final_level(void)
 {
     struct monst *mtmp;
 
@@ -1761,10 +1746,8 @@ final_level()
 
 /* change levels at the end of this turn, after monsters finish moving */
 void
-schedule_goto(tolev, utotype_flags, pre_msg, post_msg)
-d_level *tolev;
-int utotype_flags;
-const char *pre_msg, *post_msg;
+schedule_goto(d_level *tolev, int utotype_flags,
+              const char *pre_msg, const char *post_msg)
 {
     /* UTOTYPE_DEFERRED is used, so UTOTYPE_NONE can trigger deferred_goto() */
     u.utotype = utotype_flags | UTOTYPE_DEFERRED;
@@ -1779,7 +1762,7 @@ const char *pre_msg, *post_msg;
 
 /* handle something like portal ejection */
 void
-deferred_goto()
+deferred_goto(void)
 {
     if (!on_level(&u.uz, &u.utolev)) {
         d_level dest, oldlev;
@@ -1815,9 +1798,7 @@ deferred_goto()
  * corpse is gone.
  */
 boolean
-revive_corpse(corpse, moldy)
-struct obj *corpse;
-boolean moldy;
+revive_corpse(struct obj *corpse, boolean moldy)
 {
     struct monst *mtmp, *mcarry;
     boolean is_uwep, chewed;
@@ -1938,9 +1919,7 @@ boolean moldy;
 /* Revive the corpse via a timeout. */
 /*ARGSUSED*/
 void
-revive_mon(arg, timeout)
-anything *arg;
-long timeout UNUSED;
+revive_mon(anything *arg, long timeout UNUSED)
 {
     struct obj *body = arg->a_obj;
     struct permonst *mptr = &mons[body->corpsenm];
@@ -1985,9 +1964,7 @@ long timeout UNUSED;
 
 /* A corpse grows mold on it, creating a new fungoid monster. */
 void
-moldy_corpse(arg, timeout)
-anything* arg;
-long timeout UNUSED;
+moldy_corpse(anything *arg, long timeout UNUSED)
 {
     struct obj* body = arg->a_obj;
     char* old_oname = (has_oname(body) ? ONAME(body) : NULL);
@@ -2077,9 +2054,7 @@ long timeout UNUSED;
 /* Timeout callback. Revive the corpse as a zombie. */
 /*ARGSUSED*/
 void
-zombify_mon(arg, timeout)
-anything *arg;
-long timeout UNUSED;
+zombify_mon(anything *arg, long timeout UNUSED)
 {
     struct obj *body = arg->a_obj;
     int zmon = zombie_form(&mons[body->corpsenm]);
@@ -2097,10 +2072,7 @@ long timeout UNUSED;
 }
 
 boolean
-cmd_safety_prevention(cmddesc, act, flagcounter)
-const char *cmddesc;
-const char *act;
-int *flagcounter;
+cmd_safety_prevention(const char *cmddesc, const char *act, int *flagcounter)
 {
     if (flags.safe_wait && !iflags.menu_requested
         && !g.multi && monster_nearby()) {
@@ -2120,7 +2092,7 @@ int *flagcounter;
 /* '.' command: do nothing == rest; also the
    ' ' command iff 'rest_on_space' option is On */
 int
-donull()
+donull(void)
 {
     if (cmd_safety_prevention("a no-op (to rest)",
                           "Are you waiting to get hit?",
@@ -2130,7 +2102,7 @@ donull()
 }
 
 static int
-wipeoff(VOID_ARGS)
+wipeoff(void)
 {
     if (u.ucreamed < 4)
         u.ucreamed = 0;
@@ -2156,7 +2128,7 @@ wipeoff(VOID_ARGS)
 }
 
 int
-dowipe()
+dowipe(void)
 {
     if (u.ucreamed) {
         static NEARDATA char buf[39];
@@ -2174,9 +2146,8 @@ dowipe()
 
 /* common wounded legs feedback */
 void
-legs_in_no_shape(for_what, by_steed)
-const char *for_what; /* jumping, kicking, riding */
-boolean by_steed;
+legs_in_no_shape(const char *for_what, /* jumping, kicking, riding */
+                 boolean by_steed)
 {
     if (by_steed && u.usteed) {
         pline("%s is in no shape for %s.", Monnam(u.usteed), for_what);
@@ -2193,9 +2164,7 @@ boolean by_steed;
 }
 
 void
-set_wounded_legs(side, timex)
-long side;
-int timex;
+set_wounded_legs(long side, int timex)
 {
     /* KMH -- STEED
      * If you are riding, your steed gets the wounded legs instead.
@@ -2214,8 +2183,8 @@ int timex;
 }
 
 void
-heal_legs(how)
-int how; /* 0: ordinary, 1: dismounting steed, 2: limbs turn to stone */
+heal_legs(int how) /* 0: ordinary, 1: dismounting steed,
+                      2: limbs turn to stone */
 {
     if (Wounded_legs) {
         g.context.botl = 1;

@@ -1,22 +1,25 @@
-/* NetHack 3.7	potion.c	$NHDT-Date: 1596498197 2020/08/03 23:43:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.182 $ */
+/* NetHack 3.7	potion.c	$NHDT-Date: 1612658075 2021/02/07 00:34:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.193 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-static long FDECL(itimeout, (long));
-static long FDECL(itimeout_incr, (long, int));
-static void NDECL(ghost_from_bottle);
-static boolean
-FDECL(H2Opotion_dip, (struct obj *, struct obj *, BOOLEAN_P, const char *));
-static short FDECL(mixtype, (struct obj *, struct obj *));
-static void FDECL(dipsink, (struct obj *));
+static long itimeout(long);
+static long itimeout_incr(long, int);
+static void ghost_from_bottle(void);
+static int drink_ok(struct obj *);
+static boolean H2Opotion_dip(struct obj *, struct obj *, boolean,
+                             const char *);
+static short mixtype(struct obj *, struct obj *);
+static int dip_ok(struct obj *);
+static void hold_potion(struct obj *, const char *, const char *,
+                        const char *);
+static void dipsink(struct obj *);
 
 /* force `val' to be within valid range for intrinsic timeout value */
 static long
-itimeout(val)
-long val;
+itimeout(long val)
 {
     if (val >= TIMEOUT)
         val = TIMEOUT;
@@ -28,17 +31,14 @@ long val;
 
 /* increment `old' by `incr' and force result to be valid intrinsic timeout */
 static long
-itimeout_incr(old, incr)
-long old;
-int incr;
+itimeout_incr(long old, int incr)
 {
     return itimeout((old & TIMEOUT) + (long) incr);
 }
 
 /* set the timeout field of intrinsic `which' */
 void
-set_itimeout(which, val)
-long *which, val;
+set_itimeout(long *which, long val)
 {
     *which &= ~TIMEOUT;
     *which |= itimeout(val);
@@ -46,17 +46,13 @@ long *which, val;
 
 /* increment the timeout field of intrinsic `which' */
 void
-incr_itimeout(which, incr)
-long *which;
-int incr;
+incr_itimeout(long *which, int incr)
 {
     set_itimeout(which, itimeout_incr(*which, incr));
 }
 
 void
-make_confused(xtime, talk)
-long xtime;
-boolean talk;
+make_confused(long xtime, boolean talk)
 {
     long old = HConfusion;
 
@@ -74,9 +70,7 @@ boolean talk;
 }
 
 void
-make_stunned(xtime, talk)
-long xtime;
-boolean talk;
+make_stunned(long xtime, boolean talk)
 {
     long old = HStun;
 
@@ -106,11 +100,10 @@ boolean talk;
    u.usick_type bit mask), but delayed killer can only support one or
    the other at a time.  They should become separate intrinsics.... */
 void
-make_sick(xtime, cause, talk, type)
-long xtime;
-const char *cause; /* sickness cause */
-boolean talk;
-int type;
+make_sick(long xtime,
+          const char *cause, /* sickness cause */
+          boolean talk,
+          int type)
 {
     struct kinfo *kptr;
     long old = Sick;
@@ -183,9 +176,7 @@ int type;
 }
 
 void
-make_slimed(xtime, msg)
-long xtime;
-const char *msg;
+make_slimed(long xtime, const char *msg)
 {
     long old = Slimed;
 
@@ -212,11 +203,7 @@ const char *msg;
 
 /* start or stop petrification */
 void
-make_stoned(xtime, msg, killedby, killername)
-long xtime;
-const char *msg;
-int killedby;
-const char *killername;
+make_stoned(long xtime, const char *msg, int killedby, const char *killername)
 {
     long old = Stoned;
 
@@ -237,9 +224,7 @@ const char *killername;
 }
 
 void
-make_vomiting(xtime, talk)
-long xtime;
-boolean talk;
+make_vomiting(long xtime, boolean talk)
 {
     long old = Vomiting;
 
@@ -257,9 +242,7 @@ static const char vismsg[] = "vision seems to %s for a moment but is %s now.";
 static const char eyemsg[] = "%s momentarily %s.";
 
 void
-make_blinded(xtime, talk)
-long xtime;
-boolean talk;
+make_blinded(long xtime, boolean talk)
 {
     long old = Blinded;
     boolean u_could_see, can_see_now;
@@ -334,7 +317,7 @@ boolean talk;
 /* blindness has just started or just ended--caller enforces that;
    called by Blindf_on(), Blindf_off(), and make_blinded() */
 void
-toggle_blindness()
+toggle_blindness(void)
 {
     boolean Stinging = (uwep && (EWarn_of_mon & W_WEP) != 0L);
 
@@ -365,10 +348,11 @@ toggle_blindness()
 }
 
 boolean
-make_hallucinated(xtime, talk, mask)
-long xtime; /* nonzero if this is an attempt to turn on hallucination */
-boolean talk;
-long mask; /* nonzero if resistance status should change by mask */
+make_hallucinated(long xtime, /* nonzero if this is an attempt to turn on
+                                 hallucination */
+                  boolean talk,
+                  long mask) /* nonzero if resistance status should change
+                                by mask */
 {
     long old = HHallucination;
     boolean changed = 0;
@@ -449,9 +433,7 @@ long mask; /* nonzero if resistance status should change by mask */
 }
 
 void
-make_deaf(xtime, talk)
-long xtime;
-boolean talk;
+make_deaf(long xtime, boolean talk)
 {
     long old = HDeaf;
     boolean can_hear_now;
@@ -482,10 +464,7 @@ boolean talk;
  * explan will be passed to multi_reason.
  */
 void
-make_paralyzed(xtime, talk, explan)
-int xtime;
-boolean talk;
-const char * explan;
+make_paralyzed(int xtime, boolean talk, const char *explan)
 {
     if (Free_action) {
         You("stiffen momentarily.");
@@ -524,8 +503,7 @@ const char * explan;
 
 /* set or clear "slippery fingers" */
 void
-make_glib(xtime)
-int xtime;
+make_glib(int xtime)
 {
     g.context.botl |= (!Glib ^ !!xtime);
     set_itimeout(&Glib, xtime);
@@ -535,7 +513,7 @@ int xtime;
 }
 
 void
-self_invis_message()
+self_invis_message(void)
 {
     pline("%s %s.",
           Hallucination ? "Far out, man!  You"
@@ -545,7 +523,7 @@ self_invis_message()
 }
 
 static void
-ghost_from_bottle()
+ghost_from_bottle(void)
 {
     struct monst *mtmp = makemon(&mons[PM_GHOST], u.ux, u.uy, NO_MM_FLAGS);
 
@@ -562,53 +540,20 @@ ghost_from_bottle()
     scary_ghost(mtmp);
 }
 
+/* getobj callback for object to drink from, which also does double duty as the
+ * callback for dipping into (both just allow potions). */
 static int
-drinkable(obj)
-struct obj *obj;
+drink_ok(struct obj *obj)
 {
-    if (obj && obj->oclass == POTION_CLASS && obj->where == OBJ_INVENT)
-        return 2;
+    if (obj && obj->oclass == POTION_CLASS)
+        return GETOBJ_SUGGEST;
 
-    if (obj == &cg.zeroobj && can_reach_floor(FALSE) &&
-        (IS_FOUNTAIN(levl[u.ux][u.uy].typ) ||
-         IS_SINK(levl[u.ux][u.uy].typ)))
-        return 2;
-
-    return 0;
-}
-
-static int
-dip_ok(obj)
-struct obj *obj;
-{
-    if (obj == &cg.zeroobj) {
-        if (IS_FOUNTAIN(levl[u.ux][u.uy].typ))
-            return 2;
-
-        if (Levitation ||
-            (u.usteed && !is_swimmer(u.usteed->data) &&
-             P_SKILL(P_RIDING) < P_BASIC))
-            return 0;
-
-        /* shouldn't be possible to be levitating over a sink anyway */
-        if (IS_SINK(levl[u.ux][u.uy].typ))
-            return 2;
-
-        if (is_pool(u.ux, u.uy))
-            return 2;
-
-        return 0;
-    }
-
-    if (obj && obj->oclass == POTION_CLASS && obj->where == OBJ_INVENT)
-        return 2;
-
-    return 0;
+    return GETOBJ_EXCLUDE;
 }
 
 /* "Quaffing is like drinking, except you spill more." - Terry Pratchett */
 int
-dodrink()
+dodrink(void)
 {
     register struct obj *otmp;
 
@@ -625,7 +570,7 @@ dodrink()
         }
     }
 
-    otmp = getobj("drink from", drinkable, FALSE, TRUE);
+    otmp = getobj("drink", drink_ok, GETOBJ_NOFLAGS);
     if (!otmp)
         return 0;
 
@@ -679,8 +624,7 @@ dodrink()
 }
 
 int
-dopotion(otmp)
-register struct obj *otmp;
+dopotion(struct obj *otmp)
 {
     int retval;
 
@@ -706,8 +650,7 @@ register struct obj *otmp;
 }
 
 int
-peffects(otmp)
-register struct obj *otmp;
+peffects(struct obj *otmp)
 {
     register int i, ii, lim;
 
@@ -786,7 +729,7 @@ register struct obj *otmp;
                 exercise(A_CON, FALSE);
                 if (u.ulycn >= LOW_PM) {
                     Your("affinity to %s disappears!",
-                         makeplural(mons[u.ulycn].mname));
+                         makeplural(mons[u.ulycn].pmnames[NEUTRAL]));
                     if (g.youmonst.data == &mons[u.ulycn])
                         you_unwere(FALSE);
                     set_ulycn(NON_PM); /* cure lycanthropy */
@@ -1053,12 +996,12 @@ register struct obj *otmp;
                 start_menu(win, MENU_BEHAVE_STANDARD);
                 any.a_char = 'a';
                 for (ii = 0; ii < A_MAX; ii++) {
-                    add_menu(win, NO_GLYPH, &any, 0, '\0', ATR_NONE,
+                    add_menu(win, &nul_glyphinfo, &any, 0, '\0', ATR_NONE,
                              attrnames[ii], MENU_ITEMFLAGS_NONE);
                     any.a_char++; /* go to b, c, d, e, f */
                 }
                 any.a_char = '*';
-                add_menu(win, NO_GLYPH, &any, 0, '*', ATR_NONE,
+                add_menu(win, &nul_glyphinfo, &any, 0, '*', ATR_NONE,
                          "pick one randomly", MENU_ITEMFLAGS_NONE);
                 end_menu(win, "What attribute do you want to increase?");
                 if (select_menu(win, PICK_ONE, &choice) <= 0) {
@@ -1319,9 +1262,7 @@ register struct obj *otmp;
 }
 
 void
-healup(nhp, nxtra, curesick, cureblind)
-int nhp, nxtra;
-register boolean curesick, cureblind;
+healup(int nhp, int nxtra, boolean curesick, boolean cureblind)
 {
     if (nhp) {
         if (Upolyd) {
@@ -1351,9 +1292,7 @@ register boolean curesick, cureblind;
 }
 
 void
-strange_feeling(obj, txt)
-struct obj *obj;
-const char *txt;
+strange_feeling(struct obj *obj, const char *txt)
 {
     if (flags.beginner || !txt)
         You("have a %s feeling for a moment, then it passes.",
@@ -1381,7 +1320,7 @@ const char *hbottlenames[] = {
 };
 
 const char *
-bottlename()
+bottlename(void)
 {
     if (Hallucination)
         return hbottlenames[rn2(SIZE(hbottlenames))];
@@ -1391,12 +1330,12 @@ bottlename()
 
 /* handle item dipped into water potion or steed saddle splashed by same */
 static boolean
-H2Opotion_dip(potion, targobj, useeit, objphrase)
-struct obj *potion, *targobj;
-boolean useeit;
-const char *objphrase; /* "Your widget glows" or "Steed's saddle glows" */
+H2Opotion_dip(struct obj *potion, struct obj *targobj,
+              boolean useeit,
+              const char *objphrase) /* "Your widget glows" or "Steed's saddle
+                                        glows" */
 {
-    void FDECL((*func), (OBJ_P)) = 0;
+    void (*func)(OBJ_P) = 0;
     const char *glowcolor = 0;
 #define COST_alter (-2)
 #define COST_none (-1)
@@ -1479,10 +1418,7 @@ const char *objphrase; /* "Your widget glows" or "Steed's saddle glows" */
 
 /* potion obj hits monster mon, which might be g.youmonst; obj always used up */
 void
-potionhit(mon, obj, how)
-struct monst *mon;
-struct obj *obj;
-int how;
+potionhit(struct monst *mon, struct obj *obj, int how)
 {
     const char *botlnam = bottlename();
     boolean isyou = (mon == &g.youmonst);
@@ -1572,7 +1508,8 @@ int how;
 
         switch (obj->otyp) {
         case POT_WATER:
-            Sprintf(saddle_glows, "%s %s", buf, aobjnam(saddle, "glow"));
+            Snprintf(saddle_glows, sizeof(saddle_glows), "%s %s",
+                     buf, aobjnam(saddle, "glow"));
             affected = H2Opotion_dip(obj, saddle, useeit, saddle_glows);
             break;
         case POT_POLYMORPH:
@@ -1776,8 +1713,7 @@ int how;
 
 /* vapors are inhaled or get in your eyes */
 void
-potionbreathe(obj)
-register struct obj *obj;
+potionbreathe(struct obj *obj)
 {
     boolean cureblind = FALSE;
     boolean unambiguous = FALSE; /* if effect is unambiguous, call makeknown */
@@ -2084,8 +2020,7 @@ register struct obj *obj;
 
 /* returns the potion type when o1 is dipped in o2 */
 static short
-mixtype(o1, o2)
-register struct obj *o1, *o2;
+mixtype(struct obj *o1, struct obj *o2)
 {
     int o1typ = o1->otyp, o2typ = o2->otyp;
 
@@ -2172,66 +2107,119 @@ register struct obj *o1, *o2;
     return STRANGE_OBJECT;
 }
 
+/* getobj callback for object to be dipped (not the thing being dipped into,
+ * that uses drink_ok) */
+static int
+dip_ok(struct obj *obj)
+{
+    /* dipping hands and gold isn't currently implemented */
+    if (!obj || obj->oclass == COIN_CLASS)
+        return GETOBJ_EXCLUDE;
+
+    if (inaccessible_equipment(obj, (const char *) 0, FALSE))
+        return GETOBJ_EXCLUDE_INACCESS;
+
+    return GETOBJ_SUGGEST;
+}
+
+/* call hold_another_object() to deal with a transformed potion; its weight
+   won't have changed but it might require an extra slot that isn't available
+   or it might merge into some other carried stack */
+static void
+hold_potion(struct obj *potobj, const char *drop_fmt, const char *drop_arg,
+            const char *hold_msg)
+{
+    int cap = near_capacity(),
+        save_pickup_burden = flags.pickup_burden;
+
+    /* prevent a drop due to current setting of the 'pickup_burden' option */
+    if (flags.pickup_burden < cap)
+        flags.pickup_burden = cap;
+    /* remove from inventory after calculating near_capacity() */
+    obj_extract_self(potobj);
+    /* re-insert into inventory, possibly merging with compatible stack */
+    potobj = hold_another_object(potobj, drop_fmt, drop_arg, hold_msg);
+    flags.pickup_burden = save_pickup_burden;
+    update_inventory();
+    return;
+}
+
 /* #dip command */
 int
-dodip()
+dodip(void)
 {
+    static const char Dip_[] = "Dip ";
     register struct obj *potion, *obj;
     struct obj *singlepotion;
     uchar here;
     short mixture;
-    char qbuf[QBUFSZ];
+    char qbuf[QBUFSZ], obuf[QBUFSZ];
     const char *shortestname; /* last resort obj name for prompt */
 
-    if (!(obj = getobj("dip", allow_any_obj, FALSE, FALSE)))
+    if (!(obj = getobj("dip", dip_ok, GETOBJ_PROMPT)))
         return 0;
     if (inaccessible_equipment(obj, "dip", FALSE))
         return 0;
 
     shortestname = (is_plural(obj) || pair_of(obj)) ? "them" : "it";
-    /* "What do you want to dip <the object> into? [xyz or ?*] " */
-    Sprintf(qbuf, "dip %s into", flags.verbose ? yname(obj) : shortestname);
-    potion = getobj(qbuf, dip_ok, FALSE, TRUE);
+    /*
+     * Bypass safe_qbuf() since it doesn't handle varying suffix without
+     * an awful lot of support work.  Format the object once, even though
+     * the fountain and pool prompts offer a lot more room for it.
+     * 3.6.0 used thesimpleoname() unconditionally, which posed no risk
+     * of buffer overflow but drew bug reports because it omits user-
+     * supplied type name.
+     * getobj: "What do you want to dip <the object> into? [xyz or ?*] "
+     */
+    Strcpy(obuf, short_oname(obj, doname, thesimpleoname,
+                             /* 128 - (24 + 54 + 1) leaves 49 for <object> */
+                             QBUFSZ - sizeof "What do you want to dip \
+ into? [abdeghjkmnpqstvwyzBCEFHIKLNOQRTUWXZ#-# or ?*] "));
 
     here = levl[u.ux][u.uy].typ;
-    /*
+    /* Is there a fountain to dip into here? */
+    if (IS_FOUNTAIN(here)) {
+        Snprintf(qbuf, sizeof(qbuf), "%s%s into the fountain?", Dip_,
+                 flags.verbose ? obuf : shortestname);
+        /* "Dip <the object> into the fountain?" */
+        if (yn(qbuf) == 'y') {
+            dipfountain(obj);
+            return 1;
+        }
+    } else if (IS_SINK(here)) {
+        Snprintf(qbuf, sizeof(qbuf), "%s%s into the sink?", Dip_,
+                 flags.verbose ? obuf : shortestname);
+        /* "Dip <the object> into the fountain?" */
+        if (yn(qbuf) == 'y') {
+            dipsink(obj);
+            return 1;
+        }
     } else if (is_pool(u.ux, u.uy)) {
         const char *pooltype = waterbody_name(u.ux, u.uy);
 
-        Sprintf(qbuf, "Dip %s into the %s?",
-                flags.verbose ? obuf : shortestname, pooltype);
-        // "Dip <the object> into the {pool, moat, &c}?"
+        Snprintf(qbuf, sizeof(qbuf), "%s%s into the %s?", Dip_,
+                 flags.verbose ? obuf : shortestname, pooltype);
+        /* "Dip <the object> into the {pool, moat, &c}?" */
         if (yn(qbuf) == 'y') {
             if (Levitation) {
                 floating_above(pooltype);
             } else if (u.usteed && !is_swimmer(u.usteed->data)
                        && P_SKILL(P_RIDING) < P_BASIC) {
-                rider_cant_reach(); // not skilled enough to reach
+                rider_cant_reach(); /* not skilled enough to reach */
             } else {
                 if (obj->otyp == POT_ACID)
                     obj->in_use = 1;
                 if (water_damage(obj, 0, TRUE) != ER_DESTROYED && obj->in_use)
                     useup(obj);
             }
-            */
-    if (potion == &cg.zeroobj) {
-        if (IS_FOUNTAIN(here)) {
-            dipfountain(obj);
             return 1;
-        } else if (IS_SINK(here)) {
-            dipsink(obj);
-        } else if (is_pool(u.ux, u.uy)) {
-            if (obj->otyp == POT_ACID)
-                obj->in_use = 1;
-            if (water_damage(obj, 0, TRUE) != ER_DESTROYED && obj->in_use)
-                useup(obj);
-            return 1;
-        } else
-            impossible("bad zeroobj dip?");
-
-        return 0;
+        }
     }
 
+    /* "What do you want to dip <the object> into? [xyz or ?*] " */
+    Snprintf(qbuf, sizeof(qbuf), "dip %s into",
+             flags.verbose ? obuf : shortestname);
+    potion = getobj(qbuf, drink_ok, GETOBJ_NOFLAGS);
     if (!potion)
         return 0;
     if (potion == obj && potion->quan == 1L) {
@@ -2253,8 +2241,7 @@ dodip()
             short save_otyp = obj->otyp;
 
             /* KMH, conduct */
-            if (!u.uconduct.polypiles++)
-                livelog_printf(LL_CONDUCT, "polymorphed %s first item", uhis());
+            u.uconduct.polypiles++;
 
             obj = poly_obj(obj, STRANGE_OBJECT);
 
@@ -2372,8 +2359,7 @@ dodip()
            been made in order to get the merge result for both cases;
            as a consequence, mixing while Fumbling drops the mixture */
         freeinv(obj);
-        (void) hold_another_object(obj, "You drop %s!", doname(obj),
-                                   (const char *) 0);
+        hold_potion(obj, "You drop %s!", doname(obj), (const char *) 0);
         return 1;
     }
 
@@ -2576,13 +2562,10 @@ dodip()
                 docall(&fakeobj);
             }
         }
-        obj_extract_self(singlepotion);
-        singlepotion = hold_another_object(singlepotion,
-                                           "You juggle and drop %s!",
-                                           doname(singlepotion),
-                                           (const char *) 0);
-        nhUse(singlepotion);
-        update_inventory();
+        /* remove potion from inventory and re-insert it, possibly stacking
+           with compatible ones; override 'pickup_burden' while doing so */
+        hold_potion(singlepotion, "You juggle and drop %s!",
+                    doname(singlepotion), (const char *) 0);
         return 1;
     }
 
@@ -2637,6 +2620,7 @@ dodip()
         }
     }
 
+
     pline("Interesting...");
     return 1;
 
@@ -2650,9 +2634,7 @@ dodip()
 }
 
 void
-ferment(arg, timeout)
-anything* arg;
-long timeout UNUSED;
+ferment(anything* arg, long timeout UNUSED)
 {
     struct obj* potion = arg->a_obj;
     short corpsenm = potion->corpsenm;
@@ -2717,8 +2699,7 @@ long timeout UNUSED;
 
 /* Dip an object into a sink. */
 void
-dipsink(obj)
-struct obj * obj;
+dipsink(struct obj * obj)
 {
     /* currently can't dip non-potions into sinks */
     if (obj->oclass != POTION_CLASS) {
@@ -2744,8 +2725,7 @@ struct obj * obj;
 
 /* *monp grants a wish and then leaves the game */
 void
-mongrantswish(monp)
-struct monst **monp;
+mongrantswish(struct monst **monp)
 {
     struct monst *mon = *monp;
     int mx = mon->mx, my = mon->my, glyph = glyph_at(mx, my);
@@ -2764,8 +2744,7 @@ struct monst **monp;
 }
 
 void
-djinni_from_bottle(obj)
-struct obj *obj;
+djinni_from_bottle(struct obj *obj)
 {
     struct monst *mtmp;
     int chance;
@@ -2822,9 +2801,8 @@ struct obj *obj;
 /* clone a gremlin or mold (2nd arg non-null implies heat as the trigger);
    hit points are cut in half (odd HP stays with original) */
 struct monst *
-split_mon(mon, mtmp)
-struct monst *mon,  /* monster being split */
-             *mtmp; /* optional attacker whose heat triggered it */
+split_mon(struct monst *mon,  /* monster being split */
+          struct monst *mtmp) /* optional attacker whose heat triggered it */
 {
     struct monst *mtmp2;
     char reason[BUFSZ];
@@ -2857,8 +2835,7 @@ struct monst *mon,  /* monster being split */
 
 /* Character becomes very fast temporarily. */
 void
-speed_up(duration)
-long duration;
+speed_up(long duration)
 {
    if (!Very_fast) {
        You("are suddenly moving %sfaster.", Fast ? "" : "much ");

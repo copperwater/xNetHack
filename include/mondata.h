@@ -145,7 +145,8 @@
     (((ptr) == &mons[PM_SEWER_RAT]) || ((ptr) == &mons[PM_GIANT_RAT]) || \
      ((ptr) == &mons[PM_RABID_RAT]) || ((ptr) == &mons[PM_WERERAT]) || \
      ((ptr) == &mons[PM_HUMAN_WERERAT]))
-#define is_zombie(ptr) ((ptr)->mlet == S_ZOMBIE && strstri((ptr)->mname, "zombie"))
+#define is_zombie(ptr) \
+    ((ptr)->mlet == S_ZOMBIE && strstri((ptr)->pmnames[NEUTRAL], "zombie"))
 #define is_domestic(ptr) (((ptr)->mflags2 & M2_DOMESTIC) != 0L)
 #define is_demon(ptr) (((ptr)->mflags2 & M2_DEMON) != 0L)
 #define is_mercenary(ptr) (((ptr)->mflags2 & M2_MERC) != 0L)
