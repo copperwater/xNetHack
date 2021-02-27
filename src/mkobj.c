@@ -3461,7 +3461,6 @@ material_list(struct obj* obj)
         case LEATHER_DRUM:
         case DRUM_OF_EARTHQUAKE:
         case LAND_MINE:
-        case BEARTRAP:
         case TOWEL:
         case AMULET_OF_YENDOR:
         case FAKE_AMULET_OF_YENDOR:
