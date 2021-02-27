@@ -1128,7 +1128,7 @@ meatmetal(register struct monst* mtmp)
     for (otmp = g.level.objects[mtmp->mx][mtmp->my]; otmp;
          otmp = otmp->nexthere) {
         /* Don't eat indigestible/choking/inappropriate objects */
-        if ((mtmp->data == &mons[PM_RUST_MONSTER] && !is_rustprone(otmp))
+        if (!can_eat_material(mtmp->data, otmp->material)
             || (otmp->otyp == AMULET_OF_STRANGULATION)
             || (otmp->otyp == RIN_SLOW_DIGESTION))
             continue;

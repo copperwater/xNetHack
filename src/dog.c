@@ -881,7 +881,7 @@ dogfood(struct monst *mon, struct obj *obj)
         if (mptr == &mons[PM_GELATINOUS_CUBE] && is_organic(obj))
             return ACCFOOD;
         if (metallivorous(mptr) && is_metallic(obj)
-            && (is_rustprone(obj) || mptr != &mons[PM_RUST_MONSTER])) {
+            && can_eat_material(mptr, obj->material)) {
             /* Non-rustproofed ferrous based metals are preferred. */
             return (is_rustprone(obj) && !obj->oerodeproof) ? DOGFOOD
                                                             : ACCFOOD;

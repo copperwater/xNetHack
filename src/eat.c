@@ -75,8 +75,12 @@ is_edible(register struct obj *obj)
     /* above also prevents the Amulet from being eaten, so we must never
        allow fake amulets to be eaten either [which is already the case] */
 
-    if (metallivorous(g.youmonst.data) && is_metallic(obj)
-        && (g.youmonst.data != &mons[PM_RUST_MONSTER] || is_rustprone(obj)))
+    /* [g-cubes can eat containers and retain all contents
+        as engulfed items, but poly'd player can't do that] */
+    if (Has_contents(obj))
+        return FALSE;
+
+    if (can_eat_material(g.youmonst.data, obj->material))
         return TRUE;
 
     /* Ghouls only eat non-veggy corpses or eggs (see dogfood()) */
@@ -84,12 +88,6 @@ is_edible(register struct obj *obj)
         return (boolean)((obj->otyp == CORPSE
                           && !vegan(&mons[obj->corpsenm]))
                          || (obj->otyp == EGG));
-
-    if (u.umonnum == PM_GELATINOUS_CUBE && is_organic(obj)
-        /* [g-cubes can eat containers and retain all contents
-            as engulfed items, but poly'd player can't do that] */
-        && !Has_contents(obj))
-        return TRUE;
 
     return (boolean) (obj->oclass == FOOD_CLASS);
 }
@@ -3360,8 +3358,7 @@ floorfood(const char *verb,
                then the trap would just get eaten on the _next_ turn... */
             Sprintf(qbuf, "There is a bear trap here (%s)",
                     u_in_beartrap ? "holding you" : "armed");
-            if (g.youmonst.data == &mons[PM_RUST_MONSTER] &&
-                ttmp->ammo->material != IRON) {
+            if (!can_eat_material(uptr, ttmp->ammo->material)) {
                 pline("%s, but you cannot eat it.", qbuf);
                 return (struct obj *) 0;
             }
@@ -3397,8 +3394,7 @@ floorfood(const char *verb,
             else if (c == 'q')
                 return (struct obj *) 0;
         }
-        if (uptr != &mons[PM_RUST_MONSTER]
-            && (gold = g_at(u.ux, u.uy)) != 0) {
+        if (can_eat_material(uptr, GOLD) && (gold = g_at(u.ux, u.uy)) != 0) {
             if (gold->quan == 1L)
                 Sprintf(qbuf, "There is 1 gold piece here; eat it?");
             else
@@ -3620,6 +3616,31 @@ Popeye(int threat)
         break;
     default:
         break;
+    }
+    return FALSE;
+}
+
+/* Return true if the given monster species can eat objects (and terrain) made
+ * of the given material.
+ * This is only for eating unusual materials; things like inediate monsters
+ * eating VEGGY/FLESH are not covered. */
+boolean
+can_eat_material(struct permonst *pm, int material)
+{
+    /* Use a fake object so that we can call the is_foo() functions on object
+     * materials. */
+    struct obj psuedo;
+    psuedo.material = material;
+
+    if (pm == &mons[PM_GELATINOUS_CUBE]) {
+        return is_organic(&psuedo);
+    }
+    else if (pm == &mons[PM_RUST_MONSTER]) {
+        /* rust monsters can ONLY eat rustprone items */
+        return is_rustprone(&psuedo);
+    }
+    else if (metallivorous(pm)) {
+        return is_metallic(&psuedo);
     }
     return FALSE;
 }

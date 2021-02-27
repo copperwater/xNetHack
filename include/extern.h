@@ -693,6 +693,7 @@ extern int tin_variety_txt(char *, int *);
 extern int tin_variety(struct obj *, boolean);
 extern void tin_details(struct obj *, int, char *);
 extern boolean Popeye(int);
+extern boolean can_eat_material(struct permonst *, int);
 
 /* ### end.c ### */
 
