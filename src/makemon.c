@@ -1530,6 +1530,7 @@ create_critters(int cnt,
     boolean in_water = u.uinwater;
     int old_census = monster_census(TRUE);
     int newmons_ct;
+    int femalect = 0; /* for tracking collective gender of group */
 
     if (creator != &g.youmonst) {
         in_water = is_pool(creator->mx, creator->my);
@@ -1555,6 +1556,9 @@ create_critters(int cnt,
         struct monst *mtmp = makemon(mptr, x, y, MM_ADJACENTOK | MM_NOGRP);
         if (mtmp != NULL) {
             mon = mtmp;
+            if (mtmp->female) {
+                femalect++;
+            }
         }
     }
     newmons_ct = monster_census(TRUE) - old_census;
@@ -1569,7 +1573,14 @@ create_critters(int cnt,
              * Amonnam to describe the whole group, if mptr is set. */
             const char *who;
             if (mptr) {
-                who = upstart(makeplural(mptr->pmnames[NEUTRAL]));
+                uchar gend = NEUTRAL;
+                if (!is_neuter(mptr)) {
+                    if (femalect == newmons_ct)
+                        gend = FEMALE;
+                    else if (femalect == 0)
+                        gend = MALE;
+                }
+                who = upstart(makeplural(mptr->pmnames[gend]));
             }
             else {
                 who = "Monsters";
