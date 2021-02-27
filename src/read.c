@@ -76,7 +76,7 @@ erode_obj_text(struct obj* otmp, char* buf)
 char *
 tshirt_text(struct obj* tshirt, char* buf)
 {
-    get_rnd_text(SHIRTFILE, buf, hash1(tshirt->o_id), rn2);
+    get_rnd_text(SHIRTFILE, buf, int_hash1(tshirt->o_id), rn2);
     return erode_obj_text(tshirt, buf);
 }
 
@@ -426,7 +426,7 @@ doread(void)
             "Can Of Whoop-Ass. Use Caution When Opening.",
         };
         int food = tin_variety(scroll, TRUE);
-        int msgidx = hash1(scroll->tinseed) % SIZE(tin_msgs);
+        unsigned int msgidx = hash1(scroll->tinseed) % SIZE(tin_msgs);
         const char* endpunct = "";
         const char* format_string; /* holds format string tinmsg */
         char format_arg[BUFSZ]; /* holds argument to format string */
@@ -457,7 +457,7 @@ doread(void)
                 if (msgidx == LABEL_BOGUSMON) {
                     /* hallucinatory monster */
                     Strcpy(format_arg,
-                           bogusmon(format_arg, NULL, hash1(scroll->tinseed)));
+                           bogusmon(format_arg, NULL, int_hash1(scroll->tinseed)));
                     up_all_words(format_arg);
                 }
                 else if (msgidx >= LABEL_FRUIT_START
@@ -468,7 +468,7 @@ doread(void)
                 }
                 else if (msgidx >= LABEL_MONST_START
                          && msgidx < LABEL_MONST_START + NUM_MONST_LABELS) {
-                    int mndx;
+                    unsigned int mndx;
                     int seed = scroll->tinseed;
                     unsigned short forbidden_geno =
                         (G_UNIQ | G_NOGEN | G_NOCORPSE);

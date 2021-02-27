@@ -47,6 +47,7 @@
         boolean         online2         (int, int)
         unsigned int    coord_hash      (int, int, int)
         unsigned int    hash1           (int)
+        int             int_hash1       (int)
         boolean         pmatch          (const char *, const char *)
         boolean         pmatchi         (const char *, const char *)
         boolean         pmatchz         (const char *, const char *)
@@ -736,6 +737,18 @@ hash1(int x)
 {
     /* wrap around coord_hash; ignore Cantor coordinate pairing */
     return coord_hash(0, 0, x);
+}
+
+/* hash1(), but returns a positive int, for various use cases that convert it to
+ * int and which it would be unsafe to just use hash1 and possibly have that
+ * value converted to negative. */
+int
+int_hash1(int x)
+{
+    unsigned int hash = hash1(x);
+    while (hash > INT_MAX)
+        hash /= 2;
+    return (int) hash;
 }
 
 /* guts of pmatch(), pmatchi(), and pmatchz();

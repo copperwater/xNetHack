@@ -948,6 +948,7 @@ extern int distmin(int, int, int, int);
 extern boolean online2(int, int, int, int);
 extern unsigned int coord_hash(int, int, int);
 extern unsigned int hash1(int);
+extern int int_hash1(int);
 extern boolean pmatch(const char *, const char *);
 extern boolean pmatchi(const char *, const char *);
 extern boolean pmatchz(const char *, const char *);

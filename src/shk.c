@@ -1526,10 +1526,10 @@ dopay(void)
  */
 static int
 dopayobj(
-    register struct monst* shkp, 
-    register struct bill_x* bp, 
-    struct obj** obj_p, 
-    int which /* 0 => used-up item, 1 => other (unpaid or lost) */, 
+    register struct monst* shkp,
+    register struct bill_x* bp,
+    struct obj** obj_p,
+    int which /* 0 => used-up item, 1 => other (unpaid or lost) */,
     boolean itemize)
 
 {
@@ -2027,7 +2027,7 @@ oid_price_adjustment(struct obj* obj, unsigned int oid)
 /* calculate the value that the shk will charge for [one of] an object */
 static long
 get_cost(
-    register struct obj* obj, 
+    register struct obj* obj,
     register struct monst* shkp) /* if angry, impose a surcharge */
 {
     long tmp = getprice(obj, FALSE),
@@ -2044,7 +2044,7 @@ get_cost(
             int i;
             /* get a value that's 'random' from game to game, but the
                same within the same game */
-            boolean pseudorand = (hash1(obj->otyp) & 0x1);
+            boolean pseudorand = ((hash1(obj->otyp) & 0x1) != 0);
 
             /* all gems are priced high - real or not */
             switch (obj->otyp - LAST_GEM) {
@@ -2490,7 +2490,7 @@ add_to_billobjs(struct obj* obj)
 static void
 bill_box_content(
     register struct obj *obj,
-    register boolean ininv, 
+    register boolean ininv,
     register boolean dummy,
     register struct monst *shkp)
 {
@@ -2588,7 +2588,7 @@ billable(
 void
 addtobill(
     struct obj *obj,
-    boolean ininv, 
+    boolean ininv,
     boolean dummy,
     boolean silent)
 {
@@ -2850,9 +2850,9 @@ stolen_container(
 long
 stolen_value(
     struct obj *obj,
-    xchar x, 
+    xchar x,
     xchar y,
-    boolean peaceful, 
+    boolean peaceful,
     boolean silent)
 {
     long value = 0L, gvalue = 0L, billamt = 0L;

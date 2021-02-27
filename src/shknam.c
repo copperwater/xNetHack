@@ -496,10 +496,10 @@ mkshobj_at(const struct shclass* shp, int sx, int sy, boolean mkspecl)
 static void
 nameshk(struct monst* shk, const char* const* nlp)
 {
-    int i, trycnt, names_avail;
+    int i, trycnt;
     const char *shname = 0;
     struct monst *mtmp;
-    int name_wanted = shk->m_id;
+    unsigned int name_wanted = shk->m_id, names_avail;
     s_level *sptr;
 
     if (nlp == shklight && In_mines(&u.uz)

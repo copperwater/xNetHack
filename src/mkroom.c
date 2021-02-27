@@ -643,10 +643,9 @@ morguemon(void)
 struct permonst *
 antholemon(void)
 {
-    int mtyp, indx, trycnt = 0;
+    int mtyp, trycnt = 0;
+    unsigned int indx = hash1(ledger_no(&u.uz));
 
-    /* casts are for dealing with time_t */
-    indx = hash1(ledger_no(&u.uz));
     /* Same monsters within a level, different ones between levels */
     do {
         switch ((indx + trycnt) % 3) {
