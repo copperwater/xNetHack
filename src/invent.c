@@ -1497,10 +1497,17 @@ getobj(register const char *word,
     Loot *sortedinvent, *srtinv;
 
     /* is "hands"/"self" a valid thing to do this action on? */
-    if ((*obj_ok)((struct obj *) 0) == GETOBJ_SUGGEST) {
-	allownone = TRUE;
+    switch ((*obj_ok)((struct obj *) 0)) {
+    case GETOBJ_SUGGEST:
         *bp++ = HANDS_SYM;
         *bp++ = ' '; /* put a space after the '-' in the prompt */
+        /* FALLTHRU */
+    case GETOBJ_DOWNPLAY:
+	allownone = TRUE;
+        *ap++ = HANDS_SYM;
+        /* FALLTHRU */
+    default:
+        break;
     }
 
     if (!flags.invlet_constant)
