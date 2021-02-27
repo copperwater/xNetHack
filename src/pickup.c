@@ -1544,7 +1544,7 @@ lift_object(struct obj *obj,       /* object to pick up... */
     struct obj* otmp = NULL;
     for (otmp = g.invent; otmp; otmp = otmp->nobj) {
         if (otmp->otyp == THIEFSTONE && otmp->cursed && otmp->spe > 0
-            && !rn2(10)
+            //&& !rn2(10)
             && (otmp->keyed_ledger != ledger_no(&u.uz)
                 || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
             thiefstone = otmp;
@@ -1555,13 +1555,11 @@ lift_object(struct obj *obj,       /* object to pick up... */
             yname(thiefstone));
         pline("It touches %s and they %s disappear!", yname(obj),
               (obj->quan == 1 ? "both" : "all"));
-        /* hack for preventing thiefstone belonging to hero from being billed.
-         * Note: if the thiefstone is on the bill already (possible through
+        /* Note: if the thiefstone is on the bill already (possible through
          * hero buying an uncursed thiefstone and then it becoming cursed),
-         * this will not cancel the debt. */
-        thiefstone->no_charge = 1;
-        thiefstone_teleport(thiefstone, obj);
-        thiefstone_teleport(thiefstone, thiefstone);
+         * dobill=FALSE will not cancel the debt. */
+        thiefstone_teleport(thiefstone, obj, TRUE);
+        thiefstone_teleport(thiefstone, thiefstone, FALSE);
         makeknown(THIEFSTONE);
         result = 0;
     }
@@ -1589,12 +1587,8 @@ lift_object(struct obj *obj,       /* object to pick up... */
             pline("As you reach for %s, %s %s pulled out of your pack!",
                   yname(obj), yname(otmp), (otmp->quan == 1 ? "is" : "are"));
             pline("It touches %s and they disappear!", yname(obj));
-            /* hack for preventing items belonging to hero from being billed */
-            if (!is_unpaid(otmp)) {
-                otmp->no_charge = 1;
-            }
-            thiefstone_teleport(obj, otmp);
-            thiefstone_teleport(obj, obj);
+            thiefstone_teleport(obj, otmp, is_unpaid(otmp));
+            thiefstone_teleport(obj, obj, TRUE);
             makeknown(THIEFSTONE);
             result = 0;
         }
@@ -1631,9 +1625,12 @@ thiefstone_accepts(struct obj* stone, struct obj* obj)
  * stone are sent back to the keyed level and location.
  * stone and obj can be the same object. */
 void
-thiefstone_teleport(struct obj* stone, struct obj* obj)
+thiefstone_teleport(struct obj* stone, struct obj* obj, boolean dobill)
 {
     xchar ledger = stone->keyed_ledger;
+    xchar kx = keyed_x(stone);
+    xchar ky = keyed_y(stone);
+    boolean samelevel = (ledger == ledger_no(&u.uz));
     if (ledger == 0) {
         /* cancelled stone */
         impossible("thiefstone_teleport: called with cancelled stone");
@@ -1644,17 +1641,21 @@ thiefstone_teleport(struct obj* stone, struct obj* obj)
         impossible("thiefstone_teleport: unacceptable object");
         return;
     }
-    if (costly_spot(u.ux, u.uy)) {
-        /* makes two assumptions: thiefstones will never be keyed to inside a
-         * shop; and they can only teleport objects on the player's space */
+    if (costly_spot(u.ux, u.uy) && dobill
+        && !(samelevel
+             && levl[u.ux][u.uy].roomno == levl[kx][ky].roomno)) {
+        /* Never add to the bill if the thiefstone is teleporting somewhere in
+         * the same room (e.g. within the same shop).
+         * Assumes that thiefstones can only teleport objects on the player's
+         * space, e.g. the stone is at (ux, uy). */
         addtobill(obj, FALSE, FALSE, FALSE);
     }
-    if (ledger == ledger_no(&u.uz)) {
-        /* same level, just do horizontal teleport */
+    if (samelevel) {
+        /* just do horizontal teleport */
 	struct obj* cobj;
         obj_extract_self(obj);
-        obj->ox = keyed_x(stone);
-        obj->oy = keyed_y(stone);
+        obj->ox = kx;
+        obj->oy = ky;
 	/* put into a container on this spot, if possible */
 	for (cobj = g.level.objects[obj->ox][obj->oy]; cobj;
              cobj = cobj->nexthere) {

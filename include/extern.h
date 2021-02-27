@@ -1979,7 +1979,7 @@ extern void removed_from_icebox(struct obj *);
 extern int pickup(int);
 extern int pickup_object(struct obj *, long, boolean);
 extern boolean thiefstone_accepts(struct obj *, struct obj *);
-extern void thiefstone_teleport(struct obj *, struct obj *);
+extern void thiefstone_teleport(struct obj *, struct obj *, boolean);
 extern boolean thiefstone_tele_mon(struct obj *, struct monst *);
 extern int query_category(const char *, struct obj *, int, menu_item **, int);
 extern int query_objlist(const char *, struct obj **, int, menu_item **, int,

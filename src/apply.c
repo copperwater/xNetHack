@@ -2538,11 +2538,9 @@ use_stone(struct obj *tstone)
 
     if (tstone->otyp == THIEFSTONE && thiefstone_accepts(tstone, obj)
         && !tstone->cursed && tstone->spe > 0) {
-        /* hack for if hero is in shop and is teleporting their own item */
-        obj->no_charge = 1;
         pline("You touch %s to %s, which disappear%s.", yname(tstone),
               yname(obj), (obj->quan == 1 ? "s" : ""));
-        thiefstone_teleport(tstone, obj);
+        thiefstone_teleport(tstone, obj, FALSE);
         makeknown(THIEFSTONE);
         return;
     }
