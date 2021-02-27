@@ -1375,7 +1375,7 @@ current_holidays(void)
         }
         /* Then using whatever is remaining, find the month and date of the
          * current day. */
-        int islam_month, islam_date;
+        int islam_month = 0, islam_date = 0;
         for (i = 0; i < 12; ++i) {
             int month_len = (i % 2 == 1) ? 29 : 30;
             if (date_delta < month_len) {
@@ -1462,7 +1462,7 @@ current_holidays(void)
             else if (heb_year_length % 10 == 5) { /* full year */
                 heb_month_len[1] += 1; /* add 1 day to Cheshvan */
             }
-            int hebrew_month, hebrew_date;
+            int hebrew_month = 0, hebrew_date = 0;
             int date_delta = tmp_epoch_today - epoch_last_newyear;
             for (i = 0; i < 13; ++i) {
                 if (date_delta < heb_month_len[i]) {
@@ -1471,6 +1471,9 @@ current_holidays(void)
                     break;
                 }
                 date_delta -= heb_month_len[i];
+            }
+            if (date_delta < 0 || i == 13) {
+                impossible("holiday: bad math finding hebrew month/date");
             }
             if (hebrew_month == 1 && hebrew_date >= 1 && hebrew_date <= 2) {
                 retmask |= HOLIDAY_ROSH_HASHANAH;

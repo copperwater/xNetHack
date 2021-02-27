@@ -910,7 +910,7 @@ get_shtype(int rtype)
 {
     if (rtype < SHOPBASE) {
         impossible("get_shtype: given non-shop %d", rtype);
-        return &shtypes[SHOPBASE];
+        return &shtypes[0];
     }
     return &shtypes[rtype - SHOPBASE];
 }
