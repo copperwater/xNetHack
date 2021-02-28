@@ -80,7 +80,7 @@ for i=1,3 do
       if math.random(0,99) < 50 then
          des.monster("piranha")
       else
-         des.monster("z")
+         des.monster(";")
       end
    end
 end

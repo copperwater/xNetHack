@@ -1004,7 +1004,7 @@ xxxx----xx----xxxx]], contents=function(m)
             local waterarea = (rm.width-2)*(rm.height-2)
             local nmonsters = math.min(d(5), waterarea/2);
             for i=1,nmonsters do
-               des.monster('z')
+               des.monster(';')
             end
             -- sunken treasure
             if percent(50) then

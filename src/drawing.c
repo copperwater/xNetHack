@@ -74,7 +74,7 @@ const struct class_sym def_monsyms[MAXMCLASSES] = {
     { DEF_WORM, "", "worm" },
     { DEF_XAN, "", "xan or other mythical/fantastic insect" },
     { DEF_LIGHT, "", "light" },
-    { DEF_EEL, "", "sea monster" },
+    { DEF_ZRUTY, "", "zruty" },
     { DEF_ANGEL, "", "angelic being" },
     { DEF_BAT, "", "bat or bird" },
     { DEF_CENTAUR, "", "centaur" },
@@ -104,6 +104,7 @@ const struct class_sym def_monsyms[MAXMCLASSES] = {
     { DEF_HUMAN, "", "human" },
     { DEF_GOLEM, "", "golem" },
     { DEF_DEMON, "", "major demon" },
+    { DEF_EEL, "", "sea monster" },
     { DEF_WORM_TAIL, "", "long worm tail" },
     { DEF_MIMIC_DEF, "", "mimic" },
 };
