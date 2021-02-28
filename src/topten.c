@@ -438,26 +438,6 @@ encodeconduct(void)
         e |= 1L << 10;
     if (!num_genocides())
         e |= 1L << 11;
-    if (!u.uconduct.pets)
-        e |= 1L << 12;
-    if (!u.uconduct.artitouch)
-        e |= 1L << 13;
-    if (!u.uconduct.scares)
-        e |= 1L << 14;
-    if (u.uroleplay.blind)
-        e |= 1L << 15;
-    if (u.uroleplay.nudist)
-        e |= 1L << 16;
-    if (u.uroleplay.hallu)
-        e |= 1L << 17;
-    if (u.uroleplay.deaf)
-        e |= 1L << 18;
-    if (u.umortality == 0)
-        e |= 1L << 19;
-    if (u.uconduct.uncelibate)
-        e |= 1L << 20;
-    if (u.uconduct.conflicting)
-        e |= 1L << 21;
     /* one bit isn't really adequate for sokoban conduct:
        reporting "obeyed sokoban rules" is misleading if sokoban wasn't
        completed or at least attempted; however, suppressing that when
@@ -466,8 +446,31 @@ encodeconduct(void)
        be disambiguated in xlogfile post-processors by testing the
        entered-sokoban bit in the 'achieve' field */
     if (!u.uconduct.sokocheat && sokoban_in_play())
-        e |= 1L << 22;
+        e |= 1L << 12;
 
+    /* Starting in xNetHack 6.0, xNetHack-specific flags start at the highest
+     * bits and grow downward, while vanilla flags still start at the lowest bit
+     * and grow upward. */
+    if (!u.uconduct.pets)
+        e |= 1L << 31;
+    if (!u.uconduct.artitouch)
+        e |= 1L << 30;
+    if (!u.uconduct.scares)
+        e |= 1L << 29;
+    if (u.uroleplay.blind)
+        e |= 1L << 28;
+    if (u.uroleplay.nudist)
+        e |= 1L << 27;
+    if (u.uroleplay.hallu)
+        e |= 1L << 26;
+    if (u.uroleplay.deaf)
+        e |= 1L << 25;
+    if (u.umortality == 0)
+        e |= 1L << 24;
+    if (!u.uconduct.uncelibate)
+        e |= 1L << 23;
+    if (!u.uconduct.conflicting)
+        e |= 1L << 22;
     return e;
 }
 
@@ -621,6 +624,13 @@ encode_extended_conducts(void)
     add_achieveX(buf, "blind",        u.uroleplay.blind);
     add_achieveX(buf, "nudist",       u.uroleplay.nudist);
     add_achieveX(buf, "bonesless",    !flags.bones);
+    add_achieveX(buf, "petless",      !u.uconduct.pets);
+    add_achieveX(buf, "artifactless", !u.uconduct.artitouch);
+    add_achieveX(buf, "permahallu",   !u.uroleplay.hallu);
+    add_achieveX(buf, "permadeaf",    !u.uroleplay.deaf);
+    add_achieveX(buf, "survivor",     (u.umortality == 0));
+    add_achieveX(buf, "celibate",     !u.uconduct.uncelibate);
+    add_achieveX(buf, "conflictless", !u.uconduct.conflicting);
 
     return buf;
 }

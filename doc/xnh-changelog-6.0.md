@@ -441,6 +441,9 @@ changes:
 - New SERVERSEED sysconf option, which is intended for server operators to
   obfuscate the values returned by the game's deterministic hash functions so
   players can't compute them.
+- Conduct flags in the xlogfile are moved around (xNetHack flags now start at
+  the highest bit and count down) and conductX is extended to include xNetHack
+  conducts.
 
 ### Architectural changes
 
