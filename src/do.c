@@ -1864,7 +1864,7 @@ revive_corpse(struct obj *corpse, boolean moldy)
                         Monnam(mtmp));
                 }
                 else if (mtmp->data == &mons[PM_FAMINE]) {
-                    pline("%s rises from the dead in a ring of withering crops!",
+                    pline("%s rises from the dead in a ring of withered crops!",
                         Monnam(mtmp));
                 }
                 else {
