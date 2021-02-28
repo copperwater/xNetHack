@@ -385,11 +385,12 @@ changes:
 - Thiefstones no longer teleport themselves along with a gold golem that they
   steal away, unless you are a gold golem rubbing it on your own hand, in which
   case it stays with you.
-- Revert some of version 3.0's monster letter changes:
+- Revert some of version 3.0's monster letter and color changes:
   - Sea monsters moved back to ';'
   - Zruties reintroduced as 'z'
   - Lizards moved back to ':'
   - Leprechauns moved back to 'l'
+  - Kop Sergeants/Lieutenants/Kaptains returned to blue/cyan/magenta
 
 ### Interface changes
 
