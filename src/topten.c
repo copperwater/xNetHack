@@ -396,15 +396,14 @@ encodexlogflags(void)
         e |= 1L << 0;
     if (discover)
         e |= 1L << 1;
-    if (Polyinit_mode)
+    if (!u.uroleplay.numbones)
         e |= 1L << 2;
-    /* Reserve the 9th through 16th bits as their own number representing the
-     * number of bones files loaded. */
-    if (u.uroleplay.numbones > 0xFF) {
-        impossible("more than 255 bones files loaded?");
-        u.uroleplay.numbones = 0xFF;
-    }
-    e |= u.uroleplay.numbones << 8;
+
+    /* Starting in xNetHack 6.0, xNetHack-specific flags start at the highest
+     * bits and grow downward, while vanilla flags still start at the lowest bit
+     * and grow upward. */
+    if (Polyinit_mode)
+        e |= 1L << 31;
 
     return e;
 }
