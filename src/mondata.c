@@ -313,7 +313,7 @@ hates_material(register struct permonst *ptr, int material)
     if (material == SILVER) {
         if (ptr->mlet == S_IMP) {
             /* impish creatures that aren't actually demonic */
-            if (ptr == &mons[PM_TENGU] || ptr == &mons[PM_LEPRECHAUN])
+            if (ptr == &mons[PM_TENGU])
                 return FALSE;
         }
         return (is_were(ptr) || ptr->mlet == S_VAMPIRE

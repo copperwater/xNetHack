@@ -388,6 +388,8 @@ changes:
 - Revert some of version 3.0's monster letter changes:
   - Sea monsters moved back to ';'
   - Zruties reintroduced as 'z'
+  - Lizards moved back to ':'
+  - Leprechauns moved back to 'l'
 
 ### Interface changes
 

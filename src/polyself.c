@@ -1813,7 +1813,7 @@ mbodypart(struct monst *mon, int part)
     /* claw attacks are overloaded in mons[]; most humanoids with
        such attacks should still reference hands rather than claws */
     static const char not_claws[] = {
-        S_HUMAN,     S_MUMMY,   S_ZOMBIE, S_ANGEL, S_NYMPH,
+        S_HUMAN,     S_MUMMY,   S_ZOMBIE, S_ANGEL, S_NYMPH, S_LEPRECHAUN,
         S_VAMPIRE, S_ORC,    S_GIANT, /* quest nemeses */
         '\0' /* string terminator; assert( S_xxx != 0 ); */
     };
@@ -1842,8 +1842,7 @@ mbodypart(struct monst *mon, int part)
     if ((part == HAND || part == HANDED)
         && (humanoid(mptr) && attacktype(mptr, AT_CLAW)
             && !index(not_claws, mptr->mlet) && mptr != &mons[PM_STONE_GOLEM]
-            && mptr != &mons[PM_AMOROUS_DEMON]
-            && mptr != &mons[PM_LEPRECHAUN]))
+            && mptr != &mons[PM_AMOROUS_DEMON]))
         return (part == HAND) ? "claw" : "clawed";
     if ((mptr == &mons[PM_MUMAK] || mptr == &mons[PM_MASTODON])
         && part == NOSE)

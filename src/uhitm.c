@@ -482,7 +482,7 @@ do_attack(struct monst *mtmp)
     u_wipe_engr(3);
 
     /* Is the "it died" check actually correct? */
-    if (monsndx(mdat) == PM_LEPRECHAUN && !mtmp->mfrozen && !mtmp->msleeping
+    if (mdat->mlet == S_LEPRECHAUN && !mtmp->mfrozen && !mtmp->msleeping
         && !mtmp->mconf && mtmp->mcansee && !rn2(7)
         && (m_move(mtmp, 0) == 2 /* it died */
             || mtmp->mx != u.ux + u.dx

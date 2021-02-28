@@ -763,10 +763,10 @@ m_initinv(register struct monst *mtmp)
             (void) mpickobj(mtmp, otmp);
         }
         break;
+    case S_LEPRECHAUN:
+        mkmonmoney(mtmp, (long) d(level_difficulty(), 30));
+        break;
     case S_IMP:
-        if (ptr == &mons[PM_LEPRECHAUN]) {
-            mkmonmoney(mtmp, (long) d(level_difficulty(), 30));
-        }
         if (ptr == &mons[PM_QUASIT] && !rn2(4)) {
             mtmp->minvis = mtmp->perminvis = 1;
         }
@@ -1327,10 +1327,8 @@ makemon(register struct permonst *ptr,
     case S_EEL:
         (void) hideunder(mtmp);
         break;
-    case S_IMP:
-        if(mndx == PM_LEPRECHAUN) {
-            mtmp->msleeping = 1;
-        }
+    case S_LEPRECHAUN:
+        mtmp->msleeping = 1;
         break;
     case S_JABBERWOCK:
     case S_NYMPH:

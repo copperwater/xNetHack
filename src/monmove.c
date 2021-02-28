@@ -248,7 +248,7 @@ disturb(register struct monst* mtmp)
 #if 0 /* DEFERRED */
               || mtmp->data == &mons[PM_VORPAL_JABBERWOCK]
 #endif
-              || monsndx(mtmp->data) == PM_LEPRECHAUN) || !rn2(50))
+              || mtmp->data->mlet == S_LEPRECHAUN) || !rn2(50))
         && (Aggravate_monster
             || (mtmp->data->mlet == S_DOG || mtmp->data->mlet == S_HUMAN)
             || (!rn2(7) && M_AP_TYPE(mtmp) != M_AP_FURNITURE
@@ -703,7 +703,7 @@ dochug(register struct monst* mtmp)
 
     if (!nearby || mtmp->mflee || scared || mtmp->mconf || mtmp->mstun
         || (mtmp->minvis && !rn2(3))
-        || (monsndx(mdat) == PM_LEPRECHAUN && !findgold(g.invent, FALSE)
+        || (mdat->mlet == S_LEPRECHAUN && !findgold(g.invent, FALSE)
             && (findgold(mtmp->minvent, FALSE) || rn2(2)))
         || (is_wanderer(mdat) && !rn2(4)) || (Conflict && !mtmp->iswiz)
         || (!mtmp->mcansee && !rn2(4)) || mtmp->mpeaceful) {

@@ -23,7 +23,7 @@ enum mon_class_types {
     S_IMP        =  9, /* i: minor demons */
     S_JELLY      = 10, /* j */
     S_KOBOLD     = 11, /* k */
-    S_LIZARD     = 12, /* l */
+    S_LEPRECHAUN = 12, /* l */
     S_MIMIC      = 13, /* m */
     S_NYMPH      = 14, /* n */
     S_ORC        = 15, /* o */
@@ -68,11 +68,12 @@ enum mon_class_types {
     S_GOLEM      = 54, /* ' */
     S_DEMON      = 55, /* & */
     S_EEL        = 56, /* ; */
+    S_LIZARD     = 57, /* : */
 
-    S_WORM_TAIL  = 57, /* ~ */
-    S_MIMIC_DEF  = 58, /* ] */
+    S_WORM_TAIL  = 58, /* ~ */
+    S_MIMIC_DEF  = 59, /* ] */
 
-    MAXMCLASSES  = 59  /* number of monster classes */
+    MAXMCLASSES  = 60  /* number of monster classes */
 };
 
 /*
@@ -91,7 +92,7 @@ enum mon_class_types {
 #define DEF_IMP         'i'
 #define DEF_JELLY       'j'
 #define DEF_KOBOLD      'k'
-#define DEF_LIZARD      'l'
+#define DEF_LEPRECHAUN  'l'
 #define DEF_MIMIC       'm'
 #define DEF_NYMPH       'n'
 #define DEF_ORC         'o'
@@ -135,6 +136,7 @@ enum mon_class_types {
 #define DEF_GOLEM       '\''
 #define DEF_DEMON       '&'
 #define DEF_EEL         ';'
+#define DEF_LIZARD      ':'
 
 #define DEF_INVISIBLE   'I'
 #define DEF_WORM_TAIL   '~'
