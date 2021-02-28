@@ -1850,8 +1850,8 @@ x_monnam(register struct monst *mtmp, int article,
             Sprintf(eos(buf), "%s ghost", s_suffix(name));
             name_at_start = TRUE;
         } else if (has_ebones(mtmp)) {
-            Sprintf(eos(buf), "the %s of %s", pm_name, name);
-            name_at_start = TRUE;
+            Sprintf(eos(buf), "%s of %s", pm_name, name);
+            name_at_start = FALSE;
         } else if (called) {
             Sprintf(eos(buf), "%s called %s", pm_name, name);
             name_at_start = (boolean) type_is_pname(mdat);
