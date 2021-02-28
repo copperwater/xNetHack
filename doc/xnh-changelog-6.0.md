@@ -444,6 +444,8 @@ changes:
 - Conduct flags in the xlogfile are moved around (xNetHack flags now start at
   the highest bit and count down) and conductX is extended to include xNetHack
   conducts.
+- Bonesless conduct is determined by not loading any bones files, rather than
+  simply having the bones option off.
 
 ### Architectural changes
 
