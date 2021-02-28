@@ -803,7 +803,7 @@ xxxxx-----]], contents = function(rm)
    {
       maxdiff = 14,
       contents = function()
-         des.room({ type = "themed", filled = 0, w = 2, h = 2, joined = 0,
+         des.room({ type = "themed", filled = 0, w = 2, h = 2, joined = false,
                     contents = function(rm)
                        for i=1,d(2) do
                           des.object("chest")
@@ -857,7 +857,7 @@ xxxxx-----]], contents = function(rm)
    {
       mindiff = 5,
       contents = function()
-         des.room({ type = "themed", filled = 1, joined = 1, w = 3 + nh.rn2(6)*2, h = 5,
+         des.room({ type = "themed", filled = 1, joined = true, w = 3 + nh.rn2(6)*2, h = 5,
                     contents = function(rm)
                        for x = 0, rm.width - 1 do
                           for y = 0, 4 do
