@@ -314,6 +314,8 @@ opt_##a,
            No, Yes, No, NoAlias, "edit message types")
     NHOPTB(monpolycontrol, 0, opt_in, set_wizonly, Off, Yes, No, No, NoAlias,
                 &iflags.mon_polycontrol)
+    NHOPTO("monster colors", o_monstercolor, BUFSZ, opt_in, set_in_game,
+           No, Yes, No, NoAlias, "edit monster colors")
     NHOPTC(monsters, MAXMCLASSES, opt_in, set_in_config, No, Yes, No, No,
                 NoAlias, "list of symbols to use for monsters")
     NHOPTC(mouse_support, 0, opt_in, set_in_game, No, Yes, No, No, NoAlias,
