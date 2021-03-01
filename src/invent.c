@@ -1497,10 +1497,17 @@ getobj(register const char *word,
     Loot *sortedinvent, *srtinv;
 
     /* is "hands"/"self" a valid thing to do this action on? */
-    if ((*obj_ok)((struct obj *) 0) == GETOBJ_SUGGEST) {
-	allownone = TRUE;
+    switch ((*obj_ok)((struct obj *) 0)) {
+    case GETOBJ_SUGGEST:
         *bp++ = HANDS_SYM;
         *bp++ = ' '; /* put a space after the '-' in the prompt */
+        /* FALLTHRU */
+    case GETOBJ_DOWNPLAY:
+	allownone = TRUE;
+        *ap++ = HANDS_SYM;
+        /* FALLTHRU */
+    default:
+        break;
     }
 
     if (!flags.invlet_constant)
@@ -1571,7 +1578,7 @@ getobj(register const char *word,
         else if (iflags.force_invmenu) {
             /* don't overwrite a possible quitchars */
             if (!oneloop)
-                ilet = forceprompt ? '*' : '?';
+                ilet = (*lets || *altlets) ? '?' : '*';
             if (!msggiven)
                 putmsghistory(qbuf, FALSE);
             msggiven = TRUE;
@@ -2658,7 +2665,8 @@ display_pickinv(
             goto nextclass;
         }
     }
-    if (iflags.force_invmenu && lets && want_reply) {
+    if (iflags.force_invmenu && lets && want_reply
+        && (int) strlen(lets) < inv_cnt(TRUE)) {
         any = cg.zeroany;
         add_menu(win, &nul_glyphinfo, &any, 0, 0,
                  iflags.menu_headings, "Special", MENU_ITEMFLAGS_NONE);

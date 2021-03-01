@@ -44,7 +44,9 @@ static boolean md_start(coord *);
 static boolean md_stop(coord *, coord *);
 static boolean md_rush(struct monst *, int, int);
 static void newmail(struct mail_info *);
-static void read_simplemail(const char *, boolean);
+#if defined(SIMPLE_MAIL) || defined(SERVER_ADMIN_MSG)
+static void read_simplemail(char *mbox, boolean adminmsg);
+#endif
 
 #if !defined(UNIX) && !defined(VMS)
 int mustgetmail = -1;
@@ -570,7 +572,7 @@ ckmailstatus(void)
 
 #if defined(SIMPLE_MAIL) || defined(SERVER_ADMIN_MSG)
 static void
-read_simplemail(const char *mbox, boolean adminmsg)
+read_simplemail(char *mbox, boolean adminmsg)
 {
     FILE* mb = fopen(mbox, "r");
     char curline[128], *msg;
@@ -660,13 +662,15 @@ ck_server_admin_msg(void)
 #ifdef SERVER_ADMIN_MSG
     static struct stat ost,nst;
     static long lastchk = 0;
+    char adminbuf[BUFSZ];
 
     if (g.moves < lastchk + SERVER_ADMIN_MSG_CKFREQ) return;
     lastchk = g.moves;
 
     if (!stat(SERVER_ADMIN_MSG, &nst)) {
         if (nst.st_mtime > ost.st_mtime)
-            read_simplemail(SERVER_ADMIN_MSG, TRUE);
+            read_simplemail(nonconst(SERVER_ADMIN_MSG, adminbuf,
+				     sizeof adminbuf), TRUE);
         ost.st_mtime = nst.st_mtime;
     }
 #endif /* SERVER_ADMIN_MSG */
