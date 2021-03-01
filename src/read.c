@@ -256,7 +256,9 @@ doread(void)
         pline("%s on the %s.  It reads:  %s.",
               !Blind ? "There is writing" : "You feel lettering",
               simpleonames(scroll), cap_text);
-        u.uconduct.literate++;
+        if (!u.uconduct.literate++)
+            livelog_printf(LL_CONDUCT, "became literate by reading %s",
+                           otyp == DUNCE_CAP ? "a dunce cap" : "a cornuthaum");
         /* yet another note: despite the fact that player will recognize
            the object type, don't make it become a discovery for hero */
         if (!objects[otyp].oc_name_known && !objects[otyp].oc_uname)
@@ -350,9 +352,9 @@ doread(void)
             return 0;
         }
         pline("The wrapper reads: \"%s\".", wrapper);
-        if(!u.uconduct.literate++)
+        if (!u.uconduct.literate++)
             livelog_write_string(LL_CONDUCT,
-                    "became literate by reading a candy bar wrapper");
+                                 "became literate by reading a candy bar wrapper");
         return 1;
     } else if (scroll->otyp == C_RATION || scroll->otyp == K_RATION) {
         /* nonvegan/nonvegetarian names might be somewhat misleading since

@@ -97,9 +97,6 @@ static void write_whereis(boolean);
 static void set_whereisfile(void);
 #endif
 
-static FILE *fopen_wizkit_file(void);
-static void wizkit_addinv(struct obj *);
-
 #ifdef AMIGA
 extern char PATH[]; /* see sys/amiga/amidos.c */
 extern char bbs_id[];
@@ -634,6 +631,7 @@ clearlocks(void)
     /* can't access maxledgerno() before dungeons are created -dlc */
     for (x = (g.n_dgns ? maxledgerno() : 0); x >= 0; x--)
         delete_levelfile(x); /* not all levels need be present */
+
 #ifdef WHEREIS_FILE
     delete_whereis();
 #endif

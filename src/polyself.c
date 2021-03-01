@@ -626,7 +626,7 @@ polymon(int mntmp, int msgflags)
     if (g.mvitals[mntmp].mvflags & G_GENOD) { /* allow G_EXTINCT */
         if (msgflags & POLYMON_TRANSFORM_MSG)
             You_feel("rather %s-ish.",
-                     pmname(&mons[mntmp], flags.female ? FEMALE : MALE));
+                     pmname(&mons[mntmp], Ugender));
         exercise(A_WIS, TRUE);
         return 0;
     }

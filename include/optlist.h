@@ -131,7 +131,7 @@ opt_##a,
     NHOPTC(catname, PL_PSIZ, opt_in, set_gameview, No, Yes, No, No, NoAlias,
                 "name of your starting pet if it is a kitten")
 #ifdef INSURANCE
-    NHOPTB(checkpoint, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,
+    NHOPTB(checkpoint, 0, opt_out, set_in_sysconf, On, Yes, No, No, NoAlias,
                 &flags.ins_chkpt)
 #else
     NHOPTB(checkpoint, 0, opt_out, set_in_game, On, No, No, No, NoAlias,

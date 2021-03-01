@@ -1443,6 +1443,7 @@ html_init_sym(void)
     /* and some extras */
     htmlsym[S_corr] = 9617;
     htmlsym[S_litcorr] = 9618;
+    htmlsym[S_fountain] = 8992;
 }
 
 /* convert 'special' flags returned from mapglyph to

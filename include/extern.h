@@ -2002,7 +2002,7 @@ extern void dump_container(struct obj *, int);
 
 /* ### pline.c ### */
 
-#ifdef DUMPLOG
+#if defined(DUMPLOG) || defined(DUMPHTML)
 extern void dumplogmsg(const char *);
 extern void dumplogfreemessages(void);
 #endif

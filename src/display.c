@@ -2136,6 +2136,7 @@ void
 map_glyphinfo(xchar x, xchar y, int glyph,
               unsigned mgflags, glyph_info *glyphinfo)
 {
+    struct stairway *sway = stairway_at(x, y);
     register int offset, idx;
     int color = NO_COLOR;
     unsigned special = 0;
@@ -2209,7 +2210,6 @@ map_glyphinfo(xchar x, xchar y, int glyph,
         explode_color(offset / MAXEXPCHARS);
     } else if ((offset = (glyph - GLYPH_CMAP_OFF)) >= 0) { /* cmap */
         idx = offset + SYM_OFF_P;
-        struct stairway *stairs = stairway_at(x, y);
 #ifdef TEXTCOLOR
         if (is_cmap_door(offset) && door_is_iron(&levl[x][y])) {
             color = HI_METAL;
@@ -2221,7 +2221,8 @@ map_glyphinfo(xchar x, xchar y, int glyph,
         /* show branch stairs in a different color */
         } else if (iflags.use_color
                    && (offset == S_upstair || offset == S_dnstair)
-                   && (stairs && stairs->tolev.dnum != u.uz.dnum)
+                   && (sway = stairway_at(x, y)) != 0
+                   && sway->tolev.dnum != u.uz.dnum
                    && (g.showsyms[idx] == g.showsyms[S_upstair + SYM_OFF_P]
                        || g.showsyms[idx] == g.showsyms[S_dnstair + SYM_OFF_P])) {
             color = CLR_YELLOW;
@@ -2349,7 +2350,7 @@ map_glyphinfo(xchar x, xchar y, int glyph,
                 color = CLR_BRIGHT_MAGENTA;
             } else {
                 switch (amsk & AM_MASK) {
-#if 0   /*
+        /*
          * On OSX with TERM=xterm-color256 these render as
          *  white -> tty: gray, curses: ok
          *  gray  -> both tty and curses: black
@@ -2369,7 +2370,7 @@ map_glyphinfo(xchar x, xchar y, int glyph,
                 case AM_CHAOTIC: /* 1 */
                     color = CLR_BLACK;
                     break;
-#else /* !0: TEMP? */
+#if 0
                 case AM_LAWFUL:  /* 4 */
                 case AM_NEUTRAL: /* 2 */
                 case AM_CHAOTIC: /* 1 */

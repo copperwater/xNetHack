@@ -622,7 +622,7 @@ encode_extended_conducts(void)
         add_achieveX(buf, "sokoban",  !u.uconduct.sokocheat);
     add_achieveX(buf, "blind",        u.uroleplay.blind);
     add_achieveX(buf, "nudist",       u.uroleplay.nudist);
-    add_achieveX(buf, "bonesless",    !u.uroleplay.bones);
+    add_achieveX(buf, "bonesless",    !u.uroleplay.numbones);
     add_achieveX(buf, "petless",      !u.uconduct.pets);
     add_achieveX(buf, "artifactless", !u.uconduct.artitouch);
     add_achieveX(buf, "permahallu",   !u.uroleplay.hallu);

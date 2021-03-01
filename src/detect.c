@@ -29,10 +29,6 @@ static int mfind0(struct monst *, boolean);
 static int reveal_terrain_getglyph(int, int, int, unsigned, int, int);
 static int look_in_crystal_ball(void);
 
-#ifdef DUMPHTML
-extern void html_dump_glyph(int, int, int, int, int, unsigned);
-#endif
-
 /* wildcard class for clear_stale_map - this used to be used as a getobj() input
  * but it's no longer used for that function */
 #define ALL_CLASSES (MAXOCLASSES + 1)
