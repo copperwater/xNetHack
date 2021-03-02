@@ -25,12 +25,15 @@ A nymph knows how to unlock chains.
 A potion of blindness might show you invisible things.
 A priest can get the gods to listen easily.
 A priestess and a virgin you might be, but that unicorn won't care.
+A ring of carrying is a great gift idea for a tourist.
 A ring of conflict is a bad thing if there is a nurse in the room.
+A short sword is not as good as a long sword.
 A succubus will go farther than a nymph.
 A thiefstone could be a very useful item for a rogue.
 A visit to the zoo is very educational; you meet interesting animals.
 A wand apparently attuned to no spell might in fact be attuned to every spell.
 A wand can exorcise a past explorer's ghost.
+A wielded mirror can be a surprisingly good defense.
 Able was I ere I saw Elbereth.
 Acid blobs should be attacked bare-handed.
 Affairs with nymphs are often very expensive.
@@ -40,7 +43,7 @@ Always be aware of the phase of the moon!
 Always know where your towel is!
 Always sweep the floor before engraving important messages.
 Amulets of Yendor are hard to make.  Even for a wand of wishing.
-An elven cloak is useful against magic.
+An elven cloak protects against magic.
 An umber hulk can be a confusing sight.
 Are you confused? Wield a potion of water, and read a scroll of remove curse.
 Around mind flayers, you get headaches.
@@ -49,6 +52,7 @@ As if monsters stealing items weren't bad enough, now the items are doing it.
 Asking about monsters may be very useful.
 Attack long worms from the rear -- that is so much safer!
 Attacking an eel where there is none is usually a fatal mistake!
+Bandaging wounds helps keep up appearances.
 Bashing monsters with a bow is not such a good idea.
 Be careful what you wish for.
 Be careful!  The Wizard may plan an ambush!
@@ -63,9 +67,12 @@ Chemistry 101: Never pour water into acid.
 Closets might contain a secret stash.
 Conserve energy, turn off the lights.
 Curses are not always a hindrance.
+Diamonds are a unicorn's best friend.
 Digging up a grave could be a bad idea...
 Dilithium crystals are rare indeed.
 Do you have any blank paper for your magic marker?
+Do you know where your towel is?
+Do you really want that ring back badly enough to dig up five feet of drain pipe for it?
 Dogs are attracted by the smell of tripe.
 Dogs are superstitious; they try not to step on cursed items.
 Dogs of ghosts aren't angry, just hungry.
@@ -75,57 +82,77 @@ Don't lash out at people while blinded.
 Don't mess with shopkeepers, or you'll get the Guild after you.
 Don't need to breathe? Eat all you want.
 Dragons never whip their children; they wouldn't feel it!
+Drinking a potion of sleeping will soon make you rest in peace.
 Eat your carrots.  They're good for your eyes.
 Eating a blue jelly is like eating a yeti.
 Eating a chameleon can help you change your life.
 Eating a killer bee is like eating a scorpion.
 Eating a tengu is like eating a nymph.
 Eating a wraith is a rewarding experience!
+Eating meat that's been sitting around for too long can make you deathly ill.
 Eating unpaid leprechauns may be advantageous.
 Elf corpses are incompatible with the sandman, and at times the gods as well.
 Elven cloaks cannot rust.
 Elves can help you feel less tired.
 Enchanting your gear to +10 is crazy talk.
 Even evil players have a guardian angel.
+Even the most ridiculously false lies may carry a grain of truth.
 Ever fought with an enchanted tooth?
 Ever tried reading while confused?
 Ever tried to lock a troll in a large box?
 Ever wondered why one would want to dip something in a potion?
 Expensive cameras have penetrating flash lights.
 Extra staircases lead to extra levels.
+Fate abhors those who cheat at Sokoban.
 Fiery letters might deter monsters.
 Gems are too precious to be thrown away carelessly.
 Gems hard enough to carve into the ground are always valuable.
+Get your floating eye away from my dog!
 Getting hungry?  Stop wearing rings!
 Getting too warm?  Take off that Amulet of Yendor and stay away from the exit!
+Ghosts just never get tired of saying "Boo!"
 Gods expect the best from their chosen heroes.
 Gods look down their noses at demigods.
 Gods love cats and dogs.
+Going to visit Asmodeus? Better keep your gold at the ready.
 Grave robbers sometimes get rich.
 Grid bugs would be in a lot of trouble if bear traps came in their size.
 Guy Montag keeps his scrolls in a bag.
 Handle your flasks carefully -- there might be a ghost inside!
 Hanging out with a gas spore can be a real blast!
 Having trouble casting spells? Try holding a magic wand!
+Help!  My potions are haunted!
 Holy water has many uses.
 Horses trust their riders, even when not so deserved.
+How did these monkeys get so fast?
 Hunger is a confusing experience for a dog!
+I can't believe how bad those hezrou smell!  It's a toxic cloud, I tell you!
+I found a dagger named Grimtooth that poisoned everything I stabbed.
+I once knew a hacker named Snow White who fainted after eating a bad apple.
 I once knew a hacker who ate too fast and choked to death.
+I once knew a healer with an eagle eye for spying wounds.
+I tried to read a book but it exploded! I guess I wasn't smart enough...
 I wish I never wished a wand of wishing.  (Wishful thinking.)
+I wished for the Amulet and put it in my bag, but I'm not sure if it's real.
 I wouldn't advise playing catch with a giant.
 :I'm watching you, %p.  -- The Wizard of Yendor
 Ice boxes keep your food fresh.
 If a gray stone steals from you, steal back from it.
 If you are being punished, it's done with a deadly weapon.
+If you can squeeze more ink out of a marker, praise the gods and be not greedy.
 If you kick a sink enough, something good might pop out.
 If you kill the Wizard, you get promoted to demi-god.
 If you need a wand of digging, kindly ask the minotaur.
+If you see a bunch of statues, watch out!
+If you want to be a better wizard, try eating other wizards.
 If you want to hit, use a dagger.
 If you want to rob a shop, train your dog.
 If you're going through hell, keep going... until you find the Amulet of Yendor, then come back up.
 If you're lost, try buying a map next time you're in a shop.
 Inside a shop you better take a look at the price tags before buying anything.
 It's easy to fool an enchant weapon scroll - it thinks anything you wield is a weapon!
+It's worth reading the label on tins; it might even say what's inside.
+It exploded, now I'll never get my last wish!  I wish I never read that scroll.
 It is bad manners to use a wand in a shop.
 It is dangerous to visit a graveyard at midnight.
 It is easier to light the darkness than to curse a candle.
@@ -133,18 +160,23 @@ It is not always a good idea to whistle for your dog.
 It is rumored that the Wizard has hired some help.
 It is the letter 'c' and not 'e' that changes status to statue.
 It might be a good idea to toss the unicorn a ruby.
+It takes ten geckos to make a pureed tin of gecko, but only one to make a homemade tin.
 It would be peculiarly sad were your dog turned to stone.
 It's a `d' eats `d' world.
 Junk for some is food for others.
 Just because it says READ ME doesn't mean you should.
 Just because it's called "enchant weapon" doesn't mean that's all it does.
+Just because someone doesn't attack doesn't mean he won't get in your way.
 Keep your armors away from rust.
+Keep your friends close, your enemies closer, and your crysknife closest of all.
 Keep your weaponry away from acids.
 Kill a unicorn of your color and you kill your luck.
 Leather is waterproof.  Ever see a cow with an umbrella?
 Leprechauns are the most skilled cutpurses in this dungeon.
 Lizard corpses protect against cockatrices.
+Losing focus?  Feeling jumpy?  Eat a tengu and get back in control.
 Mirrors are fragile. Handle with care.
+Money is worth more than blood, if you're a shopkeeper.
 Money lost, little lost; honor lost, much lost; pluck lost, all lost.
 Most monsters can't swim.
 Music hath charms to affect the stubborn drawbridge.
@@ -156,10 +188,16 @@ Never swim with a camera:  there's nothing to take pictures of.
 Never tap out a fountain while a guard is watching.
 Never use your best weapon to engrave a curse.
 No easy fighting with a heavy load!
+No one ever got punished for merely being an accessory to murder.
+No one ever managed to put a djinni back into its lamp.
+No one ever managed to put wishes back into a wand.
+No wizard is complete without a pointy hat, but on anyone else it looks stupid.
 Not all boots were made for walking.
 Nurses are trained to touch naked persons:  they don't harm them.
 Nymphs can unlink more than your chain mail.
+One data file always tells the truth; the other always lies.
 One does not simply kill the Wizard of Yendor.
+One does not simply walk into Gehennom.
 Only female monsters can lay eggs.
 Opening a tin is difficult, especially when you attempt it bare handed!
 Orcs and killer bees share their lifestyle.
@@ -176,6 +214,8 @@ Purple is a powerful color.
 Put on a ring of teleportation:  it will take you away from onslaught.
 Rays aren't boomerangs, of course, but still...
 Read the manual before entering the cave -- you might get killed otherwise.
+Reading Dune might help you craft a superb knife.
+Reading Tolkien might help you.
 Reading scrolls after drinking booze can give confusing results.
 Riding a dragon can be an uplifting experience.
 Rings can be enchanted as well as charged.  Same thing, really.
@@ -190,7 +230,10 @@ Shopkeepers have incredible patience.
 Shopkeepers might raise their prices for tourists.
 Shopkeepers value money more than revenge.
 So you tried to polymorph an amulet of unchanging?  What did you think was going to happen?
+Some kinds of cloaks provide more protection than others.
 Some monsters can be tamed.  I once saw a hacker with a tame dragon!
+Some of these molds are really delicious!
+Somebody's been letting poisonous snakes loose in the fountains.
 Someone's been spiking the pits!
 Sometimes monsters are more likely to fight each other than attack you.
 Soon your little dog will be a big dog, and you will be proud of it.
@@ -198,10 +241,15 @@ Spinach, carrot, and jelly -- a meal fit for a nurse!
 Surviving the full extent of the mines could mean that your luck is changing.
 Tainted meat is even more sickening than poison!
 Telepathy is just a trick:  once you know how to do it, it's easy.
+That fountain was demon-possessed!
+That zombie was already a corpse before I killed it.
 The Leprechaun Gold Tru$t is no division of the Magic Memory Vault.
 The Watch are very fond of the fountains in Minetown.
+The Watch don't really have the hang of subduing criminals non-lethally.
 The Wizard finds death to be quite an experience.
+The best boots that I ever had came from a crocodile's skin that I zapped.
 The best equipment for your work is, of course, the most expensive.
+The craziest way to find out what a potion does is to drink it.
 The economy is bad, so there isn't as much gold scattered around as there used to be.
 The gods appreciate honesty; only blessed things will always speak truth.
 The gods don't appreciate needy adventurers.
@@ -209,8 +257,11 @@ The gods will get angry if you kill your dog.
 The magic marker is mightier than the sword.
 The meek shall inherit your bones files.
 The mines are lovely, dark and deep / But I have promises to keep / And levels to go before I sleep.
+The nicest rings are expensive, but a really useful scroll can be cheap.
+The pipes beneath a sink and a fountain are really quite similar.
 The secret of wands of Nothing Happens:  try again!
 The squeaky board gets the grease.
+The stairway to heaven's secret is when you find it, you've already walked down it.
 There has always been something mystical about mirrors.
 There is a Mastermind deep in the dungeon.
 There is a big treasure hidden in the zoo!
@@ -224,8 +275,10 @@ They say that Juiblex is afraid of a wand of digging.
 They say that Medusa would like to put you on a pedestal.
 They say that Vlad lives!!! ... in the mazes.
 They say that Vlad used to make various shortcuts down the dungeon.
+They say that Vlad will take you down a level.
 They say that a bag of holding can't hold everything.
 They say that a blessed tin of quasit meat is a quick meal.
+They say that a blessed wand works better than a cursed one.
 They say that a cat avoids traps.
 They say that a cave spider will occasionally eat cave spider eggs.
 They say that a certain stone will lead you to a pile of treasure.
@@ -234,15 +287,19 @@ They say that a clove of garlic makes a good talisman if handled right.
 They say that a cursed scroll of teleportation could land you in trouble.
 They say that a diamond is another kind of luck stone.
 They say that a dog can be trained to fetch objects.
+They say that a dwarf is great with a pick.
 They say that a dwarf lord can carry a pick-axe because his armor is light.
 They say that a gelatinous cube can paralyze you.
 They say that a gelatinous cube makes a healthy breakfast.
 They say that a giant gets strong by eating right, try it!
+They say that a good plumber doesn't need to carry a pick-axe.
 They say that a grid bug won't hit you when you cross it.
 They say that a hard hat will protect you from falling rocks.
 They say that a lembas wafer is a very light snack.
+They say that a magic lamp always has a djinni inside.
 They say that a magic lamp never burns out.
 They say that a mind flayer is a terrible thing to waste.
+They say that a mind is a terrible thing to lose.
 They say that a mirror will freeze a floating eye but you can still see it.
 They say that a mirror will not frighten a nymph.
 They say that a polished gold shield is just as good as a polished silver shield.
@@ -250,8 +307,10 @@ They say that a polymorph trap is magic and magic protection prevents it.
 They say that a potion of healing can cancel a potion of sickness.
 They say that a potion of monster detection sometimes works both ways.
 They say that a sink looks different from high above the floor.
+They say that a smart wizard can cast spells more often than a fool.
 They say that a summoned demon could improve your game.
 They say that a tin of wraith meat is a rare dining experience.
+They say that a true knight will never slip off his horse.
 They say that a unicorn might bring you luck.
 They say that a wand of cancellation is like a wand of polymorph.
 They say that a wand of cancellation is not like a wand of polymorph.
@@ -262,14 +321,16 @@ They say that a wizard is even more powerful the second time around.
 They say that a xorn knows of no obstacles when pursuing you.
 They say that abusing a credit card could shock you sooner or later.
 They say that acid can help you out of some hard times.
+They say that altars are all built the same, so it's easy to rededicate them to your own god.
 They say that amulets, like most things, can be deadly or life saving.
 They say that an altar can identify blessings.
 They say that an amulet of change can change your life.
+They say that an amulet of strangulation is worse than ring around the collar.
 They say that an axe named Cleaver once belonged to a barbarian named Beaver.
 They say that an experienced character knows how to convert an altar.
+They say that an expert archer doesn't lose as many arrows as a novice.
 They say that an ooze will bite your boots and a rock mole might eat them.
 They say that an unlucky hacker was once killed by an exploding tin.
-They say that bandaging one's wounds helps to keep up one's appearance.
 They say that being confused can help you make more friends.
 They say that booze can be diluted but not cancelled.
 They say that by listening carefully, you can hear a secret door!
@@ -277,7 +338,9 @@ They say that carrots and carrot juice may improve your vision.
 They say that carving a message on an altar can be a bad thing.
 They say that cave spiders are not considered expensive health food.
 They say that civilized people should not eat cats or dogs.
+They say that different weapons work better for different kinds of people.
 They say that disturbing a djinni can be a costly mistake.
+They say that dogs can smell you even if they can't see you.
 They say that dragon scales can be quite enchanting.
 They say that drinking tapwater is bad for your health.
 They say that dropping coins into a fountain will not grant you a wish.
@@ -292,6 +355,7 @@ They say that finding a cursed gray stone is always bad luck.
 They say that floating eyes can't wipe their faces.
 They say that fountain water is not as safe to drink as bottled water.
 They say that garter snake meat rarely tastes good but it's still healthy.
+They say that gnomes really have a knack for crossbows.
 They say that going to heaven is just another way of escaping the dungeon.
 They say that golden nagas are law-abiding denizens as long as you are too.
 They say that gremlins can make you feel cooler than you are now.
@@ -310,9 +374,12 @@ They say that it only takes 1 zorkmid to meet the Kops.
 They say that it's a blast when you mix the right potions together.
 They say that it's bad luck to break a boulder in Sokoban.
 They say that it's better to pay first if you might leave the shop unexpectedly.
+They say that it's good luck to go all the way to the bottom of the Mines.
 They say that it's not blind luck if you catch a glimpse of Medusa.
+They say that it pays to practice with your equipment.
 They say that jewelers are always interested in precious stones.
 They say that killing a shopkeeper brings bad luck.
+They say that magical flutes can only play lullabies.
 They say that monsters never step on a scare monster scroll.
 They say that most monsters find flute recitals extremely boring.
 They say that most trolls are born again.
@@ -327,6 +394,7 @@ They say that once an Olog-hai is canned it never shows its face again.
 They say that once you've met one Wizard you've met them all.
 They say that only an experienced wizard can do the tengu shuffle.
 They say that only chaotics can kill shopkeepers and get away with it.
+They say that orcs are really good with curved blades.
 They say that pets are reluctant to step on cursed items
 They say that playing a horn really bad is really good.
 They say that prayer at an altar can sometimes make the water there holy.
@@ -354,12 +422,15 @@ They say that some humanoids are nonetheless quite human.
 They say that some shopkeepers consider gems to be family heirlooms.
 They say that some shopkeepers recognize gems but they won't tell you.
 They say that some stones are much much heavier than others.
+They say that some thieves get away faster than others.
 They say that some yetis are full of hot air.
 They say that something very special would be in a well-protected place.
+They say that spears aren't javelins but everyone treats them like they are.
 They say that speed boots aren't fast enough to let you walk on water.
 They say that tengu don't wear rings; why should you?
 They say that tengu never steal gold although they would be good at it.
 They say that that which was stolen once can be stolen again. Ask any nymph.
+They say that the DevTeam thinks of everything.
 They say that the Dungeons of Doom are quite dangerous.
 They say that the Horsemen of the Apocalypse are camera shy.
 They say that the gods are happy when they drop objects at your feet.
@@ -387,12 +458,13 @@ They say that you can train your dog with meatballs.
 They say that you can't break an amulet of reflection.
 They say that you don't always get what you wish for.
 They say that you should always be prepared for a final challenge.
+They say that you should always listen to your conscience.
 They say that you should ask a dwarf to let you into a locked shop.
 They say that you should religiously give your gold away.
 They say that you should try to invoke an artifact, just to see what it does.
 They say that you will never get healthy by eating geckos.
 They say that you'll never lose a ring of searching in a sink.
-They say that zapping yourself with a wand of undead turning is stupid.
+They say that zapping yourself with a wand of undead turning is dreadful.
 They say the gods get angry if you kill your dog.
 They say the gods get angry if you pray too much.
 They say there is a powerful magic item hidden in a castle deep down!
@@ -402,10 +474,12 @@ They say you shouldn't kill Izchak.
 Tho' from men's hearts doth it evoke the worst, accursed gold is neither blest nor cursed.
 Those who wield a cockatrice corpse have a rocky road ahead of them.
 Throwing food at a wild dog might tame him.
+Tired of climbing up the stairs?  Try levitation!
 To a full belly all food is bad.
 Towels can multitask.
 Trolls are described as rubbery:  they keep bouncing back.
 Try using your magic marker on wet scrolls.
+Turn, baby, #turn! Undead inferno!
 Two wrongs don't make a right, but three lefts do.
 Unicorn horns can cleanse things other than yourself.
 Valkyries come from the north, and have commensurate abilities.
@@ -414,17 +488,26 @@ Vault guards never disturb their Lords.
 Vegetarians enjoy lichen and seaweed.
 Violence against your computer won't hurt the monsters.
 Vlad's practical jokes aren't very sophisticated - only the gullible will fall for them.
+Want to maximize your one-hit-kill ratio?  I have a bridge to sell you!
 Watch out, the Wizard might come back.
+Watch your behavior: only a pious individual is found worthy of great quests.
 Water traps have no effect on dragons.
+What a lousy shopkeeper that was! I said I was hungry and he doubled his food prices!
 What is a cockatrice going to eat when it gets hungry?
+When shopping, be sure to toss a coin to the mimics.  They appreciate tips.
+When you get hungry, eat.
+When you get to Medusa's home, she's just a hop, skip and a jump away.
+Who ever got confused by a lizard corpse? Nobody, that's who.
 Who needs an apron if they're made of glass?
 Why do you suppose they call them MAGIC markers?
+Why, oh why did Perseus look first, before holding up his shield?
 Wishing too much may bring you too little.
 Wishing won't make you a millionaire.
 X won't mark the spot - so try looking where the ground's been moved.
 You are probably going to die down here.
 You can't bribe soldier ants.
 You can't leave a shop through the back door:  there isn't one!
+You can get high on a levitation potion but it's easy to sink back down and crash.
 You may discover a fine spirit inside a potion bottle.
 You may want to dip into a potion of bottled blessings.
 You might be able to bribe a demon lord.

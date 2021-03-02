@@ -50,6 +50,7 @@ Applaud, my friends, the comedy is finished.
 Are unicorns supposedly peaceful if you're a virgin?  Hah!
 Are we all being disintegrated, or is it just me?
 Are you irritable, tired, depressed of life? Keep it up!
+Arrested by the Keystone Kops. Permanently.
 At last... a nice long sleep.
 At least I'm good at something
 At least now we know what that button did. I will try THIS button--
@@ -93,6 +94,7 @@ Chivalry is only reasonably dead
 Closed for inventory
 Coffin for sale.  Lifetime guarantee.
 Come Monday, I'll be all right.
+Come on!  What kind of watchmen arrest someone by killing them?
 Complain to one who can help you
 Confess my sins to god?  Which one?
 Cooties?  Ain't no cooties on me!
@@ -146,6 +148,7 @@ Follow me to hell
 For recreational use only.
 For sale: One soul, slightly used.  Asking for 3 wishes.
 For some moments in life, there are no words.
+For years and years I wandered the earth, until I died and went to hell.
 For you, scum; only 700,000,000 for this grave reserve.
 Forget Disney World, I'm going to Hell!
 Game over, man.  Game over.
@@ -194,8 +197,11 @@ Here lies Dudley, killed by another !&#@#& newt.
 Here lies Elric, killed by touching Stormbringer
 Here lies Ezekiel, age 102.  The good die young.
 Here lies Garfield, who ate a pan of cursed lasagna.
+Here lies Hilda, calm and placid.  Added water to the acid.
 Here lies Ilene Toofar. Fell off a cliff.
 Here lies Johnny Yeast.  Pardon me for not rising.
+Here lies Mittens the housecat, used up his wand of undead turning (0:8).
+Here lies Owen Cash, tried and failed to dine and dash.
 Here lies Pinocchio
 Here lies Sid, ascended... and cracked his skull on the ceiling.
 Here lies The Lady's maid, died of a Vorpal Blade
@@ -205,7 +211,6 @@ Here lies an atheist, all dressed up and no place to go
 Here lies my wife: Here let her lie! Now she's at rest and so am I.
 Here lies the body of Jonathan Blake.  Stepped on the gas instead of the brake.
 Here lies the left foot of Jack, killed by a land mine.  Let us know if you find any more of him
-Here lies the zruty, eaten by a sea monster. May it zzz in peace.
 Here there be dragons
 Hey, I didn't write this stuff!
 Hey, get off my grave!
@@ -242,11 +247,13 @@ I made an ash of myself
 I may rise but I refuse to shine.
 I never get any either.
 I said hit HIM with the fireball, not me!
+I thought I could be like Adeon.  Guess not.
 I told you I would never say goodbye.
 I used to be amusing.  Now I'm just disgusting.
 I used up all my sick days, so now I'm calling in dead.
 I was killed by <illegible scrawl>
 I was somebody.  Who, is no business of yours.
+I was wanted dead or alive.  Turned out it was dead.
 I will not go quietly.
 I wonder what deleting 'system32' does?
 I'd give you a piece of my mind... but I can't find it.
@@ -281,7 +288,7 @@ Let it be; I am dead.
 Let me out of here!
 Let's play Hide the Corpse
 Life is NOT a dream
-Little Johnny was a chemist. Now he is no more. 'Cause what he thought was H20, was H2SO4
+Little Timmy drank a potion. Now he is no more. Cause what he thought was H2O was H2SO4.
 Look out below!
 Lookin' good, Medusa.
 Losing is Fun!
@@ -308,6 +315,7 @@ Obesa Cantavit
 Og friend. Og good dude. Og died. Og now food.
 Oh sure, give the *gnome* a wand of death.
 Oh! An untimely death.
+Oh, I died.  Well, better late than never!
 Oh, by the way, how was my funeral?
 Ok, so the light does go off.  Now let me out of here.
 On the whole, I'd rather be in Minetown
@@ -349,7 +357,9 @@ Sparky -- he was a very good dog
 Sum quod eris
 Take my stuff, I don't need it anymore
 Taking a year dead for tax reasons
+Ten thousand start scummers lie at rest here, their lives tragically cut short.
 Teracotta Warrior
+Terminated.
 Thank God I wore my corset, because I think my sides have split.
 That is all
 The Gods DO have a sense of humor: I'm living proof!
@@ -445,6 +455,13 @@ That's it?
 I shall walk here again.
 No fair.
 Onward to the next adventure!
+Doh!
+Don't you know it's rude to walk on someone else's grave?
+How could the elves do this to me?
+Here lies Jade, her debt to a shopkeeper finally paid.
+Ashes to ashes, dust to dust.
+This guy didn't pay enough to have his name on the headstone.
+Here lies Brock, killed by a falling rock.
 
 # Spongebob Squarepants
 Smitty Werbenjagermanjensen -- He was #1
@@ -477,3 +494,6 @@ To sleep, perchance to dream, aye, there's the rub.
 
 # Oregon Trail
 Tried to get to Oregon. Died of dysentery.
+
+# The Walking Dead
+DON'T DEAD OPEN INSIDE
