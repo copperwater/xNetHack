@@ -2477,6 +2477,15 @@ ureflectsrc(void)
         /* wielded mirror will reflect half of the time */
         makeknown(MIRROR);
         return "mirror";
+    } else if (EReflecting & W_ARMC) {
+        if (uarmc->otyp == SILVER_DRAGON_SCALES) {
+            return "set of scales";
+        }
+        else {
+            /* no other cloaks give this */
+            impossible("reflecting cloak?");
+            return "cloak";
+        }
     } else if (EReflecting & W_AMUL) {
         makeknown(AMULET_OF_REFLECTION);
         return "amulet";
