@@ -27,16 +27,21 @@ static NEARDATA const char *breathwep[] = {
  * need exact number because both files need to do rn2(SIZE(hallublasts)) */
 const char *const hallublasts[] = {
     "asteroids", "beads", "bubbles", "butterflies", "champagne", "chaos",
-    "coins", "cotton candy", "crumbs", "dark matter", "darkness", "emotions",
-    "entropy", "flowers", "fog", "gamma rays", "gelatin", "gemstones", "ghosts",
-    "glass shards", "glitter", "good vibes", "gravel", "grawlixes", "gravity",
-    "gravy", "hot air", "holy light", "hornets", "hyphens", "laser beams",
-    "magma", "mathematics", "meteors", "music", "needles", "noise", "nostalgia",
-    "oil", "photons", "plasma", "powder", "prismatic light", "pure logic",
-    "purple", "rainbows", "rock music", "rope", "salt", "sand", "scrolls",
-    "sludge", "snowflakes", "sparkles", "spores", "stars", "steam",
-    "tetrahedrons", "text", "the past", "toxic waste", "water", "waveforms",
-    "wind"
+    "coins", "cotton candy", "crumbs", "dark matter", "darkness", "dust specks",
+    "emoticons", "emotions", "entropy", "flowers", "foam", "fog", "gamma rays",
+    "gelatin", "gemstones", "ghosts", "glass shards", "glitter", "good vibes",
+    "gravel", "gravity", "gravy", "grawlixes", "holy light", "hornets",
+    "hot air", "hyphens", "hypnosis", "infrared", "insects", "laser beams",
+    "leaves", "lightening", "logic gates", "magma", "marbles", "mathematics",
+    "megabytes", "metal shavings", "metapatterns", "meteors", "mist", "mud",
+    "music", "nanites", "needles", "noise", "nostalgia", "oil", "paint",
+    "photons", "pixels", "plasma", "polarity", "powder", "powerups",
+    "prismatic light", "pure logic", "purple", "radio waves", "rainbows",
+    "rock music", "rocket fuel", "rope", "sadness", "salt", "sand", "scrolls",
+    "sludge", "smileys", "snowflakes", "sparkles", "specularity", "spores",
+    "stars", "steam", "tetrahedrons", "text", "the past", "tornadoes",
+    "toxic waste", "ultraviolet light", "viruses", "water", "waveforms", "wind",
+    "X-rays", "zorkmids"
 };
 
 /* Return a random hallucinatory blast. */

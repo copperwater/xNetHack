@@ -51,6 +51,7 @@ This statement is false.
 Vlad wasn't here.
 Why are you reading this?
 For a good time call 867-5309
+All your castle are belong to us
 
 # Advertising
 Cancel this engraving and win a free prize!
@@ -60,6 +61,10 @@ Klein bottle for sale -- inquire within.
 Need a light?  Come visit the Minetown branch of Izchak's Lighting Store!
 Snakes on the Astral Plane - Soon in a dungeon near you
 You are the one millionth visitor to this place!  Please wait 200 turns for your wand of wishing.
+Team Ant getting you down?  Call Nero's Extermination Service today!
+Got milky potions?
+Try Pengalengan's Green Slime Meringue Pies - The Combustible Comestible
+Lonely? Try one of Madame Ruth's Patented Love Potions - "Taming in a Bottle"
 
 # Journey to the Center of the Earth
 A.S. ->
@@ -140,3 +145,9 @@ It is dark. You may be eaten by a grue.
 # Terry Pratchett / Discworld
 FABRICATI DIEM, PVNC
 GNU Terry Pratchett
+
+# The Blues Brothers
+They're not gonna catch us.  We're on a mission from %d.
+
+# Lord of the Rings
+A Elbereth Gilthoniel

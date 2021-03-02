@@ -177,6 +177,7 @@ tin_text(struct obj *tin, char* buf)
         "Chickatrice of the Sea",                                /* tuna fish */
         "First Quality Peaches - Not labeled for individual resale", /* Rogue */
         "Andy Warhol Campbell's Tomato Soup",        /* Andy Warhol paintings */
+        "Grin-itch Spinach",                                     /* Dr. Seuss */
         "Spam, Spam, Spam, Spam, Spam, Spam, Baked Beans, Spam, Spam, and Spam",
         "Water Chestnuts - open only while underwater",
         "Yendorian Brand Applesauce",
@@ -188,6 +189,7 @@ tin_text(struct obj *tin, char* buf)
         "Rothe-N-Beans",
         "Feed The Beast - Werewolf Meat",
         "Soylent Green",
+        "100%% All-Natural Croesus Meat - \"Eat the Rich!\"",
         "Djinni Brand Tins - Open now for your free wish!",
         "Can Of Whoop-Ass. Use Caution When Opening.",
     };

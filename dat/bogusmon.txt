@@ -36,6 +36,7 @@ Demogorgonzola
 +Plaid the Impaler
 Grid Bug Mk 2
 _Semigorgon
++Ptah Amon
 ambulatory fortune cookie
 apostrophe golem
 arch-lichen
@@ -49,6 +50,7 @@ ear piercer
 enchanted food ration
 feather golem
 gargantuan mimic
+glorkum golem
 golem golem
 grandmaster mind flayer
 hag of bolding
@@ -69,6 +71,7 @@ voluptuous ampersand
 
 # NetHack community: tournaments, webcomics, etc
 +Dudley
++Eric the Healthy and Friendly Priest
 Gnome With The Wand Of Death
 Dev Team member
 Random Number God
@@ -150,9 +153,11 @@ mountain lymph
 pager golem
 pie fiend
 prophylactic worm
+quivering glob
 rabbit rat
 rapid rat
 rave spider
+rock mold
 rogue piercer
 scone giant
 seesawing sphere
@@ -176,9 +181,19 @@ yellow wight
 # dNetHack
 incantifier
 orc of the ages of stars
+zombie zombie
 
 # UnNetHack
 -One-Eyed Sam
+
+# SpliceHack
+hunger hulk
+
+# EvilHack
+lava gremlin
+
+# NotdNetHack
+illithianachronounbinder
 
 # Slash'EM Extended
 dissolved undead potato
@@ -301,10 +316,13 @@ vampiric watermelon
 wizzard
 
 # Lord of the Rings
+-Galadriel
++Gandalf the Grey
++Saruman the White
 Eye of Sauron
 Great Goblin
 Ent
-pink oliphaunt
+pink oliphant
 
 # Xanth
 nickelpede
@@ -320,12 +338,14 @@ jubjub bird
 mock turtle
 snark
 white rabbit
+wobberjackal
 
 # The Wizard of Oz
 Wizard of Oz
 Wicked Witch of the West
-hammer-head
+Hammer-Head
 flying monkey
+Utensian
 
 # Dr. Dolittle
 pushmi-pullyu
@@ -344,17 +364,22 @@ Borg
 +Jabba the Hutt
 +Han Solo
 +Grand Moff Tarkin
-Ewok
+Death Star
 Force
 Jedi
-Twi'lek
+Luke Skywalker
 animated lightsaber
 astromech droid
 bothan
 droid
+ewok
+protocol droid
 sarlacc
 Sith Lord
 tauntaun
+twi'lek
+wookiee
+youngling
 
 # Tonari no Totoro
 Totoro
@@ -377,7 +402,10 @@ xenomorph
 Invid
 
 # The Terminator
++John Connor
+-Sarah Connor
 Terminator
+T-1000
 
 # Bubblegum Crisis
 boomer
@@ -510,6 +538,7 @@ vermicious knid
 
 # Calvin and Hobbes
 +Spaceman Spiff
++Stupendous Man
 deranged mutant killer monster snow goon
 
 # Super Mario
@@ -554,12 +583,15 @@ Trolloc
 gholam
 
 # Avatar: The Last Airbender
+-Melon Lord
+Fire Lord
 badger mole
 fire ferret
+friendly mushroom
+master of all four elements
 platypus bear
 sky bison
-Fire Lord
-Melon Lord
+turtle duck
 
 # Harry Potter
 +He Who Must Not Be Named
@@ -586,7 +618,6 @@ wallmaster
 # A Song Of Ice And Fire
 Other
 khalasar
-craven
 
 # Spongebob Squarepants
 Alaskan bull worm
@@ -604,11 +635,13 @@ blue-eyes white dragon
 +Elmer Fudd
 
 # Dr. Seuss
++Sam-I-Am
 Grinch
 Lorax
 cat in the hat
 green eggs and ham
 star-bellied sneetch
+pair of pale green pants with nobody inside
 
 # 2001: A Space Odyssey
 =HAL 9000
@@ -618,6 +651,7 @@ star-bellied sneetch
 +Mephistopheles
 Holy Spirit
 pope
+angel of death
 
 # Super Smash Bros
 =Master Hand
@@ -628,10 +662,12 @@ smash ball
 +Tom Nook
 
 # Austin Powers
++Dr Evil
 shark with frickin' laser beams
 
 # The Phantom of the Opera
 Phantom of the Opera
+falling chandelier
 
 # The Stormlight Archive
 greatshell
@@ -650,6 +686,12 @@ Allomancer
 Steel Inquisitor
 Lord Ruler
 mistwraith
+koloss
+Feruchemist
+
+# Cytoverse
+cytonic
+Krell
 
 # A Series of Unfortunate Events
 Incredibly Deadly Viper
@@ -657,12 +699,37 @@ snow gnat
 
 # The Far Side
 Tyrannosaurus Mex
+omniscient duck
+
+# Battlestar Galactica
+cylon
+
+# His Dark Materials
+panserbjorne
+Gallivespian
+cliff-ghast
+mulefa
+
+# Narnia
++Reepicheep
+-White Witch
+Marsh-wiggle
+Tisroc
+
+# xkcd
+red spider
+
+# Stephen King
+=Captain Tripps
++Pennywise
++Randall Flagg
 
 ## Section 4 - miscellaneous non-reference things
 
 # Actual creatures
 axolotl
 beluga whale
+butterfly
 chicken
 coelacanth
 cuttlefish
@@ -704,6 +771,7 @@ hippocampus
 hippogriff
 jackalope
 kelpie
+monster
 phantom
 phoenix
 wendigo
@@ -740,6 +808,7 @@ peer
 pop-up ad
 recursion
 regex engine
+segfault
 segmentation fault
 spaghetti code
 stack overflow
@@ -780,6 +849,7 @@ little green man
 mad scientist
 magnetic monopole
 mothership
+nanobot
 robot
 second law of thermodynamics
 space invader
@@ -856,6 +926,7 @@ clone of yourself
 college dropout
 conventioneer
 cookie monster
+craven
 crimson dervish
 cultist
 dancing blade
@@ -873,6 +944,7 @@ duct tape golem
 dust bunny
 early bird
 earthquake beast
+edgelord
 eldritch horror
 electric giraffe
 emperor penguin
@@ -896,11 +968,13 @@ golem of infinite hunger
 gonzo journalist
 grad student
 grand inquisitor
+grumpy old man
 hamburglar
 haunted wardrobe
 hoagie
 hologram
 humorous message
+hyperactive child
 hypnosis vortex
 indescribable horror
 jabbermouth
@@ -977,6 +1051,7 @@ small megabat
 spherical cow
 steam dragon
 stick figure
+stockbroker
 studio audience
 stuffed raccoon puppet
 surfer dude
@@ -984,6 +1059,7 @@ swamp nymph
 system administrator
 tapeworm
 tax collector
+teenager
 telemarketer
 tofurkey
 tyrannosaurus rex
@@ -991,5 +1067,6 @@ uberhulk
 undercover cop
 venture capitalist
 viking
+wax statue
 weapon of mass destruction
 wee green blobbie

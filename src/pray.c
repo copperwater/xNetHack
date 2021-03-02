@@ -2325,13 +2325,13 @@ static const char *hallu_gods[] = {
     "Albert Einstein",                  /* real world */
     "Zeus",                             /* Greek mythology */
     "Cosmic AC",                        /* The Last Question */
-    "%s",                               /* dNetHack bug */
     "Manwe",                            /* Silmarillion */
     "the Doctor",                       /* Doctor Who */
     "Aslan",                            /* Narnia */
     "Armok",                            /* Dwarf Fortress */
     "the God-Emperor",                  /* Warhammer 40K */
     "the Invisible Pink Unicorn",       /* atheism */
+    "El-ahrairah",                      /* Watership Down */
 };
 
 /* hallucination handling for priest/minion names: select a random god

@@ -452,6 +452,9 @@ changes:
   "MONSTERCOLOR=species:color" in the configuration file, or via in-game
   options. They do not persist when the game is saved and restored, but
   configuration file changes will be reloaded upon restore.
+- More hallucinatory monsters, shirts, epitaphs, random engravings, rumors,
+  hallucinatory gods, hallucinatory blasts, tin labels, weapon names, and
+  taunts.
 
 ### Architectural changes
 
