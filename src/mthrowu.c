@@ -25,7 +25,7 @@ static NEARDATA const char *breathwep[] = {
 
 /* also used extern in zap.c
  * need exact number because both files need to do rn2(SIZE(hallublasts)) */
-const char* const hallublasts[64] = {
+const char *const hallublasts[] = {
     "asteroids", "beads", "bubbles", "butterflies", "champagne", "chaos",
     "coins", "cotton candy", "crumbs", "dark matter", "darkness", "emotions",
     "entropy", "flowers", "fog", "gamma rays", "gelatin", "gemstones", "ghosts",
@@ -38,6 +38,13 @@ const char* const hallublasts[64] = {
     "tetrahedrons", "text", "the past", "toxic waste", "water", "waveforms",
     "wind"
 };
+
+/* Return a random hallucinatory blast. */
+const char *
+rnd_hallublast(void)
+{
+    return hallublasts[rn2(SIZE(hallublasts))];
+}
 
 boolean
 m_has_launcher_and_ammo(struct monst* mtmp)
@@ -815,11 +822,11 @@ spitmm(struct monst* mtmp, struct attack* mattk, struct monst* mtarg)
 /* Return the name of a breath weapon. If the player is hallucinating, return
  * a silly name instead.
  * typ is AD_MAGM, AD_FIRE, etc */
-static const char*
+static const char *
 breathwep_name(int typ)
 {
     if (Hallucination)
-        return hallublasts[rn2(SIZE(hallublasts))];
+        return rnd_hallublast();
 
     return breathwep[typ - 1];
 }

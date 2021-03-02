@@ -1647,6 +1647,7 @@ extern void Delay(int);
 
 /* ### mthrowu.c ### */
 
+extern const char *rnd_hallublast(void);
 extern boolean m_has_launcher_and_ammo(struct monst *);
 extern int thitu(int, int, struct obj **, const char *);
 extern int ohitmon(struct monst *, struct obj *, int, boolean);
