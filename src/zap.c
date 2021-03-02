@@ -69,8 +69,6 @@ const char *const flash_types[] =       /* also used in buzzmu(mcastu.c) */
         "blast of poison gas", "blast of acid", "", ""
     };
 
-extern const char* const hallublasts[64]; /* hallucinatory blasts [mthrowu.c] */
-
 /*
  * Recognizing unseen wands by zapping:  in 3.4.3 and earlier, zapping
  * most wand types while blind would add that type to the discoveries
@@ -5500,7 +5498,7 @@ flash_str(int typ,
         /* always return "blast of foo" for simplicity.
          * This could be extended with hallucinatory rays, but probably not worth
          * it at this time. */
-        Sprintf(fltxt, "blast of %s", hallublasts[rn2(SIZE(hallublasts))]);
+        Sprintf(fltxt, "blast of %s", rnd_hallublast());
     }
     else {
         Strcpy(fltxt, flash_types[typ]);
