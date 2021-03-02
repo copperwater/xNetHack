@@ -130,7 +130,8 @@ sanity_check_single_mon(
             mx = my = 0;
         if (mtmp == u.ustuck)
             impossible("hiding monster stuck to you (%s)", msg);
-        if (m_at(mx, my) == mtmp && hides_under(mptr) && !OBJ_AT(mx, my))
+        if (m_at(mx, my) == mtmp && hides_under(mptr)
+            && !concealed_spot(mx, my))
             impossible("mon hiding under nonexistent obj (%s)", msg);
         if (mptr->mlet == S_EEL
             && !is_pool(mx, my) && !Is_waterlevel(&u.uz))
@@ -3934,7 +3935,7 @@ maybe_unhide_at(xchar x, xchar y)
 {
     struct monst *mtmp;
 
-    if (!OBJ_AT(x, y) && (mtmp = m_at(x, y)) != 0
+    if (!concealed_spot(x, y) && (mtmp = m_at(x, y)) != 0
         && mtmp->mundetected && hides_under(mtmp->data))
         (void) hideunder(mtmp);
 }
