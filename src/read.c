@@ -2886,7 +2886,7 @@ create_particular_creation(struct _create_particular_data* d)
         }
        if (d->hidden
            && ((is_hider(mtmp->data) && mtmp->data->mlet != S_MIMIC)
-               || (hides_under(mtmp->data) && OBJ_AT(mx, my))
+               || (hides_under(mtmp->data) && concealed_spot(mx, my))
                || (mtmp->data->mlet == S_EEL && is_pool(mx, my))))
             mtmp->mundetected = 1;
         if (d->sleeping)
