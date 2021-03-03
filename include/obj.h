@@ -311,7 +311,7 @@ struct obj {
 /* Note: dragonscales is corpsenm, and corpsenm is usually initialized to
  * NON_PM, which is -1. Thus, check for > 0 rather than just nonzero. */
 #define Is_dragon_scaled_armor(obj)                \
-    (objects[(obj)->otyp].oc_armcat == ARM_SUIT && (obj)->dragonscales > 0)
+    (is_suit(obj) && (obj)->dragonscales > 0)
 #define Is_dragon_armor(obj) \
     (Is_dragon_scales(obj) || Is_dragon_scaled_armor(obj))
 /* any dragon armor -> FOO_DRAGON_SCALES object */
