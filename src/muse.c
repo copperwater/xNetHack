@@ -1586,6 +1586,7 @@ use_offensive(struct monst* mtmp)
         boolean confused = (mtmp->mconf ? TRUE : FALSE);
         int mmx = mtmp->mx, mmy = mtmp->my;
         boolean is_cursed = otmp->cursed;
+        boolean is_blessed = otmp->blessed;
 
         mreadmsg(mtmp, otmp);
         /* Identify the scroll */
@@ -1602,6 +1603,7 @@ use_offensive(struct monst* mtmp)
             if (oseen)
                 makeknown(otmp->otyp);
         }
+        m_useup(mtmp, otmp); /* otmp now gone */
 
         /* Loop through the surrounding squares */
         for (x = mmx - 1; x <= mmx + 1; x++) {
@@ -1609,14 +1611,13 @@ use_offensive(struct monst* mtmp)
                 /* Is this a suitable spot? */
                 if (isok(x, y) && !closed_door(x, y)
                     && !IS_ROCK(levl[x][y].typ) && !IS_AIR(levl[x][y].typ)
-                    && (((x == mmx) && (y == mmy)) ? !otmp->blessed
-                                                   : !otmp->cursed)
+                    && (((x == mmx) && (y == mmy)) ? !is_blessed
+                                                   : !is_cursed)
                     && (x != u.ux || y != u.uy)) {
                     (void) drop_boulder_on_monster(x, y, confused, FALSE);
                 }
             }
         }
-        m_useup(mtmp, otmp);
         /* Attack the player */
         if (distmin(mmx, mmy, u.ux, u.uy) == 1 && !is_cursed) {
             drop_boulder_on_player(confused, !is_cursed, FALSE, TRUE);
@@ -2143,10 +2144,10 @@ use_misc(struct monst* mtmp)
         return 2;
     case MUSE_POT_POLYMORPH:
         mquaffmsg(mtmp, otmp);
+        m_useup(mtmp, otmp);
         (void) newcham(mtmp, muse_newcham_mon(mtmp), FALSE, TRUE);
         if (oseen)
             makeknown(POT_POLYMORPH);
-        m_useup(mtmp, otmp);
         return 2;
     case MUSE_BAG:
         return mloot_container(mtmp, otmp, vismon);
