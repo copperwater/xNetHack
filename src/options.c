@@ -5170,6 +5170,9 @@ handler_monstercolor(void)
             /* note: NO_COLOR is valid, despite not being default on any
              * monsters */
             color = query_color((const char *) 0);
+            if (color < 0) { /* escaped out of the prompt */
+                break;
+            }
 
             /* prepare str in config-file format to pass to add_monstercolor */
             Strcat(buf, ":");
