@@ -95,7 +95,6 @@ questtext = {
          "\"Say thy prayers, %p!\"",
          "\"Thou shalt not kill! That's my job!\"",
          "\"Stop! %D commands it!\"",
-         "\"With %D as my witness, I shall strike thee down.\"",
          "\"Thy fate is sealed, infidel!\""
          -- hallucinatory - not yet implemented
          -- "\"Just one more sinner, and I get a promotion!\"",
