@@ -977,10 +977,11 @@ xxxx----xx----xxxx]], contents=function(m)
    -- Random terrain room, except randomly applied to any square, not just the center
    function()
       des.room({ type="themed", filled=1, contents=function(rm)
-            -- des.terrain(selection.floodfill(1,1), "I");
             local picks = selection.floodfill(1,1):percentage(30)
             local feature = { "C", "I", 'g' };
-            -- These features can spawn next to and block off doors. Cope by
+            -- These features can spawn in such a way that traversal is
+            -- impossible across the room (e.g. doors on the left and right, and
+            -- a line of trees stretches vertically across the room). Cope by
             -- ensuring none of the real blockers can be created before the Mines.
             if nh.level_difficulty() > 4 then
                table.insert(feature, 'P')
@@ -990,6 +991,18 @@ xxxx----xx----xxxx]], contents=function(m)
                end
             end
             shuffle(feature)
+            -- Prevent the features from blocking off an entire wall, which will
+            -- cause impossibles if a door tries to generate on that wall.
+            -- The room being filled = 1 shouldn't randomly generate an extra
+            -- tree in one of the spaces deliberately left blank here, unless no
+            -- door generated next to it; there's a bydoor() check in that bit
+            -- of code.
+            if feature[1] == 'P' or feature[1] == 'T' or feature[1] == 'L' then
+               picks:set(nh.rn2(rm.width), 0, 0)             -- top
+               picks:set(nh.rn2(rm.width), rm.height - 1, 0) -- bottom
+               picks:set(0, nh.rn2(rm.height), 0)            -- left
+               picks:set(rm.width - 1, nh.rn2(rm.height), 0) -- right
+            end
             des.terrain(picks, feature[1])
          end
       });
