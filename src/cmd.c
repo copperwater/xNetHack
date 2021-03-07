@@ -749,6 +749,8 @@ enter_explore_mode(void)
 {
     if (discover) {
         You("are already in explore mode.");
+    } else if (iflags.debug_fuzzer) {
+        ; /* do nothing; explore mode significantly limits the fuzzer */
     } else {
         const char *oldmode = !wizard ? "normal game" : "debug mode";
 
