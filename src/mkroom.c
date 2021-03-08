@@ -533,8 +533,11 @@ fill_zoo(struct mkroom* sroom)
             case ABATTOIR:
                 /* scatter some corpses, leashes, knives, blood */
                 if (!rn2(7)) {
-                    struct obj* sobj = mksobj_at(CORPSE, sx, sy, TRUE, FALSE);
-                    sobj->corpsenm = monsndx(zoomon());
+                    struct permonst *zptr = zoomon();
+                    if (zptr) {
+                        struct obj* sobj = mksobj_at(CORPSE, sx, sy, TRUE, FALSE);
+                        sobj->corpsenm = monsndx(zptr);
+                    }
                 }
                 if (!rn2(10)) {
                     mksobj_at(LEASH, sx, sy, FALSE, FALSE);
@@ -675,7 +678,7 @@ zoomon(void)
     for(i = 0; i < 100; i++) {
         /* try to reroll until finding an animal */
         pm = rndmonst();
-        if (is_animal(pm)) {
+        if (pm && is_animal(pm)) {
             break;
         }
     }
