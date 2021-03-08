@@ -1544,15 +1544,16 @@ lift_object(struct obj *obj,       /* object to pick up... */
     struct obj* otmp = NULL;
     for (otmp = g.invent; otmp; otmp = otmp->nobj) {
         if (otmp->otyp == THIEFSTONE && otmp->cursed && otmp->spe > 0
-            //&& !rn2(10)
+            && !rn2(10)
             && (otmp->keyed_ledger != ledger_no(&u.uz)
-                || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
+                || keyed_x(otmp) != u.ux || keyed_y(otmp) != u.uy)) {
             thiefstone = otmp;
         }
     }
     if (result > 0 && thiefstone && thiefstone_accepts(thiefstone, obj)) {
-        pline("As you reach down, %s jumps out of your pack!",
-            yname(thiefstone));
+        pline("As you reach down, %s jumps out of your %s!",
+              yname(thiefstone),
+              thiefstone == uwep ? body_part(HAND) : "pack");
         pline("It touches %s and they %s disappear!", yname(obj),
               (obj->quan == 1 ? "both" : "all"));
         /* Note: if the thiefstone is on the bill already (possible through
@@ -1570,6 +1571,7 @@ lift_object(struct obj *obj,       /* object to pick up... */
             || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
         int total = 0;
         int onum = 0;
+        boolean one;
         for (otmp = g.invent; otmp; otmp = otmp->nobj) {
             if (thiefstone_accepts(obj, otmp)) {
                 total++;
@@ -1584,9 +1586,12 @@ lift_object(struct obj *obj,       /* object to pick up... */
                 if (onum == 0)
                     break;
             }
+            one = (otmp->quan == 1);
             pline("As you reach for %s, %s %s pulled out of your pack!",
-                  yname(obj), yname(otmp), (otmp->quan == 1 ? "is" : "are"));
-            pline("It touches %s and they disappear!", yname(obj));
+                  yname(obj), yname(otmp), one ? "is" : "are");
+            pline("%s %s %s and%s disappear!",
+                  one ? "It" : "They", otense(otmp, "touch"), yname(obj),
+                  one ? " they" : "");
             thiefstone_teleport(obj, otmp, is_unpaid(otmp));
             thiefstone_teleport(obj, obj, TRUE);
             makeknown(THIEFSTONE);
@@ -1602,6 +1607,11 @@ thiefstone_accepts(struct obj* stone, struct obj* obj)
 {
     if (stone->keyed_ledger == 0) { /* cancelled */
         return FALSE;
+    }
+    /* the stone always sees itself as valid (for e.g.
+     * thiefstone_teleport(stone, stone); - even if wielded, etc. */
+    if (obj == stone) {
+        return TRUE;
     }
     if (obj->owornmask) {
         return FALSE;
@@ -1640,6 +1650,12 @@ thiefstone_teleport(struct obj* stone, struct obj* obj, boolean dobill)
         /* don't teleport if the item is of an inappropriate type */
         impossible("thiefstone_teleport: unacceptable object");
         return;
+    }
+    if (obj == stone) { /* stone teleporting itself */
+        if (obj->owornmask) { /* wielded? quivered? */
+            /* this doesn't account for potential W_ART thiefstones... */
+            setnotworn(obj);
+        }
     }
     if (costly_spot(u.ux, u.uy) && dobill
         && !(samelevel
