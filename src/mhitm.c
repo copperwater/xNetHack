@@ -246,6 +246,12 @@ mdisplacem(register struct monst *magr, register struct monst *mdef,
     remove_monster(tx, ty);
     place_monster(magr, tx, ty); /* put down at target spot */
     place_monster(mdef, fx, fy);
+    /* the monster that moves can decide to hide in its new spot; the displaced
+     * monster is forced out of hiding even if it can hide in its new spot */
+    if (hides_under(magr->data)) {
+        hideunder(magr);
+    }
+    mdef->mundetected = 0;
     if (g.vis && !quietly)
         pline("%s moves %s out of %s way!", Monnam(magr), mon_nam(mdef),
               is_rider(pa) ? "the" : mhis(magr));
