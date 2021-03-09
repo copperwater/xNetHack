@@ -406,9 +406,12 @@ mon_givit(struct monst* mtmp, struct permonst* ptr)
         }
     }
 
-    /* Don't give message if it already had this intrinsic */
-    if (mtmp->mintrinsics & intrinsic)
-        return;
+    /* Don't give message if it already had this property intrinsically, but
+     * still do grant the intrinsic if it only had it from mresists.
+     * Do print the message if it only had this property extrinsically, which is
+     * why mon_resistancebits isn't used here. */
+    if ((mtmp->data->mresists | mtmp->mintrinsics) & intrinsic)
+        msg = (const char *) 0;
 
     if (intrinsic)
         mtmp->mintrinsics |= intrinsic;
