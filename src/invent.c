@@ -226,6 +226,7 @@ loot_xname(struct obj *obj)
     saveo.blessed = obj->blessed, saveo.cursed = obj->cursed;
     saveo.spe = obj->spe;
     saveo.owt = obj->owt;
+    saveo.material = obj->material;
     save_oname = has_oname(obj) ? ONAME(obj) : 0;
     save_debug = flags.debug;
     /* suppress "diluted" for potions and "holy/unholy" for water;
@@ -244,6 +245,8 @@ loot_xname(struct obj *obj)
         obj->owt = 200; /* 200: weight of combined glob from ten creatures
                            (five or fewer is "small", more than fifteen is
                            "large", in between has no prefix) */
+    /* suppress material by setting to default */
+    obj->material = objects[obj->otyp].oc_material;
     /* suppress user-assigned name */
     if (save_oname && !obj->oartifact)
         ONAME(obj) = 0;
@@ -262,6 +265,7 @@ loot_xname(struct obj *obj)
         g.program_state.something_worth_saving = 1;
     }
     /* restore the object */
+    obj->material = saveo.material;
     if (obj->oclass == POTION_CLASS) {
         obj->odiluted = saveo.odiluted;
         if (obj->otyp == POT_WATER)
@@ -311,6 +315,7 @@ sortloot_cmp(const genericptr vptr1, const genericptr vptr2)
     struct obj *obj1 = sli1->obj,
                *obj2 = sli2->obj;
     char *nam1, *nam2;
+    const char *mat1, *mat2;
     int val1, val2, namcmp;
 
     /* order by object class unless we're doing by-invlet without sortpack */
@@ -385,6 +390,14 @@ sortloot_cmp(const genericptr vptr1, const genericptr vptr2)
     val2 = obj2->bknown ? (obj2->blessed ? 3 : !obj2->cursed ? 2 : 1) : 0;
     if (val1 != val2)
         return val2 - val1; /* bigger is better */
+
+    /* Sort alphabetically by material. */
+    mat1 = (obj1->material != objects[obj1->otyp].oc_material)
+           ? materialnm[obj1->material] : "";
+    mat2 = (obj2->material != objects[obj2->otyp].oc_material)
+           ? materialnm[obj2->material] : "";
+    if ((namcmp = strcmpi(mat1, mat2)) != 0)
+        return namcmp;
 
     /* Sort by greasing.  This will put the objects in degreasing order. */
     val1 = obj1->greased;
