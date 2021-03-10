@@ -1621,7 +1621,7 @@ thiefstone_accepts(struct obj* stone, struct obj* obj)
         return FALSE;
     }
     if (((obj->oclass == GEM_CLASS && !is_graystone(obj) && obj->otyp != ROCK)
-        || obj->oclass == COIN_CLASS)
+        || obj->material == GOLD)
         && stone->blessed) {
         return TRUE;
     }

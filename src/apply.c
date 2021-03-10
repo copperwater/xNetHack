@@ -2423,7 +2423,7 @@ thiefstone_ok(struct obj *obj)
      * note that we don't know the beatitude of the thiefstone itself (if
      * nonblessed, these aren't valid), but suggest them anyway */
     if ((obj->oclass == GEM_CLASS && !is_graystone(obj) && obj->otyp != ROCK)
-        || obj->oclass == COIN_CLASS) {
+        || obj->material == GOLD) {
         return GETOBJ_SUGGEST;
     }
 
