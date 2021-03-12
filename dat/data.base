@@ -593,6 +593,7 @@ boomerang
 	Elves, and Gnomes).
 	  [ The Tough Guide to Fantasyland, by Diana Wynne Jones ]
 *booze
+*sake
 potion of sleeping
 	On waking, he found himself on the green knoll whence he had
 	first seen the old man of the glen.  He rubbed his eyes -- it
@@ -625,6 +626,7 @@ boulder
 	would do it; and so I did.
 		[ The King Must Die, by Mary Renault ]
 ~*longbow of diana
+~long bow
 bow
 * bow
 	"Stand to it, my hearts of gold," said the old bowman as he
@@ -2120,6 +2122,7 @@ hachi
 	statue was erected on the station platform in his honor.  It
 	is said to bring you luck if you touch his statue.
 *harp
+koto
 	A triangular stringed instrument, often Magic.  Even when not
 	Magic, a Harp is surprisingly portable and tough and can be
 	carried everywhere on the back of the Bard or Harper in all
@@ -2684,6 +2687,7 @@ kabuto
 	downwards into a flange that rested against the forehead.
 	   [ Arms & Armour of the Samurai, by Bottomley & Hopson ]
 katana
+samurai sword
 	The katana is a long, single-edged samurai sword with a
 	slightly curved blade.  Its long handle is designed to allow
 	it to be wielded with either one or two hands.
@@ -2736,6 +2740,7 @@ king arthur
 kleicha
         A rolled or filled cardamom cookie popular in the Middle East.
 knife
+shito
 	Possibly perceiving an expression of dubiosity on their
 	faces, the globetrotter went on adhering to his adventures.
 
@@ -2805,8 +2810,6 @@ kos
 	dooms, by the brown bones of Nalgron my father and by his
 	sword Graywand here at my side!"
 	   [ Swords and Deviltry, by Fritz Leiber ]
-koto
-	A Japanese harp.
 kraken
 	Out from the water a long sinuous tentacle had crawled; it
 	was pale-green and luminous and wet.  Its fingered end had
@@ -4506,8 +4509,6 @@ saddle
 	Things are in the saddle,
 	And ride mankind.
 		[ Ode, by Ralph Waldo Emerson ]
-sake
-	Japanese rice wine.
 salamander
 	For hundreds of years, many people believed that salamanders
 	were magical.  In England in the Middle Ages, people thought
@@ -4678,8 +4679,6 @@ shark
 	that no other creature in nature could make -- a bomb from
 	the depths.
 		[ Close to Shore, by Michael Capuzzo ]
-shito
-	A Japanese stabbing knife.
 shopkeeper
 	There have been three general theories put forward to explain
 	the phenomenon of the wandering shops or, as they are
@@ -5279,6 +5278,7 @@ tripe ration
 	creature it is wielded against, instantly killing them.
 ~*muramasa
 tsurugi
+long samurai sword
 	The tsurugi, also known as the long samurai sword, is an
 	extremely sharp, two-handed blade favored by the samurai.
 	It is made of hardened steel, and is manufactured using a
@@ -5732,6 +5732,7 @@ xorn
 	ability to pass through any obstacle that might be between it
 	and its next meal.
 ya
+bamboo arrow
 	The arrow of choice of the samurai, ya are made of very
 	straight bamboo, and are tipped with hardened steel.
 yeenoghu
@@ -5761,6 +5762,7 @@ yeti
 	practicing had thumbs reinforced with horn.  Those worn into
 	battle had thumbs reinforced with a double layer of leather.
 yumi
+long bow
 	The samurai is highly trained with a special type of bow,
 	the yumi.  Like the ya, the yumi is made of bamboo.  With
 	the yumi-ya, the bow and arrow, the samurai is an extremely
