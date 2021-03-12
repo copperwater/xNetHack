@@ -548,6 +548,10 @@ spotted jelly
 	inexpressibly dear and forlorn for a bit of blue jelly, would
 	force open the outer door until I returned and rejoined it.
 		[ Beholder's Eye, by Julie E. Czerneda ]
+bone
+	Bone is an odd choice from which to carve an item, and is a rather
+	rare find.  Nevertheless, it works about as well as comparable
+	materials. It is not vulnerable to fire nor rot.
 bone devil
 	Bone devils attack with weapons and with a great hooked tail
 	which causes a loss of strength to those they sting.
@@ -958,6 +962,9 @@ cleaver
 	around her/his shivering body_.  This seems to suggest they
 	are less than practical for anyone on an arduous Tour.
 	  [ The Tough Guide to Fantasyland, by Diana Wynne Jones ]
+cloth
+	Non-rigid wool or linen fabric, less tough than leather but far
+	more comfortable. It is vulnerable to fire and rot.
 cloud*
 	I wandered lonely as a cloud
 	That floats on high o'er vales and hills,
@@ -1039,6 +1046,15 @@ cope
 	and are like a very long mantle or cloak, fastened at the breast
 	by a clasp.
 		[ Wikipedia, the free encyclopedia ]
+copper
+bronze
+brass
+	Copper and its alloys were historically widely used prior to the
+	development of superior iron and steel items, but more recent
+	items of this type may still be found in the dungeon. While it is
+	slightly worse than iron and steel in sheer durability, it has the
+	advantage that it won't rust, although it is still vulnerable to
+	corrosion.
 cornuthaum
 	He was dressed in a flowing gown with fur tippets which had
 	the signs of the zodiac embroidered over it, with various
@@ -1976,6 +1992,14 @@ giant humanoid
 	boulders as weapons, hurling them over large distances.  All
 	types of giants share a love for men - roasted, boiled, or
 	fried.  Their table manners are legendary.
+glass
+	A hard and brittle material, lighter than most metals but prone to
+	shattering.  It can be very sharp, though; certain types of
+	weapons might be very deadly if made out of glass.  However, using
+	it in combat is quite likely to end up with it broken, and
+	throwing glass objects any distance will definitely break them.
+	There have been reports of magically enhanced glass that is
+	protected from breaking.
 # note: "gnomish wizard" is a monster
 ~gnome ??m*
 #~gnom* cave*man
@@ -2037,6 +2061,10 @@ goddess
 	  [ The Tough Guide to Fantasyland, by Diana Wynne Jones ]
 gold
 gold piece
+	This metal is very heavy, but is a noble metal that neither rusts
+	nor corrodes. Its sheer weight might make it useful on certain
+	types of weapons.
+
 	A metal of characteristic yellow colour, the most precious
 	metal used as a common commercial medium of exchange.  Symbol,
 	Au; at. no. 79; at. wt. 197.2.  It is the most malleable
@@ -2546,6 +2574,15 @@ invocation*
 	heavy and as long as this, seven Christmas Eves ago.  You
 	have laboured on it, since.  It is a ponderous chain!"
 		[ A Christmas Carol, by Charles Dickens ]
+iron
+steel
+	The most common and versatile metal material. Iron is a very
+	common ore, so historically many items have been made out of iron
+	or steel. It can be forged into many shapes, meaning that a wide
+	variety of items can be made out of it.
+
+	It is a strong metal, making it a material of choice for armor and
+	weapons. However, it is vulnerable to rust and corrosion.
 iron bars
 	Stone walls do not a prison make,
 	  Nor iron bars a cage;
@@ -3431,6 +3468,9 @@ mit*ra*
 	    [ The Encyclopaedia of Myths and Legends of All Nations,
 		by Herbert Spencer Robinson and Knox Wilson ]
 *mithril*
+	A metal that is all at once lightweight, expensive, and immune to
+	rust or corrosion.
+
 	_Mithril_!  All folk desired it.  It could be beaten like
 	copper, and polished like glass; and the Dwarves could make
 	of it a metal, light and yet harder than tempered steel.
@@ -3952,7 +3992,12 @@ panther
 	That many times I to return had turned.
 		[ Dante's Inferno, as translated
 		    by Henry Wadsworth Longfellow ]
+~*blank paper
 *paper
+	It is not clear why anyone would use paper, or its more rigid
+	counterpart papier-mache, to produce items that are normally made
+	out of tougher materials.
+
 	Some players, who unconsciously perceive Paper as weak or a
 	sign of surrender, will shy away from using it entirely or
 	drop it from their game when they are falling behind.  On the
@@ -4030,6 +4075,17 @@ pit fiend
 	attacking twice with weapons as well as grabbing and crushing
 	the life out of those unwary enough to enter their
 	domains.
+plastic
+	This is a very versatile material, being malleable enough to be
+	shaped into most anything. There are many types of plastic, with
+	varying rigidities.  While it is a very lightweight material, it
+	is not terribly strong, and it can't hold an edge well, meaning
+	that any weapon made of it is likely to be poor.  It is vulnerable
+	to fire, but not rot.
+platinum
+	A very heavy metal, even heavier than gold, but also very
+	expensive. It neither rusts nor corrodes, and its sheer weight
+	might make it useful on certain types of weapons.
 platinum yendorian express card
 	This is an ancient artifact made of an unknown material.  It
 	is rectangular in shape, very thin, and inscribed with
@@ -4750,6 +4806,10 @@ shuriken
 	the throat, the other in the middle of her chest.  It wouldn't
 	kill her, but she wouldn't be fighting anyone for a while.
 		[ Jhereg, by Steven Brust ]
+silver
+	This metal is heavier than iron but, being a noble metal, does not
+	rust, though it can tarnish. It is particularly harmful to certain
+	types of monsters, who cannot abide its touch.
 skeleton
 	A skeleton is a magically animated undead creature.  Unlike
 	shades, only a humanoid creature can be used to create a
@@ -5003,6 +5063,11 @@ sting
 	"I will give you a name," he said to it, "and I shall call
 	you Sting."
 		[ The Hobbit, by J.R.R. Tolkien ]
+stone
+mineral
+	A natural rock material, carved rather than shaped. Not brittle
+	enough to break in combat, but fairly heavy. Perhaps some weapons
+	might benefit from its weight, though.
 stormbringer
 	There were sounds in the distance, incongruent with the
 	sounds of even this nameless, timeless sea: thin sounds,
@@ -5666,6 +5731,12 @@ wolf
 	monkshood.
 		[ The American Heritage Dictionary of
 		    the English Language, Fourth Edition. ]
+wood
+wooden
+	Rigid material cut from trees. It is pretty supple, and is
+	favored by elven crafters. It is not as protective as metal, and
+	may have a harder time holding an edge, but is lighter and works
+	just as well on blunt weapons. It is vulnerable to fire and rot.
 wood golem
 	Come, old broomstick, you are needed,
 	Take these rags and wrap them round you!
