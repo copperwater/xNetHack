@@ -151,7 +151,7 @@ amulet of yendor
 	immortality to the adventurer who can deliver it from the
 	depths of Moloch's Sanctum and offer it on the appropriate high
 	altar on the Astral Plane.
-anaraxis the black
+anaraxis*
 dark one
 	... But he ruled rather by force and fear, if they might
 	avail; and those who perceived his shadow spreading over the
@@ -3228,6 +3228,16 @@ sceptre
 	about in armour, and sovereigns needed champions to vindicate
 	their rights.
 		[ Brewer's Concise Dictionary of Phrase and Fable ]
+magic cancellation
+	This term is used to describe the chance of an armor piece to
+	cancel a monster's special attacks.  In general, this refers to
+	attacks which touch the target in some way, and deal effects
+	which are magical and not physical nor biological, though there
+	are scattered exceptions.
+
+	Magic cancellation ranges on a scale of 0 to 3, where 0 never
+	protects, 1 protects occasionally, 2 protects fairly often, and
+	3 protects frequently.
 magic marker
 	The pen is mightier than the sword.
 		[ Richelieu, by Edward Bulwer-Lytton ]
@@ -5129,6 +5139,16 @@ tengu
 	belligerent tengu were supposed to have been man's first
 	instructors in the use of arms.
 	  [ Mythical Beasts, by Deirdre Headon (The Leprechaun Library) ]
+thiefstone
+	This capricious stone appears to be a plain gray rock at first
+	glance, but it carries a curse that makes it steal magical items
+	away from anyone who might try to reach for or carry it.  The
+	items are magically teleported, from anywhere in the dungeon, to
+	the thiefstone's secret stash.  Finding a storage container in
+	an unusual location might indicate that a nearby thiefstone has
+	made its stash there.  It is rumored that if one can break the
+	curse on the thiefstone, it will become much more docile, and
+	will only teleport what its owner wants it to.
 thoth
 	The Egyptian god of the moon and wisdom, Thoth is the patron
 	deity of scribes and of knowledge, including scientific,
