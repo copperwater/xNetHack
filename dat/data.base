@@ -542,6 +542,12 @@ bell of opening
 	    Bells, bells, bells --
 	From the jingling and the tinkling of the bells.
 		[ The Bells, by Edgar Allan Poe ]
+big stick
+	This club was created aeons ago in some unknown cave, and has been
+	passed down from generation to generation of cave dwellers.  It is
+	a very mighty stick indeed, and in addition will protect anyone
+	who wields it from magic missile attacks.  When invoked, it causes
+	conflict in the area around it.
 # also catches "blind from birth"
 blind*
 	Suffices that to me strength is my bane,
@@ -3419,9 +3425,9 @@ lynx
 ma*amoul
 	A Middle Eastern holiday cookie, made from semolina flour and
 	filled with chopped nuts, figs or dates.
-~*sceptre of might
+~*scept?? of might
 mace
-sceptre
+scept??
 	Originally a club armed with iron, and used in war; now a staff
 	of office pertaining to certain dignitaries, as the Speaker of
 	the House of Commons, Lord Mayors, Mayors etc.  Both sword and
@@ -3691,8 +3697,7 @@ mit*ra*
 *mitre of holiness
 	This helm of brilliance performs all of the normal functions
 	of a helm of brilliance, but also has the ability to protect
-	anyone who carries it from fire.  When invoked, it boosts
-	the energy of the invoker, allowing them to cast more spells.
+	anyone who carries it from fire.
 mjollnir
 	Forged by the dwarves Eitri and Brokk, in response to Loki's
 	challenge, Mjollnir is an indestructible war hammer.  It has
@@ -4912,13 +4917,12 @@ scalpel
 	cut through the skin. ... Medical scalpel blades are gradually
 	curved for greater precision when cutting through tissue.
 		[ Wikipedia, the free encyclopedia ]
-*sceptre of might
-	This mace was created aeons ago in some unknown cave,
-	and has been passed down from generation to generation of
-	cave dwellers.  It is a very mighty mace indeed, and in
-	addition will protect anyone who wields it from magic
-	missile attacks.  When invoked, it causes conflict in the
-	area around it.
+*scept?? of might
+	Legends say this mace was created by Marduk himself, as a lesser
+	cousin to the Amulet of Yendor.  It aligns itself to its wielder,
+	wrathfully smiting all those of a different alignment, and guards
+	against necromantic loss of life energy.  When invoked, it boosts
+	the energy of the invoker, allowing them to cast more spells.
 scimitar
 	Oh, how handsome, how noble was the Vizier Ali Tebelin,
 	my father, as he stood there in the midst of the shot, his
