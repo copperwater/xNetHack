@@ -3349,6 +3349,29 @@ name_to_otyp(const char *in_str)
     return STRANGE_OBJECT;
 }
 
+/* Return true if the input string clearly represents an object, not a monster.
+ */
+boolean
+object_not_monster(const char *str)
+{
+    const char *non_monster_strs[] = {
+        "samurai sword", /* not the "samurai" monster! */
+        "wizard lock",   /* not the "wizard" monster! */
+        "death wand",    /* 'of inversion', not Rider */
+        "master key",    /* not the "master" rank */
+        "ninja-to",      /* not the "ninja" rank */
+        "magenta",       /* not the "mage" rank */
+        "thiefstone",    /* not the "thief" rank */
+        "thief stone"    /* alt spelling... */
+    };
+    int i;
+    for (i = 0; i < SIZE(non_monster_strs); ++i) {
+        if (!strncmpi(str, non_monster_strs[i], strlen(non_monster_strs[i]))) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
 
 #define UNDEFINED 0
 #define EMPTY 1
@@ -3792,14 +3815,8 @@ readobjnam_postparse1(struct _readobjnam_data* d)
     }
 
     /* Find corpse type w/o "of" (red dragon scale mail, yeti corpse) */
-    if (strncmpi(d->bp, "samurai sword", 13)  /* not the "samurai" monster! */
-        && strncmpi(d->bp, "wizard lock", 11) /* not the "wizard" monster! */
-        && strncmpi(d->bp, "death wand", 10)  /* 'of inversion', not Rider */
-        && strncmpi(d->bp, "master key", 10)  /* not the "master" rank */
-        && strncmpi(d->bp, "ninja-to", 8)     /* not the "ninja" rank */
-        && strncmpi(d->bp, "magenta", 7       /* not the "mage" rank */)
-        && strncmpi(d->bp, "thiefstone", 10)  /* not the "thief" rank */
-        && strncmpi(d->bp, "thief stone", 11)) { /* alt spelling... */
+    if (object_not_monster(d->bp)) { /* ignore strings that look like monsters
+                                      * but aren't */
         const char *rest = 0;
 
         if (d->mntmp < LOW_PM && strlen(d->bp) > 2

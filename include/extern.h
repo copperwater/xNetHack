@@ -1840,6 +1840,7 @@ extern char *bare_artifactname(struct obj *);
 extern char *makeplural(const char *);
 extern char *makesingular(const char *);
 extern short name_to_otyp(const char *);
+extern boolean object_not_monster(const char *);
 extern struct obj *readobjnam(char *, struct obj *);
 extern int rnd_class(int, int);
 extern const char *suit_simple_name(struct obj *);
