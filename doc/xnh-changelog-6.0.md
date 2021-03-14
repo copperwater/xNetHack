@@ -457,6 +457,8 @@ changes:
 - More hallucinatory monsters, shirts, epitaphs, random engravings, rumors,
   hallucinatory gods, hallucinatory blasts, tin labels, weapon names, and
   taunts.
+- A number of new encyclopedia entries are added, mostly for things that vanilla
+  did not have an entry for.
 
 ### Architectural changes
 
