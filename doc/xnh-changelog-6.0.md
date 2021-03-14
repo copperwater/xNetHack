@@ -393,6 +393,8 @@ changes:
   - Lizards moved back to ':'
   - Leprechauns moved back to 'l'
   - Kop Sergeants/Lieutenants/Kaptains returned to blue/cyan/magenta
+- Mummy wrappings are no longer eligible for object materials and are always
+  cloth.
 
 ### Interface changes
 
