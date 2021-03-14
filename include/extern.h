@@ -684,6 +684,7 @@ extern void food_substitution(struct obj *, struct obj *);
 extern void eating_conducts(struct permonst *);
 extern int eat_brains(struct monst *, struct monst *, boolean, int *);
 extern void fix_petrification(void);
+extern int intrinsic_possible(int, struct permonst *);
 extern boolean should_givit(int, struct permonst *);
 extern int corpse_intrinsic(struct permonst *);
 extern void consume_oeaten(struct obj *, int);

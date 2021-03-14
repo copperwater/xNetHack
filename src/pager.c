@@ -636,9 +636,6 @@ add_mon_info(winid datawin, struct permonst * pm)
     boolean uniq = !!(gen & G_UNIQ);
     boolean hell = !!(gen & G_HELL);
     boolean nohell = !!(gen & G_NOHELL);
-    uchar mcon = pm->mconveys;
-    mcon &= ~(MR_ACID | MR_STONE); /* these don't do anything */
-    unsigned int mflag1 = pm->mflags1;
 
 #define ADDRESIST(condition, str)                       \
     if (condition) {                                    \
@@ -710,16 +707,29 @@ add_mon_info(winid datawin, struct permonst * pm)
 
     /* Corpse conveyances */
     buf[0] = '\0';
-    ADDMR(mcon, MR_FIRE, "fire");
-    ADDMR(mcon, MR_COLD, "cold");
-    ADDMR(mcon, MR_SLEEP, "sleep");
-    ADDMR(mcon, MR_DISINT, "disintegration");
-    ADDMR(mcon, MR_ELEC, "shock");
-    ADDMR(mcon, MR_POISON, "poison");
+    APPENDC(intrinsic_possible(FIRE_RES, pm), "fire");
+    APPENDC(intrinsic_possible(COLD_RES, pm), "cold");
+    APPENDC(intrinsic_possible(SHOCK_RES, pm), "shock");
+    APPENDC(intrinsic_possible(SLEEP_RES, pm), "sleep");
+    APPENDC(intrinsic_possible(POISON_RES, pm), "poison");
+    APPENDC(intrinsic_possible(DISINT_RES, pm), "disintegration");
+    /* acid and stone resistance aren't currently conveyable */
     if (*buf)
         Strcat(buf, " resistance");
-    ADDMR(mflag1, M1_TPORT, "teleportitis");
-    ADDMR(mflag1, M1_TPORT_CNTRL, "teleport control");
+    APPENDC(intrinsic_possible(TELEPORT, pm), "teleportation");
+    APPENDC(intrinsic_possible(TELEPORT_CONTROL, pm), "teleport control");
+    APPENDC(intrinsic_possible(TELEPAT, pm), "telepathy");
+    APPENDC(intrinsic_possible(INTRINSIC_GAIN_STR, pm), "strength");
+    APPENDC(intrinsic_possible(INTRINSIC_GAIN_EN, pm), "magic energy");
+    /* There are a bunch of things that happen in cpostfx (levels for wraiths,
+     * stunning for bats...) but only count the ones that actually behave like
+     * permanent intrinsic gains.
+     * If you find yourself listing multiple things here for the same effect,
+     * that may indicate the property should be added to psuedo_intrinsics. */
+    APPENDC(pm == &mons[PM_QUANTUM_MECHANIC], "speed or slowness");
+    APPENDC(is_were(pm), "lycanthropy");
+    APPENDC(pm == &mons[PM_MIND_FLAYER] || pm == &mons[PM_MASTER_MIND_FLAYER],
+            "intelligence");
     if (!(gen & G_NOCORPSE)) {
         Sprintf(buf2, "Provides %d nutrition when eaten.", pm->cnutrit);
         MONPUTSTR(buf2);
@@ -728,7 +738,7 @@ add_mon_info(winid datawin, struct permonst * pm)
             MONPUTSTR(buf2);
         }
         else
-            MONPUTSTR("Corpse conveys nothing.");
+            MONPUTSTR("Corpse conveys no intrinsics.");
     }
     else
         MONPUTSTR("Leaves no corpse.");

@@ -18,7 +18,6 @@ static struct obj *touchfood(struct obj *);
 static void do_reset_eat(void);
 static void done_eating(boolean);
 static void cprefx(int);
-static int intrinsic_possible(int, struct permonst *);
 static void givit(struct permonst *);
 static void cpostfx(int);
 static void consume_tin(const char *);
@@ -769,7 +768,7 @@ fix_petrification(void)
 
 /* intrinsic_possible() returns TRUE iff a monster can give an intrinsic.
  * Has no side effects other than debugplines. */
-static int
+int
 intrinsic_possible(int type, register struct permonst *ptr)
 {
     int res = 0;
