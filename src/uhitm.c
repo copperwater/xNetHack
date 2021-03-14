@@ -272,12 +272,15 @@ attack_check_conducts(struct obj* wep)
      * Use turns rather than beginner status to determine if it is early enough,
      * since it's hard for pacifists to gain score.
      */
-    if (!u.uconduct.killer && !g.context.forcefight && g.moves > 100) {
+    static boolean said_yes_to_attack = FALSE;
+    if (!said_yes_to_attack && !u.uconduct.killer && !g.context.forcefight
+        && g.moves > 100) {
         pline("Killing a monster violates pacifist conduct.");
         if (!paranoid_query(TRUE, "Attack anyway?")) {
             g.context.move = 0;
             return TRUE;
         }
+        said_yes_to_attack = TRUE; /* don't ask again */
     }
 
     return FALSE;
