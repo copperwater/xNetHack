@@ -19,7 +19,7 @@ static void do_reset_eat(void);
 static void done_eating(boolean);
 static void cprefx(int);
 static int intrinsic_possible(int, struct permonst *);
-static void givit(int, struct permonst *);
+static void givit(struct permonst *);
 static void cpostfx(int);
 static void consume_tin(const char *);
 static void start_tin(struct obj *);
@@ -750,15 +750,25 @@ fix_petrification(void)
 }
 
 /*
+ * Relevant functions for gaining intrinsics through food:
+ *   intrinsic_possible()
+ *   corpse_intrinsic()
+ *   givit()
+ *   should_givit()
+ *   mon_givit()
  * If you add an intrinsic that can be gotten by eating a monster, add it
- * to intrinsic_possible() and givit().  (It must already be in prop.h to
- * be an intrinsic property.)
+ * to these functions.  (It must already be in prop.h to be an intrinsic
+ * property.)
+ * If it's not an intrinsic but you want it to be treated as one, add a constant
+ * for it in psuedo_intrinsics in hack.h before adding it to these functions.
+ *
  * It would be very easy to make the intrinsics not try to give you one
  * that you already had by checking to see if you have it in
  * intrinsic_possible() instead of givit(), but we're not that nice.
  */
 
-/* intrinsic_possible() returns TRUE iff a monster can give an intrinsic. */
+/* intrinsic_possible() returns TRUE iff a monster can give an intrinsic.
+ * Has no side effects other than debugplines. */
 static int
 intrinsic_possible(int type, register struct permonst *ptr)
 {
@@ -810,6 +820,16 @@ intrinsic_possible(int type, register struct permonst *ptr)
         res = telepathic(ptr);
         ifdebugresist("can get telepathy");
         break;
+    case INTRINSIC_GAIN_STR:
+        res = is_giant(ptr);
+        ifdebugresist("can gain strength");
+        break;
+    case INTRINSIC_GAIN_EN:
+        /* Eating magical monsters can give you some magical energy. */
+        /* MRKR: "eye of newt" may give small magical energy boost */
+        res = (attacktype(ptr, AT_MAGC) || ptr == &mons[PM_NEWT]);
+        ifdebugresist("can gain magic energy");
+        break;
     default:
         /* res stays 0 */
         break;
@@ -848,6 +868,12 @@ should_givit(int type, struct permonst *ptr)
         else
             chance = 20;
         break;
+    case INTRINSIC_GAIN_STR:
+    case INTRINSIC_GAIN_EN:
+        /* gain str has special handling in corpse_intrinsic(); gain energy has
+         * special handling in givit(). Neither should be blocked by this check.
+         */
+        return TRUE;
     default:
         chance = 15;
         break;
@@ -860,9 +886,9 @@ should_givit(int type, struct permonst *ptr)
  * and what type of intrinsic it is trying to give you.
  */
 static void
-givit(int type, register struct permonst *ptr)
+givit(register struct permonst *ptr)
 {
-
+    int type = corpse_intrinsic(ptr);
     debugpline1("Attempting to give intrinsic %d", type);
 
     if (!should_givit(type, ptr))
@@ -940,16 +966,33 @@ givit(int type, register struct permonst *ptr)
                 see_monsters();
         }
         break;
+    case INTRINSIC_GAIN_STR:
+        gainstr((struct obj *) 0, 0, TRUE);
+        break;
+    case INTRINSIC_GAIN_EN:
+        if (rn2(3) || 3 * u.uen <= 2 * u.uenmax) {
+            int old_uen = u.uen, old_uenmax = u.uenmax;
+            u.uen += rnd(max(ptr->mlevel, 3));
+            if (u.uen > u.uenmax) {
+                if (!rn2(3))
+                    u.uenmax++;
+                u.uen = u.uenmax;
+            }
+            if (old_uen != u.uen) {
+                You_feel("a %s buzz.",
+                        old_uenmax != u.uenmax ? "moderate" : "mild");
+                g.context.botl = 1;
+            }
+        }
+        break;
     default:
-        debugpline0("Tried to give an impossible intrinsic");
+        impossible("Tried to give an impossible intrinsic %d", type);
         break;
     }
 }
 
 /* Choose (one of) the intrinsics granted by a corpse, and return it.
  * If this corpse gives no intrinsics, return 0.
- * For the special not-real-prop cases of strength gain (from giants) and energy
- * gain (from newts etc), return fake prop values of -1 and -2.
  * Non-deterministic; should only be called once per corpse.
  */
 int
@@ -958,12 +1001,6 @@ corpse_intrinsic(struct permonst *ptr)
     int i;
     int count = 0;
     int prop = 0;
-    boolean conveys_STR = is_giant(ptr);
-
-    /* Eating magical monsters can give you some magical energy. */
-    /* MRKR: "eye of newt" may give small magical energy boost */
-    boolean conveys_energy = (attacktype(ptr, AT_MAGC)
-                              || ptr == &mons[PM_NEWT]);
 
     /* Check the monster for all of the intrinsics.  If this
      * monster can give more than one, pick one to try to give
@@ -973,19 +1010,11 @@ corpse_intrinsic(struct permonst *ptr)
      * rather than being given unconditionally.
      */
 
-    if (conveys_STR) {
-        count++;
-        prop = -1;
-        debugpline1("\"Intrinsic\" strength, %d", prop);
-    }
-    if (conveys_energy) {
-        count++;
-        if (!rn2(count)) {
-            prop = -2;
-            debugpline1("\"Intrinsic\" energy gain, %d", prop);
+    for (i = FIRST_FAKE_PROP; i <= LAST_PROP; i++) {
+        /* FIRST_FAKE_PROP is negative and 0 isn't a real property so skip it */
+        if (i == 0) {
+            continue;
         }
-    }
-    for (i = 1; i <= LAST_PROP; i++) {
         if (!intrinsic_possible(i, ptr))
             continue;
         count++;
@@ -1000,7 +1029,7 @@ corpse_intrinsic(struct permonst *ptr)
     }
 
     /* if strength is the only candidate, give it 50% chance */
-    if (conveys_STR && count == 1 && !rn2(2))
+    if (prop == INTRINSIC_GAIN_STR && count == 1 && !rn2(2))
         prop = 0;
 
     return prop;
@@ -1180,31 +1209,9 @@ cpostfx(int pm)
                                      0L);
         }
 
-        tmp = corpse_intrinsic(ptr);
-
-        /* if something was chosen, give it now (givit() might fail) */
-        if (tmp == -1)
-            gainstr((struct obj *) 0, 0, TRUE);
-        else if (tmp == -2) {
-            if (rn2(3) || 3 * u.uen <= 2 * u.uenmax) {
-                int old_uen = u.uen, old_uenmax = u.uenmax;
-                u.uen += (pm == PM_NEWT) ? rnd(3) : rnd(mons[pm].mlevel);
-                if (u.uen > u.uenmax) {
-                    if (!rn2(3))
-                        u.uenmax++;
-                    u.uen = u.uenmax;
-                }
-                if (old_uen != u.uen) {
-                    You_feel("a %s buzz.",
-                            old_uenmax != u.uenmax ? "moderate" : "mild");
-                    g.context.botl = 1;
-                }
-            }
-
-        }
-        else if (tmp > 0)
-            givit(tmp, ptr);
-    } /* check_intrinsics */
+        /* give an intrinsic now (givit() might fail) */
+        givit(ptr);
+    }
 
     if (catch_lycanthropy >= LOW_PM) {
         set_ulycn(catch_lycanthropy);

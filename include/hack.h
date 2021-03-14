@@ -537,6 +537,15 @@ enum bodypart_types {
 #define DUMPCONT_QUIET  0x1 /* suppress most messages */
 #define DUMPCONT_BYPOLY 0x2 /* "Objects spill out as [cont] polymorphs" */
 
+/* psuedo types for intrinsics gained by eating corpses that aren't actually
+ * intrinsics listed in prop.h; these should be nonzero so that zero can
+ * represent "no intrinsic given" */
+enum psuedo_intrinsics {
+    INTRINSIC_GAIN_STR = -1, /* strength from e.g. giants */
+    INTRINSIC_GAIN_EN  = -2, /* current/max energy from e.g. newts */
+    FIRST_FAKE_PROP    = -2, /* for ++ iteration */
+};
+
 /* to-hit penalty for wearing body armor as a Monk; used to be a 'spelarmr'
  * stat in the role struct but it wasn't used for any other roles and probably
  * was never going to be, so it's now a constant. */
