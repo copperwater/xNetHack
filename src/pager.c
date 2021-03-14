@@ -657,7 +657,14 @@ add_mon_info(winid datawin, struct permonst * pm)
     }
 #define MONPUTSTR(str) putstr(datawin, ATR_NONE, str)
 
-    Sprintf(buf, "Monster lookup for \"%s\":", pm->pmnames[NEUTRAL]);
+    /* differentiate the two forms of werecreatures */
+    Strcpy(buf2, "");
+    if (is_were(pm)) {
+        Sprintf(buf2, " (%s form)", pm->mlet == S_HUMAN ? "human" : "animal");
+    }
+
+    Snprintf(buf, BUFSZ, "Monster lookup for \"%s\"%s:", pm->pmnames[NEUTRAL],
+             buf2);
     putstr(datawin, ATR_BOLD, buf);
     MONPUTSTR("");
 
@@ -727,10 +734,19 @@ add_mon_info(winid datawin, struct permonst * pm)
      * If you find yourself listing multiple things here for the same effect,
      * that may indicate the property should be added to psuedo_intrinsics. */
     APPENDC(pm == &mons[PM_QUANTUM_MECHANIC], "speed or slowness");
-    APPENDC(is_were(pm), "lycanthropy");
     APPENDC(pm == &mons[PM_MIND_FLAYER] || pm == &mons[PM_MASTER_MIND_FLAYER],
             "intelligence");
-    if (!(gen & G_NOCORPSE)) {
+    if (is_were(pm)) {
+        /* Weres need a bit of special handling, since 1) you always get
+         * lycanthropy so "may convey" could imply the player might not contract
+         * it; 2) the animal forms are flagged as G_NOCORPSE, but still have a
+         * meaningless listed corpse nutrition value which shouldn't print. */
+        if (pm->mlet == S_HUMAN) {
+            Sprintf(buf2, "Provides %d nutrition when eaten.", pm->cnutrit);
+            MONPUTSTR(buf2);
+        }
+        MONPUTSTR("Corpse conveys lycanthropy.");
+    } else if (!(gen & G_NOCORPSE)) {
         Sprintf(buf2, "Provides %d nutrition when eaten.", pm->cnutrit);
         MONPUTSTR(buf2);
         if (*buf) {
@@ -1619,6 +1635,12 @@ checkfile(char *inp, struct permonst *pm, boolean user_typed_name,
                      * "skeleton" and "skeleton key". */
                     else if (do_mon_lookup) {
                         add_mon_info(datawin, pm);
+                        if (is_were(pm)) {
+                            /* also do the alternate form */
+                            putstr(datawin, 0, "");
+                            add_mon_info(datawin,
+                                         &mons[counter_were(monsndx(pm))]);
+                        }
                         putstr(datawin, 0, "");
                     }
 
