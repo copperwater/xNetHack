@@ -1,0 +1,27 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linux-build:
+
+    runs-on: ubuntu-latest
+    
+    env: 
+      LUA_VERSION: 5.4.0
+      HINTS_FILE: linux.2020
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup
+      run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
+    - name: fetch lua
+      run: make fetch-lua LUA_VERSION=$LUA_VERSION
+    - name: make
+      run: make
+    - name: make install
+      run: make install
