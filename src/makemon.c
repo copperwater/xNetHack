@@ -326,6 +326,9 @@ m_initweap(register struct monst *mtmp)
             otmp->cursed = FALSE;
             otmp->oerodeproof = TRUE;
             otmp->spe = 0;
+            /* non-archons might have a stereotypical harp */
+            if (!rn2(20) && !is_lord(ptr))
+                (void) mongets(mtmp, rn2(5) ? HARP : MAGIC_HARP);
         }
         break;
 
