@@ -2933,18 +2933,6 @@ static const struct alt_spellings {
     { "thief stone", THIEFSTONE },
     { "flintstone", FLINT },
     { "scroll of flood", SCR_WATER }, /* unnethack name for it */
-    /* dragon scale mail no longer formally exists; a wish for it will get you
-     * scales instead */
-    { "gray dragon scale mail",   GRAY_DRAGON_SCALES },
-    { "grey dragon scale mail",   GRAY_DRAGON_SCALES },
-    { "silver dragon scale mail", SILVER_DRAGON_SCALES },
-    { "red dragon scale mail",    RED_DRAGON_SCALES },
-    { "white dragon scale mail",  WHITE_DRAGON_SCALES },
-    { "orange dragon scale mail", ORANGE_DRAGON_SCALES },
-    { "black dragon scale mail",  BLACK_DRAGON_SCALES },
-    { "blue dragon scale mail",   BLUE_DRAGON_SCALES },
-    { "green dragon scale mail",  GREEN_DRAGON_SCALES },
-    { "yellow dragon scale mail", YELLOW_DRAGON_SCALES },
     { (const char *) 0, 0 },
 };
 
@@ -4363,6 +4351,14 @@ readobjnam(char* bp, struct obj* no_wish)
                 return (struct obj *) 0;
             break;
         }
+    }
+
+    /* players are likely to wish for "foo dragon scale mail" by reflex, which
+     * no longer exists and would now ignore the dragon type and give a plain
+     * scale mail; be nice by not letting it do that */
+    if (d.typ == SCALE_MAIL && d.mntmp >= FIRST_DRAGON
+        && d.mntmp <= LAST_DRAGON) {
+        return (struct obj *) 0;
     }
 
     /* if asking for corpse of a monster which leaves behind a glob, give

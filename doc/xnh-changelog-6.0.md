@@ -339,7 +339,7 @@ changes:
 - The "dtsund-DSM" proposal is implemented, which replaces dragon scale mail
   with dragon-scaled armor of other types.
   - All dragon scale mail is removed and no longer exists as objects. Wishing
-    for dragon scale mail now gives the corresponding set of dragon scales.
+    for dragon scale mail will produce a "that doesn't exist" message.
   - Dragon scales are now worn in the cloak slot. Their stats are unchanged:
     3 AC, 0 MC, providing the same extrinsics.
   - Reading enchant armor with scales equipped will always target the scales.
