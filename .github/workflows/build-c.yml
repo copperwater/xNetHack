@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env: 
-      LUA_VERSION: 5.4.0
+      #LUA_VERSION: 5.4.2
       HINTS_FILE: linux.2020
 
     steps:
@@ -20,7 +20,8 @@ jobs:
     - name: setup
       run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
     - name: fetch lua
-      run: touch include/lua.h && make fetch-lua LUA_VERSION=$LUA_VERSION; ls lib
+      run: |
+        make fetch-lua LUA_VERSION=$LUA_VERSION; ls lib
     - name: make all
       run: make all
     - name: make install
