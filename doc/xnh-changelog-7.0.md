@@ -24,6 +24,8 @@ changes:
 
 - 5% of humanoid non-lord A monsters (Angels and Aleaxes) generate with a harp,
   which is magic 20% of the time.
+- 1/40 of dwarves in the Mines and 1/8 of dwarves outside the Mines generate
+  with d3 booze potions.
 
 ### Interface changes
 
