@@ -20,7 +20,7 @@ jobs:
     - name: setup
       run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
     - name: fetch lua
-      run: make fetch-lua LUA_VERSION=$LUA_VERSION; ls lib5
+      run: touch include/lua.h && make fetch-lua LUA_VERSION=$LUA_VERSION; ls lib
     - name: make all
       run: make all
     - name: make install
