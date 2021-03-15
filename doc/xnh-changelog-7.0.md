@@ -22,7 +22,8 @@ changes:
 
 ### Gameplay changes
 
-
+- 5% of humanoid non-lord A monsters (Angels and Aleaxes) generate with a harp,
+  which is magic 20% of the time.
 
 ### Interface changes
 
