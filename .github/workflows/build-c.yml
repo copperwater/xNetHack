@@ -21,7 +21,7 @@ jobs:
       run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
     - name: fetch lua
       run: |
-        make fetch-lua LUA_VERSION=$LUA_VERSION; ls lib
+        make fetch-lua
     - name: make all
       run: make all
     - name: make install
