@@ -3803,8 +3803,8 @@ readobjnam_postparse1(struct _readobjnam_data* d)
     }
 
     /* Find corpse type w/o "of" (red dragon scale mail, yeti corpse) */
-    if (object_not_monster(d->bp)) { /* ignore strings that look like monsters
-                                      * but aren't */
+    if (!object_not_monster(d->bp)) { /* ignore strings that look like monsters
+                                       * but aren't */
         const char *rest = 0;
 
         if (d->mntmp < LOW_PM && strlen(d->bp) > 2
