@@ -7,22 +7,42 @@ on:
     branches: [ master ]
 
 jobs:
-  linux-build:
-
-    runs-on: ubuntu-latest
-    
-    env: 
-      #LUA_VERSION: 5.4.2
-      HINTS_FILE: linux.2020
-
+#  linux-build:
+#
+#    runs-on: ubuntu-latest
+#    
+#    env: 
+#      #LUA_VERSION: 5.4.2
+#      HINTS_FILE: linux.2020
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: setup
+#      run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
+#    - name: fetch lua
+#      run: |
+#        make fetch-lua
+#    - name: make all
+#      run: make all
+#    - name: make install
+#      run: make install
+      
+  mac-build:
+    runs-on: macos-latest
+    env:
+      HINTS_FILE: macOS.2020
     steps:
     - uses: actions/checkout@v2
     - name: setup
-      run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
-    - name: fetch lua
       run: |
+        ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
         make fetch-lua
     - name: make all
       run: make all
     - name: make install
       run: make install
+    
+#  windows-build:
+#    runs-on: windows-latest
+#    steps:
+#    - uses: actions/checkout@v2
