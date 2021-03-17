@@ -3138,9 +3138,9 @@ extern void genl_status_update(int, genericptr_t, int, int, int,
                                unsigned long *);
 #ifdef DUMPLOG
 extern char *dump_fmtstr(const char *, char *, boolean);
-#ifdef DUMPHTML
 extern void dump_start_screendump(void);
 extern void dump_end_screendump(void);
+#ifdef DUMPHTML
 extern void html_print_glyph(winid, xchar, xchar, const glyph_info *,
                              const glyph_info *);
 #endif
