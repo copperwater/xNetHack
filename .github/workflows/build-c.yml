@@ -23,26 +23,42 @@ jobs:
 #      run: |
 #        make fetch-lua
 #    - name: make all
-#      run: make all
+#      run: make -j8 all
 #    - name: make install
 #      run: make install
-      
-  mac-build:
-    runs-on: macos-latest
-    env:
-      HINTS_FILE: macOS.2020
+#      
+#  mac-build:
+#    runs-on: macos-latest
+#    env:
+#      HINTS_FILE: macOS.2020
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: setup
+#      run: |
+#        ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
+#        make fetch-lua
+#    - name: make all
+#      run: make -j8 all
+#    - name: make install
+#      run: make install
+    
+  windows-build:
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
     - name: setup
       run: |
-        ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
+        ./sys/winnt/nhsetup.bat
         make fetch-lua
     - name: make all
-      run: make all
-    - name: make install
-      run: make install
-    
-#  windows-build:
-#    runs-on: windows-latest
-#    steps:
-#    - uses: actions/checkout@v2
+      run: |
+        cd src
+        mingw32-make -f Makefile.gcc install
+
+
+
+
+
+
+
+
