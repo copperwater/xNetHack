@@ -52,7 +52,7 @@ jobs:
     - name: make all
       run: |
         cd src
-        make -f Makefile.gcc install
+        nmake install
       #mingw32-make -f Makefile.gcc install
 
 
