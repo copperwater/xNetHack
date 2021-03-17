@@ -421,7 +421,6 @@ changes:
 - The livelog for life saving prints the would-be cause of death.
 - The #conduct command (and thus the dumplog) shows how many items you have
   polymorphed during your game, outside of wizard mode.
-- Add encyclopedia entry for Ozymandias.
 - If you have nothing quivered but are wielding a weapon that can return to
   your hand when thrown, the f (fire) command will choose that to throw (unless
   autoquiver is on and it finds something else to quiver).
@@ -460,7 +459,7 @@ changes:
   hallucinatory gods, hallucinatory blasts, tin labels, weapon names, and
   taunts.
 - A number of new encyclopedia entries are added, mostly for things that vanilla
-  did not have an entry for.
+  did not have an entry for, such as conducts and object materials.
 
 ### Architectural changes
 
