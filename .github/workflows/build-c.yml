@@ -49,7 +49,6 @@ jobs:
     - name: setup
       run: |
         ./sys/winnt/nhsetup.bat
-        make fetch-lua
     - name: make all
       run: |
         cd src
