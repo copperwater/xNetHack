@@ -44,20 +44,27 @@ jobs:
     
   windows-build:
     runs-on: windows-latest
+    env:
+        ADD_LUA: Y
+        WANT_LUAC: N
+        LUATOP: ../submodules/lua
+        LUASRC: ../submodules/lua
+        ADD_CURSES: Y
+        PDCURSES_TOP: ../submodules/pdcurses
+        LUA_VERSION: 5.4.2
+        TRAVIS_COMPILER: 1
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: recursive
     - name: setup
       run: |
         ./sys/winnt/nhsetup.bat
     - name: make all
       run: |
         cd src
-        nmake install
-      #mingw32-make -f Makefile.gcc install
-
-
-
-
+        cp ../sys/winnt/Makefile.gcc ./Makefile
+        mingw32-make LUA_VERSION=$LUA_VERSION install
 
 
 

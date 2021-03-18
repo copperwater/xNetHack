@@ -905,6 +905,13 @@ term_start_color(int color)
 }
 
 void
+term_start_bgcolor(int color)
+{
+    nhUse(color);
+    /* empty */
+}
+
+void
 term_end_color(void)
 {
 #ifdef TEXTCOLOR
