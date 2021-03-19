@@ -9,7 +9,7 @@ on:
 jobs:
   linux-build:
     runs-on: ubuntu-latest
-    env: 
+    env:
       #LUA_VERSION: 5.4.2
       HINTS_FILE: linux.2020
     steps:
@@ -62,6 +62,15 @@ jobs:
         cd src
         cp ../sys/winnt/Makefile.gcc ./Makefile
         mingw32-make LUA_VERSION=$LUA_VERSION install
+    - name: release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          doc/xnh-changelog-6.0.md
+          README.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
 
