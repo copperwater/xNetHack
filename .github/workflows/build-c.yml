@@ -8,8 +8,6 @@ on:
       - '*'
   pull_request:
     branches: [ master ]
-    tags:
-      - '*'
 
 jobs:
   linux-build:
@@ -55,6 +53,7 @@ jobs:
         PDCURSES_TOP: ../submodules/pdcurses
         LUA_VERSION: 5.4.2
         TRAVIS_COMPILER: 1
+        ASSET_NAME: xnethack.zip
     steps:
     - uses: actions/checkout@v2
       with:
@@ -67,13 +66,14 @@ jobs:
         cd src
         cp ../sys/winnt/Makefile.gcc ./Makefile
         mingw32-make LUA_VERSION=$LUA_VERSION install
+        cd ..
+        zip $ASSET_NAME ../binary/*
     - name: release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          doc/xnh-changelog-6.0.md
-          README.md
+          ${{ ASSET_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
