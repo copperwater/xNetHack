@@ -12,36 +12,36 @@
 #            - Microsoft Visual Studio 2019 Community Edition
 #
 #==============================================================================
-#   This is used for building two distinct executables of NetHack:
+#   This is used for building two distinct executables of xNetHack:
 #
 #   A tty port utilizing the Win32 Console I/O subsystem, Console
-#       NetHack.exe
+#       xNetHack.exe
 #
-#   A Win32 native port built on the Windows API, Graphical NetHack or
-#       NetHackW.exe
+#   A Win32 native port built on the Windows API, Graphical xNetHack or
+#       xNetHackW.exe
 #
 #   BEFORE YOU START, in addition to your C compiler and linker,
 #
 #       o You will need a complete Lua source tree parallel to your
-#         NetHack source tree. Lua is not an optional requirement,
+#         xNetHack source tree. Lua is not an optional requirement,
 #         it is required in order to process the level and dungeon
 #         description files during the game. You can obtain the
 #         Lua source from here:
 #             https://www.lua.org/download.html
 #
 #       o If you want to include the curses Window port in the non-GUI
-#         NetHack.exe build, you will need a complete PDCurses source
-#         tree parallel to your NetHack source tree. You can obtain the
+#         xNetHack.exe build, you will need a complete PDCurses source
+#         tree parallel to your xNetHack source tree. You can obtain the
 #         PDCurses source from here:
 #             https://sourceforge.net/projects/pdcurses/files/pdcurses/
 #         or via git from here:
 #             git clone https://github.com/wmcbrine/PDCurses.git ../pdcurses
 #
-#       o If you want your build of NetHack to include support for
+#       o If you want your build of xNetHack to include support for
 #         compressing your save files, or to be able to exchange and use
 #         compressed save files that originated on another platform such
 #         as Linux or a handheld phone or tablet, then you will need
-#         a copy of the zlib source tree parallel to your NetHack source
+#         a copy of the zlib source tree parallel to your xNetHack source
 #         tree. You can obtain the zlib source from here:
 #             https://www.zlib.net/zlib1211.zip
 #
@@ -52,7 +52,7 @@
 #         PDCurses:  https://pdcurses.org/
 #         zlib:      https://www.zlib.net/
 #
-#   If you have any questions about building NetHack for the Windows platform
+#   If you have any questions about building xNetHack for the Windows platform
 #   please read sys/winnt/Install.nt file included in the distribution.
 #
 #==============================================================================
@@ -76,7 +76,7 @@
 #
 #       Lua source code or is required to build NetHack-3.7.
 #       LUATOP below must point to the correct location of the LUA sources.
-#       By default it is assumed to be parallel to your NetHack source tree in
+#       By default it is assumed to be parallel to your xNetHack source tree in
 #       the same parent directory/folder.
 #
 #------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ GAMEDIR = ..\binary               # Default game build directory
 #
 # 2. Uncomment these and set them appropriately if you want to
 #    include curses port support alongside TTY support in your
-#    NetHack.exe binary.
+#    xNetHack.exe binary.
 #
 #    You'll have to set PDCURSES_H to the correct location of the
 #    PDCurses header (.h) files and PDCURSES_C to the location
@@ -445,7 +445,7 @@ LUAOBJFILES =   $(LUAOBJFILES) $(O)lbitlib.o
 #        and removes lbitlib.c
 !ENDIF
 
-!IF "$(ADD_CURSES)" == "Y"	
+!IF "$(ADD_CURSES)" == "Y"
 #===============-=================================================
 # PDCurses build macros
 # Latest PDCurses from https://github.com/wmcbrine/PDCurses.git
@@ -520,7 +520,7 @@ DATABASE = $(DAT)\data.base
 # ctags options
 #
 #CTAGSCMD=ctags-orig.exe
-!IF "$(TRAVIS_BUILD_DIR)" != ""	
+!IF "$(TRAVIS_BUILD_DIR)" != ""
 CTAGSCMD=..\lib\ctags\ctags.exe
 !ELSE
 CTAGSCMD=..\..\..\ctags\ctags.exe
@@ -859,14 +859,14 @@ default : install
 
 all :	install
 
-install: $(INCL)\nhlua.h $(O)envchk.tag $(O)obj.tag $(O)utility.tag $(GAMEDIR)\NetHack.exe $(GAMEDIR)\NetHackW.exe $(O)install.tag
+install: $(INCL)\nhlua.h $(O)envchk.tag $(O)obj.tag $(O)utility.tag $(GAMEDIR)\xNetHack.exe $(GAMEDIR)\xNetHackW.exe $(O)install.tag
 	 @echo Done.
 
 #==========================================
 #  Main game targets.
 #==========================================
 
-#  The section for linking the NetHack image looks a little strange at
+#  The section for linking the xNetHack image looks a little strange at
 #  first, especially if you are used to UNIX makes, or NDMAKE.  It is
 #  Microsoft nmake specific, and it gets around the problem of the
 #  link command line being too long for the linker.  An "in-line" linker
@@ -897,7 +897,7 @@ GAMEOBJ=$(GAMEOBJ:^ =^
 #  DO NOT INDENT THE << below!
 #
 
-# NetHack
+# xNetHack
 # full gui linkage libs:
 #    libs: $(LIBS) $(conlibs) $(guilibs) $(COMCTRL)
 #    objs: $(GAMEOBJ) $(TTYOBJ) $(O)nttty.o $(O)tile.o $(GUIOBJ)
@@ -906,7 +906,7 @@ GAMEOBJ=$(GAMEOBJ:^ =^
 #    objs: $(GAMEOBJ) $(TTYOBJ) $(O)tile.o $(O)guistub.o
 
 
-$(GAMEDIR)\NetHack.exe : $(O)gamedir.tag $(O)tile.o $(O)nttty.o $(O)guistub.o \
+$(GAMEDIR)\xNetHack.exe : $(O)gamedir.tag $(O)tile.o $(O)nttty.o $(O)guistub.o \
 			$(ALLOBJ) $(TTYOBJ) $(O)console.res $(KEYDLLS) \
 			$(LUATARGETS) $(PDCLIB)
 	@if not exist $(GAMEDIR)\*.* mkdir $(GAMEDIR)
@@ -923,7 +923,7 @@ $(GAMEDIR)\NetHack.exe : $(O)gamedir.tag $(O)tile.o $(O)nttty.o $(O)guistub.o \
 <<
 	@if exist $(O)install.tag del $(O)install.tag
 
-# NetHackW
+# xNetHackW
 # full tty linkage libs:
 #    libs: $(LIBS) $(PDCLIB) $(LUALIB) $(guilibs) $(COMCTRL)
 #    objs: $(GAMEOBJ) $(GUIOBJ) $(TTYOBJ) $(O)tile.o $(O)nttty.o
@@ -931,7 +931,7 @@ $(GAMEDIR)\NetHack.exe : $(O)gamedir.tag $(O)tile.o $(O)nttty.o $(O)guistub.o \
 #    libs: $(LIBS) $(PDCLIB) $(LUALIB) $(guilibs) $(COMCTRL)
 #    objs: $(GAMEOBJ) $(GUIOBJ) $(O)tile.o $(O)ttystub.o
 
-$(GAMEDIR)\NetHackW.exe : $(O)gamedir.tag $(O)tile.o $(O)ttystub.o \
+$(GAMEDIR)\xNetHackW.exe : $(O)gamedir.tag $(O)tile.o $(O)ttystub.o \
 			$(ALLOBJ) $(GUIOBJ) $(O)NetHackW.res \
 			$(O)gamedir.tag $(KEYDLLS) \
 			$(LUATARGETS)
@@ -1026,7 +1026,7 @@ $(O)install.tag: 	$(DAT)\data	$(DAT)\rumors	$(DAT)\oracles \
 	if exist $(DOC)\nethack.txt copy $(DOC)\nethack.txt $(GAMEDIR)\NetHack.txt
 	@if exist $(GAMEDIR)\NetHack.PDB echo NOTE: You may want to remove $(GAMEDIR:\=/)/NetHack.PDB to conserve space
 	@if exist $(GAMEDIR)\NetHackW.PDB echo NOTE: You may want to remove $(GAMEDIR:\=/)/NetHackW.PDB to conserve space
-	-if exist $(MSWSYS)\.nethackrc.template copy $(MSWSYS)\.nethackrc.template   $(GAMEDIR)
+	-if exist $(MSWSYS)\.xnethackrc.template copy $(MSWSYS)\.xnethackrc.template   $(GAMEDIR)
 	-if not exist $(GAMEDIR)\record. goto>$(GAMEDIR)\record.
 	echo install done > $@
 
@@ -1245,7 +1245,7 @@ $(O)dlb$(HOST).o: $(O)dlb_main$(HOST).o $(O)alloc$(HOST).o $(O)panic$(HOST).o $(
 
 $(O)dlb.o: $(O)dlb_main.o $(O)alloc.o $(O)panic.o $(INCL)\dlb.h
 	@$(cc) $(cflagsBuild) /Fo$@ $(SRC)\dlb.c
-	
+
 !IFDEF TEST_CROSSCOMPILE
 $(O)dlb_main$(HOST).o: $(UTIL)\dlb_main.c $(INCL)\config.h $(INCL)\dlb.h
 	@$(cc) $(cflagsBuild) $(CROSSCOMPILE) /Fo$@ $(UTIL)\dlb_main.c
@@ -1489,7 +1489,7 @@ $(O)mhstatus.o: $(MSWIN)\mhstatus.c $(MSWIN)\$(@B).h $(MSWIN)\mhmsg.h $(MSWIN)\m
 $(O)mhtext.o: $(MSWIN)\mhtext.c $(MSWIN)\$(@B).h $(MSWIN)\mhmsg.h $(MSWIN)\mhfont.h \
 		$(WINDHDR) $(HACK_H)
 $(O)mswproc.o: $(MSWIN)\mswproc.c $(ALL_GUIHDR) $(MSWIN)\resource.h $(WINDHDR) $(HACK_H)
-$(O)NetHackW.o: $(MSWIN)\NetHackW.c $(ALL_GUIHDR) $(MSWIN)\resource.h $(WINDHDR) $(HACK_H)
+$(O)xNetHackW.o: $(MSWIN)\NetHackW.c $(ALL_GUIHDR) $(MSWIN)\resource.h $(WINDHDR) $(HACK_H)
 
 #if you aren't linking in the full tty then
 #include the following stub for proper linkage.
@@ -1627,7 +1627,7 @@ spotless: clean
 	if exist $(GAMEDIR)\nhdefkey.dll del $(GAMEDIR)\nhdefkey.dll
 	if exist $(GAMEDIR)\nh340key.dll del $(GAMEDIR)\nh340key.dll
 	if exist $(GAMEDIR)\nhraykey.dll del $(GAMEDIR)\nhraykey.dll
-	if exist $(GAMEDIR)\NetHack.exe  del $(GAMEDIR)\NetHack.exe
+	if exist $(GAMEDIR)\xNetHack.exe  del $(GAMEDIR)\xNetHack.exe
 	if exist $(GAMEDIR)\NetHack.pdb  del $(GAMEDIR)\NetHack.pdb
 	if exist $(GAMEDIR)\nhdat$(NHV)  del $(GAMEDIR)\nhdat$(NHV)
 ! ENDIF
@@ -1664,7 +1664,7 @@ spotless: clean
 	if exist $(U)tilemap.exe         del $(U)tilemap.exe
 	if exist $(U)uudecode.exe        del $(U)uudecode.exe
 	if exist $(U)dlb.exe             del $(U)dlb.exe
-!IF "$(ADD_CURSES)" == "Y"	
+!IF "$(ADD_CURSES)" == "Y"
 	if exist $(O)pdcurses.lib        del $(O)pdcurses.lib
 !ENDIF
 	if exist $(DAT)\oracles		 del $(DAT)\oracles
@@ -1835,7 +1835,7 @@ qt_clust.o: $(QT)\qt_clust.cpp $(QT)\qt_clust.h
 	$(CXX) $(CXXFLAGS) -Fo$@  $(QT)\qt_clust.cpp
 qt_delay.o: $(QT)\qt_delay.cpp $(HACK_H) $(QT)\qt_pre.h \
 		$(QT)\qt_post.h $(QT)\qt_delay.h
-	$(CXX) $(CXXFLAGS) -Fo$@  $(QT)\qt_delay.cpp	
+	$(CXX) $(CXXFLAGS) -Fo$@  $(QT)\qt_delay.cpp
 qt_glyph.o: $(QT)\qt_glyph.cpp $(HACK_H) $(INCL)\tile2x11.h \
 		$(QT)\qt_pre.h $(QT)\qt_post.h $(QT)\qt_glyph.h \
 		$(QT)\qt_bind.h $(QT)\qt_main.h $(QT)\qt_kde0.h \
