@@ -70,15 +70,16 @@ jobs:
         cd ..
         ls
     - uses: papeloto/action-zip@v1
+      if: startsWith(github.ref, 'refs/tags/')
       with:
         files: binary/
-        dest: env.ZIP_NAME
+        dest: xnethack.zip
     - name: release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          env.ZIP_NAME
+          xnethack.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
