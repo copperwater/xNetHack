@@ -6,7 +6,7 @@ on:
     tags:
       - '*' # won't work on tags containing /
   pull_request:
-    # branches: [ master ]
+    branches: [ master ]
     tags:
       - '*'
 
@@ -66,6 +66,7 @@ jobs:
     - name: make all
       run: |
         cd src
+        nmake fetch-lua
         nmake install
         #cp ../sys/winnt/Makefile.gcc ./Makefile
         #mingw32-make LUA_VERSION=$LUA_VERSION install
