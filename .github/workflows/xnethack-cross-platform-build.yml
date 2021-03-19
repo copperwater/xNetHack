@@ -6,7 +6,9 @@ on:
     tags:
       - '*' # won't work on tags containing /
   pull_request:
-    branches: [ master ]
+    # branches: [ master ]
+    tags:
+      - '*'
 
 jobs:
   #  linux-build:
