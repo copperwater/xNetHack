@@ -15,10 +15,10 @@
 #   This is used for building two versions of NetHack:
 #
 #   A tty port utilizing the Win32 Console I/O subsystem, Console
-#       NetHack.
+#       xNetHack.
 #
-#   A Win32 native port built on the Windows API, Graphical NetHack or
-#       NetHackW.
+#   A Win32 native port built on the Windows API, Graphical xNetHack or
+#       xNetHackW.
 #
 #   In addition to your C compiler,
 #
@@ -92,7 +92,7 @@ TARGET_CPU=x86
 #
 # 4. Uncomment these and set them appropriately if you want to
 #    include curses port support alongside TTY support in your
-#    NetHack.exe binary.
+#    xNetHack.exe binary.
 #
 #    You'll have to set PDCURSES_H to the correct location of the
 #    PDCurses header (.h) files and PDCURSES_C to the location
@@ -164,7 +164,7 @@ endif
 #
 #==============================================================================
 
-SKIP_NETHACKW=Y
+SKIP_NETHACKW=N
 
 #==============================================================================
 
@@ -366,7 +366,7 @@ ifneq "$(SKIP_NETHACKW)" "Y"
 GUIOBJ  = $(O)mhaskyn.o $(O)mhdlg.o \
 	$(O)mhfont.o $(O)mhinput.o $(O)mhmain.o $(O)mhmap.o \
 	$(O)mhmenu.o $(O)mhmsgwnd.o $(O)mhrip.o $(O)mhsplash.o \
-	$(O)mhstatus.o $(O)mhtext.o $(O)mswproc.o $(O)NetHackW.o
+	$(O)mhstatus.o $(O)mhtext.o $(O)mswproc.o $(O)xNetHackW.o
 
 endif
 
@@ -738,7 +738,7 @@ $(QT)/%.moc : $(QT)/%.h
 ifeq "$(SKIP_NETHACKW)" "Y"
 NETHACKW_EXE =
 else
-NETHACKW_EXE = $(GAMEDIR)/NetHackW.exe
+NETHACKW_EXE = $(GAMEDIR)/xNetHackW.exe
 endif
 
 SHELL=CMD.EXE
@@ -764,7 +764,7 @@ default : install
 
 all :   install
 
-install: $(INCL)/nhlua.h initialchk $(O)utility.tag $(GAMEDIR)/NetHack.exe $(NETHACKW_EXE) \
+install: $(INCL)/nhlua.h initialchk $(O)utility.tag $(GAMEDIR)/xNetHack.exe $(NETHACKW_EXE) \
 	$(O)install.tag $(EXTRA_FILES)
 	@echo NetHack is up to date.
 	@echo Done.
@@ -821,11 +821,11 @@ $(INCL)/nhlua.h:
 tileutil: $(U)gif2txt.exe $(U)gif2tx32.exe $(U)txt2ppm.exe
 	@echo Optional tile development utilities are up to date.
 
-$(O)winres.o: $(TILEBMP16) $(MSWIN)/NetHackW.rc $(MSWIN)/mnsel.bmp \
+$(O)winres.o: $(TILEBMP16) $(MSWIN)/xNetHackW.rc $(MSWIN)/mnsel.bmp \
 	 $(MSWIN)/mnselcnt.bmp $(MSWIN)/mnunsel.bmp \
 	 $(MSWIN)/petmark.bmp $(MSWIN)/pilemark.bmp $(MSWIN)/NetHack.ico $(MSWIN)/rip.bmp \
 	 $(MSWIN)/splash.bmp
-	$(rc) -o$@ --include-dir $(MSWIN) -i $(MSWIN)/NetHackW.rc
+	$(rc) -o$@ --include-dir $(MSWIN) -i $(MSWIN)/xNetHackW.rc
 
 $(O)conres.o: $(MSWSYS)/console.rc $(MSWSYS)/NetHack.ico
 	$(rc) -o$@ --include-dir $(MSWSYS) -i $(MSWSYS)/console.rc
@@ -839,7 +839,7 @@ gamedir.tag:
 	test -d $(GAMEDIR) || mkdir $(W_GAMEDIR)
 	test -d $(GAMEDIR) && echo directory created > $@
 
-$(GAMEDIR)/NetHack.exe : gamedir.tag $(PDCLIB) $(O)tile.o $(O)nttty.o $(O)guistub.o \
+$(GAMEDIR)/xNetHack.exe : gamedir.tag $(PDCLIB) $(O)tile.o $(O)nttty.o $(O)guistub.o \
 			$(ALLOBJ) $(TTYOBJ) $(GUIOBJ) $(O)conres.o $(KEYDLLS) \
 			$(LUATARGETS)
 	@echo Linking $@...
@@ -847,7 +847,7 @@ $(GAMEDIR)/NetHack.exe : gamedir.tag $(PDCLIB) $(O)tile.o $(O)nttty.o $(O)guistu
 		$(O)guistub.o $(O)conres.o $(PDCLIB) $(LUALIB) $(conlibs) -static -lstdc++
 	$(subst /,\,@if exist $(O)install.tag del $(O)install.tag)
 
-# NetHackW
+# xNetHackW
 # full tty linkage libs:
 #    libs: $(LIBS) $(guilibs) $(COMCTRL)
 #    objs: $(GAMEOBJ) $(GUIOBJ) $(TTYOBJ) $(O)tile.o $(O)nttty.o
@@ -856,7 +856,7 @@ $(GAMEDIR)/NetHack.exe : gamedir.tag $(PDCLIB) $(O)tile.o $(O)nttty.o $(O)guistu
 #    objs: $(GAMEOBJ) $(GUIOBJ) $(O)tile.o $(O)ttystub.o
 
 ifneq "$(SKIP_NETHACKW)" "Y"
-$(GAMEDIR)/NetHackW.exe : gamedir.tag $(PDCLIB) $(O)tile.o $(O)ttystub.o \
+$(GAMEDIR)/xNetHackW.exe : gamedir.tag $(PDCLIB) $(O)tile.o $(O)ttystub.o \
 			$(ALLOBJ) $(TTYOBJ) $(GUIOBJ) $(O)winres.o $(KEYDLLS) \
 			$(LUATARGETS)
 	@echo Linking $@...
@@ -1196,11 +1196,11 @@ spotless: clean
 	if exist objdir.tag del objdir.tag
 	if exist gamedir.tag del gamedir.tag
 ifneq "$(W_GAMEDIR)" ""
-	if exist $(W_GAMEDIR)\NetHack.exe  del $(W_GAMEDIR)\NetHack.exe
+	if exist $(W_GAMEDIR)\xNetHack.exe  del $(W_GAMEDIR)\xNetHack.exe
 	if exist $(W_GAMEDIR)\nhdefkey.dll del $(W_GAMEDIR)\nhdefkey.dll
 	if exist $(W_GAMEDIR)\nh340key.dll del $(W_GAMEDIR)\nh340key.dll
 	if exist $(W_GAMEDIR)\nhraykey.dll del $(W_GAMEDIR)\nhraykey.dll
-	if exist $(W_GAMEDIR)\NetHack.exe  del $(W_GAMEDIR)\NetHack.exe
+	if exist $(W_GAMEDIR)\xNetHack.exe  del $(W_GAMEDIR)\xNetHack.exe
 	if exist $(W_GAMEDIR)\NetHack.pdb  del $(W_GAMEDIR)\NetHack.pdb
 	if exist $(W_GAMEDIR)\nhdat$(NHV)  del $(W_GAMEDIR)\nhdat$(NHV)
 endif
