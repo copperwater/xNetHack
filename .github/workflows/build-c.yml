@@ -3,6 +3,8 @@ name: xNetHack
 on:
   push:
     branches: [ master ]
+    tags:
+      - '*' # won't work on tags containing /
   pull_request:
     branches: [ master ]
 
