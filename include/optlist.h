@@ -141,7 +141,7 @@ opt_##a,
                 &iflags.clicklook)
     NHOPTB(cmdassist, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,
                 &iflags.cmdassist)
-    NHOPTB(color, 0, opt_in, set_in_game, Off, Yes, No, No, "colour",
+    NHOPTB(color, 0, opt_in, set_in_game, On, Yes, No, No, "colour",
                 &iflags.wc_color)
     NHOPTB(confirm, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,
                 &flags.confirm)

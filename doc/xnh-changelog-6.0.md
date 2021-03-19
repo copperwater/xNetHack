@@ -460,6 +460,7 @@ changes:
   taunts.
 - A number of new encyclopedia entries are added, mostly for things that vanilla
   did not have an entry for, such as conducts and object materials.
+- The 'color' option is now on by default.
 
 ### Architectural changes
 
