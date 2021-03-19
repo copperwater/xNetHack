@@ -4489,7 +4489,7 @@ reveal_paths(void)
                            (int) (sizeof buf - 1 - strlen(buf)));
                 if (access(buf, 4) == -1) {
                     /* second alternate failed too, so revert to the
-                       original default ("$HOME/.nethackrc") for message */
+                       original default ("$HOME/.xnethackrc") for message */
                     copynchars(endp, default_configfile,
                                (int) (sizeof buf - 1 - strlen(buf)));
                 }

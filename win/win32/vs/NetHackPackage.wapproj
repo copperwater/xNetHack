@@ -113,8 +113,8 @@
     <Content Include="Images\Wide310x150Logo.scale-125.png" />
     <Content Include="Images\Wide310x150Logo.scale-150.png" />
     <Content Include="Images\Wide310x150Logo.scale-200.png" />
-    <Content Include="$(BinDir).nethackrc.template">
-      <Link>NetHackW\.nethackrc.template</Link>
+    <Content Include="$(BinDir).xnethackrc.template">
+      <Link>NetHackW\.xnethackrc.template</Link>
     </Content>
     <Content Include="$(BinDir)Guidebook.txt">
       <Link>NetHackW\Guidebook.txt</Link>

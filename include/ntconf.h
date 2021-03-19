@@ -82,8 +82,8 @@
                      * objects being thrown when the hangup occurs.    \
                      */
 
-#define CONFIG_FILE ".nethackrc"
-#define CONFIG_TEMPLATE ".nethackrc.template"
+#define CONFIG_FILE ".xnethackrc"
+#define CONFIG_TEMPLATE ".xnethackrc.template"
 #define SYSCF_TEMPLATE "sysconf.template"
 #define SYMBOLS_TEMPLATE "symbols.template"
 #define GUIDEBOOK_FILE "Guidebook.txt"
@@ -109,7 +109,7 @@ extern void interject(int);
 #endif
 /* extern int getlock(void); */
 #endif
- 
+
 #ifdef _MSC_VER
 #define HAS_STDINT
 #if (_MSC_VER > 1000)

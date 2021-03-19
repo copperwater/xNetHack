@@ -45,7 +45,7 @@ the appropriate Makefile to include the curses windowport files.
 GAMEPLAY
 ========
 
-Gameplay should be similar to the tty interface for NetHack; the 
+Gameplay should be similar to the tty interface for NetHack; the
 differences are primarily visual.  This windowport supports dymanic
 resizing of the terminal window, so you can play with it to see how it
 looks best to you during a game.  Also, the align_status and
@@ -59,7 +59,7 @@ and end keys to go to the first and last pages, respectively.
 
 Some configuration options that are specific to or relevant to the
 curses windowport are shown below.  Copy any of these that you like to
-your nethack configuration file (e.g. .nethackrc for UNIX or
+your nethack configuration file (e.g. .xnethackrc for UNIX or
 NetHack.cnf for Windows):
 #
 # Use this if the binary was compiled with multiple window interfaces,

@@ -103,8 +103,8 @@ WIZARDS=*
 # LLC_TURNS=3000
 
 # 'portable_device_paths' is only supported for Windows.  Starting with
-# 3.6.3, nethack on Windows treats the folder containing nethack.exe and
-# nethackW.exe as read-only and puts data files which are generated or
+# 3.6.3, nethack on Windows treats the folder containing xnethack.exe and
+# xnethackW.exe as read-only and puts data files which are generated or
 # modified during play or by the user in assorted folders derived from
 # user name.  3.6.4 added PORTABLE_DEVICE_PATHS to allow reverting to
 # the old behavior of having the run-time configuration file and other
@@ -121,26 +121,26 @@ WIZARDS=*
 #       nethack --showpaths
 #
 # The location that users can adjust their config file startup options
-#CONFIGDIR=%USERPROFILE%\NetHack
+#CONFIGDIR=%USERPROFILE%\xNetHack
 #
 # The location that a record of game aborts and self-diagnosed game problems
 # is kept (default=HACKDIR, writeable)
-#TROUBLEDIR=%USERPROFILE%\NetHack\3.7
+#TROUBLEDIR=%USERPROFILE%\xNetHack\6.0
 #
 # The location that documentation and helps files are placed
-#HACKDIR=%USERPROFILE%\NetHack\3.7
+#HACKDIR=%USERPROFILE%\xNetHack\6.0
 #
 # The location that level files in progress are stored (writeable)
-#LEVELDIR=%USERPROFILE%\AppData\Local\NetHack\3.7
+#LEVELDIR=%USERPROFILE%\AppData\Local\xNetHack\6.0
 #
 # The location where saved games are kept (writeable)
-#SAVEDIR=%USERPROFILE%\AppData\Local\NetHack\3.7
+#SAVEDIR=%USERPROFILE%\AppData\Local\xNetHack\6.0
 #
 # The location that bones files are kept (writeable)
-#BONESDIR=c:\ProgramData\NetHack\3.7
+#BONESDIR=c:\ProgramData\xNetHack\6.0
 #
 # The location that score files are kept (writeable)
-#SCOREDIR=c:\ProgramData\NetHack\3.7
+#SCOREDIR=c:\ProgramData\xNetHack\6.0
 #
 # The location that file synchronization locks are stored (writeable)
-#LOCKDIR=c:\ProgramData\NetHack\3.7
+#LOCKDIR=c:\ProgramData\xNetHack\6.0

@@ -62,32 +62,32 @@ WIZARDS=*
 
 # *** LOCATIONS ***
 # IMPORTANT: If you change any of these locations, the directories they
-# point at must exist.  NetHack will not create them for you.
+# point at must exist.  xNetHack will not create them for you.
 #
 # HACKDIR is the default location for everything.
-# Note: On Windows HACKDIR defaults to the location 
-#       of the NetHack.exe or NetHackw.exe file so
-#       setting HACKDIR below to override that is 
+# Note: On Windows HACKDIR defaults to the location
+#       of the xNetHack.exe or xNetHackw.exe file so
+#       setting HACKDIR below to override that is
 #       not usually necessary or recommended.
-#HACKDIR=c:\games\nethack
+#HACKDIR=c:\games\xnethack
 #
 # The location that users can adjust their config file startup options
-#CONFIGDIR=c:\games\nethack
+#CONFIGDIR=c:\games\xnethack
 #
 # The location that level files in progress are stored (default=HACKDIR, writeable)
-#LEVELDIR=c:\nethack\levels
+#LEVELDIR=c:\xnethack\levels
 #
 # The location where saved games are kept (default=HACKDIR, writeable)
-#SAVEDIR=c:\nethack\save
+#SAVEDIR=c:\xnethack\save
 #
 # The location that bones files are kept (default=HACKDIR, writeable)
-#BONESDIR=c:\nethack\save
+#BONESDIR=c:\xnethack\save
 #
 # The location that file synchronization locks are stored (default=HACKDIR, writeable)
-#LOCKDIR=c:\nethack\levels
+#LOCKDIR=c:\xnethack\levels
 #
 # The location that a record of game aborts and self-diagnosed game problems
 # is kept (default=HACKDIR, writeable)
-#TROUBLEDIR=c:\nethack\trouble
+#TROUBLEDIR=c:\xnethack\trouble
 
 

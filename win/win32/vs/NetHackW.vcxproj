@@ -32,7 +32,7 @@
       <AdditionalDependencies>comctl32.lib;winmm.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
-      <AdditionalManifestFiles>$(WinWin32Dir)NethackW.exe.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <AdditionalManifestFiles>$(WinWin32Dir)xNethackW.exe.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -181,7 +181,7 @@
     <ClCompile Include="$(WinWin32Dir)NetHackW.c" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="$(WinWin32Dir)NetHackW.rc" />
+    <ResourceCompile Include="$(WinWin32Dir)xNetHackW.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(WinWin32Dir)mhaskyn.h" />

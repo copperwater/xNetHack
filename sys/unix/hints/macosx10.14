@@ -51,7 +51,7 @@ endif	# WANT_WIN_QT
 #	  NB: the group will be created locally; if your computer is centrally
 #	   administered this may not be what you (or your admin) want.
 #	   Consider a non-shared install (WANT_SHARE_INSTALL=0) instead.
-#	- 'make install' must be run as "sudo make install"    
+#	- 'make install' must be run as "sudo make install"
 #WANT_SHARE_INSTALL=1
 GAMEUID  = $(USER)
 GAMEGRP  = games
@@ -203,8 +203,8 @@ GAMEPERM = 0700
 VARFILEPERM = 0600
 VARDIRPERM = 0700
 ifdef WANT_WIN_X11
-# install nethack.rc as ~/.nethackrc if no ~/.nethackrc exists
-PREINSTALL= cp -n win/X11/nethack.rc ~/.nethackrc || true
+# install nethack.rc as ~/.xnethackrc if no ~/.xnethackrc exists
+PREINSTALL= cp -n win/X11/nethack.rc ~/.xnethackrc || true
 endif	# WANT_WIN_X11
 POSTINSTALL+= sys/unix/hints/macosx.sh editsysconf sys/unix/sysconf $(HACKDIR)/sysconf; $(CHOWN) $(GAMEUID) $(HACKDIR)/sysconf; $(CHGRP) $(GAMEGRP) $(HACKDIR)/sysconf; chmod $(VARFILEPERM) $(HACKDIR)/sysconf;
 CFLAGS+=-DSYSCF -DSYSCF_FILE=\"$(HACKDIR)/sysconf\" -DSECURE

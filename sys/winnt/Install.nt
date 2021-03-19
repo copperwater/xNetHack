@@ -130,16 +130,16 @@ THE COMMAND LINE."
 -- end of prerequisite step --
 --------------------------------------------------------------------------
 
-Two different versions of NetHack will be built for Windows from the
+Two different versions of xNetHack will be built for Windows from the
 command line using the Makefile approach:
     A tty port utilizing the Win32 Console I/O subsystem, Console
-        NetHack;
-    A Win32 native port built on the Windows API, Graphical NetHack or
-        NetHackW.
+        xNetHack;
+    A Win32 native port built on the Windows API, Graphical xNetHack or
+        xNetHackW.
 
-The executable for Console NetHack will be named NetHack.exe. The
-executable for Graphical NetHack will be named NetHackW.exe. The
-Makefile configuration will build both; NetHackW.exe and NetHack.exe
+The executable for Console xNetHack will be named xNetHack.exe. The
+executable for Graphical xNetHack will be named xNetHackW.exe. The
+Makefile configuration will build both; xNetHackW.exe and xNetHack.exe
 will be able to use the same datafiles, save files and bones files.
 
 Since the last official release of NetHack, compilers and computer
@@ -307,8 +307,8 @@ Notes:
     Note that saved games are NOT compatible between the 32-bit and the
     64-bit versions at this time.
 
-NetHack.exe is the tty version. NetHackW.exe is the graphical version.
-Play NetHack.
+xNetHack.exe is the tty version. xNetHackW.exe is the graphical version.
+Play xNetHack.
 
 PROBLEMS
 

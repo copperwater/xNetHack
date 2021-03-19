@@ -319,9 +319,9 @@ Figure 1
 % to make them visible
 \vbox{
 \begin{verbatim}
-        Player the Rambler   St:12 Dx:7 Co:18 In:11 Wi:9 Ch:15        
-        Neutral $:993 HP:9(12) Pw:3(3) AC:10 Exp:1/19 Hungry          
-        Dlvl:1 T:752                                  Conf            
+        Player the Rambler   St:12 Dx:7 Co:18 In:11 Wi:9 Ch:15
+        Neutral $:993 HP:9(12) Pw:3(3) AC:10 Exp:1/19 Hungry
+        Dlvl:1 T:752                                  Conf
 \end{verbatim}
 \begin{center}
 Figure 2
@@ -3471,17 +3471,17 @@ The default name and location of the configuration file varies on different
 operating systems.\\
 
 %.lp ""
-On UNIX, Linux and Mac OS X it is \mbox{``.nethackrc''} in the user's home
+On UNIX, Linux and Mac OS X it is \mbox{``.xnethackrc''} in the user's home
 directory. The file may not exist, but it is a normal ASCII text file and
 can be created with any text editor.\\
 
 %.lp ""
-On Windows, it is \mbox{``.nethackrc''} in the folder
+On Windows, it is \mbox{``.xnethackrc''} in the folder
 \mbox{{``\%USERPROFILE\%\textbackslash NetHack\textbackslash 3.6''}}. The
 file may not exist, but it is a normal ASCII text file and can be created
 with any text editor.
 After runing {\it NetHack\/} for the first time, you should find a default
-template for ths configuration file named \mbox{``.nethackrc.template''} in
+template for ths configuration file named \mbox{``.xnethackrc.template''} in
 \mbox{{``\%USERPROFILE\%\textbackslash NetHack\textbackslash 3.6''}}.
 If you had not created the configuration file, {\it NetHack\/} will create
 the configuration file for you using the default template file.
@@ -3540,8 +3540,8 @@ Example:
 
 %.lp
 \item[\bb{HACKDIR}]
-Default location of files {\it NetHack\/} needs. On Windows HACKDIR
-defaults to the location of the {\it NetHack.exe\/} or {\it NetHackw.exe\/} file
+Default location of files {\it xNetHack\/} needs. On Windows HACKDIR
+defaults to the location of the {\it xNetHack.exe\/} or {\it xNetHackw.exe\/} file
 so setting HACKDIR to override that is not usually necessary or recommended.
 %.lp
 \item[\bb{LEVELDIR}]
@@ -6020,18 +6020,18 @@ The syntax is the same as WIZARDS.
 Limit the maximum number of games that can be running at the same time.
 %.lp
 \item[\ib{SAVEFORMAT}]
-A list of up to two save file formats separated by space. 
-The first format in the list will written as well as read. The second format 
+A list of up to two save file formats separated by space.
+The first format in the list will written as well as read. The second format
 will be read only if no save file in the first format exists.
-Valid choices are ``{\tt historical}'' for binary writing of entire structs, 
+Valid choices are ``{\tt historical}'' for binary writing of entire structs,
 ``{\tt lendian}'' for binary writing of each field in little-endian order,
 ``{\tt ascii}'' for writing the save file content in ascii text.
 %.lp
 \item[\ib{BONESFORMAT}]
-A list of up to two bones file formats separated by space. 
+A list of up to two bones file formats separated by space.
 The first format in the list will written as well as read. The second
 format will be read only if no bones files in the first format exist.
-Valid choices are ``{\tt historical}'' for binary writing of entire structs, 
+Valid choices are ``{\tt historical}'' for binary writing of entire structs,
 ``{\tt lendian}'' for binary writing of each field in little-endian order,
 ``{\tt ascii}'' for writing the bones file content in ascii text.
 %.lp
@@ -6078,12 +6078,12 @@ unique people for the score file
 %.lp
 \item[\ib{ACCESSIBILITY}]
 0 or 1 to disable or enable, respectively, the ability for players
-to set S\verb+_+pet\verb+_+override and S\verb+_+hero\verb+_+override 
+to set S\verb+_+pet\verb+_+override and S\verb+_+hero\verb+_+override
 symbols in their configuration file.
 %.lp
 \item[\ib{PORTABLE\verb+_+DEVICE\verb+_+PATHS}]
 0 or 1 Windows OS only, the game will look for all of its external
-files, and write to all of its output files in one place 
+files, and write to all of its output files in one place
 rather than at the standard locations.
 %.lp
 \item[\ib{DUMPLOGFILE}]

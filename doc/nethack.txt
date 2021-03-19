@@ -145,7 +145,7 @@ AUTHORS
 FILES
        Run-time  configuration options were discussed above and use a platform
        specific name for a file in a platform specific  location.   For  Unix,
-       the name is '.nethackrc' in the user's home directory.
+       the name is '.xnethackrc' in the user's home directory.
 
        All   other   files   are   in   the   playground  directory,  normally
        /usr/games/lib/nethackdir.  If DLB was defined during the compile,  the
@@ -211,7 +211,7 @@ ENVIRONMENT
        NETHACKOPTIONS          String predefining several NetHack
                                options.
 
-       If the same option is specified in both NETHACKOPTIONS and  .nethackrc,
+       If the same option is specified in both NETHACKOPTIONS and .xnethackrc,
        the value assigned in NETHACKOPTIONS takes precedence.
 
        SHOPTYPE and SPLEVTYPE can be used in debugging (wizard) mode.

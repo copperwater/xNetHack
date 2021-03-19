@@ -790,7 +790,7 @@ endif
 	$(subst /,\,if exist $(DAT)/symbols copy $(DAT)/symbols $(GAMEDIR)/symbols.template)
 	$(subst /,\,if exist $(DOC)/guidebook.txt copy $(DOC)/guidebook.txt $(GAMEDIR)/Guidebook.txt)
 	$(subst /,\,if exist $(DOC)/nethack.txt copy $(DOC)/nethack.txt $(GAMEDIR)/NetHack.txt)
-	$(subst /,\,if exist $(MSWSYS)/.nethackrc.template copy $(MSWSYS)/.nethackrc.template $(GAMEDIR))
+	$(subst /,\,if exist $(MSWSYS)/.xnethackrc.template copy $(MSWSYS)/.xnethackrc.template $(GAMEDIR))
 	$(subst /,\,-if not exist $(GAMEDIR)/record. echo.>$(GAMEDIR)/record.)
 #
 #
