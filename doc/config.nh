@@ -492,8 +492,6 @@
 # Use the IBM character set rather than just plain ascii characters
 # for tty window-port.
 #OPTIONS=symset:IBMGraphics_2
-# Use RogueEpyx character set for the rogue level
-#OPTIONS=roguesymset:RogueEpyx
 
 # Override one or more symbols in the symbols files.
 # See the Guidebook for the symbol names.

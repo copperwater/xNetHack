@@ -18,11 +18,11 @@
 # The three options on this line should be used for most setups.
 # If your machine isn't very IBM-compatible, and NetHack doesn't work,
 # try commenting out this line.
-OPTIONS=rawio,BIOS,symset:IBMGraphics_2,roguesymset:RogueEpyx
+OPTIONS=rawio,BIOS,symset:IBMGraphics_2
 
 # Here is a suggested symbol set from Michael Feir,
 # for use by blind NetHack players
-#OPTIONS=symset:NHAccess,roguesymset:NHAccess
+#OPTIONS=symset:NHAccess
 
 # To use VGA graphical tiles on an MS-DOS PC with VGA or better,uncomment
 # this:
