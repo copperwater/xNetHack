@@ -4237,12 +4237,12 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
         }
 
         if (mon) {
-            int saved_mhp = mon->mhp; /* for print_mon_wounded() */
             if (type == ZT_SPELL(ZT_FIRE))
                 break;
             if (type >= 0)
                 mon->mstrategy &= ~STRAT_WAITMASK;
  buzzmonst:
+            int saved_mhp = mon->mhp; /* for print_mon_wounded() */
             g.notonhead = (mon->mx != g.bhitpos.x || mon->my != g.bhitpos.y);
             if (zap_hit(find_mac(mon), spell_type)) {
                 if (mon_reflects(mon, (char *) 0)) {

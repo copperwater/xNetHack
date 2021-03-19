@@ -3489,14 +3489,11 @@ remove_damage(struct monst* shkp, boolean croaked)
         register xchar x = tmp_dam->place.x, y = tmp_dam->place.y;
         char shops[5];
         int disposition;
-        struct rm old_levl;
+        struct rm old_levl = levl[x][y];
 
         disposition = 0;
         Strcpy(shops, in_rooms(x, y, SHOPBASE));
         if (index(shops, ESHK(shkp)->shoproom)) {
-            if (IS_DOOR(levl[x][y].typ))
-                old_levl = levl[x][y];
-
             if (croaked) {
                 disposition = (shops[1]) ? 0 : 1;
             } else if (stop_picking) {
