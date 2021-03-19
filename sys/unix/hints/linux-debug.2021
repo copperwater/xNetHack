@@ -36,6 +36,9 @@ ifndef LIBXPM
 LIBXPM= -L/opt/X11/lib -lXpm
 endif
 
+WANT_WIN_TTY=1
+WANT_WIN_CURSES=1
+
 #4. Other
 GAMEUID  = $(USER)
 GAMEGRP  = games
