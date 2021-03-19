@@ -1402,8 +1402,8 @@ extern struct obj *obj_absorb(struct obj **, struct obj **);
 extern struct obj *obj_meld(struct obj **, struct obj **);
 extern void pudding_merge_message(struct obj *, struct obj *);
 extern void init_obj_material(struct obj *);
-extern boolean valid_obj_material(struct obj *, int);
-extern void set_material(struct obj *, int);
+extern boolean valid_obj_material(struct obj *, uchar);
+extern void set_material(struct obj *, uchar);
 extern struct obj *init_dummyobj(struct obj *, short, long);
 
 /* ### mkroom.c ### */

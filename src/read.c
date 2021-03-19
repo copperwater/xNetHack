@@ -2800,7 +2800,7 @@ create_particular_creation(struct _create_particular_data* d)
 {
     struct permonst *whichpm = NULL;
     int i, mx, my, firstchoice = NON_PM;
-    struct monst *mtmp;
+    struct monst *mtmp = (struct monst *) 0;
 
     if (!d->randmonst) {
         firstchoice = d->which;

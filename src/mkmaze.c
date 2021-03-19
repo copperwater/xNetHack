@@ -1050,7 +1050,7 @@ maze_touchup_rooms(int attempts)
             mkfeature(ALTAR, &g.rooms[i]);
 
         /* Maybe remove the walls for this room. */
-        if (TRUE || rn2(5)) {
+        if (rn2(5)) {
             xchar x, y;
             for (x = g.rooms[i].lx; x <= g.rooms[i].hx; ++x) {
                 destroy_wall(x, g.rooms[i].ly - 1);

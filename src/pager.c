@@ -769,12 +769,8 @@ add_mon_info(winid datawin, struct permonst * pm)
     APPENDC(pm->msize == MZ_GIGANTIC, "gigantic");
     if (!(*buf)) {
         /* for nonstandard sizes */
-        if (verysmall(pm)) {
-            APPENDC(TRUE, "small");
-        }
-        else if (bigmonst(pm)) {
-            APPENDC(TRUE, "big");
-        }
+        APPENDC(verysmall(pm), "small");
+        APPENDC(bigmonst(pm), "big");
     }
 
     /* inherent characteristics: "Monster is X." */

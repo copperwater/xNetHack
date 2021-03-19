@@ -398,6 +398,8 @@ struct obj {
      || ((o)->oartifact == ART_EYES_OF_THE_OVERWORLD                    \
          && !undiscovered_artifact(ART_EYES_OF_THE_OVERWORLD)))
 #define pair_of(o) ((o)->otyp == LENSES || is_gloves(o) || is_boots(o))
+/* used to be used for loadstones, now unused;
+ * may still be used in the future */
 #define undroppable(o) ( FALSE )
 
 #define unpolyable(o) ((o)->otyp == WAN_POLYMORPH \
