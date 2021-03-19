@@ -9,37 +9,37 @@ on:
     branches: [ master ]
 
 jobs:
-  linux-build:
-    runs-on: ubuntu-latest
-    env:
-      #LUA_VERSION: 5.4.2
-      HINTS_FILE: linux.2020
-    steps:
-    - uses: actions/checkout@v2
-    - name: setup
-      run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
-    - name: fetch lua
-      run: |
-        make fetch-lua
-    - name: make all
-      run: make -j8 all
-    - name: make install
-      run: make install
-
-  mac-build:
-    runs-on: macos-latest
-    env:
-      HINTS_FILE: macOS.2020
-    steps:
-    - uses: actions/checkout@v2
-    - name: setup
-      run: |
-        ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
-        make fetch-lua
-    - name: make all
-      run: make -j8 all
-    - name: make install
-      run: make install
+  #  linux-build:
+  #    runs-on: ubuntu-latest
+  #    env:
+  #      #LUA_VERSION: 5.4.2
+  #      HINTS_FILE: linux.2020
+  #    steps:
+  #    - uses: actions/checkout@v2
+  #    - name: setup
+  #      run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
+  #    - name: fetch lua
+  #      run: |
+  #        make fetch-lua
+  #    - name: make all
+  #      run: make -j8 all
+  #    - name: make install
+  #      run: make install
+  #
+  #  mac-build:
+  #    runs-on: macos-latest
+  #    env:
+  #      HINTS_FILE: macOS.2020
+  #    steps:
+  #    - uses: actions/checkout@v2
+  #    - name: setup
+  #      run: |
+  #        ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
+  #        make fetch-lua
+  #    - name: make all
+  #      run: make -j8 all
+  #    - name: make install
+  #      run: make install
 
   windows-build:
     runs-on: windows-latest
@@ -66,9 +66,10 @@ jobs:
         cp ../sys/winnt/Makefile.gcc ./Makefile
         mingw32-make LUA_VERSION=$LUA_VERSION install
         cd ..
+        ls
     - uses: papeloto/action-zip@v1
       with:
-        files: ../binary
+        files: binary/
         dest: xnethack.zip
     - name: release
       uses: softprops/action-gh-release@v1
