@@ -1847,10 +1847,10 @@ back_to_defsym(xchar x, xchar y, boolean show_engravings)
         case D_BROKEN:
             idx = S_ndoor;
             engr_override = TRUE;
-        break;
             break;
         default:
             impossible("back_to_glyph: bad door state %d", ptr->doormask);
+            idx = S_ndoor;
         }
         break;
     case IRONBARS:

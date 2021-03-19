@@ -180,7 +180,7 @@ static boolean
 its_dead(int rx, int ry, int *resp, struct obj *stethoscope)
 {
     char buf[BUFSZ];
-    boolean more_corpses;
+    boolean more_corpses = FALSE;
     struct permonst *mptr;
     struct obj *corpse, *statue, *egg, *otmp;
     boolean floor = can_reach_floor(TRUE); /* levitation or unskilled riding */
@@ -314,7 +314,6 @@ its_dead(int rx, int ry, int *resp, struct obj *stethoscope)
         pline("%s is in %s health for a statue.", what, how);
         return TRUE;
     }
-    return FALSE; /* no corpse or statue */
 }
 
 static const char hollow_str[] = "a hollow sound.  This must be a secret %s!";

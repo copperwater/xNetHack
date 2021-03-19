@@ -5919,7 +5919,7 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
     int lvl = level_difficulty();
     int dmg = 0;
     struct rm * door = &levl[x][y];
-    int saved_doorstate = doorstate(door);
+    uchar saved_doorstate = doorstate(door);
 
     if (door->typ != DOOR && door->typ != SDOOR) {
         impossible("doortrapped: called on a non-door");

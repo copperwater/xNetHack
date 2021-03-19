@@ -21,7 +21,7 @@ static void check_glob(struct obj *, const char *);
 static void sanity_check_worn(struct obj *);
 static void init_thiefstone(struct obj *);
 static const struct icp* material_list(struct obj *);
-static boolean invalid_obj_material(struct obj *, int);
+static boolean invalid_obj_material(struct obj *, uchar);
 
 struct icp {
     int iprob;   /* probability of an item type */
@@ -800,7 +800,7 @@ mksobj(int otyp, boolean init, boolean artif)
             /* check oartifact here because mk_artifact isn't guaranteed to
              * create an artifact */
             if (!otmp->oartifact && !otmp->cursed
-                && (otmp->spe + otmp->oerodeproof > rnd(5)))
+                && (otmp->spe + otmp->oerodeproof > (long) rnd(5)))
                 otmp = weapon_oname(otmp);
 
             break;
@@ -3576,7 +3576,7 @@ init_obj_material(struct obj* obj)
  * materials.
  * This should be treated as subsidiary to valid_obj_material. */
 static boolean
-invalid_obj_material(struct obj *obj, int mat)
+invalid_obj_material(struct obj *obj, uchar mat)
 {
     int oclass = obj->oclass;
 
@@ -3596,7 +3596,7 @@ invalid_obj_material(struct obj *obj, int mat)
 /* Return TRUE if mat is a valid material for a given object of obj's type
  * (whether a random object of this type could generate as that material). */
 boolean
-valid_obj_material(struct obj *obj, int mat)
+valid_obj_material(struct obj *obj, uchar mat)
 {
     if (obj->oartifact) {
         /* shenanigans possible here, ignore them */
@@ -3633,7 +3633,7 @@ valid_obj_material(struct obj *obj, int mat)
  * can't corrode will not be generated corroded or corrode-proofed).
  */
 void
-set_material(struct obj *otmp, int material)
+set_material(struct obj *otmp, uchar material)
 {
     if (!valid_obj_material(otmp, material)) {
         impossible("setting material of %s to invalid material %d",

@@ -2140,7 +2140,6 @@ optfn_orientation(int optidx, int req, boolean negated, char *opts, char *op)
         } else {
             return optn_err;
         }
-        return optn_ok;
     }
     else if (req == get_val) {
         if (!opts)
@@ -5226,7 +5225,7 @@ handler_monstercolor(void)
             if (pick_cnt < 0)
                 break;
         }
-    } while (TRUE); /* until something breaks out */
+    } while (opt_idx != 3); /* until something breaks out */
     docrt();
     return optn_ok;
 }
