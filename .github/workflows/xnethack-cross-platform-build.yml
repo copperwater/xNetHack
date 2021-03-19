@@ -59,30 +59,30 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: ilammy/msvc-dev-cmd@v1 # enable visual c compiler / nmake
     - name: setup
       run: |
         ./sys/winnt/nhsetup.bat
-    - name: make all
+    - name: make install
       run: |
         cd src
         nmake fetch-lua
         nmake install
+        # Note: mingw build doesn't seem to build NetHackW.exe and is disabled.
+        # This would work to build the tty windows version, though.
         #cp ../sys/winnt/Makefile.gcc ./Makefile
         #mingw32-make LUA_VERSION=$LUA_VERSION install
-        cd ..
-        ls
     - uses: papeloto/action-zip@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: binary/
-        dest: xnethack.zip
+        dest: xnethack_mswindows.zip
     - name: release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          xnethack.zip
+          xnethack_mswindows.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
