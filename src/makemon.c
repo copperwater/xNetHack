@@ -1522,7 +1522,7 @@ create_critters(int cnt,
                 struct monst* creator)
 {
     coord c;
-    struct monst *mon;
+    struct monst *mon = (struct monst *) 0;
     boolean ask = (wizard && !neverask);
     int x = u.ux, y = u.uy;
     boolean in_water = u.uinwater;
