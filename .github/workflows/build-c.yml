@@ -66,13 +66,16 @@ jobs:
         cp ../sys/winnt/Makefile.gcc ./Makefile
         mingw32-make LUA_VERSION=$LUA_VERSION install
         cd ..
-        zip $ASSET_NAME ../binary/*
+    - uses: papeloto/action-zip@v1
+      with:
+        files: ../binary
+        dest: xnethack.zip
     - name: release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          README.md #$ASSET_NAME
+          xnethack.zip #$ASSET_NAME
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
