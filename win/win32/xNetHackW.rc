@@ -206,7 +206,7 @@ END
 // TEXTINCLUDE
 //
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#if defined(__BORLANDC__)\r\n"
     "LANGUAGE LANG_ENGLISH,SUBLANG_ENGLISH_US\r\n"
@@ -218,13 +218,13 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
 END
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
@@ -338,9 +338,9 @@ BEGIN
         BEGIN
             VALUE "FileDescription", "NetHack for Windows - Graphical Interface"
             VALUE "FileVersion", "3.7.0"
-            VALUE "InternalName", "NetHackW"
+            VALUE "InternalName", "xNetHackW"
             VALUE "LegalCopyright", "Copyright (C) 1985 - 2021.  By Stichting Mathematisch Centrum and M. Stephenson.  See license for details."
-            VALUE "OriginalFilename", "NetHackW.exe"
+            VALUE "OriginalFilename", "xNetHackW.exe"
             VALUE "PrivateBuild", "140606"
             VALUE "ProductName", "NetHack"
             VALUE "ProductVersion", "3.7.0"

@@ -3528,16 +3528,16 @@
                The default name of the configuration file varies on differ-
           ent operating systems.
 
-               On  UNIX,  Linux, and Mac OS X it is ".nethackrc" in the us-
+               On  UNIX,  Linux, and Mac OS X it is ".xnethackrc" in the us-
           er's home directory.  The file may not exist, but it is a  normal
           ASCII text file and can be created with any text editor.
 
-               On  Windows,  it  is  ".nethackrc" in the folder "\%USERPRO-
-          FILE%\NetHack\3.6".  The file may not exist, but it is  a  normal
+               On  Windows,  it  is  ".xnethackrc" in the folder "\%USERPRO-
+          FILE%\xNetHack\3.6".  The file may not exist, but it is  a  normal
           ASCII  text  file can can be created with any text editor.  After
           running NetHack for the first time, you  should  find  a  default
-          template  for  the configuration file named ".nethackrc.template"
-          in "\%USERPROFILE%\NetHack\3.6".  If you had not created the con-
+          template  for  the configuration file named ".xnethackrc.template"
+          in "\%USERPROFILE%\xNetHack\3.6".  If you had not created the con-
           figuration  file,  NetHack will create the configuration file for
           you using the default template file.
 
@@ -3593,7 +3593,7 @@
 
           HACKDIR
             Default  location  of  files  NetHack needs. On Windows HACKDIR
-            defaults to the location of  the  NetHack.exe  or  NetHackw.exe
+            defaults to the location of  the  xNetHack.exe  or  xNetHackw.exe
             file  so setting HACKDIR to override that is not usually neces-
             sary or recommended.
 

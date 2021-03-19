@@ -8,7 +8,7 @@
 # program.
 #
 # This file can also be used to set local system defaults for run-time
-# options, using the same syntax as an individual user's ./nethackrc file.
+# options, using the same syntax as an individual user's ./xnethackrc file.
 
 # The options which take a space-separated list of usernames haven't been
 # implemented for VMS.

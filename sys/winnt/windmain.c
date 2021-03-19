@@ -122,10 +122,10 @@ build_known_folder_path(
     if(!get_known_folder_path(folder_id, path, path_size))
         return FALSE;
 
-    strcat(path, "\\NetHack\\");
+    strcat(path, "\\xNetHack\\");
     create_directory(path);
     if (versioned) {
-        Sprintf(eos(path), "%d.%d\\", 
+        Sprintf(eos(path), "%d.%d\\",
                     VERSION_MAJOR, VERSION_MINOR);
         create_directory(path);
     }
@@ -195,7 +195,7 @@ test_portable_config(
          */
 
         *portable_device_path = '\0';
-        lth = sizeof tmppath - strlen(sysconf); 
+        lth = sizeof tmppath - strlen(sysconf);
         (void) strncpy(tmppath, executable_path, lth - 1);
         tmppath[lth - 1] = '\0';
         (void) strcat(tmppath, sysconf);
@@ -374,7 +374,7 @@ void copy_config_content()
         g.fqn_prefix[DATAPREFIX], CONFIG_TEMPLATE, FALSE);
 
     /* If the required early game file does not exist, copy it */
-    /* NOTE: We never replace .nethackrc or sysconf */
+    /* NOTE: We never replace .xnethackrc or sysconf */
     copy_file(g.fqn_prefix[CONFIGPREFIX], CONFIG_FILE,
         g.fqn_prefix[DATAPREFIX], CONFIG_TEMPLATE);
 }
@@ -398,7 +398,7 @@ copy_hack_content()
  * WinMain exist, the resulting executable won't work correctly.
  */
 int
-#ifndef __MINGW32__ 
+#ifndef __MINGW32__
 main(int argc, char *argv[])
 #else
 mingw_main(int argc, char *argv[])
@@ -439,14 +439,14 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
 # endif
 #endif
 
-    g.hname = "NetHack"; /* used for syntax messages */
+    g.hname = "xNetHack"; /* used for syntax messages */
 
 #if defined(CHDIR) && !defined(NOCWD_ASSUMPTIONS)
     /* Save current directory and make sure it gets restored when
      * the game is exited.
      */
     if (getcwd(orgdir, sizeof orgdir) == (char *) 0)
-        error("NetHack: current directory path too long");
+        error("xNetHack: current directory path too long");
 #endif
 
     set_default_prefix_locations(argv[0]);
@@ -493,7 +493,7 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
  */
     if (argc >= 1
         && !strcmpi(default_window_sys, "mswin")
-        && (strstri(argv[0], "nethackw.exe") || GUILaunched))
+        && (strstri(argv[0], "xnethackw.exe") || GUILaunched))
         iflags.windowtype_locked = TRUE;
     windowtype = default_window_sys;
 
@@ -501,9 +501,9 @@ _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);*/
         pline("%s\n%s\n%s\n%s\n\n",
               copyright_banner_line(1), copyright_banner_line(2),
               copyright_banner_line(3), copyright_banner_line(4));
-        pline("NetHack was unable to open the required file \"%s\"",DLBFILE);
+        pline("xNetHack was unable to open the required file \"%s\"",DLBFILE);
         if (file_exists(DLBFILE))
-            pline("\nAre you perhaps trying to run NetHack within a zip utility?");
+            pline("\nAre you perhaps trying to run xNetHack within a zip utility?");
         error("dlb_init failure.");
     }
 
@@ -908,7 +908,7 @@ fakeconsole(void)
         }
         has_fakeconsole = TRUE;
     }
-    
+
     /* Obtain handles for the standard Console I/O devices */
     hConIn = GetStdHandle(STD_INPUT_HANDLE);
     hConOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -1220,7 +1220,7 @@ file_exists(const char* path)
     return TRUE;
 }
 
-/* 
+/*
   file_newer returns TRUE if the file at a_path is newer then the file
   at b_path.  If a_path does not exist, it returns FALSE.  If b_path
   does not exist, it returns TRUE.

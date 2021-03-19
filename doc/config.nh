@@ -9,8 +9,8 @@
 # playing.
 #
 # Copy the contents of this file into
-# * defaults.nh, same folder as nethack.exe or nethackW.exe (DOS, Windows)
-# * ~/.nethackrc (Unix, linux, Mac OS X)
+# * defaults.nh, same folder as xnethack.exe or xnethackW.exe (DOS, Windows)
+# * ~/.xnethackrc (Unix, linux, Mac OS X)
 # * "NetHack Defaults" on pre-OSX Mac and BeOS
 # * NetHack.cnf on Amiga, Atari, OS/2, and VMS
 #
@@ -393,8 +393,8 @@
 #OPTIONS=windowcolors:status windowtext/window message windowtext/window
 
 # HACKDIR is the default location for everything.
-# Note: On Windows HACKDIR defaults to the location of the NetHack.exe or
-# NetHackw.exe file so setting HACKDIR below to override that is not usually
+# Note: On Windows HACKDIR defaults to the location of the xNetHack.exe or
+# xNetHackw.exe file so setting HACKDIR below to override that is not usually
 # necessary or recommended.
 #HACKDIR=c:\games\nethack
 

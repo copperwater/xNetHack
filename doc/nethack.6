@@ -130,7 +130,7 @@ Because the option list can be very long (particularly when specifying
 graphics characters), options may also be included in a configuration
 file.
 The default is located in your home directory and
-named .nethackrc on Unix systems.  On other systems, the default may be
+named .xnethackrc on Unix systems.  On other systems, the default may be
 different, usually NetHack.cnf.  On DOS or Windows, the name is
 defaults.nh, while on the Macintosh or BeOS, it is NetHack Defaults.
 The configuration file's location may be specified by setting NETHACKOPTIONS
@@ -152,11 +152,11 @@ A
 suffix can be used to specify the profession, race, alignment and/or gender
 of the character.  The full syntax of the playername that includes a
 suffix is "name-ppp-rrr-aaa-ggg".  "ppp" are at least the first three letters
-of the profession (this can also be specified using a separate 
+of the profession (this can also be specified using a separate
 .B \-p
 .I profession
 option).  "rrr" are at least the first three letters of the character's
-race (this can also be specified using a separate 
+race (this can also be specified using a separate
 .B \-r
 .I race
 option).  "aaa" are at least the first three letters of the character's
@@ -235,10 +235,10 @@ can be used to cause NetHack to show the version information it
 was compiled with, then exit. That will include the
 .I git
 commit hash if the information was available when the game was compiled.
-On some platforms, such as windows and macosx, a variation 
+On some platforms, such as windows and macosx, a variation
 .B \-\-version:paste
 can be used to cause NetHack to show the version information, then exit,
-while also leaving a copy of the version information in the paste buffer 
+while also leaving a copy of the version information in the paste buffer
 or clipboard for potential insertion into things like bug reports.
 .SH AUTHORS
 .PP
@@ -261,7 +261,7 @@ distinction, as he may eventually release a new version of his own.
 .PP
 Run-time configuration options were discussed above and use a platform
 specific name for a file in a platform specific location.  For Unix, the
-name is '.nethackrc' in the user's home directory.
+name is '.xnethackrc' in the user's home directory.
 
 .br
 All other files are in the playground directory,
@@ -338,12 +338,12 @@ bonesDD.nn	Descriptions of the ghost and belongings
 	or her demise on level 'nn'.
 .br
 .\"following line should contain <space><tab>
- 	
+
 .br
 save/	A subdirectory containing saved games.
 .br
 .\"following line should contain <space><tab>
- 	
+
 .br
 sysconf	System-wide options.  Required if
 .br
@@ -383,7 +383,7 @@ NETHACKOPTIONS	String predefining several NetHack
 	options.
 .br
 
-If the same option is specified in both NETHACKOPTIONS and .nethackrc,
+If the same option is specified in both NETHACKOPTIONS and .xnethackrc,
 the value assigned in NETHACKOPTIONS takes precedence.
 .br
 

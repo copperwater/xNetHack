@@ -336,7 +336,7 @@ vmsmain.c     vmsmisc.c     vmstty.c      vmsunix.c
 
 sys/winnt:
 (files for Windows 7/8.x/10 version)
-.nethackrc.template  Install.nt           Makefile.gcc
+.xnethackrc.template Install.nt           Makefile.gcc
 Makefile.msc         console.rc           nethack.def
 nh340key.c           nhdefkey.c           nhico.uu
 nhraykey.c           nhsetup.bat          ntsound.c
@@ -409,7 +409,7 @@ getline.c  termcap.c  topl.c     wintty.c
 
 win/win32:
 (files for Windows versions - tested up to Windows 10)
-NetHackW.c             NetHackW.exe.manifest  NetHackW.rc
+NetHackW.c             xNetHackW.exe.manifest xNetHackW.rc
 mhaskyn.c              mhaskyn.h              mhdlg.c
 mhdlg.h                mhfont.c               mhfont.h
 mhinput.c              mhinput.h              mhmain.c

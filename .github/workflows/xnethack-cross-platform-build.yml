@@ -66,7 +66,7 @@ jobs:
         cd src
         nmake fetch-lua
         nmake install
-        # Note: mingw build doesn't seem to build NetHackW.exe and is disabled.
+        # Note: mingw build doesn't seem to build xNetHackW.exe and is disabled.
         # This would work to build the tty windows version, though.
         #cp ../sys/winnt/Makefile.gcc ./Makefile
         #mingw32-make LUA_VERSION=$LUA_VERSION install

@@ -115,7 +115,7 @@ NetHackQtSettings::NetHackQtSettings() :
     xcmd_by_row = settings.value("xcmdByRow", false).toBool();
     xcmd_set = settings.value("xcmdSet", all_cmds).toInt();
 
-    // Tile/font sizes read from .nethackrc
+    // Tile/font sizes read from .xnethackrc
     if (qt_tilewidth != NULL) {
 	tilewidth.setValue(atoi(qt_tilewidth));
 	delete[] qt_tilewidth;

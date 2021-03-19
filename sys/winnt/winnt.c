@@ -4,7 +4,7 @@
 
 /*
  *  WIN32 system functions.
- * 
+ *
  *  Included in both console and window based clients on the windows platform.
  *
  *  Initial Creation: Michael Allison - January 31/93
@@ -313,7 +313,7 @@ interject_assistance(int num, int interjection_type, genericptr_t ptr1, genericp
                     "You have to unzip the contents of the zip file into a\n"
                     "folder on your system, and then run \"NetHack.exe\" or "
                     "\n"
-                    "\"NetHackW.exe\" from there.\n\n"
+                    "\"xNetHackW.exe\" from there.\n\n"
                     "If that is not the situation, you are encouraged to\n"
                     "report the error as shown above.\n\n",
                     1023);
@@ -338,22 +338,22 @@ void port_insert_pastebuf(char *buf)
      * to accomplish this.
      */
 
-    HGLOBAL hglbCopy; 
+    HGLOBAL hglbCopy;
     WCHAR *w, w2[2];
     int cc, rc, abytes;
     LPWSTR lpwstrCopy;
     HANDLE hresult;
 
     if (!buf)
-        return; 
- 
+        return;
+
     cc = strlen(buf);
     /* last arg=0 means "tell me the size of the buffer that I need" */
     rc = MultiByteToWideChar(GetConsoleOutputCP(), 0, buf, -1, w2, 0);
     if (!rc) return;
 
     abytes = rc * sizeof(WCHAR);
-    w = (WCHAR *)alloc(abytes);     
+    w = (WCHAR *)alloc(abytes);
     /* Housekeeping need: +free(w) */
 
     rc = MultiByteToWideChar(GetConsoleOutputCP(), 0, buf, -1, w, rc);
@@ -367,18 +367,18 @@ void port_insert_pastebuf(char *buf)
     }
     /* Housekeeping need: +CloseClipboard(), free(w) */
 
-    EmptyClipboard(); 
+    EmptyClipboard();
 
     /* allocate global mem obj to hold the text */
- 
+
     hglbCopy = GlobalAlloc(GMEM_MOVEABLE, abytes);
-    if (hglbCopy == NULL) { 
-        CloseClipboard(); 
+    if (hglbCopy == NULL) {
+        CloseClipboard();
         free(w);
         return;
-    } 
+    }
     /* Housekeeping need: +GlobalFree(hglbCopy), CloseClipboard(), free(w) */
- 
+
     lpwstrCopy = (LPWSTR)GlobalLock(hglbCopy);
     /* Housekeeping need: +GlobalUnlock(hglbCopy), GlobalFree(hglbCopy),
                             CloseClipboard(), free(w) */
@@ -394,8 +394,8 @@ void port_insert_pastebuf(char *buf)
         GlobalFree(hglbCopy); /* only needed if clipboard didn't accept data */
     }
     /* Housekeeping need: CloseClipboard(), free(w) */
- 
-    CloseClipboard(); 
+
+    CloseClipboard();
     free(w);
     return;
 }
@@ -710,7 +710,7 @@ nt_assert_failed(const char *expression, const char *filepath, int line)
 
     if (IsDebuggerPresent()) {
         char message[BUFSIZ];
-        snprintf(message, sizeof(message), 
+        snprintf(message, sizeof(message),
             "nhassert(%s) failed in file '%s' at line %d",
             expression, filename, line);
         OutputDebugStringA(message);

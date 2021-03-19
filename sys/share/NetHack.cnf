@@ -15,16 +15,16 @@
 
 # *** OPTIONS ***
 #
-# The three options on this line should be used for most setups.  
-# If your machine isn't very IBM-compatible, and NetHack doesn't work, 
+# The three options on this line should be used for most setups.
+# If your machine isn't very IBM-compatible, and NetHack doesn't work,
 # try commenting out this line.
 OPTIONS=rawio,BIOS,symset:IBMGraphics_2,roguesymset:RogueEpyx
 
-# Here is a suggested symbol set from Michael Feir, 
+# Here is a suggested symbol set from Michael Feir,
 # for use by blind NetHack players
 #OPTIONS=symset:NHAccess,roguesymset:NHAccess
 
-# To use VGA graphical tiles on an MS-DOS PC with VGA or better,uncomment 
+# To use VGA graphical tiles on an MS-DOS PC with VGA or better,uncomment
 # this:
 #OPTIONS=video:autodetect
 # And to explicitly set the resolution:
@@ -57,7 +57,7 @@ OPTIONS=boulder:0
 # General options.  You might also set "silent" so as not to attract
 # the boss's attention.
 #
-# number_pad option can have an optional value of 0 (off), 1 (on), 
+# number_pad option can have an optional value of 0 (off), 1 (on),
 # or 2(on,legacy-mode) which causes 5='g', alt-5='G', alt-0='I'
 OPTIONS=time,noshowexp,number_pad:2,lit_corridor
 
@@ -75,27 +75,27 @@ OPTIONS=time,noshowexp,number_pad:2,lit_corridor
 # point at must exist.  NetHack will not create them for you.
 #
 # The default location for everything.
-# Note: On Windows HACKDIR defaults to the location 
-#       of the NetHack.exe or NetHackw.exe file so
-#       setting HACKDIR below to override that is 
+# Note: On Windows HACKDIR defaults to the location
+#       of the xNetHack.exe or xNetHackw.exe file so
+#       setting HACKDIR below to override that is
 #       not usually necessary or recommended.
-#HACKDIR=c:\games\nethack
+#HACKDIR=c:\games\xnethack
 #
 # The location that level files in progress are stored (default=HACKDIR, writeable)
-#LEVELDIR=c:\nethack\levels
+#LEVELDIR=c:\xnethack\levels
 #
 # The location where saved games are kept (default=HACKDIR, writeable)
-#SAVEDIR=c:\nethack\save
+#SAVEDIR=c:\xnethack\save
 #
 # The location that bones files are kept (default=HACKDIR, writeable)
-#BONESDIR=c:\nethack\save
+#BONESDIR=c:\xnethack\save
 #
 # The location that file synchronization locks are stored (default=HACKDIR, writeable)
-#LOCKDIR=c:\nethack\levels
+#LOCKDIR=c:\xnethack\levels
 #
 # The location that a record of game aborts and self-diagnosed game problems
 # is kept (default=HACKDIR, writeable)
-#TROUBLEDIR=c:\nethack\trouble
+#TROUBLEDIR=c:\xnethack\trouble
 #
 
 # ================================================
