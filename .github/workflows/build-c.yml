@@ -64,7 +64,7 @@ jobs:
       run: |
         cd src
         cp ../sys/winnt/Makefile.gcc ./Makefile
-        mingw32-make -j8 LUA_VERSION=$LUA_VERSION install
+        mingw32-make LUA_VERSION=$LUA_VERSION install
         cd ..
         ls
     - uses: papeloto/action-zip@v1
