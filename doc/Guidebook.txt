@@ -4539,11 +4539,6 @@
             you will exclude that role from being picked randomly.   Cannot
             be set with the `O' command.  Persistent.
 
-          roguesymset
-            This  option may be used to select one of the named symbol sets
-            found within "symbols" to alter the symbols  displayed  on  the
-            screen on the rogue level.
-
           rlecomp
             When writing out a save file, perform run length compression of
 
@@ -5847,10 +5842,6 @@
           symset
             Set the name of the symbol set that you want to load.
 
-          roguesymset
-            Set  the  name of the symbol set that you want to load for dis-
-            play on the rogue level.
-
                You can also override one or more symbols using the  SYMBOLS
           and  ROGUESYMBOLS configuration file options.  Symbols are speci-
           fied as name:value pairs.  Note that NetHack escape-processes the
@@ -6167,10 +6158,6 @@
 
           symset:NHAccess
             Load a symbol set appropriate for use by blind players.
-
-          roguesymset:NHAccess
-            Load  a  symbol set for the rogue level that is appropriate for
-            use by blind players.
 
           menustyle:traditional
             This will assist in the interface to speech synthesizers.

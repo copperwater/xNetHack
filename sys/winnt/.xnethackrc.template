@@ -17,11 +17,11 @@
 #
 # Use the IBM character set rather than just plain ascii characters
 # for tty window-port.
-OPTIONS=symset:IBMGraphics_2,roguesymset:RogueEpyx
+OPTIONS=symset:IBMGraphics_2
 
-# Here is a suggested symbol set from Michael Feir, 
+# Here is a suggested symbol set from Michael Feir,
 # for use by blind NetHack players
-#OPTIONS=symset:NHAccess,roguesymset:NHAccess
+#OPTIONS=symset:NHAccess
 
 # Optional curses port interface
 #OPTIONS=windowtype:curses
