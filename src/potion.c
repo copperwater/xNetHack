@@ -561,7 +561,24 @@ dodrink(void)
         pline("If you can't breathe air, how can you drink liquid?");
         return 0;
     }
-
+    /* Is there a fountain to drink from here? */
+    if (IS_FOUNTAIN(levl[u.ux][u.uy].typ)
+        /* not as low as floor level but similar restrictions apply */
+        && can_reach_floor(FALSE)) {
+        if (yn("Drink from the fountain?") == 'y') {
+            drinkfountain();
+            return 1;
+        }
+    }
+    /* Or a kitchen sink? */
+    if (IS_SINK(levl[u.ux][u.uy].typ)
+        /* not as low as floor level but similar restrictions apply */
+        && can_reach_floor(FALSE)) {
+        if (yn("Drink from the sink?") == 'y') {
+            drinksink();
+            return 1;
+        }
+    }
     /* Are you surrounded by water? */
     if (Underwater && !u.uswallow) {
         if (yn("Drink the water around you?") == 'y') {
