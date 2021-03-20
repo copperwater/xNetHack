@@ -1,0 +1,89 @@
+name: xNetHack
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - '*' # won't work on tags containing /
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    env:
+      #LUA_VERSION: 5.4.2
+      HINTS_FILE: linux.2020
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup
+      run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
+    - name: fetch lua
+      run: |
+        make fetch-lua
+    - name: make all
+      run: make -j8 all
+    - name: make install
+      run: make install
+
+  mac-build:
+    runs-on: macos-latest
+    env:
+      HINTS_FILE: macOS.2020
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup
+      run: |
+        ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
+        make fetch-lua
+    - name: make all
+      run: make -j8 all
+    - name: make install
+      run: make install
+
+  windows-build:
+    runs-on: windows-latest
+    env:
+        ADD_LUA: Y
+        WANT_LUAC: N
+        LUATOP: ../submodules/lua
+        LUASRC: ../submodules/lua
+        ADD_CURSES: Y
+        PDCURSES_TOP: ../submodules/pdcurses
+        LUA_VERSION: 5.4.2
+        TRAVIS_COMPILER: 1
+        ZIP_NAME: xnethack.zip
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - uses: ilammy/msvc-dev-cmd@v1 # enable visual c compiler / nmake
+    - name: setup
+      run: |
+        ./sys/winnt/nhsetup.bat
+    - name: make install
+      run: |
+        cd src
+        nmake fetch-lua
+        nmake install
+        # Note: mingw build doesn't seem to build NetHackW.exe and is disabled.
+        # This would work to build the tty windows version, though.
+        #cp ../sys/winnt/Makefile.gcc ./Makefile
+        #mingw32-make LUA_VERSION=$LUA_VERSION install
+    - uses: papeloto/action-zip@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: binary/
+        dest: xnethack_mswindows.zip
+    - name: release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          xnethack_mswindows.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+
