@@ -640,7 +640,7 @@ TOOL("magic marker",        None, 1, 0, 1, 1, 15,  2, 50, PLASTIC, CLR_RED),
 TOOL("land mine",           None, 1, 0, 0, 0, 0,  40,180, IRON, CLR_RED),
 TOOL("beartrap",            None, 1, 0, 0, 0, 0,  50, 60, IRON, HI_METAL),
 /* instruments */
-TOOL("pea whistle",         None, 0, 0, 0, 0,100, 3, 10, METAL, HI_METAL),
+TOOL("pea whistle",    "whistle", 0, 0, 0, 0,100, 3, 10, METAL, HI_METAL),
 TOOL("magic whistle",  "whistle", 0, 0, 1, 0, 30, 3, 10, METAL, HI_METAL),
 TOOL("flute",               None, 0, 0, 0, 0,  4, 5, 12, WOOD, HI_WOOD),
 TOOL("magic flute",      "flute", 0, 0, 1, 1,  2, 5, 36, WOOD, HI_WOOD),
