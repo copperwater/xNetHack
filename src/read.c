@@ -1912,6 +1912,9 @@ seffects(struct obj* sobj) /* sobj - scroll, or fake spellbook object for scroll
                 else
                     pline("You are suddenly very dry!");
             }
+            else {
+                pline("The air around you suddenly feels very dry.");
+            }
         }
         else {
             int madepools = 0;
@@ -1922,6 +1925,9 @@ seffects(struct obj* sobj) /* sobj - scroll, or fake spellbook object for scroll
                     pline("A totally gnarly wave comes in!");
                 else
                     pline("A flood surges through the area!");
+            }
+            else {
+                pline("The air around you suddenly feels very humid.");
             }
         }
         break;
