@@ -888,6 +888,10 @@ static void
 givit(register struct permonst *ptr)
 {
     int type = corpse_intrinsic(ptr);
+
+    if (type <= 0) {
+        return; /* no intrinsic from this corpse */
+    }
     debugpline1("Attempting to give intrinsic %d", type);
 
     if (!should_givit(type, ptr))
