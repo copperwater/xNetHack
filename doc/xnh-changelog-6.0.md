@@ -326,6 +326,8 @@ changes:
   always succeed provided there is something raiseable. "Innate improvement"
   attributes, e.g. strength while wearing gauntlets of power but when the base
   value isn't maxed yet, now count as raiseable.
+- Item destruction is significantly nerfed; each source of cold, fire, and shock
+  damage can only destroy up to 1/5 of that damage in items.
 - New Big Room "Tea Party", containing a number of obstacles.
 - 8 polearms are removed: ranseur, spetum, bardiche, voulge, fauchard,
   guisarme, bill-guisarme, lucern hammer.
