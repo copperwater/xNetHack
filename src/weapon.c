@@ -528,7 +528,7 @@ searmsg(struct monst *magr, struct monst *mdef,
             return;
         }
         else {
-            Strcpy(whose, s_suffix(y_monnam(magr)));
+            Strcpy(whose, s_suffix(mon_nam(magr)));
             Strcat(whose, " ");
         }
     }
