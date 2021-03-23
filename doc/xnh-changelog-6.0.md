@@ -50,9 +50,9 @@ changes:
 - Genetic engineers (added in vanilla 3.7.0) are in the U monster class like
   quantum mechanics are.
 - Attempting to use a crystal ball while hallucinating will paralyze you for d2
-  turns if the ball is uncharged or d4 turns if it is charged. (This is the
-  only part of the vanilla 3.7.0 crystal ball overhaul that has been included
-  in xNetHack.)
+  turns if the ball is uncharged or d4 turns if it is charged. (This and
+  crystal balls detecting dungeon features now are the only parts of the vanilla
+  3.7.0 crystal ball overhaul that have been included in xNetHack.)
 - Monsters prefer to wear an amulet of life saving or reflection rather than an
   amulet of ESP or guarding.
 - Metal armor won't provide less than 1 AC (not counting enchantments) if it
