@@ -3192,23 +3192,10 @@ pudding_merge_message(struct obj* otmp, struct obj* otmp2)
     }
 }
 
-/* Set up the data associated with a thiefstone. (This involves both selecting
- * its keyed location and recording that location in the stone.) */
+/* The algorithm that determines where a thiefstone will be keyed to. */
 void
-init_thiefstone(struct obj *stone)
+choose_thiefstone_loc(coord *cc)
 {
-    curse(stone); /* always generated cursed */
-
-    if (In_endgame(&u.uz)) {
-        /* stones that generate in the endgame won't do anything */
-        stone->keyed_ledger = 0;
-        return;
-    }
-
-    stone->keyed_ledger = ledger_no(&u.uz);
-    if (stone->keyed_ledger < 1) {
-        impossible("init_thiefstone: invalid ledger number %d", stone->keyed_ledger);
-    }
     /* Choose a suitable location on the current level.
      * Prefers, in this order: vaults, closets, spaces with containers on them.
      * Failing this, will try to find a suitable walkable space, preferring
@@ -3216,12 +3203,11 @@ init_thiefstone(struct obj *stone)
      * The interior of a shop is always considered unsuitable.
      * Trapped spaces are considered unsuitable unless no other space can be
      * found. */
+
     /* try vault... */
     struct mkroom* croom = search_special(VAULT);
     if (croom) {
-        coord c;
-        somexy(croom, &c);
-        set_keyed_loc(stone, c.x, c.y);
+        somexy(croom, cc);
         return;
     }
     /* No vault? No luck. Scan all spaces on the level, assess each one and
@@ -3239,10 +3225,10 @@ init_thiefstone(struct obj *stone)
      * quality, assuming M such spaces exist, the chance of being selected is
      * 1/N * N/N+1 * N+1/N+2 * ... * M-1/M = 1/M.
      */
-    int x, y, chosen_x, chosen_y;
+    int x, y;
     int max_quality = -1;
     int nmax = 0;
-    chosen_x = chosen_y = -1;
+    cc->x = cc->y = -1;
     for (x = 1; x < COLNO; x++) {
         for (y = 1; y < ROWNO; y++) {
             int quality = 0;
@@ -3271,33 +3257,56 @@ init_thiefstone(struct obj *stone)
                  */
                 quality += 1;
             }
+            /* TODO: favor non-joined rooms */
             /* TODO: examine surrounding spaces and give quality boost to
              * a space that has few walkable neighbors */
             if (quality > 0) {
                 if (quality == max_quality) {
                     nmax++;
                     if (!rn2(nmax)) {
-                        chosen_x = x;
-                        chosen_y = y;
+                        cc->x = x;
+                        cc->y = y;
                     }
                 } else if (quality > max_quality) {
                     nmax = 1;
-                    chosen_x = x;
-                    chosen_y = y;
+                    cc->x = x;
+                    cc->y = y;
                     max_quality = quality;
                 }
             }
         }
     }
-    if (chosen_x < 0 || chosen_y < 0) {
-        impossible("init_thiefstone: couldn't find a good space");
-        chosen_x = 1;
-        chosen_y = 1;
+    if (cc->x < 0 || cc->y < 0) {
+        impossible("choose_thiefstone_loc: couldn't find a good space");
+        cc->x = 1;
+        cc->y = 1;
     }
-    set_keyed_loc(stone, chosen_x, chosen_y);
-    /* also put a chest here */
-    if (!container_at(chosen_x, chosen_y, FALSE)) {
-        mksobj_at(CHEST, chosen_x, chosen_y, TRUE, FALSE);
+}
+
+/* Set up the data associated with a thiefstone. (This involves both selecting
+ * its keyed location and recording that location in the stone.) */
+static void
+init_thiefstone(struct obj *stone)
+{
+    curse(stone); /* always generated cursed */
+
+    if (In_endgame(&u.uz)) {
+        /* stones that generate in the endgame won't do anything */
+        stone->keyed_ledger = THIEFSTONE_LEDGER_CANCELLED;
+        return;
+    }
+
+    stone->keyed_ledger = ledger_no(&u.uz);
+    if (!thiefstone_ledger_valid(stone)) {
+        impossible("init_thiefstone: invalid ledger number %d", stone->keyed_ledger);
+    }
+    coord cc;
+    choose_thiefstone_loc(&cc);
+    set_keyed_loc(stone, cc.x, cc.y);
+    /* also put a chest here, but only at level creation; wishing or polypiling
+     * thiefstones should not spontaneously create chests */
+    if (g.in_mklev && !container_at(cc.x, cc.y, FALSE)) {
+        mksobj_at(CHEST, cc.x, cc.y, TRUE, FALSE);
     }
 }
 

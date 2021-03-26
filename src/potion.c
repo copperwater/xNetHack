@@ -2471,7 +2471,7 @@ dodip(void)
 
     /* resetting a cancelled thiefstone */
     if (potion->otyp == POT_RESTORE_ABILITY
-        && obj->otyp == THIEFSTONE && obj->keyed_ledger == 0
+        && obj->otyp == THIEFSTONE && !thiefstone_ledger_valid(obj)
         && !In_endgame(&u.uz)) { /* thiefstones can't key to endgame levels */
         if (potion->cursed) {
             pline("%s.", Tobjnam(obj, "twitch"));

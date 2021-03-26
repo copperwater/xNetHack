@@ -1402,6 +1402,7 @@ extern struct obj *obj_nexto_xy(struct obj *, int, int, boolean);
 extern struct obj *obj_absorb(struct obj **, struct obj **);
 extern struct obj *obj_meld(struct obj **, struct obj **);
 extern void pudding_merge_message(struct obj *, struct obj *);
+extern void choose_thiefstone_loc(coord *);
 extern void init_obj_material(struct obj *);
 extern boolean valid_obj_material(struct obj *, uchar);
 extern void set_material(struct obj *, uchar);

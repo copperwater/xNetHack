@@ -98,6 +98,13 @@ resetobjs(struct obj *ochain, boolean restore)
                                    && *(p = in_rooms(ox, oy, SHOPBASE))
                                    && tended_shop(&g.rooms[*p - ROOMOFFSET]));
             }
+
+            if (otmp->otyp == THIEFSTONE && thiefstone_ledger_valid(otmp)) {
+                /* x and y should already be set to an appropriate location on
+                 * this level by the save code; all we need to do is set the
+                 * ledger; no handling necessary for cancelled stones */
+                otmp->keyed_ledger = ledger_no(&u.uz);
+            }
         } else { /* saving */
             /* do not zero out o_ids for ghost levels anymore */
 
@@ -190,6 +197,26 @@ resetobjs(struct obj *ochain, boolean restore)
             } else if (otmp->otyp == SPE_BOOK_OF_THE_DEAD) {
                 otmp->otyp = SPE_BLANK_PAPER;
                 curse(otmp);
+            } else if (otmp->otyp == THIEFSTONE) {
+                if (thiefstone_ledger_valid(otmp)) {
+                    if (otmp->keyed_ledger != ledger_no(&u.uz)) {
+                        /* keyed to some other level -- its x and y are
+                         * meaningless since that other level doesn't come along
+                         * with the bones file; instead re-key the stone to
+                         * somewhere on this level. */
+                        coord cc;
+                        choose_thiefstone_loc(&cc); /* find suitable new location */
+                        set_keyed_loc(otmp, cc.x, cc.y);
+                    }
+                    /* the ledger from the old game is meaningless in the new
+                     * game; set to something that should always be valid so the
+                     * restore code can just test for validity */
+                    otmp->keyed_ledger = 1;
+                }
+                else {
+                    /* it ought to be this already but just to be sure... */
+                    otmp->keyed_ledger = THIEFSTONE_LEDGER_CANCELLED;
+                }
             }
         }
     }

@@ -2536,7 +2536,7 @@ use_stone(struct obj *tstone)
     }
 
     if (tstone->otyp == THIEFSTONE && thiefstone_accepts(tstone, obj)
-        && !tstone->cursed && tstone->spe > 0) {
+        && !tstone->cursed && thiefstone_ledger_valid(tstone)) {
         pline("You touch %s to %s, which disappear%s.", yname(tstone),
               yname(obj), (obj->quan == 1 ? "s" : ""));
         thiefstone_teleport(tstone, obj, FALSE);

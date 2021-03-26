@@ -444,6 +444,10 @@ struct obj {
     ((stone)->corpsenm = ((int)(xx) << 8) | ((int)(yy) & 0xFF))
 #define keyed_x(stone) (((stone)->corpsenm >> 8) & 0xFF)
 #define keyed_y(stone) ((stone)->corpsenm & 0xFF)
+/* note that ledger numbers start at 1; 0 should not be a valid ledger */
+#define THIEFSTONE_LEDGER_CANCELLED -1
+#define thiefstone_ledger_valid(stone) \
+    ((stone)->keyed_ledger > 0 && (stone)->keyed_ledger <= maxledgerno())
 
 /*
  *  Notes for adding new oextra structures:

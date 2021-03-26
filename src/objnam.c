@@ -1230,7 +1230,7 @@ doname_base(struct obj* obj, unsigned int doname_flags)
         break;
     case GEM_CLASS:
         if (obj->otyp == THIEFSTONE && known) {
-            if (obj->keyed_ledger < 1) {
+            if (!thiefstone_ledger_valid(obj)) {
                 /* doesn't point to a level: assume cancelled */
                 Strcat(eos(bp), " (inactive)");
             } else {

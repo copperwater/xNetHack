@@ -1543,8 +1543,8 @@ lift_object(struct obj *obj,       /* object to pick up... */
     struct obj* thiefstone = NULL;
     struct obj* otmp = NULL;
     for (otmp = g.invent; otmp; otmp = otmp->nobj) {
-        if (otmp->otyp == THIEFSTONE && otmp->cursed && otmp->spe > 0
-            && !rn2(10)
+        if (otmp->otyp == THIEFSTONE && otmp->cursed
+            && !rn2(10) && thiefstone_ledger_valid(otmp)
             && (otmp->keyed_ledger != ledger_no(&u.uz)
                 || keyed_x(otmp) != u.ux || keyed_y(otmp) != u.uy)) {
             thiefstone = otmp;
@@ -1566,7 +1566,8 @@ lift_object(struct obj *obj,       /* object to pick up... */
     }
     /* second case: obj being picked up is a cursed thiefstone,
      * which will steal a random inventory possession */
-    if (result > 0 && obj->otyp == THIEFSTONE && obj->cursed && obj->spe > 0
+    if (result > 0 && obj->otyp == THIEFSTONE && obj->cursed
+        && thiefstone_ledger_valid(obj)
         && (obj->keyed_ledger != ledger_no(&u.uz)
             || keyed_x(obj) != u.ux || keyed_y(obj) != u.uy)) {
         int total = 0;
@@ -1605,7 +1606,7 @@ lift_object(struct obj *obj,       /* object to pick up... */
 boolean
 thiefstone_accepts(struct obj* stone, struct obj* obj)
 {
-    if (stone->keyed_ledger == 0) { /* cancelled */
+    if (!thiefstone_ledger_valid(stone)) {
         return FALSE;
     }
     /* the stone always sees itself as valid (for e.g.
@@ -1641,9 +1642,9 @@ thiefstone_teleport(struct obj* stone, struct obj* obj, boolean dobill)
     xchar kx = keyed_x(stone);
     xchar ky = keyed_y(stone);
     boolean samelevel = (ledger == ledger_no(&u.uz));
-    if (ledger == 0) {
-        /* cancelled stone */
-        impossible("thiefstone_teleport: called with cancelled stone");
+    if (!thiefstone_ledger_valid(stone)) {
+        /* cancelled or bugged stone */
+        impossible("thiefstone_teleport: invalid ledger %d", ledger);
         return;
     }
     if (!thiefstone_accepts(stone, obj)) {
@@ -1705,6 +1706,12 @@ thiefstone_tele_mon(struct obj* stone, struct monst* mon)
 {
     xchar ledger = stone->keyed_ledger;
     coord cc;
+    if (!thiefstone_ledger_valid(stone)) {
+        if (ledger != THIEFSTONE_LEDGER_CANCELLED) {
+            impossible("thiefstone_tele_mon: bad ledger %d", ledger);
+        }
+        return FALSE;
+    }
     if (mon->data != &mons[PM_GOLD_GOLEM]) {
         impossible("thiefstone_tele_mon: bad monster to teleport");
         return FALSE;
