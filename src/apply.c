@@ -2415,7 +2415,7 @@ static int
 thiefstone_ok(struct obj *obj)
 {
     if (!obj) {
-        return GETOBJ_EXCLUDE;
+        return GETOBJ_DOWNPLAY;
     }
 
     /* gems and coins should be included
@@ -2458,7 +2458,7 @@ static int
 touchstone_ok(struct obj *obj)
 {
     if (!obj)
-        return GETOBJ_EXCLUDE;
+        return GETOBJ_DOWNPLAY;
 
     /* Gold being suggested as a rub target is questionable - it fits the
      * real-world historic use of touchstones, but doesn't do anything
@@ -2506,7 +2506,7 @@ use_stone(struct obj *tstone)
         obj = getobj(stonebuf, thiefstone_ok, GETOBJ_PROMPT);
     }
     else {
-        obj = getobj(stonebuf, any_obj_ok, GETOBJ_PROMPT);
+        obj = getobj(stonebuf, any_obj_or_hands_ok, GETOBJ_PROMPT);
     }
 
     if (!obj)

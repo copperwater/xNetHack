@@ -1049,6 +1049,7 @@ extern boolean is_worn(struct obj *);
 extern struct obj *g_at(int, int);
 extern boolean splittable(struct obj *);
 extern int any_obj_ok(struct obj *);
+extern int any_obj_or_hands_ok(struct obj *);
 extern struct obj *getobj(const char *, int(*)(struct obj *), unsigned int);
 extern int ggetobj(const char *, int(*)(struct obj *), int, boolean,
                    unsigned *);

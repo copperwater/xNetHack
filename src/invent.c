@@ -1475,6 +1475,13 @@ any_obj_ok(struct obj *obj)
     return GETOBJ_EXCLUDE;
 }
 
+/* getobj callback that allows any object, including hands. */
+int
+any_obj_or_hands_ok(struct obj *obj UNUSED)
+{
+    return GETOBJ_SUGGEST;
+}
+
 /*
  * getobj returns:
  *      struct obj *xxx:        object to do something with.
