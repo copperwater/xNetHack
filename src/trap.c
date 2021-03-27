@@ -4278,6 +4278,7 @@ water_damage_chain(
     if (get_obj_location(obj, &x, &y, CONTAINED_TOO))
         g.bhitpos.x = x, g.bhitpos.y = y;
 
+    i = 0;
     for (otmp = obj; otmp; otmp = nobj) {
         /* if acid explodes or other item destruction happens, otmp will be
          * deleted. Avoid reading garbage data from it. */
@@ -4289,7 +4290,13 @@ water_damage_chain(
         }
         else {
             /* reservoir sampling: replace elements with lowering probability */
-            i++; /* i should start this loop equal to count */
+            i++;
+            if (i <= count) {
+                /* skip the first count items of the object list since they're
+                 * already in to_damage; this avoids putting the same object in
+                 * to_damage twice */
+                continue;
+            }
             j = rn2(i);
             if (j < count) {
                 to_damage[j] = otmp;
