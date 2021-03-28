@@ -4,6 +4,8 @@
 --
 des.level_init({ style = "solidfill", fg = " " });
 
+des.message("The floor here is covered in deep perpendicular grooves.")
+
 des.level_flags("mazelevel", "noteleport", "hardfloor", "premapped", "solidify", "noflip");
 
 des.map([[

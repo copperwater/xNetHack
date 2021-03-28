@@ -26,7 +26,8 @@ changes:
 
 ### Interface changes
 
-
+- Upon first entering the bottom Sokoban level, you get a message about grooves
+  on the floor.
 
 ### Architectural changes
 
