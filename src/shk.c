@@ -69,6 +69,7 @@ static boolean rob_shop(struct monst *);
 static void deserted_shop(char *);
 static boolean special_stock(struct obj *, struct monst *, boolean);
 static const char *cad(boolean);
+static char *shk_plname_title(void);
 
 /*
         invariants: obj->unpaid iff onbill(obj) [unless bp->useup]
@@ -586,7 +587,8 @@ u_entered_shop(char* enterstring)
                   Shknam(shkp), noit_mhis(shkp));
     } else {
         if (!Deaf && !muteshk(shkp))
-            verbalize("%s, %s!  Welcome%s to %s %s!", Hello(shkp), g.plname,
+            verbalize("%s, %s!  Welcome%s to %s %s!", Hello(shkp),
+                      shk_plname_title(),
                       eshkp->visitct++ ? " again" : "",
                       s_suffix(shkname(shkp)), shtypes[rt - SHOPBASE].name);
         else
@@ -3809,7 +3811,7 @@ shk_move(struct monst* shkp)
             if (strncmp(eshkp->customer, g.plname, PL_NSIZ)) {
                 if (!Deaf && !muteshk(shkp))
                     verbalize("%s, %s!  I was looking for %s.", Hello(shkp),
-                              g.plname, eshkp->customer);
+                              shk_plname_title(), eshkp->customer);
                 eshkp->following = 0;
                 return 0;
             }
@@ -4385,7 +4387,7 @@ shk_chat(struct monst* shkp)
         if (strncmp(eshk->customer, g.plname, PL_NSIZ)) {
             if (!Deaf && !muteshk(shkp))
                 verbalize("%s %s!  I was looking for %s.",
-                      Hello(shkp), g.plname, eshk->customer);
+                      Hello(shkp), shk_plname_title(), eshk->customer);
             eshk->following = 0;
         } else {
             if (!Deaf && !muteshk(shkp))
@@ -4904,6 +4906,38 @@ globby_bill_fixup(struct obj* obj_absorber, struct obj* obj_absorbed)
      **************************************************************/
 
     return;
+}
+
+/* Return a string representing the player's name with any relevant titles
+ * prepended to it; e.g. "Sir Robert" for a male knight. */
+static char*
+shk_plname_title(void)
+{
+    static char NEARDATA buf[BUFSZ];
+    const char *title = (const char *) 0;
+    if (Upolyd) {
+        ; /* shopkeeper doesn't necessarily recognize your status */
+    }
+    else if (Role_if(PM_KNIGHT)) {
+        title = Ugender ? "Dame" : "Sir";
+    }
+    else if (Role_if(PM_MONK) && u.ulevel >= 30) { /* highest rank */
+        title = "Master";
+    }
+    else if (Role_if(PM_HEALER) && u.ulevel > 25) { /* highest 2 ranks */
+        title = "Doctor";
+    }
+
+    if (title) {
+        char *namstrt;
+        Sprintf(buf, "%s %s", title, g.plname);
+        namstrt = buf + strlen(title) + 1;
+        *namstrt = highc(*namstrt); /* capitalize plname */
+    }
+    else {
+        Strcpy(buf, g.plname); /* don't capitalize */
+    }
+    return buf;
 }
 
 /*shk.c*/

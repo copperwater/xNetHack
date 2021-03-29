@@ -28,6 +28,8 @@ changes:
 
 - Upon first entering the bottom Sokoban level, you get a message about grooves
   on the floor.
+- Shopkeepers address certain players with a role-specific title, such as
+  Knights or high-level Monks or Healers.
 
 ### Architectural changes
 
