@@ -1292,13 +1292,23 @@ makemon(register struct permonst *ptr,
             /* Generate a couple random statues near a petrifier, but only if
              * it's not being generated in a zoo or nest or other special room.
              */
+            struct obj *sobj;
             do {
                 int tries = 20;
                 while (tries--) {
                     int dx = 5 - rn2(11), dy = 5 - rn2(11); /* -5 .. +5 */
                     if (isok(x + dx, y + dy)
                         && ACCESSIBLE(levl[x + dx][y + dy].typ)) {
-                        mksobj_at(STATUE, x + dx, y + dy, TRUE, FALSE);
+                        sobj = mksobj_at(STATUE, x + dx, y + dy, TRUE, FALSE);
+                        if (!sobj) {
+                            continue;
+                        }
+                        if (poly_when_stoned(&mons[sobj->corpsenm])
+                            || (mons[sobj->corpsenm].mresists & MR_STONE)) {
+                            delobj(sobj);
+                            continue;
+                        }
+                        set_material(sobj, MINERAL);
                         break;
                     }
                 }
