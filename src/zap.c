@@ -5438,8 +5438,7 @@ makewish(void)
         goto retry;
     }
     if (buf[0] == '\0') {
-        if (yn("Really forfeit this wish?") == 'y' || tries >= 50
-            ) {
+        if (wizard || yn("Really forfeit this wish?") == 'y' || tries >= 50) {
             Strcpy(buf, "nothing");
         }
 #ifdef HANGUPHANDLING
