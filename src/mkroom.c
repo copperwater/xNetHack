@@ -502,6 +502,7 @@ fill_zoo(struct mkroom* sroom)
                     struct obj *sobj = mk_tt_object(STATUE, sx, sy);
 
                     if (sobj) {
+                        set_material(sobj, MINERAL);
                         for (i = rn2(5); i; i--)
                             (void) add_to_container(
                                 sobj, mkobj(RANDOM_CLASS, FALSE));
