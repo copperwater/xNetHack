@@ -344,6 +344,7 @@ m_initweap(register struct monst *mtmp)
             case 2:
                 otmp = mongets(mtmp, rn2(4) ? FLINT : ROCK);
                 otmp->quan = 4 + rnd(6);
+                otmp->owt = weight(otmp);
                 (void) mongets(mtmp, SLING);
                 break;
             }
