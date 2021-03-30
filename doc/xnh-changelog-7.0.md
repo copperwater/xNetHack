@@ -30,6 +30,8 @@ changes:
   on the floor.
 - Shopkeepers address certain players with a role-specific title, such as
   Knights or high-level Monks or Healers.
+- The "You hear someone cursing shoplifters" message uses a shopkeeper's real
+  name if you have visited their shop previously.
 
 ### Architectural changes
 

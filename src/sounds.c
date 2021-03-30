@@ -220,11 +220,16 @@ dosounds(void)
         }
         if (tended_shop(sroom)
             && !index(u.ushops, (int) (ROOM_INDEX(sroom) + ROOMOFFSET))) {
+            const char *name = shkname(sroom->resident);
+            struct eshk *eshkp = ESHK(sroom->resident);
+            if (!eshkp->visitct) {
+                name = "someone";
+            }
             static const char *const shop_msg[3] = {
-                "someone cursing shoplifters.",
+                "%s cursing shoplifters.",
                 "the chime of a cash register.", "Neiman and Marcus arguing!",
             };
-            You_hear1(shop_msg[rn2(2) + hallu]);
+            You_hear(shop_msg[rn2(2) + hallu], name);
         }
         return;
     }
