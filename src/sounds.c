@@ -20,15 +20,18 @@ mon_in_room(struct monst* mon, int rmtyp)
     return FALSE;
 }
 
-/* Given an x and y space, return the type of the room there.
- * Uses orig_rtyp, so ignores things like the room type being cleared
- * after the player first enters it. */
+/* Given an x and y space, return the type of the room there. */
 int
 getroomtype(xchar x, xchar y)
 {
     int rno = levl[x][y].roomno;
     if (rno >= ROOMOFFSET) {
-        return g.rooms[rno - ROOMOFFSET].orig_rtype;
+        /* rtype is valid while the level is still being created and up until
+         * the player first enters the room. orig_rtype is only initialized late
+         * in level creation and is effectively valid only after the level is
+         * created. */
+        return g.in_mklev ? g.rooms[rno - ROOMOFFSET].rtype
+                          : g.rooms[rno - ROOMOFFSET].orig_rtype;
     }
     /* not a room */
     return OROOM;
