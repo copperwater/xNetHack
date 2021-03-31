@@ -28,7 +28,8 @@ getroomtype(xchar x, xchar y)
 {
     int rno = levl[x][y].roomno;
     if (rno >= ROOMOFFSET) {
-        return g.rooms[rno - ROOMOFFSET].orig_rtype;
+        return g.in_mklev ? g.rooms[rno - ROOMOFFSET].rtype
+                          : g.rooms[rno - ROOMOFFSET].orig_rtype;
     }
     /* not a room */
     return OROOM;
