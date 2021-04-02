@@ -1075,7 +1075,8 @@ ini_inv(struct trobj *trop)
          * was UNDEF_TYP or not after this. */
 
         /* Don't start with +0 or negative rings */
-        if (objects[otyp].oc_charged && obj->spe <= 0)
+        if (objects[otyp].oc_class == RING_CLASS && objects[otyp].oc_charged
+            && obj->spe <= 0)
             obj->spe = rne(3);
 
         /* Don't allow materials to be start scummed for */
