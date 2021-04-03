@@ -2222,6 +2222,8 @@ create_object(object* o, struct mkroom* croom)
         otmp->otrapped = o->trapped;
     if (o->greased)
         otmp->greased = 1;
+    if (o->material > 0)
+        set_material(otmp, o->material);
 
     if (o->quan > 0 && objects[otmp->otyp].oc_merge) {
         otmp->quan = o->quan;
@@ -3414,6 +3416,10 @@ lspo_object(lua_State* L)
         tmpobj.greased = get_table_boolean_opt(L, "greased", 0);
         tmpobj.broken = get_table_boolean_opt(L, "broken", 0);
         tmpobj.achievement = get_table_boolean_opt(L, "achievement", 0);
+        /* There is currently no way to say "use the default material"; leaving
+         * material blank may give it various materials using the normal
+         * formula, if the object is eligible. */
+        tmpobj.material = get_table_option(L, "material", "mysterious", materialnm);
 
         get_table_xy_or_coord(L, &ox, &oy);
 
