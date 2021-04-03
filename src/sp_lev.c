@@ -4962,6 +4962,9 @@ lspo_door(lua_State* L)
         msk &= ~D_IRON;
         msk |= (iron ? D_IRON : 0);
     }
+    if (typ == SDOOR) {
+        msk |= D_SECRET;
+    }
 
     if (x == -1 && y == -1) {
         static const char *const walldirs[] = {
