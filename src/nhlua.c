@@ -330,19 +330,21 @@ nhl_getmap(lua_State *L)
             lua_pushliteral(L, "flags");
             lua_newtable(L);
 
-            if (IS_DOOR(levl[x][y].typ)) {
+            if (IS_DOOR(levl[x][y].typ) || levl[x][y].typ == SDOOR) {
                 nhl_add_table_entry_bool(L, "nodoor",
-                                         (levl[x][y].flags & D_NODOOR));
+                                         doorstate(&levl[x][y]) == D_NODOOR);
                 nhl_add_table_entry_bool(L, "broken",
-                                         (levl[x][y].flags & D_BROKEN));
+                                         doorstate(&levl[x][y]) == D_BROKEN);
                 nhl_add_table_entry_bool(L, "isopen",
-                                         (levl[x][y].flags & D_ISOPEN));
+                                         doorstate(&levl[x][y]) == D_ISOPEN);
                 nhl_add_table_entry_bool(L, "closed",
-                                         (levl[x][y].flags & D_CLOSED));
+                                         doorstate(&levl[x][y]) == D_CLOSED);
                 nhl_add_table_entry_bool(L, "locked",
-                                         (levl[x][y].flags & D_LOCKED));
+                                         door_is_locked(&levl[x][y]));
                 nhl_add_table_entry_bool(L, "trapped",
-                                         (levl[x][y].flags & D_TRAPPED));
+                                         door_is_trapped(&levl[x][y]));
+                nhl_add_table_entry_bool(L, "iron",
+                                         door_is_iron(&levl[x][y]));
             } else if (IS_ALTAR(levl[x][y].typ)) {
                 /* TODO: bits 0, 1, 2 */
                 nhl_add_table_entry_bool(L, "shrine",
