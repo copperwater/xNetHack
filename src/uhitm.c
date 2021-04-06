@@ -4198,10 +4198,9 @@ mhitm_ad_sedu(struct monst *magr, struct attack *mattk, struct monst *mdef,
                         (void) rloc(magr, TRUE);
                     mhm->hitflags = MM_AGR_DONE; /* return 3??? */
                     mhm->done = TRUE;
-                    return;
                 }
+                return;
             }
-            return;
         }
         buf[0] = '\0';
         switch (steal(magr, buf)) {
