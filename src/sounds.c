@@ -304,11 +304,19 @@ dosounds(void)
         return;
     }
     if (g.level.bonesinfo && !rn2(300)) {
-        if (hallu) {
-            You("have a cheery feeling.");
-        }
-        else {
-            You("have an eerie feeling...");
+        struct cemetery *bp;
+        for (bp = g.level.bonesinfo; bp; bp = bp->next) {
+            if (!bp->bonesknown) {
+                /* only give bones noises if there are still undiscovered bones
+                 * locations on the level */
+                if (hallu) {
+                    You("have a cheery feeling.");
+                }
+                else {
+                    You("have an eerie feeling...");
+                }
+                break;
+            }
         }
         return;
     }
