@@ -1230,7 +1230,9 @@ violated_vegetarian(void)
 {
     u.uconduct.unvegetarian++;
     if (Role_if(PM_MONK)) {
-        You_feel("guilty.");
+        if (u.uconduct.unvegetarian <= 10) {
+            You_feel("guilty.");
+        }
         adjalign(-1);
     }
     return;

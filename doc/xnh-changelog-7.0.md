@@ -35,6 +35,8 @@ changes:
   Knights or high-level Monks or Healers.
 - The "You hear someone cursing shoplifters" message uses a shopkeeper's real
   name if you have visited their shop previously.
+- Monks will stop seeing "You feel guilty" messages after eating meat enough
+  times.
 
 ### Architectural changes
 
