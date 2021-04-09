@@ -114,12 +114,12 @@ static const struct {
 } tintxts[] = { { "rotten", -50, 0, 0 },  /* ROTTEN_TIN = 0 */
                 { "homemade", 50, 1, 0 }, /* HOMEMADE_TIN = 1 */
                 { "soup made from", 20, 1, 0 },
-                { "french fried", 40, 0, 1 },
+                { "french fried", 80, 0, 1 },
                 { "pickled", 40, 1, 0 },
                 { "boiled", 50, 1, 0 },
                 { "smoked", 50, 1, 0 },
                 { "dried", 55, 1, 0 },
-                { "deep fried", 60, 0, 1 },
+                { "deep fried", 100, 0, 1 },
                 { "szechuan", 70, 1, 0 },
                 { "broiled", 80, 0, 0 },
                 { "stir fried", 80, 0, 1 },
@@ -127,6 +127,7 @@ static const struct {
                 { "candied", 100, 1, 0 },
                 { "gourmet", 350, 1, 0 },
                 { "pureed", 500, 1, 0 },
+                { "stale", 25, 1, 0 },
                 { "", 0, 0, 0 } };
 #define TTSZ SIZE(tintxts)
 
