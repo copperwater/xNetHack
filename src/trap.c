@@ -4959,7 +4959,7 @@ help_monster_out(
     if (uprob) {
         You("try to grab %s, but cannot get a firm grasp.", mon_nam(mtmp));
         if (mtmp->msleeping) {
-            wakeup(mtmp, FALSE);
+            wakeup(mtmp, FALSE, TRUE);
         }
         return 1;
     }
@@ -4968,7 +4968,7 @@ help_monster_out(
         mon_nam(mtmp));
 
     if (mtmp->msleeping) {
-        wakeup(mtmp, FALSE);
+        wakeup(mtmp, FALSE, TRUE);
     } else if (mtmp->mfrozen && !rn2(mtmp->mfrozen)) {
         /* After such manhandling, perhaps the effect wears off */
         mtmp->mcanmove = 1;
@@ -5400,7 +5400,7 @@ openfallingtrap(
            or if you sense the monster who becomes trapped */
         *noticed = cansee(t->tx, t->ty) || canspotmon(mon);
         /* monster will be angered; mintrap doesn't handle that */
-        wakeup(mon, TRUE);
+        wakeup(mon, TRUE, TRUE);
         ++g.force_mintrap;
         result = (mintrap(mon) != 0);
         --g.force_mintrap;

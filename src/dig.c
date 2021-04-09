@@ -2093,7 +2093,7 @@ bury_monst(struct monst *mtmp)
     }
 
     mtmp->mburied = TRUE;
-    wakeup(mtmp, FALSE);       /* at least give it a chance :-) */
+    wakeup(mtmp, FALSE, TRUE);  /* at least give it a chance :-) */
     newsym(mtmp->mx, mtmp->my);
 }
 
@@ -2323,7 +2323,7 @@ create_pit_under(struct monst *mdef, struct monst *magr)
         }
     }
     else {
-        wakeup(mdef, FALSE);
+        wakeup(mdef, FALSE, TRUE);
         /* We want to make them be in the trap anew - they won't fall into holes
          * and such if this is left as 1. */
         mdef->mtrapped = 0;

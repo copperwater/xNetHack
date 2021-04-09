@@ -810,7 +810,7 @@ angry_priest(void)
     if ((priest = findpriest(temple_occupied(u.urooms))) != 0) {
         struct epri *eprip = EPRI(priest);
 
-        wakeup(priest, FALSE);
+        wakeup(priest, FALSE, TRUE);
         setmangry(priest, FALSE);
         /*
          * If the altar has been destroyed or converted, let the

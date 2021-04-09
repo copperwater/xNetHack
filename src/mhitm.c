@@ -212,10 +212,8 @@ mdisplacem(register struct monst *magr, register struct monst *mdef,
     /* undetected monster becomes un-hidden if it is displaced */
     if (mdef->mundetected)
         mdef->mundetected = 0;
-    if (M_AP_TYPE(mdef) && M_AP_TYPE(mdef) != M_AP_MONSTER)
-        seemimic(mdef);
     /* wake up the displaced defender */
-    wakeup(mdef, FALSE);
+    wakeup(mdef, FALSE, TRUE);
     mdef->mstrategy &= ~STRAT_WAITMASK;
 
     /*
@@ -313,7 +311,7 @@ mattackm(register struct monst *magr, register struct monst *mdef)
     tmp = find_mac(mdef) + magr->m_lev;
     if (mdef->mconf || !mdef->mcanmove || mdef->msleeping) {
         tmp += 4;
-        wakeup(mdef, FALSE);
+        wakeup(mdef, FALSE, TRUE);
     }
 
     /* undetect monsters become un-hidden if they are attacked */

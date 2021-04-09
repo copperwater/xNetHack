@@ -457,7 +457,7 @@ bhitm(struct monst *mtmp, struct obj *otmp)
     }
     if (wake) {
         if (!DEADMONSTER(mtmp)) {
-            wakeup(mtmp, helpful_gesture ? FALSE : TRUE);
+            wakeup(mtmp, helpful_gesture ? FALSE : TRUE, TRUE);
             m_respond(mtmp);
             if (mtmp->isshk && !*u.ushops)
                 hot_pursuit(mtmp);
@@ -4853,7 +4853,7 @@ zap_over_floor(xchar x, xchar y, int type, boolean *shopdamage,
             You("%s of smoke.", !Blind ? "see a puff" : "smell a whiff");
         }
     if ((mon = m_at(x, y)) != 0) {
-        wakeup(mon, FALSE);
+        wakeup(mon, FALSE, TRUE);
         if (type >= 0 && !g.context.mon_moving) {
             setmangry(mon, TRUE);
             if (mon->ispriest && *in_rooms(mon->mx, mon->my, TEMPLE))

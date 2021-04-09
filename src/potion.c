@@ -1697,10 +1697,7 @@ potionhit(struct monst *mon, struct obj *obj, int how)
             break;
         */
         }
-        /* target might have been killed */
-        if (!DEADMONSTER(mon)) {
-            wakeup(mon, angermon);
-        }
+        wakeup(mon, angermon, TRUE);
     }
 
     /* Note: potionbreathe() does its own docall() */

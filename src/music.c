@@ -50,7 +50,7 @@ awaken_monsters(int distance)
         if (DEADMONSTER(mtmp))
             continue;
         if ((distm = distu(mtmp->mx, mtmp->my)) < distance) {
-            wakeup(mtmp, FALSE);
+            wakeup(mtmp, FALSE, FALSE);
             mtmp->mcanmove = 1;
             mtmp->mfrozen = 0;
             /* may scare some monsters -- waiting monsters excluded */
@@ -139,7 +139,7 @@ calm_nymphs(int distance)
             continue;
         if (mtmp->data->mlet == S_NYMPH && mtmp->mcanmove
             && distu(mtmp->mx, mtmp->my) < distance) {
-            wakeup(mtmp, FALSE);
+            wakeup(mtmp, FALSE, TRUE);
             mtmp->mpeaceful = 1;
             mtmp->mavenge = 0;
             mtmp->mstrategy &= ~STRAT_WAITMASK;
@@ -177,7 +177,7 @@ awaken_soldiers(struct monst* bugler  /* monster that played instrument */)
                                  ? distu(mtmp->mx, mtmp->my)
                                  : dist2(bugler->mx, bugler->my, mtmp->mx,
                                          mtmp->my))) < distance) {
-            wakeup(mtmp, FALSE);
+            wakeup(mtmp, FALSE, FALSE);
             mtmp->mcanmove = 1;
             mtmp->mfrozen = 0;
             /* may scare some monsters -- waiting monsters excluded */
@@ -247,7 +247,8 @@ do_earthquake(int force)
     for (x = start_x; x <= end_x; x++)
         for (y = start_y; y <= end_y; y++) {
             if ((mtmp = m_at(x, y)) != 0) {
-                wakeup(mtmp, TRUE); /* peaceful monster will become hostile */
+                /* peaceful monster will become hostile */
+                wakeup(mtmp, TRUE, TRUE);
                 if (mtmp->mundetected) {
                     mtmp->mundetected = 0;
                     newsym(x, y);

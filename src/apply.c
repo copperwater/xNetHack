@@ -709,7 +709,7 @@ use_leash(struct obj *obj)
                 spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
             mtmp->mleashed = 1;
             obj->leashmon = (int) mtmp->m_id;
-            wakeup(mtmp, FALSE);
+            wakeup(mtmp, FALSE, TRUE);
             update_inventory();
         }
     } else {
@@ -2984,7 +2984,7 @@ use_whip(struct obj *obj)
                 pline1(msg_slipsfree);
             }
             if (mtmp)
-                wakeup(mtmp, TRUE);
+                wakeup(mtmp, TRUE, TRUE);
         } else
             pline1(msg_snap);
 
@@ -3077,7 +3077,7 @@ use_whip(struct obj *obj)
             } else {
                 pline1(msg_slipsfree);
             }
-            wakeup(mtmp, TRUE);
+            wakeup(mtmp, TRUE, TRUE);
         } else {
             if (M_AP_TYPE(mtmp) && !Protection_from_shape_changers
                 && !sensemon(mtmp))

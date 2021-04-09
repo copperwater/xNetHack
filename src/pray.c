@@ -2169,7 +2169,7 @@ doturn(void)
         if (!mtmp->mpeaceful
             && (is_undead(mtmp->data) || is_vampshifter(mtmp)
                 || (is_demon(mtmp->data) && (u.ulevel > (MAXULEV / 2))))) {
-            wakeup(mtmp, FALSE);
+            wakeup(mtmp, FALSE, TRUE);
             if (Confusion) {
                 if (!once++)
                     pline("Unfortunately, your voice falters.");

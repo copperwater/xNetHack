@@ -295,7 +295,7 @@ ghitm(register struct monst *mtmp, register struct obj *gold)
 
     if (!likes_gold(mtmp->data) && !mtmp->isshk && !mtmp->ispriest
         && !mtmp->isgd && !is_mercenary(mtmp->data)) {
-        wakeup(mtmp, TRUE);
+        wakeup(mtmp, TRUE, TRUE);
     } else if (!mtmp->mcanmove) {
         /* too light to do real damage */
         if (canseemon(mtmp)) {
@@ -306,7 +306,7 @@ ghitm(register struct monst *mtmp, register struct obj *gold)
     } else {
         long umoney, value = gold->quan * objects[gold->otyp].oc_cost;
 
-        wakeup(mtmp, FALSE);
+        wakeup(mtmp, FALSE, TRUE);
         if (!mtmp->isgd && !rn2(4)) /* not always pleasing */
             setmangry(mtmp, TRUE);
         /* greedy monsters catch gold */

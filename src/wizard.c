@@ -91,7 +91,7 @@ amulet(void)
         if (DEADMONSTER(mtmp))
             continue;
         if (mtmp->iswiz && mtmp->msleeping && !rn2(40)) {
-            wakeup(mtmp, FALSE);
+            wakeup(mtmp, FALSE, TRUE);
             if (distu(mtmp->mx, mtmp->my) > 2)
                 You(
       "get the creepy feeling that somebody noticed your taking the Amulet.");
@@ -470,7 +470,7 @@ aggravate(void)
         if (in_w_tower != In_W_tower(mtmp->mx, mtmp->my, &u.uz))
             continue;
         mtmp->mstrategy &= ~STRAT_WAITFORU;
-        wakeup(mtmp, FALSE);
+        wakeup(mtmp, FALSE, FALSE);
         if (!mtmp->mcanmove && !rn2(5)) {
             mtmp->mfrozen = 0;
             mtmp->mcanmove = 1;

@@ -1596,7 +1596,7 @@ domove_core(void)
                     if (!u.ustuck->mcanmove) {
                         /* it's free to move on next turn */
                         u.ustuck->mfrozen = 1;
-                        wakeup(u.ustuck, FALSE);
+                        wakeup(u.ustuck, FALSE, FALSE);
                     }
                 /*FALLTHRU*/
                 default:
@@ -2788,7 +2788,7 @@ check_special_room(boolean newlev)
                     if (DEADMONSTER(mtmp))
                         continue;
                     if (!Stealth && !rn2(3))
-                        wakeup(mtmp, FALSE);
+                        wakeup(mtmp, FALSE, FALSE);
                 }
         }
     }

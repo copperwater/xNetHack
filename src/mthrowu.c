@@ -323,12 +323,11 @@ ohitmon(
     boolean verbose)/* give message(s) even when you can't see what happened */
 {
     int damage, tmp;
-    boolean vis, ismimic;
+    boolean vis;
     int objgone = 1;
     struct obj *mon_launcher = g.marcher ? MON_WEP(g.marcher) : NULL;
 
     g.notonhead = (g.bhitpos.x != mtmp->mx || g.bhitpos.y != mtmp->my);
-    ismimic = M_AP_TYPE(mtmp) && M_AP_TYPE(mtmp) != M_AP_MONSTER;
     vis = cansee(g.bhitpos.x, g.bhitpos.y);
 
     tmp = 5 + find_mac(mtmp) + omon_adj(mtmp, otmp, FALSE);
@@ -342,7 +341,9 @@ ohitmon(
             tmp += spec_abon(mon_launcher, mtmp);
     }
     if (tmp < rnd(20)) {
-        if (!ismimic) {
+        /* only print message if target isn't a concealed mimic */
+        if (M_AP_TYPE(mtmp) == M_AP_NOTHING
+            || M_AP_TYPE(mtmp) == M_AP_MONSTER) {
             if (vis)
                 miss(distant_name(otmp, mshot_xname), mtmp);
             else if (verbose && !g.mtarget)
@@ -353,14 +354,12 @@ ohitmon(
             return 1;
         }
     } else if (otmp->oclass == POTION_CLASS) {
-        if (ismimic)
-            seemimic(mtmp);
         if (vis)
             otmp->dknown = 1;
         /* probably thrown by a monster rather than 'other', but the
            distinction only matters when hitting the hero */
         potionhit(mtmp, otmp, POTHIT_OTHER_THROW);
-        wakeup(mtmp, FALSE);
+        wakeup(mtmp, FALSE, TRUE);
         return 1;
     } else {
         damage = dmgval(otmp, mtmp);
@@ -370,9 +369,7 @@ ohitmon(
         if (is_orc(mtmp->data) && is_elf(?magr?))
             damage++;
 #endif
-        if (ismimic)
-            seemimic(mtmp);
-        mtmp->msleeping = 0;
+        wakeup(mtmp, FALSE, TRUE);
         if (vis) {
             if (otmp->otyp == EGG)
                 pline("Splat!  %s is hit with %s egg!", Monnam(mtmp),

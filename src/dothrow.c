@@ -757,7 +757,7 @@ hurtle_step(genericptr_t arg, int x, int y)
             You("find %s by bumping into %s.", mnam, pronoun);
         else
             You("bump into %s.", mnam);
-        wakeup(mon, FALSE);
+        wakeup(mon, FALSE, TRUE);
         if (!canspotmon(mon))
             map_invisible(mon->mx, mon->my);
         setmangry(mon, FALSE);
@@ -1561,7 +1561,7 @@ omon_adj(struct monst *mon, struct obj *obj, boolean mon_notices)
     if (mon->msleeping) {
         tmp += 2;
         if (mon_notices)
-            wakeup(mon, FALSE);
+            wakeup(mon, FALSE, FALSE);
     }
     /* ditto for immobilized target */
     if (!mon->mcanmove || !mon->data->mmove) {
@@ -1605,7 +1605,7 @@ tmiss(struct obj *obj, struct monst *mon, boolean maybe_wakeup)
     else
         miss(missile, mon);
     if (maybe_wakeup && !rn2(3))
-        wakeup(mon, TRUE);
+        wakeup(mon, TRUE, TRUE);
     return;
 }
 
@@ -1864,7 +1864,7 @@ thitmonst(register struct monst *mon,
         } else {
             tmiss(obj, mon, TRUE);
             if (hmode == HMON_APPLIED)
-                wakeup(mon, TRUE);
+                wakeup(mon, TRUE, TRUE);
         }
 
     } else if (otyp == HEAVY_IRON_BALL) {
@@ -1907,12 +1907,12 @@ thitmonst(register struct monst *mon,
             return 1; /* obj is gone */
         } else {
             tmiss(obj, mon, FALSE);
-            wakeup(mon, FALSE);
+            wakeup(mon, FALSE, FALSE);
             mon->mstrategy &= ~STRAT_WAITMASK;
         }
     } else if (guaranteed_hit) {
         /* this assumes that guaranteed_hit is due to swallowing */
-        wakeup(mon, TRUE);
+        wakeup(mon, TRUE, TRUE);
         if (obj->otyp == CORPSE && touch_petrifies(&mons[obj->corpsenm])) {
             if (is_animal(u.ustuck->data)) {
                 minstapetrify(u.ustuck, TRUE);

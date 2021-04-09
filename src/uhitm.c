@@ -163,7 +163,7 @@ attack_checks(struct monst *mtmp,
          * peacefuls, we're operating as if an attack attempt did occur
          * and the Elbereth behavior is consistent.
          */
-        wakeup(mtmp, TRUE); /* always necessary; also un-mimics mimics */
+        wakeup(mtmp, TRUE, TRUE); /* always necessary; also un-mimics mimics */
         return TRUE;
     }
 
@@ -185,7 +185,7 @@ attack_checks(struct monst *mtmp,
         && !glyph_is_warning(glyph)
         && (hides_under(mtmp->data) || mtmp->data->mlet == S_EEL)) {
         mtmp->mundetected = 0;
-        wakeup(mtmp, FALSE);
+        wakeup(mtmp, FALSE, FALSE);
         newsym(mtmp->mx, mtmp->my);
         if (glyph_is_invisible(glyph)) {
             seemimic(mtmp);
@@ -216,7 +216,7 @@ attack_checks(struct monst *mtmp,
      */
     if ((mtmp->mundetected || M_AP_TYPE(mtmp)) && sensemon(mtmp)) {
         mtmp->mundetected = 0;
-        wakeup(mtmp, TRUE);
+        wakeup(mtmp, TRUE, TRUE);
     }
 
     /* Intelligent chaotic weapons (Stormbringer) want blood */
@@ -334,7 +334,7 @@ find_roll_to_hit(struct monst *mtmp,
         tmp += 2;
 
     if (mtmp->msleeping) {
-        wakeup(mtmp, FALSE);
+        wakeup(mtmp, FALSE, FALSE);
         tmp += 2;
     }
     if (!mtmp->mcanmove) {
@@ -798,7 +798,7 @@ hmon_hitmon(struct monst *mon,
                                               : base_combat_noise);
     }
 
-    wakeup(mon, TRUE);
+    wakeup(mon, TRUE, TRUE);
     if (!obj) { /* attack with bare hands */
         if (noncorporeal(mdat)) {
             tmp = 0;
@@ -1275,7 +1275,7 @@ hmon_hitmon(struct monst *mon,
                         pline(obj->otyp == CREAM_PIE ? "Splat!" : "Splash!");
                         setmangry(mon, TRUE);
                     }
-                    wakeup(mon, TRUE);
+                    wakeup(mon, TRUE, TRUE);
                     {
                         boolean more_than_1 = (obj->quan > 1L);
 
@@ -1640,7 +1640,7 @@ shade_miss(struct monst *magr, struct monst *mdef, struct obj *obj,
             map_invisible(mdef->mx, mdef->my);
     }
     if (!youdef)
-        wakeup(mdef, FALSE);
+        wakeup(mdef, FALSE, TRUE);
     return TRUE;
 }
 
@@ -4694,7 +4694,7 @@ missum(struct monst *mdef, struct attack *mattk, boolean wouldhavehit)
     else
         You("miss it.");
     if (!mdef->msleeping && mdef->mcanmove)
-        wakeup(mdef, TRUE);
+        wakeup(mdef, TRUE, TRUE);
 }
 
 /* attack monster as a monster; returns True if mon survives */
@@ -4823,7 +4823,7 @@ hmonas(struct monst *mon)
                     sum[i] = damageum(mon, mattk, 0);
                     break;
                 }
-                wakeup(mon, TRUE);
+                wakeup(mon, TRUE, TRUE);
                 /* There used to be a bunch of code here to ensure that W_RINGL
                  * and W_RINGR slots got chosen on alternating claw/touch
                  * attacks. There's no such logic for monsters, and if you know
@@ -4910,7 +4910,7 @@ hmonas(struct monst *mon)
             /* automatic if prev two attacks succeed, or if
                already grabbed in a previous attack */
             dhit = 1;
-            wakeup(mon, TRUE);
+            wakeup(mon, TRUE, TRUE);
             specialdmg = special_dmgval(&g.youmonst, mon,
                                         attack_contact_slots(&g.youmonst,
                                                              AT_HUGS),
@@ -4974,7 +4974,7 @@ hmonas(struct monst *mon)
 
         case AT_EXPL: /* automatic hit if next to */
             dhit = -1;
-            wakeup(mon, TRUE);
+            wakeup(mon, TRUE, TRUE);
             You("explode!");
             sum[i] = explum(mon, mattk);
             break;
@@ -4983,7 +4983,7 @@ hmonas(struct monst *mon)
             tmp = find_roll_to_hit(mon, mattk->aatyp, (struct obj *) 0,
                                    &attknum, &armorpenalty);
             if ((dhit = (tmp > rnd(20 + i)))) {
-                wakeup(mon, TRUE);
+                wakeup(mon, TRUE, TRUE);
                 if (noncorporeal(mon->data)) {
                     Your("attempt to surround %s is harmless.", mon_nam(mon));
                 } else {
@@ -5434,7 +5434,7 @@ stumble_onto_mimic(struct monst *mtmp)
     if (what)
         pline(fmt, what);
 
-    wakeup(mtmp, FALSE); /* clears mimicking */
+    wakeup(mtmp, FALSE, TRUE); /* clears mimicking */
     /* if hero is blind, wakeup() won't display the monster even though
        it's no longer concealed */
     if (!canspotmon(mtmp)
