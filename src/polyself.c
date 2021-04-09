@@ -1691,7 +1691,7 @@ domindblast(void)
                but in case it is currently peaceful, don't make it hostile
                unless it will survive the psychic blast, otherwise hero
                would avoid the penalty for killing it while peaceful */
-            wakeup(mtmp, (dmg > mtmp->mhp) ? TRUE : FALSE);
+            wakeup(mtmp, (dmg > mtmp->mhp) ? TRUE : FALSE, TRUE);
             You("lock in on %s %s.", s_suffix(mon_nam(mtmp)),
                 u_sen ? "telepathy"
                 : telepathic(mtmp->data) ? "latent telepathy"

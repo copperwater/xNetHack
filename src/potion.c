@@ -1699,7 +1699,7 @@ potionhit(struct monst *mon, struct obj *obj, int how)
         }
         /* target might have been killed */
         if (!DEADMONSTER(mon)) {
-            wakeup(mon, angermon);
+            wakeup(mon, angermon, TRUE);
         }
     }
 

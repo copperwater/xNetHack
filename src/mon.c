@@ -3749,24 +3749,29 @@ setmangry(struct monst* mtmp, boolean via_attack)
 
 /* wake up a monster, possibly making it angry in the process */
 void
-wakeup(struct monst* mtmp, boolean via_attack)
+wakeup(struct monst* mtmp, boolean via_attack, boolean reveal_hidden)
 {
     boolean was_sleeping = mtmp->msleeping;
     mtmp->msleeping = 0;
-    if (M_AP_TYPE(mtmp) != M_AP_NOTHING) {
-        /* mimics come out of hiding, but disguised Wizard doesn't
-           have to lose his disguise */
-        if (M_AP_TYPE(mtmp) != M_AP_MONSTER)
-            seemimic(mtmp);
-    } else if (g.context.forcefight && !g.context.mon_moving
-               && mtmp->mundetected) {
-        mtmp->mundetected = 0;
-        newsym(mtmp->mx, mtmp->my);
+    if (reveal_hidden) {
+        if (M_AP_TYPE(mtmp) != M_AP_NOTHING) {
+            /* mimics come out of hiding, but disguised Wizard doesn't
+                have to lose his disguise */
+            if (M_AP_TYPE(mtmp) != M_AP_MONSTER)
+                seemimic(mtmp);
+        } else if (g.context.forcefight && !g.context.mon_moving
+                   && mtmp->mundetected) {
+            mtmp->mundetected = 0;
+            newsym(mtmp->mx, mtmp->my);
+        }
+        finish_meating(mtmp);
     }
-    if (was_sleeping && canseemon(mtmp)) {
+    if (was_sleeping && canseemon(mtmp)
+        /* don't print message for still-disguised monster */
+        && (M_AP_TYPE(mtmp) == M_AP_NOTHING
+            || M_AP_TYPE(mtmp) == M_AP_MONSTER)) {
         pline("%s wakes up.", Monnam(mtmp));
     }
-    finish_meating(mtmp);
     if (via_attack)
         setmangry(mtmp, TRUE);
 }
@@ -3790,7 +3795,7 @@ wake_nearto(int x, int y, int distance)
         if (distance == 0 || dist2(mtmp->mx, mtmp->my, x, y) < distance) {
             /* sleep for N turns uses mtmp->mfrozen, but so does paralysis
                so we leave mfrozen monsters alone */
-            wakeup(mtmp, FALSE); /* wake indeterminate sleep */
+            wakeup(mtmp, FALSE, FALSE); /* wake indeterminate sleep */
             if (!(mtmp->data->geno & G_UNIQ))
                 mtmp->mstrategy &= ~STRAT_WAITMASK; /* wake 'meditation' */
             if (g.context.mon_moving)

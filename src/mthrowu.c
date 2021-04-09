@@ -360,7 +360,7 @@ ohitmon(
         /* probably thrown by a monster rather than 'other', but the
            distinction only matters when hitting the hero */
         potionhit(mtmp, otmp, POTHIT_OTHER_THROW);
-        wakeup(mtmp, FALSE);
+        wakeup(mtmp, FALSE, FALSE);
         return 1;
     } else {
         damage = dmgval(otmp, mtmp);

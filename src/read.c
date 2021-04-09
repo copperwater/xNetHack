@@ -1376,7 +1376,7 @@ seffects(struct obj* sobj) /* sobj - scroll, or fake spellbook object for scroll
             if (cansee(mtmp->mx, mtmp->my)) {
                 if (confused || scursed) {
                     mtmp->mflee = mtmp->mfrozen = 0;
-                    wakeup(mtmp, FALSE);
+                    wakeup(mtmp, FALSE, FALSE);
                     mtmp->mcanmove = 1;
                 } else if (!resist(mtmp, sobj->oclass, 0, NOTELL))
                     monflee(mtmp, 0, FALSE, FALSE);
@@ -2062,7 +2062,7 @@ drop_boulder_on_monster(int x, int y, boolean confused, boolean byu)
                 mondied(mtmp);
             }
         } else {
-            wakeup(mtmp, byu);
+            wakeup(mtmp, byu, TRUE);
         }
         wake_nearto(x, y, 4 * 4);
     } else if (u.uswallow && mtmp == u.ustuck) {

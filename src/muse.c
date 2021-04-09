@@ -1315,7 +1315,7 @@ mbhitm(register struct monst* mtmp, register struct obj* otmp)
     boolean reveal_invis = FALSE, hits_you = (mtmp == &g.youmonst);
 
     if (!hits_you && otmp->otyp != WAN_UNDEAD_TURNING) {
-        wakeup(mtmp, FALSE);
+        wakeup(mtmp, FALSE, TRUE);
     }
     switch (otmp->otyp) {
     case WAN_STRIKING:
@@ -1390,7 +1390,7 @@ mbhitm(register struct monst* mtmp, register struct obj* otmp)
             }
             if (wake) {
                 if (!DEADMONSTER(mtmp))
-                    wakeup(mtmp, FALSE);
+                    wakeup(mtmp, FALSE, TRUE);
                 learnit = g.zap_oseen;
             }
         }
