@@ -5913,11 +5913,9 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
     boolean before = (when == 0 || when == 2);
     boolean after = (when == 1 || when == 2);
     boolean byu = (mon == &g.youmonst || mon == NULL);
-    boolean touching = (!byu || (bodypart != NO_PART));
+    boolean touching = (bodypart != NO_PART);
     /* note that touching represents either you or the monster touching the
-     * door and does not mean "the player touching".
-     * However, !byu currently DOES imply touching, since monsters can't
-     * currently affect doors from range. */
+     * door and does not mean "the player touching". */
     boolean canseemon = ((byu || cansee(mon->mx, mon->my)) && !Unaware);
     /* also assume that it's impossible for the player to trigger a door trap
      * while unaware, so assume byu implies !Unaware */
@@ -6038,19 +6036,21 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
                  || action == -D_TRAPPED)) {
         if (canseemon) {
             pline("A bucket of water splashes down on %s!",
-                  (!byu ? mon_nam(mon) : (touching ? "you" : "the floor")));
+                  (!touching ? "the floor" : (byu ? "you" : mon_nam(mon))));
         }
         else {
             You_hear("a distant splash.");
         }
-        if (byu && touching) {
-            /* TODO: no iron golem rust/gremlin multiplying as of yet,
-                * waiting to hear from DT on this */
-            water_damage_chain(g.invent, FALSE, (lvl/5)+1, FALSE);
-            exercise(A_WIS, FALSE);
-        }
-        else if (!byu) {
-            water_damage_chain(mon->minvent, FALSE, (lvl/5)+1, FALSE);
+        if (touching) {
+            if (byu) {
+                /* TODO: no iron golem rust/gremlin multiplying as of yet,
+                 * waiting to hear from DT on this */
+                water_damage_chain(g.invent, FALSE, (lvl/5)+1, FALSE);
+                exercise(A_WIS, FALSE);
+            }
+            else {
+                water_damage_chain(mon->minvent, FALSE, (lvl/5)+1, FALSE);
+            }
         }
         set_door_trap(door, FALSE); /* trap is gone */
     }
