@@ -1783,7 +1783,7 @@ struct permonst _mons2[] = {
           NO_ATTK, NO_ATTK, NO_ATTK),
         SIZ(WT_ELF, 350, MS_HUMANOID, MZ_HUMAN), MR_SLEEP, MR_SLEEP,
         M1_HUMANOID | M1_OMNIVORE | M1_SEE_INVIS,
-        M2_ELF | M2_STRONG | M2_LORD | M2_MALE | M2_COLLECT,
+        M2_ELF | M2_STRONG | M2_LORD | M2_COLLECT,
         M3_INFRAVISIBLE | M3_INFRAVISION, 11, CLR_BRIGHT_BLUE),
     MON3("Elvenking", "Elvenqueen", "elven monarch",
         S_ELF, LVL(9, 12, 10, 25, -10), (G_GENO | 1),
@@ -1791,7 +1791,7 @@ struct permonst _mons2[] = {
           NO_ATTK, NO_ATTK, NO_ATTK),
         SIZ(WT_ELF, 350, MS_HUMANOID, MZ_HUMAN), MR_SLEEP, MR_SLEEP,
         M1_HUMANOID | M1_OMNIVORE | M1_SEE_INVIS,
-        M2_ELF | M2_STRONG | M2_PRINCE | M2_MALE | M2_COLLECT,
+        M2_ELF | M2_STRONG | M2_PRINCE | M2_COLLECT,
         M3_INFRAVISIBLE | M3_INFRAVISION, 11, HI_LORD),
     /*
      * Rust monster or disenchanter
