@@ -771,31 +771,6 @@ mksobj(int otyp, boolean init, boolean artif)
 
             if (artif && !rn2(20))
                 otmp = mk_artifact(otmp, (aligntyp) A_NONE);
-            else if (is_damageable(otmp) && erosion_matters(otmp)) {
-                /* A small fraction of non-artifact items will generate eroded
-                 * or possibly erodeproof. An item that generates eroded will
-                 * never be erodeproof, and vice versa. */
-                if (!rn2(40)) {
-                    otmp->oerodeproof = 1;
-                }
-                else if (!rn2(40)) {
-                    if (is_flammable(otmp) || is_rustprone(otmp)) {
-                        do {
-                            otmp->oeroded++;
-                        } while (otmp->oeroded < 3 && !rn2(9));
-                    }
-                    if (is_rottable(otmp) || is_corrodeable(otmp)) {
-                        do {
-                            otmp->oeroded2++;
-                        } while (otmp->oeroded2 < 3 && !rn2(9));
-                    }
-                }
-                /* and an extremely small fraction of the time, erodable items
-                 * will generate greased */
-                if (!rn2(23263)) {
-                    otmp->greased = 1;
-                }
-            }
 
             /* check oartifact here because mk_artifact isn't guaranteed to
              * create an artifact */
@@ -1150,6 +1125,32 @@ mksobj(int otyp, boolean init, boolean artif)
             panic("mksobj tried to make type %d, class %d.",
                   (int) otmp->otyp, (int) objects[otmp->otyp].oc_class);
             /*NOTREACHED*/
+        }
+        if (!otmp->oartifact && g.in_mklev
+            && is_damageable(otmp) && erosion_matters(otmp)) {
+            /* A small fraction of non-artifact items will generate eroded or
+             * possibly erodeproof. An item that generates eroded will never be
+             * erodeproof, and vice versa. */
+            if (!rn2(40)) {
+                otmp->oerodeproof = 1;
+            }
+            else {
+                if (!rn2(40) && (is_flammable(otmp) || is_rustprone(otmp))) {
+                    do {
+                        otmp->oeroded++;
+                    } while (otmp->oeroded < 3 && !rn2(9));
+                }
+                if (!rn2(40) && (is_rottable(otmp) || is_corrodeable(otmp))) {
+                    do {
+                        otmp->oeroded2++;
+                    } while (otmp->oeroded2 < 3 && !rn2(9));
+                }
+            }
+            /* and an extremely small fraction of the time, erodable items
+             * will generate greased */
+            if (!rn2(23263)) {
+                otmp->greased = 1;
+            }
         }
     }
 
