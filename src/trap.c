@@ -5908,7 +5908,7 @@ getdoortrap(int x, int y)
  */
 xchar
 doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
-            boolean when)
+            xchar when)
 {
     boolean before = (when == 0 || when == 2);
     boolean after = (when == 1 || when == 2);

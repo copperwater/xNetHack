@@ -2717,7 +2717,7 @@ extern boolean chest_trap(struct obj *, int, boolean);
 extern void deltrap(struct trap *);
 extern struct obj *deltrap_with_ammo(struct trap *, int);
 extern int getdoortrap(int, int);
-extern xchar doortrapped(int, int, struct monst *, int, int, boolean);
+extern xchar doortrapped(int, int, struct monst *, int, int, xchar);
 extern boolean delfloortrap(struct trap *);
 extern struct trap *t_at(int, int);
 extern void b_trapped(const char *, int);
