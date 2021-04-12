@@ -660,6 +660,12 @@ make_corpse(register struct monst* mtmp, unsigned int corpseflags)
         }
         free_mgivenname(mtmp);
         return obj;
+    case PM_SKELETON:
+        if (!rn2(50)) {
+            otmp = mksobj_at(SKELETON_KEY, x, y, TRUE, FALSE);
+            set_material(otmp, BONE);
+        }
+        break;
     default:
  default_1:
         if (g.mvitals[mndx].mvflags & G_NOCORPSE) {

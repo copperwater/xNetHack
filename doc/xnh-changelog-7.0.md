@@ -29,6 +29,7 @@ changes:
 - French fried and deep fried tins give more nutrition (80 and 100
   respectively.)
 - New random tin flavor "stale", giving only 25 nutrition.
+- Skeletons rarely drop bone skeleton keys.
 
 ### Interface changes
 
