@@ -139,7 +139,7 @@ calm_nymphs(int distance)
             continue;
         if (mtmp->data->mlet == S_NYMPH && mtmp->mcanmove
             && distu(mtmp->mx, mtmp->my) < distance) {
-            wakeup(mtmp, FALSE, FALSE);
+            wakeup(mtmp, FALSE, TRUE);
             mtmp->mpeaceful = 1;
             mtmp->mavenge = 0;
             mtmp->mstrategy &= ~STRAT_WAITMASK;

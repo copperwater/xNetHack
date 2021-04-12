@@ -3751,6 +3751,9 @@ setmangry(struct monst* mtmp, boolean via_attack)
 void
 wakeup(struct monst* mtmp, boolean via_attack, boolean reveal_hidden)
 {
+    if (DEADMONSTER(mtmp)) {
+        return;
+    }
     boolean was_sleeping = mtmp->msleeping;
     mtmp->msleeping = 0;
     if (reveal_hidden) {

@@ -4959,7 +4959,7 @@ help_monster_out(
     if (uprob) {
         You("try to grab %s, but cannot get a firm grasp.", mon_nam(mtmp));
         if (mtmp->msleeping) {
-            wakeup(mtmp, FALSE, FALSE);
+            wakeup(mtmp, FALSE, TRUE);
         }
         return 1;
     }
@@ -4968,7 +4968,7 @@ help_monster_out(
         mon_nam(mtmp));
 
     if (mtmp->msleeping) {
-        wakeup(mtmp, FALSE, FALSE);
+        wakeup(mtmp, FALSE, TRUE);
     } else if (mtmp->mfrozen && !rn2(mtmp->mfrozen)) {
         /* After such manhandling, perhaps the effect wears off */
         mtmp->mcanmove = 1;

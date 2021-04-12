@@ -311,7 +311,7 @@ mattackm(register struct monst *magr, register struct monst *mdef)
     tmp = find_mac(mdef) + magr->m_lev;
     if (mdef->mconf || !mdef->mcanmove || mdef->msleeping) {
         tmp += 4;
-        wakeup(mdef, FALSE, FALSE);
+        wakeup(mdef, FALSE, TRUE);
     }
 
     /* undetect monsters become un-hidden if they are attacked */

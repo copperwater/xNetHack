@@ -709,7 +709,7 @@ use_leash(struct obj *obj)
                 spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
             mtmp->mleashed = 1;
             obj->leashmon = (int) mtmp->m_id;
-            wakeup(mtmp, FALSE, FALSE);
+            wakeup(mtmp, FALSE, TRUE);
             update_inventory();
         }
     } else {
