@@ -2083,8 +2083,19 @@ mm_displacement(
         return 0;
     }
 
-    /* riders can move anything; others, same size or smaller only */
-    if (!is_rider(pa) && pa->msize < pd->msize) {
+    /* riders can move anything */
+    if (is_rider(pa)) {
+        return ALLOW_MDISP;
+    }
+
+    /* a smaller monster can't displace a bigger one */
+    if (pa->msize < pd->msize) {
+        return 0;
+    }
+
+    /* certain monsters are undisplaceable -- this comes after the Rider check
+     * so that they're not blocked by priests on Astral */
+    if (mundisplaceable(mdef)) {
         return 0;
     }
 
