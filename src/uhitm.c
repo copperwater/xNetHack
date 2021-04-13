@@ -1618,7 +1618,7 @@ shade_miss(struct monst *magr, struct monst *mdef, struct obj *obj,
     boolean youagr = (magr == &g.youmonst), youdef = (mdef == &g.youmonst);
 
     /* we're using dmgval() for zero/not-zero, not for actual damage amount */
-    if (mdef->data != &mons[PM_SHADE] || (obj && dmgval(obj, mdef)))
+    if (!noncorporeal(mdef->data) || (obj && dmgval(obj, mdef)))
         return FALSE;
 
     if (verbose
