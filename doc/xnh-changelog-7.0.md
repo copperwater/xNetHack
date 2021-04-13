@@ -30,6 +30,9 @@ changes:
   respectively.)
 - New random tin flavor "stale", giving only 25 nutrition.
 - Skeletons rarely drop bone skeleton keys.
+- Blowing up a bag of holding gives some experience points, identifies the bag
+  of holding, and identifies the wand of cancellation if that is the cause of
+  the explosion.
 
 ### Interface changes
 

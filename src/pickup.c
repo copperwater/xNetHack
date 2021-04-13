@@ -2760,6 +2760,12 @@ in_container(struct obj *obj)
             addtobill(obj, FALSE, FALSE, TRUE);
         if (obj->otyp == BAG_OF_HOLDING) /* one bag of holding into another */
             do_boh_explosion(obj, (obj->where == OBJ_FLOOR));
+        if (obj->otyp == WAN_CANCELLATION) {
+            learnwand(obj);
+        }
+        makeknown(BAG_OF_HOLDING);
+        more_experienced(20, 0); /* Well, now you know not to do that again. */
+        newexplevel();
         obfree(obj, (struct obj *) 0);
 
         livelog_printf(LL_ACHIEVE, "just blew up %s bag of holding", uhis());
