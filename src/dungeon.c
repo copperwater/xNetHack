@@ -3376,4 +3376,18 @@ print_mapseen(winid win, mapseen *mptr,
     }
 }
 
+/* Accessor for whether a given Sokoban level has been solved; this data is
+ * stored in struct mapseen which isn't used outside this file. */
+boolean
+sokoban_solved(d_level *lev)
+{
+    if (!In_sokoban(lev)) {
+        impossible("sokoban_solved on non-sokoban level");
+    }
+    struct mapseen *mptr = find_mapseen(lev);
+    if (!mptr)
+        return FALSE; /* haven't been there yet */
+    return mptr->flags.sokosolved;
+}
+
 /*dungeon.c*/

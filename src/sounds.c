@@ -323,6 +323,34 @@ dosounds(void)
         }
         return;
     }
+    if (!rn2(300)) {
+        branch *br = Is_branchlev(&u.uz);
+        if (br && In_mines(&br->end2) && !In_mines(&u.uz)) {
+            static const char *const mines_msgs[2] = {
+                "a pick striking rock.", "someone singing 'Gold, gold, gold.'"
+            };
+            You_hear1(mines_msgs[0 + hallu]);
+            return;
+        }
+        else if (br && In_sokoban(&br->end2) && !In_sokoban(&u.uz)
+                 && !sokoban_solved(&br->end2)) {
+            static const char *const soko_msgs[2] = {
+                "a deep rolling sound.", "a golfing giant."
+            };
+            You_hear1(soko_msgs[0 + hallu]);
+            return;
+        }
+        else if (br && In_V_tower(&br->end2) && !In_V_tower(&u.uz)
+                 && g.mvitals[PM_VLAD_THE_IMPALER].died == 0) {
+            static const char *const vlad_msgs[3] = {
+                "the whispering of leathery wings.",
+                "a horrible choking scream.",
+                "a voice say \"I never drink... wine.\""
+            };
+            You_hear1(vlad_msgs[rn2(2) + hallu]);
+            return;
+        }
+    }
 }
 
 static const char *const h_sounds[] = {

@@ -44,6 +44,11 @@ changes:
   name if you have visited their shop previously.
 - Monks will stop seeing "You feel guilty" messages after eating meat enough
   times.
+- The levels with the stairs to the Mines, Sokoban, and Vlad's Tower have
+  special ambient level sounds. The Sokoban and Vlad ones only persist until you
+  have finished the first level of Sokoban and killed Vlad, respectively.
 
 ### Architectural changes
 
+- Add a function sokoban_solved() which determines whether a given Sokoban level
+  is solved.
