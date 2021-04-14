@@ -99,6 +99,7 @@ extern void mkot_trap_warn(void);
 extern boolean is_magic_key(struct monst *, struct obj *);
 extern struct obj *has_magic_key(struct monst *);
 extern boolean permapoisoned(struct obj *);
+extern boolean arti_starts_with_the(struct obj *);
 
 /* ### attrib.c ### */
 

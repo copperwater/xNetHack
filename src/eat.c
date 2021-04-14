@@ -2720,8 +2720,7 @@ doeat(void)
                 You("seem unaffected by the poison.");
         } else if (!nodelicious) {
             pline("%s%s is delicious!",
-                  (obj_is_pname(otmp)
-                   && otmp->oartifact < ART_ORB_OF_DETECTION)
+                  (obj_is_pname(otmp) && !arti_starts_with_the(otmp))
                       ? ""
                       : "This ",
                   (otmp->oclass == COIN_CLASS)

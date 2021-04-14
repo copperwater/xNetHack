@@ -56,5 +56,6 @@ changes:
 
 ### Architectural changes
 
-- Add a function sokoban_solved() which determines whether a given Sokoban level
-  is solved.
+- New functions:
+  - sokoban_solved()
+  - arti_starts_with_the()

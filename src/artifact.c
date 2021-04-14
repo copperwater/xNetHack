@@ -2362,4 +2362,19 @@ permapoisoned(struct obj *obj)
     return (obj && obj->oartifact == ART_GRIMTOOTH);
 }
 
+/* return TRUE if obj is an artifact with a name like "The X [of Y]" */
+boolean
+arti_starts_with_the(struct obj *obj)
+{
+    const char *artname;
+    if (!obj->oartifact)
+        return FALSE;
+
+    artname = artiname(obj->oartifact);
+    if (!strncmp(artname, "The", 3)) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
 /*artifact.c*/
