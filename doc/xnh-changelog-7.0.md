@@ -37,6 +37,8 @@ changes:
   you are already paralyzed.
 - Elven ring mail, in its default copper form, provides 2 AC, and provides 4 AC
   if made of mithril.
+- Covetous monsters will attempt to equip the item they covet if it comes into
+  their possession and it is equippable.
 
 ### Interface changes
 
