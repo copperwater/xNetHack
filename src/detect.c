@@ -27,7 +27,6 @@ static void findone(int, int, genericptr_t);
 static void openone(int, int, genericptr_t);
 static int mfind0(struct monst *, boolean);
 static int reveal_terrain_getglyph(int, int, int, unsigned, int, int);
-static int look_in_crystal_ball(void);
 
 /* wildcard class for clear_stale_map - this used to be used as a getobj() input
  * but it's no longer used for that function */
@@ -1085,6 +1084,13 @@ int
 look_in_crystal_ball(void)
 {
     struct obj* ball = g.context.crystal.ball;
+    /* Itlachiayaque also uses this routine, but is not a crystal ball... */
+    boolean actualball = (ball->otyp == CRYSTAL_BALL);
+
+    if (!actualball && ball->oartifact != ART_ITLACHIAYAQUE) {
+        impossible("gazing into something weird %d", ball->otyp);
+        return 0;
+    }
 
     if (--g.context.crystal.looktime > 0)
         return 1; /* still looking */
@@ -1096,10 +1102,12 @@ look_in_crystal_ball(void)
     if (!carried(ball))
         return 0;
 
-    makeknown(CRYSTAL_BALL);
+    if (actualball) {
+        makeknown(CRYSTAL_BALL);
+    }
 
     /* done gazing into the ball */
-    if (ball->spe <= 0) {
+    if ((actualball && ball->spe <= 0) || (!actualball && ball->cursed)) {
         You("see only opaque gray fog.");
     } else {
         char ch;
@@ -1152,7 +1160,9 @@ look_in_crystal_ball(void)
             else
                 You("don't seem to find any of those here.");
         }
-        consume_obj_charge(ball, TRUE);
+        if (actualball) {
+            consume_obj_charge(ball, TRUE);
+        }
     }
     return 0;
 }

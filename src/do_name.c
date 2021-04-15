@@ -1363,6 +1363,7 @@ oname(struct obj *obj, const char *name)
         /* set up specific materials for the artifact */
         switch(obj->oartifact) {
         case ART_SUNSWORD:
+        case ART_ITLACHIAYAQUE:
             set_material(obj, GOLD);
             break;
         case ART_WEREBANE:

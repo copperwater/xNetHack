@@ -1878,26 +1878,10 @@ seffects(struct obj* sobj) /* sobj - scroll, or fake spellbook object for scroll
         punish(sobj);
         break;
     case SCR_STINKING_CLOUD: {
-        coord cc;
-
         if (!already_known)
             You("have found a scroll of stinking cloud!");
         g.known = TRUE;
-        pline("Where do you want to center the %scloud?",
-              already_known ? "stinking " : "");
-        cc.x = u.ux;
-        cc.y = u.uy;
-        getpos_sethilite(display_stinking_cloud_positions, can_center_cloud);
-        if (getpos(&cc, TRUE, "the desired position") < 0
-            || !can_center_cloud(cc.x, cc.y)) {
-            if (Hallucination)
-                pline("Ugh... someone cut the cheese.");
-            else
-                pline("The scroll crumbles with a whiff of rotten eggs.");
-            break;
-        }
-        (void) create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj),
-                                8 + 4 * bcsign(sobj));
+        do_stinking_cloud(sobj, already_known);
         break;
     }
     case SCR_WATER: {
@@ -2665,6 +2649,49 @@ unpunish(void)
     dealloc_obj(savechain);
     /* the chain is gone but the no longer attached ball persists */
     setworn((struct obj *) 0, W_BALL); /* sets 'uball' to Null */
+}
+
+/* Prompt the player to create a stinking cloud and then create it if they give
+ * a location. */
+xchar
+do_stinking_cloud(struct obj *sobj, boolean mention_stinking)
+{
+    coord cc;
+    /* Using Itlachiayaque as the wrong role will center the cloud on hero's
+     * space without giving them the choice.
+     * Non-quest artifacts that produce clouds should always allow the
+     * player to center it. */
+    boolean center_on_u = any_quest_artifact(sobj) && !is_quest_artifact(sobj);
+
+    if (!center_on_u) {
+        pline("Where do you want to center the %scloud?",
+              mention_stinking ? "stinking " : "");
+    }
+    cc.x = u.ux;
+    cc.y = u.uy;
+    getpos_sethilite(display_stinking_cloud_positions, can_center_cloud);
+    if (center_on_u) {
+        ;
+    }
+    else if (getpos(&cc, TRUE, "the desired position") < 0) {
+        pline(Never_mind);
+        return SCLOUD_CANCELED;
+    }
+    else if (!can_center_cloud(cc.x, cc.y)) {
+        if (Hallucination)
+            pline("Ugh... someone cut the cheese.");
+        else
+            pline("%s a whiff of rotten eggs.",
+                  sobj->oclass == SCROLL_CLASS ? "The scroll crumbles with"
+                                               : "You smell");
+        return SCLOUD_INVALID;
+    }
+    if (sobj->oartifact) {
+        pline("A cloud of toxic smoke pours out!");
+    }
+    (void) create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj),
+                            8 + 4 * bcsign(sobj));
+    return SCLOUD_CREATED;
 }
 
 /* some creatures have special data structures that only make sense in their

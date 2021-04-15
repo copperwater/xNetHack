@@ -1736,7 +1736,52 @@ arti_invoke(struct obj *obj)
                 buzz(9 + AD_ELEC, 8, u.ux, u.uy, u.dx, u.dy);
             }
             obfree(pseudo, NULL);
+            break;
         }
+	case SMOKE_CLOUD: {
+	    /* Itlachiayaque actually has two invoke effects - you can also gaze
+	     * into it like a crystal ball and look for a certain symbol. The
+	     * hero decides which effect. */
+	    int ret, n;
+	    char c;
+            winid tmpwin = create_nhwindow(NHW_MENU);
+            anything any = cg.zeroany;
+            menu_item *selected;
+
+            start_menu(tmpwin, MENU_BEHAVE_STANDARD);
+            any.a_char = 'a';
+            add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
+                     "Create a stinking cloud", MENU_ITEMFLAGS_NONE);
+            any.a_char = 'b';
+            add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
+                     "Gaze into the surface", MENU_ITEMFLAGS_NONE);
+            end_menu(tmpwin, "What would you like to do?");
+            n = select_menu(tmpwin, PICK_ONE, &selected);
+            destroy_nhwindow(tmpwin);
+
+            if (n < 0) {
+                obj->age = 0;
+                break;
+            }
+            c = selected[0].item.a_char;
+            if (c == 'a') {
+                if (!any_quest_artifact(obj) || is_quest_artifact(obj)) {
+                    You("may summon a stinking cloud.");
+                }
+                ret = do_stinking_cloud(obj, FALSE);
+                if (ret == SCLOUD_CANCELED) {
+                    obj->age = 0;
+                }
+            }
+            else {
+                You("gaze into the polished surface...");
+                g.context.crystal.ball = obj;
+                g.context.crystal.o_id = obj->o_id;
+                g.context.crystal.looktime = rn1(5, 6); /* same as ball */
+                set_occupation(look_in_crystal_ball, "gazing", 0);
+            }
+            break;
+	}
         }
     } else {
         long eprop = (u.uprops[oart->inv_prop].extrinsic ^= W_ARTI),
@@ -1780,6 +1825,7 @@ arti_invoke(struct obj *obj)
             } else
                 (void) float_down(I_SPECIAL | TIMEOUT, W_ARTI);
             break;
+        /* Formerly used for Orb of Detection, now unused.
         case INVIS:
             if (BInvis || Blind)
                 goto nothing_special;
@@ -1790,6 +1836,7 @@ arti_invoke(struct obj *obj)
             else
                 Your("body seems to unfade...");
             break;
+        */
         }
     }
 

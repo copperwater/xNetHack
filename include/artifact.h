@@ -65,7 +65,8 @@ enum invoke_prop_types {
     CREATE_PORTAL,
     ENLIGHTENING,
     CREATE_AMMO,
-    LIGHTNING_BOLT
+    LIGHTNING_BOLT,
+    SMOKE_CLOUD
 };
 
 /* clang-format on */

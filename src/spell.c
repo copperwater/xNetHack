@@ -1808,7 +1808,9 @@ percent_success(int spell)
     if (uarm && is_metallic(uarm)) {
         chance -= 50;
     }
-    if (uarms) {
+    if (uarms && !is_quest_artifact(uarms)) {
+        /* quest artifact check allows Archeologists to wear Itlachiayaque
+         * without penalty; other roles get normal penalty */
         if (objects[uarms->otyp].oc_bulky)
             chance -= 30;
         else

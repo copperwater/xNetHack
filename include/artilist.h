@@ -170,10 +170,10 @@ static NEARDATA struct artifact artilist[] = {
      *      The artifacts for the quest dungeon, all self-willed.
      */
 
-    A("The Orb of Detection", CRYSTAL_BALL,
-      (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL), (SPFX_ESP | SPFX_HSPDAM), 0,
-      NO_ATTK, NO_DFNS, CARY(AD_MAGM), INVIS, A_LAWFUL, PM_ARCHEOLOGIST,
-      NON_PM, 2500L, NO_COLOR),
+    A("Itlachiayaque", SHIELD_OF_REFLECTION,
+      (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL), SPFX_WARN, 0,
+      NO_ATTK, NO_DFNS, CARY(AD_FIRE), SMOKE_CLOUD, A_LAWFUL, PM_ARCHEOLOGIST,
+      NON_PM, 3500L, NO_COLOR),
 
     A("The Heart of Ahriman", LUCKSTONE,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL), SPFX_STLTH, 0,

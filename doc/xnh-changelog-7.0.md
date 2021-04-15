@@ -39,6 +39,12 @@ changes:
   if made of mithril.
 - Covetous monsters will attempt to equip the item they covet if it comes into
   their possession and it is equippable.
+- Itlachiayaque replaces the Orb of Detection as the Archeologist quest
+  artifact. It is a gold shield of reflection that confers fire resistance
+  and warning when carried and reflection when worn. Archeologists do not get
+  a spellcasting penalty for wearing it. When invoked, it either summons a
+  stinking cloud, identical to a scroll of the same beatitude, or you can gaze
+  into it for the same effect as a crystal ball.
 
 ### Interface changes
 

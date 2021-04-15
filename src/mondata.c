@@ -129,6 +129,32 @@ resists_magm(struct monst* mon)
     return FALSE;
 }
 
+/* True iff monster is fire resistant */
+boolean
+resists_fire(struct monst* mon)
+{
+    struct obj *otmp;
+    if (mon == &g.youmonst) {
+        return !!Fire_resistance;
+    }
+    if (mon_resistancebits(mon) & MR_FIRE) {
+        /* this assumes any monster will have mextrinsics set for worn items
+         * that naturally provide fire resistance via oc_oprop
+         * (update_mon_intrinsics) */
+        return TRUE;
+    }
+    /* currently only Itlachiayaque provides fire resistance by a means that
+     * update_mon_intrinsics can't capture, because it also provides reflection.
+     * So this doesn't currently need to check for artifacts that provide fire
+     * resistance when worn or wielded. */
+    for (otmp = mon->minvent; otmp; otmp = otmp->nobj) {
+        if (otmp->oartifact && defends_when_carried(AD_FIRE, otmp)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 /* True iff monster is resistant to light-induced blindness */
 boolean
 resists_blnd(struct monst* mon)

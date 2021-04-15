@@ -551,6 +551,12 @@ enum psuedo_intrinsics {
  * was never going to be, so it's now a constant. */
 #define CUMBERSOME_ARMOR_PENALTY 20
 
+enum do_stinking_cloud_returns {
+    SCLOUD_CANCELED = 0,
+    SCLOUD_INVALID  = 1,
+    SCLOUD_CREATED  = 2
+};
+
 /* values for g.zombify; 0 is assumed to be "off" and not in zombify mode */
 enum zombify_values {
     ZOMBIFY_HOSTILE = 1, /* zombie will revive hostile */

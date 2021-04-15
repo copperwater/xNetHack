@@ -225,7 +225,7 @@ struct obj {
      || permapoisoned(otmp))
 #define uslinging() (uwep && objects[uwep->otyp].oc_skill == P_SLING)
 /* 'is_quest_artifact()' only applies to the current role's artifact */
-#define any_quest_artifact(o) ((o)->oartifact >= ART_ORB_OF_DETECTION)
+#define any_quest_artifact(o) ((o)->oartifact >= ART_ITLACHIAYAQUE)
 /* used by will_weld() */
 /* probably should be renamed */
 #define erodeable_wep(optr)                             \
