@@ -973,14 +973,16 @@ expire_gas_cloud(genericptr_t p1, genericptr_t p2 UNUSED)
     /* The cloud no longer blocks vision. */
     for (x = reg->bounding_box.lx; x <= reg->bounding_box.hx; x++) {
         for (y = reg->bounding_box.ly; y <= reg->bounding_box.hy; y++) {
-            if (inside_region(reg, x, y) && !does_block(x, y, &levl[x][y])) {
-                unblock_point(x, y);
-            }
-            if (x == u.ux && y == u.uy) {
-                dissipation_within = TRUE;
-            }
-            if (cansee(x, y)) {
-                dissipation_seen = TRUE;
+            if (inside_region(reg, x, y)) {
+                if (!does_block(x, y, &levl[x][y])) {
+                    unblock_point(x, y);
+                }
+                if (x == u.ux && y == u.uy) {
+                    dissipation_within = TRUE;
+                }
+                if (cansee(x, y)) {
+                    dissipation_seen = TRUE;
+                }
             }
         }
     }
