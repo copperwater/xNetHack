@@ -13859,42 +13859,42 @@ Z = (195, 195, 195)
   ...BPPPPPPPE....
   ................
 }
-# tile 728 (Minion of Huhetotl,male)
+# tile 728 (Schliemann,male)
 {
-  ...OP......PO...
-  ...OODDDDDDOOD..
-  ..DLOOCDDCOOLDD.
-  .DDDLDDDDDDLDDD.
-  .CCDDDNDDNDDDCC.
-  CCDKDDDDDDDDJCCC
-  CDDKKDDIIDDJJCCD
-  CDDKKKDAADJJDCDD
-  CCDKDDKKKJDDKCDD
-  .CCDKKDDDDKKCDDD
-  .CCDADKDDKDACDD.
-  .DDDADDDDDDADDD.
-  ....CCDDDDKKAA..
-  ...CDDDAADDDKAA.
-  ..CDDDAAA.DDDK..
+  .......JJ.......
+  ......KJJJ......
+  ....KCKKKJJJ....
+  ......ALALA.....
+  ......LLLLA.....
+  ......ALLA......
+  .....CKAAKK.AAA.
+  ....CKKKKKKKAAA.
+  ...KKKKKKKJKKAA.
+  .Y.KKACKKJAKKAA.
+  Y..KA.CKKJAAKA..
+  YJJLJJBPPPAALA..
+  Y.....BPAPAAAA..
+  .Y....BPAPAAAA..
+  .....JJA.JJA....
   ................
 }
-# tile 729 (Minion of Huhetotl,female)
+# tile 729 (Schliemann,female)
 {
-  ...OP......PO...
-  ...OODDDDDDOOD..
-  ..DLOOCDDCOOLDD.
-  .DDDLDDDDDDLDDD.
-  .CCDDDNDDNDDDCC.
-  CCDKDDDDDDDDJCCC
-  CDDKKDDIIDDJJCCD
-  CDDKKKDAADJJDCDD
-  CCDKDDKKKJDDKCDD
-  .CCDKKDDDDKKCDDD
-  .CCDADKDDKDACDD.
-  .DDDADDDDDDADDD.
-  ....CCDDDDKKAA..
-  ...CDDDAADDDKAA.
-  ..CDDDAAA.DDDK..
+  .......JJ.......
+  ......KJJJ......
+  ....KCKKKJJJ....
+  ......ALALA.....
+  ......LLLLA.....
+  ......ALLA......
+  .....CKAAKK.AAA.
+  ....CKKKKKKKAAA.
+  ...KKKKKKKJKKAA.
+  .Y.KKACKKJAKKAA.
+  Y..KA.CKKJAAKA..
+  YJJLJJBPPPAALA..
+  Y.....BPAPAAAA..
+  .Y....BPAPAAAA..
+  .....JJA.JJA....
   ................
 }
 # tile 730 (Thoth Amon,male)

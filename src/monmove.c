@@ -1121,7 +1121,7 @@ m_move(register struct monst* mtmp, register int after)
     gx = mtmp->mux;
     gy = mtmp->muy;
     appr = mtmp->mflee ? -1 : 1;
-    if (keeps_distance(ptr) && dist2(omx, omy, gx, gy) < 10) {
+    if (keeps_distance(mtmp) && dist2(omx, omy, gx, gy) < 10) {
         /* FIXME: This should really only happen when the monster has a ranged
          * attack available. We can check to see if mdat has an innate ranged
          * attack, or if mtmp has an offensive item, but it's harder to check

@@ -44,7 +44,7 @@ const struct Role roles[NUM_ROLES+1] = {
       NON_PM,
       PM_LORD_CARNARVON,
       PM_STUDENT,
-      PM_MINION_OF_HUHETOTL,
+      PM_SCHLIEMANN,
       NON_PM,
       PM_HUMAN_MUMMY,
       S_SNAKE,

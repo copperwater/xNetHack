@@ -50,6 +50,9 @@ changes:
   this.
 - If you are hit by an unlit potion of oil, you get covered in oil and your
   fingers become slippery.
+- Schliemann replaces the Minion of Huhetotl as the Archeologist quest nemesis.
+  He is a human, and unlike other quest nemeses does not warp. He carries a
+  pick-axe and a number of potions of oil to throw at you.
 
 ### Interface changes
 
