@@ -2363,7 +2363,8 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
     }
 
     n = query_objlist(qstr, taking ? &mtmp->minvent : &g.invent,
-                      INVORDER_SORT, &pick_list, PICK_ANY, allow_all);
+                      INVORDER_SORT | (taking ? 0 : USE_INVLET),
+                      &pick_list, PICK_ANY, allow_all);
 
     for (i = 0; i < n; ++i) {
         struct obj* otmp = pick_list[i].item.a_obj;
