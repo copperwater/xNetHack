@@ -45,6 +45,11 @@ changes:
   a spellcasting penalty for wearing it. When invoked, it either summons a
   stinking cloud, identical to a scroll of the same beatitude, or you can gaze
   into it for the same effect as a crystal ball.
+- Monsters can throw potions of oil as an offensive item. Typically they light
+  them so that they explode on contact, but a confused monster may forget to do
+  this.
+- If you are hit by an unlit potion of oil, you get covered in oil and your
+  fingers become slippery.
 
 ### Interface changes
 
