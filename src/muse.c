@@ -1785,6 +1785,7 @@ rnd_offensive_item(struct monst* mtmp)
 #define MUSE_BULLWHIP 8
 #define MUSE_POT_POLYMORPH 9
 #define MUSE_BAG 10
+#define MUSE_ITLACHIAYAQUE 11 /* invoke for cloud */
 
 boolean
 find_misc(struct monst* mtmp)
@@ -1928,6 +1929,12 @@ find_misc(struct monst* mtmp)
             && !obj->olocked && !obj->otrapped) {
             g.m.misc = obj;
             g.m.has_misc = MUSE_BAG;
+        }
+        nomore(MUSE_ITLACHIAYAQUE);
+        if (obj->oartifact == ART_ITLACHIAYAQUE && obj->age <= g.monstermoves
+            && !mtmp->mpeaceful && !mtmp->mblinded && m_canseeu(mtmp)) {
+            g.m.misc = obj;
+            g.m.has_misc = MUSE_ITLACHIAYAQUE;
         }
     }
     return (boolean) !!g.m.has_misc;
@@ -2266,6 +2273,23 @@ use_misc(struct monst* mtmp)
         }
         /*NOTREACHED*/
         return 0;
+    case MUSE_ITLACHIAYAQUE:
+        /* invoke timeout; allow quest nemesis to use it more often */
+        otmp->age = g.monstermoves + (mtmp->data == &mons[PM_SCHLIEMANN]
+                                      ? rn1(20,10) : rnz(100));
+        if (cansee(mtmp->mx, mtmp->my)) {
+            pline("%s brandishes Itlachiayaque!", Monnam(mtmp));
+            pline("A noxious cloud pours forth!");
+        }
+        else if (!Blind) {
+            pline("A noxious cloud envelops you!");
+        }
+        else if (!breathless(g.youmonst.data)) {
+            pline("Noxious air seems to surround you!");
+        }
+        create_gas_cloud(u.ux, u.uy, 15 + 10 * bcsign(otmp),
+                         8 + 4 * bcsign(otmp));
+        return 2;
     case 0:
         return 0; /* i.e. an exploded wand */
     default:
