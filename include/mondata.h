@@ -294,4 +294,8 @@
     ((mon)->data->mlet == S_CENTAUR \
      || ((mon)->data == &mons[PM_SCHLIEMANN] && !u.uhave.questart))
 
+/* The monster is covetous, but should not warp, heal, or otherwise use
+ * tactics(). */
+#define covetous_nonwarper(ptr) ((ptr) == &mons[PM_SCHLIEMANN])
+
 #endif /* MONDATA_H */

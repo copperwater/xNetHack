@@ -526,7 +526,7 @@ dochug(register struct monst* mtmp)
 
     /* Monsters that want to acquire things */
     /* may teleport, so do it before inrange is set */
-    if (is_covetous(mdat)) {
+    if (is_covetous(mdat) && !covetous_nonwarper(mdat)) {
         (void) tactics(mtmp);
         /* tactics -> mnexto -> deal_with_overcrowding */
         if (mtmp->mstate)
@@ -1065,7 +1065,7 @@ m_move(register struct monst* mtmp, register int after)
     }
 
     /* and the acquisitive monsters get special treatment */
-    if (is_covetous(ptr)) {
+    if (is_covetous(ptr) && !covetous_nonwarper(ptr)) {
         xchar tx = STRAT_GOALX(mtmp->mstrategy),
               ty = STRAT_GOALY(mtmp->mstrategy);
         struct monst *intruder = m_at(tx, ty);
