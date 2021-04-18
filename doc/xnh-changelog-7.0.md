@@ -78,3 +78,5 @@ changes:
 - Implement covetous_nonwarper(), a macro that controls whether a covetous
   monster should not warp or use the other code in tactics(), and should behave
   like a normal monster.
+- Allow specification of "waiting" on monsters in level file, which makes them
+  wait until you're in visual range before moving.

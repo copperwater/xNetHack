@@ -2114,6 +2114,9 @@ create_monster(monster* m, struct mkroom* croom)
              * around, so revert mondead() incrementing this */
             g.mvitals[monsndx(mtmp->data)].died--;
         }
+        if (m->waiting) {
+            mtmp->mstrategy |= STRAT_WAITFORU;
+        }
     }
 }
 
@@ -3109,6 +3112,7 @@ lspo_monster(lua_State* L)
     tmpmons.seentraps = 0;
     tmpmons.has_invent = 0;
     tmpmons.dead = 0;
+    tmpmons.waiting = 0;
 
     if (argc == 1 && lua_type(L, 1) == LUA_TSTRING) {
         const char *paramstr = luaL_checkstring(L, 1);
@@ -3173,6 +3177,7 @@ lspo_monster(lua_State* L)
         tmpmons.stunned = get_table_int_opt(L, "stunned", 0);
         tmpmons.confused = get_table_int_opt(L, "confused", 0);
         tmpmons.dead = get_table_int_opt(L, "dead", 0);
+        tmpmons.waiting = get_table_int_opt(L, "waiting", 0);
         tmpmons.seentraps = 0; /* TODO: list of trap names to bitfield */
         tmpmons.has_invent = 0;
 

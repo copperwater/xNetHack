@@ -146,7 +146,7 @@ typedef struct {
     xchar x, y, class, appear;
     schar peaceful, asleep;
     short female, invis, cancelled, revived, avenge, fleeing, blinded,
-        paralyzed, stunned, confused, dead;
+        paralyzed, stunned, confused, dead, waiting;
     long seentraps;
     short has_invent;
 } monster;
