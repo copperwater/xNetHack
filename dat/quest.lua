@@ -875,7 +875,7 @@ bring back %o.
          ]],
       },
       banished = {
-         synopsis = "[You are banished from %H for betraying your allegiance to %d.]",
+         synopsis = "[You cast out from %H for rest of your life.]",
          output = "text",
          text = [[
 "You turn your back on us. You turn your back on %d!
