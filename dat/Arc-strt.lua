@@ -6,108 +6,113 @@
 --
 --	The "start" level for the quest.
 --
---	Here you meet your (besieged) class leader, Lord Carnarvon
+--	Here you meet your class leader, Lord Carnarvon
 --	and receive your quest assignment.
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel", "noteleport", "hardfloor", "outdoors")
+des.level_flags("mazelevel", "noteleport", "hardfloor", "outdoors", "noflipx")
 
 des.map([[
-............................................................................
-............................................................................
-............................................................................
-............................................................................
-....................}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}.................
-....................}-------------------------------------}.................
-....................}|..S......+.................+.......|}.................
-....................}-S---------------+----------|.......|}.................
-....................}|.|...............|.......+.|.......|}.................
-....................}|.|...............---------.---------}.................
-....................}|.S.\.............+.................+..................
-....................}|.|...............---------.---------}.................
-....................}|.|...............|.......+.|.......|}.................
-....................}-S---------------+----------|.......|}.................
-....................}|..S......+.................+.......|}.................
-....................}-------------------------------------}.................
-....................}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}.................
-............................................................................
-............................................................................
-............................................................................
+,,,,,--------,,,,,,,-----....|..|,,,,,,,,..,,,T,,,,}|,,,,,,,,,,--------------
+,T,,,|..|...|,,,,,,,|........+..S,,,T,,,,,.,,,,,,,}--,T,,,,,,,,|.....+......|
+,,,---S-|...|,,,,,,,--+--------------,,,......,,,,}|,,,,,,,T,,,|.....|......|
+,,,|....|...|,,,,,,,.....................,---..,,,}|,,,,,,,,|,,|...-+----+---
+.,,|....|...+.,,,....,,,,,,,--------,,.,,,,,,,.,,}},,,,,,}..|,,|...|...|,....
+..,----+-+---.....,,,,,,,,,,|......|,..,,,,,,,..,},}},,}}}}.,,,-----...|,,,..
+,.............,,,..,,,,T,,,,|......|,.,----,,,,.....,}}}}}..,,,,,,|....|,T,..
+,,,,..,-------,,,,.,,,,,,,,,|......|,T,|..|,,,,,,},..,,,}..,,,,,,,---+--,,,.,
+,,,..,,,,,T,,,,,,,..,,,--------++--|,,,|..|,,,,,,},,.,,...,,,,,T,,,,..,,,,..,
+,,T.,,,,,,,,,,,,,,,.,,,|....+......-----..|,T,,,,},,..,.,,,,,------,.,,,,..,,
+,,,.,,T,,,,,,,,,,,,....|....|......S...+..|,,,,,,},,,....,----....|........,,
+,,,.,,,,,,,,,T,,,,,....|....------+--------,,,,,},,,,,,,..|..|...K|.,,,,,,.,,
+,,...,,,,,,,,,,,,,,....+......|,,,.,,,,,,,,,,,,,},,,,,....+..|...--.--,,,,...
+,......................+......|,,,...,,,,,|,,,,,,},,...,..|..S..--...--T,,,,.
+...{....,,,,,,,..,,,,,.--------,,,,,......|,,,T,.....,,,,,-------.....--,,,,,
+-.........,,----+--,T...,,,,,,,,----+-----|,,,,.....,,,,,,,,,,,|.......|-----
+--...--,,...|.|...|,..,.,,,,,T,,|....+....|,,,..,},..,T,,,,........{...+.....
+,-----,,---+-.|...|,.,,..,,------S---|....|,,..,}},,........,,,|.......|FFFF,
+,,,,,,,,|.....|...--+--,...+.........------,T.,}}}},,,.,,,,,,,,--.....--,.,,,
+,,T,,,,,|.....|.......|,.,,|...........|,,,,..}}}}}}}}..,,,,,,,T--...--T,,,.,
 ]]);
 -- Dungeon Description
-des.region(selection.area(00,00,75,19), "lit")
-des.region(selection.area(22,06,23,06), "unlit")
-des.region(selection.area(25,06,30,06), "unlit")
-des.region(selection.area(32,06,48,06), "unlit")
-des.region(selection.area(50,06,56,08), "lit")
-des.region(selection.area(40,08,46,08), "unlit")
-des.region(selection.area(22,08,22,12), "unlit")
-des.region(selection.area(24,08,38,12), "unlit")
-des.region(selection.area(48,08,48,08), "lit")
-des.region(selection.area(40,10,56,10), "lit")
-des.region(selection.area(48,12,48,12), "lit")
-des.region(selection.area(40,12,46,12), "unlit")
-des.region(selection.area(50,12,56,14), "lit")
-des.region(selection.area(22,14,23,14), "unlit")
-des.region(selection.area(25,14,30,14), "unlit")
-des.region(selection.area(32,14,48,14), "unlit")
+des.region(selection.area(00,00,76,19), "lit")
 -- Stairs
-des.stair("down", 55,07)
+des.stair("down",76,05)
 -- Portal arrival point
-des.levregion({ region = {63,06,63,06}, type="branch" })
--- Doors
-des.door("closed",22,07)
-des.door("closed",38,07)
-des.door("locked",47,08)
-des.door("locked",23,10)
-des.door("locked",39,10)
-des.door("locked",57,10)
-des.door("locked",47,12)
-des.door("closed",22,13)
-des.door("closed",38,13)
-des.door("locked",24,14)
-des.door("closed",31,14)
-des.door("locked",49,14)
--- Lord Carnarvon
-des.monster("Lord Carnarvon", 25, 10)
--- The treasure of Lord Carnarvon
-des.object("chest", 25, 10)
--- student guards for the audience chamber
-des.monster("student", 26, 09)
-des.monster("student", 27, 09)
-des.monster("student", 28, 09)
-des.monster("student", 26, 10)
-des.monster("student", 28, 10)
-des.monster("student", 26, 11)
-des.monster("student", 27, 11)
-des.monster("student", 28, 11)
--- city watch guards in the antechambers
-des.monster("watchman", 50, 06)
-des.monster("watchman", 50, 14)
--- Eels in the moat
-des.monster("giant eel", 20, 10)
-des.monster("giant eel", 45, 04)
-des.monster("giant eel", 33, 16)
+des.levregion({ region = {06,14,06,14}, type="branch" })
 -- Non diggable walls
 des.non_diggable(selection.area(00,00,75,19))
--- Random traps
-des.trap()
-des.trap()
-des.trap()
-des.trap()
-des.trap()
-des.trap()
--- Monsters on siege duty.
-des.monster("S", 60, 09)
-des.monster("M", 60, 10)
-des.monster("S", 60, 11)
-des.monster("S", 60, 12)
-des.monster("M", 60, 13)
-des.monster("S", 61, 10)
-des.monster("S", 61, 11)
-des.monster("S", 61, 12)
-des.monster("S", 30, 03)
-des.monster("M", 20, 17)
-des.monster("S", 67, 02)
-des.monster("S", 10, 19)
+-- Doors
+des.door("locked",06,02)
+des.door("closed",07,05)
+des.door("closed",09,05)
+des.door("closed",12,04)
+des.door("closed",11,17)
+des.door("closed",16,15)
+des.door("closed",20,18)
+des.door("closed",27,18)
+des.door("closed",33,17)
+des.door("closed",36,15)
+des.door("closed",37,16)
+des.door("closed",23,12)
+des.door("closed",23,13)
+des.door("closed",28,09)
+des.door("closed",31,08)
+des.door("closed",32,08)
+des.door("closed",34,11)
+des.door("closed",35,10)
+des.door("closed",39,10)
+des.door("closed",22,02)
+des.door("closed",29,01)
+des.door("closed",32,01)
+des.door("closed",58,12)
+des.door("closed",61,13)
+des.door("closed",69,01)
+des.door("closed",73,03)
+des.door("closed",68,03)
+des.door("closed",69,07)
+des.door("closed",71,16)
+-- Lord Carnarvon
+des.monster("Lord Carnarvon", 31, 06)
+-- The treasure of the Archeology Department
+storeroom = selection.fillrect(40,07,41,10)
+des.terrain({ typ = "\\", coord = {storeroom:rndcoord(1)} }) -- a throne
+des.object({ class = "?", coord = {storeroom:rndcoord(1)} })
+des.object({ class = ")", coord = {storeroom:rndcoord(1)} })
+des.object({ id = "chest", coord = {storeroom:rndcoord(1)} })
+for i = 1, 3 + d(4) do
+   des.object({ class = "*", coord = {storeroom:rndcoord(1)} })
+end
+-- students milling around
+des.monster("student", 06, 04)
+des.monster("student", 24, 03)
+des.monster("student", 33, 06)
+des.monster("student", 25, 10)
+des.monster("student", 32, 10)
+des.monster("student", 16, 08)
+des.monster("student", 59, 11)
+des.monster("student", 66, 15)
+des.monster("student", 69, 05)
+-- objects
+des.object({ class="[", x=06, y=01 })
+des.object({ class="[", x=07, y=01 })
+des.object({ class="!", id="acid", x=64, y=10 })
+bookrooms = selection.floodfill(26,00) | selection.floodfill(30,00) |
+            selection.floodfill(70,02) | selection.floodfill(64,10) |
+            selection.floodfill(40,07) | selection.floodfill(40,16) |
+            selection.floodfill(33,18) | selection.floodfill(16,16)
+for i = 1,3 do
+   des.object({ class="+", coord={bookrooms:rndcoord(1)} })
+end
+des.object({ class="/", id="secret door detection", coord={bookrooms:rndcoord(1)} })
+-- Small cemetery
+des.grave(73,18, "Dr. Carter -- Died to a mummy's curse")
+des.grave(75,19, "Under NO circumstances are students to dig up this grave!")
+-- Mimics in one room
+mimicroom = selection.floodfill(66,02)
+for i = 1,d(3)+2 do
+   des.monster({ class="m", coord={mimicroom:rndcoord(1)} })
+end
+-- There are no roaming hostiles on this level at all when it's created (though
+-- more may spawn later) or traps. The College is not under attack.

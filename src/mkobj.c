@@ -3357,6 +3357,8 @@ static const struct icp wood_materials[] = {
     { 5, IRON},
     { 3, BONE},
     { 1, COPPER},
+    { 0, GOLD}, /* can exist in certain special levels but not randomly
+                 * generated */
     { 1, SILVER}
 };
 

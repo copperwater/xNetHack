@@ -53,6 +53,22 @@ changes:
 - Schliemann replaces the Minion of Huhetotl as the Archeologist quest nemesis.
   He is a human, and unlike other quest nemeses does not warp. He carries a
   pick-axe and a number of potions of oil to throw at you.
+- The Archeologist quest has received a full overhaul:
+  - The home, locate, goal, and filler levels are all replaced. The lower filler
+    levels use an all-new level generator implemented entirely in Lua.
+  - The story of the quest is changed. It's now a bit like a mash-up of Raiders
+    of the Lost Ark and National Treasure: the location of Itlachiayaque has
+    just been uncovered, and Schliemann and his better equipped team are trying
+    to get it first! Unlike the player, they have no qualms about being ruthless
+    and destructive in their eagerness to get there first.
+  - Enemy-wise, the quest is a lot more mummy-heavy than it used to be, with
+    human mummies in particular appearing a lot in the tomb in the second half
+    of the quest.
+  - Much of the quest loot consists of gold or other precious metal variants of
+    regular items. (To this end, gold is now a valid material on normally-wooden
+    items.)
+  - Level sounds of explosions appear on the lower floors of the quest as you
+    and Schliemann's team converge on Itlachiayaque.
 
 ### Interface changes
 

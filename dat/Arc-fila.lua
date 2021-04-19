@@ -77,7 +77,7 @@ end
 -- monsters
 -- can't just do des.monster("S") because that will put it in water, so
 -- specifically pick dry spots
--- potential TODO: make the lua parser capable of passing down makemon flags and
+-- potential extension: make the lua parser capable of passing down makemon flags and
 -- make "no item on top" a makemon flag
 dryspots = alllev:clone():filter_mapchar(".")
 for i=1,11 do

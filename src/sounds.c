@@ -351,6 +351,17 @@ dosounds(void)
             return;
         }
     }
+    if (In_quest(&u.uz) && u.uz.dlevel >= qlocate_level.dlevel
+        && Role_if(PM_ARCHEOLOGIST) && !g.quest_status.touched_artifact
+        && !g.quest_status.met_nemesis && !rn2(300)) {
+        /* special sounds for Arc quest */
+        if (!Deaf) {
+            You_hear("another explosion.");
+        }
+        else {
+            pline("You feel the tremor from another explosion.");
+        }
+    }
 }
 
 static const char *const h_sounds[] = {

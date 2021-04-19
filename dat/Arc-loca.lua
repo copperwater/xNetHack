@@ -5,141 +5,209 @@
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel", "hardfloor", "outdoors")
-
+des.level_flags("mazelevel", "hardfloor", "outdoors", "noteleport", "nommap", "noflipx")
 des.map([[
-............................................................................
-............................................................................
-............................................................................
-........................-------------------------------.....................
-........................|....|.S......................|.....................
-........................|....|.|.|+------------------.|.....................
-........................|....|.|.|.|.........|......|.|.....................
-........................|....|.|.|.|.........|......|.|.....................
-........................|---+-.|.|.|..---....+......|.|.....................
-........................|....|.|.|.---|.|....|......|.|.....................
-........................|....S.|.|.+..S.|--S-----S--|.|.....................
-........................|....|.|.|.---|.|....|......+.|.....................
-........................|---+-.|.|.|..---....|.------.|.....................
-........................|....|.|.|.|.........|.|....+.|.....................
-........................|....|.|.|.|.........|+|....|-|.....................
-........................|....|.|.|------------+------.S.....................
-........................|....|.S......................|.....................
-........................-------------------------------.....................
-............................................................................
-............................................................................
+.................................T....|.--T.....--. -------------------------
+.................................--.....|....--....HS.|.....|.........|.|.|.|
+....................................T......|....-.. |--.|...S..-----..|.....|
+......................................|..----T..    ---.|...|.--...---|.....|
+.................................-|...|......  ------.---S--|.|.....|.S.....|
+...................................-------  H  |..|.....|...|.|.....|.|.|.|.|
+........................................|.  ##HS..---...|--S----...--.---S--|
+...........................................    ----.|...|......-----......|.|
+........................................|.......S#S.|...|......|.|.---...---|
+........................................|.....    -----S-......|.|...|...S..|
+........................................   ....----..|..S.--S---.---------..|
+.................................------  .  .. |.....|S-----..|..S.....|.|..|
+.................................T...... .   .HS.....|..|..-----------S-S---|
+...................................---...   |  |.....|..|.....|..S...|...|# |
+...................................|........|..----..|--|..--------.---.--##|
+......................................T.|.......  ----..|---......|..|...| #|
+.................................|...|..|...|....   |...|.|.......|.--...--#|
+....................................T|..|...|......#S...|.S.......|.|.....S#|
+.................................---....|......     -----.|.......|.|.....| |
+......................................T...T   #######S....--......-----------
 ]]);
 -- Dungeon Description
-des.region(selection.area(00,00,75,19), "lit")
-des.region({ region={25,04, 28,07}, lit=1, type="temple", filled=2 })
-des.region({ region={25,09, 28,11}, lit=0, type="temple", filled=2 })
-des.region({ region={25,13, 28,16}, lit=1, type="temple", filled=2 })
-des.region(selection.area(30,04,30,16), "lit")
-des.region(selection.area(32,04,32,16), "unlit")
-des.region({ region={33,04, 53,04}, lit=0, type="ordinary", irregular=1 })
-des.region(selection.area(36,10,37,10), "unlit")
-des.region(selection.area(39,09,39,11), "unlit")
-des.region({ region={36,06, 42,08}, lit=0, type="ordinary", irregular=1 })
-des.region({ region={36,12, 42,14}, lit=0, type="ordinary", irregular=1 })
-des.region(selection.area(46,06,51,09), "unlit")
-des.region({ region={46,11, 49,11}, lit=0, type="ordinary", irregular=1 })
-des.region(selection.area(48,13,51,14), "unlit")
--- Doors
-des.door("closed",31,04)
-des.door("closed",28,08)
-des.door("locked",29,10)
-des.door("closed",28,12)
-des.door("closed",31,16)
-des.door("locked",34,05)
-des.door("locked",35,10)
-des.door("locked",38,10)
-des.door("closed",43,10)
-des.door("closed",45,08)
-des.door("locked",46,14)
-des.door("locked",46,15)
-des.door("locked",49,10)
-des.door("locked",52,11)
-des.door("closed",52,13)
-des.door("closed",54,15)
--- Stairs
-des.stair("up", 03,17)
-des.stair("down", 39,10)
--- Altars - three types.  All are unattended.
-des.altar({ x=26,y=05,align=align[1], type="altar" })
-des.altar({ x=26,y=10,align=align[2], type="altar" })
-des.altar({ x=26,y=15,align=align[3], type="altar" })
--- Non diggable walls
-des.non_diggable(selection.area(00,00,75,19))
--- Objects
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
-des.object()
+local outside = selection.floodfill(00,00)
+local inside = outside:clone():negate():filter_mapchar('.')
+des.region(outside, "lit")
+
+-- Non diggable walls (but leave all trees diggable)
+local nondig = selection.area(00,00,75,19) ~ selection.area(00,00,50,19):filter_mapchar('T')
+des.non_diggable(nondig)
+
+-- Jungle filler on the left side
+local forest_max_x = 40
+local trees = selection.gradient({ type="square", x=forest_max_x, y=00, x2=forest_max_x, y2=19, maxdist=60, limited=false })
+trees = trees & selection.area(00,00,forest_max_x,19)
+des.terrain({ selection=trees, typ='T' })
+
+-- Upstair
+local ustairy = nh.rn2(16) + 2 -- 2..18
+des.stair("up", 00, ustairy)
+
+-- Crude path through the jungle
+local path = selection.randline(00, ustairy, 34, 08, 50)
+path = path | path:clone():percentage(70):grow("north")
+path = path | path:clone():percentage(70):grow("south")
+des.replace_terrain({ selection=path, fromterrain='T', toterrain='.' })
+
+-- Also clear off trees and force levelporting to land by the stairs
+local stairbox = selection.area(00, ustairy-1, 01, ustairy+1)
+des.replace_terrain({ selection=stairbox, fromterrain='T', toterrain='.' })
+des.teleport_region({ region={00,ustairy-1, 01, ustairy+1}, exclude_islev=1, dir="down" })
+
+-- Randomize the topology somewhat
+function pickonepoint(list)
+   local tmpsel = selection:new()
+   for i=1,#list do
+      tmpsel:set(list[i][1], list[i][2])
+   end
+   return {tmpsel:rndcoord()}
+end
+des.terrain({ coord = pickonepoint({{75,06},{74,07},{75,08}}), typ='S' }) -- door
+des.terrain({ coord = pickonepoint({{64,07},{66,07},{68,05}}), typ='S' }) -- door
+des.terrain({ coord = pickonepoint({{61,06},{65,02},{69,03}}), typ='.' }) -- remove wall
+des.terrain({ coord = pickonepoint({{62,11},{70,02}}), typ='.' }) -- remove wall
+des.terrain({ coord = pickonepoint({{50,05},{53,13}}), typ='S' }) -- door
+des.terrain({ coord = pickonepoint({{64,14},{66,16},{66,17},{66,18}}), typ='S' }) -- door
+des.terrain({ coord = pickonepoint({{61,12},{62,13}}), typ='S' }) -- door
+des.terrain({ coord = pickonepoint({{72,10},{74,12}}), typ='S' }) -- door
+des.terrain({ coord = pickonepoint({{68,08},{69,09}}), typ='S' }) -- door
+
+if percent(50) then
+   des.terrain(53, 02, '-')
+   des.terrain(54, 02, '-')
+else
+   des.terrain(54, 14, '-')
+   des.terrain(55, 14, '-')
+end
+
+-- Rolling boulder trap room
+-- Original design of this level called for six traps, one on each of the 6
+-- spaces with height 5 in this room, with a vertically rolling boulder.
+-- However, we can't specify their launch coordinates from here.
+-- Instead, just put a bunch of traps in the center of the room and hope that
+-- most of them will generate appropriate coordinates and a boulder.
+local bouldertraps = selection.area(60,16,65,18)
+for i=1,8 do
+   des.trap({ coord = {bouldertraps:rndcoord(1)}, type = "rolling boulder" })
+end
+
+-- Some loot.
+-- Is it a good idea to take items from here? Does it amount to grave-robbing?
+-- Or are you just preserving the historical artifacts?
+local chestloc = selection:new()
+chestloc:set(75,07)
+chestloc:set(63,11)
+chestloc:set(70,15)
+chestloc:set(72,15)
+chestloc:iterate(function(x, y)
+   local template = { id = 'chest', coord = {x,y} }
+   if percent(40) then
+      template['material'] = 'gold'
+   end
+   des.object(template)
+end)
+
+-- Altars of every god
+local altars = { {73,02}, {71,17}, {68,13}, {52,12}, {64,05} }
+shuffle(altars)
+des.altar({ coord=altars[1], align=align[1] })
+des.altar({ coord=altars[2], align=align[2] })
+des.altar({ coord=altars[3], align=align[3] })
+
+-- The downstair occupies one of the unused altar spots
+des.stair({ coord=altars[4], dir='down' })
+
+-- TODO: these will be mummy traps, not fire traps, but that is unimplemented
+des.trap({ type = 'fire', coord=altars[5] })
+des.trap('fire', 54, 16)
+des.trap('fire', 57, 13)
+des.trap('fire', 71, 08)
+-- TODO: items to go on mummy traps:
+-- 1. random gold helm
+-- 2. pile of gold and gems
+-- 3. golden flute (random)
+-- 4. random gold amulet
+
+-- Trap room
+selection.area(57,07,62,09):iterate(function(xx,yy)
+   if percent(50) then
+      des.trap({ x=xx, y=yy, no_spider_on_web=true })
+   end
+end)
+
+-- More traps in general
+for i=1,8 do
+   des.trap("spiked pit")
+end
+interior_spaces = selection.area(48,00,76,19):filter_mapchar('.')
+for i=1,11 do
+   des.trap({ coord = {interior_spaces:rndcoord(1)}, no_spider_on_web = true })
+end
+
+-- Cave-ins, or possibly deliberate sealed corridors
+local boulders = selection.area(53,06,55,08) | selection.area(68,07,70,07)
+boulders:iterate(function(x,y)
+   des.object('boulder', x, y)
+end)
+
+-- A few random other boulders, could be outside or inside
+for i=1,4 do
+   des.object("boulder")
+end
+
+-- Obligatory mummies
+des.monster({ id='human mummy', x=55, y=03, waiting=1 })
+des.monster({ id='human mummy', x=53, y=04, waiting=1 })
+des.monster({ id='human mummy', x=52, y=10, waiting=1 })
+des.monster({ id='human mummy', x=52, y=14, waiting=1 })
+des.monster({ id='human mummy', x=57, y=16, waiting=1 })
+des.monster({ id='human mummy', x=63, y=05, waiting=1 })
+des.monster({ id='human mummy', x=67, y=04, waiting=1 })
+des.monster({ id='human mummy', x=66, y=08, waiting=1 })
+des.monster({ id='human mummy', x=71, y=01, waiting=1 })
+des.monster({ id='human mummy', x=75, y=01, waiting=1 })
+des.monster({ id='human mummy', x=71, y=03, waiting=1 })
+des.monster({ id='human mummy', x=75, y=03, waiting=1 })
+des.monster({ id='human mummy', x=71, y=05, waiting=1 })
+des.monster({ id='human mummy', x=75, y=05, waiting=1 })
+des.monster({ id='human mummy', x=72, y=11, waiting=1 })
+des.monster({ id='human mummy', x=75, y=09, waiting=1 })
+des.monster({ id='human mummy', x=75, y=10, waiting=1 })
+des.monster({ id='human mummy', x=75, y=11, waiting=1 })
+des.monster({ id='human mummy', x=68, y=15, waiting=1 })
+des.monster({ id='human mummy', x=69, y=18, waiting=1 })
+des.monster({ id='human mummy', x=71, y=18, waiting=1 })
+des.monster({ id='human mummy', x=73, y=18, waiting=1 })
+
+-- Other monsters
+local valid_outside = outside:clone():filter_mapchar('.')
+for i=1,d(3,2) do
+   des.monster({ class='S', coord={valid_outside:rndcoord(1)} })
+end
+des.monster({ class='f', coord={valid_outside:rndcoord(1)} })
+des.monster({ class='Y', coord={valid_outside:rndcoord(1)} })
+for i=1,d(5) do
+   des.monster({ id='giant bat', coord={inside:rndcoord()} })
+end
+
+-- Loot cache buried not very deep
+des.object({ id='gold piece', quantity=d(3,50), coord={41,11} })
+
+-- Statues, mostly outside, some inside. Stone golems because there aren't
+-- really specific monster types for these things.
+local statue_coords = {{34,07}, {36,07}, {38,07}, {34,09}, {36,09}, {38,09},
+                       {37,00}, {39,04}, {41,08}, {36,15}, {43,10}, {42,15},
+                       {42,17}, {49,11}, {49,13}, {51,10}, {51,14}, {59,01},
+                       {59,03}, {64,03}, {65,03}, {66,03}, {64,06}, {65,06},
+                       {66,06}}
+for i=1,#statue_coords do
+   local mon = percent(90) and 'stone golem' or 'clay golem'
+   des.object({ id='statue', montype=mon, material='stone', historic=true, coord=statue_coords[i] })
+end
+
 -- Treasure?
-des.engraving({ type="engrave", text="X marks the spot." })
-des.engraving({ type="engrave", text="X marks the spot." })
-des.engraving({ type="engrave", text="X marks the spot." })
-des.engraving({ type="engrave", text="X marks the spot." })
--- Random traps
-des.trap("spiked pit",24,02)
-des.trap("spiked pit",37,00)
-des.trap("spiked pit",23,05)
-des.trap("spiked pit",26,19)
-des.trap("spiked pit",55,10)
-des.trap("spiked pit",55,08)
-des.trap("pit",51,01)
-des.trap("pit",23,18)
-des.trap("pit",31,18)
-des.trap("pit",48,19)
-des.trap("pit",55,15)
-des.trap("magic",60,04)
-des.trap("statue",72,07)
-des.trap("statue")
-des.trap("statue")
-des.trap("anti magic",64,12)
-des.trap("sleep gas")
-des.trap("sleep gas")
-des.trap("dart")
-des.trap("dart")
-des.trap("dart")
-des.trap("rolling boulder",32,10)
-des.trap("rolling boulder",40,16)
--- Random monsters.
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("S")
-des.monster("M")
-des.monster("human mummy")
-des.monster("human mummy")
-des.monster("human mummy")
-des.monster("human mummy")
-des.monster("human mummy")
-des.monster("human mummy")
-des.monster("human mummy")
-des.monster("M")
+des.engraving({ type="engrave", coord={outside:rndcoord()}, text="X marks the spot." })
