@@ -1066,10 +1066,9 @@ xxxx----xx----xxxx]], contents=function(m)
       contents = function()
          des.room({ type="themed", filled=0, w=7, h=7, contents=function()
                des.feature("throne", 3, 3)
-               -- FIXME: It should be possible to have webs appear without
-               -- giant spiders. Until then, no webs.
-               -- des.trap("web")
-               -- des.trap("web")
+               for i=1,2+d(4) do
+                  des.trap({ type="web", no_spider_on_web = true })
+               end
                for i=1,4 do
                   if percent(75) then
                      des.trap('falling rock')

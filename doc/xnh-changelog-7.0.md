@@ -80,3 +80,6 @@ changes:
   like a normal monster.
 - Allow specification of "waiting" on monsters in level file, which makes them
   wait until you're in visual range before moving.
+- Refactor mktrap()'s mazeflag argument into a general flags field, and add a
+  flag that disables generating a spider on a web. Also allow specification of
+  "no_spider_on_web" in a table-form des.trap() command that passes this flag.

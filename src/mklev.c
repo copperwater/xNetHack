@@ -1077,7 +1077,7 @@ fill_ordinary_room(struct mkroom *croom)
         /* maxes out at level_difficulty() == 36 */
         x = 2;
     while (!rn2(x) && (++trycnt < 1000))
-        mktrap(0, 0, croom, (coord *) 0);
+        mktrap(0, MKTRAP_NOFLAGS, croom, (coord *) 0);
 
     /* maybe put a monster inside */
     if (u.uhave.amulet || !rn2(2)) {
@@ -1650,12 +1650,13 @@ occupied(register xchar x, register xchar y)
  * will keep trying until it picks something valid.
  *
  * If a fallthru trap is created on a undiggable-floor level, it defaults to
- * PIT. If a WEB is created, a giant spider is created on top of it.
+ * PIT. If a WEB is created, a giant spider is created on top of it, unless the
+ * MKTRAP_NOSPIDERONWEB flag is on in flags.
  * Finally, if it is very early in the dungeon, and the trap is potentially
  * lethal, create a minimal fake bones pile on the trap.
  */
 void
-mktrap(int num, int mazeflag, struct mkroom *croom, coord *tm)
+mktrap(int num, int mktrapflags, struct mkroom *croom, coord *tm)
 {
     register int kind;
     struct trap *t;
@@ -1698,7 +1699,7 @@ mktrap(int num, int mazeflag, struct mkroom *croom, coord *tm)
                     kind = NO_TRAP;
                 break;
             case WEB:
-                if (lvl < 7)
+                if (lvl < 7 && !(mktrapflags & MKTRAP_NOSPIDERONWEB))
                     kind = NO_TRAP;
                 break;
             case STATUE_TRAP:
@@ -1741,7 +1742,7 @@ mktrap(int num, int mazeflag, struct mkroom *croom, coord *tm)
         do {
             if (++tryct > 200)
                 return;
-            if (mazeflag)
+            if (mktrapflags & MKTRAP_MAZEFLAG)
                 mazexy(&m);
             else if (!somexy(croom, &m))
                 return;
@@ -1754,7 +1755,7 @@ mktrap(int num, int mazeflag, struct mkroom *croom, coord *tm)
        should prevent cases where that might not happen) but be paranoid */
     kind = t ? t->ttyp : NO_TRAP;
 
-    if (kind == WEB)
+    if (kind == WEB && !(mktrapflags & MKTRAP_NOSPIDERONWEB))
         (void) makemon(&mons[PM_GIANT_SPIDER], m.x, m.y, NO_MM_FLAGS);
 
     /* The hero isn't the only person who's entered the dungeon in

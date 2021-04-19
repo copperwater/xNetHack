@@ -576,6 +576,11 @@ enum adjattrib_return {
     AA_CURRCHNG = 2  /* current value changed */
 };
 
+/* flags for mktrap() */
+#define MKTRAP_NOFLAGS       0x0
+#define MKTRAP_MAZEFLAG      0x1
+#define MKTRAP_NOSPIDERONWEB 0x2
+
 #define MON_POLE_DIST 5 /* How far monsters can use pole-weapons */
 #define PET_MISSILE_RANGE2 36 /* Square of distance within which pets shoot */
 
