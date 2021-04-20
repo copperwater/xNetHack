@@ -2953,7 +2953,8 @@ lookaround(void)
                 continue;
 
             if (IS_ROCK(levl[x][y].typ) || levl[x][y].typ == ROOM
-                || IS_AIR(levl[x][y].typ)) {
+                || IS_AIR(levl[x][y].typ) || levl[x][y].typ == GRASS
+                || levl[x][y].typ == ICE) {
                 continue;
             } else if (closed_door(x, y) || (mtmp && is_door_mappear(mtmp))) {
                 if (x != u.ux && y != u.uy)
