@@ -18,6 +18,8 @@ static void use_candelabrum(struct obj *);
 static void use_candle(struct obj **);
 static void use_lamp(struct obj *);
 static void light_cocktail(struct obj **);
+static int use_silver_on_withering(struct obj *);
+static int rub_ok_core(struct obj *, boolean);
 static int rub_ok(struct obj *);
 static void display_jump_positions(int);
 static void use_tinning_kit(struct obj *);
@@ -1564,10 +1566,118 @@ light_cocktail(struct obj **optr)
     *optr = obj;
 }
 
+/* Use a silver item to cure withering. */
+static int
+use_silver_on_withering(struct obj *obj)
+{
+    uchar new_oeroded2 = obj->oeroded2;
+    /* Silver artifacts are fair game to get destroyed by this process, but we
+     * can't allow silver unique items (Bell of Opening) to be destroyed. */
+    boolean isbell = objects[obj->otyp].oc_unique;
+    int withering = HWithering & TIMEOUT;
+
+    if (obj->material != SILVER) {
+        impossible("using non-silver obj to cure withering");
+        return 0;
+    }
+    if (!Withering) {
+        impossible("curing withering while not actually withering");
+        return 0;
+    }
+    if (obj->owornmask & (W_ARMOR | W_ACCESSORY)) {
+        You("need to take that off first.");
+        return 0;
+    }
+    if (yn("Apply it to your withering?") != 'y') {
+        return 0;
+    }
+    if (!(HWithering & TIMEOUT) || (isbell && obj->spe <= 0)) {
+        /* extrinsic withering or permanent intrinsic withering can't be cured
+         * by silver; Bell degrades in charges instead of physicality so that it
+         * can't be used infinitely, and won't do anything if it's uncharged */
+        /* a possible extension if intrinsic withering is implemented is to have
+         * some chance scaling with owt, or if owt is high enough, that a silver
+         * item cures the intrinsic withering. */
+        You("touch %s to your body, but it doesn't seem to do anything.",
+            distant_name(obj, xname));
+        return 1;
+    }
+    /* The silver will degrade in the process. Erosionproofing goes first, then
+     * it corrodes; an item that goes beyond thoroughly corroded will
+     * disintegrate.
+     * The amount of "withering turns" a silver object can cure is based on its
+     * weight. */
+    if (obj->oerodeproof) {
+        /* Strictly speaking, erodeproofing should provide a bit of extra
+         * buffer before the item starts to erode, but in practice this means
+         * that it would be optimal for the player with a stack of 10
+         * corrodeproof silver darts to split them and rub them one by one, so
+         * don't provide this incentive */
+        obj->oerodeproof = 0;
+    }
+    if (isbell) {
+        withering -= obj->owt;
+        obj->spe--;
+    }
+    else if (!erosion_matters(obj)) {
+        withering -= obj->owt;
+        new_oeroded2 = 4; /* can't partially corrode so destroy completely */
+    }
+    else {
+        withering -= (obj->owt / 2);
+        new_oeroded2 += 2;
+    }
+    if (new_oeroded2 >= 4 && obj_resists(obj, 0, 50)) {
+        /* artifact may get saved */
+        new_oeroded2 = 3;
+    }
+    You("touch %s to your body.", the(distant_name(obj, xname)));
+    if (isbell) {
+        if (!Blind) {
+            pline("It loses some of its luster.");
+        }
+    }
+    else if (new_oeroded2 >= 4 || !erosion_matters(obj)) {
+        pline("%s %s!", obj->quan == 1 ? "It" : "They",
+              otense(obj, "disintegrate"));
+        if (obj->oartifact) {
+            livelog_printf(LL_ACHIEVE, "sacrificed %s to cure withering",
+                           bare_artifactname(obj));
+        }
+        useupall(obj);
+    }
+    else {
+        pline("%s %s and %s!", obj->quan == 1 ? "It" : "They",
+              otense(obj, "blacken"), otense(obj, "corrode"));
+        obj->oeroded2 = new_oeroded2;
+    }
+    if (Hate_material(obj->material)) {
+        searmsg((struct monst *) 0, &g.youmonst, obj, FALSE);
+        losehp(rnd(sear_damage(obj->material)),
+               "a cure that was worse than the disease", KILLED_BY);
+    }
+    if (withering <= 0) {
+        withering = 0; /* don't set_itimeout to negative */
+    }
+    set_itimeout(&HWithering, withering);
+    if (!Withering) {
+        You("stop withering!");
+        g.context.botl = 1;
+    }
+    else {
+        /* can be either not-fully-healed withering, or timing-out withering
+         * fully healed but still extrinsic/perm intrinsic */
+        pline("Your withering slows, but %s.",
+              (EWithering || (HWithering & ~TIMEOUT)) ? "only briefly"
+                                                      : "does not quite stop");
+    }
+    return 1;
+}
+
 /* getobj callback for object to be rubbed - not selecting a secondary object to
  * rub on a gray stone or rub jelly on */
 static int
-rub_ok(struct obj *obj)
+rub_ok_core(struct obj *obj, boolean check_withering)
 {
     if (!obj)
         return GETOBJ_EXCLUDE;
@@ -1577,7 +1687,20 @@ rub_ok(struct obj *obj)
         || obj->otyp == LUMP_OF_ROYAL_JELLY)
         return GETOBJ_SUGGEST;
 
+    if (check_withering && obj->material == SILVER && Withering) {
+        if (obj->owornmask & (W_ARMOR | W_ACCESSORY)) {
+            return GETOBJ_EXCLUDE_SELECTABLE;
+        }
+        return GETOBJ_SUGGEST;
+    }
+
     return GETOBJ_EXCLUDE;
+}
+
+static int
+rub_ok(struct obj *obj)
+{
+    return rub_ok_core(obj, TRUE);
 }
 
 int
@@ -1603,7 +1726,19 @@ dorub(void)
         }
     } else if (obj->otyp == LUMP_OF_ROYAL_JELLY) {
         return use_royal_jelly(obj);
+    } else if (obj->material == SILVER && Withering) {
+        int rc = use_silver_on_withering(obj);
+        if (rc != 0) {
+            return rc;
+        }
+        /* prevent otherwise un-rubbable silver items (weapons, armor...) from
+         * proceeding past this */
+        if (rub_ok_core(obj, FALSE) != GETOBJ_SUGGEST) {
+            You_cant("do anything else by rubbing it.");
+            return rc;
+        }
     }
+
     if (!wield_tool(obj, "rub"))
         return 0;
 

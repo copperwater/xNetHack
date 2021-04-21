@@ -83,6 +83,20 @@ changes:
     not cure it.
   - The various mummies inflict increasingly higher durations of withering as
     they increase in difficulty.
+- You can #rub silver items while withering to reduce the remaining duration:
+  - The amount of withering duration cancelled generally equals the total weight
+    of the rubbed items. E.g. a weight-11 silver dagger will shorten withering
+    by up to 11 turns.
+  - This corrodes and/or destroys the silver items in the process. Each
+    application of the silver causes 1 level of corrosion per 1/4 of the
+    object's weight. If it goes past thoroughly corroded it disintegrates.
+  - Items that are not subject to corrosion (e.g. the silver wand/ring) just get
+    destroyed, regardless of how much withering they stopped.
+  - Erodeproof silver and artifacts are not protected from corrosion or
+    destruction.
+  - The Bell of Opening cannot corrode or be destroyed, so using it to fix
+    withering instead uses up its charges, and it won't work when out of
+    charges.
 
 ### Interface changes
 
