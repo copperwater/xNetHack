@@ -2233,7 +2233,7 @@ create_pit_under(struct monst *mdef, struct monst *magr)
         if (youattack) {
             pline("You stomp the ground!");
         }
-        else {
+        else if (canseemon(magr)) {
             pline("%s stomps the ground!", Monnam(magr));
         }
     }
@@ -2327,8 +2327,10 @@ create_pit_under(struct monst *mdef, struct monst *magr)
         /* We want to make them be in the trap anew - they won't fall into holes
          * and such if this is left as 1. */
         mdef->mtrapped = 0;
-        pline("%s hurl%s %s down%s!", youattack ? "You" : Monnam(magr),
-              youattack ? "" : "s", mon_nam(mdef), to_the_bottom);
+        if (!youattack && (canseemon(magr) || canseemon(mdef))) {
+            pline("%s hurl%s %s down%s!", youattack ? "You" : Monnam(magr),
+                youattack ? "" : "s", mon_nam(mdef), to_the_bottom);
+        }
         /* This does not set g.force_mintrap - which for some reason causes
          * flying monsters not to fall into a pit if true. Thus, they will not
          * get extra damage for the trap, but will still take the normal damage
@@ -2337,8 +2339,10 @@ create_pit_under(struct monst *mdef, struct monst *magr)
             sent_down_hole = TRUE;
         }
         else if (is_flyer(mdef->data) || is_floater(mdef->data)) {
-            pline("%s %s back up.", Monnam(mdef),
-                  is_flyer(mdef->data) ? "flies" : "floats");
+            if (canseemon(mdef)) {
+                pline("%s %s back up.", Monnam(mdef),
+                    is_flyer(mdef->data) ? "flies" : "floats");
+            }
             mdef->mtrapped = 0; /* maybe still held, but not stuck in pit */
         }
     }
