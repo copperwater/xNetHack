@@ -183,6 +183,9 @@ do_statusline2(void)
         if (u.usick_type & SICK_NONVOMITABLE)
             Strcpy(nb = eos(nb), " TermIll");
     }
+    if (Withering) {
+        Strcpy(nb = eos(nb), " Wither");
+    }
     if (u.uhs != NOT_HUNGRY)
         Sprintf(nb = eos(nb), " %s", hu_stat[u.uhs]);
     if ((cap = near_capacity()) > UNENCUMBERED)
@@ -557,7 +560,7 @@ const struct condmap condition_aliases[] = {
                         | BL_MASK_WOUNDEDL | BL_MASK_HOLDING },
     { "major_troubles", BL_MASK_FOODPOIS | BL_MASK_GRAB | BL_MASK_INLAVA
                         | BL_MASK_SLIME | BL_MASK_STONE | BL_MASK_STRNGL
-                        | BL_MASK_TERMILL },
+                        | BL_MASK_TERMILL | BL_MASK_WITHER },
     { "minor_troubles", BL_MASK_BLIND | BL_MASK_CONF | BL_MASK_DEAF
                         | BL_MASK_HALLU | BL_MASK_PARLYZ | BL_MASK_SUBMERGED
                         | BL_MASK_STUN },
@@ -604,6 +607,7 @@ const struct conditions_t conditions[] = {
     { 20, BL_MASK_UNCONSC,   bl_unconsc,   { "Out",      "Out",   "KO"  } },
     { 20, BL_MASK_WOUNDEDL,  bl_woundedl,  { "Legs",     "Leg",   "Lg"  } },
     { 20, BL_MASK_HOLDING,   bl_holding,   { "UHold",    "UHld",  "UHd" } },
+    {  6, BL_MASK_WITHER,    bl_wither,    { "Wither",   "Wthr",  "Wr"  } },
 };
 
 struct condtests_t condtests[CONDITION_COUNT] = {
@@ -638,6 +642,7 @@ struct condtests_t condtests[CONDITION_COUNT] = {
     { bl_unconsc,   "unconscious", opt_in,  FALSE, FALSE, FALSE },
     { bl_woundedl,  "woundedlegs", opt_in,  FALSE, FALSE, FALSE },
     { bl_holding,   "holding",     opt_in,  FALSE, FALSE, FALSE },
+    { bl_wither,    "withering",   opt_out, TRUE,  FALSE, FALSE },
 };
 /* condition indexing */
 int cond_idx[CONDITION_COUNT] = { 0 };
@@ -896,6 +901,7 @@ bot_via_windowport(void)
     condtests[bl_strngl].test    = (Strangled) ? TRUE : FALSE;
     condtests[bl_stun].test      = (Stunned) ? TRUE : FALSE;
     condtests[bl_submerged].test = (Underwater) ? TRUE : FALSE;
+    condtests[bl_wither].test    = (Withering) ? TRUE : FALSE;
     test_if_enabled(bl_elf_iron) = (FALSE);
     test_if_enabled(bl_bareh)    = (!uarmg && !uwep);
     test_if_enabled(bl_icy)      = (levl[u.ux][u.uy].typ == ICE);

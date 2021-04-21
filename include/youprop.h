@@ -360,6 +360,10 @@
 #define EReflecting u.uprops[REFLECTING].extrinsic
 #define Reflecting (HReflecting || EReflecting)
 
+#define HWithering u.uprops[WITHERING].intrinsic
+#define EWithering u.uprops[WITHERING].extrinsic
+#define Withering (HWithering || EWithering)
+
 #define Free_action u.uprops[FREE_ACTION].extrinsic /* [Tom] */
 
 #define Fixed_abil u.uprops[FIXED_ABIL].extrinsic /* KMH */

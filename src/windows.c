@@ -967,6 +967,8 @@ genl_status_update(int idx, genericptr_t ptr, int chg UNUSED,
                 Strcpy(nb = eos(nb), " FoodPois");
             if (cond & BL_MASK_TERMILL)
                 Strcpy(nb = eos(nb), " TermIll");
+            if (cond & BL_MASK_WITHER)
+                Strcpy(nb = eos(nb), " Wither");
             if (cond & BL_MASK_BLIND)
                 Strcpy(nb = eos(nb), " Blind");
             if (cond & BL_MASK_DEAF)
@@ -1622,7 +1624,8 @@ dump_render_status(void)
         { BL_MASK_HALLU,     "Hallu"    },
         { BL_MASK_LEV,       "Lev"      },
         { BL_MASK_FLY,       "Fly"      },
-        { BL_MASK_RIDE,      "Ride"     }
+        { BL_MASK_RIDE,      "Ride"     },
+        { BL_MASK_WITHER,    "Wither"   }
     };
 
     num_rows = (iflags.wc2_statuslines < 3) ? 2 : 3;

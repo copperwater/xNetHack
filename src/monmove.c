@@ -209,7 +209,8 @@ void
 mon_regen(struct monst* mon, boolean digest_meal)
 {
     if (mon->mhp < mon->mhpmax && (g.moves % 20 == (long) mon->m_id % 20
-                                   || regenerates(mon->data)))
+                                   || regenerates(mon->data))
+        && !mon->mwither)
         mon->mhp++;
     if (mon->mspec_used)
         mon->mspec_used--;

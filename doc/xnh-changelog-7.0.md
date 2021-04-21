@@ -69,6 +69,20 @@ changes:
     items.)
   - Level sounds of explosions appear on the lower floors of the quest as you
     and Schliemann's team converge on Itlachiayaque.
+- Mummies now have a touch attack that inflicts withering, a new status effect.
+  Withering has the following effects:
+  - Every turn, a withering creature loses 1 or 2 hit points (0 or 1 if it
+    regenerates), until the withering times out.
+  - Withering creatures do not regenerate HP like normal, though items such as
+    healing potions work the same to restore HP.
+  - Creatures that die to withering attacks do not leave a corpse.
+  - When the player is withering, a "Wither" status is shown on the status line.
+    Status hilites can be used to configure this status like normal. It's also
+    covered under 'major-troubles' in status hilites.
+  - Prayer can fix withering, but unicorn horns cannot. Life-saving also does
+    not cure it.
+  - The various mummies inflict increasingly higher durations of withering as
+    they increase in difficulty.
 
 ### Interface changes
 
@@ -99,3 +113,4 @@ changes:
 - Refactor mktrap()'s mazeflag argument into a general flags field, and add a
   flag that disables generating a spider on a web. Also allow specification of
   "no_spider_on_web" in a table-form des.trap() command that passes this flag.
+- New struct monst fields mwither (byte) and mwither_from_u (bit).

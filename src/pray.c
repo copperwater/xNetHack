@@ -67,11 +67,12 @@ static const char *hgodvoices[] = {
  * order to have the values be meaningful.
  */
 
-#define TROUBLE_STONED 14
-#define TROUBLE_SLIMED 13
-#define TROUBLE_STRANGLED 12
-#define TROUBLE_LAVA 11
-#define TROUBLE_SICK 10
+#define TROUBLE_STONED 15
+#define TROUBLE_SLIMED 14
+#define TROUBLE_STRANGLED 13
+#define TROUBLE_LAVA 12
+#define TROUBLE_SICK 11
+#define TROUBLE_WITHERING 10
 #define TROUBLE_STARVING 9
 #define TROUBLE_REGION 8 /* stinking cloud */
 #define TROUBLE_HIT 7
@@ -275,6 +276,8 @@ in_trouble(void)
         return TROUBLE_LAVA;
     if (Sick)
         return TROUBLE_SICK;
+    if (Withering)
+        return TROUBLE_WITHERING;
     /* Yes, TROUBLE_STARVING is returned twice; being Fainting at low HP is
      * worse than being Weak at low HP */
     if (u.uhs >= FAINTING && nofood)
@@ -447,6 +450,10 @@ fix_worst_trouble(int trouble)
     case TROUBLE_SICK:
         You_feel("better.");
         make_sick(0L, (char *) 0, FALSE, SICK_ALL);
+        break;
+    case TROUBLE_WITHERING:
+        You("stop withering.");
+        set_itimeout(&HWithering, (long) 0);
         break;
     case TROUBLE_REGION:
         /* stinking cloud, with hero vulnerable to HP loss */

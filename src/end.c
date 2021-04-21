@@ -1489,7 +1489,14 @@ really_done(int how)
                        ? g.urace.femalenum
                        : g.urace.malenum;
         }
-        corpse = mk_named_object(CORPSE, &mons[mnum], u.ux, u.uy, g.plname);
+        if (!Withering) {
+            /* withering suppresses the actual corpse from being created but
+             * still allows creation of a grave (and it doesn't matter whether
+             * or not withering was the actual cause of death; dying while
+             * withering is assumed to just wither the rest of the body without
+             * any vitality to stop it) */
+            corpse = mk_named_object(CORPSE, &mons[mnum], u.ux, u.uy, g.plname);
+        }
         if (yn("Do you want to write your own epitaph?") != 'y') {
             Sprintf(pbuf, "%s, ", g.plname);
             formatkiller(eos(pbuf), sizeof pbuf - strlen(pbuf), how, TRUE);

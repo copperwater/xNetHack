@@ -935,8 +935,30 @@ mcalcdistress(void)
                 continue;
         }
 
-        /* regenerate hit points */
+        /* regenerate hit points - note that if withering, they won't gain hp,
+         * but we still need to call this for mspec_used */
         mon_regen(mtmp, FALSE);
+
+        /* wither away */
+        if (mtmp->mwither) {
+            mtmp->mhp -= (rnd(2) - (regenerates(mtmp->data) ? 1 : 0));
+            if (DEADMONSTER(mtmp)) {
+                if (canspotmon(mtmp)) {
+                    pline("%s withers away completely!", Monnam(mtmp));
+                }
+                if (mtmp->mwither_from_u) {
+                    xkilled(mtmp, XKILL_NOCORPSE | XKILL_NOMSG);
+                }
+                else {
+                    monkilled(mtmp, "", AD_WTHR);
+                }
+                continue;
+            }
+            mtmp->mwither--; /* one turn closer to recovery */
+            if (!mtmp->mwither) {
+                mtmp->mwither_from_u = FALSE; /* clear player responsibility */
+            }
+        }
 
         /* possibly polymorph shapechangers and lycanthropes */
         if (mtmp->cham >= LOW_PM)
@@ -2926,7 +2948,7 @@ monkilled(
        rot completely are described as "falling to pieces" so they do
        leave a corpse (which means staves for wood golem, leather armor for
        leather golem, iron chains for iron golem, not a regular corpse) */
-    g.disintegested = (how == AD_DGST || how == -AD_RBRE
+    g.disintegested = (how == AD_DGST || how == -AD_RBRE || how == AD_WTHR
                        || (how == AD_FIRE && completelyburns(mptr)));
     if (g.disintegested)
         mondead(mdef); /* never leaves a corpse */

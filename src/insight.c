@@ -913,6 +913,8 @@ status_enlightenment(int mode, int final)
                 you_are("terminally sick from food poisoning", "");
         }
     }
+    if (Withering)
+        you_are("withering away", "");
     if (Vomiting)
         you_are("nauseated", "");
     if (Stunned)
@@ -2836,6 +2838,8 @@ mstatusline(struct monst *mtmp)
     /* [arbitrary reason why it isn't moving] */
     else if ((mtmp->mstrategy & STRAT_WAITMASK) != 0)
         Strcat(info, ", meditating");
+    if (mtmp->mwither)
+        Strcat(info, ", withering away");
     if (mtmp->mflee)
         Strcat(info, ", scared");
     if (mtmp->mtrapped)

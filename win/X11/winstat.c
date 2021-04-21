@@ -92,8 +92,9 @@
 #define F_STUN     38
 #define F_CONF     39
 #define F_HALLU    40
+#define F_WITHER   41
 
-#define NUM_STATS  41
+#define NUM_STATS  42
 
 static int condcolor(long, unsigned long *);
 static int condattr(long, unsigned long *);
@@ -156,6 +157,7 @@ static struct tt_condinfo {
     { BL_MASK_FOODPOIS, "FoodPois" },
     { BL_MASK_TERMILL, "TermIll" },
     { BL_MASK_INLAVA, "InLava" },
+    { BL_MASK_WITHER, "Wither" },
     { BL_MASK_HELD, "Held" },
     { BL_MASK_HELD, "Holding" },
     { BL_MASK_BLIND, "Blind" },
@@ -855,6 +857,7 @@ X11_status_update_fancy(int fld, genericptr_t ptr, int chg UNUSED,
         { BL_MASK_STRNGL, F_STRNGL },
         { BL_MASK_FOODPOIS, F_FOODPOIS },
         { BL_MASK_TERMILL, F_TERMILL },
+        { BL_MASK_WITHER, F_WITHER },
         { BL_MASK_INLAVA, F_IN_LAVA },
         { BL_MASK_HELD, F_HELD },
         { BL_MASK_HOLDING, F_HOLDING },
@@ -1341,6 +1344,7 @@ static struct X_status_value shown_stats[NUM_STATS] = {
     { "Confused",     SV_NAME,  (Widget) 0,   0L, 0, FALSE, TRUE, FALSE, 0, 0, 0 },
     /* F_HALLU: 40 (full spelling truncated due to space limitations) */
     { "Hallucinat",   SV_NAME,  (Widget) 0,   0L, 0, FALSE, TRUE, FALSE, 0, 0, 0 },
+    { "Wither",       SV_NAME,  (Widget) 0,   0L, 0, FALSE, TRUE, FALSE, 0, 0, 0 },
 };
 /*
  * The following are supported by the core but not yet handled here:
@@ -1837,6 +1841,9 @@ update_fancy_status_field(int i, int color, int attributes)
         case F_IN_LAVA: /* could overload with 'trapped' but is more severe */
             condmask = BL_MASK_INLAVA;
             break;
+        case F_WITHER:
+            condmask = BL_MASK_WITHER;
+            break;
         /* non-fatal status conditions */
         case F_HELD:
             condmask = BL_MASK_HELD;
@@ -2037,6 +2044,7 @@ width_string(int sv_index)
     case F_STRNGL:
     case F_FOODPOIS:
     case F_TERMILL:
+    case F_WITHER:
     case F_IN_LAVA:
     case F_HELD:
     case F_HOLDING:
@@ -2280,7 +2288,7 @@ static int status_indices[3][11] = {
     { F_DUMMY, F_GRABBED, F_STONE, F_SLIME, F_STRNGL,
       F_FOODPOIS, F_TERMILL, F_IN_LAVA, -1, 0, 0 },
     { F_DUMMY, F_HELD, F_BLIND, F_DEAF, F_STUN,
-      F_CONF, F_HALLU, F_DUMMY, -1, 0, 0 },
+      F_CONF, F_HALLU, F_WITHER, -1, 0, 0 },
 };
 /* used to fill up the empty space to right of 3rd status condition column */
 static int leftover_indices[] = { F_DUMMY, -1, 0, 0 };

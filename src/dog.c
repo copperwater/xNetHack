@@ -520,6 +520,14 @@ mon_catchup_elapsed_time(struct monst *mtmp,
             mtmp->mfleetim -= imv;
     }
 
+    /* Withering monsters by rights ought to keep withering while off-level, but
+     * it brings up a host of problems to have a monster die in this function
+     * (if the player were responsible, would they get experience for the kill
+     * and potentially level up just by returning to the level? should messages
+     * such as "You have a sad feeling" or vampire polyself/rise again print
+     * upon arrival?)  Instead, just don't affect their hp or withering status;
+     * they will begin re-withering when the hero comes back. */
+
     /* might recover from temporary trouble */
     if (mtmp->mtrapped && rn2(imv + 1) > 40 / 2)
         mtmp->mtrapped = 0;
@@ -568,12 +576,14 @@ mon_catchup_elapsed_time(struct monst *mtmp,
     }
 
     /* recover lost hit points */
-    if (!regenerates(mtmp->data))
-        imv /= 20;
-    if (mtmp->mhp + imv >= mtmp->mhpmax)
-        mtmp->mhp = mtmp->mhpmax;
-    else
-        mtmp->mhp += imv;
+    if (!mtmp->mwither) {
+        if (!regenerates(mtmp->data))
+            imv /= 20;
+        if (mtmp->mhp + imv >= mtmp->mhpmax)
+            mtmp->mhp = mtmp->mhpmax;
+        else
+            mtmp->mhp += imv;
+    }
 }
 
 /* called when you move to another level */

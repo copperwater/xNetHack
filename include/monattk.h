@@ -80,10 +80,11 @@
 #define AD_CURS 43  /* random curse (ex. gremlin) */
 #define AD_POLY 44  /* polymorph the target (genetic engineer) */
 #define AD_PITS 45  /* create pit under target */
-#define AD_CLRC 46  /* random clerical spell */
-#define AD_SPEL 47  /* random magic spell */
-#define AD_RBRE 48  /* random breath weapon */
-#define AD_SAMU 49  /* hits, may steal Amulet (Wizard) */
+#define AD_WTHR 46  /* withering (mummies) */
+#define AD_CLRC 47  /* random clerical spell */
+#define AD_SPEL 48  /* random magic spell */
+#define AD_RBRE 49  /* random breath weapon */
+#define AD_SAMU 50  /* hits, may steal Amulet (Wizard) */
 #define LAST_AD AD_SAMU
 
 struct mhitm_data {

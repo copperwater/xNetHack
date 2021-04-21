@@ -618,6 +618,7 @@ static const char * damagetypes[] = {
     "steal intrinsic",
     "polymorph",
     "create pit",
+    "withering",
     "clerical",
     "arcane",
     "random breath",
@@ -1219,6 +1220,7 @@ add_obj_info(winid datawin, short otyp)
                     case HALF_PHDAM:
                     case REGENERATION:
                     case ENERGY_REGENERATION:
+                    case WITHERING:
                     case PROTECTION:
                     case PROT_FROM_SHAPE_CHANGERS:
                     case POLYMORPH_CONTROL:

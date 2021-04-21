@@ -236,6 +236,17 @@ moveloop(boolean resuming)
                         regen_hp(wtcap);
                     }
 
+                    /* wither away a bit */
+                    if (Withering && !u.uinvulnerable) {
+                        int loss = rnd(2) - (Regeneration ? 1 : 0);
+                        if (loss >= (Upolyd ? u.mh : u.uhp)) {
+                            You("wither away completely!");
+                        }
+                        losehp(loss, "withered away", NO_KILLER_PREFIX);
+                        g.context.botl = TRUE;
+                        interrupt_multi("You are slowly withering away.");
+                    }
+
                     /* moving around while encumbered is hard work */
                     if (wtcap > MOD_ENCUMBER && u.umoved) {
                         if (!(wtcap < EXT_ENCUMBER ? g.moves % 30
@@ -534,7 +545,7 @@ regen_hp(int wtcap)
             if (U_CAN_REGEN() || (encumbrance_ok && !(g.moves % 20L)))
                 heal = 1;
         }
-        if (heal) {
+        if (heal && !(Withering && heal > 0)) {
             g.context.botl = TRUE;
             u.mh += heal;
             reached_full = (u.mh == u.mhmax);
@@ -568,7 +579,7 @@ regen_hp(int wtcap)
             if (Sleepy && u.usleep)
                 heal++;
 
-            if (heal) {
+            if (heal && !(Withering && heal > 0)) {
                 g.context.botl = TRUE;
                 u.uhp += heal;
                 if (u.uhp > u.uhpmax)
