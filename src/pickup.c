@@ -2396,6 +2396,13 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                 pline("%s refuses to take %s.", Monnam(mtmp), yname(otmp));
                 continue;
             }
+            if (otmp == uball || otmp == uchain) {
+                /* you can't give a monster your ball & chain, because it
+                 * causes problems elsewhere... */
+                pline("%s shackled to your %s and cannot be given away.",
+                      Tobjnam(otmp, "are"), body_part(LEG));
+                continue;
+            } 
             carryamt = can_carry(mtmp, otmp);
             if (nohands(mtmp->data) && mtmp->minvent) {
                 /* this isn't a hard and fast rule, but dog_invent in practice
