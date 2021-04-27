@@ -2393,7 +2393,8 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                 continue;
             }
             if (!mindless(mtmp->data) && mtmp_would_ston) {
-                pline("%s refuses to take %s.", Monnam(mtmp), yname(otmp));
+                pline("%s refuses to take %s%s.", Monnam(mtmp),
+                      maxquan < otmp->quan ? "any of " : "", yname(otmp));
                 continue;
             }
             if (otmp == uball || otmp == uchain) {
@@ -2412,7 +2413,8 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
             if (carryamt == 0) {
                 /* note: this includes both "can't carry" and "won't carry", but
                  * doesn't distinguish them */
-                pline("%s can't carry %s.", Monnam(mtmp), yname(otmp));
+                pline("%s can't carry %s%s.", Monnam(mtmp),
+                      maxquan < otmp->quan ? "any of " : "", yname(otmp));
                 /* debatable whether to continue or break here; if the player
                  * overloads the monster with too many items, breaking would be
                  * preferable, but if they just can't take this one otmp for
@@ -2420,8 +2422,10 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                  * be seen which is the more common scenario. */
                 continue;
             }
-            else if (carryamt < otmp->quan) {
-                maxquan = min(maxquan, carryamt);
+            else if (carryamt < maxquan) {
+                pline("%s can only carry %s of %s.", Monnam(mtmp),
+                      carryamt > 1 ? "some" : "one", yname(otmp));
+                maxquan = carryamt;
             }
             if (maxquan < otmp->quan) {
                 otmp = splitobj(otmp, maxquan);
