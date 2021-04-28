@@ -2341,7 +2341,7 @@ reverse_loot(void)
 static int
 exchange_objects_with_mon(struct monst *mtmp, boolean taking)
 {
-    int i, n, transferred = 0;
+    int i, n, transferred = 0, time_taken = 1;
     menu_item *pick_list;
     const char *qstr = taking ? "Take what?" : "Give what?";
 
@@ -2452,15 +2452,29 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                     /* extra delay for removing a cloak */
                     m_delay += 2;
                 }
-                pline("%s %s %s %s.", Monnam(mtmp),
-                      m_delay > 1 ? "begins removing" : "removes",
-                      mhis(mtmp), xname(otmp));
+                if ((unwornmask & W_SADDLE) != 0) {
+                    You("remove %s from %s.", the(xname(otmp)),
+                        x_monnam(mtmp, ARTICLE_THE, (char *) 0,
+                                 SUPPRESS_SADDLE, FALSE));
+                    /* unstrapping a saddle takes additional time */
+                    time_taken += rn2(3);
+                }
+                else {
+                    pline("%s %s %s %s.", Monnam(mtmp),
+                          m_delay > 1 ? "begins removing" : "removes",
+                          mhis(mtmp), xname(otmp));
+                }
                 mtmp->mfrozen = m_delay;
                 /* unwear the item now */
                 update_mon_intrinsics(mtmp, otmp, FALSE, FALSE);
-                otmp->owornmask = 0;
                 if (mtmp->mfrozen) { /* might be 0 */
                     mtmp->mcanmove = 0;
+                    otmp->owornmask = 0L;
+                    /* normally extract_from_minvent handles this stuff, but
+                     * since we are setting owornmask to 0 now we have to
+                     * do it here. */
+                    otmp->owt = weight(otmp); /* reset armor weight */
+                    mtmp->misc_worn_check &= ~unwornmask;
                     /* monster is now occupied, won't hand over other things */
                     break;
                 }
@@ -2502,7 +2516,8 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
          * some and now have a different option. Reassess next turn and see. */
         check_gear_next_turn(mtmp);
     }
-    return (n > 0 ? 1 : 0);
+    /* time_taken is 1 for normal item(s), rnd(3) if you removed a saddle */
+    return (n > 0 ? time_taken : 0); 
 }
 
 /* loot_mon() returns amount of time passed. */
