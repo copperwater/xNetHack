@@ -2405,9 +2405,7 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                 continue;
             } 
             carryamt = can_carry(mtmp, otmp);
-            if (nohands(mtmp->data) && mtmp->minvent) {
-                /* this isn't a hard and fast rule, but dog_invent in practice
-                 * doesn't let monsters carry around multiple items. */
+            if (nohands(mtmp->data) && droppables(mtmp)) {
                 carryamt = 0;
             }
             if (carryamt == 0) {
