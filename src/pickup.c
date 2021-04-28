@@ -2491,9 +2491,7 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
             if (maxquan < otmp->quan) {
                 otmp = splitobj(otmp, maxquan);
             }
-            else {
-                extract_from_minvent(mtmp, otmp, TRUE, TRUE);
-            }
+            extract_from_minvent(mtmp, otmp, TRUE, TRUE);
             addtobill(otmp, FALSE, FALSE, FALSE);
             otmp = hold_another_object(otmp, "You take, but drop, %s.",
                                          doname(otmp), "You take: ");
