@@ -2035,8 +2035,10 @@ drop_boulder_on_monster(int x, int y, boolean confused, boolean byu)
                 if (otmp2->owt >= 400) {
                     if (mdmg > 2)
                         mdmg -= 2;
-                    pline("%s helmet is only slightly protective.",
-                          s_suffix(Monnam(mtmp)));
+                    if (canspotmon(mtmp)) {
+                        pline("%s helmet is only slightly protective.",
+                              s_suffix(Monnam(mtmp)));
+                    }
                 }
                 else {
                     if (mdmg > 2)
@@ -2048,9 +2050,10 @@ drop_boulder_on_monster(int x, int y, boolean confused, boolean byu)
                         You_hear("a clanging sound.");
                 }
             } else {
-                if (canspotmon(mtmp))
-                    pline("%s's %s does not protect %s.", Monnam(mtmp),
-                          xname(helmet), mhim(mtmp));
+                if (canspotmon(mtmp)) {
+                    pline("%s %s does not protect %s.",
+                          s_suffix(Monnam(mtmp)), xname(helmet), mhim(mtmp));
+                }
             }
         }
         mtmp->mhp -= mdmg;
@@ -2058,7 +2061,9 @@ drop_boulder_on_monster(int x, int y, boolean confused, boolean byu)
             if (byu) {
                 killed(mtmp);
             } else {
-                pline("%s is killed.", Monnam(mtmp));
+                if (canspotmon(mtmp))  {
+                    pline("%s is killed.", Monnam(mtmp));
+                }
                 mondied(mtmp);
             }
         } else {
