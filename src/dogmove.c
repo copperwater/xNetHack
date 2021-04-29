@@ -367,7 +367,7 @@ mon_givit(struct monst* mtmp, struct permonst* ptr)
     const char* msg = NULL;
     unsigned short intrinsic = 0; /* MR_* constant */
 
-    if (prop <= 0) {
+    if (prop == 0) {
         return; /* no intrinsic from this corpse */
     }
     if (!should_givit(prop, ptr))
