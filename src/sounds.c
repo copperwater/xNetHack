@@ -842,7 +842,7 @@ domonnoise(register struct monst* mtmp)
         break;
     case MS_GROAN:
         if (rn2(10) || !(ptr->mlet == S_ZOMBIE))
-            pline_msg = "groans";
+            pline_msg = "groans.";
         else
             verbl_msg = "Braaaaaains...";
 	break;
