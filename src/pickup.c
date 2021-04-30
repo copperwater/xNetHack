@@ -2378,13 +2378,10 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
 
         /* Clear inapplicable wornmask bits */
         unwornmask &= ~(W_ART | W_ARTI | W_QUIVER);
-        if (!taking || !u.twoweap) {
-            unwornmask &= ~W_SWAPWEP;
-        }
 
         if (!taking) {
             int carryamt;
-            if ((unwornmask & W_WEAPONS) && otmp->cursed) {
+            if (welded(otmp)) {
                 weldmsg(otmp);
                 continue;
             }
@@ -2443,7 +2440,8 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
         }
         else {
             /* cursed weapons, armor, accessories, etc treated the same */
-            if (unwornmask && otmp->cursed) {
+            if ((otmp->cursed && (unwornmask & ~W_WEAPONS)) 
+                || mwelded(otmp)) {
                 pline("%s won't come off!", Yname2(otmp));
                 otmp->bknown = 1;
                 continue;
