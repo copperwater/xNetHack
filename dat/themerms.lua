@@ -1009,29 +1009,32 @@ xxxx----xx----xxxx]], contents=function(m)
    end,
 
    -- Swimming pool
-   function()
-      des.room({ type="themed", filled=0, contents=function(rm)
-            local poolarea = selection.fillrect(1,1,rm.width-2,rm.height-2)
-            des.terrain(poolarea, '}');
-            -- spice it up with some sea monsters
-            local waterarea = (rm.width-2)*(rm.height-2)
-            local nmonsters = math.min(d(5), waterarea/2);
-            for i=1,nmonsters do
-               des.monster(';')
-            end
-            -- sunken treasure
-            if percent(50) then
-               des.object({ id='chest', coord={poolarea:rndcoord(1)}, contents=function()
-                     for i=1,d(2,2) do
-                        des.object('*')
+   {
+      mindiff = 5,
+      contents = function()
+         des.room({ type="themed", filled=0, contents=function(rm)
+               local poolarea = selection.fillrect(1,1,rm.width-2,rm.height-2)
+               des.terrain(poolarea, '}');
+               -- spice it up with some sea monsters
+               local waterarea = (rm.width-2)*(rm.height-2)
+               local nmonsters = math.min(d(5), waterarea/2);
+               for i=1,nmonsters do
+                  des.monster(';')
+               end
+               -- sunken treasure
+               if percent(50) then
+                  des.object({ id='chest', coord={poolarea:rndcoord(1)}, contents=function()
+                        for i=1,d(2,2) do
+                           des.object('*')
+                        end
+                        des.object({ id = "gold piece", quantity = d(80, 5) })
                      end
-                     des.object({ id = "gold piece", quantity = d(80, 5) })
-                  end
-               });
+                  });
+               end
             end
-         end
-      });
-   end,
+         });
+      end
+   },
 
    -- Thin long horizontal room
    function()
