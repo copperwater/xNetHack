@@ -1642,7 +1642,7 @@ seffects(struct obj* sobj) /* sobj - scroll, or fake spellbook object for scroll
             if (trap_detect(sobj)) {
                 sobj = 0; /* failure: strange_feeling() -> useup() */
             }
-        } else if (gold_detect(sobj, TRUE)) {
+        } else if (gold_detect(sobj, FALSE)) {
             sobj = 0;
         }
         break;
