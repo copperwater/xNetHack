@@ -1093,9 +1093,6 @@ ini_inv(struct trobj *trop)
             free_oname(obj);
         }
 
-        /* Don't have erosion or erosionproofing */
-        obj->oeroded = obj->oeroded2 = obj->oerodeproof = 0;
-
         if (g.urace.malenum != PM_HUMAN) {
             /* substitute race-specific items; this used to be in
                the 'if (otyp != UNDEF_TYP) { }' block above, but then
