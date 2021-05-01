@@ -7,6 +7,7 @@
 
 static void mkbox_cnts(struct obj *);
 static unsigned nextoid(struct obj *, struct obj *);
+static boolean may_generate_eroded(struct obj *);
 static void maybe_adjust_light(struct obj *, int);
 static void obj_timer_checks(struct obj *, xchar, xchar, int);
 static void container_weight(struct obj *);
@@ -722,6 +723,29 @@ static const char dknowns[] = { WAND_CLASS,   RING_CLASS, POTION_CLASS,
                                 SCROLL_CLASS, GEM_CLASS,  SPBOOK_CLASS,
                                 WEAPON_CLASS, TOOL_CLASS, 0 };
 
+static boolean
+may_generate_eroded(struct obj* otmp) {
+    /* don't generate eroded or fixed items in initial hero inventory */
+    if (g.moves <= 1 && !g.in_mklev) {
+        return FALSE;
+    }
+    /* item cannot be eroded or damaged, because of material, existing
+     * erodeproofing, etc */
+    if (otmp->oerodeproof || !erosion_matters(otmp) || !is_damageable(otmp)) {
+        return FALSE;
+    }
+    /* item is part of a monster's body and produced when it dies */
+    if (otmp->otyp == WORM_TOOTH || otmp->otyp == UNICORN_HORN) {
+        return FALSE;
+    }
+    /* item is an artifact */
+    if (otmp->oartifact) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 /* mksobj(): create a specific type of object; result it always non-Null */
 struct obj *
 mksobj(int otyp, boolean init, boolean artif)
@@ -1126,8 +1150,7 @@ mksobj(int otyp, boolean init, boolean artif)
                   (int) otmp->otyp, (int) objects[otmp->otyp].oc_class);
             /*NOTREACHED*/
         }
-        if (!otmp->oartifact && g.in_mklev
-            && is_damageable(otmp) && erosion_matters(otmp)) {
+        if (may_generate_eroded(otmp)) {
             /* A small fraction of non-artifact items will generate eroded or
              * possibly erodeproof. An item that generates eroded will never be
              * erodeproof, and vice versa. */
