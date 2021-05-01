@@ -77,6 +77,14 @@ local wishtest_objects = {
                                   return (oc.nutrition // 2);
                              end },
    ["water"] = { otyp_name = "water", oclass = "!" }, -- shouldn't ever give scroll of water
+   ["gold silver dragon statue"] = { otyp_name = "statue", corpsenm_name = "silver dragon" },
+   -- Note that this will cause the PYEC to exist. The script can't be loaded again.
+   ["platinum yendorian express card"] = { otyp_name = "credit card", has_oname = 1, oname = "The Platinum Yendorian Express Card" },
+   ["wax candle"] = { otyp_name = "wax candle" },
+   ["10 gold"] = { otyp_name = "gold piece", quan = 10 },
+   ["copper ring"] = { oclass = "=", otyp_descr = "copper" },
+   ["silver spellbook"] = { oclass = "+", otyp_descr = "silver" },
+   ["gold wand"] = { oclass = "/", otyp_descr = "gold" }, -- may fail if gold wands don't exist in this particular game...
 };
 
 for str, tbl in pairs(wishtest_objects) do

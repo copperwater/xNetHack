@@ -3361,6 +3361,78 @@ object_not_monster(const char *str)
     return FALSE;
 }
 
+/* Return true if the input string appears to be specifying something that
+ * happens to start with a material name and is not actually specifying a
+ * material. */
+static boolean
+not_actually_specifying_material(const char * const str, int material)
+{
+    int i;
+    const char *matstr = materialnm[material];
+    int matlen = strlen(matstr);
+    /* is this the entire string? e.g. "gold" is actually a wish for zorkmids
+     * The effect of this is that you can't just wish for a material and get a
+     * random item, made of that material, from the set of items that can be
+     * made of that material, but this was never a feature anyway; it would give
+     * a totally random object even if the material-object combo was invalid. */
+    if (!strcmp(str, matstr)) {
+        return TRUE;
+    }
+    /* does it match some object? */
+    for (i = STRANGE_OBJECT + 1; i < NUM_OBJECTS; ++i) {
+        /* match in the object name e.g. "gold detection", "wax candle" */
+        const char *oc_name = OBJ_NAME(objects[i]),
+                   *oc_descr = OBJ_DESCR(objects[i]);
+        if (oc_name && !strncmpi(str, oc_name, strlen(oc_name))) {
+            return TRUE;
+        }
+        /* match in the object description, followed by object class name e.g.
+         * "silver ring"
+         * Note: this assumes that the only types of objects that can have
+         * material strings as descriptions are not eligible to have object
+         * materials vary on them. It also does not account for the fact that,
+         * for instance, there being more wand descriptions than wands could
+         * mean that "iron wand" doesn't actually exist in this game... */
+        if (oc_descr && !strcmp(matstr, oc_descr)) {
+            /* this is a bit complicated... the only 3 object classes that ought
+             * to behave this way are rings, wands and spellbooks, all of which
+             * have the singular object class string in def_oc_syms[].explain.
+             * If e.g. "silver armor" was a real randomized armor description this
+             * would break because the .explain is "suit or piece of armor". */
+            const char *aftermat = str + matlen + 1; /* advance past material */
+            oc_descr = def_oc_syms[(int) objects[i].oc_class].explain;
+            if (!strncmpi(aftermat, oc_descr, strlen(oc_descr))) {
+                return TRUE;
+            }
+        }
+    }
+    /* does it match some monster? e.g. "silver dragon" */
+    for (i = LOW_PM; i < NUMMONS; ++i) {
+        const char *pmname;
+        int gend;
+        for (gend = 0; gend < NUM_MGENDERS; ++gend) {
+            pmname = mons[i].pmnames[gend];
+            if (pmname && !strncmpi(str, pmname, strlen(pmname))) {
+                return TRUE;
+            }
+        }
+    }
+    /* does it match some artifact? e.g. "platinum yendorian express card" */
+    short otyp;
+    if (artifact_name(str, &otyp)) {
+        return TRUE;
+    }
+    /* does it match some terrain or a trap? e.g. "iron bars" */
+    for (i = 0; i < MAXPCHARS; ++i) {
+        const char *terr_name = defsyms[i].explanation;
+        if (terr_name && *terr_name
+            && !strncmpi(str, terr_name, strlen(terr_name))) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 #define UNDEFINED 0
 #define EMPTY 1
 #define SPINACH 2
@@ -3532,21 +3604,15 @@ readobjnam_preparse(struct _readobjnam_data* d)
                "real gem" for random non-glass, non-stone)] */
         } else {
             int i;
-            /* check for materials */
-            if (!strncmpi(d->bp, "silver dragon", l = 13)
-                || !strcmp(d->bp, "gold")
-                || !strncmpi(d->bp, "wax candle", l = 10)
-                || !strncmpi(d->bp, "platinum yendorian express card", l = 31)
-                || !strncmpi(d->bp, "iron bars", l = 9)) {
-                /* hack so that silver dragon scales/mail doesn't get
-                 * interpreted as silver, or a wish for just "gold" doesn't get
-                 * interpreted as gold */
-                break;
-            }
             /* doesn't currently catch "wood" for wooden */
             for (i = 1; i < NUM_MATERIAL_TYPES; i++) {
                 l = strlen(materialnm[i]);
-                if (l > 0 && !strncmpi(d->bp, materialnm[i], l))
+                if (l > 0 && !strncmpi(d->bp, materialnm[i], l)
+                    /* it LOOKS like a wish for a material...
+                     * but need to ensure that it's not just a wish for
+                     * something else that happens to have a prefix of a
+                     * material */
+                    && !not_actually_specifying_material(d->bp, i))
                 {
                     d->material = i;
                     l++;
