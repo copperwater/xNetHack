@@ -2288,26 +2288,6 @@ map_glyphinfo(xchar x, xchar y, int glyph,
                 cmap_color(offset);
         }
         */
-        /* color altars */
-        else if (iflags.use_color && offset == S_altar) {
-            if (Is_astralevel(&u.uz) || Is_sanctum(&u.uz)) {
-                color = CLR_BRIGHT_MAGENTA;
-            }
-            else {
-                if (a_align(x, y) == A_LAWFUL) {
-                    color = CLR_YELLOW;
-                }
-                else if (a_align(x, y) == A_NEUTRAL) {
-                    color = CLR_GRAY;
-                }
-                else if (a_align(x, y) == A_CHAOTIC) {
-                    color = CLR_RED;
-                }
-                else if (a_align(x, y) == A_NONE) {
-                    color = CLR_BLACK;
-                }
-            }
-        }
         /* visible engravings */
         else if (iflags.use_color && offset == S_engraving && engr
                  && engr->engr_type != HEADSTONE) {
@@ -2367,7 +2347,7 @@ map_glyphinfo(xchar x, xchar y, int glyph,
          * to handle platform-specific color variations.
          */
                 case AM_LAWFUL:  /* 4 */
-                    color = CLR_WHITE;
+                    color = CLR_YELLOW;
                     break;
                 case AM_NEUTRAL: /* 2 */
                     color = CLR_GRAY;

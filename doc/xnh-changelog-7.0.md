@@ -49,6 +49,8 @@ changes:
 - The levels with the stairs to the Mines, Sokoban, and Vlad's Tower have
   special ambient level sounds. The Sokoban and Vlad ones only persist until you
   have finished the first level of Sokoban and killed Vlad, respectively.
+- Swap the chaotic and unaligned altar colors to be in line with vanilla:
+  chaotic is now black and unaligned red.
 
 ### Architectural changes
 
