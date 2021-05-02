@@ -3014,6 +3014,9 @@ mhitm_ad_plys(struct monst *magr, struct attack *mattk, struct monst *mdef,
         if (magr->data == &mons[PM_GHOST]) {
             mhm->damage = 0;
             boolean couldspot = canspotmon(magr);
+            if (g.multi < 0) { /* already paralyzed; ghost won't appear */
+                return;
+            }
             if (magr->minvis) {
                 magr->minvis = 0;
                 magr->mspec_used = d(2, 8);

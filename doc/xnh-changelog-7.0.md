@@ -33,6 +33,8 @@ changes:
 - Blowing up a bag of holding gives some experience points, identifies the bag
   of holding, and identifies the wand of cancellation if that is the cause of
   the explosion.
+- Ghosts will not make themselves uninvisible in an attempt to frighten you if
+  you are already paralyzed.
 
 ### Interface changes
 
