@@ -35,6 +35,8 @@ changes:
   the explosion.
 - Ghosts will not make themselves uninvisible in an attempt to frighten you if
   you are already paralyzed.
+- Elven ring mail, in its default copper form, provides 2 AC, and provides 4 AC
+  if made of mithril.
 
 ### Interface changes
 
