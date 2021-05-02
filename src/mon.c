@@ -1640,7 +1640,10 @@ can_carry(struct monst* mtmp, struct obj* otmp)
         return 0;
     if (mtmp->isshk)
         return iquan; /* no limit */
-    if (mtmp->mpeaceful && !mtmp->mtame)
+    if (mtmp->mpeaceful && !mtmp->mtame && otmp->where != OBJ_INVENT)
+        /* original condition lacked OBJ_INVENT check to prevent peacefuls
+         * picking up items; but we also want wizard-mode player to be able to
+         * give peacefuls items via #loot */
         return 0;
     /* otherwise players might find themselves obligated to violate
      * their alignment if the monster takes something they need
