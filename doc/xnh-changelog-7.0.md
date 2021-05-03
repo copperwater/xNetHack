@@ -97,6 +97,7 @@ changes:
   - The Bell of Opening cannot corrode or be destroyed, so using it to fix
     withering instead uses up its charges, and it won't work when out of
     charges.
+- It is impossible to destroy a metal box or chest by forcing it.
 
 ### Interface changes
 

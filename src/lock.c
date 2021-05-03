@@ -162,6 +162,9 @@ picklock(void)
 void
 breakchestlock(struct obj *box, boolean destroyit)
 {
+    if (is_metallic(box)) {
+        destroyit = FALSE;
+    }
     if (!destroyit) { /* bill for the box but not for its contents */
         struct obj *hide_contents = box->cobj;
 
