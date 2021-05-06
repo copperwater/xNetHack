@@ -1279,6 +1279,8 @@ monmaterial(int mndx)
     case PM_GARGOYLE:
     case PM_WINGED_GARGOYLE:
     case PM_EARTH_ELEMENTAL:
+    case PM_CLAY_GOLEM:
+    case PM_STONE_GOLEM:
         return MINERAL;
     case PM_SKELETON:
         return BONE;
@@ -1290,9 +1292,6 @@ monmaterial(int mndx)
         return LEATHER;
     case PM_WOOD_GOLEM:
         return WOOD;
-    case PM_CLAY_GOLEM:
-    case PM_STONE_GOLEM:
-        return MINERAL;
     case PM_GLASS_GOLEM:
         return GLASS;
     case PM_IRON_GOLEM:
