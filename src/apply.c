@@ -1739,6 +1739,11 @@ dorub(void)
         }
     }
 
+    /* retouch object; silver lamps, etc are possibly eligible here and it might
+     * be untouchable */
+    if (!retouch_object(&obj, FALSE, !will_touch_skin(W_WEP)))
+        return 1;
+
     if (!wield_tool(obj, "rub"))
         return 0;
 
