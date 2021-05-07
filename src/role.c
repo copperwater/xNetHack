@@ -45,10 +45,10 @@ const struct Role roles[NUM_ROLES+1] = {
       PM_LORD_CARNARVON,
       PM_STUDENT,
       PM_SCHLIEMANN,
-      NON_PM,
       PM_HUMAN_MUMMY,
-      S_SNAKE,
+      NON_PM,
       S_MUMMY,
+      S_SNAKE,
       ART_ITLACHIAYAQUE,
       MH_HUMAN | MH_DWARF | MH_GNOME | ROLE_MALE | ROLE_FEMALE | ROLE_LAWFUL
           | ROLE_NEUTRAL,

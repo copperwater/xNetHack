@@ -69,6 +69,8 @@ changes:
     items.)
   - Level sounds of explosions appear on the lower floors of the quest as you
     and Schliemann's team converge on Itlachiayaque.
+  - Monster generation probabilities in the quest are now 55% human mummy, 14%
+    random M, 17% random S, 14% random monster. (Not exact percentages.)
 - Mummies now have a touch attack that inflicts withering, a new status effect.
   Withering has the following effects:
   - Every turn, a withering creature loses 1 or 2 hit points (0 or 1 if it
