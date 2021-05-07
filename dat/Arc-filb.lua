@@ -255,7 +255,12 @@ for i = 1,10+d(10) do
 end
 for i=1,2+d(3) do
    local template = { id="chest", coord={deadends:rndcoord()} }
-   if percent(30) then
+   if percent(50) then
+      -- make it a mummy trap
+      template['trapped'] = 1
+      template['spe'] = 3
+      template['material'] = 'gold'
+   elseif percent(30) then
       template['material'] = 'gold'
    end
    des.object(template)
@@ -266,4 +271,3 @@ for i=1,d(2,4) do
    des.object({ id=wpns[d(#wpns)], material=wpn_mats[d(#wpn_mats)], coord={deadends:rndcoord()} })
 end
 
--- TODO: mummy traps?

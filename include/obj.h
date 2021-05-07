@@ -50,7 +50,8 @@ struct obj {
                 * marks spinach tins (1 iff corpsenm==NON_PM);
                 * marks tin variety (various: homemade, stir fried, &c);
                 * eggs laid by you (1), eggs upgraded with rojal jelly (2);
-                * Schroedinger's Box (1) or royal coffers for a court (2);
+                * Schroedinger's Box (1) or royal coffers for a court (2) or a
+                * mummy-trapped chest (3);
                 * named fruit index;
                 * candy bar wrapper index;
                 * scroll of mail (normal==0, bones or wishing==1, written==2);
@@ -298,6 +299,7 @@ struct obj {
 #define Is_mbag(otmp) \
     (otmp->otyp == BAG_OF_HOLDING || otmp->otyp == BAG_OF_TRICKS)
 #define SchroedingersBox(o) ((o)->otyp == LARGE_BOX && (o)->spe == 1)
+#define Is_mummychest(o) ((o)->otyp == CHEST && (o)->spe == 3)
 
 /* dragon gear
  * NOTE: this assumes that gray dragons come first and yellow last, as detailed

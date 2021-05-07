@@ -83,6 +83,8 @@ changes:
     not cure it.
   - The various mummies inflict increasingly higher durations of withering as
     they increase in difficulty.
+  - Certain chests are trapped in such a way that they spawn a number of mummies
+    around you when triggered.
 - You can #rub silver items while withering to reduce the remaining duration:
   - The amount of withering duration cancelled generally equals the total weight
     of the rubbed items. E.g. a weight-11 silver dagger will shorten withering

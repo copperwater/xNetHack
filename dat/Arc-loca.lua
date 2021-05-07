@@ -121,16 +121,33 @@ des.altar({ coord=altars[3], align=align[3] })
 -- The downstair occupies one of the unused altar spots
 des.stair({ coord=altars[4], dir='down' })
 
--- TODO: these will be mummy traps, not fire traps, but that is unimplemented
-des.trap({ type = 'fire', coord=altars[5] })
-des.trap('fire', 54, 16)
-des.trap('fire', 57, 13)
-des.trap('fire', 71, 08)
--- TODO: items to go on mummy traps:
--- 1. random gold helm
--- 2. pile of gold and gems
--- 3. golden flute (random)
--- 4. random gold amulet
+-- Mummy-trapped chests (note the spe=3 on them)
+local box_coords={ {57,13}, {54,16}, {71,08}, altars[5] }
+shuffle(box_coords)
+des.object({ id='chest', material='gold', coord=box_coords[1], spe=3, trapped = 1,
+             contents = function()
+                des.object({ class='"', material='gold' })
+             end
+})
+des.object({ id='chest', material='gold', coord=box_coords[2], spe=3, trapped = 1,
+             contents = function()
+                -- otyp = percent(40) and 'magic flute' or 'flute'
+                des.object({ id='flute', material='gold' })
+             end
+})
+des.object({ id='chest', material='gold', coord=box_coords[3], spe=3, trapped = 1,
+             contents = function()
+                des.object({ id='etched helmet', material='gold' })
+             end
+})
+des.object({ id='chest', material='gold', coord=box_coords[4], spe=3, trapped = 1,
+             contents = function()
+                des.object({ id='gold piece', quantity=d(3,500) })
+                for i=4,d(4,4) do
+                   des.object('*')
+                end
+             end
+})
 
 -- Trap room
 selection.area(57,07,62,09):iterate(function(xx,yy)
@@ -146,6 +163,9 @@ end
 interior_spaces = selection.area(48,00,76,19):filter_mapchar('.')
 for i=1,11 do
    des.trap({ coord = {interior_spaces:rndcoord(1)}, no_spider_on_web = true })
+end
+for i=1,d(3) do
+   des.trap('fire')
 end
 
 -- Cave-ins, or possibly deliberate sealed corridors

@@ -174,7 +174,12 @@ for i=1,10 do
    des.object({ id='gold piece', quantity = d(250) })
 end
 for i=1,d(2,2) do
-   des.object({ id='chest', material='gold', coord={deadends:rndcoord()} })
+   local box = { id='chest', material='gold', coord={deadends:rndcoord()}, trapped=1, spe=3 }
+   if percent(50) then
+      box['trapped'] = 1
+      box['spe'] = 3
+   end
+   des.object(box)
 end
 -- duplicate of Arc-filb code but not important enough to put in nhlib.lua
 local wpn_mats = { "copper", "silver", "gold", "bone" }

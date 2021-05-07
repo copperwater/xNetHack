@@ -5159,7 +5159,8 @@ untrap(boolean force)
                                 ch *= 2;
                             if (!force && (confused || Fumbling
                                            || rnd(75 + level_difficulty() / 2)
-                                                  > ch)) {
+                                                  > ch
+                                           || Is_mummychest(otmp))) {
                                 (void) chest_trap(otmp, FINGER, TRUE);
                             } else {
                                 You("disarm it!");
@@ -5428,6 +5429,32 @@ chest_trap(
                            chest kills you and ends up in bones file */
     You(disarm ? "set it off!" : "trigger a trap!");
     display_nhwindow(WIN_MESSAGE, FALSE);
+
+    /* only trigger this if mummies are not all genocided/extinct; otherwise do
+     * a normal chest trap */
+    if (Is_mummychest(obj) && mkclass(S_MUMMY, 0)) {
+        int i, mumnum = 4 + rn2(3);
+        boolean seen = FALSE;
+        obj->spe = 0; /* revert to normal chest in case it ever becomes possible
+                         to re-trap chests */
+        for (i = 0; i < mumnum; ++i) {
+            struct permonst *mptr = mkclass(S_MUMMY, 0);
+            struct monst *mon;
+            if (mptr && mptr->difficulty < mons[PM_HUMAN_MUMMY].difficulty) {
+                mptr = &mons[PM_HUMAN_MUMMY];
+            }
+            mon = makemon(mptr, u.ux, u.uy, MM_ADJACENTOK | MM_ANGRY);
+            if (mon && canspotmon(mon)) {
+                seen = TRUE;
+            }
+        }
+        You_hear("a horrible groaning sound.");
+        if (!Blind && seen) {
+            pline("Mummies emerge from hidden recesses!");
+        }
+        return FALSE; /* obj not destroyed */
+    }
+
     if (Luck > -13 && rn2(13 + Luck) > 7) { /* saved by luck */
         /* trap went off, but good luck prevents damage */
         switch (rn2(13)) {
