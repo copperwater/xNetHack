@@ -1412,6 +1412,13 @@ attributes_enlightenment(int unused_mode UNUSED, int final)
                 : (g.context.warntype.obj & M2_DEMON) ? "demons" : something);
         you_are(buf, from_what(WARN_OF_MON));
     }
+    if (Warn_of_mon && g.context.warntype.obj_mlet) {
+        /* Like in pager.c, this will have weird results if anything is ever
+         * added that warns of something strange like "eye or sphere". */
+        Sprintf(buf, "aware of the presence of %s",
+                makeplural(def_monsyms[g.context.warntype.obj_mlet].explain));
+        you_are(buf, from_what(WARN_OF_MON));
+    }
     if (Warn_of_mon && g.context.warntype.polyd) {
         Sprintf(buf, "aware of the presence of %s",
                 ((g.context.warntype.polyd & (M2_HUMAN | M2_ELF))

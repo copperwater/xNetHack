@@ -246,13 +246,11 @@ struct sortloot_item {
 };
 typedef struct sortloot_item Loot;
 
-/* FIXME: fix this kludge at next savebreak; see warn code in artifact.c */
 #define MATCH_WARN_OF_MON(mon)                                               \
     (Warn_of_mon                                                             \
-     && (((g.context.warntype.obj & 0x80000000) != 0                         \
-          && ((g.context.warntype.obj & 0x7FFFFFFF)                          \
-              == (unsigned int) (mon)->data->mlet))                          \
-         || (g.context.warntype.obj & (mon)->data->mflags2) != 0             \
+     && ((g.context.warntype.obj & (mon)->data->mflags2) != 0                \
+         || (g.context.warntype.obj_mlet                                     \
+             == (unsigned int) (mon)->data->mlet)                            \
          || (g.context.warntype.polyd & (mon)->data->mflags2) != 0           \
          || (g.context.warntype.species                                      \
              && (g.context.warntype.species == (mon)->data))))

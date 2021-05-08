@@ -133,3 +133,5 @@ changes:
   flag that disables generating a spider on a web. Also allow specification of
   "no_spider_on_web" in a table-form des.trap() command that passes this flag.
 - New struct monst fields mwither (byte) and mwither_from_u (bit).
+- Artifacts that warn against a monster class are properly supported with a new
+  g.context.warntype.obj_mlet field.

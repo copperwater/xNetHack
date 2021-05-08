@@ -543,21 +543,31 @@ set_artifact_intrinsic(struct obj *otmp, boolean on, long wp_mask)
     }
     if (spfx & SPFX_WARN) {
         if (spec_m2(otmp)) {
-            /* FIXME: This currently uses 0x80000000 (M2_MAGIC, which nothing
-             * currently warns of) as a mask that denotes "actually warn versus
-             * monster mlet rather than M2 flags". The proper way to do this is
-             * to add another field to context.warntype, but that requires a
-             * savebreak; so when the next savebreak happens refactor this code.
-             */
             unsigned long type = spec_m2(otmp);
-            if (spfx & SPFX_DCLAS)
-                type |= 0x80000000;
+            boolean is_mlet = !!(spfx & SPFX_DCLAS);
+            /* NOTE: the way warn_of_mon works for warning of monster letters is
+             * currently not particularly robust, and relies on the assumption
+             * that it is impossible to have warning against two different
+             * monster letters from two different artifacts at the same time.
+             * This currently works because the only artifacts that warn of a
+             * monster class (rather than an M2 flag, which should work fine for
+             * multiples) are weapons. */
             if (on) {
                 EWarn_of_mon |= wp_mask;
-                g.context.warntype.obj |= type;
+                if (is_mlet) {
+                    g.context.warntype.obj_mlet = type;
+                }
+                else {
+                    g.context.warntype.obj |= type;
+                }
             } else {
                 EWarn_of_mon &= ~wp_mask;
-                g.context.warntype.obj &= ~type;
+                if (is_mlet) {
+                    g.context.warntype.obj_mlet = 0;
+                }
+                else {
+                    g.context.warntype.obj &= ~type;
+                }
             }
             see_monsters();
         } else {
@@ -1993,7 +2003,8 @@ what_gives(long *abil)
 
     for (obj = g.invent; obj; obj = obj->nobj) {
         if (obj->oartifact
-            && (abil != &EWarn_of_mon || g.context.warntype.obj)) {
+            && (abil != &EWarn_of_mon || g.context.warntype.obj
+                || g.context.warntype.obj_mlet)) {
             const struct artifact *art = get_artifact(obj);
 
             if (art) {

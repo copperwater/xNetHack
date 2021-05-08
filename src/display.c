@@ -1268,6 +1268,7 @@ see_monsters(void)
 
     /*
      * Make Sting glow blue or stop glowing if required.
+     * Currently, only artifacts that warn against monsters with M2 flags glow.
      */
     if (new_warn_obj_cnt != g.warn_obj_cnt) {
         Sting_effects(new_warn_obj_cnt);
