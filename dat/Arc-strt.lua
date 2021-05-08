@@ -106,6 +106,11 @@ for i = 1,3 do
    des.object({ class="+", coord={bookrooms:rndcoord(1)} })
 end
 des.object({ class="/", id="secret door detection", coord={bookrooms:rndcoord(1)} })
+for i = 1,2 do
+   des.object({ id="boomerang", spe=d(2), coord={bookrooms:rndcoord(1)} })
+end
+des.object({ id="tinning kit", coord={bookrooms:rndcoord(1)} })
+des.object({ id="grappling hook", coord={bookrooms:rndcoord(1)} })
 -- Small cemetery
 des.grave(73,18, "Dr. Carter -- Died to a mummy's curse")
 des.grave(75,19, "Under NO circumstances are students to dig up this grave!")
