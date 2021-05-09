@@ -1,4 +1,4 @@
-/* NetHack 3.7	uhitm.c	$NHDT-Date: 1609442602 2020/12/31 19:23:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.292 $ */
+/* NetHack 3.7	uhitm.c	$NHDT-Date: 1617035737 2021/03/29 16:35:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.300 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -38,6 +38,30 @@ enum really_steal_returns {
     STEAL_DROPPED = 1, /* stole item but it didn't get into inventory */
     STEAL_ABORT   = 2  /* something made us stop stealing (petrification) */
 };
+
+/* multi_reason is usually a literal string; here we generate one that
+   has the causing monster's type included */
+void
+dynamic_multi_reason(struct monst *mon, const char *verb, boolean by_gaze)
+{
+    /* combination of noname_monnam() and m_monnam(), more or less;
+       accurate regardless of visibility or hallucination (only seen
+       if game ends) and without personal name (M2_PNAME excepted) */
+    char *who = x_monnam(mon, ARTICLE_A, (char *) 0,
+                         (SUPPRESS_IT | SUPPRESS_INVISIBLE
+                          | SUPPRESS_HALLUCINATION | SUPPRESS_SADDLE
+                          | SUPPRESS_NAME),
+                         FALSE),
+         *p = g.multireasonbuf;
+
+    /* prefix info for done_in_by() */
+    Sprintf(p, "%u:", mon->m_id);
+    p = eos(p);
+    Sprintf(p, "%s by %s%s", verb,
+            !by_gaze ? who : s_suffix(who),
+            !by_gaze ? "" : " gaze");
+    g.multi_reason = p;
+}
 
 void
 erode_armor(struct monst *mdef, int hurt)
@@ -1560,13 +1584,18 @@ hmon_hitmon(struct monst *mon,
     /* [note: thrown obj might go away during killed()/xkilled() call
        (via 'thrownobj'; if swallowed, it gets added to engulfer's
        minvent and might merge with a stack that's already there)] */
+    /* already_killed and poiskilled won't apply for Trollsbane */
 
     if (needpoismsg) {
         pline_The("poison doesn't seem to affect %s.", mon_nam(mon));
     }
     if (destroyed) {
-        if (!already_killed)
+        if (!already_killed) {
+            if (troll_baned(mon, obj))
+                g.mkcorpstat_norevive = TRUE;
             killed(mon); /* takes care of most messages */
+            g.mkcorpstat_norevive = FALSE;
+        }
     } else if (u.umconf && hand_to_hand) {
         nohandglow(mon);
         if (!mon->mconf && !resist(mon, SPBOOK_CLASS, 0, NOTELL)) {
@@ -2069,7 +2098,8 @@ mhitm_ad_drli(struct monst *magr, struct attack *mattk, struct monst *mdef,
 
         if (!negated && !rn2(3) && !resists_drli(mdef)
             && !item_catches_drain(mdef)) {
-            mhm->damage = d(2, 6); /* Stormbringer uses monhp_per_lvl(usually 1d8) */
+            mhm->damage = d(2, 6); /* Stormbringer uses monhp_per_lvl
+                                    * (usually 1d8) */
             pline("%s becomes weaker!", Monnam(mdef));
             if (mdef->mhpmax - mhm->damage > (int) mdef->m_lev) {
                 mdef->mhpmax -= mhm->damage;
@@ -2471,8 +2501,13 @@ mhitm_ad_sgld(struct monst *magr, struct attack *mattk, struct monst *mdef,
                 return;
             if (g.vis && canseemon(mdef)) {
                 Strcpy(buf, Monnam(magr));
-                pline("%s steals %s.", Monnam(magr),
-                      distant_name(gold, yname));
+                if (gold->otyp == GOLD_PIECE) {
+                    pline("%s steals some gold from %s.", buf, mon_nam(mdef));
+                }
+                else {
+                    pline("%s steals %s.", Monnam(magr),
+                        distant_name(gold, yname));
+                }
             }
             obj_extract_self(gold);
             add_to_minv(magr, gold);
@@ -2541,14 +2576,15 @@ mhitm_ad_tlpt(struct monst *magr, struct attack *mattk, struct monst *mdef,
                 >= (tmphp = (Upolyd ? u.mh : u.uhp))) {
                 mhm->damage = tmphp - 1;
                 if (Half_physical_damage)
-                    mhm->damage *= 2; /* doesn't actually increase damage; we only
-                               * get here if half the original damage would
-                               * would have been fatal, so double reduced
-                               * damage will be less than original damage */
+                    mhm->damage *= 2; /* doesn't actually increase damage;
+                                       * we only get here if half the
+                                       * original damage would would have
+                                       * been fatal, so double reduced
+                                       * damage will be less than original */
                 if (mhm->damage < 1) { /* implies (tmphp <= 1) */
                     mhm->damage = 1;
-                    /* this might increase current HP beyond maximum HP but
-                       it will be immediately reduced below, so that should
+                    /* this might increase current HP beyond maximum HP but it
+                       will be immediately reduced by caller, so that should
                        be indistinguishable from zero damage; we don't drop
                        damage all the way to zero because that inhibits any
                        passive counterattack if poly'd hero has one */
@@ -2587,8 +2623,11 @@ mhitm_ad_tlpt(struct monst *magr, struct attack *mattk, struct monst *mdef,
 }
 
 void
-mhitm_ad_blnd(struct monst *magr, struct attack *mattk, struct monst *mdef,
-              struct mhitm_data *mhm)
+mhitm_ad_blnd(
+    struct monst *magr,     /* attacker */
+    struct attack *mattk,   /* magr's attack */
+    struct monst *mdef,     /* defender */
+    struct mhitm_data *mhm) /* optional for monster vs monster */
 {
     if (magr == &g.youmonst) {
         /* uhitm */
@@ -2608,17 +2647,26 @@ mhitm_ad_blnd(struct monst *magr, struct attack *mattk, struct monst *mdef,
             if (!Blind)
                 pline("%s blinds you!", Monnam(magr));
             make_blinded(Blinded + (long) mhm->damage, FALSE);
-            if (!Blind)
+            if (!Blind) /* => Eyes of the Overworld */
                 Your1(vision_clears);
         }
         mhm->damage = 0;
     } else {
         /* mhitm */
         if (can_blnd(magr, mdef, mattk->aatyp, (struct obj *) 0)) {
-            register unsigned rnd_tmp;
+            char buf[BUFSZ];
+            unsigned rnd_tmp;
 
-            if (g.vis && mdef->mcansee && canspotmon(mdef))
-                pline("%s is blinded.", Monnam(mdef));
+            if (g.vis && mdef->mcansee && canspotmon(mdef)) {
+                /* feedback for becoming blinded is given if observed
+                   telepathically (canspotmon suffices) but additional
+                   info about archon's glow is only given if seen */
+                Snprintf(buf, sizeof buf, "%s is blinded", Monnam(mdef));
+                if (mdef->data == &mons[PM_ARCHON] && canseemon(mdef))
+                    Snprintf(eos(buf), sizeof buf - strlen(buf),
+                             " by %s radiance", s_suffix(mon_nam(magr)));
+                pline("%s.", buf);
+            }
             rnd_tmp = d((int) mattk->damn, (int) mattk->damd);
             if ((rnd_tmp += mdef->mblinded) > 127)
                 rnd_tmp = 127;
@@ -2626,7 +2674,8 @@ mhitm_ad_blnd(struct monst *magr, struct attack *mattk, struct monst *mdef,
             mdef->mcansee = 0;
             mdef->mstrategy &= ~STRAT_WAITFORU;
         }
-        mhm->damage = 0;
+        if (mhm)
+            mhm->damage = 0;
     }
 }
 
@@ -2894,7 +2943,7 @@ mhitm_ad_stck(struct monst *magr, struct attack *mattk, struct monst *mdef,
         boolean negated = !(rn2(10) >= 3 * armpro);
 
         if (!negated && !sticks(pd) && distu(mdef->mx, mdef->my) <= 2)
-            u.ustuck = mdef; /* it's now stuck to you */
+            set_ustuck(mdef); /* it's now stuck to you */
     } else if (mdef == &g.youmonst) {
         /* mhitu */
         int armpro = magic_negation(mdef);
@@ -3052,8 +3101,11 @@ mhitm_ad_plys(struct monst *magr, struct attack *mattk, struct monst *mdef,
                     You("are frozen by %s!", mon_nam(magr));
                 }
                 msg_given = TRUE;
+                /* set g.multi_reason;
+                   3.6.x used "paralyzed by a monster"; be more specific */
+                dynamic_multi_reason(magr, "paralyzed", FALSE);
             }
-            make_paralyzed(rnd(10), !msg_given, "paralyzed by a monster");
+            make_paralyzed(rnd(10), !msg_given, (const char *) 0);
         }
     } else {
         /* mhitm */
@@ -3326,27 +3378,27 @@ mhitm_ad_conf(struct monst *magr, struct attack *mattk, struct monst *mdef,
 }
 
 void
-mhitm_ad_poly(struct monst *magr,
-              struct attack *mattk UNUSED, /* implied */
-              struct monst *mdef,
-              struct mhitm_data *mhm)
+mhitm_ad_poly(struct monst *magr, struct attack *mattk,
+              struct monst *mdef, struct mhitm_data *mhm)
 {
     if (magr == &g.youmonst) {
         /* uhitm */
         int armpro = magic_negation(mdef);
-        /* since hero can't be cancelled, only defender's armor applies */
-        boolean negated = !(rn2(10) >= 3 * armpro);
+        /* require weaponless attack in order to honor AD_POLY;
+           since hero can't be cancelled, only defender's armor applies */
+        boolean negated = uwep || !(rn2(10) >= 3 * armpro);
 
         if (!negated && mhm->damage < mdef->mhp)
-            mhm->damage = mon_poly(magr, mdef, mhm->damage);
+            mhm->damage = mon_poly(&g.youmonst, mdef, mhm->damage);
     } else if (mdef == &g.youmonst) {
         /* mhitu */
-        int armpro = magic_negation(mdef);
+        int armpro = magic_negation(&g.youmonst);
         boolean uncancelled = !magr->mcan && (rn2(10) >= 3 * armpro);
 
+        hitmsg(magr, mattk);
         if (uncancelled
             && Maybe_Half_Phys(mhm->damage) < (Upolyd ? u.mh : u.uhp))
-            mhm->damage = mon_poly(magr, mdef, mhm->damage);
+            mhm->damage = mon_poly(magr, &g.youmonst, mhm->damage);
     } else {
         /* mhitm */
         if (!magr->mcan && mhm->damage < mdef->mhp)
@@ -3641,7 +3693,8 @@ mhitm_ad_phys(struct monst *magr, struct attack *mattk, struct monst *mdef,
                    || mattk->aatyp == AT_TUCH
                    || mattk->aatyp == AT_HUGS) {
             if (thick_skinned(pd))
-                mhm->damage = (mattk->aatyp == AT_KICK) ? 0 : (mhm->damage + 1) / 2;
+                mhm->damage = (mattk->aatyp == AT_KICK) ? 0
+                              : (mhm->damage + 1) / 2;
             /* add ring(s) of increase damage */
             if (u.udaminc > 0) {
                 /* applies even if damage was 0 */
@@ -3808,7 +3861,8 @@ mhitm_ad_phys(struct monst *magr, struct attack *mattk, struct monst *mdef,
                    damage; however, it might cause carried items to be
                    destroyed and they might do so */
                 if (DEADMONSTER(mdef)) {
-                    mhm->hitflags = (MM_DEF_DIED | (grow_up(magr, mdef) ? 0 : MM_AGR_DIED));
+                    mhm->hitflags = (MM_DEF_DIED | (grow_up(magr, mdef) ? 0
+                                                    : MM_AGR_DIED));
                     mhm->done = TRUE;
                     return;
                 }
@@ -4295,7 +4349,7 @@ mhitm_ad_sedu(struct monst *magr, struct attack *mattk, struct monst *mdef,
         /* find an object to steal, non-cursed if magr is tame */
         for (obj = mdef->minvent; obj; obj = obj->nobj)
             if (!magr->mtame || !obj->cursed)
-                return;
+                break;
 
         if (obj) {
             char buf[BUFSZ];
@@ -4314,8 +4368,8 @@ mhitm_ad_sedu(struct monst *magr, struct attack *mattk, struct monst *mdef,
             if (g.vis)
                 Strcpy(onambuf, doname(obj));
             (void) add_to_minv(magr, obj);
+            Strcpy(buf, Monnam(magr));
             if (g.vis && canseemon(mdef)) {
-                Strcpy(buf, Monnam(magr));
                 pline("%s steals %s from %s!", buf, onambuf, mdefnambuf);
             }
             possibly_unwield(mdef, FALSE);
@@ -4426,10 +4480,13 @@ mhitm_adtyping(struct monst *magr, struct attack *mattk, struct monst *mdef,
 }
 
 int
-damageum(struct monst *mdef, struct attack *mattk,
-         int specialdmg) /* blessed and/or silver bonus against various things */
+damageum(
+    struct monst *mdef,   /* target */
+    struct attack *mattk, /* hero's attack */
+    int specialdmg) /* blessed and/or silver bonus against various things */
 {
     struct mhitm_data mhm;
+
     mhm.damage = d((int) mattk->damn, (int) mattk->damd);
     mhm.hitflags = MM_MISS;
     mhm.permdmg = 0;
@@ -4449,16 +4506,25 @@ damageum(struct monst *mdef, struct attack *mattk,
     mdef->mstrategy &= ~STRAT_WAITFORU; /* in case player is very fast */
     mdef->mhp -= mhm.damage;
     if (DEADMONSTER(mdef)) {
+        /* troll killed by Trollsbane won't auto-revive; FIXME? same when
+           Trollsbane is wielded as primary and two-weaponing kills with
+           secondary, which matches monster vs monster behavior but is
+           different from the non-poly'd hero vs monster behavior */
+        if (mattk->aatyp == AT_WEAP || mattk->aatyp == AT_CLAW)
+            g.mkcorpstat_norevive = troll_baned(mdef, uwep) ? TRUE : FALSE;
+        /* (DEADMONSTER(mdef) and !mhm.damage => already killed) */
         if (mdef->mtame && !cansee(mdef->mx, mdef->my)) {
             You_feel("embarrassed for a moment.");
             if (mhm.damage)
-                xkilled(mdef, XKILL_NOMSG); /* !mhm.damage but hp<1: already killed */
+                xkilled(mdef, XKILL_NOMSG);
         } else if (!flags.verbose) {
             You("destroy it!");
             if (mhm.damage)
                 xkilled(mdef, XKILL_NOMSG);
-        } else if (mhm.damage)
-            killed(mdef);
+        } else if (mhm.damage) {
+            killed(mdef); /* regular "you kill <mdef>" message */
+        }
+        g.mkcorpstat_norevive = FALSE;
         return MM_DEF_DIED;
     }
     return MM_HIT;
@@ -4504,6 +4570,7 @@ explum(struct monst *mdef, struct attack *mattk)
     default:
         break;
     }
+    wake_nearto(u.ux, u.uy, 7 * 7); /* same radius as exploding monster */
     return MM_HIT;
 }
 
@@ -4768,7 +4835,8 @@ hmonas(struct monst *mon)
     struct attack *mattk, alt_attk;
     struct obj *weapon, **originalweapon;
     boolean altwep = FALSE, weapon_used = FALSE;
-    int i, tmp, armorpenalty, sum[NATTK], nsum = MM_MISS, dhit = 0, attknum = 0;
+    int i, tmp, armorpenalty, sum[NATTK], nsum = MM_MISS,
+        dhit = 0, attknum = 0;
     int dieroll;
 
     g.skipdrin = FALSE; /* [see mattackm(mhitm.c)] */
@@ -4787,7 +4855,8 @@ hmonas(struct monst *mon)
                get to make another weapon attack (note:  monsters who
                use weapons do not have this restriction, but they also
                never have the opportunity to use two weapons) */
-            if (weapon_used && (sum[i - 1] > MM_MISS) && uwep && bimanual(uwep))
+            if (weapon_used && (sum[i - 1] > MM_MISS)
+                && uwep && bimanual(uwep))
                 continue;
             /* Certain monsters don't use weapons when encountered as enemies,
              * but players who polymorph into them have hands or claws and
@@ -5021,7 +5090,8 @@ hmonas(struct monst *mon)
                 if (hated_obj && flags.verbose)
                     searmsg(&g.youmonst, mon, hated_obj, FALSE);
                 sum[i] = damageum(mon, mattk, specialdmg);
-            } else if (i >= 2 && (sum[i - 1] > MM_MISS) && (sum[i - 2] > MM_MISS)) {
+            } else if (i >= 2 && (sum[i - 1] > MM_MISS)
+                       && (sum[i - 2] > MM_MISS)) {
                 /* in case we're hugging a new target while already
                    holding something else; yields feedback
                    "<u.ustuck> is no longer in your clutches" */
@@ -5099,7 +5169,8 @@ hmonas(struct monst *mon)
             (void) passive(mon, weapon, 1, 0, mattk->aatyp, FALSE);
             nsum = MM_MISS; /* return value below used to be 'nsum > 0' */
         } else {
-            (void) passive(mon, weapon, (sum[i] != MM_MISS), 1, mattk->aatyp, FALSE);
+            (void) passive(mon, weapon, (sum[i] != MM_MISS), 1,
+                           mattk->aatyp, FALSE);
             nsum |= sum[i];
         }
 
@@ -5122,6 +5193,8 @@ hmonas(struct monst *mon)
         if (g.multi < 0)
             break; /* If paralyzed while attacking, i.e. floating eye */
     }
+
+    g.vis = FALSE; /* reset */
     /* return value isn't used, but make it match hitum()'s */
     return !DEADMONSTER(mon);
 }
@@ -5294,8 +5367,8 @@ passive(struct monst *mon,
                             s_suffix(mon_nam(mon)));
                     } else {
                         You("are frozen by %s gaze!", s_suffix(mon_nam(mon)));
-                        make_paralyzed(tmp, FALSE,
-                                       "frozen by a monster's gaze");
+                        dynamic_multi_reason(mon, "frozen", TRUE);
+                        make_paralyzed(tmp, FALSE, (const char *) 0);
                     }
                 } else {
                     pline("%s cannot defend itself.",
@@ -5307,7 +5380,8 @@ passive(struct monst *mon,
                 if (!Free_action) {
                     You("are frozen by %s!", mon_nam(mon));
                 }
-                make_paralyzed(tmp, FALSE, "frozen by a monster");
+                dynamic_multi_reason(mon, "frozen", FALSE);
+                make_paralyzed(tmp, FALSE, (const char *) 0);
             }
             break;
         case AD_COLD: /* brown mold or blue jelly */

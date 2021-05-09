@@ -1,4 +1,4 @@
-/* NetHack 3.7	do_name.c	$NHDT-Date: 1608749030 2020/12/23 18:43:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.186 $ */
+/* NetHack 3.7	do_name.c	$NHDT-Date: 1614818323 2021/03/04 00:38:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.198 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2132,13 +2132,15 @@ minimal_monnam(struct monst *mon, boolean ckloc)
     } else if (ckloc && ptr == &mons[PM_LONG_WORM]
                && g.level.monsters[mon->mx][mon->my] != mon) {
         Sprintf(outbuf, "%s <%d,%d>",
-                pmname(&mons[PM_LONG_WORM_TAIL], Mgender(mon)), mon->mx, mon->my);
+                pmname(&mons[PM_LONG_WORM_TAIL], Mgender(mon)),
+                mon->mx, mon->my);
     } else {
         Sprintf(outbuf, "%s%s <%d,%d>",
                 mon->mtame ? "tame " : mon->mpeaceful ? "peaceful " : "",
                 pmname(mon->data, Mgender(mon)), mon->mx, mon->my);
         if (mon->cham != NON_PM)
-            Sprintf(eos(outbuf), "{%s}", pmname(&mons[mon->cham], Mgender(mon)));
+            Sprintf(eos(outbuf), "{%s}",
+                    pmname(&mons[mon->cham], Mgender(mon)));
     }
     return outbuf;
 }
@@ -2412,14 +2414,22 @@ noveltitle(int *novidx)
     return sir_Terry_novels[j];
 }
 
+/* figure out canonical novel title from player-specified one */
 const char *
 lookup_novel(const char *lookname, int *idx)
 {
     int k;
 
-    /* Take American or U.K. spelling of this one */
+    /*
+     * Accept variant spellings:
+     * _The_Colour_of_Magic_ uses British spelling, and American
+     * editions keep that, but we also recognize American spelling;
+     * _Sourcery_ is a joke rather than British spelling of "sorcery".
+     */
     if (!strcmpi(The(lookname), "The Color of Magic"))
         lookname = sir_Terry_novels[0];
+    else if (!strcmpi(lookname, "Sorcery"))
+        lookname = "Sourcery"; /* [4] */
 
     for (k = 0; k < SIZE(sir_Terry_novels); ++k) {
         if (!strcmpi(lookname, sir_Terry_novels[k])

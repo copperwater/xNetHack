@@ -1,4 +1,4 @@
-# NetHack 3.7  tribute       $NHDT-Date: 1614206487 2021/02/24 22:41:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.94 $
+# NetHack 3.7  tribute       $NHDT-Date: 1620076692 2021/05/03 21:18:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.99 $
 # Copyright (c) 2017 by Robert Patrick Rankin
 # NetHack may be freely redistributed.  See license for details.
 # A tribute introduced in NetHack 3.6.0 to:
@@ -1064,7 +1064,7 @@ The bursar scowled at him.  "No need to get carried away," he said.
 #
 #
 #
-%title Sourcery (10)
+%title Sourcery (11)
 # p. 9 (Signet edition; passage starts mid-paragraph and ends mid-paragraph)
 %passage 1
 "[...]  And what would humans be without love?"
@@ -1073,6 +1073,7 @@ RARE, said Death.  [...]
 
   [Sourcery, by Terry Pratchett]
 %e passage
+# p. 180 (passage starts mid-paragraph)
 %passage 2
 They suffered from the terrible delusion that something could be done.
 They seemed prepared to make the world the way they wanted it or die in the
@@ -1258,6 +1259,24 @@ themselves.
 They are not necessarily very good at it.
 
 (1) He always argued that he was.
+
+  [Sourcery, by Terry Pratchett]
+%e passage
+# additional passage added for 3.7.0
+# p. 164 (passage begins mid-sentence)
+%passage 11
+[...] killing a brother wizard with magic was well-nigh impossible on
+account of the layers of protective spells that any cautious wizard
+maintained about his person at all times.(1)  The first thing a young
+wizard learns at Unseen University--apart from where his peg is, and
+which way to the lavatory--is that he must protect himself at all times.
+
+Some people think this is paranoia, but it isn't.  Paranoids only think
+everyone is out to get them.  Wizards /know/ it.
+
+(1) Of course, wizards often killed one another by ordinary, non-magical
+means, but this was perfectly allowable and death by assassination was
+considered natural causes for a wizard.
 
   [Sourcery, by Terry Pratchett]
 %e passage
@@ -2186,7 +2205,9 @@ so far was the ability to turn gold into less gold.
 
   [Moving Pictures, by Terry Pratchett]
 %e passage
-# pp. 44, 45, 46 (multiple paragraphs skipped in the first two gaps)
+# pp. 44, 45, 46 (multiple paragraphs skipped in the first two gaps;
+#                 the dog is Gaspode, who can talk but conceals that from
+#                 almost everybody; his use of 'bin' for 'been' is accurate)
 %passage 3
 He looked down.  There was a dog sitting by his feet.
 
@@ -2330,7 +2351,7 @@ nearest salad growing district was thirty slow miles away.
 
 Fruntkin the short-order chef hazarded a guess.
 
-'Celery?" he said.  He peered closer.  "Yeah, celery."
+"Celery?" he said.  He peered closer.  "Yeah, celery."
 
 "It /brown/."
 
@@ -2398,7 +2419,8 @@ All over the entire room, sometimes.
 
   [Moving Pictures, by Terry Pratchett]
 %e passage
-# p. 204 (passage ends mid-paragraph; musings are by Gaspode the dog)
+# p. 204 (passage ends mid-paragraph; musings are by Gaspode the dog;
+#         'sunnink', 'fings', 'wot' are accurate, as is 'finds' for 'find')
 %passage 13
 Sunnink dreadful in there, he thought.  Prob'ly tentacled fings that rips
 your face off.  I mean, when you finds mysterious doors in old hills, it
@@ -2421,7 +2443,7 @@ megalomaniac!"
 
 Dibbler removed his cigar.
 
-"That's /Mister/ Megalomanic to you," he said.
+"That's /Mister/ Megalomaniac to you," he said.
 
   [Moving Pictures, by Terry Pratchett]
 %e passage
@@ -2439,6 +2461,37 @@ Dibbler removed his cigar.
 
   [Moving Pictures, by Terry Pratchett]
 %e passage
+#
+# New for 3.7 - these are worthy but 16 passages are already more than enough.
+#-#
+#-# p. 304
+#-%passage 17
+#-"Did I hear things, or can that little dog speak?" said Dibbler.
+#-
+#-"He says he can't," said Victor.
+#-
+#-Dibbler hesitated.  The excitement was unhinging him a little.  "Well," he
+#-said, "I suppose he should know."
+#-
+#-  [Moving Pictures, by Terry Pratchett]
+#-%e passage
+#-# p. 329 (two farmers have just watched a pair of wizards incompetently
+#-#         flying together on a broom crash into a barn containing harvested
+#-#         cabbages; one of them had predicted, accurately as it turned out,
+#-#         that the flyers would crash out the far side accompanied by
+#-#         scattering chickens and a shower of feathers; 'believer' had
+#-#         scoffed at the prediction because there were no chickens inside;
+#-#         they've just looked inside and confirmed the lack of any poultry)
+#-%passage 18
+#-The farmers crept away.
+#-
+#-"Dang me," said the believer in cabbages.  "They're wizards.  Best not to
+#-meddle in the affairs of danged wizards."
+#-
+#-"Yeah," said the other farmer.  "Er... what does dang mean?  Exactly?"
+#-
+#-  [Moving Pictures, by Terry Pratchett]
+#-%e passage
 %e title
 #
 #
@@ -2931,15 +2984,22 @@ The witches watched with interest.
 #
 #
 #
-%title Small Gods (12)
+%title Small Gods (15)
+# p. 174 (Harper Torch edition; passage starts mid-paragraph; speaker is
+#         the blind philosopher Didactylos referring to a book in scroll
+#         form called /On Religion/ by another philosopher, Abraxas;
+#         Didactylos mentions that Old 'Charcoal' Abraxas had been hit by
+#         lightning 15 times)
 %passage 1
-He says gods like to see an atheist around.  Gives them something to aim at.
+"[...]  He says gods like to see an atheist around.  Gives them something
+to aim at."
 
   [Small Gods, by Terry Pratchett]
 %e passage
+# p. 79 (passage starts mid-paragraph; speaker is Cut-Me-Own-Hand-Off Dhblah)
 %passage 2
-Pets are always a great help in times of stress.  And in times of starvation
-too, o'course.
+[...]  "Pets are always a great help in times of stress.  And in times of
+starvation too, o'course."
 
   [Small Gods, by Terry Pratchett]
 %e passage
@@ -3138,11 +3198,40 @@ But, on the whole, there are worse places to be buried than inside a lion.
 
   [Small Gods, by Terry Pratchett]
 %e passage
+#
+# 3 more passages added for 3.7
+#
+# p. 7 (Brother Nhumrod is in charge of a group of novices; he's thinking
+#       about one of them, Brutha, the main character of the story)
+%passage 13
+There was something creepy about the boy, Nhumrod thought.  It was the way
+he looked at you when you were talking, as if he was /listening/.
+
+  [Small Gods, by Terry Pratchett]
+%e passage
+# p. 11 (musing by the Great God Om)
+%passage 14
+The trouble with being a god is that you've got no one to pray to.
+
+  [Small Gods, by Terry Pratchett]
+%e passage
+# p. 210 (speaker is Didactylos the Ephebian philosopher)
+%passage 15
+"Life in this world," he said, "is, as it were, a sojourn in a cave.  What
+can we know of reality?  For all we see of the true nature of existence
+is, shall we say, no more than bewildering and amusing shadows cast upon
+the inner wall of the cave by the unseen blinding light of absolute truth,
+from which we may or may not deduce some glimmer of veracity, and we as
+troglodyte seekers of wisdom can only lift our voices to the unseen and
+say, humbly, 'Go on, do Deformed Rabbit... it's my favorite.'"
+
+  [Small Gods, by Terry Pratchett]
+%e passage
 %e title
 #
 #
 #
-%title Lords and Ladies (12)
+%title Lords and Ladies (13)
 # p. 122 (Harper Torch edition)
 %passage 1
 Elves are wonderful.  They provoke wonder.
@@ -3162,7 +3251,7 @@ Elves are bad.
 
   [Lords and Ladies, by Terry Pratchett]
 %e passage
-# p. 32
+# p. 32 (Magrat has given up being a witch to marry Verence II, Lancre's king)
 %passage 2
 "Hope she does all right as queen," said Nanny.
 
@@ -3273,7 +3362,7 @@ Younger witches, on the other hand, talk about it all the time and believe
 it involves crystals, mystic forces, and dancing about without yer drawers
 on.
 
-Everyone may to right, all at the same time.  That's the thing about
+Everyone may be right, all at the same time.  That's the thing about
 quantum.
 
   [Lords and Ladies, by Terry Pratchett]
@@ -3371,13 +3460,35 @@ kingdom.
 
   [Lords and Ladies, by Terry Pratchett]
 %e passage
+#
+# passage added for 3.7
+# p. 60 (passage starts mid-paragraph; "paddlin'" is accurate but unclear;
+#        "ooh-jar" is accurate for ouija after having been butchered by
+#        Nanny Ogg's previously established 'mastery' of foreign languages)
+%passage 13
+"[...]  Playing at witches.  You know, ooh-jar boards and cards and wearing
+black lace gloves with no fingers to 'em and paddlin' with the occult."
+
+"I don't hold with paddlin' with the occult," said Granny firmly.  "Once
+you start paddlin' with the occult you start believing in spirits, and
+when you start believing in spirits you start believing in demons, and then
+before you know where you are you're believing in gods.  And then you're
+in /trouble/."
+
+"But all them things exist," said Nanny Ogg.
+
+"That's no call to go around believing in them.  It only encourages 'em."
+
+  [Lords and Ladies, by Terry Pratchett]
+%e passage
 %e title
 #
 #
 #
 %title Men at Arms (14)
+# p. 72 (Harper Torch edition)
 %passage 1
-The maze was so small that people got lost looking for it.
+The maze was so small that people got lost looking /for/ it.
 
   [Men at Arms, by Terry Pratchett]
 %e passage
@@ -3385,11 +3496,11 @@ The maze was so small that people got lost looking for it.
 %passage 2
 Ankh-Morpork had a king again.
 
-And this was /right/.  And it was /fate/ that let Edward recognize this
+And this was /right/.  And it was /fate/ that had let Edward recognize this
 /just/ when he'd got his Plan.  And it was /right/ that it was /Fate/,
 and the city would be /Saved/ from its ignoble present by its /glorius/
-past.  He had the /Means/, and he had the /end/.  And so on ...
-Edward's thoughts often ran like this.
+past.  He had the /Means/, and he had the /end/.  And so on ...  Edward's
+thoughts often ran like this.
 
 He could think in /italics/.  Such people need watching.
 
@@ -5008,8 +5119,8 @@ Patrician up the ladder.
 called it the Going-Under-the-Water-Safely Device," said Leonard, behind
 him.(1)  "But usually I just think of it as the boat."
 
-(1) Thinking up good names was, oddly enough, was one area where Leonard
-of Quirm's genious tended to give up.
+(1) Thinking up good names was, oddly enough, one area where Leonard of
+Quirm's genius tended to give up.
 
   [Jingo, by Terry Pratchett]
 %e passage
@@ -5921,6 +6032,12 @@ betray 'em, quick as a wink.  'Cos that's villaining.'
 # libraries.  In the UK, _The_Amazing_Maurice..._ won the Carnegie Medal
 # which is awarded for best children's book of the year.
 # (The other Young Adult Discworld books are the five Tiffany Aching ones.)
+#
+# "Mr so-called Amazing Maurice and His Educated Rodents!" (the characters
+# rather than the book named for them) were first mentioned--in passing
+# rather than part of the story--about 1/3 of the way through _Reaper_Man_.
+# (p. 115, ROC edition; the text there does capitalize 'His'; 'Mr' without
+# period is accurate; the exclamation is derogatory).
 #
 # _The_Amazing_Maurice..._ may well be the most serious Discworld book.
 # (Don't worry, it has lots of humor/humour in it....)

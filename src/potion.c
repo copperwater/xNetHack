@@ -905,10 +905,13 @@ peffects(struct obj *otmp)
                         g.potion_unkn = 0;
                 }
             }
-            see_monsters();
-            if (g.potion_unkn)
-                You_feel("lonely.");
-            break;
+            /* if swallowed or underwater, fall through to uncursed case */
+            if (!u.uswallow && !Underwater) {
+                see_monsters();
+                if (g.potion_unkn)
+                    You_feel("lonely.");
+                break;
+            }
         }
         if (monster_detect(otmp, 0))
             return 1; /* nothing detected */
@@ -1347,12 +1350,13 @@ bottlename(void)
 
 /* handle item dipped into water potion or steed saddle splashed by same */
 static boolean
-H2Opotion_dip(struct obj *potion, struct obj *targobj,
-              boolean useeit,
-              const char *objphrase) /* "Your widget glows" or "Steed's saddle
-                                        glows" */
+H2Opotion_dip(struct obj *potion,    /* water */
+              struct obj *targobj,   /* item being dipped into the water */
+              boolean useeit,        /* will hero see the glow/aura? */
+              const char *objphrase) /* "Your widget glows" or
+                                      * "Steed's saddle glows" */
 {
-    void (*func)(OBJ_P) = 0;
+    void (*func)(struct obj *) = 0;
     const char *glowcolor = 0;
 #define COST_alter (-2)
 #define COST_none (-1)

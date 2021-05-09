@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkobj.c	$NHDT-Date: 1606343579 2020/11/25 22:32:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.191 $ */
+/* NetHack 3.7	mkobj.c	$NHDT-Date: 1619919403 2021/05/02 01:36:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.198 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1221,7 +1221,7 @@ mksobj(int otyp, boolean init, boolean artif)
 
 /*
  * Several areas of the code made direct reassignments
- * to obj->corpsenm. Because some special handling is
+ * to obj->corpsenm.  Because some special handling is
  * required in certain cases, place that handling here
  * and call this routine in place of the direct assignment.
  *
@@ -1240,18 +1240,35 @@ mksobj(int otyp, boolean init, boolean artif)
  *
  */
 void
-set_corpsenm(struct obj* obj, int id)
+set_corpsenm(struct obj *obj, int id)
 {
+    int old_id = obj->corpsenm;
     long when = 0L;
 
     if (obj->timed) {
-        if (obj->otyp == EGG)
+        if (obj->otyp == EGG) {
             when = stop_timer(HATCH_EGG, obj_to_any(obj));
-        else {
+        } else {
             when = 0L;
             obj_stop_timers(obj); /* corpse or figurine */
         }
     }
+    /* oeaten is used to determine how much nutrition is left in
+       multiple-bite food and also used to derive how many hit points
+       a creature resurrected from a partly eaten corpse gets; latter
+       is of interest when a <foo> corpse revives as a <foo> zombie
+       in case they are defined with different mons[].cnutrit values */
+    if (obj->otyp == CORPSE && obj->oeaten != 0
+        /* when oeaten is non-zero, index old_id can't be NON_PM
+           and divisor mons[old_id].cnutrit can't be zero */
+        && mons[old_id].cnutrit != mons[id].cnutrit) {
+        /* oeaten and cnutrit are unsigned; theoretically that could
+           be 16 bits and the calculation might overflow, so force long */
+        obj->oeaten = (unsigned) ((long) obj->oeaten
+                                  * (long) mons[id].cnutrit
+                                  / (long) mons[old_id].cnutrit);
+    }
+
     obj->corpsenm = id;
     switch (obj->otyp) {
     case CORPSE:
@@ -1297,34 +1314,33 @@ void
 start_corpse_timeout(struct obj* body)
 {
     long when;       /* rot away when this old */
-    long corpse_age; /* age of corpse          */
+    long age;        /* age of corpse          */
     int rot_adjust;
     short action;
-    boolean no_revival;
 
-    /* if a troll corpse was frozen, it won't get a revive timer */
-    no_revival = (body->norevive != 0);
-    body->norevive = 0; /* always clear corpse's 'frozen' flag */
+    /*
+     * Note:
+     *      if body->norevive is set, the corpse will rot away instead
+     *      of revive when its REVIVE_MON timer finishes.
+     */
 
     /* lizards and lichen don't rot or revive */
     if (body->corpsenm == PM_LIZARD || body->corpsenm == PM_LICHEN)
         return;
 
-    action = ROT_CORPSE;             /* default action: rot away */
+    action = ROT_CORPSE;               /* default action: rot away */
     rot_adjust = g.in_mklev ? 25 : 10; /* give some variation */
-    corpse_age = g.monstermoves - body->age;
-    if (corpse_age > ROT_AGE)
+    age = g.monstermoves - body->age;
+    if (age > ROT_AGE)
         when = rot_adjust;
     else
-        when = ROT_AGE - corpse_age;
+        when = ROT_AGE - age;
     when += (long) (rnz(rot_adjust) - rot_adjust);
 
     if (is_rider(&mons[body->corpsenm])) {
         action = REVIVE_MON;
         when = rider_revival_time(body, FALSE);
-    } else if (mons[body->corpsenm].mlet == S_TROLL && !no_revival) {
-        long age;
-
+    } else if (mons[body->corpsenm].mlet == S_TROLL) {
         for (age = 2; age <= TAINT_AGE; age++) {
             if (!rn2(TROLL_REVIVE_CHANCE)) { /* troll revives */
                 action = REVIVE_MON;
@@ -1332,15 +1348,14 @@ start_corpse_timeout(struct obj* body)
                 break;
             }
         }
-    } else if (!no_revival && g.zombify
-               && zombie_form(&mons[body->corpsenm]) != NON_PM) {
+    } else if (g.zombify && zombie_form(&mons[body->corpsenm]) != NON_PM
+               && !body->zombie_corpse && !body->norevive) {
         action = ZOMBIFY_MON;
-        when = 5 + rn2(15);
+        when = rn1(15, 5); /* 5..19 */
         if (g.zombify == ZOMBIFY_TAME) {
             body->tamed_zombie = 1;
         }
-    } else if (body->zombie_corpse && !no_revival) {
-        long age;
+    } else if (body->zombie_corpse && !body->norevive) {
         for (age = 2; age <= ROT_AGE; age++) {
             if (!rn2(ZOMBIE_REVIVE_CHANCE)) { /* zombie revives */
                 action = REVIVE_MON;
@@ -1354,7 +1369,6 @@ start_corpse_timeout(struct obj* body)
      * corpses just never grow mold. */
     if (action == ROT_CORPSE) {
         /* Corpses get moldy. */
-        long age;
         for (age = TAINT_AGE + 1; age <= ROT_AGE; age++) {
             if (!rn2(MOLDY_CHANCE)) {    /* "revives" as a random s_fungus */
                 action = MOLDY_CORPSE;
@@ -1775,10 +1789,10 @@ mkgold(long amount, int x, int y)
  */
 struct obj *
 mkcorpstat(
-    int objtype, /* CORPSE or STATUE */
-    struct monst *mtmp,
-    struct permonst *ptr,
-    int x, int y,
+    int objtype,          /* CORPSE or STATUE */
+    struct monst *mtmp,   /* dead monster, might be Null */
+    struct permonst *ptr, /* if non-Null, overrides mtmp->mndx */
+    int x, int y,         /* where to place corpse; <0,0> => random */
     unsigned corpstatflags)
 {
     struct obj *otmp;
@@ -1792,6 +1806,7 @@ mkcorpstat(
     } else {
         otmp = mksobj_at(objtype, x, y, init, FALSE);
     }
+    otmp->norevive = g.mkcorpstat_norevive;
 
     if ((corpstatflags & CORPSTAT_ZOMBIE) != 0) {
         otmp->zombie_corpse = 1;
@@ -1947,10 +1962,15 @@ mk_tt_object(
     /* player statues never contain books */
     initialize_it = (objtype != STATUE);
     otmp = mksobj_at(objtype, x, y, initialize_it, FALSE);
-    /* tt_oname() will return null if the scoreboard is empty;
-       assigning an object name used to allocate a new obj but
-       doesn't any more so we can safely ignore the return value */
-    (void) tt_oname(otmp);
+
+    /* tt_oname() will return null if the scoreboard is empty, which in
+       turn leaves the random corpsenm value; force it to match a player */
+    if (!tt_oname(otmp)) {
+        int pm = rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST);
+
+        /* update weight for either, force timer sanity for corpses */
+        set_corpsenm(otmp, pm);
+    }
 
     return otmp;
 }

@@ -1543,8 +1543,8 @@ dogaze(void)
                         You("are frozen by %s gaze!",
                             s_suffix(mon_nam(mtmp)));
 
-                        make_paralyzed(time, FALSE,
-                                       "frozen by a monster's gaze");
+                        dynamic_multi_reason(mtmp, "frozen", TRUE);
+                        make_paralyzed(time, FALSE, (const char *) 0);
                     }
                 }
                 /* Technically this one shouldn't affect you at all because

@@ -78,7 +78,7 @@ CFLAGS+=-O0 # don't optimize out anything
 CFLAGS+=-g  # -g3 will include highest level of debug symbols (macros) but this slows it down too much
 CFLAGS+=-Wformat=2 # -Wformat=2 includes format-nonliteral, which NetHack liberally violates;
                    # however we still want these warnings outside DISABLE_WARNING_FORMAT_NONLITERAL blocks
-CFLAGS+=-Werror # warnings are Serious Business
+#CFLAGS+=-Werror # warnings are Serious Business # disabled because of vanilla warnings...
 CFLAGS+=-Wimplicit-fallthrough=2 # 3 usually ok, but nice to enforce /* else FALLTHRU */
 CFLAGS+=-Warray-bounds=2 # extra checking for struct / pointer access to arrays
 CFLAGS+=-DDUMPHTML # html dumplogs support

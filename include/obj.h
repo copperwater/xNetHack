@@ -295,9 +295,8 @@ struct obj {
     (/* (Is_container(o) || (o)->otyp == STATUE) && */ \
      (o)->cobj != (struct obj *) 0)
 #define Is_container(o) ((o)->otyp >= LARGE_BOX && (o)->otyp <= BAG_OF_TRICKS)
-#define Is_box(otmp) (otmp->otyp == LARGE_BOX || otmp->otyp == CHEST)
-#define Is_mbag(otmp) \
-    (otmp->otyp == BAG_OF_HOLDING || otmp->otyp == BAG_OF_TRICKS)
+#define Is_box(o) ((o)->otyp == LARGE_BOX || (o)->otyp == CHEST)
+#define Is_mbag(o) ((o)->otyp == BAG_OF_HOLDING || (o)->otyp == BAG_OF_TRICKS)
 #define SchroedingersBox(o) ((o)->otyp == LARGE_BOX && (o)->spe == 1)
 #define Is_mummychest(o) ((o)->otyp == CHEST && (o)->spe == 3)
 
@@ -308,6 +307,13 @@ struct obj {
 #define LAST_DRAGON         PM_YELLOW_DRAGON
 #define FIRST_DRAGON_SCALES GRAY_DRAGON_SCALES
 #define LAST_DRAGON_SCALES  YELLOW_DRAGON_SCALES
+
+/* usually waterproof; random chance to be subjected to leakage if cursed;
+   excludes statues, which aren't vulernable to water even when cursed */
+#define Waterproof_container(o) \
+    ((o)->otyp == OILSKIN_SACK || (o)->otyp == ICE_BOX || Is_box(o))
+
+/* dragon gear */
 #define Is_dragon_scales(obj) \
     ((obj)->otyp >= FIRST_DRAGON_SCALES && (obj)->otyp <= LAST_DRAGON_SCALES)
 /* Note: dragonscales is corpsenm, and corpsenm is usually initialized to

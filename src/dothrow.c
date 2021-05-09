@@ -20,6 +20,14 @@ static void sho_obj_return_to_u(struct obj * obj);
 static boolean mhurtle_step(genericptr_t, int, int);
 static boolean autoreturning_wep(struct obj *, struct monst *);
 
+/* uwep might already be removed from inventory so test for W_WEP instead;
+   for Valk+Mjollnir, caller needs to validate the strength requirement */
+#define AutoReturn(o,wmsk) \
+    ((((wmsk) & W_WEP) != 0                                             \
+      && ((o)->otyp == AKLYS                                            \
+          || ((o)->oartifact == ART_MJOLLNIR && Role_if(PM_VALKYRIE)))) \
+     || (o)->otyp == BOOMERANG)
+
 /* g.thrownobj (decl.c) tracks an object until it lands */
 
 int
@@ -102,8 +110,9 @@ throw_obj(struct obj *obj, int shotlimit)
     if (obj->oclass == COIN_CLASS && obj != uquiver)
         return throw_gold(obj);
 
-    if (!canletgo(obj, "throw"))
+    if (!canletgo(obj, "throw")) {
         return 0;
+    }
     if (obj->oartifact == ART_MJOLLNIR && obj != uwep) {
         pline("%s must be wielded before it can be thrown.", The(xname(obj)));
         return 0;
@@ -279,21 +288,23 @@ throw_ok(struct obj *obj)
     if (!obj)
         return GETOBJ_EXCLUDE;
 
+    if (obj->bknown && welded(obj)) /* not a candidate if known to be stuck */
+        return GETOBJ_DOWNPLAY;
+
     if (obj == uwep && autoreturning_wep(uwep, &g.youmonst))
+        /* to get here, obj is boomerang or is uwep and (alkys or Mjollnir) */
         return GETOBJ_SUGGEST;
 
     if (obj->quan == 1 && (obj == uwep || (obj == uswapwep && u.twoweap)))
         return GETOBJ_DOWNPLAY;
-    /* Possible extension: return GETOBJ_SUGGEST for uwep if it will return when
-     * thrown. */
 
     if (obj->oclass == COIN_CLASS)
         return GETOBJ_SUGGEST;
 
     if (!uslinging() && obj->oclass == WEAPON_CLASS)
         return GETOBJ_SUGGEST;
-    /* Possible extension: exclude weapons that make no sense to throw, such as
-     * whips, bows, slings, rubber hoses. */
+    /* Possible extension: exclude weapons that make no sense to throw,
+       such as whips, bows, slings, rubber hoses. */
 
     if (uslinging() && obj->oclass == GEM_CLASS)
         return GETOBJ_SUGGEST;
@@ -407,16 +418,14 @@ dofire(void)
      * of asking what to throw/shoot.
      *
      * If quiver is empty, we use autoquiver to fill it when the
-     * corresponding option is on.  If the option is off or if
-     * autoquiver doesn't select anything, we ask what to throw.
+     * corresponding option is on.  If the option is off and hero
+     * is wielding a thrown-and-return weapon, use the wielded
+     * weapon.  If option is off and not wielding such a weapon or
+     * if autoquiver doesn't select anything, we ask what to throw.
      * Then we put the chosen item into the quiver slot unless
      * it is already in another slot.  [Matters most if it is a
      * stack but also matters for single item if this throw gets
-     * aborted (ESC at the direction prompt).  Already wielded
-     * item is excluded because wielding might be necessary
-     * (Mjollnir) or make the throw behave differently (aklys),
-     * and alt-wielded item is excluded because switching slots
-     * would end two-weapon combat even if throw gets aborted.]
+     * aborted (ESC at the direction prompt).]
      */
     if (!ok_to_throw(&shotlimit))
         return 0;
@@ -426,9 +435,10 @@ dofire(void)
          * that if we don't find anything else to throw via autoquivering. */
         boolean returnwep = (uwep && autoreturning_wep(uwep, &g.youmonst));
         if (!flags.autoquiver) {
-            if (!returnwep) {
+            if (uwep && returnwep)
+                obj = uwep;
+            else
                 You("have no ammunition readied.");
-            }
         } else {
             autoquiver();
             if ((obj = uquiver) == 0 && !returnwep) {
@@ -1186,10 +1196,10 @@ sho_obj_return_to_u(struct obj *obj)
 /* throw an object, NB: obj may be consumed in the process */
 void
 throwit(struct obj *obj,
-        long wep_mask,       /* used to re-equip returning boomerang */
-        boolean twoweap,     /* used to restore twoweapon mode if
-                                wielded weapon returns */
-        struct obj *oldslot) /* for thrown-and-return used with !fixinv */
+    long wep_mask,       /* used to re-equip returning boomerang */
+    boolean twoweap,     /* used to restore twoweapon mode if
+                            wielded weapon returns */
+    struct obj *oldslot) /* for thrown-and-return used with !fixinv */
 {
     register struct monst *mon;
     int range, urange;
@@ -1237,10 +1247,8 @@ throwit(struct obj *obj,
 
     g.thrownobj = obj;
     g.thrownobj->was_thrown = 1;
-    iflags.returning_missile = ((obj->oartifact == ART_MJOLLNIR
-                                 && Role_if(PM_VALKYRIE))
-                                || tethered_weapon) ? (genericptr_t) obj
-                                                    : (genericptr_t) 0;
+    iflags.returning_missile = AutoReturn(obj, wep_mask) ? (genericptr_t) obj
+                                                         : (genericptr_t) 0;
     /* NOTE:  No early returns after this point or returning_missile
        will be left with a stale pointer. */
 
@@ -1284,6 +1292,7 @@ throwit(struct obj *obj,
     } else if (obj->otyp == BOOMERANG && !Underwater) {
         if (Is_airlevel(&u.uz) || Levitation)
             hurtle(-u.dx, -u.dy, 1, TRUE);
+        iflags.returning_missile = 0; /* doesn't return if it hits monster */
         mon = boomhit(obj, u.dx, u.dy);
         if (mon == &g.youmonst) { /* the thing was caught */
             exercise(A_DEX, TRUE);
@@ -1291,6 +1300,7 @@ throwit(struct obj *obj,
             (void) encumber_msg();
             if (wep_mask && !(obj->owornmask & wep_mask)) {
                 setworn(obj, wep_mask);
+                /* moot; can no longer two-weapon with missile(s) */
                 set_twoweap(twoweap); /* u.twoweap = twoweap */
             }
             clear_thrownobj = TRUE;
@@ -2328,7 +2338,7 @@ throw_gold(struct obj *obj)
     if (!u.dx && !u.dy && !u.dz) {
         You("cannot throw gold at yourself.");
         /* If we tried to throw part of a stack, force it to merge back
-         * together. Same as in throw_obj. */
+           together (same as in throw_obj).  Essential for gold. */
         if (obj->o_id == g.context.objsplit.parent_oid
             || obj->o_id == g.context.objsplit.child_oid)
             (void) unsplitobj(obj);
@@ -2415,17 +2425,20 @@ autoreturning_wep(struct obj* obj, struct monst* user)
         return FALSE;
     }
     boolean isyou = (user == &g.youmonst);
-    /* aklyses */
-    if (obj->otyp == AKLYS) {
+    /* aklyses, boomerangs */
+    if (obj->otyp == AKLYS || obj->otyp == BOOMERANG) {
         return TRUE;
     }
     /* Mjollnir, only if the wielder is a valkyrie */
     if (obj->oartifact == ART_MJOLLNIR) {
-        if (isyou && Role_if(PM_VALKYRIE)) {
+        if (isyou && Role_if(PM_VALKYRIE) && ACURR(A_STR) >= STR19(25)) {
             return TRUE;
         }
         else if (!isyou && user->data == &mons[PM_VALKYRIE]) {
-            return TRUE;
+            struct obj *marmg = which_armor(user, W_ARMG);
+            if (marmg && marmg->otyp == GAUNTLETS_OF_POWER) {
+                return TRUE;
+            }
         }
     }
     return FALSE;

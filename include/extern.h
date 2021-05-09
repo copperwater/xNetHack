@@ -1,4 +1,4 @@
-/* NetHack 3.7	extern.h	$NHDT-Date: 1611445282 2021/01/23 23:41:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.947 $ */
+/* NetHack 3.7	extern.h	$NHDT-Date: 1620348705 2021/05/07 00:51:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.969 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -214,7 +214,6 @@ extern void pushch(char);
 extern void savech(char);
 extern const char *key2extcmddesc(uchar);
 extern boolean bind_specialkey(uchar, const char *);
-extern uchar txt2key(char *);
 extern void parseautocomplete(char *, boolean);
 extern void reset_commands(boolean);
 extern void rhack(char *);
@@ -640,6 +639,7 @@ extern boolean On_W_tower_level(d_level *);
 extern boolean In_W_tower(int, int, d_level *);
 extern void find_hell(d_level *);
 extern void goto_hell(boolean, boolean);
+extern boolean single_level_branch(d_level *);
 extern void assign_level(d_level *, d_level *);
 extern void assign_rnd_level(d_level *, d_level *, int);
 extern unsigned int induced_align(int);
@@ -1058,6 +1058,7 @@ extern int ggetobj(const char *, int(*)(struct obj *), int, boolean,
                    unsigned *);
 extern int askchain(struct obj **, const char *, int, int(*)(struct obj *),
                     int(*)(struct obj *), int, const char *);
+extern void unknow_object(struct obj *);
 extern void set_cknown_lknown(struct obj *);
 extern void fully_identify_obj(struct obj *);
 extern int identify(struct obj *);
@@ -1065,6 +1066,7 @@ extern int count_unidentified(struct obj *);
 extern void identify_pack(int, boolean);
 extern void learn_unseen_invent(void);
 extern void update_inventory(void);
+extern int doperminv(void);
 extern void prinv(const char *, struct obj *, long);
 extern char *xprname(struct obj *, const char *, char, boolean, long, long);
 extern int ddoinv(void);
@@ -1091,6 +1093,7 @@ extern void useupf(struct obj *, long);
 extern char *let_to_name(char, boolean, boolean);
 extern void free_invbuf(void);
 extern void reassign(void);
+extern boolean check_invent_gold(const char *);
 extern int doorganize(void);
 extern void free_pickinv_cache(void);
 extern int count_unpaid(struct obj *);
@@ -1435,9 +1438,9 @@ extern int cmap_to_type(int);
 /* ### mon.c ### */
 
 extern void mon_sanity_check(void);
+extern boolean zombie_maker(struct monst *);
+extern int zombie_form(struct permonst *);
 extern int m_poisongas_ok(struct monst *);
-extern boolean zombie_maker(struct permonst *pm);
-extern int zombie_form(struct permonst* pm);
 extern int undead_to_corpse(int);
 extern int genus(int, int);
 extern int pm_to_cham(int);
@@ -1565,7 +1568,7 @@ extern void fuzl_p2(const char *, const char *, struct monst *, const char *,
 extern void fuzl_xy(const char *, int, int);
 extern void fuzl_xyi(const char *, int, int, int);
 extern boolean itsstuck(struct monst *);
-extern boolean mb_trapped(struct monst *);
+extern boolean mb_trapped(struct monst *, boolean);
 extern boolean monhaskey(struct monst *, boolean);
 extern void mon_regen(struct monst *, boolean);
 extern int dochugw(struct monst *);
@@ -1866,6 +1869,7 @@ extern int shiny_obj(char);
 /* ### options.c ### */
 
 extern boolean match_optname(const char *, const char *, int, boolean);
+extern uchar txt2key(char *);
 extern void initoptions(void);
 extern void initoptions_init(void);
 extern void initoptions_finish(void);
@@ -1882,6 +1886,7 @@ extern void oc_to_str(char *, char *);
 extern void add_menu_cmd_alias(char, char);
 extern char get_menu_cmd_key(char);
 extern char map_menu_cmd(char);
+extern char *collect_menu_keys(char *, unsigned, boolean);
 extern void show_menu_controls(winid, boolean);
 extern void assign_warnings(uchar *);
 extern char *nh_getenv(const char *);
@@ -2745,6 +2750,7 @@ extern void u_init(void);
 
 /* ### uhitm.c ### */
 
+extern void dynamic_multi_reason(struct monst *, const char *, boolean);
 extern void erode_armor(struct monst *, int);
 extern boolean attack_checks(struct monst *, struct obj *);
 extern void check_caitiff(struct monst *);
@@ -3250,6 +3256,7 @@ extern int dowrite(struct obj *);
 
 extern void learnwand(struct obj *);
 extern int bhitm(struct monst *, struct obj *);
+extern void release_hold(void);
 extern void probe_monster(struct monst *);
 extern boolean get_obj_location(struct obj *, xchar *, xchar *, int);
 extern boolean get_mon_location(struct monst *, xchar *, xchar *, int);

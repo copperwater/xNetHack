@@ -1,4 +1,4 @@
-/* NetHack 3.7	objnam.c	$NHDT-Date: 1612053751 2021/01/31 00:42:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.313 $ */
+/* NetHack 3.7	objnam.c	$NHDT-Date: 1620348711 2021/05/07 00:51:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.315 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -24,6 +24,7 @@ struct _readobjnam_data {
     int eroded, eroded2, erodeproof, locked, unlocked, broken, real, fake;
     int halfeaten, mntmp, contents;
     int islit, unlabeled, ishistoric, isdiluted, trapped;
+    int doorless, open, closed, looted;
     int tmp, tinv, tvariety, mgend;
     int wetness, gsize;
     int ftype;
@@ -45,7 +46,7 @@ static boolean badman(const char *, boolean);
 static boolean wishymatch(const char *, const char *, boolean);
 static short rnd_otyp_by_wpnskill(schar);
 static short rnd_otyp_by_namedesc(const char *, char, int);
-static struct obj *wizterrainwish(char *, char *, xchar);
+static struct obj *wizterrainwish(struct _readobjnam_data *);
 static void readobjnam_init(char *, struct _readobjnam_data *);
 static int readobjnam_preparse(struct _readobjnam_data *);
 static void readobjnam_parse_charges(struct _readobjnam_data *);
@@ -309,7 +310,7 @@ fruit_from_indx(int indx)
 struct fruit *
 fruit_from_name(
     const char *fname,
-    boolean exact, /* False => prefix or exact match, True = exact match only */
+    boolean exact, /* False: prefix or exact match, True: exact match only */
     int *highest_fid) /* optional output; only valid if 'fname' isn't found */
 {
     struct fruit *f, *tentativef;
@@ -1157,7 +1158,8 @@ doname_base(struct obj* obj, unsigned int doname_flags)
             break;
         }
         if (obj->otyp == CANDELABRUM_OF_INVOCATION) {
-            Sprintf(eos(bp), " (%d of 7 candle%s%s)", obj->spe, plur(obj->spe),
+            Sprintf(eos(bp), " (%d of 7 candle%s%s)",
+                    obj->spe, plur(obj->spe),
                     !obj->lamplit ? " attached" : ", lit");
             break;
         } else if (obj->otyp == OIL_LAMP || obj->otyp == MAGIC_LAMP
@@ -2711,7 +2713,7 @@ makesingular(const char* oldstr)
 static boolean
 badman(
     const char *basestr,
-    boolean to_plural)            /* true => makeplural, false => makesingular */
+    boolean to_plural)  /* True: makeplural, False: makesingular */
 {
     /* these are all the prefixes for *man that don't have a *men plural */
     static const char *no_men[] = {
@@ -2963,7 +2965,8 @@ static short
 rnd_otyp_by_namedesc(
     const char *name,
     char oclass,
-    int xtra_prob) /* to force 0% random generation items to also be considered */
+    int xtra_prob) /* add to item's chance of being chosen; non-zero causes
+                    * 0% random generation items to also be considered */
 {
     int i, n = 0;
     short validobjs[NUM_OBJECTS];
@@ -3043,13 +3046,12 @@ shiny_obj(char oclass)
 
 /* in wizard mode, readobjnam() can accept wishes for traps and terrain */
 static struct obj *
-wizterrainwish(char *bp, char* p,
-               xchar doorflags) /* contains all flags, including locked and
-                                 * trapped */
+wizterrainwish(struct _readobjnam_data *d)
 {
     struct rm *lev;
     boolean madeterrain = FALSE, badterrain = FALSE, didblock;
     int trap, oldtyp, x = u.ux, y = u.uy;
+    char *bp = d->bp, *p = d->p;
 
     for (trap = NO_TRAP + 1; trap < TRAPNUM; trap++) {
         struct trap *t;
@@ -3075,58 +3077,23 @@ wizterrainwish(char *bp, char* p,
     oldtyp = lev->typ;
     didblock = does_block(x, y, lev);
     p = eos(bp);
-    if (!BSTRCMPI(bp, p - 4, "door")) {
-        boolean secret = !strncmpi(bp, "secret ", 7);
-
-        if (secret && lev->typ != DOOR && lev->typ != SDOOR
-                   && !(IS_WALL(lev->typ) && lev->typ != DBWALL)
-                   && lev->typ != IRONBARS) {
-            pline("Secret door requires door or wall location.");
-            badterrain = TRUE;
-        }
-        else {
-            /* Secret doors want both doormask and wall_info but those both
-             * overload rm.flags which makes D_LOCKED conflict with WM_MASK.
-             * The extent of this causing problems is unknown. */
-            lev->typ = secret ? SDOOR : DOOR;
-            set_doorstate(lev, doorflags); /* will set only state */
-            set_door_lock(lev, ((doorflags & D_LOCKED) != 0));
-            set_door_trap(lev, ((doorflags & D_TRAPPED) != 0));
-            set_door_iron(lev, ((doorflags & D_IRON) != 0));
-
-            pline("A %s%sdoor%s.", ((doorflags & D_TRAPPED) ? "trapped " : ""),
-                  (secret ? "secret " : ""),
-                  (doorstate(lev) == D_NODOOR ? "way" : ""));
-            madeterrain = TRUE;
-        }
-    } else if (!BSTRCMPI(bp, p - 15, "secret corridor")) {
-        if (lev->typ == CORR) {
-            lev->typ = SCORR;
-            /* neither CORR nor SCORR uses 'flags' or 'horizontal' */
-            pline("Secret corridor.");
-            madeterrain = TRUE;
-        } else {
-            pline("Secret corridor requires corridor location.");
-            badterrain = TRUE;
-        }
-    }
-    else if (!BSTRCMPI(bp, p - 8, "fountain")) {
+    if (!BSTRCMPI(bp, p - 8, "fountain")) {
         lev->typ = FOUNTAIN;
         g.level.flags.nfountains++;
-        lev->looted = 0; /* overlays 'flags' */
-        if (!strncmpi(bp, "magic ", 6))
-            lev->blessedftn = 1;
+        lev->looted = d->looted ? F_LOOTED : 0; /* overlays 'flags' */
+        lev->blessedftn = !strncmpi(bp, "magic ", 6);
         pline("A %sfountain.", lev->blessedftn ? "magic " : "");
         madeterrain = TRUE;
     } else if (!BSTRCMPI(bp, p - 6, "throne")) {
         lev->typ = THRONE;
-        lev->looted = 0; /* overlays 'flags' */
+        lev->looted = d->looted ? T_LOOTED : 0; /* overlays 'flags' */
         pline("A throne.");
         madeterrain = TRUE;
     } else if (!BSTRCMPI(bp, p - 4, "sink")) {
         lev->typ = SINK;
         g.level.flags.nsinks++;
-        lev->looted = 0; /* overlays 'flags' */
+        lev->looted = d->looted ? (S_LPUDDING | S_LDWASHER) : 0;
+        /* wished-for sinks never have a buried ring regardless of d->looted */
         pline("A sink.");
         madeterrain = TRUE;
 
@@ -3171,16 +3138,16 @@ wizterrainwish(char *bp, char* p,
         make_grave(x, y, (char *) 0);
         if (IS_GRAVE(lev->typ)) {
             lev->looted = 0; /* overlays 'flags' */
-            lev->disturbed = !strncmpi(bp, "disturbed ", 10);
+            lev->disturbed = d->looted ? 1 : 0;
             pline("A %sgrave.", lev->disturbed ? "disturbed " : "");
             madeterrain = TRUE;
         } else {
-            pline("Can't place a grave here");
+            pline("Can't place a grave here.");
             badterrain = TRUE;
         }
     } else if (!BSTRCMPI(bp, p - 4, "tree")) {
         lev->typ = TREE;
-        lev->looted = 0; /* overlays 'flags' */
+        lev->looted = d->looted ? (TREE_LOOTED | TREE_SWARM) : 0;
         pline("A tree.");
         madeterrain = TRUE;
     } else if (!BSTRCMPI(bp, p - 4, "bars")) {
@@ -3193,6 +3160,104 @@ wizterrainwish(char *bp, char* p,
         lev->flags = 0;
         pline("A cloud.");
         madeterrain = TRUE;
+    } else if (!BSTRCMPI(bp, p - 4, "door")
+               || (d->doorless && !BSTRCMPI(bp, p - 7, "doorway"))) {
+        char dbuf[40];
+        unsigned old_wall_info;
+        boolean secret = !BSTRCMPI(bp, p - 11, "secret door");
+        boolean irondoor = d->material == IRON;
+
+        /* require door or wall so that the 'horizontal' flag will
+           already have the correct value; player might choose to put
+           DOOR on top of existing DOOR or SDOOR on top of existing SDOOR
+           to control its trapped state; iron bars are surrogate walls;
+           a previously dug wall looks like corridor but is actually a
+           doorless doorway so will be acceptable here */
+        if (lev->typ == DOOR || lev->typ == SDOOR
+            || (IS_WALL(lev->typ) && lev->typ != DBWALL)
+            || lev->typ == IRONBARS) {
+            /* remember previous wall info [is this right for iron bars?] */
+            old_wall_info = (lev->typ != DOOR) ? lev->wall_info : 0;
+            /* set the new terrain type */
+            lev->typ = secret ? SDOOR : DOOR;
+            lev->wall_info = 0; /* overlays 'flags' */
+            /* lev->horizontal stays as-is */
+            /* secret doors mustn't be set locked explicitly because they use
+               both doormask and wall_info which both overload rm[x][y].flags
+               (LOCKED and door state overlap wall_info bits, IRON and TRAPPED
+               don't); conversion from SDOOR to DOOR changes NODOOR to CLOSED */
+            set_doorstate(lev, ((d->doorless || secret) ? D_NODOOR
+                                 : d->open ? D_ISOPEN
+                                   : d->broken ? D_BROKEN
+                                     : D_CLOSED));
+            set_door_lock(lev, (!secret && d->locked));
+            /* SDOOR uses wall_info, restore relevant bits.
+             * FIXME? if we're changing a regular door into a secret door,
+             * old_wall_info bits will be 0 instead of being set properly.
+             * Probably only matters if player uses Passes_walls and a wish
+             * to turn a T- or cross-wall into a door, losing wall info,
+             * and then another wish to turn that door into a secret door. */
+            if (secret)
+                lev->wall_info |= (old_wall_info & WM_MASK);
+            /* set up trapped flag; open door states aren't eligible
+             * FIXME: certain xNetHack traps might be able to activate when
+             * interacting with an open door. This ideally should check to see
+             * if the type of trap is like that. */
+            if (d->trapped == 2 /* 2: wish includes explicit "untrapped" */
+                || (!secret && (doorstate(lev) == D_NODOOR
+                                || doorstate(lev) == D_ISOPEN)))
+                d->trapped = 0;
+            set_door_trap(lev, d->trapped);
+            /* set up iron door flag */
+            set_door_iron(lev, irondoor);
+
+            /* feedback */
+            dbuf[0] = '\0';
+            /* locked state and trapped flag can augment secret doors; other
+               states apply to normal doors only (see above about 'closed') */
+            if (door_is_trapped(lev))
+                Strcat(dbuf, "trapped ");
+            if (door_is_locked(lev))
+                Strcat(dbuf, "locked ");
+            if (door_is_iron(lev))
+                Strcat(dbuf, "iron ");
+            if (lev->typ == SDOOR) {
+                Strcat(dbuf, "secret door");
+            } else {
+                /* these should be mutually exclusive but we describe them
+                   as if they're independent to maybe catch future bugs... */
+                if (doorstate(lev) == D_CLOSED)
+                    Strcat(dbuf, "closed ");
+                if (doorstate(lev) == D_ISOPEN)
+                    Strcat(dbuf, "open ");
+                if (doorstate(lev) == D_BROKEN)
+                    Strcat(dbuf, "broken ");
+                if (doorstate(lev) == D_NODOOR)
+                    Strcat(dbuf, "doorless doorway");
+                else
+                    Strcat(dbuf, "door");
+            }
+            pline("%s.", upstart(an(dbuf)));
+            madeterrain = TRUE;
+        } else {
+            Strcpy(dbuf, secret ? "secret door" : "door");
+            pline("%s requires door or wall location.", upstart(dbuf));
+            badterrain = TRUE;
+        }
+    } else if (!BSTRCMPI(bp, p - 4, "wall")
+                         && (bp == p - 4 || p[-4] == ' ')) {
+        pline("Wishing for walls is not implemented.");
+        badterrain = TRUE;
+    } else if (!BSTRCMPI(bp, p - 15, "secret corridor")) {
+        if (lev->typ == CORR) {
+            lev->typ = SCORR;
+            /* neither CORR nor SCORR uses 'flags' or 'horizontal' */
+            pline("Secret corridor.");
+            madeterrain = TRUE;
+        } else {
+            pline("Secret corridor requires corridor location.");
+            badterrain = TRUE;
+        }
     }
 
     if (madeterrain) {
@@ -3444,8 +3509,12 @@ readobjnam_init(char* bp, struct _readobjnam_data* d)
     d->very = d->rechrg = d->blessed = d->uncursed = d->iscursed
         = d->ispoisoned = d->isgreased = d->eroded = d->eroded2
         = d->erodeproof = d->halfeaten = d->islit = d->unlabeled
-        = d->ishistoric = d->isdiluted = d->trapped = d->locked
-        = d->unlocked = d->broken = d->real = d->fake = 0;
+        = d->ishistoric = d->isdiluted /* statues, potions */
+          /* box/chest and wizard mode door */
+        = d->trapped = d->locked = d->unlocked = d->broken
+        = d->open = d->closed = d->doorless /* wizard mode door */
+        = d->looted /* wizard mode fountain/sink/throne/tree and grave */
+        = d->real = d->fake = 0; /* Amulet */
     d->tvariety = RANDOM_TIN;
     d->mgend = MALE;
     d->mntmp = NON_PM;
@@ -3532,13 +3601,33 @@ readobjnam_preparse(struct _readobjnam_data* d)
                 d->trapped = 1;
         } else if (!strncmpi(d->bp, "untrapped ", l = 10)) {
             d->trapped = 2; /* not trapped */
-        /* locked, unlocked, broken: box/chest lock states */
+        /* locked, unlocked, broken: box/chest lock states, also door states;
+           open, closed, doorless: additional door states */
         } else if (!strncmpi(d->bp, "locked ", l = 7)) {
-            d->locked = 1, d->unlocked = d->broken = 0;
+            d->locked = d->closed = 1,
+                d->unlocked = d->broken = d->open = d->doorless = 0;
         } else if (!strncmpi(d->bp, "unlocked ", l = 9)) {
-            d->unlocked = 1, d->locked = d->broken = 0;
+            d->unlocked = d->closed = 1,
+                d->locked = d->broken = d->open = d->doorless = 0;
         } else if (!strncmpi(d->bp, "broken ", l = 7)) {
-            d->broken = 1, d->locked = d->unlocked = 0;
+            d->broken = 1,
+                d->locked = d->unlocked = d->open = d->closed
+                = d->doorless = 0;
+        } else if (!strncmpi(d->bp, "open ", l = 5)) {
+            d->open = 1,
+                d->closed = d->locked = d->broken = d->doorless = 0;
+        } else if (!strncmpi(d->bp, "closed ", l = 7)) {
+            d->closed = 1,
+                d->open = d->locked = d->broken = d->doorless = 0;
+        } else if (!strncmpi(d->bp, "doorless ", l = 9)) {
+            d->doorless = 1,
+                d->open = d->closed = d->locked = d->unlocked = d->broken = 0;
+        /* looted: fountain/sink/throne/tree; disturbed: grave */
+        } else if (!strncmpi(d->bp, "looted ", l = 7)
+                   /* overload disturbed grave with looted fountain here
+                      even though they're separate in struct rm */
+                   || !strncmpi(d->bp, "disturbed ", l = 10)) {
+            d->looted = 1;
         } else if (!strncmpi(d->bp, "greased ", l = 8)) {
             d->isgreased = 1;
         } else if (!strncmpi(d->bp, "very ", l = 5)) {
@@ -3796,7 +3885,8 @@ readobjnam_postparse1(struct _readobjnam_data* d)
     d->p = (char *) 0;
     /* check for "glob", "<foo> glob", and "glob of <foo>" */
     if (!strcmpi(d->bp, "glob") || !BSTRCMPI(d->bp, d->bp + i - 5, " glob")
-        || !strcmpi(d->bp, "globs") || !BSTRCMPI(d->bp, d->bp + i - 6, " globs")
+        || !strcmpi(d->bp, "globs")
+        || !BSTRCMPI(d->bp, d->bp + i - 6, " globs")
         || (d->p = strstri(d->bp, "glob of ")) != 0
         || (d->p = strstri(d->bp, "globs of ")) != 0) {
         d->mntmp = name_to_mon(!d->p ? d->bp
@@ -3886,12 +3976,14 @@ readobjnam_postparse1(struct _readobjnam_data* d)
             if (*d->bp == ' ') {
                 d->bp++;
             } else if (!strncmpi(d->bp, "s ", 2)
-                       || (d->bp > d->origbp && !strncmpi(d->bp - 1, "s' ", 3))) {
+                       || (d->bp > d->origbp
+                           && !strncmpi(d->bp - 1, "s' ", 3))) {
                 d->bp += 2;
             } else if (!strncmpi(d->bp, "es ", 3)
                        || !strncmpi(d->bp, "'s ", 3)) {
                 d->bp += 3;
-            } else if (!*d->bp && !d->actualn && !d->dn && !d->un && !d->oclass) {
+            } else if (!*d->bp && !d->actualn && !d->dn && !d->un
+                       && !d->oclass) {
                 /* no referent; they don't really mean a monster type */
                 d->bp = obp;
                 d->mntmp = NON_PM;
@@ -4032,7 +4124,8 @@ readobjnam_postparse1(struct _readobjnam_data* d)
      * " object", but " trap" is suggested--to either the trap
      * name or the object name.
      */
-    if (wizard && (!strncmpi(d->bp, "bear", 4) || !strncmpi(d->bp, "land", 4))) {
+    if (wizard && (!strncmpi(d->bp, "bear", 4)
+                   || !strncmpi(d->bp, "land", 4))) {
         boolean beartrap = (lowc(*d->bp) == 'b');
         char *zp = d->bp + 4; /* skip "bear"/"land" */
 
@@ -4079,14 +4172,16 @@ readobjnam_postparse2(struct _readobjnam_data* d)
             return 2; /*goto typfnd;*/
         }
 
-    if (!BSTRCMPI(d->bp, d->p - 6, " stone") || !BSTRCMPI(d->bp, d->p - 4, " gem")) {
+    if (!BSTRCMPI(d->bp, d->p - 6, " stone")
+        || !BSTRCMPI(d->bp, d->p - 4, " gem")) {
         d->p[!strcmpi(d->p - 4, " gem") ? -4 : -6] = '\0';
         d->oclass = GEM_CLASS;
         d->dn = d->actualn = d->bp;
         return 1; /*goto srch;*/
     } else if (!strcmpi(d->bp, "looking glass")) {
         ; /* avoid false hit on "* glass" */
-    } else if (!BSTRCMPI(d->bp, d->p - 6, " glass") || !strcmpi(d->bp, "glass")) {
+    } else if (!BSTRCMPI(d->bp, d->p - 6, " glass")
+               || !strcmpi(d->bp, "glass")) {
         register char *s = d->bp;
 
         /* treat "broken glass" as a non-existent item; since "broken" is
@@ -4149,10 +4244,13 @@ readobjnam_postparse3(struct _readobjnam_data* d)
         }
     }
 
-    if (((d->typ = rnd_otyp_by_namedesc(d->actualn, d->oclass, 1)) != STRANGE_OBJECT)
+    if (((d->typ = rnd_otyp_by_namedesc(d->actualn, d->oclass, 1))
+         != STRANGE_OBJECT)
         || (d->dn != d->actualn
-            && (d->typ = rnd_otyp_by_namedesc(d->dn, d->oclass, 1)) != STRANGE_OBJECT)
-        || ((d->typ = rnd_otyp_by_namedesc(d->un, d->oclass, 1)) != STRANGE_OBJECT)
+            && ((d->typ = rnd_otyp_by_namedesc(d->dn, d->oclass, 1))
+                != STRANGE_OBJECT))
+        || ((d->typ = rnd_otyp_by_namedesc(d->un, d->oclass, 1))
+             != STRANGE_OBJECT)
         || (d->origbp != d->actualn
             && ((d->typ = rnd_otyp_by_namedesc(d->origbp, d->oclass, 1))
                 != STRANGE_OBJECT)))
@@ -4360,14 +4458,7 @@ readobjnam(char* bp, struct obj* no_wish)
  wiztrap:
     if (wizard && !g.program_state.wizkit_wishing) {
         /* [inline code moved to separate routine to unclutter readobjnam] */
-        xchar doorflags = 0;
-        if (d.locked)
-            doorflags |= D_LOCKED;
-        if (d.trapped)
-            doorflags |= D_TRAPPED;
-        if (d.material == IRON)
-            doorflags |= D_IRON;
-        if ((d.otmp = wizterrainwish(d.bp, d.p, d.doorstate)) != 0)
+        if ((d.otmp = wizterrainwish(&d)) != 0)
             return d.otmp;
     }
 
@@ -4753,12 +4844,16 @@ readobjnam(char* bp, struct obj* no_wish)
      * specific material for any possible artifact. */
 
     if (d.halfeaten && d.otmp->oclass == FOOD_CLASS) {
-        if (d.otmp->otyp == CORPSE)
-            d.otmp->oeaten = mons[d.otmp->corpsenm].cnutrit;
-        else
-            d.otmp->oeaten = objects[d.otmp->otyp].oc_nutrition;
-        /* (do this adjustment before setting up object's weight) */
-        consume_oeaten(d.otmp, 1);
+        unsigned nut = obj_nutrition(d.otmp);
+
+        /* do this adjustment before setting up object's weight; skip
+           "partly eaten" for food with 0 nutrition (wraith corpse) or for
+           anything that couldn't take more than one bite (1 nutrition;
+           ought to check for one-bite instead but that's complicated) */
+        if (nut > 1) {
+            d.otmp->oeaten = nut;
+            consume_oeaten(d.otmp, 1);
+        }
     }
     d.otmp->owt = weight(d.otmp);
     if (d.very && d.otmp->otyp == HEAVY_IRON_BALL)

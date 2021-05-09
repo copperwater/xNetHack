@@ -1,29 +1,10 @@
-/* NetHack 3.7	cmd.c	$NHDT-Date: 1613721260 2021/02/19 07:54:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.457 $ */
+/* NetHack 3.7	cmd.c	$NHDT-Date: 1618175625 2021/04/11 21:13:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.463 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 #include "func_tab.h"
-
-/* Macros for meta and ctrl modifiers:
- *   M and C return the meta/ctrl code for the given character;
- *     e.g., (C('c') is ctrl-c
- */
-#ifndef M
-#ifndef NHSTDC
-#define M(c) (0x80 | (c))
-#else
-#define M(c) ((c) - 128)
-#endif /* NHSTDC */
-#endif
-
-#ifndef C
-#define C(c) (0x1f & (c))
-#endif
-
-#define unctrl(c) ((c) <= C('z') ? (0x60 | (c)) : (c))
-#define unmeta(c) (0x7f & (c))
 
 #ifdef ALTMETA
 static boolean alt_esc = FALSE;
@@ -1162,7 +1143,7 @@ wiz_panic(void)
         u.uen = u.uenmax = 1000;
         return 0;
     }
-    if (paranoid_query(ParanoidQuit,
+    if (paranoid_query(TRUE,
                        "Do you want to call panic() and end your game?"))
         panic("Crash test.");
     return 0;
@@ -1235,14 +1216,11 @@ wiz_show_vision(void)
     putstr(win, 0, "");
     for (y = 0; y < ROWNO; y++) {
         for (x = 1; x < COLNO; x++) {
-            if (x == u.ux && y == u.uy)
+            if (x == u.ux && y == u.uy) {
                 row[x] = '@';
-            else {
+            } else {
                 v = g.viz_array[y][x]; /* data access should be hidden */
-                if (v == 0)
-                    row[x] = ' ';
-                else
-                    row[x] = '0' + g.viz_array[y][x];
+                row[x] = (v == 0) ? ' ' : ('0' + v);
             }
         }
         /* remove trailing spaces */
@@ -1809,9 +1787,13 @@ doterrain(void)
     return 0; /* no time elapses */
 }
 
-/* ordered by command name */
+/* extcmdlist: full command list, ordered by command name;
+   commands with no keystroke or with only a meta keystroke generally
+   need to be flagged as autocomplete and ones with a regular keystroke
+   or control keystroke generally should not be; there are a few exceptions
+   such as ^O/#overview and C/N/#name */
 struct ext_func_tab extcmdlist[] = {
-    { '#', "#", "perform an extended command",
+    { '#',    "#", "perform an extended command",
               doextcmd, IFBURIED | GENERALCMD, NULL },
     { M('?'), "?", "list all extended commands",
               doextlist, IFBURIED | AUTOCOMPLETE | GENERALCMD, NULL },
@@ -1819,11 +1801,11 @@ struct ext_func_tab extcmdlist[] = {
               doorganize, IFBURIED | AUTOCOMPLETE, NULL },
     { M('A'), "annotate", "name current level",
               donamelevel, IFBURIED | AUTOCOMPLETE, NULL },
-    { 'a', "apply", "apply (use) a tool (pick-axe, key, lamp...)",
+    { 'a',    "apply", "apply (use) a tool (pick-axe, key, lamp...)",
               doapply, 0, NULL },
     { C('x'), "attributes", "show your attributes",
               doattributes, IFBURIED, NULL },
-    { '@', "autopickup", "toggle the 'autopickup' option on/off",
+    { '@',    "autopickup", "toggle the 'autopickup' option on/off",
               dotogglepickup, IFBURIED, NULL },
     { 'C',    "call", "name a monster, specific object, or type of object",
               docallcmd, IFBURIED, NULL },
@@ -1849,23 +1831,25 @@ struct ext_func_tab extcmdlist[] = {
               doengrave, 0, NULL },
     { M('e'), "enhance", "advance or check weapon and spell skills",
               enhance_weapon_skill, IFBURIED | AUTOCOMPLETE, NULL },
+    /* #exploremode should be flagged AUTOCOMPETE but that would negatively
+       impact frequently used #enhance by making #e become ambiguous */
     { M('X'), "exploremode", "enter explore (discovery) mode",
               enter_explore_mode, IFBURIED | GENERALCMD, NULL },
     { 'f',    "fire", "fire ammunition from quiver",
               dofire, 0, NULL },
     { M('f'), "force", "force a lock",
               doforce, AUTOCOMPLETE, NULL },
-    { ';', "glance", "show what type of thing a map symbol corresponds to",
+    { ';',    "glance", "show what type of thing a map symbol corresponds to",
               doquickwhatis, IFBURIED | GENERALCMD, NULL },
     { '?',    "help", "give a help message",
               dohelp, IFBURIED | GENERALCMD, NULL },
-    { '\0', "herecmdmenu", "show menu of commands you can do here",
+    { '\0',   "herecmdmenu", "show menu of commands you can do here",
               doherecmdmenu, IFBURIED | AUTOCOMPLETE | GENERALCMD, NULL },
-    { 'V', "history", "show long version and game history",
+    { 'V',    "history", "show long version and game history",
               dohistory, IFBURIED | GENERALCMD, NULL },
     { 'i',    "inventory", "show your inventory",
               ddoinv, IFBURIED, NULL },
-    { 'I', "inventtype", "show inventory of one specific item class",
+    { 'I',    "inventtype", "show inventory of one specific item class",
               dotypeinv, IFBURIED, NULL },
     { M('i'), "invoke", "invoke an object's special powers",
               doinvoke, IFBURIED | AUTOCOMPLETE, NULL },
@@ -1873,41 +1857,46 @@ struct ext_func_tab extcmdlist[] = {
               dojump, AUTOCOMPLETE, NULL },
     { C('d'), "kick", "kick something",
               dokick, 0, NULL },
-    { '\\', "known", "show what object types have been discovered",
+    { '\\',   "known", "show what object types have been discovered",
               dodiscovered, IFBURIED | GENERALCMD, NULL },
-    { '`', "knownclass", "show discovered types for one class of objects",
+    { '`',    "knownclass", "show discovered types for one class of objects",
               doclassdisco, IFBURIED | GENERALCMD, NULL },
-    { '\0', "levelchange", "change experience level",
+    { '\0',   "levelchange", "change experience level",
               wiz_level_change, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '\0', "lightsources", "show mobile light sources",
+    { '\0',   "lightsources", "show mobile light sources",
               wiz_light_sources, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { ':',    "look", "look at what is here",
               dolook, IFBURIED, NULL },
     { M('l'), "loot", "loot a box on the floor",
               doloot, AUTOCOMPLETE, NULL },
 #ifdef DEBUG_MIGRATING_MONS
-    { '\0', "migratemons", "migrate N random monsters",
+    { '\0',   "migratemons", "migrate N random monsters",
               wiz_migrate_mons, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
 #endif
     { M('m'), "monster", "use monster's special ability",
               domonability, IFBURIED | AUTOCOMPLETE, NULL },
-    { 'N', "name", "same as call; name a monster or object or object type",
+    { 'N',    "name", "same as call; name a monster or object or object type",
               docallcmd, IFBURIED | AUTOCOMPLETE, NULL },
     { M('o'), "offer", "offer a sacrifice to the gods",
               dosacrifice, AUTOCOMPLETE, NULL },
     { 'o',    "open", "open a door",
               doopen, 0, NULL },
-    { 'O', "options", "show option settings, possibly change them",
+    { 'O',    "options", "show option settings, possibly change them",
               doset, IFBURIED | GENERALCMD, NULL },
+    /* #overview used to need autocomplete and has retained that even
+       after being assigned to ^O [old wizard mode ^O is now #wizwhere] */
     { C('o'), "overview", "show a summary of the explored dungeon",
               dooverview, IFBURIED | AUTOCOMPLETE, NULL },
-    { '\0', "panic", "test panic routine (fatal to game)",
+    /* [should #panic actually autocomplete?] */
+    { '\0',   "panic", "test panic routine (fatal to game)",
               wiz_panic, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { 'p',    "pay", "pay your shopping bill",
               dopay, 0, NULL },
+    { '|',    "perminv", "scroll persistent inventory display",
+              doperminv, IFBURIED | GENERALCMD, NULL },
     { ',',    "pickup", "pick up things at the current location",
               dopickup, 0, NULL },
-    { '\0', "polyself", "polymorph self",
+    { '\0',   "polyself", "polymorph self",
               wiz_polyself, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { M('p'), "pray", "pray to the gods for help",
               dopray, IFBURIED | AUTOCOMPLETE, NULL },
@@ -1933,8 +1922,8 @@ struct ext_func_tab extcmdlist[] = {
               dorub, AUTOCOMPLETE, NULL },
     { 'S',    "save", "save the game and exit",
               dosave, IFBURIED | GENERALCMD, NULL },
-    { 's', "search", "search for traps and secret doors",
-            dosearch, IFBURIED, "searching" },
+    { 's',    "search", "search for traps and secret doors",
+              dosearch, IFBURIED, "searching" },
     { '*',    "seeall", "show all equipment in use",
               doprinuse, IFBURIED, NULL },
     { AMULET_SYM, "seeamulet", "show the amulet currently worn",
@@ -1958,11 +1947,11 @@ struct ext_func_tab extcmdlist[] = {
               doprgold, IFBURIED, NULL },
     { SPBOOK_SYM, "showspells", "list and reorder known spells",
               dovspell, IFBURIED, NULL },
-    { '^', "showtrap", "describe an adjacent, discovered trap",
+    { '^',    "showtrap", "describe an adjacent, discovered trap",
               doidtrap, IFBURIED, NULL },
     { M('s'), "sit", "sit down",
               dosit, AUTOCOMPLETE, NULL },
-    { '\0', "stats", "show memory statistics",
+    { '\0',   "stats", "show memory statistics",
               wiz_show_stats, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { C('z'), "suspend", "push game to background ('fg' to come back)",
               dosuspend_core, (IFBURIED | GENERALCMD
@@ -1982,15 +1971,15 @@ struct ext_func_tab extcmdlist[] = {
        option to swap it with <backspace> so if there's a key labeled
        <delete> it may or may not actually invoke the #terrain command */
     { '\177', "terrain",
-            "view map without monsters or objects obstructing it",
+              "view map without monsters or objects obstructing it",
               doterrain, IFBURIED | AUTOCOMPLETE, NULL },
     /* therecmdmenu does not work as intended, should probably be removed */
-    { '\0', "therecmdmenu",
-            "menu of commands you can do from here to adjacent spot",
+    { '\0',   "therecmdmenu",
+              "menu of commands you can do from here to adjacent spot",
               dotherecmdmenu, AUTOCOMPLETE | GENERALCMD, NULL },
     { 't',    "throw", "throw something",
               dothrow, 0, NULL },
-    { '\0', "timeout", "look at timeout queue and hero's timed intrinsics",
+    { '\0',   "timeout", "look at timeout queue and hero's timed intrinsics",
               wiz_timeout_queue, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { M('T'), "tip", "empty a container",
               dotip, AUTOCOMPLETE, NULL },
@@ -1998,70 +1987,70 @@ struct ext_func_tab extcmdlist[] = {
               dotravel, 0, NULL },
     { M('t'), "turn", "turn undead away",
               doturn, IFBURIED | AUTOCOMPLETE, NULL },
-    { 'X', "twoweapon", "toggle two-weapon combat",
-              dotwoweapon, AUTOCOMPLETE, NULL },
+    { 'X',    "twoweapon", "toggle two-weapon combat",
+              dotwoweapon, 0, NULL },
     { M('u'), "untrap", "untrap something",
               dountrap, AUTOCOMPLETE, NULL },
     { '<',    "up", "go up a staircase",
               doup, 0, NULL },
-    { '\0', "vanquished", "list vanquished monsters",
+    { '\0',   "vanquished", "list vanquished monsters",
               dovanquished, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { M('v'), "version",
-            "list compile time options for this version of NetHack",
+              "list compile time options for this version of NetHack",
               doextversion, IFBURIED | AUTOCOMPLETE | GENERALCMD, NULL },
-    { 'v', "versionshort", "show version and date+time program was built",
+    { 'v',    "versionshort", "show version and date+time program was built",
               doversion, IFBURIED | GENERALCMD, NULL },
-    { '\0', "vision", "show vision array",
+    { '\0',   "vision", "show vision array",
               wiz_show_vision, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '.', "wait", "rest one move while doing nothing",
-            donull, IFBURIED, "waiting" },
+    { '.',    "wait", "rest one move while doing nothing",
+              donull, IFBURIED, "waiting" },
     { 'W',    "wear", "wear a piece of armor",
               dowear, 0, NULL },
     { '&',    "whatdoes", "tell what a command does",
               dowhatdoes, IFBURIED, NULL },
-    { '/', "whatis", "show what type of thing a symbol corresponds to",
+    { '/',    "whatis", "show what type of thing a symbol corresponds to",
               dowhatis, IFBURIED | GENERALCMD, NULL },
     { 'w',    "wield", "wield (put in use) a weapon",
               dowield, 0, NULL },
     { M('w'), "wipe", "wipe off your face",
               dowipe, AUTOCOMPLETE, NULL },
-    { '\0', "wizborn", "show stats of monsters created",
+    { '\0',   "wizborn", "show stats of monsters created",
               doborn, IFBURIED | WIZMODECMD, NULL },
 #ifdef DEBUG
-    { '\0', "wizbury", "bury objs under and around you",
+    { '\0',   "wizbury", "bury objs under and around you",
               wiz_debug_cmd_bury, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
 #endif
     { C('e'), "wizdetect", "reveal hidden things within a small radius",
-              wiz_detect, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '\0', "wizfliplevel", "flip the level",
+              wiz_detect, IFBURIED | WIZMODECMD, NULL },
+    { '\0',   "wizfliplevel", "flip the level",
               wiz_flip_level, IFBURIED | WIZMODECMD, NULL },
     { C('g'), "wizgenesis", "create a monster",
-              wiz_genesis, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
+              wiz_genesis, IFBURIED | WIZMODECMD, NULL },
     { C('i'), "wizidentify", "identify all items in inventory",
-              wiz_identify, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '\0', "wizintrinsic", "set an intrinsic",
+              wiz_identify, IFBURIED | WIZMODECMD, NULL },
+    { '\0',   "wizintrinsic", "set an intrinsic",
               wiz_intrinsic, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { C('v'), "wizlevelport", "teleport to another level",
-              wiz_level_tele, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '\0', "wizloaddes", "load and execute a des-file lua script",
+              wiz_level_tele, IFBURIED | WIZMODECMD, NULL },
+    { '\0',   "wizloaddes", "load and execute a des-file lua script",
               wiz_load_splua, IFBURIED | WIZMODECMD, NULL },
-    { '\0', "wizloadlua", "load and execute a lua script",
+    { '\0',   "wizloadlua", "load and execute a lua script",
               wiz_load_lua, IFBURIED | WIZMODECMD, NULL },
-    { '\0', "wizmakemap", "recreate the current level",
+    { '\0',   "wizmakemap", "recreate the current level",
               wiz_makemap, IFBURIED | WIZMODECMD, NULL },
     { C('f'), "wizmap", "map the level",
-              wiz_map, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '\0', "wizrumorcheck", "verify rumor boundaries",
+              wiz_map, IFBURIED | WIZMODECMD, NULL },
+    { '\0',   "wizrumorcheck", "verify rumor boundaries",
               wiz_rumor_check, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '\0', "wizseenv", "show map locations' seen vectors",
+    { '\0',   "wizseenv", "show map locations' seen vectors",
               wiz_show_seenv, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '\0', "wizsmell", "smell monster",
+    { '\0',   "wizsmell", "smell monster",
               wiz_smell, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '\0', "wizwhere", "show locations of special levels",
+    { '\0',   "wizwhere", "show locations of special levels",
               wiz_where, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { C('w'), "wizwish", "wish for something",
-              wiz_wish, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
-    { '\0', "wmode", "show wall modes",
+              wiz_wish, IFBURIED | WIZMODECMD, NULL },
+    { '\0',   "wmode", "show wall modes",
               wiz_show_wmodes, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { 'z',    "zap", "zap a wand",
               dozap, 0, NULL },
@@ -2171,8 +2160,12 @@ key2extcmddesc(uchar key)
     }
     /* finally, check whether 'key' is a command */
     if (g.Cmd.commands[key]) {
-        if (g.Cmd.commands[key]->ef_txt)
-            return g.Cmd.commands[key]->ef_desc;
+        if (g.Cmd.commands[key]->ef_txt) {
+            Sprintf(key2cmdbuf, "%s (#%s)",
+                    g.Cmd.commands[key]->ef_desc,
+                    g.Cmd.commands[key]->ef_txt);
+            return key2cmdbuf;
+        }
     }
     return (char *) 0;
 }
@@ -2926,6 +2919,7 @@ RESTORE_WARNING_FORMAT_NONLITERAL
 void
 sanity_check(void)
 {
+    (void) check_invent_gold("invent");
     obj_sanity_check();
     timer_sanity_check();
     mon_sanity_check();
@@ -3046,96 +3040,6 @@ spkey_name(int nhkf)
         }
     }
     return name;
-}
-
-/* returns a one-byte character from the text; may change txt[] */
-uchar
-txt2key(char *txt)
-{
-    uchar uc;
-    boolean makemeta = FALSE;
-
-    txt = trimspaces(txt);
-    if (!*txt)
-        return '\0';
-
-    /* simple character */
-    if (!txt[1])
-        return (uchar) txt[0];
-
-    /* a few special entries */
-    if (!strcmp(txt, "<enter>"))
-        return '\n';
-    if (!strcmp(txt, "<space>"))
-        return ' ';
-    if (!strcmp(txt, "<esc>"))
-        return '\033';
-
-    /* control and meta keys */
-    if (highc(*txt) == 'M') {
-        /*
-         * M <nothing>             return 'M'
-         * M - <nothing>           return M-'-'
-         * M <other><nothing>      return M-<other>
-         * otherwise M is pending until after ^/C- processing.
-         * Since trailing spaces are discarded, the only way to
-         * specify M-' ' is via "160".
-         */
-        if (!txt[1])
-            return (uchar) *txt;
-        /* skip past 'M' or 'm' and maybe '-' */
-        ++txt;
-        if (*txt == '-' && txt[1])
-            ++txt;
-        if (!txt[1])
-            return M((uchar) *txt);
-        makemeta = TRUE;
-    }
-    if (*txt == '^' || highc(*txt) == 'C') {
-        /*
-         * C <nothing>             return 'C' or M-'C'
-         * C - <nothing>           return '-' or M-'-'
-         * C [-] <other><nothing>  return C-<other> or M-C-<other>
-         * C [-] ?                 return <rubout>
-         * otherwise return C-<other> or M-C-<other>
-         */
-        uc = (uchar) *txt;
-        if (!txt[1])
-            return makemeta ? M(uc) : uc;
-        ++txt;
-        /* unlike M-x, lots of values of x are invalid for C-x;
-           checking and rejecting them is not worthwhile; GIGO;
-           we do accept "^-x" as synonym for "^x" or "C-x" */
-        if (*txt == '-' && txt[1])
-            ++txt;
-        /* and accept ^?, which gets used despite not being a control char */
-        if (*txt == '?')
-            return (uchar) (makemeta ? '\377' : '\177'); /* rubout/delete */
-        uc = C((uchar) *txt);
-        return makemeta ? M(uc) : uc;
-    }
-    if (makemeta && *txt)
-        return M((uchar) *txt);
-
-    /* FIXME: should accept single-quote single-character single-quote
-       and probably single-quote backslash octal-digits single-quote;
-       if we do that, the M- and C- results should be pending until
-       after, so that C-'X' becomes valid for ^X */
-
-    /* ascii codes: must be three-digit decimal */
-    if (*txt >= '0' && *txt <= '9') {
-        uchar key = 0;
-        int i;
-
-        for (i = 0; i < 3; i++) {
-            if (txt[i] < '0' || txt[i] > '9')
-                return '\0';
-            key = 10 * key + txt[i] - '0';
-        }
-        return key;
-    }
-
-    return '\0';
 }
 
 /* returns the text for a one-byte encoding;

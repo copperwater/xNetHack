@@ -1,4 +1,4 @@
-/* NetHack 3.7	read.c	$NHDT-Date: 1613870658 2021/02/21 01:24:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.219 $ */
+/* NetHack 3.7	read.c	$NHDT-Date: 1615760296 2021/03/14 22:18:16 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.220 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1054,7 +1054,7 @@ unflood_space(int x, int y, genericptr_t drycnt)
 /* scroll effects; return 1 if we use up the scroll and possibly make it
    become discovered, 0 if caller should take care of those side-effects */
 int
-seffects(struct obj* sobj) /* sobj - scroll, or fake spellbook object for scroll-like spell */
+seffects(struct obj *sobj) /* sobj - scroll or fake spellbook for spell */
 {
     int cval, otyp = sobj->otyp;
     boolean confused = (Confusion != 0), sblessed = sobj->blessed,
@@ -1468,9 +1468,26 @@ seffects(struct obj* sobj) /* sobj - scroll, or fake spellbook object for scroll
                            known not to be, make the scroll known; it's
                            trivial to identify anyway by comparing inventory
                            before and after */
-                        if (obj->bknown && otyp == SCR_REMOVE_CURSE) {
+                        if (obj->bknown && otyp == SCR_REMOVE_CURSE)
                             learnscrolltyp(SCR_REMOVE_CURSE);
-                        }
+                    }
+                }
+            }
+            /* if riding, treat steed's saddle as if part of hero's invent */
+            if (u.usteed && (obj = which_armor(u.usteed, W_SADDLE)) != 0) {
+                if (confused) {
+                    blessorcurse(obj, 2);
+                    obj->bknown = 0; /* skip set_bknown() */
+                } else if (obj->cursed) {
+                    uncurse(obj);
+                    /* like rndcurse(sit.c), effect on regular inventory
+                       doesn't show things glowing but saddle does */
+                    if (!Blind) {
+                        pline("%s %s.", Yobjnam2(obj, "glow"),
+                              hcolor("amber"));
+                        obj->bknown = Hallucination ? 0 : 1;
+                    } else {
+                        obj->bknown = 0; /* skip set_bknown() */
                     }
                 }
             }
@@ -2378,7 +2395,7 @@ do_class_genocide(void)
                     }
                 } else if (g.mvitals[i].mvflags & G_GENOD) {
                     if (!gameover)
-                        pline("All %s are already nonexistent.", nam);
+                        pline("%s are already nonexistent.", upstart(nam));
                 } else if (!gameover) {
                     /* suppress feedback about quest beings except
                        for those applicable to our own role */

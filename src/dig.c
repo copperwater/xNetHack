@@ -1305,16 +1305,16 @@ mdig_tunnel(struct monst *mtmp)
         if (!DEADMONSTER(mtmp)) {
             if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
                 add_damage(mtmp->mx, mtmp->my, 0L);
-            unblock_point(mtmp->mx, mtmp->my); /* vision */
             postdoortrapped(mtmp->mx, mtmp->my, mtmp,
                             (withpick ? ARM : FACE), D_BROKEN);
             set_doorstate(here, D_BROKEN);
-            if (!rn2(3) && flags.verbose) {
+            unblock_point(mtmp->mx, mtmp->my); /* vision */
+            newsym(mtmp->mx, mtmp->my);
+            if (!Unaware && flags.verbose && !rn2(3)) {
                 /* not too often.. */
                 draft_message(TRUE); /* "You feel an unexpected draft." */
             }
         }
-        newsym(mtmp->mx, mtmp->my);
         return FALSE;
     } else if (here->typ == SCORR) {
         here->typ = CORR, here->flags = 0;
@@ -2070,7 +2070,8 @@ rot_corpse(anything *arg, long timeout)
         if (mtmp && !concealed_spot(x, y) && mtmp->mundetected
             && hides_under(mtmp->data)) {
             mtmp->mundetected = 0;
-        } else if (x == u.ux && y == u.uy && u.uundetected && hides_under(g.youmonst.data))
+        } else if (x == u.ux && y == u.uy
+                   && u.uundetected && hides_under(g.youmonst.data))
             (void) hideunder(&g.youmonst);
         newsym(x, y);
     } else if (in_invent)

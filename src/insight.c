@@ -1,4 +1,4 @@
-/* NetHack 3.7	insight.c	$NHDT-Date: 1614076940 2021/02/23 10:42:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.33 $ */
+/* NetHack 3.7	insight.c	$NHDT-Date: 1619640466 2021/04/28 20:07:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.35 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -806,7 +806,7 @@ status_enlightenment(int mode, int final)
 {
     boolean magic = (mode & MAGICENLIGHTENMENT) ? TRUE : FALSE;
     int cap;
-    char buf[BUFSZ], youtoo[BUFSZ];
+    char buf[BUFSZ], youtoo[BUFSZ], heldmon[BUFSZ];
     boolean Riding = (u.usteed
                       /* if hero dies while dismounting, u.usteed will still
                          be set; we want to ignore steed in that situation */
@@ -964,10 +964,18 @@ status_enlightenment(int mode, int final)
         } else
             you_are(predicament, "");
     } /* (u.utrap) */
+    heldmon[0] = '\0'; /* lint suppression */
+    if (u.ustuck) { /* includes u.uswallow */
+        Strcpy(heldmon, a_monnam(u.ustuck));
+        if (!strcmp(heldmon, "it")
+            && (!has_mgivenname(u.ustuck)
+                || strcmp(MGIVENNAME(u.ustuck), "it") != 0))
+            Strcpy(heldmon, "an unseen creature");
+    }
     if (u.uswallow) { /* implies u.ustuck is non-Null */
         Sprintf(buf, "%s by %s",
                 is_animal(u.ustuck->data) ? "swallowed" : "engulfed",
-                a_monnam(u.ustuck));
+                heldmon);
         if (dmgtype(u.ustuck->data, AD_DGST)) {
             /* if final, death via digestion can be deduced by u.uswallow
                still being True and u.uswldtim having been decremented to 0 */
@@ -985,7 +993,7 @@ status_enlightenment(int mode, int final)
         int dx = u.ustuck->mx - u.ux, dy = u.ustuck->my - u.uy;
 
         Sprintf(buf, "%s %s (%s)", ustick ? "holding" : "held by",
-                a_monnam(u.ustuck), dxdy_to_dist_descr(dx, dy, TRUE));
+                heldmon, dxdy_to_dist_descr(dx, dy, TRUE));
         you_are(buf, "");
     }
     if (Riding) {

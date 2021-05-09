@@ -84,7 +84,7 @@ AppResources appResources;
 void (*input_func)(Widget, XEvent *, String *, Cardinal *);
 int click_x, click_y, click_button; /* Click position on a map window   */
                                     /* (filled by set_button_values()). */
-int updated_inventory;
+int updated_inventory; /* used to indicate perm_invent updating */
 
 static int (*old_error_handler) (Display *, XErrorEvent *);
 
@@ -105,7 +105,7 @@ struct window_procs X11_procs = {
 #ifdef STATUS_HILITES
       | WC2_RESET_STATUS | WC2_HILITE_STATUS
 #endif
-      | 0L ),
+      | WC2_MENU_SHIFT ),
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, /* color availability */
     X11_init_nhwindows,
     X11_player_selection, X11_askname, X11_get_nh_event, X11_exit_nhwindows,
@@ -1239,8 +1239,9 @@ X11_destroy_nhwindow(winid window)
     }
 }
 
+/* display persistent inventory in its own window */
 void
-X11_update_inventory(void)
+X11_update_inventory(int arg)
 {
     struct xwindow *wp = 0;
 
@@ -1251,7 +1252,11 @@ X11_update_inventory(void)
         /* skip any calls to update_inventory() before in_moveloop starts */
         if (g.program_state.in_moveloop || g.program_state.gameover) {
             updated_inventory = 1; /* hack to avoid mapping&raising window */
-            (void) display_inventory((char *) 0, FALSE);
+            if (!arg) {
+                (void) display_inventory((char *) 0, FALSE);
+            } else {
+                x11_scroll_perminv(arg);
+            }
             updated_inventory = 0;
         }
     } else if ((wp = &window_list[WIN_INVEN]) != 0
@@ -1259,6 +1264,7 @@ X11_update_inventory(void)
         /* persistent inventory is up but perm_invent is off, take it down */
         x11_no_perminv(wp);
     }
+    return;
 }
 
 /* The current implementation has all of the saved lines on the screen. */
@@ -2023,6 +2029,7 @@ static Widget yn_popup;          /* popup for the yn fuction (created once) */
 static Widget yn_label;          /* label for yn function (created once) */
 static boolean yn_getting_num;   /* TRUE if accepting digits */
 static boolean yn_preserve_case; /* default is to force yn to lower case */
+static boolean yn_no_default;    /* don't convert ESC or quitchars to def */
 static int yn_ndigits;           /* digit count */
 static long yn_val;              /* accumulated value */
 
@@ -2088,7 +2095,8 @@ yn_key(Widget w, XEvent *event, String *params, Cardinal *num_params)
         return;
     }
 
-    if (!yn_choices) { /* accept any input */
+    if (!yn_choices /* accept any input */
+        || (yn_no_default && (ch == '\033' || index(yn_quitchars, ch)))) {
         yn_return = ch;
     } else {
         if (!yn_preserve_case)
@@ -2150,22 +2158,26 @@ release_yn_widgets(void)
         XtDestroyWidget(yn_popup), yn_popup = (Widget) 0;
 }
 
-/* X11-specific edition of yn_function(), the routine called by the core
-   to show a prompt and get a single keystroke answer, often 'y' vs 'n' */
+/* guts of the X11_yn_function(), not to be confused with core code;
+   requires an extra argument: ynflags */
 char
-X11_yn_function(
+X11_yn_function_core(
     const char *ques,     /* prompt text */
     const char *choices,  /* allowed response chars; any char if Null */
-    char def)             /* default if user hits <space> or <return> */
+    char def,             /* default if user hits <space> or <return> */
+    unsigned ynflags)     /* flags; currently just log-it or not */
 {
     static XFontStruct *yn_font = 0;
     static Dimension yn_minwidth = 0;
     char buf[BUFSZ], buf2[BUFSZ];
     Arg args[4];
     Cardinal num_args;
+    boolean suppress_logging = (ynflags & YN_NO_LOGMESG) != 0U,
+            no_default_cnvrt = (ynflags & YN_NO_DEFAULT) != 0U;
 
     yn_choices = choices; /* set up globals for callback to use */
     yn_def = def;
+    yn_no_default = no_default_cnvrt;
     yn_preserve_case = !choices; /* preserve case when an arbitrary
                                   * response is allowed */
 
@@ -2341,10 +2353,26 @@ X11_yn_function(
         nh_XtPopdown(yn_popup); /* this removes the event grab */
     }
 
-    char *p = trimspaces(buf); /* remove !slow's extra whitespace */
-    pline("%s %s", p, (yn_return == '\033') ? "ESC" : visctrl(yn_return));
+    if (!suppress_logging) {
+        char *p = trimspaces(buf); /* remove !slow's extra whitespace */
+
+        pline("%s %s", p, (yn_return == '\033') ? "ESC" : visctrl(yn_return));
+    }
 
     return yn_return;
+}
+
+/* X11-specific edition of yn_function(), the routine called by the core
+   to show a prompt and get a single key answer, often 'y' vs 'n' */
+char
+X11_yn_function(
+    const char *ques,     /* prompt text */
+    const char *choices,  /* allowed response chars; any char if Null */
+    char def)             /* default if user hits <space> or <return> */
+{
+    char res = X11_yn_function_core(ques, choices, def, YN_NORMAL);
+
+    return res;
 }
 
 /* used when processing window-capability-specific run-time options;
@@ -2355,6 +2383,8 @@ X11_preference_update(const char *pref)
     if (!strcmp(pref, "tiled_map")) {
         if (WIN_MAP != WIN_ERR)
             display_map_window(&window_list[WIN_MAP]);
+    } else if (!strcmp(pref, "perm_invent")) {
+        ; /* TODO... */
     }
 }
 
@@ -2682,14 +2712,24 @@ win_X11_init(int dir)
 }
 
 void
-find_scrollbars(Widget w, Widget *horiz, Widget *vert)
+find_scrollbars(
+    Widget w,      /* widget of interest; scroll bars are probably attached
+                      to its parent or grandparent */
+    Widget last_w, /* if non-zero, don't search ancestory beyond this point */
+    Widget *horiz, /* output: horizontal scrollbar */
+    Widget *vert)  /* output: vertical scrollbar */
 {
+    *horiz = *vert = (Widget) 0;
+    /* for 3.6 this looked for an ancestor with both scrollbars but
+       menus might have only vertical */
     if (w) {
         do {
             *horiz = XtNameToWidget(w, "*horizontal");
             *vert = XtNameToWidget(w, "*vertical");
+            if (*horiz || *vert)
+                break;
             w = XtParent(w);
-        } while (!*horiz && !*vert && w);
+        } while (w && (!last_w || w != last_w));
     }
 }
 
@@ -2715,7 +2755,7 @@ nh_keyscroll(Widget viewport, XEvent *event, String *params,
 
     direction = atoi(params[0]);
 
-    find_scrollbars(viewport, &horiz_sb, &vert_sb);
+    find_scrollbars(viewport, (Widget) 0, &horiz_sb, &vert_sb);
 
 #define H_DELTA 0.25 /* distance of horiz shift */
     /* vert shift is half of curr distance */

@@ -1,4 +1,4 @@
-/* NetHack 3.7	eat.c	$NHDT-Date: 1603507384 2020/10/24 02:43:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.235 $ */
+/* NetHack 3.7	eat.c	$NHDT-Date: 1620348708 2021/05/07 00:51:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.242 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1128,7 +1128,8 @@ cpostfx(int pm)
                     Hallucination
                        ? "You suddenly dread being peeled and mimic %s again!"
                        : "You now prefer mimicking %s again.",
-                    an(Upolyd ? pmname(g.youmonst.data, Ugender) : g.urace.noun));
+                    an(Upolyd ? pmname(g.youmonst.data, Ugender)
+                              : g.urace.noun));
             g.eatmbuf = dupstr(buf);
             g.nomovemsg = g.eatmbuf;
             g.afternmv = eatmdone;
@@ -1440,10 +1441,19 @@ consume_tin(const char *mesg)
         /* charge for one at pre-eating cost */
         tin = costly_tin(COST_OPEN);
 
-        if (tintxts[r].nut < 0) /* rotten */
+        if (tintxts[r].nut < 0) { /* rotten */
             make_vomiting((long) rn1(15, 10), FALSE);
-        else
-            lesshungry(tintxts[r].nut);
+        } else {
+            int nutamt = tintxts[r].nut;
+
+            /* nutrition from a homemade tin (made from a single corpse)
+               shouldn't be more than nutrition from the corresponding
+               corpse; other tinning modes might use more than one corpse
+               or add extra ingredients so aren't similarly restricted */
+            if (r == HOMEMADE_TIN && nutamt > mons[mnum].cnutrit)
+                nutamt = mons[mnum].cnutrit;
+            lesshungry(nutamt);
+        }
 
         if (tintxts[r].greasy) {
             /* Assume !Glib, because you can't open tins when Glib. */
@@ -3526,6 +3536,24 @@ eaten_stat(int base, struct obj *obj)
 void
 consume_oeaten(struct obj *obj, int amt)
 {
+    if (!obj_nutrition(obj)) {
+        char itembuf[40];
+        int otyp = obj->otyp;
+
+        if (otyp == CORPSE || otyp == EGG || otyp == TIN) {
+            Strcpy(itembuf, (otyp == CORPSE) ? "corpse"
+                            : (otyp == EGG) ? "egg"
+                              : (otyp == TIN) ? "tin" : "other?");
+            Sprintf(eos(itembuf), " [%d]", obj->corpsenm);
+        } else {
+            Sprintf(itembuf, "%d", otyp);
+        }
+        impossible(
+            "oeaten: attempting to set 0 nutrition food (%s) partially eaten",
+                   itembuf);
+        return;
+    }
+
     /*
      * This is a hack to try to squelch several long standing mystery
      * food bugs.  A better solution would be to rewrite the entire

@@ -503,6 +503,11 @@ dowieldquiver(void)
         if (uquiver && uquiver->o_id == g.context.objsplit.parent_oid) {
             unsplitobj(newquiver);
             goto already_quivered;
+        } else if (newquiver->oclass == COIN_CLASS) {
+            /* don't allow splitting a stack of coins into quiver */
+            You("can't ready only part of your gold.");
+            unsplitobj(newquiver);
+            return 0;
         }
         else if (newquiver->oclass == COIN_CLASS) {
             /* don't allow splitting a stack of coins into quiver */

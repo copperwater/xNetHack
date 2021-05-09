@@ -654,7 +654,8 @@ cast_cleric_spell(struct monst *mtmp, int dmg, int spellnum)
             shieldeff(u.ux, u.uy);
             dmg = 1;
         }
-        make_paralyzed(dmg, FALSE, "paralyzed by a monster");
+        dynamic_multi_reason(mtmp, "paralyzed", FALSE);
+        make_paralyzed(dmg, FALSE, (const char *) 0);
         dmg = 0;
         break;
     case CLC_CONFUSE_YOU:

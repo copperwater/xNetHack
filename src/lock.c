@@ -1099,6 +1099,8 @@ doorlock(struct obj *otmp, struct monst *mon, int x, int y)
     case WAN_STRIKING:
     case SPE_FORCE_BOLT:
         if (door_is_closed(door)) {
+            /* sawit: closed door location is more visible than open */
+            boolean sawit, seeit;
             if (door_is_iron(door)) {
                 if (cansee(x, y)) {
                     pline_The("reinforced door shudders.");
@@ -1108,15 +1110,17 @@ doorlock(struct obj *otmp, struct monst *mon, int x, int y)
             if (doortrapped(x, y, mon, NO_PART, D_BROKEN, 2) > 0) {
                 break;
             }
+            sawit = cansee(x, y);
             set_doorstate(door, D_BROKEN);
+            unblock_point(x, y);
+            seeit = cansee(x, y);
+            newsym(x, y);
             if (flags.verbose) {
-                if (cansee(x, y))
+                if ((sawit || seeit) && !Unaware)
                     pline_The("door crashes open!");
-                else
+                else if (!Deaf)
                     You_hear("a crashing sound.");
             }
-            unblock_point(x, y);
-            newsym(x, y);
             /* force vision recalc before printing more messages */
             if (g.vision_full_recalc)
                 vision_recalc(0);

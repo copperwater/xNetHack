@@ -1,4 +1,4 @@
-/* NetHack 3.7	muse.c	$NHDT-Date: 1607734843 2020/12/12 01:00:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.136 $ */
+/* NetHack 3.7	muse.c	$NHDT-Date: 1620329779 2021/05/06 19:36:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.143 $ */
 /*      Copyright (C) 1990 by Ken Arromdee                         */
 /* NetHack may be freely redistributed.  See license for details.  */
 
@@ -163,7 +163,7 @@ mzapwand(
 
         You_hear("a %s zap.", (distu(mtmp->mx, mtmp->my) <= range * range)
                                  ? "nearby" : "distant");
-        otmp->known = 0;
+        unknow_object(otmp); /* hero loses info when unseen obj is used */
     } else if (self) {
         pline("%s with %s!",
               monverbself(mtmp, Monnam(mtmp), "zap", (char *) 0),
@@ -191,7 +191,7 @@ mplayhorn(
         You_hear("a horn being played %s.",
                  (distu(mtmp->mx, mtmp->my) <= range * range)
                  ? "nearby" : "in the distance");
-        otmp->known = 0; /* hero doesn't know how many charges are left */
+        unknow_object(otmp); /* hero loses info when unseen obj is used */
     } else if (self) {
         otmp->dknown = 1;
         objnamp = xname(otmp);
@@ -1596,8 +1596,7 @@ use_offensive(struct monst* mtmp)
         /* don't use monster fields after killing it */
         boolean confused = (mtmp->mconf ? TRUE : FALSE);
         int mmx = mtmp->mx, mmy = mtmp->my;
-        boolean is_cursed = otmp->cursed;
-        boolean is_blessed = otmp->blessed;
+        boolean is_cursed = otmp->cursed, is_blessed = otmp->blessed;
 
         mreadmsg(mtmp, otmp);
         /* Identify the scroll */
@@ -1616,14 +1615,17 @@ use_offensive(struct monst* mtmp)
         }
         m_useup(mtmp, otmp); /* otmp now gone */
 
+        /* could be fatal to monster, so use up the scroll before
+           there's a chance that monster's inventory will be dropped */
+        m_useup(mtmp, otmp);
+
         /* Loop through the surrounding squares */
         for (x = mmx - 1; x <= mmx + 1; x++) {
             for (y = mmy - 1; y <= mmy + 1; y++) {
                 /* Is this a suitable spot? */
                 if (isok(x, y) && !closed_door(x, y)
                     && !IS_ROCK(levl[x][y].typ) && !IS_AIR(levl[x][y].typ)
-                    && (((x == mmx) && (y == mmy)) ? !is_blessed
-                                                   : !is_cursed)
+                    && (((x == mmx) && (y == mmy)) ? !is_blessed : !is_cursed)
                     && (x != u.ux || y != u.uy)) {
                     (void) drop_boulder_on_monster(x, y, confused, FALSE);
                 }
@@ -1635,7 +1637,7 @@ use_offensive(struct monst* mtmp)
         }
 
         return (DEADMONSTER(mtmp)) ? 1 : 2;
-    }
+    } /* case MUSE_SCR_EARTH */
 #if 0
     case MUSE_SCR_FIRE: {
         boolean vis = cansee(mtmp->mx, mtmp->my);

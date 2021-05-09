@@ -222,6 +222,10 @@ struct monst {
 
 #define helpless(mon) ((mon)->msleeping || !(mon)->mcanmove)
 
+/* is mon m (presumably just killed) a troll and obj o Trollsbane? */
+#define troll_baned(m,o) \
+    ((m)->data->mlet == S_TROLL && (o) && (o)->oartifact == ART_TROLLSBANE)
+
 /* Get the maximum difficulty monsters that can currently be generated,
    given the current level difficulty and the hero's level. */
 #define monmax_difficulty(levdif) \

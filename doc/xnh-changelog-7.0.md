@@ -3,7 +3,7 @@
 This is a major version of xNetHack. It is based directly on xNetHack 6.0, and
 is a fork off the vanilla NetHack 3.7.0 development version release.
 
-The most recent vanilla commit incorporated into xNetHack is d6d42f5. Note that
+The most recent vanilla commit incorporated into xNetHack is dd6ed502. Note that
 because 3.7.0 is still in development status, xNetHack may contain major changes
 including new monsters, new objects, themed rooms, and other things *not*
 documented in this file or other xNetHack changelogs. See doc/fixes37.0 for the

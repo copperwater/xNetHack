@@ -608,9 +608,9 @@ enum getobj_callback_returns {
      * without the "else" in "You don't have anything else to foo". */
     GETOBJ_EXCLUDE_SELECTABLE = 0,
     /* valid - invlet not presented in the summary or the ? menu as a
-     * recommendation, but is selectable if the player enters it anyway. Used
-     * for objects that are actually valid but unimportantly so, such as shirts
-     * for reading. */
+     * recommendation, but is selectable if the player enters it anyway.
+     * Used for objects that are actually valid but unimportantly so, such
+     * as shirts for reading. */
     GETOBJ_DOWNPLAY = 1,
     /* valid - will be shown in summary and ? menu */
     GETOBJ_SUGGEST  = 2,

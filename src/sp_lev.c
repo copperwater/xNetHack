@@ -2297,7 +2297,7 @@ create_object(object* o, struct mkroom* croom)
             /* makemon without rndmonst() might create a group */
             was = makemon(&mons[wastyp], 0, 0, MM_NOCOUNTBIRTH);
             if (was) {
-                if (!resists_ston(was)) {
+                if (!resists_ston(was) && !poly_when_stoned(&mons[wastyp])) {
                     (void) propagate(wastyp, TRUE, FALSE);
                     break;
                 }
@@ -4729,9 +4729,9 @@ selection_do_gradient(
 /* bresenham line algo */
 void
 selection_do_line(
-xchar x1, xchar y1,
-xchar x2, xchar y2,
-struct selectionvar *ov)
+    xchar x1, xchar y1,
+    xchar x2, xchar y2,
+    struct selectionvar *ov)
 {
     int d0, dx, dy, ai, bi, xi, yi;
 
@@ -4742,7 +4742,6 @@ struct selectionvar *ov)
         xi = -1;
         dx = x1 - x2;
     }
-
     if (y1 < y2) {
         yi = 1;
         dy = y2 - y1;
@@ -4754,8 +4753,8 @@ struct selectionvar *ov)
     selection_setpoint(x1, y1, ov, 1);
 
     if (!dx && !dy) {
-        /* it's just this one point - no line */
-        return;
+        /* single point - already all done */
+        ;
     } else if (dx > dy) {
         ai = (dy - dx) * 2;
         bi = dy * 2;
@@ -4787,11 +4786,11 @@ struct selectionvar *ov)
 
 void
 selection_do_randline(
-xchar x1, xchar y1,
-xchar x2, xchar y2,
-schar rough,
-schar rec,
-struct selectionvar *ov)
+    xchar x1, xchar y1,
+    xchar x2, xchar y2,
+    schar rough,
+    schar rec,
+    struct selectionvar *ov)
 {
     int mx, my;
     int dx, dy;
@@ -4830,9 +4829,9 @@ struct selectionvar *ov)
 
 static void
 selection_iterate(
-struct selectionvar *ov,
-select_iter_func func,
-genericptr_t arg)
+    struct selectionvar *ov,
+    select_iter_func func,
+    genericptr_t arg)
 {
     int x, y;
 

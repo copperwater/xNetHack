@@ -1,4 +1,4 @@
-/* NetHack 3.7	trap.h	$NHDT-Date: 1596498566 2020/08/03 23:49:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.19 $ */
+/* NetHack 3.7	trap.h	$NHDT-Date: 1615759956 2021/03/14 22:12:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.20 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -92,6 +92,8 @@ enum trap_types {
 
 #define is_pit(ttyp) ((ttyp) == PIT || (ttyp) == SPIKED_PIT)
 #define is_hole(ttyp)  ((ttyp) == HOLE || (ttyp) == TRAPDOOR)
+/* "transportation" traps */
+#define is_xport(ttyp) ((ttyp) >= TELEP_TRAP && (ttyp) <= MAGIC_PORTAL)
 
 /* List of traps that can be triggered by interacting with a door. */
 enum doortrap_types {
