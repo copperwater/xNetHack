@@ -102,6 +102,7 @@ changes:
     withering instead uses up its charges, and it won't work when out of
     charges.
 - It is impossible to destroy a metal box or chest by forcing it.
+- The Oracle may generate with a potion of hallucination.
 
 ### Interface changes
 
