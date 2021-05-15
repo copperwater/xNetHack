@@ -2104,6 +2104,13 @@ donull(void)
                           "Are you waiting to get hit?",
                           &g.did_nothing_flag))
         return 0;
+    explode_animation(EXPL_FROSTY, 1);
+    explode_animation(EXPL_FROSTY, 2);
+    explode_animation(EXPL_FROSTY, 3);
+    explode_animation(EXPL_FROSTY, 4);
+    explode_animation(EXPL_FROSTY, 5);
+    explode_animation(EXPL_FROSTY, 6);
+    explode_animation(EXPL_FROSTY, 7);
     return 1; /* Do nothing, but let other things happen */
 }
 

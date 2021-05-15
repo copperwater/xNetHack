@@ -766,6 +766,7 @@ extern void splatter_burning_oil(int, int, boolean);
 extern void explode_oil(struct obj *, int, int);
 extern int adtyp_to_expltype(int);
 extern void mon_explodes(struct monst *, struct attack *);
+extern void explode_animation(int, xchar);
 
 /* ### files.c ### */
 

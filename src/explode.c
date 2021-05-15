@@ -936,4 +936,54 @@ mon_explodes(struct monst *mon, struct attack *mattk)
     g.killer.name[0] = '\0';
 }
 
+void
+explode_animation(int expltype, xchar radius) {
+    int x, y;
+    int mindist = radius * radius;
+    int maxdist = (radius + 1) * (radius + 1);
+    boolean first = TRUE;
+    boolean shown = FALSE;
+
+    if (Blind)
+        return;
+    for (y = u.uy - radius; y <= u.uy + radius; ++y) {
+        for (x = u.ux - radius; x <= u.ux + radius; ++x) {
+            int sym, dx, dy;
+            if (!isok(x, y))
+                continue;
+            if (!cansee(x, y))
+                continue;
+            if (distu(x, y) < mindist || distu(x, y) >= maxdist)
+                continue;
+
+            shown = TRUE;
+            dx = sgn(x - u.ux), dy = sgn(y - u.uy);
+            boolean xout = (distu(x + dx, y) >= maxdist),
+                    yout = (distu(x, y + dy) >= maxdist);
+            /* for most cases the symbol is straightforward; pick based on dx
+             * and dy respective to the player, but if the "flat" edge of the
+             * explosion is big enough it should also use the orthogonal
+             * explosion symbols.
+             * If one of these other two "outward facing" points is also covered
+             * by the explosion, then use one of these symbols. */
+            if (dx && dy && (xout ^ yout)) {
+                if (abs(x - u.ux) < abs(y - u.uy))
+                    dx = 0;
+                else
+                    dy = 0;
+            }
+            sym = explosion[1 + dx][1 + dy];
+            tmp_at(first ? DISP_BEAM : DISP_CHANGE,
+                   explosion_to_glyph(expltype, sym));
+            tmp_at(x, y);
+            first = FALSE;
+        }
+    }
+    if (shown) {
+        delay_output();
+        delay_output();
+        tmp_at(DISP_END, 0);
+    }
+}
+
 /*explode.c*/
