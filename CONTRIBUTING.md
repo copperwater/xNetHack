@@ -8,7 +8,7 @@ Quick list of important resources:
 
 ### How to get in touch
 
-As it's a small project, xNetHack game design happens mostly in conversations on IRC. The best way to find people to talk xNetHack with is to go to channels #hardfought or #xnethack on chat.freenode.net. (#hardfought is more general but has livelier discussion.) If you prefer Discord, you can also access the #hardfought channel by visiting the Reddit /r/roguelikes Discord server and entering channel #nethack-hardfought. It's always better to talk through an idea before starting to implement it, so don't hesitate to say hello!
+As it's a small project, xNetHack game design happens mostly in conversations on IRC. The best way to find people to talk xNetHack with is to go to channels #hardfought or #xnethack on irc.libera.chat. (#hardfought is more general but has livelier discussion.) If you prefer Discord, you can also access the #hardfought channel by visiting the Reddit /r/roguelikes Discord server and entering channel #nethack-hardfought. It's always better to talk through an idea before starting to implement it, so don't hesitate to say hello!
 
 ### How not to get in touch
 

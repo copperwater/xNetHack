@@ -53,7 +53,7 @@ MAXPLAYERS=0
 
 # If not null, added to string "To get local support, " in the support
 # information help.
-SUPPORT=Contact K2 or Tangles on freenode irc channel #hardfought
+SUPPORT=Contact K2 or Tangles on irc.libera.chat channel #hardfought
 
 # If not null, displayed at the end of a panic-save sequence.
 #RECOVER=Run the recover program.
