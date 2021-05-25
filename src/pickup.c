@@ -2500,7 +2500,9 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                 otmp = splitobj(otmp, maxquan);
             }
             extract_from_minvent(mtmp, otmp, TRUE, TRUE);
-            addtobill(otmp, FALSE, FALSE, FALSE);
+            if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE)) {
+                addtobill(otmp, FALSE, FALSE, FALSE);
+            }
             otmp = hold_another_object(otmp, "You take, but drop, %s.",
                                          doname(otmp), "You take: ");
             transferred++;
