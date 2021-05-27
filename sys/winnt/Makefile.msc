@@ -168,7 +168,7 @@ LUATOP=..\lib\lua-$(LUAVER)
 #==============================================================================
 #
 #  The version of the game this Makefile was designed for
-NETHACK_VERSION="6.1.0"
+NETHACK_VERSION="6.2.0"
 
 # A brief version for use in macros
 NHV=$(NETHACK_VERSION:.=)
@@ -445,7 +445,7 @@ LUAOBJFILES =   $(LUAOBJFILES) $(O)lbitlib.o
 #        and removes lbitlib.c
 !ENDIF
 
-!IF "$(ADD_CURSES)" == "Y"	
+!IF "$(ADD_CURSES)" == "Y"
 #===============-=================================================
 # PDCurses build macros
 # Latest PDCurses from https://github.com/wmcbrine/PDCurses.git
@@ -520,7 +520,7 @@ DATABASE = $(DAT)\data.base
 # ctags options
 #
 #CTAGSCMD=ctags-orig.exe
-!IF "$(TRAVIS_BUILD_DIR)" != ""	
+!IF "$(TRAVIS_BUILD_DIR)" != ""
 CTAGSCMD=..\lib\ctags\ctags.exe
 !ELSE
 CTAGSCMD=..\..\..\ctags\ctags.exe
@@ -1245,7 +1245,7 @@ $(O)dlb$(HOST).o: $(O)dlb_main$(HOST).o $(O)alloc$(HOST).o $(O)panic$(HOST).o $(
 
 $(O)dlb.o: $(O)dlb_main.o $(O)alloc.o $(O)panic.o $(INCL)\dlb.h
 	@$(cc) $(cflagsBuild) /Fo$@ $(SRC)\dlb.c
-	
+
 !IFDEF TEST_CROSSCOMPILE
 $(O)dlb_main$(HOST).o: $(UTIL)\dlb_main.c $(INCL)\config.h $(INCL)\dlb.h
 	@$(cc) $(cflagsBuild) $(CROSSCOMPILE) /Fo$@ $(UTIL)\dlb_main.c
@@ -1664,7 +1664,7 @@ spotless: clean
 	if exist $(U)tilemap.exe         del $(U)tilemap.exe
 	if exist $(U)uudecode.exe        del $(U)uudecode.exe
 	if exist $(U)dlb.exe             del $(U)dlb.exe
-!IF "$(ADD_CURSES)" == "Y"	
+!IF "$(ADD_CURSES)" == "Y"
 	if exist $(O)pdcurses.lib        del $(O)pdcurses.lib
 !ENDIF
 	if exist $(DAT)\oracles		 del $(DAT)\oracles
@@ -1835,7 +1835,7 @@ qt_clust.o: $(QT)\qt_clust.cpp $(QT)\qt_clust.h
 	$(CXX) $(CXXFLAGS) -Fo$@  $(QT)\qt_clust.cpp
 qt_delay.o: $(QT)\qt_delay.cpp $(HACK_H) $(QT)\qt_pre.h \
 		$(QT)\qt_post.h $(QT)\qt_delay.h
-	$(CXX) $(CXXFLAGS) -Fo$@  $(QT)\qt_delay.cpp	
+	$(CXX) $(CXXFLAGS) -Fo$@  $(QT)\qt_delay.cpp
 qt_glyph.o: $(QT)\qt_glyph.cpp $(HACK_H) $(INCL)\tile2x11.h \
 		$(QT)\qt_pre.h $(QT)\qt_post.h $(QT)\qt_glyph.h \
 		$(QT)\qt_bind.h $(QT)\qt_main.h $(QT)\qt_kde0.h \
