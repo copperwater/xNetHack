@@ -15,6 +15,7 @@
 static boolean learnscrolltyp(short);
 static void cap_spe(struct obj *);
 static char *erode_obj_text(struct obj *, char *);
+static char *hawaiian_design(struct obj *, char *);
 static char *tin_text(struct obj *, char *);
 static int read_ok(struct obj *);
 static void stripspe(struct obj *);
@@ -79,6 +80,67 @@ tshirt_text(struct obj* tshirt, char* buf)
 {
     get_rnd_text(SHIRTFILE, buf, int_hash1(tshirt->o_id), rn2);
     return erode_obj_text(tshirt, buf);
+}
+
+char *
+hawaiian_motif(struct obj* shirt, char* buf)
+{
+    static const char *hawaiian_motifs[] = {
+        /* birds */
+        "flamingo",
+        "parrot",
+        "toucan",
+        "bird of paradise", /* could be a bird or a flower */
+        /* sea creatures */
+        "sea turtle",
+        "tropical fish",
+        "jellyfish",
+        "giant eel",
+        "water nymph",
+        "kraken",
+        /* plants */
+        "plumeria",
+        "orchid",
+        "hibiscus flower",
+        "palm tree",
+        /* other */
+        "hula dancer",
+        "sailboat",
+        "ukulele",
+    };
+
+    unsigned motif = hash1(shirt->o_id);
+    Strcpy(buf, hawaiian_motifs[motif % SIZE(hawaiian_motifs)]);
+    return buf;
+}
+
+static char *
+hawaiian_design(struct obj* shirt, char* buf)
+{
+    static const char *hawaiian_bgs[] = {
+        /* solid colors */
+        "purple",
+        "yellow",
+        "red",
+        "blue",
+        "orange",
+        "black",
+        "green",
+        /* adjectives */
+        "abstract",
+        "geometric",
+        "patterned",
+        "naturalistic",
+    };
+
+    /* note: if SIZE(hawaiian_bgs) ever has common factors with
+     * SIZE(hawaiian_motifs), certain shirt combinations will never appear.
+     * Currently there are 11 backgrounds so this won't happen. */
+    unsigned bg = hash1(shirt->o_id);
+    Sprintf(buf, "%s on %s background",
+            makeplural(hawaiian_motif(shirt, buf)),
+            an(hawaiian_bgs[bg % SIZE(hawaiian_bgs)]));
+    return buf;
 }
 
 char *
@@ -309,7 +371,8 @@ doread(void)
                                      "became literate by reading a fortune cookie");
         useup(scroll);
         return 1;
-    } else if (otyp == T_SHIRT || otyp == ALCHEMY_SMOCK) {
+    } else if (otyp == T_SHIRT || otyp == ALCHEMY_SMOCK
+               || otyp == HAWAIIAN_SHIRT) {
         char buf[BUFSZ], *mesg;
         const char *endpunct;
 
@@ -318,15 +381,22 @@ doread(void)
             return 0;
         }
         /* can't read shirt worn under suit (under cloak is ok though) */
-        if (otyp == T_SHIRT && uarm && scroll == uarmu) {
+        if ((otyp == T_SHIRT || otyp == HAWAIIAN_SHIRT) && uarm
+            && scroll == uarmu) {
             pline("%s shirt is obscured by %s%s.",
                   scroll->unpaid ? "That" : "Your", shk_your(buf, uarm),
                   suit_simple_name(uarm));
             return 0;
         }
+        if (otyp == HAWAIIAN_SHIRT) {
+            pline("%s features %s.", flags.verbose ? "The design" : "It",
+                  hawaiian_design(scroll, buf));
+            return 0;
+        }
         if (!u.uconduct.literate++)
             livelog_printf(LL_CONDUCT, "became literate by reading %s",
                            (scroll->otyp == T_SHIRT) ? "a T-shirt" : "an apron");
+
         /* populate 'buf[]' */
         mesg = (otyp == T_SHIRT) ? tshirt_text(scroll, buf)
                                  : apron_text(scroll, buf);
