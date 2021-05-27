@@ -165,7 +165,7 @@ end
 -- Traps
 for i=1,10+d(5) do
    x1, y1 = non_hall_areas:rndcoord()
-   des.trap({ x=x1, y=y1, no_spider_on_web=true })
+   des.trap({ x=x1, y=y1, spider_on_web=false })
 end
 des.trap("rolling boulder")
 

@@ -1,4 +1,4 @@
-/* NetHack 3.7	mthrowu.c	$NHDT-Date: 1620329778 2021/05/06 19:36:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.113 $ */
+/* NetHack 3.7	mthrowu.c	$NHDT-Date: 1620923922 2021/05/13 16:38:42 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.114 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -118,6 +118,7 @@ thitu(
 
         if (is_acid && Acid_resistance) {
             pline("It doesn't seem to hurt you.");
+            monstseesu(M_SEEN_ACID);
         } else if (obj && obj->oclass == POTION_CLASS) {
             /* an explosion which scatters objects might hit hero with one
                (potions deliberately thrown at hero are handled by m_throw) */
@@ -522,7 +523,7 @@ m_throw(
 
     singleobj->owornmask = 0; /* threw one of multiple weapons in hand? */
     if (!canseemon(mon))
-        singleobj->dknown = 0;
+        clear_dknown(singleobj); /* singleobj->dknown = 0; */
 
     if ((singleobj->cursed || singleobj->greased) && (dx || dy) && !rn2(7)) {
         if (canseemon(mon) && flags.verbose) {
@@ -855,6 +856,14 @@ breamm(struct monst* mtmp, struct attack* mattk, struct monst* mtarg)
             }
             return MM_MISS;
         }
+
+	/* if we've seen the actual resistance, don't bother, or
+	 * if we're close by and they reflect, just jump the player */
+	if (m_seenres(mtmp, cvt_adtyp_to_mseenres(typ))
+	    || (m_seenres(mtmp, M_SEEN_REFL)
+                && monnear(mtmp, mtmp->mux, mtmp->muy)))
+	    return MM_HIT;
+
         if (!mtmp->mspec_used && rn2(3)) {
             if ((typ >= AD_MAGM) && (typ <= AD_ACID)) {
                 boolean utarget = (mtarg == &g.youmonst);

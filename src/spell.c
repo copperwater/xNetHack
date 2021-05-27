@@ -1751,6 +1751,10 @@ percent_success(int spell)
     boolean wield_wand_bonus, wield_book_bonus, gear_bonus;
     wield_wand_bonus = wield_book_bonus = gear_bonus = FALSE;
 
+    /* Knights don't get metal armor penalty for clerical spells */
+    boolean paladin_bonus = Role_if(PM_KNIGHT)
+        && spell_skilltype(spellid(spell)) == P_CLERIC_SPELL;
+
     if (uwep && uwep->oclass == WAND_CLASS && uwep->otyp != WAN_NOTHING) {
         /* can get a boost from a wand whose magic is similar
          * however, you need to have formally identified it, otherwise you can
@@ -1805,7 +1809,7 @@ percent_success(int spell)
     chance -= 25 * spellev(spell);
 
     /* Calculate penalty from armor. Metal armor and shields hurt chance. */
-    if (uarm && is_metallic(uarm)) {
+    if (uarm && is_metallic(uarm) && !paladin_bonus) {
         chance -= 50;
     }
     if (uarms && !is_quest_artifact(uarms)) {
@@ -1816,16 +1820,17 @@ percent_success(int spell)
         else
             chance -= 15;
 
-        if (is_metallic(uarms))
+        if (is_metallic(uarms) && !paladin_bonus)
             chance -= 15;
     }
-    if (uarmh && is_metallic(uarmh) && uarmh->otyp != HELM_OF_BRILLIANCE) {
+    if (uarmh && is_metallic(uarmh) && uarmh->otyp != HELM_OF_BRILLIANCE
+        && !paladin_bonus) {
         chance -= 20;
     }
-    if (uarmg && is_metallic(uarmg)) {
+    if (uarmg && is_metallic(uarmg) && !paladin_bonus) {
         chance -= 35;
     }
-    if (uarmf && is_metallic(uarmf)) {
+    if (uarmf && is_metallic(uarmf) && !paladin_bonus) {
         chance -= 10;
     }
 

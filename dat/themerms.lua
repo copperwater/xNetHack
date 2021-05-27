@@ -104,22 +104,21 @@ themerooms = {
    },
 
    -- Spider nest
-   {
-      mindiff = 10,
-      contents = function()
-         des.room({ type = "themed",
+   function()
+      des.room({ type = "themed",
                   contents = function(rm)
+                     local spooders = nh.level_difficulty() > 8;
                      for x = 0, rm.width - 1 do
                         for y = 0, rm.height - 1 do
                            if (percent(30)) then
-                              des.trap("web", x, y);
+                              des.trap({ type = "web", x = x, y = y,
+                                   spider_on_web = spooders and percent(80) });
                            end
                         end
                      end
                   end
-         });
-      end
-   },
+      });
+   end,
 
    -- Trap room
    function()
@@ -237,7 +236,7 @@ themerooms = {
                                   if (percent(50)) then
                                      local mons = { "M", "V", "L", "Z" };
                                      shuffle(mons);
-                                     des.monster(mons[1], 0,0);
+                                     des.monster({ class = mons[1], x=0,y=0, waiting = 1 });
                                   else
                                      des.object({ id = "corpse", montype = "@", coord = {0,0} });
                                   end
@@ -1067,7 +1066,7 @@ xxxx----xx----xxxx]], contents=function(m)
          des.room({ type="themed", filled=0, w=7, h=7, contents=function()
                des.feature("throne", 3, 3)
                for i=1,2+d(4) do
-                  des.trap({ type="web", no_spider_on_web = true })
+                  des.trap({ type="web", spider_on_web = false })
                end
                for i=1,4 do
                   if percent(75) then

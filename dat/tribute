@@ -3735,19 +3735,23 @@ Willie the Vampire masks in order, he said, to take him out of himself.
 #
 #
 #
-%title Soul Music (11)
+%title Soul Music (13)
+# p. 121 (Harper Torch edition; passage starts mid-paragraph)
 %passage 1
-But this didn't feel like magic.  It felt a lot older than that.  It felt
+But this didn't /feel/ like magic.  It felt a lot older than that.  It felt
 like music.
 
   [Soul Music, by Terry Pratchett]
 %e passage
+# p. 49 (the skull is a traditional decoration for a wizard's abode; this one
+#        is the usual perch for, and is conversing with, a talking raven that
+#        has been translating the Death of Rats' SQUEAKs for Susan Sto Helit)
 %passage 2
 "Yes," said the skull.  "Quit while you're a head, that's what I say."
 
   [Soul Music, by Terry Pratchett]
 %e passage
-# p.2 (Harper Torch edition)
+# p. 2
 %passage 3
 But if it is true that the act of observing changes the thing which is
 observed,(1) it's even more true that it changes the observer.
@@ -3756,7 +3760,7 @@ observed,(1) it's even more true that it changes the observer.
 
   [Soul Music, by Terry Pratchett]
 %e passage
-# p.8
+# p. 8
 %passage 4
 It is said that whomsoever the gods wish to destroy, they first make mad.
 In fact, whomsoever the gods wish to destroy, they first hand the
@@ -3833,7 +3837,7 @@ Some religions say that the universe was started with a word, a song,
 a dance, a piece of music.  The Listening Monks of the Ramtops have
 trained their hearing until they can tell the value of a playing card by
 listening to it, and have made it their task to listen intently to the
-subtle sounds of the universe to piece together, from the fossile echoes,
+subtle sounds of the universe to piece together, from the fossil echoes,
 the very first noises.
 
 There was certainly, they say, a very strange noise at the beginning of
@@ -3954,20 +3958,44 @@ The Chair came down slowly, occasionally glancing fearfully up the stairs.
 
   [Soul Music, by Terry Pratchett]
 %e passage
+#
+# 2 more passages added for 3.7
+#
+# p. 242 (passage starts and ends mid-paragraph; "the Old" rather than "the
+#         Old <some language>" is accurate)
+%passage 12
+Wizards were rumored to be wise--in fact, that's where the word came
+from.(1)
+
+(1) From the Old /wys-ars/, lit: one who, at bottom, is very smart.
+
+  [Soul Music, by Terry Pratchett]
+%e passage
+# p. 351 (passage starts mid-paragraph; Death normally isn't bound by time
+#         and space so can be everywhere at once, more or less, but in this
+#         case he is speeding out of Ankh-Morpork and across the countryside
+#         on a motorcycle invented by UU's Librarian; despite racing along
+#         at such high speed that the vehicle has steadily disintegrated out
+#         from under him, progress is slow by his usual standard)
+%passage 13
+The fastest way to travel is to be there already.
+
+  [Soul Music, by Terry Pratchett]
+%e passage
 %e title
 #
 #
 #
-%title Interesting Times (10)
-# p.1 (footnote)
+%title Interesting Times (13)
+# p. 1 (Harper Torch edition; passage is a footnote)
 %passage 1
 Whatever happens, they say afterwards, it must have been fate.  People are
 always a little confused about this, as they are in the case of miracles.
 When someone is saved from certain death by a strange concatenation of
 circumstances, they say that's a miracle.  But of course if someone is
-killed by a freak chain of events--the oil spilled just there, the safety
-fence broken just there--that must also be a miracle.  Just because it's
-not nice doesn't mean it's not miraculous.
+/killed/ by a freak chain of events--the oil spilled just /there/, the
+safety fence broken just /there/--that must /also/ be a miracle.  Just
+because it's not nice doesn't mean it's not miraculous.
 
   [Interesting Times, by Terry Pratchett]
 %e passage
@@ -4103,6 +4131,74 @@ there's long periods of boredom followed by short periods of excitement."
 
 "Not really," said Cohen.  "It's more like short periods of waiting
 followed by long periods of being dead."
+
+  [Interesting Times, by Terry Pratchett]
+%e passage
+#
+# 3 new passages for 3.7
+# p. 45
+%passage 11
+Adventure!  People talked about the idea as if it was something worthwhile,
+rather than a mess of bad food, no sleep, and strange people inexplicably
+trying to stick pointed objects in bits of you.
+
+  [Interesting Times, by Terry Pratchett]
+%e passage
+# p. 52
+%passage 12
+"How /will/ I get back?" he said.
+
+"Same way you went.  We'll find you and bring you out.  With surgical
+precision."
+
+Rincewind groaned.  He knew what surgical precision meant in Ankh-Morpork.
+It meant "to within an inch or two, accompanied by a lot of screaming, and
+then they pour hot tar on you just where your leg was."
+
+But... if you put aside for the moment the certainty that something would
+definitely go horribly wrong, it looked foolproof.  The trouble was that
+wizards were such ingenious fools.
+
+  [Interesting Times, by Terry Pratchett]
+%e passage
+# pp. 272-274 (most of page 273, is omitted:  War introduces his children and
+#              Rincewind asks Death about the outcome of a battle which is
+#              imminent; Death's response is that he wouldn't answer even if
+#              he knew, and Rincewind is astonished that he might not know;
+#              Death holds a finger up and a butterfly--as a symbol of chaos
+#              theory--briefly lands on it, then flies away)
+%passage 13
+RINCEWIND, ISN'T IT? said Death.  YES.  GOOD EVENING.  I DON'T BELIEVE YOU
+HAVE MET WAR.  RINCEWIND, WAR.  WAR, RINCEWIND.
+
+[...]
+
+ON A NIGHT LIKE THIS, said Death, THE ONLY CERTAIN THING IS UNCERTAINTY.
+TRITE, I KNOW, BUT TRUE.
+
+Somewhere on the horizon, thunder rumbled.
+
+"I'll, er, just be sort of going, then," said Rincewind.
+
+DON'T BE A STRANGER, said Death, as the wizard hurried off.
+
+"Odd person," said War.
+
+WITH HIM HERE, EVEN UNCERTAINTY IS UNCERTAIN.  AND I'M NOT SURE EVEN
+ABOUT THAT.
+
+War pulled a large paper-wrapped package out of his saddlebag.
+
+"We've got... let's see now... Egg and Cress, Chicken Tikka, and Mature
+Cheese with Chunky Pickle, I think."
+
+THEY DO SUCH MARVELOUS THINGS WITH SANDWICHES THESE DAYS.
+
+"Oh... and Bacon Surpise."
+
+REALLY?  WHAT IS SO SURPRISING ABOUT BACON?
+
+"I don't know.  I suppose it comes as something of a shock to the pig."
 
   [Interesting Times, by Terry Pratchett]
 %e passage
@@ -5164,7 +5260,7 @@ Rest of Your Life."
 
   [The Last Continent, by Terry Pratchett]
 %e passage
-# p.3 (Harper Torch edition)
+# p. 3 (Harper Torch edition)
 %passage 3
 All tribal myths are true, for a given value of "true."
 

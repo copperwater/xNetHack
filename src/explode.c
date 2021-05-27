@@ -129,11 +129,11 @@ explode(
     if (type == PHYS_EXPL_TYPE) {
         /* currently only gas spores */
         adtyp = AD_PHYS;
-    }
-    else {
+    } else {
         /* If str is e.g. "flaming sphere's explosion" from above, we want to
          * still assign adtyp appropriately, but not replace str. */
         const char *adstr = NULL;
+
         switch (abs(type) % 10) {
         case 0:
             adstr = "magical blast";
@@ -170,9 +170,8 @@ explode(
             impossible("explosion base type %d?", type);
             return;
         }
-        if (!str) {
+        if (!str)
             str = adstr;
-        }
     }
 
     any_shield = visible = FALSE;
@@ -339,9 +338,8 @@ explode(
                      * with an explosion attack, leave them (and their gear)
                      * unharmed, to avoid punishing them from using such
                      * polyforms creatively */
-                    if (!g.context.mon_moving && you_exploding) {
+                    if (!g.context.mon_moving && you_exploding)
                         uhurt = 0;
-                    }
                 }
                 /* for inside_engulfer, only <u.ux,u.uy> is affected */
                 else if (inside_engulfer)
@@ -557,6 +555,10 @@ explode(
                 u.uhp -= damu;
             g.context.botl = 1;
         }
+
+	/* You resisted the damage, lets not keep that to ourselves */
+	if (uhurt == 1)
+	    monstseesu_ad(adtyp);
 
         if (u.uhp <= 0 || (Upolyd && u.mh <= 0)) {
             if (olet == MON_EXPLODE) {

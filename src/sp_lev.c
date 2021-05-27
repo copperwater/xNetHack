@@ -1774,9 +1774,8 @@ create_trap(spltrap* t, struct mkroom* croom)
             return;
     }
 
-    if (t->no_spider_on_web) {
+    if (!t->spider_on_web)
         mktrap_flags |= MKTRAP_NOSPIDERONWEB;
-    }
 
     tm.x = x;
     tm.y = y;
@@ -2108,7 +2107,9 @@ create_monster(monster* m, struct mkroom* croom)
             mtmp->mflee = 1;
             mtmp->mfleetim = (m->fleeing % 127);
         }
-
+        if (m->waiting) {
+            mtmp->mstrategy |= STRAT_WAITFORU;
+        }
         if (m->has_invent) {
             discard_minvent(mtmp, TRUE);
             invent_carrying_monster = mtmp;
@@ -4110,7 +4111,7 @@ get_traptype_byname(const char *trapname)
 }
 
 /* trap({ type = "hole", x = 1, y = 1 }); */
-/* trap({ type = "web", no_spider_on_web = 1 }); */
+/* trap({ type = "web", spider_on_web = 0 }); */
 /* trap("hole", 3, 4); */
 /* trap("level teleport", {5, 8}); */
 /* trap("rust") */
@@ -4124,7 +4125,7 @@ lspo_trap(lua_State* L)
 
     create_des_coder();
 
-    tmptrap.no_spider_on_web = FALSE;
+    tmptrap.spider_on_web = TRUE;
 
     if (argc == 1 && lua_type(L, 1) == LUA_TSTRING) {
         const char *trapstr = luaL_checkstring(L, 1);
@@ -4148,8 +4149,8 @@ lspo_trap(lua_State* L)
 
         get_table_xy_or_coord(L, &x, &y);
         tmptrap.type = get_table_traptype_opt(L, "type", -1);
-        tmptrap.no_spider_on_web
-            = get_table_boolean_opt(L, "no_spider_on_web", 0);
+        tmptrap.spider_on_web
+            = get_table_boolean_opt(L, "spider_on_web", 1);
     }
 
     if (tmptrap.type == NO_TRAP)

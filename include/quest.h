@@ -11,6 +11,7 @@ struct q_score {              /* Quest "scorecard" */
     Bitfield(not_ready, 3);   /* rejected due to alignment, etc. */
     Bitfield(pissed_off, 1);  /* got the leader angry */
     Bitfield(got_quest, 1);   /* got the quest assignment */
+    Bitfield(leader_is_dead, 1); /* quest leader has died at least once */
 
     Bitfield(first_locate, 1); /* only set the first time */
     Bitfield(met_intermed, 1); /* used if the locate is a person. */
@@ -33,13 +34,9 @@ struct q_score {              /* Quest "scorecard" */
     Bitfield(nemgend, 2); /* nemesis's gender */
     Bitfield(godgend, 2); /* deity's gender */
 
-    /* keep track of leader presence/absence even if leader is
-       polymorphed, raised from dead, etc */
-    Bitfield(leader_is_dead, 1);
     unsigned leader_m_id;
 };
 
-#define MAX_QUEST_TRIES 7  /* exceed this and you "fail" */
 #define MIN_QUEST_ALIGN 20 /* at least this align.record to start */
 /* note: align 20 matches "pious" as reported by enlightenment (cmd.c) */
 #define MIN_QUEST_LEVEL 10 /* at least this u.ulevel to start */

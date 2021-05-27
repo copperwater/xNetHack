@@ -17,7 +17,7 @@ static void on_goal(void);
 static boolean not_capable(void);
 static int is_pure(boolean);
 static void expulsion(boolean);
-static void chat_with_leader(void);
+static void chat_with_leader(struct monst *);
 static void chat_with_nemesis(void);
 static void chat_with_guardian(void);
 static void prisoner_speaks(struct monst *);
@@ -113,6 +113,15 @@ nemdead(void)
 }
 
 void
+leaddead(void)
+{
+    if (!Qstat(leader_is_dead)) {
+        Qstat(leader_is_dead) = TRUE;
+        /* TODO: qt_pager("killed_leader"); ? */
+    }
+}
+
+void
 artitouch(struct obj *obj)
 {
     if (!Qstat(touched_artifact)) {
@@ -130,8 +139,8 @@ artitouch(struct obj *obj)
 boolean
 ok_to_quest(void)
 {
-    return (((Qstat(got_quest) || Qstat(got_thanks)) && is_pure(FALSE) > 0)
-            || Qstat(leader_is_dead));
+    return (boolean) (((Qstat(got_quest) || Qstat(got_thanks))
+                       && is_pure(FALSE) > 0) || Qstat(leader_is_dead));
 }
 
 static boolean
@@ -240,8 +249,11 @@ finish_quest(struct obj *obj) /* quest artifact; possibly null if carrying
 }
 
 static void
-chat_with_leader(void)
+chat_with_leader(struct monst *mtmp)
 {
+    if (!mtmp->mpeaceful || Qstat(pissed_off))
+        return;
+
     /*  Rule 0: Cheater checks. */
     if (u.uhave.questart && !Qstat(met_nemesis))
         Qstat(cheater) = TRUE;
@@ -303,16 +315,10 @@ chat_with_leader(void)
                 expulsion(FALSE);
             }
         } else if (purity == 0) {
-            if (Qstat(not_ready) == MAX_QUEST_TRIES) {
-                qt_pager("leader_last");
-                Qstat(pissed_off) = TRUE;
-                expulsion(FALSE);
-            } else {
-                qt_pager("badalign");
-                Qstat(not_ready)++;
-                exercise(A_WIS, TRUE);
-                expulsion(FALSE);
-            }
+            qt_pager("badalign");
+            Qstat(not_ready) = 1;
+            exercise(A_WIS, TRUE);
+            expulsion(FALSE);
         } else { /* You are worthy! */
             qt_pager("assignquest");
             exercise(A_WIS, TRUE);
@@ -327,8 +333,9 @@ leader_speaks(struct monst *mtmp)
     /* maybe you attacked leader? */
     if (!mtmp->mpeaceful) {
         if (!Qstat(pissed_off)) {
-            /* Alternate way of showing the leader_last message, but only once
-             * per game. */
+            /* again, don't end it permanently if the leader gets angry
+             * since you're going to have to kill him to go questing... :)
+             * ...but do only show this crap once. */
             qt_pager("leader_last");
         }
         Qstat(pissed_off) = TRUE;
@@ -339,9 +346,8 @@ leader_speaks(struct monst *mtmp)
     if (!on_level(&u.uz, &qstart_level))
         return;
 
-    if (!Qstat(pissed_off)) {
-        chat_with_leader();
-    }
+    if (!Qstat(pissed_off))
+        chat_with_leader(mtmp);
 
     /* leader might have been angered during the chat */
     if (Qstat(pissed_off)) {
@@ -422,7 +428,10 @@ void
 quest_chat(struct monst *mtmp)
 {
     if (mtmp->m_id == Qstat(leader_m_id)) {
-        chat_with_leader();
+        chat_with_leader(mtmp);
+        /* leader might have become pissed during the chat */
+        if (Qstat(pissed_off))
+            setmangry(mtmp, FALSE);
         return;
     }
     switch (mtmp->data->msound) {

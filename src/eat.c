@@ -1,4 +1,4 @@
-/* NetHack 3.7	eat.c	$NHDT-Date: 1620348708 2021/05/07 00:51:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.242 $ */
+/* NetHack 3.7	eat.c	$NHDT-Date: 1620548002 2021/05/09 08:13:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.243 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -19,6 +19,7 @@ static void do_reset_eat(void);
 static void done_eating(boolean);
 static void cprefx(int);
 static void givit(struct permonst *);
+static void eye_of_newt_buzz(struct permonst *);
 static void cpostfx(int);
 static void consume_tin(const char *);
 static void start_tin(struct obj *);
@@ -846,6 +847,7 @@ boolean
 should_givit(int type, struct permonst *ptr)
 {
     int chance;
+
     /* some intrinsics are easier to get than others */
     switch (type) {
     case POISON_RES:
@@ -974,20 +976,7 @@ givit(register struct permonst *ptr)
         gainstr((struct obj *) 0, 0, TRUE);
         break;
     case INTRINSIC_GAIN_EN:
-        if (rn2(3) || 3 * u.uen <= 2 * u.uenmax) {
-            int old_uen = u.uen, old_uenmax = u.uenmax;
-            u.uen += rnd(max(ptr->mlevel, 3));
-            if (u.uen > u.uenmax) {
-                if (!rn2(3))
-                    u.uenmax++;
-                u.uen = u.uenmax;
-            }
-            if (old_uen != u.uen) {
-                You_feel("a %s buzz.",
-                        old_uenmax != u.uenmax ? "moderate" : "mild");
-                g.context.botl = 1;
-            }
-        }
+        eye_of_newt_buzz(ptr);
         break;
     default:
         impossible("Tried to give an impossible intrinsic %d", type);
@@ -1040,6 +1029,25 @@ corpse_intrinsic(struct permonst *ptr)
 }
 
 DISABLE_WARNING_FORMAT_NONLITERAL
+
+static void
+eye_of_newt_buzz(struct permonst *ptr)
+{
+    if (rn2(3) || 3 * u.uen <= 2 * u.uenmax) {
+        int old_uen = u.uen, old_uenmax = u.uenmax;
+        u.uen += rnd(max(ptr->mlevel, 3));
+        if (u.uen > u.uenmax) {
+            if (!rn2(3))
+                u.uenmax++;
+            u.uen = u.uenmax;
+        }
+        if (old_uen != u.uen) {
+            You_feel("a %s buzz.",
+                    old_uenmax != u.uenmax ? "moderate" : "mild");
+            g.context.botl = 1;
+        }
+    }
+}
 
 /* called after completely consuming a corpse */
 static void
@@ -1207,6 +1215,7 @@ cpostfx(int pm)
     /* possibly convey an intrinsic */
     if (check_intrinsics) {
         struct permonst *ptr = &mons[pm];
+
         if (dmgtype(ptr, AD_STUN) || dmgtype(ptr, AD_HALU)
             || pm == PM_VIOLET_FUNGUS) {
             pline("Oh wow!  Great stuff!");
@@ -1216,7 +1225,7 @@ cpostfx(int pm)
 
         /* give an intrinsic now (givit() might fail) */
         givit(ptr);
-    }
+    } /* check_intrinsics */
 
     if (catch_lycanthropy >= LOW_PM) {
         set_ulycn(catch_lycanthropy);
@@ -1709,6 +1718,7 @@ eatcorpse(struct obj *otmp)
     if (mnum != PM_ACID_BLOB && !stoneable && !slimeable && rotted > 5L) {
         boolean cannibal = maybe_cannibal(mnum, FALSE);
 
+        /* tp++; -- early return makes this unnecessary */
         pline("Ulch - that %s was tainted%s!",
               (mons[mnum].mlet == S_FUNGUS) ? "fungoid vegetation"
                   : glob ? "glob"
@@ -1784,6 +1794,8 @@ eatcorpse(struct obj *otmp)
         pline("This tastes just like chicken!");
     } else if (mnum == PM_FLOATING_EYE && u.umonnum == PM_RAVEN) {
         You("peck the eyeball with delight.");
+    } else if (tp) {
+        ; /* we've already delivered a message; don't add "it tastes okay" */
     } else {
         /* yummy is always False for omnivores, palatable always True */
         boolean yummy = (vegan(&mons[mnum])

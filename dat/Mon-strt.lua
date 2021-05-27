@@ -62,8 +62,9 @@ des.door("random", 66,17)
 des.altar({ x=44,y=18, align="noalign", type="altar" })
 
 -- The Grand Master
-des.monster("Grand Master", 49,09)
-
+des.monster({ id = "Grand Master", coord = {49, 09}, inventory = function()
+   des.object({ id = "robe", spe = 6 });
+end })
 -- guards for the audience chamber
 local main_hall = selection.fillrect(31,06,51,13)
 des.monster({ id = "abbot", coord = { main_hall:rndcoord() }})

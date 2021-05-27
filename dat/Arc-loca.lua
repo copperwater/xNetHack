@@ -152,7 +152,7 @@ des.object({ id='chest', material='gold', coord=box_coords[4], spe=3, trapped = 
 -- Trap room
 selection.area(57,07,62,09):iterate(function(xx,yy)
    if percent(50) then
-      des.trap({ x=xx, y=yy, no_spider_on_web=true })
+      des.trap({ x=xx, y=yy, spider_on_web=false })
    end
 end)
 
@@ -162,7 +162,7 @@ for i=1,8 do
 end
 interior_spaces = selection.area(48,00,76,19):filter_mapchar('.')
 for i=1,11 do
-   des.trap({ coord = {interior_spaces:rndcoord(1)}, no_spider_on_web = true })
+   des.trap({ coord = {interior_spaces:rndcoord(1)}, spider_on_web = false })
 end
 for i=1,d(3) do
    des.trap('fire')

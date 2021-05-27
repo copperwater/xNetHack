@@ -204,7 +204,7 @@ end
 
 -- traps
 for i=1,30 do
-   des.trap({ no_spider_on_web = true })
+   des.trap({ spider_on_web = false })
 end
 
 -- mummies and other enemies

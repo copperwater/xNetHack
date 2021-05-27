@@ -358,71 +358,6 @@ dog_eat(struct monst *mtmp,
     return 1;
 }
 
-/* Maybe give an intrinsic to a monster from eating a corpse that confers it. */
-void
-mon_givit(struct monst* mtmp, struct permonst* ptr)
-{
-    int prop = corpse_intrinsic(ptr);
-    boolean vis = canseemon(mtmp);
-    const char* msg = NULL;
-    unsigned short intrinsic = 0; /* MR_* constant */
-
-    if (prop == 0) {
-        return; /* no intrinsic from this corpse */
-    }
-    if (!should_givit(prop, ptr))
-        return; /* failed die roll */
-
-    /* Pets don't have all the fields that the hero does, so they can't get all
-     * the same intrinsics. If it happens to choose strength gain or teleport
-     * control or whatever, ignore it. */
-    switch (prop) {
-    case FIRE_RES:
-        intrinsic = MR_FIRE;
-        msg = "%s shivers slightly.";
-        break;
-    case COLD_RES:
-        intrinsic = MR_COLD;
-        msg = "%s looks quite warm.";
-        break;
-    case SLEEP_RES:
-        intrinsic = MR_SLEEP;
-        msg = "%s looks wide awake.";
-        break;
-    case DISINT_RES:
-        intrinsic = MR_DISINT;
-        msg = "%s looks very firm.";
-        break;
-    case SHOCK_RES:
-        intrinsic = MR_ELEC;
-        msg = "%s crackles with static electricity.";
-        break;
-    case POISON_RES:
-        intrinsic = MR_POISON;
-        msg = "%s looks healthy.";
-        break;
-    case TELEPAT:
-        if (!mindless(mtmp->data)) {
-            intrinsic = MR2_TELEPATHY;
-            if (haseyes(mtmp->data))
-                msg = "%s blinks a few times.";
-        }
-    }
-
-    /* Don't give message if it already had this property intrinsically, but
-     * still do grant the intrinsic if it only had it from mresists.
-     * Do print the message if it only had this property extrinsically, which is
-     * why mon_resistancebits isn't used here. */
-    if ((mtmp->data->mresists | mtmp->mintrinsics) & intrinsic)
-        msg = (const char *) 0;
-
-    if (intrinsic)
-        mtmp->mintrinsics |= intrinsic;
-
-    if (vis && msg)
-        pline(msg, Monnam(mtmp));
-}
-
 /* hunger effects -- returns TRUE on starvation */
 static boolean
 dog_hunger(struct monst *mtmp, struct edog *edog)
@@ -961,7 +896,7 @@ dog_move(register struct monst *mtmp,
     udist = distu(omx, omy);
     /* Let steeds eat and maybe throw rider during Conflict */
     if (mtmp == u.usteed) {
-        if (Conflict && !resist(mtmp, RING_CLASS, 0, 0)) {
+        if (Conflict && !resist_conflict(mtmp)) {
             dismount_steed(DISMOUNT_THROWN);
             return 1;
         }
@@ -991,7 +926,7 @@ dog_move(register struct monst *mtmp,
     if (appr == -2)
         return 0;
 
-    if (Conflict && !resist(mtmp, RING_CLASS, 0, 0)) {
+    if (Conflict && !resist_conflict(mtmp)) {
         if (!has_edog) {
             /* Guardian angel refuses to be conflicted; rather,
              * it disappears, angrily, and sends in some nasties

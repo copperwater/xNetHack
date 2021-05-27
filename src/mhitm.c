@@ -116,7 +116,7 @@ fightm(register struct monst *mtmp)
     nmon = 0;
 #endif
     /* perhaps the monster will resist Conflict */
-    if (resist(mtmp, RING_CLASS, 0, 0))
+    if (resist_conflict(mtmp))
         return 0;
 
     if (u.ustuck == mtmp) {
@@ -821,8 +821,7 @@ explmm(struct monst *magr, struct monst *mdef, struct attack *mattk)
         mon_explodes(magr, mattk);
         /* unconditionally set AGR_DIED here; lifesaving is accounted below */
         result = MM_AGR_DIED | (DEADMONSTER(mdef) ? MM_DEF_DIED : 0);
-    }
-    else {
+    } else {
         result = mdamagem(magr, mdef, mattk, (struct obj *) 0, 0);
     }
 

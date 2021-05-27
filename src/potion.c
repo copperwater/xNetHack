@@ -875,6 +875,7 @@ peffects(struct obj *otmp)
         break;
     case POT_SLEEPING:
         if (Sleep_resistance || Free_action) {
+            monstseesu(M_SEEN_SLEEP);
             You("yawn.");
         } else {
             You("suddenly fall asleep!");
@@ -1938,6 +1939,7 @@ potionbreathe(struct obj *obj)
         }
         else {
             You("yawn.");
+            monstseesu(M_SEEN_SLEEP);
         }
         unambiguous = TRUE;
         break;

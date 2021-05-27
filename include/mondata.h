@@ -14,14 +14,20 @@
 #define mon_resistancebits(mon) \
     ((mon)->data->mresists | (mon)->mextrinsics | (mon)->mintrinsics)
 /* resists_fire() turned into function to handle artifact fire resistance */
-#define resists_cold(mon) ((mon_resistancebits(mon) & MR_COLD) != 0)
-#define resists_sleep(mon) ((mon_resistancebits(mon) & MR_SLEEP) != 0 \
-                            || mindless((mon)->data))
-#define resists_disint(mon) ((mon_resistancebits(mon) & MR_DISINT) != 0)
-#define resists_elec(mon) ((mon_resistancebits(mon) & MR_ELEC) != 0)
-#define resists_poison(mon) ((mon_resistancebits(mon) & MR_POISON) != 0)
-#define resists_acid(mon) ((mon_resistancebits(mon) & MR_ACID) != 0)
-#define resists_ston(mon) ((mon_resistancebits(mon) & MR_STONE) != 0)
+#define resists_cold(mon) \
+    ((mon_resistancebits(mon) & MR_COLD) != 0)
+#define resists_sleep(mon) \
+    ((mon_resistancebits(mon) & MR_SLEEP) != 0)
+#define resists_disint(mon) \
+    ((mon_resistancebits(mon) & MR_DISINT) != 0)
+#define resists_elec(mon) \
+    ((mon_resistancebits(mon) & MR_ELEC) != 0)
+#define resists_poison(mon) \
+    ((mon_resistancebits(mon) & MR_POISON) != 0)
+#define resists_acid(mon) \
+    ((mon_resistancebits(mon) & MR_ACID) != 0)
+#define resists_ston(mon) \
+    ((mon_resistancebits(mon) & MR_STONE) != 0)
 
 /* for MR2 stuff, the mresists part of mon_resistancebits is 0 because it's a
  * uchar */

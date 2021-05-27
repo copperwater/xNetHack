@@ -1249,6 +1249,7 @@ gulpmu(struct monst *mtmp, struct attack *mattk)
     case AD_ACID:
         if (Acid_resistance) {
             You("are covered with a seemingly harmless goo.");
+            monstseesu(M_SEEN_ACID);
             tmp = 0;
         } else {
             if (Hallucination)
@@ -1280,6 +1281,7 @@ gulpmu(struct monst *mtmp, struct attack *mattk)
             if (Shock_resistance) {
                 shieldeff(u.ux, u.uy);
                 You("seem unhurt.");
+                monstseesu(M_SEEN_ELEC);
                 ugolemeffects(AD_ELEC, tmp);
                 tmp = 0;
             }
@@ -1291,6 +1293,7 @@ gulpmu(struct monst *mtmp, struct attack *mattk)
             if (Cold_resistance) {
                 shieldeff(u.ux, u.uy);
                 You_feel("mildly chilly.");
+                monstseesu(M_SEEN_COLD);
                 ugolemeffects(AD_COLD, tmp);
                 tmp = 0;
             } else
@@ -1303,6 +1306,7 @@ gulpmu(struct monst *mtmp, struct attack *mattk)
             if (Fire_resistance) {
                 shieldeff(u.ux, u.uy);
                 You_feel("mildly hot.");
+                monstseesu(M_SEEN_FIRE);
                 ugolemeffects(AD_FIRE, tmp);
                 tmp = 0;
             } else
@@ -1386,20 +1390,21 @@ static int
 explmu(struct monst *mtmp, struct attack *mattk, boolean ufound)
 {
     boolean kill_agr = TRUE;
+    boolean not_affected;
+    int tmp;
 
     if (mtmp->mcan)
         return MM_MISS;
 
-    int tmp = d((int) mattk->damn, (int) mattk->damd);
-    boolean not_affected = defends((int) mattk->adtyp, uwep);
+    tmp = d((int) mattk->damn, (int) mattk->damd);
+    not_affected = defends((int) mattk->adtyp, uwep);
 
     if (!ufound) {
         pline("%s explodes at a spot in %s!",
-            canseemon(mtmp) ? Monnam(mtmp) : "It",
-            levl[mtmp->mux][mtmp->muy].typ == WATER ? "empty water"
-                                                    : "thin air");
-    }
-    else {
+              canseemon(mtmp) ? Monnam(mtmp) : "It",
+              levl[mtmp->mux][mtmp->muy].typ == WATER ? "empty water"
+                                                      : "thin air");
+    } else {
         hitmsg(mtmp, mattk);
     }
 
@@ -1408,9 +1413,8 @@ explmu(struct monst *mtmp, struct attack *mattk, boolean ufound)
     case AD_FIRE:
     case AD_ELEC:
         mon_explodes(mtmp, mattk);
-        if (!DEADMONSTER(mtmp)) {
+        if (!DEADMONSTER(mtmp))
             kill_agr = FALSE; /* lifesaving? */
-        }
         break;
     case AD_BLND:
         not_affected = resists_blnd(&g.youmonst);
@@ -1425,7 +1429,6 @@ explmu(struct monst *mtmp, struct attack *mattk, boolean ufound)
                 You("get the impression it was not terribly bright.");
         }
         break;
-
     case AD_HALU:
         not_affected |= Blind || (u.umonnum == PM_BLACK_LIGHT
                                   || u.umonnum == PM_VIOLET_FUNGUS
@@ -1442,7 +1445,6 @@ explmu(struct monst *mtmp, struct attack *mattk, boolean ufound)
             You("%s.", chg ? "are freaked out" : "seem unaffected");
         }
         break;
-
     default:
         impossible("unknown exploder damage type %d", mattk->adtyp);
         break;
@@ -1616,6 +1618,7 @@ gazemu(struct monst *mtmp, struct attack *mattk)
                 stop_occupation();
                 if (Fire_resistance) {
                     pline_The("fire doesn't feel hot!");
+                    monstseesu(M_SEEN_FIRE);
                     dmg = 0;
                 }
                 burn_away_slime();

@@ -1005,6 +1005,9 @@ struct instance_globals {
     int lusername_size;
 #endif
 
+    /* nhlua.c */
+    genericptr_t luacore; /* lua_State * */
+
     /* o_init.c */
     short disco[NUM_OBJECTS];
 

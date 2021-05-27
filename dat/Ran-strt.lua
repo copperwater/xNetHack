@@ -72,7 +72,11 @@ des.altar({ x=11, y=10, align="coaligned", type="altar" })
 -- -- des.replace_terrain(
 
 -- Orion and his faithful dog
-des.monster("Orion", 20, 10)
+des.monster({ id = "Orion", coord = {20, 10}, inventory = function()
+   des.object({ id = "leather armor", spe = 4 });
+   des.object({ id = "yumi", spe = 4 });
+   des.object({ id = "arrow", spe = 4, quantity = 50 });
+end })
 des.monster({ id = "large dog", x=20, y=11, name="Sirius", peaceful=1 })
 -- The treasure of Orion
 des.object({ id = "chest", trapped = 0, x=20, y=10,

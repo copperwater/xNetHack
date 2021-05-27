@@ -1,4 +1,4 @@
-/* NetHack 3.7	mon.c	$NHDT-Date: 1614074654 2021/02/23 10:04:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.370 $ */
+/* NetHack 3.7	mon.c	$NHDT-Date: 1620923921 2021/05/13 16:38:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.375 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -118,8 +118,8 @@ sanity_check_single_mon(
     if (mtmp == u.usteed) {
         const char *ns, *nt = !mtmp->mtame ? "not tame" : 0;
 
-        ns = !m_carrying(mtmp, SADDLE) ? ns = "no saddle"
-             : !which_armor(mtmp, W_SADDLE) ? ns = "saddle not worn"
+        ns = !m_carrying(mtmp, SADDLE) ? "no saddle"
+             : !which_armor(mtmp, W_SADDLE) ? "saddle not worn"
                : 0;
         if (ns || nt)
             impossible("steed: %s%s%s (%s)",
@@ -723,7 +723,7 @@ make_corpse(register struct monst* mtmp, unsigned int corpseflags)
      *  if the corpse's obj->dknown is 0.
      */
     if (Blind && !sensemon(mtmp))
-        obj->dknown = 0;
+        clear_dknown(obj); /* obj->dknown = 0; */
 
     stackobj(obj);
     newsym(x, y);
@@ -1103,7 +1103,7 @@ movemon(void)
         }
 
         /* continue if the monster died fighting */
-        if (Conflict && !mtmp->iswiz && mtmp->mcansee) {
+        if (Conflict && !mtmp->iswiz && m_canseeu(mtmp)) {
             /* Note:
              *  Conflict does not take effect in the first round.
              *  Therefore, A monster when stepping into the area will
@@ -1112,7 +1112,7 @@ movemon(void)
              *  The call to fightm() must be _last_.  The monster might
              *  have died if it returns 1.
              */
-            if (couldsee(mtmp->mx, mtmp->my)
+            if (cansee(mtmp->mx, mtmp->my)
                 && (distu(mtmp->mx, mtmp->my) <= BOLT_LIM * BOLT_LIM)
                 && fightm(mtmp))
                 continue; /* mon might have died */
@@ -1466,6 +1466,8 @@ meatcorpse(struct monst* mtmp) /* for purple worms and other voracious monsters 
                 You_hear("a masticating sound.");
         }
 
+        mon_givit(mtmp, &mons[otmp->corpsenm]);
+
         /* [should include quickmimic but can't handle that unless this
            gets changed to set mtmp->meating] */
         poly = polyfodder(otmp);
@@ -1495,6 +1497,71 @@ meatcorpse(struct monst* mtmp) /* for purple worms and other voracious monsters 
         return 1;
     }
     return 0;
+}
+
+/* Maybe give an intrinsic to a monster from eating a corpse that confers it. */
+void
+mon_givit(struct monst* mtmp, struct permonst* ptr)
+{
+    int prop = corpse_intrinsic(ptr);
+    boolean vis = canseemon(mtmp);
+    const char* msg = NULL;
+    unsigned short intrinsic = 0; /* MR_* constant */
+
+    if (prop == 0) {
+        return; /* no intrinsic from this corpse */
+    }
+    if (!should_givit(prop, ptr))
+        return; /* failed die roll */
+
+    /* Pets don't have all the fields that the hero does, so they can't get all
+     * the same intrinsics. If it happens to choose strength gain or teleport
+     * control or whatever, ignore it. */
+    switch (prop) {
+    case FIRE_RES:
+        intrinsic = MR_FIRE;
+        msg = "%s shivers slightly.";
+        break;
+    case COLD_RES:
+        intrinsic = MR_COLD;
+        msg = "%s looks quite warm.";
+        break;
+    case SLEEP_RES:
+        intrinsic = MR_SLEEP;
+        msg = "%s looks wide awake.";
+        break;
+    case DISINT_RES:
+        intrinsic = MR_DISINT;
+        msg = "%s looks very firm.";
+        break;
+    case SHOCK_RES:
+        intrinsic = MR_ELEC;
+        msg = "%s crackles with static electricity.";
+        break;
+    case POISON_RES:
+        intrinsic = MR_POISON;
+        msg = "%s looks healthy.";
+        break;
+    case TELEPAT:
+        if (!mindless(mtmp->data)) {
+            intrinsic = MR2_TELEPATHY;
+            if (haseyes(mtmp->data))
+                msg = "%s blinks a few times.";
+        }
+    }
+
+    /* Don't give message if it already had this property intrinsically, but
+     * still do grant the intrinsic if it only had it from mresists.
+     * Do print the message if it only had this property extrinsically, which is
+     * why mon_resistancebits isn't used here. */
+    if ((mtmp->data->mresists | mtmp->mintrinsics) & intrinsic)
+        msg = (const char *) 0;
+
+    if (intrinsic)
+        mtmp->mintrinsics |= intrinsic;
+
+    if (vis && msg)
+        pline(msg, Monnam(mtmp));
 }
 
 void
@@ -1722,7 +1789,7 @@ mon_allowflags(struct monst* mtmp)
         allowflags |= ALLOW_SANCT | ALLOW_SSM;
     else
         allowflags |= ALLOW_U;
-    if (Conflict && !resist(mtmp, RING_CLASS, 0, 0))
+    if (Conflict && !resist_conflict(mtmp))
         allowflags |= ALLOW_U;
     if (mtmp->isshk)
         allowflags |= ALLOW_SSM;
@@ -2420,6 +2487,8 @@ m_detach(
         wizdead();
     if (mtmp->data->msound == MS_NEMESIS)
         nemdead();
+    if (mtmp->data->msound == MS_LEADER)
+        leaddead();
     if (mtmp->m_id == g.stealmid)
         thiefdead();
     relobj(mtmp, 0, FALSE);
@@ -2683,9 +2752,6 @@ mondead(register struct monst* mtmp)
     if (g.mvitals[tmp].died < 255)
         g.mvitals[tmp].died++;
 
-    /* if it's a (possibly polymorphed) quest leader, mark him as dead */
-    if (mtmp->m_id == g.quest_status.leader_m_id)
-        g.quest_status.leader_is_dead = TRUE;
 #ifdef MAIL_STRUCTURES
     /* if the mail daemon dies, no more mail delivery.  -3. */
     if (tmp == PM_MAIL_DAEMON)

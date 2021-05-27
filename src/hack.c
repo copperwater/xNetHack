@@ -1812,10 +1812,10 @@ domove_core(void)
         nomul(0);
         if (explo) {
             struct attack *attk;
-            if ((attk = attacktype_fordmg(g.youmonst.data, AT_EXPL, AD_ANY))) {
-                explum((struct monst *) 0, attk);
-            }
+            /* no monster has been attacked so we have bypassed explum() */
             wake_nearto(u.ux, u.uy, 7 * 7); /* same radius as explum() */
+            if ((attk = attacktype_fordmg(g.youmonst.data, AT_EXPL, AD_ANY)))
+                explum((struct monst *) 0, attk);
             u.mh = -1; /* dead in the current form */
             Sprintf(g.killer.name, "blew %sself up", uhim());
             g.killer.format = NO_KILLER_PREFIX;

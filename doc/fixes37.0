@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.527 $ $NHDT-Date: 1620413928 2021/05/07 18:58:48 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.540 $ $NHDT-Date: 1621387861 2021/05/19 01:31:01 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -120,9 +120,11 @@ tribute (Discworld snippets) typos, in book order rather than fix order:
 	Lords and Ladies passage #5, near end add missing opening double
 	 quote, passage #7 last paragraph, "to" -> "be"
 	Men at Arms passage #1, italicize /for/, passage #2, insert omitted
-	word "had": 'it was /fate/ that _had_ let Edward'
+	 word "had": 'it was /fate/ that _had_ let Edward'
+	Interesting Times passage #1, italicize several words
 	Hogfather passage #7 missing initial double quote for "Oh, just ...",
 	 also #7 insert missing "you" into "Why are you feeling [...]"
+	Soul Music passage #1, italicize /feel/, #8, "fossile" -> "fossil"
 	Jingo passage #2 "Vines" -> "Vimes", "profferred" -> "proffered",
 	 missing opening single quote on second sentence of Lord Downey's
 	 line, passage #11 both in footnote:  "genious" -> "genius",
@@ -504,6 +506,34 @@ when an unseen non-pet picks up or uses an item, hero loses known/dknown/
 	particular, player won't be asked what to call unseen thrown potion)
 wishing for a partly eaten wraith corpse yielded "partly eaten food (1) more
 	nutritious than untouched food (0)"
+if PREFIXES_IN_USE was defined (and VAR_PLAYGROUND forces it to be) when
+	COMPRESS was also defined (external save and bones file compression
+	via fork()+exec()), the file name buffer in docompress_file() wasn't
+	big enough so could overflow and trigger a crash
+suppress "This <foo> corpse takes {delicious|okay|terrible}" if preceded by
+	"You have a bad case of stomach acid" or "Ecch - that must have been
+	poisonous"
+innocuous items like scrolls or eucalyptus leaves did harm when falling on
+	hero's head after being thrown upward
+fighter types who start out knowing all non-magic armor should not know
+	cornuthaum and dunce cap
+prediscovered weapons adjustmens:  only knights and samurai know polearms;
+	rangers know launchers (bows), ammo (arrows), and spears regardless
+	of their race/species; likewise, rogues know all daggers
+if the move counter ever reaches 1000000000, end the game
+knights get no metal armor penalty for clerical spells
+change touch of death from instadeath to maxhp reduction and damage
+dying from being level-drained below level 1 killed hero without saying so
+	and jumped straight to "do you want your possessions identified?"
+conflict will now consider your charisma and requires line of sight
+boost hit points of some golems
+make anti-magic fields drain more energy and prevent them from showing up
+	too early in the dungeon
+eating magical monsters such as wizards or shamans may give a mild buzz
+make exploding spheres create an actual explosion
+pets are more careful about attacking monsters at low health
+allow killing your quest leader to open the quest
+give King Arthur Excalibur
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -657,6 +687,14 @@ if a <foo> corpse was set to revive as a <foo> zombie and corpse was partly
 	calculate zombie's hit points (depended upon how much had been eaten)
 undead turning magic revived corpses flagged as no-revive if they were being
 	carried but not if they were zapped while on the floor
+forgetting an item's known/dknown/bknown/&c settings when picked up by unseen
+	monster made it possible to trigger a latent shop bug with globs;
+	avoid clearing dknown flag for globs
+fix globby_bill_fixup to use shopkeeper instead of Null for glob pricing
+applying a book to check readability treated novels as if they were spellbooks
+#version was leaving the 'in_lua' flag set and if subsequent 'O' issued an
+	error (example was an attempt to interactively set bouldersym to an
+	invalid value), the error reporting routine crashed via segfault
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
@@ -856,6 +894,7 @@ split off some of the functionality that was in makedefs (compiled-in options
 	and accessed on the target platform
 replace quest.txt and associated conversion to quest.dat via makedefs with
 	Lua quest texts loaded at runtime
+callback lua functions from core at certain game actions
 some altars are displayed in different colors (for tty and curses at least)
 add 'quick_farsight' option to provide some control over random clairvoyance
 	where pausing to be able to browse temporarily visible aspects of the
@@ -942,6 +981,7 @@ add 'sortdiscoveries' option to control output of '\' and '`' commands
 include an indication of monsters' health during farlook feedback (including
 	/M and autodescribe); also include it in death reason when killed by
 	a monster: "killed by {an uninjured newt,a heavily injured mumak}"
+[later: suppress the indication of monsters' health]
 make DOAGAIN (^A) become unconditional; commenting it out in config.h makes
 	it be bound to NUL, a no-op, but allows BIND=k:repeat to set it to k
 add support for a single monster species to have distinct male, female,
@@ -968,7 +1008,9 @@ using 'f' while quiver is empty and 'autoquiver' is Off when wielding a
 	thrown-and-return weapon will throw that weapon instead of filling
 	the quiver (inspired by xNetHack)
 3.6's tribute: add one new passage to Sourcery, three to Small Gods, one to
-	Lords and Ladies
+	Lords and Ladies, two to Soul Music, three to Interesting Times
+monsters can see and remember hero resistances
+monsters can gain resistances by eating corpses
 
 
 Platform- and/or Interface-Specific New Features

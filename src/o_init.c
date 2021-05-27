@@ -180,6 +180,23 @@ init_objects(void)
         if (!g.bases[last])
             g.bases[last] = g.bases[last + 1];
 
+    /* check objects[].oc_name_known */
+    for (i = 0; i < NUM_OBJECTS; ++i) {
+        int nmkn = objects[i].oc_name_known != 0;
+
+        if (!OBJ_DESCR(objects[i]) ^ nmkn) {
+            if (iflags.sanity_check) {
+                impossible(
+                    "obj #%d (%s) name is %s despite%s alternate description",
+                           i, OBJ_NAME(objects[i]),
+                           nmkn ? "pre-known" : "not known",
+                           nmkn ? "" : " no");
+            }
+            /* repair the mistake and keep going */
+            objects[i].oc_name_known = nmkn ? 0 : 1;
+        }
+    }
+
     /* shuffle descriptions */
     shuffle_all();
 #ifdef USE_TILES

@@ -1289,6 +1289,7 @@ makemon(register struct permonst *ptr,
 
     place_monster(mtmp, x, y);
     mtmp->mcansee = mtmp->mcanmove = TRUE;
+    mtmp->seen_resistance = M_SEEN_NOTHING;
     mtmp->mpeaceful = (mmflags & MM_ANGRY) ? FALSE : peace_minded(ptr);
 
     switch (ptr->mlet) {
@@ -2163,19 +2164,19 @@ golemhp(int type)
     case PM_LEATHER_GOLEM:
         return 40;
     case PM_GOLD_GOLEM:
-        return 40;
+        return 60;
     case PM_WOOD_GOLEM:
         return 50;
     case PM_FLESH_GOLEM:
         return 40;
     case PM_CLAY_GOLEM:
-        return 50;
+        return 70;
     case PM_STONE_GOLEM:
-        return 60;
+        return 100;
     case PM_GLASS_GOLEM:
-        return 60;
-    case PM_IRON_GOLEM:
         return 80;
+    case PM_IRON_GOLEM:
+        return 120;
     default:
         return 0;
     }

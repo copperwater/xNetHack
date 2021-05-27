@@ -74,7 +74,10 @@ des.door("closed",68,03)
 des.door("closed",69,07)
 des.door("closed",71,16)
 -- Lord Carnarvon
-des.monster("Lord Carnarvon", 31, 06)
+des.monster({ id = "Lord Carnarvon", coord = {31, 06}, inventory = function()
+   des.object({ id = "fedora", spe = 5 });
+   des.object({ id = "bullwhip", spe = 4 });
+end })
 -- The treasure of the Archeology Department
 storeroom = selection.fillrect(40,07,41,10)
 des.terrain({ typ = "\\", coord = {storeroom:rndcoord(1)} }) -- a throne

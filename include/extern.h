@@ -1,4 +1,4 @@
-/* NetHack 3.7	extern.h	$NHDT-Date: 1620348705 2021/05/07 00:51:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.969 $ */
+/* NetHack 3.7	extern.h	$NHDT-Date: 1620923916 2021/05/13 16:38:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.971 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -539,7 +539,6 @@ extern struct obj *droppables(struct monst *);
 extern int dog_nutrition(struct monst *, struct obj *);
 extern int dog_eat(struct monst *, struct obj *, int, int, boolean);
 extern int dog_move(struct monst *, int);
-extern void mon_givit(struct monst *, struct permonst *);
 extern void finish_meating(struct monst *);
 
 /* ### dokick.c ### */
@@ -677,6 +676,7 @@ extern void morehungry(int);
 extern void lesshungry(int);
 extern boolean is_fainted(void);
 extern void reset_faint(void);
+extern int corpse_intrinsic(struct permonst *);
 extern void violated_vegetarian(void);
 extern void newuhs(boolean);
 extern struct obj *floorfood(const char *, int);
@@ -1058,7 +1058,6 @@ extern int ggetobj(const char *, int(*)(struct obj *), int, boolean,
                    unsigned *);
 extern int askchain(struct obj **, const char *, int, int(*)(struct obj *),
                     int(*)(struct obj *), int, const char *);
-extern void unknow_object(struct obj *);
 extern void set_cknown_lknown(struct obj *);
 extern void fully_identify_obj(struct obj *);
 extern int identify(struct obj *);
@@ -1217,6 +1216,7 @@ extern boolean usmellmon(struct permonst *);
 /* ### mcastu.c ### */
 
 extern int castmu(struct monst *, struct attack *, boolean, boolean);
+extern void touch_of_death(void);
 extern int buzzmu(struct monst *, struct attack *);
 
 /* ### mdlib.c ### */
@@ -1363,6 +1363,8 @@ extern void replace_object(struct obj *, struct obj *);
 extern struct obj *unknwn_contnr_contents(struct obj *);
 extern void bill_dummy_object(struct obj *);
 extern void costly_alteration(struct obj *, int);
+extern void clear_dknown(struct obj *);
+extern void unknow_object(struct obj *);
 extern struct obj *mksobj(int, boolean, boolean);
 extern int bcsign(struct obj *);
 extern int weight(struct obj *);
@@ -1449,6 +1451,7 @@ extern int movemon(void);
 extern int meatmetal(struct monst *);
 extern int meatobj(struct monst *);
 extern int meatcorpse(struct monst *);
+extern void mon_givit(struct monst *, struct permonst *);
 extern void mpickgold(struct monst *);
 extern boolean mpickstuff(struct monst *, boolean(*)(struct obj *));
 extern int curr_mon_load(struct monst *);
@@ -1559,6 +1562,9 @@ extern boolean olfaction(struct permonst *);
 extern int monmaterial(int);
 extern int emits_light(struct permonst *);
 extern boolean is_fleshy(const struct permonst *);
+unsigned long cvt_adtyp_to_mseenres(uchar);
+extern void monstseesu(unsigned long);
+extern boolean resist_conflict(struct monst *);
 
 /* ### monmove.c ### */
 
@@ -1730,6 +1736,9 @@ extern int l_obj_register(lua_State *);
 /* ### nhlua.c ### */
 
 #if !defined(CROSSCOMPILE) || defined(CROSSCOMPILE_TARGET)
+extern void l_nhcore_init(void);
+extern void l_nhcore_done(void);
+extern void l_nhcore_call(int);
 extern lua_State * nhl_init(void);
 extern void nhl_done(lua_State *);
 extern boolean nhl_loadlua(lua_State *, const char *);
@@ -2146,6 +2155,7 @@ extern void free_epri(struct monst *);
 
 extern void onquest(void);
 extern void nemdead(void);
+extern void leaddead(void);
 extern void artitouch(struct obj *);
 extern boolean ok_to_quest(void);
 extern void leader_speaks(struct monst *);

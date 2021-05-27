@@ -1409,6 +1409,7 @@ trapeffect_slp_gas_trap(
         seetrap(trap);
         if (Sleep_resistance || breathless(g.youmonst.data)) {
             You("are enveloped in a cloud of gas!");
+            monstseesu(M_SEEN_SLEEP);
         } else {
             pline("A cloud of gas puts you to sleep!");
             fall_asleep(-rnd(25), TRUE);
@@ -2141,15 +2142,17 @@ trapeffect_anti_magic(
     unsigned int trflags UNUSED)
 {
     if (mtmp == &g.youmonst) {
+        int drain = (u.uen > 1) ? (rnd(u.uen / 2) + 2) : 4;
+
         seetrap(trap);
         /* hero without magic resistance loses spell energy,
            hero with magic resistance takes damage instead;
            possibly non-intuitive but useful for play balance */
         if (!Antimagic) {
-            drain_en(rnd(u.ulevel) + 1);
+            drain_en(drain);
         } else {
             struct obj *otmp;
-            int dmgval2 = rnd(4), hp = Upolyd ? u.mh : u.uhp;
+            int dmgval2 = rnd(drain), hp = Upolyd ? u.mh : u.uhp;
 
             /* Half_XXX_damage has opposite its usual effect (approx)
                but isn't cumulative if hero has more than one */
@@ -3723,6 +3726,7 @@ dofiretrap(
           the(box ? xname(box) : surface(u.ux, u.uy)));
     if (Fire_resistance) {
         shieldeff(u.ux, u.uy);
+        monstseesu(M_SEEN_FIRE);
         num = rn2(2);
     } else if (Upolyd) {
         switch (u.umonnum) {
@@ -4577,7 +4581,7 @@ drain_en(int n)
         You_feel("momentarily lethargic.");
     } else {
         /* throttle further loss a bit when there's not much left to lose */
-        if (n > u.uenmax || n > u.ulevel)
+        if (n > (u.uen + u.uenmax) / 3)
             n = rnd(n);
 
         You_feel("your magical energy drain away%c", (n > u.uen) ? '!' : '.');
@@ -5603,6 +5607,7 @@ chest_trap(
             if (Shock_resistance) {
                 shieldeff(u.ux, u.uy);
                 You("don't seem to be affected.");
+                monstseesu(M_SEEN_ELEC);
                 dmg = 0;
             }
             (void) destroy_items(&g.youmonst, AD_ELEC, orig_dmg);
@@ -6513,6 +6518,8 @@ lava_effects(void)
         You("sink into the %s%s!", hliquid("lava"),
             !boil_away ? ", but it only burns slightly"
                        : " and are about to be immolated");
+        if (Fire_resistance)
+            monstseesu(M_SEEN_FIRE);
         if (u.uhp > 1)
             losehp(!boil_away ? 1 : (u.uhp / 2), lava_killer,
                    KILLED_BY); /* lava damage */
