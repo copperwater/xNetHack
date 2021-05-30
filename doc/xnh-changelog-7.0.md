@@ -119,6 +119,8 @@ changes:
   have finished the first level of Sokoban and killed Vlad, respectively.
 - Swap the chaotic and unaligned altar colors to be in line with vanilla:
   chaotic is now black and unaligned red.
+- For Junethack, begin recording quest completion (returning to one's leader
+  with the quest artifact) as "completed_quest" in the achieveX xlogfile field.
 
 ### Architectural changes
 

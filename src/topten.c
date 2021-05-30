@@ -603,6 +603,14 @@ encode_extended_achievements(void)
         add_achieveX(buf, achievement, TRUE);
     }
 
+    /* Junethack 2021 shim: record quest completion in achieveX without making
+     * it a formal achievement (because vanilla NetHack might add it as an
+     * actual achievement and only one achievement slot remains at the moment).
+     */
+    if (u.uevent.qcompleted) {
+        add_achieveX(buf, "completed_quest", TRUE);
+    }
+
     return buf;
 }
 
