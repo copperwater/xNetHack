@@ -73,7 +73,7 @@ des.altar({ x=11, y=10, align="coaligned", type="altar" })
 
 -- Orion and his faithful dog
 des.monster({ id = "Orion", coord = {20, 10}, inventory = function()
-   des.object({ id = "leather armor", spe = 4 });
+   des.object({ id = "light armor", spe = 4 });
    des.object({ id = "yumi", spe = 4 });
    des.object({ id = "arrow", spe = 4, quantity = 50 });
 end })
