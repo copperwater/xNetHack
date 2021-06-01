@@ -676,7 +676,7 @@ newgame(void)
     g.context.tribute.tributesz = sizeof(struct tribute_info);
 
     /* Extra entropy added to sysopt.serverseed */
-    sysopt.serverseed += rn2(8000000);
+    /* sysopt.serverseed += rn2(8000000); */
 
     for (i = LOW_PM; i < NUMMONS; i++)
         g.mvitals[i].mvflags = mons[i].geno & G_NOCORPSE;
