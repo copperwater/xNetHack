@@ -391,7 +391,7 @@ doread(void)
         if (otyp == HAWAIIAN_SHIRT) {
             pline("%s features %s.", flags.verbose ? "The design" : "It",
                   hawaiian_design(scroll, buf));
-            return 0;
+            return 1;
         }
         if (!u.uconduct.literate++)
             livelog_printf(LL_CONDUCT, "became literate by reading %s",
