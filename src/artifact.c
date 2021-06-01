@@ -186,6 +186,8 @@ mk_artifact(struct obj *otmp,   /* existing object; ignored if alignment specifi
             otmp = mksobj((int) a->otyp, TRUE, FALSE);
 
         if (otmp) {
+            /* prevent erosion from generating */
+            otmp->oeroded = otmp->oeroded2 = 0;
             otmp = oname(otmp, a->name);
             otmp->oartifact = m;
             g.artiexist[m] = TRUE;
