@@ -208,15 +208,15 @@ You couldn't quite make out that last message.]],
       quest_portal_demand = {
          text = "You again sense %l demanding your attendance.",
       },
-      --- Boss appearance messages are keyed by their monster name. It expects
+      --- Boss appearance messages are keyed by their monster name.  It expects
       --- that any spaces in the name will be replaced by underscores and there
       --- will be an "_appears" added to the end of it.
       Juiblex_appears = {
          output = "text",
          text = [[
 A massive pillar of slime towers above you, larger than you would believe
-to be possible. It hisses, spits, and bubbles, filling the air around it
-with noxious vapours. Most striking of all is the burning hatred that
+to be possible.  It hisses, spits, and bubbles, filling the air around it
+with noxious vapours.  Most striking of all is the burning hatred that
 emanates from it, so intense that it feels almost like a physical force
 and you have to struggle not to let it push you back.
 
@@ -228,8 +228,8 @@ Juiblex, the Faceless Lord, has arrived.
          output = "text",
          text = [[
 The hulking humanoid that stands before you is covered nearly three meters
-tall and has the head of a hyena. In one hand it grips a flail, and the
-other hand crackles with magical energy. When it opens its mouth, the
+tall and has the head of a hyena.  In one hand it grips a flail, and the
+other hand crackles with magical energy.  When it opens its mouth, the
 unholy din that emerges could charitably be called a laugh.
 
 Yeenoghu has come to call.
@@ -239,36 +239,36 @@ Yeenoghu has come to call.
       Orcus_appears = {
          output = "text",
          text = [[
-Blackness cloaks the being in front of you. All you can %x of it is a
-muscular form, two burning yellow eyes, and a pair of claws. One of the
+Blackness cloaks the being in front of you.  All you can %x of it is a
+muscular form, two burning yellow eyes, and a pair of claws.  One of the
 claws clutches a skull-topped wand, about which a miasma of dark magic
 gathers.
 
-"I am Orcus, Lord of the Dead. Goodbye."
+"I am Orcus, Lord of the Dead.  Goodbye."
          ]],
          synopsis = "[Orcus appears!]"
       },
       Geryon_appears = {
          output = "text",
          text = [[
-The monster you now face is nothing short of horrifying. The upper body
+The monster you now face is nothing short of horrifying.  The upper body
 seems to be a combination of three separate humanoids that have been
 forcibly merged.  The lower body is serpentine and distended, tapering off
-into an enormous stinger. The hands of the monster end in wicked claws.
+into an enormous stinger.  The hands of the monster end in wicked claws.
 
-"Greetings, mortal. I am Geryon."
+"Greetings, mortal.  I am Geryon."
          ]],
          synopsis = "[Geryon appears!]"
       },
       Dispater_appears = {
          output = "text",
          text = [[
-The being in front of you sniffs in disdain and tosses his ram's horns. He
+The being in front of you sniffs in disdain and tosses his ram's horns.  He
 is dressed in fine clothing, and his skin is covered in bony protrusions.
 A flickering gray aura surrounds him, which occasionally curls into a
 bestial shape.
 
-"Is this the one who seeks the Amulet of Yendor? How utterly pathetic. I,
+"Is this the one who seeks the Amulet of Yendor? How utterly pathetic.  I,
 Dispater, shall dispatch thee."
          ]],
          synopsis = "[Dispater appears!]"
@@ -276,7 +276,7 @@ Dispater, shall dispatch thee."
       Baalzebub_appears = {
          output = "text",
          text = [[
-A maddening buzz fills your ears. Thousands of flies appear from
+A maddening buzz fills your ears.  Thousands of flies appear from
 everywhere, swarming through the air to coalesce into a horrible,
 pulsating mass, which continually spews torrents of insects as it expands.
 
@@ -288,10 +288,10 @@ Baalzebub, Lord of the Flies approaches.
          output = "text",
          text = [[
 The air around you is filled with a momentary hissing, before a figure
-appears in a flash of frost. He grins at you, displaying a mouth full of
+appears in a flash of frost.  He grins at you, displaying a mouth full of
 fangs.
 
-"I am Asmodeus. Come to me, %r."
+"I am Asmodeus.  Come to me, %r."
          ]],
          synopsis = "[Asmodeus appears!]"
       },
@@ -299,7 +299,7 @@ fangs.
          output = "text",
          text = [[
 A great beast drags itself from the earth in a shower of stone, roaring
-loudly enough that the world shakes around it. You cannot wrap your mind
+loudly enough that the world shakes around it.  You cannot wrap your mind
 around the entirety of its form, and instead must process bits and pieces
 of it at a time.
 
@@ -318,8 +318,8 @@ Demogorgon.
          text = [[
 Blocking the way in front of you stands a huge horse, pale as the moon.
 Its rider is cloaked in a black robe, taller than a man, and holding a
-gleaming scythe. He turns to face you, revealing his head to be a grinning
-skull. Instead of eyes, two icy blue pinpoints of light shine as brightly
+gleaming scythe.  He turns to face you, revealing his head to be a grinning
+skull.  Instead of eyes, two icy blue pinpoints of light shine as brightly
 as stars.
          ]],
          synopsis = "[You encounter Death.]"
@@ -328,9 +328,9 @@ as stars.
          output = "text",
          text = [[
 A disgusting stench assaults your nose as a blinding white horse thunders
-to a stop ahead. Its rider wears a sickly green cloak covered in splotches
-of mildew and circled by several flies. A glittering crown, looking
-rather out of place, rests on his head. With a ghastly leer he extends a
+to a stop ahead.  Its rider wears a sickly green cloak covered in splotches
+of mildew and circled by several flies.  A glittering crown, looking
+rather out of place, rests on his head.  With a ghastly leer he extends a
 diseased finger toward you.
          ]],
          synopsis = "[You encounter Pestilence.]"
@@ -339,9 +339,9 @@ diseased finger toward you.
          output = "text",
          text = [[
 A horse, dark as midnight, rears up before you, with a hunched figure
-seated on its back. He is wearing a thin gray cowl and clutching a set of
-black iron balance scales. He lowers his hood and glares at you, revealing
-a badly emaciated face. Under his fevered gaze, a pang of hunger goes
+seated on its back.  He is wearing a thin gray cowl and clutching a set of
+black iron balance scales.  He lowers his hood and glares at you, revealing
+a badly emaciated face.  Under his fevered gaze, a pang of hunger goes
 through your stomach.
          ]],
          synopsis = "[You encounter Famine.]"
@@ -349,12 +349,12 @@ through your stomach.
       Wizard_of_Yendor_appears = {
          output = "text",
          text = [[
-A man stands before you. He wears an elaborate robe trimmed with gold, and
-he regards you with a malevolent stare. The very air around him pulsates with
+A man stands before you.  He wears an elaborate robe trimmed with gold, and
+he regards you with a malevolent stare.  The very air around him pulsates with
 a fell power, and sparks fly from his fingers.
 
 "Not since the fall of Yendor has a puny mortal dared to cross my path.
-Thou art a fool to challenge me. Prepare to die!"
+Thou art a fool to challenge me.  Prepare to die!"
          ]],
          synopsis = "[You encounter the Wizard of Yendor!]"
       },
@@ -362,10 +362,10 @@ Thou art a fool to challenge me. Prepare to die!"
          output = "text",
          text = [[
 In a swirl of dark vapor, a tall figure appears, garbed in a high-collared black
-velvet cloak. His skin is very pale, except for some disturbing red stains
+velvet cloak.  His skin is very pale, except for some disturbing red stains
 around his mouth.  His lips curl into a sneer, revealing long white fangs.
 
-"I am Vlad Dracula, the Impaler. Tonight I will feast on thy blood."
+"I am Vlad Dracula, the Impaler.  Tonight I will feast on thy blood."
          ]],
          synopsis = "[You encounter Vlad the Impaler!]"
       },
@@ -388,7 +388,7 @@ us.  You are the only one who might stand a chance of beating them to it.
 %i.  Somewhere deep within it, you will find
 %o.  They will not be watching that way, I think.
 
-"Make haste. %nC must not be allowed to make off with %o.
+"Make haste.  %nC must not be allowed to make off with %o.
 
 "May the wisdom of %d be your guide."]],
       },
@@ -413,10 +413,10 @@ taught you."]],
       discourage = {
          "\"%lC is weak! %lH is blind to the success of my methods.\"",
          "\"Ah, this bell? An ancient tool that has opened the way to many discoveries!\"",
-         "\"Surrender to me, %p. I will let you return to %H in shame.\"",
+         "\"Surrender to me, %p.  I will let you return to %H in shame.\"",
          "\"If you are the best %l can send, I have nothing to fear.\"",
          "\"What are a few walls worth, compared to the treasure behind them?\"",
-         "\"%lC names me chaotic. I consider myself pragmatic.\"",
+         "\"%lC names me chaotic.  I consider myself pragmatic.\"",
          "\"Do you mean to kill me? Are we not professionals?\"",
          "\"Ancient artifacts don't belong in a museum! They're meant to be used!\"",
          "\"Soon, all the pupils at your college will want to study under me!\"",
@@ -430,17 +430,17 @@ taught you."]],
       },
       encourage = {
          "\"To delve into %i, you must pass many traps.\"",
-         "\"The jungle trek is dangerous. You may need to cut your way through it.\"",
+         "\"The jungle trek is dangerous.  You may need to cut your way through it.\"",
          "\"Beware the wild beasts you will surely encounter on your journey.\"",
-         "\"The tomb has never been opened. None can say for sure what lies within.\"",
-         "\"You may encounter mummies. Beware their withering touch.\"",
+         "\"The tomb has never been opened.  None can say for sure what lies within.\"",
+         "\"You may encounter mummies.  Beware their withering touch.\"",
          "\"%nC has always had a penchant for using explosives.\"",
          "\"Remember not to stray from the true %a path.\"",
          "\"Go forth with the blessings of %d.\"",
          "\"I will have my %gP watch for your return.\"",
          "\"%nS henchmen are just as ruthless as %nh is.\"",
-         "\"Do not listen to %ns lies. The end does not justify the means.\"",
-         "\"%o is a mighty scrying device. %nC will see you coming if %nh gets it.\"",
+         "\"Do not listen to %ns lies.  The end does not justify the means.\"",
+         "\"%o is a mighty scrying device.  %nC will see you coming if %nh gets it.\"",
          "\"Wearing %o should defend against many types of rays.\"",
          "\"Expect %i to be warded against magical mapping.\"",
       },
@@ -472,7 +472,7 @@ You hope the continued blasts mean that they have not found
          text = "You return to the deepest depths of the temple.",
       },
       gotit = {
-         synopsis = "[%o is what you were looking for. Take it back to %l.]",
+         synopsis = "[%o is what you were looking for.  Take it back to %l.]",
          output = "text",
          text = [[
 As you hold %o, you feel the weight of its long and storied
@@ -514,7 +514,7 @@ Amulet on that altar to fulfill your destiny.
          output = "text",
          text = [[
 %nC collapses to the ground, wounded beyond any possibility of
-healing. For a moment, it seems as though %nh is trying to say
+healing.  For a moment, it seems as though %nh is trying to say
 something, but the life leaves %ni before %nh can say it.
 
 You are unhappy that it had to come to this, and wonder if you went too
@@ -553,11 +553,11 @@ Are you finally ready for the task that must be accomplished?"]],
          text = [[
 The trees give way ahead, as the ground abruptly steepens into a
 mountainside.  Carved into the mountainside are the clear signs of ruins
-of a once-great edifice -- %i. It's not clear
+of a once-great edifice -- %i.  It's not clear
 where the entrance is, if indeed there still is one.
 
-A short tremor runs through the ground as you stand there. Alarmed, you
-realize that it was a detonation. %nS team must already be here
+A short tremor runs through the ground as you stand there.  Alarmed, you
+realize that it was a detonation.  %nS team must already be here
 and blasting their way into the other side of the mountain.]],
       },
       locate_next = {
@@ -730,7 +730,7 @@ Without thought, you ready your weapon, and mutter under your breath:
          output = "text",
          text = [[
 Ahead, you can make out the glow of fire and the dark shapes of
-buildings. The hairs on the nape of your neck lift as you sense an
+buildings.  The hairs on the nape of your neck lift as you sense an
 energy in the very air around you.  You fight down a primordial panic
 that seeks to make you turn and run.  This is surely the lair of %n.
          ]],
@@ -931,11 +931,11 @@ bring back %o.
          synopsis = "[You cast out from %H for rest of your life.]",
          output = "text",
          text = [[
-"You turn your back on us. You turn your back on %d!
+"You turn your back on us.  You turn your back on %d!
 You not part of this tribe no more.
 
-Get out. You not come back ever.
-You never get God Thing now. You not get Bright Thing from %n.
+Get out.  You not come back ever.
+You never get God Thing now.  You not get Bright Thing from %n.
 You not have Bright Thing, you not able to go to place of God Thing.
 
 Go! Or else we eat you.]],
@@ -966,7 +966,7 @@ Go! Or else we eat you.]],
          "\"Watch out for %ns breath.  It hurt lots of ways.\"",
       },
       firsttime = {
-         synopsis = "[You come to %H. It wrong.]",
+         synopsis = "[You come to %H.  It wrong.]",
          output = "text",
          text = [[
 You come to %H.  It not right.  There no meat in cave.
@@ -1607,10 +1607,10 @@ spiritual guidance.
          synopsis = "[You are losing your way.  Come back when your harmony is restored.]",
          output = "text",
          text = [[
-"You seem troubled, %p. It looks as though you are letting worldly
+"You seem troubled, %p.  It looks as though you are letting worldly
 concerns begin to turn you away from enlightenment and the %a way.
 
-There is still some hope for you, though. Go from here and meditate on
+There is still some hope for you, though.  Go from here and meditate on
 your transgressions, and return once you have restored harmony with
 yourself and with %d."
          ]],
@@ -1620,7 +1620,7 @@ yourself and with %d."
          output = "text",
          text = [[
 "Though your progress is adequate, no %r can stand up to %n.
-You must continue your martial and mental training. Return to us when
+You must continue your martial and mental training.  Return to us when
 you have attained the post of %R."
          ]],
       },
@@ -1643,7 +1643,7 @@ you have attained the post of %R."
          "\"The path to %i is steep, and you will face many foes there.\"",
          "\"Remember your studies, and you will prevail!\"",
          "\"Acquire and wear %o if you can.  They will aid you against %n.\"",
-         "\"It will not do for you to be unfocused. Meditate on your mission if you must.\"",
+         "\"It will not do for you to be unfocused.  Meditate on your mission if you must.\"",
          "\"We have some small amount of supplies here; take any that you may need.\"",
          "\"%n may try to trick and distract you.  Be steadfast.\"",
          "\"I must continue to hold this hall against the elementals while you are gone.\"",
@@ -1687,13 +1687,13 @@ as possible.]],
          "\"Greetings, honorable %r.  It is good to see you again.\"",
          "\"%l teaches us not to focus on earthly beauty.\"",
          "\"With this test behind you, may %d bring you enlightenment.\"",
-         "\"Good day, %p. The repair efforts have been going well.\"",
+         "\"Good day, %p.  The repair efforts have been going well.\"",
          "\"Got any wands of enlightenment to spare?\"",
       },
       guardtalk_before = {
          "\"Greetings, honorable %r.  It is good to see you.\"",
          "\"Our beautiful monastery lies in shambles, %p.\"",
-         "\"Welcome back, %p. Will you join me in meditation?\"",
+         "\"Welcome back, %p.  Will you join me in meditation?\"",
          "\"It will take long to repair the damage from the elementals.\"",
          "\"Got any potions of enlightenment to spare?\"",
       },
@@ -1735,7 +1735,7 @@ have been away from us."
 the path of enlightenment.  We will never defeat %n if you are our
 champion.
 
-You are no longer %sa here. Return to the dungeon from whence you came,
+You are no longer %sa here.  Return to the dungeon from whence you came,
 and never again return."
          ]],
       },
@@ -1789,7 +1789,7 @@ after all.  Prepare to die, %r!  You shall never regain
 The choice is clear: you must keep %o, and use them on your
 quest for the Amulet of Yendor.
 
-"I could not be more proud of you, %p. Go with my blessing."
+"I could not be more proud of you, %p.  Go with my blessing."
          ]],
       },
       offeredit2 = {
