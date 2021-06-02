@@ -1629,7 +1629,6 @@ use_offensive(struct monst* mtmp)
             if (oseen)
                 makeknown(otmp->otyp);
         }
-        m_useup(mtmp, otmp); /* otmp now gone */
 
         /* could be fatal to monster, so use up the scroll before
            there's a chance that monster's inventory will be dropped */
