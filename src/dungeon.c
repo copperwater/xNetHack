@@ -2960,15 +2960,6 @@ recalc_mapseen(void)
                                 || !oth_mptr->flags.msanctum);
     }
 
-    /* decide which past hero deaths have become known; there's no
-       guarantee of either a grave or a ghost, so we go by whether the
-       current hero has seen the map location where each old one died */
-    for (bp = g.level.bonesinfo; bp; bp = bp->next) {
-        if (g.lastseentyp[bp->frpx][bp->frpy]) {
-            bp->bonesknown = TRUE;
-            mptr->flags.knownbones = 1;
-        }
-    }
     if (g.level.bonesinfo && !mptr->final_resting_place) {
         /* clone the bonesinfo so we aren't dependent upon this
            level being in memory */
@@ -2982,6 +2973,14 @@ recalc_mapseen(void)
         } while (bp);
         *bonesaddr = 0;
     }
+    /* decide which past hero deaths have become known; there's no
+       guarantee of either a grave or a ghost, so we go by whether the
+       current hero has seen the map location where each old one died */
+    for (bp = mptr->final_resting_place; bp; bp = bp->next)
+        if (g.lastseentyp[bp->frpx][bp->frpy]) {
+            bp->bonesknown = TRUE;
+            mptr->flags.knownbones = 1;
+        }
 }
 
 /*ARGUSED*/
@@ -3400,5 +3399,22 @@ sokoban_solved(d_level *lev)
         return FALSE; /* haven't been there yet */
     return mptr->flags.sokosolved;
 }
+
+/* Return true if there are undiscovered final resting places on the current
+ * level. */
+boolean
+undiscovered_bones(void)
+{
+    struct mapseen *mptr = find_mapseen(&u.uz);
+    struct cemetery *bp;
+
+    for (bp = mptr->final_resting_place; bp; bp = bp->next) {
+        if (!bp->bonesknown) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 
 /*dungeon.c*/

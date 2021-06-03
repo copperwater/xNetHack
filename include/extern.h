@@ -660,6 +660,7 @@ extern void overview_stats(winid, const char *, long *, long *);
 extern void remdun_mapseen(int);
 extern const char *endgamelevelname(char *, int);
 extern boolean sokoban_solved(d_level *);
+extern boolean undiscovered_bones(void);
 
 /* ### eat.c ### */
 

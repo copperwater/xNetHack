@@ -127,6 +127,7 @@ changes:
 - New functions:
   - sokoban_solved()
   - arti_starts_with_the()
+  - unknown_bones()
 - Implement covetous_nonwarper(), a macro that controls whether a covetous
   monster should not warp or use the other code in tactics(), and should behave
   like a normal monster.

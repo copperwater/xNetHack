@@ -44,11 +44,40 @@ dosounds(void)
     register struct mkroom *sroom;
     register int hallu, vx, vy;
     struct monst *mtmp;
-
-    if (Deaf || !flags.acoustics || u.uswallow || Underwater)
-        return;
+    boolean cant_hear = (Deaf || !flags.acoustics || u.uswallow || Underwater);
 
     hallu = Hallucination ? 1 : 0;
+
+    /* first put things that print like sounds but are not sounds, before the
+     * check that aborts if you can't hear sounds */
+    if (!rn2(300) && undiscovered_bones()) {
+        if (hallu) {
+            You("have a cheery feeling.");
+        }
+        else {
+            You("have an eerie feeling...");
+        }
+        return;
+    }
+    if (In_quest(&u.uz) && u.uz.dlevel >= qlocate_level.dlevel
+        && Role_if(PM_ARCHEOLOGIST) && !g.quest_status.touched_artifact
+        && !g.quest_status.met_nemesis && !rn2(300)) {
+        /* special sounds for Arc quest */
+        if (!cant_hear) {
+            You_hear("another explosion.");
+        }
+        else {
+            pline("You feel the tremor from another explosion.");
+        }
+        return;
+    }
+    if (Hallucination && !rn2(10000)) {
+        You("vaguely feel a vague sense of vagueness.");
+        return;
+    }
+
+    if (cant_hear)
+        return;
 
     if (g.level.flags.nfountains && !rn2(400)) {
         static const char *const fountain_msg[4] = {
@@ -306,23 +335,6 @@ dosounds(void)
         }
         return;
     }
-    if (g.level.bonesinfo && !rn2(300)) {
-        struct cemetery *bp;
-        for (bp = g.level.bonesinfo; bp; bp = bp->next) {
-            if (!bp->bonesknown) {
-                /* only give bones noises if there are still undiscovered bones
-                 * locations on the level */
-                if (hallu) {
-                    You("have a cheery feeling.");
-                }
-                else {
-                    You("have an eerie feeling...");
-                }
-                break;
-            }
-        }
-        return;
-    }
     if (!rn2(300)) {
         branch *br = Is_branchlev(&u.uz);
         if (br && In_mines(&br->end2) && !In_mines(&u.uz)) {
@@ -349,17 +361,6 @@ dosounds(void)
             };
             You_hear1(vlad_msgs[rn2(2) + hallu]);
             return;
-        }
-    }
-    if (In_quest(&u.uz) && u.uz.dlevel >= qlocate_level.dlevel
-        && Role_if(PM_ARCHEOLOGIST) && !g.quest_status.touched_artifact
-        && !g.quest_status.met_nemesis && !rn2(300)) {
-        /* special sounds for Arc quest */
-        if (!Deaf) {
-            You_hear("another explosion.");
-        }
-        else {
-            pline("You feel the tremor from another explosion.");
         }
     }
 }
