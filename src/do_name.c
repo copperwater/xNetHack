@@ -1243,6 +1243,10 @@ do_oname(register struct obj *obj)
     ++g.via_naming; /* This ought to be an argument rather than a static... */
     obj = oname(obj, buf);
     --g.via_naming; /* ...but oname() is used in a lot of places, so defer. */
+    if (obj->oartifact) {
+        /* assumes that you can only change the name of items in inventory */
+        u.uconduct.artitouch++;
+    }
 }
 
 DISABLE_WARNING_FORMAT_NONLITERAL /* sprintf on an arbitrary format string from
