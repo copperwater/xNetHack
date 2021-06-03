@@ -1877,7 +1877,8 @@ domove_core(void)
             into = TRUE;
         }
         snprintf(qbuf, QBUFSZ, "Really %s %sto that %s?",
-                 locomotion(g.youmonst.data, "step"),
+                 (Levitation || Flying) ? "move"
+                                        : locomotion(g.youmonst.data, "step"),
                  (into ? "in" : "on"),
                  defsyms[trap_to_defsym(traptype)].explanation);
         if (!paranoid_query(ParanoidTrap, qbuf)) {
