@@ -639,11 +639,12 @@ encode_extended_conducts(void)
     add_achieveX(buf, "bonesless",    !u.uroleplay.numbones);
     add_achieveX(buf, "petless",      !u.uconduct.pets);
     add_achieveX(buf, "artifactless", !u.uconduct.artitouch);
-    add_achieveX(buf, "permahallu",   !u.uroleplay.hallu);
-    add_achieveX(buf, "permadeaf",    !u.uroleplay.deaf);
+    add_achieveX(buf, "permahallu",   u.uroleplay.hallu);
+    add_achieveX(buf, "permadeaf",    u.uroleplay.deaf);
     add_achieveX(buf, "survivor",     (u.umortality == 0));
     add_achieveX(buf, "celibate",     !u.uconduct.uncelibate);
     add_achieveX(buf, "conflictless", !u.uconduct.conflicting);
+    add_achieveX(buf, "unfairscareless", !u.uconduct.scares);
 
     return buf;
 }
