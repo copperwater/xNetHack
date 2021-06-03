@@ -6649,7 +6649,7 @@ trapname(int ttyp, boolean override)
         "field of caltrops", "buzzsaw trap", "spiked floor", "revolving wall",
         "uneven floor", "finger trap", "jack-in-a-box", "yellow snow",
         "booby trap", "rat trap", "poisoned nail", "snare", "whirlpool",
-        "trip wire", "roach motel (tm)",
+        "trip wire", "roach motel (tm)", "pile of lego bricks",
         /* sci-fi */
         "negative space", "tensor field", "singularity", "imperial fleet",
         "black hole", "thermal detonator", "event horizon",
