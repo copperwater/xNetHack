@@ -1010,19 +1010,26 @@ peffects(struct obj *otmp)
                 menu_item *choice = (menu_item *) 0;
                 winid win = create_nhwindow(NHW_MENU);
                 anything any;
+                char attrname[BUFSZ];
                 static const char* attrnames[A_MAX] = {
                     "Strength", "Dexterity", "Constitution", "Intelligence",
                     "Wisdom", "Charisma"
                 };
                 start_menu(win, MENU_BEHAVE_STANDARD);
-                any.a_char = 'a';
                 for (ii = 0; ii < A_MAX; ii++) {
-                    add_menu(win, &nul_glyphinfo, &any, 0, '\0', ATR_NONE,
-                             attrnames[ii], MENU_ITEMFLAGS_NONE);
-                    any.a_char++; /* go to b, c, d, e, f */
+                    if (ABASE(attribs[ii]) < ATTRMAX(attribs[ii])) {
+                        Strcpy(attrname, attrnames[ii]);
+                        any.a_char = 'a' + ii;
+                    }
+                    else {
+                        Sprintf(attrname, "    %s (MAX)", attrnames[ii]);
+                        any.a_char = 0;
+                    }
+                    add_menu(win, &nul_glyphinfo, &any, any.a_char, '\0',
+                             ATR_NONE, attrname, MENU_ITEMFLAGS_NONE);
                 }
                 any.a_char = '*';
-                add_menu(win, &nul_glyphinfo, &any, 0, '*', ATR_NONE,
+                add_menu(win, &nul_glyphinfo, &any, '*', '\0', ATR_NONE,
                          "pick one randomly", MENU_ITEMFLAGS_NONE);
                 end_menu(win, "What attribute do you want to increase?");
                 if (select_menu(win, PICK_ONE, &choice) <= 0) {
