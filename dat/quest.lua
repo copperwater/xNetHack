@@ -379,7 +379,7 @@ around his mouth.  His lips curl into a sneer, revealing long white fangs.
 %o, than %n announced that %nh and %nj team were heading
 to %i to claim it first.
 
-"%nS's methods of archeology are abhorrent.  %nH will blast %nj
+"%nS methods of archeology are abhorrent.  %nH will blast %nj
 way into the temple with no regard for anything but %nj prize,
 destroying priceless pieces of history.  They are well-funded and outnumber
 us.  You are the only one who might stand a chance of beating them to it.
