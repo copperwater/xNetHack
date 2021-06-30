@@ -1724,7 +1724,7 @@ obj_delivery(boolean near_hero)
         otmp->omigr_from_dnum = 0;
         otmp->omigr_from_dlevel = 0;
         if (nx > 0) {
-            if (where == MIGR_THIEFSTONE) {
+            if (where == MIGR_THIEFSTONE && Fits_in_container(otmp)) {
                 struct obj* cobj;
                 boolean found_container = FALSE;
                 /* put into a container on this spot, if possible */

@@ -299,6 +299,10 @@ struct obj {
 #define Is_mbag(o) ((o)->otyp == BAG_OF_HOLDING || (o)->otyp == BAG_OF_TRICKS)
 #define SchroedingersBox(o) ((o)->otyp == LARGE_BOX && (o)->spe == 1)
 #define Is_mummychest(o) ((o)->otyp == CHEST && (o)->spe == 3)
+#define Fits_in_container(o) ((o)->otyp != ICE_BOX && !Is_box(o) \
+                              && (o)->otyp != BOULDER            \
+                              && ((o)->otyp != STATUE            \
+                                  || !bigmonst(&mons[(o)->corpsenm])))
 
 /* dragon gear
  * NOTE: this assumes that gray dragons come first and yellow last, as detailed
