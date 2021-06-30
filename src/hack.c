@@ -3190,6 +3190,7 @@ unmul(const char *msg_override)
         g.afternmv = (int (*)(void)) 0;
         (void) (*f)();
         /* for finishing Armor/Boots/&c_on() */
+        (void) encumber_msg();
         update_inventory();
     }
 }
