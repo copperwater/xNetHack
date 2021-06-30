@@ -1669,19 +1669,20 @@ thiefstone_teleport(struct obj* stone, struct obj* obj, boolean dobill)
     }
     if (samelevel) {
         /* just do horizontal teleport */
-	struct obj* cobj;
+        struct obj* cobj;
         obj_extract_self(obj);
         obj->ox = kx;
         obj->oy = ky;
-	/* put into a container on this spot, if possible */
-	for (cobj = g.level.objects[obj->ox][obj->oy]; cobj;
+        /* put into a container on this spot, if possible */
+        for (cobj = g.level.objects[obj->ox][obj->oy]; cobj;
              cobj = cobj->nexthere) {
-	    if (Is_container(cobj)) {
-		add_to_container(cobj, obj);
+            if (Is_container(cobj)) {
+                add_to_container(cobj, obj);
+                cobj->owt = weight(cobj);
                 return;
-	    }
-	}
-	/* if no containers here, continue normally */
+            }
+        }
+        /* if no containers here, continue normally */
         if (flooreffects(obj, obj->ox, obj->oy, "")) {
             return;
         }
