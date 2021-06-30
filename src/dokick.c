@@ -1732,6 +1732,7 @@ obj_delivery(boolean near_hero)
                 for (; cobj; cobj = cobj->nexthere) {
                     if (Is_container(cobj)) {
                         add_to_container(cobj, otmp);
+                        cobj->owt = weight(cobj);
                         found_container = TRUE;
                         break;
                     }
