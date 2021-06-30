@@ -1673,13 +1673,15 @@ thiefstone_teleport(struct obj* stone, struct obj* obj, boolean dobill)
         obj_extract_self(obj);
         obj->ox = kx;
         obj->oy = ky;
-        /* put into a container on this spot, if possible */
-        for (cobj = g.level.objects[obj->ox][obj->oy]; cobj;
-             cobj = cobj->nexthere) {
-            if (Is_container(cobj)) {
-                add_to_container(cobj, obj);
-                cobj->owt = weight(cobj);
-                return;
+        if (Fits_in_container(obj)) {
+            /* put into a container on this spot, if possible */
+            for (cobj = g.level.objects[obj->ox][obj->oy]; cobj;
+                 cobj = cobj->nexthere) {
+                if (Is_container(cobj)) {
+                    add_to_container(cobj, obj);
+                    cobj->owt = weight(cobj);
+                    return;
+                }
             }
         }
         /* if no containers here, continue normally */
@@ -2694,8 +2696,7 @@ in_container(struct obj *obj)
         return -1;
 
     /* boxes, boulders, and big statues can't fit into any container */
-    if (obj->otyp == ICE_BOX || Is_box(obj) || obj->otyp == BOULDER
-        || (obj->otyp == STATUE && bigmonst(&mons[obj->corpsenm]))) {
+    if (!Fits_in_container(obj)) {
         /*
          *  xname() uses a static result array.  Save obj's name
          *  before g.current_container's name is computed.  Don't
