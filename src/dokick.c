@@ -1731,6 +1731,8 @@ obj_delivery(boolean near_hero)
                 cobj = g.level.objects[nx][ny];
                 for (; cobj; cobj = cobj->nexthere) {
                     if (Is_container(cobj)) {
+                        if (obj_is_burning(otmp))
+                            end_burn(otmp, TRUE);
                         add_to_container(cobj, otmp);
                         cobj->owt = weight(cobj);
                         found_container = TRUE;
