@@ -1678,6 +1678,8 @@ thiefstone_teleport(struct obj* stone, struct obj* obj, boolean dobill)
             for (cobj = g.level.objects[obj->ox][obj->oy]; cobj;
                  cobj = cobj->nexthere) {
                 if (Is_container(cobj)) {
+                    if (obj_is_burning(obj))
+                        end_burn(obj, TRUE);
                     add_to_container(cobj, obj);
                     cobj->owt = weight(cobj);
                     return;
