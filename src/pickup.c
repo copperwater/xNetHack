@@ -1944,6 +1944,7 @@ encumber_msg(void)
                 newcap == 4 ? "can barely" : "can't even");
             break;
         }
+        update_inventory();
         g.context.botl = 1;
     } else if (g.oldcap > newcap) {
         switch (newcap) {
@@ -1961,6 +1962,7 @@ encumber_msg(void)
                 stagger(g.youmonst.data, "stagger"));
             break;
         }
+        update_inventory();
         g.context.botl = 1;
     }
 
