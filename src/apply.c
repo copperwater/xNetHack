@@ -2558,6 +2558,11 @@ thiefstone_ok(struct obj *obj)
         return GETOBJ_DOWNPLAY;
     }
 
+    /* the thiefstone doesn't work with equipped items */
+    if (obj->owornmask) {
+        return GETOBJ_DOWNPLAY;
+    }
+
     /* gems and coins should be included
      * note that we don't know the beatitude of the thiefstone itself (if
      * nonblessed, these aren't valid), but suggest them anyway */
