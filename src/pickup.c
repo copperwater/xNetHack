@@ -3045,8 +3045,10 @@ stash_ok(struct obj *obj)
     /* downplay the container being stashed into */
     if (!ck_bag(obj))
         return GETOBJ_EXCLUDE_SELECTABLE;
-    /* Possible extension: downplay things too big to fit into containers (in
-     * which case extract in_container()'s logic.) */
+
+    /* downplay items too big to fit in a container */
+    if (!Fits_in_container(obj))
+        return GETOBJ_EXCLUDE_SELECTABLE;
 
     return GETOBJ_SUGGEST;
 }
