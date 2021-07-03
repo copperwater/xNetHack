@@ -485,7 +485,6 @@ format_monkiller(struct monst *mtmp)
     boolean distorted = (boolean) (Hallucination && canspotmon(mtmp)),
             mimicker = (M_AP_TYPE(mtmp) == M_AP_MONSTER),
             imitator = (mptr != champtr || mimicker);
-    char *mwounds = mon_wounds(mtmp, FALSE, TRUE);
 
     buf[0] = '\0';
     g.killer.format = KILLED_BY_AN;
@@ -503,10 +502,6 @@ format_monkiller(struct monst *mtmp)
         g.killer.format = KILLED_BY;
     }
 
-    if (mwounds) {
-        Strcat(buf, mwounds);
-        strkitten(buf, ' ');
-    }
     if (mtmp->minvis)
         Strcat(buf, "invisible ");
     if (distorted)
