@@ -480,7 +480,7 @@ xname_flags(
         goto nameit;
     switch (obj->oclass) {
     case AMULET_CLASS:
-        if (obj->material != objects[obj->otyp].oc_material) {
+        if (obj->material != objects[obj->otyp].oc_material && !g.distantname) {
             Strcat(buf, materialnm[obj->material]);
             Strcat(buf, " ");
         }
@@ -508,10 +508,10 @@ xname_flags(
         else if (is_wet_towel(obj))
             Strcpy(buf, (obj->spe < 3) ? "moist " : "wet ");
 
-        if (obj->material != objects[obj->otyp].oc_material
+        if ((obj->material != objects[obj->otyp].oc_material
             /* figurines have non-obvious material so always show material even
              * when default */
-            || obj->otyp == FIGURINE) {
+             || obj->otyp == FIGURINE) && !g.distantname) {
             Strcat(buf, materialnm[obj->material]);
             Strcat(buf, " ");
         }
@@ -547,15 +547,16 @@ xname_flags(
         if (is_boots(obj) || is_gloves(obj))
             Strcpy(buf, "pair of ");
 
-        if (obj->material != objects[obj->otyp].oc_material
-            /* force rendering of material on certain types of armor where the
-             * name is more nonsensical without any prefix */
-            || obj->otyp == LIGHT_ARMOR || obj->otyp == STUDDED_ARMOR
-            || obj->otyp == JACKET || obj->otyp == PLAIN_CLOAK
-            /* GLOVES have a randomized description when not identified;
-             * "leather padded gloves" would give the game away if we did not
-             * check their identification status */
-            || (obj->otyp == GLOVES && objects[GLOVES].oc_name_known)) {
+        if ((obj->material != objects[obj->otyp].oc_material
+             /* force rendering of material on certain types of armor where the
+              * name is more nonsensical without any prefix */
+             || obj->otyp == LIGHT_ARMOR || obj->otyp == STUDDED_ARMOR
+             || obj->otyp == JACKET || obj->otyp == PLAIN_CLOAK
+             /* GLOVES have a randomized description when not identified;
+              * "leather padded gloves" would give the game away if we did not
+              * check their identification status */
+             || (obj->otyp == GLOVES && objects[GLOVES].oc_name_known))
+            && !g.distantname) {
             Strcat(buf, materialnm[obj->material]);
             Strcat(buf, " ");
         }
