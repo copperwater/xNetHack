@@ -2339,7 +2339,8 @@ create_pit_under(struct monst *mdef, struct monst *magr)
         if (mintrap(mdef) == 3) { /* 3 == went off level */
             sent_down_hole = TRUE;
         }
-        else if (is_flyer(mdef->data) || is_floater(mdef->data)) {
+        else if (!DEADMONSTER(mdef) /* don't do this if pit killed it */
+                 && (is_flyer(mdef->data) || is_floater(mdef->data))) {
             if (canseemon(mdef)) {
                 pline("%s %s back up.", Monnam(mdef),
                     is_flyer(mdef->data) ? "flies" : "floats");

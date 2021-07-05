@@ -3439,6 +3439,9 @@ mhitm_ad_pits(struct monst *magr, struct attack *mattk,
     }
     if (!create_pit_under(mdef, magr)) {
         mhm->damage = 0;
+        if (mdef != &g.youmonst && DEADMONSTER(mdef)) { /* killed by pit */
+            mhm->hitflags = MM_DEF_DIED;
+        }
     }
 }
 
