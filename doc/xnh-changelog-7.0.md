@@ -103,6 +103,13 @@ changes:
     charges.
 - It is impossible to destroy a metal box or chest by forcing it.
 - The Oracle may generate with a potion of hallucination.
+- Several tweaks to the spell Pw cost formula:
+  - There is no more "effective Int" calculation, or a cap on it. Just your
+    normal Int is used.
+  - An equipped robe, quarterstaff, or wand of nothing halves the total penalty
+    you take from worn armor. These do not stack with each other.
+  - A wielded wand matching the spell you want to cast provides a direct boost
+    rather than lumping into "effective Int".
 
 ### Interface changes
 

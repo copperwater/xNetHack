@@ -1741,12 +1741,7 @@ static const struct spellwand wand_combos[] = {
 static int
 percent_success(int spell)
 {
-    int chance;
-    int skill;
-    int cap;
-
-    /* Calculate effective Int: may be boosted by certain items */
-    unsigned char intel = ACURR(A_INT);
+    int chance, armor_penalty, skill, cap;
 
     boolean wield_wand_bonus, wield_book_bonus, gear_bonus;
     wield_wand_bonus = wield_book_bonus = gear_bonus = FALSE;
@@ -1758,8 +1753,8 @@ percent_success(int spell)
     if (uwep && uwep->oclass == WAND_CLASS && uwep->otyp != WAN_NOTHING) {
         /* can get a boost from a wand whose magic is similar
          * however, you need to have formally identified it, otherwise you can
-         * cheese wand ID by wielding different wands and seeing if this stat
-         * changes */
+         * cheese wand ID by wielding different wands and seeing if the
+         * spellcasting menu changes */
         int i = 0;
         for (i = 0; wand_combos[i].spell != 0; ++i) {
             if (spellid(spell) == wand_combos[i].spell
@@ -1787,51 +1782,49 @@ percent_success(int spell)
         gear_bonus = TRUE;
     }
 
-    if (wield_wand_bonus) {
-        intel += 7;
-    }
-    else if (gear_bonus) {
-        intel += 5;
-    }
-
-    /* Don't get over-powerful with these boosts */
-    if (intel >= 20) {
-        intel = 20;
-    }
-
     /* At base, chance is your base role spellcasting ability. */
     chance = g.urole.spelbase;
 
     /* Int and XL increase this. */
-    chance += (intel * 5) + (u.ulevel * 5);
+    chance += (ACURR(A_INT) * 5) + (u.ulevel * 5);
+
+    /* So does wielding the proper wand. */
+    if (wield_wand_bonus) {
+        chance += 30;
+    }
 
     /* Higher level spells will reduce this chance, though. */
     chance -= 25 * spellev(spell);
 
     /* Calculate penalty from armor. Metal armor and shields hurt chance. */
+    armor_penalty = 0;
     if (uarm && is_metallic(uarm) && !paladin_bonus) {
-        chance -= 50;
+        armor_penalty += 50;
     }
     if (uarms && !is_quest_artifact(uarms)) {
         /* quest artifact check allows Archeologists to wear Itlachiayaque
          * without penalty; other roles get normal penalty */
         if (objects[uarms->otyp].oc_bulky)
-            chance -= 30;
+            armor_penalty += 30;
         else
-            chance -= 15;
+            armor_penalty += 15;
 
         if (is_metallic(uarms) && !paladin_bonus)
-            chance -= 15;
+            armor_penalty += 15;
     }
     if (uarmh && is_metallic(uarmh) && uarmh->otyp != HELM_OF_BRILLIANCE
         && !paladin_bonus) {
-        chance -= 20;
+        armor_penalty += 20;
     }
     if (uarmg && is_metallic(uarmg) && !paladin_bonus) {
-        chance -= 35;
+        armor_penalty += 35;
     }
     if (uarmf && is_metallic(uarmf) && !paladin_bonus) {
-        chance -= 10;
+        armor_penalty += 10;
+    }
+
+    if (gear_bonus) {
+        armor_penalty = (armor_penalty + 1) / 2;
     }
 
     /* The less skilled you are, the worse the cap on your spellcasting ability. */
