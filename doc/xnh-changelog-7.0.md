@@ -128,6 +128,10 @@ changes:
   chaotic is now black and unaligned red.
 - For Junethack, begin recording quest completion (returning to one's leader
   with the quest artifact) as "completed_quest" in the achieveX xlogfile field.
+- Magic flutes and harps are automatically identified when played with charges
+  remaining.
+- A new message prints when playing a fire or frost horn describing the
+  emanating bolt.
 
 ### Architectural changes
 

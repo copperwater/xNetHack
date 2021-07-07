@@ -578,6 +578,7 @@ do_improvisation(struct obj* instr)
             Hallucination ? "elevator" : "soft");
         put_monsters_to_sleep(&g.youmonst, u.ulevel * 5);
         exercise(A_DEX, TRUE);
+        makeknown(MAGIC_FLUTE);
         break;
     case FLUTE: /* May charm snakes */
         do_spec &= (rn2(ACURR(A_DEX)) + u.ulevel > 25);
@@ -604,8 +605,9 @@ do_improvisation(struct obj* instr)
                 losehp(damage, buf, KILLED_BY); /* fire or frost damage */
             }
         } else {
-            buzz((instr->otyp == FROST_HORN) ? AD_COLD - 1 : AD_FIRE - 1,
-                 rn1(6, 6), u.ux, u.uy, u.dx, u.dy);
+            int type = (instr->otyp == FROST_HORN) ? AD_COLD - 1 : AD_FIRE - 1;
+            pline("A %s blasts out of the horn!", flash_str(type, FALSE));
+            buzz(type, rn1(6, 6), u.ux, u.uy, u.dx, u.dy);
         }
         makeknown(instr->otyp);
         break;
@@ -634,6 +636,7 @@ do_improvisation(struct obj* instr)
             You_feel("very soothing vibrations.");
         charm_monsters((u.ulevel - 1) / 3 + 1);
         exercise(A_DEX, TRUE);
+        makeknown(MAGIC_HARP);
         break;
     case HARP: /* May calm Nymph */
         do_spec &= (rn2(ACURR(A_DEX)) + u.ulevel > 25);
