@@ -1853,6 +1853,18 @@ eatcorpse(struct obj *otmp)
               (yummy || !palatable) ? '!' : '.');
     }
 
+    /* Eating slimy or oily corpses makes your fingers slippery.
+     * Note: Snakes are neither of these. */
+    if ((amorphous(&mons[mnum]) || slithy(&mons[mnum])
+         || mons[mnum].mlet == S_BLOB)
+        && mons[mnum].mlet != S_SNAKE && mons[mnum].mlet != S_NAGA
+        && mons[mnum].mlet != S_MIMIC && !rn2(5)) {
+        pline("This slimy corpse makes your %s %s slippery.",
+              makeplural(body_part(FINGER)),
+              Glib ? "even more" : "very");
+        make_glib(rn1(11, 5));
+    }
+
     return retcode;
 }
 

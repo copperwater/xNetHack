@@ -111,6 +111,10 @@ changes:
   - A wielded wand matching the spell you want to cast provides a direct boost
     rather than lumping into "effective Int".
 - Grass patches appear in the Ranger quest start level.
+- Add the Oily Corpses Patch by L: there is a 20% chance upon starting to eat a
+  corpse of certain slippery monsters (e.g. most slithy, non-snakelike monsters
+  and most blobby monsters) that your fingers get slippery. Tins of them are not
+  slippery unless the tin preparation method is slippery.
 
 ### Interface changes
 
