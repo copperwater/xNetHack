@@ -110,6 +110,7 @@ changes:
     you take from worn armor. These do not stack with each other.
   - A wielded wand matching the spell you want to cast provides a direct boost
     rather than lumping into "effective Int".
+- Grass patches appear in the Ranger quest start level.
 
 ### Interface changes
 

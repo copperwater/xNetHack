@@ -58,18 +58,18 @@ des.levregion({ region = {51,2,77,18}, exclude = {0,0,40,20}, region_islev = 1, 
 des.altar({ x=11, y=10, align="coaligned", type="altar" })
 
 -- -- Random grass patches 
--- local grass = selection.new()
--- local everything = selection.area(00, 00, 77, 21)
--- for i=1,d(4,3) do
---    local cx, cy = everything:rndcoord()
---    local newpatch = selection.circle(cx, cy, 3)
---    while percent(50) do
---       newpatch:grow("random")
---    end
---    grass = grass | newpatch
--- end
--- -- TODO: Vanilla needs to implement replace_terrain with a selection.
--- -- des.replace_terrain(
+local grass = selection.new()
+local everything = selection.area(00, 00, 77, 21)
+for i=1,d(4,3) do
+   local cx, cy = everything:rndcoord()
+   local fairyring = percent(1)
+   local newpatch = selection.circle(cx, cy, 3, fairyring and 0 or 1)
+   while percent(50) do
+      newpatch:grow("random")
+   end
+   grass = grass | newpatch
+end
+des.replace_terrain({ selection=grass, fromterrain='.', toterrain='g' })
 
 -- Orion and his faithful dog
 des.monster({ id = "Orion", coord = {20, 10}, inventory = function()
