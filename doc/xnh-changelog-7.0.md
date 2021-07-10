@@ -137,6 +137,8 @@ changes:
   remaining.
 - A new message prints when playing a fire or frost horn describing the
   emanating bolt.
+- YAFMs:
+  - Attempting to chop down a petrified tree while hallucinating.
 
 ### Architectural changes
 

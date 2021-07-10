@@ -261,7 +261,13 @@ dig(void)
     } else { /* !g.context.digging.down */
         if (IS_TREE(lev->typ) && !may_dig(dpx, dpy)
             && dig_typ(uwep, dpx, dpy) == DIGTYP_TREE) {
-            pline("This tree seems to be petrified.");
+            if (Hallucination) {
+                pline(
+                "The Lorax stops you from destroying this statue of a tree!");
+            }
+            else {
+                pline("This tree seems to be petrified.");
+            }
             return 0;
         }
         if (IS_ROCK(lev->typ) && !may_dig(dpx, dpy)
