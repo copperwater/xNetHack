@@ -115,6 +115,7 @@ changes:
   corpse of certain slippery monsters (e.g. most slithy, non-snakelike monsters
   and most blobby monsters) that your fingers get slippery. Tins of them are not
   slippery unless the tin preparation method is slippery.
+- Cursed wands explode more often, 1/30 of the time instead of 1/100.
 
 ### Interface changes
 
