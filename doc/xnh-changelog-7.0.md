@@ -116,6 +116,9 @@ changes:
   and most blobby monsters) that your fingers get slippery. Tins of them are not
   slippery unless the tin preparation method is slippery.
 - Cursed wands explode more often, 1/30 of the time instead of 1/100.
+- The Vibrating Square level is no longer a random maze; the player always
+  generates in one of two small rooms at the bottom, and the square is always
+  found in the center of one of three larger rooms.
 
 ### Interface changes
 

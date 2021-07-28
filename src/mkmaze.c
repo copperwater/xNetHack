@@ -1273,6 +1273,9 @@ makemaz(const char *s)
         mazexy(&mm);
         mkstairs(mm.x, mm.y, 0, (struct mkroom *) 0); /* down */
     } else { /* choose "vibrating square" location */
+        /* vibrating square is now set by invocation.lua; however, this code
+         * remains in place so that the game is not unwinnable if invocation.lua
+         * fails to load. */
         stairway *stway;
         int trycnt = 0;
 #define x_maze_min 2
@@ -1311,9 +1314,7 @@ makemaz(const char *s)
                  || abs(x - stway->sx) == abs(y - stway->sy)
                  || distmin(x, y, stway->sx, stway->sy) <= INVPOS_DISTANCE
                  || !SPACE_POS(levl[x][y].typ) || occupied(x, y)));
-        g.inv_pos.x = x;
-        g.inv_pos.y = y;
-        maketrap(g.inv_pos.x, g.inv_pos.y, VIBRATING_SQUARE);
+        maketrap(x, y, VIBRATING_SQUARE);
 #undef INVPOS_X_MARGIN
 #undef INVPOS_Y_MARGIN
 #undef INVPOS_DISTANCE

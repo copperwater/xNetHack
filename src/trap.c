@@ -480,6 +480,15 @@ maketrap(int x, int y, int typ)
     case LANDMINE:
         set_trap_ammo(ttmp, mksobj(LAND_MINE, TRUE, FALSE));
         break;
+    case VIBRATING_SQUARE:
+        if (!Invocation_lev(&u.uz)) {
+            impossible("creating vibrating square on wrong level");
+        }
+        else {
+            g.inv_pos.x = x;
+            g.inv_pos.y = y;
+        }
+        break;
     }
 
     if (!oldplace) {

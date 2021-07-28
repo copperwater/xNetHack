@@ -101,6 +101,10 @@ dungeon = {
             base = -1
          },
          {
+            name = "invocation",
+            base = -2
+         },
+         {
             name = "juiblex",
             bonetag = "J",
             base = 4,
