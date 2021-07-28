@@ -116,6 +116,7 @@ changes:
   and most blobby monsters) that your fingers get slippery. Tins of them are not
   slippery unless the tin preparation method is slippery.
 - Cursed wands explode more often, 1/30 of the time instead of 1/100.
+- Croesus can move monsters out of his way (the same as the Riders).
 
 ### Interface changes
 

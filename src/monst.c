@@ -2397,7 +2397,7 @@ struct permonst _mons2[] = {
         M2_NOPOLY | M2_HUMAN | M2_STALK | M2_HOSTILE | M2_STRONG | M2_NASTY
             | M2_PNAME | M2_PRINCE | M2_MALE | M2_GREEDY | M2_JEWELS
             | M2_COLLECT | M2_MAGIC,
-        M3_INFRAVISIBLE, 22, HI_LORD),
+        M3_INFRAVISIBLE | M3_DISPLACES, 22, HI_LORD),
 #ifdef CHARON
     MON("Charon", S_HUMAN, LVL(76, 18, -5, 120, 0),
         (G_HELL | G_NOCORPSE | G_NOGEN | G_UNIQ),
