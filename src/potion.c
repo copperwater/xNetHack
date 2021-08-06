@@ -2623,8 +2623,11 @@ dodip(void)
                  * above code that we have to make an exception for in this
                  * case. The dipped potion isn't actually changing right now,
                  * and its dknown, beatitude etc aren't affected. */
-                pline("%s dissolves and the liquid begins fizzing slowly.",
-                      The(cxname(obj)));
+                pline("%s dissolves and the liquid begins fizzing %s.",
+                      The(cxname_singular(obj)),
+                      (objdescr_is(potion, "fizzy")
+                       || objdescr_is(potion, "effervescent")) ? "even more"
+                                                               : "slowly");
 
                 /* order matters: split first, then start the timer, then try to
                  * hold_another_object.  Previously this segfaulted when
@@ -2646,11 +2649,11 @@ dodip(void)
                 obj_extract_self(singlepotion);
                 start_timer(50 + rn2(50), TIMER_OBJECT, FERMENT,
                             obj_to_any(singlepotion));
+                costly_alteration(singlepotion, COST_FERMENT);
                 singlepotion = hold_another_object(singlepotion,
                                                    "You juggle and drop %s!",
                                                    doname(singlepotion),
                                                    NULL);
-                costly_alteration(singlepotion, COST_FERMENT);
                 update_inventory();
                 return 1;
 
@@ -2724,7 +2727,7 @@ ferment(anything* arg, long timeout UNUSED)
                   hcolor(OBJ_DESCR(objects[new_otyp])));
         }
         else if (potion->where == OBJ_FLOOR) {
-            You_see("%s %s.", an(aobjnam(potion, "turn")),
+            You_see("%s turn %s.", an(xname(potion)),
                     hcolor(OBJ_DESCR(objects[new_otyp])));
             /* can't newsym here because otyp has to change after the message is
              * printed */
