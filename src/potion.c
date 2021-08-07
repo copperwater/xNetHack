@@ -2616,6 +2616,7 @@ dodip(void)
             case PM_GREEN_MOLD:
             case PM_YELLOW_MOLD:
             case PM_RED_MOLD:
+            case PM_BLACK_MOLD:
             case PM_VIOLET_FUNGUS:
                 /* MRKR: Molds and fungi have various medicinal properties */
                 /* AOS: This code could possibly be merged into the stuff above,
@@ -2642,8 +2643,8 @@ dodip(void)
                 singlepotion->corpsenm = obj->corpsenm;
 
                 if (obj->cursed)
-                    /* placeholder for "turn into sickness instead" */
-                    singlepotion->corpsenm = PM_PESTILENCE;
+                    /* make it turn into sickness instead */
+                    singlepotion->corpsenm = PM_BLACK_MOLD;
 
                 useup(obj);
                 obj_extract_self(singlepotion);
@@ -2704,10 +2705,10 @@ ferment(anything* arg, long timeout UNUSED)
         new_otyp = POT_BOOZE; /* it "tastes like liquid fire" */
     else if (corpsenm == PM_VIOLET_FUNGUS)
         new_otyp = POT_HALLUCINATION;
-    else if (corpsenm == PM_PESTILENCE)
-        /* not actually fermenting Pestilence; just denotes that something went
-         * wrong in the mixing and the potion should turn into sickness instead
-         * of whatever it was going to */
+    else if (corpsenm == PM_BLACK_MOLD)
+        /* not necessarily created from black mold; also can denote that
+         * something went wrong in the mixing and the potion should turn into
+         * sickness instead of whatever it was going to */
         new_otyp = POT_SICKNESS;
     else {
         impossible("Strange fermentation agent %d!", corpsenm);

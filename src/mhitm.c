@@ -1268,6 +1268,10 @@ passivemm(register struct monst *magr, register struct monst *mdef,
             if (canseemon(magr))
                 pline("%s is jolted with electricity!", Monnam(magr));
             break;
+        case AD_DISE: /* black mold */
+            /* monster illness not yet implemented */
+            tmp = 0;
+            break;
         default:
             tmp = 0;
             break;

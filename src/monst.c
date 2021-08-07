@@ -1355,6 +1355,13 @@ NEARDATA struct permonst mons_init[] = {
         M1_BREATHLESS | M1_NOEYES | M1_NOLIMBS | M1_NOHEAD | M1_MINDLESS
             | M1_NOTAKE,
         M2_HOSTILE | M2_NEUTER, 0, 5, CLR_MAGENTA),
+    MON("black mold", S_FUNGUS, LVL(3, 0, 7, 0, 0), (G_GENO | 1),
+        A(ATTK(AT_NONE, AD_DISE, 0, 2), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
+          NO_ATTK),
+        SIZ(50, 30, MS_SILENT, MZ_SMALL), MR_POISON, 0,
+        M1_BREATHLESS | M1_NOEYES | M1_NOLIMBS | M1_NOHEAD | M1_MINDLESS
+            | M1_NOTAKE,
+        M2_HOSTILE | M2_NEUTER, 0, 8, CLR_BLACK),
     /*
      * Gnomes
      */

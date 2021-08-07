@@ -119,6 +119,9 @@ changes:
 - The Vibrating Square level is no longer a random maze; the player always
   generates in one of two small rooms at the bottom, and the square is always
   found in the center of one of three larger rooms.
+- New monster black mold: a black F that is sessile and has a passive deathly
+  illness attack. It also causes illness when eaten, and like other molds can be
+  used to ferment fruit juice, turning it into sickness.
 
 ### Interface changes
 

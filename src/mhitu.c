@@ -2292,6 +2292,10 @@ passiveum(struct permonst *olduasmon, struct monst *mtmp, struct attack *mattk)
             }
             pline("%s is jolted with your electricity!", Monnam(mtmp));
             break;
+        case AD_DISE: /* black mold */
+            /* monster illness not yet implemented */
+            tmp = 0;
+            break;
         default:
             tmp = 0;
             break;

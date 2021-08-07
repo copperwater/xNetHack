@@ -722,6 +722,15 @@ cprefx(register int pm)
         }
         return;
     }
+    case PM_BLACK_MOLD: {
+        struct kinfo *kptr;
+        make_sick(Sick ? Sick / 3L + 1L : (long) rn1(ACURR(A_CON), 20),
+                  "eating black mold", TRUE, SICK_VOMITABLE);
+        /* make_sick sets killer prefix to KILLED_BY_AN; fix it up */
+        kptr = find_delayed_killer(SICK);
+        kptr->format = KILLED_BY;
+        break;
+    }
     case PM_GREEN_SLIME:
         if (!Slimed && (!Unchanging || can_slime_with_unchanging())
             && !slimeproof(g.youmonst.data)) {

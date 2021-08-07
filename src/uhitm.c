@@ -5442,6 +5442,22 @@ passive(struct monst *mon,
             You("are jolted with electricity!");
             mdamageu(mon, tmp);
             break;
+        case AD_DISE: /* black mold */
+            if (ptr != &mons[PM_BLACK_MOLD]) {
+                /* because messages are specific to black mold */
+                impossible("passive disease attack for unintended monster");
+            }
+            pline("Spores puff all over you!");
+            if (Breathless) {
+                pline("But you don't inhale them.");
+            }
+            else if (Sick_resistance) {
+                pline("But they don't seem to harm you.");
+            }
+            else {
+                diseasemu(ptr);
+            }
+            break;
         default:
             break;
         }
