@@ -643,6 +643,12 @@ keepdogs(boolean pets_only, /* true for ascension or final escape */
                           Monnam(mtmp));
                 stay_behind = TRUE;
             }
+            else if (is_open_air(u.ux, u.uy) && (u.utotype & UTOTYPE_FALLING)
+                     && !is_flyer(mtmp->data) && !is_floater(mtmp->data)) {
+                /* a pet on the edge of a cliff, or a wumpus you dismounted from
+                 * over the abyss, should not jump in after you */
+                stay_behind = TRUE;
+            }
             if (stay_behind) {
                 if (mtmp->mleashed) {
                     pline("%s leash suddenly comes loose.",

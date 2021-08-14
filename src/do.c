@@ -257,6 +257,10 @@ deletedwithboulder:
         }
         return (boolean) !obj;
     }
+    else if (is_open_air(x, y)) {
+        obj_aireffects(obj, cansee(x, y));
+        return TRUE;
+    }
     return FALSE;
 }
 
@@ -1701,6 +1705,24 @@ goto_level(d_level *newlevel, boolean at_stairs, boolean falling, boolean portal
     save_currentstate();
 #endif
 
+    /* Take deferred fall damage (from falling into open air)
+     * Hero takes fall damage on arrival in the new level whereas monsters take
+     * it before falling (in order to avert oddities such as pet-killing
+     * penalties and experience gain being deferred until visiting the new
+     * level). */
+    if (u.ufalldamage) {
+        u.ufalldamage = FALSE;
+        int fall_damage = Maybe_Half_Phys(d(20, 12));
+        if (fall_damage >= (Upolyd ? u.mh : u.uhp))
+            You("splatter upon hitting the ground.");
+        else
+            You("crash into the ground very hard.");
+        Sprintf(g.killer.name, "fell to %s death", uhis());
+        losehp(fall_damage, g.killer.name, NO_KILLER_PREFIX);
+        make_stunned((HStun & TIMEOUT) + rn1(15, 15), TRUE);
+        set_wounded_legs(BOTH_SIDES, 60 + d(10,10));
+    }
+
     if ((annotation = get_annotation(&u.uz)) != 0)
         You("remember this level as %s.", annotation);
 
@@ -2225,6 +2247,45 @@ heal_legs(int how) /* 0: ordinary, 1: dismounting steed,
            feedback, then able to carry less when back on foot]. */
         if (how == 0)
             (void) encumber_msg();
+    }
+}
+
+/* Object falls into open air. */
+void
+obj_aireffects(struct obj *obj, boolean talk)
+{
+    boolean fell = TRUE;
+    if ((breaktest(obj) || !rn2(4))
+        && !(obj->oartifact || objects[obj->otyp].oc_unique)) {
+        delobj(obj);
+        /* it will break, but no messages since it'll be really far away by
+         * then */
+    }
+    else {
+        d_level dest;
+        find_level_beneath(&u.uz, &dest);
+        if (dest.dnum == 0 && dest.dlevel == 0) {
+            /* nowhere to fall to; avoid destroying Amulet etc. so they'll just
+             * weirdly hang there in midair */
+            if (objects[obj->otyp].oc_unique) {
+                if (talk)
+                    pline("For some reason, %s hovers in midair.",
+                        the(xname(obj)));
+                fell = FALSE;
+            }
+            else
+                delobj(obj);
+        }
+        else {
+            add_to_migration(obj);
+            obj->ox = dest.dnum;
+            obj->oy = dest.dlevel;
+            obj->migrateflags = MIGR_RANDOM;
+        }
+    }
+    if (fell && talk) {
+        pline("%s %s away and %s.", The(xname(obj)),
+                otense(obj, "fall"), otense(obj, "disappear"));
     }
 }
 

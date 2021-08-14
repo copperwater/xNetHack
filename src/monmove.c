@@ -498,6 +498,13 @@ dochug(register struct monst* mtmp)
         (void) rloc(mtmp, TRUE);
         return 0;
     }
+
+    if (is_open_air(mtmp->mx, mtmp->my) && grounded(mdat)
+        && !(mtmp == u.usteed && (Flying || Levitation))) {
+        mon_aireffects(mtmp);
+        return 0; /* dead or gone */
+    }
+
     if (mdat->msound == MS_SHRIEK && !um_dist(mtmp->mx, mtmp->my, 1))
         m_respond(mtmp);
     if (mdat->msound == MS_ROAR && !um_dist(mtmp->mx, mtmp->my, 10) && !rn2(30)
@@ -1244,6 +1251,12 @@ m_move(register struct monst* mtmp, register int after)
                        is insufficient for deciding whether to do so */
                     if ((is_pool(xx, yy) && !is_swimmer(ptr))
                         || (is_lava(xx, yy) && !likes_lava(ptr)))
+                        continue;
+
+                    /* don't focus on an object that is in midair (normally it
+                     * doesn't make sense for an object to float in midair but
+                     * the Amulet and friends can on certain levels) */
+                    if (is_open_air(xx, yy) && grounded(ptr))
                         continue;
 
                     if (((likegold && otmp->oclass == COIN_CLASS)

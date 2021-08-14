@@ -103,6 +103,8 @@ goodpos(int x, int y, struct monst* mtmp, long gpflags)
             else
                 return (!grounded(mdat) || likes_lava(mdat));
         }
+        if (is_open_air(x, y) && grounded(mdat))
+            return FALSE;
         if (passes_walls(mdat) && may_passwall(x, y))
             return TRUE;
         if (amorphous(mdat) && closed_door(x, y))

@@ -251,6 +251,7 @@ extern boolean is_lava(int, int);
 extern boolean is_pool_or_lava(int, int);
 extern boolean is_ice(int, int);
 extern boolean is_moat(int, int);
+extern boolean is_open_air(int, int);
 extern schar db_under_typ(int);
 extern int is_drawbridge_wall(int, int);
 extern boolean is_db_wall(int, int);
@@ -409,6 +410,7 @@ extern void set_wounded_legs(long, int);
 extern void heal_legs(int);
 extern void polymorph_sink(void);
 extern void trycall(struct obj *);
+extern void obj_aireffects(struct obj *, boolean);
 
 /* ### do_name.c ### */
 
@@ -601,6 +603,7 @@ extern xchar ledger_to_dnum(xchar);
 extern xchar ledger_to_dlev(xchar);
 extern xchar deepest_lev_reached(boolean);
 extern boolean on_level(d_level *, d_level *);
+extern void find_level_beneath(const d_level *, d_level *);
 extern void next_level(boolean);
 extern void prev_level(boolean);
 extern void u_on_newpos(int, int);
@@ -890,6 +893,7 @@ extern void invocation_message(void);
 extern void switch_terrain(void);
 extern void set_uinwater(int);
 extern boolean pooleffects(boolean);
+extern void u_aireffects(void);
 extern void spoteffects(boolean);
 extern char *in_rooms(xchar, xchar, int);
 extern boolean in_town(int, int);
@@ -1513,6 +1517,7 @@ extern void pacify_guards(void);
 extern void decide_to_shapeshift(struct monst *, int);
 extern boolean vamp_stone(struct monst *);
 extern void check_gear_next_turn(struct monst *);
+extern void mon_aireffects(struct monst *);
 
 /* ### mondata.c ### */
 

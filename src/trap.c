@@ -3590,6 +3590,11 @@ float_down(
             (void) lava_effects();
             no_msg = TRUE;
         }
+
+        if (is_open_air(u.ux, u.uy)) {
+            u_aireffects();
+            no_msg = TRUE;
+        }
     }
     if (!trap) {
         trap = t_at(u.ux, u.uy);

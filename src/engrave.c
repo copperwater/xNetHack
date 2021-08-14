@@ -188,7 +188,7 @@ surface(register int x, register int y)
 
     if (x == u.ux && y == u.uy && u.uswallow && is_animal(u.ustuck->data))
         return "maw";
-    else if (IS_AIR(lev->typ) && Is_airlevel(&u.uz))
+    else if (IS_AIR(lev->typ))
         return "air";
     else if (is_pool(x, y))
         return (Underwater && !Is_waterlevel(&u.uz))
@@ -532,7 +532,8 @@ doengrave(void)
         You_cant("write on the %s!", surface(u.ux, u.uy));
         return 0;
     }
-    if (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz) /* in bubble */) {
+    if (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz) /* in bubble */
+        || IS_AIR(levl[u.ux][u.uy].typ)) {
         You_cant("write in thin air!");
         return 0;
     } else if (!accessible(u.ux, u.uy)) {

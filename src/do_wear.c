@@ -958,7 +958,7 @@ Amulet_off(void)
         if (was_flying && !Flying) {
             makeknown(AMULET_OF_FLYING);
             g.context.botl = TRUE; /* status: 'Fly' Off */
-            You("%s.", (is_pool_or_lava(u.ux, u.uy)
+            You("%s.", (is_pool_or_lava(u.ux, u.uy) || is_open_air(u.ux, u.uy)
                         || Is_waterlevel(&u.uz) || Is_airlevel(&u.uz))
                           ? "stop flying"
                           : "land");

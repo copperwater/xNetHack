@@ -169,7 +169,7 @@ const struct symdef defsyms[MAXPCHARS] = {
        { '.', "lowered drawbridge", C(CLR_BROWN) },  /* hodbridge */
        { '#', "raised drawbridge", C(CLR_BROWN) },   /* vcdbridge */
        { '#', "raised drawbridge", C(CLR_BROWN) },   /* hcdbridge */
-       { ' ', "air", C(CLR_CYAN) },                  /* open air */
+       { ' ', "air", C(CLR_BLACK) },                  /* open air */
 /*40*/ { '#', "cloud", C(CLR_GRAY) },                /* [part of] a cloud */
        { '}', "water", C(CLR_BLUE) },                /* under water */
        { '~', "engraving", C(CLR_BROWN) },           /* engraving */

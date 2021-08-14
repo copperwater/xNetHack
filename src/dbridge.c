@@ -103,6 +103,18 @@ is_moat(int x, int y)
     return FALSE;
 }
 
+/* If the space is empty air - a precipice or chasm that monsters and objects
+ * will fall down into, not the gravity-less air found in the Planes */
+boolean
+is_open_air(int x, int y)
+{
+    if (!isok(x, y))
+        return FALSE;
+    return (IS_AIR(levl[x][y].typ) && !In_endgame(&u.uz));
+    /* potential future extension -- add a DB_AIR for drawbridge over air if
+     * such a thing ever has a reason to exist */
+}
+
 schar
 db_under_typ(int mask)
 {

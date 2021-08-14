@@ -452,6 +452,10 @@ landing_spot(
                     continue;
 
                 if (accessible(x, y) && !MON_AT(x, y)
+                    /* accessible() excludes liquids, but not air, so we need to
+                     * check for it here */
+                    && !(is_open_air(x, y) && !Flying && !Levitation
+                         && !is_clinger(g.youmonst.data))
                     && test_move(u.ux, u.uy, x - u.ux, y - u.uy, TEST_MOVE)) {
                     distance = distu(x, y);
                     if (min_distance < 0 || distance < min_distance
@@ -607,8 +611,13 @@ dismount_steed(
             return;
         }
 
+        /* If the hero is over air and the steed is grounded(), it will fall
+         * down. */
+        if (is_open_air(u.ux, u.uy)) {
+            mon_aireffects(mtmp);
+        }
         /* Set hero's and/or steed's positions.  Try moving the hero first. */
-        if (!u.uswallow && !u.ustuck && have_spot) {
+        else if (!u.uswallow && !u.ustuck && have_spot) {
             struct permonst *mdat = mtmp->data;
 
             /* The steed may drop into water/lava */

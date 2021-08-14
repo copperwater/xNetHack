@@ -122,6 +122,28 @@ changes:
 - New monster black mold: a black F that is sessile and has a passive deathly
   illness attack. It also causes illness when eaten, and like other molds can be
   used to ferment fruit juice, turning it into sickness.
+- Air terrain can now appear in levels other than the Planes. In such levels
+  where gravity is in effect, it poses a potentially fatal hazard.
+  - Anyone who steps into air will fall either to a designated level beneath
+    that level, take 12d20 fall damage, become stunned, and wound their legs for
+    60+10d10 turns.
+    or if there is no designated level beneath it, simply die instantly.
+  - Air can be crossed by flying or levitating or being a wumpus, or riding a
+    steed that can cross air.
+  - Items that fall into air fall to the level below, but have a 25% chance of
+    being lost or broken instead. If there is no level below, they are lost
+    forever.
+  - Unique items required to win the game never break when falling to a lower
+    level and will hover in midair if there is no lower level.
+  - Monsters cannot be pushed or hurtle out into midair. This appears to be due
+    to vanilla code (they also cannot hurtle out over water or lava).
+  - It behaves like water or lava in terms of safeguards to prevent stepping
+    into air (requires an m prefix if it would be unsafe, and ParanoidSwim
+    additionally prompts for confirmation even when using an m prefix).
+  - Air is now colored black; this does not change anything when using its
+    default ASCII symbol of " " but will hopefully allow players who wish to
+    define it as something else to show it less ambiguously than if it were
+    cyan.
 
 ### Interface changes
 

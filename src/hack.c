@@ -908,7 +908,8 @@ test_move(int ux, int uy, int dx, int dy, int mode)
 
         if ((t && t->tseen)
             || (!Levitation && !Flying && grounded(g.youmonst.data)
-                && is_pool_or_lava(x, y) && levl[x][y].seenv))
+                && (is_pool_or_lava(x, y) || is_open_air(x, y))
+                && levl[x][y].seenv))
             return (mode == TEST_TRAP);
     }
 
@@ -1892,8 +1893,12 @@ domove_core(void)
     if (!Levitation && !Flying && grounded(g.youmonst.data) && !Stunned
         && !Confusion && levl[x][y].seenv
         && ((is_pool(x, y) && !is_pool(u.ux, u.uy))
-            || (is_lava(x, y) && !is_lava(u.ux, u.uy)))) {
+            || (is_lava(x, y) && !is_lava(u.ux, u.uy))
+            || (is_open_air(x, y) && !is_open_air(u.ux, u.uy)))) {
         boolean known_wwalking, known_lwalking;
+        boolean ispool = is_pool(x, y),
+                islava = is_lava(x, y),
+                isair  = is_open_air(x, y);
         known_wwalking = (uarmf && uarmf->otyp == WATER_WALKING_BOOTS
                         && objects[WATER_WALKING_BOOTS].oc_name_known
                         && !u.usteed);
@@ -1905,15 +1910,24 @@ domove_core(void)
         * this is such a marginal case that it may not be worth fixing. */
         if (g.context.nopick) {
             /* moving with 'm' */
-            if (is_pool(x, y) && !known_wwalking) {
+            if (ispool && !known_wwalking) {
                 if (ParanoidSwim && yn("Really enter the water?") != 'y') {
                     g.context.move = 0;
                     nomul(0);
                     return;
                 }
             }
-            else if (is_lava(x, y) && !known_lwalking) {
+            else if (islava && !known_lwalking) {
                 if (ParanoidSwim && yn("Really enter the lava?") != 'y') {
+                    g.context.move = 0;
+                    nomul(0);
+                    return;
+                }
+            }
+            else if (isair) {
+                /* ParanoidSwim is close enough to do the same job here without
+                 * warranting a separate option for air */
+                if (ParanoidSwim && yn("Really step off the cliff?") != 'y') {
                     g.context.move = 0;
                     nomul(0);
                     return;
@@ -1922,13 +1936,16 @@ domove_core(void)
         } else {
             /* not moving with 'm'; if not known safe, simply prevent from
              * moving at all */
-            if ((is_pool(x, y) && !known_wwalking)
-                || (is_lava(x, y) && !known_lwalking)) {
+            if ((ispool && !known_wwalking) || (islava && !known_lwalking)
+                || isair) {
                 static boolean first_time = TRUE;
-                pline("You avoid stepping into the %s.",
-                      is_lava(x, y) ? "molten lava" : "water");
+                if (isair)
+                    pline("You avoid stepping off the cliff.");
+                else
+                    pline("You avoid stepping into the %s.",
+                        is_lava(x, y) ? "lava" : "water");
                 if (first_time) {
-                    pline("(Use \"m\" to step in if you really want to.)");
+                    pline("(Use \"m\" to step here if you really want to.)");
                     first_time = FALSE;
                 }
                 g.context.move = 0;
@@ -2377,6 +2394,55 @@ pooleffects(boolean newspot)             /* true if called by spoteffects */
     return FALSE;
 }
 
+/* like pooleffects but for open air */
+void
+u_aireffects(void)
+{
+    static boolean in_aireffects = FALSE;
+    d_level destination;
+
+    /* avoid being called twice: spoteffects -> aireffects -> dismount_steed ->
+     * float_down -> aireffects */
+    if (in_aireffects)
+        return;
+    in_aireffects = TRUE;
+
+    find_level_beneath(&u.uz, &destination);
+    if (destination.dnum == 0 && destination.dlevel == 0) {
+        You("fall a few thousand feet to your death.");
+        /* if there's no lower level, then... well, you're done for */
+        Sprintf(g.killer.name, "fell to %s death", uhis());
+        g.killer.format = NO_KILLER_PREFIX;
+        done(DIED);
+        /* life-saved */
+        if (safe_teleds(TELEDS_ALLOW_DRAG | TELEDS_TELEPORT))
+            ;
+        else {
+            pline("Unfortunately, there is still nowhere safe to land.");
+            You("fall to your death again.");
+            done(DIED);
+        }
+        return;
+    }
+    else {
+        You("plummet into the depths...");
+        if (u.usteed) {
+            You("lose control of %s!", mon_nam(u.usteed));
+            /* DISMOUNT_FELL makes the most sense, but causes damage which can
+             * kill hero prematurely */
+            dismount_steed(DISMOUNT_GENERIC);
+        }
+        /* You can die here from touching a cockatrice corpse, but the
+         * interesting and unintended effect is that the bones (containing the
+         * statue of the player) will actually get saved on the level you fall
+         * to. Usually this wouldn't happen due to inter-branch levels and the
+         * bottom levels of branches being ineligible for bones, though. */
+        schedule_goto(&destination, UTOTYPE_FALLING, (char *) 0, (char *) 0);
+        u.ufalldamage = 1;
+    }
+    in_aireffects = FALSE;
+}
+
 void
 spoteffects(boolean pick)
 {
@@ -2410,6 +2476,12 @@ spoteffects(boolean pick)
 
     if (pooleffects(TRUE))
         goto spotdone;
+
+    if (is_open_air(u.ux, u.uy) && !Levitation && !Flying
+        && !(u.usteed && !grounded(u.usteed->data))) {
+        u_aireffects();
+        goto spotdone;
+    }
 
     check_special_room(FALSE);
     if (IS_SINK(levl[u.ux][u.uy].typ) && Levitation)
