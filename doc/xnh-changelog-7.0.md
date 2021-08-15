@@ -144,6 +144,10 @@ changes:
     default ASCII symbol of " " but will hopefully allow players who wish to
     define it as something else to show it less ambiguously than if it were
     cyan.
+- The Vlad's Tower branch now has a fourth level: a deep perilous chasm beneath
+  the tower proper consisting mostly of air terrain. The level beneath it is the
+  level in Gehennom containing the stairs to the tower. There are a couple
+  demons and several vampires and vampire leaders inhabiting this area.
 
 ### Interface changes
 
