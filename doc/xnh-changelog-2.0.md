@@ -50,6 +50,7 @@ changes:
     damage.
   - Mithril body armor always grants at least MC 2, even if its base item type
     doesn't normally grant that much.
+  - Leprechauns will steal any item made of gold.
 - Nymphs and foocubi will introduce themselves (giving them a name) if they do
   not already have a name, when they initiate their charm or seduction attacks.
 - Permanent hallucination mode: enable it with OPTIONS=hallucination in config.
@@ -69,6 +70,7 @@ changes:
   chance.
 - Each barracks in the castle may open into either the courtyard or the throne
   room with equal probability. These doors are no longer locked.
+- Worm teeth are made of bone rather than "mysterious" material 0.
 - Teleportation onto the Vibrating Square is now allowed.
 - You can only rub things if you are in a form with hands.
 - When metallivores eat metal from the ground, assuming it has no special
