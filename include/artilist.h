@@ -113,6 +113,10 @@ static NEARDATA struct artifact artilist[] = {
       FIRE(5, 0), FIRE(0, 0), NO_CARY, 0, A_NONE, NON_PM, NON_PM, 3000L,
       NO_COLOR),
 
+    A("Mirror Brand", SHORT_SWORD, (SPFX_RESTR | SPFX_REFLECT), 0, 0,
+      NO_ATTK, NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 2500L,
+      NO_COLOR), /* special damage added in artifact_hit() */
+
     A("Dragonbane", DWARVISH_SPEAR,
       (SPFX_WARN | SPFX_RESTR | SPFX_DCLAS | SPFX_REFLECT), 0, S_DRAGON,
       PHYS(5, 10), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 2500L,

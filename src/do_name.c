@@ -1383,6 +1383,9 @@ oname(struct obj *obj, const char *name)
         case ART_YENDORIAN_EXPRESS_CARD:
             set_material(obj, PLATINUM);
             break;
+        case ART_MIRROR_BRAND:
+            set_material(obj, GLASS);
+            break;
         default:
             /* prevent any wishes for materials on an artifact */
             set_material(obj, objects[obj->otyp].oc_material);

@@ -148,6 +148,15 @@ changes:
   the tower proper consisting mostly of air terrain. The level beneath it is the
   level in Gehennom containing the stairs to the tower. There are a couple
   demons and several vampires and vampire leaders inhabiting this area.
+- New artifact Mirror Brand, an unaligned glass short sword with the following
+  properties:
+  - Confers reflection.
+  - When used to hit a monster wielding a weapon, rolls the damage for that
+    weapon if it had been used against the monster and adds it to the
+    preexisting damage. (This includes base damage, enchantment, object
+    material, and specific weapon-versus-monster damage adjustments such as
+    blessed weapons versus undead.)
+  - Can be dual wielded with the other Brands.
 
 ### Interface changes
 

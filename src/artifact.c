@@ -1261,6 +1261,18 @@ artifact_hit(struct monst *magr, struct monst *mdef, struct obj *otmp,
         return ARTIFACTHIT_GAVEMSG;
     }
 
+    if (otmp->oartifact == ART_MIRROR_BRAND) {
+        /* it didn't seem necessary to make a SPFX for this */
+        struct obj *oppwep = (youdefend) ? uwep : MON_WEP(mdef);
+        if (oppwep) {
+            /* only the weapon is being mirrored, not the entire attack, and
+             * it's being proc'd as if hero were attacking mon with oppwep, not
+             * as if mon were attacking hero with it */
+            pline("Mirror Brand reflects %s!", yname(oppwep));
+            *dmgptr += dmgval(oppwep, mdef);
+        }
+    }
+
     if (!g.spec_dbon_applies) {
         /* since damage bonus didn't apply, nothing more to do;
            no further attacks have side-effects on inventory */
