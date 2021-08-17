@@ -2538,7 +2538,7 @@ ureflectsrc(void)
         /* assumes shield of reflection */
         makeknown(SHIELD_OF_REFLECTION);
         return "shield";
-    } else if (EReflecting & W_WEP) {
+    } else if (EReflecting & (W_WEP | W_SWAPWEP)) {
         /* Due to wielded artifact weapon */
         return "weapon";
     } else if (uwep && uwep->otyp == MIRROR && rn2(2)) {

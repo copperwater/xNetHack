@@ -783,6 +783,9 @@ void
 set_twoweap(boolean on_off)
 {
     u.twoweap = on_off;
+    if (uswapwep && uswapwep->oartifact) {
+        set_artifact_intrinsic(uswapwep, on_off, W_SWAPWEP);
+    }
 }
 
 int

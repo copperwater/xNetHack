@@ -605,7 +605,7 @@ set_artifact_intrinsic(struct obj *otmp, boolean on, long wp_mask)
             u.xray_range = -1;
         g.vision_full_recalc = 1;
     }
-    if ((spfx & SPFX_REFLECT) && (wp_mask & W_WEP)) {
+    if ((spfx & SPFX_REFLECT) && (wp_mask & (W_WEP | W_SWAPWEP))) {
         if (on)
             EReflecting |= wp_mask;
         else
