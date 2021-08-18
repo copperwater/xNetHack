@@ -562,11 +562,11 @@ xname_flags(
         }
         if (obj->otyp >= ELVEN_SHIELD && obj->otyp <= ORCISH_SHIELD
             && !dknown) {
-            Strcpy(buf, "shield");
+            Strcat(buf, "shield");
             break;
         }
         if (obj->otyp == SHIELD_OF_REFLECTION && !dknown) {
-            Strcpy(buf, "smooth shield");
+            Strcat(buf, "smooth shield");
             break;
         }
 
@@ -578,13 +578,13 @@ xname_flags(
             else if (is_gloves(obj))
                 Strcat(buf, "gloves");
             else if (is_cloak(obj))
-                Strcpy(buf, "cloak");
+                Strcat(buf, "cloak");
             else if (is_helmet(obj))
-                Strcpy(buf, "helmet");
+                Strcat(buf, "helmet");
             else if (is_shield(obj))
-                Strcpy(buf, "shield");
+                Strcat(buf, "shield");
             else
-                Strcpy(buf, "armor");
+                Strcat(buf, "armor");
             Strcat(buf, " called ");
             Strcat(buf, un);
         } else
