@@ -276,6 +276,9 @@ drop_upon_death(struct monst *mtmp, /* monster if hero turned into one (other th
         if ((cont || artifact_light(otmp)) && obj_is_burning(otmp))
             end_burn(otmp, TRUE); /* smother in statue */
 
+        /* undo any armor weight reduction if it was worn */
+        otmp->owt = weight(otmp);
+
         if (otmp->otyp == SLIME_MOLD)
             goodfruit(otmp->spe);
 
