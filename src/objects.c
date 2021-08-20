@@ -635,7 +635,7 @@ TOOL("tin opener",          None, 1, 0, 0, 0, 35,  4, 30, IRON, HI_METAL),
 TOOL("can of grease",       None, 1, 0, 0, 1, 15, 15, 20, PLASTIC, CLR_BRIGHT_BLUE),
 TOOL("figurine",            None, 1, 0, 1, 0, 25, 50, 80, MINERAL, HI_MINERAL),
         /* monster type specified by obj->corpsenm */
-TOOL("magic marker",        None, 1, 0, 1, 1, 15,  2, 50, PLASTIC, CLR_RED),
+TOOL("magic marker",        None, 1, 0, 1, 1, 15,  2,200, PLASTIC, CLR_RED),
 /* traps */
 TOOL("land mine",           None, 1, 0, 0, 0, 0,  40,180, IRON, CLR_RED),
 TOOL("beartrap",            None, 1, 0, 0, 0, 0,  50, 60, IRON, HI_METAL),
