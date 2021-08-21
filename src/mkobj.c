@@ -251,6 +251,7 @@ mkbox_cnts(struct obj* box)
 {
     register int n;
     register struct obj *otmp;
+    boolean is_bag = FALSE;
 
     box->cobj = (struct obj *) 0;
 
@@ -273,6 +274,7 @@ mkbox_cnts(struct obj* box)
         }
         /*FALLTHRU*/
     case BAG_OF_HOLDING:
+        is_bag = TRUE;
         n = 1;
         break;
     default:
@@ -296,6 +298,12 @@ mkbox_cnts(struct obj* box)
             register int tprob;
             const struct icp *iprobs = boxiprobs;
 
+            if (is_bag && box->material == PAPER && !rn2(2) && n == 1) {
+                /* Yendorian Open Container Law */
+                otmp = mksobj(POT_BOOZE, TRUE, FALSE);
+                add_to_container(box, otmp);
+                continue;
+            }
             for (tprob = rnd(100); (tprob -= iprobs->iprob) > 0; iprobs++)
                 ;
             if (!(otmp = mkobj(iprobs->iclass, TRUE)))
