@@ -119,6 +119,8 @@ changes:
 - Croesus can move monsters out of his way (the same as the Riders).
 - The base price of magic markers is boosted to 200.
 - Randomly generated paper bags may contain a potion of booze.
+- Elves can always squeeze through a diagonal gap between two trees no matter
+  how much they're carrying.
 
 ### Interface changes
 

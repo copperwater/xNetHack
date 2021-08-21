@@ -2023,7 +2023,9 @@ mfndpos(
                 }
                 /* check for diagonal tight squeeze */
                 if (nx != x && ny != y && bad_rock(mdat, x, ny)
-                    && bad_rock(mdat, nx, y) && cant_squeeze_thru(mon))
+                    && bad_rock(mdat, nx, y) && cant_squeeze_thru(mon)
+                    && !(is_elf(mdat) && IS_TREE(levl[x][ny].typ)
+                         && IS_TREE(levl[nx][y].typ)))
                     continue;
                 /* The monster avoids a particular type of trap if it's
                  * familiar with the trap type.  Pets get ALLOW_TRAPS

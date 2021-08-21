@@ -875,7 +875,9 @@ test_move(int ux, int uy, int dx, int dy, int mode)
         }
     }
     if (dx && dy && bad_rock(g.youmonst.data, ux, y)
-        && bad_rock(g.youmonst.data, x, uy)) {
+        && bad_rock(g.youmonst.data, x, uy)
+        && !(is_elf(g.youmonst.data) && IS_TREE(levl[ux][y].typ)
+             && IS_TREE(levl[x][uy].typ))) {
         /* Move at a diagonal. */
         switch (cant_squeeze_thru(&g.youmonst)) {
         case 3:
