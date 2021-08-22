@@ -121,6 +121,8 @@ changes:
 - Randomly generated paper bags may contain a potion of booze.
 - Elves can always squeeze through a diagonal gap between two trees no matter
   how much they're carrying.
+- 5% of rolling boulder traps outside the Quest contain the remains of a dead
+  archeologist (corpse, fedora, and bullwhip.)
 
 ### Interface changes
 

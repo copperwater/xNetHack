@@ -3186,6 +3186,23 @@ mkroll_launch(
         cc.x = bcc.x = x;
         cc.y = bcc.y = y;
     } else {
+        if (!rn2(20) && ttmp->ttyp == ROLLING_BOULDER_TRAP && otyp == BOULDER
+            && !In_quest(&u.uz)) {
+            /* somebody had a little accident */
+            otmp = mkcorpstat(CORPSE, (struct monst *) 0,
+                              &mons[PM_ARCHEOLOGIST], cc.x, cc.y,
+                              CORPSTAT_INIT); /* places it */
+            otmp = mksobj(FEDORA, TRUE, FALSE);
+            if (otmp->spe < 2)
+                otmp->spe = 2;
+            place_object(otmp, cc.x, cc.y);
+            if (!rn2(3)) {
+                otmp = mksobj(BULLWHIP, TRUE, FALSE);
+                if (otmp->spe < 2)
+                    otmp->spe = 2;
+                place_object(otmp, cc.x, cc.y);
+            }
+        }
         otmp = mksobj(otyp, TRUE, FALSE);
         otmp->quan = ocount;
         otmp->owt = weight(otmp);
