@@ -2407,7 +2407,7 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                 pline("%s shackled to your %s and cannot be given away.",
                       Tobjnam(otmp, "are"), body_part(LEG));
                 continue;
-            } 
+            }
             carryamt = can_carry(mtmp, otmp);
             if (nohands(mtmp->data) && droppables(mtmp)) {
                 carryamt = 0;
@@ -2447,7 +2447,7 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
         }
         else {
             /* cursed weapons, armor, accessories, etc treated the same */
-            if ((otmp->cursed && (unwornmask & ~W_WEAPONS)) 
+            if ((otmp->cursed && (unwornmask & ~W_WEAPONS))
                 || mwelded(otmp)) {
                 pline("%s won't come off!", Yname2(otmp));
                 otmp->bknown = 1;
@@ -2525,7 +2525,7 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
         check_gear_next_turn(mtmp);
     }
     /* time_taken is 1 for normal item(s), rnd(3) if you removed a saddle */
-    return (n > 0 ? time_taken : 0); 
+    return (n > 0 ? time_taken : 0);
 }
 
 /* loot_mon() returns amount of time passed. */
@@ -3179,6 +3179,7 @@ use_container(struct obj **objp,
             Strcat(inokay ? pbuf : xbuf, "i");   /* put in */
             Strcat(outmaybe ? pbuf : xbuf, "b"); /* both */
             Strcat(inokay ? pbuf : xbuf, "rs");  /* reversed, stash */
+            Strcat(inokay ? pbuf : xbuf, "t");   /* transfer */
             Strcat(pbuf, " ");                   /* separator */
             Strcat(more_containers ? pbuf : xbuf, "n"); /* next container */
             Strcat(pbuf, "q");                   /* quit */
@@ -3207,7 +3208,85 @@ use_container(struct obj **objp,
         g.abort_looting = TRUE;
     if (c == 'n' || c == 'q') /* [not strictly needed; falling thru works] */
         goto containerdone;
-    loot_out = (c == 'o' || c == 'b' || c == 'r');
+
+    /* transfer into another container; select other container first */
+    if (c == 't' && Has_contents(g.current_container)) {
+        /* TODO: non-full menu style */
+        /* TODO: turn this into a function */
+        char n;
+        winid win;
+        anything any;
+        menu_item *pick_list;
+        struct obj *slots[26], *target;
+        int i;
+        struct obj *objchns[2] = { g.invent, g.level.objects[u.ux][u.uy] };
+        boolean validcont = FALSE;
+
+        any = cg.zeroany;
+        win = create_nhwindow(NHW_MENU);
+        start_menu(win, MENU_BEHAVE_STANDARD);
+
+        any.a_char = 'a';
+        for (i = 0; i < SIZE(objchns); ++i) {
+            for (otmp = objchns[i]; otmp;
+                 otmp = (objchns[i] == g.invent) ? otmp->nobj
+                                                 : otmp->nexthere) {
+                if (any.a_char > 'z') {
+                    /* TODO: maybe an improvement to permit absurd
+                     * amounts of containers instead of capping at 'a'-'z' */
+                    break;
+                }
+                /* allow unknown bags of tricks to be listed here to avoid
+                 * leaking its identity; they will be denied later on */
+                if (Is_container(otmp) && otmp != g.current_container
+                    && !(otmp->otyp == BAG_OF_TRICKS
+                         && objects[BAG_OF_TRICKS].oc_name_known)
+                    && !(otmp->lknown && otmp->olocked)) {
+                    validcont = TRUE;
+                    Strcpy(pbuf, doname(otmp));
+                    if (objchns[i] != g.invent) {
+                        /* mark items not in inventory */
+                        Strcat(pbuf, " [not carried]");
+                    }
+                    add_menu(win, &nul_glyphinfo, &any, any.a_char, 0,
+                            ATR_NONE, pbuf, MENU_ITEMFLAGS_NONE);
+                    slots[any.a_char - 'a'] = otmp;
+                    any.a_char++;
+                }
+            }
+        }
+        if (!validcont) {
+            pline("There's nothing else to transfer items into.");
+            goto containerdone;
+        }
+        end_menu(win, "What container would you like to transfer items into?");
+        n = select_menu(win, PICK_ONE, &pick_list);
+        destroy_nhwindow(win);
+        if (n <= 0)
+            goto containerdone;
+
+        target = slots[pick_list[0].item.a_char - 'a'];
+        if (target->where != OBJ_INVENT && !able_to_loot(u.ux, u.uy, TRUE))
+            goto containerdone;
+        /* it's simpler if we don't have to duplicate the process of finding out
+         * that a box is locked, or triggering a trap; just make the player have
+         * to have already opened it; note this also catches unknown bags of
+         * tricks */
+        if (!target->cknown || (Is_box(target) && !target->lknown)) {
+            pline("You need to look inside %s before transferring items.",
+                  yname(target));
+            goto containerdone;
+        }
+        c = 'o'; /* maybe? TODO */
+        /* TODO: test:
+         * - transfer boh into other boh
+         * - transfer cockatrice corpse
+         * - cannot muck about with traps on transferred container or
+         *   Schroedinger
+         */
+    }
+
+    loot_out = (c == 'o' || c == 'b' || c == 'r' || c == 't');
     loot_in = (c == 'i' || c == 'b' || c == 'r');
     loot_in_first = (c == 'r'); /* both, reversed */
     stash_one = (c == 's');
@@ -3442,7 +3521,7 @@ in_or_out_menu(const char *prompt, struct obj *obj, boolean outokay,
                boolean inokay, boolean alreadyused, boolean more_containers)
 {
     /* underscore is not a choice; it's used to skip element [0] */
-    static const char lootchars[] = "_:oibrsnq", abc_chars[] = "_:abcdenq";
+    static const char lootchars[] = "_:oibrstnq", abc_chars[] = "_:abcdefnq";
     winid win;
     anything any;
     menu_item *pick_list;
@@ -3487,15 +3566,21 @@ in_or_out_menu(const char *prompt, struct obj *obj, boolean outokay,
         add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
                  ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
     }
+    if (outokay) {
+        any.a_int = 7;
+        Strcpy(buf, "take out and put into another container");
+        add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+                 ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
+    }
     any.a_int = 0;
     add_menu(win, &nul_glyphinfo, &any, 0, 0,
              ATR_NONE, "", MENU_ITEMFLAGS_NONE);
     if (more_containers) {
-        any.a_int = 7; /* 'n' */
+        any.a_int = 8; /* 'n' */
         add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
                  ATR_NONE, "loot next container", MENU_ITEMFLAGS_SELECTED);
     }
-    any.a_int = 8; /* 'q' */
+    any.a_int = 9; /* 'q' */
     Strcpy(buf, alreadyused ? "done" : "do nothing");
     add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
              ATR_NONE, buf,
@@ -3507,10 +3592,10 @@ in_or_out_menu(const char *prompt, struct obj *obj, boolean outokay,
     if (n > 0) {
         int k = pick_list[0].item.a_int;
 
-        if (n > 1 && k == (more_containers ? 7 : 8))
+        if (n > 1 && k == (more_containers ? 8 : 9))
             k = pick_list[1].item.a_int;
         free((genericptr_t) pick_list);
-        return lootchars[k]; /* :,o,i,b,r,s,n,q */
+        return lootchars[k]; /* :,o,i,b,r,s,t,n,q */
     }
     return (n == 0 && more_containers) ? 'n' : 'q'; /* next or quit */
 }
