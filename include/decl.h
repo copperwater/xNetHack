@@ -1039,6 +1039,7 @@ struct instance_globals {
        callback routines in_container() and out_container() from askchain()
        and use_container().  Also used by menu_loot() and container_gone(). */
     struct obj *current_container;
+    struct obj *transfer_container;
     boolean abort_looting;
     /* Value set by query_objlist() for n_or_more(). */
     long val_for_n_or_more;

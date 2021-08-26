@@ -530,6 +530,7 @@ const struct instance_globals g_init = {
     /* pickup.c */
     0,  /* oldcap */
     (struct obj *) 0, /* current_container */
+    (struct obj *) 0, /* transfer_container */
     UNDEFINED_VALUE, /* abort_looting */
     UNDEFINED_VALUE, /* val_for_n_or_more */
     UNDEFINED_VALUES, /* valid_menu_classes */
