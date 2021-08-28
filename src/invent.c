@@ -2706,6 +2706,7 @@ display_pickinv(
         int wcap = weight_cap();
         Sprintf(invheading, "Inventory: %d/%d weight (%d/52 slots)",
                 inv_weight() + wcap, wcap, inv_cnt(FALSE));
+        any = cg.zeroany;
         add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_BOLD, invheading,
                  MENU_ITEMFLAGS_NONE);
     }
