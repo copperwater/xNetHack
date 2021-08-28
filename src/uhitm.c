@@ -615,7 +615,9 @@ should_cleave(void)
         return FALSE; /* better safe than sorry */
     }
     /* loop over dir+1 % 8 and dir+7 % 8 (the clockwise and anticlockwise
-     * directions); a monster standing at dir itself is NOT checked */
+     * directions); a monster standing at dir itself is NOT checked; also,
+     * monsters visible only with warning or as invisible markers will NOT
+     * trigger this prompt */
     for (i = dir + 1; i <= dir + 7; i += 6) {
         int realdir = i % 8;
         struct monst *mtmp = m_at(u.ux + xdir[realdir], u.uy + ydir[realdir]);
@@ -624,10 +626,16 @@ should_cleave(void)
         }
     }
     if (bystanders) {
-        pline("You will hit peaceful creatures if you attack in an arc.");
-        if (!paranoid_query(ParanoidHit, "Do it anyway?")) {
+        if (!g.context.forcefight)
             return FALSE;
+        /*
+        if (ParanoidHit) {
+            pline("You will hit peaceful creatures if you attack in an arc.");
+            if (yn("Continue?  (Declining will still attack the main target.)")
+                != 'y')
+                return FALSE;
         }
+        */
     }
     return TRUE;
 }
