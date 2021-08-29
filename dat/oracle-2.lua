@@ -9,13 +9,7 @@ des.room({ type ="delphi", lit = 1, x=39, y=10, xalign="center", yalign="center"
 
                -- Make a square ring of pools around the Oracle, 2 spaces out
                local ring = selection.new()
-               for i=3,7 do
-                  for j=2,6 do
-                     if i == 3 or i == 7 or j == 2 or j == 6 then
-                        ring:set(i, j)
-                     end
-                  end
-               end
+               ring = selection.rect(3,2,7,6)
                -- Remove one pool orthogonal to the Oracle so she is reachable
                notpool = { {5,2},{3,4},{7,4},{5,6} }
                shuffle(notpool)
