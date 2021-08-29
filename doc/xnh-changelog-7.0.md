@@ -147,6 +147,7 @@ changes:
   emanating bolt.
 - YAFMs:
   - Attempting to chop down a petrified tree while hallucinating.
+  - Reading a blank scroll while confused.
 - It is now possible to transfer items out of one container and directly into
   another container. This is done via a 't' option in the menu when you apply or
   loot a container. You must have opened and looked inside the second container
