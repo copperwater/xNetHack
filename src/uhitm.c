@@ -1557,11 +1557,16 @@ hmon_hitmon(struct monst *mon,
             hit(mshot_xname(obj), mon, exclam(tmp));
         else if (!flags.verbose)
             You("hit it.");
-        else
-            You("%s %s%s",
-                (obj && (is_shield(obj) || obj->otyp == HEAVY_IRON_BALL))
-                  ? "bash" : Role_if(PM_BARBARIAN) ? "smite" : "hit",
-                mon_nam(mon), canseemon(mon) ? exclam(tmp) : ".");
+        else {
+            const char *verb = !obj ? barehitmsg(&g.youmonst)
+                                    : use_weapon_skill
+                                        ? weaphitmsg(obj, &g.youmonst)
+                                        : "bash";
+            if (!verb)
+                verb = "hit";
+            You("%s %s%s", verb, mon_nam(mon),
+                canseemon(mon) ? exclam(tmp) : ".");
+        }
     }
 
     if (hated_obj && ((artimsg & ARTIFACTHIT_INSTAKILLMSG) == 0)) {
@@ -4016,7 +4021,7 @@ mhitm_ad_heal(struct monst *magr, struct attack *mattk, struct monst *mdef,
             && !uarms && !uarmg && !uarmf && !uarmh) {
             boolean goaway = FALSE;
 
-            pline("%s hits!  (I hope you don't mind.)", Monnam(magr));
+            pline("%s touches you!  (I hope you don't mind.)", Monnam(magr));
             if (Upolyd) {
                 u.mh += rnd(7);
                 if (!rn2(7)) {
@@ -5015,7 +5020,7 @@ hmonas(struct monst *mon)
                     verb = "head butt"; /* mbodypart(mon,HEAD)=="head" */
                     break;
                 case AT_BITE:
-                    verb = "bite";
+                    verb = has_beak(g.youmonst.data) ? "peck" : "bite";
                     break;
                 case AT_STNG:
                     verb = "sting";
@@ -5035,7 +5040,9 @@ hmonas(struct monst *mon)
                         Your("tentacles suck %s.", mon_nam(mon));
                     } else {
                         if (mattk->aatyp == AT_CLAW)
-                            verb = "hit"; /* not "claws" */
+                            verb = barehitmsg(&g.youmonst);
+                        if (!verb)
+                            verb = "hit";
                         You("%s %s.", verb, mon_nam(mon));
                         if (hated_obj && flags.verbose)
                             searmsg(&g.youmonst, mon, hated_obj, FALSE);

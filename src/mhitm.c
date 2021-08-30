@@ -580,7 +580,11 @@ hitmm(register struct monst *magr, register struct monst *mdef,
             buf[0] = '\0';
             switch (mattk->aatyp) {
             case AT_BITE:
-                Snprintf(buf, sizeof(buf), "%s bites", magr_name);
+                Snprintf(buf, sizeof(buf), "%s %s", magr_name,
+                         has_beak(magr->data) ? "pecks" : "bites");
+                break;
+            case AT_KICK:
+                Snprintf(buf, sizeof(buf), "%s kicks", magr_name);
                 break;
             case AT_STNG:
                 Snprintf(buf, sizeof(buf), "%s stings", magr_name);
@@ -594,6 +598,23 @@ hitmm(register struct monst *magr, register struct monst *mdef,
             case AT_TENT:
                 Snprintf(buf, sizeof(buf), "%s tentacles suck", s_suffix(magr_name));
                 break;
+            case AT_WEAP:
+                if (MON_WEP(magr)) {
+                    if (is_launcher(mwep) || is_missile(mwep) || is_ammo(mwep))
+                        /* default case */
+                        Snprintf(buf, sizeof(buf), "%s hits", magr_name);
+                    else
+                        Snprintf(buf, sizeof(buf), "%s %s", magr_name,
+                                 weaphitmsg(mwep, magr));
+                    break;
+                }
+                /* FALLTHRU */
+            case AT_CLAW: {
+                const char *verb = barehitmsg(magr);
+                Snprintf(buf, sizeof(buf), "%s %s", magr_name,
+                         verb ? verb : "hits");
+                break;
+            }
             case AT_HUGS:
                 if (magr != u.ustuck) {
                     Snprintf(buf, sizeof(buf), "%s squeezes", magr_name);

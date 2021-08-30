@@ -221,6 +221,9 @@ changes:
   helping you."
 - A number of monster recolors from previous versions are reverted back to
   vanilla colors.
+- Port L's descriptive hit messages patch (slightly modified), which changes
+  messages such as "You hit foo" and "Foo hits" into more descriptive messages
+  based on the weapon, attack type, or monster making the attack.
 
 ### Architectural changes
 
