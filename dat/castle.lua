@@ -43,6 +43,7 @@ des.map([[
 
 -- Random registers initialisation
 local object = { "[", ")", "*", "%" };
+local thronedecor = { {37, 07}, {37, 09} };
 shuffle(object)
 
 local place = selection.new();
@@ -57,7 +58,6 @@ shuffle(monster)
 des.teleport_region({ region = {01,00,10,20}, region_islev=1, exclude={1,1,61,15}, dir="down" })
 des.teleport_region({ region = {69,00,79,20}, region_islev=1, exclude={1,1,61,15}, dir="up" })
 des.levregion({ region = {01,00,10,20}, region_islev=1, exclude={0,0,62,16}, type="stair-up" })
-des.feature("fountain", 10,08)
 -- Doors
 des.door("closed",07,03)
 des.door("closed",55,03)
@@ -239,8 +239,40 @@ des.region(selection.area(00,05,05,11),"lit")
 des.region(selection.area(57,05,62,11),"lit")
 --   Throne room
 des.region({ region={27,05, 37,11},lit=1,type="throne", filled=2 })
+-- vary the throne room layout slightly
+if percent(20) then
+    for pos=1,2 do
+        des.terrain( thronedecor[pos], "T" )
+    end
+elseif percent(25) then -- 20% chance due to nested if
+    for pos=1,2 do
+        des.object({id="statue", thronedecor[pos], montype=monster[3], historic=true})
+    end
+elseif percent(30) then -- 18% chance due to nested if
+    for pos=1,2 do
+        des.terrain( thronedecor[pos], "-" )
+    end
+elseif percent(35) then -- 15% chance due to nested if
+    for pos=1,2 do
+        des.terrain( thronedecor[pos], "{" )
+    end
+end
 --   Antechamber
 des.region(selection.area(07,05,14,11),"lit")
+-- vary the antechamber layout slightly
+if percent(20) then
+   des.feature("tree", 10,08)
+else
+   des.feature("fountain", 10,08)
+end
+if percent(20) then
+   des.object({id="statue", x=10, y=07, montype=monster[1], historic=true})
+   des.object({id="statue", x=10, y=09, montype=monster[2], historic=true})
+end
+if percent(20) then
+   des.feature("tree", 10,06)
+   des.feature("tree", 10,10)
+end
 --   Storerooms
 des.region(selection.area(39,05,45,06),"lit")
 des.region(selection.area(39,10,45,11),"lit")
