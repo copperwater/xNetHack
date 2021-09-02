@@ -620,7 +620,12 @@ should_cleave(void)
      * trigger this prompt */
     for (i = dir + 1; i <= dir + 7; i += 6) {
         int realdir = i % 8;
-        struct monst *mtmp = m_at(u.ux + xdir[realdir], u.uy + ydir[realdir]);
+        int x = u.ux + xdir[realdir];
+        int y = u.uy + ydir[realdir];
+        struct monst *mtmp;
+        if (!isok(x, y))
+            continue;
+        mtmp = m_at(x, y);
         if (mtmp && canspotmon(mtmp) && mtmp->mpeaceful) {
             bystanders = TRUE;
         }
