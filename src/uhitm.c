@@ -4842,6 +4842,47 @@ gulpum(struct monst *mdef, struct attack *mattk)
     return MM_MISS;
 }
 
+/* Return a string describing something on mdef that is blocking an attack, for
+ * formatting miss messages. */
+const char *
+attack_blocker(struct monst *mdef)
+{
+    /* Weight the probability of what the blocker is by the amount of AC it
+     * confers. */
+#define BLOCKED_BODY -1 /* thick hide, shell etc */
+#define BLOCKED_PROT -2 /* spell of protection's golden haze */
+    int armasks[] = { W_ARMU, W_ARM, W_ARMC, W_ARMS, W_ARMG, W_ARMF, W_ARMH,
+                      BLOCKED_BODY, BLOCKED_PROT };
+    int i, total = 0, selected = -1;
+    for (i = 0; i < SIZE(armasks); ++i) {
+        int bon;
+        if (armasks[i] == BLOCKED_BODY)
+            bon = thick_skinned(mdef->data) ? 10 - mdef->data->ac : 0;
+        else if (armasks[i] == BLOCKED_PROT)
+            bon = (mdef == &g.youmonst) ? u.uspellprot : 0;
+        else {
+            struct obj *armor = which_armor(mdef, armasks[i]);
+            bon = armor ? armor_bonus(armor) : 0;
+        }
+
+        if (bon <= 0)
+            continue;
+        total += bon;
+        if (rn2(total) < bon)
+            selected = i;
+    }
+    if (selected < 0) /* no blockers */
+        return (const char *) 0;
+    if (armasks[selected] == BLOCKED_BODY)
+        return mdef->data->mlet == S_DRAGON ? "scaly hide" : "thick hide";
+    else if (armasks[selected] == BLOCKED_PROT)
+        return "golden haze";
+    else
+        return xname(which_armor(mdef, armasks[selected]));
+#undef BLOCKED_BODY
+#undef BLOCKED_PROT
+}
+
 void
 missum(struct monst *mdef, struct attack *mattk, boolean wouldhavehit)
 {
@@ -4850,8 +4891,14 @@ missum(struct monst *mdef, struct attack *mattk, boolean wouldhavehit)
 
     if (could_seduce(&g.youmonst, mdef, mattk))
         You("pretend to be friendly to %s.", mon_nam(mdef));
-    else if (canspotmon(mdef) && flags.verbose)
-        You("miss %s.", mon_nam(mdef));
+    else if (canspotmon(mdef) && flags.verbose) {
+        const char *blocker = attack_blocker(mdef);
+        if (blocker && !rn2(3))
+            pline("%s %s %s your attack.", s_suffix(Monnam(mdef)), blocker,
+                  rn2(3) ? "blocks" : "deflects");
+        else
+            You("miss %s.", mon_nam(mdef));
+    }
     else
         You("miss it.");
     if (!mdef->msleeping && mdef->mcanmove)

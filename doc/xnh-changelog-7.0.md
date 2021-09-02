@@ -224,6 +224,8 @@ changes:
 - Port L's descriptive hit messages patch (slightly modified), which changes
   messages such as "You hit foo" and "Foo hits" into more descriptive messages
   based on the weapon, attack type, or monster making the attack.
+- Add the descriptive misses system, which changes some "X misses Y" messages
+  into ones about some piece of the defender's gear blocking the attack.
 
 ### Architectural changes
 

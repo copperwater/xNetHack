@@ -228,9 +228,15 @@ missmu(struct monst *mtmp, boolean nearmiss, struct attack *mattk)
 
     if (could_seduce(mtmp, &g.youmonst, mattk) && !mtmp->mcan)
         pline("%s pretends to be friendly.", Monnam(mtmp));
-    else
-        pline("%s %smisses!", Monnam(mtmp),
-              (nearmiss && flags.verbose) ? "just " : "");
+    else {
+        const char *blocker = attack_blocker(&g.youmonst);
+        if (blocker && !rn2(5))
+            pline("Your %s %s %s attack.", blocker,
+                  rn2(3) ? "blocks" : "deflects", s_suffix(mon_nam(mtmp)));
+        else
+            pline("%s %smisses!", Monnam(mtmp),
+                (nearmiss && flags.verbose) ? "just " : "");
+    }
 
     stop_occupation();
 }

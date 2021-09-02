@@ -84,11 +84,19 @@ missmm(register struct monst *magr, register struct monst *mdef,
     pre_mm_attack(magr, mdef);
 
     if (g.vis) {
-        fmt = (could_seduce(magr, mdef, mattk) && !magr->mcan)
-                  ? "%s pretends to be friendly to"
-                  : "%s misses";
-        Sprintf(buf, fmt, Monnam(magr));
-        pline("%s %s.", buf, mon_nam_too(mdef, magr));
+        const char *blocker = attack_blocker(mdef);
+        if (blocker && !rn2(5)) {
+            Sprintf(buf, "%s %s %s", s_suffix(Monnam(mdef)), blocker,
+                    rn2(3) ? "blocks" : "deflects");
+            pline("%s %s attack.", buf, s_suffix(mon_nam_too(mdef, magr)));
+        }
+        else  {
+            fmt = (could_seduce(magr, mdef, mattk) && !magr->mcan)
+                      ? "%s pretends to be friendly to"
+                      : "%s misses";
+            Sprintf(buf, fmt, Monnam(magr));
+            pline("%s %s.", buf, mon_nam_too(mdef, magr));
+        }
     } else
         noises(magr, mattk);
 }
