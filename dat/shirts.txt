@@ -24,7 +24,7 @@ Go team ant!
 Got ASCII?
 Got newt?
 Hello, I'm War!
-Hello. My name is Inigo Montoya. You killed my father. Prepare to die.
+Hello.  My name is Inigo Montoya.  You killed my father.  Prepare to die.
 Hey!  Nymphs!  Steal This T-Shirt!
 Hey, black dragon!  Disintegrate THIS!
 I <3 Maud
@@ -37,7 +37,7 @@ I ascended and all I got was this lousy excuse for divine robes.
 I couldn't afford this T-shirt so I stole it!
 I explored the Dungeons of Doom and all I got was this lousy T-shirt!
 I got sick riding the Juiblex Express
-I got this lousy t-shirt, and all I got was this lousy t-shirt
+I got this lousy T-shirt, and all I got was this lousy T-shirt.
 I got zapped with a wand of polymorph and all I became was this lousy T-shirt.
 I killed the Wizard of Yendor.  (He got over it.)
 I polymorphed everything in Fort Ludios and all I got was this lousy T-shirt!
@@ -76,14 +76,14 @@ Real men love Crom
 Rock 'n Mole
 Serial Ascender
 Stand back, I'm going to try alchemy!
-This shirt intentionally left blank. Hey, wait a minute.
+This shirt intentionally left blank.  Hey, wait a minute.
 Vegan and Proud
 Weapons don't kill people, I kill people
 Who watches the Minetown Watchmen?
 Yendor Alchemical Academy, Class of '47
 You lost The Game!
 Young Men's Cavedigging Association
-Zombies aren't so tough. I'm more scared of an archon apocalypse.
+Zombies aren't so tough.  I'm more scared of an archon apocalypse.
 ^ My gaze attack is up here ^
 
 # faux bands
