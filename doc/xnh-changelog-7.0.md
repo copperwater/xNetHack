@@ -123,6 +123,8 @@ changes:
   how much they're carrying.
 - 5% of rolling boulder traps outside the Quest contain the remains of a dead
   archeologist (corpse, fedora, and bullwhip.)
+- Stunned monsters move and hit things randomly, identically to how confused
+  monsters do.
 
 ### Interface changes
 

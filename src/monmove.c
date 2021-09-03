@@ -1129,7 +1129,7 @@ m_move(register struct monst* mtmp, register int after)
          * whether they have a usable ranged weapon. */
         appr = -1;
     }
-    if (mtmp->mconf || (u.uswallow && mtmp == u.ustuck)) {
+    if (mtmp->mconf || mtmp->mstun || (u.uswallow && mtmp == u.ustuck)) {
         appr = 0;
     } else {
         struct obj *lepgold, *ygold;
