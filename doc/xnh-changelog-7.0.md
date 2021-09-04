@@ -125,6 +125,7 @@ changes:
   archeologist (corpse, fedora, and bullwhip.)
 - Stunned monsters move and hit things randomly, identically to how confused
   monsters do.
+- Archeologists can safely enchant fedoras when they are +4 or +5.
 
 ### Interface changes
 
