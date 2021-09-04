@@ -1930,8 +1930,10 @@ mfndpos(
             /* first diagonal checks (tight squeezes handled below) */
             if (nx != x && ny != y
                 && (nodiag
-                    || (IS_DOOR(nowtyp) && !doorless_door(x, y))
-                    || (IS_DOOR(ntyp) && !doorless_door(nx, ny))
+                    || (((IS_DOOR(nowtyp) && !doorless_door(x, y))
+                         || (IS_DOOR(ntyp) && !doorless_door(nx, ny)))
+                        && !(IS_DOOR(levl[nx][y].typ) && !closed_door(nx, y))
+                        && !(IS_DOOR(levl[x][ny].typ) && !closed_door(x, ny)))
                     /* mustn't pass between adjacent long worm segments,
                        but can attack that way */
                     || (m_at(x, ny) && m_at(nx, y) && worm_cross(x, y, nx, ny)

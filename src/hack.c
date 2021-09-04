@@ -862,8 +862,11 @@ test_move(int ux, int uy, int dx, int dy, int mode)
         } else {
  testdiag:
             if (dx && dy && !Passes_walls
-                && (!doorless_door(x, y) || block_door(x, y))) {
-                /* Diagonal moves into a door are not allowed. */
+                && (!doorless_door(x, y) || block_door(x, y))
+                && !(IS_DOOR(levl[ux][y].typ) && !closed_door(ux, y))
+                && !(IS_DOOR(levl[x][uy].typ) && !closed_door(x, uy))) {
+                /* Diagonal moves into a door are not allowed, unless there's
+                 * another adjacent non-closed door. */
                 if (mode == DO_MOVE) {
                     if (Blind)
                         feel_location(x, y);
@@ -921,8 +924,11 @@ test_move(int ux, int uy, int dx, int dy, int mode)
 
     /* Now see if other things block our way . . */
     if (dx && dy && !Passes_walls && IS_DOOR(ust->typ)
-        && (!doorless_door(ux, uy) || block_entry(x, y))) {
-        /* Can't move at a diagonal out of a doorway with door. */
+        && (!doorless_door(ux, uy) || block_entry(x, y))
+        && !(IS_DOOR(levl[ux][y].typ) && !closed_door(ux, y))
+        && !(IS_DOOR(levl[x][uy].typ) && !closed_door(x, uy))) {
+        /* Can't move at a diagonal out of a doorway with door, unless another
+         * open door is adjacent. */
         if (mode == DO_MOVE && flags.mention_walls)
             You_cant("move diagonally out of an intact doorway.");
         return FALSE;

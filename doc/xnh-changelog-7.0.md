@@ -126,6 +126,9 @@ changes:
 - Stunned monsters move and hit things randomly, identically to how confused
   monsters do.
 - Archeologists can safely enchant fedoras when they are +4 or +5.
+- Open doors can be moved into diagonally if there is another non-closed door on
+  one of the two mutually adjacent spaces. (Basically, you can walk diagonally
+  through open double doors.)
 
 ### Interface changes
 
