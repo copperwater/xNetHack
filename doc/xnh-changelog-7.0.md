@@ -129,6 +129,8 @@ changes:
 - Open doors can be moved into diagonally if there is another non-closed door on
   one of the two mutually adjacent spaces. (Basically, you can walk diagonally
   through open double doors.)
+- When you die, intelligent adjacent monsters may automatically take some of
+  your possessions.
 
 ### Interface changes
 
