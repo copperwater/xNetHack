@@ -699,6 +699,8 @@ montraits(struct obj *obj, coord *cc,
         mtmp2->mblinded = 0;
         mtmp2->mstun = 0;
         mtmp2->mconf = 0;
+        mtmp2->mwither = 0;
+        mtmp2->mwither_from_u = 0;
         /* when traits are for a shopeekper, dummy monster 'mtmp' won't
            have necessary eshk data for replmon() -> replshk() */
         if (mtmp2->isshk) {
