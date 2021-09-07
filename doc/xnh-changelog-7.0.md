@@ -131,6 +131,8 @@ changes:
   through open double doors.)
 - When you die, intelligent adjacent monsters may automatically take some of
   your possessions.
+- Izchak's store stocks wands, scrolls, and spellbooks of light with low
+  probability.
 
 ### Interface changes
 
