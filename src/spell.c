@@ -1826,6 +1826,7 @@ percent_success(int spell)
     if (gear_bonus) {
         armor_penalty = (armor_penalty + 1) / 2;
     }
+    chance -= armor_penalty;
 
     /* The less skilled you are, the worse the cap on your spellcasting ability. */
     cap = 30; /* restricted */
