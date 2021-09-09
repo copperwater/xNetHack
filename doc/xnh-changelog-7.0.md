@@ -133,6 +133,15 @@ changes:
   your possessions.
 - Izchak's store stocks wands, scrolls, and spellbooks of light with low
   probability.
+- Port L's Bullwhip Patch with some modifications.
+  - Whip skill now counts towards applying a whip with proficiency, and
+    dexterity counts less.
+  - Applying a whip against solid terrain is now ineffective.
+  - Snapping a whip in open air (including if you fail to hit a monster with it)
+    may crack it, with a "CRACK!" message. This causes animals within 2 squares
+    of you to flee if they fail a resistance check.
+  - The chance of cracking a whip varies based on proficiency, from 100% as an
+    expert Dex>13 Archeologist to 25% as a completely non-proficient character.
 
 ### Interface changes
 
