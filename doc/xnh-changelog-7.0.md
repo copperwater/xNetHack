@@ -142,6 +142,13 @@ changes:
     of you to flee if they fail a resistance check.
   - The chance of cracking a whip varies based on proficiency, from 100% as an
     expert Dex>13 Archeologist to 25% as a completely non-proficient character.
+- Scrolls, spellbooks, potions, rings, and wands can be made indestructible by
+  erodeproofing them via confused enchant weapon.
+  - The wish parser recognizes "indestructible" as an alias for "erodeproof".
+  - Indestructible items are immune to item destruction by fire, cold, or shock.
+  - Additionally, indestructible scrolls and spellbooks are immune to blanking.
+  - Cursed confused enchant weapon can strip the indestructibility.
+  - Indestructible wands cannot be snapped.
 
 ### Interface changes
 

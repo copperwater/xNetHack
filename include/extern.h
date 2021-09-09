@@ -3317,6 +3317,7 @@ extern void start_melt_ice_timeout(xchar, xchar, long);
 extern void melt_ice_away(union any *, long);
 extern int zap_over_floor(xchar, xchar, int, boolean *, short);
 extern void fracture_rock(struct obj *);
+extern boolean destroyable_oclass(char);
 extern boolean break_statue(struct obj *);
 extern int destroy_items(struct monst *, int, int);
 extern int resist(struct monst *, char, int, int);

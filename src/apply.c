@@ -3764,6 +3764,12 @@ do_break_wand(struct obj *obj)
                                   "Are you really sure you want to break ",
                                   "?", obj, yname, ysimple_name, "the wand")))
         return 0;
+
+    if (obj->oerodeproof) {
+        pline("No matter how hard you try, you can't seem to break the wand!");
+        obj->rknown = 1;
+        return 1; /* took some time trying to break the wand */
+    }
     pline("Raising %s high above your %s, you %s it in two!", yname(obj),
           body_part(HEAD), is_fragile ? "snap" : "break");
 

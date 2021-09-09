@@ -944,7 +944,9 @@ add_erosion_words(struct obj* obj, char* prefix)
         Strcat(prefix, is_corrodeable(obj) ? "corroded " : "rotted ");
     }
     if (rknown && obj->oerodeproof) {
-        if (iscrys)
+        if (destroyable_oclass(obj->oclass))
+            Strcat(prefix, "indestructible ");
+        else if (iscrys)
             Strcat(prefix, "fixed ");
         else if (obj->material == GLASS)
             Strcat(prefix, "shatterproof ");
@@ -1180,17 +1182,20 @@ doname_base(struct obj* obj, unsigned int doname_flags)
             goto charges;
         break;
     case WAND_CLASS:
+        add_erosion_words(obj, prefix);
  charges:
         if (known)
             Sprintf(eos(bp), " (%d:%d)", (int) obj->recharged, obj->spe);
         break;
     case POTION_CLASS:
+        add_erosion_words(obj, prefix);
         if (obj->otyp == POT_OIL && obj->lamplit)
             Strcat(bp, " (lit)");
         if (obj->otyp == POT_FRUIT_JUICE && obj->corpsenm)
             Strcat(bp, " (fermenting)");
         break;
     case RING_CLASS:
+        add_erosion_words(obj, prefix);
  ring:
         if (obj->owornmask & W_RINGR)
             Strcat(bp, " (on right ");
@@ -1259,6 +1264,9 @@ doname_base(struct obj* obj, unsigned int doname_flags)
         if (obj->owornmask & W_BALL)
             Strcat(bp, " (chained to you)");
         break;
+    case SCROLL_CLASS:
+    case SPBOOK_CLASS:
+        add_erosion_words(obj, prefix);
     }
 
     if ((obj->owornmask & W_WEP) && !g.mrg_to_wielded) {
@@ -3584,7 +3592,8 @@ readobjnam_preparse(struct _readobjnam_data* d)
                    || !strncmpi(d->bp, "fixed ", l = 6)
                    || !strncmpi(d->bp, "fireproof ", l = 10)
                    || !strncmpi(d->bp, "rotproof ", l = 9)
-                   || !strncmpi(d->bp, "shatterproof ", l = 13)) {
+                   || !strncmpi(d->bp, "shatterproof ", l = 13)
+                   || !strncmpi(d->bp, "indestructible ", l = 15)) {
             d->erodeproof = 1;
         } else if (!strncmpi(d->bp, "lit ", l = 4)
                    || !strncmpi(d->bp, "burning ", l = 8)) {
@@ -4710,7 +4719,7 @@ readobjnam(char* bp, struct obj* no_wish)
     set_material(d.otmp, objects[d.otmp->otyp].oc_material);
 
     /* set eroded and erodeproof */
-    if (erosion_matters(d.otmp)) {
+    if (erosion_matters(d.otmp) || destroyable_oclass(d.otmp->oclass)) {
         /* no wished-for item should be eroded if the wisher didn't specify it
          * to be */
         d.otmp->oeroded = d.otmp->oeroded2 = 0;

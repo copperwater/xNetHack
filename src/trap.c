@@ -4145,6 +4145,8 @@ water_damage(
         if (carried(obj))
             update_inventory();
         return ER_GREASED;
+    } else if (obj->oerodeproof) {
+        return ER_NOTHING;
     } else if (Is_container(obj)
                && (!Waterproof_container(obj) || (obj->cursed && !rn2(3)))) {
         if (carried(obj))

@@ -1592,7 +1592,8 @@ seffects(struct obj *sobj) /* sobj - scroll or fake spellbook for spell */
            would be too powerful, but shouldn't we choose randomly between
            primary and secondary instead of always acting on primary?] */
         if (confused && uwep
-            && erosion_matters(uwep) && uwep->oclass != ARMOR_CLASS) {
+            && (erosion_matters(uwep) || destroyable_oclass(uwep->oclass))
+            && uwep->oclass != ARMOR_CLASS) {
             old_erodeproof = (uwep->oerodeproof != 0);
             new_erodeproof = !scursed;
             uwep->oerodeproof = 0; /* for messages */

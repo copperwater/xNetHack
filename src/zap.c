@@ -1646,7 +1646,7 @@ poly_obj(struct obj *obj, int id)
     otmp->cursed = obj->cursed;
     otmp->blessed = obj->blessed;
 
-    if (erosion_matters(otmp)) {
+    if (erosion_matters(otmp) || destroyable_oclass(otmp->oclass)) {
         if (is_flammable(otmp) || is_rustprone(otmp))
             otmp->oeroded = obj->oeroded;
         if (is_corrodeable(otmp) || is_rottable(otmp))
@@ -5004,6 +5004,25 @@ break_statue(struct obj *obj)
     return TRUE;
 }
 
+/* Return true if this object class can be damaged or destroyed by an external
+ * effect that doesn't have to do with erosion.
+ * Generally these items would not be expected to have erosion_matters() return
+ * true for them. */
+boolean
+destroyable_oclass(char oclass)
+{
+    /* can be blanked by water and also burnt up by fire effects */
+    if (oclass == SCROLL_CLASS || oclass == SPBOOK_CLASS)
+        return TRUE;
+    /* can be frozen by ice effects */
+    if (oclass == POTION_CLASS)
+        return TRUE;
+    /* can be blown up by shock effects */
+    if (oclass == RING_CLASS || oclass == WAND_CLASS)
+        return TRUE;
+    return FALSE;
+}
+
 /* Return TRUE if obj is eligible to pass to maybe_destroy_item given the type of
  * elemental damage it's being subjected to.
  * Note that things like the Book of the Dead are eligible even though they
@@ -5014,6 +5033,10 @@ destroyable(struct obj *obj, int adtyp)
 {
     if (obj->oartifact) {
         /* don't destroy artifacts */
+        return FALSE;
+    }
+    if (obj->oerodeproof) {
+        /* has been protected against destruction */
         return FALSE;
     }
     if (obj->in_use && obj->quan == 1L) {
