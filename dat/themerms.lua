@@ -35,6 +35,9 @@ themerooms = {
                                   des.feature("fountain", 1, 1);
                                end
                     });
+                    for i = 1, d(2) do
+                       des.object({ id = "statue", montype = "C" })
+                    end
                  end
       });
    end,
@@ -148,6 +151,10 @@ themerooms = {
                                        des.object();
                                     end
                     end });
+                    -- not necessarily on top of the chest
+                    if percent(50) then
+                       des.engraving({ type="engrave", text="X" })
+                    end
                  end
       });
    end,
@@ -639,8 +646,8 @@ x|.|x
                        end
                     end
                     if grove then
-                        -- TODO: When object materials are added to the parser,
-                        -- these objects should be made of wood.
+                       des.replace_terrain({ selection = selection.area(0,0,rm.width-1,rm.height-1),
+                                             fromterrain = '.', toterrain='g' })
                        if percent(50) then
                           des.object({ id = "statue", montype = "wood nymph" })
                        end
@@ -648,7 +655,7 @@ x|.|x
                           if percent(50) then
                              des.object({ id = "statue", montype = "wood nymph" })
                           else
-                             des.object({ id = "figurine", montype = "wood nymph" })
+                             des.object({ id = "figurine", montype = "wood nymph", material = "wooden" })
                           end
                        end
                        local nnymphs = math.floor(d(nh.level_difficulty()) / 4)
@@ -746,26 +753,36 @@ xxxxx-----]], contents = function(rm)
       des.room({ type = "ordinary", filled = 1, w = 3 + nh.rn2(10), h = 3 + nh.rn2(4),
                  contents = function(rm)
                     local doorstates = { "open", "closed", "locked" }
-                    if nh.level_difficulty() >= 5 then
+                    local doiron = nh.level_difficulty() > 10 and percent(30)
+                    if nh.level_difficulty() >= 5 and not doiron then
+                       -- a secret door in a wall of iron bars doesn't make
+                       -- sense...
                        table.insert(doorstates, "secret")
                     end
                     shuffle(doorstates)
 
                     local rndx = nh.rn2(rm.width - 2) + 1
                     local rndy = nh.rn2(rm.height - 2) + 1
+                    local repltyp -- TODO: this is dumb, replace_terrain with fromterrain='w' doesn't work
 
                     if percent(50) then
                        des.room({ type = "ordinary", x = 0, y = 0, w = rndx, h = rm.height, filled = 1,
                                   contents = function()
-                                     des.door({ state = doorstates[1], wall = "east" })
+                                     des.door({ state = doorstates[1], wall = "east", iron = bool2int(doiron) })
                                   end
                        });
+                       repltyp = '|'
                     else
                        des.room({ type = "ordinary", x = 0, y = 0, w = rm.width, h = rndy, filled = 1,
                                   contents = function()
-                                     des.door({ state = doorstates[1], wall = "south" })
+                                     des.door({ state = doorstates[1], wall = "south", iron = bool2int(doiron) })
                                   end
                        });
+                       repltyp = '-'
+                    end
+                    if doiron then
+                       des.replace_terrain({ selection=selection.area(0,0,rm.width-1,rm.height-1),
+                                             fromterrain=repltyp, toterrain='F' })
                     end
                  end
       });
@@ -823,12 +840,14 @@ xxxxx-----]], contents = function(rm)
                     des.terrain(selection.line(0, rm.height - 1, rm.width - 1, 0), "}");
                  end
       });
-
    end,
 
    -- Mini maze
    -- Warning: x and y must be odd for mazewalk not to break out of the walls.
    -- The formulas for obtaining them assume ROWNO=21 and COLNO=80.
+   -- Unfortunately, this does not work with a des.room() of varying size
+   -- because the room borders are the outer wall and it tries to connect doors
+   -- to that and fails, and there's no way to get it to unmake the room.
    {
       mindiff = 6,
       contents = function()
@@ -1032,6 +1051,20 @@ xxxx----xx----xxxx]], contents=function(m)
                end
             end
          });
+      end
+   },
+
+   -- Anti swimming pool
+   {
+      mindiff = 14,
+      contents = function()
+         des.room({ type="themed", filled=0, contents = function(rm)
+            local water = selection.rect(0, 0, rm.width-1, rm.height-1)
+            des.terrain(water, '}')
+            for i = 1, d(3) do
+               des.monster(';')
+            end
+         end })
       end
    },
 
@@ -1279,6 +1312,212 @@ xxxx---xxxx]], contents = function(m)
       end
    },
 
+   -- Dragon hall
+   {
+      mindiff = nh.mon_difficulty('black dragon') + 3,
+      contents = function()
+         des.map({ map = [[
+xxxxxx----xx----xxx
+xxxx---..----..--xx
+xxx--...........--x
+x---.............--
+--................|
+|................--
+|...............--x
+----..........---xx
+xxx--........--xxxx
+xxxx----....--xxxxx
+xxxxxxx------xxxxxx]], contents = function()
+            des.region({ region = {04,04,04,04}, irregular = true, filled = 0, type = "themed", joined = true })
+            local floor = selection.floodfill(04, 04)
+            local hoardx, hoardy = floor:rndcoord()
+
+            function loot(x, y)
+               local choice = d(25)
+               if choice == 1 then
+                  des.object('(', x, y)
+               elseif choice == 2 then
+                  des.object({ class=')', x=x, y=y, spe=2+nh.rn2(3) })
+               elseif choice == 3 then
+                  des.object({ class='[', x=x, y=y, spe=2+nh.rn2(3) })
+               elseif choice == 4 then
+                  des.object('chest', x, y)
+               elseif choice >= 5 and choice <= 7 then
+                  des.object('=', x, y)
+               elseif choice == 8 then
+                  des.object(percent(50) and '?' or '+', x, y)
+               else
+                  des.object('*', x, y)
+               end
+               -- recursive 10% chance for more loot
+               if percent(10) then
+                  loot(x, y)
+               end
+            end
+            local goldpile = selection.circle(hoardx, hoardy, 5, 1)
+            goldpile:filter_mapchar('.'):iterate(function(x,y)
+               local dist2 = (x-hoardx) * (x-hoardx) + (y-hoardy) * (y-hoardy)
+               if (dist2 >= 20 and percent(20)) -- radius 4-5
+                  or (dist2 >= 12 and dist2 < 20 and percent(50)) -- radius 3-4
+                  or dist2 < 12 then -- radius 0-3
+                  des.object({ id = 'gold piece', x = x, y = y, quantity = 200 - dist2*5 + d(50) })
+               end
+               -- given circle radius of 5, practical max for dist2 is 29 
+               if percent(40 - (dist2 * 2)) then
+                  loot(x, y)
+               end
+               -- dragon eggs
+               if dist2 < 3 and percent(80) then
+                  des.object({ id = 'egg', x = x, y = y, montype = 'D' })
+               end
+            end)
+
+            -- put some pits and traps down
+            local nonpile = (floor ~ goldpile) & floor
+            for i = 1, 2+d(2) do
+               des.trap({ type="pit", coord={nonpile:rndcoord()} })
+               des.trap({ coord = {nonpile:rndcoord()} })
+            end
+
+            -- no way to specifically force a baby or adult dragon
+            -- so we have to do it manually
+            colors = { 'gray', 'silver', 'red', 'white', 'orange', 'black',
+                       'blue', 'green', 'yellow' }
+            for i = 1, 3+d(3) do
+               des.monster({ id='baby '..colors[d(#colors)]..' dragon',
+                             coord={goldpile:rndcoord()}, waiting=1 })
+            end
+            for i = 1, 5 + d(5) do
+               -- would be neat if the adult dragons here could be buffed
+               des.monster({ id=colors[d(#colors)]..' dragon',
+                             coord={goldpile:rndcoord()}, waiting=1 })
+            end
+            -- TODO: problem with this room is that the dragons start picking
+            -- up the hoard. Something needs to tell their AI that it's a
+            -- dragon hoard and shouldn't be picked up.
+         end })
+      end
+   },
+
+   -- Water temple (not a real temple)
+   {
+      mindiff = nh.mon_difficulty('water nymph') + 1,
+      contents = function()
+         des.room({ type = 'themed', contents = function(rm)
+            local totsiz = rm.width * rm.height
+            for i = 1, math.min(d(6)+6, math.floor(totsiz / 4)) do
+               des.feature({ type='pool' })
+            end
+            for i = 1, math.min(d(3), math.floor(totsiz / 4)) do
+               des.feature({ type='fountain' })
+            end
+            if percent(30) then
+               des.feature({ type='sink' })
+            end
+            for i = 1, math.min(d(4)+1, math.floor(totsiz / 4)) do
+               des.monster('water nymph')
+            end
+         end })
+      end
+   },
+
+   -- Meadow
+   function() 
+      des.room({ type='themed', contents = function(rm)
+         des.terrain(selection.floodfill(0, 0), 'g')
+         if rm.width > 2 and rm.height > 2 then
+            local interior = selection.area(1, 1, rm.width-2, rm.height-2)
+            for i = 1, d(4)-2 do
+               des.terrain({interior:rndcoord()}, 'T')
+            end
+         end
+      end })
+   end,
+
+   -- Garden (based on the garden rooms patch by Pasi Kallinen)
+   {
+      mindiff = 10,
+      contents = function()
+         des.room({ type='themed', contents = function(rm)
+            local totsiz = rm.width * rm.height
+            local nnymphs = math.min(d(5) + 2, totsiz / 2)
+            local nfeatures = math.min(d(3) + 2, totsiz / 2)
+            des.terrain(selection.floodfill(0, 0), 'g')
+            for i = 1, nfeatures do
+               -- The only thing missing from the original patch here is a
+               -- nexttodoor() check, because themed rooms generate before rooms
+               -- are connected but special rooms get filled after joining.
+               -- This means a tree could theoretically block a door.
+               des.feature({ type = percent(66) and 'tree' or 'fountain' })
+            end
+            for i = 1, nnymphs do
+               des.monster('n')
+            end
+         end })
+      end
+   },
+
+   -- Triple rhombus
+   function()
+      des.map({ map = [[
+xxxxxxx---xxxxxxx
+xxxxxx--.--xxxxxx
+xxxxx--...--xxxxx
+xxxxx|.....|xxxxx
+xxxxx|.....|xxxxx
+xxxxx--...--xxxxx
+xxxxxx--.--xxxxxx
+xxx-----.-----xxx
+xx--....|....--xx
+x--.....|.....--x
+--.....---.....--
+|.....--x--.....|
+-------xxx-------]], contents = function()
+         des.region({ region = {08,02,08,02}, type = 'ordinary', irregular = true })
+      end })
+   end,
+
+   -- Spiral
+   function()
+      des.map({ map = [[
+x-----------xxx
+--.........----
+|..-------....|
+|.--.....----.|
+|.|..---....|.|
+|.|.--.----.|.|
+|.|.|...+.|.|.|
+|.|.--.--.|.|.|
+|.|..---..|.|.|
+|.--.....--.|.|
+|..-------..|--
+--.........--xx
+x------------xx]], contents = function()
+         des.region({ region = {02,01,02,01}, type = 'themed', irregular = true, filled = 1 })
+         des.region({ region = {06,06,06,06}, type = 'themed', irregular = true,
+                      joined = false, contents = function()
+            local choice = d(5)
+            if choice == 1 then
+               des.feature({ type='tree', x=01, y=01 })
+            elseif choice == 2 then
+               des.feature({ type='fountain', x=01, y=01 })
+            elseif choice == 3 then
+               if percent(50) then
+                  des.altar({ x=01, y=01 })
+               else
+                  des.feature({ type='throne', x=01, y=01 })
+               end
+            elseif choice == 4 then
+               for i=1,3 do
+                  des.object()
+               end
+            end -- choice 5 = nothing
+            des.monster()
+         end })
+         des.door("random", 08, 06)
+      end })
+   end,
+
 };
 
 function is_eligible(room)
@@ -1316,6 +1555,9 @@ function themerooms_generate()
          end
       end
    end
+
+   pick = percent(50) and #themerooms or 1
+   -- pick = percent(50) and 45 or 1
 
    local t = type(themerooms[pick]);
    if (t == "table") then
