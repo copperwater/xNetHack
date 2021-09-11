@@ -149,6 +149,37 @@ changes:
   - Additionally, indestructible scrolls and spellbooks are immune to blanking.
   - Cursed confused enchant weapon can strip the indestructibility.
   - Indestructible wands cannot be snapped.
+- 11 new themed rooms:
+  - "Storeroom Vault v2", which contains an unreachable area with a couple
+    chests and rats embedded in a room which is connected to the rest of the
+    level.
+  - "Anti Swimming Pool" with a 1-wide ring of water and sea monsters around the
+    edge of the room, with a dry rectangle in the middle.
+  - "Dragon Hall", with a giant pile of gold, gems, and other loot along with
+    dragon eggs, baby dragons, and adult dragons of every color atop the pile.
+  - "Water Temple" with pools, fountains, maybe a sink, and water nymphs. (No
+    altar, it's not a real temple.)
+  - "Meadow" containing grass and a couple trees.
+  - "Garden" containing grass, trees, fountains, and nymphs.
+  - "Triple rhombus", an ordinary but odd-shaped room.
+  - "Spiral", a spiral-shaped room with a random feature or item in the center.
+  - "Kitchen", a long narrow room containing sinks, ice boxes, cookware and a
+    bunch of cooking ingredients.
+  - "Abandoned Shop", a deserted shop with more mimics than actual items.
+  - "Irregular Anthole", an anthole procedurally generated so as to be
+    organic-looking.
+- Updates to existing themed rooms:
+  - "Fake Delphi" now contains d2 centaur statues in the outer room.
+  - "Buried Treasure" now has a 50% chance of a carved engraving reading "X",
+    which is not necessarily on top of the treasure.
+  - "Small Pillars", when it generates as a grove of trees, has a grass floor,
+    and the wood nymph figurine if present will be made of wood.
+  - "Split room" may use iron bars to divide the two subrooms instead of walls.
+    If iron bars are used, the door between the rooms will be iron.
+  - "Storeroom Vault" and "Water-surrounded Vault" now contain either a
+    teleportation trap, hole, or some escape item to provide a way out for
+    anyone who teleports in without a way out.
+
 
 ### Interface changes
 
