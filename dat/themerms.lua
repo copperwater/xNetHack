@@ -829,6 +829,38 @@ xxxxx-----]], contents = function(rm)
       end
    },
 
+   -- Storeroom vault v2
+   function()
+      -- TODO: the nut of figuring out how to have a room that is only joinable
+      -- at certain points/sides still hasn't been cracked. Thus the part of
+      -- this room that wraps up and to the left. In the initial proposal, this
+      -- was supposed to be a room connected only on one side, with the
+      -- storeroom component in the dead end.
+      des.map({ map=[[
+--------
+|......|
+|-----.|
+|..|...|
+|..|...|
+--------]], contents = function()
+         des.region({ region = {01,01,01,01}, type = 'themed', filled = 0, irregular = 1 })
+         des.region({ region = {01,03,02,04}, type = 'themed', filled = 0, joined = false,
+                      contents = function()
+            for i = 1, d(2) do
+               local boxtype = percent(4) and 'ice box' or percent(50) and 'chest' or 'large box'
+               des.object(boxtype)
+            end
+            for i = 1, d(4) do
+               des.monster('r')
+            end
+            if percent(60) then
+               des.door({ wall="east", state = percent(50) and 'secret' or 'closed',
+                          locked = 1, iron = 1 })
+            end
+         end })
+      end })
+   end,
+
    -- Crossed X of water
    -- FIXME: This breaks the rule that the space in front of a door should
    -- always be free of traps or dangerous terrain, but we can't address that
@@ -1460,20 +1492,20 @@ xxxxxxx------xxxxxx]], contents = function()
    -- Triple rhombus
    function()
       des.map({ map = [[
-xxxxxxx---xxxxxxx
-xxxxxx--.--xxxxxx
-xxxxx--...--xxxxx
-xxxxx|.....|xxxxx
-xxxxx|.....|xxxxx
-xxxxx--...--xxxxx
-xxxxxx--.--xxxxxx
-xxx-----.-----xxx
-xx--....|....--xx
-x--.....|.....--x
---.....---.....--
+-------xxx-------
 |.....--x--.....|
--------xxx-------]], contents = function()
-         des.region({ region = {08,02,08,02}, type = 'ordinary', irregular = true })
+--.....---.....--
+x--.....|.....--x
+xx--....|....--xx
+xxx-----.-----xxx
+xxxxxx--.--xxxxxx
+xxxxx--...--xxxxx
+xxxxx|.....|xxxxx
+xxxxx|.....|xxxxx
+xxxxx--...--xxxxx
+xxxxxx--.--xxxxxx
+xxxxxxx---xxxxxxx]], contents = function()
+         des.region({ region = {01,01,01,01}, type = 'ordinary', irregular = true })
       end })
    end,
 
@@ -1569,6 +1601,61 @@ x------------xx]], contents = function()
       end })
    end,
 
+   -- Abandoned shop
+   {
+      mindiff = 16,
+      contents = function()
+         des.room({ type = "shop", filled = 0, contents = function(rm)
+            local size = rm.width * rm.height
+            for i = 1, math.floor(size / 5) + d(3) do
+               des.monster('m')
+               if percent(35) then
+                  des.object()
+               end
+            end
+         end })
+      end
+   },
+
+   -- Irregular anthole
+   {
+      mindiff = nh.mon_difficulty('soldier ant') + 4,
+      contents = function()
+         des.map({ map = [[
+...............
+...............
+...............
+...............
+...............
+...............
+...............]], contents = function()
+            local room = selection.area(00, 00, 14, 06)
+            local origroom = room:clone()
+            local center = selection.ellipse(07, 03, 7, 3, 1);
+            room = room ~ center -- outermost edge
+            des.replace_terrain({ selection=room, fromterrain='.', toterrain=' ', chance=80 })
+            room = center
+            center = selection.ellipse(07, 03, 5, 2, 1);
+            room = room ~ center -- a bit further in...
+            des.replace_terrain({ selection=room, fromterrain='.', toterrain=' ', chance=60 })
+            room = center
+            center = selection.ellipse(07, 03, 3, 1, 1);
+            room = room ~ center -- even further in...
+            des.replace_terrain({ selection=room, fromterrain='.', toterrain=' ', chance=40 })
+            des.replace_terrain({ selection=center, fromterrain='.', toterrain=' ', chance=20 })
+            des.terrain(07, 03, '.')
+            -- now clear out any orphaned disconnected spaces not accessible
+            -- from the center
+            local orphans = origroom:filter_mapchar('.') ~ selection.floodfill(07, 03, 1)
+            des.terrain(orphans, ' ')
+            -- finally, mark it up as an anthole
+            des.region({ region={07,03,07,03}, type = "anthole", filled = 1, joined = 1,
+                         irregular = true })
+            des.wallify()
+         end })
+      end
+   },
+
 };
 
 function is_eligible(room)
@@ -1608,7 +1695,7 @@ function themerooms_generate()
    end
 
    pick = percent(50) and #themerooms or 1
-   -- pick = percent(50) and 45 or 1
+   -- pick = percent(50) and 48 or 1
 
    local t = type(themerooms[pick]);
    if (t == "table") then
