@@ -119,8 +119,6 @@ finddpos(coord *cc, xchar xl, xchar yl, xchar xh, xchar yh)
                xl, yl, xh, yh);
     x = xl;
     y = yh;
-    impossible("finddpos: couldn't find door pos within (%d,%d,%d,%d)",
-               xl, yl, xh, yh);
  gotit:
     cc->x = x;
     cc->y = y;
