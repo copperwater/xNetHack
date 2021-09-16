@@ -3,7 +3,7 @@
 This is a major version of xNetHack. It is based directly on xNetHack 6.0, and
 is a fork off the vanilla NetHack 3.7.0 development version release.
 
-The most recent vanilla commit incorporated into xNetHack is dd6ed502. Note that
+The most recent vanilla commit incorporated into xNetHack is 583fb60. Note that
 because 3.7.0 is still in development status, xNetHack may contain major changes
 including new monsters, new objects, themed rooms, and other things *not*
 documented in this file or other xNetHack changelogs. See doc/fixes37.0 for the
@@ -214,6 +214,8 @@ changes:
   - If there are peaceful targets in the arc and you did not press F before
     attacking, it attacks only the main target.
   - If there are peacefuls in the arc and you did press F, it attacks in an arc.
+- Cursed scrolls of remove curse once again say "You feel like someone is
+  helping you."
 
 ### Architectural changes
 

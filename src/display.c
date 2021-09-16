@@ -534,6 +534,20 @@ warning_of(struct monst *mon)
     return wl;
 }
 
+/* map or status window might not be ready for output during level creation
+   or game restoration (something like u.usteed which affects display of
+   the hero and also a status condition might not be set up yet) */
+boolean
+suppress_map_output(void)
+{
+    if (g.in_mklev || g.program_state.restoring)
+        return TRUE;
+#ifdef HANGUPHANDLING
+    if (g.program_state.done_hup)
+        return TRUE;
+#endif
+    return FALSE;
+}
 
 /*
  * feel_newsym()
@@ -566,6 +580,10 @@ feel_location(xchar x, xchar y)
     struct rm *lev;
     struct obj *boulder;
     register struct monst *mon;
+
+    /* replicate safeguards used by newsym(); might not be required here */
+    if (suppress_map_output())
+        return;
 
     if (!isok(x, y))
         return;
@@ -724,12 +742,9 @@ newsym(register int x, register int y)
     boolean worm_tail;
     register struct rm *lev = &(levl[x][y]);
 
-    if (g.in_mklev)
+    /* don't try to produce map output when level is in a state of flux */
+    if (suppress_map_output())
         return;
-#ifdef HANGUPHANDLING
-    if (g.program_state.done_hup)
-        return;
-#endif
 
     /* only permit updating the hero when swallowed */
     if (u.uswallow) {
@@ -1810,6 +1825,7 @@ back_to_defsym(xchar x, xchar y, boolean show_engravings)
 {
     int idx;
     struct rm *ptr = &(levl[x][y]);
+    struct stairway *sway;
 
     /* aos: most types of terrain shouldn't have engravings override their
      * usual symbol. Only boring ones should do that. */
@@ -1871,10 +1887,18 @@ back_to_defsym(xchar x, xchar y, boolean show_engravings)
         idx = S_pool;
         break;
     case STAIRS:
-        idx = (ptr->ladder & LA_DOWN) ? S_dnstair : S_upstair;
+        sway = stairway_at(x, y);
+        if (known_branch_stairs(sway))
+            idx = (ptr->ladder & LA_DOWN) ? S_brdnstair : S_brupstair;
+        else
+            idx = (ptr->ladder & LA_DOWN) ? S_dnstair : S_upstair;
         break;
     case LADDER:
-        idx = (ptr->ladder & LA_DOWN) ? S_dnladder : S_upladder;
+        sway = stairway_at(x, y);
+        if (known_branch_stairs(sway))
+            idx = (ptr->ladder & LA_DOWN) ? S_brdnladder : S_brupladder;
+        else
+            idx = (ptr->ladder & LA_DOWN) ? S_dnladder : S_upladder;
         break;
     case FOUNTAIN:
         idx = S_fountain;
@@ -2204,7 +2228,7 @@ map_glyphinfo(xchar x, xchar y, int glyph,
         special |= MG_STATUE;
         if (is_objpile(x,y))
             special |= MG_OBJPILE;
-        if (obj && (obj->spe & STATUE_FEMALE))
+        if (obj && (obj->spe & CORPSTAT_GENDER) == CORPSTAT_FEMALE)
             special |= MG_FEMALE;
     } else if ((offset = (glyph - GLYPH_WARNING_OFF)) >= 0) { /* warn flash */
         idx = offset + SYM_OFF_W;

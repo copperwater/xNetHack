@@ -570,7 +570,7 @@ l_selection_match(lua_State *L)
 
 
 /* local s = selection.floodfill(x,y); */
-/* local s = selection.floodfill(x,y,diagonals); */
+/* local s = selection.floodfill(x,y, diagonals); */
 static int
 l_selection_flood(lua_State *L)
 {
@@ -582,9 +582,8 @@ l_selection_flood(lua_State *L)
     if (argc == 2 || argc == 3) {
         x = (xchar) luaL_checkinteger(L, 1);
         y = (xchar) luaL_checkinteger(L, 2);
-        if (argc == 3) {
-            diagonals = (boolean) luaL_checkinteger(L, 3); /* TODO: boolean*/
-        }
+        if (argc == 3)
+            diagonals = lua_toboolean(L, 3);
         lua_pop(L, argc);
         (void) l_selection_new(L);
         sel = l_selection_check(L, 1);

@@ -1,4 +1,4 @@
-/* NetHack 3.7	uhitm.c	$NHDT-Date: 1617035737 2021/03/29 16:35:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.300 $ */
+/* NetHack 3.7	uhitm.c	$NHDT-Date: 1625838649 2021/07/09 13:50:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.312 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -215,17 +215,22 @@ attack_checks(struct monst *mtmp,
             seemimic(mtmp);
             return attack_check_conducts(wep);
         }
-        if (!((Blind ? Blind_telepat : Unblind_telepat) || Detect_monsters)) {
+        if (!tp_sensemon(mtmp) && !Detect_monsters) {
+            struct obj *obj;
+            char lmonbuf[BUFSZ];
+            boolean notseen;
 
-            if (!Blind && Hallucination) {
-                pline("A wild %s appeared!", l_monnam(mtmp));
-                return TRUE;
-            }
-            else if (Blind || (is_pool(mtmp->mx, mtmp->my) && !Underwater)) {
+            Strcpy(lmonbuf, l_monnam(mtmp));
+            /* might be unseen if invisible and hero can't see invisible */
+            notseen = !strcmp(lmonbuf, "it"); /* note: not strcmpi() */
+            if (!Blind && Hallucination)
+                pline("A wild %s %s!",
+                      notseen ? "creature" : (const char *) lmonbuf,
+                      notseen ? "is present" : "appears");
+            else if (Blind || (is_pool(mtmp->mx, mtmp->my) && !Underwater))
                 pline("Wait!  There's a hidden monster there!");
-            }
             else if (concealed_spot(mtmp->mx, mtmp->my)) {
-                struct obj *obj = g.level.objects[mtmp->mx][mtmp->my];
+                obj = g.level.objects[mtmp->mx][mtmp->my];
                 pline("Wait!  There's %s hiding under %s%s!", an(l_monnam(mtmp)),
                       obj ? "" : "the ",
                       obj ? doname(obj) : explain_terrain(mtmp->mx, mtmp->my));
@@ -659,15 +664,13 @@ hitum_cleave(struct monst *target, /* non-Null; forcefight at nothing doesn't
        with a backswing--that doesn't impact actual play, just spoils the
        simulation attempt a bit */
     static boolean clockwise = FALSE;
-    unsigned i;
+    int i;
     coord save_bhitpos;
     int count, umort, x = u.ux, y = u.uy;
 
     /* find the direction toward primary target */
-    for (i = 0; i < 8; ++i)
-        if (xdir[i] == u.dx && ydir[i] == u.dy)
-            break;
-    if (i == 8) {
+    i = xytod(u.dx, u.dy);
+    if (i == DIR_ERR) {
         impossible("hitum_cleave: unknown target direction [%d,%d,%d]?",
                    u.dx, u.dy, u.dz);
         return TRUE; /* target hasn't been killed */
@@ -675,7 +678,7 @@ hitum_cleave(struct monst *target, /* non-Null; forcefight at nothing doesn't
     /* adjust direction by two so that loop's increment (for clockwise)
        or decrement (for counter-clockwise) will point at the spot next
        to primary target */
-    i = (i + (clockwise ? 6 : 2)) % 8;
+    i = clockwise ? DIR_LEFT2(i) : DIR_RIGHT2(i);
     umort = u.umortality; /* used to detect life-saving */
     save_bhitpos = g.bhitpos;
 
@@ -692,7 +695,7 @@ hitum_cleave(struct monst *target, /* non-Null; forcefight at nothing doesn't
         int tx, ty, tmp, dieroll, mhit, attknum, armorpenalty;
 
         /* ++i, wrap 8 to i=0 /or/ --i, wrap -1 to i=7 */
-        i = (i + (clockwise ? 1 : 7)) % 8;
+        i = clockwise ? DIR_RIGHT(i) : DIR_LEFT(i);
 
         tx = x + xdir[i], ty = y + ydir[i]; /* current target location */
         if (!isok(tx, ty))
@@ -4642,8 +4645,10 @@ gulpum(struct monst *mdef, struct attack *mattk)
         return MM_MISS;
 
     if (u.uhunger < 1500 && !u.uswallow) {
-        for (otmp = mdef->minvent; otmp; otmp = otmp->nobj)
-            (void) snuff_lit(otmp);
+        if (!flaming(g.youmonst.data)) {
+            for (otmp = mdef->minvent; otmp; otmp = otmp->nobj)
+                (void) snuff_lit(otmp);
+        }
 
         /* force vampire in bat, cloud, or wolf form to revert back to
            vampire form now instead of dealing with that when it dies */
@@ -4858,6 +4863,7 @@ hmonas(struct monst *mon)
     int i, tmp, armorpenalty, sum[NATTK], nsum = MM_MISS,
         dhit = 0, attknum = 0;
     int dieroll;
+    boolean monster_survived;
 
     g.skipdrin = FALSE; /* [see mattackm(mhitm.c)] */
 
@@ -4921,17 +4927,18 @@ hmonas(struct monst *mon)
             dieroll = rnd(20);
             dhit = (tmp > dieroll || u.uswallow);
             /* caller must set g.bhitpos */
-            if (!known_hitum(mon, weapon, &dhit, tmp,
-                             armorpenalty, mattk, dieroll)) {
+            monster_survived = known_hitum(mon, weapon, &dhit, tmp,
+                                           armorpenalty, mattk, dieroll);
+            /* originalweapon points to an equipment slot which might
+               now be empty if the weapon was destroyed during the hit;
+               passive(,weapon,...) won't call passive_obj() in that case */
+            weapon = *originalweapon; /* might receive passive erosion */
+            if (!monster_survived) {
                 /* enemy dead, before any special abilities used */
                 sum[i] = MM_DEF_DIED;
                 break;
             } else
                 sum[i] = dhit ? MM_HIT : MM_MISS;
-            /* originalweapon points to an equipment slot which might
-               now be empty if the weapon was destroyed during the hit;
-               passive(,weapon,...) won't call passive_obj() in that case */
-            weapon = *originalweapon; /* might receive passive erosion */
             /* might be a worm that gets cut in half; if so, early return */
             if (m_at(u.ux + u.dx, u.uy + u.dy) != mon) {
                 i = NATTK; /* skip additional attacks */
@@ -5353,6 +5360,15 @@ passive(struct monst *mon,
             } else if (aatyp == AT_BITE || aatyp == AT_BUTT
                        || (aatyp >= AT_STNG && aatyp < AT_WEAP)) {
                 break; /* no object involved */
+            } else {
+                /*
+                 * TODO:  #H2668 - if hitting with a ring that has a
+                 * positive enchantment, it ought to be subject to
+                 * having that enchantment reduced.  But we don't have
+                 * sufficient information here to know which hand/ring
+                 * has delived a weaponless blow.
+                 */
+                ;
             }
             passive_obj(mon, weapon, &(ptr->mattk[i]));
         }

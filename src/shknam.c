@@ -197,7 +197,7 @@ static const char *const shkhealthfoods[] = {
  * The iprobs array in each entry defines the probabilities for various kinds
  * of objects to be present in the given shop type.  You can associate with
  * each percentage either a generic object type (represented by one of the
- * *_CLASS macros) or a specific object (represented by an onames.h define).
+ * *_CLASS enum value) or a specific object enum value.
  * In the latter case, prepend it with a unary minus so the code can know
  * (by testing the sign) whether to use mkobj() or mksobj().
  */
@@ -479,11 +479,7 @@ mkshobj_at(const struct shclass* shp, int sx, int sy, boolean mkspecl)
     if (rn2(100) < depth(&u.uz) && !MON_AT(sx, sy)
         && (ptr = mkclass(S_MIMIC, 0)) != 0
         && (mtmp = makemon(ptr, sx, sy, NO_MM_FLAGS)) != 0) {
-        /* note: makemon will set the mimic symbol to a shop item */
-        if (rn2(10) >= depth(&u.uz)) {
-            mtmp->m_ap_type = M_AP_OBJECT;
-            mtmp->mappearance = STRANGE_OBJECT;
-        }
+        /* nothing */
     } else {
         atype = get_shop_item((int) (shp - shtypes));
         if (atype == VEGETARIAN_CLASS)
@@ -629,7 +625,7 @@ shkinit(const struct shclass* shp, struct mkroom* sroom)
         if (wizard) {
             register int j = sroom->doorct;
 
-            pline("Where is shopdoor?");
+            impossible("Where is shopdoor?");
             pline("Room at (%d,%d),(%d,%d).", sroom->lx, sroom->ly, sroom->hx,
                   sroom->hy);
             pline("doormax=%d doorct=%d fdoor=%d", g.doorindex, sroom->doorct,

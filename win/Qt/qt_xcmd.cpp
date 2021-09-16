@@ -119,7 +119,7 @@ interesting_command(unsigned indx, int cmds)
     if (!strcmp("?", extcmdlist[indx].ef_txt))
         return true;
     // some commands might have been compiled-out; don't show them
-    if ((extcmdlist[indx].flags & CMD_NOT_AVAILABLE) != 0)
+    if ((extcmdlist[indx].flags & (CMD_NOT_AVAILABLE|INTERNALCMD)) != 0)
         return false;
     // if picking from normal mode-only don't show wizard mode commands
     // or if picking from wizard mode-only don't show normal commands
@@ -244,7 +244,7 @@ NetHackQtExtCmdRequestor::NetHackQtExtCmdRequestor(QWidget *parent) :
     for (i = 0; extcmdlist[i].ef_txt; ++i) {
         if (interesting_command(i, set)) {
             ++ncmds;
-            butw = std::max(butw, 30 + fm.width(extcmdlist[i].ef_txt));
+            butw = std::max(butw, 30 + fm.QFM_WIDTH(extcmdlist[i].ef_txt));
         }
     }
     // if any of the choice buttons were bigger than the control buttons,

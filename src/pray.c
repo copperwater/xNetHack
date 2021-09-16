@@ -808,8 +808,9 @@ angrygods(aligntyp resp_god)
                   (on_altar() && (a_align(u.ux, u.uy) != resp_god))
                       ? "scorn"
                       : "call upon");
+        /* [why isn't this using verbalize()?] */
         pline("\"Then die, %s!\"",
-              g.youmonst.data->mlet == S_HUMAN ? "mortal" : "creature");
+              (g.youmonst.data->mlet == S_HUMAN) ? "mortal" : "creature");
         summon_minion(resp_god, FALSE);
         break;
 
@@ -1479,7 +1480,7 @@ dosacrifice(void)
             return 1;
 
         if (otmp->corpsenm == PM_ACID_BLOB
-            || (g.monstermoves <= peek_at_iced_corpse_age(otmp) + 50)) {
+            || (g.moves <= peek_at_iced_corpse_age(otmp) + 50)) {
             value = mons[otmp->corpsenm].difficulty + 1;
             if (otmp->oeaten)
                 value = eaten_stat(value, otmp);

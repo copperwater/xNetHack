@@ -93,7 +93,7 @@ static void clearAll(PNHMapWindow data);
 #if (VERSION_MAJOR < 4) && (VERSION_MINOR < 4) && (PATCHLEVEL < 2)
 static void nhglyph2charcolor(short glyph, uchar *ch, int *color);
 #endif
-extern boolean win32_cursorblink;       /* from sys\winnt\winnt.c */
+extern boolean win32_cursorblink;       /* from sys\windows\windsys.c */
 
 HWND
 mswin_init_map_window(void)
@@ -964,8 +964,11 @@ paintGlyph(PNHMapWindow data, int i, int j, RECT * rect)
                 DeleteObject(brush);
                 intensity = (wch == 0x2591 ? 100 : 200);
                 brush = CreateSolidBrush(RGB(intensity, intensity, intensity));
-                RECT smallRect = { rect->left + 1, rect->top + 1,
-                                    rect->right - 1, rect->bottom - 1 };
+                RECT smallRect = {0};
+                smallRect.left = rect->left + 1;
+                smallRect.top = rect->top + 1;
+                smallRect.right = rect->right - 1;
+                smallRect.bottom = rect->bottom - 1;
                 FillRect(data->backBufferDC, &smallRect, brush);
                 DeleteObject(brush);
             } else {

@@ -1,4 +1,4 @@
-/* NetHack 3.7	mon.c	$NHDT-Date: 1620923921 2021/05/13 16:38:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.375 $ */
+/* NetHack 3.7	mon.c	$NHDT-Date: 1629817677 2021/08/24 15:07:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.384 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7,26 +7,25 @@
 #include "mfndpos.h"
 #include <ctype.h>
 
-static void sanity_check_single_mon(struct monst *, boolean,
-                                    const char *);
-static boolean restrap(struct monst *);
+static void sanity_check_single_mon(struct monst *, boolean, const char *);
+static struct obj *make_corpse(struct monst *, unsigned);
+static int minliquid_core(struct monst *);
+static boolean monlineu(struct monst *, int, int);
 static long mm_2way_aggression(struct monst *, struct monst *);
 static long mm_displacement(struct monst *, struct monst *);
-static int pick_animal(void);
-static void kill_eggs(struct obj *);
-static int pickvampshape(struct monst *);
-static boolean isspecmon(struct monst *);
-static boolean validspecmon(struct monst *, int);
-static struct permonst *accept_newcham_form(struct monst *, int);
-static struct obj *make_corpse(struct monst *, unsigned);
-static long mm_2way_aggression(struct monst *, struct monst *);
-static int minliquid_core(struct monst *);
 static void m_detach(struct monst *, struct permonst *);
 static void set_mon_min_mhpmax(struct monst *, int);
 static void lifesaved_monster(struct monst *);
 static void migrate_mon(struct monst *, xchar, xchar);
 static boolean ok_to_obliterate(struct monst *);
 static void deal_with_overcrowding(struct monst *);
+static boolean restrap(struct monst *);
+static int pick_animal(void);
+static int pickvampshape(struct monst *);
+static boolean isspecmon(struct monst *);
+static boolean validspecmon(struct monst *, int);
+static struct permonst *accept_newcham_form(struct monst *, int);
+static void kill_eggs(struct obj *);
 
 #define LEVEL_SPECIFIC_NOCORPSE(mdat) \
      (g.level.flags.graveyard && is_undead(mdat) && rn2(3))
@@ -488,7 +487,7 @@ pm_to_cham(int mndx)
  * etc....
  */
 static struct obj *
-make_corpse(register struct monst* mtmp, unsigned int corpseflags)
+make_corpse(struct monst *mtmp, unsigned int corpseflags)
 {
     register struct permonst *mdat = mtmp->data;
     int num;
@@ -498,6 +497,11 @@ make_corpse(register struct monst* mtmp, unsigned int corpseflags)
     int mndx = monsndx(mdat);
     unsigned corpstatflags = corpseflags;
     boolean burythem = ((corpstatflags & CORPSTAT_BURIED) != 0);
+
+    if (mtmp->female)
+        corpstatflags |= CORPSTAT_FEMALE;
+    else if (!is_neuter(mtmp->data))
+        corpstatflags |= CORPSTAT_MALE;
 
     switch (mndx) {
     case PM_GRAY_DRAGON:
@@ -587,7 +591,8 @@ make_corpse(register struct monst* mtmp, unsigned int corpseflags)
             if (!valid_obj_material(obj, GLASS)
                 || obj->oclass == POTION_CLASS) {
                 delobj(obj);
-                obj = mksobj_at((LAST_GEM + rnd(9)), x, y, TRUE, FALSE);
+                obj = mksobj_at((LAST_GEM + rnd(NUM_GLASS_GEMS)),
+                                x, y, TRUE, FALSE);
             }
             set_material(obj, GLASS);
         }
@@ -602,8 +607,8 @@ make_corpse(register struct monst* mtmp, unsigned int corpseflags)
         break;
     case PM_STONE_GOLEM:
         corpstatflags &= ~CORPSTAT_INIT;
-        obj =
-            mkcorpstat(STATUE, (struct monst *) 0, mdat, x, y, corpstatflags);
+        obj = mkcorpstat(STATUE, (struct monst *) 0, mdat, x, y,
+                         corpstatflags);
         break;
     case PM_WOOD_GOLEM:
         num = mtmp->golem_destroyed ? 0 : d(2, 4);
@@ -783,7 +788,7 @@ minliquid_core(struct monst* mtmp)
         if (mtmp->mhpmax > dam)
             mtmp->mhpmax -= dam;
         if (DEADMONSTER(mtmp)) {
-            mondead(mtmp);
+            mondied(mtmp);
             if (DEADMONSTER(mtmp))
                 return 1;
         }
@@ -819,7 +824,7 @@ minliquid_core(struct monst* mtmp)
                    case is not expected to happen (and we haven't made a
                    player-against-monster variation of the message above) */
                 if (g.context.mon_moving)
-                    mondead(mtmp);
+                    mondead(mtmp); /* no corpse */
                 else
                     xkilled(mtmp, XKILL_NOMSG);
             } else {
@@ -827,7 +832,7 @@ minliquid_core(struct monst* mtmp)
                 if (DEADMONSTER(mtmp)) {
                     if (cansee(mtmp->mx, mtmp->my))
                         pline("%s surrenders to the fire.", Monnam(mtmp));
-                    mondead(mtmp);
+                    mondead(mtmp); /* no corpse */
                 } else if (cansee(mtmp->mx, mtmp->my))
                     pline("%s burns slightly.", Monnam(mtmp));
             }
@@ -866,7 +871,7 @@ minliquid_core(struct monst* mtmp)
                       Monnam(mtmp), hliquid("water"));
             }
             if (g.context.mon_moving)
-                mondead(mtmp);
+                mondied(mtmp); /* ok to leave corpse despite water */
             else
                 xkilled(mtmp, XKILL_NOMSG);
             if (!DEADMONSTER(mtmp)) {
@@ -1040,9 +1045,9 @@ movemon(void)
            mon->isgd flag so that dmonsfree() will get rid of mon) */
         if (mtmp->isgd && !mtmp->mx) {
             /* parked at <0,0>; eventually isgd should get set to false */
-            if (g.monstermoves > mtmp->mlstmv) {
+            if (g.moves > mtmp->mlstmv) {
                 (void) gd_move(mtmp);
-                mtmp->mlstmv = g.monstermoves;
+                mtmp->mlstmv = g.moves;
             }
             continue;
         }
@@ -1371,7 +1376,7 @@ meatobj(struct monst* mtmp) /* for gelatinous cubes */
                 while ((otmp3 = otmp->cobj) != 0) {
                     obj_extract_self(otmp3);
                     if (otmp->otyp == ICE_BOX && otmp3->otyp == CORPSE) {
-                        otmp3->age = g.monstermoves - otmp3->age;
+                        otmp3->age = g.moves - otmp3->age;
                         start_corpse_timeout(otmp3);
                     }
                     (void) mpickobj(mtmp, otmp3);
@@ -1768,6 +1773,13 @@ can_carry(struct monst* mtmp, struct obj* otmp)
     return iquan;
 }
 
+/* is <nx,ny> in direct line with where 'mon' thinks hero is? */
+static boolean
+monlineu(struct monst *mon, int nx, int ny)
+{
+    return online2(nx, ny, mon->mux, mon->muy);
+}
+
 /* return flags based on monster data, for mfndpos() */
 long
 mon_allowflags(struct monst* mtmp)
@@ -2018,7 +2030,7 @@ mfndpos(
                         continue;
                     info[cnt] |= ALLOW_ROCK;
                 }
-                if (monseeu && onlineu(nx, ny)) {
+                if (monseeu && monlineu(mon, nx, ny)) {
                     if (flag & NOTONL)
                         continue;
                     info[cnt] |= NOTONL;
@@ -3461,8 +3473,8 @@ ok_to_obliterate(struct monst* mtmp)
 void
 elemental_clog(struct monst* mon)
 {
-    int m_lev = 0;
     static long msgmv = 0L;
+    int m_lev = 0;
     struct monst *mtmp, *m1, *m2, *m3, *m4, *m5, *zm;
 
     if (In_endgame(&u.uz)) {
@@ -3971,41 +3983,58 @@ seemimic(register struct monst* mtmp)
     newsym(mtmp->mx, mtmp->my);
 }
 
-/* force all chameleons to become normal */
+/* [taken out of rescham() in order to be shared by restore_cham()] */
 void
-rescham(void)
+normal_shape(struct monst *mon)
 {
-    register struct monst *mtmp;
-    int mcham;
+    int mcham = (int) mon->cham;
 
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-        if (DEADMONSTER(mtmp))
-            continue;
-        mcham = (int) mtmp->cham;
-        if (mcham >= LOW_PM) {
-            (void) newcham(mtmp, &mons[mcham], FALSE, FALSE);
-            mtmp->cham = NON_PM;
-        }
-        if (is_were(mtmp->data) && mtmp->data->mlet != S_HUMAN)
-            new_were(mtmp);
-        if (M_AP_TYPE(mtmp) != M_AP_NOTHING) {
-            /* this used to include a cansee() check but Protection_from_
-               _shape_changers shouldn't be trumped by being unseen */
-            if (!mtmp->meating) {
-                /* make revealed mimic fall asleep in lieu of shape change */
-                if (M_AP_TYPE(mtmp) != M_AP_MONSTER)
-                    mtmp->msleeping = 1;
-                seemimic(mtmp);
-            } else {
-                /* quickmimic: pet is midst of eating a mimic corpse;
-                   this terminates the meal early */
-                finish_meating(mtmp);
-            }
+    if (mcham >= LOW_PM) {
+        unsigned mcan = mon->mcan;
+
+        (void) newcham(mon, &mons[mcham], FALSE, FALSE);
+        mon->cham = NON_PM;
+        /* newcham() may uncancel a polymorphing monster; override that */
+        if (mcan)
+            mon->mcan = 1;
+        newsym(mon->mx, mon->my);
+    }
+    if (is_were(mon->data) && mon->data->mlet != S_HUMAN) {
+        new_were(mon);
+    }
+    if (M_AP_TYPE(mon) != M_AP_NOTHING) {
+        /* this used to include a cansee() check but Protection_from_
+           _shape_changers shouldn't be trumped by being unseen */
+        if (!mon->meating) {
+            /* make revealed mimic fall asleep in lieu of shape change */
+            if (M_AP_TYPE(mon) != M_AP_MONSTER)
+                mon->msleeping = 1;
+            seemimic(mon);
+        } else {
+            /* quickmimic: pet is midst of eating a mimic corpse;
+               this terminates the meal early */
+            finish_meating(mon);
         }
     }
 }
 
-/* Let the chameleons change again -dgk */
+/* force all chameleons and mimics to become themselves and werecreatures
+   to revert to human form; called when Protection_from_shape_changers gets
+   activated via wearing or eating ring */
+void
+rescham(void)
+{
+    register struct monst *mtmp;
+
+    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+        if (DEADMONSTER(mtmp))
+            continue;
+        normal_shape(mtmp);
+    }
+}
+
+/* let chameleons change and mimics hide again; called when taking off
+   ring of protection from shape changers */
 void
 restartcham(void)
 {
@@ -4016,8 +4045,7 @@ restartcham(void)
             continue;
         if (!mtmp->mcan)
             mtmp->cham = pm_to_cham(monsndx(mtmp->data));
-        if (mtmp->data->mlet == S_MIMIC && mtmp->msleeping
-            && cansee(mtmp->mx, mtmp->my)) {
+        if (mtmp->data->mlet == S_MIMIC && mtmp->msleeping) {
             set_mimic_sym(mtmp);
             newsym(mtmp->mx, mtmp->my);
         }
@@ -4028,19 +4056,13 @@ restartcham(void)
    against shape-changing might be different now than it was at the
    time the level was saved. */
 void
-restore_cham(struct monst* mon)
+restore_cham(struct monst *mon)
 {
-    int mcham;
-
-    if (Protection_from_shape_changers) {
-        mcham = (int) mon->cham;
-        if (mcham >= LOW_PM) {
-            mon->cham = NON_PM;
-            (void) newcham(mon, &mons[mcham], FALSE, FALSE);
-        } else if (is_were(mon->data) && !is_human(mon->data)) {
-            new_were(mon);
-        }
+    if (Protection_from_shape_changers || mon->mcan) {
+        /* force chameleon or mimic to revert to its natural shape */
+        normal_shape(mon);
     } else if (mon->cham == NON_PM) {
+        /* chameleon doesn't change shape here, just gets allowed to do so */
         mon->cham = pm_to_cham(monsndx(mon->data));
     }
 }
@@ -4048,7 +4070,7 @@ restore_cham(struct monst* mon)
 /* unwatched hiders may hide again; if so, returns True.
  * Only applies to is_hider monsters, *not* hides_under monsters. */
 static boolean
-restrap(struct monst* mtmp)
+restrap(struct monst *mtmp)
 {
     struct trap *t;
 
@@ -4598,7 +4620,8 @@ newcham(
     }
     /* we need this one whether msg is true or not */
     Strcpy(l_oldname, x_monnam(mtmp, ARTICLE_THE, (char *) 0,
-                               has_mgivenname(mtmp) ? SUPPRESS_SADDLE : 0, FALSE));
+                               has_mgivenname(mtmp) ? SUPPRESS_SADDLE : 0,
+                               FALSE));
 
     /* mdat = 0 -> caller wants a random monster shape */
     if (mdat == 0) {
@@ -4624,7 +4647,8 @@ newcham(
      * polymorphed, so dropping rank for mplayers seems reasonable.
      */
     if (In_endgame(&u.uz) && is_mplayer(olddata)
-        && has_mgivenname(mtmp) && (p = strstr(MGIVENNAME(mtmp), " the ")) != 0)
+        && has_mgivenname(mtmp)
+        && (p = strstr(MGIVENNAME(mtmp), " the ")) != 0)
         *p = '\0';
 
     if (mtmp->wormno) { /* throw tail away */

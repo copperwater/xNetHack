@@ -1,4 +1,4 @@
-/* NetHack 3.7	weapon.c	$NHDT-Date: 1607811730 2020/12/12 22:22:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.89 $ */
+/* NetHack 3.7	weapon.c	$NHDT-Date: 1629243070 2021/08/17 23:31:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.95 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -608,9 +608,11 @@ searmsg(struct monst *magr, struct monst *mdef,
 }
 
 static struct obj *oselect(struct monst *, int, boolean);
-#define Oselect(x, missile)                      \
-    if ((otmp = oselect(mtmp, x, missile)) != 0) \
-        return otmp;
+#define Oselect(x, missile) \
+    do {                                             \
+        if ((otmp = oselect(mtmp, x, missile)) != 0) \
+            return otmp;                             \
+    } while (0)
 
 static struct obj *
 oselect(struct monst *mtmp, int otyp, boolean missile)

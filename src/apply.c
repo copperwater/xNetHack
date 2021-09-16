@@ -1,4 +1,4 @@
-/* NetHack 3.7	apply.c	$NHDT-Date: 1621387861 2021/05/19 01:31:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.344 $ */
+/* NetHack 3.7	apply.c	$NHDT-Date: 1629242800 2021/08/17 23:26:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.347 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -299,7 +299,7 @@ its_dead(int rx, int ry, int *resp, struct obj *stethoscope)
                     humanoid(mptr) ? "person" : "creature");
             what = buf;
         } else {
-            what = pmname(mptr, NEUTRAL);
+            what = obj_pmname(statue);
             if (!type_is_pname(mptr))
                 what = The(what);
         }
@@ -704,6 +704,13 @@ use_leash(struct obj *obj)
             pline("%s has no extremities the leash would fit.",
                   Monnam(mtmp));
         } else if (!leashable(mtmp)) {
+            char lmonbuf[BUFSZ];
+            char *lmonnam = l_monnam(mtmp);
+
+            if (cc.x != mtmp->mx || cc.y != mtmp->my) {
+                Sprintf(lmonbuf, "%s tail", s_suffix(lmonnam));
+                lmonnam = lmonbuf;
+            }
             pline("The leash won't fit onto %s.",
                   spotmon ? y_monnam(mtmp) : l_monnam(mtmp));
         } else {
@@ -2083,6 +2090,7 @@ static void
 use_tinning_kit(struct obj *obj)
 {
     struct obj *corpse, *can;
+    struct permonst *mptr;
 
     /* This takes only 1 move.  If this is to be changed to take many
      * moves, we've got to deal with decaying corpses...
@@ -2097,29 +2105,28 @@ use_tinning_kit(struct obj *obj)
         You("cannot tin %s which is partly eaten.", something);
         return;
     }
-    if (touch_petrifies(&mons[corpse->corpsenm]) && !Stone_resistance
-        && !uarmg) {
+    mptr = &mons[corpse->corpsenm];
+    if (touch_petrifies(mptr) && !Stone_resistance && !uarmg) {
         char kbuf[BUFSZ];
+        const char *corpse_name = an(cxname(corpse));
 
-        if (poly_when_stoned(g.youmonst.data))
-            You("tin %s without wearing gloves.",
-                an(mons[corpse->corpsenm].pmnames[NEUTRAL]));
-        else {
+        if (poly_when_stoned(g.youmonst.data)) {
+            You("tin %s without wearing gloves.", corpse_name);
+        } else {
             pline("Tinning %s without wearing gloves is a fatal mistake...",
-                  an(mons[corpse->corpsenm].pmnames[NEUTRAL]));
-            Sprintf(kbuf, "trying to tin %s without gloves",
-                    an(mons[corpse->corpsenm].pmnames[NEUTRAL]));
+                  corpse_name);
+            Sprintf(kbuf, "trying to tin %s without gloves", corpse_name);
         }
         instapetrify(kbuf);
     }
-    if (is_rider(&mons[corpse->corpsenm])) {
+    if (is_rider(mptr)) {
         if (revive_corpse(corpse, FALSE))
             verbalize("Yes...  But War does not preserve its enemies...");
         else
             pline_The("corpse evades your grasp.");
         return;
     }
-    if (mons[corpse->corpsenm].cnutrit == 0) {
+    if (mptr->cnutrit == 0) {
         pline("That's too insubstantial to tin.");
         return;
     }
@@ -2305,10 +2312,10 @@ fig_transform(anything *arg, long timeout)
     char monnambuf[BUFSZ], carriedby[BUFSZ];
 
     if (!figurine) {
-        debugpline0("null figurine in fig_transform()");
+        impossible("null figurine in fig_transform()");
         return;
     }
-    silent = (timeout != g.monstermoves); /* happened while away */
+    silent = (timeout != g.moves); /* happened while away */
     okay_spot = get_obj_location(figurine, &cc.x, &cc.y, 0);
     if (figurine->where == OBJ_INVENT || figurine->where == OBJ_MINVENT)
         okay_spot = enexto(&cc, cc.x, cc.y, &mons[figurine->corpsenm]);
@@ -3210,10 +3217,18 @@ use_whip(struct obj *obj)
                              && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
                         char kbuf[BUFSZ];
 
-                        Sprintf(kbuf, "%s corpse",
-                                an(mons[otmp->corpsenm].pmnames[NEUTRAL]));
+                        Strcpy(kbuf, (otmp->quan == 1L) ? an(onambuf)
+                                                        : onambuf);
                         pline("Snatching %s is a fatal mistake.", kbuf);
+                        /* corpse probably has a rot timer but is now
+                           OBJ_FREE; end of game cleanup will panic if
+                           it isn't part of current level; plus it would
+                           be missing from bones, so put it on the floor */
+                        place_object(otmp, u.ux, u.uy); /* but don't stack */
+
                         instapetrify(kbuf);
+                        /* life-saved; free the corpse again */
+                        obj_extract_self(otmp);
                     }
                     (void) hold_another_object(otmp, "You drop %s!",
                                                doname(otmp), (const char *) 0);
@@ -3874,7 +3889,7 @@ do_break_wand(struct obj *obj)
     zapsetup();
 
     /* this makes it hit us last, so that we can see the action first */
-    for (i = 0; i <= 8; i++) {
+    for (i = 0; i <= N_DIRS; i++) {
         g.bhitpos.x = x = obj->ox + xdir[i];
         g.bhitpos.y = y = obj->oy + ydir[i];
         if (!isok(x, y))

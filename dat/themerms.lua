@@ -1222,7 +1222,7 @@ xxxx----xx----xxxx]], contents=function(m)
 
    -- Twin businesses
    {
-      mindiff = 4 -- arbitrary
+      mindiff = 4, -- arbitrary
       contents = function()
          -- Due to the way room connections work in mklev.c, we must guarantee
          -- that the "aisle" between the shops touches all four walls of the
@@ -1440,7 +1440,7 @@ xxxxxxx------xxxxxx]], contents = function()
             -- no way to specifically force a baby or adult dragon
             -- so we have to do it manually
             colors = { 'gray', 'silver', 'red', 'white', 'orange', 'black',
-                       'blue', 'green', 'yellow' }
+                       'blue', 'green', 'yellow', 'gold' }
             for i = 1, 3+d(3) do
                des.monster({ id='baby '..colors[d(#colors)]..' dragon',
                              coord={goldpile:rndcoord()}, waiting=1 })
@@ -1679,7 +1679,7 @@ x------------xx]], contents = function()
             -- now clear out any orphaned disconnected spaces not accessible
             -- from the center
             local orphans = origroom:filter_mapchar('.')
-                            ~ selection.floodfill(07, 03, 1)
+                            ~ selection.floodfill(07, 03, true)
             des.terrain(orphans, ' ')
             -- finally, mark it up as an anthole
             des.region({ region={07,03,07,03}, type = "anthole", filled = 1,
@@ -1726,9 +1726,6 @@ function themerooms_generate()
          end
       end
    end
-
-   -- pick = percent(50) and #themerooms or 1
-   pick = percent(50) and 48 or 1
 
    local t = type(themerooms[pick]);
    if (t == "table") then

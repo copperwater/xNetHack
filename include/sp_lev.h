@@ -1,4 +1,4 @@
-/* NetHack 3.7	sp_lev.h	$NHDT-Date: 1599434249 2020/09/06 23:17:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.39 $ */
+/* NetHack 3.7	sp_lev.h	$NHDT-Date: 1622361649 2021/05/30 08:00:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.47 $ */
 /* Copyright (c) 1989 by Jean-Christophe Collet			  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -150,6 +150,7 @@ typedef struct {
         paralyzed, stunned, confused, dead, waiting;
     long seentraps;
     short has_invent;
+    long mm_flags; /* makemon flags */
 } monster;
 
 typedef struct {
@@ -205,11 +206,14 @@ struct mapfragment {
     char *data;
 };
 
+#define CAN_OVERWRITE_TERRAIN(ttyp) \
+    (iflags.debug_overwrite_stairs || !((ttyp) == LADDER || (ttyp) == STAIRS))
+
 #define SET_TYPLIT(x, y, ttyp, llit) \
-    {                                                             \
+    do {                                                          \
         if ((x) >= 1 && (y) >= 0 && (x) < COLNO && (y) < ROWNO) { \
-            if ((ttyp) < MAX_TYPE && levl[(x)][(y)].typ != STAIRS \
-                && levl[(x)][(y)].typ != LADDER)                  \
+            if ((ttyp) < MAX_TYPE                                 \
+                && CAN_OVERWRITE_TERRAIN(levl[(x)][(y)].typ))     \
                 levl[(x)][(y)].typ = (ttyp);                      \
             if ((ttyp) == LAVAPOOL)                               \
                 levl[(x)][(y)].lit = 1;                           \
@@ -220,6 +224,6 @@ struct mapfragment {
                     levl[(x)][(y)].lit = (llit);                  \
             }                                                     \
         }                                                         \
-    }
+    } while (0)
 
 #endif /* SP_LEV_H */

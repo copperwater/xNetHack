@@ -46,6 +46,9 @@ function test_level_init()
    des.level_init({ style = "solidfill", fg = " " });
 
    des.reset_level();
+   des.level_init({ style = "solidfill", fg = " ", lit = false });
+
+   des.reset_level();
    des.level_init({ style = "mazegrid", bg ="-" });
 
    des.reset_level();
@@ -64,7 +67,13 @@ function test_level_init()
    des.level_init({ style = "mines", fg = ".", bg = "L", smoothed = true, joined = true, lit = 0 });
 
    des.reset_level();
+   des.level_init({ style = "mines", fg = ".", bg = "L", smoothed = true, joined = true, lit = true });
+
+   des.reset_level();
    des.level_init({ style = "mines", fg = ".", bg = " ", smoothed = true, joined = true, walled = true });
+   des.reset_level();
+   des.level_init({ style = "swamp", fg = " ", lit = false });
+
 
    des.reset_level();
    des.level_init({ style = "solidfill", fg = ".", lit = 1 });
@@ -86,12 +95,14 @@ function test_monster()
    des.monster({ id = "ogre", x = 10, y = 15 })
    des.monster({ class = "D", coord = {11,16} })
    des.monster({ x = 73, y = 16 });
+   des.monster({ id = "watchman", peaceful = true })
    des.monster({ id = "watchman", peaceful = 1 })
    des.monster({ class = "H", peaceful = 0 })
    des.monster({ id = "giant mimic", appear_as = "obj:boulder" });
    des.monster({ id = "giant mimic", appear_as = "ter:altar" });
    des.monster({ id = "chameleon", appear_as = "mon:bat" });
-   des.monster({ class = "H", asleep = 1, female = 1, invisible = 1, cancelled = 1, revived = 1, avenge = 1, fleeing = 20, blinded = 20, paralyzed = 20, stunned = 20, confused = 20 })
+   des.monster({ class = "H", asleep = 1, female = 1, invisible = 1, cancelled = 1, revived = 1, avenge = 1, stunned = 1, confused = 1, fleeing = 20, blinded = 20, paralyzed = 20 })
+   des.monster({ class = "H", asleep = true, female = true, invisible = true, cancelled = true, revived = true, avenge = true, stunned = true, confused = true });
    des.monster({ id = "ogre", x = 10, y = 15, name = "Fred",
                  inventory = function()
                    des.object();
@@ -100,6 +111,11 @@ function test_monster()
                    des.object({ id = "statue", contents=0 })
                  end
    });
+   des.monster({ id = "long worm", tail = false });
+   des.monster({ id = "hill orc", group = false });
+   des.monster({ id = "lurker above", adjacentok = true });
+   des.monster({ id = "gnome", ignorewater = true });
+   des.monster({ id = "xan", countbirth = false });
    des.reset_level();
    des.level_init();
 end
@@ -442,6 +458,22 @@ function test_terrain()
 end
 
 function test_replace_terrain()
+   des.reset_level();
+   des.replace_terrain({ x1=2, y1=3, x2=4,y2=5, fromterrain=" ", toterrain="I", lit=1 });
+   for x = 2,4 do
+      for y = 3,5 do
+         is_map_at(x,y, "I", true);
+      end
+   end
+   for x = 1,5 do
+      is_map_at(x,2, " ", false);
+      is_map_at(x,6, " ", false);
+   end
+   for y = 2,6 do
+      is_map_at(1, y, " ", false);
+      is_map_at(5, y, " ", false);
+   end
+
    des.replace_terrain({ x1=1, y1=1, x2=70,y2=19, fromterrain=".", toterrain="I", lit=1 });
    des.replace_terrain({ x1=1, y1=1, x2=70,y2=19, fromterrain=".", toterrain="I", chance=50 });
    des.replace_terrain({ region={1,1, 70,19}, fromterrain=".", toterrain="L", chance=25 });

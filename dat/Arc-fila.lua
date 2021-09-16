@@ -79,7 +79,7 @@ end
 -- something goes wrong.
 local accessible = selection.new()
 path:iterate(function(x,y)
-   accessible = accessible | selection.floodfill(x,y,1)
+   accessible = accessible | selection.floodfill(x,y,true)
 end)
 des.replace_terrain({ selection=accessible:negate(), fromterrain='.', toterrain='T' })
 
