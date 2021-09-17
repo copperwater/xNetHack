@@ -401,8 +401,11 @@ polyself(int psflags)
     boolean forcecontrol = (psflags == 1),
             monsterpoly = (psflags == 2),
             formrevert = (psflags == 3),
-            draconian = (psflags == 4), /* implies dragon scale armor is being
-                                           worn */
+            draconian = (!uskin && armor_to_dragon(&g.youmonst) != NON_PM),
+            /* psflags = 4: enchanting dragon scales while confused; polycontrol
+             * will only allow declining to become dragon, won't allow turning
+             * into arbitrary monster */
+            draconian_only = (psflags == 4),
             iswere = (u.ulycn >= LOW_PM),
             isvamp = (is_vampire(g.youmonst.data)
                       || is_vampshifter(&g.youmonst)),
@@ -432,7 +435,7 @@ polyself(int psflags)
     }
     if (monsterpoly && isvamp)
         goto do_vampyr;
-    if (draconian)
+    if (draconian_only)
         goto do_merge;
 
     if (controllable_poly || forcecontrol) {
