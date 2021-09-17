@@ -179,6 +179,7 @@ changes:
   - "Storeroom Vault" and "Water-surrounded Vault" now contain either a
     teleportation trap, hole, or some escape item to provide a way out for
     anyone who teleports in without a way out.
+- Adult gold dragons emit light in a radius of 2 rather than 1.
 
 
 ### Interface changes

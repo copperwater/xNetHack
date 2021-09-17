@@ -1412,12 +1412,12 @@ emits_light(struct permonst *ptr)
     }
     switch(monsndx(ptr)) {
     case PM_FIRE_ELEMENTAL:
+    case PM_GOLD_DRAGON:
         return 2;
     case PM_FLAMING_SPHERE:
     case PM_SHOCKING_SPHERE:
     case PM_FIRE_VORTEX:
     case PM_BABY_GOLD_DRAGON:
-    case PM_GOLD_DRAGON:
         return 1;
     }
     return 0;
