@@ -180,6 +180,8 @@ changes:
     teleportation trap, hole, or some escape item to provide a way out for
     anyone who teleports in without a way out.
 - Adult gold dragons emit light in a radius of 2 rather than 1.
+- Shopkeepers value dragon-scaled armor significantly higher than they would
+  normally.
 
 
 ### Interface changes
