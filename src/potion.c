@@ -1965,7 +1965,7 @@ potionbreathe(struct obj *obj)
     if (!breathe) {
         /* currently only acid affects eyes */
         if (eyes && obj->otyp == POT_ACID && !Acid_resistance) {
-            pline("The fumes sting your eyes.");
+            pline("The fumes sting your %s.", eyestr);
         }
         else {
             pline("The vapors don't seem to affect you.");
