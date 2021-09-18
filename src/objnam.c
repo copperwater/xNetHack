@@ -4673,6 +4673,9 @@ readobjnam(char *bp, struct obj *no_wish)
         obj_extract_self(d.otmp); /* now release it for caller's use */
     }
 
+    /* if mksobj gave this a random weapon_oname, get rid of it */
+    free_oname(d.otmp);
+
     /* if player specified a reasonable count, maybe honor it */
     if (d.cnt > 0 && objects[d.typ].oc_merge
         && (wizard || d.cnt < rnd(6) || (d.cnt <= 7 && Is_candle(d.otmp))
