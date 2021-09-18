@@ -260,6 +260,7 @@ mk_mplayer(struct permonst *ptr, xchar x, xchar y, boolean special)
 
         if (weapon != STRANGE_OBJECT) {
             otmp = mksobj(weapon, TRUE, FALSE);
+            otmp->oeroded = otmp->oeroded2 = 0;
             otmp->spe = (special ? rn1(5, 4) : rn2(4));
             if (!rn2(3))
                 otmp->oerodeproof = 1;

@@ -1717,6 +1717,7 @@ arti_invoke(struct obj *obj)
             otmp->blessed = obj->blessed;
             otmp->cursed = obj->cursed;
             otmp->bknown = obj->bknown;
+            otmp->oeroded = otmp->oeroded2 = 0;
             if (obj->blessed) {
                 if (otmp->spe < 0)
                     otmp->spe = 0;

@@ -117,14 +117,15 @@ static
 void
 m_initthrow(struct monst *mtmp, int otyp, int oquan)
 {
-    register struct obj *otmp;
+    register struct obj *otmp = mongets(mtmp, otyp);
 
-    otmp = mksobj(otyp, TRUE, FALSE);
+    if (!otmp)
+        return; /* merged with something in inventory */
+
     otmp->quan = (long) rn1(oquan, 3);
     otmp->owt = weight(otmp);
-    if (otyp == ORCISH_ARROW)
+    if (otmp->otyp == ORCISH_ARROW)
         otmp->opoisoned = TRUE;
-    (void) mpickobj(mtmp, otmp);
 }
 
 static void
