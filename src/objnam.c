@@ -5075,7 +5075,7 @@ cloak_simple_name(struct obj *cloak)
 {
     if (cloak) {
         if (Is_dragon_scales(cloak)) {
-            return "dragon scales";
+            return "set of dragon scales";
         }
         switch (cloak->otyp) {
         case ROBE:
