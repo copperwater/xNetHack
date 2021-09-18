@@ -3351,7 +3351,7 @@ extern void fracture_rock(struct obj *);
 extern boolean destroyable_oclass(char);
 extern boolean break_statue(struct obj *);
 extern int destroy_items(struct monst *, int, int);
-extern boolean u_adtyp_resistance_obj(int);
+extern boolean adtyp_resistance_obj(struct monst *, int);
 extern int resist(struct monst *, char, int, int);
 extern void makewish(void);
 const char* flash_str(int, boolean);

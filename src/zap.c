@@ -4054,7 +4054,7 @@ zhitu(int type, int nd, const char *fltxt, xchar sx, xchar sy)
         break;
     case ZT_DEATH:
         if (abstyp == ZT_BREATH(ZT_DEATH)) {
-            boolean disn_prot = u_adtyp_resistance_obj(AD_DISN) && rn2(100);
+            boolean disn_prot = adtyp_resistance_obj(&g.youmonst, AD_DISN);
 
             if (Disint_resistance) {
                 You("are not disintegrated.");
@@ -5140,18 +5140,25 @@ adtyp_to_prop(int dmgtyp)
     }
 }
 
-/* is hero wearing or wielding an object with resistance
+/* is carrier wearing or wielding an object with resistance
    to attack damage type */
 boolean
-u_adtyp_resistance_obj(int dmgtyp)
+adtyp_resistance_obj(struct monst *carrier, int dmgtyp)
 {
     int prop = adtyp_to_prop(dmgtyp);
 
     if (!prop)
         return FALSE;
 
-    if ((u.uprops[prop].extrinsic & (W_ARMOR | W_ACCESSORY | W_WEP)) != 0)
+    if (carrier == &g.youmonst
+        && (u.uprops[prop].extrinsic & (W_ARMOR | W_ACCESSORY | W_WEP)) != 0)
         return TRUE;
+    else if (carrier != &g.youmonst
+             && prop <= 8 && (carrier->mextrinsics & (1 << (prop - 1)))) {
+        /* this relies on the assumption that MR_ 1-8 correspond to props 1-8 */
+        pline("mon adtyp resist");
+        return TRUE;
+    }
 
     return FALSE;
 }
@@ -5204,7 +5211,7 @@ maybe_destroy_item(struct monst *carrier, struct obj *obj, int dmgtyp)
     quan = 0L;
 
     /* external worn item protects inventory? */
-    if (u_adtyp_resistance_obj(dmgtyp))
+    if (adtyp_resistance_obj(carrier, dmgtyp))
         return 0;
 
     switch (dmgtyp) {
@@ -5364,19 +5371,6 @@ destroy_items(struct monst *mon, /* monster whose invent is being subjected to
     /* this is a struct obj** because we might destroy the first item in it */
     struct obj **objchn = u_carry ? &g.invent : &mon->minvent;
     int dmg_out = 0; /* damage caused by items getting destroyed */
-
-    /* special effect of extrinsic resistances: they protect all items from
-     * their respective damage types
-     * TODO [Sep 2021 vanilla merge]: This should be gotten rid of soon, but not
-     * doing a change to u_adtyp_resistance_obj as part of the merge. */
-    if ((dmgtyp == AD_FIRE
-         && (u_carry ? EFire_resistance : (mon->mextrinsics & MR_FIRE)))
-        || (dmgtyp == AD_COLD
-            && (u_carry ? ECold_resistance : (mon->mextrinsics & MR_COLD)))
-        || (dmgtyp == AD_ELEC
-            && (u_carry ? EShock_resistance : (mon->mextrinsics & MR_ELEC)))) {
-        return 0;
-    }
 
     /* initialize items_to_destroy */
     for (i = 0; i < MAX_ITEMS_DESTROYED; ++i) {
