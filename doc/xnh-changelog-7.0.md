@@ -219,6 +219,8 @@ changes:
   - If there are peacefuls in the arc and you did press F, it attacks in an arc.
 - Cursed scrolls of remove curse once again say "You feel like someone is
   helping you."
+- A number of monster recolors from previous versions are reverted back to
+  vanilla colors.
 
 ### Architectural changes
 
