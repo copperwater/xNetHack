@@ -2707,6 +2707,12 @@ objlist_sanity(struct obj *objlist, int wheretype, const char *mesg)
            be clear by the time this sanity check is taking place */
         if (obj->in_use || obj->bypass || obj->nomerge)
             insane_obj_bits(obj, (struct monst *) 0);
+        if (!valid_obj_material(obj, obj->material)) {
+            char matbuf[BUFSZ];
+            Sprintf(matbuf, "invalid material %d (otyp %d)", obj->material,
+                    obj->otyp);
+            insane_object(obj, ofmt0, matbuf, (struct monst *) 0);
+        }
     }
 }
 
