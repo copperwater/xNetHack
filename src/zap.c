@@ -5156,7 +5156,6 @@ adtyp_resistance_obj(struct monst *carrier, int dmgtyp)
     else if (carrier != &g.youmonst
              && prop <= 8 && (carrier->mextrinsics & (1 << (prop - 1)))) {
         /* this relies on the assumption that MR_ 1-8 correspond to props 1-8 */
-        pline("mon adtyp resist");
         return TRUE;
     }
 
