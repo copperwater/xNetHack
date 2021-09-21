@@ -19,6 +19,7 @@ static void lifesaved_monster(struct monst *);
 static void migrate_mon(struct monst *, xchar, xchar);
 static boolean ok_to_obliterate(struct monst *);
 static void deal_with_overcrowding(struct monst *);
+static void nazgul_shriek(struct monst *);
 static boolean restrap(struct monst *);
 static int pick_animal(void);
 static int pickvampshape(struct monst *);
@@ -3722,6 +3723,89 @@ m_respond(struct monst* mtmp)
                 (void) gazemu(mtmp, &mtmp->data->mattk[i]);
                 break;
             }
+    }
+    if (mtmp->data == &mons[PM_NAZGUL] && !mtmp->mcan && !mtmp->mtame
+        && mtmp->mspec_used == 0 && !rn2(3)) {
+        /* mspec_used also controls whether a Nazgul's breath weapon is ready
+         * for use. This gets executed in dochug before it attempts to use its
+         * attacks, so if it tried to shriek 100% of the time, it would never
+         * use the breath weapon. Thus, only attempt to shriek a certain amount
+         * of the time. */
+        nazgul_shriek(mtmp);
+    }
+}
+
+/* mtmp (a Nazgul) has a chance to shriek to negatively afflict the player. It
+ * may also afflict other monsters. */
+static void
+nazgul_shriek(struct monst *mtmp)
+{
+    boolean cansee = canseemon(mtmp);
+    struct monst *bystander;
+    /* they will not shriek often when they can't see the player
+     * uses m_cansee rather than m_canseeu because the latter is blocked by
+     * Invis and is based on the hero being able to see the monster; neither of
+     * those things will stop a Nazgul, but not having line of sight will */
+    if (!m_cansee(mtmp, u.ux, u.uy) && rn2(4)) {
+        mtmp->mspec_used = rn1(20, 20);
+        return;
+    }
+
+    mtmp->mspec_used = rn1(40, 40);
+    /* Player effects - no effects at all if the shriek can't be heard by the
+     * player (deaf, underwater). No messages for if you can see the Nazgul but
+     * not hear it - you don't really see its face, so you can tell the shriek
+     * is coming from it only if you can hear it. Also no messages for if it's
+     * cancelled - feebly croaking rather ruins the image. */
+    if (!Deaf && !Underwater) {
+        if (distu(mtmp->mx, mtmp->my) > 100) {
+            if (cansee)
+                pline("%s emits a fell cry.", Monnam(mtmp));
+            else
+                pline("A distant fell cry pierces the air.");
+        }
+        else {
+            if (cansee)
+                pline("%s shrieks!", Monnam(mtmp));
+            else
+                pline("A fell shriek reverberates nearby!");
+
+            if (u.usleep)
+                unmul("You are shocked awake!");
+
+            /* Charisma may spare the player from effects */
+            if (rn2(100) >= ACURR(A_CHA)) {
+                You("are struck with dread, and you reel in terror...");
+                /* Should the amount of stunning be dependent on distance? */
+                make_stunned(HStun + d(3, 10), FALSE);
+            }
+        }
+        stop_occupation();
+    }
+
+    /* Monster effects */
+    for (bystander = fmon; bystander; bystander = bystander->nmon) {
+        if (dist2(bystander->mx, bystander->my, mtmp->mx, mtmp->my) > 100)
+            continue;
+
+        wakeup(bystander, FALSE, FALSE);
+        if (is_orc(bystander->data) || is_undead(bystander->data)
+            || is_animal(bystander->data))
+            /* no ill effects; ideally animals would still flee the Nazgul or
+             * something, but AI only exists to make it flee the player right
+             * now */
+            continue;
+
+        if (is_elf(bystander->data) || (humanoid(bystander->data) && !rn2(6))) {
+            /* elves always affected; odds of getting affected for other
+             * monsters aren't really equal to player's odds but the Nazgul is
+             * probably on the same team as many of them */
+            bystander->mstun = 1;
+            if (canseemon(bystander)) {
+                pline("%s %s...", Monnam(bystander),
+                    makeplural(stagger(bystander->data, "stagger")));
+            }
+        }
     }
 }
 

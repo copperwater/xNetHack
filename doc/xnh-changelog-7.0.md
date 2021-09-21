@@ -182,6 +182,12 @@ changes:
 - Adult gold dragons emit light in a radius of 2 rather than 1.
 - Shopkeepers value dragon-scaled armor significantly higher than they would
   normally.
+- Nazgul can now shriek, which can awaken and stun the player and various
+  monsters within a radius of 10. It will not shriek as often if the player is
+  not in line of sight. Elves are always affected by the shriek, and orcs,
+  undead, and animals never are. Higher Charisma results in a slightly better
+  chance to avoid getting stunned.
+- Nazgul can innately see invisible.
 
 
 ### Interface changes
