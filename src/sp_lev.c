@@ -2938,8 +2938,19 @@ splev_initlev(lev_init* linit)
         create_maze(linit->corrwid, linit->wallthick, linit->rm_deadends);
         break;
     case LVLINIT_MINES:
-        if (linit->lit == BOOL_RANDOM)
+        if (linit->lit == BOOL_RANDOM) {
             linit->lit = rn2(2);
+            if (In_mines(&u.uz)) {
+                /* Always bright above Minetown, always dark below */
+                s_level *minetownslev = find_level("minetn");
+                int diff = depth(&u.uz) - depth(&minetownslev->dlevel);
+                if (diff > 0)
+                    linit->lit = 0;
+                if (diff < 0)\
+                    linit->lit = 1;
+                /* if diff == 0, we're in minetown, so let it stay random */
+            }
+        }
         if (linit->filling > -1)
             lvlfill_solid(linit->filling, 0);
         linit->icedpools = icedpools;
