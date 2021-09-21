@@ -534,23 +534,26 @@ polyself(int psflags)
                 }
             }
             if (!(g.mvitals[mntmp].mvflags & G_GENOD)) {
-                unsigned was_lit = uarm->lamplit;
-                int arm_light = artifact_light(uarm) ? arti_light_radius(uarm)
-                                                     : 0;
+                struct obj **mergarm =
+                    (uarm && Is_dragon_scaled_armor(uarm)) ? &uarm
+                      : (uarmc && Is_dragon_scales(uarmc)) ? &uarmc
+                        : (struct obj **) 0;
+                unsigned was_lit = mergarm ? (*mergarm)->lamplit : 0;
+                int arm_light = mergarm && artifact_light(*mergarm)
+                                  ? arti_light_radius(*mergarm) : 0;
 
                 /* allow G_EXTINCT */
                 You("merge with your scaly armor.");
                 if (uskin) {
                     impossible("Already merged with some armor!");
                 }
-                else if (uarm && Is_dragon_scaled_armor(uarm)) {
-                    uskin = uarm;
-                    uarm = NULL;
-                    /* dragon scales remain intact as uskin */
+                else if (!mergarm) {
+                    impossible("No dragon armor / dragon cloak to merge?");
                 }
-                else if (uarmc && Is_dragon_scales(uarmc)) {
-                    uskin = uarmc;
-                    uarmc = NULL;
+                else {
+                    uskin = *mergarm;
+                    *mergarm = NULL;
+                    /* dragon scales remain intact as uskin */
                 }
                 /* save/restore hack */
                 uskin->owornmask |= I_SPECIAL;
