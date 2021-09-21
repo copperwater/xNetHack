@@ -179,7 +179,7 @@ LUATOP=..\lib\lua-$(LUAVER)
 #==============================================================================
 #
 #  The version of the game this Makefile was designed for
-NETHACK_VERSION="6.2.0"
+NETHACK_VERSION="6.3.0"
 
 # A brief version for use in macros
 NHV=$(NETHACK_VERSION:.=)
