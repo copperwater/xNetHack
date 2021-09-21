@@ -4169,7 +4169,7 @@ restrap(struct monst *mtmp)
     if (mtmp->data->mlet == S_MIMIC) {
         set_mimic_sym(mtmp);
         return TRUE;
-    } else if (levl[mtmp->mx][mtmp->my].typ == ROOM) {
+    } else if (levl[mtmp->mx][mtmp->my].typ == ROOM && ceiling_exists()) {
         mtmp->mundetected = 1;
         return TRUE;
     }
