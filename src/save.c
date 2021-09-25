@@ -889,12 +889,13 @@ savetrapchn(NHFILE* nhfp, register struct trap* trap)
     while (trap) {
         trap2 = trap->ntrap;
         if (perform_bwrite(nhfp)) {
-            if (nhfp->structlevel) {
+            if (nhfp->structlevel)
                 bwrite(nhfp->fd, (genericptr_t) trap, sizeof *trap);
-                if (trap->ammo)
-                    saveobjchn(nhfp, &trap->ammo);
-            }
 	}
+        if (trap->ammo)
+            /* if perform_bwrite, this will save the ammo after the trap; if
+             * release_data, this will free the ammo before freeing the trap */
+            saveobjchn(nhfp, &trap->ammo);
         if (release_data(nhfp))
             dealloc_trap(trap);
         trap = trap2;
