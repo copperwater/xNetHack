@@ -1534,6 +1534,14 @@ strange_feeling(struct obj *obj, const char *txt)
         && !objects[obj->otyp].oc_uname)
         docall(obj);
 
+    /* if otmp is in flight, whatever effect results in strange_feeling() is
+     * probably from a potion breaking and hero breathing vapors.
+     * useup() here will panic because it's not on any object lists.
+     * The assumption being made here is that there will not be a way for an
+     * in-flight object to call strange_feeling() *unless* it is breaking. */
+    if (obj == g.thrownobj || obj == g.kickedobj)
+        return;
+
     useup(obj);
 }
 
