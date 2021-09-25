@@ -6343,27 +6343,29 @@ TODO: g.coder->croom needs to be updated
         g.ysize = ROWNO;
     } else {
         xchar mptyp;
+        int xx, yy;
 
         /* Themed rooms should never overwrite anything */
         if (g.in_mk_themerooms) {
             boolean isokp = TRUE;
-            for (y = g.ystart - 1; y < min(ROWNO, g.ystart + g.ysize) + 1; y++)
-                for (x = g.xstart - 1; x < min(COLNO, g.xstart + g.xsize) + 1;
-                     x++) {
-                    if (!isok(x, y)) {
+            for (yy = g.ystart - 1; yy < min(ROWNO, g.ystart + g.ysize) + 1;
+                 yy++)
+                for (xx = g.xstart - 1; xx < min(COLNO, g.xstart + g.xsize) + 1;
+                     xx++) {
+                    if (!isok(xx, yy)) {
                         isokp = FALSE;
-                    } else if (y < g.ystart || y >= (g.ystart + g.ysize)
-                               || x < g.xstart || x >= (g.xstart + g.xsize)) {
-                        if (levl[x][y].typ != STONE
-                            || levl[x][y].roomno != NO_ROOM)
+                    } else if (yy < g.ystart || yy >= (g.ystart + g.ysize)
+                               || xx < g.xstart || xx >= (g.xstart + g.xsize)) {
+                        if (levl[xx][yy].typ != STONE
+                            || levl[xx][yy].roomno != NO_ROOM)
                             isokp = FALSE;
                     } else {
-                        mptyp = mapfrag_get(mf, x - g.xstart, y - g.ystart);
+                        mptyp = mapfrag_get(mf, xx - g.xstart, yy - g.ystart);
                         if (mptyp >= MAX_TYPE)
                             continue;
-                        if ((levl[x][y].typ != STONE
-                             && levl[x][y].typ != mptyp)
-                            || levl[x][y].roomno != NO_ROOM)
+                        if ((levl[xx][yy].typ != STONE
+                             && levl[xx][yy].typ != mptyp)
+                            || levl[xx][yy].roomno != NO_ROOM)
                             isokp = FALSE;
                     }
                     if (!isokp) {
