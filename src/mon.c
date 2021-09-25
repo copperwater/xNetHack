@@ -2214,6 +2214,12 @@ mm_displacement(
         return 0;
     }
 
+    /* no allowing longworms to displace other monsters, even if they have no
+     * tail segments */
+    if (magr->wormno) {
+        return 0;
+    }
+
     /* riders can move anything */
     if (is_rider(pa)) {
         return ALLOW_MDISP;
