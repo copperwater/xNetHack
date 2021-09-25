@@ -1409,7 +1409,7 @@ oname(struct obj *obj, const char *name)
             break;
         case ART_SCEPTRE_OF_MIGHT:
             /* don't make it hurt elves */
-            obj->material = METAL;
+            set_material(obj, METAL);
             break;
         case ART_YENDORIAN_EXPRESS_CARD:
             set_material(obj, PLATINUM);

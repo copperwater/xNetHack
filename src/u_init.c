@@ -1143,7 +1143,7 @@ ini_inv(struct trobj *trop)
                      * as a dagger (which was forced to be iron earlier) turning
                      * into an elven dagger, but now remaining iron. Fix this up
                      * here as well. */
-                    obj->material = objects[otyp].oc_material;
+                    set_material(obj, objects[otyp].oc_material);
                     break;
                 }
         }

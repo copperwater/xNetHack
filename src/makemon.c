@@ -254,10 +254,10 @@ m_initweap(register struct monst *mtmp)
              * specific items. */
             otmp = mongets(mtmp, TWO_HANDED_SWORD);
             if (otmp)
-                otmp->material = GOLD;
+                set_material(otmp, GOLD);
             otmp = mongets(mtmp, rn2(8) ? CHAIN_MAIL : PLATE_MAIL);
             if (otmp)
-                otmp->material = GOLD;
+                set_material(otmp, GOLD);
         }
         else if (mm == PM_ANARAXIS_THE_BLACK) {
             mongets(mtmp, CLOAK_OF_MAGIC_RESISTANCE);
@@ -382,7 +382,7 @@ m_initweap(register struct monst *mtmp)
                     otmp = mongets(mtmp, DWARVISH_RING_MAIL);
                     if (otmp && ((ptr == &mons[PM_DWARF_LEADER] && !rn2(4))
                                  || (ptr == &mons[PM_DWARF_RULER] && !rn2(2)))) {
-                        otmp->material = MITHRIL;
+                        set_material(otmp, MITHRIL);
                     }
                 }
             } else {

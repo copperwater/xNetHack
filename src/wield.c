@@ -990,7 +990,7 @@ chwepon(struct obj *otmp, int amount)
         if (uwep->otyp != old_otyp) {
             if (!valid_obj_material(uwep, uwep->material)) {
                 impossible("tool enchanted into incompatible material");
-                uwep->material = objects[uwep->otyp].oc_material;
+                set_material(uwep, objects[uwep->otyp].oc_material);
             }
             pline("%s glitters and warps in your %s!", old_yname,
                   body_part(HAND));
