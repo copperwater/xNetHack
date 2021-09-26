@@ -3444,7 +3444,7 @@ getprice(register struct obj* obj, boolean shk_buying)
             tmp = 0L;
         break;
     case ARMOR_CLASS:
-        if (objects[obj->otyp].oc_armcat == ARM_SUIT && obj->dragonscales)
+        if (Is_dragon_scaled_armor(obj))
             tmp += ((3 * objects[obj->dragonscales].oc_cost) / 2L);
         /* FALLTHRU */
     case WEAPON_CLASS:
