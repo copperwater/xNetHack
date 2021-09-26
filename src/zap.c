@@ -5280,6 +5280,8 @@ maybe_destroy_item(struct monst *carrier, struct obj *obj, int dmgtyp)
     }
 
     if (!skip) {
+        boolean osym = obj->oclass; /* for checking glob of slime after it's
+                                       destroyed */
         if (obj->in_use)
             --quan; /* one will be used up elsewhere */
         for (i = cnt = 0L; i < quan; i++)
@@ -5332,7 +5334,7 @@ maybe_destroy_item(struct monst *carrier, struct obj *obj, int dmgtyp)
                 const char *how = destroy_strings[dindx][2];
                 boolean one = (cnt == 1L);
 
-                if (dmgtyp == AD_FIRE && obj->oclass == FOOD_CLASS)
+                if (dmgtyp == AD_FIRE && osym == FOOD_CLASS)
                     how = "exploding glob of slime";
                 if (physical_damage)
                     dmg = Maybe_Half_Phys(dmg);
