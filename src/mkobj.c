@@ -318,6 +318,9 @@ mkbox_cnts(struct obj *box)
                     while (otmp->otyp == WAN_CANCELLATION)
                         otmp->otyp = rnd_class(WAN_LIGHT, WAN_LIGHTNING);
             }
+            /* material may have become invalid with a new otyp -- rerandomize
+             * it to something valid */
+            init_obj_material(otmp);
         }
         (void) add_to_container(box, otmp);
     }
