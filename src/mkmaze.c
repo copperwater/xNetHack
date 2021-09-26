@@ -353,7 +353,7 @@ put_lregion_here(
             struct trap *t = t_at(x, y);
 
             if (t && t->ttyp != MAGIC_PORTAL && t->ttyp != VIBRATING_SQUARE)
-                deltrap(t);
+                deltrap_with_ammo(t, DELTRAP_DESTROY_AMMO);
             if (bad_location(x, y, nlx, nly, nhx, nhy))
                 return FALSE;
         }
