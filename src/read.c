@@ -302,9 +302,12 @@ tin_text(struct obj *tin, char* buf)
     }
     else { /* lie */
         if (msgidx == LABEL_BOGUSMON) {
-            /* hallucinatory monster */
+            /* hallucinatory monster
+             * need to do some gymnastics to avoid copying format_arg into
+             * itself */
+            char bogusbuf[BUFSZ];
             Strcpy(format_arg,
-                   bogusmon(format_arg, NULL, int_hash1(tin->tinseed)));
+                   bogusmon(bogusbuf, NULL, int_hash1(tin->tinseed)));
         }
         else if (msgidx >= LABEL_FRUIT_START
                  && msgidx < LABEL_FRUIT_START + NUM_FRUIT_LABELS) {
