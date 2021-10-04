@@ -3751,8 +3751,9 @@ nazgul_shriek(struct monst *mtmp)
     /* they will not shriek often when they can't see the player
      * uses m_cansee rather than m_canseeu because the latter is blocked by
      * Invis and is based on the hero being able to see the monster; neither of
-     * those things will stop a Nazgul, but not having line of sight will */
-    if (!m_cansee(mtmp, u.ux, u.uy) && rn2(4)) {
+     * those things will stop a Nazgul, but not having line of sight will.
+     * In fact, invisibility alerts Nazgul, so they'll shriek more often. */
+    if (!Invis && !m_cansee(mtmp, u.ux, u.uy) && rn2(4)) {
         mtmp->mspec_used = rn1(20, 20);
         return;
     }
