@@ -2899,7 +2899,8 @@ in_container(struct obj *obj)
 
     if (g.current_container) {
         Strcpy(buf, the(xname(g.current_container)));
-        You("put %s into %s.", doname(obj), buf);
+        You("%s %s into %s.", g.transfer_container ? "transfer" : "put",
+            doname(obj), buf);
 
         /* gold in container always needs to be added to credit */
         if (floor_container && obj->oclass == COIN_CLASS)
@@ -3510,7 +3511,8 @@ select_transfer_container(void)
 
     any.a_int = 1;
     for (i = 0; i < SIZE(objchns); ++i) {
-        boolean invent = (objchns[i] == g.invent);
+        boolean invent = (objchns[i] == g.invent),
+                validchn = FALSE;
         for (otmp = objchns[i]; otmp;
              otmp = invent ? otmp->nobj : otmp->nexthere) {
             if (floorchar > '9')
@@ -3525,7 +3527,7 @@ select_transfer_container(void)
                 known_locked = TRUE;
             } else {
                 /* acceptable container option */
-                validcont = TRUE;
+                validcont = validchn = TRUE;
 
                 Sprintf(buf, "%s%s", doname(otmp),
                         invent ? "" : " [not carried]");
@@ -3554,7 +3556,7 @@ select_transfer_container(void)
                 any.a_int++;
             }
         }
-        if (do_menu)
+        if (do_menu && validchn)
             add_menu(win, &nul_glyphinfo, &cg.zeroany, 0, 0, ATR_NONE, "",
                      MENU_ITEMFLAGS_NONE); /* space */
     }
@@ -3610,7 +3612,7 @@ traditional_loot(boolean put_in)
         actionfunc = in_container;
         checkfunc = ck_bag;
     } else {
-        action = "take out";
+        action = g.transfer_container ? "transfer" : "take out";
         objlist = &(g.current_container->cobj);
         actionfunc = out_container;
         checkfunc = (int (*)(OBJ_P)) 0;
@@ -3635,7 +3637,9 @@ menu_loot(int retry, boolean put_in)
     boolean all_categories = TRUE, loot_everything = FALSE, autopick = FALSE;
     char buf[BUFSZ];
     boolean loot_justpicked = FALSE;
-    const char *action = put_in ? "Put in" : "Take out";
+    const char *action = put_in ? "Put in"
+                                : g.transfer_container ? "Transfer"
+                                                       : "Take out";
     struct obj *otmp, *otmp2;
     menu_item *pick_list;
     int mflags, res;
