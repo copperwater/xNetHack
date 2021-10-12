@@ -3445,7 +3445,7 @@ select_transfer_container(void)
     struct obj *otmp, *chosen = (struct obj *) 0;
     int i;
     struct obj *objchns[2] = { g.invent, g.level.objects[u.ux][u.uy] };
-    boolean validcont = FALSE,
+    boolean validcont = FALSE, known_locked = FALSE,
             do_menu   = (flags.menu_style != MENU_TRADITIONAL);
     char buf[BUFSZ];
     struct obj *slots[62]; /* enough for a-zA-Z0-9 in the ridiculous case
@@ -3465,12 +3465,16 @@ select_transfer_container(void)
              otmp = invent ? otmp->nobj : otmp->nexthere) {
             if (floorchar > '9')
                 break;
-            /* allow unknown bags of tricks to be listed here to avoid
-             * leaking its identity; they will be denied later on */
-            if (Is_container(otmp) && otmp != g.current_container
-                && !(otmp->otyp == BAG_OF_TRICKS
-                     && objects[BAG_OF_TRICKS].oc_name_known)
-                && !(otmp->lknown && otmp->olocked)) {
+            if (!Is_container(otmp) || otmp == g.current_container
+                /* allow unknown bags of tricks to be listed here to avoid
+                 * leaking its identity; they will be denied later on */
+                || (otmp->otyp == BAG_OF_TRICKS
+                    && objects[BAG_OF_TRICKS].oc_name_known)) {
+                /* not a container */
+            } else if (otmp->lknown && otmp->olocked) {
+                known_locked = TRUE;
+            } else {
+                /* acceptable container option */
                 validcont = TRUE;
 
                 Sprintf(buf, "%s%s", doname(otmp),
@@ -3505,7 +3509,8 @@ select_transfer_container(void)
                      MENU_ITEMFLAGS_NONE); /* space */
     }
     if (!validcont) {
-        pline("There's no other container to put items in.");
+        pline("There isn't another %scontainer here to put items in.",
+              known_locked ? "unlocked " : "");
         return FALSE;
     }
     if (do_menu) {
