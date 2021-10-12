@@ -88,7 +88,7 @@ missmm(register struct monst *magr, register struct monst *mdef,
         if (blocker && !rn2(5)) {
             Sprintf(buf, "%s %s %s", s_suffix(Monnam(mdef)), blocker,
                     rn2(3) ? "blocks" : "deflects");
-            pline("%s %s attack.", buf, s_suffix(mon_nam_too(mdef, magr)));
+            pline("%s %s attack.", buf, s_suffix(mon_nam_too(magr, mdef)));
         }
         else  {
             fmt = (could_seduce(magr, mdef, mattk) && !magr->mcan)
