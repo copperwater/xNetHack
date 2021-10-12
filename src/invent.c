@@ -2082,7 +2082,7 @@ askchain(struct obj **objchn, /* *objchn might change */
 
     takeoff = taking_off(word);
     ident = !strcmp(word, "identify");
-    take_out = !strcmp(word, "take out");
+    take_out = (!strcmp(word, "take out") || !strcmp(word, "transfer"));
     put_in = !strcmp(word, "put in");
     nodot = (!strcmp(word, "nodot") || !strcmp(word, "drop") || ident
              || takeoff || take_out || put_in);
