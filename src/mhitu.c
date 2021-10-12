@@ -2097,6 +2097,7 @@ doseduce(struct monst *mon)
     mayberem(mon, Who, uarmh, helm_simple_name(uarmh));
     if (!uarmc && !uarm)
         mayberem(mon, Who, uarmu, "shirt");
+    (void) encumber_msg(); /* armor weight may have changed */
 
     /* removing armor (levitation boots, or levitation ring to make
        room for adornment ring with incubus case) might result in the
