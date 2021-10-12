@@ -3497,6 +3497,10 @@ not_actually_specifying_material(const char * const str, int material)
     if (!strcmp(str, matstr)) {
         return TRUE;
     }
+    /* avoid false positive: 'gold ring' matches 'gold ring mail' */
+    if (!strncmpi(str + matlen, " ring mail", 10)) {
+        return FALSE;
+    }
     /* does it match some object? */
     for (i = STRANGE_OBJECT + 1; i < NUM_OBJECTS; ++i) {
         /* match in the object name e.g. "gold detection", "wax candle" */
