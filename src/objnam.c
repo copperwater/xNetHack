@@ -467,6 +467,17 @@ xname(struct obj* obj)
     return xname_flags(obj, CXN_NORMAL);
 }
 
+/* Force rendering of materials on certain items where the object name
+ * wouldn't make as much sense without a material (e.g. "leather jacket" vs
+ * "jacket"), or those where the default material is non-obvious.
+ * NB: GLOVES have a randomized description when not identified; "leather
+ * padded gloves" would give the game away if we did not check their
+ * identification status */
+#define force_material_name(typ) \
+    ((typ) == LIGHT_ARMOR || (typ) == STUDDED_ARMOR || (typ) == JACKET \
+     || (typ) == PLAIN_CLOAK || (typ) == FIGURINE || (typ) == STATUE \
+     || ((typ) == GLOVES && objects[GLOVES].oc_name_known))
+
 static char *
 xname_flags(
     register struct obj *obj,
@@ -518,7 +529,7 @@ xname_flags(
         goto nameit;
     switch (obj->oclass) {
     case AMULET_CLASS:
-        if (obj->material != objects[obj->otyp].oc_material && !g.distantname) {
+        if (obj->material != objects[typ].oc_material && dknown) {
             Strcat(buf, materialnm[obj->material]);
             Strcat(buf, " ");
         }
@@ -546,10 +557,8 @@ xname_flags(
         else if (is_wet_towel(obj))
             Strcpy(buf, (obj->spe < 3) ? "moist " : "wet ");
 
-        if ((obj->material != objects[obj->otyp].oc_material
-            /* figurines have non-obvious material so always show material even
-             * when default */
-             || obj->otyp == FIGURINE) && !g.distantname) {
+        if ((obj->material != objects[typ].oc_material
+             || force_material_name(typ)) && dknown) {
             Strcat(buf, materialnm[obj->material]);
             Strcat(buf, " ");
         }
@@ -584,16 +593,8 @@ xname_flags(
         if (is_boots(obj) || is_gloves(obj))
             Strcpy(buf, "pair of ");
 
-        if ((obj->material != objects[obj->otyp].oc_material
-             /* force rendering of material on certain types of armor where the
-              * name is more nonsensical without any prefix */
-             || obj->otyp == LIGHT_ARMOR || obj->otyp == STUDDED_ARMOR
-             || obj->otyp == JACKET || obj->otyp == PLAIN_CLOAK
-             /* GLOVES have a randomized description when not identified;
-              * "leather padded gloves" would give the game away if we did not
-              * check their identification status */
-             || (obj->otyp == GLOVES && objects[GLOVES].oc_name_known))
-            && !g.distantname) {
+        if ((obj->material != objects[typ].oc_material
+             || force_material_name(typ)) && dknown) {
             Strcat(buf, materialnm[obj->material]);
             Strcat(buf, " ");
         }
@@ -905,8 +906,9 @@ minimal_xname(struct obj *obj)
     if (obj->otyp == SLIME_MOLD)
         bareobj.spe = obj->spe;
     /* in the interest of minimalism, don't show this specific object's
-     * material */
-    bareobj.material = objects[obj->otyp].oc_material;
+     * material, unless the material is always included in the name. */
+    bareobj.material = force_material_name(obj->otyp)
+                        ? obj->material : objects[obj->otyp].oc_material;
 
     /* bufp will be an obuf[] and a pointer into middle of that is viable */
     bufp = distant_name(&bareobj, xname); /* xname(&bareobj) */
