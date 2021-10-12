@@ -48,6 +48,9 @@ monster_census(boolean spotted) /* seen|sensed vs all */
             continue;
         if (spotted && !canspotmon(mtmp))
             continue;
+        if (spotted && !sensemon(mtmp) && M_AP_TYPE(mtmp) != M_AP_NOTHING
+            && M_AP_TYPE(mtmp) != M_AP_MONSTER)
+            continue; /* concealed mimic */
         ++count;
     }
     return count;
