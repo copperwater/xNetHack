@@ -37,6 +37,7 @@ static int out_container(struct obj *);
 static long mbag_item_gone(int, struct obj *, boolean);
 static int stash_ok(struct obj *);
 static void explain_container_prompt(boolean);
+static boolean transfer_container_available(void);
 static boolean select_transfer_container(void);
 static int traditional_loot(boolean);
 static int menu_loot(int, boolean);
@@ -3194,7 +3195,7 @@ use_container(
 {
     struct obj *otmp, *obj = *objp;
     boolean quantum_cat, cursed_mbag, loot_out, loot_in, loot_in_first,
-        stash_one, inokay, outokay, outmaybe;
+        stash_one, inokay, outokay, outmaybe, tranokay;
     char c, emptymsg[BUFSZ], qbuf[QBUFSZ], pbuf[QBUFSZ], xbuf[QBUFSZ];
     int used = ECMD_OK;
     long loss;
@@ -3290,6 +3291,7 @@ use_container(
      */
     for (;;) { /* repeats iff '?' or ':' gets chosen */
         outmaybe = (outokay || !g.current_container->cknown);
+        tranokay = (outmaybe && transfer_container_available());
         if (!outmaybe)
             (void) safe_qbuf(qbuf, (char *) 0, " is empty.  Do what with it?",
                              g.current_container, Yname2, Ysimple_name2,
@@ -3317,7 +3319,7 @@ use_container(
             Strcat(inokay ? pbuf : xbuf, "i");   /* put in */
             Strcat(outmaybe ? pbuf : xbuf, "b"); /* both */
             Strcat(inokay ? pbuf : xbuf, "rs");  /* reversed, stash */
-            Strcat(inokay ? pbuf : xbuf, "t");   /* transfer */
+            Strcat(tranokay ? pbuf : xbuf, "t"); /* transfer */
             Strcat(pbuf, " ");                   /* separator */
             Strcat(more_containers ? pbuf : xbuf, "n"); /* next container */
             Strcat(pbuf, "q");                   /* quit */
@@ -3452,6 +3454,29 @@ use_container(
     if (g.transfer_container)
         g.transfer_container = 0; /* ditto */
     return used;
+}
+
+static boolean
+transfer_container_available(void)
+{
+    struct obj *otmp, *objchns[2] = { g.invent, g.level.objects[u.ux][u.uy] };
+    int i;
+
+    for (i = 0; i < SIZE(objchns); ++i) {
+        boolean invent = (objchns[i] == g.invent);
+        for (otmp = objchns[i]; otmp;
+             otmp = invent ? otmp->nobj : otmp->nexthere) {
+            /* follow the same rules as select_transfer_container() w/r/t
+             * which containers are considered acceptable */
+            if (Is_container(otmp) && otmp != g.current_container
+                && !(otmp->otyp == BAG_OF_TRICKS
+                     && objects[BAG_OF_TRICKS].oc_name_known)
+                && !(otmp->lknown && otmp->olocked)) {
+                return TRUE;
+            }
+        }
+    }
+    return FALSE;
 }
 
 /* The player has indicated they want to transfer items from container to
@@ -3775,7 +3800,7 @@ in_or_out_menu(const char *prompt, struct obj *obj, boolean outokay,
         add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
                  ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
     }
-    if (outokay) {
+    if (outokay && transfer_container_available()) {
         any.a_int = 7;
         Strcpy(buf, "take out and put into another container");
         add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
