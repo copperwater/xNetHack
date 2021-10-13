@@ -1694,6 +1694,9 @@ rub_ok_core(struct obj *obj, boolean check_withering)
         || obj->otyp == LUMP_OF_ROYAL_JELLY)
         return GETOBJ_SUGGEST;
 
+    if (obj->otyp == ROCK)
+        return GETOBJ_DOWNPLAY;
+
     if (check_withering && obj->material == SILVER && Withering) {
         if (obj->owornmask & (W_ARMOR | W_ACCESSORY)) {
             return GETOBJ_EXCLUDE_SELECTABLE;
@@ -2724,8 +2727,12 @@ use_stone(struct obj *tstone)
              * touchstone will yield the most */
             flint_made += 2;
         }
-        You("bang %s%s on %s.", ((obj->quan > 1L) ? "one of " : ""),
-            the(xname(obj)), the(xname(tstone)));
+        if (tstone->otyp == ROCK) {
+            You("bang two rocks together.");
+        } else {
+            You("bang %s%s on %s.", ((obj->quan > 1L) ? "one of " : ""),
+                the(xname(obj)), the(xname(tstone)));
+        }
         pline_The("rock crumbles%s.", flint_made > 0 ? "" : " slightly");
 
         if (flint_made <= 0) {
@@ -4034,6 +4041,10 @@ apply_ok(struct obj *obj)
         || obj->otyp == LUMP_OF_ROYAL_JELLY)
         return GETOBJ_SUGGEST;
 
+    /* banging rocks together to make flint */
+    if (obj->otyp == ROCK)
+        return GETOBJ_DOWNPLAY;
+
     if (is_graystone(obj)) {
         /* The only case where we don't suggest a gray stone is if we KNOW it
          * isn't a touchstone or thiefstone. */
@@ -4251,6 +4262,7 @@ doapply(void)
     case LUCKSTONE:
     case TOUCHSTONE:
     case THIEFSTONE:
+    case ROCK:
         use_stone(obj);
         break;
     default:
