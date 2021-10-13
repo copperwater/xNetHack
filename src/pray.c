@@ -1301,6 +1301,9 @@ pleased(aligntyp g_align)
                 }
                 otmp->otyp = rnd_class(g.bases[SPBOOK_CLASS], SPE_BLANK_PAPER);
             }
+            /* spellbook material depends on otyp, which we may have just
+             * changed, so make sure the material matches the default. */
+            set_material(otmp, objects[otmp->otyp].oc_material);
             bless(otmp);
             at_your_feet("A spellbook");
             place_object(otmp, u.ux, u.uy);
