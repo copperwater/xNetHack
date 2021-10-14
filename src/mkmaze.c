@@ -1015,7 +1015,8 @@ destroy_wall(xchar x, xchar y)
     /* don't destroy walls of the maze border */
     if (maze_edge(x, y))
         return;
-    if (IS_WALL(levl[x][y].typ) || IS_DOOR(levl[x][y].typ)) {
+    if (IS_WALL(levl[x][y].typ) || IS_DOOR(levl[x][y].typ)
+        || levl[x][y].typ == SDOOR) {
         levl[x][y].typ = ROOM;
         levl[x][y].flags = 0; /* clear door mask */
     }
