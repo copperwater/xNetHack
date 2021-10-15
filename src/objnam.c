@@ -3573,6 +3573,7 @@ object_not_monster(const char *str)
         "samurai sword", /* not the "samurai" monster! */
         "wizard lock",   /* not the "wizard" monster! */
         "death wand",    /* 'of inversion', not Rider */
+        "skeleton key",  /* not the "skeleton" monster */
         "master key",    /* not the "master" rank */
         "ninja-to",      /* not the "ninja" rank */
         "magenta",       /* not the "mage" rank */
