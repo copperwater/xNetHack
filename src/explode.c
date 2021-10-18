@@ -32,7 +32,8 @@ explode(
     int x, int y, /* explosion's location; adjacent spots are also affected */
     int type,     /* same as in zap.c; -(wand typ) for some WAND_CLASS */
     int dam,      /* damage amount */
-    char olet,    /* object class or BURNING_OIL or MON_EXPLODE */
+    char olet,    /* object class or BURNING_OIL or MON_EXPLODE or
+                     TRAPPED_DOOR */
     int expltype) /* explosion type: controls color of explosion glyphs */
 {
     int i, j, k, damu = dam;
@@ -557,9 +558,9 @@ explode(
             g.context.botl = 1;
         }
 
-	/* You resisted the damage, lets not keep that to ourselves */
-	if (uhurt == 1)
-	    monstseesu_ad(adtyp);
+        /* You resisted the damage, lets not keep that to ourselves */
+        if (uhurt == 1)
+            monstseesu_ad(adtyp);
 
         if (u.uhp <= 0 || (Upolyd && u.mh <= 0)) {
             if (olet == MON_EXPLODE) {
@@ -568,11 +569,17 @@ explode(
                 else if (str != g.killer.name && str != hallu_buf)
                     Strcpy(g.killer.name, str);
                 g.killer.format = KILLED_BY_AN;
+            } else if ((olet == BURNING_OIL && g.context.mon_moving)
+                       || olet == TRAPPED_DOOR) {
+                g.killer.format = KILLED_BY_AN;
+                Snprintf(g.killer.name, sizeof g.killer.name,
+                         "exploding %s",
+                         olet == BURNING_OIL ? "fire bomb" : "door");
             } else if (type >= 0 && olet != SCROLL_CLASS) {
                 g.killer.format = NO_KILLER_PREFIX;
-                    Snprintf(g.killer.name, sizeof g.killer.name,
-                             "caught %sself in %s own %s", uhim(),
-                        uhis(), str);
+                Snprintf(g.killer.name, sizeof g.killer.name,
+                         "caught %sself in %s own %s", uhim(),
+                         uhis(), str);
             } else {
                 g.killer.format = (!strcmpi(str, "tower of flame")
                                     || !strcmpi(str, "fireball"))
