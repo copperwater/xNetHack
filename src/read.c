@@ -273,7 +273,7 @@ tin_text(struct obj *tin, char* buf)
         "Rothe-N-Beans",
         "Feed The Beast - Werewolf Meat",
         "Soylent Green",
-        "100%% All-Natural Croesus Meat - \"Eat the Rich!\"",
+        "100% All-Natural Croesus Meat - \"Eat the Rich!\"",
         "Djinni Brand Tins - Open now for your free wish!",
         "Can Of Whoop-Ass. Use Caution When Opening.",
     };
