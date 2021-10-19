@@ -3734,7 +3734,7 @@ mergable(register struct obj *otmp, register struct obj *obj)
         || obj->material != otmp->material || obj->greased != otmp->greased)
         return FALSE;
 
-    if ((obj->oclass == WEAPON_CLASS || obj->oclass == ARMOR_CLASS)
+    if ((erosion_matters(obj) || destroyable_oclass(obj->oclass))
         && obj->oerodeproof != otmp->oerodeproof)
         return FALSE;
 
