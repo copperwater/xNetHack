@@ -977,18 +977,20 @@ the_unique_pm(struct permonst* ptr)
 static void
 add_erosion_words(struct obj* obj, char* prefix)
 {
-    boolean iscrys = (obj->otyp == CRYSKNIFE);
-    boolean rknown;
+    boolean iscrys = (obj->otyp == CRYSKNIFE),
+            skip_eroded = (iscrys || !is_damageable(obj)),
+            rknown;
 
     rknown = (iflags.override_ID == 0) ? obj->rknown : TRUE;
 
-    if (!is_damageable(obj) && !(obj->material == GLASS) && !iscrys)
+    if (!is_damageable(obj) && !destroyable_oclass(obj->oclass) && !iscrys
+        && obj->material != GLASS)
         return;
 
     /* The only cases where any of these bits do double duty are for
      * rotted food and diluted potions, which are all not is_damageable().
      */
-    if (obj->oeroded && !iscrys) {
+    if (obj->oeroded && !skip_eroded) {
         switch (obj->oeroded) {
         case 2:
             Strcat(prefix, "very ");
@@ -999,7 +1001,7 @@ add_erosion_words(struct obj* obj, char* prefix)
         }
         Strcat(prefix, is_rustprone(obj) ? "rusty " : "burnt ");
     }
-    if (obj->oeroded2 && !iscrys) {
+    if (obj->oeroded2 && !skip_eroded) {
         switch (obj->oeroded2) {
         case 2:
             Strcat(prefix, "very ");
