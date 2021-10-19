@@ -1663,7 +1663,8 @@ seffect_enchant_weapon(struct obj **sobjp)
                   hcolor(scursed ? NH_PURPLE : NH_GOLDEN),
                   scursed ? "glow" : "shield");
         }
-        if (new_erodeproof && (uwep->oeroded || uwep->oeroded2)) {
+        if (new_erodeproof && erosion_matters(uwep)
+            && (uwep->oeroded || uwep->oeroded2)) {
             uwep->oeroded = uwep->oeroded2 = 0;
             pline("%s as good as new!",
                   Yobjnam2(uwep, Blind ? "feel" : "look"));
