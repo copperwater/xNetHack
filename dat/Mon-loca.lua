@@ -99,7 +99,7 @@ des.monster({ id="xorn", coord={63,04}, peaceful=0 })
 des.monster({ id="xorn", coord={71,04}, peaceful=0 })
 des.monster({ id="xorn", coord={63,10}, peaceful=0 })
 des.monster({ id="xorn", coord={71,10}, peaceful=0 })
-local fortressarea = selection.area(58,00,75,13)
+local fortressarea = selection.area(58,00,75,13):filter_mapchar('.')
 for i=1,4 do
   des.monster({ class = "E", coord = { fortressarea:rndcoord() }, peaceful=0 })
 end
