@@ -1041,6 +1041,7 @@ hold_another_object(struct obj *obj, const char *drop_fmt,
         obj_extract_self(obj);
         if (crysknife) {
             obj->otyp = CRYSKNIFE;
+            set_material(obj, objects[CRYSKNIFE].oc_material);
             obj->oerodeproof = oerode;
         }
     }
