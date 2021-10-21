@@ -852,6 +852,7 @@ mksobj(int otyp, boolean init, boolean artif)
             /* check oartifact here because mk_artifact isn't guaranteed to
              * create an artifact */
             if (!otmp->oartifact && !otmp->cursed
+                && otmp->otyp != WORM_TOOTH
                 && (otmp->spe + otmp->oerodeproof > (long) rnd(5)))
                 otmp = weapon_oname(otmp);
 

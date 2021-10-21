@@ -548,7 +548,7 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
         }
         goto default_1;
     case PM_LONG_WORM:
-        (void) mksobj_at(WORM_TOOTH, x, y, TRUE, FALSE);
+        otmp = mksobj_at(WORM_TOOTH, x, y, TRUE, FALSE);
         goto default_1;
     case PM_VAMPIRE:
     case PM_VAMPIRE_LEADER:
