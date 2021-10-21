@@ -1530,19 +1530,13 @@ not_fully_identified(struct obj* otmp)
     if (otmp->oartifact && undiscovered_artifact(otmp->oartifact))
         return TRUE;
     /* otmp->rknown is the only item of interest if we reach here */
-    /*
-     *  Note:  if a revision ever allows scrolls to become fireproof or
-     *  rings to become shockproof, this checking will need to be revised.
-     *  `rknown' ID only matters if xname() will provide the info about it.
-     */
     if (otmp->rknown
-        || (otmp->oclass != ARMOR_CLASS && otmp->oclass != WEAPON_CLASS
-            && !is_weptool(otmp)            /* (redundant) */
-            && otmp->oclass != BALL_CLASS)) /* (useless) */
+        || (!erosion_matters(otmp) && !destroyable_oclass(otmp->oclass)))
         return FALSE;
     else /* lack of `rknown' only matters for vulnerable objects */
-        return (boolean) (is_rustprone(otmp) || is_corrodeable(otmp)
-                          || is_flammable(otmp));
+        return (boolean) (is_damageable(otmp)
+                          || destroyable_oclass(otmp->oclass)
+                          || otmp->material == GLASS);
 }
 
 /* format a corpse name (xname() omits monster type; doname() calls us);
