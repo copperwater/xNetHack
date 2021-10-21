@@ -3110,7 +3110,8 @@ explain_container_prompt(boolean more_containers)
         " i -- In: put things in",
         " b -- Both: first take things out, then put things in",
         " r -- Reversed: put things in, then take things out",
-        " s -- Stash: put one item in", "",
+        " s -- Stash: put one item in",
+        " t -- Transfer: move items into another container", "",
         " n -- Next: loot next selected container",
         " q -- Quit: finished",
         " ? -- Help: display this text.",
@@ -3119,7 +3120,7 @@ explain_container_prompt(boolean more_containers)
     const char *const *txtpp;
     winid win;
 
-    /* "Do what with <container>? [:oibrsq or ?] (q)" */
+    /* "Do what with <container>? [:oibrst q or ?] (q)" */
     if ((win = create_nhwindow(NHW_TEXT)) != WIN_ERR) {
         for (txtpp = explaintext; *txtpp; ++txtpp) {
             if (!more_containers && !strncmp(*txtpp, " n ", 3))
