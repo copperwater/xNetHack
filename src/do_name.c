@@ -1308,11 +1308,11 @@ weapon_oname(struct obj *wpn)
     else if (wpn->otyp == TWO_HANDED_SWORD)
         Strcpy(basename, "Claymore");
     else if (is_sword(wpn))
-        Strcpy(basename, "Sword");
-    else if (wpn->otyp == MORNING_STAR)
-        Strcpy(basename, "Morning Star");
+        Strcpy(basename, rn2(2) ? "Sword" : "Blade");
     else if (wpn->otyp == RUBBER_HOSE)
         Strcpy(basename, "Hose");
+    else if (skill == P_QUARTERSTAFF)
+        Strcpy(basename, "Staff");
     else if ((skill == P_POLEARMS) || (skill == P_KNIFE)
              || (wpn->otyp == ATHAME))
         Strcpy(basename, OBJ_NAME(objects[wpn->otyp]));
@@ -1349,14 +1349,14 @@ weapon_oname(struct obj *wpn)
         const char* ttname = tt_name();
         if (ttname) {
             Strcpy(nbuf, ttname);
-            Sprintf(buf, "%s of %s", upstart(basename), upstart(nbuf));
+            Sprintf(buf, "%s of %s", up_all_words(basename), upstart(nbuf));
             return oname(wpn, buf);
         }
         /* if a name couldn't be found, fall through to default */
     }
     const char* name = wpn_names[rn2(SIZE(wpn_names))];
     if (strstri(name, "%s")) {
-        Sprintf(buf, name, upstart(basename));
+        Sprintf(buf, name, up_all_words(basename));
         return oname(wpn, buf);
     }
     else {
