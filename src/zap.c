@@ -1692,7 +1692,8 @@ poly_obj(struct obj *obj, int id)
             otmp->oeroded = obj->oeroded;
         if (is_corrodeable(otmp) || is_rottable(otmp))
             otmp->oeroded2 = obj->oeroded2;
-        if (is_damageable(otmp))
+        if (is_damageable(otmp) || destroyable_oclass(otmp->oclass)
+            || otmp->material == GLASS)
             otmp->oerodeproof = obj->oerodeproof;
     }
 

@@ -4988,7 +4988,8 @@ readobjnam(char *bp, struct obj *no_wish)
          * shatterproof crystal plate mail.
          */
         if (d.erodeproof
-            && (is_damageable(d.otmp) || d.otmp->otyp == CRYSKNIFE
+            && (is_damageable(d.otmp) || destroyable_oclass(d.otmp->oclass)
+                || d.otmp->otyp == CRYSKNIFE
                 || objects[d.otmp->otyp].oc_material == GLASS))
             d.otmp->oerodeproof = (Luck >= 0 || wizard);
     }
