@@ -1794,7 +1794,7 @@ dosacrifice(void)
                                   hcolor((u.ualign.type == A_LAWFUL)
                                             ? NH_GOLDEN
                                             : u.ualign.type
-                                               ? NH_RED
+                                               ? NH_BLACK
                                                : (const char *) "gray"));
 
                     if (!canspotself())
