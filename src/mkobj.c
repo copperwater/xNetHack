@@ -3618,6 +3618,7 @@ material_list(struct obj* obj)
         case HARP:
         case MAGIC_HARP:
             return resonant_materials;
+        case SKELETON_KEY:
         case TOOLED_HORN:
         case FIRE_HORN:
         case FROST_HORN:
