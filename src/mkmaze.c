@@ -1013,8 +1013,14 @@ static void
 destroy_wall(xchar x, xchar y)
 {
     /* don't destroy walls of the maze border */
-    if (maze_edge(x, y))
+    if (maze_edge(x, y)) {
+        /* convert corners to straight border */
+        if (levl[x][y].typ == TUWALL || levl[x][y].typ == TDWALL)
+            levl[x][y].typ = HWALL;
+        else if (levl[x][y].typ == TLWALL || levl[x][y].typ == TRWALL)
+            levl[x][y].typ = VWALL;
         return;
+    }
     if (IS_WALL(levl[x][y].typ) || IS_DOOR(levl[x][y].typ)
         || levl[x][y].typ == SDOOR) {
         levl[x][y].typ = ROOM;
@@ -1062,11 +1068,11 @@ maze_touchup_rooms(int attempts)
         /* Maybe remove the walls for this room. */
         if (rn2(5)) {
             xchar x, y;
-            for (x = g.rooms[i].lx; x <= g.rooms[i].hx; ++x) {
+            for (x = g.rooms[i].lx - 1; x <= g.rooms[i].hx + 1; x++) {
                 destroy_wall(x, g.rooms[i].ly - 1);
                 destroy_wall(x, g.rooms[i].hy + 1);
             }
-            for (y = g.rooms[i].ly; y <= g.rooms[i].hy; ++y) {
+            for (y = g.rooms[i].ly - 1; y <= g.rooms[i].hy + 1; y++) {
                 destroy_wall(g.rooms[i].lx - 1, y);
                 destroy_wall(g.rooms[i].hx + 1, y);
             }
