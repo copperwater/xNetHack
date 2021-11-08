@@ -1339,6 +1339,8 @@ check_room(xchar* lowx, xchar* ddx, xchar* lowy, xchar* ddy, boolean vault)
                     return FALSE;
                 if (g.in_mk_themerooms)
                     return FALSE;
+                if (g.level.flags.is_maze_lev)
+                    return FALSE;
                 if (x < *lowx)
                     *lowx = x + xlim + 1;
                 else
