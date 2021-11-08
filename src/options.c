@@ -286,6 +286,7 @@ static int handler_pickup_burden(void);
 static int handler_pickup_types(void);
 static int handler_runmode(void);
 static int handler_sortloot(void);
+static int handler_symset(int);
 static int handler_whatis_coord(void);
 static int handler_whatis_filter(void);
 /* next few are not allopts[] entries, so will only be called
@@ -3206,6 +3207,9 @@ optfn_symset(int optidx UNUSED, int req, boolean negated UNUSED,
             Strcat(opts, ", active");
         return optn_ok;
     }
+    if (req == do_handler) {
+        return handler_symset(optidx);
+    }
     return optn_ok;
 }
 
@@ -4848,6 +4852,173 @@ handler_whatis_filter(void)
     destroy_nhwindow(tmpwin);
     return optn_ok;
 }
+
+DISABLE_WARNING_FORMAT_NONLITERAL
+
+static int
+handler_symset(int optidx)
+{
+    winid tmpwin;
+    anything any;
+    int n;
+    char buf[BUFSZ];
+    menu_item *symset_pick = (menu_item *) 0;
+    boolean ready_to_switch = FALSE,
+            nothing_to_do = FALSE;
+    char *symset_name, fmtstr[20];
+    struct symsetentry *sl;
+    int res, which_set, setcount = 0, chosen = -2, defindx = 0;
+
+    which_set = PRIMARY;
+    g.symset_list = (struct symsetentry *) 0;
+    /* clear symset[].name as a flag to read_sym_file() to build list */
+    symset_name = g.symset[which_set].name;
+    g.symset[which_set].name = (char *) 0;
+
+    res = read_sym_file(which_set);
+    /* put symset name back */
+    g.symset[which_set].name = symset_name;
+
+    if (res && g.symset_list) {
+        int thissize,
+            biggest = (int) (sizeof "Default Symbols" - sizeof ""),
+            big_desc = 0;
+
+        for (sl = g.symset_list; sl; sl = sl->next) {
+            /* check restrictions */
+#ifndef MAC_GRAPHICS_ENV
+            if (sl->handling == H_MAC)
+                continue;
+#endif
+
+            setcount++;
+            /* find biggest name */
+            thissize = sl->name ? (int) strlen(sl->name) : 0;
+            if (thissize > biggest)
+                biggest = thissize;
+            thissize = sl->desc ? (int) strlen(sl->desc) : 0;
+            if (thissize > big_desc)
+                big_desc = thissize;
+        }
+        if (!setcount) {
+            pline("There are no appropriate symbol sets available.");
+            return TRUE;
+        }
+
+        Sprintf(fmtstr, "%%-%ds %%s", biggest + 2);
+        tmpwin = create_nhwindow(NHW_MENU);
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
+        any = cg.zeroany;
+        any.a_int = 1; /* -1 + 2 [see 'if (sl->name) {' below]*/
+        if (!symset_name)
+            defindx = any.a_int;
+        add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
+                 "Default Symbols",
+                 (any.a_int == defindx) ? MENU_ITEMFLAGS_SELECTED
+                                        : MENU_ITEMFLAGS_NONE);
+
+        for (sl = g.symset_list; sl; sl = sl->next) {
+            /* check restrictions */
+#ifndef MAC_GRAPHICS_ENV
+            if (sl->handling == H_MAC)
+                continue;
+#endif
+            if (sl->name) {
+                /* +2: sl->idx runs from 0 to N-1 for N symsets;
+                   +1 because Defaults are implicitly in slot [0];
+                   +1 again so that valid data is never 0 */
+                any.a_int = sl->idx + 2;
+                if (symset_name && !strcmpi(sl->name, symset_name))
+                    defindx = any.a_int;
+                Sprintf(buf, fmtstr, sl->name, sl->desc ? sl->desc : "");
+                add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
+                         ATR_NONE, buf,
+                         (any.a_int == defindx) ? MENU_ITEMFLAGS_SELECTED
+                                                : MENU_ITEMFLAGS_NONE);
+            }
+        }
+        Sprintf(buf, "Select symbol set:");
+        end_menu(tmpwin, buf);
+        n = select_menu(tmpwin, PICK_ONE, &symset_pick);
+        if (n > 0) {
+            chosen = symset_pick[0].item.a_int;
+            /* if picking non-preselected entry yields 2, make sure
+               that we're going with the non-preselected one */
+            if (n == 2 && chosen == defindx)
+                chosen = symset_pick[1].item.a_int;
+            chosen -= 2; /* convert menu index to symset index;
+                          * "Default symbols" have index -1 */
+            free((genericptr_t) symset_pick);
+        } else if (n == 0 && defindx > 0) {
+            chosen = defindx - 2;
+        }
+        destroy_nhwindow(tmpwin);
+
+        if (chosen > -1) {
+            /* chose an actual symset name from file */
+            for (sl = g.symset_list; sl; sl = sl->next)
+                if (sl->idx == chosen)
+                    break;
+            if (sl) {
+                /* free the now stale attributes */
+                clear_symsetentry(which_set, TRUE);
+
+                /* transfer only the name of the symbol set */
+                g.symset[which_set].name = dupstr(sl->name);
+                ready_to_switch = TRUE;
+            }
+        } else if (chosen == -1) {
+            /* explicit selection of defaults */
+            /* free the now stale symset attributes */
+            clear_symsetentry(which_set, TRUE);
+        } else
+            nothing_to_do = TRUE;
+    } else if (!res) {
+        /* The symbols file could not be accessed */
+        pline("Unable to access \"%s\" file.", SYMBOLS);
+        return TRUE;
+    } else if (!g.symset_list) {
+        /* The symbols file was empty */
+        pline("There were no symbol sets found in \"%s\".", SYMBOLS);
+        return TRUE;
+    }
+
+    /* clean up */
+    while ((sl = g.symset_list) != 0) {
+        g.symset_list = sl->next;
+        if (sl->name)
+            free((genericptr_t) sl->name), sl->name = (char *) 0;
+        if (sl->desc)
+            free((genericptr_t) sl->desc), sl->desc = (char *) 0;
+        free((genericptr_t) sl);
+    }
+
+    if (nothing_to_do)
+        return TRUE;
+
+    /* Set default symbols and clear the handling value */
+    init_primary_symbols();
+
+    if (g.symset[which_set].name) {
+        /* non-default symbols */
+        if (read_sym_file(which_set)) {
+            ready_to_switch = TRUE;
+        } else {
+            clear_symsetentry(which_set, TRUE);
+            return TRUE;
+        }
+    }
+
+    if (ready_to_switch)
+        switch_symbols(TRUE);
+
+    assign_graphics(PRIMARY);
+    preference_update("symset");
+    g.opt_need_redraw = TRUE;
+    return optidx;
+}
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 static int
 handler_autopickup_exception(void)
