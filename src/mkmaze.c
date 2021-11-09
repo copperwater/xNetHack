@@ -26,6 +26,8 @@ static void stolen_booty(void);
 static void maze_remove_deadends(xchar);
 static boolean mazeroom_eligible(void);
 static void destroy_wall(xchar, xchar);
+static void maze_touchup_rooms(int);
+static void check_maze_coverage(int, int, int, int);
 
 /* adjust a coordinate one step in the specified direction */
 #define mz_move(X, Y, dir) \
@@ -1080,6 +1082,23 @@ maze_touchup_rooms(int attempts)
     }
 }
 
+static void
+check_maze_coverage(int x1, int y1, int x2, int y2)
+{
+    int x, y;
+    for (x = x1; x <= x2; x++) {
+        for (y = y1; y <= y2; y++) {
+            if (levl[x][y].typ == STONE
+                /* skip room interiors, in case a themeroom has 'columns' or
+                 * similar decor */
+                && levl[x][y].roomno == NO_ROOM) {
+                impossible("mazewalk unfinished? stone at <%d,%d>", x, y);
+                return;
+            }
+        }
+    }
+}
+
 /* Create a maze with specified corridor width and wall thickness
  * TODO: rewrite walkfrom so it works on temp space, not levl
  */
@@ -1280,8 +1299,10 @@ makemaz(const char *s)
     */
     create_maze(1, 1, !rn2(5));
 
-    if (!g.level.flags.corrmaze)
+    if (!g.level.flags.corrmaze) {
         wallification(2, 2, g.x_maze_max, g.y_maze_max);
+        check_maze_coverage(2, 2, g.x_maze_max, g.y_maze_max);
+    }
 
     mazexy(&mm);
     mkstairs(mm.x, mm.y, 1, (struct mkroom *) 0); /* up */
