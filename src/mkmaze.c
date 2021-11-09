@@ -1455,7 +1455,7 @@ walkfrom(int x, int y, schar typ)
 void
 walkfrom(int x, int y, schar typ)
 {
-    int q, a, dir;
+    int q, a, dir, move_x, move_y;
     int dirs[4];
 
     if (!typ) {
@@ -1472,17 +1472,17 @@ walkfrom(int x, int y, schar typ)
     }
 
     while (1) {
-        q = 0;
+        q = 0, move_x = x, move_y = y;
         for (a = 0; a < 4; a++)
             if (okay(x, y, a))
                 dirs[q++] = a;
         if (!q)
             return;
         dir = dirs[rn2(q)];
-        mz_move(x, y, dir);
-        levl[x][y].typ = typ;
-        mz_move(x, y, dir);
-        walkfrom(x, y, typ);
+        mz_move(move_x, move_y, dir);
+        levl[move_x][move_y].typ = typ;
+        mz_move(move_x, move_y, dir);
+        walkfrom(move_x, move_y, typ);
     }
 }
 #endif /* ?MICRO */
