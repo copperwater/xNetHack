@@ -346,8 +346,8 @@ BOW("crossbow", NoDes,          1, 45, 50, 40, 0, WOOD, P_CROSSBOW, HI_WOOD,
           cost, ac, can, ARM_BOOTS, metal, c,sn)
 
 /* helmets */
-HELM("elven helm", "leather hat",
-     0, 0,           0,  6, 1,  3,  8,  9, 0, LEATHER, HI_LEATHER,
+HELM("elven helm", NoDes,
+     1, 0,           0,  6, 1,  3,  8,  9, 0, LEATHER, HI_LEATHER,
                                                         ELVEN_HELM),
 HELM("orcish helm", "skull cap",
      0, 0,           0,  6, 1, 30, 10,  9, 0, IRON, CLR_BLACK,
