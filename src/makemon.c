@@ -2343,7 +2343,7 @@ set_mimic_sym(register struct monst *mtmp)
     /* only valid for INSIDE of room */
     roomno = levl[mx][my].roomno - ROOMOFFSET;
     if (roomno >= 0)
-        rt = g.rooms[roomno].orig_rtype;
+        rt = g.in_mklev ? g.rooms[roomno].rtype : g.rooms[roomno].orig_rtype;
 #ifdef SPECIALIZATION
     else if (IS_ROOM(typ))
         rt = OROOM, roomno = 0;
