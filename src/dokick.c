@@ -998,17 +998,15 @@ dokick(void)
                           : "You kick open");
                 exercise(A_DEX, TRUE);
                 predoortrapped(x, y, &g.youmonst, FOOT, D_BROKEN);
-                if (!door_is_iron(g.maploc)) {
-                    if (!door_is_locked(g.maploc)) {
-                        /* assume doorstate is already D_CLOSED */
-                        postdoortrapped(x, y, &g.youmonst, FOOT, D_ISOPEN);
-                        set_doorstate(g.maploc, D_ISOPEN);
-                    }
-                    feel_newsym(x, y); /* we know it's gone */
-                    if (doorstate(g.maploc) == D_ISOPEN
-                        || doorstate(g.maploc) == D_NODOOR)
-                        unblock_point(x, y); /* vision */
+                if (!door_is_iron(g.maploc) && !door_is_locked(g.maploc)) {
+                    /* assume doorstate is already D_CLOSED */
+                    postdoortrapped(x, y, &g.youmonst, FOOT, D_ISOPEN);
+                    set_doorstate(g.maploc, D_ISOPEN);
                 }
+                feel_newsym(x, y);
+                if (doorstate(g.maploc) == D_ISOPEN
+                    || doorstate(g.maploc) == D_NODOOR)
+                    unblock_point(x, y); /* vision */
             } else {
                 /* Don't reveal whether secret door or secret corridor. */
                 pline(Deaf ? "The wall gives way a little."
