@@ -1913,7 +1913,8 @@ mfndpos(
             ntyp = levl[nx][ny].typ;
             if (IS_ROCK(ntyp)
                 && !((flag & ALLOW_WALL) && may_passwall(nx, ny))
-                && !((IS_TREE(ntyp) ? treeok : rockok) && may_dig(nx, ny)))
+                && !((IS_TREE(ntyp) ? treeok : rockok) && may_dig(nx, ny)
+                     && (!(ntyp == SDOOR && door_is_iron(&levl[nx][ny])))))
                 continue;
             /* KMH -- Added iron bars */
             if (ntyp == IRONBARS
