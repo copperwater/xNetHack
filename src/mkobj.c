@@ -911,6 +911,14 @@ mksobj(int otyp, boolean init, boolean artif)
                     int holiday = current_holidays();
                     const char* foods[10];
                     int idx = 0;
+                    if (holiday & HOLIDAY_NEW_YEARS
+                        && Role_if(PM_SAMURAI)) {
+                        /* a sampling of traditional Japanese New Year foods
+                           (osechi ryouri) */
+                        foods[idx++] = "bowl of zoni";
+                        foods[idx++] = "datemaki";
+                        foods[idx++] = "kuromame";
+                    }
                     if (holiday & HOLIDAY_VALENTINES_DAY) {
                         foods[idx++] = "box of chocolates";
                         foods[idx++] = "chocolate-covered strawberry";
