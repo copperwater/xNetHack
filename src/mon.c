@@ -1947,7 +1947,9 @@ mfndpos(
             ntyp = levl[nx][ny].typ;
             if (IS_ROCK(ntyp)
                 && !((flag & ALLOW_WALL) && may_passwall(nx, ny))
-                && !((IS_TREE(ntyp) ? treeok : rockok) && may_dig(nx, ny)))
+                && !((IS_TREE(ntyp) ? treeok : rockok) && may_dig(nx, ny)
+                     && (!(ntyp == SDOOR && door_is_iron(&levl[nx][ny]))
+                         || (metallivorous(mon->data) && rockok))))
                 continue;
             /* KMH -- Added iron bars */
             if (ntyp == IRONBARS
@@ -1966,7 +1968,8 @@ mfndpos(
                     || (door_is_locked(&levl[nx][ny])
                         && !(flag & UNLOCKDOOR)))
                 /* Can mon not dig through the door? */
-                && (!(rockok || treeok) || door_is_iron(&levl[nx][ny]))
+                && (!(rockok || treeok) || (door_is_iron(&levl[nx][ny])
+                                            && !metallivorous(mon->data)))
                 /* Can mon not bust through the door? */
                 && (!(flag & BUSTDOOR) || door_is_iron(&levl[nx][ny])))
                 continue;
