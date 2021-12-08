@@ -255,7 +255,8 @@ dosounds(void)
             && !index(u.ushops, (int) (ROOM_INDEX(sroom) + ROOMOFFSET))) {
             const char *name = shkname(sroom->resident);
             struct eshk *eshkp = ESHK(sroom->resident);
-            if (!eshkp->visitct) {
+            if (!eshkp->visitct || !*eshkp->customer
+                || strncmp(eshkp->customer, g.plname, PL_NSIZ)) {
                 name = "someone";
             }
             static const char *const shop_msg[3] = {
