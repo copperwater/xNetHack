@@ -2581,7 +2581,7 @@ thiefstone_ok(struct obj *obj)
      * some non-magical exceptions that should be discouraged if known */
     if (obj->oclass == AMULET_CLASS || obj->oclass == SPBOOK_CLASS
         || obj->oclass == RING_CLASS || obj->oclass == SCROLL_CLASS
-        || obj->oclass == POTION_CLASS) {
+        || obj->oclass == POTION_CLASS || obj->oclass == WAND_CLASS) {
         if (!objects[obj->otyp].oc_magic && objects[obj->otyp].oc_name_known) {
             return GETOBJ_DOWNPLAY;
         }
