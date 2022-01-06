@@ -2091,15 +2091,17 @@ moldy_corpse(anything *arg, long timeout UNUSED)
     /* [ALI] Molds don't grow in adverse conditions.  If it ever
      * becomes possible for molds to grow in containers we should
      * check for iceboxes here as well.
-     * [AOS] Further, the mold has to grow *on* the corpse, not enexto'd a bunch
-     * of spaces away (or behind the hero blocking their escape route) if
-     * there's a crowd.
+     * [AOS] Further, the mold has to grow *on* the corpse, not enexto'd a
+     * bunch of spaces away (or behind the hero blocking their escape route)
+     * if there's a crowd. Also, if it grows underneath a boulder, it will
+     * appear on top and look weird, so prevent that.
      */
     boolean bad_spot = ((body->where == OBJ_FLOOR || body->where==OBJ_BURIED)
-                        && (is_pool(body->ox, body->oy) ||
-                            is_lava(body->ox, body->oy) ||
-                            is_ice(body->ox, body->oy)  ||
-                            MON_AT(body->ox, body->oy)));
+                        && (is_pool(body->ox, body->oy)
+                            || is_lava(body->ox, body->oy)
+                            || is_ice(body->ox, body->oy)
+                            || MON_AT(body->ox, body->oy)
+                            || sobj_at(BOULDER, body->ox, body->oy)));
 
     /* maybe F are genocided? */
     boolean no_eligible = (newpm == NULL);
