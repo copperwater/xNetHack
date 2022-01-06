@@ -548,7 +548,7 @@ fill_zoo(struct mkroom* sroom)
                 }
                 if (!rn2(2)) {
                     const char* bloodstains[] =
-                        { "/", "-", "\\", ".", "," ":" };
+                        { "/", "-", "\\", ".", ",", ":" };
                     make_engr_at(sx, sy, bloodstains[rn2(SIZE(bloodstains))],
                                  0, ENGR_BLOOD);
                 }
