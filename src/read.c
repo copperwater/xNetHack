@@ -577,7 +577,7 @@ doread(void)
             "Chicken with Salsa MRE",
             "Tuna in Pouch MRE",
             "Meatloaf with Gravy MRE",
-            "Ham Slice MRE"
+            "Ham Slice MRE",
             "Humanitarian Daily Ration 8970-01-375-0516",
         };
         if (Blind) {
