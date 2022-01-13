@@ -188,6 +188,7 @@ changes:
   undead, and animals never are. Higher Charisma results in a slightly better
   chance to avoid getting stunned.
 - Nazgul can innately see invisible.
+- On February 2 (Groundhog Day), woodchucks can randomly generate.
 
 
 ### Interface changes

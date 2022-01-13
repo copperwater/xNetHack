@@ -57,6 +57,15 @@ moveloop_preamble(boolean resuming)
         pline("Watch out!  Bad things can happen on Friday the 13th.");
         change_luck(-1);
     }
+    if (current_holidays() & HOLIDAY_GROUNDHOG_DAY) {
+        /* allow woodchucks to generate randomly on Groundhog Day only  */
+        mons[PM_WOODCHUCK].geno &= ~G_NOGEN;
+        mons[PM_WOODCHUCK].geno |= 2;
+    }
+    else {
+        mons[PM_WOODCHUCK].geno &= ~G_FREQ;
+        mons[PM_WOODCHUCK].geno |= G_NOGEN;
+    }
 
     if (!resuming) { /* new game */
         g.context.rndencode = rnd(9000);

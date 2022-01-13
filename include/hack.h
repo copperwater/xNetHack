@@ -555,6 +555,7 @@ enum bodypart_types {
 #define HOLIDAY_CHRISTMAS      0x04000
 #define HOLIDAY_LOS_MUERTOS    0x08000
 #define HOLIDAY_MARDI_GRAS     0x10000
+#define HOLIDAY_GROUNDHOG_DAY  0x20000
 
 /* constant passed to explode() for gas spores because gas spores are weird
  * Specifically, this is an exception to the whole "explode() uses dobuzz types"
