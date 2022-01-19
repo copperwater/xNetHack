@@ -990,7 +990,8 @@ mksobj(int otyp, boolean init, boolean artif)
                         /* fruitadd requires a modifiable string */
                         char foodbuf[BUFSZ];
                         Strcpy(foodbuf, foods[rn2(idx)]);
-                        otmp->spe = fruitadd(foodbuf, NULL);
+                        /* holiday fruits have negative spe */
+                        otmp->spe = -fruitadd(foodbuf, NULL);
                     }
                 }
                 flags.made_fruit = TRUE;

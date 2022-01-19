@@ -631,7 +631,7 @@ xname_flags(
     case FOOD_CLASS:
         /* we could include partly-eaten-hack on fruit but don't need to */
         if (typ == SLIME_MOLD) {
-            struct fruit *f = fruit_from_indx(obj->spe);
+            struct fruit *f = fruit_from_indx(fruit_id(obj));
 
             if (!f) {
                 impossible("Bad fruit #%d?", obj->spe);

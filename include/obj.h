@@ -476,6 +476,11 @@ struct obj {
 #define thiefstone_ledger_valid(stone) \
     ((stone)->keyed_ledger > 0 && (stone)->keyed_ledger <= maxledgerno())
 
+/* special holiday fruits are differentiated from user-defined fruits by
+ * negative spe */
+#define is_holiday_fruit(obj) ((obj)->otyp == SLIME_MOLD && (obj)->spe < 0)
+#define fruit_id(obj) (abs((obj)->spe))
+
 /*
  *  Notes for adding new oextra structures:
  *

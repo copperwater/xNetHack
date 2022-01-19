@@ -137,7 +137,7 @@ resetobjs(struct obj *ochain, boolean restore)
             }
 
             if (otmp->otyp == SLIME_MOLD) {
-                goodfruit(otmp->spe);
+                goodfruit(fruit_id(otmp));
 #ifdef MAIL_STRUCTURES
             } else if (otmp->otyp == SCR_MAIL) {
                 /* 0: delivered in-game via external event;
@@ -321,7 +321,7 @@ drop_upon_death(struct monst *mtmp, /* monster if hero turned into one (other th
         otmp->owt = weight(otmp);
 
         if (otmp->otyp == SLIME_MOLD)
-            goodfruit(otmp->spe);
+            goodfruit(fruit_id(otmp));
 
         if (rn2(5))
             curse(otmp);
