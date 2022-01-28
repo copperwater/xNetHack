@@ -17,7 +17,6 @@ static void create_polymon(struct obj *, int);
 static int stone_to_flesh_obj(struct obj *);
 static boolean zap_updown(struct obj *);
 static void zhitu(int, int, const char *, xchar, xchar);
-static void revive_egg(struct obj *);
 static boolean zap_steed(struct obj *);
 static void skiprange(int, int *, int *);
 static int zap_hit(int, int);
@@ -993,7 +992,7 @@ revive(struct obj *corpse, boolean by_hero)
     return mtmp;
 }
 
-static void
+void
 revive_egg(struct obj *obj)
 {
     /*
@@ -4162,6 +4161,10 @@ burn_floor_objects(int x, int y,
                 }
             }
         }
+        /* Being hit by fire is a good thing for phoenix eggs. */
+        if (obj->otyp == EGG && obj->corpsenm == PM_PHOENIX) {
+            revive_egg(obj);
+        }
     }
     /* This also ignites floor items, but does not change cnt
        because they weren't consumed. */
@@ -5314,6 +5317,13 @@ destroy_items(struct monst *mon, /* monster whose invent is being subjected to
     bypass_objlist(*objchn, FALSE); /* clear bypass bit for invent */
 
     while ((obj = nxt_unbypassed_obj(*objchn)) != 0) {
+        /* eggs aren't destroyable by fire, so potentially revive phoenix eggs
+         * here before checking destroyability */
+        if (dmgtyp == AD_FIRE && obj->otyp == EGG
+            && obj->corpsenm == PM_PHOENIX) {
+            revive_egg(obj);
+        }
+
         if (!destroyable(obj, dmgtyp))
             continue; /* this dmg type can't destroy this obj */
 

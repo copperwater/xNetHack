@@ -3280,6 +3280,7 @@ extern boolean get_mon_location(struct monst *, xchar *, xchar *, int);
 extern struct monst *get_container_location(struct obj * obj, int *, int *);
 extern struct monst *montraits(struct obj *, coord *, boolean);
 extern struct monst *revive(struct obj *, boolean);
+extern void revive_egg(struct obj *);
 extern int unturn_dead(struct monst *);
 extern void unturn_you(void);
 extern void cancel_item(struct obj *);

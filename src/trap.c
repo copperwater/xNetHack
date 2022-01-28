@@ -3967,6 +3967,9 @@ fire_damage(
           *     awful luck (Luck<-4):  100%
           */
         return FALSE;
+    } else if (obj->otyp == EGG && obj->corpsenm == PM_PHOENIX) {
+        revive_egg(obj);
+        return FALSE;
     } else if (obj->oclass == SCROLL_CLASS || obj->oclass == SPBOOK_CLASS) {
         if (obj->otyp == SCR_FIRE || obj->otyp == SPE_FIREBALL)
             return FALSE;
@@ -4038,6 +4041,10 @@ lava_damage(struct obj* obj, xchar x, xchar y)
        (let Book of the Dead fall through to fire_damage() to get feedback) */
     if (obj_resists(obj, 0, 0) && otyp != SPE_BOOK_OF_THE_DEAD)
         return FALSE;
+    if (obj->otyp == EGG && obj->corpsenm == PM_PHOENIX) {
+        revive_egg(obj);
+        return FALSE;
+    }
     /* destroy liquid (venom), wax, veggy, flesh, paper (except for scrolls
        and books--let fire damage deal with them), cloth, leather, wood, bone
        unless it's inherently or explicitly fireproof or contains something;

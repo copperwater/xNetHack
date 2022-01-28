@@ -119,7 +119,7 @@ changes:
 - The Vibrating Square level is no longer a random maze; the player always
   generates in one of two small rooms at the bottom, and the square is always
   found in the center of one of three larger rooms.
-- New monster black mold: a black F that is sessile and has a passive deathly
+- New monster "black mold": a black F that is sessile and has a passive deathly
   illness attack. It also causes illness when eaten, and like other molds can be
   used to ferment fruit juice, turning it into sickness.
 - Air terrain can now appear in levels other than the Planes. In such levels
@@ -157,6 +157,10 @@ changes:
     material, and specific weapon-versus-monster damage adjustments such as
     blessed weapons versus undead.)
   - Can be dual wielded with the other Brands.
+- New monster "phoenix": an orange B that is quite powerful with difficulty 20.
+  Strongly lawful (thus is likely to be peaceful to lawful players), attacks
+  with bites and fire claws, and explodes in a ball of fire when killed, which
+  produces a phoenix egg that will soon hatch anew into a phoenix.
 
 ### Interface changes
 

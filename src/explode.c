@@ -934,6 +934,18 @@ mon_explodes(struct monst *mon, struct attack *mattk)
     explode(mon->mx, mon->my, type, dmg, MON_EXPLODE,
             adtyp_to_expltype(mattk->adtyp));
 
+    /* phoenix special case: drop an egg containing the reborn phoenix;
+     * eggs have to be done here instead of in the corpse function because
+     * otherwise the explosion destroys the egg */
+    if (mon->data == &mons[PM_PHOENIX]) {
+        struct obj *obj = mksobj_at(EGG, mon->mx, mon->my, TRUE, FALSE);
+        obj->corpsenm = PM_PHOENIX;
+        bless(obj);
+        obj->quan = 1;
+        obj->owt = weight(obj);
+        attach_egg_hatch_timeout(obj, 10L);
+    }
+
     /* reset killer */
     g.killer.name[0] = '\0';
 }
