@@ -4,7 +4,7 @@
 -- NetHack may be freely redistributed.  See license for details.
 --
 
-des.level_flags("mazelevel", "outdoors", "hardfloor", "noflipx");
+des.level_flags("mazelevel", "outdoors", "hardfloor", "noflipx", "inaccessibles");
 
 des.level_init({ style = "mines", fg = ".", bg=".", lit=1, walled=false });
 
@@ -31,8 +31,10 @@ des.terrain({ selection = selection.ellipse(rightstair[1], rightstair[2], 2, 3, 
 des.stair({ dir = "up", coord = leftstair })
 des.stair({ dir = "down", coord = rightstair })
 
--- guarantee MOST of a path through the forest
-des.replace_terrain({ selection=selection.randline(leftstair[1], leftstair[2], rightstair[1], rightstair[2], 80):percentage(75),
+-- make a path through the forest (not guaranteed to not require getting through
+-- a diagonal choke point of two trees)
+local path = selection.randline(leftstair[1], leftstair[2], rightstair[1], rightstair[2], 80)
+des.replace_terrain({ selection=path, --:percentage(75),
                       fromterrain='T', toterrain='.' })
 
 -- lake(s)
@@ -68,6 +70,19 @@ for i=1,d(2) do
       didwater = true
    end
 end
+
+-- correct for random inaccessible pockets: either player could teleport there
+-- without the supplies to get out and starve to death, or the level could be
+-- flagged inaccessibles and generate teleport scrolls and wands all over the
+-- place. Ensure every square that is not accessible from the inter-stair path
+-- becomes a tree, and flag the level as inaccessibles as a backup in case
+-- something goes wrong.
+local accessible = selection.new()
+path:iterate(function(x,y)
+   accessible = accessible | selection.floodfill(x,y,true)
+end)
+des.replace_terrain({ selection=accessible:negate(), fromterrain='.', toterrain='T' })
+
 
 -- lots of sticks lying around
 for i=1,25 do

@@ -60,7 +60,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1 # enable visual c compiler / nmake
     - name: setup
       run: |
-        ./sys/winnt/nhsetup.bat
+        ./sys/windows/nhsetup.bat
     - name: make install
       run: |
         cd src

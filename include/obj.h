@@ -54,13 +54,12 @@ struct obj {
                 * mummy-trapped chest (3);
                 * named fruit index;
                 * candy bar wrapper index;
+                * scroll of scare monster (when uncursed: never picked up==0,
+                *   has been picked up==1, turns to dust if picked up again;
+                *   when blessed|cursed: flag not checked, set, or cleared);
                 * scroll of mail (normal==0, bones or wishing==1, written==2);
                 * splash of venom (normal==0, wishing==1);
-                * historic flag and gender for statues;
                 * ledger number of keyed level for thiefstones */
-#define STATUE_HISTORIC 0x01
-#define STATUE_MALE 0x02
-#define STATUE_FEMALE 0x04
 #define keyed_ledger spe
     char oclass;    /* object class */
     char invlet;    /* designation in inventory */
@@ -274,7 +273,7 @@ struct obj {
 /* Eggs and other food */
 #define MAX_EGG_HATCH_TIME 200 /* longest an egg can remain unhatched */
 #define stale_egg(egg) \
-    ((g.monstermoves - (egg)->age) > (2 * MAX_EGG_HATCH_TIME))
+    ((g.moves - (egg)->age) > (2 * MAX_EGG_HATCH_TIME))
 #define ofood(o) ((o)->otyp == CORPSE || (o)->otyp == EGG || (o)->otyp == TIN)
     /* note: sometimes eggs and tins have special corpsenm values that
        shouldn't be used as an index into mons[]                       */

@@ -7,16 +7,12 @@ des.level_flags("noflip");
 des.room({ type ="delphi", lit = 1, x=39, y=10, xalign="center", yalign="center", w=11, h=9,
            contents = function()
                -- Make a squarish ring of pools around the Oracle, 3 spaces out
-               local ring = selection.new()
-               for i=2,8 do
-                  for j=1,7 do
-                     local tb = (j == 1 or j == 7)
-                     local lr = (i == 2 or i == 8)
-                     if (tb and not lr) or (not tb and lr) then
-                        ring:set(i,j)
-                     end
-                  end
-               end
+               local ring = selection.rect(2,1,8,7)
+               -- cut corners
+               ring:set(2,1, 0)
+               ring:set(2,7, 0)
+               ring:set(8,1, 0)
+               ring:set(8,7, 0)
   
                -- Close off three of the four passages into the center; there are also only
                -- three fountains; make sure that no fountain is aligned with the open square

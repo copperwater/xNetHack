@@ -118,9 +118,10 @@ des.object("blank paper")
 for i=1,2 do
    des.object({ id="figurine", montype="j" })
 end
--- these should be rotted, but the special level parser doesn't let you specify
--- erosion
-des.object("high boots")
+-- the method of specifying erosion is odd, with the two least significant bits
+-- being oeroded and the next two being oeroded2. We want these to be rotted, so
+-- if oeroded2 = 1, then 1 << 2 = 4
+des.object({ id = "high boots", material = "leather", eroded = 4 })
 -- this may be helpful in crossing water
 des.object({ class="/", id = "cold" })
 -- one of each soft gemstone

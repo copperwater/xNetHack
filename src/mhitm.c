@@ -1,4 +1,4 @@
-/* NetHack 3.7	mhitm.c	$NHDT-Date: 1614910020 2021/03/05 02:07:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.192 $ */
+/* NetHack 3.7	mhitm.c	$NHDT-Date: 1627412283 2021/07/27 18:58:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.199 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -84,11 +84,19 @@ missmm(register struct monst *magr, register struct monst *mdef,
     pre_mm_attack(magr, mdef);
 
     if (g.vis) {
-        fmt = (could_seduce(magr, mdef, mattk) && !magr->mcan)
-                  ? "%s pretends to be friendly to"
-                  : "%s misses";
-        Sprintf(buf, fmt, Monnam(magr));
-        pline("%s %s.", buf, mon_nam_too(mdef, magr));
+        const char *blocker = attack_blocker(mdef);
+        if (blocker && !rn2(5)) {
+            Sprintf(buf, "%s %s %s", s_suffix(Monnam(mdef)), blocker,
+                    rn2(3) ? "blocks" : "deflects");
+            pline("%s %s attack.", buf, s_suffix(mon_nam_too(mdef, magr)));
+        }
+        else  {
+            fmt = (could_seduce(magr, mdef, mattk) && !magr->mcan)
+                      ? "%s pretends to be friendly to"
+                      : "%s misses";
+            Sprintf(buf, fmt, Monnam(magr));
+            pline("%s %s.", buf, mon_nam_too(mdef, magr));
+        }
     } else
         noises(magr, mattk);
 }
@@ -346,7 +354,7 @@ mattackm(register struct monst *magr, register struct monst *mdef)
      * some cases, in which case this still counts as its move for the round
      * and it shouldn't move again.
      */
-    magr->mlstmv = g.monstermoves;
+    magr->mlstmv = g.moves;
 
     /* controls whether a mind flayer uses all of its tentacle-for-DRIN
        attacks; when fighting a headless monster, stop after the first
@@ -580,7 +588,11 @@ hitmm(register struct monst *magr, register struct monst *mdef,
             buf[0] = '\0';
             switch (mattk->aatyp) {
             case AT_BITE:
-                Snprintf(buf, sizeof(buf), "%s bites", magr_name);
+                Snprintf(buf, sizeof(buf), "%s %s", magr_name,
+                         has_beak(magr->data) ? "pecks" : "bites");
+                break;
+            case AT_KICK:
+                Snprintf(buf, sizeof(buf), "%s kicks", magr_name);
                 break;
             case AT_STNG:
                 Snprintf(buf, sizeof(buf), "%s stings", magr_name);
@@ -594,6 +606,23 @@ hitmm(register struct monst *magr, register struct monst *mdef,
             case AT_TENT:
                 Snprintf(buf, sizeof(buf), "%s tentacles suck", s_suffix(magr_name));
                 break;
+            case AT_WEAP:
+                if (MON_WEP(magr)) {
+                    if (is_launcher(mwep) || is_missile(mwep) || is_ammo(mwep))
+                        /* default case */
+                        Snprintf(buf, sizeof(buf), "%s hits", magr_name);
+                    else
+                        Snprintf(buf, sizeof(buf), "%s %s", magr_name,
+                                 weaphitmsg(mwep, magr));
+                    break;
+                }
+                /* FALLTHRU */
+            case AT_CLAW: {
+                const char *verb = barehitmsg(magr);
+                Snprintf(buf, sizeof(buf), "%s %s", magr_name,
+                         verb ? verb : "hits");
+                break;
+            }
             case AT_HUGS:
                 if (magr != u.ustuck) {
                     Snprintf(buf, sizeof(buf), "%s squeezes", magr_name);
@@ -624,9 +653,13 @@ gazemm(struct monst *magr, struct monst *mdef, struct attack *mattk)
                       && mattk->adtyp == AD_BLND),
             altmesg = (archon && !magr->mcansee);
 
+    /* bring target out of hiding even if hero doesn't see it happen (this
+       is already done in pre_mm_attack() and shouldn't be needed here) */
+    if (mdef->data->mlet == S_MIMIC && M_AP_TYPE(mdef) != M_AP_NOTHING)
+        seemimic(mdef);
+    mdef->mundetected = 0;
+
     if (g.vis) {
-        if (mdef->data->mlet == S_MIMIC && M_AP_TYPE(mdef) != M_AP_NOTHING)
-            seemimic(mdef);
         Sprintf(buf, "%s gazes %s",
                 altmesg ? Adjmonnam(magr, "blinded") : Monnam(magr),
                 altmesg ? "toward" : "at");
@@ -732,8 +765,10 @@ gulpmm(register struct monst *magr, register struct monst *mdef,
         Sprintf(buf, "%s swallows", Monnam(magr));
         pline("%s %s.", buf, mon_nam(mdef));
     }
-    for (obj = mdef->minvent; obj; obj = obj->nobj)
-        (void) snuff_lit(obj);
+    if (!flaming(magr->data)) {
+        for (obj = mdef->minvent; obj; obj = obj->nobj)
+            (void) snuff_lit(obj);
+    }
 
     if (is_vampshifter(mdef)
         && newcham(mdef, &mons[mdef->cham], FALSE, FALSE)) {

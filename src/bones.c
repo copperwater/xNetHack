@@ -8,6 +8,7 @@
 static boolean no_bones_level(d_level *);
 static void goodfruit(int);
 static void resetobjs(struct obj *, boolean);
+static void give_to_nearby_mon(struct obj *);
 static boolean fixuporacle(struct monst *);
 
 static boolean
@@ -249,6 +250,43 @@ sanitize_name(char *namebuf)
     }
 }
 
+/* The hero has just died and is dropping their possessions.
+ * Nearby monsters may take some of them.
+ * Currently, this is only for directly adjacent monsters to avoid silliness
+ * like monsters on the other side of a wall getting some of the items.
+ * If there is no nearby monster, just drop the item. */
+static void
+give_to_nearby_mon(struct obj *otmp)
+{
+    struct monst *mtmp;
+    struct monst *selected = (struct monst *) 0;
+    int nmon = 0, xx, yy;
+
+    for (xx = u.ux - 1; xx <= u.ux + 1; ++xx) {
+        for (yy = u.uy - 1; yy <= u.uy + 1; ++yy) {
+            if (!isok(xx, yy))
+                continue;
+            if (xx == u.ux && yy == u.uy)
+                continue;
+            if (!(mtmp = m_at(xx, yy)))
+                continue;
+            /* This doesn't do any checks on otmp to see that it matches the
+             * likes_* property, intentionally. Assume that the monster is
+             * rifling through and taking things that look interesting. */
+            if (!(likes_gold(mtmp->data) || likes_gems(mtmp->data)
+                  || likes_objs(mtmp->data) || likes_magic(mtmp->data)))
+                continue;
+            nmon++;
+            if (!rn2(nmon))
+                selected = mtmp;
+        }
+    }
+    if (selected && can_carry(selected, otmp))
+        add_to_minv(selected, otmp);
+    else
+        place_object(otmp, u.ux, u.uy);
+}
+
 /* called by savebones(); also by finish_paybill(shk.c) */
 void
 drop_upon_death(struct monst *mtmp, /* monster if hero turned into one (other than ghost) */
@@ -271,10 +309,13 @@ drop_upon_death(struct monst *mtmp, /* monster if hero turned into one (other th
         if (!mtmp || is_undead(mtmp->data))
             obj_no_longer_held(otmp);
 
-        otmp->owornmask = 0L;
         /* lamps don't go out when dropped */
         if ((cont || artifact_light(otmp)) && obj_is_burning(otmp))
             end_burn(otmp, TRUE); /* smother in statue */
+        otmp->owornmask = 0L;
+
+        /* undo any armor weight reduction if it was worn */
+        otmp->owt = weight(otmp);
 
         if (otmp->otyp == SLIME_MOLD)
             goodfruit(otmp->spe);
@@ -285,6 +326,8 @@ drop_upon_death(struct monst *mtmp, /* monster if hero turned into one (other th
             (void) add_to_minv(mtmp, otmp);
         else if (cont)
             (void) add_to_container(cont, otmp);
+        else if (!rn2(8))
+            give_to_nearby_mon(otmp);
         else
             place_object(otmp, x, y);
     }

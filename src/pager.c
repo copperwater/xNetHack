@@ -1,4 +1,4 @@
-/* NetHack 3.7	pager.c	$NHDT-Date: 1620590081 2021/05/09 19:54:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.201 $ */
+/* NetHack 3.7	pager.c	$NHDT-Date: 1622421100 2021/05/31 00:31:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.202 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -11,12 +11,14 @@
 
 static boolean is_swallow_sym(int);
 static int append_str(char *, const char *);
+static void trap_description(char *, int, int, int);
 static void look_at_object(char *, int, int, int);
 static void look_at_monster(char *, char *, struct monst *, int, int);
 static struct permonst *lookat(int, int, char *, char *);
 static void add_mon_info(winid, struct permonst *);
 static void add_obj_info(winid, short);
-static void look_all(boolean,boolean);
+static void look_all(boolean, boolean);
+static void look_traps(boolean);
 static void do_supplemental_info(char *, struct permonst *, boolean);
 static void whatdoes_help(void);
 static void docontact(void);
@@ -50,25 +52,32 @@ is_swallow_sym(int c)
     return FALSE;
 }
 
-/*
- * Append new_str to the end of buf if new_str doesn't already exist as
- * a substring of buf.  Return 1 if the string was appended, 0 otherwise.
- * It is expected that buf is of size BUFSZ.
- */
+/* Append " or "+new_str to the end of buf if new_str doesn't already exist
+   as a substring of buf.  Return 1 if the string was appended, 0 otherwise.
+   It is expected that buf is of size BUFSZ. */
 static int
 append_str(char *buf, const char *new_str)
 {
-    int space_left; /* space remaining in buf */
+    static const char sep[] = " or ";
+    size_t oldlen, space_left;
 
     if (strstri(buf, new_str))
-        return 0;
+        return 0; /* already present */
 
-    space_left = BUFSZ - strlen(buf) - 1;
-    if (space_left < 1)
-        return 0;
-    (void) strncat(buf, " or ", space_left);
-    (void) strncat(buf, new_str, space_left - 4);
-    return 1;
+    oldlen = strlen(buf);
+    if (oldlen >= BUFSZ - 1) {
+        if (oldlen > BUFSZ - 1)
+            impossible("append_str: 'buf' contains %lu characters.",
+                       (unsigned long) oldlen);
+        return 0; /* no space available */
+    }
+
+    /* some space available, but not necessarily enough for full append */
+    space_left = BUFSZ - 1 - oldlen;  /* space remaining in buf */
+    (void) strncat(buf, sep, space_left);
+    if (space_left > sizeof sep - 1)
+        (void) strncat(buf, new_str, space_left - (sizeof sep - 1));
+    return 1; /* something was appended, possibly just part of " or " */
 }
 
 /* shared by monster probing (via query_objlist!) as well as lookat() */
@@ -95,6 +104,55 @@ self_lookat(char *outbuf)
     if (u.utrap) /* bear trap, pit, web, in-floor, in-lava, tethered */
         Sprintf(eos(outbuf), ", %s", trap_predicament(trapbuf, 0, FALSE));
     return outbuf;
+}
+
+/* format a description of 'mon's health for look_at_monster(), done_in_by();
+   result isn't Healer-specific (not trained for arbitrary creatures) */
+char *
+monhealthdescr(struct monst *mon, boolean addspace, char *outbuf)
+{
+#if 0   /* [disable this for the time being] */
+    int mhp_max = max(mon->mhpmax, 1), /* bullet proofing */
+        pct = (mon->mhp * 100) / mhp_max;
+
+    if (mon->mhp >= mhp_max)
+        Strcpy(outbuf, "uninjured");
+    else if (mon->mhp <= 1 || pct < 5)
+        Sprintf(outbuf, "%s%s", (mon->mhp > 0) ? "nearly " : "",
+                !nonliving(mon->data) ? "deceased" : "defunct");
+    else
+        Sprintf(outbuf, "%swounded",
+                (pct >= 95) ? "barely "
+                : (pct >= 80) ? "slightly "
+                  : (pct < 20) ? "heavily "
+                    : "");
+    if (addspace)
+        (void) strkitten(outbuf, ' ');
+#else
+    nhUse(mon);
+    nhUse(addspace);
+    *outbuf = '\0';
+#endif
+    return outbuf;
+}
+
+/* copy a trap's description into outbuf[] */
+static void
+trap_description(char *outbuf, int tnum, int x, int y)
+{
+    /* Trap detection displays a bear trap at locations having
+     * a trapped door or trapped container or both.
+     *
+     * TODO: we should create actual trap types for doors and
+     * chests so that they can have their own glyphs and tiles.
+     */
+    if (trapped_chest_at(tnum, x, y))
+        Strcpy(outbuf, "trapped chest"); /* might actually be a large box */
+    else if (trapped_door_at(tnum, x, y))
+        Strcpy(outbuf, "trapped door"); /* not "trap door"... */
+    else
+        Strcpy(outbuf, trapname(tnum, FALSE));
+    return;
 }
 
 /* describe a hidden monster; used for look_at during extended monster
@@ -376,7 +434,8 @@ look_at_monster(char *buf,
                                         : (mW & M2_ELF & m2) ? "elf"
                                           : (mW & M2_ORC & m2) ? "orc"
                                             : (mW & M2_DEMON & m2) ? "demon"
-                                              : pmname(mtmp->data, Mgender(mtmp)));
+                                              : pmname(mtmp->data,
+                                                       Mgender(mtmp)));
 
                     if (g.context.warntype.obj_mlet == mtmp->data->mlet) {
                         /* Note: relying on .explain will be wonky if an
@@ -471,17 +530,7 @@ lookat(int x, int y, char *buf, char *monbuf)
     } else if (glyph_is_trap(glyph)) {
         int tnum = glyph_to_trap(glyph);
 
-        /* Trap detection displays a bear trap at locations having
-         * a trapped door or trapped container or both.
-         * TODO: we should create actual trap types for doors and
-         * chests so that they can have their own glyphs and tiles.
-         */
-        if (trapped_chest_at(tnum, x, y))
-            Strcpy(buf, "trapped chest"); /* might actually be a large box */
-        else if (trapped_door_at(tnum, x, y))
-            Strcpy(buf, "trapped door"); /* not "trap door"... */
-        else
-            Strcpy(buf, trapname(tnum, FALSE));
+        trap_description(buf, tnum, x, y);
     } else if (glyph_is_warning(glyph)) {
         int warnindx = glyph_to_warning(glyph);
 
@@ -2000,7 +2049,8 @@ do_screen_description(coord cc, boolean looked, int sym, char *out_str,
             case SYM_PET_OVERRIDE + SYM_OFF_X:
                 if (looked) {
                     /* convert to symbol without override in effect */
-                    map_glyphinfo(cc.x, cc.y, glyph, MG_FLAG_NOOVERRIDE, &glyphinfo);
+                    map_glyphinfo(cc.x, cc.y, glyph, MG_FLAG_NOOVERRIDE,
+                                  &glyphinfo);
                     sym = glyphinfo.ttychar;
                     goto check_monsters;
                 }
@@ -2145,6 +2195,14 @@ do_look(int mode, coord *click_cc)
                 add_menu(win, &nul_glyphinfo, &any,
                          flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
                          "all objects shown on map", MENU_ITEMFLAGS_NONE);
+                any.a_char = '^';
+                add_menu(win, &nul_glyphinfo, &any,
+                         flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
+                         "nearby traps", MENU_ITEMFLAGS_NONE);
+                any.a_char = '\"';
+                add_menu(win, &nul_glyphinfo, &any,
+                         flags.lootabc ? 0 : any.a_char, 0, ATR_NONE,
+                         "all seen or remembered traps", MENU_ITEMFLAGS_NONE);
             }
             end_menu(win, "What do you want to look at:");
             if (select_menu(win, PICK_ONE, &pick_list) > 0) {
@@ -2211,6 +2269,12 @@ do_look(int mode, coord *click_cc)
             return 0;
         case 'O':
             look_all(FALSE, FALSE); /* list all objects */
+            return 0;
+        case '^':
+            look_traps(TRUE); /* list nearby traps */
+            return 0;
+        case '\"':
+            look_traps(FALSE); /* list all traps (visible or remembered) */
             return 0;
         }
     } else { /* clicklook */
@@ -2384,6 +2448,73 @@ look_all(boolean nearby,  /* True => within BOLTLIM, False => entire map */
               nearby ? "nearby" : "on the map");
     destroy_nhwindow(win);
 }
+
+/* give a /M style display of discovered traps, even when they're covered */
+static void
+look_traps(boolean nearby)
+{
+    winid win;
+    struct trap *t;
+    int x, y, lo_x, lo_y, hi_x, hi_y, glyph, tnum, count = 0;
+    char lookbuf[BUFSZ], outbuf[BUFSZ];
+
+    win = create_nhwindow(NHW_TEXT);
+    lo_y = nearby ? max(u.uy - BOLT_LIM, 0) : 0;
+    lo_x = nearby ? max(u.ux - BOLT_LIM, 1) : 1;
+    hi_y = nearby ? min(u.uy + BOLT_LIM, ROWNO - 1) : ROWNO - 1;
+    hi_x = nearby ? min(u.ux + BOLT_LIM, COLNO - 1) : COLNO - 1;
+    for (y = lo_y; y <= hi_y; y++) {
+        for (x = lo_x; x <= hi_x; x++) {
+            lookbuf[0] = '\0';
+            glyph = glyph_at(x, y);
+            if (glyph_is_trap(glyph)) {
+                tnum = glyph_to_trap(glyph);
+                trap_description(lookbuf, tnum, x, y);
+                ++count;
+            } else if ((t = t_at(x, y)) != 0 && t->tseen
+                       /* can't use /" to track traps moved by bubbles or
+                          clouds except when hero has direct line of sight */
+                       && ((!Is_waterlevel(&u.uz) && !Is_airlevel(&u.uz))
+                           || couldsee(x, y))) {
+                Strcpy(lookbuf, trapname(t->ttyp, FALSE));
+                Sprintf(eos(lookbuf), ", obscured by %s", encglyph(glyph));
+                glyph = trap_to_glyph(t);
+                ++count;
+            }
+            if (*lookbuf) {
+                char coordbuf[20], cmode;
+
+                cmode = (iflags.getpos_coords != GPCOORDS_NONE)
+                           ? iflags.getpos_coords : GPCOORDS_MAP;
+                if (count == 1) {
+                    Sprintf(outbuf, "%sseen or remembered traps%s:",
+                            nearby ? "nearby " : "",
+                            nearby ? "" : " on this level");
+                    putstr(win, 0, upstart(outbuf));
+                    /* hack alert! Qt watches a text window for any line
+                       with 4 consecutive spaces and renders the window
+                       in a fixed-width font it if finds at least one */
+                    putstr(win, 0, "    "); /* separator */
+                }
+                /* prefix: "coords  C  " where 'C' is trap symbol */
+                Sprintf(outbuf, (cmode == GPCOORDS_SCREEN) ? "%s  "
+                                  : (cmode == GPCOORDS_MAP) ? "%8s  "
+                                      : "%12s  ",
+                        coord_desc(x, y, coordbuf, cmode));
+                Sprintf(eos(outbuf), "%s  ", encglyph(glyph));
+                /* guard against potential overflow */
+                lookbuf[sizeof lookbuf - 1 - strlen(outbuf)] = '\0';
+                Strcat(outbuf, lookbuf);
+                putmixed(win, 0, outbuf);
+            }
+        }
+    }
+    if (count)
+        display_nhwindow(win, TRUE);
+    else
+        pline("No traps seen or remembered%s.", nearby ? " nearby" : "");
+    destroy_nhwindow(win);
+    }
 
 static const char *suptext1[] = {
     "%s is a member of a marauding horde of orcs",

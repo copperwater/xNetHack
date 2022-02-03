@@ -23,6 +23,7 @@ static void enlght_halfdmg(int, int);
 static boolean walking_on_water(void);
 static boolean cause_known(int);
 static char *attrval(int, int, char *);
+static char *fmt_elapsed_time(char *, int);
 static void background_enlightenment(int, int);
 static void basics_enlightenment(int, int);
 static void characteristics_enlightenment(int, int);
@@ -236,7 +237,8 @@ trap_predicament(char *outbuf, int final, boolean wizxtra)
    confers the target property; item must have been seen and its type
    discovered but it doesn't necessarily have to be fully identified */
 static boolean
-cause_known(int propindx) /* index of a property which can be conveyed by worn item */
+cause_known(
+    int propindx) /* index of a property which can be conveyed by worn item */
 {
     register struct obj *o;
     long mask = W_ARMOR | W_AMUL | W_RING | W_TOOL;
@@ -267,10 +269,69 @@ attrval(int attrindx, int attrvalue,
     return resultbuf;
 }
 
+/* format urealtime.realtime as
+      " D days, H hours, M minutes and S seconds"
+   with any fields having a value of 0 omitted:
+      0-00:00:20 => " 20 seconds"
+      0-00:15:05 => " 15 minutes and 5 seconds"
+      0-00:16:00 => " 16 minutes"
+      0-01:15:10 => " 1 hour, 15 minutes and 10 seconds"
+      0-02:00:01 => " 2 hours and 1 second"
+      3-00:25:40 => " 3 days, 25 minutes and 40 seconds"
+   (note: for a list of more than two entries, nethack usually includes the
+   [style-wise] optional comma before "and" but in this instance it does not)
+ */
+static char *
+fmt_elapsed_time(char *outbuf, int final)
+{
+    int fieldcnt;
+    long edays, ehours, eminutes, eseconds;
+    /* for a game that's over, reallydone() has updated urealtime.realtime
+       to its final value before calling us during end of game disclosure;
+       for a game that's still in progress, it holds the amount of elapsed
+       game time from previous sessions up through most recent save/restore
+       (or up through latest level change when 'checkpoint' is On);
+       '.start_timing' has a non-zero value even if '.realtime' is 0 */
+    long etim = urealtime.realtime;
+
+    if (!final)
+        etim += timet_delta(getnow(), urealtime.start_timing);
+    /* we could use localtime() to convert the value into a 'struct tm'
+       to get date and time fields but this is simple and straightforward */
+    eseconds = etim % 60L, etim /= 60L;
+    eminutes = etim % 60L, etim /= 60L;
+    ehours = etim % 24L;
+    edays = etim / 24L;
+    fieldcnt = !!edays + !!ehours + !!eminutes + !!eseconds;
+
+    Strcpy(outbuf, fieldcnt ? "" : " none"); /* 'none' should never happen */
+    if (edays) {
+        Sprintf(eos(outbuf), " %ld day%s", edays, plur(edays));
+        if (fieldcnt > 1) /* hours and/or minutes and/or seconds to follow */
+            Strcat(outbuf, (fieldcnt == 2) ? " and" : ",");
+        --fieldcnt; /* edays has been processed */
+    }
+    if (ehours) {
+        Sprintf(eos(outbuf), " %ld hour%s", ehours, plur(ehours));
+        if (fieldcnt > 1) /* minutes and/or seconds to follow */
+            Strcat(outbuf, (fieldcnt == 2) ? " and" : ",");
+        --fieldcnt; /* ehours has been processed */
+    }
+    if (eminutes) {
+        Sprintf(eos(outbuf), " %ld minute%s", eminutes, plur(eminutes));
+        if (fieldcnt > 1) /* seconds to follow */
+            Strcat(outbuf, " and");
+        /* eminutes has been processed but no need to decrement fieldcnt */
+    }
+    if (eseconds)
+        Sprintf(eos(outbuf), " %ld second%s", eseconds, plur(eseconds));
+    return outbuf;
+}
+
 void
-enlightenment(int mode,  /* BASICENLIGHTENMENT | MAGICENLIGHTENMENT (| both) */
-              int final) /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE,
-                            ENL_GAMEOVERDEAD */
+enlightenment(
+    int mode,  /* BASICENLIGHTENMENT | MAGICENLIGHTENMENT (| both) */
+    int final) /* ENL_GAMEINPROGRESS:0, ENL_GAMEOVERALIVE, ENL_GAMEOVERDEAD */
 {
     char buf[BUFSZ], tmpbuf[BUFSZ];
 
@@ -309,10 +370,11 @@ enlightenment(int mode,  /* BASICENLIGHTENMENT | MAGICENLIGHTENMENT (| both) */
         /* intrinsics and other traditional enlightenment feedback */
         attributes_enlightenment(mode, final);
     }
+
+    enlght_out(""); /* separator */
+    enlght_out("Miscellaneous:");
     /* reminder to player and/or information for dumplog */
     if ((mode & BASICENLIGHTENMENT) != 0 && (wizard || discover || final)) {
-        enlght_out(""); /* separator */
-        enlght_out("Miscellaneous:");
         if (wizard || discover) {
         Sprintf(buf, "running in %s mode", wizard ? "debug" : "explore");
         you_are(buf, "");
@@ -328,6 +390,8 @@ enlightenment(int mode,  /* BASICENLIGHTENMENT | MAGICENLIGHTENMENT (| both) */
             you_have_X(buf);
         }
     }
+    (void) fmt_elapsed_time(buf, final);
+    enl_msg("Total elapsed playing time ", "is", "was", buf, "");
 
     if (!g.en_via_menu) {
         display_nhwindow(g.en_win, TRUE);
@@ -1274,7 +1338,7 @@ weapon_insight(int final)
                     Strcpy(pfx, "Your two weapon skill ");
                     Sprintf(sfx, " %slimited by ", also2);
                     if (sklvl2 > P_ISRESTRICTED)
-                        Sprintf(eos(sfx), "being %s with", sklvlbuf2);
+                        Sprintf(eos(sfx), "being %s", sklvlbuf2);
                     else
                         Strcat(eos(sfx), "having no skill");
                     Sprintf(eos(sfx), " with %s", sknambuf2);
@@ -1376,18 +1440,28 @@ attributes_enlightenment(int unused_mode UNUSED, int final)
         you_are("magic-protected", from_what(ANTIMAGIC));
     if (Fire_resistance)
         you_are("fire resistant", from_what(FIRE_RES));
+    if (adtyp_resistance_obj(&g.youmonst, AD_FIRE))
+        enl_msg("Your items ", "are", "were", " protected from fire", "");
     if (Cold_resistance)
         you_are("cold resistant", from_what(COLD_RES));
+    if (adtyp_resistance_obj(&g.youmonst, AD_COLD))
+        enl_msg("Your items ", "are", "were", " protected from cold", "");
     if (Sleep_resistance)
         you_are("sleep resistant", from_what(SLEEP_RES));
     if (Disint_resistance)
         you_are("disintegration-resistant", from_what(DISINT_RES));
+    if (adtyp_resistance_obj(&g.youmonst, AD_DISN))
+        enl_msg("Your items ", "are", "were", " protected from disintegration", "");
     if (Shock_resistance)
         you_are("shock resistant", from_what(SHOCK_RES));
+    if (adtyp_resistance_obj(&g.youmonst, AD_ELEC))
+        enl_msg("Your items ", "are", "were", " protected from electric shocks", "");
     if (Poison_resistance)
         you_are("poison resistant", from_what(POISON_RES));
     if (Acid_resistance)
         you_are("acid resistant", from_what(ACID_RES));
+    if (adtyp_resistance_obj(&g.youmonst, AD_ACID))
+        enl_msg("Your items ", "are", "were", " protected from acid", "");
     if (Drain_resistance)
         you_are("level-drain resistant", from_what(DRAIN_RES));
     if (Sick_resistance)
@@ -1453,21 +1527,35 @@ attributes_enlightenment(int unused_mode UNUSED, int final)
         you_are("warned of undead", from_what(WARN_UNDEAD));
     if (Searching)
         you_have("automatic searching", from_what(SEARCHING));
-    if (Clairvoyant)
+    if (Clairvoyant) {
         you_are("clairvoyant", from_what(CLAIRVOYANT));
-    else if ((HClairvoyant || EClairvoyant) && BClairvoyant) {
+    } else if ((HClairvoyant || EClairvoyant) && BClairvoyant) {
         Strcpy(buf, from_what(-CLAIRVOYANT));
-        if (!strncmp(buf, " because of ", 12))
-            /* overwrite substring */
-            memcpy(buf, " if not for ", 12);
+        (void) strsubst(buf, " because of ", " if not for ");
         enl_msg(You_, "could be", "could have been", " clairvoyant", buf);
     }
     if (Infravision)
         you_have("infravision", from_what(INFRAVISION));
-    if (Detect_monsters)
-        you_are("sensing the presence of monsters", "");
-    if (u.umconf)
-        you_are("going to confuse monsters", "");
+    if (Detect_monsters) {
+        Strcpy(buf, "sensing the presence of monsters");
+        if (wizard) {
+            long detectmon_timeout = (HDetect_monsters & TIMEOUT);
+
+            if (detectmon_timeout)
+                Sprintf(eos(buf), " (%ld)", detectmon_timeout);
+        }
+        you_are(buf, "");
+    }
+    if (u.umconf) { /* 'u.umconf' is a counter rather than a timeout */
+        Strcpy(buf, " monsters when hitting them");
+        if (wizard && !final) {
+            if (u.umconf == 1)
+                Strcat(buf, " (next hit only)");
+            else /* u.umconf > 1 */
+                Sprintf(eos(buf), " (next %u hits)", u.umconf);
+        }
+        enl_msg(You_, "will confuse", "would have confused", buf, "");
+    }
 
     /*** Appearance and behavior ***/
     if (Adornment) {

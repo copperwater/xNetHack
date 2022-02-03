@@ -146,6 +146,9 @@
 #define is_bee(ptr) ((ptr) == &mons[PM_KILLER_BEE] \
      || (ptr) == &mons[PM_QUEEN_BEE])
 #define is_bird(ptr) ((ptr)->mlet == S_BAT && !is_bat(ptr))
+/* Jabberwocks not considered to have beaks because they have "jaws". */
+#define has_beak(ptr) (is_bird(ptr) || (ptr) == &mons[PM_TENGU] || \
+                       (ptr) == &mons[PM_VROCK])
 #define is_giant(ptr) (((ptr)->mflags2 & M2_GIANT) != 0L)
 #define is_golem(ptr) ((ptr)->mlet == S_GOLEM)
 #define is_rat(ptr)                                         \

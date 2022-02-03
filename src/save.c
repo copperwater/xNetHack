@@ -49,8 +49,6 @@ static void zerocomp_bputc(int);
 int
 dosave(void)
 {
-    if (iflags.debug_fuzzer)
-        return 0;
     clear_nhwindow(WIN_MESSAGE);
     if (yn("Really save?") == 'n') {
         clear_nhwindow(WIN_MESSAGE);
@@ -250,8 +248,8 @@ savegamestate(NHFILE* nhfp)
         bwrite(nhfp->fd, (genericptr_t) &flags, sizeof flags);
     }
     urealtime.finish_time = getnow();
-    urealtime.realtime += (long) (urealtime.finish_time
-                                    - urealtime.start_timing);
+    urealtime.realtime += timet_delta(urealtime.finish_time,
+                                      urealtime.start_timing);
     if (nhfp->structlevel) {
         bwrite(nhfp->fd, (genericptr_t) &u, sizeof u);
         bwrite(nhfp->fd, yyyymmddhhmmss(ubirthday), 14);
@@ -299,7 +297,6 @@ savegamestate(NHFILE* nhfp)
     savelevchn(nhfp);
     if (nhfp->structlevel) {
         bwrite(nhfp->fd, (genericptr_t) &g.moves, sizeof g.moves);
-        bwrite(nhfp->fd, (genericptr_t) &g.monstermoves, sizeof g.monstermoves);
         bwrite(nhfp->fd, (genericptr_t) &g.quest_status, sizeof g.quest_status);
         bwrite(nhfp->fd, (genericptr_t) g.spl_book,
                sizeof (struct spell) * (MAXSPELL + 1));
@@ -490,7 +487,7 @@ savelev(NHFILE* nhfp, xchar lev)
              (boolean) ((sfsaveinfo.sfi1 & SFI1_RLECOMP) == SFI1_RLECOMP));
     if (nhfp->structlevel) {
         bwrite(nhfp->fd, (genericptr_t) g.lastseentyp, sizeof g.lastseentyp);
-        bwrite(nhfp->fd, (genericptr_t) &g.monstermoves, sizeof g.monstermoves);
+        bwrite(nhfp->fd, (genericptr_t) &g.moves, sizeof g.moves);
         save_stairs(nhfp);
         bwrite(nhfp->fd, (genericptr_t) &g.updest, sizeof (dest_area));
         bwrite(nhfp->fd, (genericptr_t) &g.dndest, sizeof (dest_area));
@@ -511,24 +508,6 @@ savelev(NHFILE* nhfp, xchar lev)
     saveobjchn(nhfp, &fobj);
     saveobjchn(nhfp, &g.level.buriedobjlist);
     saveobjchn(nhfp, &g.billobjs);
-    if (release_data(nhfp)) {
-        int x,y;
-        /* TODO: maybe use clear_level_structures() */
-        for (y = 0; y < ROWNO; y++)
-            for (x = 0; x < COLNO; x++) {
-                g.level.monsters[x][y] = 0;
-                g.level.objects[x][y] = 0;
-                levl[x][y].seenv = 0;
-                levl[x][y].glyph = GLYPH_UNEXPLORED;
-            }
-        fmon = 0;
-        g.ftrap = 0;
-        fobj = 0;
-        g.level.buriedobjlist = 0;
-        g.billobjs = 0;
-        stairway_free_all();
-        /* level.bonesinfo = 0; -- handled by savecemetery() */
-    }
     save_engravings(nhfp);
     savedamage(nhfp); /* pending shop wall and/or floor repair */
     save_regions(nhfp);
@@ -537,6 +516,12 @@ savelev(NHFILE* nhfp, xchar lev)
             bflush(nhfp->fd);
     }
     g.program_state.saving--;
+    if (release_data(nhfp)) {
+        clear_level_structures();
+        g.ftrap = 0;
+        g.billobjs = 0;
+        (void) memset(g.rooms, 0, sizeof(g.rooms));
+    }
     return;
 }
 
@@ -904,12 +889,13 @@ savetrapchn(NHFILE* nhfp, register struct trap* trap)
     while (trap) {
         trap2 = trap->ntrap;
         if (perform_bwrite(nhfp)) {
-            if (nhfp->structlevel) {
+            if (nhfp->structlevel)
                 bwrite(nhfp->fd, (genericptr_t) trap, sizeof *trap);
-                if (trap->ammo)
-                    saveobjchn(nhfp, &trap->ammo);
-            }
 	}
+        if (trap->ammo)
+            /* if perform_bwrite, this will save the ammo after the trap; if
+             * release_data, this will free the ammo before freeing the trap */
+            saveobjchn(nhfp, &trap->ammo);
         if (release_data(nhfp))
             dealloc_trap(trap);
         trap = trap2;

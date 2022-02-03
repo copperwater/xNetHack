@@ -6,6 +6,7 @@
 #include "hack.h"
 
 static int stylus_ok(struct obj *);
+static boolean u_can_engrave(void);
 static int engrave(void);
 static void engraving_learn_wand(struct obj*);
 static const char *blengr(void);
@@ -444,7 +445,44 @@ stylus_ok(struct obj *obj)
         && (obj->otyp == TOWEL || obj->otyp == MAGIC_MARKER))
         return GETOBJ_SUGGEST;
 
-    return GETOBJ_EXCLUDE;
+    return GETOBJ_DOWNPLAY;
+}
+
+/* can hero engrave at all (at their location)? */
+static boolean
+u_can_engrave(void)
+{
+    if (u.uswallow) {
+        if (is_animal(u.ustuck->data)) {
+            pline("What would you write?  \"Jonah was here\"?");
+            return FALSE;
+        } else if (is_whirly(u.ustuck->data)) {
+            cant_reach_floor(u.ux, u.uy, FALSE, FALSE);
+            return FALSE;
+        }
+    } else if (is_lava(u.ux, u.uy)) {
+        You_cant("write on the %s!", surface(u.ux, u.uy));
+        return FALSE;
+    } else if (is_pool(u.ux, u.uy) || IS_FOUNTAIN(levl[u.ux][u.uy].typ)) {
+        You_cant("write on the %s!", surface(u.ux, u.uy));
+        return FALSE;
+    }
+    if (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz) /* in bubble */
+        || IS_AIR(levl[u.ux][u.uy].typ)) {
+        You_cant("write in thin air!");
+        return FALSE;
+    } else if (!accessible(u.ux, u.uy)) {
+        /* stone, tree, wall, secret corridor, pool, lava, bars */
+        You_cant("write here.");
+        return FALSE;
+    }
+    if (cantwield(g.youmonst.data)) {
+        You_cant("even hold anything!");
+        return FALSE;
+    }
+    if (check_capacity((char *) 0))
+        return FALSE;
+    return TRUE;
 }
 
 /* Mohs' Hardness Scale:
@@ -515,38 +553,11 @@ doengrave(void)
         type = ENGR_BLOOD;
 
     /* Can the adventurer engrave at all? */
+    if (!u_can_engrave())
+        return 0;
 
-    if (u.uswallow) {
-        if (is_animal(u.ustuck->data)) {
-            pline("What would you write?  \"Jonah was here\"?");
-            return 0;
-        } else if (is_whirly(u.ustuck->data)) {
-            cant_reach_floor(u.ux, u.uy, FALSE, FALSE);
-            return 0;
-        } else
-            jello = TRUE;
-    } else if (is_lava(u.ux, u.uy)) {
-        You_cant("write on the %s!", surface(u.ux, u.uy));
-        return 0;
-    } else if (is_pool(u.ux, u.uy) || IS_FOUNTAIN(levl[u.ux][u.uy].typ)) {
-        You_cant("write on the %s!", surface(u.ux, u.uy));
-        return 0;
-    }
-    if (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz) /* in bubble */
-        || IS_AIR(levl[u.ux][u.uy].typ)) {
-        You_cant("write in thin air!");
-        return 0;
-    } else if (!accessible(u.ux, u.uy)) {
-        /* stone, tree, wall, secret corridor, pool, lava, bars */
-        You_cant("write here.");
-        return 0;
-    }
-    if (cantwield(g.youmonst.data)) {
-        You_cant("even hold anything!");
-        return 0;
-    }
-    if (check_capacity((char *) 0))
-        return 0;
+    jello = (u.uswallow && !(is_animal(u.ustuck->data)
+                             || is_whirly(u.ustuck->data)));
 
     /* One may write with finger, or weapon, or wand, or..., or...
      * Edited by GAN 10/20/86 so as not to change weapon wielded.
@@ -882,11 +893,12 @@ doengrave(void)
         break;
 
     case VENOM_CLASS:
-        if (wizard) {
-            pline("Writing a poison pen letter??");
-            break;
-        }
-        /*FALLTHRU*/
+        /* this used to be ``if (wizard)'' and fall through to ILLOBJ_CLASS
+           for normal play, but splash of venom isn't "illegal" because it
+           could occur in normal play via wizard mode bones */
+        pline("Writing a poison pen letter?");
+        break;
+
     case ILLOBJ_CLASS:
         impossible("You're engraving with an illegal object!");
         break;
@@ -996,6 +1008,9 @@ doengrave(void)
                     You("will overwrite the current message.");
                 eow = TRUE;
             }
+        } else if (oep && (int) strlen(oep->engr_txt) >= BUFSZ - 1) {
+            There("is no room to add anything else here.");
+            return 1;
         }
     }
 
@@ -1128,7 +1143,7 @@ engrave(void)
     boolean dulling_wep, marker;
     char *endc; /* points at character 1 beyond the last character to engrave
                    this action */
-    int i;
+    int i, space_left;
 
     if (g.context.engraving.pos.x != u.ux
         || g.context.engraving.pos.y != u.uy) { /* teleported? */
@@ -1154,7 +1169,8 @@ engrave(void)
 
     dulling_wep = (carving && stylus && stylus->oclass == WEAPON_CLASS
                    && (stylus->otyp != ATHAME || stylus->cursed));
-    marker = (stylus && stylus->otyp == MAGIC_MARKER);
+    marker = (stylus && stylus->otyp == MAGIC_MARKER
+              && g.context.engraving.type == MARK);
 
     g.context.engraving.actionct++;
 
@@ -1255,6 +1271,18 @@ engrave(void)
 
     /* actions that happen at the end of every engraving action go here */
 
+    Strcpy(buf, "");
+    oep = engr_at(u.ux, u.uy);
+    if (oep) /* add to existing engraving */
+        Strcpy(buf, oep->engr_txt);
+
+    space_left = sizeof buf - (int) strlen(buf) - 1;
+    if (endc - g.context.engraving.nextc > space_left) {
+        You("run out of room to write.");
+        endc = g.context.engraving.nextc + space_left;
+        truncate = TRUE;
+    }
+
     /* If the stylus did wear out mid-engraving, truncate the input so that we
      * can't go any further. */
     if (truncate && *endc != '\0') {
@@ -1267,12 +1295,8 @@ engrave(void)
         truncate = FALSE;
     }
 
-    Strcpy(buf, "");
-    oep = engr_at(u.ux, u.uy);
-    if (oep) /* add to existing engraving */
-        Strcpy(buf, oep->engr_txt);
     (void) strncat(buf, g.context.engraving.nextc,
-                   endc - g.context.engraving.nextc);
+                   min(space_left, endc - g.context.engraving.nextc));
     make_engr_at(u.ux, u.uy, buf, g.moves - g.multi, g.context.engraving.type);
 
     if (*endc) {

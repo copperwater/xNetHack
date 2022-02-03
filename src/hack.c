@@ -1,4 +1,4 @@
-/* NetHack 3.7	hack.c	$NHDT-Date: 1617035736 2021/03/29 16:35:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.281 $ */
+/* NetHack 3.7	hack.c	$NHDT-Date: 1627951429 2021/08/03 00:43:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.291 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -862,8 +862,11 @@ test_move(int ux, int uy, int dx, int dy, int mode)
         } else {
  testdiag:
             if (dx && dy && !Passes_walls
-                && (!doorless_door(x, y) || block_door(x, y))) {
-                /* Diagonal moves into a door are not allowed. */
+                && (!doorless_door(x, y) || block_door(x, y))
+                && !(IS_DOOR(levl[ux][y].typ) && !closed_door(ux, y))
+                && !(IS_DOOR(levl[x][uy].typ) && !closed_door(x, uy))) {
+                /* Diagonal moves into a door are not allowed, unless there's
+                 * another adjacent non-closed door. */
                 if (mode == DO_MOVE) {
                     if (Blind)
                         feel_location(x, y);
@@ -875,7 +878,9 @@ test_move(int ux, int uy, int dx, int dy, int mode)
         }
     }
     if (dx && dy && bad_rock(g.youmonst.data, ux, y)
-        && bad_rock(g.youmonst.data, x, uy)) {
+        && bad_rock(g.youmonst.data, x, uy)
+        && !(is_elf(g.youmonst.data) && IS_TREE(levl[ux][y].typ)
+             && IS_TREE(levl[x][uy].typ))) {
         /* Move at a diagonal. */
         switch (cant_squeeze_thru(&g.youmonst)) {
         case 3:
@@ -920,8 +925,11 @@ test_move(int ux, int uy, int dx, int dy, int mode)
 
     /* Now see if other things block our way . . */
     if (dx && dy && !Passes_walls && IS_DOOR(ust->typ)
-        && (!doorless_door(ux, uy) || block_entry(x, y))) {
-        /* Can't move at a diagonal out of a doorway with door. */
+        && (!doorless_door(ux, uy) || block_entry(x, y))
+        && !(IS_DOOR(levl[ux][y].typ) && !closed_door(ux, y))
+        && !(IS_DOOR(levl[x][uy].typ) && !closed_door(x, uy))) {
+        /* Can't move at a diagonal out of a doorway with door, unless another
+         * open door is adjacent. */
         if (mode == DO_MOVE && flags.mention_walls)
             You_cant("move diagonally out of an intact doorway.");
         return FALSE;
@@ -1032,14 +1040,13 @@ findtravelpath(int mode)
                 int dir;
                 int x = travelstepx[set][i];
                 int y = travelstepy[set][i];
-                static int ordered[] = { 0, 2, 4, 6, 1, 3, 5, 7 };
                 /* no diagonal movement for grid bugs */
-                int dirmax = NODIAG(u.umonnum) ? 4 : 8;
+                int dirmax = NODIAG(u.umonnum) ? 4 : N_DIRS;
                 boolean alreadyrepeated = FALSE;
 
                 for (dir = 0; dir < dirmax; ++dir) {
-                    int nx = x + xdir[ordered[dir]];
-                    int ny = y + ydir[ordered[dir]];
+                    int nx = x + xdir[dirs_ord[dir]];
+                    int ny = y + ydir[dirs_ord[dir]];
 
                     /*
                      * When guessing and trying to travel as close as possible
@@ -2863,7 +2870,7 @@ check_special_room(boolean newlev)
                     if (DEADMONSTER(mtmp))
                         continue;
                     if (!isok(mtmp->mx,mtmp->my)
-                        || roomno != levl[mtmp->mx][mtmp->my].roomno)
+                        || roomno != (int) levl[mtmp->mx][mtmp->my].roomno)
                         continue;
                     if (!Stealth && !rn2(3))
                         wakeup(mtmp, FALSE, FALSE);
@@ -2983,7 +2990,7 @@ dopickup(void)
     return pickup(-count);
 }
 
-/* stop running if we see something interesting */
+/* stop running if we see something interesting next to us */
 /* turn around a corner if that is the only way we can proceed */
 /* do not turn left or right twice */
 void
@@ -3007,15 +3014,20 @@ lookaround(void)
         return;
     for (x = u.ux - 1; x <= u.ux + 1; x++)
         for (y = u.uy - 1; y <= u.uy + 1; y++) {
+            /* ignore out of bounds, and our own location */
             if (!isok(x, y) || (x == u.ux && y == u.uy))
                 continue;
+            /* (grid bugs) ignore diagonals */
             if (NODIAG(u.umonnum) && x != u.ux && y != u.uy)
                 continue;
 
+            /* can we see a monster there? */
             if ((mtmp = m_at(x, y)) != 0
                 && M_AP_TYPE(mtmp) != M_AP_FURNITURE
                 && M_AP_TYPE(mtmp) != M_AP_OBJECT
-                && (!mtmp->minvis || See_invisible) && !mtmp->mundetected) {
+                && mon_visible(mtmp)) {
+                /* running movement and not a tame monster */
+                /* OR it blocks our move direction and we're not traveling */
                 if ((g.context.run != 1 && !mtmp->mtame)
                     || (x == u.ux + u.dx && y == u.uy + u.dy
                         && !g.context.travel)) {
@@ -3025,16 +3037,21 @@ lookaround(void)
                 }
             }
 
+            /* stone is never interesting */
             if (levl[x][y].typ == STONE)
                 continue;
+            /* ignore the square we're moving away from */
             if (x == u.ux - u.dx && y == u.uy - u.dy)
                 continue;
 
+            /* more uninteresting terrain */
             if (IS_ROCK(levl[x][y].typ) || levl[x][y].typ == ROOM
                 || IS_AIR(levl[x][y].typ) || levl[x][y].typ == GRASS
                 || levl[x][y].typ == ICE) {
                 continue;
             } else if (closed_door(x, y) || (mtmp && is_door_mappear(mtmp))) {
+                /* a closed door? */
+                /* ignore if diagonal */
                 if (x != u.ux && y != u.uy)
                     continue;
                 if (g.context.run != 1) {
@@ -3042,17 +3059,27 @@ lookaround(void)
                         You("stop in front of the door.");
                     goto stop;
                 }
+                /* we're orthonal to a closed door, consider it a corridor */
                 goto bcorr;
             } else if (levl[x][y].typ == CORR) {
+                /* corridor */
  bcorr:
                 if (levl[u.ux][u.uy].typ != ROOM) {
+                    /* running or traveling */
                     if (g.context.run == 1 || g.context.run == 3
                         || g.context.run == 8) {
+                        /* distance from x,y to location we're moving to */
                         i = dist2(x, y, u.ux + u.dx, u.uy + u.dy);
+                        /* ignore if not on or directly adjacent to it */
                         if (i > 2)
                             continue;
+                        /* x,y is (adjacent to) the location we're moving to */
+                        /* if we've seen one corridor, and x,y is not directly
+                           orthogonally next to it, mark noturn */
                         if (corrct == 1 && dist2(x, y, x0, y0) != 1)
                             noturn = 1;
+                        /* if previous x,y was diagonal, now x,y is orthogonal */
+                        /* (or this is the first time we're here) */
                         if (i < i0) {
                             i0 = i;
                             x0 = x;
@@ -3178,7 +3205,8 @@ crawl_destination(int x, int y)
         return FALSE;
     /* finally, are we trying to squeeze through a too-narrow gap? */
     return !(bad_rock(g.youmonst.data, u.ux, y)
-             && bad_rock(g.youmonst.data, x, u.uy));
+             && bad_rock(g.youmonst.data, x, u.uy)
+             && cant_squeeze_thru(&g.youmonst));
 }
 
 /* something like lookaround, but we are not running */
@@ -3215,6 +3243,7 @@ end_running(boolean and_travel)
     if (flags.time && g.context.run)
         iflags.time_botl = TRUE;
     g.context.run = 0;
+    g.domove_attempting = 0;
     /* 'context.mv' isn't travel but callers who want to end travel
        all clear it too */
     if (and_travel)
@@ -3236,6 +3265,7 @@ nomul(int nval)
     if (nval == 0)
         g.multi_reason = NULL, g.multireasonbuf[0] = '\0';
     end_running(TRUE);
+    cmdq_clear();
 }
 
 /* called when a non-movement, multi-turn action has completed */

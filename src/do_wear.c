@@ -48,6 +48,7 @@ static int remove_ok(struct obj *);
 static int wear_ok(struct obj *);
 static int takeoff_ok(struct obj *);
 static int wornmask_to_bodypart(int);
+static void toggle_armor_light(struct obj *, boolean);
 
 /* plural "fingers" or optionally "gloves" */
 const char *
@@ -370,6 +371,7 @@ Cloak_on(void)
     }
     if (uarmc) /* no known instance of !uarmc here but play it safe */
         uarmc->known = 1; /* cloak's +/- evident because of status line AC */
+    toggle_armor_light(uarmc, TRUE);
     return 0;
 }
 
@@ -379,6 +381,7 @@ Cloak_off(void)
     struct obj *otmp = uarmc;
     int otyp = otmp->otyp;
     long oldprop = u.uprops[objects[otyp].oc_oprop].extrinsic & ~WORN_CLOAK;
+    boolean was_arti_light = otmp && otmp->lamplit && artifact_light(otmp);
 
     if (Is_dragon_scales(uarmc)) {
         /* all scales are handled the same in this function */
@@ -427,6 +430,8 @@ Cloak_off(void)
     default:
         impossible(unknown_type, c_cloak, otyp);
     }
+    if (was_arti_light)
+        toggle_armor_light(otmp, FALSE);
     return 0;
 }
 
@@ -760,22 +765,26 @@ Armor_on(void)
 {
     cursed_gear_welds(uarm);
 
-    /*
-     * No suits require special handling.  Special properties conferred by
-     * suits are set up as intrinsics (actually 'extrinsics') by setworn()
-     * which is called by armor_or_accessory_on() before Armor_on().
-     */
-    if (uarm) /* no known instances of !uarm here but play it safe */
-        uarm->known = 1; /* suit's +/- evident because of status line AC */
+    if (!uarm) /* no known instances of !uarm here but play it safe */
+        return 0;
+    uarm->known = 1; /* suit's +/- evident because of status line AC */
+    toggle_armor_light(uarm, TRUE);
+
     return 0;
 }
 
 int
 Armor_off(void)
 {
+    struct obj *otmp = uarm;
+    boolean was_arti_light = otmp && otmp->lamplit && artifact_light(otmp);
+
     g.context.takeoff.mask &= ~W_ARM;
     setworn((struct obj *) 0, W_ARM);
     g.context.takeoff.cancelled_don = FALSE;
+
+    if (was_arti_light)
+        toggle_armor_light(otmp, FALSE);
     return 0;
 }
 
@@ -788,9 +797,18 @@ Armor_off(void)
 int
 Armor_gone(void)
 {
+    struct obj *otmp = uarm;
+    boolean was_arti_light = otmp && otmp->lamplit && artifact_light(otmp);
+
     g.context.takeoff.mask &= ~W_ARM;
     setnotworn(uarm);
     g.context.takeoff.cancelled_don = FALSE;
+
+    if (was_arti_light && !artifact_light(otmp)) {
+        end_burn(otmp, FALSE);
+        if (!Blind)
+            pline("%s shining.", Tobjnam(otmp, "stop"));
+    }
     return 0;
 }
 
@@ -2366,11 +2384,13 @@ glibr(void)
             otmp = uleft;
             Ring_off(uleft);
             dropx(otmp);
+            cmdq_clear();
         }
         if (rightfall) {
             otmp = uright;
             Ring_off(uright);
             dropx(otmp);
+            cmdq_clear();
         }
     }
 
@@ -2391,6 +2411,7 @@ glibr(void)
         xfl++;
         wastwoweap = TRUE;
         setuswapwep((struct obj *) 0); /* clears u.twoweap */
+        cmdq_clear();
         if (canletgo(otmp, ""))
             dropx(otmp);
     }
@@ -2426,6 +2447,7 @@ glibr(void)
         /* xfl++; */
         otmp->quan = savequan;
         setuwep((struct obj *) 0);
+        cmdq_clear();
         if (canletgo(otmp, ""))
             dropx(otmp);
     }
@@ -2919,6 +2941,10 @@ destroy_arm(register struct obj *atmp, boolean choose)
     } else if (DESTROY_ARM(uarm)) {
         if (donning(otmp))
             cancel_don();
+        /* for gold DSM, we don't want Armor_gone() to report that it
+           stops shining _after_ we've been told that it is destroyed */
+        if (otmp->lamplit)
+            end_burn(otmp, FALSE);
         Your("armor turns to dust and falls to the %s!", surface(u.ux, u.uy));
         (void) Armor_gone();
         useup(otmp);
@@ -3135,6 +3161,30 @@ static int
 takeoff_ok(struct obj *obj)
 {
     return equip_ok(obj, TRUE, FALSE);
+}
+
+/* hero is putting on or taking off obj, which may do something light-related
+ * unifies code for cloak and body armor code paths since gold dragon scales are
+ * worn in cloak slot and gold-scaled armor is worn in armor slot*/
+static void
+toggle_armor_light(struct obj *armor, boolean on)
+{
+    if (on) {
+        if (artifact_light(armor) && !armor->lamplit) {
+            begin_burn(armor, FALSE);
+            if (!Blind)
+                pline("%s %s to shine %s!",
+                    Yname2(armor), otense(armor, "begin"),
+                    arti_light_description(armor));
+        }
+    }
+    else {
+        if (!artifact_light(armor)) {
+            end_burn(armor, FALSE);
+            if (!Blind)
+                pline("%s shining.", Tobjnam(armor, "stop"));
+        }
+    }
 }
 
 /*do_wear.c*/

@@ -1,4 +1,4 @@
-/* NetHack 3.7	dlb_main.c	$NHDT-Date: 1596498258 2020/08/03 23:44:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.14 $ */
+/* NetHack 3.7	dlb_main.c	$NHDT-Date: 1629969943 2021/08/26 09:25:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.18 $ */
 /* Copyright (c) Kenneth Lorber, Bethesda, Maryland, 1993. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -14,11 +14,13 @@
 #include <string.h>
 #endif
 
-static void grow_ld(libdir **, int *, int);
 static void xexit(int) NORETURN;
+char *eos(char *); /* also used by dlb.c */
+FILE *fopen_datafile(const char *, const char *);
 
 #ifdef DLB
 #ifdef DLBLIB
+static void grow_ld(libdir **, int *, int);
 
 #define DLB_DIRECTORY "Directory" /* name of lib directory */
 #define LIBLISTFILE "dlb.lst"     /* default list file */
@@ -26,9 +28,6 @@ static void xexit(int) NORETURN;
 /* library functions (from dlb.c) */
 extern boolean open_library(const char *, library *);
 extern void close_library(library *);
-
-char *eos(char *); /* also used by dlb.c */
-FILE *fopen_datafile(const char *, const char *);
 
 static void Write(int, char *, long);
 static void usage(void) NORETURN;
@@ -128,6 +127,15 @@ Write(int out, char *buf, long len)
         xexit(EXIT_FAILURE);
     }
 }
+#endif /* DLBLIB */
+#endif /* DLB */
+
+/* open_library(dlb.c) needs this (which normally comes from src/files.c) */
+FILE *
+fopen_datafile(const char *filename, const char *mode)
+{
+    return fopen(filename, mode);
+}
 
 char *
 eos(char *s)
@@ -137,18 +145,14 @@ eos(char *s)
     return s;
 }
 
-/* open_library(dlb.c) needs this (which normally comes from src/files.c) */
-FILE *
-fopen_datafile(const char *filename, const char *mode)
-{
-    return fopen(filename, mode);
-}
-
-#endif /* DLBLIB */
-#endif /* DLB */
+#ifdef DLB
+#define UNUSED_if_no_DLB /*empty*/
+#else
+#define UNUSED_if_no_DLB UNUSED
+#endif
 
 int
-main(int argc, char **argv)
+main(int argc UNUSED_if_no_DLB, char **argv UNUSED_if_no_DLB)
 {
 #ifdef DLB
 #ifdef DLBLIB
@@ -538,10 +542,5 @@ xexit(int retcd)
     exit(retcd);
     /*NOTREACHED*/
 }
-
-#ifdef AMIGA
-#include "date.h"
-const char amiga_version_string[] = AMIGA_VERSION_STRING;
-#endif
 
 /*dlb_main.c*/

@@ -3,7 +3,7 @@
 This is a major version of xNetHack. It is based directly on xNetHack 6.0, and
 is a fork off the vanilla NetHack 3.7.0 development version release.
 
-The most recent vanilla commit incorporated into xNetHack is dd6ed502. Note that
+The most recent vanilla commit incorporated into xNetHack is 583fb60. Note that
 because 3.7.0 is still in development status, xNetHack may contain major changes
 including new monsters, new objects, themed rooms, and other things *not*
 documented in this file or other xNetHack changelogs. See doc/fixes37.0 for the
@@ -161,6 +161,80 @@ changes:
   Strongly lawful (thus is likely to be peaceful to lawful players), attacks
   with bites and fire claws, and explodes in a ball of fire when killed, which
   produces a phoenix egg that will soon hatch anew into a phoenix.
+- Croesus can move monsters out of his way (the same as the Riders).
+- The base price of magic markers is boosted to 200.
+- Randomly generated paper bags may contain a potion of booze.
+- Elves can always squeeze through a diagonal gap between two trees no matter
+  how much they're carrying.
+- 5% of rolling boulder traps outside the Quest contain the remains of a dead
+  archeologist (corpse, fedora, and bullwhip.)
+- Stunned monsters move and hit things randomly, identically to how confused
+  monsters do.
+- Archeologists can safely enchant fedoras when they are +4 or +5.
+- Open doors can be moved into diagonally if there is another non-closed door on
+  one of the two mutually adjacent spaces. (Basically, you can walk diagonally
+  through open double doors.)
+- When you die, intelligent adjacent monsters may automatically take some of
+  your possessions.
+- Izchak's store stocks wands, scrolls, and spellbooks of light with low
+  probability.
+- Port L's Bullwhip Patch with some modifications.
+  - Whip skill now counts towards applying a whip with proficiency, and
+    dexterity counts less.
+  - Applying a whip against solid terrain is now ineffective.
+  - Snapping a whip in open air (including if you fail to hit a monster with it)
+    may crack it, with a "CRACK!" message. This causes animals within 2 squares
+    of you to flee if they fail a resistance check.
+  - The chance of cracking a whip varies based on proficiency, from 100% as an
+    expert Dex>13 Archeologist to 25% as a completely non-proficient character.
+- Scrolls, spellbooks, potions, rings, and wands can be made indestructible by
+  erodeproofing them via confused enchant weapon.
+  - The wish parser recognizes "indestructible" as an alias for "erodeproof".
+  - Indestructible items are immune to item destruction by fire, cold, or shock.
+  - Additionally, indestructible scrolls and spellbooks are immune to blanking.
+  - Cursed confused enchant weapon can strip the indestructibility.
+  - Indestructible wands cannot be snapped.
+- 11 new themed rooms:
+  - "Storeroom Vault v2", which contains an unreachable area with a couple
+    chests and rats embedded in a room which is connected to the rest of the
+    level.
+  - "Anti Swimming Pool" with a 1-wide ring of water and sea monsters around the
+    edge of the room, with a dry rectangle in the middle.
+  - "Dragon Hall", with a giant pile of gold, gems, and other loot along with
+    dragon eggs, baby dragons, and adult dragons of every color atop the pile.
+  - "Water Temple" with pools, fountains, maybe a sink, and water nymphs. (No
+    altar, it's not a real temple.)
+  - "Meadow" containing grass and a couple trees.
+  - "Garden" containing grass, trees, fountains, and nymphs.
+  - "Triple rhombus", an ordinary but odd-shaped room.
+  - "Spiral", a spiral-shaped room with a random feature or item in the center.
+  - "Kitchen", a long narrow room containing sinks, ice boxes, cookware and a
+    bunch of cooking ingredients.
+  - "Abandoned Shop", a deserted shop with more mimics than actual items.
+  - "Irregular Anthole", an anthole procedurally generated so as to be
+    organic-looking.
+- Updates to existing themed rooms:
+  - "Fake Delphi" now contains d2 centaur statues in the outer room.
+  - "Buried Treasure" now has a 50% chance of a carved engraving reading "X",
+    which is not necessarily on top of the treasure.
+  - "Small Pillars", when it generates as a grove of trees, has a grass floor,
+    and the wood nymph figurine if present will be made of wood.
+  - "Split room" may use iron bars to divide the two subrooms instead of walls.
+    If iron bars are used, the door between the rooms will be iron.
+  - "Storeroom Vault" and "Water-surrounded Vault" now contain either a
+    teleportation trap, hole, or some escape item to provide a way out for
+    anyone who teleports in without a way out.
+- Adult gold dragons emit light in a radius of 2 rather than 1.
+- Shopkeepers value dragon-scaled armor significantly higher than they would
+  normally.
+- Nazgul can now shriek, which can awaken and stun the player and various
+  monsters within a radius of 10. It will not shriek as often if the player is
+  not in line of sight. Elves are always affected by the shriek, and orcs,
+  undead, and animals never are. Higher Charisma results in a slightly better
+  chance to avoid getting stunned.
+- Nazgul can innately see invisible.
+- On February 2 (Groundhog Day), woodchucks can randomly generate.
+
 
 ### Interface changes
 
@@ -185,6 +259,25 @@ changes:
   emanating bolt.
 - YAFMs:
   - Attempting to chop down a petrified tree while hallucinating.
+  - Reading a blank scroll while confused.
+- It is now possible to transfer items out of one container and directly into
+  another container. This is done via a 't' option in the menu when you apply or
+  loot a container. You must have opened and looked inside the second container
+  (effectively ensuring it is not locked or trapped or a bag of tricks).
+- Adjust Cleaver interactions with peacefuls:
+  - If all targets in the attack arc are hostile, it attacks in an arc.
+  - If there are peaceful targets in the arc and you did not press F before
+    attacking, it attacks only the main target.
+  - If there are peacefuls in the arc and you did press F, it attacks in an arc.
+- Cursed scrolls of remove curse once again say "You feel like someone is
+  helping you."
+- A number of monster recolors from previous versions are reverted back to
+  vanilla colors.
+- Port L's descriptive hit messages patch (slightly modified), which changes
+  messages such as "You hit foo" and "Foo hits" into more descriptive messages
+  based on the weapon, attack type, or monster making the attack.
+- Add the descriptive misses system, which changes some "X misses Y" messages
+  into ones about some piece of the defender's gear blocking the attack.
 
 ### Architectural changes
 

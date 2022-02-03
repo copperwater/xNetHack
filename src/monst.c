@@ -5,7 +5,20 @@
 
 #include "config.h"
 #include "permonst.h"
-#include "monsym.h"
+#include "sym.h"
+
+#ifdef C
+#undef C
+#endif
+#ifdef TEXTCOLOR
+#include "color.h"
+#define C(color) color
+#define HI_DOMESTIC CLR_WHITE /* use for player + friendlies */
+#define HI_LORD CLR_MAGENTA
+#define HI_BOSS CLR_BRIGHT_MAGENTA
+#else
+#define C(color)
+#endif
 
 #define NO_ATTK    \
     {              \
@@ -28,28 +41,13 @@
 #define C(color)
 #endif
 
-/*
- *      Entry Format:   (from permonst.h)
- *
- *      name, symbol (S_* defines),
- *      base monster level, move rate, armor class, magic resistance,
- *      alignment, creation/geno flags (G_* defines),
- *      6 * attack structs ( type , damage-type, # dice, # sides ),
- *      weight (WT_* defines), nutritional value, extension length,
- *      sounds made (MS_* defines), physical size (MZ_* defines),
- *      resistances, resistances conferred (both MR_* defines),
- *      3 * flag bitmaps (M1_*, M2_*, and M3_* defines respectively),
- *      difficulty, symbol color (C(x) macro)
- *
- *      For AT_BREA attacks, '# sides' is ignored; 6 is used for most
- *      damage types, 25 for sleep, not applicable for death or poison.
- */
-#define MON(nam, sym, lvl, gen, atk, siz, mr1, mr2, flg1, flg2, flg3, d, col) \
+#define MON(nam, sym, lvl, gen, atk, siz, mr1, mr2, flg1, flg2, flg3, d, col, bn) \
     {                                                                      \
         {(const char *) 0, (const char *) 0, nam}, \
         sym, lvl, gen, atk, siz, mr1, mr2, flg1, flg2, flg3, d, C(col)   \
     }
-#define MON3(namm, namf, namn, sym, lvl, gen, atk, siz, mr1, mr2, flg1, flg2, flg3, d, col) \
+
+#define MON3(namm, namf, namn, sym, lvl, gen, atk, siz, mr1, mr2, flg1, flg2, flg3, d, col, bn) \
     {                                                                      \
         {namm, namf, namn}, \
         sym, lvl, gen, atk, siz, mr1, mr2, flg1, flg2, flg3, d, C(col)   \
@@ -69,6 +67,7 @@
         a1, a2, a3, a4, a5, a6    \
     }
 
+<<<<<<< HEAD
 /*
  *      Rule #1:        monsters of a given class are contiguous in the
  *                      mons[] array.
@@ -3276,16 +3275,17 @@ struct permonst _mons2[] = {
         M1_HUMANOID | M1_OMNIVORE, M2_NOPOLY | M2_HUMAN | M2_PEACEFUL
                                        | M2_STRONG | M2_COLLECT | M2_MAGIC,
         M3_INFRAVISIBLE, 8, HI_DOMESTIC),
+=======
+struct permonst mons_init[NUMMONS + 1] = {
+#include "monsters.h"
+>>>>>>> master
     /*
      * array terminator
      */
     MON("", 0, LVL(0, 0, 0, 0, 0), (0),
         A(NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK),
-        SIZ(0, 0, 0, 0), 0, 0, 0L, 0L, 0, 0, 0)
+        SIZ(0, 0, 0, 0), 0, 0, 0L, 0L, 0, 0, 0, 0)
 };
-#endif /* !SPLITMON_1 */
-
-#ifndef SPLITMON_1
 
 void monst_globals_init(void); /* in hack.h but we're using config.h */
 
@@ -3300,6 +3300,5 @@ monst_globals_init(void)
 
 const struct attack c_sa_yes[NATTK] = SEDUCTION_ATTACKS_YES;
 const struct attack c_sa_no[NATTK] = SEDUCTION_ATTACKS_NO;
-#endif
 
 /*monst.c*/

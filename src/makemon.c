@@ -117,14 +117,15 @@ static
 void
 m_initthrow(struct monst *mtmp, int otyp, int oquan)
 {
-    register struct obj *otmp;
+    register struct obj *otmp = mongets(mtmp, otyp);
 
-    otmp = mksobj(otyp, TRUE, FALSE);
+    if (!otmp)
+        return; /* merged with something in inventory */
+
     otmp->quan = (long) rn1(oquan, 3);
     otmp->owt = weight(otmp);
-    if (otyp == ORCISH_ARROW)
+    if (otmp->otyp == ORCISH_ARROW)
         otmp->opoisoned = TRUE;
-    (void) mpickobj(mtmp, otmp);
 }
 
 static void
@@ -253,10 +254,10 @@ m_initweap(register struct monst *mtmp)
              * specific items. */
             otmp = mongets(mtmp, TWO_HANDED_SWORD);
             if (otmp)
-                otmp->material = GOLD;
+                set_material(otmp, GOLD);
             otmp = mongets(mtmp, rn2(8) ? CHAIN_MAIL : PLATE_MAIL);
             if (otmp)
-                otmp->material = GOLD;
+                set_material(otmp, GOLD);
         }
         else if (mm == PM_ANARAXIS_THE_BLACK) {
             mongets(mtmp, CLOAK_OF_MAGIC_RESISTANCE);
@@ -381,7 +382,7 @@ m_initweap(register struct monst *mtmp)
                     otmp = mongets(mtmp, DWARVISH_RING_MAIL);
                     if (otmp && ((ptr == &mons[PM_DWARF_LEADER] && !rn2(4))
                                  || (ptr == &mons[PM_DWARF_RULER] && !rn2(2)))) {
-                        otmp->material = MITHRIL;
+                        set_material(otmp, MITHRIL);
                     }
                 }
             } else {
@@ -1174,6 +1175,9 @@ makemon(register struct permonst *ptr,
 
     fakemon = cg.zeromonst;
     cc.x = cc.y = 0;
+
+    if (iflags.debug_mongen)
+        return (struct monst *) 0;
 
     /* if caller wants random location, do it here */
     if (x == 0 && y == 0) {
@@ -2394,6 +2398,10 @@ set_mimic_sym(register struct monst *mtmp)
         ap_type = M_AP_OBJECT;
         appear = STATUE;
     } else if (rt >= SHOPBASE) {
+        if (rn2(10) >= depth(&u.uz)) {
+            s_sym = S_MIMIC_DEF; /* -> STRANGE_OBJECT */
+            goto assign_sym;
+        }
         s_sym = get_shop_item(rt - SHOPBASE);
         if (s_sym < 0) {
             ap_type = M_AP_OBJECT;

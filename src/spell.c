@@ -322,14 +322,16 @@ deadbook(struct obj* book2)
     return;
 }
 
-/* 'book' has just become cursed; if we're reading it and realize it is
-   now cursed, interrupt */
+/* 'book' has just become cursed; if we're reading it, interrupt */
 void
-book_cursed(struct obj* book)
+book_cursed(struct obj *book)
 {
-    if (g.occupation == learn && g.context.spbook.book == book
-        && book->cursed && book->bknown && g.multi >= 0)
+    if (book->cursed && g.multi >= 0
+        && g.occupation == learn && g.context.spbook.book == book) {
+        pline("%s shut!", Tobjnam(book, "slam"));
+        set_bknown(book, 1);
         stop_occupation();
+    }
 }
 
 DISABLE_WARNING_FORMAT_NONLITERAL
@@ -1826,6 +1828,7 @@ percent_success(int spell)
     if (gear_bonus) {
         armor_penalty = (armor_penalty + 1) / 2;
     }
+    chance -= armor_penalty;
 
     /* The less skilled you are, the worse the cap on your spellcasting ability. */
     cap = 30; /* restricted */

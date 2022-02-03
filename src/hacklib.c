@@ -1290,6 +1290,9 @@ current_holidays(void)
     if (month == 1 && date == 1) {
         retmask |= HOLIDAY_NEW_YEARS;
     }
+    if (month == 2 && date == 2) {
+        retmask |= HOLIDAY_GROUNDHOG_DAY;
+    }
     if (month == 2 && date == 14) {
         retmask |= HOLIDAY_VALENTINES_DAY;
     }

@@ -70,3 +70,12 @@ w.x
 www]]
    return selection.match(deadendN) | selection.match(deadendE) | selection.match(deadendS) | selection.match(deadendW)
 end
+
+-- dumb function for stuff that requires a number
+function bool2int(b)
+   if b then
+      return 1
+   else
+      return 0
+   end
+end

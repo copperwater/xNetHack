@@ -1,4 +1,4 @@
-/* NetHack 3.7	mthrowu.c	$NHDT-Date: 1620923922 2021/05/13 16:38:42 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.114 $ */
+/* NetHack 3.7	mthrowu.c	$NHDT-Date: 1629497158 2021/08/20 22:05:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.117 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -192,7 +192,7 @@ drop_throw(
             }
         }
     } else
-        obfree(obj, (struct obj *) 0);
+        delobj(obj);
     return retvalu;
 }
 
@@ -578,7 +578,7 @@ m_throw(
                 nomul(0);
 
             if (singleobj->oclass == GEM_CLASS
-                && singleobj->otyp <= LAST_GEM + 9 /* 9 glass colors */
+                && singleobj->otyp <= LAST_GEM + NUM_GLASS_GEMS
                 && is_unicorn(g.youmonst.data)) {
                 if (singleobj->otyp > LAST_GEM) {
                     You("catch the %s.", xname(singleobj));

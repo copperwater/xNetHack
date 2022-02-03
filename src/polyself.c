@@ -1,4 +1,4 @@
-/* NetHack 3.7	polyself.c	$NHDT-Date: 1613600809 2021/02/17 22:26:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.160 $ */
+/* NetHack 3.7	polyself.c	$NHDT-Date: 1626312523 2021/07/15 01:28:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.162 $ */
 /*      Copyright (C) 1987, 1988, 1989 by Ken Arromdee */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -365,7 +365,9 @@ newman(void)
             g.killer.format = KILLED_BY_AN;
             Strcpy(g.killer.name, "unsuccessful polymorph");
             done(DIED);
+            /* must have been life-saved to get here */
             newuhs(FALSE);
+            (void) encumber_msg(); /* used to be done by redist_attr() */
             return; /* lifesaved */
         }
     }
@@ -399,8 +401,11 @@ polyself(int psflags)
     boolean forcecontrol = (psflags == 1),
             monsterpoly = (psflags == 2),
             formrevert = (psflags == 3),
-            draconian = (psflags == 4), /* implies dragon scale armor is being
-                                           worn */
+            draconian = (!uskin && armor_to_dragon(&g.youmonst) != NON_PM),
+            /* psflags = 4: enchanting dragon scales while confused; polycontrol
+             * will only allow declining to become dragon, won't allow turning
+             * into arbitrary monster */
+            draconian_only = (psflags == 4),
             iswere = (u.ulycn >= LOW_PM),
             isvamp = (is_vampire(g.youmonst.data)
                       || is_vampshifter(&g.youmonst)),
@@ -423,14 +428,14 @@ polyself(int psflags)
     old_light = emits_light(g.youmonst.data);
     mntmp = NON_PM;
 
-    if (formrevert){
+    if (formrevert) {
         mntmp = g.youmonst.cham;
         monsterpoly = TRUE;
         controllable_poly = FALSE;
     }
     if (monsterpoly && isvamp)
         goto do_vampyr;
-    if (draconian)
+    if (draconian_only)
         goto do_merge;
 
     if (controllable_poly || forcecontrol) {
@@ -458,7 +463,9 @@ polyself(int psflags)
  by_class:
                 class = name_to_monclass(buf, &mntmp);
                 if (class && mntmp == NON_PM)
-                    mntmp = mkclass_poly(class);
+                    mntmp = (draconian && class == S_DRAGON)
+                            ? armor_to_dragon(&g.youmonst)
+                            : mkclass_poly(class);
             }
             if (mntmp < LOW_PM) {
                 if (!class)
@@ -469,6 +476,7 @@ polyself(int psflags)
                 /* in wizard mode, picking own role while poly'd reverts to
                    normal without newman()'s chance of level or sex change */
                 rehumanize();
+                old_light = 0; /* rehumanize() extinguishes u-as-mon light */
                 goto made_change;
             } else if (iswere && (were_beastie(mntmp) == u.ulycn
                                   || mntmp == counter_were(u.ulycn)
@@ -526,22 +534,31 @@ polyself(int psflags)
                 }
             }
             if (!(g.mvitals[mntmp].mvflags & G_GENOD)) {
+                struct obj **mergarm =
+                    (uarm && Is_dragon_scaled_armor(uarm)) ? &uarm
+                      : (uarmc && Is_dragon_scales(uarmc)) ? &uarmc
+                        : (struct obj **) 0;
+                unsigned was_lit = mergarm ? (*mergarm)->lamplit : 0;
+                int arm_light = mergarm && artifact_light(*mergarm)
+                                  ? arti_light_radius(*mergarm) : 0;
+
                 /* allow G_EXTINCT */
                 You("merge with your scaly armor.");
                 if (uskin) {
                     impossible("Already merged with some armor!");
                 }
-                else if (uarm && Is_dragon_scaled_armor(uarm)) {
-                    uskin = uarm;
-                    uarm = NULL;
-                    /* dragon scales remain intact as uskin */
+                else if (!mergarm) {
+                    impossible("No dragon armor / dragon cloak to merge?");
                 }
-                else if (uarmc && Is_dragon_scales(uarmc)) {
-                    uskin = uarmc;
-                    uarmc = NULL;
+                else {
+                    uskin = *mergarm;
+                    *mergarm = NULL;
+                    /* dragon scales remain intact as uskin */
                 }
                 /* save/restore hack */
                 uskin->owornmask |= I_SPECIAL;
+                if (was_lit)
+                    maybe_adjust_light(uskin, arm_light);
                 update_inventory();
             }
         } else if (iswere) {
@@ -553,9 +570,10 @@ polyself(int psflags)
         } else if (isvamp) {
  do_vampyr:
             if (mntmp < LOW_PM || (mons[mntmp].geno & G_UNIQ)) {
-                mntmp = (g.youmonst.data == &mons[PM_VAMPIRE_LEADER] && !rn2(10))
-                            ? PM_WOLF
-                            : !rn2(4) ? PM_FOG_CLOUD : PM_VAMPIRE_BAT;
+                mntmp = (g.youmonst.data == &mons[PM_VAMPIRE_LEADER]
+                         && !rn2(10)) ? PM_WOLF
+                                      : !rn2(4) ? PM_FOG_CLOUD
+                                                : PM_VAMPIRE_BAT;
                 if (g.youmonst.cham >= LOW_PM
                     && !is_vampire(g.youmonst.data) && !rn2(2))
                     mntmp = g.youmonst.cham;
@@ -932,6 +950,11 @@ break_armor(boolean noisy)
         if ((otmp = uarm) != 0) {
             if (donning(otmp))
                 cancel_don();
+            /* for gold DSM, we don't want Armor_gone() to report that it
+               stops shining _after_ we've been told that it is destroyed */
+            if (otmp->lamplit)
+                end_burn(otmp, FALSE);
+
             if (noisy)
                 You("break out of your armor!");
             exercise(A_STR, FALSE);
@@ -966,6 +989,10 @@ break_armor(boolean noisy)
                 else
                     Your("armor falls around you!");
             }
+            /* [note: _gone() instead of _off() dates to when life-saving
+               could force fire resisting armor back on if hero burned in
+               hell (3.0, predating Gehennom); the armor isn't actually
+               gone here but also isn't available to be put back on] */
             (void) Armor_gone();
             dropp(otmp);
         }
@@ -1722,12 +1749,17 @@ skinback(boolean noisy)
 {
     if (uskin) {
         struct obj **slot = (Is_dragon_scales(uskin) ? &uarmc : &uarm);
+        int old_light = arti_light_radius(uskin);
+
         if (noisy)
             Your("skin returns to its original form.");
         *slot = uskin;
         uskin = (struct obj *) 0;
         /* undo save/restore hack */
         (*slot)->owornmask &= ~I_SPECIAL;
+
+        if (artifact_light(uarm))
+            maybe_adjust_light(uarm, old_light);
     }
 }
 
@@ -1858,8 +1890,10 @@ mbodypart(struct monst *mon, int part)
     if (humanoid(mptr) && (part == ARM || part == FINGER || part == FINGERTIP
                            || part == HAND || part == HANDED))
         return humanoid_parts[part];
-    if (mptr == &mons[PM_RAVEN])
+    if (is_bird(mptr))
         return bird_parts[part];
+    if (has_beak(mptr) && part == NOSE) /* MOUTH is not a part, oddly */
+        return "beak";
     if (mptr->mlet == S_CENTAUR || mptr->mlet == S_UNICORN
         || mptr == &mons[PM_KI_RIN]
         || (mptr == &mons[PM_ROTHE] && part != HAIR))

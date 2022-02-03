@@ -361,10 +361,10 @@ joinm:
  */
 static void
 finish_map(
-    schar fg_typ, 
-    schar bg_typ, 
-    boolean lit, 
-    boolean walled, 
+    schar fg_typ,
+    schar bg_typ,
+    boolean lit,
+    boolean walled,
     boolean icedpools)
 {
     int i, j;
@@ -490,20 +490,7 @@ mkmap(lev_init* init_lev)
     xchar lit = init_lev->lit, walled = init_lev->walled;
     int i;
 
-    if (lit == 2) {
-        /* mineslight: Always bright above Minetown, always dark below */
-        s_level *minetownslev = find_level("minetn");
-        if (!minetownslev) {
-            impossible("Failed to find Minetown! Setting mineslight randomly");
-            lit = rn2(2);
-        }
-        else {
-            lit = (depth(&u.uz) < depth(&minetownslev->dlevel) ? 1 : 0);
-        }
-    }
-    else { /* random */
-        lit = litstate_rnd(lit);
-    }
+    lit = litstate_rnd(lit);
 
     g.new_locations = (char *) alloc((WIDTH + 1) * HEIGHT);
 

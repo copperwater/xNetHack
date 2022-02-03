@@ -58,6 +58,10 @@ local stairbox = selection.area(00, ustairy-1, 01, ustairy+1)
 des.replace_terrain({ selection=stairbox, fromterrain='T', toterrain='.' })
 des.teleport_region({ region={00,ustairy-1, 01, ustairy+1}, exclude_islev=1, dir="down" })
 
+-- Fill in inaccessible pockets in forest
+local nostairaccess = selection.floodfill(01, ustairy, true):negate() & selection.area(00,00,31,19)
+des.replace_terrain({ selection=nostairaccess, fromterrain='.', toterrain='T' })
+
 -- Randomize the topology somewhat
 function pickonepoint(list)
    local tmpsel = selection:new()

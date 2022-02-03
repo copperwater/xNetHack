@@ -726,6 +726,7 @@ mkswamp(void) /* Michiel Huisjes & Fred de Wilde */
 {
     register struct mkroom *sroom;
     register int sx, sy, i, eelct = 0;
+    int rmno;
 
     for (i = 0; i < 5; i++) { /* turn up to 5 rooms swampy */
         sroom = &g.rooms[rn2(g.nroom)];
@@ -733,10 +734,14 @@ mkswamp(void) /* Michiel Huisjes & Fred de Wilde */
             || has_dnstairs(sroom))
             continue;
 
+        rmno = (sroom - g.rooms) + ROOMOFFSET;
+
         /* satisfied; make a swamp */
         sroom->rtype = SWAMP;
         for (sx = sroom->lx; sx <= sroom->hx; sx++)
-            for (sy = sroom->ly; sy <= sroom->hy; sy++)
+            for (sy = sroom->ly; sy <= sroom->hy; sy++) {
+                if (!IS_ROOM(levl[sx][sy].typ) || (int) levl[sx][sy].roomno != rmno)
+                    continue;
                 if (!OBJ_AT(sx, sy) && !MON_AT(sx, sy) && !t_at(sx, sy)
                     && !nexttodoor(sx, sy)) {
                     if ((sx + sy) % 2) {
@@ -757,6 +762,7 @@ mkswamp(void) /* Michiel Huisjes & Fred de Wilde */
                     } else if (!rn2(10))
                         levl[sx][sy].typ = TREE;
                 }
+            }
         g.level.flags.has_swamp = 1;
     }
 }

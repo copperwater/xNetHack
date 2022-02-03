@@ -1,4 +1,4 @@
-/* NetHack 3.7	do.c	$NHDT-Date: 1619919402 2021/05/02 01:36:42 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.267 $ */
+/* NetHack 3.7	do.c	$NHDT-Date: 1627516694 2021/07/28 23:58:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.270 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -50,6 +50,8 @@ boulder_hits_pool(struct obj *otmp, int rx, int ry, boolean pushing)
         const char *what = waterbody_name(rx, ry);
         schar ltyp = levl[rx][ry].typ;
         int chance = rn2(10); /* water: 90%; lava: 10% */
+        struct monst *mtmp;
+
         fills_up = lava ? chance == 0 : chance != 0;
 
         if (fills_up) {
@@ -60,6 +62,9 @@ boulder_hits_pool(struct obj *otmp, int rx, int ry, boolean pushing)
                 levl[rx][ry].drawbridgemask |= DB_FLOOR;
             } else
                 levl[rx][ry].typ = ROOM, levl[rx][ry].flags = 0;
+
+            if ((mtmp = m_at(rx, ry)) != 0)
+                mondied(mtmp);
 
             if (ttmp)
                 (void) delfloortrap(ttmp);
@@ -128,19 +133,23 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
     struct trap *t;
     struct monst *mtmp;
     struct obj *otmp;
+    coord save_bhitpos;
     boolean tseen;
-    int ttyp = NO_TRAP;
+    int ttyp = NO_TRAP, res = FALSE;
 
     if (obj->where != OBJ_FREE)
         panic("flooreffects: obj not free");
 
     /* make sure things like water_damage() have no pointers to follow */
     obj->nobj = obj->nexthere = (struct obj *) 0;
-    /* erode_obj() needs this (called from water_damage() or lava_damage()) */
+    /* erode_obj() (called from water_damage() or lava_damage()) needs
+       bhitpos, but that was screwing up wand zapping that called us from
+       rloco(), so we now restore bhitpos before we return */
+    save_bhitpos = g.bhitpos;
     g.bhitpos.x = x, g.bhitpos.y = y;
 
     if (obj->otyp == BOULDER && boulder_hits_pool(obj, x, y, FALSE)) {
-        return TRUE;
+        res = TRUE;
     } else if (obj->otyp == BOULDER && (t = t_at(x, y)) != 0
                && (is_pit(t->ttyp) || is_hole(t->ttyp))) {
         ttyp = t->ttyp;
@@ -180,7 +189,7 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
                         (void) hmon(mtmp, obj, HMON_THROWN, dieroll);
                     }
                     if (!DEADMONSTER(mtmp) && !is_whirly(mtmp->data))
-                        return FALSE; /* still alive */
+                        res = FALSE; /* still alive, boulder still intact */
                 }
                 mtmp->mtrapped = 0;
             } else {
@@ -211,15 +220,15 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
          * Note:  trap might have gone away via ((hmon -> killed -> xkilled)
          *  || mondied) -> mondead -> m_detach -> fill_pit.
          */
-deletedwithboulder:
+ deletedwithboulder:
         if ((t = t_at(x, y)) != 0)
             deltrap(t);
         useupf(obj, 1L);
         bury_objs(x, y);
         newsym(x, y);
-        return TRUE;
+        res = TRUE;
     } else if (is_lava(x, y)) {
-        return lava_damage(obj, x, y);
+        res = lava_damage(obj, x, y);
     } else if (is_pool(x, y)) {
         /* Reasonably bulky objects (arbitrary) splash when dropped.
          * If you're floating above the water even small things make
@@ -236,17 +245,20 @@ deletedwithboulder:
             map_background(x, y, 0);
             newsym(x, y);
         }
-        return water_damage(obj, NULL, FALSE) == ER_DESTROYED;
+        res = water_damage(obj, NULL, FALSE) == ER_DESTROYED;
     } else if (u.ux == x && u.uy == y && (t = t_at(x, y)) != 0
                && (uteetering_at_seen_pit(t) || uescaped_shaft(t))) {
-        if (Blind && !Deaf)
-            You_hear("%s tumble downwards.", the(xname(obj)));
-        else
-            pline("%s %s into %s %s.", The(xname(obj)),
-                  otense(obj, "tumble"), the_your[t->madeby_u],
-                  is_pit(t->ttyp) ? "pit" : "hole");
-        if (is_hole(t->ttyp) && ship_object(obj, x, y, FALSE))
-            return TRUE;
+        if (is_pit(t->ttyp)) {
+            if (Blind && !Deaf)
+                You_hear("%s tumble downwards.", the(xname(obj)));
+            else
+                pline("%s into %s pit.", Tobjnam(obj, "tumble"),
+                      the_your[t->madeby_u]);
+        } else if (ship_object(obj, x, y, FALSE)) {
+            /* ship_object will print an appropriate "the item falls
+             * through the hole" message, so no need to do it here. */
+            res = TRUE;
+        }
     } else if (obj->globby) {
         /* Globby things like puddings might stick together */
         while (obj && (otmp = obj_nexto_xy(obj, x, y, TRUE)) != 0) {
@@ -255,13 +267,15 @@ deletedwithboulder:
              * obj to null. */
             (void) obj_meld(&obj, &otmp);
         }
-        return (boolean) !obj;
+        res = (boolean) !obj;
     }
     else if (is_open_air(x, y)) {
         obj_aireffects(obj, cansee(x, y));
-        return TRUE;
+        res = TRUE;
     }
-    return FALSE;
+
+    g.bhitpos = save_bhitpos;
+    return res;
 }
 
 /* obj is an object dropped on an altar */
@@ -1006,8 +1020,8 @@ dodown(void)
                 for (obj = g.invent; obj; obj = obj->nobj) {
                     if (obj->oartifact
                         && artifact_has_invprop(obj, LEVITATION)) {
-                        if (obj->age < g.monstermoves)
-                            obj->age = g.monstermoves;
+                        if (obj->age < g.moves)
+                            obj->age = g.moves;
                         obj->age += rnz(100);
                     }
                 }
@@ -1280,7 +1294,11 @@ u_collide_m(struct monst *mtmp)
 DISABLE_WARNING_FORMAT_NONLITERAL
 
 void
-goto_level(d_level *newlevel, boolean at_stairs, boolean falling, boolean portal)
+goto_level(
+    d_level *newlevel, /* destination */
+    boolean at_stairs, /* True if arriving via stairs/ladder */
+    boolean falling,   /* when fallling to level, objects might tag along */
+    boolean portal)    /* True if arriving via magic portal */
 {
     int l_idx, save_mode;
     NHFILE *nhfp;
@@ -1504,9 +1522,10 @@ goto_level(d_level *newlevel, boolean at_stairs, boolean falling, boolean portal
     } else if (at_stairs && !In_endgame(&u.uz)) {
         if (up) {
             stairway *stway = stairway_find_from(&u.uz0, g.at_ladder);
-            if (stway)
+            if (stway) {
                 u_on_newpos(stway->sx, stway->sy);
-            else if (newdungeon)
+                stway->u_traversed = TRUE;
+            } else if (newdungeon)
                 u_on_sstairs(1);
             else
                 u_on_dnstairs();
@@ -1521,9 +1540,10 @@ goto_level(d_level *newlevel, boolean at_stairs, boolean falling, boolean portal
                       g.at_ladder ? "ladder" : "stairs");
         } else { /* down */
             stairway *stway = stairway_find_from(&u.uz0, g.at_ladder);
-            if (stway)
+            if (stway) {
                 u_on_newpos(stway->sx, stway->sy);
-            else if (newdungeon)
+                stway->u_traversed = TRUE;
+            } else if (newdungeon)
                 u_on_sstairs(0);
             else
                 u_on_upstairs();
@@ -1834,6 +1854,7 @@ revive_corpse(struct obj *corpse, boolean moldy)
     char cname[BUFSZ];
     struct obj *container = (struct obj *) 0;
     int container_where = 0;
+    boolean is_zomb = (mons[corpse->corpsenm].mlet == S_ZOMBIE);
 
     where = corpse->where;
     is_uwep = (corpse == uwep);
@@ -1934,6 +1955,21 @@ revive_corpse(struct obj *corpse, boolean moldy)
             }
             break;
         }
+        case OBJ_BURIED:
+            if (is_zomb) {
+                maketrap(mtmp->mx, mtmp->my, PIT);
+                if (cansee(mtmp->mx, mtmp->my)) {
+                    struct trap *ttmp;
+
+                    ttmp = t_at(mtmp->mx, mtmp->my);
+                    ttmp->tseen = TRUE;
+                    pline("%s claws itself out of the ground!", Amonnam(mtmp));
+                    newsym(mtmp->mx, mtmp->my);
+                } else if (distu(mtmp->mx, mtmp->my) < 5*5)
+                    You_hear("scratching noises.");
+                break;
+            }
+            /*FALLTHRU*/
         default:
             /* we should be able to handle the other cases... */
             impossible("revive_corpse: lost corpse @ %d", where);
@@ -1980,13 +2016,15 @@ revive_mon(anything *arg, long timeout UNUSED)
             action = REVIVE_MON;
             when = rider_revival_time(body, TRUE);
         } else { /* rot this corpse away */
-            You_feel("%sless hassled.", is_rider(mptr) ? "much " : "");
+            if (!obj_has_timer(body, ROT_CORPSE))
+                You_feel("%sless hassled.", is_rider(mptr) ? "much " : "");
             action = ROT_CORPSE;
-            when = (long) d(5, 50) - (g.monstermoves - body->age);
+            when = (long) d(5, 50) - (g.moves - body->age);
             if (when < 1L)
                 when = 1L;
         }
-        (void) start_timer(when, TIMER_OBJECT, action, arg);
+        if (!obj_has_timer(body, action))
+            (void) start_timer(when, TIMER_OBJECT, action, arg);
     }
 }
 
@@ -2032,7 +2070,7 @@ moldy_corpse(anything *arg, long timeout UNUSED)
 
     if (already_fungus || bad_spot || no_eligible || munching) {
         /* set to rot away normally */
-        start_timer(250L - (g.monstermoves - peek_at_iced_corpse_age(body)),
+        start_timer(250L - (g.moves - peek_at_iced_corpse_age(body)),
                     TIMER_OBJECT, ROT_CORPSE, arg);
         return;
     }
@@ -2074,7 +2112,7 @@ moldy_corpse(anything *arg, long timeout UNUSED)
         if (old_oname)
             ONAME(body) = old_oname;
         body->owt = weight(body);
-        start_timer(250L - (g.monstermoves - peek_at_iced_corpse_age(body)),
+        start_timer(250L - (g.moves - peek_at_iced_corpse_age(body)),
                     TIMER_OBJECT, ROT_CORPSE, arg);
     }
 }

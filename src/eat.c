@@ -1,4 +1,4 @@
-/* NetHack 3.7	eat.c	$NHDT-Date: 1620548002 2021/05/09 08:13:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.243 $ */
+/* NetHack 3.7	eat.c	$NHDT-Date: 1626390626 2021/07/15 23:10:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.247 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1717,7 +1717,7 @@ eatcorpse(struct obj *otmp)
     if (!nonrotting_corpse(mnum)) {
         long age = peek_at_iced_corpse_age(otmp);
 
-        rotted = (g.monstermoves - age) / (10L + rn2(20));
+        rotted = (g.moves - age) / (10L + rn2(20));
         if (otmp->cursed)
             rotted += 2L;
         else if (otmp->blessed)
@@ -2001,9 +2001,9 @@ fprefx(struct obj *otmp)
         } else if (otmp->otyp == APPLE && otmp->cursed && !Sleep_resistance) {
             ; /* skip core joke; feedback deferred til fpostfx() */
 
-#if defined(MAC) || defined(MACOSX)
+#if defined(MAC) || defined(MACOS)
         /* KMH -- Why should Unix have all the fun?
-           We check MACOSX before UNIX to get the Apple-specific apple
+           We check MACOS before UNIX to get the Apple-specific apple
            message; the '#if UNIX' code will still kick in for pear. */
         } else if (otmp->otyp == APPLE) {
             pline("Delicious!  Must be a Macintosh!");
@@ -2379,7 +2379,7 @@ fpostfx(struct obj *otmp)
         break;
     }
     case EGG:
-        if (flesh_petrifies(&mons[otmp->corpsenm])) {
+        if (otmp->corpsenm >= LOW_PM && flesh_petrifies(&mons[otmp->corpsenm])) {
             if (!Stone_resistance
                 && !(poly_when_stoned(g.youmonst.data)
                      && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
@@ -2466,7 +2466,7 @@ edibility_prompts(struct obj *otmp)
 
     if (cadaver || otmp->otyp == EGG || otmp->otyp == TIN) {
         /* These checks must match those in eatcorpse() */
-        stoneorslime = (flesh_petrifies(&mons[mnum]) && !Stone_resistance
+        stoneorslime = (mnum >= LOW_PM && flesh_petrifies(&mons[mnum]) && !Stone_resistance
                         && !poly_when_stoned(g.youmonst.data));
 
         if (mnum == PM_GREEN_SLIME || otmp->otyp == GLOB_OF_GREEN_SLIME)
@@ -2477,7 +2477,7 @@ edibility_prompts(struct obj *otmp)
 
             /* worst case rather than random
                in this calculation to force prompt */
-            rotted = (g.monstermoves - age) / (10L + 0 /* was rn2(20) */);
+            rotted = (g.moves - age) / (10L + 0 /* was rn2(20) */);
             if (otmp->cursed)
                 rotted += 2L;
             else if (otmp->blessed)
@@ -2991,7 +2991,7 @@ gethungry(void)
 {
     int accessorytime;
 
-    if (u.uinvulnerable)
+    if (u.uinvulnerable || iflags.debug_hunger)
         return; /* you don't feel hungrier */
 
     /* being polymorphed into a creature which doesn't eat prevents
@@ -3522,6 +3522,8 @@ floorfood(const char *verb,
 void
 vomit(void) /* A good idea from David Neves */
 {
+    boolean spewed = FALSE;
+
     if (cantvomit(g.youmonst.data)) {
         /* doesn't cure food poisoning; message assumes that we aren't
            dealing with some esoteric body_part() */
@@ -3534,6 +3536,8 @@ vomit(void) /* A good idea from David Neves */
            reaches 0, but only if u.uhs < FAINTING (and !cantvomit()) */
         if (u.uhs >= FAINTING)
             Your("%s heaves convulsively!", body_part(STOMACH));
+        else
+            spewed = TRUE;
     }
 
     /* nomul()/You_can_move_again used to be unconditional, which was
@@ -3543,6 +3547,27 @@ vomit(void) /* A good idea from David Neves */
         nomul(-2);
         g.multi_reason = "vomiting";
         g.nomovemsg = You_can_move_again;
+    }
+
+    if (spewed) {
+        struct attack
+            *mattk = attacktype_fordmg(g.youmonst.data, AT_BREA, AD_ACID);
+
+        /* currently, only yellow dragons can breathe acid */
+        if (mattk) {
+            You("breathe acid on yourself..."); /* [why?] */
+            ubreatheu(mattk);
+        }
+        /* vomiting on an altar is, all things considered, rather impolite */
+        if (IS_ALTAR(levl[u.ux][u.uy].typ))
+            altar_wrath(u.ux, u.uy);
+        /* if poly'd into acidic form, stomach acid is stronger than normal */
+        if (acidic(g.youmonst.data)) {
+            /* TODO: if there's a web here, destroy that too (before ice) */
+            if (is_ice(u.ux, u.uy))
+                melt_ice(u.ux, u.uy,
+                         "Your stomach acid melts straight through the ice!");
+        }
     }
 }
 
@@ -3682,7 +3707,7 @@ Popeye(int threat)
                           && (mndx == PM_LIZARD || acidic(&mons[mndx])));
     /* polymorph into a fiery monster */
     case SLIMED:
-        return (boolean) (mndx == PM_CHAMELEON);
+        return (boolean) polyfodder(otin);
     /* no tins can cure these (yet?) */
     case SICK:
     case VOMITING:

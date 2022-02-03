@@ -202,7 +202,7 @@ o_material(struct obj *obj, unsigned material)
 
     if (Has_contents(obj)) {
         for (otmp = obj->cobj; otmp; otmp = otmp->nobj)
-            if (obj->material == material)
+            if (otmp->material == material)
                 return otmp;
             else if (Has_contents(otmp)
                      && (temp = o_material(otmp, material)) != 0)
@@ -1846,6 +1846,8 @@ sokoban_detect(void)
         for (y = 0; y < ROWNO; y++) {
             levl[x][y].seenv = SVALL;
             levl[x][y].waslit = TRUE;
+            if (levl[x][y].typ == SDOOR)
+                levl[x][y].wall_info = 0; /* see rm.h for explanation */
             map_background(x, y, 1);
             if ((obj = sobj_at(BOULDER, x, y)) != 0)
                 map_object(obj, 1);

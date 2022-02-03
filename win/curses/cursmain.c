@@ -187,16 +187,26 @@ curses_init_nhwindows(int *argcp UNUSED,
 #ifdef PDCURSES
 # ifdef DEF_GAME_NAME
 #  ifdef VERSION_STRING
-    sprintf(window_title, "%s %s", DEF_GAME_NAME, VERSION_STRING);
+    Snprintf(window_title, sizeof window_title, "%s %s",
+                DEF_GAME_NAME, VERSION_STRING);
 #  else
-    sprintf(window_title, "%s", DEF_GAME_NAME);
+    if (nomakedefs.version_string)
+        Snprintf(window_title, sizeof window_title, "%s %s",
+                DEF_GAME_NAME, nomakedefs.version_string);
+    else
+        Snprintf(window_title, sizeof window_title, "%s", DEF_GAME_NAME);
 #  endif
        /* VERSION_STRING */
 # else
 #  ifdef VERSION_STRING
-    sprintf(window_title, "%s %s", "NetHack", VERSION_STRING);
+    Snprintf(window_title, sizeof window_title, "%s %s",
+                "NetHack", VERSION_STRING);
 #  else
-    sprintf(window_title, "%s", "NetHack");
+    if (nomakedefs.version_string)
+        Snprintf(window_title, sizeof window_title, "%s %s",
+                    "NetHack", nomakedefs.version_string);
+    else
+        Snprintf(window_title, sizeof window_title, "%s", "NetHack");
 #  endif
        /* VERSION_STRING */
 # endif/* DEF_GAME_NAME */

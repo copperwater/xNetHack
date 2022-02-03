@@ -14,8 +14,8 @@ des.level_init({ style = "solidfill", fg = " " });
 
 des.level_flags("mazelevel", "noflip");
 
--- lit=2: mineslight: lit above Minetown and unlit beneath
-des.level_init({ style="mines", fg=".", bg=" ", smoothed=true ,joined=true, lit=2, walled=true })
+-- no lit state defaults to "random" = lit above Minetown and unlit beneath
+des.level_init({ style="mines", fg=".", bg=" ", smoothed=true ,joined=true, walled=true })
 
 --
 des.stair("up")

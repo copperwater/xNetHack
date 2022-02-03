@@ -15,10 +15,13 @@ NEARDATA long yn_number = 0L;
 
 const char disclosure_options[] = "iavgco";
 
-/* x/y/z deltas for the 10 movement directions (8 compass pts, 2 up/down) */
-const schar xdir[10] = { -1, -1, 0, 1, 1, 1, 0, -1, 0, 0 };
-const schar ydir[10] = { 0, -1, -1, -1, 0, 1, 1, 1, 0, 0 };
-const schar zdir[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, -1 };
+/* x/y/z deltas for the 10 movement directions (8 compass pts, 2 down/up) */
+const schar xdir[N_DIRS_Z] = { -1, -1,  0,  1,  1,  1,  0, -1, 0,  0 };
+const schar ydir[N_DIRS_Z] = {  0, -1, -1, -1,  0,  1,  1,  1, 0,  0 };
+const schar zdir[N_DIRS_Z] = {  0,  0,  0,  0,  0,  0,  0,  0, 1, -1 };
+/* redordered directions, cardinals first */
+const schar dirs_ord[N_DIRS] =
+    { DIR_W, DIR_N, DIR_E, DIR_S, DIR_NW, DIR_NE, DIR_SE, DIR_SW };
 
 NEARDATA struct flag flags;
 NEARDATA boolean has_strong_rngseed = FALSE;
@@ -200,6 +203,9 @@ const struct Race urace_init_data = {
 };
 
 const struct instance_globals g_init = {
+
+    NULL, /* command_queue */
+
     /* apply.c */
     0,  /* jumping_is_magic */
     -1, /* polearm_range_min */
@@ -312,7 +318,6 @@ const struct instance_globals g_init = {
     NULL, /* subrooms */
     UNDEFINED_VALUES, /* level */
     1, /* moves */
-    1, /* monstermoves */
     0, /* wailmsg */
     NULL, /* migrating_objs */
     NULL, /* billobjs */
@@ -511,6 +516,7 @@ const struct instance_globals g_init = {
 
     /* o_init.c */
     DUMMY, /* disco */
+    DUMMY, /* oclass_prob_totals */
 
     /* objname.c */
     0, /* distantname */
@@ -530,6 +536,7 @@ const struct instance_globals g_init = {
     /* pickup.c */
     0,  /* oldcap */
     (struct obj *) 0, /* current_container */
+    (struct obj *) 0, /* transfer_container */
     UNDEFINED_VALUE, /* abort_looting */
     UNDEFINED_VALUE, /* val_for_n_or_more */
     UNDEFINED_VALUES, /* valid_menu_classes */

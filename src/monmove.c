@@ -17,6 +17,9 @@ static boolean mitem_magical(struct obj *);
 static boolean mitem_indigestion(struct obj *);
 static boolean mitem_rock(struct obj *);
 static boolean mitem_gem(struct obj *);
+static boolean holds_up_web(xchar, xchar);
+static int count_webbing_walls(xchar, xchar);
+static boolean soko_allow_web(struct monst *);
 static boolean m_balks_at_approaching(struct monst *);
 static boolean stuff_prevents_passage(struct monst *);
 static int vamp_shift(struct monst *, struct permonst *, boolean);
@@ -322,11 +325,15 @@ bee_eat_jelly(struct monst* mon, struct obj* obj)
     return -1; /* a queen is already present; ordinary bee hasn't moved yet */
 }
 
-#define flees_light(mon) ((mon)->data == &mons[PM_GREMLIN]     \
-                          && (uwep && artifact_light(uwep) && uwep->lamplit))
-/* we could include this in the above macro, but probably overkill/overhead */
-/*      && (!(which_armor((mon), W_ARMC) != 0                               */
-/*            && which_armor((mon), W_ARMH) != 0))                          */
+/* FIXME: gremlins don't flee from monsters wielding Sunsword or wearing
+   gold dragon scales/mail, nor from gold dragons, only from the hero */
+#define flees_light(mon) \
+    ((mon)->data == &mons[PM_GREMLIN]                                     \
+     && ((uwep && uwep->lamplit && artifact_light(uwep))                  \
+         || (uarm && uarm->lamplit && artifact_light(uarm)))              \
+     /* not applicable if mon can't see or hero isn't in line of sight */ \
+     && mon->mcansee && couldsee(mon->mx, mon->my))                       \
+     /* doesn't matter if hero is invisible--light being emitted isn't */
 
 
 /* monster begins fleeing for the specified time, 0 means untimed flee
@@ -366,13 +373,28 @@ monflee(
             if (!mtmp->mcanmove || !mtmp->data->mmove) {
                 pline("%s seems to flinch.", Adjmonnam(mtmp, "immobile"));
             } else if (flees_light(mtmp)) {
-                if (rn2(10) || Deaf)
+                if (Unaware) {
+                    /* tell the player even if the hero is unconscious */
+                    pline("%s is frightened.", Monnam(mtmp));
+                } else if (rn2(10) || Deaf) {
+                    /* via flees_light(), will always be either via uwep
+                       (Sunsword) or uarm (gold dragon scales/mail) or both;
+                       TODO? check for both and describe the one which is
+                       emitting light with a bigger radius */
+                    const char *lsrc = (uwep && artifact_light(uwep))
+                                       ? bare_artifactname(uwep)
+                                       : (uarm && artifact_light(uarm))
+                                         ? yname(uarm)
+                                         : "[its imagination?]";
+
                     pline("%s flees from the painful light of %s.",
-                          Monnam(mtmp), bare_artifactname(uwep));
-                else
+                          Monnam(mtmp), lsrc);
+                } else {
                     verbalize("Bright light!");
-            } else
+                }
+            } else {
                 pline("%s turns to flee.", Monnam(mtmp));
+            }
         }
         mtmp->mflee = 1;
     }
@@ -509,6 +531,8 @@ dochug(register struct monst* mtmp)
         m_respond(mtmp);
     if (mdat->msound == MS_ROAR && !um_dist(mtmp->mx, mtmp->my, 10) && !rn2(30)
         && couldsee(mtmp->mx, mtmp->my))
+        m_respond(mtmp);
+    if (mdat == &mons[PM_NAZGUL])
         m_respond(mtmp);
     if (mdat == &mons[PM_MEDUSA] && couldsee(mtmp->mx, mtmp->my))
         m_respond(mtmp);
@@ -936,33 +960,6 @@ m_digweapon_check(struct monst* mtmp, xchar nix, xchar niy)
     return FALSE;
 }
 
-/* returns the number of walls in the four cardinal directions that could
-   hold up a web */
-static int
-count_webbing_walls(xchar x, xchar y)
-{
-    int xx, yy;
-    int ct = 0;
-    for (xx = x - 1; xx <= x + 1; xx++) {
-        for (yy = y - 1; yy <= y + 1; yy++) {
-            if (xx != x && yy != y) {
-                /* only do orthogonal adjacencies */
-                continue;
-            }
-            if (!isok(xx, yy)) {
-                continue;
-            }
-            struct stairway *stairs = stairway_at(xx, yy);
-            if (IS_ROCK(levl[xx][yy].typ) || levl[xx][yy].typ == IRONBARS
-                || (stairs && stairs->up)) {
-                /* both upstair and upladder are valid here */
-                ct++;
-            }
-        }
-    }
-    return ct;
-}
-
 /* does monster want to avoid you? */
 static boolean
 m_balks_at_approaching(struct monst* mtmp)
@@ -990,6 +987,77 @@ m_balks_at_approaching(struct monst* mtmp)
         return TRUE;
 
     return FALSE;
+}
+
+static boolean
+holds_up_web(xchar x, xchar y)
+{
+    stairway *sway;
+
+    if (!isok(x, y)
+        || IS_ROCK(levl[x][y].typ)
+        || ((levl[x][y].typ == STAIRS || levl[x][y].typ == LADDER)
+            && (sway = stairway_at(x, y)) != 0 && sway->up)
+        || levl[x][y].typ == IRONBARS)
+        return TRUE;
+
+    return FALSE;
+}
+
+/* returns the number of walls in the four cardinal directions that could
+   hold up a web */
+static int
+count_webbing_walls(xchar x, xchar y)
+{
+    return (holds_up_web(x, y - 1) + holds_up_web(x + 1, y)
+            + holds_up_web(x, y + 1) + holds_up_web(x - 1, y));
+}
+
+/* reject webs which interfere with solving Sokoban */
+static boolean
+soko_allow_web(struct monst *mon)
+{
+    stairway *stway;
+
+    /* for a non-Sokoban level or a solved Sokoban level, no restriction */
+    if (!Sokoban)
+        return TRUE;
+    /* not-yet-solved Sokoban level:  allow web only when spinner can see
+       the stairs up [we really want 'is in same chamber as stairs up'] */
+    stway = stairway_find_dir(TRUE); /* stairs up */
+    if (stway && m_cansee(mon, stway->sx, stway->sy))
+        return TRUE;
+    return FALSE;
+}
+
+/* monster might spin a web */
+static void
+maybe_spin_web(struct monst *mtmp)
+{
+    if (webmaker(mtmp->data)
+        && mtmp->mcanmove && !mtmp->msleeping && !mtmp->mspec_used
+        && !t_at(mtmp->mx, mtmp->my) && soko_allow_web(mtmp)) {
+        struct trap *trap;
+        int prob = ((((mtmp->data == &mons[PM_GIANT_SPIDER]) ? 15 : 5)
+                     * (count_webbing_walls(mtmp->mx, mtmp->my) + 1))
+                    - (3 * count_traps(WEB)));
+
+        if (rn2(1000) < prob
+            && (trap = maketrap(mtmp->mx, mtmp->my, WEB)) != 0) {
+            mtmp->mspec_used = d(4, 4); /* 4..16 */
+            if (cansee(mtmp->mx, mtmp->my)) {
+                char mbuf[BUFSZ];
+
+                Strcpy(mbuf, canspotmon(mtmp) ? y_monnam(mtmp) : something);
+                pline("%s spins a web.", upstart(mbuf));
+                trap->tseen = 1;
+            }
+            if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE))
+                /* a shopkeeper will make sure to keep the shop cobweb-free
+                 * (don't charge the player for this either) */
+                add_damage(mtmp->mx, mtmp->my, 0L);
+        }
+    }
 }
 
 /* Return values:
@@ -1136,7 +1204,7 @@ m_move(register struct monst* mtmp, register int after)
          * whether they have a usable ranged weapon. */
         appr = -1;
     }
-    if (mtmp->mconf || (u.uswallow && mtmp == u.ustuck)) {
+    if (mtmp->mconf || mtmp->mstun || (u.uswallow && mtmp == u.ustuck)) {
         appr = 0;
     } else {
         struct obj *lepgold, *ygold;
@@ -1640,31 +1708,7 @@ m_move(register struct monst* mtmp, register int after)
             }
         }
 
-        /* maybe spin a web -- this needs work; if the spider is far away,
-           it might spin a lot of webs before hero encounters it */
-        if (webmaker(ptr) && !mtmp->mspec_used && !t_at(mtmp->mx, mtmp->my)) {
-            struct trap *trap;
-            int prob = ((ptr == &mons[PM_GIANT_SPIDER]) ? 15 : 5)
-                      * (count_webbing_walls(mtmp->mx, mtmp->my) + 1);
-
-            if (rn2(1000) < prob
-                && (trap = maketrap(mtmp->mx, mtmp->my, WEB)) != 0) {
-                mtmp->mspec_used = d(4, 4); /* 4..16 */
-                if (cansee(mtmp->mx, mtmp->my)) {
-                    char mbuf[BUFSZ];
-
-                    Strcpy(mbuf,
-                           canspotmon(mtmp) ? y_monnam(mtmp) : something);
-                    pline("%s spins a web.", upstart(mbuf));
-                    trap->tseen = 1;
-                }
-                if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE)) {
-                    /* a shopkeeper will make sure to keep the shop cobweb-free
-                     * (don't charge the player for this either) */
-                    add_damage(mtmp->mx, mtmp->my, 0L);
-                }
-            }
-        }
+        maybe_spin_web(mtmp);
 
         if (hides_under(ptr) || ptr->mlet == S_EEL) {
             /* Always set--or reset--mundetected if it's already hidden

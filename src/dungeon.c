@@ -1274,7 +1274,8 @@ ledger_to_dnum(xchar ledgerno)
     /* find i such that (i->base + 1) <= ledgerno <= (i->base + i->count) */
     for (i = 0; i < g.n_dgns; i++)
         if (g.dungeons[i].ledger_start < ledgerno
-            && ledgerno <= g.dungeons[i].ledger_start + g.dungeons[i].num_dunlevs)
+            && (ledgerno
+                <= g.dungeons[i].ledger_start + g.dungeons[i].num_dunlevs))
             return (xchar) i;
 
     panic("level number out of range [ledger_to_dnum(%d)]", (int) ledgerno);
@@ -1388,6 +1389,9 @@ next_level(boolean at_stairs)
     stairway *stway = stairway_at(u.ux, u.uy);
     d_level newlevel;
 
+    if (at_stairs && stway)
+        stway->u_traversed = TRUE;
+
     if (at_stairs && stway) {
         newlevel.dnum = stway->tolev.dnum;
         newlevel.dlevel = stway->tolev.dlevel;
@@ -1405,6 +1409,9 @@ prev_level(boolean at_stairs)
 {
     stairway *stway = stairway_at(u.ux, u.uy);
     d_level newlevel;
+
+    if (at_stairs && stway)
+        stway->u_traversed = TRUE;
 
     if (at_stairs && stway && stway->tolev.dnum != u.uz.dnum) {
         /* Taking an up dungeon branch. */
@@ -1485,12 +1492,13 @@ u_on_rndspot(int upflag)
 void
 stairway_add(int x, int y, boolean up, boolean isladder, d_level *dest)
 {
-    stairway *tmp = (stairway *)alloc(sizeof(stairway));
+    stairway *tmp = (stairway *) alloc(sizeof (stairway));
 
     tmp->sx = x;
     tmp->sy = y;
     tmp->up = up;
     tmp->isladder = isladder;
+    tmp->u_traversed = FALSE;
     assign_level(&(tmp->tolev), dest);
     tmp->next = g.stairs;
     g.stairs = tmp;
@@ -1722,8 +1730,8 @@ get_level(d_level *newlevel, int levnum)
     if (levnum <= 0) {
         /* can only currently happen in endgame */
         levnum = u.uz.dlevel;
-    } else if (levnum
-               > g.dungeons[dgn].depth_start + g.dungeons[dgn].num_dunlevs - 1) {
+    } else if (levnum > (g.dungeons[dgn].depth_start
+                         + g.dungeons[dgn].num_dunlevs - 1)) {
         /* beyond end of dungeon, jump to last level */
         levnum = g.dungeons[dgn].num_dunlevs;
     } else {
@@ -1979,7 +1987,7 @@ level_difficulty(void)
          * below rather than stairs 1 level beneath the entry level.
          */
         else if (On_W_tower_level(&u.uz) && In_W_tower(some_X, some_Y, &u.uz))
-            res += (fakewiz1.dlev - u.uz.dlev);
+            res += (fakewiz1.dlevel - u.uz.dlevel);
             /*
              * Handling this properly would need more information here:
              * an inside/outside flag, or coordinates to calculate it.
@@ -2132,6 +2140,66 @@ tport_menu(winid win, char *entry, struct lchoice *lchoices,
         lchoices->menuletter++;
     lchoices->idx++;
     return;
+}
+
+/* return True if 'sway' is a branch staircase and hero has used these stairs
+   to visit the branch */
+boolean
+known_branch_stairs(stairway *sway)
+{
+    return (sway && sway->tolev.dnum != u.uz.dnum && sway->u_traversed);
+}
+
+/* describe staircase 'sway' based on whether hero knows the destination */
+char *
+stairs_description(
+    stairway *sway, /* stairs/ladder to describe */
+    char *outbuf,   /* result buffer */
+    boolean stcase) /* True: "staircase" or "ladder", always singular;
+                     * False: "stairs" or "ladder"; caller needs to deal
+                     * with singular vs plural when forming a sentence */
+{
+    d_level tolev;
+    const char *stairs, *updown;
+
+    tolev = sway->tolev;
+    stairs = sway->isladder ? "ladder" : stcase ? "staircase" : "stairs";
+    updown = sway->up ? "up" : "down";
+
+    if (!known_branch_stairs(sway)) {
+        /* ordinary stairs or branch stairs to not-yet-visited branch */
+        Sprintf(outbuf, "%s %s", stairs, updown);
+        if (sway->u_traversed) {
+            boolean specialdepth = (tolev.dnum == quest_dnum
+                                    || single_level_branch(&tolev)); /* knox */
+            int to_dlev = specialdepth ? dunlev(&tolev) : depth(&tolev);
+
+            Sprintf(eos(outbuf), " to level %d", to_dlev);
+        }
+    } else if (u.uz.dnum == 0 && u.uz.dlevel == 1 && sway->up) {
+        /* stairs up from level one are a special case; they are marked
+           as having been traversed because the hero obviously started
+           the game by coming down them, but the remote side varies
+           depending on whether the Amulet is being carried */
+        Sprintf(outbuf, "%s%s %s %s",
+                !u.uhave.amulet ? "" : "branch ",
+                stairs, updown,
+                !u.uhave.amulet ? "out of the dungeon"
+                /* minimize our expectations about what comes next */
+                : (on_level(&tolev, &earth_level)
+                   || on_level(&tolev, &air_level)
+                   || on_level(&tolev, &fire_level)
+                   || on_level(&tolev, &water_level))
+                  ? "to the Elemental Planes"
+                  : "to the end game");
+    } else {
+        /* known branch stairs; tacking on destination level is too verbose */
+        Sprintf(outbuf, "branch %s %s to %s",
+                stairs, updown, g.dungeons[tolev.dnum].dname);
+        /* dungeons[].dname is capitalized; undo that for "The <Branch>" */
+        (void) strsubst(outbuf, "The ", "the ");
+    }
+    return outbuf;
 }
 
 /* Convert a branch type to a string usable by print_dungeon(). */
@@ -3024,6 +3092,8 @@ mapseen_temple(struct monst *priest UNUSED) /* currently unused;
 {
     mapseen *mptr = find_mapseen(&u.uz);
 
+    if (!mptr)
+        return;
     if (Is_valley(&u.uz))
         mptr->flags.valley = 1;
     else if (Is_sanctum(&u.uz))
@@ -3036,7 +3106,8 @@ room_discovered(int roomno)
 {
     mapseen *mptr = find_mapseen(&u.uz);
 
-    mptr->msrooms[roomno].seen = 1;
+    if (mptr)
+        mptr->msrooms[roomno].seen = 1;
 }
 
 /* #overview command */

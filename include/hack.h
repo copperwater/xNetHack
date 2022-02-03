@@ -50,6 +50,7 @@ enum encumbrance_types {
 #define SHOP_HOLE_COST 200L /* cost of making hole/trapdoor */
 #define SHOP_WALL_COST 200L /* cost of destroying a wall */
 #define SHOP_WALL_DMG  (10L * ACURRSTR) /* damaging a wall */
+#define SHOP_PIT_COST  100L /* cost of making a pit */
 #define SHOP_WEB_COST   30L /* cost of removing a web */
 
 /* hunger states - see hu_stat in eat.c */
@@ -183,8 +184,20 @@ typedef struct {
 
 #include "align.h"
 #include "dungeon.h"
-#include "monsym.h"
+#include "sym.h"
 #include "mkroom.h"
+
+enum artifacts_nums {
+#define ARTI_ENUM
+#include "artilist.h"
+#undef ARTI_ENUM
+    AFTER_LAST_ARTIFACT
+};
+
+enum misc_arti_nums {
+    NROFARTIFACTS = (AFTER_LAST_ARTIFACT - 1)
+};
+
 #include "objclass.h"
 #include "youprop.h"
 #include "wintype.h"
@@ -194,9 +207,9 @@ typedef struct {
 
 /* Symbol offsets */
 #define SYM_OFF_P (0)
-#define SYM_OFF_O (SYM_OFF_P + MAXPCHARS)   /* MAXPCHARS from rm.h */
+#define SYM_OFF_O (SYM_OFF_P + MAXPCHARS)   /* MAXPCHARS from sym.h */
 #define SYM_OFF_M (SYM_OFF_O + MAXOCLASSES) /* MAXOCLASSES from objclass.h */
-#define SYM_OFF_W (SYM_OFF_M + MAXMCLASSES) /* MAXMCLASSES from monsym.h*/
+#define SYM_OFF_W (SYM_OFF_M + MAXMCLASSES) /* MAXMCLASSES from sym.h*/
 #define SYM_OFF_X (SYM_OFF_W + WARNCOUNT)
 #define SYM_MAX (SYM_OFF_X + MAXOTHER)
 
@@ -289,11 +302,20 @@ typedef struct sortloot_item Loot;
                                * to make an extra call to goodpos()]        */
 #define GP_ALLOW_U  0x080000L /* don't reject hero's location */
 
-/* flags for make_corpse() and mkcorpstat() */
-#define CORPSTAT_NONE 0x00
-#define CORPSTAT_INIT 0x01   /* pass init flag to mkcorpstat */
-#define CORPSTAT_BURIED 0x02 /* bury the corpse or statue */
-#define CORPSTAT_ZOMBIE 0x04 /* mark corpse as zombie-revivable */
+/* flags for make_corpse() and mkcorpstat(); 0..7 are recorded in obj->spe */
+#define CORPSTAT_NONE     0x00
+#define CORPSTAT_GENDER   0x03 /* 0x01 | 0x02 */
+#define CORPSTAT_HISTORIC 0x04 /* historic statue; not used for corpse */
+#define CORPSTAT_SPE_VAL  0x07 /* 0x03 | 0x04 */
+#define CORPSTAT_INIT     0x08 /* pass init flag to mkcorpstat */
+#define CORPSTAT_BURIED   0x10 /* bury the corpse or statue */
+#define CORPSTAT_ZOMBIE   0x20 /* mark corpse as zombie-revivable */
+/* note: gender flags have different values from those used for monsters
+   so that 0 can be unspecified/random instead of male */
+#define CORPSTAT_RANDOM 0
+#define CORPSTAT_FEMALE 1
+#define CORPSTAT_MALE   2
+#define CORPSTAT_NEUTER 3
 
 /* flags for decide_to_shift() */
 #define SHIFT_SEENMSG 0x01 /* put out a message if in sight */
@@ -480,6 +502,7 @@ enum bodypart_types {
 /* Some misc definitions */
 #define POTION_OCCUPANT_CHANCE(n) (13 + 2 * (n))
 #define WAND_BACKFIRE_CHANCE 30
+#define WAND_WREST_CHANCE 121
 #define BALL_IN_MON (u.uswallow && uball && uball->where == OBJ_FREE)
 #define CHAIN_IN_MON (u.uswallow && uchain && uchain->where == OBJ_FREE)
 #define NODIAG(monnum) ((monnum) == PM_GRID_BUG)
@@ -532,6 +555,7 @@ enum bodypart_types {
 #define HOLIDAY_CHRISTMAS      0x04000
 #define HOLIDAY_LOS_MUERTOS    0x08000
 #define HOLIDAY_MARDI_GRAS     0x10000
+#define HOLIDAY_GROUNDHOG_DAY  0x20000
 
 /* constant passed to explode() for gas spores because gas spores are weird
  * Specifically, this is an exception to the whole "explode() uses dobuzz types"

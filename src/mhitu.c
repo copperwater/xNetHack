@@ -1,4 +1,4 @@
-/* NetHack 3.7	mhitu.c	$NHDT-Date: 1606473488 2020/11/27 10:38:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.196 $ */
+/* NetHack 3.7	mhitu.c	$NHDT-Date: 1625838648 2021/07/09 13:50:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.246 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -21,6 +21,138 @@ static int passiveum(struct permonst *, struct monst *, struct attack *);
 
 #define ld() ((yyyymmdd((time_t) 0) - (getyear() * 10000L)) == 0xe5)
 
+/* Return an appropriately conjugated verb describing how mtmp is hitting
+ * something with weap. (Note that mtmp can be the hero.) */
+const char *
+weaphitmsg(struct obj *weap, struct monst *magr) {
+    const boolean blunt  = (objects[weap->otyp].oc_dir & WHACK),
+                  pierce = (objects[weap->otyp].oc_dir & PIERCE),
+                  slash  = (objects[weap->otyp].oc_dir & SLASH);
+    const boolean uhitm = (magr == &g.youmonst);
+    const char *verbpool[10];
+    int verbidx = 0;
+    /* The order in which strings are added to verbpool is important. The
+     * earliest ones are the most likely to be printed, and the last are least
+     * likely. */
+
+    if (objects[weap->otyp].oc_skill == P_WHIP) {
+        verbpool[verbidx++] = "whip";
+        verbpool[verbidx++] = "lash";
+    }
+    else if (blunt && (!(pierce || slash) || rn2(2))) {
+        if (objects[weap->otyp].oc_skill == P_CLUB)
+            verbpool[verbidx++] = "club";
+        if (objects[weap->otyp].oc_skill == P_MACE
+            || objects[weap->otyp].oc_skill == P_MORNING_STAR)
+            verbpool[verbidx++] = "brain";
+        if (is_shield(weap) || weap->otyp == HEAVY_IRON_BALL)
+            verbpool[verbidx++] = "bash";
+        else
+            verbpool[verbidx++] = "strike";
+        verbpool[verbidx++] = "pound";
+        verbpool[verbidx++] = "bash";
+        verbpool[verbidx++] = "whack";
+        verbpool[verbidx++] = "smack";
+    }
+    else if (pierce && (!slash || rn2(2))) {
+        if (is_blade(weap))
+            verbpool[verbidx++] = "stab";
+        verbpool[verbidx++] = "jab";
+        verbpool[verbidx++] = "pierce";
+        verbpool[verbidx++] = "impale";
+        verbpool[verbidx++] = "gore";
+    }
+    else if (slash) {
+        if ((uhitm && Role_if(PM_BARBARIAN))
+            || magr->data == &mons[PM_BARBARIAN])
+            verbpool[verbidx++] = "smite";
+        verbpool[verbidx++] = "hack";
+        verbpool[verbidx++] = "slash";
+        if (is_axe(weap)) {
+            verbpool[verbidx++] = "chop";
+            verbpool[verbidx++] = "hew";
+        }
+        verbpool[verbidx++] = "rend";
+        verbpool[verbidx++] = "gash";
+        verbpool[verbidx++] = "lacerate";
+    }
+    else {
+        impossible("strange weapon type %d for hit message", weap->otyp);
+    }
+    verbpool[verbidx++] = "hit"; /* always an option */
+
+    /* Bias towards the first word in verbpool and away from the last. */
+    verbidx = min(rn2(verbidx), rn2(verbidx));
+
+    /* vtense is intended for objects, but it's better than throwing a non-noun
+     * into raw makeplural(); use a plural subject for hero so it won't
+     * conjugate anything */
+    return vtense(uhitm ? "rocks" : "a rock", verbpool[verbidx]);
+}
+
+/* Return an appropriately conjugated verb describing how mtmp is hitting
+ * something with an AT_WEAP or AT_CLAW attack without a weapon. (Note that mtmp
+ * can be the hero.)
+ * Return null if the caller should instead use a generic "hit" message. */
+const char *
+barehitmsg(struct monst *magr) {
+    const char *verb = 0;
+    boolean uhitm = (magr == &g.youmonst);
+
+    if (!strcmp(mbodypart(magr, HAND), "claw")
+        || !strcmp(mbodypart(magr, HAND), "paw")
+        || !strcmp(mbodypart(magr, HAND), "foreclaw")
+        || is_bird(magr->data))
+        verb = "claw";
+    if (!strcmp(mbodypart(magr, HAND), "swirl") || /* elementals */
+        !strcmp(mbodypart(magr, HAND), "tentacle")) { /* krakens */
+        if (magr->data == &mons[PM_EARTH_ELEMENTAL])
+            verb = "pummel";
+        else
+            verb = "lash";
+    }
+    if (is_undead(magr->data))
+        verb = "scratch";
+    if (magr->data == &mons[PM_MONK] || magr->data == &mons[PM_SAMURAI]
+        || (martial_bonus()
+            && (magr == &g.youmonst
+                /* This assumes monk and samurai quest monsters are themselves
+                 * monks/samurai */
+                || magr->data->msound == MS_LEADER
+                || magr->data->msound == MS_GUARDIAN
+                || magr->data->msound == MS_NEMESIS))) {
+        static const char *const martialattk[] = {
+            /* note: hitting with arms/hands is assumed here, so none of these
+             * should imply hitting with other body parts; otherwise it would
+             * get weird with interactions with cockatrices and wounded legs...
+             */
+            "chop", "jab", "strike"
+        };
+        static const char *const hmartialattk[] = {
+            "suplex",    "piledrive", "slap",      "shove",  "flick",
+            "heel drop", "uppercut",  "downercut", "smack",  "arm-bar",
+            "backhand",  "combo",     "caress",    "noogie", "sucker punch",
+            "pat",       "tickle"
+        };
+        verb = Hallucination ? hmartialattk[rn2(SIZE(hmartialattk))]
+                             : martialattk[rn2(SIZE(martialattk))];
+    }
+    if (magr->data == &mons[PM_QUANTUM_MECHANIC])
+        /* no simple way to conjugate this since vtense isn't smart enough to
+         * pick up on "with" not being part of the verb... */
+        return uhitm ? "interact with" : "interacts with";
+    if (magr->data == &mons[PM_NURSE])
+        verb = "jab";
+
+    /* default cases if verb hasn't been set by a special case */
+    if (!verb && !strcmp(mbodypart(magr, HAND), "hand"))
+        verb = "punch";
+    if (!verb || !rn2(10))
+        return (const char *) 0;
+
+    return vtense(uhitm ? "rocks" : "a rock", verb);
+}
+
 void
 hitmsg(struct monst *mtmp, struct attack *mattk)
 {
@@ -38,7 +170,7 @@ hitmsg(struct monst *mtmp, struct attack *mattk)
     } else {
         switch (mattk->aatyp) {
         case AT_BITE:
-            pfmt = "%s bites!";
+            pfmt = has_beak(mtmp->data) ? "%s pecks!" : "%s bites!";
             break;
         case AT_KICK:
             pline("%s kicks%c", Monst_name,
@@ -61,6 +193,24 @@ hitmsg(struct monst *mtmp, struct attack *mattk)
         case AT_BOOM:
             pfmt = "%s explodes!";
             break;
+        case AT_WEAP:
+            if (MON_WEP(mtmp)) {
+                struct obj *mwep = MON_WEP(mtmp);
+                if (is_launcher(mwep) || is_missile(mwep) || is_ammo(mwep))
+                    pline("%s hits!", Monst_name); /* default case */
+                else
+                    pline("%s %s you!", Monst_name, weaphitmsg(mwep, mtmp));
+                break;
+            }
+            /* FALLTHRU */
+        case AT_CLAW: {
+            const char *verb = barehitmsg(mtmp);
+            if (verb) {
+                pline("%s %s you!", Monst_name, verb);
+                break;
+            }
+        }
+        /* FALLTHRU */
         default:
             pfmt = "%s hits!";
         }
@@ -78,9 +228,15 @@ missmu(struct monst *mtmp, boolean nearmiss, struct attack *mattk)
 
     if (could_seduce(mtmp, &g.youmonst, mattk) && !mtmp->mcan)
         pline("%s pretends to be friendly.", Monnam(mtmp));
-    else
-        pline("%s %smisses!", Monnam(mtmp),
-              (nearmiss && flags.verbose) ? "just " : "");
+    else {
+        const char *blocker = attack_blocker(&g.youmonst);
+        if (blocker && !rn2(5))
+            pline("Your %s %s %s attack.", blocker,
+                  rn2(3) ? "blocks" : "deflects", s_suffix(mon_nam(mtmp)));
+        else
+            pline("%s %smisses!", Monnam(mtmp),
+                (nearmiss && flags.verbose) ? "just " : "");
+    }
 
     stop_occupation();
 }
@@ -750,7 +906,7 @@ mattacku(register struct monst *mtmp)
             bot();
         /* give player a chance of waking up before dying -kaa */
         if (sum[i] == MM_HIT) { /* successful attack */
-            if (u.usleep && u.usleep < g.monstermoves && !rn2(10)) {
+            if (u.usleep && u.usleep < g.moves && !rn2(10)) {
                 g.multi = -1;
                 g.nomovemsg = "The combat suddenly awakens you.";
             }
@@ -972,9 +1128,10 @@ hitmu(register struct monst *mtmp, register struct attack *mattk)
      */
     if (mtmp->mundetected && (hides_under(mdat) || mdat->mlet == S_EEL)) {
         mtmp->mundetected = 0;
-        if (!(Blind ? Blind_telepat : Unblind_telepat)) {
+        if (!tp_sensemon(mtmp) && !Detect_monsters) {
             struct obj *obj;
             const char *what;
+            char Amonbuf[BUFSZ];
 
             if ((obj = g.level.objects[mtmp->mx][mtmp->my]) != 0) {
                 if (Blind && !obj->dknown)
@@ -984,7 +1141,11 @@ hitmu(register struct monst *mtmp, register struct attack *mattk)
                 else
                     what = doname(obj);
 
-                pline("%s was hidden under %s!", Amonnam(mtmp), what);
+                Strcpy(Amonbuf, Amonnam(mtmp));
+                /* mtmp might be invisible with hero unable to see same */
+                if (!strcmp(Amonbuf, "It")) /* note: not strcmpi() */
+                    Strcpy(Amonbuf, Something);
+                pline("%s was hidden under %s!", Amonbuf, what);
             }
             newsym(mtmp->mx, mtmp->my);
         }
@@ -1192,8 +1353,10 @@ gulpmu(struct monst *mtmp, struct attack *mattk)
         /* u.uswldtim always set > 1 */
         u.uswldtim = (unsigned) ((tim_tmp < 2) ? 2 : tim_tmp);
         swallowed(1); /* update the map display, shows hero swallowed */
-        for (otmp2 = g.invent; otmp2; otmp2 = otmp2->nobj)
-            (void) snuff_lit(otmp2);
+        if (!flaming(mtmp->data)) {
+            for (otmp2 = g.invent; otmp2; otmp2 = otmp2->nobj)
+                (void) snuff_lit(otmp2);
+        }
     }
 
     if (mtmp != u.ustuck)

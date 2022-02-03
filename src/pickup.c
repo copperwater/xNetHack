@@ -37,6 +37,7 @@ static int out_container(struct obj *);
 static long mbag_item_gone(int, struct obj *, boolean);
 static int stash_ok(struct obj *);
 static void explain_container_prompt(boolean);
+static boolean select_transfer_container(void);
 static int traditional_loot(boolean);
 static int menu_loot(int, boolean);
 static int tip_ok(struct obj *);
@@ -2407,7 +2408,7 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                 pline("%s shackled to your %s and cannot be given away.",
                       Tobjnam(otmp, "are"), body_part(LEG));
                 continue;
-            } 
+            }
             carryamt = can_carry(mtmp, otmp);
             if (nohands(mtmp->data) && droppables(mtmp)) {
                 carryamt = 0;
@@ -2447,7 +2448,7 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
         }
         else {
             /* cursed weapons, armor, accessories, etc treated the same */
-            if ((otmp->cursed && (unwornmask & ~W_WEAPONS)) 
+            if ((otmp->cursed && (unwornmask & ~W_WEAPONS))
                 || mwelded(otmp)) {
                 pline("%s won't come off!", Yname2(otmp));
                 otmp->bknown = 1;
@@ -2500,7 +2501,9 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                 otmp = splitobj(otmp, maxquan);
             }
             extract_from_minvent(mtmp, otmp, TRUE, TRUE);
-            addtobill(otmp, FALSE, FALSE, FALSE);
+            if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE)) {
+                addtobill(otmp, FALSE, FALSE, FALSE);
+            }
             otmp = hold_another_object(otmp, "You take, but drop, %s.",
                                          doname(otmp), "You take: ");
             transferred++;
@@ -2523,7 +2526,7 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
         check_gear_next_turn(mtmp);
     }
     /* time_taken is 1 for normal item(s), rnd(3) if you removed a saddle */
-    return (n > 0 ? time_taken : 0); 
+    return (n > 0 ? time_taken : 0);
 }
 
 /* loot_mon() returns amount of time passed. */
@@ -2712,7 +2715,11 @@ in_container(struct obj *obj)
         return 0;
     }
 
-    freeinv(obj);
+    /* If g.transfer_container is true, we are transferring items into this
+     * container from another one and it is already OBJ_FREE - do not try to
+     * remove from inventory */
+    if (!g.transfer_container)
+        freeinv(obj);
 
     if (obj_is_burning(obj)) /* this used to be part of freeinv() */
         (void) snuff_lit(obj);
@@ -2731,7 +2738,7 @@ in_container(struct obj *obj)
         }
     }
     if (Icebox && !age_is_relative(obj)) {
-        obj->age = g.monstermoves - obj->age; /* actual age */
+        obj->age = g.moves - obj->age; /* actual age */
         /* stop any corpse timeouts when frozen */
         if (obj->otyp == CORPSE) {
             if (obj->timed) {
@@ -2862,6 +2869,27 @@ out_container(struct obj *obj)
     if (is_pick(obj))
         pick_pick(obj); /* shopkeeper feedback */
 
+    if (g.transfer_container) {
+        int in_container_ret;
+        struct obj *old_current_container = g.current_container;
+        g.current_container = g.transfer_container;
+
+        /* in_container returns:
+         *  1: return 1
+         *  0: continue to rest of this function (however, most of the things
+         *     that can cause this are due to an object being externally in use
+         *     that won't apply here; about the only possibility is if it's
+         *     undroppables())
+         * -1: only if fatal_corpse_mistake (which this already checked) or if
+         *     mbag_explodes (in which case obj has been freed); return -1 */
+        in_container_ret = in_container(obj);
+
+        g.current_container = old_current_container;
+        if (in_container_ret != 0) {
+            return in_container_ret;
+        }
+    }
+
     otmp = addinv(obj);
     loadlev = near_capacity();
     prinv(loadlev ? ((loadlev < MOD_ENCUMBER)
@@ -2881,7 +2909,7 @@ void
 removed_from_icebox(struct obj *obj)
 {
     if (!age_is_relative(obj)) {
-        obj->age = g.monstermoves - obj->age; /* actual age */
+        obj->age = g.moves - obj->age; /* actual age */
         if (obj->otyp == CORPSE) {
             struct monst *m = get_mtraits(obj, FALSE);
             boolean iceT = m ? (m->data == &mons[PM_ICE_TROLL])
@@ -2967,7 +2995,7 @@ observe_quantum_cat(struct obj *box, boolean makecat, boolean givemsg)
             /* set_corpsenm() will start the rot timer that was removed
                when makemon() created SchroedingersBox; start it from
                now rather than from when this special corpse got created */
-            deadcat->age = g.monstermoves;
+            deadcat->age = g.moves;
             set_corpsenm(deadcat, PM_HOUSECAT);
             deadcat = oname(deadcat, sc);
         }
@@ -3177,6 +3205,7 @@ use_container(struct obj **objp,
             Strcat(inokay ? pbuf : xbuf, "i");   /* put in */
             Strcat(outmaybe ? pbuf : xbuf, "b"); /* both */
             Strcat(inokay ? pbuf : xbuf, "rs");  /* reversed, stash */
+            Strcat(inokay ? pbuf : xbuf, "t");   /* transfer */
             Strcat(pbuf, " ");                   /* separator */
             Strcat(more_containers ? pbuf : xbuf, "n"); /* next container */
             Strcat(pbuf, "q");                   /* quit */
@@ -3205,7 +3234,17 @@ use_container(struct obj **objp,
         g.abort_looting = TRUE;
     if (c == 'n' || c == 'q') /* [not strictly needed; falling thru works] */
         goto containerdone;
-    loot_out = (c == 'o' || c == 'b' || c == 'r');
+
+    /* transfer into another container; select other container first */
+    if (c == 't' && Has_contents(g.current_container)) {
+        if (!select_transfer_container())
+            goto containerdone;
+        /* now g.transfer_container will be set */
+        You("also open %s...", the(xname(g.transfer_container)));
+        c = 'o'; /* will follow "open and take out" path */
+    }
+
+    loot_out = (c == 'o' || c == 'b' || c == 'r' || c == 't');
     loot_in = (c == 'i' || c == 'b' || c == 'r');
     loot_in_first = (c == 'r'); /* both, reversed */
     stash_one = (c == 's');
@@ -3295,7 +3334,118 @@ use_container(struct obj **objp,
         g.current_container = 0; /* avoid hanging on to stale pointer */
     else
         g.abort_looting = TRUE;
+    if (g.transfer_container)
+        g.transfer_container = 0; /* ditto */
     return used;
+}
+
+/* The player has indicated they want to transfer items from container to
+ * container.
+ * This should set g.transfer_container to the appropriate selected object and
+ * return TRUE if one is successfully selected.
+ * Returns FALSE if no valid container was selected and the caller should abort.
+ */
+static boolean
+select_transfer_container(void)
+{
+    char n;
+    winid win;
+    anything any = cg.zeroany;
+    menu_item *pick_list;
+    struct obj *otmp, *chosen = (struct obj *) 0;
+    int i;
+    struct obj *objchns[2] = { g.invent, g.level.objects[u.ux][u.uy] };
+    boolean validcont = FALSE,
+            do_menu   = (flags.menu_style != MENU_TRADITIONAL);
+    char buf[BUFSZ];
+    struct obj *slots[62]; /* enough for a-zA-Z0-9 in the ridiculous case
+                              someone has their inventory full of containers and
+                              is standing on a stack of 10+ */
+    char floorchar = '1';
+
+    if (do_menu) {
+        win = create_nhwindow(NHW_MENU);
+        start_menu(win, MENU_BEHAVE_STANDARD);
+    }
+
+    any.a_int = 1;
+    for (i = 0; i < SIZE(objchns); ++i) {
+        boolean invent = (objchns[i] == g.invent);
+        for (otmp = objchns[i]; otmp;
+             otmp = invent ? otmp->nobj : otmp->nexthere) {
+            if (floorchar > '9')
+                break;
+            /* allow unknown bags of tricks to be listed here to avoid
+             * leaking its identity; they will be denied later on */
+            if (Is_container(otmp) && otmp != g.current_container
+                && !(otmp->otyp == BAG_OF_TRICKS
+                     && objects[BAG_OF_TRICKS].oc_name_known)
+                && !(otmp->lknown && otmp->olocked)) {
+                validcont = TRUE;
+
+                Sprintf(buf, "%s%s", doname(otmp),
+                        invent ? "" : " [not carried]");
+
+                if (do_menu) {
+                    add_menu(win, &nul_glyphinfo, &any,
+                             invent ? otmp->invlet : floorchar, 0,
+                             ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
+                }
+                else {
+                    char promptbuf[BUFSZ + 13];
+                    char resp;
+                    Sprintf(promptbuf, "Transfer to %s?", buf);
+                    resp = ynq(promptbuf);
+                    if (resp == 'y') {
+                        chosen = otmp;
+                        i = SIZE(objchns) + 1; /* break outer loop */
+                        break;
+                    }
+                    else if (resp == 'q')
+                        return FALSE;
+                }
+                slots[any.a_int - 1] = otmp;
+                if (!invent)
+                    floorchar++;
+                any.a_int++;
+            }
+        }
+        if (do_menu)
+            add_menu(win, &nul_glyphinfo, &cg.zeroany, 0, 0, ATR_NONE, "",
+                     MENU_ITEMFLAGS_NONE); /* space */
+    }
+    if (!validcont) {
+        pline("There's no other container to put items in.");
+        return FALSE;
+    }
+    if (do_menu) {
+        end_menu(win, "What container would you like to transfer items into?");
+        n = select_menu(win, PICK_ONE, &pick_list);
+        destroy_nhwindow(win);
+        if (n <= 0)
+            return FALSE;
+        chosen = slots[pick_list[0].item.a_int - 1];
+    }
+
+    if (!chosen)
+        return FALSE;
+
+    if (chosen->where != OBJ_INVENT
+        && !able_to_loot(u.ux, u.uy, TRUE))
+        return FALSE;
+
+    /* it's simpler if we don't have to duplicate the process of finding out
+     * that a box is locked, or triggering a trap; just make the player have
+     * to have already opened it; note this also catches unknown bags of
+     * tricks */
+    if (!chosen->cknown || (Is_box(chosen) && !chosen->lknown)) {
+        pline("You need to look inside %s before transferring items.",
+              yname(chosen));
+        return FALSE;
+    }
+
+    g.transfer_container = chosen;
+    return TRUE;
 }
 
 /* loot current_container (take things out or put things in), by prompting */
@@ -3402,7 +3552,9 @@ menu_loot(int retry, boolean put_in)
             mflags |= USE_INVLET;
         if (!put_in)
             g.current_container->cknown = 1;
-        Sprintf(buf, "%s what?", action);
+        Sprintf(buf, "%s what%s%s?", action,
+                g.transfer_container ? " from " : "",
+                g.transfer_container ? yname(g.current_container) : "");
         n = query_objlist(buf,
                           put_in ? &g.invent : &(g.current_container->cobj),
                           mflags, &pick_list, PICK_ANY,
@@ -3440,7 +3592,7 @@ in_or_out_menu(const char *prompt, struct obj *obj, boolean outokay,
                boolean inokay, boolean alreadyused, boolean more_containers)
 {
     /* underscore is not a choice; it's used to skip element [0] */
-    static const char lootchars[] = "_:oibrsnq", abc_chars[] = "_:abcdenq";
+    static const char lootchars[] = "_:oibrstnq", abc_chars[] = "_:abcdefnq";
     winid win;
     anything any;
     menu_item *pick_list;
@@ -3485,15 +3637,21 @@ in_or_out_menu(const char *prompt, struct obj *obj, boolean outokay,
         add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
                  ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
     }
+    if (outokay) {
+        any.a_int = 7;
+        Strcpy(buf, "take out and put into another container");
+        add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
+                 ATR_NONE, buf, MENU_ITEMFLAGS_NONE);
+    }
     any.a_int = 0;
     add_menu(win, &nul_glyphinfo, &any, 0, 0,
              ATR_NONE, "", MENU_ITEMFLAGS_NONE);
     if (more_containers) {
-        any.a_int = 7; /* 'n' */
+        any.a_int = 8; /* 'n' */
         add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
                  ATR_NONE, "loot next container", MENU_ITEMFLAGS_SELECTED);
     }
-    any.a_int = 8; /* 'q' */
+    any.a_int = 9; /* 'q' */
     Strcpy(buf, alreadyused ? "done" : "do nothing");
     add_menu(win, &nul_glyphinfo, &any, menuselector[any.a_int], 0,
              ATR_NONE, buf,
@@ -3505,10 +3663,10 @@ in_or_out_menu(const char *prompt, struct obj *obj, boolean outokay,
     if (n > 0) {
         int k = pick_list[0].item.a_int;
 
-        if (n > 1 && k == (more_containers ? 7 : 8))
+        if (n > 1 && k == (more_containers ? 8 : 9))
             k = pick_list[1].item.a_int;
         free((genericptr_t) pick_list);
-        return lootchars[k]; /* :,o,i,b,r,s,n,q */
+        return lootchars[k]; /* :,o,i,b,r,s,t,n,q */
     }
     return (n == 0 && more_containers) ? 'n' : 'q'; /* next or quit */
 }

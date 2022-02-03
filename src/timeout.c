@@ -830,7 +830,7 @@ fall_asleep(int how_long, boolean wakeup_msg)
         g.afternmv = Hear_again; /* this won't give any messages */
     }
     /* early wakeup from combat won't be possible until next monster turn */
-    u.usleep = g.monstermoves;
+    u.usleep = g.moves;
     g.nomovemsg = wakeup_msg ? "You wake up." : You_can_move_again;
 }
 
@@ -894,7 +894,7 @@ hatch_egg(anything *arg, long timeout)
     mnum = big_to_little(egg->corpsenm);
     /* The identity of one's father is learned, not innate */
     yours = (egg->spe || (!flags.female && carried(egg) && !rn2(2)));
-    silent = (timeout != g.monstermoves); /* hatched while away */
+    silent = (timeout != g.moves); /* hatched while away */
 
     /* only can hatch when in INVENT, FLOOR, MINVENT */
     if (get_obj_location(egg, &x, &y, 0)) {
@@ -1214,8 +1214,8 @@ burn_object(anything* arg, long timeout)
     many = menorah ? obj->spe > 1 : obj->quan > 1L;
 
     /* timeout while away */
-    if (timeout != g.monstermoves) {
-        long how_long = g.monstermoves - timeout;
+    if (timeout != g.moves) {
+        long how_long = g.moves - timeout;
 
         if (how_long >= obj->age) {
             obj->age = 0;
@@ -1638,7 +1638,7 @@ cleanup_burn(anything* arg, long expire_time)
     del_light_source(LS_OBJECT, obj_to_any(obj));
 
     /* restore unused time */
-    obj->age += expire_time - g.monstermoves;
+    obj->age += expire_time - g.moves;
 
     obj->lamplit = 0;
 
@@ -1702,7 +1702,7 @@ do_storms(void)
  *  boolean start_timer(long timeout,short kind,short func_index,
  *                      anything *arg)
  *      Start a timer of kind 'kind' that will expire at time
- *      g.monstermoves+'timeout'.  Call the function at 'func_index'
+ *      g.moves+'timeout'.  Call the function at 'func_index'
  *      in the timeout table using argument 'arg'.  Return TRUE if
  *      a timer was started.  This places the timer on a list ordered
  *      "sooner" to "later".  If an object, increment the object's
@@ -1848,7 +1848,7 @@ wiz_timeout_queue(void)
     if (win == WIN_ERR)
         return 0;
 
-    Sprintf(buf, "Current time = %ld.", g.monstermoves);
+    Sprintf(buf, "Current time = %ld.", g.moves);
     putstr(win, 0, buf);
     putstr(win, 0, "");
     putstr(win, 0, "Active timeout queue:");
@@ -1932,7 +1932,7 @@ run_timers(void)
      * any time.  The list is ordered, we are done when the first element
      * is in the future.
      */
-    while (g.timer_base && g.timer_base->timeout <= g.monstermoves) {
+    while (g.timer_base && g.timer_base->timeout <= g.moves) {
         curr = g.timer_base;
         g.timer_base = curr->next;
 
@@ -1981,7 +1981,7 @@ start_timer(
     (void) memset((genericptr_t) gnu, 0, sizeof *gnu);
     gnu->next = 0;
     gnu->tid = g.timer_id++;
-    gnu->timeout = g.monstermoves + when;
+    gnu->timeout = g.moves + when;
     gnu->kind = kind;
     gnu->needs_fixup = 0;
     gnu->func_index = func_index;
@@ -2013,7 +2013,7 @@ stop_timer(short func_index, anything *arg)
         if (timeout_funcs[doomed->func_index].cleanup)
             (*timeout_funcs[doomed->func_index].cleanup)(arg, timeout);
         free((genericptr_t) doomed);
-        return (timeout - g.monstermoves);
+        return (timeout - g.moves);
     }
     return 0L;
 }
@@ -2064,7 +2064,7 @@ obj_split_timers(struct obj* src, struct obj* dest)
     for (curr = g.timer_base; curr; curr = next_timer) {
         next_timer = curr->next; /* things may be inserted */
         if (curr->kind == TIMER_OBJECT && curr->arg.a_obj == src) {
-            (void) start_timer(curr->timeout - g.monstermoves, TIMER_OBJECT,
+            (void) start_timer(curr->timeout - g.moves, TIMER_OBJECT,
                                curr->func_index, obj_to_any(dest));
         }
     }
@@ -2158,7 +2158,7 @@ long
 spot_time_left(xchar x, xchar y, short func_index)
 {
     long expires = spot_time_expires(x, y, func_index);
-    return (expires > 0L) ? expires - g.monstermoves : 0L;
+    return (expires > 0L) ? expires - g.moves : 0L;
 }
 
 /* Insert timer into the global queue */
