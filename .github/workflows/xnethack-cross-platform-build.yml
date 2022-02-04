@@ -70,10 +70,11 @@ jobs:
         # This would work to build the tty windows version, though.
         #cp ../sys/winnt/Makefile.gcc ./Makefile
         #mingw32-make LUA_VERSION=$LUA_VERSION install
-    - uses: papeloto/action-zip@v1
+    - uses: thedoctor0/zip-release@master
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: binary/
+        type: 'zip'
+        path: binary/
         dest: xnethack_mswindows.zip
     - name: release
       uses: softprops/action-gh-release@v1
