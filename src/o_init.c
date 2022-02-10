@@ -13,8 +13,8 @@ static int QSORTCALLBACK discovered_cmp(const genericptr, const genericptr);
 static char *oclass_to_name(char, char *);
 
 #ifdef USE_TILES
+extern glyph_map glyphmap[MAX_GLYPH];
 static void shuffle_tiles(void);
-extern short glyph2tile[]; /* from tile.c */
 
 /* Shuffle tile assignments to match descriptions, so a red potion isn't
  * displayed with a blue tile and so on.
@@ -29,13 +29,16 @@ static void
 shuffle_tiles(void)
 {
     int i;
-    short tmp_tilemap[NUM_OBJECTS];
+    short tmp_tilemap[2][NUM_OBJECTS];
 
-    for (i = 0; i < NUM_OBJECTS; i++)
-        tmp_tilemap[i] = glyph2tile[objects[i].oc_descr_idx + GLYPH_OBJ_OFF];
-
-    for (i = 0; i < NUM_OBJECTS; i++)
-        glyph2tile[i + GLYPH_OBJ_OFF] = tmp_tilemap[i];
+    for (i = 0; i < NUM_OBJECTS; i++) {
+        tmp_tilemap[0][i] = glyphmap[objects[i].oc_descr_idx + GLYPH_OBJ_OFF].tileidx;
+        tmp_tilemap[1][i] = glyphmap[objects[i].oc_descr_idx + GLYPH_OBJ_PILETOP_OFF].tileidx;
+    }
+    for (i = 0; i < NUM_OBJECTS; i++) {
+        glyphmap[i + GLYPH_OBJ_OFF].tileidx = tmp_tilemap[0][i];
+        glyphmap[i + GLYPH_OBJ_PILETOP_OFF].tileidx = tmp_tilemap[1][i];
+    }
 }
 #endif /* USE_TILES */
 
@@ -588,7 +591,7 @@ choose_disco_sort(
     return n;
 }
 
-/* the '\' command - show discovered object types */
+/* the #known command - show discovered object types */
 int
 dodiscovered(void) /* free after Robert Viduya */
 {
@@ -604,7 +607,7 @@ dodiscovered(void) /* free after Robert Viduya */
 
     if (iflags.menu_requested) {
         if (choose_disco_sort(1) < 0)
-            return 0;
+            return ECMD_OK;
     }
     alphabyclass = (flags.discosort == 'c');
     alphabetized = (flags.discosort == 'a' || alphabyclass);
@@ -704,7 +707,7 @@ dodiscovered(void) /* free after Robert Viduya */
     }
     destroy_nhwindow(tmpwin);
 
-    return 0;
+    return ECMD_OK;
 }
 
 /* lower case let_to_name() output, which differs from def_oc_syms[].name */
@@ -719,7 +722,7 @@ oclass_to_name(char oclass, char *buf)
     return buf;
 }
 
-/* the '`' command - show discovered object types for one class */
+/* the #knownclass command - show discovered object types for one class */
 int
 doclassdisco(void)
 {
@@ -742,7 +745,7 @@ doclassdisco(void)
 
     if (iflags.menu_requested) {
         if (choose_disco_sort(2) < 0)
-            return 0;
+            return ECMD_OK;
     }
     alphabetized = (flags.discosort == 'a' || flags.discosort == 'c');
     lootsort = (flags.discosort == 's');
@@ -809,7 +812,7 @@ doclassdisco(void)
         You(havent_discovered_any, "items");
         if (tmpwin != WIN_ERR)
             destroy_nhwindow(tmpwin);
-        return 0;
+        return ECMD_OK;
     }
 
     /* have player choose a class */
@@ -850,7 +853,7 @@ doclassdisco(void)
         destroy_nhwindow(tmpwin);
     }
     if (!c)
-        return 0; /* player declined to make a selection */
+        return ECMD_OK; /* player declined to make a selection */
 
     /*
      * show discoveries for object class c
@@ -917,7 +920,7 @@ doclassdisco(void)
     if (ct)
         display_nhwindow(tmpwin, TRUE);
     destroy_nhwindow(tmpwin);
-    return 0;
+    return ECMD_OK;
 }
 
 /* put up nameable subset of discoveries list as a menu */

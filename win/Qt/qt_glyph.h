@@ -16,6 +16,8 @@ enum border_code {
 
 class NetHackQtGlyphs {
 public:
+        bool no_tiles;
+
 	NetHackQtGlyphs();
 
 	int width() const { return size.width(); }
@@ -23,14 +25,16 @@ public:
 	void toggleSize();
 	void setSize(int w, int h);
 
-        void drawGlyph(QPainter &, int glyph, int pixelx, int pixely,
-                       bool fem, bool reversed = false);
-        void drawCell(QPainter &, int glyph, int cellx, int celly, bool fem);
-        void drawBorderedCell(QPainter &, int glyph,
+        void drawGlyph(QPainter &, int glyph, int tileidx,
+                       int pixelx, int pixely,
+                       bool reversed = false);
+        void drawCell(QPainter &, int glyph, int tileidx,
+                      int cellx, int celly);
+        void drawBorderedCell(QPainter &, int glyph, int tileidx,
                               int cellx, int celly, int bordercode,
-                              bool reversed, bool fem = false);
-        QPixmap glyph(int glyphindx, bool fem = false);
-        QPixmap reversed_pixmap(int glyphindx, bool fem = false);
+                              bool reversed);
+        QPixmap glyph(int glyphindx, int tileidx);
+        QPixmap reversed_pixmap(int glyphindx, int tileidx);
 
 private:
 	QImage img;

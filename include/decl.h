@@ -226,11 +226,6 @@ E const int shield_static[];
 
 #include "spell.h"
 
-#include "color.h"
-#ifdef TEXTCOLOR
-E const int zapcolors[];
-#endif
-
 E const struct class_sym def_oc_syms[MAXOCLASSES]; /* default class symbols */
 E uchar oc_syms[MAXOCLASSES];                      /* current class symbols */
 E const struct class_sym def_monsyms[MAXMCLASSES]; /* default class symbols */
@@ -317,13 +312,14 @@ E char emptystr[];
 #define ARTICLE_A 2
 #define ARTICLE_YOUR 3
 
-/* Monster name suppress masks */
+/* x_monnam() monster name suppress masks */
 #define SUPPRESS_IT 0x01
 #define SUPPRESS_INVISIBLE 0x02
 #define SUPPRESS_HALLUCINATION 0x04
 #define SUPPRESS_SADDLE 0x08
 #define EXACT_NAME 0x0F
 #define SUPPRESS_NAME 0x10
+#define AUGMENT_IT 0x20 /* use "someone" or "something" instead of "it" */
 
 /* Window system stuff */
 E NEARDATA winid WIN_MESSAGE;
@@ -455,22 +451,7 @@ E long fuzzer_log_idx;
 /* special key functions */
 enum nh_keyfunc {
     NHKF_ESC = 0,
-    NHKF_DOAGAIN,
 
-    NHKF_REQMENU,
-
-    /* run ... clicklook need to be in a continuous block */
-    NHKF_RUN,          /* 'G' */
-    NHKF_RUN2,         /* '5' or M-5 */
-    NHKF_RUSH,         /* 'g' */
-    NHKF_RUSH2,        /* M-5 or '5' */
-    NHKF_FIGHT,        /* 'F' */
-    NHKF_FIGHT2,       /* '-' */
-    NHKF_NOPICKUP,     /* 'm' */
-    NHKF_RUN_NOPICKUP, /* 'M' */
-
-    NHKF_REDRAW,
-    NHKF_REDRAW2,
     NHKF_GETDIR_SELF,
     NHKF_GETDIR_SELF2,
     NHKF_GETDIR_HELP,
@@ -515,9 +496,6 @@ struct cmd {
     boolean pcHack_compat; /* for numpad:  affects 5, M-5, and M-0 */
     boolean phone_layout;  /* inverted keypad:  1,2,3 above, 7,8,9 below */
     boolean swap_yz;       /* QWERTZ keyboards; use z to move NW, y to zap */
-    char move[N_DIRS];     /* char used for moving one step in direction */
-    char rush[N_DIRS];
-    char run[N_DIRS];
     const char *dirchars;      /* current movement/direction characters */
     const char *alphadirchars; /* same as dirchars if !numpad */
     const struct ext_func_tab *commands[256]; /* indexed by input character */
@@ -563,14 +541,6 @@ struct trapinfo {
     int time_needed;
     boolean force_bungle;
 };
-
-typedef struct {
-    xchar gnew; /* perhaps move this bit into the rm structure. */
-    int glyph;
-#ifndef UNBUFFERED_GLYPHINFO
-    glyph_info glyphinfo;
-#endif
-} gbuf_entry;
 
 enum vanq_order_modes {
     VANQ_MLVL_MNDX = 0,
@@ -797,7 +767,6 @@ struct instance_globals {
      * Not sure why this isn't just stored in struct mkroom directly. */
     int smeq[MAXNROFROOMS + 1];
     int doorindex;
-    char *save_cm;
     long done_money;
     long domove_attempting;
     long domove_succeeded;
@@ -850,6 +819,8 @@ struct instance_globals {
     struct mkroom *subrooms;
     dlevel_t level; /* level map */
     long moves; /* turn counter */
+    long hero_seq; /* 'moves*8 + n' where n is updated each hero move during
+                    * the current turn */
     long wailmsg;
     struct obj *migrating_objs; /* objects moving to another dungeon level */
     struct obj *billobjs; /* objects not yet paid for */
@@ -866,7 +837,7 @@ struct instance_globals {
     int locknum; /* max num of simultaneous users */
 #endif
 #ifdef DEF_PAGER
-    char *catmore; /* default pager */
+    const char *catmore; /* external pager; from getenv() or DEF_PAGER */
 #endif
 #ifdef MICRO
     char levels[PATHLEN]; /* where levels are */
@@ -953,6 +924,9 @@ struct instance_globals {
     char *config_section_chosen;
     char *config_section_current;
     int nesting;
+    int no_sound_notified; /* run-time option processing: warn once if built
+                            * without USER_SOUNDS and config file contains
+                            * SOUND=foo or SOUNDDIR=bar */
     int symset_count;             /* for pick-list building only */
     boolean chosen_symset_start;
     boolean chosen_symset_end;
@@ -1020,7 +994,6 @@ struct instance_globals {
     /* mkmaze.c */
     lev_region bughack; /* for preserving the insect legs when wallifying
                          * baalz level */
-    boolean was_waterlevel; /* ugh... this shouldn't be needed */
     struct bubble *bbubbles;
     struct bubble *ebubbles;
     struct trap *wportal;
@@ -1084,6 +1057,7 @@ struct instance_globals {
     boolean opt_initial;
     boolean opt_from_file;
     boolean opt_need_redraw; /* for doset() */
+    boolean opt_need_glyph_reset;
     /* use menucolors to show colors in the pick-a-color menu */
     boolean save_menucolors; /* copy of iflags.use_menu_colors */
     struct menucoloring *save_colorings; /* copy of g.menu_colorings */
@@ -1105,6 +1079,8 @@ struct instance_globals {
     boolean class_filter;
     boolean bucx_filter;
     boolean shop_filter;
+    boolean picked_filter;
+    boolean loot_reset_justpicked;
 
     /* pline.c */
     unsigned pline_flags;
@@ -1148,11 +1124,12 @@ struct instance_globals {
     NhRegion **regions;
     int n_regions;
     int max_regions;
+    boolean gas_cloud_diss_within;
+    int gas_cloud_diss_seen;
 
     /* restore.c */
     int n_ids_mapped;
     struct bucket *id_map;
-    boolean restoring;
     struct fruit *oldfruit;
     long omoves;
 
@@ -1284,8 +1261,6 @@ struct const_globals {
 };
 
 E const struct const_globals cg;
-
-E const glyph_info nul_glyphinfo;
 
 #undef E
 

@@ -1,10 +1,10 @@
-/* NetHack 3.7	winX.c	$NHDT-Date: 1613985000 2021/02/22 09:10:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.102 $ */
+/* NetHack 3.7	winX.c	$NHDT-Date: 1643491577 2022/01/29 21:26:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.110 $ */
 /* Copyright (c) Dean Luick, 1992                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*
  * "Main" file for the X window-port.  This contains most of the interface
- * routines.  Please see doc/window.doc for an description of the window
+ * routines.  Please see doc/window.txt for an description of the window
  * interface.
  */
 
@@ -85,6 +85,9 @@ void (*input_func)(Widget, XEvent *, String *, Cardinal *);
 int click_x, click_y, click_button; /* Click position on a map window   */
                                     /* (filled by set_button_values()). */
 int updated_inventory; /* used to indicate perm_invent updating */
+
+static void X11_error_handler(String) NORETURN;
+static int X11_io_error_handler(Display *);
 
 static int (*old_error_handler) (Display *, XErrorEvent *);
 
@@ -1479,6 +1482,8 @@ X11_error_handler(String str)
 {
     nhUse(str);
     hangup(1);
+    nh_terminate(EXIT_FAILURE);
+    /*NOTREACHED*/
 }
 
 static int
@@ -1500,6 +1505,12 @@ X11_init_nhwindows(int *argcp, char **argv)
     /* Init windows to nothing. */
     for (i = 0; i < MAX_WINDOWS; i++)
         window_list[i].type = NHW_NONE;
+
+    /* force high scores display to be shown in a window, and don't allow
+       that to be toggled off via 'O' (note: 'nethack -s' won't reach here;
+       its output goes to stdout and could be redirected into a file) */
+    iflags.toptenwin = TRUE;
+    set_option_mod_status("toptenwin", set_in_config);
 
     /* add another option that can be set */
     set_wc_option_mod_status(WC_TILED_MAP, set_in_game);

@@ -214,7 +214,7 @@ worm_move(struct monst *worm)
     wheads[wnum] = new_seg; /* move the end pointer */
 
     if (wgrowtime[wnum] <= g.moves) {
-        int whplimit, whpcap, wsegs = count_wsegs(worm);
+        int whplimit, whpcap, prev_mhp, wsegs = count_wsegs(worm);
 
         /* first set up for the next time to grow */
         if (!wgrowtime[wnum]) {
@@ -251,14 +251,15 @@ worm_move(struct monst *worm)
         if (whplimit > MHPMAX)
             whplimit = MHPMAX;
 
+        prev_mhp = worm->mhp;
         worm->mhp += d(2, 2); /* 2..4, average 3 */
         whpcap = max(whplimit, worm->mhpmax);
         if (worm->mhp < whpcap) {
             /* can't exceed segment-derived limit unless level increase after
                peak tail growth has already done so; when that isn't the case,
                if segment growth exceeds current max HP then increase it */
-            if (worm->mhp > whpcap)
-                worm->mhp = whpcap;
+            if (worm->mhp > whplimit)
+                worm->mhp = max(prev_mhp, whplimit);
             if (worm->mhp > worm->mhpmax)
                 worm->mhpmax = worm->mhp;
         } else {
@@ -491,10 +492,14 @@ detect_wsegs(struct monst *worm, boolean use_detection_glyph)
     int what_tail = what_mon(PM_LONG_WORM_TAIL, newsym_rn2);
 
     while (curr != wheads[worm->wormno]) {
-        num = use_detection_glyph ? detected_monnum_to_glyph(what_tail)
-              : worm->mtame ? petnum_to_glyph(what_tail)
-                : worm->mpeaceful ? peacefulnum_to_glyph(what_tail)
-                  : monnum_to_glyph(what_tail);
+        num = use_detection_glyph ? detected_monnum_to_glyph(what_tail,
+                    worm->female ? FEMALE : MALE)
+              : worm->mtame ? petnum_to_glyph(what_tail,
+                    worm->female ? FEMALE : MALE)
+                : worm->mpeaceful ? peacefulnum_to_glyph(what_tail,
+                        worm->female ? FEMALE : MALE)
+                    : monnum_to_glyph(what_tail,
+                        worm->female ? FEMALE : MALE);
         show_glyph(curr->wx, curr->wy, num);
         curr = curr->nseg;
     }

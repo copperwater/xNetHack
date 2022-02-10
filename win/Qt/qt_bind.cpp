@@ -11,11 +11,15 @@ extern "C" {
 #include "qt_pre.h"
 #include <QtGui/QtGui>
 #include <QtCore/QStringList>
-#if QT_VERSION >= 0x050000
+#if QT_VERSION < 0x050000
+#include <QtGui/QSound>
+#elif QT_VERSION < 0x060000
 #include <QtWidgets/QtWidgets>
 #include <QtMultimedia/QSound>
 #else
-#include <QtGui/QSound>
+#include <QtWidgets/QtWidgets>
+#undef QT_NO_SOUND
+#define QT_NO_SOUND 1
 #endif
 #include "qt_post.h"
 #include "qt_bind.h"
@@ -73,44 +77,9 @@ NetHackQtBind::NetHackQtBind(int& argc, char** argv) :
     QApplication(argc,argv)
 #endif
 {
-    QPixmap pm("nhsplash.xpm");
-    if ( iflags.wc_splash_screen && !pm.isNull() ) {
-        splash = new QFrame(NULL, (Qt::FramelessWindowHint
-                                   | Qt::X11BypassWindowManagerHint
-                                   | Qt::WindowStaysOnTopHint));
-	QVBoxLayout *vb = new QVBoxLayout(splash);
-	QLabel *lsplash = new QLabel(splash);
-	vb->addWidget(lsplash);
-	lsplash->setAlignment(Qt::AlignCenter);
-	lsplash->setPixmap(pm);
-	QLabel* capt = new QLabel("Loading...",splash);
-	vb->addWidget(capt);
-	capt->setAlignment(Qt::AlignCenter);
-	if ( !pm.isNull() ) {
-	    lsplash->setFixedSize(pm.size());
-	    lsplash->setMask(pm);
-	}
-	splash->move((QApplication::desktop()->width()-pm.width())/2,
-		      (QApplication::desktop()->height()-pm.height())/2);
-	//splash->setGeometry(0,0,100,100);
-	if ( qt_compact_mode ) {
-	    splash->showMaximized();
-	} else {
-	    splash->setFrameStyle(QFrame::WinPanel|QFrame::Raised);
-	    splash->setLineWidth(10);
-	    splash->adjustSize();
-	    splash->show();
-	}
-
-	// force content refresh outside event loop
-	splash->repaint();
-	lsplash->repaint();
-	capt->repaint();
-	qApp->processEvents();
-
-    } else {
-	splash = 0;
-    }
+    splash = 0;
+    if (iflags.wc_splash_screen)
+        NetHackQtBind::qt_Splash(); // show something while starting up
 
     // these used to be in MainWindow but we want them before QtSettings
     // which we want before MainWindow...
@@ -119,7 +88,7 @@ NetHackQtBind::NetHackQtBind(int& argc, char** argv) :
     QCoreApplication::setApplicationName("NetHack-Qt"); // Qt NetHack
     {
         char cvers[BUFSZ];
-        QString qvers = version_string(cvers);
+        QString qvers = QString(::version_string(cvers));
         QCoreApplication::setApplicationVersion(qvers);
     }
 #ifdef MACOS
@@ -137,9 +106,66 @@ NetHackQtBind::NetHackQtBind(int& argc, char** argv) :
     msgs_saved = false;
 }
 
-void NetHackQtBind::qt_init_nhwindows(int* argc, char** argv)
+// before the game windows have been rendered, display a small, centered
+// window showing a flying red dragon ridden by someone wielding a lance,
+// with caption "Loading..."
+void
+NetHackQtBind::qt_Splash()
 {
-    iflags.menu_tab_sep = true;
+    QPixmap pm("nhsplash.xpm"); // load splash image from a file in HACKDIR
+    if (!pm.isNull()) {
+        splash = new QFrame(NULL, (Qt::FramelessWindowHint
+                                   | Qt::X11BypassWindowManagerHint
+                                   | Qt::WindowStaysOnTopHint));
+        QVBoxLayout *vb = new QVBoxLayout(splash);
+        QLabel *lsplash = new QLabel(splash);
+        vb->addWidget(lsplash);
+        lsplash->setAlignment(Qt::AlignCenter);
+        lsplash->setPixmap(pm);
+        lsplash->setFixedSize(pm.size());
+        //lsplash->setMask(pm.mask());
+        QLabel *capt = new QLabel("Loading...", splash);
+        vb->addWidget(capt);
+        capt->setAlignment(Qt::AlignCenter);
+
+#if QT_VERSION < 0x060000
+        QSize screensize = QApplication::desktop()->size();
+#else
+        QSize screensize = splash->screen()->size();
+#endif
+        splash->move((screensize.width() - pm.width()) / 2,
+                     (screensize.height() - pm.height()) / 2);
+        //splash->setGeometry(0,0,100,100);
+        if (qt_compact_mode) {
+            splash->showMaximized();
+        } else {
+            splash->setFrameStyle(QFrame::WinPanel | QFrame::Raised);
+            splash->setLineWidth(10);
+            splash->adjustSize();
+            splash->show();
+        }
+
+        // force content refresh outside event loop
+        splash->repaint();
+        lsplash->repaint();
+        capt->repaint();
+        qApp->processEvents();
+    } else {
+        splash = 0; // caller has alrady done this...
+    }
+}
+
+void NetHackQtBind::qt_init_nhwindows(int *argc, char **argv)
+{
+    // menu entries use embedded <tab> to align fields;
+    // it could be toggled off via 'O', but only when in wizard mode
+    ::iflags.menu_tab_sep = true;
+
+    // force high scores display to be shown in a window, and don't allow
+    // that to be toggled off via 'O' (note: 'nethack -s' won't reach here;
+    // its output goes to stdout so can potentially be redirected into a file)
+    ::iflags.toptenwin = true;
+    ::set_option_mod_status("toptenwin", ::set_in_config);
 
 #ifdef UNIX
 // Userid control
@@ -478,20 +504,29 @@ void NetHackQtBind::qt_cliparound_window(winid wid, int x, int y)
     NetHackQtWindow* window=id_to_window[(int)wid];
     window->ClipAround(x,y);
 }
-void NetHackQtBind::qt_print_glyph(winid wid,xchar x,xchar y,
-                                   const glyph_info *glyphinfo,
-                                   const glyph_info *bkglyphinfo UNUSED)
+
+void NetHackQtBind::qt_print_glyph(
+    winid wid, xchar x, xchar y,
+    const glyph_info *glyphinfo,
+    const glyph_info *bkglyphinfo UNUSED)
 {
     /* TODO: bkglyph */
-    NetHackQtWindow* window=id_to_window[(int)wid];
-    window->PrintGlyph(x,y,glyphinfo);
+    NetHackQtWindow *window = id_to_window[(int) wid];
+    window->PrintGlyph(x, y, glyphinfo);
 }
-//void NetHackQtBind::qt_print_glyph_compose(winid wid,xchar x,xchar y,int glyph1, int glyph2)
-//{
-    //NetHackQtWindow* window=id_to_window[(int)wid];
-    //window->PrintGlyphCompose(x,y,glyph1,glyph2);
-//}
 
+#if 0
+void NetHackQtBind::qt_print_glyph_compose(
+    winid wid, xchar x, xchar y, int glyph1, int glyph2)
+{
+    NetHackQtWindow *window = id_to_window[(int) wid];
+    window->PrintGlyphCompose(x, y, glyph1, glyph2);
+}
+#endif /*0*/
+
+//
+// FIXME: sending output to stdout can mean that the player never sees it.
+//
 void NetHackQtBind::qt_raw_print(const char *str)
 {
     puts(str);
@@ -499,7 +534,7 @@ void NetHackQtBind::qt_raw_print(const char *str)
 
 void NetHackQtBind::qt_raw_print_bold(const char *str)
 {
-    puts(str);
+    qt_raw_print(str);
 }
 
 int NetHackQtBind::qt_nhgetch()
@@ -930,9 +965,9 @@ bool NetHackQtBind::notify(QObject *receiver, QEvent *event)
                 }
             }
             QString key = key_event->text();
-            QChar ch = !key.isEmpty() ? key.at(0) : 0;
-            if (ch > 128)
-                ch = 0;
+            QChar ch = !key.isEmpty() ? key.at(0) : QChar(0);
+            if (ch > QChar(128))
+                ch = QChar(0);
             // on OSX, ascii control codes are not sent, force them
             if (ch == 0 && (mod & Qt::ControlModifier) != 0) {
                 if (k >= Qt::Key_A && k <= Qt::Key_Underscore)

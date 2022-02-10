@@ -179,6 +179,7 @@ SYSOBJ = $(TARGETPFX)ioctl.o $(TARGETPFX)unixmain.o $(TARGETPFX)unixtty.o \
 CXXFLAGS = $(CCXXFLAGS) -I. -I$(QTDIR)/include $(QTCXXFLAGS)
 CXX ?= g++
 MOC ?= moc
+MOCPATH ?= $(QTDIR)/bin/$(MOC)
 #LINK=g++
 
 # The default is for the TARGET_* variables to match the defaults.
@@ -677,35 +678,18 @@ objects.o:
 	$(CC) $(CFLAGS) -c -o $@ objects.c
 	@rm -f $(MAKEDEFS)
 
-# Qt 3 windowport meta-object-compiler output
+# outdated Qt 3 windowport meta-object-compiler output
 qt3_kde0.moc: ../win/Qt3/qt3_kde0.h
 	$(QTDIR)/bin/moc -o qt3kde0.moc ../win/Qt3/qt3_kde0.h
 qt3_win.moc: ../win/Qt3/qt3_win.h
 	$(QTDIR)/bin/moc -o qt3win.moc ../win/Qt3/qt3_win.h
 qt3tableview.moc: ../win/Qt3/qt3tableview.h
-	$(QTDIR)/bin/moc -o qt3tableview.moc ../win/Qt/qt3tableview.h
+	$(QTDIR)/bin/moc -o qt3tableview.moc ../win/Qt3/qt3tableview.h
 
-# Qt 4 windowport meta-object-compiler output
-qt_kde0.moc : ../win/Qt/qt_kde0.h
-	$(QTDIR)/bin/$(MOC) -o qt_kde0.moc ../win/Qt/qt_kde0.h
-qt_main.moc : ../win/Qt/qt_main.h
-	$(QTDIR)/bin/$(MOC) -o qt_main.moc ../win/Qt/qt_main.h
-qt_map.moc : ../win/Qt/qt_map.h
-	$(QTDIR)/bin/$(MOC) -o qt_map.moc ../win/Qt/qt_map.h
-qt_menu.moc : ../win/Qt/qt_menu.h
-	$(QTDIR)/bin/$(MOC) -o qt_menu.moc ../win/Qt/qt_menu.h
-qt_msg.moc : ../win/Qt/qt_msg.h
-	$(QTDIR)/bin/$(MOC) -o qt_msg.moc ../win/Qt/qt_msg.h
-qt_plsel.moc : ../win/Qt/qt_plsel.h
-	$(QTDIR)/bin/$(MOC) -o qt_plsel.moc ../win/Qt/qt_plsel.h
-qt_set.moc : ../win/Qt/qt_set.h
-	$(QTDIR)/bin/$(MOC) -o qt_set.moc ../win/Qt/qt_set.h
-qt_stat.moc : ../win/Qt/qt_stat.h
-	$(QTDIR)/bin/$(MOC) -o qt_stat.moc ../win/Qt/qt_stat.h
-qt_xcmd.moc : ../win/Qt/qt_xcmd.h
-	$(QTDIR)/bin/$(MOC) -o qt_xcmd.moc ../win/Qt/qt_xcmd.h
-qt_yndlg.moc : ../win/Qt/qt_yndlg.h
-	$(QTDIR)/bin/$(MOC) -o qt_yndlg.moc ../win/Qt/qt_yndlg.h
+# for Qt 5 and 6, template rules to build qt_xyz.moc from corresponding
+# ../win/Qt/qt_xyz.h are in sys/unix/hints/compiler.370 and get added
+# to src/Makefile if the appropriate hints file gets used with setup.sh;
+# so, build support for the Qt interface requires the use of hints...
 
 #	build monst.o and objects.o before executing '$(MAKE) makedefs'
 $(MAKEDEFS): $(FIRSTOBJ) \
@@ -718,7 +702,8 @@ $(MAKEDEFS): $(FIRSTOBJ) \
 		../include/patchlevel.h
 	@( cd ../util ; $(MAKE) makedefs )
 
-#	Source files created by 'makedefs' at build time.
+#	Source files formerly created by 'makedefs' at build time
+#	but no longer used.
 #	Each is given an artificial dependency upon the one before
 #	so that parallel makes will have to build them sequentially.
 #	(More for documentation than effect; 'make' should know not
@@ -779,8 +764,9 @@ clean:
 spotless: clean
 	-rm -f a.out core $(GAMEBIN) Sys*
 	-rm -f ../include/nhlua.h
-	-rm -f ../include/date.h ../include/onames.h ../include/pm.h
-	-rm -f tile.c *.moc
+	-rm -f ../include/date.h #created but no longer used, at least by core
+	-rm -f ../include/onames.h ../include/pm.h #obsolete generated files
+	-rm -f tile.c *.moc moc.qt*
 	-rm -f ../win/gnome/gn_rip.h
 
 package:
@@ -809,27 +795,28 @@ depend: ../sys/unix/depend.awk \
 
 # config.h timestamp
 $(CONFIG_H): ../include/config.h ../include/config1.h ../include/patchlevel.h \
-		../include/tradstdc.h ../include/global.h ../include/warnings.h \
-		../include/coord.h ../include/vmsconf.h ../include/system.h \
-		../include/nhlua.h ../include/unixconf.h ../include/pcconf.h \
-		../include/windconf.h ../include/fnamesiz.h
+		../include/tradstdc.h ../include/global.h ../include/coord.h \
+		../include/vmsconf.h ../include/system.h ../include/nhlua.h \
+		../include/unixconf.h ../include/pcconf.h ../include/micro.h \
+		../include/windconf.h ../include/warnings.h \
+		../include/fnamesiz.h
 	touch $(CONFIG_H)
 # hack.h timestamp
 $(HACK_H): ../include/hack.h $(CONFIG_H) ../include/lint.h ../include/align.h \
-		../include/dungeon.h ../include/mkroom.h \
-		../include/objclass.h ../include/youprop.h ../include/prop.h \
-		../include/permonst.h ../include/monattk.h \
-		../include/monflag.h ../include/mondata.h  \
-		../include/wintype.h ../include/context.h \
-		../include/sym.h ../include/defsym.h ../include/rm.h \
+		../include/dungeon.h ../include/sym.h ../include/defsym.h \
+		../include/mkroom.h ../include/artilist.h \
+		../include/objclass.h ../include/objects.h \
+		../include/youprop.h ../include/prop.h ../include/permonst.h \
+		../include/monattk.h ../include/monflag.h \
+		../include/monsters.h ../include/mondata.h \
+		../include/wintype.h ../include/context.h ../include/rm.h \
 		../include/botl.h ../include/rect.h ../include/region.h \
 		../include/decl.h ../include/quest.h ../include/spell.h \
 		../include/color.h ../include/obj.h ../include/engrave.h \
 		../include/you.h ../include/attrib.h ../include/monst.h \
-		../include/mextra.h ../include/skills.h ../include/monsters.h \
-		../include/timeout.h ../include/trap.h ../include/flag.h \
-		../include/vision.h ../include/display.h ../include/winprocs.h \
-		../include/sys.h
+		../include/mextra.h ../include/skills.h ../include/timeout.h \
+		../include/trap.h ../include/flag.h ../include/vision.h \
+		../include/display.h ../include/winprocs.h ../include/sys.h
 	touch $(HACK_H)
 #
 $(TARGETPFX)pcmain.o: ../sys/share/pcmain.c $(HACK_H) ../include/dlb.h
@@ -1052,8 +1039,7 @@ $(TARGETPFX)wc_trace.o: ../win/chain/wc_trace.c $(HACK_H) ../include/wintty.h \
 $(TARGETPFX)allmain.o: allmain.c $(HACK_H)
 $(TARGETPFX)alloc.o: alloc.c $(CONFIG_H)
 $(TARGETPFX)apply.o: apply.c $(HACK_H)
-$(TARGETPFX)artifact.o: artifact.c $(HACK_H) ../include/artifact.h \
-		../include/artilist.h
+$(TARGETPFX)artifact.o: artifact.c $(HACK_H) ../include/artifact.h
 $(TARGETPFX)attrib.o: attrib.c $(HACK_H)
 $(TARGETPFX)ball.o: ball.c $(HACK_H)
 $(TARGETPFX)bones.o: bones.c $(HACK_H)
@@ -1073,8 +1059,8 @@ $(TARGETPFX)dogmove.o: dogmove.c $(HACK_H) ../include/mfndpos.h
 $(TARGETPFX)dokick.o: dokick.c $(HACK_H)
 $(TARGETPFX)dothrow.o: dothrow.c $(HACK_H)
 $(TARGETPFX)drawing.o: drawing.c $(CONFIG_H) ../include/color.h \
-		../include/sym.h ../include/defsym.h ../include/rm.h \
-		../include/objclass.h
+		../include/rm.h ../include/objclass.h ../include/defsym.h \
+		../include/objects.h ../include/sym.h
 $(TARGETPFX)dungeon.o: dungeon.c $(HACK_H) ../include/dgn_file.h \
 		../include/dlb.h
 $(TARGETPFX)eat.o: eat.c $(HACK_H)
@@ -1097,7 +1083,8 @@ $(TARGETPFX)makemon.o: makemon.c $(HACK_H)
 $(TARGETPFX)mcastu.o: mcastu.c $(HACK_H)
 $(TARGETPFX)mdlib.o: mdlib.c $(CONFIG_H) ../include/permonst.h \
 		../include/align.h ../include/monattk.h ../include/monflag.h \
-		../include/objclass.h ../include/sym.h ../include/defsym.h \
+		../include/monsters.h ../include/objclass.h \
+		../include/defsym.h ../include/objects.h ../include/sym.h \
 		../include/artilist.h ../include/dungeon.h ../include/obj.h \
 		../include/monst.h ../include/mextra.h ../include/you.h \
 		../include/attrib.h ../include/prop.h ../include/skills.h \
@@ -1115,8 +1102,8 @@ $(TARGETPFX)mondata.o: mondata.c $(HACK_H)
 $(TARGETPFX)monmove.o: monmove.c $(HACK_H) ../include/mfndpos.h \
 		../include/artifact.h
 $(TARGETPFX)monst.o: monst.c $(CONFIG_H) ../include/permonst.h \
-		../include/monsters.h ../include/align.h ../include/monattk.h \
-		../include/monflag.h ../include/sym.h ../include/defsym.h \
+		../include/align.h ../include/monattk.h ../include/monflag.h \
+		../include/monsters.h ../include/sym.h ../include/defsym.h \
 		../include/color.h
 $(TARGETPFX)mplayer.o: mplayer.c $(HACK_H)
 $(TARGETPFX)mthrowu.o: mthrowu.c $(HACK_H)
@@ -1127,13 +1114,12 @@ $(TARGETPFX)nhlsel.o: nhlsel.c $(HACK_H) ../include/sp_lev.h
 $(TARGETPFX)nhlobj.o: nhlobj.c $(HACK_H) ../include/sp_lev.h
 $(TARGETPFX)o_init.o: o_init.c $(HACK_H)
 $(TARGETPFX)objects.o: objects.c $(CONFIG_H) ../include/obj.h \
-		../include/objects.h ../include/objclass.h \
-		../include/prop.h ../include/skills.h \
-		../include/color.h
+		../include/prop.h ../include/skills.h ../include/color.h \
+		../include/objclass.h ../include/defsym.h ../include/objects.h
 $(TARGETPFX)objnam.o: objnam.c $(HACK_H)
 $(TARGETPFX)options.o: options.c $(CONFIG_H) ../include/objclass.h \
-		../include/flag.h $(HACK_H) ../include/tcap.h \
-		../include/optlist.h
+		../include/defsym.h ../include/objects.h ../include/flag.h \
+		$(HACK_H) ../include/tcap.h ../include/optlist.h
 $(TARGETPFX)pager.o: pager.c $(HACK_H) ../include/dlb.h
 $(TARGETPFX)pickup.o: pickup.c $(HACK_H)
 $(TARGETPFX)pline.o: pline.c $(HACK_H)
@@ -1172,7 +1158,7 @@ $(TARGETPFX)trap.o: trap.c $(HACK_H)
 $(TARGETPFX)u_init.o: u_init.c $(HACK_H)
 $(TARGETPFX)uhitm.o: uhitm.c $(HACK_H)
 $(TARGETPFX)vault.o: vault.c $(HACK_H)
-$(TARGETPFX)version.o: version.c $(HACK_H) ../include/dlb.h ../include/date.h
+$(TARGETPFX)version.o: version.c $(HACK_H) ../include/dlb.h
 $(TARGETPFX)vision.o: vision.c $(HACK_H)
 $(TARGETPFX)weapon.o: weapon.c $(HACK_H)
 $(TARGETPFX)were.o: were.c $(HACK_H)

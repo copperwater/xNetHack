@@ -1,4 +1,4 @@
-/* NetHack 3.7	global.h	$NHDT-Date: 1612127119 2021/01/31 21:05:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.120 $ */
+/* NetHack 3.7	global.h	$NHDT-Date: 1642630918 2022/01/19 22:21:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.131 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -9,7 +9,8 @@
 #include <stdio.h>
 
 /*
- * Files expected to exist in the playground directory.
+ * Files expected to exist in the playground directory (possibly inside
+ * a dlb container file).
  */
 
 #define RECORD "record"         /* file containing list of topscorers */
@@ -24,6 +25,7 @@
 #define HISTORY "history"       /* file giving nethack's history */
 #define LICENSE "license"       /* file with license information */
 #define OPTIONFILE "opthelp"    /* file explaining runtime options */
+#define OPTMENUHELP "optmenu"   /* file explaining #options command */
 #define OPTIONS_USED "options"  /* compile-time options, for #version */
 #define SYMBOLS "symbols"       /* replacement symbol sets */
 #define EPITAPHFILE "epitaph"   /* random epitaphs on graves */
@@ -32,6 +34,15 @@
 #define SHIRTFILE "shirts"      /* T-shirt texts */
 #define TRIBUTEFILE "tribute"   /* 3.6 tribute to Terry Pratchett */
 #define LEV_EXT ".lua"          /* extension for special level files */
+
+/* padding amounts for files that have lines chosen by fseek to random spot,
+   advancing to the next line, and using that line; makedefs forces shorter
+   lines to be padded to these lengths; value of 0 will inhibit any padding,
+   avoiding an increase in files' sizes, but resulting in biased selection;
+   used by makedefs while building and by core's callers of get_rnd_text() */
+#define MD_PAD_RUMORS 60u /* for RUMORFILE, EPITAPHFILE, and ENGRAVEFILE
+                             and also SHIRTFILE in xNetHack */
+#define MD_PAD_BOGONS 20u /* for BOGUSMONFILE */
 
 /* Assorted definitions that may depend on selections in config.h. */
 
@@ -138,7 +149,7 @@ typedef uchar nhsym;
 /* amiconf.h needs to be the last nested #include of config.h because
    'make depend' will turn it into a comment, hiding anything after it */
 #ifdef AMIGA
-/*#include "amiconf.h"*/
+#include "amiconf.h"
 #endif
 
 /* Displayable name of this port; don't redefine if defined in *conf.h */
@@ -150,7 +161,7 @@ typedef uchar nhsym;
 #define PORT_ID "Mac"
 #endif
 #ifdef __APPLE__
-#define PORT_ID "MacOSX"
+#define PORT_ID "MacOS"
 #endif
 #ifdef MSDOS
 #ifdef PC9800
@@ -221,13 +232,17 @@ typedef uchar nhsym;
 
 #if defined(X11_GRAPHICS) || defined(QT_GRAPHICS) || defined(GNOME_GRAPHICS) \
     || defined(WIN32)
+#ifndef NO_TILE_C
 #ifndef USE_TILES
-#define USE_TILES /* glyph2tile[] will be available */
+#define USE_TILES /* glyphmap[] with prefilled tile mappings will be available */
+#endif
 #endif
 #endif
 #if defined(AMII_GRAPHICS) || defined(GEM_GRAPHICS)
+#ifndef NO_TILE_C
 #ifndef USE_TILES
 #define USE_TILES
+#endif
 #endif
 #endif
 

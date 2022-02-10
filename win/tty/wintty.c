@@ -1,4 +1,4 @@
-/* NetHack 3.7	wintty.c	$NHDT-Date: 1608861214 2020/12/25 01:53:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.264 $ */
+/* NetHack 3.7	wintty.c	$NHDT-Date: 1643491577 2022/01/29 21:26:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.282 $ */
 /* Copyright (c) David Cohrs, 1991                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -36,11 +36,24 @@ extern void msmsg(const char *, ...);
 #endif
 #endif
 
+#ifdef DEF_PAGER
+    /* DEF_PAGER implies UNIX; when dlb is in use, the only file accessible
+       to an external pager is 'license'; override 'DEF_PAGER' for that
+       situation rather than using code to fallback to DLB plus internal
+       pager after open() failure */
+#ifdef DLB
+#undef DEF_PAGER
+#else
+#ifndef O_RDONLY /* (same logic as unixmain.c) */
+#include <fcntl.h>
+#endif
+#endif /* DLB */
+#endif /* DEF_PAGER */
+
 #if defined(TTY_TILES_ESCCODES) || defined(TTY_SOUND_ESCCODES)
 #define VT_ANSI_COMMAND 'z'
 #endif
 #ifdef TTY_TILES_ESCCODES
-extern short glyph2tile[];
 #define AVTC_GLYPH_START   0
 #define AVTC_GLYPH_END     1
 #define AVTC_SELECT_WINDOW 2
@@ -96,9 +109,9 @@ struct window_procs tty_procs = {
      | WC2_HILITE_STATUS | WC2_HITPOINTBAR | WC2_FLUSH_STATUS
      | WC2_RESET_STATUS
 #endif
-     | WC2_DARKGRAY | WC2_SUPPRESS_HIST | WC2_STATUSLINES),
+     | WC2_DARKGRAY | WC2_SUPPRESS_HIST | WC2_URGENT_MESG | WC2_STATUSLINES),
 #ifdef TEXTCOLOR
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},   /* color availability */
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, /* color availability */
 #else
     {1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
 #endif
@@ -180,7 +193,6 @@ static const char to_continue[] = "to continue";
 #else
 static void getret(void);
 #endif
-static void print_vt_code(int, int, int);
 static void bail(const char *); /* __attribute__((noreturn)) */
 static void new_status_window(void);
 static void erase_menu_or_text(winid, struct WinDesc *, boolean);
@@ -206,7 +218,8 @@ static void setup_gendmenu(winid, boolean, int, int, int);
 static void setup_algnmenu(winid, boolean, int, int, int);
 static boolean reset_role_filtering(void);
 #ifdef STATUS_HILITES
-static boolean check_fields(boolean, int *);
+#define MAX_STATUS_ROWS 3
+static boolean check_fields(boolean forcefields, int sz[MAX_STATUS_ROWS]);
 static void render_status(void);
 static void tty_putstatusfield(const char *, int, int);
 static boolean check_windowdata(void);
@@ -260,8 +273,8 @@ print_vt_code(int i, int c, int d)
 #define print_vt_code2(i,c)   print_vt_code((i), (c), -1)
 #define print_vt_code3(i,c,d) print_vt_code((i), (c), (d))
 
-#ifdef TTY_SOUND_ESCCODES
-void
+#if defined(USER_SOUNDS) && defined(TTY_SOUND_ESCCODES)
+static void
 print_vt_soundcode_idx(int idx, int v)
 {
     HUPSKIP();
@@ -1612,6 +1625,8 @@ free_window_info(struct WinDesc *cw, boolean free_data)
     }
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 void
 tty_clear_nhwindow(winid window)
 {
@@ -1666,6 +1681,8 @@ tty_clear_nhwindow(winid window)
     }
     cw->curx = cw->cury = 0;
 }
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 static boolean
 toggle_menu_curr(winid window, tty_menu_item *curr, int lineno,
@@ -2304,10 +2321,13 @@ process_text_window(winid window, struct WinDesc *cw)
     }
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL    /* RESTORE after tty_select_menu */
+
 /*ARGSUSED*/
 void
-tty_display_nhwindow(winid window,
-                    boolean blocking) /* with ttys, all windows are blocking */
+tty_display_nhwindow(
+    winid window,
+    boolean blocking) /* with ttys, all windows are blocking */
 {
     register struct WinDesc *cw = 0;
     short s_maxcol;
@@ -2659,7 +2679,21 @@ tty_putstr(winid window, int attr, const char *str)
 
     switch (cw->type) {
     case NHW_MESSAGE: {
-        int suppress_history = (attr & ATR_NOHISTORY);
+        int suppress_history = (attr & ATR_NOHISTORY),
+            urgent_message = (attr & ATR_URGENT);
+
+        /* if message is designated 'urgent' don't suppress it if user has
+           typed ESC at --More-- prompt when dismissing an earlier message;
+           besides turning off WIN_STOP, we need to prevent current message
+           from provoking --More-- and giving the user another chance at
+           using ESC to suppress, otherwise this message wouldn't get shown */
+        if (urgent_message) {
+            if ((cw->flags & WIN_STOP) != 0) {
+                tty_clear_nhwindow(WIN_MESSAGE);
+                cw->flags &= ~WIN_STOP;
+            }
+            cw->flags |= WIN_NOSTOP;
+        }
 
         /* in case we ever support display attributes for topline
            messages, clear flag mask leaving only display attr */
@@ -2675,6 +2709,8 @@ tty_putstr(winid window, int attr, const char *str)
             /* write to top line without remembering what we're writing */
             show_topl(str);
         }
+
+        cw->flags &= ~WIN_NOSTOP; /* NOSTOP is a one-shot operation */
         break;
     }
 #ifndef STATUS_HILITES
@@ -2803,7 +2839,7 @@ tty_display_file(const char *fname, boolean complain)
 #ifdef DEF_PAGER /* this implies that UNIX is defined */
     {
         /* use external pager; this may give security problems */
-        register int fd = open(fname, 0);
+        int fd = open(fname, O_RDONLY);
 
         if (fd < 0) {
             if (complain)
@@ -3129,6 +3165,8 @@ tty_select_menu(winid window, int how, menu_item **menu_list)
     return n;
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /* special hack for treating top line --More-- as a one item menu */
 char
 tty_message_menu(char let, int how, const char *mesg)
@@ -3369,9 +3407,6 @@ tty_print_glyph(winid window, xchar x, xchar y,
 {
     boolean inverse_on = FALSE, underline_on = FALSE;
     int ch, color;
-#if defined(TTY_TILES_ESCCODES) || defined(MSDOS)
-    int glyph;
-#endif
     unsigned special;
 
     HUPSKIP();
@@ -3382,19 +3417,16 @@ tty_print_glyph(winid window, xchar x, xchar y,
     }
 #endif
     /* get glyph ttychar, color, and special flags */
-#if defined(TTY_TILES_ESCCODES) || defined(MSDOS)
-    glyph = glyphinfo->glyph;
-#endif
     ch = glyphinfo->ttychar;
-    color = glyphinfo->color;
-    special = glyphinfo->glyphflags;
+    color = glyphinfo->gm.color;
+    special = glyphinfo->gm.glyphflags;
 
     print_vt_code2(AVTC_SELECT_WINDOW, window);
 
     /* Move the cursor. */
     tty_curs(window, x, y);
 
-    print_vt_code3(AVTC_GLYPH_START, glyph2tile[glyph], special);
+    print_vt_code3(AVTC_GLYPH_START, glyphinfo->gm.tileidx, special);
 
 #ifndef NO_TERMS
     if (ul_hack && ch == '_') { /* non-destructive underscore */
@@ -3446,7 +3478,7 @@ tty_print_glyph(winid window, xchar x, xchar y,
 
 #if defined(USE_TILES) && defined(MSDOS)
     if (iflags.grmode && iflags.tile_view)
-        xputg(glyph, ch, special);
+        xputg(glyphinfo);
     else
 #endif
         g_putch(ch); /* print the character */
@@ -3868,7 +3900,7 @@ tty_status_enablefield(int fieldidx, const char *nm, const char *fmt,
  *         Each condition bit must only ever appear in one of the
  *         CLR_ array members, but can appear in multiple HL_ATTCLR_
  *         offsets (because more than one attribute can co-exist).
- *         See doc/window.doc for more details.
+ *         See doc/window.txt for more details.
  */
 
 DISABLE_WARNING_FORMAT_NONLITERAL
@@ -4000,9 +4032,10 @@ static int
 make_things_fit(boolean force_update)
 {
     int trycnt, fitting = 0, requirement;
-    int rowsz[3], num_rows, condrow, otheroptions = 0;
+    int rowsz[MAX_STATUS_ROWS], num_rows, condrow, otheroptions = 0;
 
-    num_rows = (iflags.wc2_statuslines < 3) ? 2 : 3;
+    num_rows = (iflags.wc2_statuslines < MAX_STATUS_ROWS)
+                    ? 2 : MAX_STATUS_ROWS;
     condrow = num_rows - 1; /* always last row, 1 for 0..1 or 2 for 0..2 */
     cond_shrinklvl = 0;
     if (enc_shrinklvl > 0 && num_rows == 2)
@@ -4060,7 +4093,7 @@ make_things_fit(boolean force_update)
  * This is now done at an individual field case-by-case level.
  */
 static boolean
-check_fields(boolean forcefields, int sz[3])
+check_fields(boolean forcefields, int sz[MAX_STATUS_ROWS])
 {
     int c, i, row, col, num_rows, idx;
     boolean valid = TRUE, matchprev, update_right;
@@ -4068,7 +4101,8 @@ check_fields(boolean forcefields, int sz[3])
     if (!windowdata_init && !check_windowdata())
         return FALSE;
 
-    num_rows = (iflags.wc2_statuslines < 3) ? 2 : 3;
+    num_rows = (iflags.wc2_statuslines < MAX_STATUS_ROWS)
+                    ? 2 : MAX_STATUS_ROWS;
 
     for (row = 0; row < num_rows; ++row) {
         sz[row] = 0;
@@ -4412,7 +4446,7 @@ render_status(void)
         return;
     }
 
-    num_rows = (iflags.wc2_statuslines < 3) ? 2 : 3;
+    num_rows = (iflags.wc2_statuslines < MAX_STATUS_ROWS) ? 2 : MAX_STATUS_ROWS;
     for (row = 0; row < num_rows; ++row) {
         HUPSKIP();
         y = row;
@@ -4438,7 +4472,7 @@ render_status(void)
                     /* if no bits are set, we can fall through condition
                        rendering code to finalx[] handling (and subsequent
                        rest-of-line erasure if line is shorter than before) */
-                    if (num_rows == 3 && bits != 0L) {
+                    if (num_rows == MAX_STATUS_ROWS && bits != 0L) {
                         int k;
                         char *dat = &cw->data[y][0];
 

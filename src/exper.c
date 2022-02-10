@@ -53,62 +53,6 @@ newuexp(int lev)
     return 10000000;
 }
 
-/* calculate hp max increase for new level */
-int
-newhp(void)
-{
-    int hp, conplus;
-
-    if (u.ulevel == 0) {
-        /* Initialize hit points */
-        hp = g.urole.hpadv.infix + g.urace.hpadv.infix;
-        if (g.urole.hpadv.inrnd > 0)
-            hp += rnd(g.urole.hpadv.inrnd);
-        if (g.urace.hpadv.inrnd > 0)
-            hp += rnd(g.urace.hpadv.inrnd);
-        if (g.moves <= 1L) { /* initial hero; skip for polyself to new man */
-            /* Initialize alignment stuff */
-            u.ualign.type = aligns[flags.initalign].value;
-            u.ualign.record = g.urole.initrecord;
-        }
-        /* no Con adjustment for initial hit points */
-    } else {
-        if (u.ulevel < ROLE_XLEV_CUTOFF) {
-            hp = g.urole.hpadv.lofix + g.urace.hpadv.lofix;
-            if (g.urole.hpadv.lornd > 0)
-                hp += rnd(g.urole.hpadv.lornd);
-            if (g.urace.hpadv.lornd > 0)
-                hp += rnd(g.urace.hpadv.lornd);
-        } else {
-            hp = g.urole.hpadv.hifix + g.urace.hpadv.hifix;
-            if (g.urole.hpadv.hirnd > 0)
-                hp += rnd(g.urole.hpadv.hirnd);
-            if (g.urace.hpadv.hirnd > 0)
-                hp += rnd(g.urace.hpadv.hirnd);
-        }
-        if (ACURR(A_CON) <= 3)
-            conplus = -2;
-        else if (ACURR(A_CON) <= 6)
-            conplus = -1;
-        else if (ACURR(A_CON) <= 14)
-            conplus = 0;
-        else if (ACURR(A_CON) <= 16)
-            conplus = 1;
-        else if (ACURR(A_CON) == 17)
-            conplus = 2;
-        else if (ACURR(A_CON) == 18)
-            conplus = 3;
-        else
-            conplus = 4;
-        hp += conplus;
-    }
-    if (hp <= 0)
-        hp = 1;
-    if (u.ulevel < MAXULEV)
-        u.uhpinc[u.ulevel] = (xchar) hp;
-    return hp;
-}
-
 /* calculate spell power/energy points for new level */
 int
 newpw(void)
@@ -148,8 +92,18 @@ newpw(void)
     }
     if (en <= 0)
         en = 1;
-    if (u.ulevel < MAXULEV)
+    if (u.ulevel < MAXULEV) {
+        /* remember increment; future level drain could take it away again */
         u.ueninc[u.ulevel] = (xchar) en;
+    } else {
+        /* after level 30, throttle energy gains from extra experience;
+           once max reaches 600, further increments will be just 1 more */
+        char lim = 4 - u.uenmax / 200;
+
+        lim = max(lim, 1);
+        if (en > lim)
+            en = lim;
+    }
     return en;
 }
 
@@ -376,11 +330,15 @@ pluslvl(boolean incr) /* true iff via incremental experience growth */
     }
     hpinc = newhp();
     u.uhpmax += hpinc;
+    if (u.uhpmax > u.uhppeak)
+        u.uhppeak = u.uhpmax;
     u.uhp += hpinc;
 
     /* increase spell power/energy points */
     eninc = newpw();
     u.uenmax += eninc;
+    if (u.uenmax > u.uenpeak)
+        u.uenpeak = u.uenmax;
     u.uen += eninc;
 
     /* increase level (unless already maxxed) */

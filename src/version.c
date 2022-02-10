@@ -39,7 +39,7 @@ getversionstring(char *buf)
 #if defined(RUNTIME_PORT_ID)
         tmp = get_port_id(tmpbuf);
         if (tmp)
-            Snprintf(eos(buf), (sizeof buf - strlen(buf)) - 1, 
+            Snprintf(eos(buf), (sizeof buf - strlen(buf)) - 1,
                      "%s%s", c++ ? "," : "", tmp);
 #endif
         if (nomakedefs.git_sha)
@@ -63,14 +63,14 @@ getversionstring(char *buf)
     return buf;
 }
 
-/* the 'v' command */
+/* the #versionshort command */
 int
 doversion(void)
 {
     char buf[BUFSZ];
 
     pline("%s", getversionstring(buf));
-    return 0;
+    return ECMD_OK;
 }
 
 /* the '#version' command; also a choice for '?' */
@@ -198,7 +198,7 @@ doextversion(void)
         (void) dlb_fclose(f);
     display_nhwindow(win, FALSE);
     destroy_nhwindow(win);
-    return 0;
+    return ECMD_OK;
 }
 
 void
@@ -223,7 +223,7 @@ early_version_info(boolean pastebuf)
     raw_printf("%s", buf);
 
     if (pastebuf) {
-#if defined(RUNTIME_PASTEBUF_SUPPORT) && !defined(LIBNH) 
+#if defined(RUNTIME_PASTEBUF_SUPPORT) && !defined(LIBNH)
         /*
          * Call a platform/port-specific routine to insert the
          * version information into a paste buffer. Useful for
@@ -283,7 +283,7 @@ comp_times(long filetime)
 {
     /* BUILD_TIME is constant but might have L suffix rather than UL;
        'filetime' is historically signed but ought to have been unsigned */
-    return (boolean) ((unsigned long) filetime < (unsigned long) nomakedefs.build_time);
+    return ((unsigned long) filetime < (unsigned long) nomakedefs.build_time);
 }
 #endif
 
@@ -311,10 +311,10 @@ check_version(struct version_info *version_data, const char *filename,
 #endif
         || ((utdflags & UTD_SKIP_SANITY1) == 0
              && version_data->entity_count != nomakedefs.version_sanity1)
-        || ((utdflags & UTD_CHECKSIZES) &&
-            (version_data->struct_sizes1 != nomakedefs.version_sanity2))
-        || ((utdflags & UTD_CHECKSIZES) &&
-            (version_data->struct_sizes2 != nomakedefs.version_sanity3))) {
+        || ((utdflags & UTD_CHECKSIZES) != 0
+            && version_data->struct_sizes1 != nomakedefs.version_sanity2)
+        || ((utdflags & UTD_CHECKSIZES) != 0
+            && version_data->struct_sizes2 != nomakedefs.version_sanity3)) {
         if (complain)
             pline("Configuration incompatibility for file \"%s\".", filename);
         return FALSE;
@@ -381,11 +381,16 @@ store_version(NHFILE *nhfp)
         0UL,0UL,0UL,0UL,0Ul
     };
 
-    version_data.incarnation = nomakedefs.version_number;    /* actual version number */
-    version_data.feature_set = nomakedefs.version_features;  /* bitmask of config settings */
-    version_data.entity_count  = nomakedefs.version_sanity1; /* # of monsters and objects */
-    version_data.struct_sizes1 = nomakedefs.version_sanity2; /* size of key structs */
-    version_data.struct_sizes2 = nomakedefs.version_sanity3; /* size of more key structs */
+    /* actual version number */
+    version_data.incarnation = nomakedefs.version_number;
+    /* bitmask of config settings */
+    version_data.feature_set = nomakedefs.version_features;
+    /* # of monsters and objects */
+    version_data.entity_count  = nomakedefs.version_sanity1;
+    /* size of key structs */
+    version_data.struct_sizes1 = nomakedefs.version_sanity2;
+    /* size of more key structs */
+    version_data.struct_sizes2 = nomakedefs.version_sanity3;
 
     if (nhfp->structlevel) {
         bufoff(nhfp->fd);

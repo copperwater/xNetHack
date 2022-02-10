@@ -1,10 +1,10 @@
 #!/bin/sh
 set -x
 
-if [ -z "$TRAVIS_BUILD_DIR" ]; then
+if [ -z "$CI_BUILD_DIR" ]; then
 	export DJGPP_TOP=$(pwd)/lib/djgpp
 else
-	export DJGPP_TOP="$TRAVIS_BUILD_DIR/lib/djgpp"
+	export DJGPP_TOP="$CI_BUILD_DIR/lib/djgpp"
 fi
 
 if [ -z "$GCCVER" ]; then
@@ -12,7 +12,7 @@ if [ -z "$GCCVER" ]; then
 fi
 
 if [ -z "$LUA_VERSION" ]; then
-	export LUA_VERSION=5.4.3
+	export LUA_VERSION=5.4.4
 fi
 
 if [ ! -d "$(pwd)/lib" ]; then
@@ -27,13 +27,13 @@ if [ "$(uname)" = "Darwin" ]; then
     #Mac
     DJGPP_FILE="djgpp-osx-$GCCVER.tar.bz2"
     if [ -z "HINTS" ]; then
-        export HINTS=macOS.2020
+        export HINTS=macOS.370
     fi
 elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then
     #Linux
     DJGPP_FILE="djgpp-linux64-$GCCVER.tar.bz2"
     if [ -z "$HINTS" ]; then
-        export HINTS=linux.2020
+        export HINTS=linux.370
     fi
 elif [ "$(expr substr $(uname -s) 1 10)" = "MINGW32_NT" ]; then
     #mingw

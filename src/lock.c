@@ -37,7 +37,7 @@ static const char *
 lock_action(void)
 {
     /* "unlocking"+2 == "locking" */
-    static const char *actions[] = {
+    static const char *const actions[] = {
         "unlocking the door",   /* [0] */
         "unlocking the chest",  /* [1] */
         "unlocking the box",    /* [2] */
@@ -346,6 +346,8 @@ autokey(boolean opening) /* True: key, pick, or card; False: key or pick */
     return key ? key : pick ? pick : card ? card : 0;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 /* for doapply(); if player gives a direction or resumes an interrupted
    previous attempt then it costs hero a move even if nothing ultimately
    happens; when told "can't do that" before being asked for direction
@@ -617,7 +619,9 @@ pick_lock(struct obj *pick,
     return PICKLOCK_DID_SOMETHING;
 }
 
-/* try to force a chest with your weapon */
+RESTORE_WARNING_FORMAT_NONLITERAL
+
+/* the #force command - try to force a chest with your weapon */
 int
 doforce(void)
 {
@@ -627,7 +631,7 @@ doforce(void)
 
     if (u.uswallow) {
         You_cant("force anything from inside here.");
-        return 0;
+        return ECMD_OK;
     }
     if (!uwep /* proper type test */
         || ((uwep->oclass == WEAPON_CLASS || is_weptool(uwep))
@@ -640,18 +644,18 @@ doforce(void)
                        : (uwep->oclass != WEAPON_CLASS && !is_weptool(uwep))
                              ? "without a proper"
                              : "with that");
-        return 0;
+        return ECMD_OK;
     }
     if (!can_reach_floor(TRUE)) {
         cant_reach_floor(u.ux, u.uy, FALSE, TRUE);
-        return 0;
+        return ECMD_OK;
     }
 
     picktyp = is_blade(uwep) && !is_pick(uwep);
     if (g.xlock.usedtime && g.xlock.box && picktyp == g.xlock.picktyp) {
         You("resume your attempt to force the lock.");
         set_occupation(forcelock, "forcing the lock", 0);
-        return 1;
+        return ECMD_TIME;
     }
 
     /* A lock is made only for the honest man, the thief will break it. */
@@ -675,7 +679,7 @@ doforce(void)
 
             c = ynq(qbuf);
             if (c == 'q')
-                return 0;
+                return ECMD_OK;
             if (c == 'n')
                 continue;
 
@@ -695,7 +699,7 @@ doforce(void)
         set_occupation(forcelock, "forcing the lock", 0);
     else
         You("decide not to force the issue.");
-    return 1;
+    return ECMD_TIME;
 }
 
 boolean
@@ -711,7 +715,7 @@ stumble_on_door_mimic(int x, int y)
     return FALSE;
 }
 
-/* the 'O' command - try to open a door */
+/* the #open command - try to open a door */
 int
 doopen(void)
 {
@@ -725,35 +729,35 @@ doopen_indir(int x, int y)
     coord cc;
     register struct rm *door;
     boolean portcullis;
-    int res = 0;
+    int res = ECMD_OK;
 
     if (nohands(g.youmonst.data)) {
         You_cant("open anything -- you have no hands!");
-        return 0;
+        return ECMD_OK;
     }
 
     if (u.utrap && u.utraptype == TT_PIT) {
         You_cant("reach over the edge of the pit.");
-        return 0;
+        return ECMD_OK;
     }
 
     if (x > 0 && y > 0) {
         cc.x = x;
         cc.y = y;
     } else if (!get_adjacent_loc((char *) 0, (char *) 0, u.ux, u.uy, &cc))
-        return 0;
+        return ECMD_OK;
 
     /* open at yourself/up/down */
     if ((cc.x == u.ux) && (cc.y == u.uy))
         return doloot();
 
     if (stumble_on_door_mimic(cc.x, cc.y))
-        return 1;
+        return ECMD_TIME;
 
     /* when choosing a direction is impaired, use a turn
        regardless of whether a door is successfully targetted */
     if (Confusion || Stunned)
-        res = 1;
+        res = ECMD_TIME;
 
     door = &levl[cc.x][cc.y];
     portcullis = (is_drawbridge_wall(cc.x, cc.y) >= 0);
@@ -764,7 +768,7 @@ doopen_indir(int x, int y)
         feel_location(cc.x, cc.y);
         if (door->glyph != oldglyph
             || g.lastseentyp[cc.x][cc.y] != oldlastseentyp)
-            res = 1; /* learned something */
+            res = ECMD_TIME; /* learned something */
     }
 
     if (portcullis || !IS_DOOR(door->typ)) {
@@ -814,7 +818,8 @@ doopen_indir(int x, int y)
         pline("This door is locked.");
         struct obj* unlocktool;
         if (flags.autounlock && (unlocktool = autokey(TRUE)) != 0) {
-            res = pick_lock(unlocktool, cc.x, cc.y, (struct obj *) 0);
+            res = pick_lock(unlocktool, cc.x, cc.y, (struct obj *) 0)
+                  ? ECMD_TIME : ECMD_OK;
         }
         return res;
     }
@@ -832,7 +837,7 @@ doopen_indir(int x, int y)
         pline_The("door resists!");
     }
 
-    return 1;
+    return ECMD_TIME;
 }
 
 static boolean
@@ -867,45 +872,45 @@ obstructed(register int x, register int y, boolean quietly)
     return FALSE;
 }
 
-/* the 'C' command - try to close a door */
+/* the #close command - try to close a door */
 int
 doclose(void)
 {
     register int x, y;
     register struct rm *door;
     boolean portcullis;
-    int res = 0;
+    int res = ECMD_OK;
 
     if (nohands(g.youmonst.data)) {
         You_cant("close anything -- you have no hands!");
-        return 0;
+        return ECMD_OK;
     }
 
     if (u.utrap && u.utraptype == TT_PIT) {
         You_cant("reach over the edge of the pit.");
-        return 0;
+        return ECMD_OK;
     }
 
     if (!getdir((char *) 0))
-        return 0;
+        return ECMD_CANCEL;
 
     x = u.ux + u.dx;
     y = u.uy + u.dy;
     if ((x == u.ux) && (y == u.uy)) {
         You("are in the way!");
-        return 1;
+        return ECMD_TIME;
     }
 
     if (!isok(x, y))
         goto nodoor;
 
     if (stumble_on_door_mimic(x, y))
-        return 1;
+        return ECMD_TIME;
 
     /* when choosing a direction is impaired, use a turn
        regardless of whether a door is successfully targetted */
     if (Confusion || Stunned)
-        res = 1;
+        res = ECMD_TIME;
 
     door = &levl[x][y];
     portcullis = (is_drawbridge_wall(x, y) >= 0);
@@ -915,7 +920,7 @@ doclose(void)
 
         feel_location(x, y);
         if (door->glyph != oldglyph || g.lastseentyp[x][y] != oldlastseentyp)
-            res = 1; /* learned something */
+            res = ECMD_TIME; /* learned something */
     }
 
     if (portcullis || !IS_DOOR(door->typ)) {
@@ -967,7 +972,7 @@ doclose(void)
         }
     }
 
-    return 1;
+    return ECMD_TIME;
 }
 
 /* box obj was hit with spell or wand effect otmp;

@@ -1,4 +1,4 @@
-/* NetHack 3.7	pager.c	$NHDT-Date: 1622421100 2021/05/31 00:31:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.202 $ */
+/* NetHack 3.7	pager.c	$NHDT-Date: 1642630920 2022/01/19 22:22:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.210 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -17,6 +17,7 @@ static void look_at_monster(char *, char *, struct monst *, int, int);
 static struct permonst *lookat(int, int, char *, char *);
 static void add_mon_info(winid, struct permonst *);
 static void add_obj_info(winid, short);
+static void look_region_nearby(int *, int *, int *, int *, boolean);
 static void look_all(boolean, boolean);
 static void look_traps(boolean);
 static void do_supplemental_info(char *, struct permonst *, boolean);
@@ -25,6 +26,7 @@ static void docontact(void);
 static void dispfile_help(void);
 static void dispfile_shelp(void);
 static void dispfile_optionfile(void);
+static void dispfile_optmenu(void);
 static void dispfile_license(void);
 static void dispfile_debughelp(void);
 static void hmenu_doextversion(void);
@@ -36,6 +38,7 @@ static void domenucontrols(void);
 #ifdef PORT_HELP
 extern void port_help(void);
 #endif
+static char *setopt_cmd(char *);
 
 static const char invisexplain[] = "remembered, unseen, creature",
            altinvisexplain[] = "unseen creature"; /* for clairvoyance */
@@ -263,9 +266,9 @@ object_from_map(int glyph, int x, int y, struct obj **obj_p)
             else
                 otmp->corpsenm = MCORPSENM(mtmp);
         } else if (otmp->otyp == CORPSE && glyph_is_body(glyph)) {
-            otmp->corpsenm = glyph - GLYPH_BODY_OFF;
+            otmp->corpsenm = glyph_to_body_corpsenm(glyph);
         } else if (otmp->otyp == STATUE && glyph_is_statue(glyph)) {
-            otmp->corpsenm = glyph - GLYPH_STATUE_OFF;
+            otmp->corpsenm = glyph_to_statue_corpsenm(glyph);
         }
         if (otmp->otyp == LEASH)
             otmp->leashmon = 0;
@@ -286,10 +289,10 @@ object_from_map(int glyph, int x, int y, struct obj **obj_p)
         /* terrain mode views what's already known, doesn't learn new stuff */
         && !iflags.terrainmode) /* so don't set dknown when in terrain mode */
         otmp->dknown = 1; /* if a pile, clearly see the top item only */
-    if (fakeobj && mtmp && mimic_obj &&
-        (otmp->dknown || (M_AP_FLAG(mtmp) & M_AP_F_DKNOWN))) {
-            mtmp->m_ap_type |= M_AP_F_DKNOWN;
-            otmp->dknown = 1;
+    if (fakeobj && mtmp && mimic_obj
+        && (otmp->dknown || (M_AP_FLAG(mtmp) & M_AP_F_DKNOWN))) {
+        mtmp->m_ap_type |= M_AP_F_DKNOWN;
+        otmp->dknown = 1;
     }
     *obj_p = otmp;
     return fakeobj; /* when True, caller needs to dealloc *obj_p */
@@ -473,8 +476,8 @@ lookat(int x, int y, char *buf, char *monbuf)
     buf[0] = monbuf[0] = '\0';
     glyph = glyph_at(x, y);
     if (u.ux == x && u.uy == y && canspotself()
-        && !(iflags.save_uswallow &&
-             glyph == mon_to_glyph(u.ustuck, rn2_on_display_rng))
+        && !(iflags.save_uswallow
+             && glyph == mon_to_glyph(u.ustuck, rn2_on_display_rng))
         && (!iflags.terrainmode || (iflags.terrainmode & TER_MON) != 0)) {
         /* fill in buf[] */
         (void) self_lookat(buf);
@@ -2215,7 +2218,7 @@ do_look(int mode, coord *click_cc)
         switch (i) {
         default:
         case 'q':
-            return 0;
+            return ECMD_OK;
         case 'y':
         case '/':
             from_screen = TRUE;
@@ -2230,7 +2233,7 @@ do_look(int mode, coord *click_cc)
 
             invlet = display_inventory((const char *) 0, TRUE);
             if (!invlet || invlet == '\033')
-                return 0;
+                return ECMD_OK;
             *out_str = '\0';
             for (invobj = g.invent; invobj; invobj = invobj->nobj)
                 if (invobj->invlet == invlet) {
@@ -2240,7 +2243,7 @@ do_look(int mode, coord *click_cc)
             if (*out_str)
                 checkfile(out_str, (struct permonst *) 0, TRUE, TRUE,
                           (char *) 0);
-            return 0;
+            return ECMD_OK;
           }
         case '?':
             from_screen = FALSE;
@@ -2250,32 +2253,32 @@ do_look(int mode, coord *click_cc)
                    condense consecutive internal whitespace */
                 mungspaces(out_str);
             if (out_str[0] == '\0' || out_str[0] == '\033')
-                return 0;
+                return ECMD_OK;
 
             if (out_str[1]) { /* user typed in a complete string */
                 checkfile(out_str, pm, TRUE, TRUE, (char *) 0);
-                return 0;
+                return ECMD_OK;
             }
             sym = out_str[0];
             break;
         case 'm':
             look_all(TRUE, TRUE); /* list nearby monsters */
-            return 0;
+            return ECMD_OK;
         case 'M':
             look_all(FALSE, TRUE); /* list all monsters */
-            return 0;
+            return ECMD_OK;
         case 'o':
             look_all(TRUE, FALSE); /* list nearby objects */
-            return 0;
+            return ECMD_OK;
         case 'O':
             look_all(FALSE, FALSE); /* list all objects */
-            return 0;
+            return ECMD_OK;
         case '^':
             look_traps(TRUE); /* list nearby traps */
-            return 0;
+            return ECMD_OK;
         case '\"':
             look_traps(FALSE); /* list all traps (visible or remembered) */
-            return 0;
+            return ECMD_OK;
         }
     } else { /* clicklook */
         cc.x = click_cc->x;
@@ -2354,24 +2357,31 @@ do_look(int mode, coord *click_cc)
     } while (from_screen && !quick && ans != LOOK_ONCE && !clicklook);
 
     flags.verbose = save_verbose;
-    return 0;
+    return ECMD_OK;
+}
+
+static void
+look_region_nearby(int *lo_x, int *lo_y, int *hi_x, int *hi_y, boolean nearby)
+{
+    *lo_y = nearby ? max(u.uy - BOLT_LIM, 0) : 0;
+    *lo_x = nearby ? max(u.ux - BOLT_LIM, 1) : 1;
+    *hi_y = nearby ? min(u.uy + BOLT_LIM, ROWNO - 1) : ROWNO - 1;
+    *hi_x = nearby ? min(u.ux + BOLT_LIM, COLNO - 1) : COLNO - 1;
 }
 
 DISABLE_WARNING_FORMAT_NONLITERAL /* RESTORE is after do_supplemental_info() */
 
 static void
-look_all(boolean nearby,  /* True => within BOLTLIM, False => entire map */
-         boolean do_mons) /* True => monsters, False => objects */
+look_all(
+    boolean nearby,  /* True => within BOLTLIM, False => entire map */
+    boolean do_mons) /* True => monsters, False => objects */
 {
     winid win;
     int x, y, lo_x, lo_y, hi_x, hi_y, glyph, count = 0;
     char lookbuf[BUFSZ], outbuf[BUFSZ];
 
     win = create_nhwindow(NHW_TEXT);
-    lo_y = nearby ? max(u.uy - BOLT_LIM, 0) : 0;
-    lo_x = nearby ? max(u.ux - BOLT_LIM, 1) : 1;
-    hi_y = nearby ? min(u.uy + BOLT_LIM, ROWNO - 1) : ROWNO - 1;
-    hi_x = nearby ? min(u.ux + BOLT_LIM, COLNO - 1) : COLNO - 1;
+    look_region_nearby(&lo_x, &lo_y, &hi_x, &hi_y, nearby);
     for (y = lo_y; y <= hi_y; y++) {
         for (x = lo_x; x <= hi_x; x++) {
             lookbuf[0] = '\0';
@@ -2459,10 +2469,7 @@ look_traps(boolean nearby)
     char lookbuf[BUFSZ], outbuf[BUFSZ];
 
     win = create_nhwindow(NHW_TEXT);
-    lo_y = nearby ? max(u.uy - BOLT_LIM, 0) : 0;
-    lo_x = nearby ? max(u.ux - BOLT_LIM, 1) : 1;
-    hi_y = nearby ? min(u.uy + BOLT_LIM, ROWNO - 1) : ROWNO - 1;
-    hi_x = nearby ? min(u.ux + BOLT_LIM, COLNO - 1) : COLNO - 1;
+    look_region_nearby(&lo_x, &lo_y, &hi_x, &hi_y, nearby);
     for (y = lo_y; y <= hi_y; y++) {
         for (x = lo_x; x <= hi_x; x++) {
             lookbuf[0] = '\0';
@@ -2603,21 +2610,21 @@ do_supplemental_info(char *name, struct permonst *pm, boolean without_asking)
 
 RESTORE_WARNING_FORMAT_NONLITERAL
 
-/* the '/' command */
+/* the #whatis command */
 int
 dowhatis(void)
 {
     return do_look(0, (coord *) 0);
 }
 
-/* the ';' command */
+/* the #glance command */
 int
 doquickwhatis(void)
 {
     return do_look(1, (coord *) 0);
 }
 
-/* the '^' command */
+/* the #showtrap command */
 int
 doidtrap(void)
 {
@@ -2625,7 +2632,7 @@ doidtrap(void)
     int x, y, tt, glyph;
 
     if (!getdir("^"))
-        return 0;
+        return ECMD_CANCEL;
     x = u.ux + u.dx;
     y = u.uy + u.dy;
 
@@ -2636,7 +2643,7 @@ doidtrap(void)
 
         if (chesttrap || trapped_door_at(tt, x, y)) {
             pline("That is a trapped %s.", chesttrap ? "chest" : "door");
-            return 0; /* trap ID'd, but no time elapses */
+            return ECMD_OK; /* trap ID'd, but no time elapses */
         }
     }
 
@@ -2671,10 +2678,10 @@ doidtrap(void)
                            ? " dug"
                            : " set",
                   !trap->madeby_u ? "" : " by you");
-            return 0;
+            return ECMD_OK;
         }
     pline("I can't see a trap there.");
-    return 0;
+    return ECMD_OK;
 }
 
 /*
@@ -2941,6 +2948,7 @@ dowhatdoes_core(char q, char *cbuf)
 #endif /* 0 */
 }
 
+/* the whatdoes command */
 int
 dowhatdoes(void)
 {
@@ -2983,7 +2991,7 @@ dowhatdoes(void)
         pline("No such command '%s', char code %d (0%03o or 0x%02x).",
               visctrl(q), (uchar) q, (uchar) q, (uchar) q);
     }
-    return 0;
+    return ECMD_OK;
 }
 
 static void
@@ -3032,6 +3040,12 @@ static void
 dispfile_optionfile(void)
 {
     display_file(OPTIONFILE, TRUE);
+}
+
+static void
+dispfile_optmenu(void)
+{
+    display_file(OPTMENUHELP, TRUE);
 }
 
 static void
@@ -3098,6 +3112,7 @@ static const struct {
     { hmenu_dowhatdoes, "Info on what a given key does." },
     { option_help, "List of game options." },
     { dispfile_optionfile, "Longer explanation of game options." },
+    { dispfile_optmenu, "Using the %s command to set options." },
     { dokeylist, "Full list of keyboard commands." },
     { hmenu_doextlist, "List of extended commands." },
     { domenucontrols, "List menu control keys." },
@@ -3112,12 +3127,12 @@ static const struct {
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
-/* the '?' command */
+/* the #help command */
 int
 dohelp(void)
 {
     winid tmpwin = create_nhwindow(NHW_MENU);
-    char helpbuf[QBUFSZ];
+    char helpbuf[QBUFSZ], tmpbuf[QBUFSZ];
     int i, n;
     menu_item *selected;
     anything any;
@@ -3131,6 +3146,8 @@ dohelp(void)
             continue;
         if (help_menu_items[i].text[0] == '%') {
             Sprintf(helpbuf, help_menu_items[i].text, PORT_ID);
+        } else if (help_menu_items[i].f == dispfile_optmenu) {
+            Sprintf(helpbuf, help_menu_items[i].text, setopt_cmd(tmpbuf));
         } else {
             Strcpy(helpbuf, help_menu_items[i].text);
         }
@@ -3146,17 +3163,39 @@ dohelp(void)
         free((genericptr_t) selected);
         (void) (*help_menu_items[sel].f)();
     }
-    return 0;
+    return ECMD_OK;
 }
 
 RESTORE_WARNING_FORMAT_NONLITERAL
+
+/* format the key or extended command name of command used to set options;
+   normally 'O' but could be bound to something else, or not bound at all */
+static char *
+setopt_cmd(char *outbuf)
+{
+    char cmdnambuf[QBUFSZ];
+    const char *cmdname;
+    char key = cmd_from_func(doset);
+
+    if (key) {
+        /* key value enclosed within single quotes */
+        Sprintf(outbuf, "'%s'", visctrl(key));
+    } else {
+        /* extended command name, with leading "#", also in single quotes */
+        cmdname = cmdname_from_func(doset, cmdnambuf, TRUE);
+        if (!cmdname) /* paranoia */
+            cmdname = "options";
+        Sprintf(outbuf, "'%s%.31s'", (*cmdname != '#') ? "#" : "", cmdname);
+    }
+    return outbuf;
+}
 
 /* the 'V' command; also a choice for '?' */
 int
 dohistory(void)
 {
     display_file(HISTORY, TRUE);
-    return 0;
+    return ECMD_OK;
 }
 
 /*pager.c*/

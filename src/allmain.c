@@ -17,6 +17,7 @@ static void u_calc_moveamt(int);
 #ifdef POSITIONBAR
 static void do_positionbar(void);
 #endif
+static void regen_pw(int);
 static void regen_hp(int);
 static void interrupt_multi(const char *);
 static void debug_fields(const char *);
@@ -70,6 +71,7 @@ moveloop_preamble(boolean resuming)
     if (!resuming) { /* new game */
         g.context.rndencode = rnd(9000);
         set_wear((struct obj *) 0); /* for side-effects of starting gear */
+        reset_justpicked(g.invent);
         (void) pickup(1);      /* autopickup at initial location */
         /* only matters if someday a character is able to start with
            clairvoyance (wizard with cornuthaum perhaps?); without this,
@@ -161,7 +163,6 @@ void
 moveloop_core(void)
 {
     boolean monscanmove = FALSE;
-    int energyfrac = 0;
 
 #ifdef SAFERHANGUP
     if (g.program_state.done_hup)
@@ -229,9 +230,12 @@ moveloop_core(void)
                  */
                 if (g.moves >= 1000000000L) {
                     display_nhwindow(WIN_MESSAGE, TRUE);
-                    pline_The("dungeon capitulates.");
+                    urgent_pline("The dungeon capitulates.");
                     done(ESCAPED);
                 }
+                /* 'moves' is misnamed; it represents turns; hero_seq is
+                   a value that is distinct every time the hero moves */
+                g.hero_seq = g.moves << 3;
 
                 if (flags.time && !g.context.run)
                     iflags.time_botl = TRUE; /* 'moves' just changed */
@@ -297,28 +301,7 @@ moveloop_core(void)
                     }
                 }
 
-                /* Energy regeneration */
-                if ((u.uen < u.uenmax) && (mvl_wtcap < MOD_ENCUMBER)) {
-                    /* 1/turn for energy regen
-                     * 3 XL/100 per turn
-                     * 3 Wis/100 per turn
-                     * 1/3 per turn if wizard role
-                     * energyfrac represents units of 1/300 */
-                    energyfrac = ((Energy_regeneration ? 300 : 0) +
-                                    (9 * u.ulevel) +
-                                    (9 * ACURR(A_WIS)) +
-                                    (Role_if(PM_WIZARD) ? 100 : 0));
-                    u.uen += energyfrac / 300;
-                    if(rn2(300) < energyfrac % 300) {
-                        u.uen++;
-                    }
-                    if (u.uen > u.uenmax)
-                        u.uen = u.uenmax;
-
-                    g.context.botl = TRUE;
-                    if (u.uen == u.uenmax)
-                        interrupt_multi("You feel full of energy.");
-                }
+                regen_pw(mvl_wtcap);
 
                 if (!u.uinvulnerable) {
                     if (Teleportation && !rn2(85)) {
@@ -387,7 +370,6 @@ moveloop_core(void)
                         u.udg_cnt = rn1(200, 50);
                     }
                 }
-                restore_attrib();
 /* XXX This should be recoded to use something like regions - a list of
  * things that are active and need to be handled that is dynamically
  * maintained and not a list of special cases. */
@@ -404,6 +386,7 @@ moveloop_core(void)
 
                 /* when immobile, count is in turns */
                 if (g.multi < 0) {
+                    runmode_delay_output();
                     if (++g.multi == 0) { /* finished yet? */
                         unmul((char *) 0);
                         /* if unmul caused a level change, take it now */
@@ -417,6 +400,15 @@ moveloop_core(void)
         /******************************************/
         /* once-per-hero-took-time things go here */
         /******************************************/
+
+        g.hero_seq++; /* moves*8 + n for n == 1..7 */
+
+        /* although we checked for encumberance above, we need to
+           check again for message purposes, as the weight of
+           inventory may have changed in, e.g., nh_timeout(); we do
+           need two checks here so that the player gets feedback
+           immediately if their own action encumbered them */
+        encumber_msg();
 
 #ifdef STATUS_HILITES
         if (iflags.hilite_delta)
@@ -502,10 +494,7 @@ moveloop_core(void)
             stop_occupation();
             reset_eat();
         }
-#if defined(MICRO) || defined(WIN32)
-        if (!(++g.occtime % 7))
-            display_nhwindow(WIN_MAP, FALSE);
-#endif
+        runmode_delay_output();
         return;
     }
 
@@ -519,6 +508,7 @@ moveloop_core(void)
 
     if (g.multi > 0) {
         lookaround();
+        runmode_delay_output();
         if (!g.multi) {
             /* lookaround may clear multi */
             g.context.move = 0;
@@ -565,6 +555,33 @@ moveloop(boolean resuming)
     }
 }
 
+static void
+regen_pw(int wtcap)
+{
+    if ((u.uen < u.uenmax) && (wtcap < MOD_ENCUMBER)) {
+        int energyfrac = 0;
+        /* 1/turn for energy regen
+         * 3 XL/100 per turn
+         * 3 Wis/100 per turn
+         * 1/3 per turn if wizard role
+         * energyfrac represents units of 1/300 */
+        energyfrac = ((Energy_regeneration ? 300 : 0) +
+                        (9 * u.ulevel) +
+                        (9 * ACURR(A_WIS)) +
+                        (Role_if(PM_WIZARD) ? 100 : 0));
+        u.uen += energyfrac / 300;
+        if(rn2(300) < energyfrac % 300) {
+            u.uen++;
+        }
+        if (u.uen > u.uenmax)
+            u.uen = u.uenmax;
+
+        g.context.botl = TRUE;
+        if (u.uen == u.uenmax)
+            interrupt_multi("You feel full of energy.");
+    }
+}
+
 #define U_CAN_REGEN() (Regeneration || (Sleepy && u.usleep))
 
 /* maybe recover some lost health (or lose some when an eel out of water) */
@@ -580,7 +597,8 @@ regen_hp(int wtcap)
             impossible("regenerating monster HP that was negative?");
             rehumanize();
         } else if (g.youmonst.data->mlet == S_EEL
-                   && !is_pool(u.ux, u.uy) && !Is_waterlevel(&u.uz)) {
+                   && !is_pool(u.ux, u.uy) && !Is_waterlevel(&u.uz)
+                   && !Breathless) {
             /* eel out of water loses hp, similar to monster eels;
                as hp gets lower, rate of further loss slows down */
             if (u.mh > 1 && !Regeneration && rn2(u.mh) > rn2(8)
@@ -700,7 +718,6 @@ newgame(void)
 
     g.context.botlx = TRUE;
     g.context.ident = 1;
-    g.context.stethoscope_move = -1L;
     g.context.warnlevel = 1;
     g.context.next_attrib_check = 600L; /* arbitrary first setting */
     g.context.tribute.enabled = TRUE;   /* turn on 3.6 tributes    */
@@ -726,7 +743,7 @@ newgame(void)
     u_init();
 
     l_nhcore_init();
-
+    reset_glyphmap(gm_newgame);
 #ifndef NO_SIGNAL
     (void) signal(SIGINT, (SIG_RET_TYPE) done1);
 #endif
@@ -764,7 +781,7 @@ newgame(void)
     check_special_room(FALSE);
 
     if (MON_AT(u.ux, u.uy))
-        mnexto(m_at(u.ux, u.uy));
+        mnexto(m_at(u.ux, u.uy), RLOC_NOMSG);
     (void) makedog();
     docrt();
 
@@ -1077,7 +1094,7 @@ dump_enums(void)
         objects_misc_enum,
         NUM_ENUM_DUMPS
     };
-    static const char *titles[NUM_ENUM_DUMPS] =
+    static const char *const titles[NUM_ENUM_DUMPS] =
         { "monnums", "objects_nums" , "misc_object_nums" };
     struct enum_dump {
         int val;
@@ -1101,7 +1118,7 @@ dump_enums(void)
             { MAXSPELL, "MAXSPELL" },
     };
     struct enum_dump *ed[NUM_ENUM_DUMPS] = { monsdump, objdump, omdump };
-    static const char *pfx[NUM_ENUM_DUMPS] = { "PM_", "", "" };
+    static const char *const pfx[NUM_ENUM_DUMPS] = { "PM_", "", "" };
     int szd[NUM_ENUM_DUMPS] = { SIZE(monsdump), SIZE(objdump), SIZE(omdump) };
 
     for (i = 0; i < NUM_ENUM_DUMPS; ++ i) {

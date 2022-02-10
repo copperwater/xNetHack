@@ -72,6 +72,7 @@
 //    the rest of status.  That takes up more space, which is ok, but it
 //    also increases the vertical margin in between them by more than is
 //    necessary.  Should squeeze some of that excess blank space out.
+//  Add tool tips for the status condition icons, maybe the other icons.
 //
 
 extern "C" {
@@ -557,7 +558,9 @@ QHBoxLayout *NetHackQtStatusWindow::InitHitpointBar()
 
     QHBoxLayout *hpbar = new QHBoxLayout;
     hpbar->setSpacing(0);
+#if QT_VERSION < 0x060000
     hpbar->setMargin(0);
+#endif
     hpbar->addWidget(&hpbar_health);
     hpbar->setAlignment(&hpbar_health, Qt::AlignLeft);
     hpbar->addWidget(&hpbar_injury);

@@ -361,7 +361,7 @@ fill_zoo(struct mkroom* sroom)
             tx = mm.x;
             ty = mm.y;
         } while (occupied((xchar) tx, (xchar) ty) && --i > 0);
-    throne_placed:
+ throne_placed:
         mk_zoo_thronemon(tx, ty);
         break;
     case BEEHIVE:
@@ -446,7 +446,7 @@ fill_zoo(struct mkroom* sroom)
             mon = NULL;
             if (fillermon) {
                 /* All special rooms currently generate all their monsters asleep. */
-                mon = makemon(fillermon, sx, sy, MM_ASLEEP);
+                mon = makemon(fillermon, sx, sy, MM_ASLEEP | MM_NOGRP);
 
                 if (mon) {
                     if (type == COURT && mon->mpeaceful) {
@@ -740,7 +740,8 @@ mkswamp(void) /* Michiel Huisjes & Fred de Wilde */
         sroom->rtype = SWAMP;
         for (sx = sroom->lx; sx <= sroom->hx; sx++)
             for (sy = sroom->ly; sy <= sroom->hy; sy++) {
-                if (!IS_ROOM(levl[sx][sy].typ) || (int) levl[sx][sy].roomno != rmno)
+                if (!IS_ROOM(levl[sx][sy].typ)
+                    || (int) levl[sx][sy].roomno != rmno)
                     continue;
                 if (!OBJ_AT(sx, sy) && !MON_AT(sx, sy) && !t_at(sx, sy)
                     && !nexttodoor(sx, sy)) {
@@ -1053,7 +1054,7 @@ somexy(struct mkroom* croom,coord * c)
             if (inside_room(croom->sbrooms[i], c->x, c->y))
                 goto you_lose;
         break;
-    you_lose:
+ you_lose:
         ;
     }
     if (try_cnt >= 100)
@@ -1153,7 +1154,7 @@ squadmon(void)
         }
     }
     mndx = squadprob[rn2(SIZE(squadprob))].pm;
-gotone:
+ gotone:
     if (!(g.mvitals[mndx].mvflags & G_GONE))
         return &mons[mndx];
     else

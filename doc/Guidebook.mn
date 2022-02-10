@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.414 $ $NHDT-Date: 1613011698 2021/02/11 02:48:18 $
+.\" $NHDT-Branch: keni-datesub2 $:$NHDT-Revision: 1.437 $ $NHDT-Date: 1641933560 2022/01/11 20:39:20 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" Guidebook.mn currently does *not* fully adhere to these guidelines.
@@ -35,7 +35,8 @@
 .ds vr "NetHack 3.7
 .ds f0 "\*(vr
 .ds f1
-.ds f2 "August 26, 2021
+.\"DO NOT REMOVE NH_DATESUB .ds f2 "DATE(%B %-d, %Y)
+.ds f2 "January 17, 2022
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -696,7 +697,7 @@ Remove one or more worn items, such as armor.
 Use \(oqT\(cq (take off) to take off only one piece of armor
 or \(oqR\(cq (remove) to take off only one accessory.
 .lp \(haA
-Redo the previous command.
+Repeat the previous command.
 .lp c
 Close a door.
 .lp C
@@ -729,6 +730,8 @@ drop all objects known to be uncursed.
 drop all objects known to be cursed.
 .PL DX
 drop all objects of unknown B/U/C status.
+.PL DP
+drop objects picked up last.
 .PL Da
 drop all objects, without asking for confirmation.
 .PL Di
@@ -797,6 +800,7 @@ If your wielded weapon has the throw-and-return property, your quiver
 is empty, and
 .op autoquiver
 is false, you will throw that wielded weapon instead of filling the quiver.
+This will also automatically use a polearm if wielded.
 If
 .op fireassist
 is true, firing will automatically try to wield a launcher (for example,
@@ -826,6 +830,8 @@ list all items known to be uncursed;
 list all items known to be cursed;
 .PL IX
 list all items whose bless/curse status is unknown;
+.PL IP
+list items picked up last;
 .PL I$
 count your money.
 .PE
@@ -1239,8 +1245,14 @@ To really switch to explore mode, respond with \f(CRy\fP.
 You can set the
 .op paranoid_confirmation:quit
 option to require a response of \f(CRyes\fP instead.
+.lp "#fight   "
+Prefix key to force fight a direction, even if you see nothing
+to fight there.
+Default key is \(oqF\(cq, or \(oq\-\(cq with
+.op number_pad
 .lp "#fire    "
-Fire ammunition from quiver, possibly autowielding a launcher.
+Fire ammunition from quiver, possibly autowielding a launcher,
+or hit with a wielded polearm.
 Default key is \(oqf\(cq.
 .lp "#force   "
 Force a lock.
@@ -1432,6 +1444,13 @@ is on.
 .lp "#remove  "
 Remove an accessory (ring, amulet, etc).
 Default key is \(oqR\(cq.
+.lp "#repeat  "
+Repeat the previous command.
+Default key is \(oq\(haA\(cq.
+.lp "#reqmenu "
+Prefix key to modify the behaviour or request menu from some commands.
+Prevents autopickup when used with movement commands.
+Default key is \(oqm\(cq.
 .lp "#retravel"
 Travel to a previously selected travel destination.
 Default key is \(oqC-_\(cq.
@@ -1444,6 +1463,24 @@ Default key is \(oqM-R\(cq.
 Rub a lamp or a stone.
 Autocompletes.
 Default key is \(oqM-r\(cq.
+.lp "#run     "
+Prefix key to run towards a direction.
+Default key is \(oqG\(cq when
+.op number_pad
+is off,
+\(oq5\(cq when
+.op number_pad
+is set to 1 or 3,
+otherwise \(oqM-5\(cq when it is set to 2 or 4.
+.lp "#rush    "
+Prefix key to rush towards a direction.
+Default is \(oqg\(cq when
+.op number_pad
+is off,
+\(oqM-5\(cq when
+.op number_pad
+is set to 1 or 3,
+otherwise \(oq5\(cq when it is set to 2 or 4.
 .lp "#save    "
 Save the game and exit the program.
 Default key is \(oqS\(cq.
@@ -2267,8 +2304,6 @@ Objects
 .pg
 When you find something in the dungeon, it is common to want to pick
 it up.  In NetHack, this is accomplished by using the \(oq,\(cq command.
-automatically by walking over
-the object (unless you turn off the
 If
 .op autopickup
 option is on, you will automatically pick up the object
@@ -2911,24 +2946,32 @@ choosing what to wear or take off.
 .hn 2
 Gems (\(oq*\(cq)
 .pg
-Some gems are valuable, and can be sold for a lot of gold.  They are also
-a far more efficient way of carrying your riches.  Valuable gems increase
-your score if you bring them with you when you exit.
+Some gems are valuable, and can be sold for a lot of gold.
+They are also a far more efficient way of carrying your riches.
+Valuable gems increase your score if you bring them with you when you exit.
 .pg
 Other small rocks are also categorized as gems, but they are much less
-valuable.  All rocks, however, can be used as projectile weapons (if you
-have a sling).  In the most desperate of cases, you can still throw them
-by hand.
+valuable.
+All rocks, however, can be used as projectile weapons (if you have a sling).
+In the most desperate of cases, you can still throw them by hand.
 .hn 2
 Large rocks (\(oq\`\(cq)
 .pg
-Statues and boulders are not particularly useful, and are generally
-heavy.  It is rumored that some statues are not what they seem.
+Statues and boulders are not particularly useful, and are generally heavy.
+It is rumored that some statues are not what they seem.
 .pg
 Boulders occasionally block your path.
 You can push one forward (by attempting to walk onto its spot)
 when nothing blocks \fIits\fP path, or you can
 smash it into a pile of small rocks with breaking magic or a pick-axe.
+It is possible to move onto a boulder's location if certain conditions
+are met; ordinarily one of those conditions is that pushing it any
+further be blocked.
+Using the move-without-picking-up prefix (default key \(oq\f(CRm\fP\(cq)
+prior to the direction of movement will attempt to move to a boulder's
+location without pushing it in addition to the prefix's usual action of
+suppressing auto-pickup at the destination.
+.pg
 Very large humanoids (giants and their ilk) have been known to pick up
 boulders and use them as missile weapons.
 .pg
@@ -4577,11 +4620,10 @@ Platform-specific Customization options
 .pg
 Here are explanations of options that are used by specific platforms or ports
 to customize and change the port behavior.
-.lp altkeyhandler
-Select an alternate keystroke handler dll to load (Win32 tty NetHack only).
-The name of the handler is specified without the .dll extension and without
-any path information.
-Cannot be set with the \(oqO\(cq command.
+.lp altkeyhandling
+Select an alternate way to handle keystrokes (Win32 tty NetHack only).
+The name of the handling type is one of \(lqdefault\(rq, \(lqray\(rq,
+\(lq340\(rq.
 .lp altmeta
 On Amiga, this option controls whether typing \(lqAlt\(rq plus another key
 functions as a meta-shift for that key (default on).
@@ -4762,15 +4804,6 @@ With
 .op number_pad
 only.
 Default is \(oqn\(cq.
-.lp fight
-Prefix key to force fight a direction.
-Default is \(oqF\(cq.
-.lp fight.numpad
-Prefix key to force fight a direction.
-With
-.op number_pad
-only.
-Default is \(oq\-\(cq.
 .lp getdir.help
 When asked for a direction, the key to show the help.
 Default is \(oq?\(cq.
@@ -4861,49 +4894,6 @@ Default is \(oqz\(cq.
 .lp getpos.valid.prev
 When asked for a location, the key to go to previous closest valid location.
 Default is \(oqZ\(cq.
-.lp nopickup
-Prefix key to move without picking up items.
-Default is \(oqm\(cq.
-.lp redraw
-Key to redraw the screen.
-Default is \(oq\(haR\(cq.
-.lp redraw.numpad
-Key to redraw the screen.
-With
-.op number_pad
-only.
-Default is \(oq\(haL\(cq.
-.lp repeat
-Key to repeat previous command.
-Default is \(oq\(haA\(cq.
-.lp reqmenu
-Prefix key to request menu from some commands.
-Default is \(oqm\(cq.
-.lp run
-Prefix key to run towards a direction.
-Default is \(oqG\(cq.
-.lp run.nopickup
-Prefix key to run towards a direction without picking up items on the way.
-Default is \(oqM\(cq.
-.lp run.numpad
-Prefix key to run towards a direction.
-With
-.op number_pad
-only.
-.lp ""
-Default is \(oq5\(cq when number_pad is set to 1 or 3,
-otherwise \(oqM-5\(cq when it is set to 2 or 4.
-.lp rush
-Prefix key to rush towards a direction.
-Default is \(oqg\(cq.
-.lp rush.numpad
-Prefix key to rush towards a direction.
-With
-.op number_pad
-only.
-.lp ""
-Default is \(oqM-5\(cq when number_pad is set to 1 or 3,
-otherwise \(oq5\(cq when it is set to 2 or 4.
 .hn 2
 Configuring Message Types
 .pg
@@ -5293,15 +5283,15 @@ d	S_dog	(dog or other canine)
 D	S_dragon	(dragon)
 ;	S_eel	(sea monster)
 E	S_elemental	(elemental)
-/	S_explode1	(explosion top left)
-\-	S_explode2	(explosion top center)
-\\	S_explode3	(explosion top right)
-|	S_explode4	(explosion middle left)
-\ 	S_explode5	(explosion middle center)
-|	S_explode6	(explosion middle right)
-\\	S_explode7	(explosion bottom left)
-\-	S_explode8	(explosion bottom center)
-/	S_explode9	(explosion bottom right)
+/	S_expl_tl	(explosion top left)
+\-	S_expl_tc	(explosion top center)
+\\	S_expl_tr	(explosion top right)
+|	S_expl_ml	(explosion middle left)
+\ 	S_expl_mc	(explosion middle center)
+|	S_expl_mr	(explosion middle right)
+\\	S_expl_bl	(explosion bottom left)
+\-	S_expl_bc	(explosion bottom center)
+/	S_expl_br	(explosion bottom right)
 e	S_eye	(eye or sphere)
 \(ha	S_falling_rock_trap	(falling rock trap)
 f	S_feline	(cat or other feline)

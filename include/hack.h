@@ -213,11 +213,9 @@ enum misc_arti_nums {
 #define SYM_OFF_X (SYM_OFF_W + WARNCOUNT)
 #define SYM_MAX (SYM_OFF_X + MAXOTHER)
 
-/* glyphmod entries */
-enum { GM_FLAGS, GM_TTYCHAR, GM_COLOR, NUM_GLYPHMOD };
-
 #include "rect.h"
 #include "region.h"
+#include "display.h"
 #include "decl.h"
 #include "timeout.h"
 
@@ -271,7 +269,6 @@ typedef struct sortloot_item Loot;
 #include "trap.h"
 #include "flag.h"
 #include "vision.h"
-#include "display.h"
 #include "engrave.h"
 
 #include "extern.h"
@@ -297,10 +294,11 @@ typedef struct sortloot_item Loot;
 #define MM_NOTAIL   0x008000L /* if a long worm, don't give it a tail */
 #define MM_MALE     0x010000L /* male variation */
 #define MM_FEMALE   0x020000L /* female variation */
+#define MM_NOMSG    0x040000L /* no appear message */
 /* if more MM_ flag masks are added, skip or renumber the GP_ one(s) */
-#define GP_ALLOW_XY 0x040000L /* [actually used by enexto() to decide whether
+#define GP_ALLOW_XY 0x080000L /* [actually used by enexto() to decide whether
                                * to make an extra call to goodpos()]        */
-#define GP_ALLOW_U  0x080000L /* don't reject hero's location */
+#define GP_ALLOW_U  0x100000L /* don't reject hero's location */
 
 /* flags for make_corpse() and mkcorpstat(); 0..7 are recorded in obj->spe */
 #define CORPSTAT_NONE     0x00
@@ -372,6 +370,7 @@ typedef struct sortloot_item Loot;
 #define BUC_CURSED        0x0200
 #define BUC_UNCURSED      0x0400
 #define BUC_UNKNOWN       0x0800
+#define JUSTPICKED        0x1000
 #define BUC_ALLBKNOWN (BUC_BLESSED | BUC_CURSED | BUC_UNCURSED)
 #define BUCX_TYPES (BUC_ALLBKNOWN | BUC_UNKNOWN)
 #define ALL_TYPES_SELECTED -2
@@ -449,6 +448,12 @@ typedef struct sortloot_item Loot;
 #define OVERRIDE_MSGTYPE 2
 #define SUPPRESS_HISTORY 4
 #define URGENT_MESSAGE   8
+
+/* rloc() flags */
+#define RLOC_NONE    0x00
+#define RLOC_ERR     0x01 /* allow impossible() if no rloc */
+#define RLOC_MSG     0x02 /* show vanish/appear msg */
+#define RLOC_NOMSG   0x04 /* prevent appear msg, even for STRAT_APPEARMSG */
 
 /* Lua callback functions */
 enum nhcore_calls {
@@ -627,6 +632,20 @@ enum adjattrib_return {
 #define GETOBJ_PROMPT   0x2 /* should it force a prompt for input? (prevents it
                                exiting early with "You don't have anything to
                                foo" if nothing in inventory is valid) */
+
+/* flags for hero_breaks() and hits_bars(); BRK_KNOWN* let callers who have
+   already called breaktest() prevent it from being called again since it
+   has a random factor which makes it be non-deterministic */
+#define BRK_BY_HERO        1
+#define BRK_FROM_INV       2
+#define BRK_KNOWN2BREAK    4
+#define BRK_KNOWN2NOTBREAK 8
+#define BRK_KNOWN_OUTCOME  (BRK_KNOWN2BREAK | BRK_KNOWN2NOTBREAK)
+
+/* extended command return values */
+#define ECMD_OK     0x00 /* cmd done successfully */
+#define ECMD_TIME   0x01 /* cmd took time, uses up a turn */
+#define ECMD_CANCEL 0x02 /* cmd canceled by user */
 
 /* values returned from getobj() callback functions */
 enum getobj_callback_returns {

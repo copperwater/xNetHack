@@ -108,22 +108,25 @@ getpos_help(boolean force, const char *goal)
     char sbuf[BUFSZ];
     boolean doing_what_is;
     winid tmpwin = create_nhwindow(NHW_MENU);
-    int runkey = iflags.num_pad ? NHKF_RUN2 : NHKF_RUN;
-    int rushkey = iflags.num_pad ? NHKF_RUSH2 : NHKF_RUSH;
 
     Sprintf(sbuf,
             "Use '%s', '%s', '%s', '%s' to move the cursor to %s.", /* hjkl */
-            visctrl(g.Cmd.move[DIR_W]), visctrl(g.Cmd.move[DIR_S]),
-            visctrl(g.Cmd.move[DIR_N]), visctrl(g.Cmd.move[DIR_E]), goal);
+            visctrl(cmd_from_func(do_move_west)),
+            visctrl(cmd_from_func(do_move_south)),
+            visctrl(cmd_from_func(do_move_north)),
+            visctrl(cmd_from_func(do_move_east)), goal);
     putstr(tmpwin, 0, sbuf);
     Sprintf(sbuf,
             "Use '%s', '%s', '%s', '%s' to fast-move the cursor, %s.",
-            visctrl(g.Cmd.run[DIR_W]), visctrl(g.Cmd.run[DIR_S]),
-            visctrl(g.Cmd.run[DIR_N]), visctrl(g.Cmd.run[DIR_E]),
+            visctrl(cmd_from_func(do_run_west)),
+            visctrl(cmd_from_func(do_run_south)),
+            visctrl(cmd_from_func(do_run_north)),
+            visctrl(cmd_from_func(do_run_east)),
             fastmovemode[iflags.getloc_moveskip]);
     putstr(tmpwin, 0, sbuf);
     Sprintf(sbuf, "(or prefix normal move with '%s' or '%s' to fast-move)",
-            visctrl(g.Cmd.spkeys[runkey]), visctrl(g.Cmd.spkeys[rushkey]));
+            visctrl(cmd_from_func(do_run)),
+            visctrl(cmd_from_func(do_rush)));
     putstr(tmpwin, 0, sbuf);
     putstr(tmpwin, 0, "Or enter a background symbol (ex. '<').");
     Sprintf(sbuf, "Use '%s' to move the cursor on yourself.",
@@ -190,8 +193,8 @@ getpos_help(boolean force, const char *goal)
         if (iflags.cmdassist) { /* assisting the '/' command, I suppose... */
             Sprintf(sbuf,
                     (iflags.getpos_coords == GPCOORDS_NONE)
-         ? "(Set 'whatis_coord' option to include coordinates with '%s' text.)"
-         : "(Reset 'whatis_coord' option to omit coordinates from '%s' text.)",
+        ? "(Set 'whatis_coord' option to include coordinates with '%s' text.)"
+        : "(Reset 'whatis_coord' option to omit coordinates from '%s' text.)",
                     visctrl(g.Cmd.spkeys[NHKF_GETPOS_AUTODESC]));
         }
         /* disgusting hack; the alternate selection characters work for any
@@ -211,7 +214,7 @@ getpos_help(boolean force, const char *goal)
         putstr(tmpwin, 0, sbuf);
         if (doing_what_is) {
             Sprintf(sbuf,
-       "  '%s' describe current spot, show 'more info', move to another spot.",
+      "  '%s' describe current spot, show 'more info', move to another spot.",
                     visctrl(g.Cmd.spkeys[NHKF_GETPOS_PICK_V]));
             putstr(tmpwin, 0, sbuf);
             Sprintf(sbuf,
@@ -370,7 +373,8 @@ gather_locs_interesting(int x, int y, int gloc)
         /* unlike '/M', this skips monsters revealed by
            warning glyphs and remembered unseen ones */
         return (glyph_is_monster(glyph)
-                && glyph != monnum_to_glyph(PM_LONG_WORM_TAIL));
+                && glyph != monnum_to_glyph(PM_LONG_WORM_TAIL,MALE)
+                && glyph != monnum_to_glyph(PM_LONG_WORM_TAIL, FEMALE));
     case GLOC_OBJS:
         return (glyph_is_object(glyph)
                 && glyph != objnum_to_glyph(BOULDER)
@@ -476,7 +480,7 @@ dxdy_to_dist_descr(int dx, int dy, boolean fulldir)
         /* explicit direction; 'one step' is implicit */
         Sprintf(buf, "%s", directionname(dst));
     } else {
-        static const char *dirnames[4][2] = {
+        static const char *const dirnames[4][2] = {
             { "n", "north" },
             { "s", "south" },
             { "w", "west" },
@@ -529,11 +533,14 @@ coord_desc(int x, int y, char *outbuf, char cmode)
         /* for normal map sizes, force a fixed-width formatting so that
            /m, /M, /o, and /O output lines up cleanly; map sizes bigger
            than Nx999 or 999xM will still work, but not line up like normal
-           when displayed in a column setting */
+           when displayed in a column setting.
+
+           The (100) is placed in brackets below to mark the [: "03"] as
+           explicit compile-time dead code for clang */
         if (!*screen_fmt)
             Sprintf(screen_fmt, "[%%%sd,%%%sd]",
-                    (ROWNO - 1 + 2 < 100) ? "02" :  "03",
-                    (COLNO - 1 < 100) ? "02" : "03");
+                    (ROWNO - 1 + 2 < (100)) ? "02" :  "03",
+                    (COLNO - 1 < (100)) ? "02" : "03");
         /* map line 0 is screen row 2;
            map column 0 isn't used, map column 1 is screen column 1 */
         Sprintf(outbuf, screen_fmt, y + 2, x);
@@ -694,8 +701,6 @@ getpos(coord *ccp, boolean force, const char *goal)
     schar udx = u.dx, udy = u.dy, udz = u.dz;
     int dx, dy;
     boolean rushrun = FALSE;
-    int runkey = iflags.num_pad ? NHKF_RUN2 : NHKF_RUN;
-    int rushkey = iflags.num_pad ? NHKF_RUSH2 : NHKF_RUSH;
 
     for (i = 0; i < SIZE(pick_chars_def); i++)
         pick_chars[i] = g.Cmd.spkeys[pick_chars_def[i].nhkf];
@@ -753,7 +758,7 @@ getpos(coord *ccp, boolean force, const char *goal)
             result = -1;
             break;
         }
-        if (c == g.Cmd.spkeys[runkey] || c == g.Cmd.spkeys[rushkey]) {
+        if (c == cmd_from_func(do_run) || c == cmd_from_func(do_rush)) {
             c = readchar_poskey(&tx, &ty, &sidx);
             rushrun = TRUE;
         }
@@ -786,9 +791,8 @@ getpos(coord *ccp, boolean force, const char *goal)
                 dy = u.dy;
                 while (isok(cx + dx, cy + dy)
                        && glyph == glyph_at(cx + dx, cy + dy)
-                       && isok(cx + dx + xdir[i], cy + dy + ydir[i])
-                       && glyph == glyph_at(cx + dx + xdir[i],
-                                            cy + dy + ydir[i])) {
+                       && isok(cx + dx + u.dx, cy + dy + u.dy)
+                       && glyph == glyph_at(cx + dx + u.dx, cy + dy + u.dy)) {
                     dx += u.dx;
                     dy += u.dy;
 
@@ -952,7 +956,7 @@ getpos(coord *ccp, boolean force, const char *goal)
                                         goto foundc;
                                 }
                                 continue;
-                            foundc:
+ foundc:
                                 cx = tx, cy = ty;
                                 if (msg_given) {
                                     clear_nhwindow(WIN_MESSAGE);
@@ -971,9 +975,11 @@ getpos(coord *ccp, boolean force, const char *goal)
                     if (!force)
                         Strcpy(note, "aborted");
                     else /* hjkl */
-                        Sprintf(note, "use '%c', '%c', '%c', '%c' or '%s'",
-                                g.Cmd.move[DIR_W], g.Cmd.move[DIR_S],
-                                g.Cmd.move[DIR_N], g.Cmd.move[DIR_E],
+                        Sprintf(note, "use '%s', '%s', '%s', '%s' or '%s'",
+                                visctrl(cmd_from_func(do_move_west)),
+                                visctrl(cmd_from_func(do_move_south)),
+                                visctrl(cmd_from_func(do_move_north)),
+                                visctrl(cmd_from_func(do_move_east)),
                                 visctrl(g.Cmd.spkeys[NHKF_GETPOS_PICK]));
                     pline("Unknown direction: '%s' (%s).", visctrl((char) c),
                           note);
@@ -989,7 +995,7 @@ getpos(coord *ccp, boolean force, const char *goal)
             result = 0; /* not -1 */
             break;
         }
-    nxtc:
+ nxtc:
         ;
 #ifdef CLIPPING
         cliparound(cx, cy);
@@ -1024,7 +1030,7 @@ new_mgivenname(struct monst *mon,
         if (!mon->mextra)
             mon->mextra = newmextra();
         else
-            free_mgivenname(mon); /* already has mextra, might also have name */
+            free_mgivenname(mon); /* has mextra, might also have name */
         MGIVENNAME(mon) = (char *) alloc((unsigned) lth);
     } else {
         /* zero length: the new name is empty; get rid of the old name */
@@ -1094,7 +1100,7 @@ christen_monst(struct monst *mtmp, const char *name)
     int lth;
     char buf[PL_PSIZ];
 
-    /* g.dogname & g.catname are PL_PSIZ arrays; object names have same limit */
+    /* dogname & catname are PL_PSIZ arrays; object names have same limit */
     lth = (name && *name) ? ((int) strlen(name) + 1) : 0;
     if (lth > PL_PSIZ) {
         lth = PL_PSIZ;
@@ -1104,11 +1110,14 @@ christen_monst(struct monst *mtmp, const char *name)
     new_mgivenname(mtmp, lth); /* removes old name if one is present */
     if (lth)
         Strcpy(MGIVENNAME(mtmp), name);
+    /* if 'mtmp' is leashed, persistent inventory window needs updating */
+    if (mtmp->mleashed)
+        update_inventory(); /* x - leash (attached to Fido) */
     return mtmp;
 }
 
 /* check whether user-supplied name matches or nearly matches an unnameable
-   monster's name; if so, give an alternate reject message for do_mgivenname() */
+   monster's name; if so, give alternate reject message for do_mgivenname() */
 static boolean
 alreadynamed(struct monst *mtmp, char *monnambuf, char *usrbuf)
 {
@@ -1473,7 +1482,7 @@ call_ok(struct obj *obj)
     return GETOBJ_SUGGEST;
 }
 
-/* C and #name commands - player can name monster or object or type of obj */
+/* #call / #name command - player can name monster or object or type of obj */
 int
 docallcmd(void)
 {
@@ -1564,7 +1573,7 @@ docallcmd(void)
         donamelevel();
         break;
     }
-    return 0;
+    return ECMD_OK;
 }
 
 /* for use by safe_qbuf() */
@@ -1661,7 +1670,8 @@ namefloorobj(void)
        been moved off the hero's '@' yet, but there's no way to adjust
        the help text once getpos() has started */
     Sprintf(buf, "object on map (or '.' for one %s you)",
-            (u.uundetected && hides_under(g.youmonst.data)) ? "over" : "under");
+            (u.uundetected && hides_under(g.youmonst.data))
+              ? "over" : "under");
     if (getpos(&cc, FALSE, buf) < 0 || cc.x <= 0)
         return;
     if (cc.x == u.ux && cc.y == u.uy) {
@@ -1742,7 +1752,8 @@ static const char *const ghostnames[] = {
 const char *
 rndghostname(void)
 {
-    return rn2(7) ? ghostnames[rn2(SIZE(ghostnames))] : (const char *) g.plname;
+    return rn2(7) ? ghostnames[rn2(SIZE(ghostnames))]
+                  : (const char *) g.plname;
 }
 
 /*
@@ -1751,10 +1762,14 @@ rndghostname(void)
  *                seen        unseen       detected               named
  * mon_nam:     the newt        it      the invisible orc       Fido
  * noit_mon_nam:the newt (as if detected) the invisible orc     Fido
+ * some_mon_nam:the newt    someone     the invisible orc       Fido
+ *          or              something
  * l_monnam:    newt            it      invisible orc           dog called Fido
  * Monnam:      The newt        It      The invisible orc       Fido
  * noit_Monnam: The newt (as if detected) The invisible orc     Fido
  * adj_monnam:  the poor newt   It      the poor invisible orc  the poor Fido
+ * Some_Monnam: The newt    Someone     The invisible orc       Fido
+ *          or              Something
  * Adjmonnam:   The poor newt   It      The poor invisible orc  The poor Fido
  * Amonnam:     A newt          It      An invisible orc        Fido
  * a_monnam:    a newt          it      an invisible orc        Fido
@@ -1794,10 +1809,13 @@ x_monnam(
     char *buf = nextmbuf();
     struct permonst *mdat = mtmp->data;
     const char *pm_name = mon_pmname(mtmp);
-    boolean do_hallu, do_invis, do_it, do_saddle, do_name;
+    boolean do_hallu, do_invis, do_it, do_saddle, do_name, augment_it;
     boolean name_at_start, has_adjectives,
             falseCap = (*pm_name != lowc(*pm_name));
     char *bp;
+
+    if (mtmp == &g.youmonst)
+        return strcpy(buf, "you"); /* ignore article, "invisible", &c */
 
     if (g.program_state.gameover)
         suppress |= SUPPRESS_HALLUCINATION;
@@ -1808,15 +1826,19 @@ x_monnam(
     do_invis = mtmp->minvis && !(suppress & SUPPRESS_INVISIBLE);
     do_it = !canspotmon(mtmp) && article != ARTICLE_YOUR
             && !g.program_state.gameover && mtmp != u.usteed
-            && !(u.uswallow && mtmp == u.ustuck) && !(suppress & SUPPRESS_IT);
+            && !engulfing_u(mtmp) && !(suppress & SUPPRESS_IT);
     do_saddle = !(suppress & SUPPRESS_SADDLE);
     do_name = !(suppress & SUPPRESS_NAME) || type_is_pname(mdat);
+    augment_it = (suppress & AUGMENT_IT) != 0;
 
     buf[0] = '\0';
 
-    /* unseen monsters, etc.  Use "it" */
+    /* unseen monsters, etc.; usually "it" but sometimes more specific;
+       when hallucinating, the more specific values might be inverted */
     if (do_it) {
-        Strcpy(buf, "it");
+        Strcpy(buf, !augment_it ? "it"
+                    : (!do_hallu ? humanoid(mdat) : !rn2(2)) ? "someone"
+                      : "something");
         return buf;
     }
 
@@ -1994,8 +2016,19 @@ char *
 noit_mon_nam(struct monst *mtmp)
 {
     return x_monnam(mtmp, ARTICLE_THE, (char *) 0,
-                    (has_mgivenname(mtmp)) ? (SUPPRESS_SADDLE | SUPPRESS_IT)
-                                      : SUPPRESS_IT,
+                    (has_mgivenname(mtmp) ? (SUPPRESS_SADDLE | SUPPRESS_IT)
+                                          : SUPPRESS_IT),
+                    FALSE);
+}
+
+/* in between noit_mon_nam() and mon_nam(); if the latter would pick "it",
+   use "someone" (for humanoids) or "something" (for others) instead */
+char *
+some_mon_nam(struct monst *mtmp)
+{
+    return x_monnam(mtmp, ARTICLE_THE, (char *) 0,
+                    (has_mgivenname(mtmp) ? (SUPPRESS_SADDLE | AUGMENT_IT)
+                                          : AUGMENT_IT),
                     FALSE);
 }
 
@@ -2012,6 +2045,15 @@ char *
 noit_Monnam(struct monst *mtmp)
 {
     register char *bp = noit_mon_nam(mtmp);
+
+    *bp = highc(*bp);
+    return  bp;
+}
+
+char *
+Some_Monnam(struct monst *mtmp)
+{
+    char *bp = some_mon_nam(mtmp);
 
     *bp = highc(*bp);
     return  bp;
@@ -2134,9 +2176,11 @@ mon_nam_too(struct monst *mon, struct monst *other_mon)
 /* construct "<monnamtext> <verb> <othertext> {him|her|it}self" which might
    be distorted by Hallu; if that's plural, adjust monnamtext and verb */
 char *
-monverbself(struct monst *mon,
-            char *monnamtext, /* modifiable 'mbuf' with adequare room at end */
-            const char *verb, const char *othertext)
+monverbself(
+    struct monst *mon,
+    char *monnamtext, /* modifiable 'mbuf' with adequate room at end */
+    const char *verb,
+    const char *othertext)
 {
     char *verbs, selfbuf[40]; /* sizeof "themselves" suffices */
 
@@ -2258,19 +2302,23 @@ obj_pmname(struct obj *obj)
     return "two-legged glorkum-seeker";
 }
 
+/* used by bogusmon(next) and also by init_CapMons(rumors.c);
+   bogon_is_pname(below) checks a hard-coded subset of these rather than
+   use this list */
+const char bogon_codes[] = "-_+|="; /* see dat/bonusmon.txt */
+
 /* fake monsters used to be in a hard-coded array, now in a data file
  * The which parameter is passed along to get_rnd_text and represents the line
  * of BOGUSMONFILE to return. Specify -1 for a random one. */
 char *
 bogusmon(char *buf, char *code, int which)
 {
-    static const char bogon_codes[] = "-_+|="; /* see dat/bonusmon.txt */
     char *mnam = buf;
 
     if (code)
         *code = '\0';
     /* might fail (return empty buf[]) if the file isn't available */
-    get_rnd_text(BOGUSMONFILE, buf, which, rn2_on_display_rng);
+    get_rnd_text(BOGUSMONFILE, buf, which, rn2_on_display_rng, MD_PAD_BOGONS);
     if (!*mnam) {
         Strcpy(buf, "bogon");
     } else if (index(bogon_codes, *mnam)) { /* strip prefix if present */
@@ -2351,6 +2399,7 @@ static NEARDATA const char *const hcolors[] = {
     "dancing", "singing", "loving", "loudy", "noisy", "clattery", "silent",
     "apocyan", "infra-pink", "opalescent", "violant", "tuneless",
     "viridian", "aureolin", "cinnabar", "purpurin", "gamboge", "madder",
+    "bistre", "ecru", "fulvous", "tekhelet", "selective yellow",
 };
 
 const char *
@@ -2380,12 +2429,14 @@ static NEARDATA const char *const hliquids[] = {
     "caramel sauce", "ink", "aqueous humour", "milk substitute",
     "fruit juice", "glowing lava", "gastric acid", "mineral water",
     "cough syrup", "quicksilver", "sweet vitriol", "grey goo", "pink slime",
+    "cosmic latte",
     /* "new coke (tm)", --better not */
 };
 
 /* if hallucinating, return a random liquid instead of 'liquidpref' */
 const char *
-hliquid(const char *liquidpref) /* use as-is when not hallucinating (unless empty) */
+hliquid(
+    const char *liquidpref) /* use as-is when not hallucintg (unless empty) */
 {
     if (Hallucination || !liquidpref || !*liquidpref) {
         int indx, count = SIZE(hliquids);
@@ -2429,8 +2480,8 @@ coyotename(struct monst *mtmp, char *buf)
 char *
 rndorcname(char *s)
 {
-    static const char *v[] = { "a", "ai", "og", "u" };
-    static const char *snd[] = { "gor", "gris", "un", "bane", "ruk",
+    static const char *const v[] = { "a", "ai", "og", "u" };
+    static const char *const snd[] = { "gor", "gris", "un", "bane", "ruk",
                                  "oth","ul", "z", "thos","akh","hai" };
     int i, iend = rn1(2, 3), vstart = rn2(2);
 
@@ -2476,7 +2527,9 @@ christen_orc(struct monst *mtmp, const char *gang, const char *other)
     return mtmp;
 }
 
-/* make sure "The Colour of Magic" remains the first entry in here */
+/* Discworld novel titles, in the order that they were published; a subset
+   of them have index macros used for variant spellings; if the titles are
+   reordered for some reason, make sure that those get renumbered to match */
 static const char *const sir_Terry_novels[] = {
     "The Colour of Magic", "The Light Fantastic", "Equal Rites", "Mort",
     "Sourcery", "Wyrd Sisters", "Pyramids", "Guards! Guards!", "Eric",
@@ -2490,6 +2543,11 @@ static const char *const sir_Terry_novels[] = {
     "Making Money", "Unseen Academicals", "I Shall Wear Midnight", "Snuff",
     "Raising Steam", "The Shepherd's Crown"
 };
+#define NVL_COLOUR_OF_MAGIC 0
+#define NVL_SOURCERY 4
+#define NVL_MASKERADE 17
+#define NVL_AMAZING_MAURICE 27
+#define NVL_THUD 33
 
 const char *
 noveltitle(int *novidx)
@@ -2519,15 +2577,15 @@ lookup_novel(const char *lookname, int *idx)
      * _Sourcery_ is a joke rather than British spelling of "sorcery".
      */
     if (!strcmpi(The(lookname), "The Color of Magic"))
-        lookname = sir_Terry_novels[0];
+        lookname = sir_Terry_novels[NVL_COLOUR_OF_MAGIC];
     else if (!strcmpi(lookname, "Sorcery"))
-        lookname = "Sourcery"; /* [4] */
+        lookname = sir_Terry_novels[NVL_SOURCERY];
     else if (!strcmpi(lookname, "Masquerade"))
-        lookname = "Maskerade"; /* [17] */
+        lookname = sir_Terry_novels[NVL_MASKERADE];
     else if (!strcmpi(The(lookname), "The Amazing Maurice"))
-        lookname = "The Amazing Maurice and His Educated Rodents"; /* [27] */
+        lookname = sir_Terry_novels[NVL_AMAZING_MAURICE];
     else if (!strcmpi(lookname, "Thud"))
-        lookname = "Thud!"; /* [33] */
+        lookname = sir_Terry_novels[NVL_THUD];
 
     for (k = 0; k < SIZE(sir_Terry_novels); ++k) {
         if (!strcmpi(lookname, sir_Terry_novels[k])

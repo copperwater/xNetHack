@@ -28,7 +28,19 @@ static void quickmimic(struct monst *);
 struct obj *
 droppables(struct monst *mon)
 {
-    struct obj *obj, *wep, dummy, *pickaxe, *unihorn, *key;
+    /*
+     * 'key|pickaxe|&c = &dummy' is used to make various creatures
+     * that can't use a key/pick-axe/&c behave as if they are already
+     * holding one so that any other such item in their inventory will
+     * be considered a duplicate and get treated as a normal candidate
+     * for dropping.
+     *
+     * This could be 'auto', but then 'gcc -O2' warns that this function
+     * might return the address of a local variable.  It's mistaken,
+     * &dummy is never returned.  'static' is simplest way to shut it up.
+     */
+    static struct obj dummy;
+    struct obj *obj, *wep, *pickaxe, *unihorn, *key;
 
     dummy = cg.zeroobj;
     dummy.otyp = GOLD_PIECE; /* not STRANGE_OBJECT or tools of interest */
@@ -434,7 +446,9 @@ dog_invent(struct monst *mtmp, struct edog *edog, int udist)
 #ifdef MAIL_STRUCTURES
             && obj->otyp != SCR_MAIL
 #endif
-            ) {
+            /* avoid special items; once hero picks them up, they'll cease
+               being special and become eligible for normal monst activity */
+            && !(is_mines_prize(obj) || is_soko_prize(obj))) {
             int edible = dogfood(mtmp, obj);
 
             if ((edible <= CADAVER
@@ -1377,7 +1391,7 @@ void
 finish_meating(struct monst *mtmp)
 {
     mtmp->meating = 0;
-    if (M_AP_TYPE(mtmp) && mtmp->mappearance && mtmp->cham == NON_PM) {
+    if (M_AP_TYPE(mtmp) && mtmp->mappearance && mtmp->data->mlet != S_MIMIC) {
         /* was eating a mimic and now appearance needs resetting */
         mtmp->m_ap_type = M_AP_NOTHING;
         mtmp->mappearance = 0;

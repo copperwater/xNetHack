@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# NetHack 3.7  compiler.2020 $NHDT-Date: 1597332785 2020/08/13 15:33:05 $  $NHDT-Branch: NetHack-3.7 $
+# NetHack 3.7  compiler.370 $NHDT-Date: 1637992237 2021/11/27 05:50:37 $  $NHDT-Branch: NetHack-3.7 $
 
 # compiler flags:  CCFLAGS is used to construct a value for CFLAGS with
 #	various -I, -D, and -W settings appended below;
@@ -12,14 +12,38 @@ CCFLAGS = -g
 #	rules for compiling C code; specifying a value for that on the
 #	'make' command line should be avoided.
 
+#If you want to force use of one particular set of compilers, do it
+#here, ahead of the detection, so that the detection will match your
+#choice and set variables CCISCLANG, GCCGTEQ, CLANGPPGTEQ9 etc.
+#accordingly.
+#
+#CC= gcc
+#CXX= g++ -std-gnu++11
+#
+#CC= clang
+#CXX=clang++ -std=gnu++11
+
+#detection
 CCISCLANG := $(shell echo `$(CC) --version` | grep clang)
 ifeq "$(CCISCLANG)" ""
+ifdef WANT_WIN_QT6
+CXX=g++ -std=c++17
+else
 CXX=g++ -std=gnu++11
+endif
+else
+ifdef WANT_WIN_QT6
+CXX=clang++ -std=c++17
 else
 CXX=clang++ -std=gnu++11
 endif
-# if you want to override the compiler detection just carried out
-# uncomment one of the following pairs as desired.
+endif   # clang
+
+# If you want to override the compiler detection just carried out
+# uncomment one of the following pairs. Note, however, that
+# doing this after the detection above will likely result in
+# mismatched variable values for CCISCLANG, GCCGTEQ, CLANGPPGTEQ9 etc.
+#
 #CC= gcc
 #CXX= g++ -std-gnu++11
 #
@@ -31,11 +55,7 @@ CFLAGS+=-Wall -Wextra -Wno-missing-field-initializers \
 	-Wreturn-type -Wunused -Wformat -Wswitch -Wshadow -Wwrite-strings
 CFLAGS+=-pedantic
 CFLAGS+=-Wmissing-declarations
-CFLAGS+=-Wformat-nonliteral
-# As of LLVM build 2336.1.00, this gives dozens of spurious messages, so
-# # leave it out by default.
-# #CFLAGS+=-Wunreachable-code
-# #
+CFLAGS+=-Wunreachable-code
 #
 # the following are not allowed in C++
 CFLAGS+=-Wimplicit
@@ -50,7 +70,6 @@ CCXXFLAGS+=-Wall -Wextra -Wno-missing-field-initializers \
         -Wreturn-type -Wunused -Wformat -Wswitch -Wshadow -Wwrite-strings
 CCXXFLAGS+=-pedantic
 CCXXFLAGS+=-Wmissing-declarations
-CCXXFLAGS+=-Wformat-nonliteral
 
 ifeq "$(CCISCLANG)" ""
 # gcc-specific follows
@@ -71,11 +90,13 @@ ifeq "$(GPPGTEQ9)" "1"
 CCXXFLAGS+=-Wformat-overflow
 ifdef WANT_WIN_QT
 CCXXFLAGS+=-Wno-deprecated-copy
+CCXXFLAGS+=-Wno-deprecated-declarations
 endif  # WANT_WIN_QT
 endif  # g++ version greater than or equal to 9
 # end of gcc-specific
 
 else   # clang-specific follows
+
 # get the version of clang++
 CLANGPPGTEQ9 := $(shell expr `$(CXX) -dumpversion | cut -f1 -d.` \>= 9)
 ifeq "$(CLANGPPGTEQ9)" "1"
@@ -93,5 +114,27 @@ endif  # clang-specific ends here
 CFLAGS+=-DGCC_WARN
 CCXXFLAGS+=-DGCC_WARN
 
-#end of compiler.2020
+ifdef MAKEFILE_SRC
+ifdef WANT_WIN_QT
+# when switching from Qt5 to Qt6 or vice versa, any old .moc files will be
+# incompatible; get rid of them in case user hasn't run 'make spotless';
+# moc.qt5 and moc.qt6 are empty timestamp files and at most one should exist
+ifdef WANT_WIN_QT6
+# Qt 6 builds and runs (with a couple of warnings) but needs more testing
+MOCSTAMP=moc.qt6
+else
+# Qt 5 is currently the default version for nethack 3.7.x's Qt interface
+MOCSTAMP=moc.qt5
+endif
+# rule to build src/qt_foo.moc from win/Qt/qt_foo.h
+%.moc : ../win/Qt/%.h $(MOCSTAMP)
+	$(MOCPATH) -o $@ $<
+moc.qt5::
+	@if test ! -f moc.qt5; then ( rm -f *.moc moc.qt6; touch $@ ); fi;
+moc.qt6::
+	@if test ! -f moc.qt6; then ( rm -f *.moc moc.qt5; touch $@ ); fi;
+endif #WANT_WIN_QT
+endif #MAKFILE_SRC
+
+#end of compiler.370
 #------------------------------------------------------------------------------

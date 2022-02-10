@@ -50,9 +50,9 @@ static const int graymappings[] = {
 };
 
 void
-set_grayscale(int g)
+set_grayscale(int gs)
 {
-    grayscale = g;
+    grayscale = gs;
 }
 
 static void
@@ -110,7 +110,7 @@ read_txttile(FILE *txtfile, pixel (*pixels)[TILE_X])
     int ph, i, j, k, reslt;
     char buf[BUFSZ], ttype[BUFSZ], gend[BUFSZ];
     const char *p;
-    char c[2];
+    char c[2], *q;
     static int gidx = 0;
 
     gend[0] = '\0';
@@ -133,12 +133,19 @@ read_txttile(FILE *txtfile, pixel (*pixels)[TILE_X])
          * change when tiles are added
          */
     p = tilename(tile_set, tile_set_indx, gidx);
-    if (p && strcmp(p, buf)
-        && !acceptable_tilename(tile_set, tile_set_indx, buf, p)) {
-        Fprintf(stderr, "error: for tile %d (numbered %d) of %s,\n",
-                tile_set_indx, i, text_sets[tile_set]);
+    if (p && (q = strstr(p, " {")) != 0) {
+        *q = '\0';
+    }
+    if (p && strcmp(p, buf)) {
+        boolean other_mismatch =
+            (tile_set == OTHER_SET
+             && !acceptable_tilename(tile_set, tile_set_indx, buf, p));
+        if (tile_set != OTHER_SET || other_mismatch) {
+            Fprintf(stderr, "error: for tile %d (numbered %d) of %s,\n",
+                    tile_set_indx, i, text_sets[tile_set]);
             Fprintf(stderr, "\tfound '%s' while expecting '%s'\n", buf, p);
             exit(101);
+        }
     }
     tile_set_indx++;
 

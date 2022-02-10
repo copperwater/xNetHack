@@ -45,7 +45,8 @@
 %.au
 \author{Original version - Eric S. Raymond\\
 (Edited and expanded for 3.7 by Mike Stephenson and others)}
-\date{August 26, 2021}
+%DO NOT REMOVE NH_DATESUB \date{DATE(%B %-d, %Y)}
+\date{January 17, 2022}
 
 \maketitle
 
@@ -388,7 +389,7 @@ particular, it can affect the prices shopkeepers offer you.
 \item[\bb{Alignment}]
 %
 {\it Lawful}, {\it Neutral\/} or {\it Chaotic}.  Often, Lawful is
-taken as good and Chaotic is evil, but legal and ethical do not always
+taken as good and Chaotic as evil, but legal and ethical do not always
 coincide.  Your alignment influences how other
 monsters react toward you.  Monsters of a like alignment are more likely
 to be non-aggressive, while those of an opposing alignment are more likely
@@ -654,11 +655,11 @@ or type a symbol (or even a whole word) to explain.
 Specifying a location is done by moving the cursor to a particular spot
 on the map and then pressing one of `{\tt .}', `{\tt ,}', `{\tt ;}',
 or `{\tt :}'.  `{\tt .}' will explain the symbol at the chosen location,
-information, then let you pick another location;
 conditionally check for ``{\tt More info?}'' depending upon whether the
 `{\it help\/}'
 option is on, and then you will be asked to pick another location;
 `{\tt ,}' will explain the symbol but skip any additional
+information, then let you pick another location;
 `{\tt ;}' will skip additional info and also not bother asking
 you to choose another location to examine; `{\tt :}' will show additional
 info, if any, without asking for confirmation.  When picking a location,
@@ -796,13 +797,13 @@ Use `{\tt T}' (take off) to take off only one piece of armor
 or `{\tt R}' (remove) to take off only one accessory.
 %.lp
 \item[\tb{\^{}A}]
-Redo the previous command.
+Repeat the previous command.
 %.lp
 \item[\tb{c}]
 Close a door.
 %.lp
 \item[\tb{C}]
-Call (name) a monster, an individual object, or an object type.\\
+Call (name) a monster, an individual object, or a type of object.\\
 %.lp ""
 Same as extended command ``{\tt \#name}''.
 %.lp
@@ -829,6 +830,7 @@ the bless\-ed/\-un\-curs\-ed/\-curs\-ed groups may be typed.\\
 {\tt DU}  --- drop all objects known to be uncursed.\\
 {\tt DC}  --- drop all objects known to be cursed.\\
 {\tt DX}  --- drop all objects of unknown B/U/C status.\\
+{\tt DP}  --- drop objects picked up last.\\
 {\tt Da}  --- drop all objects, without asking for confirmation.\\
 {\tt Di}  --- examine your inventory before dropping anything.\\
 {\tt Du}  --- drop only unpaid objects (when in a shop).\\
@@ -836,6 +838,22 @@ the bless\-ed/\-un\-curs\-ed/\-curs\-ed groups may be typed.\\
 {\tt D\%u} --- drop only unpaid food.
 %.ei
 %.ed
+The last example shows a combination.
+There are three categories of object filtering: class (`{\tt !}' for
+potions, `{\tt ?}' for scrolls, and so on), shop status (`{\tt u}' for
+unpaid, in other words, owned by the shop), and bless/curse state
+(`{\tt B}', `{\tt U}', `{\tt C}', and `{\tt X}' as shown above).
+If you specify more than one value in a category (such as ``{\tt !?}'' for
+potions and scrolls or ``{\tt BU}'' for blessed and uncursed), an inventory
+object will meet the criteria if it matches any of the specified
+values (so ``{\tt !?}'' means `{\tt !}' or `{\tt ?}').
+If you specify more than one category, an inventory object must meet
+each of the category criteria (so ``{\tt \%u}'' means class `{\tt \%}' and
+unpaid `{\tt u}').
+Lastly, you may specify multiple values within multiple categories:
+``{\tt !?BU}'' will select all potions and scrolls which are known to be
+blessed or uncursed.
+(In versions prior to 3.6, filter combinations behaved differently.)
 %.lp
 \item[\tb{\^{}D}]
 Kick something (usually a door).
@@ -879,6 +897,7 @@ computer pick something appropriate if {\it autoquiver\/} is true.
 If your wielded weapon has the throw-and-return property, your quiver
 is empty, and {\it autoquiver\/}
 is false, you will throw that wielded weapon instead of filling the quiver.
+This will also automatically use a polearm if wielded.
 If {\it fireassist\/} is true, firing will automatically try to wield a launcher
 (for example, a bow or a sling) matching the ammo in the quiver; this might
 take multiple turns, and get interrupted by a monster.
@@ -903,6 +922,7 @@ for potions.\\
 {\tt IU} --- list all items known to be uncursed;\\
 {\tt IC} --- list all items known to be cursed;\\
 {\tt IX} --- list all items whose bless/curse status is unknown;\\
+{\tt IP} --- list items picked up last;\\
 {\tt I\$} --- count your money.
 %.ei
 %.ed
@@ -925,7 +945,7 @@ game rather than with the `{\tt O}' command; see the section on options below.
 \item[\tb{\^{}O}]
 Show overview.\\
 %.lp ""
-Shortcut for the ``{\tt \#overview}'':
+Shortcut for ``{\tt \#overview}'':
 list interesting dungeon levels visited.\\
 %.lp ""
 (Prior to 3.6.0, `{\tt \^{}O}' was a debug mode command which listed
@@ -936,7 +956,7 @@ Use ``{\tt \#wizwhere}'' to run that command.)
 Pay your shopping bill.
 %.lp
 \item[\tb{P}]
-Put on an accessory (ring, amulet, blindfold).\\
+Put on an accessory (ring, amulet, or blindfold).\\
 %.lp ""
 This command may also be used to wear armor.  The prompt for
 which inventory item to use will only list accessories, but choosing
@@ -1104,7 +1124,7 @@ Zap a wand.\\
 Zap (cast) a spell.\\
 %.sd
 %.si
-{\tt Z.} --- to aim at yourself, use `{\tt .}' for the direction.
+{\tt Z.} --- to cast at yourself, use `{\tt .}' for the direction.
 %.ei
 %.ed
 %.lp
@@ -1119,7 +1139,7 @@ Look at what is here.
 Show what type of thing a visible symbol corresponds to.
 %.lp
 \item[\tb{,}]
-Pick up some things.\\
+Pick up some things from the floor beneath you.\\
 %.lp ""
 May be preceded by `{\tt m}' to force a selection menu.
 %.lp
@@ -1329,8 +1349,15 @@ You can set the
 {\it paranoid\verb+_+confirmation:quit\/}
 option to require a response of ``{\tt yes}'' instead.
 %.lp
+\item[\tb{\#fight}]
+Prefix key to force fight a direction, even if you see nothing
+to fight there.
+Default key is `{\tt F}', or `{\tt -}' with
+{\it number\verb+_+pad\/}
+%.lp
 \item[\tb{\#fire}]
-Fire ammunition from quiver, possibly autowielding a launcher.
+Fire ammunition from quiver, possibly autowielding a launcher,
+or hit with a wielded polearm.
 Default key is `{\tt f}'.
 %.lp
 \item[\tb{\#force}]
@@ -1408,10 +1435,10 @@ Look at what is here, under you. Default key is `{\tt :}'.
 \item[\tb{\#loot}]
 Loot a box or bag on the floor beneath you, or the saddle
 from a steed standing next to you. Autocompletes.
-Default key is `{\tt M-l}',
-and also `{\tt l}' if {\it number\verb+_+pad\/} is on.
 Precede with the `{\tt m}' prefix to skip containers at your location
 and go directly to removing a saddle.
+Default key is `{\tt M-l}',
+and also `{\tt l}' if {\it number\verb+_+pad\/} is on.
 %.lp
 \item[\tb{\#monster}]
 Use a monster's special ability (when polymorphed into monster form).
@@ -1445,8 +1472,8 @@ leading to another dungeon branch) trigger an automatic annotation.
 If dungeon overview is chosen during end-of-game disclosure, every visited
 level will be included regardless of annotations. Autocompletes.
 Default keys are `{\tt \^{}O}', and `{\tt M-O}'.
-%.lp
 % DON'T PANIC!
+%.lp
 \item[\tb{\#panic}]
 Test the panic routine.
 Terminates the current game.
@@ -1466,7 +1493,7 @@ Pay your shopping bill. Default key is `{\tt p}'.
 If persistent inventory display is supported and enabled (with the
 {\it perm\verb+_+invent\/} option), interact with it instead of with the map.
 You'll be prompted for menu scrolling keystrokes such
-as `{\tt >}' and `\{\tt <}'.
+as `{\tt \verb+>+}' and `{\tt \verb+<+}'.
 Press {\tt RReturn} or {\tt Escape} to resume normal play.
 Default key is {\tt \verb+|+}.
 %.lp
@@ -1525,6 +1552,15 @@ and also `{\tt \^{}L}' if {\it number\verb+_+pad\/} is on.
 \item[\tb{\#remove}]
 Remove an accessory (ring, amulet, etc). Default key is `{\tt R}'.
 %.lp
+\item[{\bb{\#repeat}}]
+Repeat the previous command.
+Default key is~`{\tt \^{}A}'.
+%.lp
+\item[\tb{\#reqmenu}]
+Prefix key to modify the behaviour or request menu from some commands.
+Prevents autopickup when used with movement commands.
+Default key is `{\tt m}'.
+%.lp
 \item[\tb{\#retravel}]
 Travel to a previously selected travel destination.
 Default key is `{\tt C-_}'.
@@ -1536,6 +1572,26 @@ Default key is `{\tt M-R}'.
 %.lp
 \item[\tb{\#rub}]
 Rub a lamp or a stone. Autocompletes. Default key is `{\tt M-r}'.
+%.lp
+\item[\tb{\#run}]
+Prefix key to run towards a direction.
+Default key is `{\tt G}' when
+{\it number\verb+_+pad\/}
+is off,
+`{\tt 5}' when
+{\it number\verb+_+pad\/}
+is set to 1~or~3,
+otherwise `{\tt M-5}' when it is set to 2~or~4.
+%.lp
+\item[\tb{\#rush}]
+Prefix key to rush towards a direction.
+Default key is `{\tt g}' when
+{\it number\verb+_+pad\/}
+is off,
+`{\tt M-5}' when
+{\it number\verb+_+pad\/}
+is set to 1~or~3,
+otherwise `{\tt 5}' when it is set to 2~or~4.
 %.lp
 \item[\tb{\#save}]
 Save the game and exit the program.
@@ -2638,7 +2694,7 @@ other worn items.
 %.pg
 Those of you in the audience who are AD\&D players, be aware that each
 weapon which existed in AD\&D does roughly the same damage to monsters in
-{\it NetHack}.  Some of the more obscure weapons (such as the %
+{\it NetHack}.  Some of the more obscure weapons (such as the
 {\it aklys}, {\it lucern hammer}, and {\it bec-de-corbin\/}) are defined
 in an appendix to {\it Unearthed Arcana}, an AD\&D supplement.
 
@@ -3159,27 +3215,36 @@ choosing what to wear or take off.
 \subsection*{Gems (`{\tt *}')}
 
 %.pg
-Some gems are valuable, and can be sold for a lot of gold.  They are also
-a far more efficient way of carrying your riches.  Valuable gems increase
-your score if you bring them with you when you exit.
+Some gems are valuable, and can be sold for a lot of gold.
+They are also a far more efficient way of carrying your riches.
+Valuable gems increase your score if you bring them with you when you exit.
 
 %.pg
 Other small rocks are also categorized as gems, but they are much less
-valuable.  All rocks, however, can be used as projectile weapons (if you
-have a sling).  In the most desperate of cases, you can still throw them
-by hand.
+valuable.
+All rocks, however, can be used as projectile weapons (if you have a sling).
+In the most desperate of cases, you can still throw them by hand.
 
 %.hn 2
 \subsection*{Large rocks (`{\tt `}')}
 %.pg
-Statues and boulders are not particularly useful, and are generally
-heavy.  It is rumored that some statues are not what they seem.
+Statues and boulders are not particularly useful, and are generally heavy.
+It is rumored that some statues are not what they seem.
 
 %.pg
 Boulders occasionally block your path.
 You can push one forward (by attempting to walk onto its spot)
 when nothing blocks {\it its\/} path, or you can
 smash it into a pile of small rocks with breaking magic or a pick-axe.
+It is possible to move onto a boulder's location if certain conditions
+are met; ordinarily one of those conditions is that pushing it any
+further be blocked.
+Using the move-without-picking-up prefix (default key `{\tt m}')
+prior to the direction of movement will attempt to move to a boulder's
+location without pushing it in addition to the prefix's usual action of
+suppressing auto-pickup at the destination.
+
+%.pg
 Very large humanoids (giants and their ilk) have been known to pick up
 boulders and use them as missile weapons.
 
@@ -3473,6 +3538,12 @@ levels 1, 3, 6, 10, 14, 18, 22, 26, and 30.
 The one for experience level 1 is not recorded as an achievement.
 Losing enough levels to revert to lower rank(s) does not discard the
 corresponding achievement(s).
+
+%.pg
+There's no guaranteed {\it Novel} so the achievement to read one might
+not always be attainable (except perhaps by wishing).
+Similarly, the {\it Big Room} level is not always present.
+Unlike with the Novel, there's no way to wish for this opportunity.
 
 %.pg
 The ``special items'' hidden in {\it Mines'~End\/} and {\it Sokoban\/}
@@ -3893,8 +3964,8 @@ Name your starting cat (for example, ``{\tt catname:Morris}'').
 Cannot be set with the `{\tt O}' command.
 %.lp character
 \item[\ib{character}]
-Pick your type of character (for example, ``{\tt character:Monk}'');
-synonym for ``{\it role\/}''.  See {\it role\/} for more details.
+Synonym for ``{\tt role}'' to pick the type of your character
+(for example ``{\tt character:Monk}'').  See {\it role\/} for more details.
 %.lp
 \item[\ib{checkpoint}]
 Save game state after each level change, for possible recovery after
@@ -3912,9 +3983,9 @@ players if it detects some anticipated mistakes (default on).
 Have user confirm attacks on pets, shopkeepers, and other
 peaceable creatures (default on).  Persistent.
 %.lp
-%.lp
 \item[\ib{dark\verb+_+room}]
 Show out-of-sight areas of lit rooms (default on).  Persistent.
+%.lp
 \item[\ib{disclose}]
 Controls what information the program reveals when the game ends.
 Value is a space separated list of prompting/category pairs
@@ -3929,7 +4000,7 @@ The possibilities are:
 {\tt a} --- disclose your attributes;\\
 {\tt v} --- summarize monsters that have been vanquished;\\
 {\tt g} --- list monster species that have been genocided;\\
-{\tt c} --- display your conduct;\\
+{\tt c} --- display your conduct; also achievements, if any;\\
 {\tt o} --- display dungeon overview.
 %.ei
 %.ed
@@ -3960,7 +4031,11 @@ The `{\tt +}' disclose without prompting choice,
 or being prompted and answering `{\tt y}' rather than `{\tt a}',
 will default to showing monsters in the traditional order,
 from high level to low level.\\
-.lp ""
+%.lp ""
+Omitted categories are implicitly added with `{\tt n}' prefix.
+Specified categories with omitted prefix implicitly use `{\tt +}' prefix.
+Order of the disclosure categories does not matter, program display for
+end-of-game disclosure follows a set sequence.
 
 %.lp ""
 (for example, ``{\tt disclose:yi na +v -g o}'')
@@ -4065,13 +4140,13 @@ In text windowing, text highlighting or inverse video is often used;
 with tiles, generally displays a small plus-symbol beside the object
 on the top of the pile.
 %.lp
-\item[\ib{horsename}]
-Name your starting horse (for example, ``{\tt horsename:Trigger}'').
-Cannot be set with the `{\tt O}' command.
-%.lp
 \item[\ib{hitpointbar}]
 Show a hit point bar graph behind your name and title.
 Only available for TTY and Windows GUI, and only when statushilites is on.
+%.lp
+\item[\ib{horsename}]
+Name your starting horse (for example, ``{\tt horsename:Trigger}'').
+Cannot be set with the `{\tt O}' command.
 %.lp
 \item[\ib{ignintr}]
 Ignore interrupt signals, including breaks (default off).  Persistent.
@@ -4182,7 +4257,7 @@ Key to go to the previous menu page.
 Implemented by the Amiga, Gem and tty ports.
 Default `\verb+<+'.
 \item[\ib{menu\verb+_+search}]
-Key to search for a menu item.
+Key to search for some text and toggle selection state of matching menu items.
 Default `:'.
 \item[\ib{menu\verb+_+select\verb+_+all}]
 Key to select all items in a menu.
@@ -4223,8 +4298,8 @@ Valid settings are:
 %.sd
 %.si
 {\tt 0} --- disabled\\
-{\tt 1} --- enabled and make OS adjustment to support mouse use\\
-{\tt 2} --- enabled like {\tt 1}, but does not make any OS adjustments\\
+{\tt 1} --- enabled and make OS adjustments to support mouse use\\
+{\tt 2} --- like {\tt 1}, but does not make any OS adjustments\\
 %.ei
 %.ed
 
@@ -4363,7 +4438,7 @@ turn on all of the above.
 By default, the pray choice is enabled, the others disabled.
 To disable it without setting
 any of the other choices, use ``{\it paranoid\verb+_+confirmation:none}''.  To keep
-it enabled while setting others, include it in the list,
+it enabled while setting any of the others, include it in the list,
 such as ``{\it par\-a\-noid\verb+_+con\-fir\-ma\-tion:attack~pray~Remove}''.
 %.lp
 \item[\ib{perm\verb+_+invent}]
@@ -4497,7 +4572,7 @@ Persistent.
 Pick your type of character (for example, ``{\tt role:Samurai}'');
 synonym for ``{\it character\/}''.  See ``{\it name\/}'' for an alternate method
 of specifying your role.  Normally only the first letter of the
-value is examined; `r' is an exception with ``{\tt Rogue}'', {\tt Ranger}'',
+value is examined; `r' is an exception with ``{\tt Rogue}'', ``{\tt Ranger}'',
 and ``{\tt random}'' values.
 If you prefix the value with `{\tt !}' or ``{\tt no}'', you will
 exclude that role from being picked randomly.
@@ -4535,7 +4610,7 @@ Prevent you from (knowingly) attacking your pets (default on).  Persistent.
 \item[\ib{safe\verb+_+wait}]
 Prevents you from waiting or searching when next to a hostile monster
 (default on).  Persistent.
-%+.lp
+%.lp
 \item[\ib{sanity\verb+_+check}]
 Evaluate monsters, objects, and map prior to each turn (default off).
 Debug mode only.
@@ -4794,7 +4869,7 @@ If {\it NetHack\/} can, it should display color for different monsters,
 objects, and dungeon features (default on).
 %.lp
 \item[\ib{eight\verb+_+bit\verb+_+tty}]
-Pass eight-bit character values (for example, specified with the
+If {\it NetHack\/} can, it should pass eight-bit character values (for example, specified with the
 {\it traps \/} option) straight through to your terminal (default off).
 %.lp
 \item[\ib{font\verb+_+map}]
@@ -4962,7 +5037,7 @@ Acceptable values are
 columns of the display.
 A width of at least 110 columns (\verb&80+2+26+2&) is needed for
 {\it align_status\/}
-set to {tt left} or {\tt right}.)
+set to {\tt left} or {\tt right}.)
 
 %.lp ""
 The persistent inventory window, when enabled, can grow until it is
@@ -5010,11 +5085,9 @@ or ports to customize and change the port behavior.
 
 \blist{}
 %.lp
-\item[\ib{altkeyhandler}]
-Select an alternate keystroke handler dll to load ({\it Win32 tty\/ NetHack\/} only).
-The name of the handler is specified without the .dll extension and without any
-path information.
-Cannot be set with the `{\tt O}' command.
+\item[\ib{altkeyhandling}]
+Select an alternate way to handle keystrokes ({\it Win32 tty\/ NetHack\/} only).
+The name of the handling type is one of {\it default}, {\it ray}, {\it 340}
 %.lp
 \item[\ib{altmeta}]
 On Amiga, this option controls whether typing ``Alt'' plus another key
@@ -5222,13 +5295,6 @@ can only be bound to a single key.
 Prefix key to start a count, to repeat a command this many times.
 With {\it number\verb+_+pad\/} only. Default is~`{\tt n}'.
 %.lp
-\item[{\bb{fight}}]
-Prefix key to force fight a direction. Default is~`{\tt F}'.
-%.lp
-\item[{\bb{fight.numpad}}]
-Prefix key to force fight a direction. With {\it number\verb+_+pad\/} only.
-Default is~`{\tt -}'.
-%.lp
 \item[{\bb{getdir.help}}]
 When asked for a direction, the key to show the help. Default is~`{\tt ?}'.
 %.lp
@@ -5331,48 +5397,6 @@ Default is~`{\tt z}'.
 \item[{\bb{getpos.valid.prev}}]
 When asked for a location, the key to go to previous closest valid location.
 Default is~`{\tt Z}'.
-%.lp
-\item[{\bb{nopickup}}]
-Prefix key to move without picking up items. Default is~`{\tt m}'.
-%.lp
-\item[{\bb{redraw}}]
-Key to redraw the screen. Default is~`{\tt \^{}R}'.
-%.lp
-\item[{\bb{redraw.numpad}}]
-Key to redraw the screen. With {\it number\verb+_+pad\/} only.
-Default is~`{\tt \^{}L}'.
-%.lp
-\item[{\bb{repeat}}]
-Key to repeat previous command. Default is~`{\tt \^{}A}'.
-%.lp
-\item[{\bb{reqmenu}}]
-Prefix key to request menu from some commands. Default is~`{\tt m}'.
-%.lp
-\item[{\bb{run}}]
-Prefix key to run towards a direction. Default is~`{\tt G}'.
-%.lp
-\item[{\bb{run.nopickup}}]
-Prefix key to run towards a direction without picking up items on the way.
-Default is~`{\tt M}'.
-%.lp
-\item[{\bb{run.numpad}}]
-Prefix key to run towards a direction.
-With {\it number\verb+_+pad\/} only.
-
-%.lp ""
-Default is `{\tt 5}' when number_pad is set to 1~or~3,
-otherwise `{\tt M-5}' when it is set to 2~or~4.
-%.lp
-\item[{\bb{rush}}]
-Prefix key to rush towards a direction. Default is~`{\tt g}'.
-%.lp
-\item[{\bb{rush.numpad}}]
-Prefix key to rush towards a direction.
-With {\it number\verb+_+pad\/} only.
-
-.lp ""
-Default is `{\tt M-5}' when number_pad is set to 1~or~3,
-otherwise `{\tt 5}' when it is set to 2~or~4.
 \elist
 
 
@@ -5536,7 +5560,7 @@ Each SOUND entry is broken down into the following parts:
 \elist
 
 %.lp ""
-The pattern should be a regular expression.
+The pattern should be a POSIX extended regular expression.
 
 %.lp
 %.hn 2
@@ -5789,15 +5813,15 @@ Default                      & Symbol Name                & Description\\
 \verb@D@ & S\verb+_+dragon                  &	(dragon)\\
 \verb@;@ & S\verb+_+eel                     &	(sea monster)\\
 \verb@E@ & S\verb+_+elemental               &	(elemental)\\
-\verb@/@ & S\verb+_+explode1                &	(explosion top left)\\
-\verb@-@ & S\verb+_+explode2                &	(explosion top center)\\
-\verb@\@ & S\verb+_+explode3                &	(explosion top right)\\
-\verb@|@ & S\verb+_+explode4                &	(explosion middle left)\\
-\verb@ @ & S\verb+_+explode5                &	(explosion middle center)\\
-\verb@|@ & S\verb+_+explode6                &	(explosion middle right)\\
-\verb@\@ & S\verb+_+explode7                &	(explosion bottom left)\\
-\verb@-@ & S\verb+_+explode8                &	(explosion bottom center)\\
-\verb@/@ & S\verb+_+explode9                &	(explosion bottom right)\\
+\verb@/@ & S\verb+_+expl\verb+_+tl          &	(explosion top left)\\
+\verb@-@ & S\verb+_+expl\verb+_+tc          &	(explosion top center)\\
+\verb@\@ & S\verb+_+expl\verb+_+tr          &	(explosion top right)\\
+\verb@|@ & S\verb+_+expl\verb+_+ml          &	(explosion middle left)\\
+\verb@ @ & S\verb+_+expl\verb+_+mc          &	(explosion middle center)\\
+\verb@|@ & S\verb+_+expl\verb+_+mr          &	(explosion middle right)\\
+\verb@\@ & S\verb+_+expl\verb+_+bl          &	(explosion bottom left)\\
+\verb@-@ & S\verb+_+expl\verb+_+bc          &	(explosion bottom center)\\
+\verb@/@ & S\verb+_+expl\verb+_+br          &	(explosion bottom right)\\
 \verb@e@ & S\verb+_+eye                     &	(eye or sphere)\\
 \verb@^@ & S\verb+_+falling\verb+_+rock\verb+_+trap     &	(falling rock trap)\\
 \verb@f@ & S\verb+_+feline                  &	(cat or other feline)\\
@@ -6098,8 +6122,8 @@ A string explaining how to get local support (no default value).
 A string explaining how to recover a game on this system (no default value).
 %.lp
 \item[\ib{SEDUCE}]
-0 or 1 to disable or enable, respectively, the SEDUCE option (see the source)
-for details on this function.
+0 or 1 to disable or enable, respectively, the SEDUCE option.
+When disabled, incubi and succubi behave like nymphs.
 %.lp
 \item[\ib{SERVERSEED}]
 A number that is added into the game's deterministic hash functions. Intended
@@ -6111,7 +6135,9 @@ Setting this to 1 will make the EXPLORERS, WIZARDS, and SHELLERS check
 for the player name instead of the user's login name.
 %.lp
 \item[\ib{CHECK\verb+_+SAVE\verb+_+UID}]
-0 or 1 to disable or enable, respectively, the UID checking for savefiles.
+0 or 1 to disable or enable, respectively, the UID
+(used identification number) checking for save files (to verify that the
+user who is restoring is the same one who saved).
 \elist
 
 %.pg
@@ -6120,17 +6146,21 @@ The following options affect the score file:
 %.pg
 %.lp
 \item[\ib{PERSMAX}]
-Maximum number of entries for one person
+Maximum number of entries for one person.
 %.lp
 \item[\ib{ENTRYMAX}]
-Maximum number of entries in the score file
+Maximum number of entries in the score file.
 %.lp
 \item[\ib{POINTSMIN}]
 Minimum number of points to get an entry in the score file.
 %.lp
 \item[\ib{PERS\verb+_+IS\verb+_+UID}]
 0 or 1 to use user names or numeric userids, respectively, to identify
-unique people for the score file
+unique people for the score file.
+%.lp
+\item[\ib{MAX\verb+_+STATUENAME\verb+_+RANK}]
+Maximum number of score file entries to use for
+random statue names (default is 10).
 %.lp
 \item[\ib{ACCESSIBILITY}]
 0 or 1 to disable or enable, respectively, the ability for players

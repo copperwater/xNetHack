@@ -1,8 +1,8 @@
-/* NetHack 3.7    winhack.c    $NHDT-Date: 1596498365 2020/08/03 23:46:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.72 $ */
+/* NetHack 3.7    NetHackW.c    $NHDT-Date: 1596498365 2020/08/03 23:46:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.72 $ */
 /* Copyright (C) 2001 by Alex Kompel      */
 /* NetHack may be freely redistributed.  See license for details. */
 
-// winhack.cpp : Defines the entry point for the application.
+// NetHackW.cpp : Defines the entry point for the application.
 //
 
 #include "win10.h"
@@ -16,7 +16,7 @@
 #include "mhmap.h"
 
 #if !defined(SAFEPROCS)
-#error You must #define SAFEPROCS to build winhack.c
+#error You must #define SAFEPROCS to build NetHackW.c
 #endif
 
 /* Borland and MinGW redefine "boolean" in shlwapi.h,
@@ -63,7 +63,7 @@ _nhapply_image_transparent(HDC hDC, int x, int y, int width, int height,
 
 // Global Variables:
 NHWinApp _nethack_app;
-extern int GUILaunched;     /* We tell shared startup code in windmain.c
+int GUILaunched = TRUE;     /* We tell shared startup code in windmain.c
                                that the GUI was launched via this */
 
 #ifdef __BORLANDC__
@@ -237,7 +237,12 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     }
     GUILaunched = 1;
     /* let main do the argument processing */
-    (void) main(argc, argv);
+#ifndef __MINGW32__
+    main(argc, argv);
+#else
+    int mingw_main(int argc, char *argv[]);
+    mingw_main(argc, argv);
+#endif
     return 0;
 }
 

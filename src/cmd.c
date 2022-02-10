@@ -1,4 +1,4 @@
-/* NetHack 3.7	cmd.c	$NHDT-Date: 1629928192 2021/08/25 21:49:52 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.483 $ */
+/* NetHack 3.7	cmd.c	$NHDT-Date: 1642630919 2022/01/19 22:21:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.500 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -93,6 +93,7 @@ extern int dozap(void);              /**/
 extern int doorganize(void);         /**/
 #endif /* DUMB */
 
+static const char *ecname_from_fn(int (*)(void));
 static int dosuspend_core(void);
 static int dosh_core(void);
 static int doherecmdmenu(void);
@@ -100,11 +101,11 @@ static int dotherecmdmenu(void);
 static int doprev_message(void);
 static int timed_occupation(void);
 static boolean can_do_extcmd(const struct ext_func_tab *);
-static int doextcmd(void);
 static int dotravel(void);
 static int dotravel_target(void);
 static int doclicklook(void);
 static int doterrain(void);
+static void set_move_cmd(int, int);
 static int wiz_wish(void);
 static int wiz_identify(void);
 static int wiz_map(void);
@@ -145,7 +146,7 @@ static void mon_chain(winid, const char *, struct monst *, boolean, long *,
                       long *);
 static void contained_stats(winid, const char *, long *, long *);
 static void misc_stats(winid, long *, long *);
-static boolean accept_menu_prefix(int (*)(void));
+static boolean accept_menu_prefix(const struct ext_func_tab *);
 
 static void add_herecmd_menuitem(winid, int (*)(void), const char *);
 static char here_cmd_menu(boolean);
@@ -155,11 +156,10 @@ static char *parse(void);
 static void show_direction_keys(winid, char, boolean);
 static boolean help_dir(char, int, const char *);
 
+static boolean bind_key_fn(uchar, int (*)(void));
 static void commands_init(void);
 static boolean keylist_func_has_key(const struct ext_func_tab *, boolean *);
 static int keylist_putcmds(winid, boolean, int, int, boolean *);
-static int ch2spkeys(char, int, int);
-static boolean prefix_cmd(char);
 static const char *spkey_name(int);
 
 static int (*timed_occ_fn)(void);
@@ -171,10 +171,12 @@ static const char unavailcmd[] = "Unavailable command '%s'.";
 /* for rejecting #if !SHELL, !SUSPEND */
 static const char cmdnotavail[] = "'%s' command not available.";
 
+/* the #prevmsg command */
 static int
 doprev_message(void)
 {
-    return nh_doprev_message();
+    (void) nh_doprev_message();
+    return ECMD_OK;
 }
 
 /* Count down by decrementing multi */
@@ -229,7 +231,7 @@ set_occupation(int (*fn)(void), const char *txt, int xtime)
 void
 cmdq_add_ec(int (*fn)(void))
 {
-    struct _cmd_queue *tmp = (struct _cmd_queue *)alloc(sizeof(struct _cmd_queue));
+    struct _cmd_queue *tmp = (struct _cmd_queue *) alloc(sizeof *tmp);
     struct _cmd_queue *cq = g.command_queue;
 
     tmp->typ = CMDQ_EXTCMD;
@@ -249,7 +251,7 @@ cmdq_add_ec(int (*fn)(void))
 void
 cmdq_add_key(char key)
 {
-    struct _cmd_queue *tmp = (struct _cmd_queue *)alloc(sizeof(struct _cmd_queue));
+    struct _cmd_queue *tmp = (struct _cmd_queue *) alloc(sizeof *tmp);
     struct _cmd_queue *cq = g.command_queue;
 
     tmp->typ = CMDQ_KEY;
@@ -357,7 +359,7 @@ can_do_extcmd(const struct ext_func_tab *extcmd)
     int ecflags = extcmd->flags;
 
     if (!wizard && (ecflags & WIZMODECMD)) {
-        You_cant("do that!");
+        pline(unavailcmd, extcmd->ef_txt);
         return FALSE;
     } else if (u.uburied && !(ecflags & IFBURIED)) {
         You_cant("do that while you are buried!");
@@ -369,7 +371,7 @@ can_do_extcmd(const struct ext_func_tab *extcmd)
 }
 
 /* here after # - now read a full-word command */
-static int
+int
 doextcmd(void)
 {
     int idx, retval;
@@ -379,14 +381,14 @@ doextcmd(void)
     do {
         idx = get_ext_cmd();
         if (idx < 0)
-            return 0; /* quit */
+            return ECMD_OK; /* quit */
 
         func = extcmdlist[idx].ef_funct;
         if (!can_do_extcmd(&extcmdlist[idx]))
-            return 0;
-        if (iflags.menu_requested && !accept_menu_prefix(func)) {
+            return ECMD_OK;
+        if (iflags.menu_requested && !accept_menu_prefix(&extcmdlist[idx])) {
             pline("'%s' prefix has no effect for the %s command.",
-                  visctrl(g.Cmd.spkeys[NHKF_REQMENU]),
+                  visctrl(cmd_from_func(do_reqmenu)),
                   extcmdlist[idx].ef_txt);
             iflags.menu_requested = FALSE;
         }
@@ -412,13 +414,13 @@ doc_extcmd_flagstr(winid menuwin,
 
         add_menu(menuwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
                  "[A] Command autocompletes", MENU_ITEMFLAGS_NONE);
-        Sprintf(qbuf, "[m] Command accepts '%c' prefix",
-                g.Cmd.spkeys[NHKF_REQMENU]);
+        Sprintf(qbuf, "[m] Command accepts '%s' prefix",
+                visctrl(cmd_from_func(do_reqmenu)));
         add_menu(menuwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE, qbuf,
                  MENU_ITEMFLAGS_NONE);
         return (char *) 0;
     } else {
-        boolean mprefix = accept_menu_prefix(efp->ef_funct),
+        boolean mprefix = accept_menu_prefix(efp),
                 autocomplete = (efp->flags & AUTOCOMPLETE) != 0;
         char *p = Abuf;
 
@@ -449,7 +451,7 @@ doextlist(void)
     int n, pass;
     int menumode = 0, menushown[2], onelist = 0;
     boolean redisplay = TRUE, search = FALSE;
-    static const char *headings[] = { "Extended commands",
+    static const char *const headings[] = { "Extended commands",
                                       "Debugging Extended Commands" };
 
     searchbuf[0] = '\0';
@@ -608,7 +610,7 @@ doextlist(void)
         }
     }
     destroy_nhwindow(menuwin);
-    return 0;
+    return ECMD_OK;
 }
 
 #if defined(TTY_GRAPHICS) || defined(CURSES_GRAPHICS)
@@ -790,7 +792,7 @@ domonability(void)
             There("is no fountain here.");
     } else if (is_unicorn(g.youmonst.data)) {
         use_unicorn_horn((struct obj **) 0, FALSE);
-        return 1;
+        return ECMD_TIME;
     } else if (g.youmonst.data->msound == MS_SHRIEK) {
         You("shriek.");
         if (u.uburied)
@@ -804,7 +806,7 @@ domonability(void)
     } else {
         You("don't have a special ability in your normal form!");
     }
-    return 0;
+    return ECMD_OK;
 }
 
 int
@@ -823,7 +825,7 @@ enter_explore_mode(void)
             || !check_user_string(sysopt.explorers)) {
             if (!wizard) {
                 You("cannot access explore mode.");
-                return 0;
+                return ECMD_OK;
             } else {
                 pline(
                  "Note: normally you wouldn't be allowed into explore mode.");
@@ -845,10 +847,10 @@ enter_explore_mode(void)
             pline("Continuing with %s.", oldmode);
         }
     }
-    return 0;
+    return ECMD_OK;
 }
 
-/* ^W command - wish for something */
+/* #wizwish command - wish for something */
 static int
 wiz_wish(void) /* Unlimited wishes for debug mode by Paul Polderman */
 {
@@ -860,11 +862,11 @@ wiz_wish(void) /* Unlimited wishes for debug mode by Paul Polderman */
         flags.verbose = save_verbose;
         (void) encumber_msg();
     } else
-        pline(unavailcmd, visctrl((int) cmd_from_func(wiz_wish)));
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_wish));
+    return ECMD_OK;
 }
 
-/* ^I command - reveal and optionally identify hero's inventory */
+/* #wizidentify command - reveal and optionally identify hero's inventory */
 static int
 wiz_identify(void)
 {
@@ -880,8 +882,8 @@ wiz_identify(void)
         (void) display_inventory((char *) 0, FALSE);
         iflags.override_ID = 0;
     } else
-        pline(unavailcmd, visctrl((int) cmd_from_func(wiz_identify)));
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_identify));
+    return ECMD_OK;
 }
 
 void
@@ -1000,12 +1002,12 @@ wiz_makemap(void)
         mklev();
         makemap_prepost(FALSE, was_in_W_tower);
     } else {
-        pline(unavailcmd, "#wizmakemap");
+        pline(unavailcmd, ecname_from_fn(wiz_makemap));
     }
-    return 0;
+    return ECMD_OK;
 }
 
-/* ^F command - reveal the level map and any traps on it */
+/* the #wizmap command - reveal the level map and any traps on it */
 static int
 wiz_map(void)
 {
@@ -1022,43 +1024,44 @@ wiz_map(void)
         HConfusion = save_Hconf;
         HHallucination = save_Hhallu;
     } else
-        pline(unavailcmd, visctrl((int) cmd_from_func(wiz_map)));
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_map));
+    return ECMD_OK;
 }
 
-/* ^G command - generate monster(s); a count prefix will be honored */
+/* #wizgenesis - generate monster(s); a count prefix will be honored */
 static int
 wiz_genesis(void)
 {
     if (wizard)
         (void) create_particular();
     else
-        pline(unavailcmd, visctrl((int) cmd_from_func(wiz_genesis)));
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_genesis));
+    return ECMD_OK;
 }
 
-/* ^O command - display dungeon layout */
+/* #wizwhere command - display dungeon layout */
 static int
 wiz_where(void)
 {
     if (wizard)
         (void) print_dungeon(FALSE, (schar *) 0, (xchar *) 0);
     else
-        pline(unavailcmd, visctrl((int) cmd_from_func(wiz_where)));
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_where));
+    return ECMD_OK;
 }
 
-/* ^E command - detect unseen (secret doors, traps, hidden monsters) */
+/* the #wizdetect command - detect secret doors, traps, hidden monsters */
 static int
 wiz_detect(void)
 {
     if (wizard)
         (void) findit();
     else
-        pline(unavailcmd, visctrl((int) cmd_from_func(wiz_detect)));
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_detect));
+    return ECMD_OK;
 }
 
+/* the #wizloadlua command - load an arbitrary lua file */
 static int
 wiz_load_lua(void)
 {
@@ -1073,10 +1076,11 @@ wiz_load_lua(void)
             strcat(buf, ".lua");
         (void) load_lua(buf);
     } else
-        pline("Unavailable command 'wiz_load_lua'.");
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_load_lua));
+    return ECMD_OK;
 }
 
+/* the #wizloaddes command - load a special level lua file */
 static int
 wiz_load_splua(void)
 {
@@ -1095,19 +1099,19 @@ wiz_load_splua(void)
         lspo_finalize_level(NULL);
 
     } else
-        pline("Unavailable command 'wiz_load_splua'.");
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_load_splua));
+    return ECMD_OK;
 }
 
-/* ^V command - level teleport */
+/* the #wizlevelport command - level teleport */
 static int
 wiz_level_tele(void)
 {
     if (wizard)
         level_tele();
     else
-        pline(unavailcmd, visctrl((int) cmd_from_func(wiz_level_tele)));
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_level_tele));
+    return ECMD_OK;
 }
 
 /* #wizfliplevel - transpose the current level */
@@ -1141,7 +1145,7 @@ wiz_flip_level(void)
             pline("%s", Never_mind);
         }
     }
-    return 0;
+    return ECMD_OK;
 }
 
 /* #levelchange command - adjust hero's experience level */
@@ -1161,14 +1165,14 @@ wiz_level_change(void)
 
     if (ret != 1) {
         pline1(Never_mind);
-        return 0;
+        return ECMD_OK;
     }
     if (newlevel == u.ulevel) {
         You("are already that experienced.");
     } else if (newlevel < u.ulevel) {
         if (u.ulevel == 1) {
             You("are already as inexperienced as you can get.");
-            return 0;
+            return ECMD_OK;
         }
         if (newlevel < 1)
             newlevel = 1;
@@ -1177,7 +1181,7 @@ wiz_level_change(void)
     } else {
         if (u.ulevel >= MAXULEV) {
             You("are already as experienced as you can get.");
-            return 0;
+            return ECMD_OK;
         }
         if (newlevel > MAXULEV)
             newlevel = MAXULEV;
@@ -1185,7 +1189,7 @@ wiz_level_change(void)
             pluslvl(FALSE);
     }
     u.ulevelmax = u.ulevel;
-    return 0;
+    return ECMD_OK;
 }
 
 /* #panic command - test program's panic handling */
@@ -1195,12 +1199,12 @@ wiz_panic(void)
     if (iflags.debug_fuzzer) {
         u.uhp = u.uhpmax = 1000;
         u.uen = u.uenmax = 1000;
-        return 0;
+        return ECMD_OK;
     }
     if (paranoid_query(TRUE,
                        "Do you want to call panic() and end your game?"))
         panic("Crash test.");
-    return 0;
+    return ECMD_OK;
 }
 
 /* #polyself command - change hero's form */
@@ -1208,7 +1212,7 @@ static int
 wiz_polyself(void)
 {
     polyself(1);
-    return 0;
+    return ECMD_OK;
 }
 
 /* #seenv command */
@@ -1252,7 +1256,7 @@ wiz_show_seenv(void)
     }
     display_nhwindow(win, TRUE);
     destroy_nhwindow(win);
-    return 0;
+    return ECMD_OK;
 }
 
 /* #vision command */
@@ -1287,7 +1291,7 @@ wiz_show_vision(void)
     }
     display_nhwindow(win, TRUE);
     destroy_nhwindow(win);
-    return 0;
+    return ECMD_OK;
 }
 
 /* #wmode command */
@@ -1323,7 +1327,7 @@ wiz_show_wmodes(void)
     }
     display_nhwindow(win, TRUE);
     destroy_nhwindow(win);
-    return 0;
+    return ECMD_OK;
 }
 
 /* wizard mode variant of #terrain; internal levl[][].typ values in base-36 */
@@ -1555,7 +1559,7 @@ wiz_smell(void)
     mndx = 0; /* gcc -Wall lint */
     if (!olfaction(g.youmonst.data)) {
         You("are incapable of detecting odors in your present form.");
-        return 0;
+        return ECMD_OK;
     }
 
     pline("You can move the cursor to a monster that you want to smell.");
@@ -1563,7 +1567,7 @@ wiz_smell(void)
         pline("Pick a monster to smell.");
         ans = getpos(&cc, TRUE, "a monster");
         if (ans < 0 || cc.x < 0) {
-            return 0; /* done */
+            return ECMD_CANCEL; /* done */
         }
         /* Convert the glyph at the selected position to a mndxbol. */
         glyph = glyph_at(cc.x, cc.y);
@@ -1578,7 +1582,7 @@ wiz_smell(void)
         } else
             pline("That is not a monster.");
     } while (TRUE);
-    return 0;
+    return ECMD_OK;
 }
 
 RESTORE_WARNING_CONDEXPR_IS_CONSTANT
@@ -1735,8 +1739,8 @@ wiz_intrinsic(void)
             free((genericptr_t) pick_list);
         doredraw();
     } else
-        pline(unavailcmd, visctrl((int) cmd_from_func(wiz_intrinsic)));
-    return 0;
+        pline(unavailcmd, ecname_from_fn(wiz_intrinsic));
+    return ECMD_OK;
 }
 
 RESTORE_WARNING_FORMAT_NONLITERAL
@@ -1746,7 +1750,7 @@ static int
 wiz_rumor_check(void)
 {
     rumor_check();
-    return 0;
+    return ECMD_OK;
 }
 
 /* #terrain command -- show known map, inspired by crawl's '|' command */
@@ -1838,7 +1842,244 @@ doterrain(void)
     default:
         break;
     }
-    return 0; /* no time elapses */
+    return ECMD_OK; /* no time elapses */
+}
+
+static void
+set_move_cmd(int dir, int run)
+{
+    /* #reqmenu -prefix disables autopickup during movement */
+    if (iflags.menu_requested)
+        g.context.nopick = 1;
+    g.context.travel = g.context.travel1 = 0;
+    if (!g.domove_attempting) {
+        g.context.run = run;
+        g.domove_attempting |= (!run ? DOMOVE_WALK : DOMOVE_RUSH);
+    }
+    u.dz = zdir[dir];
+    u.dx = xdir[dir];
+    u.dy = ydir[dir];
+}
+
+/* move or attack */
+int
+do_move_west(void)
+{
+    set_move_cmd(DIR_W, 0);
+    return ECMD_TIME;
+}
+
+int
+do_move_northwest(void)
+{
+    set_move_cmd(DIR_NW, 0);
+    return ECMD_TIME;
+}
+
+int
+do_move_north(void)
+{
+    set_move_cmd(DIR_N, 0);
+    return ECMD_TIME;
+}
+
+int
+do_move_northeast(void)
+{
+    set_move_cmd(DIR_NE, 0);
+    return ECMD_TIME;
+}
+
+int
+do_move_east(void)
+{
+    set_move_cmd(DIR_E, 0);
+    return ECMD_TIME;
+}
+
+int
+do_move_southeast(void)
+{
+    set_move_cmd(DIR_SE, 0);
+    return ECMD_TIME;
+}
+
+int
+do_move_south(void)
+{
+    set_move_cmd(DIR_S, 0);
+    return ECMD_TIME;
+}
+
+int
+do_move_southwest(void)
+{
+    set_move_cmd(DIR_SW, 0);
+    return ECMD_TIME;
+}
+
+/* rush */
+int
+do_rush_west(void)
+{
+    set_move_cmd(DIR_W, 3);
+    return ECMD_TIME;
+}
+
+int
+do_rush_northwest(void)
+{
+    set_move_cmd(DIR_NW, 3);
+    return ECMD_TIME;
+}
+
+int
+do_rush_north(void)
+{
+    set_move_cmd(DIR_N, 3);
+    return ECMD_TIME;
+}
+
+int
+do_rush_northeast(void)
+{
+    set_move_cmd(DIR_NE, 3);
+    return ECMD_TIME;
+}
+
+int
+do_rush_east(void)
+{
+    set_move_cmd(DIR_E, 3);
+    return ECMD_TIME;
+}
+
+int
+do_rush_southeast(void)
+{
+    set_move_cmd(DIR_SE, 3);
+    return ECMD_TIME;
+}
+
+int
+do_rush_south(void)
+{
+    set_move_cmd(DIR_S, 3);
+    return ECMD_TIME;
+}
+
+int
+do_rush_southwest(void)
+{
+    set_move_cmd(DIR_SW, 3);
+    return ECMD_TIME;
+}
+
+/* run */
+int
+do_run_west(void)
+{
+    set_move_cmd(DIR_W, 1);
+    return ECMD_TIME;
+}
+
+int
+do_run_northwest(void)
+{
+    set_move_cmd(DIR_NW, 1);
+    return ECMD_TIME;
+}
+
+int
+do_run_north(void)
+{
+    set_move_cmd(DIR_N, 1);
+    return ECMD_TIME;
+}
+
+int
+do_run_northeast(void)
+{
+    set_move_cmd(DIR_NE, 1);
+    return ECMD_TIME;
+}
+
+int
+do_run_east(void)
+{
+    set_move_cmd(DIR_E, 1);
+    return ECMD_TIME;
+}
+
+int
+do_run_southeast(void)
+{
+    set_move_cmd(DIR_SE, 1);
+    return ECMD_TIME;
+}
+
+int
+do_run_south(void)
+{
+    set_move_cmd(DIR_S, 1);
+    return ECMD_TIME;
+}
+
+int
+do_run_southwest(void)
+{
+    set_move_cmd(DIR_SW, 1);
+    return ECMD_TIME;
+}
+
+/* #reqmenu, prefix command to modify some others */
+int
+do_reqmenu(void)
+{
+    iflags.menu_requested = TRUE;
+    return ECMD_OK;
+}
+
+/* #rush */
+int
+do_rush(void)
+{
+    g.context.run = 2;
+    g.domove_attempting |= DOMOVE_RUSH;
+    return ECMD_OK;
+}
+
+/* #run */
+int
+do_run(void)
+{
+    g.context.run = 3;
+    g.domove_attempting |= DOMOVE_RUSH;
+    return ECMD_OK;
+}
+
+/* #fight */
+int
+do_fight(void)
+{
+    g.context.forcefight = 1;
+    g.domove_attempting |= DOMOVE_WALK;
+    return ECMD_OK;
+}
+
+/* #repeat */
+int
+do_repeat(void)
+{
+    if (!g.in_doagain && g.saveq[0]) {
+        g.in_doagain = TRUE;
+        g.stail = 0;
+        rhack((char *) 0); /* read and execute command */
+        g.in_doagain = FALSE;
+        iflags.menu_requested = FALSE;
+        return ECMD_TIME;
+    }
+    return ECMD_OK;
 }
 
 /* extcmdlist: full command list, ordered by command name;
@@ -1848,15 +2089,16 @@ doterrain(void)
    such as ^O/#overview and C/N/#name */
 struct ext_func_tab extcmdlist[] = {
     { '#',    "#", "perform an extended command",
-              doextcmd, IFBURIED | GENERALCMD, NULL },
+              doextcmd, IFBURIED | GENERALCMD | CMD_M_PREFIX, NULL },
     { M('?'), "?", "list all extended commands",
-              doextlist, IFBURIED | AUTOCOMPLETE | GENERALCMD, NULL },
+              doextlist, IFBURIED | AUTOCOMPLETE | GENERALCMD | CMD_M_PREFIX,
+              NULL },
     { M('a'), "adjust", "adjust inventory letters",
               doorganize, IFBURIED | AUTOCOMPLETE, NULL },
     { M('A'), "annotate", "name current level",
               donamelevel, IFBURIED | AUTOCOMPLETE, NULL },
     { 'a',    "apply", "apply (use) a tool (pick-axe, key, lamp...)",
-              doapply, 0, NULL },
+              doapply, CMD_M_PREFIX, NULL },
     { C('x'), "attributes", "show your attributes",
               doattributes, IFBURIED, NULL },
     { '@',    "autopickup", "toggle the 'autopickup' option on/off",
@@ -1880,7 +2122,7 @@ struct ext_func_tab extcmdlist[] = {
     { 'D',    "droptype", "drop specific item types",
               doddrop, 0, NULL },
     { 'e',    "eat", "eat something",
-              doeat, 0, NULL },
+              doeat, CMD_M_PREFIX, NULL },
     { 'E',    "engrave", "engrave writing on the floor",
               doengrave, 0, NULL },
     { M('e'), "enhance", "advance or check weapon and spell skills",
@@ -1889,6 +2131,8 @@ struct ext_func_tab extcmdlist[] = {
        impact frequently used #enhance by making #e become ambiguous */
     { M('X'), "exploremode", "enter explore (discovery) mode",
               enter_explore_mode, IFBURIED | GENERALCMD | NOFUZZERCMD, NULL },
+    { 'F',    "fight", "prefix: force fight even if you don't see a monster",
+              do_fight, PREFIXCMD, NULL },
     { 'f',    "fire", "fire ammunition from quiver",
               dofire, 0, NULL },
     { M('f'), "force", "force a lock",
@@ -1912,9 +2156,9 @@ struct ext_func_tab extcmdlist[] = {
     { C('d'), "kick", "kick something",
               dokick, 0, NULL },
     { '\\',   "known", "show what object types have been discovered",
-              dodiscovered, IFBURIED | GENERALCMD, NULL },
+              dodiscovered, IFBURIED | GENERALCMD | CMD_M_PREFIX, NULL },
     { '`',    "knownclass", "show discovered types for one class of objects",
-              doclassdisco, IFBURIED | GENERALCMD, NULL },
+              doclassdisco, IFBURIED | GENERALCMD | CMD_M_PREFIX, NULL },
     { '\0',   "levelchange", "change experience level",
               wiz_level_change, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { '\0',   "lightsources", "show mobile light sources",
@@ -1922,7 +2166,7 @@ struct ext_func_tab extcmdlist[] = {
     { ':',    "look", "look at what is here",
               dolook, IFBURIED, NULL },
     { M('l'), "loot", "loot a box on the floor",
-              doloot, AUTOCOMPLETE, NULL },
+              doloot, AUTOCOMPLETE | CMD_M_PREFIX, NULL },
 #ifdef DEBUG_MIGRATING_MONS
     { '\0',   "migratemons", "migrate N random monsters",
               wiz_migrate_mons, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
@@ -1932,7 +2176,7 @@ struct ext_func_tab extcmdlist[] = {
     { 'N',    "name", "same as call; name a monster or object or object type",
               docallcmd, IFBURIED | AUTOCOMPLETE, NULL },
     { M('o'), "offer", "offer a sacrifice to the gods",
-              dosacrifice, AUTOCOMPLETE, NULL },
+              dosacrifice, AUTOCOMPLETE | CMD_M_PREFIX, NULL },
     { 'o',    "open", "open a door",
               doopen, 0, NULL },
     { 'O',    "options", "show option settings, possibly change them",
@@ -1949,7 +2193,7 @@ struct ext_func_tab extcmdlist[] = {
     { '|',    "perminv", "scroll persistent inventory display",
               doperminv, IFBURIED | GENERALCMD | NOFUZZERCMD, NULL },
     { ',',    "pickup", "pick up things at the current location",
-              dopickup, 0, NULL },
+              dopickup, CMD_M_PREFIX, NULL },
     { '\0',   "polyself", "polymorph self",
               wiz_polyself, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { M('p'), "pray", "pray to the gods for help",
@@ -1961,7 +2205,8 @@ struct ext_func_tab extcmdlist[] = {
     { 'q',    "quaff", "quaff (drink) something",
               dodrink, 0, NULL },
     { '\0', "quit", "exit without saving current game",
-              done2, IFBURIED | AUTOCOMPLETE | GENERALCMD | NOFUZZERCMD, NULL },
+              done2, IFBURIED | AUTOCOMPLETE | GENERALCMD | NOFUZZERCMD,
+              NULL },
     { 'Q',    "quiver", "select ammunition for quiver",
               dowieldquiver, 0, NULL },
     { 'r',    "read", "read a scroll or spellbook",
@@ -1970,16 +2215,24 @@ struct ext_func_tab extcmdlist[] = {
               doredraw, IFBURIED | GENERALCMD, NULL },
     { 'R',    "remove", "remove an accessory (ring, amulet, etc)",
               doremring, 0, NULL },
+    { C('a'), "repeat", "repeat a previous command",
+              do_repeat, IFBURIED | GENERALCMD, NULL },
+    { 'm',    "reqmenu", "prefix: request menu or modify command",
+              do_reqmenu, PREFIXCMD, NULL },
     { C('_'), "retravel", "travel to previously selected travel location",
               dotravel_target, 0, NULL },
     { M('R'), "ride", "mount or dismount a saddled steed",
               doride, AUTOCOMPLETE, NULL },
     { M('r'), "rub", "rub a lamp or a stone",
               dorub, AUTOCOMPLETE, NULL },
+    { 'G',    "run", "prefix: run until something interesting is seen",
+              do_run, PREFIXCMD, NULL },
+    { 'g',    "rush", "prefix: rush until something interesting is seen",
+              do_rush, PREFIXCMD, NULL },
     { 'S',    "save", "save the game and exit",
               dosave, IFBURIED | GENERALCMD | NOFUZZERCMD, NULL },
     { 's',    "search", "search for traps and secret doors",
-              dosearch, IFBURIED, "searching" },
+              dosearch, IFBURIED | CMD_M_PREFIX, "searching" },
     { '*',    "seeall", "show all equipment in use",
               doprinuse, IFBURIED, NULL },
     { AMULET_SYM, "seeamulet", "show the amulet currently worn",
@@ -2022,7 +2275,7 @@ struct ext_func_tab extcmdlist[] = {
     { 'A',    "takeoffall", "remove all armor",
               doddoremarm, 0, NULL },
     { C('t'), "teleport", "teleport around the level",
-              dotelecmd, IFBURIED, NULL },
+              dotelecmd, IFBURIED | CMD_M_PREFIX, NULL },
     /* \177 == <del> aka <delete> aka <rubout>; some terminals have an
        option to swap it with <backspace> so if there's a key labeled
        <delete> it may or may not actually invoke the #terrain command */
@@ -2038,9 +2291,9 @@ struct ext_func_tab extcmdlist[] = {
     { '\0',   "timeout", "look at timeout queue and hero's timed intrinsics",
               wiz_timeout_queue, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { M('T'), "tip", "empty a container",
-              dotip, AUTOCOMPLETE, NULL },
+              dotip, AUTOCOMPLETE | CMD_M_PREFIX, NULL },
     { '_',    "travel", "travel to a specific location on the map",
-              dotravel, 0, NULL },
+              dotravel, CMD_M_PREFIX, NULL },
     { M('t'), "turn", "turn undead away",
               doturn, IFBURIED | AUTOCOMPLETE, NULL },
     { 'X',    "twoweapon", "toggle two-weapon combat",
@@ -2059,7 +2312,7 @@ struct ext_func_tab extcmdlist[] = {
     { '\0',   "vision", "show vision array",
               wiz_show_vision, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { '.',    "wait", "rest one move while doing nothing",
-              donull, IFBURIED, "waiting" },
+              donull, IFBURIED | CMD_M_PREFIX, "waiting" },
     { 'W',    "wear", "wear a piece of armor",
               dowear, 0, NULL },
     { '&',    "whatdoes", "tell what a command does",
@@ -2074,7 +2327,8 @@ struct ext_func_tab extcmdlist[] = {
               doborn, IFBURIED | WIZMODECMD, NULL },
 #ifdef DEBUG
     { '\0',   "wizbury", "bury objs under and around you",
-              wiz_debug_cmd_bury, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
+              wiz_debug_cmd_bury, IFBURIED | AUTOCOMPLETE | WIZMODECMD,
+              NULL },
 #endif
     { C('e'), "wizdetect", "reveal hidden things within a small radius",
               wiz_detect, IFBURIED | WIZMODECMD, NULL },
@@ -2087,7 +2341,7 @@ struct ext_func_tab extcmdlist[] = {
     { '\0',   "wizintrinsic", "set an intrinsic",
               wiz_intrinsic, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { C('v'), "wizlevelport", "teleport to another level",
-              wiz_level_tele, IFBURIED | WIZMODECMD, NULL },
+              wiz_level_tele, IFBURIED | WIZMODECMD | CMD_M_PREFIX, NULL },
     { '\0',   "wizloaddes", "load and execute a des-file lua script",
               wiz_load_splua, IFBURIED | WIZMODECMD | NOFUZZERCMD, NULL },
     { '\0',   "wizloadlua", "load and execute a lua script",
@@ -2110,66 +2364,149 @@ struct ext_func_tab extcmdlist[] = {
               wiz_show_wmodes, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { 'z',    "zap", "zap a wand",
               dozap, 0, NULL },
+    /* movement commands will be bound by reset_commands() */
+    /* move or attack */
+    { '\0', "movewest", "move west (screen left)",
+            do_move_west, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "movenorthwest", "move northwest (screen upper left)",
+            do_move_northwest, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "movenorth", "move north (screen up)",
+            do_move_north, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "movenortheast", "move northeast (screen upper right)",
+            do_move_northeast, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "moveeast", "move east (screen right)",
+            do_move_east, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "movesoutheast", "move southeast (screen lower right)",
+            do_move_southeast, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "movesouth", "move south (screen down)",
+            do_move_south, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "movesouthwest", "move southwest (screen lower left)",
+            do_move_southwest, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    /* rush */
+    { '\0', "rushwest", "rush west (screen left)",
+            do_rush_west, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "rushnorthwest", "rush northwest (screen upper left)",
+            do_rush_northwest, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "rushnorth", "rush north (screen up)",
+            do_rush_north, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "rushnortheast", "rush northeast (screen upper right)",
+            do_rush_northeast, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "rusheast", "rush east (screen right)",
+            do_rush_east, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "rushsoutheast", "rush southeast (screen lower right)",
+            do_rush_southeast, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "rushsouth", "rush south (screen down)",
+            do_rush_south, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "rushsouthwest", "rush southwest (screen lower left)",
+            do_rush_southwest, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    /* run */
+    { '\0', "runwest", "run west (screen left)",
+            do_run_west, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "runnorthwest", "run northwest (screen upper left)",
+            do_run_northwest, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "runnorth", "run north (screen up)",
+            do_run_north, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "runnortheast", "run northeast (screen upper right)",
+            do_run_northeast, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "runeast", "run east (screen right)",
+            do_run_east, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "runsoutheast", "run southeast (screen lower right)",
+            do_run_southeast, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "runsouth", "run south (screen down)",
+            do_run_south, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+    { '\0', "runsouthwest", "run southwest (screen lower left)",
+            do_run_southwest, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+
     /* internal commands: only used by game core, not available for user */
     { '\0',   "clicklook", NULL, doclicklook, INTERNALCMD, NULL },
     { '\0', (char *) 0, (char *) 0, donull, 0, (char *) 0 } /* sentinel */
 };
 
-/* used by dokeylist() and by key2extcmdesc() for dowhatdoes() */
-static const char
-    run_desc[] = "Prefix: run until something very interesting is seen",
-    rush_desc[] = "Prefix: rush until something interesting is seen",
-    forcefight_desc[] = "Prefix: force fight even if you don't see a monster";
+/* mapping direction and move mode to extended command function */
+static int (*move_funcs[N_DIRS_Z][N_MOVEMODES])(void) = {
+    { do_move_west,      do_run_west,      do_rush_west },
+    { do_move_northwest, do_run_northwest, do_rush_northwest },
+    { do_move_north,     do_run_north,     do_rush_north },
+    { do_move_northeast, do_run_northeast, do_rush_northeast },
+    { do_move_east,      do_run_east,      do_rush_east },
+    { do_move_southeast, do_run_southeast, do_rush_southeast },
+    { do_move_south,     do_run_south,     do_rush_south },
+    { do_move_southwest, do_run_southwest, do_rush_southwest },
+    { dodown,            dodown,           dodown },
+    { doup,              doup,             doup },
+};
 
+/* used by dokeylist() and by key2extcmdesc() for dowhatdoes() */
 static const struct {
     int nhkf;
     const char *desc;
     boolean numpad;
 } misc_keys[] = {
     { NHKF_ESC, "cancel current prompt or pending prefix", FALSE },
-    { NHKF_RUSH, rush_desc, FALSE },
-    { NHKF_RUSH2, rush_desc, TRUE },
-    { NHKF_RUN, run_desc, FALSE },
-    { NHKF_RUN2, run_desc, TRUE },
-    { NHKF_FIGHT, forcefight_desc, FALSE },
-    { NHKF_FIGHT2, forcefight_desc, TRUE } ,
-    { NHKF_NOPICKUP,
-      "Prefix: move without picking up objects or fighting", FALSE },
-    { NHKF_RUN_NOPICKUP,
-      "Prefix: run without picking up objects or fighting", FALSE },
-    { NHKF_REQMENU,
-      "Prefix: request a menu (for some non-movement commands)", FALSE },
     { NHKF_COUNT,
       "Prefix: for digits when preceding a command with a count", TRUE },
-    { NHKF_DOAGAIN , "repeat: perform the previous command again", FALSE },
     { 0, (const char *) 0, FALSE }
 };
 
-/* for key2extcmddesc() to support dowhatdoes() */
-struct movcmd {
-    uchar k1, k2, k3, k4; /* 'normal', 'qwertz', 'numpad', 'phone' */
-    const char *txt, *alt; /* compass direction, screen direction */
-};
-static const struct movcmd movtab[] = {
-    { 'h', 'h', '4', '4', "west",      "left" },
-    { 'j', 'j', '2', '8', "south",     "down" },
-    { 'k', 'k', '8', '2', "north",     "up" },
-    { 'l', 'l', '6', '6', "east",      "right" },
-    { 'b', 'b', '1', '7', "southwest", "lower left" },
-    { 'n', 'n', '3', '9', "southeast", "lower right" },
-    { 'u', 'u', '9', '3', "northeast", "upper right" },
-    { 'y', 'z', '7', '1', "northwest", "upper left" },
-    {   0,   0,   0,   0,  (char *) 0, (char *) 0 }
-};
-
 int extcmdlist_length = SIZE(extcmdlist) - 1;
+
+/* get entry i in the extended commands list. for windowport use. */
+struct ext_func_tab *
+extcmds_getentry(int i)
+{
+    if (i < 0 || i > extcmdlist_length)
+        return 0;
+    return &extcmdlist[i];
+}
+
+/* find extended command entries matching findstr.
+   if findstr is NULL, returns all available entries.
+   returns: number of matching extended commands,
+            and the entry indexes in matchlist.
+   for windowport use. */
+int
+extcmds_match(const char *findstr, int ecmflags, int **matchlist)
+{
+    static int retmatchlist[SIZE(extcmdlist)] = DUMMY;
+    int i, mi = 0;
+    int fslen = findstr ? strlen(findstr) : 0;
+    boolean ignoreac = (ecmflags & ECM_IGNOREAC) != 0;
+    boolean exactmatch = (ecmflags & ECM_EXACTMATCH) != 0;
+    boolean no1charcmd = (ecmflags & ECM_NO1CHARCMD) != 0;
+
+    for (i = 0; extcmdlist[i].ef_txt; i++) {
+        if (extcmdlist[i].flags & (CMD_NOT_AVAILABLE|INTERNALCMD))
+            continue;
+        if (!wizard && (extcmdlist[i].flags & WIZMODECMD))
+            continue;
+        if (!ignoreac && !(extcmdlist[i].flags & AUTOCOMPLETE))
+            continue;
+        if (no1charcmd && (strlen(extcmdlist[i].ef_txt) == 1))
+            continue;
+        if (!findstr) {
+            retmatchlist[mi++] = i;
+        } else if (exactmatch) {
+            if (!strcmpi(findstr, extcmdlist[i].ef_txt)) {
+                retmatchlist[mi++] = i;
+            }
+        } else {
+            if (!strncmpi(findstr, extcmdlist[i].ef_txt, fslen)) {
+                retmatchlist[mi++] = i;
+            }
+        }
+    }
+
+    if (matchlist)
+        *matchlist = retmatchlist;
+
+    return mi;
+}
 
 const char *
 key2extcmddesc(uchar key)
 {
     static char key2cmdbuf[QBUFSZ];
-    const struct movcmd *mov;
-    int k, c, i, j;
+    int k, i, j;
     uchar M_5 = (uchar) M('5'), M_0 = (uchar) M('0');
 
     /* need to check for movement commands before checking the extended
@@ -2182,17 +2519,7 @@ key2extcmddesc(uchar key)
         Strcpy(key2cmdbuf, "rush");
     else if (movecmd(k = key, MV_RUN))
         Strcpy(key2cmdbuf, "run");
-    if (*key2cmdbuf) {
-        for (mov = &movtab[0]; mov->k1; ++mov) {
-            c = !g.Cmd.num_pad ? (!g.Cmd.swap_yz ? mov->k1 : mov->k2)
-                             : (!g.Cmd.phone_layout ? mov->k3 : mov->k4);
-            if (c == k) {
-                Sprintf(eos(key2cmdbuf), " %s (screen %s)",
-                        mov->txt, mov->alt);
-                return key2cmdbuf;
-            }
-        }
-    } else if (digit(key) || (g.Cmd.num_pad && digit(unmeta(key)))) {
+    if (digit(key) || (g.Cmd.num_pad && digit(unmeta(key)))) {
         key2cmdbuf[0] = '\0';
         if (!g.Cmd.num_pad)
             Strcpy(key2cmdbuf, "start of, or continuation of, a count");
@@ -2255,6 +2582,24 @@ bind_key(uchar key, const char *command)
     return FALSE;
 }
 
+/* bind key by ext cmd function */
+static boolean
+bind_key_fn(uchar key, int (*fn)(void))
+{
+    struct ext_func_tab *extcmd;
+
+    for (extcmd = extcmdlist; extcmd->ef_txt; extcmd++) {
+        if (extcmd->ef_funct != fn)
+            continue;
+        if ((extcmd->flags & INTERNALCMD) != 0)
+            continue;
+        g.Cmd.commands[key] = extcmd;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 /* initialize all keyboard commands */
 static void
 commands_init(void)
@@ -2265,27 +2610,27 @@ commands_init(void)
         if (extcmd->key)
             g.Cmd.commands[extcmd->key] = extcmd;
 
-    (void) bind_key(C('l'), "redraw"); /* if number_pad is set */
-    /*       'b', 'B' : go sw */
-    /*       'F' : fight (one time) */
-    /*       'g', 'G' : multiple go */
-    /*       'h', 'H' : go west */
-    (void) bind_key('h',    "help"); /* if number_pad is set */
-    (void) bind_key('j',    "jump"); /* if number_pad is on */
-    /*       'j', 'J', 'k', 'K', 'l', 'L', 'm', 'M', 'n', 'N' move commands */
-    (void) bind_key('k',    "kick"); /* if number_pad is on */
-    (void) bind_key('l',    "loot"); /* if number_pad is on */
-    (void) bind_key(C('n'), "annotate"); /* if number_pad is on */
-    (void) bind_key(M('n'), "name");
-    (void) bind_key(M('N'), "name");
-    (void) bind_key('u',    "untrap"); /* if number_pad is on */
+    /* number_pad */
+    (void) bind_key(C('l'), "redraw");
+    (void) bind_key('h',    "help");
+    (void) bind_key('j',    "jump");
+    (void) bind_key('k',    "kick");
+    (void) bind_key('l',    "loot");
+    (void) bind_key(C('n'), "annotate");
+    (void) bind_key('u',    "untrap");
+    (void) bind_key('5',    "run");
+    (void) bind_key(M('5'), "rush");
+    (void) bind_key('-',    "fight");
 
     /* alt keys: */
     (void) bind_key(M('O'), "overview");
     (void) bind_key(M('2'), "twoweapon");
-
-    /* wait_on_space */
+    (void) bind_key(M('n'), "name");
+    (void) bind_key(M('N'), "name");
+#if 0
+    /* don't do this until the rest_on_space option is set or cleared */
     (void) bind_key(' ',    "wait");
+#endif
 }
 
 static boolean
@@ -2375,11 +2720,6 @@ dokeylist(void)
     (void) memset((genericptr_t) keys_used, 0, sizeof keys_used);
     (void) memset((genericptr_t) pfx_seen, 0, sizeof pfx_seen);
 
-    for (i = 0; i < N_DIRS; i++) {
-        keys_used[(uchar) g.Cmd.move[i]] = TRUE;
-        keys_used[(uchar) g.Cmd.rush[i]] = TRUE;
-        keys_used[(uchar) g.Cmd.run[i]] = TRUE;
-    }
 #ifndef NO_SIGNAL
     /* this is actually ambiguous; tty raw mode will override SIGINT;
        when enabled, treat it like a movement command since assigning
@@ -2398,10 +2738,9 @@ dokeylist(void)
             continue;
         j = misc_keys[i].nhkf;
         key = (uchar) g.Cmd.spkeys[j];
-        if (key && !mov_seen[key] && (!pfx_seen[key] || j == NHKF_REQMENU)) {
+        if (key && !mov_seen[key] && !pfx_seen[key]) {
             keys_used[key] = TRUE;
-            if (j != NHKF_REQMENU)
-                pfx_seen[key] = j;
+            pfx_seen[key] = j;
         } else
             spkey_gap = TRUE;
     }
@@ -2449,7 +2788,7 @@ dokeylist(void)
         j = misc_keys[i].nhkf;
         key = (uchar) g.Cmd.spkeys[j];
         if (key && !mov_seen[key]
-            && (pfx_seen[key] == j || j == NHKF_REQMENU)) {
+            && (pfx_seen[key] == j)) {
             Sprintf(buf, "%-7s %s", key2txt(key, buf2), misc_keys[i].desc);
             putstr(datawin, 0, buf);
         }
@@ -2473,7 +2812,7 @@ dokeylist(void)
                 continue;
             j = misc_keys[i].nhkf;
             key = (uchar) g.Cmd.spkeys[j];
-            if (!key || (pfx_seen[key] != j && j != NHKF_REQMENU)) {
+            if (!key || (pfx_seen[key] != j)) {
                 Sprintf(buf2, "[%s]", spkey_name(j));
                 /* lines up with the other unassigned commands which use
                    "#%-20s ", but not with the other special keys */
@@ -2484,24 +2823,23 @@ dokeylist(void)
         }
     }
 
+#define IGNORECMD (WIZMODECMD | INTERNALCMD | MOVEMENTCMD)
+
     putstr(datawin, 0, "");
     show_menu_controls(datawin, TRUE);
 
-    if (keylist_putcmds(datawin, TRUE, GENERALCMD,
-                        WIZMODECMD | INTERNALCMD, keys_used)) {
+    if (keylist_putcmds(datawin, TRUE, GENERALCMD, IGNORECMD, keys_used)) {
         putstr(datawin, 0, "");
         putstr(datawin, 0, "General commands:");
         (void) keylist_putcmds(datawin, FALSE, GENERALCMD,
-                               WIZMODECMD | INTERNALCMD,
-                                 keys_used);
+                               IGNORECMD, keys_used);
     }
 
-    if (keylist_putcmds(datawin, TRUE, 0,
-                        GENERALCMD | WIZMODECMD | INTERNALCMD, keys_used)) {
+    if (keylist_putcmds(datawin, TRUE, 0, GENERALCMD | IGNORECMD, keys_used)) {
         putstr(datawin, 0, "");
         putstr(datawin, 0, "Game commands:");
         (void) keylist_putcmds(datawin, FALSE, 0,
-                               GENERALCMD | WIZMODECMD | INTERNALCMD,
+                               GENERALCMD | IGNORECMD,
                                keys_used);
     }
 
@@ -2515,6 +2853,7 @@ dokeylist(void)
 
     display_nhwindow(datawin, FALSE);
     destroy_nhwindow(datawin);
+#undef IGNORECMD
 }
 
 const struct ext_func_tab *
@@ -2527,6 +2866,13 @@ ext_func_tab_from_func(int (*fn)(void))
             return extcmd;
 
     return NULL;
+}
+
+/* returns the key bound to a movement command for given DIR_ and MV_ mode */
+char
+cmd_from_dir(int dir, int mode)
+{
+    return cmd_from_func(move_funcs[dir][mode]);
 }
 
 char
@@ -2549,10 +2895,25 @@ cmd_from_func(int (*fn)(void))
     return '\0';
 }
 
+static const char *
+ecname_from_fn(int (*fn)(void))
+{
+    const struct ext_func_tab *extcmd, *cmdptr = 0;
+
+    for (extcmd = extcmdlist; extcmd->ef_txt; ++extcmd)
+        if (extcmd->ef_funct == fn) {
+            cmdptr = extcmd;
+            return cmdptr->ef_txt;
+        }
+    return (char *) 0;
+}
+
 /* return extended command name (without leading '#') for command (*fn)() */
 const char *
-cmdname_from_func(int (*fn)(void), char outbuf[],
-                  boolean fullname) /* False: just enough to disambiguate */
+cmdname_from_func(
+    int (*fn)(void),  /* function whose command name is wanted */
+    char outbuf[],    /* place to store the result */
+    boolean fullname) /* False: just enough to disambiguate */
 {
     const struct ext_func_tab *extcmd, *cmdptr = 0;
     const char *res = 0;
@@ -2876,7 +3237,7 @@ misc_stats(winid win, long *total_count, long *total_size)
     }
 }
 
-/*
+/* the #stats command
  * Display memory usage of all monsters and objects on the level.
  */
 static int
@@ -2960,7 +3321,7 @@ wiz_show_stats(void)
 
     display_nhwindow(win, FALSE);
     destroy_nhwindow(win);
-    return 0;
+    return ECMD_OK;
 }
 
 RESTORE_WARNING_FORMAT_NONLITERAL
@@ -2988,28 +3349,24 @@ wiz_migrate_mons(void)
 
     getlin("How many random monsters to migrate? [0]", inbuf);
     if (*inbuf == '\033')
-        return 0;
+        return ECMD_OK;
     mcount = atoi(inbuf);
     if (mcount < 0 || mcount > (COLNO * ROWNO) || Is_botlevel(&u.uz))
-        return 0;
+        return ECMD_OK;
     while (mcount > 0) {
         if (Is_stronghold(&u.uz))
             assign_level(&tolevel, &valley_level);
         else
             get_level(&tolevel, depth(&u.uz) + 1);
         ptr = rndmonst();
-        mtmp = makemon(ptr, 0, 0, NO_MM_FLAGS);
+        mtmp = makemon(ptr, 0, 0, MM_NOMSG);
         if (mtmp)
             migrate_to_level(mtmp, ledger_no(&tolevel), MIGR_RANDOM,
                              (coord *) 0);
         mcount--;
     }
-    return 0;
+    return ECMD_OK;
 }
-#endif
-
-#ifndef DOAGAIN /* might have gotten undefined in config.h */
-#define DOAGAIN '\0' /* undefined => 0, '\0' => no key to activate redo */
 #endif
 
 static struct {
@@ -3018,18 +3375,6 @@ static struct {
     const char *name;
 } const spkeys_binds[] = {
     { NHKF_ESC,              '\033', (char *) 0 }, /* no binding */
-    { NHKF_DOAGAIN,          DOAGAIN, "repeat" },
-    { NHKF_REQMENU,          'm', "reqmenu" },
-    { NHKF_RUN,              'G', "run" },
-    { NHKF_RUN2,             '5', "run.numpad" },
-    { NHKF_RUSH,             'g', "rush" },
-    { NHKF_RUSH2,            M('5'), "rush.numpad" },
-    { NHKF_FIGHT,            'F', "fight" },
-    { NHKF_FIGHT2,           '-', "fight.numpad" },
-    { NHKF_NOPICKUP,         'm', "nopickup" },
-    { NHKF_RUN_NOPICKUP,     'M', "run.nopickup" },
-    { NHKF_REDRAW,           C('r'), "redraw" },
-    { NHKF_REDRAW2,          C('l'), "redraw.numpad" },
     { NHKF_GETDIR_SELF,      '.', "getdir.self" },
     { NHKF_GETDIR_SELF2,     's', "getdir.self2" },
     { NHKF_GETDIR_HELP,      '?', "getdir.help" },
@@ -3165,11 +3510,13 @@ reset_commands(boolean initial)
     static const int ylist[] = {
         'y', 'Y', C('y'), M('y'), M('Y'), M(C('y'))
     };
-    static struct ext_func_tab *back_dir_cmd[N_DIRS];
+    static struct ext_func_tab *back_dir_cmd[N_DIRS][N_MOVEMODES];
+    static uchar back_dir_key[N_DIRS][N_MOVEMODES];
     static boolean backed_dir_cmd = FALSE;
     const struct ext_func_tab *cmdtmp;
     boolean flagtemp;
     int c, i, updated = 0;
+    int dir, mode;
 
     if (initial) {
         updated = 1;
@@ -3180,8 +3527,10 @@ reset_commands(boolean initial)
         commands_init();
     } else {
         if (backed_dir_cmd) {
-            for (i = 0; i < N_DIRS; i++) {
-                g.Cmd.commands[(uchar) g.Cmd.dirchars[i]] = back_dir_cmd[i];
+            for (dir = 0; dir < N_DIRS; dir++) {
+                for (mode = 0; mode < N_MOVEMODES; mode++) {
+                    g.Cmd.commands[back_dir_key[dir][mode]] = back_dir_cmd[dir][mode];
+                }
             }
         }
 
@@ -3218,10 +3567,6 @@ reset_commands(boolean initial)
             cmdtmp = g.Cmd.commands['5'];
             g.Cmd.commands['5'] = g.Cmd.commands[c];
             g.Cmd.commands[c] = cmdtmp;
-#else
-            c = g.Cmd.spkeys[NHKF_RUN2];
-            g.Cmd.spkeys[NHKF_RUN2] = g.Cmd.spkeys[NHKF_RUSH2];
-            g.Cmd.spkeys[NHKF_RUSH2] = c;
 #endif
             /* FIXME: NHKF_DOINV2 ought to be implemented instead of this */
             c = M('0') & 0xff;
@@ -3246,6 +3591,7 @@ reset_commands(boolean initial)
         }
     } /*?initial*/
 
+    /* choose updated movement keys */
     if (updated)
         g.Cmd.serialno++;
     g.Cmd.dirchars = !g.Cmd.num_pad
@@ -3253,54 +3599,72 @@ reset_commands(boolean initial)
                        : (!g.Cmd.phone_layout ? ndir : ndir_phone_layout);
     g.Cmd.alphadirchars = !g.Cmd.num_pad ? g.Cmd.dirchars : sdir;
 
-    for (i = 0; i < N_DIRS; i++) {
-        g.Cmd.move[i] = g.Cmd.dirchars[i];
-        if (!g.Cmd.num_pad) {
-            g.Cmd.run[i]  = highc(g.Cmd.move[i]);
-            g.Cmd.rush[i] = C(g.Cmd.move[i]);
-        } else {
-            g.Cmd.run[i]  = M(g.Cmd.move[i]);
-            g.Cmd.rush[i] = M(g.Cmd.move[i]);
-        }
-    }
+    /* back up the commands & keys overwritten by new movement keys */
+    for (dir = 0; dir < N_DIRS; dir++) {
+        for (mode = MV_WALK; mode < N_MOVEMODES; mode++) {
+            uchar di = (uchar) g.Cmd.dirchars[dir];
 
-    if (!initial) {
-        for (i = 0; i < N_DIRS; i++) {
-            uchar di = (uchar) g.Cmd.dirchars[i];
-
-            back_dir_cmd[i] = (struct ext_func_tab *) g.Cmd.commands[di];
+            if (!g.Cmd.num_pad) {
+                if (mode == MV_RUN) di = highc(di);
+                else if (mode == MV_RUSH) di = C(di);
+            } else {
+                if (mode == MV_RUN) di = M(di);
+                else if (mode == MV_RUSH) di = M(di);
+            }
+            back_dir_key[dir][mode] = di;
+            back_dir_cmd[dir][mode] = (struct ext_func_tab *) g.Cmd.commands[di];
             g.Cmd.commands[di] = (struct ext_func_tab *) 0;
         }
-        backed_dir_cmd = TRUE;
-        for (i = 0; i < N_DIRS; i++)
-            (void) bind_key(g.Cmd.dirchars[i], "nothing");
     }
+    backed_dir_cmd = TRUE;
+
+    /* bind the new keys to movement commands */
+    for (i = 0; i < N_DIRS; i++) {
+        (void) bind_key_fn(g.Cmd.dirchars[i], move_funcs[i][MV_WALK]);
+        if (!g.Cmd.num_pad) {
+            (void) bind_key_fn(highc(g.Cmd.dirchars[i]), move_funcs[i][MV_RUN]);
+            (void) bind_key_fn(C(g.Cmd.dirchars[i]), move_funcs[i][MV_RUSH]);
+        } else {
+            /* M(number) works when altmeta is on */
+            (void) bind_key_fn(M(g.Cmd.dirchars[i]), move_funcs[i][MV_RUN]);
+            /* can't bind highc() or C() of numbers. just use the 5 prefix. */
+        }
+    }
+    update_rest_on_space();
 }
 
-/* non-movement commands which accept 'm' prefix to request menu operation */
-static boolean
-accept_menu_prefix(int (*cmd_func)(void))
+/* called when 'rest_on_space' is toggled, also called by reset_commands()
+   from initoptions_init() which takes place before key bindings have been
+   processed, and by initoptions_finish() after key bindings so that we
+   can remember anything bound to <space> in 'unrestonspace' */
+void
+update_rest_on_space(void)
 {
-    if (cmd_func == dopickup || cmd_func == dotip
-        /* eat, #offer, and apply tinning-kit all use floorfood() to pick
-           an item on floor or in invent; 'm' skips picking from floor
-           (ie, inventory only) rather than request use of menu operation */
-        || cmd_func == doeat || cmd_func == dosacrifice || cmd_func == doapply
-        /* 'm' for removing saddle from adjacent monster without checking
-           for containers at <u.ux,u.uy> */
-        || cmd_func == doloot
-        /* offer menu to choose discoveries sort order */
-        || cmd_func == dodiscovered || cmd_func == doclassdisco
-        /* travel: pop up a menu of interesting targets in view */
-        || cmd_func == dotravel
-        /* wait and search: allow even if next to a hostile monster */
-        || cmd_func == donull || cmd_func == dosearch
-        /* wizard mode ^V and ^T */
-        || cmd_func == wiz_level_tele || cmd_func == dotelecmd
-        /* 'm' prefix allowed for some extended commands */
-        || cmd_func == doextcmd || cmd_func == doextlist)
-        return TRUE;
-    return FALSE;
+    /* cloned from extcmdlist['.'], then slightly modified to be distinct;
+       donull is all that's needed for it to operate; command name and
+       description get shown by help menu's "Info on what a given key does"
+       (which runs the '&' command) and "Full list of keyboard commands" */
+    static const struct ext_func_tab restonspace = {
+        ' ', "wait", "rest one move via 'rest_on_space' option",
+        donull, (IFBURIED | CMD_M_PREFIX), "waiting"
+    };
+    static const struct ext_func_tab *unrestonspace = 0;
+    const struct ext_func_tab *bound_f = g.Cmd.commands[' '];
+
+    /* when 'rest_on_space' is On, <space> will run the #wait command;
+       when it is Off, <space> will use 'unrestonspace' which will either
+       be Null and elicit "Unknown command ' '." or have some non-Null
+       command bound in player's RC file */
+    if (bound_f != 0 && bound_f != &restonspace)
+        unrestonspace = bound_f;
+    g.Cmd.commands[' '] = flags.rest_on_space ? &restonspace : unrestonspace;
+}
+
+/* commands which accept 'm' prefix to request menu operation */
+static boolean
+accept_menu_prefix(const struct ext_func_tab *ec)
+{
+    return (ec && ((ec->flags & CMD_M_PREFIX) != 0));
 }
 
 void
@@ -3351,10 +3715,9 @@ randomkey(void)
     case 12:
         {
             int d = rn2(N_DIRS);
-            if (!rn2(7))
-                c = !rn2(3) ? g.Cmd.rush[d] : g.Cmd.run[d];
-            else
-                c = g.Cmd.move[d];
+            int m = rn2(7) ? MV_WALK : (!rn2(3) ? MV_RUSH : MV_RUN);
+
+            c = cmd_from_dir(d, m);
         }
         break;
     case 13:
@@ -3395,17 +3758,6 @@ rnd_extcmd_idx(void)
     return rn2(extcmdlist_length + 1) - 1;
 }
 
-static int
-ch2spkeys(char c, int start, int end)
-{
-    int i;
-
-    for (i = start; i <= end; i++)
-        if (g.Cmd.spkeys[i] == c)
-            return i;
-    return NHKF_ESC;
-}
-
 void
 rhack(char *cmd)
 {
@@ -3416,6 +3768,9 @@ rhack(char *cmd)
     const struct ext_func_tab *cmdq_ec = NULL;
 
     iflags.menu_requested = FALSE;
+    prefix_seen = FALSE;
+    g.context.nopick = 0;
+got_prefix_input:
 #ifdef SAFERHANGUP
     if (g.program_state.done_hup)
         end_of_input();
@@ -3436,7 +3791,6 @@ rhack(char *cmd)
         if (cmdq_ec)
             goto do_cmdq_extcmd;
     } else if (firsttime) {
-        g.context.nopick = 0;
         cmd = parse();
         {
             char buf[BUFSZ];
@@ -3444,6 +3798,7 @@ rhack(char *cmd)
             FUZLOG(buf);
         }
     }
+
     if (*cmd == g.Cmd.spkeys[NHKF_ESC]) {
         /* a clever player might try to press Escape to escape from a
          * monster... */
@@ -3451,164 +3806,31 @@ rhack(char *cmd)
             pline("You cannot escape from %s!", mon_nam(u.ustuck));
         }
         g.context.move = FALSE;
+        iflags.menu_requested = FALSE;
+        g.context.run = 0;
+        g.context.nopick = g.context.forcefight = FALSE;
+        g.context.mv = FALSE;
+        g.multi = 0;
+        g.domove_attempting = 0;
         return;
     }
-    /* DOAGAIN might be '\0'; if so, don't execute it even if *cmd is too */
-    if ((*cmd && *cmd == g.Cmd.spkeys[NHKF_DOAGAIN])
-        && !g.in_doagain && g.saveq[0]) {
-        g.in_doagain = TRUE;
-        g.stail = 0;
-        rhack((char *) 0); /* read and execute command */
-        g.in_doagain = FALSE;
-        return;
-    }
+
     /* Special case of *cmd == ' ' handled better below */
     if (!*cmd || *cmd == (char) 0377) {
         nhbell();
         g.context.move = FALSE;
+        iflags.menu_requested = FALSE;
         return; /* probably we just had an interrupt */
     }
 
     /* handle most movement commands */
-    prefix_seen = FALSE;
     g.context.travel = g.context.travel1 = 0;
-    spkey = ch2spkeys(*cmd, NHKF_RUN, NHKF_RUN_NOPICKUP);
 
-    switch (spkey) {
-    case NHKF_RUSH2:
-        if (!g.Cmd.num_pad)
-            break;
-        /*FALLTHRU*/
-    case NHKF_RUSH:
-        if (movecmd(cmd[1], MV_ANY)) {
-            g.context.run = 2;
-            g.domove_attempting |= DOMOVE_RUSH;
-        } else
-            prefix_seen = TRUE;
-        break;
-    case NHKF_RUN2:
-        if (!g.Cmd.num_pad)
-            break;
-        /*FALLTHRU*/
-    case NHKF_RUN:
-        if (movecmd(cmd[1], MV_ANY)) {
-            g.context.run = 3;
-            g.domove_attempting |= DOMOVE_RUSH;
-        } else
-            prefix_seen = TRUE;
-        break;
-    case NHKF_FIGHT2:
-        if (!g.Cmd.num_pad)
-            break;
-        /*FALLTHRU*/
-    /* Effects of movement commands and invisible monsters:
-     * m: always move onto space (even if 'I' remembered)
-     * F: always attack space (even if 'I' not remembered)
-     * normal movement: attack if 'I', move otherwise.
-     */
-    case NHKF_FIGHT:
-        if (movecmd(cmd[1], MV_ANY)) {
-            g.context.forcefight = 1;
-            g.domove_attempting |= DOMOVE_WALK;
-        } else
-            prefix_seen = TRUE;
-        break;
-    case NHKF_NOPICKUP:
-        if (movecmd(cmd[1], MV_ANY) || u.dz) {
-            g.context.run = 0;
-            g.context.nopick = 1;
-            if (!u.dz)
-                g.domove_attempting |= DOMOVE_WALK;
-            else
-                cmd[0] = cmd[1]; /* "m<" or "m>" */
-        } else
-            prefix_seen = TRUE;
-        break;
-    case NHKF_RUN_NOPICKUP:
-        if (movecmd(cmd[1], MV_ANY)) {
-            g.context.run = 1;
-            g.context.nopick = 1;
-            g.domove_attempting |= DOMOVE_RUSH;
-        } else
-            prefix_seen = TRUE;
-        break;
-    default:
-        if (movecmd(*cmd, MV_WALK)) { /* ordinary movement */
-            g.context.run = 0; /* only matters here if it was 8 */
-            g.domove_attempting |= DOMOVE_WALK;
-        } else if (movecmd(*cmd, MV_RUN)) {
-            g.context.run = 1;
-            g.domove_attempting |= DOMOVE_RUSH;
-        } else if (movecmd(*cmd, MV_RUSH)) {
-            g.context.run = 3;
-            g.domove_attempting |= DOMOVE_RUSH;
-        }
-        break;
-    }
-
-    /* after movement--if reqmenu duplicates a prefix, movement takes
-       precedence; "request a menu" (default 'm') */
-    if (cmd[0] == g.Cmd.spkeys[NHKF_REQMENU]) {
-        /* (for func_tab cast, see below) */
-        const struct ext_func_tab *ft = g.Cmd.commands[cmd[1] & 0xff];
-        int (*func)(void) = ft ? ((struct ext_func_tab *) ft)->ef_funct : 0;
-
-        if (func && accept_menu_prefix(func)) {
-            iflags.menu_requested = TRUE;
-            ++cmd;
-            prefix_seen = FALSE;
-        } else {
-            prefix_seen = TRUE;
-        }
-    }
-
-    if (((g.domove_attempting & (DOMOVE_RUSH | DOMOVE_WALK)) != 0L)
-                            && !g.context.travel && !dxdy_moveok()) {
-        /* trying to move diagonally as a grid bug;
-           this used to be treated by movecmd() as not being
-           a movement attempt, but that didn't provide for any
-           feedback and led to strangeness if the key pressed
-           ('u' in particular) was overloaded for num_pad use */
-        You_cant("get there from here...");
-        g.context.run = 0;
-        g.context.nopick = g.context.forcefight = FALSE;
-        g.context.move = g.context.mv = FALSE;
-        g.multi = 0;
-        return;
-    }
-
-    if ((g.domove_attempting & DOMOVE_WALK) != 0L) {
-        if (g.multi)
-            g.context.mv = TRUE;
-        domove();
-        g.context.forcefight = 0;
-        return;
-    } else if ((g.domove_attempting & DOMOVE_RUSH) != 0L) {
-        if (firsttime) {
-            if (!g.multi)
-                g.multi = max(COLNO, ROWNO);
-            u.last_str_turn = 0;
-        }
-        g.context.mv = TRUE;
-        domove();
-        return;
-    } else if (prefix_seen) {
-        if (cmd[1] == g.Cmd.spkeys[NHKF_ESC]) {
-        /* <prefix><escape> */
-        /* don't report "unknown command" for change of heart... */
-        bad_command = FALSE;
-        } else { /* prefix followed by non-movement command */
-            bad_command = TRUE; /* skip cmdlist[] loop */
-        }
-    } else if (*cmd == ' ' && !flags.rest_on_space) {
-        bad_command = TRUE; /* skip cmdlist[] loop */
-
-    /* handle all other commands */
-    } else {
+    {
         register const struct ext_func_tab *tlist;
         int res, (*func)(void);
 
-do_cmdq_extcmd:
+ do_cmdq_extcmd:
         if (cmdq_ec)
             tlist = cmdq_ec;
         else
@@ -3617,7 +3839,12 @@ do_cmdq_extcmd:
         /* current - use *cmd to directly index cmdlist array */
         if (tlist != 0) {
             if (!can_do_extcmd(tlist)) {
-                res = 0;
+                res = ECMD_OK;
+                cmdq_clear();
+            } else if (prefix_seen && !accept_menu_prefix(tlist)
+                       && !(tlist->flags & PREFIXCMD)) {
+                /* we got a prefix previously, can this command accept one? */
+                res = ECMD_OK;
                 cmdq_clear();
             } else {
                 /* we discard 'const' because some compilers seem to have
@@ -3631,8 +3858,51 @@ do_cmdq_extcmd:
                     FUZLOG(buf);
                 }
                 res = (*func)(); /* perform the command */
+
+                if ((tlist->flags & PREFIXCMD)) {
+                    /* it was a prefix command, mark and get another command */
+                    prefix_seen = TRUE;
+                    bad_command = FALSE;
+                    cmdq_ec = NULL;
+                    goto got_prefix_input;
+                } else if (((g.domove_attempting & (DOMOVE_RUSH | DOMOVE_WALK)) != 0L)
+                            && !g.context.travel && !dxdy_moveok()) {
+                    /* trying to move diagonally as a grid bug */
+                    You_cant("get there from here...");
+                    g.context.run = 0;
+                    g.context.nopick = g.context.forcefight = FALSE;
+                    g.context.move = g.context.mv = FALSE;
+                    g.multi = 0;
+                    iflags.menu_requested = FALSE;
+                    return;
+                } else if ((g.domove_attempting & DOMOVE_WALK) != 0L) {
+                    if (g.multi)
+                        g.context.mv = TRUE;
+                    domove();
+                    g.context.forcefight = 0;
+                    iflags.menu_requested = FALSE;
+                    return;
+                } else if ((g.domove_attempting & DOMOVE_RUSH) != 0L) {
+                    if (firsttime) {
+                        if (!g.multi)
+                            g.multi = max(COLNO, ROWNO);
+                        u.last_str_turn = 0;
+                    }
+                    g.context.mv = TRUE;
+                    domove();
+                    iflags.menu_requested = FALSE;
+                    return;
+                }
+                prefix_seen = FALSE;
             }
-            if (!res) {
+            if ((res & ECMD_CANCEL)) {
+                /* command was canceled by user, maybe they declined to
+                   pick an object to act on. */
+                iflags.menu_requested = FALSE;
+                cmdq_clear();
+            }
+            if (!(res & ECMD_TIME)) {
+                iflags.menu_requested = FALSE;
                 g.context.move = FALSE;
                 g.multi = 0;
             }
@@ -3688,26 +3958,22 @@ movecmd(char sym, int mode)
 {
     int d = DIR_ERR;
 
-    if (g.Cmd.commands[(uchar)sym]
-        && g.Cmd.commands[(uchar)sym]->ef_funct == dodown) {
-        d = DIR_DOWN;
-    } else if (g.Cmd.commands[(uchar)sym]
-               && g.Cmd.commands[(uchar)sym]->ef_funct == doup) {
-        d = DIR_UP;
-    } else {
-        char *mvkeys = (mode == MV_WALK) ? g.Cmd.move :
-            ((mode == MV_RUN) ? g.Cmd.run : g.Cmd.rush);
+    if (g.Cmd.commands[(uchar)sym]) {
+        int (*fnc)(void) = g.Cmd.commands[(uchar)sym]->ef_funct;
 
-        for (d = N_DIRS - 1; d > DIR_ERR; d--) {
-            if (mode == MV_ANY) {
-                if (sym == g.Cmd.move[d]
-                    || sym == g.Cmd.rush[d]
-                    || sym == g.Cmd.run[d])
+        if (mode == MV_ANY) {
+            for (d = N_DIRS_Z - 1; d > DIR_ERR; d--)
+                if (fnc == move_funcs[d][MV_WALK]
+                    || fnc == move_funcs[d][MV_RUN]
+                    || fnc == move_funcs[d][MV_RUSH])
                     break;
-            } else if (sym == mvkeys[d])
-                break;
+        } else {
+            for (d = N_DIRS_Z - 1; d > DIR_ERR; d--)
+                if (fnc == move_funcs[d][mode])
+                    break;
         }
     }
+
     if (d != DIR_ERR) {
         u.dx = xdir[d];
         u.dy = ydir[d];
@@ -3731,22 +3997,8 @@ dxdy_moveok(void)
 boolean
 redraw_cmd(char c)
 {
-    return (boolean) (c == g.Cmd.spkeys[NHKF_REDRAW]
-                      || (g.Cmd.num_pad && c == g.Cmd.spkeys[NHKF_REDRAW2]));
-}
-
-static boolean
-prefix_cmd(char c)
-{
-    return (c == g.Cmd.spkeys[NHKF_REQMENU]
-            || c == g.Cmd.spkeys[NHKF_RUSH]
-            || c == g.Cmd.spkeys[NHKF_RUN]
-            || c == g.Cmd.spkeys[NHKF_NOPICKUP]
-            || c == g.Cmd.spkeys[NHKF_RUN_NOPICKUP]
-            || c == g.Cmd.spkeys[NHKF_FIGHT]
-            || (g.Cmd.num_pad && (c == g.Cmd.spkeys[NHKF_RUN2]
-                                  || c == g.Cmd.spkeys[NHKF_RUSH2]
-                                  || c == g.Cmd.spkeys[NHKF_FIGHT2])));
+    return (boolean) (g.Cmd.commands[(uchar)c]
+                      && g.Cmd.commands[(uchar)c]->ef_funct == doredraw);
 }
 
 /*
@@ -3848,26 +4100,36 @@ show_direction_keys(winid win, /* should specify a window which is
         centerchar = ' ';
 
     if (nodiag) {
-        Sprintf(buf, "             %c   ", g.Cmd.move[DIR_N]);
+        Sprintf(buf, "             %s   ",
+                visctrl(cmd_from_func(do_move_north)));
         putstr(win, 0, buf);
         putstr(win, 0, "             |   ");
-        Sprintf(buf, "          %c- %c -%c",
-                g.Cmd.move[DIR_W], centerchar, g.Cmd.move[DIR_E]);
+        Sprintf(buf, "          %s- %c -%s",
+                visctrl(cmd_from_func(do_move_west)),
+                centerchar,
+                visctrl(cmd_from_func(do_move_east)));
         putstr(win, 0, buf);
         putstr(win, 0, "             |   ");
-        Sprintf(buf, "             %c   ", g.Cmd.move[DIR_S]);
+        Sprintf(buf, "             %s   ",
+                visctrl(cmd_from_func(do_move_south)));
         putstr(win, 0, buf);
     } else {
-        Sprintf(buf, "          %c  %c  %c",
-                g.Cmd.move[DIR_NW], g.Cmd.move[DIR_N], g.Cmd.move[DIR_NE]);
+        Sprintf(buf, "          %s  %s  %s",
+                visctrl(cmd_from_func(do_move_northwest)),
+                visctrl(cmd_from_func(do_move_north)),
+                visctrl(cmd_from_func(do_move_northeast)));
         putstr(win, 0, buf);
         putstr(win, 0, "           \\ | / ");
-        Sprintf(buf, "          %c- %c -%c",
-                g.Cmd.move[DIR_W], centerchar, g.Cmd.move[DIR_E]);
+        Sprintf(buf, "          %s- %c -%s",
+                visctrl(cmd_from_func(do_move_west)),
+                centerchar,
+                visctrl(cmd_from_func(do_move_east)));
         putstr(win, 0, buf);
         putstr(win, 0, "           / | \\ ");
-        Sprintf(buf, "          %c  %c  %c",
-                g.Cmd.move[DIR_SW], g.Cmd.move[DIR_S], g.Cmd.move[DIR_SE]);
+        Sprintf(buf, "          %s  %s  %s",
+                visctrl(cmd_from_func(do_move_southwest)),
+                visctrl(cmd_from_func(do_move_south)),
+                visctrl(cmd_from_func(do_move_southeast)));
         putstr(win, 0, buf);
     };
 }
@@ -3897,37 +4159,7 @@ help_dir(char sym,
      */
     dothat = "do that";
     how = " at"; /* for "<action> at yourself"; not used for up/down */
-    switch (spkey) {
-    case NHKF_NOPICKUP:
-        dothat = "move";
-        break;
-    case NHKF_RUSH2:
-        if (!g.Cmd.num_pad)
-            break;
-        /*FALLTHRU*/
-    case NHKF_RUSH:
-        dothat = "rush";
-        break;
-    case NHKF_RUN2:
-        if (!g.Cmd.num_pad)
-            break;
-        /*FALLTHRU*/
-    case NHKF_RUN:
-    case NHKF_RUN_NOPICKUP:
-        dothat = "run";
-        break;
-    case NHKF_FIGHT2:
-        if (!g.Cmd.num_pad)
-            break;
-        /*FALLTHRU*/
-    case NHKF_FIGHT:
-        dothat = "fight";
-        how = ""; /* avoid "fight at yourself" */
-        break;
-    default:
-        prefixhandling = FALSE;
-        break;
-    }
+    prefixhandling = FALSE;
 
     buf[0] = '\0';
     /* for movement prefix followed by '.' or (numpad && 's') to mean 'self';
@@ -3999,7 +4231,7 @@ help_dir(char sym,
     putstr(win, 0, buf);
     show_direction_keys(win, !prefixhandling ? '.' : ' ', NODIAG(u.umonnum));
 
-    if (!prefixhandling || spkey == NHKF_NOPICKUP) {
+    if (!prefixhandling) {
         /* NOPICKUP: unlike the other prefix keys, 'm' allows up/down for
            stair traversal; we won't get here when "m<" or "m>" has been
            given but we include up and down for 'm'+invalid_direction;
@@ -4063,7 +4295,7 @@ doherecmdmenu(void)
 {
     char ch = here_cmd_menu(TRUE);
 
-    return ch ? 1 : 0;
+    return ch ? ECMD_TIME : ECMD_OK;
 }
 
 /* #therecmdmenu command, a way to test there_cmd_menu without mouse */
@@ -4073,14 +4305,14 @@ dotherecmdmenu(void)
     char ch;
 
     if (!getdir((const char *) 0) || !isok(u.ux + u.dx, u.uy + u.dy))
-        return 0;
+        return ECMD_CANCEL;
 
     if (u.dx || u.dy)
         ch = there_cmd_menu(TRUE, u.ux + u.dx, u.uy + u.dy);
     else
         ch = here_cmd_menu(TRUE);
 
-    return ch ? 1 : 0;
+    return ch ? ECMD_TIME : ECMD_OK;
 }
 
 static void
@@ -4384,7 +4616,7 @@ click_to_cmd(int x, int y, int mod)
         dir = xytod(x, y);
         if (!m_at(u.ux + x, u.uy + y)
             && !test_move(u.ux, u.uy, x, y, TEST_MOVE)) {
-            cmd[1] = g.Cmd.move[dir];
+            cmd[1] = cmd_from_func(move_funcs[dir][MV_WALK]);
             cmd[2] = '\0';
 
             if (IS_DOOR(levl[u.ux + x][u.uy + y].typ)) {
@@ -4428,9 +4660,9 @@ click_to_cmd(int x, int y, int mod)
     /* move, attack, etc. */
     cmd[1] = 0;
     if (mod == CLICK_1) {
-        cmd[0] = g.Cmd.move[dir];
+        cmd[0] = cmd_from_func(move_funcs[dir][MV_WALK]);
     } else {
-        cmd[0] = g.Cmd.run[dir];
+        cmd[0] = cmd_from_func(move_funcs[dir][MV_RUN]);
     }
 
     return cmd;
@@ -4522,7 +4754,7 @@ parse(void)
         g.last_command_count = 0;
     } else if (g.in_doagain) {
         g.command_count = g.last_command_count;
-    } else if (foo && foo == g.Cmd.spkeys[NHKF_DOAGAIN]) {
+    } else if (foo && foo == cmd_from_func(do_repeat)) {
         // g.command_count will be set again when we
         // re-enter with g.in_doagain set true
         g.command_count = g.last_command_count;
@@ -4533,39 +4765,11 @@ parse(void)
     }
 
     g.multi = g.command_count;
-
-    if (g.multi) {
+    if (g.multi)
         g.multi--;
-        g.save_cm = g.command_line;
-    } else {
-        g.save_cm = (char *) 0;
-    }
-    /* in 3.4.3 this was in rhack(), where it was too late to handle M-5 */
-    if (g.Cmd.pcHack_compat) {
-        /* This handles very old inconsistent DOS/Windows behaviour
-           in a different way: earlier, the keyboard handler mapped
-           these, which caused counts to be strange when entered
-           from the number pad. Now do not map them until here. */
-        switch (foo) {
-        case '5':
-            foo = g.Cmd.spkeys[NHKF_RUSH];
-            break;
-        case M('5'):
-            foo = g.Cmd.spkeys[NHKF_RUN];
-            break;
-        default:
-            break; /* as is */
-        }
-    }
 
     g.command_line[0] = foo;
     g.command_line[1] = '\0';
-    if (prefix_cmd(foo)) {
-        foo = readchar();
-        savech((char) foo);
-        g.command_line[1] = foo;
-        g.command_line[2] = 0;
-    }
     clear_nhwindow(WIN_MESSAGE);
 
     iflags.in_parse = FALSE;
@@ -4728,7 +4932,7 @@ dotravel(void)
         if (!getpos_menu(&cc, GLOC_INTERESTING)) {
             iflags.getloc_filter = gf;
             iflags.getloc_travelmode = FALSE;
-            return 0;
+            return ECMD_OK;
         }
         iflags.getloc_filter = gf;
     } else {
@@ -4736,7 +4940,7 @@ dotravel(void)
         if (getpos(&cc, TRUE, "the desired destination") < 0) {
             /* user pressed ESC */
             iflags.getloc_travelmode = FALSE;
-            return 0;
+            return ECMD_CANCEL;
         }
     }
     iflags.travelcc.x = u.tx = cc.x;
@@ -4750,7 +4954,7 @@ static int
 dotravel_target(void)
 {
     if (!isok(iflags.travelcc.x, iflags.travelcc.y))
-        return 0;
+        return ECMD_OK;
 
     iflags.getloc_travelmode = FALSE;
 
@@ -4765,7 +4969,8 @@ dotravel_target(void)
     u.last_str_turn = 0;
     g.context.mv = TRUE;
 
-    return 1;
+    domove();
+    return ECMD_TIME;
 }
 
 /* mouse click look command */
@@ -4776,9 +4981,9 @@ doclicklook(void)
         return 0;
 
     g.context.move = FALSE;
-    do_look(2, &g.clicklook_cc);
+    (void) do_look(2, &g.clicklook_cc);
 
-    return 0;
+    return ECMD_OK;
 }
 
 /*
@@ -4882,7 +5087,7 @@ dosuspend_core(void)
     } else
 #endif
         Norep(cmdnotavail, "#suspend");
-    return 0;
+    return ECMD_OK;
 }
 
 /* '!' command, #shell */
@@ -4900,7 +5105,7 @@ dosh_core(void)
 #else
     Norep(cmdnotavail, "#shell");
 #endif
-    return 0;
+    return ECMD_OK;
 }
 
 /*cmd.c*/

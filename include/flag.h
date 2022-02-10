@@ -165,6 +165,15 @@ enum getloc_filters {
     NUM_GFILTER
 };
 
+#ifdef WIN32
+enum windows_key_handling {
+    no_keyhandling,
+    default_keyhandling,
+    ray_keyhandling,
+    nh340_keyhandling
+};
+#endif
+
 struct debug_flags {
     boolean test;
 #ifdef TTY_GRAPHICS
@@ -175,18 +184,21 @@ struct debug_flags {
 #endif
 };
 
+/*
+ * Stuff that really isn't option or platform related and does not
+ * get saved and restored.  They are set and cleared during the game
+ * to control the internal behaviour of various NetHack functions
+ * and probably warrant a structure of their own elsewhere some day.
+ */
 struct instance_flags {
-    /* stuff that really isn't option or platform related. They are
-     * set and cleared during the game to control the internal
-     * behaviour of various NetHack functions and probably warrant
-     * a structure of their own elsewhere some day.
-     */
-    boolean lua_testing;   /* doing lua tests */
     boolean debug_fuzzer;  /* fuzz testing */
-    boolean in_lua;        /* executing a lua script */
     boolean defer_plname;  /* X11 hack: askname() might not set g.plname */
     boolean herecmd_menu;  /* use menu when mouseclick on yourself */
     boolean invis_goldsym; /* gold symbol is ' '? */
+    boolean in_lua;        /* executing a lua script */
+    boolean lua_testing;   /* doing lua tests */
+    boolean partly_eaten_hack; /* extra flag for xname() used when it's called
+                                * indirectly so we can't use xname_flags() */
     boolean sad_feeling;   /* unseen pet is dying */
     int at_midnight;       /* only valid during end of game disclosure */
     int at_night;          /* also only valid during end of game disclosure */
@@ -373,8 +385,9 @@ struct instance_flags {
     int wc2_windowborders;	/* display borders on NetHack windows */
     int wc2_petattr;            /* text attributes for pet */
 #ifdef WIN32
-#define MAX_ALTKEYHANDLER 25
-    char altkeyhandler[MAX_ALTKEYHANDLER];
+#define MAX_ALTKEYHANDLING 25
+    char altkeyhandling[MAX_ALTKEYHANDLING];
+    enum windows_key_handling key_handling;
 #endif
     /* copies of values in struct u, used during detection when the
        originals are temporarily cleared; kept here rather than

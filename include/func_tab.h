@@ -14,11 +14,20 @@
 #define CMD_NOT_AVAILABLE 0x10 /* recognized but non-functional (!SHELL,&c) */
 #define NOFUZZERCMD  0x20 /* fuzzer cannot execute this command */
 #define INTERNALCMD  0x40 /* only for internal use, not for user */
+#define CMD_M_PREFIX 0x80 /* accepts menu prefix */
+#define PREFIXCMD    0x100 /* prefix command, requires another one after it */
+#define MOVEMENTCMD  0x200 /* used to move hero/cursor */
+
+/* flags for extcmds_match() */
+#define ECM_NOFLAGS       0
+#define ECM_IGNOREAC   0x01 /* ignore !autocomplete commands */
+#define ECM_EXACTMATCH 0x02 /* needs exact match of findstr */
+#define ECM_NO1CHARCMD 0x04 /* ignore commands like '?' and '#' */
 
 struct ext_func_tab {
     uchar key;
     const char *ef_txt, *ef_desc;
-    int (*ef_funct)(void);
+    int (*ef_funct)(void); /* must return ECMD_foo flags */
     int flags;
     const char *f_text;
 };

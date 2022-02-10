@@ -101,7 +101,7 @@ static int floodfillchk_match_under(int, int);
 static int floodfillchk_match_accessible(int, int);
 static boolean sel_flood_havepoint(int, int, xchar *, xchar *, int);
 static long line_dist_coord(long, long, long, long, long, long);
-static void l_push_wid_hei_table(lua_State *, int, int);
+static void l_push_mkroom_table(lua_State *, struct mkroom *);
 static int get_table_align(lua_State *);
 static int get_table_monclass(lua_State *);
 static int get_table_montype(lua_State *, int *);
@@ -110,6 +110,7 @@ static int get_table_buc(lua_State *);
 static int get_table_objclass(lua_State *);
 static int find_objtype(lua_State *, const char *);
 static int get_table_objtype(lua_State *);
+static const char *get_mkroom_name(int);
 static int get_table_roomtype_opt(lua_State *, const char *, int);
 static int get_table_traptype_opt(lua_State *, const char *, int);
 static int get_traptype_byname(const char *);
@@ -1157,7 +1158,7 @@ get_location(xchar *x, xchar *y, int humidity, struct mkroom* croom)
 static boolean
 is_ok_location(xchar x, xchar y, int humidity)
 {
-    register int typ;
+    register int typ = levl[x][y].typ;
 
     if (Is_waterlevel(&u.uz))
         return TRUE; /* accept any spot */
@@ -1166,17 +1167,15 @@ is_ok_location(xchar x, xchar y, int humidity)
     if (humidity & ANY_LOC)
         return TRUE;
 
-    if ((humidity & SOLID) && IS_ROCK(levl[x][y].typ))
+    if ((humidity & SOLID) && IS_ROCK(typ))
         return TRUE;
 
-    if (humidity & DRY) {
-        typ = levl[x][y].typ;
-        if (typ == ROOM || typ == AIR || typ == CLOUD || typ == ICE
-            || typ == CORR || typ == GRASS)
+    if ((humidity & (DRY|SPACELOC)) && SPACE_POS(typ)) {
+        boolean bould = (sobj_at(BOULDER, x, y) != NULL);
+
+        if (!bould || (bould && (humidity & SOLID)))
             return TRUE;
     }
-    if ((humidity & SPACELOC) && SPACE_POS(levl[x][y].typ))
-        return TRUE;
     if ((humidity & WET) && is_pool(x, y))
         return TRUE;
     if ((humidity & HOT) && is_lava(x, y))
@@ -1674,13 +1673,13 @@ create_subroom(
  * It's placed on a wall (north, south, east or west).
  */
 static void
-create_door(room_door* dd, struct mkroom* broom)
+create_door(room_door *dd, struct mkroom *broom)
 {
     int x = 0, y = 0;
-    int trycnt = 0, wtry = 0;
+    int trycnt;
 
-    do {
-        register int dwall, dpos;
+    for (trycnt = 0; trycnt < 100; ++trycnt) {
+        int dwall, dpos;
 
         dwall = dd->wall;
         if (dwall == -1) /* The wall is RANDOM */
@@ -1689,56 +1688,52 @@ create_door(room_door* dd, struct mkroom* broom)
         dpos = dd->pos;
 
         /* Convert wall and pos into an absolute coordinate! */
-        wtry = rn2(4);
-        switch (wtry) {
+        switch (rn2(4)) {
         case 0:
             if (!(dwall & W_NORTH))
-                goto redoloop;
+                continue;
             y = broom->ly - 1;
-            x = broom->lx
-                + ((dpos == -1) ? rn2(1 + (broom->hx - broom->lx)) : dpos);
+            x = broom->lx + ((dpos == -1) ? rn2(1 + broom->hx - broom->lx)
+                                          : dpos);
             if (!isok(x, y - 1) || IS_ROCK(levl[x][y - 1].typ))
-                goto redoloop;
-            goto outdirloop;
+                continue;
+            break;
         case 1:
             if (!(dwall & W_SOUTH))
-                goto redoloop;
+                continue;
             y = broom->hy + 1;
-            x = broom->lx
-                + ((dpos == -1) ? rn2(1 + (broom->hx - broom->lx)) : dpos);
+            x = broom->lx + ((dpos == -1) ? rn2(1 + broom->hx - broom->lx)
+                                          : dpos);
             if (!isok(x, y + 1) || IS_ROCK(levl[x][y + 1].typ))
-                goto redoloop;
-            goto outdirloop;
+                continue;
+            break;
         case 2:
             if (!(dwall & W_WEST))
-                goto redoloop;
+                continue;
             x = broom->lx - 1;
-            y = broom->ly
-                + ((dpos == -1) ? rn2(1 + (broom->hy - broom->ly)) : dpos);
+            y = broom->ly + ((dpos == -1) ? rn2(1 + broom->hy - broom->ly)
+                                          : dpos);
             if (!isok(x - 1, y) || IS_ROCK(levl[x - 1][y].typ))
-                goto redoloop;
-            goto outdirloop;
+                continue;
+            break;
         case 3:
             if (!(dwall & W_EAST))
-                goto redoloop;
+                continue;
             x = broom->hx + 1;
-            y = broom->ly
-                + ((dpos == -1) ? rn2(1 + (broom->hy - broom->ly)) : dpos);
+            y = broom->ly + ((dpos == -1) ? rn2(1 + broom->hy - broom->ly)
+                                          : dpos);
             if (!isok(x + 1, y) || IS_ROCK(levl[x + 1][y].typ))
-                goto redoloop;
-            goto outdirloop;
+                continue;
+            break;
         default:
-            x = y = 0;
-            panic("create_door: No wall for door!");
-            goto outdirloop;
+            /*NOTREACHED*/
+            break;
         }
- outdirloop:
+
         if (okdoor(x, y))
             break;
- redoloop:
-        ;
-    } while (++trycnt <= 100);
-    if (trycnt > 100) {
+    }
+    if (trycnt >= 100) {
         impossible("create_door: Can't find a proper place!");
         return;
     }
@@ -1872,7 +1867,7 @@ pm_to_humidity(struct permonst* pm)
         loc |= (HOT | WET);
     if (passes_walls(pm) || noncorporeal(pm))
         loc |= SOLID;
-    if (flaming(pm))
+    if (likes_fire(pm))
         loc |= HOT;
     return loc;
 }
@@ -2085,11 +2080,11 @@ create_monster(monster* m, struct mkroom* croom)
                         /* used to give light, now doesn't, or vice versa,
                            or light's range has changed */
                         if (emits_light(olddata))
-                            del_light_source(LS_MONSTER, (genericptr_t) mtmp);
+                            del_light_source(LS_MONSTER, monst_to_any(mtmp));
                         if (emits_light(mtmp->data))
                             new_light_source(mtmp->mx, mtmp->my,
                                              emits_light(mtmp->data),
-                                             LS_MONSTER, (genericptr_t) mtmp);
+                                             LS_MONSTER, monst_to_any(mtmp));
                     }
                     if (!mtmp->perminvis || pm_invisible(olddata))
                         mtmp->perminvis = pm_invisible(mdat);
@@ -2299,6 +2294,8 @@ create_object(object* o, struct mkroom* croom)
                 cobj->owt = weight(cobj);
             } else {
                 obj_extract_self(otmp);
+                if (otmp->oartifact)
+                    artifact_exists(otmp, safe_oname(otmp), FALSE);
                 obfree(otmp, NULL);
                 return;
             }
@@ -2330,7 +2327,7 @@ create_object(object* o, struct mkroom* croom)
          */
         for (wastyp = otmp->corpsenm; i < 1000; i++, wastyp = rndmonnum()) {
             /* makemon without rndmonst() might create a group */
-            was = makemon(&mons[wastyp], 0, 0, MM_NOCOUNTBIRTH);
+            was = makemon(&mons[wastyp], 0, 0, MM_NOCOUNTBIRTH|MM_NOMSG);
             if (was) {
                 if (!resists_ston(was) && !poly_when_stoned(&mons[wastyp])) {
                     (void) propagate(wastyp, TRUE, FALSE);
@@ -2997,14 +2994,23 @@ static void
 l_push_wid_hei_table(lua_State *L, int wid, int hei)
 {
     lua_newtable(L);
+    nhl_add_table_entry_int(L, "width", wid);
+    nhl_add_table_entry_int(L, "height", hei);
+}
 
-    lua_pushstring(L, "width");
-    lua_pushinteger(L, wid);
-    lua_rawset(L, -3);
-
-    lua_pushstring(L, "height");
-    lua_pushinteger(L, hei);
-    lua_rawset(L, -3);
+/* push a table on lua stack containing room data */
+static void
+l_push_mkroom_table(lua_State *L, struct mkroom *tmpr)
+{
+    lua_newtable(L);
+    nhl_add_table_entry_int(L, "width", 1 + (tmpr->hx - tmpr->lx));
+    nhl_add_table_entry_int(L, "height", 1 + (tmpr->hy - tmpr->ly));
+    nhl_add_table_entry_region(L, "region", tmpr->lx, tmpr->ly,
+                               tmpr->hx, tmpr->hy);
+    nhl_add_table_entry_bool(L, "lit", (boolean) tmpr->rlit);
+    nhl_add_table_entry_bool(L, "irregular", tmpr->irregular);
+    nhl_add_table_entry_bool(L, "needjoining", tmpr->needjoining);
+    nhl_add_table_entry_str(L, "type", get_mkroom_name(tmpr->rtype));
 }
 
 /* message("What a strange feeling!"); */
@@ -3809,6 +3815,17 @@ static const struct {
     { 0, 0 }
 };
 
+static const char *
+get_mkroom_name(int rtype)
+{
+    int i;
+
+    for (i = 0; room_types[i].name; i++)
+        if (room_types[i].type == rtype)
+            return room_types[i].name;
+    return NULL;
+}
+
 static int
 get_table_roomtype_opt(lua_State *L, const char *name, int defval)
 {
@@ -3892,8 +3909,7 @@ lspo_room(lua_State *L)
                 lua_getfield(L, 1, "contents");
                 if (lua_type(L, -1) == LUA_TFUNCTION) {
                     lua_remove(L, -2);
-                    l_push_wid_hei_table(L, 1 + tmpcr->hx - tmpcr->lx,
-                                         1 + tmpcr->hy - tmpcr->ly);
+                    l_push_mkroom_table(L, tmpcr);
                     lua_call(L, 1, 0);
                 } else
                     lua_pop(L, 1);
@@ -5445,8 +5461,7 @@ ensure_way_out(void)
     }
 
     while (ttmp) {
-        if ((ttmp->ttyp == MAGIC_PORTAL || ttmp->ttyp == VIBRATING_SQUARE
-             || is_hole(ttmp->ttyp))
+        if ((undestroyable_trap(ttmp->ttyp) || is_hole(ttmp->ttyp))
             && !selection_getpoint(ttmp->tx, ttmp->ty, ov))
             selection_floodfill(ov, ttmp->tx, ttmp->ty, TRUE);
         ttmp = ttmp->ntrap;

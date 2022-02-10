@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkobj.c	$NHDT-Date: 1629403671 2021/08/19 20:07:51 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.205 $ */
+/* NetHack 3.7	mkobj.c	$NHDT-Date: 1637992348 2021/11/27 05:52:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.222 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -8,6 +8,8 @@
 static void mkbox_cnts(struct obj *);
 static unsigned nextoid(struct obj *, struct obj *);
 static boolean may_generate_eroded(struct obj *);
+static int item_on_ice(struct obj *);
+static void shrinking_glob_gone(struct obj *);
 static void obj_timer_checks(struct obj *, xchar, xchar, int);
 static void container_weight(struct obj *);
 static struct obj *save_mtraits(struct obj *, struct monst *);
@@ -272,7 +274,7 @@ mkbox_cnts(struct obj *box)
 
     for (n = rn2(n + 1); n > 0; n--) {
         if (box->otyp == ICE_BOX) {
-            otmp = mksobj(CORPSE, TRUE, TRUE);
+            otmp = mksobj(CORPSE, TRUE, FALSE);
             /* Note: setting age to 0 is correct.  Age has a different
              * from usual meaning for objects stored in ice boxes. -KAA
              */
@@ -281,6 +283,7 @@ mkbox_cnts(struct obj *box)
                 (void) stop_timer(ROT_CORPSE, obj_to_any(otmp));
                 (void) stop_timer(MOLDY_CORPSE, obj_to_any(otmp));
                 (void) stop_timer(REVIVE_MON, obj_to_any(otmp));
+                (void) stop_timer(SHRINK_GLOB, obj_to_any(otmp));
             }
         } else {
             register int tprob;
@@ -294,7 +297,7 @@ mkbox_cnts(struct obj *box)
             }
             for (tprob = rnd(100); (tprob -= iprobs->iprob) > 0; iprobs++)
                 ;
-            if (!(otmp = mkobj(iprobs->iclass, TRUE)))
+            if (!(otmp = mkobj(iprobs->iclass, FALSE)))
                 continue;
 
             /* handle a couple of special cases */
@@ -367,9 +370,7 @@ copy_oextra(struct obj *obj2, struct obj *obj1)
         OMONST(obj2)->mextra = (struct mextra *) 0;
         OMONST(obj2)->nmon = (struct monst *) 0;
 #if 0
-        OMONST(obj2)->m_id = g.context.ident++;
-        if (OMONST(obj2)->m_id) /* ident overflowed */
-            OMONST(obj2)->m_id = g.context.ident++;
+        OMONST(obj2)->m_id = next_ident();
 #endif
         if (OMONST(obj1)->mextra)
             copy_mextra(OMONST(obj2), OMONST(obj1));
@@ -409,6 +410,7 @@ splitobj(struct obj *obj, long num)
     otmp->quan = num;
     otmp->owt = weight(otmp); /* -= obj->owt ? */
     otmp->lua_ref_cnt = 0;
+    otmp->pickup_prev = 0;
 
     g.context.objsplit.parent_oid = obj->o_id;
     g.context.objsplit.child_oid = otmp->o_id;
@@ -429,6 +431,34 @@ splitobj(struct obj *obj, long num)
     return otmp;
 }
 
+/* return the value of context.ident and then increment it to be ready for
+   its next use; used to be simple += 1 so that every value from 1 to N got
+   used but now has a random increase that skips half of potential values */
+unsigned
+next_ident(void)
+{
+    unsigned res = g.context.ident;
+
+    /* +rnd(2): originally just +1; changed to rnd() to avoid potential
+       exploit of player using #adjust to split an object stack in a manner
+       that makes most recent ident%2 known; since #adjust takes no time,
+       no intervening activity like random creation of a new monster will
+       take place before next user command; with former +1, o_id%2 of the
+       next object to be created was knowable and player could make a wish
+       under controlled circumstances for an item that is affected by the
+       low bits of its obj->o_id [particularly helm of opposite alignment] */
+    g.context.ident += rnd(2); /* ready for next new object or monster */
+
+    /* if ident has wrapped to 0, force it to be non-zero; if/when it
+       ever wraps past 0 (unlikely, but possible on a configuration which
+       uses 16-bit 'int'), just live with that and hope no o_id conflicts
+       between objects or m_id conflicts between monsters arise */
+    if (!g.context.ident)
+        g.context.ident = rnd(2);
+
+    return res;
+}
+
 /* when splitting a stack that has o_id-based shop prices, pick an
    o_id value for the new stack that will maintain the same price */
 static unsigned
@@ -444,8 +474,9 @@ nextoid(struct obj *oldobj, struct obj *newobj)
             ++oid;
         newdif = oid_price_adjustment(newobj, oid);
     } while (newdif != olddif && --trylimit >= 0);
-    g.context.ident = oid + 1; /* ready for next new object */
-    return oid;
+    g.context.ident = oid; /* update 'last ident used' */
+    (void) next_ident(); /* increment context.ident for next use */
+    return oid; /* caller will use this ident */
 }
 
 /* try to find the stack obj was split from, then merge them back together;
@@ -788,9 +819,7 @@ mksobj(int otyp, boolean init, boolean artif)
     otmp = newobj();
     *otmp = cg.zeroobj;
     otmp->age = g.moves;
-    otmp->o_id = g.context.ident++;
-    if (!otmp->o_id)
-        otmp->o_id = g.context.ident++; /* ident overflowed */
+    otmp->o_id = next_ident();
     otmp->quan = 1L;
     otmp->oclass = let;
     otmp->otyp = otyp;
@@ -798,6 +827,7 @@ mksobj(int otyp, boolean init, boolean artif)
     unknow_object(otmp); /* set up dknown and known: non-0 for some things */
     otmp->corpsenm = NON_PM;
     otmp->lua_ref_cnt = 0;
+    otmp->pickup_prev = 0;
     set_material(otmp, objects[otmp->otyp].oc_material);
 
     if (init) {
@@ -962,11 +992,19 @@ mksobj(int otyp, boolean init, boolean artif)
                 break;
             }
             if (Is_pudding(otmp)) {
-                otmp->quan = 1L; /* for emphasis; glob quantity is always 1 */
                 otmp->globby = 1;
+                /* for emphasis; glob quantity is always 1 and weight varies
+                   when other globs coallesce with it or this one shrinks */
+                otmp->quan = 1L;
+                /* 3.7: globs in 3.6.x left owt as 0 and let weight() fix
+                   that up during 'obj->owt = weight(obj)' below, but now
+                   we initialize glob->owt explicitly so weight() doesn't
+                   need to perform any fix up and returns glob->owt as-is */
+                otmp->owt = objects[otmp->otyp].oc_weight;
                 otmp->known = otmp->dknown = 1;
                 otmp->corpsenm = PM_GRAY_OOZE
                                  + (otmp->otyp - GLOB_OF_GRAY_OOZE);
+                start_glob_timeout(otmp, 0L);
             } else {
                 if (otmp->otyp != CORPSE && otmp->otyp != MEAT_RING
                     && otmp->otyp != KELP_FROND && !rn2(6)) {
@@ -1153,8 +1191,7 @@ mksobj(int otyp, boolean init, boolean artif)
             }
             break;
         case ROCK_CLASS:
-            switch (otmp->otyp) {
-            case STATUE:
+            if (otmp->otyp == STATUE) {
                 /* possibly overridden by mkcorpstat() */
                 otmp->corpsenm = rndmonnum();
                 if (!verysmall(&mons[otmp->corpsenm])
@@ -1162,6 +1199,7 @@ mksobj(int otyp, boolean init, boolean artif)
                     (void) add_to_container(otmp,
                                             mkobj(SPBOOK_no_NOVEL, FALSE));
             }
+            /* boulder init'd below in the 'regardless of !init' code */
             break;
         case COIN_CLASS:
             break; /* do nothing */
@@ -1208,7 +1246,7 @@ mksobj(int otyp, boolean init, boolean artif)
         if (otmp->corpsenm == NON_PM) {
             otmp->corpsenm = undead_to_corpse(rndmonnum());
             if (g.mvitals[otmp->corpsenm].mvflags & (G_NOCORPSE | G_GONE))
-                otmp->corpsenm = g.urole.malenum;
+                otmp->corpsenm = g.urole.mnum;
         }
         /*FALLTHRU*/
     case STATUE:
@@ -1227,6 +1265,12 @@ mksobj(int otyp, boolean init, boolean artif)
     case EGG:
     /* case TIN: */
         set_corpsenm(otmp, otmp->corpsenm);
+        break;
+    case BOULDER:
+        /* next_boulder overloads corpsenm so the default value is NON_PM;
+           since that is non-zero, the "next boulder" case in xname() would
+           happen when it shouldn't; explicitly set it to 0 */
+        otmp->next_boulder = 0;
         break;
     case POT_OIL:
         otmp->age = MAX_OIL_IN_FLASK; /* amount of oil */
@@ -1410,6 +1454,271 @@ start_corpse_timeout(struct obj *body)
     }
 
     (void) start_timer(when, TIMER_OBJECT, action, obj_to_any(body));
+}
+
+/* used by item_on_ice() and shrink_glob() */
+enum obj_on_ice {
+    NOT_ON_ICE = 0,
+    SET_ON_ICE = 1,
+    BURIED_UNDER_ICE = 2
+};
+
+/* used by shrink_glob(); is 'item' or enclosing container on or under ice? */
+static int
+item_on_ice(struct obj *item)
+{
+    struct obj *otmp;
+    xchar ox, oy;
+
+    otmp = item;
+    /* if in a container, it might be nested so find outermost one since
+       that's the item whose location needs to be checked */
+    while (otmp->where == OBJ_CONTAINED)
+        otmp = otmp->ocontainer;
+
+    if (get_obj_location(otmp, &ox, &oy, BURIED_TOO)) {
+        switch (otmp->where) {
+        case OBJ_FLOOR:
+            if (is_ice(ox, oy))
+                return SET_ON_ICE;
+            break;
+        case OBJ_BURIED:
+            if (is_ice(ox, oy))
+                return BURIED_UNDER_ICE;
+            break;
+        default:
+            break;
+        }
+    }
+    return NOT_ON_ICE;
+}
+
+/* schedule a timer that will shrink the target glob by 1 unit of weight */
+void
+start_glob_timeout(
+    struct obj *obj, /* glob */
+    long when)       /* when to shrink; if 0L, use random value close to 25 */
+{
+    if (!obj->globby) {
+        impossible("start_glob_timeout for non-glob [%d: %s]?",
+                   obj->otyp, simpleonames(obj));
+        return; /* skip timer creation */
+    }
+    /* sanity precaution */
+    if (obj->timed)
+        (void) stop_timer(SHRINK_GLOB, obj_to_any(obj));
+
+    if (when < 1L) /* caller usually passes 0L; should never be negative */
+        when = 25L + (long) rn2(5) - 2L; /* 25+[0..4]-2 => 23..27, avg 25 */
+    /* 1 new glob weighs 20 units and loses 1 unit every 25 turns,
+       so lasts for 500 turns, twice as long as the average corpse */
+    (void) start_timer(when, TIMER_OBJECT, SHRINK_GLOB, obj_to_any(obj));
+}
+
+/* globs have quantity 1 and size which varies by multiples of 20 in owt;
+   they don't become tainted with age, but every 25 turns this timer runs
+   and reduces owt by 1; when it hits 0, destroy the glob (if some other
+   part of the program destroys it, the timer will be cancelled);
+   note: timer keeps going if an object gets buried or scheduled to
+   migrate to another level and can delete the glob in those states */
+void
+shrink_glob(
+    anything *arg,    /* glob (in arg->a_obj) */
+    long expire_time) /* turn the timer should have gone off; if less than
+                       * current 'moves', we're making up for lost time
+                       * after leaving and then returning to this level */
+{
+    char globnambuf[BUFSZ];
+    struct obj *obj = arg->a_obj;
+    int globloc = item_on_ice(obj);
+    boolean ininv = (obj->where == OBJ_INVENT),
+            shrink = FALSE, gone = FALSE, updinv = FALSE;
+    struct obj *contnr = (obj->where == OBJ_CONTAINED) ? obj->ocontainer : 0,
+               *topcontnr = 0;
+    unsigned old_top_owt = 0;
+
+    if (!obj->globby) {
+        impossible("shrink_glob for non-glob [%d: %s]?",
+                   obj->otyp, simpleonames(obj));
+        return; /* old timer is gone, don't start a new one */
+    }
+    /* note: if check_glob() complains about a problem, the " obj " here
+       will be replaced in the feedback with info about this glob */
+    check_glob(obj, "shrink obj ");
+
+    /*
+     * If shrinkage occurred while we were on another level, catch up now.
+     */
+    if (expire_time < g.moves && globloc != BURIED_UNDER_ICE) {
+        /* number of units of weight to remove */
+        long delta = (g.moves - expire_time + 24L) / 25L,
+             /* leftover amount to use for new timer */
+             moddelta = 25L - (delta % 25L);
+
+        if (globloc == SET_ON_ICE)
+            delta = (delta + 2L) / 3L;
+
+        if (delta >= (long) obj->owt) {
+            /* gone; no newsym() or message here--forthcoming map update for
+               level arrival is all that's needed */
+            obj->owt = 0; /* not required; accurately reflects obj's state */
+            shrinking_glob_gone(obj);
+        } else {
+            /* shrank but not gone; reduce remaining weight */
+            obj->owt -= (unsigned) delta;
+            /* when contained, update container's weight (recursively if
+               nested); won't be in a container carried by hero (since
+               catching up for lost time never applies in that situation)
+               but might be in one on floor or one carried by a monster */
+            if (contnr)
+                container_weight(contnr);
+            /* resume regular shrinking */
+            start_glob_timeout(obj, moddelta);
+        }
+        return;
+    }
+
+    /*
+     * When on ice, only shrink every third try.  If buried under ice,
+     * don't shrink at all, similar to being contained in an ice box
+     * except that the timer remains active.  [FIXME:  stop the timer
+     * for obj in pool that becomes frozen, restart it if/when unburied.]
+     *
+     * If the glob is actively being eaten by hero, skip weight reduction
+     * to avoid messing up the context.victual data (if/when eaten by a
+     * monster, timer won't have a chance to run before meal is finished).
+     */
+    if (eating_glob(obj)
+        || globloc == BURIED_UNDER_ICE
+        || (globloc == SET_ON_ICE && (g.moves % 3L) == 1L)) {
+        /* schedule next shrink attempt; for the being eaten case, the
+           glob and its timer might be deleted before this kicks in */
+        start_glob_timeout(obj, 0L);
+        return;
+    }
+
+    /* format "Your/Shk's/The [partly eaten] glob of <goo>" into
+       globnambuf[] before shrinking the glob; Yname2() calls yname()
+       which calls xname() which ordinarly leaves "partly eaten" to
+       doname() rather than inserting that itself; ask xname() to add
+       that when appropriate */
+    iflags.partly_eaten_hack = TRUE;
+    Strcpy(globnambuf, Yname2(obj));
+    iflags.partly_eaten_hack = FALSE;
+
+    if (obj->owt > 0) { /* sanity precaution */
+        /* globs start out weighing 20 units; give two messages per glob,
+           when going from 20 to 19 and from 10 to 9; a different message
+           is given for going from 1 to 0 (gone) */
+        unsigned basewt = objects[obj->otyp].oc_weight, /* 20 */
+                 msgwt = (max(basewt, 1U) + 1U) / 2U; /* 10 */
+
+        shrink = (obj->owt % msgwt) == 0;
+        obj->owt -= 1;
+        /* if glob is partly eaten, reduce the amount still available (but
+           not all the way to 0 which would change it back to untouched) */
+        if (obj->oeaten > 1)
+            obj->oeaten -= 1;
+    }
+    gone = !obj->owt;
+
+    /* timer might go off when the glob is migrating to another level and
+       possibly delete it; messages are only given for in-open-inventory,
+       inside-container-in-invent, and going away when can-see-on-floor */
+    if (ininv) {
+        if (shrink || gone)
+            pline("%s %s.", globnambuf,
+                  /* globs always have quantity 1 so we don't need otense()
+                     because the verb always references a singular item */
+                  gone ? "dissippates completely" : "shrinks");
+        updinv = TRUE;
+    } else if (contnr) {
+        /* when in a container, it might be nested so find outermost one */
+        topcontnr = contnr;
+        while (topcontnr->where == OBJ_CONTAINED)
+            topcontnr = topcontnr->ocontainer;
+        /* obj's weight has been reduced, but weight(s) of enclosing
+           container(s) haven't been adjusted for that yet */
+        old_top_owt = topcontnr->owt;
+        /* update those weights now; recursively updates nested containers */
+        container_weight(contnr);
+
+        if (topcontnr->where == OBJ_INVENT) {
+            /* for regular containers, the weight will always be reduced
+               when glob's weight has been reduced but we only say so
+               when shrinking beneath a particular threshold (N*20 to
+               (N-1)*20 + 19 or (N-1)*20 + 10 to (N-1)*20 + 9), or
+               if we're going to report a change in carrying capacity;
+               for a non-cursed bag of holding the total weight might not
+               change because only a fraction of glob's weight is counted;
+               however, always say the bag is lighter for the 'gone' case */
+            if (gone || (shrink && topcontnr->owt != old_top_owt)
+                || near_capacity() != g.oldcap)
+                pline("%s %s%s lighter.", Yname2(topcontnr),
+                      /* containers also always have quantity 1 */
+                      (topcontnr->owt != old_top_owt) ? "becomes" : "seems",
+                      /* TODO?  maybe also skip "slightly" if description
+                         is changing (from "very large" to "large",
+                         "large" to "medium", or "medium to "small") */
+                      !gone ? " slightly" : "");
+            updinv = TRUE;
+        }
+    }
+
+    if (gone) {
+        xchar ox = 0, oy = 0;
+        /* check location for visibility before destroying obj */
+        boolean seeit = (obj->where == OBJ_FLOOR
+                         && get_obj_location(obj, &ox, &oy, 0)
+                         && cansee(ox, oy));
+
+        /* weight has been reduced to 0 so destroy the glob */
+        shrinking_glob_gone(obj);
+
+        if (seeit) {
+            newsym(ox, oy);
+            if ((ox != u.ux || oy != u.uy) && !strncmp(globnambuf, "The ", 4))
+                /* fortunately none of the glob adjectives warrant "An " */
+                (void) strsubst(globnambuf, "The ", "A ");
+            /* again, quantity is always 1 so no need for otense()/vtense() */
+            pline("%s fades away.", globnambuf);
+        }
+    } else {
+        /* schedule next shrink ~25 turns from now */
+        start_glob_timeout(obj, 0L);
+    }
+    if (updinv) {
+        update_inventory();
+        (void) encumber_msg();
+    }
+}
+
+/* a glob has shrunk away to nothing; handle owornmask, then delete glob */
+static void
+shrinking_glob_gone(struct obj *obj)
+{
+    if (obj->where == OBJ_INVENT) {
+        if (obj->owornmask) {
+            remove_worn_item(obj, FALSE);
+            stop_occupation();
+        }
+        useupall(obj); /* freeinv()+obfree() */
+    } else {
+        if (obj->where == OBJ_MIGRATING) {
+            /* destination flag overloads owornmask; clear it so obfree()'s
+               check for freeing a worn object doesn't get a false hit */
+            obj->owornmask = 0L;
+        } else if (obj->where == OBJ_MINVENT) {
+            /* monsters don't wield globs so this isn't strictly needed */
+            if (obj->owornmask && obj == MON_WEP(obj->ocarry))
+                setmnotwielded(obj->ocarry, obj); /* clears owornmask */
+        }
+        /* remove the glob from whatever list it's on and then delete it;
+           if it's contained, obj_extract_self() will update the container's
+           weight and if nested, the enclosing containers' weights too */
+        obj_extract_self(obj);
+        obfree(obj, (struct obj *) 0);
+    }
 }
 
 void
@@ -1664,24 +1973,41 @@ const int matdensities[] = {
  *  Note:  It is possible to end up with an incorrect weight if some part
  *         of the code messes with a contained object and doesn't update the
  *         container's weight.
+ *
+ *  Note too: obj->owt is an unsigned int and objects[].oc_weight an
+ *         unsigned short int, so weight() should probably be changed to
+ *         use and return unsigned int instead of signed int.
  */
 int
 weight(struct obj *obj)
 {
-    int wt = (int) objects[obj->otyp].oc_weight;
+    int wt = (int) objects[obj->otyp].oc_weight; /* weight of 1 'otyp' */
 
+    if (obj->quan < 1L) {
+        impossible("Calculating weight of %ld %s?",
+                   obj->quan, simpleonames(obj));
+        return 0;
+    }
+    /* glob absorpsion means that merging globs combines their weight
+       while quantity stays 1; mksobj(), obj_absorb(), and shrink_glob()
+       manage glob->owt and there is nothing for weight() to do except
+       return the current value as-is */
+    if (obj->globby) {
+        /* 3.7: in 3.6.x this checked for owt==0 and then used
+           owt as-is when non-zero or objects[].oc_weight if zero;
+           we don't do that anymore because it confused calculating
+           the weight of a container when a glob inside shrank down
+           to 0 and was about to be deleted [mksobj() now initializes
+           owt for globs sooner and the subsequent o->owt = weight(o)
+           general initialization is benignly redundant for globs] */
+        return (int) obj->owt;
+    }
     /* Modify weight according to the relative densities of the two materials,
      * if they differ. */
     if (obj->material != objects[obj->otyp].oc_material) {
         wt = (wt * matdensities[obj->material])
              / matdensities[objects[obj->otyp].oc_material];
     }
-
-    /* glob absorpsion means that merging globs accumulates weight while
-       quantity stays 1, so update 'wt' to reflect that, unless owt is 0,
-       when we assume this is a brand new glob so use objects[].oc_weight */
-    if (obj->globby && obj->owt > 0)
-        wt = obj->owt;
     if (Is_container(obj) || obj->otyp == STATUE) {
         struct obj *contents;
         register int cwt = 0;
@@ -1706,8 +2032,9 @@ weight(struct obj *obj)
          *  weight equations.
          */
         if (obj->otyp == BAG_OF_HOLDING)
-            cwt = obj->cursed ? (cwt * 2) : obj->blessed ? ((cwt + 3) / 4)
-                                                         : ((cwt + 1) / 2);
+            cwt = obj->cursed ? (cwt * 2)
+                  : obj->blessed ? ((cwt + 3) / 4)
+                    : ((cwt + 1) / 2); /* uncursed */
 
         return wt + cwt;
     }
@@ -1721,7 +2048,9 @@ weight(struct obj *obj)
     } else if (obj->oclass == FOOD_CLASS && obj->oeaten) {
         return eaten_stat((int) obj->quan * wt, obj);
     } else if (obj->oclass == COIN_CLASS) {
-        return (int) ((obj->quan + 50L) / 100L);
+        /* 3.7: always weigh at least 1 unit; used to yield 0 for 1..49 */
+        wt = (int) ((obj->quan + 50L) / 100L);
+        return max(wt, 1);
     } else if (obj->otyp == HEAVY_IRON_BALL && obj->owt != 0) {
         return (int) obj->owt; /* kludge for "very" heavy iron ball */
     } else if (obj->otyp == CANDELABRUM_OF_INVOCATION && obj->spe) {
@@ -1778,7 +2107,9 @@ material_bonus(struct obj *obj)
     return diff;
 }
 
-static const int treefruits[] = { APPLE, ORANGE, PEAR, BANANA, EUCALYPTUS_LEAF };
+static const int treefruits[] = {
+    APPLE, ORANGE, PEAR, BANANA, EUCALYPTUS_LEAF
+};
 
 /* called when a tree is kicked; never returns Null */
 struct obj *
@@ -2167,7 +2498,7 @@ peek_at_iced_corpse_age(struct obj *otmp)
 
 static void
 obj_timer_checks(
-    struct obj* otmp,
+    struct obj *otmp,
     xchar x, xchar y,
     int force) /* 0 = no force so do checks, <0 = force off, >0 force on */
 {
@@ -2609,7 +2940,7 @@ void
 obj_sanity_check(void)
 {
     int x, y;
-    struct obj *obj;
+    struct obj *obj, *otop, *prevo;
 
     objlist_sanity(fobj, OBJ_FLOOR, "floor sanity");
 
@@ -2617,19 +2948,40 @@ obj_sanity_check(void)
        those objects should have already been sanity checked via
        the floor list so container contents are skipped here */
     for (x = 0; x < COLNO; x++)
-        for (y = 0; y < ROWNO; y++)
-            for (obj = g.level.objects[x][y]; obj; obj = obj->nexthere) {
+        for (y = 0; y < ROWNO; y++) {
+            char at_fmt[BUFSZ];
+
+            otop = g.level.objects[x][y];
+            prevo = 0;
+            for (obj = otop; obj; prevo = obj, obj = prevo->nexthere) {
                 /* <ox,oy> should match <x,y>; <0,*> should always be empty */
                 if (obj->where != OBJ_FLOOR || x == 0
                     || obj->ox != x || obj->oy != y) {
-                    char at_fmt[BUFSZ];
-
                     Sprintf(at_fmt, "%%s obj@<%d,%d> %%s %%s: %%s@<%d,%d>",
                             x, y, obj->ox, obj->oy);
                     insane_object(obj, at_fmt, "location sanity",
                                   (struct monst *) 0);
+
+                /* when one or more boulders are present, they should always
+                   be at the top of their pile; also never in water or lava */
+                } else if (obj->otyp == BOULDER) {
+                    if (prevo && prevo->otyp != BOULDER) {
+                        Sprintf(at_fmt,
+                                "%%s boulder@<%d,%d> %%s %%s: not on top",
+                                x, y);
+                        insane_object(obj, at_fmt, "boulder sanity",
+                                      (struct monst *) 0);
+                    }
+                    if (is_pool_or_lava(x, y)) {
+                        Sprintf(at_fmt,
+                                "%%s boulder@<%d,%d> %%s %%s: on/in %s",
+                                x, y, is_pool(x, y) ? "water" : "lava");
+                        insane_object(obj, at_fmt, "boulder sanity",
+                                      (struct monst *) 0);
+                    }
                 }
             }
+        }
 
     objlist_sanity(g.invent, OBJ_INVENT, "invent sanity");
     objlist_sanity(g.migrating_objs, OBJ_MIGRATING, "migrating sanity");
@@ -2708,7 +3060,8 @@ objlist_sanity(struct obj *objlist, int wheretype, const char *mesg)
             check_glob(obj, mesg);
         /* temporary flags that might have been set but which should
            be clear by the time this sanity check is taking place */
-        if (obj->in_use || obj->bypass || obj->nomerge)
+        if (obj->in_use || obj->bypass || obj->nomerge
+            || (obj->otyp == BOULDER && obj->next_boulder))
             insane_obj_bits(obj, (struct monst *) 0);
         if (!valid_obj_material(obj, obj->material)) {
             char matbuf[BUFSZ];
@@ -2744,7 +3097,8 @@ mon_obj_sanity(struct monst *monlist, const char *mesg)
             if (obj->globby)
                 check_glob(obj, mesg);
             check_contained(obj, mesg);
-            if (obj->in_use || obj->bypass || obj->nomerge)
+            if (obj->in_use || obj->bypass || obj->nomerge
+                || (obj->otyp == BOULDER && obj->next_boulder))
                 insane_obj_bits(obj, mon);
         }
     }
@@ -2755,15 +3109,19 @@ insane_obj_bits(struct obj *obj, struct monst *mon)
 {
     unsigned o_in_use = obj->in_use, o_bypass = obj->bypass,
              /* having obj->nomerge be set might be intentional */
-             o_nomerge = obj->nomerge && !nomerge_exception(obj);
+             o_nomerge = (obj->nomerge && !nomerge_exception(obj)),
+             /* next_boulder is only for object name formatting when
+                pushing boulders and should be reset by next sanity check */
+             o_boulder = (obj->otyp == BOULDER && obj->next_boulder);
 
-    if (o_in_use || o_bypass || o_nomerge) {
+    if (o_in_use || o_bypass || o_nomerge || o_boulder) {
         char infobuf[QBUFSZ];
 
-        Sprintf(infobuf, "flagged%s%s%s",
+        Sprintf(infobuf, "flagged%s%s%s%s",
                 o_in_use ? " in_use" : "",
                 o_bypass ? " bypass" : "",
-                o_nomerge ? " nomerge" : "");
+                o_nomerge ? " nomerge" : "",
+                o_boulder ? " nxtbldr" : "");
         insane_object(obj, ofmt0, infobuf, mon);
     }
 }
@@ -2803,6 +3161,8 @@ where_name(struct obj *obj)
     return obj_state_names[where];
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 static void
 insane_object(
     struct obj *obj,
@@ -2831,11 +3191,11 @@ insane_object(
     }
 }
 
-/*
- * Initialize a dummy obj with just enough info
- * to allow some of the tests in obj.h that
- * take an obj pointer to work.
- */
+RESTORE_WARNING_FORMAT_NONLITERAL
+
+/* initialize a dummy obj with just enough info to allow some of the tests in
+   obj.h that take an obj pointer to work; used when applying a stethoscope
+   toward a mimic mimicking an object */
 struct obj *
 init_dummyobj(struct obj *obj, short otyp, long oquan)
 {
@@ -2851,6 +3211,8 @@ init_dummyobj(struct obj *obj, short otyp, long oquan)
                          : !objects[otyp].oc_uses_known;
          obj->quan = oquan ? oquan : 1L;
          obj->corpsenm = NON_PM; /* suppress statue and figurine details */
+         if (obj->otyp == BOULDER)
+             obj->next_boulder = 0; /* overloads corpsenm, avoid NON_PM */
          /* but suppressing fruit details leads to "bad fruit #0" */
          if (obj->otyp == SLIME_MOLD)
              obj->spe = g.context.current_fruit;
@@ -2912,9 +3274,15 @@ check_glob(struct obj *obj, const char *mesg)
 #define HIGHEST_GLOB GLOB_OF_BLACK_PUDDING
     if (obj->quan != 1L || obj->owt == 0
         || obj->otyp < LOWEST_GLOB || obj->otyp > HIGHEST_GLOB
+#if 0   /*
+         * This was relevant before the shrink_glob timer was adopted but
+         * now any glob could have a weight that isn't a multiple of 20.
+         */
         /* a partially eaten glob could have any non-zero weight but an
            intact one should weigh an exact multiple of base weight (20) */
-        || ((obj->owt % objects[obj->otyp].oc_weight) != 0 && !obj->oeaten)) {
+        || ((obj->owt % objects[obj->otyp].oc_weight) != 0 && !obj->oeaten)
+#endif
+        ) {
         char mesgbuf[BUFSZ], globbuf[QBUFSZ];
 
         Sprintf(globbuf, " glob %d,quan=%ld,owt=%u ",
@@ -3177,12 +3545,11 @@ obj_nexto_xy(struct obj *obj, int x, int y, boolean recurs)
 }
 
 /*
- * Causes one object to absorb another, increasing
- * weight accordingly. Frees obj2; obj1 remains and
- * is returned.
+ * Causes one object to absorb another, increasing weight
+ * accordingly.  Frees obj2; obj1 remains and is returned.
  */
 struct obj *
-obj_absorb(struct obj** obj1, struct obj** obj2)
+obj_absorb(struct obj **obj1, struct obj **obj2)
 {
     struct obj *otmp1, *otmp2;
     int o1wt, o2wt;
@@ -3209,11 +3576,22 @@ obj_absorb(struct obj** obj1, struct obj** obj2)
             agetmp = (((g.moves - otmp1->age) * o1wt
                        + (g.moves - otmp2->age) * o2wt)
                       / (o1wt + o2wt));
-            otmp1->age = g.moves - agetmp; /* conv. relative back to absolute */
+            /* convert relative age back to absolute age */
+            otmp1->age = g.moves - agetmp;
             otmp1->owt += o2wt;
             if (otmp1->oeaten || otmp2->oeaten)
                 otmp1->oeaten = o1wt + o2wt;
             otmp1->quan = 1L;
+            if (otmp1->globby && otmp2->globby) {
+                /* average (not weighted, no pun intended) the two globs'
+                   shrink timers and use that to give otmp1 a new timer */
+                long tm1 = stop_timer(SHRINK_GLOB, obj_to_any(otmp1)),
+                     tm2 = stop_timer(SHRINK_GLOB, obj_to_any(otmp2));
+
+                tm1 = ((tm1 ? tm1 : 25L) + (tm2 ? tm2 : 25L) + 1L) / 2L;
+                start_glob_timeout(otmp1, tm1);
+            }
+            /* get rid of second glob, return augmented first one */
             obj_extract_self(otmp2);
             dealloc_obj(otmp2);
             *obj2 = (struct obj *) 0;

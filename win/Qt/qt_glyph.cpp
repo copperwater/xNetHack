@@ -40,29 +40,52 @@ static int tilefile_tile_H=16;
 
 NetHackQtGlyphs::NetHackQtGlyphs()
 {
-    const char* tile_file = PIXMAPDIR "/nhtiles.bmp";
+    boolean tilesok = TRUE, user_tiles = (::iflags.wc_tile_file != NULL);
+    char cbuf[BUFSZ];
+    const char *tile_file = NULL, *tile_list[2];
 
-    if (iflags.wc_tile_file)
-	tile_file = iflags.wc_tile_file;
+    this->no_tiles = false;
+    tiles_per_row = TILES_PER_ROW;
 
-    if (!img.load(tile_file)) {
-        tiles_per_row = TILES_PER_ROW;
-
-	tile_file = PIXMAPDIR "/x11tiles";
-	if (!img.load(tile_file)) {
-	    QString msg = QString::asprintf("Cannot load 'nhtiles.bmp' or 'x11tiles'.");
-            QMessageBox::warning(0, "IO Error", msg);
-            iflags.wc_ascii_map = 1;
-            iflags.wc_tiled_map = 0;
-	} else {
-            if (img.width() % tiles_per_row) {
-                impossible(
-            "Tile file \"%s\" has %d columns, not multiple of row count (%d)",
-                           tile_file, img.width(), tiles_per_row);
-	    }
-	}
+    if (user_tiles) {
+        tile_list[0] = ::iflags.wc_tile_file;
+        Snprintf(cbuf, sizeof cbuf, "%s/%s", PIXMAPDIR, tile_list[0]);
+        tile_list[1] = cbuf;
     } else {
-	tiles_per_row = 40;
+        tile_list[0] = PIXMAPDIR "/nhtiles.bmp";
+        tile_list[1] = PIXMAPDIR "/x11tiles";
+    }
+
+    if (img.load(tile_list[0]))
+        tile_file = tile_list[0];
+    else if (img.load(tile_list[1]))
+        tile_file = tile_list[1];
+
+    if (!tile_file) {
+        tilesok = FALSE;
+        QString msg = QString::asprintf("Cannot load '%s'.",
+                                        user_tiles ? tile_list[0]
+                                          // mismatched quotes match format
+                                          : "nhtiles.bmp' or 'x11tiles");
+        QMessageBox::warning(0, "IO Error", msg);
+    } else {
+        if (img.width() % tiles_per_row) {
+            tilesok = FALSE;
+            impossible(
+            "Tile file \"%s\" has %d columns, not multiple of row count (%d)",
+                       tile_file, img.width(), tiles_per_row);
+        }
+    }
+
+    if (!tilesok) {
+        this->no_tiles = true;
+        /* tiles wouldn't load so force ascii map */
+        ::iflags.wc_ascii_map = 1;
+        ::iflags.wc_tiled_map = 0;
+        /* tiles wouldn't load so don't allow toggling to tiled map */
+        ::set_wc_option_mod_status(WC_ASCII_MAP | WC_TILED_MAP,
+                                   ::set_in_config);
+        tiles_per_row = 40; // arbitrary to avoid potential divide-by-0
     }
 
     if (iflags.wc_tile_width)
@@ -80,33 +103,50 @@ NetHackQtGlyphs::NetHackQtGlyphs()
     setSize(tilefile_tile_W, tilefile_tile_H);
 }
 
-void NetHackQtGlyphs::drawGlyph(QPainter& painter, int glyph, int x, int y,
-                                bool fem, bool reversed)
+// display a map tile somewhere other than the map;
+// used for paper doll and also role/race selection
+void
+NetHackQtGlyphs::drawGlyph(
+    QPainter& painter,
+    int glyph, int tileidx,
+    int x, int y,
+    bool reversed)
 {
     if (!reversed) {
+#if 0
         int tile = glyph2tile[glyph];
-        if (fem)
-            ++tile;
+#else
+	int tile = tileidx;
+#endif
         int px = (tile % tiles_per_row) * width();
         int py = tile / tiles_per_row * height();
 
         painter.drawPixmap(x, y, pm, px, py, width(), height());
     } else {
         // for paper doll; mirrored image for left side of two-handed weapon
-        painter.drawPixmap(x, y, reversed_pixmap(glyph, fem),
+        painter.drawPixmap(x, y, reversed_pixmap(glyph, tileidx),
                            0, 0, width(), height());
     }
 }
 
-void NetHackQtGlyphs::drawCell(QPainter& painter, int glyph,
-                               int cellx, int celly, bool fem)
+// draw a tile into the paper doll
+void
+NetHackQtGlyphs::drawCell(
+    QPainter& painter,
+    int glyph, int tileidx,
+    int cellx, int celly)
 {
-    drawGlyph(painter, glyph, cellx * width(), celly * height(), fem, false);
+    drawGlyph(painter, glyph, tileidx, cellx * width(), celly * height(),
+              false);
 }
 
-void NetHackQtGlyphs::drawBorderedCell(QPainter& painter, int glyph,
-                                       int cellx, int celly, int border,
-                                       bool reversed, bool fem)
+// draw a tile into the paper doll and then draw a BUC border around it
+void
+NetHackQtGlyphs::drawBorderedCell(
+    QPainter& painter,
+    int glyph, int tileidx,
+    int cellx, int celly,
+    int border, bool reversed)
 {
     int wd = width(),
         ht = height(),
@@ -114,7 +154,7 @@ void NetHackQtGlyphs::drawBorderedCell(QPainter& painter, int glyph,
         lox = cellx * (wd + 2),
         loy = celly * (ht + 2) + yoffset;
 
-    drawGlyph(painter, glyph, lox + 1, loy + 1, fem, reversed);
+    drawGlyph(painter, glyph, tileidx, lox + 1, loy + 1, reversed);
 
 #ifdef TEXTCOLOR
     if (border != NO_BORDER) {
@@ -165,11 +205,16 @@ void NetHackQtGlyphs::drawBorderedCell(QPainter& painter, int glyph,
 }
 
 // mis-named routine to get the pixmap for a particular glyph
-QPixmap NetHackQtGlyphs::glyph(int glyphindx, bool fem)
+QPixmap
+NetHackQtGlyphs::glyph(
+    int glyphindx UNUSED,
+    int tileidx)
 {
+#if 0
     int tile = glyph2tile[glyphindx];
-    if (fem)
-        ++tile;
+#else
+    int tile = tileidx;
+#endif
     int px = (tile % tiles_per_row) * tilefile_tile_W;
     int py = tile / tiles_per_row * tilefile_tile_H;
 
@@ -178,9 +223,11 @@ QPixmap NetHackQtGlyphs::glyph(int glyphindx, bool fem)
 }
 
 // transpose a glyph's tile horizontally, scaled for use in paper doll
-QPixmap NetHackQtGlyphs::reversed_pixmap(int glyphindx, bool fem)
+QPixmap
+NetHackQtGlyphs::reversed_pixmap(
+    int glyphindx, int tileidx)
 {
-    QPixmap pxmp = glyph(glyphindx, fem);
+    QPixmap pxmp = glyph(glyphindx, tileidx);
 #ifdef ENHANCED_PAPERDOLL
     qreal wid = (qreal) pxmp.width(),
           //hgt = (qreal) pxmp.height(),

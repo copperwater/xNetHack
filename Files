@@ -54,31 +54,31 @@ juiblex.lua   keyhelp       knox.lua      license       medusa-1.lua
 medusa-2.lua  medusa-3.lua  medusa-4.lua  minefill.lua  minend-1.lua
 minend-2.lua  minend-3.lua  minetn-1.lua  minetn-2.lua  minetn-3.lua
 minetn-4.lua  minetn-5.lua  minetn-6.lua  minetn-7.lua  nhcore.lua
-nhlib.lua     opthelp       oracle.lua    oracles.txt   orcus.lua
-quest.lua     rumors.fal    rumors.tru    sanctum.lua   soko1-1.lua
-soko1-2.lua   soko2-1.lua   soko2-2.lua   soko3-1.lua   soko3-2.lua
-soko4-1.lua   soko4-2.lua   symbols       themerms.lua  tower1.lua
-tower2.lua    tower3.lua    tribute       valley.lua    water.lua
-wizard1.lua   wizard2.lua   wizard3.lua   wizhelp
+nhlib.lua     opthelp       optmenu       oracle.lua    oracles.txt
+orcus.lua     quest.lua     rumors.fal    rumors.tru    sanctum.lua
+soko1-1.lua   soko1-2.lua   soko2-1.lua   soko2-2.lua   soko3-1.lua
+soko3-2.lua   soko4-1.lua   soko4-2.lua   symbols       themerms.lua
+tower1.lua    tower2.lua    tower3.lua    tribute       valley.lua
+water.lua     wizard1.lua   wizard2.lua   wizard3.lua   wizhelp
 
 doc:
 (files for all versions)
-Gbk-1pg-pfx.mn  Gbk-1pg-sfx.mn  Guidebook.mn    Guidebook.tex
-Guidebook.txt   config.nh       dlb.6           dlb.txt
-fixes10.0       fixes14.f       fixes22.0       fixes23.e
-fixes30.0       fixes30.pl01    fixes30.pl02    fixes30.pl03
-fixes30.pl04    fixes30.pl05    fixes30.pl06    fixes30.pl07
-fixes30.pl08    fixes30.pl09    fixes30.pl10    fixes31.1
-fixes31.2       fixes31.3       fixes32.0       fixes32.1
-fixes32.2       fixes32.3       fixes33.0       fixes33.1
-fixes34.0       fixes34.1       fixes34.2       fixes34.3
-fixes35.0       fixes36.0       fixes36.1       fixes36.2
-fixes36.3       fixes36.4       fixes36.5       fixes36.6
-fixes37.0       fixesXX.X       lua.adoc        makedefs.6
-makedefs.txt    mn.7            mn.txt          mnh.7
-mnh.txt         nethack.6       nethack.txt     options.doc
-recover.6       recover.txt     tmac.n          tmac.nh
-window.doc
+Gbk-1pg-pfx.mn     Gbk-1pg-sfx.mn     Guidebook.mn       Guidebook.tex
+Guidebook.txt      config.nh          dlb.6              dlb.txt
+fixes1-0.txt       fixes1-4-f.txt     fixes2-2.txt       fixes2-3-e.txt
+fixes3-0.txt       fixes3-0-pl01.txt  fixes3-0-pl02.txt  fixes3-0-pl03.txt
+fixes3-0-pl04.txt  fixes3-0-pl05.txt  fixes3-0-pl06.txt  fixes3-0-pl07.txt
+fixes3-0-pl08.txt  fixes3-0-pl09.txt  fixes3-0-pl10.txt  fixes3-1-1.txt
+fixes3-1-2.txt     fixes3-1-3.txt     fixes3-2-0.txt     fixes3-2-1.txt
+fixes3-2-2.txt     fixes3-2-3.txt     fixes3-3-0.txt     fixes3-3-1.txt
+fixes3-4-0.txt     fixes3-4-1.txt     fixes3-4-2.txt     fixes3-4-3.txt
+fixes3-5-0.txt     fixes3-6-0.txt     fixes3-6-1.txt     fixes3-6-2.txt
+fixes3-6-3.txt     fixes3-6-4.txt     fixes3-6-5.txt     fixes3-6-6.txt
+fixes3-7-0.txt     fixesX-X-X.txt     lua.adoc           makedefs.6
+makedefs.txt       mn.7               mn.txt             mnh.7
+mnh.txt            nethack.6          nethack.txt        options.txt
+recover.6          recover.txt        tmac.n             tmac.nh
+window.txt
 
 include:
 (files for X versions)
@@ -152,7 +152,18 @@ Install.os2   Makefile.os2  nhpmico.uu    os2.c
 
 outdated/sys/unix:
 (files that are no longer maintained for current game code)
-README.linux
+README.linux    cross-amiga.sh
+
+outdated/sys/unix/hints:
+(files that are no longer maintained for current game code)
+cross-amiga     linux           linux-chroot    linux-qt4
+linux-qt5       linux-x11       macosx          macosx10.5
+macosx10.7      macosx10.8      macosx10.10     macosx10.10-qt
+macosx10.14
+
+outdated/sys/unix/hints/include:
+(files that are no longer maintained for current game code)
+cross-amiga-post  cross-amiga-pre
 
 outdated/sys/wince:
 (files for Windows CE and PocketPC - untested for 3.7)
@@ -174,6 +185,14 @@ assert.h  errno.h   fcntl.h
 outdated/sys/wince/ceinc/sys:
 (sys/stat.h for Windows CE and PocketPC - untested for 3.6.2)
 stat.h
+
+outdated/sys/windows:
+(files that are no longer maintained for current game code)
+travis-gcc.sh
+
+outdated/sys/windows/vs:
+(files that are no longer maintained for current game code)
+travisci.sh
 
 outdated/win/Qt3:
 (files for the Qt 3 widget library - X11, Windows, Mac OS X, or Qtopia)
@@ -315,18 +334,14 @@ NetHack.xcscheme   makedefs.xcscheme  recover.xcscheme
 
 sys/unix/hints:
 (files for configuring UNIX NetHack versions)
-linux               linux-chroot        linux-minimal
-linux-qt4           linux-qt5           linux-x11
-linux.2020          macOS.2020          macosx
-macosx.sh           macosx10.5          macosx10.7
-macosx10.8          macosx10.10         macosx10.10-qt
-macosx10.14         solaris             solaris-playground
+linux-minimal       linux.370           macOS.370
+macosx.sh           solaris             solaris-playground
 unix
 
 sys/unix/hints/include:
 (files for configuring UNIX NetHack versions)
-compiler.2020    cross-post.2020  cross-pre.2020   multiw-1.2020
-multiw-2.2020
+compiler.370    cross-post.370  cross-pre.370   multiw-1.370
+multiw-2.370
 
 sys/vms:
 (files for VMS version)
@@ -336,18 +351,17 @@ spec_lev.com  sysconf       vmsbuild.com  vmsfiles.c    vmsmail.c
 vmsmain.c     vmsmisc.c     vmstty.c      vmsunix.c
 
 sys/windows:
-(files for Windows 7/8.x/10 version)
-.nethackrc.template  Install.windows      Makefile.gcc
-Makefile.msc         console.rc           consoletty.c
-nethack.def          nh340key.c           nhdefkey.c
-nhico.uu             nhraykey.c           nhsetup.bat
-ntsound.c            porthelp             stub-pdcscrn.c
-stubs.c              sysconf.template     travis-gcc.sh
-win10.c              win10.h              win32api.h
-windmain.c           windsys.c            winos.h
+(files for Windows 7/8.x/10/11 version)
+.nethackrc.template      Install.windows          Makefile.mingw32
+Makefile.mingw32.depend  Makefile.msc             console.rc
+consoletty.c             nethack.def              nhico.uu
+nhsetup.bat              ntsound.c                porthelp
+stub-pdcscrn.c           stubs.c                  sysconf.template
+win10.c                  win10.h                  win32api.h
+windmain.c               windsys.c                winos.h
 
 sys/windows/vs:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
+(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 NetHack.sln                   NetHackPackage.appxmanifest
 NetHackPackage.wapproj        NetHackProperties.props
 Package.StoreAssociation.xml  ScreenShot.PNG
@@ -356,10 +370,10 @@ config.props                  console.props
 cpp.hint                      default.props
 default_dll.props             default_lib.props
 dirs.props                    dll.props
-files.props                   travisci.sh
+files.props
 
 sys/windows/vs/Images:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
+(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 BadgeLogo.scale-100.png
 BadgeLogo.scale-125.png
 BadgeLogo.scale-150.png
@@ -414,55 +428,43 @@ Wide310x150Logo.scale-200.png
 Wide310x150Logo.scale-400.png
 
 sys/windows/vs/NetHack:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
+(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 NetHack.vcxproj    afternethack.proj
 
 sys/windows/vs/NetHackW:
-(file for Visual Studio 2017 or 2019 Community Edition builds)
+(file for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 NetHackW.vcxproj
 
 sys/windows/vs/PDCurses:
-(file for Visual Studio 2017 or 2019 Community Edition builds)
+(file for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 PDCurses.vcxproj
 
 sys/windows/vs/dlb:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
+(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 afterdlb.proj  dlb.vcxproj
 
 sys/windows/vs/makedefs:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
+(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 aftermakedefs.proj  makedefs.vcxproj
 
-sys/windows/vs/nh340key:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
-nh340key.def      nh340key.vcxproj
-
-sys/windows/vs/nhdefkey:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
-nhdefkey.def      nhdefkey.vcxproj
-
-sys/windows/vs/nhraykey:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
-nhraykey.def      nhraykey.vcxproj
-
 sys/windows/vs/recover:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
+(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 afterrecover.proj  recover.vcxproj
 
 sys/windows/vs/tile2bmp:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
+(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 aftertile2bmp.proj  tile2bmp.vcxproj
 
 sys/windows/vs/tilemap:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
+(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 aftertilemap.proj  tilemap.vcxproj
 
 sys/windows/vs/tiles:
-(file for Visual Studio 2017 or 2019 Community Edition builds)
+(file for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 tiles.vcxproj
 
 sys/windows/vs/uudecode:
-(files for Visual Studio 2017 or 2019 Community Edition builds)
+(files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
 afteruudecode.proj  uudecode.vcxproj
 
 test:
@@ -619,18 +621,6 @@ sys/windows/vs/dlb:
 nethack.ico
 
 sys/windows/vs/makedefs:
-(file generated by uudecode at compile time)
-nethack.ico
-
-sys/windows/vs/nh340key:
-(file generated by uudecode at compile time)
-nethack.ico
-
-sys/windows/vs/nhdefkey:
-(file generated by uudecode at compile time)
-nethack.ico
-
-sys/windows/vs/nhraykey:
 (file generated by uudecode at compile time)
 nethack.ico
 

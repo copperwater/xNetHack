@@ -17,7 +17,8 @@ char erase_char, kill_char;
 extern char erase_char, kill_char;
 #endif
 
-extern long curs_mesg_suppress_turn; /* from cursmesg.c */
+extern long curs_mesg_suppress_seq; /* from cursmesg.c */
+extern boolean curs_mesg_no_suppress; /* ditto */
 
 /* stubs for curses_procs{} */
 #ifdef POSITIONBAR
@@ -48,7 +49,7 @@ struct window_procs curses_procs = {
 #endif
      | WC2_FLUSH_STATUS | WC2_TERM_SIZE
      | WC2_STATUSLINES | WC2_WINDOWBORDERS | WC2_PETATTR | WC2_GUICOLOR
-     | WC2_SUPPRESS_HIST | WC2_MENU_SHIFT),
+     | WC2_SUPPRESS_HIST | WC2_URGENT_MESG | WC2_MENU_SHIFT),
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, /* color availability */
     curses_init_nhwindows,
     curses_player_selection,
@@ -501,6 +502,13 @@ curses_putstr(winid wid, int attr, const char *text)
     mesgflags = attr & (ATR_URGENT | ATR_NOHISTORY);
     attr &= ~mesgflags;
 
+    /* this is comparable to tty's cw->flags &= ~WIN_STOP; if messages are
+       being suppressed after >>ESC, override that and resume showing them */
+    if ((mesgflags & ATR_URGENT) != 0) {
+         curs_mesg_suppress_seq = -1L;
+         curs_mesg_no_suppress = TRUE;
+    }
+
     if (wid == WIN_MESSAGE && (mesgflags & ATR_NOHISTORY) != 0) {
         /* display message without saving it in recall history */
         curses_count_window(text);
@@ -509,6 +517,9 @@ curses_putstr(winid wid, int attr, const char *text)
         curses_attr = curses_convert_attr(attr);
         curses_puts(wid, curses_attr, text);
     }
+
+    /* urgent message handling is a one-shot operation; we're done */
+    curs_mesg_no_suppress = FALSE;
 }
 
 /* Display the file named str.  Complain about missing files
@@ -750,9 +761,9 @@ curses_print_glyph(winid wid, xchar x, xchar y,
     int attr = -1;
 
     glyph = glyphinfo->glyph;
-    special = glyphinfo->glyphflags;
+    special = glyphinfo->gm.glyphflags;
     ch = glyphinfo->ttychar;
-    color = glyphinfo->color;
+    color = glyphinfo->gm.color;
     if ((special & MG_PET) && iflags.hilite_pet) {
         attr = iflags.wc2_petattr;
     }

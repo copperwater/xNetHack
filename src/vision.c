@@ -133,8 +133,7 @@ vision_init(void)
 /*
  * does_block()
  *
- * Returns true if the level feature, object, or monster at (x,y) blocks
- * sight.
+ * Returns true if something at (x,y) blocks sight.
  */
 int
 does_block(int x, int y, struct rm *lev)
@@ -264,7 +263,7 @@ get_unused_cs(xchar ***rows, xchar **rmin, xchar **rmax)
     nrmin = *rmin;
     nrmax = *rmax;
 
-    (void) memset((genericptr_t) **rows, 0, ROWNO * COLNO); /* see nothing */
+    (void) memset((genericptr_t) **rows, 0, sizeof(xchar) * (ROWNO * COLNO)); /* see nothing */
     for (row = 0; row < ROWNO; row++) { /* set row min & max */
         *nrmin++ = COLNO - 1;
         *nrmax++ = 1;
@@ -608,7 +607,7 @@ vision_recalc(int control)
     do_light_sources(next_array);
 
     /*
-     * Make the g.viz_array the new array so that cansee() will work correctly.
+     * Make the viz_array the new array so that cansee() will work correctly.
      */
     temp_array = g.viz_array;
     g.viz_array = next_array;
@@ -724,7 +723,7 @@ vision_recalc(int control)
              *   infrared monster there.
              */
             } else {
-            not_in_sight:
+ not_in_sight:
                 if ((old_row[col] & IN_SIGHT)
                     || ((next_row[col] & COULD_SEE)
                         ^ (old_row[col] & COULD_SEE)))
@@ -735,7 +734,7 @@ vision_recalc(int control)
     }     /* end for row . .  */
     colbump[u.ux] = colbump[u.ux + 1] = 0;
 
-skip:
+ skip:
     /* This newsym() caused a crash delivering msg about failure to open
      * dungeon file init_dungeons() -> panic() -> done(11) ->
      * vision_recalc(2) -> newsym() -> crash!  u.ux and u.uy are 0 and
@@ -1491,7 +1490,7 @@ clear_path(int col1, int row1, int col2, int row2)
         }
     }
 #ifdef MACRO_CPATH
-cleardone:
+ cleardone:
 #endif
     return (boolean) result;
 }
@@ -1609,7 +1608,7 @@ right_side(int row, int left, int right_mark, const xchar *limits)
                 } else {
                     q4_path(start_row, start_col, row, left, rside1);
                 }
-            rside1: /* used if q?_path() is a macro */
+ rside1:        /* used if q?_path() is a macro */
                 if (result)
                     break;
             }
@@ -1663,7 +1662,7 @@ right_side(int row, int left, int right_mark, const xchar *limits)
                 } else {
                     q4_path(start_row, start_col, row, right, rside2);
                 }
-            rside2: /* used if q?_path() is a macro */
+ rside2:        /* used if q?_path() is a macro */
                 if (!result)
                     break;
             }
@@ -1774,7 +1773,7 @@ left_side(int row, int left_mark, int right, const xchar *limits)
                 } else {
                     q3_path(start_row, start_col, row, right, lside1);
                 }
-            lside1: /* used if q?_path() is a macro */
+ lside1:        /* used if q?_path() is a macro */
                 if (result)
                     break;
             }
@@ -1806,7 +1805,7 @@ left_side(int row, int left_mark, int right, const xchar *limits)
                 } else {
                     q3_path(start_row, start_col, row, left, lside2);
                 }
-            lside2: /* used if q?_path() is a macro */
+ lside2:        /* used if q?_path() is a macro */
                 if (!result)
                     break;
             }

@@ -24,7 +24,6 @@ static int nhl_doturn(lua_State *);
 static int nhl_debug_flags(lua_State *);
 static int nhl_test(lua_State *);
 static int nhl_getmap(lua_State *);
-static void nhl_add_table_entry_bool(lua_State *, const char *, boolean);
 static char splev_typ2chr(schar);
 static int nhl_gettrap(lua_State *);
 static int nhl_deltrap(lua_State *);
@@ -54,7 +53,7 @@ static void init_u_data(lua_State *);
 static int nhl_set_package_path(lua_State *, const char *);
 static int traceback_handler(lua_State *);
 
-static const char *nhcore_call_names[NUM_NHCORE_CALLS] = {
+static const char *const nhcore_call_names[NUM_NHCORE_CALLS] = {
     "start_new_game",
     "restore_old_game",
     "moveloop_turn",
@@ -116,6 +115,8 @@ l_nhcore_call(int callidx)
     }
 }
 
+DISABLE_WARNING_UNREACHABLE_CODE
+
 void
 nhl_error(lua_State *L, const char *msg)
 {
@@ -136,7 +137,10 @@ nhl_error(lua_State *L, const char *msg)
 #endif
     (void) lua_error(L);
     /*NOTREACHED*/
+    /* UNREACHABLE_CODE */
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 /* Check that parameters are nothing but single table,
    or if no parameters given, put empty table there */
@@ -217,6 +221,19 @@ nhl_add_table_entry_bool(lua_State *L, const char *name, boolean value)
 {
     lua_pushstring(L, name);
     lua_pushboolean(L, value);
+    lua_rawset(L, -3);
+}
+
+void
+nhl_add_table_entry_region(lua_State *L, const char *name,
+                           xchar x1, xchar y1, xchar x2, xchar y2)
+{
+    lua_pushstring(L, name);
+    lua_newtable(L);
+    nhl_add_table_entry_int(L, "x1", x1);
+    nhl_add_table_entry_int(L, "y1", y1);
+    nhl_add_table_entry_int(L, "x2", x2);
+    nhl_add_table_entry_int(L, "y2", y2);
     lua_rawset(L, -3);
 }
 
@@ -1404,7 +1421,8 @@ nhl_init(void)
 void
 nhl_done(lua_State *L)
 {
-    lua_close(L);
+    if (L)
+        lua_close(L);
     iflags.in_lua = FALSE;
 }
 
@@ -1435,17 +1453,33 @@ DISABLE_WARNING_CONDEXPR_IS_CONSTANT
 const char *
 get_lua_version(void)
 {
-    size_t len = (size_t) 0;
-    const char *vs = (const char *) 0;
-    lua_State *L;
-
     if (g.lua_ver[0] == 0) {
-        L = nhl_init();
+        lua_State *L = nhl_init();
 
         if (L) {
-            lua_getglobal(L, "_VERSION");
+            size_t len = 0;
+            const char *vs = (const char *) 0;
+
+            /* LUA_VERSION yields "<major>.<minor>" although we check to see
+               whether it is "Lua-<major>.<minor>" and strip prefix if so;
+               LUA_RELEASE is <LUA_VERSION>.<LUA_VERSION_RELEASE> but doesn't
+               get set up as a lua global */
+            lua_getglobal(L, "_RELEASE");
             if (lua_isstring(L, -1))
                 vs = lua_tolstring (L, -1, &len);
+#ifdef LUA_RELEASE
+            else
+                vs = LUA_RELEASE, len = strlen(vs);
+#endif
+            if (!vs) {
+                lua_getglobal(L, "_VERSION");
+                if (lua_isstring(L, -1))
+                    vs = lua_tolstring (L, -1, &len);
+#ifdef LUA_VERSION
+                else
+                    vs = LUA_VERSION, len = strlen(vs);
+#endif
+            }
             if (vs && len < sizeof g.lua_ver) {
                 if (!strncmpi(vs, "Lua", 3)) {
                     vs += 3;

@@ -224,7 +224,8 @@ artifact_name(const char *name, short *otyp)
         if (!strncmpi(aname, "the ", 4))
             aname += 4;
         if (!strcmpi(name, aname)) {
-            *otyp = a->otyp;
+            if (otyp)
+                *otyp = a->otyp;
             return a->name;
         }
     }
@@ -388,7 +389,7 @@ restrict_name(struct obj *otmp, const char *name)
 static boolean
 attacks(int adtyp, struct obj *otmp)
 {
-    register const struct artifact *weap;
+    const struct artifact *weap;
 
     if ((weap = get_artifact(otmp)) != 0)
         return (boolean) (weap->attk.adtyp == adtyp);
@@ -398,10 +399,47 @@ attacks(int adtyp, struct obj *otmp)
 boolean
 defends(int adtyp, struct obj *otmp)
 {
-    register const struct artifact *weap;
+    struct artifact *weap;
 
+    if (!otmp)
+        return FALSE;
     if ((weap = get_artifact(otmp)) != 0)
         return (boolean) (weap->defn.adtyp == adtyp);
+    if (Is_dragon_armor(otmp)) {
+        /* convert mail to scales to simplify testing */
+        int otyp = Dragon_armor_to_scales(otmp);
+
+        switch (adtyp) {
+        case AD_MAGM: /* magic missiles => general magic resistance */
+            return (otyp == GRAY_DRAGON_SCALES);
+        case AD_HALU: /* confers hallucination resistance */
+            return (otyp == GOLD_DRAGON_SCALES);
+        case AD_FIRE:
+      /*case AD_BLND: -- gives infravision but does not prevent blindness */
+            return (otyp == RED_DRAGON_SCALES); /* red but not gold */
+        case AD_COLD:
+      /*case AD_FAMN: -- slows digestion but does not override Famine */
+            return (otyp == WHITE_DRAGON_SCALES); /* white but not silver */
+        case AD_DRST: /* drain strength => poison */
+        case AD_DISE: /* blocks disease but not slime */
+            return (otyp == GREEN_DRAGON_SCALES);
+        case AD_SLEE: /* sleep */
+        case AD_PLYS: /* paralysis => free action */
+            return (otyp == ORANGE_DRAGON_SCALES);
+        case AD_DISN: /* disintegration */
+        case AD_DRLI: /* level drain resistance */
+            return (otyp == BLACK_DRAGON_SCALES);
+        case AD_ELEC: /* electricity == lightning */
+        case AD_SLOW: /* confers speed so blocks speed removal */
+            return (otyp == BLUE_DRAGON_SCALES);
+        case AD_ACID:
+        case AD_STON: /* petrification resistance */
+            return (otyp == YELLOW_DRAGON_SCALES);
+        default:
+            /* SILVER_DRAGON_SCALES don't resist any particular attack type */
+            break;
+        }
+    }
     return FALSE;
 }
 
@@ -409,7 +447,7 @@ defends(int adtyp, struct obj *otmp)
 boolean
 defends_when_carried(int adtyp, struct obj *otmp)
 {
-    register const struct artifact *weap;
+    const struct artifact *weap;
 
     if ((weap = get_artifact(otmp)) != 0)
         return (boolean) (weap->cary.adtyp == adtyp);
@@ -768,11 +806,9 @@ spec_applies(const struct artifact *weap, struct monst *mtmp)
                      : (ptr->maligntyp == A_NONE
                         || sgn(ptr->maligntyp) != weap->alignment);
     } else if (weap->spfx & SPFX_ATTK) {
-        struct obj *defending_weapon = (yours ? uwep : MON_WEP(mtmp));
-
-        if (defending_weapon && defending_weapon->oartifact
-            && defends((int) weap->attk.adtyp, defending_weapon))
+        if (defended(mtmp, (int) weap->attk.adtyp))
             return FALSE;
+
         switch (weap->attk.adtyp) {
         case AD_FIRE:
             return !(yours ? Fire_resistance : resists_fire(mtmp));
@@ -1029,6 +1065,8 @@ Mb_hit(struct monst *magr, /* attacker */
                     mdef->mhp = 1; /* cancelled clay golems will die */
                 if (youattack && attacktype(mdef->data, AT_MAGC)) {
                     u.uenmax++;
+                    if (u.uenmax > u.uenpeak)
+                        u.uenpeak = u.uenmax;
                     u.uen++;
                     g.context.botl = TRUE;
                     You("absorb magical energy!");
@@ -1119,6 +1157,8 @@ Mb_hit(struct monst *magr, /* attacker */
     return result;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 /* Function used when someone attacks someone else with an artifact
  * weapon.  Only adds the special (artifact) damage, and returns a bitmask of
  * the ARTIFACTHIT flags defined in hack.h indicating what messages it
@@ -1137,7 +1177,7 @@ artifact_hit(struct monst *magr, struct monst *mdef, struct obj *otmp,
     boolean youdefend = (mdef == &g.youmonst);
     boolean vis = (!youattack && magr && cansee(magr->mx, magr->my))
                   || (!youdefend && cansee(mdef->mx, mdef->my))
-                  || (youattack && u.uswallow && mdef == u.ustuck && !Blind);
+                  || (youattack && engulfing_u(mdef) && !Blind);
     int retval = ARTIFACTHIT_NOMSG;
     boolean realizes_damage;
     const char *wepdesc;
@@ -1285,7 +1325,7 @@ artifact_hit(struct monst *magr, struct monst *mdef, struct obj *otmp,
         if (otmp->oartifact == ART_TSURUGI_OF_MURAMASA && dieroll == 1) {
             wepdesc = "The razor-sharp blade";
             /* not really beheading, but so close, why add another SPFX */
-            if (youattack && u.uswallow && mdef == u.ustuck) {
+            if (youattack && engulfing_u(mdef)) {
                 You("slice %s wide open!", mon_nam(mdef));
                 *dmgptr = 2 * mdef->mhp + FATAL_DAMAGE_MODIFIER;
                 return ARTIFACTHIT_INSTAKILLMSG | ARTIFACTHIT_GAVEMSG;
@@ -1331,7 +1371,7 @@ artifact_hit(struct monst *magr, struct monst *mdef, struct obj *otmp,
             static const char *const behead_msg[2] = { "%s beheads %s!",
                                                        "%s decapitates %s!" };
 
-            if (youattack && u.uswallow && mdef == u.ustuck)
+            if (youattack && engulfing_u(mdef))
                 return ARTIFACTHIT_NOMSG;
             wepdesc = artilist[ART_VORPAL_BLADE].name;
             if (!youdefend) {
@@ -1518,6 +1558,8 @@ artifact_hit(struct monst *magr, struct monst *mdef, struct obj *otmp,
     return ARTIFACTHIT_NOMSG;
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
 /* getobj callback for object to be invoked */
 static int
 invoke_ok(struct obj *obj)
@@ -1548,9 +1590,9 @@ doinvoke(void)
 
     obj = getobj("invoke", invoke_ok, GETOBJ_PROMPT);
     if (!obj)
-        return 0;
+        return ECMD_CANCEL;
     if (!retouch_object(&obj, FALSE, FALSE))
-        return 1;
+        return ECMD_TIME;
     return arti_invoke(obj);
 }
 
@@ -1560,14 +1602,14 @@ arti_invoke(struct obj *obj)
     register const struct artifact *oart = get_artifact(obj);
     if (!obj) {
         impossible("arti_invoke without obj");
-        return 0;
+        return ECMD_OK;
     }
     if (!oart || !oart->inv_prop) {
         if (obj->otyp == CRYSTAL_BALL)
             use_crystal_ball(&obj);
         else
             pline1(nothing_happens);
-        return 1;
+        return ECMD_TIME;
     }
 
     if (oart->inv_prop > LAST_PROP) {
@@ -1579,7 +1621,7 @@ arti_invoke(struct obj *obj)
             if (!(wizard && yn("Override?") == 'y')) {
                 /* and just got more so; patience is essential... */
                 obj->age += (long) d(3, 10);
-                return 1;
+                return ECMD_TIME;
             }
         }
         obj->age = g.moves + rnz(100);
@@ -1637,7 +1679,7 @@ arti_invoke(struct obj *obj)
         case UNTRAP: {
             if (!untrap(TRUE)) {
                 obj->age = 0; /* don't charge for changing their mind */
-                return 0;
+                return ECMD_OK;
             }
             break;
         }
@@ -1648,7 +1690,7 @@ arti_invoke(struct obj *obj)
 
             if (!otmp) {
                 obj->age = 0;
-                return 0;
+                return ECMD_CANCEL;
             }
             b_effect = (obj->blessed && (oart->role == Role_switch
                                          || oart->role == NON_PM));
@@ -1821,7 +1863,7 @@ arti_invoke(struct obj *obj)
             if (!(wizard && yn("Override?") == 'y')) {
                 /* can't just keep repeatedly trying */
                 obj->age += (long) d(3, 10);
-                return 1;
+                return ECMD_TIME;
             }
         } else if (!on) {
             /* when turning off property, determine downtime */
@@ -1834,7 +1876,7 @@ arti_invoke(struct obj *obj)
             /* you had the property from some other source too */
             if (carried(obj))
                 You_feel("a surge of power, but nothing seems to happen.");
-            return 1;
+            return ECMD_TIME;
         }
         switch (oart->inv_prop) {
         case CONFLICT:
@@ -1865,7 +1907,7 @@ arti_invoke(struct obj *obj)
         }
     }
 
-    return 1;
+    return ECMD_TIME;
 }
 
 /* will freeing this object from inventory cause levitation to end? */
@@ -2063,7 +2105,7 @@ glow_color(int arti_indx)
 }
 
 /* glow verb; [0] holds the value used when blind */
-static const char *glow_verbs[] = {
+static const char *const glow_verbs[] = {
     "quiver", "flicker", "glimmer", "gleam"
 };
 
@@ -2263,7 +2305,7 @@ untouchable(struct obj *obj, boolean drop_untouchable)
                carried effect was turned off, else we leave that alone;
                we turn off invocation property here if still carried */
             if (invoked && obj)
-                arti_invoke(obj); /* reverse #invoke */
+                (void) arti_invoke(obj); /* reverse #invoke */
             return TRUE;
         }
     }

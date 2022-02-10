@@ -27,7 +27,7 @@ enum mon_syms {
 #ifndef MAKEDEFS_C
 
 /* Default characters for dungeon surroundings and furniture */
-enum screen_symbols {
+enum cmap_symbols {
 #define PCHAR_S_ENUM
 #include "defsym.h"
 #undef PCHAR_S_ENUM
@@ -76,7 +76,7 @@ struct symsetentry {
 
 #define MAXDCHARS (S_water - S_stone + 1) /* mapped dungeon characters */
 #define MAXTCHARS (S_vibrating_square - S_arrow_trap + 1) /* trap chars */
-#define MAXECHARS (S_explode9 - S_vbeam + 1) /* mapped effects characters */
+#define MAXECHARS (S_expl_br - S_vbeam + 1) /* mapped effects characters */
 #define MAXEXPCHARS 9 /* number of explosion characters */
 
 #define DARKROOMSYM (S_darkroom)

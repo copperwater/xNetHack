@@ -1,9 +1,9 @@
 ## xNetHack 7.0 Changelog
 
-This is a major version of xNetHack. It is based directly on xNetHack 6.0, and
+This is a major version of xNetHack. It is based directly on xNetHack 6.3, and
 is a fork off the vanilla NetHack 3.7.0 development version release.
 
-The most recent vanilla commit incorporated into xNetHack is 583fb60. Note that
+The most recent vanilla commit incorporated into xNetHack is 87bcd2e. Note that
 because 3.7.0 is still in development status, xNetHack may contain major changes
 including new monsters, new objects, themed rooms, and other things *not*
 documented in this file or other xNetHack changelogs. See doc/fixes37.0 for the
@@ -234,6 +234,8 @@ changes:
   chance to avoid getting stunned.
 - Nazgul can innately see invisible.
 - On February 2 (Groundhog Day), woodchucks can randomly generate.
+- Foocubi can once again drain or raise maximum Pw. It works the same as vanilla
+  (-d10 for a bad result and +d5 for a good result).
 
 
 ### Interface changes

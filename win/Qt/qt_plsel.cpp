@@ -8,11 +8,13 @@
 // TODO:
 //  increase height so that no scrolling is needed for role list [needs
 //    to be done properly instead of forcing logo string to be taller]
-//  the [Random] button doesn't do anything;
 //  make race first vs role first dynamically selectable (tty allows
 //    gender first and alignment first too);
 //  maybe add a set of radio buttons for normal mode vs explore mode
 //    [vs wizard mode if eligible]
+//  gray out character name / disable name specification box if player
+//    shouldn't be allowed to change it ("wizard" for debug mode, use
+//    of some forced value for multi-user system).
 //
 
 extern "C" {
@@ -75,6 +77,13 @@ void centerOnMain( QWidget* w );
 static const char nh_attribution[] = "<br><center><big>NetHack %1</big>"
         "<br><small>by the NetHack DevTeam</small></center><br>";
 
+//
+// None of these extra classes seem to be used except for NhPSListView. [pr]
+// If NhPSListViewRole and NhPSListViewRace ever start being used,
+// they'll need access to NetHackQtPlayerSelector::chosen_gend to use
+// the correct tile for the icon.
+//
+
 class NhPSListViewItem : public QTableWidgetItem {
 public:
     NhPSListViewItem( QTableWidget* parent UNUSED, const QString& name ) :
@@ -82,14 +91,14 @@ public:
     {
     }
 
-    void setGlyph(int g, bool fem)
+    void setGlyph(int g, int tileidx)
     {
 	NetHackQtGlyphs& glyphs = qt_settings->glyphs();
 	int gw = glyphs.width();
 	int gh = glyphs.height();
 	QPixmap pm(gw,gh);
 	QPainter p(&pm);
-	glyphs.drawGlyph(p, g, 0, 0, fem);
+        glyphs.drawGlyph(p, g, tileidx, 0, 0, false);
 	p.end();
 	setIcon(QIcon(pm));
 	//RLC setHeight(std::max(pm.height()+1,height()));
@@ -124,7 +133,10 @@ public:
 #endif
 	)
     {
-	setGlyph(monnum_to_glyph(roles[id].malenum), false);
+	glyph_info gi;
+	int glyph = monnum_to_glyph(roles[id].mnum, MALE);
+	map_glyphinfo(0, 0, glyph, 0, &gi);
+	setGlyph(glyph, gi.gm.tileidx);
     }
 };
 
@@ -139,7 +151,10 @@ public:
 #endif
 	)
     {
-	setGlyph(monnum_to_glyph(races[id].malenum), false);
+	glyph_info gi;
+	int glyph = monnum_to_glyph(races[id].mnum, MALE);
+	map_glyphinfo(0, 0, glyph, 0, &gi);
+	setGlyph(glyph, gi.gm.tileidx);
     }
 };
 
@@ -173,36 +188,67 @@ public:
     }
 };
 
-NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks UNUSED) :
+// constructor for player's name+role/race/gender/alignment selection
+NetHackQtPlayerSelector::NetHackQtPlayerSelector(
+        NetHackQtKeyBuffer& ks UNUSED) :
     QDialog(NetHackQtBind::mainWidget()),
     fully_specified_role(true),
     chosen_gend(ROLE_NONE),
     chosen_align(ROLE_NONE),
+    cleric_role_row(0),
+    human_race_row(0),
     rand_btn(new QPushButton("Random")),
     play_btn(new QPushButton("Play")),
     quit_btn(new QPushButton("Quit"))
 {
     /*
-               0             1             2
-	  + Name ------------------------------------+
-	0 |                                          |
-	  + ---- ------------------------------------+
-	  + Race ---+   + Role ---+   + Gender ------+
-	  |         |   |         |   |  * Male      |
-	1 |         |   |         |   |  * Female    |
-	  |         |   |         |   +--------------+
-	  |         |   |         |   
-	  |         |   |         |   + Alignment ---+
-	2 |         |   |         |   |  * Male      |
-	  |         |   |         |   |  * Female    |
-	  |         |   |         |   +--------------+
-	3 |         |   |         |   ...stretch...
-	  |         |   |         |   
-	4 |         |   |         |   [ Random ]
-	5 |         |   |         |   [  Play  ]
-	6 |         |   |         |   [  Quit  ]
-	  +---------+   +---------+   
-    */
+               0              1              2
+	  + Name --------------------------------------+
+	0 |                                            |
+	  + -------------------------------------------+
+	  + Race ----+   + Role ----+   + Gender ------+
+	  | human    |   | Archeolog|   |  * Male      |
+	1 | elf      |   | Barbarian|   |  * Female    |
+	  | dwarf    |   |          |   +--------------+
+	  | gnome    |   |          |
+	  | orc      |   |          |   + Alignment ---+
+	2 |          |   |  .       |   |  * Lawful    |
+	  |          |   |  .       |   |  * Neutral   |
+	  |          |   |  .       |   |  * Chaotic   |
+	  |          |   |          |   +--------------+
+	3 |          |   |          |   ...stretch...
+	  |          |   |          |
+	4 |          |   | Valkyrie |   [    Random    ]
+	5 |          |   | Wizard   |   [     Play     ]
+	6 |          |   |          |   [     Quit     ]
+	  +----------+   +----------+
+     *
+     * Both Race and Role entries are actually two-part:  an icon (the map
+     *   tile for the corresponding monster) and text (race or role name);
+     * Race column is as tall as role one but mostly blank;
+     * Role names aren't truncated in the actual display, just here; the
+     *   race and role columns do have equal width;
+     * Roles with gender-specific names get changed to match chosen gender;
+     * Each of the four role/race/gender/alignment categories always has
+     *   one entry checked; [Random] will change to a new set;
+     * [Play] is selected by default if [Name] is non-empty but grayed out
+     *   if it is empty;
+     * [Quit] is selected by default when [Name] is empty;
+     * ...stretch... is "NetHack x.y.z" in large text over
+     *   "by the NetHack DevTeam" is smaller text with blank space above
+     *   and below the two lines of text.
+     *
+     * If currently selected race isn't allowed to be some roles, they'll
+     * be grayed out.  To switch to one of those, first check "human" which
+     * offers access to all roles (except Valk which will be grayed out if
+     * "male" is checked), pick the role of interest, and then re-pick race
+     * (some of which will be grayed out if chosen role doesn't allow them).
+     * To pick alignment first, check "human" and "priest[ess]" to make
+     * all three alignments accessible, pick the one of interest, then pick
+     * among the races and roles that are acceptable for that alignment.
+     * Gender can be picked at any time, except for male when Valkyrie is
+     * selected.
+     */
 
     QGridLayout *l = new QGridLayout(this);
     l->setColumnStretch(2, 1);
@@ -252,40 +298,48 @@ NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks UNUSED) 
     l->addWidget( logo, 3, 2, Qt::AlignCenter );
     l->setRowStretch( 3, 6 );
 
-    int i;
-    int nrole;
+    QTableWidgetItem *item;
+    int i, nrole, nrace;
 
     chosen_gend = flags.initgend;
     chosen_align = flags.initalign;
-    bool fem = (chosen_gend > ROLE_NONE);
 
     // XXX QListView unsorted goes in rev.
     for (nrole=0; roles[nrole].name.m; nrole++)
 	;
     role->setRowCount(nrole);
-    for (i=0; roles[i].name.m; i++) {
-	QTableWidgetItem *item = new QTableWidgetItem(
-                QIcon(qt_settings->glyphs().glyph(roles[i].malenum, fem)),
-                roles[i].name.m);
-	item->setFlags(Qt::ItemIsEnabled|Qt::ItemIsSelectable);
-	role->setItem(i, 0, item);
+    for (i = 0; i < nrole; ++i) {
+        item = new QTableWidgetItem();
+        role->setItem(i, 0, item);
+
+        if (roles[i].mnum == PM_CLERIC)
+            cleric_role_row = i; // for populate_races()
     }
+
+    for (nrace=0; races[nrace].noun; nrace++)
+	;
+    race->setRowCount(nrace);
+    for (i = 0; i < nrace; ++i) {
+        item = new QTableWidgetItem();
+        race->setItem(i, 0, item);
+
+        if (races[i].mnum == PM_HUMAN)
+            human_race_row = i; // (always i==0) for populate_roles()
+    }
+
+#ifdef QT_CHOOSE_RACE_FIRST
+    populate_races();
+    populate_roles();
+#else
+    populate_roles();
+    populate_races();
+#endif
+
     connect(role, SIGNAL(currentCellChanged(int, int, int, int)),
             this, SLOT(selectRole(int, int, int, int)));
     role->setHorizontalHeaderLabels(QStringList("Role"));
     role->resizeColumnToContents(0);
 
-    int nrace;
-    for (nrace=0; races[nrace].noun; nrace++)
-	;
-    race->setRowCount(nrace);
-    for (i=0; races[i].noun; i++) {
-	QTableWidgetItem *item = new QTableWidgetItem(
-                QIcon(qt_settings->glyphs().glyph(races[i].malenum, fem)),
-		races[i].noun);
-	item->setFlags(Qt::ItemIsEnabled|Qt::ItemIsSelectable);
-	race->setItem(i, 0, item);
-    }
     connect(race, SIGNAL(currentCellChanged(int, int, int, int)),
             this, SLOT(selectRace(int, int, int, int)));
     race->setHorizontalHeaderLabels(QStringList("Race"));
@@ -293,11 +347,8 @@ NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks UNUSED) 
 
     // TODO:
     //  Render the alignment and gender labels smaller to match the
-    //  horizontal header labels for role and race; getting the font from
-    //  race table above and setting it for labels below made no difference.
-    //
-    // Maybe, if the order of choosing becomes more dynamic:
-    //  Replace the role and race glyphs when gender gets set.
+    //  horizontal header labels for role and race.  (Getting the font from
+    //  race table above and setting it for labels below made no difference.)
 
     QLabel *gendlabel = new QLabel("Gender");
     genderbox->layout()->addWidget(gendlabel);
@@ -307,7 +358,7 @@ NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks UNUSED) 
 	genderbox->layout()->addWidget(gender[i]);
 	gendergroup->addButton(gender[i], i);
     }
-    connect(gendergroup, SIGNAL(buttonPressed(int)),
+    connect(gendergroup, SIGNAL(buttonClicked(int)),
             this, SLOT(selectGender(int)));
 
     QLabel *alignlabel = new QLabel("Alignment");
@@ -318,7 +369,7 @@ NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks UNUSED) 
 	alignbox->layout()->addWidget(alignment[i]);
 	aligngroup->addButton(alignment[i], i);
     }
-    connect(aligngroup, SIGNAL(buttonPressed(int)),
+    connect(aligngroup, SIGNAL(buttonClicked(int)),
             this, SLOT(selectAlignment(int)));
 
     l->addWidget(rand_btn, 4, 2);
@@ -332,6 +383,69 @@ NetHackQtPlayerSelector::NetHackQtPlayerSelector(NetHackQtKeyBuffer& ks UNUSED) 
     plnamePlayVsQuit();
 
     Randomize();
+}
+
+// update the role column in the PlayerSelector widget
+void
+NetHackQtPlayerSelector::populate_roles()
+{
+    //
+    // entry for each row in the role column shows a player-character tile
+    // (always gender-specific) and role's name (sometimes gender-specific)
+    //
+    QTableWidgetItem *item;
+    const char *rolename;
+    glyph_info gi;
+    int v, gf, gn = chosen_gend, al = chosen_align;
+    // if no race yet, we use human for gender check (gender doesn't affect
+    // race but we need a valid race when filtering Valkyrie out or back in)
+    int ra = race->currentRow(), hu = human_race_row;
+    bool is_f = (gn == 1);
+    NetHackQtGlyphs& glyphs = qt_settings->glyphs();
+    for (int i = 0; roles[i].name.m; ++i) {
+        rolename = (is_f && roles[i].name.f) ? roles[i].name.f
+                                             : roles[i].name.m;
+        gf = monnum_to_glyph(roles[i].mnum, is_f ? FEMALE : MALE);
+        map_glyphinfo(0, 0, gf, 0, &gi);
+        v = ((ra < 0 || validrace(i, ra))
+             && (gn < 0 || validgend(i, (ra >= 0) ? ra : hu, gn))
+             && (al < 0 || validalign(i, (ra >= 0) ? ra : hu, al)));
+        item = role->item(i, 0);
+        item->setText(rolename);
+        item->setIcon(QIcon(glyphs.glyph(gf, gi.gm.tileidx)));
+        item->setFlags(v ? Qt::ItemIsEnabled | Qt::ItemIsSelectable
+                         : Qt::NoItemFlags);
+    }
+    role->repaint(); // role->update() seems to be inadequate
+}
+
+// update the race column in the PlayerSelector widget
+void
+NetHackQtPlayerSelector::populate_races()
+{
+    //
+    // entry for each row in race column shows race's generic monster tile
+    // (always gender-specific) and race's name (never gender-specific)
+    //
+    QTableWidgetItem *item;
+    glyph_info gi;
+    int v, gf, gn = chosen_gend, al = chosen_align;
+    // if no role yet, use cleric so that alignment won't rule anything out
+    int ro = role->currentRow(), cl = cleric_role_row;
+    bool is_f = (gn == 1);
+    NetHackQtGlyphs& glyphs = qt_settings->glyphs();
+    for (int j = 0; races[j].noun; ++j) {
+        gf = monnum_to_glyph(races[j].mnum, is_f ? FEMALE : MALE);
+        map_glyphinfo(0, 0, gf, 0, &gi);
+        v = ((ro < 0 || validrace(ro, j))
+             && (al < 0 || validalign((ro >= 0) ? ro : cl, j, al)));
+        item = race->item(j, 0);
+        item->setText(races[j].noun);
+        item->setIcon(QIcon(glyphs.glyph(gf, gi.gm.tileidx)));
+        item->setFlags(v ? Qt::ItemIsEnabled | Qt::ItemIsSelectable
+                         : Qt::NoItemFlags);
+    }
+    race->repaint();
 }
 
 void NetHackQtPlayerSelector::Randomize()
@@ -402,7 +516,7 @@ void NetHackQtPlayerSelector::Randomize()
     }
 
     int g = flags.initgend;
-    if (g == -1) {
+    if (g < 0) {
 	g = rn2(ROLE_GENDERS);
 	fully_specified_role = false;
     }
@@ -413,7 +527,7 @@ void NetHackQtPlayerSelector::Randomize()
     selectGender(g);
 
     int a = flags.initalign;
-    if (a == -1) {
+    if (a < 0) {
 	a = rn2(ROLE_ALIGNS);
 	fully_specified_role = false;
     }
@@ -460,33 +574,31 @@ void NetHackQtPlayerSelector::selectRole(int crow, int ccol,
 {
     int ra = race->currentRow();
     int ro = role->currentRow();
-    if (ra == -1 || ro == -1) return;
-    QTableWidgetItem* item;
-    item = role->item(prow, 0);
+    if (ra == -1 || ro == -1)
+        return;
+    QTableWidgetItem *item = role->item(prow, 0);
     if (item != NULL)
        item->setSelected(false);
 
 #ifdef QT_CHOOSE_RACE_FIRST
     selectRace(crow, ccol, prow, pcol);
 #else
-    QTableWidgetItem* i=role->currentItem();
-    QTableWidgetItem* valid=0;
-    int j;
-    for (j=0; roles[j].name.m; j++) {
-	bool v = validrace(j,ra);
-	item = role->item(j, 0);
-	item->setFlags(Qt::ItemIsEnabled|Qt::ItemIsSelectable);
-	if ( !valid && v ) valid = item;
+    QTableWidgetItem *i = role->currentItem();
+    QTableWidgetItem *valid = 0;
+    for (int j = 0; roles[j].name.m; ++j) {
+	if (!valid && (ra < 0 || validrace(j, ra))) {
+            valid = role->item(j, 0);
+            break;
+        }
     }
-    if ( !validrace(role->currentRow(),ra) )
+    if (!validrace(role->currentRow(), ra))
 	i = valid;
     role->setCurrentItem(i, 0);
-    for (j=0; roles[j].name.m; j++) {
+    for (int j = 0; roles[j].name.m; ++j) {
 	item = role->item(j, 0);
 	item->setSelected(item == i);
-	bool v = validrace(j,ra);
-        item->setFlags(v ? Qt::ItemIsEnabled|Qt::ItemIsSelectable
-                         : Qt::NoItemFlags);
+        /* used to call setFlags here, but setupOthers() -> selectGender()
+           (and selectAlignment()) -> populate_roles() takes care of that */
     }
     nhUse(crow);
     nhUse(ccol);
@@ -502,32 +614,30 @@ void NetHackQtPlayerSelector::selectRace(int crow, int ccol,
 {
     int ra = race->currentRow();
     int ro = role->currentRow();
-    if (ra == -1 || ro == -1) return;
-    QTableWidgetItem* item;
-    item = race->item(prow, 0);
+    if (ra == -1 || ro == -1)
+        return;
+    QTableWidgetItem *item = race->item(prow, 0);
     if (item != NULL)
        item->setSelected(false);
 
 #ifndef QT_CHOOSE_RACE_FIRST
     selectRole(crow, ccol, prow, pcol);
 #else
-    QTableWidgetItem* i=race->currentItem();
-    QTableWidgetItem* valid=0;
-    int j;
-    for (j=0; races[j].noun; j++) {
-	bool v = validrace(ro,j);
-	item = race->item(j, 0);
-	item->setFlags(Qt::ItemIsEnabled|Qt::ItemIsSelectable);
-	if ( !valid && v ) valid = item;
+    QTableWidgetItem *i = race->currentItem();
+    QTableWidgetItem *valid = 0;
+    for (int j = 0; races[j].noun; ++j) {
+	if (!valid && (ro < 0 || validrace(ro, j))) {
+            valid = race->item(j, 0);
+            break;
+        }
     }
-    if ( !validrace(ro,race->currentRow()) )
+    if (!validrace(ro, race->currentRow()))
 	i = valid;
-    for (j=0; races[j].noun; j++) {
+    for (int j = 0; races[j].noun; ++j) {
 	item = race->item(j, 0);
 	item->setSelected(item == i);
-	bool v = validrace(ro,j);
-        item->setFlags(v ? Qt::ItemIsEnabled|Qt::ItemIsSelectable
-                         : Qt::NoItemFlags);
+        /* used to call setFlags here, but setupOthers() -> selectGender()
+           (and selectAlignment()) -> populate_races() takes care of that */
     }
     nhUse(crow);
     nhUse(ccol);
@@ -579,11 +689,18 @@ void NetHackQtPlayerSelector::setupOthers()
 void NetHackQtPlayerSelector::selectGender(int i)
 {
     chosen_gend = i;
+    // if gender has changed, tiles and some role titles will change
+    populate_roles();
+    populate_races();
 }
 
 void NetHackQtPlayerSelector::selectAlignment(int i)
 {
     chosen_align = i;
+    // if alignment has changed, some roles or races may no longer be
+    // available and some previously excluded ones might become available
+    populate_roles();
+    populate_races();
 }
 
 void NetHackQtPlayerSelector::Quit()
@@ -598,7 +715,8 @@ void NetHackQtPlayerSelector::Random()
 
 bool NetHackQtPlayerSelector::Choose()
 {
-    if (fully_specified_role) return true;
+    if (fully_specified_role)
+        return true;
 
 #if defined(QWS) // probably safe with Qt 3, too (where show!=exec in QDialog).
     if ( qt_compact_mode ) {

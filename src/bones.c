@@ -8,7 +8,7 @@
 static boolean no_bones_level(d_level *);
 static void goodfruit(int);
 static void resetobjs(struct obj *, boolean);
-static void give_to_nearby_mon(struct obj *);
+static void give_to_nearby_mon(struct obj *, int, int);
 static boolean fixuporacle(struct monst *);
 
 static boolean
@@ -255,15 +255,18 @@ sanitize_name(char *namebuf)
  * Currently, this is only for directly adjacent monsters to avoid silliness
  * like monsters on the other side of a wall getting some of the items.
  * If there is no nearby monster, just drop the item. */
+/* Give object to a random object-liking monster on or adjacent to x,y
+   but skipping hero's location.
+   If no such monster, place object on floor at x,y. */
 static void
-give_to_nearby_mon(struct obj *otmp)
+give_to_nearby_mon(struct obj *otmp, int x, int y)
 {
     struct monst *mtmp;
     struct monst *selected = (struct monst *) 0;
     int nmon = 0, xx, yy;
 
-    for (xx = u.ux - 1; xx <= u.ux + 1; ++xx) {
-        for (yy = u.uy - 1; yy <= u.uy + 1; ++yy) {
+    for (xx = x - 1; xx <= x + 1; ++xx) {
+        for (yy = y - 1; yy <= y + 1; ++yy) {
             if (!isok(xx, yy))
                 continue;
             if (xx == u.ux && yy == u.uy)
@@ -284,7 +287,7 @@ give_to_nearby_mon(struct obj *otmp)
     if (selected && can_carry(selected, otmp))
         add_to_minv(selected, otmp);
     else
-        place_object(otmp, u.ux, u.uy);
+        place_object(otmp, x, y);
 }
 
 /* called by savebones(); also by finish_paybill(shk.c) */
@@ -327,7 +330,7 @@ drop_upon_death(struct monst *mtmp, /* monster if hero turned into one (other th
         else if (cont)
             (void) add_to_container(cont, otmp);
         else if (!rn2(8))
-            give_to_nearby_mon(otmp);
+            give_to_nearby_mon(otmp, x, y);
         else
             place_object(otmp, x, y);
     }

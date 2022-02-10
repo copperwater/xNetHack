@@ -20,7 +20,12 @@ extern char erase_char, kill_char;
 /* player can type ESC at More>> prompt to avoid seeing more messages
    for the current move; but hero might get more than one move per turn,
    so the input routines need to be able to cancel this */
-long curs_mesg_suppress_turn = -1;
+long curs_mesg_suppress_seq = -1L;
+/* if a message is marked urgent, existing suppression will be overridden
+   so that messages resume being shown; this is used in case the urgent
+   message triggers More>> for the previous message and the player responds
+   with ESC; we need to avoid initiating suppression in that situation */
+boolean curs_mesg_no_suppress = FALSE;
 
 /* Message window routines for curses interface */
 
@@ -72,7 +77,7 @@ curses_message_win_puts(const char *message, boolean recursed)
     }
 #endif
 
-    if (curs_mesg_suppress_turn == g.moves) {
+    if (curs_mesg_suppress_seq == g.hero_seq) {
         return; /* user has typed ESC to avoid seeing remaining messages. */
     }
 
@@ -109,10 +114,11 @@ curses_message_win_puts(const char *message, boolean recursed)
             /* bottom of message win */
             if (++turn_lines > height
                 || (turn_lines == height && mx > border_space)) {
-                /* Pause until key is hit - Esc suppresses any further
-                   messages that turn */
-                if (curses_more() == '\033') {
-                    curs_mesg_suppress_turn = g.moves;
+                 /* pause until key is hit - ESC suppresses further messages
+                    this turn unless an urgent message is being delivered */
+                if (curses_more() == '\033'
+                    && !curs_mesg_no_suppress) {
+                    curs_mesg_suppress_seq = g.hero_seq;
                     return;
                 }
                 /* turn_lines reset to 0 by more()->block()->got_input() */
@@ -166,7 +172,7 @@ void
 curses_got_input(void)
 {
     /* if messages are being suppressed, reenable them */
-    curs_mesg_suppress_turn = -1;
+    curs_mesg_suppress_seq = -1L;
 
     /* misleadingly named; represents number of lines delivered since
        player was sure to have had a chance to read them; if player
@@ -373,6 +379,17 @@ curses_prev_mesg(void)
     nhprev_mesg *mesg;
     menu_item *selected = NULL;
     boolean do_lifo = (iflags.prevmsg_window != 'f');
+#ifdef DEBUG
+    static int showturn = 0; /* 1: show hero_seq value in separators */
+
+    /*
+     * Set DEBUGFILES=MesgTurn in environment or sysconf to decorate
+     * separator line between blocks of messages with the turn they
+     * were issued.
+     */
+    if (!showturn)
+        showturn = (wizard && explicitdebug("MesgTurn")) ? 1 : -1;
+#endif
 
     wid = curses_get_wid(NHW_MENU);
     curses_create_nhmenu(wid, 0UL);
@@ -380,13 +397,23 @@ curses_prev_mesg(void)
 
     for (count = 0; count < num_messages; ++count) {
         mesg = get_msg_line(do_lifo, count);
-        if (turn != mesg->turn && count != 0) {
-            curses_add_menu(wid, &nul_glyphinfo, &Id, 0, 0,
-                            A_NORMAL, "---", MENU_ITEMFLAGS_NONE);
+        if (mesg->turn != turn) {
+            if (count > 0) { /* skip separator for first line */
+                char sepbuf[50];
+
+                Strcpy(sepbuf, "---");
+#ifdef DEBUG
+                if (showturn == 1)
+                    Sprintf(sepbuf, "- %ld+%ld",
+                            (mesg->turn >> 3), (mesg->turn & 7L));
+#endif
+                curses_add_menu(wid, &nul_glyphinfo, &Id, 0, 0,
+                                A_NORMAL, sepbuf, MENU_ITEMFLAGS_NONE);
+            }
+            turn = mesg->turn;
         }
         curses_add_menu(wid, &nul_glyphinfo, &Id, 0, 0,
                         A_NORMAL, mesg->str, MENU_ITEMFLAGS_NONE);
-        turn = mesg->turn;
     }
     if (!count)
         curses_add_menu(wid, &nul_glyphinfo, &Id, 0, 0,
@@ -795,6 +822,7 @@ mesg_add_line(const char *mline)
             current_mesg->str = dupstr(mline);
         }
     }
+    current_mesg->turn = g.hero_seq;
 
     if (num_messages == 0) {
         /* very first message; set up head */
@@ -895,12 +923,10 @@ curses_getmsghistory(boolean init)
 void
 curses_putmsghistory(const char *msg, boolean restoring_msghist)
 {
+    /* FIXME: these should be moved to struct instance_globals g */
     static boolean initd = FALSE;
     static int stash_count;
     static nhprev_mesg *stash_head = 0;
-#ifdef DUMPLOG
-    /* extern unsigned g.saved_pline_index; */ /* pline.c */
-#endif
 
     if (restoring_msghist && !initd) {
         /* hide any messages we've gathered since starting current session
@@ -918,8 +944,11 @@ curses_putmsghistory(const char *msg, boolean restoring_msghist)
 
     if (msg) {
         mesg_add_line(msg);
-        /* treat all saved and restored messages as turn #1 */
-        last_mesg->turn = 1L;
+        /* treat all saved and restored messages as turn #1;
+           however, we aren't only called when restoring history;
+           core uses putmsghistory() for other stuff during play
+           and those messages should have a normal turn value */
+        last_mesg->turn = restoring_msghist ? (1L << 3) : g.hero_seq;
 #ifdef DUMPLOG
         dumplogmsg(last_mesg->str);
 #endif

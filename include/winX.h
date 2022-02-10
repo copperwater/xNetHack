@@ -1,9 +1,9 @@
-/* NetHack 3.7	winX.h	$NHDT-Date: 1613272633 2021/02/14 03:17:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.45 $ */
+/* NetHack 3.7	winX.h	$NHDT-Date: 1643491525 2022/01/29 21:25:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.52 $ */
 /* Copyright (c) Dean Luick, 1992                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*
- * Definitions for the X11 window-port.  See doc/window.doc for details on
+ * Definitions for the X11 window-port.  See doc/window.txt for details on
  * the window interface.
  */
 #ifndef WINX_H
@@ -61,6 +61,7 @@ struct text_map_info_t {
 
 struct tile_glyph_info_t {
     unsigned short glyph;
+    unsigned short tileidx;
     unsigned glyphflags;
 };
 
@@ -80,7 +81,7 @@ struct tile_map_info_t {
 struct map_info_t {
     Dimension viewport_width,     /* Saved viewport size, so we can */
         viewport_height;          /*   clip to cursor on a resize.  */
-    unsigned char t_start[ROWNO], /* Starting column for new info. */
+    xchar t_start[ROWNO],         /* Starting column for new info. */
         t_stop[ROWNO];            /* Ending column for new info. */
 
     boolean is_tile; /* true if currently using tiles */

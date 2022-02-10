@@ -273,8 +273,8 @@ NetHackQtExtCmdRequestor::NetHackQtExtCmdRequestor(QWidget *parent) :
        as an extended command, that resulted in so many rows that some of
        the grid was chopped off at the bottom of the screen and the buttons
        in that portion were out of reach */
-    unsigned ncols = (set == all_cmds) ? 8
-                     : (set == normal_cmds) ? 7
+    unsigned ncols = (set == all_cmds) ? 9
+                     : (set == normal_cmds) ? 8
                        : (set == autocomplete_cmds) ? (WizardMode ? 6 : 5)
                          : (set == wizard_cmds) ? (byRow ? 6 : 5)
                            : 1; // can't happen
@@ -302,6 +302,13 @@ NetHackQtExtCmdRequestor::NetHackQtExtCmdRequestor(QWidget *parent) :
             pb->setMaximumSize(pb->minimumSize());
             // i+butoffset is value that will be passed to the click handler
             group->addButton(pb, i + butoffset);
+            // gray out "repeat" because picking it would just repeat the "#"
+            // that caused us to be called rather than whatever came before;
+            // it can still be chosen by typing "rep" but appears grayed out
+            // while in the process so having it not behave usefully shouldn't
+            // come as much of a surprise
+            if (btn_lbl == "repeat")
+                pb->setEnabled(false);
             /*
              * by column: xcmd_by_row==false, the default
              *  0..R-1 down first column, R..2*R-1 down second column, ...
@@ -544,7 +551,7 @@ void NetHackQtExtCmdRequestor::keyPressEvent(QKeyEvent *event)
             // <return> or <space> without a pending exact match; cancel
             reject();
         } else if (matches >= 2
-                   || promptstr.midRef(1, len) == rest.leftRef(len)) {
+                   || promptstr.mid(1, len) == rest.left(len)) {
             // update the text-so-far
             prompt->setText(promptstr);
         } else if (saveexactmatchindx != xcmdNoMatch) {

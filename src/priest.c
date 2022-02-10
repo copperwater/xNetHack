@@ -73,7 +73,7 @@ move_special(struct monst *mtmp, boolean in_his_shop, schar appr,
     }
 
 #define GDIST(x, y) (dist2(x, y, gx, gy))
-pick_move:
+ pick_move:
     chcnt = 0;
     for (i = 0; i < cnt; i++) {
         nx = poss[i].x;
@@ -219,14 +219,18 @@ pri_move(struct monst *priest)
 
 /* exclusively for mktemple() */
 void
-priestini(d_level *lvl, struct mkroom *sroom, int sx, int sy,
-          boolean sanctum) /* is it the seat of the high priest? */
+priestini(
+    d_level *lvl,
+    struct mkroom *sroom,
+    int sx, int sy,
+    boolean sanctum) /* is it the seat of the high priest? */
 {
     struct monst *priest;
     struct obj *otmp;
     int cnt;
     int px = 0, py = 0, i, si = rn2(N_DIRS);
-    struct permonst *prim = &mons[sanctum ? PM_HIGH_CLERIC : PM_ALIGNED_CLERIC];
+    struct permonst *prim = &mons[sanctum ? PM_HIGH_CLERIC
+                                          : PM_ALIGNED_CLERIC];
 
     for (i = 0; i < N_DIRS; i++) {
         px = sx + xdir[DIR_CLAMP(i+si)];
@@ -238,7 +242,7 @@ priestini(d_level *lvl, struct mkroom *sroom, int sx, int sy,
         px = sx, py = sy;
 
     if (MON_AT(px, py))
-        (void) rloc(m_at(px, py), FALSE); /* insurance */
+        (void) rloc(m_at(px, py), RLOC_NOMSG); /* insurance */
 
     priest = makemon(prim, px, py, MM_EPRI);
     if (priest) {
@@ -405,6 +409,8 @@ findpriest(char roomno)
     return (struct monst *) 0;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 /* called from check_special_room() when the player enters the temple room */
 void
 intemple(int roomno)
@@ -516,7 +522,7 @@ intemple(int roomno)
                       make sure we give one the first time */
         }
         if (!rn2(5)
-            && (mtmp = makemon(&mons[PM_GHOST], u.ux, u.uy, NO_MM_FLAGS))
+            && (mtmp = makemon(&mons[PM_GHOST], u.ux, u.uy, MM_NOMSG))
                    != 0) {
             int ngen = g.mvitals[PM_GHOST].born;
             if (canspotmon(mtmp)) {
@@ -549,6 +555,8 @@ scary_ghost(struct monst* ghost)
         g.nomovemsg = "You regain your composure.";
     }
 }
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 /* reset the move counters used to limit temple entry feedback;
    leaving the level and then returning yields a fresh start */
@@ -586,7 +594,7 @@ priest_talk(struct monst *priest)
     /* priests don't chat unless peaceful and in their own temple */
     if (!inhistemple(priest) || !priest->mpeaceful
         || !priest->mcanmove || priest->msleeping) {
-        static const char *cranky_msg[3] = {
+        static const char *const cranky_msg[3] = {
             "Thou wouldst have words, eh?  I'll give thee a word or two!",
             "Talk?  Here is what I have to say!",
             "Pilgrim, I would speak no longer with thee."
@@ -695,9 +703,9 @@ mk_roamer(struct permonst *ptr, aligntyp alignment, xchar x, xchar y,
 #endif
 
     if (MON_AT(x, y))
-        (void) rloc(m_at(x, y), FALSE); /* insurance */
+        (void) rloc(m_at(x, y), RLOC_NOMSG); /* insurance */
 
-    if (!(roamer = makemon(ptr, x, y, MM_ADJACENTOK | MM_EMIN)))
+    if (!(roamer = makemon(ptr, x, y, MM_ADJACENTOK | MM_EMIN | MM_NOMSG)))
         return (struct monst *) 0;
 
     EMIN(roamer)->min_align = alignment;
@@ -730,8 +738,9 @@ reset_hostility(struct monst *roamer)
 }
 
 boolean
-in_your_sanctuary(struct monst *mon, /* if non-null, <mx,my> overrides <x,y> */
-                  xchar x, xchar y)
+in_your_sanctuary(
+    struct monst *mon, /* if non-null, <mx,my> overrides <x,y> */
+    xchar x, xchar y)
 {
     register char roomno;
     register struct monst *priest;

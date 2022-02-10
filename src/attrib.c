@@ -381,19 +381,26 @@ set_moreluck(void)
         u.moreluck = -LUCKADD;
 }
 
+/* (not used) */
 void
 restore_attrib(void)
 {
     int i, equilibrium;;
 
     /*
-     * Note:  this gets called on every turn but ATIME() is never set
-     * to non-zero anywhere, and ATEMP() is only used for strength loss
-     * from hunger, so it doesn't actually do anything.
+     * Note:  this used to get called by moveloop() on every turn but
+     * ATIME() is never set to non-zero anywhere so didn't do anything.
+     * Presumably it once supported something like potion of heroism
+     * which conferred temporary characteristics boost(s).
+     *
+     * ATEMP() is used for strength loss from hunger, which doesn't
+     * time out, and for dexterity loss from wounded legs, which has
+     * its own timeout routine.
      */
 
     for (i = 0; i < A_MAX; i++) { /* all temporary losses/gains */
-        equilibrium = (i == A_STR && u.uhs >= WEAK) ? -1 : 0;
+        equilibrium = ((i == A_STR && u.uhs >= WEAK)
+                       || (i == A_DEX && Wounded_legs)) ? -1 : 0;
         if (ATEMP(i) != equilibrium && ATIME(i) != 0) {
             if (!(--(ATIME(i)))) { /* countdown for change */
                 ATEMP(i) += (ATEMP(i) > 0) ? -1 : 1;
@@ -971,6 +978,72 @@ adjabil(int oldlevel, int newlevel)
         else
             lose_weapon_skill(oldlevel - newlevel);
     }
+}
+
+/* calculate hp max increase for new level */
+int
+newhp(void)
+{
+    int hp, conplus;
+
+    if (u.ulevel == 0) {
+        /* Initialize hit points */
+        hp = g.urole.hpadv.infix + g.urace.hpadv.infix;
+        if (g.urole.hpadv.inrnd > 0)
+            hp += rnd(g.urole.hpadv.inrnd);
+        if (g.urace.hpadv.inrnd > 0)
+            hp += rnd(g.urace.hpadv.inrnd);
+        if (g.moves <= 1L) { /* initial hero; skip for polyself to new man */
+            /* Initialize alignment stuff */
+            u.ualign.type = aligns[flags.initalign].value;
+            u.ualign.record = g.urole.initrecord;
+        }
+        /* no Con adjustment for initial hit points */
+    } else {
+        if (u.ulevel < ROLE_XLEV_CUTOFF) {
+            hp = g.urole.hpadv.lofix + g.urace.hpadv.lofix;
+            if (g.urole.hpadv.lornd > 0)
+                hp += rnd(g.urole.hpadv.lornd);
+            if (g.urace.hpadv.lornd > 0)
+                hp += rnd(g.urace.hpadv.lornd);
+        } else {
+            hp = g.urole.hpadv.hifix + g.urace.hpadv.hifix;
+            if (g.urole.hpadv.hirnd > 0)
+                hp += rnd(g.urole.hpadv.hirnd);
+            if (g.urace.hpadv.hirnd > 0)
+                hp += rnd(g.urace.hpadv.hirnd);
+        }
+        if (ACURR(A_CON) <= 3)
+            conplus = -2;
+        else if (ACURR(A_CON) <= 6)
+            conplus = -1;
+        else if (ACURR(A_CON) <= 14)
+            conplus = 0;
+        else if (ACURR(A_CON) <= 16)
+            conplus = 1;
+        else if (ACURR(A_CON) == 17)
+            conplus = 2;
+        else if (ACURR(A_CON) == 18)
+            conplus = 3;
+        else
+            conplus = 4;
+        hp += conplus;
+    }
+    if (hp <= 0)
+        hp = 1;
+    if (u.ulevel < MAXULEV) {
+        /* remember increment; future level drain could take it away again */
+        u.uhpinc[u.ulevel] = (xchar) hp;
+    } else {
+        /* after level 30, throttle hit point gains from extra experience;
+           once max reaches 1200, further increments will be just 1 more */
+        char lim = 5 - u.uhpmax / 300;
+
+        lim = max(lim, 1);
+        if (hp > lim)
+            hp = lim;
+    }
+    return hp;
 }
 
 schar

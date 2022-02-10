@@ -75,6 +75,7 @@ void NetHackQtInvUsageWindow::drawWorn(QPainter &painter, obj *nhobj,
                                        const char *alttip, int flags)
 {
     short int glyph;
+    glyph_info gi;
     int border;
     char tipstr[1 + BUFSZ + 1]; // extra room for leading and trailing space
     bool rev = (flags == dollReverse),
@@ -82,10 +83,15 @@ void NetHackQtInvUsageWindow::drawWorn(QPainter &painter, obj *nhobj,
 
     if (nhobj) {
         border = BORDER_DEFAULT;
+        // don't expect this to happen but check just in case;
+        // learn_unseen_invent() is normally called when regaining sight
+        // and sets dknown and maybe bknown, then updates perm_invent (do
+        // it regardless of ENHANCED_PAPERDOLL for same effect either way)
+        if (!Blind && (!nhobj->dknown
+                       || (Role_if(PM_CLERIC) && !nhobj->bknown)))
+            ::learn_unseen_invent();
 #ifdef ENHANCED_PAPERDOLL
         // color margin around cell containing item whose BUC state is known
-        if (Role_if('P') && !Blind)
-            nhobj->bknown = 1;
         if (nhobj->bknown)
             border = nhobj->cursed ? BORDER_CURSED
                      : !nhobj->blessed ? BORDER_UNCURSED
@@ -133,7 +139,10 @@ void NetHackQtInvUsageWindow::drawWorn(QPainter &painter, obj *nhobj,
         // an empty slot is shown as floor tile unless it's always empty
         glyph = canbe ? cmap_to_glyph(S_room) : GLYPH_UNEXPLORED;
     }
-    qt_settings->glyphs().drawBorderedCell(painter, glyph, x, y, border, rev);
+    map_glyphinfo(0, 0, glyph, 0, &gi); /* this skirts the defined
+                                         * interface unfortunately */
+    qt_settings->glyphs().drawBorderedCell(painter, glyph, gi.gm.tileidx,
+                                           x, y, border, rev);
 }
 
 // called to update the paper doll inventory subset
@@ -167,7 +176,8 @@ void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
     // Actually indexed by grid[column][row].
 
 #ifdef ENHANCED_PAPERDOLL
-    if (iflags.wc_ascii_map)
+    if (qt_settings->doll_is_shown && ::iflags.wc_ascii_map
+        && qt_settings->glyphs().no_tiles)
         qt_settings->doll_is_shown = false;
     if (!qt_settings->doll_is_shown)
         return;
@@ -176,7 +186,7 @@ void NetHackQtInvUsageWindow::paintEvent(QPaintEvent*)
                                   qt_settings->dollHeight);
 
     /* for drawWorn()'s use of obj->invlet */
-    if (!flags.invlet_constant)
+    if (!::flags.invlet_constant)
         reassign();
 #endif
 

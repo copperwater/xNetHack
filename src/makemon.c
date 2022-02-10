@@ -157,7 +157,12 @@ m_initweap(register struct monst *mtmp)
             case PM_WATCHMAN:
             case PM_SOLDIER:
                 if (!rn2(3)) {
-                    w1 = rn1(BEC_DE_CORBIN - PARTISAN + 1, PARTISAN);
+                    /* lance and dwarvish mattock used to be in midst of
+                       the polearms but use different skills from polearms
+                       and aren't appropriates choices for human soliders */
+                    do {
+                        w1 = rn1(BEC_DE_CORBIN - PARTISAN + 1, PARTISAN);
+                    } while (objects[w1].oc_skill != P_POLEARMS);
                     w2 = rn2(2) ? DAGGER : KNIFE;
                 } else
                     w1 = rn2(2) ? SPEAR : SHORT_SWORD;
@@ -853,9 +858,7 @@ clone_mon(struct monst *mon,
     m2->mextra = (struct mextra *) 0;
     m2->nmon = fmon;
     fmon = m2;
-    m2->m_id = g.context.ident++;
-    if (!m2->m_id)
-        m2->m_id = g.context.ident++; /* ident overflowed */
+    m2->m_id = next_ident();
     m2->mx = mm.x;
     m2->my = mm.y;
 
@@ -1258,9 +1261,7 @@ makemon(register struct permonst *ptr,
         mtmp->msleeping = 1;
     mtmp->nmon = fmon;
     fmon = mtmp;
-    mtmp->m_id = g.context.ident++;
-    if (!mtmp->m_id)
-        mtmp->m_id = g.context.ident++; /* ident overflowed */
+    mtmp->m_id = next_ident();
     set_mon_data(mtmp, ptr); /* mtmp->data = ptr; */
     if (ptr->msound == MS_LEADER && quest_info(MS_LEADER) == mndx)
         g.quest_status.leader_m_id = mtmp->m_id;
@@ -1496,8 +1497,17 @@ makemon(register struct permonst *ptr,
     if (allow_minvent && g.migrating_objs)
         deliver_obj_to_mon(mtmp, 1, DF_NONE); /* in case of waiting items */
 
-    if (!g.in_mklev)
+    if (!g.in_mklev) {
         newsym(mtmp->mx, mtmp->my); /* make sure the mon shows up */
+        if (!(mmflags & MM_NOMSG)
+            && ((canseemon(mtmp) && (M_AP_TYPE(mtmp) == M_AP_NOTHING
+                                     || M_AP_TYPE(mtmp) == M_AP_MONSTER))
+                || sensemon(mtmp)))
+            pline("%s suddenly appears%s!", Amonnam(mtmp),
+                  distu(x, y) <= 2 ? " next to you"
+                  : (distu(x, y) <= (BOLT_LIM * BOLT_LIM)) ? " close by" : "");
+        /* TODO: unify with teleport appears msg */
+    }
 
     return mtmp;
 }
@@ -2039,6 +2049,9 @@ grow_up(struct monst *mtmp, struct monst *victim)
         lev_limit = (int) mtmp->m_lev; /* never undo increment */
 
         mtmp->female = fem; /* gender might be changing */
+        /* if 'mtmp' is leashed, persistent inventory window needs updating */
+        if (mtmp->mleashed)
+            update_inventory(); /* x - leash (attached to a <mon> */
     }
 
     /* sanity checks */
@@ -2496,8 +2509,10 @@ bagotricks(struct obj *bag,
         /* if tipping known empty bag, give normal empty container message */
         pline1((tipping && bag->cknown) ? "It's empty." : nothing_happens);
         /* now known to be empty if sufficiently discovered */
-        if (bag->dknown && objects[bag->otyp].oc_name_known)
+        if (bag->dknown && objects[bag->otyp].oc_name_known) {
             bag->cknown = 1;
+            update_inventory(); /* for perm_invent */
+        }
     } else {
         int creatcnt = 0, seecount = 0;
 
@@ -2512,9 +2527,11 @@ bagotricks(struct obj *bag,
         if (seecount) {
             if (seencount)
                 *seencount += seecount;
-            if (bag->dknown)
+            if (bag->dknown) {
                 makeknown(BAG_OF_TRICKS);
-        } else {
+                update_inventory(); /* for perm_invent */
+            }
+        } else if (!tipping) {
             pline1(!moncount ? nothing_happens : "Nothing seems to happen.");
         }
     }

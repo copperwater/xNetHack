@@ -6,11 +6,16 @@
 
 extern "C" {
 #include "hack.h"
+#define CTRL(c) (0x1f & (c)) // substitute for C() from global.h, for ^V hack
 }
 
 #include "qt_pre.h"
 #include <QtGui/QtGui>
+#if QT_VERSION >= 0x060000
+#include <QtGui/QShortcut>
+#else
 #include <QtWidgets/QShortcut>
+#endif
 
 #if QT_VERSION >= 0x050000
 #include <QtWidgets/QtWidgets>
@@ -454,7 +459,7 @@ aboutMsg()
     char *p, vbuf[BUFSZ];
     /* nethack's getversionstring() includes a final period
        but we're using it mid-sentence so strip period off */
-    if ((p = strrchr(getversionstring(vbuf), '.')) != 0 && *(p + 1) == '\0')
+    if ((p = strrchr(::getversionstring(vbuf), '.')) != 0 && *(p + 1) == '\0')
         *p = '\0';
     /* it's also long; break it into two pieces */
     (void) strsubst(vbuf, " - ", "\n- ");
@@ -466,7 +471,7 @@ aboutMsg()
 #endif
         " the Qt %d GUI toolkit.\n"                      // short Qt version
         "\n"
-        "This is %s%s.\n"       // long nethack version and full Qt version
+        "This is %s%s and Lua %s.\n" // long nethack version, Qt & Lua versions
         "\n"
         "NetHack's Qt interface originally developed by Warwick Allison.\n"
         "\n"
@@ -481,6 +486,7 @@ aboutMsg()
 #else
         "Qt:\n     http://www.troll.no/\n"      // obsolete
 #endif
+        "Lua:\n     https://lua.org/\n"
         "NetHack:\n     %s\n", // DEVTEAM_URL
         // arguments
 #ifdef QT_VERSION_MAJOR
@@ -494,6 +500,7 @@ aboutMsg()
 #else
         "",
 #endif
+        ::get_lua_version(),
         DEVTEAM_URL);
     return msg;
 }
@@ -573,11 +580,13 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
 
     enum { OnDesktop=1, OnHandhelds=2 };
     struct Macro {
-	QMenu* menu;
-	const char* name;
-	int flags;
+        QMenu *menu;
+        const char *name;
+        int flags;         // 1 desktop, 2 handheld, 3 either/both
         int (*funct)(void);
     } item[] = {
+        { game,    0, 3},
+        { game,    "Extended-commands",  3, doextcmd },
         { game,    0, 3},
         { game,    "Version",            3, doversion},
         { game,    "Compilation",        3, doextversion},
@@ -822,9 +831,7 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
     QSignalMapper* sm = new QSignalMapper(this);
     connect(sm, SIGNAL(mapped(const QString&)),
             this, SLOT(doKeys(const QString&)));
-    // 'donull' is a placeholder here; AddToolButton() will fix it up;
-    // button will be omitted if DOAGAIN is bound to '\0'
-    AddToolButton(toolbar, sm, "Again", donull, QPixmap(again_xpm));
+    AddToolButton(toolbar, sm, "Again", do_repeat, QPixmap(again_xpm));
     // this used to be called "Get" which is confusing to experienced players
     AddToolButton(toolbar, sm, "Pick up", dopickup, QPixmap(pickup_xpm));
     AddToolButton(toolbar, sm, "Drop", doddrop, QPixmap(drop_xpm));
@@ -855,9 +862,14 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
     setMenu (menubar);
 #endif
 
+#if QT_VERSION < 0x060000
+    QSize screensize = QApplication::desktop()->size();
+#else
+    QSize screensize = screen()->size();
+#endif
     int x=0,y=0;
-    int w=QApplication::desktop()->width()-10; // XXX arbitrary extra space for frame
-    int h=QApplication::desktop()->height()-50;
+    int w=screensize.width()-10; // XXX arbitrary extra space for frame
+    int h=screensize.height()-50;
 
     int maxwn;
     int maxhn;
@@ -902,7 +914,7 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
 // all other control characters go through NetHackQtBind::notify()
 void NetHackQtMainWindow::CtrlV()
 {
-    static const char cV[] = { C('V'), '\0' };
+    static const char cV[] = { CTRL('V'), '\0' };
     doKeys(cV);
 }
 #endif
@@ -915,11 +927,7 @@ void NetHackQtMainWindow::AddToolButton(QToolBar *toolbar, QSignalMapper *sm,
     char actchar[2];
     uchar key;
 
-    // the ^A command is just a keystroke, not a full blown command function
-    if (!strcmp(name, "Again")) {
-        key = ::g.Cmd.spkeys[NHKF_DOAGAIN];
-    } else
-        key = (uchar) cmd_from_func(func);
+    key = (uchar) cmd_from_func(func);
 
     // if key is valid, add a button for it; otherwise omit the command
     // (won't work as intended if a different command is bound to same key)

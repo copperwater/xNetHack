@@ -55,7 +55,7 @@ precheck(struct monst* mon, struct obj* obj)
 
     if (obj->oclass == POTION_CLASS) {
         coord cc;
-        static const char *empty = "The potion turns out to be empty.";
+        static const char *const empty = "The potion turns out to be empty.";
         struct monst *mtmp;
 
         if (objdescr_is(obj, "milky")) {
@@ -65,7 +65,7 @@ precheck(struct monst* mon, struct obj* obj)
                     return 0;
                 mquaffmsg(mon, obj);
                 m_useup(mon, obj);
-                mtmp = makemon(&mons[PM_GHOST], cc.x, cc.y, NO_MM_FLAGS);
+                mtmp = makemon(&mons[PM_GHOST], cc.x, cc.y, MM_NOMSG);
                 if (!mtmp) {
                     if (vis)
                         pline1(empty);
@@ -91,7 +91,7 @@ precheck(struct monst* mon, struct obj* obj)
                 return 0;
             mquaffmsg(mon, obj);
             m_useup(mon, obj);
-            mtmp = makemon(&mons[PM_DJINNI], cc.x, cc.y, NO_MM_FLAGS);
+            mtmp = makemon(&mons[PM_DJINNI], cc.x, cc.y, MM_NOMSG);
             if (!mtmp) {
                 if (vis)
                     pline1(empty);
@@ -722,7 +722,7 @@ use_defensive(struct monst* mtmp)
         }
         if (oseen && how)
             makeknown(how);
-        (void) rloc(mtmp, TRUE);
+        (void) rloc(mtmp, RLOC_MSG);
         return 2;
     case MUSE_WAN_TELEPORTATION:
         g.zap_oseen = oseen;
@@ -1389,7 +1389,7 @@ mbhitm(register struct monst* mtmp, register struct obj* otmp)
                 if (cansee(mtmp->mx, mtmp->my))
                     pline("%s resists the magic!", Monnam(mtmp));
             } else if (!tele_restrict(mtmp))
-                (void) rloc(mtmp, TRUE);
+                (void) rloc(mtmp, RLOC_MSG);
         }
         break;
 #endif
@@ -2098,11 +2098,11 @@ DISABLE_WARNING_UNREACHABLE_CODE
 int
 use_misc(struct monst* mtmp)
 {
-    int i;
-    struct obj *otmp = g.m.misc;
-    boolean vis, vismon, oseen;
     char nambuf[BUFSZ];
-    struct trap * tt;
+    boolean vis, vismon, vistrapspot, oseen;
+    int i;
+    struct trap *t;
+    struct obj *otmp = g.m.misc;
 
     if ((i = precheck(mtmp, otmp)) != 0)
         return i;
@@ -2208,19 +2208,21 @@ use_misc(struct monst* mtmp)
         if (oseen)
             makeknown(POT_POLYMORPH);
         return 2;
-    case MUSE_BAG:
-        return mloot_container(mtmp, otmp, vismon);
     case MUSE_POLY_TRAP:
-        tt = t_at(g.trapx, g.trapy);
-        if (vismon) {
-            const char *Mnam = Monnam(mtmp);
-
-            pline("%s deliberately %s onto a polymorph trap!", Mnam,
-                  vtense(fakename[0], locomotion(mtmp->data, "jump")));
+        t = t_at(g.trapx, g.trapy);
+        vistrapspot = cansee(t->tx, t->ty);
+        if (vis || vistrapspot)
+            seetrap(t);
+        if (vismon || vistrapspot) {
+            pline("%s deliberately %s onto a %s trap!", Some_Monnam(mtmp),
+                  vtense(fakename[0], locomotion(mtmp->data, "jump")),
+                  t->tseen ? "polymorph" : "hidden");
+            /* note: if mtmp is unseen because it is invisible, its new
+               shape will also be invisible and could produce "Its armor
+               falls off" messages during the transformation; those make
+               more sense after we've given "Someone jumps onto a trap." */
         }
-        if (vis)
-            seetrap(t_at(g.trapx, g.trapy));
-        deltrap(tt);
+        deltrap(t);
 
         /*  don't use rloc() due to worms */
         remove_monster(mtmp->mx, mtmp->my);
@@ -2233,6 +2235,8 @@ use_misc(struct monst* mtmp)
         (void) newcham(mtmp, muse_newcham_mon(mtmp), FALSE, TRUE);
 
         return 2;
+    case MUSE_BAG:
+        return mloot_container(mtmp, otmp, vismon);
     case MUSE_BULLWHIP:
         /* attempt to disarm hero */
         {
@@ -2260,8 +2264,8 @@ use_misc(struct monst* mtmp)
                 pline("%s fails to wrap around %s.", The_whip, the_weapon);
                 return 1;
             }
-            pline("%s wraps around %s you're wielding!", The_whip,
-                  the_weapon);
+            urgent_pline("%s wraps around %s you're wielding!", The_whip,
+                         the_weapon);
             if (welded(obj)) {
                 pline("%s welded to your %s%c",
                       !is_plural(obj) ? "It is" : "They are", hand,
@@ -2493,6 +2497,8 @@ searches_for_item(struct monst* mon, struct obj* obj)
     return FALSE;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 boolean
 mon_reflects(struct monst* mon, const char* str)
 {
@@ -2578,6 +2584,8 @@ ureflectsrc(void)
     }
     return (const char*) NULL;
 }
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 /* cure mon's blindness (use_defensive, dog_eat, meatobj) */
 void

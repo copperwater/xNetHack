@@ -1,5 +1,5 @@
 #      NetHack Top-level Makefile.
-# NetHack 3.7  Makefile.top    $NHDT-Date: 1609702004 2021/01/03 19:26:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.66 $
+# NetHack 3.7  Makefile.top    $NHDT-Date: 1642630921 2022/01/19 22:22:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.72 $
 # Copyright (c) 2015 by Kenneth Lorber, Kensington, Maryland
 # NetHack may be freely redistributed.  See license for details.
 
@@ -84,7 +84,7 @@ VARDAT = $(VARDATD) $(VARDATND)
 #CHGRP = chgrp
 
 # Lua version
-LUA_VERSION = 5.4.3
+LUA_VERSION = 5.4.4
 
 #
 # end of configuration
@@ -93,7 +93,7 @@ LUA_VERSION = 5.4.3
 # The CSS file is required for HTML end-of-game dump logs.
 CSS = NHdump.css
 
-DATHELP = help hh cmdhelp keyhelp history opthelp wizhelp
+DATHELP = help hh cmdhelp keyhelp history opthelp optmenu wizhelp
 
 SPEC_LEVS = asmodeus.lua baalz.lua bigrm-*.lua castle.lua fakewiz?.lua \
 	juiblex.lua knox.lua medusa-?.lua minend-?.lua minefill.lua \

@@ -17,7 +17,6 @@ static struct obj *on_ground(short);
 static boolean you_have(int);
 static unsigned long target_on(int, struct monst *);
 static unsigned long strategy(struct monst *);
-static void choose_stairs(xchar *, xchar *);
 
 /* adding more neutral creatures will tend to reduce the number of monsters
    summoned by nasty(); adding more lawful creatures will reduce the number
@@ -311,12 +310,12 @@ strategy(struct monst *mtmp)
     return dstrat;
 }
 
-static void
-choose_stairs(xchar *sx, xchar *sy)
+void
+choose_stairs(xchar *sx, xchar *sy, boolean dir)
 {
     xchar x = 0, y = 0;
     stairway *stway = g.stairs;
-    boolean stdir = !builds_up(&u.uz);
+    boolean stdir = dir && !builds_up(&u.uz);
 
     if ((stway = stairway_find_type_dir(FALSE, stdir)) != 0) {
         x = stway->sx;
@@ -335,7 +334,7 @@ choose_stairs(xchar *sx, xchar *sy)
         }
     }
 
-    if (x && y) {
+    if (isok(x, y)) {
         *sx = x;
         *sy = y;
     }
@@ -356,14 +355,14 @@ tactics(struct monst *mtmp)
     case STRAT_HEAL: /* hide and recover */
         mx = mtmp->mx, my = mtmp->my;
         /* if wounded, hole up on or near the stairs (to block them) */
-        choose_stairs(&sx, &sy);
+        choose_stairs(&sx, &sy, (mtmp->m_id % 2));
         mtmp->mavenge = 1; /* covetous monsters attack while fleeing */
         if (In_W_tower(mx, my, &u.uz)
             || (mtmp->iswiz && !sx && !mon_has_amulet(mtmp))) {
             if (!rn2(3 + mtmp->mhp / 10))
-                (void) rloc(mtmp, TRUE);
+                (void) rloc(mtmp, RLOC_MSG);
         } else if (sx && (mx != sx || my != sy)) {
-            if (!mnearto(mtmp, sx, sy, TRUE)) {
+            if (!mnearto(mtmp, sx, sy, TRUE, RLOC_MSG)) {
                 /* couldn't move to the target spot for some reason,
                    so stay where we are (don't actually need rloc_to()
                    because mtmp is still on the map at <mx,my>... */
@@ -382,7 +381,7 @@ tactics(struct monst *mtmp)
 
     case STRAT_NONE: /* harass */
         if (!rn2(!mtmp->mflee ? 5 : 33))
-            mnexto(mtmp);
+            mnexto(mtmp, RLOC_MSG);
         return 0;
 
     default: /* kill, maim, pillage! */
@@ -397,7 +396,7 @@ tactics(struct monst *mtmp)
         }
         if ((u.ux == tx && u.uy == ty) || where == STRAT_PLAYER) {
             /* player is standing on it (or has it) */
-            mnexto(mtmp);
+            mnexto(mtmp, RLOC_MSG);
             return 0;
         }
         if (where == STRAT_GROUND) {
@@ -421,12 +420,12 @@ tactics(struct monst *mtmp)
             } else {
                 /* a monster is standing on it - cause some trouble */
                 if (!rn2(5))
-                    mnexto(mtmp);
+                    mnexto(mtmp, RLOC_MSG);
                 return 0;
             }
         } else { /* a monster has it - 'port beside it. */
             mx = mtmp->mx, my = mtmp->my;
-            if (!mnearto(mtmp, tx, ty, FALSE))
+            if (!mnearto(mtmp, tx, ty, FALSE, RLOC_MSG))
                 rloc_to(mtmp, mx, my); /* no room? stay put */
             return 0;
         }
@@ -624,7 +623,7 @@ nasty(struct monst *summoner)
                        limit spellcasters to inhibit chain summoning */
                     if ((mtmp = makemon((struct permonst *) 0,
                                         bypos.x, bypos.y,
-                                        NO_MM_FLAGS)) != 0) {
+                                        MM_NOMSG)) != 0) {
                         m_cls = mtmp->data->mlet;
                         if ((difcap > 0 && mtmp->data->difficulty >= difcap
                              && attacktype(mtmp->data, AT_MAGC))

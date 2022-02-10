@@ -1,4 +1,4 @@
-/* NetHack 3.7	obj.h	$NHDT-Date: 1611097668 2021/01/19 23:07:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.85 $ */
+/* NetHack 3.7	obj.h	$NHDT-Date: 1633802062 2021/10/09 17:54:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.94 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -23,7 +23,8 @@ struct oextra {
     char *oname;          /* ptr to name of object */
     struct monst *omonst; /* ptr to attached monst struct */
     char *omailcmd;       /* response_cmd for mail delivery */
-    unsigned omid;        /* for corpse; m_id of corpse's ghost */
+    unsigned omid;        /* for corpse: m_id of corpse's ghost; overloaded
+                           * for glob: owt at time added to shop's bill */
 };
 
 struct obj {
@@ -121,7 +122,8 @@ struct obj {
     Bitfield(cknown, 1); /* for containers (including statues): the contents
                           * are known; also applicable to tins */
     Bitfield(lknown, 1); /* locked/unlocked status is known */
-    /* 7 free bits */
+    Bitfield(pickup_prev, 1); /* was picked up previously */
+    /* 6 free bits */
 
     int corpsenm;         /* type of corpse is mons[corpsenm] */
 #define leashmon corpsenm /* gets m_id of attached pet */
@@ -130,12 +132,20 @@ struct obj {
 #define migr_species corpsenm /* species to endow for MIGR_TO_SPECIES */
 #define dragonscales corpsenm /* dragon-scaled body armor
                                * (index into objects[], not mons[]) */
+#define next_boulder corpsenm /* flag for xname() when pushing a pile of
+                               * boulders, 0 for first (top of pile),
+                               * 1 for others (format as "next boulder") */
     int usecount;           /* overloaded for various things that tally */
 #define spestudied usecount /* # of times a spellbook has been studied */
 #define tinseed usecount    /* seed for tin labels */
     unsigned oeaten;        /* nutrition left in food, if partly eaten */
     long age;               /* creation date */
-    long owornmask;
+    long owornmask;        /* bit mask indicating which equipment slot(s) an
+                            * item is worn in [by hero or by monster; could
+                            * indicate more than one bit: attached iron ball
+                            * that's also wielded];
+                            * overloaded for the destination of migrating
+                            * objects (which can't be worn at same time) */
 #define migrateflags owornmask /* migrating objects can't be worn anyway */
     xchar mgrx, mgry;       /* when migrating, travel to these coords */
     unsigned lua_ref_cnt;  /* # of lua script references for this object */
@@ -144,7 +154,7 @@ struct obj {
     struct oextra *oextra; /* pointer to oextra struct */
 };
 
-#define newobj() (struct obj *) alloc(sizeof(struct obj))
+#define newobj() (struct obj *) alloc(sizeof (struct obj))
 
 /***
  **     oextra referencing and testing macros
@@ -234,6 +244,12 @@ struct obj {
 /* used by welded(), and also while wielding */
 #define will_weld(optr) \
     ((optr)->cursed && (erodeable_wep(optr) || (optr)->otyp == TIN_OPENER))
+/* 'missile' aspect is up to the caller and does not imply is_missile();
+   rings might be launched as missiles when being scattered by an explosion */
+#define stone_missile(o) \
+    ((o) && (objects[(o)->otyp].oc_material == GEMSTONE             \
+             || (objects[(o)->otyp].oc_material == MINERAL))        \
+         && (o)->oclass != RING_CLASS)
 
 /* Armor */
 #define is_shield(otmp)          \

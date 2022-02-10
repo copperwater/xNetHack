@@ -49,8 +49,13 @@ struct WinDesc {
 
 /* window flags */
 #define WIN_CANCELLED 1
-#define WIN_STOP 1        /* for NHW_MESSAGE; stops output */
+#define WIN_STOP 1        /* for NHW_MESSAGE; stops output; sticks until
+                           * next input request or reversed by WIN_NOSTOP */
 #define WIN_LOCKHISTORY 2 /* for NHW_MESSAGE; suppress history updates */
+#define WIN_NOSTOP 4      /* current message has been designated as urgent;
+                           * prevents WIN_STOP from becoming set if current
+                           * message triggers --More-- and user types ESC
+                           * (current message won't have been seen yet) */
 
 /* topline states */
 #define TOPLINE_EMPTY          0 /* empty */
@@ -125,7 +130,7 @@ E void tty_shutdown(void);
 E int xputc(int);
 E void xputs(const char *);
 #if defined(SCREEN_VGA) || defined(SCREEN_8514)
-E void xputg(int, int, unsigned);
+E void xputg(const glyph_info *);
 #endif
 E void cl_end(void);
 E void clear_screen(void);

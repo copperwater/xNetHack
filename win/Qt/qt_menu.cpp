@@ -545,6 +545,7 @@ void NetHackQtMenuWindow::AddRow(int row, const MenuItem& mi)
 {
     QFontMetrics fm(table->font());
     QTableWidgetItem *twi;
+    glyph_info gi;
 
     if (mi.Selectable() && how != PICK_NONE) {
 	// Count
@@ -569,7 +570,8 @@ void NetHackQtMenuWindow::AddRow(int row, const MenuItem& mi)
     }
     if (mi.glyph != NO_GLYPH) {
 	// Icon
-	QPixmap pm(qt_settings->glyphs().glyph(mi.glyph));
+	map_glyphinfo(0, 0, mi.glyph, 0, &gi);
+	QPixmap pm(qt_settings->glyphs().glyph(mi.glyph, gi.gm.tileidx));
 	twi = new QTableWidgetItem(QIcon(pm), "");
 	table->setItem(row, 2, twi);
 	twi->setFlags(Qt::ItemIsEnabled);
@@ -1118,19 +1120,26 @@ void NetHackQtTextWindow::Display(bool block UNUSED)
 	lines->setFont(qt_settings->normalFont());
     }
 
-    int h=0;
+    /* int h=0; */
     if (use_rip) {
-	h+=rip.height();
+	/* h+=rip.height(); */
+	(void) rip.height();
 	ok.hide();
 	search.hide();
 	rip.show();
     } else {
-	h+=ok.height()*2 + 7;
+	/* h+=ok.height()*2 + 7; */
+	(void) ok.height(); 
 	ok.show();
 	search.show();
 	rip.hide();
     }
-    int mh = QApplication::desktop()->height()*3/5;
+#if QT_VERSION < 0x060000
+    QSize screensize = QApplication::desktop()->size();
+#else
+    QSize screensize = screen()->size();
+#endif
+    int mh = screensize.height()*3/5;
     if ( (qt_compact_mode && lines->TotalHeight() > mh) || use_rip ) {
 	// big, so make it fill
 	showMaximized();

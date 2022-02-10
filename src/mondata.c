@@ -76,7 +76,7 @@ noattacks(struct permonst* ptr)
 
 /* does monster-type transform into something else when petrified? */
 boolean
-poly_when_stoned(struct permonst* ptr)
+poly_when_stoned(struct permonst *ptr)
 {
     /* non-stone golems turn into stone golems unless latter is genocided */
     return (boolean) (is_golem(ptr) && ptr != &mons[PM_STONE_GOLEM]
@@ -84,18 +84,54 @@ poly_when_stoned(struct permonst* ptr)
     /* allow G_EXTINCT */
 }
 
+/* is 'mon' (possibly youmonst) protected against damage type 'adtype' via
+   wielded weapon or worn dragon scales? [or by virtue of being a dragon?] */
+boolean
+defended(struct monst *mon, int adtyp)
+{
+    struct obj *o, otemp;
+    int mndx;
+    boolean is_you = (mon == &g.youmonst);
+
+    /* is 'mon' wielding an artifact that protects against 'adtyp'? */
+    o = is_you ? uwep : MON_WEP(mon);
+    if (o && o->oartifact && defends(adtyp, o))
+        return TRUE;
+
+    /* if 'mon' is an adult dragon, treat it as if it was wearing scales
+       so that it has the same benefit as a hero wearing dragon scales */
+    mndx = monsndx(mon->data);
+    if (mndx >= PM_GRAY_DRAGON && mndx <= PM_YELLOW_DRAGON) {
+        /* a dragon is its own suit...  if mon is poly'd hero, we don't
+           care about embedded scales (uskin) because being a dragon with
+           embedded scales is no better than just being a dragon */
+        otemp = cg.zeroobj;
+        otemp.oclass = ARMOR_CLASS;
+        otemp.otyp = GRAY_DRAGON_SCALES + (mndx - PM_GRAY_DRAGON);
+        /* defends() and Is_dragon_armor() only care about otyp so ignore
+           the rest of otemp's fields */
+        o = &otemp;
+    } else {
+        /* ordinary case: not an adult dragon */
+        o = is_you ? uarm : which_armor(mon, W_ARM);
+    }
+    /* is 'mon' wearing dragon scales that protect against 'adtyp'? */
+    if (o && Is_dragon_armor(o) && defends(adtyp, o))
+        return TRUE;
+
+    return FALSE;
+}
+
 /* returns True if monster is drain-life resistant */
 boolean
-resists_drli(struct monst* mon)
+resists_drli(struct monst *mon)
 {
     struct permonst *ptr = mon->data;
-    struct obj *wep;
 
     if (resists_drain(ptr) || is_vampshifter(mon)
         || (mon == &g.youmonst && u.ulycn >= LOW_PM))
         return TRUE;
-    wep = (mon == &g.youmonst) ? uwep : MON_WEP(mon);
-    return (boolean) (wep && wep->oartifact && defends(AD_DRLI, wep));
+    return defended(mon, AD_DRLI);
 }
 
 /* True if monster is magic-missile (actually, general magic) resistant */
@@ -334,7 +370,7 @@ mon_hates_material(struct monst *mon, int material)
 /* True if monster-type is especially affected by weapons of the given material
  * type */
 boolean
-hates_material(register struct permonst *ptr, int material)
+hates_material(struct permonst *ptr, int material)
 {
     if (material == SILVER) {
         if (ptr->mlet == S_IMP) {
@@ -377,16 +413,30 @@ sear_damage(int material)
     }
 }
 
+/* True if specific monster is especially affected by blessed objects */
+boolean
+mon_hates_blessings(struct monst *mon)
+{
+    return (boolean) (is_vampshifter(mon) || hates_blessings(mon->data));
+}
+
+/* True if monster-type is especially affected by blessed objects */
+boolean
+hates_blessings(struct permonst *ptr)
+{
+    return (boolean) (is_undead(ptr) || is_demon(ptr));
+}
+
 /* True if specific monster is especially affected by light-emitting weapons */
 boolean
-mon_hates_light(struct monst* mon)
+mon_hates_light(struct monst *mon)
 {
-    return (boolean) (hates_light(mon->data));
+    return (boolean) hates_light(mon->data);
 }
 
 /* True iff the type of monster pass through iron bars */
 boolean
-passes_bars(struct permonst* mptr)
+passes_bars(struct permonst *mptr)
 {
     return (boolean) (passes_walls(mptr) || amorphous(mptr) || unsolid(mptr)
                       || is_whirly(mptr) || verysmall(mptr)
@@ -1202,18 +1252,18 @@ const struct permonst *
 raceptr(struct monst* mtmp)
 {
     if (mtmp == &g.youmonst && !Upolyd)
-        return &mons[g.urace.malenum];
+        return &mons[g.urace.mnum];
     else
         return mtmp->data;
 }
 
-static const char *levitate[4] = { "float", "Float", "wobble", "Wobble" };
-static const char *flys[4] = { "fly", "Fly", "flutter", "Flutter" };
-static const char *flyl[4] = { "fly", "Fly", "stagger", "Stagger" };
-static const char *slither[4] = { "slither", "Slither", "falter", "Falter" };
-static const char *ooze[4] = { "ooze", "Ooze", "tremble", "Tremble" };
-static const char *immobile[4] = { "wiggle", "Wiggle", "pulsate", "Pulsate" };
-static const char *crawl[4] = { "crawl", "Crawl", "falter", "Falter" };
+static const char *const levitate[4] = { "float", "Float", "wobble", "Wobble" };
+static const char *const flys[4] = { "fly", "Fly", "flutter", "Flutter" };
+static const char *const flyl[4] = { "fly", "Fly", "stagger", "Stagger" };
+static const char *const slither[4] = { "slither", "Slither", "falter", "Falter" };
+static const char *const ooze[4] = { "ooze", "Ooze", "tremble", "Tremble" };
+static const char *const immobile[4] = { "wiggle", "Wiggle", "pulsate", "Pulsate" };
+static const char *const crawl[4] = { "crawl", "Crawl", "falter", "Falter" };
 
 const char *
 locomotion(const struct permonst* ptr, const char* def)

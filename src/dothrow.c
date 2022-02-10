@@ -98,7 +98,7 @@ throw_obj(struct obj *obj, int shotlimit)
         if (obj->o_id == g.context.objsplit.parent_oid
             || obj->o_id == g.context.objsplit.child_oid)
             (void) unsplitobj(obj);
-        return 0; /* no time passes */
+        return ECMD_CANCEL; /* no time passes */
     }
 
     /*
@@ -110,23 +110,23 @@ throw_obj(struct obj *obj, int shotlimit)
      * possibly using a sling.
      */
     if (obj->oclass == COIN_CLASS && obj != uquiver)
-        return throw_gold(obj);
+        return throw_gold(obj); /* check */
 
     if (!canletgo(obj, "throw")) {
-        return 0;
+        return ECMD_OK;
     }
     if (obj->oartifact == ART_MJOLLNIR && obj != uwep) {
         pline("%s must be wielded before it can be thrown.", The(xname(obj)));
-        return 0;
+        return ECMD_OK;
     }
     if ((obj->oartifact == ART_MJOLLNIR && ACURR(A_STR) < STR19(25))
         || (obj->otyp == BOULDER && !throws_rocks(g.youmonst.data))) {
         pline("It's too heavy.");
-        return 1;
+        return ECMD_TIME;
     }
     if (!u.dx && !u.dy && !u.dz) {
         You("cannot throw an object at yourself.");
-        return 0;
+        return ECMD_OK;
     }
     u_wipe_engr(2);
     if (!uarmg && obj->otyp == CORPSE && touch_petrifies(&mons[obj->corpsenm])
@@ -141,7 +141,7 @@ throw_obj(struct obj *obj, int shotlimit)
     }
     if (welded(obj)) {
         weldmsg(obj);
-        return 1;
+        return ECMD_TIME;
     }
     if (is_wet_towel(obj))
         dry_a_towel(obj, -1, FALSE);
@@ -260,7 +260,7 @@ throw_obj(struct obj *obj, int shotlimit)
     g.m_shot.o = STRANGE_OBJECT;
     g.m_shot.s = FALSE;
 
-    return 1;
+    return ECMD_TIME;
 }
 
 /* common to dothrow() and dofire() */
@@ -317,7 +317,7 @@ throw_ok(struct obj *obj)
     return GETOBJ_DOWNPLAY;
 }
 
-/* t command - throw */
+/* the #throw command */
 int
 dothrow(void)
 {
@@ -336,13 +336,13 @@ dothrow(void)
      * [3.6.0:  shot count setup has been moved into ok_to_throw().]
      */
     if (!ok_to_throw(&shotlimit))
-        return 0;
+        return ECMD_OK;
 
     obj = getobj("throw", throw_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT);
     /* it is also possible to throw food */
     /* (or jewels, or iron balls... ) */
 
-    return obj ? throw_obj(obj, shotlimit) : 0;
+    return obj ? throw_obj(obj, shotlimit) : ECMD_CANCEL;
 }
 
 /* KMH -- Automatically fill quiver */
@@ -390,6 +390,8 @@ autoquiver(void)
             /* Ordinary weapon */
             if (objects[otmp->otyp].oc_skill == P_DAGGER && !omissile)
                 omissile = otmp;
+            else if (otmp->otyp == AKLYS)
+                continue;
             else
                 omisc = otmp;
         }
@@ -425,7 +427,7 @@ find_launcher(struct obj *ammo)
     return (struct obj *)0;
 }
 
-/* f command -- fire: throw from the quiver */
+/* the #fire command -- throw from the quiver or use wielded polearm */
 int
 dofire(void)
 {
@@ -447,7 +449,7 @@ dofire(void)
      * aborted (ESC at the direction prompt).]
      */
     if (!ok_to_throw(&shotlimit))
-        return 0;
+        return ECMD_OK;
 
     if ((obj = uquiver) == 0) {
         /* If nothing is quivered but wielding an autoreturning weapon, pick
@@ -456,8 +458,24 @@ dofire(void)
         if (!flags.autoquiver) {
             if (uwep && returnwep)
                 obj = uwep;
-            else
-                You("have no ammunition readied.");
+            else {
+                /* if we're wielding a polearm, apply it */
+                if (uwep && is_pole(uwep))
+                    return use_pole(uwep, TRUE);
+                /* if we're wielding a bullwhip, apply it */
+                else if (uwep && uwep->otyp == BULLWHIP)
+                    return use_whip(uwep);
+                else if (iflags.fireassist
+                         && uswapwep && is_pole(uswapwep)
+                         && !(uswapwep->cursed && uswapwep->bknown)) {
+                    /* we have a known not-cursed polearm as swap weapon.
+                       swap to it and retry */
+                    cmdq_add_ec(doswapweapon);
+                    cmdq_add_ec(dofire);
+                    return ECMD_OK;
+                } else
+                    You("have no ammunition readied.");
+            }
         } else {
             autoquiver();
             if ((obj = uquiver) == 0 && !returnwep) {
@@ -478,6 +496,8 @@ dofire(void)
             /* choose something from inventory, then usually quiver it */
             obj = getobj("throw", throw_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT);
             /* Q command doesn't allow gold in quiver */
+            if (!obj)
+                return ECMD_CANCEL;
             if (obj && !obj->owornmask && obj->oclass != COIN_CLASS)
                 setuqwep(obj); /* demi-autoquiver */
         }
@@ -499,7 +519,7 @@ dofire(void)
             /* swap weapons and retry fire */
             cmdq_add_ec(doswapweapon);
             cmdq_add_ec(dofire);
-            return 0;
+            return ECMD_OK;
         } else if ((olauncher = find_launcher(obj)) != 0) {
             /* wield launcher, retry fire */
             if (uwep && !flags.pushweapon)
@@ -507,11 +527,11 @@ dofire(void)
             cmdq_add_ec(dowield);
             cmdq_add_key(olauncher->invlet);
             cmdq_add_ec(dofire);
-            return 0;
+            return ECMD_OK;
         }
     }
 
-    return obj ? throw_obj(obj, shotlimit) : 0;
+    return obj ? throw_obj(obj, shotlimit) : ECMD_OK;
 }
 
 /* if in midst of multishot shooting/throwing, stop early */
@@ -532,9 +552,9 @@ endmultishot(boolean verbose)
 /* Object hits floor at hero's feet.
    Called from drop(), throwit(), hold_another_object(), litter(). */
 void
-hitfloor(struct obj *obj,
-         boolean verbosely) /* usually True; False if caller has given
-                               drop message */
+hitfloor(
+    struct obj *obj,
+    boolean verbosely) /* usually True; False if caller has given drop mesg */
 {
     if (IS_SOFT(levl[u.ux][u.uy].typ) || u.uinwater || u.uswallow) {
         dropy(obj);
@@ -567,7 +587,7 @@ hitfloor(struct obj *obj,
         pline("%s %s the %s.", Doname2(obj), otense(obj, "hit"), surf);
     }
 
-    if (hero_breaks(obj, u.ux, u.uy, TRUE))
+    if (hero_breaks(obj, u.ux, u.uy, BRK_FROM_INV))
         return;
     if (ship_object(obj, u.ux, u.uy, FALSE))
         return;
@@ -1008,6 +1028,14 @@ mhurtle(struct monst *mon, int dx, int dy, int range)
     if (dx && dy && NODIAG(monsndx(mon->data)))
         return;
 
+    /* undetected monster can be moved by your strike */
+    if (mon->mundetected) {
+        mon->mundetected = 0;
+        newsym(mon->mx, mon->my);
+    }
+    if (M_AP_TYPE(mon))
+        seemimic(mon);
+
     /* Send the monster along the path */
     mc.x = mon->mx;
     mc.y = mon->my;
@@ -1054,7 +1082,8 @@ check_shop_obj(struct obj *obj, xchar x, xchar y, boolean broken)
 }
 
 /* Will 'obj' cause damage if it falls on hero's head when thrown upward?
-   Not used to handle things which break when they hit. */
+   Not used to handle things which break when they hit.
+   Stone missile hitting hero w/ Passes_walls attribute handled separately. */
 static boolean
 harmless_missile(struct obj *obj)
 {
@@ -1095,7 +1124,8 @@ static boolean
 toss_up(struct obj *obj, boolean hitsroof)
 {
     const char *action;
-    boolean petrifier = ((obj->otyp == EGG || obj->otyp == CORPSE)
+    int otyp = obj->otyp;
+    boolean petrifier = ((otyp == EGG || otyp == CORPSE)
                          && touch_petrifies(&mons[obj->corpsenm]));
     /* note: obj->quan == 1 */
 
@@ -1126,7 +1156,6 @@ toss_up(struct obj *obj, boolean hitsroof)
             return FALSE;
         }
     } else if (breaktest(obj)) {
-        int otyp = obj->otyp;
         int blindinc;
 
         /* need to check for blindness result prior to destroying obj */
@@ -1171,23 +1200,35 @@ toss_up(struct obj *obj, boolean hitsroof)
         hitfloor(obj, FALSE);
         g.thrownobj = 0;
     } else { /* neither potion nor other breaking object */
-        boolean less_damage = uarmh && is_hard(uarmh);
+        boolean less_damage = (uarmh && is_hard(uarmh)
+                               && !Hate_material(obj->material)),
+                harmless = (stone_missile(obj)
+                            && passes_rocks(g.youmonst.data));
         int artimsg = ARTIFACTHIT_NOMSG;
         int dmg = dmgval(obj, &g.youmonst);
 
-        if (obj->oartifact)
+        if (obj->oartifact && !harmless)
             /* need a fake die roll here; rn1(18,2) avoids 1 and 20 */
             artimsg = artifact_hit((struct monst *) 0, &g.youmonst, obj, &dmg,
                                    rn1(18, 2));
 
         if (!dmg) { /* probably wasn't a weapon; base damage on weight */
-            dmg = (int) obj->owt / 100;
-            if (dmg < 1)
-                dmg = 1;
-            else if (dmg > 6)
+            dmg = ((int) obj->owt + 99) / 100;
+            dmg = (dmg <= 1) ? 1 : rnd(dmg);
+            if (dmg > 6)
                 dmg = 6;
+            /* since obj is a non-weapon, bonuses for silver and blessed
+               haven't been applied (otherwise '!dmg' test will fail when
+               they're applicable here); we don't have to worry about
+               dmgval()'s artifact light against gremlin or axe against
+               woody creature since both involve weapons; hero-as-shade is
+               hypothetical because hero can't polymorph into that form */
             if (noncorporeal(g.youmonst.data) && !shade_glare(obj))
                 dmg = 0;
+            if (obj->blessed && mon_hates_blessings(&g.youmonst))
+                dmg += rnd(4);
+            if (Hate_material(obj->material))
+                dmg += rnd(sear_damage(obj->material));
         }
         if (dmg > 2 && less_damage)
             dmg = (dmg > 2 ? dmg - 2 : 2);
@@ -1200,18 +1241,25 @@ toss_up(struct obj *obj, boolean hitsroof)
         if (uarmh) {
             if (obj->owt >= 400 && is_brittle(uarmh) && break_glass_obj(uarmh)) {
                 ;
-            } else if (less_damage && dmg < (Upolyd ? u.mh : u.uhp)) {
+            } else if ((less_damage && dmg < (Upolyd ? u.mh : u.uhp))
+                       || harmless) {
                 if ((artimsg & ARTIFACTHIT_GAVEMSG) == 0) {
                     if (dmg > 2)
                         Your("helmet only slightly protects you.");
-                    else
+                    else if (!harmless) /* !harmless => less_damage here */
                         pline("Fortunately, you are wearing a hard helmet.");
+                    else
+                        pline("Unfortunately, you are wearing %s.",
+                              an(helm_simple_name(uarmh))); /* helm or hat */
                 }
             /* helmet definitely protects you when it blocks petrification */
             } else if (!petrifier) {
                 if (flags.verbose)
                     Your("%s does not protect you.", helm_simple_name(uarmh));
             }
+            /* stone missile against hero in xorn form would have been
+               harmless, but hitting a worn helmet negates that */
+            harmless = FALSE;
         } else if (petrifier && !Stone_resistance
                    && !(poly_when_stoned(g.youmonst.data)
                         && polymon(PM_STONE_GOLEM, POLYMON_ALL_MSGS))) {
@@ -1232,9 +1280,13 @@ toss_up(struct obj *obj, boolean hitsroof)
             }
             exercise(A_CON, FALSE);
         }
+        if (harmless)
+            hit(thesimpleoname(obj), &g.youmonst, " but doesn't hurt.");
+
         hitfloor(obj, TRUE);
         g.thrownobj = 0;
-        losehp(dmg, "falling object", KILLED_BY_AN);
+        if (!harmless)
+            losehp(dmg, "falling object", KILLED_BY_AN);
     }
     return TRUE;
 }
@@ -1707,13 +1759,14 @@ tmiss(struct obj *obj, struct monst *mon, boolean maybe_wakeup)
  * Also used for kicked objects and for polearms/grapnel applied at range.
  */
 int
-thitmonst(register struct monst *mon,
-          register struct obj *obj) /* g.thrownobj or g.kickedobj or uwep */
+thitmonst(
+    struct monst *mon,
+    struct obj *obj) /* g.thrownobj or g.kickedobj or uwep */
 {
     register int tmp;     /* Base chance to hit */
     register int disttmp; /* distance modifier */
     int otyp = obj->otyp, hmode;
-    boolean guaranteed_hit = (u.uswallow && mon == u.ustuck);
+    boolean guaranteed_hit = engulfing_u(mon);
     int dieroll;
 
     hmode = (obj == uwep) ? HMON_APPLIED
@@ -2092,7 +2145,7 @@ gem_accept(register struct monst *mon, register struct obj *obj)
     if (!Blind)
         pline1(buf);
     if (!tele_restrict(mon))
-        (void) rloc(mon, TRUE);
+        (void) rloc(mon, RLOC_MSG);
     return ret;
 }
 
@@ -2131,13 +2184,20 @@ gem_accept(register struct monst *mon, register struct obj *obj)
 int
 hero_breaks(struct obj *obj,
             xchar x, xchar y, /* object location (ox, oy may not be right) */
-            boolean from_invent) /* thrown or dropped by player;
-                                    maybe on shop bill */
+            unsigned breakflags)
 {
-    boolean in_view = Blind ? FALSE : (from_invent || cansee(x, y));
+    /* from_invent: thrown or dropped by player; maybe on shop bill;
+       by-hero is implicit so callers don't need to specify BRK_BY_HERO */
+    boolean from_invent = (breakflags & BRK_FROM_INV) != 0,
+            in_view = Blind ? FALSE : (from_invent || cansee(x, y));
+    unsigned brk = (breakflags & BRK_KNOWN_OUTCOME);
 
-    if (!breaktest(obj))
+    /* only call breaktest if caller hasn't already specified the outcome */
+    if (!brk)
+        brk = breaktest(obj) ? BRK_KNOWN2BREAK : BRK_KNOWN2NOTBREAK;
+    if (brk == BRK_KNOWN2NOTBREAK)
         return 0;
+
     breakmsg(obj, in_view);
     breakobj(obj, x, y, TRUE, from_invent);
     return 1;
@@ -2167,7 +2227,7 @@ release_camera_demon(struct obj *obj, xchar x, xchar y)
     struct monst *mtmp;
     if (!rn2(3)
         && (mtmp = makemon(&mons[rn2(3) ? PM_HOMUNCULUS : PM_IMP], x, y,
-                           NO_MM_FLAGS)) != 0) {
+                           MM_NOMSG)) != 0) {
         if (canspotmon(mtmp))
             pline("%s is released!", Hallucination
                                          ? An(rndmonnam(NULL))
@@ -2182,10 +2242,11 @@ release_camera_demon(struct obj *obj, xchar x, xchar y)
  * and break messages have been delivered prior to getting here.
  */
 void
-breakobj(struct obj *obj,
-         xchar x, xchar y,    /* object location (ox, oy may not be right) */
-         boolean hero_caused, /* is this the hero's fault? */
-         boolean from_invent)
+breakobj(
+    struct obj *obj,
+    xchar x, xchar y,    /* object location (ox, oy may not be right) */
+    boolean hero_caused, /* is this the hero's fault? */
+    boolean from_invent)
 {
     boolean fracture = FALSE;
 
@@ -2246,19 +2307,20 @@ breakobj(struct obj *obj,
             struct monst *shkp = shop_keeper(*o_shop);
 
             if (shkp) { /* (implies *o_shop != '\0') */
-                static NEARDATA long lastmovetime = 0L;
-                static NEARDATA boolean peaceful_shk = FALSE;
-                /*  We want to base shk actions on her peacefulness
-                    at start of this turn, so that "simultaneous"
-                    multiple breakage isn't drastically worse than
-                    single breakage.  (ought to be done via ESHK)  */
-                if (g.moves != lastmovetime)
-                    peaceful_shk = shkp->mpeaceful;
-                if (stolen_value(obj, x, y, peaceful_shk, FALSE) > 0L
+                struct eshk *eshkp = ESHK(shkp);
+
+                /* base shk actions on her peacefulness at start of
+                   this turn, so that "simultaneous" multiple breakage
+                   isn't drastically worse than single breakage */
+                if (g.hero_seq != eshkp->break_seq)
+                    eshkp->seq_peaceful = shkp->mpeaceful;
+                if ((stolen_value(obj, x, y, eshkp->seq_peaceful, FALSE) > 0L)
                     && (*o_shop != u.ushops[0] || !inside_shop(u.ux, u.uy))
-                    && g.moves != lastmovetime)
+                    && g.hero_seq != eshkp->break_seq)
                     make_angry_shk(shkp, x, y);
-                lastmovetime = g.moves;
+                /* make_angry_shk() is only called on the first instance
+                   of breakage during any particular hero move */
+                eshkp->break_seq = g.hero_seq;
             }
         }
     }
@@ -2419,7 +2481,7 @@ throw_gold(struct obj *obj)
         if (obj->o_id == g.context.objsplit.parent_oid
             || obj->o_id == g.context.objsplit.child_oid)
             (void) unsplitobj(obj);
-        return 0;
+        return ECMD_CANCEL;
     }
     freeinv(obj);
     if (u.uswallow) {
@@ -2427,7 +2489,7 @@ throw_gold(struct obj *obj)
                                         : "%s into %s.",
               "The gold disappears", mon_nam(u.ustuck));
         add_to_minv(u.ustuck, obj);
-        return 1;
+        return ECMD_TIME;
     }
 
     if (u.dz) {
@@ -2463,19 +2525,19 @@ throw_gold(struct obj *obj)
                        (int (*)(MONST_P, OBJ_P)) 0,
                        (int (*)(OBJ_P, OBJ_P)) 0, &obj);
             if (!obj)
-                return 1; /* object is gone */
+                return ECMD_TIME; /* object is gone */
             if (mon) {
                 if (ghitm(mon, obj)) /* was it caught? */
-                    return 1;
+                    return ECMD_TIME;
             } else {
                 if (ship_object(obj, g.bhitpos.x, g.bhitpos.y, FALSE))
-                    return 1;
+                    return ECMD_TIME;
             }
         }
     }
 
     if (flooreffects(obj, g.bhitpos.x, g.bhitpos.y, "fall"))
-        return 1;
+        return ECMD_TIME;
     if (u.dz > 0)
         pline_The("gold hits the %s.", surface(g.bhitpos.x, g.bhitpos.y));
     place_object(obj, g.bhitpos.x, g.bhitpos.y);
@@ -2483,7 +2545,7 @@ throw_gold(struct obj *obj)
         sellobj(obj, g.bhitpos.x, g.bhitpos.y);
     stackobj(obj);
     newsym(g.bhitpos.x, g.bhitpos.y);
-    return 1;
+    return ECMD_TIME;
 }
 
 /* Return TRUE if obj has the capacity to return when thrown (it might not

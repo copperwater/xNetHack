@@ -12,10 +12,6 @@
 #include <fcntl.h>
 #endif
 
-#if defined(UNIX) || defined(WIN32)
-#define USE_BUFFERING
-#endif
-
 #ifdef MICRO
 int dotcnt, dotrow; /* also used in restore */
 #endif
@@ -46,6 +42,7 @@ static void zerocomp_bputc(int);
 #define HUP
 #endif
 
+/* the #save command */
 int
 dosave(void)
 {
@@ -69,7 +66,7 @@ dosave(void)
         } else
             (void) doredraw();
     }
-    return 0;
+    return ECMD_OK;
 }
 
 /* returns 1 if save successful */
@@ -1099,6 +1096,8 @@ freedynamicdata(void)
     freenames();
     free_waterlevel();
     free_dungeons();
+    free_CapMons();
+    free_rect();
 
     /* some pointers in iflags */
     if (iflags.wc_font_map)

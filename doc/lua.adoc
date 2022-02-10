@@ -14,6 +14,22 @@ Example:
 
  local str = nh.an("unicorn");
 
+
+=== debug_flags
+
+Set debugging flags.
+
+|===
+| mongen           | boolean | Do monsters generate
+| hunger           | boolean | Does hero's hunger-state increase
+| overwrite_stairs | boolean | Allow special-file commands overwrite the stairs
+|===
+
+Example:
+
+ nh.debug_flags({ mongen = false, hunger = false });
+
+
 === dnum_name
 
 Returns the full dungeon name (as defined in dungeon.lua) for the dungeon
@@ -22,6 +38,17 @@ number given as parameter.
 Example:
 
  local dungeon_name = nh.dnum_name(u.dnum);
+
+
+=== doturn
+
+Execute gameloop once, or until multi-turn action is done if
+optional boolean parameter is true.
+
+Example:
+
+ nh.doturn();
+
 
 === dump_fmtstr
 
@@ -140,7 +167,6 @@ Example:
  nh.deltrap(x, y);
 
 
-
 === ing_suffix
 
 Construct a gerund (a verb formed by appending "ing" to a noun).
@@ -158,6 +184,7 @@ Normally this is the level's physical depth from the surface.
 Example:
 
  local diff = nh.level_difficulty();
+
 
 === makeplural
 
@@ -226,6 +253,14 @@ Example:
 
  nh.pline("Message text to show.");
 
+
+=== pushkey
+
+Push a key into the command queue.
+
+Example:
+
+ nh.pushkey("i");
 
 === random
 
@@ -645,7 +680,25 @@ fields:
 | lit       | Is the room lit or unlit? Defaults to -1 (random).
 | filled    | Is the room filled as per the room type. Defaults to 1 (filled).
 | joined    | Is the room joined to the rest of the level with corridors? Default is true.
-| contents  | A function called with one parameter, a table with "width" and "height", the room width and height, excluding the walls. All coordinates in the function will be relative to the room.
+| contents  | A function called with one parameter, a table with room data. See <<_room_contents>>.
+|===
+
+==== room contents
+
+The room contents function is called when the room is created.
+All coordinates in the function will be relative to the room.
+The function get passed one parameter, a table with room data:
+
+[options="header"]
+|===
+| parameter   | description
+| width       | room width, excluding the walls.
+| height      | room height, excluding the walls.
+| region      | table with 4 elements, the room region coordinates: x1, y1, x2, y2.
+| lit         | is the room lit or unlit?
+| irregular   | is the room irregular?
+| needjoining | does the room need joining with corridors?
+| type        | the room type.
 |===
 
 
@@ -957,4 +1010,14 @@ Example:
 | `"F"`     | iron bars
 | `"x"`     | "transparent" - used for <<_map>> parts.
 | `"w"`     | "any wall" - see <<_match>>
+|===
+
+== Constants
+
+These constants are in the `nhc` table.
+
+|===
+| COLNO | Number of map columns
+| ROWNO | Number of map rows
+| DLB   | 1 or 0, depending if NetHack is compiled with DLB
 |===

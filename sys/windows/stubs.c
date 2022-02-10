@@ -10,7 +10,6 @@
 #error You cannot compile this with both GUISTUB and TTYSTUB defined.
 #endif
 
-int GUILaunched;
 struct window_procs mswin_procs = { "-guistubs" };
 
 #ifdef QT_GRAPHICS
@@ -60,7 +59,6 @@ main(int argc, char *argv[])
 
 HANDLE hConIn;
 HANDLE hConOut;
-int GUILaunched;
 struct window_procs tty_procs = { "-ttystubs" };
 #ifdef CURSES_GRAPHICS
 char erase_char, kill_char;
@@ -190,4 +188,14 @@ play_usersound_via_idx(int idx, int volume)
 }
 #endif /* USER_SOUNDS && TTY_SOUND_ESCCODES */
 
+void
+set_altkeyhandling(const char *inName)
+{
+}
+
+int
+set_keyhandling_via_option(void)
+{
+    return 1;
+}
 #endif /* TTYSTUBS */

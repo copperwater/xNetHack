@@ -1,16 +1,12 @@
-/* NetHack 3.7	read.c	$NHDT-Date: 1615760296 2021/03/14 22:18:16 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.220 $ */
+/* NetHack 3.7	read.c	$NHDT-Date: 1637992351 2021/11/27 05:52:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.229 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
-#define Your_Own_Role(mndx)  \
-    ((mndx) == g.urole.malenum \
-     || (g.urole.femalenum != NON_PM && (mndx) == g.urole.femalenum))
-#define Your_Own_Race(mndx)  \
-    ((mndx) == g.urace.malenum \
-     || (g.urace.femalenum != NON_PM && (mndx) == g.urace.femalenum))
+#define Your_Own_Role(mndx)  ((mndx) == g.urole.mnum)
+#define Your_Own_Race(mndx)  ((mndx) == g.urace.mnum)
 
 static boolean learnscrolltyp(short);
 static void cap_spe(struct obj *);
@@ -104,14 +100,14 @@ erode_obj_text(struct obj* otmp, char* buf)
 char *
 tshirt_text(struct obj* tshirt, char* buf)
 {
-    get_rnd_text(SHIRTFILE, buf, int_hash1(tshirt->o_id), rn2);
+    get_rnd_text(SHIRTFILE, buf, int_hash1(tshirt->o_id), rn2, MD_PAD_RUMORS);
     return erode_obj_text(tshirt, buf);
 }
 
 char *
 hawaiian_motif(struct obj* shirt, char* buf)
 {
-    static const char *hawaiian_motifs[] = {
+    static const char *const hawaiian_motifs[] = {
         /* birds */
         "flamingo",
         "parrot",
@@ -143,7 +139,7 @@ hawaiian_motif(struct obj* shirt, char* buf)
 static char *
 hawaiian_design(struct obj* shirt, char* buf)
 {
-    static const char *hawaiian_bgs[] = {
+    static const char *const hawaiian_bgs[] = {
         /* solid colors */
         "purple",
         "yellow",
@@ -172,7 +168,7 @@ hawaiian_design(struct obj* shirt, char* buf)
 char *
 apron_text(struct obj* apron, char* buf)
 {
-    static const char *apron_msgs[] = {
+    static const char *const apron_msgs[] = {
         "Kiss the cook",
         "I'm making SCIENCE!",
         "Don't mess with the chef",
@@ -199,7 +195,7 @@ apron_text(struct obj* apron, char* buf)
     return erode_obj_text(apron, buf);
 }
 
-static const char *candy_wrappers[] = {
+static const char *const candy_wrappers[] = {
     "",                         /* (none -- should never happen) */
     "Apollo",                   /* Lost */
     "Moon Crunchy",             /* South Park */
@@ -354,7 +350,9 @@ read_ok(struct obj* obj)
     return GETOBJ_DOWNPLAY;
 }
 
-/* the 'r' command; read a scroll or spell book or various other things */
+DISABLE_WARNING_FORMAT_NONLITERAL
+
+/* the #read command; read a scroll or spell book or various other things */
 int
 doread(void)
 {
@@ -382,11 +380,11 @@ doread(void)
 
     g.known = FALSE;
     if (check_capacity((char *) 0))
-        return 0;
+        return ECMD_OK;
 
     scroll = getobj("read", read_ok, GETOBJ_PROMPT);
     if (!scroll)
-        return 0;
+        return ECMD_CANCEL;
     otyp = scroll->otyp;
 
     /* outrumor has its own blindness check */
@@ -399,7 +397,7 @@ doread(void)
                 livelog_write_string(LL_CONDUCT,
                                      "became literate by reading a fortune cookie");
         useup(scroll);
-        return 1;
+        return ECMD_TIME;
     } else if (otyp == T_SHIRT || otyp == ALCHEMY_SMOCK
                || otyp == HAWAIIAN_SHIRT) {
         char buf[BUFSZ], *mesg;
@@ -407,7 +405,7 @@ doread(void)
 
         if (Blind) {
             You_cant(find_any_braille);
-            return 0;
+            return ECMD_OK;
         }
         /* can't read shirt worn under suit (under cloak is ok though) */
         if ((otyp == T_SHIRT || otyp == HAWAIIAN_SHIRT) && uarm
@@ -415,12 +413,12 @@ doread(void)
             pline("%s shirt is obscured by %s%s.",
                   scroll->unpaid ? "That" : "Your", shk_your(buf, uarm),
                   suit_simple_name(uarm));
-            return 0;
+            return ECMD_OK;
         }
         if (otyp == HAWAIIAN_SHIRT) {
             pline("%s features %s.", flags.verbose ? "The design" : "It",
                   hawaiian_design(scroll, buf));
-            return 1;
+            return ECMD_TIME;
         }
         if (!u.uconduct.literate++)
             livelog_printf(LL_CONDUCT, "became literate by reading %s",
@@ -439,7 +437,7 @@ doread(void)
             pline("It reads:");
         }
         pline("\"%s\"%s", mesg, endpunct);
-        return 1;
+        return ECMD_TIME;
     } else if ((otyp == DUNCE_CAP || otyp == CORNUTHAUM)
         /* note: "DUNCE" isn't directly connected to tourists but
            if everyone could read it, they would always be able to
@@ -459,7 +457,7 @@ doread(void)
                because it suggests that there might be something on others */
             You_cant("find anything to read on this %s.",
                      simpleonames(scroll));
-            return 0;
+            return ECMD_OK;
         }
         pline("%s on the %s.  It reads:  %s.",
               !Blind ? "There is writing" : "You feel lettering",
@@ -471,9 +469,9 @@ doread(void)
            the object type, don't make it become a discovery for hero */
         if (!objects[otyp].oc_name_known && !objects[otyp].oc_uname)
             docall(scroll);
-        return 1;
+        return ECMD_TIME;
     } else if (otyp == CREDIT_CARD) {
-        static const char *card_msgs[] = {
+        static const char *const card_msgs[] = {
             "Leprechaun Gold Tru$t - Shamrock Card",
             "Magic Memory Vault Charge Card",
             "Larn National Bank",                /* Larn */
@@ -512,14 +510,14 @@ doread(void)
         if (!u.uconduct.literate++)
             livelog_write_string(LL_CONDUCT,
                                  "became literate by reading a credit card");
-        return 1;
+        return ECMD_TIME;
     } else if (otyp == CAN_OF_GREASE) {
         pline("This %s has no label.", singular(scroll, xname));
-        return 0;
+        return ECMD_OK;
     } else if (otyp == MAGIC_MARKER) {
         if (Blind) {
             You_cant(find_any_braille);
-            return 0;
+            return ECMD_OK;
         }
         if (flags.verbose)
             pline("It reads:");
@@ -527,7 +525,7 @@ doread(void)
         if (!u.uconduct.literate++)
             livelog_write_string(LL_CONDUCT,
                                  "became literate by reading a magic marker");
-        return 1;
+        return ECMD_TIME;
     } else if (scroll->oclass == COIN_CLASS) {
         if (Blind)
             You("feel the embossed words:");
@@ -537,7 +535,7 @@ doread(void)
         if (!u.uconduct.literate++)
             livelog_write_string(LL_CONDUCT,
                                  "became literate by reading a coin's engravings");
-        return 1;
+        return ECMD_TIME;
     } else if (scroll->oartifact == ART_ORB_OF_FATE) {
         if (Blind)
             You("feel the engraved signature:");
@@ -547,23 +545,23 @@ doread(void)
         if (!u.uconduct.literate++)
             livelog_write_string(LL_CONDUCT,
                                  "became literate by reading the divine signature of Odin");
-        return 1;
+        return ECMD_TIME;
     } else if (otyp == CANDY_BAR) {
         const char *wrapper = candy_wrapper_text(scroll);
 
         if (Blind) {
             You_cant(find_any_braille);
-            return 0;
+            return ECMD_OK;
         }
         if (!*wrapper) {
             pline("The candy bar's wrapper is blank.");
-            return 0;
+            return ECMD_OK;
         }
         pline("The wrapper reads: \"%s\".", wrapper);
         if (!u.uconduct.literate++)
             livelog_write_string(LL_CONDUCT,
                                  "became literate by reading a candy bar wrapper");
-        return 1;
+        return ECMD_TIME;
     } else if (scroll->otyp == C_RATION || scroll->otyp == K_RATION) {
         /* nonvegan/nonvegetarian names might be somewhat misleading since
          * these rations are always vegan */
@@ -584,23 +582,23 @@ doread(void)
         };
         if (Blind) {
             You_cant("feel any Braille writing.");
-            return 0;
+            return ECMD_OK;
         }
         pline("The label reads: \"%s\".",
               mil_ration_msgs[scroll->o_id % SIZE(mil_ration_msgs)]);
         if (!u.uconduct.literate++)
             livelog_write_string(LL_CONDUCT,
                                  "became literate by reading the label on a ration");
-        return 1;
+        return ECMD_TIME;
     } else if (scroll->otyp == TIN) {
         char buf[BUFSZ], *text = tin_text(scroll, buf);
         if (!text) {
             pline("This tin has no label.");
-            return 0;
+            return ECMD_OK;
         }
         else if (Blind) {
             pline("Being blind, you cannot read the label on the tin.");
-            return 0;
+            return ECMD_OK;
         }
         /* fix ending punctuation - "." only if the format string does not
             * end with punctuation */
@@ -613,11 +611,11 @@ doread(void)
         if (!u.uconduct.literate++)
             livelog_write_string(LL_CONDUCT,
                                     "became literate by reading a tin label");
-        return 1;
+        return ECMD_TIME;
     } else if (scroll->otyp == DWARVISH_RING_MAIL) {
         if (Blind) {
             pline("You can't read this while blind.");
-            return 0;
+            return ECMD_OK;
         }
         pline("It reads:");
         pline("\"This is a dwarvish ring mail.");
@@ -625,11 +623,11 @@ doread(void)
         if (!u.uconduct.literate++)
             livelog_write_string(LL_CONDUCT,
                                  "became literate by reading a dwarvish ring mail");
-        return 1;
+        return ECMD_TIME;
     } else if (scroll->oclass != SCROLL_CLASS
                && scroll->oclass != SPBOOK_CLASS) {
         pline(silly_thing_to, "read");
-        return 0;
+        return ECMD_OK;
     } else if (Blind && otyp != SPE_BOOK_OF_THE_DEAD) {
         const char *what = 0;
 
@@ -643,7 +641,7 @@ doread(void)
             what = "formula on the scroll";
         if (what) {
             pline("Being blind, you cannot read the %s.", what);
-            return 0;
+            return ECMD_OK;
         }
     }
 
@@ -662,7 +660,7 @@ doread(void)
             if (!scroll->spe && yn(
              "Reading mail will violate \"illiterate\" conduct.  Read anyway?"
                                    ) != 'y')
-                return 0;
+                return ECMD_OK;
         }
     }
 #endif
@@ -677,7 +675,7 @@ doread(void)
                            scroll->oclass == SCROLL_CLASS ? "a scroll" : "something");
 
     if (scroll->oclass == SPBOOK_CLASS) {
-        return study_book(scroll);
+        return study_book(scroll) ? ECMD_TIME : ECMD_OK;
     }
     scroll->in_use = TRUE; /* scroll, not spellbook, now being read */
     if (otyp != SCR_BLANK_PAPER) {
@@ -714,8 +712,10 @@ doread(void)
         if (otyp != SCR_BLANK_PAPER)
             useup(scroll);
     }
-    return 1;
+    return ECMD_TIME;
 }
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 static void
 stripspe(register struct obj* obj)
@@ -1092,7 +1092,7 @@ display_stinking_cloud_positions(int state)
             for (dy = -dist; dy <= dist; dy++) {
                 x = u.ux + dx;
                 y = u.uy + dy;
-                if (can_center_cloud(x, y))
+                if (can_center_cloud(x,y))
                     tmp_at(x, y);
             }
     } else {
@@ -1251,6 +1251,8 @@ seffect_enchant_armor(struct obj **sobjp)
                     pline("Its scales change from %s to %s!",
                           dragon_scales_color(armor),
                           dragon_scales_color(scales));
+                    /* remove properties of old scales */
+                    dragon_armor_handling(armor, FALSE);
                 }
             }
             setnotworn(armor);
@@ -1261,6 +1263,7 @@ seffect_enchant_armor(struct obj **sobjp)
                 armor->blessed = 1;
             }
             setworn(armor, W_ARM);
+            dragon_armor_handling(armor, TRUE);
             g.known = TRUE;
             if (otmp->unpaid)
                 alter_cost(otmp, 0L); /* shop bill */
@@ -1283,6 +1286,11 @@ seffect_enchant_armor(struct obj **sobjp)
                 }
                 /* may be different radius depending on BUC of armor */
                 maybe_adjust_light(armor, old_light);
+            }
+            else if (armor->lamplit) {
+                /* scales not lit but armor is: melding non-gold scales onto
+                 * gold-scaled armor, which will no longer be a light source */
+                end_burn(armor, FALSE);
             }
             useup(scales);
         }
@@ -1494,12 +1502,13 @@ seffect_scare_monster(struct obj **sobjp)
 static void
 seffect_remove_curse(struct obj **sobjp)
 {
-    struct obj *sobj = *sobjp;
+    struct obj *sobj = *sobjp; /* scroll or fake spellbook */
     int otyp = sobj->otyp;
     boolean sblessed = sobj->blessed;
     boolean scursed = sobj->cursed;
     boolean confused = (Confusion != 0);
-    register struct obj *obj;
+    register struct obj *obj, *nxto;
+    long wornmask;
 
     You_feel(!Hallucination
              ? (!confused ? "like someone is helping you."
@@ -1510,9 +1519,14 @@ seffect_remove_curse(struct obj **sobjp)
     if (scursed) {
         pline_The("scroll disintegrates.");
     } else {
-        for (obj = g.invent; obj; obj = obj->nobj) {
-            long wornmask;
-
+        /* 3.7: this used to use a straight
+               for (obj = invent; obj; obj = obj->nobj) {}
+           traversal, but for the confused case, secondary weapon might
+           become cursed and be dropped, moving it from the invent chain
+           to the floor chain at hero's spot, so we have to remember the
+           next object prior to processing the current one */
+        for (obj = g.invent; obj; obj = nxto) {
+            nxto = obj->nobj;
             /* gold isn't subject to cursing and blessing */
             if (obj->oclass == COIN_CLASS)
                 continue;
@@ -1763,7 +1777,7 @@ seffect_light(struct obj **sobjp)
 
             for (i = 0; i < numlights; ++i) {
                 struct monst * mon = makemon(&mons[pm], u.ux, u.uy,
-                                             MM_EDOG | NO_MINVENT);
+                                             MM_EDOG | NO_MINVENT | MM_NOMSG);
                 initedog(mon);
                 u.uconduct.pets++;
                 mon->msleeping = 0;
@@ -1984,6 +1998,7 @@ seffect_stinking_cloud(struct obj **sobjp)
     int otyp = sobj->otyp;
     boolean already_known = (sobj->oclass == SPBOOK_CLASS /* spell */
                              || objects[otyp].oc_name_known);
+
     if (!already_known)
         You("have found a scroll of stinking cloud!");
     g.known = TRUE;
@@ -2394,7 +2409,7 @@ drop_boulder_on_monster(int x, int y, boolean confused, boolean byu)
             pline("%s is hit by %s!", Monnam(mtmp), doname(otmp2));
             if (mtmp->minvis && !canspotmon(mtmp))
                 map_invisible(mtmp->mx, mtmp->my);
-        } else if (u.uswallow && mtmp == u.ustuck)
+        } else if (engulfing_u(mtmp))
             You_hear("something hit %s %s over your %s!",
                      s_suffix(mon_nam(mtmp)), mbodypart(mtmp, STOMACH),
                      body_part(HEAD));
@@ -2443,7 +2458,7 @@ drop_boulder_on_monster(int x, int y, boolean confused, boolean byu)
             wakeup(mtmp, byu, TRUE);
         }
         wake_nearto(x, y, 4 * 4);
-    } else if (u.uswallow && mtmp == u.ustuck) {
+    } else if (engulfing_u(mtmp)) {
         obfree(otmp2, (struct obj *) 0);
         /* fall through to player */
         drop_boulder_on_player(confused, TRUE, FALSE, TRUE);
@@ -2681,8 +2696,8 @@ do_class_genocide(void)
                     goodcnt++;
             }
         }
-        if (!goodcnt && class != mons[g.urole.malenum].mlet
-            && class != mons[g.urace.malenum].mlet) {
+        if (!goodcnt && class != mons[g.urole.mnum].mlet
+            && class != mons[g.urace.mnum].mlet) {
             if (gonecnt)
                 pline("All such monsters are already nonexistent.");
             else if (immunecnt || class == S_invisible)
@@ -2740,7 +2755,7 @@ do_class_genocide(void)
                         u.mh = -1;
                         if (Unchanging) {
                             if (!feel_dead++)
-                                You("die.");
+                                urgent_pline("You die.");
                             /* finish genociding this class of
                                monsters before ultimately dying */
                             gameover = TRUE;
@@ -2750,14 +2765,14 @@ do_class_genocide(void)
                     /* Self-genocide if it matches either your race
                        or role.  Assumption:  male and female forms
                        share same monster class. */
-                    if (i == g.urole.malenum || i == g.urace.malenum) {
+                    if (i == g.urole.mnum || i == g.urace.mnum) {
                         u.uhp = -1;
                         if (Upolyd) {
                             if (!feel_dead++)
                                 You_feel("%s inside.", udeadinside());
                         } else {
                             if (!feel_dead++)
-                                You("die.");
+                                urgent_pline("You die.");
                             gameover = TRUE;
                         }
                     }
@@ -2924,16 +2939,6 @@ do_genocide(int how)
             make_slimed(0L, "The slime that covers you disappears!");
         }
         if (killplayer) {
-            /* might need to wipe out dual role */
-            if (g.urole.femalenum != NON_PM && mndx == g.urole.malenum)
-                g.mvitals[g.urole.femalenum].mvflags |= (G_GENOD | G_NOCORPSE);
-            if (g.urole.femalenum != NON_PM && mndx == g.urole.femalenum)
-                g.mvitals[g.urole.malenum].mvflags |= (G_GENOD | G_NOCORPSE);
-            if (g.urace.femalenum != NON_PM && mndx == g.urace.malenum)
-                g.mvitals[g.urace.femalenum].mvflags |= (G_GENOD | G_NOCORPSE);
-            if (g.urace.femalenum != NON_PM && mndx == g.urace.femalenum)
-                g.mvitals[g.urace.malenum].mvflags |= (G_GENOD | G_NOCORPSE);
-
             u.uhp = -1;
             if (how & PLAYER) {
                 g.killer.format = KILLED_BY;
@@ -2966,7 +2971,7 @@ do_genocide(int how)
         if (!(mons[mndx].geno & G_UNIQ)
             && !(g.mvitals[mndx].mvflags & (G_GENOD | G_EXTINCT)))
             for (i = rn1(3, 4); i > 0; i--) {
-                if (!makemon(ptr, u.ux, u.uy, NO_MINVENT))
+                if (!makemon(ptr, u.ux, u.uy, NO_MINVENT|MM_NOMSG))
                     break; /* couldn't make one */
                 ++cnt;
                 if (g.mvitals[mndx].mvflags & G_EXTINCT)
@@ -3063,7 +3068,7 @@ do_stinking_cloud(struct obj *sobj, boolean mention_stinking)
         ;
     }
     else if (getpos(&cc, TRUE, "the desired position") < 0) {
-        pline(Never_mind);
+        pline1(Never_mind);
         return SCLOUD_CANCELED;
     }
     else if (!can_center_cloud(cc.x, cc.y)) {
@@ -3118,8 +3123,8 @@ create_particular_parse(char* str, struct _create_particular_data* d)
 
     d->quan = 1 + ((g.multi > 0) ? g.multi : 0);
     d->monclass = MAXMCLASSES;
-    d->which = g.urole.malenum; /* an arbitrary index into mons[] */
-    d->fem = -1; /* gender not specified */
+    d->which = g.urole.mnum; /* an arbitrary index into mons[] */
+    d->fem = -1;     /* gender not specified */
     d->genderconf = -1;  /* no confusion on which gender to assign */
     d->randmonst = FALSE;
     d->maketame = d->makepeaceful = d->makehostile = FALSE;
@@ -3216,7 +3221,7 @@ create_particular_parse(char* str, struct _create_particular_data* d)
         d->monclass = MAXMCLASSES;
         return TRUE;
     } else if (d->monclass > 0) {
-        d->which = g.urole.malenum; /* reset from NON_PM */
+        d->which = g.urole.mnum; /* reset from NON_PM */
         return TRUE;
     }
     return FALSE;

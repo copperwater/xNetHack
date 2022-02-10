@@ -115,6 +115,11 @@ enum levl_typ_types {
  *      D_CLOSED due to that conflicting with WM_MASK (below).  When
  *      a secret door is revealed, the door gets set to D_CLOSED iff
  *      it isn't set to D_LOCKED (see cvt_sdoor_to_door() in detect.c).
+ *
+ *      D_TRAPPED conflicts with W_NONDIGGABLE but the latter is not
+ *      expected to be used on door locations.  D_IRON conflicts
+ *      with W_NONPASSWALL but doors never block phasing.
+ *      D_SECRET would not fit within struct rm's 5-bit 'flags' field.
  */
 /*
  * The possible states of doors - lowest 2 bits of doormask
@@ -228,7 +233,7 @@ enum door_states {
  */
 struct rm {
     int glyph;               /* what the hero thinks is there */
-    schar typ;               /* what is really there */
+    schar typ;               /* what is really there  [why is this signed?] */
     uchar seenv;             /* seen vector */
     Bitfield(flags, 5);      /* extra information for typ */
     Bitfield(horizontal, 1); /* wall/door/etc is horiz. (more typ info) */
@@ -362,7 +367,8 @@ struct damage {
     struct damage *next;
     long when, cost;
     coord place;
-    schar typ;
+    schar typ; /* from struct rm */
+    uchar flags; /* also from struct rm; an unsigned 5-bit field there */
 };
 
 /* for bones levels:  identify the dead character, who might have died on

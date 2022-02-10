@@ -9,7 +9,7 @@
 #define A(nam, typ, s1, s2, mt, atk, dfn, cry, inv, al, cl, rac, \
           cost, clr, bn) nam
 
-static const char *artifact_names[] = {
+static const char *const artifact_names[] = {
 
 #elif defined(ARTI_ENUM)
 #define A(nam, typ, s1, s2, mt, atk, dfn, cry, inv, al, cl, rac, \
@@ -125,7 +125,7 @@ static NEARDATA struct artifact artilist[] = {
 
     A("Mirror Brand", SHORT_SWORD, (SPFX_RESTR | SPFX_REFLECT), 0, 0,
       NO_ATTK, NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 2500L,
-      NO_COLOR), /* special damage added in artifact_hit() */
+      NO_COLOR, MIRROR_BRAND), /* special damage added in artifact_hit() */
 
     A("Dragonbane", DWARVISH_SPEAR,
       (SPFX_WARN | SPFX_RESTR | SPFX_DCLAS | SPFX_REFLECT), 0, S_DRAGON,

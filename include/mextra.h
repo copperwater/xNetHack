@@ -69,7 +69,9 @@
 #define GD_DESTROYGOLD 0x02
 
 struct fakecorridor {
-    xchar fx, fy, ftyp;
+    xchar fx, fy;
+    schar ftyp; /* from struct rm's typ */
+    uchar flags; /* also from struct rm; an unsigned 5-bit field there */
 };
 
 struct egd {
@@ -130,7 +132,9 @@ struct eshk {
     d_level shoplevel;    /* level (& dungeon) of his shop */
     int billct;           /* no. of entries of bill[] in use */
     struct bill_x bill[BILLSZ];
-    struct bill_x *bill_p;
+    struct bill_x *bill_p;  /* &(ESHK(shkp)->bill[0]) */
+    long break_seq;         /* hero_seq value at time of object breakage */
+    boolean seq_peaceful;   /* shkp->mpeaceful at start of break_seq */
     int visitct;            /* nr of visits by most recent customer */
     char customer[PL_NSIZ]; /* most recent customer */
     char shknam[PL_NSIZ];

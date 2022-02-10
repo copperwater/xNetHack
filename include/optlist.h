@@ -6,7 +6,7 @@
 
 /*
  *  NOTE:  If you add (or delete) an option, please review:
- *             doc/options.doc
+ *             doc/options.txt
  *
  *         It contains how-to info and outlines some required/suggested
  *         updates that should accompany your change.
@@ -74,6 +74,14 @@ opt_##a,
 #define NHOPTO(m, a, b, c, s, n, v, d, al, z) \
 { m, 0, b, opt_##a, s, OthrOpt, n, v, d, No, c, (boolean *) 0, &optfn_##a, \
  al, z, (const char *) 0, On, On, 0 },
+
+#ifdef USE_TILES
+#define tiled_map_Def On
+#define ascii_map_Def Off
+#else
+#define ascii_map_Def On
+#define tiled_map_Def Off
+#endif
 #endif
 
 /* B:nm, ln, opt_*, setwhere?, on?, negat?, val?, dup?, hndlr? Alias, bool_p */
@@ -88,8 +96,8 @@ opt_##a,
                "message window alignment")
     NHOPTC(align_status, 20, opt_in, set_gameview, No, Yes, No, Yes, NoAlias,
                "status window alignment")
-    NHOPTC(altkeyhandler, 20, opt_in, set_in_game, No, Yes, No, No, NoAlias,
-               "alternate key handler")
+    NHOPTC(altkeyhandling, 20, opt_in, set_in_game, No, Yes, No, Yes,
+               "altkeyhandler", "alternative key handling")
 #ifdef ALTMETA
     NHOPTB(altmeta, 0, opt_out, set_in_game, Off, Yes, No, No, NoAlias,
                &iflags.altmeta)
@@ -97,8 +105,8 @@ opt_##a,
     NHOPTB(altmeta, 0, opt_out, set_in_config, Off, Yes, No, No, NoAlias,
                (boolean *) 0)
 #endif
-    NHOPTB(ascii_map, 0, opt_in, set_in_game, Off, Yes, No, No, NoAlias,
-               &iflags.wc_ascii_map)
+    NHOPTB(ascii_map, 0, opt_in, set_in_game, ascii_map_Def, Yes, No, No,
+                NoAlias, &iflags.wc_ascii_map)
     NHOPTB(autodescribe, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,
                 &iflags.autodescribe)
     NHOPTB(autodig, 0, opt_in, set_in_game, Off, Yes, No, No, NoAlias,
@@ -458,8 +466,8 @@ opt_##a,
 #ifdef STATUS_HILITES
     NHOPTC(statushilites, 20, opt_in, set_in_game, Yes, Yes, Yes, No, NoAlias,
                 "0=no status highlighting, N=show highlights for N turns")
-    NHOPTO("status hilite rules", o_status_hilites, BUFSZ, opt_in, set_in_game,
-           No, Yes, No, NoAlias, "edit status hilites")
+    NHOPTO("status highlight rules", o_status_hilites, BUFSZ, opt_in,
+           set_in_game, No, Yes, No, NoAlias, "edit status hilites")
 #else
     NHOPTC(statushilites, 20, opt_in, set_in_config, Yes, Yes, Yes, No,
                 NoAlias, "highlight control")
@@ -484,8 +492,8 @@ opt_##a,
                 "height of tiles")
     NHOPTC(tile_width, 20, opt_in, set_gameview, Yes, Yes, No, No, NoAlias,
                 "width of tiles")
-    NHOPTB(tiled_map, 0, opt_in, set_in_config, On, Yes, No, No, NoAlias,
-                &iflags.wc_tiled_map)
+    NHOPTB(tiled_map, 0, opt_in, set_in_game, tiled_map_Def, Yes, No, No,
+                NoAlias, &iflags.wc_tiled_map)
     NHOPTB(time, 0, opt_in, set_in_game, Off, Yes, No, No, NoAlias,
                 &flags.time)
 #ifdef TIMED_DELAY

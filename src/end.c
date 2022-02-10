@@ -343,7 +343,7 @@ done2(void)
             u.uinvulnerable = FALSE; /* avoid ctrl-C bug -dlc */
             u.usleep = 0;
         }
-        return 0;
+        return ECMD_OK;
     }
 #if (defined(UNIX) || defined(VMS) || defined(LATTICE))
     if (wizard) {
@@ -372,7 +372,7 @@ done2(void)
 #ifndef LINT
     done(QUIT);
 #endif
-    return 0;
+    return ECMD_OK;
 }
 
 #ifndef NO_SIGNAL
@@ -1527,15 +1527,10 @@ really_done(int how)
        this grave in the current level's features for #overview */
     if (bones_ok && u.ugrave_arise == NON_PM
         && !(g.mvitals[u.umonnum].mvflags & G_NOCORPSE)) {
-        int mnum = u.umonnum;
+        /* Base corpse on race when not poly'd since original u.umonnum
+           is based on role, and all role monsters are human. */
+        int mnum = !Upolyd ? g.urace.mnum : u.umonnum;
 
-        if (!Upolyd) {
-            /* Base corpse on race when not poly'd since original u.umonnum
-               is based on role, and all role monsters are human. */
-            mnum = (flags.female && g.urace.femalenum != NON_PM)
-                       ? g.urace.femalenum
-                       : g.urace.malenum;
-        }
         if (!Withering) {
             /* withering suppresses the actual corpse from being created but
              * still allows creation of a grave (and it doesn't matter whether
@@ -1827,11 +1822,24 @@ really_done(int how)
         destroy_nhwindow(endwin);
 
     dump_close_log();
-    /* "So when I die, the first thing I will see in Heaven is a
-     * score list?" */
+    /*
+     * "So when I die, the first thing I will see in Heaven is a score list?"
+     *
+     * topten() updates 'logfile' and 'xlogfile', when they're enabled.
+     * Then the current game's score is shown in its relative position
+     * within high scores, and 'record' is updated if that makes the cut.
+     *
+     * FIXME!
+     *  If writing topten with raw_print(), which will usually be sent to
+     *  stdout, we call exit_nhwindows() first in case it erases the screen.
+     *  But when writing topten to a window, we call exit_nhwindows()
+     *  after topten() because that needs the windowing system to still
+     *  be up.  This sequencing is absurd; we need something like
+     *  raw_prompt("--More--") (or "Press <return> to continue.") that
+     *  topten() can call for !toptenwin before returning here.
+     */
     if (have_windows && !iflags.toptenwin)
         exit_nhwindows((char *) 0), have_windows = FALSE;
-    /* update 'logfile' and 'xlogfile', if enabled, and maybe 'record' */
     topten(how, endtime);
     if (have_windows)
         exit_nhwindows((char *) 0);

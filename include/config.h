@@ -487,13 +487,6 @@ typedef unsigned char uchar;
 #endif
 #endif
 
-/* The "repeat" key used in cmd.c as NHKF_DOAGAIN; if commented out or the
- * value is changed from C('A') to 0, it won't be bound to any keystroke
- * unless you use the run-time configuration file's BIND directive for it.
- * [Note: C() macro isn't defined yet but it will be before DOAGAIN is used.]
- */
-#define DOAGAIN C('A') /* repeat previous command; default is ^A, '\001' */
-
 /* CONFIG_ERROR_SECURE: If user makes NETHACKOPTIONS point to a file ...
  *  TRUE: Show the first error, nothing else.
  *  FALSE: Show all errors as normal, with line numbers and context.
@@ -628,7 +621,9 @@ typedef unsigned char uchar;
 
 /* EXTRA_SANITY_CHECKS adds extra impossible calls,
  * probably not useful for normal play */
-/* #define EXTRA_SANITY_CHECKS */
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
+#define EXTRA_SANITY_CHECKS
+#endif
 
 /* BREADCRUMBS employs the use of predefined compiler macros
  * __FUNCTION__ and __LINE__ to store some caller breadcrumbs

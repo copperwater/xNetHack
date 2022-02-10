@@ -10,37 +10,6 @@
  * These were moved here from save.c and restore.c between 3.6.3 and 3.7.0.
  */
 
-#ifdef TRACE_BUFFERING
-#ifdef bufon
-#undef bufon
-#endif
-#ifdef bufoff
-#undef bufoff
-#endif
-#ifdef bflush
-#undef bflush
-#endif
-#ifdef bwrite
-#undef bwrite
-#endif
-#ifdef bclose
-#undef bclose
-#endif
-#ifdef mread
-#undef mread
-#endif
-#ifdef minit
-#undef minit
-#endif
-void newread(NHFILE *, int, int, genericptr_t, unsigned int);
-void bufon(int);
-void bufoff(int);
-void bflush(int);
-void bwrite(int, genericptr_t, unsigned int);
-void mread(int, genericptr_t, unsigned int);
-void minit(void);
-void bclose(int);
-#endif /* TRACE_BUFFERING */
 static int getidx(int, int);
 
 #if defined(UNIX) || defined(WIN32)
@@ -48,7 +17,7 @@ static int getidx(int, int);
 #endif
 
 struct restore_info restoreinfo = {
-	"externalcomp", 0,
+    "externalcomp", 0,
 };
 
 #define MAXFD 5
@@ -197,7 +166,7 @@ bflush(int fd)
 }
 
 void
-bwrite(register int fd, register genericptr_t loc, register unsigned num)
+bwrite(int fd, const genericptr_t loc, unsigned num)
 {
     boolean failed;
     int idx = getidx(fd, NOFLG);
@@ -237,9 +206,9 @@ minit(void)
 }
 
 void
-mread(register int fd, register genericptr_t buf, register unsigned int len)
+mread(int fd, genericptr_t buf, unsigned len)
 {
-    register int rlen;
+    int rlen;
 #if defined(BSD) || defined(ULTRIX)
 #define readLenType int
 #else /* e.g. SYSV, __TURBOC__ */
@@ -263,73 +232,4 @@ mread(register int fd, register genericptr_t buf, register unsigned int len)
     }
 }
 
-#ifdef TRACE_BUFFERING
-
-static FILE *tracefile;
-#define TFILE "trace-buffering.log"
-
-#define TRACE(xx) \
-    tracefile = fopen(TFILE, "a"); \
-    (void) fprintf(tracefile, "%s from %s:%d (%d)\n", __FUNCTION__, fncname, linenum, xx); \
-    fclose(tracefile);
-
-void
-Bufon(int fd, const char *fncname, int linenum)
-{
-    TRACE(fd);
-    bufon(fd);
-}
-
-void
-Bufoff(int fd, const char *fncname, int linenum)
-{
-    TRACE(fd);
-    bufoff(fd);
-}
-
-void
-Bflush(int fd, const char* fncname, int linenum)
-{
-    TRACE(fd);
-    bflush(fd);
-}
-
-void
-Bwrite(
-    register int fd,
-    register genericptr_t loc,
-    register unsigned num,
-    const char *fncname,
-    int linenum)
-{
-    TRACE(fd);
-    bwrite(fd, loc, num);
-}
-
-void
-Bclose(int fd, const char *fncname, int linenum)
-{
-    TRACE(fd);
-    bclose(fd);
-}
-
-void
-Minit(const char*fncname, int linenum)
-{
-    TRACE(-1);
-    minit();
-}
-
-void
-Mread(
-    register int fd,
-    register genericptr_t buf,
-    register unsigned int len,
-    const char *fncname,
-    int linenum)
-{
-    TRACE(fd);
-    mread(fd, buf, len);
-}
-#endif
 

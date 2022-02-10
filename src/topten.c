@@ -75,7 +75,7 @@ static char *encode_extended_achievements(void);
 static char *encode_extended_conducts(void);
 #endif
 static void free_ttlist(struct toptenentry *);
-static int classmon(char *, boolean);
+static int classmon(char *);
 static int score_wanted(boolean, int, struct toptenentry *, int,
                         const char **, int);
 #ifdef NO_SCAN_BRACK
@@ -947,8 +947,16 @@ topten(int how, time_t when)
     free_ttlist(tt_head);
 
  showwin:
-    if (iflags.toptenwin && !done_stopprint)
-        display_nhwindow(g.toptenwin, TRUE);
+    if (!done_stopprint) {
+        if (iflags.toptenwin) {
+            display_nhwindow(g.toptenwin, TRUE);
+        } else {
+            /* when not a window, we need something comparable to more()
+               but can't use it directly because we aren't dealing with
+               the message window */
+            ;
+        }
+    }
  destroywin:
     if (!t0_used)
         dealloc_ttentry(t0);
@@ -1098,11 +1106,11 @@ outentry(int rank, struct toptenentry* t1, boolean so)
             Strcpy(linebuf3, bp);
         else
             Strcpy(linebuf3, bp + 1);
-        *bp = 0;
+        *bp = '\0';
         if (so) {
             while (bp < linebuf + (COLNO - 1))
                 *bp++ = ' ';
-            *bp = 0;
+            *bp = '\0';
             topten_print_bold(linebuf);
         } else
             topten_print(linebuf);
@@ -1125,11 +1133,9 @@ outentry(int rank, struct toptenentry* t1, boolean so)
 
     if (so) {
         bp = eos(linebuf);
-        if (so >= COLNO)
-            so = COLNO - 1;
-        while (bp < linebuf + so)
+        while (bp < linebuf + (COLNO - 1))
             *bp++ = ' ';
-        *bp = 0;
+        *bp = '\0';
         topten_print_bold(linebuf);
     } else
         topten_print(linebuf);
@@ -1329,20 +1335,19 @@ prscore(int argc, char **argv)
 }
 
 static int
-classmon(char *plch, boolean fem)
+classmon(char *plch)
 {
     int i;
 
     /* Look for this role in the role table */
-    for (i = 0; roles[i].name.m; i++)
+    for (i = 0; roles[i].name.m; i++) {
         if (!strncmp(plch, roles[i].filecode, ROLESZ)) {
-            if (fem && roles[i].femalenum != NON_PM)
-                return roles[i].femalenum;
-            else if (roles[i].malenum != NON_PM)
-                return roles[i].malenum;
+            if (roles[i].mnum != NON_PM)
+                return roles[i].mnum;
             else
                 return PM_HUMAN;
         }
+    }
     /* this might be from a 3.2.x score for former Elf class */
     if (!strcmp(plch, "E"))
         return PM_RANGER;
@@ -1417,7 +1422,11 @@ tt_oname(struct obj* otmp)
     if (!tt)
         return (struct obj *) 0;
 
-    set_corpsenm(otmp, classmon(tt->plrole, (tt->plgend[0] == 'F')));
+    set_corpsenm(otmp, classmon(tt->plrole));
+    if (tt->plgend[0] == 'F')
+        otmp->spe = CORPSTAT_FEMALE;
+    else if (tt->plgend[0] == 'M')
+        otmp->spe = CORPSTAT_MALE;
     otmp = oname(otmp, tt->name);
 
     return otmp;

@@ -185,8 +185,7 @@ struct Role {
     const char *intermed; /* quest intermediate goal (from questpgr.c) */
 
     /*** Indices of important monsters and objects ***/
-    short malenum, /* index (PM_) as a male (botl.c) */
-        femalenum, /* ...or as a female (NON_PM == same) */
+    short mnum,    /* index (PM_) of role (botl.c) */
         petnum,    /* PM_ of preferred pet (NON_PM == random) */
         ldrnum,    /* PM_ of quest leader (questpgr.c) */
         guardnum,  /* PM_ of quest guardians (questpgr.c) */
@@ -233,8 +232,8 @@ struct Role {
 };
 
 extern const struct Role roles[]; /* table of available roles */
-#define Role_if(X) (g.urole.malenum == (X))
-#define Role_switch (g.urole.malenum)
+#define Role_if(X) (g.urole.mnum == (X))
+#define Role_switch (g.urole.mnum)
 
 /* used during initialization for race, gender, and alignment
    as well as for character class */
@@ -252,8 +251,7 @@ struct Race {
     struct RoleName individual; /* individual as a noun ("man", "elf") */
 
     /*** Indices of important monsters and objects ***/
-    short malenum, /* PM_ as a male monster */
-        femalenum, /* ...or as a female (NON_PM == same) */
+    short mnum,    /* PM_ as a monster */
         mummynum,  /* PM_ as a mummy */
         zombienum; /* PM_ as a zombie */
 
@@ -284,8 +282,8 @@ struct Race {
 };
 
 extern const struct Race races[]; /* Table of available races */
-#define Race_if(X) (g.urace.malenum == (X))
-#define Race_switch (g.urace.malenum)
+#define Race_if(X) (g.urace.mnum == (X))
+#define Race_switch (g.urace.mnum)
 
 /*** Unified structure specifying gender information ***/
 struct Gender {
@@ -410,7 +408,8 @@ struct you {
     int umonster;               /* hero's "real" monster num */
     int umonnum;                /* current monster number */
 
-    int mh, mhmax, mtimedone;   /* for polymorph-self */
+    int mh, mhmax,              /* current and max hit points when polyd */
+        mtimedone;              /* no. of turns until polymorph times out */
     struct attribs macurr,      /* for monster attribs */
                    mamax;       /* for monster attribs */
     int ulycn;                  /* lycanthrope type */
@@ -458,19 +457,22 @@ struct you {
     schar udaminc;
     schar uac;
 #define AC_MAX    99  /* abs(u.uac) <= 99; likewise for monster AC */
-    uchar uspellprot; /* protection by SPE_PROTECTION */
-    uchar usptime;    /* #moves until uspellprot-- */
-    uchar uspmtime;   /* #moves between uspellprot-- */
-    int uhp, uhpmax;
-    int uen, uenmax; /* magical energy - M. Stephenson */
-    xchar uhpinc[MAXULEV], ueninc[MAXULEV]; /* increases from level gain */
-    int ugangr;                             /* if the gods are angry at you */
-    int ugifts;                             /* number of artifacts bestowed */
-    int ublessed, ublesscnt;                /* blessing/duration from #pray */
-    long ulastprayed;                       /* the turn you last prayed */
+    uchar uspellprot;        /* protection by SPE_PROTECTION */
+    uchar usptime;           /* #moves until uspellprot-- */
+    uchar uspmtime;          /* #moves between uspellprot-- */
+    int uhp, uhpmax,         /* hit points, aka health */
+        uhppeak;             /* highest value of uhpmax so far */
+    int uen, uenmax,         /* magical energy, aka spell power */
+        uenpeak;             /* highest value of uenmax so far */
+    xchar uhpinc[MAXULEV],   /* increases to uhpmax for each level gain */
+          ueninc[MAXULEV];   /* increases to uenmax for each level gain */
+    int ugangr;              /* if the gods are angry at you */
+    int ugifts;              /* number of artifacts bestowed */
+    int ublessed, ublesscnt; /* blessing/duration from #pray */
+    long ulastprayed;        /* the turn you last prayed */
     long umoney0;
     long uspare1;
-    long uexp, urexp;
+    long uexp, urexp;        /* exper pts for gaining levels and for score */
     long ucleansed;          /* to record moves when player was cleansed */
     long usleep;             /* sleeping; monstermove you last started */
     int uinvault;

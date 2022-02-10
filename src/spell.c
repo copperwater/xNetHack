@@ -1,4 +1,4 @@
-/* NetHack 3.7	spell.c	$NHDT-Date: 1611522041 2021/01/24 21:00:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.113 $ */
+/* NetHack 3.7	spell.c	$NHDT-Date: 1638499998 2021/12/03 02:53:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.120 $ */
 /*      Copyright (c) M. Stephenson 1988                          */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -704,7 +704,7 @@ getspell(int* spell_no)
                        spell_no);
 }
 
-/* the 'Z' command -- cast a spell */
+/* the #cast command -- cast a spell */
 int
 docast(void)
 {
@@ -712,7 +712,7 @@ docast(void)
 
     if (getspell(&spell_no))
         return spelleffects(spell_no, FALSE);
-    return 0;
+    return ECMD_OK;
 }
 
 const char *
@@ -903,7 +903,7 @@ int
 spelleffects(int spell, boolean atme)
 {
     int energy, damage, n;
-    int otyp, skill, role_skill, res = 0;
+    int otyp, skill, role_skill, res = ECMD_OK;
     boolean confused = (Confusion != 0);
     boolean physical_damage = FALSE;
     struct obj *pseudo;
@@ -919,7 +919,7 @@ spelleffects(int spell, boolean atme)
      * place in getspell(), we don't get called.)
      */
     if (rejectcasting()) {
-        return 0; /* no time elapses */
+        return ECMD_OK; /* no time elapses */
     }
 
     /*
@@ -930,7 +930,7 @@ spelleffects(int spell, boolean atme)
         Your("knowledge of this spell is twisted.");
         pline("It invokes nightmarish images in your mind...");
         spell_backfire(spell);
-        return 1;
+        return ECMD_TIME;
     } else if (spellknow(spell) <= KEEN / 200) { /* 100 turns left */
         You("strain to recall the spell.");
     } else if (spellknow(spell) <= KEEN / 40) { /* 500 turns left */
@@ -944,13 +944,13 @@ spelleffects(int spell, boolean atme)
     if (u.uhunger <= 10 && spellid(spell) != SPE_DETECT_FOOD
         && spell_would_hunger() > 0) {
         You("are too hungry to cast that spell.");
-        return 0;
+        return ECMD_OK;
     } else if (ACURR(A_STR) < 4 && spellid(spell) != SPE_RESTORE_ABILITY) {
         You("lack the strength to cast spells.");
-        return 0;
+        return ECMD_OK;
     } else if (check_capacity(
                 "Your concentration falters while carrying so much stuff.")) {
-        return 1;
+        return ECMD_TIME;
     }
 
     /*
@@ -981,11 +981,23 @@ spelleffects(int spell, boolean atme)
         if (u.uen < 0)
             u.uen = 0;
         g.context.botl = 1;
-        res = 1; /* time is going to elapse even if spell doesn't get cast */
+        res = ECMD_TIME; /* time is used even if spell doesn't get cast */
     }
 
     if (energy > u.uen) {
-        You("don't have enough energy to cast that spell.");
+        /*
+         * Hero has insufficient energy/power to cast the spell.
+         * Augment the message when current energy is at maximum.
+         * "yet": mainly for level 1 characters who already know a spell
+         * but don't start with enough energy to cast it.
+         * "anymore": maximum energy was high enough at some point but
+         * isn't now (lost energy when losing levels or polymorphing into
+         * new person or had some stripped away by traps or monsters).
+         */
+        You("don't have enough energy to cast that spell%s.",
+            (u.uen < u.uenmax) ? "" /* not at full energy => normal message */
+            : (energy > u.uenpeak) ? " yet" /* haven't ever had enough */
+              : " anymore"); /* once had enough but have lost some since */
         return res;
     } else {
         if (spellid(spell) != SPE_DETECT_FOOD) {
@@ -1007,7 +1019,7 @@ spelleffects(int spell, boolean atme)
         You("fail to cast the spell correctly.");
         u.uen -= energy / 2;
         g.context.botl = 1;
-        return 1;
+        return ECMD_TIME;
     }
 
     u.uen -= energy;
@@ -1187,20 +1199,20 @@ spelleffects(int spell, boolean atme)
         cast_protection();
         break;
     case SPE_JUMPING:
-        if (!jump(max(role_skill, 1)))
+        if (!(jump(max(role_skill, 1)) & ECMD_TIME))
             pline1(nothing_happens);
         break;
     default:
         impossible("Unknown spell %d attempted.", spell);
         obfree(pseudo, (struct obj *) 0);
-        return 0;
+        return ECMD_OK;
     }
 
     /* gain skill for successful cast */
     use_skill(skill, spellev(spell));
 
     obfree(pseudo, (struct obj *) 0); /* now, get rid of it */
-    return 1;
+    return ECMD_TIME;
 }
 
 /*ARGSUSED*/
@@ -1415,7 +1427,7 @@ enum spl_sort_types {
     NUM_SPELL_SORTBY
 };
 
-static const char *spl_sortchoices[NUM_SPELL_SORTBY] = {
+static const char *const spl_sortchoices[NUM_SPELL_SORTBY] = {
     "by casting letter",
     "alphabetically",
     "by level, low to high",
@@ -1578,7 +1590,7 @@ spellsortmenu(void)
     return FALSE;
 }
 
-/* the '+' command -- view known spells */
+/* the #showspells command -- view known spells */
 int
 dovspell(void)
 {
@@ -1611,7 +1623,7 @@ dovspell(void)
         g.spl_orderindx = 0;
     }
     g.spl_sortmode = SORTBY_LETTER; /* 0 */
-    return 0;
+    return ECMD_OK;
 }
 
 DISABLE_WARNING_FORMAT_NONLITERAL

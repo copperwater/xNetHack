@@ -873,6 +873,8 @@ drag_ball(xchar x, xchar y, int *bc_control,
     return TRUE;
 }
 
+DISABLE_WARNING_FORMAT_NONLITERAL
+
 /*
  *  drop_ball()
  *
@@ -893,7 +895,7 @@ drop_ball(xchar x, xchar y)
     }
 
     if (x != u.ux || y != u.uy) {
-        static const char *pullmsg = "The ball pulls you out of the %s!";
+        static const char *const pullmsg = "The ball pulls you out of the %s!";
         struct trap *t;
         long side;
 
@@ -962,6 +964,8 @@ drop_ball(xchar x, xchar y)
         }
     }
 }
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 /* ball&chain cause hero to randomly lose stuff from inventory */
 static void
