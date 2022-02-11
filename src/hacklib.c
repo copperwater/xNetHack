@@ -1289,8 +1289,29 @@ current_holidays(void)
     const int month = (ymd % 10000) / 100; /* 1..12 */
     const int date = ymd % 100;            /* 1..31 */
     const int today_epoch = days_since_epoch(ymd);
+    const int hour = getlt()->tm_hour;
     int i;
     int retmask = 0;
+
+    /* These cache the value of the last time this function did a full holiday
+     * computation, to avoid recomputing it all over again unless needed. */
+    static int cached_ymd = 0, cached_hour = 0, cached_retmask = 0;
+    boolean recompute = FALSE;
+    /* recompute if:
+     * 1. first ever call (no need to check cached_hour == -1 because cached_ymd
+     *    of 0 is always less than ymd in that case)
+     * 2. date has changed
+     * 3. this was last called before 6 pm and it is now after 6 pm (this
+     *    changes the Jewish day which can begin or end a holiday, see below)
+     */
+    if (cached_ymd < ymd || (cached_hour < 18 && hour >= 18)) {
+        recompute = TRUE;
+    }
+    cached_ymd = ymd;
+    cached_hour = hour;
+    if (!recompute) {
+        return cached_retmask;
+    }
 
     /* Simple holidays observed yearly on the Gregorian calendar. */
     if (month == 1 && date == 1) {
@@ -1450,7 +1471,7 @@ current_holidays(void)
             /* The Gregorian day begins at midnight, but the Hebrew day begins
              * at sunset. Assume sunset is at 6 PM; if it's after that, advance
              * the day by 1. */
-            if (getlt()->tm_hour >= 18) {
+            if (hour >= 18) {
                 tmp_epoch_today += 1;
             }
             /* ymd is no longer safe to use in this computation */
@@ -1517,6 +1538,7 @@ current_holidays(void)
             }
         }
     }
+    cached_retmask = retmask; /* for next time */
     return retmask;
 }
 
