@@ -1797,9 +1797,9 @@ dosacrifice(void)
                     if (!Blind)
                         pline_The("altar glows %s.",
                                   hcolor((u.ualign.type == A_LAWFUL)
-                                            ? NH_GOLDEN
-                                            : u.ualign.type
-                                               ? NH_RED
+                                            ? NH_WHITE
+                                            : (u.ualign.type == A_CHAOTIC)
+                                               ? NH_BLACK
                                                : (const char *) "gray"));
 
                     if (!canspotself())
