@@ -557,9 +557,9 @@ explode(
             g.context.botl = 1;
         }
 
-	/* You resisted the damage, lets not keep that to ourselves */
-	if (uhurt == 1)
-	    monstseesu_ad(adtyp);
+    /* You resisted the damage, lets not keep that to ourselves */
+    if (uhurt == 1)
+        monstseesu_ad(adtyp);
 
         if (u.uhp <= 0 || (Upolyd && u.mh <= 0)) {
             if (olet == MON_EXPLODE) {
@@ -568,7 +568,8 @@ explode(
                 else if (str != g.killer.name && str != hallu_buf)
                     Strcpy(g.killer.name, str);
                 g.killer.format = KILLED_BY_AN;
-            } else if (olet == TRAPPED_DOOR || olet == BURNING_OIL) {
+            } else if ((olet == BURNING_OIL && g.context.mon_moving)
+                       || olet == TRAPPED_DOOR) {
                 g.killer.format = KILLED_BY_AN;
                 Snprintf(g.killer.name, sizeof g.killer.name,
                          "exploding %s",
