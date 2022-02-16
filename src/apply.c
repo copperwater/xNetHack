@@ -2733,10 +2733,10 @@ use_stone(struct obj *tstone)
             You("bang %s%s on %s.", ((obj->quan > 1L) ? "one of " : ""),
                 the(xname(obj)), the(xname(tstone)));
         }
-        pline_The("rock crumbles%s.", flint_made > 0 ? "" : " slightly");
+        pline_The("rock crumbles.");
 
         if (flint_made <= 0) {
-            flint_made = 0;
+            useup(obj);
             return;
         }
         flint = mksobj(FLINT, TRUE, FALSE);
