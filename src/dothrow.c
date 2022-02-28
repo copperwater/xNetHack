@@ -2262,17 +2262,8 @@ breakobj(struct obj *obj,
             }
         }
     }
-    if (!fracture) {
-        /* FIXME: This replicates useup() code but we can't use useup() since
-         * obj isn't necessarily in hero's inventory */
-        if (obj->quan > 1) {
-            obj->quan--;
-            obj->owt = weight(obj);
-        }
-        else {
-            delobj(obj);
-        }
-    }
+    if (!fracture)
+        delobj(obj);
 }
 
 /*
@@ -2370,11 +2361,11 @@ break_glass_obj(struct obj* obj)
             }
             setworn(NULL, unwornmask);
         }
-        update_inventory();
+        obj->ox = u.ux, obj->oy = u.uy;
     }
     else if (mcarried(obj)) { /* monster's item */
+        struct monst *mon = obj->ocarry;
         if (obj->quan == 1L) {
-            struct monst* mon = obj->ocarry;
             mon->misc_worn_check &= ~unwornmask;
             if (unwornmask & W_WEP) {
                 setmnotwielded(mon, obj);
@@ -2386,6 +2377,7 @@ break_glass_obj(struct obj* obj)
             /* shouldn't really be needed but... */
             update_mon_intrinsics(mon, obj, FALSE, FALSE);
         }
+        obj->ox = mon->mx, obj->oy = mon->my;
     }
     else {
         impossible("breaking glass obj not in anyone's inventory?");
@@ -2393,12 +2385,12 @@ break_glass_obj(struct obj* obj)
     }
 
     if (obj->quan == 1L) {
-        obj->owornmask = 0;
-        pline("%s breaks into pieces!", upstart(yname(obj)));
-        obj_extract_self(obj); /* it's being destroyed */
+        obj->owornmask = 0L;
+        pline("%s breaks into pieces!", Yname2(obj));
     }
     else {
         pline("One of %s breaks into pieces!", yname(obj));
+        obj = splitobj(obj, 1L);
     }
     breakobj(obj, obj->ox, obj->oy, your_fault, TRUE);
     if (ucarried)
