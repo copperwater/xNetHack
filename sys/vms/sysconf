@@ -79,7 +79,7 @@
 # 0x04 - Kill, destroy or bribe a unique monster.
 # 0x08 - Significant religious events (sacrifice gifts, crowning)
 # 0x10 - Life-saving
-# 0x20 - Break conduct - see also LLC_TURNS below.
+# 0x20 - Break conduct
 # 0x40 - Artifact obtained (#name Sting, dip for Excalibur)
 # 0x80 - Genocides
 # 0x0100 - Killed your own pet

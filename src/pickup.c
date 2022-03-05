@@ -2123,9 +2123,15 @@ do_loot_cont(struct obj **cobjp,
             pline("Hmmm, %s turns out to be locked.", the(xname(cobj)));
         cobj->lknown = 1;
 
-        if (flags.autounlock && (unlocktool = autokey(TRUE)) != 0) {
-            /* pass ox and oy to avoid direction prompt */
-            return (pick_lock(unlocktool, cobj->ox, cobj->oy, cobj) != 0);
+        if (flags.autounlock) {
+            if ((unlocktool = autokey(TRUE)) != 0) {
+                /* pass ox and oy to avoid direction prompt */
+                return (pick_lock(unlocktool, cobj->ox, cobj->oy, cobj) != 0);
+            } else if (ccount == 1 && u_have_forceable_weapon()) {
+                /* single container, and we could #force it open... */
+                cmdq_add_ec(doforce); /* doforce asks for confirmation */
+                g.abort_looting = TRUE;
+            }
         }
         return ECMD_OK;
     }
@@ -2845,7 +2851,6 @@ in_container(struct obj *obj)
         more_experienced(20, 0); /* Well, now you know not to do that again. */
         newexplevel();
         obfree(obj, (struct obj *) 0);
-
         livelog_printf(LL_ACHIEVE, "just blew up %s bag of holding", uhis());
         /* if carried, shop goods will be flagged 'unpaid' and obfree() will
            handle bill issues, but if on floor, we need to put them on bill

@@ -1,4 +1,4 @@
-/* NetHack 3.7	cmd.c	$NHDT-Date: 1642630919 2022/01/19 22:21:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.500 $ */
+/* NetHack 3.7	cmd.c	$NHDT-Date: 1644610344 2022/02/11 20:12:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.519 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -105,7 +105,6 @@ static int dotravel(void);
 static int dotravel_target(void);
 static int doclicklook(void);
 static int doterrain(void);
-static void set_move_cmd(int, int);
 static int wiz_wish(void);
 static int wiz_identify(void);
 static int wiz_map(void);
@@ -147,7 +146,7 @@ static void mon_chain(winid, const char *, struct monst *, boolean, long *,
 static void contained_stats(winid, const char *, long *, long *);
 static void misc_stats(winid, long *, long *);
 static boolean accept_menu_prefix(const struct ext_func_tab *);
-
+static void reset_cmd_vars(boolean);
 static void add_herecmd_menuitem(winid, int (*)(void), const char *);
 static char here_cmd_menu(boolean);
 static char there_cmd_menu(boolean, int, int);
@@ -392,6 +391,9 @@ doextcmd(void)
                   extcmdlist[idx].ef_txt);
             iflags.menu_requested = FALSE;
         }
+        /* tell rhack() what command is actually executing */
+        g.ext_tlist = &extcmdlist[idx];
+
         retval = (*func)();
     } while (func == doextlist);
 
@@ -847,6 +849,36 @@ enter_explore_mode(void)
             pline("Continuing with %s.", oldmode);
         }
     }
+    return ECMD_OK;
+}
+
+int
+do_gamelog(void)
+{
+#ifdef CHRONICLE
+    struct gamelog_line *tmp = g.gamelog;
+    winid win;
+    char buf[BUFSZ];
+
+    if (!tmp) {
+        pline("No chronicled events.");
+        return ECMD_OK;
+    }
+
+    win = create_nhwindow(NHW_TEXT);
+    putstr(win, 0, "Major events:");
+    putstr(win, 0, "");
+    putstr(win, 0, " Turn");
+    while (tmp) {
+        Sprintf(buf, "%5li: %s", tmp->turn, tmp->text);
+        putstr(win, 0, buf);
+        tmp = tmp->next;
+    }
+    display_nhwindow(win, TRUE);
+    destroy_nhwindow(win);
+#else
+    pline("Chronicle was turned off during compile-time.");
+#endif /* !CHRONICLE */
     return ECMD_OK;
 }
 
@@ -1845,20 +1877,20 @@ doterrain(void)
     return ECMD_OK; /* no time elapses */
 }
 
-static void
+void
 set_move_cmd(int dir, int run)
 {
+    u.dz = zdir[dir];
+    u.dx = xdir[dir];
+    u.dy = ydir[dir];
     /* #reqmenu -prefix disables autopickup during movement */
     if (iflags.menu_requested)
         g.context.nopick = 1;
     g.context.travel = g.context.travel1 = 0;
-    if (!g.domove_attempting) {
+    if (!g.domove_attempting && !u.dz) {
         g.context.run = run;
         g.domove_attempting |= (!run ? DOMOVE_WALK : DOMOVE_RUSH);
     }
-    u.dz = zdir[dir];
-    u.dx = xdir[dir];
-    u.dy = ydir[dir];
 }
 
 /* move or attack */
@@ -2036,6 +2068,13 @@ do_run_southwest(void)
 int
 do_reqmenu(void)
 {
+    if (iflags.menu_requested) {
+        Norep("Double %s prefix, canceled.",
+              visctrl(cmd_from_func(do_reqmenu)));
+        iflags.menu_requested = FALSE;
+        return ECMD_CANCEL;
+    }
+
     iflags.menu_requested = TRUE;
     return ECMD_OK;
 }
@@ -2044,6 +2083,13 @@ do_reqmenu(void)
 int
 do_rush(void)
 {
+    if ((g.domove_attempting & DOMOVE_RUSH)) {
+        Norep("Double rush prefix, canceled.");
+        g.context.run = 0;
+        g.domove_attempting = 0;
+        return ECMD_CANCEL;
+    }
+
     g.context.run = 2;
     g.domove_attempting |= DOMOVE_RUSH;
     return ECMD_OK;
@@ -2053,6 +2099,13 @@ do_rush(void)
 int
 do_run(void)
 {
+    if ((g.domove_attempting & DOMOVE_RUSH)) {
+        Norep("Double run prefix, canceled.");
+        g.context.run = 0;
+        g.domove_attempting = 0;
+        return ECMD_CANCEL;
+    }
+
     g.context.run = 3;
     g.domove_attempting |= DOMOVE_RUSH;
     return ECMD_OK;
@@ -2062,6 +2115,13 @@ do_run(void)
 int
 do_fight(void)
 {
+    if (g.context.forcefight) {
+        Norep("Double fight prefix, canceled.");
+        g.context.forcefight = 0;
+        g.domove_attempting = 0;
+        return ECMD_CANCEL;
+    }
+
     g.context.forcefight = 1;
     g.domove_attempting |= DOMOVE_WALK;
     return ECMD_OK;
@@ -2096,7 +2156,7 @@ struct ext_func_tab extcmdlist[] = {
     { M('a'), "adjust", "adjust inventory letters",
               doorganize, IFBURIED | AUTOCOMPLETE, NULL },
     { M('A'), "annotate", "name current level",
-              donamelevel, IFBURIED | AUTOCOMPLETE, NULL },
+              donamelevel, IFBURIED | AUTOCOMPLETE | GENERALCMD, NULL },
     { 'a',    "apply", "apply (use) a tool (pick-axe, key, lamp...)",
               doapply, CMD_M_PREFIX, NULL },
     { C('x'), "attributes", "show your attributes",
@@ -2109,14 +2169,19 @@ struct ext_func_tab extcmdlist[] = {
               docast, IFBURIED, NULL },
     { M('c'), "chat", "talk to someone",
               dotalk, IFBURIED | AUTOCOMPLETE, NULL },
+    { '\0',   "chronicle", "show journal of major events",
+              do_gamelog, IFBURIED | AUTOCOMPLETE | GENERALCMD, NULL },
     { 'c',    "close", "close a door",
               doclose, 0, NULL },
     { M('C'), "conduct", "list voluntary challenges you have maintained",
-              doconduct, IFBURIED | AUTOCOMPLETE, NULL },
+              doconduct, IFBURIED | AUTOCOMPLETE | GENERALCMD, NULL },
     { M('d'), "dip", "dip an object into something",
               dodip, AUTOCOMPLETE, NULL },
     { '>',    "down", "go down a staircase",
-              dodown, 0, NULL },
+              /* allows 'm' prefix (for move without autopickup) but not the
+                 g/G/F movement modifiers; not flagged as MOVEMENTCMD because
+                 that would would suppress it from dokeylist output */
+              dodown, CMD_M_PREFIX, NULL },
     { 'd',    "drop", "drop an item",
               dodrop, 0, NULL },
     { 'D',    "droptype", "drop specific item types",
@@ -2184,7 +2249,7 @@ struct ext_func_tab extcmdlist[] = {
     /* #overview used to need autocomplete and has retained that even
        after being assigned to ^O [old wizard mode ^O is now #wizwhere] */
     { C('o'), "overview", "show a summary of the explored dungeon",
-              dooverview, IFBURIED | AUTOCOMPLETE, NULL },
+              dooverview, IFBURIED | AUTOCOMPLETE | GENERALCMD, NULL },
     /* [should #panic actually autocomplete?] */
     { '\0',   "panic", "test panic routine (fatal to game)",
               wiz_panic, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
@@ -2301,7 +2366,8 @@ struct ext_func_tab extcmdlist[] = {
     { M('u'), "untrap", "untrap something",
               dountrap, AUTOCOMPLETE, NULL },
     { '<',    "up", "go up a staircase",
-              doup, 0, NULL },
+              /* (see comment for dodown() above */
+              doup, CMD_M_PREFIX, NULL },
     { '\0',   "vanquished", "list vanquished monsters",
               dovanquished, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
     { M('v'), "version",
@@ -2365,24 +2431,24 @@ struct ext_func_tab extcmdlist[] = {
     { 'z',    "zap", "zap a wand",
               dozap, 0, NULL },
     /* movement commands will be bound by reset_commands() */
-    /* move or attack */
+    /* move or attack; accept m/g/G/F prefixes */
     { '\0', "movewest", "move west (screen left)",
-            do_move_west, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+            do_move_west, MOVEMENTCMD | CMD_MOVE_PREFIXES, NULL },
     { '\0', "movenorthwest", "move northwest (screen upper left)",
-            do_move_northwest, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+            do_move_northwest, MOVEMENTCMD | CMD_MOVE_PREFIXES, NULL },
     { '\0', "movenorth", "move north (screen up)",
-            do_move_north, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+            do_move_north, MOVEMENTCMD | CMD_MOVE_PREFIXES, NULL },
     { '\0', "movenortheast", "move northeast (screen upper right)",
-            do_move_northeast, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+            do_move_northeast, MOVEMENTCMD | CMD_MOVE_PREFIXES, NULL },
     { '\0', "moveeast", "move east (screen right)",
-            do_move_east, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+            do_move_east, MOVEMENTCMD | CMD_MOVE_PREFIXES, NULL },
     { '\0', "movesoutheast", "move southeast (screen lower right)",
-            do_move_southeast, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+            do_move_southeast, MOVEMENTCMD | CMD_MOVE_PREFIXES, NULL },
     { '\0', "movesouth", "move south (screen down)",
-            do_move_south, MOVEMENTCMD | CMD_M_PREFIX, NULL },
+            do_move_south, MOVEMENTCMD | CMD_MOVE_PREFIXES, NULL },
     { '\0', "movesouthwest", "move southwest (screen lower left)",
-            do_move_southwest, MOVEMENTCMD | CMD_M_PREFIX, NULL },
-    /* rush */
+            do_move_southwest, MOVEMENTCMD | CMD_MOVE_PREFIXES, NULL },
+    /* rush; accept m prefix but not g/G/F */
     { '\0', "rushwest", "rush west (screen left)",
             do_rush_west, MOVEMENTCMD | CMD_M_PREFIX, NULL },
     { '\0', "rushnorthwest", "rush northwest (screen upper left)",
@@ -2399,7 +2465,7 @@ struct ext_func_tab extcmdlist[] = {
             do_rush_south, MOVEMENTCMD | CMD_M_PREFIX, NULL },
     { '\0', "rushsouthwest", "rush southwest (screen lower left)",
             do_rush_southwest, MOVEMENTCMD | CMD_M_PREFIX, NULL },
-    /* run */
+    /* run; accept m prefix but not g/G/F */
     { '\0', "runwest", "run west (screen left)",
             do_run_west, MOVEMENTCMD | CMD_M_PREFIX, NULL },
     { '\0', "runnorthwest", "run northwest (screen upper left)",
@@ -2432,6 +2498,8 @@ static int (*move_funcs[N_DIRS_Z][N_MOVEMODES])(void) = {
     { do_move_southeast, do_run_southeast, do_rush_southeast },
     { do_move_south,     do_run_south,     do_rush_south },
     { do_move_southwest, do_run_southwest, do_rush_southwest },
+    /* misleading; rush and run for down or up are rejected by rhack()
+       because dodown() and doup() lack the CMD_gGF_PREFIX flag */
     { dodown,            dodown,           dodown },
     { doup,              doup,             doup },
 };
@@ -2885,6 +2953,11 @@ cmd_from_func(int (*fn)(void))
         /* skip space; we'll use it below as last resort if no other
            keystroke invokes space's command */
         if (i == ' ')
+            continue;
+        /* skip digits if number_pad is Off; also skip '-' unless it has
+           been bound to something other than what number_pad assigns */
+        if (((i >= '0' && i <= '9') || (i == '-' && fn == do_fight))
+            && !g.Cmd.num_pad)
             continue;
 
         if (g.Cmd.commands[i] && g.Cmd.commands[i]->ef_funct == fn)
@@ -3660,7 +3733,9 @@ update_rest_on_space(void)
     g.Cmd.commands[' '] = flags.rest_on_space ? &restonspace : unrestonspace;
 }
 
-/* commands which accept 'm' prefix to request menu operation */
+/* commands which accept 'm' prefix to request menu operation or other
+   alternate behavior; it's also overloaded for move-without-autopickup;
+   there is no overlap between the two groups of commands */
 static boolean
 accept_menu_prefix(const struct ext_func_tab *ec)
 {
@@ -3758,19 +3833,31 @@ rnd_extcmd_idx(void)
     return rn2(extcmdlist_length + 1) - 1;
 }
 
+static void
+reset_cmd_vars(boolean reset_cmdq)
+{
+    g.context.run = 0;
+    g.context.nopick = g.context.forcefight = FALSE;
+    g.context.move = g.context.mv = FALSE;
+    g.domove_attempting = 0;
+    g.multi = 0;
+    iflags.menu_requested = FALSE;
+    g.context.travel = g.context.travel1 = 0;
+    if (reset_cmdq)
+        cmdq_clear();
+}
+
 void
 rhack(char *cmd)
 {
     int spkey = NHKF_ESC;
-    boolean prefix_seen = FALSE, bad_command,
-        firsttime = (cmd == 0);
+    boolean bad_command, firsttime = (cmd == 0);
     struct _cmd_queue *cmdq = NULL;
-    const struct ext_func_tab *cmdq_ec = NULL;
+    const struct ext_func_tab *cmdq_ec = 0, *prefix_seen = 0;
+    boolean was_m_prefix = FALSE;
 
-    iflags.menu_requested = FALSE;
-    prefix_seen = FALSE;
-    g.context.nopick = 0;
-got_prefix_input:
+    reset_cmd_vars(FALSE);
+ got_prefix_input:
 #ifdef SAFERHANGUP
     if (g.program_state.done_hup)
         end_of_input();
@@ -3805,21 +3892,14 @@ got_prefix_input:
         if (u.ustuck && !sticks(g.youmonst.data)) {
             pline("You cannot escape from %s!", mon_nam(u.ustuck));
         }
-        g.context.move = FALSE;
-        iflags.menu_requested = FALSE;
-        g.context.run = 0;
-        g.context.nopick = g.context.forcefight = FALSE;
-        g.context.mv = FALSE;
-        g.multi = 0;
-        g.domove_attempting = 0;
+        reset_cmd_vars(TRUE);
         return;
     }
 
     /* Special case of *cmd == ' ' handled better below */
     if (!*cmd || *cmd == (char) 0377) {
         nhbell();
-        g.context.move = FALSE;
-        iflags.menu_requested = FALSE;
+        reset_cmd_vars(TRUE);
         return; /* probably we just had an interrupt */
     }
 
@@ -3839,41 +3919,68 @@ got_prefix_input:
         /* current - use *cmd to directly index cmdlist array */
         if (tlist != 0) {
             if (!can_do_extcmd(tlist)) {
+                /* can_do_extcmd() already gave a message */
+                reset_cmd_vars(TRUE);
                 res = ECMD_OK;
-                cmdq_clear();
-            } else if (prefix_seen && !accept_menu_prefix(tlist)
-                       && !(tlist->flags & PREFIXCMD)) {
-                /* we got a prefix previously, can this command accept one? */
+            } else if (prefix_seen && !(tlist->flags & PREFIXCMD)
+                       && !(tlist->flags & (was_m_prefix ? CMD_M_PREFIX
+                                                         : CMD_gGF_PREFIX))) {
+                /* got prefix previously but this command doesn't accept one */
+                char pfxidx = cmd_from_func(prefix_seen->ef_funct);
+                const char *which = (pfxidx != 0) ? visctrl(pfxidx)
+                                    : (prefix_seen->ef_funct == do_reqmenu)
+                                      ? "move-no-pickup or request-menu"
+                                      : prefix_seen->ef_txt;
+
+                pline("The %s command does not accept '%s' prefix.",
+                      tlist->ef_txt, which);
+                reset_cmd_vars(TRUE);
                 res = ECMD_OK;
-                cmdq_clear();
+                prefix_seen = 0;
+                was_m_prefix = FALSE;
             } else {
                 /* we discard 'const' because some compilers seem to have
                    trouble with the pointer passed to set_occupation() */
                 func = ((struct ext_func_tab *) tlist)->ef_funct;
                 if (tlist->f_text && !g.occupation && g.multi)
                     set_occupation(func, tlist->f_text, g.multi);
+                g.ext_tlist = NULL;
                 {
                     char buf[BUFSZ];
                     Sprintf(buf, "rhack() extcmd: '%s'", tlist->ef_txt);
                     FUZLOG(buf);
                 }
                 res = (*func)(); /* perform the command */
+                /* if 'func' is doextcmd(), 'tlist' is for Cmd.commands['#']
+                   rather than for the command that doextcmd() just ran;
+                   doextcmd() notifies us what that was via ext_tlist;
+                   other commands leave it Null */
+                if (g.ext_tlist)
+                    tlist = g.ext_tlist;
 
                 if ((tlist->flags & PREFIXCMD)) {
-                    /* it was a prefix command, mark and get another command */
-                    prefix_seen = TRUE;
+                    /* it was a prefix command, mark and get another cmd */
+                    if ((res & ECMD_CANCEL)) {
+                        /* prefix commands cancel if pressed twice */
+                        reset_cmd_vars(TRUE);
+                        return;
+                    }
+                    prefix_seen = tlist;
                     bad_command = FALSE;
                     cmdq_ec = NULL;
+                    if (func == do_reqmenu)
+                        was_m_prefix = TRUE;
                     goto got_prefix_input;
-                } else if (((g.domove_attempting & (DOMOVE_RUSH | DOMOVE_WALK)) != 0L)
-                            && !g.context.travel && !dxdy_moveok()) {
+                } else if (!(tlist->flags & MOVEMENTCMD)
+                           && g.domove_attempting) {
+                    /* not a movement command, but a move prefix earlier? */
+                    ; /* just do nothing */
+                } else if (((g.domove_attempting & (DOMOVE_RUSH | DOMOVE_WALK))
+                            != 0L)
+                           && !g.context.travel && !dxdy_moveok()) {
                     /* trying to move diagonally as a grid bug */
                     You_cant("get there from here...");
-                    g.context.run = 0;
-                    g.context.nopick = g.context.forcefight = FALSE;
-                    g.context.move = g.context.mv = FALSE;
-                    g.multi = 0;
-                    iflags.menu_requested = FALSE;
+                    reset_cmd_vars(TRUE);
                     return;
                 } else if ((g.domove_attempting & DOMOVE_WALK) != 0L) {
                     if (g.multi)
@@ -3893,18 +4000,20 @@ got_prefix_input:
                     iflags.menu_requested = FALSE;
                     return;
                 }
-                prefix_seen = FALSE;
+                prefix_seen = 0;
+                was_m_prefix = FALSE;
             }
-            if ((res & ECMD_CANCEL)) {
+            if ((res & (ECMD_CANCEL|ECMD_FAIL))) {
                 /* command was canceled by user, maybe they declined to
-                   pick an object to act on. */
-                iflags.menu_requested = FALSE;
-                cmdq_clear();
+                   pick an object to act on, or command failed to finish */
+                reset_cmd_vars(TRUE);
+                prefix_seen = 0;
+                cmdq_ec = NULL;
             }
             if (!(res & ECMD_TIME)) {
-                iflags.menu_requested = FALSE;
-                g.context.move = FALSE;
-                g.multi = 0;
+                reset_cmd_vars(FALSE);
+                prefix_seen = 0;
+                cmdq_ec = NULL;
             }
             return;
         }
@@ -4159,7 +4268,6 @@ help_dir(char sym,
      */
     dothat = "do that";
     how = " at"; /* for "<action> at yourself"; not used for up/down */
-    prefixhandling = FALSE;
 
     buf[0] = '\0';
     /* for movement prefix followed by '.' or (numpad && 's') to mean 'self';
@@ -4670,10 +4778,12 @@ click_to_cmd(int x, int y, int mod)
 
 /* gather typed digits into a number in *count; return the next non-digit */
 char
-get_count(char *allowchars, char inkey,
-          long maxcount, long *count,
-          boolean historicmsg) /* whether to include in message
-                                * history: True => yes */
+get_count(
+    char *allowchars,
+    char inkey,
+    long maxcount,
+    long *count,
+    boolean historicmsg) /* whether to include in ^P history: True => yes */
 {
     char qbuf[QBUFSZ];
     int key;

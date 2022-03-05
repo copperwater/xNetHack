@@ -1,4 +1,4 @@
-/* NetHack 3.7	extern.h	$NHDT-Date: 1637992233 2021/11/27 05:50:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1018 $ */
+/* NetHack 3.7	extern.h	$NHDT-Date: 1644524039 2022/02/10 20:13:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1046 $ */
 /* Copyright (c) Steve Creps, 1988.				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -28,6 +28,9 @@ extern void welcome(boolean);
 extern int argcheck(int, char **, enum earlyarg);
 extern long timet_to_seconds(time_t);
 extern long timet_delta(time_t, time_t);
+#ifndef NODUMPENUMS
+extern void dump_enums(void);
+#endif
 
 /* ### apply.c ### */
 
@@ -202,6 +205,7 @@ extern boolean status_hilite_menu(void);
 
 /* ### cmd.c ### */
 
+extern void set_move_cmd(int, int);
 extern int do_move_west(void);
 extern int do_move_northwest(void);
 extern int do_move_north(void);
@@ -263,6 +267,7 @@ extern void rhack(char *);
 extern int doextlist(void);
 extern int extcmd_via_menu(void);
 extern int enter_explore_mode(void);
+extern int do_gamelog(void);
 extern boolean bind_key(uchar, const char *);
 extern void dokeylist(void);
 extern int xytod(schar, schar);
@@ -912,8 +917,7 @@ extern boolean Death_quote(char *, int);
 #ifdef EXTRAINFO_FN
 extern void mk_dgl_extrainfo(void);
 #endif
-extern void livelog_write_string(unsigned int, const char *);
-extern void livelog_printf(unsigned int, const char *, ...);
+extern void livelog_add(unsigned int ll_type, const char *);
 
 /* ### fountain.c ### */
 
@@ -946,6 +950,7 @@ extern boolean test_move(int, int, int, int, int);
 extern int wiz_debug_cmd_traveldisplay(void);
 #endif
 extern boolean u_rooted(void);
+extern const char *u_locomotion(const char *);
 extern void domove(void);
 extern void runmode_delay_output(void);
 extern void overexert_hp(void);
@@ -1217,6 +1222,7 @@ extern void reset_pick(void);
 extern void maybe_reset_pick(struct obj *);
 extern struct obj *autokey(boolean);
 extern int pick_lock(struct obj *, xchar, xchar, struct obj *);
+extern boolean u_have_forceable_weapon(void);
 extern int doforce(void);
 extern boolean boxlock(struct obj *, struct obj *);
 extern boolean doorlock(struct obj *, struct monst *, int, int);
@@ -1290,9 +1296,6 @@ extern int buzzmu(struct monst *, struct attack *);
 
 extern void runtime_info_init(void);
 extern const char *do_runtime_info(int *);
-#ifndef NODUMPENUMS
-extern void dump_enums(void);
-#endif
 
 /* ### mhitm.c ### */
 
@@ -1409,7 +1412,6 @@ extern void movebubbles(void);
 extern void water_friction(void);
 extern void save_waterlevel(NHFILE *);
 extern void restore_waterlevel(NHFILE *);
-extern const char *waterbody_name(xchar, xchar);
 
 /* ### mkobj.c ### */
 
@@ -1737,7 +1739,6 @@ extern int dosuspend(void);
 #endif
 #endif /* TOS */
 #ifdef WIN32
-extern char *get_username(int *);
 extern void nt_regularize(char *);
 extern int(*nt_kbhit)(void);
 extern void Delay(int);
@@ -1791,13 +1792,6 @@ extern boolean munslime(struct monst *, boolean);
 extern void put_monsters_to_sleep(struct monst *, int);
 extern void awaken_soldiers(struct monst *);
 extern int do_play_instrument(struct obj *);
-
-/* ### nhlan.c ### */
-
-#ifdef LAN_FEATURES
-extern void init_lan_features(void);
-extern char *lan_username(void);
-#endif
 
 /* ### nhlsel.c ### */
 
@@ -2022,6 +2016,7 @@ extern char *monhealthdescr(struct monst *mon, boolean, char *);
 extern void mhidden_description(struct monst *, boolean, char *);
 extern boolean object_from_map(int,int,int,struct obj **);
 extern void checkfile(char *, struct permonst *, boolean, boolean, char *);
+extern const char *waterbody_name(xchar, xchar);
 extern int do_screen_description(coord, boolean, int, char *, const char **,
                                  struct permonst **);
 extern int do_look(int, coord *);
@@ -2138,6 +2133,8 @@ extern void You_see(const char *, ...) PRINTF_F(1, 2);
 extern void pline_The(const char *, ...) PRINTF_F(1, 2);
 extern void There(const char *, ...) PRINTF_F(1, 2);
 extern void verbalize(const char *, ...) PRINTF_F(1, 2);
+extern void gamelog_add(unsigned int, long, const char *);
+extern void livelog_printf(unsigned int, const char *, ...) PRINTF_F(2, 3);
 extern void raw_printf(const char *, ...) PRINTF_F(1, 2);
 extern void impossible(const char *, ...) PRINTF_F(1, 2);
 extern void config_error_add(const char *, ...) PRINTF_F(1, 2);
@@ -2148,6 +2145,7 @@ extern void nhassert_failed(const char *, const char *, int);
 extern void set_uasmon(void);
 extern void float_vs_flight(void);
 extern void change_sex(void);
+extern void livelog_newform(boolean, int, int);
 extern void polyself(int);
 extern int polymon(int, int);
 extern void rehumanize(void);
@@ -2192,6 +2190,7 @@ extern int dopotion(struct obj *);
 extern int peffects(struct obj *);
 extern void healup(int, int, boolean, boolean);
 extern void strange_feeling(struct obj *, const char *);
+extern void impact_arti_light(struct obj *, boolean, boolean);
 extern void potionhit(struct monst *, struct obj *, int);
 extern void potionbreathe(struct obj *);
 extern int dodip(void);
@@ -3411,7 +3410,7 @@ extern int destroy_items(struct monst *, int, int);
 extern boolean adtyp_resistance_obj(struct monst *, int);
 extern int resist(struct monst *, char, int, int);
 extern void makewish(void);
-const char* flash_str(int, boolean);
+extern const char *flash_str(int, boolean);
 
 #endif /* !MAKEDEFS_C && !MDLIB_C */
 

@@ -1088,7 +1088,6 @@ doengrave(void)
         if (!u.uconduct.literate++)
             livelog_printf(LL_CONDUCT, "became literate by engraving \"%s\"", ebuf);
 
-
     /* Mix up engraving if surface or state of mind is unsound.
        Note: this won't add or remove any spaces. */
     for (sp = ebuf; *sp; sp++) {

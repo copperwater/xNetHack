@@ -851,10 +851,9 @@ buzzmu(register struct monst *mtmp, register struct attack *mattk)
     if (lined_up(mtmp) && rn2(3)) {
         nomul(0);
         if (mattk->adtyp && (mattk->adtyp < 11)) { /* no cf unsigned >0 */
-            if (canseemon(mtmp)) {
+            if (canseemon(mtmp))
                 pline("%s zaps you with a %s!", Monnam(mtmp),
                       flash_str(ad_to_typ(mattk->adtyp), FALSE));
-            }
             buzz(-ad_to_typ(mattk->adtyp), (int) mattk->damn, mtmp->mx,
                  mtmp->my, sgn(g.tbx), sgn(g.tby));
         } else

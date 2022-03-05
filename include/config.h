@@ -175,8 +175,7 @@
  *
  *              LOGFILE, XLOGFILE, LIVELOGFILE, NEWS and PANICLOG refer to
  *              files in the playground directory.  Commenting out LOGFILE,
- *              XLOGFILE, LIVELOGFILE, NEWS or PANICLOG removes that feature
- *              from the game.
+ *              XLOGFILE, NEWS or PANICLOG removes that feature from the game.
  *
  *              Building with debugging features enabled is now unconditional;
  *              the old WIZARD setting for that has been eliminated.
@@ -588,19 +587,6 @@ typedef unsigned char uchar;
 
 #ifdef DGAMELAUNCH
 
-/* Livelogging: writing important events into a file that another program can
- * read from. By default, the name of this file is LIVELOGFILE in the
- * playground. */
-#define LIVELOG_ENABLE
-#ifdef LIVELOG_ENABLE
-#define LIVELOGFILE "livelog" /* in-game events recorded live */
-#ifdef LIVELOGFILE
-/* LL_flags defined in global.h. Value below is ignored if SYSCF is enabled */
-/* #define LIVELOG_DETAIL (LL_WISH | LL_ACHIEVE | LL_UMONST) */
-#define LIVELOG_DETAIL 0x1FFF
-#endif
-#endif /* LIVELOG_ENABLE */
-
 /* Extrainfo contains some brief bits of information that are useful to show in
  * a menu listing games that are currently in play on a server */
 #define EXTRAINFO_FN    "/dgldir/extrainfo-xnh/%n.extrainfo"
@@ -642,6 +628,22 @@ typedef unsigned char uchar;
    whole thing, then type a new end for the text. */
 /* #define EDIT_GETLIN */
 
+#ifndef NO_CHRONICLE
+/* CHRONICLE - enable #chronicle command, a log of major game events.
+   The logged messages will also appear in DUMPLOG. */
+#define CHRONICLE
+#ifdef CHRONICLE
+/* LIVELOG - log CHRONICLE events into LIVELOGFILE as they happen. */
+/* #define LIVELOG */
+#ifdef LIVELOG
+#define LIVELOGFILE "livelog" /* in-game events recorded, live */
+#endif /* LIVELOG */
+#endif /* CHRONICLE */
+#else
+#undef LIVELOG
+#endif /* NO_CHRONICLE */
+
+/* #define DUMPLOG */  /* End-of-game dump logs */
 #if defined(DUMPLOG) || defined(DUMPHTML)
 
 #ifndef DUMPLOG_MSG_COUNT

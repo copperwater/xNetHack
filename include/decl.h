@@ -1,4 +1,4 @@
-/* NetHack 3.7  decl.h  $NHDT-Date: 1627408982 2021/07/27 18:03:02 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.265 $ */
+/* NetHack 3.7  decl.h  $NHDT-Date: 1645000560 2022/02/16 08:36:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.283 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2007. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -178,6 +178,14 @@ struct kinfo {
 #ifdef WHEREIS_FILE
 E char whereis_real_path[255];
 #endif
+
+/* game events log */
+struct gamelog_line {
+    long turn; /* turn when this happened */
+    long flags; /* LL_foo flags */
+    char *text;
+    struct gamelog_line *next;
+};
 
 enum movemodes {
     MV_ANY = -1,
@@ -737,6 +745,7 @@ struct instance_globals {
     winid en_win;
     boolean en_via_menu;
     long last_command_count;
+    struct ext_func_tab *ext_tlist; /* info for rhack() from doextcmd() */
 
     /* dbridge.c */
     struct entity occupants[ENTITIES];
@@ -919,6 +928,7 @@ struct instance_globals {
     int vanq_sortmode;
 
     /* files.c */
+    char *cmdline_rcfile;  /* set in unixmain.c, used in options.c */
     char wizkit[WIZKIT_MAX];
     int lockptr;
     char *config_section_chosen;
@@ -1092,6 +1102,7 @@ struct instance_globals {
     /* work buffer for You(), &c and verbalize() */
     char *you_buf;
     int you_buf_siz;
+    struct gamelog_line *gamelog;
 
     /* polyself.c */
     int sex_change_ok; /* controls whether taking on new form or becoming new

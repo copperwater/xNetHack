@@ -479,8 +479,7 @@ enum runmode_types {
 /* continue eating: prompt given _after_first_bite_ when eating something
    while satiated */
 #define ParanoidEating ((flags.paranoia_bits & PARANOID_EATING) != 0)
-/* swim: walk (not fly or jump or levitate) into water or lava from a
- * non-similar square */
+/* Prevent going into lava or water without explicitly forcing it */
 #define ParanoidSwim ((flags.paranoia_bits & PARANOID_SWIM) != 0)
 /* trap: move onto a trap that you know is there */
 #define ParanoidTrap ((flags.paranoia_bits & PARANOID_TRAP) != 0)

@@ -39,6 +39,105 @@ start: plain
 	S_trwall: '+'
 finish #plain -- other symbols implicitly retain their default values
 
+# Recommended symset for blind players
+# courtesy Michael Feir
+start: NHAccess
+	Description: recommended for blind players
+	S_stone: \032
+	S_vwall: \124
+	S_hwall: \045
+	S_tlcorn: \124
+	S_trcorn: \124
+	S_blcorn: \124
+	S_brcorn: \124
+	S_crwall: \045
+	S_tuwall: \045
+	S_tdwall: \045
+	S_tlwall: \124
+	S_trwall: \124
+	S_ndoor: \046
+	S_vodoor: \045
+	S_hodoor: \124
+	S_vcdoor: \043
+	S_hcdoor: \043
+	S_bars: \046
+	S_tree: \035
+	S_room: \035
+	S_corr: \060
+	S_litcorr: \062
+	S_upstair: \060
+	S_dnstair: \062
+	S_brupstair: \060
+	S_brdnstair: \062
+	S_upladder: \095
+	S_dnladder: \092
+	S_brupladder: \095
+	S_brdnladder: \092
+	S_altar: \035
+	S_grave: \126
+	S_throne: \126
+	S_sink: \126
+	S_fountain: \126
+	S_pool: \042
+	S_ice: \042
+	S_lava: \035
+	S_vodbridge: \035
+	S_hodbridge: \032
+	S_vcdbridge: \035
+	S_hcdbridge: \126
+	S_arrow_trap: \094
+	S_dart_trap: \094
+	S_falling_rock_trap: \094
+	S_squeaky_board: \094
+	S_bear_trap: \094
+	S_land_mine: \094
+	S_rolling_boulder_trap: \094
+	S_sleeping_gas_trap: \094
+	S_rust_trap: \094
+	S_fire_trap: \094
+	S_pit: \094
+	S_spiked_pit: \094
+	S_hole: \094
+	S_trap_door: \094
+	S_teleportation_trap: \094
+	S_level_teleporter: \094
+	S_magic_portal: \094
+	S_web: \094
+	S_statue_trap: \094
+	S_magic_trap: \094
+	S_anti_magic_trap: \094
+	S_polymorph_trap: \094
+	S_vbeam: \124
+	S_hbeam: \095
+	S_lslant: \092
+	S_rslant: \047
+	S_digbeam: \042
+	S_flashbeam: \033
+	S_boomleft: \041
+	S_boomright: \040
+	S_ss1: \048
+	S_ss2: \035
+	S_ss3: \064
+	S_ss4: \042
+	S_sw_tl: \047
+	S_sw_tc: \045
+	S_sw_tr: \092
+	S_sw_ml: \058
+	S_sw_mr: \058
+	S_sw_bl: \092
+	S_sw_bc: \045
+	S_sw_br: \047
+	S_expl_tl: \047
+	S_expl_tc: \045
+	S_expl_tr: \092
+	S_expl_ml: \058
+	S_expl_mc: \032
+	S_expl_mr: \058
+	S_expl_bl: \092
+	S_expl_bc: \045
+	S_expl_br: \047
+finish
+
 # All symbols are spaces
 start: Blank
 	Description: completely blank symbols
@@ -99,10 +198,10 @@ start: Blank
         S_fountain: \032
         S_fungus: \032
         S_gem: \032
+        S_ghost: \032
         S_giant: \032
         S_gnome: \032
         S_golem: \032
-        S_grass: \032
         S_grave: \032
         S_gremlin: \032
         S_hbeam: \032
@@ -123,6 +222,7 @@ start: Blank
         S_kop: \032
         S_land_mine: \032
         S_lava: \032
+        S_leprechaun: \032
         S_level_teleporter: \032
         S_lich: \032
         S_light: \032
@@ -147,7 +247,7 @@ start: Blank
         S_potion: \032
         S_pudding: \032
         S_quadruped: \032
-        S_elf: \032
+        S_quantmech: \032
         S_ring: \032
         S_rock: \032
         S_rodent: \032
@@ -191,7 +291,7 @@ start: Blank
         S_troll: \032
         S_trwall: \032
         S_tuwall: \032
-        S_aberration: \032
+        S_umber: \032
         S_unicorn: \032
         S_upladder: \032
         S_brupladder: \032
@@ -247,7 +347,6 @@ start: IBMgraphics
 	S_fountain: \xf4		# meta-t, integral top half
 	S_pool: \xf7			# meta-w, approx. equals
 	S_ice: \xfa			# meta-z, centered dot
-	S_grass: \xfa			# meta-z, centered dot
 	S_lava: \xf7			# meta-w, approx. equals
 	S_vodbridge: \xfa		# meta-z, centered dot
 	S_hodbridge: \xfa		# meta-z, centered dot
@@ -306,6 +405,145 @@ start: IBMGraphics_2
 	S_sw_mr: \xb3			# meta-3, vertical rule
 	S_expl_ml: \xb3			# meta-3, vertical rule
 	S_expl_mr: \xb3			# meta-3, vertical rule
+finish
+
+start: RogueIBM
+	Handling: IBM
+	Restrictions: rogue
+	S_weapon: \x29
+	S_amulet: \x2c
+	S_food: \x3a
+	S_potion: \xad
+	S_scroll: \x3f
+	S_book: \x2b
+	S_wand: \xe7
+	S_vwall: \xba			# all walls now use
+	S_hwall: \xcd			# double line graphics
+	S_tlcorn: \xc9
+	S_trcorn: \xbb
+	S_blcorn: \xc8
+	S_brcorn: \xbc
+	S_crwall: \xce
+	S_tuwall: \xca
+	S_tdwall: \xcb
+	S_tlwall: \xb9
+	S_trwall: \xcc
+	S_ndoor: \xce
+	S_vodoor: \xce
+	S_hodoor: \xce
+	S_room: \xfa			# centered dot
+	S_corr: \xb1
+	S_litcorr: \xb2
+	S_upstair: \xf0			# Greek Xi
+	S_dnstair: \xf0
+	S_brupstair: \xf0		# Greek Xi
+	S_brdnstair: \xf0
+finish
+
+start: RogueEpyx
+	Description: rogue level color symbol set like Epyx Rogue
+	Restrictions: rogue
+	Handling: IBM
+	Color: Yes
+	S_vwall: \xba			# all walls now use
+	S_hwall: \xcd			# double line graphics
+	S_tlcorn: \xc9
+	S_trcorn: \xbb
+	S_blcorn: \xc8
+	S_brcorn: \xbc
+	S_crwall: \xce
+	S_tuwall: \xca
+	S_tdwall: \xcb
+	S_tlwall: \xb9
+	S_trwall: \xcc
+	S_ndoor: \xce
+	S_vodoor: \xce
+	S_hodoor: \xce
+	S_room: \xfa			# centered dot
+	S_corr: \xb1
+	S_litcorr: \xb2
+	S_upstair: \xf0			# Greek Xi
+	S_dnstair: \xf0
+	S_brupstair: \xf0		# Greek Xi
+	S_brdnstair: \xf0
+	S_arrow_trap: \x04		# diamond (cards)
+	S_dart_trap: \x04
+	S_falling_rock_trap: \x04
+	S_squeaky_board: \x04
+	S_bear_trap: \x04
+	S_land_mine: \x04
+	S_rolling_boulder_trap: \x04
+	S_sleeping_gas_trap: \x04
+	S_rust_trap: \x04
+	S_fire_trap: \x04
+	S_pit: \x04
+	S_spiked_pit: \x04
+	S_hole: \x04
+	S_trap_door: \x04
+	S_teleportation_trap: \x04
+	S_level_teleporter: \x04
+	S_magic_portal: \x04
+	S_web: \x04
+	S_statue_trap: \x04
+	S_magic_trap: \x04
+	S_anti_magic_trap: \x04
+	S_polymorph_trap: \x04
+	S_weapon: \x18			# up arrow
+# ^J	S_armor: \x0a			# Vert rect with o
+	S_armor: \x5b			# default: '['
+# ^I	S_ring: \x09			# circle with arrow
+	S_ring: \x3d			# default: '='
+	S_amulet: \x0c			# "female" symbol
+	S_tool: \x28			# default: '('
+	S_food: \x05			# club (as in cards)
+	S_potion: \xad			# upside down '!'
+	S_scroll: \x0e			# musical note
+	S_book: \x2b			# default: '+'
+	S_wand: \xe7			# greek tau
+	S_coin: \x0f			# yes it's the same as gems
+	S_gem: \x0f			# fancy '*'
+	S_rock: \x60
+	S_ball: \x30
+	S_chain: \x5f
+	S_venom: \x2e
+	S_rock: \x60
+	S_ball: \x30
+	S_chain: \x5f
+	S_venom: \x2e
+	S_human: \x01
+finish
+
+start: RogueWindows
+	Restrictions: rogue
+	Handling: IBM
+	S_weapon: \x29
+	S_amulet: \x2c
+	S_food: \x3a
+	S_potion: \xad
+	S_scroll: \x3f
+	S_book: \x2b
+	S_wand: \xe7
+	S_vwall: \xba			# all walls now use
+	S_hwall: \xcd			# double line graphics
+	S_tlcorn: \xc9
+	S_trcorn: \xbb
+	S_blcorn: \xc8
+	S_brcorn: \xbc
+	S_crwall: \xce
+	S_tuwall: \xca
+	S_tdwall: \xcb
+	S_tlwall: \xb9
+	S_trwall: \xcc
+	S_ndoor: \xce
+	S_vodoor: \xce
+	S_hodoor: \xce
+	S_room: \xfa			# centered dot
+	S_corr: \xb1
+	S_litcorr: \xb2
+	S_upstair: \xf0			# Greek Xi
+	S_dnstair: \xf0
+	S_brupstair: \xf0		# Greek Xi
+	S_brdnstair: \xf0
 finish
 
 start: curses

@@ -81,9 +81,9 @@ BUGS
 
 COPYRIGHT
        This  file  is  Copyright  (C)  Kenneth  Lorber,   2022   for   version
-       NetHack-3.6.0:1.9.   NetHack  may be freely redistributed.  See license
+       NetHack-3.7:1.12.   NetHack  may  be freely redistributed.  See license
        for details.
 
 
 
-NETHACK                         22 January 2022                     RECOVER(6)
+NETHACK                        06 February 2022                     RECOVER(6)

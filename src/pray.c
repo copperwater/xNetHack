@@ -2000,7 +2000,7 @@ dopray(void)
          * should not break conduct.  Also we can add more detail to the
          * livelog message as p_aligntyp will be known.
          */
-        livelog_write_string(LL_CONDUCT, "rejected atheism with a prayer");
+        livelog_printf(LL_CONDUCT, "rejected atheism with a prayer");
 
     /* set up p_type and p_alignment */
     if (!can_pray(TRUE))
@@ -2142,9 +2142,8 @@ doturn(void)
         You("don't know how to turn undead!");
         return ECMD_OK;
     }
-
     if (!u.uconduct.gnostic++)
-        livelog_write_string(LL_CONDUCT, "rejected atheism by turning undead");
+        livelog_printf(LL_CONDUCT, "rejected atheism by turning undead");
 
     Gname = halu_gname(u.ualign.type);
 

@@ -1640,6 +1640,12 @@ throwit(struct obj *obj,
             clear_thrownobj = TRUE;
             goto throwit_return;
         }
+        if (!Deaf && !Underwater) {
+            /* Some sound effects when item lands in water or lava */
+            if (is_pool(g.bhitpos.x, g.bhitpos.y)
+                || (is_lava(g.bhitpos.x, g.bhitpos.y) && !is_flammable(obj)))
+                pline((weight(obj) > 9) ? "Splash!" : "Plop!");
+        }
         if (flooreffects(obj, g.bhitpos.x, g.bhitpos.y, "fall")) {
             clear_thrownobj = TRUE;
             goto throwit_return;
@@ -1940,7 +1946,7 @@ thitmonst(
             /* attack hits mon */
             if (hmode == HMON_APPLIED)
                 if (!u.uconduct.weaphit++)
-                    livelog_write_string(LL_CONDUCT, "hit with a wielded weapon for the first time");
+                    livelog_printf(LL_CONDUCT, "hit with a wielded weapon for the first time");
             if (hmon(mon, obj, hmode, dieroll)) { /* mon still alive */
                 if (mon->wormno)
                     cutworm(mon, g.bhitpos.x, g.bhitpos.y, chopper);
@@ -2259,7 +2265,7 @@ breakobj(
         obj->in_use = 1; /* in case it's fatal */
         if (obj->otyp == POT_OIL && obj->lamplit) {
             explode_oil(obj, x, y);
-        } else if (distu(x, y) <= 2) {
+        } else if (next2u(x, y)) {
             if (!breathless(g.youmonst.data) || haseyes(g.youmonst.data)) {
                 /* wet towel protects both eyes and breathing */
                 if (obj->otyp != POT_WATER && !Half_gas_damage) {

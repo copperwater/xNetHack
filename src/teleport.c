@@ -83,12 +83,15 @@ goodpos(int x, int y, struct monst* mtmp, long gpflags)
             if (mtmp == &g.youmonst)
                 return (Swimming || Amphibious
                         || (!Is_waterlevel(&u.uz)
+                            && !(levl[x][y].typ == WATER)
                             /* water on the Plane of Water has no surface
                                so there's no way to be on or above that */
                             && (Levitation || Flying || Wwalking)));
             else
                 return (is_swimmer(mdat)
-                        || (!Is_waterlevel(&u.uz) && !grounded(mdat)));
+                        || (!Is_waterlevel(&u.uz)
+                            && !(levl[x][y].typ == WATER)
+                            && !grounded(mdat)));
         } else if (mdat->mlet == S_EEL && rn2(13) && !ignorewater) {
             return FALSE;
         } else if (is_lava(x, y)) {
@@ -743,6 +746,9 @@ dotele(
            but they both yield the same result.] */
 #define spellev(spell_otyp) ((int) objects[spell_otyp].oc_level)
         energy = 5 * spellev(SPE_TELEPORT_AWAY);
+#if 0
+        /* the addition of !break_the_rules to the outer if-block in
+           1ada454f rendered this dead code */
         if (break_the_rules) {
             if (!castit)
                 energy = 0;
@@ -753,7 +759,9 @@ dotele(
                having enough to cast (which also uses the move) */
             else if (u.uen < energy)
                 energy = u.uen;
-        } else if (u.uhunger <= 10) {
+        } else
+#endif
+        if (u.uhunger <= 10) {
             cantdoit = "are too weak from hunger";
         } else if (ACURR(A_STR) < 4) {
             cantdoit = "lack the strength";
@@ -1265,7 +1273,7 @@ rloc_to_core(struct monst* mtmp,
         if (u.uswallow) {
             u_on_newpos(mtmp->mx, mtmp->my);
             docrt();
-        } else if (distu(mtmp->mx, mtmp->my) > 2) {
+        } else if (!next2u(mtmp->mx, mtmp->my)) {
            unstuck(mtmp);
         }
     }
@@ -1278,7 +1286,7 @@ rloc_to_core(struct monst* mtmp,
         if (telemsg && (couldsee(x, y) || sensemon(mtmp))) {
             pline("%s vanishes and reappears%s.",
                   Monnam(mtmp),
-                  distu(x, y) <= 2 ? " next to you"
+                  next2u(x, y) ? " next to you"
                   : (distu(x, y) <= (BOLT_LIM * BOLT_LIM)) ? " close by"
                   : (distu(x, y) < distu(oldx, oldy)) ? " closer to you"
                   : " further away");
@@ -1287,7 +1295,7 @@ rloc_to_core(struct monst* mtmp,
                   appearmsg ? Amonnam(mtmp) : Monnam(mtmp),
                   appearmsg ? "suddenly " : "",
                   !Blind ? "appears" : "arrives",
-                  distu(x, y) <= 2 ? " next to you"
+                  next2u(x, y) ? " next to you"
                   : (distu(x, y) <= (BOLT_LIM * BOLT_LIM)) ? " close by" : "");
         }
     }

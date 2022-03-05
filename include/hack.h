@@ -299,6 +299,7 @@ typedef struct sortloot_item Loot;
 #define GP_ALLOW_XY 0x080000L /* [actually used by enexto() to decide whether
                                * to make an extra call to goodpos()]        */
 #define GP_ALLOW_U  0x100000L /* don't reject hero's location */
+#define MM_NOEXCLAM 0x200000L /* more sedate "<mon> appears." mesg for ^G */
 
 /* flags for make_corpse() and mkcorpstat(); 0..7 are recorded in obj->spe */
 #define CORPSTAT_NONE     0x00
@@ -646,6 +647,7 @@ enum adjattrib_return {
 #define ECMD_OK     0x00 /* cmd done successfully */
 #define ECMD_TIME   0x01 /* cmd took time, uses up a turn */
 #define ECMD_CANCEL 0x02 /* cmd canceled by user */
+#define ECMD_FAIL   0x04 /* cmd failed to finish, maybe with a yafm */
 
 /* values returned from getobj() callback functions */
 enum getobj_callback_returns {

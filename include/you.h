@@ -368,8 +368,10 @@ struct you {
     boolean umoved;     /* changed map location (post-move) */
     int last_str_turn;  /* 0: none, 1: half turn, 2: full turn
                            +: turn right, -: turn left */
-    int ulevel;         /* 1 to MAXULEV */
-    int ulevelmax;
+    int ulevel;         /* 1 to MAXULEV (30) */
+    int ulevelmax;      /* highest level, but might go down (to throttle
+                         * lost level recovery via blessed full healing) */
+    int ulevelpeak;     /* really highest level reached; never does down */
     unsigned utrap;     /* trap timeout */
     unsigned utraptype; /* defined if utrap nonzero. one of utraptypes */
     char urooms[5];         /* rooms (roomno + 3) occupied now */
@@ -494,5 +496,8 @@ struct you {
 #define Upolyd (u.umonnum != u.umonster)
 #define Ugender ((Upolyd ? u.mfemale : flags.female) ? 1 : 0)
 #define Polyinit_mode (flags.polyinit_mnum != NON_PM)
+
+/* point px,py is adjacent to (or same location as) hero */
+#define next2u(px,py) (distu((px),(py)) <= 2)
 
 #endif /* YOU_H */

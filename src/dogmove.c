@@ -7,6 +7,9 @@
 
 #include "mfndpos.h"
 
+#define DOG_HUNGRY      300
+#define DOG_WEAK        500
+#define DOG_STARVE      750
 /* Controls the satiation threshold of pets.
  * Pets will ignore food on the ground when they're more than this many turns
  * away from getting hungry again. */
@@ -374,9 +377,9 @@ dog_eat(struct monst *mtmp,
 static boolean
 dog_hunger(struct monst *mtmp, struct edog *edog)
 {
-    if (g.moves > edog->hungrytime + 500) {
+    if (g.moves > edog->hungrytime + DOG_WEAK) {
         if (!carnivorous(mtmp->data) && !herbivorous(mtmp->data)) {
-            edog->hungrytime = g.moves + 500;
+            edog->hungrytime = g.moves + DOG_WEAK;
             /* but not too high; it might polymorph */
         } else if (!edog->mhpmax_penalty) {
             /* starving pets are limited in healing */
@@ -395,7 +398,7 @@ dog_hunger(struct monst *mtmp, struct edog *edog)
             else
                 You_feel("worried about %s.", y_monnam(mtmp));
             stop_occupation();
-        } else if (g.moves > edog->hungrytime + 750
+        } else if (g.moves > edog->hungrytime + DOG_STARVE
                    || DEADMONSTER(mtmp)) {
  dog_died:
             if (mtmp->mleashed && mtmp != u.usteed)
@@ -1154,7 +1157,7 @@ dog_move(register struct monst *mtmp,
         if (!mtmp->isminion) {
             struct edog *dog = EDOG(mtmp);
 
-            hungry = (g.moves > (dog->hungrytime + 300));
+            hungry = (g.moves > (dog->hungrytime + DOG_HUNGRY));
         }
 
         /* Identify the best target in a straight line from the pet;

@@ -1,5 +1,5 @@
-.\"DO NOT REMOVE NH_DATESUB .TH NETHACK 6 "DATE(%d %B %Y)" NETHACK
-.TH NETHACK 6 "22 January 2022" NETHACK
+.\"DO NOT REMOVE NH_DATESUB .TH NETHACK 6 "DATE(%-d %B %Y)" NETHACK
+.TH NETHACK 6 "06 February 2022" NETHACK
 .\"DO NOT REMOVE NH_DATESUB .ds Nd DATE(%Y)
 .ds Nd 2022
 .de NB
@@ -8,9 +8,9 @@
 .de NR
 .ds Nr \\$2
 ..
-.NB $NHDT-Branch: NetHack-3.6 $
-.NR $NHDT-Revision: 1.16 $
-.ds Na Robert Patrick Rankin
+.NB $NHDT-Branch: NetHack-3.7 $
+.NR $NHDT-Revision: 1.23 $
+.\".ds Na
 .SH NAME
 nethack \- Exploring The Mazes of Menace
 .SH SYNOPSIS
@@ -289,9 +289,9 @@ symbols	Data file holding sets of specifications
 options	Data file containing a description of the
 	build-time option settings.
 .br
-help, hh	Help data files.
+help, hh, cmdhelp	Help data files.
 .br
-cmdhelp, opthelp, wizhelp	More help data files.
+opthelp, optmenu, wizhelp	More help data files.
 .br
 *.lua	Predefined special levels, dungeon control for
 	special levels, quest texts

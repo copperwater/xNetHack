@@ -394,8 +394,8 @@ doread(void)
         outrumor(bcsign(scroll), BY_COOKIE);
         if (!Blind)
             if (!u.uconduct.literate++)
-                livelog_write_string(LL_CONDUCT,
-                                     "became literate by reading a fortune cookie");
+                livelog_printf(LL_CONDUCT,
+                               "became literate by reading a fortune cookie");
         useup(scroll);
         return ECMD_TIME;
     } else if (otyp == T_SHIRT || otyp == ALCHEMY_SMOCK
@@ -464,7 +464,9 @@ doread(void)
               simpleonames(scroll), cap_text);
         if (!u.uconduct.literate++)
             livelog_printf(LL_CONDUCT, "became literate by reading %s",
-                           otyp == DUNCE_CAP ? "a dunce cap" : "a cornuthaum");
+                           (otyp == DUNCE_CAP) ? "a dunce cap"
+                           : "a cornuthaum");
+
         /* yet another note: despite the fact that player will recognize
            the object type, don't make it become a discovery for hero */
         if (!objects[otyp].oc_name_known && !objects[otyp].oc_uname)
@@ -508,8 +510,9 @@ doread(void)
               (((int) scroll->o_id * 7) % 10),
               (flags.verbose || Blind) ? "." : "");
         if (!u.uconduct.literate++)
-            livelog_write_string(LL_CONDUCT,
-                                 "became literate by reading a credit card");
+            livelog_printf(LL_CONDUCT,
+                           "became literate by reading a credit card");
+
         return ECMD_TIME;
     } else if (otyp == CAN_OF_GREASE) {
         pline("This %s has no label.", singular(scroll, xname));
@@ -523,8 +526,9 @@ doread(void)
             pline("It reads:");
         pline("\"Magic Marker(TM) Red Ink Marker Pen.  Water Soluble.\"");
         if (!u.uconduct.literate++)
-            livelog_write_string(LL_CONDUCT,
-                                 "became literate by reading a magic marker");
+            livelog_printf(LL_CONDUCT,
+                           "became literate by reading a magic marker");
+
         return ECMD_TIME;
     } else if (scroll->oclass == COIN_CLASS) {
         if (Blind)
@@ -533,8 +537,9 @@ doread(void)
             You("read:");
         pline("\"1 Zorkmid.  857 GUE.  In Frobs We Trust.\"");
         if (!u.uconduct.literate++)
-            livelog_write_string(LL_CONDUCT,
-                                 "became literate by reading a coin's engravings");
+            livelog_printf(LL_CONDUCT,
+                           "became literate by reading a coin's engravings");
+
         return ECMD_TIME;
     } else if (scroll->oartifact == ART_ORB_OF_FATE) {
         if (Blind)
@@ -543,8 +548,9 @@ doread(void)
             pline("It is signed:");
         pline("\"Odin.\"");
         if (!u.uconduct.literate++)
-            livelog_write_string(LL_CONDUCT,
-                                 "became literate by reading the divine signature of Odin");
+            livelog_printf(LL_CONDUCT,
+                   "became literate by reading the divine signature of Odin");
+
         return ECMD_TIME;
     } else if (otyp == CANDY_BAR) {
         const char *wrapper = candy_wrapper_text(scroll);
@@ -559,8 +565,8 @@ doread(void)
         }
         pline("The wrapper reads: \"%s\".", wrapper);
         if (!u.uconduct.literate++)
-            livelog_write_string(LL_CONDUCT,
-                                 "became literate by reading a candy bar wrapper");
+            livelog_printf(LL_CONDUCT,
+                           "became literate by reading a candy bar wrapper");
         return ECMD_TIME;
     } else if (scroll->otyp == C_RATION || scroll->otyp == K_RATION) {
         /* nonvegan/nonvegetarian names might be somewhat misleading since
@@ -587,8 +593,8 @@ doread(void)
         pline("The label reads: \"%s\".",
               mil_ration_msgs[scroll->o_id % SIZE(mil_ration_msgs)]);
         if (!u.uconduct.literate++)
-            livelog_write_string(LL_CONDUCT,
-                                 "became literate by reading the label on a ration");
+            livelog_printf(LL_CONDUCT,
+                           "became literate by reading the label on a ration");
         return ECMD_TIME;
     } else if (scroll->otyp == TIN) {
         char buf[BUFSZ], *text = tin_text(scroll, buf);
@@ -609,8 +615,8 @@ doread(void)
         pline("It reads: \"%s\"%s", text, endpunct);
 
         if (!u.uconduct.literate++)
-            livelog_write_string(LL_CONDUCT,
-                                    "became literate by reading a tin label");
+            livelog_printf(LL_CONDUCT,
+                           "became literate by reading a tin label");
         return ECMD_TIME;
     } else if (scroll->otyp == DWARVISH_RING_MAIL) {
         if (Blind) {
@@ -621,8 +627,8 @@ doread(void)
         pline("\"This is a dwarvish ring mail.");
         pline("All craftsdwarfship is of the finest quality.\"");
         if (!u.uconduct.literate++)
-            livelog_write_string(LL_CONDUCT,
-                                 "became literate by reading a dwarvish ring mail");
+            livelog_printf(LL_CONDUCT,
+                           "became literate by reading a dwarvish ring mail");
         return ECMD_TIME;
     } else if (scroll->oclass != SCROLL_CLASS
                && scroll->oclass != SPBOOK_CLASS) {
@@ -671,8 +677,9 @@ doread(void)
         && otyp != SPE_BLANK_PAPER && otyp != SCR_BLANK_PAPER)
         if (!u.uconduct.literate++)
             livelog_printf(LL_CONDUCT, "became literate by reading %s",
-                           scroll->oclass == SPBOOK_CLASS ? "a book" :
-                           scroll->oclass == SCROLL_CLASS ? "a scroll" : "something");
+                           (scroll->oclass == SPBOOK_CLASS) ? "a book"
+                           : (scroll->oclass == SCROLL_CLASS) ? "a scroll"
+                             : something);
 
     if (scroll->oclass == SPBOOK_CLASS) {
         return study_book(scroll) ? ECMD_TIME : ECMD_OK;
@@ -1772,13 +1779,13 @@ seffect_light(struct obj **sobjp)
             pline("Tiny lights sparkle in the air momentarily.");
         } else {
             /* surround with cancelled tame lights which won't explode */
+            struct monst *mon;
             boolean sawlights = FALSE;
-            int numlights = rn1(2,3) + (sblessed * 2);
-            int i;
+            int i, numlights = rn1(2, 3) + (sblessed * 2);
 
             for (i = 0; i < numlights; ++i) {
-                struct monst * mon = makemon(&mons[pm], u.ux, u.uy,
-                                             MM_EDOG | NO_MINVENT | MM_NOMSG);
+                mon = makemon(&mons[pm], u.ux, u.uy,
+                              MM_EDOG | NO_MINVENT | MM_NOMSG);
                 initedog(mon);
                 u.uconduct.pets++;
                 mon->msleeping = 0;
@@ -2553,33 +2560,66 @@ set_lit(int x, int y, genericptr_t val)
 }
 
 void
-litroom(register boolean on, struct obj* obj)
+litroom(
+    boolean on,      /* True: make nearby area lit; False: cursed scroll */
+    struct obj *obj) /* scroll, spellbook (for spell), or wand of light */
 {
-    char is_lit; /* value is irrelevant; we use its address
-                    as a `not null' flag for set_lit() */
+    struct obj *otmp;
+    boolean blessed_effect = (obj && obj->oclass == SCROLL_CLASS
+                              && obj->blessed);
+    char is_lit = 0; /* value is irrelevant but assign something anyway; its
+                      * address is used as a 'not null' flag for set_lit() */
     int radius;
 
-    /* first produce the text (provided you're not blind) */
+    /* update object lights and produce message (provided you're not blind) */
     if (!on) {
-        register struct obj *otmp;
+        int still_lit = 0;
 
-        if (!Blind) {
-            if (u.uswallow) {
-                pline("It seems even darker in here than before.");
-            } else {
-                if (uwep && artifact_light(uwep) && uwep->lamplit)
-                    pline("Suddenly, the only light left comes from %s!",
-                          the(xname(uwep)));
+        /*
+         * The magic douses lamps,&c too and might curse artifact lights.
+         *
+         * FIXME?
+         *  Shouldn't this affect all lit objects in the area of effect
+         *  rather than just those carried by the hero?
+         */
+        for (otmp = g.invent; otmp; otmp = otmp->nobj) {
+            if (otmp->lamplit) {
+                if (!artifact_light(otmp))
+                    (void) snuff_lit(otmp);
                 else
-                    You("are surrounded by darkness!");
+                    /* wielded Sunsword or worn gold dragon scales/mail;
+                       maybe lower its BUC state if not already cursed */
+                    impact_arti_light(otmp, TRUE, (boolean) !Blind);
+
+                if (otmp->lamplit)
+                    ++still_lit;
             }
         }
-
-        /* the magic douses lamps, et al, too */
-        for (otmp = g.invent; otmp; otmp = otmp->nobj)
-            if (otmp->lamplit)
-                (void) snuff_lit(otmp);
+        /* scroll of light becomes discovered when not blind, so some
+           message to justify that is needed */
+        if (!Blind) {
+            /* for the still_lit case, we don't know at this point whether
+               anything currently visibly lit is going to go dark; if this
+               message came after the darkening, we could count visibly
+               lit squares before and after to know; we do know that being
+               swallowed won't be affected--the interior is still lit */
+            if (still_lit)
+                pline_The("ambient light seems dimmer.");
+            else if (u.uswallow)
+                pline("It seems even darker in here than before.");
+            else
+                You("are surrounded by darkness!");
+        }
     } else { /* on */
+        if (blessed_effect) {
+            /* might bless artifact lights; no effect on ordinary lights */
+            for (otmp = g.invent; otmp; otmp = otmp->nobj) {
+                if (otmp->lamplit && artifact_light(otmp))
+                    /* wielded Sunsword or worn gold dragon scales/mail;
+                       maybe raise its BUC state if not already blessed */
+                    impact_arti_light(otmp, FALSE, (boolean) !Blind);
+            }
+        }
         if (u.uswallow) {
             if (Blind)
                 ; /* no feedback */
@@ -2607,7 +2647,7 @@ litroom(register boolean on, struct obj* obj)
 
     if(obj && obj->oclass == SCROLL_CLASS) {
         /* blessed scroll lights up entire level */
-        if(obj->blessed) {
+        if(blessed_effect) {
             int x, y;
             radius = -1;
             for (x = 1; x < COLNO; x++) {
@@ -2660,12 +2700,14 @@ litroom(register boolean on, struct obj* obj)
             free((genericptr_t) gremlin);
         } while (gremlins);
     }
+    return;
 }
 
 static void
 do_class_genocide(void)
 {
-    int i, j, immunecnt, gonecnt, goodcnt, class, feel_dead = 0, ll_done = 0;
+    int i, j, immunecnt, gonecnt, goodcnt, class, feel_dead = 0;
+    int ll_done = 0;
     char buf[BUFSZ] = DUMMY;
     boolean gameover = FALSE; /* true iff killed self */
 
@@ -2739,11 +2781,13 @@ do_class_genocide(void)
                     if (!ll_done++) {
                         if (!num_genocides())
                             livelog_printf(LL_CONDUCT | LL_GENOCIDE,
-                                           "performed %s first genocide (class %c)",
+                                     "performed %s first genocide (class %c)",
                                            uhis(), def_monsyms[class].sym);
                         else
-                            livelog_printf(LL_GENOCIDE, "genocided class %c", def_monsyms[class].sym);
+                            livelog_printf(LL_GENOCIDE, "genocided class %c",
+                                           def_monsyms[class].sym);
                     }
+
                     g.mvitals[i].mvflags |= (G_GENOD | G_NOCORPSE);
                     kill_genocided_monsters();
                     update_inventory(); /* eggs & tins */
@@ -2927,7 +2971,8 @@ do_genocide(int how)
     if (how & REALLY) {
         if (!num_genocides())
             livelog_printf(LL_CONDUCT | LL_GENOCIDE,
-                           "performed %s first genocide (%s)", uhis(), makeplural(buf));
+                           "performed %s first genocide (%s)",
+                           uhis(), makeplural(buf));
         else
             livelog_printf(LL_GENOCIDE, "genocided %s", makeplural(buf));
 
@@ -2972,7 +3017,7 @@ do_genocide(int how)
         if (!(mons[mndx].geno & G_UNIQ)
             && !(g.mvitals[mndx].mvflags & (G_GENOD | G_EXTINCT)))
             for (i = rn1(3, 4); i > 0; i--) {
-                if (!makemon(ptr, u.ux, u.uy, NO_MINVENT|MM_NOMSG))
+                if (!makemon(ptr, u.ux, u.uy, NO_MINVENT | MM_NOMSG))
                     break; /* couldn't make one */
                 ++cnt;
                 if (g.mvitals[mndx].mvflags & G_EXTINCT)
@@ -3260,10 +3305,12 @@ create_particular_creation(struct _create_particular_data* d)
         if (d->genderconf == -1) {
             /* no confict exists between explicit gender term and
                the specified monster name */
-            if (d->fem != -1
-                && (!whichpm || (!is_male(whichpm) && !is_female(whichpm))))
+            if (d->fem != -1 && (!whichpm || (!is_male(whichpm)
+                                              && !is_female(whichpm))))
                 mmflags |= (d->fem == FEMALE) ? MM_FEMALE
                                : (d->fem == MALE) ? MM_MALE : 0;
+            /* no surprise; "<mon> appears." rather than "<mon> appears!" */
+            mmflags |= MM_NOEXCLAM;
         } else {
             /* conundrum alert: an explicit gender term conflicts with an
                explicit gender-tied naming term (i.e. male cavewoman) */
@@ -3272,11 +3319,11 @@ create_particular_creation(struct _create_particular_data* d)
                commented out here */
             /*  d->fem = d->genderconf; */
 
-            /*  option chosen: let the explicit gender term (male or female)
-                override the gender-tied naming term, so leave d->fem as-is */
+            /* option chosen: let the explicit gender term (male or female)
+               override the gender-tied naming term, so leave d->fem as-is */
 
-               mmflags |= (d->fem == FEMALE) ? MM_FEMALE
-                               : (d->fem == MALE) ? MM_MALE : 0;
+            mmflags |= (d->fem == FEMALE) ? MM_FEMALE
+                           : (d->fem == MALE) ? MM_MALE : 0;
 
             /* another option would be to consider it a faulty specification
                and reject the request completely and produce a random monster

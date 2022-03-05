@@ -253,7 +253,8 @@ make_version(void)
 char *
 mdlib_version_string(char *outbuf, const char *delim)
 {
-    Sprintf(outbuf, "%d%s%d", VERSION_MAJOR, delim, VERSION_MINOR);
+    Sprintf(outbuf, "%d%s%d%s%d", VERSION_MAJOR, delim, VERSION_MINOR, delim,
+            PATCHLEVEL);
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     Sprintf(eos(outbuf), "-%d", EDITLEVEL);
 #endif
@@ -317,7 +318,7 @@ version_id_string(char *outbuf, int bufsz, const char *build_date)
     Strcpy(&subbuf[1], PORT_SUB_ID);
 #endif
 
-    Snprintf(outbuf, bufsz, "%s xNetHack%s Version %s%s - last %s %s.", PORT_ID,
+    Snprintf(outbuf, bufsz, "%s NetHack%s Version %s%s - last %s %s.", PORT_ID,
             subbuf, mdlib_version_string(versbuf, "."), statusbuf,
             date_via_env ? "revision" : "build", build_date);
     return outbuf;

@@ -413,7 +413,7 @@ newmail(struct mail_info *info)
         if (info->response_cmd)
             new_omailcmd(obj, info->response_cmd);
 
-        if (distu(md->mx, md->my) > 2)
+        if (!next2u(md->mx, md->my))
             verbalize("Catch!");
         display_nhwindow(WIN_MESSAGE, FALSE);
         obj = hold_another_object(obj, "Oops!", (const char *) 0,
@@ -559,9 +559,10 @@ ckmailstatus(void)
 }
 
 #if defined(SIMPLE_MAIL) || defined(SERVER_ADMIN_MSG)
-DISABLE_WARNING_FORMAT_NONLITERAL /* added in xNetHack */
 
-static void
+DISABLE_WARNING_FORMAT_NONLITERAL
+
+void
 read_simplemail(char *mbox, boolean adminmsg)
 {
     FILE* mb = fopen(mbox, "r");
@@ -613,7 +614,7 @@ read_simplemail(char *mbox, boolean adminmsg)
 
         pline(msgfrom, curline);
         if (adminmsg)
-            verbalize1(msg);
+            verbalize("%s", msg);
         else
             pline("It reads: \"%s\".", msg);
 
@@ -645,8 +646,9 @@ read_simplemail(char *mbox, boolean adminmsg)
         pline("It appears to be all gibberish.");
 }
 
-RESTORE_WARNING_FORMAT_NONLITERAL /* added in xNetHack */
-#endif /* SIMPLE_MAIL || ADMIN_MSG */
+RESTORE_WARNING_FORMAT_NONLITERAL
+
+#endif /* SIMPLE_MAIL */
 
 void
 ck_server_admin_msg(void)

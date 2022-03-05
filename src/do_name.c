@@ -1,4 +1,4 @@
-/* NetHack 3.7	do_name.c	$NHDT-Date: 1625885761 2021/07/10 02:56:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.213 $ */
+/* NetHack 3.7	do_name.c	$NHDT-Date: 1644347168 2022/02/08 19:06:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.231 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1402,7 +1402,9 @@ oname(struct obj *obj, const char *name)
         if (obj->unpaid)
             alter_cost(obj, 0L);
         if (g.via_naming) {
-            livelog_printf(LL_ARTIFACT, "chose %s to be named \"%s\"", ansimpleoname(obj), bare_artifactname(obj));
+            livelog_printf(LL_ARTIFACT,
+                           "chose %s to be named \"%s\"",
+                           ansimpleoname(obj), bare_artifactname(obj));
         }
         /* set up specific materials for the artifact */
         switch(obj->oartifact) {
@@ -2134,7 +2136,7 @@ distant_monnam(struct monst *mon,
        unless you're adjacent (overridden for hallucination which does
        its own obfuscation) */
     if (mon->data == &mons[PM_HIGH_CLERIC] && !Hallucination
-        && Is_astralevel(&u.uz) && distu(mon->mx, mon->my) > 2) {
+        && Is_astralevel(&u.uz) && !next2u(mon->mx, mon->my)) {
         Strcpy(outbuf, article == ARTICLE_THE ? "the " : "");
         Strcat(outbuf, mon->female ? "high priestess" : "high priest");
     } else {
@@ -2438,7 +2440,9 @@ const char *
 hliquid(
     const char *liquidpref) /* use as-is when not hallucintg (unless empty) */
 {
-    if (Hallucination || !liquidpref || !*liquidpref) {
+    boolean hallucinate = Hallucination && !g.program_state.gameover;
+
+    if (hallucinate || !liquidpref || !*liquidpref) {
         int indx, count = SIZE(hliquids);
 
         /* if we have a non-hallucinatory default value, include it
@@ -2503,6 +2507,7 @@ christen_orc(struct monst *mtmp, const char *gang, const char *other)
     char buf[BUFSZ], buf2[BUFSZ], *orcname;
 
     orcname = rndorcname(buf2);
+    /* rndorcname() won't return NULL */
     sz = (int) strlen(orcname);
     if (gang)
         sz += (int) (strlen(gang) + sizeof " of " - sizeof "");
@@ -2513,11 +2518,11 @@ christen_orc(struct monst *mtmp, const char *gang, const char *other)
         char gbuf[BUFSZ];
         boolean nameit = FALSE;
 
-        if (gang && orcname) {
+        if (gang) {
             Sprintf(buf, "%s of %s", upstart(orcname),
                     upstart(strcpy(gbuf, gang)));
             nameit = TRUE;
-        } else if (other && orcname) {
+        } else if (other) {
             Sprintf(buf, "%s%s", upstart(orcname), other);
             nameit = TRUE;
         }

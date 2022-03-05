@@ -1,4 +1,4 @@
-NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.0 $ $NHDT-Date: 1643491497 2022/01/29 21:24:57 $
+NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.788 $ $NHDT-Date: 1644610217 2022/02/11 20:10:17 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -765,6 +765,23 @@ falling down a hole or trapdoor will cause damage proportional to fall height
 stinking gas clouds block line-of-sight
 covetous monsters will teleport to downstairs or upstairs to heal
 have fake player monsters use verbalize instead of pline when reacting to chat
+fix mention_walls distinguishing unseen walls from solid stone
+don't push unknown boulders when moving
+in flush_screen, reorder the code slightly to complete the bot() and
+	timebot() calls prior to the window port call to place the cursor
+	on the hero
+magic traps can toggle intrinsic invisibility
+Death attacking a monster does drain life attack
+add unique Rider revival messages
+don't dereference NULL u.ustuck in dobuzz() when hero has been swallowed
+monsters should growl even if you can't hear it
+give a sound effect message when thrown item lands in water or lava
+don't show rusting of items that land in water
+the water used on the Plane of Water stops thrown or kicked items
+looting will do #force if you could do it and the container is locked
+	and you didn't have a tool to unlock it
+use silly names for rays (such as breath weapons) when hallucinating
+zombies groan instead of being silent
 
 
 Fixes to 3.7.0-x Problems that Were Exposed Via git Repository
@@ -990,6 +1007,18 @@ a change to wounded legs handling resulted in not recovering lost dexterity
 	rather than having legs be explicitly healed
 turning movement into commands broke the rest_on_space option; it also
 	interfered with using pick-axe plus autodig in downward direction
+cursed scroll of light had special message when wielding Sunsword that didn't
+	work for wearing gold dragon scales/mail
+giving a prefix keystroke other than 'm' prior to a command that doesn't use
+	prefixes was siliently ignored instead of being rejected
+prior revision broke all prefix usage
+movement command revamp broke 'm>' and 'm<' on stairs to avoid auto-pickup at
+	the destination
+when trapeffect_selector() returns 2 to caller mintrap(), meant to signify
+	that the monster was killed in the trap, ensure that mintrap()
+	returns that value too
+have com_pager() check for failed nhl_init(); probably can't actually happen
+	because the program would never get that far if lua init was failing
 
 curses: 'msg_window' option wasn't functional for curses unless the binary
 	also included tty support
@@ -1005,6 +1034,9 @@ curses: messages were tagged by turn in 3.6.x so that ^P can place a separator
 	between groups of messages; somehow the line of code that recorded
 	the turn vanished so ^P behaved as if every message came on its own
 	distinct turn, resulting in lots of "---" separators
+curses: when entering a count while in a menu, cursor would jump to the spot
+	on screen where the hero was, even if menu covered that part of map;
+	post-3.6--started when curses was changed to use core's get_count()
 Qt: at Xp levels above 20 with 'showexp' On, the combined status field
 	"Level:NN/nnnnnnnn" was too big and truncated by a char at each end
 Qt: searching a text window for something that wasn't found and then searching
@@ -1059,6 +1091,9 @@ curses: sometimes entering a count during menu selection caused the menu to
 	but no longer displayed
 curses: support backspace/delete when entering a count during menu selection
 curses: make extended command prompt behave more sensibly
+curses: if a menu of objects contains at least one iron ball, and player is
+	not already in the midst of entering a count, recognize '0' as a
+	group accelerator rather than the start of a count
 macOS: Xcode project was failing to build if the path to the NetHack source
 	tree contained a space; the issue was within some shell script code
 	contained within the project
@@ -1158,6 +1193,9 @@ Qt: force the 'toptenwin' option On so that high scores display at end of game
 	might not be seen (note: doesn't apply to 'nethack -s')
 Qt: during role/race/&c selection, update role titles with their icons, and
 	also Valk eligibility, when gender is toggled
+Qt: if a menu of objects contains at least one iron ball, and player is not
+	alreadly in the midst of entering a count, recognize '0' as a group
+	accelerator rather than the start of a count
 Qt: {maybe just Qt+OSX:} when viewing a text window ('V' to look at 'history'
 	for instance), clicking on [Search], entering a search target in the
 	resulting popup and clicking on [Okay] or typing <return>, the text
@@ -1179,6 +1217,11 @@ tiles: add indicator of thonged portion to aklys tile
 tty: role and race selection menus weren't filtering out potential choices
 	which got excluded by OPTIONS=align:!lawful or !neutral or !chaotic
 tty: '$' can now select gold in a menu even when it isn't on current page
+tty: if a menu used full screen and brought up another menu that wasn't full
+	screen, sometimes only a small border of background was drawn around
+	it with most of the map left blank until after the menu was dismissed
+tty: have <return> dismiss pick-none menus instead of acting like '>' (not
+	only wouldn't dismiss when not on last page, wouldn't dismiss at all)
 Unix: when user name is used as default character name, keep hyphenated value
 	intact instead stripping off dash and whatever follows as if that
 	specified role/race/&c (worked once upon a time; broken since 3.3.0)
@@ -1369,6 +1412,11 @@ drinking blessed potion of full healing heals wounded legs, either hero's or
 drinking uncursed potion of full healing or blessed potion of extra healing
 	heal hero's wounded legs when not riding; no effect on steed if riding
 cancellation explodes most magical traps
+reading a blessed scroll of light has a chance to improve bless/curse state
+	of wielded Sunsword or worn gold dragon scales/mail similar to dipping
+	those into holy water; cursed scroll has chance to worsen the state
+added a chronicle of major events, and optional live logging of those
+paranoid:swim to prevent accidental dunking into dangerous liquids
 
 
 Platform- and/or Interface-Specific New Features
@@ -1408,6 +1456,9 @@ Qt: [later] augment extended command selection dialog's Filter to add a
 	typically commands with no keystroke or only meta character keystroke;
 	that makes Filter useful in normal mode (much shorter list of choices)
 Qt: add '#' as "Extended-commands" to the 'game' dropdown menu
+Qt: add tool tips to the extended command selector's buttons to show command
+	descriptions
+Qt: add tool tips to the icons shown in the status window
 tiles: male and female variations in monsters.txt; tested only with tile2bmp
 	conversion utility so far; also supported by tilemap utility to
 	generate tile.c
@@ -1482,7 +1533,7 @@ fix m-prefix movement into warning symbol (pr #573 by entrez)
 pointer precedence fix incrementing flagcounter in do.c (pr #612 by argrath)
 MAX_RADIUS defines the outer bound of the radius table, so leave it at 15
 	to avoid out-of-bound access in view_from() and do_clear_area()
-	(pr #613 by argrath) 
+	(pr #613 by argrath)
 variable attknum was declared without initialization, and was used in
 	find_roll_to_hit() (pr #615 by argrath)
 check for NULL lua_State before calling lua_close() (pr #616 by argrath)
@@ -1494,6 +1545,20 @@ mingw32 build updates and replacement of sys/windows/Makefile.gcc with new
 	sys/windows/Makefile.mingw32 and sys/windows/Makefile.mingw32.depend
 	(pr #661 by feiyunw)
 mark various pointers to const char as const pointers (pr #624 by argrath)
+function fill_special_room() in sp_lev.c was dereferencing a pointer
+	argument prior to a subsequent check for a NULL pointer that
+	resulted in an early function return (pr #669 by argrath)
+function repairable_damage() in shk.c was dereferencing a pointer
+	argument prior to a subsequent check for a NULL pointer that
+	resulted in an early function return (pr #671 by argrath)
+function savelev() in save.c was dereferencing a NHFILE pointer for
+	nhfp->mode prior to a subsequent check for nhfp being NULL
+	to trigger a call to panic() if it was; move the check for NULL
+	above that usage (pr #675 by argrath)
+function tin_details() in eat.c was passing an obj pointer to
+	tin_variety() where it was dereferenced; move the tin_details()
+	NULL check above that tin_variety() call (pr #676 by argrath)
+remove unnecessary null checks from christen_orc() (pr #681 by argrath)
 
 
 Code Cleanup and Reorganization
@@ -1608,4 +1673,5 @@ map_glyphinfo() now simply references an internal array that maps each unique
 added MG_MALE glyphflag to complement the MG_FEMALE glyphflag that was there
 remove obsolete roles[].femalenum and rename roles[].malenum to roles[].mnum;
 	likewise for races[]
-
+add git submodule support to the Makefiles by specifying git=1 or GIT=1 on the
+	make command

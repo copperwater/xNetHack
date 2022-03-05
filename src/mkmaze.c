@@ -1936,41 +1936,6 @@ restore_waterlevel(NHFILE* nhfp)
     b->next = (struct bubble *) 0;
 }
 
-/* Return a string representing the type of liquid at the given x and y.
- * Assumes that the terrain type at this location is in fact some sort of
- * water, lava, or ice. */
-const char *
-waterbody_name(xchar x, xchar y)
-{
-    struct rm *lev;
-    schar ltyp;
-
-    if (!isok(x, y))
-        return "drink"; /* should never happen */
-    lev = &levl[x][y];
-    ltyp = lev->typ;
-    if (ltyp == DRAWBRIDGE_UP)
-        ltyp = db_under_typ(lev->drawbridgemask);
-
-    if (ltyp == LAVAPOOL)
-        return hliquid("lava");
-    else if (ltyp == ICE)
-        return "ice";
-    else if (ltyp == POOL)
-        return "pool of water";
-    else if (ltyp == WATER || Is_waterlevel(&u.uz))
-        ; /* fall through to default return value */
-    else if (Is_juiblex_level(&u.uz))
-        return "swamp";
-    else if (ltyp == MOAT && !Is_medusa_level(&u.uz)
-             /* samurai has two moat spots on quest home level that seem
-                silly if described as such (maybe change them to pools?) */
-             && !(Role_if(PM_SAMURAI) && Is_qstart(&u.uz)))
-        return "moat";
-
-    return hliquid("water");
-}
-
 /* Set the global variable wportal to point to the magic portal on the current
  * level. */
 static void

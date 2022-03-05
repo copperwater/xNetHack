@@ -1,4 +1,4 @@
-/* NetHack 3.7	display.c	$NHDT-Date: 1643491545 2022/01/29 21:25:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.174 $ */
+/* NetHack 3.7	display.c	$NHDT-Date: 1644440006 2022/02/09 20:53:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.177 $ */
 /* Copyright (c) Dean Luick, with acknowledgements to Kevin Darcy */
 /* and Dave Cohrs, 1990.                                          */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -760,7 +760,7 @@ newsym(register int x, register int y)
     if (Underwater && !Is_waterlevel(&u.uz)) {
         /* when underwater, don't do anything unless <x,y> is an
            adjacent water or lava or ice position */
-        if (!(is_pool_or_lava(x, y) || is_ice(x, y)) || distu(x, y) > 2)
+        if (!(is_pool_or_lava(x, y) || is_ice(x, y)) || !next2u(x, y))
             return;
     }
 
@@ -1847,6 +1847,12 @@ flush_screen(int cursor_on_u)
         return;
 #endif
 
+    /* get this done now, before we place the cursor on the hero */
+    if (g.context.botl || g.context.botlx)
+        bot();
+    else if (iflags.time_botl)
+        timebot();
+
     for (y = 0; y < ROWNO; y++) {
         register gbuf_entry *gptr = &g.gbuf[y][x = g.gbuf_start[y]];
 
@@ -1858,16 +1864,14 @@ flush_screen(int cursor_on_u)
                 gptr->gnew = 0;
             }
     }
+    reset_glyph_bbox();
 
+    /* after map update, before display_nhwindow(WIN_MAP) */
     if (cursor_on_u)
         curs(WIN_MAP, u.ux, u.uy); /* move cursor to the hero */
+
     display_nhwindow(WIN_MAP, FALSE);
-    reset_glyph_bbox();
     flushing = 0;
-    if (g.context.botl || g.context.botlx)
-        bot();
-    else if (iflags.time_botl)
-        timebot();
 }
 
 /* ======================================================================== */

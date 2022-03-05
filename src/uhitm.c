@@ -28,6 +28,9 @@ static void end_engulf(void);
 static int gulpum(struct monst *, struct attack *);
 static boolean hmonas(struct monst *);
 static void nohandglow(struct monst *);
+static boolean mhurtle_to_doom(struct monst *, int, struct permonst **,
+                               boolean);
+static void first_weapon_hit(void);
 static boolean shade_aware(struct obj *);
 
 #define PROJECTILE(obj) ((obj) && is_ammo(obj))
@@ -179,7 +182,7 @@ attack_checks(
         if (M_AP_TYPE(mtmp) && !Protection_from_shape_changers) {
             if (!u.ustuck && !mtmp->mflee && dmgtype(mtmp->data, AD_STCK)
                 /* applied pole-arm attack is too far to get stuck */
-                && distu(mtmp->mx, mtmp->my) <= 2)
+                && next2u(mtmp->mx, mtmp->my))
                 set_ustuck(mtmp);
         }
         /* #H7329 - if hero is on engraved "Elbereth", this will end up
@@ -636,8 +639,8 @@ known_hitum(
                 cutworm(mon, g.bhitpos.x, g.bhitpos.y, slice_or_chop);
         }
         if (u.uconduct.weaphit && !oldweaphit)
-            livelog_write_string(LL_CONDUCT,
-                                 "hit with a wielded weapon for the first time");
+            livelog_printf(LL_CONDUCT,
+                           "hit with a wielded weapon for the first time");
     }
     return malive;
 }
@@ -853,6 +856,11 @@ hmon_hitmon(
      * damage it did _before_ outputting a hit message, but any messages
      * associated with the damage don't come out until _after_ outputting
      * a hit message.
+     *
+     * More complications:  first_weapon_hit() should be called before
+     * xkilled() in order to have the gamelog messages in the right order.
+     * So it can't be deferred until end of known_hitum() as was originally
+     * done.  We might call it directly or indirectly via mhurtle_to_doom().
      */
     boolean hittxt = FALSE, destroyed = FALSE, already_killed = FALSE;
     boolean get_dmg_bonus = TRUE;
@@ -1543,13 +1551,8 @@ hmon_hitmon(
             useup(obj);
             obj = (struct obj *) 0;
         }
-        /* avoid migrating a dead monster */
-        if (mon->mhp > tmp) {
-            mhurtle(mon, u.dx, u.dy, 1);
-            mdat = mon->data; /* in case of a polymorph trap */
-            if (DEADMONSTER(mon))
-                already_killed = TRUE;
-        }
+        if (mhurtle_to_doom(mon, tmp, &mdat, TRUE))
+            already_killed = TRUE;
         hittxt = TRUE;
     } else if (unarmed && tmp > 1 && !thrown && !obj && !Upolyd) {
         /* VERY small chance of stunning opponent if unarmed. */
@@ -1558,19 +1561,21 @@ hmon_hitmon(
             if (canspotmon(mon))
                 pline("%s %s from your powerful strike!", Monnam(mon),
                       makeplural(stagger(mon->data, "stagger")));
-            /* avoid migrating a dead monster */
-            if (mon->mhp > tmp) {
-                mhurtle(mon, u.dx, u.dy, 1);
-                mdat = mon->data; /* in case of a polymorph trap */
-                if (DEADMONSTER(mon))
-                    already_killed = TRUE;
-            }
+            if (mhurtle_to_doom(mon, tmp, &mdat, FALSE))
+                already_killed = TRUE;
             hittxt = TRUE;
         }
     }
 
-    if (!already_killed)
+    if (!already_killed) {
+        if (obj && (obj == uwep || (obj == uswapwep && u.twoweap))
+            && (thrown == HMON_MELEE || thrown == HMON_APPLIED)
+            /* note: caller has already incremented u.uconduct.weaphit
+               so we test for 1; 0 shouldn't be able to happen here... */
+            && tmp > 0 && u.uconduct.weaphit <= 1)
+            first_weapon_hit();
         mon->mhp -= tmp;
+    }
     /* adjustments might have made tmp become less than what
        a level draining artifact has already done to max HP */
     if (mon->mhp > mon->mhpmax)
@@ -1605,7 +1610,7 @@ hmon_hitmon(
                 Sprintf(withwhat, " with %s", yname(obj));
             pline("%s divides as you hit it%s!", Monnam(mon), withwhat);
             hittxt = TRUE;
-            mintrap(mclone);
+            (void) mintrap(mclone);
         }
     }
 
@@ -1697,6 +1702,47 @@ hmon_hitmon(
     return destroyed ? FALSE : TRUE;
 }
 
+/* joust or martial arts punch is knocking the target back; that might
+   kill 'mon' (via trap) before known_hitum() has a chance to do so;
+   return True if we kill mon, False otherwise */
+static boolean
+mhurtle_to_doom(
+    struct monst *mon,         /* target monster */
+    int tmp,                   /* amount of pending damage */
+    struct permonst **mptr,    /* caller's cached copy of mon->data */
+    boolean by_wielded_weapon) /* True: violating a potential conduct */
+{
+    /* if this hit is breaking the never-hit-with-wielded-weapon conduct
+       (handled by caller's caller...) we need to log the message about
+       that before mon is killed; without this, the log entry sequence
+        N : killed for the first time
+        N : hit with a wielded weapon for the first time
+       reported on the same turn (N) looks "suboptimal";
+       u.uconduct.weaphit has already been incremented => 1 is first hit */
+    if (by_wielded_weapon && u.uconduct.weaphit <= 1)
+        first_weapon_hit();
+
+    /* only hurtle if pending physical damage (tmp) isn't going to kill mon */
+    if (tmp < mon->mhp) {
+        mhurtle(mon, u.dx, u.dy, 1);
+        /* update caller's cached mon->data in case mon was pushed into
+           a polymorph trap or is a vampshifter whose current form has
+           been killed by a trap so that it reverted to original form */
+        *mptr = mon->data;
+        if (DEADMONSTER(mon))
+            return TRUE;
+    }
+    return FALSE; /* mon isn't dead yet */
+}
+
+/* gamelog version of "you've broken never-hit-with-wielded-weapon conduct;
+   the conduct is tracked in known_hitum(); we're called by hmon_hitmon() */
+static void
+first_weapon_hit(void)
+{
+    livelog_printf(LL_CONDUCT, "hit with a wielded weapon for the first time");
+}
+
 static boolean
 shade_aware(struct obj *obj)
 {
@@ -1736,7 +1782,7 @@ shade_miss(struct monst *magr, struct monst *mdef, struct obj *obj,
 
     if (verbose
         && ((youdef || cansee(mdef->mx, mdef->my) || sensemon(mdef))
-            || (magr == &g.youmonst && distu(mdef->mx, mdef->my) <= 2))) {
+            || (magr == &g.youmonst && next2u(mdef->mx, mdef->my)))) {
         static const char harmlessly_thru[] = " harmlessly through ";
 
         what = (!obj || shade_aware(obj)) ? "attack" : cxname(obj);
@@ -2231,11 +2277,15 @@ mhitm_ad_drli(
         /* mhitm */
         int armpro = magic_negation(mdef);
         boolean cancelled = magr->mcan || !(rn2(10) >= 3 * armpro);
+        /* mhitm_ad_deth gets redirected here for Death's touch */
+        boolean is_death = (mattk->adtyp == AD_DETH);
 
-        if (!cancelled && !rn2(3)
-            && !(resists_drli(mdef) || defended(mdef, AD_DRLI))
-            && !item_catches_drain(mdef)) {
-            mhm->damage = d(2, 6); /* Stormbringer uses monhp_per_lvl (usually 1d8) */
+        if (is_death
+            || (!cancelled && !rn2(3)
+                && !(resists_drli(mdef) || defended(mdef, AD_DRLI))
+                && !item_catches_drain(mdef))) {
+            if (!is_death)
+                mhm->damage = d(2, 6); /* Stormbringer uses monhp_per_lvl (1d8) */
             if (g.vis && canspotmon(mdef))
                 pline("%s becomes weaker!", Monnam(mdef));
             if (mdef->mhpmax - mhm->damage > (int) mdef->m_lev) {
@@ -3047,7 +3097,7 @@ mhitm_ad_stck(
         /* since hero can't be cancelled, only defender's armor applies */
         boolean negated = !(rn2(10) >= 3 * armpro);
 
-        if (!negated && !sticks(pd) && distu(mdef->mx, mdef->my) <= 2)
+        if (!negated && !sticks(pd) && next2u(mdef->mx, mdef->my))
             set_ustuck(mdef); /* it's now stuck to you */
     } else if (mdef == &g.youmonst) {
         /* mhitu */
@@ -3718,12 +3768,8 @@ mhitm_ad_deth(struct monst *magr, struct attack *mattk UNUSED,
            undead hero would; otherwise, just inflict the normal damage */
         if (is_undead(pd) && mhm->damage > 1)
             mhm->damage = rnd(mhm->damage / 2);
-        /*
-         * FIXME?
-         *  most monsters should be vulnerable to Death's touch
-         *  instead of only receiving ordinary damage, but is it
-         *  worth bothering with?
-         */
+        /* simulate Death's touch with drain life attack */
+        mhitm_ad_drli(magr, mattk, mdef, mhm);
     }
 }
 
@@ -5048,6 +5094,9 @@ hmonas(struct monst *mon)
     int dieroll;
     boolean monster_survived;
 
+    /* not used here but umpteen mhitm_ad_xxxx() need this */
+    g.vis = (canseemon(mon) || next2u(mon->mx, mon->my));
+
     g.skipdrin = FALSE; /* [see mattackm(mhitm.c)] */
 
     for (i = 0; i < NATTK; i++) {
@@ -5791,7 +5840,7 @@ stumble_onto_mimic(struct monst *mtmp)
 
     if (!u.ustuck && !mtmp->mflee && dmgtype(mtmp->data, AD_STCK)
         /* must be adjacent; attack via polearm could be from farther away */
-        && distu(mtmp->mx, mtmp->my) <= 2)
+        && next2u(mtmp->mx, mtmp->my))
         set_ustuck(mtmp);
 
     if (Blind) {

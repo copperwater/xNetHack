@@ -38,6 +38,14 @@ static void kill_eggs(struct obj *);
     x_monnam(mtmp, ARTICLE_THE, (char *) 0,                 \
              (SUPPRESS_IT | SUPPRESS_HALLUCINATION), FALSE)
 
+/* A specific combination of x_monnam flags for livelogging. The livelog
+ * shouldn't show that you killed a hallucinatory monster and not what it
+ * actually is. */
+#define livelog_mon_nam(mtmp) \
+    x_monnam(mtmp, ARTICLE_THE, (char *) 0,                 \
+             (SUPPRESS_IT | SUPPRESS_HALLUCINATION), FALSE)
+
+
 #if 0
 /* part of the original warning code which was replaced in 3.3.1 */
 const char *warnings[] = {
@@ -1109,7 +1117,7 @@ movemon(void)
             if (mtmp->mundetected)
                 continue;
         } else if (mtmp->data->mlet == S_EEL && !mtmp->mundetected
-                   && (mtmp->mflee || distu(mtmp->mx, mtmp->my) > 2)
+                   && (mtmp->mflee || !next2u(mtmp->mx, mtmp->my))
                    && !canseemon(mtmp) && !rn2(4)) {
             /* some eels end up stuck in isolated pools, where they
                can't--or at least won't--move, so they never reach
@@ -1892,9 +1900,10 @@ mfndpos(
     nowtyp = levl[x][y].typ;
 
     nodiag = NODIAG(mdat - mons);
-    wantpool = mdat->mlet == S_EEL;
-    poolok = ((!Is_waterlevel(&u.uz) && !grounded(mdat)) ||
-              (is_swimmer(mdat) && !wantpool));
+    wantpool = (mdat->mlet == S_EEL);
+    poolok = ((!Is_waterlevel(&u.uz) && !(nowtyp != WATER)
+               && !grounded(mdat))
+              || (is_swimmer(mdat) && !wantpool));
     lavaok = (!grounded(mdat) || likes_lava(mdat));
     if (mdat == &mons[PM_FLOATING_EYE]) /* prefers to avoid heat */
         lavaok = FALSE;
@@ -2843,34 +2852,45 @@ mondead(register struct monst* mtmp)
      */
     if (mtmp->data == &mons[PM_MEDUSA])
         record_achievement(ACH_MEDU);
-    int numkills = g.mvitals[tmp].died;
-    if (unique_corpstat(mtmp->data) && (mtmp->data != &mons[PM_MEDUSA])
-        && (numkills == 1 || numkills == 5 || numkills == 10
-            || numkills == 50 || numkills == 100 || numkills == 150
-            || numkills == 200 || numkills == 250)) {
-        char wherebuf[BUFSZ];
-        char buf[BUFSZ];
-
-        wherebuf[0] = '\0';
-        if (mtmp->data == &mons[PM_WIZARD_OF_YENDOR]) {
-            /* special case to show dlvl */
-            if (In_endgame(&u.uz))
-                endgamelevelname(buf, depth(&u.uz));
-            else
-                describe_level(buf);
-            Snprintf(wherebuf, BUFSZ, ", %s %s",
-                     (In_endgame(&u.uz) ? "on the"
-                         : (In_quest(&u.uz) || Is_knox(&u.uz)) ? "in"
-                                                               : "on"),
-                     buf);
+    else if (unique_corpstat(mtmp->data)) {
+        int numkills = g.mvitals[tmp].died;
+        switch (numkills) {
+            case 1:
+            case 5:
+            case 10:
+            case 50:
+            case 100:
+            case 150:
+            case 200:
+            case 250: {
+                char wherebuf[BUFSZ];
+                char buf[BUFSZ];
+                wherebuf[0] = '\0';
+                if (mtmp->data == &mons[PM_WIZARD_OF_YENDOR]) {
+                    /* special case to show dlvl */
+                    if (In_endgame(&u.uz))
+                        endgamelevelname(buf, depth(&u.uz));
+                    else
+                        describe_level(buf);
+                    Snprintf(wherebuf, BUFSZ, ", %s %s",
+                             (In_endgame(&u.uz) ? "on the"
+                                 : (In_quest(&u.uz) || Is_knox(&u.uz)) ? "in"
+                                                                       : "on"),
+                             buf);
+                }
+                buf[0] = '\0';
+                if (numkills > 1) {
+                    Sprintf(buf, " (for the %dth time)", numkills);
+                }
+                livelog_printf(LL_UMONST, "%s %s%s%s",
+                               nonliving(mtmp->data) ? "destroyed" : "killed",
+                               livelog_mon_nam(mtmp), wherebuf, buf);
+                break;
+            }
+            default:
+                /* don't spam the log every time */
+                break;
         }
-        buf[0] = '\0';
-        if (numkills > 1) {
-            Sprintf(buf, " (for the %dth time)", numkills);
-        }
-        livelog_printf(LL_UMONST, "%s %s%s%s",
-                       nonliving(mtmp->data) ? "destroyed" : "killed",
-                       livelog_mon_nam(mtmp), wherebuf, buf);
     }
 
     if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
@@ -3117,7 +3137,7 @@ void
 set_ustuck(struct monst* mtmp)
 {
     if (iflags.sanity_check || iflags.debug_fuzzer) {
-        if (mtmp && distu(mtmp->mx, mtmp->my) > 2)
+        if (mtmp && !next2u(mtmp->mx, mtmp->my))
             impossible("Sticking to %s at distu %d?",
                        mon_nam(mtmp), distu(mtmp->mx, mtmp->my));
     }
@@ -3188,7 +3208,7 @@ xkilled(
     mtmp->mhp = 0; /* caller will usually have already done this */
     if (!noconduct) /* KMH, conduct */
         if (!u.uconduct.killer++)
-            livelog_write_string (LL_CONDUCT, "killed for the first time");
+            livelog_printf(LL_CONDUCT, "killed for the first time");
 
     if (!nomsg) {
         boolean namedpet = has_mgivenname(mtmp) && !Hallucination;
@@ -3377,6 +3397,7 @@ xkilled(
             You_hear("the studio audience applaud!");
         if (!unique_corpstat(mdat)) {
             boolean mname = has_mgivenname(mtmp);
+
             livelog_printf(LL_KILLEDPET, "murdered %s%s%s faithful %s",
                            mname ? MGIVENNAME(mtmp) : "",
                            mname ? ", " : "",
@@ -3904,11 +3925,11 @@ setmangry(struct monst* mtmp, boolean via_attack)
     } else if (u.ualign.type != A_CHAOTIC) {
         adjalign(-1); /* attacking peaceful monsters is bad */
     }
-    if (couldsee(mtmp->mx, mtmp->my)) {
-        if (humanoid(mtmp->data) || mtmp->isshk || mtmp->isgd)
+    if (humanoid(mtmp->data) || mtmp->isshk || mtmp->isgd) {
+        if (couldsee(mtmp->mx, mtmp->my))
             pline("%s gets angry!", Monnam(mtmp));
-        else if (flags.verbose && !Deaf)
-            growl(mtmp);
+    } else {
+        growl(mtmp);
     }
 
     /* attacking your own quest leader will anger his or her guardians */
@@ -4008,7 +4029,7 @@ setmangry(struct monst* mtmp, boolean via_attack)
                 } else if (mon->data->mlet == mtmp->data->mlet
                            && big_little_match(mndx, monsndx(mon->data))
                            && !rn2(3)) {
-                    if (!Deaf && !rn2(4)) {
+                    if (!rn2(4)) {
                         growl(mon);
                         exclaimed = (iflags.last_msg == PLNMSG_GROWL);
                     }
@@ -4211,7 +4232,7 @@ restrap(struct monst *mtmp)
         /* can't hide while trapped except in pits */
         || (mtmp->mtrapped && (t = t_at(mtmp->mx, mtmp->my)) != 0
             && !is_pit(t->ttyp))
-        || (sensemon(mtmp) && distu(mtmp->mx, mtmp->my) <= 2))
+        || (sensemon(mtmp) && next2u(mtmp->mx, mtmp->my)))
         return FALSE;
 
     if (mtmp->data->mlet == S_MIMIC) {
@@ -5123,7 +5144,7 @@ angry_guards(boolean silent)
         if (is_watch(mtmp->data) && mtmp->mpeaceful) {
             ct++;
             if (canspotmon(mtmp) && mtmp->mcanmove) {
-                if (distu(mtmp->mx, mtmp->my) <= 2)
+                if (next2u(mtmp->mx, mtmp->my))
                     nct++;
                 else
                     sct++;

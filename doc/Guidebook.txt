@@ -15,7 +15,7 @@
                          Original version - Eric S. Raymond
              (Edited and expanded for 3.7 by Mike Stephenson and others)
 
-                                  January 17, 2022
+                                  February 6, 2022
 
 
 
@@ -126,7 +126,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -192,7 +192,7 @@
           you have seen on the current dungeon level; as you  explore  more
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -258,7 +258,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -324,7 +324,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -390,7 +390,7 @@
                you have available for spell casting.  Again,  resting  will
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -456,7 +456,7 @@
           scribe things that are impossible to represent visually.  If  you
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -522,7 +522,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -588,7 +588,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -654,7 +654,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -720,7 +720,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -786,7 +786,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -852,7 +852,7 @@
                it out); this is often useful to give yourself a breather.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -918,7 +918,7 @@
                that command.)
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -984,7 +984,7 @@
                to hold the saved data is deleted.  In  explore  mode,  once
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1050,7 +1050,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1116,7 +1116,7 @@
           (R)UNIX is a registered trademark of The Open Group.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1182,7 +1182,7 @@
                `>',  `|'  by  default).   Some  interfaces   also   support
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1248,7 +1248,7 @@
                that  situation,  moving (no count given) a compatible stack
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1314,7 +1314,7 @@
                Go down a staircase.  Default key is `>'.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1380,7 +1380,7 @@
                On,  clicking  on  the  hero  (or  steed  when mounted) will
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1446,7 +1446,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1512,7 +1512,7 @@
                sume normal play.  Default key is `|'.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1578,7 +1578,7 @@
                `R'.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1644,7 +1644,7 @@
                Show the weapon currently wielded.  Default key is `)'.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1710,7 +1710,7 @@
                sters;  without  monsters  and objects; or without monsters,
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1776,7 +1776,7 @@
                Go up a staircase.  Default key is `<'.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1842,7 +1842,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1908,7 +1908,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -1974,7 +1974,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2040,7 +2040,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2106,7 +2106,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2172,7 +2172,7 @@
           Sokoban.  (Hint: to solve Sokoban puzzles, you often need to move
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2238,7 +2238,7 @@
           ing  the  "#chat"  command  while  standing on it.  Using an item
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2304,7 +2304,7 @@
           object  or pile of objects, or on a trap, or attempt to move onto
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2370,7 +2370,7 @@
           creature.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2436,7 +2436,7 @@
           tent, which can be error prone if you're using `y' to move.   You
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2502,7 +2502,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2568,7 +2568,7 @@
           you  are  carrying  around  with  you  through  the  dungeon will
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2634,7 +2634,7 @@
           within  the  game.   A  "glass half full versus glass half empty"
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2700,7 +2700,7 @@
           of  armor--is  a factor too; also, some monsters are particularly
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2766,7 +2766,7 @@
           command  to  throw  it.   You'll  be  prompted for a direction as
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2832,7 +2832,7 @@
           hance".   (Divine  intervention  might  unrestrict  a  particular
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2898,7 +2898,7 @@
           the  weapons  or  having  one of them be stolen or destroyed will
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -2964,7 +2964,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3030,7 +3030,7 @@
           generated  internal  to the game, these environment variables are
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3096,7 +3096,7 @@
           manent  magic,  unlike  the  usually fleeting effects of potions,
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3162,7 +3162,7 @@
           may  increase the potency of spells, reduce their risk of failure
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3228,7 +3228,7 @@
           Like   rings,  amulets  have  various  magical  properties,  some
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3294,7 +3294,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3360,7 +3360,7 @@
           a  physiological  need for water; thus there is no restriction on
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3426,7 +3426,7 @@
           ing  spoken  to  by an angry god, priest(ess), or other religious
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3492,7 +3492,7 @@
           type  ("polypiling")  or  the  form of your own body into another
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3558,7 +3558,7 @@
           perience levels 1, 3, 6, 10, 14, 18, 22, 26, and 30.  The one for
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3615,16 +3615,16 @@
                The default name of the configuration file varies on differ-
           ent operating systems.
 
-               On  UNIX, Linux, and Mac OS X it is ".xnethackrc" in the us-
-          er's home directory.  The file may not exist, but it is a  normal
-          ASCII text file and can be created with any text editor.
+               On  UNIX, Linux, and macOS it is ".xnethackrc" in the user's
+          home directory.  The file may not exist, but it is a normal ASCII
+          text file and can be created with any text editor.
 
                On  Windows,  it  is ".xnethackrc" in the folder "\%USERPRO-
-          FILE%\NetHack\3.6".  The file may not exist, but it is  a  normal
+          FILE%\NetHack\3.7".  The file may not exist, but it is  a  normal
           ASCII  text  file can can be created with any text editor.  After
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3636,7 +3636,7 @@
 
           running NetHack for the first time, you  should  find  a  default
           template  for the configuration file named ".xnethackrc.template"
-          in "\%USERPROFILE%\NetHack\3.6".  If you had not created the con-
+          in "\%USERPROFILE%\NetHack\3.7".  If you had not created the con-
           figuration  file,  NetHack will create the configuration file for
           you using the default template file.
 
@@ -3690,7 +3690,7 @@
             to HACKDIR, must be writable.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3756,7 +3756,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3822,7 +3822,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3888,7 +3888,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -3954,7 +3954,7 @@
             false).   When  true,  the  computer  will  fill your quiver or
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4020,7 +4020,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4086,7 +4086,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4152,7 +4152,7 @@
             "off".
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4218,7 +4218,7 @@
             Augment  inventory  object  descriptions  with  their  objects'
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4284,7 +4284,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4350,7 +4350,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4416,7 +4416,7 @@
             Start the character with no armor (default false).  Persistent.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4482,7 +4482,7 @@
             Were-change - require "yes" rather than `y' to confirm changing
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4499,6 +4499,7 @@
             Remove      - require selection from inventory for `R' and  `T'
                           commands  even  when  wearing just one applicable
                           item.
+            swim        - prevent walking into water or lava.
             all         - turn on all of the above.
 
             By default, the pray choice is enabled,  the  others  disabled.
@@ -4545,10 +4546,9 @@
             have no initial pet at all.  Possible values are "cat",  "dog",
             "horse", and "none".  If the choice is not allowed for the role
             you are currently playing, it will be  silently  ignored.   For
-            example,  "horse"  will  only be honored when playing a knight.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4558,6 +4558,7 @@
 
 
 
+            example,  "horse"  will  only be honored when playing a knight.
             Cannot be set with the `O' command.
 
           pickup_burden
@@ -4611,10 +4612,9 @@
             Using the `w' (wield) command when already  wielding  something
             pushes  the  old  item into your alternate weapon slot (default
             off).  Likewise for the `a' (apply) command if  it  causes  the
-            applied item to become wielded.  Persistent.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4623,6 +4623,8 @@
           NetHack Guidebook                                              71
 
 
+
+            applied item to become wielded.  Persistent.
 
           quick_farsight
             When  set,  usually  prevents the "you sense your surroundings"
@@ -4676,11 +4678,9 @@
 
           safe_pet
             Prevent you from (knowingly) attacking your pets (default  on).
-            Persistent.
 
 
-
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4689,6 +4689,8 @@
           NetHack Guidebook                                              72
 
 
+
+            Persistent.
 
           safe_wait
             Prevents  you  from waiting or searching when next to a hostile
@@ -4742,11 +4744,9 @@
 
           sortloot
             Controls the sorting behavior of the pickup lists for inventory
-            and #loot commands and some others.  Persistent.
 
 
-
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4755,6 +4755,8 @@
           NetHack Guidebook                                              73
 
 
+
+            and #loot commands and some others.  Persistent.
 
             The possible values are:
 
@@ -4807,12 +4809,10 @@
             fault is on if configured into the program.)  Persistent.
 
           tombstone
-            Draw a tombstone graphic upon your death (default on).  Persis-
-            tent.
+            Draw  a  tombstone  graphic  upon  your  death  (default   on).
 
 
-
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4821,6 +4821,8 @@
           NetHack Guidebook                                              74
 
 
+
+            Persistent.
 
           toptenwin
             Put the ending display in a NetHack window instead of on stdout
@@ -4874,11 +4876,9 @@
             Filtering  can also be changed when getting a location with the
             "getpos.filter" key.
 
-          whatis_menu
-            When getting a location on the map, and using a  key  to  cycle
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -4888,6 +4888,8 @@
 
 
 
+          whatis_menu
+            When getting a location on the map, and using a  key  to  cycle
             through next and previous targets, use a menu instead to pick a
             target.  (default off)
 
@@ -4942,9 +4944,7 @@
             or right).
 
 
-
-
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5010,7 +5010,7 @@
             If NetHack can, it should use this size font for text windows.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5076,7 +5076,7 @@
             Number of lines for traditional below-the-map  status  display.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5142,7 +5142,7 @@
             time in the message window.
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5208,7 +5208,7 @@
             only).   The  name  of  the  handling type is one of "default",
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5274,7 +5274,7 @@
             Set  the  video  mode  used  (PC  NetHack  only).   Values  are
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5340,7 +5340,7 @@
             up_exception  option should be followed by a regular expression
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5406,7 +5406,7 @@
             ject symbols or selection letters into menu accelerators.  Some
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5472,7 +5472,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5538,7 +5538,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5604,7 +5604,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5670,7 +5670,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5699,7 +5699,7 @@
             parts:
 
             MESG        - message window mapping (the only one supported in
-                          3.6);
+                          3.7);
             pattern     - the pattern to match;
             sound file  - the sound file to play;
             volume      - the volume to be  set  while  playing  the  sound
@@ -5736,7 +5736,7 @@
           OPTION=hilite_status:wisdom/down/red/up/green
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5802,7 +5802,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5868,7 +5868,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -5934,7 +5934,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -6000,7 +6000,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -6066,7 +6066,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -6132,7 +6132,7 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -6190,15 +6190,15 @@
           to an executable, which will be executed with the game message as
           the program's only parameter.
 
-               While it is not difficult for experienced users to edit  the
-          defaults.nh  file  to accomplish this, novices may find this task
-          somewhat daunting.  Included within the "symbols" file of all of-
-          ficial distributions of NetHack is a symset called NHAccess.  Se-
-          lecting that symset in your configuration  file  will  cause  the
-          game  to run in a manner accessible to the blind.  After you have
+               The most crucial settings to make the game  more  accessible
+          are:
+
+          symset:plain
+            Load a symbol set appropriate for use by blind players.
 
 
-          NetHack 3.7                                      January 17, 2022
+
+          NetHack 3.7                                      February 6, 2022
 
 
 
@@ -6207,20 +6207,6 @@
           NetHack Guidebook                                              95
 
 
-
-          gained some experience with the game and with editing files,  you
-          may want to alter settings via SYMBOLS= and ROGUESYMBOLS= in your
-          configuration file to better suit your preferences.  See the pre-
-          vious  section  for the special symbols S_pet_override to force a
-          consistent symbol for all pets and  S_hero_override  to  force  a
-          unique  symbol  for  the player character if accessibility is en-
-          abled in the sysconf file.
-
-               The most crucial settings to make the game  more  accessible
-          are:
-
-          symset:NHAccess
-            Load a symbol set appropriate for use by blind players.
 
           menustyle:traditional
             This will assist in the interface to speech synthesizers.
@@ -6232,6 +6218,9 @@
             A  lot  of  speech access programs use the number-pad to review
             the screen.  If this is the case, disable the number_pad option
             and use the traditional Rogue-like commands.
+
+          paranoid_confirmation:swim
+            Prevent walking into water or lava.
 
           autodescribe
             Automatically  describe  the terrain under the cursor when tar-
@@ -6259,21 +6248,6 @@
             screen, if your screen-reader reads those lines. The  same  in-
             formation can be seen via the "#attributes" command.
 
-
-
-
-
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                              96
-
-
-
           9.16.  Global Configuration for System Administrators
 
                If  NetHack  is compiled with the SYSCF option, a system ad-
@@ -6288,6 +6262,18 @@
             WIZARDS = A space-separated list of user names who are  allowed
             to play in debug mode (commonly referred to as wizard mode).  A
             value of a single asterisk (*) allows anyone to start a game in
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                              96
+
+
+
             debug mode.
 
             SHELLERS = A list of users who are allowed to use the shell es-
@@ -6329,17 +6315,6 @@
             where  the  administrator  wants  to prevent players from being
             able to calculate the hash result.
 
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                              97
-
-
-
             CHECK_PLNAME = Setting this to 1 will make the EXPLORERS,  WIZ-
             ARDS, and SHELLERS check for the player name instead of the us-
             er's login name.
@@ -6352,6 +6327,18 @@
                The following options affect the score file:
 
             PERSMAX = Maximum number of entries for one person.
+
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                              97
+
+
 
             ENTRYMAX = Maximum number of entries in the score file.
 
@@ -6379,7 +6366,7 @@
             lows the following placeholders:
 
             %% - literal `%'
-            %v - version (eg. "3.6.3-0")
+            %v - version (eg. "3.7.0-0")
             %u - game UID
             %t - game start time, UNIX timestamp format
             %T - current time, UNIX timestamp format
@@ -6393,32 +6380,29 @@
             game as LIVELOGFILE to enable this feature.  The following val-
             ues may be combined:
 
+                 0x01 - Wishes
+                 0x02 - Significant achievements (complete sokoban, perform invocation, etc)
+                 0x04 - Kill, destroy or bribe a unique monster.
+                 0x08 - Significant religious events (sacrifice gifts, crowning)
+                 0x10 - Life-saving
+                 0x20 - Break conduct
+                 0x40 - Artifact obtained (#name Sting, dip for Excalibur)
+                 0x80 - Genocides
+                 0x8000 - Livelog debug msgs (currently only 'enter new level')
 
 
 
-          NetHack 3.7                                      January 17, 2022
+
+
+
+
+          NetHack 3.7                                      February 6, 2022
 
 
 
 
 
           NetHack Guidebook                                              98
-
-
-
-                 0x01 - Wishes
-                 0x02 - Significant achievements (complete sokoban, perform invocation, etc)
-                 0x04 - Kill, destroy or bribe a unique monster.
-                 0x08 - Significant religious events (sacrifice gifts, crowning)
-                 0x10 - Life-saving
-                 0x20 - Break conduct - see also LLC_TURNS below.
-                 0x40 - Artifact obtained (#name Sting, dip for Excalibur)
-                 0x80 - Genocides
-                 0x8000 - Livelog debug msgs (currently only 'enter new level')
-
-            LLC_TURNS = N - If live-logging conducts is enabled, do not log
-            them before this turncount, because conducts broken in the ear-
-            ly game are not interesting.
 
 
 
@@ -6459,22 +6443,10 @@
           start  the game with the -X command-line switch or with the play-
           mode:explore option.  The other is to  issue  the  "#exploremode"
           extended  command while already playing the game.  Starting a new
-          game in explore mode provides  your  character  with  a  wand  of
-
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                              99
-
-
-
-          wishing  in  initial  inventory;  switching during play does not.
-          The other benefits of explore mode are left for the trepid reader
-          to discover.
+          game in explore mode provides your character with a wand of wish-
+          ing  in  initial  inventory; switching during play does not.  The
+          other benefits of explore mode are left for the trepid reader  to
+          discover.
 
           11.1.  Debug mode
 
@@ -6486,6 +6458,19 @@
           debugging are expected to figure out how to  use  it  themselves.
           It  is  initiated  by  starting the game with the -D command-line
           switch or with the playmode:debug option.
+
+
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                              99
+
+
 
                For some systems, the player must be logged in under a  par-
           ticular  user  name  to be allowed to use debug mode; for others,
@@ -6526,18 +6511,6 @@
           sions (3.0, 3.2, 3.51, and 3.6; note that these are old Hack ver-
           sion numbers, not contemporary NetHack ones).
 
-
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                             100
-
-
-
                R.  Black  ported  PC  HACK  3.51 to Lattice C and the Atari
           520/1040ST, producing ST Hack 1.03.
 
@@ -6553,6 +6526,18 @@
                Later,  Mike coordinated a major re-write of the game, head-
           ing a team which included Ken Arromdee,  Jean-Christophe  Collet,
           Steve  Creps,  Eric  Hendrickson, Izchak Miller, Eric S. Raymond,
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                             100
+
+
+
           John Rupley, Mike Threepoint, and Janet Walz, to produce  NetHack
           3.0c.
 
@@ -6592,18 +6577,6 @@
 
                Norm  Meluch and Kevin Smolkowski, with help from Carl Sche-
           lin, Stephen Spackman, Steve VanDevender, and Paul Winner, ported
-
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                             101
-
-
-
           NetHack 3.1 to the PC.
 
                Jon W{tte and Hao-yang Wang, with help from Ross Brown, Mike
@@ -6619,6 +6592,18 @@
 
                Dean Luick, with help from David  Cohrs,  developed  NetHack
           3.1 for X11.  It drew the map as text rather than graphically but
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                             101
+
+
+
           included nh10.bdf, an optionally used custom X11 font  which  has
           tiny  images  in place of letters and punctuation, a precursor of
           tiles.  Those images don't extend to individual monster  and  ob-
@@ -6657,19 +6642,6 @@
           Many  bugs were fixed, abuses eliminated, and game features tuned
           for better game play.
 
-
-
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                             102
-
-
-
                During the lifespan of NetHack 3.1 and 3.2, several enthusi-
           asts  of  the  game added their own modifications to the game and
           made these "variants" publicly available:
@@ -6685,8 +6657,20 @@
 
                Warren  Cheung  combined SLASH with the Wizard Patch to pro-
           duce Slash'EM, and with the help of Kevin Hugo, added  more  fea-
-          tures.   Kevin  later joined the NetHack Development Team and in-
-          corporated the best of these ideas into NetHack 3.3.
+          tures.   Kevin  later  joined  the  NetHack  Development Team and
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                             102
+
+
+
+          incorporated the best of these ideas into NetHack 3.3.
 
                The final update to 3.2 was the bug fix release 3.2.3, which
           was  released  simultaneously with 3.3.0 in December 1999 just in
@@ -6725,17 +6709,6 @@
           bug list, 3.3 proved stable enough to last for more than  a  year
           and a half.
 
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                             103
-
-
-
                The  3.4  NetHack  Development  Team  initially consisted of
           Michael Allison, Ken Arromdee, David Cohrs, Jessie Collet,  Kevin
           Hugo,  Ken Lorber, Dean Luick, Pat Rankin, Mike Stephenson, Janet
@@ -6750,6 +6723,18 @@
 
                Michael  Allison maintained NetHack 3.4 for the MS-DOS plat-
           form.  Paul Winner and Yitzhak Sapir provided encouragement.
+
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                             103
+
+
 
                Dean Luick, Mark Modrall, and Kevin Hugo maintained and  en-
           hanced the Macintosh port of 3.4.
@@ -6790,18 +6775,6 @@
           code was a work-in-progress and had not gone through the  process
           of  debugging  it  as a suitable release, it was decided that the
           version numbers present on that code snapshot  would  be  retired
-
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                             104
-
-
-
           and  never  used in an official NetHack release.  An announcement
           was posted on the NetHack Development Team's official nethack.org
           website  to  that  effect,  stating  that  there would never be a
@@ -6817,6 +6790,17 @@
           son,  Janet  Walz,  and Paul Winner.  In early 2015, ahead of the
           release of 3.6.0, new members Sean Hunt, Pasi Kallinen, and Derek
           S. Ray joined the NetHack Development Team.
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                             104
+
+
 
                Near the end of the development of 3.6.0, one of the signif-
           icant inspirations for many of  the  humorous  and  fun  features
@@ -6856,18 +6840,6 @@
           Patric Mueller, Pat  Rankin,  Derek  S.  Ray,  Alex  Smith,  Mike
           Stephenson, Janet Walz, and Paul Winner.
 
-
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                             105
-
-
-
                In early May 2019, another 320 bug fixes along with some en-
           hancements and the adopted curses window port, were  released  as
           3.6.2.
@@ -6884,6 +6856,17 @@
 
                NetHack  3.6.5  was  released on January 27, 2020 containing
           some security fixes and a small number of bug fixes.
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                             105
+
+
 
                NetHack 3.6.6 was released on March 8, 2020 containing a se-
           curity fix and some bug fixes.
@@ -6921,19 +6904,6 @@
               Andy Thomson            John Kallen          Patric Mueller
               Ari Huttunen            John Rupley           Paul Winner
                Bart House             John S. Bien        Pierre Martineau
-
-
-
-          NetHack 3.7                                      January 17, 2022
-
-
-
-
-
-          NetHack Guidebook                                             106
-
-
-
            Benson I. Margulies         Johnny Lee            Ralf Brown
                 Bill Dyer              Jon W{tte             Ray Chason
             Boudewijn Waijers       Jonathan Handler      Richard Addison
@@ -6951,6 +6921,19 @@
               Derek S. Ray          Kevin Smolkowski        Scott Bigham
               Deron Meranda           Kevin Sweet         Scott R. Turner
               Dion Nicolaas           Lars Huttar            Sean Hunt
+
+
+
+          NetHack 3.7                                      February 6, 2022
+
+
+
+
+
+          NetHack Guidebook                                             106
+
+
+
              Dylan O'Donnell          Leon Arnott         Stephen Spackman
                Eric Backus           M. Drew Streib      Stefan Thielscher
             Eric Hendrickson          Malcolm Ryan         Stephen White
@@ -6990,7 +6973,24 @@
 
 
 
-          NetHack 3.7                                      January 17, 2022
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          NetHack 3.7                                      February 6, 2022
 
 
 

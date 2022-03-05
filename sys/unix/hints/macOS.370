@@ -7,13 +7,13 @@
 # Tested on:
 #     - MacOS Catalina 10.15
 #
-# If this doesn't work for some other version of Mac OS X, consider
+# If this doesn't work for some other version of macOS, consider
 # making a new hints file it, rather than changing this one.
 # And let us know about it.
 # Useful info: http://www.opensource.apple.com/darwinsource/index.html
 
 #-PRE xxxx
-# macOS X hints file
+# macOS hints file
 #
 
 # note: '#-INCLUDE' is not just a comment; multiw-1 contains sections 1 to 2
@@ -68,6 +68,17 @@ endif
 # you're reading this in Makefile augmented by hints, that may not be true).
 #
 
+ifeq "$(GIT)" "1"
+ifndef GITSUBMODULES
+GITSUBMODULES=1
+endif
+endif
+ifeq "$(git)" "1"
+ifndef GITSUBMODULES
+GITSUBMODULES=1
+endif
+endif
+
 #-INCLUDE multiw-2.370
 
 # compiler.370 contains compiler detection and adjustments common
@@ -92,6 +103,8 @@ NHCFLAGS+=-DNOMAIL
 #NHCFLAGS+=-DMSGHANDLER
 #NHCFLAGS+=-DTTY_TILES_ESCCODES
 #NHCFLAGS+=-DTTY_SOUND_ESCCODES
+#NHCFLAGS+=-DNO_CHRONICLE
+#NHCFLAGS+=-DLIVELOG
 
 CFLAGS+= $(WINCFLAGS)  #WINCFLAGS set from multiw-2.370
 CFLAGS+= $(NHCFLAGS)
@@ -193,6 +206,21 @@ LIBNHSYSOBJ = $(TARGETPFX)libnhmain.o $(TARGETPFX)ioctl.o \
 override GAME=
 MOREALL += ( cd src ; $(MAKE) pregame ; $(MAKE) $(TARGETPFX)libnh.a )
 endif  # WANT_LIBNH
+
+# Lua
+# when building liblua.a, avoid warning that use of tmpnam() should be
+# replaced by mkstemp(); the lua code doesn't use nethack's config.h so
+# this needs to be passed via make rather than defined in unixconf.h
+ifdef GITSUBMODULES
+LUAFLAGS=CC='$(CC)' MYCFLAGS=' -DLUA_USE_MACOSX'
+ifneq "$(CCISCLANG)" ""
+# clang
+LUAFLAGS +=CWARNGCC=''
+endif   # clang
+override LUAHEADERS = submodules/lua
+override LUA2NHTOP = ../..
+override LUAMAKEFLAGS=$(LUAFLAGS)
+endif   # GITSUBMODULES
 
 WANT_BUNDLE=1
 ifdef WANT_SHARE_INSTALL
@@ -423,7 +451,7 @@ build_package_root:
 	sys/unix/hints/macosx.sh editsysconf sys/unix/sysconf $(PKGROOT_UGLN)/sysconf
 	cd dat; install -p $(DATNODLB) ../$(PKGROOT_UGLN)
 # XXX these files should be somewhere else for good Mac form
-	touch $(PKGROOT_UGLN)/perm $(PKGROOT_UGLN)/record $(PKGROOT_UGLN)/logfile $(PKGROOT_UGLN)/xlogfile
+	touch $(PKGROOT_UGLN)/perm $(PKGROOT_UGLN)/record $(PKGROOT_UGLN)/logfile $(PKGROOT_UGLN)/xlogfile $(PKGROOT_UGLN)/livelog
 	mkdir $(PKGROOT_UGLN)/save
 # XXX what about a news file?
 
@@ -447,6 +475,7 @@ build_package_root:
 	echo chmod $(VARFILEPERM) $(HACKDIR)/record   >> PKGSCRIPTS/postinstall
 	echo chmod $(VARFILEPERM) $(HACKDIR)/logfile  >> PKGSCRIPTS/postinstall
 	echo chmod $(VARFILEPERM) $(HACKDIR)/xlogfile >> PKGSCRIPTS/postinstall
+	echo chmod $(VARFILEPERM) $(HACKDIR)/livelog  >> PKGSCRIPTS/postinstall
 	echo chmod $(VARFILEPERM) $(HACKDIR)/sysconf  >> PKGSCRIPTS/postinstall
 	echo chmod $(GAMEPERM)   $(SHELLDIR)/nethack  >> PKGSCRIPTS/postinstall
 	echo chmod $(EXEPERM)    $(SHELLDIR)/recover  >> PKGSCRIPTS/postinstall

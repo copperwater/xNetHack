@@ -23,8 +23,7 @@ static NEARDATA const char *breathwep[] = {
     "strange breath #9"
 };
 
-/* also used extern in zap.c
- * need exact number because both files need to do rn2(SIZE(hallublasts)) */
+/* hallucinatory ray types */
 const char *const hallublasts[] = {
     "asteroids", "beads", "bubbles", "butterflies", "champagne", "chaos",
     "coins", "cotton candy", "crumbs", "dark matter", "darkness", "dust specks",
@@ -892,7 +891,8 @@ breamm(struct monst* mtmp, struct attack* mattk, struct monst* mtarg)
             if ((typ >= AD_MAGM) && (typ <= AD_ACID)) {
                 boolean utarget = (mtarg == &g.youmonst);
                 if (canseemon(mtmp))
-                    pline("%s breathes %s!", Monnam(mtmp), breathwep_name(typ));
+                    pline("%s breathes %s!",
+                          Monnam(mtmp), breathwep_name(typ));
                 dobuzz((int) (-20 - (typ - 1)), (int) mattk->damn,
                        mtmp->mx, mtmp->my, sgn(g.tbx), sgn(g.tby), utarget);
                 nomul(0);
@@ -1072,7 +1072,8 @@ linedup_callback(
             bx += dx, by += dy;
             if (!isok(bx, by))
                 return FALSE;
-            if (IS_ROCK(levl[bx][by].typ) || closed_door(bx, by))
+            if (IS_ROCK(levl[bx][by].typ) || closed_door(bx, by)
+                || levl[bx][by].typ == WATER)
                 return FALSE;
             if ((*fnc)(bx, by))
                 return TRUE;
@@ -1115,7 +1116,8 @@ linedup(
         do {
             /* <bx,by> is guaranteed to eventually converge with <ax,ay> */
             bx += dx, by += dy;
-            if (IS_ROCK(levl[bx][by].typ) || closed_door(bx, by))
+            if (IS_ROCK(levl[bx][by].typ) || closed_door(bx, by)
+                || levl[bx][by].typ == WATER)
                 return FALSE;
             if (sobj_at(BOULDER, bx, by))
                 ++boulderspots;

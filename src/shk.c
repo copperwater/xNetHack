@@ -517,6 +517,7 @@ rob_shop(struct monst* shkp)
     livelog_printf(LL_ACHIEVE, "stole %ld %s worth of merchandise from %s %s",
                    total, currency(total), s_suffix(shkname(shkp)),
                    shtypes[eshkp->shoptype - SHOPBASE].name);
+
     if (!Role_if(PM_ROGUE)) /* stealing is unlawful */
         adjalign(-sgn(u.ualign.type));
 
@@ -1248,7 +1249,7 @@ dopay(void)
     for (shkp = next_shkp(fmon, FALSE); shkp;
          shkp = next_shkp(shkp->nmon, FALSE)) {
         sk++;
-        if (ANGRY(shkp) && distu(shkp->mx, shkp->my) <= 2)
+        if (ANGRY(shkp) && next2u(shkp->mx, shkp->my))
             nxtm = shkp;
         if (canspotmon(shkp))
             seensk++;
@@ -1284,7 +1285,7 @@ dopay(void)
              shkp = next_shkp(shkp->nmon, FALSE))
             if (canspotmon(shkp))
                 break;
-        if (shkp != resident && distu(shkp->mx, shkp->my) > 2) {
+        if (shkp != resident && !next2u(shkp->mx, shkp->my)) {
             pline("%s is not near enough to receive your payment.",
                   Shknam(shkp));
             return ECMD_OK;
@@ -1322,7 +1323,7 @@ dopay(void)
             pline("%s is not interested in your payment.", Monnam(mtmp));
             return ECMD_OK;
         }
-        if (mtmp != resident && distu(mtmp->mx, mtmp->my) > 2) {
+        if (mtmp != resident && !next2u(mtmp->mx, mtmp->my)) {
             pline("%s is too far to receive your payment.", Shknam(mtmp));
             return ECMD_OK;
         }
@@ -1837,7 +1838,7 @@ inherits(struct monst* shkp, int numsk, int croaked, boolean silently)
         takes[0] = '\0';
         if (!shkp->mcanmove || shkp->msleeping)
             Strcat(takes, "wakes up and ");
-        if (distu(shkp->mx, shkp->my) > 2)
+        if (!next2u(shkp->mx, shkp->my))
             Strcat(takes, "comes and ");
         Strcat(takes, "takes");
 
@@ -3569,12 +3570,15 @@ shk_impaired(struct monst *shkp)
 static boolean
 repairable_damage(struct damage *dam, struct monst *shkp)
 {
-    xchar x = dam->place.x, y = dam->place.y;
+    xchar x, y;
     struct trap* ttmp;
     struct monst *mtmp;
 
     if (!dam || shk_impaired(shkp))
         return FALSE;
+
+    x = dam->place.x;
+    y = dam->place.y;
 
     /* too soon to fix it? */
     if ((g.moves - dam->when) < REPAIR_DELAY)
@@ -4113,10 +4117,10 @@ shopdig(register int fall)
             return;
 #endif
         }
-        if (distu(shkp->mx, shkp->my) > 2) {
+        if (!next2u(shkp->mx, shkp->my)) {
             mnexto(shkp, RLOC_MSG);
             /* for some reason the shopkeeper can't come next to you */
-            if (distu(shkp->mx, shkp->my) > 2) {
+            if (!next2u(shkp->mx, shkp->my)) {
                 if (lang == 2)
                     pline("%s curses you in anger and frustration!",
                           Shknam(shkp));

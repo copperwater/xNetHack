@@ -2084,6 +2084,7 @@ bhito(struct obj *obj, struct obj *otmp)
             /* KMH, conduct */
             if (!u.uconduct.polypiles++)
                 livelog_printf(LL_CONDUCT, "polymorphed %s first object", uhis());
+
             /* any saved lock context will be dangerously obsolete */
             if (Is_box(obj))
                 (void) boxlock(obj, otmp);
@@ -3550,6 +3551,12 @@ bhit(int ddx, int ddy, int range,  /* direction and range */
             break;
         }
 
+        /* WATER aka "wall of water" stops items */
+        if (typ == WATER) {
+            if (weapon == THROWN_WEAPON || weapon == KICKED_WEAPON)
+                break;
+        }
+
         /* iron bars will block anything big enough and break some things */
         if (weapon == THROWN_WEAPON || weapon == KICKED_WEAPON) {
             if (obj->lamplit && !Blind)
@@ -4336,7 +4343,8 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
     boolean shopdamage = FALSE;
     struct obj *otmp;
     int spell_type;
-    int typ = (type <= -30) ? abstype : abs(type);
+    int fltyp = (type <= -30) ? abstype : abs(type);
+    int habstype = Hallucination ? rn2(6) : abstype;
 
     /* if its a Hero Spell then get its SPE_TYPE */
     spell_type = is_hero_spell(type) ? SPE_MAGIC_MISSILE + abstype : 0;
@@ -4347,16 +4355,17 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
         if (type < 0)
             return;
         tmp = zhitm(u.ustuck, type, nd, &otmp);
-        if (!u.ustuck)
+        if (!u.ustuck) {
             u.uswallow = 0;
-        else
-            pline("%s rips into %s%s", The(flash_str(typ, FALSE)),
+        } else {
+            pline("%s rips into %s%s", The(flash_str(fltyp, FALSE)),
                   mon_nam(u.ustuck), exclam(tmp));
-        /* Using disintegration from the inside only makes a hole... */
-        if (tmp == MAGIC_COOKIE)
-            u.ustuck->mhp = 0;
-        if (DEADMONSTER(u.ustuck))
-            killed(u.ustuck);
+            /* Using disintegration from the inside only makes a hole... */
+            if (tmp == MAGIC_COOKIE)
+                u.ustuck->mhp = 0;
+            if (DEADMONSTER(u.ustuck))
+                killed(u.ustuck);
+        }
         return;
     }
     if (type < 0)
@@ -4366,7 +4375,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
         range = 1;
     save_bhitpos = g.bhitpos;
 
-    tmp_at(DISP_BEAM, zapdir_to_glyph(dx, dy, abstype));
+    tmp_at(DISP_BEAM, zapdir_to_glyph(dx, dy, habstype));
     while (range-- > 0) {
         lsx = sx;
         sx += dx;
@@ -4410,7 +4419,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
             if (zap_hit(find_mac(mon), spell_type)) {
                 if (mon_reflects(mon, (char *) 0)) {
                     if (cansee(mon->mx, mon->my)) {
-                        hit(flash_str(typ, FALSE), mon, exclam(0));
+                        hit(flash_str(fltyp, FALSE), mon, exclam(0));
                         shieldeff(mon->mx, mon->my);
                         (void) mon_reflects(mon,
                                             "But it reflects from %s %s!");
@@ -4424,7 +4433,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                     if (is_rider(mon->data)
                         && abs(type) == ZT_BREATH(ZT_DEATH)) {
                         if (canseemon(mon)) {
-                            hit(flash_str(typ, FALSE), mon, ".");
+                            hit(flash_str(fltyp, FALSE), mon, ".");
                             pline("%s disintegrates.", Monnam(mon));
                             pline("%s body reintegrates before your %s!",
                                   s_suffix(Monnam(mon)),
@@ -4438,7 +4447,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                     }
                     if (mon->data == &mons[PM_DEATH] && abstype == ZT_DEATH) {
                         if (canseemon(mon)) {
-                            hit(flash_str(typ, FALSE), mon, ".");
+                            hit(flash_str(fltyp, FALSE), mon, ".");
                             pline("%s absorbs the deadly %s!", Monnam(mon),
                                   type == ZT_BREATH(ZT_DEATH) ? "blast"
                                                               : "ray");
@@ -4448,11 +4457,11 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                     }
 
                     if (tmp == MAGIC_COOKIE) { /* disintegration */
-                        disintegrate_mon(mon, type, flash_str(typ, FALSE));
+                        disintegrate_mon(mon, type, flash_str(fltyp, FALSE));
                     } else if (DEADMONSTER(mon)) {
                         if (type < 0) {
                             /* mon has just been killed by another monster */
-                            monkilled(mon, flash_str(typ, FALSE), AD_RBRE);
+                            monkilled(mon, flash_str(fltyp, FALSE), AD_RBRE);
                         } else {
                             int xkflags = XKILL_GIVEMSG; /* killed(mon); */
 
@@ -4470,7 +4479,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                         if (!otmp) {
                             /* normal non-fatal hit */
                             if (say || canseemon(mon)) {
-                                hit(flash_str(typ, FALSE), mon, exclam(tmp));
+                                hit(flash_str(fltyp, FALSE), mon, exclam(tmp));
                                 print_mon_wounded(mon, saved_mhp);
                             }
                         } else {
@@ -4488,7 +4497,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                 range -= 2;
             } else {
                 if (say || canseemon(mon))
-                    miss(flash_str(typ, FALSE), mon);
+                    miss(flash_str(fltyp, FALSE), mon);
             }
         } else if (sx == u.ux && sy == u.uy && range >= 0) {
             nomul(0);
@@ -4497,7 +4506,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                 goto buzzmonst;
             } else if (zap_hit((int) u.uac, 0)) {
                 range -= 2;
-                pline("%s hits you!", The(flash_str(typ, FALSE)));
+                pline("%s hits you!", The(flash_str(fltyp, FALSE)));
                 const char* reflectsrc = ureflectsrc();
                 if (reflectsrc) {
                     if (!Blind) {
@@ -4513,10 +4522,10 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                 } else {
                     /* flash_str here only used for killer; suppress
                      * hallucination */
-                    zhitu(type, nd, flash_str(typ, TRUE), sx, sy);
+                    zhitu(type, nd, flash_str(fltyp, TRUE), sx, sy);
                 }
             } else if (!Blind) {
-                pline("%s whizzes by you!", The(flash_str(typ, FALSE)));
+                pline("%s whizzes by you!", The(flash_str(fltyp, FALSE)));
             } else if (abstype == ZT_LIGHTNING) {
                 Your("%s tingles.", body_part(ARM));
             }
@@ -4542,7 +4551,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                 || fireball) {
                 if (Is_airlevel(&u.uz)) { /* nothing to bounce off of */
                     pline_The("%s vanishes into the aether!",
-                              flash_str(typ, FALSE));
+                              flash_str(fltyp, FALSE));
                     if (fireball)
                         type = ZT_WAND(ZT_FIRE); /* skip pending fireball */
                     break;
@@ -4551,7 +4560,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                     sy = lsy;
                     break; /* fireballs explode before the obstacle */
                 } else
-                    pline_The("%s bounces!", flash_str(typ, FALSE));
+                    pline_The("%s bounces!", flash_str(fltyp, FALSE));
             }
             if (!dx || !dy || !rn2(bchance)) {
                 dx = -dx;
@@ -4580,7 +4589,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                     dx = -dx;
                     break;
                 }
-                tmp_at(DISP_CHANGE, zapdir_to_glyph(dx, dy, abstype));
+                tmp_at(DISP_CHANGE, zapdir_to_glyph(dx, dy, habstype));
             }
         }
     }

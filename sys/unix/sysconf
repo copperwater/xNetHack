@@ -93,10 +93,13 @@ ENTRYMAX=2000
 # Maximum number of score file entries to use for random statue names
 #MAX_STATUENAME_RANK=10
 
-# Use "Live logging" for in-game progress (achievements, wishes, etc)
+# Use "Live logging" for important events (achievements, wishes, etc)
+# Only available if NetHack was compiled with LIVELOG.
+# Only really meaningful for public servers.
+# See the log in-game with #chronicle -command.
 # Bitmask for kinds of things you want to log - combine the following values
 # as desired.
-# 0x0000 - No live logging
+# 0x0000 - No live logging (default)
 # 0x0001 - Wishes
 # 0x0002 - Significant achievements (complete sokoban, perform invocation, etc)
 # 0x0004 - Kill, destroy or bribe a unique monster.
@@ -111,12 +114,7 @@ ENTRYMAX=2000
 # 0x0800 - Log dumplog url for all games
 # 0x1000 - Log 'minor' achievements - can be spammy
 # 0x8000 - Livelog debug msgs (currently only 'enter new level')
-# Enabled at compile time by defining LIVELOGFILE in config.h
 LIVELOG=0x1FFF
-
-# Do not livelog breaking of conducts before this turncount
-# Cuts down on spam
-LLC_TURNS=3000
 
 # Show debugging information originating from these source files.
 # Use '*' for all, or list source files separated by spaces.

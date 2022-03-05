@@ -109,7 +109,7 @@ boulder_hits_pool(struct obj *otmp, int rx, int ry, boolean pushing)
                 docrt();
                 g.vision_full_recalc = 1;
                 You("find yourself on dry land again!");
-            } else if (lava && distu(rx, ry) <= 2) {
+            } else if (lava && next2u(rx, ry)) {
                 int dmg;
                 You("are hit by molten %s%c",
                     hliquid("lava"), Fire_resistance ? '.' : '!');
@@ -1028,6 +1028,8 @@ dodown(void)
     boolean stairs_down = (stway && !stway->up && !stway->isladder),
             ladder_down = (stway && !stway->up &&  stway->isladder);
 
+    set_move_cmd(DIR_DOWN, 0);
+
     if (u_rooted())
         return ECMD_TIME;
 
@@ -1098,7 +1100,7 @@ dodown(void)
                     dotrap(trap, TOOKPLUNGE);
             }
         }
-        return ECMD_TIME; /* came out of hiding; might need '>' again to go down */
+        return ECMD_TIME; /* came out of hiding; need '>' again to go down */
     }
 
     if (u.ustuck) {
@@ -1117,7 +1119,6 @@ dodown(void)
         } else if (!trap || !is_hole(trap->ttyp)
                    || !Can_fall_thru(&u.uz) || !trap->tseen) {
             if (flags.autodig && !g.context.nopick && uwep && is_pick(uwep)) {
-                u.dz = 1; /* the #down command doesn't call set_move_cmd() */
                 return use_pick_axe2(uwep);
             } else {
                 You_cant("go down here.");
@@ -1168,8 +1169,6 @@ dodown(void)
     if (trap && Is_stronghold(&u.uz)) {
         goto_hell(FALSE, TRUE);
     } else {
-        if (!trap)
-            u.dz = 1;
         g.at_ladder = (boolean) (levl[u.ux][u.uy].typ == LADDER);
         next_level(!trap);
         g.at_ladder = FALSE;
@@ -1182,6 +1181,8 @@ int
 doup(void)
 {
     stairway *stway = stairway_at(u.ux,u.uy);
+
+    set_move_cmd(DIR_UP, 0);
 
     if (u_rooted())
         return ECMD_TIME;
@@ -1223,7 +1224,6 @@ doup(void)
         return ECMD_OK;
     }
     g.at_ladder = (boolean) (levl[u.ux][u.uy].typ == LADDER);
-    u.dz = -1;
     prev_level(TRUE);
     g.at_ladder = FALSE;
     return ECMD_TIME;
@@ -1490,8 +1490,8 @@ goto_level(
         }
         mklev();
         new = TRUE; /* made the level */
-        livelog_printf(LL_DEBUG, "entered new level %d, %s.", dunlev(&u.uz),
-                       g.dungeons[u.uz.dnum].dname);
+        livelog_printf(LL_DEBUG, "entered new level %d, %s",
+                       dunlev(&u.uz), g.dungeons[u.uz.dnum].dname);
 
         familiar = bones_include_name(g.plname);
     } else {
@@ -1940,26 +1940,21 @@ revive_corpse(struct obj *corpse, boolean moldy)
 
         case OBJ_FLOOR:
             if (cansee(mtmp->mx, mtmp->my)) {
+                const char *effect = "";
                 if (moldy) {
                     pline("%s grows on a moldy corpse!", Amonnam(mtmp));
+                    break;
                 }
-                else if (mtmp->data == &mons[PM_DEATH]) {
-                    pline("%s rises from the dead in a whirl of spectral skulls!",
-                        Monnam(mtmp));
-                }
-                else if (mtmp->data == &mons[PM_PESTILENCE]) {
-                    pline("%s rises from the dead in a churning pillar of flies!",
-                        Monnam(mtmp));
-                }
-                else if (mtmp->data == &mons[PM_FAMINE]) {
-                    pline("%s rises from the dead in a ring of withered crops!",
-                        Monnam(mtmp));
-                }
-                else {
-                    pline("%s rises from the dead!",
-                          chewed ? Adjmonnam(mtmp, "bite-covered")
-                                 : Monnam(mtmp));
-                }
+                if (mtmp->data == &mons[PM_DEATH])
+                    effect = " in a whirl of spectral skulls";
+                else if (mtmp->data == &mons[PM_PESTILENCE])
+                    effect = " in a churning pillar of flies";
+                else if (mtmp->data == &mons[PM_FAMINE])
+                    effect = " in a ring of withered crops";
+
+                pline("%s rises from the dead%s!",
+                      chewed ? Adjmonnam(mtmp, "bite-covered")
+                             : Monnam(mtmp), effect);
             }
             break;
 

@@ -13,6 +13,10 @@ static void dosinkfall(void);
 static boolean findtravelpath(int);
 static boolean trapmove(int, int, struct trap *);
 static void check_buried_zombies(xchar, xchar);
+static schar u_simple_floortyp(xchar, xchar);
+static boolean trap_move_danger(xchar, xchar);
+static boolean swim_move_danger(xchar, xchar);
+static boolean air_move_danger(xchar, xchar);
 static void domove_core(void);
 static void maybe_smudge_engr(int, int, int, int);
 static struct monst *monstinroom(struct permonst *, int);
@@ -132,6 +136,14 @@ moverock(void)
 
     sx = u.ux + u.dx, sy = u.uy + u.dy; /* boulder starting position */
     while ((otmp = sobj_at(BOULDER, sx, sy)) != 0) {
+
+        if (Blind && glyph_to_obj(glyph_at(sx, sy)) != BOULDER) {
+            pline("That feels like a boulder.");
+            map_object(otmp, TRUE);
+            nomul(0);
+            return -1;
+        }
+
         /* when otmp->next_boulder is 1, xname() will format it as
            "next boulder" instead of just "boulder"; affects
            boulder_hits_pool()'s messages as well as messages below */
@@ -579,13 +591,12 @@ still_chewing(xchar x, xchar y)
                        boulder
                        ? "a boulder"
                        : IS_TREE(lev->typ)
-                          ? "a tree"
-                          : IS_ROCK(lev->typ)
-                             ? "rock"
-                             : (lev->typ == IRONBARS)
-                                ? "iron bars"
-                                : "a door");
-
+                       ? "a tree"
+                       : IS_ROCK(lev->typ)
+                       ? "rock"
+                       : (lev->typ == IRONBARS)
+                       ? "iron bars"
+                       : "a door");
     u.uhunger += rnd(20);
 
     if (boulder) {
@@ -894,11 +905,20 @@ test_move(int ux, int uy, int dx, int dy, int mode)
                 else if (Passes_walls && !may_passwall(x, y)
                          && In_sokoban(&u.uz))
                     pline_The("Sokoban walls resist your ability.");
-                else if (flags.mention_walls)
-                    pline("It's %s.",
-                          (IS_WALL(tmpr->typ) || tmpr->typ == SDOOR) ? "a wall"
-                          : IS_TREE(tmpr->typ) ? "a tree"
-                          : "solid stone");
+                else if (flags.mention_walls) {
+                    char buf[BUFSZ];
+                    coord cc;
+                    int sym = 0;
+                    const char *firstmatch = 0;
+
+                    cc.x = x, cc.y = y;
+                    do_screen_description(cc, TRUE, sym, buf, &firstmatch, NULL);
+                    if (!strcmp(firstmatch, "stone"))
+                        Sprintf(buf, "solid stone");
+                    else
+                        Sprintf(buf, "%s", an(firstmatch));
+                    pline("It's %s.", buf);
+                }
             }
             return FALSE;
         }
@@ -1084,7 +1104,7 @@ findtravelpath(int mode)
     /* if travel to adjacent, reachable location, use normal movement rules */
     if ((mode == TRAVP_TRAVEL || mode == TRAVP_VALID) && g.context.travel1
         /* was '&& distmin(u.ux, u.uy, u.tx, u.ty) == 1' */
-        && distu(u.tx, u.ty) <= 2 /* one step away */
+        && next2u(u.tx, u.ty) /* one step away */
         /* handle restricted diagonals */
         && crawl_destination(u.tx, u.ty)) {
         end_running(FALSE);
@@ -1526,6 +1546,152 @@ check_buried_zombies(xchar x, xchar y)
     }
 }
 
+const char *
+u_locomotion(const char *def)
+{
+    return Levitation ? "levitate"
+        : Flying ? "fly"
+        : locomotion(g.youmonst.data, def);
+}
+
+/* Return a simplified floor solid/liquid state based on hero's state */
+static schar
+u_simple_floortyp(xchar x, xchar y)
+{
+    /* In xNetHack, u_in_air is a bad variable name because of open air terrain
+     * so I changed it. */
+    boolean off_ground = (Levitation || Flying ||
+                          !grounded(g.youmonst.data)
+                          || (u.usteed && !grounded(u.usteed->data)));
+
+    if (levl[x][y].typ == WATER)
+        return WATER; /* wall of water, fly/lev does not matter */
+    if (!off_ground) {
+        if (is_pool(x,y))
+            return POOL;
+        if (is_lava(x,y))
+            return LAVAPOOL;
+        if (is_open_air(x,y))
+            return AIR;
+    }
+    return ROOM;
+}
+
+/* Is it dangerous for hero to move to x,y due to a trap the hero knows is
+ * there? */
+static boolean
+trap_move_danger(xchar x, xchar y)
+{
+    /* warn player before walking into known traps */
+    struct trap *trap = t_at(x, y);
+    if (trap && trap->tseen && (!g.context.nopick || g.context.run)
+        && !Stunned && !Confusion
+        && (immune_to_trap(&g.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
+            || Hallucination)) {
+        /* note on hallucination: all traps render as a random trap symbol and
+         * the hero can't tell what they are, so warn of every trap. */
+        char qbuf[QBUFSZ];
+        xchar traptype = (Hallucination ? rnd(TRAPNUM - 1) : trap->ttyp);
+        boolean into = FALSE; /* "onto" the trap vs "into" */
+        switch (traptype) {
+        case BEAR_TRAP:
+        case PIT:
+        case SPIKED_PIT:
+        case HOLE:
+        case TELEP_TRAP:
+        case LEVEL_TELEP:
+        case MAGIC_PORTAL:
+        case WEB:
+            into = TRUE;
+        }
+        snprintf(qbuf, QBUFSZ, "Really %s %sto that %s?",
+                 (Levitation || Flying) ? "move"
+                                        : locomotion(g.youmonst.data, "step"),
+                 (into ? "in" : "on"),
+                 defsyms[trap_to_defsym(traptype)].explanation);
+        if (!paranoid_query(ParanoidTrap, qbuf)) {
+            nomul(0);
+            g.context.move = 0;
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/* Is it dangerous for hero to move to x,y due to water or lava? */
+static boolean
+swim_move_danger(xchar x, xchar y)
+{
+    schar newtyp = u_simple_floortyp(x, y);
+    boolean liquid_wall = (newtyp == WATER);
+
+    if ((newtyp != u_simple_floortyp(u.ux, u.uy))
+        && !Stunned && !Confusion && levl[x][y].seenv
+        && (is_pool(x, y) || is_lava(x, y) || liquid_wall)) {
+        boolean known_wwalking, known_lwalking;
+
+        known_wwalking = (uarmf && uarmf->otyp == WATER_WALKING_BOOTS
+                          && objects[WATER_WALKING_BOOTS].oc_name_known
+                          && !u.usteed);
+        known_lwalking = (known_wwalking && Fire_resistance &&
+                          uarmf->oerodeproof && uarmf->rknown);
+        /* FIXME: This can be exploited to identify the ring of fire resistance
+        * if the player is wearing it unidentified and has identified
+        * fireproof boots of water walking and is walking over lava. However,
+        * this is such a marginal case that it may not be worth fixing. */
+        if ((is_pool(x, y) && !known_wwalking)
+            || (is_lava(x, y) && !known_lwalking)
+            || liquid_wall) {
+            if (g.context.nopick) {
+                /* moving with m-prefix */
+                g.context.swim_tip = TRUE;
+                return FALSE;
+            } else if (ParanoidSwim || liquid_wall) {
+                You("avoid %s into the %s.",
+                    ing_suffix(u_locomotion("step")),
+                    waterbody_name(x, y));
+                if (!g.context.swim_tip) {
+                    pline("(Use '%s' prefix to step in if you really want to.)",
+                          visctrl(cmd_from_func(do_reqmenu)));
+                    g.context.swim_tip = TRUE;
+                }
+                return TRUE;
+            }
+        }
+    }
+    return FALSE;
+}
+
+/* Same as swim_move_danger but for stepping out into open air. */
+static boolean
+air_move_danger(xchar x, xchar y)
+{
+    if (u_simple_floortyp(x, y) != u_simple_floortyp(u.ux, u.uy)
+        && !Stunned && !Confusion && levl[x][y].seenv) {
+        if (g.context.nopick) {
+            /* moving with 'm' */
+            g.context.swim_tip = TRUE;
+            /* ParanoidSwim is close enough to do the same job here without
+             * warranting a separate option for air */
+            if (ParanoidSwim && yn("Really step off the cliff?") != 'y') {
+                return TRUE;
+            }
+            return FALSE;
+        } else {
+            /* not moving with 'm'; if not known safe, simply prevent from
+             * moving at all */
+            You("avoid stepping off the cliff.");
+            if (!g.context.swim_tip) {
+                pline("(Use '%s' prefix to step in if you really want to.)",
+                      visctrl(cmd_from_func(do_reqmenu)));
+                g.context.swim_tip = TRUE;
+            }
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 void
 domove(void)
 {
@@ -1694,7 +1860,7 @@ domove_core(void)
         }
 
         if (u.ustuck && (x != u.ustuck->mx || y != u.ustuck->my)) {
-            if (distu(u.ustuck->mx, u.ustuck->my) > 2) {
+            if (!next2u(u.ustuck->mx, u.ustuck->my)) {
                 /* perhaps it fled (or was teleported or ... ) */
                 set_ustuck((struct monst *) 0);
             } else if (sticks(g.youmonst.data)) {
@@ -1989,105 +2155,14 @@ domove_core(void)
         return;
     }
 
-    /* warn player before walking into known traps */
-    trap = t_at(x, y);
-    if (trap && trap->tseen && (!g.context.nopick || g.context.run)
-        && !Stunned && !Confusion
-        && (immune_to_trap(&g.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
-            || Hallucination)) {
-        /* note on hallucination: all traps still show as ^, but the hero can't
-         * tell what they are, so warn of every trap. */
-        char qbuf[QBUFSZ];
-        xchar traptype = (Hallucination ? rnd(TRAPNUM - 1) : trap->ttyp);
-        boolean into = FALSE; /* "onto" the trap vs "into" */
-        switch (traptype) {
-        case BEAR_TRAP:
-        case PIT:
-        case SPIKED_PIT:
-        case HOLE:
-        case TELEP_TRAP:
-        case LEVEL_TELEP:
-        case MAGIC_PORTAL:
-        case WEB:
-            into = TRUE;
-        }
-        snprintf(qbuf, QBUFSZ, "Really %s %sto that %s?",
-                 (Levitation || Flying) ? "move"
-                                        : locomotion(g.youmonst.data, "step"),
-                 (into ? "in" : "on"),
-                 defsyms[trap_to_defsym(traptype)].explanation);
-        if (!paranoid_query(ParanoidTrap, qbuf)) {
-            nomul(0);
-            g.context.move = 0;
-            return;
-        }
-    }
-
-    /* Paranoid checks for dangerous moves into water or lava */
-    if (!Levitation && !Flying && grounded(g.youmonst.data) && !Stunned
-        && !Confusion && levl[x][y].seenv
-        && ((is_pool(x, y) && !is_pool(u.ux, u.uy))
-            || (is_lava(x, y) && !is_lava(u.ux, u.uy))
-            || (is_open_air(x, y) && !is_open_air(u.ux, u.uy)))) {
-        boolean known_wwalking, known_lwalking;
-        boolean ispool = is_pool(x, y),
-                islava = is_lava(x, y),
-                isair  = is_open_air(x, y);
-        known_wwalking = (uarmf && uarmf->otyp == WATER_WALKING_BOOTS
-                        && objects[WATER_WALKING_BOOTS].oc_name_known
-                        && !u.usteed);
-        known_lwalking = (known_wwalking && Fire_resistance &&
-                        uarmf->oerodeproof && uarmf->rknown);
-        /* FIXME: This can be exploited to identify the ring of fire resistance
-        * if the player is wearing it unidentified and has identified
-        * fireproof boots of water walking and is walking over lava. However,
-        * this is such a marginal case that it may not be worth fixing. */
-        if (g.context.nopick) {
-            /* moving with 'm' */
-            if (ispool && !known_wwalking) {
-                if (ParanoidSwim && yn("Really enter the water?") != 'y') {
-                    g.context.move = 0;
-                    nomul(0);
-                    return;
-                }
-            }
-            else if (islava && !known_lwalking) {
-                if (ParanoidSwim && yn("Really enter the lava?") != 'y') {
-                    g.context.move = 0;
-                    nomul(0);
-                    return;
-                }
-            }
-            else if (isair) {
-                /* ParanoidSwim is close enough to do the same job here without
-                 * warranting a separate option for air */
-                if (ParanoidSwim && yn("Really step off the cliff?") != 'y') {
-                    g.context.move = 0;
-                    nomul(0);
-                    return;
-                }
-            }
-        } else {
-            /* not moving with 'm'; if not known safe, simply prevent from
-             * moving at all */
-            if ((ispool && !known_wwalking) || (islava && !known_lwalking)
-                || isair) {
-                static boolean first_time = TRUE;
-                if (isair)
-                    pline("You avoid stepping off the cliff.");
-                else
-                    pline("You avoid stepping into the %s.",
-                        is_lava(x, y) ? "lava" : "water");
-                if (first_time) {
-                    pline("(Use \"m\" to step here if you really want to.)");
-                    first_time = FALSE;
-                }
-                g.context.move = 0;
-                nomul(0);
-                return;
-            }
-        }
-    }
+    /* Is it dangerous to swim in water or lava, move onto a known trap, or step
+     * off a cliff? */
+    if (trap_move_danger(x, y) || swim_move_danger(x, y)
+        || air_move_danger(x, y)) {
+        g.context.move = 0;
+        nomul(0);
+        return;
+     }
 
     /* Move ball and chain.  */
     if (Punished)
@@ -2225,7 +2300,7 @@ domove_core(void)
                     int tmp, mndx;
 
                     if (!u.uconduct.killer++)
-                        livelog_write_string (LL_CONDUCT, "killed for the first time");
+                        livelog_printf(LL_CONDUCT, "killed for the first time");
                     mndx = monsndx(mtmp->data);
                     tmp = experience(mtmp, (int) g.mvitals[mndx].died);
                     more_experienced(tmp, 0);
@@ -2417,7 +2492,7 @@ switch_terrain(void)
 {
     struct rm *lev = &levl[u.ux][u.uy];
     boolean blocklev = (IS_ROCK(lev->typ) || closed_door(u.ux, u.uy)
-                        || (Is_waterlevel(&u.uz) && lev->typ == WATER)),
+                        || lev->typ == WATER),
             was_levitating = !!Levitation, was_flying = !!Flying;
 
     if (blocklev) {
@@ -2500,8 +2575,7 @@ pooleffects(boolean newspot)             /* true if called by spoteffects */
     }
 
     /* check for entering water or lava */
-    if (is_pool_or_lava(u.ux, u.uy) && !u.ustuck
-        && !Levitation && !Flying && grounded(g.youmonst.data)) {
+    if (!u.ustuck && !Levitation && !Flying && is_pool_or_lava(u.ux, u.uy)) {
         if (u.usteed && !grounded(u.usteed->data)) {
             /* floating or clinging steed keeps hero safe (is_flyer() test
                is redundant; it can't be true since Flying yielded false) */
@@ -2530,7 +2604,7 @@ pooleffects(boolean newspot)             /* true if called by spoteffects */
         if (is_lava(u.ux, u.uy)) {
             if (lava_effects())
                 return TRUE;
-        } else if (is_pool(u.ux, u.uy)
+        } else if ((is_pool(u.ux, u.uy) || levl[u.ux][u.uy].typ == WATER)
                    && (newspot || !u.uinwater || !(Swimming || Amphibious))) {
             if (drown())
                 return TRUE;
@@ -3083,7 +3157,7 @@ pickup_checks(void)
     }
     traphere = t_at(u.ux, u.uy);
     if (!can_reach_floor(traphere && is_pit(traphere->ttyp))) {
-        /* it here's a hole here, any objects here clearly aren't at
+        /* if there's a hole here, any objects here clearly aren't at
            the bottom so only check for pits */
         if (traphere && uteetering_at_seen_pit(traphere)) {
             You("cannot reach the bottom of the pit.");

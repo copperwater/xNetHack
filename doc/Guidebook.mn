@@ -36,7 +36,7 @@
 .ds f0 "\*(vr
 .ds f1
 .\"DO NOT REMOVE NH_DATESUB .ds f2 "DATE(%B %-d, %Y)
-.ds f2 "January 17, 2022
+.ds f2 "February 6, 2022
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -3324,17 +3324,17 @@ operating systems.
 On
 .UX ,
 Linux,
-and Mac OS X it is \(lq.xnethackrc\(rq in the user's home directory.
+and macOS it is \(lq.xnethackrc\(rq in the user's home directory.
 The file may not exist, but it is a normal ASCII text file and
 can be created with any text editor.
 .pg
 On Windows, it is \(lq.xnethackrc\(rq in the folder
-\(lq\\%USERPROFILE%\\NetHack\\3.6\(rq.  The file may not exist,
+\(lq\\%USERPROFILE%\\NetHack\\3.7\(rq.  The file may not exist,
 but it is a normal ASCII text file can can be created with any
 text editor.
 After running NetHack for the first time, you should find a default
 template for the configuration file named \(lq.xnethackrc.template\(rq
-in \(lq\\%USERPROFILE%\\NetHack\\3.6\(rq.
+in \(lq\\%USERPROFILE%\\NetHack\\3.7\(rq.
 If you had not created the configuration file, NetHack will create
 the configuration file for you using the default template file.
 .pg
@@ -4057,6 +4057,8 @@ than immediately praying; on by default;
 .PL Remove
 require selection from inventory for \(oqR\(cq and \(oqT\(cq
 commands even when wearing just one applicable item.
+.PL swim
+prevent walking into water or lava.
 .PL all
 turn on all of the above.
 .PE
@@ -5019,7 +5021,7 @@ An entry that maps a sound file to a user-specified message pattern.
 Each SOUND entry is broken down into the following parts:
 .PS "sound index"
 .PL MESG
-message window mapping (the only one supported in 3.6);
+message window mapping (the only one supported in 3.7);
 .PL pattern
 the pattern to match;
 .PL "sound file"
@@ -5471,25 +5473,9 @@ the capability, set the environment variable NETHACK_MSGHANDLER to an
 executable, which will be executed with the game message as the program's
 only parameter.
 .pg
-While it is not difficult for experienced users to edit the \fBdefaults.nh\fP
-file to accomplish this, novices may find this task somewhat daunting.
-Included within the \(lqsymbols\(rq file of all official distributions
-of NetHack is a symset called \fBNHAccess\fP.
-Selecting that symset in your
-configuration file will cause the game to run in a manner accessible
-to the blind.
-After you have gained some experience with the game
-and with editing files, you may want to alter settings via \fBSYMBOLS=\fP
-and \fBROGUESYMBOLS=\fP
-in your configuration file to better suit your preferences.
-See the previous section for the special symbols S_pet_override
-to force a consistent symbol for all pets and
-S_hero_override to force a unique symbol for the player character
-if \fBaccessibility\fP is enabled in the sysconf file.
-.pg
 The most crucial settings to make the game more accessible are:
 .pg
-.lp symset:NHAccess
+.lp symset:plain
 Load a symbol set appropriate for use by blind players.
 .lp menustyle:traditional
 This will assist in the interface to speech synthesizers.
@@ -5501,6 +5487,8 @@ If this is the case, disable the
 .op number_pad
 option and use the traditional
 Rogue-like commands.
+.lp paranoid_confirmation:swim
+Prevent walking into water or lava.
 .lp autodescribe
 Automatically describe the terrain under the cursor when targeting.
 .lp mention_walls
@@ -5615,7 +5603,7 @@ if your game is compiled with DUMPLOG. Allows the following placeholders:
 .PL %%
 literal \(oq\f(CR%\fP\(cq
 .PL %v
-version (eg. \(lq\f(CR3.6.3\-0\fP\(rq)
+version (eg. \(lq\f(CR3.7.0\-0\fP\(rq)
 .PL %u
 game UID
 .PL %t
@@ -5644,16 +5632,13 @@ to enable this feature.  The following values may be combined:
 0x04 - Kill, destroy or bribe a unique monster.
 0x08 - Significant religious events (sacrifice gifts, crowning)
 0x10 - Life-saving
-0x20 - Break conduct - see also LLC_TURNS below.
+0x20 - Break conduct
 0x40 - Artifact obtained (#name Sting, dip for Excalibur)
 0x80 - Genocides
 0x8000 - Livelog debug msgs (currently only 'enter new level')
 .ei
 .ed
 .lp
-LLC_TURNS\ =\ N - If live-logging conducts is enabled, do not log them before
-this turncount, because conducts broken in the early game are not interesting.
-
 
 .hn 1
 Scoring

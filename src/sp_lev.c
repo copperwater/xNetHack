@@ -2671,6 +2671,9 @@ fill_special_room(struct mkroom* croom)
 {
     int i;
 
+    if (!croom)
+        return;
+
     /* First recurse into subrooms. We don't want to block an ordinary room with
      * a special subroom from having the subroom filled, or an unfilled outer
      * room preventing a special subroom from being filled. */
@@ -2678,7 +2681,7 @@ fill_special_room(struct mkroom* croom)
         fill_special_room(croom->sbrooms[i]);
     }
 
-    if (!croom || croom->rtype == OROOM || croom->rtype == THEMEROOM
+    if (croom->rtype == OROOM || croom->rtype == THEMEROOM
         || croom->needfill == FILL_NONE)
         return;
 

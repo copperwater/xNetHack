@@ -1,4 +1,4 @@
-/* NetHack 3.7	unixmain.c	$NHDT-Date: 1605493691 2020/11/16 02:28:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.90 $ */
+/* NetHack 3.7	unixmain.c	$NHDT-Date: 1644866265 2022/02/14 19:17:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.96 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -49,7 +49,7 @@ int
 main(int argc, char *argv[])
 {
 #ifdef CHDIR
-    register char *dir;
+    char *dir;
 #endif
     NHFILE *nhfp;
     boolean exact_username;
@@ -107,6 +107,7 @@ main(int argc, char *argv[])
     dir = nh_getenv("NETHACKDIR");
     if (!dir)
         dir = nh_getenv("HACKDIR");
+#endif /* CHDIR */
 
     if (argc > 1) {
         if (argcheck(argc, argv, ARG_VERSION) == 2)
@@ -130,6 +131,7 @@ main(int argc, char *argv[])
             argc--;
             argv++;
         }
+#ifdef CHDIR
         if (argc > 1 && !strncmp(argv[1], "-d", 2) && argv[1][2] != 'e') {
             /* avoid matching "-dec" for DECgraphics; since the man page
              * says -d directory, hope nobody's using -desomething_else
@@ -348,30 +350,43 @@ main(int argc, char *argv[])
 static void
 process_options(int argc, char *argv[])
 {
+    static char novalue[] = "[nothing]"; /* note: not 'const' */
+    char *p, *arg, *origarg;
     int i, l;
 
+    config_error_init(FALSE, "command line", FALSE);
     /*
      * Process options.
+     *
+     *  We don't support "-xyz" as shortcut for "-x -y -z" and we only
+     *  simulate longopts by allowing "--foo" for "-foo" when the user
+     *  specifies at least 2 characters of leading substring for "foo".
+     *  If "foo" takes a value, both "--foo=value" and "--foo value" work.
      */
     while (argc > 1 && argv[1][0] == '-') {
         argv++;
         argc--;
-        l = (int) strlen(*argv);
+        arg = origarg = argv[0];
+        /* allow second dash if arg is longer than one character */
+        if (arg[0] == '-' && arg[1] == '-' && arg[2] != '\0'
+            /* "--a=b" violates the "--" ok when at least 2 chars long rule */
+            && (arg[3] != '\0' && arg[3] != '=' && arg[3] != ':'))
+            ++arg;
+        l = (int) strlen(arg);
         /* must supply at least 4 chars to match "-XXXgraphics" */
         if (l < 4)
             l = 4;
 
-        switch (argv[0][1]) {
+        switch (arg[1]) {
         case 'D':
         case 'd':
-            if ((argv[0][1] == 'D' && !argv[0][2])
-                || !strcmpi(*argv, "-debug")) {
+            if ((arg[1] == 'D' && !arg[2]) || !strcmpi(arg, "-debug")) {
                 wizard = TRUE, discover = FALSE;
-            } else if (!strncmpi(*argv, "-DECgraphics", l)) {
+            } else if (!strncmpi(arg, "-DECgraphics", l)) {
                 load_symset("DECGraphics", PRIMARY);
                 switch_symbols(TRUE);
             } else {
-                raw_printf("Unknown option: %.60s", *argv);
+                config_error_add("Unknown option: %.60s", origarg);
             }
             break;
         case 'X':
@@ -383,8 +398,8 @@ process_options(int argc, char *argv[])
             break;
 #endif
         case 'u':
-            if (argv[0][2]) {
-                (void) strncpy(g.plname, argv[0] + 2, sizeof g.plname - 1);
+            if (arg[2]) {
+                (void) strncpy(g.plname, arg + 2, sizeof g.plname - 1);
                 g.plnamelen = 0; /* plname[] might have -role-race attached */
             } else if (argc > 1) {
                 argc--;
@@ -392,21 +407,21 @@ process_options(int argc, char *argv[])
                 (void) strncpy(g.plname, argv[0], sizeof g.plname - 1);
                 g.plnamelen = 0;
             } else {
-                raw_print("Player name expected after -u");
+                config_error_add("Player name expected after -u");
             }
             break;
         case 'I':
         case 'i':
-            if (!strncmpi(*argv, "-IBMgraphics", l)) {
+            if (!strncmpi(arg, "-IBMgraphics", l)) {
                 load_symset("IBMGraphics", PRIMARY);
                 switch_symbols(TRUE);
             } else {
-                raw_printf("Unknown option: %.60s", *argv);
+                config_error_add("Unknown option: %.60s", origarg);
             }
             break;
         case 'p': /* profession (role) */
-            if (argv[0][2]) {
-                if ((i = str2role(&argv[0][2])) >= 0)
+            if (arg[2]) {
+                if ((i = str2role(&arg[2])) >= 0)
                     flags.initrole = i;
             } else if (argc > 1) {
                 argc--;
@@ -416,8 +431,8 @@ process_options(int argc, char *argv[])
             }
             break;
         case 'r': /* race */
-            if (argv[0][2]) {
-                if ((i = str2race(&argv[0][2])) >= 0)
+            if (arg[2]) {
+                if ((i = str2race(&arg[2])) >= 0)
                     flags.initrace = i;
             } else if (argc > 1) {
                 argc--;
@@ -426,26 +441,61 @@ process_options(int argc, char *argv[])
                     flags.initrace = i;
             }
             break;
-        case 'w': /* windowtype */
-            config_error_init(FALSE, "command line", FALSE);
-            choose_windows(&argv[0][2]);
-            config_error_done();
+        case 'w': /* windowtype: "-wfoo" or "-w[indowtype]=foo"
+                   * or "-w[indowtype]:foo" or "-w[indowtype] foo" */
+            if ((p = index(arg, '=')) == 0)
+                p = index(arg, ':');
+            /* (long) is xnethack addition to suppress vanilla warning -
+             * hopefully temporary */
+            l = (int) (p ? (p - arg) : (long) strlen(arg));
+            if (!strncmp(arg, "-windowtype", l)) {
+                /* "-windowtype[=foo]" */
+                if (p)
+                    ++p; /* past '=' or ':' */
+                else
+                    p = eos(arg); /* we have "-w[indowtype]" w/o "=foo"
+                                   * so we'll take foo from next element */
+            } else {
+                /* "-w..." but not "-w[indowtype[=foo]]" */
+                if (!p) {
+                    p = &arg[2]; /* past 'w' of "-wfoo" */
+                } else {
+                    /* "-w...=foo" but not "-w[indowtype]=foo" */
+                    config_error_add("Unknown option: %.60s", origarg);
+                    continue;
+                }
+            }
+            if (!*p) {
+                /* "-w[indowtype]" w/o '='/':' use next element for "foo" */
+                if (argc > 1)
+                    --argc, ++argv, p = argv[0];
+                else
+                    p = novalue; /* there is no next element */
+            }
+            choose_windows(p);
             break;
         case '@':
             flags.randomall = 1;
             break;
+        case '-':
+            /* "--" or "--x" or "--x=y"; need at least 2 chars after the
+               dashes in order to accept "--x" as an alternative to "-x";
+               don't just silently ignore it */
+            config_error_add("Unknown option: %.60s", origarg);
+            break;
         default:
+            /* default for "-x" is to play as the role that starts with "x" */
             if ((i = str2role(&argv[0][1])) >= 0) {
                 flags.initrole = i;
                 break;
             }
-            /* else raw_printf("Unknown option: %.60s", *argv); */
+            /* else config_error_add("Unknown option: %.60s", origarg); */
         }
     }
 
 #ifdef SYSCF
     if (argc > 1)
-        raw_printf("MAXPLAYERS are set in sysconf file.\n");
+        config_error_add("MAXPLAYERS are set in sysconf file.\n");
 #else
     /* XXX This is deprecated in favor of SYSCF with MAXPLAYERS */
     if (argc > 1)
@@ -461,6 +511,8 @@ process_options(int argc, char *argv[])
     if (!g.locknum || (sysopt.maxplayers && g.locknum > sysopt.maxplayers))
         g.locknum = sysopt.maxplayers;
 #endif
+    /* empty or "N errors on command line" */
+    config_error_done();
 }
 
 #ifdef CHDIR
@@ -731,33 +783,33 @@ void
 port_insert_pastebuf(char *buf)
 {
     /* This should be replaced when there is a Cocoa port. */
-    const char *errfmt;
+    const char *errarg;
     size_t len;
     FILE *PB = popen("/usr/bin/pbcopy", "w");
 
     if (!PB) {
-        errfmt = "Unable to start pbcopy (%d)\n";
+        errarg = "Unable to start pbcopy";
         goto error;
     }
 
     len = strlen(buf);
     /* Remove the trailing \n, carefully. */
-    if (buf[len - 1] == '\n')
+    if (len > 0 && buf[len - 1] == '\n')
         len--;
 
     /* XXX Sorry, I'm too lazy to write a loop for output this short. */
     if (len != fwrite(buf, 1, len, PB)) {
-        errfmt = "Error sending data to pbcopy (%d)\n";
+        errarg = "Error sending data to pbcopy";
         goto error;
     }
 
     if (pclose(PB) != -1) {
         return;
     }
-    errfmt = "Error finishing pbcopy (%d)\n";
+    errarg = "Error finishing pbcopy";
 
  error:
-    raw_printf(errfmt, strerror(errno));
+    raw_printf("%s: %s (%d)\n", errarg, strerror(errno), errno);
 }
 #endif /* __APPLE__ */
 

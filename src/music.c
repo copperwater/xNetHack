@@ -608,7 +608,9 @@ do_improvisation(struct obj* instr)
             }
         } else {
             int type = (instr->otyp == FROST_HORN) ? AD_COLD - 1 : AD_FIRE - 1;
-            pline("A %s blasts out of the horn!", flash_str(type, FALSE));
+
+            if (!Blind)
+                pline("A %s blasts out of the horn!", flash_str(type, FALSE));
             buzz(type, rn1(6, 6), u.ux, u.uy, u.dx, u.dy);
         }
         makeknown(instr->otyp);
