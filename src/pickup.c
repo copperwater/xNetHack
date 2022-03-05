@@ -2848,7 +2848,6 @@ in_container(struct obj *obj)
             learnwand(obj);
         }
         makeknown(BAG_OF_HOLDING);
-        more_experienced(20, 0); /* Well, now you know not to do that again. */
         newexplevel();
         obfree(obj, (struct obj *) 0);
         livelog_printf(LL_ACHIEVE, "just blew up %s bag of holding", uhis());
@@ -2876,6 +2875,7 @@ in_container(struct obj *obj)
 
         losehp(d(6, 6), "magical explosion", KILLED_BY_AN);
         g.current_container = 0; /* baggone = TRUE; */
+        more_experienced(20, 0); /* Well, now you know not to do that again. */
     }
 
     if (g.current_container) {
