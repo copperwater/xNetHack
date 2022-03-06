@@ -282,6 +282,7 @@ changes:
   into ones about some piece of the defender's gear blocking the attack.
 - More hallucinatory monsters, shirts, epitaphs, random engravings, rumors,
   hallucinatory blasts, and tin labels.
+- Three more major Oracle consultations.
 
 
 ### Architectural changes

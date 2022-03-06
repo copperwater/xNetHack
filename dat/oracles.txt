@@ -121,4 +121,27 @@ these mithril coats are also the equal of even the best enchanted travelers'
 cloaks in terms of protection against the bites and stings of pests and the
 ravages of the undead children of the night. It is said that some of the
 greatest elvish smiths also learned from the dwarves of old the secret of
-making these vestments.",
+making these vestments.
+-----
+Many moons ago, a mage decided to stow her magical treasure.  Near this very
+location, she cast a mighty spell, carving a space upwards through the stone.
+This she filled with a labyrinth of treacherous pits, holes, monsters, and
+boulders to guard her possessions against the less capable.  It is not known
+what exactly she wished to protect, but she was known for her wealth in magical
+rings and wands, and rumored to have come into possession of a powerful amulet
+or unrivaled magical bag.
+-----
+Thou hast mayhaps visited the great mines on thy quest already.  Dost thou know
+what the gnomes and dwarves strive for in their great labor?  The rock yields up
+many glittering gems and seams of lustrous gold, the proceeds of which flow
+through their subterranean town.  But thou shouldst know that there is a greater
+treasure still, and a truer.  If thou shouldst chance thyself to venture into
+the greater danger beneath the town, thou mayst there discover an unassuming
+gray stone, light and easily hidden, the name of which is Luck in the ancient
+tongue.
+-----
+Hast thou gained the knowledge of brewing potent tinctures and tonics?
+It is an ancient and methodical art. Though many esoteric recipes prove
+difficult to master, some simple potions may be crafted by means of
+immersing mold into fruit extract, and thereafter allowing it to
+ferment.
