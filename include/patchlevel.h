@@ -6,9 +6,9 @@
 #ifndef PATCHLEVEL_H
 #define PATCHLEVEL_H
 
-/* xNetHack 6.1 */
-#define VERSION_MAJOR 6
-#define VERSION_MINOR 3
+/* xNetHack 7.0 */
+#define VERSION_MAJOR 7
+#define VERSION_MINOR 0
 /*
  * PATCHLEVEL is updated for each release.
  */
@@ -51,7 +51,7 @@
  * PP = patch level, ee = edit level, L = literal suffix "L",
  * with all four numbers specified as two hexadecimal digits.
  */
-#define VERSION_COMPATIBILITY 0x06030000L
+#define VERSION_COMPATIBILITY 0x07000000L
 
 /*
  *  xNetHack changes are not documented here; see the changelog and wiki for
