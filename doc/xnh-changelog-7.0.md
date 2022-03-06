@@ -280,6 +280,9 @@ changes:
   based on the weapon, attack type, or monster making the attack.
 - Add the descriptive misses system, which changes some "X misses Y" messages
   into ones about some piece of the defender's gear blocking the attack.
+- More hallucinatory monsters, shirts, epitaphs, random engravings, rumors,
+  hallucinatory blasts, and tin labels.
+
 
 ### Architectural changes
 

@@ -151,3 +151,12 @@ They're not gonna catch us.  We're on a mission from %d.
 
 # Lord of the Rings
 A Elbereth Gilthoniel
+
+# Hamilton
+The Room Where It Happens
+
+# The Shining
+All work and no play makes Jack a dull boy.
+
+# Mistborn
+I write these words in steel, for anything not set in metal cannot be trusted.

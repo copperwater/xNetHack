@@ -276,6 +276,7 @@ tin_text(struct obj *tin, char* buf)
         "100% All-Natural Croesus Meat - \"Eat the Rich!\"",
         "Djinni Brand Tins - Open now for your free wish!",
         "Can Of Whoop-Ass. Use Caution When Opening.",
+        "A Whole Can of Worms",
     };
     /* default is to pick a random label; may be overriden later */
     int food = tin_variety(tin, TRUE);

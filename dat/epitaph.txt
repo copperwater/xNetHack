@@ -214,6 +214,7 @@ Here lies the left foot of Jack, killed by a land mine.  Let us know if you find
 Here there be dragons
 Hey, I didn't write this stuff!
 Hey, get off my grave!
+Hey, this isn't Arizona!
 Hey, you! What year is it?
 Hodie mihi, cras tibi
 Hold my beer!
@@ -232,6 +233,7 @@ I am not dead yet, but watch for further reports.
 I believe them bones are me.
 I can't go to Hell.  They're afraid I'm gonna take over!
 I didn't believe in reincarnation the last time, either.
+I didn't know tin openers were improved THAT much.
 I didn't mean it when I said 'Bite me'
 I died laughing
 I don't know what I expected.
@@ -248,6 +250,7 @@ I may rise but I refuse to shine.
 I never get any either.
 I said hit HIM with the fireball, not me!
 I thought I could be like Adeon.  Guess not.
+I thought the name "killer bees" was just hyperbole.
 I told you I would never say goodbye.
 I used to be amusing.  Now I'm just disgusting.
 I used up all my sick days, so now I'm calling in dead.
@@ -354,9 +357,9 @@ Someone set us up the bomb!
 Soon ripe.  Soon rotten.  Soon gone.  But not forgotten.
 Soon you'll join this fellow in hell! -- the Wizard of Yendor
 Sparky -- he was a very good dog
+Stop by whenever.  I'm here all day.
 Sum quod eris
 Take my stuff, I don't need it anymore
-Taking a year dead for tax reasons
 Ten thousand start scummers lie at rest here, their lives tragically cut short.
 Teracotta Warrior
 Terminated.
@@ -390,6 +393,7 @@ VACANCY
 Virtually Alive
 Wait, I was eaten by a purple worm. How did I end up in this grave?
 Was I really alive, or did I just think I was?
+Watch out, this whole room is an elder mimic that ate me!
 We apologise for the inconvenience.
 We weren't sure who this was, but we buried him here anyway
 We will meet again.
@@ -497,3 +501,13 @@ Tried to get to Oregon. Died of dysentery.
 
 # The Walking Dead
 DON'T DEAD OPEN INSIDE
+
+# Hitchhiker's Guide to the Galaxy
+I seem to be having tremendous difficulty with my life-style.
+Taking a year dead for tax reasons
+
+# Ghostbusters
+I ain't afraid of no ghosts!
+
+# Princess Bride
+I'm only mostly dead!

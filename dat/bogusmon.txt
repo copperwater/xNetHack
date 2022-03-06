@@ -77,10 +77,11 @@ Dev Team member
 Random Number God
 Evil Patch Idea
 astral call bug
-uncursed +10 bobble hat
+doggo wearing a bobble hat
 improved tin opener
 pit fiend egg
 speedrunner
+uncursed +10 bobble hat
 
 # self-deprecation
 absurd pop-culture reference
@@ -89,6 +90,7 @@ poorly balanced monster
 
 # soundex and typos of monsters
 acid blog
+acrid blob
 acute blob
 air golem
 aliasing priest
@@ -141,6 +143,7 @@ hearth elemental
 hell hound pun
 high purist
 ice trowel
+invincible stalker
 killer beet
 lockatrice
 lounge worm
@@ -162,6 +165,7 @@ rogue piercer
 scone giant
 seesawing sphere
 sock mole
+solid ant
 stain vortex
 tire elemental
 umbrella hulk
@@ -417,9 +421,11 @@ weeping angel
 # HHGttG
 +Agrajag
 =Deep Thought
++Ford Prefect
 Babel fish
 Ravenous Bugblatter Beast of Traal
 Vogon
+Vogon poet
 hooloovoo
 microscopic space fleet
 small furry creature from Alpha Centauri
@@ -454,12 +460,39 @@ scrag
 # Dungeons and Dragons
 Dungeon Master
 beholder
+cloud giant
 flumph
 gazebo
 munchkin
 rules lawyer
 tarrasque
 wizard of the coast
+
+# Also D&D, but from lists of "the worst/silliest D&D monsters ever created"
+achaierai
+adherer
+autognome
+blindheim
+brain mole
+campestri
+carrionette
+death linen
+duck bunny
+flail snail
+flumph
+giant vampire frog
+groundsquid
+monkey bee
+nilbog
+origami golem
+raggamoffyn
+roving mauler
+sheet phantom
+skullrider
+stench kow
+sticky guy
+thought eater
+vegepygmy
 
 # Ultima
 +Lord British
@@ -468,6 +501,7 @@ wizard of the coast
 +Particle Man
 +Triangle Man
 bee of the bird of the moth
+deranged millionaire
 cow beneath the sea
 hotel detective
 
@@ -504,6 +538,7 @@ manbearpig
 +Domo-kun
 ROFLcopter
 bonsai-kitten
+diamond-handed investor
 dramatic chipmunk
 exploding kitten
 lolcat
@@ -533,6 +568,7 @@ zergling
 
 # Roald Dahl
 Grand High Witch Of All The World
+Gnoolie
 oompa-loompa
 vermicious knid
 
@@ -542,6 +578,7 @@ vermicious knid
 deranged mutant killer monster snow goon
 
 # Super Mario
++Bowser
 Koopa Troopa
 bullet bill
 chain chomp
@@ -723,6 +760,8 @@ red spider
 =Captain Tripps
 +Pennywise
 +Randall Flagg
+# not actually from but prominent in "'Salem's Lot"
+Emperor of Ice-Cream
 
 ## Section 4 - miscellaneous non-reference things
 
@@ -753,6 +792,7 @@ velociraptor
 
 # european cryptids
 Loch Ness Monster
+cryptid
 dahu
 elwedritsche
 selkie
@@ -798,6 +838,7 @@ buffer overflow
 dangling pointer
 deferred feature
 deferred monster
+firefox
 floating point
 global variable
 goto statement
@@ -843,6 +884,7 @@ terracotta warrior
 
 # SciFi elements
 big dumb object
+cosmic ray
 first category perpetual motion device
 gray goo
 little green man
@@ -895,6 +937,7 @@ peddler
 +One Punch Man
 +Skeletor
 -Ebony Dark'ness Dementia Raven Way
+-Cruella de Vil
 Ghost of Christmas Past
 Mexican jumping bean
 Sheriff of Nottingham
@@ -907,6 +950,7 @@ arch-pedant
 ascii art
 astronaut
 attorney
+banker
 basilisk
 battlemech
 battletoad
@@ -927,6 +971,7 @@ college dropout
 conventioneer
 cookie monster
 craven
+crazy ex
 crimson dervish
 cultist
 dancing blade
@@ -970,7 +1015,9 @@ grad student
 grand inquisitor
 grumpy old man
 hamburglar
+happy little tree
 haunted wardrobe
+help vampire
 hoagie
 hologram
 humorous message
@@ -995,10 +1042,13 @@ lion-dog
 living armor
 living statue
 loan shark
+maestro
 maggot
 man-eating banana
 maniac
 marid
+mayor
+mighty morphin' power ranger
 modern art
 mother-in-law
 multi-bear
@@ -1021,6 +1071,7 @@ paint blob
 paparazzi
 philosophical zombie
 pigasus
+pilot
 pink elephant
 possessed waffle iron
 poultrygeist
@@ -1063,6 +1114,7 @@ tax collector
 teenager
 telemarketer
 tofurkey
+trainspotter
 tyrannosaurus rex
 uberhulk
 undercover cop

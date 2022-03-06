@@ -38,7 +38,7 @@ const char *const hallublasts[] = {
     "prismatic light", "pure logic", "purple", "radio waves", "rainbows",
     "rock music", "rocket fuel", "rope", "sadness", "salt", "sand", "scrolls",
     "sludge", "smileys", "snowflakes", "sparkles", "specularity", "spores",
-    "stars", "steam", "tetrahedrons", "text", "the past", "tornadoes",
+    "stars", "steam", "tetrahedrons", "text", "the past", "tinsel", "tornadoes",
     "toxic waste", "ultraviolet light", "viruses", "water", "waveforms", "wind",
     "X-rays", "zorkmids"
 };
