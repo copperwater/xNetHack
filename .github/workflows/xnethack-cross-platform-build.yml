@@ -2,18 +2,18 @@ name: xNetHack
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, '*-savebreaking' ]
     tags:
-      - '*' # won't work on tags containing /
+      - '**'
   pull_request:
-    branches: [ master ]
+    branches: [ master, '*-savebreaking' ]
 
 jobs:
   linux-build:
     runs-on: ubuntu-latest
     env:
       #LUA_VERSION: 5.4.2
-      HINTS_FILE: linux.2020
+      HINTS_FILE: linux.370
     steps:
     - uses: actions/checkout@v2
     - name: setup
@@ -22,14 +22,14 @@ jobs:
       run: |
         make fetch-lua
     - name: make all
-      run: make -j8 all
+      run: make all
     - name: make install
       run: make install
 
   mac-build:
     runs-on: macos-latest
     env:
-      HINTS_FILE: macOS.2020
+      HINTS_FILE: macOS.370
     steps:
     - uses: actions/checkout@v2
     - name: setup
@@ -37,7 +37,7 @@ jobs:
         ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
         make fetch-lua
     - name: make all
-      run: make -j8 all
+      run: make all
     - name: make install
       run: make install
 
