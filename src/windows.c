@@ -1405,6 +1405,10 @@ dump_set_color_attr(int coloridx, int attrmask, boolean onoff)
         if (attrmask & HL_BOLD)
             fprintf(dumphtml_file, BOLD_E);
     }
+#else
+    nhUse(coloridx);
+    nhUse(attrmask);
+    nhUse(onoff);
 #endif
 }
 
