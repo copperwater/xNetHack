@@ -865,10 +865,10 @@ do_gamelog(void)
         return ECMD_OK;
     }
 
-    win = create_nhwindow(NHW_TEXT);
-    putstr(win, 0, "Major events:");
+    win = create_nhwindow(NHW_MENU);
+    putstr(win, ATR_HEADING, "Major events:");
     putstr(win, 0, "");
-    putstr(win, 0, " Turn");
+    putstr(win, ATR_SUBHEAD, " Turn");
     while (tmp) {
         Sprintf(buf, "%5li: %s", tmp->turn, tmp->text);
         putstr(win, 0, buf);
