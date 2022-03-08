@@ -126,8 +126,8 @@ changes:
   where gravity is in effect, it poses a potentially fatal hazard.
   - Anyone who steps into air will fall either to a designated level beneath
     that level, take 12d20 fall damage, become stunned, and wound their legs for
-    60+10d10 turns.
-    or if there is no designated level beneath it, simply die instantly.
+    60+10d10 turns. If there is no designated level beneath it, they simply die
+    instantly.
   - Air can be crossed by flying or levitating or being a wumpus, or riding a
     steed that can cross air.
   - Items that fall into air fall to the level below, but have a 25% chance of
