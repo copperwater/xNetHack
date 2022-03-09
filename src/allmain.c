@@ -836,7 +836,7 @@ welcome(boolean new_game) /* false => restoring an old game */
             (currentgend && g.urole.name.f) ? g.urole.name.f : g.urole.name.m);
 
     pline(new_game ? "%s %s, welcome to xNetHack!  You are a%s."
-                   : "%s %s, the%s, welcome back to NetHack!",
+                   : "%s %s, the%s, welcome back to xNetHack!",
           Hello((struct monst *) 0), g.plname, buf);
 
     if (Hallucination)
