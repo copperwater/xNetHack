@@ -758,7 +758,7 @@ enum glyph_offsets {
 #define glyph_is_female_peaceful(glyph) \
     ((glyph) >= GLYPH_PEACEFUL_FEM_OFF && (glyph) < (GLYPH_PEACEFUL_FEM_OFF + NUMMONS))
 #define glyph_is_male_peaceful(glyph) \
-    ((glyph) >= GLYPH_PEACEFUL_MALE_OFF && (glyph) < (GLYPH_PET_MALE_OFF + NUMMONS))
+    ((glyph) >= GLYPH_PEACEFUL_MALE_OFF && (glyph) < (GLYPH_PEACEFUL_MALE_OFF + NUMMONS))
 #define glyph_is_peaceful(glyph) \
     (glyph_is_male_peaceful(glyph) || glyph_is_female_peaceful(glyph))
 #define glyph_is_ridden_female_monster(glyph) \

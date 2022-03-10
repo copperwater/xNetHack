@@ -1678,12 +1678,12 @@ checkfile(char *inp, struct permonst *pm, boolean user_typed_name,
 
                 if (sscanf(buf, "%ld,%d\n", &entry_offset, &entry_count) < 2) {
                     goto bad_data_file;
+                }
                 fseekoffset = (long) txt_offset + entry_offset;
                 if (pass == 1)
                     pass1offset = fseekoffset;
                 else if (fseekoffset == pass1offset)
                     goto checkfile_done;
-                }
             }
 
             /* monster lookup: try to parse as a monster
