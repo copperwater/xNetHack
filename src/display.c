@@ -2307,6 +2307,8 @@ map_glyphinfo(
              *      that's not its base, it will briefly render as that material
              *      (since we have only x, y, and glyph here and vobj_at() can't
              *      tell that it's actually a flying object being mapped.)
+             * Another reason !otmp is not actually impossible is that the
+             * object could have been moved while out of sight.
             else
                 impossible("no visible object at (%d, %d)?",
                            x, y);
@@ -2347,8 +2349,17 @@ map_glyphinfo(
                     ; /* do not change glyph color */
                 }
             }
-            else
-                impossible("no visible engraving at (%d, %d)?", x, y);
+            else {
+                /* This used to be an impossible - not actually impossible since
+                 * a monster can wipe out an engraving out of the player's
+                 * sight. The remembered glyph is the engraving glyph but now
+                 * there is no engraving there to get the right color from. Make
+                 * the (typically safe) assumption that it was a dust engraving
+                 * that eroded completely and color accordingly.
+                 * Proper solution is to introduce different colored glyphs for
+                 * each engraving; this is a stopgap. */
+                glyphinfo->gm.color = CLR_BROWN;
+            }
         }
         /* iron door
          * (only check closed door defsym range, not S_ndoor) */
