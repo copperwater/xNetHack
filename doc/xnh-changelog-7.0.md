@@ -124,7 +124,7 @@ changes:
   used to ferment fruit juice, turning it into sickness.
 - Air terrain can now appear in levels other than the Planes. In such levels
   where gravity is in effect, it poses a potentially fatal hazard.
-  - Anyone who steps into air will fall either to a designated level beneath
+  - Anyone who steps into air will fall to a designated level beneath
     that level, take 12d20 fall damage, become stunned, and wound their legs for
     60+10d10 turns. If there is no designated level beneath it, they simply die
     instantly.
