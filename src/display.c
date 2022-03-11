@@ -1617,6 +1617,8 @@ show_glyph(int x, int y, int glyph)
             text = "cmap B";
         } else if ((offset = (glyph - GLYPH_ALTAR_OFF)) >= 0) {
             text = "altar";
+        } else if ((offset = (glyph - GLYPH_ENGRAVING_OFF)) >= 0) {
+            text = "engraving";
         } else if ((offset = (glyph - GLYPH_CMAP_A_OFF)) >= 0) {
             text = "cmap A";
         } else if ((offset = (glyph - GLYPH_CMAP_SOKO_OFF)) >= 0) {
@@ -1899,6 +1901,14 @@ back_to_glyph(xchar x, xchar y)
      * here. */
     if (defsym == S_altar) {
         return altar_to_glyph(levl[x][y].altarmask);
+    }
+    /* 7 engravings share one cmap entry as well. */
+    if (defsym == S_engraving) {
+        struct engr *engr = engr_at(x, y);
+        if (!engr) /* maybe something erased engraving out of sight */
+            return engr_to_glyph(ENGRAVE, 0, 0, 0);
+        else
+            return engr_to_glyph(engr->engr_type, x, y, ledger_no(&u.uz));
     }
     return cmap_to_glyph(defsym);
 }
@@ -2271,12 +2281,12 @@ map_glyphinfo(
      * single S_foo defsym that should render as different colors in text
      * windowports now need to be their own glyphs, optionally allowing each
      * glyph to be its own tile. (This is how altars are now treated.)
-     * xNetHack has additional color variants of a single defsym (engravings,
-     * iron doors, and most notably object materials) which were not covered by
-     * this change, so for the time being the on-the-fly color computations have
-     * been re-added here. Likely the ones for object materials will be
-     * permanent, since adding glyphs and tiles for every material variant of
-     * every object would be an enormous amount of work. */
+     * xNetHack has additional color variants of a single defsym (iron doors and
+     * most notably object materials) which were not covered by this change, so
+     * for the time being the on-the-fly color computations have been re-added
+     * here. Likely the ones for object materials will be permanent, since
+     * adding glyphs and tiles for every material variant of every object would
+     * be an enormous amount of work. */
 #ifdef TEXTCOLOR
     /* isok is used because this is sometimes called with 0,0 */
     if (iflags.use_color && isok(x, y)) {
@@ -2313,53 +2323,6 @@ map_glyphinfo(
                 impossible("no visible object at (%d, %d)?",
                            x, y);
             */
-        }
-        /* engraving */
-        else if (gmap->symidx == S_engraving + SYM_OFF_P) {
-            struct engr* engr = engr_at(x, y);
-            if (engr) {
-                switch (engr->engr_type) {
-                case DUST:
-                    glyphinfo->gm.color = CLR_BROWN;
-                    break;
-                case BURN:
-                    glyphinfo->gm.color = CLR_BLACK;
-                    break;
-                case MARK:
-                    switch (coord_hash(x, y, ledger_no(&u.uz)) % 3) {
-                    case 0:
-                        glyphinfo->gm.color = CLR_BRIGHT_GREEN;
-                        break;
-                    case 1:
-                        glyphinfo->gm.color = CLR_BRIGHT_BLUE;
-                        break;
-                    case 2:
-                        glyphinfo->gm.color = CLR_BRIGHT_MAGENTA;
-                        break;
-                    }
-                    break;
-                case ENGR_BLOOD:
-                    glyphinfo->gm.color = CLR_RED;
-                    break;
-                case ENGRAVE:
-                    glyphinfo->gm.color = CLR_GRAY;
-                    break;
-                case HEADSTONE:
-                default:
-                    ; /* do not change glyph color */
-                }
-            }
-            else {
-                /* This used to be an impossible - not actually impossible since
-                 * a monster can wipe out an engraving out of the player's
-                 * sight. The remembered glyph is the engraving glyph but now
-                 * there is no engraving there to get the right color from. Make
-                 * the (typically safe) assumption that it was a dust engraving
-                 * that eroded completely and color accordingly.
-                 * Proper solution is to introduce different colored glyphs for
-                 * each engraving; this is a stopgap. */
-                glyphinfo->gm.color = CLR_BROWN;
-            }
         }
         /* iron door
          * (only check closed door defsym range, not S_ndoor) */
@@ -2436,6 +2399,11 @@ const int altarcolors[] = {
     altar_color_unaligned, altar_color_chaotic, altar_color_neutral,
     altar_color_lawful, altar_color_other
 };
+const int engravingcolors[] = {
+    engraving_color_dust, engraving_color_engrave, engraving_color_burn,
+    engraving_color_mark1, engraving_color_mark2, engraving_color_mark3,
+    engraving_color_blood
+};
 const int explodecolors[7] = {
     explode_color_dark,   explode_color_noxious, explode_color_muddy,
     explode_color_wet,    explode_color_magical, explode_color_fiery,
@@ -2469,6 +2437,7 @@ int wallcolors[sokoban_walls + 1] = {
     color = iflags.use_color ? explodecolors[n] : NO_COLOR
 #define wall_color(n) color = iflags.use_color ? wallcolors[n] : NO_COLOR
 #define altar_color(n) color = iflags.use_color ? altarcolors[n] : NO_COLOR
+#define engraving_color(n) color = iflags.use_color ? engravingcolors[n] : NO_COLOR
 #else /* no text color */
 
 #define zap_color(n)
@@ -2481,6 +2450,7 @@ int wallcolors[sokoban_walls + 1] = {
 #define explode_color(n)
 #define wall_color(n)
 #define altar_color(n)
+#define engraving_color(n)
 #endif
 
 #if 0
@@ -2627,6 +2597,10 @@ reset_glyphmap(enum glyphmap_change_triggers trigger)
                     gmap->glyphflags |= MG_BW_ICE;
                 }
             }
+        } else if ((offset = (glyph - GLYPH_ENGRAVING_OFF)) >= 0) {
+            /* engraving of various types */
+            gmap->symidx = S_engraving + SYM_OFF_P;
+            engraving_color(offset);
         } else if ((offset = (glyph - GLYPH_ALTAR_OFF)) >= 0) {
             /* unaligned, chaotic, neutral, lawful, other altar */
             gmap->symidx = S_altar + SYM_OFF_P;

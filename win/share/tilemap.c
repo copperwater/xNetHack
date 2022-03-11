@@ -69,6 +69,10 @@ enum {MON_GLYPH, OBJ_GLYPH, OTH_GLYPH, TERMINATOR = -1};
 const char *altar_text[] = {
     "unaligned", "chaotic", "neutral", "lawful", "other altar",
 };
+const char *engraving_text[] = {
+    "dust engraving", "normal engraving", "burnt engraving", "graffiti 1",
+    "graffiti 2", "graffiti 3", "blood engraving",
+};
 enum wall_levels { main_dungeon, mines, gehennom, knox, sokoban };
 
 int wall_offsets[] = {
@@ -360,6 +364,27 @@ tilename(int set, const int file_entry, int gend UNUSED)
             }
         }
 
+        /* Engravings */
+        cmap = S_engraving;
+        for (k = engr_dust; k <= engr_blood; k++) {
+            /* Since defsyms only has one altar symbol,
+               it isn't much help in identifying details
+               these. Roll our own name. */
+            if (tilenum == file_entry) {
+                Strcpy(buf, engraving_text[k]);
+                return buf;
+            }
+            tilenum++;
+        }
+        for (condnum = 0; conditionals[condnum].sequence != -1; ++condnum) {
+            if (conditionals[condnum].sequence == OTH_GLYPH
+                && conditionals[condnum].predecessor == cmap) {
+                tilenum++;
+                if (tilenum == file_entry)
+                    return conditionals[condnum].name;
+            }
+        }
+
         /* cmap B */
         for (cmap = S_grave; cmap <= S_vibrating_square; cmap++) {
             i = cmap - S_grave;
@@ -614,6 +639,7 @@ init_tilemap(void)
     Fprintf(tilemap_file, "GLYPH_CMAP_SOKO_OFF = %d\n", GLYPH_CMAP_SOKO_OFF);
     Fprintf(tilemap_file, "GLYPH_CMAP_A_OFF = %d\n", GLYPH_CMAP_A_OFF);
     Fprintf(tilemap_file, "GLYPH_ALTAR_OFF = %d\n", GLYPH_ALTAR_OFF);
+    Fprintf(tilemap_file, "GLYPH_ENGRAVING_OFF = %d\n", GLYPH_ENGRAVING_OFF);
     Fprintf(tilemap_file, "GLYPH_CMAP_B_OFF = %d\n", GLYPH_CMAP_B_OFF);
     Fprintf(tilemap_file, "GLYPH_ZAP_OFF = %d\n", GLYPH_ZAP_OFF);
     Fprintf(tilemap_file, "GLYPH_CMAP_C_OFF = %d\n", GLYPH_CMAP_C_OFF);
@@ -667,6 +693,7 @@ init_tilemap(void)
                   ((S_trwall - S_vwall) + 1) +             /* main walls */
                   ((S_brdnladder - S_ndoor) + 1) +         /* cmap A */
                   5 +                                      /* 5 altar tiles */
+                  7 +                                      /* 7 engraving tiles */
                   ((S_vibrating_square - S_grave) + 1) +   /* cmap B */
                   (NUM_ZAP << 2)  +                        /* zaps */
                   ((S_goodpos - S_digbeam) + 1);           /* cmap C */
@@ -945,6 +972,38 @@ init_tilemap(void)
 #if defined(OBTAIN_TILEMAP)
                 Fprintf(tilemap_file, "skipping %s %s (%d)\n",
                         altar_text[j],
+                        tilename(OTH_GLYPH, file_entry, 0), cmap);
+#endif
+                tilenum++;
+                file_entry++;
+            }
+        }
+        j++;
+        tilenum++;
+        file_entry++;
+    }
+
+    /* Engravings */
+    cmap = S_engraving;
+    j = 0;
+    for (k = engr_dust; k <= engr_blood; k++) {
+        offset = GLYPH_ENGRAVING_OFF + j;
+        precheck((offset), "engraving");
+        tilemap[offset].tilenum = tilenum;
+#if defined(OBTAIN_TILEMAP)
+        Snprintf(tilemap[offset].name,
+                 sizeof tilemap[0].name,
+                "%s %s (cmap=%d)",
+                engraving_text[j], tilename(OTH_GLYPH, file_entry, 0), cmap);
+        add_tileref(tilenum, offset, other_file, file_entry,
+                    tilemap[offset].name, "");
+#endif
+        for (condnum = 0; conditionals[condnum].sequence != -1; condnum++) {
+            if (conditionals[condnum].sequence == OTH_GLYPH
+                && conditionals[condnum].predecessor == cmap) {
+#if defined(OBTAIN_TILEMAP)
+                Fprintf(tilemap_file, "skipping %s %s (%d)\n",
+                        engraving_text[j],
                         tilename(OTH_GLYPH, file_entry, 0), cmap);
 #endif
                 tilenum++;

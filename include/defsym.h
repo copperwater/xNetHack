@@ -127,27 +127,27 @@
     PCHAR( 30, '>',  S_brdnladder, "branch ladder down", CLR(CLR_YELLOW))
     /* end cmap A */
     PCHAR( 31, '_',  S_altar, "altar", CLR(CLR_GRAY))
+    PCHAR( 32, '~',  S_engraving, "engraving", CLR(CLR_BROWN))
     /* start cmap B */
-    PCHAR( 32, '|',  S_grave, "grave", CLR(CLR_WHITE))
-    PCHAR2(33, '\\', S_throne, "throne", "opulent throne", CLR(HI_GOLD))
-    PCHAR( 34, '\\', S_sink, "sink", CLR(CLR_BLUE))
-    PCHAR( 35, '{',  S_fountain, "fountain", CLR(CLR_BRIGHT_BLUE))
-    PCHAR2(36, '}',  S_pool, "pool", "water", CLR(CLR_BLUE))
-    PCHAR( 37, '.',  S_ice, "ice", CLR(CLR_CYAN))
-    PCHAR( 38, ',',  S_grass, "grass", CLR(CLR_GREEN))
-    PCHAR( 39, '}',  S_lava, "molten lava", CLR(CLR_RED))
-    PCHAR2(40, '.',  S_vodbridge, "vertical open drawbridge",
+    PCHAR( 33, '|',  S_grave, "grave", CLR(CLR_WHITE))
+    PCHAR2(34, '\\', S_throne, "throne", "opulent throne", CLR(HI_GOLD))
+    PCHAR( 35, '\\', S_sink, "sink", CLR(CLR_BLUE))
+    PCHAR( 36, '{',  S_fountain, "fountain", CLR(CLR_BRIGHT_BLUE))
+    PCHAR2(37, '}',  S_pool, "pool", "water", CLR(CLR_BLUE))
+    PCHAR( 38, '.',  S_ice, "ice", CLR(CLR_CYAN))
+    PCHAR( 39, ',',  S_grass, "grass", CLR(CLR_GREEN))
+    PCHAR( 40, '}',  S_lava, "molten lava", CLR(CLR_RED))
+    PCHAR2(41, '.',  S_vodbridge, "vertical open drawbridge",
                                   "lowered drawbridge", CLR(CLR_BROWN))
-    PCHAR2(41, '.',  S_hodbridge, "horizontal open drawbridge",
+    PCHAR2(42, '.',  S_hodbridge, "horizontal open drawbridge",
                                   "lowered drawbridge", CLR(CLR_BROWN))
-    PCHAR2(42, '#',  S_vcdbridge, "vertical closed drawbridge",
+    PCHAR2(43, '#',  S_vcdbridge, "vertical closed drawbridge",
                                   "raised drawbridge", CLR(CLR_BROWN))
-    PCHAR2(43, '#',  S_hcdbridge, "horizontal closed drawbridge",
+    PCHAR2(44, '#',  S_hcdbridge, "horizontal closed drawbridge",
                                   "raised drawbridge", CLR(CLR_BROWN))
-    PCHAR( 44, ' ',  S_air, "air", CLR(CLR_BLACK))
-    PCHAR( 45, '#',  S_cloud, "cloud", CLR(CLR_GRAY))
-    PCHAR( 46, '}',  S_water, "water", CLR(CLR_BLUE))
-    PCHAR( 47, '~',  S_engraving, "engraving", CLR(CLR_BROWN))
+    PCHAR( 45, ' ',  S_air, "air", CLR(CLR_BLACK))
+    PCHAR( 46, '#',  S_cloud, "cloud", CLR(CLR_GRAY))
+    PCHAR( 47, '}',  S_water, "water", CLR(CLR_BLUE))
     /* end dungeon characters                                          */
     /*                                                                 */
     /* begin traps                                                     */

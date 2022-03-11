@@ -304,6 +304,16 @@ enum altar_colors {
     altar_color_other = CLR_BRIGHT_MAGENTA,
 };
 
+enum engraving_colors {
+    engraving_color_dust = CLR_BROWN,
+    engraving_color_engrave = CLR_GRAY,
+    engraving_color_burn = CLR_BLACK,
+    engraving_color_mark1 = CLR_BRIGHT_GREEN,
+    engraving_color_mark2 = CLR_BRIGHT_BLUE,
+    engraving_color_mark3 = CLR_BRIGHT_MAGENTA,
+    engraving_color_blood = CLR_RED,
+};
+
 /* types of explosions */
 enum explosion_types {
     EXPL_DARK = 0,
@@ -343,6 +353,16 @@ enum altar_types {
     altar_lawful,
     altar_other
 };
+enum engraving_types {
+    engr_dust,
+    engr_engrave,
+    engr_burn,
+    engr_mark1,
+    engr_mark2,
+    engr_mark3,
+    engr_blood
+};
+
 enum level_walls  { main_walls, mines_walls, gehennom_walls,
                     knox_walls, sokoban_walls };
 enum { GM_FLAGS, GM_TTYCHAR, GM_COLOR, NUM_GLYPHMOD }; /* glyphmod entries */
@@ -416,6 +436,12 @@ enum glyphmap_change_triggers { gm_nochange, gm_newgame, gm_levelchange,
  *
  * Altars           Altar (unaligned, chaotic, neutral, lawful, other)
  *                  Count: 5
+ *
+ * Engravings       Engraving types (dust, engrave, burn, mark1, mark2, mark3,
+ *                  blood)
+ *                  HEADSTONE is always on GRAVE terrain and never renders as
+ *                  an engraving
+ *                  Count: 7
  *
  * cmap B           S_grave through S_vibrating_square
  *                  Count: (S_vibrating_square - S_grave) + 1 = 39
@@ -512,7 +538,8 @@ enum glyph_offsets {
     GLYPH_CMAP_SOKO_OFF  = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_KNOX_OFF),
     GLYPH_CMAP_A_OFF     = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_SOKO_OFF),
     GLYPH_ALTAR_OFF = (((S_brdnladder - S_ndoor) + 1) + GLYPH_CMAP_A_OFF),
-    GLYPH_CMAP_B_OFF = (5 + GLYPH_ALTAR_OFF),
+    GLYPH_ENGRAVING_OFF = (5 + GLYPH_ALTAR_OFF),
+    GLYPH_CMAP_B_OFF = (7 + GLYPH_ENGRAVING_OFF),
     GLYPH_ZAP_OFF = (((S_vibrating_square - S_grave) + 1) + GLYPH_CMAP_B_OFF),
     GLYPH_CMAP_C_OFF = ((NUM_ZAP << 2) + GLYPH_ZAP_OFF),
     GLYPH_SWALLOW_OFF = (((S_goodpos - S_digbeam) + 1) + GLYPH_CMAP_C_OFF),
@@ -574,6 +601,17 @@ enum glyph_offsets {
                 ? (GLYPH_ALTAR_OFF + altar_lawful)             \
                 : (GLYPH_ALTAR_OFF + altar_neutral))
 
+#define engr_to_glyph(type, x, y, z)                           \
+    ((type == DUST)                                            \
+     ? GLYPH_ENGRAVING_OFF + engr_dust                         \
+     : (type == ENGRAVE)                                       \
+       ? GLYPH_ENGRAVING_OFF + engr_engrave                    \
+       : (type == BURN)                                        \
+         ? GLYPH_ENGRAVING_OFF + engr_burn                     \
+         : (type == ENGR_BLOOD)                                \
+         ? GLYPH_ENGRAVING_OFF + engr_blood                    \
+         : GLYPH_ENGRAVING_OFF + engr_mark1 + (x + y + z) % 3)
+
 /* not used, nor is it correct
 #define zap_to_glyph(zaptype, cmap_idx) \
     ((((cmap_idx) - S_vbeam) + 1) + GLYPH_ZAP_OFF)
@@ -615,6 +653,7 @@ enum glyph_offsets {
         : ((cmap_idx) <= S_trwall) ? cmap_walls_to_glyph(cmap_idx)         \
         : ((cmap_idx) <  S_altar) ? cmap_a_to_glyph(cmap_idx)              \
         : ((cmap_idx) == S_altar) ? altar_to_glyph(AM_NEUTRAL)             \
+        : ((cmap_idx) == S_engraving) ? (engr_to_glyph(ENGRAVE, 0, 0, 0))  \
         : ((cmap_idx) <= S_vibrating_square) ? cmap_b_to_glyph(cmap_idx)   \
         : ((cmap_idx) <= S_goodpos) ? cmap_c_to_glyph(cmap_idx)            \
         : NO_GLYPH)
@@ -686,6 +725,9 @@ enum glyph_offsets {
 #define glyph_is_cmap_altar(glyph) \
     ((glyph) >= GLYPH_ALTAR_OFF && \
         (glyph) < (5 + GLYPH_ALTAR_OFF))
+#define glyph_is_cmap_engraving(glyph) \
+    ((glyph) >= GLYPH_ENGRAVING_OFF && \
+        (glyph) < (7 + GLYPH_ENGRAVING_OFF))
 #define glyph_is_cmap_b(glyph) \
     ((glyph) >= GLYPH_CMAP_B_OFF && \
         ((glyph) < (((S_vibrating_square - S_grave) + 1) + GLYPH_CMAP_B_OFF)))
@@ -708,6 +750,7 @@ enum glyph_offsets {
      || glyph_is_cmap_sokoban(glyph)   \
      || glyph_is_cmap_a(glyph)         \
      || glyph_is_cmap_altar(glyph)     \
+     || glyph_is_cmap_engraving(glyph) \
      || glyph_is_cmap_b(glyph)         \
      || glyph_is_cmap_c(glyph))
 
@@ -728,6 +771,8 @@ enum glyph_offsets {
                   ? (((glyph) - GLYPH_CMAP_A_OFF) + S_ndoor)           \
                   : glyph_is_cmap_altar(glyph)                         \
                     ? (S_altar)                                        \
+                    : glyph_is_cmap_engraving(glyph)                   \
+                    ? (S_engraving)                                    \
                     : glyph_is_cmap_b(glyph)                           \
                       ? (((glyph) - GLYPH_CMAP_B_OFF) + S_grave)       \
                       : glyph_is_cmap_c(glyph)                         \
@@ -1010,6 +1055,7 @@ typedef struct {
 
 #ifdef TEXTCOLOR
 extern const int altarcolors[];
+extern const int engravingcolors[];
 extern const int zapcolors[];
 extern const int explodecolors[];
 extern int wallcolors[];
