@@ -2279,7 +2279,7 @@
         M1_BREATHLESS | M1_MINDLESS | M1_HUMANOID | M1_THICK_HIDE | M1_POIS,
         M2_HOSTILE | M2_STRONG | M2_COLLECT, 0, 22, HI_METAL, IRON_GOLEM),
     /*
-     * humans, including elves and were-critters;
+     * humans, including were-critters;
      *  the '@' class does not obey rule #2.
      */
     MON("human", S_HUMAN, LVL(0, 12, 10, 0, 0), G_NOGEN, /* for corpses */
