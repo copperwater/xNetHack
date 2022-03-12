@@ -1299,6 +1299,8 @@ trapeffect_sqky_board(
 {
     boolean forcetrap = ((trflags & FORCETRAP) != 0
                          || (trflags & FAILEDUNTRAP) != 0);
+    const char *board = Hallucination ? "chicken" : "board";
+    const char *squeak = Hallucination ? "squawk" : "squeak";
 
     if (mtmp == &g.youmonst) {
         if ((Levitation || Flying) && !forcetrap) {
@@ -1311,11 +1313,8 @@ trapeffect_sqky_board(
             }
         } else {
             seetrap(trap);
-            if (Hallucination)
-                You("accidentally step on a squeaky toy!");
-            else
-                pline("A board beneath you %s%s%s.",
-                    Deaf ? "vibrates" : "squeaks ",
+            pline("A %s beneath you %ss %s%s.", board,
+                  Deaf ? "vibrate" : squeak,
                   Deaf ? "" : trapnote(trap, FALSE),
                   Deaf ? "" : " loudly");
             wake_nearby();
@@ -1328,12 +1327,8 @@ trapeffect_sqky_board(
         /* stepped on a squeaky board */
         if (in_sight) {
             if (!Deaf) {
-                if (Hallucination)
-                    pline("%s accidentally steps on a squeaky toy!",
-                            Monnam(mtmp));
-                else
-                    pline("A board beneath %s squeaks %s loudly.",
-                      mon_nam(mtmp), trapnote(trap, FALSE));
+                pline("A %s beneath %s %ss %s loudly.", board,
+                    mon_nam(mtmp), squeak, trapnote(trap, FALSE));
                 seetrap(trap);
             } else if (!mindless(mtmp->data)) {
                 pline("%s stops momentarily and appears to cringe.",
@@ -1344,7 +1339,7 @@ trapeffect_sqky_board(
             int range = couldsee(mtmp->mx, mtmp->my) /* 9 or 5 */
                 ? (BOLT_LIM + 1) : (BOLT_LIM - 3);
 
-            You_hear("%s squeak %s.", trapnote(trap, FALSE),
+            You_hear("%s %s %s.", trapnote(trap, FALSE), squeak,
                      (distu(mtmp->mx, mtmp->my) <= range * range)
                      ? "nearby" : "in the distance");
         }

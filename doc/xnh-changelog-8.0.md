@@ -29,6 +29,8 @@ changes:
 - Engravings now properly use the new vanilla glyph system. There is one glyph
   per type of engraving (except graffiti, which has 3 glyphs). There are new
   tiles for each new glyph.
+- When hallucinating, squeaky boards now appear to be chickens, and squawk
+  instead of squeak.
 
 ### Architectural changes
 
