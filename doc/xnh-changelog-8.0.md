@@ -22,6 +22,7 @@ changes:
 
 ### Gameplay changes
 
+- Trappers and lurkers above are mindless.
 
 ### Interface changes
 

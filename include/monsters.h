@@ -818,14 +818,14 @@
           NO_ATTK),
         SIZ(800, 350, MS_SILENT, MZ_HUGE), 0, 0,
         M1_HIDE | M1_FLY | M1_ANIMAL | M1_NOEYES | M1_NOLIMBS | M1_NOHEAD
-            | M1_CARNIVORE,
+            | M1_MINDLESS | M1_CARNIVORE,
         M2_HOSTILE | M2_STALK | M2_STRONG, 0, 12, CLR_GRAY, LURKER_ABOVE),
     MON("trapper", S_TRAPPER, LVL(12, 3, 3, 0, 0), (G_GENO | 2),
         A(ATTK(AT_ENGL, AD_DGST, 1, 10), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
           NO_ATTK),
         SIZ(800, 350, MS_SILENT, MZ_HUGE), 0, 0,
         M1_HIDE | M1_ANIMAL | M1_NOEYES | M1_NOLIMBS | M1_NOHEAD
-            | M1_CARNIVORE,
+            | M1_MINDLESS | M1_CARNIVORE,
         M2_HOSTILE | M2_STALK | M2_STRONG, 0, 14, CLR_GREEN, TRAPPER),
     /*
      * unicorns and horses
