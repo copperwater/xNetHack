@@ -203,8 +203,9 @@ read_txttile(FILE *txtfile, pixel (*pixels)[TILE_X])
             k = color_index[(int) c[0]];
             if (grayscale) {
                 if (k > (SIZE(graymappings) - 1))
-                    Fprintf(stderr, "Gray mapping issue %d > %d.\n", k,
-                            SIZE(graymappings) - 1);
+                    Fprintf(stderr,
+                            "Gray mapping issue %d > %d (tile %s, %d, %d).\n",
+                            k, SIZE(graymappings) - 1, buf, i, j);
                 else
                     k = graymappings[k];
             }
