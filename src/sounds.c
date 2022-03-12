@@ -882,11 +882,16 @@ domonnoise(register struct monst* mtmp)
         pline_msg = "imitates you.";
         break;
     case MS_BONES:
-        pline("%s rattles noisily.", Monnam(mtmp));
-        You("freeze for a moment.");
-        nomul(-2);
-        g.multi_reason = "scared by rattling";
-        g.nomovemsg = 0;
+        if (Hallucination) {
+            pline("%s plays a xylophone solo.", Monnam(mtmp));
+        }
+        else {
+            pline("%s rattles noisily.", Monnam(mtmp));
+            You("freeze for a moment.");
+            nomul(-2);
+            g.multi_reason = "scared by rattling";
+            g.nomovemsg = 0;
+        }
         break;
     case MS_LAUGH: {
         static const char *const laugh_msg[4] = {

@@ -23,6 +23,8 @@ changes:
 ### Gameplay changes
 
 - Trappers and lurkers above are mindless.
+- If hallucinating, a skeleton rattling its bones will not scare and paralyze
+  you.
 
 ### Interface changes
 
