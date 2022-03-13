@@ -25,6 +25,11 @@ changes:
 - Trappers and lurkers above are mindless.
 - If hallucinating, a skeleton rattling its bones will not scare and paralyze
   you.
+- Cost of several magic tools increased:
+  - Magic horns and magic harps 50 => 200
+  - Drum of earthquake 25 => 100
+  - Magic whistle 10 => 100
+  - Magic flute 36 => 144
 
 ### Interface changes
 
