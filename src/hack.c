@@ -1667,6 +1667,7 @@ static boolean
 air_move_danger(xchar x, xchar y)
 {
     if (u_simple_floortyp(x, y) != u_simple_floortyp(u.ux, u.uy)
+        && IS_AIR(levl[x][y].typ)
         && !Stunned && !Confusion && levl[x][y].seenv) {
         if (g.context.nopick) {
             /* moving with 'm' */
