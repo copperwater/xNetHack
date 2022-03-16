@@ -31,11 +31,17 @@ weaphitmsg(struct obj *weap, struct monst *magr) {
     const boolean uhitm = (magr == &g.youmonst);
     const char *verbpool[10];
     int verbidx = 0;
+
     /* The order in which strings are added to verbpool is important. The
      * earliest ones are the most likely to be printed, and the last are least
      * likely. */
-
-    if (objects[weap->otyp].oc_skill == P_WHIP || is_wet_towel(weap)) {
+    if (!(weap->oclass == WEAPON_CLASS || is_weptool(weap))) {
+        /* not a typical weapon; could be a cockatrice corpse, unlikely to hit
+         * things in a piercing or slashing way, but blunt verbs also don't work
+         * super well, so just default to "hit" */
+        ;
+    }
+    else if (objects[weap->otyp].oc_skill == P_WHIP || is_wet_towel(weap)) {
         verbpool[verbidx++] = "whip";
         verbpool[verbidx++] = "lash";
     }
@@ -77,6 +83,8 @@ weaphitmsg(struct obj *weap, struct monst *magr) {
         verbpool[verbidx++] = "lacerate";
     }
     else {
+        /* this should only ever happen if someone defines a weapon/weptool with
+         * no oc_dir flags */
         impossible("strange weapon type %d for hit message", weap->otyp);
     }
     verbpool[verbidx++] = "hit"; /* always an option */
