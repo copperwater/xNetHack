@@ -110,7 +110,7 @@ is_open_air(int x, int y)
 {
     if (!isok(x, y))
         return FALSE;
-    return (IS_AIR(levl[x][y].typ) && !In_endgame(&u.uz));
+    return (levl[x][y].typ == AIR && !In_endgame(&u.uz));
     /* potential future extension -- add a DB_AIR for drawbridge over air if
      * such a thing ever has a reason to exist */
 }
