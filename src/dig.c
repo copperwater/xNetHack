@@ -1458,7 +1458,8 @@ zap_dig(void)
 
     if (u.dz) {
         if (!Is_airlevel(&u.uz) && !Is_waterlevel(&u.uz) && !Underwater) {
-            if (u.dz < 0 || On_stairs(u.ux, u.uy)) {
+            if ((u.dz < 0 || On_stairs(u.ux, u.uy))
+                && !g.level.flags.outdoors) {
                 int dmg;
                 if (On_stairs(u.ux, u.uy)) {
                     stairway *stway = stairway_at(u.ux, u.uy);
@@ -1476,7 +1477,7 @@ zap_dig(void)
                     stackobj(otmp);
                 }
                 newsym(u.ux, u.uy);
-            } else {
+            } else if (u.dz > 0) {
                 watch_dig((struct monst *) 0, u.ux, u.uy, TRUE);
                 (void) dighole(FALSE, TRUE, (coord *) 0);
             }
