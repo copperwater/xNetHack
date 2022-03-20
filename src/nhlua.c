@@ -275,6 +275,7 @@ const struct {
                 { 'F', IRONBARS }, /* Fe = iron */
                 { ',', GRASS },
                 { 'g', GRASS },
+                { 'p', MAGIC_PLATFORM },
                 { 'x', MAX_TYPE }, /* "see-through" */
                 { 'B', CROSSWALL }, /* hack: boundary location */
                 { 'w', MATCH_WALL }, /* IS_STWALL() */

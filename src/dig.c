@@ -207,6 +207,9 @@ dig_check(struct monst *madeby, boolean verbose, int x, int y)
         if (verbose)
             pline_The("altar is too hard to break apart.");
         return FALSE;
+    } else if (IS_MAGIC_PLATFORM(levl[x][y].typ)) {
+        pline_The("magic platform resists your effort.");
+        return FALSE;
     } else if (Is_airlevel(&u.uz)) {
         if (verbose)
             You("cannot %s thin air.", verb);
@@ -813,6 +816,7 @@ dighole(boolean pit_only, boolean by_magic, coord *cc)
     old_typ = lev->typ;
 
     if ((ttmp && (undestroyable_trap(ttmp->ttyp) || nohole))
+        || IS_MAGIC_PLATFORM(old_typ)
         || (IS_ROCK(old_typ) && old_typ != SDOOR
             && (lev->wall_info & W_NONDIGGABLE) != 0)) {
         pline_The("%s %shere is too hard to dig in.", surface(dig_x, dig_y),
@@ -2209,6 +2213,7 @@ create_pit_under(struct monst *mdef, struct monst *magr)
     /* check for illegalities: out of bounds, terrain unsuitable for traps,
      * or trap types that should not be deleted and replaced with pits */
     if (!isok(x, y) || !SPACE_POS(typ) || IS_FURNITURE(typ) || IS_AIR(typ)
+        || IS_MAGIC_PLATFORM(typ)
         || (trap &&
             (trap->ttyp == MAGIC_PORTAL || trap->ttyp == VIBRATING_SQUARE))
         || (In_endgame(&u.uz) && !Is_earthlevel(&u.uz))) {

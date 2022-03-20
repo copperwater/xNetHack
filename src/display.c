@@ -147,6 +147,7 @@ static int set_crosswall(int, int);
 static void set_seenv(struct rm *, int, int, int, int);
 static void t_warn(struct rm *);
 static int wall_angle(struct rm *);
+static int magicplatform_to_glyph(xchar, xchar);
 
 #define remember_topology(x, y) (g.lastseentyp[x][y] = levl[x][y].typ)
 
@@ -1619,6 +1620,8 @@ show_glyph(int x, int y, int glyph)
             text = "altar";
         } else if ((offset = (glyph - GLYPH_ENGRAVING_OFF)) >= 0) {
             text = "engraving";
+        } else if ((offset = (glyph - GLYPH_MAGICPLATFORM_OFF)) >= 0) {
+            text = "magic platform";
         } else if ((offset = (glyph - GLYPH_CMAP_A_OFF)) >= 0) {
             text = "cmap A";
         } else if ((offset = (glyph - GLYPH_CMAP_SOKO_OFF)) >= 0) {
@@ -1910,6 +1913,10 @@ back_to_glyph(xchar x, xchar y)
         else
             return engr_to_glyph(engr->engr_type, x, y, ledger_no(&u.uz));
     }
+    /* 7 magic platform colors share one cmap entry */
+    if (defsym == S_magicplatform) {
+        return magicplatform_to_glyph(x, y);
+    }
     return cmap_to_glyph(defsym);
 }
 
@@ -2018,6 +2025,9 @@ back_to_defsym(xchar x, xchar y, boolean show_engravings)
     case GRASS:
         idx = S_grass;
         engr_override = TRUE;
+        break;
+    case MAGIC_PLATFORM:
+        idx = S_magicplatform;
         break;
     case AIR:
         idx = S_air;
@@ -2404,6 +2414,11 @@ const int engravingcolors[] = {
     engraving_color_mark1, engraving_color_mark2, engraving_color_mark3,
     engraving_color_blood
 };
+const int magicplatformcolors[] = {
+    platform_color_default, platform_color_red, platform_color_orange,
+    platform_color_yellow, platform_color_green, platform_color_blue,
+    platform_color_violet,
+};
 const int explodecolors[7] = {
     explode_color_dark,   explode_color_noxious, explode_color_muddy,
     explode_color_wet,    explode_color_magical, explode_color_fiery,
@@ -2438,6 +2453,8 @@ int wallcolors[sokoban_walls + 1] = {
 #define wall_color(n) color = iflags.use_color ? wallcolors[n] : NO_COLOR
 #define altar_color(n) color = iflags.use_color ? altarcolors[n] : NO_COLOR
 #define engraving_color(n) color = iflags.use_color ? engravingcolors[n] : NO_COLOR
+#define magicplatform_color(n) \
+    color = iflags.use_color ? magicplatformcolors[n] : NO_COLOR
 #else /* no text color */
 
 #define zap_color(n)
@@ -2451,6 +2468,7 @@ int wallcolors[sokoban_walls + 1] = {
 #define wall_color(n)
 #define altar_color(n)
 #define engraving_color(n)
+#define magicplatform_color(n)
 #endif
 
 #if 0
@@ -2597,6 +2615,10 @@ reset_glyphmap(enum glyphmap_change_triggers trigger)
                     gmap->glyphflags |= MG_BW_ICE;
                 }
             }
+        } else if ((offset = (glyph - GLYPH_MAGICPLATFORM_OFF)) >= 0) {
+            /* magical platform */
+            gmap->symidx = S_magicplatform + SYM_OFF_P;
+            magicplatform_color(offset);
         } else if ((offset = (glyph - GLYPH_ENGRAVING_OFF)) >= 0) {
             /* engraving of various types */
             gmap->symidx = S_engraving + SYM_OFF_P;
@@ -2729,8 +2751,8 @@ static const char *const type_names[MAX_TYPE] = {
     "CROSSWALL", "TUWALL", "TDWALL", "TLWALL", "TRWALL", "DBWALL", "TREE",
     "SDOOR", "SCORR", "POOL", "MOAT", "WATER", "DRAWBRIDGE_UP", "LAVAPOOL",
     "IRON_BARS", "DOOR", "CORR", "ROOM", "STAIRS", "LADDER", "FOUNTAIN",
-    "THRONE", "SINK", "GRAVE", "ALTAR", "ICE", "GRASS", "DRAWBRIDGE_DOWN",
-    "AIR", "CLOUD"
+    "THRONE", "SINK", "GRAVE", "ALTAR", "ICE", "GRASS", "MAGIC_PLATFORM",
+    "DRAWBRIDGE_DOWN", "AIR", "CLOUD"
 };
 
 static const char *
@@ -3424,6 +3446,14 @@ wall_angle(struct rm *lev)
         idx = S_stone;
     }
     return idx;
+}
+
+/* Return the appropriate glyph for the magic platform square at (x, y).
+ * Normally this will be its standard default appearance. */
+static int
+magicplatform_to_glyph(xchar x UNUSED, xchar y)
+{
+    return GLYPH_MAGICPLATFORM_OFF + platform_default;
 }
 
 /*display.c*/

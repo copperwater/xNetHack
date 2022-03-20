@@ -30,6 +30,9 @@ changes:
   - Drum of earthquake 25 => 100
   - Magic whistle 10 => 100
   - Magic flute 36 => 144
+- New terrain type "magic platform". This will currently only appear in special
+  levels. It is effectively a hovering walkable space over open air. It cannot
+  be dug down on or engraved on.
 
 ### Interface changes
 

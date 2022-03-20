@@ -70,12 +70,13 @@ enum levl_typ_types {
     ALTAR     = 31,
     ICE       = 32,
     GRASS     = 33,
-    DRAWBRIDGE_DOWN = 34,
-    AIR       = 35,
-    CLOUD     = 36,
+    MAGIC_PLATFORM = 34,
+    DRAWBRIDGE_DOWN = 35,
+    AIR       = 36,
+    CLOUD     = 37,
 
-    MAX_TYPE  = 37,
-    MATCH_WALL = 38,
+    MAX_TYPE  = 38,
+    MATCH_WALL = 39,
     INVALID_TYPE = 127
 };
 
@@ -105,6 +106,7 @@ enum levl_typ_types {
     ((typ) == DRAWBRIDGE_UP || (typ) == DRAWBRIDGE_DOWN)
 #define IS_FURNITURE(typ) ((typ) >= STAIRS && (typ) <= ALTAR)
 #define IS_GRASS(typ) ((typ) == GRASS)
+#define IS_MAGIC_PLATFORM(typ) ((typ) == MAGIC_PLATFORM)
 #define IS_AIR(typ) ((typ) == AIR || (typ) == CLOUD)
 #define IS_SOFT(typ) ((typ) == AIR || (typ) == CLOUD || IS_POOL(typ))
 

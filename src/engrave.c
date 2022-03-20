@@ -196,6 +196,8 @@ surface(int x, int y)
         return "maw";
     else if (IS_AIR(lev->typ))
         return "air";
+    else if (IS_MAGIC_PLATFORM(lev->typ))
+        return "magic platform";
     else if (is_pool(x, y))
         return (Underwater && !Is_waterlevel(&u.uz))
             ? "bottom" : hliquid("water");
@@ -475,6 +477,9 @@ u_can_engrave(void)
     if (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz) /* in bubble */
         || IS_AIR(levl[u.ux][u.uy].typ)) {
         You_cant("write in thin air!");
+        return FALSE;
+    } else if (IS_MAGIC_PLATFORM(levl[u.ux][u.uy].typ)) {
+        You_cant("make any mark on the magic surface.");
         return FALSE;
     } else if (!accessible(u.ux, u.uy)) {
         /* stone, tree, wall, secret corridor, pool, lava, bars */

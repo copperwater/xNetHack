@@ -314,6 +314,16 @@ enum engraving_colors {
     engraving_color_blood = CLR_RED,
 };
 
+enum magicplatform_colors {
+    platform_color_default = CLR_BRIGHT_MAGENTA,
+    platform_color_red = CLR_RED,
+    platform_color_orange = CLR_ORANGE,
+    platform_color_yellow = CLR_YELLOW,
+    platform_color_green = CLR_BRIGHT_GREEN,
+    platform_color_blue = CLR_BLUE,
+    platform_color_violet = CLR_MAGENTA,
+};
+
 /* types of explosions */
 enum explosion_types {
     EXPL_DARK = 0,
@@ -361,6 +371,15 @@ enum engraving_types {
     engr_mark2,
     engr_mark3,
     engr_blood
+};
+enum magicplatform_types {
+    platform_default,
+    platform_red,
+    platform_orange,
+    platform_yellow,
+    platform_green,
+    platform_blue,
+    platform_violet,
 };
 
 enum level_walls  { main_walls, mines_walls, gehennom_walls,
@@ -441,6 +460,9 @@ enum glyphmap_change_triggers { gm_nochange, gm_newgame, gm_levelchange,
  *                  blood)
  *                  HEADSTONE is always on GRAVE terrain and never renders as
  *                  an engraving
+ *                  Count: 7
+ *
+ * Magic platforms  Default appearance plus six colors
  *                  Count: 7
  *
  * cmap B           S_grave through S_vibrating_square
@@ -539,7 +561,8 @@ enum glyph_offsets {
     GLYPH_CMAP_A_OFF     = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_SOKO_OFF),
     GLYPH_ALTAR_OFF = (((S_brdnladder - S_ndoor) + 1) + GLYPH_CMAP_A_OFF),
     GLYPH_ENGRAVING_OFF = (5 + GLYPH_ALTAR_OFF),
-    GLYPH_CMAP_B_OFF = (7 + GLYPH_ENGRAVING_OFF),
+    GLYPH_MAGICPLATFORM_OFF = (7 + GLYPH_ENGRAVING_OFF),
+    GLYPH_CMAP_B_OFF = (7 + GLYPH_MAGICPLATFORM_OFF),
     GLYPH_ZAP_OFF = (((S_vibrating_square - S_grave) + 1) + GLYPH_CMAP_B_OFF),
     GLYPH_CMAP_C_OFF = ((NUM_ZAP << 2) + GLYPH_ZAP_OFF),
     GLYPH_SWALLOW_OFF = (((S_goodpos - S_digbeam) + 1) + GLYPH_CMAP_C_OFF),
@@ -612,6 +635,8 @@ enum glyph_offsets {
          ? GLYPH_ENGRAVING_OFF + engr_blood                    \
          : GLYPH_ENGRAVING_OFF + engr_mark1 + (x + y + z) % 3)
 
+/* magicplatform_to_glyph is in display.c */
+
 /* not used, nor is it correct
 #define zap_to_glyph(zaptype, cmap_idx) \
     ((((cmap_idx) - S_vbeam) + 1) + GLYPH_ZAP_OFF)
@@ -654,6 +679,8 @@ enum glyph_offsets {
         : ((cmap_idx) <  S_altar) ? cmap_a_to_glyph(cmap_idx)              \
         : ((cmap_idx) == S_altar) ? altar_to_glyph(AM_NEUTRAL)             \
         : ((cmap_idx) == S_engraving) ? (engr_to_glyph(ENGRAVE, 0, 0, 0))  \
+        : ((cmap_idx) == S_magicplatform)                                  \
+          ? (GLYPH_MAGICPLATFORM_OFF + platform_default)                   \
         : ((cmap_idx) <= S_vibrating_square) ? cmap_b_to_glyph(cmap_idx)   \
         : ((cmap_idx) <= S_goodpos) ? cmap_c_to_glyph(cmap_idx)            \
         : NO_GLYPH)
@@ -728,6 +755,9 @@ enum glyph_offsets {
 #define glyph_is_cmap_engraving(glyph) \
     ((glyph) >= GLYPH_ENGRAVING_OFF && \
         (glyph) < (7 + GLYPH_ENGRAVING_OFF))
+#define glyph_is_cmap_magicplatform(glyph) \
+    ((glyph) >= GLYPH_MAGICPLATFORM_OFF && \
+        (glyph) < (7 + GLYPH_MAGICPLATFORM_OFF))
 #define glyph_is_cmap_b(glyph) \
     ((glyph) >= GLYPH_CMAP_B_OFF && \
         ((glyph) < (((S_vibrating_square - S_grave) + 1) + GLYPH_CMAP_B_OFF)))
@@ -751,6 +781,7 @@ enum glyph_offsets {
      || glyph_is_cmap_a(glyph)         \
      || glyph_is_cmap_altar(glyph)     \
      || glyph_is_cmap_engraving(glyph) \
+     || glyph_is_cmap_magicplatform(glyph) \
      || glyph_is_cmap_b(glyph)         \
      || glyph_is_cmap_c(glyph))
 
@@ -773,6 +804,8 @@ enum glyph_offsets {
                     ? (S_altar)                                        \
                     : glyph_is_cmap_engraving(glyph)                   \
                     ? (S_engraving)                                    \
+                    : glyph_is_cmap_magicplatform(glyph)               \
+                    ? (S_magicplatform)                                \
                     : glyph_is_cmap_b(glyph)                           \
                       ? (((glyph) - GLYPH_CMAP_B_OFF) + S_grave)       \
                       : glyph_is_cmap_c(glyph)                         \
@@ -1056,6 +1089,7 @@ typedef struct {
 #ifdef TEXTCOLOR
 extern const int altarcolors[];
 extern const int engravingcolors[];
+extern const int magicplatformcolors[];
 extern const int zapcolors[];
 extern const int explodecolors[];
 extern int wallcolors[];
