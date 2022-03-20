@@ -79,13 +79,14 @@ enum lvlinit_types {
 #define SP_COORD_IS_RANDOM 0x01000000L
 /* Humidity flags for get_location() and friends, used with
  * SP_COORD_PACK_RANDOM() */
-#define DRY         0x01
-#define WET         0x02
-#define HOT         0x04
-#define SOLID       0x08
+#define DRY         0x01 /* allows dry spaces to be selected */
+#define WET         0x02 /* allows water to be selected */
+#define HOT         0x04 /* allows lava to be selected */
+#define SOLID       0x08 /* allows solid terrain like walls to be selected */
 #define ANY_LOC     0x10 /* even outside the level */
 #define NO_LOC_WARN 0x20 /* no complaints and set x & y to -1, if no loc */
 #define SPACELOC    0x40 /* like DRY, but accepts furniture too */
+#define NOFLOOR     0x80 /* allows open air to be selected */
 
 #define SP_COORD_X(l) (l & 0xff)
 #define SP_COORD_Y(l) ((l >> 16) & 0xff)

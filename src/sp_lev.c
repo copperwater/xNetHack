@@ -1170,6 +1170,9 @@ is_ok_location(xchar x, xchar y, int humidity)
     if ((humidity & SOLID) && IS_ROCK(typ))
         return TRUE;
 
+    if (is_open_air(x, y))
+        return (boolean) (humidity & NOFLOOR);
+
     if ((humidity & (DRY|SPACELOC)) && SPACE_POS(typ)) {
         boolean bould = (sobj_at(BOULDER, x, y) != NULL);
 
@@ -1866,7 +1869,7 @@ pm_to_humidity(struct permonst* pm)
     if (pm->mlet == S_EEL || amphibious(pm) || is_swimmer(pm))
         loc = WET;
     if (!grounded(pm))
-        loc |= (HOT | WET);
+        loc |= (HOT | WET | NOFLOOR);
     if (passes_walls(pm) || noncorporeal(pm))
         loc |= SOLID;
     if (likes_fire(pm))
