@@ -19,7 +19,16 @@ abort() {
 # Check operating system.
 declare -r OS="$(uname)"
 if [[ "${OS}" != "Darwin" ]]; then
-  abort "ERROR: This script is only supported on macOS"
+    abort "ERROR: This script is only supported on macOS"
+fi
+
+# Check user.
+#
+# Background: The script has not been tested to be run as root yet, as this
+# will result in different default paths than for regular users, see
+# `sys/unix/hints/macOS.370`. Contributions welcome!
+if [[ "${USER}" == "root" ]]; then
+    abort "ERROR: This script was not tested to be run as user 'root'"
 fi
 
 if ! command -v brew &> /dev/null; then
