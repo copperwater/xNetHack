@@ -77,8 +77,8 @@ echo
 echo "***                   WARNING WARNING WARNING                    ***"
 echo "***  Backup your existing install directory before proceeding,   ***"
 echo "***  because it will be OVERWRITTEN by the new installation.     ***"
-echo "***  Without a backup, you lose your record, logfile, sysconf    ***"
-echo "***  files, etc.                                                 ***"
+echo "***  Without a backup, you lose your save files, record,         ***"
+echo "***  logfile, sysconf files, etc.                                ***"
 echo
 read -r -p "I do have a backup of my previous installation? [y/N] " response
 if [[ $response =~ ^(yes|y|Yes|Y) ]]; then
