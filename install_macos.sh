@@ -26,8 +26,11 @@ if ! command -v brew &> /dev/null; then
     abort "ERROR: This script requires homebrew (https://brew.sh/)"
 fi
 
-# Default installation paths of xNetHack
+# Default installation path of xNetHack.
+# Must be consistent with the HACKDIR settings in `sys/unix/hints/macOS.370`.
 declare -r DEFAULT_HACKDIR="$HOME/xnethackdir/"
+# Default path of launch script.
+# Must be consistent with the SHELLDIR settings in `sys/unix/hints/macOS.370`.
 declare -r LAUNCH_SCRIPT="$HOME/bin/xnethack"
 
 ### Build xNetHack with tty+ncurses+qt (macOS)
