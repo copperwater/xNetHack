@@ -16,6 +16,16 @@ abort() {
   exit 1
 }
 
+### Default settings
+# Default installation path of xNetHack.
+# Must be consistent with the HACKDIR settings in `sys/unix/hints/macOS.370`.
+declare -r DEFAULT_HACKDIR="$HOME/xnethackdir/"
+# Default path of launch script.
+# Must be consistent with the SHELLDIR settings in `sys/unix/hints/macOS.370`.
+declare -r LAUNCH_SCRIPT="$HOME/bin/xnethack"
+declare -r USER_CONFIG="$HOME/.xnethackrc"
+
+### Environment validation
 # Check operating system.
 declare -r OS="$(uname)"
 if [[ "${OS}" != "Darwin" ]]; then
@@ -34,13 +44,6 @@ fi
 if ! command -v brew &> /dev/null; then
     abort "ERROR: This script requires homebrew (https://brew.sh/)"
 fi
-
-# Default installation path of xNetHack.
-# Must be consistent with the HACKDIR settings in `sys/unix/hints/macOS.370`.
-declare -r DEFAULT_HACKDIR="$HOME/xnethackdir/"
-# Default path of launch script.
-# Must be consistent with the SHELLDIR settings in `sys/unix/hints/macOS.370`.
-declare -r LAUNCH_SCRIPT="$HOME/bin/xnethack"
 
 ### Build xNetHack with tty+ncurses+qt (macOS)
 echo "Building xNetHack with TTY, Curses, and Qt interfaces ..."
@@ -61,7 +64,7 @@ done
     abort "ERROR: Failed to apply macOS hints file, exiting ..."
 make fetch-Lua || \
     abort "ERROR: 'make fetch-Lua' step failed, exiting ..."
-make WANT_WIN_TTY=1 WANT_WIN_CURSES=1 WANT_WIN_QT5=1 QTDIR=$(brew --prefix)/opt/qt@5 all || \
+make WANT_WIN_TTY=1 WANT_WIN_CURSES=1 WANT_WIN_QT=1 QTDIR=$(brew --prefix)/opt/qt@5 all || \
     abort "ERROR: 'make all' step failed, exiting ..."
 
 ### Install xNetHack
@@ -79,17 +82,17 @@ echo "***  files, etc.                                                 ***"
 echo
 read -r -p "I do have a backup of my previous installation? [y/N] " response
 if [[ $response =~ ^(yes|y|Yes|Y) ]]; then
-    make WANT_WIN_TTY=1 WANT_WIN_CURSES=1 WANT_WIN_QT5=1 QTDIR=$(brew --prefix)/opt/qt@5 install || \
+    make WANT_WIN_TTY=1 WANT_WIN_CURSES=1 WANT_WIN_QT=1 QTDIR=$(brew --prefix)/opt/qt@5 install || \
         abort "ERROR: Installation failed, exiting ..."
     echo "====================================================================="
-	echo "           _   __       __   __  __          __     A"
-	echo "         /  | / /      / /  / / / /         / /    ,X,"
-	echo "__  __  /   |/ /___  _/ /_ / /_/ /_   ____ / /___ <=V=>"
-	echo "\ \/ / / /| / // _ \/  __// _   /  \ / __//   __/  |||"
-	echo " /  / / / |  /|  __// /  / / / / / // /_ / /\ \    |||"
-	echo "/_/\_/_/  |_/ \___//_/  /_/ /_/\___\\__//_/  \_\   |||"
-	echo " ,_______________________________________________  |||"
-	echo "                                                 '  \|"
+	echo "                 _   __       __   __  __          __     A"
+	echo "               /  | / /      / /  / / / /         / /    ,X,"
+	echo "      __  __  /   |/ /___  _/ /_ / /_/ /_   ____ / /___ <=V=>"
+	echo "      \ \/ / / /| / // _ \/  __// _   /  \ / __//   __/  |||"
+	echo "       /  / / / |  /|  __// /  / / / / / // /_ / /\ \    |||"
+	echo "      /_/\_/_/  |_/ \___//_/  /_/ /_/\___\\__//_/  \_\   |||"
+	echo "       ,_______________________________________________  |||"
+	echo "                                                       '  \|"
 	echo
     echo "Installation completed!  You have three options to run xNetHack."
     echo
@@ -105,9 +108,9 @@ if [[ $response =~ ^(yes|y|Yes|Y) ]]; then
     echo
     echo "       $ NETHACKOPTIONS=windowtype:tty $LAUNCH_SCRIPT"
     echo
-    echo "You can also set your launch preference in your ~/.xnethackrc file:"
+    echo "You can also set your launch preference in $USER_CONFIG:"
     echo
-    echo "    # Example: launch Qt version."
+    echo "    # Example: launch Qt version"
     echo "    OPTIONS=windowtype:qt"
     echo
     echo "Questions? Bugs? Suggestions? Go to https://github.com/copperwater/xNetHack"
