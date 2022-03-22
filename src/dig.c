@@ -353,7 +353,7 @@ dig(void)
             } else {
                 You("destroy the bear trap with %s.",
                     yobjnam(uwep, (const char *) 0));
-                deltrap(ttmp);
+                deltrap_with_ammo(ttmp, DELTRAP_DESTROY_AMMO);
                 reset_utrap(TRUE); /* release from trap, maybe Lev or Fly */
             }
             /* we haven't made any progress toward a pit yet */
