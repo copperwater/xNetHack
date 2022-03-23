@@ -3449,10 +3449,18 @@ wall_angle(struct rm *lev)
 }
 
 /* Return the appropriate glyph for the magic platform square at (x, y).
- * Normally this will be its standard default appearance. */
+ * Normally this will be its standard default appearance, but the Valkyrie quest
+ * locate level uses its colored glyph variants. */
 static int
 magicplatform_to_glyph(xchar x UNUSED, xchar y)
 {
+    if (Role_if(PM_VALKYRIE) && Is_qlocate(&u.uz)) {
+        /* this makes some assumptions about Val-loca.lua's map */
+        if (y >= 8 && y <= 13)
+            /* this additionally assumes platform colors beyond default are in
+             * ROYGBV order */
+            return GLYPH_MAGICPLATFORM_OFF + platform_red + (y - 8);
+    }
     return GLYPH_MAGICPLATFORM_OFF + platform_default;
 }
 

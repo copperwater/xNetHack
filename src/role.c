@@ -410,7 +410,7 @@ const struct Role roles[NUM_ROLES+1] = {
       "Tyr", "Odin", "Loki", /* Norse */
       "Val",
       "the Shrine of Destiny",
-      "the cave of Surtur",
+      "the Shattered Bridge",
       PM_VALKYRIE,
       NON_PM /*PM_WINTER_WOLF_CUB*/,
       PM_NORN,
