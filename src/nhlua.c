@@ -390,6 +390,20 @@ nhl_getmap(lua_State *L)
     if (argc == 2) {
         int x = (int) lua_tointeger(L, 1);
         int y = (int) lua_tointeger(L, 2);
+        if (g.in_mklev) {
+            /* xstart and ystart are set by the des.map() command to give
+            * coordinates relative to the 0,0 of that map. It can be quite useful
+            * to check what terrain is on a given space. But without compensating
+            * for the change in xstart and ystart here, this will lead to results
+            * like des.terrain(4,6,'L') and then nh.getmap(4,6) not being lava.
+            *
+            * Only valid during mklev, because xstart and ystart are not saved
+            * with the level and can change during the level creating process when
+            * additional des.map() are executed. They will not necessarily be the
+            * same later. */
+            x += g.xstart;
+            y += g.ystart;
+        }
 
         if (x >= 0 && x < COLNO && y >= 0 && y < ROWNO) {
             char buf[BUFSZ];
