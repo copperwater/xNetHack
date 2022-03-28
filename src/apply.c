@@ -1578,7 +1578,7 @@ use_silver_on_withering(struct obj *obj)
     /* Silver artifacts are fair game to get destroyed by this process, but we
      * can't allow silver unique items (Bell of Opening) to be destroyed. */
     boolean isbell = objects[obj->otyp].oc_unique;
-    int withering = HWithering & TIMEOUT;
+    long withering = HWithering & TIMEOUT;
 
     if (obj->material != SILVER) {
         impossible("using non-silver obj to cure withering");
@@ -1620,15 +1620,15 @@ use_silver_on_withering(struct obj *obj)
         obj->oerodeproof = 0;
     }
     if (isbell) {
-        withering -= obj->owt;
+        withering -= (long) obj->owt;
         obj->spe--;
     }
     else if (!erosion_matters(obj)) {
-        withering -= obj->owt;
+        withering -= (long) obj->owt;
         new_oeroded2 = 4; /* can't partially corrode so destroy completely */
     }
     else {
-        withering -= (obj->owt / 2);
+        withering -= (long) (obj->owt / 2);
         new_oeroded2 += 2;
     }
     if (new_oeroded2 >= 4 && obj_resists(obj, 0, 50)) {
@@ -1660,21 +1660,10 @@ use_silver_on_withering(struct obj *obj)
         losehp(rnd(sear_damage(obj->material)),
                "a cure that was worse than the disease", KILLED_BY);
     }
-    if (withering <= 0) {
-        withering = 0; /* don't set_itimeout to negative */
+    if (withering <= 0L) {
+        withering = 0L; /* don't set_itimeout to negative */
     }
-    set_itimeout(&HWithering, withering);
-    if (!Withering) {
-        You("stop withering!");
-        g.context.botl = 1;
-    }
-    else {
-        /* can be either not-fully-healed withering, or timing-out withering
-         * fully healed but still extrinsic/perm intrinsic */
-        pline("Your withering slows, but %s.",
-              (EWithering || (HWithering & ~TIMEOUT)) ? "only briefly"
-                                                      : "does not quite stop");
-    }
+    make_withering(withering, TRUE);
     return ECMD_TIME;
 }
 

@@ -452,8 +452,7 @@ fix_worst_trouble(int trouble)
         make_sick(0L, (char *) 0, FALSE, SICK_ALL);
         break;
     case TROUBLE_WITHERING:
-        You("stop withering.");
-        set_itimeout(&HWithering, (long) 0);
+        make_withering(0L, TRUE);
         break;
     case TROUBLE_REGION:
         /* stinking cloud, with hero vulnerable to HP loss */
