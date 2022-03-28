@@ -1642,7 +1642,7 @@ arti_invoke(struct obj *obj)
 
             if (Upolyd)
                 healamt = (u.mhmax + 1 - u.mh) / 2;
-            if (healamt || Sick || Slimed || Blinded > creamed)
+            if (healamt || Sick || Slimed || HWithering || Blinded > creamed)
                 You_feel("better.");
             else
                 goto nothing_special;
@@ -1652,6 +1652,8 @@ arti_invoke(struct obj *obj)
                 else
                     u.uhp += healamt;
             }
+            if (HWithering)
+                make_withering(0L, TRUE);
             if (Sick)
                 make_sick(0L, (char *) 0, FALSE, SICK_ALL);
             if (Slimed)
