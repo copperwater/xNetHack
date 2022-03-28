@@ -1736,6 +1736,9 @@ wiz_intrinsic(void)
             case STUNNED:
                 make_stunned(newtimeout, TRUE);
                 break;
+            case WITHERING:
+                make_withering(newtimeout, TRUE);
+                break;
             case VOMITING:
                 Sprintf(buf, fmt, !Vomiting ? "" : " still", "vomiting");
                 make_vomiting(newtimeout, FALSE);
