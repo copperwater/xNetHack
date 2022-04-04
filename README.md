@@ -38,3 +38,7 @@ For installation instructions, please refer to the `README` file also found in
 this directory, which is the unchanged README provided by the NetHack devteam.
 It will direct you to the appropriate documentation for your system, in
 particular the `sys/*/Install.*` files.
+
+* Users running macOS can build and install xNetHack with the script
+  [install_macos.sh](sys/unix/install_macos.sh) (requires
+  [homebrew](https://brew.sh/) to install build dependencies).

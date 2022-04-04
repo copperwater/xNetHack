@@ -6,6 +6,7 @@
 # MacOS hints file with support for multiple window ports (interfaces)
 # Tested on:
 #     - MacOS Catalina 10.15
+#     - MacOS Monterey 12.3
 #
 # If this doesn't work for some other version of macOS, consider
 # making a new hints file it, rather than changing this one.
@@ -225,11 +226,11 @@ endif   # GITSUBMODULES
 WANT_BUNDLE=1
 ifdef WANT_SHARE_INSTALL
 # if $GAMEUID is root, we install into roughly proper Mac locations, otherwise
-# we install into ~/nethackdir
+# we install into ~/xnethackdir
 ifeq ($(GAMEUID),root)
-PREFIX:=/Library/NetHack
+PREFIX:=/Library/xNetHack
 SHELLDIR=/usr/local/bin
-HACKDIR=$(PREFIX)/nethackdir
+HACKDIR=$(PREFIX)/xnethackdir
 CHOWN=chown
 CHGRP=chgrp
 # We run sgid so the game has access to both HACKDIR and user preferences.
@@ -237,7 +238,7 @@ GAMEPERM = 02755
 else	# ! root
 PREFIX:=/Users/$(GAMEUID)
 SHELLDIR=$(PREFIX)/bin
-HACKDIR=$(PREFIX)/Library/NetHack/nethackdir
+HACKDIR=$(PREFIX)/Library/xNetHack/xnethackdir
 CHOWN=/usr/bin/true
 CHGRP=/usr/bin/true
 GAMEPERM = 0500
@@ -275,7 +276,7 @@ else	# !WANT_SOURCE_INSTALL
 
 PREFIX:=$(wildcard ~)
 SHELLDIR=$(PREFIX)/bin
-HACKDIR=$(PREFIX)/nethackdir
+HACKDIR=$(PREFIX)/xnethackdir
 CHOWN=/usr/bin/true
 CHGRP=/usr/bin/true
 GAMEPERM = 0700
@@ -305,11 +306,11 @@ ifdef WANT_BUNDLE
 #                 Resources/
 #                 SharedFrameWorks/
 #
-BUNDLE = mkdir -p $(HACKDIR)/nethack.app/Contents/MacOS; \
-              sys/unix/hints/macosx.sh infoplist > $(HACKDIR)/nethack.app/Contents/Info.plist; \
-              mv $(HACKDIR)/nethack $(HACKDIR)/nethack.app/Contents/MacOS/nethack;
+BUNDLE = mkdir -p $(HACKDIR)/xnethack.app/Contents/MacOS; \
+              sys/unix/hints/macosx.sh infoplist > $(HACKDIR)/xnethack.app/Contents/Info.plist; \
+              mv $(HACKDIR)/xnethack $(HACKDIR)/xnethack.app/Contents/MacOS/xnethack;
 ifdef WANT_SHARE_INSTALL
-BUNDLE+= chmod $(GAMEPERM) $(HACKDIR)/nethack.app/Contents/MacOS/nethack;
+BUNDLE+= chmod $(GAMEPERM) $(HACKDIR)/xnethack.app/Contents/MacOS/xnethack;
 endif
 
 POSTINSTALL+= $(BUNDLE)
@@ -321,7 +322,7 @@ endif   # !WANT_SHARE_INSTALL
 INSTDIR=$(HACKDIR)
 VARDIR=$(HACKDIR)
 
-# ~/Library/Preferences/NetHack Defaults
+# ~/Library/Preferences/xNetHack Defaults
 # OPTIONS=name:player,number_pad,menustyle:partial,!time,showexp
 # OPTIONS=hilite_pet,toptenwin,msghistory:200,windowtype:Qt
 #
