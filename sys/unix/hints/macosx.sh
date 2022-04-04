@@ -151,10 +151,10 @@ xdescplist)	SVSDOT=`util/makedefs --svs .`
         <key>IFPkgDescriptionDeleteWarning</key>
         <string></string>
         <key>IFPkgDescriptionDescription</key>
-        <string>NetHack $SVSDOT for MacOS
+        <string>xNetHack $SVSDOT for MacOS
 </string>
         <key>IFPkgDescriptionTitle</key>
-        <string>NetHack</string>
+        <string>xNetHack</string>
         <key>IFPkgDescriptionVersion</key>
         <string>$SVSDOT</string>
 </dict>
@@ -169,11 +169,11 @@ xinfoplist)	SVSDOT=`util/makedefs --svs .`
 <plist version="1.0">
 <dict>
 	<key>CFBundleGetInfoString</key>
-	<string>NetHack $SVSDOT for MacOS</string>
+	<string>xNetHack $SVSDOT for MacOS</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.nethack.macos</string>
+	<string>org.xnethack.macos</string>
 	<key>CFBundleName</key>
-	<string>NetHack</string>
+	<string>xNetHack</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$SVSDOT</string>
 	<key>IFMajorVersion</key>
