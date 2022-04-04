@@ -1576,71 +1576,40 @@ create_critters(int cnt,
                 struct monst* creator)
 {
     coord c;
-    struct monst *mon = (struct monst *) 0;
+    struct monst *mon;
+    boolean known = FALSE;
     boolean ask = (wizard && !neverask);
-    int x = u.ux, y = u.uy;
+    int x, y;
     boolean in_water = u.uinwater;
-    int old_census = monster_census(TRUE);
-    int newmons_ct;
-    int femalect = 0; /* for tracking collective gender of group */
 
     if (creator != &g.youmonst) {
         in_water = is_pool(creator->mx, creator->my);
-        x = creator->mx;
-        y = creator->my;
     }
 
     while (cnt--) {
         if (ask) {
-            if ((mon = create_particular()) != NULL) {
+            if (create_particular()) {
+                known = TRUE;
                 continue;
             } else
                 ask = FALSE; /* ESC will shut off prompting */
         }
-        /* if in water, encourage amphibious monsters
+        x = (creator == &g.youmonst ? u.ux : creator->mx);
+        y = (creator == &g.youmonst ? u.uy : creator->my);
+        /* if in water, try to encourage an aquatic monster
            by finding and then specifying another wet location */
         if (!mptr && in_water && enexto(&c, x, y, &mons[PM_GIANT_EEL]))
             x = c.x, y = c.y;
 
-        /* Because mon gets read later, this needs to check the return value of
-         * makemon before assigning mon to anything; makemon could fail if e.g.
-         * the level is full */
-        struct monst *mtmp = makemon(mptr, x, y, MM_ADJACENTOK | MM_NOGRP);
-        if (mtmp != NULL) {
-            mon = mtmp;
-            if (mtmp->female) {
-                femalect++;
-            }
-        }
+        if ((mon = makemon(mptr, x, y, MM_ADJACENTOK | MM_NOGRP)) == 0)
+            continue; /* try again [should probably stop instead] */
+
+        if ((canseemon(mon) && (M_AP_TYPE(mon) == M_AP_NOTHING
+                                || M_AP_TYPE(mon) == M_AP_MONSTER))
+            || sensemon(mon))
+            known = TRUE;
     }
-    newmons_ct = monster_census(TRUE) - old_census;
-    if (newmons_ct > 0) {
-        if (newmons_ct == 1) {
-            /* only one monster we know of that was created - Amonnam
-             * suffices */
-            pline("%s appears from nowhere!", Amonnam(mon));
-        }
-        else {
-            /* mon will still hold the last created monster - so we can use
-             * Amonnam to describe the whole group, if mptr is set. */
-            const char *who;
-            if (mptr) {
-                uchar gend = NEUTRAL;
-                if (!is_neuter(mptr)) {
-                    if (femalect == newmons_ct)
-                        gend = FEMALE;
-                    else if (femalect == 0)
-                        gend = MALE;
-                }
-                who = upstart(makeplural(mptr->pmnames[gend]));
-            }
-            else {
-                who = "Monsters";
-            }
-            pline("%s appear from nowhere!", who);
-        }
-    }
-    return newmons_ct;
+    return known;
 }
 
 static boolean
