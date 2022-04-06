@@ -563,13 +563,6 @@ enum bodypart_types {
 #define HOLIDAY_MARDI_GRAS     0x10000
 #define HOLIDAY_GROUNDHOG_DAY  0x20000
 
-/* constant passed to explode() for gas spores because gas spores are weird
- * Specifically, this is an exception to the whole "explode() uses dobuzz types"
- * system (the range -1 to -9 isn't used by it, for some reason), where this is
- * effectively an extra dobuzz type, and some zap.c code needs to be aware of
- * it.  */
-#define PHYS_EXPL_TYPE -1
-
 /* message flags for dump_container() */
 #define DUMPCONT_NORMAL 0x0
 #define DUMPCONT_QUIET  0x1 /* suppress most messages */
