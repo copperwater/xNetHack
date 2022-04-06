@@ -5532,6 +5532,9 @@ destroy_items(struct monst *mon, /* monster whose invent is being subjected to
             }
         }
     }
+    /* almost certainly not everything was destroyed; remove bypass bit after it
+     * was set earlier */
+    bypass_objlist(*objchn, FALSE);
     return dmg_out;
 }
 
