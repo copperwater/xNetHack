@@ -16,6 +16,7 @@ static int wipeoff(void);
 static int menu_drop(int);
 static NHFILE *currentlevel_rewrite(void);
 static void final_level(void);
+static void do_level_updates(xchar);
 
 /* static boolean badspot(xchar,xchar); */
 
@@ -1613,6 +1614,10 @@ goto_level(
         }
     }
 
+    /* Handle cases where the level may have changed while you were away and
+     * update visited_after_event flag. */
+    do_level_updates(PHASE_PHYSICAL);
+
     if (Punished)
         placebc();
     obj_delivery(FALSE);
@@ -1661,6 +1666,7 @@ goto_level(
 
     /* special levels can have a custom arrival message */
     deliver_splev_message();
+    do_level_updates(PHASE_DIALOGUE | PHASE_SETFLAG);
 
     /* Check whether we just entered Gehennom. */
     if (!In_hell(&u.uz0) && Inhell) {
@@ -2365,6 +2371,44 @@ obj_aireffects(struct obj *obj, boolean talk)
     if (fell && talk) {
         pline("%s %s away and %s.", The(xname(obj)),
                 otense(obj, "fall"), otense(obj, "disappear"));
+    }
+}
+
+/* Restore the Valkyrie locate level after the nemesis is killed;
+ * callback for do_level_updates */
+void
+restore_valk_locate(xchar phases)
+{
+    if (!Is_qlocate(&u.uz) || !Role_if(PM_VALKYRIE))
+        return;
+    if (phases & PHASE_PHYSICAL) {
+        (void) load_lua("repair-Val-loca.lua");
+    }
+    if (phases & PHASE_VISION) {
+        docrt();
+    }
+    if (phases & PHASE_DIALOGUE) {
+        /* TODO: when replacing Valk quest dialogue, insert a special qt_pager
+         * for this. */
+    }
+}
+
+/* You have just arrived on a level, which may undergo some changes to terrain
+ * or other makeup depending on certain factors tracked in the
+ * visited_after_event flag. */
+static void
+do_level_updates(xchar phases)
+{
+    /* Currently the only tracked event is the quest nemesis being killed (but
+     * this does not have to be specific to the Quest). */
+    if (!(g.level.flags.visited_after_event & VISITED_AFTER_NEMDEAD)
+        && g.quest_status.killed_nemesis) {
+        /* This is a bit hardcoded; once more things are added here it could be
+         * refactored into a more general structure. */
+        restore_valk_locate(phases);
+        if (phases & PHASE_SETFLAG) {
+            g.level.flags.visited_after_event |= VISITED_AFTER_NEMDEAD;
+        }
     }
 }
 

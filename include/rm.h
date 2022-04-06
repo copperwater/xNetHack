@@ -420,7 +420,13 @@ struct levelflags {
                                   rather than ROOM */
     Bitfield(outdoors, 1);     /* Whether the level is open to the sky and has
                                   no ceiling. The Planes don't count. */
+    Bitfield(visited_after_event, 1); /* whether you have already (re)entered
+                                       * the level after satisfying some
+                                       * condition */
 };
+
+/* flags for visited_after_event */
+#define VISITED_AFTER_NEMDEAD 0x1
 
 typedef struct {
     struct rm locations[COLNO][ROWNO];

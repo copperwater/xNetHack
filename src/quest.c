@@ -109,6 +109,10 @@ nemdead(void)
     if (!Qstat(killed_nemesis)) {
         Qstat(killed_nemesis) = TRUE;
         qt_pager("killed_nemesis");
+
+        /* this won't do anything unless on Valk locate level */
+        restore_valk_locate(PHASE_PHYSICAL | PHASE_DIALOGUE | PHASE_VISION);
+        g.level.flags.visited_after_event |= VISITED_AFTER_NEMDEAD;
     }
 }
 

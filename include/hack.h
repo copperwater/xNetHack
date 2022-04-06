@@ -568,6 +568,14 @@ enum bodypart_types {
 #define DUMPCONT_QUIET  0x1 /* suppress most messages */
 #define DUMPCONT_BYPOLY 0x2 /* "Objects spill out as [cont] polymorphs" */
 
+/* phase flags for do_level_updates and its callback functions */
+#define PHASE_PHYSICAL 0x1 /* maybe physically change the level */
+#define PHASE_DIALOGUE 0x2 /* print lines and pagers */
+#define PHASE_VISION   0x4 /* force a vision reset; do_level_updates doesn't
+                              need to but callbacks might in other contexts */
+#define PHASE_SETFLAG  0x8 /* only do_level_updates should use this, not
+                              callbacks */
+
 /* psuedo types for intrinsics gained by eating corpses that aren't actually
  * intrinsics listed in prop.h; these should be nonzero so that zero can
  * represent "no intrinsic given" */

@@ -76,6 +76,7 @@
     <Luafiles Include = "wizard2.lua"/>
     <Luafiles Include = "wizard3.lua"/>
     <Luafiles Include = "invocation.lua"/>
+    <Luafiles Include = "repair-Val-loca.lua"/>
     <Luafiles Include = "arc-fila.lua"/>
     <Luafiles Include = "arc-filb.lua"/>
     <Luafiles Include = "arc-goal.lua"/>
