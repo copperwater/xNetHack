@@ -17,6 +17,7 @@ static void on_goal(void);
 static boolean not_capable(void);
 static int is_pure(boolean);
 static void expulsion(boolean);
+static boolean arti_fulfills_quest(void);
 static void chat_with_leader(struct monst *);
 static void chat_with_nemesis(void);
 static void chat_with_guardian(void);
@@ -218,14 +219,27 @@ expulsion(boolean seal)
     }
 }
 
+/* Does returning to the leader with the quest artifact complete the quest?
+ * (Currently, if not, the completion condition is assumed to be killing the
+ * nemesis.) */
+static boolean
+arti_fulfills_quest(void)
+{
+    if (Role_if(PM_VALKYRIE)) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
 /* Either you've returned to quest leader while carrying the quest
    artifact or you've just thrown it to/at him or her.  If quest
    completion text hasn't been given yet, give it now.  Otherwise
    give another message about the character keeping the artifact
    and using the magic portal to return to the dungeon. */
 void
-finish_quest(struct obj *obj) /* quest artifact; possibly null if carrying
-                                 Amulet */
+leader_sees_qarti(struct obj *obj) /* quest artifact; possibly null if carrying
+                                      Amulet or if finishing quest while talking
+                                      to leader in a non-arti-required quest */
 {
     struct obj *otmp;
 
@@ -234,7 +248,16 @@ finish_quest(struct obj *obj) /* quest artifact; possibly null if carrying
         /* leader IDs the real amulet but ignores any fakes */
         if ((otmp = carrying(AMULET_OF_YENDOR)) != 0)
             fully_identify_obj(otmp);
-    } else {
+    }
+    else {
+        if (!arti_fulfills_quest()) {
+            if (!Qstat(killed_nemesis)) {
+                qt_pager("arti_but_not_neme");
+                return;
+            }
+            /* if nemesis is dead, continue to rest of this function and
+             * complete the quest. */
+        }
         qt_pager(!Qstat(got_thanks) ? "offeredit" : "offeredit2");
         /* should have obtained bell during quest;
            if not, suggest returning for it now */
@@ -268,7 +291,7 @@ chat_with_leader(struct monst *mtmp)
     if (Qstat(got_thanks)) {
         /* Rule 1: You've gone back with/without the amulet. */
         if (u.uhave.amulet)
-            finish_quest((struct obj *) 0);
+            leader_sees_qarti((struct obj *) 0);
 
         /* Rule 2: You've gone back before going for the amulet. */
         else
@@ -282,7 +305,12 @@ chat_with_leader(struct monst *mtmp)
             if (is_quest_artifact(otmp))
                 break;
 
-        finish_quest(otmp);
+        leader_sees_qarti(otmp);
+
+    /* Rule 3.5: You don't have the artifact, but your quest doesn't require you
+     * to retrieve it, and you did kill the nemesis. */
+    } else if (!arti_fulfills_quest() && Qstat(killed_nemesis)) {
+        leader_sees_qarti((struct obj *) 0);
 
     /* Rule 4: You haven't got the artifact yet. */
     } else if (Qstat(got_quest)) {

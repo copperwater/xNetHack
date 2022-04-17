@@ -1869,7 +1869,7 @@ thitmonst(
             if (mon->mpeaceful) {
                 boolean next2u = monnear(mon, u.ux, u.uy);
 
-                finish_quest(obj); /* acknowledge quest completion */
+                leader_sees_qarti(obj); /* maybe acknowledge quest completion */
                 pline("%s %s %s back to you.", Monnam(mon),
                       (next2u ? "hands" : "tosses"), the(xname(obj)));
                 if (!next2u)

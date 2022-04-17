@@ -2258,7 +2258,7 @@ extern void nemesis_speaks(void);
 extern void quest_chat(struct monst *);
 extern void quest_talk(struct monst *);
 extern void quest_stat_check(struct monst *);
-extern void finish_quest(struct obj *);
+extern void leader_sees_qarti(struct obj *);
 
 /* ### questpgr.c ### */
 
