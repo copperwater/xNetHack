@@ -5010,9 +5010,9 @@ lspo_door(lua_State *L)
         get_table_xy_or_coord(L, &dx, &dy);
         x = dx, y = dy;
         ds = doorstates2i[get_table_option(L, "state", "random", doorstates)];
-        locked = get_table_int_opt(L, "locked", UNSPECIFIED);
-        trapped = get_table_int_opt(L, "trapped", UNSPECIFIED);
-        iron = get_table_int_opt(L, "iron", UNSPECIFIED);
+        locked = get_table_boolean_opt(L, "locked", UNSPECIFIED);
+        trapped = get_table_boolean_opt(L, "trapped", UNSPECIFIED);
+        iron = get_table_boolean_opt(L, "iron", UNSPECIFIED);
     }
 
     /* Determine if the door is specified as secret or not.
