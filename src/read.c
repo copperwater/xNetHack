@@ -542,17 +542,6 @@ doread(void)
                            "became literate by reading a coin's engravings");
 
         return ECMD_TIME;
-    } else if (scroll->oartifact == ART_ORB_OF_FATE) {
-        if (Blind)
-            You("feel the engraved signature:");
-        else
-            pline("It is signed:");
-        pline("\"Odin.\"");
-        if (!u.uconduct.literate++)
-            livelog_printf(LL_CONDUCT,
-                   "became literate by reading the divine signature of Odin");
-
-        return ECMD_TIME;
     } else if (otyp == CANDY_BAR) {
         const char *wrapper = candy_wrapper_text(scroll);
 

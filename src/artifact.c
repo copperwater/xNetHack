@@ -1948,7 +1948,9 @@ artifact_light(struct obj *obj)
         && (obj->owornmask & (W_ARM | W_ARMC)) != 0L)
         return TRUE;
 
-    return (boolean) (get_artifact(obj) && obj->oartifact == ART_SUNSWORD);
+    return (boolean) (get_artifact(obj)
+                      && (obj->oartifact == ART_SUNSWORD
+                          || obj->oartifact == ART_SOL_VALTIVA));
 }
 
 /* KMH -- Talking artifacts are finally implemented */

@@ -1428,6 +1428,9 @@ oname(struct obj *obj, const char *name)
         case ART_MIRROR_BRAND:
             set_material(obj, GLASS);
             break;
+        case ART_SOL_VALTIVA:
+            set_material(obj, MITHRIL);
+            break;
         default:
             /* prevent any wishes for materials on an artifact */
             set_material(obj, objects[obj->otyp].oc_material);

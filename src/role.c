@@ -420,7 +420,7 @@ const struct Role roles[NUM_ROLES+1] = {
       PM_FROST_GIANT,
       S_GIANT,
       S_GIANT,
-      ART_ORB_OF_FATE,
+      ART_SOL_VALTIVA,
       MH_HUMAN | MH_DWARF | ROLE_FEMALE | ROLE_LAWFUL | ROLE_NEUTRAL,
       /* Str Int Wis Dex Con Cha */
       { 10, 7, 7, 7, 10, 7 },
