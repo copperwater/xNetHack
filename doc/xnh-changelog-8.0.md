@@ -53,6 +53,7 @@ changes:
   - The locate level, a broken bridge, is magically restored after Surtur is
     killed.
   - There is a throne in the goal level (and only one drawbridge).
+- Valkyries start with a +1 spear or dwarvish spear instead of a long sword.
 
 ### Interface changes
 
