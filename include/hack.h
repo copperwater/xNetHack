@@ -543,7 +543,9 @@ enum bodypart_types {
                                         incl. things like "miss wildly" */
 #define ARTIFACTHIT_INSTAKILLMSG 0x2 /* "Vorpal Blade decapitates foo!" &c */
 
-/* Return values from current_holidays(). */
+/* Return values from current_holidays().
+ * When adding a new holiday, be sure to update doholidays() to display the new
+ * holiday. */
 #define HOLIDAY_NEW_YEARS      0x00001
 #define HOLIDAY_VALENTINES_DAY 0x00002
 #define HOLIDAY_PI_DAY         0x00004

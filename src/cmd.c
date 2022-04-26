@@ -96,6 +96,7 @@ extern int doorganize(void);         /**/
 static const char *ecname_from_fn(int (*)(void));
 static int dosuspend_core(void);
 static int dosh_core(void);
+static int doholidays(void);
 static int doherecmdmenu(void);
 static int dotherecmdmenu(void);
 static int doprev_message(void);
@@ -2213,6 +2214,8 @@ struct ext_func_tab extcmdlist[] = {
               doherecmdmenu, IFBURIED | AUTOCOMPLETE | GENERALCMD, NULL },
     { 'V',    "history", "show long version and game history",
               dohistory, IFBURIED | GENERALCMD, NULL },
+    { '\0',   "holidays", "show current holidays observed in-game",
+              doholidays, IFBURIED | GENERALCMD, NULL },
     { 'i',    "inventory", "show your inventory",
               ddoinv, IFBURIED, NULL },
     { 'I',    "inventtype", "show inventory of one specific item class",
@@ -5218,6 +5221,60 @@ dosh_core(void)
 #else
     Norep(cmdnotavail, "#shell");
 #endif
+    return ECMD_OK;
+}
+
+/* #holidays extended command, show current holidays */
+static int
+doholidays(void)
+{
+    int holidays = current_holidays();
+    if (holidays == 0) {
+        pline("There are no holidays today.");
+        return ECMD_OK;
+    }
+    winid win = create_nhwindow(NHW_MENU);
+    putstr(win, ATR_BOLD, "The following holidays fall today:");
+
+    if (holidays & HOLIDAY_NEW_YEARS)
+        putstr(win, 0, "New Year's Day");
+    if (holidays & HOLIDAY_VALENTINES_DAY)
+        putstr(win, 0, "Valentine's Day");
+    if (holidays & HOLIDAY_PI_DAY)
+        putstr(win, 0, "Pi Day");
+    if (holidays & HOLIDAY_APRIL_FOOLS)
+        putstr(win, 0, "April Fools' Day");
+    if (holidays & HOLIDAY_EASTER)
+        putstr(win, 0, "Easter");
+    if (holidays & HOLIDAY_CANADA_DAY)
+        putstr(win, 0, "Canada Day");
+    if (holidays & HOLIDAY_HALLOWEEN)
+        putstr(win, 0, "Halloween");
+    if (holidays & HOLIDAY_THANKSGIVING)
+        putstr(win, 0, "Thanksgiving");
+    if (holidays & HOLIDAY_RAMADAN)
+        putstr(win, 0, "Ramadan");
+    if (holidays & HOLIDAY_EID_AL_FITR)
+        putstr(win, 0, "Eid al-Fitr");
+    if (holidays & HOLIDAY_ROSH_HASHANAH)
+        putstr(win, 0, "Rosh Hashanah");
+    if (holidays & HOLIDAY_YOM_KIPPUR)
+        putstr(win, 0, "Yom Kippur");
+    if (holidays & HOLIDAY_PASSOVER)
+        putstr(win, 0, "Passover");
+    if (holidays & HOLIDAY_HANUKKAH)
+        putstr(win, 0, "Hanukkah");
+    if (holidays & HOLIDAY_CHRISTMAS)
+        putstr(win, 0, "Christmas");
+    if (holidays & HOLIDAY_LOS_MUERTOS)
+        putstr(win, 0, "Dia de Muertos");
+    if (holidays & HOLIDAY_MARDI_GRAS)
+        putstr(win, 0, "Mardi Gras");
+    if (holidays & HOLIDAY_GROUNDHOG_DAY)
+        putstr(win, 0, "Groundhog Day");
+
+    display_nhwindow(win, FALSE);
+    destroy_nhwindow(win);
     return ECMD_OK;
 }
 

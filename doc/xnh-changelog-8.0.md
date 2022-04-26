@@ -38,6 +38,8 @@ changes:
   tiles for each new glyph.
 - When hallucinating, squeaky boards now appear to be chickens, and squawk
   instead of squeak.
+- #holidays extended command which displays which holidays tracked by the game
+  are active.
 
 ### Architectural changes
 
