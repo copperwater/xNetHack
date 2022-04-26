@@ -54,6 +54,8 @@ changes:
     killed.
   - There is a throne in the goal level (and only one drawbridge).
 - Valkyries start with a +1 spear or dwarvish spear instead of a long sword.
+- Valkyries can now reach only Skilled in two-handed sword instead of Expert.
+- Valkyries can reach Expert in spear, instead of Skilled.
 
 ### Interface changes
 
