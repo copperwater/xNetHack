@@ -33,6 +33,26 @@ changes:
 - New terrain type "magic platform". This will currently only appear in special
   levels. It is effectively a hovering walkable space over open air. It cannot
   be dug down on or engraved on.
+- The Valkyrie quest has received an overhaul:
+  - All quest levels are redesigned to some extent; the locate and goal levels
+    especially have received heavy redesigns, and the filler levels use new
+    Lua-based level generators.
+  - While the overall story of the quest remains the same (stop Lord Surtur from
+    starting Ragnarok), the goal of the quest is changed - kill Lord Surtur.
+    This may be a fine distinction, but the point is not to retrieve an artifact
+    stolen from the Norn.
+  - There is still technically a quest artifact: Sol Valtiva, the flaming sword
+    wielded by Lord Surtur. It is a mithril two-handed sword, retaining the half
+    damage and invoke for levelport provided by the Orb of Fate, but does not
+    provide warning or act as a luckstone. It has +d3 to hit and +d5 fire
+    damage, burning things it hits similar to Fire Brand. It is chaotic, but as
+    a quest artifact, its alignment will change to match the player's if they
+    are a Valkyrie.
+  - In terms of monsters, the quest has many more giants and fewer fire ants.
+    Insects no longer generate randomly over time.
+  - The locate level, a broken bridge, is magically restored after Surtur is
+    killed.
+  - There is a throne in the goal level (and only one drawbridge).
 
 ### Interface changes
 
