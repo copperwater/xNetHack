@@ -30,6 +30,7 @@ changes:
   - Drum of earthquake 25 => 100
   - Magic whistle 10 => 100
   - Magic flute 36 => 144
+- Enchantment is ignored when wishing for dragon scales.
 
 ### Interface changes
 
