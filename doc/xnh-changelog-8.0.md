@@ -56,6 +56,7 @@ changes:
 - Valkyries start with a +1 spear or dwarvish spear instead of a long sword.
 - Valkyries can now reach only Skilled in two-handed sword instead of Expert.
 - Valkyries can reach Expert in spear, instead of Skilled.
+- Enchantment is ignored when wishing for dragon scales.
 
 ### Interface changes
 

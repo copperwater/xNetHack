@@ -4776,6 +4776,14 @@ readobjnam(char *bp, struct obj *no_wish)
         return (struct obj *) 0;
     }
 
+    /* wishing for enchantment on dragon scales makes it ideal to use an
+     * otherwise unobtainable wished-up set of scales with positive enchantment
+     * as a cloak, so disallow this */
+    if (d.typ >= FIRST_DRAGON_SCALES && d.typ <= LAST_DRAGON_SCALES
+        && d.spe != 0) {
+        d.spe = 0;
+    }
+
     /* if asking for corpse of a monster which leaves behind a glob, give
        glob instead of rejecting the monster type to create random corpse */
     if (d.typ == CORPSE && d.mntmp >= LOW_PM
