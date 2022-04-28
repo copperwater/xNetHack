@@ -1079,6 +1079,8 @@ hmon_hitmon(
                                && P_SKILL(wtype) >= P_SKILLED)
                            && ((monwep = MON_WEP(mon)) != 0
                                && !is_flimsy(monwep)
+                               && !(monwep->material == GLASS
+                                    && monwep->oerodeproof)
                                && !obj_resists(monwep,
                                        50 + 15 * (greatest_erosion(obj)
                                                   - greatest_erosion(monwep)),
@@ -1867,6 +1869,7 @@ joust(struct monst *mon, /* target */
     /* odds to joust are expert:80%, skilled:60%, basic:40%, unskilled:20% */
     if ((joust_dieroll = rn2(5)) < skill_rating) {
         if (joust_dieroll == 0 && rnl(50) == (50 - 1) && !unsolid(mon->data)
+            && !(obj->material == GLASS && obj->oerodeproof)
             && !obj_resists(obj, 0, 100))
             return -1; /* hit that breaks lance */
         return 1;      /* successful joust */
