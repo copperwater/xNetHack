@@ -57,6 +57,7 @@ changes:
 - Valkyries can now reach only Skilled in two-handed sword instead of Expert.
 - Valkyries can reach Expert in spear, instead of Skilled.
 - Enchantment is ignored when wishing for dragon scales.
+- Artifacts created by naming retain the original material of the object.
 
 ### Interface changes
 
