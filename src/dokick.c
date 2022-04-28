@@ -413,7 +413,7 @@ container_impact_dmg(struct obj *obj, xchar x,
         const char *result = (char *) 0;
 
         otmp2 = otmp->nobj;
-        if (otmp->material == GLASS
+        if (otmp->material == GLASS && !otmp->oerodeproof
             && otmp->oclass != GEM_CLASS && !obj_resists(otmp, 33, 100)) {
             result = "shatter";
         } else if (otmp->otyp == EGG && !rn2(3)) {
