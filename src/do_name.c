@@ -1429,8 +1429,12 @@ oname(struct obj *obj, const char *name)
             set_material(obj, GLASS);
             break;
         default:
-            /* prevent any wishes for materials on an artifact */
-            set_material(obj, objects[obj->otyp].oc_material);
+            /* Don't change the material of the object if it's being created via
+             * naming an existing object, but prevent all other forms of getting
+             * a irregular-material artifact (wishing, dipping for Excalibur or
+             * getting it via crowning from an existing long sword) */
+            if (!g.via_naming)
+                set_material(obj, objects[obj->otyp].oc_material);
         }
     }
     if (carried(obj))
