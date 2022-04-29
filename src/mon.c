@@ -2073,6 +2073,11 @@ mfndpos(
                         info[cnt] |= ALLOW_SANCT;
                     }
                 }
+                if (levl[nx][ny].typ == SINK
+                    && (is_vampire(mdat) || is_vampshifter(mon))) {
+                    /* can't cross running water :-) */
+                    continue;
+                }
                 if (checkobj && sobj_at(CLOVE_OF_GARLIC, nx, ny)) {
                     if (flag & NOGARLIC)
                         continue;
