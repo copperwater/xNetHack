@@ -1471,10 +1471,10 @@ zap_dig(void)
                 pline("It falls on your %s!", body_part(HEAD));
                 dmg = rnd((uarmh && is_hard(uarmh)) ? 2 : 6);
                 losehp(Maybe_Half_Phys(dmg), "falling rock", KILLED_BY_AN);
-                otmp = mksobj_at(ROCK, u.ux, u.uy, FALSE, FALSE);
+                otmp = mksobj(ROCK, FALSE, FALSE);
                 if (otmp) {
                     (void) xname(otmp); /* set dknown, maybe bknown */
-                    stackobj(otmp);
+                    obj_drops_at(otmp, u.ux, u.uy);
                 }
                 newsym(u.ux, u.uy);
             } else if (u.dz > 0) {

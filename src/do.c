@@ -782,6 +782,23 @@ dropz(struct obj *obj, boolean with_impact)
     }
 }
 
+/* obj_drops_at: routine for dropping items that aren't necessarily on the
+ * hero's location or happening on the hero's turn; replaces a lot of
+ * place_object calls that didn't account for the object falling into air or
+ * really any other flooreffects.
+ * Return TRUE if flooreffects returned true and object is now gone, otherwise
+ * FALSE. */
+boolean
+obj_drops_at(struct obj *obj, int x, int y)
+{
+    obj_extract_self(obj); /* in case it was already on the ground */
+    if (flooreffects(obj, x, y, "fall"))
+        return TRUE;
+    place_object(obj, x, y);
+    stackobj(obj);
+    return FALSE;
+}
+
 /* when swallowed, move dropped object from OBJ_FREE to u.ustuck's inventory;
    for purple worm, immediately eat any corpse, glob, or special meat item
    from object polymorph; return True if object is used up, False otherwise */
