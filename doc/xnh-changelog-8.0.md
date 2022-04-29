@@ -59,6 +59,8 @@ changes:
 - Enchantment is ignored when wishing for dragon scales.
 - Artifacts created by naming retain the original material of the object.
 - Vampires will not move onto sinks, including if they are shapeshifted.
+- Foocubi gain a level when they drain one of yours, making future encounters
+  less likely to go well for you.
 
 ### Interface changes
 
