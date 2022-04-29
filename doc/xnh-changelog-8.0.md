@@ -35,6 +35,7 @@ changes:
 - Vampires will not move onto sinks, including if they are shapeshifted.
 - Foocubi gain a level when they drain one of yours, making future encounters
   less likely to go well for you.
+- Magic portals are never hidden; they are readily visible like holes are.
 
 ### Interface changes
 
