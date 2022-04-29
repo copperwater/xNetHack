@@ -377,7 +377,8 @@ maketrap(int x, int y, int typ)
     ttmp->dst.dnum = ttmp->dst.dlevel = -1;
     ttmp->madeby_u = 0;
     ttmp->once = 0;
-    ttmp->tseen = (typ == HOLE); /* hide non-holes */
+    /* hide most traps, but not holes or portals */
+    ttmp->tseen = (typ == HOLE || typ == MAGIC_PORTAL);
     ttmp->ttyp = typ;
     set_trap_ammo(ttmp, NULL);
 
