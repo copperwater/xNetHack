@@ -42,6 +42,8 @@ changes:
   instead of squeak.
 - #holidays extended command which displays which holidays tracked by the game
   are active.
+- Cold rays and explosions render as bright blue instead of white, to
+  distinguish them from lightning.
 
 ### Architectural changes
 

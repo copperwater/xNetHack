@@ -272,7 +272,7 @@
 enum zap_colors {
     zap_color_missile    = HI_ZAP,
     zap_color_fire       = CLR_ORANGE,
-    zap_color_frost      = CLR_WHITE,
+    zap_color_frost      = CLR_BRIGHT_BLUE,
     zap_color_sleep      = HI_ZAP,
     zap_color_death      = CLR_BLACK,
     zap_color_lightning  = CLR_WHITE,
@@ -344,7 +344,7 @@ enum explode_colors {
     explode_color_wet = CLR_BLUE,
     explode_color_magical = CLR_MAGENTA,
     explode_color_fiery = CLR_ORANGE,
-    explode_color_frosty = CLR_WHITE
+    explode_color_frosty = CLR_BRIGHT_BLUE
 };
 enum altar_types {
     altar_unaligned,
