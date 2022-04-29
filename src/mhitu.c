@@ -2192,6 +2192,7 @@ doseduce(struct monst *mon)
             if (!resists_drli(&g.youmonst) && !item_catches_drain(&g.youmonst)) {
                 You_feel("out of shape.");
                 losexp("overexertion");
+                grow_up(mon, (struct monst *) 0);
             } else {
                 You("have a curious feeling...");
             }
