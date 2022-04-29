@@ -975,12 +975,13 @@ mon_explodes(struct monst *mon, struct attack *mattk)
      * eggs have to be done here instead of in the corpse function because
      * otherwise the explosion destroys the egg */
     if (mon->data == &mons[PM_PHOENIX]) {
-        struct obj *obj = mksobj_at(EGG, mon->mx, mon->my, TRUE, FALSE);
+        struct obj *obj = mksobj(EGG, TRUE, FALSE);
         obj->corpsenm = PM_PHOENIX;
         bless(obj);
         obj->quan = 1;
         obj->owt = weight(obj);
         attach_egg_hatch_timeout(obj, 10L);
+        obj_drops_at(obj, mon->mx, mon->my);
     }
 
     /* reset killer */

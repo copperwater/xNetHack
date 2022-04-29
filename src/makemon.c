@@ -1315,7 +1315,8 @@ makemon(register struct permonst *ptr,
                 while (tries--) {
                     int dx = 5 - rn2(11), dy = 5 - rn2(11); /* -5 .. +5 */
                     if (isok(x + dx, y + dy)
-                        && ACCESSIBLE(levl[x + dx][y + dy].typ)
+                        && (levl[x + dx][y + dy].typ == ROOM
+                            || levl[x + dx][y + dy].typ == CORR)
                         && !closed_door(x + dx, y + dy)) {
                         sobj = mksobj_at(STATUE, x + dx, y + dy, TRUE, FALSE);
                         if (!sobj) {

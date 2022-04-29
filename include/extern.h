@@ -443,6 +443,7 @@ extern boolean canletgo(struct obj *, const char *);
 extern void dropx(struct obj *);
 extern void dropy(struct obj *);
 extern void dropz(struct obj *, boolean);
+extern boolean obj_drops_at(struct obj *, int, int);
 extern void obj_no_longer_held(struct obj *);
 extern int doddrop(void);
 extern int dodown(void);

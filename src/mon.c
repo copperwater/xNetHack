@@ -529,9 +529,10 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
            dragons is the same as the order of the scales. */
         if (!rn2(mtmp->mrevived ? 20 : 3)) {
             num = mndx_to_dragon_scales(monsndx(mdat));
-            obj = mksobj_at(num, x, y, FALSE, FALSE);
+            obj = mksobj(num, FALSE, FALSE);
             obj->spe = 0;
             obj->cursed = obj->blessed = FALSE;
+            obj_drops_at(obj, x, y);
         }
         goto default_1;
     case PM_WHITE_UNICORN:
@@ -542,13 +543,15 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
                 pline("%s recently regrown horn crumbles to dust.",
                       s_suffix(Monnam(mtmp)));
         } else {
-            obj = mksobj_at(UNICORN_HORN, x, y, TRUE, FALSE);
+            obj = mksobj(UNICORN_HORN, TRUE, FALSE);
             if (obj && mtmp->mrevived)
                 obj->degraded_horn = 1;
+            obj_drops_at(obj, x, y);
         }
         goto default_1;
     case PM_LONG_WORM:
-        otmp = mksobj_at(WORM_TOOTH, x, y, TRUE, FALSE);
+        otmp = mksobj(WORM_TOOTH, TRUE, FALSE);
+        obj_drops_at(otmp, x, y);
         goto default_1;
     case PM_VAMPIRE:
     case PM_VAMPIRE_LEADER:
@@ -584,34 +587,36 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
     case PM_IRON_GOLEM:
         num = d(2, 6);
         while (num--) {
-            obj = mkobj_at(RANDOM_CLASS, x, y, FALSE);
+            obj = mkobj(RANDOM_CLASS, FALSE);
             if (!valid_obj_material(obj, IRON)) {
                 delobj(obj);
-                obj = mksobj_at(IRON_CHAIN, x, y, TRUE, FALSE);
+                obj = mksobj(IRON_CHAIN, TRUE, FALSE);
             }
             set_material(obj, IRON);
+            obj_drops_at(obj, x, y);
         }
         free_mgivenname(mtmp); /* don't christen obj */
         break;
     case PM_GLASS_GOLEM:
         num = d(2, 4); /* very low chance of creating all glass gems */
         while (num--) {
-            obj = mkobj_at(RANDOM_CLASS, x, y, FALSE);
+            obj = mkobj(RANDOM_CLASS, FALSE);
             if (!valid_obj_material(obj, GLASS)
                 || obj->oclass == POTION_CLASS) {
                 delobj(obj);
-                obj = mksobj_at((LAST_GEM + rnd(NUM_GLASS_GEMS)),
-                                x, y, TRUE, FALSE);
+                obj = mksobj((LAST_GEM + rnd(NUM_GLASS_GEMS)), TRUE, FALSE);
             }
             set_material(obj, GLASS);
+            obj_drops_at(obj, x, y);
         }
         free_mgivenname(mtmp);
         break;
     case PM_CLAY_GOLEM:
         /* TODO: Ceramic material? */
-        obj = mksobj_at(ROCK, x, y, FALSE, FALSE);
+        obj = mksobj(ROCK, FALSE, FALSE);
         obj->quan = (long) (rn2(20) + 50);
         obj->owt = weight(obj);
+        obj_drops_at(obj, x, y);
         free_mgivenname(mtmp);
         break;
     case PM_STONE_GOLEM:
@@ -622,49 +627,53 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
     case PM_WOOD_GOLEM:
         num = mtmp->golem_destroyed ? 0 : d(2, 4);
         while (num--) {
-            obj = mkobj_at(RANDOM_CLASS, x, y, FALSE);
+            obj = mkobj(RANDOM_CLASS, FALSE);
             if (!valid_obj_material(obj, WOOD)) {
                 delobj(obj);
-                obj = mksobj_at(QUARTERSTAFF, x, y, TRUE, FALSE);
+                obj = mksobj(QUARTERSTAFF, TRUE, FALSE);
             }
             set_material(obj, WOOD);
+            obj_drops_at(obj, x, y);
         }
         free_mgivenname(mtmp);
         break;
     case PM_LEATHER_GOLEM:
         num = d(2, 4);
         while (num--) {
-            obj = mkobj_at(RANDOM_CLASS, x, y, FALSE);
+            obj = mkobj(RANDOM_CLASS, FALSE);
             if (!valid_obj_material(obj, LEATHER)) {
                 delobj(obj);
-                obj = mksobj_at(LIGHT_ARMOR, x, y, TRUE, FALSE);
+                obj = mksobj(LIGHT_ARMOR, TRUE, FALSE);
             }
             set_material(obj, LEATHER);
+            obj_drops_at(obj, x, y);
         }
         free_mgivenname(mtmp);
         break;
     case PM_GOLD_GOLEM:
         num = d(2, 4);
         while (num--) {
-            obj = mkobj_at(RANDOM_CLASS, x, y, FALSE);
+            obj = mkobj(RANDOM_CLASS, FALSE);
             if (!valid_obj_material(obj, GOLD)) {
                 delobj(obj);
                 obj = mkgold(50 + rnd(100), x, y);
             }
             set_material(obj, GOLD);
+            obj_drops_at(obj, x, y);
         }
         free_mgivenname(mtmp);
         break;
     case PM_PAPER_GOLEM:
         num = mtmp->golem_destroyed ? 0 : rnd(4);
         while (num--) {
-            obj = mkobj_at(RANDOM_CLASS, x, y, FALSE);
+            obj = mkobj(RANDOM_CLASS, FALSE);
             if (!valid_obj_material(obj, PAPER) || obj->oclass == SCROLL_CLASS
                 || obj->oclass == SPBOOK_CLASS) {
                 delobj(obj);
-                obj = mksobj_at(SCR_BLANK_PAPER, x, y, TRUE, FALSE);
+                obj = mksobj(SCR_BLANK_PAPER, TRUE, FALSE);
             }
             set_material(obj, PAPER);
+            obj_drops_at(obj, x, y);
         }
         free_mgivenname(mtmp);
         break;
@@ -680,8 +689,9 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
             /* Yes, these monsters aren't golems, but golem_destroyed aliases
              * mrevived and none of them can be revived due to not having a
              * corpse */
-            obj = mksobj_at(GLOB_OF_BLACK_PUDDING - (PM_BLACK_PUDDING - mndx),
-                            x, y, TRUE, FALSE);
+            obj = mksobj(GLOB_OF_BLACK_PUDDING - (PM_BLACK_PUDDING - mndx),
+                         TRUE, FALSE);
+            obj_drops_at(obj, x, y);
         }
 
         while (obj && (otmp = obj_nexto(obj)) != (struct obj *) 0) {
@@ -692,8 +702,9 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
         return obj;
     case PM_SKELETON:
         if (!rn2(50)) {
-            otmp = mksobj_at(SKELETON_KEY, x, y, TRUE, FALSE);
+            otmp = mksobj(SKELETON_KEY, TRUE, FALSE);
             set_material(otmp, BONE);
+            obj_drops_at(obj, x, y);
         }
         break;
     default:
@@ -739,12 +750,10 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
     if (Blind && !sensemon(mtmp))
         clear_dknown(obj); /* obj->dknown = 0; */
 
-    stackobj(obj);
-    /* corpse possibly falls into the abyss */
-    if (is_open_air(x, y)) {
-        obj_extract_self(obj);
-        obj_aireffects(obj, TRUE);
-    }
+    /* stack and maybe fall into the abyss if over air */
+    if (obj_drops_at(obj, x, y))
+        return (struct obj *) 0;
+
     newsym(x, y);
     return obj;
 }
@@ -1283,8 +1292,10 @@ meatmetal(register struct monst* mtmp)
                         return 2; /* it died */
                 }
                 /* Left behind a pile? */
-                if (rnd(25) < 3)
-                    (void) mksobj_at(ROCK, mtmp->mx, mtmp->my, TRUE, FALSE);
+                if (rnd(25) < 3) {
+                    otmp = mksobj(ROCK, TRUE, FALSE);
+                    obj_drops_at(otmp, mtmp->mx, mtmp->my);
+                }
                 newsym(mtmp->mx, mtmp->my);
                 return 1;
             }
@@ -3010,6 +3021,7 @@ monstone(struct monst* mdef)
     struct obj *otmp, *obj, *oldminvent;
     xchar x = mdef->mx, y = mdef->my;
     boolean wasinside = FALSE;
+    char xnamebuf[BUFSZ];
 
     /* vampshifter reverts to vampire;
        3.6.3: also used to unshift shape-changed sandestin */
@@ -3072,9 +3084,12 @@ monstone(struct monst* mdef)
         }
         otmp->owt = weight(otmp);
     } else
-        otmp = mksobj_at(ROCK, x, y, TRUE, FALSE);
+        otmp = mksobj(ROCK, TRUE, FALSE);
 
-    stackobj(otmp);
+    /* obj_drops_at might destroy or disappear otmp, so save its name now */
+    Strcpy(xnamebuf, xname(otmp));
+
+    obj_drops_at(otmp, x, y);
     /* mondead() already does this, but we must do it before the newsym */
     if (glyph_is_invisible(levl[x][y].glyph))
         unmap_object(x, y);
@@ -3088,7 +3103,7 @@ monstone(struct monst* mdef)
     if (wasinside) {
         if (is_animal(mdef->data))
             You("%s through an opening in the new %s.",
-                locomotion(g.youmonst.data, "jump"), xname(otmp));
+                locomotion(g.youmonst.data, "jump"), xnamebuf);
     }
 }
 
@@ -3292,7 +3307,8 @@ xkilled(
 
 #ifdef MAIL_STRUCTURES
     if (mdat == &mons[PM_MAIL_DAEMON]) {
-        stackobj(mksobj_at(SCR_MAIL, x, y, FALSE, FALSE));
+        otmp = mksobj(SCR_MAIL, FALSE, FALSE);
+        obj_drops_at(otmp, x, y);
     }
 #endif
     if (accessible(x, y) || is_pool(x, y)) {

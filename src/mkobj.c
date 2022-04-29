@@ -163,6 +163,9 @@ free_omailcmd(struct obj *otmp)
     }
 }
 
+/* mkobj_at does NOT handle the item falling away into open air (or any other
+ * flooreffects) - if required to create an object then maybe let it fall into
+ * air, use mkobj then call obj_drops_at */
 struct obj *
 mkobj_at(char let, int x, int y, boolean artif)
 {
@@ -173,6 +176,8 @@ mkobj_at(char let, int x, int y, boolean artif)
     return otmp;
 }
 
+/* Similar to above, mksobj_at does not handle flooreffects. Use mksobj plus
+ * obj_drops_at to get flooreffects. */
 struct obj *
 mksobj_at(int otyp, int x, int y, boolean init, boolean artif)
 {
