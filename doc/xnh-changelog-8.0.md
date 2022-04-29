@@ -58,6 +58,7 @@ changes:
 - Valkyries can reach Expert in spear, instead of Skilled.
 - Enchantment is ignored when wishing for dragon scales.
 - Artifacts created by naming retain the original material of the object.
+- Vampires will not move onto sinks, including if they are shapeshifted.
 
 ### Interface changes
 
