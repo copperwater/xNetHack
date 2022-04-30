@@ -36,6 +36,7 @@ changes:
 - Foocubi gain a level when they drain one of yours, making future encounters
   less likely to go well for you.
 - Magic portals are never hidden; they are readily visible like holes are.
+- Gnomes generated outside the Mines may be carrying a few gems.
 
 ### Interface changes
 
