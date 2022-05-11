@@ -809,7 +809,7 @@ m_initinv(register struct monst *mtmp)
         if (!In_mines(&u.uz)) {
             int ngems = rn2(1 + min(level_difficulty() / 5, 2));
             while (ngems > 0) {
-                (void) mongets(mtmp, rnd_class(FIRST_GEM, LAST_GEM));
+                (void) mongets(mtmp, rnd_class(FIRST_GEM, LUCKSTONE - 1));
                 ngems--;
             }
         }
