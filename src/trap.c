@@ -3857,7 +3857,7 @@ domagictrap(void)
         case 10:
             /* sometimes nothing happens */
             break;
-        case 11: /* toggle intrinsic invisibility */
+        case 11: /* temporary intrinsic invisibility, or remove it if it's there */
             You_hear("a low hum.");
             if (!Invis) {
                 if (!Blind)
@@ -3873,7 +3873,7 @@ domagictrap(void)
                 /* If we're invisible from another source */
                 You_feel("a little more %s now.", HInvis ? "obvious" : "hidden");
             }
-            HInvis = HInvis ? 0 : HInvis | FROMOUTSIDE;
+            set_itimeout(&HInvis, HInvis ? 0 : rnd(200) + 200);
             newsym(u.ux, u.uy);
             break;
         case 12: /* a flash of fire */
