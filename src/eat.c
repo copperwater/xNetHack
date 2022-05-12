@@ -1200,8 +1200,20 @@ cpostfx(int pm)
     case PM_DISENCHANTER:
         /* picks an intrinsic at random and removes it; there's
            no feedback if hero already lacks the chosen ability */
-        debugpline0("using attrcurse to strip an intrinsic");
-        attrcurse();
+        if (u.uroleplay.hallu) {
+            /* kludge to make vision update in the next make_hallucinated if
+             * you weren't hallucinating from some other source */
+            make_hallucinated(1L, FALSE, 0L);
+            u.uroleplay.hallu = FALSE;
+        }
+        if (HHallucination) {
+            make_hallucinated(0L, FALSE, 0L);
+            pline("The world seems less enchanted!");
+        }
+        else {
+            debugpline0("using attrcurse to strip an intrinsic");
+            attrcurse();
+        }
         break;
     case PM_DEATH:
     case PM_PESTILENCE:
