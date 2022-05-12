@@ -63,6 +63,9 @@ changes:
   less likely to go well for you.
 - Magic portals are never hidden; they are readily visible like holes are.
 - Gnomes generated outside the Mines may be carrying a few gems.
+- Eating disenchanter meat while hallucinating will remove the hallucination
+  instead of an intrinsic. If permanently hallucinating, this will break you out
+  of it as well, similar to wielding Grayswandir.
 
 ### Interface changes
 
