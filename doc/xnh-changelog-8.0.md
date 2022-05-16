@@ -52,6 +52,8 @@ changes:
   are active.
 - Cold rays and explosions render as bright blue instead of white, to
   distinguish them from lightning.
+- Quantum mechanics are given physicist names when farlooked, or "Dr. Science"
+  if cancelled. (Similar to coyotes, not like nymphs or foocubi.)
 
 ### Architectural changes
 

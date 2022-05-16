@@ -2485,6 +2485,26 @@ coyotename(struct monst *mtmp, char *buf)
     return buf;
 }
 
+/* Similar to coyote names but for quantum mechanics. */
+static const char *const qmnames[] = {
+    "Feynman", "Schroedinger", "de Broglie", "Planck", "Bohr", "Pascal",
+    "Jordan", "Dirac", "Beckett", "Bose", "Hawking", "Heisenberg", "Pauli",
+    "Fermi", "Curie", "Joliot-Curie", "Meitner", "Higgs", "Rubin",
+    "Science"
+};
+
+char *
+quantmechname(struct monst *mtmp, char *buf)
+{
+    if (mtmp && buf) {
+        Sprintf(buf, "%s - Dr. %s",
+                x_monnam(mtmp, ARTICLE_NONE, (char *) 0, 0, TRUE),
+                mtmp->mcan ? qmnames[SIZE(qmnames) - 1]
+                           : qmnames[mtmp->m_id % (SIZE(qmnames) - 1)]);
+    }
+    return buf;
+}
+
 char *
 rndorcname(char *s)
 {

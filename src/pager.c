@@ -345,9 +345,13 @@ look_at_monster(char *buf,
     boolean accurate = !Hallucination;
     char *mwounds = mon_wounds(mtmp, TRUE, FALSE);
 
-    name = (mtmp->data == &mons[PM_COYOTE] && accurate)
-              ? coyotename(mtmp, monnambuf)
-              : distant_monnam(mtmp, ARTICLE_NONE, monnambuf);
+    if (mtmp->data == &mons[PM_COYOTE] && accurate)
+        name = coyotename(mtmp, monnambuf);
+    else if (mtmp->data == &mons[PM_QUANTUM_MECHANIC] && accurate)
+        name = quantmechname(mtmp, monnambuf);
+    else
+        name = distant_monnam(mtmp, ARTICLE_NONE, monnambuf);
+
     Sprintf(buf, "%s%s%s%s",
             (mtmp->mx != x || mtmp->my != y)
                 ? ((mtmp->isshk && accurate) ? "tail of " : "tail of a ")
