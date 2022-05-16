@@ -66,6 +66,8 @@ changes:
 - Eating disenchanter meat while hallucinating will remove the hallucination
   instead of an intrinsic. If permanently hallucinating, this will break you out
   of it as well, similar to wielding Grayswandir.
+- The Castle drawbridge may fail to close 20% of the time when using the
+  passtune.
 
 ### Interface changes
 

@@ -756,8 +756,19 @@ do_play_instrument(struct obj* instr)
                             if (find_drawbridge(&x, &y)) {
                                 /* tune now fully known */
                                 u.uevent.uheard_tune = 2;
-                                if (levl[x][y].typ == DRAWBRIDGE_DOWN)
+                                if (levl[x][y].typ == DRAWBRIDGE_DOWN) {
+                                    if (!rn2(5)) {
+                                        /* Future improvement: if flags is ever
+                                         * expanded beyond 5 bits, could set a
+                                         * bit here to make the mechanism
+                                         * continue to be stuck until some
+                                         * condition is met, such as
+                                         * opening/closing magic used on it */
+                                        pline("The mechanism seems to get jammed.");
+                                        pline("It won't close.");
+                                    }
                                     close_drawbridge(x, y);
+                                }
                                 else
                                     open_drawbridge(x, y);
                                 return ECMD_TIME;
