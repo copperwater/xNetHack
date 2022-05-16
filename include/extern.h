@@ -518,6 +518,7 @@ extern const char *roguename(void);
 extern struct obj *realloc_obj(struct obj *, int, genericptr_t, int,
                                const char *);
 extern char *coyotename(struct monst *, char *);
+extern char *quantmechname(struct monst *, char *);
 extern char *rndorcname(char *);
 extern struct monst *christen_orc(struct monst *, const char *, const char *);
 extern const char *noveltitle(int *);
