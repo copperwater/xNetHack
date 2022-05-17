@@ -42,6 +42,9 @@ changes:
   of it as well, similar to wielding Grayswandir.
 - The Castle drawbridge may fail to close 20% of the time when using the
   passtune.
+- The Castle drawbridge responds to passtune attempts 2 squares away from
+  either of the two drawbridge squares, instead of only directly adjacent
+  squares.
 
 ### Interface changes
 
