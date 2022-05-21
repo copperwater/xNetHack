@@ -2928,12 +2928,12 @@ Tell me of your adventures in quest of the Amulet of Yendor."]],
          text = [[
 %lC looks at you, confused.
 
-"I see that you have deprived %n of %o. But %nh still lives,
-does %nh not? 
+"I see that you have deprived %n of %o. But %nh still
+lives, does %nh not? 
 
-"%nH does not need %o to bring about the end of the world! Only by
-slaying %ni before %nh looses the wolf might we all be spared. You must
-hurry back!"]],
+"%nH does not need %o to bring about the end of the world!
+Only by slaying %ni before %nh looses the wolf might we all be
+spared. You must hurry back!"]],
          output = "text",
          synopsis = "[Obtaining %o is not enough, return and slay %n!]",
       },
@@ -2944,30 +2944,31 @@ hurry back!"]],
 "It is not clear, %p, that anything can be done at this late hour.
 But it may now be possible that you can defeat %n.
 
-"It has not been known to many, but I now tell you clearly that the signs of
-Ragnarok, and perhaps all of our doom, are at hand. The winter without a summer
-has come and gone. The roosters are crowing. The great serpent has begun to
-writhe, and the hound of Hel is howling.
+"It has not been known to many, but I now tell you clearly that the
+signs of Ragnarok, and perhaps the doom of us all, are at hand.  The
+winter without a summer has come and gone.  The roosters are crowing.
+The great serpent has begun to writhe, and the hound of Hel is howling.
 
-"Also aware of these signs, %n began to make %nj conquest. %nH came from
-the south wielding the terrible bright sword %o, all the forces of
-Muspelheim arrayed with %ni, bringing fire and ruin to all our lands. Their
-advance opened the huge volcanic vents you %x about the hill. If unchecked,
-these flames they have unleashed will soon consume the entire world.
+"Also aware of these signs, %n began to make %nj conquest.
+%nH came from the south wielding the terrible bright sword %o, 
+all the forces of Muspelheim arrayed with %ni, bringing fire and ruin
+to all our lands.  Their advance opened the huge volcanic vents you %x
+about the hill.  If unchecked, these flames they have unleashed will
+soon consume the entire world.
 
-"I and my hundred brave warriors defended this shrine in a great and glorious
-battle, but capturing it was never %ns objective. Having satisfied
-%niself that he has destroyed any power in our land, Midgard, that can stop %ni,
-%nh has since returned to Muspelheim, there to release the terrible wolf
-Fenrir from his bond.
+"I and my hundred brave warriors defended this shrine in a great and
+glorious battle, but capturing it was never %ns objective. 
+Having satisfied %niself that he has destroyed any power in our land,
+Midgard, that can stop %ni, %nh has since returned to Muspelheim,
+there to release the terrible wolf Fenrir from his bond.
 
-"It will not be long before the gods blow the mighty horn to call themselves to
-battle, even though it will prove their own death-knell -- and at that point,
-the fate of the world will be sealed. 
+"It will not be long before the gods blow the mighty horn to call
+themselves to battle, even though it will prove their own death-knell;
+at that point, the fate of the world will be sealed. 
 
-"The only thing that might forestall or prevent Ragnarok is if %n
-%niself is killed. By the prophecies, I do not think it likely that %nh can be at
-this point. But you must try, for the sake of the world."]],
+"The only thing that might forestall or prevent Ragnarok is killing
+%n %niself.  And there is but a slim hope of that by now,
+or so the prophecies say.  But you must try, for the sake of the world."]],
       },
       badalign = {
          synopsis = "[You have strayed from the %a path.  Return after you purify yourself.]",
@@ -2983,15 +2984,16 @@ and return here only when you have regained a state of purity."]],
          text = [["I see you and %n fighting, %p.  But you are not prepared and
 shall die at %ns hand if you proceed.  No.  This will not do.
 Go back out into the world, and grow more experienced at the ways of war.
-Only when you have returned %Ra do you stand a chance at defeating %n."]],
+Only when you have returned %Ra do you stand a chance at defeating
+%n."]],
       },
       discourage = {
          "\"I am your death, %c.\"",
          "\"You cannot prevail, %r.  I have foreseen your every move.\"",
-         "\"It is too late now. Ragnarok has begun.\"",
-         "\"I killed scores of %ds best at your shrine. Do you really think that one %c can stand against me?\"",
+         "\"It is too late now.  Ragnarok has begun.\"",
+         "\"I killed scores of %ds best at your shrine; a mere %c stands no chance!\"",
          "\"Who bears the souls of %cP to Valhalla, %r?\"",
-         "\"Soon, %d will die. All the Aesir will die!\"",
+         "\"Soon, %d will die.  All the Aesir will die!\"",
          "\"Some instrument of %d you are, %p.  You are a weakling!\"",
          "\"Never have I seen %ca so clumsy in battle.\"",
          "\"You die now, little %s.\"",
@@ -3001,10 +3003,10 @@ Only when you have returned %Ra do you stand a chance at defeating %n."]],
          "\"Go with the blessings of %d.\"",
          "\"Call upon %d when you are in need.\"",
          "\"Magical cold is very effective against %n.\"",
-         "\"To venture into Muspelheim and face %n, you will need to be immune to fire.\"",
+         "\"To venture into Muspelheim, you will need to be immune to fire.\"",
          "\"May %d strengthen your arm.\"",
          "\"Trust in %d.  He will not desert you.\"",
-         "\"It becomes more likely that Ragnarok will come with every passing moment. You must hurry, %p!\"",
+         "\"Ragnarok draws nearer with each passing moment.  You must hurry, %p.\"",
          "\"If %n looses Fenrir, the world is doomed.  This must not be!\"",
          "\"Remember your training, %p.  You can succeed.\"",
          "\"Beware %ns terrible bright sword.\"",
@@ -3017,18 +3019,18 @@ a place you know well, %H.  You immediately realize
 that something here is very wrong!
 
 In places, the snow and ice have been melted into steaming pools of
-water.  Fumaroles and pools of bubbling lava shooting gouts of flame surround
-the hill. The stench of sulphur is carried through the air, and you %x
-creatures that should not be able to live in this environment moving towards
-you.]],
+water.  Fumaroles and pools of bubbling lava shooting gouts of flame
+surround the hill.  The stench of sulphur is carried through the air,
+and you %x creatures that should not be able to live in this
+environment moving towards you.]],
       },
       goal_first = {
          synopsis = "[This is the lair of %n.]",
          output = "text",
-         text = [[Through clouds of sulphurous gases, you %x a wall of great stone 
-surrounded with a moat of bubbling lava.  This can only be the fortress of %n.
-From somewhere ahead, you %h a great deep voice shouting orders, and you
-silently hope you have not arrived too late.]],
+         text = [[Through clouds of sulphurous gases, you %x a wall of great stones
+surrounded with a moat of bubbling lava.  This can only be the fortress
+of %n.  From somewhere ahead, you hear a great deep voice
+shouting orders, and you silently hope you have not arrived too late.]],
       },
       goal_next = {
          text = "Once again, you stand in sight of %ns fortress.",
@@ -3068,19 +3070,19 @@ Amulet interferes with mine.  I hope for your success."]],
          synopsis = "[%nC dies.]",
          output = "text",
          text = [[
-%nS eyes widen in shock as he collapses to the ground, but the shock
-quickly turns to utter rage.
+%nS eyes widen in shock as he collapses to the ground,
+but the shock quickly turns to utter rage.
 
-"%rC... You think you can prevent Ragnarok?
+"%rC...  You think you can prevent Ragnarok?
 
-"I am foretold to battle your gods. Fenrir and Jormugandr WILL be freed. The
-Aesir will be slain. The world will be consumed. You cannot change this. You
-cannot stop what I have begun!"
+"I am foretold to battle your gods.  Fenrir and Jormugandr WILL be
+freed.  The Aesir will be slain.  The world will be consumed.  You
+cannot change this.  You cannot stop what I have begun!"
 
 With his last breath, %n spits at you:
 
-"I know not when I will return. I only hope it to be while you still live, so
-you can give me the pleasure of killing you."]]
+"I know not when I will return.  I only hope it to be while you still
+live, so you can give me the pleasure of killing you."]]
       },
       leader_first = {
          synopsis = "[We need your aid.  Are you ready?]",
@@ -3109,18 +3111,19 @@ made changes to become ready for this task..."]],
          synopsis = "[This is %i.]",
          output = "text",
          text = [[
-Your pursuit of %n brings you to an area you have visited only once or
-twice before in your life, but there's no way you have forgotten it -- here is
-the majestic rainbow bridge Bifrost, connecting this realm to Muspelheim far
-below.
+Your pursuit of %n brings you to an area you have visited only
+once or twice before in your life, but there's no way you have forgotten
+it -- here is the majestic rainbow bridge Bifrost, connecting this realm
+to Muspelheim far below.
 
-But what is this? As you draw closer, you %x that it is shattered and broken.
-Cursing, you remember that this too was prophesied: that it would be sundered by
-the weight of %n and %nj forces marching across it.
+But what is this?  As you draw closer, you %x that it is shattered
+and broken.  Cursing, you remember that this too was prophesied: that it
+would be sundered by the weight of %n and %nj forces
+marching across it.
 
-Before you can think about crossing, you realize you have been spotted. A grim
-giant with hatred in his eyes points at you with a gleaming sword and says
-something to his compatriots. They start moving towards you.]]
+Before you can think about crossing, you realize you have been spotted.
+A grim giant with hatred in his eyes points at you with a gleaming sword
+and says something to his compatriots.  They start moving towards you.]]
       },
       locate_next = {
          text = "Once again, you stand before %i.",
@@ -3129,14 +3132,15 @@ something to his compatriots. They start moving towards you.]]
          synopsis = "[\"Fenrir can wait.  Fight us and die!\"]",
          output = "text",
          text = [[
-"Who are you, %r, that approaches?  I do not recognize you from the
-battle at %H. Some last gambit of %ds, I suppose.
+"Who are you, %r, that approaches?  I do not recognize you
+from the battle at %H.  Some last gambit of %ds,
+I presume.
 
-"I suppose Fenrir can wait a little longer for us to have a little... sport.
-Ah!  If your realm were not about to perish, the skalds would sing such songs
-telling the fall of Midgard's last warrior.
+"I suppose Fenrir can wait a little longer, for us to have a little... 
+sport.  Ah!  If your realm were not about to perish, the skalds would
+sing such songs telling the fall of Midgard's last warrior.
 
-Come, then, little %s! We shall crush you like a gnat."]],
+Come, then, little %s!  We shall crush you like a gnat."]],
       },
       nemesis_next = {
          text = "\"You fight well, %r!  But not well enough to avoid death!\"",
@@ -3156,13 +3160,13 @@ Come, then, little %s! We shall crush you like a gnat."]],
          text = [[
 As you approach, %l rises to greet you, extremely relieved.
 
-"%p, I never lost faith that you could break %ns power and
-cast him down. Instead of the world ending in flames, I now foresee an era of
-peace.  A thousand thanks would not be enough.
+"%p, I never lost faith that you could break %ns power
+and cast him down.  Instead of the world ending in flames, I now foresee
+an era of peace.  A thousand thanks would not be enough.
 
-"Your own future, though, is still uncertain.  You must now resume searching for
-the Amulet of Yendor, in %ds name.  My thanks and blessings go with you, my
-%S."]],
+"Your own future, though, is still uncertain.  You must now resume searching
+for the Amulet of Yendor, in %ds name.  My thanks and blessings go
+with you, my %S."]],
       },
       offeredit2 = {
          -- not printed in the regular quest, but you might still throw the
@@ -3172,8 +3176,8 @@ the Amulet of Yendor, in %ds name.  My thanks and blessings go with you, my
          text = [[
 "So this is the sword of %n, is it?  What a magnificent weapon.
 
-"But I have little use for this.  It will likely better serve you instead in
-your search for the Amulet, even if you do not wish to wield it directly.
+"But I have little use for this.  It will likely better serve you instead
+in your search for the Amulet, even if you do not wish to wield it directly.
 
 "%Z await your return through the magic portal that brought
 you here."]],
@@ -3183,8 +3187,8 @@ you here."]],
 that this may be the last time you come here.]],
       },
       posthanks = {
-         text = [["Greetings, %p.  I have not been able to pay as much attention to
-your search for the Amulet as I have wished.  How do you fare?"]],
+         text = [["Greetings, %p.  I have not been able to pay as much
+attention to your search for the Amulet as I have wished.  How do you fare?"]],
       },
    },
    Wiz = {
