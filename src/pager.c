@@ -858,9 +858,13 @@ add_mon_info(winid datawin, struct permonst * pm)
     APPENDC(intrinsic_possible(SLEEP_RES, pm), "sleep");
     APPENDC(intrinsic_possible(POISON_RES, pm), "poison");
     APPENDC(intrinsic_possible(DISINT_RES, pm), "disintegration");
-    /* acid and stone resistance aren't currently conveyable */
     if (*buf)
         Strcat(buf, " resistance");
+    /* keep these separate because "fire, cold, temporary petrification
+     * resistance" looks weird */
+    APPENDC(intrinsic_possible(ACID_RES, pm), "temporary acid resistance");
+    APPENDC(intrinsic_possible(STONE_RES, pm),
+            "temporary petrification resistance");
     APPENDC(intrinsic_possible(TELEPORT, pm), "teleportation");
     APPENDC(intrinsic_possible(TELEPORT_CONTROL, pm), "teleport control");
     APPENDC(intrinsic_possible(TELEPAT, pm), "telepathy");
@@ -871,6 +875,7 @@ add_mon_info(winid datawin, struct permonst * pm)
      * permanent intrinsic gains.
      * If you find yourself listing multiple things here for the same effect,
      * that may indicate the property should be added to psuedo_intrinsics. */
+    APPENDC(pm == &mons[PM_DISPLACER_BEAST], "temporary displacement");
     APPENDC(pm == &mons[PM_QUANTUM_MECHANIC], "speed or slowness");
     APPENDC(pm == &mons[PM_MIND_FLAYER] || pm == &mons[PM_MASTER_MIND_FLAYER],
             "intelligence");
