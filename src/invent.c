@@ -1,4 +1,4 @@
-/* NetHack 3.7	invent.c	$NHDT-Date: 1651868822 2022/05/06 20:27:02 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.386 $ */
+/* NetHack 3.7	invent.c	$NHDT-Date: 1652861830 2022/05/18 08:17:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.389 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -4087,8 +4087,9 @@ dfeature_at(int x, int y, char *buf)
 /* look at what is here; if there are many objects (pile_limit or more),
    don't show them unless obj_cnt is 0 */
 int
-look_here(int obj_cnt, /* obj_cnt > 0 implies that autopickup is in progress */
-          unsigned lookhere_flags)
+look_here(
+    int obj_cnt, /* obj_cnt > 0 implies that autopickup is in progress */
+    unsigned lookhere_flags)
 {
     struct obj *otmp;
     struct trap *trap;
@@ -4889,7 +4890,16 @@ adjust_split(void)
         /* got first digit, get more until next non-digit (except for
            backspace/delete which will take away most recent digit and
            keep going; we expect one of ' ', '\n', or '\r') */
-        let = get_count(NULL, dig, LARGEST_INT, &splitamount, GC_ECHOFIRST);
+        let = get_count(NULL, dig, 0L, &splitamount,
+                        /* yn_function() added the first digit to the
+                           prompt when recording message history; have
+                           get_count() display "Count: N" when waiting
+                           for additional digits (ordinarily that won't be
+                           shown until a second digit is entered) and also
+                           add "Count: N" to message history if more than
+                           one digit gets entered or the original N is
+                           deleted and replaced with different digit */
+                        GC_ECHOFIRST | GC_CONDHIST);
         /* \033 is in quitchars[] so we need to check for it separately
            in order to treat it as cancel rather than as accept */
         if (!let || let == '\033' || !index(quitchars, let)) {

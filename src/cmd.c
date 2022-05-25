@@ -1,4 +1,4 @@
-/* NetHack 3.7	cmd.c	$NHDT-Date: 1652719274 2022/05/16 16:41:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.564 $ */
+/* NetHack 3.7	cmd.c	$NHDT-Date: 1652861829 2022/05/18 08:17:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.565 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -115,6 +115,7 @@ static int wiz_where(void);
 static int wiz_detect(void);
 static int wiz_panic(void);
 static int wiz_polyself(void);
+static int wiz_kill(void);
 static int wiz_load_lua(void);
 static int wiz_level_tele(void);
 static int wiz_level_change(void);
@@ -1159,6 +1160,89 @@ wiz_detect(void)
     return ECMD_OK;
 }
 
+/* the #wizkill command - pick targets and reduce them to 0HP;
+   by default, the hero is credited/blamed; use 'm' prefix to avoid that */
+static int
+wiz_kill(void)
+{
+    struct monst *mtmp;
+    coord cc;
+    int ans;
+    char c, qbuf[QBUFSZ];
+    const char *prompt = "Pick first monster to slay";
+    boolean save_verbose = flags.verbose;
+
+    cc.x = u.ux, cc.y = u.uy;
+    for (;;) {
+        pline("%s:", prompt);
+        prompt = "Next monster";
+
+        flags.verbose = FALSE;
+        ans = getpos(&cc, TRUE, "a monster");
+        flags.verbose = save_verbose;
+        if (ans < 0 || cc.x < 1)
+            break;
+
+        mtmp = 0;
+        if (u_at(cc.x, cc.y)) {
+            if (u.usteed) {
+                Sprintf(qbuf, "Kill %.110s?", mon_nam(u.usteed));
+                if ((c = ynq(qbuf)) == 'q')
+                    break;
+                if (c == 'y')
+                    mtmp = u.usteed;
+            }
+            if (!mtmp) {
+                Sprintf(qbuf, "%s?", Role_if(PM_SAMURAI) ? "Perform seppuku"
+                                                         : "Commit suicide");
+                if (paranoid_query(TRUE, qbuf)) {
+                    Sprintf(g.killer.name, "%s own player", uhis());
+                    g.killer.format = KILLED_BY;
+                    done(DIED);
+                }
+                break;
+            }
+        } else {
+            mtmp = m_at(cc.x, cc.y);
+        }
+
+        if (mtmp) {
+            /* we don't require that the monster be seen or sensed so
+               we issue our own message in order to name it in case it
+               isn't; note that if it triggers other kills, those might
+               be referred to as "it" */
+            if (!iflags.menu_requested) {
+                boolean namedpet = has_mgivenname(mtmp) && !Hallucination;
+
+                /* normal case: hero is credited/blamed */
+                You("%s %s!", nonliving(mtmp->data) ? "destroy" : "kill",
+                    !mtmp->mtame ? noit_mon_nam(mtmp)
+                    : x_monnam(mtmp, ARTICLE_YOUR, "poor",
+                               SUPPRESS_IT | (namedpet ? SUPPRESS_SADDLE : 0),
+                               FALSE));
+                xkilled(mtmp, XKILL_NOMSG);
+            } else { /* 'm'-prefix */
+                /* we know that monsters aren't moving because player has
+                   just issued this #wizkill command, but if 'mtmp' is a
+                   gas spore whose explosion kills any other monsters we
+                   need to have the mon_moving flag be True in order to
+                   avoid blaming or crediting hero for their deaths */
+                g.context.mon_moving = TRUE;
+                pline("%s is %s.", noit_Monnam(mtmp),
+                      nonliving(mtmp->data) ? "destroyed" : "killed");
+                /* Null second arg suppresses message */
+                monkilled(mtmp, (char *) 0, AD_PHYS);
+                g.context.mon_moving = FALSE;
+            }
+        } else {
+            There("is no monster there.");
+            break;
+        }
+    }
+    /* distinction between ECMD_CANCEL and ECMD_OK is unimportant here */
+    return ECMD_OK; /* no time elapses */
+}
+
 /* the #wizloadlua command - load an arbitrary lua file */
 static int
 wiz_load_lua(void)
@@ -1170,7 +1254,7 @@ wiz_load_lua(void)
         buf[0] = '\0';
         getlin("Load which lua file?", buf);
         if (buf[0] == '\033' || buf[0] == '\0')
-            return 0;
+            return ECMD_CANCEL;
         if (!strchr(buf, '.'))
             strcat(buf, ".lua");
         (void) load_lua(buf, &sbi);
@@ -1189,7 +1273,7 @@ wiz_load_splua(void)
         buf[0] = '\0';
         getlin("Load which des lua file?", buf);
         if (buf[0] == '\033' || buf[0] == '\0')
-            return 0;
+            return ECMD_CANCEL;
         if (!strchr(buf, '.'))
             strcat(buf, ".lua");
 
@@ -1307,7 +1391,7 @@ wiz_telekinesis(void)
     pline("Pick a monster to hurtle.");
     do {
         ans = getpos(&cc, TRUE, "a monster");
-        if (ans < 0 || cc.x < 0)
+        if (ans < 0 || cc.x < 1)
             return ECMD_CANCEL;
 
         if ((((mtmp = m_at(cc.x, cc.y)) != 0) && canspotmon(mtmp))
@@ -2531,6 +2615,9 @@ struct ext_func_tab extcmdlist[] = {
               wiz_identify, IFBURIED | WIZMODECMD, NULL },
     { '\0',   "wizintrinsic", "set an intrinsic",
               wiz_intrinsic, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
+    { '\0',   "wizkill", "slay a monster",
+              wiz_kill, (IFBURIED | AUTOCOMPLETE | WIZMODECMD
+                         | CMD_M_PREFIX | NOFUZZERCMD), NULL },
     { C('v'), "wizlevelport", "teleport to another level",
               wiz_level_tele, IFBURIED | WIZMODECMD | CMD_M_PREFIX, NULL },
     { '\0',   "wizloaddes", "load and execute a des-file lua script",
@@ -5191,10 +5278,13 @@ get_count(
 {
     char qbuf[QBUFSZ];
     int key;
-    long cnt = 0L;
+    long cnt = 0L, first = inkey ? (long) (inkey - '0') : 0L;
     boolean backspaced = FALSE, showzero = TRUE,
             /* should "Count: 123" go into message history? */
             historicmsg = (gc_flags & GC_SAVEHIST) != 0,
+            /* put "Count: N" into mesg hist unless N is the same as the
+               [first digit] value passed in via 'inkey' */
+            conditionalmsg = (gc_flags & GC_CONDHIST) != 0,
             /* normally "Count: 12" isn't echoed until the second digit */
             echoalways = (gc_flags & GC_ECHOFIRST) != 0;
     /* this should be done in port code so that we have erase_char
@@ -5245,7 +5335,7 @@ get_count(
         }
     }
 
-    if (historicmsg) {
+    if (historicmsg || (conditionalmsg && *count != first)) {
         Sprintf(qbuf, "Count: %ld ", *count);
         (void) key2txt((uchar) key, eos(qbuf));
         putmsghistory(qbuf, FALSE);

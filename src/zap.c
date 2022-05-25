@@ -1,4 +1,4 @@
-/* NetHack 3.7	zap.c	$NHDT-Date: 1651868824 2022/05/06 20:27:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.410 $ */
+/* NetHack 3.7	zap.c	$NHDT-Date: 1653329964 2022/05/23 18:19:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.415 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -594,11 +594,12 @@ get_obj_location(struct obj *obj, xchar *xp, xchar *yp, int locflags)
 }
 
 boolean
-get_mon_location(struct monst *mon, xchar *xp, xchar *yp,
-                 int locflags) /* non-zero means get location even if monster
-                                  is buried */
+get_mon_location(
+    struct monst *mon,
+    xchar *xp, xchar *yp,
+    int locflags) /* non-zero means get location even if monster is buried */
 {
-    if (mon == &g.youmonst) {
+    if (mon == &g.youmonst || (u.usteed && mon == u.usteed)) {
         *xp = u.ux;
         *yp = u.uy;
         return TRUE;
@@ -829,7 +830,7 @@ revive(struct obj *corpse, boolean by_hero)
             break; /* x,y are 0 */
         }
     }
-    if (!x || !y
+    if (!x
         /* Rules for revival from containers:
          *  - the container cannot be locked
          *  - the container cannot be heavily nested (>2 is arbitrary)
@@ -1031,8 +1032,12 @@ revive(struct obj *corpse, boolean by_hero)
             break;
         }
         /*FALLTHRU*/
+    case OBJ_FREE:
+    case OBJ_MIGRATING:
+    case OBJ_ONBILL:
+    case OBJ_LUAFREE:
     default:
-        panic("revive");
+        panic("revive default case %d", (int) corpse->where);
     }
 
     return mtmp;
@@ -4347,8 +4352,12 @@ buzz(int type, int nd, xchar sx, xchar sy, int dx, int dy)
  * called with dx = dy = 0 with vertical bolts
  */
 void
-dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
-       boolean say) /* Announce out of sight hit/miss events if true */
+dobuzz(
+    int type,
+    int nd,
+    xchar sx, xchar sy,
+    int dx, int dy,
+    boolean say) /* announce out of sight hit/miss events if true */
 {
     int range, abstype = abs(type) % 10;
     register xchar lsx, lsy;
@@ -4726,8 +4735,12 @@ melt_ice_away(anything *arg, long timeout UNUSED)
  * amount by which range is reduced (the latter is just ignored by fireballs)
  */
 int
-zap_over_floor(xchar x, xchar y, int type, boolean *shopdamage,
-               short exploding_wand_typ)
+zap_over_floor(
+    xchar x, xchar y,         /* location */
+    int type,                 /* damage type plus {wand|spell|breath} info */
+    boolean *shopdamage,      /* extra output if shop door is destroyed */
+    short exploding_wand_typ) /* supplied when breaking a wand; or POT_OIL
+                               * when a lit potion of oil explodes */
 {
     const char *zapverb;
     struct monst *mon;
@@ -4938,6 +4951,12 @@ zap_over_floor(xchar x, xchar y, int type, boolean *shopdamage,
             zapverb = "bolt"; /* wand zap */
         else if (abs(type) < ZT_BREATH(0))
             zapverb = "spell";
+    } else if (exploding_wand_typ == POT_OIL) {
+        /* breakobj() -> explode_oil() -> splatter_burning_oil()
+           -> explode(ZT_SPELL(ZT_FIRE), BURNING_OIL)
+           -> zap_over_floor(ZT_SPELL(ZT_FIRE), POT_OIL) */
+        yourzap = FALSE;  /* and leave zapverb as "blast" */
+        exploding_wand_typ = 0; /* not actually an exploding wand */
     }
 
     /* secret door gets revealed, converted into regular door */

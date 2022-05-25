@@ -1,9 +1,15 @@
-/* NetHack 3.7	nhlua.c	$NHDT-Date: 1580506559 2020/01/31 21:35:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.32 $ */
+/* NetHack 3.7	nhlua.c	$NHDT-Date: 1652897460 2022/05/18 18:11:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.78 $ */
 /*      Copyright (c) 2018 by Pasi Kallinen */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 #include "dlb.h"
+
+#ifndef LUA_VERSION_RELEASE_NUM
+#ifdef NHL_SANDBOX
+#undef NHL_SANDBOX
+#endif
+#endif
 
 #ifdef NHL_SANDBOX
 #include <setjmp.h>
@@ -1651,11 +1657,14 @@ nhl_init(nhl_sandbox_info *sbi)
 #ifndef NHL_VERSION_EXPECTED
 #define NHL_VERSION_EXPECTED 50404
 #endif
+
+#ifdef NHL_SANDBOX
     if(NHL_VERSION_EXPECTED != LUA_VERSION_RELEASE_NUM){
 	panic(
 	    "sandbox doesn't know this Lua version: this=%d != expected=%d ",
 	    LUA_VERSION_RELEASE_NUM, NHL_VERSION_EXPECTED);
     }
+#endif
 
     lua_State *L = nhlL_newstate(sbi);
 
@@ -2339,11 +2348,16 @@ nhlL_newstate (nhl_sandbox_info *sbi) {
     }
 
     lua_State *L = lua_newstate(nhl_alloc, nud);
+#if LUA_VERSION_NUM == 503
+# define luai_likely(x) (x)
+#endif
     if (luai_likely(L)) {
 	lua_atpanic(L, &nhl_panic);
+#if LUA_VERSION_NUM == 504
 	    /* no warning system at the moment - it requires concatenting
 	     * strings to fit NetHack's API XXX */
 	lua_setwarnf(L, 0, L);  /* default is warnings off */
+#endif
     }
 
 #ifdef NHL_SANDBOX

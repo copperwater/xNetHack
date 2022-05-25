@@ -1235,6 +1235,7 @@ curses: messages were tagged by turn in 3.6.x so that ^P can place a separator
 curses: when entering a count while in a menu, cursor would jump to the spot
 	on screen where the hero was, even if menu covered that part of map;
 	post-3.6--started when curses was changed to use core's get_count()
+curses: clipped map crashed due to uninitialized memory
 Qt: at Xp levels above 20 with 'showexp' On, the combined status field
 	"Level:NN/nnnnnnnn" was too big and truncated by a char at each end
 Qt: searching a text window for something that wasn't found and then searching
@@ -1298,6 +1299,7 @@ curses: make extended command prompt behave more sensibly
 curses: if a menu of objects contains at least one iron ball, and player is
 	not already in the midst of entering a count, recognize '0' as a
 	group accelerator rather than the start of a count
+curses: obey timed_delay option
 macOS: Xcode project was failing to build if the path to the NetHack source
 	tree contained a space; the issue was within some shell script code
 	contained within the project
@@ -1640,6 +1642,7 @@ display detected door traps and chest traps as trapped doors and trapped
 if built with DEBUG enabled and running in wizard mode, starting play with
 	DEBUGFILES=seethru in environment makes clouds on the Plane of Air,
 	water on Plane of Water, and fumaroles on Plane of Fire be transparent
+add wizard mode #wizkill command to remove monster(s) from play
 
 
 Platform- and/or Interface-Specific New Features
@@ -1792,6 +1795,8 @@ mark high altars in altarmask (pr #748 by entrez)
 split kicking empty space into separate function (pr #754 by argrath)
 split adjusting attributes into separate function (pr #757 by argrath)
 split getting damages with a kick into separate function (pr #758 by argrath)
+split fixing curse trouble into separate function (pr #765 by argrath)
+Handle -eaux plurals in makeplural/makesingular (pr #767 by entrez)
 
 
 Code Cleanup and Reorganization

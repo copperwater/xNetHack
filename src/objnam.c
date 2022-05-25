@@ -1,4 +1,4 @@
-/* NetHack 3.7	objnam.c	$NHDT-Date: 1652332281 2022/05/12 05:11:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.361 $ */
+/* NetHack 3.7	objnam.c	$NHDT-Date: 1653171584 2022/05/21 22:19:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.364 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2435,7 +2435,8 @@ static const char *const as_is[] = {
     "tuna",    "yaki",      "-hai",      "krill",     "manes",
     "moose",   "ninja",     "sheep",     "ronin",     "roshi",
     "shito",   "tengu",     "ki-rin",    "Nazgul",    "gunyoki",
-    "piranha", "samurai",   "shuriken",  "haggis", 0,
+    "piranha", "samurai",   "shuriken",  "haggis",    "Bordeaux",
+    0,
     /* Note:  "fish" and "piranha" are collective plurals, suitable
        for "wiped out all <foo>".  For "3 <foo>", they should be
        "fishes" and "piranhas" instead.  We settle for collective
@@ -2529,7 +2530,8 @@ singplur_compound(char *str)
           " versus ", " from ",    " in ",
           " on ",     " a la ",    " with", /* " with "? */
           " de ",     " d'",       " du ",
-          "-in-",     "-at-",      0
+          " au ",     "-in-",      "-at-",
+          0
         }, /* list of first characters for all compounds[] entries */
         compound_start[] = " -";
 
@@ -2648,6 +2650,7 @@ makeplural(const char* oldstr)
     {
         static const char *const already_plural[] = {
             "ae",  /* algae, larvae, &c */
+            "eaux", /* chateaux, gateaux */
             "matzot",
             "spondulix", 0,
         };
@@ -2707,6 +2710,13 @@ makeplural(const char* oldstr)
         Strcasecpy(spot - 1, "es");
         goto bottom;
     }
+    /* -eau/-eaux (gateau, chapeau...) */
+    if (len >= 3 && !strcmpi(spot - 2, "eau")
+        /* 'bureaus' is the more common plural of 'bureau' */
+        && BSTRCMPI(str, spot - 5, "bureau")) {
+        Strcasecpy(spot + 1, "x");
+        goto bottom;
+    }
     /* matzoh/matzot, possible food name */
     if (len >= 6
         && (!strcmpi(spot - 5, "matzoh") || !strcmpi(spot - 5, "matzah"))) {
@@ -2719,7 +2729,6 @@ makeplural(const char* oldstr)
         goto bottom;
     }
 
-    /* note: -eau/-eaux (gateau, bordeau...) */
     /* note: ox/oxen, VAX/VAXen, goose/geese */
 
     lo_c = lowc(*spot);
@@ -2878,8 +2887,9 @@ makesingular(const char* oldstr)
             goto bottom;
         }
         /* matzot -> matzo, algae -> alga */
-        if (!BSTRCMPI(bp, p - 6, "matzot") || !BSTRCMPI(bp, p - 2, "ae")) {
-            *(p - 1) = '\0'; /* drop t/e */
+        if (!BSTRCMPI(bp, p - 6, "matzot") || !BSTRCMPI(bp, p - 2, "ae")
+            || !BSTRCMPI(bp, p - 4, "eaux")) {
+            *(p - 1) = '\0'; /* drop t/e/x */
             goto bottom;
         }
         /* balactheria -> balactherium */
@@ -4798,7 +4808,7 @@ readobjnam(char *bp, struct obj *no_wish)
      * Disallow such topology tweaks for WIZKIT startup wishes.
      */
  wiztrap:
-    if (wizard && !g.program_state.wizkit_wishing) {
+    if (wizard && !g.program_state.wizkit_wishing && !d.oclass) {
         /* [inline code moved to separate routine to unclutter readobjnam] */
         if ((d.otmp = wizterrainwish(&d)) != 0)
             return d.otmp;

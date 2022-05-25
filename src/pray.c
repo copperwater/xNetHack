@@ -9,6 +9,7 @@ static boolean insufficient_food(void);
 static int prayer_done(void);
 static struct obj *worst_cursed_item(void);
 static int in_trouble(void);
+static void fix_curse_trouble(struct obj *, const char *);
 static void fix_worst_trouble(int);
 static void angrygods(aligntyp);
 static void at_your_feet(const char *);
@@ -412,6 +413,30 @@ worst_cursed_item(void)
 }
 
 static void
+fix_curse_trouble(struct obj *otmp, const char *what)
+{
+    if (!otmp) {
+        impossible("fix_curse_trouble: nothing to uncurse.");
+        return;
+    }
+    if (otmp == uarmg && Glib) {
+        make_glib(0);
+        Your("%s are no longer slippery.", gloves_simple_name(uarmg));
+        if (!otmp->cursed)
+            return;
+    }
+    if (!Blind || (otmp == ublindf && Blindfolded_only)) {
+        pline("%s %s.",
+                what ? what : (const char *) Yobjnam2(otmp, "softly glow"),
+                hcolor(NH_AMBER));
+        iflags.last_msg = PLNMSG_OBJ_GLOWS;
+        otmp->bknown = !Hallucination; /* ok to skip set_bknown() */
+    }
+    uncurse(otmp);
+    update_inventory();
+}
+
+static void
 fix_worst_trouble(int trouble)
 {
     int i;
@@ -495,8 +520,10 @@ fix_worst_trouble(int trouble)
                 if (otmp == uright)
                     what = rightglow;
             }
-            if (otmp)
-                goto decurse;
+            if (otmp) {
+                fix_curse_trouble(otmp, what);
+                break;
+            }
         }
         break;
     case TROUBLE_STUCK_IN_WALL:
@@ -527,11 +554,13 @@ fix_worst_trouble(int trouble)
             if (otmp == uright)
                 what = rightglow;
         }
-        goto decurse;
+        fix_curse_trouble(otmp, what);
+        break;
     case TROUBLE_UNUSEABLE_HANDS:
         if (welded(uwep)) {
             otmp = uwep;
-            goto decurse;
+            fix_curse_trouble(otmp, what);
+            break;
         }
         if (Upolyd && nohands(g.youmonst.data)) {
             if (!Unchanging) {
@@ -539,7 +568,8 @@ fix_worst_trouble(int trouble)
                 rehumanize(); /* "You return to {normal} form." */
             } else if ((otmp = unchanger()) != 0 && otmp->cursed) {
                 /* otmp is an amulet of unchanging */
-                goto decurse;
+                fix_curse_trouble(otmp, what);
+                break;
             }
         }
         if (nohands(g.youmonst.data) || !freehand())
@@ -547,7 +577,8 @@ fix_worst_trouble(int trouble)
         break;
     case TROUBLE_CURSED_BLINDFOLD:
         otmp = ublindf;
-        goto decurse;
+        fix_curse_trouble(otmp, what);
+        break;
     case TROUBLE_LYCANTHROPE:
         you_unwere(TRUE);
         break;
@@ -565,8 +596,7 @@ fix_worst_trouble(int trouble)
             otmp = uarmg;
         else if (Cursed_obj(uarmf, FUMBLE_BOOTS))
             otmp = uarmf;
-        goto decurse;
-        /*NOTREACHED*/
+        fix_curse_trouble(otmp, what);
         break;
     case TROUBLE_CURSED_ITEMS:
         otmp = worst_cursed_item();
@@ -574,26 +604,7 @@ fix_worst_trouble(int trouble)
             what = rightglow;
         else if (otmp == uleft)
             what = leftglow;
- decurse:
-        if (!otmp) {
-            impossible("fix_worst_trouble: nothing to uncurse.");
-            return;
-        }
-        if (otmp == uarmg && Glib) {
-            make_glib(0);
-            Your("%s are no longer slippery.", gloves_simple_name(uarmg));
-            if (!otmp->cursed)
-                break;
-        }
-        if (!Blind || (otmp == ublindf && Blindfolded_only)) {
-            pline("%s %s.",
-                  what ? what : (const char *) Yobjnam2(otmp, "softly glow"),
-                  hcolor(NH_AMBER));
-            iflags.last_msg = PLNMSG_OBJ_GLOWS;
-            otmp->bknown = !Hallucination; /* ok to skip set_bknown() */
-        }
-        uncurse(otmp);
-        update_inventory();
+        fix_curse_trouble(otmp, what);
         break;
     case TROUBLE_POISONED:
         /* override Fixed_abil; ignore items which confer that */

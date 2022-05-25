@@ -1,4 +1,4 @@
-/* NetHack 3.7	do.c	$NHDT-Date: 1646171623 2022/03/01 21:53:43 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.296 $ */
+/* NetHack 3.7	do.c	$NHDT-Date: 1652831519 2022/05/17 23:51:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.304 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -1634,7 +1634,6 @@ goto_level(
 
     /* Reset the screen. */
     vision_reset(); /* reset the blockages */
-    g.glyphmap_perlevel_flags = 0L; /* force per-level map_glyphinfo() changes */
     reset_glyphmap(gm_levelchange);
     docrt(); /* does a full vision recalc */
     flush_screen(-1);
@@ -1660,7 +1659,8 @@ goto_level(
     /* Check whether we just entered Gehennom. */
     if (!In_hell(&u.uz0) && Inhell) {
         if (!Is_valley(&u.uz))
-            pline("It is hot here.  You smell smoke...");
+            hellish_smoke_mesg(); /* "It is hot here.  You smell smoke..." */
+
         record_achievement(ACH_HELL); /* reached Gehennom */
     }
     /* in case we've managed to bypass the Valley's stairway down */
@@ -1818,6 +1818,16 @@ goto_level(
 }
 
 RESTORE_WARNING_FORMAT_NONLITERAL
+
+/* give a message when entering a Gehennom level other than the Valley;
+   also given if restoring a game in that situation */
+void
+hellish_smoke_mesg(void)
+{
+    if (Inhell && !Is_valley(&u.uz))
+        pline("It is hot here.  You %s smoke...",
+              olfaction(g.youmonst.data) ? "smell" : "sense");
+}
 
 /* usually called from goto_level(); might be called from Sting_effects() */
 void
