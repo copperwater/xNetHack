@@ -1,4 +1,4 @@
--- NetHack 3.7	Monk.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
+-- NetHack Monk Mon-loca.lua	$NHDT-Date: 1652196007 2022/05/10 15:20:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -70,7 +70,7 @@ end
 -- Traps
 forest = selection.floodfill(01, 01)
 for i=1, 2 + math.random(1, 2) do
-  des.trap({ type = "bear", coord = { forest:rndcoord() } })
+  des.trap({ type = "bear", coord = forest:rndcoord() })
 end
 des.trap("pit")
 des.trap("spiked pit")
@@ -80,7 +80,7 @@ des.trap("rolling boulder")
 des.trap("bear")
 fortress = selection.floodfill(62,03)
 for i=1,3 + math.random(1 - 1,1*3) do
-  des.trap({ coord = { fortress:rndcoord() } })
+  des.trap({ coord = fortress:rndcoord() })
 end
 
 -- Random monsters.
@@ -101,6 +101,6 @@ des.monster({ id="xorn", coord={63,10}, peaceful=0 })
 des.monster({ id="xorn", coord={71,10}, peaceful=0 })
 local fortressarea = selection.area(58,00,75,13):filter_mapchar('.')
 for i=1,4 do
-  des.monster({ class = "E", coord = { fortressarea:rndcoord() }, peaceful=0 })
+  des.monster({ class = "E", coord = fortressarea:rndcoord(), peaceful=0 })
 end
 

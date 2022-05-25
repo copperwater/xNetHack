@@ -651,7 +651,7 @@ str2role(const char *str)
         return ROLE_NONE;
 
     /* Match as much of str as is provided */
-    len = strlen(str);
+    len = Strlen(str);
     for (i = 0; roles[i].name.m; i++) {
         /* Does it match the male name? */
         if (!strncmpi(str, roles[i].name.m, len))
@@ -717,7 +717,7 @@ str2race(const char *str)
         return ROLE_NONE;
 
     /* Match as much of str as is provided */
-    len = strlen(str);
+    len = Strlen(str);
     for (i = 0; races[i].noun; i++) {
         /* Does it match the noun? */
         if (!strncmpi(str, races[i].noun, len))
@@ -781,7 +781,7 @@ str2gend(const char *str)
         return ROLE_NONE;
 
     /* Match as much of str as is provided */
-    len = strlen(str);
+    len = Strlen(str);
     for (i = 0; i < ROLE_GENDERS; i++) {
         /* Does it match the adjective? */
         if (!strncmpi(str, genders[i].adj, len))
@@ -876,7 +876,7 @@ str2align(const char *str)
         return ROLE_NONE;
 
     /* Match as much of str as is provided */
-    len = strlen(str);
+    len = Strlen(str);
     for (i = 0; i < ROLE_ALIGNS; i++) {
         /* Does it match the adjective? */
         if (!strncmpi(str, aligns[i].adj, len))
@@ -1465,7 +1465,7 @@ build_plselection_prompt(
         Strcat(tmpbuf, "a ");
     /* <your> */
 
-    (void) root_plselection_prompt(eos(tmpbuf), buflen - strlen(tmpbuf),
+    (void) root_plselection_prompt(eos(tmpbuf), buflen - Strlen(tmpbuf),
                                    rolenum, racenum, gendnum, alignnum);
     /* "Shall I pick a character's role, race, gender, and alignment for you?"
        plus " [ynaq] (y)" is a little too long for a conventional 80 columns;

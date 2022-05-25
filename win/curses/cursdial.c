@@ -437,7 +437,7 @@ curses_ext_cmd(void)
 
         curs_set(1);
         wrefresh(extwin);
-        letter = getch();
+        letter = pgetchar(); /* pgetchar(cmd.c) implements do-again */
         curs_set(0);
         prompt_width = (int) strlen(cur_choice);
         matches = 0;
@@ -494,8 +494,23 @@ curses_ext_cmd(void)
     curses_destroy_win(extwin);
     if (extwin2)
         curses_destroy_win(extwin2);
-    if (ret == -1 && *cur_choice)
-        pline("%s: unknown extended command.", cur_choice);
+
+    if (ret != -1) {
+        if (!g.in_doagain)
+            savech_extcmd(cur_choice, TRUE);
+    } else {
+        char extcmd_char = extcmd_initiator();
+
+        if (*cur_choice)
+            pline("%s%s: unknown extended command.",
+                  visctrl(extcmd_char), cur_choice);
+
+        if (!g.in_doagain) {
+            savech(0); /* reset do-again buffer */
+            if (letter != '\033')
+                savech(extcmd_char);
+        }
+    }
     return ret;
 }
 
@@ -1703,9 +1718,10 @@ menu_operation(
         }
 
         if (menu_item_ptr->identifier.a_void != NULL) {
-            if (operation != INVERT
-                || menuitem_invert_test(0, menu_item_ptr->itemflags,
-                                        menu_item_ptr->selected))
+            if  (menuitem_invert_test(((operation == INVERT) ? 0
+                                       : (operation == SELECT) ? 1 : 2),
+                                      menu_item_ptr->itemflags,
+                                      menu_item_ptr->selected))
                 menu_select_deselect(win, menu_item_ptr,
                                      operation, current_page);
         }

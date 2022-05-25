@@ -1,4 +1,4 @@
-/* NetHack 3.7	botl.c	$NHDT-Date: 1606765211 2020/11/30 19:40:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.193 $ */
+/* NetHack 3.7	botl.c	$NHDT-Date: 1646171622 2022/03/01 21:53:42 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.209 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -114,7 +114,7 @@ do_statusline2(void)
             time (in moves), varying number of status conditions */
          dloc[QBUFSZ], hlth[QBUFSZ], expr[QBUFSZ], tmmv[QBUFSZ], cond[QBUFSZ];
     register char *nb;
-    unsigned dln, dx, hln, xln, tln, cln;
+    size_t dln, dx, hln, xln, tln, cln;
     int hp, hpmax, cap;
     long money;
 
@@ -131,7 +131,7 @@ do_statusline2(void)
      */
 
     /* dungeon location plus gold */
-    (void) describe_level(dloc); /* includes at least one trailing space */
+    (void) describe_level(dloc, 1); /* includes at least one trailing space */
     if ((money = money_cnt(g.invent)) < 0L)
         money = 0L; /* ought to issue impossible() and then discard gold */
     Sprintf(eos(dloc), "%s:%-2ld", /* strongest hero can lift ~300000 gold */
@@ -233,7 +233,7 @@ do_statusline2(void)
     } else {
         if (dln + 1 + hln + 1 + xln + 1 + tln + 1 + cln + 1 > MAXCO) {
             panic("bot2: second status line exceeds MAXCO (%u > %d)",
-                  (dln + 1 + hln + 1 + xln + 1 + tln + 1 + cln + 1), MAXCO);
+                  (unsigned)(dln + 1 + hln + 1 + xln + 1 + tln + 1 + cln + 1), MAXCO);
         } else if ((dln - dx) + 1 + hln + 1 + xln + 1 + cln <= COLNO) {
             Snprintf(newbot2, sizeof(newbot2), "%s %s %s %s %s", dloc, hlth,
                      expr, cond, tmmv);
@@ -370,21 +370,19 @@ title_to_mon(const char *str, int *rank_indx, int *title_length)
         /* loop through each of the rank titles for role #i */
         for (j = 0; j < 9; j++) {
             if (roles[i].rank[j].m
-                && !strncmpi(str, roles[i].rank[j].m,
-                             strlen(roles[i].rank[j].m))) {
+                && str_start_is(str, roles[i].rank[j].m, TRUE)) {
                 if (rank_indx)
                     *rank_indx = j;
                 if (title_length)
-                    *title_length = strlen(roles[i].rank[j].m);
+                    *title_length = Strlen(roles[i].rank[j].m);
                 return roles[i].mnum;
             }
             if (roles[i].rank[j].f
-                && !strncmpi(str, roles[i].rank[j].f,
-                             strlen(roles[i].rank[j].f))) {
+                && str_start_is(str, roles[i].rank[j].f, TRUE)) {
                 if (rank_indx)
                     *rank_indx = j;
                 if (title_length)
-                    *title_length = strlen(roles[i].rank[j].f);
+                    *title_length = Strlen(roles[i].rank[j].f);
                 return roles[i].mnum;
             }
         }
@@ -397,14 +395,15 @@ title_to_mon(const char *str, int *rank_indx, int *title_length)
 void
 max_rank_sz(void)
 {
-    register int i, r, maxr = 0;
+    register int i;
+    size_t r, maxr = 0;
     for (i = 0; i < 9; i++) {
         if (g.urole.rank[i].m && (r = strlen(g.urole.rank[i].m)) > maxr)
             maxr = r;
         if (g.urole.rank[i].f && (r = strlen(g.urole.rank[i].f)) > maxr)
             maxr = r;
     }
-    g.mrank_sz = maxr;
+    g.mrank_sz = (int) maxr;
     return;
 }
 
@@ -429,25 +428,39 @@ botl_score(void)
 
 /* provide the name of the current level for display by various ports */
 int
-describe_level(char *buf)
+describe_level(
+    char *buf, /* output buffer */
+    int dflgs) /* 1: append trailing space; 2: include dungeon branch name */
 {
+    boolean addspace = (dflgs & 1) != 0,  /* (used to be unconditional) */
+            addbranch = (dflgs & 2) != 0; /* False: status, True: livelog */
     int ret = 1;
 
-    /* TODO:    Add in dungeon name */
     if (Is_knox(&u.uz)) {
-        Sprintf(buf, "%s ", g.dungeons[u.uz.dnum].dname);
+        Sprintf(buf, "%s", g.dungeons[u.uz.dnum].dname);
+        addbranch = FALSE;
     } else if (In_quest(&u.uz)) {
-        Sprintf(buf, "Home %d ", dunlev(&u.uz));
+        Sprintf(buf, "Home %d", dunlev(&u.uz));
     } else if (In_endgame(&u.uz)) {
         /* [3.6.2: this used to be "Astral Plane" or generic "End Game"] */
         (void) endgamelevelname(buf, depth(&u.uz));
-        (void) strsubst(buf, "Plane of ", ""); /* just keep <element> */
-        Strcat(buf, " ");
+        if (!addbranch)
+            (void) strsubst(buf, "Plane of ", ""); /* just keep <element> */
+        addbranch = FALSE;
     } else {
         /* ports with more room may expand this one */
-        Sprintf(buf, "Dlvl:%-2d ", depth(&u.uz));
+        if (!addbranch)
+            Sprintf(buf, "Dlvl:%-2d", depth(&u.uz));
+        else
+            Sprintf(buf, "level %d", depth(&u.uz));
         ret = 0;
     }
+    if (addbranch) {
+        Sprintf(eos(buf), ", %s", g.dungeons[u.uz.dnum].dname);
+        (void) strsubst(buf, "The ", "the ");
+    }
+    if (addspace)
+        Strcat(buf, " ");
     return ret;
 }
 
@@ -489,7 +502,7 @@ static char *conditionbitmask2str(unsigned long);
 static unsigned long match_str2conditionbitmask(const char *);
 static unsigned long str2conditionbitmask(char *);
 static boolean parse_condition(char (*)[QBUFSZ], int);
-static char *hlattr2attrname(int, char *, int);
+static char *hlattr2attrname(int, char *, size_t);
 static void status_hilite_linestr_add(int, struct hilite_s *, unsigned long,
                                       const char *);
 static void status_hilite_linestr_done(void);
@@ -787,7 +800,7 @@ bot_via_windowport(void)
     g.blstats[idx][BL_HPMAX].a.a_int = min(i, 9999);
 
     /*  Dungeon level. */
-    (void) describe_level(g.blstats[idx][BL_LEVELDESC].val);
+    (void) describe_level(g.blstats[idx][BL_LEVELDESC].val, 1);
     g.valset[BL_LEVELDESC] = TRUE; /* indicate val already set */
 
     /* Gold */
@@ -1035,8 +1048,7 @@ menualpha_cmp(const genericptr vptr1, const genericptr vptr2)
 int
 parse_cond_option(boolean negated, char *opts)
 {
-    int i;
-    size_t sl;
+    int i, sl;
     const char *compareto, *uniqpart, prefix[] = "cond_";
 
     if (!opts || strlen(opts) <= sizeof prefix - 1)
@@ -1044,7 +1056,7 @@ parse_cond_option(boolean negated, char *opts)
     uniqpart = opts + (sizeof prefix - 1);
     for (i = 0; i < CONDITION_COUNT; ++i) {
         compareto = condtests[i].useroption;
-        sl = strlen(compareto);
+        sl = Strlen(compareto);
         if (match_optname(uniqpart, compareto, (sl >= 4) ? 4 : sl, FALSE)) {
             condopt(i, &condtests[i].choice, negated);
             return 0;
@@ -2348,7 +2360,7 @@ query_arrayvalue(
 static void
 status_hilite_add_threshold(int fld, struct hilite_s *hilite)
 {
-    struct hilite_s *new_hilite;
+    struct hilite_s *new_hilite, *old_hilite;
 
     if (!hilite)
         return;
@@ -2359,8 +2371,16 @@ status_hilite_add_threshold(int fld, struct hilite_s *hilite)
 
     new_hilite->set = TRUE;
     new_hilite->fld = fld;
-    new_hilite->next = g.blstats[0][fld].thresholds;
-    g.blstats[0][fld].thresholds = new_hilite;
+    new_hilite->next = (struct hilite_s *) 0;
+    /* insert new entry at the end of the list */
+    if (!g.blstats[0][fld].thresholds) {
+        g.blstats[0][fld].thresholds = new_hilite;
+    } else {
+        for (old_hilite = g.blstats[0][fld].thresholds; old_hilite->next;
+             old_hilite = old_hilite->next)
+            continue;
+        old_hilite->next = new_hilite;
+    }
     /* sort_hilites(fld) */
 
     /* current and prev must both point at the same hilites */
@@ -2920,11 +2940,12 @@ clear_status_hilites(void)
 }
 
 static char *
-hlattr2attrname(int attrib, char *buf, int bufsz)
+hlattr2attrname(int attrib, char *buf, size_t bufsz)
 {
     if (attrib && buf) {
         char attbuf[BUFSZ];
-        int k, first = 0;
+        int first = 0;
+        size_t k;
 
         attbuf[0] = '\0';
         if (attrib == HL_NONE) {
@@ -2944,7 +2965,7 @@ hlattr2attrname(int attrib, char *buf, int bufsz)
             Strcat(attbuf, first++ ? "+dim" : "dim");
 
         k = strlen(attbuf);
-        if (k < (bufsz - 1))
+        if (k < (size_t)(bufsz - 1))
             Strcpy(buf, attbuf);
         return buf;
     }
@@ -3038,7 +3059,7 @@ status_hilite_linestr_gather_conditions(void)
     int i;
     struct _cond_map {
         unsigned long bm;
-        unsigned long clratr;
+        unsigned int clratr;
     } cond_maps[SIZE(conditions)];
 
     (void) memset(cond_maps, 0,
@@ -3068,7 +3089,7 @@ status_hilite_linestr_gather_conditions(void)
             atr &= ~HL_NONE;
 
         if (clr != NO_COLOR || atr != HL_NONE) {
-            unsigned long ca = clr | (atr << 8);
+            unsigned int ca = clr | (atr << 8);
             boolean added_condmap = FALSE;
 
             for (j = 0; j < SIZE(conditions); j++)
@@ -3676,12 +3697,11 @@ status_hilite_menu_add(int origfld)
             hilite.rel = TXT_VALUE;
             Strcpy(hilite.textmatch, aligntxt[rv]);
         } else if (fld == BL_HUNGER) {
-            static const char *const hutxt[] = { "Satiated", (char *) 0, "Hungry",
-                                           "Weak", "Fainting", "Fainted",
-                                           "Starved" };
-            int rv = query_arrayvalue(qry_buf,
-                                      hutxt,
-                                      SATIATED, STARVED + 1);
+            static const char *const hutxt[] = {
+                "Satiated", (char *) 0, "Hungry", "Weak",
+                "Fainting", "Fainted", "Starved"
+            };
+            int rv = query_arrayvalue(qry_buf, hutxt, SATIATED, STARVED + 1);
 
             if (rv < SATIATED)
                 goto choose_behavior;
@@ -3882,7 +3902,7 @@ status_hilite_menu_fld(int fld)
     int count = status_hilite_linestr_countfield(fld);
     struct _status_hilite_line_str *hlstr;
     char buf[BUFSZ];
-    boolean acted = FALSE;
+    boolean acted;
 
     if (!count) {
         if (status_hilite_menu_add(fld)) {
@@ -3940,55 +3960,37 @@ status_hilite_menu_fld(int fld)
         any = cg.zeroany;
         any.a_int = -2;
         add_menu(tmpwin, &nul_glyphinfo, &any, 'Z', 0, ATR_NONE,
-                 "Add a new hilite", MENU_ITEMFLAGS_NONE);
+                 "Add new hilites", MENU_ITEMFLAGS_NONE);
     }
 
     Sprintf(buf, "Current %s hilites:", initblstats[fld].fldname);
     end_menu(tmpwin, buf);
 
+    acted = FALSE;
     if ((res = select_menu(tmpwin, PICK_ANY, &picks)) > 0) {
-        int mode = 0;
+        int idx;
+        unsigned mode = 0;
 
         for (i = 0; i < res; i++) {
-            int idx = picks[i].item.a_int;
-
-            if (idx == -1) {
-                /* delete selected hilites */
-                if (mode)
-                    goto shlmenu_free;
-                mode = -1;
-                break;
-            } else if (idx == -2) {
-                /* create a new hilite */
-                if (mode)
-                    goto shlmenu_free;
-                mode = -2;
-                break;
+            idx = picks[i].item.a_int;
+            if (idx == -1)
+                mode |= 1; /* delete selected hilites */
+            else if (idx == -2)
+                mode |= 2; /* create new hilites */
+        }
+        if (mode & 1) { /* delete selected hilites */
+            for (i = 0; i < res; i++) {
+                idx = picks[i].item.a_int;
+                if (idx > 0 && status_hilite_remove(idx))
+                    acted = TRUE;
             }
         }
-
-        if (mode == -1) {
-            /* delete selected hilites */
-            for (i = 0; i < res; i++) {
-                int idx = picks[i].item.a_int;
-
-                if (idx > 0)
-                    (void) status_hilite_remove(idx);
-            }
-            reset_status_hilites();
-            acted = TRUE;
-        } else if (mode == -2) {
-            /* create a new hilite */
-            if (status_hilite_menu_add(fld))
+        if (mode & 2) { /* create new hilites */
+            while (status_hilite_menu_add(fld))
                 acted = TRUE;
         }
-
-        free((genericptr_t) picks);
+        free((genericptr_t) picks), picks = 0;
     }
-
- shlmenu_free:
-
-    picks = (menu_item *) 0;
     destroy_nhwindow(tmpwin);
     return acted;
 }
@@ -4068,10 +4070,12 @@ status_hilite_menu(void)
     end_menu(tmpwin, "Status hilites:");
     if ((res = select_menu(tmpwin, PICK_ONE, &picks)) > 0) {
         i = picks->item.a_int - 1;
-        if (i < 0)
+        if (i < 0) {
             status_hilites_viewall();
-        else
-            (void) status_hilite_menu_fld(i);
+        } else {
+            if (status_hilite_menu_fld(i))
+                reset_status_hilites();
+        }
         free((genericptr_t) picks), picks = (menu_item *) 0;
         redo = TRUE;
     }

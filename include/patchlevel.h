@@ -1,4 +1,4 @@
-/* NetHack 3.7	patchlevel.h	$NHDT-Date: 1593768081 2020/07/03 09:21:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.165 $ */
+/* NetHack 3.7	patchlevel.h	$NHDT-Date: 1651297020 2022/04/30 05:37:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.207 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -50,8 +50,20 @@
  * 0x = literal prefix "0x", MM = major version, mm = minor version,
  * PP = patch level, ee = edit level, L = literal suffix "L",
  * with all four numbers specified as two hexadecimal digits.
+ *
+ * When developing a new version, VERSION_COMPATIBILITY should be
+ * commented out so that increments of EDITLEVEL can be used to forcibly
+ * invalidate existing save files whenever incompatible changes are made
+ * to saved data.  [Bones files should be less sensitive (only changes
+ * to individual level files matter; changes to general game state don't)
+ * but the extra complexity to support that is not worth the effort.]
+ *
+ * In xNetHack, any new version or editlevel change is expected not to be save
+ * compatible with previous games - if they were, there wouldn't be any point
+ * for the version or editlevel change. So this is expected to stay undefined
+ * forever.
  */
-#define VERSION_COMPATIBILITY 0x07000000L
+/*#define VERSION_COMPATIBILITY 0x07010000L*/
 
 /*
  *  xNetHack changes are not documented here; see the changelog and wiki for

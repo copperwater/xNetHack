@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkobj.c	$NHDT-Date: 1637992348 2021/11/27 05:52:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.222 $ */
+/* NetHack 3.7	mkobj.c	$NHDT-Date: 1648835240 2022/04/01 17:47:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.236 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -366,7 +366,7 @@ copy_oextra(struct obj *obj2, struct obj *obj1)
     if (!obj2->oextra)
         obj2->oextra = newoextra();
     if (has_oname(obj1))
-        oname(obj2, ONAME(obj1));
+        oname(obj2, ONAME(obj1), ONAME_NO_FLAGS);
     if (has_omonst(obj1)) {
         if (!OMONST(obj2))
             newomonst(obj2);
@@ -1297,7 +1297,7 @@ mksobj(int otyp, boolean init, boolean artif)
         break;
     case SPE_NOVEL:
         otmp->novelidx = -1; /* "none of the above"; will be changed */
-        otmp = oname(otmp, noveltitle(&otmp->novelidx));
+        otmp = oname(otmp, noveltitle(&otmp->novelidx), ONAME_NO_FLAGS);
         break;
     }
 
@@ -1644,7 +1644,7 @@ shrink_glob(
             pline("%s %s.", globnambuf,
                   /* globs always have quantity 1 so we don't need otense()
                      because the verb always references a singular item */
-                  gone ? "dissippates completely" : "shrinks");
+                  gone ? "dissolves completely" : "shrinks");
         updinv = TRUE;
     } else if (contnr) {
         /* when in a container, it might be nested so find outermost one */
@@ -1711,18 +1711,20 @@ shrink_glob(
 static void
 shrinking_glob_gone(struct obj *obj)
 {
-    if (obj->where == OBJ_INVENT) {
+    xchar owhere = obj->where;
+
+    if (owhere == OBJ_INVENT) {
         if (obj->owornmask) {
             remove_worn_item(obj, FALSE);
             stop_occupation();
         }
         useupall(obj); /* freeinv()+obfree() */
     } else {
-        if (obj->where == OBJ_MIGRATING) {
+        if (owhere == OBJ_MIGRATING) {
             /* destination flag overloads owornmask; clear it so obfree()'s
                check for freeing a worn object doesn't get a false hit */
             obj->owornmask = 0L;
-        } else if (obj->where == OBJ_MINVENT) {
+        } else if (owhere == OBJ_MINVENT) {
             /* monsters don't wield globs so this isn't strictly needed */
             if (obj->owornmask && obj == MON_WEP(obj->ocarry))
                 setmnotwielded(obj->ocarry, obj); /* clears owornmask */
@@ -1731,6 +1733,8 @@ shrinking_glob_gone(struct obj *obj)
            if it's contained, obj_extract_self() will update the container's
            weight and if nested, the enclosing containers' weights too */
         obj_extract_self(obj);
+        if (owhere == OBJ_FLOOR)
+            maybe_unhide_at(obj->ox, obj->oy);
         obfree(obj, (struct obj *) 0);
     }
 }
@@ -2373,7 +2377,7 @@ mk_named_object(
 
     otmp = mkcorpstat(objtype, (struct monst *) 0, ptr, x, y, corpstatflags);
     if (nm)
-        otmp = oname(otmp, nm);
+        otmp = oname(otmp, nm, ONAME_NO_FLAGS);
     return otmp;
 }
 
@@ -2411,11 +2415,11 @@ is_rottable(struct obj *otmp)
 void
 place_object(struct obj *otmp, int x, int y)
 {
-    register struct obj *otmp2 = g.level.objects[x][y];
+    register struct obj *otmp2;
     fuzl_xyi("place_object", x,y, otmp->otyp);
 
     if (!isok(x, y)) { /* validate location */
-        void (*func)(const char *, ...);
+        void (*func)(const char *, ...) PRINTF_F(1, 2);
 
         func = (x < 0 || y < 0 || x > COLNO - 1 || y > ROWNO - 1) ? panic
                : impossible;
@@ -2425,6 +2429,8 @@ place_object(struct obj *otmp, int x, int y)
     if (otmp->where != OBJ_FREE)
         panic("place_object: obj \"%s\" [%d] not free",
               safe_typename(otmp->otyp), otmp->where);
+
+    otmp2 = g.level.objects[x][y];
 
     obj_no_longer_held(otmp);
     if (otmp->otyp == BOULDER) {
@@ -2613,7 +2619,7 @@ discard_minvent(struct monst *mtmp, boolean uncreate_artifacts)
         /* this has now become very similar to m_useupall()... */
         extract_from_minvent(mtmp, otmp, TRUE, TRUE);
         if (uncreate_artifacts && otmp->oartifact)
-            artifact_exists(otmp, safe_oname(otmp), FALSE);
+            artifact_exists(otmp, safe_oname(otmp), FALSE, ONAME_NO_FLAGS);
         obfree(otmp, (struct obj *) 0); /* dealloc_obj() isn't sufficient */
     }
 }

@@ -46,7 +46,7 @@
 \author{Original version - Eric S. Raymond\\
 (Edited and expanded for 3.7 by Mike Stephenson and others)}
 %DO NOT REMOVE NH_DATESUB \date{DATE(%B %-d, %Y)}
-\date{February 6, 2022}
+\date{May 7, 2022}
 
 \maketitle
 
@@ -744,7 +744,8 @@ a menu of several sorting alternatives (which sets a new value for the
 {\it sortdiscoveries\/} option).
 \\
 %.lp ""
-A few other commands (eat food, offer sacrifice, apply tinning-kit) use
+A few other commands (eat food, offer sacrifice, apply tinning-kit,
+drink/quaff, dip) use
 the `{\tt m}' prefix to skip checking for applicable objects on
 the floor and go straight to checking inventory,
 or (for ``{\tt \#loot}'' to remove a saddle),
@@ -972,7 +973,14 @@ For some interfaces, the behavior can be varied via the
 {\it msg\verb+_+window\/} option.
 %.lp
 \item[\tb{q}]
-Quaff (drink) something (potion, water, etc).
+Quaff (drink) something (potion, water, etc).\\
+%.lp ""
+When there is a fountain or sink present, it asks whether to drink
+from that.
+If that is declined, then it offers a chance to choose a potion from
+inventory.
+Precede {\tt q} with the {\tt m} prefix to skip asking about
+drinking from a fountain or sink.
 %.lp
 \item[\tb{Q}]
 Select an object for your quiver, quiver sack, or just generally at
@@ -1317,7 +1325,10 @@ Default key is `{\tt M-C}'.\\
 See the section below entitled ``Conduct'' for details.
 %.lp
 \item[\tb{\#dip}]
-Dip an object into something. Autocompletes. Default key is `{\tt M-d}'.
+Dip an object into something. Autocompletes. Default key is `{\tt M-d}'.\\
+%.lp ""
+The {\tt m} prefix skips dipping into a fountain or pool if there
+is one at your location.
 %.lp
 \item[\tb{\#down}]
 Go down a staircase. Default key is `{\tt >}'.
@@ -1525,7 +1536,10 @@ Show previously displayed game messages. Default key is `{\tt \^{}P}'.
 Put on an accessory (ring, amulet, etc). Default key is `{\tt P}'.
 %.lp
 \item[\tb{\#quaff}]
-Quaff (drink) something. Default key is `{\tt q}'.
+Quaff (drink) something. Default key is `{\tt q}'.\\
+%.lp ""
+The {\tt m} prefix skips drinking from a fountain or sink if there
+is one at your location.
 %.lp
 \item[\tb{\#quit}]
 Quit the program without saving your game. Autocompletes.\\
@@ -3498,6 +3512,9 @@ Explored to the top of Sokoban and found a special item there.
 Explored to the bottom of the Gnomish Mines and found a special item there.
 \item[{\tt Medusa}]
 Defeated Medusa.
+\item[{\tt Tune}]
+Discovered the tune that can be used to open and close the drawbridge on
+the Castle level.
 \item[{\tt Bell}]
 Acquired the Bell of Opening.
 \item[{\tt Gehennom}]
@@ -3556,6 +3573,12 @@ corresponding achievement.
 %.pg
 The {\it Medusa\/} achievement is recorded if she dies for any reason,
 even if you are not directly responsible, and only if she dies.
+
+%.pg
+The 5-note {\it tune\/} can be learned via trial and error with a musical
+instrument played closely
+enough---but not too close!---to
+the Castle level's drawbridge or can be given to you via prayer boon.
 
 %.pg
 {\it Blind\/} and {\it Nudist\/} are also conducts, and they can only be
@@ -3928,7 +3951,10 @@ Persistent.
 \\
 %.lp ""
 See ``{\it pickup\verb+_+types\/}'' and also
-``{\it autopickup\verb+_+exceptions\/}'' to refine the behavior.
+``{\it autopickup\verb+_+exception\/}'' for ways to refine the behavior.
+\\
+%.lp ""
+Note: prior to version 3.7, the default for {\it autopickup\/} was {\it on}.
 %.lp
 \item[\ib{autoquiver}]
 This option controls what happens when you attempt the `f' (fire)
@@ -3944,9 +3970,54 @@ If no weapon is found or the option is
 false, the `t' (throw) command is executed instead.  Persistent.
 %.lp
 \item[\ib{autounlock}]
-Walking into a locked door or looting a locked container while carrying
-an unlocking tool (such as a key) will ask whether to use that tool to
-unlock the door or container (default true).
+%\hyphenation{apply\-key}%this needs to be tested...
+Controls what action to take when attempting to walk into a locked door
+or to loot a locked container.
+Takes a plus-sign separated list of values:
+% paranoid
+% au => autounlock
+\newlength{\auwidth}
+%.PS Apply-Key
+\settowidth{\auwidth}{\tt Apply-Key}
+\addtolength{\auwidth}{\labelsep}
+\blist{\leftmargin \auwidth \topsep 1mm \itemsep 0mm}
+%.PL Untrap
+\item[{\tt Untrap}]
+prompt about whether to attempt to find a trap;
+it might fail to find one even when present; if it does find one, it
+will ask whether you want to try to disarm the trap; if you decline,
+your character will forget that the door or box is trapped;
+%.PL Apply-Key
+\item[{\tt Apply-Key}]
+if carrying a key or other unlocking tool, prompt about using it;
+%.PL Kick
+\item[{\tt Kick}]
+kick the door (if you omit untrap or decline to attempt untrap and
+you omit apply-key or you lack a key or you decline to use the key;
+has no effect on containers);
+%.PL Force
+\item[{\tt Force}]
+try to force a container's lid with your currently
+wielded weapon (if you omit untrap or decline to attempt untrap and
+you omit apply-key or you lack a key or you decline to use the key;
+has no effect on doors);
+%.PL None
+\item[{\tt None}]
+none of the above; can't be combined with the other choices.
+%.PE
+\elist
+Omitting the value is treated as if {\tt autounlock:apply-key}.
+Preceding {\tt autounlock} with `{\tt !}' or ``{\tt no}'' is treated as
+{\tt autounlock:none}.
+\\
+%.lp ""
+Applying a key might set off a trap if the door or container is trapped.
+Successfully kicking a door will break it and wake up nearby monsters.
+Successfully forcing a container open will break its lock and might also
+destroy some of its contents or damage your weapon or both.
+\\
+%.lp ""
+The default is Apply-Key.
 Persistent.
 %.lp
 \item[\ib{blind}]
@@ -4993,6 +5064,11 @@ Default is the current window size.
 %.lp
 \item[\ib{tile\verb+_+file}]
 Specify the name of an alternative tile file to override the default.
+\\
+%.lp ""
+Note: the X11 interface uses X resources rather than NetHack's options
+to select an alternate tile file.
+See {\tt NetHack.ad}, the sample X ``application defaults'' file.
 %.lp
 \item[\ib{tile\verb+_+height}]
 Specify the preferred height of each tile in a tile capable port.
@@ -5553,6 +5629,7 @@ Each SOUND entry is broken down into the following parts:
 %.sd
 %.si
 {\tt MESG       } --- message window mapping (the only one supported in 3.7);\\
+{\tt msgtype    } --- optional; message type to use, see ``Configuring User Sounds''\\
 {\tt pattern    } --- the pattern to match;\\
 {\tt sound file } --- the sound file to play;\\
 {\tt volume     } --- the volume to be set while playing the sound file;\\
@@ -5563,6 +5640,15 @@ Each SOUND entry is broken down into the following parts:
 
 %.lp ""
 The pattern should be a POSIX extended regular expression.
+
+For example:
+
+\begin{verbatim}
+    SOUNDDIR=C:\\nethack\\sounds
+    SOUND=MESG "This door is locked" "lock.wav" 100
+    SOUND=MESG hide "^You miss the " "swing.wav" 75
+\end{verbatim}
+%.pg
 
 %.lp
 %.hn 2
@@ -5975,6 +6061,46 @@ version 3.6.0, statues are displayed as the monster they depict.
 So S\verb+_+rock is only used for boulders and not used at all if
 overridden by the more specific S\verb+_+boulder.
 
+%.lp
+%.hn 2
+\subsection*{Customizing Map Glyph Representations Using Unicode}
+
+%.pg
+If your platform or terminal supports the display of UTF-8 character
+sequences, you can customize your game display by assigning Unicode
+codepoint values and red-green-blue colors to glyph
+representations. The customizations can be specified for use with a symset that
+has a UTF8 handler within the symbols file such as the enhanced1 set, or
+individually within your own nethack.rc file.
+
+The format for defining a glyph representation is:\\
+\begin{verbatim}
+OPTIONS=glyph:glyphid/U+nnnn/R-G-B
+\end{verbatim}
+
+The window port that is active needs to provide support for displaying UTF-8
+character sequences and explicit 24-bit red-green-blue colors in order for the glyph
+representation to be visible as specified.
+
+For example, the following line in your configuration file will cause
+the glyph representation for glyphid G_pool to use Unicode codepoint U+224B
+and the color represented by R-G-B value 0-0-160:\\
+\begin{verbatim}
+OPTIONS=glyph:G_pool/U+224B/0-0-160
+\end{verbatim}
+
+The list of acceptable glyphid's can be produced by
+\begin{verbatim}
+    nethack --glyphids
+\end{verbatim}
+Individual NetHack glyphs can be specified using the G\verb+_+ prefix,
+or you can use an S\verb+_+ symbol for a glyphid and store the custom
+representation for all NetHack glyphs that would map to that
+particular symbol.
+
+You will need to select a symset with a UTF8 handler to enable the
+display of the customizations, such as the Enhanced symset.
+
 %.pg
 %.hn 2
 \subsection*{Configuring {\it NetHack\/} for Play by the Blind}
@@ -6132,7 +6258,7 @@ user who is restoring is the same one who saved).
 \elist
 
 %.pg
-The following options affect the score file:
+The following four options affect the score file:
 \blist {}
 %.pg
 %.lp
@@ -6165,10 +6291,10 @@ rather than at the standard locations.
 %.lp
 \item[\ib{DUMPLOGFILE}]
 A filename where the end-of-game dumplog is saved.
-Not defining this will prevent dumplog from being created. Only available
-if your game is compiled with DUMPLOG. Allows the following placeholders:
-%.sd
-%.si
+Not defining this will prevent dumplog from being created.
+Only available if your game is compiled with DUMPLOG.
+Allows the following placeholders:
+% FIXME: this should be changed to a nested list or else be forcibly indented
 {\tt \%\%}  --- literal `{\tt \%}'\\
 {\tt \%v}  --- version (eg. ``{\tt 3.7.0-0}'')\\
 {\tt \%u}  --- game UID\\
@@ -6178,32 +6304,19 @@ if your game is compiled with DUMPLOG. Allows the following placeholders:
 {\tt \%D}  --- current time, YYYYMMDDhhmmss format\\
 {\tt \%n}  --- player name\\
 {\tt \%N}  --- first character of player name
-%.ei
-%.ed
 %.lp
 \item[\ib{LIVELOG}]
-A bitmask indicating which in-game events to record in the livelog file,
-which must be compiled into the game as LIVELOGFILE to enable this
-feature.  The following values may be combined:
-%.sd
-%.si
-
-{\tt 0x01}  --- Wishes\\
-{\tt 0x02}  --- Significant achievements (complete sokoban, perform invocation, etc)\\
-{\tt 0x04}  --- Kill, destroy or bribe a unique monster.\\
-{\tt 0x08}  --- Significant religious events (sacrifice gifts, crowning)\\
-{\tt 0x10}  --- Life-saving\\
-{\tt 0x20}  --- Break conduct - see also LLC\_TURNS below.\\
-{\tt 0x40}  --- Artifact obtained (#name Sting, dip for Excalibur)\\
-{\tt 0x80}  --- Genocides\\
-{\tt 0x8000}  --- Livelog debug msgs (currently only 'enter new level')
-%.ei
-%.ed
-
-%.lp
-\item[\ib{LLC\_TURNS}]
-If live-logging conducts is enabled, do not log them before this turncount,
-because conducts broken in the early game are not interesting.
+A bit-mask of types of events that should be written to
+the {\it livelog\/} file if one is present.
+The sample {\it sysconf\/} file accompanying the program contains a
+comment which lists the meaning of the various bits used.
+Intended for server systems supporting simultaneous play by multiple
+players (to be clear, each one running a separate single player game),
+for displaying their game progress to observers.
+Only relevant if the program was built with LIVELOG enabled.
+When available, it should be left commented out on single player
+installations because over time the file could grow to be extremely
+large unless it is actively maintained.
 \elist
 
 %.hn 1

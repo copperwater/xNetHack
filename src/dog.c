@@ -1,4 +1,4 @@
-/* NetHack 3.7	dog.c	$NHDT-Date: 1599330917 2020/09/05 18:35:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.104 $ */
+/* NetHack 3.7	dog.c	$NHDT-Date: 1652689621 2022/05/16 08:27:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.121 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -6,6 +6,8 @@
 #include "hack.h"
 
 static int pet_type(void);
+static void set_mon_lastmove(struct monst *);
+static int mon_leave(struct monst *);
 
 void
 newedog(struct monst *mtmp)
@@ -71,7 +73,7 @@ make_familiar(struct obj *otmp, xchar x, xchar y, boolean quietly)
     int chance, trycnt = 100;
 
     do {
-        long mmflags;
+        mmflags_nht mmflags;
         int cgend, mndx;
 
         if (otmp) { /* figurine; otherwise spell */
@@ -204,20 +206,18 @@ makedog(void)
     return  mtmp;
 }
 
+static void
+set_mon_lastmove(struct monst *mtmp)
+{
+    mtmp->mlstmv = g.moves;
+}
+
 /* record `last move time' for all monsters prior to level save so that
    mon_arrive() can catch up for lost time when they're restored later */
 void
 update_mlstmv(void)
 {
-    struct monst *mon;
-
-    /* monst->mlstmv used to be updated every time `monst' actually moved,
-       but that is no longer the case so we just do a blanket assignment */
-    for (mon = fmon; mon; mon = mon->nmon) {
-        if (DEADMONSTER(mon))
-            continue;
-        mon->mlstmv = g.moves;
-    }
+    iter_mons(set_mon_lastmove);
 }
 
 void
@@ -331,6 +331,7 @@ mon_arrive(struct monst *mtmp, boolean with_you)
     /* some monsters might need to do something special upon arrival
        _after_ the current level has been fully set up; see dochug() */
     mtmp->mstrategy |= STRAT_ARRIVE;
+    mtmp->mstate &= ~MON_MIGRATING;
 
     /* make sure mnexto(rloc_to(set_apparxy())) doesn't use stale data */
     mtmp->mux = u.ux, mtmp->muy = u.uy;
@@ -486,8 +487,9 @@ mon_arrive(struct monst *mtmp, boolean with_you)
 
 /* heal monster for time spent elsewhere */
 void
-mon_catchup_elapsed_time(struct monst *mtmp,
-                         long nmv) /* number of moves */
+mon_catchup_elapsed_time(
+    struct monst *mtmp,
+    long nmv) /* number of moves */
 {
     int imv = 0; /* avoid zillions of casts and lint warnings */
 
@@ -593,15 +595,49 @@ mon_catchup_elapsed_time(struct monst *mtmp,
     }
 }
 
+/* bookkeeping when mtmp is about to leave the current level;
+   common to keepdogs() and migrate_to_level() */
+static int
+mon_leave(struct monst *mtmp)
+{
+    struct obj *obj;
+    int num_segs = 0; /* return value */
+
+    /* set minvent's obj->no_charge to 0 */
+    for (obj = mtmp->minvent; obj; obj = obj->nobj) {
+        if (Has_contents(obj))
+            picked_container(obj); /* does the right thing */
+        obj->no_charge = 0;
+    }
+
+    /* if this is a shopkeeper, clear the 'resident' field of her shop;
+       if/when she returns, it will be set back by mon_arrive()  */
+    if (mtmp->isshk)
+        set_residency(mtmp, TRUE);
+
+    /* if this is a long worm, handle its tail segments before mtmp itself;
+       we pass possibly trundated segment count to caller via return value  */
+    if (mtmp->wormno) {
+        int cnt = count_wsegs(mtmp), mx = mtmp->mx, my = mtmp->my;
+
+        /* since monst->wormno is overloaded to hold the number of
+           tail segments during migration, a very long worm with
+           more segments than can fit in that field gets truncated */
+        num_segs = min(cnt, MAX_NUM_WORMS - 1);
+        wormgone(mtmp);
+        /* put the head back */
+        place_monster(mtmp, mx, my);
+    }
+
+    return num_segs;
+}
+
 /* called when you move to another level */
 void
 keepdogs(boolean pets_only, /* true for ascension or final escape */
          boolean stairs)
 {
     register struct monst *mtmp, *mtmp2;
-    register struct obj *obj;
-    int num_segs;
-    boolean stay_behind;
 
     for (mtmp = fmon; mtmp; mtmp = mtmp2) {
         mtmp2 = mtmp->nmon;
@@ -625,15 +661,17 @@ keepdogs(boolean pets_only, /* true for ascension or final escape */
                 the amulet; if you don't have it, will chase you
                 only if in range. -3. */
              || (u.uhave.amulet && mtmp->iswiz))
-            && ((!mtmp->msleeping && mtmp->mcanmove)
+            && (!helpless(mtmp)
                 /* eg if level teleport or new trap, steed has no control
                    to avoid following */
                 || (mtmp == u.usteed))
             /* monster won't follow if it hasn't noticed you yet */
             && !(mtmp->mstrategy & STRAT_WAITFORU)) {
-            stay_behind = FALSE;
+            int num_segs;
+            boolean stay_behind = FALSE;
+
             if (mtmp->mtrapped)
-                (void) mintrap(mtmp); /* try to escape */
+                (void) mintrap(mtmp, NO_TRAP_FLAGS); /* try to escape */
             if (mtmp == u.usteed) {
                 /* make sure steed is eligible to accompany hero */
                 mtmp->mtrapped = 0;       /* escape trap */
@@ -672,18 +710,6 @@ keepdogs(boolean pets_only, /* true for ascension or final escape */
                 }
                 continue;
             }
-            if (mtmp->isshk)
-                set_residency(mtmp, TRUE);
-
-            if (mtmp->wormno) {
-                register int cnt;
-                /* NOTE: worm is truncated to # segs = max wormno size */
-                cnt = count_wsegs(mtmp);
-                num_segs = min(cnt, MAX_NUM_WORMS - 1);
-                wormgone(mtmp);
-                place_monster(mtmp, mtmp->mx, mtmp->my);
-            } else
-                num_segs = 0;
 
             if (!stay_behind && !mtmp->mpeaceful){
                   if (stairs)
@@ -692,15 +718,11 @@ keepdogs(boolean pets_only, /* true for ascension or final escape */
                       pline("%s manages to get a grip on you!", Monnam(mtmp));
             }
 
-            /* set minvent's obj->no_charge to 0 */
-            for (obj = mtmp->minvent; obj; obj = obj->nobj) {
-                if (Has_contents(obj))
-                    picked_container(obj); /* does the right thing */
-                obj->no_charge = 0;
-            }
-
-            relmon(mtmp, &g.mydogs);   /* move it from map to g.mydogs */
-            mtmp->mx = mtmp->my = 0; /* avoid mnexto()/MON_AT() problem */
+            /* prepare to take mtmp off the map */
+            num_segs = mon_leave(mtmp);
+            /* take off map and move mtmp from fmon list to mydogs */
+            relmon(mtmp, &g.mydogs); /* mtmp->mx,my retain current value */
+            mtmp->mx = mtmp->my = 0; /* mx==0 implies migating */
             mtmp->wormno = num_segs;
             mtmp->mlstmv = g.moves;
         } else if (mtmp->iswiz) {
@@ -719,61 +741,51 @@ keepdogs(boolean pets_only, /* true for ascension or final escape */
 }
 
 void
-migrate_to_level(struct monst *mtmp,
-                 xchar tolev, /* destination level */
-                 xchar xyloc, /* MIGR_xxx destination xy location: */
-                 coord *cc)   /* optional destination coordinates */
+migrate_to_level(
+    struct monst *mtmp,
+    xchar tolev, /* destination level */
+    xchar xyloc, /* MIGR_xxx destination xy location: */
+    coord *cc)   /* optional destination coordinates */
 {
-    struct obj *obj;
     d_level new_lev;
-    xchar xyflags;
-    int num_segs = 0; /* count of worm segments */
-
+    xchar xyflags, mx = mtmp->mx, my = mtmp->my; /* <mx,my> needed below */
+    int num_segs; /* count of worm segments */
     fuzl_mtmp("migrate_to_level", mtmp);
-    if (mtmp->isshk)
-        set_residency(mtmp, TRUE);
-
-    if (mtmp->wormno) {
-        int cnt = count_wsegs(mtmp);
-
-        /* **** NOTE: worm is truncated to # segs = max wormno size **** */
-        num_segs = min(cnt, MAX_NUM_WORMS - 1); /* used below */
-        wormgone(mtmp); /* destroys tail and takes head off map */
-        /* there used to be a place_monster() here for the relmon() below,
-           but it doesn't require the monster to be on the map anymore */
-    }
-
-    /* set minvent's obj->no_charge to 0 */
-    for (obj = mtmp->minvent; obj; obj = obj->nobj) {
-        if (Has_contents(obj))
-            picked_container(obj); /* does the right thing */
-        obj->no_charge = 0;
-    }
 
     if (mtmp->mleashed) {
         mtmp->mtame--;
         m_unleash(mtmp, TRUE);
     }
-    relmon(mtmp, &g.migrating_mons); /* move it from map to g.migrating_mons */
+
+    /* prepare to take mtmp off the map */
+    num_segs = mon_leave(mtmp);
+    /* take off map and move mtmp from fmon list to migrating_mons */
+    relmon(mtmp, &g.migrating_mons); /* mtmp->mx,my retain their value */
+    mtmp->mstate |= MON_MIGRATING;
 
     new_lev.dnum = ledger_to_dnum((xchar) tolev);
     new_lev.dlevel = ledger_to_dlev((xchar) tolev);
-    /* overload mtmp->[mx,my], mtmp->[mux,muy], and mtmp->mtrack[] as */
-    /* destination codes (setup flag bits before altering mx or my) */
+    /* overload mtmp->[mx,my], mtmp->[mux,muy], and mtmp->mtrack[] as
+       destination codes */
     xyflags = (depth(&new_lev) < depth(&u.uz)); /* 1 => up */
-    if (In_W_tower(mtmp->mx, mtmp->my, &u.uz))
+    if (In_W_tower(mx, my, &u.uz))
         xyflags |= 2;
     mtmp->wormno = num_segs;
     mtmp->mlstmv = g.moves;
     mtmp->mtrack[2].x = u.uz.dnum; /* migrating from this dungeon */
     mtmp->mtrack[2].y = u.uz.dlevel; /* migrating from this dungeon level */
-    mtmp->mtrack[1].x = cc ? cc->x : mtmp->mx;
-    mtmp->mtrack[1].y = cc ? cc->y : mtmp->my;
+    mtmp->mtrack[1].x = cc ? cc->x : mx;
+    mtmp->mtrack[1].y = cc ? cc->y : my;
     mtmp->mtrack[0].x = xyloc;
     mtmp->mtrack[0].y = xyflags;
     mtmp->mux = new_lev.dnum;
     mtmp->muy = new_lev.dlevel;
-    mtmp->mx = mtmp->my = 0; /* this implies migration */
+    mtmp->mx = mtmp->my = 0; /* mx==0 implies migating */
+
+    /* don't extinguish a mobile light; it still exists but has changed
+       from local (monst->mx > 0) to global (mx==0, not on this level) */
+    if (emits_light(mtmp->data))
+        vision_recalc(0);
 }
 
 /* return quality of food; the lower the better */

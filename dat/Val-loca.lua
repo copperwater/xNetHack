@@ -1,4 +1,4 @@
--- NetHack 3.7	Valkyrie.des	$NHDT-Date: 1553807172 2019/03/28 21:06:12 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.15 $
+-- NetHack Valkyrie Val-loca.lua	$NHDT-Date: 1652196017 2022/05/10 15:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -66,7 +66,7 @@ end
 des.replace_terrain({ selection=line, fromterrain='I', toterrain='.' })
 -- Objects
 for i=1,5 do
-   des.object({ coord={muspell:rndcoord()} })
+   des.object({ coord=muspell:rndcoord() })
 end
 for i=1,2 do
    des.object()
@@ -74,18 +74,18 @@ end
 -- Traps
 local rightland = rightside:filter_mapchar('.') -- after extra lava is added
 for i=1,13 do
-   des.trap({ type="fire", coord={rightland:rndcoord(1)} })
+   des.trap({ type="fire", coord=rightland:rndcoord(1) })
 end
 for i=1,4 do
-   des.trap({ coord={rightland:rndcoord(1)} })
+   des.trap({ coord=rightland:rndcoord(1) })
 end
 -- Monsters
 local right_outside = rightland - muspell
 for i=1,2 do
-   des.monster({ id="fire giant", peaceful=0, coord={right_outside:rndcoord(1)}, asleep=1 })
+   des.monster({ id="fire giant", peaceful=0, coord=right_outside:rndcoord(1), asleep=1 })
 end
 for i=1,5 do
-   des.monster({ id="fire giant", peaceful=0, coord={muspell:rndcoord(1)} })
+   des.monster({ id="fire giant", peaceful=0, coord=muspell:rndcoord(1) })
 end
 -- A bit of an experimental miniboss. Hrymr is the leader of the frost giants,
 -- and most versions of Ragnarok have him captaining a ship to transport the

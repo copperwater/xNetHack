@@ -808,7 +808,8 @@ name_to_monplus(
     register int mntmp = NON_PM;
     register char *s, *str, *term;
     char buf[BUFSZ];
-    int len, slen, mgend, matchgend = -1;
+    int len, mgend, matchgend = -1;
+    size_t slen;
     boolean exact_match = FALSE;
 
     if (remainder_p)
@@ -931,16 +932,16 @@ name_to_monplus(
 
     for (len = 0, i = LOW_PM; i < NUMMONS; i++) {
       for (mgend = MALE; mgend < NUM_MGENDERS; mgend++) {
-        int m_i_len;
+        size_t m_i_len;
 
         if (!mons[i].pmnames[mgend])
             continue;
 
-        m_i_len = (int) strlen(mons[i].pmnames[mgend]);
-        if (m_i_len > len && !strncmpi(mons[i].pmnames[mgend], str, m_i_len)) {
+        m_i_len = strlen(mons[i].pmnames[mgend]);
+        if (m_i_len > (size_t) len && !strncmpi(mons[i].pmnames[mgend], str, (int) m_i_len)) {
             if (m_i_len == slen) {
                 mntmp = i;
-                len = m_i_len;
+                len = (int) m_i_len;
                 matchgend = mgend;
                 exact_match = TRUE;
                 break; /* exact match */
@@ -955,7 +956,7 @@ name_to_monplus(
                            || !strcmpi(&str[m_i_len], "es")
                            || !strncmpi(&str[m_i_len], "es ", 3))) {
                 mntmp = i;
-                len = m_i_len;
+                len = (int) m_i_len;
                 matchgend = mgend;
             }
         }

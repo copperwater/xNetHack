@@ -1,4 +1,4 @@
--- NetHack 3.7	Barb.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+-- NetHack Barbarian Bar-fila.lua	$NHDT-Date: 1652195999 2022/05/10 15:19:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -12,11 +12,11 @@ des.level_init({ style = "mines", fg = ".", bg=".", lit=1, walled=false });
 -- let's make some mesa-like rock promontories
 local mesa_centers = selection.fillrect(08,00,72,20)
 for i=1, 12+d(4) do
-   local cx, cy = mesa_centers:rndcoord()
-   local rock = selection.gradient({ type="radial", mindist=0, maxdist=3, limited=true, x=cx, y=cy })
+   local ctr = mesa_centers:rndcoord()
+   local rock = selection.gradient({ type="radial", mindist=0, maxdist=3, limited=true, x=ctr.x, y=ctr.y })
    -- gradients are non-invertible so have to do some selection magic to flip it
    rock = rock:negate()
-   rock = rock & selection.circle(cx, cy, 3);
+   rock = rock & selection.circle(ctr.x, ctr.y, 3);
 
    if percent(50) then
       rock = rock:grow("north")
@@ -28,15 +28,13 @@ for i=1, 12+d(4) do
 end
 
 -- guarantee a way across the level
-local leftstair = { selection.line(0,0, 0,20):rndcoord() }
-local rightstair = { selection.line(78,1, 78,20):rndcoord() }
+local leftstair = selection.line(0,0, 0,20):rndcoord()
+local rightstair = selection.line(78,1, 78,20):rndcoord()
 des.stair({ dir = "up", coord = leftstair })
 des.stair({ dir = "down", coord = rightstair })
 
-local lstairy = leftstair[2]
-local rstairy = rightstair[2]
-local path = selection.randline(0, lstairy, 78, rstairy, 10)
-des.terrain({ selection = path:grow("north"):grow("south"), typ = ".", lit = 1 })
+local path = selection.randline(0, leftstair.y, 78, rightstair.y, 10)
+des.terrain({ selection = path:grow("north"):grow("south"), typ = ".", lit = 0 })
 
 for i=1,8 do
   des.object()

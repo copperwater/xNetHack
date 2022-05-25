@@ -6,6 +6,20 @@
 
 Functions exposed from the NetHack core. They are all in the `nh` table.
 
+=== abscoord
+
+Convert a room-relative coordinate to map-absolute.
+Can accept one table with x and y keys (and in that case, returns similar),
+or two integer values (and returns two integer values)
+des-routines tend to use relative coordinates, nh and obj use absolute.
+(This mess is still very much in need of improvement.)
+
+Example:
+
+ local ax, ay = nh.abscoord(x, y);
+ local coord = nh.abscoord({ x = 10, y = 15 });
+
+
 === an
 
 Returns a string with "a " or "an " prepended to it.
@@ -124,7 +138,8 @@ Example:
  local x = 20;
  local y = 10;
  local loc = nh.getmap(x,y);
- nh.pline("Map location at (" .. x .. "," .. y .. ) is " .. (loc.lit ? "lit" : "unlit") );
+ nh.pline("Map location at (" .. x .. "," .. y .. ) is " .. (loc.lit and "lit" or "unlit") );
+ local loc2 = nh.getmap({ x = 18, y = 16 });
 
 
 === get_config
@@ -155,7 +170,17 @@ Returns a table with the following elements:
 
 Example:
 
- local t = nh.gettrap(x, y);
+ local t1 = nh.gettrap(x, y);
+ local t2 = nh.gettrap({ x = 10, y = 15 });
+
+
+=== has_timer_at
+
+Does location at x,y have a timer?
+
+Example:
+
+ local has_melttimer = nh.has_timer_at(x,y, "melt-ice");
 
 
 === deltrap
@@ -165,6 +190,16 @@ Delete a trap at x,y
 Example:
 
  nh.deltrap(x, y);
+ nh.deltrap({ x = 10, y = 10 });
+
+
+=== impossible
+
+Issue an impossible, signaling a possible error in the code.
+
+Example:
+
+ nh.impossible("Something errory happened!");
 
 
 === ing_suffix
@@ -245,6 +280,16 @@ Example:
  nh.pline("Line: " .. errors[1].line .. ", " .. errors[1].error);
 
 
+=== peek_timer_at
+
+When does timer at location at x,y trigger?
+
+Example:
+
+ local melttime = nh.peek_timer_at(x,y, "melt-ice");
+ local melttime = nh.peek_timer_at({x=5,y=6}, "melt-ice");
+
+
 === pline
 
 Show the text in the message area.
@@ -306,6 +351,26 @@ Example:
  for k, v in pairs(stairs) do
    nh.pline("stair[" .. k .. "]:(" .. v.x .. "," .. v.y .. ")," .. tostring(v.up));
  end
+
+
+=== start_timer_at
+
+Start a timer at location x,y, with trigger time of `when` - relative to current turn.
+
+Example:
+
+ nh.start_timer_at(x,y, "melt-ice", when);
+ nh.start_timer_at({x=7,y=8}, "melt-ice", when);
+
+
+=== stop_timer_at
+
+Stop a timer at location x,y.
+
+Example:
+
+ nh.stop_timer_at(x,y, "melt-ice");
+ nh.stop_timer_at({x=5,y=6}, "melt-ice");
 
 
 === verbalize
@@ -423,6 +488,7 @@ Example:
 
  des.ladder("down");
  des.ladder("up", 6,10);
+ des.ladder("up", {6,10});
  des.ladder({ x=11, y=05, dir="down" });
  des.ladder({ coord={11, 05}, dir="down" });
 
@@ -720,6 +786,7 @@ Example:
  des.stair({ dir = "down", x = 4, y = 7 });
  des.stair({ dir = "down", coord = {5,12} });
  des.stair("down", 4, 7);
+ des.stair("down", {4, 7});
 
 === teleport_region
 
@@ -741,10 +808,14 @@ Example:
 
 === trap
 
+Create a trap. The `launchfrom` is relative to the rolling boulder trap coord.
+
 Example:
 
  des.trap({ type = "hole", x = 1, y = 1 });
  des.trap({ type = "hole", coord = {2, 2} });
+ des.trap({ type = "web", coord = {2, 2}, spider_on_web = false, seen = true });
+ des.trap({ type = "rolling boulder", coord = {7, 5}, launchfrom = {-2, -2} });
  des.trap("hole", 3, 4);
  des.trap("level teleport", {5, 8});
  des.trap("rust")
@@ -888,6 +959,7 @@ Get the selection value at (x,y).
 Example:
 
  local value = selection.get(sel, x, y);
+ local value = selection.get(sel, { x = 10, y = 14 });
 
 === gradient
 
@@ -973,13 +1045,14 @@ Example:
 
 === rndcoord
 
-Choose one of the selected locations, and return the x,y coordinates.
+Choose one of the selected locations, and return a table with x and y keys.
 If the optional second argument is 1, removes the location from the selection.
+If there are no coordinates in the selection, returns -1, -1.
 
 Example:
 
- local x,y = selection.rndcoord(sel);
- local x,y = selection.rndcoord(sel, 1);
+ local coord = selection.rndcoord(sel);
+ local coord = selection.rndcoord(sel, 1);
 
 === set
 
@@ -992,6 +1065,164 @@ Example:
  local sel = selection.set();
  local sel = sel:set();
  local sel = selection.set(sel);
+
+== Obj
+
+Handling objects via obj-class.
+
+=== new
+
+Create a new object via wishing routine.
+
+Example:
+
+ local o = obj.new("rock");
+
+
+=== isnull
+
+Is the object a "null" object?  Meaning, the object variable exists in lua, but NetHack
+core has freed it.
+
+Example:
+
+ local badobj = o:isnull();
+
+
+=== at
+
+Get the topmost object on the map at x,y.
+
+Example:
+
+ local o = obj.at(x, y);
+
+
+=== next
+
+Get the next object in the object chain.
+When called without an object, returns the first object in the object chain.
+When called with an object, an optional boolean parameter can be given. When
+it is true, and the object is on the map, the next object at the same location
+is returned. Otherwise the normal object chain is followed.
+
+Example:
+
+ local first = obj.next();
+ local second = first:next();
+ local o_at_xy = obj.at(x, y);
+ local next_at_xy = o_at_xy:next(true);
+
+
+=== totable
+
+Create a lua table representation of the object, unpacking all the object fields.
+
+Example:
+
+ local o = obj.new("rock");
+ local otbl = o:totable();
+
+
+=== class
+
+Get a lua table of object class data.
+
+Example:
+
+ local odata1 = obj.class(obj.new("rock"));
+
+
+=== placeobj
+
+Place object on the map at x,y.
+
+Example:
+
+ local o = obj.new("rock");
+ o:placeobj(u.ux, u.uy);
+
+
+=== container
+
+Get the container object is in.
+
+Example:
+
+ local box = o:container();
+
+
+=== contents
+
+Get the contents of an object.
+
+Example:
+
+ local o = obj.new("large chest");
+ local cobj = o:contents();
+
+
+=== addcontent
+
+Put object inside another object.
+
+Example:
+
+ local box = obj.new("large chest");
+ box.addcontent(obj.new("rock"));
+
+
+=== has_timer
+
+Does object have an attached timer of certain type?
+
+Example:
+
+ local hastimer = o:has_timer("rot-organic");
+
+
+=== peek_timer
+
+Peek at an object timer. Returns the turn when timer triggers.
+Returns 0 if no such timer attached to the object.
+
+Example:
+
+ local when = o:peek_timer("hatch-egg");
+
+
+=== stop_timer
+
+Stop object timer(s). Return the turn when timer would have triggered.
+Returns 0 if no such timer was attached to the object.
+Without a timer type parameters, stops all timers for the object,
+and returns nothing.
+
+Example:
+
+ o:stop_timer();
+ local when = o:stop_timer("rot-organic");
+
+
+=== start_timer
+
+Start an object timer.
+
+Example:
+
+ o:start_timer("hatch-egg", 10);
+
+
+=== bury
+
+Bury an object. Returns true if object is gone (merged with ground), false otherwise.
+Without parameters, buries the object at the location it is.
+
+Example:
+
+ local ogone = o:bury();
+ local ogone = o:bury(5, 5);
+
 
 == Map characters
 

@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: keni-datesub2 $:$NHDT-Revision: 1.437 $ $NHDT-Date: 1641933560 2022/01/11 20:39:20 $
+.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.451 $ $NHDT-Date: 1646402548 2022/03/04 14:02:28 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\" Guidebook.mn currently does *not* fully adhere to these guidelines.
@@ -36,7 +36,7 @@
 .ds f0 "\*(vr
 .ds f1
 .\"DO NOT REMOVE NH_DATESUB .ds f2 "DATE(%B %-d, %Y)
-.ds f2 "February 6, 2022
+.ds f2 "May 7, 2022
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -651,7 +651,8 @@ a menu of several sorting alternatives (which sets a new value for the
 .op sortdiscoveries
 option).
 .lp ""
-A few other commands (eat food, offer sacrifice, apply tinning-kit) use
+A few other commands (eat food, offer sacrifice, apply tinning-kit,
+drink/quaff, dip) use
 the \(oq\f(CRm\fP\(cq prefix to skip checking for applicable objects on
 the floor and go straight to checking inventory,
 or (for \(lq#loot\(rq to remove a saddle),
@@ -878,6 +879,13 @@ For some interfaces, the behavior can be varied via the
 option.
 .lp q
 Quaff (drink) something (potion, water, etc).
+.lp ""
+When there is a fountain or sink present, it asks whether to drink
+from that.
+If that is declined, then it offers a chance to choose a potion from
+inventory.
+Precede \(oqq\(cq with the \(oqm\(cq prefix to skip asking about
+drinking from a fountain or sink.
 .lp Q
 Select an object for your quiver, quiver sack, or just generally at
 the ready (only one of these is available at a time).
@@ -1216,6 +1224,9 @@ See the section below entitled \(lqConduct\(rq for details.
 Dip an object into something.
 Autocompletes.
 Default key is \(oqM-d\(cq.
+.lp ""
+The \(oqm\(cq prefix skips dipping into a fountain or pool if there
+is one at your location.
 .lp "#down    "
 Go down a staircase.
 Default key is \(oq>\(cq.
@@ -1419,6 +1430,9 @@ Default key is \(oqP\(cq.
 .lp "#quaff   "
 Quaff (drink) something.
 Default key is \(oqq\(cq.
+.lp ""
+The \(oqm\(cq prefix skips drinking from a fountain or sink if there
+is one at your location.
 .lp "#quit    "
 Quit the program without saving your game.
 Autocompletes.
@@ -3238,6 +3252,9 @@ Explored to the bottom of the Gnomish Mines and found a special item there.
 .fi
 .PL Medusa
 Defeated Medusa.
+.PL Tune
+Discovered the tune that can be used to open and close the drawbridge on
+the Castle level.
 .PL Bell
 Acquired the Bell of Opening.
 .PL Gehennom
@@ -3288,6 +3305,11 @@ corresponding achievement.
 .pg
 The \fIMedusa\fP achievement is recorded if she dies for any reason,
 even if you are not directly responsible, and only if she dies.
+.pg
+The 5-note \fItune\fP can be learned via trial and error with a musical
+instrument played closely
+enough\(embut not too close!\(emto
+the Castle level's drawbridge or can be given to you via prayer boon.
 .pg
 \fIBlind\fP and \fINudist\fP are also conducts, and they can only be
 enabled by setting the correspondingly named option in NETHACKOPTIONS
@@ -3610,7 +3632,7 @@ Persistent.
 .lp autoopen
 Walking into a closed door attempts to open it (default true).
 Persistent.
-.lp "autopickup  "
+.lp autopickup
 Automatically pick up things onto which you move (default off).
 Persistent.
 .lp ""
@@ -3618,8 +3640,12 @@ See
 .op pickup_types
 and also
 .op autopickup_exception
-to refine the behavior.
-.lp "autoquiver  "
+for ways to refine the behavior.
+.lp ""
+Note: prior to version 3.7, the default for
+.op autopickup
+was \fIon\fP.
+.lp autoquiver
 This option controls what happens when you attempt the \(oqf\(cq (fire)
 command when nothing is quivered or readied (default false).
 When true, the computer will fill
@@ -3633,9 +3659,39 @@ If no weapon is found or the option is
 false, the \(oqt\(cq (throw) command is executed instead.
 Persistent.
 .lp autounlock
-Walking into a locked door or looting a locked container while carrying
-an unlocking tool (such as a key) will ask whether to use that tool to
-unlock the door or container (default true).
+Controls what action to take when attempting to walk into a locked door
+or to loot a locked container.
+Takes a plus-sign separated list of values:
+.PS Apply-Key
+.PL Untrap
+prompt about whether to attempt to find a trap;
+it might fail to find one even when present; if it does find one, it
+will ask whether you want to try to disarm the trap; if you decline,
+your character will forget that the door or box is trapped;
+.PL Apply-Key
+if carrying a key or other unlocking tool, prompt about using it;
+.PL Kick
+kick the door (if you omit untrap or decline to attempt untrap and
+you omit apply-key or you lack a key or you decline to use the key;
+has no effect on containers);
+.PL Force
+try to force a container's lid with your currently
+wielded weapon (if you omit untrap or decline to attempt untrap and
+you omit apply-key or you lack a key or you decline to use the key;
+has no effect on doors);
+.PL None
+none of the above; can't be combined with the other choices.
+.PE
+Omitting the value is treated as if \f(CRautounlock:apply-key\fP.
+Preceding \f(CRautounlock\fP with \(oq!\(cq or \(lqno\(rq is treated as
+\f(CRautounlock:none\fP.
+.lp ""
+Applying a key might set off a trap if the door or container is trapped.
+Successfully kicking a door will break it and wake up nearby monsters.
+Successfully forcing a container open will break its lock and might also
+destroy some of its contents or damage your weapon or both.
+.lp ""
+The default is Apply-Key.
 Persistent.
 .lp blind
 Start the character permanently blind (default false).
@@ -4546,6 +4602,10 @@ for smaller sizes if they are too big.
 Default is the current window size.
 .lp tile_file
 Specify the name of an alternative tile file to override the default.
+.lp ""
+Note: the X11 interface uses X resources rather than NetHack's options
+to select an alternate tile file.
+See \f(CRNetHack.ad\fP, the sample X \(lqapplication defaults\(rq file.
 .lp tile_height
 Specify the preferred height of each tile in a tile capable port.
 .lp tile_width
@@ -4651,7 +4711,7 @@ keys to move) on machines with an IBM PC compatible BIOS ROM (default off,
 OS/2, PC, and ST NetHack only).
 .lp flush
 (default off, Amiga NetHack only).
-.lp "MACgraphics"
+.lp MACgraphics
 (default on, Mac NetHack only).
 .lp page_wait
 (default on, Mac NetHack only).
@@ -5022,6 +5082,8 @@ Each SOUND entry is broken down into the following parts:
 .PS "sound index"
 .PL MESG
 message window mapping (the only one supported in 3.7);
+.PL msgtype
+optional; message type to use, see \(lqConfiguring Message Types\(rq
 .PL pattern
 the pattern to match;
 .PL "sound file"
@@ -5033,6 +5095,15 @@ optional; the index corresponding to a sound file.
 .PE
 .lp ""
 The pattern should be a POSIX extended regular expression.
+.pg
+For example:
+.sd
+.si
+SOUNDDIR=C:\\nethack\\sounds
+SOUND=MESG "This door is locked" "lock.wav" 100
+SOUND=MESG hide "^You miss the " "swing.wav" 75
+.ei
+.ed
 .pg
 .hn 2
 Configuring Status Hilites
@@ -5444,6 +5515,41 @@ So S_rock is only used for boulders and not used at all if
 overridden by the more specific S_boulder.
 .pg
 .hn 2
+Customizing Map Glyph Representations Using Unicode
+.pg
+If your platform or terminal supports the display of UTF-8 character
+sequences, you can customize your game display by assigning Unicode
+codepoint values and \fIred-green-blue\fP colors to glyph
+representations. The customizations can be specified for use with a symset that
+has a UTF8 handler within the symbols file such as the enhanced1 set, or
+individually within your nethack.rc file.
+
+.pg
+The format for defining a glyph representation is:
+.SD n
+\f(CROPTIONS=glyph:glyphid\fIU+nnnn\fP/\fIR-G-B\fP\fP
+.ED
+.pg
+The window port that is active needs to provide support for displaying
+UTF-8 character sequences and explicit red-green-blue colors in order
+for the glyph representation to be visible.
+For example, the following line in your configuration file will cause
+the glyph representation for glyphid G_pool to use Unicode codepoint
+U+224B and the color represented by R-G-B value 0-0-160
+.SD n
+\f(CROPTIONS=glyph:G_pool/U+224B/0-0-160\fP
+.ED
+The list of acceptable glyphid's can be produced by
+\fBnethack \-\-dumpglyphids\fP.
+Individual NetHack glyphs can be specified using the G_ prefix,
+or you can use an S_ symbol for a glyphid and store the custom
+representation for all NetHack glyphs that would map to that
+particular symbol.
+
+You will need to select a symset with a UTF8 handler to enable the
+display of the customizations, such as the Enhanced symset.
+.pg
+.hn 2
 Configuring NetHack for Play by the Blind
 .pg
 NetHack can be set up to use only standard ASCII characters for making
@@ -5572,7 +5678,7 @@ CHECK_SAVE_UID\ =\ 0 or 1 to disable or enable, respectively, the UID
 (used identification number) checking for save files (to verify that the
 user who is restoring is the same one who saved).
 .pg
-The following options affect the score file:
+The following four options affect the score file:
 .pg
 .lp
 PERSMAX\ =\ Maximum number of entries for one person.
@@ -5587,38 +5693,54 @@ to identify unique people for the score file.
 MAX_STATUENAME_RANK\ =\ Maximum number of score file entries to use for
 random statue names (default is 10).
 .lp
-ACCESSIBILITY\ =\ 0 or 1 to disable or enable, respectively, the ability for players
-to set S_pet_override and S_hero_override symbols in their configuration file.
+ACCESSIBILITY\ =\ 0 or 1 to disable or enable, respectively, the ability
+for players to set S_pet_override and S_hero_override symbols in their
+configuration file.
 .lp
 PORTABLE_DEVICE_PATHS\ =\ 0 or 1 Windows OS only, the game will look
-for all of its external files, and write to all of its output files in one place
-rather than at the standard locations.
+for all of its external files, and write to all of its output files in
+one place rather than at the standard locations.
 .lp
 DUMPLOGFILE\ =\ A filename where the end-of-game dumplog is saved.
-Not defining this will prevent dumplog from being created. Only available
-if your game is compiled with DUMPLOG. Allows the following placeholders:
+Not defining this will prevent dumplog from being created.
+Only available if your game is compiled with DUMPLOG.
+Allows the following placeholders:
+.in +4n
 .\" note: %M is not an entry in the table, but 'M' is the widest letter
 .PS %M
 .\" \f(CR = set font to constant-width Roman; approximation of {\tt ...} in TeX
-.PL %%
+.PL \f(CR%%\fP
 literal \(oq\f(CR%\fP\(cq
-.PL %v
+.PL \f(CR%v\fP
 version (eg. \(lq\f(CR3.7.0\-0\fP\(rq)
-.PL %u
+.PL \f(CR%u\fP
 game UID
-.PL %t
+.PL \f(CR%t\fP
 game start time, UNIX timestamp format
-.PL %T
+.PL \f(CR%T\fP
 current time, UNIX timestamp format
-.PL %d
+.PL \f(CR%d\fP
 game start time, YYYYMMDDhhmmss format
-.PL %D
+.PL \f(CR%D\fP
 current time, YYYYMMDDhhmmss format
-.PL %n
+.PL \f(CR%n\fP
 player name
-.PL %N
+.PL \f(CR%N\fP
 first character of player name
 .PE
+.in -4n
+.lp
+LIVELOG\ =\ A bit-mask of types of events that should be written to
+the \fIlivelog\fP file if one is present.
+The sample \fIsysconf\fP file accompanying the program contains a
+comment which lists the meaning of the various bits used.
+Intended for server systems supporting simultaneous play by multiple
+players (to be clear, each one running a separate single player game),
+for displaying their game progress to observers.
+Only relevant if the program was built with LIVELOG enabled.
+When available, it should be left commented out on single player
+installations because over time the file could grow to be extremely
+large unless it is actively maintained.
 .
 .ei
 .lp

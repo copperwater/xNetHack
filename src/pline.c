@@ -1,4 +1,4 @@
-/* NetHack 3.7	pline.c	$NHDT-Date: 1637982230 2021/11/27 03:03:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.104 $ */
+/* NetHack 3.7	pline.c	$NHDT-Date: 1646255375 2022/03/02 21:09:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.109 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -11,7 +11,7 @@
 
 static void putmesg(const char *);
 static char *You_buf(int);
-#if defined(MSGHANDLER) && (defined(POSIX_TYPES) || defined(__GNUC__))
+#if defined(MSGHANDLER)
 static void execplinehandler(const char *);
 #endif
 
@@ -192,7 +192,7 @@ vpline(const char *line, va_list the_args)
 
     putmesg(line);
 
-#if defined(MSGHANDLER) && (defined(POSIX_TYPES) || defined(__GNUC__))
+#if defined(MSGHANDLER)
     execplinehandler(line);
 #endif
 
@@ -413,7 +413,7 @@ verbalize(const char *line, ...)
 #ifdef CHRONICLE
 
 void
-gamelog_add(unsigned int glflags, long gltime, const char *str)
+gamelog_add(long glflags, long gltime, const char *str)
 {
     struct gamelog_line *tmp;
     struct gamelog_line *lst = g.gamelog;
@@ -432,13 +432,13 @@ gamelog_add(unsigned int glflags, long gltime, const char *str)
 }
 
 void
-livelog_printf(unsigned ll_type, const char *line, ...)
+livelog_printf(long ll_type, const char *line, ...)
 {
     char gamelogbuf[BUFSZ * 2];
     va_list the_args;
 
     va_start(the_args, line);
-    vsnprintf(gamelogbuf, sizeof gamelogbuf, line, the_args);
+    (void) vsnprintf(gamelogbuf, sizeof gamelogbuf, line, the_args);
     va_end(the_args);
 
     gamelog_add(ll_type, g.moves, gamelogbuf);
@@ -450,13 +450,14 @@ livelog_printf(unsigned ll_type, const char *line, ...)
 
 void
 gamelog_add(
-    unsigned glflags UNUSED, long gltime UNUSED, const char *msg UNUSED)
+    long glflags UNUSED, long gltime UNUSED, const char *msg UNUSED)
 {
     ; /* nothing here */
 }
 
 void
-livelog_printf(unsigned ll_type UNUSED, const char *line UNUSED, ...)
+livelog_printf(
+    long ll_type UNUSED, const char *line UNUSED, ...)
 {
     ; /* nothing here */
 }
@@ -497,7 +498,7 @@ vraw_printf(const char *line, va_list the_args)
         pbuf[BUFSZ - 1] = '\0'; /* terminate strncpy or truncate vsprintf */
     }
     raw_print(line);
-#if defined(MSGHANDLER) && (defined(POSIX_TYPES) || defined(__GNUC__))
+#if defined(MSGHANDLER)
     execplinehandler(line);
 #endif
 }
@@ -539,13 +540,15 @@ impossible(const char *s, ...)
 
 RESTORE_WARNING_FORMAT_NONLITERAL
 
-#if defined(MSGHANDLER) && (defined(POSIX_TYPES) || defined(__GNUC__))
+#if defined(MSGHANDLER)
 static boolean use_pline_handler = TRUE;
 
 static void
 execplinehandler(const char *line)
 {
+#if defined(POSIX_TYPES) || defined(__GNUC__)
     int f;
+#endif
     const char *args[3];
     char *env;
 
@@ -557,6 +560,7 @@ execplinehandler(const char *line)
         return;
     }
 
+#if defined(POSIX_TYPES) || defined(__GNUC__)
     f = fork();
     if (f == 0) { /* child */
         args[0] = env;
@@ -577,8 +581,19 @@ execplinehandler(const char *line)
         use_pline_handler = FALSE;
         pline("%s", "Fork to message handler failed.");
     }
+#elif defined(WIN32)
+    {
+        intptr_t ret;
+        args[0] = env;
+        args[1] = line;
+        args[2] = NULL;
+        ret = _spawnv(_P_NOWAIT, env, args);
+    }
+#else
+#error MSGHANDLER is not implemented on this sysytem.
+#endif
 }
-#endif /* MSGHANDLER && (POSIX_TYPES || __GNUC__) */
+#endif /* MSGHANDLER */
 
 /*
  * varargs handling for files.c

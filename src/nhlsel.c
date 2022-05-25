@@ -180,10 +180,18 @@ static int
 l_selection_getpoint(lua_State *L)
 {
     struct selectionvar *sel = l_selection_check(L, 1);
-    xchar x = (xchar) luaL_checkinteger(L, 2);
-    xchar y = (xchar) luaL_checkinteger(L, 3);
+    xchar x, y;
+    int ix, iy;
     int val;
     long crd;
+
+    lua_remove(L, 1); /* sel */
+    if (!nhl_get_xy_params(L, &ix, &iy)) {
+        nhl_error(L, "l_selection_getpoint: Incorrect params");
+        return 0;
+    }
+    x = (xchar) ix;
+    y = (xchar) iy;
 
     if (x == -1 && y == -1)
         crd = SP_COORD_PACK_RANDOM(0);
@@ -320,27 +328,30 @@ l_selection_filter_percent(lua_State *L)
     return 1;
 }
 
-/* local x,y = selection.rndcoord(sel); */
-/* local x,y = selection.rndcoord(sel, 1); */
+/* local pt = selection.rndcoord(sel); */
+/* local pt = selection.rndcoord(sel, 1); */
 static int
 l_selection_rndcoord(lua_State *L)
 {
     struct selectionvar *sel = l_selection_check(L, 1);
     int removeit = (int) luaL_optinteger(L, 2, 0);
-    xchar x, y;
+    xchar x = -1, y = -1;
     selection_rndcoord(sel, &x, &y, removeit);
-    update_croom();
-    if (g.coder && g.coder->croom) {
-        x -= g.coder->croom->lx;
-        y -= g.coder->croom->ly;
-    } else {
-        x -= g.xstart;
-        y -= g.ystart;
+    if (!(x == -1 && y == -1)) {
+        update_croom();
+        if (g.coder && g.coder->croom) {
+            x -= g.coder->croom->lx;
+            y -= g.coder->croom->ly;
+        } else {
+            x -= g.xstart;
+            y -= g.ystart;
+        }
     }
     lua_settop(L, 0);
-    lua_pushnumber(L, x);
-    lua_pushnumber(L, y);
-    return 2;
+    lua_newtable(L);
+    nhl_add_table_entry_int(L, "x", x);
+    nhl_add_table_entry_int(L, "y", y);
+    return 1;
 }
 
 /* internal function to get a selection and 4 integer values from lua stack.
@@ -585,7 +596,7 @@ l_selection_match(lua_State *L)
     }
 
     for (y = 0; y <= sel->hei; y++)
-        for (x = 0; x < sel->wid; x++)
+        for (x = 1; x < sel->wid; x++)
             selection_setpoint(x, y, sel, mapfrag_match(mf, x,y) ? 1 : 0);
 
     mapfrag_free(&mf);
@@ -801,17 +812,22 @@ l_selection_iterate(lua_State *L)
     if (argc == 2 && lua_type(L, 2) == LUA_TFUNCTION) {
         sel = l_selection_check(L, 1);
         for (y = 0; y < sel->hei; y++)
-            for (x = 0; x < sel->wid; x++)
+            for (x = 1; x < sel->wid; x++)
                 if (selection_getpoint(x, y, sel)) {
                     lua_pushvalue(L, 2);
                     lua_pushinteger(L, x - g.xstart);
                     lua_pushinteger(L, y - g.ystart);
-                    lua_call(L, 2, 0);
+		    if (nhl_pcall(L, 2, 0)) {
+			impossible("Lua error: %s", lua_tostring(L, -1));
+			/* abort the loops to prevent possible error cascade */
+			goto out;
+		    }
                 }
     } else {
         nhl_error(L, "wrong parameters");
         /*NOTREACHED*/
     }
+out:
     return 0;
 }
 

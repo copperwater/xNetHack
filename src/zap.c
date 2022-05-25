@@ -1,4 +1,4 @@
-/* NetHack 3.7	zap.c	$NHDT-Date: 1629817679 2021/08/24 15:07:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.372 $ */
+/* NetHack 3.7	zap.c	$NHDT-Date: 1651868824 2022/05/06 20:27:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.410 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -12,6 +12,7 @@
  */
 #define MAGIC_COOKIE 1000
 
+static void probe_objchain(struct obj *);
 static boolean zombie_can_dig(xchar x, xchar y);
 static void polyuse(struct obj *, int, int);
 static void create_polymon(struct obj *, int);
@@ -516,24 +517,28 @@ release_hold(void)
     }
 }
 
+static void
+probe_objchain(struct obj *otmp)
+{
+    for (; otmp; otmp = otmp->nobj) {
+        otmp->dknown = 1; /* treat as "seen" */
+        if (Is_container(otmp) || otmp->otyp == STATUE) {
+            otmp->lknown = 1;
+            if (!SchroedingersBox(otmp))
+                otmp->cknown = 1;
+        }
+    }
+}
+
 void
 probe_monster(struct monst *mtmp)
 {
-    struct obj *otmp;
-
     mstatusline(mtmp);
     if (g.notonhead)
         return; /* don't show minvent for long worm tail */
 
     if (mtmp->minvent) {
-        for (otmp = mtmp->minvent; otmp; otmp = otmp->nobj) {
-            otmp->dknown = 1; /* treat as "seen" */
-            if (Is_container(otmp) || otmp->otyp == STATUE) {
-                otmp->lknown = 1;
-                if (!SchroedingersBox(otmp))
-                    otmp->cknown = 1;
-            }
-        }
+        probe_objchain(mtmp->minvent);
         (void) display_minventory(mtmp, MINV_ALL | MINV_NOLET | PICK_NONE,
                                   (char *) 0);
     } else {
@@ -786,7 +791,7 @@ revive(struct obj *corpse, boolean by_hero)
     coord xy;
     xchar x, y;
     boolean one_of;
-    long mmflags = NO_MINVENT | MM_NOWAIT | MM_NOMSG;
+    mmflags_nht mmflags = NO_MINVENT | MM_NOWAIT | MM_NOMSG;
     int montype, cgend, container_nesting = 0;
     boolean is_zomb = (mons[corpse->corpsenm].mlet == S_ZOMBIE);
 
@@ -1009,7 +1014,7 @@ revive(struct obj *corpse, boolean by_hero)
         /* not useupf(), which charges */
         if (corpse->quan > 1L)
             corpse = splitobj(corpse, 1L);
-        delobj(corpse);
+        delobj_core(corpse, TRUE);
         newsym(x, y);
         break;
     case OBJ_MINVENT:
@@ -2083,7 +2088,8 @@ bhito(struct obj *obj, struct obj *otmp)
             }
             /* KMH, conduct */
             if (!u.uconduct.polypiles++)
-                livelog_printf(LL_CONDUCT, "polymorphed %s first object", uhis());
+                livelog_printf(LL_CONDUCT, "polymorphed %s first object",
+                               uhis());
 
             /* any saved lock context will be dangerously obsolete */
             if (Is_box(obj))
@@ -2115,6 +2121,11 @@ bhito(struct obj *obj, struct obj *otmp)
             obj->dknown = 1;
             if (Is_container(obj) || obj->otyp == STATUE) {
                 obj->cknown = obj->lknown = 1;
+                /* plural handling here is superfluous because containers
+                   and statues don't stack */
+                if (obj->otrapped)
+                    pline("%s trapped!", Tobjnam(obj, "are"));
+
                 if (!obj->cobj) {
                     pline("%s empty.", Tobjnam(obj, "are"));
                 } else if (SchroedingersBox(obj)) {
@@ -2769,22 +2780,12 @@ zapyourself(struct obj *obj, boolean ordinary)
     case SPE_DETECT_UNSEEN:
     case WAN_NOTHING:
         break;
-    case WAN_PROBING: {
-        struct obj *otmp;
-
-        for (otmp = g.invent; otmp; otmp = otmp->nobj) {
-            otmp->dknown = 1;
-            if (Is_container(otmp) || otmp->otyp == STATUE) {
-                otmp->lknown = 1;
-                if (!SchroedingersBox(otmp))
-                    otmp->cknown = 1;
-            }
-        }
+    case WAN_PROBING:
+        probe_objchain(g.invent);
         update_inventory();
         learn_it = TRUE;
         ustatusline();
         break;
-    }
     case SPE_STONE_TO_FLESH: {
         struct obj *otmp, *onxt;
         boolean didmerge;
@@ -3135,7 +3136,7 @@ zap_updown(struct obj *obj) /* wand or spell */
                 ttmp->tseen = 1;
                 newsym(x, y);
                 /* might fall down hole */
-                dotrap(ttmp, 0);
+                dotrap(ttmp, NO_TRAP_FLAGS);
             } else if (!striking && ttmp->ttyp == HOLE) {
                 /* locking transforms hole into trapdoor */
                 ttmp->ttyp = TRAPDOOR;
@@ -3482,6 +3483,7 @@ bhit(int ddx, int ddy, int range,  /* direction and range */
 {
     struct monst *mtmp, *result = (struct monst *) 0;
     struct obj *obj = *pobj;
+    struct trap *ttmp;
     uchar typ;
     boolean shopdoor = FALSE, point_blank = TRUE;
     boolean in_skip = FALSE, allow_skip = FALSE;
@@ -3552,7 +3554,7 @@ bhit(int ddx, int ddy, int range,  /* direction and range */
         }
 
         /* WATER aka "wall of water" stops items */
-        if (typ == WATER) {
+        if (IS_WATERWALL(typ)) {
             if (weapon == THROWN_WEAPON || weapon == KICKED_WEAPON)
                 break;
         }
@@ -3610,6 +3612,18 @@ bhit(int ddx, int ddy, int range,  /* direction and range */
             maybe_explode_trap(t_at(g.bhitpos.x, g.bhitpos.y), obj);
 
         mtmp = m_at(g.bhitpos.x, g.bhitpos.y);
+        ttmp = t_at(g.bhitpos.x, g.bhitpos.y);
+
+        if (!mtmp && ttmp && (ttmp->ttyp == WEB)
+            && (weapon == THROWN_WEAPON || weapon == KICKED_WEAPON)
+            && !rn2(3)) {
+            if (cansee(g.bhitpos.x, g.bhitpos.y)) {
+                pline("%s gets stuck in a web!", Yname2(obj));
+                ttmp->tseen = TRUE;
+                newsym(g.bhitpos.x, g.bhitpos.y);
+            }
+            break;
+        }
 
         /*
          * skipping rocks
@@ -3852,7 +3866,7 @@ boomhit(struct obj *obj, int dx, int dy)
             g.bhitpos.y -= dy;
             break;
         }
-        if (g.bhitpos.x == u.ux && g.bhitpos.y == u.uy) { /* ct == 9 */
+        if (u_at(g.bhitpos.x, g.bhitpos.y)) { /* ct == 9 */
             if (Fumbling || rn2(20) >= ACURR(A_DEX)) {
                 /* we hit ourselves */
                 (void) thitu(10 + obj->spe, dmgval(obj, &g.youmonst), &obj,
@@ -4228,11 +4242,11 @@ burn_floor_objects(int x, int y,
                 /* save name before potential delobj() */
                 if (give_feedback) {
                     obj->quan = 1L;
-                    Strcpy(buf1, (x == u.ux && y == u.uy)
+                    Strcpy(buf1, u_at(x, y)
                                      ? xname(obj)
                                      : distant_name(obj, xname));
                     obj->quan = 2L;
-                    Strcpy(buf2, (x == u.ux && y == u.uy)
+                    Strcpy(buf2, u_at(x, y)
                                      ? xname(obj)
                                      : distant_name(obj, xname));
                     obj->quan = scrquan;
@@ -4499,7 +4513,7 @@ dobuzz(int type, int nd, xchar sx, xchar sy, int dx, int dy,
                 if (say || canseemon(mon))
                     miss(flash_str(fltyp, FALSE), mon);
             }
-        } else if (sx == u.ux && sy == u.uy && range >= 0) {
+        } else if (u_at(sx, sy) && range >= 0) {
             nomul(0);
             if (u.usteed && !rn2(3) && !mon_reflects(u.usteed, (char *) 0)) {
                 mon = u.usteed;
@@ -4634,7 +4648,7 @@ melt_ice(xchar x, xchar y, const char *msg)
     if (Underwater)
         vision_recalc(1);
     newsym(x, y);
-    if (cansee(x, y) || (x == u.ux && y == u.uy))
+    if (cansee(x, y) || u_at(x, y))
         Norep("%s", msg);
     if ((otmp = sobj_at(BOULDER, x, y)) != 0) {
         if (cansee(x, y))
@@ -4647,7 +4661,7 @@ melt_ice(xchar x, xchar y, const char *msg)
         } while (is_pool(x, y) && (otmp = sobj_at(BOULDER, x, y)) != 0);
         newsym(x, y);
     }
-    if (x == u.ux && y == u.uy)
+    if (u_at(x, y))
         spoteffects(TRUE); /* possibly drown, notice objects */
     else if (is_pool(x, y) && (mtmp = m_at(x, y)) != 0)
         (void) minliquid(mtmp);
@@ -4801,7 +4815,7 @@ zap_over_floor(xchar x, xchar y, int type, boolean *shopdamage,
             boolean lava = is_lava(x, y),
                     moat = is_moat(x, y);
 
-            if (lev->typ == WATER) {
+            if (IS_WATERWALL(lev->typ)) {
                 /* For now, don't let WATER freeze. */
                 if (see_it)
                     pline_The("%s freezes for a moment.", hliquid("water"));
@@ -4835,7 +4849,7 @@ zap_over_floor(xchar x, xchar y, int type, boolean *shopdamage,
                 } else if (!lava)
                     You_hear("a crackling sound.");
 
-                if (x == u.ux && y == u.uy) {
+                if (u_at(x, y)) {
                     if (u.uinwater) { /* not just `if (Underwater)' */
                         /* leave the no longer existent water */
                         set_uinwater(0); /* u.uinwater = 0 */
@@ -5187,13 +5201,20 @@ static int
 adtyp_to_prop(int dmgtyp)
 {
     switch (dmgtyp) {
-    case AD_COLD: return COLD_RES;
-    case AD_FIRE: return FIRE_RES;
-    case AD_ELEC: return SHOCK_RES;
-    case AD_ACID: return ACID_RES;
-    case AD_DISN: return DISINT_RES;
-    default: return 0; /* prop_types start at 1 */
+    case AD_COLD:
+        return COLD_RES;
+    case AD_FIRE:
+        return FIRE_RES;
+    case AD_ELEC:
+        return SHOCK_RES;
+    case AD_ACID:
+        return ACID_RES;
+    case AD_DISN:
+        return DISINT_RES;
+    default:
+        break;
     }
+    return 0; /* prop_types start at 1 */
 }
 
 /* is carrier wearing or wielding an object with resistance
@@ -5216,6 +5237,51 @@ adtyp_resistance_obj(struct monst *carrier, int dmgtyp)
     }
 
     return FALSE;
+}
+
+/* for enlightenment; currently only useful in wizard mode; cf from_what() */
+char *
+item_what(int dmgtyp)
+{
+    static char whatbuf[50];
+    const char *what = 0;
+    int prop = adtyp_to_prop(dmgtyp);
+    long xtrinsic = u.uprops[prop].extrinsic;
+
+    whatbuf[0] = '\0';
+    if (wizard) {
+        if (!prop || !xtrinsic) {
+            ; /* 'what' stays Null */
+        } else if (xtrinsic & W_ARMC) {
+            what = cloak_simple_name(uarmc);
+        } else if (xtrinsic & W_ARM) {
+            what = suit_simple_name(uarm); /* "dragon {scales,mail}" */
+        } else if (xtrinsic & W_ARMU) {
+            what = shirt_simple_name(uarmu);
+        } else if (xtrinsic & W_ARMH) {
+            what = helm_simple_name(uarmh);
+        } else if (xtrinsic & W_ARMG) {
+            what = gloves_simple_name(uarmg);
+        } else if (xtrinsic & W_ARMF) {
+            what = boots_simple_name(uarmf);
+        } else if (xtrinsic & W_ARMS) {
+            what = shield_simple_name(uarms);
+        } else if (xtrinsic & (W_AMUL | W_TOOL)) {
+            what = simpleonames((xtrinsic & W_AMUL) ? uamul : ublindf);
+        } else if (xtrinsic & W_RING) {
+            if ((xtrinsic & W_RING) == W_RING) /* both */
+                what = "rings";
+            else
+                what = simpleonames((xtrinsic & W_RINGL) ? uleft : uright);
+        } else if (xtrinsic & W_WEP) {
+            what = simpleonames(uwep);
+        }
+        /* format the output to be ready for enl_msg() to append it to
+           "Your items {are,were} protected against <damage-type>" */
+        if (what) /* strlen(what) will be less than 30 */
+            Sprintf(whatbuf, " by your %.40s", what);
+    }
+    return whatbuf;
 }
 
 /*
@@ -5258,6 +5324,7 @@ maybe_destroy_item(struct monst *carrier, struct obj *obj, int dmgtyp)
     boolean physical_damage;
     boolean u_carry = (carrier == &g.youmonst);
     boolean vis = !u_carry && canseemon(carrier);
+    boolean chargeit = FALSE;
 
     physical_damage = FALSE;
     xresist = skip = 0;
@@ -5318,6 +5385,9 @@ maybe_destroy_item(struct monst *carrier, struct obj *obj, int dmgtyp)
                 || obj->otyp == RIN_SHOCK_RESISTANCE) {
                 skip++;
                 break;
+            } else if (objects[obj->otyp].oc_charged && rn2(3)) {
+                chargeit = TRUE;
+                break;
             }
             dindx = 5;
             dmg = 0;
@@ -5334,7 +5404,9 @@ maybe_destroy_item(struct monst *carrier, struct obj *obj, int dmgtyp)
         break;
     }
 
-    if (!skip) {
+    if (chargeit)
+        recharge(obj, 0);
+    else if (!skip) {
         boolean osym = obj->oclass; /* for checking glob of slime after it's
                                        destroyed */
         if (obj->in_use)
@@ -5658,8 +5730,9 @@ makewish(void)
     char promptbuf[BUFSZ];
     char bufcpy[BUFSZ];
     struct obj *otmp, nothing;
+    long maybe_LL_arti;
     int tries = 0;
-    int prev_artwish = u.uconduct.wisharti;
+    long oldwisharti = u.uconduct.wisharti;
 
     promptbuf[0] = '\0';
     nothing = cg.zeroobj; /* lint suppression; only its address matters */
@@ -5715,16 +5788,25 @@ makewish(void)
         return;
     }
 
+    if (otmp->oartifact) {
+        /* update artifact bookkeeping; doesn't produce a livelog event */
+        artifact_origin(otmp, ONAME_WISH | ONAME_KNOW_ARTI);
+    }
+
+    /* wisharti conduct handled in readobjnam() */
+    maybe_LL_arti = ((oldwisharti < u.uconduct.wisharti) ? LL_ARTIFACT : 0L);
     /* KMH, conduct */
     if (!u.uconduct.wishes++)
-        livelog_printf(LL_CONDUCT | LL_WISH | (prev_artwish < u.uconduct.wisharti ? LL_ARTIFACT : 0),
+        livelog_printf((LL_CONDUCT | LL_WISH | maybe_LL_arti),
                        "made %s first wish - \"%s\"", uhis(), bufcpy);
-    else if (!prev_artwish && u.uconduct.wisharti) /* arti conduct handled in readobjnam() above */
-        livelog_printf(LL_CONDUCT | LL_WISH | LL_ARTIFACT, "made %s first artifact wish - \"%s\"",
-                       uhis(), bufcpy);
+    else if (!oldwisharti && u.uconduct.wisharti)
+        livelog_printf((LL_CONDUCT | LL_WISH | LL_ARTIFACT),
+                       "made %s first artifact wish - \"%s\"", uhis(), bufcpy);
     else
-        livelog_printf(LL_WISH | (prev_artwish < u.uconduct.wisharti ? LL_ARTIFACT : 0),
+        livelog_printf((LL_WISH | maybe_LL_arti),
                        "wished for \"%s\"", bufcpy);
+    /* TODO? maybe generate a second event decribing what was received since
+       those just echo player's request rather than show actual result */
 
     if (otmp != &cg.zeroobj) {
         const char

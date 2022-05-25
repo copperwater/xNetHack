@@ -71,6 +71,10 @@ changes:
 - The Castle drawbridge responds to passtune attempts 2 squares away from
   either of the two drawbridge squares, instead of only directly adjacent
   squares.
+- Sleep spell level raised from 2 to 3 (which is what it is in vanilla).
+- Item encyclopedia lookup from the inventory is now an item in the menu of
+  things you can do with an item you select when looking at the inventory, under
+  'l', rather than the default behavior.
 
 ### Interface changes
 

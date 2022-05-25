@@ -1,4 +1,4 @@
--- NetHack 3.7	Valkyrie.des	$NHDT-Date: 1553807172 2019/03/28 21:06:12 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.15 $
+-- NetHack Valkyrie Val-fila.lua	$NHDT-Date: 1652196016 2022/05/10 15:20:16 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -36,15 +36,15 @@ des.region(everything, "lit")
 des.replace_terrain({ selection=everything:percentage(20), fromterrain='I', toterrain='.' })
 
 -- Stairs on opposite ends
-des.stair({ coord={selection.area(00,00,00,19):rndcoord()}, dir="up" })
-des.stair({ coord={selection.area(75,00,75,19):rndcoord()}, dir="down" })
+des.stair({ coord=selection.area(00,00,00,19):rndcoord(), dir="up" })
+des.stair({ coord=selection.area(75,00,75,19):rndcoord(), dir="down" })
 
 -- More random lava vents like in home level
 local middleground = selection.area(08,00,68,19)
 local pools = selection.new()
 for i = 1,15 do
-   local x,y = middleground:rndcoord()
-   local newpool = selection.new():set(x, y)
+   local pt = middleground:rndcoord()
+   local newpool = selection.new():set(pt.x, pt.y)
    -- maybe turn into a bigger one
    for j = 1, d(8)-5 do
       newpool = newpool:grow('random')

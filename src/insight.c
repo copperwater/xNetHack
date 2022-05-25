@@ -1,4 +1,4 @@
-/* NetHack 3.7	insight.c	$NHDT-Date: 1619640466 2021/04/28 20:07:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.35 $ */
+/* NetHack 3.7	insight.c	$NHDT-Date: 1650875487 2022/04/25 08:31:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.60 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -47,7 +47,7 @@ static const char have_been[] = "have been ", have_never[] = "have never ",
 
 /* for livelogging: */
 struct ll_achieve_msg {
-    unsigned long llflag;
+    long llflag;
     const char *msg;
 };
 /* ordered per 'enum achievements' in you.h */
@@ -60,38 +60,46 @@ static struct ll_achieve_msg achieve_msg [] = {
     { LL_ACHIEVE, "acquired the Book of the Dead" },
     { LL_ACHIEVE, "performed the invocation" },
     { LL_ACHIEVE, "acquired The Amulet of Yendor" },
-    { LL_ACHIEVE, "entered the Planes" },
+    { LL_ACHIEVE, "entered the Elemental Planes" },
     { LL_ACHIEVE, "entered the Astral Plane" },
     { LL_ACHIEVE, "ascended" },
-    { LL_ACHIEVE, "acquired the Mines' End luckstone" },
-    { LL_ACHIEVE, "completed Sokoban" },
-    { LL_ACHIEVE|LL_UMONST, "killed Medusa" },
+    /* if the type of item isn't discovered yet, disclosing the event
+       via #chronicle would be a spoiler (particularly for gray stone);
+       the ID'd name for the type of item will be appended to the next
+       two messages, for display via livelog and/or dumplog */
+    { LL_ACHIEVE | LL_SPOILER, "acquired the Mines' End" }, /* " luckstone" */
+    { LL_ACHIEVE | LL_SPOILER, "acquired the Sokoban" }, /* " <item>" */
+    { LL_ACHIEVE | LL_UMONST, "killed Medusa" },
      /* these two are not logged */
     { 0, "hero was always blond, no, blind" },
     { 0, "hero never wore armor" },
      /* */
-    { LL_MINORAC, "entered the Gnomish Mines" },
+    { LL_MINORAC | LL_DUMP, "entered the Gnomish Mines" },
     { LL_ACHIEVE, "reached Mine Town" }, /* probably minor, but dnh logs it */
     { LL_MINORAC, "entered a shop" },
     { LL_MINORAC, "entered a temple" },
     { LL_ACHIEVE, "consulted the Oracle" }, /* minor, but rare enough */
-    { LL_ACHIEVE, "read a Discworld novel" }, /* ditto */
-    { LL_ACHIEVE, "entered Sokoban" }, /* Keep as major for turn comparison w/completed soko */
+    { LL_MINORAC | LL_DUMP, "read a Discworld novel" }, /* even more so */
+    { LL_ACHIEVE, "entered Sokoban" }, /* keep as major for turn comparison
+                                        * with completed sokoban */
     { LL_ACHIEVE, "entered the Bigroom" },
     /* The following 8 are for advancing through the ranks
-       messages differ by role so are created on the fly */
-    { LL_MINORAC, "" },
-    { LL_MINORAC, "" },
-    { LL_MINORAC, "" },
-    { LL_MINORAC, "" },
-    { LL_ACHIEVE, "" },
-    { LL_ACHIEVE, "" },
-    { LL_ACHIEVE, "" },
-    { LL_ACHIEVE, "" },
+       and messages differ by role so are created on the fly;
+       rank 0 (Xp 1 and 2) isn't an achievement */
+    { LL_MINORAC | LL_DUMP, "" }, /* Xp 3 */
+    { LL_MINORAC | LL_DUMP, "" }, /* Xp 6 */
+    { LL_MINORAC | LL_DUMP, "" }, /* Xp 10 */
+    { LL_ACHIEVE, "" }, /* Xp 14, so able to attempt the quest */
+    { LL_ACHIEVE, "" }, /* Xp 18 */
+    { LL_ACHIEVE, "" }, /* Xp 22 */
+    { LL_ACHIEVE, "" }, /* Xp 26 */
+    { LL_ACHIEVE, "" }, /* Xp 30 */
+    { LL_MINORAC, "learned castle drawbridge's tune" }, /* achievement #31 */
     { 0, "" } /* keep this one at the end */
 };
 
-
+/* macros to simplify output of enlightenment messages; also used by
+   conduct and achievements */
 #define enl_msg(prefix, present, past, suffix, ps) \
     enlght_line(prefix, final ? past : present, suffix, ps)
 #define you_are(attr, ps) enl_msg(You_, are, were, attr, ps)
@@ -1217,13 +1225,7 @@ weapon_insight(int final)
     /* report being weaponless; distinguish whether gloves are worn
        [perhaps mention silver ring(s) when not wearning gloves?] */
     if (!uwep) {
-        you_are(uarmg ? "empty handed" /* gloves imply hands */
-                      : humanoid(g.youmonst.data)
-                         /* hands but no weapon and no gloves */
-                         ? "bare handed"
-                         /* alternate phrasing for paws or lack of hands */
-                         : "not wielding anything",
-                "");
+        you_are(empty_handed(), "");
 
     /* two-weaponing implies hands and
        a weapon or wep-tool (not other odd stuff) in each hand */
@@ -1415,8 +1417,8 @@ weapon_insight(int final)
 static void
 attributes_enlightenment(int unused_mode UNUSED, int final)
 {
-    static NEARDATA const char if_surroundings_permitted[] =
-        " if surroundings permitted";
+    static NEARDATA const char
+        if_surroundings_permitted[] = " if surroundings permitted";
     int ltmp, armpro;
     char buf[BUFSZ];
 
@@ -1462,23 +1464,34 @@ attributes_enlightenment(int unused_mode UNUSED, int final)
     if (Disint_resistance)
         you_are("disintegration-resistant", from_what(DISINT_RES));
     if (adtyp_resistance_obj(&g.youmonst, AD_DISN))
-        enl_msg("Your items ", "are", "were", " protected from disintegration", "");
+        enl_msg("Your items ", "are", "were",
+                " protected from disintegration", item_what(AD_DISN));
     if (Shock_resistance)
         you_are("shock resistant", from_what(SHOCK_RES));
     if (adtyp_resistance_obj(&g.youmonst, AD_ELEC))
-        enl_msg("Your items ", "are", "were", " protected from electric shocks", "");
+        enl_msg("Your items ", "are", "were",
+                " protected from electric shocks", item_what(AD_ELEC));
     if (Poison_resistance)
         you_are("poison resistant", from_what(POISON_RES));
-    if (Acid_resistance)
-        you_are("acid resistant", from_what(ACID_RES));
+    if (Acid_resistance) {
+        Sprintf(buf, "%.20s%.30s",
+                temp_resist(ACID_RES) ? "temporarily " : "",
+                "acid resistant");
+        you_are(buf, from_what(ACID_RES));
+    }
     if (adtyp_resistance_obj(&g.youmonst, AD_ACID))
-        enl_msg("Your items ", "are", "were", " protected from acid", "");
+        enl_msg("Your items ", "are", "were", " protected from acid",
+                item_what(AD_ACID));
     if (Drain_resistance)
         you_are("level-drain resistant", from_what(DRAIN_RES));
     if (Sick_resistance)
         you_are("immune to sickness", from_what(SICK_RES));
-    if (Stone_resistance)
-        you_are("petrification resistant", from_what(STONE_RES));
+    if (Stone_resistance) {
+        Sprintf(buf, "%.20s%.30s",
+                temp_resist(STONE_RES) ? "temporarily " : "",
+                "petrification resistant");
+        you_are(buf, from_what(STONE_RES));
+    }
     if (Halluc_resistance)
         enl_msg(You_, "resist", "resisted", " hallucinations",
                 from_what(HALLUC_RES));
@@ -1987,7 +2000,7 @@ youhiding(boolean via_enlghtmt, /* englightment line vs topl message */
 int
 doconduct(void)
 {
-    show_conduct(0);
+    show_conduct(ENL_GAMEINPROGRESS);
     return ECMD_OK;
 }
 
@@ -2025,8 +2038,8 @@ show_conduct(int final)
     if (!u.uconduct.weaphit) {
         you_have_never("hit with a wielded weapon");
     } else if (wizard) {
-        Sprintf(buf, "used a wielded weapon %ld time%s", u.uconduct.weaphit,
-                plur(u.uconduct.weaphit));
+        Sprintf(buf, "hit with a wielded weapon %ld time%s",
+                u.uconduct.weaphit, plur(u.uconduct.weaphit));
         you_have_X(buf);
     }
     if (!u.uconduct.killer)
@@ -2248,6 +2261,10 @@ show_achievements(
         case ACH_MEDU:
             you_have_X("defeated Medusa");
             break;
+        case ACH_TUNE:
+            you_have_X(
+                "learned the tune to open and close the Castle's drawbridge");
+            break;
         case ACH_BELL:
             /* alternate phrasing for present vs past and also for
                possessing the item vs once held it */
@@ -2341,21 +2358,38 @@ record_achievement(schar achidx)
        an attempt to duplicate an achievement can happen if any of Bell,
        Candelabrum, Book, or Amulet is dropped then picked up again */
     for (i = 0; u.uachieved[i]; ++i)
-        if (abs(u.uachieved[i]) == abs(achidx))
+        if (abs(u.uachieved[i]) == absidx)
             return; /* already recorded, don't duplicate it */
     u.uachieved[i] = achidx;
 
+    /* avoid livelog for achievements recorded during final disclosure:
+       nudist and blind-from-birth; also ascension which is suppressed
+       by this gets logged separately in really_done() */
     if (g.program_state.gameover)
-        return; /* don't livelog achievements recorded at end of game */
+        return;
+
     if (absidx >= ACH_RNK1 && absidx <= ACH_RNK8) {
         livelog_printf(achieve_msg[absidx].llflag,
                        "attained the rank of %s (level %d)",
                        rank_of(rank_to_xlev(absidx - (ACH_RNK1 - 1)),
                                Role_switch, (achidx < 0) ? TRUE : FALSE),
                        u.ulevel);
-    } else
+    } else if (achidx == ACH_SOKO_PRIZE
+               || achidx == ACH_MINE_PRIZE) {
+        /* need to supply extra information for these two */
+        short otyp = ((achidx == ACH_SOKO_PRIZE)
+                      ? g.context.achieveo.soko_prize_otyp
+                      : g.context.achieveo.mines_prize_otyp);
+
+        /* note: OBJ_NAME() works here because both "bag of holding" and
+           "amulet of reflection" are fully named in their objects[] entry
+           but that's not true in the general case */
+        livelog_printf(achieve_msg[achidx].llflag, "%s %s",
+                       achieve_msg[achidx].msg, OBJ_NAME(objects[otyp]));
+    } else {
         livelog_printf(achieve_msg[absidx].llflag, "%s",
                        achieve_msg[absidx].msg);
+    }
 }
 
 /* discard a recorded achievement; return True if removed, False otherwise */
@@ -2412,6 +2446,71 @@ sokoban_in_play(void)
         if (u.uachieved[achidx] == ACH_SOKO)
             return TRUE;
     return FALSE;
+}
+
+/* #chronicle command */
+int
+do_gamelog(void)
+{
+#ifdef CHRONICLE
+    if (g.gamelog) {
+        show_gamelog(ENL_GAMEINPROGRESS);
+    } else {
+        pline("No chronicled events.");
+    }
+#else
+    pline("Chronicle was turned off during compile-time.");
+#endif /* !CHRONICLE */
+    return ECMD_OK;
+}
+
+/* 'major' events for dumplog; inclusion or exclusion here may need tuning */
+#define LL_majors (0L \
+                   | LL_WISH            \
+                   | LL_ACHIEVE         \
+                   | LL_UMONST          \
+                   | LL_DIVINEGIFT      \
+                   | LL_LIFESAVE        \
+                   | LL_ARTIFACT        \
+                   | LL_GENOCIDE        \
+                   | LL_DUMP) /* explicitly for dumplog */
+#define majorevent(llmsg) (((llmsg)->flags & LL_majors) != 0)
+#define spoilerevent(llmsg) (((llmsg)->flags & LL_SPOILER) != 0)
+
+/* #chronicle details */
+void
+show_gamelog(int final)
+{
+#ifdef CHRONICLE
+    struct gamelog_line *llmsg;
+    winid win;
+    char buf[BUFSZ];
+    int eventcnt = 0;
+
+    win = create_nhwindow(NHW_MENU);
+    Sprintf(buf, "%s events:", final ? "Major" : "Logged");
+    putstr(win, ATR_HEADING, buf);
+    for (llmsg = g.gamelog; llmsg; llmsg = llmsg->next) {
+        if (final && !majorevent(llmsg))
+            continue;
+        if (!final && !wizard && spoilerevent(llmsg))
+            continue;
+        if (!eventcnt++)
+            putstr(win, ATR_SUBHEAD, " Turn");
+        Sprintf(buf, "%5ld: %s", llmsg->turn, llmsg->text);
+        putstr(win, 0, buf);
+    }
+    /* since start of game is logged as a major event, 'eventcnt' should
+       never end up as 0; for 'final', end of game is a major event too */
+    if (!eventcnt)
+        putstr(win, 0, " none");
+
+    display_nhwindow(win, TRUE);
+    destroy_nhwindow(win);
+#else
+    nhUse(final);
+#endif /* !CHRONICLE */
+    return;
 }
 
 /*
@@ -2945,8 +3044,8 @@ mstatusline(struct monst *mtmp)
         Strcat(info, ", stunned");
     if (mtmp->msleeping)
         Strcat(info, ", asleep");
-#if 0 /* unfortunately mfrozen covers temporary sleep and being busy \
-         (donning armor, for instance) as well as paralysis */
+#if 0 /* unfortunately mfrozen covers temporary sleep and being busy
+       * (donning armor, for instance) as well as paralysis */
     else if (mtmp->mfrozen)
         Strcat(info, ", paralyzed");
 #else
@@ -2989,6 +3088,8 @@ mstatusline(struct monst *mtmp)
             Sprintf(eos(info), ", injured %s", what);
         }
     }
+    if (mtmp->mleashed)
+        Strcat(info, ", leashed");
 
     /* avoid "Status of the invisible newt ..., invisible" */
     /* and unlike a normal mon_nam, use "saddled" even if it has a name */

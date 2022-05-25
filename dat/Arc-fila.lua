@@ -1,4 +1,4 @@
--- NetHack 3.7	Arch.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.10 $
+-- NetHack Archeologist Arc-fila.lua	$NHDT-Date: 1652195998 2022/05/10 15:19:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -15,7 +15,8 @@ des.terrain({ selection=trees, typ="T" })
 
 -- make random slices through jungle bits
 for i=1,20 do
-   local lx, ly = alllev:rndcoord()
+   local pt = alllev:rndcoord()
+   local lx, ly = pt.x, pt.y
    local lx2, ly2 = lx + math.random(-10,10), ly + math.random(-5, 5)
    if alllev:get(lx2, ly2) > 0 then
       des.terrain({ selection=selection.randline(lx, ly, lx2, ly2, 40), typ='.' })
@@ -23,17 +24,17 @@ for i=1,20 do
 end
 
 -- "stairs" on opposite ends
-local leftstair = { selection.line(0,0, 0,20):rndcoord() }
-local rightstair = { selection.line(78,1, 78,20):rndcoord() }
+local leftstair = selection.line(0,0, 0,20):rndcoord()
+local rightstair = selection.line(78,1, 78,20):rndcoord()
 -- guarantee a clearing around the stairs
-des.terrain({ selection = selection.ellipse(leftstair[1], leftstair[2], 2, 3, 1), typ='.' })
-des.terrain({ selection = selection.ellipse(rightstair[1], rightstair[2], 2, 3, 1), typ='.' })
+des.terrain({ selection = selection.ellipse(leftstair.x, leftstair.y, 2, 3, 1), typ='.' })
+des.terrain({ selection = selection.ellipse(rightstair.x, rightstair.y, 2, 3, 1), typ='.' })
 des.stair({ dir = "up", coord = leftstair })
 des.stair({ dir = "down", coord = rightstair })
 
 -- make a path through the forest (not guaranteed to not require getting through
 -- a diagonal choke point of two trees)
-local path = selection.randline(leftstair[1], leftstair[2], rightstair[1], rightstair[2], 80)
+local path = selection.randline(leftstair.x, leftstair.y, rightstair.x, rightstair.y, 80)
 des.replace_terrain({ selection=path, --:percentage(75),
                       fromterrain='T', toterrain='.' })
 
@@ -96,7 +97,7 @@ end
 -- make "no item on top" a makemon flag
 dryspots = alllev:clone():filter_mapchar(".")
 for i=1,11 do
-   des.monster({ class="S", coord={dryspots:rndcoord(1)} })
+   des.monster({ class="S", coord=dryspots:rndcoord(1) })
 end
 if didwater then
    des.monster("giant eel")

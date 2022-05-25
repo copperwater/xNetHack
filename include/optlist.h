@@ -96,8 +96,13 @@ opt_##a,
                "message window alignment")
     NHOPTC(align_status, 20, opt_in, set_gameview, No, Yes, No, Yes, NoAlias,
                "status window alignment")
+#ifdef WIN32
     NHOPTC(altkeyhandling, 20, opt_in, set_in_game, No, Yes, No, Yes,
                "altkeyhandler", "alternative key handling")
+#else
+    NHOPTC(altkeyhandling, 20, opt_in, set_in_config, No, Yes, No, Yes,
+               "altkeyhandler", "(not applicable)")
+#endif
 #ifdef ALTMETA
     NHOPTB(altmeta, 0, opt_out, set_in_game, Off, Yes, No, No, NoAlias,
                &iflags.altmeta)
@@ -119,8 +124,11 @@ opt_##a,
            set_in_game, No, Yes, No, NoAlias, "edit autopickup exceptions")
     NHOPTB(autoquiver, 0, opt_in, set_in_game, Off, Yes, No, No, NoAlias,
                 &flags.autoquiver)
-    NHOPTB(autounlock, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,
-                &flags.autounlock)
+    NHOPTC(autounlock,
+                (sizeof "none" + sizeof "untrap" + sizeof "apply-key"
+                 + sizeof "kick" + sizeof "force" + 20),
+                opt_out, set_in_game, Yes, Yes, No, Yes, NoAlias,
+                "action to take when encountering locked door or chest")
 #if defined(MICRO) && !defined(AMIGA)
     NHOPTB(BIOS, 0, opt_in, set_in_config, Off, Yes, No, No, NoAlias,
                 &iflags.BIOS)
@@ -212,6 +220,8 @@ opt_##a,
                 &iflags.wc2_fullscreen)
     NHOPTC(gender, 8, opt_in, set_gameview, No, Yes, No, No, NoAlias,
                 "your starting gender (male or female)")
+    NHOPTC(glyph, 40, opt_in, set_in_game, No, Yes, Yes, No, NoAlias,
+                "set representation of a glyph to a unicode value and color")
     NHOPTB(goldX, 0, opt_in, set_in_game, Off, Yes, No, No, NoAlias,
                 &flags.goldX)
     NHOPTB(guicolor, 0, opt_out, set_in_game, On, Yes, No, No,  NoAlias,
@@ -235,6 +245,9 @@ opt_##a,
 #ifdef STATUS_HILITES
     NHOPTC(hilite_status, 13, opt_out, set_in_game, Yes, Yes, Yes, No, NoAlias,
                 "a status highlighting rule (can occur multiple times)")
+#else
+    NHOPTC(hilite_status, 13, opt_out, set_in_config, Yes, Yes, Yes, No,
+                NoAlias, "(not available)")
 #endif
     NHOPTB(hitpointbar, 0, opt_in, set_in_game, Off, Yes, No, No, NoAlias,
                 &iflags.wc2_hitpointbar)
@@ -321,7 +334,7 @@ opt_##a,
     NHOPTO("menu colors", o_menu_colors, BUFSZ, opt_in, set_in_game,
            No, Yes, No, NoAlias, "edit menu colors")
     NHOPTC(menuinvertmode, 5, opt_in, set_in_game, No, Yes, No, No, NoAlias,
-                "behaviour of menu iverts")
+                "experimental behaviour of menu inverts")
     NHOPTC(menustyle, MENUTYPELEN, opt_in, set_in_game, Yes, Yes, No, Yes,
                 NoAlias, "user interface for object selection")
     NHOPTO("message types", o_message_types, BUFSZ, opt_in, set_in_game,
@@ -334,7 +347,7 @@ opt_##a,
                 NoAlias, "list of symbols to use for monsters")
     NHOPTC(mouse_support, 0, opt_in, set_in_game, No, Yes, No, No, NoAlias,
                 "game receives click info from mouse")
-#if defined(TTY_GRAPHICS) || defined(CURSES_GRAPHICS)
+#if PREV_MSGS /* tty or curses */
     NHOPTC(msg_window, 1, opt_in, set_in_game, Yes, Yes, No, Yes, NoAlias,
                 "control of \"view previous message(s)\" (^P) behavior")
 #else
@@ -524,6 +537,8 @@ opt_##a,
                 &iflags.wc2_darkgray)
     NHOPTB(use_inverse, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,
                 &iflags.wc_inverse)
+    NHOPTB(use_truecolor, 0, opt_in, set_in_config, Off, Yes, No, No,
+                "use_truecolour", &iflags.use_truecolor)
     NHOPTC(vary_msgcount, 20, opt_in, set_gameview, No, Yes, No, No, NoAlias,
                 "show more old messages at a time")
     NHOPTB(verbose, 0, opt_out, set_in_game, On, Yes, No, No, NoAlias,

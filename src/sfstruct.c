@@ -172,6 +172,13 @@ bwrite(int fd, const genericptr_t loc, unsigned num)
     int idx = getidx(fd, NOFLG);
 
     if (idx >= 0) {
+        if (num == 0) {
+            /* nothing to do; we need a special case to exit early
+               because glibc fwrite doesn't give reliable
+               success/failure indication when writing 0 bytes */
+            return;
+        }
+
 #ifdef USE_BUFFERING
         if (bw_buffered[idx] && bw_FILE[idx]) {
             failed = (fwrite(loc, (int) num, 1, bw_FILE[idx]) != 1);
@@ -208,20 +215,21 @@ minit(void)
 void
 mread(int fd, genericptr_t buf, unsigned len)
 {
-    int rlen;
 #if defined(BSD) || defined(ULTRIX)
 #define readLenType int
 #else /* e.g. SYSV, __TURBOC__ */
 #define readLenType unsigned
 #endif
-
-    rlen = read(fd, buf, (readLenType) len);
+    readLenType rlen;
+        /* Not perfect, but we don't have ssize_t available. */
+    rlen = (readLenType) read(fd, buf, (readLenType) len);
     if ((readLenType) rlen != (readLenType) len) {
         if (restoreinfo.mread_flags == 1) { /* means "return anyway" */
             restoreinfo.mread_flags = -1;
             return;
         } else {
-            pline("Read %d instead of %u bytes.", rlen, len);
+            pline("Read %d instead of %u bytes.", (int) rlen, len);
+            display_nhwindow(WIN_MESSAGE, TRUE); /* flush before error() */
             if (g.program_state.restoring) {
                 (void) nhclose(fd);
                 (void) delete_savefile();

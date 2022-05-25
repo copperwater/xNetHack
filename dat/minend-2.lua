@@ -1,4 +1,4 @@
--- NetHack 3.7	mines.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.25 $
+-- NetHack mines minend-2.lua	$NHDT-Date: 1652196029 2022/05/10 15:20:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
 --	Copyright (c) 1989-95 by Jean-Christophe Collet
 --	Copyright (c) 1991-95 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -81,15 +81,15 @@ des.non_diggable(selection.area(53,14,61,14))
 des.engraving({12,03}, "engrave",
 	      "You are now entering the Gnome King's wine cellar.")
 des.engraving({12,04}, "engrave", "Trespassers will be persecuted!")
-des.object("booze", 10, 07)
-des.object("booze", 10, 07)
+des.object("potion of booze", 10, 07)
+des.object("potion of booze", 10, 07)
 des.object("!", 10, 07)
-des.object("booze", 10, 08)
-des.object("booze", 10, 08)
+des.object("potion of booze", 10, 08)
+des.object("potion of booze", 10, 08)
 des.object("!", 10, 08)
-des.object("booze", 10, 09)
-des.object("booze", 10, 09)
-des.object("object detection", 10, 09)
+des.object("potion of booze", 10, 09)
+des.object("potion of booze", 10, 09)
+des.object("potion of object detection", 10, 09)
 -- Objects
 -- The Treasure chamber...
 des.object("diamond", 69, 04)

@@ -1,4 +1,4 @@
--- NetHack 3.7	Arch.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.10 $
+-- NetHack Archeologist Arc-loca.lua	$NHDT-Date: 1652195999 2022/05/10 15:19:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -68,7 +68,7 @@ function pickonepoint(list)
    for i=1,#list do
       tmpsel:set(list[i][1], list[i][2])
    end
-   return {tmpsel:rndcoord()}
+   return tmpsel:rndcoord()
 end
 des.terrain({ coord = pickonepoint({{75,06},{74,07},{75,08}}), typ='S' }) -- door
 des.terrain({ coord = pickonepoint({{64,07},{66,07},{68,05}}), typ='S' }) -- door
@@ -96,7 +96,7 @@ end
 -- most of them will generate appropriate coordinates and a boulder.
 local bouldertraps = selection.area(60,16,65,18)
 for i=1,8 do
-   des.trap({ coord = {bouldertraps:rndcoord(1)}, type = "rolling boulder" })
+   des.trap({ coord = bouldertraps:rndcoord(1), type = "rolling boulder" })
 end
 
 -- Some loot.
@@ -166,7 +166,7 @@ for i=1,8 do
 end
 interior_spaces = selection.area(48,00,76,19):filter_mapchar('.')
 for i=1,11 do
-   des.trap({ coord = {interior_spaces:rndcoord(1)}, spider_on_web = false })
+   des.trap({ coord = interior_spaces:rndcoord(1), spider_on_web = false })
 end
 for i=1,d(3) do
    des.trap('fire')
@@ -210,12 +210,12 @@ des.monster({ id='human mummy', x=73, y=18, waiting=1 })
 -- Other monsters
 local valid_outside = outside:clone():filter_mapchar('.')
 for i=1,d(3,2) do
-   des.monster({ class='S', coord={valid_outside:rndcoord(1)} })
+   des.monster({ class='S', coord=valid_outside:rndcoord(1) })
 end
-des.monster({ class='f', coord={valid_outside:rndcoord(1)} })
-des.monster({ class='Y', coord={valid_outside:rndcoord(1)} })
+des.monster({ class='f', coord=valid_outside:rndcoord(1) })
+des.monster({ class='Y', coord=valid_outside:rndcoord(1) })
 for i=1,d(5) do
-   des.monster({ id='giant bat', coord={inside:rndcoord()} })
+   des.monster({ id='giant bat', coord=inside:rndcoord() })
 end
 
 -- Loot cache buried not very deep
@@ -234,4 +234,4 @@ for i=1,#statue_coords do
 end
 
 -- Treasure?
-des.engraving({ type="engrave", coord={outside:rndcoord()}, text="X marks the spot." })
+des.engraving({ type="engrave", coord=outside:rndcoord(), text="X marks the spot." })

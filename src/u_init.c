@@ -752,7 +752,7 @@ u_init(void)
         skill_init(Skill_K);
         break;
     case PM_MONK: {
-        static short M_spell[] = { SPE_HEALING, SPE_PROTECTION, SPE_SLEEP };
+        static short M_spell[] = { SPE_HEALING, SPE_PROTECTION, SPE_CONFUSE_MONSTER };
 
         Monk[M_BOOK].trotyp = M_spell[rn2(90) / 30]; /* [0..2] */
         ini_inv(Monk);
@@ -956,6 +956,11 @@ u_init(void)
         break;
     }
 
+    /* If we have at least one spell, force starting Pw to be enough,
+       so hero can cast the level 1 spell they should have */
+    if (num_spells() && (u.uenmax < SPELL_LEV_PW(1)))
+        u.uen = u.uenmax = u.uenpeak = u.ueninc[u.ulevel] = SPELL_LEV_PW(1);
+
     return;
 }
 
@@ -1024,6 +1029,7 @@ ini_inv(struct trobj *trop)
 {
     struct obj *obj;
     int otyp, i;
+    boolean got_sp1 = FALSE; /* got a level 1 spellbook? */
 
 	while (trop->trclass) {
         otyp = (int) trop->trotyp;
@@ -1067,7 +1073,7 @@ ini_inv(struct trobj *trop)
                       low level players or unbalancing; also
                       spells in restricted skill categories */
                    || (obj->oclass == SPBOOK_CLASS
-                       && (objects[otyp].oc_level > 3
+                       && (objects[otyp].oc_level > (got_sp1 ? 3 : 1)
                            || restricted_spell_discipline(otyp)))
                    || otyp == SPE_NOVEL
                    /* items that will be iron for elves (rings/wands perhaps)
@@ -1101,6 +1107,9 @@ ini_inv(struct trobj *trop)
             /* Don't have 2 of the same ring or spellbook */
             if (obj->oclass == RING_CLASS || obj->oclass == SPBOOK_CLASS)
                 g.nocreate4 = otyp;
+            /* First spellbook should be level 1 - did we get it? */
+            if (obj->oclass == SPBOOK_CLASS && objects[obj->otyp].oc_level == 1)
+                got_sp1 = TRUE;
         }
         /* Put post-creation object adjustments that don't depend on whether it
          * was UNDEF_TYP or not after this. */

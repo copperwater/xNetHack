@@ -1,4 +1,4 @@
--- NetHack 3.7	medusa.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.10 $
+-- NetHack medusa medusa-4.lua	$NHDT-Date: 1652196028 2022/05/10 15:20:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.6 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1990, 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -49,8 +49,8 @@ des.teleport_region({ region = {64,01,74,17}, dir="down" });
 des.teleport_region({ region = {02,02,18,13}, dir="up" });
 --
 des.levregion({ region = {67,01,74,20}, type="stair-up" });
-local mx, my = place:rndcoord(1);
-des.stair("down", mx, my)
+
+des.stair("down", place:rndcoord(1))
 --
 des.door("locked",04,06)
 des.door("locked",04,10)
@@ -66,8 +66,7 @@ des.non_diggable(selection.area(01,01,22,14));
 --
 des.object("crystal ball", 07,08)
 --
-local px, py = place:rndcoord(1);
-des.object({ id="statue",x=px, y=py, buc="uncursed",
+des.object({ id="statue",coord=place:rndcoord(1), buc="uncursed",
                       montype="knight", historic=1, male=1,name="Perseus",
                       contents = function()
                          if percent(75) then
@@ -100,7 +99,7 @@ for i=1,7 do
    des.trap()
 end
 --
-des.monster("Medusa", mx, my)
+des.monster("Medusa", place:rndcoord(1))
 des.monster("kraken", 07,07)
 --
 -- the nesting dragon

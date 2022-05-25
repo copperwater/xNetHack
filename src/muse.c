@@ -1,4 +1,4 @@
-/* NetHack 3.7	muse.c	$NHDT-Date: 1620329779 2021/05/06 19:36:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.143 $ */
+/* NetHack 3.7	muse.c	$NHDT-Date: 1646688066 2022/03/07 21:21:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.159 $ */
 /*      Copyright (C) 1990 by Ken Arromdee                         */
 /* NetHack may be freely redistributed.  See license for details.  */
 
@@ -486,7 +486,7 @@ find_defensive(struct monst* mtmp)
             /* skip if it's hero's location
                or a diagonal spot and monster can't move diagonally
                or some other monster is there */
-            if ((xx == u.ux && yy == u.uy)
+            if (u_at(xx, yy)
                 || (xx != x && yy != y && !diag_ok)
                 || (g.level.monsters[xx][yy] && !(xx == x && yy == y)))
                 continue;
@@ -529,7 +529,7 @@ find_defensive(struct monst* mtmp)
                     continue;
                 if ((mon = m_at(xx, yy)) != 0 && is_mercenary(mon->data)
                     && mon->data != &mons[PM_GUARD]
-                    && (mon->msleeping || !mon->mcanmove)) {
+                    && helpless(mon)) {
                     g.m.defensive = obj;
                     g.m.has_defense = MUSE_BUGLE;
                     goto toot; /* double break */
@@ -841,9 +841,8 @@ use_defensive(struct monst* mtmp)
              * the monster to know it teleported.
              */
             makeknown(SCR_CREATE_MONSTER);
-        else if (!objects[SCR_CREATE_MONSTER].oc_name_known
-                 && !objects[SCR_CREATE_MONSTER].oc_uname)
-            docall(otmp);
+        else
+            trycall(otmp);
         m_useup(mtmp, otmp);
         return 2;
     case MUSE_TRAPDOOR:
@@ -1477,7 +1476,7 @@ mbhit(
             case WAN_STRIKING:
                 destroy_drawbridge(x, y);
             }
-        if (g.bhitpos.x == u.ux && g.bhitpos.y == u.uy) {
+        if (u_at(g.bhitpos.x, g.bhitpos.y)) {
             (*fhitm)(&g.youmonst, obj);
             range -= 3;
         } else if ((mtmp = m_at(g.bhitpos.x, g.bhitpos.y)) != 0) {
@@ -1901,7 +1900,7 @@ find_misc(struct monst* mtmp)
                monster from attempting disarm every turn */
             && uwep && !rn2(5) && obj == MON_WEP(mtmp)
             /* hero's location must be known and adjacent */
-            && mtmp->mux == u.ux && mtmp->muy == u.uy
+            && u_at(mtmp->mux, mtmp->muy)
             && next2u(mtmp->mx, mtmp->my)
             /* don't bother if it can't work (this doesn't
                prevent cursed weapons from being targetted) */
@@ -2043,7 +2042,8 @@ mloot_container(
         container->cknown = 0; /* hero no longer knows container's contents
                                 * even if [attempted] removal is observed */
         if (!*contnr_nam) {
-            /* xname sets dknown, distant_name doesn't */
+            /* xname sets dknown, distant_name might depending on its own
+               idea about nearness */
             Strcpy(contnr_nam, an(nearby ? xname(container)
                                          : distant_name(container, xname)));
         }
@@ -2125,9 +2125,7 @@ use_misc(struct monst* mtmp)
                 if (vismon) {
                     pline("%s rises up, through the %s!", Monnam(mtmp),
                           ceiling(mtmp->mx, mtmp->my));
-                    if (!objects[POT_GAIN_LEVEL].oc_name_known
-                        && !objects[POT_GAIN_LEVEL].oc_uname)
-                        docall(otmp);
+                    trycall(otmp);
                 }
                 m_useup(mtmp, otmp);
                 migrate_to_level(mtmp, ledger_no(&tolevel), MIGR_RANDOM,
@@ -2137,9 +2135,7 @@ use_misc(struct monst* mtmp)
  skipmsg:
                 if (vismon) {
                     pline("%s looks uneasy.", Monnam(mtmp));
-                    if (!objects[POT_GAIN_LEVEL].oc_name_known
-                        && !objects[POT_GAIN_LEVEL].oc_uname)
-                        docall(otmp);
+                    trycall(otmp);
                 }
                 m_useup(mtmp, otmp);
                 return 2;
@@ -2608,7 +2604,7 @@ munstone(struct monst* mon, boolean by_you)
 
     if (resists_ston(mon))
         return FALSE;
-    if (mon->meating || !mon->mcanmove || mon->msleeping)
+    if (mon->meating || helpless(mon))
         return FALSE;
     mon->mstrategy &= ~STRAT_WAITFORU;
 
@@ -2646,10 +2642,9 @@ mon_consume_unstone(
 
         obj->quan = 1L;
         pline("%s %s %s.", Monnam(mon),
-              (obj->oclass == POTION_CLASS)
-                  ? "quaffs"
-                  : (obj->otyp == TIN) ? "opens and eats the contents of"
-                                       : "eats",
+              ((obj->oclass == POTION_CLASS) ? "quaffs"
+               : (obj->otyp == TIN) ? "opens and eats the contents of"
+                 : "eats"),
               distant_name(obj, doname));
         obj->quan = save_quan;
     } else if (!Deaf)
@@ -2763,7 +2758,7 @@ munslime(struct monst* mon, boolean by_you)
 
     if (slimeproof(mptr))
         return FALSE;
-    if (mon->meating || !mon->mcanmove || mon->msleeping)
+    if (mon->meating || helpless(mon))
         return FALSE;
     mon->mstrategy &= ~STRAT_WAITFORU;
 
@@ -2858,9 +2853,7 @@ muse_unslime(
                       !grounded(mon->data) ? "over" : "onto",
                       trap->tseen ? "the" : "a");
         }
-        /* hack to avoid mintrap()'s chance of avoiding known trap */
-        mon->mtrapseen &= ~(1 << (FIRE_TRAP - 1));
-        (void) mintrap(mon);
+        (void) mintrap(mon, FORCETRAP);
     } else if (otyp == STRANGE_OBJECT) {
         /* monster is using fire breath on self */
         if (vis)
@@ -2874,10 +2867,9 @@ muse_unslime(
         if (mon->mconf) {
             if (cansee(mon->mx, mon->my))
                 pline("Oh, what a pretty fire!");
-            if (vis && !objects[otyp].oc_name_known
-                && !objects[otyp].oc_uname)
-                docall(obj);
-            m_useup(mon, obj); /* after docall() */
+            if (vis)
+                trycall(obj);
+            m_useup(mon, obj); /* after trycall() */
             vis = FALSE;       /* skip makeknown() below */
             res = FALSE;       /* failed to cure sliming */
         } else {

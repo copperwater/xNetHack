@@ -1,4 +1,4 @@
--- NetHack 3.7	Priest.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.11 $
+-- NetHack Priest Pri-strt.lua	$NHDT-Date: 1652196009 2022/05/10 15:20:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -90,8 +90,7 @@ des.monster("acolyte", 33, 12)
 des.non_diggable(selection.area(18,03,55,16))
 -- Random traps
 for i = 1, 2 do
-   local x,y = spacelocs:rndcoord(1);
-   des.trap("dart",x,y)
+   des.trap("dart", spacelocs:rndcoord(1))
 end
 des.trap()
 des.trap()
@@ -99,6 +98,5 @@ des.trap()
 des.trap()
 -- Monsters on siege duty.
 for i = 1, 12 do
-   local x,y = spacelocs:rndcoord(1);
-   des.monster("human zombie", x, y);
+   des.monster("human zombie", spacelocs:rndcoord(1));
 end

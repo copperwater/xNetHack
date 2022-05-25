@@ -744,11 +744,12 @@ init_dungeons(void)
     struct proto_dungeon pd;
     struct level_map *lev_map;
     int tidx;
+    nhl_sandbox_info sbi = {NHL_SB_SAFE, 0, 0, 0};
 
     (void) memset(&pd, 0, sizeof (struct proto_dungeon));
     pd.n_levs = pd.n_brs = 0;
 
-    L = nhl_init();
+    L = nhl_init(&sbi);	/* private Lua state for this function */
     if (!L) {
         panic1("'nhl_init' failed; can't continue.");
         /*NOTREACHED*/
@@ -2495,8 +2496,7 @@ donamelevel(void)
     /* add new annotation, unless it's all spaces (which will be an
        empty string after mungspaces() above) */
     if (*nbuf && strcmp(nbuf, " ")) {
-        mptr->custom = dupstr(nbuf);
-        mptr->custom_lth = strlen(mptr->custom);
+        mptr->custom = dupstr_n(nbuf,&mptr->custom_lth);
     }
     return ECMD_OK;
 }
@@ -2898,7 +2898,7 @@ recalc_mapseen(void)
      */
     for (x = 1; x < COLNO; x++) {
         for (y = 0; y < ROWNO; y++) {
-            if (cansee(x, y) || (x == u.ux && y == u.uy && !Levitation)) {
+            if (cansee(x, y) || (u_at(x, y) && !Levitation)) {
                 ltyp = levl[x][y].typ;
                 if (ltyp == DRAWBRIDGE_UP)
                     ltyp = db_under_typ(levl[x][y].drawbridgemask);

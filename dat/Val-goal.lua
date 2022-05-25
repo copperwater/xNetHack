@@ -1,4 +1,4 @@
--- NetHack 3.7	Valkyrie.des	$NHDT-Date: 1553807172 2019/03/28 21:06:12 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.15 $
+-- NetHack Valkyrie Val-goal.lua	$NHDT-Date: 1652196017 2022/05/10 15:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -89,7 +89,7 @@ local outsidefloor = outside:filter_mapchar('.')
 
 -- Obligatory random boulders
 for i=1,10+d(3) do
-   des.object({ id='boulder', coord={outsidefloor:rndcoord()} })
+   des.object({ id='boulder', coord=outsidefloor:rndcoord() })
 end
 
 ---- Nemesis
@@ -115,7 +115,7 @@ function giant_generator(species, sel)
    -- gives it some item.
    -- If species is 'H', makes random H, if set, makes an H of that species.
    template = { class = 'H',
-                coord = {sel:filter_mapchar('.'):rndcoord()},
+                coord = sel:filter_mapchar('.'):rndcoord(),
                 peaceful = 0,
                 waiting = 1,
                 inventory = function()

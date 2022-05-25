@@ -1,4 +1,4 @@
-/* NetHack 3.7	allmain.c	$NHDT-Date: 1644517022 2022/02/10 18:17:02 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.174 $ */
+/* NetHack 3.7	allmain.c	$NHDT-Date: 1646136934 2022/03/01 12:15:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.178 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -81,6 +81,7 @@ moveloop_preamble(boolean resuming)
     g.context.botlx = TRUE; /* for STATUS_HILITES */
     if (resuming) { /* restoring old game */
         read_engr_at(u.ux, u.uy); /* subset of pickup() */
+        fix_shop_damage();
     }
 
     (void) encumber_msg(); /* in case they auto-picked up something */
@@ -408,7 +409,7 @@ moveloop_core(void)
            inventory may have changed in, e.g., nh_timeout(); we do
            need two checks here so that the player gets feedback
            immediately if their own action encumbered them */
-        encumber_msg();
+        (void) encumber_msg();
 
 #ifdef STATUS_HILITES
         if (iflags.hilite_delta)
@@ -516,8 +517,7 @@ moveloop_core(void)
         }
         if (g.context.mv) {
             if (g.multi < COLNO && !--g.multi)
-                g.context.travel = g.context.travel1 = g.context.mv =
-                    g.context.run = 0;
+                end_running(TRUE);
             domove();
         } else {
             --g.multi;
@@ -742,7 +742,7 @@ newgame(void)
                        * any artifacts */
     u_init();
 
-    l_nhcore_init();
+    l_nhcore_init();	/* create a Lua state that lasts until the end of the game */
     reset_glyphmap(gm_newgame);
 #ifndef NO_SIGNAL
     (void) signal(SIGINT, (SIG_RET_TYPE) done1);
@@ -843,8 +843,8 @@ welcome(boolean new_game) /* false => restoring an old game */
         pline("xNetHack is filmed in front of an undead studio audience.");
 
     l_nhcore_call(new_game ? NHCORE_START_NEW_GAME : NHCORE_RESTORE_OLD_GAME);
-    if (new_game)
-        livelog_printf(LL_MINORAC, "%s the%s entered the dungeon",
+    if (new_game) /* guarantee that 'major' event category is never empty */
+        livelog_printf(LL_ACHIEVE, "%s the%s entered the dungeon",
                        g.plname, buf);
 }
 
@@ -911,7 +911,10 @@ static const struct early_opt earlyopts[] = {
     {ARG_SHOWPATHS, "showpaths", 9, FALSE},
 #ifndef NODUMPENUMS
     {ARG_DUMPENUMS, "dumpenums", 9, FALSE},
+#ifdef ENHANCED_SYMBOLS
+    {ARG_DUMPGLYPHIDS, "dumpglyphids", 12, FALSE},
 #endif
+#endif /* NODUMPENUMS */
 #ifdef WIN32
     {ARG_WINDOWS, "windows", 4, TRUE},
 #endif
@@ -927,7 +930,6 @@ extern int windows_early_options(const char *);
  *    1 = found and skip past this argument
  *    2 = found and trigger immediate exit
  */
-
 int
 argcheck(int argc, char *argv[], enum earlyarg e_arg)
 {
@@ -940,7 +942,7 @@ argcheck(int argc, char *argv[], enum earlyarg e_arg)
         if (earlyopts[idx].e == e_arg)
             break;
     }
-    if ((idx >= SIZE(earlyopts)) || (argc <= 1))
+    if (idx >= SIZE(earlyopts) || argc < 1)
         return FALSE;
 
     for (i = 0; i < argc; ++i) {
@@ -996,7 +998,13 @@ argcheck(int argc, char *argv[], enum earlyarg e_arg)
             dump_enums();
             return 2;
         }
+#ifdef ENHANCED_SYMBOLS
+        case ARG_DUMPGLYPHIDS: {
+            dump_glyphids();
+            return 2;
+        }
 #endif
+#endif /* NODUMPENUMS */
 #ifdef WIN32
         case ARG_WINDOWS: {
             if (extended_opt) {
@@ -1089,6 +1097,17 @@ timet_delta(time_t etim, time_t stim) /* end and start times */
 }
 
 #ifndef NODUMPENUMS
+#define DUMP_ENUMS
+struct enum_dump monsdump[] = {
+#include "monsters.h"
+        { NUMMONS, "NUMMONS" },
+};
+struct enum_dump objdump[] = {
+#include "objects.h"
+        { NUM_OBJECTS, "NUM_OBJECTS" },
+};
+#undef DUMP_ENUMS
+
 void
 dump_enums(void)
 {
@@ -1101,21 +1120,6 @@ dump_enums(void)
     };
     static const char *const titles[NUM_ENUM_DUMPS] =
         { "monnums", "objects_nums" , "misc_object_nums" };
-    struct enum_dump {
-        int val;
-        const char *nm;
-    };
-
-#define DUMP_ENUMS
-    struct enum_dump monsdump[] = {
-#include "monsters.h"
-        { NUMMONS, "NUMMONS" },
-    };
-    struct enum_dump objdump[] = {
-#include "objects.h"
-        { NUM_OBJECTS, "NUM_OBJECTS" },
-    };
-#undef DUMP_ENUMS
 
     struct enum_dump omdump[] = {
             { LAST_GEM, "LAST_GEM" },
@@ -1141,6 +1145,14 @@ dump_enums(void)
     }
     raw_print("");
 }
+
+#ifdef ENHANCED_SYMBOLS
+void
+dump_glyphids(void)
+{
+    dump_all_glyphids(stdout);
+}
+#endif /* ENHANCED_SYMBOLS */
 #endif /* NODUMPENUMS */
 
 /*allmain.c*/

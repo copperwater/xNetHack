@@ -1,4 +1,4 @@
-/* NetHack 3.7	music.c	$NHDT-Date: 1596498191 2020/08/03 23:43:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.69 $ */
+/* NetHack 3.7	music.c	$NHDT-Date: 1646688067 2022/03/07 21:21:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.77 $ */
 /*      Copyright (c) 1989 by Jean-Christophe Collet */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -297,12 +297,10 @@ do_earthquake(int force)
                     pline_The("kitchen sink falls%s.", into_a_chasm);
                 goto do_pit;
             case ALTAR:
-                /* always preserve the high altars */
-                if (Is_astralevel(&u.uz) || Is_sanctum(&u.uz))
-                    break;
-                /* no need to check for high altar here; we've just
-                   excluded those */
                 amsk = altarmask_at(x, y);
+                /* always preserve the high altars */
+                if ((amsk & AM_SANCTUM) != 0)
+                    break;
                 algn = Amask2align(amsk & AM_MASK);
                 if (cansee(x, y))
                     pline_The("%s altar falls%s.",
@@ -354,7 +352,7 @@ do_earthquake(int force)
                 if ((otmp = sobj_at(BOULDER, x, y)) != 0) {
                     if (cansee(x, y))
                         pline("KADOOM!  The boulder falls into a chasm%s!",
-                              (x == u.ux && y == u.uy) ? " below you" : "");
+                              u_at(x, y) ? " below you" : "");
                     if (mtmp)
                         mtmp->mtrapped = 0;
                     obj_extract_self(otmp);
@@ -396,7 +394,7 @@ do_earthquake(int force)
                             }
                         }
                     }
-                } else if (x == u.ux && y == u.uy) {
+                } else if (u_at(x, y)) {
                     if (u.utrap && u.utraptype == TT_BURIEDBALL) {
                         /* Note:  the chain should break if a pit gets
                            created at the buried ball's location, which
@@ -708,7 +706,7 @@ do_play_instrument(struct obj* instr)
                 || instr->otyp == TOOLED_HORN || instr->otyp == FROST_HORN
                 || instr->otyp == FIRE_HORN || instr->otyp == BUGLE)
                && !can_blow(&g.youmonst)) {
-        You("are incapable of playing %s.", the(distant_name(instr, xname)));
+        You("are incapable of playing %s.", thesimpleoname(instr));
         return ECMD_OK;
     }
     if (instr->otyp != LEATHER_DRUM && instr->otyp != DRUM_OF_EARTHQUAKE
@@ -751,28 +749,30 @@ do_play_instrument(struct obj* instr)
             if (!strcmp(buf, g.tune)) {
                 /* Search for the drawbridge */
                 for (y = u.uy - 2; y <= u.uy + 2; y++)
-                    for (x = u.ux - 2; x <= u.ux + 2; x++)
-                        if (isok(x, y))
-                            if (find_drawbridge(&x, &y)) {
-                                /* tune now fully known */
-                                u.uevent.uheard_tune = 2;
-                                if (levl[x][y].typ == DRAWBRIDGE_DOWN) {
-                                    if (!rn2(5)) {
-                                        /* Future improvement: if flags is ever
-                                         * expanded beyond 5 bits, could set a
-                                         * bit here to make the mechanism
-                                         * continue to be stuck until some
-                                         * condition is met, such as
-                                         * opening/closing magic used on it */
-                                        pline("The mechanism seems to get jammed.");
-                                        pline("It won't close.");
-                                    }
-                                    close_drawbridge(x, y);
+                    for (x = u.ux - 2; x <= u.ux + 2; x++) {
+                        if (!isok(x, y))
+                            continue;
+                        if (find_drawbridge(&x, &y)) {
+                            /* tune now fully known */
+                            u.uevent.uheard_tune = 2;
+                            record_achievement(ACH_TUNE);
+                            if (levl[x][y].typ == DRAWBRIDGE_DOWN) {
+                                if (!rn2(5)) {
+                                    /* Future improvement: if flags is ever
+                                     * expanded beyond 5 bits, could set a bit
+                                     * here to make the mechanism continue to be
+                                     * stuck until some condition is met, such
+                                     * as opening/closing magic used on it */
+                                    pline("The mechanism seems to get jammed.");
+                                    pline("It won't close.");
                                 }
-                                else
-                                    open_drawbridge(x, y);
-                                return ECMD_TIME;
+                                close_drawbridge(x, y);
                             }
+                            else
+                                open_drawbridge(x, y);
+                            return ECMD_TIME;
+                        }
+                    }
             } else if (!Deaf) {
                 if (u.uevent.uheard_tune < 1)
                     u.uevent.uheard_tune = 1;
@@ -822,8 +822,10 @@ do_play_instrument(struct obj* instr)
                         /* could only get `gears == 5' by playing five
                            correct notes followed by excess; otherwise,
                            tune would have matched above */
-                        if (gears == 5)
+                        if (gears == 5) {
                             u.uevent.uheard_tune = 2;
+                            record_achievement(ACH_TUNE);
+                        }
                     }
                 }
             }

@@ -1,4 +1,4 @@
--- NetHack 3.7	Monk.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
+-- NetHack Monk Mon-fila.lua	$NHDT-Date: 1652196006 2022/05/10 15:20:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -13,23 +13,23 @@ des.replace_terrain({ region={00,00,79,20}, fromterrain="g", toterrain="T", chan
 -- Stairs on opposite edges of the level
 local leftedge = selection.line(01,00, 01,21)
 local rightedge = selection.line(77,00, 77,21)
-local leftstair = { leftedge:rndcoord() }
-local rightstair = { rightedge:rndcoord() }
+local leftstair = leftedge:rndcoord()
+local rightstair = rightedge:rndcoord()
 
 -- A few rivers running across top to bottom
 -- TODO: sort the x and y coordinates so they probably won't intersect
 local topedge = selection.line(01,00, 77,01)
 local botedge = selection.line(01,20, 77,21)
 for i=1,math.random(1,3) do
-   local topx, dummy = topedge:rndcoord()
-   local botx, dummy = botedge:rndcoord()
-   local river = selection.randline(topx, 0, botx, 21, 8)
+   local toppt = topedge:rndcoord()
+   local botpt = botedge:rndcoord()
+   local river = selection.randline(toppt.x, 0, botpt.x, 21, 8)
    des.terrain(river, "}")
 end
 
 -- make a path from one stair to the other
-local lstairy = leftstair[2]
-local rstairy = rightstair[2]
+local lstairy = leftstair.y
+local rstairy = rightstair.y
 local path = selection.randline(1, lstairy, 77, rstairy, 20)
 des.terrain(path, ".")
 

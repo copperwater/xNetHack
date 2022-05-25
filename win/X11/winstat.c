@@ -1,4 +1,4 @@
-/* NetHack 3.7	winstat.c	$NHDT-Date: 1641763638 2022/01/09 21:27:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.35 $ */
+/* NetHack 3.7	winstat.c	$NHDT-Date: 1649269127 2022/04/06 18:18:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.37 $ */
 /* Copyright (c) Dean Luick, 1992				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1485,7 +1485,7 @@ update_val(struct X_status_value *attr_rec, long new_value)
                        rank_of(u.ulevel, g.pl_character[0], flags.female));
 
         } else if (attr_rec == &shown_stats[F_DLEVEL]) {
-            if (!describe_level(buf)) {
+            if (!describe_level(buf, 0)) {
                 Strcpy(buf, g.dungeons[u.uz.dnum].dname);
                 Sprintf(eos(buf), ", level %d", depth(&u.uz));
             }
@@ -1993,12 +1993,17 @@ check_turn_events(void)
 {
     int i;
     struct X_status_value *sv;
+    int hilight_time = 1;
 
+#ifdef STATUS_HILITES
+    if (iflags.hilite_delta)
+        hilight_time = (int) iflags.hilite_delta;
+#endif
     for (sv = shown_stats, i = 0; i < NUM_STATS; i++, sv++) {
         if (!sv->set)
             continue;
 
-        if (sv->turn_count++ >= iflags.hilite_delta) {
+        if (sv->turn_count++ >= hilight_time) {
             /* unhighlights by toggling a highlighted item back off again,
                unless forced inverted by a status_hilite rule */
             if (!sv->inverted_hilite) {

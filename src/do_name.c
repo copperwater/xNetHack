@@ -1,4 +1,4 @@
-/* NetHack 3.7	do_name.c	$NHDT-Date: 1644347168 2022/02/08 19:06:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.231 $ */
+/* NetHack 3.7	do_name.c	$NHDT-Date: 1652637698 2022/05/15 18:01:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.249 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -21,8 +21,6 @@ static void truncate_to_map(int *, int *, schar, schar);
 static void do_mgivenname(void);
 static boolean alreadynamed(struct monst *, char *, char *);
 static void do_oname(struct obj *);
-static int name_ok(struct obj *);
-static int call_ok(struct obj *);
 static char *docall_xname(struct obj *);
 static void namefloorobj(void);
 
@@ -447,8 +445,7 @@ gather_locs(coord **arr_p, int *cnt_p, int gloc)
     for (pass = 0; pass < 2; pass++) {
         for (x = 1; x < COLNO; x++)
             for (y = 0; y < ROWNO; y++) {
-                if ((x == u.ux && y == u.uy)
-                    || gather_locs_interesting(x, y, gloc)) {
+                if (u_at(x, y) || gather_locs_interesting(x, y, gloc)) {
                     if (!pass) {
                         ++*cnt_p;
                     } else {
@@ -687,11 +684,12 @@ getpos(coord *ccp, boolean force, const char *goal)
         NHKF_GETPOS_VALID_NEXT,
         NHKF_GETPOS_VALID_PREV
     };
+    struct _cmd_queue cq, *cmdq;
     char pick_chars[6];
     char mMoOdDxX[13];
     int result = 0;
     int cx, cy, i, c;
-    int sidx, tx, ty;
+    int sidx, tx = u.ux, ty = u.uy;
     boolean msg_given = TRUE; /* clear message window by default */
     boolean show_goal_msg = FALSE;
     boolean hilite_state = FALSE;
@@ -701,6 +699,21 @@ getpos(coord *ccp, boolean force, const char *goal)
     schar udx = u.dx, udy = u.dy, udz = u.dz;
     int dx, dy;
     boolean rushrun = FALSE;
+
+    /* temporary? if we have a queued direction, return the adjacent spot
+       in that direction */
+    if ((cmdq = cmdq_pop()) != 0) {
+        cq = *cmdq;
+        free((genericptr_t) cmdq);
+        if (cq.typ == CMDQ_DIR && !cq.dirz) {
+            ccp->x = u.ux + cq.dirx;
+            ccp->y = u.uy + cq.diry;
+        } else {
+            cmdq_clear();
+            result = -1;
+        }
+        return result;
+    }
 
     for (i = 0; i < SIZE(pick_chars_def); i++)
         pick_chars[i] = g.Cmd.spkeys[pick_chars_def[i].nhkf];
@@ -916,8 +929,7 @@ getpos(coord *ccp, boolean force, const char *goal)
                         || c == (int) g.showsyms[sidx]
                         /* have '^' match webs and vibrating square or any
                            other trap that uses something other than '^' */
-                        || (c == '^' && (is_cmap_trap(sidx)
-                                         || sidx == S_vibrating_square)))
+                        || (c == '^' && is_cmap_trap(sidx)))
                         matching[sidx] = (char) ++k;
                 }
                 if (k) {
@@ -1165,7 +1177,7 @@ do_mgivenname(void)
         return;
     cx = cc.x, cy = cc.y;
 
-    if (cx == u.ux && cy == u.uy) {
+    if (u_at(cx, cy)) {
         if (u.usteed && canspotmon(u.usteed)) {
             mtmp = u.usteed;
         } else {
@@ -1214,7 +1226,7 @@ do_mgivenname(void)
         if (!alreadynamed(mtmp, monnambuf, buf))
             pline("%s doesn't like being called names!", upstart(monnambuf));
     } else if (mtmp->isshk
-               && !(Deaf || mtmp->msleeping || !mtmp->mcanmove
+               && !(Deaf || helpless(mtmp)
                     || mtmp->data->msound <= MS_ANIMAL)) {
         if (!alreadynamed(mtmp, monnambuf, buf))
             verbalize("I'm %s, not %s.", shkname(mtmp), buf);
@@ -1232,7 +1244,7 @@ do_mgivenname(void)
  * allocates a replacement object, so that old risk is gone.
  */
 static void
-do_oname(register struct obj *obj)
+do_oname(struct obj *obj)
 {
     char buf[BUFSZ], qbuf[QBUFSZ];
     const char *aname;
@@ -1267,7 +1279,8 @@ do_oname(register struct obj *obj)
      */
 
     /* relax restrictions over proper capitalization for artifacts */
-    if ((aname = artifact_name(buf, &objtyp)) != 0 && objtyp == obj->otyp)
+    if ((aname = artifact_name(buf, &objtyp, TRUE)) != 0
+        && objtyp == obj->otyp)
         Strcpy(buf, aname);
 
     if (obj->oartifact) {
@@ -1280,9 +1293,7 @@ do_oname(register struct obj *obj)
               is_plural(obj) ? "them" : "it");
         display_nhwindow(WIN_MESSAGE, FALSE);
     }
-    ++g.via_naming; /* This ought to be an argument rather than a static... */
-    obj = oname(obj, buf);
-    --g.via_naming; /* ...but oname() is used in a lot of places, so defer. */
+    obj = oname(obj, buf, ONAME_VIA_NAMING | ONAME_KNOW_ARTI);
     if (obj->oartifact) {
         /* assumes that you can only change the name of items in inventory */
         u.uconduct.artitouch++;
@@ -1349,28 +1360,32 @@ weapon_oname(struct obj *wpn)
         const char* ttname = tt_name();
         if (ttname) {
             Strcpy(nbuf, ttname);
-            Sprintf(buf, "%s of %s", up_all_words(basename), upstart(nbuf));
-            return oname(wpn, buf);
+            Sprintf(buf, "%s of %s", upwords(basename), upstart(nbuf));
+            return oname(wpn, buf, ONAME_NO_FLAGS);
         }
         /* if a name couldn't be found, fall through to default */
     }
     const char* name = wpn_names[rn2(SIZE(wpn_names))];
     if (strstri(name, "%s")) {
-        Sprintf(buf, name, up_all_words(basename));
-        return oname(wpn, buf);
+        Sprintf(buf, name, upwords(basename));
+        return oname(wpn, buf, ONAME_NO_FLAGS);
     }
     else {
-        return oname(wpn, name);
+        return oname(wpn, name, ONAME_NO_FLAGS);
     }
 }
 
 RESTORE_WARNING_FORMAT_NONLITERAL
 
 struct obj *
-oname(struct obj *obj, const char *name)
+oname(
+    struct obj *obj,  /* item to assign name to */
+    const char *name, /* name to assign */
+    unsigned oflgs)   /* flags for artifact creation; otherwise ignored */
 {
     int lth;
     char buf[PL_PSIZ];
+    boolean via_naming = (oflgs & ONAME_VIA_NAMING) != 0;
 
     lth = *name ? (int) (strlen(name) + 1) : 0;
     if (lth > PL_PSIZ) {
@@ -1379,9 +1394,9 @@ oname(struct obj *obj, const char *name)
         buf[PL_PSIZ - 1] = '\0';
     }
     /* If named artifact exists in the game, do not create another.
-     * Also trying to create an artifact shouldn't de-artifact
-     * it (e.g. Excalibur from prayer). In this case the object
-     * will retain its current name. */
+       Also trying to create an artifact shouldn't de-artifact
+       it (e.g. Excalibur from prayer). In this case the object
+       will retain its current name. */
     if (obj->oartifact || (lth && exist_artifact(obj->otyp, name)))
         return obj;
 
@@ -1390,7 +1405,7 @@ oname(struct obj *obj, const char *name)
         Strcpy(ONAME(obj), name);
 
     if (lth)
-        artifact_exists(obj, name, TRUE);
+        artifact_exists(obj, name, TRUE, oflgs);
     if (obj->oartifact) {
         /* can't dual-wield with artifact as secondary weapon */
         if (obj == uswapwep)
@@ -1401,7 +1416,7 @@ oname(struct obj *obj, const char *name)
         /* if obj is owned by a shop, increase your bill */
         if (obj->unpaid)
             alter_cost(obj, 0L);
-        if (g.via_naming) {
+        if (via_naming) {
             livelog_printf(LL_ARTIFACT,
                            "chose %s to be named \"%s\"",
                            ansimpleoname(obj), bare_artifactname(obj));
@@ -1436,8 +1451,9 @@ oname(struct obj *obj, const char *name)
              * naming an existing object, but prevent all other forms of getting
              * a irregular-material artifact (wishing, dipping for Excalibur or
              * getting it via crowning from an existing long sword) */
-            if (!g.via_naming)
+            if (!via_naming)
                 set_material(obj, objects[obj->otyp].oc_material);
+            break;
         }
     }
     if (carried(obj))
@@ -1452,11 +1468,21 @@ objtyp_is_callable(int i)
         return TRUE;
 
     switch(objects[i].oc_class) {
+    case AMULET_CLASS:
+        /* 3.7: calling these used to be allowed but that enabled the
+           player to tell whether two unID'd amulets of yendor were both
+           fake or one was real by calling them distinct names and then
+           checking discoveries to see whether first name was replaced
+           by second or both names stuck; with more than two available
+           to work with, if they weren't all fake it was possible to
+           determine which one was the real one */
+        if (i == AMULET_OF_YENDOR || i == FAKE_AMULET_OF_YENDOR)
+            break; /* return FALSE */
+        /*FALLTHRU*/
     case SCROLL_CLASS:
     case POTION_CLASS:
     case WAND_CLASS:
     case RING_CLASS:
-    case AMULET_CLASS:
     case GEM_CLASS:
     case SPBOOK_CLASS:
     case ARMOR_CLASS:
@@ -1472,17 +1498,20 @@ objtyp_is_callable(int i)
 }
 
 /* getobj callback for object to name (specific item) - anything but gold */
-static int
+int
 name_ok(struct obj *obj)
 {
     if (!obj || obj->oclass == COIN_CLASS)
         return GETOBJ_EXCLUDE;
 
+    if (!obj->dknown || obj->oartifact || obj->otyp == SPE_NOVEL)
+        return GETOBJ_DOWNPLAY;
+
     return GETOBJ_SUGGEST;
 }
 
 /* getobj callback for object to call (name its type) */
-static int
+int
 call_ok(struct obj *obj)
 {
     if (!obj || !objtyp_is_callable(obj->otyp))
@@ -1499,10 +1528,20 @@ docallcmd(void)
     winid win;
     anything any;
     menu_item *pick_list = 0;
-    char ch;
+    struct _cmd_queue cq, *cmdq;
+    char ch = 0;
     /* if player wants a,b,c instead of i,o when looting, do that here too */
     boolean abc = flags.lootabc;
 
+    if ((cmdq = cmdq_pop()) != 0) {
+        cq = *cmdq;
+        free((genericptr_t) cmdq);
+        if (cq.typ == CMDQ_KEY)
+            ch = cq.key;
+        else
+            cmdq_clear();
+        goto docallcmd;
+    }
     win = create_nhwindow(NHW_MENU);
     start_menu(win, MENU_BEHAVE_STANDARD);
     any = cg.zeroany;
@@ -1541,6 +1580,7 @@ docallcmd(void)
         ch = 'q';
     destroy_nhwindow(win);
 
+ docallcmd:
     switch (ch) {
     default:
     case 'q':
@@ -1564,7 +1604,7 @@ docallcmd(void)
             if (!obj->dknown) {
                 You("would never recognize another one.");
 #if 0
-            } else if (!call_ok(obj)) {
+            } else if (call_ok(obj) == GETOBJ_EXCLUDE) {
                 You("know those as well as you ever will.");
 #endif
             } else {
@@ -1683,7 +1723,7 @@ namefloorobj(void)
               ? "over" : "under");
     if (getpos(&cc, FALSE, buf) < 0 || cc.x <= 0)
         return;
-    if (cc.x == u.ux && cc.y == u.uy) {
+    if (u_at(cc.x, cc.y)) {
         obj = vobj_at(u.ux, u.uy);
     } else {
         glyph = glyph_at(cc.x, cc.y);
@@ -1694,7 +1734,7 @@ namefloorobj(void)
     if (!obj) {
         /* "under you" is safe here since there's no object to hide under */
         pline("There doesn't seem to be any object %s.",
-              (cc.x == u.ux && cc.y == u.uy) ? "under you" : "there");
+              u_at(cc.x, cc.y) ? "under you" : "there");
         return;
     }
     /* note well: 'obj' might be an instance of STRANGE_OBJECT if target
@@ -1731,7 +1771,7 @@ namefloorobj(void)
         pline("%s %s to call you \"%s.\"",
               The(buf), use_plural ? "decide" : "decides",
               unames[rn2_on_display_rng(SIZE(unames))]);
-    } else if (!call_ok(obj)) {
+    } else if (call_ok(obj) == GETOBJ_EXCLUDE) {
         pline("%s %s can't be assigned a type name.",
               use_plural ? "Those" : "That", buf);
     } else if (!obj->dknown) {
@@ -1853,7 +1893,7 @@ x_monnam(
 
     /* priests and minions: don't even use this function */
     if (mtmp->ispriest || mtmp->isminion) {
-        char priestnambuf[BUFSZ];
+        char priestnambuf[BUFSZ] = DUMMY;
         char *name;
         long save_prop = EHalluc_resistance;
         unsigned save_invis = mtmp->minvis;
@@ -2304,9 +2344,22 @@ obj_pmname(struct obj *obj)
         int cgend = (obj->spe & CORPSTAT_GENDER),
             mgend = ((cgend == CORPSTAT_MALE) ? MALE
                      : (cgend == CORPSTAT_FEMALE) ? FEMALE
-                       : NEUTRAL);
+                       : NEUTRAL),
+            mndx = obj->corpsenm;
 
-        return pmname(&mons[obj->corpsenm], mgend);
+        /* mons[].pmnames[] for monster cleric uses "priest" or "priestess"
+           or "aligned cleric"; we want to avoid "aligned cleric [corpse]"
+           unless it has been explicitly flagged as neuter rather than
+           defaulting to random (which fails male or female check above);
+           role monster cleric uses "priest" or "priestess" or "cleric"
+           without "aligned" prefix so we switch to that; [can't force
+           random gender to be chosen here because splitting a stack of
+           corpses could cause the split-off portion to change gender, so
+           settle for avoiding "aligned"] */
+        if (mndx == PM_ALIGNED_CLERIC && cgend == CORPSTAT_RANDOM)
+            mndx = PM_CLERIC;
+
+        return pmname(&mons[mndx], mgend);
     }
     return "two-legged glorkum-seeker";
 }

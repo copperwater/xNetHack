@@ -24,6 +24,12 @@ extern void msmsg(const char *, ...);
 #endif
 #endif
 
+#ifdef MSDOS
+#ifdef ENHANCED_SYMBOLS
+#undef ENHANCED_SYMBOLS
+#endif
+#endif /* MSDOS */
+
 #ifndef NO_TERMS
 #include "tcap.h"
 #endif
@@ -74,7 +80,7 @@ extern void msmsg(const char *, ...);
  */
 #define HUPSKIP() \
     do {                                        \
-        if (g.program_state.done_hup) {           \
+        if (g.program_state.done_hup) {         \
             morc = '\033';                      \
             return;                             \
         }                                       \
@@ -82,7 +88,7 @@ extern void msmsg(const char *, ...);
     /* morc=ESC - in case we bypass xwaitforspace() which sets that */
 #define HUPSKIP_RESULT(RES) \
     do {                                        \
-        if (g.program_state.done_hup)             \
+        if (g.program_state.done_hup)           \
             return (RES);                       \
     } while (0)
 #else /* !HANGUP_HANDLING */
@@ -97,7 +103,7 @@ struct window_procs tty_procs = {
 #ifdef MSDOS
      | WC_TILED_MAP | WC_ASCII_MAP
 #endif
-#if defined(WIN32CON)
+#if defined(WIN32)
      | WC_MOUSE_SUPPORT
 #endif
      | WC_COLOR | WC_HILITE_PET | WC_INVERSE | WC_EIGHT_BIT_IN),
@@ -109,7 +115,12 @@ struct window_procs tty_procs = {
      | WC2_HILITE_STATUS | WC2_HITPOINTBAR | WC2_FLUSH_STATUS
      | WC2_RESET_STATUS
 #endif
-     | WC2_DARKGRAY | WC2_SUPPRESS_HIST | WC2_URGENT_MESG | WC2_STATUSLINES),
+     | WC2_DARKGRAY | WC2_SUPPRESS_HIST | WC2_URGENT_MESG | WC2_STATUSLINES)
+     | WC2_U_UTF8STR
+#if !defined(NO_TERMS) || defined(WIN32)
+     | WC2_U_24BITCOLOR
+#endif
+    ,
 #ifdef TEXTCOLOR
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, /* color availability */
 #else
@@ -118,7 +129,8 @@ struct window_procs tty_procs = {
     tty_init_nhwindows, tty_player_selection, tty_askname, tty_get_nh_event,
     tty_exit_nhwindows, tty_suspend_nhwindows, tty_resume_nhwindows,
     tty_create_nhwindow, tty_clear_nhwindow, tty_display_nhwindow,
-    tty_destroy_nhwindow, tty_curs, tty_putstr, genl_putmixed,
+    tty_destroy_nhwindow, tty_curs, tty_putstr,
+    tty_putmixed,
     tty_display_file, tty_start_menu, tty_add_menu, tty_end_menu,
     tty_select_menu, tty_message_menu, tty_update_inventory, tty_mark_synch,
     tty_wait_synch,
@@ -159,6 +171,7 @@ struct DisplayDesc *ttyDisplay; /* the tty display descriptor */
 
 extern void cmov(int, int);   /* from termcap.c */
 extern void nocmov(int, int); /* from termcap.c */
+
 #if defined(UNIX) || defined(VMS)
 static char obuf[BUFSIZ]; /* BUFSIZ is defined in stdio.h */
 #endif
@@ -204,8 +217,8 @@ static void set_item_state(winid, int, tty_menu_item *);
 static void set_all_on_page(winid, tty_menu_item *, tty_menu_item *);
 static void unset_all_on_page(winid, tty_menu_item *, tty_menu_item *);
 static void invert_all_on_page(winid, tty_menu_item *, tty_menu_item *,
-                               char);
-static void invert_all(winid, tty_menu_item *, tty_menu_item *, char);
+                               char, long);
+static void invert_all(winid, tty_menu_item *, tty_menu_item *, char, long);
 static void toggle_menu_attr(boolean, int, int);
 static void process_menu_window(winid, struct WinDesc *);
 static void process_text_window(winid, struct WinDesc *);
@@ -230,6 +243,9 @@ static void shrink_dlvl(int);
 #if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
 static void status_sanity_check(void);
 #endif /* NH_DEVEL_STATUS */
+#endif
+#ifdef ENHANCED_SYMBOLS
+void g_pututf8(uint8 *utf8str);
 #endif
 
 /*
@@ -442,6 +458,7 @@ tty_init_nhwindows(int *argcp UNUSED, char **argv UNUSED)
     /* set up tty descriptor */
     ttyDisplay = (struct DisplayDesc *) alloc(sizeof (struct DisplayDesc));
     ttyDisplay->toplin = TOPLINE_EMPTY;
+    ttyDisplay->topl_utf8 = 0;  /* putmixed may set this */
     ttyDisplay->rows = hgt;
     ttyDisplay->cols = wid;
     ttyDisplay->curx = ttyDisplay->cury = 0;
@@ -1108,10 +1125,11 @@ reset_role_filtering(void)
 
 /* add entries a-Archeologist, b-Barbarian, &c to menu being built in 'win' */
 static void
-setup_rolemenu(winid win,
-               boolean filtering, /*  True => exclude filtered roles;
-                                     False => filter reset */
-               int race, int gend, int algn) /* all ROLE_NONE for !filtering case */
+setup_rolemenu(
+    winid win,
+    boolean filtering, /* True => exclude filtered roles;
+                        * False => filter reset */
+    int race, int gend, int algn) /* all ROLE_NONE for !filtering case */
 {
     anything any;
     int i;
@@ -1685,9 +1703,15 @@ tty_clear_nhwindow(winid window)
 
 RESTORE_WARNING_FORMAT_NONLITERAL
 
+/* toggle a specific entry */
 static boolean
-toggle_menu_curr(winid window, tty_menu_item *curr, int lineno,
-                 boolean in_view, boolean counting, long count)
+toggle_menu_curr(
+    winid window,
+    tty_menu_item *curr,
+    int lineno,
+    boolean in_view,
+    boolean counting,
+    long count)
 {
     if (curr->selected) {
         if (counting && count > 0) {
@@ -1731,8 +1755,9 @@ toggle_menu_curr(winid window, tty_menu_item *curr, int lineno,
 }
 
 static void
-dmore(register struct WinDesc *cw,
-      const char *s) /* valid responses */
+dmore(
+    struct WinDesc *cw,
+    const char *s) /* valid responses */
 {
     const char *prompt = cw->morestr ? cw->morestr : defmorestr;
     int offset = (cw->type == NHW_TEXT) ? 1 : 2;
@@ -1750,8 +1775,13 @@ dmore(register struct WinDesc *cw,
     xwaitforspace(s);
 }
 
+/* change screen display for selection state of an item;
+   not used or wanted for items that aren't shown by the current page */
 static void
-set_item_state(winid window, int lineno, tty_menu_item *item)
+set_item_state(
+    winid window,
+    int lineno,
+    tty_menu_item *item)
 {
     char ch = item->selected ? (item->count == -1L ? '+' : '#') : '-';
 
@@ -1763,88 +1793,119 @@ set_item_state(winid window, int lineno, tty_menu_item *item)
     term_end_attr(item->attr);
 }
 
+/* select all [ignores pending count, if any] */
 static void
-set_all_on_page(winid window, tty_menu_item *page_start,
-                tty_menu_item *page_end)
-{
-    tty_menu_item *curr;
-    int n;
-
-    for (n = 0, curr = page_start; curr != page_end; n++, curr = curr->next)
-        if (curr->identifier.a_void && !curr->selected) {
-            curr->selected = TRUE;
-            set_item_state(window, n, curr);
-        }
-}
-
-static void
-unset_all_on_page(winid window, tty_menu_item *page_start,
-                  tty_menu_item *page_end)
-{
-    tty_menu_item *curr;
-    int n;
-
-    for (n = 0, curr = page_start; curr != page_end; n++, curr = curr->next)
-        if (curr->identifier.a_void && curr->selected) {
-            curr->selected = FALSE;
-            curr->count = -1L;
-            set_item_state(window, n, curr);
-        }
-}
-
-static void
-invert_all_on_page(winid window, tty_menu_item *page_start,
-                   tty_menu_item *page_end,
-                   char acc) /* group accelerator, 0 => all */
+set_all_on_page(
+    winid window,
+    tty_menu_item *page_start,
+    tty_menu_item *page_end)
 {
     tty_menu_item *curr;
     int n;
 
     for (n = 0, curr = page_start; curr != page_end; n++, curr = curr->next) {
-        if (!menuitem_invert_test(0, curr->itemflags, curr->selected))
+        if (!curr->identifier.a_void /* not selectable */
+            || curr->selected /* already selected */
+            || !menuitem_invert_test(1, curr->itemflags, FALSE))
             continue;
-
-        if (curr->identifier.a_void && (acc == 0 || curr->gselector == acc)) {
-            if (curr->selected) {
-                curr->selected = FALSE;
-                curr->count = -1L;
-            } else
-                curr->selected = TRUE;
-            set_item_state(window, n, curr);
-        }
+        curr->selected = TRUE;
+        set_item_state(window, n, curr);
     }
 }
 
-/*
- * Invert all entries that match the give group accelerator (or all if zero).
- */
+/* unselect all */
 static void
-invert_all(winid window, tty_menu_item *page_start,
-           tty_menu_item *page_end,
-           char acc) /* group accelerator, 0 => all */
+unset_all_on_page(
+    winid window,
+    tty_menu_item *page_start,
+    tty_menu_item *page_end)
+{
+    tty_menu_item *curr;
+    int n;
+
+    for (n = 0, curr = page_start; curr != page_end; n++, curr = curr->next) {
+        if (!curr->identifier.a_void /* skip if not selectable */
+            || !curr->selected /* skip if already de-selected */
+            || !menuitem_invert_test(2, curr->itemflags, TRUE))
+            continue;
+        curr->selected = FALSE;
+        curr->count = -1L;
+        set_item_state(window, n, curr);
+    }
+}
+
+/* invert current page */
+static void
+invert_all_on_page(
+    winid window,
+    tty_menu_item *page_start,
+    tty_menu_item *page_end,
+    char acc, /* group accelerator, 0 => all */
+    long count) /* pending count; -1L for non-group toggling */
+{
+    tty_menu_item *curr;
+    int n;
+
+    for (n = 0, curr = page_start; curr != page_end; n++, curr = curr->next) {
+        if (!curr->identifier.a_void /* not selectable */
+            || (acc ? curr->gselector != acc /* skip if not group 'acc' */
+                /* inverting all rather than a group; skip if flagged */
+                : !menuitem_invert_test(0, curr->itemflags, curr->selected)))
+            continue;
+
+        if (curr->selected) {
+            curr->selected = FALSE;
+            curr->count = -1L;
+        } else {
+            curr->selected = TRUE;
+            if (count > 0)
+                curr->count = count;
+        }
+        set_item_state(window, n, curr);
+    }
+}
+
+/* invert all entries that match given group accelerator (or all if zero) */
+static void
+invert_all(
+    winid window,
+    tty_menu_item *page_start,
+    tty_menu_item *page_end,
+    char acc, /* group accelerator, 0 => all */
+    long count) /* pending count; -1L for non-group toggling */
 {
     tty_menu_item *curr;
     boolean on_curr_page;
     struct WinDesc *cw = wins[window];
 
-    invert_all_on_page(window, page_start, page_end, acc);
+    /* handle current page separately (it will need screen updating) */
+    invert_all_on_page(window, page_start, page_end, acc, count);
 
-    /* invert the rest */
+    /* invert the rest (no screen updating for them) */
     for (on_curr_page = FALSE, curr = cw->mlist; curr; curr = curr->next) {
         if (curr == page_start)
             on_curr_page = TRUE;
         else if (curr == page_end)
             on_curr_page = FALSE;
 
-        if (!on_curr_page && curr->identifier.a_void
-            && (acc == 0 || curr->gselector == acc)) {
-            if (menuitem_invert_test(0, curr->itemflags, curr->selected)) {
-                if (curr->selected) {
-                    curr->selected = FALSE;
-                    curr->count = -1;
-                } else
-                curr->selected = TRUE;
-            }
+        /* skip if on current page (already handled above) or not
+           selectable (header line or similar) or if group toggling
+           is taking place and this item isn't in specified group or
+           group toggling is not taking place and this item is off
+           limits to bulk toggling (assumes that an item won't be
+           both in a group and also subject to bulk restrictions) */
+        if (on_curr_page || !curr->identifier.a_void
+            || (acc ? curr->gselector != acc
+                : !menuitem_invert_test(0, curr->itemflags, curr->selected)))
+            continue;
+
+        if (curr->selected) {
+            curr->selected = FALSE;
+            curr->count = -1;
+        } else {
+            curr->selected = TRUE;
+            if (count > 0)
+                curr->count = count;
         }
     }
 }
@@ -1929,7 +1990,7 @@ process_menu_window(winid window, struct WinDesc *cw)
         HUPSKIP();
         if (reset_count) {
             counting = FALSE;
-            count = 0;
+            count = 0L;
         } else
             reset_count = TRUE;
 
@@ -2055,7 +2116,7 @@ process_menu_window(winid window, struct WinDesc *cw)
             xwaitforspace(resp);
         }
 
-        really_morc = morc; /* (only used with MENU_EXPLICIT_CHOICE */
+        really_morc = morc; /* (only used with MENU_EXPLICIT_CHOICE) */
         if ((rp = index(resp, morc)) != 0 && rp < resp + resp_len)
             /* explicit menu selection; don't override it if it also
                happens to match a mapped menu command (such as ':' to
@@ -2152,29 +2213,46 @@ process_menu_window(winid window, struct WinDesc *cw)
             break;
         case MENU_INVERT_PAGE:
             if (cw->how == PICK_ANY)
-                invert_all_on_page(window, page_start, page_end, 0);
+                invert_all_on_page(window, page_start, page_end, 0, -1L);
             break;
         case MENU_SELECT_ALL:
             if (cw->how == PICK_ANY) {
+                /* entries on the current page need screen updating */
                 set_all_on_page(window, page_start, page_end);
-                /* set the rest */
-                for (curr = cw->mlist; curr; curr = curr->next)
-                    if (curr->identifier.a_void && !curr->selected)
-                        curr->selected = TRUE;
-            }
+                /* set the rest; entries on current page will be skipped
+                   because all of those will be 'already selected' now
+                   (some won't be if they failed menuitem_invert_test()
+                   in set_all_on_page() but those will fail it again here) */
+                for (curr = cw->mlist; curr; curr = curr->next) {
+                    if (!curr->identifier.a_void /* not selectable */
+                        || curr->selected /* already selected */
+                        /* FALSE: not currently selected */
+                        || !menuitem_invert_test(1, curr->itemflags, FALSE))
+                        continue;
+                    curr->selected = TRUE;
+                }
+            } /* if PICK_ANY */
             break;
         case MENU_UNSELECT_ALL:
+            /* entries on the current page need screen updating */
             unset_all_on_page(window, page_start, page_end);
-            /* unset the rest */
-            for (curr = cw->mlist; curr; curr = curr->next)
-                if (curr->identifier.a_void && curr->selected) {
-                    curr->selected = FALSE;
-                    curr->count = -1;
-                }
+            /* unset the rest; entries on current page will be skipped
+               because none of those will still be in 'selected' state
+               (unless they failed the menuitem_invert_test() in
+               unset_all_on_page() but those will fail it again here) */
+            for (curr = cw->mlist; curr; curr = curr->next) {
+                if (!curr->identifier.a_void /* not selectable */
+                    || !curr->selected /* already de-selected */
+                    /* TRUE: currently selected */
+                    || !menuitem_invert_test(2, curr->itemflags, TRUE))
+                    continue;
+                curr->selected = FALSE;
+                curr->count = -1;
+            }
             break;
         case MENU_INVERT_ALL:
             if (cw->how == PICK_ANY)
-                invert_all(window, page_start, page_end, 0);
+                invert_all(window, page_start, page_end, 0, -1L);
             break;
         case MENU_SEARCH:
             if (cw->how == PICK_NONE) {
@@ -2221,7 +2299,8 @@ process_menu_window(winid window, struct WinDesc *cw)
  group_accel:
                 /* group accelerator; for the PICK_ONE case, we know that
                    it matches exactly one item in order to be in gacc[] */
-                invert_all(window, page_start, page_end, morc);
+                invert_all(window, page_start, page_end, morc,
+                           counting ? count : -1L);
                 if (cw->how == PICK_ONE)
                     finished = TRUE;
                 break;
@@ -2292,9 +2371,16 @@ process_text_window(winid window, struct WinDesc *cw)
                  ) {
                 /* message recall for msg_window:full/combination/reverse
                    might have output from '/' in it (see redotoplin()) */
-                if (linestart && (*cp & 0x80) != 0) {
-                    g_putch(*cp);
-                    end_glyphout();
+                if (linestart) {
+                    if (SYMHANDLING(H_UTF8)) {
+                        /* FIXME: what is actually in that line? is it the \GNNNNNNNN or UTF-8? */
+                        g_putch(*cp);
+                    } else if ((*cp & 0x80) != 0) {
+                        g_putch(*cp);
+                        end_glyphout();
+                    } else {
+                        (void) putchar(*cp);
+                    }
                     linestart = FALSE;
                 } else {
                     (void) putchar(*cp);
@@ -2986,7 +3072,7 @@ tty_add_menu(winid window,  /* window to use, must be of type NHW_MENU */
     item->selector = ch;
     item->gselector = gch;
     item->attr = attr;
-    item->str = dupstr(newstr ? newstr : "");
+    item->str = dupstr(newstr);
 
     item->next = cw->mlist;
     cw->mlist = item;
@@ -3315,8 +3401,11 @@ g_putch(int in_ch)
     register char ch = (char) in_ch;
 
     HUPSKIP();
+
 #if defined(ASCIIGRAPH) && !defined(NO_TERMS)
-    if (SYMHANDLING(H_IBM)
+    if (SYMHANDLING(H_UTF8)) {
+        (void) putchar(ch);
+    } else if (SYMHANDLING(H_IBM)
         /* for DECgraphics, lower-case letters with high bit set mean
            switch character set and render with high bit clear;
            user might want 8-bits for other characters */
@@ -3346,6 +3435,19 @@ g_putch(int in_ch)
     return;
 }
 #endif /* !WIN32 */
+
+#if defined(ENHANCED_SYMBOLS) && defined(UNIX)
+void
+g_pututf8(uint8 *utf8str)
+{
+    HUPSKIP();
+    while (*utf8str) {
+        (void) putchar(*utf8str);
+        utf8str++;
+    }
+    return;
+}
+#endif /* ENHANCED_SYMBOLS && UNIX */
 
 #ifdef CLIPPING
 void
@@ -3403,9 +3505,13 @@ tty_print_glyph(winid window, xchar x, xchar y,
 #endif
                 const glyph_info *bkglyphinfo UNUSED)
 {
-    boolean inverse_on = FALSE, underline_on = FALSE;
+    boolean inverse_on = FALSE, underline_on = FALSE,
+            colordone = FALSE, glyphdone = FALSE;
     int ch, color;
     unsigned special;
+#ifdef ENHANCED_SYMBOLS
+    boolean color24bit_on = FALSE;
+#endif
 
     HUPSKIP();
 #ifdef CLIPPING
@@ -3416,7 +3522,7 @@ tty_print_glyph(winid window, xchar x, xchar y,
 #endif
     /* get glyph ttychar, color, and special flags */
     ch = glyphinfo->ttychar;
-    color = glyphinfo->gm.color;
+    color = glyphinfo->gm.sym.color;
     special = glyphinfo->gm.glyphflags;
 
     print_vt_code2(AVTC_SELECT_WINDOW, window);
@@ -3432,23 +3538,30 @@ tty_print_glyph(winid window, xchar x, xchar y,
         backsp();
     }
 #endif
-
+    if (iflags.use_color) {
 #ifdef TEXTCOLOR
-    if (iflags.wizmgender && (special & MG_FEMALE) && iflags.use_inverse) {
-        if (ttyDisplay->color != NO_COLOR)
-            term_end_color();
-        term_start_attr(ATR_INVERSE);
-        inverse_on = TRUE;
-        ttyDisplay->color = CLR_RED;
-        term_start_color(ttyDisplay->color);
-    } else if (color != ttyDisplay->color) {
-        if (ttyDisplay->color != NO_COLOR)
-            term_end_color();
-        ttyDisplay->color = color;
-        if (color != NO_COLOR)
-            term_start_color(color);
-    }
+        if (color != ttyDisplay->color) {
+            if (ttyDisplay->color != NO_COLOR)
+                term_end_color();
+        }
+#endif
+#ifdef ENHANCED_SYMBOLS
+        /* we don't link with termcap.o if NO_TERMS is defined */
+        if ((tty_procs.wincap2 & WC2_U_24BITCOLOR) && SYMHANDLING(H_UTF8)
+            && glyphinfo->gm.u && glyphinfo->gm.u->ucolor) {
+            term_start_24bitcolor(glyphinfo->gm.u);
+            color24bit_on = TRUE;
+            colordone = TRUE;
+        }
+#endif
+#ifdef TEXTCOLOR
+        if (!colordone) {
+            ttyDisplay->color = color;
+            if (color != NO_COLOR)
+                term_start_color(color);
+	}
 #endif /* TEXTCOLOR */
+    }   /* iflags.use_color aka iflags.wc_color */
 
     /* must be after color check; term_end_color may turn off inverse too;
        BW_LAVA and BW_ICE won't ever be set when color is on;
@@ -3475,28 +3588,43 @@ tty_print_glyph(winid window, xchar x, xchar y,
 #endif /* TEXTCOLOR */
 
 #if defined(USE_TILES) && defined(MSDOS)
-    if (iflags.grmode && iflags.tile_view)
+    if (iflags.grmode && iflags.tile_view) {
         xputg(glyphinfo);
-    else
+        glyphdone = TRUE;
+    }
 #endif
+#ifdef ENHANCED_SYMBOLS
+    if (!glyphdone
+        && (tty_procs.wincap2 & WC2_U_UTF8STR) && SYMHANDLING(H_UTF8)
+            && glyphinfo->gm.u && glyphinfo->gm.u->utf8str) {
+        /* we have a sequence to do */
+        g_pututf8(glyphinfo->gm.u->utf8str);
+        glyphdone = TRUE;
+    }
+#endif
+    if (!glyphdone)
         g_putch(ch); /* print the character */
 
     if (underline_on) {
         term_end_attr(ATR_ULINE);
     }
-    if (inverse_on) {
+    if (inverse_on)
         term_end_attr(ATR_INVERSE);
+    if (iflags.use_color) {
 #ifdef TEXTCOLOR
         /* turn off color as well, turning off ATR_INVERSE may have done
-           this already and if so, we won't know the current state unless
-           we do it explicitly */
+          this already and if so, we won't know the current state unless
+          we do it explicitly */
         if (ttyDisplay->color != NO_COLOR) {
             term_end_color();
             ttyDisplay->color = NO_COLOR;
         }
 #endif
+#ifdef ENHANCED_SYMBOLS
+        if (color24bit_on)
+            term_end_24bitcolor();
+#endif
     }
-
     print_vt_code1(AVTC_GLYPH_END);
 
     wins[window]->curx++; /* one character over */
@@ -3651,6 +3779,31 @@ tty_update_positionbar(char *posbar)
 }
 #endif /* POSITIONBAR */
 
+void
+tty_putmixed(winid window, int attr, const char *str)
+{
+    struct WinDesc *cw;
+    char buf[BUFSZ];
+#ifdef ENHANCED_SYMBOLS
+    int utf8flag = 0;
+#endif
+
+    if (window == WIN_ERR || (cw = wins[window]) == (struct WinDesc *) 0) {
+        tty_raw_print(str);
+        return;
+    }
+#ifdef ENHANCED_SYMBOLS
+    if ((windowprocs.wincap2 & WC2_U_UTF8STR) && SYMHANDLING(H_UTF8)) {
+        mixed_to_utf8(buf, sizeof buf, str, &utf8flag);
+        if (cw->type == NHW_MESSAGE)
+            ttyDisplay->topl_utf8 = utf8flag;
+    } else
+#endif
+        decode_mixed(buf, str);
+    /* now send it to the normal tty_putstr */
+    tty_putstr(window, attr, buf);
+    ttyDisplay->topl_utf8 = 0;
+}
 
 /*
  * +------------------+

@@ -1,4 +1,4 @@
--- NetHack 3.7	medusa.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.10 $
+-- NetHack medusa medusa-3.lua	$NHDT-Date: 1652196028 2022/05/10 15:20:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1990, 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -36,6 +36,8 @@ place:set(08,06);
 place:set(66,05);
 place:set(46,15);
 
+local medloc = place:rndcoord(1);
+
 des.region(selection.area(00,00,74,19),"lit")
 -- fixup_special hack: the first room defined on a Medusa level gets some
 -- leaderboard statues, use arrival_room to force it to be a room even though
@@ -53,18 +55,16 @@ des.non_diggable(selection.area(44,13,48,17))
 -- restricting the placement when teleporting from levels below this.
 des.teleport_region({ region = {33,02,38,07}, dir="down" })
 des.levregion({ region = {32,01,39,07}, type="stair-up" });
-local mx, my = place:rndcoord(1);
-des.stair("down", mx, my)
+
+des.stair("down", medloc);
 des.door("locked",08,08)
 des.door("locked",64,05)
 des.door("random",50,13)
 des.door("locked",48,15)
 --
-local px, py = place:rndcoord(1);
-des.feature("fountain", px,py);
+des.feature("fountain", place:rndcoord(1));
 --
-local px, py = place:rndcoord(1);
-des.object({ id="statue",x=px, y=py, buc="uncursed",
+des.object({ id="statue", coord=place:rndcoord(1), buc = "uncursed",
                       montype="knight", historic=1, male=1,name="Perseus",
                       contents = function()
                          if percent(75) then
@@ -93,8 +93,8 @@ des.object({ id = "statue", contents=0 })
 for i=1,8 do
    des.object()
 end
-des.object("blank paper",48,18)
-des.object("blank paper",48,18)
+des.object("scroll of blank paper",48,18)
+des.object("scroll of blank paper",48,18)
 --
 des.trap("rust")
 des.trap("rust")
@@ -102,7 +102,7 @@ des.trap("board")
 des.trap("board")
 des.trap()
 --
-des.monster({ id = "Medusa", x=mx, y=my, asleep=1 })
+des.monster({ id = "Medusa", coord=medloc, asleep=1 })
 des.monster("giant eel")
 des.monster("giant eel")
 des.monster("jellyfish")

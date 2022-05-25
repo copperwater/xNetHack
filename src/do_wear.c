@@ -1,4 +1,4 @@
-/* NetHack 3.7	do_wear.c	$NHDT-Date: 1605578866 2020/11/17 02:07:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.136 $ */
+/* NetHack 3.7	do_wear.c	$NHDT-Date: 1650875489 2022/04/25 08:31:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.156 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -27,11 +27,11 @@ static int Armor_on(void);
 static int Cloak_on(void);
 static int Helmet_on(void);
 static int Gloves_on(void);
-static void wielding_corpse(struct obj *, boolean);
 static int Shield_on(void);
 static int Shirt_on(void);
 static void Amulet_on(void);
 static void learnring(struct obj *, boolean);
+static void adjust_attrib(struct obj *, int, int);
 static void Ring_off_or_gone(struct obj *, boolean);
 static int select_off(struct obj *);
 static struct obj *do_takeoff(void);
@@ -88,10 +88,10 @@ on_msg(struct obj *otmp)
    give feedback and discover it iff stealth state is changing */
 static
 void
-toggle_stealth(struct obj *obj,
-               long oldprop, /* prop[].extrinsic, with obj->owornmask
-                                stripped by caller */
-               boolean on)
+toggle_stealth(
+    struct obj *obj,
+    long oldprop, /* prop[].extrinsic, with obj->owornmask pre-stripped */
+    boolean on)
 {
     if (on ? g.initial_don : g.context.takeoff.cancelled_don)
         return;
@@ -587,34 +587,50 @@ Gloves_on(void)
     return 0;
 }
 
-static void
-wielding_corpse(struct obj *obj,
-                boolean voluntary) /* taking gloves off on purpose? */
+/* check for wielding cockatrice corpse after taking off gloves or yellow
+   dragon scales/mail or having temporary stoning resistance time out */
+void
+wielding_corpse(
+    struct obj *obj,   /* uwep, potentially a wielded cockatrice corpse */
+    struct obj *how,   /* gloves or dragon armor or Null (resist timeout) */
+    boolean voluntary) /* True: taking protective armor off on purpose */
 {
-    char kbuf[BUFSZ];
-
-    if (!obj || obj->otyp != CORPSE)
+    if (!obj || obj->otyp != CORPSE || uarmg)
         return;
+    /* note: can't dual-wield with non-weapons/weapon-tools so u.twoweap
+       will always be false if uswapwep happens to be a corpse */
     if (obj != uwep && (obj != uswapwep || !u.twoweap))
         return;
 
     if (touch_petrifies(&mons[obj->corpsenm]) && !Stone_resistance) {
-        You("now wield %s in your bare %s.",
+        char kbuf[BUFSZ], hbuf[BUFSZ];
+
+        You("%s %s in your bare %s.",
+            (how && is_gloves(how)) ? "now wield" : "are wielding",
             corpse_xname(obj, (const char *) 0, CXN_ARTICLE),
             makeplural(body_part(HAND)));
-        Sprintf(kbuf, "%s gloves while wielding %s",
-                voluntary ? "removing" : "losing", killer_xname(obj));
+        /* "removing" ought to be "taking off" but that makes the
+           tombstone text more likely to be truncated */
+        if (how)
+            Sprintf(hbuf, "%s %s", voluntary ? "removing" : "losing",
+                    is_gloves(how) ? gloves_simple_name(how)
+                    : strsubst(simpleonames(how), "set of ", ""));
+        else
+            Strcpy(hbuf, "resistance timing out");
+        Snprintf(kbuf, sizeof kbuf, "%s while wielding %s",
+                 hbuf, killer_xname(obj));
         instapetrify(kbuf);
-        if (!Hallucination) {
-            /* life-saved; can't continue wielding cockatrice corpse though */
+        if (!Hallucination && !Stone_resistance)
+            /* life-saved or got poly'd into a stone golem; can't continue
+               wielding cockatrice corpse unless have now become resistant */
             remove_worn_item(obj, FALSE);
-        }
     }
 }
 
 int
 Gloves_off(void)
 {
+    struct obj *gloves = uarmg; /* needed after uarmg has been set to Null */
     long oldprop =
         u.uprops[objects[uarmg->otyp].oc_oprop].extrinsic & ~WORN_GLOVES;
     boolean on_purpose = !g.context.mon_moving && !uarmg->in_use;
@@ -651,21 +667,25 @@ Gloves_off(void)
     if (Glib)
         make_glib(0); /* for update_inventory() */
 
-    /* prevent wielding cockatrice when not wearing gloves */
-    if (uwep && uwep->otyp == CORPSE)
-        wielding_corpse(uwep, on_purpose);
-
     /* you may now be touching some material you hate */
-    if (uwep)
+    if (uwep) {
         retouch_object(&uwep, FALSE, FALSE); /* would be protectable by gloves
                                                 normally, but this is
                                                 Gloves_off()... */
-
+        /* prevent wielding cockatrice when not wearing gloves */
+        if (uwep->otyp == CORPSE)
+            wielding_corpse(uwep, gloves, on_purpose);
+    }
     /* KMH -- ...or your secondary weapon when you're wielding it
-       [This case can't actually happen; twoweapon mode won't
-       engage if a corpse has been set up as the alternate weapon.] */
+       [This case can't actually happen; twoweapon mode won't engage
+       if a corpse has been set up as either the primary or alternate
+       weapon.  If it could happen and /both/ uwep and uswapwep could
+       be cockatrice corpses, life-saving for the first would need to
+       prevent the second from being fatal since conceptually they'd
+       be being touched simultaneously.] */
     if (u.twoweap && uswapwep && uswapwep->otyp == CORPSE)
-        wielding_corpse(uswapwep, on_purpose);
+        wielding_corpse(uswapwep, gloves, on_purpose);
+
     if (condtests[bl_bareh].enabled)
         g.context.botl = 1;
 
@@ -693,7 +713,7 @@ Shield_on(void)
     default:
         impossible(unknown_type, c_shield, uarms->otyp);
     }
-    if (uarms) /* no known instance of !uarmgs here but play it safe */
+    if (uarms) /* no known instance of !uarms here but play it safe */
         uarms->known = 1; /* shield's +/- evident because of status line AC */
     return 0;
 }
@@ -760,9 +780,12 @@ Shirt_off(void)
     return 0;
 }
 
-/* handle extra abilities for hero wearing dragon-scaled armor */
+/* handle extra abilities for hero wearing dragon scale armor */
 void
-dragon_armor_handling(struct obj *otmp, boolean puton)
+dragon_armor_handling(
+    struct obj *otmp,   /* armor being put on or taken off */
+    boolean puton,      /* True: on, False: off */
+    boolean on_purpose) /* voluntary removal; not applicable for putting on */
 {
     /* xNetHack note: as of first merging this behavior in from NetHack 3.7,
      * this only happens on dragon-scaled body armor - NOT scales worn in the
@@ -823,6 +846,11 @@ dragon_armor_handling(struct obj *otmp, boolean puton)
             EStone_resistance |= W_ARM;
         } else {
             EStone_resistance &= ~W_ARM;
+
+            /* prevent wielding cockatrice after losing stoning resistance
+               when not wearing gloves; the uswapwep case is always a no-op */
+            wielding_corpse(uwep, otmp, on_purpose);
+            wielding_corpse(uswapwep, otmp, on_purpose);
         }
         break;
     case WHITE_DRAGON_SCALES:
@@ -845,7 +873,9 @@ Armor_on(void)
     if (!uarm) /* no known instances of !uarm here but play it safe */
         return 0;
     uarm->known = 1; /* suit's +/- evident because of status line AC */
-    dragon_armor_handling(uarm, TRUE);
+    dragon_armor_handling(uarm, TRUE, TRUE);
+    /* gold DSM requires special handling since it emits light when worn;
+       do that after the special armor handling */
     toggle_armor_light(uarm, TRUE);
     return 0;
 }
@@ -860,9 +890,13 @@ Armor_off(void)
     setworn((struct obj *) 0, W_ARM);
     g.context.takeoff.cancelled_don = FALSE;
 
-    if (was_arti_light)
+    /* taking off yellow dragon scales/mail might be fatal; arti_light
+       comes from gold dragon scales/mail so they don't overlap, but
+       conceptually the non-fatal change should be done before the
+       potentially fatal change in case the latter results in bones */
+    if (was_arti_light && !artifact_light(otmp))
         toggle_armor_light(otmp, FALSE);
-    dragon_armor_handling(otmp, FALSE);
+    dragon_armor_handling(otmp, FALSE, TRUE);
     return 0;
 }
 
@@ -882,13 +916,17 @@ Armor_gone(void)
     setnotworn(uarm);
     g.context.takeoff.cancelled_don = FALSE;
 
-    dragon_armor_handling(otmp, FALSE);
-
+    /* losing yellow dragon scales/mail might be fatal; arti_light
+       comes from gold dragon scales/mail so they don't overlap, but
+       conceptually the non-fatal change should be done before the
+       potentially fatal change in case the latter results in bones */
     if (was_arti_light && !artifact_light(otmp)) {
         end_burn(otmp, FALSE);
         if (!Blind)
             pline("%s shining.", Tobjnam(otmp, "stop"));
     }
+    dragon_armor_handling(otmp, FALSE, FALSE);
+
     return 0;
 }
 
@@ -946,10 +984,8 @@ Amulet_on(void)
         }
         livelog_newform(FALSE, orig_sex, new_sex);
         pline_The("amulet disintegrates!");
-        if (orig_sex == poly_gender() && uamul->dknown
-            && !objects[AMULET_OF_CHANGE].oc_name_known
-            && !objects[AMULET_OF_CHANGE].oc_uname)
-            docall(uamul);
+        if (orig_sex == poly_gender() && uamul->dknown)
+            trycall(uamul);
         useup(uamul);
         break;
     }
@@ -1108,11 +1144,29 @@ learnring(struct obj *ring, boolean observed)
     }
 }
 
+static void
+adjust_attrib(struct obj *obj, int which, int val)
+{
+    int old_attrib;
+    boolean observable;
+
+    old_attrib = ACURR(which);
+    ABON(which) += val;
+    observable = (old_attrib != ACURR(which));
+    /* if didn't change, usually means ring is +0 but might
+        be because nonzero couldn't go below min or above max;
+        learn +0 enchantment if attribute value is not stuck
+        at a limit [and ring has been seen and its type is
+        already discovered, both handled by learnring()] */
+    if (observable || !extremeattr(which))
+        learnring(obj, observable);
+    g.context.botl = 1;
+}
+
 void
 Ring_on(register struct obj *obj)
 {
     long oldprop = u.uprops[objects[obj->otyp].oc_oprop].extrinsic;
-    int old_attrib, which;
     boolean observable;
 
     /* make sure ring isn't wielded; can't use remove_worn_item()
@@ -1196,25 +1250,13 @@ Ring_on(register struct obj *obj)
         }
         break;
     case RIN_GAIN_STRENGTH:
-        which = A_STR;
-        goto adjust_attrib;
+        adjust_attrib(obj, A_STR, obj->spe);
+        break;
     case RIN_GAIN_CONSTITUTION:
-        which = A_CON;
-        goto adjust_attrib;
+        adjust_attrib(obj, A_CON, obj->spe);
+        break;
     case RIN_ADORNMENT:
-        which = A_CHA;
- adjust_attrib:
-        old_attrib = ACURR(which);
-        ABON(which) += obj->spe;
-        observable = (old_attrib != ACURR(which));
-        /* if didn't change, usually means ring is +0 but might
-           be because nonzero couldn't go below min or above max;
-           learn +0 enchantment if attribute value is not stuck
-           at a limit [and ring has been seen and its type is
-           already discovered, both handled by learnring()] */
-        if (observable || !extremeattr(which))
-            learnring(obj, observable);
-        g.context.botl = 1;
+        adjust_attrib(obj, A_CHA, obj->spe);
         break;
     case RIN_INCREASE_ACCURACY: /* KMH */
         u.uhitinc += obj->spe;
@@ -1241,7 +1283,6 @@ static void
 Ring_off_or_gone(register struct obj *obj, boolean gone)
 {
     long mask = (obj->owornmask & W_RING);
-    int old_attrib, which;
     boolean observable;
 
     g.context.takeoff.mask &= ~mask;
@@ -1311,21 +1352,13 @@ Ring_off_or_gone(register struct obj *obj, boolean gone)
         }
         break;
     case RIN_GAIN_STRENGTH:
-        which = A_STR;
-        goto adjust_attrib;
+        adjust_attrib(obj, A_STR, -obj->spe);
+        break;
     case RIN_GAIN_CONSTITUTION:
-        which = A_CON;
-        goto adjust_attrib;
+        adjust_attrib(obj, A_CON, -obj->spe);
+        break;
     case RIN_ADORNMENT:
-        which = A_CHA;
- adjust_attrib:
-        old_attrib = ACURR(which);
-        ABON(which) -= obj->spe;
-        observable = (old_attrib != ACURR(which));
-        /* same criteria as Ring_on() */
-        if (observable || !extremeattr(which))
-            learnring(obj, observable);
-        g.context.botl = 1;
+        adjust_attrib(obj, A_CHA, -obj->spe);
         break;
     case RIN_INCREASE_ACCURACY: /* KMH */
         u.uhitinc -= obj->spe;
@@ -1615,7 +1648,7 @@ stop_donning(struct obj *stolenobj) /* no message if stolenobj is already
                 thesimpleoname(otmp));
     } else {
         buf[0] = '\0';   /* silently stop doffing stolenobj */
-        result = -g.multi; /* remember this before calling unmul() */
+        result = (int) -g.multi; /* remember this before calling unmul() */
     }
     unmul(buf);
     /* while putting on, item becomes worn immediately but side-effects are
@@ -1743,7 +1776,7 @@ dotakeoff(void)
             pline("Not wearing any armor or accessories.");
         return ECMD_OK;
     }
-    if (Narmorpieces != 1 || ParanoidRemove)
+    if (Narmorpieces != 1 || ParanoidRemove || cmdq_peek())
         otmp = getobj("take off", takeoff_ok, GETOBJ_NOFLAGS);
     if (!otmp)
         return ECMD_CANCEL;
@@ -1762,7 +1795,7 @@ doremring(void)
         pline("Not wearing any accessories or armor.");
         return ECMD_OK;
     }
-    if (Naccessories != 1 || ParanoidRemove)
+    if (Naccessories != 1 || ParanoidRemove || cmdq_peek())
         otmp = getobj("remove", remove_ok, GETOBJ_NOFLAGS);
     if (!otmp)
         return ECMD_CANCEL;
@@ -2744,7 +2777,7 @@ do_takeoff(void)
             if (was_twoweap)
                 You("are no longer wielding either weapon.");
             else
-                You("are empty %s.", body_part(HANDED));
+                You("are %s.", empty_handed());
         }
     } else if (doff->what == W_SWAPWEP) {
         setuswapwep((struct obj *) 0);
@@ -2914,8 +2947,8 @@ doddoremarm(void)
         You("continue %s.", g.context.takeoff.disrobing);
         set_occupation(take_off, g.context.takeoff.disrobing, 0);
         return ECMD_OK;
-    } else if (!uwep && !uswapwep && !uquiver && !uamul && !ublindf && !uleft
-               && !uright && !wearing_armor()) {
+    } else if (!uwep && !uswapwep && !uquiver && !uamul && !ublindf
+               && !uleft && !uright && !wearing_armor()) {
         You("are not wearing anything.");
         return ECMD_OK;
     }
@@ -2941,6 +2974,36 @@ doddoremarm(void)
      * disrobe.
      */
     return ECMD_OK;
+}
+
+/* #altunwield - just unwield alternate weapon, item-action '-' when picking
+   uswapwep from context-sensitive inventory */
+int
+remarm_swapwep(void)
+{
+    struct _cmd_queue cq, *cmdq;
+    unsigned oldbknown;
+
+    if ((cmdq = cmdq_pop()) != 0) {
+        /* '-' uswapwep item-action picked from context-sensitive invent */
+        cq = *cmdq;
+        free(cmdq);
+    } else {
+        cq.typ = CMDQ_KEY;
+        cq.key = '\0'; /* something other than '-' */
+    }
+    if (cq.typ != CMDQ_KEY || cq.key != '-' || !uswapwep)
+        return ECMD_FAIL;
+
+    oldbknown = uswapwep->bknown; /* when deciding whether this command
+                                   * has done something that takes time,
+                                   * behave as if a cursed secondary weapon
+                                   * can't be unwielded even though things
+                                   * don't work that way... */
+    reset_remarm();
+    g.context.takeoff.what = g.context.takeoff.mask = W_SWAPWEP;
+    (void) do_takeoff();
+    return (!uswapwep || uswapwep->bknown != oldbknown) ? ECMD_TIME : ECMD_OK;
 }
 
 static int

@@ -7,6 +7,7 @@
 
 static int monmulti(struct monst *, struct obj *, struct obj *);
 static void monshoot(struct monst *, struct obj *, struct obj *);
+static boolean ucatchgem(struct obj *, struct monst *);
 static const char* breathwep_name(int);
 static int drop_throw(struct obj *, boolean, int, int);
 static int m_lined_up(struct monst *, struct monst *);
@@ -190,7 +191,7 @@ drop_throw(
         if (!objgone) {
             if (!flooreffects(obj, x, y, "fall")) {
                 place_object(obj, x, y);
-                if (!mtmp && x == u.ux && y == u.uy)
+                if (!mtmp && u_at(x, y))
                     mtmp = &g.youmonst;
                 if (mtmp && ohit)
                     passive_obj(mtmp, obj, (struct attack *) 0);
@@ -198,8 +199,10 @@ drop_throw(
                 retvalu = 0;
             }
         }
-    } else
+    } else {
         delobj(obj);
+    }
+    g.thrownobj = 0;
     return retvalu;
 }
 
@@ -241,7 +244,7 @@ monmulti(struct monst* mtmp, struct obj* otmp, struct obj* mwep)
         if (ammo_and_launcher(otmp, mwep) && mwep->spe > 1)
             multishot += (long) rounddiv(mwep->spe, 3);
         /* Some randomness */
-        multishot = (long) rnd((int) multishot);
+        multishot = rnd((int) multishot);
 
         /* class bonus */
         multishot += multishot_class_bonus(monsndx(mtmp->data), otmp, mwep);
@@ -479,6 +482,34 @@ ohitmon(
     return 0;
 }
 
+/* hero catches gem thrown by mon iff poly'd into unicorn; might drop it */
+static boolean
+ucatchgem(
+    struct obj *gem,   /* caller has verified gem->oclass */
+    struct monst *mon)
+{
+    /* won't catch rock or gray stone; catch (then drop) worthless glass */
+    if (gem->otyp <= LAST_GEM + NUM_GLASS_GEMS
+        && is_unicorn(g.youmonst.data)) {
+        char *gem_xname = xname(gem),
+             *mon_s_name = s_suffix(mon_nam(mon));
+
+        if (gem->otyp > LAST_GEM) {
+            You("catch the %s.", gem_xname);
+            You("are not interested in %s junk.", mon_s_name);
+            makeknown(gem->otyp);
+            dropy(gem);
+        } else {
+            You("accept %s gift in the spirit in which it was intended.",
+                mon_s_name);
+            (void) hold_another_object(gem, "You catch, but drop, %s.",
+                                       gem_xname, "You catch:");
+        }
+        return TRUE;
+    }
+    return FALSE;
+}
+
 #define MT_FLIGHTCHECK(pre,forcehit) \
     (/* missile hits edge of screen */                                  \
      !isok(g.bhitpos.x + dx, g.bhitpos.y + dy)                              \
@@ -538,6 +569,8 @@ m_throw(
         singleobj = splitobj(obj, 1L);
         obj_extract_self(singleobj);
     }
+    /* global pointer for missile object in OBJ_FREE state */
+    g.thrownobj = singleobj;
 
     singleobj->owornmask = 0; /* threw one of multiple weapons in hand? */
     if (!canseemon(mon))
@@ -578,8 +611,8 @@ m_throw(
     if (sym)
         tmp_at(DISP_FLASH, obj_to_glyph(singleobj, rn2_on_display_rng));
     while (range-- > 0) { /* Actually the loop is always exited by break */
-        g.bhitpos.x += dx;
-        g.bhitpos.y += dy;
+        singleobj->ox = g.bhitpos.x += dx;
+        singleobj->oy = g.bhitpos.y += dy;
         if (cansee(g.bhitpos.x, g.bhitpos.y))
             singleobj->dknown = 1;
 
@@ -591,33 +624,17 @@ m_throw(
         } else if (mtmp) {
             if (ohitmon(mtmp, singleobj, range, TRUE))
                 break;
-        } else if (g.bhitpos.x == u.ux && g.bhitpos.y == u.uy) {
+        } else if (u_at(g.bhitpos.x, g.bhitpos.y)) {
             if (g.multi)
                 nomul(0);
 
-            if (singleobj->oclass == GEM_CLASS
-                && singleobj->otyp <= LAST_GEM + NUM_GLASS_GEMS
-                && is_unicorn(g.youmonst.data)) {
-                if (singleobj->otyp > LAST_GEM) {
-                    You("catch the %s.", xname(singleobj));
-                    You("are not interested in %s junk.",
-                        s_suffix(mon_nam(mon)));
-                    makeknown(singleobj->otyp);
-                    dropy(singleobj);
-                } else {
-                    You(
-                     "accept %s gift in the spirit in which it was intended.",
-                        s_suffix(mon_nam(mon)));
-                    (void) hold_another_object(singleobj,
-                                               "You catch, but drop, %s.",
-                                               xname(singleobj),
-                                               "You catch:");
-                }
-                break;
-            }
             if (singleobj->oclass == POTION_CLASS) {
                 potionhit(&g.youmonst, singleobj, POTHIT_MONST_THROW);
                 break;
+            } else if (singleobj->oclass == GEM_CLASS) {
+                /* hero might be poly'd into a unicorn */
+                if (ucatchgem(singleobj, mon))
+                    break;
             }
             oldumort = u.umortality;
 
@@ -741,6 +758,9 @@ m_throw(
         if (!Blind)
             Your1(vision_clears);
     }
+    /* note: all early returns follow drop_throw() which clears thrownobj */
+    g.thrownobj = 0;
+    return;
 }
 
 #undef MT_FLIGHTCHECK
@@ -1073,7 +1093,7 @@ linedup_callback(
             if (!isok(bx, by))
                 return FALSE;
             if (IS_ROCK(levl[bx][by].typ) || closed_door(bx, by)
-                || levl[bx][by].typ == WATER)
+                || is_waterwall(bx, by))
                 return FALSE;
             if ((*fnc)(bx, by))
                 return TRUE;
@@ -1104,8 +1124,8 @@ linedup(
     /* straight line, orthogonal to the map or diagonal */
     if ((!g.tbx || !g.tby || abs(g.tbx) == abs(g.tby))
         && distmin(g.tbx, g.tby, 0, 0) < BOLT_LIM) {
-        if ((ax == u.ux && ay == u.uy) ? (boolean) couldsee(bx, by)
-                                       : clear_path(ax, ay, bx, by))
+        if (u_at(ax, ay) ? (boolean) couldsee(bx, by)
+                         : clear_path(ax, ay, bx, by))
             return TRUE;
         /* don't have line of sight, but might still be lined up
            if that lack of sight is due solely to boulders */
@@ -1117,7 +1137,7 @@ linedup(
             /* <bx,by> is guaranteed to eventually converge with <ax,ay> */
             bx += dx, by += dy;
             if (IS_ROCK(levl[bx][by].typ) || closed_door(bx, by)
-                || levl[bx][by].typ == WATER)
+                || is_waterwall(bx, by))
                 return FALSE;
             if (sobj_at(BOULDER, bx, by))
                 ++boulderspots;

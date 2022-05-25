@@ -1,4 +1,4 @@
--- NetHack 3.7	Knight.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+-- NetHack Knight Kni-strt.lua	$NHDT-Date: 1652196006 2022/05/10 15:20:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991,92 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -103,3 +103,7 @@ des.monster({ id = "quasit", x=32, y=00, peaceful=0 })
 des.monster({ id = "quasit", x=34, y=00, peaceful=0 })
 des.monster({ id = "quasit", x=36, y=00, peaceful=0 })
 
+-- Some warhorses
+for i = 1, 2 + nh.rn2(3) do
+    des.monster({ id = "warhorse", peaceful = 1, inventory = function() if percent(50) then des.object("saddle"); end end });
+end

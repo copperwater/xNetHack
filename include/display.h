@@ -1,4 +1,4 @@
-/* NetHack 3.7	display.h	$NHDT-Date: 1641940939 2022/01/11 22:42:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.64 $ */
+/* NetHack 3.7	display.h	$NHDT-Date: 1652719570 2022/05/16 16:46:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.71 $ */
 /* Copyright (c) Dean Luick, with acknowledgements to Kevin Darcy */
 /* and Dave Cohrs, 1990.                                          */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -31,8 +31,14 @@
  * (or display non-adjacent, non-submerged ones when hero is underwater),
  * so treat those situations as blocking telepathy, detection, and warning
  * even though conceptually they shouldn't do so.
+ *
+ * [3.7 also] The macros whose name begins with an understore have been
+ * converted to functions in order to have compilers generate smaller code.
+ * The retained underscore versions are still used in display.c but should
+ * only be used in other situations if the function calls actually produce
+ * noticeably slower processing.
  */
-#define tp_sensemon(mon) \
+#define _tp_sensemon(mon) \
     (/* The hero can always sense a monster IF:        */                   \
      /* 1. The monster and player are both telepathic  */                   \
      (has_telepathy(mon) && (HTelepat || ETelepat))                         \
@@ -48,7 +54,7 @@
 /* organized to perform cheaper tests first;
    is_pool() vs is_pool_or_lava(): hero who is underwater can see adjacent
    lava, but presumeably any monster there is on top so not sensed */
-#define sensemon(mon) \
+#define _sensemon(mon) \
     (   (!u.uswallow || (mon) == u.ustuck)                                 \
      && (!Underwater || (distu((mon)->mx, (mon)->my) <= 2                  \
                          && is_pool((mon)->mx, (mon)->my)))                \
@@ -58,7 +64,7 @@
  * mon_warning() is used to warn of any dangerous monsters in your
  * vicinity, and a glyph representing the warning level is displayed.
  */
-#define mon_warning(mon)                                                 \
+#define _mon_warning(mon) \
     (Warning && !(mon)->mpeaceful && (distu((mon)->mx, (mon)->my) < 100) \
      && (((int) ((mon)->m_lev / 4)) >= g.context.warnlevel))
 
@@ -80,13 +86,13 @@
  * reviewing all those instances and also existing mundetected instances.]
  */
 #if 0
-#define mon_visible(mon) \
+#define _mon_visible(mon) \
     (/* The hero can see the monster IF the monster                     */ \
      (!mon->minvis || See_invisible)  /*     1. is not invisible        */ \
      && !mon->mundetected             /* AND 2. not an undetected hider */ \
      && !(mon->mburied || u.uburied)) /* AND 3. neither you nor it is buried */
 #else   /* without 'mburied' and 'uburied' */
-#define mon_visible(mon) \
+#define _mon_visible(mon) \
     (/* The hero can see the monster IF the monster                     */ \
      (!mon->minvis || See_invisible)  /*     1. is not invisible        */ \
      && !mon->mundetected)            /* AND 2. not an undetected hider */
@@ -100,7 +106,7 @@
  * invisible to infravision), because this is usually called from within
  * canseemon() or canspotmon() which already check that.
  */
-#define see_with_infrared(mon)                        \
+#define _see_with_infrared(mon) \
     (!Blind && Infravision && mon && infravisible(mon->data) \
      && couldsee(mon->mx, mon->my))
 
@@ -111,7 +117,7 @@
  * routines.  Like mon_visible(), but it checks to see if the hero sees the
  * location instead of assuming it.  (And also considers worms.)
  */
-#define canseemon(mon)                                                    \
+#define _canseemon(mon) \
     ((mon->wormno ? worm_known(mon)                                       \
                   : (cansee(mon->mx, mon->my) || see_with_infrared(mon))) \
      && mon_visible(mon))
@@ -135,12 +141,17 @@
  * creature in an apparently empty spot.
  * Infravision is not relevant; we assume that invisible monsters are also
  * invisible to infravision.
+ * [3.7: the macro definition erroneously started with 'mtmp->minvis' for
+ * over 20 years.  The one place it's used called it as knowninvisible(mtmp)
+ * so worked by coincidence when there was no argument expansion involved
+ * on the first line.]
  */
-#define knowninvisible(mon)                                               \
-    (mtmp->minvis                                                         \
-     && ((cansee(mon->mx, mon->my) && (See_invisible || Detect_monsters)) \
-         || (!Blind && (HTelepat & ~INTRINSIC)                            \
-             && distu(mon->mx, mon->my) <= (BOLT_LIM * BOLT_LIM))))
+#define _knowninvisible(mon) \
+    ((mon)->minvis                                                      \
+     && ((cansee((mon)->mx, (mon)->my)                                  \
+          && (See_invisible || Detect_monsters))                        \
+         || (!Blind && (HTelepat & ~INTRINSIC)                          \
+             && distu((mon)->mx, (mon)->my) <= (BOLT_LIM * BOLT_LIM))))
 
 /*
  * is_safemon(mon)
@@ -148,7 +159,7 @@
  * A special case check used in attack() and domove().  Placing the
  * definition here is convenient.  No longer limited to pets.
  */
-#define is_safemon(mon) \
+#define _is_safemon(mon) \
     (flags.safe_dog && (mon) && (mon)->mpeaceful && canspotmon(mon)     \
      && !Confusion && !Hallucination && !Stunned)
 
@@ -465,8 +476,8 @@ enum glyphmap_change_triggers { gm_nochange, gm_newgame, gm_levelchange,
  * Magic platforms  Default appearance plus six colors
  *                  Count: 7
  *
- * cmap B           S_grave through S_vibrating_square
- *                  Count: (S_vibrating_square - S_grave) + 1 = 39
+ * cmap B           S_grave through S_arrow_trap + TRAPNUM - 1
+ *                  Count: (S_arrow_trap + (TRAPNUM - 1) - S_grave) = 39
  *
  * zap beams        set of four (there are four directions) HI_ZAP.
  *                  Count: 4 * NUM_ZAP
@@ -555,15 +566,16 @@ enum glyph_offsets {
     GLYPH_CMAP_STONE_OFF = (GLYPH_CMAP_OFF),
     GLYPH_CMAP_MAIN_OFF = (1 + GLYPH_CMAP_STONE_OFF),
     GLYPH_CMAP_MINES_OFF = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_MAIN_OFF),
-    GLYPH_CMAP_GEH_OFF   = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_MINES_OFF),
-    GLYPH_CMAP_KNOX_OFF  = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_GEH_OFF),
-    GLYPH_CMAP_SOKO_OFF  = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_KNOX_OFF),
-    GLYPH_CMAP_A_OFF     = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_SOKO_OFF),
+    GLYPH_CMAP_GEH_OFF = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_MINES_OFF),
+    GLYPH_CMAP_KNOX_OFF = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_GEH_OFF),
+    GLYPH_CMAP_SOKO_OFF = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_KNOX_OFF),
+    GLYPH_CMAP_A_OFF = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_SOKO_OFF),
     GLYPH_ALTAR_OFF = (((S_brdnladder - S_ndoor) + 1) + GLYPH_CMAP_A_OFF),
     GLYPH_ENGRAVING_OFF = (5 + GLYPH_ALTAR_OFF),
     GLYPH_MAGICPLATFORM_OFF = (7 + GLYPH_ENGRAVING_OFF),
     GLYPH_CMAP_B_OFF = (7 + GLYPH_MAGICPLATFORM_OFF),
-    GLYPH_ZAP_OFF = (((S_vibrating_square - S_grave) + 1) + GLYPH_CMAP_B_OFF),
+    GLYPH_ZAP_OFF = ((S_arrow_trap + MAXTCHARS - S_grave)
+                     + GLYPH_CMAP_B_OFF),
     GLYPH_CMAP_C_OFF = ((NUM_ZAP << 2) + GLYPH_ZAP_OFF),
     GLYPH_SWALLOW_OFF = (((S_goodpos - S_digbeam) + 1) + GLYPH_CMAP_C_OFF),
     GLYPH_EXPLODE_OFF = ((NUMMONS << 3) + GLYPH_SWALLOW_OFF),
@@ -611,18 +623,17 @@ enum glyph_offsets {
             (((mon)->female == 0) ? GLYPH_PEACEFUL_MALE_OFF : GLYPH_PEACEFUL_FEM_OFF))
 
 #define altar_to_glyph(amsk) \
-    (((amsk & (AM_MASK | AM_SHRINE)) == AM_NONE)               \
-       ? (GLYPH_ALTAR_OFF + altar_unaligned)                   \
-       : (((amsk & AM_SHRINE) == AM_SHRINE)                    \
-          && (Is_astralevel(&u.uz) || Is_sanctum(&u.uz)))      \
-          ? (GLYPH_ALTAR_OFF + altar_other)                    \
-          : ((amsk & AM_MASK) == AM_CHAOTIC)                   \
-            ? (GLYPH_ALTAR_OFF + altar_chaotic)                \
-            : ((amsk & AM_MASK) == AM_NEUTRAL)                 \
-              ? (GLYPH_ALTAR_OFF + altar_neutral)              \
-              : ((amsk & AM_MASK) == AM_LAWFUL)                \
-                ? (GLYPH_ALTAR_OFF + altar_lawful)             \
-                : (GLYPH_ALTAR_OFF + altar_neutral))
+    ((((amsk) & AM_SANCTUM) == AM_SANCTUM)                \
+      ? (GLYPH_ALTAR_OFF + altar_other)                   \
+      : (((amsk) & AM_MASK) == AM_LAWFUL)                 \
+         ? (GLYPH_ALTAR_OFF + altar_lawful)               \
+         : (((amsk) & AM_MASK) == AM_NEUTRAL)             \
+            ? (GLYPH_ALTAR_OFF + altar_neutral)           \
+            : (((amsk) & AM_MASK) == AM_CHAOTIC)          \
+               ? (GLYPH_ALTAR_OFF + altar_chaotic)        \
+               : (((amsk) & AM_MASK) == AM_NONE)          \
+                  ? (GLYPH_ALTAR_OFF + altar_unaligned)   \
+                  : (GLYPH_ALTAR_OFF + altar_neutral))
 
 #define engr_to_glyph(type, x, y, z)                           \
     ((type == DUST)                                            \
@@ -642,27 +653,23 @@ enum glyph_offsets {
     ((((cmap_idx) - S_vbeam) + 1) + GLYPH_ZAP_OFF)
 */
 
+/* EXPL_FIERY is the default explosion type */
 #define explosion_to_glyph(expltyp, idx) \
-    ((expltyp == EXPL_FROSTY) ?                                 \
-            (((idx) - S_expl_tl) + GLYPH_EXPLODE_FROSTY_OFF)   \
-     : (expltyp == EXPL_FIERY) ?                                \
-            (((idx) - S_expl_tl) + GLYPH_EXPLODE_FIERY_OFF)    \
-     : (expltyp == EXPL_MAGICAL) ?                              \
-            (((idx) - S_expl_tl) + GLYPH_EXPLODE_MAGICAL_OFF)  \
-     : (expltyp == EXPL_WET) ?                                  \
-            (((idx) - S_expl_tl) + GLYPH_EXPLODE_WET_OFF)      \
-     : (expltyp == EXPL_MUDDY) ?                                \
-            (((idx) - S_expl_tl) + GLYPH_EXPLODE_MUDDY_OFF)    \
-     : (expltyp == EXPL_NOXIOUS) ?                              \
-            (((idx) - S_expl_tl) + GLYPH_EXPLODE_NOXIOUS_OFF)  \
-     :       (((idx) - S_expl_tl) + GLYPH_EXPLODE_FIERY_OFF))
+    ((idx) - S_expl_tl                                                  \
+     + (((expltyp) == EXPL_FROSTY) ? GLYPH_EXPLODE_FROSTY_OFF           \
+        : ((expltyp) == EXPL_MAGICAL) ? GLYPH_EXPLODE_MAGICAL_OFF       \
+          : ((expltyp) == EXPL_WET) ? GLYPH_EXPLODE_WET_OFF             \
+           : ((expltyp) == EXPL_MUDDY) ? GLYPH_EXPLODE_MUDDY_OFF        \
+             : ((expltyp) == EXPL_NOXIOUS) ? GLYPH_EXPLODE_NOXIOUS_OFF  \
+               : GLYPH_EXPLODE_FIERY_OFF))
 
 #define cmap_walls_to_glyph(cmap_idx) \
-     ( In_mines(&u.uz) ? (((cmap_idx) - S_vwall)  + GLYPH_CMAP_MINES_OFF)       \
-     : In_hell(&u.uz) ? (((cmap_idx) - S_vwall) + GLYPH_CMAP_GEH_OFF)       \
-     : Is_knox(&u.uz) ? (((cmap_idx) - S_vwall) + GLYPH_CMAP_KNOX_OFF)      \
-     : In_sokoban(&u.uz) ? (((cmap_idx) - S_vwall) + GLYPH_CMAP_SOKO_OFF)  \
-     : (((cmap_idx) - S_vwall) + GLYPH_CMAP_MAIN_OFF))
+    ((cmap_idx) - S_vwall                               \
+     + (In_mines(&u.uz) ? GLYPH_CMAP_MINES_OFF          \
+        : In_hell(&u.uz) ? GLYPH_CMAP_GEH_OFF           \
+          : Is_knox(&u.uz) ? GLYPH_CMAP_KNOX_OFF        \
+            : In_sokoban(&u.uz) ? GLYPH_CMAP_SOKO_OFF   \
+              : GLYPH_CMAP_MAIN_OFF))
 
 #define cmap_a_to_glyph(cmap_idx) \
     (((cmap_idx) - S_ndoor) + GLYPH_CMAP_A_OFF)
@@ -674,16 +681,16 @@ enum glyph_offsets {
     (((cmap_idx) - S_digbeam) + GLYPH_CMAP_C_OFF)
 
 #define cmap_to_glyph(cmap_idx) \
-        ( ((cmap_idx) == S_stone) ? GLYPH_CMAP_STONE_OFF                   \
-        : ((cmap_idx) <= S_trwall) ? cmap_walls_to_glyph(cmap_idx)         \
-        : ((cmap_idx) <  S_altar) ? cmap_a_to_glyph(cmap_idx)              \
-        : ((cmap_idx) == S_altar) ? altar_to_glyph(AM_NEUTRAL)             \
-        : ((cmap_idx) == S_engraving) ? (engr_to_glyph(ENGRAVE, 0, 0, 0))  \
-        : ((cmap_idx) == S_magicplatform)                                  \
-          ? (GLYPH_MAGICPLATFORM_OFF + platform_default)                   \
-        : ((cmap_idx) <= S_vibrating_square) ? cmap_b_to_glyph(cmap_idx)   \
-        : ((cmap_idx) <= S_goodpos) ? cmap_c_to_glyph(cmap_idx)            \
-        : NO_GLYPH)
+    ( ((cmap_idx) == S_stone)   ? GLYPH_CMAP_STONE_OFF                      \
+    : ((cmap_idx) <= S_trwall)  ? cmap_walls_to_glyph(cmap_idx)             \
+    : ((cmap_idx) <  S_altar)   ? cmap_a_to_glyph(cmap_idx)                 \
+    : ((cmap_idx) == S_altar)   ? altar_to_glyph(AM_NEUTRAL)                \
+    : ((cmap_idx) == S_engraving) ? (engr_to_glyph(ENGRAVE, 0, 0, 0))       \
+    : ((cmap_idx) == S_magicplatform)                                       \
+      ? (GLYPH_MAGICPLATFORM_OFF + platform_default)                        \
+    : ((cmap_idx) <  S_arrow_trap + MAXTCHARS) ? cmap_b_to_glyph(cmap_idx)  \
+    : ((cmap_idx) <= S_goodpos) ? cmap_c_to_glyph(cmap_idx)                 \
+    : NO_GLYPH )
 
 #define trap_to_glyph(trap)                                \
     cmap_to_glyph(trap_to_defsym(((int) (trap)->ttyp)))
@@ -760,7 +767,7 @@ enum glyph_offsets {
         (glyph) < (7 + GLYPH_MAGICPLATFORM_OFF))
 #define glyph_is_cmap_b(glyph) \
     ((glyph) >= GLYPH_CMAP_B_OFF && \
-        ((glyph) < (((S_vibrating_square - S_grave) + 1) + GLYPH_CMAP_B_OFF)))
+        ((glyph) < ((S_arrow_trap + MAXTCHARS - S_grave) + GLYPH_CMAP_B_OFF)))
 #define glyph_is_cmap_zap(glyph) \
     ((glyph) >= GLYPH_ZAP_OFF && (glyph) < ((NUM_ZAP << 2) + GLYPH_ZAP_OFF))
 #define glyph_is_cmap_c(glyph) \
@@ -1043,7 +1050,7 @@ enum glyph_offsets {
     (GLYPH_CMAP_B_OFF + (S_arrow_trap - S_grave))
 #define glyph_is_trap(glyph)      \
     ((glyph) >= (GLYPH_TRAP_OFF) && \
-     (glyph) < ((GLYPH_TRAP_OFF) + (TRAPNUM - 1)))
+     (glyph) < ((GLYPH_TRAP_OFF) + MAXTCHARS))
 #define glyph_is_warning(glyph)   \
     ((glyph) >= GLYPH_WARNING_OFF \
      && (glyph) < (GLYPH_WARNING_OFF + WARNCOUNT))

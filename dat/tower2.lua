@@ -1,4 +1,4 @@
--- NetHack 3.7	tower.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+-- NetHack tower tower2.lua	$NHDT-Date: 1652196037 2022/05/10 15:20:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 -- NetHack may be freely redistributed.  See license for details.
 --
@@ -57,7 +57,7 @@ if percent(60) then
    des.object("crystal plate mail",place[8])
 end
 if percent(60) then
-   des.object("invisibility",place[9])
+   des.object("spellbook of invisibility",place[9])
 end
 -- Walls in the tower are non diggable
 des.non_diggable(selection.area(00,00,14,10))

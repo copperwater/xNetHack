@@ -1,4 +1,6 @@
-
+-- NetHack themerms.lua	$NHDT-Date: 1652196294 2022/05/10 15:24:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.16 $
+--	Copyright (c) 2020 by Pasi Kallinen
+-- NetHack may be freely redistributed.  See license for details.
 -- themerooms is an array of tables and/or functions.
 -- the tables define "frequency", "contents", "mindiff" and "maxdiff".
 -- frequency is optional; if omitted, 1 is assumed.
@@ -40,7 +42,7 @@ end
 themerooms = {
    {
      -- the "default" room
-      frequency = 1000,
+      frequency = 6,
       contents = function()
          des.room({ type = "ordinary", filled = 1 });
          end
@@ -99,7 +101,16 @@ themerooms = {
    function()
       des.room({ type = "themed", filled = 1,
                  contents = function()
-                    des.terrain(selection.floodfill(1,1), "I");
+                    local ice = selection.floodfill(1,1);
+                    des.terrain(ice, "I");
+                    if (percent(25)) then
+                       local mintime = 1000 - (nh.level_difficulty() * 100);
+                       local ice_melter = function(x,y)
+                          local ax,ay = nh.abscoord(x,y);
+                          nh.start_timer_at(ax,ay, "melt-ice", mintime + nh.rn2(1000));
+                       end;
+                       ice:iterate(ice_melter);
+                    end
                  end
       });
    end,
@@ -1127,7 +1138,7 @@ xxxx----xx----xxxx]], contents=function(m)
             end
             -- sunken treasure
             if percent(50) then
-               des.object({ id='chest', coord={poolarea:rndcoord(1)},
+               des.object({ id='chest', coord=poolarea:rndcoord(1),
                             contents=function()
                   for i=1,d(2,2) do
                      des.object('*')
@@ -1417,7 +1428,7 @@ xxxxxxx------xxxxxx]], contents = function()
             des.region({ region = {04,04,04,04}, irregular = true, filled = 0,
                          type = "themed", joined = true })
             local floor = selection.floodfill(04, 04)
-            local hoardx, hoardy = floor:rndcoord()
+            local hoardctr = floor:rndcoord()
 
             function loot(x, y)
                local choice = d(25)
@@ -1441,9 +1452,9 @@ xxxxxxx------xxxxxx]], contents = function()
                   loot(x, y)
                end
             end
-            local goldpile = selection.circle(hoardx, hoardy, 5, 1)
+            local goldpile = selection.circle(hoardctr.x, hoardctr.y, 5, 1)
             goldpile:filter_mapchar('.'):iterate(function(x,y)
-               local dist2 = (x-hoardx) * (x-hoardx) + (y-hoardy) * (y-hoardy)
+               local dist2 = (x-hoardctr.x) * (x-hoardctr.x) + (y-hoardctr.y) * (y-hoardctr.y)
                if (dist2 >= 20 and percent(20)) -- radius 4-5
                   or (dist2 >= 12 and dist2 < 20 and percent(50)) -- radius 3-4
                   or dist2 < 12 then -- radius 0-3
@@ -1463,8 +1474,8 @@ xxxxxxx------xxxxxx]], contents = function()
             -- put some pits and traps down
             local nonpile = (floor ~ goldpile) & floor
             for i = 1, 2+d(2) do
-               des.trap({ type="pit", coord={nonpile:rndcoord()} })
-               des.trap({ coord = {nonpile:rndcoord()} })
+               des.trap({ type="pit", coord=nonpile:rndcoord() })
+               des.trap({ coord = nonpile:rndcoord() })
             end
 
             -- no way to specifically force a baby or adult dragon
@@ -1473,12 +1484,12 @@ xxxxxxx------xxxxxx]], contents = function()
                        'blue', 'green', 'yellow', 'gold' }
             for i = 1, 3+d(3) do
                des.monster({ id='baby '..colors[d(#colors)]..' dragon',
-                             coord={goldpile:rndcoord()}, waiting=1 })
+                             coord=goldpile:rndcoord(), waiting=1 })
             end
             for i = 1, 5 + d(5) do
                -- would be neat if the adult dragons here could be buffed
                des.monster({ id=colors[d(#colors)]..' dragon',
-                             coord={goldpile:rndcoord()}, waiting=1 })
+                             coord=goldpile:rndcoord(), waiting=1 })
             end
             -- TODO: problem with this room is that the dragons start picking
             -- up the hoard. Something needs to tell their AI that it's a
@@ -1516,7 +1527,7 @@ xxxxxxx------xxxxxx]], contents = function()
          if rm.width > 2 and rm.height > 2 then
             local interior = selection.area(1, 1, rm.width-2, rm.height-2)
             for i = 1, d(4)-2 do
-               des.terrain({interior:rndcoord()}, 'T')
+               des.terrain(interior:rndcoord(), 'T')
             end
          end
       end })

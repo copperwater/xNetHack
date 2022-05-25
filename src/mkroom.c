@@ -734,7 +734,7 @@ mkswamp(void) /* Michiel Huisjes & Fred de Wilde */
             || has_dnstairs(sroom))
             continue;
 
-        rmno = (sroom - g.rooms) + ROOMOFFSET;
+        rmno = (int)(sroom - g.rooms) + ROOMOFFSET;
 
         /* satisfied; make a swamp */
         sroom->rtype = SWAMP;
@@ -925,7 +925,7 @@ mkstatuary(void)
     if (!nexttodoor(x, y)) {                                 \
         statue = mkcorpstat(STATUE, NULL, &mons[u.umonster], \
                             x, y, CORPSTAT_NONE);            \
-        oname(statue, g.plname);                             \
+        oname(statue, g.plname, ONAME_NO_FLAGS);             \
     }
 
     /* pick the longer dimension to place statues */

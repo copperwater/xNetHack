@@ -1,4 +1,4 @@
-/* NetHack 3.7	makemon.c	$NHDT-Date: 1606033928 2020/11/22 08:32:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.180 $ */
+/* NetHack 3.7	makemon.c	$NHDT-Date: 1651886995 2022/05/07 01:29:55 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.204 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -18,12 +18,12 @@ static boolean uncommon(int);
 static int align_shift(struct permonst *);
 static boolean mk_gen_ok(int, unsigned, unsigned);
 static boolean wrong_elem_type(struct permonst *);
-static void m_initgrp(struct monst *, int, int, int, int);
+static void m_initgrp(struct monst *, int, int, int, mmflags_nht);
 static void m_initthrow(struct monst *, int, int);
 static void m_initweap(struct monst *);
 static void m_initinv(struct monst *);
 static xchar hd_size(struct permonst *);
-static boolean makemon_rnd_goodpos(struct monst *, long, coord *);
+static boolean makemon_rnd_goodpos(struct monst *, mmflags_nht, coord *);
 
 #define m_initsgrp(mtmp, x, y, mmf) m_initgrp(mtmp, x, y, 3, mmf)
 #define m_initlgrp(mtmp, x, y, mmf) m_initgrp(mtmp, x, y, 10, mmf)
@@ -72,7 +72,7 @@ wrong_elem_type(struct permonst *ptr)
 
 /* make a group just like mtmp */
 static void
-m_initgrp(struct monst *mtmp, int x, int y, int n, int mmflags)
+m_initgrp(struct monst *mtmp, int x, int y, int n, mmflags_nht mmflags)
 {
     coord mm;
     register int cnt = rnd(n);
@@ -316,9 +316,11 @@ m_initweap(register struct monst *mtmp)
             otmp = mongets(mtmp, LONG_SWORD);
 
             /* maybe make it special */
-            if (!rn2(20) || is_lord(ptr))
-                otmp = oname(otmp, artiname(ART_SUNSWORD));
-
+            if ((!rn2(20) || is_lord(ptr))
+                 && sgn(mtmp->isminion ? EMIN(mtmp)->min_align
+                                       : ptr->maligntyp) == A_LAWFUL)
+                otmp = oname(otmp, artiname(ART_SUNSWORD),
+                             ONAME_RANDOM); /* randomly created */
             bless(otmp);
             otmp->oerodeproof = TRUE;
             /* vanilla has done away with this little "keep the initial
@@ -352,6 +354,7 @@ m_initweap(register struct monst *mtmp)
                 otmp->quan = 4 + rnd(6);
                 otmp->owt = weight(otmp);
                 (void) mongets(mtmp, SLING);
+                m_initthrow(mtmp, !rn2(4) ? FLINT : ROCK, 6);
                 break;
             }
             if (!rn2(10)) {
@@ -1098,13 +1101,16 @@ newmextra(void)
 {
     struct mextra *mextra;
 
-    mextra = (struct mextra *) alloc(sizeof(struct mextra));
+    mextra = (struct mextra *) alloc(sizeof (struct mextra));
     init_mextra(mextra);
     return mextra;
 }
 
 static boolean
-makemon_rnd_goodpos(struct monst *mon, long gpflags, coord *cc)
+makemon_rnd_goodpos(
+    struct monst *mon,
+    mmflags_nht gpflags,
+    coord *cc) /* output */
 {
     int tryct = 0;
     int nx, ny;
@@ -1114,7 +1120,7 @@ makemon_rnd_goodpos(struct monst *mon, long gpflags, coord *cc)
         nx = rn1(COLNO - 3, 2);
         ny = rn2(ROWNO);
         good = (!g.in_mklev && cansee(nx,ny)) ? FALSE
-                                            : goodpos(nx, ny, mon, gpflags);
+                                              : goodpos(nx, ny, mon, gpflags);
     } while ((++tryct < 50) && !good);
 
     if (!good) {
@@ -1127,6 +1133,8 @@ makemon_rnd_goodpos(struct monst *mon, long gpflags, coord *cc)
         int bl = (g.in_mklev || Blind) ? 1 : 0;
 
         for ( ; bl < 2; bl++) {
+            if (!bl)
+                gpflags &= ~GP_CHECKSCARY; /* perhaps should be a 3rd pass */
             for (dx = 0; dx < COLNO; dx++)
                 for (dy = 0; dy < ROWNO; dy++) {
                     nx = ((dx + xofs) % (COLNO - 1)) + 1;
@@ -1169,19 +1177,23 @@ makemon_rnd_goodpos(struct monst *mon, long gpflags, coord *cc)
  *      In case we make a monster group, only return the one at [x,y].
  */
 struct monst *
-makemon(register struct permonst *ptr,
-        register int x, register int y, long mmflags)
+makemon(
+    struct permonst *ptr,
+    int x, int y,
+    mmflags_nht mmflags)
 {
     register struct monst *mtmp;
     struct monst fakemon;
     coord cc;
     int mndx, mcham, ct, mitem;
-    boolean anymon = !ptr,
-            byyou = (x == u.ux && y == u.uy),
+    boolean femaleok, maleok,
+            anymon = !ptr,
+            byyou = u_at(x, y),
             allow_minvent = ((mmflags & NO_MINVENT) == 0),
             countbirth = ((mmflags & MM_NOCOUNTBIRTH) == 0),
             allowtail = ((mmflags & MM_NOTAIL) == 0);
-    unsigned gpflags = (mmflags & MM_IGNOREWATER) ? MM_IGNOREWATER : 0;
+    mmflags_nht gpflags = (((mmflags & MM_IGNOREWATER) ? MM_IGNOREWATER : 0)
+                           | GP_CHECKSCARY);
 
     fakemon = cg.zeromonst;
     cc.x = cc.y = 0;
@@ -1198,7 +1210,8 @@ makemon(register struct permonst *ptr,
         x = cc.x;
         y = cc.y;
     } else if (byyou && !g.in_mklev) {
-        if (!enexto_core(&cc, u.ux, u.uy, ptr, gpflags))
+        if (!enexto_core(&cc, u.ux, u.uy, ptr, gpflags)
+            && !enexto_core(&cc, u.ux, u.uy, ptr, gpflags & ~GP_CHECKSCARY))
             return (struct monst *) 0;
         x = cc.x;
         y = cc.y;
@@ -1277,10 +1290,13 @@ makemon(register struct permonst *ptr,
     /* set up level and hit points */
     newmonhp(mtmp, mndx);
 
-    if (is_female(ptr) || ((mmflags & MM_FEMALE) && !is_male(ptr)))
-        mtmp->female = TRUE;
-    else if (is_male(ptr) || ((mmflags & MM_MALE) && !is_female(ptr)))
-        mtmp->female = FALSE;
+    femaleok = (!is_male(ptr) && !is_neuter(ptr));
+    maleok = (!is_female(ptr) && !is_neuter(ptr));
+    if (is_female(ptr) || ((mmflags & MM_FEMALE) != 0 && femaleok))
+        mtmp->female = 1;
+    else if (is_male(ptr) || ((mmflags & MM_MALE) != 0 && maleok))
+        mtmp->female = 0;
+
     /* leader and nemesis gender is usually hardcoded in mons[],
        but for ones which can be random, it has already been chosen
        (in role_init(), for possible use by the quest pager code) */
@@ -1288,8 +1304,12 @@ makemon(register struct permonst *ptr,
         mtmp->female = g.quest_status.ldrgend;
     else if (ptr->msound == MS_NEMESIS && quest_info(MS_NEMESIS) == mndx)
         mtmp->female = g.quest_status.nemgend;
+
+    /* female used to be set randomly here even for neuters on the
+       grounds that it was ignored, but after corpses were changed to
+       retain gender it matters because it affects stacking of corpses */
     else
-        mtmp->female = rn2(2); /* ignored for neuters */
+        mtmp->female = femaleok ? rn2(2) : 0;
 
     if (In_sokoban(&u.uz) && !mindless(ptr)) /* know about traps here */
         mtmp->mtrapseen = (1L << (PIT - 1)) | (1L << (HOLE - 1));
@@ -1531,6 +1551,10 @@ makemon(register struct permonst *ptr,
                         : "",
                       exclaim ? '!' : '.');
         }
+        /* if discernable and a threat, stop fiddling while Rome burns */
+        if (g.occupation)
+            (void) dochugw(mtmp, FALSE);
+
         /* TODO: unify with teleport appears msg */
     }
 
@@ -1539,7 +1563,9 @@ makemon(register struct permonst *ptr,
 
 /* caller rejects makemon()'s result; always returns Null */
 struct monst *
-unmakemon(struct monst *mon, long mmflags)
+unmakemon(
+    struct monst *mon,
+    mmflags_nht mmflags)
 {
     boolean countbirth = ((mmflags & MM_NOCOUNTBIRTH) == 0);
     int mndx = monsndx(mon->data);

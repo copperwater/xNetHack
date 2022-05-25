@@ -192,7 +192,7 @@ surface(int x, int y)
 {
     struct rm *lev = &levl[x][y];
 
-    if (x == u.ux && y == u.uy && u.uswallow && is_animal(u.ustuck->data))
+    if (u_at(x, y) && u.uswallow && is_animal(u.ustuck->data))
         return "maw";
     else if (IS_AIR(lev->typ))
         return "air";
@@ -271,16 +271,15 @@ engr_at(xchar x, xchar y)
  * If strict checking is requested, the word is only considered to be
  * present if it is intact and is the entire content of the engraving.
  */
-int
+boolean
 sengr_at(const char *s, xchar x, xchar y, boolean strict)
 {
     register struct engr *ep = engr_at(x, y);
 
     if (ep && ep->engr_type != HEADSTONE && ep->engr_time <= g.moves) {
-        return strict ? (fuzzymatch(ep->engr_txt, s, "", TRUE))
-                      : (strstri(ep->engr_txt, s) != 0);
+        return (strict ? !strcmpi(ep->engr_txt, s)
+                       : (strstri(ep->engr_txt, s) != 0));
     }
-
     return FALSE;
 }
 
@@ -391,7 +390,7 @@ void
 make_engr_at(int x, int y, const char *s, long e_time, xchar e_type)
 {
     struct engr *ep;
-    unsigned smem = strlen(s) + 1;
+    unsigned smem = Strlen(s) + 1;
 
     if ((ep = engr_at(x, y)) != 0)
         del_engr(ep);
@@ -545,7 +544,7 @@ doengrave(void)
     const char *everb;          /* Present tense of engraving type */
     const char *eloc; /* Where the engraving is (ie dust/floor/...) */
     char *sp;         /* Place holder for space count of engr text */
-    int len;          /* # of nonspace chars of new engraving text */
+    size_t len;          /* # of nonspace chars of new engraving text */
     struct engr *oep = engr_at(u.ux, u.uy);
     /* The current engraving */
     struct obj *otmp; /* Object selected with which to engrave */
@@ -857,7 +856,9 @@ doengrave(void)
         break;
 
     case WEAPON_CLASS:
-        if (is_blade(otmp)) {
+        if (otmp->oartifact == ART_FIRE_BRAND)
+            type = BURN;
+        else if (is_blade(otmp)) {
             if ((int) otmp->spe > -3)
                 type = ENGRAVE;
             else
@@ -1482,7 +1483,8 @@ make_grave(int x, int y, const char *str)
         || t_at(x, y))
         return;
     /* Make the grave */
-    levl[x][y].typ = GRAVE;
+    if (!set_levltyp(x, y, GRAVE))
+        return;
     /* Engrave the headstone */
     del_engr_at(x, y);
     if (!str)

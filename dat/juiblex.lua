@@ -1,4 +1,4 @@
--- NetHack 3.7	gehennom.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.13 $
+-- NetHack gehennom juiblex.lua	$NHDT-Date: 1652196026 2022/05/10 15:20:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1992 by M. Stephenson and Izchak Miller
 -- NetHack may be freely redistributed.  See license for details.
@@ -63,9 +63,9 @@ des.levregion({ region = {01,00,11,20}, region_islev=1, exclude={0,0,50,17}, typ
 des.teleport_region({ region = {01,00,11,20}, region_islev=1, exclude={0,0,50,17},dir="up" })
 des.teleport_region({ region = {69,00,79,20}, region_islev=1, exclude={0,0,50,17},dir="down" })
 des.feature("fountain", place:rndcoord(1))
-des.monster({ id = "giant mimic", coord = { place:rndcoord(1) }, appear_as = "ter:fountain" })
-des.monster({ id = "giant mimic", coord = { place:rndcoord(1) }, appear_as = "ter:fountain" })
-des.monster({ id = "giant mimic", coord = { place:rndcoord(1) }, appear_as = "ter:fountain" })
+des.monster({ id = "giant mimic", coord = place:rndcoord(1), appear_as = "ter:fountain" })
+des.monster({ id = "giant mimic", coord = place:rndcoord(1), appear_as = "ter:fountain" })
+des.monster({ id = "giant mimic", coord = place:rndcoord(1), appear_as = "ter:fountain" })
 -- The demon of the swamp
 des.monster("Juiblex",25,08)
 -- And a couple demons

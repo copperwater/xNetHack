@@ -132,7 +132,7 @@
     /* start cmap B */
     PCHAR( 34, '|',  S_grave, "grave", CLR(CLR_WHITE))
     PCHAR2(35, '\\', S_throne, "throne", "opulent throne", CLR(HI_GOLD))
-    PCHAR( 36, '\\', S_sink, "sink", CLR(CLR_BLUE))
+    PCHAR( 36, '{',  S_sink, "sink", CLR(CLR_WHITE))
     PCHAR( 37, '{',  S_fountain, "fountain", CLR(CLR_BRIGHT_BLUE))
     PCHAR2(38, '}',  S_pool, "pool", "water", CLR(CLR_BLUE))
     PCHAR( 39, '.',  S_ice, "ice", CLR(CLR_CYAN))
@@ -159,7 +159,8 @@
     PCHAR( 52, '^',  S_squeaky_board, "squeaky board", CLR(CLR_BROWN))
     PCHAR( 53, '^',  S_bear_trap, "bear trap", CLR(HI_METAL))
     PCHAR( 54, '^',  S_land_mine, "land mine", CLR(CLR_RED))
-    PCHAR( 55, '^',  S_rolling_boulder_trap, "rolling boulder trap", CLR(CLR_GRAY))
+    PCHAR( 55, '^',  S_rolling_boulder_trap, "rolling boulder trap",
+                     CLR(CLR_GRAY))
     PCHAR( 56, '^',  S_sleeping_gas_trap, "sleeping gas trap", CLR(HI_ZAP))
     PCHAR( 57, '^',  S_rust_trap, "rust trap", CLR(CLR_BLUE))
     PCHAR( 58, '^',  S_fire_trap, "fire trap", CLR(CLR_ORANGE))
@@ -167,15 +168,19 @@
     PCHAR( 60, '^',  S_spiked_pit, "spiked pit", CLR(CLR_BLACK))
     PCHAR( 61, '^',  S_hole, "hole", CLR(CLR_BROWN))
     PCHAR( 62, '^',  S_trap_door, "trap door", CLR(CLR_BROWN))
-    PCHAR( 63, '^',  S_teleportation_trap, "teleportation trap", CLR(CLR_MAGENTA))
+    PCHAR( 63, '^',  S_teleportation_trap, "teleportation trap",
+                     CLR(CLR_MAGENTA))
     PCHAR( 64, '^',  S_level_teleporter, "level teleporter", CLR(CLR_MAGENTA))
     PCHAR( 65, '^',  S_magic_portal, "magic portal", CLR(CLR_BRIGHT_MAGENTA))
     PCHAR( 66, '"',  S_web, "web", CLR(CLR_GRAY))
     PCHAR( 67, '^',  S_statue_trap, "statue trap", CLR(CLR_GRAY))
     PCHAR( 68, '^',  S_magic_trap, "magic trap", CLR(HI_ZAP))
-    PCHAR2(69, '^',  S_anti_magic_trap, "anti magic trap", "anti-magic field", CLR(HI_ZAP))
+    PCHAR2(69, '^',  S_anti_magic_trap, "anti magic trap", "anti-magic field",
+                     CLR(HI_ZAP))
     PCHAR( 70, '^',  S_polymorph_trap, "polymorph trap", CLR(CLR_BRIGHT_GREEN))
     PCHAR( 71, '~',  S_vibrating_square, "vibrating square", CLR(CLR_YELLOW))
+    PCHAR( 72, '^',  S_trapped_door, "trapped door", CLR(CLR_ORANGE))
+    PCHAR( 73, '^',  S_trapped_chest, "trapped chest", CLR(CLR_ORANGE))
     /* end traps                                                       */
     /* end cmap B */
     /*                                                                 */
@@ -183,24 +188,24 @@
     /*                                                                 */
     /* zap colors are changed by map_glyphinfo() to match type of beam */
     /*                                                                 */
-    PCHAR2(72, '|',  S_vbeam, "vertical beam", "", CLR(CLR_GRAY))
-    PCHAR2(73, '-',  S_hbeam, "horizontal beam", "", CLR(CLR_GRAY))
-    PCHAR2(74, '\\', S_lslant, "left slant beam", "", CLR(CLR_GRAY))
-    PCHAR2(75, '/',  S_rslant, "right slant beam", "", CLR(CLR_GRAY))
+    PCHAR2(74, '|',  S_vbeam, "vertical beam", "", CLR(CLR_GRAY))
+    PCHAR2(75, '-',  S_hbeam, "horizontal beam", "", CLR(CLR_GRAY))
+    PCHAR2(76, '\\', S_lslant, "left slant beam", "", CLR(CLR_GRAY))
+    PCHAR2(77, '/',  S_rslant, "right slant beam", "", CLR(CLR_GRAY))
     /* start cmap C */
-    PCHAR2(76, '*',  S_digbeam, "dig beam", "", CLR(CLR_WHITE))
-    PCHAR2(77, '!',  S_flashbeam, "flash beam", "", CLR(CLR_WHITE))
-    PCHAR2(78, ')',  S_boomleft, "boom left", "", CLR(HI_WOOD))
-    PCHAR2(79, '(',  S_boomright, "boom right", "", CLR(HI_WOOD))
+    PCHAR2(78, '*',  S_digbeam, "dig beam", "", CLR(CLR_WHITE))
+    PCHAR2(79, '!',  S_flashbeam, "flash beam", "", CLR(CLR_WHITE))
+    PCHAR2(80, ')',  S_boomleft, "boom left", "", CLR(HI_WOOD))
+    PCHAR2(81, '(',  S_boomright, "boom right", "", CLR(HI_WOOD))
     /*                                                                 */
     /* 4 magic shield symbols                                          */
     /*                                                                 */
-    PCHAR2(80, '0',  S_ss1, "shield1", "", CLR(HI_ZAP))
-    PCHAR2(81, '#',  S_ss2, "shield2", "", CLR(HI_ZAP))
-    PCHAR2(82, '@',  S_ss3, "shield3", "", CLR(HI_ZAP))
-    PCHAR2(83, '*',  S_ss4, "shield4", "", CLR(HI_ZAP))
-    PCHAR( 84, '#',  S_poisoncloud, "poison cloud", CLR(CLR_BRIGHT_GREEN))
-    PCHAR( 85, '?',  S_goodpos, "valid position", CLR(CLR_BRIGHT_GREEN))
+    PCHAR2(82, '0',  S_ss1, "shield1", "", CLR(HI_ZAP))
+    PCHAR2(83, '#',  S_ss2, "shield2", "", CLR(HI_ZAP))
+    PCHAR2(84, '@',  S_ss3, "shield3", "", CLR(HI_ZAP))
+    PCHAR2(85, '*',  S_ss4, "shield4", "", CLR(HI_ZAP))
+    PCHAR( 86, '#',  S_poisoncloud, "poison cloud", CLR(CLR_BRIGHT_GREEN))
+    PCHAR( 87, '?',  S_goodpos, "valid position", CLR(CLR_BRIGHT_GREEN))
     /* end cmap C */
     /*                                                             */
     /* The 8 swallow symbols.  Do NOT separate.                    */
@@ -214,14 +219,14 @@
     /*      4 5 6                                                  */
     /*      7 8 9                                                  */
     /*                                                             */
-    PCHAR2(86, '/',  S_sw_tl, "swallow top left", "", CLR(CLR_GREEN))      /* 1 */
-    PCHAR2(87, '-',  S_sw_tc, "swallow top center", "", CLR(CLR_GREEN))    /* 2 */
-    PCHAR2(88, '\\', S_sw_tr, "swallow top right", "", CLR(CLR_GREEN))     /* 3 */
-    PCHAR2(89, '|',  S_sw_ml, "swallow middle left", "", CLR(CLR_GREEN))   /* 4 */
-    PCHAR2(90, '|',  S_sw_mr, "swallow middle right", "", CLR(CLR_GREEN))  /* 6 */
-    PCHAR2(91, '\\', S_sw_bl, "swallow bottom left", "", CLR(CLR_GREEN))   /* 7 */
-    PCHAR2(92, '-',  S_sw_bc, "swallow bottom center", "", CLR(CLR_GREEN)) /* 8 */
-    PCHAR2(93, '/',  S_sw_br, "swallow bottom right", "", CLR(CLR_GREEN))  /* 9 */
+    PCHAR2(88, '/',  S_sw_tl, "swallow top left", "", CLR(CLR_GREEN))      /* 1 */
+    PCHAR2(89, '-',  S_sw_tc, "swallow top center", "", CLR(CLR_GREEN))    /* 2 */
+    PCHAR2(90, '\\', S_sw_tr, "swallow top right", "", CLR(CLR_GREEN))     /* 3 */
+    PCHAR2(91, '|',  S_sw_ml, "swallow middle left", "", CLR(CLR_GREEN))   /* 4 */
+    PCHAR2(92, '|',  S_sw_mr, "swallow middle right", "", CLR(CLR_GREEN))  /* 6 */
+    PCHAR2(93, '\\', S_sw_bl, "swallow bottom left", "", CLR(CLR_GREEN))   /* 7 */
+    PCHAR2(94, '-',  S_sw_bc, "swallow bottom center", "", CLR(CLR_GREEN)) /* 8 */
+    PCHAR2(95, '/',  S_sw_br, "swallow bottom right", "", CLR(CLR_GREEN))  /* 9 */
     /*                                                             */
     /* explosion colors are changed by reset_glyphmap() to match   */
     /* the type of expl.                                           */
@@ -232,15 +237,15 @@
     /*      |@|                                                    */
     /*      \-/                                                    */
     /*                                                             */
-    PCHAR2(94, '/',  S_expl_tl, "explosion top left", "", CLR(CLR_ORANGE))
-    PCHAR2(95, '-',  S_expl_tc, "explosion top center", "", CLR(CLR_ORANGE))
-    PCHAR2(96, '\\', S_expl_tr, "explosion top right", "", CLR(CLR_ORANGE))
-    PCHAR2(97, '|',  S_expl_ml, "explosion middle left", "", CLR(CLR_ORANGE))
-    PCHAR2(98, ' ',  S_expl_mc, "explosion middle center", "", CLR(CLR_ORANGE))
-    PCHAR2(99, '|',  S_expl_mr, "explosion middle right", "", CLR(CLR_ORANGE))
-    PCHAR2(100,'\\', S_expl_bl, "explosion bottom left", "", CLR(CLR_ORANGE))
-    PCHAR2(101,'-',  S_expl_bc, "explosion bottom center", "", CLR(CLR_ORANGE))
-    PCHAR2(102,'/',  S_expl_br, "explosion bottom right", "", CLR(CLR_ORANGE))
+    PCHAR2(96, '/',  S_expl_tl, "explosion top left", "", CLR(CLR_ORANGE))
+    PCHAR2(97, '-',  S_expl_tc, "explosion top center", "", CLR(CLR_ORANGE))
+    PCHAR2(98, '\\', S_expl_tr, "explosion top right", "", CLR(CLR_ORANGE))
+    PCHAR2(99, '|',  S_expl_ml, "explosion middle left", "", CLR(CLR_ORANGE))
+    PCHAR2(100, ' ',  S_expl_mc, "explosion middle center", "", CLR(CLR_ORANGE))
+    PCHAR2(101, '|',  S_expl_mr, "explosion middle right", "", CLR(CLR_ORANGE))
+    PCHAR2(102,'\\', S_expl_bl, "explosion bottom left", "", CLR(CLR_ORANGE))
+    PCHAR2(103,'-',  S_expl_bc, "explosion bottom center", "", CLR(CLR_ORANGE))
+    PCHAR2(104,'/',  S_expl_br, "explosion bottom right", "", CLR(CLR_ORANGE))
 #undef PCHAR
 #undef PCHAR2
 #endif /* PCHAR_S_ENUM || PCHAR_PARSE || PCHAR_DRAWING || PCHAR_TILES */

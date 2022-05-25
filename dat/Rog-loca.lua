@@ -1,4 +1,4 @@
--- NetHack 3.7	Rogue.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.11 $
+-- NetHack Rogue Rog-loca.lua	$NHDT-Date: 1652196012 2022/05/10 15:20:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1992 by Dean Luick
 -- NetHack may be freely redistributed.  See license for details.
 --
@@ -41,7 +41,7 @@ des.stair("down")
 -- Non diggable walls
 des.non_diggable(selection.area(00,00,75,20))
 -- Objects
-des.object({ id = "teleportation", x=11, y=18, buc="cursed", spe=0 })
+des.object({ id = "scroll of teleportation", x=11, y=18, buc="cursed", spe=0 })
 des.object()
 des.object()
 des.object()

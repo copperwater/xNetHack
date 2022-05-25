@@ -1,4 +1,4 @@
--- NetHack 3.7	Ranger.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+-- NetHack Ranger Ran-strt.lua	$NHDT-Date: 1652196011 2022/05/10 15:20:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -45,11 +45,11 @@ des.replace_terrain({ region = {53,00,77,20}, fromterrain=".", toterrain="T", ch
 
 -- Stairs
 local rightedge = selection.line(77,00, 77,21)
-local dnstair = { rightedge:rndcoord() }
+local dnstair = rightedge:rndcoord()
 des.stair({ dir = "down", coord = dnstair })
 
 -- Guarantee a treeless path from the stair to the forest entry
-des.terrain({ selection = selection.randline(77, dnstair[2], 43,09, 6), typ=".", lit=1 })
+des.terrain({ selection = selection.randline(77, dnstair.y, 43,09, 6), typ=".", lit=1 })
 
 -- Portal arrival point; just about anywhere on the right hand side of the map
 des.levregion({ region = {51,2,77,18}, exclude = {0,0,40,20}, region_islev = 1, type="branch" })
@@ -61,9 +61,9 @@ des.altar({ x=11, y=10, align="coaligned", type="altar" })
 local grass = selection.new()
 local everything = selection.area(00, 00, 77, 21)
 for i=1,d(4,3) do
-   local cx, cy = everything:rndcoord()
+   local ctr = everything:rndcoord()
    local fairyring = percent(1)
-   local newpatch = selection.circle(cx, cy, 3, fairyring and 0 or 1)
+   local newpatch = selection.circle(ctr.x, ctr.y, 3, fairyring and 0 or 1)
    while percent(50) do
       newpatch:grow("random")
    end

@@ -1,4 +1,4 @@
--- NetHack 3.7	Monk.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.12 $
+-- NetHack Monk Mon-strt.lua	$NHDT-Date: 1652196007 2022/05/10 15:20:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -67,14 +67,14 @@ des.monster({ id = "Grand Master", coord = {49, 09}, inventory = function()
 end })
 -- guards for the audience chamber
 local main_hall = selection.fillrect(31,06,51,13)
-des.monster({ id = "abbot", coord = { main_hall:rndcoord() }})
-des.monster({ id = "abbot", coord = { main_hall:rndcoord() }})
-des.monster({ id = "abbot", coord = { main_hall:rndcoord() }})
-des.monster({ id = "abbot", coord = { main_hall:rndcoord() }})
-des.monster({ id = "abbot", coord = { main_hall:rndcoord() }})
-des.monster({ id = "abbot", coord = { main_hall:rndcoord() }})
-des.monster({ id = "abbot", coord = { main_hall:rndcoord() }})
-des.monster({ id = "abbot", coord = { main_hall:rndcoord() }})
+des.monster("abbot", main_hall:rndcoord())
+des.monster("abbot", main_hall:rndcoord())
+des.monster("abbot", main_hall:rndcoord())
+des.monster("abbot", main_hall:rndcoord())
+des.monster("abbot", main_hall:rndcoord())
+des.monster("abbot", main_hall:rndcoord())
+des.monster("abbot", main_hall:rndcoord())
+des.monster("abbot", main_hall:rndcoord())
 
 -- Monks are ascetics: you won't find anything here that they won't give
 -- to a Candidate starting out
@@ -109,8 +109,8 @@ des.object("boulder", 72, 19)
 outside = selection.fillrect(00,00,16,19)
 inside_walls = selection.floodfill(26,09)
 for i=1,4 do
-  des.monster({ id = "earth elemental", coord = { outside:rndcoord() }, peaceful = 0 })
-  des.monster({ class = "E", coord = { inside_walls:rndcoord() }, peaceful = 0 })
+  des.monster({ id = "earth elemental", coord = outside:rndcoord(), peaceful = 0 })
+  des.monster({ class = "E", coord = inside_walls:rndcoord(), peaceful = 0 })
 end
 des.monster({ id = "xorn", x=21, y=08, peaceful = 0})
 des.monster({ id = "xorn", x=21, y=11, peaceful = 0})

@@ -1,34 +1,69 @@
-/* NetHack 3.7	teleport.c	$NHDT-Date: 1605305493 2020/11/13 22:11:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.134 $ */
+/* NetHack 3.7	teleport.c	$NHDT-Date: 1646838392 2022/03/09 15:06:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.163 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 
+static boolean goodpos_onscary(int, int, struct permonst *);
 static boolean tele_jump_ok(int, int, int, int);
 static boolean teleok(int, int, boolean);
 static void vault_tele(void);
 static boolean rloc_pos_ok(int, int, struct monst *);
 static void rloc_to_core(struct monst *, int, int, unsigned);
 static void mvault_tele(struct monst *);
+static boolean m_blocks_teleporting(struct monst *);
+
+/* does monster block others from teleporting? */
+static boolean
+m_blocks_teleporting(struct monst *mtmp)
+{
+    if (is_dlord(mtmp->data) || is_dprince(mtmp->data))
+        return TRUE;
+    return FALSE;
+}
 
 /* teleporting is prevented on this level for this monster? */
 boolean
 noteleport_level(struct monst* mon)
 {
-    struct monst *mtmp;
-
     /* demon court in Gehennom prevent others from teleporting */
     if (In_hell(&u.uz) && !(is_dlord(mon->data) || is_dprince(mon->data)))
-        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-            if (is_dlord(mtmp->data) || is_dprince(mtmp->data))
-                return TRUE;
+        if (get_iter_mons(m_blocks_teleporting))
+            return TRUE;
 
     /* natural no-teleport level */
     if (g.level.flags.noteleport)
         return TRUE;
 
     return FALSE;
+}
+
+/* this is an approximation of onscary() that doesn't use any 'struct monst'
+   fields aside from 'monst->data' */
+static boolean
+goodpos_onscary(
+    int x, int y,
+    struct permonst *mptr)
+{
+    /* onscary() checks Angels and lawful minions; this oversimplifies */
+    if (mptr->mlet == S_HUMAN || mptr->mlet == S_ANGEL
+        || is_rider(mptr) || unique_corpstat(mptr))
+        return FALSE;
+    /* onscary() checks for vampshifted vampire bats/fog clouds/wolves too */
+    if (IS_ALTAR(levl[x][y].typ) && mptr->mlet == S_VAMPIRE)
+        return TRUE;
+    /* scare monster scroll doesn't have any of the below restrictions,
+       being its own source of power */
+    if (sobj_at(SCR_SCARE_MONSTER, x, y))
+        return TRUE;
+    /* engraved Elbereth doesn't work in Gehennom or the end-game */
+    if (Inhell || In_endgame(&u.uz))
+        return FALSE;
+    /* creatures who don't (or can't) fear a written Elbereth */
+    if (mptr == &mons[PM_MINOTAUR] || !haseyes(mptr))
+        return FALSE;
+    return sengr_at("Elbereth", x, y, TRUE);
 }
 
 /*
@@ -39,10 +74,15 @@ noteleport_level(struct monst* mon)
  * call it to generate new monster positions with fake monster structures.
  */
 boolean
-goodpos(int x, int y, struct monst* mtmp, long gpflags)
+goodpos(
+    int x, int y,
+    struct monst *mtmp,
+    mmflags_nht gpflags)
 {
     struct permonst *mdat = (struct permonst *) 0;
     boolean ignorewater = ((gpflags & MM_IGNOREWATER) != 0),
+            ignorelava = ((gpflags & MM_IGNORELAVA) != 0),
+            checkscary = ((gpflags & GP_CHECKSCARY) != 0),
             allow_u = ((gpflags & GP_ALLOW_U) != 0);
 
     if (!isok(x, y))
@@ -55,7 +95,7 @@ goodpos(int x, int y, struct monst* mtmp, long gpflags)
      * oh well.
      */
     if (!allow_u) {
-        if (x == u.ux && y == u.uy && mtmp != &g.youmonst
+        if (u_at(x, y) && mtmp != &g.youmonst
             && (mtmp != u.ustuck || !u.uswallow)
             && (!u.usteed || mtmp != u.usteed))
             return FALSE;
@@ -83,18 +123,18 @@ goodpos(int x, int y, struct monst* mtmp, long gpflags)
             if (mtmp == &g.youmonst)
                 return (Swimming || Amphibious
                         || (!Is_waterlevel(&u.uz)
-                            && !(levl[x][y].typ == WATER)
+                            && !is_waterwall(x, y)
                             /* water on the Plane of Water has no surface
                                so there's no way to be on or above that */
                             && (Levitation || Flying || Wwalking)));
             else
                 return (is_swimmer(mdat)
                         || (!Is_waterlevel(&u.uz)
-                            && !(levl[x][y].typ == WATER)
+                            && !is_waterwall(x, y)
                             && !grounded(mdat)));
         } else if (mdat->mlet == S_EEL && rn2(13) && !ignorewater) {
             return FALSE;
-        } else if (is_lava(x, y)) {
+        } else if (is_lava(x, y) && !ignorelava) {
             /* 3.6.3: floating eye can levitate over lava but it avoids
                that due the effect of the heat causing it to dry out */
             if (mdat == &mons[PM_FLOATING_EYE])
@@ -113,14 +153,20 @@ goodpos(int x, int y, struct monst* mtmp, long gpflags)
             return TRUE;
         if (amorphous(mdat) && closed_door(x, y))
             return TRUE;
-    }
-    if (!accessible(x, y)) {
-        if (!(is_pool(x, y) && ignorewater))
+        /* avoid onscary() if caller has specified that restriction */
+        if (checkscary && (mtmp->m_id ? onscary(x, y, mtmp)
+                                      : goodpos_onscary(x, y, mdat)))
             return FALSE;
     }
-
+    if (!accessible(x, y)) {
+        if (!(is_pool(x, y) && ignorewater)
+            && !(is_lava(x, y) && ignorelava))
+            return FALSE;
+    }
+    /* skip boulder locations for most creatures */
     if (sobj_at(BOULDER, x, y) && (!mdat || !throws_rocks(mdat)))
         return FALSE;
+
     return TRUE;
 }
 
@@ -135,20 +181,19 @@ goodpos(int x, int y, struct monst* mtmp, long gpflags)
 boolean
 enexto(
     coord *cc,
-    register xchar xx,
-    register xchar yy,
+    xchar xx, xchar yy,
     struct permonst *mdat)
 {
-    return enexto_core(cc, xx, yy, mdat, NO_MM_FLAGS);
+    return (enexto_core(cc, xx, yy, mdat, GP_CHECKSCARY)
+            || enexto_core(cc, xx, yy, mdat, NO_MM_FLAGS));
 }
 
 boolean
 enexto_core(
     coord *cc,
-    xchar xx,
-    xchar yy,
+    xchar xx, xchar yy,
     struct permonst *mdat,
-    long entflags)
+    mmflags_nht entflags)
 {
 #define MAX_GOOD 15
     coord good[MAX_GOOD], *good_ptr;
@@ -283,10 +328,19 @@ static boolean
 teleok(register int x, register int y, boolean trapok)
 {
     if (!trapok) {
-        /* allow teleportation onto vibrating square, it's not a real trap */
+        /* allow teleportation onto vibrating square, it's not a real trap;
+           also allow pits and holes if levitating or flying */
         struct trap *trap = t_at(x, y);
 
-        if (trap && trap->ttyp != VIBRATING_SQUARE)
+        if (!trap)
+            trapok = TRUE;
+        else if (trap->ttyp == VIBRATING_SQUARE)
+            trapok = TRUE;
+        else if ((is_pit(trap->ttyp) || is_hole(trap->ttyp))
+                 && (Levitation || Flying))
+            trapok = TRUE;
+
+        if (!trapok)
             return FALSE;
     }
     if (!goodpos(x, y, &g.youmonst, 0))
@@ -364,8 +418,14 @@ teleds(int nux, int nuy, int teleds_flags)
         if (drag_ball(nux, nuy, &bc_control, &ballx, &bally, &chainx,
                       &chainy, &cause_delay, allow_drag))
             move_bc(0, bc_control, ballx, bally, chainx, chainy);
-        else /* dragging fails if hero is encumbered beyond 'burdened' */
-            unplacebc(); /* to match placebc() below */
+        else {
+            /* dragging fails if hero is encumbered beyond 'burdened' */
+            /* uball might've been cleared via drag_ball -> spoteffects ->
+               dotrap -> magic trap unpunishment */
+            ball_active = (Punished && uball->where != OBJ_FREE);
+            if (ball_active)
+                unplacebc(); /* to match placebc() below */
+        }
     }
 
     /* must set u.ux, u.uy after drag_ball(), which may need to know
@@ -549,7 +609,7 @@ scrolltele(struct obj* scroll)
                 && yn("You can't normally teleport here. Do it anyway?") == 'y')) {
             /* for scroll, discover it regardless of destination */
             teleds(cc.x, cc.y, TELEDS_TELEPORT);
-            if (iflags.travelcc.x == u.ux && iflags.travelcc.y == u.uy)
+            if (u_at(iflags.travelcc.x, iflags.travelcc.y))
                 iflags.travelcc.x = iflags.travelcc.y = 0;
             return;
         }
@@ -710,29 +770,26 @@ dotele(
                 }
             }
             if (trap)
-                You("%s onto the teleportation trap.",
-                    locomotion(g.youmonst.data, "jump"));
+                You("%s onto the teleportation trap.", u_locomotion("jump"));
         } else
             trap = 0;
     }
     if (!trap && !break_the_rules) {
         boolean castit = FALSE;
-        register int sp_no = 0, energy = 0;
+        int energy = 0;
 
         if (!Teleportation || (u.ulevel < (Role_if(PM_WIZARD) ? 8 : 12)
                                && !can_teleport(g.youmonst.data))) {
             /* Try to use teleport away spell. */
-            for (sp_no = 0; sp_no < MAXSPELL; sp_no++)
-                if (g.spl_book[sp_no].sp_id == SPE_TELEPORT_AWAY)
-                    break;
+            int knownsp = known_spell(SPE_TELEPORT_AWAY);
+
             /* casting isn't inhibited by being Stunned (...it ought to be) */
-            castit = (sp_no < MAXSPELL && !Confusion);
+            castit = (knownsp >= spe_Fresh && !Confusion);
             if (!castit && !break_the_rules) {
-                You("%s.",
-                    !Teleportation ? ((sp_no < MAXSPELL)
-                                        ? "can't cast that spell"
-                                        : "don't know that spell")
-                                   : "are not able to teleport at will");
+                You("%s.", (!Teleportation ? ((knownsp != spe_Unknown)
+                                              ? "can't cast that spell"
+                                              : "don't know that spell")
+                            : "are not able to teleport at will"));
                 return 0;
             }
         }
@@ -780,7 +837,7 @@ dotele(
         if (castit) {
             /* energy cost is deducted in spelleffects() */
             exercise(A_WIS, TRUE);
-            if ((spelleffects(sp_no, TRUE) & ECMD_TIME))
+            if ((spelleffects(SPE_TELEPORT_AWAY, TRUE) & ECMD_TIME))
                 return 1;
             else if (!break_the_rules)
                 return 0;
@@ -1105,6 +1162,7 @@ domagicportal(register struct trap* ttmp)
         return;
     }
 
+    make_stunned((HStun & TIMEOUT) + 3L, FALSE);
     target_level = ttmp->dst;
     schedule_goto(&target_level, UTOTYPE_PORTAL,
                   "You feel dizzy for a moment, but the sensation passes.",
@@ -1137,11 +1195,8 @@ level_tele_trap(struct trap* trap, unsigned int trflags)
     if ((trflags & (VIASITTING | FORCETRAP)) != 0) {
         Strcpy(verbbuf, "trigger"); /* follows "You sit down." */
         intentional = TRUE;
-    }
-    else
-        Sprintf(verbbuf, "%s onto",
-                Levitation ? (const char *) "float"
-                           : locomotion(g.youmonst.data, "step"));
+    } else
+        Sprintf(verbbuf, "%s onto", u_locomotion("step"));
     You("%s a level teleport trap!", verbbuf);
 
     if (Antimagic && !intentional) {
@@ -1155,6 +1210,7 @@ level_tele_trap(struct trap* trap, unsigned int trflags)
         You("are momentarily blinded by a flash of light.");
     else
         You("are momentarily disoriented.");
+    make_stunned((HStun & TIMEOUT) + 3L, FALSE);
     deltrap(trap);
     newsym(u.ux, u.uy); /* get rid of trap symbol */
     level_tele();
@@ -1163,13 +1219,12 @@ level_tele_trap(struct trap* trap, unsigned int trflags)
 /* check whether monster can arrive at location <x,y> via Tport (or fall) */
 static boolean
 rloc_pos_ok(
-    register int x,
-    register int y, /* x,y - coordinates of candidate location */
+    int x, int y, /* coordinates of candidate location */
     struct monst *mtmp)
 {
     register int xx, yy;
 
-    if (!goodpos(x, y, mtmp, 0))
+    if (!goodpos(x, y, mtmp, GP_CHECKSCARY))
         return FALSE;
     /*
      * Check for restricted areas present in some special levels.
@@ -1230,9 +1285,10 @@ rloc_pos_ok(
  * placed randomly around the head of the worm.
  */
 static void
-rloc_to_core(struct monst* mtmp,
-             int x, int y,
-             unsigned int rlocflags)
+rloc_to_core(
+    struct monst* mtmp,
+    int x, int y,
+    unsigned rlocflags)
 {
     register int oldx = mtmp->mx, oldy = mtmp->my;
     boolean resident_shk = mtmp->isshk && inhishop(mtmp);
@@ -1288,15 +1344,16 @@ rloc_to_core(struct monst* mtmp,
                   Monnam(mtmp),
                   next2u(x, y) ? " next to you"
                   : (distu(x, y) <= (BOLT_LIM * BOLT_LIM)) ? " close by"
-                  : (distu(x, y) < distu(oldx, oldy)) ? " closer to you"
-                  : " further away");
+                    : (distu(x, y) < distu(oldx, oldy)) ? " closer to you"
+                      : " further away");
         } else {
             pline("%s %s%s%s!",
                   appearmsg ? Amonnam(mtmp) : Monnam(mtmp),
                   appearmsg ? "suddenly " : "",
                   !Blind ? "appears" : "arrives",
                   next2u(x, y) ? " next to you"
-                  : (distu(x, y) <= (BOLT_LIM * BOLT_LIM)) ? " close by" : "");
+                  : (distu(x, y) <= (BOLT_LIM * BOLT_LIM)) ? " close by"
+                    : "");
         }
     }
 
@@ -1306,9 +1363,13 @@ rloc_to_core(struct monst* mtmp,
     if (resident_shk && !inhishop(mtmp))
         make_angry_shk(mtmp, oldx, oldy);
 
+    /* if hero is busy, maybe stop occupation */
+    if (g.occupation)
+        (void) dochugw(mtmp, FALSE);
+
     /* trapped monster teleported away */
     if (mtmp->mtrapped && !mtmp->wormno)
-        (void) mintrap(mtmp);
+        (void) mintrap(mtmp, NO_TRAP_FLAGS);
 }
 
 void
@@ -1366,7 +1427,7 @@ rloc(
         /* if the wiz teleports away to heal, try the up staircase,
            to block the player's escaping before he's healed
            (deliberately use `goodpos' rather than `rloc_pos_ok' here) */
-        if (goodpos(x, y, mtmp, 0))
+        if (goodpos(x, y, mtmp, NO_MM_FLAGS))
             goto found_xy;
     }
 
@@ -1374,15 +1435,16 @@ rloc(
     do {
         x = rn1(COLNO - 3, 2);
         y = rn2(ROWNO);
+        /* rloc_pos_ok() passes GP_CHECKSCARY to goodpos(), we don't */
         if ((trycount < 500) ? rloc_pos_ok(x, y, mtmp)
-                             : goodpos(x, y, mtmp, 0))
+                             : goodpos(x, y, mtmp, NO_MM_FLAGS))
             goto found_xy;
     } while (++trycount < 1000);
 
     /* last ditch attempt to find a good place */
     for (x = 2; x < COLNO - 1; x++)
         for (y = 0; y < ROWNO; y++)
-            if (goodpos(x, y, mtmp, 0))
+            if (goodpos(x, y, mtmp, NO_MM_FLAGS))
                 goto found_xy;
 
     /* level either full of monsters or somehow faulty */
@@ -1450,7 +1512,7 @@ mtele_trap(struct monst* mtmp, struct trap* trap, int in_sight)
     }
 }
 
-/* return 0 if still on level, 3 if not */
+/* return Trap_Effect_Finished if still on level, Trap_Moved_Mon if not */
 int
 mlevel_tele_trap(
     struct monst *mtmp,
@@ -1464,7 +1526,7 @@ mlevel_tele_trap(
         /* ustuck case is probably a vortex, but check mon_moving so that if
          * hero is forcing a monster into a trap (i.e. with an AD_PITS attack),
          * this will proc correctly. */
-        return 0;         /* temporary? kludge */
+        return Trap_Effect_Finished; /* temporary? kludge */
     }
     if (teleport_pet(mtmp, force_it)) {
         d_level tolevel;
@@ -1477,7 +1539,7 @@ mlevel_tele_trap(
                 if (in_sight && trap->tseen)
                     pline("%s avoids the %s.", Monnam(mtmp),
                           (tt == HOLE) ? "hole" : "trap");
-                return 0;
+                return Trap_Effect_Finished;
             } else {
                 get_level(&tolevel, depth(&u.uz) + 1);
             }
@@ -1489,7 +1551,7 @@ mlevel_tele_trap(
                     pline("%s seems to shimmer for a moment.", Monnam(mtmp));
                     seetrap(trap);
                 }
-                return 0;
+                return Trap_Effect_Finished;
             } else {
                 assign_level(&tolevel, &trap->dst);
                 migrate_typ = MIGR_PORTAL;
@@ -1506,7 +1568,7 @@ mlevel_tele_trap(
                 if (in_sight)
                     pline("%s seems very disoriented for a moment.",
                           Monnam(mtmp));
-                return 0;
+                return Trap_Effect_Finished;
             }
             if (tt == NO_TRAP) {
                 /* creature is being forced off the level to make room;
@@ -1519,13 +1581,13 @@ mlevel_tele_trap(
                 if (nlev == depth(&u.uz)) {
                     if (in_sight)
                         pline("%s shudders for a moment.", Monnam(mtmp));
-                    return 0;
+                    return Trap_Effect_Finished;
                 }
                 get_level(&tolevel, nlev);
             }
         } else {
             impossible("mlevel_tele_trap: unexpected trap type (%d)", tt);
-            return 0;
+            return Trap_Effect_Finished;
         }
 
         if (in_sight) {
@@ -1533,10 +1595,11 @@ mlevel_tele_trap(
             if (trap)
                 seetrap(trap);
         }
+        mtmp->mstun = 1;
         migrate_to_level(mtmp, ledger_no(&tolevel), migrate_typ, (coord *) 0);
-        return 3; /* no longer on this level */
+        return Trap_Moved_Mon; /* no longer on this level */
     }
-    return 0;
+    return Trap_Effect_Finished;
 }
 
 /* place object randomly, returns False if it's gone (eg broken) */

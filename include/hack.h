@@ -184,6 +184,7 @@ typedef struct {
 
 #include "align.h"
 #include "dungeon.h"
+#include "wintype.h"
 #include "sym.h"
 #include "mkroom.h"
 
@@ -200,7 +201,6 @@ enum misc_arti_nums {
 
 #include "objclass.h"
 #include "youprop.h"
-#include "wintype.h"
 #include "context.h"
 #include "rm.h"
 #include "botl.h"
@@ -215,6 +215,7 @@ enum misc_arti_nums {
 
 #include "rect.h"
 #include "region.h"
+#include "trap.h"
 #include "display.h"
 #include "decl.h"
 #include "timeout.h"
@@ -266,7 +267,8 @@ typedef struct sortloot_item Loot;
          || (g.context.warntype.species                                      \
              && (g.context.warntype.species == (mon)->data))))
 
-#include "trap.h"
+typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
+
 #include "flag.h"
 #include "vision.h"
 #include "engrave.h"
@@ -296,10 +298,12 @@ typedef struct sortloot_item Loot;
 #define MM_FEMALE   0x020000L /* female variation */
 #define MM_NOMSG    0x040000L /* no appear message */
 /* if more MM_ flag masks are added, skip or renumber the GP_ one(s) */
-#define GP_ALLOW_XY 0x080000L /* [actually used by enexto() to decide whether
-                               * to make an extra call to goodpos()]        */
-#define GP_ALLOW_U  0x100000L /* don't reject hero's location */
-#define MM_NOEXCLAM 0x200000L /* more sedate "<mon> appears." mesg for ^G */
+#define GP_ALLOW_XY   0x080000L /* [actually used by enexto() to decide
+                                 * whether to make extra call to goodpos()] */
+#define GP_ALLOW_U    0x100000L /* don't reject hero's location */
+#define GP_CHECKSCARY 0x200000L /* check monster for onscary() */
+#define MM_NOEXCLAM   0x400000L /* more sedate "<mon> appears." mesg for ^G */
+#define MM_IGNORELAVA 0x800000L /* ignore lava when positioning */
 
 /* flags for make_corpse() and mkcorpstat(); 0..7 are recorded in obj->spe */
 #define CORPSTAT_NONE     0x00
@@ -376,6 +380,26 @@ typedef struct sortloot_item Loot;
 #define BUCX_TYPES (BUC_ALLBKNOWN | BUC_UNKNOWN)
 #define ALL_TYPES_SELECTED -2
 
+/* Flags for oname(), artifact_exists(), artifact_origin() */
+#define ONAME_NO_FLAGS   0U /* none of the below; they apply to artifacts */
+/*                       0x0001U is reserved for 'exists' */
+/* flags indicating where an artifact came from */
+#define ONAME_VIA_NAMING 0x0002U /* oname() is being called by do_oname();
+                                  * only matters if creating Sting|Orcrist */
+#define ONAME_WISH       0x0004U /* created via wish */
+#define ONAME_GIFT       0x0008U /* created as a divine reward after #offer or
+                                  * special #pray result of being crowned */
+#define ONAME_VIA_DIP    0x0010U /* created Excalibur in a fountain */
+#define ONAME_LEVEL_DEF  0x0020U /* placed by a special level's definition */
+#define ONAME_BONES      0x0040U /* object came from bones; in its original
+                                  * game it had one of the other bits but we
+                                  * don't care which one */
+#define ONAME_RANDOM     0x0080U /* something created an artifact randomly
+                                  * with mk_artifact() (mksboj or mk_player)
+                                  * or m_initweap() (lawful Angel) */
+/* flag congrolling potential livelog event of finding an artifact */
+#define ONAME_KNOW_ARTI  0x0100U /* hero is already aware of this artifact */
+
 /* Flags to control find_mid() */
 #define FM_FMON 0x01    /* search the fmon chain */
 #define FM_MIGRATE 0x02 /* search the migrating monster chain */
@@ -386,20 +410,28 @@ typedef struct sortloot_item Loot;
 #define PICK_RANDOM 0
 #define PICK_RIGID 1
 
-/* Flags to control dotrap() in trap.c */
-#define FORCETRAP 0x01     /* triggering not left to chance */
-#define NOWEBMSG 0x02      /* suppress stumble into web message */
-#define FORCEBUNGLE 0x04   /* adjustments appropriate for bungling */
-#define RECURSIVETRAP 0x08 /* trap changed into another type this same turn */
-#define TOOKPLUNGE 0x10    /* used '>' to enter pit below you */
-#define VIASITTING 0x20    /* #sit while at trap location (affects message) */
-#define FAILEDUNTRAP 0x40  /* trap activated by failed untrap attempt */
+/* Flags to control dotrap() and mintrap() in trap.c */
+#define NO_TRAP_FLAGS 0x00U
+#define FORCETRAP     0x01U /* triggering not left to chance */
+#define NOWEBMSG      0x02U /* suppress stumble into web message */
+#define FORCEBUNGLE   0x04U /* adjustments appropriate for bungling */
+#define RECURSIVETRAP 0x08U /* trap changed into another type this same turn */
+#define TOOKPLUNGE    0x10U /* used '>' to enter pit below you */
+#define VIASITTING    0x20U /* #sit while at trap location (affects message) */
+#define FAILEDUNTRAP  0x40U /* trap activated by failed untrap attempt */
+#define HURTLING      0x80U /* monster is hurtling through air */
 
 /* Flags to control test_move in hack.c */
 #define DO_MOVE 0   /* really doing the move */
 #define TEST_MOVE 1 /* test a normal move (move there next) */
 #define TEST_TRAV 2 /* test a future travel location */
 #define TEST_TRAP 3 /* check if a future travel loc is a trap */
+
+/* m_move return values */
+#define MMOVE_NOTHING 0
+#define MMOVE_MOVED   1 /* monster moved */
+#define MMOVE_DIED    2 /* monster died */
+#define MMOVE_DONE    3 /* monster used up all actions */
 
 /*** some utility macros ***/
 #define yn(query) yn_function(query, ynchars, 'n')
@@ -449,6 +481,11 @@ typedef struct sortloot_item Loot;
 #define OVERRIDE_MSGTYPE 2
 #define SUPPRESS_HISTORY 4
 #define URGENT_MESSAGE   8
+
+/* get_count flags */
+#define GC_NOFLAGS   0
+#define GC_SAVEHIST  1 /* save "Count: 123" in message history */
+#define GC_ECHOFIRST 2 /* echo "Count: 1" even when there's only one digit */
 
 /* rloc() flags */
 #define RLOC_NONE    0x00
@@ -617,15 +654,17 @@ enum adjattrib_return {
     AA_CURRCHNG = 2  /* current value changed */
 };
 
-/* flags for mktrap() */
-#define MKTRAP_NOFLAGS       0x0
-#define MKTRAP_MAZEFLAG      0x1
-#define MKTRAP_NOSPIDERONWEB 0x2
+enum concealed_spot_returnflags {
+    NOT_CONCEALABLE_SPOT   = 0x0,
+    CONCEALABLE_BY_TERRAIN = 0x1,
+    CONCEALABLE_BY_OBJECT  = 0x2
+};
 
 /* flags for mktrap() */
 #define MKTRAP_NOFLAGS       0x0
 #define MKTRAP_MAZEFLAG      0x1 /* trap placed on coords as if in maze */
 #define MKTRAP_NOSPIDERONWEB 0x2 /* web will not generate a spider */
+#define MKTRAP_SEEN          0x4 /* trap is seen */
 
 #define MON_POLE_DIST 5 /* How far monsters can use pole-weapons */
 #define PET_MISSILE_RANGE2 36 /* Square of distance within which pets shoot */
@@ -657,7 +696,11 @@ enum getobj_callback_returns {
     /* generally invalid - can't be used for this purpose. will give a "silly
      * thing" message if the player tries to pick it, unless a more specific
      * failure message is in getobj itself - e.g. "You cannot foo gold". */
-    GETOBJ_EXCLUDE = -2,
+    GETOBJ_EXCLUDE = -3,
+    /* invalid because it is not in inventory; used when the hands/self
+     * possibility is queried and the player passed up something on the
+     * floor before getobj. */
+    GETOBJ_EXCLUDE_NONINVENT = -2,
     /* invalid because it is an inaccessible or unwanted piece of gear, but
      * psuedo-valid for the purposes of allowing the player to select it and
      * getobj to return it if there is a prompt instead of getting "silly
@@ -718,6 +761,15 @@ enum optset_restrictions {
 #define min(x, y) ((x) < (y) ? (x) : (y))
 #endif
 #define plur(x) (((x) == 1) ? "" : "s")
+
+/* Cast to int, but limit value to range. */
+#define LIMIT_TO_RANGE_INT(lo, hi, var) \
+    (int) (                             \
+	(var) < (lo) ? (lo) : (         \
+	    (var) > (hi) ? (hi) :       \
+	    (var)                       \
+	)                               \
+    )
 
 #define makeknown(x) discover_object((x), TRUE, TRUE)
 #define distu(xx, yy) dist2((int)(xx), (int)(yy), (int) u.ux, (int) u.uy)

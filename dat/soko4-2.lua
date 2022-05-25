@@ -1,4 +1,4 @@
--- NetHack 3.7	sokoban.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.13 $
+-- NetHack sokoban soko4-2.lua	$NHDT-Date: 1652196036 2022/05/10 15:20:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1998-1999 by Kevin Hugo
 -- NetHack may be freely redistributed.  See license for details.
 --
@@ -56,8 +56,8 @@ des.trap("pit",05,08)
 des.trap("pit",06,08)
 
 -- A little help
-des.object("earth",01,09)
-des.object("earth",02,09)
+des.object("scroll of earth",01,09)
+des.object("scroll of earth",02,09)
 
 -- Random objects
 des.object({ class = "%" });

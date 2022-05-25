@@ -107,6 +107,10 @@ outdated:
 (files that are no longer maintained for current game code)
 .travis.yml
 
+outdated/dat:
+(files that are no longer maintained for current game code)
+symbols
+
 outdated/include:
 (files for GEM versions)
 bitmfile.h  gem_rsc.h   load_img.h  wingem.h
@@ -359,12 +363,12 @@ vmsmain.c     vmsmisc.c     vmstty.c      vmsunix.c
 sys/windows:
 (files for Windows 7/8.x/10/11 version)
 .nethackrc.template      Install.windows          Makefile.mingw32
-Makefile.mingw32.depend  Makefile.msc             console.rc
+Makefile.mingw32.depend  Makefile.nmake           console.rc
 consoletty.c             nethack.def              nhico.uu
 nhsetup.bat              ntsound.c                porthelp
-stub-pdcscrn.c           stubs.c                  sysconf.template
-win10.c                  win10.h                  win32api.h
-windmain.c               windsys.c                winos.h
+stubs.c                  sysconf.template         win10.c
+win10.h                  win32api.h               windmain.c
+windsys.c                winos.h
 
 sys/windows/vs:
 (files for Visual Studio 2017 or 2019 or 2022 Community Edition builds)
@@ -525,7 +529,7 @@ win/share:
 bmptiles.c     gifread.c      giftiles.c     monsters.txt   nhicns.uu
 nhsplash.xpm   objects.txt    other.txt      ppmwrite.c     renumtiles.pl
 safeproc.c     thintile.c     tile.doc       tile.h         tile2bmp.c
-tilemap.c      tileset.c      tiletext.c
+tilemap.c      tileset.c      tiletext.c     tiletxt.c
 
 win/shim:
 (file in top directory)

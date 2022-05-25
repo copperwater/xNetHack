@@ -1,4 +1,4 @@
-/* NetHack 3.7	end.c	$NHDT-Date: 1644524059 2022/02/10 20:14:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.235 $ */
+/* NetHack 3.7	end.c	$NHDT-Date: 1646322468 2022/03/03 15:47:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.240 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -29,7 +29,6 @@ static boolean sentient_arise(int);
 static void disclose(int, boolean);
 static void get_valuables(struct obj *);
 static void sort_valuables(struct valuable_data *, int);
-static void done_object_cleanup(void);
 static void artifact_score(struct obj *, boolean, winid);
 static void really_done(int) NORETURN;
 static void savelife(int);
@@ -209,7 +208,7 @@ NH_panictrace_libc(void)
 {
 #ifdef PANICTRACE_LIBC
     void *bt[20];
-    size_t count, x;
+    int count, x;
     char **info, buf[BUFSZ];
 
     raw_print("  Generating more information you may report:\n");
@@ -848,8 +847,8 @@ dump_everything(
        it's conceivable that the game started with a different
        build date+time or even with an older nethack version,
        but we only have access to the one it finished under */
-    putstr(0, ATR_SUBHEAD, getversionstring(pbuf));
-    putstr(NHW_DUMPTXT, 0, "");
+    putstr(0, 0, getversionstring(pbuf, sizeof pbuf));
+    putstr(0, 0, "");
 
     /* game start and end date+time to disambiguate version date+time */
     Strcpy(datetimebuf, yyyymmddhhmmss(ubirthday));
@@ -885,10 +884,10 @@ dump_everything(
     putstr(NHW_DUMPTXT, 0, "");
 
     dump_plines();
-    putstr(NHW_DUMPTXT, 0, "");
-    (void) do_gamelog();
-    putstr(NHW_DUMPTXT, 0, "");
-    putstr(0, ATR_HEADING, "Inventory:");
+    putstr(0, 0, "");
+    show_gamelog((how >= PANICKED) ? ENL_GAMEOVERALIVE : ENL_GAMEOVERDEAD);
+    putstr(0, 0, "");
+    putstr(0, 0, "Inventory:");
     (void) display_inventory((char *) 0, TRUE);
     container_contents(g.invent, TRUE, TRUE, FALSE);
     enlightenment((BASICENLIGHTENMENT | MAGICENLIGHTENMENT),
@@ -1001,30 +1000,34 @@ savelife(int how)
        reducing ulevel below 1, but include this for bulletproofing */
     if (u.ulevel < 1)
         u.ulevel = 1;
-    uhpmin = max(2 * u.ulevel, 10);
+    uhpmin = minuhpmax(10);
     if (u.uhpmax < uhpmin)
-        u.uhpmax = uhpmin;
     u.uhp = min(u.uhpmax, 100);
-
     if (Upolyd) /* Unchanging, or death which bypasses losing hit points */
         u.mh = min(u.mhmax, 100);
 
     if (u.uhunger < 500 || how == CHOKING) {
         init_uhunger();
     }
-    /* cure impending doom of sickness hero won't have time to fix */
+    /* cure impending doom of sickness hero won't have time to fix
+       [shouldn't this also be applied to other fatal timeouts?] */
     if ((Sick & TIMEOUT) == 1L) {
         make_sick(0L, (char *) 0, FALSE, SICK_ALL);
     }
     g.nomovemsg = "You survived that attempt on your life.";
     g.context.move = 0;
-    if (g.multi > 0)
-        g.multi = 0;
-    else
-        g.multi = -1;
+
+    g.multi = -1; /* can't move again during the current turn */
+    /* in case being life-saved is immediately followed by being killed
+       again (perhaps due to zap rebound); this text will be appended to
+          "killed by <something>, while "
+       in high scores entry, if any, and in logfile (but not on tombstone) */
+    g.multi_reason = Role_if(PM_TOURIST) ? "being toyed with by Fate"
+                                         : "attempting to cheat Death";
+
     if (u.utrap && u.utraptype == TT_LAVA)
         reset_utrap(FALSE);
-    g.context.botl = 1;
+    g.context.botl = TRUE;
     u.ugrave_arise = NON_PM;
     curs_on_u();
     if (!g.context.mon_moving)
@@ -1132,7 +1135,7 @@ odds_and_ends(struct obj *list, int what)
 #endif
 
 /* deal with some objects which may be in an abnormal state at end of game */
-static void
+void
 done_object_cleanup(void)
 {
     int ox, oy;
@@ -1189,15 +1192,14 @@ done_object_cleanup(void)
 
 /* called twice; first to calculate total, then to list relevant items */
 static void
-artifact_score(struct obj *list,
-               boolean counting, /* true => add up points;
-                                    false => display them */
-               winid endwin)
+artifact_score(
+    struct obj *list,
+    boolean counting, /* true => add up points; false => display them */
+    winid endwin)
 {
     char pbuf[BUFSZ];
     struct obj *otmp;
     long value, points;
-    short dummy; /* object type returned by artifact_name() */
 
     for (otmp = list; otmp; otmp = otmp->nobj) {
         if (otmp->oartifact || otmp->otyp == BELL_OF_OPENING
@@ -1213,7 +1215,7 @@ artifact_score(struct obj *list,
                 /* assumes artifacts don't have quan > 1 */
                 Sprintf(pbuf, "%s%s (worth %ld %s and %ld points)",
                         the_unique_obj(otmp) ? "The " : "",
-                        otmp->oartifact ? artifact_name(xname(otmp), &dummy)
+                        otmp->oartifact ? artiname(otmp->oartifact)
                                         : OBJ_NAME(objects[otmp->otyp]),
                         value, currency(value), points);
                 putstr(endwin, 0, pbuf);
@@ -1512,6 +1514,14 @@ really_done(int how)
         if (strcmp(flags.end_disclose, "none"))
             disclose(how, taken);
 
+        /* it would be better to do this after killer.name fixups but
+           that comes too late; included in final dumplog but might be
+           excluded by active livelog */
+        formatkiller(pbuf, (unsigned) sizeof pbuf, how, TRUE);
+        if (!*pbuf)
+            Strcpy(pbuf, deaths[how]);
+        livelog_printf(LL_DUMP, "%s", pbuf);
+
         dump_everything(how, endtime);
     }
 
@@ -1544,7 +1554,7 @@ really_done(int how)
         }
         if (yn("Do you want to write your own epitaph?") != 'y') {
             Sprintf(pbuf, "%s, ", g.plname);
-            formatkiller(eos(pbuf), sizeof pbuf - strlen(pbuf), how, TRUE);
+            formatkiller(eos(pbuf), sizeof pbuf - Strlen(pbuf), how, TRUE);
         }
         else {
             char ebuf[101]; /* arbitrary, but should be enough */
@@ -1743,8 +1753,8 @@ really_done(int how)
             Strcat(pbuf, " ");
         }
         Sprintf(eos(pbuf), "%s with %ld point%s,",
-                how == ASCENDED ? "went to your reward"
-                                 : "escaped from the dungeon",
+                (how == ASCENDED) ? "went to your reward"
+                                  : "escaped from the dungeon",
                 u.urexp, plur(u.urexp));
         dump_forward_putstr(endwin, 0, pbuf, done_stopprint);
 
@@ -1802,7 +1812,7 @@ really_done(int how)
             if (Is_astralevel(&u.uz))
                 where = "The Astral Plane";
             Sprintf(pbuf, "You %s in %s", ends[how], where);
-            if (!In_endgame(&u.uz) && !Is_knox(&u.uz))
+            if (!In_endgame(&u.uz) && !single_level_branch(&u.uz))
                 Sprintf(eos(pbuf), " on dungeon level %d",
                         In_quest(&u.uz) ? dunlev(&u.uz) : depth(&u.uz));
         }
@@ -1855,9 +1865,13 @@ really_done(int how)
     nh_terminate(EXIT_SUCCESS);
 }
 
+/* used for disclosure and for the ':' choice when looting a container */
 void
-container_contents(struct obj *list, boolean identified,
-                   boolean all_containers, boolean reportempty)
+container_contents(
+    struct obj *list,
+    boolean identified,
+    boolean all_containers,
+    boolean reportempty)
 {
     register struct obj *box, *obj;
     char buf[BUFSZ];

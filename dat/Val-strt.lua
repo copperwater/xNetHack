@@ -1,4 +1,4 @@
--- NetHack 3.7	Valkyrie.des	$NHDT-Date: 1553807172 2019/03/28 21:06:12 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.15 $
+-- NetHack Valkyrie Val-strt.lua	$NHDT-Date: 1652196017 2022/05/10 15:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -52,8 +52,8 @@ local function growths()
    return 0
 end
 for i = 1,13 do
-   local x,y = alltheice:rndcoord()
-   local newpool = selection.new():set(x, y)
+   local pt = alltheice:rndcoord()
+   local newpool = selection.new():set(pt.x, pt.y)
    -- maybe turn into a bigger one
    for j=1,growths() do
       newpool = newpool:grow('random')
@@ -116,23 +116,23 @@ des.monster({ id="warrior", coord={37,05}, asleep=1 })
 des.non_diggable(selection.area(26,03,45,18))
 -- Random traps
 for i=1,8 do
-   des.trap({ type="fire", coord={alltheice:rndcoord(1)} })
+   des.trap({ type="fire", coord=alltheice:rndcoord(1) })
 end
 -- Scatter a few boulders too (extra ammo for giants!)
 for i=1,d(3)+2 do
-   des.object({ id="boulder", coord={alltheice:rndcoord(1)} })
+   des.object({ id="boulder", coord=alltheice:rndcoord(1) })
 end
 -- Monsters on siege duty.
 for i=1,d(2) do
-   des.monster({ id='fire ant', coord={init_monster_area:rndcoord(1)} })
+   des.monster({ id='fire ant', coord=init_monster_area:rndcoord(1) })
 end
 for i=1,d(2)-1 do
-   des.monster({ id='fire vortex', coord={init_monster_area:rndcoord(1)} })
+   des.monster({ id='fire vortex', coord=init_monster_area:rndcoord(1) })
 end
 for i=1,d(3) do
-   des.monster({ id='fire giant', coord={init_monster_area:rndcoord(1)} })
+   des.monster({ id='fire giant', coord=init_monster_area:rndcoord(1) })
 end
 -- Ragnarok doesn't only feature fire giants.
 for i=1,d(3) do
-   des.monster({ id='frost giant', coord={init_monster_area:rndcoord(1)} })
+   des.monster({ id='frost giant', coord=init_monster_area:rndcoord(1) })
 end
