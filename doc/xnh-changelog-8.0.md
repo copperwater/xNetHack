@@ -75,6 +75,7 @@ changes:
 - Item encyclopedia lookup from the inventory is now an item in the menu of
   things you can do with an item you select when looking at the inventory, under
   'l', rather than the default behavior.
+- Kicking into empty air (which may strain a muscle) no longer wakes monsters.
 
 ### Interface changes
 

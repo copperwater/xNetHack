@@ -833,7 +833,6 @@ kick_dumb(int x, int y)
     }
     if ((Is_airlevel(&u.uz) || Levitation) && rn2(2))
         hurtle(-u.dx, -u.dy, 1, TRUE);
-    wake_nearby();
 }
 
 static void
