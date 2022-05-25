@@ -23,6 +23,10 @@ These are hit-or-miss methods at best. You may not get a useful response with th
 
 The preferred method of bug reporting is to open an issue on GitHub, because those are more persistent than chat and are visible to anyone viewing the repository. Note that a bug present in xNetHack may also be present in vanilla NetHack, and in that case it will be referred to the DevTeam for them to fix unless it's really severe.
 
+### How to make a suggestion
+
+Making a GitHub issue is the best way to suggest something as well. This ensures it won't get lost in chatter, and issues tend to get earlier attention and priority over items that come out of discussion in other forums.
+
 ### How to contribute code
 
 The best way to do this is to open a pull request on GitHub, or if that's too much of a hassle and the code change isn't extensive, a patch file might be accepted.
