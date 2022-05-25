@@ -28,7 +28,7 @@ struct nomakedefs_s nomakedefs = {
     (const char *) 0,	/* git_sha */
     (const char *) 0,	/* git_branch */
     "1.0.0-0",
-    "NetHack Version 1.0.0-0 - last build Tue Jul 28 13:18:57 1987.",
+    "xNetHack Version 1.0.0-0 - last build Tue Jul 28 13:18:57 1987.",
     0x01010000UL,
     0x00000000UL,
     0x00000000UL,
