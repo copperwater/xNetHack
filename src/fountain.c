@@ -1,4 +1,4 @@
-/* NetHack 3.7	fountain.c	$NHDT-Date: 1596498170 2020/08/03 23:42:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.69 $ */
+/* NetHack 3.7	fountain.c	$NHDT-Date: 1646870844 2022/03/10 00:07:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.78 $ */
 /*      Copyright Scott R. Turner, srt@ucla, 10/27/86 */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -11,6 +11,7 @@ static void dowaterdemon(void);
 static void dowaternymph(void);
 static void gush(int, int, genericptr_t);
 static void dofindgem(void);
+static boolean watchman_warn_fountain(struct monst *);
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
@@ -49,7 +50,7 @@ dowatersnakes(void)
             if ((mtmp = makemon(&mons[PM_WATER_MOCCASIN], u.ux, u.uy,
                                 MM_NOMSG)) != 0
                 && t_at(mtmp->mx, mtmp->my))
-                (void) mintrap(mtmp);
+                (void) mintrap(mtmp, NO_TRAP_FLAGS);
     } else
         pline_The("fountain bubbles furiously for a moment, then calms.");
 }
@@ -76,7 +77,7 @@ dowaterdemon(void)
                 /* give a wish and discard the monster (mtmp set to null) */
                 mongrantswish(&mtmp);
             } else if (t_at(mtmp->mx, mtmp->my))
-                (void) mintrap(mtmp);
+                (void) mintrap(mtmp, NO_TRAP_FLAGS);
         }
     } else
         pline_The("fountain bubbles furiously for a moment, then calms.");
@@ -97,7 +98,7 @@ dowaternymph(void)
             You_hear("a seductive voice.");
         mtmp->msleeping = 0;
         if (t_at(mtmp->mx, mtmp->my))
-            (void) mintrap(mtmp);
+            (void) mintrap(mtmp, NO_TRAP_FLAGS);
     } else if (!Blind)
         pline("A large bubble rises to the surface and pops.");
     else
@@ -125,7 +126,7 @@ gush(int x, int y, genericptr_t poolcnt)
     register struct monst *mtmp;
     register struct trap *ttmp;
 
-    if (((x + y) % 2) || (x == u.ux && y == u.uy)
+    if (((x + y) % 2) || u_at(x, y)
         || (rn2(1 + distmin(u.ux, u.uy, x, y))) || (levl[x][y].typ != ROOM)
         || (sobj_at(BOULDER, x, y)) || nexttodoor(x, y))
         return;
@@ -163,6 +164,28 @@ dofindgem(void)
     exercise(A_WIS, TRUE); /* a discovery! */
 }
 
+static boolean
+watchman_warn_fountain(struct monst *mtmp)
+{
+    if (is_watch(mtmp->data) && couldsee(mtmp->mx, mtmp->my)
+        && mtmp->mpeaceful) {
+        if (!Deaf) {
+            pline("%s yells:", Amonnam(mtmp));
+            verbalize("Hey, stop using that fountain!");
+        } else {
+            pline("%s earnestly %s %s %s!",
+                  Amonnam(mtmp),
+                  nolimbs(mtmp->data) ? "shakes" : "waves",
+                  mhis(mtmp),
+                  nolimbs(mtmp->data)
+                  ? mbodypart(mtmp, HEAD)
+                  : makeplural(mbodypart(mtmp, ARM)));
+        }
+        return TRUE;
+    }
+    return FALSE;
+}
+
 void
 dryup(xchar x, xchar y, boolean isyou)
 {
@@ -173,26 +196,7 @@ dryup(xchar x, xchar y, boolean isyou)
 
             SET_FOUNTAIN_WARNED(x, y);
             /* Warn about future fountain use. */
-            for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-                if (DEADMONSTER(mtmp))
-                    continue;
-                if (is_watch(mtmp->data) && couldsee(mtmp->mx, mtmp->my)
-                    && mtmp->mpeaceful) {
-                    if (!Deaf) {
-                        pline("%s yells:", Amonnam(mtmp));
-                        verbalize("Hey, stop using that fountain!");
-                    } else {
-                        pline("%s earnestly %s %s %s!",
-                              Amonnam(mtmp),
-                              nolimbs(mtmp->data) ? "shakes" : "waves",
-                              mhis(mtmp),
-                              nolimbs(mtmp->data)
-                                      ? mbodypart(mtmp, HEAD)
-                                      : makeplural(mbodypart(mtmp, ARM)));
-                    }
-                    break;
-                }
-            }
+            mtmp = get_iter_mons(watchman_warn_fountain);
             /* You can see or hear this effect */
             if (!mtmp)
                 pline_The("flow reduces to a trickle.");
@@ -334,7 +338,8 @@ drinkfountain(void)
             exercise(A_WIS, TRUE);
             break;
         case 26: /* See Monsters */
-            (void) monster_detect((struct obj *) 0, 0);
+            if (monster_detect((struct obj *) 0, 0))
+                pline_The("%s tastes like nothing.", hliquid("water"));
             exercise(A_WIS, TRUE);
             break;
         case 27: /* Find a gem in the sparkling waters. */
@@ -371,15 +376,6 @@ drinkfountain(void)
     dryup(u.ux, u.uy, TRUE);
 }
 
-/* Monty Python and the Holy Grail */
-static const char *const excalmsgs[] = {
-    "had Excalibur thrown at them by some watery tart",
-    "received Excalibur from a strange woman laying about in a pond",
-    "signified by divine providence, was chosen to carry Excalibur",
-    "has been given Excalibur, and now enjoys supreme executive power",
-    "endured an absurd aquatic ceremony, and now wields Excalibur"
-};
-
 void
 dipfountain(register struct obj *obj)
 {
@@ -388,11 +384,12 @@ dipfountain(register struct obj *obj)
         return;
     }
 
-    /* Don't grant Excalibur when there's more than one object.  */
-    /* (quantity could be > 1 if merged daggers got polymorphed) */
-    if (obj->otyp == LONG_SWORD && obj->quan == 1L && u.ulevel >= 5 && !rn2(6)
-        && !obj->oartifact
+    if (obj->otyp == LONG_SWORD && u.ulevel >= 5 && !rn2(6)
+        /* once upon a time it was possible to poly N daggers into N swords */
+        && obj->quan == 1L && !obj->oartifact
         && !exist_artifact(LONG_SWORD, artiname(ART_EXCALIBUR))) {
+        static const char lady[] = "Lady of the Lake";
+
         if (u.ualign.type != A_LAWFUL) {
             /* Ha!  Trying to cheat her. */
             pline("A freezing mist rises from the %s and envelopes the sword.",
@@ -403,14 +400,17 @@ dipfountain(register struct obj *obj)
                 obj->spe--;
             obj->oerodeproof = FALSE;
             exercise(A_WIS, FALSE);
-            livelog_printf(LL_ARTIFACT, "was denied Excalibur! The Lady of the Lake has deemed %s unworthy", uhim());
+            livelog_printf(LL_ARTIFACT,
+                           "was denied %s!  The %s has deemed %s unworthy",
+                           artiname(ART_EXCALIBUR), lady, uhim());
         } else {
             /* The lady of the lake acts! - Eric Backus */
             /* Be *REAL* nice */
             pline(
               "From the murky depths, a hand reaches up to bless the sword.");
             pline("As the hand retreats, the fountain disappears!");
-            obj = oname(obj, artiname(ART_EXCALIBUR));
+            obj = oname(obj, artiname(ART_EXCALIBUR),
+                        ONAME_VIA_DIP | ONAME_KNOW_ARTI);
             discover_artifact(ART_EXCALIBUR);
             bless(obj);
             if (obj->spe < 0) {
@@ -422,7 +422,8 @@ dipfountain(register struct obj *obj)
             /* even if not wielded, it's assumed you're touching Excalibur to
              * get it out of the water */
             u.uconduct.artitouch++;
-            livelog_printf(LL_ARTIFACT, "%s", excalmsgs[rn2(SIZE(excalmsgs))]);
+            livelog_printf(LL_ARTIFACT, "was given %s by the %s",
+                           artiname(ART_EXCALIBUR), lady);
         }
         update_inventory();
         levl[u.ux][u.uy].typ = ROOM, levl[u.ux][u.uy].flags = 0;
@@ -536,7 +537,7 @@ dipfountain(register struct obj *obj)
 void
 breaksink(int x, int y)
 {
-    if (cansee(x, y) || (x == u.ux && y == u.uy))
+    if (cansee(x, y) || u_at(x, y))
         pline_The("pipes break!  Water spurts out!");
     g.level.flags.nsinks--;
     levl[x][y].typ = FOUNTAIN, levl[x][y].looted = 0;

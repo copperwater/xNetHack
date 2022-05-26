@@ -1,4 +1,4 @@
--- NetHack 3.7	castle.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.11 $
+-- NetHack castle castle.lua	$NHDT-Date: 1652196024 2022/05/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 -- NetHack may be freely redistributed.  See license for details.
 --
@@ -148,15 +148,15 @@ des.object(object[4],53,11)
 des.object(object[4],54,11)
 des.object(object[4],55,11)
 -- THE WAND OF WISHING in 1 of the 4 towers
-local px, py = place:rndcoord(1);
-des.object({ id = "chest", trapped = 0, locked = 1, x = px, y = py,
+local loc = place:rndcoord(1);
+des.object({ id = "chest", trapped = 0, locked = 1, coord = loc ,
              contents = function()
                 des.object({ class = "/", id = "wishing", spe = 2 });
              end
 });
 -- Prevent monsters from eating it.  (@'s never eat objects)
-des.engraving({ x = px, y = py, type="burn", text="Elbereth" })
-des.object({ id = "scare monster", x = px, y = py, buc="cursed" })
+des.engraving({ coord = loc, type="burn", text="Elbereth" })
+des.object({ id = "scroll of scare monster", coord = loc, buc="cursed" })
 -- The treasure of the lord
 des.object("chest",37,08)
 -- Traps

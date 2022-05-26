@@ -1,4 +1,4 @@
-/* NetHack 3.7	save.c	$NHDT-Date: 1644524061 2022/02/10 20:14:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.181 $ */
+/* NetHack 3.7	save.c	$NHDT-Date: 1651298444 2022/04/30 06:00:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.186 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -19,6 +19,7 @@ int dotcnt, dotrow; /* also used in restore */
 static void savelevchn(NHFILE *);
 static void savelevl(NHFILE *,boolean);
 static void savedamage(NHFILE *);
+static void save_bubbles(NHFILE *, xchar);
 static void save_stairs(NHFILE *);
 static void saveobj(NHFILE *,struct obj *);
 static void saveobjchn(NHFILE *,struct obj **);
@@ -27,6 +28,7 @@ static void savemonchn(NHFILE *,struct monst *);
 static void savetrapchn(NHFILE *,struct trap *);
 static void save_gamelog(NHFILE *);
 static void savegamestate(NHFILE *);
+static void savelev_core(NHFILE *, xchar);
 static void save_msghistory(NHFILE *);
 
 #ifdef ZEROCOMP
@@ -76,7 +78,6 @@ dosave0(void)
 {
     const char *fq_save;
     xchar ltmp;
-    d_level uz_save;
     char whynot[BUFSZ];
     NHFILE *nhfp, *onhfp;
     int res = 0;
@@ -96,6 +97,11 @@ dosave0(void)
         u.uinwater = 1, iflags.save_uinwater = 0; /* bypass set_uinwater() */
     if (iflags.save_uburied)
         u.uburied = 1, iflags.save_uburied = 0;
+    /* extra handling for hangup save or panic save; without this,
+       a thrown light source might trigger an "obj_is_local" panic;
+       if a thrown or kicked object is in transit, put it on the map;
+       when punished, make sure ball and chain are placed too */
+    done_object_cleanup(); /* maybe force some items onto map */
 
     if (!g.program_state.something_worth_saving || !g.SAVEF[0])
         goto done;
@@ -173,8 +179,9 @@ dosave0(void)
      * parts of the restore code from completely initializing all
      * in-core data structures, since all we're doing is copying.
      * This also avoids at least one nasty core dump.
+     * [g.uz_save is used by save_bubbles() as well as to restore u.uz]
      */
-    uz_save = u.uz;
+    g.uz_save = u.uz;
     u.uz.dnum = u.uz.dlevel = 0;
     /* these pointers are no longer valid, and at least u.usteed
      * may mislead place_monster() on other levels
@@ -183,7 +190,7 @@ dosave0(void)
     u.usteed = (struct monst *) 0;
 
     for (ltmp = (xchar) 1; ltmp <= maxledgerno(); ltmp++) {
-        if (ltmp == ledger_no(&uz_save))
+        if (ltmp == ledger_no(&g.uz_save))
             continue;
         if (!(g.level_info[ltmp].flags & LFILE_EXISTS))
             continue;
@@ -217,7 +224,8 @@ dosave0(void)
     }
     close_nhfile(nhfp);
 
-    u.uz = uz_save;
+    u.uz = g.uz_save;
+    g.uz_save.dnum = g.uz_save.dlevel = 0;
 
     /* get rid of current level --jgm */
     delete_levelfile(ledger_no(&u.uz));
@@ -242,7 +250,7 @@ save_gamelog(NHFILE *nhfp)
         tmp2 = tmp->next;
         if (perform_bwrite(nhfp)) {
             if (nhfp->structlevel) {
-                slen = strlen(tmp->text);
+                slen = Strlen(tmp->text);
                 bwrite(nhfp->fd, (genericptr_t) &slen, sizeof slen);
                 bwrite(nhfp->fd, (genericptr_t) tmp->text, slen);
                 bwrite(nhfp->fd, (genericptr_t) tmp,
@@ -348,7 +356,6 @@ savegamestate(NHFILE* nhfp)
     }
     savefruitchn(nhfp);
     savenames(nhfp);
-    save_waterlevel(nhfp);
     save_msghistory(nhfp);
     save_gamelog(nhfp);
     if (nhfp->structlevel)
@@ -455,7 +462,30 @@ savestateinlock(void)
 #endif
 
 void
-savelev(NHFILE* nhfp, xchar lev)
+savelev(NHFILE *nhfp, xchar lev)
+{
+    boolean set_uz_save = (g.uz_save.dnum == 0 && g.uz_save.dlevel == 0);
+
+    /* caller might have already set up g.uz_save and zeroed u.uz;
+       if not, we need to set it for save_bubbles(); caveat: if the
+       player quits during character selection, u.uz won't be set yet
+       but we'll be called during run-down */
+    if (set_uz_save && perform_bwrite(nhfp)) {
+        if (u.uz.dnum == 0 && u.uz.dlevel == 0) {
+            g.program_state.something_worth_saving = 0;
+            panic("savelev: where are we?");
+        }
+        g.uz_save = u.uz;
+    }
+
+    savelev_core(nhfp, lev);
+
+    if (set_uz_save)
+        g.uz_save.dnum = g.uz_save.dlevel = 0; /* unset */
+}
+
+static void
+savelev_core(NHFILE *nhfp, xchar lev)
 {
 #ifdef TOS
     short tlev;
@@ -516,8 +546,7 @@ savelev(NHFILE* nhfp, xchar lev)
     if (nhfp->mode == FREEING) /* see above */
         goto skip_lots;
 
-    savelevl(nhfp,
-             (boolean) ((sfsaveinfo.sfi1 & SFI1_RLECOMP) == SFI1_RLECOMP));
+    savelevl(nhfp, ((sfsaveinfo.sfi1 & SFI1_RLECOMP) == SFI1_RLECOMP));
     if (nhfp->structlevel) {
         bwrite(nhfp->fd, (genericptr_t) g.lastseentyp, sizeof g.lastseentyp);
         bwrite(nhfp->fd, (genericptr_t) &g.moves, sizeof g.moves);
@@ -544,6 +573,8 @@ savelev(NHFILE* nhfp, xchar lev)
     save_engravings(nhfp);
     savedamage(nhfp); /* pending shop wall and/or floor repair */
     save_regions(nhfp);
+    save_bubbles(nhfp, lev); /* for water and air */
+
     if (nhfp->mode != FREEING) {
         if (nhfp->structlevel)
             bflush(nhfp->fd);
@@ -616,6 +647,28 @@ savelevl(NHFILE* nhfp, boolean rlecomp)
         bwrite(nhfp->fd, (genericptr_t) levl, sizeof levl);
     }
     return;
+}
+
+/* save Plane of Water's air bubbles and Plane of Air's clouds */
+static void
+save_bubbles(NHFILE *nhfp, xchar lev)
+{
+    xchar bbubbly;
+
+    /* air bubbles and clouds used to be saved as part of game state
+       because restoring them needs dungeon data that isn't available
+       during the first pass of their levels; now that they are part of
+       the current level instead, we write a zero or non-zero marker
+       so that restore can determine whether they are present even when
+       u.uz and ledger_no() aren't available to it yet */
+    bbubbly = 0;
+    if (lev == ledger_no(&water_level) || lev == ledger_no(&air_level))
+        bbubbly = lev; /* non-zero */
+    if (nhfp->structlevel)
+        bwrite(nhfp->fd, (genericptr_t) &bbubbly, sizeof bbubbly);
+
+    if (bbubbly)
+        save_waterlevel(nhfp); /* save air bubbles or clouds */
 }
 
 /* used when saving a level and also when saving dungeon overview data */
@@ -1023,7 +1076,7 @@ save_msghistory(NHFILE* nhfp)
         /* ask window port for each message in sequence */
         while ((msg = getmsghistory(init)) != 0) {
             init = FALSE;
-            msglen = strlen(msg);
+            msglen = Strlen(msg);
             if (msglen < 1)
                 continue;
             /* sanity: truncate if necessary (shouldn't happen);
@@ -1083,6 +1136,7 @@ free_dungeons(void)
     return;
 }
 
+/* free a lot of allocated memory which is ordinarily freed during save */
 void
 freedynamicdata(void)
 {
@@ -1116,6 +1170,7 @@ freedynamicdata(void)
     dmonsfree(); /* release dead monsters */
 
     /* level-specific data */
+    done_object_cleanup(); /* maybe force some OBJ_FREE items onto map */
     free_current_level();
 
     /* game-state data [ought to reorganize savegamestate() to handle this] */

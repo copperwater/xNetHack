@@ -1,4 +1,4 @@
-/* NetHack 3.7	files.c	$NHDT-Date: 1620522110 2021/05/09 01:01:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.334 $ */
+/* NetHack 3.7	files.c	$NHDT-Date: 1646314650 2022/03/03 13:37:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.346 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -181,8 +181,6 @@ static void wizkit_addinv(struct obj *);
 boolean proc_wizkit_line(char *buf);
 void read_wizkit(void);
 static FILE *fopen_sym_file(void);
-boolean proc_symset_line(char *);
-static void set_symhandling(char *, int);
 
 #ifdef SELF_RECOVER
 static boolean copy_bytes(int, int);
@@ -1919,7 +1917,7 @@ lock_file(const char *filename, int whichprefix, int retryct)
                            filename, retryct);
             sleep(1);
         } else {
-            HUP(void) raw_print("I give up.  Sorry.");
+            HUP raw_print("I give up.  Sorry.");
             HUP raw_printf("Some other process has an unnatural grip on %s.",
                            filename);
             g.nesting--;
@@ -1931,15 +1929,14 @@ lock_file(const char *filename, int whichprefix, int retryct)
         switch (errnosv) { /* George Barbanis */
         case EEXIST:
             if (retryct--) {
-                HUP raw_printf(
-                    "Waiting for access to %s.  (%d retries left).", filename,
-                    retryct);
+                HUP raw_printf("Waiting for access to %s.  (%d retries left).",
+                               filename, retryct);
 #if defined(SYSV) || defined(ULTRIX) || defined(VMS)
                 (void)
 #endif
                     sleep(1);
             } else {
-                HUP(void) raw_print("I give up.  Sorry.");
+                HUP raw_print("I give up.  Sorry.");
                 HUP raw_printf("Perhaps there is an old %s around?",
                                lockname);
                 g.nesting--;
@@ -2710,13 +2707,18 @@ parse_config_line(char *origbuf)
             n = 10;
         }
         sysopt.tt_oname_maxrank = n;
-    } else if (src == set_in_sysconf && match_varname(buf, "LIVELOG", 7)) {
-        n = strtol(bufp,NULL,0);
-        if (n < 0 || n > 0xFFFF) {
-            raw_printf("Illegal value in LIVELOG (must be between 0 and 0xFFFF).");
+    } else if (in_sysconf && match_varname(buf, "LIVELOG", 7)) {
+        /* using 0 for base accepts "dddd" as decimal provided that first 'd'
+           isn't '0', "0xhhhh" as hexadecimal, and "0oooo" as octal; ignores
+           any trailing junk, including '8' or '9' for leading '0' octal */
+        long L = strtol(bufp, NULL, 0);
+
+        if (L < 0L || L > 0xffffL) {
+            config_error_add(
+                 "Illegal value for LIVELOG (must be between 0 and 0xFFFF).");
             return 0;
         }
-        sysopt.livelog = n;
+        sysopt.livelog = L;
 
     /* SYSCF PANICTRACE options */
     } else if (in_sysconf && match_varname(buf, "PANICTRACE_LIBC", 15)) {
@@ -2800,7 +2802,7 @@ parse_config_line(char *origbuf)
         (void) get_uchars(bufp, translate, FALSE, WARNCOUNT, "WARNINGS");
         assign_warnings(translate);
     } else if (match_varname(buf, "SYMBOLS", 4)) {
-        if (!parsesymbols(bufp, PRIMARY)) {
+        if (!parsesymbols(bufp, PRIMARYSET)) {
             config_error_add("Error in SYMBOLS definition '%s'", bufp);
             retval = FALSE;
         }
@@ -2918,7 +2920,7 @@ parse_config_line(char *origbuf)
     } else if (match_varname(buf, "SOUNDDIR", 8)
                || match_varname(buf, "SOUND", 5)) {
         if (!g.no_sound_notified++) {
-            config_error_add("SOUND and SOUNDDIR are not available.");
+            config_error_add("SOUND and SOUNDDIR are not available");
         }
         ; /* skip this and any further SOUND or SOUNDDIR lines
            * but leave 'retval' set to True */
@@ -3156,7 +3158,7 @@ read_config_file(const char *filename, int src)
 
 struct _cnf_parser_state {
     char *inbuf;
-    size_t inbufsz;
+    unsigned inbufsz;
     int rv;
     char *ep;
     char *buf;
@@ -3565,7 +3567,7 @@ fopen_sym_file(void)
 }
 
 /*
- * Returns 1 if the chose symset was found and loaded.
+ * Returns 1 if the chosen symset was found and loaded.
  *         0 if it wasn't found in the sym file or other problem.
  */
 int
@@ -3620,203 +3622,6 @@ read_sym_file(int which_set)
                                                 : "unknown");
     config_error_done();
     return 1;
-}
-
-boolean
-proc_symset_line(char *buf)
-{
-    return !((boolean) parse_sym_line(buf, g.symset_which_set));
-}
-
-/* returns 0 on error */
-int
-parse_sym_line(char *buf, int which_set)
-{
-    int val, i;
-    struct symparse *symp;
-    char *bufp, *commentp, *altp;
-
-    if (strlen(buf) >= BUFSZ)
-        buf[BUFSZ - 1] = '\0';
-    /* convert each instance of whitespace (tabs, consecutive spaces)
-       into a single space; leading and trailing spaces are stripped */
-    mungspaces(buf);
-
-    /* remove trailing comment, if any (this isn't strictly needed for
-       individual symbols, and it won't matter if "X#comment" without
-       separating space slips through; for handling or set description,
-       symbol set creator is responsible for preceding '#' with a space
-       and that comment itself doesn't contain " #") */
-    if ((commentp = rindex(buf, '#')) != 0 && commentp[-1] == ' ')
-        commentp[-1] = '\0';
-
-    /* find the '=' or ':' */
-    bufp = index(buf, '=');
-    altp = index(buf, ':');
-    if (!bufp || (altp && altp < bufp))
-        bufp = altp;
-    if (!bufp) {
-        if (strncmpi(buf, "finish", 6) == 0) {
-            /* end current graphics set */
-            if (g.chosen_symset_start)
-                g.chosen_symset_end = TRUE;
-            g.chosen_symset_start = FALSE;
-            return 1;
-        }
-        config_error_add("No \"finish\"");
-        return 0;
-    }
-    /* skip '=' and space which follows, if any */
-    ++bufp;
-    if (*bufp == ' ')
-        ++bufp;
-
-    symp = match_sym(buf);
-    if (!symp) {
-        config_error_add("Unknown sym keyword");
-        return 0;
-    }
-
-    if (!g.symset[which_set].name) {
-        /* A null symset name indicates that we're just
-           building a pick-list of possible symset
-           values from the file, so only do that */
-        if (symp->range == SYM_CONTROL) {
-            struct symsetentry *tmpsp, *lastsp;
-
-            for (lastsp = g.symset_list; lastsp; lastsp = lastsp->next)
-                if (!lastsp->next)
-                    break;
-            switch (symp->idx) {
-            case 0:
-                tmpsp = (struct symsetentry *) alloc(sizeof *tmpsp);
-                tmpsp->next = (struct symsetentry *) 0;
-                if (!lastsp)
-                    g.symset_list = tmpsp;
-                else
-                    lastsp->next = tmpsp;
-                tmpsp->idx = g.symset_count++;
-                tmpsp->name = dupstr(bufp);
-                tmpsp->desc = (char *) 0;
-                tmpsp->handling = H_UNK;
-                /* initialize restriction bits */
-                tmpsp->nocolor = 0;
-                tmpsp->primary = 0;
-                break;
-            case 2:
-                /* handler type identified */
-                tmpsp = lastsp; /* most recent symset */
-                for (i = 0; known_handling[i]; ++i)
-                    if (!strcmpi(known_handling[i], bufp)) {
-                        tmpsp->handling = i;
-                        break; /* for loop */
-                    }
-                break;
-            case 3:
-                /* description:something */
-                tmpsp = lastsp; /* most recent symset */
-                if (tmpsp && !tmpsp->desc)
-                    tmpsp->desc = dupstr(bufp);
-                break;
-            case 5:
-                /* restrictions: xxxx*/
-                tmpsp = lastsp; /* most recent symset */
-                for (i = 0; known_restrictions[i]; ++i) {
-                    if (!strcmpi(known_restrictions[i], bufp)) {
-                        switch (i) {
-                        case 0:
-                            tmpsp->primary = 1;
-                            break;
-                        }
-                        break; /* while loop */
-                    }
-                }
-                break;
-            }
-        }
-        return 1;
-    }
-    if (symp->range) {
-        if (symp->range == SYM_CONTROL) {
-            switch (symp->idx) {
-            case 0:
-                /* start of symset */
-                if (!strcmpi(bufp, g.symset[which_set].name)) {
-                    /* matches desired one */
-                    g.chosen_symset_start = TRUE;
-                    /* these init_*() functions clear symset fields too */
-                    if (which_set == PRIMARY)
-                        init_primary_symbols();
-                }
-                break;
-            case 1:
-                /* finish symset */
-                if (g.chosen_symset_start)
-                    g.chosen_symset_end = TRUE;
-                g.chosen_symset_start = FALSE;
-                break;
-            case 2:
-                /* handler type identified */
-                if (g.chosen_symset_start)
-                    set_symhandling(bufp, which_set);
-                break;
-            /* case 3: (description) is ignored here */
-            case 4: /* color:off */
-                if (g.chosen_symset_start) {
-                    if (bufp) {
-                        if (!strcmpi(bufp, "true") || !strcmpi(bufp, "yes")
-                            || !strcmpi(bufp, "on"))
-                            g.symset[which_set].nocolor = 0;
-                        else if (!strcmpi(bufp, "false")
-                                 || !strcmpi(bufp, "no")
-                                 || !strcmpi(bufp, "off"))
-                            g.symset[which_set].nocolor = 1;
-                    }
-                }
-                break;
-            case 5: /* restrictions: xxxx*/
-                if (g.chosen_symset_start) {
-                    int n = 0;
-
-                    while (known_restrictions[n]) {
-                        if (!strcmpi(known_restrictions[n], bufp)) {
-                            switch (n) {
-                            case 0:
-                                g.symset[which_set].primary = 1;
-                                break;
-                            }
-                            break; /* while loop */
-                        }
-                        n++;
-                    }
-                }
-                break;
-            }
-        } else { /* !SYM_CONTROL */
-            val = sym_val(bufp);
-            if (g.chosen_symset_start) {
-                if (which_set == PRIMARY) {
-                    update_primary_symset(symp, val);
-                }
-            }
-        }
-    }
-    return 1;
-}
-
-static void
-set_symhandling(char *handling, int which_set)
-{
-    int i = 0;
-
-    g.symset[which_set].handling = H_UNK;
-    while (known_handling[i]) {
-        if (!strcmpi(known_handling[i], handling)) {
-            g.symset[which_set].handling = i;
-            return;
-        }
-        i++;
-    }
 }
 
 /* ----------  END SYMSET FILE HANDLING ----------- */
@@ -3966,7 +3771,8 @@ paniclog(const char *type,   /* panic, impossible, trickery */
             char playmode = wizard ? 'D' : discover ? 'X' : '-';
 
             (void) fprintf(lfile, "%s %08ld %06ld %d %c: %s %s\n",
-                           version_string(buf), yyyymmdd(now), hhmmss(now),
+                           version_string(buf, sizeof buf),
+                           yyyymmdd(now), hhmmss(now),
                            uid, playmode, type, reason);
 #endif /* !PANICLOG_FMT2 */
             (void) fclose(lfile);
@@ -4791,51 +4597,65 @@ Death_quote(char *buf, int bufsz)
 /* ----------  END TRIBUTE ----------- */
 
 #ifdef LIVELOG
-#define LLOG_SEP '\t' /* livelog field separator */
+#define LLOG_SEP "\t" /* livelog field separator, as a string literal */
+#define LLOG_EOL "\n" /* end-of-line, for abstraction consistency */
 
 /* Locks the live log file and writes 'buffer'
- * IF the ll_type matches sysopt.livelog mask
- * lltype is included in LL entry for post-process filtering also
+ * iff the ll_type matches sysopt.livelog mask.
+ * lltype is included in LL entry for post-process filtering also.
  */
 void
-livelog_add(unsigned int ll_type, const char *str)
+livelog_add(long ll_type, const char *str)
 {
-    FILE* livelogfile;
+    FILE *livelogfile;
+    time_t now;
+    int gindx, aindx;
 
     if (!(ll_type & sysopt.livelog))
         return;
+
     if (lock_file(LIVELOGFILE, SCOREPREFIX, 10)) {
         if (!(livelogfile = fopen_datafile(LIVELOGFILE, "a", SCOREPREFIX))) {
             pline("Cannot open live log file!");
             unlock_file(LIVELOGFILE);
             return;
         }
-        fprintf(livelogfile,
-                 "lltype=%d%cname=%s%crole=%s%crace=%s%cgender=%s%c"
-                 "align=%s%cturns=%ld%cstarttime=%ld%ccurtime=%ld%c"
-                 "message=%s\n",
-                 (ll_type & sysopt.livelog), LLOG_SEP,
-                 g.plname, LLOG_SEP,
-                 g.urole.filecode, LLOG_SEP,
-                 g.urace.filecode, LLOG_SEP,
-                 genders[flags.female].filecode, LLOG_SEP,
-                 aligns[1-u.ualign.type].filecode, LLOG_SEP,
-                 g.moves, LLOG_SEP,
-                 (long)ubirthday, LLOG_SEP,
-                 (long)time(NULL),
-                 LLOG_SEP, str);
+
+        now = getnow();
+        gindx = flags.female ? 1 : 0;
+        /* note on alignment designation:
+               aligns[] uses [0] lawful, [1] neutral, [2] chaotic;
+               u.ualign.type uses -1 chaotic, 0 neutral, 1 lawful;
+           so subtracting from 1 converts from either to the other */
+        aindx = 1 - u.ualign.type;
+        /* format relies on STD C's implicit concatenation of
+           adjacent string literals */
+        (void) fprintf(livelogfile,
+                       "lltype=%ld"  LLOG_SEP  "name=%s"       LLOG_SEP
+                       "role=%s"     LLOG_SEP  "race=%s"       LLOG_SEP
+                       "gender=%s"   LLOG_SEP  "align=%s"      LLOG_SEP
+                       "turns=%ld"   LLOG_SEP  "starttime=%ld" LLOG_SEP
+                       "curtime=%ld" LLOG_SEP  "message=%s"    LLOG_EOL,
+                       (ll_type & sysopt.livelog), g.plname,
+                       g.urole.filecode, g.urace.filecode,
+                       genders[gindx].filecode, aligns[aindx].filecode,
+                       g.moves, timet_to_seconds(ubirthday),
+                       timet_to_seconds(now), str);
         (void) fclose(livelogfile);
         unlock_file(LIVELOGFILE);
     }
 }
 #undef LLOG_SEP
+#undef LLOG_EOL
 
 #else
+
 void
-livelog_add(unsigned int ll_type UNUSED, const char *str UNUSED)
+livelog_add(long ll_type UNUSED, const char *str UNUSED)
 {
     /* nothing here */
 }
+
 #endif /* !LIVELOG */
 
 /*files.c*/

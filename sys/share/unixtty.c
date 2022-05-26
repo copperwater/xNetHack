@@ -393,7 +393,7 @@ init_sco_cons(void)
     if (WINDOWPORT("tty") && sco_flag_console) {
         atexit(sco_mapon);
         sco_mapoff();
-        load_symset("IBMGraphics", PRIMARY);
+        load_symset("IBMGraphics", PRIMARYSET);
         switch_symbols(TRUE);
 #ifdef TEXTCOLOR
         if (has_colors())
@@ -483,4 +483,16 @@ error(const char *s, ...)
 #endif /* !__begui__ */
 
 RESTORE_WARNING_FORMAT_NONLITERAL
+
+#ifdef ENHANCED_SYMBOLS
+/*
+ * set in tty_start_screen() and allows
+ * OS-specific changes that may be
+ * required for support of utf8.
+ */
+void
+tty_utf8graphics_fixup(void)
+{
+}
+#endif
 

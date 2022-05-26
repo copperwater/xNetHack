@@ -1,4 +1,4 @@
-/* NetHack 3.7	wizard.c	$NHDT-Date: 1596498229 2020/08/03 23:43:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.68 $ */
+/* NetHack 3.7	wizard.c	$NHDT-Date: 1646688073 2022/03/07 21:21:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.85 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -310,34 +310,41 @@ strategy(struct monst *mtmp)
     return dstrat;
 }
 
+/* pick a destination for a covetous monster to flee to so that it can
+   heal or for guardians (Kops) to congregate at to block hero's progress */
 void
-choose_stairs(xchar *sx, xchar *sy, boolean dir)
+choose_stairs(
+    xchar *sx, xchar *sy, /* output; left as-is if no spot found */
+    boolean dir) /* True: forward, False: backtrack (usually up) */
 {
-    xchar x = 0, y = 0;
-    stairway *stway = g.stairs;
-    boolean stdir = dir && !builds_up(&u.uz);
+    stairway *stway;
+    boolean stdir = builds_up(&u.uz) ? dir : !dir;
 
-    if ((stway = stairway_find_type_dir(FALSE, stdir)) != 0) {
-        x = stway->sx;
-        y = stway->sy;
-    } else if ((stway = stairway_find_type_dir(TRUE, stdir)) != 0) {
-        x = stway->sx;
-        y = stway->sy;
-    } else {
-        while (stway) {
-            if (stway->tolev.dnum != u.uz.dnum) {
-                x = stway->sx;
-                y = stway->sy;
-                break;
+    /* look for stairs in direction 'stdir' (True: up, False: down) */
+    stway = stairway_find_type_dir(FALSE, stdir);
+    if (!stway) {
+        /* no stairs; look for ladder it that direction */
+        stway = stairway_find_type_dir(TRUE, stdir);
+        if (!stway) {
+            /* no ladder either; look for branch stairs or ladder in any
+               direction */
+            for (stway = g.stairs; stway; stway = stway->next)
+                if (stway->tolev.dnum != u.uz.dnum)
+                    break;
+            /* if no branch stairs/ladder, check for regular stairs in
+               opposite direction, then for regular ladder if necessary */
+            if (!stway) {
+                stway = stairway_find_type_dir(FALSE, !stdir);
+                if (!stway)
+                    stway = stairway_find_type_dir(TRUE, !stdir);
             }
-            stway = stway->next;
         }
+        /* [note: 'stway' could still be Null if the only access to this
+           level is via magic portal] */
     }
 
-    if (isok(x, y)) {
-        *sx = x;
-        *sy = y;
-    }
+    if (stway)
+        *sx = stway->sx, *sy = stway->sy;
 }
 
 DISABLE_WARNING_UNREACHABLE_CODE
@@ -394,7 +401,7 @@ tactics(struct monst *mtmp)
         if (!targ) { /* simply wants you to close */
             return 0;
         }
-        if ((u.ux == tx && u.uy == ty) || where == STRAT_PLAYER) {
+        if (u_at(tx, ty) || where == STRAT_PLAYER) {
             /* player is standing on it (or has it) */
             mnexto(mtmp, RLOC_MSG);
             return 0;
@@ -407,9 +414,7 @@ tactics(struct monst *mtmp)
                 if ((otmp = on_ground(which_arti(targ))) != 0) {
                     if (cansee(mtmp->mx, mtmp->my))
                         pline("%s picks up %s.", Monnam(mtmp),
-                              (distu(mtmp->mx, mtmp->my) <= 5)
-                                  ? doname(otmp)
-                                  : distant_name(otmp, doname));
+                              distant_name(otmp, doname));
                     obj_extract_self(otmp);
                     (void) mpickobj(mtmp, otmp);
                     /* artifact might be armor, attempt to put it on */
@@ -453,7 +458,7 @@ has_aggravatables(struct monst *mon)
         if (in_w_tower != In_W_tower(mtmp->mx, mtmp->my, &u.uz))
             continue;
         if ((mtmp->mstrategy & STRAT_WAITFORU) != 0
-            || mtmp->msleeping || !mtmp->mcanmove)
+            || helpless(mtmp))
             return TRUE;
     }
     return FALSE;
@@ -715,7 +720,7 @@ resurrect(void)
                     mtmp->msleeping = 0;
                 if (mtmp->mfrozen == 1) /* would unfreeze on next move */
                     mtmp->mfrozen = 0, mtmp->mcanmove = 1;
-                if (mtmp->mcanmove && !mtmp->msleeping) {
+                if (!helpless(mtmp)) {
                     *mmtmp = mtmp->nmon;
                     mon_arrive(mtmp, TRUE);
                     /* note: there might be a second Wizard; if so,
@@ -827,6 +832,7 @@ cuss(struct monst *mtmp)
         else
             com_pager("demon_cuss");
     }
+    wake_nearto(mtmp->mx, mtmp->my, 5 * 5);
 }
 
 /*wizard.c*/

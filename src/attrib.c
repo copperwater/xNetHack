@@ -1,4 +1,4 @@
-/* NetHack 3.7	attrib.c	$NHDT-Date: 1626312521 2021/07/15 01:28:41 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.79 $ */
+/* NetHack 3.7	attrib.c	$NHDT-Date: 1651908297 2022/05/07 07:24:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.86 $ */
 /*      Copyright 1988, 1989, 1990, 1992, M. Stephenson           */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -112,8 +112,11 @@ static int innately(long *);
 
 /* adjust an attribute; return an adjattrib_return value */
 boolean
-adjattrib(int ndx, int incr, int msgflg) /* adjattrib_msgflag value */
-{
+adjattrib(
+    int ndx,    /* which characteristic */
+    int incr,   /* amount of change */
+    int msgflg) /* positive => no message, zero => message, and */
+{               /* negative => conditional (msg if change made) */
     int old_acurr, old_abase, old_amax, decr;
     boolean abonflg;
     const char *attrstr;
@@ -186,9 +189,9 @@ adjattrib(int ndx, int incr, int msgflg) /* adjattrib_msgflag value */
         }
     }
 
+    g.context.botl = TRUE;
     if (msgflg != AA_NOMSG)
         You_feel("%s%s!", (incr > 1 || incr < -1) ? "much " : "", attrstr);
-    g.context.botl = TRUE;
     if (g.program_state.in_moveloop && (ndx == A_STR || ndx == A_CON))
         (void) encumber_msg();
     return AA_CURRCHNG;
@@ -215,6 +218,7 @@ gainstr(struct obj *otmp, int incr, boolean givemsg)
 void
 losestr(int num)
 {
+    int uhpmin = minuhpmax(1), olduhpmax = u.uhpmax;
     int ustr = ABASE(A_STR) - num;
 
     while (ustr < 3) {
@@ -225,8 +229,14 @@ losestr(int num)
             u.mhmax -= 6;
         } else {
             u.uhp -= 6;
-            u.uhpmax -= 6;
+            setuhpmax(u.uhpmax - 6);
         }
+        g.context.botl = TRUE;
+    }
+    if (u.uhpmax < uhpmin) {
+        setuhpmax(min(olduhpmax, uhpmin));
+        if (!Drain_resistance)
+            losexp(NULL); /* won't be fatal when no 'drainer' is supplied */
     }
     (void) adjattrib(A_STR, -num, AA_NOMSG);
 }
@@ -453,14 +463,11 @@ exerper(void)
 {
     if (!(g.moves % 10)) {
         /* Hunger Checks */
-
-        int hs = (u.uhunger > 1000) ? SATIATED : (u.uhunger > 150)
-                                                     ? NOT_HUNGRY
-                                                     : (u.uhunger > 50)
-                                                           ? HUNGRY
-                                                           : (u.uhunger > 0)
-                                                                 ? WEAK
-                                                                 : FAINTING;
+        int hs = (u.uhunger > 1000) ? SATIATED
+                 : (u.uhunger > 150) ? NOT_HUNGRY
+                   : (u.uhunger > 50) ? HUNGRY
+                     : (u.uhunger > 0) ? WEAK
+                       : FAINTING;
 
         debugpline0("exerper: Hunger checks");
         switch (hs) {
@@ -537,7 +544,7 @@ exerchk(void)
     exerper();
 
     if (g.moves >= g.context.next_attrib_check) {
-        debugpline1("exerchk: ready to test. multi = %d.", g.multi);
+        debugpline1("exerchk: ready to test. multi = %ld.", g.multi);
     }
     /*  Are we ready for a test? */
     if (g.moves >= g.context.next_attrib_check && !g.multi) {
@@ -572,19 +579,13 @@ exerchk(void)
                 goto nextattrib;
 
             debugpline2("exerchk: testing %s (%d).",
-                        (i == A_STR)
-                            ? "Str"
-                            : (i == A_INT)
-                                  ? "Int?"
-                                  : (i == A_WIS)
-                                        ? "Wis"
-                                        : (i == A_DEX)
-                                              ? "Dex"
-                                              : (i == A_CON)
-                                                    ? "Con"
-                                                    : (i == A_CHA)
-                                                          ? "Cha?"
-                                                          : "???",
+                        (i == A_STR) ? "Str"
+                        : (i == A_INT) ? "Int?"
+                          : (i == A_WIS) ? "Wis"
+                            : (i == A_DEX) ? "Dex"
+                              : (i == A_CON) ? "Con"
+                                : (i == A_CHA) ? "Cha?"
+                                  : "???",
                         ax);
             /*
              *  Law of diminishing returns (Part III):
@@ -611,10 +612,12 @@ exerchk(void)
             AEXE(i) = (abs(ax) / 2) * mod_val;
         }
         g.context.next_attrib_check += rn1(200, 800);
-        debugpline1("exerchk: next check at %ld.", g.context.next_attrib_check);
+        debugpline1("exerchk: next check at %ld.",
+                    g.context.next_attrib_check);
     }
 }
 
+/* allocate hero's initial characteristics */
 void
 init_attr(int np)
 {
@@ -626,15 +629,15 @@ init_attr(int np)
         np -= g.urole.attrbase[i];
     }
 
+    /* 3.7: the x -= ... calculation used to have an off by 1 error that
+       resulted in the values being biased toward Str and away from Cha */
     tryct = 0;
     while (np > 0 && tryct < 100) {
         x = rn2(100);
-        for (i = 0; (i < A_MAX) && ((x -= g.urole.attrdist[i]) > 0); i++)
-            ;
-        if (i >= A_MAX)
-            continue; /* impossible */
-
-        if (ABASE(i) >= ATTRMAX(i)) {
+        for (i = 0; i < A_MAX; ++i)
+            if ((x -= g.urole.attrdist[i]) < 0)
+                break;
+        if (i >= A_MAX || ABASE(i) >= ATTRMAX(i)) {
             tryct++;
             continue;
         }
@@ -646,14 +649,11 @@ init_attr(int np)
 
     tryct = 0;
     while (np < 0 && tryct < 100) { /* for redistribution */
-
         x = rn2(100);
-        for (i = 0; (i < A_MAX) && ((x -= g.urole.attrdist[i]) > 0); i++)
-            ;
-        if (i >= A_MAX)
-            continue; /* impossible */
-
-        if (ABASE(i) <= ATTRMIN(i)) {
+        for (i = 0; i < A_MAX; ++i)
+            if ((x -= g.urole.attrdist[i]) < 0)
+                break;
+        if (i >= A_MAX || ABASE(i) <= ATTRMIN(i)) {
             tryct++;
             continue;
         }
@@ -1046,6 +1046,30 @@ newhp(void)
     return hp;
 }
 
+/* minimum value for uhpmax is ulevel but for life-saving it is always at
+   least 10 if ulevel is less than that */
+int
+minuhpmax(int altmin)
+{
+    if (altmin < 1)
+        altmin = 1;
+    return max(u.ulevel, altmin);
+}
+
+/* update u.uhpmax and values of other things that depend upon it */
+void
+setuhpmax(int newmax)
+{
+    if (newmax != u.uhpmax) {
+        u.uhpmax = newmax;
+        if (u.uhpmax > u.uhppeak)
+            u.uhppeak = u.uhpmax;
+        g.context.botl = TRUE;
+    }
+    if (u.uhp > u.uhpmax)
+        u.uhp = u.uhpmax, g.context.botl = TRUE;
+}
+
 schar
 acurr(int x)
 {
@@ -1140,7 +1164,7 @@ adjalign(int n)
     } else if (newalign > u.ualign.record) {
         u.ualign.record = newalign;
         if (u.ualign.record > ALIGNLIM)
-            u.ualign.record = ALIGNLIM;
+            u.ualign.record = (int)ALIGNLIM;
     }
 }
 

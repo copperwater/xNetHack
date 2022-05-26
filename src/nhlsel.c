@@ -33,6 +33,10 @@ static int l_selection_and(lua_State *);
 static int l_selection_or(lua_State *);
 static int l_selection_xor(lua_State *);
 static int l_selection_not(lua_State *);
+/* There doesn't seem to be a point in having a l_selection_add since it would
+ * do the same thing as l_selection_or. The addition operator is mapped to
+ * l_selection_or. */
+static int l_selection_sub(lua_State *);
 #if 0
 /* the following do not appear to currently be
    used and because they are static, the OSX
@@ -40,8 +44,6 @@ static int l_selection_not(lua_State *);
    if ifdef'd out the prototype here and the
    function body below.
  */
-static int l_selection_add(lua_State *);
-static int l_selection_sub(lua_State *);
 static int l_selection_ipairs(lua_State *);
 static struct selectionvar *l_selection_to(lua_State *, int);
 #endif
@@ -178,10 +180,18 @@ static int
 l_selection_getpoint(lua_State *L)
 {
     struct selectionvar *sel = l_selection_check(L, 1);
-    xchar x = (xchar) luaL_checkinteger(L, 2);
-    xchar y = (xchar) luaL_checkinteger(L, 3);
+    xchar x, y;
+    int ix, iy;
     int val;
     long crd;
+
+    lua_remove(L, 1); /* sel */
+    if (!nhl_get_xy_params(L, &ix, &iy)) {
+        nhl_error(L, "l_selection_getpoint: Incorrect params");
+        return 0;
+    }
+    x = (xchar) ix;
+    y = (xchar) iy;
 
     if (x == -1 && y == -1)
         crd = SP_COORD_PACK_RANDOM(0);
@@ -277,6 +287,29 @@ l_selection_xor(lua_State *L)
     return 1;
 }
 
+/* local sel = selection.area(10,10, 20,20) - selection.area(14,14, 17,17)
+ *   - i.e. points that are in A but not in B */
+static int
+l_selection_sub(lua_State *L)
+{
+    int x,y;
+    struct selectionvar *sela = l_selection_check(L, 1);
+    struct selectionvar *selb = l_selection_check(L, 2);
+    struct selectionvar *selr = l_selection_push(L);
+
+    for (x = 0; x < selr->wid; x++) {
+        for (y = 0; y < selr->hei; y++) {
+            xchar a_pt = selection_getpoint(x, y, sela);
+            xchar b_pt = selection_getpoint(x, y, selb);
+            int val = (a_pt ^ b_pt) & a_pt;
+            selection_setpoint(x, y, selr, val);
+        }
+    }
+
+    lua_remove(L, 1);
+    lua_remove(L, 1);
+    return 1;
+}
 
 /* local s = selection.percentage(sel, 50); */
 static int
@@ -295,27 +328,30 @@ l_selection_filter_percent(lua_State *L)
     return 1;
 }
 
-/* local x,y = selection.rndcoord(sel); */
-/* local x,y = selection.rndcoord(sel, 1); */
+/* local pt = selection.rndcoord(sel); */
+/* local pt = selection.rndcoord(sel, 1); */
 static int
 l_selection_rndcoord(lua_State *L)
 {
     struct selectionvar *sel = l_selection_check(L, 1);
     int removeit = (int) luaL_optinteger(L, 2, 0);
-    xchar x, y;
+    xchar x = -1, y = -1;
     selection_rndcoord(sel, &x, &y, removeit);
-    update_croom();
-    if (g.coder && g.coder->croom) {
-        x -= g.coder->croom->lx;
-        y -= g.coder->croom->ly;
-    } else {
-        x -= g.xstart;
-        y -= g.ystart;
+    if (!(x == -1 && y == -1)) {
+        update_croom();
+        if (g.coder && g.coder->croom) {
+            x -= g.coder->croom->lx;
+            y -= g.coder->croom->ly;
+        } else {
+            x -= g.xstart;
+            y -= g.ystart;
+        }
     }
     lua_settop(L, 0);
-    lua_pushnumber(L, x);
-    lua_pushnumber(L, y);
-    return 2;
+    lua_newtable(L);
+    nhl_add_table_entry_int(L, "x", x);
+    nhl_add_table_entry_int(L, "y", y);
+    return 1;
 }
 
 /* internal function to get a selection and 4 integer values from lua stack.
@@ -482,7 +518,7 @@ l_selection_grow(lua_State *L)
 {
     int argc = lua_gettop(L);
     const char *const growdirs[] = { "all", "random", "north", "west", "east", "south", NULL };
-    const int growdirs2i[] = { W_ANY, -1, W_NORTH, W_WEST, W_EAST, W_SOUTH, 0 };
+    const int growdirs2i[] = { W_ANY, W_RANDOM, W_NORTH, W_WEST, W_EAST, W_SOUTH, 0 };
 
     struct selectionvar *sel = l_selection_check(L, 1);
     int dir = growdirs2i[luaL_checkoption(L, 2, "all", growdirs)];
@@ -560,7 +596,7 @@ l_selection_match(lua_State *L)
     }
 
     for (y = 0; y <= sel->hei; y++)
-        for (x = 0; x < sel->wid; x++)
+        for (x = 1; x < sel->wid; x++)
             selection_setpoint(x, y, sel, mapfrag_match(mf, x,y) ? 1 : 0);
 
     mapfrag_free(&mf);
@@ -776,17 +812,22 @@ l_selection_iterate(lua_State *L)
     if (argc == 2 && lua_type(L, 2) == LUA_TFUNCTION) {
         sel = l_selection_check(L, 1);
         for (y = 0; y < sel->hei; y++)
-            for (x = 0; x < sel->wid; x++)
+            for (x = 1; x < sel->wid; x++)
                 if (selection_getpoint(x, y, sel)) {
                     lua_pushvalue(L, 2);
                     lua_pushinteger(L, x - g.xstart);
                     lua_pushinteger(L, y - g.ystart);
-                    lua_call(L, 2, 0);
+		    if (nhl_pcall(L, 2, 0)) {
+			impossible("Lua error: %s", lua_tostring(L, -1));
+			/* abort the loops to prevent possible error cascade */
+			goto out;
+		    }
                 }
     } else {
         nhl_error(L, "wrong parameters");
         /*NOTREACHED*/
     }
+out:
     return 0;
 }
 
@@ -822,9 +863,9 @@ static const luaL_Reg l_selection_meta[] = {
     { "__bor", l_selection_or },
     { "__bxor", l_selection_xor },
     { "__bnot", l_selection_not },
+    { "__add", l_selection_or }, /* this aliases + to be the same as | */
+    { "__sub", l_selection_sub },
     /* TODO: http://lua-users.org/wiki/MetatableEvents
-       { "__add", l_selection_add },
-       { "__sub", l_selection_sub },
        { "__ipairs", l_selection_ipairs },
     */
     { NULL, NULL }

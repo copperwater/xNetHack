@@ -195,8 +195,6 @@ const struct instance_globals g_init = {
 
     /* artifact.c */
     0,  /* spec_dbon_applies */
-    UNDEFINED_VALUES, /* artiexist */
-    UNDEFINED_VALUES, /* artdisco */
     0, /* mkot_trap_warn_count */
 
     /* botl.c */
@@ -346,7 +344,6 @@ const struct instance_globals g_init = {
     /* do_name.c */
     NULL, /* gloc_filter_map */
     UNDEFINED_VALUE, /* gloc_filter_floodfill_match_glyph */
-    0, /* via_naming */
 
     /* do_wear.c */
     FALSE, /* initial_don */
@@ -370,9 +367,12 @@ const struct instance_globals g_init = {
     UNDEFINED_VALUES, /* nowhere */
     UNDEFINED_PTR, /* gate_str */
 
-    /* drawing.c */
+    /* symbols.c */
     DUMMY, /* symset */
-    0, /* currentgraphics */
+#ifdef ENHANCED_SYMBOLS
+    DUMMY, /* symset_customizations */
+#endif
+    0,     /* currentgraphics */
     DUMMY, /* showsyms */
     DUMMY, /* primary_syms */
     DUMMY, /* ov_primary_syms */
@@ -414,8 +414,9 @@ const struct instance_globals g_init = {
 
 
     /* hack.c */
-    UNDEFINED_VALUES,
-    UNDEFINED_VALUE,
+    UNDEFINED_VALUES, /* tmp_anything */
+    UNDEFINED_VALUE, /* wc */
+    NULL, /* travelmap */
 
     /* invent.c */
     51, /* lastinvr */
@@ -423,8 +424,9 @@ const struct instance_globals g_init = {
     NULL, /* invbuf */
     0, /* inbufsize */
     WIN_ERR, /* cached_pickinv_win */
-    UNDEFINED_VALUE,
-    UNDEFINED_VALUES,
+    0, /* this_type */
+    NULL, /* this_title */
+    UNDEFINED_VALUES, /* only (coord) */
 
     /* light.c */
     NULL, /* light_source */
@@ -606,6 +608,7 @@ const struct instance_globals g_init = {
     0, /* usteed_id */
     (struct obj *) 0, /* looseball */
     (struct obj *) 0, /* loosechain */
+    { 0, 0 }, /* uz_save */
 
     /* shk.c */
     'a', /* sell_response */
@@ -644,7 +647,6 @@ const struct instance_globals g_init = {
     WIN_ERR, /* toptenwin */
 
     /* trap.c */
-    0, /* force_mintrap */
     { 0, 0, FALSE },
     UNDEFINED_VALUES,
 
@@ -662,6 +664,7 @@ const struct instance_globals g_init = {
     NULL, /* viz_rmin */
     NULL, /* viz_rmax */
     FALSE, /* vision_full_recalc */
+    0, /* seethru */
 
     /* weapon.c */
     UNDEFINED_PTR, /* propellor */

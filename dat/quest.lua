@@ -1,4 +1,6 @@
-
+-- NetHack quest.lua	$NHDT-Date: 1652196288 2022/05/10 15:24:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $
+-- Copyright (c) 2021 by Pasi Kallinen
+-- NetHack may be freely redistributed.  See license for details.
 -- TODO:
 --  - output = "verbalize"
 --  - export the quest string replacements to lua, instead of %H etc
@@ -2924,26 +2926,50 @@ Tell me of your adventures in quest of the Amulet of Yendor."]],
       },
    },
    Val = {
-      assignquest = {
-         synopsis = "[Find %i; defeat %n; return with %o.]",
+      arti_but_not_neme = {
+         text = [[
+%lC looks at you, confused.
+
+"I see that you have deprived %n of %o. But %nh still lives,
+does %nh not? 
+
+"%nH does not need %o to bring about the end of the world! Only by
+slaying %ni before %nh looses the wolf might we all be spared. You must
+hurry back!"]],
          output = "text",
-         text = [["It is not clear, %p, for my sight is limited without our relic.
-But it is now likely that you can defeat %n, and recover
-%o.
+         synopsis = "[Obtaining %o is not enough, return and slay %n!]",
+      },
+      assignquest = {
+         synopsis = "[Follow %n to Muspelheim and slay %ni.]",
+         output = "text",
+         text = [[
+"It is not clear, %p, that anything can be done at this late hour.
+But it may now be possible that you can defeat %n.
 
-"A short time ago, %n and his minions attacked this place.  They
-opened the huge volcanic vents you %x about the hill, and attacked.  I knew
-that this was to come to pass, and had asked %d for a group of %gP
-to help defend this place.  The few you %x here are the mightiest of
-Valhalla's own, and are all that are left of one hundred %d sent.
+"It has not been known to many, but I now tell you clearly that the signs of
+Ragnarok, and perhaps all of our doom, are at hand. The winter without a summer
+has come and gone. The roosters are crowing. The great serpent has begun to
+writhe, and the hound of Hel is howling.
 
-"Despite the great and glorious battle we fought, %n managed at
-last to steal %o.  This has upset the balance of the universe,
-and unless %oh is returned into my care, %n may start Ragnarok.
+"Also aware of these signs, %n began to make %nj conquest. %nH came from
+the south wielding the terrible bright sword %o, all the forces of
+Muspelheim arrayed with %ni, bringing fire and ruin to all our lands. Their
+advance opened the huge volcanic vents you %x about the hill. If unchecked,
+these flames they have unleashed will soon consume the entire world.
 
-"You must find the entrance to %i.  Travel downward
-from there and you will find %ns lair.  Defeat him and
-return %o to me."]],
+"I and my hundred brave warriors defended this shrine in a great and glorious
+battle, but capturing it was never %ns objective. Having satisfied
+%niself that he has destroyed any power in our land, Midgard, that can stop %ni,
+%nh has since returned to Muspelheim, there to release the terrible wolf
+Fenrir from his bond.
+
+"It will not be long before the gods blow the mighty horn to call themselves to
+battle, even though it will prove their own death-knell -- and at that point,
+the fate of the world will be sealed. 
+
+"The only thing that might forestall or prevent Ragnarok is if %n
+%niself is killed. By the prophecies, I do not think it likely that %nh can be at
+this point. But you must try, for the sake of the world."]],
       },
       badalign = {
          synopsis = "[You have strayed from the %a path.  Return after you purify yourself.]",
@@ -2959,15 +2985,15 @@ and return here only when you have regained a state of purity."]],
          text = [["I see you and %n fighting, %p.  But you are not prepared and
 shall die at %ns hand if you proceed.  No.  This will not do.
 Go back out into the world, and grow more experienced at the ways of war.
-Only when you have returned %Ra will you be able to defeat %n."]],
+Only when you have returned %Ra do you stand a chance at defeating %n."]],
       },
       discourage = {
          "\"I am your death, %c.\"",
          "\"You cannot prevail, %r.  I have foreseen your every move.\"",
-         "\"With you out of the way, Valhalla will be mine for the taking.\"",
-         "\"I killed scores of %ds best when I took %o. Do you really think that one %c can stand against me?\"",
+         "\"It is too late now. Ragnarok has begun.\"",
+         "\"I killed scores of %ds best at your shrine. Do you really think that one %c can stand against me?\"",
          "\"Who bears the souls of %cP to Valhalla, %r?\"",
-         "\"No, %d cannot help you here.\"",
+         "\"Soon, %d will die. All the Aesir will die!\"",
          "\"Some instrument of %d you are, %p.  You are a weakling!\"",
          "\"Never have I seen %ca so clumsy in battle.\"",
          "\"You die now, little %s.\"",
@@ -2976,14 +3002,14 @@ Only when you have returned %Ra will you be able to defeat %n."]],
       encourage = {
          "\"Go with the blessings of %d.\"",
          "\"Call upon %d when you are in need.\"",
-         "\"Use %o if you can.  It will protect you.\"",
          "\"Magical cold is very effective against %n.\"",
-         "\"To face %n, you will need to be immune to fire.\"",
-         "\"May %d strengthen your sword-arm.\"",
+         "\"To venture into Muspelheim and face %n, you will need to be immune to fire.\"",
+         "\"May %d strengthen your arm.\"",
          "\"Trust in %d.  He will not desert you.\"",
-         "\"It becomes more likely that Ragnarok will come with every passing moment. You must hurry, %p.\"",
-         "\"If %n can master %o, he will be powerful enough to face %d far earlier than is fated.  This must not be!\"",
+         "\"It becomes more likely that Ragnarok will come with every passing moment. You must hurry, %p!\"",
+         "\"If %n looses Fenrir, the world is doomed.  This must not be!\"",
          "\"Remember your training, %p.  You can succeed.\"",
+         "\"Beware %ns terrible bright sword.\"",
       },
       firsttime = {
          synopsis = "[You arrive below %H.  Something is wrong; there is lava present.]",
@@ -2993,41 +3019,41 @@ a place you know well, %H.  You immediately realize
 that something here is very wrong!
 
 In places, the snow and ice have been melted into steaming pools of
-water.  Fumaroles and pools of bubbling lava surround the hill.
-The stench of sulphur is carried through the air, and you %x creatures
-that should not be able to live in this environment moving towards you.]],
+water.  Fumaroles and pools of bubbling lava shooting gouts of flame surround
+the hill. The stench of sulphur is carried through the air, and you %x
+creatures that should not be able to live in this environment moving towards
+you.]],
       },
       goal_first = {
          synopsis = "[This is the lair of %n.]",
          output = "text",
-         text = [[Through clouds of sulphurous gasses, you %x a rock palisade
-surrounded with a moat of bubbling lava.  You remember the description
-from something that %l said.  This is the lair of %n.]],
+         text = [[Through clouds of sulphurous gases, you %x a wall of great stone 
+surrounded with a moat of bubbling lava.  This can only be the fortress of %n.
+From somewhere ahead, you %h a great deep voice shouting orders, and you
+silently hope you have not arrived too late.]],
       },
       goal_next = {
-         text = "Once again, you stand in sight of %ns lair.",
+         text = "Once again, you stand in sight of %ns fortress.",
       },
       gotit = {
-         synopsis = "[You must return %o to %l.]",
-         output = "text",
-         text = [[As you pick up %o, your mind is suddenly filled with images,
-and you perceive all of the possibilities of each potential choice you
-could make.  As you begin to control and channel your thoughts, you
-realize that you must return %o to %l immediately.]],
+         -- no particular message for this, since getting the artifact isn't the
+         -- goal of the quest (empty string works correctly)
+         text = "", 
       },
       guardtalk_after = {
-         "\"Hail, and well met, brave %c.\"",
-         "\"May %d guide your steps, %p.\"",
-         "\"%lC told us you had succeeded!\"",
-         "\"You recovered %o just in time, %p.\"",
-         "\"Hail %d, for delivering %o back to us.\"",
+         "\"Hail, and well met, brave %c!\"",
+         "\"May %d ever guide your steps, %p.\"",
+         "\"%lC must be so relieved that Ragnarok will not come to pass.\"",
+         "\"You defeated %n just in time, %p.\"",
+         "\"Hail %d, for heralding %p as %dj champion!\"",
       },
       guardtalk_before = {
          "\"Hail, and well met, brave %c.\"",
          "\"May %d guide your steps, %p.\"",
-         "\"%lC weakens.  Without %o, her foresight is dim.\"",
+         "\"%lH doesn't show it much, but %l is terrified.\"",
          "\"You must hurry, %p, else Ragnarok may well come.\"",
-         "\"I would deal with this foul %n myself, but %d forbids it.\"",
+         "\"So many fallen friends...\"",
+         "\"I'm glad you are still hale; we survivors are too wounded to stop %n.\"",
       },
       hasamulet = {
          synopsis = "[Take the Amulet to %ds temple on the Astral Plane and offer it.]",
@@ -3043,18 +3069,27 @@ Amulet interferes with mine.  I hope for your success."]],
       killed_nemesis = {
          synopsis = "[%nC dies.]",
          output = "text",
-         text = [[A look of surprise and horror appears on %ns face.
+         text = [[
+%nS eyes widen in shock as he collapses to the ground, but the shock
+quickly turns to utter rage.
 
-    "No!!!  %o has lied to me!  I have been misled!"
+"%rC... You think you can prevent Ragnarok?
 
-Suddenly, %n grasps his head and screams in agony, then dies.]],
+"I am foretold to battle your gods. Fenrir and Jormugandr WILL be freed. The
+Aesir will be slain. The world will be consumed. You cannot change this. You
+cannot stop what I have begun!"
+
+With his last breath, %n spits at you:
+
+"I know not when I will return. I only hope it to be while you still live, so
+you can give me the pleasure of killing you."]]
       },
       leader_first = {
          synopsis = "[We need your aid.  Are you ready?]",
          output = "text",
          text = [["Ah, %p, my %S.  You have returned to %H
 at last.  We are in dire need of your aid, but I must determine if you
-are yet ready for such an undertaking.
+will survive such an undertaking.
 
 "Let me read your fate..."]],
       },
@@ -3066,64 +3101,84 @@ champion.  Begone from my presence, and never return.  Know this, that
 you shall never succeed in this life, and Valhalla is denied to you."]],
       },
       leader_next = {
-         text = [["Let me read the future for you now, %p, perhaps you have managed to
-change it enough..."]],
+         text = [["Let me read the future for you now, %p, perhaps you are prepared now..."]]
       },
       leader_other = {
          text = [["Again, I shall read your fate, my %S.  Let us both hope that you have
 made changes to become ready for this task..."]],
       },
       locate_first = {
-         synopsis = "[This is the entrance to %i.]",
+         synopsis = "[This is %i.]",
          output = "text",
-         text = [[The ice and snow gives way to a valley floor.  You %x ahead of you
-a huge round hill surrounded by pools of lava.  This then is the entrance
-to %i.  It looks like you're not going to get in without
-a fight though.]],
+         text = [[
+Your pursuit of %n brings you to an area you have visited only once or
+twice before in your life, but there's no way you have forgotten it -- here is
+the majestic rainbow bridge Bifrost, connecting this realm to Muspelheim far
+below.
+
+But what is this? As you draw closer, you %x that it is shattered and broken.
+Cursing, you remember that this too was prophesied: that it would be sundered by
+the weight of %n and %nj forces marching across it.
+
+Before you can think about crossing, you realize you have been spotted. A grim
+giant with hatred in his eyes points at you with a gleaming sword and says
+something to his compatriots. They start moving towards you.]]
       },
       locate_next = {
-         text = "Once again, you stand before the entrance to %i.",
+         text = "Once again, you stand before %i.",
       },
       nemesis_first = {
-         synopsis = "[\"%oC has shown me that I must kill you.\"]",
+         synopsis = "[\"Fenrir can wait.  Fight us and die!\"]",
          output = "text",
-         text = [["So!  %lC has finally sent %ca to challenge me!
+         text = [[
+"Who are you, %r, that approaches?  I do not recognize you from the
+battle at %H. Some last gambit of %ds, I suppose.
 
-"I thought that mastering %o would enable me to challenge
-%d, but it has shown me that first I must kill you!  So come, little
-%s.  Once I defeat you, I can at last begin the final battle with %d."]],
+"I suppose Fenrir can wait a little longer for us to have a little... sport.
+Ah!  If your realm were not about to perish, the skalds would sing such songs
+telling the fall of Midgard's last warrior.
+
+Come, then, little %s! We shall crush you like a gnat."]],
       },
       nemesis_next = {
-         text = "\"Again you challenge me, %r.  Good.  I will kill you now.\"",
+         text = "\"You fight well, %r!  But not well enough to avoid death!\"",
       },
       nemesis_other = {
-         text = "\"Have you not learned yet?  You cannot defeat %n!\"",
+         text = "\"I shall pound you into oblivion, %c!\"",
       },
       nemesis_wantsit = {
-         text = "\"I will kill you, %c, and wrest %o from your mangled hands.\"",
+         text = "\"You dare take %o from me?  May it burn you alive!\"",
       },
       nexttime = {
          text = "Once again, you are near the abode of %l.",
       },
       offeredit = {
-         synopsis = "[Take %o.  Search for the Amulet.]",
+         synopsis = "[Thank you.  Search for the Amulet.]",
          output = "text",
-         text = [[As you approach, %l rises and touches %o.
+         text = [[
+As you approach, %l rises to greet you, extremely relieved.
 
-"You may take %o with you, %p.  I have removed from
-it the power to foretell the future, for that power no mortal should
-have.  Its other abilities, however, you have at your disposal.
+"%p, I never lost faith that you could break %ns power and
+cast him down. Instead of the world ending in flames, I now foresee an era of
+peace.  A thousand thanks would not be enough.
 
-"You must now begin in %ds name to search for the Amulet of Yendor.
-May your steps be guided by %d, my %S."]],
+"Your own future, though, is still uncertain.  You must now resume searching for
+the Amulet of Yendor, in %ds name.  My thanks and blessings go with you, my
+%S."]],
       },
       offeredit2 = {
-         synopsis = "[You are %os keeper now.  Return through the portal and find the Amulet.]",
+         -- not printed in the regular quest, but you might still throw the
+         -- artifact at the Norn
+         synopsis = "[I do not need %o.  Return through the portal and find the Amulet.]",
          output = "text",
-         text = [["Careful, %p!  %oC might break, and that would be
-a tragic loss.  You are its keeper now, and the time has come to
-resume your search for the Amulet.  %Z await your
-return through the magic portal that brought you here."]],
+         text = [[
+"So this is the sword of %n, is it?  What a magnificent weapon.
+
+"But I have little use for this.  It will likely better serve you instead in
+your search for the Amulet, even if you do not wish to wield it directly.
+
+"%Z await your return through the magic portal that brought
+you here."]],
       },
       othertime = {
          text = [[Again you materialize near %ls abode.  You have a nagging feeling

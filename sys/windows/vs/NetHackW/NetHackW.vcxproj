@@ -22,6 +22,8 @@
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>$(WinWin32Dir);$(IncDir);$(SysWindDir);$(SysShareDir);$(WinShareDir);$(LuaDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TILES;_WINDOWS;DLB;MSWIN_GRAPHICS;SAFEPROCS;NOTTYGRAPHICS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4820;4706;4244;4245;4100;4310</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4820;4706;4244;4245;4100;4310</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -39,6 +41,8 @@
     <ClCompile Include="@(Lua)">
       <DisableSpecificWarnings>4701;4702;4244;4310;4774</DisableSpecificWarnings>
       <AdditionalOptions>%(AdditionalOptions) /wd4774</AdditionalOptions>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4701;4702;4244;4310;4774;4324</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4701;4702;4244;4310;4774;4324</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="$(SrcDir)allmain.c" />
     <ClCompile Include="$(SrcDir)alloc.c" />
@@ -101,7 +105,10 @@
     <ClCompile Include="$(SrcDir)music.c" />
     <ClCompile Include="$(SrcDir)nhlobj.c" />
     <ClCompile Include="$(SrcDir)nhlsel.c" />
-    <ClCompile Include="$(SrcDir)nhlua.c" />
+    <ClCompile Include="$(SrcDir)nhlua.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4820;4706;4244;4245;4100;4310;4324</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4820;4706;4244;4245;4100;4310;4324</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="$(SrcDir)objects.c" />
     <ClCompile Include="$(SrcDir)objnam.c" />
     <ClCompile Include="$(SrcDir)options.c" />
@@ -143,6 +150,7 @@
     <ClCompile Include="$(SrcDir)trap.c" />
     <ClCompile Include="$(SrcDir)uhitm.c" />
     <ClCompile Include="$(SrcDir)u_init.c" />
+    <ClCompile Include="$(SrcDir)utf8map.c" />
     <ClCompile Include="$(SrcDir)vault.c" />
     <ClCompile Include="$(SrcDir)version.c" />
     <ClCompile Include="$(SrcDir)vision.c" />

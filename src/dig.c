@@ -10,6 +10,7 @@ static void mkcavepos(xchar, xchar, int, boolean, boolean);
 static void mkcavearea(boolean);
 static int dig(void);
 static void dig_up_grave(coord *);
+static boolean watchman_canseeu(struct monst *);
 static int adj_pit_checks(coord *, char *);
 static void pit_flow(struct trap *, schar);
 static boolean furniture_handled(int, int, boolean);
@@ -206,6 +207,9 @@ dig_check(struct monst *madeby, boolean verbose, int x, int y)
                    || Is_sanctum(&u.uz))) {
         if (verbose)
             pline_The("altar is too hard to break apart.");
+        return FALSE;
+    } else if (IS_MAGIC_PLATFORM(levl[x][y].typ)) {
+        pline_The("magic platform resists your effort.");
         return FALSE;
     } else if (Is_airlevel(&u.uz)) {
         if (verbose)
@@ -411,6 +415,8 @@ dig(void)
                 lev->typ = ROOM, lev->flags = 0;
                 if (!rn2(5))
                     (void) rnd_treefruit_at(dpx, dpy);
+                if (Race_if(PM_ELF) || Role_if(PM_RANGER))
+                    adjalign(-1);
             } else {
                 digtxt = "You succeed in cutting away some rock.";
                 lev->typ = CORR, lev->flags = 0;
@@ -582,7 +588,7 @@ digactualhole(int x, int y, struct monst *madeby, int ttyp)
     struct monst *mtmp = m_at(x, y); /* may be madeby */
     boolean madeby_u = (madeby == BY_YOU);
     boolean madeby_obj = (madeby == BY_OBJECT);
-    boolean at_u = (x == u.ux) && (y == u.uy);
+    boolean at_u = u_at(x, y);
     boolean wont_fall = Levitation || Flying;
 
     if (at_u && u.utrap) {
@@ -656,7 +662,7 @@ digactualhole(int x, int y, struct monst *madeby, int ttyp)
                           (is_flyer(mtmp->data)) ? "flies" :
                           (is_floater(mtmp->data) ? "floats" : "hangs"));
             } else if (mtmp != madeby)
-                (void) mintrap(mtmp);
+                (void) mintrap(mtmp, NO_TRAP_FLAGS);
         }
     } else { /* was TRAPDOOR now a HOLE*/
 
@@ -760,7 +766,7 @@ liquid_flow(xchar x, xchar y, schar typ, struct trap *ttmp,
 {
     struct obj *objchain;
     struct monst *mon;
-    boolean u_spot = (x == u.ux && y == u.uy);
+    boolean u_spot = u_at(x, y);
 
     if (ttmp)
         (void) delfloortrap(ttmp);
@@ -813,6 +819,7 @@ dighole(boolean pit_only, boolean by_magic, coord *cc)
     old_typ = lev->typ;
 
     if ((ttmp && (undestroyable_trap(ttmp->ttyp) || nohole))
+        || IS_MAGIC_PLATFORM(old_typ)
         || (IS_ROCK(old_typ) && old_typ != SDOOR
             && (lev->wall_info & W_NONDIGGABLE) != 0)) {
         pline_The("%s %shere is too hard to dig in.", surface(dig_x, dig_y),
@@ -988,10 +995,13 @@ use_pick_axe(struct obj *obj)
 
     /* Check tool */
     if (obj != uwep) {
-        if (!wield_tool(obj, "swing"))
-            return ECMD_OK;
-        else
-            res = ECMD_TIME;
+        if (wield_tool(obj, "swing")) {
+            /* we're now wielding it. next turn, apply to dig. */
+            cmdq_add_ec(doapply);
+            cmdq_add_key(obj->invlet);
+            return ECMD_TIME;
+        }
+        return ECMD_OK;
     }
     ispick = is_pick(obj);
     verb = ispick ? "dig" : "chop";
@@ -1167,8 +1177,7 @@ use_pick_axe2(struct obj *obj)
                      || g.context.digging.down) {
                 if (flags.autodig && dig_target == DIGTYP_ROCK
                     && !g.context.digging.down
-                    && g.context.digging.pos.x == u.ux
-                    && g.context.digging.pos.y == u.uy
+                    && u_at(g.context.digging.pos.x, g.context.digging.pos.y)
                     && (g.moves <= g.context.digging.lastdigtime + 2
                         && g.moves >= g.context.digging.lastdigtime)) {
                     /* avoid messages if repeated autodigging */
@@ -1240,6 +1249,15 @@ use_pick_axe2(struct obj *obj)
     return ECMD_TIME;
 }
 
+static boolean
+watchman_canseeu(struct monst *mtmp)
+{
+    if (is_watch(mtmp->data) && mtmp->mcansee && m_canseeu(mtmp)
+        && couldsee(mtmp->mx, mtmp->my) && mtmp->mpeaceful)
+        return TRUE;
+    return FALSE;
+}
+
 /*
  * Town Watchmen frown on damage to the town walls, trees or fountains.
  * It's OK to dig holes in the ground, however.
@@ -1254,15 +1272,8 @@ watch_dig(struct monst *mtmp, xchar x, xchar y, boolean zap)
     if (in_town(x, y)
         && (closed_door(x, y) || lev->typ == SDOOR || IS_WALL(lev->typ)
             || IS_FOUNTAIN(lev->typ) || IS_TREE(lev->typ))) {
-        if (!mtmp) {
-            for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-                if (DEADMONSTER(mtmp))
-                    continue;
-                if (is_watch(mtmp->data) && mtmp->mcansee && m_canseeu(mtmp)
-                    && couldsee(mtmp->mx, mtmp->my) && mtmp->mpeaceful)
-                    break;
-            }
-        }
+        if (!mtmp)
+            mtmp = get_iter_mons(watchman_canseeu);
 
         if (mtmp) {
             if (zap || g.context.digging.warned) {
@@ -1718,9 +1729,8 @@ adj_pit_checks(coord *cc, char *msg)
             supporting = "drawbridge";
 
         if (supporting) {
-            Sprintf(msg, "The %s%ssupporting structures remain intact.",
-                    supporting ? s_suffix(supporting) : "",
-                    supporting ? " " : "");
+            Sprintf(msg, "The %s supporting structures remain intact.",
+                    s_suffix(supporting));
             return FALSE;
         }
     }
@@ -1746,7 +1756,7 @@ pit_flow(struct trap *trap, schar filltyp)
         t = *trap;
         levl[t.tx][t.ty].typ = filltyp, levl[t.tx][t.ty].flags = 0;
         liquid_flow(t.tx, t.ty, filltyp, trap,
-                    (t.tx == u.ux && t.ty == u.uy)
+                    u_at(t.tx, t.ty)
                         ? "Suddenly %s flows in from the adjacent pit!"
                         : (char *) 0);
         for (idx = 0; idx < N_DIRS; ++idx) {
@@ -1962,6 +1972,7 @@ bury_objs(int x, int y)
     /* don't expect any engravings here, but just in case */
     del_engr_at(x, y);
     newsym(x, y);
+    maybe_unhide_at(x, y);
 
     if (costly && loss) {
         You("owe %s %ld %s for burying merchandise.", shkname(shkp), loss,
@@ -2068,7 +2079,7 @@ rot_corpse(anything *arg, long timeout)
         if (mtmp && !concealed_spot(x, y) && mtmp->mundetected
             && hides_under(mtmp->data)) {
             mtmp->mundetected = 0;
-        } else if (x == u.ux && y == u.uy
+        } else if (u_at(x, y)
                    && u.uundetected && hides_under(g.youmonst.data))
             (void) hideunder(&g.youmonst);
         newsym(x, y);
@@ -2210,6 +2221,7 @@ create_pit_under(struct monst *mdef, struct monst *magr)
     /* check for illegalities: out of bounds, terrain unsuitable for traps,
      * or trap types that should not be deleted and replaced with pits */
     if (!isok(x, y) || !SPACE_POS(typ) || IS_FURNITURE(typ) || IS_AIR(typ)
+        || IS_MAGIC_PLATFORM(typ)
         || (trap &&
             (trap->ttyp == MAGIC_PORTAL || trap->ttyp == VIBRATING_SQUARE))
         || (In_endgame(&u.uz) && !Is_earthlevel(&u.uz))) {
@@ -2334,7 +2346,7 @@ create_pit_under(struct monst *mdef, struct monst *magr)
          * flying monsters not to fall into a pit if true. Thus, they will not
          * get extra damage for the trap, but will still take the normal damage
          * from being hurled in. */
-        if (mintrap(mdef) == 3) { /* 3 == went off level */
+        if (mintrap(mdef, NO_TRAP_FLAGS) == 3) { /* 3 == went off level */
             sent_down_hole = TRUE;
         }
         else if (!DEADMONSTER(mdef) /* don't do this if pit killed it */

@@ -101,7 +101,7 @@ enum achivements {
        so that disclosing them can use the gender which applied at the time */
     ACH_RNK1 = 23, ACH_RNK2 = 24, ACH_RNK3 = 25, ACH_RNK4 = 26,
     ACH_RNK5 = 27, ACH_RNK6 = 28, ACH_RNK7 = 29, ACH_RNK8 = 30,
-    /* foo=31, 1 available potential achievement; #32 currently off-limits */
+    ACH_TUNE = 31, /* discovered the castle drawbridge's open/close tune */
     N_ACH = 32     /* allocate room for 31 plus a slot for 0 terminator */
 };
     /*
@@ -120,7 +120,6 @@ enum achivements {
      *  entered Fort Ludios level/branch (not guaranteed to be achieveable),
      *  entered Medusa level,
      *  entered castle level,
-     *  opened castle drawbridge,
      *  obtained castle wand (handle similarly to mines and sokoban prizes),
      *  passed Valley level (entered-Gehennom already covers Valley itself),
      *  [assorted demon lairs?],
@@ -338,12 +337,13 @@ struct Align {
 extern const struct Align aligns[]; /* table of available alignments */
 
 enum utraptypes {
-    TT_BEARTRAP   = 0,
-    TT_PIT        = 1,
-    TT_WEB        = 2,
-    TT_LAVA       = 3,
-    TT_INFLOOR    = 4,
-    TT_BURIEDBALL = 5
+    TT_NONE       = 0,
+    TT_BEARTRAP   = 1,
+    TT_PIT        = 2,
+    TT_WEB        = 3,
+    TT_LAVA       = 4,
+    TT_INFLOOR    = 5,
+    TT_BURIEDBALL = 6
 };
 
 enum utotypes {
@@ -499,5 +499,7 @@ struct you {
 
 /* point px,py is adjacent to (or same location as) hero */
 #define next2u(px,py) (distu((px),(py)) <= 2)
+/* hero at (x,y)? */
+#define u_at(x,y) ((x) == u.ux && (y) == u.uy)
 
 #endif /* YOU_H */

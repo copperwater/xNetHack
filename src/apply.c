@@ -1,4 +1,4 @@
-/* NetHack 3.7	apply.c	$NHDT-Date: 1629242800 2021/08/17 23:26:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.347 $ */
+/* NetHack 3.7	apply.c	$NHDT-Date: 1652223183 2022/05/10 22:53:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.375 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -11,7 +11,9 @@ static boolean its_dead(int, int, int *, struct obj *);
 static int use_stethoscope(struct obj *);
 static void use_whistle(struct obj *);
 static void use_magic_whistle(struct obj *);
+static void magic_whistled(struct obj *);
 static int use_leash(struct obj *);
+static boolean mleashed_next2u(struct monst *);
 static int use_mirror(struct obj *);
 static void use_bell(struct obj **);
 static void use_candelabrum(struct obj *);
@@ -248,7 +250,7 @@ its_dead(int rx, int ry, int *resp, struct obj *stethoscope)
         return TRUE;
 
     } else if (corpse) {
-        boolean here = (rx == u.ux && ry == u.uy),
+        boolean here = u_at(rx, ry),
                 one = (corpse->quan == 1L && !more_corpses), reviver = FALSE;
         int visglyph, corpseglyph;
 
@@ -293,7 +295,7 @@ its_dead(int rx, int ry, int *resp, struct obj *stethoscope)
         mptr = &mons[statue->corpsenm];
         if (Blind) { /* ignore statue->dknown; it'll always be set */
             Sprintf(buf, "%s %s",
-                    (rx == u.ux && ry == u.uy) ? "This" : "That",
+                    u_at(rx, ry) ? "This" : "That",
                     humanoid(mptr) ? "person" : "creature");
             what = buf;
         } else {
@@ -495,8 +497,6 @@ use_whistle(struct obj *obj)
 static void
 use_magic_whistle(struct obj *obj)
 {
-    register struct monst *mtmp, *nextmon;
-
     if (!can_blow(&g.youmonst)) {
         You("are incapable of using the whistle.");
     } else if (obj->cursed && !rn2(2)) {
@@ -507,46 +507,163 @@ use_magic_whistle(struct obj *obj)
                 Deaf ? "frequency vibration" : "pitched humming noise");
         wake_nearby();
     } else {
-        int pet_cnt = 0, omx, omy;
-
         /* it's magic!  it works underwater too (at a higher pitch) */
         You(Deaf ? alt_whistle_str : whistle_str,
             Hallucination ? "normal"
             : (Underwater && !Deaf) ? "strange, high-pitched"
               : "strange");
-        for (mtmp = fmon; mtmp; mtmp = nextmon) {
-            nextmon = mtmp->nmon; /* trap might kill mon */
-            if (DEADMONSTER(mtmp))
-                continue;
-            /* steed is already at your location, so not affected;
-               this avoids trap issues if you're on a trap location */
-            if (mtmp == u.usteed)
-                continue;
-            if (mtmp->mtame) {
-                if (mtmp->mtrapped) {
-                    /* no longer in previous trap (affects mintrap) */
-                    mtmp->mtrapped = 0;
-                    fill_pit(mtmp->mx, mtmp->my);
-                }
-                /* mimic must be revealed before we know whether it
-                   actually moves because line-of-sight may change */
-                if (M_AP_TYPE(mtmp))
-                    seemimic(mtmp);
-                omx = mtmp->mx, omy = mtmp->my;
-                if (!next2u(omx, omy))
-                    mnexto(mtmp, RLOC_MSG);
-                if (mtmp->mx != omx || mtmp->my != omy) {
-                    mtmp->mundetected = 0; /* reveal non-mimic hider */
-                    if (canspotmon(mtmp))
-                        ++pet_cnt;
-                    if (mintrap(mtmp) == Trap_Killed_Mon)
-                        change_luck(-1);
-                }
-            }
-        }
-        if (pet_cnt > 0)
-            makeknown(obj->otyp);
+
+        magic_whistled(obj);
     }
+}
+
+/* 'obj' is assumed to be a magic whistle */
+static void
+magic_whistled(struct obj *obj)
+{
+    struct monst *mtmp, *nextmon;
+    char buf[BUFSZ], *mnam = 0,
+         shiftbuf[BUFSZ + sizeof "shifts location"],
+         appearbuf[BUFSZ + sizeof "appears"],
+         disappearbuf[BUFSZ + sizeof "disappears"];
+    boolean oseen, already_discovered = objects[obj->otyp].oc_name_known != 0;
+    int omx, omy, shift = 0, appear = 0, disappear = 0;
+
+    /* need to copy (up to 3) names as they're collected rather than just
+       save pointers to them, otherwise churning through every mbuf[] might
+       clobber the ones we care about */
+    shiftbuf[0] = appearbuf[0] = disappearbuf[0] = '\0';
+
+    for (mtmp = fmon; mtmp; mtmp = nextmon) {
+        nextmon = mtmp->nmon; /* trap might kill mon */
+        if (DEADMONSTER(mtmp))
+            continue;
+        /* only tame monsters are affected;
+           steed is already at your location, so not affected;
+           this avoids trap issues if you're on a trap location */
+        if (!mtmp->mtame || mtmp == u.usteed)
+            continue;
+        if (mtmp->mtrapped) {
+            /* no longer in previous trap (affects mintrap) */
+            mtmp->mtrapped = 0;
+            fill_pit(mtmp->mx, mtmp->my);
+        }
+
+        oseen = canspotmon(mtmp);
+        if (oseen) /* get name in case it's one we'll remember */
+            mnam = y_monnam(mtmp); /* before mnexto(); it might disappear */
+        /* mimic must be revealed before we know whether it
+           actually moves because line-of-sight may change */
+        if (M_AP_TYPE(mtmp))
+            seemimic(mtmp);
+        omx = mtmp->mx, omy = mtmp->my;
+        mnexto(mtmp, !already_discovered ? RLOC_MSG : RLOC_NONE);
+        if (mtmp->mx != omx || mtmp->my != omy) {
+            mtmp->mundetected = 0; /* reveal non-mimic hider iff it moved */
+
+            if (canspotmon(mtmp)) {
+                mnam = y_monnam(mtmp);
+                if (oseen) {
+                    if (++shift == 1)
+                        Sprintf(shiftbuf, "%s shifts location", mnam);
+                } else {
+                    if (++appear == 1)
+                        Sprintf(appearbuf, "%s appears", mnam);
+                }
+            } else if (oseen) {
+                if (++disappear == 1)
+                    Sprintf(disappearbuf, "%s disappears", mnam);
+            }
+            /*
+             * FIXME:
+             *  All relocated monsters should change positions essentially
+             *  simultaneously but we're dealing with them sequentially.
+             *  That could kill some off in the process, each time leaving
+             *  their target position (which should be occupied at least
+             *  momentarily) available as a potential death trap for others.
+             */
+            if (mintrap(mtmp, NO_TRAP_FLAGS) == Trap_Killed_Mon)
+                change_luck(-1);
+        }
+    }
+
+    /*
+     * If any pets changed location, (1) they might have been in view
+     * before and still in view after, (2) out of view before but in
+     * view after, (3) in view before but out of view after (perhaps
+     * on the far side of a boulder/door/wall), or (4) out of view
+     * before and still out of view after.  The first two cases are
+     * the usual ones; the fourth will happen if the hero can't see.
+     *
+     * If the magic whistle hasn't been discovered yet, rloc() issued
+     * any applicable vanishing and/or appearing messages, and we make
+     * it become discovered now if any pets moved within or into view.
+     * If it has already been discovered, we told rloc() not to issue
+     * messages and will issue one cumulative message now (for any of
+     * the first three cases, not the fourth) to reduce verbosity for
+     * the first case of a single pet (avoid "vanishes and reappears")
+     * and greatly reduce verbosity for multiple pets regardless of
+     * each one's case.
+     */
+    buf[0] = '\0';
+    if (!already_discovered) {
+        /* message(s) were handled by rloc(); if only noticeable change was
+           pet(s) disappearing, the magic whistle won't become discovered */
+        if (shift + appear > 0)
+            makeknown(obj->otyp);
+    } else {
+        /* could use array of cardinal number names like wishcmdassist() but
+           extra precision above 3 or 4 seems pedantic; not used for 0 or 1 */
+#define HowMany(n) (((n) < 2) ? "sqrt(-1)"          \
+                    : ((n) == 2) ? "two"            \
+                      : ((n) == 3) ? "three"        \
+                        : ((n) == 4) ? "four"       \
+                          : ((n) <= 7) ? "several"  \
+                            : "many")
+        /* magic whistle is already discovered so rloc() message(s)
+           were suppressed above; if any discernible relocation occured,
+           construct a message now and issue it below */
+        if (shift > 0) {
+            if (shift > 1)
+                Sprintf(shiftbuf, "%s creatures shift locations",
+                        HowMany(shift));
+            copynchars(buf, upstart(shiftbuf), (int) sizeof buf - 1);
+        }
+        if (appear > 0) {
+            if (appear > 1)
+                /* shift==0: N creatures appear;
+                   shift==1: Foo shifts location and N other creatures appear;
+                   shift >1: M creatures shift locations and N others appear */
+                Sprintf(appearbuf, "%s %s appear", HowMany(appear),
+                        (shift == 0) ? "creatures"
+                        : (shift == 1) ? "other creatures"
+                          : "others");
+            if (shift == 0)
+                copynchars(buf, upstart(appearbuf), (int) sizeof buf - 1);
+            else
+                Snprintf(eos(buf), sizeof buf - strlen(buf), "%s %s",
+                         /* to get here:  appear > 0 and shift != 0,
+                            so "shifters, appearers" if disappear != 0
+                            with ", and disappearers" yet to be appended,
+                            or "shifters and appearers" otherwise */
+                         disappear ? "," : " and", appearbuf);
+        }
+        if (disappear > 0) {
+            if (disappear > 1)
+                Sprintf(disappearbuf, "%s %s disappear", HowMany(disappear),
+                        (shift == 0 && appear == 0) ? "creatures"
+                        : (shift < 2 && appear < 2) ? "other creatures"
+                          : "others");
+            if (shift + appear == 0)
+                copynchars(buf, upstart(disappearbuf), (int) sizeof buf - 1);
+            else
+                Snprintf(eos(buf), sizeof buf - strlen(buf), "%s and %s",
+                         (shift && appear) ? "," : "", disappearbuf);
+        }
+    }
+    if (*buf)
+        pline("%s.", buf);
+    return;
 }
 
 boolean
@@ -594,12 +711,10 @@ m_unleash(struct monst *mtmp, boolean feedback)
         else
             Your("leash falls slack.");
     }
-    for (otmp = g.invent; otmp; otmp = otmp->nobj)
-        if (otmp->otyp == LEASH && (unsigned) otmp->leashmon == mtmp->m_id) {
-            otmp->leashmon = 0;
-            update_inventory();
-            break;
-        }
+    if ((otmp = get_mleash(mtmp)) != 0) {
+        otmp->leashmon = 0;
+        update_inventory();
+    }
     mtmp->mleashed = 0;
 }
 
@@ -657,7 +772,7 @@ use_leash(struct obj *obj)
     if (!get_adjacent_loc((char *) 0, (char *) 0, u.ux, u.uy, &cc))
         return ECMD_OK;
 
-    if (cc.x == u.ux && cc.y == u.uy) {
+    if (u_at(cc.x, cc.y)) {
         if (u.usteed && u.dz > 0) {
             mtmp = u.usteed;
             spotmon = 1;
@@ -748,33 +863,38 @@ get_mleash(struct monst *mtmp)
     return otmp;
 }
 
+static boolean
+mleashed_next2u(struct monst *mtmp)
+{
+    if (mtmp->mleashed) {
+        if (!next2u(mtmp->mx, mtmp->my))
+            mnexto(mtmp, RLOC_NOMSG);
+        if (!next2u(mtmp->mx, mtmp->my)) {
+            struct obj *otmp = get_mleash(mtmp);
+
+            if (!otmp) {
+                impossible("leashed-unleashed mon?");
+                return TRUE;
+            }
+
+            if (otmp->cursed)
+                return TRUE;
+            mtmp->mleashed = 0;
+            otmp->leashmon = 0;
+            update_inventory();
+            You_feel("%s leash go slack.",
+                     (number_leashed() > 1) ? "a" : "the");
+        }
+    }
+    return FALSE;
+}
+
 boolean
 next_to_u(void)
 {
-    register struct monst *mtmp;
-    register struct obj *otmp;
+    if (get_iter_mons(mleashed_next2u))
+        return FALSE;
 
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-        if (DEADMONSTER(mtmp))
-            continue;
-        if (mtmp->mleashed) {
-            if (!next2u(mtmp->mx, mtmp->my))
-                mnexto(mtmp, RLOC_NOMSG);
-            if (!next2u(mtmp->mx, mtmp->my)) {
-                for (otmp = g.invent; otmp; otmp = otmp->nobj)
-                    if (otmp->otyp == LEASH
-                        && (unsigned) otmp->leashmon == mtmp->m_id) {
-                        if (otmp->cursed)
-                            return FALSE;
-                        mtmp->mleashed = 0;
-                        otmp->leashmon = 0;
-                        update_inventory();
-                        You_feel("%s leash go slack.",
-                                 (number_leashed() > 1) ? "a" : "the");
-                    }
-            }
-        }
-    }
     /* no pack mules for the Amulet */
     if (u.usteed && mon_has_amulet(u.usteed))
         return FALSE;
@@ -790,12 +910,7 @@ check_leash(xchar x, xchar y)
     for (otmp = g.invent; otmp; otmp = otmp->nobj) {
         if (otmp->otyp != LEASH || otmp->leashmon == 0)
             continue;
-        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-            if (DEADMONSTER(mtmp))
-                continue;
-            if ((int) mtmp->m_id == otmp->leashmon)
-                break;
-        }
+        mtmp = find_mid(otmp->leashmon, FM_FMON);
         if (!mtmp) {
             impossible("leash in use isn't attached to anything?");
             otmp->leashmon = 0;
@@ -1739,8 +1854,14 @@ dorub(void)
     if (!retouch_object(&obj, FALSE, !will_touch_skin(W_WEP)))
         return 1;
 
-    if (!wield_tool(obj, "rub"))
+    if (obj != uwep) {
+        if (wield_tool(obj, "rub")) {
+            cmdq_add_ec(dorub);
+            cmdq_add_key(obj->invlet);
+            return ECMD_TIME;
+        }
         return ECMD_OK;
+    }
 
     /* now uwep is obj */
     if (uwep->otyp == MAGIC_LAMP) {
@@ -1917,15 +2038,8 @@ jump(int magic) /* 0=Physical, otherwise skill level */
     coord cc;
 
     /* attempt "jumping" spell if hero has no innate jumping ability */
-    if (!magic && !Jumping) {
-        int sp_no;
-
-        for (sp_no = 0; sp_no < MAXSPELL; ++sp_no)
-            if (g.spl_book[sp_no].sp_id == NO_SPELL)
-                break;
-            else if (g.spl_book[sp_no].sp_id == SPE_JUMPING)
-                return spelleffects(sp_no, FALSE);
-    }
+    if (!magic && !Jumping && known_spell(SPE_JUMPING) >= spe_Fresh)
+        return spelleffects(SPE_JUMPING, FALSE);
 
     if (!magic && (nolimbs(g.youmonst.data) || slithy(g.youmonst.data))) {
         /* normally (nolimbs || slithy) implies !Jumping,
@@ -1935,6 +2049,7 @@ jump(int magic) /* 0=Physical, otherwise skill level */
     } else if (!magic && !Jumping) {
         You_cant("jump very far.");
         return ECMD_OK;
+
     /* if steed is immobile, can't do physical jump but can do spell one */
     } else if (!magic && u.usteed && stucksteed(FALSE)) {
         /* stucksteed gave "<steed> won't move" message */
@@ -2101,6 +2216,7 @@ use_tinning_kit(struct obj *obj)
 
         if (poly_when_stoned(g.youmonst.data)) {
             You("tin %s without wearing gloves.", corpse_name);
+            kbuf[0] = '\0';
         } else {
             pline("Tinning %s without wearing gloves is a fatal mistake...",
                   corpse_name);
@@ -2878,8 +2994,7 @@ use_trap(struct obj *otmp)
         return;
     }
     ttyp = (otmp->otyp == LAND_MINE) ? LANDMINE : BEAR_TRAP;
-    if (otmp == g.trapinfo.tobj && u.ux == g.trapinfo.tx
-                                && u.uy == g.trapinfo.ty) {
+    if (otmp == g.trapinfo.tobj && u_at(g.trapinfo.tx, g.trapinfo.ty)) {
         You("resume setting %s%s.", shk_your(buf, otmp),
             trapname(ttyp, FALSE));
         set_occupation(set_trap, occutext, 0);
@@ -2989,9 +3104,12 @@ use_whip(struct obj *obj)
     boolean snapped_in_air = FALSE;
 
     if (obj != uwep) {
-        if (!wield_tool(obj, "lash"))
-            return ECMD_OK;
-        res = ECMD_TIME;
+        if (wield_tool(obj, "lash")) {
+            cmdq_add_ec(doapply);
+            cmdq_add_key(obj->invlet);
+            return ECMD_TIME;
+        }
+        return ECMD_OK;
     }
     if (!getdir((char *) 0))
         return (res|ECMD_CANCEL);
@@ -3406,9 +3524,12 @@ use_pole(struct obj *obj, boolean autohit)
         return ECMD_OK;
     }
     if (obj != uwep) {
-        if (!wield_tool(obj, "swing"))
-            return ECMD_OK;
-        res = ECMD_TIME;
+        if (wield_tool(obj, "swing")) {
+            cmdq_add_ec(doapply);
+            cmdq_add_key(obj->invlet);
+            return ECMD_TIME;
+        }
+        return ECMD_OK;
     }
     /* assert(obj == uwep); */
 
@@ -3462,7 +3583,7 @@ use_pole(struct obj *obj, boolean autohit)
         pline("Too far!");
         return res;
     } else if (distu(cc.x, cc.y) < min_range) {
-        if (autohit && cc.x == u.ux && cc.y == u.uy)
+        if (autohit && u_at(cc.x, cc.y))
             pline("Don't know what to hit.");
         else
             pline("Too close!");
@@ -3659,10 +3780,12 @@ use_grapple(struct obj *obj)
         return ECMD_OK;
     }
     if (obj != uwep) {
-        if (!wield_tool(obj, "cast"))
-            return ECMD_OK;
-        else
-            res = ECMD_TIME;
+        if (wield_tool(obj, "cast")) {
+            cmdq_add_ec(doapply);
+            cmdq_add_key(obj->invlet);
+            return ECMD_TIME;
+        }
+        return ECMD_OK;
     }
     /* assert(obj == uwep); */
 
@@ -4312,12 +4435,10 @@ doapply(void)
             break;
         }
         pline("Sorry, I don't know how to use that.");
-        nomul(0);
-        return ECMD_OK;
+        return ECMD_FAIL;
     }
     if ((res & ECMD_TIME) && obj && obj->oartifact)
         arti_speak(obj);
-    nomul(0);
     return res;
 }
 

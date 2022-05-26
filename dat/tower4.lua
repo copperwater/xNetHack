@@ -51,9 +51,9 @@ local outercircle = selection.circle(76,00,20,1) ~ innercircle:clone()
 -- guarantee one directly on the ladder
 des.monster({ id = "vampire leader", x = 75, y = 01, asleep = 1 })
 for i = 1,6+d(3) do
-   des.monster({ id = "vampire", coord = {outercircle:rndcoord()}, asleep = percent(80) and 1 or 0 })
+   des.monster({ id = "vampire", coord = outercircle:rndcoord(), asleep = percent(80) and 1 or 0 })
    if percent(70) then
-      des.monster({ id = "vampire leader", coord ={innercircle:rndcoord()}, asleep = 1 })
+      des.monster({ id = "vampire leader", coord = innercircle:rndcoord(), asleep = 1 })
    end
 end
 

@@ -1,4 +1,4 @@
-/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1627951223 2021/08/03 00:40:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.122 $ */
+/* NetHack 3.7	mkmaze.c	$NHDT-Date: 1648064596 2022/03/23 19:43:16 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.133 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -74,6 +74,52 @@ static boolean
 is_solid(int x, int y)
 {
     return (boolean) (!isok(x, y) || IS_STWALL(levl[x][y].typ));
+}
+
+/* set map terrain type, handling lava lit, ice melt timers, etc */
+boolean
+set_levltyp(xchar x, xchar y, schar typ)
+{
+    if (isok(x, y)) {
+        if ((typ < MAX_TYPE) && CAN_OVERWRITE_TERRAIN(levl[x][y].typ)) {
+            boolean was_ice = (levl[x][y].typ == ICE);
+
+            levl[x][y].typ = typ;
+
+            if (typ == LAVAPOOL)
+                levl[x][y].lit = 1;
+
+            if (was_ice && typ != ICE)
+                spot_stop_timers(x, y, MELT_ICE_AWAY);
+            return TRUE;
+        }
+#ifdef EXTRA_SANITY_CHECKS
+    } else {
+        impossible("set_levltyp(%i,%i,%i) !isok", x, y, typ);
+#endif /*EXTRA_SANITY_CHECKS*/
+    }
+    return FALSE;
+}
+
+/* set map terrain type and light state */
+boolean
+set_levltyp_lit(xchar x, xchar y, schar typ, schar lit)
+{
+    boolean ret = set_levltyp(x, y, typ);
+
+    if (ret && isok(x, y)) {
+        /* LAVAPOOL handled in set_levltyp */
+        if ((typ != LAVAPOOL) && (lit != SET_LIT_NOCHANGE)) {
+#ifdef EXTRA_SANITY_CHECKS
+            if (lit < SET_LIT_NOCHANGE || lit > 1)
+                impossible("set_levltyp_lit(%i,%i,%i,%i)", x, y, typ, lit);
+#endif /*EXTRA_SANITY_CHECKS*/
+            if (lit == SET_LIT_RANDOM)
+                lit = rn2(2);
+            levl[x][y].lit = lit;
+        }
+    }
+    return ret;
 }
 
 /*
@@ -382,7 +428,7 @@ put_lregion_here(
         break;
     case LR_DOWNSTAIR:
     case LR_UPSTAIR:
-        mkstairs(x, y, (char) rtype, (struct mkroom *) 0);
+        mkstairs(x, y, (char) rtype, (struct mkroom *) 0, FALSE);
         break;
     case LR_BRANCH:
         place_branch(Is_branchlev(&u.uz), x, y);
@@ -691,7 +737,7 @@ migr_booty_item(int otyp, const char* gang)
 
     otmp = mksobj_migr_to_species(otyp, (unsigned long) M2_ORC, TRUE, FALSE);
     if (otmp && gang) {
-        new_oname(otmp, strlen(gang) + 1); /* removes old name if present */
+        new_oname(otmp, Strlen(gang) + 1); /* removes old name if present */
         Strcpy(ONAME(otmp), gang);
         if (objects[otyp].oc_class == FOOD_CLASS) {
             if (otyp == SLIME_MOLD)
@@ -804,7 +850,10 @@ boolean
 maze_inbounds(int x, int y)
 {
     return (x >= 2 && y >= 2
-            && x < g.x_maze_max && y < g.y_maze_max && isok(x, y));
+            && x < g.x_maze_max && y < g.y_maze_max
+            /* isok() test is superfluous here (unless something has
+               clobbered the static *_maze_max variables) */
+            && isok(x, y));
 }
 
 /* Return TRUE iff the given location is on the edge of the valid maze area;
@@ -1058,16 +1107,16 @@ maze_touchup_rooms(int attempts)
             continue;
         /* probabilities here are deflated from makelevel() */
         if (!rn2(20))
-            mkfeature(FOUNTAIN, &g.rooms[i]);
+            mkfount(0, &g.rooms[i]);
         if (!rn2(80))
-            mkfeature(SINK, &g.rooms[i]);
+            mksink(&g.rooms[i]);
         if (!rn2(100))
-            mkfeature(GRAVE, &g.rooms[i]);
+            mkgrave(&g.rooms[i]);
         /* TODO: Currently altars won't generate in Gehennom because they
          * would imply the player can pray on a coaligned altar there, and that
          * isn't implemented. */
         if (!rn2(100) && !Inhell)
-            mkfeature(ALTAR, &g.rooms[i]);
+            mkaltar(&g.rooms[i]);
 
         /* Maybe remove the walls for this room. */
         if (rn2(5)) {
@@ -1307,10 +1356,10 @@ makemaz(const char *s)
     }
 
     mazexy(&mm);
-    mkstairs(mm.x, mm.y, 1, (struct mkroom *) 0); /* up */
+    mkstairs(mm.x, mm.y, 1, (struct mkroom *) 0, FALSE); /* up */
     if (!Invocation_lev(&u.uz)) {
         mazexy(&mm);
-        mkstairs(mm.x, mm.y, 0, (struct mkroom *) 0); /* down */
+        mkstairs(mm.x, mm.y, 0, (struct mkroom *) 0, FALSE); /* down */
     } else { /* choose "vibrating square" location */
         /* vibrating square is now set by invocation.lua; however, this code
          * remains in place so that the game is not unwinnable if invocation.lua
@@ -1498,29 +1547,36 @@ walkfrom(int x, int y, schar typ)
 void
 mazexy(coord *cc)
 {
+    int x, y, allowedtyp = (g.level.flags.corrmaze ? CORR : ROOM);
     int cpt = 0;
 
     do {
-        cc->x = 1 + rn2(g.x_maze_max);
-        cc->y = 1 + rn2(g.y_maze_max);
-        cpt++;
-    } while (cpt < 100
-             && levl[cc->x][cc->y].typ
-                    != (g.level.flags.corrmaze ? CORR : ROOM));
-    if (cpt >= 100) {
-        int x, y;
-
-        /* last try */
-        for (x = 1; x < g.x_maze_max; x++)
-            for (y = 1; y < g.y_maze_max; y++) {
-                cc->x = x;
-                cc->y = y;
-                if (levl[cc->x][cc->y].typ
-                    == (g.level.flags.corrmaze ? CORR : ROOM))
-                    return;
+        /* once upon a time this only considered odd values greater than 2
+           and less than N (for N=={x,y}_maze_max) because even values were
+           where maze walls always got placed; when wider maze corridors
+           were introduced it was changed to 1+rn2(N) which is just an
+           obscure way to get rnd(N); probably ought to be using 2+rn2(N-1)
+           to exclude the maze's outer boundary walls; trying and rejecting
+           those walls will waste some of the 100 random attempts... */
+        x = rnd(g.x_maze_max);
+        y = rnd(g.y_maze_max);
+        if (levl[x][y].typ == allowedtyp) {
+            cc->x = (xchar) x;
+            cc->y = (xchar) y;
+            return;
+        }
+    } while (++cpt < 100);
+    /* 100 random attempts failed; systematically try every possibility */
+    for (x = 1; x <= g.x_maze_max; x++)
+        for (y = 1; y <= g.y_maze_max; y++)
+            if (levl[x][y].typ == allowedtyp) {
+                cc->x = (xchar) x;
+                cc->y = (xchar) y;
+                return;
             }
-        panic("mazexy: can't find a place!");
-    }
+    /* every spot on the area of map allowed for mazes has been rejected */
+    panic("mazexy: can't find a place!");
+    /*NOTREACHED*/
     return;
 }
 
@@ -1768,7 +1824,7 @@ movebubbles(void)
                             mon->mx = mon->my = 0;
                             mon->mstate |= MON_BUBBLEMOVE;
                         }
-                        if (!u.uswallow && x == u.ux && y == u.uy) {
+                        if (!u.uswallow && u_at(x, y)) {
                             cons = (struct container *) alloc(sizeof *cons);
                             cons->x = x;
                             cons->y = y;
@@ -1872,7 +1928,7 @@ save_waterlevel(NHFILE* nhfp)
 {
     struct bubble *b;
 
-    if (!Is_waterlevel(&u.uz) && !Is_airlevel(&u.uz))
+    if (!g.bbubbles)
         return;
 
     if (perform_bwrite(nhfp)) {
@@ -1901,17 +1957,6 @@ restore_waterlevel(NHFILE* nhfp)
     struct bubble *b = (struct bubble *) 0, *btmp;
     int i, n = 0;
 
-    if (!Is_waterlevel(&u.uz) && !Is_airlevel(&u.uz))
-        return;
-
-    if (nhfp->fd == -1) { /* special handling for restore in goto_level() */
-        if (!wizard)
-            impossible("restore_waterlevel: returning to %s?",
-                       Is_waterlevel(&u.uz) ? "Water" : "Air");
-        setup_waterlevel();
-        return;
-    }
-
     set_wportal();
     if (nhfp->structlevel) {
         mread(nhfp->fd,(genericptr_t)&n,sizeof(int));
@@ -1935,7 +1980,21 @@ restore_waterlevel(NHFILE* nhfp)
       mv_bubble(b, 0, 0, TRUE);
     }
     g.ebubbles = b;
-    b->next = (struct bubble *) 0;
+    if (b) {
+        b->next = (struct bubble *) 0;
+    } else {
+        /* avoid "saving and reloading may fix this" */
+        g.program_state.something_worth_saving = 0;
+        /* during restore, information about what level this is might not
+           be available so we're wishy-washy about what we describe */
+        impossible("No %s to restore?",
+                   (Is_waterlevel(&u.uz) || Is_waterlevel(&g.uz_save))
+                   ? "air bubbles"
+                   : (Is_airlevel(&u.uz) || Is_airlevel(&g.uz_save))
+                     ? "clouds"
+                     : "air bubbles or clouds");
+        g.program_state.something_worth_saving = 1;
+    }
 }
 
 /* Set the global variable wportal to point to the magic portal on the current

@@ -1,4 +1,4 @@
-/* NetHack 3.7	do.c	$NHDT-Date: 1627516694 2021/07/28 23:58:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.270 $ */
+/* NetHack 3.7	do.c	$NHDT-Date: 1652831519 2022/05/17 23:51:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.304 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,12 +10,13 @@
 static boolean teleport_sink(void);
 static void dosinkring(struct obj *);
 static int drop(struct obj *);
-static int menudrop_split(struct obj *, int);
+static int menudrop_split(struct obj *, long);
 static boolean engulfer_digests_food(struct obj *);
 static int wipeoff(void);
 static int menu_drop(int);
 static NHFILE *currentlevel_rewrite(void);
 static void final_level(void);
+static void do_level_updates(xchar);
 
 /* static boolean badspot(xchar,xchar); */
 
@@ -164,7 +165,7 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
         ttyp = t->ttyp;
         tseen = t->tseen ? TRUE : FALSE;
         if (((mtmp = m_at(x, y)) && mtmp->mtrapped)
-            || (u.utrap && u.ux == x && u.uy == y)) {
+            || (u.utrap && u_at(x,y))) {
             if (*verb && (cansee(x, y) || distu(x, y) == 0))
                 pline("%s boulder %s into the pit%s.",
                       Blind ? "A" : "The",
@@ -211,7 +212,7 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
             }
         }
         if (*verb) {
-            if (Blind && (x == u.ux) && (y == u.uy)) {
+            if (Blind && u_at(x, y)) {
                 You_hear("a CRASH! beneath you.");
             } else if (!Blind && cansee(x, y)) {
                 pline_The("boulder %s%s.",
@@ -242,8 +243,7 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
         /* Reasonably bulky objects (arbitrary) splash when dropped.
          * If you're floating above the water even small things make
          * noise.  Stuff dropped near fountains always misses */
-        if ((Blind || (Levitation || Flying)) && !Deaf
-            && ((x == u.ux) && (y == u.uy))) {
+        if ((Blind || (Levitation || Flying)) && !Deaf && u_at(x, y)) {
             if (!Underwater) {
                 if (weight(obj) > 9) {
                     pline("Splash!");
@@ -255,7 +255,7 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
             newsym(x, y);
         }
         res = water_damage(obj, NULL, FALSE) == ER_DESTROYED;
-    } else if (u.ux == x && u.uy == y && (t = t_at(x, y)) != 0
+    } else if (u_at(x, y) && (t = t_at(x, y)) != 0
                && (uteetering_at_seen_pit(t) || uescaped_shaft(t))) {
         if (is_pit(t->ttyp)) {
             if (Blind && !Deaf)
@@ -362,6 +362,8 @@ doaltarobj(struct obj *obj)
     }
 }
 
+/* If obj is neither formally identified nor informally called something
+ * already, prompt the player to call its object type. */
 void
 trycall(struct obj *obj)
 {
@@ -780,6 +782,7 @@ dropz(struct obj *obj, boolean with_impact)
             map_object(obj, 0);
         newsym(u.ux, u.uy); /* remap location under self */
     }
+    (void) encumber_msg();
 }
 
 /* obj_drops_at: routine for dropping items that aren't necessarily on the
@@ -902,7 +905,7 @@ doddrop(void)
 }
 
 static int /* check callers */
-menudrop_split(struct obj *otmp, int cnt)
+menudrop_split(struct obj *otmp, long cnt)
 {
     if (cnt && cnt < otmp->quan) {
         if (welded(otmp) || undroppable(otmp)) {
@@ -1159,8 +1162,7 @@ dodown(void)
 
     if (trap) {
         const char *down_or_thru = trap->ttyp == HOLE ? "down" : "through";
-        const char *actn = Flying ? "fly"
-                                  : locomotion(g.youmonst.data, "jump");
+        const char *actn = u_locomotion("jump");
 
         if (g.youmonst.data->msize >= MZ_HUGE) {
             char qbuf[QBUFSZ];
@@ -1448,22 +1450,6 @@ goto_level(
     nhfp->mode = cant_go_back ? FREEING : (WRITING | FREEING);
     savelev(nhfp, ledger_no(&u.uz));
     nhfp->mode = save_mode;
-    /* air bubbles and clouds are saved in game-state rather than with the
-       level they're used on; in normal play, you can't leave and return
-       to any endgame level--bubbles aren't needed once you move to the
-       next level so used to be discarded when the next special level was
-       loaded; but in wizard mode you can leave and return, and since they
-       aren't saved with the level and restored upon return (new ones are
-       created instead), we need to discard them to avoid a memory leak;
-       so bubbles are now discarded as we leave the level they're used on */
-    if (Is_waterlevel(&u.uz) || Is_airlevel(&u.uz)) {
-        NHFILE tmpnhfp;
-
-        zero_nhfile(&tmpnhfp);
-        tmpnhfp.fd = -1;
-        tmpnhfp.mode = FREEING;
-        save_waterlevel(&tmpnhfp);
-    }
     close_nhfile(nhfp);
     if (cant_go_back) {
         /* discard unreachable levels; keep #0 */
@@ -1507,9 +1493,6 @@ goto_level(
         }
         mklev();
         new = TRUE; /* made the level */
-        livelog_printf(LL_DEBUG, "entered new level %d, %s",
-                       dunlev(&u.uz), g.dungeons[u.uz.dnum].dname);
-
         familiar = bones_include_name(g.plname);
     } else {
         /* returning to previously visited level; reload it */
@@ -1522,16 +1505,6 @@ goto_level(
         reseed_random(rn2_on_display_rng);
         minit(); /* ZEROCOMP */
         getlev(nhfp, g.hackpid, new_ledger);
-        /* when in wizard mode, it is possible to leave from and return to
-           any level in the endgame; above, we discarded bubble/cloud info
-           when leaving Plane of Water or Air so recreate some now */
-        if (Is_waterlevel(&u.uz) || Is_airlevel(&u.uz)) {
-            NHFILE tmpnhfp;
-
-            zero_nhfile(&tmpnhfp);
-            tmpnhfp.fd = -1;
-            restore_waterlevel(&tmpnhfp);
-        }
         close_nhfile(nhfp);
         oinit(); /* reassign level dependent obj probabilities */
     }
@@ -1580,7 +1553,7 @@ goto_level(
             if (flags.verbose || great_effort)
                 pline("%s %s up%s the %s.",
                       great_effort ? "With great effort, you" : "You",
-                      Levitation ? "float" : Flying ? "fly" : "climb",
+                      u_locomotion("climb"),
                       (Flying && g.at_ladder) ? " along" : "",
                       g.at_ladder ? "ladder" : "stairs");
         } else { /* down */
@@ -1630,6 +1603,10 @@ goto_level(
         }
     }
 
+    /* Handle cases where the level may have changed while you were away and
+     * update visited_after_event flag. */
+    do_level_updates(PHASE_PHYSICAL);
+
     if (Punished)
         placebc();
     obj_delivery(FALSE);
@@ -1657,7 +1634,6 @@ goto_level(
 
     /* Reset the screen. */
     vision_reset(); /* reset the blockages */
-    g.glyphmap_perlevel_flags = 0L; /* force per-level map_glyphinfo() changes */
     reset_glyphmap(gm_levelchange);
     docrt(); /* does a full vision recalc */
     flush_screen(-1);
@@ -1678,11 +1654,13 @@ goto_level(
 
     /* special levels can have a custom arrival message */
     deliver_splev_message();
+    do_level_updates(PHASE_DIALOGUE | PHASE_SETFLAG);
 
     /* Check whether we just entered Gehennom. */
     if (!In_hell(&u.uz0) && Inhell) {
         if (!Is_valley(&u.uz))
-            pline("It is hot here.  You smell smoke...");
+            hellish_smoke_mesg(); /* "It is hot here.  You smell smoke..." */
+
         record_achievement(ACH_HELL); /* reached Gehennom */
     }
     /* in case we've managed to bypass the Valley's stairway down */
@@ -1756,6 +1734,9 @@ goto_level(
         if (!In_quest(&u.uz0) && at_dgn_entrance("The Quest")
             && !(u.uevent.qcompleted || u.uevent.qexpelled
                  || g.quest_status.leader_is_dead)) {
+            /* [TODO: copy of same TODO below; if an achievement for
+               receiving quest call from leader gets added, that should
+               come after logging new level entry] */
             if (!u.uevent.qcalled) {
                 u.uevent.qcalled = 1;
                 /* main "leader needs help" message */
@@ -1765,6 +1746,21 @@ goto_level(
                                             : "quest_portal_again");
             }
         }
+    }
+
+    /* this was originally done earlier; moved here to be logged after
+       any achievement related to entering a dungeon branch
+       [TODO: if an achievement for receiving quest call from leader
+       gets added, that should come after this rather than take place
+       where the message is delivered above] */
+    if (new) {
+        char dloc[QBUFSZ];
+        /* Astral is excluded as a major event here because entry to it
+           is already one due to that being an achievement */
+        boolean major = In_endgame(&u.uz) && !Is_astralevel(&u.uz);
+
+        (void) describe_level(dloc, 2);
+        livelog_printf(major ? LL_ACHIEVE : LL_DEBUG, "entered %s", dloc);
     }
 
     assign_level(&u.uz0, &u.uz); /* reset u.uz0 */
@@ -1800,6 +1796,11 @@ goto_level(
 
     /* assume this will always return TRUE when changing level */
     (void) in_out_region(u.ux, u.uy);
+    /* shop repair is normally done when shopkeepers move, but we may
+       need to catch up for lost time here; do this before maybe dying
+       so bones map will include it */
+    if (!new)
+        fix_shop_damage();
 
     /* fall damage? */
     if (do_fall_dmg) {
@@ -1818,6 +1819,16 @@ goto_level(
 
 RESTORE_WARNING_FORMAT_NONLITERAL
 
+/* give a message when entering a Gehennom level other than the Valley;
+   also given if restoring a game in that situation */
+void
+hellish_smoke_mesg(void)
+{
+    if (Inhell && !Is_valley(&u.uz))
+        pline("It is hot here.  You %s smoke...",
+              olfaction(g.youmonst.data) ? "smell" : "sense");
+}
+
 /* usually called from goto_level(); might be called from Sting_effects() */
 void
 maybe_lvltport_feedback(void)
@@ -1832,14 +1843,8 @@ maybe_lvltport_feedback(void)
 static void
 final_level(void)
 {
-    struct monst *mtmp;
-
     /* reset monster hostility relative to player */
-    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-        if (DEADMONSTER(mtmp))
-            continue;
-        reset_hostility(mtmp);
-    }
+    iter_mons(reset_hostility);
 
     /* create some player-monsters */
     create_mplayers(rn1(4, 3), TRUE);
@@ -2382,6 +2387,45 @@ obj_aireffects(struct obj *obj, boolean talk)
     if (fell && talk) {
         pline("%s %s away and %s.", The(xname(obj)),
                 otense(obj, "fall"), otense(obj, "disappear"));
+    }
+}
+
+/* Restore the Valkyrie locate level after the nemesis is killed;
+ * callback for do_level_updates */
+void
+restore_valk_locate(xchar phases)
+{
+    if (!Is_qlocate(&u.uz) || !Role_if(PM_VALKYRIE))
+        return;
+    if (phases & PHASE_PHYSICAL) {
+        nhl_sandbox_info sbi = {NHL_SB_SAFE, 0, 0, 0};
+        (void) load_lua("repair-Val-loca.lua", &sbi);
+    }
+    if (phases & PHASE_VISION) {
+        docrt();
+    }
+    if (phases & PHASE_DIALOGUE) {
+        /* TODO: when replacing Valk quest dialogue, insert a special qt_pager
+         * for this. */
+    }
+}
+
+/* You have just arrived on a level, which may undergo some changes to terrain
+ * or other makeup depending on certain factors tracked in the
+ * visited_after_event flag. */
+static void
+do_level_updates(xchar phases)
+{
+    /* Currently the only tracked event is the quest nemesis being killed (but
+     * this does not have to be specific to the Quest). */
+    if (!(g.level.flags.visited_after_event & VISITED_AFTER_NEMDEAD)
+        && g.quest_status.killed_nemesis) {
+        /* This is a bit hardcoded; once more things are added here it could be
+         * refactored into a more general structure. */
+        restore_valk_locate(phases);
+        if (phases & PHASE_SETFLAG) {
+            g.level.flags.visited_after_event |= VISITED_AFTER_NEMDEAD;
+        }
     }
 }
 

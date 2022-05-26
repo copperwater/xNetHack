@@ -20,7 +20,6 @@ struct flag {
     boolean autodig;         /* MRKR: Automatically dig */
     boolean autoquiver;      /* Automatically fill quiver */
     boolean autoopen;        /* open doors by walking into them */
-    boolean autounlock;      /* automatically apply unlocking tools */
     boolean beginner;        /* True early in each game; affects feedback */
     boolean biff;            /* enable checking for mail */
     boolean bones;           /* allow saving/loading bones */
@@ -67,6 +66,11 @@ struct flag {
     boolean tombstone;       /* print tombstone */
     boolean verbose;         /* max battle info */
     int end_top, end_around; /* describe desired score list */
+    unsigned autounlock;     /* locked door/chest action */
+#define AUTOUNLOCK_UNTRAP    1
+#define AUTOUNLOCK_APPLY_KEY 2
+#define AUTOUNLOCK_KICK      4
+#define AUTOUNLOCK_FORCE     8
     unsigned moonphase;
     unsigned long suppress_alert;
 #define NEW_MOON 0
@@ -240,6 +244,8 @@ struct instance_flags {
     int menuinvertmode;  /* 0 = invert toggles every item;
                             1 = invert skips 'all items' item */
     int menu_headings;    /* ATR for menu headings */
+    uint32_t colorcount;    /* store how many colors terminal is capable of */
+    boolean use_truecolor;  /* force use of truecolor */
 #ifdef ALTMETA
     boolean altmeta;      /* Alt-c sends ESC c rather than M-c */
 #endif
@@ -396,7 +402,7 @@ struct instance_flags {
     Bitfield(save_uinwater, 1);
     Bitfield(save_uburied, 1);
     struct debug_flags debug;
-    boolean windowtype_locked;  /* windowtype can't change from configfile */
+    boolean windowtype_locked;   /* windowtype can't change from configfile */
     boolean windowtype_deferred; /* pick a windowport and store it in
                                     chosen_windowport[], but do not switch to
                                     it in the midst of options processing */

@@ -71,8 +71,8 @@ static void writexlentry(FILE *, struct toptenentry *, int);
 static long encodexlogflags(void);
 static long encodeachieve(boolean);
 static void add_achieveX(char *, const char *, boolean);
-static char *encode_extended_achievements(void);
-static char *encode_extended_conducts(void);
+static char *encode_extended_achievements(char *);
+static char *encode_extended_conducts(char *);
 #endif
 static void free_ttlist(struct toptenentry *);
 static int classmon(char *);
@@ -116,7 +116,7 @@ formatkiller(
         /*FALLTHRU*/
     case KILLED_BY:
         (void) strncat(buf, killed_by_prefix[how], siz - 1);
-        l = strlen(buf);
+        l = Strlen(buf);
         buf += l, siz -= l;
         break;
     }
@@ -339,6 +339,7 @@ writexlentry(FILE* rfile, struct toptenentry* tt, int how)
 #define XLOG_SEP '\t' /* xlogfile field separator. */
     char buf[BUFSZ], tmpbuf[DTHSZ + 1];
     char stuck = (Upolyd && Unchanging);
+    char achbuf[N_ACH * 40];
 
     Sprintf(buf, "version=%d.%d.%d", tt->ver_major, tt->ver_minor,
             tt->patchlevel);
@@ -373,8 +374,10 @@ writexlentry(FILE* rfile, struct toptenentry* tt, int how)
     Fprintf(rfile, "%cconduct=0x%lx%cturns=%ld%cachieve=0x%lx", XLOG_SEP,
             encodeconduct(), XLOG_SEP, g.moves, XLOG_SEP,
             encodeachieve(FALSE));
-    Fprintf(rfile, "%cachieveX=%s", XLOG_SEP, encode_extended_achievements());
-    Fprintf(rfile, "%cconductX=%s", XLOG_SEP, encode_extended_conducts());
+    Fprintf(rfile, "%cachieveX=%s", XLOG_SEP,
+            encode_extended_achievements(achbuf));
+    Fprintf(rfile, "%cconductX=%s", XLOG_SEP,
+            encode_extended_conducts(buf)); /* reuse 'buf[]' */
     Fprintf(rfile, "%crealtime=%ld%cstarttime=%ld%cendtime=%ld", XLOG_SEP,
             urealtime.realtime, XLOG_SEP,
             timet_to_seconds(ubirthday), XLOG_SEP,
@@ -506,7 +509,7 @@ encodeachieve(
 
 /* add the achievement or conduct comma-separated to string */
 static void
-add_achieveX(char* buf, const char* achievement, boolean condition)
+add_achieveX(char *buf, const char *achievement, boolean condition)
 {
     if (condition) {
         if (buf[0] != '\0') {
@@ -517,9 +520,8 @@ add_achieveX(char* buf, const char* achievement, boolean condition)
 }
 
 static char *
-encode_extended_achievements(void)
+encode_extended_achievements(char *buf)
 {
-    static char buf[N_ACH * 40];
     char rnkbuf[40];
     const char *achievement = NULL;
     int i, achidx, absidx;
@@ -589,6 +591,9 @@ encode_extended_achievements(void)
         case ACH_BGRM:
             achievement = "entered_bigroom";
             break;
+        case ACH_TUNE:
+            achievement = "learned_castle_drawbridge_tune";
+            break;
         /* rank 0 is the starting condition, not an achievement; 8 is Xp 30 */
         case ACH_RNK1: case ACH_RNK2: case ACH_RNK3: case ACH_RNK4:
         case ACH_RNK5: case ACH_RNK6: case ACH_RNK7: case ACH_RNK8:
@@ -616,10 +621,8 @@ encode_extended_achievements(void)
 }
 
 static char *
-encode_extended_conducts(void)
+encode_extended_conducts(char *buf)
 {
-    static char buf[BUFSZ];
-
     buf[0] = '\0';
     add_achieveX(buf, "foodless",     !u.uconduct.food);
     add_achieveX(buf, "vegan",        !u.uconduct.unvegan);
@@ -1115,7 +1118,7 @@ outentry(int rank, struct toptenentry* t1, boolean so)
         } else
             topten_print(linebuf);
         Snprintf(linebuf, sizeof(linebuf), "%15s %s", "", linebuf3);
-        lngr = strlen(linebuf);
+        lngr = Strlen(linebuf);
     }
     /* beginning of hp column not including padding */
     hppos = COLNO - 7 - (int) strlen(hpbuf);
@@ -1427,7 +1430,7 @@ tt_oname(struct obj* otmp)
         otmp->spe = CORPSTAT_FEMALE;
     else if (tt->plgend[0] == 'M')
         otmp->spe = CORPSTAT_MALE;
-    otmp = oname(otmp, tt->name);
+    otmp = oname(otmp, tt->name, ONAME_NO_FLAGS);
 
     return otmp;
 }

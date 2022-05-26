@@ -1,4 +1,4 @@
--- NetHack 3.7	mines.des	$NHDT-Date: 1432512783 2015/05/25 00:13:03 $  $NHDT-Branch: master $:$NHDT-Revision: 1.25 $
+-- NetHack 3.7	mines minetn-1.lua	$NHDT-Date: 1652196030 2022/05/10 15:20:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
 --	Copyright (c) 1989-95 by Jean-Christophe Collet
 --	Copyright (c) 1991-95 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -110,11 +110,11 @@ des.object({ id = "boulder", coord = shk_demise[3] })
 -- (i.e. separating the notion of "filled" into "filled with monsters" and
 -- "filled with objects")
 for i=1,9 do
-  des.object({ class = "(", coord = { inside:rndcoord(1) } })
+  des.object("(", inside:rndcoord(1))
 end
 -- For now, only FOOD_CLASS items from deli.
 for i=1,4 do
-  des.object({ class = "%", coord = { inside:rndcoord(1) } })
+  des.object("%", inside:rndcoord(1))
 end
 
 -- priest spoils
@@ -135,18 +135,18 @@ des.monster({ id = "watch captain", dead = 1 })
 
 for i=1,5 + d(10) do
    if percent(50) then
-      des.monster({ id = "orc-captain", coord = { inside:rndcoord(1) }, peaceful=0 });
+      des.monster({ id = "orc-captain", coord = inside:rndcoord(1), peaceful=0 });
    else
       if percent(80) then
-         des.monster({ id = "Uruk-hai", coord = { inside:rndcoord(1) }, peaceful=0 })
+         des.monster({ id = "Uruk-hai", coord = inside:rndcoord(1), peaceful=0 })
       else
-         des.monster({ id = "Mordor orc", coord = { inside:rndcoord(1) }, peaceful=0 })
+         des.monster({ id = "Mordor orc", coord = inside:rndcoord(1), peaceful=0 })
       end
    end
 end
 -- shamans can be hanging out in/near the temple
 for i=1,d(2,3) do
-   des.monster({ id = "orc shaman", coord = { near_temple:rndcoord(0) }, peaceful=0 });
+   des.monster({ id = "orc shaman", coord = near_temple:rndcoord(0), peaceful=0 });
 end
 -- these are not such a big deal to run into outside the bars
 for i=1,9 + d(2,5) do

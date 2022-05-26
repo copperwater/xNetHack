@@ -1,4 +1,4 @@
-/* NetHack 3.7	objnam.c	$NHDT-Date: 1644347179 2022/02/08 19:06:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.343 $ */
+/* NetHack 3.7	objnam.c	$NHDT-Date: 1653171584 2022/05/21 22:19:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.364 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -295,24 +295,52 @@ obj_is_pname(struct obj* obj)
 }
 
 /* Give the name of an object seen at a distance.  Unlike xname/doname,
- * we don't want to set dknown if it's not set already.
- */
+   we usually don't want to set dknown if it's not set already. */
 char *
-distant_name(struct obj* obj, char* (*func)(OBJ_P))
+distant_name(
+    struct obj *obj, /* object to be formatted */
+    char *(*func)(OBJ_P)) /* formatting routine (usually xname or doname) */
 {
     char *str;
+    xchar ox = 0, oy = 0;
+        /*
+         * (r * r): square of the x or y distance;
+         * (r * r) * 2: sum of squares of both x and y distances
+         * (r * r) * 2 - r: instead of a square extending from the hero,
+         * round the corners (so shorter distance imposed for diagonal).
+         *
+         * distu() matrix convering a range of 3+ for one quadrant:
+         *  16 17  -  -  -
+         *   9 10 13 18  -
+         *   4  5  8 13  -
+         *   1  2  5 10 17
+         *   @  1  4  9 16
+         * Theoretical r==1 would yield 1.
+         * r==2 yields 6, functionally equivalent to 5, a knight's jump,
+         * r==3, the xray range of the Eyes of the Overworld, yields 15.
+         */
+    int r = (u.xray_range > 2) ? u.xray_range : 2,
+        neardist = (r * r) * 2 - r; /* same as r*r + r*(r-1) */
 
-    /* 3.6.1: this used to save Blind, set it, make the call, then restore
-     * the saved value; but the Eyes of the Overworld override blindness
-     * and let characters wearing them get dknown set for distant items.
-     *
-     * TODO? if the hero is wearing those Eyes, figure out whether the
-     * object is within X-ray radius and only treat it as distant when
-     * beyond that radius.  Logic is iffy but result might be interesting.
-     */
-    ++g.distantname;
-    str = (*func)(obj);
-    --g.distantname;
+    /* this maybe-nearby part used to be replicated in multiple callers */
+    if (get_obj_location(obj, &ox, &oy, 0) && cansee(ox, oy)
+        && (obj->oartifact || distu(ox, oy) <= neardist)) {
+        /* side-effects:  treat as having been seen up close;
+           cansee() is True hence hero isn't Blind so if 'func' is
+           the usual doname or xname, obj->dknown will become set
+           and then for an artifact, find_artifact() will be called */
+        str = (*func)(obj);
+    } else {
+        /* prior to 3.6.1, this used to save current blindness state,
+           explicitly set state to hero-is-blind, make the call (which
+           won't set obj->dknown when blind), then restore the saved
+           value; but the Eyes of the Overworld override blindness and
+           would let characters wearing them get obj->dknown set for
+           distant items, so the external flag was added */
+        ++g.distantname;
+        str = (*func)(obj);
+        --g.distantname;
+    }
     return str;
 }
 
@@ -375,7 +403,7 @@ fruit_from_name(
     if (!exact) {
         tentativef = 0;
         for (f = g.ffruit; f; f = f->nextf) {
-            k = strlen(f->fname);
+            k = Strlen(f->fname);
             if (!strncmpi(f->fname, fname, k)
                 && (!fname[k] || fname[k] == ' ')
                 && (!tentativef || k > strlen(tentativef->fname)))
@@ -395,11 +423,11 @@ fruit_from_name(
     }
     if (!f && !exact) {
         char fnamebuf[BUFSZ], *p;
-        unsigned fname_k = strlen(fname); /* length of assumed plural fname */
+        unsigned fname_k = Strlen(fname); /* length of assumed plural fname */
 
         tentativef = 0;
         for (f = g.ffruit; f; f = f->nextf) {
-            k = strlen(f->fname);
+            k = Strlen(f->fname);
             /* reload fnamebuf[] each iteration in case it gets modified;
                there's no need to recalculate fname_k */
             Strcpy(fnamebuf, fname);
@@ -414,7 +442,7 @@ fruit_from_name(
             if (fname_k >= k && (p = index(&fnamebuf[k], ' ')) != 0) {
                 *p = '\0'; /* truncate at 1st space past length of f->fname */
                 altfname = makesingular(fnamebuf);
-                k = strlen(altfname); /* actually revised 'fname_k' */
+                k = Strlen(altfname); /* actually revised 'fname_k' */
                 if (!strcmp(f->fname, altfname)
                     && (!tentativef || k > strlen(tentativef->fname)))
                     tentativef = f;
@@ -524,6 +552,28 @@ xname_flags(
         dknown = obj->dknown;
         bknown = obj->bknown;
     }
+
+    /*
+     * Maybe find a previously unseen artifact.
+     *
+     * Assumption 1: if an artifact object is being formatted, it is
+     *  being shown to the hero (on floor, or looking into container,
+     *  or probing a monster, or seeing a monster wield it).
+     * Assumption 2: if in a pile that has been stepped on, the
+     *  artifact won't be noticed for cases where the pile to too deep
+     *  to be auto-shown, unless the player explicitly looks at that
+     *  spot (via ':').  Might need to make an exception somehow (at
+     *  the point where the decision whether to auto-show gets made?)
+     *  when an artifact is on the top of the pile.
+     * Assumption 3: since this is used for livelog events, not being
+     *  100% correct won't negatively affect the player's current game.
+     *
+     * We use the real obj->dknown rather than the override_ID variant
+     * so that wizard-mode ^I doesn't cause a not-yet-seen artifact in
+     * inventory (picked up while blind, still blind) to become found.
+     */
+    if (obj->oartifact && obj->dknown)
+        find_artifact(obj);
 
     if (obj_is_pname(obj))
         goto nameit;
@@ -883,7 +933,9 @@ minimal_xname(struct obj *obj)
     objects[otyp].oc_uname = 0;
     /* suppress actual name if object's description is unknown */
     saveobcls.oc_name_known = objects[otyp].oc_name_known;
-    if (!obj->dknown)
+    if (iflags.override_ID)
+        objects[otyp].oc_name_known = 1;
+    else if (!obj->dknown)
         objects[otyp].oc_name_known = 0;
 
     /* caveat: this makes a lot of assumptions about which fields
@@ -891,7 +943,7 @@ minimal_xname(struct obj *obj)
     bareobj = cg.zeroobj;
     bareobj.otyp = otyp;
     bareobj.oclass = obj->oclass;
-    bareobj.dknown = obj->dknown;
+    bareobj.dknown = (obj->dknown || iflags.override_ID) ? 1 : 0;
     /* suppress known except for amulets (needed for fakes and real A-of-Y) */
     bareobj.known = (obj->oclass == AMULET_CLASS)
                         ? obj->known
@@ -911,9 +963,10 @@ minimal_xname(struct obj *obj)
                         ? obj->material : objects[obj->otyp].oc_material;
 
     /* bufp will be an obuf[] and a pointer into middle of that is viable */
-    bufp = distant_name(&bareobj, xname); /* xname(&bareobj) */
+    bufp = distant_name(&bareobj, xname);
+    /* undo forced setting of bareobj.blessed for cleric (preist[ess]) */
     if (!strncmp(bufp, "uncursed ", 9))
-        bufp += 9; /* Role_if(PM_CLERIC) */
+        bufp += 9;
 
     objects[otyp].oc_uname = saveobcls.oc_uname;
     objects[otyp].oc_name_known = saveobcls.oc_name_known;
@@ -1099,7 +1152,7 @@ doname_base(
        format the name like the corresponding artifact, which may or may not
        want "the" prefix and when it doesn't, avoid "a"/"an" prefix too */
     fake_arti = (obj->otyp == SLIME_MOLD
-                 && (aname = artifact_name(bp, (short *) 0)) != 0);
+                 && (aname = artifact_name(bp, (short *) 0, FALSE)) != 0);
     force_the = (fake_arti && !strncmpi(aname, "the ", 4));
 
     prefix[0] = '\0';
@@ -1347,8 +1400,9 @@ doname_base(
     case BALL_CLASS:
     case CHAIN_CLASS:
         add_erosion_words(obj, prefix);
-        if (obj->owornmask & W_BALL)
-            Strcat(bp, " (chained to you)");
+        if (obj->owornmask & (W_BALL | W_CHAIN))
+            Sprintf(eos(bp), " (%s to you)",
+                    (obj->owornmask & W_BALL) ? "chained" : "attached");
         break;
     case SCROLL_CLASS:
     case SPBOOK_CLASS:
@@ -1567,11 +1621,6 @@ corpse_xname(
         mnam = OBJ_NAME(objects[otmp->otyp]); /* "glob of <monster>" */
     } else if (omndx == NON_PM) { /* paranoia */
         mnam = "thing";
-        /* [Possible enhancement:  check whether corpse has monster traits
-            attached in order to use priestname() for priests and minions.] */
-    } else if (omndx == PM_ALIGNED_CLERIC) {
-        /* avoid "aligned priest"; it just exposes internal details */
-        mnam = "priest";
     } else {
         mnam = obj_pmname(otmp);
         if (the_unique_pm(&mons[omndx]) || type_is_pname(&mons[omndx])) {
@@ -1921,7 +1970,7 @@ the(const char* str)
                   has assigned a capitalized proper name as his/her fruit,
                   unless it matches an artifact name */
                || (fruit_from_name(str, TRUE, (int *) 0)
-                   && ((aname = artifact_name(str, (short *) 0)) == 0
+                   && ((aname = artifact_name(str, (short *) 0, FALSE)) == 0
                        || strncmpi(aname, "the ", 4) == 0))) {
         /* not a proper name, needs an article */
         insert_the = TRUE;
@@ -1933,7 +1982,10 @@ the(const char* str)
         /* some objects have capitalized adjectives in their names */
         if (((tmp = rindex(str, ' ')) != 0 || (tmp = rindex(str, '-')) != 0)
             && (tmp[1] < 'A' || tmp[1] > 'Z')) {
-            insert_the = TRUE;
+            /* insert "the" unless we have an apostrophe (where we assume
+               we're dealing with "Unique's corpse" when "Unique" wasn't
+               caught by CapitalMon() above) */
+            insert_the = !index(str, '\'');
         } else if (tmp && index(str, ' ') < tmp) { /* has spaces */
             /* it needs an article if the name contains "of" */
             tmp = strstri(str, " of ");
@@ -1945,7 +1997,7 @@ the(const char* str)
             if (tmp && (!named || tmp < named)) /* found an "of" */
                 insert_the = TRUE;
             /* stupid special case: lacks "of" but needs "the" */
-            else if (!named && (l = strlen(str)) >= 31
+            else if (!named && (l = Strlen(str)) >= 31
                      && !strcmp(&str[l - 31],
                                 "Platinum Yendorian Express Card"))
                 insert_the = TRUE;
@@ -1961,7 +2013,7 @@ the(const char* str)
 }
 
 char *
-The(const char* str)
+The(const char *str)
 {
     char *tmp = the(str);
 
@@ -1971,7 +2023,7 @@ The(const char* str)
 
 /* returns "count cxname(otmp)" or just cxname(otmp) if count == 1 */
 char *
-aobjnam(struct obj* otmp, const char* verb)
+aobjnam(struct obj *otmp, const char *verb)
 {
     char prefix[PREFIX];
     char *bp = cxname(otmp);
@@ -1998,7 +2050,7 @@ yobjnam(struct obj* obj, const char *verb)
     if (!carried(obj) || !obj_is_pname(obj)
         || arti_starts_with_the(obj)) {
         char *outbuf = shk_your(nextobuf(), obj);
-        int space_left = BUFSZ - 1 - strlen(outbuf);
+        int space_left = BUFSZ - 1 - Strlen(outbuf);
 
         s = strncat(outbuf, s, space_left);
     }
@@ -2072,7 +2124,7 @@ yname(struct obj* obj)
     if (!carried(obj) || !obj_is_pname(obj)
         || arti_starts_with_the(obj)) {
         char *outbuf = shk_your(nextobuf(), obj);
-        int space_left = BUFSZ - 1 - strlen(outbuf);
+        int space_left = BUFSZ - 1 - Strlen(outbuf);
 
         s = strncat(outbuf, s, space_left);
     }
@@ -2099,7 +2151,7 @@ ysimple_name(struct obj* obj)
 {
     char *outbuf = nextobuf();
     char *s = shk_your(outbuf, obj); /* assert( s == outbuf ); */
-    int space_left = BUFSZ - 1 - strlen(s);
+    int space_left = BUFSZ - 1 - Strlen(s);
 
     return strncat(s, minimal_xname(obj), space_left);
 }
@@ -2160,7 +2212,7 @@ ansimpleoname(struct obj* obj)
 
 /* "the scroll" or "the scrolls" */
 char *
-thesimpleoname(struct obj* obj)
+thesimpleoname(struct obj *obj)
 {
     char *obufp, *simpleoname = simpleonames(obj);
 
@@ -2170,9 +2222,24 @@ thesimpleoname(struct obj* obj)
     return simpleoname;
 }
 
+/* basic name of obj, as if it has been discovered; for some types of
+   items, we can't just use OBJ_NAME() because it doesn't always include
+   the class (for instance "light" when we want "spellbook of light");
+   minimal_xname() uses xname() to get that */
+char *
+actualoname(struct obj *obj)
+{
+    char *res;
+
+    iflags.override_ID = TRUE;
+    res = minimal_xname(obj);
+    iflags.override_ID = FALSE;
+    return res;
+}
+
 /* artifact's name without any object type or known/dknown/&c feedback */
 char *
-bare_artifactname(struct obj* obj)
+bare_artifactname(struct obj *obj)
 {
     char *outbuf;
 
@@ -2280,7 +2347,7 @@ vtense(const char* subj, const char* verb)
             /* check for special cases to avoid false matches */
             len = (int) (spot - subj) + 1;
             for (spec = special_subjs; *spec; spec++) {
-                ltmp = strlen(*spec);
+                ltmp = Strlen(*spec);
                 if (len == ltmp && !strncmpi(*spec, subj, len))
                     goto sing;
                 /* also check for <prefix><space><special_subj>
@@ -2368,7 +2435,8 @@ static const char *const as_is[] = {
     "tuna",    "yaki",      "-hai",      "krill",     "manes",
     "moose",   "ninja",     "sheep",     "ronin",     "roshi",
     "shito",   "tengu",     "ki-rin",    "Nazgul",    "gunyoki",
-    "piranha", "samurai",   "shuriken",  "haggis", 0,
+    "piranha", "samurai",   "shuriken",  "haggis",    "Bordeaux",
+    0,
     /* Note:  "fish" and "piranha" are collective plurals, suitable
        for "wiped out all <foo>".  For "3 <foo>", they should be
        "fishes" and "piranhas" instead.  We settle for collective
@@ -2385,7 +2453,7 @@ const char *const *alt_as_is) /* another set like as_is[] */
     const struct sing_plur *sp;
     const char *same, *other, *const *as;
     int al;
-    int baselen = strlen(basestr);
+    int baselen = Strlen(basestr);
 
     for (as = as_is; *as; ++as) {
         al = (int) strlen(*as);
@@ -2462,7 +2530,8 @@ singplur_compound(char *str)
           " versus ", " from ",    " in ",
           " on ",     " a la ",    " with", /* " with "? */
           " de ",     " d'",       " du ",
-          "-in-",     "-at-",      0
+          " au ",     "-in-",      "-at-",
+          0
         }, /* list of first characters for all compounds[] entries */
         compound_start[] = " -";
 
@@ -2569,7 +2638,7 @@ makeplural(const char* oldstr)
     *(spot + 1) = '\0';
     /* Now spot is the last character of the string */
 
-    len = strlen(str);
+    len = Strlen(str);
 
     /* Single letters */
     if (len == 1 || !letter(*spot)) {
@@ -2581,6 +2650,7 @@ makeplural(const char* oldstr)
     {
         static const char *const already_plural[] = {
             "ae",  /* algae, larvae, &c */
+            "eaux", /* chateaux, gateaux */
             "matzot",
             "spondulix", 0,
         };
@@ -2640,6 +2710,13 @@ makeplural(const char* oldstr)
         Strcasecpy(spot - 1, "es");
         goto bottom;
     }
+    /* -eau/-eaux (gateau, chapeau...) */
+    if (len >= 3 && !strcmpi(spot - 2, "eau")
+        /* 'bureaus' is the more common plural of 'bureau' */
+        && BSTRCMPI(str, spot - 5, "bureau")) {
+        Strcasecpy(spot + 1, "x");
+        goto bottom;
+    }
     /* matzoh/matzot, possible food name */
     if (len >= 6
         && (!strcmpi(spot - 5, "matzoh") || !strcmpi(spot - 5, "matzah"))) {
@@ -2652,7 +2729,6 @@ makeplural(const char* oldstr)
         goto bottom;
     }
 
-    /* note: -eau/-eaux (gateau, bordeau...) */
     /* note: ox/oxen, VAX/VAXen, goose/geese */
 
     lo_c = lowc(*spot);
@@ -2811,8 +2887,9 @@ makesingular(const char* oldstr)
             goto bottom;
         }
         /* matzot -> matzo, algae -> alga */
-        if (!BSTRCMPI(bp, p - 6, "matzot") || !BSTRCMPI(bp, p - 2, "ae")) {
-            *(p - 1) = '\0'; /* drop t/e */
+        if (!BSTRCMPI(bp, p - 6, "matzot") || !BSTRCMPI(bp, p - 2, "ae")
+            || !BSTRCMPI(bp, p - 4, "eaux")) {
+            *(p - 1) = '\0'; /* drop t/e/x */
             goto bottom;
         }
         /* balactheria -> balactherium */
@@ -3059,6 +3136,8 @@ static const struct alt_spellings {
     { "gauntlets of giant strength", GAUNTLETS_OF_POWER },
     { "elven chain mail", ELVEN_RING_MAIL },
     { "potion of sleep", POT_SLEEPING },
+    { "scroll of recharging", SCR_CHARGING },
+    { "recharging", SCR_CHARGING },
     { "stone", ROCK },
     { "camera", EXPENSIVE_CAMERA },
     { "tee shirt", T_SHIRT },
@@ -3207,7 +3286,7 @@ wizterrainwish(struct _readobjnam_data *d)
         struct trap *t;
         const char *tname = trapname(trap, TRUE);
 
-        if (strncmpi(tname, bp, strlen(tname)))
+        if (!str_start_is(bp, tname, TRUE))
             continue;
         /* found it; avoid stupid mistakes */
         if (is_hole(trap) && !Can_fall_thru(&u.uz))
@@ -3275,6 +3354,16 @@ wizterrainwish(struct _readobjnam_data *d)
         pline("A pool of molten lava.");
         if (!(Levitation || Flying))
             pooleffects(FALSE);
+        madeterrain = TRUE;
+    } else if (!BSTRCMPI(bp, p - 3, "ice")) {
+        lev->typ = ICE;
+        lev->flags = 0;
+        del_engr_at(x, y);
+
+        if (!strncmpi(bp, "melting ", 8))
+            start_melt_ice_timeout(x, y, 0L);
+
+        pline("Ice.");
         madeterrain = TRUE;
     } else if (!BSTRCMPI(bp, p - 5, "altar")) {
         aligntyp al;
@@ -3369,8 +3458,10 @@ wizterrainwish(struct _readobjnam_data *d)
              * interacting with an open door. This ideally should check to see
              * if the type of trap is like that. */
             if (d->trapped == 2 /* 2: wish includes explicit "untrapped" */
-                || (!secret && (doorstate(lev) == D_NODOOR
-                                || doorstate(lev) == D_ISOPEN)))
+                || secret /* secret doors can't trapped due to their use
+                           * of both doormask and wall_info; those both
+                           * overlay rm->flags and partially conflict */
+                || doorstate(lev) == D_NODOOR || doorstate(lev) == D_ISOPEN)
                 d->trapped = 0;
             set_door_trap(lev, d->trapped);
             /* set up iron door flag */
@@ -3378,8 +3469,6 @@ wizterrainwish(struct _readobjnam_data *d)
 
             /* feedback */
             dbuf[0] = '\0';
-            /* locked state and trapped flag can augment secret doors; other
-               states apply to normal doors only (see above about 'closed') */
             if (door_is_trapped(lev))
                 Strcat(dbuf, "trapped ");
             if (door_is_locked(lev))
@@ -3658,7 +3747,7 @@ not_actually_specifying_material(const char * const str, int material)
     }
     /* does it match some artifact? e.g. "platinum yendorian express card" */
     short otyp;
-    if (artifact_name(str, &otyp)) {
+    if (artifact_name(str, &otyp, TRUE)) {
         return TRUE;
     }
     /* does it match some terrain or a trap? e.g. "iron bars" */
@@ -3782,13 +3871,15 @@ readobjnam_preparse(struct _readobjnam_data *d)
             d->unlabeled = 1;
         } else if (!strncmpi(d->bp, "poisoned ", l = 9)) {
             d->ispoisoned = 1;
-            /* "trapped" recognized but not honored outside wizard mode */
+
+        /* "trapped" recognized but not honored outside wizard mode */
         } else if (!strncmpi(d->bp, "trapped ", l = 8)) {
             d->trapped = 0; /* undo any previous "untrapped" */
             if (wizard)
                 d->trapped = 1;
         } else if (!strncmpi(d->bp, "untrapped ", l = 10)) {
             d->trapped = 2; /* not trapped */
+
         /* locked, unlocked, broken: box/chest lock states, also door states;
            open, closed, doorless: additional door states */
         } else if (!strncmpi(d->bp, "locked ", l = 7)) {
@@ -4101,10 +4192,10 @@ readobjnam_postparse1(struct _readobjnam_data *d)
         d->bp += 8;
     }
 
-    /* intercept pudding globs here; they're a valid wish target,
+    /* Intercept pudding globs here; they're a valid wish target,
      * but we need them to not get treated like a corpse.
-     *
-     * also don't let player wish for multiple globs.
+     * If a count is specified, it will be used to magnify weight
+     * rather than to specify quantity (which is always 1 for globs).
      */
     i = (int) strlen(d->bp);
     d->p = (char *) 0;
@@ -4119,6 +4210,10 @@ readobjnam_postparse1(struct _readobjnam_data *d)
         /* if we didn't recognize monster type, pick a valid one at random */
         if (d->mntmp == NON_PM)
             d->mntmp = rn1(PM_BLACK_PUDDING - PM_GRAY_OOZE, PM_GRAY_OOZE);
+        /* normally this would be done when makesingular() changes the value
+           but canonical form here is already singular so that won't happen */
+        if (d->cnt < 2 && strstri(d->bp, "globs"))
+            d->cnt = 2; /* affects otmp->owt but not otmp->quan for globs */
         /* construct canonical spelling in case name_to_mon() recognized a
            variant (grey ooze) or player used inverted syntax (<foo> glob);
            if player has given a valid monster type but not valid glob type,
@@ -4126,7 +4221,6 @@ readobjnam_postparse1(struct _readobjnam_data *d)
         Sprintf(d->globbuf, "glob of %s", mons[d->mntmp].pmnames[NEUTRAL]);
         d->bp = d->globbuf;
         d->mntmp = NON_PM; /* not useful for "glob of <foo>" object lookup */
-        d->cnt = 0; /* globs don't stack */
         d->oclass = FOOD_CLASS;
         d->actualn = d->bp, d->dn = 0;
         return 1; /*goto srch;*/
@@ -4326,7 +4420,7 @@ readobjnam_postparse1(struct _readobjnam_data *d)
         && strncmpi(d->bp, "food ration", 11)
         && strncmpi(d->bp, "meat ring", 9))
         for (i = 0; i < (int) (sizeof wrpsym); i++) {
-            register int j = strlen(wrp[i]);
+            register int j = Strlen(wrp[i]);
 
             /* check for "<class> [ of ] something" */
             if (!strncmpi(d->bp, wrp[i], j)) {
@@ -4629,7 +4723,7 @@ readobjnam_postparse3(struct _readobjnam_data *d)
         short objtyp;
 
         /* Perhaps it's an artifact specified by name, not type */
-        d->name = artifact_name(d->actualn, &objtyp);
+        d->name = artifact_name(d->actualn, &objtyp, TRUE);
         if (d->name) {
             d->typ = objtyp;
             return 2; /*goto typfnd;*/
@@ -4714,7 +4808,7 @@ readobjnam(char *bp, struct obj *no_wish)
      * Disallow such topology tweaks for WIZKIT startup wishes.
      */
  wiztrap:
-    if (wizard && !g.program_state.wizkit_wishing) {
+    if (wizard && !g.program_state.wizkit_wishing && !d.oclass) {
         /* [inline code moved to separate routine to unclutter readobjnam] */
         if ((d.otmp = wizterrainwish(&d)) != 0)
             return d.otmp;
@@ -4805,15 +4899,48 @@ readobjnam(char *bp, struct obj *no_wish)
         obj_extract_self(d.otmp); /* now release it for caller's use */
     }
 
-    /* if mksobj gave this a random weapon_oname, get rid of it */
+    /* if mksobj gave this a random weapon_oname, get rid of it
+     * (won't be clearing an artifact name since mkobj/mksobj was called with
+     * artif=FALSE above) */
     free_oname(d.otmp);
 
-    /* if player specified a reasonable count, maybe honor it */
-    if (d.cnt > 0 && objects[d.typ].oc_merge
-        && (wizard || d.cnt < rnd(6) || (d.cnt <= 7 && Is_candle(d.otmp))
-            || (d.cnt <= 20 && ((d.oclass == WEAPON_CLASS && is_ammo(d.otmp))
-                              || d.typ == ROCK || is_missile(d.otmp)))))
-        d.otmp->quan = (long) d.cnt;
+    /* if player specified a reasonable count, maybe honor it;
+       quantity for gold is handled elsewhere and d.cnt is 0 for it here */
+    if (d.otmp->globby) {
+        /* for globs, calculate weight based on gsize, then multiply by cnt;
+           asking for 2 globs or for 2 small globs produces 1 small glob
+           weighing 40au instead of normal 20au; asking for 5 medium globs
+           might produce 1 very large glob weighing 600au */
+        d.otmp->quan = 1L; /* always 1 for globs */
+        d.otmp->owt = weight(d.otmp);
+        /* gsize 0: unspecified => small;
+           1: small (1..5) => keep default owt for 1, yielding 20;
+           2: medium (6..15) => use weight for 6, yielding 120;
+           3: large (16..25) => 320; 4: very large (26+) => 520 */
+        if (d.gsize > 1)
+            d.otmp->owt += ((unsigned) (5 + (d.gsize - 2) * 10)
+                            * d.otmp->owt);  /* 20 + {5|15|25} times 20 */
+        if (d.cnt > 1) {
+            if ((d.cnt > 6 - d.gsize) && !wizard)
+                d.cnt = rn1(5, 2); /* 2..6 */
+            d.otmp->owt *= (unsigned) d.cnt;
+        }
+        /* note: the owt assignment below will not change glob's weight */
+        d.cnt = 0;
+    } else if (d.cnt > 0) {
+        if (objects[d.typ].oc_merge
+            && (wizard /* quantity isn't restricted when debugging */
+                /* note: in normal play, explicitly asking for 1 might
+                   fail the 'cnt < rnd(6)' test and could produce more
+                   than 1 if mksobj() creates the item that way */
+                || d.cnt < rnd(6)
+                || (d.cnt <= 7 && Is_candle(d.otmp))
+                || (d.cnt <= 20
+                    && (d.typ == ROCK || d.typ == FLINT || is_missile(d.otmp)
+                        /* WEAPON_CLASS test excludes gems, gray stones */
+                        || (d.oclass == WEAPON_CLASS && is_ammo(d.otmp))))))
+            d.otmp->quan = (long) d.cnt;
+    }
 
     if (d.spesgn == 0) {
         /* spe not specifed; retain the randomly assigned value */
@@ -5059,6 +5186,8 @@ readobjnam(char *bp, struct obj *no_wish)
         } else if (d.broken) {
             d.otmp->olocked = 0, d.otmp->obroken = 1;
         }
+        if (d.otmp->obroken)
+            d.otmp->otrapped = 0;
     }
 
     if (d.isgreased)
@@ -5081,24 +5210,20 @@ readobjnam(char *bp, struct obj *no_wish)
     }
 
     if (d.name) {
-        const char *aname;
+        const char *aname, *novelname;
         short objtyp;
 
         /* an artifact name might need capitalization fixing */
-        aname = artifact_name(d.name, &objtyp);
+        aname = artifact_name(d.name, &objtyp, TRUE);
         if (aname && objtyp == d.otmp->otyp)
             d.name = aname;
 
         /* 3.6 tribute - fix up novel */
-        if (d.otmp->otyp == SPE_NOVEL) {
-            const char *novelname;
+        if (d.otmp->otyp == SPE_NOVEL
+            && (novelname = lookup_novel(d.name, &d.otmp->novelidx)) != 0)
+            d.name = novelname;
 
-            novelname = lookup_novel(d.name, &d.otmp->novelidx);
-            if (novelname)
-                d.name = novelname;
-        }
-
-        d.otmp = oname(d.otmp, d.name);
+        d.otmp = oname(d.otmp, d.name, ONAME_WISH);
         /* name==aname => wished for artifact (otmp->oartifact => got it) */
         if (d.otmp->oartifact || d.name == aname) {
             d.otmp->quan = 1L;
@@ -5113,7 +5238,7 @@ readobjnam(char *bp, struct obj *no_wish)
     /* and make them pay; charge them for the wish anyway! */
     if ((is_quest_artifact(d.otmp)
          || (d.otmp->oartifact && rn2(u.uconduct.wisharti))) && !wizard) {
-        artifact_exists(d.otmp, safe_oname(d.otmp), FALSE);
+        artifact_exists(d.otmp, safe_oname(d.otmp), FALSE, ONAME_NO_FLAGS);
         obfree(d.otmp, (struct obj *) 0);
         d.otmp = (struct obj *) &cg.zeroobj;
         if (Hallucination)
@@ -5149,10 +5274,6 @@ readobjnam(char *bp, struct obj *no_wish)
     d.otmp->owt = weight(d.otmp);
     if (d.very && d.otmp->otyp == HEAVY_IRON_BALL)
         d.otmp->owt += IRON_BALL_W_INCR;
-    else if (d.gsize > 1 && d.otmp->globby)
-        /* 0: unspecified => small; 1: small => keep default owt of 20;
-           2: medium => 120; 3: large => 320; 4: very large => 520 */
-        d.otmp->owt += 100 + (d.gsize - 2) * 200;
 
     return d.otmp;
 }

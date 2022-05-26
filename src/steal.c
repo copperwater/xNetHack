@@ -1,4 +1,4 @@
-/* NetHack 3.7	steal.c	$NHDT-Date: 1620329782 2021/05/06 19:36:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.90 $ */
+/* NetHack 3.7	steal.c	$NHDT-Date: 1646688070 2022/03/07 21:21:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.98 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -503,6 +503,7 @@ steal(struct monst* mtmp, char* objnambuf)
     urgent_pline("%s%s stole %s.", named ? "She" : Monnam(mtmp),
                  (was_punished && !Punished) ? " removed your chain and" : "",
                  doname(otmp));
+    (void) encumber_msg();
     could_petrify = (otmp->otyp == CORPSE
                      && touch_petrifies(&mons[otmp->corpsenm]));
     (void) mpickobj(mtmp, otmp); /* may free otmp */
@@ -527,7 +528,7 @@ steal(struct monst* mtmp, char* objnambuf)
 
 /* Returns 1 if otmp is free'd, 0 otherwise. */
 int
-mpickobj(register struct monst* mtmp, register struct obj* otmp)
+mpickobj(struct monst *mtmp, struct obj *otmp)
 {
     int freed_otmp;
     boolean snuff_otmp = FALSE;
@@ -657,6 +658,7 @@ stealamulet(struct monst* mtmp)
         pline("%s steals %s!", Monnam(mtmp), buf);
         if (can_teleport(mtmp->data) && !tele_restrict(mtmp))
             (void) rloc(mtmp, RLOC_MSG);
+        (void) encumber_msg();
     }
 }
 
@@ -679,12 +681,10 @@ maybe_absorb_item(
         if (obj->unpaid)
             subfrombill(obj, shop_keeper(*u.ushops));
         if (cansee(mon->mx, mon->my)) {
-            const char *MonName = Monnam(mon);
-
-            /* mon might be invisible; avoid "It pulls ... and absorbs it!" */
-            if (!strcmp(MonName, "It"))
-                MonName = "Something";
-            pline("%s pulls %s away from you and absorbs %s!", MonName,
+            /* Some_Monnam() avoids "It pulls ... and absorbs it!"
+               if hero can see the location but not the monster */
+            pline("%s pulls %s away from you and absorbs %s!",
+                  Some_Monnam(mon), /* Monnam() or "Something" */
                   yname(obj), (obj->quan > 1L) ? "them" : "it");
         } else {
             const char *hand_s = body_part(HAND);
@@ -695,6 +695,7 @@ maybe_absorb_item(
                   otense(obj, "are"), hand_s);
         }
         freeinv(obj);
+        (void) encumber_msg();
     } else {
         /* not carried; presumably thrown or kicked */
         if (canspotmon(mon))
@@ -713,6 +714,9 @@ mdrop_obj(
 {
     int omx = mon->mx, omy = mon->my;
     long unwornmask = obj->owornmask;
+    /* call distant_name() for its possible side-effects even if the result
+       might not be printed, and do it before extracing obj from minvent */
+    char *obj_name = distant_name(obj, doname);
 
     extract_from_minvent(mon, obj, FALSE, TRUE);
     /* don't charge for an owned saddle on dead steed (provided
@@ -725,7 +729,7 @@ mdrop_obj(
     }
     /* obj_no_longer_held(obj); -- done by place_object */
     if (verbosely && cansee(omx, omy))
-        pline("%s drops %s.", Monnam(mon), distant_name(obj, doname));
+        pline("%s drops %s.", Monnam(mon), obj_name);
     if (!flooreffects(obj, omx, omy, "fall")) {
         place_object(obj, omx, omy);
         stackobj(obj);
@@ -741,7 +745,7 @@ mdrop_obj(
    even leaving the game entirely; when that happens, prevent them from
    taking the Amulet, invocation items, or quest artifact with them */
 void
-mdrop_special_objs(struct monst* mon)
+mdrop_special_objs(struct monst *mon)
 {
     struct obj *obj, *otmp;
 

@@ -19,6 +19,7 @@
 #endif
 #include "permonst.h"
 #include "objclass.h"
+#include "wintype.h"
 #include "sym.h"
 #include "artilist.h"
 #include "dungeon.h"
@@ -81,7 +82,9 @@ extern int GUILaunched;
 /* these are in extern.h but we don't include hack.h */
 void runtime_info_init(void);
 const char *do_runtime_info(int *);
+void release_runtime_info(void);
 void populate_nomakedefs(struct version_info *);
+extern void free_nomakedefs(void); /* date.c */
 
 void build_options(void);
 static int count_and_validate_winopts(void);
@@ -318,7 +321,7 @@ version_id_string(char *outbuf, int bufsz, const char *build_date)
     Strcpy(&subbuf[1], PORT_SUB_ID);
 #endif
 
-    Snprintf(outbuf, bufsz, "%s NetHack%s Version %s%s - last %s %s.", PORT_ID,
+    Snprintf(outbuf, bufsz, "%s xNetHack%s Version %s%s - last %s %s.", PORT_ID,
             subbuf, mdlib_version_string(versbuf, "."), statusbuf,
             date_via_env ? "revision" : "build", build_date);
     return outbuf;
@@ -459,7 +462,7 @@ static const char *const build_opts[] = {
 #ifdef HOLD_LOCKFILE_OPEN
     "exclusive lock on level 0 file",
 #endif
-#if defined(MSGHANDLER) && (defined(POSIX_TYPES) || defined(__GNUC__))
+#ifdef MSGHANDLER
     "external program as a message handler",
 #endif
 #if defined(HANGUPHANDLING) && !defined(NO_SIGNAL)
@@ -835,6 +838,17 @@ do_runtime_info(int *rtcontext)
             *rtcontext += 1;
         }
     return retval;
+}
+
+void
+release_runtime_info(void)
+{
+    while (idxopttext > 0) {
+        --idxopttext;
+        free((genericptr_t) opttext[idxopttext]), opttext[idxopttext] = 0;
+    }
+    done_runtime_opt_init_once = 0;
+    free_nomakedefs();
 }
 
 /*mdlib.c*/

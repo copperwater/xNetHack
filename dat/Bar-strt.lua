@@ -1,4 +1,4 @@
--- NetHack 3.7	Barb.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+-- NetHack Barbarian Bar-strt.lua	$NHDT-Date: 1652196001 2022/05/10 15:20:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -95,6 +95,5 @@ des.monster("giant eel", 39, 15)
 -- Monsters on siege duty.
 local ogrelocs = selection.floodfill(37,7) & selection.area(40,03, 45,20)
 for i = 0, 11 do
-   local x,y = ogrelocs:rndcoord(1);
-   des.monster({ id = "ogre", coord={x,y}, peaceful=0 })
+   des.monster({ id = "ogre", coord = ogrelocs:rndcoord(1), peaceful = 0 })
 end

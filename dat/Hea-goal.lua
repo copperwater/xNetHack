@@ -1,4 +1,4 @@
--- NetHack 3.7	Healer.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.10 $
+-- NetHack Healer Hea-goal.lua	$NHDT-Date: 1652196003 2022/05/10 15:20:03 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991, 1993 by M. Stephenson, P. Winner
 -- NetHack may be freely redistributed.  See license for details.
@@ -32,7 +32,7 @@ des.stair("up", 39,10)
 des.non_diggable(selection.area(00,00,40,11))
 -- Objects
 des.object({ id = "quarterstaff", x=20, y=06, buc="blessed", spe=0, name="The Staff of Aesculapius" })
-des.object("lightning", 20, 06)
+des.object("wand of lightning", 20, 06)
 des.object()
 des.object()
 des.object()

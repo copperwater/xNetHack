@@ -3,7 +3,7 @@
 This is a major version of xNetHack. It is based directly on xNetHack 7.0, and
 is a fork off the vanilla NetHack 3.7.0 development version release.
 
-The most recent vanilla commit incorporated into xNetHack is a971244. Note that
+The most recent vanilla commit incorporated into xNetHack is f592b9d. Note that
 because 3.7.0 is still in development status, xNetHack contains major changes
 including new monsters, new objects, themed rooms, and other things *not*
 documented in this file or other xNetHack changelogs. See doc/fixes37.0 for the
@@ -30,6 +30,32 @@ changes:
   - Drum of earthquake 25 => 100
   - Magic whistle 10 => 100
   - Magic flute 36 => 144
+- New terrain type "magic platform". This will currently only appear in special
+  levels. It is effectively a hovering walkable space over open air. It cannot
+  be dug down on or engraved on.
+- The Valkyrie quest has received an overhaul:
+  - All quest levels are redesigned to some extent; the locate and goal levels
+    especially have received heavy redesigns, and the filler levels use new
+    Lua-based level generators.
+  - While the overall story of the quest remains the same (stop Lord Surtur from
+    starting Ragnarok), the goal of the quest is changed - kill Lord Surtur.
+    This may be a fine distinction, but the point is not to retrieve an artifact
+    stolen from the Norn.
+  - There is still technically a quest artifact: Sol Valtiva, the flaming sword
+    wielded by Lord Surtur. It is a mithril two-handed sword, retaining the half
+    damage and invoke for levelport provided by the Orb of Fate, but does not
+    provide warning or act as a luckstone. It has +d3 to hit and +d5 fire
+    damage, burning things it hits similar to Fire Brand. It is chaotic, but as
+    a quest artifact, its alignment will change to match the player's if they
+    are a Valkyrie.
+  - In terms of monsters, the quest has many more giants and fewer fire ants.
+    Insects no longer generate randomly over time.
+  - The locate level, a broken bridge, is magically restored after Surtur is
+    killed.
+  - There is a throne in the goal level (and only one drawbridge).
+- Valkyries start with a +1 spear or dwarvish spear instead of a long sword.
+- Valkyries can now reach only Skilled in two-handed sword instead of Expert.
+- Valkyries can reach Expert in spear, instead of Skilled.
 - Enchantment is ignored when wishing for dragon scales.
 - Artifacts created by naming retain the original material of the object.
 - Vampires will not move onto sinks, including if they are shapeshifted.
@@ -45,6 +71,14 @@ changes:
 - The Castle drawbridge responds to passtune attempts 2 squares away from
   either of the two drawbridge squares, instead of only directly adjacent
   squares.
+- Sleep spell level raised from 2 to 3 (which is what it is in vanilla).
+- Item encyclopedia lookup from the inventory is now an item in the menu of
+  things you can do with an item you select when looking at the inventory, under
+  'l', rather than the default behavior.
+- Kicking into empty air (which may strain a muscle) no longer wakes monsters.
+- Anti-magic fields no longer deal HP damage when magic resistant. They instead
+  drain additional energy the more sources of magic resistance and half damage
+  you have.
 
 ### Interface changes
 

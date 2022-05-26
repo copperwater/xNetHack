@@ -424,7 +424,6 @@ struct plinemsg_type {
 /* bitmask for callers of hide_unhide_msgtypes() */
 #define MSGTYP_MASK_REP_SHOW ((1 << MSGTYP_NOREP) | (1 << MSGTYP_NOSHOW))
 
-
 enum bcargs {override_restriction = -1};
 struct breadcrumbs {
     const char *funcnm;
@@ -438,7 +437,10 @@ E const char *ARGV0;
 enum earlyarg {ARG_DEBUG, ARG_VERSION, ARG_SHOWPATHS
 #ifndef NODUMPENUMS
     , ARG_DUMPENUMS
+#ifdef ENHANCED_SYMBOLS
+    , ARG_DUMPGLYPHIDS
 #endif
+#endif /* NODUMPENUMS */
 #ifdef WIN32
     ,ARG_WINDOWS
 #endif
@@ -508,6 +510,7 @@ struct cmd {
     const char *alphadirchars; /* same as dirchars if !numpad */
     const struct ext_func_tab *commands[256]; /* indexed by input character */
     char spkeys[NUM_NHKF];
+    char extcmd_char;      /* key that starts an extended command ('#') */
 };
 
 
@@ -676,14 +679,24 @@ struct _create_particular_data {
 enum cmdq_cmdtypes {
     CMDQ_KEY = 0, /* a literal character, cmdq_add_key() */
     CMDQ_EXTCMD,  /* extended command, cmdq_add_ec() */
+    CMDQ_DIR,     /* direction, cmdq_add_dir() */
+    CMDQ_USER_INPUT, /* placeholder for user input, cmdq_add_userinput() */
 };
 
 struct _cmd_queue {
     int typ;
     char key;
+    schar dirx, diry, dirz;
     const struct ext_func_tab *ec_entry;
     struct _cmd_queue *next;
 };
+
+struct enum_dump {
+    int val;
+    const char *nm;
+};
+
+typedef long cmdcount_nht;	/* Command counts */
 
 /*
  * 'g' -- instance_globals holds engine state that does not need to be
@@ -708,10 +721,6 @@ struct instance_globals {
     /* artifcat.c */
     int spec_dbon_applies; /* coordinate effects from spec_dbon() with
                               messages in artifact_hit() */
-    /* flags including which artifacts have already been created */
-    boolean artiexist[1 + NROFARTIFACTS + 1];
-    /* and a discovery list for them (no dummy first entry here) */
-    xchar artidisco[NROFARTIFACTS];
     int mkot_trap_warn_count;
 
     /* botl.c */
@@ -744,7 +753,7 @@ struct instance_globals {
     coord clicklook_cc;
     winid en_win;
     boolean en_via_menu;
-    long last_command_count;
+    cmdcount_nht last_command_count;
     struct ext_func_tab *ext_tlist; /* info for rhack() from doextcmd() */
 
     /* dbridge.c */
@@ -757,9 +766,9 @@ struct instance_globals {
     int hackpid; /* current process id */
     char chosen_windowtype[WINTYPELEN];
     int bases[MAXOCLASSES + 1];
-    int multi;
+    cmdcount_nht multi;
     char command_line[COLNO];
-    long command_count;
+    cmdcount_nht command_count;
     const char *multi_reason;
     char multireasonbuf[QBUFSZ]; /* note: smaller than usual [BUFSZ] */
     int nroom;
@@ -877,7 +886,6 @@ struct instance_globals {
     /* do_name.c */
     struct selectionvar *gloc_filter_map;
     int gloc_filter_floodfill_match_glyph;
-    int via_naming;
 
     /* do_wear.c */
     /* starting equipment gets auto-worn at beginning of new game,
@@ -903,8 +911,11 @@ struct instance_globals {
     struct rm nowhere;
     const char *gate_str;
 
-    /* drawing */
+    /* symbols.c */
     struct symsetentry symset[NUM_GRAPHICS];
+#ifdef ENHANCED_SYMBOLS
+    struct symset_customization sym_customizations[NUM_GRAPHICS + 1]; /* adds UNICODESET */
+#endif
     int currentgraphics;
     nhsym showsyms[SYM_MAX]; /* symbols to be displayed */
     nhsym primary_syms[SYM_MAX];   /* loaded primary symbols          */
@@ -952,6 +963,7 @@ struct instance_globals {
     /* hack.c */
     anything tmp_anything;
     int wc; /* current weight_cap(); valid after call to inv_weight() */
+    struct selectionvar *travelmap;
 
     /* insight.c */
 
@@ -967,6 +979,7 @@ struct instance_globals {
     winid cached_pickinv_win;
     /* query objlist callback: return TRUE if obj type matches "this_type" */
     int this_type;
+    const char *this_title; /* title for inventory list of specific type */
     /* query objlist callback: return TRUE if obj is at given location */
     coord only;
 
@@ -1174,6 +1187,7 @@ struct instance_globals {
     unsigned usteed_id; /* need to preserve during save */
     struct obj *looseball;  /* track uball during save and... */
     struct obj *loosechain; /* track uchain since saving might free it */
+    d_level uz_save;
 
     /* shk.c */
     /* auto-response flag for/from "sell foo?" 'a' => 'y', 'q' => 'n' */
@@ -1214,8 +1228,6 @@ struct instance_globals {
     winid toptenwin;
 
     /* trap.c */
-    int force_mintrap; /* mintrap() should take a flags argument, but for time
-                          being we use this */
     /* context for water_damage(), managed by water_damage_chain();
         when more than one stack of potions of acid explode while processing
         a chain of objects, use alternate phrasing after the first message */
@@ -1242,6 +1254,7 @@ struct instance_globals {
     xchar *viz_rmin;			/* min could see indices */
     xchar *viz_rmax;			/* max could see indices */
     boolean vision_full_recalc;
+    int seethru; /* 'bubble' debugging: clouds and water don't block light */
 
     /* weapon.c */
     struct obj *propellor;

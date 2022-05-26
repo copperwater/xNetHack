@@ -1,4 +1,4 @@
-# NetHack 3.7 Makefile.msc
+# NetHack 3.7 Makefile.nmake
 #       Copyright (c) NetHack Development Team 1993-2022
 #
 #==============================================================================
@@ -8,9 +8,9 @@
 #       MS Visual Studio Visual C++ compiler
 #
 #       Visual Studio Compilers Tested:
-#            - Microsoft Visual Studio 2017 Community Edition v 15.9.44
-#            - Microsoft Visual Studio 2019 Community Edition v 16.11.10
-#            - Microsoft Visual Studio 2022 Community Edition v 17.1.0
+#            - Microsoft Visual Studio 2017 Community Edition v 15.9.48
+#            - Microsoft Visual Studio 2019 Community Edition v 16.11.15
+#            - Microsoft Visual Studio 2022 Community Edition v 17.2.1
 #
 #==============================================================================
 #   This is used for building two distinct executables of xNetHack:
@@ -109,91 +109,6 @@ GIT_AVAILABLE=Y
 !ENDIF
 
 #==============================================================================
-# Sanity checks for prerequisite Lua and pdcurses
-#
-LUA_MAY_PROCEED=N
-ADD_CURSES=N
-
-# First, Lua
-!IF "$(INTERNET_AVAILABLE)" == "Y"
-!IF "$(GIT_AVAILABLE)" == "Y"
-LUATOP=..\submodules\lua
-LUASRC=$(LUATOP)
-LUA_MAY_PROCEED=Y
-!ELSE   # GIT_AVAILABLE
-LUATOP = ..\lib\lua-$(LUAVER)
-LUASRC = $(LUATOP)\src
-LUA_MAY_PROCEED=Y
-!ENDIF  # GIT_AVAILABLE
-!ELSE   # INTERNET_AVAILABLE is not Y below
-# The internet is not available for obtaining Lua using either
-# method (git or download). Check to see if it is available already, with
-# precedence given to ../submodules, then ../lib.
-#
-!IF EXIST("..\submodules\lua\lua.h")
-LUATOP=..\submodules\lua
-LUASRC=$(LUATOP)
-LUA_MAY_PROCEED=Y
-!ELSEIF EXIST("..\lib\lua-$(LUAVER)\src\lua.h")
-LUATOP = ..\lib\lua-$(LUAVER)
-LUASRC = $(LUATOP)\src
-LUA_MAY_PROCEED=Y
-!ENDIF  # Lua sources
-!IF "$(LUA_MAY_PROCEED)" == "Y"
-!MESSAGE No internet connection was authorized in the Makefile,
-!MESSAGE but a copy of lua-$(LUAVER) was found in $(LUATOP), so that will be used.
-!ENDIF  # LUA_MAY_PROCEED
-!ENDIF  # INTERNET_AVAILABLE
-
-!IF "$(LUA_MAY_PROCEED)" != "Y"
-!IF "$(INTERNET_AVAILABLE)" != "Y"
-!MESSAGE Your Makefile settings do not allow use of the internet to obtain Lua
-!ENDIF  # INTERNET_AVAILABLE
-!MESSAGE and no copy of Lua was found in either ..\submodules\lua or ..\lib\lua-$(LUAVER).
-!MESSAGE Change your nmake command line to include:
-!MESSAGE     GIT=1
-!MESSAGE or modify your Makefile to set the following:
-!MESSAGE     INTERNET_AVAILABLE=Y
-!MESSAGE     GIT_AVAILABLE=Y
-!ERROR Stopping because NetHack 3.7 requires Lua for its build.
-!ENDIF  # LUA_MAY_PROCEED
-
-# Now, pdcurses
-!IF "$(INTERNET_AVAILABLE)" == "Y"
-!IF "$(GIT_AVAILABLE)" == "Y"
-PDCURSES_TOP=..\submodules\pdcurses
-ADD_CURSES=Y
-!ELSE  # GIT_AVAILABLE
-PDCURSES_TOP=..\lib\pdcurses
-ADD_CURSES=Y
-!ENDIF # GIT_AVAILABLE
-!ELSE  # INTERNET_AVAILABLE is not Y below
-# Your Makefile settings do not allow pdcurses to be obtained by
-# git or by download. Check to see if it is available at one of
-# the expected locations already, with precedence given to ../submodules,
-# then ../lib.
-#
-!IF EXIST("..\submodules\pdcurses\curses.h")
-PDCURSES_TOP=..\submodules\pdcurses
-ADD_CURSES=Y
-!ELSEIF EXIST("..\lib\pdcurses\curses.h")
-PDCURSES_TOP=..\lib\pdcurses
-ADD_CURSES=Y
-!ENDIF  # pdcurses sources available somewhere
-!IF "$(ADD_CURSES)" == "Y"
-!MESSAGE Your Makefile settings do not allow pdcurses to be obtained by
-!MESSAGE git or by download, but a copy of pdcurses was found in $(PDCURSES_TOP),
-!MESSAGE so that will be used.
-!ENDIF  # ADD_CURSES == Y
-!ENDIF  # INTERNET_AVAILABLE
-
-!IF "$(ADD_CURSES)" != "Y"
-!MESSAGE NetHack 3.7 will be built without support for the curses window-port.
-!ENDIF
-
-#TEST_CROSSCOMPILE=Y
-
-#==============================================================================
 #
 #  The version of the game this Makefile was designed for
 NETHACK_VERSION="7.0.0"
@@ -219,12 +134,117 @@ WCURSES = ..\win\curses  # window port files (curses)
 WSHR    = ..\win\share   # Tile support files
 QT      = ..\win\Qt      # QT support files
 X11     = ..\win\X11     # X11 support files
+LIBDIR  = ..\lib         # libraries and external bits
+SUBM    = ..\submodules  # NetHack git submodules
 
+#==============================================================================
+# Sanity checks for prerequisite Lua and pdcurses
 #
-#  Object directory.
-#
+LUA_MAY_PROCEED=N
+ADD_CURSES=N
 
-OBJ     = o
+# First, Lua
+!IF "$(INTERNET_AVAILABLE)" == "Y"
+!IF "$(GIT_AVAILABLE)" == "Y"
+LUATOP=$(SUBM)\lua
+LUASRC=$(LUATOP)
+LUA_MAY_PROCEED=Y
+!ELSE   # GIT_AVAILABLE
+LUATOP = $(LIBDIR)\lua-$(LUAVER)
+LUASRC = $(LUATOP)\src
+LUA_MAY_PROCEED=Y
+!ENDIF  # GIT_AVAILABLE
+!ELSE   # INTERNET_AVAILABLE is not Y below
+# The internet is not available for obtaining Lua using either
+# method (git or download). Check to see if it is available already, with
+# precedence given to ../submodules, then ../lib.
+#
+!IF EXIST("$(SUBM)\lua\lua.h")
+LUATOP=$(SUBM)\lua
+LUASRC=$(LUATOP)
+LUA_MAY_PROCEED=Y
+!ELSEIF EXIST("$(LIBDIR)\lua-$(LUAVER)\src\lua.h")
+LUATOP = $(LIBDIR)\lua-$(LUAVER)
+LUASRC = $(LUATOP)\src
+LUA_MAY_PROCEED=Y
+!ENDIF  # Lua sources
+!IF "$(LUA_MAY_PROCEED)" == "Y"
+!MESSAGE No internet connection was authorized in the Makefile,
+!MESSAGE but a copy of lua-$(LUAVER) was found in $(LUATOP), so that will be used.
+!ENDIF  # LUA_MAY_PROCEED
+!ENDIF  # INTERNET_AVAILABLE
+
+!IF "$(LUA_MAY_PROCEED)" != "Y"
+!IF "$(INTERNET_AVAILABLE)" != "Y"
+!MESSAGE Your Makefile settings do not allow use of the internet to obtain Lua
+!ENDIF  # INTERNET_AVAILABLE
+!MESSAGE and no copy of Lua was found in either $(SUBM)\lua or $(LIBDIR)\lua-$(LUAVER).
+!MESSAGE Change your nmake command line to include:
+!MESSAGE     GIT=1
+!MESSAGE or modify your Makefile to set the following:
+!MESSAGE     INTERNET_AVAILABLE=Y
+!MESSAGE     GIT_AVAILABLE=Y
+!ERROR Stopping because NetHack 3.7 requires Lua for its build.
+!ENDIF  # LUA_MAY_PROCEED
+
+# Now, pdcurses
+!IF "$(INTERNET_AVAILABLE)" == "Y"
+!IF "$(GIT_AVAILABLE)" == "Y"
+PDCURSES_TOP=$(SUBM)\pdcurses
+ADD_CURSES=Y
+!ELSE  # GIT_AVAILABLE
+PDCURSES_TOP=$(LIBDIR)\pdcurses
+ADD_CURSES=Y
+!ENDIF # GIT_AVAILABLE
+!ELSE  # INTERNET_AVAILABLE is not Y below
+# Your Makefile settings do not allow pdcurses to be obtained by
+# git or by download. Check to see if it is available at one of
+# the expected locations already, with precedence given to ../submodules,
+# then ../lib.
+#
+!IF EXIST("$(SUBM)\pdcurses\curses.h")
+PDCURSES_TOP=$(SUBM)\pdcurses
+ADD_CURSES=Y
+!ELSEIF EXIST("$(LIBDIR)\pdcurses\curses.h")
+PDCURSES_TOP=$(LIBDIR)\pdcurses
+ADD_CURSES=Y
+!ENDIF  # pdcurses sources available somewhere
+!IF "$(ADD_CURSES)" == "Y"
+!MESSAGE Your Makefile settings do not allow pdcurses to be obtained by
+!MESSAGE git or by download, but a copy of pdcurses was found in $(PDCURSES_TOP),
+!MESSAGE so that will be used.
+!ENDIF  # ADD_CURSES == Y
+!ENDIF  # INTERNET_AVAILABLE
+
+!IF "$(ADD_CURSES)" != "Y"
+!MESSAGE NetHack 3.7 will be built without support for the curses window-port.
+!ENDIF
+
+#These will be in the environment variables with one of the Visual Studio
+#developer command prompts.
+#VSCMD_ARG_HOST_ARCH=x64
+#VSCMD_ARG_TGT_ARCH=x86
+
+# We need to do this here, so some output files can
+# incorporate TARGET_CPU into their names.
+#
+!IFDEF VSCMD_ARG_HOST_ARCH
+!MESSAGE Host architecture is $(VSCMD_ARG_HOST_ARCH)
+!MESSAGE Target architecture is $(VSCMD_ARG_TGT_ARCH)
+! IFNDEF TARGET_CPU
+!  IF "$(VSCMD_ARG_TGT_ARCH)"=="x64"
+TARGET_CPU=x64
+!  ELSE
+TARGET_CPU=x86
+!  ENDIF
+! ENDIF
+!ENDIF
+
+!IF "$(TARGET_CPU)" == ""
+TARGET_CPU=x86
+!ENDIF
+
+#TEST_CROSSCOMPILE=Y
 
 #
 #==========================================
@@ -270,6 +290,12 @@ DLBDEF =
 # referenced later on in the Makefile.
 #
 #
+#  Object directory.
+#
+
+OBJ     = o\$(TARGET_CPU)
+
+#
 # Shorten up the location for some files
 #
 
@@ -311,8 +337,8 @@ CROSSCOMPILE=
 LUAVER=5.4.4
 !ENDIF
 
-LUALIB   = $(O)lua$(LUAVER)-static.lib
-LUADLL   = $(O)lua$(LUAVER).dll
+LUALIB   = $(LIBDIR)\lua$(LUAVER)-$(TARGET_CPU)-static.lib
+LUADLL   = $(LIBDIR)\lua$(LUAVER)-$(TARGET_CPU).dll
 LUAINCL  = /I$(LUASRC)
 LUATARGETS = lua.exe $(LUADLL) $(LUALIB)
 
@@ -364,7 +390,7 @@ PDCLIBOBJS = $(O)addch.o $(O)addchstr.o $(O)addstr.o $(O)attr.o $(O)beep.o \
 PDCOBJS = $(O)pdcclip.o $(O)pdcdisp.o $(O)pdcgetsc.o $(O)pdckbd.o $(O)pdcscrn.o \
 	$(O)pdcsetsc.o $(O)pdcutil.o
 
-PDCLIB = $(O)pdcurses.lib
+PDCLIB = $(LIBDIR)\pdcurses-$(TARGET_CPU).lib
 
 PDCINCL = /I$(PDCURSES_TOP) /I$(PDCSRC) /I$(PDCWINCON)
 
@@ -409,8 +435,8 @@ HACKCSRC = allmain.c alloc.c apply.c artifact.c attrib.c ball.c bones.c \
 	   rip.c rnd.c role.c rumors.c save.c sfstruct.c \
 	   shk.c shknam.c sit.c sounds.c \
 	   sp_lev.c spell.c steal.c steed.c symbols.c sys.c teleport.c \
-	   timeout.c topten.c track.c trap.c u_init.c \
-	   uhitm.c vault.c version.c vision.c weapon.c were.c wield.c \
+	   timeout.c topten.c track.c trap.c u_init.c uhitm.c utf8map.c \
+	   vault.c version.c vision.c weapon.c were.c wield.c \
 	   windows.c wizard.c worm.c worn.c write.c zap.c
 
 
@@ -470,9 +496,10 @@ VOBJ21 = $(O)shk.o      $(O)shknam.o   $(O)sit.o      $(O)sounds.o
 VOBJ22 = $(O)sp_lev.o   $(O)spell.o    $(O)steal.o    $(O)steed.o
 VOBJ23 = $(O)symbols.o  $(O)sys.o      $(O)teleport.o $(O)timeout.o
 VOBJ24 = $(O)topten.o   $(O)track.o    $(O)trap.o     $(O)u_init.o
-VOBJ25 = $(O)uhitm.o    $(O)vault.o    $(O)vision.o   $(O)weapon.o
-VOBJ26 = $(O)were.o     $(O)wield.o    $(O)windows.o  $(O)wizard.o
-VOBJ27 = $(O)worm.o     $(O)worn.o     $(O)write.o    $(O)zap.o
+VOBJ25 = $(O)uhitm.o    $(O)utf8map.o  $(O)vault.o    $(O)vision.o
+VOBJ26 = $(O)weapon.o   $(O)were.o     $(O)wield.o    $(O)windows.o
+VOBJ27 = $(O)wizard.o   $(O)worm.o     $(O)worn.o     $(O)write.o
+VOBJ28 = $(O)zap.o
 
 LUAOBJ = $(O)nhlua.o    $(O)nhlsel.o    $(O)nhlobj.o
 
@@ -483,7 +510,7 @@ DLBOBJ = $(O)dlb.o
 
 REGEX  = $(O)cppregex.o
 
-TTYOBJ = $(O)topl.o     $(O)getline.o  $(O)wintty.o
+TTYOBJ = $(O)topl.o $(O)getline.o  $(O)wintty.o
 
 MDLIB = $(O)mdlib.o
 
@@ -507,8 +534,7 @@ OBJS   = $(MDLIB) \
 	$(VOBJ11) $(VOBJ12) $(VOBJ13) $(VOBJ14) $(VOBJ15) \
 	$(VOBJ16) $(VOBJ17) $(VOBJ18) $(VOBJ19) $(VOBJ20) \
 	$(VOBJ21) $(VOBJ22) $(VOBJ23) $(VOBJ24) $(VOBJ25) \
-	$(VOBJ26) $(VOBJ27) $(VOBJ29) $(VOBJ30) $(REGEX)  \
-	$(CURSESOBJ)
+	$(VOBJ26) $(VOBJ27) $(VOBJ28) $(REGEX)
 
 WINDHDR = $(MSWSYS)\win10.h $(MSWSYS)\winos.h $(MSWSYS)\win32api.h
 
@@ -579,7 +605,7 @@ DATABASE = $(DAT)\data.base
 #
 #CTAGSCMD=ctags-orig.exe
 !IF "$(CI_BUILD_DIR)" != ""
-CTAGSCMD=..\lib\ctags\ctags.exe
+CTAGSCMD=$(LIBDIR)\ctags\ctags.exe
 !ELSE
 CTAGSCMD=..\..\..\ctags\ctags.exe
 !ENDIF
@@ -591,20 +617,31 @@ CTAGSOPT =--language-force=c --sort=no -D"Bitfield(x,n)=unsigned x : n" --excmd=
 TINC = $(INCL:\=/)
 TSRC = $(SRC:\=/)
 
-
-cc=cl
-cpp=cpp
-link=link
-rc=Rc
+cc=cl.exe
+cpp=cpp.exe
+link=link.exe
+librarian=lib.exe
+rc=Rc.exe
 
 # Before we get started, this section is used to determine the version of
 # Visual Studio we are using.  We set VSVER to 0000 to flag any version that
 # is too old or untested.
 #
 # Recently tested versions:
-#NMAKE version 1416270450 from latest VS 2017 (Feb 8, 2022 version 15.9.44)
-#NMAKE version 1429301390 from latest VS 2019 (Feb 8, 2022 version 16.11.10)
-#NMAKE version 1431311040 from latest VS 2022 (Feb 15, 2022 version 17.1.0)
+TESTEDVS2017 = 14.16.27048.0
+TESTEDVS2019 = 14.29.30145.0
+TESTEDVS2022 = 14.32.31329.0
+
+VS2017CUR = $(TESTEDVS2017:.=)
+VS2019CUR = $(TESTEDVS2019:.=)
+VS2022CUR = $(TESTEDVS2022:.=)
+VS2017UP1 = $(VS2017CUR) + 1
+VS2019UP1 = $(VS2019CUR) + 1
+VS2022UP1 = $(VS2022CUR) + 1
+VS20171ST = 1411000000
+VS20191ST = $(VS2017UP1)
+VS20221ST = $(VS2019UP1)
+
 #!MESSAGE $(MAKEFLAGS)
 #!MESSAGE $(MAKEDIR)
 #!MESSAGE $(MAKE)
@@ -626,13 +663,13 @@ VSVER=2012
 VSVER=2013
 !ELSEIF ($(MAKEVERSION) > 1400000000) && ($(MAKEVERSION) < 1411000000)
 VSVER=2015
-!ELSEIF ($(MAKEVERSION) > 1411000000) && ($(MAKEVERSION) < 1416270451)
+!ELSEIF ($(MAKEVERSION) > $(VS20171ST)) && ($(MAKEVERSION) < $(VS2017UP1))
 VSVER=2017
-!ELSEIF ($(MAKEVERSION) > 1416270450) && ($(MAKEVERSION) < 1429301391)
+!ELSEIF ($(MAKEVERSION) > $(VS20191ST)) && ($(MAKEVERSION) < $(VS2019UP1))
 VSVER=2019
-!ELSEIF ($(MAKEVERSION) > 1429301390) && ($(MAKEVERSION) < 1431311041)
+!ELSEIF ($(MAKEVERSION) > $(VS20221ST)) && ($(MAKEVERSION) < $(VS2022UP1))
 VSVER=2022
-!ELSEIF ($(MAKEVERSION) > 1431311040)
+!ELSEIF ($(MAKEVERSION) > $(VS2022CUR))
 VSVER=2999              #untested future version
 !ENDIF
 
@@ -659,33 +696,18 @@ VSVER=2999              #untested future version
 !include <win32.mak>
 ! ENDIF
 
-#These will be in the environment variables with one of the Visual Studio
-#developer command prompts.
-#VSCMD_ARG_HOST_ARCH=x64
-#VSCMD_ARG_TGT_ARCH=x86
-
-!IFDEF VSCMD_ARG_HOST_ARCH
-!MESSAGE Host architecture is $(VSCMD_ARG_HOST_ARCH)
-!MESSAGE Target architecture is $(VSCMD_ARG_TGT_ARCH)
-! IFNDEF TARGET_CPU
-!  IF "$(VSCMD_ARG_TGT_ARCH)"=="x64"
-TARGET_CPU=x64
-!  ELSE
-TARGET_CPU=x86
-!  ENDIF
-! ENDIF
-!ENDIF
-
-!IF "$(TARGET_CPU)" == ""
-TARGET_CPU=x86
-!ENDIF
-
 !IF ($(VSVER) == 2010)
 CL_RECENT=
 !ELSE
 ! IF ($(VSVER) > 2010)
 CL_RECENT=-sdl
 ! ENDIF
+!ENDIF
+
+!IF ($(VSVER) >= 2019)
+ASAN=/fsanitize=address
+!ELSE
+ASAN=
 !ENDIF
 
 #==========================================
@@ -706,7 +728,7 @@ ccommon= -c -nologo -D"_CONSOLE" -D"_CRT_NONSTDC_NO_DEPRECATE" -D"_CRT_SECURE_NO
 	-DHAS_STDINT_H -DHAS_INLINE $(CURSESDEF) $(RUNTIMEOPTDEF) \
 	-EHsc -fp:precise -Gd -GF -GS -Gy \
 	$(CL_RECENT) -WX- -Zc:forScope -Zc:wchar_t -Zi
-cdebug= -analyze- -D"_DEBUG" -MTd -RTC1 -Od
+cdebug= -analyze- -D"_DEBUG" -MTd -RTC1 -Od $(ASAN)
 crelease= -analyze- -D"_MBCS" -errorReport:prompt -MT -O2 -Ot -Ox -Oy
 
 lcommon= /NOLOGO /INCREMENTAL:NO
@@ -882,7 +904,7 @@ DLB =
 #==========================================
 
 {$(WCURSES)}.c{$(OBJ)}.o:
-	$(cc) -DPDC_NCMOUSE $(PDCINCL) $(cflagsBuild) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
+	@$(cc) -DPDC_NCMOUSE $(PDCINCL) $(cflagsBuild) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $<
 
 #{$(WCURSES)}.txt{$(DAT)}.txt:
 #	@copy $< $@
@@ -920,7 +942,8 @@ DLB =
 
 all :	install
 
-install: $(LUASRC)\lua.h $(PDCDEP) $(INCL)\nhlua.h $(O)envchk.tag $(O)obj.tag $(O)utility.tag \
+install:  $(O)envchk.tag $(O)libdir.tag $(O)objdir.tag $(LUASRC)\lua.h $(PDCDEP) \
+		$(INCL)\nhlua.h $(O)utility.tag \
 		$(DAT)\data $(DAT)\rumors $(DAT)\oracles $(DAT)\engrave \
 		$(DAT)\epitaph $(DAT)\bogusmon $(GAMEDIR)\xNetHack.exe \
 		$(GAMEDIR)\xNetHackW.exe $(O)install.tag
@@ -931,6 +954,8 @@ install: $(LUASRC)\lua.h $(PDCDEP) $(INCL)\nhlua.h $(O)envchk.tag $(O)obj.tag $(
 $(LUASRC)\lua.h:
 	git submodule init ../submodules/lua
 	git submodule update --remote ../submodules/lua
+#
+#aka PDCDEP
 $(PDCURSES_TOP)\curses.h:
 	git submodule init ../submodules/pdcurses
 	git submodule update --remote ../submodules/pdcurses
@@ -943,12 +968,12 @@ CURLPDCSRC=https://github.com/wmcbrine/PDCurses/archive/refs/tags/3.9.zip
 CURLPDCDST=pdcurses.zip
 
 $(LUASRC)\lua.h:
-	cd ..\lib
+	cd $(LIBDIR)
 	curl -L $(CURLLUASRC) -o $(CURLLUADST)
 	tar -xvf $(CURLLUADST)
 	cd ..\src
 $(PDCURSES_TOP)\curses.h:
-	cd ..\lib
+	cd $(LIBDIR)
 	curl -L $(CURLPDCSRC) -o $(CURLPDCDST)
 	if not exist pdcurses\*.* mkdir pdcurses
 	tar -C pdcurses --strip-components=1 -xvf $(CURLPDCDST)
@@ -1004,8 +1029,8 @@ GAMEOBJ=$(GAMEOBJ:^ =^
 
 
 $(GAMEDIR)\xNetHack.exe : $(O)gamedir.tag $(O)tile.o $(O)consoletty.o $(O)guistub.o \
-			$(ALLOBJ) $(TTYOBJ) $(O)date.o $(O)console.res \
-			$(LUATARGETS) $(PDCLIB)
+			$(ALLOBJ) $(CURSESOBJ) $(TTYOBJ) $(O)date.o $(O)console.res \
+			$(LUALIB) $(PDCLIB)
 	@if not exist $(GAMEDIR)\*.* mkdir $(GAMEDIR)
 	@echo Linking $(@:\=/)
 	$(link) $(lflagsBuild) $(conlflags) /STACK:2048 /PDB:$(GAMEDIR)\$(@B).PDB /MAP:$(O)$(@B).MAP \
@@ -1013,6 +1038,7 @@ $(GAMEDIR)\xNetHack.exe : $(O)gamedir.tag $(O)tile.o $(O)consoletty.o $(O)guistu
 		$(conlibs) $(BCRYPT) -out:$@ @<<$(@B).lnk
 		$(GAMEOBJ)
 		$(TTYOBJ)
+                $(CURSESOBJ)
 		$(O)consoletty.o
 		$(O)tile.o
 		$(O)guistub.o
@@ -1032,11 +1058,11 @@ $(GAMEDIR)\xNetHack.exe : $(O)gamedir.tag $(O)tile.o $(O)consoletty.o $(O)guistu
 $(GAMEDIR)\xNetHackW.exe : $(O)gamedir.tag $(O)tile.o $(O)ttystub.o \
 			$(ALLOBJ) $(GUIOBJ) $(O)date.o $(O)NetHackW.res \
 			$(O)gamedir.tag \
-			$(LUATARGETS)
+			$(LUALIB)
 	@if not exist $(GAMEDIR)\*.* mkdir $(GAMEDIR)
 	@echo   Linking $(@:\=/)
 	$(link) $(lflagsBuild) $(guilflags) /STACK:2048 /PDB:$(GAMEDIR)\$(@B).PDB \
-		/MAP:$(O)$(@B).MAP $(LIBS) $(PDCLIB) $(LUALIB) \
+		/MAP:$(O)$(@B).MAP $(LIBS) $(LUALIB) \
 		$(guilibs) $(COMCTRL) $(BCRYPT) -out:$@ @<<$(@B).lnk
 		$(GAMEOBJ)
 		$(GUIOBJ)
@@ -1052,7 +1078,7 @@ $(O)gamedir.tag:
 	@echo directory created > $@
 
 $(O)install.tag: 	$(DAT)\data	$(DAT)\rumors	$(DAT)\oracles \
-		$(O)sp_lev.tag $(DLB)
+		$(DLB)
 ! IF ("$(USE_DLB)"=="Y")
 	copy nhdat$(NHV)          $(GAMEDIR)
 	copy $(DAT)\license       $(GAMEDIR)
@@ -1098,15 +1124,12 @@ recover: $(U)recover.exe
 	if exist $(U)recover.exe copy $(U)recover.exe  $(GAMEDIR)
 	if exist $(DOC)\recover.txt copy $(DOC)\recover.txt $(GAMEDIR)\recover.txt
 
-$(O)sp_lev.tag:
-	echo sp_levs done > $(O)sp_lev.tag
-
 $(O)utility.tag: $(INCL)\nhlua.h $(U)tile2bmp.exe $(U)makedefs.exe
 	     @echo utilities made >$@
 	     @echo utilities made.
 
 $(INCL)\nhlua.h:
-	@echo  /* nhlua.h - generated by Makefile from Makefile.msc */ > $@
+	@echo  /* nhlua.h - generated by Makefile from Makefile.nmake */ > $@
 	@echo #include "lua.h" >> $@
 	@echo LUA_API int   (lua_error) (lua_State *L) NORETURN; >> $@
 	@echo #include "lualib.h" >> $@
@@ -1121,10 +1144,12 @@ $(O)NetHackW.res: $(SRC)\tiles.bmp $(MSWIN)\xNetHackW.rc \
 	$(MSWIN)\mnselcnt.bmp $(MSWIN)\mnunsel.bmp \
 	$(MSWIN)\petmark.bmp $(MSWIN)\pilemark.bmp $(MSWIN)\NetHack.ico \
 	$(MSWIN)\rip.bmp $(MSWIN)\splash.bmp
-	@$(rc) -r -fo$@ -i$(MSWIN) -dNDEBUG $(MSWIN)\xNetHackW.rc
+	@echo Building resource file $@ from $**
+	@$(rc) -nologo -r -fo$@ -i$(MSWIN) -dNDEBUG $(MSWIN)\xNetHackW.rc
 
 $(O)console.res: $(MSWSYS)\console.rc $(MSWSYS)\NetHack.ico
-	@$(rc) -r -fo$@ -i$(MSWSYS) -dNDEBUG $(MSWSYS)\console.rc
+	@echo Building resource file $@ from $**
+	@$(rc) -nologo -r -fo$@ -i$(MSWSYS) -dNDEBUG $(MSWSYS)\console.rc
 
 #
 #  Secondary Targets.
@@ -1135,7 +1160,7 @@ $(O)console.res: $(MSWSYS)\console.rc $(MSWSYS)\NetHack.ico
 #==========================================
 $(U)nhsizes3.exe: $(O)nhsizes3.o
 	@echo Linking $(@:\=/)
-	$(link) $(lflagsBuild) -out:$@ $(O)nhsizes.o $(O)panic$(HOST).o $(O)alloc$(HOST).o
+	@$(link) $(lflagsBuild) -out:$@ $(O)nhsizes.o $(O)panic$(HOST).o $(O)alloc$(HOST).o
 
 $(O)nhsizes3.o: $(CONFIG_H) nhsizes3.c
 	@$(cc) $(cflagsBuild) $(CROSSCOMPILE) -Fo$@ nhsizes3.c
@@ -1162,7 +1187,7 @@ $(O)makedefs.o: $(U)makedefs.c $(SRC)\mdlib.c $(CONFIG_H) $(INCL)\permonst.h \
 # We build a temporary Makefile on-the-fly for compiling date.c and
 # invoke nmake again.
 #
-$(O)date.o: $(HACKINCL) $(HACKSRC) $(HACKOBJ) $(ALLOBJ)
+$(O)date.o: $(HACKINCL) $(HACKSRC) $(HACKOBJ) $(ALLOBJ) $(CURSESOBJ)
 !IF "$(GIT_AVAILABLE)" == "1"
 	@git rev-parse --verify HEAD 2>&1 >$(O)date1.tmp
 	@git rev-parse --abbrev-ref HEAD 2>&1 >$(O)date2.tmp
@@ -1208,57 +1233,66 @@ $(O)uudecode.o: $(SSYS)\uudecode.c
 	@$(cc) $(cflagsBuild) $(CROSSCOMPILE) /D_CRT_SECURE_NO_DEPRECATE -Fo$@ $(SSYS)\uudecode.c
 
 $(MSWSYS)\NetHack.ico : $(U)uudecode.exe $(MSWSYS)\nhico.uu
-	chdir $(MSWSYS)
-	..\..\util\uudecode.exe nhico.uu
-	chdir ..\..\src
+	@chdir $(MSWSYS)
+	@..\..\util\uudecode.exe nhico.uu
+	@chdir ..\..\src
 
 $(MSWIN)\NetHack.ico : $(U)uudecode.exe $(MSWSYS)\nhico.uu
-	chdir $(MSWIN)
-	..\..\util\uudecode.exe ../../sys/windows/nhico.uu
-	chdir ..\..\src
+	@chdir $(MSWIN)
+	@..\..\util\uudecode.exe ../../sys/windows/nhico.uu
+	@chdir ..\..\src
 
 $(MSWIN)\mnsel.bmp: $(U)uudecode.exe $(MSWIN)\mnsel.uu
-	chdir $(MSWIN)
-	..\..\util\uudecode.exe mnsel.uu
-	chdir ..\..\src
+	@chdir $(MSWIN)
+	@..\..\util\uudecode.exe mnsel.uu
+	@chdir ..\..\src
 
 $(MSWIN)\mnselcnt.bmp: $(U)uudecode.exe $(MSWIN)\mnselcnt.uu
-	chdir $(MSWIN)
-	..\..\util\uudecode.exe mnselcnt.uu
-	chdir ..\..\src
+	@chdir $(MSWIN)
+	@..\..\util\uudecode.exe mnselcnt.uu
+	@chdir ..\..\src
 
 $(MSWIN)\mnunsel.bmp: $(U)uudecode.exe $(MSWIN)\mnunsel.uu
-	chdir $(MSWIN)
-	..\..\util\uudecode.exe mnunsel.uu
-	chdir ..\..\src
+	@chdir $(MSWIN)
+	@..\..\util\uudecode.exe mnunsel.uu
+	@chdir ..\..\src
 
 $(MSWIN)\petmark.bmp: $(U)uudecode.exe $(MSWIN)\petmark.uu
-	chdir $(MSWIN)
-	..\..\util\uudecode.exe petmark.uu
-	chdir ..\..\src
+	@chdir $(MSWIN)
+	@..\..\util\uudecode.exe petmark.uu
+	@chdir ..\..\src
 
 $(MSWIN)\pilemark.bmp: $(U)uudecode.exe $(MSWIN)\pilemark.uu
-	chdir $(MSWIN)
-	..\..\util\uudecode.exe pilemark.uu
-	chdir ..\..\src
+	@chdir $(MSWIN)
+	@..\..\util\uudecode.exe pilemark.uu
+	@chdir ..\..\src
 
 $(MSWIN)\rip.bmp: $(U)uudecode.exe $(MSWIN)\rip.uu
-	chdir $(MSWIN)
-	..\..\util\uudecode.exe rip.uu
-	chdir ..\..\src
+	@chdir $(MSWIN)
+	@..\..\util\uudecode.exe rip.uu
+	@chdir ..\..\src
 
 $(MSWIN)\splash.bmp: $(U)uudecode.exe $(MSWIN)\splash.uu
-	chdir $(MSWIN)
-	..\..\util\uudecode.exe splash.uu
-	chdir ..\..\src
+	@chdir $(MSWIN)
+	@..\..\util\uudecode.exe splash.uu
+	@chdir ..\..\src
 
 #=================================================
 # Create directory for holding object files
 #=================================================
 
-$(O)obj.tag:
+$(O)objdir.tag:
 	@if not exist $(OBJ)\*.* echo creating directory $(OBJ:\=/)
 	@if not exist $(OBJ)\*.* mkdir $(OBJ)
+	@echo directory created >$@
+
+#==================================================================
+# Create directory for holding built libraries (among other things)
+#==================================================================
+
+$(O)libdir.tag:
+	@if not exist $(LIBDIR)\*.* echo creating directory $(LIB:\=/)
+	@if not exist $(LIBDIR)\*.* mkdir $(LIBDIR)
 	@echo directory created >$@
 
 #==========================================
@@ -1267,7 +1301,7 @@ $(O)obj.tag:
 # options.
 #==========================================
 
-$(O)envchk.tag: $(O)obj.tag
+$(O)envchk.tag: $(O)objdir.tag
 !	IF "$(TARGET_CPU)"=="x64"
 	@echo Windows x64 64-bit target build
 !	ELSE
@@ -1283,7 +1317,8 @@ $(O)envchk.tag: $(O)obj.tag
 #	   @echo Warning, the CL Environment variable is defined:
 #	   @echo CL=$(CL)
 !	ENDIF
-	echo envchk >$@
+	@echo "cflags=$(cflagsBuild) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET)"
+	@echo envchk >$@
 
 #==========================================
 #=========== SECONDARY TARGETS ============
@@ -1293,18 +1328,18 @@ fetch-lua: fetch-actual-Lua
 fetch-Lua: fetch-actual-Lua
 
 fetch-actual-Lua:
-	@if not exist ..\lib\*.* mkdir ..\lib
-	cd ..\lib
+	@if not exist $(LIBDIR)\*.* mkdir $(LIBDIR)
+	cd $(LIBDIR)
 	curl -R -O http://www.lua.org/ftp/lua-$(LUAVER).tar.gz
 	tar zxf lua-$(LUAVER).tar.gz
 	if exist lua-$(LUAVER).tar.gz del lua-$(LUAVER).tar.gz
 	if exist lua-$(LUAVER).tar del lua-$(LUAVER).tar
 	cd ..\src
-	@echo Lua has been fetched into ..\lib\lua-$(LUAVER)
+	@echo Lua has been fetched into $(LIBDIR)\lua-$(LUAVER)
 
 fetch-pdcurses:
-	@if not exist ..\lib\*.* mkdir ..\lib
-	cd ..\lib
+	@if not exist $(LIBDIR)\*.* mkdir $(LIBDIR)
+	cd $(LIBDIR)
 	curl -L -R https://codeload.github.com/wmcbrine/PDCurses/zip/master -o pdcurses.zip
 	powershell -command "Expand-Archive -Path .\pdcurses.zip -DestinationPath ./pdcurses-temp"
 	if exist .\pdcurses\* rd .\pdcurses /s /Q
@@ -1313,7 +1348,7 @@ fetch-pdcurses:
 	if exist .\pdcurses-temp\* rd .\pdcurses-temp /s /Q
 	if exist .\pdcurses.zip del .\pdcurses.zip
 	cd ..\src
-	@echo pdcurses has been fetched into ..\lib\pdcurses
+	@echo pdcurses has been fetched into $(LIBDIR)\pdcurses
 
 #==========================================
 # DLB utility and nhdatNNN file creation
@@ -1350,31 +1385,32 @@ $(DAT)\porthelp: $(MSWSYS)\porthelp
 nhdat$(NHV):	$(U)dlb.exe $(DAT)\data $(DAT)\oracles $(OPTIONS_FILE) $(DAT)\quest.lua \
 	$(DAT)\rumors $(DAT)\help $(DAT)\hh $(DAT)\cmdhelp $(DAT)\keyhelp \
 	$(DAT)\history $(DAT)\opthelp $(DAT)\optmenu $(DAT)\wizhelp $(DAT)\porthelp \
-	$(DAT)\license $(DAT)\engrave $(DAT)\epitaph $(DAT)\bogusmon $(DAT)\tribute $(O)sp_lev.tag
-	cd $(DAT)
-	echo data >dlb.lst
-	echo oracles >>dlb.lst
-	if exist options echo options >>dlb.lst
-	if exist ttyoptions echo ttyoptions >>dlb.lst
-	if exist guioptions echo guioptions >>dlb.lst
-	if exist porthelp echo porthelp >>dlb.lst
-	echo rumors >>dlb.lst
-	echo help >>dlb.lst
-	echo hh >>dlb.lst
-	echo cmdhelp >>dlb.lst
-	echo keyhelp >>dlb.lst
-	echo history >>dlb.lst
-	echo opthelp >>dlb.lst
-	echo optmenu >>dlb.lst
-	echo wizhelp >>dlb.lst
-	echo license >>dlb.lst
-	echo engrave >>dlb.lst
-	echo epitaph >>dlb.lst
-	echo bogusmon >>dlb.lst
-	echo tribute >>dlb.lst
-	for %%N in (*.lua) do echo %%N >>dlb.lst
-	$(U)dlb cIf dlb.lst $(SRC)\nhdat
-	cd $(SRC)
+	$(DAT)\license $(DAT)\engrave $(DAT)\epitaph $(DAT)\bogusmon $(DAT)\tribute
+	@echo Building $@
+	@cd $(DAT)
+	@echo data >dlb.lst
+	@echo oracles >>dlb.lst
+	@if exist options @echo options >>dlb.lst
+	@if exist ttyoptions @echo ttyoptions >>dlb.lst
+	@if exist guioptions @echo guioptions >>dlb.lst
+	@if exist porthelp @echo porthelp >>dlb.lst
+	@echo rumors >>dlb.lst
+	@echo help >>dlb.lst
+	@echo hh >>dlb.lst
+	@echo cmdhelp >>dlb.lst
+	@echo keyhelp >>dlb.lst
+	@echo history >>dlb.lst
+	@echo opthelp >>dlb.lst
+	@echo optmenu >>dlb.lst
+	@echo wizhelp >>dlb.lst
+	@echo license >>dlb.lst
+	@echo engrave >>dlb.lst
+	@echo epitaph >>dlb.lst
+	@echo bogusmon >>dlb.lst
+	@echo tribute >>dlb.lst
+	@for %%N in (*.lua) do @echo %%N >>dlb.lst
+	@$(U)dlb cIf dlb.lst $(SRC)\nhdat
+	@cd $(SRC)
 
 #==========================================
 #  Recover Utility
@@ -1382,7 +1418,7 @@ nhdat$(NHV):	$(U)dlb.exe $(DAT)\data $(DAT)\oracles $(OPTIONS_FILE) $(DAT)\quest
 
 $(U)recover.exe: $(RECOVOBJS)
 	@echo Linking $(@:\=/)
-	$(link) $(lflagsBuild) /PDB:"$(O)$(@B).PDB" /MAP:"$(O)$(@B).MAP" -out:$@ $(RECOVOBJS)
+	@$(link) $(lflagsBuild) /PDB:"$(O)$(@B).PDB" /MAP:"$(O)$(@B).MAP" -out:$@ $(RECOVOBJS)
 
 $(O)recover.o: $(CONFIG_H) $(U)recover.c $(MSWSYS)\win32api.h
 	@$(cc) $(cflagsBuild) -Fo$@ $(U)recover.c
@@ -1509,27 +1545,33 @@ $(SRC)\x11tiles: $(U)tile2x11.exe $(WSHR)\monsters.txt $(WSHR)\objects.txt \
 # PDCurses
 #===============================================================================
 
-$(O)pdcurses.lib : $(PDCLIBOBJS) $(PDCOBJS)
-	lib -nologo /out:$@ $(PDCLIBOBJS) $(PDCOBJS)
+$(LIBDIR)\pdcurses-$(TARGET_CPU).lib : $(PDCLIBOBJS) $(PDCOBJS)
+	@echo Building library $@ from $**
+	@$(librarian) -nologo /out:$@ $(PDCLIBOBJS) $(PDCOBJS)
 
-$(O)pdcscrn.o : $(PDCURSES_HEADERS) $(PDCWINCON)\pdcscrn.c $(MSWSYS)\stub-pdcscrn.c
-	@$(cc) $(PDCINCL) $(cflagsBuild) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $(MSWSYS)\stub-pdcscrn.c
+$(O)pdcscrn.o : $(PDCURSES_HEADERS) $(PDCWINCON)\pdcscrn.c
+	@$(cc) $(PDCINCL) $(cflagsBuild) -wd4996 $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) \
+		-Fo$@ $(PDCWINCON)\pdcscrn.c
 
 #===============================================================================
 # LUA
 #===============================================================================
 
 lua.exe: $(O)lua.o $(LUALIB)
-	link /OUT:$@ $(O)lua.o $(LUALIB)
+	@echo Linking $(@:\=/)
+	@$(link) /OUT:$@ $(O)lua.o $(LUALIB)
 
 #luac.exe: $(O)luac.o $(LUALIB)
-#	link /OUT:$@ $(O)luac.o $(LUALIB)
+#	@echo Linking $(@:\=/)
+#	@$(link) /OUT:$@ $(O)luac.o $(LUALIB)
 
-$(O)lua$(LUAVER).dll: $(LUAOBJFILES)
-	link /DLL /IMPLIB:lua$(LUAVER).lib /OUT:$@ $(LUAOBJFILES)
+$(LIBDIR)\lua$(LUAVER)-$(TARGET_CPU).dll: $(LUAOBJFILES)
+	@echo Linking $(@:\=/)
+	@$(link) /DLL /IMPLIB:$(LIBDIR)\lua$(LUAVER).lib /OUT:$@ $(LUAOBJFILES)
 
-$(O)lua$(LUAVER)-static.lib: $(LUAOBJFILES)
-	lib /OUT:$@ $(LUAOBJFILES)
+$(LIBDIR)\lua$(LUAVER)-$(TARGET_CPU)-static.lib: $(LUAOBJFILES)
+	@echo Building library $@ from $**
+	@$(librarian) /OUT:$@ $(LUAOBJFILES)
 
 $(O)lua.o: $(LUASRC)\lua.c
 #$(O)luac.o: $(LUASRC)\luac.c
@@ -1545,6 +1587,7 @@ $(O)win10.o:  $(MSWSYS)\win10.c $(WINDHDR) $(HACK_H)
 $(O)windsys.o:  $(MSWSYS)\windsys.c $(WINDHDR) $(HACK_H)
 $(O)ntsound.o: $(MSWSYS)\ntsound.c $(WINDHDR) $(HACK_H)
 $(O)windmain.o: $(MSWSYS)\windmain.c $(WINDHDR) $(HACK_H)
+$(O)safeproc.o: $(WSHR)\safeproc.c $(WINDHDR) $(HACK_H)
 
 #if you aren't linking in the full gui then
 #include the following stub for proper linkage.
@@ -1588,8 +1631,8 @@ $(O)ttystub.o: $(WINDHDR) $(HACK_H) $(MSWSYS)\stubs.c
 # sys/share dependencies
 #===================================================================
 
-(O)cppregex.o:	$(O)cppregex.cpp $(HACK_H)
-	@$(CC) $(cppflagsBuild) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ ..\sys\share\cppregex.cpp
+$(O)cppregex.o: $(SSYS)\cppregex.cpp $(HACK_H)
+	@$(CC) $(cppflagsBuild) $(CROSSCOMPILE) $(CROSSCOMPILE_TARGET) -Fo$@ $(SSYS)\cppregex.cpp
 
 #===================================================================
 # curses window port dependencies
@@ -1728,11 +1771,10 @@ spotless: clean
 	if exist $(DAT)\engrave          del $(DAT)\engrave
 	if exist $(DAT)\epitaph          del $(DAT)\epitaph
 	if exist $(DAT)\bogusmon         del $(DAT)\bogusmon
-	if exist $(DAT)\dlb.lst		 del $(DAT)\dlb.lst
 	if exist $(DAT)\porthelp	 del $(DAT)\porthelp
-	if exist $(O)sp_lev.tag	         del $(O)sp_lev.tag
 	if exist nhdat$(NHV).	         del nhdat$(NHV).
-	if exist $(O)obj.tag             del $(O)obj.tag
+	if exist $(O)objdir.tag          del $(O)objdir.tag
+	if exist $(O)libdir.tag          del $(O)libdir.tag
 	if exist $(O)gamedir.tag         del $(O)gamedir.tag
 	if exist $(O)nh*key.lib          del $(O)nh*key.lib
 	if exist $(O)nh*key.exp          del $(O)nh*key.exp
@@ -1751,8 +1793,9 @@ spotless: clean
 	if exist $(U)uudecode.exe        del $(U)uudecode.exe
 	if exist $(U)dlb.exe             del $(U)dlb.exe
 !IF "$(ADD_CURSES)" == "Y"
-	if exist $(O)pdcurses.lib        del $(O)pdcurses.lib
+	if exist $(PDCLIB)               del $(PDCLIB)
 !ENDIF
+        if exist $(LUALIB)               del $(LUALIB)
 	if exist $(DAT)\oracles		 del $(DAT)\oracles
 	if exist $(DAT)\rumors		 del $(DAT)\rumors
 	if exist $(DAT)\options		 del $(DAT)\options
@@ -1769,21 +1812,22 @@ clean:
 	if exist $(SRC)\*.lnk      del $(SRC)\*.lnk
 	if exist $(SRC)\*.map      del $(SRC)\*.map
 	if exist $(O)install.tag   del $(O)install.tag
-	if exist $(O)dlb.MAP      del $(O)dlb.MAP
-	if exist $(O)dlb.PDB      del $(O)dlb.PDB
-	if exist $(O)gamedir.tag  del $(O)gamedir.tag
-	if exist $(O)makedefs.MAP del $(O)makedefs.MAP
-	if exist $(O)makedefs.PDB del $(O)makedefs.PDB
-	if exist $(O)NetHack.MAP  del $(O)NetHack.MAP
-	if exist $(O)envchk.tag   del $(O)envchk.tag
-	if exist $(O)obj.tag      del $(O)obj.tag
-	if exist $(O)sp_lev.tag   del $(O)sp_lev.tag
-	if exist $(O)uudecode.MAP del $(O)uudecode.MAP
-	if exist $(O)uudecode.PDB del $(O)uudecode.PDB
-	if exist $(SRC)\tiles.bmp del $(SRC)\tiles.bmp
-	if exist $(O)console.res  del $(O)console.res
-	if exist $(O)NetHack.res  del $(O)NetHack.res
-	if exist $(O)NetHackW.res del $(O)NetHackW.res
+	if exist $(O)dlb.MAP       del $(O)dlb.MAP
+	if exist $(DAT)\dlb.lst    del $(DAT)\dlb.lst
+	if exist $(O)dlb.PDB       del $(O)dlb.PDB
+	if exist $(O)gamedir.tag   del $(O)gamedir.tag
+	if exist $(O)makedefs.MAP  del $(O)makedefs.MAP
+	if exist $(O)makedefs.PDB  del $(O)makedefs.PDB
+	if exist $(O)NetHack.MAP   del $(O)NetHack.MAP
+	if exist $(O)envchk.tag    del $(O)envchk.tag
+	if exist $(O)objdir.tag    del $(O)objdir.tag
+	if exist $(O)sp_lev.tag    del $(O)sp_lev.tag
+	if exist $(O)uudecode.MAP  del $(O)uudecode.MAP
+	if exist $(O)uudecode.PDB  del $(O)uudecode.PDB
+	if exist $(SRC)\tiles.bmp  del $(SRC)\tiles.bmp
+	if exist $(O)console.res   del $(O)console.res
+	if exist $(O)NetHack.res   del $(O)NetHack.res
+	if exist $(O)NetHackW.res  del $(O)NetHackW.res
 
 #===================================================================
 # OTHER DEPENDENCIES
@@ -1933,7 +1977,7 @@ $(TARGETPFX)winval.o: ..\win\X11\winval.c $(HACK_H) $(INCL)\winX.h
 #$(TARGETPFX)tile.o: tile.c $(HACK_H)
 $(TARGETPFX)winshim.o: ..\win\shim\winshim.c $(HACK_H)
 #	$(TARGET_CC) $(TARGET_CFLAGS) -Fo$@ ..\win\shim\winshim.c
-$(TARGETPFX)cppregex.o: ..\sys\share\cppregex.cpp
+#$(TARGETPFX)cppregex.o: ..\sys\share\cppregex.cpp
 #	$(TARGET_CXX) $(TARGET_CXXFLAGS) -Fo$@ ..\sys\share\cppregex.cpp
 $(TARGETPFX)qt_bind.o: ..\win\Qt\qt_bind.cpp $(HACK_H) ..\win\Qt\qt_pre.h \
 		..\win\Qt\qt_post.h ..\win\Qt\qt_bind.h ..\win\Qt\qt_main.h \
@@ -2207,6 +2251,7 @@ $(TARGETPFX)track.o: track.c $(HACK_H)
 $(TARGETPFX)trap.o: trap.c $(HACK_H)
 $(TARGETPFX)u_init.o: u_init.c $(HACK_H)
 $(TARGETPFX)uhitm.o: uhitm.c $(HACK_H)
+$(TARGETPFX)utf8map.o: utf8map.c $(HACK_H)
 $(TARGETPFX)vault.o: vault.c $(HACK_H)
 $(TARGETPFX)version.o: version.c $(HACK_H) $(INCL)\dlb.h
 $(TARGETPFX)vision.o: vision.c $(HACK_H)

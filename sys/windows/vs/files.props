@@ -3,7 +3,6 @@
   <ItemGroup>
     <!-- -v -->
     <Defs Include = "$(DatDir)options"/>
-    <Defs Include = "$(IncDir)date.h"/>
 	<!-- -o -->
     <Defs Include = "$(IncDir)onames.h"/>
 	<!-- -r -->
@@ -56,7 +55,9 @@
     <Luafiles Include = "medusa-2.lua"/>
     <Luafiles Include = "medusa-3.lua"/>
     <Luafiles Include = "medusa-4.lua"/>
-    <Luafiles Include = "oracle.lua"/>
+    <Luafiles Include = "oracle-1.lua"/>
+    <Luafiles Include = "oracle-2.lua"/>
+    <Luafiles Include = "oracle-3.lua"/>
     <Luafiles Include = "soko1-1.lua"/>
     <Luafiles Include = "soko1-2.lua"/>
     <Luafiles Include = "soko2-1.lua"/>
@@ -73,6 +74,8 @@
     <Luafiles Include = "wizard1.lua"/>
     <Luafiles Include = "wizard2.lua"/>
     <Luafiles Include = "wizard3.lua"/>
+    <Luafiles Include = "invocation.lua"/>
+    <Luafiles Include = "repair-Val-loca.lua"/>
     <Luafiles Include = "arc-fila.lua"/>
     <Luafiles Include = "arc-filb.lua"/>
     <Luafiles Include = "arc-goal.lua"/>

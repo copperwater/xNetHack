@@ -265,11 +265,13 @@ A("The Palantir of Westernesse",        CRYSTAL_BALL,
       CHARGE_OBJ, A_NEUTRAL, PM_TOURIST, NON_PM, 7000L, NO_COLOR,
       YENDORIAN_EXPRESS_CARD),
 
-    A("The Orb of Fate", CRYSTAL_BALL,
-      (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_LUCK),
-      (SPFX_WARN | SPFX_HSPDAM | SPFX_HPHDAM), 0, NO_ATTK, NO_DFNS, NO_CARY,
-      LEV_TELE, A_NEUTRAL, PM_VALKYRIE, NON_PM, 3500L, NO_COLOR,
-      ORB_OF_FATE),
+    /* While this is the Valkyrie artifact, it's chaotic because it belongs to
+     * Lord Surtur. */
+    A("Sol Valtiva", TWO_HANDED_SWORD,
+      (SPFX_NOGEN | SPFX_RESTR | SPFX_ATTK | SPFX_INTEL),
+      (SPFX_HSPDAM | SPFX_HPHDAM), 0, FIRE(3, 5), NO_DFNS, NO_CARY,
+      LEV_TELE, A_CHAOTIC, PM_VALKYRIE, NON_PM, 5000L, NO_COLOR,
+      SOL_VALTIVA),
 
     A("The Eye of the Aethiopica", AMULET_OF_ESP,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL), (SPFX_EREGEN | SPFX_HSPDAM), 0,

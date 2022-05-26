@@ -1,4 +1,4 @@
-/* NetHack 3.7	global.h	$NHDT-Date: 1642630918 2022/01/19 22:21:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.131 $ */
+/* NetHack 3.7	global.h	$NHDT-Date: 1646322467 2022/03/03 15:47:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.135 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -73,6 +73,13 @@ typedef unsigned char boolean; /* 0 or 1 */
 #ifndef SKIP_BOOLEAN
 typedef xchar boolean; /* 0 or 1 */
 #endif
+#endif
+
+/* Type for third parameter of read(2) */
+#if defined(BSD) || defined(ULTRIX)
+typedef int readLenType;
+#else /* e.g. SYSV, __TURBOC__ */
+typedef unsigned readLenType;
 #endif
 
 #ifndef TRUE /* defined in some systems' native include files */
@@ -257,6 +264,7 @@ typedef uchar nhsym;
 #define Sprintf (void) sprintf
 #define Strcat (void) strcat
 #define Strcpy (void) strcpy
+#define Strlen(s) Strlen_(s,__func__,__LINE__)
 #ifdef NEED_VARARGS
 #define Vprintf (void) vprintf
 #define Vfprintf (void) vfprintf
@@ -281,6 +289,8 @@ typedef uchar nhsym;
    declaration has been moved out of the '#else' below to avoid getting
    a complaint from -Wmissing-prototypes when building with MONITOR_HEAP */
 extern char *dupstr(const char *);
+/* same, but return strlen(string) */
+extern char *dupstr_n(const char *string, unsigned int *lenout);
 
 /*
  * MONITOR_HEAP is conditionally used for primitive memory leak debugging.
@@ -446,22 +456,6 @@ extern struct nomakedefs_s nomakedefs;
         (nhassert_failed(#expression, __FILE__, __LINE__), 0))
 #endif
 
-/* LIVELOG message type flags */
-#define LL_WISH       0x0001 /* Report stuff people type at the wish prompt. */
-#define LL_ACHIEVE    0x0002 /* Achievements bitfield + invocation, planes */
-#define LL_UMONST     0x0004 /* Kill, Bribe or otherwise dispatch unique monsters */
-#define LL_DIVINEGIFT 0x0008 /* Sacrifice gifts, crowning */
-#define LL_LIFESAVE   0x0010 /* Use up amulet of lifesaving */
-#define LL_CONDUCT    0x0020 /* Break conduct - not reported early-game */
-#define LL_ARTIFACT   0x0040 /* Excalibur, Sting, Orcrist, plus sac gifts and artwishes */
-#define LL_GENOCIDE   0x0080 /* Logging of genocides */
-#define LL_KILLEDPET  0x0100 /* Killed a tame monster */
-#define LL_ALIGNMENT  0x0200 /* changed alignment temporarily or permanently */
-#define LL_DUMP_ASC   0x0400 /* Log URL for dumplog if ascended */
-#define LL_DUMP_ALL   0x0800 /* Log dumplog url for all games */
-#define LL_MINORAC    0x1000 /* Log 'minor' achievements - can be spammy */
-#define LL_DEBUG      0x8000 /* For debugging messages and other spam */
-
 /* Macros for meta and ctrl modifiers:
  *   M and C return the meta/ctrl code for the given character;
  *     e.g., (C('c') is ctrl-c
@@ -482,20 +476,85 @@ extern struct nomakedefs_s nomakedefs;
 #define unmeta(c) (0x7f & (c))
 
 /* Game log message type flags */
-#define LL_NONE       0x0000 /* No message is livelogged */
-#define LL_WISH       0x0001 /* Report stuff people type at the wish prompt */
-#define LL_ACHIEVE    0x0002 /* Achievements bitfield + invocation, planes */
-#define LL_UMONST     0x0004 /* Kill, Bribe or otherwise dispatch unique monsters */
-#define LL_DIVINEGIFT 0x0008 /* Sacrifice gifts, crowning */
-#define LL_LIFESAVE   0x0010 /* Use up amulet of lifesaving */
-#define LL_CONDUCT    0x0020 /* Break conduct - not reported early-game */
-#define LL_ARTIFACT   0x0040 /* Excalibur, Sting, Orcrist, plus sac gifts and artwishes */
-#define LL_GENOCIDE   0x0080 /* Logging of genocides */
-#define LL_KILLEDPET  0x0100 /* Killed a tame monster */
-#define LL_ALIGNMENT  0x0200 /* changed alignment temporarily or permanently */
-#define LL_DUMP_ASC   0x0400 /* Log URL for dumplog if ascended */
-#define LL_DUMP_ALL   0x0800 /* Log dumplog url for all games */
-#define LL_MINORAC    0x1000 /* Log 'minor' achievements - can be spammy */
-#define LL_DEBUG      0x8000 /* For debugging messages and other spam */
+#define LL_NONE       0x0000L /* No message is livelogged */
+#define LL_WISH       0x0001L /* Report stuff people type at the wish prompt */
+#define LL_ACHIEVE    0x0002L /* Achievements bitfield + invocation, planes */
+#define LL_UMONST     0x0004L /* defeated unique monster */
+#define LL_DIVINEGIFT 0x0008L /* Sacrifice gifts, crowning */
+#define LL_LIFESAVE   0x0010L /* Use up amulet of lifesaving */
+#define LL_CONDUCT    0x0020L /* Break conduct - not reported early-game */
+#define LL_ARTIFACT   0x0040L /* bestowed, found, or manifactured */
+#define LL_GENOCIDE   0x0080L /* Logging of genocides */
+#define LL_KILLEDPET  0x0100L /* Killed a tame monster */
+#define LL_ALIGNMENT  0x0200L /* changed alignment, temporary or permanent */
+#define LL_DUMP_ASC   0x0400L /* Log URL for dumplog if ascended */
+#define LL_DUMP_ALL   0x0800L /* Log dumplog url for all games */
+#define LL_MINORAC    0x1000L /* Log 'minor' achievements - can be spammy */
+#define LL_SPOILER    0x2000L /* reveals information so don't show in-game
+                               * via #chronicle unless in wizard mode */
+#define LL_DUMP       0x4000L /* none of the above but should be in dumplog */
+#define LL_DEBUG      0x8000L /* For debugging messages and other spam */
+
+/*
+ * Lua sandbox
+ */
+/* Control block for setting up a Lua state with nhl_init(). */
+typedef struct nhl_sandbox_info {
+    uint32_t  flags;       /* see below */
+    uint32_t  memlimit;    /* approximate memory limit */
+    uint32_t  steps;       /* instruction limit for state OR ... */
+    uint32_t  perpcall;    /* ... instruction limit per nhl_pcall */
+} nhl_sandbox_info;
+
+/* For efficiency, we only check every NHL_SB_STEPSIZE instructions. */
+#ifndef NHL_SB_STEPSIZE
+#define NHL_SB_STEPSIZE 1000
+#endif
+
+/* High level groups.  Use these flags. */
+    /* Safe functions. */
+#define NHL_SB_SAFE        0x80000000
+    /* Access to Lua version information. */
+#define NHL_SB_VERSION     0x40000000
+    /* Debugging library - mostly unsafe. */
+#define NHL_SB_DEBUGGING   0x08000000
+    /* Use with memlimit/steps/perpcall to get usage. */
+#define NHL_SB_REPORT      0x04000000
+    /* As above, but do full gc on each nhl_pcall. */
+#define NHL_SB_REPORT2     0x02000000
+
+/* Low level groups.  If you need these, you probably need to define
+ * a new high level group instead. */
+#define NHL_SB_STRING      0x00000001
+#define NHL_SB_TABLE       0x00000002
+#define NHL_SB_COROUTINE   0x00000004
+#define NHL_SB_MATH        0x00000008
+#define NHL_SB_UTF8        0x00000010
+#ifdef notyet
+#define NHL_SB_IO          0x00000020
+#endif
+#define NHL_SB_OS          0x00000040
+
+#define NHL_SB_BASEMASK    0x00000f80
+#define NHL_SB_BASE_BASE   0x00000080
+#define NHL_SB_BASE_ERROR  0x00000100
+#define NHL_SB_BASE_META   0x00000200
+#define NHL_SB_BASE_GC     0x00000400
+#define NHL_SB_BASE_UNSAFE 0x00000800
+
+#define NHL_SB_DBMASK      0x00003000
+#define NHL_SB_DB_DB       0x00001000
+#define NHL_SB_DB_SAFE     0x00002000
+
+#define NHL_SB_OSMASK      0x0000c000
+#define NHL_SB_OS_TIME     0x00004000
+#define NHL_SB_OS_FILES    0x00008000
+
+#define NHL_SB_ALL         0x0000ffff
+
+/* return codes */
+#define NHL_SBRV_DENY 1
+#define NHL_SBRV_ACCEPT 2
+#define NHL_SBRV_FAIL 3
 
 #endif /* GLOBAL_H */

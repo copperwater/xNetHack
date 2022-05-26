@@ -1,4 +1,4 @@
-/* NetHack 3.7	restore.c	$NHDT-Date: 1629818407 2021/08/24 15:20:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.183 $ */
+/* NetHack 3.7	restore.c	$NHDT-Date: 1649530943 2022/04/09 19:02:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.194 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -30,6 +30,7 @@ static void ghostfruit(struct obj *);
 static boolean restgamestate(NHFILE *, unsigned int *, unsigned int *);
 static void restlevelstate(unsigned int, unsigned int);
 static int restlevelfile(xchar);
+static void rest_bubbles(NHFILE *);
 static void restore_gamelog(NHFILE *);
 static void restore_msghistory(NHFILE *);
 static void reset_oattached_mids(boolean);
@@ -90,6 +91,14 @@ find_lev_obj(void)
     while ((otmp = fobjtmp) != 0) {
         fobjtmp = otmp->nobj;
         place_object(otmp, otmp->ox, otmp->oy);
+
+        /* fixup(s) performed when restoring the level that the hero
+           is on, rather than just an arbitrary one */
+        if (u.uz.dlevel) { /* 0 during full restore until current level */
+            /* handle uchain and uball when they're on the floor */
+            if (otmp->owornmask & (W_BALL | W_CHAIN))
+                setworn(otmp, otmp->owornmask);
+        }
     }
 }
 
@@ -146,43 +155,22 @@ restdamage(NHFILE* nhfp)
     boolean ghostly = (nhfp->ftype == NHF_BONESFILE);
 
     if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &dmgcount, sizeof(dmgcount));
+        mread(nhfp->fd, (genericptr_t) &dmgcount, sizeof dmgcount);
     counter = (int) dmgcount;
 
     if (!counter)
         return;
-    tmp_dam = (struct damage *) alloc(sizeof(struct damage));
-    while (--counter >= 0) {
-        char damaged_shops[5], *shp = (char *) 0;
-
+    do {
+        tmp_dam = (struct damage *) alloc(sizeof *tmp_dam);
         if (nhfp->structlevel)
-            mread(nhfp->fd, (genericptr_t) tmp_dam, sizeof(*tmp_dam));
+            mread(nhfp->fd, (genericptr_t) tmp_dam, sizeof *tmp_dam);
 
         if (ghostly)
             tmp_dam->when += (g.moves - g.omoves);
-        Strcpy(damaged_shops,
-               in_rooms(tmp_dam->place.x, tmp_dam->place.y, SHOPBASE));
-        if (u.uz.dlevel) {
-            /* when restoring, there are two passes over the current
-             * level.  the first time, u.uz isn't set, so neither is
-             * shop_keeper().  just wait and process the damage on
-             * the second pass.
-             */
-            for (shp = damaged_shops; *shp; shp++) {
-                struct monst *shkp = shop_keeper(*shp);
 
-                if (shkp && inhishop(shkp)
-                    && repair_damage(shkp, tmp_dam, TRUE))
-                    break;
-            }
-        }
-        if (!shp || !*shp) {
-            tmp_dam->next = g.level.damagelist;
-            g.level.damagelist = tmp_dam;
-            tmp_dam = (struct damage *) alloc(sizeof(*tmp_dam));
-        }
-    }
-    free((genericptr_t) tmp_dam);
+        tmp_dam->next = g.level.damagelist;
+        g.level.damagelist = tmp_dam;
+    } while (--counter > 0);
 }
 
 /* restore one object */
@@ -706,7 +694,6 @@ restgamestate(NHFILE* nhfp, unsigned int* stuckid, unsigned int* steedid)
     g.ffruit = loadfruitchn(nhfp);
 
     restnames(nhfp);
-    restore_waterlevel(nhfp);
     restore_msghistory(nhfp);
     restore_gamelog(nhfp);
     /* must come after all mons & objs are restored */
@@ -773,7 +760,6 @@ dorecover(NHFILE* nhfp)
     unsigned int stuckid = 0, steedid = 0; /* not a register */
     xchar ltmp = 0;
     int rtmp;
-    struct obj *otmp;
 
     /* suppress map display if some part of the code tries to update that */
     g.program_state.restoring = 1;
@@ -872,10 +858,6 @@ dorecover(NHFILE* nhfp)
     reset_glyphmap(gm_levelchange);
     max_rank_sz(); /* to recompute g.mrank_sz (botl.c) */
     init_oclass_probs(); /* recompute g.oclass_prob_totals[] */
-    /* take care of iron ball & chain */
-    for (otmp = fobj; otmp; otmp = otmp->nobj)
-        if (otmp->owornmask)
-            setworn(otmp, otmp->owornmask);
 
     if ((uball && !uchain) || (uchain && !uball)) {
         impossible("restgamestate: lost ball & chain");
@@ -1160,6 +1142,7 @@ getlev(NHFILE* nhfp, int pid, xchar lev)
     }
     restdamage(nhfp);
     rest_regions(nhfp);
+    rest_bubbles(nhfp); /* for water and air; empty marker on other levels */
 
     if (ghostly) {
         stairway *stway = g.stairs;
@@ -1248,6 +1231,23 @@ get_plname_from_file(NHFILE* nhfp, char *plbuf)
         (void) read(nhfp->fd, (genericptr_t) plbuf, pltmpsiz);
     }
     return;
+}
+
+/* restore Plane of Water's air bubbles and Plane of Air's clouds */
+static void
+rest_bubbles(NHFILE *nhfp)
+{
+    xchar bbubbly;
+
+    /* whether or not the Plane of Water's air bubbles or Plane of Air's
+       clouds are present is recorded during save so that we don't have to
+       know what level is being restored */
+    bbubbly = 0;
+    if (nhfp->structlevel)
+        mread(nhfp->fd, (genericptr_t) &bbubbly, sizeof bbubbly);
+
+    if (bbubbly)
+        restore_waterlevel(nhfp);
 }
 
 static void
@@ -1458,7 +1458,7 @@ restore_menu(
 int
 validate(NHFILE* nhfp, const char *name)
 {
-    int rlen = 0;
+    readLenType rlen = 0;
     struct savefile_info sfi;
     unsigned long utdflags = 0L;
     boolean verbose = name ? TRUE : FALSE, reslt = FALSE;
@@ -1469,10 +1469,10 @@ validate(NHFILE* nhfp, const char *name)
 
     if ((nhfp->mode & WRITING) == 0) {
 	if (nhfp->structlevel)
-            rlen = read(nhfp->fd, (genericptr_t) &sfi, sizeof sfi);
+            rlen = (readLenType) read(nhfp->fd, (genericptr_t) &sfi, sizeof sfi);
     } else {
         if (nhfp->structlevel)
-            rlen = read(nhfp->fd, (genericptr_t) &sfi, sizeof sfi);
+            rlen = (readLenType) read(nhfp->fd, (genericptr_t) &sfi, sizeof sfi);
         minit();		/* ZEROCOMP */
         if (rlen == 0) {
 	    if (verbose) {

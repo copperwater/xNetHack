@@ -1,4 +1,4 @@
--- NetHack 3.7	Arch.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.10 $
+-- NetHack Archeologist Arc-filb.lua	$NHDT-Date: 1652195998 2022/05/10 15:19:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -136,7 +136,8 @@ for i=1,60 do
    local wallsE = selection.match(".w ")
    local wallsW = selection.match(" w.")
    local allwalls = wallsN | wallsS | wallsE | wallsW
-   local wx, wy = allwalls:rndcoord(1) -- remove this spot from allwalls
+   local wallpt = allwalls:rndcoord(1) -- remove this spot from allwalls
+   local wx, wy = wallpt.x, wallpt.y
 
    -- des.terrain({ selection = wallsN, typ="}" })
    local north, south, east, west = false, false, false, false
@@ -191,13 +192,13 @@ if n_ends > 0 then
    -- Attempt to place the downstair sufficiently far away from the upstair.
    local stairell = selection.ellipse(ustairx, ustairy, 20, 10, 1):negate()
    local far_ends = stairell & deadends
-   local dstairx,dstairy = far_ends:rndcoord()
-   if dstairx < 0 or dstairy < 0 then
+   local dstair = far_ends:rndcoord()
+   if dstair.x < 0 or dstair.y < 0 then
       -- pick any dead end; potential future extension is to find the furthest
       -- one away
-      dstairx, dstairy = deadends:rndcoord()
+      dstair = deadends:rndcoord()
    end
-   des.stair({ dir = "down", coord = {dstairx, dstairy} })
+   des.stair({ dir = "down", coord = dstair })
 else
    des.stair("down")
 end
@@ -211,7 +212,7 @@ end
 local n_mummies = 10 + d(4,4)
 local mummies_in_ends = math.min(math.floor(n_ends * 3 / 4), n_mummies)
 function mkmummy(deadend)
-   local template = { class='M', id='human mummy', waiting=1, coord={deadends:rndcoord()} }
+   local template = { class='M', id='human mummy', waiting=1, coord=deadends:rndcoord() }
    if not deadend then
       template['coord'] = nil
    end
@@ -240,7 +241,7 @@ for i=1,4+d(6) do
    if snk_room == nil then
       des.monster(snkid)
    else
-      des.monster({ id=snkid, coord={snakerooms[snk_room]:rndcoord()} })
+      des.monster({ id=snkid, coord=snakerooms[snk_room]:rndcoord() })
    end
 end
 
@@ -254,7 +255,7 @@ for i = 1,10+d(10) do
    des.object({ id="gold piece", quantity = d(250) })
 end
 for i=1,2+d(3) do
-   local template = { id="chest", coord={deadends:rndcoord()} }
+   local template = { id="chest", coord=deadends:rndcoord() }
    if percent(50) then
       -- make it a mummy trap
       template['trapped'] = 1
@@ -268,6 +269,6 @@ end
 local wpn_mats = { "copper", "silver", "gold", "bone" }
 local wpns = { "short sword", "dagger", "knife", "spear", "javelin", "quarterstaff", "axe", "flail" }
 for i=1,d(2,4) do
-   des.object({ id=wpns[d(#wpns)], material=wpn_mats[d(#wpn_mats)], coord={deadends:rndcoord()} })
+   des.object({ id=wpns[d(#wpns)], material=wpn_mats[d(#wpn_mats)], coord=deadends:rndcoord() })
 end
 

@@ -1,4 +1,4 @@
-/* NetHack 3.7	mklev.c	$NHDT-Date: 1613085478 2021/02/11 23:17:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.104 $ */
+/* NetHack 3.7	mklev.c	$NHDT-Date: 1648066813 2022/03/23 20:20:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.121 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Alex Smith, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -296,10 +296,11 @@ makerooms(void)
     boolean tried_vault = FALSE;
     int themeroom_tries = 0;
     char *fname;
+    nhl_sandbox_info sbi = {NHL_SB_SAFE, 0, 0, 0};
     lua_State *themes = (lua_State *) g.luathemes[u.uz.dnum];
 
     if (!themes && *(fname = g.dungeons[u.uz.dnum].themerms)) {
-        if ((themes = nhl_init()) != 0) {
+        if ((themes = nhl_init(&sbi)) != 0) {
             if (!nhl_loadlua(themes, fname)) {
                 /* loading lua failed, don't use themed rooms */
                 nhl_done(themes);
@@ -339,7 +340,9 @@ makerooms(void)
                 iflags.in_lua = g.in_mk_themerooms = TRUE;
                 g.themeroom_failed = FALSE;
                 lua_getglobal(themes, "themerooms_generate");
-                lua_call(themes, 0, 0);
+		if ( nhl_pcall(themes, 0, 0)){
+		    impossible("Lua error: %s", lua_tostring(themes, -1));
+		}
                 iflags.in_lua = g.in_mk_themerooms = FALSE;
                 if (g.themeroom_failed
                     && ((themeroom_tries++ > 10)
@@ -774,6 +777,8 @@ static NEARDATA const char *trap_engravings[TRAPNUM] = {
     /* 14..16: trap door, teleport, level-teleport */
     "Vlad was here", "ad aerarium", "ad aerarium", (char *) 0, (char *) 0,
     (char *) 0,      (char *) 0,    (char *) 0,    (char *) 0, (char *) 0,
+    /* 24..25 */
+    (char *) 0, (char *) 0,
 };
 
 /* Actually create a niche/closet, on a random room. Place a trap on it if
@@ -835,7 +840,7 @@ makeniche(int trap_type)
                 else {
                     /* inaccessible niches occasionally have iron bars */
                     if (!rn2(5) && IS_WALL(levl[xx][yy].typ)) {
-                        levl[xx][yy].typ = IRONBARS;
+                        (void) set_levltyp(xx, yy, IRONBARS);
                         if (rn2(3))
                             /* For the love of God, Montresor! */
                             (void) mkcorpstat(CORPSE, (struct monst *) 0,
@@ -1045,7 +1050,7 @@ fill_ordinary_room(struct mkroom *croom)
 {
     int trycnt = 0;
     coord pos;
-    int x;
+    int x, y;
 
     if (croom->rtype != OROOM && croom->rtype != THEMEROOM)
         return;
@@ -1068,18 +1073,18 @@ fill_ordinary_room(struct mkroom *croom)
      * attempts to find a ROOM, CORR or ICE square, all of which are
      * ACCESSIBLE. */
     if (!rn2(10))
-        mkfeature(FOUNTAIN, croom);
+        mkfount(0, croom);
     if (!rn2(60))
-        mkfeature(SINK, croom);
+        mksink(croom);
     if (!rn2(60))
-        mkfeature(ALTAR, croom);
+        mkaltar(croom);
     if (!rn2(30 + (depth(&u.uz) * 5)))
-        mkfeature(TREE, croom);
+        mktree(croom);
     x = 80 - (depth(&u.uz) * 2);
     if (x < 2)
         x = 2;
     if (!rn2(x))
-        mkfeature(GRAVE, croom);
+        mkgrave(croom);
 
     /* put traps and mimics inside */
     x = 8 - (level_difficulty() / 6);
@@ -1128,7 +1133,19 @@ fill_ordinary_room(struct mkroom *croom)
         }
     }
     else if (!rn2(27 + 3 * abs(depth(&u.uz)))) {
-        mkfeature(0, croom);
+        char buf[BUFSZ];
+        const char *mesg = random_engraving(buf);
+
+        if (mesg) {
+            do {
+                somexyspace(croom, &pos);
+                x = pos.x;
+                y = pos.y;
+            } while (levl[x][y].typ != ROOM && !rn2(40));
+            if (!(IS_POOL(levl[x][y].typ)
+                    || IS_FURNITURE(levl[x][y].typ)))
+                make_engr_at(x, y, mesg, 0L, MARK);
+        }
     }
 
     /* place a random object in the room (40% chance), with a recursive 20%
@@ -1395,6 +1412,10 @@ level_finalize_topology(void)
     bound_digging();
     mineralize(-1, -1, -1, -1, FALSE);
     g.in_mklev = FALSE;
+    /* avoid coordinates in future lua-loads for this level being thrown off
+     * because xstart and ystart aren't saved with the level and will be 0 after
+     * leaving and returning */
+    g.xstart = g.ystart = 0;
     /* has_morgue gets cleared once morgue is entered; graveyard stays
        set (graveyard might already be set even when has_morgue is clear
        [see fixup_special()], so don't update it unconditionally) */
@@ -1523,8 +1544,9 @@ find_branch_room(coord *mp)
  * If x is zero, pick the branch room and coordinates within it randomly.
  * If br is null, or the global made_branch is TRUE, do nothing. */
 void
-place_branch(branch *br,       /* branch to place */
-             xchar x, xchar y) /* location */
+place_branch(
+    branch *br,       /* branch to place */
+    xchar x, xchar y) /* location */
 {
     coord m = {0};
     d_level *dest;
@@ -1563,8 +1585,8 @@ place_branch(branch *br,       /* branch to place */
                                                      : !br->end1_up;
 
         stairway_add(x, y, goes_up, FALSE, dest);
+        (void) set_levltyp(x, y, STAIRS);
         levl[x][y].ladder = goes_up ? LA_UP : LA_DOWN;
-        levl[x][y].typ = STAIRS;
     }
     /*
      * Set made_branch to TRUE even if we didn't make a stairwell (i.e.
@@ -1657,7 +1679,7 @@ dodoor(int x, int y, struct mkroom *aroom)
  * something.
  */
 boolean
-occupied(register xchar x, register xchar y)
+occupied(xchar x, xchar y)
 {
     return (boolean) (t_at(x, y) || IS_FURNITURE(levl[x][y].typ)
                       || !ACCESSIBLE(levl[x][y].typ) /* covers lava and water */
@@ -1682,7 +1704,11 @@ occupied(register xchar x, register xchar y)
  * lethal, create a minimal fake bones pile on the trap.
  */
 void
-mktrap(int num, int mktrapflags, struct mkroom *croom, coord *tm)
+mktrap(
+    int num,
+    int mktrapflags,
+    struct mkroom *croom,
+    coord *tm)
 {
     register int kind;
     struct trap *t;
@@ -1693,7 +1719,7 @@ mktrap(int num, int mktrapflags, struct mkroom *croom, coord *tm)
     if (tm && is_pool(tm->x, tm->y))
         return;
 
-    if (num > 0 && num < TRAPNUM) {
+    if (num > NO_TRAP && num < TRAPNUM) {
         kind = num;
     } else if (Inhell && !rn2(5)) {
         /* bias the frequency of fire traps in Gehennom */
@@ -1703,6 +1729,14 @@ mktrap(int num, int mktrapflags, struct mkroom *croom, coord *tm)
             kind = rnd(TRAPNUM - 1);
             /* reject "too hard" traps */
             switch (kind) {
+            /* these are controlled by the feature or object they guard,
+               not by the map so mustn't be created on it */
+            case TRAPPED_DOOR:
+            case TRAPPED_CHEST:
+                kind = NO_TRAP;
+                break;
+            /* these can have a random location but can't be generated
+               randomly */
             case MAGIC_PORTAL:
             case VIBRATING_SQUARE:
                 kind = NO_TRAP;
@@ -1785,6 +1819,8 @@ mktrap(int num, int mktrapflags, struct mkroom *croom, coord *tm)
 
     if (kind == WEB && !(mktrapflags & MKTRAP_NOSPIDERONWEB))
         (void) makemon(&mons[PM_GIANT_SPIDER], m.x, m.y, NO_MM_FLAGS);
+    if (t && (mktrapflags & MKTRAP_SEEN))
+        t->tseen = TRUE;
 
     /* The hero isn't the only person who's entered the dungeon in
        search of treasure. On the very shallowest levels, there's a
@@ -1929,19 +1965,31 @@ mktrap(int num, int mktrapflags, struct mkroom *croom, coord *tm)
     }
 }
 
-/* Create some (non-branch) stairs at (x,y) (absolute coords) inside croom.
- * up is whether or not it's upstairs.
- */
+/* Create stairs up or down at x,y.
+   If force is TRUE, change the terrain to ROOM first */
 void
-mkstairs(xchar x, xchar y,
-         char up,       /* [why 'char' when usage is boolean?] */
-         struct mkroom *croom UNUSED)
+mkstairs(
+    xchar x, xchar y,
+    char up,       /* [why 'char' when usage is boolean?] */
+    struct mkroom *croom UNUSED,
+    boolean force)
 {
+    int ltyp;
     d_level dest;
 
-    if (!x) {
+    if (!x || !isok(x, y)) {
         impossible("mkstairs:  bogus stair attempt at <%d,%d>", x, y);
         return;
+    }
+    if (force)
+        levl[x][y].typ = ROOM;
+    ltyp = levl[x][y].typ; /* somexyspace() allows ice */
+    if (ltyp != ROOM && ltyp != CORR && ltyp != ICE) {
+        int glyph = back_to_glyph(x, y),
+            sidx = glyph_to_cmap(glyph);
+
+        impossible("mkstairs:  placing stairs %s on %s at <%d,%d>",
+                   up ? "up" : "down", defsyms[sidx].explanation, x, y);
     }
 
     /*
@@ -1949,28 +1997,28 @@ mkstairs(xchar x, xchar y,
      * attempt can happen when a special level is placed at an end and
      * has an up or down stair specified in its description file.
      */
-    if ((dunlev(&u.uz) == 1 && up)
-        || (dunlev(&u.uz) == dunlevs_in_dungeon(&u.uz) && !up))
+    if (dunlev(&u.uz) == (up ? 1 : dunlevs_in_dungeon(&u.uz)))
         return;
 
     dest.dnum = u.uz.dnum;
     dest.dlevel = u.uz.dlevel + (up ? -1 : 1);
     stairway_add(x, y, up ? TRUE : FALSE, FALSE, &dest);
 
-    levl[x][y].typ = STAIRS;
+    (void) set_levltyp(x, y, STAIRS);
     levl[x][y].ladder = up ? LA_UP : LA_DOWN;
 }
 
 /* is room a good one to generate up or down stairs in? */
-/* phase values, smaller allows for more relaxed criteria:
-     2 == no relaxed criteria
-     1 == allow a themed room
-     0 == allow same room as existing up/downstairs
-    -1 == allow an unjoined room
-*/
 static boolean
 generate_stairs_room_good(struct mkroom *croom, int phase)
 {
+    /*
+     * phase values, smaller allows for more relaxed criteria:
+     *  2 == no relaxed criteria;
+     *  1 == allow a themed room;
+     *  0 == allow same room as existing up/downstairs;
+     * -1 == allow an unjoined room.
+     */
     return (croom && (croom->needjoining || (phase < 0))
             && ((!has_dnstairs(croom) && !has_upstairs(croom))
                 || phase < 1)
@@ -1991,9 +2039,9 @@ generate_stairs_find_room(void)
     for (phase = 2; phase > -1; phase--) {
         do {
             croom = &g.rooms[rn2(g.nroom)];
-        } while (!generate_stairs_room_good(croom, phase) && (tryct++ < 50));
-        if (tryct < 50)
-            return croom;
+            if (generate_stairs_room_good(croom, phase))
+                return croom;
+        } while (tryct++ < 50);
     }
 
     for (phase = 2; phase > -2; phase--) {
@@ -2021,7 +2069,7 @@ generate_stairs(void)
             pos.x = somex(croom);
             pos.y = somey(croom);
         }
-        mkstairs(pos.x, pos.y, 0, croom); /* down */
+        mkstairs(pos.x, pos.y, 0, croom, FALSE); /* down */
     }
 
     if (g.nroom > 1)
@@ -2033,7 +2081,7 @@ generate_stairs(void)
             pos.x = somex(croom);
             pos.y = somey(croom);
         }
-        mkstairs(pos.x, pos.y, 1, croom); /* up */
+        mkstairs(pos.x, pos.y, 1, croom, FALSE); /* up */
     }
 }
 
@@ -2057,6 +2105,31 @@ mkmonst_in_room(struct mkroom *croom)
         num_monst += mkmonst_in_room(croom);
     }
     return num_monst;
+}
+
+void
+mkfount(int mazeflag, struct mkroom *croom)
+{
+    coord m;
+    register int tryct = 0;
+
+    do {
+        if (++tryct > 200)
+            return;
+        if (mazeflag)
+            mazexy(&m);
+        else if (!somexy(croom, &m))
+            return;
+    } while (occupied(m.x, m.y) || bydoor(m.x, m.y));
+
+    /* Put a fountain at m.x, m.y */
+    if (!set_levltyp(m.x, m.y, FOUNTAIN))
+        return;
+    /* Is it a "blessed" fountain? (affects drinking from fountain) */
+    if (!rn2(7))
+        levl[m.x][m.y].blessedftn = 1;
+
+    g.level.flags.nfountains++;
 }
 
 static boolean
@@ -2088,102 +2161,111 @@ bury_sink_ring(xchar x, xchar y)
     add_to_buried(ring);
 }
 
-/* Place the given dungeon feature in room croom.
- * If typ is 0, place an engraving instead. */
 void
-mkfeature(xchar typ, struct mkroom *croom)
+mksink(struct mkroom *croom)
 {
     coord m;
-    int tryct = 0;
 
-    if (!croom)
+    if (!find_okay_roompos(croom, &m))
+        return;
+
+    /* Put a sink at m.x, m.y */
+    if (!set_levltyp(m.x, m.y, SINK))
+        return;
+
+    /* All sinks have a ring stuck in the pipes below */
+    bury_sink_ring(m.x, m.y);
+
+    g.level.flags.nsinks++;
+}
+
+void
+mkaltar(struct mkroom *croom)
+{
+    coord m;
+    aligntyp al;
+
+    if (croom->rtype != OROOM)
         return;
 
     if (!find_okay_roompos(croom, &m))
         return;
 
-    if (typ == FOUNTAIN) {
-        levl[m.x][m.y].typ = FOUNTAIN;
-        /* May become a magic fountain with 1/7 chance. */
-        if (!rn2(7))
-            levl[m.x][m.y].blessedftn = 1;
-        g.level.flags.nfountains++;
-    }
-    else if (typ == SINK) {
-        levl[m.x][m.y].typ = SINK;
-        /* All sinks have a ring stuck in the pipes below */
-        bury_sink_ring(m.x, m.y);
-        g.level.flags.nsinks++;
-    }
-    else if (typ == ALTAR) {
-        levl[m.x][m.y].typ = ALTAR;
-        /* Set its alignment randomly with uniform probability.
-         * TODO: Allow this to make Moloch altars in Gehennom. */
-        aligntyp al;
-        /* -1 - A_CHAOTIC, 0 - A_NEUTRAL, 1 - A_LAWFUL */
-        al = rn2((int) A_LAWFUL + 2) - 1;
-        levl[m.x][m.y].altarmask = Align2amask(al);
-    }
-    else if (typ == GRAVE) {
-        /* Special rules:
-         * 1/10 of graves get a bell placed on them with "Saved by the bell!".
-         *   The inscription is otherwise pulled from epitaph.
-         * 1/11 of graves get a scroll of water with "Apres moi, le deluge.".
-         * 1/3 of graves get gold buried in them.
-         * 0-4 random cursed objects may be buried under the grave.
-         */
-        register struct obj *otmp;
-        const char * inscription = NULL;
-        if (!rn2(10)) {
-            /* Leave a bell, in case we accidentally buried someone alive */
-            inscription = "Saved by the bell!";
-            mksobj_at(BELL, m.x, m.y, TRUE, FALSE);
-        }
-        else if (!rn2(11)) {
-            inscription = "Apres moi, le deluge.";
-            mksobj_at(SCR_WATER, m.x, m.y, TRUE, FALSE);
-        }
+    /* Put an altar at m.x, m.y */
+    if (!set_levltyp(m.x, m.y, ALTAR))
+        return;
 
-        /* Put a grave at <m.x,m.y> */
-        make_grave(m.x, m.y, inscription);
+    /* -1 - A_CHAOTIC, 0 - A_NEUTRAL, 1 - A_LAWFUL */
+    al = rn2((int) A_LAWFUL + 2) - 1;
+    levl[m.x][m.y].altarmask = Align2amask(al);
+}
 
-        /* Possibly fill it with objects */
-        if (!rn2(3)) {
-            /* this used to use mkgold(), which puts a stack of gold on
-            the ground (or merges it with an existing one there if
-            present), and didn't bother burying it; now we create a
-            loose, easily buriable, stack but we make no attempt to
-            replicate mkgold()'s level-based formula for the amount */
-            struct obj *gold = mksobj(GOLD_PIECE, TRUE, FALSE);
+void
+mkgrave(struct mkroom *croom)
+{
+    coord m;
+    register int tryct = 0;
+    register struct obj *otmp;
+    const char * inscription = (const char *) 0;
 
-            gold->quan = (long) (rnd(20) + level_difficulty() * rnd(5));
-            gold->owt = weight(gold);
-            gold->ox = m.x, gold->oy = m.y;
-            add_to_buried(gold);
-        }
+    if (croom->rtype != OROOM)
+        return;
 
-        for (tryct = rn2(5); tryct; tryct--) {
-            otmp = mkobj(RANDOM_CLASS, TRUE);
-            if (!otmp)
-                break;
-            curse(otmp);
-            otmp->ox = m.x;
-            otmp->oy = m.y;
-            add_to_buried(otmp);
-        }
+    if (!find_okay_roompos(croom, &m))
+        return;
+
+    /* Put a grave at <m.x,m.y> */
+    if (!rn2(10)) {
+        /* Leave a bell, in case we accidentally buried someone alive */
+        inscription = "Saved by the bell!";
+        mksobj_at(BELL, m.x, m.y, TRUE, FALSE);
     }
-    else if (typ == TREE) {
-        levl[m.x][m.y].typ = TREE;
+    else if (!rn2(11)) {
+        inscription = "Apres moi, le deluge.";
+        mksobj_at(SCR_WATER, m.x, m.y, TRUE, FALSE);
     }
-    else if (!typ) {
-        /* engraving */
-        char buf[BUFSZ];
-        const char *mesg = random_engraving(buf);
 
-        if (mesg) {
-            make_engr_at(m.x, m.y, mesg, 0L, MARK);
-        }
+    /* Put a grave at <m.x,m.y> */
+    make_grave(m.x, m.y, inscription);
+
+    /* Possibly fill it with objects */
+    if (!rn2(3)) {
+        /* this used to use mkgold(), which puts a stack of gold on
+           the ground (or merges it with an existing one there if
+           present), and didn't bother burying it; now we create a
+           loose, easily buriable, stack but we make no attempt to
+           replicate mkgold()'s level-based formula for the amount */
+        struct obj *gold = mksobj(GOLD_PIECE, TRUE, FALSE);
+
+        gold->quan = (long) (rnd(20) + level_difficulty() * rnd(5));
+        gold->owt = weight(gold);
+        gold->ox = m.x, gold->oy = m.y;
+        add_to_buried(gold);
     }
+
+    for (tryct = rn2(5); tryct; tryct--) {
+        otmp = mkobj(RANDOM_CLASS, TRUE);
+        if (!otmp)
+            break;
+        curse(otmp);
+        otmp->ox = m.x;
+        otmp->oy = m.y;
+        add_to_buried(otmp);
+    }
+}
+
+void
+mktree(struct mkroom *croom)
+{
+    coord m;
+
+    if (croom->rtype != OROOM)
+        return;
+
+    if (!find_okay_roompos(croom, &m))
+        return;
+
+    set_levltyp(m.x, m.y, TREE);
 }
 
 /* maze levels have slightly different constraints from normal levels */
@@ -2251,7 +2333,7 @@ mkinvokearea(void)
     }
 
     You("are standing at the top of a stairwell leading down!");
-    mkstairs(u.ux, u.uy, 0, (struct mkroom *) 0); /* down */
+    mkstairs(u.ux, u.uy, 0, (struct mkroom *) 0, FALSE); /* down */
     newsym(u.ux, u.uy);
     g.vision_full_recalc = 1; /* everything changed */
 }
@@ -2335,7 +2417,7 @@ mkinvpos(xchar x, xchar y, int dist)
             seemimic(mon);
 
         if ((ttmp = t_at(x, y)) != 0)
-            (void) mintrap(mon);
+            (void) mintrap(mon, NO_TRAP_FLAGS);
         else
             (void) minliquid(mon);
     }

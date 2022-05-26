@@ -1,4 +1,4 @@
-/* NetHack 3.7	artifact.c	$NHDT-Date: 1620326528 2021/05/06 18:42:08 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.167 $ */
+/* NetHack 3.7	artifact.c	$NHDT-Date: 1646870837 2022/03/10 00:07:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.182 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -39,6 +39,32 @@ static int count_surround_traps(int, int);
    of hit points that will fit in a 15 bit integer. */
 #define FATAL_DAMAGE_MODIFIER 200
 
+/* artifact tracking; gift and wish imply found; it also gets set for items
+   seen on the floor, in containers, and wielded or dropped by monsters */
+struct arti_info {
+    Bitfield(exists, 1); /* 1 if corresponding artifact has been created */
+    Bitfield(found, 1);  /* 1 if artifact is known by hero to exist */
+    Bitfield(gift, 1);   /* 1 iff artifact was created as a prayer reward */
+    Bitfield(wish, 1);   /* 1 iff artifact was created via wish */
+    Bitfield(named, 1);  /* 1 iff artifact was made by naming an item */
+    Bitfield(viadip, 1); /* 1 iff dipped long sword became Excalibur */
+    Bitfield(lvldef, 1); /* 1 iff created by special level definition */
+    Bitfield(bones, 1);  /* 1 iff came from bones file */
+    Bitfield(rndm, 1);   /* 1 iff randomly generated */
+};
+/* array of flags tracking which artifacts exist, indexed by ART_xx;
+   ART_xx values are 1..N, element [0] isn't used; no terminator needed */
+static struct arti_info artiexist[1 + NROFARTIFACTS];
+/* discovery list; for N discovered artifacts, the first N entries are ART_xx
+   values in discovery order, the remaining (NROFARTIFACTS-N) slots are 0 */
+static xchar artidisco[NROFARTIFACTS];
+/* note: artiexist[] and artidisco[] don't need to be in struct g; they
+ * get explicitly initialized at game start so don't need to be part of
+ * bulk re-init if game restart ever gets implemented.  They are saved
+ * and restored but that is done through this file so they can be local.
+ */
+static const struct arti_info zero_artiexist = {0}; /* all bits zero */
+
 static void hack_artifacts(void);
 static boolean attacks(int, struct obj *);
 
@@ -70,8 +96,8 @@ hack_artifacts(void)
 void
 init_artifacts(void)
 {
-    (void) memset((genericptr_t) g.artiexist, 0, sizeof g.artiexist);
-    (void) memset((genericptr_t) g.artidisco, 0, sizeof g.artidisco);
+    (void) memset((genericptr_t) artiexist, 0, sizeof artiexist);
+    (void) memset((genericptr_t) artidisco, 0, sizeof artidisco);
     hack_artifacts();
 }
 
@@ -79,8 +105,8 @@ void
 save_artifacts(NHFILE *nhfp)
 {
     if (nhfp->structlevel) {
-        bwrite(nhfp->fd, (genericptr_t) g.artiexist, sizeof g.artiexist);
-        bwrite(nhfp->fd, (genericptr_t) g.artidisco, sizeof g.artidisco);
+        bwrite(nhfp->fd, (genericptr_t) artiexist, sizeof artiexist);
+        bwrite(nhfp->fd, (genericptr_t) artidisco, sizeof artidisco);
     }
 }
 
@@ -88,8 +114,8 @@ void
 restore_artifacts(NHFILE *nhfp)
 {
     if (nhfp->structlevel) {
-        mread(nhfp->fd, (genericptr_t) g.artiexist, sizeof g.artiexist);
-        mread(nhfp->fd, (genericptr_t) g.artidisco, sizeof g.artidisco);
+        mread(nhfp->fd, (genericptr_t) artiexist, sizeof artiexist);
+        mread(nhfp->fd, (genericptr_t) artidisco, sizeof artidisco);
     }
     hack_artifacts();	/* redo non-saved special cases */
 }
@@ -114,8 +140,9 @@ artiname(int artinum)
    for the 1st, ``obj = mk_artifact((struct obj *)0, some_alignment);''.
  */
 struct obj *
-mk_artifact(struct obj *otmp,   /* existing object; ignored if alignment specified */
-            aligntyp alignment) /* target alignment, or A_NONE */
+mk_artifact(
+    struct obj *otmp,   /* existing object; ignored if alignment specified */
+    aligntyp alignment) /* target alignment, or A_NONE */
 {
     const struct artifact *a;
     int m, n, altn;
@@ -128,7 +155,7 @@ mk_artifact(struct obj *otmp,   /* existing object; ignored if alignment specifi
     eligible[0] = 0; /* lint suppression */
     /* gather eligible artifacts */
     for (m = 1, a = &artilist[m]; a->otyp; a++, m++) {
-        if (g.artiexist[m])
+        if (artiexist[m].exists)
             continue;
         if ((a->spfx & SPFX_NOGEN) || unique)
             continue;
@@ -188,9 +215,10 @@ mk_artifact(struct obj *otmp,   /* existing object; ignored if alignment specifi
         if (otmp) {
             /* prevent erosion from generating */
             otmp->oeroded = otmp->oeroded2 = 0;
-            otmp = oname(otmp, a->name);
+            otmp = oname(otmp, a->name, ONAME_NO_FLAGS);
             otmp->oartifact = m;
-            g.artiexist[m] = TRUE;
+            /* set existence and reason for creation bits */
+            artifact_origin(otmp, ONAME_RANDOM); /* 'random' is default */
         }
     } else {
         /* nothing appropriate could be found; return original object */
@@ -211,7 +239,10 @@ mk_artifact(struct obj *otmp,   /* existing object; ignored if alignment specifi
  * is non-NULL.
  */
 const char *
-artifact_name(const char *name, short *otyp)
+artifact_name(
+    const char *name, /* string from player that might be an artifact name */
+    short *otyp_p,    /* secondary output */
+    boolean fuzzy)    /* whether to allow extra or omitted spaces or dashes */
 {
     register const struct artifact *a;
     register const char *aname;
@@ -223,9 +254,10 @@ artifact_name(const char *name, short *otyp)
         aname = a->name;
         if (!strncmpi(aname, "the ", 4))
             aname += 4;
-        if (!strcmpi(name, aname)) {
-            if (otyp)
-                *otyp = a->otyp;
+        if (!fuzzy ? !strcmpi(name, aname)
+                   : fuzzymatch(name, aname, " -", TRUE)) {
+            if (otyp_p)
+                *otyp_p = a->otyp;
             return a->name;
         }
     }
@@ -237,45 +269,160 @@ boolean
 exist_artifact(int otyp, const char *name)
 {
     register const struct artifact *a;
-    boolean *arex;
+    struct arti_info *arex;
 
     if (otyp && *name)
-        for (a = artilist + 1, arex = g.artiexist + 1; a->otyp; a++, arex++)
+        for (a = artilist + 1, arex = artiexist + 1; a->otyp; a++, arex++)
             if ((int) a->otyp == otyp && !strcmp(a->name, name))
-                return *arex;
+                return arex->exists ? TRUE : FALSE;
     return FALSE;
 }
 
+/* an artifact has just been created or is being "un-created" for a chance
+   to be created again later */
 void
-artifact_exists(struct obj *otmp, const char *name, boolean mod)
+artifact_exists(
+    struct obj *otmp,
+    const char *name,
+    boolean mod,      /* True: exists, False: being un-created */
+    unsigned flgs)    /* ONAME_xyz flags; not relevant if !mod */
 {
     register const struct artifact *a;
 
     if (otmp && *name)
         for (a = artilist + 1; a->otyp; a++)
             if (a->otyp == otmp->otyp && !strcmp(a->name, name)) {
-                register int m = (int) (a - artilist);
+                int m = (int) (a - artilist);
+
                 otmp->oartifact = (char) (mod ? m : 0);
                 otmp->age = 0;
                 if (otmp->otyp == RIN_INCREASE_DAMAGE)
                     otmp->spe = 0;
-                g.artiexist[m] = mod;
+                if (mod) { /* means being created rather than un-created */
+                    /* one--and only one--of these should always be set */
+                    if ((flgs & (ONAME_VIA_NAMING | ONAME_WISH | ONAME_GIFT
+                                 | ONAME_VIA_DIP | ONAME_LEVEL_DEF
+                                 | ONAME_BONES | ONAME_RANDOM)) == 0)
+                        flgs |= ONAME_RANDOM; /* the default origin */
+                    /* 'exists' bit will become set (in artifact_origin();
+                       there's no ONAME_ flag) and flgs might also contain
+                       the know_arti bit (hero knows that artifact exists) */
+                    artifact_origin(otmp, flgs);
+                } else { /* uncreate */
+                    /* clear all the flag bits */
+                    artiexist[m] = zero_artiexist;
+                }
                 break;
             }
     return;
 }
 
+/* mark an artifact as 'found' */
+void
+found_artifact(int a)
+{
+    if (a < 1 || a > NROFARTIFACTS)
+        impossible("found_artifact: invalid artifact index! (%d)", a);
+    else if (!artiexist[a].exists)
+        impossible("found_artifact: artifact doesn't exist yet? (%d)", a);
+    else
+        artiexist[a].found = 1;
+}
+
+/* if an artifact hasn't already been designated 'found', do that now
+   and generate a livelog event about finding it */
+void
+find_artifact(struct obj *otmp)
+{
+    int a = otmp->oartifact;
+
+    if (a && !artiexist[a].found) {
+        const char *where;
+
+        found_artifact(a); /* artiexist[a].found = 1 */
+        /*
+         * Unlike costly_spot(), inside_shop() includes the "free spot"
+         * in front of the door.  And it doesn't care whether or not
+         * there is a shopkeeper present.
+         *
+         * If hero sees a monster pick up a not-yet-found artifact, it
+         * will have its dknown flag set even if far away and will be
+         * described as 'found on the floor'.  Similarly for dropping
+         * (possibly upon monster's death), dknown will be set and the
+         * artifact will be described as 'carried by a monster'.
+         * That's handled by caller:  dog_invent(), mpickstuff(), or
+         * mdrop_obj() so that we get called before obj->where changes.
+         */
+        where = ((otmp->where == OBJ_FLOOR)
+                 ?  ((inside_shop(otmp->ox, otmp->oy) != NO_ROOM)
+                     ? " in a shop"
+                     : " on the floor")
+                 /* artifacts aren't created in containers but could be
+                    inside one if it comes from a bones level */
+                 : (otmp->where == OBJ_CONTAINED) ? " in a container"
+                   /* perhaps probing, or seeing monster wield artifact */
+                   : (otmp->where == OBJ_MINVENT) ? " carried by a monster"
+                     /* catchall: probably in inventory, picked up while
+                        blind but now seen; there's no previous_where to
+                        figure out how it got here */
+                     : "");
+        livelog_printf(LL_ARTIFACT, "found %s%s",
+                       bare_artifactname(otmp), where);
+    }
+}
+
 int
 nartifact_exist(void)
 {
-    int a = 0;
-    int n = SIZE(g.artiexist);
+    int i, a = 0;
 
-    while (n > 1)
-        if (g.artiexist[--n])
-            a++;
+    for (i = 1; i <= NROFARTIFACTS; ++i)
+        if (artiexist[i].exists)
+            ++a;
 
     return a;
+}
+
+/* set artifact tracking flags;
+   calling sequence: oname() -> artifact_exists() -> artifact_origin() or
+   mksobj(),others -> mk_artifact() -> artifact_origin(random) possibly
+   followed by mksobj(),others -> artifact_origin(non-random origin) */
+void
+artifact_origin(
+    struct obj *arti, /* new artifact */
+    unsigned aflags)  /* ONAME_xxx flags, shared by artifact_exists() */
+{
+    int ct, a = arti->oartifact;
+
+    if (a) {
+        /* start by clearing all bits; most are mutually exclusive */
+        artiexist[a] = zero_artiexist;
+        /* set 'exists' bit back on; not specified via flag bit in aflags */
+        artiexist[a].exists = 1;
+        /* 'hero knows it exists' is expected for wish, gift, viadip, or
+           named and could eventually become set for any of the others */
+        if ((aflags & ONAME_KNOW_ARTI) != 0)
+            artiexist[a].found = 1;
+        /* should be exactly one of wish, gift, via_dip, via_naming,
+           level_def (quest), bones, and random (floor or monst's minvent) */
+        ct = 0;
+        if ((aflags & ONAME_WISH) != 0)
+            artiexist[a].wish = 1, ++ct;
+        if ((aflags & ONAME_GIFT) != 0)
+            artiexist[a].gift = 1, ++ct;
+        if ((aflags & ONAME_VIA_DIP) != 0)
+            artiexist[a].viadip = 1, ++ct;
+        if ((aflags & ONAME_VIA_NAMING) != 0)
+            artiexist[a].named = 1, ++ct;
+        if ((aflags & ONAME_LEVEL_DEF) != 0)
+            artiexist[a].lvldef = 1, ++ct;
+        if ((aflags & ONAME_BONES) != 0)
+            artiexist[a].bones = 1, ++ct;
+        if ((aflags & ONAME_RANDOM) != 0)
+            artiexist[a].rndm = 1, ++ct;
+        if (ct != 1)
+            impossible("invalid artifact origin: %4o", aflags);
+    }
 }
 
 boolean
@@ -888,8 +1035,8 @@ discover_artifact(xchar m)
     /* look for this artifact in the discoveries list;
        if we hit an empty slot then it's not present, so add it */
     for (i = 0; i < NROFARTIFACTS; i++)
-        if (g.artidisco[i] == 0 || g.artidisco[i] == m) {
-            g.artidisco[i] = m;
+        if (artidisco[i] == 0 || artidisco[i] == m) {
+            artidisco[i] = m;
             return;
         }
     /* there is one slot per artifact, so we should never reach the
@@ -906,9 +1053,9 @@ undiscovered_artifact(xchar m)
     /* look for this artifact in the discoveries list;
        if we hit an empty slot then it's undiscovered */
     for (i = 0; i < NROFARTIFACTS; i++)
-        if (g.artidisco[i] == m)
+        if (artidisco[i] == m)
             return FALSE;
-        else if (g.artidisco[i] == 0)
+        else if (artidisco[i] == 0)
             break;
     return TRUE;
 }
@@ -918,23 +1065,63 @@ int
 disp_artifact_discoveries(winid tmpwin) /* supplied by dodiscover() */
 {
     int i, m, otyp;
+    const char *algnstr;
     char buf[BUFSZ];
 
     for (i = 0; i < NROFARTIFACTS; i++) {
-        if (g.artidisco[i] == 0)
+        if (artidisco[i] == 0)
             break; /* empty slot implies end of list */
         if (tmpwin == WIN_ERR)
             continue; /* for WIN_ERR, we just count */
 
         if (i == 0)
             putstr(tmpwin, iflags.menu_headings, "Artifacts");
-        m = g.artidisco[i];
+        m = artidisco[i];
         otyp = artilist[m].otyp;
+        algnstr = align_str(artilist[m].alignment);
+        if (!strcmp(algnstr, "unaligned"))
+            algnstr = "non-aligned";
+
         Sprintf(buf, "  %s [%s %s]", artiname(m),
-                align_str(artilist[m].alignment), simple_typename(otyp));
+                algnstr, simple_typename(otyp));
         putstr(tmpwin, 0, buf);
     }
     return i;
+}
+
+/* (wizard mode only) show all artifacts and their flags */
+void
+dump_artifact_info(winid tmpwin)
+{
+    int m;
+    char buf[BUFSZ], buf2[BUFSZ];
+
+    putstr(tmpwin, iflags.menu_headings, "Artifacts");
+    for (m = 1; m <= NROFARTIFACTS; ++m) {
+        Snprintf(buf2, sizeof buf2,
+                "[%s%s%s%s%s%s%s%s%s]", /* 9 bits overall */
+                artiexist[m].exists ? "exists;" : "",
+                artiexist[m].found  ? " hero knows;" : "",
+                /* .exists and .found have different punctuation because
+                   they're expected to be combined with one of these */
+                artiexist[m].gift   ? " gift"   : "",
+                artiexist[m].wish   ? " wish"   : "",
+                artiexist[m].named  ? " named"  : "",
+                artiexist[m].viadip ? " viadip" : "",
+                artiexist[m].lvldef ? " lvldef" : "",
+                artiexist[m].bones  ? " bones"  : "",
+                artiexist[m].rndm   ? " random" : "");
+#if 0   /* 'tmpwin' here is a text window, not a menu */
+        if (iflags.menu_tab_sep)
+            Sprintf(buf, "  %s\t%s", artiname(m), buf2);
+        else
+#else
+            /* "The Platinum Yendorian Express Card" is 35 characters */
+            Snprintf(buf, sizeof buf, "  %-36.36s%s", artiname(m), buf2);
+#endif
+        putstr(tmpwin, 0, buf);
+    }
+    return;
 }
 
 /*
@@ -985,7 +1172,8 @@ Mb_hit(struct monst *magr, /* attacker */
 {
     struct permonst *old_uasmon;
     const char *verb;
-    boolean youattack = (magr == &g.youmonst), youdefend = (mdef == &g.youmonst),
+    boolean youattack = (magr == &g.youmonst),
+            youdefend = (mdef == &g.youmonst),
             resisted = FALSE, do_stun, do_confuse, result;
     int attack_indx, fakeidx, scare_dieroll = MB_MAX_DIEROLL / 2;
 
@@ -1502,13 +1690,16 @@ artifact_hit(struct monst *magr, struct monst *mdef, struct obj *otmp,
                 drain = (mhpmax > m_lev) ? (mhpmax - (m_lev + 1)) : 0;
 
             if (vis) {
+                /* call distant_name() for possible side-effects even if
+                   the result won't be printed */
+                char *otmpname = distant_name(otmp, xname);
+
                 if (otmp->oartifact == ART_STORMBRINGER)
                     pline_The("%s blade draws the %s from %s!",
                               hcolor(NH_BLACK), life, mon_nam(mdef));
                 else
                     pline("%s draws the %s from %s!",
-                          The(distant_name(otmp, xname)), life,
-                          mon_nam(mdef));
+                          The(otmpname), life, mon_nam(mdef));
                 retval |= ARTIFACTHIT_GAVEMSG;
             }
             if (mdef->m_lev == 0) {
@@ -1535,20 +1726,26 @@ artifact_hit(struct monst *magr, struct monst *mdef, struct obj *otmp,
         } else { /* youdefend */
             int oldhpmax = u.uhpmax;
 
-            if (Blind)
+            if (Blind) {
                 You_feel("an %s drain your %s!",
                          (otmp->oartifact == ART_STORMBRINGER)
                             ? "unholy blade"
                             : "object",
                          life);
-            else if (otmp->oartifact == ART_STORMBRINGER)
-                pline_The("%s blade drains your %s!", hcolor(NH_BLACK), life);
-            else
-                pline("%s drains your %s!", The(distant_name(otmp, xname)),
-                      life);
+            } else {
+                /* call distant_name() for possible side-effects even if
+                   the result won't be printed */
+                char *otmpname = distant_name(otmp, xname);
+
+                if (otmp->oartifact == ART_STORMBRINGER)
+                    pline_The("%s blade drains your %s!",
+                              hcolor(NH_BLACK), life);
+                else
+                    pline("%s drains your %s!", The(otmpname), life);
+            }
             losexp("life drainage");
             if (magr && magr->mhp < magr->mhpmax) {
-                magr->mhp += (oldhpmax - u.uhpmax + 1) / 2;
+                magr->mhp += (abs(oldhpmax - u.uhpmax) + 1) / 2;
                 if (magr->mhp > magr->mhpmax)
                     magr->mhp = magr->mhpmax;
             }
@@ -1679,7 +1876,7 @@ arti_invoke(struct obj *obj)
             break;
         }
         case UNTRAP: {
-            if (!untrap(TRUE)) {
+            if (!untrap(TRUE, 0, 0, (struct obj *) 0)) {
                 obj->age = 0; /* don't charge for changing their mind */
                 return ECMD_OK;
             }
@@ -1950,7 +2147,9 @@ artifact_light(struct obj *obj)
         && (obj->owornmask & (W_ARM | W_ARMC)) != 0L)
         return TRUE;
 
-    return (boolean) (get_artifact(obj) && obj->oartifact == ART_SUNSWORD);
+    return (boolean) (get_artifact(obj)
+                      && (obj->oartifact == ART_SUNSWORD
+                          || obj->oartifact == ART_SOL_VALTIVA));
 }
 
 /* KMH -- Talking artifacts are finally implemented */
@@ -2262,7 +2461,8 @@ retouch_object(struct obj **objp, /* might be destroyed or unintentionally dropp
             freeinv(obj);
             hitfloor(obj, TRUE);
         } else {
-            /* dropx gives a message iff item lands on an altar */
+            /* dropx gives a message if a dropped item lands on an altar;
+               we provide one for other terrain */
             if (!IS_ALTAR(levl[u.ux][u.uy].typ))
                 pline("%s to the %s.", Tobjnam(obj, "fall"),
                       surface(u.ux, u.uy));

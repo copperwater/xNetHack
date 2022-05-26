@@ -1,4 +1,4 @@
-/* NetHack 3.7	rm.h	$NHDT-Date: 1599434249 2020/09/06 23:17:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.84 $ */
+/* NetHack 3.7	rm.h	$NHDT-Date: 1651099392 2022/04/27 22:43:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.94 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -70,12 +70,13 @@ enum levl_typ_types {
     ALTAR     = 31,
     ICE       = 32,
     GRASS     = 33,
-    DRAWBRIDGE_DOWN = 34,
-    AIR       = 35,
-    CLOUD     = 36,
+    MAGIC_PLATFORM = 34,
+    DRAWBRIDGE_DOWN = 35,
+    AIR       = 36,
+    CLOUD     = 37,
 
-    MAX_TYPE  = 37,
-    MATCH_WALL = 38,
+    MAX_TYPE  = 38,
+    MATCH_WALL = 39,
     INVALID_TYPE = 127
 };
 
@@ -105,8 +106,10 @@ enum levl_typ_types {
     ((typ) == DRAWBRIDGE_UP || (typ) == DRAWBRIDGE_DOWN)
 #define IS_FURNITURE(typ) ((typ) >= STAIRS && (typ) <= ALTAR)
 #define IS_GRASS(typ) ((typ) == GRASS)
+#define IS_MAGIC_PLATFORM(typ) ((typ) == MAGIC_PLATFORM)
 #define IS_AIR(typ) ((typ) == AIR || (typ) == CLOUD)
 #define IS_SOFT(typ) ((typ) == AIR || (typ) == CLOUD || IS_POOL(typ))
+#define IS_WATERWALL(typ) ((typ) == WATER)
 
 /*
  *      Note:  secret doors (SDOOR) want to use both rm.doormask and
@@ -269,6 +272,13 @@ struct rm {
 #define set_doorstate(door, state) \
     (door)->doormask = ((door)->doormask & ~D_STATEMASK) | (state)
 
+/* light states for terrain replacements, for set_levltyp_lit */
+#define SET_LIT_RANDOM -1
+#define SET_LIT_NOCHANGE -2
+
+#define CAN_OVERWRITE_TERRAIN(ttyp) \
+    (iflags.debug_overwrite_stairs || !((ttyp) == LADDER || (ttyp) == STAIRS))
+
 /*
  * Add wall angle viewing by defining "modes" for each wall type.  Each
  * mode describes which parts of a wall are finished (seen as as wall)
@@ -418,7 +428,13 @@ struct levelflags {
                                   rather than ROOM */
     Bitfield(outdoors, 1);     /* Whether the level is open to the sky and has
                                   no ceiling. The Planes don't count. */
+    Bitfield(visited_after_event, 1); /* whether you have already (re)entered
+                                       * the level after satisfying some
+                                       * condition */
 };
+
+/* flags for visited_after_event */
+#define VISITED_AFTER_NEMDEAD 0x1
 
 typedef struct {
     struct rm locations[COLNO][ROWNO];
@@ -444,8 +460,8 @@ typedef struct {
  * Convert a defsym number into a trap number.
  * Assumes that arrow trap will always be the first trap.
  */
-#define trap_to_defsym(t) (S_arrow_trap + (t) -1)
-#define defsym_to_trap(d) ((d) -S_arrow_trap + 1)
+#define trap_to_defsym(t) (S_arrow_trap + (t) - 1)
+#define defsym_to_trap(d) ((d) - S_arrow_trap + 1)
 
 #define OBJ_AT(x, y) (g.level.objects[x][y] != (struct obj *) 0)
 /*

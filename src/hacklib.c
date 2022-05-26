@@ -18,12 +18,15 @@
         char *          lcase           (char *)
         char *          ucase           (char *)
         char *          upstart         (char *)
+        char *          upwords         (char *)
         char *          mungspaces      (char *)
         char *          trimspaces      (char *)
         char *          strip_newline   (char *)
         char *          stripchars      (char *, const char *, const char *)
         char *          stripdigits     (char *)
+        unsigned        Strlen_         (const char *str, const char *, int)
         char *          eos             (char *)
+        boolean         str_start_is    (const char *, const char *, boolean)
         boolean         str_end_is      (const char *, const char *)
         int             str_lines_maxlen (const char *)
         char *          strkitten       (char *,char)
@@ -155,24 +158,22 @@ upstart(char *s)
     return s;
 }
 
-/* capitalize first letters of every word in a string */
+/* capitalize first letter of every word in a string (in place) */
 char *
-up_all_words(char * s)
+upwords(char *s)
 {
-    char * p;
+    char *p;
     boolean space = TRUE;
-    for (p = s; *p; p++) {
+
+    for (p = s; *p; p++)
         if (*p == ' ') {
             space = TRUE;
-        }
-        else if (space && letter(*p)) {
+        } else if (space && letter(*p)) {
             *p = highc(*p);
             space = FALSE;
-        }
-        else {
+        } else {
             space = FALSE;
         }
-    }
     return s;
 }
 
@@ -235,6 +236,40 @@ eos(register char *s)
     while (*s)
         s++; /* s += strlen(s); */
     return s;
+}
+
+/* like strlen(3) but returns unsigned and panics if string is unreasonably long */
+unsigned
+Strlen_(const char *str, const char *file, int line){
+    size_t len = strnlen(str, LARGEST_INT);
+
+    if (len == LARGEST_INT)
+        panic("%s:%d string too long", file, line);
+    return (unsigned) len;
+}
+
+/* determine whether 'str' starts with 'chkstr', possibly ignoring case;
+ * panics on huge strings */
+boolean
+str_start_is(const char *str, const char *chkstr, boolean caseblind)
+{
+    int n = LARGEST_INT;
+
+    while (n--) {
+        char t1, t2;
+        if (!*str)
+            return (*chkstr == 0); /* chkstr >= str */
+        else if (!*chkstr)
+            return TRUE; /* chkstr < str */
+        t1 = caseblind ? lowc(*str) : *str;
+        t2 = caseblind ? lowc(*chkstr) : *chkstr;
+        str++, chkstr++;
+        if (t1 != t2)
+            return FALSE;
+    }
+    if (n == 0)
+        panic("string too long");
+    return TRUE;
 }
 
 /* determine whether 'str' ends in 'chkstr' */
@@ -644,7 +679,7 @@ rounddiv(long x, int y)
         divsgn = -divsgn;
         x = -x;
     }
-    r = x / y;
+    r = (int) (x / y);
     m = x % y;
     if (2 * m >= y)
         r++;
@@ -1692,5 +1727,67 @@ nh_snprintf(
 }
 
 RESTORE_WARNING_FORMAT_NONLITERAL
+
+/* cast to int or panic on overflow; use via macro */
+int
+FITSint_(lua_Integer i, const char *file, int line){
+    int ret = (int)i;
+    if (ret != i)
+        panic("Overflow at %s:%d", file, line);
+    return (int)i;
+}
+
+unsigned
+FITSuint_(unsigned long long i, const char *file, int line){
+    unsigned ret = (unsigned)i;
+    if (ret != i)
+        panic("Overflow at %s:%d", file, line);
+    return (unsigned)i;
+}
+
+#ifdef ENHANCED_SYMBOLS
+
+/* Unicode routines */
+
+int
+unicodeval_to_utf8str(int uval, uint8 *buffer, size_t bufsz)
+{
+    //    static uint8 buffer[7];
+    uint8 *b = buffer;
+
+    if (bufsz < 5)
+        return 0;
+    /*
+     *   Binary   Hex        Comments
+     *   0xxxxxxx 0x00..0x7F Only byte of a 1-byte character encoding
+     *   10xxxxxx 0x80..0xBF Continuation byte : one of 1-3 bytes following
+     * first 110xxxxx 0xC0..0xDF First byte of a 2-byte character encoding
+     *   1110xxxx 0xE0..0xEF First byte of a 3-byte character encoding
+     *   11110xxx 0xF0..0xF7 First byte of a 4-byte character encoding
+     */
+    *b = '\0';
+    if (uval < 0x80) {
+        *b++ = uval;
+    } else if (uval < 0x800) {
+        *b++ = 192 + uval / 64;
+        *b++ = 128 + uval % 64;
+    } else if (uval - 0xd800u < 0x800) {
+        return 0;
+    } else if (uval < 0x10000) {
+        *b++ = 224 + uval / 4096;
+        *b++ = 128 + uval / 64 % 64;
+        *b++ = 128 + uval % 64;
+    } else if (uval < 0x110000) {
+        *b++ = 240 + uval / 262144;
+        *b++ = 128 + uval / 4096 % 64;
+        *b++ = 128 + uval / 64 % 64;
+        *b++ = 128 + uval % 64;
+    } else {
+        return 0;
+    }
+    *b = '\0'; /* NUL terminate */
+    return 1;
+}
+#endif /* ENHANCED_SYMBOLS */
 
 /*hacklib.c*/

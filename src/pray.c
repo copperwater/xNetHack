@@ -1,4 +1,4 @@
-/* NetHack 3.7	pray.c	$NHDT-Date: 1621208529 2021/05/16 23:42:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.147 $ */
+/* NetHack 3.7	pray.c	$NHDT-Date: 1649454525 2022/04/08 21:48:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.168 $ */
 /* Copyright (c) Benson I. Margulies, Mike Stephenson, Steve Linhart, 1989. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -9,10 +9,12 @@ static boolean insufficient_food(void);
 static int prayer_done(void);
 static struct obj *worst_cursed_item(void);
 static int in_trouble(void);
+static void fix_curse_trouble(struct obj *, const char *);
 static void fix_worst_trouble(int);
 static void angrygods(aligntyp);
 static void at_your_feet(const char *);
 static void gcrownu(void);
+static void give_spell(void);
 static void pleased(aligntyp);
 static void godvoice(aligntyp, const char *);
 static void god_zaps_you(aligntyp);
@@ -20,6 +22,8 @@ static void fry_by_god(aligntyp, boolean);
 static void gods_angry(aligntyp);
 static void gods_upset(aligntyp);
 static void consume_offering(struct obj *);
+static void offer_too_soon(aligntyp);
+static void desecrate_high_altar(aligntyp);
 static boolean water_prayer(boolean);
 static boolean blocked_boulder(int, int);
 
@@ -409,6 +413,30 @@ worst_cursed_item(void)
 }
 
 static void
+fix_curse_trouble(struct obj *otmp, const char *what)
+{
+    if (!otmp) {
+        impossible("fix_curse_trouble: nothing to uncurse.");
+        return;
+    }
+    if (otmp == uarmg && Glib) {
+        make_glib(0);
+        Your("%s are no longer slippery.", gloves_simple_name(uarmg));
+        if (!otmp->cursed)
+            return;
+    }
+    if (!Blind || (otmp == ublindf && Blindfolded_only)) {
+        pline("%s %s.",
+                what ? what : (const char *) Yobjnam2(otmp, "softly glow"),
+                hcolor(NH_AMBER));
+        iflags.last_msg = PLNMSG_OBJ_GLOWS;
+        otmp->bknown = !Hallucination; /* ok to skip set_bknown() */
+    }
+    uncurse(otmp);
+    update_inventory();
+}
+
+static void
 fix_worst_trouble(int trouble)
 {
     int i;
@@ -492,8 +520,10 @@ fix_worst_trouble(int trouble)
                 if (otmp == uright)
                     what = rightglow;
             }
-            if (otmp)
-                goto decurse;
+            if (otmp) {
+                fix_curse_trouble(otmp, what);
+                break;
+            }
         }
         break;
     case TROUBLE_STUCK_IN_WALL:
@@ -524,11 +554,13 @@ fix_worst_trouble(int trouble)
             if (otmp == uright)
                 what = rightglow;
         }
-        goto decurse;
+        fix_curse_trouble(otmp, what);
+        break;
     case TROUBLE_UNUSEABLE_HANDS:
         if (welded(uwep)) {
             otmp = uwep;
-            goto decurse;
+            fix_curse_trouble(otmp, what);
+            break;
         }
         if (Upolyd && nohands(g.youmonst.data)) {
             if (!Unchanging) {
@@ -536,7 +568,8 @@ fix_worst_trouble(int trouble)
                 rehumanize(); /* "You return to {normal} form." */
             } else if ((otmp = unchanger()) != 0 && otmp->cursed) {
                 /* otmp is an amulet of unchanging */
-                goto decurse;
+                fix_curse_trouble(otmp, what);
+                break;
             }
         }
         if (nohands(g.youmonst.data) || !freehand())
@@ -544,7 +577,8 @@ fix_worst_trouble(int trouble)
         break;
     case TROUBLE_CURSED_BLINDFOLD:
         otmp = ublindf;
-        goto decurse;
+        fix_curse_trouble(otmp, what);
+        break;
     case TROUBLE_LYCANTHROPE:
         you_unwere(TRUE);
         break;
@@ -562,8 +596,7 @@ fix_worst_trouble(int trouble)
             otmp = uarmg;
         else if (Cursed_obj(uarmf, FUMBLE_BOOTS))
             otmp = uarmf;
-        goto decurse;
-        /*NOTREACHED*/
+        fix_curse_trouble(otmp, what);
         break;
     case TROUBLE_CURSED_ITEMS:
         otmp = worst_cursed_item();
@@ -571,26 +604,7 @@ fix_worst_trouble(int trouble)
             what = rightglow;
         else if (otmp == uleft)
             what = leftglow;
- decurse:
-        if (!otmp) {
-            impossible("fix_worst_trouble: nothing to uncurse.");
-            return;
-        }
-        if (otmp == uarmg && Glib) {
-            make_glib(0);
-            Your("%s are no longer slippery.", gloves_simple_name(uarmg));
-            if (!otmp->cursed)
-                break;
-        }
-        if (!Blind || (otmp == ublindf && Blindfolded_only)) {
-            pline("%s %s.",
-                  what ? what : (const char *) Yobjnam2(otmp, "softly glow"),
-                  hcolor(NH_AMBER));
-            iflags.last_msg = PLNMSG_OBJ_GLOWS;
-            otmp->bknown = !Hallucination; /* ok to skip set_bknown() */
-        }
-        uncurse(otmp);
-        update_inventory();
+        fix_curse_trouble(otmp, what);
         break;
     case TROUBLE_POISONED:
         /* override Fixed_abil; ignore items which confer that */
@@ -752,11 +766,11 @@ fry_by_god(aligntyp resp_god, boolean via_disintegration)
 static void
 angrygods(aligntyp resp_god)
 {
-    int maxanger;
+    int maxanger, new_ublesscnt;
 
     if (Inhell)
         resp_god = A_NONE;
-    u.ublessed = 0;
+    u.ublessed = 0; /* lose divine protection */
 
     /* changed from tmp = u.ugangr + abs (u.uluck) -- rph */
     /* added test for alignment diff -dlc */
@@ -820,7 +834,10 @@ angrygods(aligntyp resp_god)
         god_zaps_you(resp_god);
         break;
     }
-    u.ublesscnt = rnz(300);
+    /* even though this might not be in response to prayer, set pray timer */
+    new_ublesscnt = rnz(300);
+    if (new_ublesscnt > u.ublesscnt)
+        u.ublesscnt = new_ublesscnt;
     return;
 }
 
@@ -836,8 +853,9 @@ at_your_feet(const char *str)
               s_suffix(mon_nam(u.ustuck)), mbodypart(u.ustuck, STOMACH));
     } else {
         pline("%s %s %s your %s!", str,
-              Blind ? "lands" : vtense(str, "appear"),
-              Levitation ? "beneath" : "at", makeplural(body_part(FOOT)));
+              vtense(str, Blind ? "land" : "appear"),
+              Levitation ? "beneath" : "at",
+              makeplural(body_part(FOOT)));
     }
 }
 
@@ -845,9 +863,9 @@ static void
 gcrownu(void)
 {
     struct obj *obj;
+    const char *what;
     boolean already_exists, in_hand;
     short class_gift;
-    int sp_no;
 #define ok_wep(o) ((o) && ((o)->oclass == WEAPON_CLASS || is_weptool(o)))
 
     HFire_resistance |= FROMOUTSIDE;
@@ -878,13 +896,14 @@ gcrownu(void)
         u.uevent.uhand_of_elbereth = 1;
         verbalize("I crown thee...  The Hand of Elbereth!");
         livelog_printf(LL_DIVINEGIFT,
-                       "was crowned \"The Hand of Elbereth\" by %s", u_gname());
+                       "was crowned \"The Hand of Elbereth\" by %s",
+                       u_gname());
         break;
     case A_NEUTRAL:
         u.uevent.uhand_of_elbereth = 2;
         in_hand = (uwep && uwep->oartifact == ART_VORPAL_BLADE);
-        already_exists =
-            exist_artifact(LONG_SWORD, artiname(ART_VORPAL_BLADE));
+        already_exists = exist_artifact(LONG_SWORD,
+                                        artiname(ART_VORPAL_BLADE));
         verbalize("Thou shalt be my Envoy of Balance!");
         livelog_printf(LL_DIVINEGIFT, "became %s Envoy of Balance",
                        s_suffix(u_gname()));
@@ -892,35 +911,40 @@ gcrownu(void)
     case A_CHAOTIC:
         u.uevent.uhand_of_elbereth = 3;
         in_hand = (uwep && uwep->oartifact == ART_STORMBRINGER);
-        already_exists =
-            exist_artifact(RUNESWORD, artiname(ART_STORMBRINGER));
-        verbalize("Thou art chosen to %s for My Glory!",
-                  ((already_exists && !in_hand)
-                   || class_gift != STRANGE_OBJECT) ? "take lives"
-                  : "steal souls");
-        livelog_printf(LL_DIVINEGIFT, "was chosen to %s for the Glory of %s",
-                       ((already_exists && !in_hand)
-                        || class_gift != STRANGE_OBJECT) ? "take lives"
-                       : "steal souls",
-                       u_gname());
+        already_exists = exist_artifact(RUNESWORD, artiname(ART_STORMBRINGER));
+        what = (((already_exists && !in_hand) || class_gift != STRANGE_OBJECT)
+                ? "take lives"
+                : "steal souls");
+        verbalize("Thou art chosen to %s for My Glory!", what);
+        livelog_printf(LL_DIVINEGIFT, "chosen to %s for the Glory of %s",
+                       what, u_gname());
         break;
     }
 
     if (objects[class_gift].oc_class == SPBOOK_CLASS) {
+        char bbuf[BUFSZ];
+
         obj = mksobj(class_gift, TRUE, FALSE);
+        /* get book type before dropping (don't think that could destroy
+           the book because we need to be on an altar in order to become
+           crowned, but be paranoid about it) */
+        Strcpy(bbuf, actualoname(obj)); /* for livelog; "spellbook of <foo>"
+                                         * even if hero doesn't know book */
         bless(obj);
         obj->bknown = 1; /* ok to skip set_bknown() */
-        at_your_feet("A spellbook");
+        obj->dknown = 1;
+        at_your_feet(upstart(ansimpleoname(obj)));
         dropy(obj);
         u.ugifts++;
+        /* not an artifact, but treat like one for this situation;
+           classify as a spoiler in case player hasn't IDed the book yet */
+        livelog_printf(LL_DIVINEGIFT | LL_ARTIFACT | LL_SPOILER,
+                       "bestowed with %s", bbuf);
+
         /* when getting a new book for known spell, enhance
            currently wielded weapon rather than the book */
-        for (sp_no = 0; sp_no < MAXSPELL; sp_no++)
-            if (g.spl_book[sp_no].sp_id == class_gift) {
-                if (ok_wep(uwep))
-                    obj = uwep; /* to be blessed,&c */
-                break;
-            }
+        if (known_spell(class_gift) != spe_Unknown && ok_wep(uwep))
+            obj = uwep; /* to be blessed,&c */
     }
 
     switch (u.ualign.type) {
@@ -928,11 +952,18 @@ gcrownu(void)
         if (class_gift != STRANGE_OBJECT) {
             ; /* already got bonus above */
         } else if (obj && obj->otyp == LONG_SWORD && !obj->oartifact) {
+            char lbuf[BUFSZ];
+
+            Strcpy(lbuf, simpleonames(obj)); /* before transformation */
             if (!Blind)
                 Your("sword shines brightly for a moment.");
-            obj = oname(obj, artiname(ART_EXCALIBUR));
+            obj = oname(obj, artiname(ART_EXCALIBUR),
+                        ONAME_GIFT | ONAME_KNOW_ARTI);
             if (obj && obj->oartifact == ART_EXCALIBUR) {
                 u.ugifts++;
+                livelog_printf(LL_DIVINEGIFT | LL_ARTIFACT,
+                               "wielded %s transformed into %s",
+                               lbuf, artiname(ART_EXCALIBUR));
                 u.uconduct.artitouch++;
             }
             if (obj->spe < 3) {
@@ -949,14 +980,17 @@ gcrownu(void)
             ; /* already got bonus above */
         } else if (obj && in_hand) {
             Your("%s goes snicker-snack!", xname(obj));
-            obj->dknown = TRUE;
+            obj->dknown = 1;
         } else if (!already_exists) {
             obj = mksobj(LONG_SWORD, FALSE, FALSE);
-            obj = oname(obj, artiname(ART_VORPAL_BLADE));
+            obj = oname(obj, artiname(ART_VORPAL_BLADE),
+                        ONAME_GIFT | ONAME_KNOW_ARTI);
             obj->spe = 1;
             at_your_feet("A sword");
             dropy(obj);
             u.ugifts++;
+            livelog_printf(LL_DIVINEGIFT | LL_ARTIFACT,
+                           "bestowed with %s", artiname(ART_VORPAL_BLADE));
         }
         /* acquire Vorpal Blade's skill regardless of weapon or gift */
         unrestrict_weapon_skill(P_LONG_SWORD);
@@ -971,14 +1005,17 @@ gcrownu(void)
             ; /* already got bonus above */
         } else if (obj && in_hand) {
             Your("%s hums ominously!", swordbuf);
-            obj->dknown = TRUE;
+            obj->dknown = 1;
         } else if (!already_exists) {
             obj = mksobj(RUNESWORD, FALSE, FALSE);
-            obj = oname(obj, artiname(ART_STORMBRINGER));
+            obj = oname(obj, artiname(ART_STORMBRINGER),
+                        ONAME_GIFT | ONAME_KNOW_ARTI);
             obj->spe = 1;
             at_your_feet(An(swordbuf));
             dropy(obj);
             u.ugifts++;
+            livelog_printf(LL_DIVINEGIFT | LL_ARTIFACT,
+                           "bestowed with %s", artiname(ART_STORMBRINGER));
         }
         /* acquire Stormbringer's skill regardless of weapon or gift */
         unrestrict_weapon_skill(P_BROAD_SWORD);
@@ -1010,6 +1047,80 @@ gcrownu(void)
     /* lastly, confer an extra skill slot/credit beyond the
        up-to-29 you can get from gaining experience levels */
     add_weapon_skill(1);
+    return;
+}
+
+static void
+give_spell(void)
+{
+    struct obj *otmp;
+    char spe_let;
+    int spe_knowledge, trycnt = u.ulevel + 1;
+
+    /* not yet known spells and forgotten spells are given preference over
+       usable ones; also, try to grant spell that hero could gain skill in
+       (even though being restricted doesn't prevent learning and casting) */
+    otmp = mkobj(SPBOOK_no_NOVEL, TRUE);
+    while (--trycnt > 0) {
+        if (otmp->otyp != SPE_BLANK_PAPER) {
+            if (known_spell(otmp->otyp) <= spe_Unknown
+                && !P_RESTRICTED(spell_skilltype(otmp->otyp)))
+                break; /* forgotten or not yet known */
+        } else {
+            /* blank paper is acceptable if not discovered yet or
+               if hero has a magic marker to write something on it
+               (doesn't matter if marker is out of charges); it will
+               become discovered (below) without needing to be read */
+            if (!objects[SPE_BLANK_PAPER].oc_name_known
+                || carrying(MAGIC_MARKER))
+                break;
+        }
+        otmp->otyp = rnd_class(g.bases[SPBOOK_CLASS], SPE_BLANK_PAPER);
+    }
+    /* spellbook material depends on otyp, which we may have just
+     * changed, so make sure the material matches the default. */
+    set_material(otmp, objects[otmp->otyp].oc_material);
+    /*
+     * 25% chance of learning the spell directly instead of
+     * receiving the book for it, unless it's already well known.
+     * The chance is not influenced by whether hero is illiterate.
+     */
+    if (otmp->otyp != SPE_BLANK_PAPER && !rn2(4)
+        && (spe_knowledge = known_spell(otmp->otyp)) != spe_Fresh) {
+        /* force_learn_spell() should only return '\0' if the book
+           is blank paper or the spell is known and has retention
+           of spe_Fresh, so no 'else' case is needed here */
+        if ((spe_let = force_learn_spell(otmp->otyp)) != '\0') {
+            /* for spellbook class, OBJ_NAME() yields the name of
+               the spell rather than "spellbook of <spell-name>" */
+            const char *spe_name = OBJ_NAME(objects[otmp->otyp]);
+
+            if (spe_knowledge == spe_Unknown) /* prior to learning */
+                /* appending "spell 'a'" seems slightly silly but
+                   is similar to "added to your repertoire, as 'a'"
+                   and without any spellbook on hand a novice player
+                   might not recognize that 'spe_name' is a spell */
+                pline("Divine knowledge of %s fills your mind!  Spell '%c'.",
+                      spe_name, spe_let);
+            else
+                Your("knowledge of spell '%c' - %s is %s.",
+                     spe_let, spe_name,
+                     (spe_knowledge == spe_Forgotten) ? "restored"
+                                                      : "refreshed");
+        }
+        obfree(otmp, (struct obj *) 0); /* discard the book */
+    } else {
+        otmp->dknown = 1; /* not bknown */
+        /* discovering blank paper will make it less likely to
+           be given again; small chance to arbitrarily discover
+           some other book type without having to read it first */
+        if (otmp->otyp == SPE_BLANK_PAPER || !rn2(100))
+            makeknown(otmp->otyp);
+        bless(otmp);
+        at_your_feet(upstart(ansimpleoname(otmp)));
+        place_object(otmp, u.ux, u.uy);
+        newsym(u.ux, u.uy);
+    }
     return;
 }
 
@@ -1164,7 +1275,7 @@ pleased(aligntyp g_align)
             if (!u.uevent.uopened_dbridge && !u.uevent.gehennom_entered) {
                 if (u.uevent.uheard_tune < 1) {
                     godvoice(g_align, (char *) 0);
-                    verbalize("Hark, %s!", g.youmonst.data->mlet == S_HUMAN
+                    verbalize("Hark, %s!", (g.youmonst.data->mlet == S_HUMAN)
                                                ? "mortal"
                                                : "creature");
                     verbalize(
@@ -1175,6 +1286,7 @@ pleased(aligntyp g_align)
                     You_hear("a divine music...");
                     pline("It sounds like:  \"%s\".", g.tune);
                     u.uevent.uheard_tune++;
+                    record_achievement(ACH_TUNE);
                     break;
                 }
             }
@@ -1278,37 +1390,9 @@ pleased(aligntyp g_align)
                 break;
             }
             /*FALLTHRU*/
-        case 6: {
-            struct obj *otmp;
-            int sp_no, trycnt = u.ulevel + 1;
-
-            /* not yet known spells given preference over already known ones;
-               also, try to grant a spell for which there is a skill slot */
-            otmp = mkobj(SPBOOK_no_NOVEL, TRUE);
-            while (--trycnt > 0) {
-                if (otmp->otyp != SPE_BLANK_PAPER) {
-                    for (sp_no = 0; sp_no < MAXSPELL; sp_no++)
-                        if (g.spl_book[sp_no].sp_id == otmp->otyp)
-                            break;
-                    if (sp_no == MAXSPELL
-                        && !P_RESTRICTED(spell_skilltype(otmp->otyp)))
-                        break; /* usable, but not yet known */
-                } else {
-                    if (!objects[SPE_BLANK_PAPER].oc_name_known
-                        || carrying(MAGIC_MARKER))
-                        break;
-                }
-                otmp->otyp = rnd_class(g.bases[SPBOOK_CLASS], SPE_BLANK_PAPER);
-            }
-            /* spellbook material depends on otyp, which we may have just
-             * changed, so make sure the material matches the default. */
-            set_material(otmp, objects[otmp->otyp].oc_material);
-            bless(otmp);
-            at_your_feet("A spellbook");
-            place_object(otmp, u.ux, u.uy);
-            newsym(u.ux, u.uy);
+        case 6:
+            give_spell();
             break;
-        }
         default:
             impossible("Confused deity!");
             break;
@@ -1437,6 +1521,44 @@ consume_offering(struct obj *otmp)
     exercise(A_WIS, TRUE);
 }
 
+/* feedback when attempting to offer the Amulet on a "low altar" (not one of
+   the high altars in the temples on the Astral Plane or Moloch's Sanctum) */
+static void
+offer_too_soon(aligntyp altaralign)
+{
+    if (altaralign == A_NONE && Inhell) {
+        /* offering on an unaligned altar in Gehennom;
+           hero has left Moloch's Sanctum (caller handles that)
+           so is in the process of getting away with the Amulet;
+           for any unaligned altar outside of Gehennom, give the
+           "you feel ashamed" feedback for wrong alignment below */
+        gods_upset(A_NONE); /* Moloch becomes angry */
+        return;
+    }
+    You_feel("%s.", Hallucination
+                    ? "homesick"
+                    /* if on track, give a big hint */
+                    : (altaralign == u.ualign.type)
+                        ? "an urge to return to the surface"
+                        /* else headed towards celestial disgrace */
+                        : "ashamed");
+}
+
+static void
+desecrate_high_altar(aligntyp altaralign)
+{
+    /*
+     * REAL BAD NEWS!!! High altars cannot be converted.  Even an attempt
+     * gets the god who owns it truly pissed off.
+     */
+    You_feel("the air around you grow charged...");
+    pline("Suddenly, you realize that %s has noticed you...", a_gname());
+    godvoice(altaralign,
+                "So, mortal!  You dare desecrate my High Temple!");
+    /* Throw everything we have at the player */
+    god_zaps_you(altaralign);
+}
+
 /* the #offer command - sacrifice something to the gods */
 int
 dosacrifice(void)
@@ -1452,8 +1574,7 @@ dosacrifice(void)
         You("are not standing on an altar.");
         return ECMD_OK;
     }
-    highaltar = ((Is_astralevel(&u.uz) || Is_sanctum(&u.uz))
-                 && (levl[u.ux][u.uy].altarmask & AM_SHRINE));
+    highaltar = (levl[u.ux][u.uy].altarmask & AM_SANCTUM);
 
     otmp = floorfood("sacrifice", 1);
     if (!otmp)
@@ -1506,7 +1627,8 @@ dosacrifice(void)
 
             if (highaltar
                 && (altaralign != A_CHAOTIC || u.ualign.type != A_CHAOTIC)) {
-                goto desecrate_high_altar;
+                desecrate_high_altar(altaralign);
+                return ECMD_TIME;
             } else if (altaralign != A_CHAOTIC && altaralign != A_NONE) {
                 /* curse the lawful/neutral altar */
                 pline_The("altar is stained with %s blood.", g.urace.adj);
@@ -1630,21 +1752,7 @@ dosacrifice(void)
 
     if (otmp->otyp == AMULET_OF_YENDOR) {
         if (!highaltar) {
- too_soon:
-            if (altaralign == A_NONE && Inhell)
-                /* hero has left Moloch's Sanctum so is in the process
-                   of getting away with the Amulet (outside of Gehennom,
-                   fall through to the "ashamed" feedback) */
-                gods_upset(A_NONE);
-            else
-                You_feel("%s.",
-                         Hallucination
-                            ? "homesick"
-                            /* if on track, give a big hint */
-                            : (altaralign == u.ualign.type)
-                               ? "an urge to return to the surface"
-                               /* else headed towards celestial disgrace */
-                               : "ashamed");
+            offer_too_soon(altaralign);
             return ECMD_TIME;
         } else {
             /* The final Test.  Did you win? */
@@ -1706,8 +1814,10 @@ dosacrifice(void)
     } /* real Amulet */
 
     if (otmp->otyp == FAKE_AMULET_OF_YENDOR) {
-        if (!highaltar && !otmp->known)
-            goto too_soon;
+        if (!highaltar && !otmp->known) {
+            offer_too_soon(altaralign);
+            return ECMD_TIME;
+        }
         You_hear("a nearby thunderclap.");
         if (!otmp->known) {
             You("realize you have made a %s.",
@@ -1732,17 +1842,7 @@ dosacrifice(void)
     }
 
     if (altaralign != u.ualign.type && highaltar) {
- desecrate_high_altar:
-        /*
-         * REAL BAD NEWS!!! High altars cannot be converted.  Even an attempt
-         * gets the god who owns it truly pissed off.
-         */
-        You_feel("the air around you grow charged...");
-        pline("Suddenly, you realize that %s has noticed you...", a_gname());
-        godvoice(altaralign,
-                 "So, mortal!  You dare desecrate my High Temple!");
-        /* Throw everything we have at the player */
-        god_zaps_you(altaralign);
+        desecrate_high_altar(altaralign);
     } else if (value < 0) { /* don't think the gods are gonna like this... */
         gods_upset(altaralign);
     } else {
@@ -1889,21 +1989,30 @@ dosacrifice(void)
                 && !rn2(10 + (2 * u.ugifts * u.ugifts))) {
                 otmp = mk_artifact((struct obj *) 0, a_align(u.ux, u.uy));
                 if (otmp) {
+                    char buf[BUFSZ];
+
+                    artifact_origin(otmp, ONAME_GIFT | ONAME_KNOW_ARTI);
                     if (otmp->spe < 0)
                         otmp->spe = 0;
                     if (otmp->cursed)
                         uncurse(otmp);
                     otmp->oerodeproof = TRUE;
-                    at_your_feet("An object");
+                    Strcpy(buf, (Hallucination ? "a doodad"
+                                 : Blind ? "an object"
+                                   : ansimpleoname(otmp)));
+                    if (!Blind)
+                        Sprintf(eos(buf), " named %s",
+                                bare_artifactname(otmp));
+                    at_your_feet(upstart(buf));
                     dropy(otmp);
                     godvoice(u.ualign.type, "Use my gift wisely!");
                     u.ugifts++;
                     u.ublesscnt = rnz(300 + (50 * u.ugifts));
                     exercise(A_WIS, TRUE);
-                    livelog_printf (LL_DIVINEGIFT|LL_ARTIFACT,
-                                    "had %s bestowed upon %s by %s",
+                    livelog_printf (LL_DIVINEGIFT | LL_ARTIFACT,
+                                    "bestowed with %s by %s",
                                     artiname(otmp->oartifact),
-                                    uhim(), align_gname(u.ualign.type));
+                                    align_gname(u.ualign.type));
                     /* make sure we can use this weapon */
                     unrestrict_weapon_skill(weapon_type(otmp));
                     if (!Hallucination && !Blind) {
@@ -2123,21 +2232,9 @@ doturn(void)
     int once, range, xlev;
 
     if (!Role_if(PM_CLERIC) && !Role_if(PM_KNIGHT)) {
-        /* Try to use the "turn undead" spell.
-         *
-         * This used to be based on whether hero knows the name of the
-         * turn undead spellbook, but it's possible to know--and be able
-         * to cast--the spell while having lost the book ID to amnesia.
-         * (It also used to tell spelleffects() to cast at self?)
-         */
-        int sp_no;
-
-        for (sp_no = 0; sp_no < MAXSPELL; ++sp_no) {
-            if (g.spl_book[sp_no].sp_id == NO_SPELL)
-                break;
-            else if (g.spl_book[sp_no].sp_id == SPE_TURN_UNDEAD)
-                return spelleffects(sp_no, FALSE);
-        }
+        /* Try to use the "turn undead" spell. */
+        if (known_spell(SPE_TURN_UNDEAD))
+            return spelleffects(SPE_TURN_UNDEAD, FALSE);
         You("don't know how to turn undead!");
         return ECMD_OK;
     }

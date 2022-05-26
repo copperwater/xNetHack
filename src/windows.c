@@ -1,4 +1,4 @@
-/* NetHack 3.7	windows.c	$NHDT-Date: 1612127121 2021/01/31 21:05:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.82 $ */
+/* NetHack 3.7	windows.c	$NHDT-Date: 1647472699 2022/03/16 23:18:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.86 $ */
 /* Copyright (c) D. Cohrs, 1993. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -1158,7 +1158,7 @@ dump_fmtstr(const char *fmt, char *buf,
                     Strcpy(tmpbuf, "{current date+time}");
                 break;
             case 'v': /* version, eg. "3.7.0-0" */
-                Sprintf(tmpbuf, "%s", version_string(verbuf));
+                Sprintf(tmpbuf, "%s", version_string(verbuf, sizeof verbuf));
                 break;
             case 'u': /* UID */
                 Sprintf(tmpbuf, "%ld", uid);
@@ -1485,17 +1485,17 @@ html_print_glyph(winid win UNUSED, xchar x, xchar y,
         fprintf(dumphtml_file, "<span class=\"nh_screen\">  ");
     cc.x = x;
     cc.y = y;
-    desc_found = do_screen_description(cc, TRUE, glyphinfo->gm.symidx, buf,
+    desc_found = do_screen_description(cc, TRUE, glyphinfo->gm.sym.symidx, buf,
                                        &firstmatch, (struct permonst **) 0);
     if (desc_found)
         fprintf(dumphtml_file, "<div class=\"tooltip\">");
     attr = mg_hl_attr(glyphinfo->gm.glyphflags);
-    dump_set_color_attr(glyphinfo->gm.color, attr, TRUE);
-    if (htmlsym[glyphinfo->gm.symidx])
-        fprintf(dumphtml_file, "&#%d;", htmlsym[glyphinfo->gm.symidx]);
+    dump_set_color_attr(glyphinfo->gm.sym.color, attr, TRUE);
+    if (htmlsym[glyphinfo->gm.sym.symidx])
+        fprintf(dumphtml_file, "&#%d;", htmlsym[glyphinfo->gm.sym.symidx]);
     else
         html_dump_char(dumphtml_file, (char)glyphinfo->ttychar);
-    dump_set_color_attr(glyphinfo->gm.color, attr, FALSE);
+    dump_set_color_attr(glyphinfo->gm.sym.color, attr, FALSE);
     if (desc_found)
        fprintf(dumphtml_file,
                "<span class=\"tooltiptext\">%s</span></div>", firstmatch);
@@ -1855,7 +1855,7 @@ dump_headers(void)
 
     fprintf(dumphtml_file, "<!DOCTYPE html>\n");
     fprintf(dumphtml_file, "<head>\n");
-    fprintf(dumphtml_file, "<title>xNetHack %s</title>\n",  version_string(vers));
+    fprintf(dumphtml_file, "<title>xNetHack %s</title>\n",  version_string(vers, sizeof vers));
     fprintf(dumphtml_file, "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" />\n");
     fprintf(dumphtml_file, "<meta name=\"generator\" content=\"xNetHack %s \" />\n", vers);
     fprintf(dumphtml_file, "<meta name=\"date\" content=\"%s\" />\n", iso8601);
@@ -2228,7 +2228,7 @@ glyph2symidx(int glyph)
     glyph_info glyphinfo;
 
     map_glyphinfo(0, 0, glyph, 0, &glyphinfo);
-    return glyphinfo.gm.symidx;
+    return glyphinfo.gm.sym.symidx;
 }
 
 char *
@@ -2240,10 +2240,37 @@ encglyph(int glyph)
     return encbuf;
 }
 
+int
+decode_glyph(const char *str, int *glyph_ptr)
+{
+    static const char hex[] = "00112233445566778899aAbBcCdDeEfF";
+    int rndchk = 0, dcount = 0, retval = 0;
+    const char *dp;
+
+    for (; *str && ++dcount <= 4; ++str) {
+        if ((dp = index(hex, *str)) != 0) {
+            retval++;
+            rndchk = (rndchk * 16) + ((int) (dp - hex) / 2);
+        } else
+            break;
+    }
+    if (rndchk == g.context.rndencode) {
+        *glyph_ptr = dcount = 0;
+        for (; *str && ++dcount <= 4; ++str) {
+            if ((dp = index(hex, *str)) != 0) {
+                retval++;
+                *glyph_ptr = (*glyph_ptr * 16) + ((int) (dp - hex) / 2);
+            } else
+                break;
+        }
+        return retval;
+    }
+    return 0;
+}
+
 char *
 decode_mixed(char *buf, const char *str)
 {
-    static const char hex[] = "00112233445566778899aAbBcCdDeEfF";
     char *put = buf;
     glyph_info glyphinfo = nul_glyphinfo;
 
@@ -2252,27 +2279,16 @@ decode_mixed(char *buf, const char *str)
 
     while (*str) {
         if (*str == '\\') {
-            int rndchk, dcount, so, gv;
-            const char *dp, *save_str;
+            int dcount, so, gv;
+            const char *save_str;
 
             save_str = str++;
             switch (*str) {
             case 'G': /* glyph value \GXXXXNNNN*/
-                rndchk = dcount = 0;
-                for (++str; *str && ++dcount <= 4; ++str)
-                    if ((dp = index(hex, *str)) != 0)
-                        rndchk = (rndchk * 16) + ((int) (dp - hex) / 2);
-                    else
-                        break;
-                if (rndchk == g.context.rndencode) {
-                    gv = dcount = 0;
-                    for (; *str && ++dcount <= 4; ++str)
-                        if ((dp = index(hex, *str)) != 0)
-                            gv = (gv * 16) + ((int) (dp - hex) / 2);
-                        else
-                            break;
+                if ((dcount = decode_glyph(str + 1, &gv))) {
+                    str += (dcount + 1);
                     map_glyphinfo(0, 0, gv, 0, &glyphinfo);
-                    so = glyphinfo.gm.symidx;
+                    so = glyphinfo.gm.sym.symidx;
                     *put++ = g.showsyms[so];
                     /* 'str' is ready for the next loop iteration and '*str'
                        should not be copied at the end of this iteration */
@@ -2282,25 +2298,6 @@ decode_mixed(char *buf, const char *str)
                     str = save_str;
                 }
                 break;
-#if 0
-            case 'S': /* symbol offset */
-                so = rndchk = dcount = 0;
-                for (++str; *str && ++dcount <= 4; ++str)
-                    if ((dp = index(hex, *str)) != 0)
-                        rndchk = (rndchk * 16) + ((int) (dp - hex) / 2);
-                    else
-                        break;
-                if (rndchk == g.context.rndencode) {
-                    dcount = 0;
-                    for (; *str && ++dcount <= 2; ++str)
-                        if ((dp = index(hex, *str)) != 0)
-                            so = (so * 16) + ((int) (dp - hex) / 2);
-                        else
-                            break;
-                }
-                *put++ = g.showsyms[so];
-                break;
-#endif
             case '\\':
                 break;
             case '\0':
@@ -2319,6 +2316,7 @@ decode_mixed(char *buf, const char *str)
     *put = '\0';
     return buf;
 }
+
 
 /*
  * This differs from putstr() because the str parameter can
@@ -2346,21 +2344,33 @@ genl_putmixed(winid window, int attr, const char *str)
  * logic into one place instead of 7 different window-port routines.
  */
 boolean
-menuitem_invert_test(int mode,
-                     unsigned itemflags,     /* The itemflags for the item */
-                     boolean is_selected)    /* The current selection status
-                                                of the item */
+menuitem_invert_test(
+    int mode UNUSED,        /* 0: invert; 1: select; 2: deselect */
+    unsigned itemflags,     /* itemflags for the item */
+    boolean is_selected)    /* current selection status of the item */
 {
     boolean skipinvert = (itemflags & MENU_ITEMFLAGS_SKIPINVERT) != 0;
 
-    if ((iflags.menuinvertmode == 1 || iflags.menuinvertmode == 2)
-        && !mode && skipinvert && !is_selected)
+    if (!skipinvert) /* if not flagged SKIPINVERT, always pass test */
+        return TRUE;
+    /*
+     * mode 0: inverting current on/off state;
+     *      1: unconditionally setting on;
+     *      2: unconditionally setting off.
+     * menuinvertmode 0: treat entries flagged with skipinvert as ordinary
+     *                   (same as if not flagged);
+     * menuinvertmode 1: don't toggle bulk invert or bulk select entries On;
+     *                   allow toggling to Off (for invert and deselect;
+     *                   select doesn't do Off);
+     * menuinvertmode 2: don't toggle skipinvert entries either On or Off
+     *                   when any bulk change is performed.
+     */
+    if (iflags.menuinvertmode == 2) {
         return FALSE;
-    else if (iflags.menuinvertmode == 2
-        && !mode && skipinvert && is_selected)
-        return TRUE;
-    else
-        return TRUE;
+    } else if (iflags.menuinvertmode == 1) {
+        return is_selected ? TRUE : FALSE;
+    }
+    return TRUE;
 }
 
 /*windows.c*/

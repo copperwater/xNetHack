@@ -1,4 +1,4 @@
--- NetHack 3.7	Barb.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.9 $
+-- NetHack Barbarian Bar-goal.lua	$NHDT-Date: 1652196000 2022/05/10 15:20:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -43,7 +43,7 @@ des.teleport_region({ region = {00,00,75,19}, exclude = {41,00,75,19}, dir="up" 
 
 -- Stair
 local leftedge = selection.line(00,00, 00,19)
-des.stair({ dir = "up", coord = { leftedge:rndcoord(1) } })
+des.stair("up", leftedge:rndcoord(1))
 
 -- Define a selection containing all the building interiors for later use
 local inbuildings = selection.floodfill(32,05) | selection.floodfill(50,00) |
@@ -74,13 +74,13 @@ des.object({ id = "luckstone", coord = {57,08}, buc="blessed", name = "The Heart
 -- Thoth Amon's attendants
 local towncenter = selection.floodfill(57,08)
 for i=1,3 do
-  des.monster({ id = "ogre king", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
+  des.monster({ id = "ogre king", coord = towncenter:rndcoord(1), peaceful = 0 })
 end
 for i=1,2 do
-  des.monster({ id = "orc-captain", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
-  des.monster({ id = "Olog-hai", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
+  des.monster({ id = "orc-captain", coord = towncenter:rndcoord(1), peaceful = 0 })
+  des.monster({ id = "Olog-hai", coord = towncenter:rndcoord(1), peaceful = 0 })
 end
-des.monster({ id = "kobold lord", coord = { towncenter:rndcoord(1) }, peaceful = 0 })
+des.monster({ id = "kobold lord", coord = towncenter:rndcoord(1), peaceful = 0 })
 
 -- Wish there were some higher-level rampaging-type monsters that are also spellcasters...
 des.monster({ id = "orc shaman", coord = {57,05}, asleep = 1, peaceful = 0 })
@@ -93,29 +93,29 @@ des.monster({ id = "orc shaman", coord = {60,10}, asleep = 1, peaceful = 0 })
 local outsidetown = selection.floodfill(01,01)
 local hordestart = selection.fillrect(31,00,41,19) & outsidetown
 for i=1,8 do
-  des.monster({ id = "ogre", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
-  des.monster({ id = "rock troll", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
+  des.monster({ id = "ogre", coord = hordestart:rndcoord(1), peaceful = 0 })
+  des.monster({ id = "rock troll", coord = hordestart:rndcoord(1), peaceful = 0 })
 end
 for i=1,6 do
-  des.monster({ class = "O", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
-  des.monster({ class = "T", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
+  des.monster({ class = "O", coord = hordestart:rndcoord(1), peaceful = 0 })
+  des.monster({ class = "T", coord = hordestart:rndcoord(1), peaceful = 0 })
 end
 for i=1,4 do
-  des.monster({ class = "o", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
+  des.monster({ class = "o", coord = hordestart:rndcoord(1), peaceful = 0 })
 end
 for i=1,3 do
-  des.monster({ class = "k", coord = { hordestart:rndcoord(1) }, peaceful = 0 })
+  des.monster({ class = "k", coord = hordestart:rndcoord(1), peaceful = 0 })
 end
 
 -- Ominous candles on the ground to see their approach
 local candleline = selection.area(26,00, 30,19)
 for i=1,1 + d(5) do
-  des.object({ id = "tallow candle", coord = { candleline:rndcoord(1) }, lit = 1 })
+  des.object({ id = "tallow candle", coord = candleline:rndcoord(1), lit = 1 })
 end
 
 -- Random objects, scattered through the buildings.
 for i=1,14 do
-  des.object({ coord = { inbuildings:rndcoord(1) } })
+  des.object(inbuildings:rndcoord(1))
 end
 
 -- Traps. Thoth Amon has invested heavily in intruder detection
@@ -123,8 +123,8 @@ local interiors = selection.new()
 interiors = interiors | towncenter
 interiors = interiors | inbuildings
 for i=1,10 do
-  des.trap({ type = "board", coord = { interiors:rndcoord(1) } })
-  des.trap({ type = "board", coord = { outsidetown:rndcoord(1) } })
+  des.trap("board", interiors:rndcoord(1))
+  des.trap("board", outsidetown:rndcoord(1))
   des.trap("bear")
   des.trap("spiked pit")
 end

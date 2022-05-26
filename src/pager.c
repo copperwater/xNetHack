@@ -146,11 +146,10 @@ monhealthdescr(struct monst *mon, boolean addspace, char *outbuf)
 static void
 trap_description(char *outbuf, int tnum, int x, int y)
 {
-    /* Trap detection displays a bear trap at locations having
-     * a trapped door or trapped container or both.
-     *
-     * TODO: we should create actual trap types for doors and
-     * chests so that they can have their own glyphs and tiles.
+    /*
+     * Trap detection used to display a bear trap at locations having
+     * a trapped door or trapped container or both.  They're semi-real
+     * traps now (defined trap types but not part of ftrap chain).
      */
     if (trapped_chest_at(tnum, x, y))
         Strcpy(outbuf, "trapped chest"); /* might actually be a large box */
@@ -371,9 +370,22 @@ look_at_monster(char *buf,
             Strcat(buf, (Upolyd && sticks(g.youmonst.data))
                           ? ", being held" : ", holding you");
     }
+    /* if mtmp isn't able to move (other than because it is a type of
+       monster that never moves), say so [excerpt from mstatusline() for
+       stethoscope or wand of probing] */
+    if (mtmp->mfrozen)
+        /* unfortunately mfrozen covers temporary sleep and being busy
+           (donning armor, for instance) as well as paralysis */
+        Strcat(buf, ", can't move (paralyzed or sleeping or busy)");
+    else if (mtmp->msleeping)
+        /* sleeping for an indeterminate duration */
+        Strcat(buf, ", asleep");
+    else if ((mtmp->mstrategy & STRAT_WAITMASK) != 0)
+        /* arbitrary reason why it isn't moving */
+        Strcat(buf, ", meditating");
+
     if (mtmp->mleashed)
         Strcat(buf, ", leashed to you");
-
     if (mtmp->mtrapped && cansee(mtmp->mx, mtmp->my)) {
         struct trap *t = t_at(mtmp->mx, mtmp->my);
         int tt = t ? t->ttyp : NO_TRAP;
@@ -516,7 +528,7 @@ waterbody_name(xchar x, xchar y)
         } else {
             return "moat";
         }
-    } else if (ltyp == WATER) {
+    } else if (IS_WATERWALL(ltyp)) {
         if (Is_waterlevel(&u.uz))
             return "limitless water"; /* even if hallucinating */
         Snprintf(pooltype, sizeof pooltype, "wall of %s", hliquid("water"));
@@ -539,7 +551,7 @@ lookat(int x, int y, char *buf, char *monbuf)
 
     buf[0] = monbuf[0] = '\0';
     glyph = glyph_at(x, y);
-    if (u.ux == x && u.uy == y && canspotself()
+    if (u_at(x, y) && canspotself()
         && !(iflags.save_uswallow
              && glyph == mon_to_glyph(u.ustuck, rn2_on_display_rng))
         && (!iflags.terrainmode || (iflags.terrainmode & TER_MON) != 0)) {
@@ -626,13 +638,11 @@ lookat(int x, int y, char *buf, char *monbuf)
             Sprintf(buf, "%s %saltar",
                     /* like endgame high priests, endgame high altars
                        are only recognizable when immediately adjacent */
-                    (Is_astralevel(&u.uz) && !next2u(x, y))
+                    (Is_astralevel(&u.uz) && !next2u(x, y)
+                     && (amsk & AM_SANCTUM))
                         ? "aligned"
                         : align_str(algn),
-                    ((amsk & AM_SHRINE) != 0
-                     && (Is_astralevel(&u.uz) || Is_sanctum(&u.uz)))
-                        ? "high "
-                        : "");
+                    (amsk & AM_SANCTUM) ? "high " : "");
             break;
         case S_ndoor:
             if (is_drawbridge_wall(x, y) >= 0)
@@ -848,9 +858,13 @@ add_mon_info(winid datawin, struct permonst * pm)
     APPENDC(intrinsic_possible(SLEEP_RES, pm), "sleep");
     APPENDC(intrinsic_possible(POISON_RES, pm), "poison");
     APPENDC(intrinsic_possible(DISINT_RES, pm), "disintegration");
-    /* acid and stone resistance aren't currently conveyable */
     if (*buf)
         Strcat(buf, " resistance");
+    /* keep these separate because "fire, cold, temporary petrification
+     * resistance" looks weird */
+    APPENDC(intrinsic_possible(ACID_RES, pm), "temporary acid resistance");
+    APPENDC(intrinsic_possible(STONE_RES, pm),
+            "temporary petrification resistance");
     APPENDC(intrinsic_possible(TELEPORT, pm), "teleportation");
     APPENDC(intrinsic_possible(TELEPORT_CONTROL, pm), "teleport control");
     APPENDC(intrinsic_possible(TELEPAT, pm), "telepathy");
@@ -861,6 +875,7 @@ add_mon_info(winid datawin, struct permonst * pm)
      * permanent intrinsic gains.
      * If you find yourself listing multiple things here for the same effect,
      * that may indicate the property should be added to psuedo_intrinsics. */
+    APPENDC(pm == &mons[PM_DISPLACER_BEAST], "temporary displacement");
     APPENDC(pm == &mons[PM_QUANTUM_MECHANIC], "speed or slowness");
     APPENDC(pm == &mons[PM_MIND_FLAYER] || pm == &mons[PM_MASTER_MIND_FLAYER],
             "intelligence");
@@ -1917,7 +1932,7 @@ add_cmap_descr(
 
     if (!found) {
         /* this is the first match */
-        if (is_cmap_trap(idx)) {
+        if (is_cmap_trap(idx) && idx != S_vibrating_square) {
             Sprintf(out_str, "%sa trap", prefix);
             *hit_trap = TRUE;
         } else {
@@ -1938,7 +1953,7 @@ add_cmap_descr(
         found += append_str(out_str, (article == 2) ? the(x_str)
                                      : (article == 1) ? an(x_str)
                                        : x_str);
-        if (is_cmap_trap(idx))
+        if (is_cmap_trap(idx) && idx != S_vibrating_square)
             *hit_trap = TRUE;
     }
     return found;
@@ -2043,7 +2058,7 @@ do_screen_description(coord cc, boolean looked, int sym, char *out_str,
            playing a character which isn't normally displayed by that
            symbol; firstmatch is assumed to already be set for '@' */
         if ((looked ? (sym == g.showsyms[S_HUMAN + SYM_OFF_M]
-                       && cc.x == u.ux && cc.y == u.uy)
+                       && u_at(cc.x, cc.y))
                     : (sym == def_monsyms[S_HUMAN].sym && !flags.showrace))
             && !Race_if(PM_HUMAN) && !Upolyd)
             found += append_str(out_str, "you"); /* tack on "or you" */
@@ -2547,7 +2562,7 @@ look_all(
 
                     g.bhitpos.x = x; /* [is this actually necessary?] */
                     g.bhitpos.y = y;
-                    if (x == u.ux && y == u.uy && canspotself()) {
+                    if (u_at(x, y) && canspotself()) {
                         (void) self_lookat(lookbuf);
                         ++count;
                     } else if ((mtmp = m_at(x, y)) != 0) {
@@ -2676,7 +2691,7 @@ look_traps(boolean nearby)
     else
         pline("No traps seen or remembered%s.", nearby ? " nearby" : "");
     destroy_nhwindow(win);
-    }
+}
 
 static const char *suptext1[] = {
     "%s is a member of a marauding horde of orcs",
@@ -2791,9 +2806,14 @@ doidtrap(void)
     x = u.ux + u.dx;
     y = u.uy + u.dy;
 
-    /* check fake bear trap from confused gold detection */
+    /* trapped doors and chests used to be shown as fake bear traps;
+       they have their own trap types now but aren't part of the ftrap
+       chain; usually they revert to normal door or chest when the hero
+       sees them but player might be using '^' while the hero is blind */
     glyph = glyph_at(x, y);
-    if (glyph_is_trap(glyph) && (tt = glyph_to_trap(glyph)) == BEAR_TRAP) {
+    if (glyph_is_trap(glyph)
+        && ((tt = glyph_to_trap(glyph)) == BEAR_TRAP
+            || tt == TRAPPED_DOOR || tt == TRAPPED_CHEST)) {
         boolean chesttrap = trapped_chest_at(tt, x, y);
 
         if (chesttrap || trapped_door_at(tt, x, y)) {

@@ -1,4 +1,4 @@
-/* NetHack 3.7	dothrow.c	$NHDT-Date: 1621037618 2021/05/15 00:13:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.199 $ */
+/* NetHack 3.7	dothrow.c	$NHDT-Date: 1645298658 2022/02/19 19:24:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.217 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -20,7 +20,6 @@ static boolean harmless_missile(struct obj *);
 static boolean toss_up(struct obj *, boolean);
 static void sho_obj_return_to_u(struct obj * obj);
 static boolean mhurtle_step(genericptr_t, int, int);
-static boolean autoreturning_wep(struct obj *, struct monst *);
 
 /* uwep might already be removed from inventory so test for W_WEP instead;
    for Valk+Mjollnir, caller needs to validate the strength requirement */
@@ -255,6 +254,7 @@ throw_obj(struct obj *obj, int shotlimit)
         }
         freeinv(otmp);
         throwit(otmp, wep_mask, twoweap, oldslot);
+        (void) encumber_msg();
     }
     g.m_shot.n = g.m_shot.i = 0;
     g.m_shot.o = STRANGE_OBJECT;
@@ -267,7 +267,7 @@ throw_obj(struct obj *obj, int shotlimit)
 static boolean
 ok_to_throw(int *shotlimit_p) /* (see dothrow()) */
 {
-    *shotlimit_p = g.command_count;
+    *shotlimit_p = LIMIT_TO_RANGE_INT(0, LARGEST_INT, g.command_count);
     g.multi = 0; /* reset; it's been used up */
 
     if (notake(g.youmonst.data)) {
@@ -293,8 +293,9 @@ throw_ok(struct obj *obj)
     if (obj->bknown && welded(obj)) /* not a candidate if known to be stuck */
         return GETOBJ_DOWNPLAY;
 
-    if (obj == uwep && autoreturning_wep(uwep, &g.youmonst))
+    if (AutoReturn(obj, obj->owornmask)
         /* to get here, obj is boomerang or is uwep and (alkys or Mjollnir) */
+        && (obj->oartifact != ART_MJOLLNIR || ACURR(A_STR) >= STR19(25)))
         return GETOBJ_SUGGEST;
 
     if (obj->quan == 1 && (obj == uwep || (obj == uswapwep && u.twoweap)))
@@ -415,16 +416,22 @@ autoquiver(void)
 static struct obj *
 find_launcher(struct obj *ammo)
 {
-    struct obj *otmp;
+    struct obj *otmp, *oX;
 
     if (!ammo)
-        return (struct obj *)0;
+        return (struct obj *) 0;
 
-    for (otmp = g.invent; otmp; otmp = otmp->nobj)
-        if (ammo_and_launcher(ammo, otmp) && !(otmp->cursed && otmp->bknown))
-            return otmp;
-
-    return (struct obj *)0;
+    for (oX = 0, otmp = g.invent; otmp; otmp = otmp->nobj) {
+        if (otmp->cursed && otmp->bknown)
+            continue; /* known to be cursed, so skip */
+        if (ammo_and_launcher(ammo, otmp)) {
+            if (otmp->bknown)
+                return otmp; /* known-B or known-U (known-C won't get here) */
+            if (!oX)
+                oX = otmp; /* unknown-BUC; used if no known-BU item found */
+        }
+    }
+    return oX;
 }
 
 /* the #fire command -- throw from the quiver or use wielded polearm */
@@ -433,16 +440,25 @@ dofire(void)
 {
     int shotlimit;
     struct obj *obj;
+    /* AutoReturn() verifies Valkyrie if weapon is Mjollnir, but it relies
+       on its caller to make sure hero is strong enough to throw that */
+    boolean uwep_Throw_and_Return = (uwep && AutoReturn(uwep, uwep->owornmask)
+                                     && (uwep->oartifact != ART_MJOLLNIR
+                                         || ACURR(A_STR) >= STR19(25)));
+    int altres, res = ECMD_OK;
 
     /*
      * Same as dothrow(), except we use quivered missile instead
-     * of asking what to throw/shoot.
+     * of asking what to throw/shoot.  [Note: with the advent of
+     * fireassist that is no longer accurate...]
      *
-     * If quiver is empty, we use autoquiver to fill it when the
-     * corresponding option is on.  If the option is off and hero
-     * is wielding a thrown-and-return weapon, use the wielded
-     * weapon.  If option is off and not wielding such a weapon or
-     * if autoquiver doesn't select anything, we ask what to throw.
+     * If hero is wielding a thrown-and-return weapon and quiver
+     * is empty or contains ammo, use the wielded weapon (won't
+     * have any ammo's launcher wielded due to the weapon).
+     * If quiver is empty, use autoquiver to fill it when the
+     * corresponding option is on.
+     * If option is off or autoquiver doesn't select anything,
+     * we ask what to throw.
      * Then we put the chosen item into the quiver slot unless
      * it is already in another slot.  [Matters most if it is a
      * stack but also matters for single item if this throw gets
@@ -451,87 +467,87 @@ dofire(void)
     if (!ok_to_throw(&shotlimit))
         return ECMD_OK;
 
-    if ((obj = uquiver) == 0) {
-        /* If nothing is quivered but wielding an autoreturning weapon, pick
-         * that if we don't find anything else to throw via autoquivering. */
-        boolean returnwep = (uwep && autoreturning_wep(uwep, &g.youmonst));
+    obj = uquiver;
+    /* if wielding a throw-and-return weapon, throw it if quiver is empty
+       or has ammo rather than missiles [since the throw/return weapon is
+       wielded, the ammo's launcher isn't; the ammo-only policy avoids
+       throwing Mjollnir if quiver contains daggers] */
+    if (uwep_Throw_and_Return && (!obj || is_ammo(obj))) {
+        obj = uwep;
+
+    } else if (!obj) {
         if (!flags.autoquiver) {
-            if (uwep && returnwep)
-                obj = uwep;
-            else {
-                /* if we're wielding a polearm, apply it */
-                if (uwep && is_pole(uwep))
-                    return use_pole(uwep, TRUE);
-                /* if we're wielding a bullwhip, apply it */
-                else if (uwep && uwep->otyp == BULLWHIP)
-                    return use_whip(uwep);
-                else if (iflags.fireassist
-                         && uswapwep && is_pole(uswapwep)
-                         && !(uswapwep->cursed && uswapwep->bknown)) {
-                    /* we have a known not-cursed polearm as swap weapon.
-                       swap to it and retry */
-                    cmdq_add_ec(doswapweapon);
-                    cmdq_add_ec(dofire);
-                    return ECMD_OK;
-                } else
-                    You("have no ammunition readied.");
+            /* if we're wielding a polearm, apply it */
+            if (uwep && is_pole(uwep)) {
+                return use_pole(uwep, TRUE);
+            /* if we're wielding a bullwhip, apply it */
+            } else if (uwep && uwep->otyp == BULLWHIP) {
+                return use_whip(uwep);
+            } else if (iflags.fireassist
+                       && uswapwep && is_pole(uswapwep)
+                       && !(uswapwep->cursed && uswapwep->bknown)) {
+                /* we have a known not-cursed polearm as swap weapon.
+                   swap to it and retry */
+                cmdq_add_ec(doswapweapon);
+                cmdq_add_ec(dofire);
+                return ECMD_OK; /* haven't taken any time yet */
+            } else {
+                You("have no ammunition readied.");
             }
         } else {
             autoquiver();
-            if ((obj = uquiver) == 0 && !returnwep) {
+            obj = uquiver;
+            if (obj) {
+                /* give feedback if quiver has now been filled */
+                uquiver->owornmask &= ~W_QUIVER; /* less verbose */
+                prinv("You ready:", obj, 0L);
+                uquiver->owornmask |= W_QUIVER;
+            } else {
                 You("have nothing appropriate for your quiver.");
             }
         }
-        /* need to check uquiver again because autoquiver might have picked
-         * something and placed it into quiver */
-        if (!uquiver && returnwep) {
-            obj = uwep;
-        }
-        /* if autoquiver is disabled or has failed, prompt for missile;
-           fill quiver with it if it's not wielded or worn */
-        if (!obj) {
-            /* in case we're using ^A to repeat prior 'f' command, don't
-               use direction of previous throw as getobj()'s choice here */
-            g.in_doagain = 0;
-            /* choose something from inventory, then usually quiver it */
-            obj = getobj("throw", throw_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT);
-            /* Q command doesn't allow gold in quiver */
-            if (!obj)
-                return ECMD_CANCEL;
-            if (obj && !obj->owornmask && obj->oclass != COIN_CLASS)
-                setuqwep(obj); /* demi-autoquiver */
-        }
-        /* give feedback if quiver has now been filled */
-        if (uquiver) {
-            uquiver->owornmask &= ~W_QUIVER; /* less verbose */
-            prinv("You ready:", uquiver, 0L);
-            uquiver->owornmask |= W_QUIVER;
-        }
     }
 
-    if (uquiver && iflags.fireassist) {
+    /* if autoquiver is disabled or has failed, prompt for missile */
+    if (!obj) {
+        /* in case we're using ^A to repeat prior 'f' command, don't
+           use direction of previous throw as getobj()'s choice here */
+        g.in_doagain = 0;
+
+        /* this gives its own feedback about populating the quiver slot */
+        res = doquiver_core("fire");
+        if (res != ECMD_OK && res != ECMD_TIME)
+            return res;
+
+        obj = uquiver;
+    }
+
+    if (uquiver && is_ammo(uquiver) && iflags.fireassist) {
         struct obj *olauncher;
 
         /* Try to find a launcher */
         if (ammo_and_launcher(uquiver, uwep)) {
-            /* Do nothing, already wielding a launcher */
+            obj = uquiver;
         } else if (ammo_and_launcher(uquiver, uswapwep)) {
             /* swap weapons and retry fire */
             cmdq_add_ec(doswapweapon);
             cmdq_add_ec(dofire);
-            return ECMD_OK;
-        } else if ((olauncher = find_launcher(obj)) != 0) {
+            return res;
+        } else if ((olauncher = find_launcher(uquiver)) != 0) {
             /* wield launcher, retry fire */
             if (uwep && !flags.pushweapon)
                 cmdq_add_ec(doswapweapon);
             cmdq_add_ec(dowield);
             cmdq_add_key(olauncher->invlet);
             cmdq_add_ec(dofire);
-            return ECMD_OK;
+            return res;
         }
     }
 
-    return obj ? throw_obj(obj, shotlimit) : ECMD_OK;
+    altres = obj ? throw_obj(obj, shotlimit) : ECMD_CANCEL;
+    /* fire can take time by filling quiver (if that causes something which
+       was wielded to be unwielded) even if the throw itself gets cancelled */
+    return (res == ECMD_TIME) ? res : altres;
 }
 
 /* if in midst of multishot shooting/throwing, stop early */
@@ -790,7 +806,8 @@ hurtle_step(genericptr_t arg, int x, int y)
         }
         if ((u.ux - x) && (u.uy - y) && bad_rock(g.youmonst.data, u.ux, y)
             && bad_rock(g.youmonst.data, x, u.uy)) {
-            boolean too_much = (g.invent && (inv_weight() + weight_cap() > 600));
+            boolean too_much = (g.invent
+                                && (inv_weight() + weight_cap() > 600));
 
             /* Move at a diagonal. */
             if (bigmonst(g.youmonst.data) || too_much) {
@@ -815,23 +832,35 @@ hurtle_step(genericptr_t arg, int x, int y)
              && (Flying || Levitation || Wwalking))
 #endif
         ) {
-        const char *mnam, *pronoun;
+        const char *mnam;
         int glyph = glyph_at(x, y);
 
         mon->mundetected = 0; /* wakeup() will handle mimic */
-        mnam = a_monnam(mon); /* after unhiding */
-        pronoun = noit_mhim(mon);
-        if (!strcmp(mnam, "it")) {
-            mnam = !strcmp(pronoun, "it") ? "something" : "someone";
-        }
+        /* after unhiding; combination of a_monnam() and some_mon_nam();
+           yields "someone" or "something" instead of "it" for unseen mon */
+        mnam = x_monnam(mon, ARTICLE_A, (char *) 0,
+                        ((has_mgivenname(mon) ? SUPPRESS_SADDLE : 0)
+                         | AUGMENT_IT),
+                        FALSE);
         if (!glyph_is_monster(glyph) && !glyph_is_invisible(glyph))
-            You("find %s by bumping into %s.", mnam, pronoun);
+            You("find %s by bumping into %s.", mnam, noit_mhim(mon));
         else
             You("bump into %s.", mnam);
         wakeup(mon, FALSE, TRUE);
         if (!canspotmon(mon))
             map_invisible(mon->mx, mon->my);
         setmangry(mon, FALSE);
+        if (touch_petrifies(mon->data)
+            /* this is a bodily collision, so check for body armor */
+            && !uarmu && !uarm && !uarmc) {
+            Sprintf(g.killer.name, "bumping into %s",
+                    an(pmname(mon->data, NEUTRAL)));
+            instapetrify(g.killer.name);
+        }
+        if (touch_petrifies(g.youmonst.data)
+            && !which_armor(mon, W_ARMU | W_ARM | W_ARMC)) {
+            minstapetrify(mon, TRUE);
+        }
         wake_nearto(x, y, 10);
         return FALSE;
     }
@@ -871,16 +900,16 @@ hurtle_step(genericptr_t arg, int x, int y)
         switch_terrain();
 
     if (is_pool(x, y) && !u.uinwater) {
-        if ((Is_waterlevel(&u.uz) && levl[x][y].typ == WATER)
+        if ((Is_waterlevel(&u.uz) && is_waterwall(x,y))
             || !(Levitation || Flying || Wwalking)) {
-            /* checks are still here due to needing to be able to hurtle over
-             * water */
-            g.multi = 0; /* can move, so drown() allows crawling out of water */
+            /* couldn't move while hurtling; allow movement now so that
+               drown() will give a chance to crawl out of pool and survive */
+            g.multi = 0;
             (void) drown();
             return FALSE;
         } else if (!Is_waterlevel(&u.uz) && !stopping_short) {
             Norep("You move over %s.", an(is_moat(x, y) ? "moat" : "pool"));
-       }
+        }
     } else if (is_lava(x, y) && !stopping_short) {
         Norep("You move over some lava.");
     }
@@ -896,19 +925,19 @@ hurtle_step(genericptr_t arg, int x, int y)
         if (stopping_short) {
             ; /* see the comment above hurtle_jump() */
         } else if (ttmp->ttyp == MAGIC_PORTAL) {
-            dotrap(ttmp, 0);
+            dotrap(ttmp, NO_TRAP_FLAGS);
             return FALSE;
         } else if (ttmp->ttyp == VIBRATING_SQUARE) {
             pline("The ground vibrates as you pass it.");
-            dotrap(ttmp, 0); /* doesn't print messages */
+            dotrap(ttmp, NO_TRAP_FLAGS); /* doesn't print messages */
         } else if (ttmp->ttyp == FIRE_TRAP) {
-            dotrap(ttmp, 0);
+            dotrap(ttmp, NO_TRAP_FLAGS);
         } else if ((is_pit(ttmp->ttyp) || is_hole(ttmp->ttyp))
                    && Sokoban) {
             /* air currents overcome the recoil in Sokoban;
                when jumping, caller performs last step and enters trap */
             if (!via_jumping)
-                dotrap(ttmp, 0);
+                dotrap(ttmp, NO_TRAP_FLAGS);
             *range = 0;
             return TRUE;
         } else {
@@ -927,19 +956,52 @@ static boolean
 mhurtle_step(genericptr_t arg, int x, int y)
 {
     struct monst *mon = (struct monst *) arg;
+    struct monst *mtmp;
 
-    /* TODO: Treat walls, doors, iron bars, pools, lava, etc. specially
+    /* TODO: Treat walls, doors, iron bars, etc. specially
      * rather than just stopping before.
      */
-    if (goodpos(x, y, mon, 0) && m_in_out_region(mon, x, y)) {
+    if (!isok(x, y))
+        return FALSE;
+
+    if (goodpos(x, y, mon, MM_IGNOREWATER | MM_IGNORELAVA)
+        && m_in_out_region(mon, x, y)) {
+        int res;
+
         remove_monster(mon->mx, mon->my);
         newsym(mon->mx, mon->my);
         place_monster(mon, x, y);
         newsym(mon->mx, mon->my);
         set_apparxy(mon);
-        (void) mintrap(mon);
+        if (is_waterwall(x, y))
+            return FALSE;
+        res = mintrap(mon, HURTLING);
+        if (res == Trap_Killed_Mon
+            || res == Trap_Caught_Mon
+            || res == Trap_Moved_Mon)
+            return FALSE;
+
+        flush_screen(1);
+        delay_output();
         return TRUE;
     }
+    if ((mtmp = m_at(x, y)) != 0) {
+        if (canseemon(mon) || canseemon(mtmp))
+            pline("%s bumps into %s.", Monnam(mon), a_monnam(mtmp));
+        wakeup(mon, !g.context.mon_moving, FALSE);
+        wakeup(mtmp, !g.context.mon_moving, FALSE);
+        if (touch_petrifies(mtmp->data)
+            && !which_armor(mon, W_ARMU | W_ARM | W_ARMC)) {
+            minstapetrify(mon, !g.context.mon_moving);
+            newsym(mon->mx, mon->my);
+        }
+        if (touch_petrifies(mon->data)
+            && !which_armor(mtmp, W_ARMU | W_ARM | W_ARMC)) {
+            minstapetrify(mtmp, !g.context.mon_moving);
+            newsym(mtmp->mx, mtmp->my);
+        }
+    }
+
     return FALSE;
 }
 
@@ -1016,8 +1078,11 @@ mhurtle(struct monst *mon, int dx, int dy, int range)
     /* Is the monster stuck or too heavy to push?
      * (very large monsters have too much inertia, even floaters and flyers)
      */
-    if (mon->data->msize >= MZ_HUGE || mon == u.ustuck || mon->mtrapped)
+    if (mon->data->msize >= MZ_HUGE || mon == u.ustuck || mon->mtrapped) {
+        if (canseemon(mon))
+            pline("%s doesn't budge!", Monnam(mon));
         return;
+    }
 
     /* Make sure dx and dy are [-1,0,1] */
     dx = sgn(dx);
@@ -1042,6 +1107,10 @@ mhurtle(struct monst *mon, int dx, int dy, int range)
     cc.x = mon->mx + (dx * range);
     cc.y = mon->my + (dy * range);
     (void) walk_path(&mc, &cc, mhurtle_step, (genericptr_t) mon);
+    if (!DEADMONSTER(mon) && t_at(mon->mx, mon->my))
+        (void) mintrap(mon, FORCEBUNGLE);
+    else
+        (void) minliquid(mon);
     return;
 }
 
@@ -1843,7 +1912,7 @@ thitmonst(
        and also treat gems or glass shot via sling as attacks */
     if (obj->oclass == GEM_CLASS && is_unicorn(mon->data)
         && objects[obj->otyp].oc_material != MINERAL && !uslinging()) {
-        if (mon->msleeping || !mon->mcanmove) {
+        if (helpless(mon)) {
             tmiss(obj, mon, FALSE);
             return 0;
         } else if (mon->mtame) {
@@ -1869,7 +1938,7 @@ thitmonst(
             if (mon->mpeaceful) {
                 boolean next2u = monnear(mon, u.ux, u.uy);
 
-                finish_quest(obj); /* acknowledge quest completion */
+                leader_sees_qarti(obj); /* maybe acknowledge quest completion */
                 pline("%s %s %s back to you.", Monnam(mon),
                       (next2u ? "hands" : "tosses"), the(xname(obj)));
                 if (!next2u)
@@ -1944,9 +2013,12 @@ thitmonst(
             }
 
             /* attack hits mon */
-            if (hmode == HMON_APPLIED)
-                if (!u.uconduct.weaphit++)
-                    livelog_printf(LL_CONDUCT, "hit with a wielded weapon for the first time");
+            if (hmode == HMON_APPLIED) { /* ranged hit with wielded polearm */
+                /* hmon()'s caller is expected to do this; however, hmon()
+                   delivers the "hit with wielded weapon for first time"
+                   gamelog message when applicable */
+                u.uconduct.weaphit++;
+            }
             if (hmon(mon, obj, hmode, dieroll)) { /* mon still alive */
                 if (mon->wormno)
                     cutworm(mon, g.bhitpos.x, g.bhitpos.y, chopper);
@@ -1998,6 +2070,11 @@ thitmonst(
                     && !rn2(2)) {
                     broken = FALSE;
                 }
+
+                /* Flint and hard gems don't break easily */
+                if (((obj->oclass == GEM_CLASS && objects[otyp].oc_tough)
+                     || obj->otyp == FLINT) && !rn2(2))
+                    broken = 0;
 
                 if (broken) {
                     if (*u.ushops || obj->unpaid)
@@ -2483,9 +2560,11 @@ throw_gold(struct obj *obj)
     }
     freeinv(obj);
     if (u.uswallow) {
-        pline(is_animal(u.ustuck->data) ? "%s in the %s's entrails."
-                                        : "%s into %s.",
-              "The gold disappears", mon_nam(u.ustuck));
+        const char *swallower = mon_nam(u.ustuck);
+        if (is_animal(u.ustuck->data))
+            swallower = s_suffix(swallower);
+        pline_The("gold disappears into %s%s.", swallower,
+                  is_animal(u.ustuck->data) ? " entrails" : "");
         add_to_minv(u.ustuck, obj);
         return ECMD_TIME;
     }
@@ -2544,41 +2623,6 @@ throw_gold(struct obj *obj)
     stackobj(obj);
     newsym(g.bhitpos.x, g.bhitpos.y);
     return ECMD_TIME;
-}
-
-/* Return TRUE if obj has the capacity to return when thrown (it might not
- * actually return when thrown, but as long as it could).
- * Note that this is for linearly autoreturning weapons, not boomerangs, which
- * use their own code. */
-static boolean
-autoreturning_wep(struct obj* obj, struct monst* user)
-{
-    if (!obj) {
-        impossible("autoreturning_wep: null obj");
-        return FALSE;
-    }
-    /* the only returning objects currently need to be wielded */
-    if ((obj->owornmask & W_WEP) == 0) {
-        return FALSE;
-    }
-    boolean isyou = (user == &g.youmonst);
-    /* aklyses, boomerangs */
-    if (obj->otyp == AKLYS || obj->otyp == BOOMERANG) {
-        return TRUE;
-    }
-    /* Mjollnir, only if the wielder is a valkyrie */
-    if (obj->oartifact == ART_MJOLLNIR) {
-        if (isyou && Role_if(PM_VALKYRIE) && ACURR(A_STR) >= STR19(25)) {
-            return TRUE;
-        }
-        else if (!isyou && user->data == &mons[PM_VALKYRIE]) {
-            struct obj *marmg = which_armor(user, W_ARMG);
-            if (marmg && marmg->otyp == GAUNTLETS_OF_POWER) {
-                return TRUE;
-            }
-        }
-    }
-    return FALSE;
 }
 
 /*dothrow.c*/

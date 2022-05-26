@@ -1,4 +1,4 @@
-/* NetHack 3.7	spell.c	$NHDT-Date: 1638499998 2021/12/03 02:53:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.120 $ */
+/* NetHack 3.7	spell.c	$NHDT-Date: 1646838390 2022/03/09 15:06:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.131 $ */
 /*      Copyright (c) M. Stephenson 1988                          */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -180,9 +180,7 @@ confused_book(struct obj* spellbook)
          "Being confused you have difficulties in controlling your actions.");
         display_nhwindow(WIN_MESSAGE, FALSE);
         You("accidentally tear the spellbook to pieces.");
-        if (!objects[spellbook->otyp].oc_name_known
-            && !objects[spellbook->otyp].oc_uname)
-            docall(spellbook);
+        trycall(spellbook);
         useup(spellbook);
         return TRUE;
     } else {
@@ -517,7 +515,11 @@ study_book(register struct obj* spellbook)
             if (spellid(i) == booktype || spellid(i) == NO_SPELL)
                 break;
         if (spellid(i) == booktype && spellknow(i) > KEEN / 10) {
-            You("know \"%s\" quite well already.", OBJ_NAME(objects[booktype]));
+            You("know \"%s\" quite well already.",
+                OBJ_NAME(objects[booktype]));
+            /* hero has just been told what spell this book is for; it may
+               have been undiscovered if spell was learned via divine gift */
+            makeknown(booktype);
             if (yn("Refresh your memory anyway?") == 'n')
                 return 0;
         }
@@ -557,6 +559,7 @@ study_book(register struct obj* spellbook)
 
             boolean gone = cursed_book(spellbook);
             if (gone) {
+                trycall(spellbook);
                 if (!objects[spellbook->otyp].oc_name_known
                     && !objects[spellbook->otyp].oc_uname)
                     docall(spellbook);
@@ -669,9 +672,7 @@ getspell(int* spell_no)
 
     if (flags.menu_style == MENU_TRADITIONAL) {
         /* we know there is at least 1 known spell */
-        for (nspells = 1; nspells < MAXSPELL && spellid(nspells) != NO_SPELL;
-             nspells++)
-            continue;
+        nspells = num_spells();
 
         if (nspells == 1)
             Strcpy(lets, "a");
@@ -712,7 +713,7 @@ docast(void)
     int spell_no;
 
     if (getspell(&spell_no))
-        return spelleffects(spell_no, FALSE);
+        return spelleffects(g.spl_book[spell_no].sp_id, FALSE);
     return ECMD_OK;
 }
 
@@ -900,9 +901,12 @@ spell_hunger(int hungr)
 /* for using this function to test whether hunger would be eliminated */
 #define spell_would_hunger() (spell_hunger(100) > 0)
 
+/* hero casts a spell of type spell_otyp, eg. SPE_SLEEP.
+   hero must know the spell. */
 int
-spelleffects(int spell, boolean atme)
+spelleffects(int spell_otyp, boolean atme)
 {
+    int spell = spell_idx(spell_otyp);
     int energy, damage, n;
     int otyp, skill, role_skill, res = ECMD_OK;
     boolean confused = (Confusion != 0);
@@ -919,9 +923,15 @@ spelleffects(int spell, boolean atme)
      * (There's no duplication of messages; when the rejection takes
      * place in getspell(), we don't get called.)
      */
-    if (rejectcasting()) {
+    if ((spell == UNKNOWN_SPELL) || rejectcasting()) {
         return ECMD_OK; /* no time elapses */
     }
+
+    /*
+     *  Note: dotele() also calculates energy use and checks nutrition
+     *  and strength requirements; if any of these change, update it too.
+     */
+    energy = SPELL_LEV_PW(spellev(spell)); /* 5 <= energy <= 35 */
 
     /*
      * Spell casting no longer affects knowledge of the spell. A
@@ -931,6 +941,10 @@ spelleffects(int spell, boolean atme)
         Your("knowledge of this spell is twisted.");
         pline("It invokes nightmarish images in your mind...");
         spell_backfire(spell);
+        u.uen -= rnd(energy);
+        if (u.uen < 0)
+            u.uen = 0;
+        g.context.botl = 1;
         return ECMD_TIME;
     } else if (spellknow(spell) <= KEEN / 200) { /* 100 turns left */
         You("strain to recall the spell.");
@@ -1629,6 +1643,9 @@ dovspell(void)
 
 DISABLE_WARNING_FORMAT_NONLITERAL
 
+/* shows menu of known spells, with options to sort them.
+   return FALSE on cancel, TRUE otherwise.
+   spell_no is set to the internal spl_book index, if any selected */
 static boolean
 dospellmenu(
     const char *prompt,
@@ -1637,7 +1654,7 @@ dospellmenu(
 {
     winid tmpwin;
     int i, n, how, splnum;
-    char buf[BUFSZ], pw_buf[5];
+    char buf[BUFSZ], pw_buf[5], sep;
     const char *fmt;
     menu_item *selected;
     anything any;
@@ -1657,10 +1674,15 @@ dospellmenu(
         Sprintf(buf, "%-20s     Level %-12s   Pw Retention", "    Name",
                 "Category");
         fmt = "%-20s  %2d   %-12s %4s     %5d";
+        sep = ' ';
     } else {
         Sprintf(buf, "Name\tLevel\tCategory\tPw\tRetention");
         fmt = "%s\t%-d\t%s\t%s\t%d";
+        sep = '\t';
     }
+    if (wizard)
+        Sprintf(eos(buf), "%c%6s", sep, "turns");
+
     add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
              iflags.menu_headings, buf, MENU_ITEMFLAGS_NONE);
     for (i = 0; i < MAXSPELL && spellid(i) != NO_SPELL; i++) {
@@ -1923,6 +1945,72 @@ initialspell(struct obj* obj)
         incrnknow(i, 0);
     }
     return;
+}
+
+/* returns one of spe_Unknown, spe_Fresh, spe_GoingStale, spe_Forgotten */
+int
+known_spell(short otyp)
+{
+    int i, k;
+
+    for (i = 0; (i < MAXSPELL) && (spellid(i) != NO_SPELL); i++)
+        if (spellid(i) == otyp) {
+            k = spellknow(i);
+            return (k > KEEN / 10) ? spe_Fresh
+                   : (k > 0) ? spe_GoingStale
+                     : spe_Forgotten;
+        }
+    return spe_Unknown;
+}
+
+/* return index for spell otyp, or UNKNOWN_SPELL if not found */
+int
+spell_idx(short otyp)
+{
+    int i;
+
+    for (i = 0; (i < MAXSPELL) && (spellid(i) != NO_SPELL); i++)
+        if (spellid(i) == otyp)
+            return i;
+    return UNKNOWN_SPELL;
+}
+
+/* learn or refresh spell otyp, if feasible; return casting letter or '\0' */
+char
+force_learn_spell(short otyp)
+{
+    int i;
+
+    if (otyp == SPE_BLANK_PAPER || otyp == SPE_BOOK_OF_THE_DEAD
+        || known_spell(otyp) == spe_Fresh)
+        return '\0';
+
+    for (i = 0; i < MAXSPELL; i++)
+        if (spellid(i) == NO_SPELL || spellid(i) == otyp)
+            break;
+    if (i == MAXSPELL) {
+        impossible("Too many spells memorized");
+        return '\0';
+    }
+    /* for a going-stale or forgotten spell the sp_id and sp_lev assignments
+       are redundant but harmless; for an unknown spell, they're essential */
+    g.spl_book[i].sp_id = otyp;
+    g.spl_book[i].sp_lev = objects[otyp].oc_level;
+    incrnknow(i, 0); /* set spl_book[i].sp_know to KEEN; unlike when learning
+                      * a spell by reading its book, we don't need to add 1 */
+    return spellet(i);
+}
+
+/* number of spells hero knows */
+int
+num_spells(void)
+{
+    int i;
+
+    for (i = 0; i < MAXSPELL; i++)
+        if (spellid(i) == NO_SPELL)
+            break;
+    return i;
 }
 
 /*spell.c*/

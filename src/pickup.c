@@ -988,6 +988,12 @@ query_objlist(const char *qstr,        /* query string */
     win = create_nhwindow(NHW_MENU);
     start_menu(win, MENU_BEHAVE_STANDARD);
     any = cg.zeroany;
+    if (g.this_title) {
+        /* dotypeinv() supplies g.this_title to display as initial header;
+           intentionally avoid the menu_headings highlight attribute here */
+        add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
+                 g.this_title, MENU_ITEMFLAGS_NONE);
+    }
     /*
      * Run through the list and add the objects to the menu.  If
      * INVORDER_SORT is set, we'll run through the list once for
@@ -1308,7 +1314,8 @@ query_category(const char *qstr,      /* query string */
         char tmpbuf[BUFSZ];
 
         if (num_justpicked == 1)
-            Sprintf(tmpbuf, "%s", doname(find_justpicked(olist)));
+            Sprintf(tmpbuf, "Just picked up: %s",
+                    doname(find_justpicked(olist)));
         else
             Sprintf(tmpbuf, "Items you just picked up");
         invlet = 'P';
@@ -1910,9 +1917,7 @@ pickup_object(struct obj *obj, long count,
             pline_The("scroll%s %s to dust as you %s %s up.", plur(obj->quan),
                       otense(obj, "turn"), telekinesis ? "raise" : "pick",
                       (obj->quan == 1L) ? "it" : "them");
-            if (!objects[SCR_SCARE_MONSTER].oc_name_known
-                && !objects[SCR_SCARE_MONSTER].oc_uname)
-                docall(obj);
+            trycall(obj);
             useupf(obj, obj->quan);
             return 1; /* tried to pick something up and failed, but
                          don't want to terminate pickup loop yet   */
@@ -2058,8 +2063,9 @@ container_at(int x, int y, boolean countem)
 }
 
 static boolean
-able_to_loot(int x, int y,
-             boolean looting) /* loot vs tip */
+able_to_loot(
+    int x, int y,
+    boolean looting) /* loot vs tip */
 {
     const char *verb = looting ? "loot" : "tip";
     struct trap *t = t_at(x, y);
@@ -2103,37 +2109,64 @@ mon_beside(int x, int y)
 }
 
 static int
-do_loot_cont(struct obj **cobjp,
-             int cindex, /* index of this container (1..N)... */
-             int ccount) /* ...number of them (N) */
+do_loot_cont(
+    struct obj **cobjp,
+    int cindex, /* index of this container (1..N)... */
+    int ccount) /* ...number of them (N) */
 {
     struct obj *cobj = *cobjp;
 
     if (!cobj)
         return ECMD_OK;
     if (cobj->olocked) {
-        struct obj *unlocktool;
+        int res = ECMD_OK;
 
-        if (ccount < 2)
+#if 0
+        if (ccount < 2 && (g.level.objects[cobj->ox][cobj->oy] == cobj))
             pline("%s locked.",
                   cobj->lknown ? "It is" : "Hmmm, it turns out to be");
-        else if (cobj->lknown)
+        else
+#endif
+        if (cobj->lknown)
             pline("%s is locked.", The(xname(cobj)));
         else
             pline("Hmmm, %s turns out to be locked.", the(xname(cobj)));
         cobj->lknown = 1;
 
         if (flags.autounlock) {
-            if ((unlocktool = autokey(TRUE)) != 0) {
+            struct obj *otmp, *unlocktool = 0;
+            xchar ox = cobj->ox, oy = cobj->oy;
+
+            u.dz = 0; /* might be non-zero from previous command since
+                       * #loot isn't a move command; pick_lock() cares */
+            /* if both the untrap and apply_key bits are set, untrap
+               attempt will be performed first but we need to set up
+               unlocktool in case "check for trap?" is declined */
+            if (((flags.autounlock & AUTOUNLOCK_APPLY_KEY) != 0
+                 && (unlocktool = autokey(TRUE)) != 0)
+                || (flags.autounlock & AUTOUNLOCK_UNTRAP) != 0) {
                 /* pass ox and oy to avoid direction prompt */
-                return (pick_lock(unlocktool, cobj->ox, cobj->oy, cobj) != 0);
-            } else if (ccount == 1 && u_have_forceable_weapon()) {
+                if (pick_lock(unlocktool, ox, oy, cobj))
+                    res = ECMD_TIME;
+                /* attempting to untrap or unlock might trigger a trap
+                   which destroys 'cobj'; inform caller if that happens */
+                for (otmp = g.level.objects[ox][oy]; otmp;
+                     otmp = otmp->nexthere)
+                    if (otmp == cobj)
+                        break;
+                if (!otmp)
+                    *cobjp = (struct obj *) 0;
+                return res;
+            }
+            if ((flags.autounlock & AUTOUNLOCK_FORCE) != 0
+                && res != ECMD_TIME
+                && ccount == 1 && u_have_forceable_weapon()) {
                 /* single container, and we could #force it open... */
                 cmdq_add_ec(doforce); /* doforce asks for confirmation */
                 g.abort_looting = TRUE;
             }
         }
-        return ECMD_OK;
+        return res;
     }
     cobj->lknown = 1; /* floor container, so no need for update_inventory() */
 
@@ -2156,9 +2189,6 @@ do_loot_cont(struct obj **cobjp,
         g.abort_looting = TRUE;
         return ECMD_TIME;
     }
-
-    You("%sopen %s...", (!cobj->cknown || !cobj->lknown) ? "carefully " : "",
-        the(xname(cobj)));
     return use_container(cobjp, 0, (boolean) (cindex < ccount));
 }
 
@@ -2185,7 +2215,6 @@ doloot_core(void)
     boolean underfoot = TRUE;
     const char *dont_find_anything = "don't find anything";
     struct monst *mtmp;
-    char qbuf[BUFSZ];
     int prev_inquiry = 0;
     boolean mon_interact = FALSE;
     int num_conts = 0;
@@ -2276,17 +2305,7 @@ doloot_core(void)
                 nobj = cobj->nexthere;
 
                 if (Is_container(cobj)) {
-                    if (num_conts != 1 || mon_beside(u.ux, u.uy)) {
-                        c = ynq(safe_qbuf(qbuf, "There is ", " here, loot it?",
-                                          cobj, doname, ansimpleoname,
-                                          "a container"));
-                        if (c == 'q')
-                            return (timepassed ? ECMD_TIME : ECMD_OK);
-                        if (c == 'n')
-                            continue;
-                    }
                     anyfound = TRUE;
-
                     timepassed |= do_loot_cont(&cobj, 1, 1);
                     if (g.abort_looting)
                         /* chest trap or magic bag explosion or <esc> */
@@ -2308,21 +2327,20 @@ doloot_core(void)
         if (!get_adjacent_loc("Loot in what direction?",
                               "Invalid loot location", u.ux, u.uy, &cc))
             return ECMD_OK;
-        if (cc.x == u.ux && cc.y == u.uy) {
-            underfoot = TRUE;
-            if (container_at(cc.x, cc.y, FALSE))
-                goto lootcont;
-        } else
-            underfoot = FALSE;
+        underfoot = u_at(cc.x, cc.y);
+        if (underfoot && container_at(cc.x, cc.y, FALSE))
+            goto lootcont;
         if (u.dz < 0) {
             You("%s to loot on the %s.", dont_find_anything,
                 ceiling(cc.x, cc.y));
-            timepassed = 1;
-            return (timepassed ? ECMD_TIME : ECMD_OK);
+            return ECMD_TIME;
         }
         mtmp = m_at(cc.x, cc.y);
-        if (mtmp)
+        if (mtmp) {
             timepassed = loot_mon(mtmp, &prev_inquiry, &mon_interact);
+            if (timepassed)
+                underfoot = 1; /* not true but skips dont_find_anything */
+        }
         /* always use a turn when choosing a direction is impaired,
            even if you've successfully targetted a saddled creature
            and then answered "no" to the "remove its saddle?" prompt */
@@ -2548,9 +2566,9 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
                     m_delay += 2;
                 }
                 if ((unwornmask & W_SADDLE) != 0) {
-                    You("remove %s from %s.", the(xname(otmp)),
-                        x_monnam(mtmp, ARTICLE_THE, (char *) 0,
-                                 SUPPRESS_SADDLE, FALSE));
+                    if (flags.verbose)
+                        You("take %s off of %s.",
+                            thesimpleoname(otmp), mon_nam(mtmp));
                     /* unstrapping a saddle takes additional time */
                     time_taken += rn2(3);
                 }
@@ -2638,7 +2656,7 @@ loot_mon(struct monst *mtmp, int *passed_info, boolean *mon_interact)
         Sprintf(qbuf, "Do you want to take something from %s?", mon_nam(mtmp));
         if ((c = yn_function(qbuf, ynqchars, 'n')) == 'y') {
             if (mon_interact)
-                *mon_interact = 1;
+                *mon_interact = TRUE;
             return exchange_objects_with_mon(mtmp, TRUE);
         }
         else if (c == 'q') {
@@ -2647,7 +2665,7 @@ loot_mon(struct monst *mtmp, int *passed_info, boolean *mon_interact)
         Sprintf(qbuf, "Do you want to give something to %s?", mon_nam(mtmp));
         if ((c = yn_function(qbuf, ynqchars, 'n')) == 'y') {
             if (mon_interact)
-                *mon_interact = 1;
+                *mon_interact = TRUE;
             return exchange_objects_with_mon(mtmp, FALSE);
         }
         else { /* 'n' or 'q' */
@@ -3083,7 +3101,7 @@ observe_quantum_cat(struct obj *box, boolean makecat, boolean givemsg)
                now rather than from when this special corpse got created */
             deadcat->age = g.moves;
             set_corpsenm(deadcat, PM_HOUSECAT);
-            deadcat = oname(deadcat, sc);
+            deadcat = oname(deadcat, sc, ONAME_NO_FLAGS);
         }
         if (givemsg)
             pline_The("%s inside the box is dead!",
@@ -3169,10 +3187,10 @@ stash_ok(struct obj *obj)
 }
 
 int
-use_container(struct obj **objp,
-              int held,
-              boolean more_containers) /* True iff #loot multiple and this
-                                          isn't last one */
+use_container(
+    struct obj **objp,
+    int held,
+    boolean more_containers) /* True iff #loot multiple and this isn't last */
 {
     struct obj *otmp, *obj = *objp;
     boolean quantum_cat, cursed_mbag, loot_out, loot_in, loot_in_first,
@@ -3289,7 +3307,8 @@ use_container(struct obj **objp,
             } else {
                 c = in_or_out_menu(qbuf, g.current_container,
                                    outmaybe, inokay,
-                                   (boolean) (used != ECMD_OK), more_containers);
+                                   (boolean) (used != ECMD_OK),
+                                   more_containers);
             }
         } else { /* TRADITIONAL or COMBINATION */
             xbuf[0] = '\0'; /* list of extra acceptable responses */

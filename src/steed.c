@@ -1,4 +1,4 @@
-/* NetHack 3.7	steed.c	$NHDT-Date: 1582155885 2020/02/19 23:44:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.79 $ */
+/* NetHack 3.7	steed.c	$NHDT-Date: 1646171628 2022/03/01 21:53:48 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.95 $ */
 /* Copyright (c) Kevin Hugo, 1998-1999. */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -384,7 +384,7 @@ kick_steed(void)
         return;
 
     /* [ALI] Various effects of kicking sleeping/paralyzed steeds */
-    if (u.usteed->msleeping || !u.usteed->mcanmove) {
+    if (helpless(u.usteed)) {
         /* We assume a message has just been output of the form
          * "You kick <steed>."
          */
@@ -399,7 +399,7 @@ kick_steed(void)
                 u.usteed->mfrozen = 0;
                 u.usteed->mcanmove = 1;
             }
-            if (u.usteed->msleeping || !u.usteed->mcanmove)
+            if (helpless(u.usteed))
                 pline("%s stirs.", He);
             else
                 /* if hallucinating, might yield "He rouses herself" or
@@ -450,7 +450,7 @@ landing_spot(
     for (; !found && i < 2; ++i) {
         for (x = u.ux - 1; x <= u.ux + 1; x++)
             for (y = u.uy - 1; y <= u.uy + 1; y++) {
-                if (!isok(x, y) || (x == u.ux && y == u.uy))
+                if (!isok(x, y) || u_at(x, y))
                     continue;
 
                 if (accessible(x, y) && !MON_AT(x, y)
@@ -512,7 +512,7 @@ dismount_steed(
     case DISMOUNT_THROWN:
     case DISMOUNT_FELL:
         verb = (reason == DISMOUNT_THROWN) ? "are thrown"
-               : ulev ? "float" : ufly ? "fly" : "fall";
+            : u_locomotion("fall");
         You("%s off of %s!", verb, mon_nam(mtmp));
         if (!have_spot)
             have_spot = landing_spot(&cc, reason, 1);
@@ -672,7 +672,7 @@ dismount_steed(
 
                 /* Put your steed in your trap */
                 if (save_utrap)
-                    (void) mintrap(mtmp);
+                    (void) mintrap(mtmp, NO_TRAP_FLAGS);
             }
 
         /* Couldn't move hero... try moving the steed. */
@@ -717,7 +717,7 @@ static void
 maybewakesteed(struct monst* steed)
 {
     int frozen = (int) steed->mfrozen;
-    boolean wasimmobile = steed->msleeping || !steed->mcanmove;
+    boolean wasimmobile = helpless(steed);
 
     steed->msleeping = 0;
     if (frozen) {
@@ -731,7 +731,7 @@ maybewakesteed(struct monst* steed)
             steed->mfrozen = frozen;
         }
     }
-    if (wasimmobile && !steed->msleeping && steed->mcanmove)
+    if (wasimmobile && !helpless(steed))
         pline("%s wakes up.", Monnam(steed));
     /* regardless of waking, terminate any meal in progress */
     finish_meating(steed);
@@ -746,7 +746,7 @@ stucksteed(boolean checkfeeding)
 
     if (steed) {
         /* check whether steed can move */
-        if (steed->msleeping || !steed->mcanmove) {
+        if (helpless(steed)) {
             pline("%s won't move!", upstart(y_monnam(steed)));
             return TRUE;
         }
@@ -772,7 +772,7 @@ place_monster(struct monst* mon, int x, int y)
     /* normal map bounds are <1..COLNO-1,0..ROWNO-1> but sometimes
        vault guards (either living or dead) are parked at <0,0> */
     if (!isok(x, y) && (x != 0 || y != 0 || !mon->isgd)) {
-        describe_level(buf);
+        describe_level(buf, 0);
         impossible("trying to place %s at <%d,%d> mstate:%lx on %s",
                    minimal_monnam(mon, TRUE), x, y, mon->mstate, buf);
         x = y = 0;
@@ -780,14 +780,14 @@ place_monster(struct monst* mon, int x, int y)
     if (mon == u.usteed
         /* special case is for convoluted vault guard handling */
         || (DEADMONSTER(mon) && !(mon->isgd && x == 0 && y == 0))) {
-        describe_level(buf);
+        describe_level(buf, 0);
         impossible("placing %s onto map, mstate:%lx, on %s?",
                    (mon == u.usteed) ? "steed" : "defunct monster",
                    mon->mstate, buf);
         return;
     }
     if ((othermon = g.level.monsters[x][y]) != 0) {
-        describe_level(buf);
+        describe_level(buf, 0);
         monnm = minimal_monnam(mon, FALSE);
         othnm = (mon != othermon) ? minimal_monnam(othermon, TRUE) : "itself";
         impossible("placing %s over %s at <%d,%d>, mstates:%lx %lx on %s?",

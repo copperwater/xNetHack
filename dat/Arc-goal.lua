@@ -1,4 +1,4 @@
--- NetHack 3.7	Arch.des	$NHDT-Date: 1432512784 2015/05/25 00:13:04 $  $NHDT-Branch: master $:$NHDT-Revision: 1.10 $
+-- NetHack Archeologist Arc-goal.lua	$NHDT-Date: 1652195998 2022/05/10 15:19:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1991 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
@@ -78,7 +78,7 @@ for i=1,#statue_coords do
 end
 local rndstatue_mons = { 'couatl', 'human mummy', 'stone golem' }
 for i=1,d(2,3) do
-   des.object({ id='statue', montype=rndstatue_mons[d(#rndstatue_mons)], historic=true, coord={non_hall_areas:rndcoord()} })
+   des.object({ id='statue', montype=rndstatue_mons[d(#rndstatue_mons)], historic=true, coord=non_hall_areas:rndcoord() })
 end
 
 -- Nemesis
@@ -128,18 +128,16 @@ des.monster({ id="archeologist", x=58, y=08, peaceful=0, waiting=1, inventory=he
 
 -- Rubble from the dig operation
 for i=1,20 do
-   des.object({ id="rock", coord={bigroom_and_tunnel:rndcoord()}, quantity=d(10) })
+   des.object({ id="rock", coord=bigroom_and_tunnel:rndcoord(), quantity=d(10) })
 end
 for i=1,d(2,3) do
-   des.object({ id="boulder", coord={tunnel_only:rndcoord()} })
+   des.object("boulder", tunnel_only:rndcoord())
 end
 
 -- Pits from the dig operation
 for i=1,d(3,2) do
-   x1, y1 = bigroom_and_tunnel:rndcoord()
-   x2, y2 = tunnel_only:rndcoord()
-   des.trap('pit', x1, y1)
-   des.trap('pit', x2, y2)
+   des.trap('pit', bigroom_and_tunnel:rndcoord())
+   des.trap('pit', tunnel_only:rndcoord())
 end
 
 -- Identify dead ends for putting stuff in
@@ -153,19 +151,18 @@ deadends:set(41,17, 1)
 for i=1,d(6,2) do
    -- These ones aren't waiting for approach. They've already been disturbed by
    -- the dig option.
-   des.monster({ id='human mummy', coord={non_hall_areas:rndcoord()} })
+   des.monster('human mummy', non_hall_areas:rndcoord())
 end
 for i=1,d(3) do
-   des.monster({ class='M', coord={deadends:rndcoord()} })
+   des.monster('M', deadends:rndcoord())
 end
 for i=1,d(2,3) do
-   des.monster({ class='S', coord={non_hall_areas:rndcoord()} })
+   des.monster('S', non_hall_areas:rndcoord())
 end
 
 -- Traps
 for i=1,10+d(5) do
-   x1, y1 = non_hall_areas:rndcoord()
-   des.trap({ x=x1, y=y1, spider_on_web=false })
+   des.trap({ coord=non_hall_areas:rndcoord(), spider_on_web=false })
 end
 des.trap("rolling boulder")
 
@@ -174,7 +171,7 @@ for i=1,10 do
    des.object({ id='gold piece', quantity = d(250) })
 end
 for i=1,d(2,2) do
-   local box = { id='chest', material='gold', coord={deadends:rndcoord()}, trapped=1, spe=3 }
+   local box = { id='chest', material='gold', coord=deadends:rndcoord(), trapped=1, spe=3 }
    if percent(50) then
       box['trapped'] = 1
       box['spe'] = 3
@@ -185,5 +182,5 @@ end
 local wpn_mats = { "copper", "silver", "gold", "bone" }
 local wpns = { "short sword", "dagger", "knife", "spear", "javelin", "quarterstaff", "axe", "flail" }
 for i=1,d(2,3) do
-   des.object({ id=wpns[d(#wpns)], material=wpn_mats[d(#wpn_mats)], coord={non_hall_areas:rndcoord()} })
+   des.object({ id=wpns[d(#wpns)], material=wpn_mats[d(#wpn_mats)], coord=non_hall_areas:rndcoord() })
 end

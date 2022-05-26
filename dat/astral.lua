@@ -1,4 +1,4 @@
--- NetHack 3.7	endgame.des	$NHDT-Date: 1546303680 2019/01/01 00:48:00 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.14 $
+-- NetHack endgame astral.lua	$NHDT-Date: 1652196020 2022/05/10 15:20:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $
 --	Copyright (c) 1989 by Jean-Christophe Collet
 --	Copyright (c) 1992,1993 by Izchak Miller, David Cohrs,
 --                      and Timo Hakulinen
@@ -59,9 +59,9 @@ for i=1,2 do
      end
      -- extra monsters; was [6 + 3d4] when both wings were opened up at once
      for i=1,3 + d(2,3) do
-        des.monster({ id="Angel", coord = { hall:rndcoord(1) }, align="noalign", peaceful=0 })
+        des.monster({ id="Angel", coord = hall:rndcoord(1), align="noalign", peaceful=0 })
         if percent(50) then
-           des.monster({ coord = { hall:rndcoord(1) }, peaceful=0 })
+           des.monster({ coord = hall:rndcoord(1), peaceful=0 })
         end
      end
    end
@@ -108,7 +108,7 @@ des.monster({ id = "aligned cleric",x=19,y=09,align="noalign", peaceful=0 })
 des.monster({ id = "aligned cleric",x=19,y=10,align="noalign", peaceful=0 })
 des.monster({ id = "Angel",x=20,y=09,align="noalign", peaceful=0 })
 des.monster({ id = "Angel",x=20,y=10,align="noalign", peaceful=0 })
-des.monster({ id = "Pestilence", coord = { place:rndcoord(1) }, peaceful=0 })
+des.monster({ id = "Pestilence", coord = place:rndcoord(1), peaceful=0 })
 -- South-central round room
 des.monster({ id = "aligned cleric",x=36,y=12,align="noalign", peaceful=0 })
 des.monster({ id = "aligned cleric",x=37,y=12,align="noalign", peaceful=0 })
@@ -116,7 +116,7 @@ des.monster({ id = "aligned cleric",x=38,y=12,align="noalign", peaceful=0 })
 des.monster({ id = "aligned cleric",x=36,y=13,align="noalign", peaceful=0 })
 des.monster({ id = "Angel",x=38,y=13,align="noalign", peaceful=0 })
 des.monster({ id = "Angel",x=37,y=13,align="noalign", peaceful=0 })
-des.monster({ id = "Death", coord = { place:rndcoord(1) }, peaceful=0 })
+des.monster({ id = "Death", coord = place:rndcoord(1), peaceful=0 })
 -- East round room
 des.monster({ id = "aligned cleric",x=56,y=09,align="noalign", peaceful=0 })
 des.monster({ id = "aligned cleric",x=55,y=08,align="noalign", peaceful=0 })
@@ -124,7 +124,7 @@ des.monster({ id = "aligned cleric",x=55,y=09,align="noalign", peaceful=0 })
 des.monster({ id = "aligned cleric",x=55,y=10,align="noalign", peaceful=0 })
 des.monster({ id = "Angel",x=54,y=09,align="noalign", peaceful=0 })
 des.monster({ id = "Angel",x=54,y=10,align="noalign", peaceful=0 })
-des.monster({ id = "Famine", coord = { place:rndcoord(1) }, peaceful=0 })
+des.monster({ id = "Famine", coord = place:rndcoord(1), peaceful=0 })
 --
 -- The aligned horde
 --

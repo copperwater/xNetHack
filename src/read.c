@@ -282,7 +282,7 @@ tin_text(struct obj *tin, char* buf)
     int food = tin_variety(tin, TRUE);
     unsigned int msgidx = hash1(tin->tinseed) % SIZE(tin_msgs);
     char format_arg[BUFSZ]; /* holds argument to format string; is a char[]
-                             * rather than a const char* so that up_all_words
+                             * rather than a const char* so that upwords
                              * can be used */
     format_arg[0] = '\0';
 
@@ -327,7 +327,7 @@ tin_text(struct obj *tin, char* buf)
         /* else it isn't a format string */
     }
     if (format_arg[0]) { /* using one of the messages that has %s in it */
-        up_all_words(format_arg);
+        upwords(format_arg);
         Sprintf(buf, tin_msgs[msgidx], format_arg);
     }
     else {
@@ -387,6 +387,7 @@ doread(void)
     if (!scroll)
         return ECMD_CANCEL;
     otyp = scroll->otyp;
+    scroll->pickup_prev = 0; /* no longer 'just picked up' */
 
     /* outrumor has its own blindness check */
     if (otyp == FORTUNE_COOKIE) {
@@ -470,8 +471,7 @@ doread(void)
 
         /* yet another note: despite the fact that player will recognize
            the object type, don't make it become a discovery for hero */
-        if (!objects[otyp].oc_name_known && !objects[otyp].oc_uname)
-            docall(scroll);
+        trycall(scroll);
         return ECMD_TIME;
     } else if (otyp == CREDIT_CARD) {
         static const char *const card_msgs[] = {
@@ -519,13 +519,22 @@ doread(void)
         pline("This %s has no label.", singular(scroll, xname));
         return ECMD_OK;
     } else if (otyp == MAGIC_MARKER) {
+        char buf[BUFSZ];
+        const int red_mons[] = { PM_FIRE_ANT, PM_PYROLISK, PM_HELL_HOUND,
+            PM_IMP, PM_LARGE_MIMIC, PM_LEOCROTTA, PM_SCORPION, PM_XAN,
+            PM_GIANT_BAT, PM_WATER_MOCCASIN, PM_FLESH_GOLEM, PM_BARBED_DEVIL,
+            PM_MARILITH, PM_PIRANHA };
+        struct permonst *pm = &mons[red_mons[scroll->o_id % SIZE(red_mons)]];
+
         if (Blind) {
             You_cant(find_any_braille);
             return ECMD_OK;
         }
         if (flags.verbose)
             pline("It reads:");
-        pline("\"Magic Marker(TM) Red Ink Marker Pen.  Water Soluble.\"");
+        Sprintf(buf, "%s", pmname(pm, NEUTRAL));
+        pline("\"Magic Marker(TM) %s Red Ink Marker Pen.  Water Soluble.\"",
+              upwords(buf));
         if (!u.uconduct.literate++)
             livelog_printf(LL_CONDUCT,
                            "became literate by reading a magic marker");
@@ -540,17 +549,6 @@ doread(void)
         if (!u.uconduct.literate++)
             livelog_printf(LL_CONDUCT,
                            "became literate by reading a coin's engravings");
-
-        return ECMD_TIME;
-    } else if (scroll->oartifact == ART_ORB_OF_FATE) {
-        if (Blind)
-            You("feel the engraved signature:");
-        else
-            pline("It is signed:");
-        pline("\"Odin.\"");
-        if (!u.uconduct.literate++)
-            livelog_printf(LL_CONDUCT,
-                   "became literate by reading the divine signature of Odin");
 
         return ECMD_TIME;
     } else if (otyp == CANDY_BAR) {
@@ -713,8 +711,8 @@ doread(void)
         if (!objects[otyp].oc_name_known) {
             if (g.known)
                 learnscroll(scroll);
-            else if (!objects[otyp].oc_uname)
-                docall(scroll);
+            else
+                trycall(scroll);
         }
         scroll->in_use = FALSE;
         if (otyp != SCR_BLANK_PAPER)
@@ -863,7 +861,7 @@ recharge(struct obj* obj, int curse_bless)
             if (is_on)
                 Ring_gone(obj);
             s = rnd(3 * abs(obj->spe)); /* amount of damage */
-            useup(obj);
+            useup(obj), obj = 0;
             losehp(Maybe_Half_Phys(s), "exploding ring", KILLED_BY_AN);
         } else {
             long mask = is_on ? (obj == uleft ? LEFT_RING : RIGHT_RING) : 0L;
@@ -1260,7 +1258,7 @@ seffect_enchant_armor(struct obj **sobjp)
                           dragon_scales_color(armor),
                           dragon_scales_color(scales));
                     /* remove properties of old scales */
-                    dragon_armor_handling(armor, FALSE);
+                    dragon_armor_handling(armor, FALSE, TRUE);
                 }
             }
             setnotworn(armor);
@@ -1271,7 +1269,7 @@ seffect_enchant_armor(struct obj **sobjp)
                 armor->blessed = 1;
             }
             setworn(armor, W_ARM);
-            dragon_armor_handling(armor, TRUE);
+            dragon_armor_handling(armor, TRUE, TRUE);
             g.known = TRUE;
             if (otmp->unpaid)
                 alter_cost(otmp, 0L); /* shop bill */
@@ -1922,7 +1920,7 @@ seffect_fire(struct obj **sobjp)
                 cc.y = u.uy;
             }
         }
-        if (cc.x == u.ux && cc.y == u.uy) {
+        if (u_at(cc.x, cc.y)) {
             pline_The("scroll erupts in a tower of flame!");
             iflags.last_msg = PLNMSG_TOWER_OF_FLAME; /* for explode() */
             burn_away_slime();
@@ -2360,7 +2358,7 @@ drop_boulder_on_player(boolean confused, boolean helmet_protects, boolean byu, b
     if (!amorphous(g.youmonst.data) && !Passes_walls
         && !noncorporeal(g.youmonst.data) && !unsolid(g.youmonst.data)) {
         You("are hit by %s!", doname(otmp2));
-        dmg = dmgval(otmp2, &g.youmonst) * otmp2->quan;
+        dmg = (int) (dmgval(otmp2, &g.youmonst) * otmp2->quan);
         if (uarmh && helmet_protects) {
             if (otmp2->owt >= 400 && is_brittle(uarmh)
                 && break_glass_obj(uarmh)) {
@@ -2412,7 +2410,7 @@ drop_boulder_on_monster(int x, int y, boolean confused, boolean byu)
     if (mtmp && !amorphous(mtmp->data) && !passes_walls(mtmp->data)
         && !noncorporeal(mtmp->data) && !unsolid(mtmp->data)) {
         struct obj *helmet = which_armor(mtmp, W_ARMH);
-        int mdmg;
+        long mdmg;
 
         if (cansee(mtmp->mx, mtmp->my)) {
             pline("%s is hit by %s!", Monnam(mtmp), doname(otmp2));
@@ -3085,6 +3083,7 @@ unpunish(void)
 
     /* chain goes away */
     obj_extract_self(uchain);
+    maybe_unhide_at(uchain->ox, uchain->oy);
     newsym(uchain->ox, uchain->oy);
     setworn((struct obj *) 0, W_CHAIN); /* sets 'uchain' to Null */
     dealloc_obj(savechain);
@@ -3168,7 +3167,7 @@ create_particular_parse(char* str, struct _create_particular_data* d)
     char *bufp = str;
     char *tmpp;
 
-    d->quan = 1 + ((g.multi > 0) ? g.multi : 0);
+    d->quan = 1 + ((g.multi > 0) ? (int) g.multi : 0);
     d->monclass = MAXMCLASSES;
     d->which = g.urole.mnum; /* an arbitrary index into mons[] */
     d->fem = -1;     /* gender not specified */
@@ -3297,7 +3296,7 @@ create_particular_creation(struct _create_particular_data* d)
         whichpm = &mons[d->which];
     }
     for (i = 0; i < d->quan; i++) {
-        long mmflags = NO_MM_FLAGS;
+        mmflags_nht mmflags = NO_MM_FLAGS;
 
         if (d->monclass != MAXMCLASSES)
             whichpm = mkclass(d->monclass, 0);
