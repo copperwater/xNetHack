@@ -6,9 +6,9 @@
 #ifndef PATCHLEVEL_H
 #define PATCHLEVEL_H
 
-/* xNetHack 7.0 */
+/* xNetHack 7.1 */
 #define VERSION_MAJOR 7
-#define VERSION_MINOR 0
+#define VERSION_MINOR 1
 /*
  * PATCHLEVEL is updated for each release.
  */
@@ -17,7 +17,7 @@
  * Incrementing EDITLEVEL can be used to force invalidation of old bones
  * and save files.
  */
-#define EDITLEVEL 1
+#define EDITLEVEL 0
 
 /*
  * Development status possibilities.

@@ -38,7 +38,8 @@ Assumed premises:
    `VERSION_COMPATIBILITY` in patchlevel.h. Reset `EDITLEVEL` to 0 if it isn't
    already. Update `NH_DEVEL_STATUS` to `NH_STATUS_RELEASED` if it isn't already
    (it tends to not get changed from that except by the vanilla devteam). Update
-   `NETHACK_VERSION` in sys/windows/Makefile.msc (blargh). Commit these changes.
+   `NETHACK_VERSION` in sys/windows/Makefile.nmake (blargh). Commit these
+   changes.
 10. Tag the patchlevel commit, e.g. `xnh5.0`, via `git tag -a xnh5.0`. Write the
     tag message using previous release tags as an example (xnh6.0 is a good
     matter-of-fact one). Mention that Windows binaries are available to download
