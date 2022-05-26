@@ -2211,22 +2211,20 @@ trapeffect_anti_magic(
         int drain = (u.uen > 1) ? (rnd(u.uen / 2) + 2) : 4;
 
         seetrap(trap);
-        /* hero without magic resistance loses spell energy,
-           hero with magic resistance takes damage instead;
-           possibly non-intuitive but useful for play balance */
-        if (!Antimagic) {
-            drain_en(drain);
-        } else {
+        if (Antimagic) {
+            /* toting around anti-magic defenses exacerbates the effects of the
+             * trap. If hero ever becomes able to be cancelled, this might be a
+             * good effect to switch in rather than just additional drain */
             struct obj *otmp;
-            int dmgval2 = rnd(drain), hp = Upolyd ? u.mh : u.uhp;
 
+            drain += rnd(10); /* just for having Antimagic */
             /* Half_XXX_damage has opposite its usual effect (approx)
                but isn't cumulative if hero has more than one */
             if (Half_physical_damage || Half_spell_damage)
-                dmgval2 += rnd(4);
+                drain += rnd(4);
             /* give Magicbane wielder dose of own medicine */
             if (uwep && uwep->oartifact == ART_MAGICBANE)
-                dmgval2 += rnd(4);
+                drain += rnd(4);
             /* having an artifact--other than own quest one--which
                confers magic resistance simply by being carried
                also increases the effect */
@@ -2235,15 +2233,12 @@ trapeffect_anti_magic(
                     && defends_when_carried(AD_MAGM, otmp))
                     break;
             if (otmp)
-                dmgval2 += rnd(4);
-            if (Passes_walls)
-                dmgval2 = (dmgval2 + 3) / 4;
-
-            You_feel((dmgval2 >= hp) ? "unbearably torpid!"
-                     : (dmgval2 >= hp / 4) ? "very lethargic."
-                     : "sluggish.");
-            /* opposite of magical explosion */
-            losehp(dmgval2, "anti-magic implosion", KILLED_BY_AN);
+                drain += rnd(4);
+        }
+        drain_en(drain);
+        if (Antimagic && u.uenmax >= 1) {
+            u.uenmax--;
+            u.uen = min(u.uenmax, u.uen);
         }
     } else {
         boolean trapkilled = FALSE;

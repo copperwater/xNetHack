@@ -76,6 +76,9 @@ changes:
   things you can do with an item you select when looking at the inventory, under
   'l', rather than the default behavior.
 - Kicking into empty air (which may strain a muscle) no longer wakes monsters.
+- Anti-magic fields no longer deal HP damage when magic resistant. They instead
+  drain additional energy the more sources of magic resistance and half damage
+  you have.
 
 ### Interface changes
 
