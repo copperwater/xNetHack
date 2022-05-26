@@ -36,8 +36,8 @@ des.region(everything, "lit")
 des.replace_terrain({ selection=everything:percentage(20), fromterrain='I', toterrain='.' })
 
 -- Stairs on opposite ends
-des.stair({ coord=selection.area(00,00,00,19):rndcoord(), dir="up" })
-des.stair({ coord=selection.area(75,00,75,19):rndcoord(), dir="down" })
+des.stair("up", selection.area(00,00,00,19):rndcoord())
+des.stair("down", selection.area(75,00,75,19):rndcoord())
 
 -- More random lava vents like in home level
 local middleground = selection.area(08,00,68,19)

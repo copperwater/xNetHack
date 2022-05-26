@@ -66,7 +66,7 @@ end
 des.replace_terrain({ selection=line, fromterrain='I', toterrain='.' })
 -- Objects
 for i=1,5 do
-   des.object({ coord=muspell:rndcoord() })
+   des.object(muspell:rndcoord())
 end
 for i=1,2 do
    des.object()
@@ -74,10 +74,10 @@ end
 -- Traps
 local rightland = rightside:filter_mapchar('.') -- after extra lava is added
 for i=1,13 do
-   des.trap({ type="fire", coord=rightland:rndcoord(1) })
+   des.trap("fire", rightland:rndcoord(1))
 end
 for i=1,4 do
-   des.trap({ coord=rightland:rndcoord(1) })
+   des.trap(rightland:rndcoord(1))
 end
 -- Monsters
 local right_outside = rightland - muspell

@@ -96,7 +96,7 @@ end
 -- most of them will generate appropriate coordinates and a boulder.
 local bouldertraps = selection.area(60,16,65,18)
 for i=1,8 do
-   des.trap({ coord = bouldertraps:rndcoord(1), type = "rolling boulder" })
+   des.trap("rolling boulder", bouldertraps:rndcoord(1))
 end
 
 -- Some loot.
@@ -210,12 +210,12 @@ des.monster({ id='human mummy', x=73, y=18, waiting=1 })
 -- Other monsters
 local valid_outside = outside:clone():filter_mapchar('.')
 for i=1,d(3,2) do
-   des.monster({ class='S', coord=valid_outside:rndcoord(1) })
+   des.monster('S', valid_outside:rndcoord(1))
 end
-des.monster({ class='f', coord=valid_outside:rndcoord(1) })
-des.monster({ class='Y', coord=valid_outside:rndcoord(1) })
+des.monster('f', valid_outside:rndcoord(1))
+des.monster('Y', valid_outside:rndcoord(1))
 for i=1,d(5) do
-   des.monster({ id='giant bat', coord=inside:rndcoord() })
+   des.monster('giant bat', inside:rndcoord())
 end
 
 -- Loot cache buried not very deep

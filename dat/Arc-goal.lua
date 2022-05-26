@@ -131,7 +131,7 @@ for i=1,20 do
    des.object({ id="rock", coord=bigroom_and_tunnel:rndcoord(), quantity=d(10) })
 end
 for i=1,d(2,3) do
-   des.object({ id="boulder", coord=tunnel_only:rndcoord() })
+   des.object("boulder", tunnel_only:rndcoord())
 end
 
 -- Pits from the dig operation
@@ -151,13 +151,13 @@ deadends:set(41,17, 1)
 for i=1,d(6,2) do
    -- These ones aren't waiting for approach. They've already been disturbed by
    -- the dig option.
-   des.monster({ id='human mummy', coord=non_hall_areas:rndcoord() })
+   des.monster('human mummy', non_hall_areas:rndcoord())
 end
 for i=1,d(3) do
-   des.monster({ class='M', coord=deadends:rndcoord() })
+   des.monster('M', deadends:rndcoord())
 end
 for i=1,d(2,3) do
-   des.monster({ class='S', coord=non_hall_areas:rndcoord() })
+   des.monster('S', non_hall_areas:rndcoord())
 end
 
 -- Traps

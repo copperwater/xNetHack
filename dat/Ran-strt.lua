@@ -46,7 +46,7 @@ des.replace_terrain({ region = {53,00,77,20}, fromterrain=".", toterrain="T", ch
 -- Stairs
 local rightedge = selection.line(77,00, 77,21)
 local dnstair = rightedge:rndcoord()
-des.stair({ dir = "down", coord = dnstair })
+des.stair("down", dnstair)
 
 -- Guarantee a treeless path from the stair to the forest entry
 des.terrain({ selection = selection.randline(77, dnstair.y, 43,09, 6), typ=".", lit=1 })

@@ -42,7 +42,7 @@ end
 themerooms = {
    {
      -- the "default" room
-      frequency = 6,
+      frequency = 1000,
       contents = function()
          des.room({ type = "ordinary", filled = 1 });
          end
@@ -1474,8 +1474,8 @@ xxxxxxx------xxxxxx]], contents = function()
             -- put some pits and traps down
             local nonpile = (floor ~ goldpile) & floor
             for i = 1, 2+d(2) do
-               des.trap({ type="pit", coord=nonpile:rndcoord() })
-               des.trap({ coord = nonpile:rndcoord() })
+               des.trap("pit", nonpile:rndcoord())
+               des.trap(nonpile:rndcoord())
             end
 
             -- no way to specifically force a baby or adult dragon

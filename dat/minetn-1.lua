@@ -110,11 +110,11 @@ des.object({ id = "boulder", coord = shk_demise[3] })
 -- (i.e. separating the notion of "filled" into "filled with monsters" and
 -- "filled with objects")
 for i=1,9 do
-  des.object({ class = "(", coord = inside:rndcoord(1) })
+  des.object("(", inside:rndcoord(1))
 end
 -- For now, only FOOD_CLASS items from deli.
 for i=1,4 do
-  des.object({ class = "%", coord = inside:rndcoord(1) })
+  des.object("%", inside:rndcoord(1))
 end
 
 -- priest spoils

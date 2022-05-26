@@ -43,7 +43,7 @@ des.teleport_region({ region = {00,00,75,19}, exclude = {41,00,75,19}, dir="up" 
 
 -- Stair
 local leftedge = selection.line(00,00, 00,19)
-des.stair({ dir = "up", coord = leftedge:rndcoord(1) })
+des.stair("up", leftedge:rndcoord(1))
 
 -- Define a selection containing all the building interiors for later use
 local inbuildings = selection.floodfill(32,05) | selection.floodfill(50,00) |
@@ -115,7 +115,7 @@ end
 
 -- Random objects, scattered through the buildings.
 for i=1,14 do
-  des.object({ coord = inbuildings:rndcoord(1) })
+  des.object(inbuildings:rndcoord(1))
 end
 
 -- Traps. Thoth Amon has invested heavily in intruder detection
@@ -123,8 +123,8 @@ local interiors = selection.new()
 interiors = interiors | towncenter
 interiors = interiors | inbuildings
 for i=1,10 do
-  des.trap({ type = "board", coord = interiors:rndcoord(1) })
-  des.trap({ type = "board", coord = outsidetown:rndcoord(1) })
+  des.trap("board", interiors:rndcoord(1))
+  des.trap("board", outsidetown:rndcoord(1))
   des.trap("bear")
   des.trap("spiked pit")
 end

@@ -97,7 +97,7 @@ end
 -- make "no item on top" a makemon flag
 dryspots = alllev:clone():filter_mapchar(".")
 for i=1,11 do
-   des.monster({ class="S", coord=dryspots:rndcoord(1) })
+   des.monster("S", dryspots:rndcoord(1))
 end
 if didwater then
    des.monster("giant eel")

@@ -89,7 +89,7 @@ local outsidefloor = outside:filter_mapchar('.')
 
 -- Obligatory random boulders
 for i=1,10+d(3) do
-   des.object({ id='boulder', coord=outsidefloor:rndcoord() })
+   des.object('boulder', outsidefloor:rndcoord())
 end
 
 ---- Nemesis

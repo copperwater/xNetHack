@@ -116,23 +116,23 @@ des.monster({ id="warrior", coord={37,05}, asleep=1 })
 des.non_diggable(selection.area(26,03,45,18))
 -- Random traps
 for i=1,8 do
-   des.trap({ type="fire", coord=alltheice:rndcoord(1) })
+   des.trap("fire", alltheice:rndcoord(1))
 end
 -- Scatter a few boulders too (extra ammo for giants!)
 for i=1,d(3)+2 do
-   des.object({ id="boulder", coord=alltheice:rndcoord(1) })
+   des.object("boulder", alltheice:rndcoord(1))
 end
 -- Monsters on siege duty.
 for i=1,d(2) do
-   des.monster({ id='fire ant', coord=init_monster_area:rndcoord(1) })
+   des.monster('fire ant', init_monster_area:rndcoord(1))
 end
 for i=1,d(2)-1 do
-   des.monster({ id='fire vortex', coord=init_monster_area:rndcoord(1) })
+   des.monster('fire vortex', init_monster_area:rndcoord(1))
 end
 for i=1,d(3) do
-   des.monster({ id='fire giant', coord=init_monster_area:rndcoord(1) })
+   des.monster('fire giant', init_monster_area:rndcoord(1))
 end
 -- Ragnarok doesn't only feature fire giants.
 for i=1,d(3) do
-   des.monster({ id='frost giant', coord=init_monster_area:rndcoord(1) })
+   des.monster('frost giant', init_monster_area:rndcoord(1))
 end

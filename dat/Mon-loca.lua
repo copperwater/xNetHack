@@ -70,7 +70,7 @@ end
 -- Traps
 forest = selection.floodfill(01, 01)
 for i=1, 2 + math.random(1, 2) do
-  des.trap({ type = "bear", coord = forest:rndcoord() })
+  des.trap("bear", forest:rndcoord())
 end
 des.trap("pit")
 des.trap("spiked pit")
@@ -80,7 +80,7 @@ des.trap("rolling boulder")
 des.trap("bear")
 fortress = selection.floodfill(62,03)
 for i=1,3 + math.random(1 - 1,1*3) do
-  des.trap({ coord = fortress:rndcoord() })
+  des.trap(fortress:rndcoord())
 end
 
 -- Random monsters.
