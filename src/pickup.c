@@ -1758,6 +1758,7 @@ thiefstone_teleport(struct obj* stone, struct obj* obj, boolean dobill)
                         end_burn(obj, TRUE);
                     add_to_container(cobj, obj);
                     cobj->owt = weight(cobj);
+                    cobj->cknown = 0; /* hero hasn't seen new contents */
                     return;
                 }
             }

@@ -1793,6 +1793,8 @@ obj_delivery(boolean near_hero)
                             end_burn(otmp, TRUE);
                         add_to_container(cobj, otmp);
                         cobj->owt = weight(cobj);
+                        cobj->cknown = 0; /* contents have changed out of
+                                           * sight of the hero */
                         found_container = TRUE;
                         break;
                     }
