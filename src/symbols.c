@@ -715,7 +715,7 @@ do_symset(void)
 
         for (sl = g.symset_list; sl; sl = sl->next) {
             /* check restrictions */
-            if (sl->primary)
+            if (sl->rogue)
                 continue;
 #ifndef MAC_GRAPHICS_ENV
             if (sl->handling == H_MAC)
@@ -753,7 +753,7 @@ do_symset(void)
 
         for (sl = g.symset_list; sl; sl = sl->next) {
             /* check restrictions */
-            if (sl->primary)
+            if (sl->rogue)
                 continue;
 #ifndef MAC_GRAPHICS_ENV
             if (sl->handling == H_MAC)
