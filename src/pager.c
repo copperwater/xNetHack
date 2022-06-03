@@ -652,6 +652,14 @@ lookat(int x, int y, char *buf, char *monbuf)
             else
                 Strcpy(buf, "doorway");
             break;
+        case S_vcdoor:
+        case S_hcdoor:
+            if (IS_DOOR(levl[x][y].typ) && next2u(x, y)
+                && door_is_locked(&levl[x][y]))
+                Strcpy(buf, "locked door");
+            else
+                Strcpy(buf, defsyms[symidx].explanation);
+            break;
         case S_cloud:
             Strcpy(buf,
                    Is_airlevel(&u.uz) ? "cloudy area" : "fog/vapor cloud");
