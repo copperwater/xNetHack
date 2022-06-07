@@ -296,6 +296,7 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
     }
     else if (is_open_air(x, y)) {
         res = obj_aireffects(obj, cansee(x, y));
+        newsym(x, y);
     }
 
     g.bhitpos = save_bhitpos;
