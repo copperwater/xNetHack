@@ -489,7 +489,7 @@ extern void set_wounded_legs(long, int);
 extern void heal_legs(int);
 extern void polymorph_sink(void);
 extern void trycall(struct obj *);
-extern void obj_aireffects(struct obj *, boolean);
+extern boolean obj_aireffects(struct obj *, boolean);
 extern void restore_valk_locate(xchar);
 
 /* ### do_name.c ### */

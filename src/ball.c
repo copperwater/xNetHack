@@ -790,7 +790,9 @@ drag_ball(xchar x, xchar y, int *bc_control,
              || !is_pool(uball->ox, uball->oy)
              || levl[uball->ox][uball->oy].typ == POOL))
         || ((t = t_at(uchain->ox, uchain->oy))
-            && (is_pit(t->ttyp) || is_hole(t->ttyp)))) {
+            && (is_pit(t->ttyp) || is_hole(t->ttyp)))
+        || (is_open_air(uchain->ox, uchain->oy)
+            && !is_open_air(uball->ox, uball->oy))) {
         if (Levitation) {
             You_feel("a tug from the iron ball.");
             if (t)
@@ -934,7 +936,7 @@ drop_ball(xchar x, xchar y)
         u.ux0 = u.ux;
         u.uy0 = u.uy;
         if (!Levitation && !MON_AT(x, y) && !u.utrap
-            && (is_pool(x, y)
+            && (is_pool(x, y) || is_open_air(x, y)
                 || ((t = t_at(x, y))
                     && (is_pit(t->ttyp)
                         || is_hole(t->ttyp))))) {

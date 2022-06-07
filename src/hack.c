@@ -2917,7 +2917,10 @@ spoteffects(boolean pick)
     if (pooleffects(TRUE))
         goto spotdone;
 
-    if (is_open_air(u.ux, u.uy) && !Levitation && !Flying
+    if (is_open_air(u.ux, u.uy) && !Levitation
+        /* normally won't fall if flying, unless iron ball is pulling you */
+        && !(Flying && !(Punished && !carried(uball)
+                         && is_open_air(uball->ox, uball->oy)))
         && !(u.usteed && !grounded(u.usteed->data))) {
         u_aireffects();
         goto spotdone;
