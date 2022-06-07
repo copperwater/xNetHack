@@ -1002,6 +1002,7 @@ savelife(int how)
         u.ulevel = 1;
     uhpmin = minuhpmax(10);
     if (u.uhpmax < uhpmin)
+        setuhpmax(uhpmin);
     u.uhp = min(u.uhpmax, 100);
     if (Upolyd) /* Unchanging, or death which bypasses losing hit points */
         u.mh = min(u.mhmax, 100);
