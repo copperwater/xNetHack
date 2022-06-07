@@ -2862,7 +2862,6 @@ u_aireffects(void)
             You("fall to your death again.");
             done(DIED);
         }
-        return;
     }
     else {
         You("plummet into the depths...");
