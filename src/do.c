@@ -284,6 +284,9 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
              * through the hole" message, so no need to do it here. */
             res = TRUE;
         }
+    } else if (is_open_air(x, y)) {
+        res = obj_aireffects(obj, cansee(x, y));
+        newsym(x, y);
     } else if (obj->globby) {
         /* Globby things like puddings might stick together */
         while (obj && (otmp = obj_nexto_xy(obj, x, y, TRUE)) != 0) {
@@ -293,10 +296,6 @@ flooreffects(struct obj *obj, int x, int y, const char *verb)
             (void) obj_meld(&obj, &otmp);
         }
         res = (boolean) !obj;
-    }
-    else if (is_open_air(x, y)) {
-        res = obj_aireffects(obj, cansee(x, y));
-        newsym(x, y);
     }
 
     g.bhitpos = save_bhitpos;
