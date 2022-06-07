@@ -3683,7 +3683,7 @@ float_down(
     }
 
     if (Punished && !carried(uball)
-        && (is_pool(uball->ox, uball->oy)
+        && (is_pool(uball->ox, uball->oy) || is_open_air(uball->ox, uball->oy)
             || ((trap = t_at(uball->ox, uball->oy))
                 && (is_pit(trap->ttyp) || is_hole(trap->ttyp))))) {
         u.ux0 = u.ux;

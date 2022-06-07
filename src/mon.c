@@ -5513,7 +5513,7 @@ mon_aireffects(struct monst *mtmp)
         for (otmp = mtmp->minvent; otmp; otmp = nobj) {
             nobj = otmp->nobj;
             obj_extract_self(otmp);
-            obj_aireffects(otmp, FALSE);
+            (void) obj_aireffects(otmp, FALSE);
         }
         /* No corpse is dropped here, because it would give a message about the
          * corpse falling away and disappearing which doesn't make any sense.
