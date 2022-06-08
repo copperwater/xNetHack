@@ -757,8 +757,7 @@ do_play_instrument(struct obj* instr)
                             u.uevent.uheard_tune = 2;
                             record_achievement(ACH_TUNE);
                             if (levl[x][y].typ == DRAWBRIDGE_DOWN) {
-                                boolean jammed =
-                                    (levl[x][y].drawbridgemask & DB_JAM) != 0;
+                                boolean jammed = is_jammed_db(x, y);
                                 if (!rn2(5) || jammed) {
                                     pline("The mechanism seems to %s jammed.",
                                           jammed ? "be" : "get");
