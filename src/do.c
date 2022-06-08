@@ -135,7 +135,6 @@ boulder_hits_pool(struct obj *otmp, int rx, int ry, boolean pushing)
         boolean old_nextboulder = otmp->next_boulder;
         remove_object(otmp);
         otmp->ox = rx, otmp->oy = ry;
-        otmp->next_boulder = 0;
         if (!obj_aireffects(otmp, (pushing || cansee(rx, ry)))) {
             place_object(otmp, ox, oy);
             otmp->next_boulder = old_nextboulder;
@@ -2371,6 +2370,9 @@ boolean
 obj_aireffects(struct obj *obj, boolean talk)
 {
     boolean fell = TRUE;
+    const char *it_falls = Tobjnam(obj, "fall"),
+               *disappears = otense(obj, "disappear");
+
     if ((breaktest(obj) || !rn2(4))
         && !(obj->oartifact || objects[obj->otyp].oc_unique
              || obj == uball || obj == uchain)) {
@@ -2392,8 +2394,7 @@ obj_aireffects(struct obj *obj, boolean talk)
             }
             else if (obj == uball || obj == uchain) {
                 if (obj == uball && !Levitation) {
-                    pline("%s away, dragging you into the abyss.",
-                          Tobjnam(obj, "fall"));
+                    pline("%s away, dragging you into the abyss.", it_falls);
                     /* force hero to fall now if the iron ball hasn't been
                        thrown; throwit(dothrow.c) will move hero and call
                        spoteffects later, so avoid duplication */
@@ -2410,7 +2411,7 @@ obj_aireffects(struct obj *obj, boolean talk)
             if (obj == uball || obj == uchain) {
                 if (obj == uball && !Levitation) {
                     pline("%s away, and %s you down with %s!",
-                          Tobjnam(obj, "fall"), otense(obj, "yank"),
+                          it_falls, otense(obj, "yank"),
                           obj->quan > 1L ? "them" : "it");
                     if (uball != g.thrownobj) {
                         u_aireffects();
@@ -2421,6 +2422,8 @@ obj_aireffects(struct obj *obj, boolean talk)
             }
             else {
                 add_to_migration(obj);
+                if (obj->otyp == BOULDER)
+                    obj->next_boulder = 0;
                 obj->ox = dest.dnum;
                 obj->oy = dest.dlevel;
                 obj->migrateflags = MIGR_RANDOM;
@@ -2428,8 +2431,7 @@ obj_aireffects(struct obj *obj, boolean talk)
         }
     }
     if (fell && talk) {
-        pline("%s away and %s.", Tobjnam(obj, "fall"),
-              otense(obj, "disappear"));
+        pline("%s away and %s.", it_falls, disappears);
     }
     return fell;
 }
