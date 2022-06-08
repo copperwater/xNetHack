@@ -192,20 +192,22 @@ enum door_states {
 /*
  * The four directions for a DrawBridge.
  */
-#define DB_NORTH 0
-#define DB_SOUTH 1
-#define DB_EAST 2
-#define DB_WEST 3
-#define DB_DIR 3 /* mask for direction */
+#define DB_NORTH 0x0
+#define DB_SOUTH 0x1
+#define DB_EAST  0x2
+#define DB_WEST  0x3
+#define DB_DIR   0x3 /* mask for direction */
 
 /*
  * What's under a drawbridge.
  */
-#define DB_MOAT 0
-#define DB_LAVA 4
-#define DB_ICE 8
-#define DB_FLOOR 16
-#define DB_UNDER 28 /* mask for underneath */
+#define DB_MOAT  0x0
+#define DB_LAVA  0x4
+#define DB_ICE   0x8
+#define DB_FLOOR 0xc
+#define DB_UNDER 0xc /* mask for underneath */
+
+#define DB_JAM   0x10
 
 /*
  * Wall information.  Nondiggable also applies to iron bars.
