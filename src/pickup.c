@@ -3461,7 +3461,13 @@ static boolean
 transfer_container_available(void)
 {
     struct obj *otmp, *objchns[2] = { g.invent, g.level.objects[u.ux][u.uy] };
+    struct trap *ttmp = t_at(u.ux, u.uy);
     int i;
+
+    /* don't consider floor containers if hero can't reach them */
+    if (!can_reach_floor(ttmp && is_pit(ttmp->ttyp))) {
+        objchns[1] = (struct obj *) 0;
+    }
 
     for (i = 0; i < SIZE(objchns); ++i) {
         boolean invent = (objchns[i] == g.invent);
@@ -3496,7 +3502,9 @@ select_transfer_container(void)
     struct obj *otmp, *chosen = (struct obj *) 0;
     int i;
     struct obj *objchns[2] = { g.invent, g.level.objects[u.ux][u.uy] };
-    boolean validcont = FALSE, known_locked = FALSE,
+    struct trap *ttmp = t_at(u.ux, u.uy);
+    boolean validcont = FALSE, known_locked = FALSE, unreachable = FALSE,
+            cant_reach = !can_reach_floor(ttmp && is_pit(ttmp->ttyp)),
             do_menu   = (flags.menu_style != MENU_TRADITIONAL);
     char buf[BUFSZ];
     struct obj *slots[62]; /* enough for a-zA-Z0-9 in the ridiculous case
@@ -3523,6 +3531,10 @@ select_transfer_container(void)
                 || (otmp->otyp == BAG_OF_TRICKS
                     && objects[BAG_OF_TRICKS].oc_name_known)) {
                 /* not a container */
+            } else if (cant_reach && !carried(otmp)) {
+                unreachable = TRUE;
+                break; /* floor chain is evaluated second, so if we can't
+                        * reach this one, same applies to any after this */
             } else if (otmp->lknown && otmp->olocked) {
                 known_locked = TRUE;
             } else {
@@ -3561,8 +3573,9 @@ select_transfer_container(void)
                      MENU_ITEMFLAGS_NONE); /* space */
     }
     if (!validcont) {
-        pline("There isn't another %scontainer here to put items in.",
-              known_locked ? "unlocked " : "");
+        pline("There isn't another %scontainer%s here to put items in.",
+              known_locked ? "unlocked " : "",
+              unreachable ? " that you can reach" : "");
         return FALSE;
     }
     if (do_menu) {
