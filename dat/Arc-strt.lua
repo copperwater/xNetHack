@@ -108,7 +108,7 @@ bookrooms = selection.floodfill(26,00) | selection.floodfill(30,00) |
 for i = 1,3 do
    des.object("+", bookrooms:rndcoord(1))
 end
-des.object(id="wand of secret door detection", bookrooms:rndcoord(1))
+des.object("wand of secret door detection", bookrooms:rndcoord(1))
 for i = 1,2 do
    des.object({ id="boomerang", spe=d(2), coord=bookrooms:rndcoord(1) })
 end
