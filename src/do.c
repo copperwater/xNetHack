@@ -132,12 +132,11 @@ boulder_hits_pool(struct obj *otmp, int rx, int ry, boolean pushing)
     }
     else if (is_open_air(rx, ry)) {
         xchar ox = otmp->ox, oy = otmp->oy;
-        boolean old_nextboulder = otmp->next_boulder;
-        remove_object(otmp);
+        obj_extract_self(otmp);
         otmp->ox = rx, otmp->oy = ry;
         if (!obj_aireffects(otmp, (pushing || cansee(rx, ry)))) {
-            place_object(otmp, ox, oy);
-            otmp->next_boulder = old_nextboulder;
+            if (pushing) /* put it back on the floor where it was */
+                place_object(otmp, ox, oy);
             return FALSE;
         }
         maybe_unhide_at(ox, oy);
