@@ -272,6 +272,8 @@ leader_sees_qarti(struct obj *obj) /* quest artifact; possibly null if carrying
            quest artifact */
         fully_identify_obj(obj);
         update_inventory();
+    } else if (!arti_fulfills_quest()) {
+        u.uevent.qcompleted = 1;
     }
 }
 
