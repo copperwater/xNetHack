@@ -790,6 +790,7 @@ extern boolean should_givit(int, struct permonst *);
 extern int corpse_intrinsic(struct permonst *);
 extern void consume_oeaten(struct obj *, int);
 extern boolean maybe_finished_meal(boolean);
+extern void cant_finish_meal(struct obj *);
 extern void set_tin_variety(struct obj *, int);
 extern int tin_variety_txt(char *, int *);
 extern int tin_variety(struct obj *, boolean);

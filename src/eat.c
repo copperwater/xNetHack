@@ -3830,6 +3830,32 @@ maybe_finished_meal(boolean stopping)
     return FALSE;
 }
 
+/* called by revive(); sort of the opposite of maybe_finished_meal() */
+void
+cant_finish_meal(struct obj *corpse)
+{
+    /*
+     * When a corpse gets resurrected, the makemon() for that might
+     * call stop_occupation().  If that happens, prevent it from using
+     * up the corpse via maybe_finished_meal() when there's not enough
+     * left for another bite.  revive() needs continued access to the
+     * corpse and will delete it when done.
+     */
+    if (g.occupation == eatfood && g.context.victual.piece == corpse) {
+        /* normally performed by done_eating() */
+        g.context.victual.piece = (struct obj *) 0;
+        g.context.victual.o_id = 0;
+        g.context.victual.fullwarn = g.context.victual.eating =
+            g.context.victual.doreset = FALSE;
+
+        if (!corpse->oeaten)
+            corpse->oeaten = 1; /* [see consume_oeaten()] */
+        g.occupation = donull; /* any non-Null other than eatfood() */
+        stop_occupation();
+        newuhs(FALSE);
+    }
+}
+
 /* Tin of <something> to the rescue?  Decide whether current occupation
    is an attempt to eat a tin of something capable of saving hero's life.
    We don't care about consumption of non-tinned food here because special
