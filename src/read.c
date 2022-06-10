@@ -100,7 +100,8 @@ erode_obj_text(struct obj* otmp, char* buf)
 char *
 tshirt_text(struct obj* tshirt, char* buf)
 {
-    get_rnd_text(SHIRTFILE, buf, int_hash1(tshirt->o_id), rn2, MD_PAD_RUMORS);
+    get_rnd_text(SHIRTFILE, buf, int_hash1(tshirt->o_id), (int (*)(int)) 0,
+                 MD_PAD_RUMORS);
     return erode_obj_text(tshirt, buf);
 }
 
