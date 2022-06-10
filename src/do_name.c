@@ -2383,7 +2383,9 @@ bogusmon(char *buf, char *code, int which)
     if (code)
         *code = '\0';
     /* might fail (return empty buf[]) if the file isn't available */
-    get_rnd_text(BOGUSMONFILE, buf, which, rn2_on_display_rng, MD_PAD_BOGONS);
+    get_rnd_text(BOGUSMONFILE, buf, which,
+                 (which > 0 ? (int (*)(int)) 0 : rn2_on_display_rng),
+                 MD_PAD_BOGONS);
     if (!*mnam) {
         Strcpy(buf, "bogon");
     } else if (index(bogon_codes, *mnam)) { /* strip prefix if present */
