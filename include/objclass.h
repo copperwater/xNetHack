@@ -10,6 +10,7 @@
    (liquid potion inside glass bottle, metal arrowhead on wooden shaft)
    and object definitions only specify one type on a best-fit basis */
 enum obj_material_types {
+    NO_MATERIAL =  0,
     LIQUID      =  1, /* currently only for venom */
     WAX         =  2,
     VEGGY       =  3, /* foodstuffs */

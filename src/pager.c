@@ -250,6 +250,7 @@ object_from_map(int glyph, int x, int y, struct obj **obj_p)
         mtmp = 0;
 
     if (!otmp || otmp->otyp != glyphotyp) {
+        int mat;
         /* this used to exclude STRANGE_OBJECT; now caller deals with it */
         otmp = mksobj(glyphotyp, FALSE, FALSE);
         if (!otmp)
@@ -272,6 +273,10 @@ object_from_map(int glyph, int x, int y, struct obj **obj_p)
         } else if (otmp->otyp == STATUE && glyph_is_statue(glyph)) {
             otmp->corpsenm = glyph_to_statue_corpsenm(glyph);
         }
+        mat = glyph_to_obj_material(glyph);
+        if (mat == NO_MATERIAL)
+            mat = objects[glyphotyp].oc_material;
+        otmp->material = mat;
         if (otmp->otyp == LEASH)
             otmp->leashmon = 0;
         /* extra fields needed for shop price with doname() formatting */

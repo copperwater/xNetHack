@@ -186,6 +186,7 @@
  */
 #define random_monster(rng) rng(NUMMONS)
 #define random_object(rng) (rng(NUM_OBJECTS - 1) + 1)
+#define random_material(rng) (rng(NUM_MATERIAL_TYPES - 1) + 1)
 
 /*
  * what_obj()
@@ -562,7 +563,7 @@ enum glyph_offsets {
     GLYPH_RIDDEN_MALE_OFF = (GLYPH_RIDDEN_OFF),
     GLYPH_RIDDEN_FEM_OFF = (NUMMONS + GLYPH_RIDDEN_MALE_OFF),
     GLYPH_OBJ_OFF = (NUMMONS + GLYPH_RIDDEN_FEM_OFF),
-    GLYPH_CMAP_OFF = (NUM_OBJECTS + GLYPH_OBJ_OFF),
+    GLYPH_CMAP_OFF = ((NUM_OBJECTS * NUM_MATERIAL_TYPES) + GLYPH_OBJ_OFF),
     GLYPH_CMAP_STONE_OFF = (GLYPH_CMAP_OFF),
     GLYPH_CMAP_MAIN_OFF = (1 + GLYPH_CMAP_STONE_OFF),
     GLYPH_CMAP_MINES_OFF = (((S_trwall - S_vwall) + 1) + GLYPH_CMAP_MAIN_OFF),
@@ -592,7 +593,7 @@ enum glyph_offsets {
     GLYPH_STATUE_FEM_OFF = (NUMMONS + GLYPH_STATUE_MALE_OFF),
     GLYPH_PILETOP_OFF = (NUMMONS + GLYPH_STATUE_FEM_OFF),
     GLYPH_OBJ_PILETOP_OFF = (GLYPH_PILETOP_OFF),
-    GLYPH_BODY_PILETOP_OFF = (NUM_OBJECTS + GLYPH_OBJ_PILETOP_OFF),
+    GLYPH_BODY_PILETOP_OFF = ((NUM_OBJECTS * NUM_MATERIAL_TYPES) + GLYPH_OBJ_PILETOP_OFF),
     GLYPH_STATUE_MALE_PILETOP_OFF = (NUMMONS + GLYPH_BODY_PILETOP_OFF),
     GLYPH_STATUE_FEM_PILETOP_OFF = (NUMMONS + GLYPH_STATUE_MALE_PILETOP_OFF),
     GLYPH_UNEXPLORED_OFF = (NUMMONS + GLYPH_STATUE_FEM_PILETOP_OFF),
@@ -923,10 +924,11 @@ enum glyph_offsets {
     (glyph_is_male_statue(glyph) || glyph_is_fem_statue(glyph))
 #define glyph_is_normal_piletop_obj(glyph) \
     (((glyph) >= GLYPH_OBJ_PILETOP_OFF) && \
-        ((glyph) < (GLYPH_OBJ_PILETOP_OFF + NUM_OBJECTS)))
+        ((glyph) < (GLYPH_OBJ_PILETOP_OFF \
+                    + (NUM_OBJECTS * NUM_MATERIAL_TYPES))))
 #define glyph_is_normal_object(glyph) \
      ((((glyph) >= GLYPH_OBJ_OFF) && \
-        ((glyph) < (GLYPH_OBJ_OFF + NUM_OBJECTS))) \
+        ((glyph) < (GLYPH_OBJ_OFF + (NUM_OBJECTS * NUM_MATERIAL_TYPES)))) \
       || glyph_is_normal_piletop_obj(glyph))
 
 #if 0
@@ -976,11 +978,19 @@ enum glyph_offsets {
        : glyph_is_statue(glyph)                      \
          ? STATUE                                    \
          : glyph_is_normal_object(glyph)             \
-           ? ((glyph) -                              \
-               (glyph_is_normal_piletop_obj(glyph)   \
-                 ? GLYPH_OBJ_PILETOP_OFF             \
-                 : GLYPH_OBJ_OFF))                   \
+           ? (((glyph) -                             \
+                (glyph_is_normal_piletop_obj(glyph)  \
+                  ? GLYPH_OBJ_PILETOP_OFF            \
+                  : GLYPH_OBJ_OFF))                  \
+              / NUM_MATERIAL_TYPES)                  \
            : NO_GLYPH)
+
+#define glyph_to_obj_material(glyph) \
+    (glyph_is_normal_object(glyph) \
+     ? (((glyph) - (glyph_is_normal_piletop_obj(glyph) \
+                    ? GLYPH_OBJ_PILETOP_OFF \
+                    : GLYPH_OBJ_OFF)) % NUM_MATERIAL_TYPES) \
+     : NO_MATERIAL)
 
 #define glyph_to_body_corpsenm(glyph) \
             (glyph_is_body_piletop(glyph)               \
@@ -1003,7 +1013,8 @@ enum glyph_offsets {
 #define random_obj_to_glyph(rng) \
     ((g.otg_temp = random_object(rng)) == CORPSE                   \
          ? (random_monster(rng) + GLYPH_BODY_OFF)                  \
-         : (g.otg_temp + GLYPH_OBJ_OFF))
+         : ((g.otg_temp * NUM_MATERIAL_TYPES) + random_material(rng) \
+            + GLYPH_OBJ_OFF))
 #define corpse_to_glyph(obj) \
     ((int) ((obj)->corpsenm + (obj_is_piletop(obj)        \
                                 ? GLYPH_BODY_PILETOP_OFF  \
@@ -1016,7 +1027,7 @@ enum glyph_offsets {
    also done so that special levels such a Sokoban can "hide" items
    under the boulders. */
 #define normal_obj_to_glyph(obj) \
-    ((int) ((obj)->otyp + \
+    ((int) (((obj)->otyp * NUM_MATERIAL_TYPES) + (obj)->material + \
             ((obj_is_piletop(obj) && ((obj)->otyp != BOULDER))      \
                                 ? GLYPH_OBJ_PILETOP_OFF             \
                                 : GLYPH_OBJ_OFF)))

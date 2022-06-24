@@ -862,36 +862,40 @@ init_tilemap(void)
 
     /* start of objects */
     file_entry = 0;
-    for (i = 0; i < NUM_OBJECTS; i++) {
-        tilemap[GLYPH_OBJ_OFF + i].tilenum = tilenum;
-        tilemap[GLYPH_OBJ_PILETOP_OFF + i].tilenum = tilenum;
+    for (k = 0; k < NUM_OBJECTS; k++) {
+        for (j = 0; j < NUM_MATERIAL_TYPES; j++) {
+            i = (k * NUM_MATERIAL_TYPES) + j;
+            /* printf("%d + %d = %d\n", k, j, i); */
+            tilemap[GLYPH_OBJ_OFF + i].tilenum = tilenum;
+            tilemap[GLYPH_OBJ_PILETOP_OFF + i].tilenum = tilenum;
 #if defined(OBTAIN_TILEMAP)
-        Snprintf(tilemap[GLYPH_OBJ_OFF + i].name,
-                 sizeof tilemap[GLYPH_OBJ_OFF + i].name,
-                 "%s (onum=%d)",
-                tilename(OBJ_GLYPH, file_entry, 0), i);
-        Snprintf(tilemap[GLYPH_OBJ_PILETOP_OFF + i].name,
-                 sizeof tilemap[GLYPH_OBJ_PILETOP_OFF + i].name,
-                 "%s %s (onum=%d)",
-                 "piletop" ,tilename(OBJ_GLYPH, file_entry, 0), i);
-        add_tileref(tilenum, GLYPH_OBJ_OFF + i,
-                    objects_file, file_entry,
-                    tilemap[GLYPH_OBJ_OFF + i].name, "");
-        add_tileref(tilenum, GLYPH_OBJ_PILETOP_OFF + i,
-                    objects_file, file_entry,
-                    tilemap[GLYPH_OBJ_PILETOP_OFF + i].name, "");
+            Snprintf(tilemap[GLYPH_OBJ_OFF + i].name,
+                    sizeof tilemap[GLYPH_OBJ_OFF + i].name,
+                    "%s (onum=%d, mat=%d)",
+                    tilename(OBJ_GLYPH, file_entry, 0), k, j);
+            Snprintf(tilemap[GLYPH_OBJ_PILETOP_OFF + i].name,
+                    sizeof tilemap[GLYPH_OBJ_PILETOP_OFF + i].name,
+                    "%s %s (onum=%d, mat=%d)",
+                    "piletop" ,tilename(OBJ_GLYPH, file_entry, 0), k, j);
+            add_tileref(tilenum, GLYPH_OBJ_OFF + i,
+                        objects_file, file_entry,
+                        tilemap[GLYPH_OBJ_OFF + i].name, "");
+            add_tileref(tilenum, GLYPH_OBJ_PILETOP_OFF + i,
+                        objects_file, file_entry,
+                        tilemap[GLYPH_OBJ_PILETOP_OFF + i].name, "");
 #endif
+        }
         for (condnum = 0; conditionals[condnum].sequence != -1; condnum++) {
             if (conditionals[condnum].sequence == OBJ_GLYPH
-               && conditionals[condnum].predecessor == i) {
-            tilenum++;
+                && conditionals[condnum].predecessor == k) {
+                tilenum++;
                 file_entry++;
 #if defined(OBTAIN_TILEMAP)
                 Fprintf(tilemap_file, "skipping obj %s (%d)\n",
                         tilename(OBJ_GLYPH, file_entry, 0), file_entry);
 #endif
+            }
         }
-    }
         tilenum++;
         file_entry++;
     }
@@ -1407,7 +1411,7 @@ init_tilemap(void)
                 Fprintf(tilemap_file, "skipping statue of %s (%d)\n",
                         tilename(MON_GLYPH, file_entry, 0), file_entry);
 #endif
-	    }
+            }
         }
         tilenum++;
         file_entry++;

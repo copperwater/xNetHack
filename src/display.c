@@ -2387,16 +2387,15 @@ map_glyphinfo(
 #ifdef TEXTCOLOR
     /* isok is used because this is sometimes called with 0,0 */
     if (iflags.use_color && isok(x, y)) {
+        if (On_stairs(x,y))
+            glyphinfo->gm.glyphflags |= MG_STAIRS;
         /* object or statue, which might be made of a non-default material or on
          * stairs */
-        if (glyph_is_statue(glyph) || glyph_is_normal_object(glyph)
-            || glyph_is_body(glyph)) {
+        if (glyph_is_statue(glyph) || glyph_is_body(glyph)) {
             struct obj *otmp = vobj_at(x, y);
             if (otmp) {
                 if (otmp && otmp->material != objects[otmp->otyp].oc_material)
                     glyphinfo->gm.sym.color = materialclr[otmp->material];
-                if (On_stairs(x,y))
-                    glyphinfo->gm.glyphflags |= MG_STAIRS;
             }
             /* !otmp is not actually impossible, because this is called from
              * tmp_at(), in which an object is flying through the air above
@@ -2525,6 +2524,7 @@ int wallcolors[sokoban_walls + 1] = {
 #define zap_color(n) color = iflags.use_color ? zapcolors[n] : NO_COLOR
 #define cmap_color(n) color = iflags.use_color ? defsyms[n].color : NO_COLOR
 #define obj_color(n) color = iflags.use_color ? objects[n].oc_color : NO_COLOR
+#define material_color(n) color = iflags.use_color ? materialclr[n]: NO_COLOR
 #define mon_color(n) \
     color = iflags.use_color \
         ? g.monstercolors[n] != MONSTERCOLOR_DEFAULT \
@@ -2547,6 +2547,7 @@ int wallcolors[sokoban_walls + 1] = {
 #define zap_color(n)
 #define cmap_color(n)
 #define obj_color(n)
+#define material_color(n)
 #define mon_color(n)
 #define invis_color(n)
 #define pet_color(c)
@@ -2630,10 +2631,15 @@ reset_glyphmap(enum glyphmap_change_triggers trigger)
             mon_color(offset);
             gmap->glyphflags |= (MG_CORPSE | MG_OBJPILE);
         } else if ((offset = (glyph - GLYPH_OBJ_PILETOP_OFF)) >= 0) {
-            gmap->sym.symidx = objects[offset].oc_class + SYM_OFF_O;
-            if (offset == BOULDER)
+            int mat = (offset % NUM_MATERIAL_TYPES),
+                oid = (offset / NUM_MATERIAL_TYPES);
+            gmap->sym.symidx = objects[oid].oc_class + SYM_OFF_O;
+            if (oid == BOULDER)
                 gmap->sym.symidx = SYM_BOULDER + SYM_OFF_X;
-            obj_color(offset);
+            if (mat == objects[oid].oc_material || mat == NO_MATERIAL)
+                obj_color(oid);
+            else
+                material_color(mat);
             gmap->glyphflags |= MG_OBJPILE;
         } else if ((offset = (glyph - GLYPH_STATUE_FEM_OFF)) >= 0) {
             gmap->sym.symidx = mons[offset].mlet + SYM_OFF_M;
@@ -2749,10 +2755,15 @@ reset_glyphmap(enum glyphmap_change_triggers trigger)
             gmap->sym.symidx = SYM_OFF_P;
             cmap_color(S_stone);
         } else if ((offset = (glyph - GLYPH_OBJ_OFF)) >= 0) {
-            gmap->sym.symidx = objects[offset].oc_class + SYM_OFF_O;
-            if (offset == BOULDER)
+            int mat = (offset % NUM_MATERIAL_TYPES),
+                oid = (offset / NUM_MATERIAL_TYPES);
+            gmap->sym.symidx = objects[oid].oc_class + SYM_OFF_O;
+            if (oid == BOULDER)
                 gmap->sym.symidx = SYM_BOULDER + SYM_OFF_X;
-            obj_color(offset);
+            if (mat == objects[oid].oc_material || mat == NO_MATERIAL)
+                obj_color(oid);
+            else
+                material_color(mat);
         } else if ((offset = (glyph - GLYPH_RIDDEN_FEM_OFF)) >= 0) {
             gmap->sym.symidx = mons[offset].mlet + SYM_OFF_M;
             mon_color(offset);
