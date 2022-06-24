@@ -2387,39 +2387,10 @@ map_glyphinfo(
 #ifdef TEXTCOLOR
     /* isok is used because this is sometimes called with 0,0 */
     if (iflags.use_color && isok(x, y)) {
-        if (On_stairs(x,y))
+        /* object or statue, which might be made of a non-default material or
+         * on stairs */
+        if (glyph_is_object(glyph) && On_stairs(x,y))
             glyphinfo->gm.glyphflags |= MG_STAIRS;
-        /* object or statue, which might be made of a non-default material or on
-         * stairs */
-        if (glyph_is_statue(glyph) || glyph_is_body(glyph)) {
-            struct obj *otmp = vobj_at(x, y);
-            if (otmp) {
-                if (otmp && otmp->material != objects[otmp->otyp].oc_material)
-                    glyphinfo->gm.sym.color = materialclr[otmp->material];
-            }
-            /* !otmp is not actually impossible, because this is called from
-             * tmp_at(), in which an object is flying through the air above
-             * ground where there's usually no object.
-             * There is no single unified way to get the object that happens to
-             * be flying through the air. g.thrownobj and g.kickedobj are only
-             * set in a small number of cases involving flying objects, and it's
-             * possible that by comprehensively tracking them in all cases,
-             * !otmp would actually be an impossible case.
-             * This causes the following bugs (both of which were present before
-             * commit 1f6c1d0):
-             *   1. Flying objects' materials don't normally render. The object
-             *      is shown as the base glyph no matter its material.
-             *   2. If a flying object passes over an object of a material
-             *      that's not its base, it will briefly render as that material
-             *      (since we have only x, y, and glyph here and vobj_at() can't
-             *      tell that it's actually a flying object being mapped.)
-             * Another reason !otmp is not actually impossible is that the
-             * object could have been moved while out of sight.
-            else
-                impossible("no visible object at (%d, %d)?",
-                           x, y);
-            */
-        }
         /* iron door
          * (only check closed door defsym range, not S_ndoor) */
         else if (gmap->sym.symidx >= S_vodoor + SYM_OFF_P
@@ -2619,12 +2590,22 @@ reset_glyphmap(enum glyphmap_change_triggers trigger)
             color = NO_COLOR;
             gmap->glyphflags |= MG_UNEXPL;
         } else if ((offset = (glyph - GLYPH_STATUE_FEM_PILETOP_OFF)) >= 0) {
-            gmap->sym.symidx = mons[offset].mlet + SYM_OFF_M;
-            obj_color(STATUE);
+            int mat = (offset % NUM_MATERIAL_TYPES),
+                mid = (offset / NUM_MATERIAL_TYPES);
+            gmap->sym.symidx = mons[mid].mlet + SYM_OFF_M;
+            if (mat == objects[STATUE].oc_material || mat == NO_MATERIAL)
+                obj_color(STATUE);
+            else
+                material_color(mat);
             gmap->glyphflags |= (MG_STATUE | MG_FEMALE | MG_OBJPILE);
         } else if ((offset = (glyph - GLYPH_STATUE_MALE_PILETOP_OFF)) >= 0) {
-            gmap->sym.symidx = mons[offset].mlet + SYM_OFF_M;
-            obj_color(STATUE);
+            int mat = (offset % NUM_MATERIAL_TYPES),
+                mid = (offset / NUM_MATERIAL_TYPES);
+            gmap->sym.symidx = mons[mid].mlet + SYM_OFF_M;
+            if (mat == objects[STATUE].oc_material || mat == NO_MATERIAL)
+                obj_color(STATUE);
+            else
+                material_color(mat);
             gmap->glyphflags |= (MG_STATUE | MG_MALE | MG_OBJPILE);
         } else if ((offset = (glyph - GLYPH_BODY_PILETOP_OFF)) >= 0) {
             gmap->sym.symidx = objects[CORPSE].oc_class + SYM_OFF_O;
@@ -2642,12 +2623,22 @@ reset_glyphmap(enum glyphmap_change_triggers trigger)
                 material_color(mat);
             gmap->glyphflags |= MG_OBJPILE;
         } else if ((offset = (glyph - GLYPH_STATUE_FEM_OFF)) >= 0) {
-            gmap->sym.symidx = mons[offset].mlet + SYM_OFF_M;
-            obj_color(STATUE);
+            int mat = (offset % NUM_MATERIAL_TYPES),
+                mid = (offset / NUM_MATERIAL_TYPES);
+            gmap->sym.symidx = mons[mid].mlet + SYM_OFF_M;
+            if (mat == objects[STATUE].oc_material || mat == NO_MATERIAL)
+                obj_color(STATUE);
+            else
+                material_color(mat);
             gmap->glyphflags |= (MG_STATUE | MG_FEMALE);
         } else if ((offset = (glyph - GLYPH_STATUE_MALE_OFF)) >= 0) {
-            gmap->sym.symidx = mons[offset].mlet + SYM_OFF_M;
-            obj_color(STATUE);
+            int mat = (offset % NUM_MATERIAL_TYPES),
+                mid = (offset / NUM_MATERIAL_TYPES);
+            gmap->sym.symidx = mons[mid].mlet + SYM_OFF_M;
+            if (mat == objects[STATUE].oc_material || mat == NO_MATERIAL)
+                obj_color(STATUE);
+            else
+                material_color(mat);
             gmap->glyphflags |= (MG_STATUE | MG_MALE);
         } else if ((offset = (glyph - GLYPH_WARNING_OFF))
                    >= 0) { /* warn flash */

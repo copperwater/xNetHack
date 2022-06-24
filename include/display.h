@@ -590,13 +590,18 @@ enum glyph_offsets {
     GLYPH_WARNING_OFF = (MAXEXPCHARS + GLYPH_EXPLODE_FROSTY_OFF),
     GLYPH_STATUE_OFF = (WARNCOUNT + GLYPH_WARNING_OFF),
     GLYPH_STATUE_MALE_OFF = (GLYPH_STATUE_OFF),
-    GLYPH_STATUE_FEM_OFF = (NUMMONS + GLYPH_STATUE_MALE_OFF),
-    GLYPH_PILETOP_OFF = (NUMMONS + GLYPH_STATUE_FEM_OFF),
+    GLYPH_STATUE_FEM_OFF = ((NUMMONS * NUM_MATERIAL_TYPES)
+                            + GLYPH_STATUE_MALE_OFF),
+    GLYPH_PILETOP_OFF = ((NUMMONS * NUM_MATERIAL_TYPES)
+                         + GLYPH_STATUE_FEM_OFF),
     GLYPH_OBJ_PILETOP_OFF = (GLYPH_PILETOP_OFF),
-    GLYPH_BODY_PILETOP_OFF = ((NUM_OBJECTS * NUM_MATERIAL_TYPES) + GLYPH_OBJ_PILETOP_OFF),
+    GLYPH_BODY_PILETOP_OFF = ((NUM_OBJECTS * NUM_MATERIAL_TYPES)
+                              + GLYPH_OBJ_PILETOP_OFF),
     GLYPH_STATUE_MALE_PILETOP_OFF = (NUMMONS + GLYPH_BODY_PILETOP_OFF),
-    GLYPH_STATUE_FEM_PILETOP_OFF = (NUMMONS + GLYPH_STATUE_MALE_PILETOP_OFF),
-    GLYPH_UNEXPLORED_OFF = (NUMMONS + GLYPH_STATUE_FEM_PILETOP_OFF),
+    GLYPH_STATUE_FEM_PILETOP_OFF = ((NUMMONS * NUM_MATERIAL_TYPES)
+                                    + GLYPH_STATUE_MALE_PILETOP_OFF),
+    GLYPH_UNEXPLORED_OFF = ((NUMMONS * NUM_MATERIAL_TYPES)
+                            + GLYPH_STATUE_FEM_PILETOP_OFF),
     GLYPH_NOTHING_OFF = (GLYPH_UNEXPLORED_OFF + 1),
     MAX_GLYPH
 };
@@ -908,17 +913,21 @@ enum glyph_offsets {
 
 #define glyph_is_fem_statue_piletop(glyph) \
     (((glyph) >= GLYPH_STATUE_FEM_PILETOP_OFF) \
-      && ((glyph) < (GLYPH_STATUE_FEM_PILETOP_OFF + NUMMONS)))
+      && ((glyph) < (GLYPH_STATUE_FEM_PILETOP_OFF \
+                     + (NUMMONS * NUM_MATERIAL_TYPES))))
 #define glyph_is_male_statue_piletop(glyph) \
      (((glyph) >= GLYPH_STATUE_MALE_PILETOP_OFF) \
-         && ((glyph) < (GLYPH_STATUE_MALE_PILETOP_OFF + NUMMONS)))
+         && ((glyph) < (GLYPH_STATUE_MALE_PILETOP_OFF \
+                        + (NUMMONS * NUM_MATERIAL_TYPES))))
 #define glyph_is_fem_statue(glyph) \
     ((((glyph) >= GLYPH_STATUE_FEM_OFF) && \
-        ((glyph) < (GLYPH_STATUE_FEM_OFF + NUMMONS))) \
+        ((glyph) < (GLYPH_STATUE_FEM_OFF \
+                    + (NUMMONS * NUM_MATERIAL_TYPES)))) \
      || glyph_is_fem_statue_piletop(glyph))
 #define glyph_is_male_statue(glyph) \
-    ((((glyph) >= GLYPH_STATUE_MALE_OFF) &&            \
-        ((glyph) < (GLYPH_STATUE_MALE_OFF + NUMMONS))) \
+    ((((glyph) >= GLYPH_STATUE_MALE_OFF) && \
+        ((glyph) < (GLYPH_STATUE_MALE_OFF \
+                    + (NUMMONS * NUM_MATERIAL_TYPES)))) \
      || glyph_is_male_statue_piletop(glyph))
 #define glyph_is_statue(glyph) \
     (glyph_is_male_statue(glyph) || glyph_is_fem_statue(glyph))
@@ -998,15 +1007,16 @@ enum glyph_offsets {
                 : ((glyph) - GLYPH_BODY_OFF))
 
 #define glyph_to_statue_corpsenm(glyph) \
-    (glyph_is_fem_statue_piletop(glyph)                 \
-       ? ((glyph) - GLYPH_STATUE_FEM_PILETOP_OFF)       \
-       : glyph_is_male_statue_piletop(glyph)            \
-           ? ((glyph) - GLYPH_STATUE_MALE_PILETOP_OFF)  \
-           : glyph_is_fem_statue(glyph)                 \
-               ? ((glyph) - GLYPH_STATUE_FEM_OFF)       \
-               : glyph_is_male_statue(glyph)            \
-                   ? ((glyph) - GLYPH_STATUE_MALE_OFF)  \
-                   : NO_GLYPH)
+    (!glyph_is_statue(glyph) \
+        ? NO_GLYPH                                         \
+        : ((glyph_is_fem_statue_piletop(glyph)             \
+            ? ((glyph) - GLYPH_STATUE_FEM_PILETOP_OFF)     \
+            : glyph_is_male_statue_piletop(glyph)          \
+              ? ((glyph) - GLYPH_STATUE_MALE_PILETOP_OFF)  \
+              : glyph_is_fem_statue(glyph)                 \
+                ? ((glyph) - GLYPH_STATUE_FEM_OFF)         \
+                : ((glyph) - GLYPH_STATUE_MALE_OFF))       \
+           / NUM_MATERIAL_TYPES))
 
 /* These have the unfortunate side effect of needing a global variable    */
 /* to store a result. 'otg_temp' is defined and declared in decl.{ch}.  */
@@ -1037,16 +1047,17 @@ enum glyph_offsets {
 
 #define statue_to_glyph(obj, rng) \
     ((Hallucination)                                                \
-     ? ((random_monster(rng)) +                                     \
-          ((!(rng)(2)) ? GLYPH_MON_MALE_OFF : GLYPH_MON_FEM_OFF))   \
-     : ((int) (obj)->corpsenm +                                     \
-               ((((obj)->spe & CORPSTAT_GENDER) == CORPSTAT_FEMALE) \
-                    ? (obj_is_piletop(obj)                          \
-                          ? GLYPH_STATUE_FEM_PILETOP_OFF            \
-                          : GLYPH_STATUE_FEM_OFF)                   \
-                    : (obj_is_piletop(obj)                          \
-                          ? GLYPH_STATUE_MALE_PILETOP_OFF           \
-                          : GLYPH_STATUE_MALE_OFF))))
+     ? ((random_monster(rng))                                       \
+        + ((!(rng)(2)) ? GLYPH_MON_MALE_OFF : GLYPH_MON_FEM_OFF))   \
+     : (((int) (obj)->corpsenm * NUM_MATERIAL_TYPES)                \
+         + (obj)->material                                          \
+         + ((((obj)->spe & CORPSTAT_GENDER) == CORPSTAT_FEMALE)     \
+            ? (obj_is_piletop(obj)                                  \
+               ? GLYPH_STATUE_FEM_PILETOP_OFF                       \
+               : GLYPH_STATUE_FEM_OFF)                              \
+            : (obj_is_piletop(obj)                                  \
+               ? GLYPH_STATUE_MALE_PILETOP_OFF                      \
+               : GLYPH_STATUE_MALE_OFF))))
 
 #define obj_to_glyph(obj, rng) \
            (((obj)->otyp == STATUE)                   \

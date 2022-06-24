@@ -632,9 +632,8 @@ lookat(int x, int y, char *buf, char *monbuf)
     } else if (!glyph_is_cmap(glyph)) {
         Strcpy(buf, "unexplored area");
     } else {
-        int amsk;
+        int amsk, symidx = glyph_to_cmap(glyph);
         aligntyp algn;
-        short symidx = glyph_to_cmap(glyph);
 
         switch (symidx) {
         case S_altar:

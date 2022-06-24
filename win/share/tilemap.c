@@ -1343,7 +1343,7 @@ init_tilemap(void)
 #ifdef STATUES_DONT_LOOK_LIKE_MONSTERS
     /* statue patch: statues still use the same glyph as in 3.4.x */
 
-    for (i = 0; i < NUMMONS; i++) {
+    for (i = 0; i < (NUMMONS * NUM_MATERIAL_TYPES); i++) {
         tilemap[GLYPH_STATUE_OFF + i].tilenum =
             tilemap[GLYPH_OBJ_OFF + STATUE].tilenum;
 #ifdef OBTAIN_TILEMAP
@@ -1360,51 +1360,59 @@ init_tilemap(void)
     /* STATUES _DO_ LOOK LIKE MONSTERS */
     file_entry = 0;
     /* statue patch: statues look more like the monster */
-    for (i = 0; i < NUMMONS; i++) {
-        precheck(GLYPH_STATUE_MALE_OFF + i, "male statues");
-        tilemap[GLYPH_STATUE_MALE_OFF + i].tilenum = tilenum;
-        precheck(GLYPH_STATUE_MALE_PILETOP_OFF + i, "male statue piletop");
-        tilemap[GLYPH_STATUE_MALE_PILETOP_OFF + i].tilenum = tilenum;
+    for (k = 0; k < NUMMONS; k++) {
+        for (j = 0; j < NUM_MATERIAL_TYPES; j++) {
+            i = (k * NUM_MATERIAL_TYPES) + j;
+            precheck(GLYPH_STATUE_MALE_OFF + i, "male statues");
+            tilemap[GLYPH_STATUE_MALE_OFF + i].tilenum = tilenum;
+            precheck(GLYPH_STATUE_MALE_PILETOP_OFF + i, "male statue piletop");
+            tilemap[GLYPH_STATUE_MALE_PILETOP_OFF + i].tilenum = tilenum;
 #if defined(OBTAIN_TILEMAP)
-        Snprintf(tilemap[GLYPH_STATUE_MALE_OFF + i].name,
-                sizeof tilemap[0].name,
-                "statue of male %s (mnum=%d)",
-                tilename(MON_GLYPH, file_entry, 0), file_entry);
-        Snprintf(tilemap[GLYPH_STATUE_MALE_PILETOP_OFF + i].name,
-                sizeof tilemap[0].name,
-                "piletop statue of male %s (mnum=%d)",
-                tilename(MON_GLYPH, file_entry, 0), file_entry);
-        add_tileref(tilenum, GLYPH_STATUE_MALE_OFF + i, generated, file_entry,
-                    tilemap[GLYPH_STATUE_MALE_OFF + i].name,
-                    "");
-        add_tileref(tilenum, GLYPH_STATUE_MALE_PILETOP_OFF + i, generated,
-                    file_entry,
-                    tilemap[GLYPH_STATUE_MALE_PILETOP_OFF + i].name,
-                    "");
+            Snprintf(tilemap[GLYPH_STATUE_MALE_OFF + i].name,
+                     sizeof tilemap[0].name,
+                     "statue of male %s (mnum=%d, mat=%d)",
+                     tilename(MON_GLYPH, file_entry, 0), k, j);
+            Snprintf(tilemap[GLYPH_STATUE_MALE_PILETOP_OFF + i].name,
+                     sizeof tilemap[0].name,
+                     "piletop statue of male %s (mnum=%d, mat=%d)",
+                     tilename(MON_GLYPH, file_entry, 0), k, j);
+            add_tileref(tilenum, GLYPH_STATUE_MALE_OFF + i, generated,
+                        file_entry, tilemap[GLYPH_STATUE_MALE_OFF + i].name,
+                        "");
+            add_tileref(tilenum, GLYPH_STATUE_MALE_PILETOP_OFF + i, generated,
+                        file_entry,
+                        tilemap[GLYPH_STATUE_MALE_PILETOP_OFF + i].name,
+                        "");
 #endif
+        }
         tilenum++;
         file_entry++;
-        precheck(GLYPH_STATUE_FEM_OFF + i, "female statues");
-        tilemap[GLYPH_STATUE_FEM_OFF + i].tilenum = tilenum;
-        precheck(GLYPH_STATUE_FEM_PILETOP_OFF + i, "female statue piletop");
-        tilemap[GLYPH_STATUE_FEM_PILETOP_OFF + i].tilenum = tilenum;
+        for (j = 0; j < NUM_MATERIAL_TYPES; j++) {
+            i = (k * NUM_MATERIAL_TYPES) + j;
+            precheck(GLYPH_STATUE_FEM_OFF + i, "female statues");
+            tilemap[GLYPH_STATUE_FEM_OFF + i].tilenum = tilenum;
+            precheck(GLYPH_STATUE_FEM_PILETOP_OFF + i, "female statue piletop");
+            tilemap[GLYPH_STATUE_FEM_PILETOP_OFF + i].tilenum = tilenum;
 #if defined(OBTAIN_TILEMAP)
-        Snprintf(tilemap[GLYPH_STATUE_FEM_OFF + i].name,
-                sizeof tilemap[0].name,
-                "statue of female %s (mnum=%d)",
-                tilename(MON_GLYPH, file_entry, 0), file_entry);
-        Sprintf(tilemap[GLYPH_STATUE_FEM_PILETOP_OFF + i].name,
-                "piletop statue of female %s (mnum=%d)",
-                tilename(MON_GLYPH, file_entry, 0), file_entry);
-        add_tileref(tilenum, GLYPH_STATUE_FEM_OFF + i, generated, file_entry,
-                    tilemap[GLYPH_STATUE_FEM_OFF + i].name, "");
-        add_tileref(tilenum, GLYPH_STATUE_FEM_PILETOP_OFF + i, generated,
-                    file_entry,
-                    tilemap[GLYPH_STATUE_FEM_PILETOP_OFF + i].name, "");
+            Snprintf(tilemap[GLYPH_STATUE_FEM_OFF + i].name,
+                     sizeof tilemap[0].name,
+                     "statue of female %s (mnum=%d, mat=%d)",
+                     tilename(MON_GLYPH, file_entry, 0), k, j);
+            Snprintf(tilemap[GLYPH_STATUE_FEM_PILETOP_OFF + i].name,
+                     sizeof tilemap[0].name,
+                     "piletop statue of female %s (mnum=%d, mat=%d)",
+                     tilename(MON_GLYPH, file_entry, 0), k, j);
+            add_tileref(tilenum, GLYPH_STATUE_FEM_OFF + i, generated,
+                        file_entry, tilemap[GLYPH_STATUE_FEM_OFF + i].name,
+                        "");
+            add_tileref(tilenum, GLYPH_STATUE_FEM_PILETOP_OFF + i, generated,
+                        file_entry,
+                        tilemap[GLYPH_STATUE_FEM_PILETOP_OFF + i].name, "");
 #endif
+        }
         for (condnum = 0; conditionals[condnum].sequence != -1; condnum++) {
             if (conditionals[condnum].sequence == MON_GLYPH
-                && conditionals[condnum].predecessor == i) {
+                && conditionals[condnum].predecessor == k) {
                 file_entry += 2; /* skip female tile too */
                 tilenum += 2;
 #if defined(OBTAIN_TILEMAP)
