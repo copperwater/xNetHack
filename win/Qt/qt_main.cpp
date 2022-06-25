@@ -465,7 +465,7 @@ aboutMsg()
     (void) strsubst(vbuf, " - ", "\n- ");
     QString msg = QString::asprintf(
         // format
-        "NetHack-Qt is a version of NetHack built using" // no newline
+        "xNetHack-Qt is a version of xNetHack built using" // no newline
 #ifdef KDE
         " KDE and"                                       // ditto
 #endif
@@ -487,7 +487,7 @@ aboutMsg()
         "Qt:\n     http://www.troll.no/\n"      // obsolete
 #endif
         "Lua:\n     https://lua.org/\n"
-        "NetHack:\n     %s\n", // DEVTEAM_URL
+        "xNetHack:\n     %s\n", // DEVTEAM_URL
         // arguments
 #ifdef QT_VERSION_MAJOR
         QT_VERSION_MAJOR,
@@ -537,7 +537,7 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
     addToolBar(toolbar);
     menubar = menuBar();
 
-    setWindowTitle("NetHack-Qt");
+    setWindowTitle("xNetHack-Qt");
     setWindowIcon(QIcon(QPixmap(qt_compact_mode ? nh_icon_small : nh_icon)));
 
 #ifdef MACOS
@@ -710,23 +710,23 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
        nethack's #quit command with "really quit?" prompt, this quit--with
        Command+q as shortcut--pops up a dialog to choose between quit or
        cancel-and-resume-playing */
-    actn = game->addAction("Quit NetHack-Qt", this, SLOT(doQuit(bool)));
+    actn = game->addAction("Quit xNetHack-Qt", this, SLOT(doQuit(bool)));
     actn->setMenuRole(QWidgetAction::QuitRole);
 #endif
 
-    actn = help->addAction("About NetHack-Qt", this, SLOT(doAbout(bool)));
+    actn = help->addAction("About xNetHack-Qt", this, SLOT(doAbout(bool)));
 #ifdef MACOS
     actn->setMenuRole(QWidgetAction::AboutRole);
     /* for OSX, the preceding "About" went into the application menu;
        now add another duplicate one to the Help dropdown menu */
-    actn = help->addAction("About NetHack-Qt", this, SLOT(doAbout(bool)));
+    actn = help->addAction("About xNetHack-Qt", this, SLOT(doAbout(bool)));
     actn->setMenuRole(QWidgetAction::NoRole);
 #else
     nhUse(actn);
 #endif
     help->addSeparator();
 
-    //help->addAction("NetHack Guidebook", this, SLOT(doGuidebook(bool)));
+    //help->addAction("xNetHack Guidebook", this, SLOT(doGuidebook(bool)));
     //help->addSeparator();
 
     for (int i = 0; item[i].menu; ++i) {
@@ -1015,7 +1015,7 @@ void NetHackQtMainWindow::doQtSettings(bool)
 
 void NetHackQtMainWindow::doAbout(bool)
 {
-    QMessageBox::about(this, "About NetHack-Qt", aboutMsg());
+    QMessageBox::about(this, "About xNetHack-Qt", aboutMsg());
 }
 
 // on OSX, "quit nethack" has been selected in the application menu or
@@ -1029,7 +1029,7 @@ void NetHackQtMainWindow::doQuit(bool)
     // nethack's #quit command itself) but this routine is unconditional
     // in case someone wants to change that
 #ifdef MACOS
-    QString info = QString::asprintf("This will end your NetHack session.%s",
+    QString info = QString::asprintf("This will end your xNetHack session.%s",
                  !g.program_state.something_worth_saving ? ""
                  : "\n(Cancel quitting and use the Save command"
                    "\nto save your current game.)");
@@ -1038,7 +1038,7 @@ void NetHackQtMainWindow::doQuit(bool)
        the second choice (Quit) is the action for <return> or <space>;
        <escape> leaves the popup waiting for some other response;
        the &<char> settings for Alt+<char> shortcuts don't work on OSX */
-    int act = QMessageBox::information(this, "NetHack", info,
+    int act = QMessageBox::information(this, "xNetHack", info,
                                        "&Cancel and return to game",
                                        "&Quit without saving",
                                        0, 1);
@@ -1381,8 +1381,8 @@ void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
         /* this used to offer "Save" and "Cancel"
            but cancel (ignoring the close attempt) won't work
            if user has clicked on the window's Close button */
-	int act = QMessageBox::information(this, "NetHack",
-                              "This will end your NetHack session.",
+	int act = QMessageBox::information(this, "xNetHack",
+                              "This will end your xNetHack session.",
                               "&Save and exit", "&Quit without saving", 0, 1);
 	switch (act) {
         case 0:

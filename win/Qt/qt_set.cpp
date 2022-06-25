@@ -171,7 +171,7 @@ NetHackQtSettings::NetHackQtSettings() :
     int row = 0; // used like X11-style XtSetArg(), ++argc
      QGridLayout *grid = new QGridLayout(this);
     // dialog box label, spans first two rows and all three columns
-    QLabel *settings_label = new QLabel("Qt NetHack Settings\n", this);
+    QLabel *settings_label = new QLabel("Qt xNetHack Settings\n", this);
     grid->addWidget(settings_label, row, 0, 2, 3), row += 2; // uses extra row
     settings_label->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
