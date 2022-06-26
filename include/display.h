@@ -703,7 +703,8 @@ enum glyph_offsets {
 
 /* Not affected by hallucination.  Gives a generic body for CORPSE */
 /* MRKR: ...and the generic statue */
-#define objnum_to_glyph(onum) ((int) (onum) + GLYPH_OBJ_OFF)
+#define objnum_to_glyph(onum) \
+    (((int) (onum) * NUM_MATERIAL_TYPES) + GLYPH_OBJ_OFF)
 #define monnum_to_glyph(mnum,gnd) \
     ((int) (mnum) + (((gnd) == MALE) ? GLYPH_MON_MALE_OFF       \
                                      : GLYPH_MON_FEM_OFF))
