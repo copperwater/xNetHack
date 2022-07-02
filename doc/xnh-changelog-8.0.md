@@ -79,6 +79,7 @@ changes:
 - Anti-magic fields no longer deal HP damage when magic resistant. They instead
   drain additional energy the more sources of magic resistance and half damage
   you have.
+- Corpses of monsters that cause petrification only grow green mold on them.
 
 ### Interface changes
 

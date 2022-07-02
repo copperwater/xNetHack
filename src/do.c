@@ -2107,8 +2107,8 @@ moldy_corpse(anything *arg, long timeout UNUSED)
     int oldquan = body->quan;
     struct permonst* newpm = mkclass(S_FUNGUS, 0);
 
-    /* Acidic corpses only grow acidic fungi. */
-    if (acidic(&mons[oldtyp])) {
+    /* Acidic corpses and petrifying corpses only grow acidic fungi. */
+    if (acidic(&mons[oldtyp]) || touch_petrifies(&mons[oldtyp])) {
         if (g.mvitals[PM_GREEN_MOLD].mvflags & G_GONE)
             newpm = NULL;
         else
