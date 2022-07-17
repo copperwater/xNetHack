@@ -1902,8 +1902,8 @@ uncurse(struct obj *otmp)
             const char* hand = body_part(HAND);
             if (bimanual(uwep))
                 hand = makeplural(hand);
-            pline("%s is no longer welded to your %s.",
-                  upstart(yname(otmp)), hand);
+            pline("%s %s no longer welded to your %s.",
+                  upstart(yname(otmp)), otmp->quan > 1 ? "are" : "is", hand);
         }
         else if (otmp->owornmask & (W_ARMOR | W_ACCESSORY)) {
             if (Hallucination)
