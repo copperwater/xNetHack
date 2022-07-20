@@ -1443,6 +1443,7 @@ find_offensive(struct monst *mtmp)
                 || !rn2(10))
             && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= 2
             && mtmp->mcansee && haseyes(mtmp->data)
+            && ceiling_exists()
             && (!In_endgame(&u.uz) || Is_earthlevel(&u.uz))) {
             gm.m.offensive = obj;
             gm.m.has_offense = MUSE_SCR_EARTH;
