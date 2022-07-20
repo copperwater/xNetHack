@@ -33,7 +33,9 @@ des.map([[
 des.region(selection.area(00,00,75,19), "lit")
 -- Ceiling
 local covered = selection.floodfill(00,00, true):negate():filter_mapchar('.')
-covered = covered - selection.area(24,07,51,12)
+-- interior courtyard: roofed over out of concern players will waste scrolls of
+-- earth not realizing it's a roofless area
+-- covered = covered - selection.area(24,07,51,12)
 des.add_ceiling(covered:grow())
 -- Doors
 des.door("locked",22,04)
