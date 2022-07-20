@@ -121,6 +121,7 @@ enum { Trap_Effect_Finished = 0,
                                || (ttyp) == MAGIC_TRAP  \
                                || (ttyp) == ANTI_MAGIC  \
                                || (ttyp) == POLY_TRAP)
+#define is_ceiling_trap(ttyp) ((ttyp) == ROCKTRAP || (ttyp) == RUST_TRAP)
 /* "transportation" traps */
 #define is_xport(ttyp) ((ttyp) >= TELEP_TRAP && (ttyp) <= MAGIC_PORTAL)
 
