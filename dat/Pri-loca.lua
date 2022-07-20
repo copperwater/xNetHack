@@ -31,6 +31,8 @@ des.region({ region={09,00, 30,01}, lit=0, type="morgue", filled=1 })
 des.region({ region={09,12, 30,13}, lit=0, type="morgue", filled=1 })
 des.region({ region={31,00, 39,13}, lit=0, type="morgue", filled=1 })
 des.region({ region={11,03, 29,10}, lit=1, type="temple", filled=1, irregular=1 })
+-- Ceilings
+des.add_ceiling(selection.area(10, 2, 30, 11))
 -- The altar inside the temple
 des.altar({ x=20,y=07, align="noalign", type="shrine" })
 des.monster({ id = "aligned cleric", x=20, y=07, align="noalign", peaceful = 0 })

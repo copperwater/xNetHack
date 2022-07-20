@@ -40,6 +40,8 @@ des.replace_terrain({ region={01,01, 74,18}, fromterrain="P", toterrain=".", cha
 
 -- Dungeon Description
 des.region(selection.area(00,00,75,19), "lit")
+-- Ceilings
+des.add_ceiling(selection.area(24,07, 50,13))
 -- Stairs
 des.stair("down", 37,9)
 -- Portal arrival point
