@@ -174,7 +174,7 @@ enum door_states {
 #define TREE_LOOTED 1
 #define TREE_SWARM 2
 
-#define BECEILINGED 0x01 /* FIXME not real value (or name) */
+#define BECEILINGED 0x20 /* FIXME not real value (or name) */
 #define HAS_CEILING(x, y) ((levl[x][y].flags & BECEILINGED) != 0)
 
 /*

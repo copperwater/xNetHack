@@ -114,6 +114,14 @@ for i = 1,2 do
 end
 des.object("tinning kit", bookrooms:rndcoord(1))
 des.object("grappling hook", bookrooms:rndcoord(1))
+-- Interiors
+des.add_ceiling(selection.area(5,0,12,5) | selection.area(3,2,4,5))
+des.add_ceiling(selection.area(20,0,32,2))
+des.add_ceiling(selection.area(8,17,18,19) | selection.area(12,15,18,16) | selection.area(19,18,22,19))
+des.add_ceiling(selection.area(23,8,30,14) | selection.area(28,4,35,8) | selection.area(31,9,42,11) | selection.area(39,6,42,8))
+des.add_ceiling(selection.area(27,17,39,19) | selection.area(32,15,42,18))
+des.add_ceiling(selection.area(63,0,67,5) | selection.area(68,0,76,3) | selection.area(66,4,71,7))
+des.add_ceiling(selection.area(61,9,66,12) | selection.area(58,10,64,14))
 -- Small cemetery
 des.grave(73,18, "Dr. Carter -- Died to a mummy's curse")
 des.grave(75,19, "Under NO circumstances are students to dig up this grave!")
