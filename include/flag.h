@@ -331,6 +331,7 @@ struct instance_flags {
     boolean fireassist;      /* autowield launcher when using fire-command */
     boolean time_botl;       /* context.botl for 'time' (moves) only */
     boolean wizmgender;      /* test gender info from core in window port */
+    boolean wizceiling;      /* highlight ceilngs */
     boolean invweight;       /* display weights of items in inventory */
     boolean msg_is_alert;    /* suggest windowport should grab player's attention
                               * and request <TAB> acknowlegement */

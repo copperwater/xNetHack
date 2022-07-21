@@ -2613,6 +2613,11 @@ map_glyphinfo(
                                        ? CLR_GRAY : CLR_WHITE;
         }
     }
+    if (iflags.wizceiling && wizard && isok(x, y) && levl[x][y].ceiling) {
+        glyphinfo->gm.sym.color = CLR_RED;
+        /* glyphinfo->gm.sym.symidx */ 
+        glyphinfo->gm.glyphflags |= MG_OBJPILE;
+    }
 #endif /* TEXTCOLOR */
     glyphinfo->ttychar = gs.showsyms[glyphinfo->gm.sym.symidx];
     glyphinfo->glyph = glyph;
