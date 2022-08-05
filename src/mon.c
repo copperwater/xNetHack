@@ -1196,6 +1196,25 @@ movemon(void)
     return somebody_can_move;
 }
 
+void
+contents_spill_out(struct obj *otmp, int x, int y)
+{
+    struct obj *cobj, *ncobj;
+    if (!Has_contents(otmp))
+        return;
+    if (cansee(x, y)) {
+        pline("%s contents spill out onto the %s.",
+              s_suffix(The(distant_name(otmp, xname))),
+              surface(x, y));
+    }
+    for (cobj = otmp->cobj; cobj; cobj = ncobj) {
+        ncobj = cobj->nobj;
+        obj_extract_self(cobj);
+        if (!flooreffects(cobj, x, y, ""))
+            place_object(cobj, x, y);
+    }
+}
+
 #define mstoning(obj)                                       \
     (ofood(obj) && (touch_petrifies(&mons[(obj)->corpsenm]) \
                     || (obj)->corpsenm == PM_MEDUSA))
@@ -1264,20 +1283,8 @@ meatmetal(struct monst *mtmp)
                     if (mtmp->mhp > mtmp->mhpmax)
                         mtmp->mhp = mtmp->mhpmax;
                 }
-                if (Has_contents(otmp)) {
-                    struct obj *cobj, *ncobj;
-                    if (cansee(mtmp->mx, mtmp->my) && flags.verbose) {
-                        otmpname = s_suffix(The(distant_name(otmp, xname)));
-                        pline("%s contents spill out onto the %s.",
-                              otmpname, surface(mtmp->mx, mtmp->my));
-                    }
-                    for (cobj = otmp->cobj; cobj; cobj = ncobj) {
-                        ncobj = cobj->nobj;
-                        obj_extract_self(cobj);
-                        if (!flooreffects(cobj, mtmp->mx, mtmp->my, ""))
-                            place_object(cobj, mtmp->mx, mtmp->my);
-                    }
-                }
+                if (Has_contents(otmp))
+                    contents_spill_out(otmp, mtmp->mx, mtmp->my);
                 if (otmp == uball) {
                     unpunish();
                     delobj(otmp);

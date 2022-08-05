@@ -1581,6 +1581,7 @@ extern int genus(int, int);
 extern int pm_to_cham(int);
 extern int minliquid(struct monst *);
 extern int movemon(void);
+extern void contents_spill_out(struct obj *, int, int);
 extern int meatmetal(struct monst *);
 extern int meatobj(struct monst *);
 extern int meatcorpse(struct monst *);
