@@ -309,6 +309,21 @@ dog_eat(struct monst *mtmp,
         Strcpy(objnambuf, xname(obj));
         iflags.suppress_price--;
     }
+    /* metallivores may eat a metal container with contents */
+    if (Has_contents(obj)) {
+        struct obj *cobj, *ncobj;
+        if (cansee(mtmp->mx, mtmp->my)) {
+            obj_name = s_suffix(The(distant_name(obj, xname)));
+            pline("%s contents spill out onto the %s.",
+                  obj_name, surface(mtmp->mx, mtmp->my));
+        }
+        for (cobj = obj->cobj; cobj; cobj = ncobj) {
+            ncobj = cobj->nobj;
+            obj_extract_self(cobj);
+            if (!flooreffects(cobj, mtmp->mx, mtmp->my, ""))
+                place_object(cobj, mtmp->mx, mtmp->my);
+        }
+    }
     /* It's a reward if it's DOGFOOD and the player dropped/threw it.
        We know the player had it if invlet is set. -dlc */
     if (dogfood(mtmp, obj) == DOGFOOD && obj->invlet)

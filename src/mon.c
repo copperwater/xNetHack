@@ -1264,6 +1264,20 @@ meatmetal(struct monst *mtmp)
                     if (mtmp->mhp > mtmp->mhpmax)
                         mtmp->mhp = mtmp->mhpmax;
                 }
+                if (Has_contents(otmp)) {
+                    struct obj *cobj, *ncobj;
+                    if (cansee(mtmp->mx, mtmp->my) && flags.verbose) {
+                        otmpname = s_suffix(The(distant_name(otmp, xname)));
+                        pline("%s contents spill out onto the %s.",
+                              otmpname, surface(mtmp->mx, mtmp->my));
+                    }
+                    for (cobj = otmp->cobj; cobj; cobj = ncobj) {
+                        ncobj = cobj->nobj;
+                        obj_extract_self(cobj);
+                        if (!flooreffects(cobj, mtmp->mx, mtmp->my, ""))
+                            place_object(cobj, mtmp->mx, mtmp->my);
+                    }
+                }
                 if (otmp == uball) {
                     unpunish();
                     delobj(otmp);
