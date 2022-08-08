@@ -1509,14 +1509,28 @@ gulpmu(struct monst *mtmp, struct attack *mattk)
         break;
     case AD_FIRE:
         if (!mtmp->mcan && rn2(2)) {
+            boolean steamy = (mtmp->data == &mons[PM_STEAM_VORTEX]);
             if (Fire_resistance) {
                 shieldeff(u.ux, u.uy);
-                You_feel("mildly hot.");
+                if (steamy) {
+                    if (Hallucination) {
+                        pline("Hmm, nice sauna.");
+                        if (!carrying(TOWEL))
+                            You("wish you had brought a towel.");
+                    }
+                    else {
+                        pline("Superheated vapor swirls around you.");
+                    }
+                }
+                else {
+                    You_feel("mildly hot.");
+                }
                 monstseesu(M_SEEN_FIRE);
                 ugolemeffects(AD_FIRE, tmp);
                 tmp = 0;
             } else
-                You("are burning to a crisp!");
+                You("are %s!", steamy ? "being boiled alive"
+                                      : "burning to a crisp");
             burn_away_slime();
         } else
             tmp = 0;

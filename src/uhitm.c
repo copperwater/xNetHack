@@ -4905,11 +4905,19 @@ gulpum(struct monst *mdef, struct attack *mattk)
                 break;
             case AD_FIRE:
                 if (rn2(2)) {
+                    boolean steamy = (g.youmonst.data ==
+                                      &mons[PM_STEAM_VORTEX]);
                     if (resists_fire(mdef)) {
-                        pline("%s seems mildly hot.", Monnam(mdef));
+                        if (steamy)
+                            pline("Superheated vapor swirls around %s.",
+                                  Monnam(mdef));
+                        else
+                            pline("%s seems mildly hot.", Monnam(mdef));
                         dam = 0;
                     } else
-                        pline("%s is burning to a crisp!", Monnam(mdef));
+                        pline("%s is %s!", Monnam(mdef),
+                              (steamy ? "being boiled alive"
+                                      : "burning to a crisp"));
                     golemeffects(mdef, (int) mattk->adtyp, dam);
                 } else
                     dam = 0;

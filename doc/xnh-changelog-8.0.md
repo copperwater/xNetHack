@@ -95,6 +95,8 @@ changes:
   distinguish them from lightning.
 - Quantum mechanics are given physicist names when farlooked, or "Dr. Science"
   if cancelled. (Similar to coyotes, not like nymphs or foocubi.)
+- Steam vortices' engulf attack produces "boiling" messages rather than
+  "burning".
 
 ### Architectural changes
 
