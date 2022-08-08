@@ -81,6 +81,8 @@ changes:
   you have.
 - Corpses of monsters that cause petrification only grow green mold on them.
 - Monsters that spawn with weapons get a free turn to wield them.
+- Steam vortexes leave a trail of steam clouds behind them and burst into a
+  medium sized steam cloud when they die. Canceling them prevents both of these.
 
 ### Interface changes
 

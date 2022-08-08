@@ -2851,6 +2851,9 @@ mondead(register struct monst* mtmp)
             return;
         }
     }
+    if (mtmp->data == &mons[PM_STEAM_VORTEX]) {
+        create_gas_cloud(mtmp->mx, mtmp->my, rn2(10) + 5, 0); /* harmless */
+    }
 
     if (be_sad)
         You("have a %s feeling for a moment, then it passes.",
