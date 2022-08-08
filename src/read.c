@@ -3345,6 +3345,8 @@ create_particular_creation(struct _create_particular_data* d)
             /* whichpm = rndmonst(); */
             /* mmflags |= (d->fem == FEMALE) ? MM_FEMALE : MM_MALE; */
         }
+        if (d->sleeping)
+            mmflags |= MM_ASLEEP;
         mtmp = makemon(whichpm, u.ux, u.uy, mmflags);
         if (!mtmp) {
             /* quit trying if creation failed and is going to repeat */

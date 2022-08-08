@@ -80,6 +80,7 @@ changes:
   drain additional energy the more sources of magic resistance and half damage
   you have.
 - Corpses of monsters that cause petrification only grow green mold on them.
+- Monsters that spawn with weapons get a free turn to wield them.
 
 ### Interface changes
 

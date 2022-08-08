@@ -1554,6 +1554,11 @@ makemon(
         /* if discernable and a threat, stop fiddling while Rome burns */
         if (g.occupation)
             (void) dochugw(mtmp, FALSE);
+        else if (is_armed(mtmp->data) /* got a m_initweap weapon */
+                 && !helpless(mtmp)) {
+            mtmp->weapon_check = NEED_HTH_WEAPON;
+            mon_wield_item(mtmp);
+        }
 
         /* TODO: unify with teleport appears msg */
     }
