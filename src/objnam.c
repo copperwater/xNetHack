@@ -543,6 +543,11 @@ xname_flags(
         obj->dknown = 1;
     if (Role_if(PM_CLERIC))
         obj->bknown = 1; /* avoid set_bknown() to bypass update_inventory() */
+    /* rangers of a certain level/skill auto-know ammo enchantments */
+    if (Role_if(PM_RANGER) && u.ulevel >= 10
+        && obj->oclass == WEAPON_CLASS && is_ammo(obj)
+        && P_SKILL(-objects[obj->otyp].oc_skill) >= P_BASIC)
+        obj->known = 1;
 
     if (iflags.override_ID) {
         known = dknown = bknown = TRUE;

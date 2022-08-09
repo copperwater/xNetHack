@@ -86,6 +86,9 @@ changes:
 - Add the #shout command, which lets you shout a string of your choice to get
   recorded in the game chronicle and livelog (which public servers may
   broadcast).
+- Rangers at or above XL 10 automatically identify the enchantment of ammo that
+  they pick up, provided they have at least Basic skill with its associated
+  launcher.
 
 ### Interface changes
 
