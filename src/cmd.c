@@ -102,6 +102,7 @@ static int dotherecmdmenu(void);
 static int doprev_message(void);
 static int timed_occupation(void);
 static boolean can_do_extcmd(const struct ext_func_tab *);
+static int doshout(void);
 static int dotravel(void);
 static int dotravel_target(void);
 static int doclicklook(void);
@@ -2525,6 +2526,8 @@ struct ext_func_tab extcmdlist[] = {
                        | CMD_NOT_AVAILABLE
 #endif /* SHELL */
                         ), NULL },
+    { '\0',   "shout", "shout something",
+              doshout, AUTOCOMPLETE, NULL },
     /* $ is like ),=,&c but is not included with *, so not called "seegold" */
     { GOLD_SYM, "showgold", "show gold, possibly shop credit or debt",
               doprgold, IFBURIED, NULL },
@@ -5808,6 +5811,52 @@ doholidays(void)
     display_nhwindow(win, FALSE);
     destroy_nhwindow(win);
     return ECMD_OK;
+}
+
+/* #shout extended command, shout a string to livelog/chronicle */
+static int
+doshout(void)
+{
+    char input[BUFSZ], qbuf[QBUFSZ];
+    char *buf;
+
+    Sprintf(qbuf, "Shout what?");
+    getlin(qbuf, input);
+
+    if (strlen(input) == 0) {
+        /* generate a random grawlix */
+        int grawlen, exclamlen;
+        static const char *rndchars = "@#$%&*"; /* 6 chars */
+        char *p = input;
+        for (grawlen = rn2(4) + 4; grawlen > 0; grawlen--) {
+            *p = rndchars[rn2(6)];
+            p++;
+        }
+        for (exclamlen = rnd(4); exclamlen > 0; exclamlen--) {
+            *p = '!';
+            p++;
+        }
+        *p = '\0';
+    }
+
+    buf = trimspaces(input);
+    if (strlen(buf) == 0 || buf[0] == '\033') {
+        You("decide not to shout anything.");
+        return ECMD_OK;
+    }
+
+    /* Shouting makes noise. */
+    if (!can_chant(&g.youmonst)) {
+        You("cannot speak, so you just shout \"%s\" mentally.", buf);
+    }
+    else {
+        You("raise your voice and shout: \"%s\"", buf);
+        wake_nearby();
+    }
+    /* The main reason for this command: putting this string into the livelog
+     * and chronicle. */
+    livelog_printf(LL_SHOUT, "shouted \"%s\"", buf);
+    return ECMD_TIME;
 }
 
 /*cmd.c*/

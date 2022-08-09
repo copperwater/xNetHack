@@ -494,6 +494,7 @@ extern struct nomakedefs_s nomakedefs;
                                * via #chronicle unless in wizard mode */
 #define LL_DUMP       0x4000L /* none of the above but should be in dumplog */
 #define LL_DEBUG      0x8000L /* For debugging messages and other spam */
+#define LL_SHOUT     0x10000L /* For player-generated shouts */
 
 /*
  * Lua sandbox

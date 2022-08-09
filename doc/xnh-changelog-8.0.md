@@ -83,6 +83,9 @@ changes:
 - Monsters that spawn with weapons get a free turn to wield them.
 - Steam vortexes leave a trail of steam clouds behind them and burst into a
   medium sized steam cloud when they die. Canceling them prevents both of these.
+- Add the #shout command, which lets you shout a string of your choice to get
+  recorded in the game chronicle and livelog (which public servers may
+  broadcast).
 
 ### Interface changes
 
