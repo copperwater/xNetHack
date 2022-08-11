@@ -91,6 +91,9 @@ changes:
   launcher.
 - Exploding yellow and black lights affect all monsters immediately adjacent to
   them, not just the single target they are nominally attacking.
+- The hunger intrinsic halves the nutritional value of anything you eat. It does
+  not affect beverages, and other intrinsics that have fast hungering as a side
+  effect do not cause this.
 
 ### Interface changes
 

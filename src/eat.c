@@ -3233,7 +3233,7 @@ lesshungry(int num)
     boolean iseating = (g.occupation == eatfood) || g.force_save_hs;
 
     debugpline1("lesshungry(%d)", num);
-    u.uhunger += num;
+    u.uhunger += (Hunger ? (num + 1) / 2 : num);
     if (u.uhunger >= 2000) {
         if (!iseating || g.context.victual.canchoke) {
             if (iseating) {
