@@ -995,4 +995,86 @@ mon_explodes(struct monst *mon, struct attack *mattk)
     g.killer.name[0] = '\0';
 }
 
+/* A monster explodes in a way that doesn't produce a "real" damage-causing
+ * explosion, so it doesn't use explode(), but still affects creatures caught in
+ * it. For things like yellow lights and black lights.
+ * Assumes the caller has already printed "Foo explodes!" or similar; this just
+ * covers the effects.
+ * Supports the player being the one to explode. */
+void
+mon_explodes_nodmg(struct monst *magr, struct attack *mattk)
+{
+    int cx = (magr == &g.youmonst ? u.ux : magr->mx);
+    int cy = (magr == &g.youmonst ? u.uy : magr->my);
+    int x, y;
+    int severity = d((int) mattk->damn, (int) mattk->damd);
+    struct monst *mdef;
+    struct mhitm_data dummy;
+    boolean affects_you = FALSE;
+
+    if (mattk->adtyp != AD_BLND && mattk->adtyp != AD_HALU) {
+        impossible("mon_explodes_nodmg with unimplemented type %d",
+                   mattk->adtyp);
+        return;
+    }
+
+    for (y = cy - 1; y <= cy + 1; y++) {
+        for (x = cx - 1; x <= cx + 1; x++) {
+            if (x == cx && y == cy)
+                continue; /* doesn't affect itself */
+            else if (u_at(x, y)) {
+                affects_you = TRUE;
+                continue; /* handled below */
+            }
+            else if ((mdef = m_at(x, y)) != (struct monst *) 0) {
+                switch(mattk->adtyp) {
+                case AD_BLND:
+                    if (!resists_blnd(mdef)) {
+                        g.vis = cansee(mdef->mx, mdef->my);
+                        mhitm_ad_blnd(magr, mattk, mdef, &dummy);
+                    }
+                    break;
+                case AD_HALU:
+                    if (!resists_light_halu(mdef)) {
+                        g.vis = cansee(mdef->mx, mdef->my);
+                        mhitm_ad_halu(magr, mattk, mdef, &dummy);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    /* affect the player last, so that they can see other monsters getting
+     * affected by it before they go blind or start hallucinating */
+    if (affects_you) {
+        switch(mattk->adtyp) {
+        case AD_BLND:
+            if (!resists_blnd(&g.youmonst)) {
+                /* sometimes you're affected even if it's invisible */
+                if (mon_visible(magr) || (rnd(severity /= 2) > u.ulevel)) {
+                    You("are blinded by a blast of light!");
+                    make_blinded((long) severity, FALSE);
+                    if (!Blind)
+                        Your1(vision_clears);
+                } else if (flags.verbose)
+                    You("get the impression it was not terribly bright.");
+            }
+            break;
+        case AD_HALU:
+            if (!resists_light_halu(&g.youmonst)) {
+                boolean chg;
+                if (!Hallucination)
+                    You("are caught in a blast of kaleidoscopic light!");
+                /* avoid hallucinating the black light as it dies */
+                chg = make_hallucinated(HHallucination + (long) severity,
+                                        FALSE, 0L);
+                You("%s.", chg ? "are freaked out" : "seem unaffected");
+            }
+            break;
+        }
+    }
+    if (magr != &g.youmonst)
+        mondead(magr);
+}
+
 /*explode.c*/

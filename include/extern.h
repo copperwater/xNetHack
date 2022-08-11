@@ -866,6 +866,7 @@ extern void splatter_burning_oil(int, int, boolean);
 extern void explode_oil(struct obj *, int, int);
 extern int adtyp_to_expltype(const int);
 extern void mon_explodes(struct monst *, struct attack *);
+extern void mon_explodes_nodmg(struct monst *, struct attack *);
 
 /* ### files.c ### */
 
@@ -1665,6 +1666,7 @@ extern boolean resists_magm(struct monst *);
 extern boolean resists_fire(struct monst *);
 extern boolean resists_blnd(struct monst *);
 extern boolean can_blnd(struct monst *, struct monst *, uchar, struct obj *);
+extern boolean resists_light_halu(struct monst *);
 extern boolean ranged_attk(struct permonst *);
 extern boolean hates_material(struct permonst *, int);
 extern boolean mon_hates_material(struct monst *, int);

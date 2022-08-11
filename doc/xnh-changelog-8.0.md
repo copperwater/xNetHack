@@ -89,6 +89,8 @@ changes:
 - Rangers at or above XL 10 automatically identify the enchantment of ammo that
   they pick up, provided they have at least Basic skill with its associated
   launcher.
+- Exploding yellow and black lights affect all monsters immediately adjacent to
+  them, not just the single target they are nominally attacking.
 
 ### Interface changes
 

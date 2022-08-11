@@ -1609,7 +1609,6 @@ gulpmu(struct monst *mtmp, struct attack *mattk)
 static int
 explmu(struct monst *mtmp, struct attack *mattk, boolean ufound)
 {
-    boolean kill_agr = TRUE;
     boolean not_affected;
     int tmp;
 
@@ -1633,37 +1632,14 @@ explmu(struct monst *mtmp, struct attack *mattk, boolean ufound)
     case AD_FIRE:
     case AD_ELEC:
         mon_explodes(mtmp, mattk);
-        if (!DEADMONSTER(mtmp))
-            kill_agr = FALSE; /* lifesaving? */
         break;
     case AD_BLND:
         not_affected = resists_blnd(&g.youmonst);
-        if (ufound && !not_affected) {
-            /* sometimes you're affected even if it's invisible */
-            if (mon_visible(mtmp) || (rnd(tmp /= 2) > u.ulevel)) {
-                You("are blinded by a blast of light!");
-                make_blinded((long) tmp, FALSE);
-                if (!Blind)
-                    Your1(vision_clears);
-            } else if (flags.verbose)
-                You("get the impression it was not terribly bright.");
-        }
+        mon_explodes_nodmg(mtmp, mattk);
         break;
     case AD_HALU:
-        not_affected |= Blind || (u.umonnum == PM_BLACK_LIGHT
-                                  || u.umonnum == PM_VIOLET_FUNGUS
-                                  || dmgtype(g.youmonst.data, AD_STUN));
-        if (ufound && !not_affected) {
-            boolean chg;
-            if (!Hallucination)
-                You("are caught in a blast of kaleidoscopic light!");
-            /* avoid hallucinating the black light as it dies */
-            mondead(mtmp);    /* remove it from map now */
-            kill_agr = FALSE; /* already killed (maybe lifesaved) */
-            chg =
-                make_hallucinated(HHallucination + (long) tmp, FALSE, 0L);
-            You("%s.", chg ? "are freaked out" : "seem unaffected");
-        }
+        not_affected = resists_light_halu(&g.youmonst);
+        mon_explodes_nodmg(mtmp, mattk);
         break;
     default:
         impossible("unknown exploder damage type %d", mattk->adtyp);
@@ -1673,7 +1649,7 @@ explmu(struct monst *mtmp, struct attack *mattk, boolean ufound)
         You("seem unaffected by it.");
         ugolemeffects((int) mattk->adtyp, tmp);
     }
-    if (kill_agr && !DEADMONSTER(mtmp))
+    if (!DEADMONSTER(mtmp))
         mondead(mtmp);
     wake_nearto(mtmp->mx, mtmp->my, 7 * 7);
     return (!DEADMONSTER(mtmp)) ? MM_MISS : MM_AGR_DIED;

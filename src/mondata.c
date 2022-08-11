@@ -324,6 +324,25 @@ can_blnd(
     return TRUE;
 }
 
+/* True iff monster is resistant to light-induced hallucination */
+boolean
+resists_light_halu(struct monst *mon)
+{
+    struct permonst *ptr = mon->data;
+
+    if (!haseyes(ptr))
+        return TRUE;
+
+    if (ptr == &mons[PM_BLACK_LIGHT] || ptr == &mons[PM_VIOLET_FUNGUS]
+        || dmgtype(ptr, AD_STUN))
+        return TRUE;
+
+    if ((mon == &g.youmonst) ? Blind : !mon->mcansee)
+        return TRUE;
+
+    return FALSE;
+}
+
 /* returns True if monster can attack at range */
 boolean
 ranged_attk(struct permonst* ptr)
