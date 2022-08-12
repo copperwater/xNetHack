@@ -968,7 +968,8 @@ tty_player_selection(void)
      *           q - quit
      *           (end)
      */
-    getconfirmation = (picksomething && pick4u != 'a' && !flags.randomall);
+    getconfirmation = ((picksomething && pick4u != 'a' && !flags.randomall)
+                       || Polyinit_mode);
     while (getconfirmation) {
         tty_clear_nhwindow(BASE_WINDOW);
         role_selection_prolog(ROLE_NONE, BASE_WINDOW);
@@ -988,6 +989,14 @@ tty_player_selection(void)
                                                   : roles[ROLE].name.m);
         add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, pbuf,
                  MENU_ITEMFLAGS_NONE);
+        /* show polyinit form, if any */
+        if (Polyinit_mode) {
+            any.a_int = 0;
+            Snprintf(pbuf, sizeof(pbuf), "in a %s polyinit form",
+                     pmname(&mons[flags.polyinit_mnum], GEND));
+            add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, pbuf,
+                     MENU_ITEMFLAGS_NONE);
+        }
         /* blank separator */
         any.a_int = 0;
         add_menu(win, &nul_glyphinfo, &any, 0, 0,

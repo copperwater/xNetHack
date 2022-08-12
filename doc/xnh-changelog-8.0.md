@@ -113,6 +113,9 @@ changes:
   if cancelled. (Similar to coyotes, not like nymphs or foocubi.)
 - Steam vortices' engulf attack produces "boiling" messages rather than
   "burning".
+- When you begin the game in polyinit mode and using the tty windowport, the "Is
+  this ok?" prompt before launching the game is always shown, and displays the
+  monster you will be polyinitted into.
 
 ### Architectural changes
 
