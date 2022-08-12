@@ -684,13 +684,20 @@ doengrave(void)
                 break;
             /* NODIR wands */
             case WAN_LIGHT:
-            case WAN_SECRET_DOOR_DETECTION:
             case WAN_CREATE_MONSTER:
             case WAN_WISHING:
             case WAN_ENLIGHTENMENT:
                 zapnodir(otmp);
                 /* pre/postknown not needed; these will make it known if
                  * applicable */
+                break;
+            case WAN_SECRET_DOOR_DETECTION:
+                if (!Blind) {
+                    Strcpy(post_engr_text,
+                        "You find many hidden bugs on the floor.");
+                    postknown = TRUE;
+                }
+                zapnodir(otmp);
                 break;
             /* IMMEDIATE wands */
             /* If wand is "IMMEDIATE", remember to affect the
@@ -733,11 +740,14 @@ doengrave(void)
                     dengr = TRUE;
                 }
                 break;
+            case WAN_PROBING:
+                Sprintf(post_engr_text, "You probe the bugs on the floor.");
+                postknown = TRUE;
+                break;
             case WAN_NOTHING:
             case WAN_UNDEAD_TURNING:
             case WAN_OPENING:
             case WAN_LOCKING:
-            case WAN_PROBING:
                 break;
             /* RAY wands */
             case WAN_MAGIC_MISSILE:

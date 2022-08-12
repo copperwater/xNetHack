@@ -94,6 +94,9 @@ changes:
 - The hunger intrinsic halves the nutritional value of anything you eat. It does
   not affect beverages, and other intrinsics that have fast hungering as a side
   effect do not cause this.
+- Engraving with a wand of probing or wand of secret door detection produces a
+  unique message and identifies the wand (assuming it has a charge to expend, as
+  is standard).
 
 ### Interface changes
 
