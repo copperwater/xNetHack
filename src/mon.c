@@ -1196,22 +1196,35 @@ movemon(void)
     return somebody_can_move;
 }
 
+/* dispose of contents of an eaten container; used for pets and other mons */
 void
-contents_spill_out(struct obj *otmp, int x, int y)
+meatbox(struct monst *mon, struct obj *otmp)
 {
-    struct obj *cobj, *ncobj;
-    if (!Has_contents(otmp))
+    boolean engulf_contents = (mon->data == &mons[PM_GELATINOUS_CUBE]);
+    int x = mon->mx, y = mon->my;
+    struct obj *cobj;
+
+    if (!Has_contents(otmp) || !isok(x, y))
         return;
-    if (cansee(x, y)) {
+
+    /* contents of eaten containers become engulfed or dropped onto
+       the floor; this is arbitrary, but otherwise g-cubes are too
+       powerful */
+    if (!engulf_contents && cansee(x, y)) {
         pline("%s contents spill out onto the %s.",
               s_suffix(The(distant_name(otmp, xname))),
               surface(x, y));
     }
-    for (cobj = otmp->cobj; cobj; cobj = ncobj) {
-        ncobj = cobj->nobj;
+    while ((cobj = otmp->cobj) != 0) {
         obj_extract_self(cobj);
-        if (!flooreffects(cobj, x, y, ""))
-            place_object(cobj, x, y);
+        if (otmp->otyp == ICE_BOX)
+            removed_from_icebox(cobj);
+        if (engulf_contents) {
+            (void) mpickobj(mon, cobj);
+        } else {
+            if (!flooreffects(cobj, x, y, ""))
+                place_object(cobj, x, y);
+        }
     }
 }
 
@@ -1284,7 +1297,7 @@ meatmetal(struct monst *mtmp)
                         mtmp->mhp = mtmp->mhpmax;
                 }
                 if (Has_contents(otmp))
-                    contents_spill_out(otmp, mtmp->mx, mtmp->my);
+                    meatbox(mtmp, otmp);
                 if (otmp == uball) {
                     unpunish();
                     delobj(otmp);
@@ -1454,20 +1467,8 @@ meatobj(struct monst* mtmp) /* for gelatinous cubes */
                 if (mtmp->mhp > mtmp->mhpmax)
                     mtmp->mhp = mtmp->mhpmax;
             }
-            if (Has_contents(otmp)) {
-                register struct obj *otmp3;
-
-                /* contents of eaten containers become engulfed; this
-                   is arbitrary, but otherwise g-cubes are too powerful */
-                while ((otmp3 = otmp->cobj) != 0) {
-                    obj_extract_self(otmp3);
-                    if (otmp->otyp == ICE_BOX && otmp3->otyp == CORPSE) {
-                        otmp3->age = g.moves - otmp3->age;
-                        start_corpse_timeout(otmp3);
-                    }
-                    (void) mpickobj(mtmp, otmp3);
-                }
-            }
+            if (Has_contents(otmp))
+                meatbox(mtmp, otmp);
             /* possibility of being turned to stone or into slime can't
                reach here (don't touch for cockatrice corpse, engulf rather
                than eat for tin, cockatrice egg, or glob of green slime) */
