@@ -226,7 +226,9 @@ losedogs(void)
     register struct monst *mtmp, *mtmp0, *mtmp2;
     int dismissKops = 0;
 
-    FUZLOG("losedogs");
+#ifdef FUZZER_LOG
+    fuz_log("losedogs");
+#endif
     /*
      * First, scan g.migrating_mons for shopkeepers who want to dismiss Kops,
      * and scan g.mydogs for shopkeepers who want to retain kops.
@@ -313,7 +315,9 @@ mon_arrive(struct monst *mtmp, boolean with_you)
     stairway *stway;
     d_level fromdlev;
 
+#ifdef FUZZER_LOG
     fuzl_mtmp("mon_arrive", mtmp);
+#endif
     mtmp->nmon = fmon;
     fmon = mtmp;
     if (mtmp->isshk)
@@ -750,7 +754,9 @@ migrate_to_level(
     d_level new_lev;
     xchar xyflags, mx = mtmp->mx, my = mtmp->my; /* <mx,my> needed below */
     int num_segs; /* count of worm segments */
+#ifdef FUZZER_LOG
     fuzl_mtmp("migrate_to_level", mtmp);
+#endif
 
     if (mtmp->mleashed) {
         mtmp->mtame--;

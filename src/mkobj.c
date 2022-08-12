@@ -597,7 +597,9 @@ replace_object(struct obj *obj, struct obj *otmp)
         extract_nobj(obj, &obj->ocarry->minvent);
         break;
     case OBJ_FLOOR:
+#ifdef FUZZER_LOG
         fuzl_xyi("replace_obj floor", obj->ox, obj->oy, obj->otyp);
+#endif
         otmp->nobj = obj->nobj;
         otmp->nexthere = obj->nexthere;
         otmp->ox = obj->ox;
@@ -2416,7 +2418,9 @@ void
 place_object(struct obj *otmp, int x, int y)
 {
     register struct obj *otmp2;
+#ifdef FUZZER_LOG
     fuzl_xyi("place_object", x,y, otmp->otyp);
+#endif // TODO!!!!!!!!!! WRAPPING ALL FUZZER LOGS IN THIS
 
     if (!isok(x, y)) { /* validate location */
         void (*func)(const char *, ...) PRINTF_F(1, 2);

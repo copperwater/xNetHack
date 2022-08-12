@@ -26,6 +26,7 @@ static boolean m_balks_at_approaching(struct monst *);
 static boolean stuff_prevents_passage(struct monst *);
 static int vamp_shift(struct monst *, struct permonst *, boolean);
 
+#ifdef FUZZER_LOG
 void
 fuzl_mtmp(const char *s, struct monst *mtmp)
 {
@@ -34,7 +35,7 @@ fuzl_mtmp(const char *s, struct monst *mtmp)
         Sprintf(buf, "%s(%p, %i,%i)", s, (void *) mtmp, mtmp->mx, mtmp->my);
     else
         Sprintf(buf, "ERROR %s has null monster", s);
-    FUZLOG(buf);
+    fuz_log(buf);
 }
 
 void
@@ -43,7 +44,7 @@ fuzl_p2(const char *str, const char *s1, struct monst *m1, const char *s2,
 {
     char buf[BUFSZ];
     Sprintf(buf, "%s(%s=%p,%s=%p)", str, s1, (void *) m1, s2, (void *) m2);
-    FUZLOG(buf);
+    fuz_log(buf);
 }
 
 void
@@ -51,7 +52,7 @@ fuzl_xy(const char *str, int x, int y)
 {
     char buf[BUFSZ];
     Sprintf(buf, "%s(%i,%i)", str, x,y);
-    FUZLOG(buf);
+    fuz_log(buf);
 }
 
 void
@@ -59,8 +60,9 @@ fuzl_xyi(const char *str, int x, int y, int  i)
 {
     char buf[BUFSZ];
     Sprintf(buf, "%s(%i, %i,%i)", str, i,x,y);
-    FUZLOG(buf);
+    fuz_log(buf);
 }
+#endif /* FUZZER_LOG */
 
 /* check whether a monster is carrying a locking/unlocking tool */
 boolean
@@ -135,11 +137,15 @@ dochugw(
     int x = mtmp->mx, y = mtmp->my; /* 'mtmp's location before dochug() */
     /* skip canspotmon() if occupation is Null */
     boolean already_saw_mon = (chug && g.occupation) ? canspotmon(mtmp) : 0;
+#ifdef FUZZER_LOG
     if (chug)
         fuzl_mtmp("dochug BEGIN", mtmp);
+#endif
     int rd = chug ? dochug(mtmp) : 0;
+#ifdef FUZZER_LOG
     if (chug)
         fuzl_mtmp("dochug END", mtmp);
+#endif
 
     /*
      * A similar check is in monster_nearby() in hack.c.
@@ -2185,6 +2191,19 @@ mon_open_door(struct monst * mtmp, xchar x, xchar y)
      * jiggling the knob and finding out it's locked, but they don't have any
      * map memory so they'd probably get stuck in a loop trying it... */
     return FALSE;
+}
+
+void
+remove_monster(xchar x, xchar y)
+{
+#ifdef FUZZER_LOG
+    fuzl_xy("remove_monster", x, y);
+#endif
+#ifdef EXTRA_SANITY_CHECKS
+    if (!g.level.monsters[x][y])
+        impossible("no monster to remove");
+#endif
+    g.level.monsters[x][y] = (struct monst *) 0;
 }
 
 /*monmove.c*/

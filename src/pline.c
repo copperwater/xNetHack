@@ -154,7 +154,9 @@ vpline(const char *line, va_list the_args)
     if ((g.pline_flags & SUPPRESS_HISTORY) == 0)
         dumplogmsg(line);
 #endif
-    FUZLOG(line);
+#ifdef FUZZER_LOG
+    fuz_log(line);
+#endif
     /* use raw_print() if we're called too early (or perhaps too late
        during shutdown) or if we're being called recursively (probably
        via debugpline() in the interface code) */

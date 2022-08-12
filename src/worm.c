@@ -1023,4 +1023,17 @@ flip_worm_segs_horizontal(struct monst *worm, int minx, int maxx)
     }
 }
 
+void
+place_worm_seg(struct monst *worm, xchar x, xchar y)
+{
+#ifdef FUZZER_LOG
+    fuzl_xy("place_worm_seg", x,y);
+#endif
+#ifdef EXTRA_SANITY_CHECKS
+    if (g.level.monsters[x][y] && g.level.monsters[x][y] != worm)
+        impossible("place_worm_seg over mon");
+#endif
+    g.level.monsters[x][y] = worm;
+}
+
 /*worm.c*/

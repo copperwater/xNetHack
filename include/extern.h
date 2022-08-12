@@ -241,7 +241,9 @@ extern int do_rush(void);
 extern int do_run(void);
 extern int do_fight(void);
 extern int do_repeat(void);
+#ifdef FUZZER_LOG
 extern void fuz_log(const char *);
+#endif
 extern char randomkey(void);
 extern void random_response(char *, int);
 extern int rnd_extcmd_idx(void);
@@ -1713,11 +1715,13 @@ extern boolean resist_conflict(struct monst *);
 
 /* ### monmove.c ### */
 
+#ifdef FUZZER_LOG
 extern void fuzl_mtmp(const char *, struct monst *);
 extern void fuzl_p2(const char *, const char *, struct monst *, const char *,
                     struct monst *);
 extern void fuzl_xy(const char *, int, int);
 extern void fuzl_xyi(const char *, int, int, int);
+#endif
 extern boolean itsstuck(struct monst *);
 extern boolean mb_trapped(struct monst *, boolean);
 extern boolean monhaskey(struct monst *, boolean);
@@ -1743,6 +1747,7 @@ extern boolean should_displace(struct monst *, coord *, long *, int, xchar,
                                xchar);
 extern boolean undesirable_disp(struct monst *, xchar, xchar);
 extern boolean mon_open_door(struct monst *, xchar, xchar);
+extern void remove_monster(xchar, xchar);
 
 /* ### monst.c ### */
 
@@ -3429,6 +3434,7 @@ extern boolean worm_cross(int, int, int, int);
 extern int wseg_at(struct monst *, int, int);
 extern void flip_worm_segs_vertical(struct monst *, int, int);
 extern void flip_worm_segs_horizontal(struct monst *, int, int);
+extern void place_worm_seg(struct monst *, xchar, xchar);
 
 /* ### worn.c ### */
 

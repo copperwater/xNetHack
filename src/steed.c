@@ -765,8 +765,10 @@ place_monster(struct monst* mon, int x, int y)
     struct monst *othermon;
     const char *monnm, *othnm;
     char buf[QBUFSZ];
+#ifdef FUZZER_LOG
     fuzl_mtmp("place_monster", mon);
     fuzl_xy(" -> place_monster", x,y);
+#endif
 
     buf[0] = '\0';
     /* normal map bounds are <1..COLNO-1,0..ROWNO-1> but sometimes

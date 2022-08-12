@@ -477,25 +477,6 @@ typedef struct {
 #else   /* without 'mburied' */
 #define MON_AT(x, y) (g.level.monsters[x][y] != (struct monst *) 0)
 #endif
-#ifdef EXTRA_SANITY_CHECKS
-#define place_worm_seg(m, x, y) \
-    do {                                                            \
-        fuzl_xy("place_worm_seg", x,y);                         \
-        if (g.level.monsters[x][y] && g.level.monsters[x][y] != m)  \
-            impossible("place_worm_seg over mon");                  \
-        g.level.monsters[x][y] = m;                                 \
-    } while(0)
-#define remove_monster(x, y) \
-    do {                                                  \
-        fuzl_xy("remove_monster", x,y);                 \
-        if (!g.level.monsters[x][y])                      \
-            impossible("no monster to remove");           \
-        g.level.monsters[x][y] = (struct monst *) 0;      \
-    } while(0)
-#else
-#define place_worm_seg(m, x, y) g.level.monsters[x][y] = m
-#define remove_monster(x, y) g.level.monsters[x][y] = (struct monst *) 0
-#endif
 #define m_at(x, y) (MON_AT(x, y) ? g.level.monsters[x][y] : (struct monst *) 0)
 #define m_buried_at(x, y) \
     (MON_BURIED_AT(x, y) ? g.level.monsters[x][y] : (struct monst *) 0)

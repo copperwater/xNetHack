@@ -499,7 +499,9 @@ moveloop_core(void)
         return;
     }
 
-        FUZLOG("-------------------------- SANITY CHECKPOINT --------------------------");
+#ifdef FUZZER_LOG
+        fuz_log("-------------------- SANITY CHECKPOINT --------------------");
+#endif
 #ifdef CLIPPING
     /* just before rhack */
     cliparound(u.ux, u.uy);

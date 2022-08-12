@@ -453,10 +453,11 @@ struct early_opt {
     boolean valallowed;
 };
 
+#ifdef FUZZER_LOG
 #define FUZZER_LOG_SIZE 20000
 E char *fuzzer_log[FUZZER_LOG_SIZE];
 E long fuzzer_log_idx;
-#define FUZLOG(s) fuz_log(s)
+#endif /* FUZZER_LOG */
 
 /* special key functions */
 enum nh_keyfunc {

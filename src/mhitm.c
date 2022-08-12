@@ -196,7 +196,9 @@ mdisplacem(register struct monst *magr, register struct monst *mdef,
     struct permonst *pa, *pd;
     int tx, ty, fx, fy;
 
+#ifdef FUZZER_LOG
     fuzl_p2("mdisplacem", "magr", magr, "mdef", mdef);
+#endif
     /* sanity checks; could matter if we unexpectedly get a long worm */
     if (!magr || !mdef || magr == mdef)
         return MM_MISS;

@@ -3968,6 +3968,7 @@ accept_menu_prefix(const struct ext_func_tab *ec)
     return (ec && ((ec->flags & CMD_M_PREFIX) != 0));
 }
 
+#ifdef FUZZER_LOG
 void
 fuz_log(const char *msg)
 {
@@ -3976,6 +3977,7 @@ fuz_log(const char *msg)
         free(fuzzer_log[fuzzer_log_idx]);
     fuzzer_log[fuzzer_log_idx] = dupstr(msg);
 }
+#endif /* FUZZER_LOG */
 
 char
 randomkey(void)
@@ -4107,11 +4109,13 @@ rhack(char *cmd)
         cmd[1] = '\0';
     } else if (firsttime) {
         cmd = parse();
+#ifdef FUZZER_LOG
         {
             char buf[BUFSZ];
             Sprintf(buf, "rhack() cmd: '%s'", visctrl(*cmd));
-            FUZLOG(buf);
+            fuz_log(buf);
         }
+#endif /* FUZZER_LOG */
         /* parse() pushed a cmd but didn't return any key */
         if (!*cmd && g.command_queue)
             goto got_prefix_input;
@@ -4174,11 +4178,13 @@ rhack(char *cmd)
                 if (tlist->f_text && !g.occupation && g.multi)
                     set_occupation(func, tlist->f_text, g.multi);
                 g.ext_tlist = NULL;
+#ifdef FUZZER_LOG
                 {
                     char buf[BUFSZ];
                     Sprintf(buf, "rhack() extcmd: '%s'", tlist->ef_txt);
-                    FUZLOG(buf);
+                    fuz_log(buf);
                 }
+#endif /* FUZZER_LOG */
                 res = (*func)(); /* perform the command */
                 /* if 'func' is doextcmd(), 'tlist' is for Cmd.commands['#']
                    rather than for the command that doextcmd() just ran;
@@ -4405,11 +4411,13 @@ getdir(const char *s)
     else
         dirsym = yn_function((s && *s != '^') ? s : "In what direction?",
                              (char *) 0, '\0');
+#ifdef FUZZER_LOG
     {
         char buf[BUFSZ];
         Sprintf(buf, "getdir() dirsym: '%s'", visctrl(dirsym));
-        FUZLOG(buf);
+        fuz_log(buf);
     }
+#endif /* FUZZER_LOG */
     /* remove the prompt string so caller won't have to */
     clear_nhwindow(WIN_MESSAGE);
 

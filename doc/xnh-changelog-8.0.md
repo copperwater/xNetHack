@@ -113,3 +113,5 @@ changes:
 
 ### Architectural changes
 
+Fuzzer logging is now a compile-time switch, and is off by default, rather than
+being a silent user of CPU in all regular games.

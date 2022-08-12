@@ -1725,7 +1725,9 @@ toggle_menu_curr(
             {
                 char buf[BUFSZ];
                 Sprintf(buf, "menu.unselect: '%s'", curr->str);
-                FUZLOG(buf);
+#ifdef FUZZER_LOG
+                fuz_log(buf);
+#endif
             }
             if (in_view)
                 set_item_state(window, lineno, curr);
@@ -1743,7 +1745,9 @@ toggle_menu_curr(
             {
                 char buf[BUFSZ];
                 Sprintf(buf, "menu.select: '%s'", curr->str);
-                FUZLOG(buf);
+#ifdef FUZZER_LOG
+                fuz_log(buf);
+#endif
             }
             if (in_view)
                 set_item_state(window, lineno, curr);

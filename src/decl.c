@@ -694,8 +694,10 @@ const struct const_globals cg = {
     DUMMY, /* zeroany */
 };
 
+#ifdef FUZZER_LOG
 char *fuzzer_log[FUZZER_LOG_SIZE] = DUMMY;
 long fuzzer_log_idx = 0;
+#endif /* FUZZER_LOG */
 
 #define ZERO(x) memset(&x, 0, sizeof(x))
 
