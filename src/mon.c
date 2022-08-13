@@ -554,8 +554,8 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
         }
         goto default_1;
     case PM_LONG_WORM:
-        otmp = mksobj(WORM_TOOTH, TRUE, FALSE);
-        obj_drops_at(otmp, x, y);
+        obj = mksobj(WORM_TOOTH, TRUE, FALSE);
+        obj_drops_at(obj, x, y);
         goto default_1;
     case PM_VAMPIRE:
     case PM_VAMPIRE_LEADER:
@@ -718,8 +718,8 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
         return obj;
     case PM_SKELETON:
         if (!rn2(50)) {
-            otmp = mksobj(SKELETON_KEY, TRUE, FALSE);
-            set_material(otmp, BONE);
+            obj = mksobj(SKELETON_KEY, TRUE, FALSE);
+            set_material(obj, BONE);
             obj_drops_at(obj, x, y);
         }
         break;
