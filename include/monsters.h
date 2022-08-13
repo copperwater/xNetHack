@@ -2362,7 +2362,7 @@
         SIZ(WT_HUMAN, 400, MS_PRIEST, MZ_HUMAN), MR_ELEC, 0,
         M1_HUMANOID | M1_OMNIVORE,
         M2_NOPOLY | M2_HUMAN | M2_LORD | M2_PEACEFUL | M2_COLLECT,
-        M3_INFRAVISIBLE, 15, CLR_WHITE, ALIGNED_CLERIC),
+        M3_INFRAVISIBLE, 15, CLR_YELLOW, ALIGNED_CLERIC),
     /* high priests always have epri and always have ispriest set */
     MON3("high priest", "high priestess", "high cleric",
         S_HUMAN, LVL(25, 15, 7, 70, 0), (G_NOGEN | G_UNIQ),
@@ -2374,7 +2374,7 @@
         M1_HUMANOID | M1_SEE_INVIS | M1_OMNIVORE,
         M2_NOPOLY | M2_HUMAN | M2_MINION | M2_PRINCE | M2_NASTY | M2_COLLECT
             | M2_MAGIC,
-        M3_INFRAVISIBLE, 30, CLR_WHITE, HIGH_CLERIC),
+        M3_INFRAVISIBLE, 30, CLR_YELLOW, HIGH_CLERIC),
     MON("soldier", S_HUMAN, LVL(6, 10, 10, 0, -2), (G_SGROUP | G_GENO | 1),
         A(ATTK(AT_WEAP, AD_PHYS, 1, 8), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
           NO_ATTK),
