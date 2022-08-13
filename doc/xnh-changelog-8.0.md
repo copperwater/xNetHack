@@ -97,6 +97,7 @@ changes:
 - Engraving with a wand of probing or wand of secret door detection produces a
   unique message and identifies the wand (assuming it has a charge to expend, as
   is standard).
+- 1% of tigers drop a tiger eye ring when killed.
 
 ### Interface changes
 
