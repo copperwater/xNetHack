@@ -98,6 +98,7 @@ changes:
   unique message and identifies the wand (assuming it has a charge to expend, as
   is standard).
 - 1% of tigers drop a tiger eye ring when killed.
+- Dwarves get a +1 alignment bonus when they chop down a tree.
 
 ### Interface changes
 
