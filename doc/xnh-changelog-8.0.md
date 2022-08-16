@@ -99,6 +99,7 @@ changes:
   is standard).
 - 1% of tigers drop a tiger eye ring when killed.
 - Dwarves get a +1 alignment bonus when they chop down a tree.
+- Jumping boots automatically identify themselves when worn.
 
 ### Interface changes
 
