@@ -100,6 +100,7 @@ changes:
 - 1% of tigers drop a tiger eye ring when killed.
 - Dwarves get a +1 alignment bonus when they chop down a tree.
 - Jumping boots automatically identify themselves when worn.
+- Iron-hating monsters will avoid stepping on spaces with iron chains.
 
 ### Interface changes
 

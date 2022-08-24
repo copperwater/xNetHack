@@ -2129,6 +2129,10 @@ mfndpos(
                         info[cnt] |= ALLOW_SANCT;
                     }
                 }
+                if (checkobj && mon_hates_material(mon, IRON)
+                    && sobj_at(IRON_CHAIN, nx, ny)) {
+                    continue;
+                }
                 if (levl[nx][ny].typ == SINK
                     && (is_vampire(mdat) || is_vampshifter(mon))) {
                     /* can't cross running water :-) */
