@@ -120,6 +120,8 @@ changes:
 - When you begin the game in polyinit mode and using the tty windowport, the "Is
   this ok?" prompt before launching the game is always shown, and displays the
   monster you will be polyinitted into.
+- Detect unseen is no longer a messageless effect. You now get messages about
+  revealing one or more secret doors, corridors, traps, or monsters.
 
 ### Architectural changes
 
