@@ -206,7 +206,7 @@ Boots_on(void)
         break;
     case JUMPING_BOOTS:
         makeknown(uarmf->otyp);
-        pline("Your %s feel longer.", makeplural(body_part(LEG)));
+        Your("%s feel longer.", makeplural(body_part(LEG)));
         break;
     case WATER_WALKING_BOOTS:
         if (u.uinwater)
@@ -302,7 +302,7 @@ Boots_off(void)
         break;
     case JUMPING_BOOTS:
         makeknown(otyp);
-        pline("Your %s feel longer.", makeplural(body_part(LEG)));
+        Your("%s feel shorter.", makeplural(body_part(LEG)));
         break;
     case LOW_BOOTS:
     case DWARVISH_BOOTS:
