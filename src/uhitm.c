@@ -1781,7 +1781,8 @@ shade_aware(struct obj *obj)
         || obj->otyp == MIRROR          /* silver in the reflective surface */
         || obj->otyp == CLOVE_OF_GARLIC /* causes shades to flee */
         || obj->material == SILVER
-        || obj->material == BONE)
+        || obj->material == BONE
+        || obj->blessed)
         return TRUE;
     return FALSE;
 }
