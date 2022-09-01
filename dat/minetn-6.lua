@@ -43,10 +43,25 @@ des.region(selection.area(00,00,39,19),"lit")
 des.levregion({ type="stair-up", region={01,03,20,19}, region_islev=1, exclude={0,0,39,19} })
 des.levregion({ type="stair-down", region={61,03,75,19}, region_islev=1, exclude={0,0,39,19} })
 des.region(selection.area(13,7,14,8),"unlit")
-des.region({ region={09,09, 11,11}, lit=1, type="candle shop", filled=1 })
-des.region({ region={16,06, 18,08}, lit=1, type="tool shop", filled=1 })
-des.region({ region={23,03, 25,05}, lit=1, type="shop", filled=1 })
-des.region({ region={22,14, 24,15}, lit=1, type=monkfoodshop(), filled=1 })
+
+local shops3x3 = { {02,03, 04,05},
+                   {09,05, 11,07},
+                   {09,09, 11,11},
+                   {16,06, 18,08},
+                   {23,03, 25,05},
+                   {34,08, 36,10} }
+shuffle(shops3x3)
+local shops2x3 = { {19,13, 20,15},
+                   {22,14, 24,15},
+                   {27,03, 28,05},
+                   {30,03, 32,04},
+                   {34,03, 36,04} }
+shuffle(shops2x3)
+
+des.region({ region=shops3x3[1], lit=1, type="candle shop", filled=1 })
+des.region({ region=shops3x3[2], lit=1, type="tool shop", filled=1 })
+des.region({ region=shops3x3[3], lit=1, type="shop", filled=1 })
+des.region({ region=shops2x3[1], lit=1, type=monkfoodshop(), filled=1 })
 des.region({ region={31,14, 36,16}, lit=1, type="temple", filled=1 })
 des.altar({ x=35,y=15,align=align[1],type="shrine"})
 
@@ -88,3 +103,4 @@ des.monster({ id = "watchman", peaceful = 1 })
 des.monster({ id = "watch captain", peaceful = 1 })
 des.monster({ id = "watch captain", peaceful = 1 })
 
+des.mineralize()

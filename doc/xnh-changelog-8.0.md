@@ -101,6 +101,64 @@ changes:
 - Dwarves get a +1 alignment bonus when they chop down a tree.
 - Jumping boots automatically identify themselves when worn.
 - Iron-hating monsters will avoid stepping on spaces with iron chains.
+- Several Minetowns have been changed, some of them significantly.
+  - Town Square (minetn-2): Minor tweaks to widen most of the 1-wide vertical
+    paths.
+  - Alley Town (minetn-3):
+    - Random gnomes in locked houses replaced with random "a" monsters in
+      unlocked houses, plus one free-roaming random "a". These will not generate
+      groups.
+    - Two random [stacks of] slime molds.
+    - Food shop chance is now 50% instead of 90%.
+    - Wand shop chance is now 80% instead of 30%.
+  - College Town (minetn-4):
+    - Has a wider alley opposite the temple.
+    - Tool shop chance is now 30% instead of 90%.
+    - The room across from the food shop is a little bigger, and is often a 3x2
+      scroll shop (always if there is no tool shop, and 10% if there is one.)
+  - Bustling Town (minetn-6):
+    - As an experiment, the shops can appear in any room of the correct size for
+      that shop. There are still a guaranteed 3x3 general store, 3x3 tool store,
+      3x3 lighting store, and 2x3 food store, but the 3x3 shops can appear in
+      any unoccupied 3x3 space, and the 2x3 shops can appear in any unoccupied
+      2x3 space.
+    - The surrounding area is mineralized, and may contain gold and gems -
+      probably not *many*, given the small area of solid stone available, but it
+      can now.
+  - Bazaar Town (minetn-7):
+    - A much wider variety of shops can generate - armor, weapon, ring, scroll,
+      and wand shops in addition to the general store, tool shops, and food
+      shops that were previously possible. However, there is a moderating
+      algorithm now that ensures there won't be games that get all of these, nor
+      none of them.
+    - Shops can appear in more rooms; any of the "ordinary" rooms that allows
+      for a shop with 4 items is eligible.
+    - Only one of the two possible food shops is guaranteed to have
+      vegetarian-friendly items.
+    - The nymph is moved to a different room, and there is also a nymph in the
+      room containing the 3 monkeys.
+    - Two additional doors for greater mobility: in the side of the room
+      containing the 3 monkeys, and a secret one on the room containing the
+      sink.
+  - Frontier Town (minetn-8): Aiming to make it feel more like a frontier
+    boomtown. Fortunately for the player, prices aren't jacked up how one would
+    expect them to be in such a town.
+    - Now works like Bustling Town, with a map overlaid on a cavern fill instead
+      of rooms and corridors.
+    - Chance of a tool shop is now 100% instead of 90%.
+    - Chance of a food shop is now 50% instead of 90%.
+    - There is now an overall 24% chance of a 3x2 potion shop. (Guaranteed if
+      the other two non-guaranteed shops don't generate; 20% if at least one of
+      them does.)
+    - Two fewer watchmen. There are only 2 plus the captain.
+    - Either a cursed touchstone or an oil lamp is in one of the non-shop
+      non-temple buildings.
+    - Three normal gnomes are replaced with normal dwarfs.
+    - The gnome lord in a building has a 50% chance of being replaced by a
+      roaming dwarf lord.
+    - One fewer gnomish wizard in the temple.
+    - The surrounding area is mineralized, and may contain gold and gems.
+
 
 ### Interface changes
 

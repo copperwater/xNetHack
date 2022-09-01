@@ -70,7 +70,7 @@ des.room({ type = "ordinary", lit=1, x=25, y=3,
               end
 
               if percent(75) then
-                 des.room({ type = "ordinary", lit=1, x=2,y=5, w=2,h=2,
+                 des.room({ type = "ordinary", lit=1, x=3,y=5, w=2,h=2,
                             contents = function()
                                des.door({ state="closed", wall="north" })
                             end
@@ -78,7 +78,7 @@ des.room({ type = "ordinary", lit=1, x=25, y=3,
               end
 
               if percent(75) then
-                 des.room({ type = "ordinary", lit=1, x=5,y=5, w=2,h=2,
+                 des.room({ type = "ordinary", lit=1, x=6,y=5, w=2,h=2,
                             contents = function()
                                des.door({ state="closed", wall="south" })
                             end
@@ -86,7 +86,7 @@ des.room({ type = "ordinary", lit=1, x=25, y=3,
               end
 
               if percent(75) then
-                 des.room({ type = "ordinary", x=8,y=5, w=2,h=2,
+                 des.room({ type = "ordinary", x=9,y=5, w=2,h=2,
                             contents = function()
                                des.door({ state="locked", wall="north" })
                                des.monster("gnome")
@@ -112,14 +112,14 @@ des.room({ type = "ordinary", lit=1, x=25, y=3,
                          end
               });
 
-              des.room({ type = "candle shop", lit=1, x=11,y=10, w=4,h=3,
+              des.room({ type = "candle shop", lit=1, x=10,y=10, w=4,h=3,
                          contents = function()
                             des.door({ state="closed", wall="east" })
                          end
               });
 
               if percent(75) then
-                 des.room({ type = "ordinary", lit=0, x=7,y=10, w=3,h=3,
+                 des.room({ type = "ordinary", lit=0, x=7,y=10, w=2,h=3,
                             contents = function()
                                des.door({ state="locked", wall="north" })
                                des.monster("gnome")

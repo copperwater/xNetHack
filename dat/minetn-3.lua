@@ -26,8 +26,8 @@ des.room({ type = "ordinary",lit=1,x=25,y=3,
 
   des.room({ type = "ordinary",x=2,y=10,w=2,h=3,
              contents = function()
-                des.door({ state ="locked", wall="north" })
-                des.monster("G")
+                des.door({ state ="closed", wall="north" })
+                des.monster({ class = "a", group = false })
              end
   })
 
@@ -60,8 +60,8 @@ des.room({ type = "ordinary",lit=1,x=25,y=3,
 
   des.room({ type = "ordinary",random,x=14,y=8,w=2,h=2,
              contents = function()
-                des.door({ state="locked", wall="north" })
-                des.monster("G")
+                des.door({ state="closed", wall="north" })
+                des.monster({ class = "a", group = false })
              end
   })
 
@@ -79,12 +79,12 @@ des.room({ type = "ordinary",lit=1,x=25,y=3,
 
   des.room({ type = "ordinary",x=21,y=11,w=2,h=2,
              contents = function()
-                des.door({ state="locked", wall="east" })
-                des.monster("G")
+                des.door({ state="closed", wall="east" })
+                des.monster({ class = "a", group = false })
              end
   })
 
-  des.room({ type = monkfoodshop(), chance=90,lit=1,x=26,y=8,w=3,h=2,
+  des.room({ type = monkfoodshop(), chance=50,lit=1,x=26,y=8,w=3,h=2,
              contents = function()
                 des.door({ state="closed", wall="west" })
              end
@@ -102,7 +102,7 @@ des.room({ type = "ordinary",lit=1,x=25,y=3,
              end
   })
 
-  des.room({ type = "wand shop", chance=30,lit=1,x=19,y=5,w=3,h=2,
+  des.room({ type = "wand shop", chance=80,lit=1,x=19,y=5,w=3,h=2,
              contents = function()
                 des.door({ state="closed", wall="west" })
              end
@@ -119,6 +119,10 @@ des.room({ type = "ordinary",lit=1,x=25,y=3,
   des.monster({ id = "watchman", peaceful = 1 })
   des.monster({ id = "watchman", peaceful = 1 })
   des.monster({ id = "watch captain", peaceful = 1 })
+
+  des.monster({ class = "a", group = false })
+  des.monster({ id = "gnome lord", peaceful = 0 })
+  des.object({ class = '%', id = 'fruit' })
 
            end
 })
@@ -138,6 +142,7 @@ des.room({ type = "ordinary", contents = function()
 
 des.room({ type = "ordinary", contents = function()
               des.monster("dwarf")
+              des.object({ class = '%', id = 'fruit' })
                                           end
 })
 
