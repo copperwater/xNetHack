@@ -180,6 +180,9 @@ changes:
   monster you will be polyinitted into.
 - Detect unseen is no longer a messageless effect. You now get messages about
   revealing one or more secret doors, corridors, traps, or monsters.
+- Farlooking a monster will show if they are fleeing.
+- Farlooking a monster that you can see will show if they are wearing armor
+  and/or wielding a weapon.
 
 ### Architectural changes
 

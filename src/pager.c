@@ -383,9 +383,18 @@ look_at_monster(char *buf,
     else if ((mtmp->mstrategy & STRAT_WAITMASK) != 0)
         /* arbitrary reason why it isn't moving */
         Strcat(buf, ", meditating");
+    else if (mtmp->mflee)
+        Strcat(buf, ", fleeing");
 
     if (mtmp->mleashed)
         Strcat(buf, ", leashed to you");
+
+    if (mtmp->misc_worn_check && canseemon(mtmp))
+        Strcat(buf, ", wearing armor");
+
+    if (MON_WEP(mtmp) && canseemon(mtmp))
+        Sprintf(eos(buf), ", wielding %s", ansimpleoname(MON_WEP(mtmp)));
+
     if (mtmp->mtrapped && cansee(mtmp->mx, mtmp->my)) {
         struct trap *t = t_at(mtmp->mx, mtmp->my);
         int tt = t ? t->ttyp : NO_TRAP;
