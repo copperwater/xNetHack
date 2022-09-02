@@ -158,7 +158,7 @@ changes:
       roaming dwarf lord.
     - One fewer gnomish wizard in the temple.
     - The surrounding area is mineralized, and may contain gold and gems.
-
+- The Master Assassin is now poison resistant.
 
 ### Interface changes
 
