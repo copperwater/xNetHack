@@ -219,6 +219,7 @@ struct instance_flags {
 #define TER_OBJ    0x04
 #define TER_MON    0x08
 #define TER_DETECT 0x10    /* detect_foo magic rather than #terrain */
+#define TER_VISIT  0x20
     boolean getloc_travelmode;
     int getloc_filter;     /* GFILTER_foo */
     boolean getloc_usemenu;

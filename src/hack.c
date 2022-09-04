@@ -2909,6 +2909,11 @@ spoteffects(boolean pick)
     spotterrain = levl[u.ux][u.uy].typ;
     spotloc.x = u.ux, spotloc.y = u.uy;
 
+    /* nearly every case of this is covered by u_on_newpos already, but there
+     * are a few edge cases that move the hero without using that (like being
+     * dragged by a thrown iron ball) */
+    levl[u.ux][u.uy].uvisited = 1;
+
     /* moving onto different terrain might cause Lev or Fly to toggle */
     if (spotterrain != levl[u.ux0][u.uy0].typ || !on_level(&u.uz, &u.uz0))
         switch_terrain();

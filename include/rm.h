@@ -241,7 +241,8 @@ struct rm {
     Bitfield(edge, 1);       /* marks boundaries for special rooms*/
 
     Bitfield(candig, 1);     /* Exception to Can_dig_down; was a trapdoor */
-    Bitfield(unused, 7);     /* currently unused - take bits out of this rather
+    Bitfield(uvisited, 1);   /* player has visited this space */
+    Bitfield(unused, 6);     /* currently unused - take bits out of this rather
                                 than overloading it as if it were a second flags
                                 field! */
 };

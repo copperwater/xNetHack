@@ -1063,6 +1063,9 @@ hurtle(int dx, int dy, int range, boolean verbose)
     cc.x = u.ux + (dx * range);
     cc.y = u.uy + (dy * range);
     (void) walk_path(&uc, &cc, hurtle_step, (genericptr_t) &range);
+    /* hurtle_step() -> u_on_newpos() won't register the final spot as visited,
+     * so do that here */
+    levl[u.ux][u.uy].uvisited = 1;
 }
 
 /* Move a monster through the air for a few squares. */

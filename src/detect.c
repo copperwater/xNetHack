@@ -1933,7 +1933,8 @@ reveal_terrain_getglyph(int x, int y, int full, unsigned swallowed,
     uchar seenv;
     boolean keep_traps = (which_subset & TER_TRP) !=0,
             keep_objs = (which_subset & TER_OBJ) != 0,
-            keep_mons = (which_subset & TER_MON) != 0;
+            keep_mons = (which_subset & TER_MON) != 0,
+            do_visited = (which_subset & TER_VISIT) != 0;
     struct monst *mtmp;
     struct trap *t;
 
@@ -1956,6 +1957,11 @@ reveal_terrain_getglyph(int x, int y, int full, unsigned swallowed,
            the invisible monster glyph, which is handled like
            an object, replacing any object or trap at its spot) */
         glyph = !swallowed ? glyph_at(x, y) : levl_glyph;
+
+        if (do_visited && levl[x][y].uvisited)
+            /* +2 = use orange magic platform (+0 would be "default") */
+            glyph = cmap_to_glyph(S_magicplatform) + 2;
+
         if (keep_mons && u_at(x, y) && swallowed)
             glyph = mon_to_glyph(u.ustuck, rn2_on_display_rng);
         else if (((glyph_is_monster(glyph)
@@ -2076,7 +2082,8 @@ reveal_terrain(
     /* there is a TER_MAP bit too; we always show map regardless of it */
     boolean keep_traps = (which_subset & TER_TRP) != 0,
             keep_objs = (which_subset & TER_OBJ) != 0,
-            keep_mons = (which_subset & TER_MON) != 0; /* not used */
+            keep_mons = (which_subset & TER_MON) != 0, /* not used */
+            do_visited = (which_subset & TER_VISIT) != 0;
     unsigned swallowed = u.uswallow; /* before unconstrain_map() */
 
     if (unconstrain_map())
@@ -2108,7 +2115,10 @@ reveal_terrain(
             Sprintf(eos(buf), "%s and monsters",
                     (keep_traps || keep_objs) ? "," : "");
     }
-    pline("Showing %s only...", buf);
+    if (do_visited)
+        pline("Showing spaces you have visited marked in orange...");
+    else
+        pline("Showing %s only...", buf);
 
     /* allow player to move cursor around and get autodescribe feedback
         based on what is visible now rather than what is on 'real' map */

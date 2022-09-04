@@ -186,6 +186,8 @@ changes:
 - Farlooking a monster will show if they are fleeing.
 - Farlooking a monster that you can see will show if they are wearing armor
   and/or wielding a weapon.
+- New option in the terrain menu to show spaces on the current map that you have
+  visited.
 
 ### Architectural changes
 

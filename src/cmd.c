@@ -2017,6 +2017,10 @@ doterrain(void)
     add_menu(men, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
              "known map without monsters",
              MENU_ITEMFLAGS_NONE);
+    any.a_int = 7;
+    add_menu(men, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
+             "known terrain showing spaces you have visited",
+             MENU_ITEMFLAGS_NONE);
     if (discover || wizard) {
         any.a_int = 4;
         add_menu(men, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
@@ -2068,6 +2072,8 @@ doterrain(void)
     case 6: /* internal details */
         wiz_levltyp_legend();
         break;
+    case 7: /* full map with visited spaces */
+        reveal_terrain(0, TER_MAP | TER_VISIT);
     default:
         break;
     }

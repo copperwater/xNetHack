@@ -1445,6 +1445,17 @@ u_on_newpos(int x, int y)
     }
     u.ux = x;
     u.uy = y;
+    /* 99.9% of the time this function is called, we are actually visiting this
+     * space, and should mark it as being visited.
+     * The remainder is hurtling and jumping, both of which leave traces that
+     * can be tracked here, but this is not the most stable code since it bakes
+     * in assumptions about what those traces are. */
+    if (g.multi < 0 && (!strcmp(g.multi_reason, "moving through the air")))
+        ; /* hurtling */
+    else if (EWwalking & I_SPECIAL)
+        ; /* jumping */
+    else
+        levl[x][y].uvisited = 1;
 #ifdef CLIPPING
     cliparound(u.ux, u.uy);
 #endif
