@@ -122,7 +122,7 @@ enum levl_typ_types {
  *      D_TRAPPED conflicts with W_NONDIGGABLE but the latter is not
  *      expected to be used on door locations.  D_IRON conflicts
  *      with W_NONPASSWALL but doors never block phasing.
- *      D_SECRET would not fit within struct rm's 5-bit 'flags' field.
+ *      D_SECRET would not fit within struct rm's 6-bit 'flags' field.
  */
 /*
  * The possible states of doors - lowest 2 bits of doormask
@@ -151,7 +151,8 @@ enum door_states {
 #define D_TRAPPED 0x8
 /* iron doors - 5th bit */
 #define D_IRON 0x10
-#define D_SECRET 0x20 /* only used by sp_lev.c, NOT in rm-struct */
+#define D_WARNED 0x20
+#define D_SECRET 0x40 /* only used by sp_lev.c, NOT in rm-struct */
 
 /*
  * Thrones should only be looted once.
@@ -175,13 +176,6 @@ enum door_states {
 #define SET_FOUNTAIN_LOOTED(x, y) levl[x][y].looted |= F_LOOTED;
 #define CLEAR_FOUNTAIN_WARNED(x, y) levl[x][y].looted &= ~F_WARNED;
 #define CLEAR_FOUNTAIN_LOOTED(x, y) levl[x][y].looted &= ~F_LOOTED;
-
-/*
- * doors are even worse :-) The special warning has a side effect
- * of instantly trapping the door, and if it was defined as trapped,
- * the guards consider that you have already been warned!
- */
-#define D_WARNED D_TRAPPED
 
 /*
  * Sinks have 3 different types of loot that shouldn't be abused

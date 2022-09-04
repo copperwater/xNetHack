@@ -160,6 +160,8 @@ changes:
     - The surrounding area is mineralized, and may contain gold and gems.
 - The Master Assassin is now poison resistant.
 - Rock trolls are petrification resistant.
+- When a watchman yells about you picking a lock, the door no longer becomes
+  trapped.
 
 ### Interface changes
 
