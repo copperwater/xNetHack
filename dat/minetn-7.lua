@@ -52,12 +52,6 @@ for i=1,#shopweights do
    end
 end
 
-for str, domake in pairs(selected) do
-   if domake then
-      nh.pline(str)
-   end
-end
-
 des.room({ type="ordinary", lit=1, x=25,y=3,
            xalign="left",yalign="top", w=30,h=15,
            contents = function()
