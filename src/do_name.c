@@ -1425,38 +1425,20 @@ oname(
                            ansimpleoname(obj), bare_artifactname(obj));
         }
         /* set up specific materials for the artifact */
-        switch(obj->oartifact) {
-        case ART_SUNSWORD:
-        case ART_ITLACHIAYAQUE:
-            set_material(obj, GOLD);
-            break;
-        case ART_WEREBANE:
-        case ART_DEMONBANE:
-        case ART_GRAYSWANDIR:
-        /* case ART_MITRE_OF_HOLINESS: */
-            set_material(obj, SILVER);
-            break;
-        case ART_SCEPTRE_OF_MIGHT:
-            /* don't make it hurt elves */
-            set_material(obj, METAL);
-            break;
-        case ART_YENDORIAN_EXPRESS_CARD:
-            set_material(obj, PLATINUM);
-            break;
-        case ART_MIRROR_BRAND:
-            set_material(obj, GLASS);
-            break;
-        case ART_SOL_VALTIVA:
-            set_material(obj, MITHRIL);
-            break;
-        default:
-            /* Don't change the material of the object if it's being created via
-             * naming an existing object, but prevent all other forms of getting
-             * a irregular-material artifact (wishing, dipping for Excalibur or
-             * getting it via crowning from an existing long sword) */
-            if (!via_naming)
-                set_material(obj, objects[obj->otyp].oc_material);
-            break;
+        if (obj->oartifact) {
+            short material = arti_material(obj->oartifact);
+            if (material == 0) { /* = use default material */
+              /* Don't change the material of the object if it's being created
+               * via naming an existing object, but prevent all other forms of
+               * getting a irregular-material artifact (wishing, dipping for
+               * Excalibur or getting it via crowning from an existing long
+               * sword) */
+              if (!via_naming)
+                  set_material(obj, objects[obj->otyp].oc_material);
+            }
+            else { /* specifically defined material */
+                set_material(obj, material);
+            }
         }
     }
     if (carried(obj))

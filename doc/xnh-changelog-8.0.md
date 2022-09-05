@@ -194,3 +194,6 @@ changes:
 - Fuzzer logging is now a compile-time switch, and is off by default, rather
   than being a silent user of CPU in all regular games.
 - Struct rm has increased by 1 byte.
+- Artifacts now have their material (either something specific or "use the base
+  item's default material") encoded in the artilist array rather than hardcoded
+  in artifact creation.

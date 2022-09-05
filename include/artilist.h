@@ -7,22 +7,22 @@
 /* in makedefs.c, all we care about is the list of names */
 
 #define A(nam, typ, s1, s2, mt, atk, dfn, cry, inv, al, cl, rac, \
-          cost, clr, bn) nam
+          cost, clr, mat, bn) nam
 
 static const char *const artifact_names[] = {
 
 #elif defined(ARTI_ENUM)
 #define A(nam, typ, s1, s2, mt, atk, dfn, cry, inv, al, cl, rac, \
-          cost, clr, bn) \
+          cost, clr, mat, bn) \
     ART_##bn
 #else
 /* in artifact.c, set up the actual artifact list structure */
 
 #define A(nam, typ, s1, s2, mt, atk, dfn, cry, inv, al, cl, rac, \
-          cost, clr, bn)                                         \
+          cost, clr, mat, bn)                                    \
     {                                                            \
         typ, nam, s1, s2, mt, atk, dfn, cry, inv, al, cl, rac,   \
-        cost, clr                                                \
+        cost, clr, mat                                           \
     }
 
 /* clang-format off */
@@ -38,6 +38,8 @@ static const char *const artifact_names[] = {
 #define     ELEC(a,b)   {0,AD_ELEC,a,b}         /* electrical shock */
 #define     STUN(a,b)   {0,AD_STUN,a,b}         /* magical attack */
 #define     POIS(a,b)   {0,AD_DRST,a,b}         /* poison */
+
+#define DEFAULT_MAT 0 /* use base object's default material */
 /* clang-format on */
 
 static NEARDATA struct artifact artilist[] = {
@@ -51,12 +53,12 @@ static NEARDATA struct artifact artilist[] = {
 
     /*  dummy element #0, so that all interesting indices are non-zero */
     A("", STRANGE_OBJECT, 0, 0, 0, NO_ATTK, NO_DFNS, NO_CARY, 0, A_NONE,
-      NON_PM, NON_PM, 0L, NO_COLOR, PLACEHOLDER),
+      NON_PM, NON_PM, 0L, NO_COLOR, DEFAULT_MAT, PLACEHOLDER),
 
     A("Excalibur", LONG_SWORD, (SPFX_NOGEN | SPFX_RESTR | SPFX_SEEK
                                 | SPFX_DEFN | SPFX_INTEL | SPFX_SEARCH),
       0, 0, PHYS(5, 10), DRLI(0, 0), NO_CARY, 0, A_LAWFUL, PM_KNIGHT, NON_PM,
-      4000L, NO_COLOR, EXCALIBUR),
+      4000L, NO_COLOR, DEFAULT_MAT, EXCALIBUR),
     /*
      *      Stormbringer only has a 2 because it can drain a level,
      *      providing 8 more.
@@ -64,7 +66,7 @@ static NEARDATA struct artifact artilist[] = {
     A("Stormbringer", RUNESWORD,
       (SPFX_RESTR | SPFX_ATTK | SPFX_DEFN | SPFX_INTEL | SPFX_DRLI), 0, 0,
       DRLI(5, 2), DRLI(0, 0), NO_CARY, 0, A_CHAOTIC, NON_PM, NON_PM, 8000L,
-      NO_COLOR, STORMBRINGER),
+      NO_COLOR, DEFAULT_MAT, STORMBRINGER),
     /*
      *      Mjollnir can be thrown when wielded if hero has 25 Strength
      *      (usually via gauntlets of power but possible with rings of
@@ -80,10 +82,11 @@ static NEARDATA struct artifact artilist[] = {
     A("Mjollnir", WAR_HAMMER, /* Mjo:llnir */
       (SPFX_RESTR | SPFX_ATTK), 0, 0, ELEC(5, 24), NO_DFNS, NO_CARY,
       LIGHTNING_BOLT, A_NEUTRAL, PM_VALKYRIE, NON_PM, 4000L, NO_COLOR,
-      MJOLLNIR),
+      DEFAULT_MAT, MJOLLNIR),
 
     A("Cleaver", BATTLE_AXE, SPFX_RESTR, 0, 0, PHYS(3, 6), NO_DFNS, NO_CARY,
-      0, A_NEUTRAL, PM_BARBARIAN, NON_PM, 1500L, NO_COLOR, CLEAVER),
+      0, A_NEUTRAL, PM_BARBARIAN, NON_PM, 1500L, NO_COLOR, DEFAULT_MAT,
+      CLEAVER),
 
     /*
      *      Grimtooth glows in warning when elves are present, but its
@@ -92,7 +95,8 @@ static NEARDATA struct artifact artilist[] = {
      */
     A("Grimtooth", ORCISH_DAGGER, (SPFX_RESTR | SPFX_WARN | SPFX_DFLAG2),
       0, M2_ELF, PHYS(2, 6), POIS(0, 0),
-      NO_CARY, 0, A_CHAOTIC, NON_PM, PM_ORC, 1000L, CLR_RED, GRIMTOOTH),
+      NO_CARY, 0, A_CHAOTIC, NON_PM, PM_ORC, 1000L, CLR_RED, DEFAULT_MAT,
+      GRIMTOOTH),
     /*
      *      Orcrist and Sting have same alignment as elves.
      *
@@ -102,61 +106,61 @@ static NEARDATA struct artifact artilist[] = {
      */
     A("Orcrist", ELVEN_BROADSWORD, (SPFX_WARN | SPFX_DFLAG2), 0, M2_ORC,
       PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_CHAOTIC, NON_PM, PM_ELF, 2000L,
-      CLR_BRIGHT_BLUE, ORCRIST), /* bright blue is actually light blue */
+      CLR_BRIGHT_BLUE, DEFAULT_MAT, ORCRIST), /* bright blue is actually light blue */
 
     A("Sting", ELVEN_DAGGER, (SPFX_WARN | SPFX_DFLAG2), 0, M2_ORC, PHYS(5, 0),
       NO_DFNS, NO_CARY, 0, A_CHAOTIC, NON_PM, PM_ELF, 800L, CLR_BRIGHT_BLUE,
-      STING),
+      DEFAULT_MAT, STING),
     /*
      *      Magicbane is a bit different!  Its magic fanfare
      *      unbalances victims in addition to doing some damage.
      */
     A("Magicbane", ATHAME, (SPFX_RESTR | SPFX_ATTK | SPFX_DEFN), 0, 0,
       STUN(3, 4), DFNS(AD_MAGM), NO_CARY, 0, A_NEUTRAL, PM_WIZARD, NON_PM,
-      3500L, NO_COLOR, MAGICBANE),
+      3500L, NO_COLOR, DEFAULT_MAT, MAGICBANE),
 
     A("Frost Brand", SHORT_SWORD, (SPFX_RESTR | SPFX_ATTK | SPFX_DEFN), 0, 0,
       COLD(5, 0), COLD(0, 0), NO_CARY, 0, A_NONE, NON_PM, NON_PM, 3000L,
-      NO_COLOR, FROST_BRAND),
+      NO_COLOR, DEFAULT_MAT, FROST_BRAND),
 
     A("Fire Brand", SHORT_SWORD, (SPFX_RESTR | SPFX_ATTK | SPFX_DEFN), 0, 0,
       FIRE(5, 0), FIRE(0, 0), NO_CARY, 0, A_NONE, NON_PM, NON_PM, 3000L,
-      NO_COLOR, FIRE_BRAND),
+      NO_COLOR, DEFAULT_MAT, FIRE_BRAND),
 
     A("Mirror Brand", SHORT_SWORD, (SPFX_RESTR | SPFX_REFLECT), 0, 0,
       NO_ATTK, NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 2500L,
-      NO_COLOR, MIRROR_BRAND), /* special damage added in artifact_hit() */
+      NO_COLOR, GLASS, MIRROR_BRAND), /* special damage added in artifact_hit() */
 
     A("Dragonbane", DWARVISH_SPEAR,
       (SPFX_WARN | SPFX_RESTR | SPFX_DCLAS | SPFX_REFLECT), 0, S_DRAGON,
       PHYS(5, 10), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 2500L,
-      NO_COLOR, DRAGONBANE),
+      NO_COLOR, DEFAULT_MAT, DRAGONBANE),
 
     A("Demonbane", MACE, (SPFX_WARN | SPFX_RESTR | SPFX_DFLAG2), 0, M2_DEMON,
       PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_LAWFUL, NON_PM, NON_PM, 2500L,
-      CLR_WHITE, DEMONBANE),
+      CLR_WHITE, SILVER, DEMONBANE),
 
     A("Werebane", SABER, (SPFX_WARN | SPFX_RESTR | SPFX_DFLAG2), 0, M2_WERE,
       PHYS(5, 10), DFNS(AD_WERE), NO_CARY, 0, A_NONE, NON_PM, NON_PM, 1500L,
-      NO_COLOR, WEREBANE),
+      NO_COLOR, SILVER, WEREBANE),
 
     A("Grayswandir", SABER, (SPFX_RESTR | SPFX_HALRES), 0, 0,
       PHYS(5, 0), NO_DFNS, NO_CARY, 0, A_LAWFUL, NON_PM, NON_PM, 8000L,
-      NO_COLOR, GRAYSWANDIR),
+      NO_COLOR, SILVER, GRAYSWANDIR),
 
     A("Giantslayer", LONG_SWORD,
       (SPFX_WARN | SPFX_RESTR | SPFX_DFLAG2), 0, M2_GIANT,
       PHYS(5, 10), NO_DFNS, NO_CARY, 0, A_NEUTRAL, NON_PM, NON_PM, 500L,
-      NO_COLOR, GIANTSLAYER),
+      NO_COLOR, DEFAULT_MAT, GIANTSLAYER),
 
     A("Ogresmasher", WAR_HAMMER, (SPFX_RESTR | SPFX_HEAVYHIT), 0, 0,
       PHYS(3, 8), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 1200L,
-      NO_COLOR, OGRESMASHER),
+      NO_COLOR, DEFAULT_MAT, OGRESMASHER),
 
     A("Trollsbane", MORNING_STAR,
       (SPFX_WARN | SPFX_RESTR | SPFX_DCLAS | SPFX_REGEN), 0, S_TROLL,
       PHYS(5, 10), NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 1000L,
-      NO_COLOR, TROLLSBANE),
+      NO_COLOR, DEFAULT_MAT, TROLLSBANE),
     /*
      *      Two problems:  1) doesn't let trolls regenerate heads,
      *      2) doesn't give unusual message for 2-headed monsters (but
@@ -164,7 +168,7 @@ static NEARDATA struct artifact artilist[] = {
      */
     A("Vorpal Blade", LONG_SWORD, (SPFX_RESTR | SPFX_BEHEAD), 0, 0,
       PHYS(5, 8), NO_DFNS, NO_CARY, 0, A_NEUTRAL, NON_PM, NON_PM, 4000L,
-      NO_COLOR, VORPAL_BLADE),
+      NO_COLOR, DEFAULT_MAT, VORPAL_BLADE),
     /*
      *      Ah, never shall I forget the cry,
      *              or the shriek that shrieked he,
@@ -174,11 +178,12 @@ static NEARDATA struct artifact artilist[] = {
      *                        (From Sir W.S. Gilbert's "The Mikado")
      */
     A("Snickersnee", KATANA, SPFX_RESTR, 0, 0, PHYS(0, 8), NO_DFNS, NO_CARY,
-      0, A_LAWFUL, PM_SAMURAI, NON_PM, 1200L, NO_COLOR, SNICKERSNEE),
+      0, A_LAWFUL, PM_SAMURAI, NON_PM, 1200L, NO_COLOR, DEFAULT_MAT,
+      SNICKERSNEE),
 
     A("Sunsword", LONG_SWORD, (SPFX_RESTR | SPFX_DFLAG2), 0, M2_UNDEAD,
       PHYS(5, 0), DFNS(AD_BLND), NO_CARY, 0, A_LAWFUL, NON_PM, NON_PM, 1500L,
-      NO_COLOR, SUNSWORD),
+      NO_COLOR, GOLD, SUNSWORD),
 
     /*
      *      The artifacts for the quest dungeon, all self-willed.
@@ -187,19 +192,19 @@ static NEARDATA struct artifact artilist[] = {
     A("Itlachiayaque", SHIELD_OF_REFLECTION,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL), SPFX_WARN, 0,
       NO_ATTK, NO_DFNS, CARY(AD_FIRE), SMOKE_CLOUD, A_LAWFUL, PM_ARCHEOLOGIST,
-      NON_PM, 3500L, NO_COLOR, ITLACHIAYAQUE),
+      NON_PM, 3500L, NO_COLOR, GOLD, ITLACHIAYAQUE),
 
     A("The Heart of Ahriman", LUCKSTONE,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL), SPFX_STLTH, 0,
       /* this stone does double damage if used as a projectile weapon */
       PHYS(5, 0), NO_DFNS, NO_CARY, LEVITATION, A_NEUTRAL, PM_BARBARIAN,
-      NON_PM, 2500L, NO_COLOR, HEART_OF_AHRIMAN),
+      NON_PM, 2500L, NO_COLOR, DEFAULT_MAT, HEART_OF_AHRIMAN),
 
     A("Big Stick", CLUB,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_DEFN),
       SPFX_STLTH, 0, /* "speak softly..." */
       PHYS(5, 12), DFNS(AD_MAGM), NO_CARY, CONFLICT, A_CHAOTIC, PM_CAVE_DWELLER,
-      NON_PM, 2500L, NO_COLOR, BIG_STICK),
+      NON_PM, 2500L, NO_COLOR, DEFAULT_MAT, BIG_STICK),
 
 #if 0 /* OBSOLETE */
 A("The Palantir of Westernesse",        CRYSTAL_BALL,
@@ -214,35 +219,36 @@ A("The Palantir of Westernesse",        CRYSTAL_BALL,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_ATTK | SPFX_INTEL | SPFX_DRLI
        | SPFX_REGEN),
       0, 0, DRLI(0, 0), DRLI(0, 0), NO_CARY, HEALING, A_NEUTRAL, PM_HEALER,
-      NON_PM, 5000L, NO_COLOR, STAFF_OF_AESCULAPIUS),
+      NON_PM, 5000L, NO_COLOR, DEFAULT_MAT, STAFF_OF_AESCULAPIUS),
 
     A("The Magic Mirror of Merlin", MIRROR,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_SPEAK), SPFX_ESP, 0,
       NO_ATTK, NO_DFNS, CARY(AD_MAGM), 0, A_LAWFUL, PM_KNIGHT, NON_PM, 1500L,
-      NO_COLOR, MAGIC_MIRROR_OF_MERLIN),
+      NO_COLOR, DEFAULT_MAT, MAGIC_MIRROR_OF_MERLIN),
 
     A("The Eyes of the Overworld", LENSES,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_XRAY), 0, 0, NO_ATTK,
       DFNS(AD_MAGM), NO_CARY, ENLIGHTENING, A_NEUTRAL, PM_MONK, NON_PM,
-      2500L, NO_COLOR, EYES_OF_THE_OVERWORLD),
+      2500L, NO_COLOR, DEFAULT_MAT, EYES_OF_THE_OVERWORLD),
 
     A("The Sceptre of Might", MACE,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_DALIGN), 0, 0, PHYS(5, 0),
       DRLI(0,0), NO_CARY, ENERGY_BOOST, A_LAWFUL, PM_CLERIC, NON_PM,
-      2500L, NO_COLOR, SCEPTRE_OF_MIGHT),
+      /* METAL so it doesn't hurt elvish Priests */
+      2500L, NO_COLOR, METAL, SCEPTRE_OF_MIGHT),
 
     /* Removed for now. This isn't a bad artifact, but the Sceptre of Might
      * offers more interesting choices for Priests than this does.
     A("The Mitre of Holiness", HELM_OF_BRILLIANCE,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_DFLAG2 | SPFX_INTEL | SPFX_PROTECT), 0,
       M2_UNDEAD, NO_ATTK, NO_DFNS, CARY(AD_FIRE), ENERGY_BOOST, A_LAWFUL,
-      PM_CLERIC, NON_PM, 2000L, NO_COLOR, MITRE_OF_HOLINESS),
+      PM_CLERIC, NON_PM, 2000L, NO_COLOR, SILVER, MITRE_OF_HOLINESS),
      */
 
     A("The Longbow of Diana", BOW,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_REFLECT), SPFX_ESP, 0,
       PHYS(5, 0), NO_DFNS, NO_CARY, CREATE_AMMO, A_CHAOTIC, PM_RANGER, NON_PM,
-      4000L, NO_COLOR, LONGBOW_OF_DIANA),
+      4000L, NO_COLOR, DEFAULT_MAT, LONGBOW_OF_DIANA),
 
     /* MKoT has an additional carry property if the Key is not cursed (for
        rogues) or blessed (for non-rogues):  #untrap of doors and chests
@@ -250,19 +256,19 @@ A("The Palantir of Westernesse",        CRYSTAL_BALL,
     A("The Master Key of Thievery", SKELETON_KEY,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_SPEAK),
       (SPFX_WARN | SPFX_TCTRL | SPFX_HPHDAM), 0, NO_ATTK, NO_DFNS, NO_CARY,
-      UNTRAP, A_CHAOTIC, PM_ROGUE, NON_PM, 3500L, NO_COLOR,
+      UNTRAP, A_CHAOTIC, PM_ROGUE, NON_PM, 3500L, NO_COLOR, DEFAULT_MAT,
       MASTER_KEY_OF_THIEVERY),
 
     A("The Tsurugi of Muramasa", TSURUGI,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_BEHEAD | SPFX_LUCK
        | SPFX_PROTECT),
       0, 0, PHYS(0, 8), NO_DFNS, NO_CARY, 0, A_LAWFUL, PM_SAMURAI, NON_PM,
-      4500L, NO_COLOR, TSURUGI_OF_MURAMASA),
+      4500L, NO_COLOR, DEFAULT_MAT, TSURUGI_OF_MURAMASA),
 
     A("The Platinum Yendorian Express Card", CREDIT_CARD,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL | SPFX_DEFN),
       (SPFX_ESP | SPFX_HSPDAM), 0, NO_ATTK, NO_DFNS, CARY(AD_MAGM),
-      CHARGE_OBJ, A_NEUTRAL, PM_TOURIST, NON_PM, 7000L, NO_COLOR,
+      CHARGE_OBJ, A_NEUTRAL, PM_TOURIST, NON_PM, 7000L, NO_COLOR, PLATINUM,
       YENDORIAN_EXPRESS_CARD),
 
     /* While this is the Valkyrie artifact, it's chaotic because it belongs to
@@ -270,20 +276,20 @@ A("The Palantir of Westernesse",        CRYSTAL_BALL,
     A("Sol Valtiva", TWO_HANDED_SWORD,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_ATTK | SPFX_INTEL),
       (SPFX_HSPDAM | SPFX_HPHDAM), 0, FIRE(3, 5), NO_DFNS, NO_CARY,
-      LEV_TELE, A_CHAOTIC, PM_VALKYRIE, NON_PM, 5000L, NO_COLOR,
+      LEV_TELE, A_CHAOTIC, PM_VALKYRIE, NON_PM, 5000L, NO_COLOR, MITHRIL,
       SOL_VALTIVA),
 
     A("The Eye of the Aethiopica", AMULET_OF_ESP,
       (SPFX_NOGEN | SPFX_RESTR | SPFX_INTEL), (SPFX_EREGEN | SPFX_HSPDAM), 0,
       NO_ATTK, DFNS(AD_MAGM), NO_CARY, CREATE_PORTAL, A_NEUTRAL, PM_WIZARD,
-      NON_PM, 4000L, NO_COLOR, EYE_OF_THE_AETHIOPICA),
+      NON_PM, 4000L, NO_COLOR, DEFAULT_MAT, EYE_OF_THE_AETHIOPICA),
 
 #if !defined(ARTI_ENUM)
     /*
      *  terminator; otyp must be zero
      */
     A(0, 0, 0, 0, 0, NO_ATTK, NO_DFNS, NO_CARY, 0, A_NONE, NON_PM, NON_PM, 0L,
-      0, TERMINATOR) /* 0 is CLR_BLACK rather than NO_COLOR but it doesn't matter here */
+      0, 0, TERMINATOR) /* 0 is CLR_BLACK rather than NO_COLOR but it doesn't matter here */
 
 }; /* artilist[] (or artifact_names[]) */
 #endif

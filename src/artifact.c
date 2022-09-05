@@ -2703,4 +2703,15 @@ arti_starts_with_the(struct obj *obj)
     return FALSE;
 }
 
+/* return the material of a given artifact */
+short
+arti_material(int artinum)
+{
+    if (artinum <= 0 || artinum > NROFARTIFACTS) {
+        impossible("invalid artifact number %d to arti_material", artinum);
+        return 0;
+    }
+    return artilist[artinum].material;
+}
+
 /*artifact.c*/
