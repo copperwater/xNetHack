@@ -185,6 +185,10 @@ static NEARDATA struct artifact artilist[] = {
       PHYS(5, 0), DFNS(AD_BLND), NO_CARY, 0, A_LAWFUL, NON_PM, NON_PM, 1500L,
       NO_COLOR, GOLD, SUNSWORD),
 
+    A("The Apple of Discord", APPLE, SPFX_RESTR, 0, 0, NO_ATTK, NO_DFNS,
+      NO_CARY, CONFLICT, A_CHAOTIC, NON_PM, NON_PM, 4000L, NO_COLOR, GOLD,
+      APPLE_OF_DISCORD),
+
     /*
      *      The artifacts for the quest dungeon, all self-willed.
      */

@@ -2013,8 +2013,10 @@ dosacrifice(void)
                                     "bestowed with %s by %s",
                                     artiname(otmp->oartifact),
                                     align_gname(u.ualign.type));
-                    /* make sure we can use this weapon */
-                    unrestrict_weapon_skill(weapon_type(otmp));
+                    if (otmp->oclass == WEAPON_CLASS) {
+                        /* make sure we can use this weapon */
+                        unrestrict_weapon_skill(weapon_type(otmp));
+                    }
                     if (!Hallucination && !Blind) {
                         otmp->dknown = 1;
                         makeknown(otmp->otyp);

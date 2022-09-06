@@ -1562,6 +1562,12 @@ resist_conflict(struct monst* mtmp)
     /* always a small chance at 19 */
     int resist_chance = min(19, (ACURR(A_CHA) - mtmp->m_lev + u.ulevel));
 
+    if ((EConflict & W_ARTI) && u.ualign.type == A_CHAOTIC
+        && u.uevent.uhand_of_elbereth == 3 /* crowned as chaotic */
+        && uhave_magic_apple()) {
+        resist_chance = rn2(2) ? 19 : 100; /* 50% chance it is unresistable */
+    }
+
     return (rnd(20) > resist_chance);
 }
 

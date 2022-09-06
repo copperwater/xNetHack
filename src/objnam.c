@@ -684,6 +684,11 @@ xname_flags(
             Strcat(buf, dn);
         break;
     case FOOD_CLASS:
+        if (obj->material != objects[typ].oc_material && dknown) {
+            /* Apple of Discord */
+            Strcat(buf, materialnm[obj->material]);
+            Strcat(buf, " ");
+        }
         /* we could include partly-eaten-hack on fruit but don't need to */
         if (typ == SLIME_MOLD) {
             struct fruit *f = fruit_from_indx(obj->spe);
@@ -731,7 +736,7 @@ xname_flags(
             break;
         }
 
-        Strcpy(buf, actualn);
+        Strcat(buf, actualn);
         if (typ == TIN && known)
             tin_details(obj, omndx, buf);
         break;

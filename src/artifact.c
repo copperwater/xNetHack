@@ -2082,6 +2082,15 @@ arti_invoke(struct obj *obj)
             if (on)
                 You_feel("like a rabble-rouser.");
             else
+                /* FIXME: this message should be suppressed for eating Apple of
+                 * Discord, since you will retain conflict afterwards... but
+                 * since doeat() calls touchfood() which eventually calls this
+                 * just prior to setting up g.context.victual, there isn't any
+                 * context that we can use to detect this one specific case.
+                 * If there is a way to do it without adding a new global
+                 * variable to wrap around the touchfood() call (which seems
+                 * like an overengineered solution), I'd love to hear about it.
+                 */
                 You_feel("the tension decrease around you.");
             break;
         case LEVITATION:
@@ -2676,6 +2685,20 @@ has_magic_key(struct monst *mon) /* if null, hero assumed */
          o = nxtobj(o, key, FALSE)) {
         if (is_magic_key(mon, o))
             return o;
+    }
+    return (struct obj *) 0;
+}
+
+/* ditto but for the Apple of Discord - only for hero */
+struct obj *
+uhave_magic_apple(void)
+{
+    struct obj *otmp;
+    short otyp = artilist[ART_APPLE_OF_DISCORD].otyp;
+
+    for (otmp = g.invent; otmp; otmp = nxtobj(otmp, otyp, FALSE)) {
+        if (otmp->oartifact == ART_APPLE_OF_DISCORD)
+            return otmp;
     }
     return (struct obj *) 0;
 }

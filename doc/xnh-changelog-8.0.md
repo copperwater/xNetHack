@@ -162,6 +162,11 @@ changes:
 - Rock trolls are petrification resistant.
 - When a watchman yells about you picking a lock, the door no longer becomes
   trapped.
+- New artifact, the Apple of Discord. It is a chaotic golden apple that can be
+  invoked to toggle hungerless conflict (as with Big Stick), and makes conflict
+  (from any source) nearly unresistable for monsters if you are carrying it, are
+  currently chaotic, and have been crowned as a chaotic. It can be eaten, giving
+  you permanent intrinsic hungering conflict.
 
 ### Interface changes
 

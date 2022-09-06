@@ -2145,7 +2145,9 @@ fprefx(struct obj *otmp)
 #endif
 
 #ifdef UNIX
-        } else if (otmp->otyp == APPLE || otmp->otyp == PEAR) {
+        } else if ((otmp->otyp == APPLE
+                    && otmp->oartifact != ART_APPLE_OF_DISCORD)
+                   || otmp->otyp == PEAR) {
             if (!Hallucination) {
                 pline("Core dumped.");
             } else {
@@ -2548,6 +2550,26 @@ fpostfx(struct obj *otmp)
             make_vomiting(0L, TRUE);
         break;
     case APPLE:
+        if (otmp->oartifact == ART_APPLE_OF_DISCORD) {
+            /* similar to eating a ring of conflict - note that this turns the
+             * hungerless invoke-effect conflict into regular hungering conflict
+             */
+            u.uprops[CONFLICT].intrinsic |= FROMOUTSIDE;
+            /* apples get eaten in one turn, and artifact food is now excluded
+             * from getting rottenfood() called on it, so it shouldn't be
+             * possible to eat the first bite of the apple (which removes
+             * EConflict & W_ARTI), get interrupted, then invoke it again for
+             * conflict and eat the remainder. Therefore it shouldn't be
+             * necessary to manually remove extrinsic arti-based conflict. */
+            /* kludge - unwanted message for losing extrinsic artifact conflict
+             * "You feel the tension decrease around you" is printed before
+             * this, but it's hard to exclude that message in this one specific
+             * case. So fudge another message that at least indicates you're
+             * still generating conflict. */
+            pline(
+                "As you digest the apple, you feel its power infusing you...");
+            break;
+        }
         if (otmp->cursed && !Sleep_resistance) {
             /* Snow White; 'poisoned' applies to [a subset of] weapons,
                not food, so we substitute cursed; fortunately our hero
@@ -2856,7 +2878,7 @@ doeat(void)
             }
         }
 
-        if (otmp->cursed) {
+        if (otmp->cursed && !otmp->oartifact) {
             (void) rottenfood(otmp);
             nodelicious = TRUE;
         } else if (otmp->material == PAPER)

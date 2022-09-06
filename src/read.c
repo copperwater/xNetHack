@@ -630,6 +630,13 @@ doread(void)
             livelog_printf(LL_CONDUCT,
                            "became literate by reading a dwarvish ring mail");
         return ECMD_TIME;
+    } else if (scroll->oartifact == ART_APPLE_OF_DISCORD) {
+        /* the text is debossed, so can be read when blind */
+        pline("It reads: \"Tei Kallistei\".");
+        if (!u.uconduct.literate++)
+            livelog_printf(LL_CONDUCT,
+                           "became literate by reading the Apple of Discord");
+        return ECMD_TIME;
     } else if (scroll->oclass != SCROLL_CLASS
                && scroll->oclass != SPBOOK_CLASS) {
         pline(silly_thing_to, "read");
