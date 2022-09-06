@@ -726,7 +726,7 @@ write_whereis(boolean playing) /* < True if game is running */
             0L,
 #endif
             u.uhave.amulet ? 1 : 0,
-            u.uevent.ascended ? 2 : g.killer.name ? 1 : 0,
+            u.uevent.ascended ? 2 : g.program_state.gameover ? 1 : 0,
             playing);
 
     fp = fopen_datafile(whereis_file,"w",LEVELPREFIX);
