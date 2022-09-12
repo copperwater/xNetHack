@@ -1553,15 +1553,18 @@ really_done(int how)
              * any vitality to stop it) */
             corpse = mk_named_object(CORPSE, &mons[mnum], u.ux, u.uy, g.plname);
         }
-        if (yn("Do you want to write your own epitaph?") != 'y') {
+        pbuf[0] = '\0';
+        if (yn("Do you want to write your own epitaph?") == 'y') {
+            char ebuf[BUFSZ];
+            getlin("Enter your epitaph:", ebuf);
+            if (*ebuf) {
+                Sprintf(pbuf, "%s.  ", g.plname);
+                (void) strncat(pbuf, ebuf, sizeof pbuf - Strlen(pbuf) - 1);
+            }
+        }
+        if (!*pbuf) { /* didn't write own epitaph, or entered a blank line */
             Sprintf(pbuf, "%s, ", g.plname);
             formatkiller(eos(pbuf), sizeof pbuf - Strlen(pbuf), how, TRUE);
-        }
-        else {
-            char ebuf[101]; /* arbitrary, but should be enough */
-            getlin("Enter your epitaph (100 characters max):", ebuf);
-            ebuf[100] = '\0';
-            Sprintf(pbuf, "%s. %s", g.plname, ebuf);
         }
         make_grave(u.ux, u.uy, pbuf);
     }
