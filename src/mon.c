@@ -4415,7 +4415,7 @@ maybe_unhide_at(xchar x, xchar y)
 {
     struct monst *mtmp;
 
-    if (!concealed_spot(x, y))
+    if (concealed_spot(x, y))
         return;
     if ((mtmp = m_at(x, y)) == 0 && u_at(x, y))
         mtmp = &g.youmonst;
