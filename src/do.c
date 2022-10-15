@@ -1647,7 +1647,9 @@ goto_level(
 
     /* Reset the screen. */
     vision_reset(); /* reset the blockages */
-    reset_glyphmap(gm_levelchange);
+    /* reset_glyphmap call shouldn't be necessary unless different levels
+       require different glyphmap handling/trigger glyphmap change */
+    /* reset_glyphmap(gm_levelchange); */ 
     docrt(); /* does a full vision recalc */
     flush_screen(-1);
 
