@@ -757,14 +757,12 @@ do_play_instrument(struct obj* instr)
                             u.uevent.uheard_tune = 2;
                             record_achievement(ACH_TUNE);
                             if (levl[x][y].typ == DRAWBRIDGE_DOWN) {
-                                if (!rn2(5)) {
-                                    /* Future improvement: if flags is ever
-                                     * expanded beyond 5 bits, could set a bit
-                                     * here to make the mechanism continue to be
-                                     * stuck until some condition is met, such
-                                     * as opening/closing magic used on it */
-                                    pline("The mechanism seems to get jammed.");
+                                boolean jammed = is_jammed_db(x, y);
+                                if (!rn2(5) || jammed) {
+                                    pline("The mechanism seems to %s jammed.",
+                                          jammed ? "be" : "get");
                                     pline("It won't close.");
+                                    levl[x][y].drawbridgemask |= DB_JAM;
                                     return ECMD_TIME;
                                 }
                                 close_drawbridge(x, y);

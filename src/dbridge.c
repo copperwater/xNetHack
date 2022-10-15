@@ -181,6 +181,15 @@ is_db_wall(int x, int y)
     return (boolean) (levl[x][y].typ == DBWALL);
 }
 
+boolean
+is_jammed_db(int x, int y)
+{
+    if (!find_drawbridge(&x, &y))
+        return FALSE;
+    else
+        return ((levl[x][y].drawbridgemask & DB_JAM) != 0);
+}
+
 /*
  * Return true with x,y pointing to the drawbridge if x,y initially indicate
  * a drawbridge or drawbridge wall.
@@ -972,6 +981,47 @@ destroy_drawbridge(int x, int y)
         }
     }
     nokiller();
+}
+
+int
+unjam_drawbridge(int x, int y)
+{
+    boolean under_u = (!u.dx && !u.dy);
+    struct monst *mtmp = m_at(x, y);
+
+    if (!is_jammed_db(x, y)) {
+        impossible("unjam_drawbridge: clearing nonexistant jam?");
+        return 0;
+    }
+
+    if (mtmp) {
+        pline("%s is in the way.", Monnam(mtmp));
+        return 0;
+    }
+    if (sobj_at(BOULDER, x, y) && !Passes_walls && !under_u) {
+        There("is a boulder in your way.");
+        return 0;
+    }
+    /* duplicate tight-space checks from test_move */
+    if (u.dx && u.dy && bad_rock(g.youmonst.data, u.ux, y)
+        && bad_rock(g.youmonst.data, x, u.uy)) {
+        if ((g.invent && (inv_weight() + weight_cap() > 600))
+            || bigmonst(g.youmonst.data)) {
+            /* don't allow untrap if they can't get thru to it */
+            You("are unable to reach the mechanism!");
+            return 0;
+        }
+    }
+    if (rn2(3)) {
+        You("are having a difficult time clearing the jam.");
+        return 1;
+    }
+
+    /* ok, disarm it. */
+    You("unjam the mechanism.");
+    (void) find_drawbridge(&x, &y);
+    levl[x][y].drawbridgemask &= ~DB_JAM;
+    return 1;
 }
 
 /*dbridge.c*/

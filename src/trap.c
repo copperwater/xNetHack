@@ -5449,7 +5449,10 @@ untrap(
                     return 0;
                 }
             }
-        } /* end if */
+        }
+        else if (is_jammed_db(x, y)) {
+            return unjam_drawbridge(x, y);
+        }
 
         if (boxcnt) {
             /* 3.7: this used to allow searching for traps on multiple
