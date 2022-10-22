@@ -3281,8 +3281,7 @@ extern const char *weapon_descr(struct obj *);
 extern int hitval(struct obj *, struct monst *);
 extern int dmgval(struct obj *, struct monst *);
 extern int special_dmgval(struct monst *, struct monst *, long, struct obj **);
-extern void searmsg(struct monst *, struct monst *, const struct obj *,
-                    boolean);
+extern void searmsg(struct monst *, struct monst *, struct obj *, boolean);
 extern struct obj *select_rwep(struct monst *);
 extern boolean monmightthrowwep(struct obj *);
 extern struct obj *select_hwep(struct monst *);
