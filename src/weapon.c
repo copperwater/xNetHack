@@ -484,10 +484,11 @@ special_dmgval(struct monst *magr,
  * gloves for punch, or helm for headbutt.
  */
 void
-searmsg(struct monst *magr, struct monst *mdef,
-        const struct obj *obj, /* the offending item, or &cg.zeroobj if magr's
-                                * body */
-        boolean minimal) /* print a shorter message leaving out obj details */
+searmsg(
+    struct monst *magr,
+    struct monst *mdef,
+    struct obj *obj, /* the offending item, or &cg.zeroobj if magr's body */
+    boolean minimal) /* print a shorter message leaving out obj details */
 {
     boolean youattack = (magr == &g.youmonst);
     boolean youdefend = (mdef == &g.youmonst);
@@ -506,8 +507,6 @@ searmsg(struct monst *magr, struct monst *mdef,
     int mat;
 
     if (obj == &cg.zeroobj) {
-        mat = monmaterial(monsndx(magr->data));
-        Sprintf(onamebuf, "%s touch", materialnm[mat]);
         if (youattack) {
             Strcpy(whose, "your ");
         }
@@ -519,13 +518,14 @@ searmsg(struct monst *magr, struct monst *mdef,
             Strcpy(whose, s_suffix(mon_nam(magr)));
             Strcat(whose, " ");
         }
+        mat = monmaterial(monsndx(magr->data));
+        Sprintf(onamebuf, "%s touch", materialnm[mat]);
     }
     else {
         mat = obj->material;
-        const char* matname = materialnm[mat];
+        const char *matname = materialnm[mat];
 
-        /* Why doesn't cxname receive a const struct obj? */
-        char* cxnameobj = cxname((struct obj *) obj);
+        char *cxnameobj = cxname(obj);
 
         /* Make it explicit to the player that this effect is from the material,
          * by prepending the material, but only if the object's name doesn't
@@ -539,7 +539,7 @@ searmsg(struct monst *magr, struct monst *mdef,
         else {
             Strcpy(onamebuf, cxnameobj);
         }
-        shk_your(whose, (struct obj *) obj);
+        shk_your(whose, obj);
     }
 
     if (minimal) {
@@ -575,7 +575,7 @@ searmsg(struct monst *magr, struct monst *mdef,
     }
 
     /* char* whom = youdefend ? "you" : mon_nam(mdef); */
-    char* whom = mon_nam(mdef);
+    char *whom = mon_nam(mdef);
     if (youdefend) {
         Strcpy(whom, "you");
     }
