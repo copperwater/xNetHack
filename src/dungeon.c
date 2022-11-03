@@ -1368,8 +1368,8 @@ find_level_beneath(const d_level *start, d_level *beneath)
     }
     else if (br && br->type == BR_STAIR && builds_up((d_level *) start)) {
         /* In Vlad's Tower cavern (or theoretically some other branch that
-            * grows upwards and is physically connected to the parent branch by a
-            * stairway), fall to that parent branch level beneath it */
+         * grows upwards and is physically connected to the parent branch by a
+         * stairway), fall to that parent branch level beneath it */
         if (br->end1.dnum == start->dnum)
             *beneath = br->end2;
         else
