@@ -2860,6 +2860,8 @@ u_aireffects(void)
         else {
             pline("Unfortunately, there is still nowhere safe to land.");
             You("fall to your death again.");
+            Sprintf(g.killer.name, "fell to %s death", uhis());
+            g.killer.format = NO_KILLER_PREFIX;
             done(DIED);
         }
     }
