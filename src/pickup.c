@@ -2562,12 +2562,12 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
             }
             if (unwornmask & (W_ARMOR | W_ACCESSORY | W_SADDLE)) {
                 int m_delay = objects[otmp->otyp].oc_delay;
-                if ((unwornmask & (W_ARM | W_ARMU)) != 0
-                    && (mtmp->misc_worn_check & W_ARMC)) {
+                if ((unwornmask & (W_ARM | W_ARMU)) != 0L
+                    && (mtmp->misc_worn_check & W_ARMC) != 0L) {
                     /* extra delay for removing a cloak */
                     m_delay += 2;
                 }
-                if ((unwornmask & W_SADDLE) != 0) {
+                if ((unwornmask & W_SADDLE) != 0L) {
                     if (flags.verbose)
                         You("take %s off of %s.",
                             thesimpleoname(otmp), mon_nam(mtmp));
@@ -2626,6 +2626,7 @@ exchange_objects_with_mon(struct monst *mtmp, boolean taking)
             }
         }
     }
+    free((genericptr_t) pick_list);
     if (transferred > 0) {
         /* They might have gained some gear they would want to wear, or lost
          * some and now have a different option. Reassess next turn and see. */
