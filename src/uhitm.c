@@ -1199,7 +1199,8 @@ hmon_hitmon(
                  * this at the end so that other stuff doesn't have to check obj
                  * && obj->whatever all the time */
                 if (hand_to_hand) {
-                    break_glass_obj(obj);
+                    if (break_glass_obj(obj))
+                        obj = (struct obj *) 0;
                     break_glass_obj(some_armor(mon));
                 }
 
