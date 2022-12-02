@@ -7367,7 +7367,7 @@ fruitadd(char *str, struct fruit *replace_fruit)
     char buf[PL_FSIZ], altname[PL_FSIZ];
     boolean user_specified = (str == g.pl_fruit);
     /* if not user-specified, then it's a fruit name for a fruit on
-     * a bones level or from orctown raider's loot...
+     * a bones level, a holiday food, or from orctown raider's loot...
      */
 
     /* Note: every fruit has an id (kept in obj->spe) of at least 1;

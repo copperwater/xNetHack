@@ -495,13 +495,18 @@ ghostfruit(register struct obj* otmp)
     register struct fruit *oldf;
 
     for (oldf = g.oldfruit; oldf; oldf = oldf->nextf)
-        if (oldf->fid == otmp->spe)
+        if (oldf->fid == fruit_id(otmp))
             break;
 
-    if (!oldf)
+    if (!oldf) {
         impossible("no old fruit?");
-    else
+    } else {
+        boolean holiday_food = is_holiday_fruit(otmp);
         otmp->spe = fruitadd(oldf->fname, (struct fruit *) 0);
+        if (holiday_food) {
+            otmp->spe = -(otmp->spe);
+        }
+    }
 }
 
 #ifdef SYSCF

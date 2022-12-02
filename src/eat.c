@@ -2495,6 +2495,34 @@ fpostfx(struct obj *otmp)
                 livelog_printf(LL_CONDUCT,
                     "became literate by reading the fortune inside a cookie");
         break;
+    case SLIME_MOLD: 
+        if (is_holiday_fruit(otmp)) {
+            struct fruit *f = fruit_from_indx(fruit_id(otmp));
+            if (!rn2(8) && f && !strcmp("slice of king cake", f->fname)) {
+                static const int babies[] = {
+                    PM_BABY_CROCODILE,
+                    PM_BABY_LONG_WORM,
+                    PM_BABY_PURPLE_WORM,
+                    PM_BABY_GRAY_DRAGON,
+                    PM_BABY_GOLD_DRAGON,
+                    PM_BABY_SILVER_DRAGON,
+                    PM_BABY_RED_DRAGON,
+                    PM_BABY_WHITE_DRAGON,
+                    PM_BABY_ORANGE_DRAGON,
+                    PM_BABY_BLACK_DRAGON,
+                    PM_BABY_BLUE_DRAGON,
+                    PM_BABY_GREEN_DRAGON,
+                    PM_BABY_YELLOW_DRAGON,
+                };
+                struct obj *feve = mksobj(FIGURINE, TRUE, FALSE);
+                set_corpsenm(feve, babies[rn2(SIZE(babies))]);
+                set_material(feve, PLASTIC);
+                There("is a plastic baby inside the slice of king cake!");
+                hold_another_object(feve, "It falls to the floor.",
+                                    (const char *) 0, (const char *) 0);
+            }
+        }
+        break;
     case LUMP_OF_ROYAL_JELLY:
         if (g.youmonst.data == &mons[PM_KILLER_BEE] && !Unchanging
             && polymon(PM_QUEEN_BEE, POLYMON_ALL_MSGS))
