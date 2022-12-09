@@ -167,6 +167,7 @@ changes:
   (from any source) nearly unresistable for monsters if you are carrying it, are
   currently chaotic, and have been crowned as a chaotic. It can be eaten, giving
   you permanent intrinsic hungering conflict.
+- New Big Room variant, a large bridge spanning an expanse of water or a chasm.
 
 ### Interface changes
 
