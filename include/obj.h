@@ -425,9 +425,11 @@ struct obj {
      || ((o)->oartifact == ART_EYES_OF_THE_OVERWORLD                    \
          && !undiscovered_artifact(ART_EYES_OF_THE_OVERWORLD)))
 #define pair_of(o) ((o)->otyp == LENSES || is_gloves(o) || is_boots(o))
-/* used to be used for loadstones, now unused;
- * may still be used in the future */
-#define undroppable(o) ( FALSE )
+
+/* formerly used for loadstones, now used for cursed gold items */
+#define undroppable(o) \
+    (((o)->oclass != COIN_CLASS) && ((o)->material == GOLD)             \
+     && ((o)->cursed))
 
 #define unpolyable(o) ((o)->otyp == WAN_POLYMORPH \
                        || (o)->otyp == SPE_POLYMORPH \

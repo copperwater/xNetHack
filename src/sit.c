@@ -377,7 +377,7 @@ dosit(void)
 void
 rndcurse(void)
 {
-    int nobj = 0;
+    int nobj = 0, goldobjs = 0;
     int cnt, onum;
     struct obj *otmp;
     static const char mal_aura[] = "feel a malignant aura surround %s.";
@@ -393,18 +393,24 @@ rndcurse(void)
     }
 
     for (otmp = g.invent; otmp; otmp = otmp->nobj) {
-        /* gold isn't subject to being cursed or blessed */
+        /* gold pieces aren't subject to being cursed or blessed */
         if (otmp->oclass == COIN_CLASS)
             continue;
+        else if (otmp->material == GOLD && !otmp->cursed)
+            goldobjs++;
         nobj++;
     }
     if (nobj) {
         for (cnt = rnd(6 / ((!!Antimagic) + (!!Half_spell_damage) + 1));
              cnt > 0; cnt--) {
-            onum = rnd(nobj);
+            onum = goldobjs ? rnd(goldobjs) : rnd(nobj);
             for (otmp = g.invent; otmp; otmp = otmp->nobj) {
                 /* as above */
                 if (otmp->oclass == COIN_CLASS)
+                    continue;
+                if (goldobjs && (otmp->material != GOLD || otmp->cursed))
+                    /* if there are non-cursed gold items to curse, skip any
+                     * other items */
                     continue;
                 if (--onum == 0)
                     break; /* found the target */
@@ -424,6 +430,14 @@ rndcurse(void)
                 unbless(otmp);
             else
                 curse(otmp);
+
+            /* only reduce goldobjs if the item is now cursed; if it went from
+             * blessed to uncursed, it's eligible to be hit again and become
+             * cursed (any regular item might go from blessed to cursed in one
+             * hit too if gold items aren't in play, but is much rarer because
+             * it will be spread across a whole inventory) */
+            if (goldobjs && otmp->cursed)
+                goldobjs--;
         }
         update_inventory();
     }

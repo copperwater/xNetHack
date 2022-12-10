@@ -175,6 +175,13 @@ changes:
   lord whose lair it is or the quest nemesis) has never been killed or is
   present on the level. If they have been defeated at least once and are absent
   from the level, those levels can then be magic mapped.
+- Items made of gold (besides gold coins) now act as a magnet for curse items
+  effects, and will be picked first before any non-gold items. The player cannot
+  drop, throw, or do anything else to make cursed gold items leave their
+  inventory, making them act like loadstones. They can, however, still be stolen
+  by leprechauns or other monsters. Remove curse effects will lift the curse
+  from all gold items in the player's inventory, even with an unskilled spell or
+  uncursed scroll, regardless of whether they are wielded or worn.
 
 ### Interface changes
 
