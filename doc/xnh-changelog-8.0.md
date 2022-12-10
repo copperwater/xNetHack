@@ -194,6 +194,7 @@ changes:
 - Cursed potions of gain level work in Sokoban (except on the topmost floor),
   and always make the hero appear on the downstairs of the level above. This
   incurs the usual cheating penalty.
+- Clumsily throwing a weapon not designed to be thrown abuses Wisdom.
 
 ### Interface changes
 
@@ -220,6 +221,11 @@ changes:
   and/or wielding a weapon.
 - New option in the terrain menu to show spaces on the current map that you have
   visited.
+- Paranoid "throw" option is expanded to cover throwing weapons and
+  weapon-tools not designed to be thrown (in addition to the existing check for
+  throwing ammo without the proper launcher), such as throwing a sword, club, or
+  polearm. If you have the option turned off or choose to throw it anyway, a
+  message announces that you "clumsily" throw it.
 
 ### Architectural changes
 

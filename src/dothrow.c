@@ -83,7 +83,7 @@ throw_obj(struct obj *obj, int shotlimit)
     int multishot;
     schar skill;
     long wep_mask;
-    boolean twoweap, weakmultishot;
+    boolean twoweap, weakmultishot, badthrow = FALSE;
 
     /* ask "in what direction?" */
     if (!getdir((char *) 0)) {
@@ -219,13 +219,29 @@ throw_obj(struct obj *obj, int shotlimit)
 
     g.m_shot.s = ammo_and_launcher(obj, uwep);
 
-    /* If you are trying to throw ammo without the matching launcher, this is
-     * probably a mistake.
-     * Possible addition: also ask if trying to throw a weapon that shouldn't be
-     * thrown, like a sword. */
-    if (is_ammo(obj) && !matching_launcher(obj, uwep) && ParanoidThrow
-        && yn("You don't have a launcher for that. Really throw it?") != 'y') {
-        return 0;
+    /* If you are trying to throw ammo without the matching launcher, or a
+     * weapon which isn't normally thrown, this is probably a mistake.
+     * Possible extension is to take this beyond weapons and weapon-tools, but
+     * then there are a host of other things which could reasonably be thrown
+     * (food at cats/dogs, cockatrice eggs, etc) and that might get tough to
+     * separate out all the cases */
+    if ((obj->oclass == WEAPON_CLASS || is_weptool(obj))
+        && ((is_ammo(obj) && !matching_launcher(obj, uwep))
+            /* this uses stacking as a heuristic for whether a weapon is
+             * normally treated as thrown - if a weapon stacks, it can be
+             * multishot */
+            || (!is_missile(obj) && !objects[obj->otyp].oc_merge)
+            /* ... but even that heuristic has a few gaps in it */
+            || obj->otyp == SCALPEL || obj->otyp == WORM_TOOTH)) {
+        if (ParanoidThrow) {
+            if (is_ammo(obj))
+                pline("You're not wielding the right launcher for that.");
+            else
+                pline("This weapon doesn't seem designed to be thrown.");
+            if (yn("Really throw it?") != 'y')
+                return ECMD_OK;
+        }
+        badthrow = TRUE;
     }
 
     /* give a message if shooting more than one, or if player
@@ -253,6 +269,11 @@ throw_obj(struct obj *obj, int shotlimit)
             oldslot = obj->nobj;
         }
         freeinv(otmp);
+        if (badthrow) {
+            You("clumsily throw %s.", yname(otmp));
+            if (!rn2(5))
+                exercise(A_WIS, FALSE);
+        }
         throwit(otmp, wep_mask, twoweap, oldslot);
         (void) encumber_msg();
     }
