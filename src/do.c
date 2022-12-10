@@ -1606,6 +1606,11 @@ goto_level(
                                          : "descend the stairs");
             }
         }
+    } else if (!at_stairs && In_sokoban(&u.uz0) && up) {
+        /* this is only possible via cursed gain level in Sokoban (or wizard
+         * mode levelportation, I suppose); you still can't levelport through it
+         * in regular gameplay */
+        u_on_dnstairs();
     } else { /* trap door or level_tele or In_endgame */
         u_on_rndspot((up ? 1 : 0) | (was_in_W_tower ? 2 : 0));
         if (falling) {

@@ -1247,6 +1247,10 @@ peffect_gain_level(struct obj *otmp)
             || Can_rise_up(u.ux, u.uy, &u.uz)) {
             static const char riseup[] = "rise up, through the %s!";
 
+            /* This is allowed now to bypass Sokoban levels, but it's pretty
+             * clearly cheating on the challenge. */
+            sokoban_guilt();
+
             if (ledger_no(&u.uz) == 1) {
                 You(riseup, ceiling(u.ux, u.uy));
                 goto_level(&earth_level, FALSE, FALSE, FALSE);

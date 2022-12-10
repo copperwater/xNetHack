@@ -191,6 +191,9 @@ changes:
   glass.
 - Gnome and dwarf nobility occasionally generate with a touchstone; 5% chance
   outside the Mines and 1% inside it.
+- Cursed potions of gain level work in Sokoban (except on the topmost floor),
+  and always make the hero appear on the downstairs of the level above. This
+  incurs the usual cheating penalty.
 
 ### Interface changes
 
