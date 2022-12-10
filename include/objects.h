@@ -1320,8 +1320,8 @@ WAND("lightning",      "curved", 40, 175, 1, RAY, IRON, HI_METAL,
 WAND(NoDes,             "forked",  0, 150, 1, 0, WOOD, HI_WOOD, WAN1),
 WAND(NoDes,             "spiked",  0, 150, 1, 0, IRON, HI_METAL, WAN2),
 WAND(NoDes,            "jeweled",  0, 150, 1, 0, IRON, HI_MINERAL, WAN3),
-WAND(NoDes,               "gold",  0, 150, 1, 0, IRON, HI_MINERAL, WAN4),
-WAND(NoDes,             "gilded",  0, 150, 1, 0, IRON, HI_MINERAL, WAN5),
+WAND(NoDes,               "gold",  0, 150, 1, 0, GOLD, HI_MINERAL, WAN4),
+WAND(NoDes,             "gilded",  0, 150, 1, 0, GOLD, HI_MINERAL, WAN5),
 #undef WAND
 
 /* coins ... - so far, gold is all there is */
