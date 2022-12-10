@@ -1592,7 +1592,8 @@ extern int meatobj(struct monst *);
 extern int meatcorpse(struct monst *);
 extern void mon_givit(struct monst *, struct permonst *);
 extern void mpickgold(struct monst *);
-extern boolean mpickstuff(struct monst *, boolean(*)(struct obj *));
+extern boolean mpickstuff(struct monst *,
+                          boolean(*)(struct monst *, struct obj *));
 extern int curr_mon_load(struct monst *);
 extern int max_mon_load(struct monst *);
 extern int can_carry(struct monst *, struct obj *);

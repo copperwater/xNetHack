@@ -12,11 +12,11 @@ static int disturb(struct monst *);
 static void release_hero(struct monst *);
 static void distfleeck(struct monst *, int *, int *, int *);
 static int m_arrival(struct monst *);
-static boolean mitem_practical(struct obj *);
-static boolean mitem_magical(struct obj *);
-static boolean mitem_indigestion(struct obj *);
-static boolean mitem_rock(struct obj *);
-static boolean mitem_gem(struct obj *);
+static boolean mitem_practical(struct monst *, struct obj *);
+static boolean mitem_magical(struct monst *, struct obj *);
+static boolean mitem_indigestion(struct monst *, struct obj *);
+static boolean mitem_rock(struct monst *, struct obj *);
+static boolean mitem_gem(struct monst *, struct obj *);
 static boolean holds_up_web(xchar, xchar);
 static int count_webbing_walls(xchar, xchar);
 static boolean soko_allow_web(struct monst *);
@@ -860,14 +860,15 @@ dochug(register struct monst* mtmp)
     return (tmp == MMOVE_DIED);
 }
 
-/* Return true if a "practical" monster should be interested in this obj. */
+/* Return true if "practical" monster mon should be interested in this obj. */
 static boolean
-mitem_practical(struct obj *obj)
+mitem_practical(struct monst *mon, struct obj *obj)
 {
     switch(obj->oclass) {
+    case GEM_CLASS:
+        return mitem_gem(mon, obj);
     case WEAPON_CLASS:
     case ARMOR_CLASS:
-    case GEM_CLASS:
     case FOOD_CLASS:
         return TRUE;
     default:
@@ -878,14 +879,14 @@ mitem_practical(struct obj *obj)
 /* Return true if a monster that likes magical items should be interested in
  * this obj. */
 static boolean
-mitem_magical(struct obj *obj)
+mitem_magical(struct monst *mon UNUSED, struct obj *obj)
 {
     return objects[obj->otyp].oc_magic;
 }
 
 /* Return true if a monster (gelatinous cube) shouldn't try to eat this obj. */
 static boolean
-mitem_indigestion(struct obj *obj)
+mitem_indigestion(struct monst *mon UNUSED, struct obj *obj)
 {
     return (obj->oclass == BALL_CLASS || obj->oclass == ROCK_CLASS);
 }
@@ -893,16 +894,18 @@ mitem_indigestion(struct obj *obj)
 /* Return true if a giant should be interested in this obj. (They like all
  * rocks.)*/
 static boolean
-mitem_rock(struct obj *obj)
+mitem_rock(struct monst *mon UNUSED, struct obj *obj)
 {
     return (obj->oclass == ROCK_CLASS);
 }
 
 /* Return true if a gem-liking monster should be interested in this obj. */
 static boolean
-mitem_gem(struct obj *obj)
+mitem_gem(struct monst *mon, struct obj *obj)
 {
-    return (obj->oclass == GEM_CLASS);
+    if (knows_valuable_gems(mon->data) && obj->material == GLASS)
+        return FALSE;
+    return TRUE;
 }
 
 boolean
@@ -1379,18 +1382,20 @@ m_move(register struct monst* mtmp, register int after)
                         continue;
 
                     if (((likegold && otmp->oclass == COIN_CLASS)
-                         || (likeobjs && mitem_practical(otmp)
+                         || (likeobjs && mitem_practical(mtmp, otmp)
                              && (otmp->otyp != CORPSE
                                  || (ptr->mlet == S_NYMPH
                                      && !is_rider(&mons[otmp->corpsenm]))))
-                         || (likemagic && mitem_magical(otmp))
+                         || (likemagic && mitem_magical(mtmp, otmp))
                          || (uses_items && searches_for_item(mtmp, otmp))
                          || (likerock && otmp->otyp == BOULDER)
                          || (likegems && otmp->oclass == GEM_CLASS
-                             && otmp->material != MINERAL)
+                             && otmp->material != MINERAL
+                             && !(knows_valuable_gems(ptr) &&
+                                  otmp->material == GLASS))
                          || (conceals && !cansee(otmp->ox, otmp->oy))
                          || (ptr == &mons[PM_GELATINOUS_CUBE]
-                             && !mitem_indigestion(otmp)
+                             && !mitem_indigestion(mtmp, otmp)
                              && !(otmp->otyp == CORPSE
                                   && touch_petrifies(&mons[otmp->corpsenm]))))
                         && touch_artifact(otmp, mtmp)) {

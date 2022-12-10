@@ -187,6 +187,8 @@ changes:
 - Flaming, freezing, and shocking spheres all have an explode-upon-death attack
   like a gas spore's, but of fire, cold, and electricity type respectively, for
   the same damage as their active explosion attack.
+- Gnome and dwarf monarchs will only pick up valuable gems, ignoring worthless
+  glass.
 
 ### Interface changes
 

@@ -313,4 +313,10 @@
  * tactics(). */
 #define covetous_nonwarper(ptr) ((ptr) == &mons[PM_SCHLIEMANN])
 
+/* The monster knows the difference between a valuable gem and worthless glass.
+ * (This is not an innate ability, so player polymorphed into them will not get
+ * to identify gems.) */
+#define knows_valuable_gems(ptr) \
+    ((ptr) == &mons[PM_DWARF_RULER] || (ptr) == &mons[PM_GNOME_RULER])
+
 #endif /* MONDATA_H */

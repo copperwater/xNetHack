@@ -1680,11 +1680,12 @@ mpickgold(register struct monst* mtmp)
 }
 
 /* Monster tries to pick up an item. Return TRUE if something was picked up.
- * mitem_wanted is a callback that takes an object and returns TRUE if the item
- * should be picked up or FALSE if not.
+ * mitem_wanted is a callback that takes the monster and the object and returns
+ * TRUE if the monster should pick up the item or FALSE if not.
  */
 boolean
-mpickstuff(struct monst* mtmp, boolean (*mitem_wanted)(struct obj *))
+mpickstuff(struct monst* mtmp,
+           boolean (*mitem_wanted)(struct monst *, struct obj *))
 {
     register struct obj *otmp, *otmp2, *otmp3;
     int carryamt = 0;
@@ -1702,7 +1703,7 @@ mpickstuff(struct monst* mtmp, boolean (*mitem_wanted)(struct obj *))
             continue;
 
         /* Nymphs take everything.  Most monsters don't pick up corpses. */
-        if ((mitem_wanted != NULL && (*mitem_wanted)(otmp))
+        if ((mitem_wanted != NULL && (*mitem_wanted)(mtmp, otmp))
             || (mitem_wanted == NULL && searches_for_item(mtmp, otmp))) {
             if (otmp->otyp == CORPSE && mtmp->data->mlet != S_NYMPH
                 /* let a handful of corpse types thru to can_carry() */
