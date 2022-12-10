@@ -4,7 +4,7 @@
 -- NetHack may be freely redistributed.  See license for details.
 --
 
-des.level_flags("mazelevel", "outdoors", "hardfloor", "noflipx", "inaccessibles");
+des.level_flags("mazelevel", "outdoors", "hardfloor", "noflipx", "inaccessibles", "nommap-boss");
 
 des.level_init({ style = "mines", fg = ".", bg=".", lit=1, walled=false });
 

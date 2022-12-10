@@ -4,7 +4,8 @@
 -- NetHack may be freely redistributed.  See license for details.
 --
 
---
+des.level_flags("nommap-boss")
+
 des.room({ type = "ordinary",
            contents = function()
               des.stair("up")

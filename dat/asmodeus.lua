@@ -5,7 +5,7 @@
 --
 des.level_init({ style="mazegrid", bg ="-" });
 
-des.level_flags("mazelevel")
+des.level_flags("mazelevel", "nommap-boss")
 -- First part
 des.map({ halign = "half-left", valign = "center", map = [[
 ---------------------

@@ -170,6 +170,11 @@ changes:
 - New Big Room variant, a large bridge spanning an expanse of water or a chasm.
 - If you are petless, djinni from potions and lamps will never be created tame
   and break your conduct.
+- Mark demon lord lairs, the Archeologist upper filler level, and the lower half
+  of the Monk quest as unmappable - but only if the local villain (the demon
+  lord whose lair it is or the quest nemesis) has never been killed or is
+  present on the level. If they have been defeated at least once and are absent
+  from the level, those levels can then be magic mapped.
 
 ### Interface changes
 
@@ -205,3 +210,4 @@ changes:
 - Artifacts now have their material (either something specific or "use the base
   item's default material") encoded in the artilist array rather than hardcoded
   in artifact creation.
+- The nommap level flag is now 2 bits long.

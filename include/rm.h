@@ -411,12 +411,12 @@ struct levelflags {
     Bitfield(has_swamp, 1);
     Bitfield(noteleport, 1);
     Bitfield(hardfloor, 1);
-    Bitfield(nommap, 1);
+    Bitfield(nommap, 2);        /* magic mapping restrictions */
     Bitfield(hero_memory, 1);   /* hero has memory */
     Bitfield(shortsighted, 1);  /* monsters are shortsighted */
     Bitfield(graveyard, 1);     /* has_morgue, but remains set */
-    Bitfield(sokoban_rules, 1); /* fill pits and holes w/ boulders */
 
+    Bitfield(sokoban_rules, 1); /* fill pits and holes w/ boulders */
     Bitfield(is_maze_lev, 1);
     Bitfield(is_cavernous_lev, 1);
     Bitfield(arboreal, 1);     /* Trees replace rock */
@@ -430,6 +430,19 @@ struct levelflags {
     Bitfield(visited_after_event, 1); /* whether you have already (re)entered
                                        * the level after satisfying some
                                        * condition */
+    /* 0 free bits */
+};
+
+/* values for nommap, which is a slightly awkward name since it is no longer a
+ * simple boolean flag, but still preserves the convention of nonzero =
+ * mapping restrictions and unspecified = 0 = no mapping restrictions */
+enum nommap_values {
+    MAPPABLE_ALWAYS = 0,      /* there is no restriction on magic mapping */
+    MAPPABLE_BOSSBLOCKED = 1, /* this level can be mapped after a local boss has
+                                 been defeated (Quest nemesis in Quest branch,
+                                 etc) */
+    MAPPABLE_NEVER = 2        /* this level can never be mapped */
+    /* a third mappability value can be added without a savebreak if desired */
 };
 
 /* flags for visited_after_event */

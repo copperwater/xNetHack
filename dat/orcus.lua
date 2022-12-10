@@ -5,7 +5,7 @@
 --
 des.level_init({ style="mazegrid", bg ="-" });
 
-des.level_flags("mazelevel", "shortsighted")
+des.level_flags("mazelevel", "shortsighted", "nommap-boss")
 -- A ghost town
 des.map({ halign = "right", valign = "center", map = [[
 .|....|....|....|..............|....|........

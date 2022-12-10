@@ -113,7 +113,7 @@ throne_sit_effect(void)
             break;
         case 10:
             if (Luck < 0 || (HSee_invisible & INTRINSIC)) {
-                if (g.level.flags.nommap) {
+                if (!can_magic_map()) {
                     pline("A terrible drone fills your head!");
                     make_confused((HConfusion & TIMEOUT) + (long) rnd(30),
                                   FALSE);

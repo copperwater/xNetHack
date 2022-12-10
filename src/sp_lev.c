@@ -3653,7 +3653,9 @@ lspo_level_flags(lua_State *L)
         else if (!strcmpi(s, "hardfloor"))
             g.level.flags.hardfloor = 1;
         else if (!strcmpi(s, "nommap"))
-            g.level.flags.nommap = 1;
+            g.level.flags.nommap = MAPPABLE_NEVER;
+        else if (!strcmpi(s, "nommap-boss"))
+            g.level.flags.nommap = MAPPABLE_BOSSBLOCKED;
         else if (!strcmpi(s, "shortsighted"))
             g.level.flags.shortsighted = 1;
         else if (!strcmpi(s, "arboreal"))

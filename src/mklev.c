@@ -1011,7 +1011,7 @@ clear_level_structures(void)
     g.level.flags.has_swamp = 0;
     g.level.flags.noteleport = 0;
     g.level.flags.hardfloor = 0;
-    g.level.flags.nommap = 0;
+    g.level.flags.nommap = MAPPABLE_ALWAYS;
     g.level.flags.hero_memory = 1;
     g.level.flags.shortsighted = 0;
     g.level.flags.sokoban_rules = 0;

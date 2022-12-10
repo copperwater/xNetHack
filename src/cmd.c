@@ -1639,8 +1639,10 @@ wiz_map_levltyp(void)
             Strcat(dsc, " noTport");
         if (g.level.flags.hardfloor)
             Strcat(dsc, " noDig");
-        if (g.level.flags.nommap)
+        if (g.level.flags.nommap == MAPPABLE_NEVER)
             Strcat(dsc, " noMMap");
+        else if (g.level.flags.nommap == MAPPABLE_BOSSBLOCKED)
+            Strcat(dsc, " noMMapBoss");
         if (!g.level.flags.hero_memory)
             Strcat(dsc, " noMem");
         if (g.level.flags.shortsighted)

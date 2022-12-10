@@ -2169,7 +2169,7 @@ seffect_magic_mapping(struct obj **sobjp)
     int cval;
 
     if (is_scroll) {
-        if (g.level.flags.nommap) {
+        if (!can_magic_map()) {
             Your("mind is filled with crazy lines!");
             if (Hallucination)
                 pline("Wow!  Modern art.");
@@ -2190,7 +2190,7 @@ seffect_magic_mapping(struct obj **sobjp)
         g.known = TRUE;
     }
 
-    if (g.level.flags.nommap) {
+    if (!can_magic_map()) {
         Your("%s spins as %s blocks the spell!", body_part(HEAD),
              something);
         make_confused(HConfusion + rnd(30), FALSE);
@@ -3467,6 +3467,66 @@ create_particular(void)
     else
         return create_particular_creation(&d);
     return NULL;
+}
+
+/* Return true if it is currently possible to magic map the current level, based
+ * on the value of nommap. */
+boolean
+can_magic_map(void)
+{
+    if (g.level.flags.nommap == MAPPABLE_ALWAYS)
+        return TRUE;
+    else if (g.level.flags.nommap == MAPPABLE_NEVER)
+        return FALSE;
+    else if (g.level.flags.nommap == MAPPABLE_BOSSBLOCKED) {
+        /* Important to note that all this behavior only triggers on levels
+         * where the designer set this flag. If it's regular always-mappable or
+         * never-mappable, this doesn't come into play. */
+        int boss_mndx;
+        struct monst *mtmp;
+
+        /* Mapping is blocked on a boss's home turf if the boss:
+         * a) has not been killed yet, OR
+         * b) is alive and present on the level.
+         * This is _sort_ of like the teleportation restriction that demon lords
+         * have, but that restriction is lifted once you get them to move to a
+         * different level, which doesn't make as much sense for this.
+         */
+        if (In_quest(&u.uz) && !Is_qstart(&u.uz)) {
+            /* All levels of the Quest besides the start will have mapping
+             * blocked by the nemesis. */
+            boss_mndx = g.urole.neminum;
+        }
+        else if (Is_asmo_level(&u.uz)) {
+            boss_mndx = PM_ASMODEUS;
+        }
+        else if (Is_baal_level(&u.uz)) {
+            boss_mndx = PM_BAALZEBUB;
+        }
+        else if (Is_juiblex_level(&u.uz)) {
+            boss_mndx = PM_JUIBLEX;
+        }
+        else if (Is_orcus_level(&u.uz)) {
+            boss_mndx = PM_ORCUS;
+        }
+        /* add more cases here if blocking for other bosses is desired */
+        else {
+            /* not on a boss's level, so why do we have BOSSBLOCKED set? */
+            impossible("nommap set to BOSSBLOCKED on non-boss level");
+            return TRUE;
+        }
+        if (g.mvitals[boss_mndx].died == 0)
+            return FALSE;
+        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+            if (mtmp->data == &mons[boss_mndx])
+                return FALSE;
+        }
+        return TRUE;
+    }
+    else {
+        impossible("unknown nommap value");
+        return FALSE;
+    }
 }
 
 /*read.c*/

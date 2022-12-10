@@ -120,6 +120,7 @@ typedef struct branch {
 #define Is_juiblex_level(x) (Lcheck(x, &juiblex_level))
 #define Is_asmo_level(x)    (Lcheck(x, &asmodeus_level))
 #define Is_baal_level(x)    (Lcheck(x, &baalzebub_level))
+#define Is_orcus_level(x)   (Lcheck(x, &orcus_level))
 #define Is_wiz1_level(x)    (Lcheck(x, &wiz1_level))
 #define Is_wiz2_level(x)    (Lcheck(x, &wiz2_level))
 #define Is_wiz3_level(x)    (Lcheck(x, &wiz3_level))

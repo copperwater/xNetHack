@@ -5,7 +5,7 @@
 --
 des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel", "hardfloor", "outdoors", "noteleport")
+des.level_flags("mazelevel", "hardfloor", "outdoors", "noteleport", "nommap-boss")
 --         1         2         3         4         5         6         7 
 --123456789012345678901234567890123456789012345678901234567890123456789012345
 des.map([[

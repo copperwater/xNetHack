@@ -3,7 +3,7 @@
 --	Copyright (c) 1991-2 by M. Stephenson
 -- NetHack may be freely redistributed.  See license for details.
 --
-des.level_flags("mazelevel", "noteleport", "icedpools", "noflipx")
+des.level_flags("mazelevel", "noteleport", "icedpools", "noflipx", "nommap-boss")
 
 --2345678901234567890123456789012345678901234567890123456789012345678901234567890
 des.map([[

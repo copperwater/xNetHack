@@ -5,7 +5,7 @@
 --
 -- des.level_init({ style = "solidfill", fg = " " });
 
-des.level_flags("mazelevel");
+des.level_flags("mazelevel", "nommap-boss");
 
 des.level_init({ style="mines", fg="L", bg=".", smoothed=false, joined=false, lit=0, walled=false })
 

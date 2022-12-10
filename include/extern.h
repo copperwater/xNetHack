@@ -2378,6 +2378,7 @@ extern void unpunish(void);
 extern xchar do_stinking_cloud(struct obj *, boolean);
 extern boolean cant_revive(int *, boolean, struct obj *);
 extern struct monst *create_particular(void);
+extern boolean can_magic_map(void);
 
 /* ### rect.c ### */
 
