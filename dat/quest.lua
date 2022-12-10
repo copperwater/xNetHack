@@ -564,6 +564,14 @@ and blasting their way into the other side of the mountain.]],
       locate_next = {
          text = "Once again, you are near the entrance to %i.",
       },
+      lowlevel = {
+         synopsis = "[Are you really capable of representing the College?]",
+         output = "text",
+         text = [[
+"This is most unusual. One as inexperienced as you are could make a
+mockery of the College's reputation. Do you really believe yourself
+capable of representing us?"]],
+      },
       nemesis_first = {
          synopsis = "[\"The treasure is mine.  You dispute this?  Come, then!\"]",
          output = "text",
@@ -828,6 +836,13 @@ the desert breeze.  You know that you have located %i.
       locate_next = {
          text = "Yet again you have a chance to infiltrate %i.",
       },
+      lowlevel = {
+         synopsis = "[Are you sure you can face %n?]",
+         output = "text",
+         text = [[
+"%p, you seem very inexperienced. Are you sure that you can
+face %n?"]],
+      },
       nemesis_first = {
          synopsis = "[%nC boasts that %nh has slain many.  \"Prepare to die, %c.\"]",
          output = "text",
@@ -1078,6 +1093,13 @@ You smell dead things in there.
       locate_next = {
          text = "Once again, you approach %i.",
       },
+      lowlevel = {
+         synopsis = "[You very small.  You sure?]",
+         output = "text",
+         text = [[
+"Me not know, %p, you sure you not need to do more stuff first?
+It real hard to fight %n and you very small.  You sure you can do it?"]],
+      },
       nemesis_first = {
          synopsis = "[%nC threatens to eat you.]",
          output = "text",
@@ -1307,6 +1329,13 @@ The swampy ground around you seems to stink with disease.]],
       locate_next = {
          text = "Once again you stand at the entrance to %i.",
       },
+      lowlevel = {
+         synopsis = "[You are very inexperienced.  Really proceed?]",
+         output = "text",
+         text = [[
+"Alas, %p, I fear that you are far too inexperienced to deal with the
+rigors of such a task.  Are you certain you are really ready to undertake it?"]],
+      },
       nemesis_first = {
          synopsis = "[\"I will take your life, then defeat %l.\"]",
          output = "text",
@@ -1529,6 +1558,13 @@ your neck stands on end.]],
       },
       locate_next = {
          text = "Again, you stand at the foot of %i.",
+      },
+      lowlevel = {
+         synopsis = "[Art thou sure thou wish to undertake this?]",
+         output = "text",
+         text = [[
+"Art thou serious, %p?  Wilt thou undertake this quest already,
+in thine inexperienced state?"]],
       },
       nemesis_first = {
          synopsis = "[%nC taunts you and issues a threat against %H.]",
@@ -1758,6 +1794,15 @@ and in its depths %n surely lurks.
       locate_next = {
          text = "Again, you near %i.",
       },
+      lowlevel = {
+         synopsis = "[Are you sure you are ready?]",
+         output = "text",
+         text = [[
+"Oddly, %p, though you seem unready, I find myself wondering
+whether the experience I have looked for in you is perhaps not the true
+preparation you require.  Sending you forth now is a great risk,
+however.  Are you sure you are ready?""]],
+      },
       nemesis_first = {
          synopsis = "[You are no %g.  You shall never regain %o.]",
          output = "text",
@@ -1979,6 +2024,15 @@ You remember the descriptions of %i, given to you by
       },
       locate_next = {
          text = "Again, you stand before %i.",
+      },
+      lowlevel = {
+         synopsis = "[You propose a great risk.  Are you sure?]",
+         output = "text",
+         text = [[
+"We cannot hold back the undead here forever, %p, and if you
+should fall, we have not the ability to raise you or to find another to
+send in your place.  It is a great risk you propose to take.  Are you
+sure you are ready for this?"]],
       },
       nemesis_first = {
          synopsis = "[%lC has sent you, but you are no %gC.  I shall destroy you.]",
@@ -2211,6 +2265,14 @@ You are in room 9 of the cave.  There are tunnels to rooms
 *whoosh* (I feel a draft from some pits.)
 *rustle* *rustle* (must be bats nearby.)]],
       },
+      lowlevel = {
+         synopsis = "[You are still a %r!  Can you really do this?]",
+         output = "text",
+         text = [[
+"You are so young!  Still a %r!  Can you fight the centaurs?  Can you
+really find and infiltrate %i, take on %n, and recover
+%o for us?"]],
+      },
       nemesis_first = {
          synopsis = "[You have come to recover %o, but I shall keep %oh and you shall die.]",
          output = "text",
@@ -2410,6 +2472,18 @@ think me as stupid as your behavior.  I warn you not to try my patience."]],
       },
       locate_next = {
          text = "Not wanting to face %l without having stolen %o, you continue.",
+      },
+      lowlevel = {
+         synopsis = "[%l laughs at you and waves you onward.]",
+         output = "text",
+         text = [[
+%l guffaws loudly.
+
+"This is the funniest joke I ever heard.  You actually think you're
+ready to bring down %n?  You?
+
+Know what?  Fine, moron.  Have fun dying.  We're all going to laugh at
+it."]],
       },
       nemesis_first = {
          text = "\"Ah!  You must be %ls ... er, `hero'.  A pleasure to meet you.\"",
@@ -2641,6 +2715,13 @@ lay of this land, but you know that your teki are everywhere.]],
          text = [[Thankful that your %sp at %H cannot see
 your fear, you prepare again to advance.]],
       },
+      lowlevel = {
+         synopsis = "[Do you think your inexperience is enough to win?]",
+         output = "text",
+         text = [[
+"Do you think you know the bushido, %p-chan?  Nantekawaii.
+Do you think that will be enough to save you when you fight %n?"]],
+      },
       nemesis_first = {
          text = [["Ah, so it is to be you, %p-san.  I offer you seppuku.
 I will be your second if you wish."]],
@@ -2859,6 +2940,14 @@ the handiwork of %ns henchlings everywhere.]],
       },
       locate_next = {
          text = "You know that this time you must find and destroy %n.",
+      },
+      lowlevel = {
+         synopsis = "[You want to leave the beaten path?]",
+         output = "text",
+         text = [[
+"So, you want to go off the beaten path, answering my summons even
+though you are still a mere %r.  I can't fault you for it;
+the best excursions happen to the audacious."]],
       },
       nemesis_first = {
          synopsis = "[%rA will not defeat me.]",
@@ -3130,6 +3219,13 @@ and says something to his compatriots.  They start moving towards you.]]
       locate_next = {
          text = "Once again, you stand before %i.",
       },
+      lowlevel = {
+         synopsis = "[Will you abandon reason and attempt to defeat %n?]",
+         output = "text",
+         text = [[
+"This is outrageous!  You are but a %r!  Will you turn all
+reason on its head and defeat %n in such a state?"]],
+      },
       nemesis_first = {
          synopsis = "[\"Fenrir can wait.  Fight us and die!\"]",
          output = "text",
@@ -3357,6 +3453,13 @@ I certainly hope that you are truly ready this time!"]],
       },
       locate_next = {
          text = "You believe that you may once again invade %i.",
+      },
+      lowlevel = {
+         synopsis = "[A mere %r expects to take on %n?]",
+         output = "text",
+         text = [[
+"Astonishing!  You show up as a mere %r and expect to take on
+%n?"]],
       },
       nemesis_first = {
          synopsis = "[\"Your destruction should make for good sport.\"]",

@@ -182,6 +182,8 @@ changes:
   by leprechauns or other monsters. Remove curse effects will lift the curse
   from all gold items in the player's inventory, even with an unskilled spell or
   uncursed scroll, regardless of whether they are wielded or worn.
+- The Quest can be entered at experience level 1 if you have never gained a
+  level.
 
 ### Interface changes
 

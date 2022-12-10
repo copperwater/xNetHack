@@ -338,6 +338,17 @@ chat_with_leader(struct monst *mtmp)
             return;
 
         if (not_capable()) {
+            if ((purity = is_pure(TRUE)) > 0 && u.ulevelmax < 2) {
+                /* Allow players who have never gained a level to start the
+                 * Quest, which removes a lot of drudgery for pacifist conduct
+                 * players */
+                qt_pager("lowlevel");
+                if (yn("Confirm your readiness and start the quest?") == 'y') {
+                    verbalize("Go on then.");
+                    Qstat(got_quest) = TRUE;
+                    return;
+                }
+            }
             qt_pager("badlevel");
             exercise(A_WIS, TRUE);
             expulsion(FALSE);
