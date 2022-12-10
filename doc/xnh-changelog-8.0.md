@@ -184,6 +184,9 @@ changes:
   uncursed scroll, regardless of whether they are wielded or worn.
 - The Quest can be entered at experience level 1 if you have never gained a
   level.
+- Flaming, freezing, and shocking spheres all have an explode-upon-death attack
+  like a gas spore's, but of fire, cold, and electricity type respectively, for
+  the same damage as their active explosion attack.
 
 ### Interface changes
 
