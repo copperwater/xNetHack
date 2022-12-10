@@ -809,6 +809,10 @@ m_initinv(register struct monst *mtmp)
             if (!levl[mtmp->mx][mtmp->my].lit)
                 begin_burn(otmp, FALSE);
         }
+        if ((ptr == &mons[PM_DWARF_LEADER] || ptr == &mons[PM_GNOME_LEADER])
+            && !rn2(In_mines(&u.uz) ? 100 : 20)) {
+            mongets(mtmp, TOUCHSTONE);
+        }
         if (!In_mines(&u.uz)) {
             int ngems = rn2(1 + min(level_difficulty() / 5, 2));
             while (ngems > 0) {

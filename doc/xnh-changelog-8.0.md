@@ -189,6 +189,8 @@ changes:
   the same damage as their active explosion attack.
 - Gnome and dwarf monarchs will only pick up valuable gems, ignoring worthless
   glass.
+- Gnome and dwarf nobility occasionally generate with a touchstone; 5% chance
+  outside the Mines and 1% inside it.
 
 ### Interface changes
 
