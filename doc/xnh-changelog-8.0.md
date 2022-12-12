@@ -195,6 +195,8 @@ changes:
   and always make the hero appear on the downstairs of the level above. This
   incurs the usual cheating penalty.
 - Clumsily throwing a weapon not designed to be thrown abuses Wisdom.
+- Intelligent monsters will pick up keys and lock picks so that they can use
+  them on doors.
 
 ### Interface changes
 

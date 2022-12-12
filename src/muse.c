@@ -2469,6 +2469,11 @@ searches_for_item(struct monst* mon, struct obj* obj)
                               && mon->data != &mons[PM_KI_RIN]);
         if (typ == FROST_HORN || typ == FIRE_HORN || typ == MAGIC_FLUTE)
             return (obj->spe > 0 && can_blow(mon));
+        if ((typ == SKELETON_KEY || typ == LOCK_PICK)
+            && !nohands(mon->data) && !verysmall(mon->data)
+            && !mindless(mon->data)
+            && !m_carrying(mon, SKELETON_KEY) && !m_carrying(mon, LOCK_PICK))
+            return TRUE;
         if (Is_container(obj) && !(Is_mbag(obj) && obj->cursed)
             && !obj->olocked)
             return TRUE;
