@@ -197,6 +197,9 @@ changes:
 - Clumsily throwing a weapon not designed to be thrown abuses Wisdom.
 - Intelligent monsters will pick up keys and lock picks so that they can use
   them on doors.
+- The cursed potion of gain ability when quaffed will raise your lowest ability
+  score by one point by stealing the point from your highest ability score,
+  rather than doing nothing.
 
 ### Interface changes
 
