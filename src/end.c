@@ -1556,10 +1556,11 @@ really_done(int how)
         pbuf[0] = '\0';
         if (yn("Do you want to write your own epitaph?") == 'y') {
             char ebuf[BUFSZ];
+            ebuf[0] = '\0'; /* don't show junk for EDIT_GETLIN */
             getlin("Enter your epitaph:", ebuf);
             if (*ebuf) {
                 Sprintf(pbuf, "%s.  ", g.plname);
-                (void) strncat(pbuf, ebuf, sizeof pbuf - Strlen(pbuf) - 1);
+                (void) strncat(pbuf, ebuf, 100);
             }
         }
         if (!*pbuf) { /* didn't write own epitaph, or entered a blank line */
