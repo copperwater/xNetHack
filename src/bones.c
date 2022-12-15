@@ -27,8 +27,7 @@ no_bones_level(d_level *lev)
                       || Is_botlevel(lev)
                       || (Is_branchlev(lev) && lev->dlevel > 1)
                       /* no bones in the invocation level */
-                      || (In_hell(lev)
-                          && lev->dlevel == dunlevs_in_dungeon(lev) - 1));
+                      || Invocation_lev(lev));
 }
 
 /* Call this function for each fruit object saved in the bones level: it marks

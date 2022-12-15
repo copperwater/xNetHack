@@ -3,6 +3,21 @@
 -- NetHack may be freely redistributed.  See license for details.
 --
 -- The dungeon description file.
+
+-- Randomize a couple of demon lair placements. These strings are the special
+-- level identifiers.
+local lawdemon1 = 'baalz'
+local lawdemon2 = 'geryon'
+if percent(50) then
+   lawdemon1, lawdemon2 = lawdemon2, lawdemon1
+end
+
+local chaosdemon1 = 'orcus'
+local chaosdemon2 = 'yeenoghu'
+if percent(50) then
+   chaosdemon1, chaosdemon2 = chaosdemon2, chaosdemon1
+end
+
 dungeon = {
    {
       name = "The Dungeons of Doom",
@@ -82,15 +97,43 @@ dungeon = {
    {
       name = "Gehennom",
       bonetag = "G",
-      base = 20,
-      range = 5,
+      base = 10,
       flags = { "mazelike", "hellish" },
       alignment = "noalign",
+      lvlfill = "hellfill",
       branches = {
          {
             name = "Vlad's Tower",
-            base = 9,
-            range = 5,
+            base = 2,
+            direction = "up"
+         },
+         {
+            name = "Cocytus",
+            base = 3,
+            direction = "down"
+         },
+         {
+            name = "Asphodel",
+            base = 4,
+            direction = "down"
+         },
+         {
+            name = "The Stygian Marsh",
+            base = 5,
+            direction = "down"
+         }, {
+            name = "The Citadel of Dis",
+            base = 6,
+            direction = "up"
+         },
+         {
+            name = "The Abyss",
+            base = 7,
+            direction = "down"
+         },
+         {
+            name = "The Wizard's Tower",
+            base = 8,
             direction = "up"
          }
       },
@@ -101,65 +144,27 @@ dungeon = {
             base = 1
          },
          {
-            name = "sanctum",
-            base = -1
+            name = "hellgate",
+            bonetag = "G",
+            base = 2
+         },
+         {
+            name = "styxmarsh",
+            bonetag = "S",
+            base = 5
+         },
+         {
+            name = "dis",
+            bonetag = "D",
+            base = 6
          },
          {
             name = "invocation",
             base = -2
          },
          {
-            name = "juiblex",
-            bonetag = "J",
-            base = 4,
-            range = 4
-         },
-         {
-            name = "baalz",
-            bonetag = "B",
-            base = 6,
-            range = 4
-         },
-         {
-            name = "asmodeus",
-            bonetag = "A",
-            base = 2,
-            range = 6
-         },
-         {
-            name = "wizard1",
-            base = 11,
-            range = 6
-         },
-         {
-            name = "wizard2",
-            bonetag = "X",
-            chainlevel = "wizard1",
-            base = 1
-         },
-         {
-            name = "wizard3",
-            bonetag = "Y",
-            chainlevel = "wizard1",
-            base = 2
-         },
-         {
-            name = "orcus",
-            bonetag = "O",
-            base = 10,
-            range = 6
-         },
-         {
-            name = "fakewiz1",
-            bonetag = "F",
-            base = -6,
-            range = 4
-         },
-         {
-            name = "fakewiz2",
-            bonetag = "G",
-            base = -6,
-            range = 4
+            name = "sanctum",
+            base = -1
          },
       }
    },
@@ -258,7 +263,7 @@ dungeon = {
    {
       name = "Vlad's Tower",
       base = 4,
-      bonetag = "T",
+      bonetag = "V",
       protofile = "tower",
       alignment = "chaotic",
       flags = { "mazelike" },
@@ -279,6 +284,134 @@ dungeon = {
          {
             name = "tower4",
             base = 4
+         },
+      }
+   },
+   {
+      name = "Cocytus",
+      bonetag = "C",
+      base = 3,
+      flags = { "mazelike", "hellish" },
+      alignment = "lawful",
+      lvlfill = "cocytusfill",
+      entry = 2,
+      levels = {
+         {
+            name = lawdemon1,
+            bonetag = "H",
+            base = 1
+         },
+         {
+            name = "asmodeus",
+            bonetag = "A",
+            base = 3
+         }
+      }
+   },
+   {
+      name = "Asphodel",
+      bonetag = "P",
+      base = 1,
+      flags = { "mazelike", "hellish" },
+      alignment = "lawful",
+      levels = {
+         {
+            name = lawdemon2,
+            bonetag = "P",
+            base = 1
+         }
+      }
+   },
+   {
+      name = "The Stygian Marsh",
+      bonetag = "S",
+      base = 2,
+      flags = { "mazelike", "hellish" },
+      alignment = "chaotic",
+      levels = {
+         {
+            name = "juiblex",
+            bonetag = "J",
+            base = 1
+         },
+         {
+            name = chaosdemon1,
+            bonetag = "P",
+            base = 2
+         }
+      }
+   },
+   {
+      name = "The Citadel of Dis",
+      bonetag = "I",
+      base = 1,
+      flags = { "mazelike", "hellish" },
+      kkalignment = "lawful",
+      levels = {
+         {
+            name = "dispater",
+            bonetag = "D",
+            base = 1
+         }
+      }
+   },
+   {
+      name = "The Abyss",
+      bonetag = "A",
+      base = 3,
+      flags = { "mazelike", "hellish" },
+      alignment = "chaotic",
+      lvlfill = "abyssfill",
+      branches = {
+         {
+            name = "Tartarus",
+            base = 2,
+            direction = "down"
+         }
+      },
+      levels = {
+         {
+            name = chaosdemon2,
+            bonetag = "Q",
+            base = 3
+         }
+      }
+   },
+   {
+      name = "Tartarus",
+      bonetag = "T",
+      base = 1,
+      flags = { "mazelike", "hellish" },
+      alignment = "chaotic",
+      levels = {
+         {
+            name = "demogorgon",
+            bonetag = "D",
+            base = 1
+         }
+      }
+   },
+   {
+      name = "The Wizard's Tower",
+      bonetag = "W",
+      base = 3,
+      flags = { "mazelike" },
+      alignment = "unaligned",
+      entry = -1,
+      levels = {
+         {
+            name = "wizard1",
+            base = 1
+         },
+         {
+            name = "wizard2",
+            bonetag = "X",
+            base = 2
+         },
+         {
+            name = "wizard3",
+            bonetag = "Y",
+            base = 3
          },
       }
    },

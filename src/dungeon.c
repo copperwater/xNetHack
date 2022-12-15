@@ -1950,7 +1950,7 @@ induced_align(int pct)
 boolean
 Invocation_lev(d_level *lev)
 {
-    return (boolean) (In_hell(lev)
+    return (boolean) (lev->dnum == sanctum_level.dnum
                       && lev->dlevel == g.dungeons[lev->dnum].num_dunlevs - 1);
 }
 

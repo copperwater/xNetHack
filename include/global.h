@@ -401,7 +401,7 @@ extern struct nomakedefs_s nomakedefs;
 #define PL_FSIZ 32 /* fruit name */
 #define PL_PSIZ 63 /* player-given names for pets, other monsters, objects */
 
-#define MAXDUNGEON 16 /* current maximum number of dungeons */
+#define MAXDUNGEON 32 /* current maximum number of dungeons */
 #define MAXLEVEL 32   /* max number of levels in one dungeon */
 #define MAXSTAIRS 1   /* max # of special stairways in a dungeon */
 #define ALIGNWEIGHT 4 /* generation weight of alignment */

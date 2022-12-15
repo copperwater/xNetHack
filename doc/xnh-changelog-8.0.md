@@ -200,6 +200,15 @@ changes:
 - The cursed potion of gain ability when quaffed will raise your lowest ability
   score by one point by stealing the point from your highest ability score,
   rather than doing nothing.
+- Gehennom's length, structure, and appearance is overhauled:
+  - The main branch is now 10 levels long, counting the Valley of the Dead and
+    Moloch's Sanctum, and containing four special levels and four randomly
+    generated levels in the middle.
+  - All eight demon lords are present in their own lairs, none of them in the
+    main branch.
+  - Vlad's Tower leads up from the level below the Valley.
+  - The Wizard's Tower is its own branch rather than being embedded into filler
+    levels.
 
 ### Interface changes
 

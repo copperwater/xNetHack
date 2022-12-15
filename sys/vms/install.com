@@ -35,13 +35,16 @@ $	sysconf_file = "[.sys.vms]sysconf"
 $	guidebook  = "[.doc]Guidebook.txt"
 $	invoc_proc = "[.sys.vms]nethack.com"
 $	trmcp_file = "[.sys.share]termcap"
-$	spec_files = "air.lua,asmodeus.lua,astral.lua,baalz.lua,"	-
-		+ "bigrm-*.lua,castle.lua,earth.lua,fakewiz%.lua,"	-
-		+ "fire.lua,invocation.lua,juiblex.lua,knox.lua,"       -
-                + "medusa-%.lua,minefill.lua,minetn-%.lua,minend-%.lua,"-
-                + "nhlib.lua,oracle-%.lua,orcus.lua,"                   -
-                + "repair-Val-loca.lua,sanctum.lua,soko%-%.lua,"        -
-                + "tower%.lua,valley.lua,water.lua,wizard%.lua"
+$	spec_files = "air.lua,abyssfill.lua,asmodeus.lua,astral.lua,"	-
+		+ "baalz.lua,bigrm-*.lua,castle.lua,cocytusfill.lua,"	-
+		+ "demogorgon.lua,dis.lua,dispater.lua,earth.lua,"      -
+                + "fakewiz%.lua,fire.lua,geryon.lua,hellfill.lua,"      -
+                + "hellgate.lua,invocation.lua,juiblex.lua,knox.lua,"   -
+                + "medusa-%.lua,minefill.lua,minetn-%.lua,"   		-
+                + "minend-%.lua,nhlib.lua,oracle-%.lua,orcus.lua,"      -
+                + "repair-Val-loca.lua,sanctum.lua,soko%-%.lua,"    	-
+                + "styxmarsh.lua,tower%.lua,valley.lua,water.lua,"      -
+                + "wizard%.lua,yeenoghu.lua"
 $	qstl_files = "%%%-goal.lua,%%%-fil%.lua,%%%-loca.lua,%%%-strt.lua"
 $	dngn_files = "dungeon.lua"
 $!

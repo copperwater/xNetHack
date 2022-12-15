@@ -36,6 +36,16 @@
     <Luafiles Include = "baalz.lua"/>
     <Luafiles Include = "juiblex.lua"/>
     <Luafiles Include = "orcus.lua"/>
+    <Luafiles Include = "geryon.lua"/>
+    <Luafiles Include = "dispater.lua"/>
+    <Luafiles Include = "yeenoghu.lua"/>
+    <Luafiles Include = "demogorgon.lua"/>
+    <Luafiles Include = "hellfill.lua"/>
+    <Luafiles Include = "hellgate.lua"/>
+    <Luafiles Include = "styxmarsh.lua"/>
+    <Luafiles Include = "dis.lua"/>
+    <Luafiles Include = "cocytusfill.lua"/>
+    <Luafiles Include = "abyssfill.lua"/>
     <Luafiles Include = "quest.lua"/>
     <Luafiles Include = "sanctum.lua"/>
     <Luafiles Include = "valley.lua"/>
