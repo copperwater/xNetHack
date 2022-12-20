@@ -651,6 +651,10 @@ fixup_special(void)
         baalz_fixup();
     } else if (u.uz.dnum == mines_dnum && g.ransacked) {
        stolen_booty();
+    } else if (Is_wizpuzzle_lev(&u.uz)) {
+        /* not needed in normal play but otherwise won't get reset when doing
+         * #wizmakemap */
+        g.wizpuzzle.entered = FALSE;
     }
 
     if (g.lregions)

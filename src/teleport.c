@@ -1237,11 +1237,6 @@ rloc_pos_ok(
     yy = mtmp->my;
     if (!xx) {
         /* no current location (migrating monster arrival) */
-        if (g.dndest.nlx && On_W_tower_level(&u.uz))
-            return (((yy & 2) != 0)
-                    /* inside xor not within */
-                    ^ !within_bounded_area(x, y, g.dndest.nlx, g.dndest.nly,
-                                           g.dndest.nhx, g.dndest.nhy));
         if (g.updest.lx && (yy & 1) != 0) /* moving up */
             return (within_bounded_area(x, y, g.updest.lx, g.updest.ly,
                                         g.updest.hx, g.updest.hy)
@@ -1384,17 +1379,6 @@ rloc_to_flag(struct monst *mtmp, int x, int y, unsigned int rlocflags)
     rloc_to_core(mtmp, x, y, rlocflags);
 }
 
-static stairway *
-stairway_find_forwiz(boolean isladder, boolean up)
-{
-    stairway *stway = g.stairs;
-
-    while (stway && !(stway->isladder == isladder
-                      && stway->up == up && stway->tolev.dnum == u.uz.dnum))
-        stway = stway->next;
-    return stway;
-}
-
 /* place a monster at a random location, typically due to teleport */
 /* return TRUE if successful, FALSE if not */
 /* rlocflags is RLOC_foo flags */
@@ -1411,15 +1395,13 @@ rloc(
     }
 
     if (mtmp->iswiz && mtmp->mx) { /* Wizard, not just arriving */
-        stairway *stway;
+        stairway *stway = (stairway *) 0;
 
-        if (!In_W_tower(u.ux, u.uy, &u.uz)) {
-            stway = stairway_find_forwiz(FALSE, TRUE);
-        } else if (!stairway_find_forwiz(TRUE, FALSE)) { /* bottom level of tower */
-            stway = stairway_find_forwiz(TRUE, TRUE);
-        } else {
-            stway = stairway_find_forwiz(TRUE, FALSE);
-        }
+        /* this is the logic of stairway_find_forwiz(), now deleted since it
+         * doesn't need to handle embedded Wizard tower */
+        while (stway && !(stway->isladder == FALSE
+                          && stway->up && stway->tolev.dnum == u.uz.dnum))
+            stway = stway->next;
 
         x = stway ? stway->sx : 0;
         y = stway ? stway->sy : 0;

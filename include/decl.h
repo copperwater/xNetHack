@@ -633,6 +633,32 @@ struct repo { /* repossession context */
     coord location;
 };
 
+/* Wizard's Tower puzzle */
+#define NUM_PUZZLE_CHAMBERS 8
+enum wizpuzzle_actions {
+    /* The possible effects for each puzzle-activating trigger, which happen to
+     * be expressed in terms of the number that should be added to open_chamber
+     * (then taken modulo NUM_PUZZLE_CHAMBERS) to get the new open chamber. */
+    COUNTERCLOCKWISE_3 = -3,
+    COUNTERCLOCKWISE_2 = -2,
+    COUNTERCLOCKWISE_1 = -1,
+    NO_ROTATION = 0,
+    CLOCKWISE_1 = 1,
+    CLOCKWISE_2 = 2,
+    CLOCKWISE_3 = 3,
+    ROTATE_180 = 4,
+};
+
+struct wizard_puzzle {
+    enum wizpuzzle_actions actions[NUM_PUZZLE_CHAMBERS];
+    int open_chamber; /* index into g.rooms, expected to be in [0-7] */
+    int activated_chamber; /* same as above; holds index of most recently
+                              activated chamber (so that you can't activate the
+                              same one multiple times) */
+    boolean entered;
+    boolean solved;
+};
+
 /* from options.c */
 #define MAX_MENU_MAPPED_CMDS 32 /* some number */
 
@@ -1262,6 +1288,9 @@ struct instance_globals {
 
     /* windows.c */
     struct win_choices *last_winchoice;
+
+    /* wizard.c */
+    struct wizard_puzzle wizpuzzle;
 
     /* zap.c */
     int  poly_zapped;

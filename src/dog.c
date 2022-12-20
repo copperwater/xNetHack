@@ -774,8 +774,6 @@ migrate_to_level(
     /* overload mtmp->[mx,my], mtmp->[mux,muy], and mtmp->mtrack[] as
        destination codes */
     xyflags = (depth(&new_lev) < depth(&u.uz)); /* 1 => up */
-    if (In_W_tower(mx, my, &u.uz))
-        xyflags |= 2;
     mtmp->wormno = num_segs;
     mtmp->mlstmv = g.moves;
     mtmp->mtrack[2].x = u.uz.dnum; /* migrating from this dungeon */

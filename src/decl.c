@@ -672,6 +672,9 @@ const struct instance_globals g_init = {
     /* windows.c */
     NULL, /* last_winchoice */
 
+    /* wizard.c */
+    DUMMY, /* wizpuzzle */
+
     /* zap.c */
     UNDEFINED_VALUE, /* poly_zap */
     UNDEFINED_VALUE,  /* obj_zapped */

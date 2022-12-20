@@ -2435,7 +2435,7 @@ map_glyphinfo(
          * the other interesting types of walls */
         else if (gmap->sym.symidx >= S_vwall + SYM_OFF_P
                  && gmap->sym.symidx <= S_trwall + SYM_OFF_P) {
-            if (In_W_tower(x, y, &u.uz))
+            if (On_W_tower_level(&u.uz))
                 glyphinfo->gm.sym.color = CLR_MAGENTA;
             else if (In_tower(&u.uz)) /* Vlad's */
                 glyphinfo->gm.sym.color = CLR_BLACK;

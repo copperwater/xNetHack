@@ -1621,6 +1621,11 @@ trap_move_danger(xchar x, xchar y)
 {
     /* warn player before walking into known traps */
     struct trap *trap = t_at(x, y);
+    if (Is_wizpuzzle_lev(&u.uz) && trap && trap->ttyp == SQKY_BOARD) {
+        /* these are special case traps that the hero is supposed to use to
+         * trigger events in the puzzle, so don't warn of it */
+        return FALSE;
+    }
     if (trap && trap->tseen && (!g.context.nopick || g.context.run)
         && !Stunned && !Confusion
         && (immune_to_trap(&g.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE
@@ -3197,6 +3202,12 @@ check_special_room(boolean newlev)
     for (ptr = &u.uentered[0]; *ptr; ptr++) {
         int roomno = *ptr - ROOMOFFSET, rt = g.rooms[roomno].rtype;
         boolean msg_given = TRUE;
+
+        /* Regions on wizard3 are not special rooms, but may trigger doing
+         * something with the puzzle on that level so it's handled here */
+        if (Is_wizpuzzle_lev(&u.uz)) {
+            wizpuzzle_enterchamber(roomno);
+        }
 
         /* Did we just enter some other special room? */
         /* vault.c insists that a vault remain a VAULT,

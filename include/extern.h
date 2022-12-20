@@ -305,7 +305,7 @@ extern void sanity_check(void);
 extern char* key2txt(uchar, char *);
 extern char yn_function(const char *, const char *, char);
 extern boolean paranoid_query(boolean, const char *);
-extern void makemap_prepost(boolean, boolean);
+extern void makemap_prepost(boolean);
 
 /* ### date.c ### */
 
@@ -732,7 +732,6 @@ extern boolean at_dgn_entrance(const char *);
 extern boolean In_hell(d_level *);
 extern boolean In_V_tower(d_level *);
 extern boolean On_W_tower_level(d_level *);
-extern boolean In_W_tower(int, int, d_level *);
 extern void find_hell(d_level *);
 extern void goto_hell(boolean, boolean);
 extern boolean single_level_branch(d_level *);
@@ -2884,6 +2883,7 @@ extern enum trap_immunities immune_to_trap(struct monst *, xchar);
 extern void set_utrap(unsigned, unsigned);
 extern void reset_utrap(boolean);
 extern void dotrap(struct trap *, unsigned);
+extern char *trapnote(struct trap *, boolean);
 extern void seetrap(struct trap *);
 extern void feeltrap(struct trap *);
 extern int mintrap(struct monst *, unsigned);
@@ -3410,6 +3410,8 @@ extern void resurrect(void);
 extern void intervene(void);
 extern void wizdead(void);
 extern void cuss(struct monst *);
+extern void wizpuzzle_enterchamber(int);
+extern void wizpuzzle_activate_mechanism(xchar, xchar);
 
 /* ### worm.c ### */
 

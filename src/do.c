@@ -1367,7 +1367,6 @@ goto_level(
     boolean cant_go_back, great_effort,
             up = (depth(newlevel) < depth(&u.uz)),
             newdungeon = (u.uz.dnum != newlevel->dnum),
-            was_in_W_tower = In_W_tower(u.ux, u.uy, &u.uz),
             familiar = FALSE,
             new = FALSE; /* made a new level? */
     struct monst *mtmp;
@@ -1612,7 +1611,7 @@ goto_level(
          * in regular gameplay */
         u_on_dnstairs();
     } else { /* trap door or level_tele or In_endgame */
-        u_on_rndspot((up ? 1 : 0) | (was_in_W_tower ? 2 : 0));
+        u_on_rndspot(up);
         if (falling) {
             if (Punished)
                 ballfall();

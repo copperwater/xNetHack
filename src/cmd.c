@@ -987,7 +987,7 @@ wiz_identify(void)
 }
 
 void
-makemap_prepost(boolean pre, boolean wiztower)
+makemap_prepost(boolean pre)
 {
     NHFILE tmpnhfp;
     struct monst *mtmp;
@@ -1064,8 +1064,7 @@ makemap_prepost(boolean pre, boolean wiztower)
         cls();
         /* was using safe_teleds() but that doesn't honor arrival region
            on levels which have such; we don't force stairs, just area */
-        u_on_rndspot((u.uhave.amulet ? 1 : 0) /* 'going up' flag */
-                     | (wiztower ? 2 : 0));
+        u_on_rndspot(u.uhave.amulet ? 1 : 0); /* 'going up' flag */
         losedogs();
         kill_genocided_monsters();
         /* u_on_rndspot() might pick a spot that has a monster, or losedogs()
@@ -1093,14 +1092,12 @@ static int
 wiz_makemap(void)
 {
     if (wizard) {
-        boolean was_in_W_tower = In_W_tower(u.ux, u.uy, &u.uz);
-
-        makemap_prepost(TRUE, was_in_W_tower);
+        makemap_prepost(TRUE);
         /* create a new level; various things like bestowing a guardian
            angel on Astral or setting off alarm on Ft.Ludios are handled
            by goto_level(do.c) so won't occur for replacement levels */
         mklev();
-        makemap_prepost(FALSE, was_in_W_tower);
+        makemap_prepost(FALSE);
     } else {
         pline(unavailcmd, ecname_from_fn(wiz_makemap));
     }
