@@ -1385,9 +1385,6 @@ trapeffect_sqky_board(
         }
         /* wake up nearby monsters */
         wake_nearto(mtmp->mx, mtmp->my, 40);
-        if (Is_wizpuzzle_lev(&u.uz)) {
-            wizpuzzle_activate_mechanism(mtmp->mx, mtmp->my);
-        }
     }
     return Trap_Effect_Finished;
 }

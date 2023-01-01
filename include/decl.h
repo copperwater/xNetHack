@@ -635,6 +635,7 @@ struct repo { /* repossession context */
 
 /* Wizard's Tower puzzle */
 #define NUM_PUZZLE_CHAMBERS 8
+#define NUM_PUZZLE_RINGS 2
 enum wizpuzzle_actions {
     /* The possible effects for each puzzle-activating trigger, which happen to
      * be expressed in terms of the number that should be added to open_chamber
@@ -650,13 +651,16 @@ enum wizpuzzle_actions {
 };
 
 struct wizard_puzzle {
-    enum wizpuzzle_actions actions[NUM_PUZZLE_CHAMBERS];
-    int open_chamber; /* index into g.rooms, expected to be in [0-7] */
+    enum wizpuzzle_actions actions[NUM_PUZZLE_RINGS][NUM_PUZZLE_CHAMBERS];
+    int open_chamber[NUM_PUZZLE_RINGS]; /* index into g.rooms, expected to be in
+                                           range [0-7] */
     int activated_chamber; /* same as above; holds index of most recently
                               activated chamber (so that you can't activate the
-                              same one multiple times) */
+                              same one multiple times). */
     boolean entered;
     boolean solved;
+    boolean gave_msg; /* used to ensure massive grinding noise only happens once
+                         per activation, rather than once per each ring's move */
 };
 
 /* from options.c */
