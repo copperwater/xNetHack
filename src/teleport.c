@@ -851,6 +851,8 @@ dotele(
     if (next_to_u()) {
         if (trap && trap_once)
             vault_tele();
+        else if (trap && trap->teledest.x > 0)
+            teleds(trap->teledest.x, trap->teledest.y, TELEDS_TELEPORT);
         else
             tele();
         (void) next_to_u();
@@ -1182,6 +1184,8 @@ tele_trap(struct trap* trap)
         deltrap(trap);
         newsym(u.ux, u.uy); /* get rid of trap symbol */
         vault_tele();
+    } else if (trap->teledest.x > 0) {
+        teleds(trap->teledest.x, trap->teledest.y, TELEDS_TELEPORT);
     } else
         tele();
 }
@@ -1481,6 +1485,8 @@ mtele_trap(struct monst* mtmp, struct trap* trap, int in_sight)
          */
         if (trap->once)
             mvault_tele(mtmp);
+        else if (trap->teledest.x > 0)
+            rloc_to_core(mtmp, trap->teledest.x, trap->teledest.y, RLOC_MSG);
         else
             (void) rloc(mtmp, RLOC_NONE);
 

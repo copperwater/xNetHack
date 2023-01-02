@@ -20,6 +20,7 @@ struct trap {
     xchar tx, ty;
     d_level dst; /* destination for portals */
     coord launch;
+#define teledest launch /* x,y destination for teleport traps, if > 0 */
     Bitfield(ttyp, 5);
     Bitfield(tseen, 1);
     Bitfield(once, 1); /* has the trap been triggered previously? */

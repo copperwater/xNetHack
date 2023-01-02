@@ -4303,10 +4303,19 @@ lspo_trap(lua_State *L)
             lua_Integer lx = -1, ly = -1;
 
             (void) get_coord(L, -1, &lx, &ly);
-            lua_pop(L, 1);
             g.launchplace.x = lx;
             g.launchplace.y = ly;
         }
+        lua_pop(L, 1);
+        lua_getfield(L, -1, "teledest");
+        if (lua_type(L, -1) == LUA_TTABLE) {
+            lua_Integer lx = -1, ly = -1;
+
+            (void) get_coord(L, -1, &lx, &ly);
+            g.launchplace.x = lx;
+            g.launchplace.y = ly;
+        }
+        lua_pop(L, 1);
     }
 
     if (tmptrap.type == NO_TRAP)
