@@ -579,7 +579,7 @@ scrolltele(struct obj* scroll)
     if (unconscious()) {
         pline("Being unconscious, you cannot control your teleport.");
         controlled = FALSE;
-    } else if (u.uhave.amulet) {
+    } else if (controlled && u.uhave.amulet) {
         pline("A mysterious force disrupts your teleport control.");
         if (!wizard || yn("Override?") != 'y')
             controlled = FALSE;
