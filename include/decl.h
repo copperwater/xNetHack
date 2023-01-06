@@ -330,6 +330,10 @@ struct instance_globals_d {
        but that would require all xname() and doname() calls to be modified */
     int distantname;
 
+#ifdef DUMPHTML
+    boolean dumping_list;
+#endif
+
     boolean havestate;
     unsigned long magic; /* validate that structure layout is preserved */
 };

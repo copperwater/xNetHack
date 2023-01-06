@@ -317,6 +317,9 @@ const struct instance_globals_d g_init_d = {
     DUMMY, /* disco */
     /* objname.c */
     0, /* distantname */
+#ifdef DUMPHTML
+    FALSE, /* dumping_list */
+#endif
     TRUE, /* havestate*/
     IVMAGIC  /* d_magic to validate that structure layout has been preserved */
 };
