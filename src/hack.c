@@ -1619,13 +1619,15 @@ u_simple_floortyp(xchar x, xchar y)
 static boolean
 trap_move_danger(xchar x, xchar y)
 {
-    /* warn player before walking into known traps */
     struct trap *trap = t_at(x, y);
-    if (Is_wizpuzzle_lev(&u.uz) && trap && trap->ttyp == SQKY_BOARD) {
+    if ((Is_wizpuzzle_lev(&u.uz) && trap && trap->ttyp == SQKY_BOARD)
+        || (Is_telemaze_lev(&u.uz) && trap && trap->ttyp == TELEP_TRAP)) {
         /* these are special case traps that the hero is supposed to use to
-         * trigger events in the puzzle, so don't warn of it */
+         * trigger events in the puzzle or navigate the teleporter maze, so
+         * don't warn of it */
         return FALSE;
     }
+    /* warn player before walking into known traps */
     if (trap && trap->tseen && (!g.context.nopick || g.context.run)
         && !Stunned && !Confusion
         && (immune_to_trap(&g.youmonst, trap->ttyp) != TRAP_CLEARLY_IMMUNE

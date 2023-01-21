@@ -584,6 +584,12 @@ scrolltele(struct obj* scroll)
         if (!wizard || yn("Override?") != 'y')
             controlled = FALSE;
     }
+    else if (controlled && On_W_tower_level(&u.uz)) {
+        pline("A malicious force disrupts your teleport control!");
+        if (!wizard || yn("Override?") != 'y')
+            controlled = FALSE;
+    }
+
     if (controlled) {
         char whobuf[BUFSZ];
 
