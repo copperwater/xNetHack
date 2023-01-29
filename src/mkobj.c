@@ -4001,7 +4001,8 @@ material_list(struct obj* obj)
         case SHIELD_OF_REFLECTION:
             return shiny_materials;
         case BOW:
-        case ELVEN_BOW:
+        /* NOT elven bow; bow_materials includes IRON which we don't want for an
+         * elven bow, so let it fall into elven_materials below */
         case ORCISH_BOW:
         case YUMI:
         case BOOMERANG: /* wooden base, similar shape */
@@ -4118,6 +4119,11 @@ invalid_obj_material(struct obj *obj, uchar mat)
 
     /* paper weapons and armor... */
     if ((oclass == WEAPON_CLASS || oclass == ARMOR_CLASS) && mat == PAPER) {
+        return TRUE;
+    }
+
+    /* elven gear that somehow generates as iron... */
+    if (is_elven_obj(obj) && mat == IRON) {
         return TRUE;
     }
 
