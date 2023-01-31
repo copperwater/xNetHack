@@ -869,6 +869,27 @@ mon_wield_item(struct monst *mon)
     if (mon->weapon_check == NO_WEAPON_WANTED)
         return 0;
     switch (mon->weapon_check) {
+    case NEED_WEAPON: {
+        /* figure out whether they have a melee or ranged weapon; pick randomly
+         * if they have both */
+        struct obj *otmp_h = select_hwep(mon);
+        struct obj *otmp_r = select_rwep(mon);
+        if (otmp_r) {
+            /* assumes that if select_rwep leaves g.propellor == cg.zeroobj, the
+             * ranged weapon selected doesn't have a launcher; rather than
+             * wasting this call wielding nothing, since we also have a melee
+             * weapon available, use that */
+            if (otmp_h && (g.propellor == &cg.zeroobj || !rn2(2))) {
+                obj = otmp_h;
+            }
+            else {
+                obj = g.propellor;
+            }
+        }
+        else
+            obj = otmp_h; /* fine if otmp_h is null */
+        break;
+    }
     case NEED_HTH_WEAPON:
         obj = select_hwep(mon);
         break;
@@ -918,7 +939,7 @@ mon_wield_item(struct monst *mon)
          * Still....
          */
         if (mw_tmp && mwelded(mw_tmp)) {
-            if (canseemon(mon)) {
+            if (!g.in_mklev && canseemon(mon)) {
                 char welded_buf[BUFSZ];
                 const char *mon_hand = mbodypart(mon, HAND);
 
@@ -944,7 +965,7 @@ mon_wield_item(struct monst *mon)
         mon->mw = obj; /* wield obj */
         setmnotwielded(mon, mw_tmp);
         mon->weapon_check = NEED_WEAPON;
-        if (canseemon(mon)) {
+        if (!g.in_mklev && canseemon(mon)) {
             boolean newly_welded;
 
             pline("%s wields %s!", Monnam(mon), doname(obj));
@@ -965,12 +986,12 @@ mon_wield_item(struct monst *mon)
         }
         if (artifact_light(obj) && !obj->lamplit) {
             begin_burn(obj, FALSE);
-            if (canseemon(mon))
+            if (!g.in_mklev && canseemon(mon))
                 pline("%s %s in %s %s!", Tobjnam(obj, "shine"),
                       arti_light_description(obj), s_suffix(mon_nam(mon)),
                       mbodypart(mon, HAND));
             /* 3.6.3: artifact might be getting wielded by invisible monst */
-            else if (cansee(mon->mx, mon->my))
+            else if (!g.in_mklev && cansee(mon->mx, mon->my))
                 pline("Light begins shining %s.",
                       (distu(mon->mx, mon->my) <= 5 * 5)
                           ? "nearby"

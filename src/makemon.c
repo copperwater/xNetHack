@@ -1560,7 +1560,7 @@ makemon(
             (void) dochugw(mtmp, FALSE);
         else if (is_armed(mtmp->data) /* got a m_initweap weapon */
                  && !helpless(mtmp)) {
-            mtmp->weapon_check = NEED_HTH_WEAPON;
+            mtmp->weapon_check = NEED_WEAPON;
             mon_wield_item(mtmp);
         }
 

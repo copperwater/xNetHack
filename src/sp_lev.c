@@ -2970,8 +2970,17 @@ sp_code_jmpaddr(long curpos, long jmpaddr)
 static void
 spo_end_moninvent(void)
 {
-    if (invent_carrying_monster)
+    if (invent_carrying_monster) {
         m_dowear(invent_carrying_monster, TRUE);
+        /* replicate the behavior in makemon() for a monster that was created
+         * with no weapon, but was then later given one in inventory */
+        if (is_armed(invent_carrying_monster->data)
+            && !MON_WEP(invent_carrying_monster)
+            && !helpless(invent_carrying_monster)) {
+            invent_carrying_monster->weapon_check = NEED_WEAPON;
+            mon_wield_item(invent_carrying_monster);
+        }
+    }
     invent_carrying_monster = NULL;
 }
 
