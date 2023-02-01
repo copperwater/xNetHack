@@ -3509,6 +3509,9 @@ can_magic_map(void)
         else if (Is_orcus_level(&u.uz)) {
             boss_mndx = PM_ORCUS;
         }
+        else if (Is_dis_level(&u.uz) || Is_dispater_level(&u.uz)) {
+            boss_mndx = PM_DISPATER;
+        }
         /* add more cases here if blocking for other bosses is desired */
         else {
             /* not on a boss's level, so why do we have BOSSBLOCKED set? */

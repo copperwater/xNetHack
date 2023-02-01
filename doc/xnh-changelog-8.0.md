@@ -209,6 +209,9 @@ changes:
   - Vlad's Tower leads up from the level below the Valley.
   - The Wizard's Tower is its own branch rather than being embedded into filler
     levels.
+  - The sixth level of the main branch is the City of Dis, inhabited by a number
+    of demons and containing the entrance to the Citadel of Dis, the lair of
+    Dispater.
 
 ### Interface changes
 

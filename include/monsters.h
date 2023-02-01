@@ -2508,7 +2508,7 @@
     /* Used by AD&D for a type of demon, originally one of the Furies
        and spelled this way */
     MON("erinys", S_DEMON, LVL(7, 12, 2, 30, 10),
-        (G_HELL | G_NOCORPSE | G_SGROUP | 2),
+        (G_HELL | G_NOCORPSE | G_NOGEN),
         A(ATTK(AT_WEAP, AD_DRST, 2, 4), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
           NO_ATTK),
         SIZ(WT_HUMAN, 400, MS_SILENT, MZ_HUMAN), MR_FIRE | MR_POISON, 0,

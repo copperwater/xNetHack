@@ -671,6 +671,8 @@ static struct level_map {
                   { "baalz", &baalzebub_level },
                   { "bigrm", &bigroom_level },
                   { "castle", &stronghold_level },
+                  { "dis", &dis_level },
+                  { "dispater", &dispater_level },
                   { "earth", &earth_level },
                   { "fakewiz1", &portal_level },
                   { "fire", &fire_level },

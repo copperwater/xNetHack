@@ -24,6 +24,8 @@ struct dgn_topology { /* special dungeon levels for speed */
     d_level d_orcus_level;
     d_level d_baalzebub_level; /* unused */
     d_level d_asmodeus_level;  /* unused */
+    d_level d_dis_level;
+    d_level d_dispater_level;
     d_level d_portal_level;    /* only in goto_level() [do.c] */
     d_level d_sanctum_level;
     d_level d_earth_level;
@@ -52,6 +54,8 @@ struct dgn_topology { /* special dungeon levels for speed */
 #define wiz3_level              (g.dungeon_topology.d_wiz3_level)
 #define juiblex_level           (g.dungeon_topology.d_juiblex_level)
 #define orcus_level             (g.dungeon_topology.d_orcus_level)
+#define dis_level               (g.dungeon_topology.d_dis_level)
+#define dispater_level          (g.dungeon_topology.d_dispater_level)
 #define baalzebub_level         (g.dungeon_topology.d_baalzebub_level)
 #define asmodeus_level          (g.dungeon_topology.d_asmodeus_level)
 #define portal_level            (g.dungeon_topology.d_portal_level)
