@@ -411,6 +411,18 @@ special_dmgval(struct monst *magr,
         *hated_obj = 0;
     }
 
+    /* Simple exclusions where we ignore a certain type of armor because it is
+     * covered by some other equipment. */
+    if (gloves) {
+        leftring = rightring = NULL;
+    }
+    if (cloak) {
+        armor = shirt = NULL;
+    }
+    if (armor) {
+        shirt = NULL;
+    }
+
     /* Cases where we want to count magr's body: the caller indicates a certain
      * slot is making contact, and magr is not wearing anything in that slot, so
      * their body must be making contact.
