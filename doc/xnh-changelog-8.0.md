@@ -200,6 +200,8 @@ changes:
 - The cursed potion of gain ability when quaffed will raise your lowest ability
   score by one point by stealing the point from your highest ability score,
   rather than doing nothing.
+- A number of major demons (horned devil, erinys, vrock, bone devil, nalfeshnee,
+  pit fiend) are now capable of flight.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly
