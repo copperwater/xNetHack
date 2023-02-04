@@ -365,6 +365,7 @@ demon_talk(register struct monst *mtmp)
         verbalize("You bring me no tribute?  Then you must die!");
         mtmp->mpeaceful = 0;
         set_malign(mtmp);
+        newsym(mtmp->mx, mtmp->my);
         return 0;
     } else {
         /* make sure that the demand is unmeetable if the monster
@@ -413,6 +414,7 @@ demon_talk(register struct monst *mtmp)
             pline("%s gets angry...", Amonnam(mtmp));
             mtmp->mpeaceful = 0;
             set_malign(mtmp);
+            newsym(mtmp->mx, mtmp->my);
             return 0;
         }
     }
