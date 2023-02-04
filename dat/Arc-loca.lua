@@ -56,7 +56,7 @@ des.replace_terrain({ selection=path, fromterrain='T', toterrain='.' })
 -- Also clear off trees and force levelporting to land by the stairs
 local stairbox = selection.area(00, ustairy-1, 01, ustairy+1)
 des.replace_terrain({ selection=stairbox, fromterrain='T', toterrain='.' })
-des.teleport_region({ region={00,ustairy-1, 01, ustairy+1}, exclude_islev=1, dir="down" })
+des.teleport_region({ region={00,ustairy-1, 01, ustairy+1}, dir="down" })
 
 -- Fill in inaccessible pockets in forest
 local nostairaccess = selection.floodfill(01, ustairy, true):negate() & selection.area(00,00,31,19)

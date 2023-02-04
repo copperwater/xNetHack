@@ -36,8 +36,8 @@ des.region(selection.area(00,00,75,18), "lit")
 des.region(selection.area(62,03,72,11), "unlit")
 
 -- Constrain arrival location by levelport
-des.teleport_region({ region={00,00,06,04}, exclude_islev=1, dir="down" })
-des.teleport_region({ region={62,03,72,11}, exclude_islev=1, dir="up" })
+des.teleport_region({ region={00,00,06,04}, dir="down" })
+des.teleport_region({ region={62,03,72,11}, dir="up" })
 
 -- Stairs
 des.stair("up", 00,00)

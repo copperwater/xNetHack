@@ -48,7 +48,7 @@ des.stair("up", 06, 12)
 -- Non diggable walls -- the right is diggable (has already been dug by enemies)
 des.non_diggable(selection.area(00,00,43,19))
 -- Constrain arrival location by levelport
-des.teleport_region({ region={05,12,11,14}, exclude_islev=1 })
+des.teleport_region({ region={05,12,11,14} })
 
 -- Non-secret doors
 des.door({ state="closed", x=32, y=09, iron=0 })

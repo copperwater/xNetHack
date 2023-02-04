@@ -41,7 +41,7 @@ des.stair("down", 75,19)
 -- Non diggable walls only on the right
 des.non_diggable(rightside)
 -- Force incoming levelporters to land by the stairs.
-des.teleport_region({ region={00,00,03,02}, exclude_islev=1, dir="down" })
+des.teleport_region({ region={00,00,03,02}, dir="down" })
 -- Great gates (not closed, Surtur isn't playing defense)
 des.door({ state="open", x=70, y=09, iron=1 })
 des.door({ state="open", x=70, y=10, iron=1 })
