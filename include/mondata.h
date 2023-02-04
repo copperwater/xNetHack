@@ -305,13 +305,16 @@
  * you in combat. This was adapted from the M3_SKITTISH flag in SporkHack;
  * however, since only a couple monsters have this behavior, it isn't necessary
  * to add a M3 flag. */
-#define keeps_distance(mon) \
-    ((mon)->data->mlet == S_CENTAUR \
-     || ((mon)->data == &mons[PM_SCHLIEMANN] && !u.uhave.questart))
+#define keeps_distance(mon)                                        \
+    ((mon)->data->mlet == S_CENTAUR                                \
+     || ((mon)->data == &mons[PM_SCHLIEMANN] && !u.uhave.questart) \
+     || ((mon)->data == &mons[PM_DISPATER]))
 
 /* The monster is covetous, but should not warp, heal, or otherwise use
  * tactics(). */
-#define covetous_nonwarper(ptr) ((ptr) == &mons[PM_SCHLIEMANN])
+#define covetous_nonwarper(ptr)       \
+    ((ptr) == &mons[PM_SCHLIEMANN]    \
+     || (ptr) == &mons[PM_DISPATER])
 
 /* The monster knows the difference between a valuable gem and worthless glass.
  * (This is not an innate ability, so player polymorphed into them will not get

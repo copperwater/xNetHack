@@ -121,6 +121,12 @@ msummon(struct monst *mon)
                && !rn2(4) && !is_lord(&mons[dtype])) ? 2 : 1;
     }
 
+    /* put overrides for specific summoners here */
+    if (ptr == &mons[PM_DISPATER] && is_ndemon(&mons[dtype]) && !rn2(2)) {
+        /* Dispater favors pit fiends, despite them being chaotic */
+        dtype = PM_PIT_FIEND;
+    }
+
     if (dtype == NON_PM)
         return 0;
 

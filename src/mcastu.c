@@ -18,7 +18,9 @@ enum mcast_mage_spells {
     MGC_AGGRAVATION,
     MGC_SUMMON_MONS,
     MGC_CLONE_WIZ,
-    MGC_DEATH_TOUCH
+    MGC_DEATH_TOUCH,
+    MGC_ENTOMB,
+    MGC_TPORT_AWAY
 };
 
 /* monster cleric spells */
@@ -41,9 +43,12 @@ static int choose_clerical_spell(int);
 static int m_cure_self(struct monst *, int);
 static void cast_wizard_spell(struct monst *, int, int);
 static void cast_cleric_spell(struct monst *, int, int);
+static boolean has_special_spell_list(struct permonst *);
+static int choose_special_spell(struct monst *);
 static boolean is_undirected_spell(unsigned int, int);
 static boolean
 spell_would_be_useless(struct monst *, unsigned int, int);
+static boolean is_entombed(xchar, xchar);
 
 /* feedback when frustrated monster couldn't cast a spell */
 static void
@@ -168,6 +173,50 @@ choose_clerical_spell(int spellnum)
     }
 }
 
+/* does mdat, a spellcaster, use a special spell list and avoid the normal mage
+ * spell / cleric spell dichotomy?
+ * Note that because of the logic in castmu() calling either cast_wizard_spell
+ * or cast_cleric_spell based on the adtyp, it's not currently possible to
+ * construct a custom spell with spells mismatching the adtyp (if one were to
+ * try, the spells from the type not matching the adtyp would be treated as
+ * those matching the adtyp - a mage-spell caster attempting to cast
+ * CLC_OPEN_WOUNDS would instead cast MGC_PSI_BOLT, etc.) Refactoring would be
+ * needed to make this work.
+ */
+static boolean
+has_special_spell_list(struct permonst *mdat)
+{
+    /* Add more monsters to this list as needed. */
+    switch (monsndx(mdat)) {
+    case PM_DISPATER:
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/* mdat is a spellcaster with a special spell list; return a spell from its list
+ */
+static int
+choose_special_spell(struct monst *mtmp)
+{
+    if (mtmp->data == &mons[PM_DISPATER]) {
+        /* Dispater is defense-oriented and doesn't really cast direct attack
+         * spells. Instead he tries to keep away from you and prevent you from
+         * getting to him. */
+        if (mtmp->mhp * 8 < mtmp->mhpmax || monnear(mtmp, mtmp->mux, mtmp->muy))
+            return MGC_TPORT_AWAY;
+
+        static const int dispater_list[] = {
+            MGC_CURE_SELF, MGC_AGGRAVATION, MGC_HASTE_SELF, MGC_DISAPPEAR,
+            MGC_ENTOMB, MGC_SUMMON_MONS, MGC_TPORT_AWAY
+        };
+        return dispater_list[rn2(SIZE(dispater_list))];
+    }
+    impossible("no special spell list for mon %s",
+               mtmp->data->pmnames[NEUTRAL]);
+    return MGC_PSI_BOLT; /* arbitrary since this should never be reached */
+}
+
 /* return values:
  * 1: successful spell
  * 0: unsuccessful spell
@@ -198,11 +247,17 @@ castmu(register struct monst *mtmp,
         int cnt = 40;
 
         do {
-            spellnum = rn2(ml);
-            if (mattk->adtyp == AD_SPEL)
-                spellnum = choose_magic_spell(spellnum);
-            else
-                spellnum = choose_clerical_spell(spellnum);
+            if (has_special_spell_list(mtmp->data)) {
+                /* is demon lord or other special spellcaster */
+                spellnum = choose_special_spell(mtmp);
+            }
+            else {
+                spellnum = rn2(ml);
+                if (mattk->adtyp == AD_SPEL)
+                    spellnum = choose_magic_spell(spellnum);
+                else
+                    spellnum = choose_clerical_spell(spellnum);
+            }
             /* not trying to attack?  don't allow directed spells */
             if (!thinks_it_foundyou) {
                 if (!is_undirected_spell(mattk->adtyp, spellnum)
@@ -504,6 +559,52 @@ cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
         else
             Your("%s suddenly aches very painfully!", body_part(HEAD));
         break;
+    case MGC_TPORT_AWAY: {
+        /* this is better than reimplementing the logic of rloc to pick a random
+         * spot that is sufficiently far away from (mux, muy) */
+        xchar tries = 3;
+        do {
+            rloc(mtmp, RLOC_MSG);
+        } while (--tries
+                 && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) < 10);
+        dmg = 0;
+        break;
+    }
+    case MGC_ENTOMB: {
+        /* entomb you in rocks (and maybe a couple diggable walls) to delay you
+         * and allow some time for the caster to get away */
+        xchar x, y;
+        pline_The("ground shakes violently%s!",
+                  Blind ? "" : " and twists into walls");
+        if (!Blind)
+            pline("Boulders fall from above!");
+        for (x = u.ux - 1; x <= u.ux + 1; ++x) {
+            for (y = u.uy - 1; y <= u.uy + 1; ++y) {
+                if (!SPACE_POS(levl[x][y].typ))
+                    continue;
+                if (x == u.ux && y == u.uy)
+                    continue;
+                /* Only create actual walls where there is no monster or object
+                 * or trap in the way. */
+                if (!rn2(6) && levl[x][y].typ == ROOM && !m_at(x, y)
+                    && !g.level.objects[x][y] && !t_at(x, y)) {
+                    levl[x][y].typ = rn2(2) ? HWALL : VWALL;
+                    levl[x][y].wall_info &= ~W_NONDIGGABLE;
+                    newsym(x, y);
+                }
+                else {
+                    if (rn2(5))
+                        drop_boulder_on_monster(x, y, FALSE, FALSE);
+                    if (rn2(3))
+                        drop_boulder_on_monster(x, y, FALSE, FALSE);
+                }
+            }
+        }
+        if (rn2(4))
+            drop_boulder_on_player(FALSE, FALSE, FALSE, FALSE);
+        dmg = 0;
+        break;
+    }
     default:
         impossible("mcastu: invalid magic spell (%d)", spellnum);
         dmg = 0;
@@ -748,6 +849,8 @@ is_undirected_spell(unsigned int adtyp, int spellnum)
         case MGC_DISAPPEAR:
         case MGC_HASTE_SELF:
         case MGC_CURE_SELF:
+        case MGC_TPORT_AWAY:
+        case MGC_ENTOMB:
             return TRUE;
         default:
             break;
@@ -814,6 +917,13 @@ spell_would_be_useless(struct monst *mtmp, unsigned int adtyp, int spellnum)
             if (!has_aggravatables(mtmp))
                 return rn2(100) ? TRUE : FALSE;
         }
+        /* don't teleport away if already sufficiently far away */
+        if (spellnum == MGC_TPORT_AWAY
+            && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) >= 10)
+            return TRUE;
+        /* don't entomb if hero is already entombed */
+        if (spellnum == MGC_ENTOMB && is_entombed(u.ux, u.uy))
+            return TRUE;
     } else if (adtyp == AD_CLRC) {
         /* summon insects/sticks to snakes won't be cast by peaceful monsters
          */
@@ -860,6 +970,22 @@ buzzmu(register struct monst *mtmp, register struct attack *mattk)
             impossible("Monster spell %d cast", mattk->adtyp - 1);
     }
     return 1;
+}
+
+/* is (x,y) entombed (completely surrounded by boulders or nonwalkable spaces)?
+ * note that (x,y) itself is not checked */
+static boolean
+is_entombed(xchar x, xchar y)
+{
+    xchar xx, yy;
+    for (xx = x - 1; xx <= x + 1; xx++) {
+        for (yy = y - 1; yy <= y + 1; yy++) {
+            if (isok(xx, yy) && xx != x && yy != y
+                && SPACE_POS(levl[xx][yy].typ) && !sobj_at(BOULDER, xx, yy))
+                return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 /*mcastu.c*/
