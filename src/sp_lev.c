@@ -60,6 +60,7 @@ static void light_region(region *);
 static void maze1xy(coord *, int);
 static void fill_empty_maze(void);
 static void splev_initlev(lev_init *);
+static void reset_coordinate_system(void);
 #if 0
 /* macosx complains that these are unused */
 static long sp_code_jmpaddr(long, long);
@@ -145,6 +146,7 @@ int lspo_portal(lua_State *);
 int lspo_random_corridors(lua_State *);
 int lspo_region(lua_State *);
 int lspo_replace_terrain(lua_State *);
+int lspo_reset_coordinate_system(lua_State *);
 int lspo_reset_level(lua_State *);
 int lspo_finalize_level(lua_State *);
 int lspo_room(lua_State *);
@@ -4001,10 +4003,7 @@ spo_endroom(struct sp_coder* coder UNUSED)
            in case there's some stuff to be created outside the outermost
            room, and there's no MAP. */
         if (g.xsize <= 1 && g.ysize <= 1) {
-            g.xstart = 1;
-            g.ystart = 0;
-            g.xsize = COLNO - 1;
-            g.ysize = ROWNO;
+            reset_coordinate_system();
         }
     }
     update_croom();
@@ -6290,6 +6289,29 @@ lspo_wallify(lua_State *L)
     return 0;
 }
 
+/* Reset the coordinate system of the level.
+ * Useful when defining a des.map that only covers part of the map, and you
+ * don't want its relative coordinate system to apply to everything else that
+ * follows in the lua file.
+ * des.reset_coordinate_system();
+ */
+int
+lspo_reset_coordinate_system(lua_State *L UNUSED)
+{
+    reset_coordinate_system();
+    return 0;
+}
+
+/* guts of des.reset_coordinate_system(); called from a couple other places */
+static void
+reset_coordinate_system(void)
+{
+    g.xstart = 1;
+    g.ystart = 0;
+    g.xsize = COLNO - 1;
+    g.ysize = ROWNO;
+}
+
 /* reset_level is only needed for testing purposes */
 int
 lspo_reset_level(lua_State *L UNUSED)
@@ -6519,10 +6541,7 @@ TODO: g.coder->croom needs to be updated
             g.ystart = 0;
     }
     if (g.xsize <= 1 && g.ysize <= 1) {
-        g.xstart = 1;
-        g.ystart = 0;
-        g.xsize = COLNO - 1;
-        g.ysize = ROWNO;
+        reset_coordinate_system();
     } else {
         xchar mptyp;
         int xx, yy;
@@ -6706,6 +6725,7 @@ static const struct luaL_Reg nhl_functions[] = {
     { "non_passwall", lspo_non_passwall },
     { "teleport_region", lspo_teleport_region },
     { "reset_level", lspo_reset_level },
+    { "reset_coordinate_system", lspo_reset_coordinate_system },
     { "finalize_level", lspo_finalize_level },
     /* TODO: { "branch", lspo_branch }, */
     /* TODO: { "portal", lspo_portal }, */
