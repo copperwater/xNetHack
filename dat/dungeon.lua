@@ -121,7 +121,8 @@ dungeon = {
             name = "The Stygian Marsh",
             base = 5,
             direction = "down"
-         }, {
+         }, 
+         {
             name = "The Citadel of Dis",
             base = 6,
             direction = "up"
