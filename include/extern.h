@@ -326,7 +326,7 @@ extern int is_drawbridge_wall(int, int);
 extern boolean is_db_wall(int, int);
 extern boolean find_drawbridge(int *, int *);
 extern boolean create_drawbridge(int, int, int, boolean);
-extern void open_drawbridge(int, int);
+extern boolean open_drawbridge(int, int);
 extern void close_drawbridge(int, int);
 extern void destroy_drawbridge(int, int);
 

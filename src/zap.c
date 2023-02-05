@@ -3608,9 +3608,10 @@ bhit(int ddx, int ddy, int range,  /* direction and range */
                 break;
             case WAN_STRIKING:
             case SPE_FORCE_BOLT:
+                if (cansee(x, y))
+                    learn_it = TRUE;
                 if (typ != DRAWBRIDGE_UP)
                     destroy_drawbridge(x, y);
-                learn_it = TRUE;
                 break;
             }
             if (learn_it)

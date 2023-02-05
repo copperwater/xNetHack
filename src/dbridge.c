@@ -32,6 +32,7 @@ static boolean automiss(struct entity *);
 static boolean e_missed(struct entity *, boolean);
 static boolean e_jumps(struct entity *);
 static void do_entity(struct entity *);
+static boolean cerberus_blocked(void);
 
 boolean
 is_waterwall(xchar x, xchar y)
@@ -800,9 +801,11 @@ close_drawbridge(int x, int y)
 }
 
 /*
- * Open the drawbridge located at x,y
+ * Open the drawbridge located at x,y.
+ * Return TRUE if it was opened successfully, FALSE if not (or if x, y is not a
+ * drawbridge).
  */
-void
+boolean
 open_drawbridge(int x, int y)
 {
     register struct rm *lev1, *lev2;
@@ -811,7 +814,14 @@ open_drawbridge(int x, int y)
 
     lev1 = &levl[x][y];
     if (lev1->typ != DRAWBRIDGE_UP)
-        return;
+        return FALSE;
+    if (cerberus_blocked()) {
+        if (cansee(x, y))
+            pline("The drawbridge vibrates, but doesn't budge.");
+        else
+            You_hear("a brief mechanical sound, but then it stops.");
+        return FALSE;
+    }
     x2 = x;
     y2 = y;
     get_wall_for_db(&x2, &y2);
@@ -843,6 +853,7 @@ open_drawbridge(int x, int y)
     if (Is_stronghold(&u.uz))
         u.uevent.uopened_dbridge = TRUE;
     nokiller();
+    return TRUE;
 }
 
 /*
@@ -861,6 +872,11 @@ destroy_drawbridge(int x, int y)
     lev1 = &levl[x][y];
     if (!IS_DRAWBRIDGE(lev1->typ))
         return;
+    if (cerberus_blocked()) {
+        if (cansee(x, y))
+            pline("The drawbridge vibrates vigorously, but doesn't budge.");
+        return;
+    }
     x2 = x;
     y2 = y;
     get_wall_for_db(&x2, &y2);
@@ -972,6 +988,22 @@ destroy_drawbridge(int x, int y)
         }
     }
     nokiller();
+}
+
+/* The drawbridge at the Gate of Hell will not open while Cerberus guards it. */
+static boolean
+cerberus_blocked(void)
+{
+    if (Is_hellgate(&u.uz)) {
+        const struct monst *mtmp;
+        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+            if (mtmp->data == &mons[PM_CERBERUS] && !mtmp->mpeaceful
+                && !helpless(mtmp)) {
+                return TRUE;
+            }
+        }
+    }
+    return FALSE;
 }
 
 /*dbridge.c*/
