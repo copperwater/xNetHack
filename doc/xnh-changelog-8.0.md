@@ -208,7 +208,9 @@ changes:
     generated levels in the middle.
   - All eight demon lords are present in their own lairs, none of them in the
     main branch.
-  - Vlad's Tower leads up from the level below the Valley.
+  - The level below the Valley is the gateway to Gehennom proper, which is
+    guarded by Cerberus, who is now undeferred. Vlad's Tower is also accessed
+    from this level.
   - The Wizard's Tower is its own branch rather than being embedded into filler
     levels.
   - The sixth level of the main branch is the City of Dis, inhabited by a number
