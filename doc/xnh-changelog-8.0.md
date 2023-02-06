@@ -202,6 +202,8 @@ changes:
   rather than doing nothing.
 - A number of major demons (horned devil, erinys, vrock, bone devil, nalfeshnee,
   pit fiend) are now capable of flight.
+- Major demons generated at level creation time in Gehennom no longer have an
+  80% chance of generating asleep.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly
