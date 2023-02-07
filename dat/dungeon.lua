@@ -118,7 +118,7 @@ dungeon = {
             direction = "down"
          },
          {
-            name = "The Stygian Marsh",
+            name = "Shedaklah",
             base = 5,
             direction = "down"
          }, 
@@ -324,7 +324,7 @@ dungeon = {
       }
    },
    {
-      name = "The Stygian Marsh",
+      name = "Shedaklah",
       bonetag = "S",
       base = 2,
       flags = { "mazelike", "hellish" },
