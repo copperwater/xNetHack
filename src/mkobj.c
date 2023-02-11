@@ -4089,6 +4089,12 @@ init_obj_material(struct obj* obj)
             i -= materials->iprob;
             materials++;
         }
+        /* Do not randomly choose silver for an item in Gehennom.
+         * (If the default material or only valid material is silver, this will
+         * still work fine. This only prevents SILVER from being picked from a
+         * materials list.) */
+        if (Inhell && materials->iclass == SILVER)
+            return;
         /* Only set the new material if:
          * 1) it is not marked as invalid for this specific object
          * 2) iclass is non-zero (a zero indicates base material should be used)
