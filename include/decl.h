@@ -18,6 +18,7 @@ struct dgn_topology { /* special dungeon levels for speed */
     d_level d_stronghold_level;
     d_level d_valley_level;
     d_level d_hellgate_level;
+    d_level d_styxmarsh_level;
     d_level d_wiz1_level;
     d_level d_wiz2_level;
     d_level d_wiz3_level;
@@ -51,6 +52,7 @@ struct dgn_topology { /* special dungeon levels for speed */
 #define stronghold_level        (g.dungeon_topology.d_stronghold_level)
 #define valley_level            (g.dungeon_topology.d_valley_level)
 #define hellgate_level          (g.dungeon_topology.d_hellgate_level)
+#define styxmarsh_level         (g.dungeon_topology.d_styxmarsh_level)
 #define wiz1_level              (g.dungeon_topology.d_wiz1_level)
 #define wiz2_level              (g.dungeon_topology.d_wiz2_level)
 #define wiz3_level              (g.dungeon_topology.d_wiz3_level)

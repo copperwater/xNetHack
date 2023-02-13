@@ -1,5 +1,5 @@
 -- City of Dis: about halfway down Gehennom, ruled from its citadel by Dispater.
--- Replaces Orcus's ghost town as the haunted area in the main branch of
+-- Replaces Orcus's ghost town as the built-up area in the main branch of
 -- Gehennom.
 
 des.level_init({ style = "solidfill", fg = " " });
@@ -93,6 +93,9 @@ des.replace_terrain({ selection=swamp_possibility,
                       fromterrain='.', toterrain='}', chance=60 })
 local outside_dry = outside:filter_mapchar('.')
 des.stair("up", 00, upstairy)
+-- add some grass to the swamp with the same chance as in styxmarsh to indicate
+-- that it's the same swamp
+des.replace_terrain({ selection=swamp_possibility, fromterrain='.', toterrain='g', chance=40 })
 
 -- The gate
 des.drawbridge({ dir="east", state="closed", x=17, y=09 })

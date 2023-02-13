@@ -52,6 +52,7 @@ static boolean reverse_loot(void);
 static boolean mon_beside(int, int);
 static int do_loot_cont(struct obj **, int, int);
 static int doloot_core(void);
+static void u_took_forbidden_object(struct obj *);
 
 /* define for query_objlist() and autopickup() */
 #define FOLLOW(curr, flags) \
@@ -1871,6 +1872,8 @@ pickup_object(struct obj *obj, long count,
               boolean telekinesis) /* not picking it up directly by hand */
 {
     int res, nearload;
+    boolean forbidden = (obj->where == OBJ_FLOOR && Is_styxmarsh(&u.uz) &&
+                         is_pool(obj->ox, obj->oy));
 
     if (obj->quan < count) {
         impossible("pickup_object: count %ld > quan %ld?", count, obj->quan);
@@ -1943,6 +1946,10 @@ pickup_object(struct obj *obj, long count,
     prinv(nearload == SLT_ENCUMBER ? moderateloadmsg : (char *) 0, obj,
           count);
     g.mrg_to_wielded = FALSE;
+
+    if (forbidden)
+        u_took_forbidden_object(obj);
+
     return 1;
 }
 
@@ -4346,6 +4353,83 @@ dump_container(struct obj* box, struct obj *targetbox, int msgflags)
 
     if (carried(box) || (targetbox && carried(targetbox)))
         update_inventory();
+}
+
+/* The hero has just taken an object that was not theirs to take, and is now
+ * triggering some response.
+ * This is currently used only for taking an item from the dead in the Styx
+ * marsh, but could be expanded to several other things. */
+static void
+u_took_forbidden_object(struct obj *offender)
+{
+    xchar x, y;
+    struct obj *otmp, *nobj;
+    static long last_time_called = 0;
+    boolean did_something = FALSE;
+
+    if (!Is_styxmarsh(&u.uz)) {
+        impossible("forbidden objects are only implemented for styx marsh");
+        return;
+    }
+
+    /* don't call this multiple times in a turn i.e. by picking up multiple
+     * items */
+    if (last_time_called == g.moves)
+        return;
+
+    last_time_called = g.moves;
+
+    for (x = 1; x < COLNO; x++) {
+        for (y = 1; y < ROWNO; y++) {
+            for (otmp = g.level.objects[x][y]; otmp; otmp = nobj) {
+                nobj = otmp->nobj;
+                if (otmp->otyp == CORPSE) {
+                    switch (rn2(5)) {
+                    case 0:
+                        /* no effect */
+                        break;
+                    case 1:
+                    case 2: {
+                        /* turn corpse into zombie */
+                        anything any;
+                        any.a_obj = otmp;
+                        zombify_mon(&any, 0);
+                        did_something = TRUE;
+                        break;
+                    }
+                    case 3:
+                    case 4: {
+                        /* produce some other undead (not from corpse, and not
+                         * at corpse's location)
+                         * no mummies because who ever heard of a mummy being
+                         * preserved in a swamp? */
+                        struct permonst *mdat;
+                        if (rn2(3))                       /* 2/3 */
+                            mdat = mkclass(S_ZOMBIE, 0);
+                        else if (!rn2(4))                 /* 1/12 */
+                            mdat = &mons[PM_GHOUL];
+                        else if (!rn2(5))                 /* 1/20 */
+                            mdat = mkclass(S_LICH, 0);
+                        else if (rn2(6))                  /* 1/6 */
+                            mdat = &mons[PM_SHADE];
+                        else                              /* 1/30 */
+                            mdat = mkclass(S_WRAITH, 0);
+
+                        (void) makemon(mdat, 0, 0, MM_NOMSG);
+                        did_something = TRUE;
+                        break;
+                    }
+                    }
+                }
+            }
+        }
+    }
+
+    if (did_something) {
+        pline("As you take %s, anger ripples through the swamp.",
+              the(xname(offender)));
+        pline("Maybe you shouldn't have disturbed it...");
+    }
 }
 
 /*pickup.c*/

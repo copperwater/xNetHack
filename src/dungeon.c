@@ -683,6 +683,7 @@ static struct level_map {
                   { "oracle", &oracle_level },
                   { "orcus", &orcus_level },
                   { "sanctum", &sanctum_level },
+                  { "styxmarsh", &styxmarsh_level },
                   { "valley", &valley_level },
                   { "water", &water_level },
                   { "wizard1", &wiz1_level },
