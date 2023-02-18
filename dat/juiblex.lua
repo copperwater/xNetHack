@@ -4,7 +4,7 @@
 -- NetHack may be freely redistributed.  See license for details.
 --
 
-des.level_flags("mazelevel", "shortsighted", "noflip", "nommap-boss")
+des.level_flags("mazelevel", "shortsighted", "noflipy", "nommap-boss")
 -- des.level_init(mines,'.','}',true,true,unlit,false)
 des.level_init({ style = "swamp", lit = 0 });
 -- guarantee at least one open spot to ensure successful stair placement
@@ -58,8 +58,7 @@ place:set(46,15);
 -- Dungeon description
 des.region({ region={00,00,50,17}, lit=0, type="swamp", filled=2 })
 des.levregion({ region = {01,00,11,20}, region_islev=1, exclude={0,0,50,17}, type="stair-down" });
-des.levregion({ region = {69,00,79,20}, region_islev=1, exclude={0,0,50,17}, type="stair-up" });
-des.levregion({ region = {01,00,11,20}, region_islev=1, exclude={0,0,50,17}, type="branch" });
+des.levregion({ region = {69,00,79,20}, region_islev=1, exclude={0,0,50,17}, type="branch" });
 des.teleport_region({ region = {01,00,11,20}, region_islev=1, exclude={0,0,50,17},dir="up" })
 des.teleport_region({ region = {69,00,79,20}, region_islev=1, exclude={0,0,50,17},dir="down" })
 des.feature("fountain", place:rndcoord(1))
@@ -72,6 +71,9 @@ des.monster("Juiblex",25,08)
 des.monster("lemure",43,08)
 des.monster("lemure",44,08)
 des.monster("lemure",45,08)
+for i = 1, 4 do
+   des.monster('&')
+end
 -- Some liquids and gems
 des.object("*",43,06)
 des.object("*",45,06)
@@ -105,6 +107,9 @@ des.monster("m")
 des.monster("m")
 des.monster("jellyfish")
 des.monster("jellyfish")
+for i = 1, d(3) do
+   des.monster(';')
+end
 -- Some random objects
 des.object("!")
 des.object("!")
@@ -120,3 +125,6 @@ des.trap("anti magic")
 des.trap("anti magic")
 des.trap("magic")
 des.trap("magic")
+for i = 1, 4 do
+   des.trap("rust")
+end
