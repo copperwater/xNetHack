@@ -205,6 +205,7 @@ changes:
 - Major demons generated at level creation time in Gehennom no longer have an
   80% chance of generating asleep.
 - Non-silver-base items never randomly generate as silver in Gehennom.
+- Green slimes can hide on the ceiling.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly
