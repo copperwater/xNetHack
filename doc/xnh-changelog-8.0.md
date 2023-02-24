@@ -218,7 +218,7 @@ changes:
   - The Wizard's Tower is its own branch rather than being embedded into filler
     levels.
   - The fifth level of the main branch is the Stygian Marsh, containing the
-    entrance to Juiblex's branch.
+    entrance to Shedaklah (Juiblex's and another chaotic demon lord's branch).
   - The sixth level of the main branch is the City of Dis, inhabited by a number
     of demons and containing the entrance to the Citadel of Dis, the lair of
     Dispater.

@@ -66,7 +66,8 @@ des.monster({ id = "giant mimic", coord = place:rndcoord(1), appear_as = "ter:fo
 des.monster({ id = "giant mimic", coord = place:rndcoord(1), appear_as = "ter:fountain" })
 des.monster({ id = "giant mimic", coord = place:rndcoord(1), appear_as = "ter:fountain" })
 -- The demon of the swamp
-des.monster("Juiblex",25,08)
+local juibloc = selection.area(16,00,34,17):filter_mapchar('.'):rndcoord()
+des.monster({ id = "Juiblex", coord = juibloc })
 -- And a couple demons
 des.monster("lemure",43,08)
 des.monster("lemure",44,08)
@@ -97,6 +98,8 @@ des.monster("P")
 des.monster("P")
 des.monster("P")
 des.monster("P")
+des.monster("green slime")
+des.monster("green slime")
 des.monster("b")
 des.monster("b")
 des.monster("b")
