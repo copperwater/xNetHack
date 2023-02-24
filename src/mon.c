@@ -2655,6 +2655,8 @@ m_detach(
     mtmp->mhp = 0; /* simplify some tests: force mhp to 0 */
     if (mtmp->iswiz)
         wizdead();
+    if (mtmp->data == &mons[PM_JUIBLEX])
+        g.context.no_of_juiblex--;
     if (mtmp->data->msound == MS_NEMESIS) {
         struct permonst *mdat = mtmp->data;
         nemdead();

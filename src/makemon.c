@@ -950,6 +950,9 @@ clone_mon(struct monst *mon,
      * monster get APPEARMSG flag and produce duplicate appearance messages */
     m2->mstrategy = mon->mstrategy & ~STRAT_APPEARMSG;
 
+    if (m2->data == &mons[PM_JUIBLEX])
+        g.context.no_of_juiblex++;
+
     set_malign(m2);
     newsym(m2->mx, m2->my); /* display the new monster */
 
@@ -1443,6 +1446,8 @@ makemon(
         g.context.no_of_wizards++;
         if (g.context.no_of_wizards == 1 && Is_earthlevel(&u.uz))
             mitem = SPE_DIG;
+    } else if (mndx == PM_JUIBLEX) {
+        g.context.no_of_juiblex++;
     } else if (mndx == PM_GHOST && !(mmflags & MM_NONAME)) {
         mtmp = christen_monst(mtmp, rndghostname());
     } else if (ptr->msound == MS_NEMESIS) {

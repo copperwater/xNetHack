@@ -136,6 +136,10 @@ struct achievement_tracking {
 struct context_info {
     unsigned ident;         /* social security number for each monster */
     unsigned no_of_wizards; /* 0, 1 or 2 (wizard and his shadow) */
+    unsigned no_of_juiblex; /* ditto, but could be any amount really; since he
+                               can be split indefinitely and copies can go to
+                               different levels, we need a way to check if all
+                               the copies of him are dead or not */
     unsigned run;           /* 0: h (etc), 1: H (etc), 2: fh (etc) */
                             /* 3: FH, 4: ff+, 5: ff-, 6: FF+, 7: FF- */
                             /* 8: travel */
