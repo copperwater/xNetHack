@@ -488,7 +488,7 @@ mattackm(register struct monst *magr, register struct monst *mdef)
             break;
 
         case AT_ENGL:
-            if (mdef->data == &mons[PM_SHADE]) { /* no silver teeth... */
+            if (noncorporeal(mdef->data)) { /* no silver teeth... */
                 if (g.vis)
                     pline("%s attempt to engulf %s is futile.",
                           s_suffix(Monnam(magr)), mon_nam(mdef));
