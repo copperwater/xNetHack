@@ -5132,6 +5132,13 @@ lspo_door(lua_State *L)
         iron = get_table_boolean_opt(L, "iron", UNSPECIFIED);
     }
 
+    /* If the door was specified as "closed", and "locked" wasn't specified in
+     * the table, that means NOT locked. The level designer has to put "locked"
+     * or locked=1 if they want it locked. Otherwise, doors such as Minetown
+     * shops that are specified with just "closed" can end up locked. */
+    if (ds == D_CLOSED && locked == UNSPECIFIED)
+        locked = 0;
+
     /* Determine if the door is specified as secret or not.
      * By existing convention, doors specified with any state besides "secret"
      * or "random" are not secret.
