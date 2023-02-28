@@ -7,7 +7,6 @@
 
 extern const char *const destroy_strings[][3]; /* from zap.c */
 
-static void mk_trap_statue(xchar, xchar);
 static boolean keep_saddle_with_steedcorpse(unsigned, struct obj *,
                                             struct obj *);
 static boolean mu_maybe_destroy_web(struct monst *, boolean, struct trap *);
@@ -342,8 +341,8 @@ grease_protect(
 }
 
 /* create a "living" statue at x,y */
-static void
-mk_trap_statue(xchar x, xchar y)
+void
+mk_trap_statue(xchar x, xchar y) /* 3.7 MERGE TODO: make these coordxy */
 {
     struct monst *mtmp;
     struct obj *otmp, *statue;
@@ -424,9 +423,6 @@ maketrap(int x, int y, int typ)
     switch (typ) {
     case SQKY_BOARD:
         ttmp->tnote = choose_trapnote(ttmp);
-        break;
-    case STATUE_TRAP: /* create a "living" statue */
-        mk_trap_statue(x, y);
         break;
     case ROLLING_BOULDER_TRAP: /* boulder will roll towards trigger */
         (void) mkroll_launch(ttmp, x, y, BOULDER, 1L);
