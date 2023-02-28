@@ -30,8 +30,6 @@ local special_levels = {
 "bigrm-11",
 "castle",
 "earth",
-"fakewiz1",
-"fakewiz2",
 "fire",
 "juiblex",
 "knox",

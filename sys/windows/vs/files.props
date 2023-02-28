@@ -79,8 +79,6 @@
     <Luafiles Include = "tower1.lua"/>
     <Luafiles Include = "tower2.lua"/>
     <Luafiles Include = "tower3.lua"/>
-    <Luafiles Include = "fakewiz1.lua"/>
-    <Luafiles Include = "fakewiz2.lua"/>
     <Luafiles Include = "wizard1.lua"/>
     <Luafiles Include = "wizard2.lua"/>
     <Luafiles Include = "wizard3.lua"/>

@@ -96,7 +96,7 @@ CSS = NHdump.css
 DATHELP = help hh cmdhelp keyhelp history opthelp optmenu wizhelp
 
 SPEC_LEVS = abyssfill.lua asmodeus.lua baalz.lua bigrm-*.lua castle.lua \
-	cocytusfill.lua demogorgon.lua dis.lua dispater.lua fakewiz?.lua \
+	cocytusfill.lua demogorgon.lua dis.lua dispater.lua \
 	geryon.lua hellfill.lua hellgate.lua juiblex.lua knox.lua medusa-?.lua \
 	minend-?.lua minefill.lua minetn-?.lua oracle-?.lua orcus.lua \
 	sanctum.lua soko?-?.lua styxmarsh.lua tower?.lua valley.lua \
