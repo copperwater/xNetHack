@@ -959,7 +959,8 @@ mu_maybe_destroy_web(
  *    monsters are immune to various traps)
  *  TRAP_HIDDEN_IMMUNE = immune but in a non-obvious way such as an unidentified
  *    item or hidden intrinsic providing a resistance; the player should still
- *    be warned of this trap, while monsters implicitly know they're immune. */
+ *    be warned of this trap, while monsters implicitly know they're immune.
+ *    When mon is not the player, this function should never return this. */
 enum trap_immunities
 immune_to_trap(struct monst *mon, xchar ttype)
 {
