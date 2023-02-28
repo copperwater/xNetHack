@@ -118,6 +118,8 @@ des.monster('Cerberus', 48,08)
 -- these are intentionally embedded in the wall
 des.object({ id = 'statue', x=21, y=13, montype='hell hound' })
 des.object({ id = 'statue', x=29, y=13, montype='hell hound' })
+des.trap('fire', 21,12)
+des.trap('fire', 29,12)
 
 -- Various traps
 for i = 1, 16 + d(4) do
