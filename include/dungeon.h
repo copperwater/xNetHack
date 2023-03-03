@@ -109,34 +109,43 @@ typedef struct branch {
 #define Lassigned(y) ((y)->dlevel || (y)->dnum)
 #define Lcheck(x,z) (Lassigned(z) && on_level(x, z))
 
+/* Planes */
 #define Is_astralevel(x)    (Lcheck(x, &astral_level))
 #define Is_earthlevel(x)    (Lcheck(x, &earth_level))
 #define Is_waterlevel(x)    (Lcheck(x, &water_level))
 #define Is_firelevel(x)     (Lcheck(x, &fire_level))
 #define Is_airlevel(x)      (Lcheck(x, &air_level))
-#define Is_medusa_level(x)  (Lcheck(x, &medusa_level))
-#define Is_oracle_level(x)  (Lcheck(x, &oracle_level))
+/* main branch gehennom levels */
 #define Is_valley(x)        (Lcheck(x, &valley_level))
 #define Is_hellgate(x)      (Lcheck(x, &hellgate_level))
 #define Is_styxmarsh(x)     (Lcheck(x, &styxmarsh_level))
-#define Is_juiblex_level(x) (Lcheck(x, &juiblex_level))
+#define Is_dis_level(x)     (Lcheck(x, &dis_level)) /* Dispater is NOT here */
+#define Is_sanctum(x)       (Lcheck(x, &sanctum_level))
+/* demon lord lairs */
 #define Is_asmo_level(x)    (Lcheck(x, &asmodeus_level))
 #define Is_baal_level(x)    (Lcheck(x, &baalzebub_level))
-#define Is_dis_level(x)     (Lcheck(x, &dis_level)) /* city of dis - NOT where
-                                                       Dispater is */
-#define Is_dispater_level(x) (Lcheck(x, &dispater_level)) /* this is his lair */
+#define Is_demogorgon_level(x) (Lcheck(x, &demogorgon_level))
+#define Is_dispater_level(x) (Lcheck(x, &dispater_level)) /* Dispater is here */
+#define Is_geryon_level(x)  (Lcheck(x, &geryon_level))
+#define Is_juiblex_level(x) (Lcheck(x, &juiblex_level))
 #define Is_orcus_level(x)   (Lcheck(x, &orcus_level))
+#define Is_yeen_level(x)    (Lcheck(x, &yeenoghu_level))
+/* wizard's tower levels */
 #define Is_wiz1_level(x)    (Lcheck(x, &wiz1_level))
 #define Is_wiz2_level(x)    (Lcheck(x, &wiz2_level))
 #define Is_wiz3_level(x)    (Lcheck(x, &wiz3_level))
 #define Is_telemaze_lev(x)  (Is_wiz2_level(x)) /* to avoid some hardcoding */
 #define Is_wizpuzzle_lev(x) (Is_wiz3_level(x)) /* to avoid some hardcoding */
-#define Is_sanctum(x)       (Lcheck(x, &sanctum_level))
+/* main branch Dungeons of Doom levels */
+#define Is_medusa_level(x)  (Lcheck(x, &medusa_level))
+#define Is_oracle_level(x)  (Lcheck(x, &oracle_level))
 #define Is_stronghold(x)    (Lcheck(x, &stronghold_level))
 #define Is_bigroom(x)       (Lcheck(x, &bigroom_level))
+/* special Quest levels */
 #define Is_qstart(x)        (Lcheck(x, &qstart_level))
 #define Is_qlocate(x)       (Lcheck(x, &qlocate_level))
 #define Is_nemesis(x)       (Lcheck(x, &nemesis_level))
+/* other miscellaneous special levels */
 #define Is_knox(x)          (Lcheck(x, &knox_level))
 #define Is_mineend_level(x) (Lcheck(x, &mineend_level))
 #define Is_sokoend_level(x) (Lcheck(x, &sokoend_level))
@@ -145,6 +154,10 @@ typedef struct branch {
 #define In_tower(x) ((x)->dnum == tower_dnum)
 #define Inhell In_hell(&u.uz) /* now gehennom */
 #define In_endgame(x) ((x)->dnum == astral_level.dnum)
+#define In_cocytus(x) ((x)->dnum == asmodeus_level.dnum)
+/* fiery hell: Inhell && !In_cocytus; icy hell: Inhell && In_cocytus
+ * because cocytus should still count as part of gehennom for
+ * non-temperature-related purposes */
 
 #define within_bounded_area(X, Y, LX, LY, HX, HY) \
     ((X) >= (LX) && (X) <= (HX) && (Y) >= (LY) && (Y) <= (HY))

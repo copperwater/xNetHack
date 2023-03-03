@@ -3497,21 +3497,22 @@ can_magic_map(void)
              * blocked by the nemesis. */
             boss_mndx = g.urole.neminum;
         }
-        else if (Is_asmo_level(&u.uz)) {
+        else if (Is_asmo_level(&u.uz))
             boss_mndx = PM_ASMODEUS;
-        }
-        else if (Is_baal_level(&u.uz)) {
+        else if (Is_baal_level(&u.uz))
             boss_mndx = PM_BAALZEBUB;
-        }
-        else if (Is_juiblex_level(&u.uz)) {
+        else if (Is_juiblex_level(&u.uz))
             boss_mndx = PM_JUIBLEX;
-        }
-        else if (Is_orcus_level(&u.uz)) {
+        else if (Is_orcus_level(&u.uz))
             boss_mndx = PM_ORCUS;
-        }
-        else if (Is_dis_level(&u.uz) || Is_dispater_level(&u.uz)) {
+        else if (Is_dis_level(&u.uz) || Is_dispater_level(&u.uz))
             boss_mndx = PM_DISPATER;
-        }
+        else if (Is_geryon_level(&u.uz))
+            boss_mndx = PM_GERYON;
+        else if (Is_demogorgon_level(&u.uz))
+            boss_mndx = PM_DEMOGORGON;
+        else if (Is_yeen_level(&u.uz))
+            boss_mndx = PM_YEENOGHU;
         /* add more cases here if blocking for other bosses is desired */
         else {
             /* not on a boss's level, so why do we have BOSSBLOCKED set? */
