@@ -206,6 +206,9 @@ changes:
   80% chance of generating asleep.
 - Non-silver-base items never randomly generate as silver in Gehennom.
 - Green slimes can hide on the ceiling.
+- New cold trap, which appears only in the Cocytus branch of Gehennom. It deals
+  4d8 cold damage to non-cold-resistant creatures, and may strip intrinsic cold
+  resistance from the affected creature.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly

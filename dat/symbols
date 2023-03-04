@@ -104,6 +104,7 @@ start: Blank
         S_falling_rock_trap: \032
         S_feline: \032
         S_fire_trap: \032
+        S_ice_trap: \032
         S_flashbeam: \032
         S_food: \032
         S_fountain: \032

@@ -1088,6 +1088,18 @@ immune_to_trap(struct monst *mon, xchar ttype)
             }
         }
         return (you ? TRAP_HIDDEN_IMMUNE : TRAP_CLEARLY_IMMUNE);
+    case COLD_TRAP:
+        /* always potentially harmful to player */
+        if (you)
+            return TRAP_NOT_IMMUNE;
+        /* but normally not harmful to monsters since they can't lose cold
+         * resistance; however, they can lose it if it's acquired, so check for
+         * that */
+        else {
+            if (mon->mintrinsics & MR_COLD)
+                return TRAP_NOT_IMMUNE;
+            return resists_cold(mon) ? TRAP_CLEARLY_IMMUNE : TRAP_NOT_IMMUNE;
+        }
     case MAGIC_PORTAL:
         /* never hurts anything, but player is considered non-immune so they
          * can be asked about entering it */
@@ -1148,6 +1160,7 @@ floor_trigger(int ttyp)
     case SLP_GAS_TRAP:
     case RUST_TRAP:
     case FIRE_TRAP:
+    case COLD_TRAP:
     case PIT:
     case SPIKED_PIT:
     case HOLE:
@@ -1706,6 +1719,105 @@ trapeffect_fire_trap(
 
         return trapkilled ? Trap_Killed_Mon : mtmp->mtrapped
             ? Trap_Caught_Mon : Trap_Effect_Finished;
+    }
+    return Trap_Effect_Finished;
+}
+
+static int
+trapeffect_cold_trap(
+    struct monst *mtmp,
+    struct trap *trap,
+    unsigned int trflags UNUSED)
+{
+    /* things fire traps do that cold traps don't:
+     * - freeze potions (zap_over_floor doesn't either)
+     * - change terrain (assume no cold traps generate over water or lava; it
+     *   also won't turn regular floor to ice (which could then turn to water)
+     * - extra damage or instakilling to certain monsters (it would be possible
+     *   to deal e.g. half max HP damage to water elementals and such, but that
+     *   might raise more questions than it answers) */
+    int dmg = d(4, 8);
+    boolean lost_resistance = FALSE;
+    if (mtmp == &g.youmonst) {
+        /* This is similar to dofiretrap(), but it doesn't need to be its own
+         * function because it's not called from magic traps or container traps.
+         */
+        seetrap(trap);
+        pline("Mist flash-freezes around you as your heat is sucked away!");
+        if (Cold_resistance) {
+            dmg = rn2(2);
+            if (HCold_resistance && !rn2(3)) {
+                /* remove intrinsic cold resistance, regardless of its source */
+                HCold_resistance = 0;
+                lost_resistance = TRUE;
+                You_feel("alarmingly cooler.");
+            }
+        }
+        else {
+            /* this is copied from fire trap code and may indicate we should
+             * refactor hpmax gains/losses into its own function... */
+            int uhpmin = minuhpmax(1), olduhpmax = u.uhpmax;
+
+            if (u.uhpmax > uhpmin) {
+                u.uhpmax -= rn2(min(u.uhpmax, dmg + 1)), g.context.botl = TRUE;
+            } /* note: no 'else' here */
+            if (u.uhpmax < uhpmin) {
+                setuhpmax(min(olduhpmax, uhpmin)); /* sets g.context.botl */
+                if (!Drain_resistance)
+                    losexp(NULL); /* never fatal when 'drainer' is Null */
+            }
+            if (u.uhp > u.uhpmax)
+                u.uhp = u.uhpmax, g.context.botl = TRUE;
+        }
+        if (!dmg) {
+            if (!lost_resistance)
+                You("are uninjured.");
+        }
+        else
+            losehp(dmg, "flash freeze", KILLED_BY_AN); /* cold damage */
+        if (rn2(3))
+            (void) destroy_items(&g.youmonst, AD_COLD, dmg);
+    } else {
+        boolean in_sight = canseemon(mtmp) || (mtmp == u.usteed);
+        boolean see_it = cansee(mtmp->mx, mtmp->my);
+        boolean trapkilled = FALSE;
+
+        if (in_sight)
+            pline("%s is caught in a cloud of flash-freezing mist!",
+                  Monnam(mtmp));
+        else if (see_it) /* evidently `mtmp' is invisible */
+            pline("A cloud of mist condenses and flash-freezes!");
+
+        if (resists_cold(mtmp)) {
+            if ((mtmp->mintrinsics & MR_COLD) && !rn2(3)) {
+                mtmp->mintrinsics &= ~MR_COLD;
+                lost_resistance = TRUE;
+            }
+            if (in_sight) {
+                shieldeff(mtmp->mx, mtmp->my);
+                if (lost_resistance)
+                    pline("%s momentarily %s.", Monnam(mtmp),
+                          makeplural(locomotion(mtmp->data, "stumble")));
+                else
+                    pline("%s is uninjured.", Monnam(mtmp));
+            }
+        } else {
+            if (thitm(0, mtmp, (struct obj *) 0, dmg, FALSE))
+                trapkilled = TRUE;
+            else
+                /* we know mhp is at least `dmg' below mhpmax,
+                   so no (mhp > mhpmax) check is needed here */
+                mtmp->mhpmax -= rn2(dmg + 1);
+        }
+        if (rn2(3)) {
+            mtmp->mhp -= destroy_items(mtmp, AD_COLD, dmg);
+            if (DEADMONSTER(mtmp))
+                trapkilled = TRUE;
+        }
+        if (see_it && t_at(mtmp->mx, mtmp->my))
+            seetrap(trap);
+
+        return trapkilled ? Trap_Killed_Mon : Trap_Effect_Finished;
     }
     return Trap_Effect_Finished;
 }
@@ -2611,6 +2723,8 @@ trapeffect_selector(
         return trapeffect_rust_trap(mtmp, trap, trflags);
     case FIRE_TRAP:
         return trapeffect_fire_trap(mtmp, trap, trflags);
+    case COLD_TRAP:
+        return trapeffect_cold_trap(mtmp, trap, trflags);
     case PIT:
     case SPIKED_PIT:
         return trapeffect_pit(mtmp, trap, trflags);
@@ -6176,6 +6290,7 @@ delfloortrap(struct trap* ttmp)
     /* some of these are arbitrary -dlc */
     if (ttmp && ((ttmp->ttyp == SQKY_BOARD) || (ttmp->ttyp == BEAR_TRAP)
                  || (ttmp->ttyp == LANDMINE) || (ttmp->ttyp == FIRE_TRAP)
+                 || (ttmp->ttyp == COLD_TRAP)
                  || is_pit(ttmp->ttyp)
                  || is_hole(ttmp->ttyp)
                  || (ttmp->ttyp == TELEP_TRAP) || (ttmp->ttyp == LEVEL_TELEP)

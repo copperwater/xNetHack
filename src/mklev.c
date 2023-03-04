@@ -1721,9 +1721,12 @@ mktrap(
 
     if (num > NO_TRAP && num < TRAPNUM) {
         kind = num;
-    } else if (Inhell && !rn2(5)) {
+    } else if (Inhell && !In_cocytus(&u.uz) && !rn2(5)) {
         /* bias the frequency of fire traps in Gehennom */
         kind = FIRE_TRAP;
+    } else if (In_cocytus(&u.uz) && !rn2(3)) {
+        /* likewise for cold traps in Cocytus */
+        kind = COLD_TRAP;
     } else {
         do {
             kind = rnd(TRAPNUM - 1);
@@ -1770,7 +1773,11 @@ mktrap(
                     kind = NO_TRAP;
                 break;
             case FIRE_TRAP:
-                if (!Inhell)
+                if (!Inhell || In_cocytus(&u.uz))
+                    kind = NO_TRAP;
+                break;
+            case COLD_TRAP:
+                if (!In_cocytus(&u.uz))
                     kind = NO_TRAP;
                 break;
             case TELEP_TRAP:
