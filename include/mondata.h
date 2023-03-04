@@ -323,4 +323,9 @@
 #define knows_valuable_gems(ptr) \
     ((ptr) == &mons[PM_DWARF_RULER] || (ptr) == &mons[PM_GNOME_RULER])
 
+/* The monster is primarily made of water */
+#define is_made_of_water(ptr) \
+    ((ptr) == &mons[PM_WATER_ELEMENTAL] || (ptr) == &mons[PM_WATER_TROLL] \
+     || (ptr) == &mons[PM_FOG_CLOUD] || (ptr) == &mons[PM_STEAM_VORTEX])
+
 #endif /* MONDATA_H */
