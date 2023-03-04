@@ -2239,6 +2239,13 @@ doseduce(struct monst *mon)
         }
     }
 
+    /* you've been warmed up */
+    if (In_cocytus(&u.uz) && !Cold_resistance)
+        You("also feel warmed up!");
+    incr_itimeout(&HCold_resistance, 20 + d(3, 20));
+    if ((HCold_resistance & TIMEOUT) > 80)
+        set_itimeout(&HCold_resistance, 80);
+
     if (mon->mtame) { /* don't charge */
         ;
     } else if (rn2(20) < ACURR(A_CHA)) {
