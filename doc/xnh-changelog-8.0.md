@@ -218,6 +218,9 @@ changes:
   - The level below the Valley is the gateway to Gehennom proper, which is
     guarded by Cerberus, who is now undeferred. Vlad's Tower is also accessed
     from this level.
+  - Cocytus, an icy hell, branches off a few levels in. Asmodeus and a random
+    lawful demon lord make their homes there. Being in the branch causes cold
+    damage to you each turn if you are not cold resistant.
   - The Wizard's Tower is its own branch rather than being embedded into filler
     levels.
   - The fifth level of the main branch is the Stygian Marsh, containing the

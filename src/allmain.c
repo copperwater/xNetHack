@@ -294,6 +294,9 @@ moveloop_core(void)
                     interrupt_multi("You are slowly withering away.");
                 }
 
+                /* process environmental damage (e.g. extreme cold) */
+                environment_damages_u();
+
                 /* moving around while encumbered is hard work */
                 if (mvl_wtcap > MOD_ENCUMBER && u.umoved) {
                     if (!(mvl_wtcap < EXT_ENCUMBER ? g.moves % 30

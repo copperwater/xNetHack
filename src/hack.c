@@ -4009,4 +4009,35 @@ spot_checks(xchar x, xchar y, schar old_typ)
         break;
     }
 }
+
+/* once per move, check for damage (or other effects) from being in a hostile
+ * environment */
+void
+environment_damages_u(void)
+{
+    int dmg;
+    int *hp = Upolyd ? &u.mh : &u.uhp;
+
+    if (u.uinvulnerable)
+        return;
+
+    /* currently the only implemented hostile environment is Cocytus, which
+     * causes persistent cold damage */
+    if (In_cocytus(&u.uz) && !Cold_resistance
+        && !(u.uswallow && u.ustuck && !is_whirly(u.ustuck->data))) {
+        dmg = d(1, 6);
+        if (*hp > dmg)
+            You("are freezing to death!");
+        else {
+            if (is_made_of_water(g.youmonst.data))
+                pline("You%s have frozen solid.",
+                      is_whirly(g.youmonst.data) ? "r constituent particles"
+                                                 : "");
+            else
+                You("have frozen to death.");
+        }
+        losehp(dmg, "freezing to death", KILLED_BY);
+    }
+}
+
 /*hack.c*/

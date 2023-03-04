@@ -1045,6 +1045,18 @@ m_calcdistress(struct monst *mtmp)
         }
     }
 
+    /* A future possibility is to apply environmental damage (e.g. Cocytus
+     * freezing) here to monsters that lack the resistance, but it is
+     * unimplemented as of now because it would require a number of annoying
+     * carve-outs (for instance, demons, otherwise all except ice devils would
+     * freeze), and would also restrain what monsters can appear in special
+     * levels in this branch (for instance, vampires which appear in Asmodeus's
+     * level). It probably also makes for less interesting gameplay if the hero
+     * can defeat many monsters by simply running away from them until they
+     * freeze to death, or in special levels, simply wait for a couple hundred
+     * turns after entering for any non-resistant monsters generated on the
+     * level to die off. */
+
     /* possibly polymorph shapechangers and lycanthropes */
     if (mtmp->cham >= LOW_PM)
         decide_to_shapeshift(mtmp, (canspotmon(mtmp)

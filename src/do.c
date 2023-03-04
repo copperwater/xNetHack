@@ -1674,7 +1674,8 @@ goto_level(
     do_level_updates(PHASE_DIALOGUE | PHASE_SETFLAG);
 
     /* Check whether we just entered Gehennom. */
-    if (!In_hell(&u.uz0) && Inhell) {
+    if ((!In_hell(&u.uz0) || In_cocytus(&u.uz0)) && Inhell
+        && !In_cocytus(&u.uz)) {
         if (!Is_valley(&u.uz))
             hellish_smoke_mesg(); /* "It is hot here.  You smell smoke..." */
 
@@ -1723,9 +1724,11 @@ goto_level(
         }
     } else if (In_quest(&u.uz)) {
         onquest(); /* might be reaching locate|goal level */
-    } else if (In_V_tower(&u.uz)) {
-        if (newdungeon && In_hell(&u.uz0))
+    } else if (In_V_tower(&u.uz) || In_cocytus(&u.uz)) {
+        if (newdungeon && In_hell(&u.uz0) && !In_cocytus(&u.uz0))
             pline_The("heat and smoke are gone.");
+        if (In_cocytus(&u.uz) && !In_cocytus(&u.uz0))
+            pline("It is bitingly cold here...");
     } else if (Is_knox(&u.uz)) {
         /* alarm stops working once Croesus has died */
         if (new || !g.mvitals[PM_CROESUS].died) {

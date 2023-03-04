@@ -1018,6 +1018,7 @@ extern int inv_cnt(boolean);
 extern long money_cnt(struct obj *);
 extern void abattoir_sickness(void);
 extern void spot_checks(xchar, xchar, schar);
+extern void environment_damages_u(void);
 
 /* ### hacklib.c ### */
 
