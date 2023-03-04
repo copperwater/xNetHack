@@ -1750,6 +1750,8 @@ rndmonst(void)
             continue;
         if (Inhell && (ptr->geno & G_NOHELL))
             continue;
+        if (In_cocytus(&u.uz) && !pm_resistance(ptr, MR_COLD) && !is_demon(ptr))
+            continue;
 
         /*
          * Weighted reservoir sampling:  select ptr with a

@@ -220,7 +220,8 @@ changes:
     from this level.
   - Cocytus, an icy hell, branches off a few levels in. Asmodeus and a random
     lawful demon lord make their homes there. Being in the branch causes cold
-    damage to you each turn if you are not cold resistant.
+    damage to you each turn if you are not cold resistant. Normal monster
+    generation is restricted to major demons and cold-resistant monsters.
   - The Wizard's Tower is its own branch rather than being embedded into filler
     levels.
   - The fifth level of the main branch is the Stygian Marsh, containing the
