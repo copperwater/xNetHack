@@ -210,6 +210,8 @@ changes:
   4d8 cold damage to non-cold-resistant creatures, and may strip intrinsic cold
   resistance from the affected creature.
 - Interacting with a foocubus gives 20+3d20 turns of intrinsic cold resistance.
+- Ice devils' cold sting can either strip their victim's intrinsic cold
+  resistance like cold traps, or slow them down like a slowness attack.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly

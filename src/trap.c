@@ -1723,6 +1723,29 @@ trapeffect_fire_trap(
     return Trap_Effect_Finished;
 }
 
+/* Remove any intrinsic cold resistance from mtmp, which can be either the
+ * player or a monster. Does not affect extrinsic cold resistance or resistance
+ * inherent to a monster's form.
+ * Return true if it was removed, false if mtmp did not have cold resistance. */
+boolean
+strip_cold_resistance(struct monst *mtmp)
+{
+    if (mtmp == &g.youmonst) {
+        if (HCold_resistance) {
+            HCold_resistance = 0;
+            You_feel("alarmingly cooler.");
+            return TRUE;
+        }
+    }
+    else {
+        if (mtmp->mintrinsics & MR_COLD) {
+            mtmp->mintrinsics &= ~MR_COLD;
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 static int
 trapeffect_cold_trap(
     struct monst *mtmp,
@@ -1746,12 +1769,8 @@ trapeffect_cold_trap(
         pline("Mist flash-freezes around you as your heat is sucked away!");
         if (Cold_resistance) {
             dmg = rn2(2);
-            if (HCold_resistance && !rn2(3)) {
-                /* remove intrinsic cold resistance, regardless of its source */
-                HCold_resistance = 0;
-                lost_resistance = TRUE;
-                You_feel("alarmingly cooler.");
-            }
+            if (!rn2(3))
+                lost_resistance = strip_cold_resistance(&g.youmonst);
         }
         else {
             /* this is copied from fire trap code and may indicate we should
@@ -1789,10 +1808,8 @@ trapeffect_cold_trap(
             pline("A cloud of mist condenses and flash-freezes!");
 
         if (resists_cold(mtmp)) {
-            if ((mtmp->mintrinsics & MR_COLD) && !rn2(3)) {
-                mtmp->mintrinsics &= ~MR_COLD;
-                lost_resistance = TRUE;
-            }
+            if (!rn2(3))
+                lost_resistance = strip_cold_resistance(mtmp);
             if (in_sight) {
                 shieldeff(mtmp->mx, mtmp->my);
                 if (lost_resistance)

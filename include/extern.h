@@ -2884,6 +2884,7 @@ extern struct monst *activate_statue_trap(struct trap *, xchar, xchar,
 extern enum trap_immunities immune_to_trap(struct monst *, xchar);
 extern void set_utrap(unsigned, unsigned);
 extern void reset_utrap(boolean);
+extern boolean strip_cold_resistance(struct monst *mtmp);
 extern void dotrap(struct trap *, unsigned);
 extern char *trapnote(struct trap *, boolean);
 extern void seetrap(struct trap *);
