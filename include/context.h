@@ -152,6 +152,9 @@ struct context_info {
     long seer_turn;         /* when random clairvoyance will next kick in */
     long stethoscope_seq;   /* when a stethoscope was last used; first use
                              * during a move takes no time, second uses move */
+    /* randomly chosen demon lords get wishing wands in their lairs */
+#define NUM_DLORD_WISHES 3
+    unsigned short wish_dlords[NUM_DLORD_WISHES];
     boolean travel;  /* find way automatically to u.tx,u.ty */
     boolean travel1; /* first travel step */
     boolean forcefight;

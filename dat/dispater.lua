@@ -51,6 +51,14 @@ allcorners:iterate(function(x,y)
    end
 end)
 
+if nh.is_wish_dlord('Dispater') then
+   local lootspots = { {38,01}, {03,04}, {26,17} }
+   shuffle(lootspots)
+   des.object({ id='chest', locked=1, coord=lootspots[1], material='iron', contents=function()
+      des.object({ class='/', id='wishing', spe=1 })
+   end })
+end
+
 -- Center (stairway room)
 des.door({ state="closed", iron=1, x=22, y=06 })
 des.door({ state="closed", iron=1, x=19, y=08 })

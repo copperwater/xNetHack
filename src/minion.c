@@ -631,4 +631,22 @@ gain_guardian_angel(void)
     }
 }
 
+/* At the start of the game, randomly select which demon lords should have wands
+ * of wishing in their lairs. */
+void
+init_wish_dlords(void)
+{
+    int i;
+    /* Juiblex is omitted here because his lair is open and doesn't really have
+     * anywhere to stash a wand of wishing safely. */
+    static int elig_dlords[7] = {
+        PM_YEENOGHU, PM_ORCUS, PM_GERYON, PM_DISPATER, PM_ASMODEUS,
+        PM_BAALZEBUB, PM_DEMOGORGON
+    };
+    shuffle_int_array(elig_dlords, 7);
+    for (i = 0; i < NUM_DLORD_WISHES; ++i) {
+        g.context.wish_dlords[i] = elig_dlords[i];
+    }
+}
+
 /*minion.c*/

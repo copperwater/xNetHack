@@ -1267,6 +1267,28 @@ nhl_timer_start_at(lua_State *L)
     return 0;
 }
 
+/* for a special level (demon lord lair) to check if it should generate a wand
+ * of wishing */
+static int
+nhl_is_wish_dlord(lua_State *L)
+{
+    int i;
+    boolean ret = FALSE;
+    const char *name = lua_tostring(L, -1);
+
+    lua_pop(L, 1);
+
+    for (i = 0; i < NUM_DLORD_WISHES; ++i) {
+        if (!strcmp(name, mons[g.context.wish_dlords[i]].pmnames[NEUTRAL])) {
+            ret = TRUE;
+            break;
+        }
+    }
+
+    lua_pushboolean(L, ret);
+    return 1;
+}
+
 static const struct luaL_Reg nhl_functions[] = {
     {"test", nhl_test},
 
@@ -1310,6 +1332,7 @@ static const struct luaL_Reg nhl_functions[] = {
     {"pushkey", nhl_pushkey},
     {"doturn", nhl_doturn},
     {"debug_flags", nhl_debug_flags},
+    {"is_wish_dlord", nhl_is_wish_dlord},
     {NULL, NULL}
 };
 

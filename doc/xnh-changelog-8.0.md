@@ -242,6 +242,14 @@ changes:
     Killing him while there are clones of him on the level makes a random clone
     become the "real" one. When angry, he will produce ooze-like monsters from
     his body. He is now speed 6 instead of 3, and can hide on the ceiling.
+- Wands of wishing are again redistributed through the late game:
+  - The Castle wand now only gives one wish, due to being much closer to Vlad's
+    Tower.
+  - Vlad and the Wizard's Tower top floor still have one wish. However, there
+    are no longer wishes in the fake wizard tower (which no longer exists) or
+    the Sanctum.
+  - Three randomly chosen demon lords guard a wand of wishing. Juiblex never
+    does, but any of the other seven might.
 
 ### Interface changes
 

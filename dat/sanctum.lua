@@ -89,7 +89,6 @@ des.trap("anti magic")
 des.trap("fire")
 des.trap("magic")
 -- Some random objects
-des.object({ class="/", id="wishing", x=67, y=6, spe=1 })
 des.object("[")
 des.object("[")
 des.object("[")
