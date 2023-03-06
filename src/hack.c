@@ -3224,7 +3224,20 @@ check_special_room(boolean newlev)
                   Blind ? "humid" : "muddy");
             break;
         case COURT:
-            You("enter an opulent throne room!");
+            if (Is_asmo_level(&u.uz)) {
+                xchar x = g.rooms[roomno].lx + ((g.rooms[roomno].hx -
+                                                 g.rooms[roomno].lx) / 2);
+                xchar y = g.rooms[roomno].ly + ((g.rooms[roomno].hy -
+                                                 g.rooms[roomno].ly) / 2);
+                struct monst *asmo = makemon(&mons[PM_ASMODEUS], x, y,
+                                             MM_NOMSG);
+                if (!boss_entrance(asmo))
+                    You("suddenly sense a new, ominous presence nearby...");
+                asmo->mstrategy &= ~STRAT_APPEARMSG; /* we just did this */
+            }
+            else { /* generic case */
+                You("enter an opulent throne room!");
+            }
             break;
         case LEPREHALL:
             You("enter a leprechaun hall!");

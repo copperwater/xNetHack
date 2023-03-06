@@ -3,86 +3,215 @@
 --	Copyright (c) 1992 by M. Stephenson and Izchak Miller
 -- NetHack may be freely redistributed.  See license for details.
 --
-des.level_init({ style="mazegrid", bg ="-" });
+des.level_init({ style="solidfill", fg =" " });
 
-des.level_flags("mazelevel", "nommap-boss")
--- First part
-des.map({ halign = "half-left", valign = "center", map = [[
----------------------
-|.............|.....|
-|.............S.....|
-|---+------------...|
-|.....|.........|-+--
-|..---|.........|....
-|..|..S.........|....
-|..|..|.........|....
-|..|..|.........|-+--
-|..|..-----------...|
-|..S..........|.....|
----------------------
-]] });
+des.level_flags("mazelevel", "noteleport", "nommap-boss", "icedpools", "solidify", "noflipx")
 
-des.levregion({ region={01,00,6,20}, region_islev=1, exclude={6,1,70,16}, exclude_islev=1, type="stair-up" });
--- des.stair(levregion(01,00,6,20),levregion(6,1,70,16),up)
+des.map([[
+IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+IIIIIIIIIIIIIIIII---F--F------IIIIIIIIIIIIIIIII--F-F--IIIIIIIIIIII-------II
+IIIIIIIIIIIIIII---......F....|IIIIIIIIIIIIIIIII|.....--------------..|..|II
+.IIIIIIIIIII----........F.----IIIIIIIIIIIIIIIIIF.....|.........|.....--S|II
+IIIIIIIIII---...........---IIIIII--F-F-F--IIIII|.....|..----...+........|II
+IIIIIIIIIIF..........----IIIIIIII|.......|IIIII----------..|...------..--II
+IIIIIIIIII|.......----IIIIIIIIIII|.......|IIIIII|.......-S------.|.....|III
+IIIIIII----+----------------------.......-------|.......|IIIIIIS.|.....|III
+IIIII..|.......|................................|-----+-|..IIII|--.....|III
+IIII...+.......+................................+.......|..IIII+.......|III
+IIII...+.......+................................+.......|..IIII+.......|III
+IIIII..|.......|................................|-----+-|..IIII|--.....|III
+IIIIIII----+----------------------.......-------|.......|IIIIIIS.|.....|III
+IIIIIIIIII|.......----IIIIIIIIIII|.......|IIIIII|.......|S------.|.....|III
+IIIIIIIIIIF..........----IIIIIIII|.......|IIIII---------|..|...---..-----II
+IIIIIIIIII---...........---IIIIII--F-F-F--IIIII|.....|..----.....|......|II
+.IIIIIIIIIII----........F.----IIIIIIIIIIIIIIIIIF.....|...........+......|II
+IIIIIIIIIIIIIII---......F....|IIIIIIIIIIIIIIIII|.....--------------.....|II
+IIIIIIIIIIIIIIIII---F--F------IIIIIIIIIIIIIIIII--F-F--IIIIIIIIIIII-------II
+IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+]] )
+-- the two spaces on the far left guarantee there will always be valid spots to
+-- place the stairs on (since it won't place them on ice, and we can't count on
+-- the replace_terrain to always put at least one spot of floor there)
 
-des.levregion({ region={01,00,6,20}, region_islev=1, exclude={6,1,70,16}, exclude_islev=1, type="branch" });
--- des.branch(levregion(01,00,6,20),levregion(6,1,70,16))
-des.teleport_region({ region = {01,00,6,20}, region_islev=1, exclude={6,1,70,16}, exclude_islev=1 })
+-- Define areas
+local everything = selection.area(00,00,74,19)
+local wing1 = selection.floodfill(18,04)
+local wing2 = selection.floodfill(18,15)
+local recess1 = selection.area(34,05,40,07)
+local recess2 = selection.area(34,12,40,14)
+local antechamber = selection.floodfill(11,09)
+local hallway = selection.area(16,08,47,11)
+local fortress = selection.area(48,02,71,17):filter_mapchar('.')
+local sanctum = selection.area(57,07,62,12)
+fortress = fortress - sanctum -- fortress does NOT include sanctum
+local allindoors = wing1 + wing2 + antechamber + hallway + recess1 + recess2 + fortress + sanctum
+
+-- This isn't a lake
+des.replace_terrain({ selection=(everything - sanctum),
+                      fromterrain='I', toterrain='.', chance=20 })
+
+-- Some conditional doors
+local doorlocs = { {50,05}, {53,03}, {55,05} }
+shuffle(doorlocs)
+des.door("random", doorlocs[1][1], doorlocs[1][2])
+des.door("random", doorlocs[2][1], doorlocs[2][2])
+doorlocs = { {50,14}, {53,16}, {55,14} }
+shuffle(doorlocs)
+des.door("random", doorlocs[1][1], doorlocs[1][2])
+des.door("random", doorlocs[2][1], doorlocs[2][2])
+
+-- Two conditional walls
+if percent(50) then
+   des.terrain(selection.line(69,05,70,05), '-')
+else
+   des.terrain(selection.line(66,14,67,14), '-')
+end
+
+-- "Throne" room (no throne or court, but define this as a special room so
+-- entering can trigger Asmodeus's appearance). Asmodeus is not generated when
+-- the level is created.
+des.region({ region={57,07,62,12}, type="throne", filled=0, lit=1 })
+des.object('ruby', 57, 08)
+des.object('ruby', 57, 11)
+des.object('sapphire', 59, 07)
+des.object('sapphire', 59, 12)
+des.object('ruby', 61, 07)
+des.object('ruby', 61, 12)
+des.trap('fire', 57,09)
+des.trap('fire', 57,10)
+
+des.levregion({ region={00,00,00,19}, type="stair-up" });
+
+-- Non diggable walls
+des.non_diggable(selection.area(00,00,74,19))
+
+-- Lit areas
+des.region(fortress,"lit")
 
 -- Doors
-des.door("closed",04,03)
-des.door("locked",18,04)
-des.door("closed",18,08)
---
-des.stair("down", 13,07)
--- Non diggable walls
-des.non_diggable(selection.area(00,00,20,11))
--- Entire main area
-des.region(selection.area(01,01,20,10),"unlit")
--- The fellow in residence
-des.monster("Asmodeus",12,07)
--- Some random weapons and armor.
-des.object("[")
-des.object("[")
-des.object(")")
-des.object(")")
-des.object("*")
-des.object("!")
-des.object("!")
-des.object("?")
-des.object("?")
-des.object("?")
--- Some traps.
-des.trap("spiked pit", 05,02)
-des.trap("fire", 08,06)
-des.trap("sleep gas")
-des.trap("anti magic")
-des.trap("fire")
-des.trap("magic")
-des.trap("magic")
--- Random monsters.
-des.monster("ghost",11,07)
-des.monster("horned devil",10,05)
-des.monster("L")
--- Some Vampires for good measure
-des.monster("V")
-des.monster("V")
-des.monster("V")
--- Second part
-des.map({ halign = "half-right", valign = "center", map = [[
----------------------------------
-................................|
-................................+
-................................|
----------------------------------
-]] });
-des.mazewalk(32,02,"east")
--- Non diggable walls
-des.non_diggable(selection.area(00,00,32,04))
-des.door("closed",32,02)
-des.monster("&")
-des.monster("&")
-des.monster("&")
-des.trap("anti magic")
-des.trap("fire")
-des.trap("magic")
+des.door({ state='locked', iron=1, x=07, y=09 })
+des.door({ state='locked', iron=1, x=07, y=10 })
+des.door('open', 11,07)
+des.door('open', 11,12)
+-- we don't want any of the double doors to be mismatched iron and non iron
+local doiron = percent(80) and 1 or 0
+des.door({ state='locked', x=15, y=09, iron=doiron })
+des.door({ state='locked', x=15, y=10, iron=doiron })
+doiron = percent(80) and 1 or 0
+des.door({ state='closed', x=48, y=09, iron=doiron })
+des.door({ state='closed', x=48, y=10, iron=doiron })
+doiron = percent(80) and 1 or 0
+des.door({ state='closed', x=63, y=09, iron=doiron })
+des.door({ state='closed', x=63, y=10, iron=doiron })
+-- non double doors
+des.door('random', 54,08)
+des.door('random', 54,11)
+des.door('random', 63,04)
+des.door('random', 65,16)
+
+-- Only devils and foocubi in Asmodeus' palace -- foocubi are chaotic, but
+-- Asmodeus is associated with lust
+local devils = { 'horned devil', 'barbed devil', 'bone devil', 'ice devil', 'amorous demon' }
+function rnddevil()
+   return devils[d(#devils)]
+end
+
+-- The wings:
+if percent(25) then
+   des.monster({ id='prisoner', x=28, y=2 })
+end
+if percent(25) then
+   des.monster({ id='prisoner', x=28, y=17 })
+end
+for i = 1, 4 do
+   des.monster({ id=rnddevil(), coord=wing1:rndcoord() })
+   des.monster({ id=rnddevil(), coord=wing2:rndcoord() })
+end
+for i = 1, 2 do
+   des.monster({ class='i', coord=wing1:rndcoord() })
+   des.monster({ class='i', coord=wing2:rndcoord() })
+   des.object({ class=')', coord=wing1:rndcoord() })
+   des.object({ class=')', coord=wing2:rndcoord() })
+end
+
+-- The hallway:
+function demonstatue(xx, yy)
+   des.object({ id='statue', x=xx, y=yy, montype=rnddevil(), trapped=percent(10) and 1 or 0,
+                  contents=function()
+      des.object({ id='gold piece', quantity=d(5,10) })
+   end })
+end
+for x = 17,32,3 do
+   for y = 08,11,3 do
+      demonstatue(x, y)
+   end
+end
+for x = 42,45,3 do
+   for y = 08,11,3 do
+      demonstatue(x, y)
+   end
+end
+-- waiting devils in the recesses of the hallway
+local bothrecesses = (recess1 + recess2) - selection.area(34,07,40,12)
+for i = 1, 3 + d(4) do
+   des.monster({ id = rnddevil(), coord = bothrecesses:rndcoord(1), waiting = 1 })
+end
+
+-- The fortress:
+fortcopy = fortress:clone() -- so we can rndcoord(1) it
+for i = 1, 10 do
+   des.trap({ type='cold', coord = fortcopy:rndcoord(1) })
+   des.monster({ id=rnddevil(), coord = fortcopy:rndcoord(1), waiting = 1 })
+end
+des.monster({ class='V', coord = fortcopy:rndcoord(1) })
+des.monster({ class='V', coord = fortcopy:rndcoord(1) })
+des.monster({ class='L', coord = fortcopy:rndcoord(1) })
+des.monster({ id='ghost', coord = fortcopy:rndcoord(1) })
+
+des.trap({ type="spiked pit", coord = fortcopy:rndcoord(1) })
+des.trap({ type="fire", coord = fortcopy:rndcoord(1) })
+des.trap({ type="sleep gas", coord = fortcopy:rndcoord(1) })
+des.trap({ type="anti magic", coord = fortcopy:rndcoord(1) })
+des.trap({ type="fire", coord = fortcopy:rndcoord(1) })
+des.trap({ type="magic", coord = fortcopy:rndcoord(1) })
+des.trap({ type="magic", coord = fortcopy:rndcoord(1) })
+des.object("chest", 70,02)
+for i = 1,3 do
+   des.object({ class='?', coord=fortress:rndcoord() })
+   des.object({ class='+', coord=fortress:rndcoord() })
+end
+local lootspots = { {58,05}, {58,14}, {64,06}, {64,13} }
+shuffle(lootspots)
+for i = 1, 3 do
+   des.object({ id='chest', locked=1, coord=lootspots[i], material='iron', contents=function()
+      des.object({ id='gold piece', quantity=d(6,50) })
+      for n = 1, 3 do
+         des.object('*')
+         des.object()
+      end
+   end })
+end
+des.object({ id='chest', locked=1, coord=lootspots[4], material='iron', contents=function()
+   if nh.is_wish_dlord('Asmodeus') then
+      des.object({ class='/', id='wishing', spe=1 })
+   else
+      des.object({ class='/', id = percent(30) and 'fire' or 'cold' })
+   end
+end })
+
+-- general level-wide stuff:
+for i = 1,3 do
+   des.object('[')
+   des.object(')')
+   des.object('*')
+end
+local icymons = { 'ice vortex', 'ice troll', 'freezing sphere', 'winter wolf',
+                  'blue jelly', 'white dragon', 'brown mold' }
+for i = 1, #icymons do
+   for j = 1, d(4)-1 do
+      des.monster(icymons[i])
+   end
+end
+for i = 1, 30 do
+   des.trap('cold')
+end
