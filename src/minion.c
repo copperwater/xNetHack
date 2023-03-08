@@ -311,11 +311,75 @@ boss_entrance(struct monst* mtmp)
 
 #define Athome (Inhell && (mtmp->cham == NON_PM))
 
+/* How much is obj worth to demon lord if they demand it as a bribe?
+ * Return a number whose units are zorkmids (the amount they will take off their
+ * original bribe amount if given this). This loosely relates to cost, but
+ * doesn't have to; in particular, the demon lord would rather have rare items
+ * than more coins, so they may be worth more here than their equivalent if
+ * bought at a shop.
+ * Return 0 if the demon doesn't care about this item, or it's ineligible and
+ * they should never consider taking it. */
+static long
+demon_value(struct obj *obj)
+{
+    const short otyp = obj->otyp;
+    long baseval = 0;
+
+    /* Ineligible stuff goes first.
+     * (should cursed welded items be ineligible? or handwave it as the demon
+     * lord easily removing the curse for free?) */
+    if (objects[otyp].oc_unique)
+        return 0;
+    if (obj == uskin)
+        return 0;
+
+    baseval = objects[otyp].oc_cost * 3; /* baseline */
+
+    /* cases with some complexity in calculation */
+    if (obj->oartifact)
+        return arti_cost(obj);
+    else if (Has_contents(obj)) {
+        struct obj *otmp;
+        for (otmp = obj->cobj; otmp; otmp = otmp->nobj) {
+            baseval += demon_value(otmp); /* recurse further into containers */
+        }
+        return baseval;
+    }
+    else if (obj->oclass == ARMOR_CLASS && objects[otyp].oc_magic) {
+        if (Is_dragon_scaled_armor(obj))
+            baseval += (objects[obj->dragonscales].oc_cost * 3);
+        return baseval;
+    }
+    else if (obj->oclass == WEAPON_CLASS && obj->spe >= 6) {
+        /* baseval is probably pretty low, the high enchantment is the prize
+         * here */
+        return baseval + (obj->spe * 50);
+    }
+    /* Cases where we want to inflate the value even more than 3 * base cost. */
+    else if (otyp == WAN_WISHING || otyp == MAGIC_LAMP
+             || (In_cocytus(&u.uz) && otyp == RIN_COLD_RESISTANCE))
+        return baseval * 2;
+    /* Then, any case where the demon lord is interested in something for the
+     * plain base value.
+     * For rings and amulets, they focus on ones the player is wearing rather
+     * than random ones they may happen to have, on the guess that those are
+     * more valuable to the player. */
+    else if ((obj->oclass == SPBOOK_CLASS && objects[otyp].oc_level >= 6)
+             || (obj->oclass == WAND_CLASS && obj->spe > 3)
+             || otyp == MAGIC_MARKER
+             || obj == uleft || obj == uright || obj == uamul)
+        return baseval;
+
+    return 0;
+}
+
 /* returns 1 if it won't attack. */
 int
 demon_talk(register struct monst *mtmp)
 {
     long cash, demand, offer = 0L;
+    struct obj *otmp, *shiny = (struct obj *) 0;
+    int items_given = 0;
 
     if (uwep && (uwep->oartifact == ART_EXCALIBUR
                  || uwep->oartifact == ART_DEMONBANE)) {
@@ -359,14 +423,62 @@ demon_talk(register struct monst *mtmp)
             (void) rloc(mtmp, RLOC_MSG);
         return 1;
     }
+
     /* Bribable monsters are very greedy, and don't care how much gold you
      * appear to be carrying. They are capricious, and may demand truly
      * exorbitant amounts; however, it might be risky to challenge a hero who
      * has reached them, since they do not want to end up dead. */
-    demand = d(50,500);
+    demand = d(50,1000);
     cash = money_cnt(g.invent);
 
-    if (cash == 0 || g.multi < 0) { /* you have no gold or can't move */
+    /* First, they may want some of your valuables more than gold. See if they
+     * do. */
+    do {
+        long total_value = 0;
+        shiny = (struct obj *) 0;
+
+        for (otmp = g.invent; otmp; otmp = otmp->nobj) {
+            long value = demon_value(otmp);
+            if (value < 1)
+                continue;
+            total_value += value;
+            if (rn2(total_value) < value)
+                shiny = otmp;
+        }
+
+        if (shiny) {
+            verbalize("I see you have %s in your possession...",
+                      an(xname(shiny)));
+            if (yn("Give up your item?") != 'y') {
+                You("refuse.");
+                pline("%s gets angry...", Amonnam(mtmp));
+                mtmp->mpeaceful = 0;
+                set_malign(mtmp);
+                newsym(mtmp->mx, mtmp->my);
+                return 0;
+            }
+
+            if (shiny->owornmask) {
+                remove_outer_gear(shiny);
+                remove_worn_item(shiny, TRUE);
+            }
+            items_given++;
+            demand -= demon_value(shiny);
+            freeinv(shiny);
+            (void) mpickobj(mtmp, shiny); /* could merge and free shiny but won't */
+            pline("%s greedily takes it.", Monnam(mtmp));
+        }
+    } while (demand > 0 && rn2(4));
+
+    if (demand <= 0) { /* forfeited enough items to satisfy mtmp */
+        verbalize("Very well, mortal. I shall not impede thy quest.");
+        pline("%s vanishes, laughing to %sself.", Amonnam(mtmp), mhis(mtmp));
+        livelog_printf(LL_UMONST, "bribed %s with %d items for safe passage",
+                        Amonnam(mtmp), items_given);
+        /* fall through to mongone() */
+    }
+    else if (items_given == 0 && (cash == 0 || g.multi < 0)) {
+        /* you have no gold or can't move */
         pline("%s roars:", Amonnam(mtmp));
         verbalize("You bring me no tribute?  Then you must die!");
         mtmp->mpeaceful = 0;
@@ -386,8 +498,10 @@ demon_talk(register struct monst *mtmp)
             demand = cash + (long) rn1(1000, 125);
 
         if (!Deaf)
-            pline("%s demands %ld %s for safe passage.",
-                  Amonnam(mtmp), demand, currency(demand));
+            pline("%s%s demands %ld %s for safe passage.",
+                  Amonnam(mtmp),
+                  (items_given > 0) ? " also" : "",
+                  demand, currency(demand));
         else if (canseemon(mtmp))
             pline("%s seems to be demanding your money.", Amonnam(mtmp));
 

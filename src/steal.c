@@ -580,6 +580,27 @@ mpickobj(struct monst *mtmp, struct obj *otmp)
     return freed_otmp;
 }
 
+/* Take off gear which is blocking the target obj from being removed [by a quest
+ * artifact steal, or a demon lord interested in the item] */
+void
+remove_outer_gear(struct obj *target)
+{
+    if ((target == uarm || target == uarmu) && uarmc)
+        remove_worn_item(uarmc, FALSE);
+    if (target == uarmu && uarm)
+        remove_worn_item(uarm, FALSE);
+    if ((target == uarmg || ((target == uright || target == uleft) && uarmg))
+        && uwep) {
+        /* gloves are about to be unworn; unwield weapon(s) first */
+        if (u.twoweap)    /* remove_worn_item(uswapwep) indirectly */
+            remove_worn_item(uswapwep, FALSE); /* clears u.twoweap */
+        remove_worn_item(uwep, FALSE);
+    }
+    if ((target == uright || target == uleft) && uarmg)
+        /* calls Gloves_off() to handle wielded cockatrice corpse */
+        remove_worn_item(uarmg, FALSE);
+}
+
 /* called for AD_SAMU (the Wizard and quest nemeses) */
 void
 stealamulet(struct monst* mtmp)
@@ -630,22 +651,7 @@ stealamulet(struct monst* mtmp)
     }
 
     if (otmp) { /* we have something to snatch */
-        /* take off outer gear if we're targetting [hypothetical]
-           quest artifact suit, shirt, gloves, or rings */
-        if ((otmp == uarm || otmp == uarmu) && uarmc)
-            remove_worn_item(uarmc, FALSE);
-        if (otmp == uarmu && uarm)
-            remove_worn_item(uarm, FALSE);
-        if ((otmp == uarmg || ((otmp == uright || otmp == uleft) && uarmg))
-            && uwep) {
-            /* gloves are about to be unworn; unwield weapon(s) first */
-            if (u.twoweap)    /* remove_worn_item(uswapwep) indirectly */
-                remove_worn_item(uswapwep, FALSE); /* clears u.twoweap */
-            remove_worn_item(uwep, FALSE);
-        }
-        if ((otmp == uright || otmp == uleft) && uarmg)
-            /* calls Gloves_off() to handle wielded cockatrice corpse */
-            remove_worn_item(uarmg, FALSE);
+        remove_outer_gear(otmp);
 
         /* finally, steal the target item */
         if (otmp->owornmask)

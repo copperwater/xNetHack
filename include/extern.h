@@ -2726,6 +2726,7 @@ extern void thiefdead(void);
 extern void remove_worn_item(struct obj *, boolean);
 extern int steal(struct monst *, char *);
 extern int mpickobj(struct monst *, struct obj *);
+extern void remove_outer_gear(struct obj *target);
 extern void stealamulet(struct monst *);
 extern void maybe_absorb_item(struct monst *, struct obj *, int, int);
 extern void mdrop_obj(struct monst *, struct obj *, boolean);

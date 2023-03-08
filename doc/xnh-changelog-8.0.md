@@ -212,6 +212,8 @@ changes:
 - Interacting with a foocubus gives 20+3d20 turns of intrinsic cold resistance.
 - Ice devils' cold sting can either strip their victim's intrinsic cold
   resistance like cold traps, or slow them down like a slowness attack.
+- Bribable demon lords will now demand valuables from your inventory as part of
+  their bribe. Giving them items reduces the amount of gold they want.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly
