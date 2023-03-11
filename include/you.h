@@ -450,11 +450,11 @@ struct you {
     /* default u.uluck is 0 except on special days (full moon: +1, Fri 13: -1,
        both: 0); equilibrium for luck timeout is changed to those values,
        but Luck max and min stay at 10+3 and -10-3 even on those days */
-#define Luck (u.uluck + u.moreluck)
 #define LUCKADD    3  /* value of u.moreluck when carrying luck stone;
                        * +3 when blessed or uncursed, -3 when cursed */
 #define LUCKMAX   10  /* maximum value of u.uluck */
 #define LUCKMIN (-10) /* minimum value of u.uluck */
+#define Luck (Doomed ? LUCKMIN : (u.uluck + u.moreluck))
     schar uhitinc;
     schar udaminc;
     schar uac;

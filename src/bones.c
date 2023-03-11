@@ -556,7 +556,8 @@ savebones(int how, time_t when, struct obj *corpse)
         EBONES(mtmp)->oldalign = u.ualign;
         EBONES(mtmp)->female = flags.female;
         EBONES(mtmp)->deathlevel = u.ulevel;
-        EBONES(mtmp)->luck = u.uluck; /* moreluck not included */
+        /* moreluck not included in luck computation */
+        EBONES(mtmp)->luck = Doomed ? LUCKMIN : u.uluck;
         EBONES(mtmp)->demigod = u.uevent.udemigod;
         EBONES(mtmp)->crowned = u.uevent.uhand_of_elbereth;
     }

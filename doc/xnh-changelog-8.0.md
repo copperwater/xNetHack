@@ -214,6 +214,11 @@ changes:
   resistance like cold traps, or slow them down like a slowness attack.
 - Bribable demon lords will now demand valuables from your inventory as part of
   their bribe. Giving them items reduces the amount of gold they want.
+- New "doomed" intrinsic, which treats you as if you have -10 Luck. Your base
+  luck still exists, but is suppressed. It reverts to its underlying value when
+  the doom is lifted (minus losses from good luck timing out). The only thing
+  that can prematurely lift doom is the throne effect that would otherwise give
+  a wish.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly

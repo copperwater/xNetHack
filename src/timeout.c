@@ -102,6 +102,7 @@ const struct propname {
     { FREE_ACTION, "free action" },
     { FIXED_ABIL, "fixed abilities" },
     { WITHERING, "withering away" },
+    { DOOMED, "doom" },
     { LIFESAVED, "life will be saved" },
     {  0, 0 },
 };
@@ -691,6 +692,9 @@ nh_timeout(void)
             case WITHERING:
                 You("are no longer withering away.");
                 g.context.botl = TRUE;
+                break;
+            case DOOMED:
+                pline("The pall of doom around you lifts.");
                 break;
             case FAST:
                 if (!Very_fast)

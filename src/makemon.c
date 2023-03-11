@@ -915,9 +915,9 @@ clone_mon(struct monst *mon,
     /* not all clones caused by player are tame or peaceful */
     if (!g.context.mon_moving && mon->mpeaceful) {
         if (mon->mtame)
-            m2->mtame = rn2(max(2 + u.uluck, 2)) ? mon->mtame : 0;
+            m2->mtame = rn2(max(2 + Luck, 2)) ? mon->mtame : 0;
         else if (mon->mpeaceful)
-            m2->mpeaceful = rn2(max(2 + u.uluck, 2)) ? 1 : 0;
+            m2->mpeaceful = rn2(max(2 + Luck, 2)) ? 1 : 0;
     }
 
     newsym(m2->mx, m2->my); /* display the new monster */

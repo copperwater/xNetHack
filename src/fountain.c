@@ -239,7 +239,7 @@ drinkfountain(void)
         return;
     }
 
-    if (mgkftn && u.uluck >= 0 && fate >= 10) {
+    if (mgkftn && !Doomed && u.uluck >= 0 && fate >= 10) {
         int i, ii, littleluck = (u.uluck < 4);
 
         pline("Wow!  This makes you feel great!");

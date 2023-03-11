@@ -364,6 +364,9 @@ stone_luck(boolean parameter) /* So I can't think up of a good name.  So sue me.
         return -1;
     }
 
+    if (Doomed)
+        return -1;
+
     for (otmp = g.invent; otmp; otmp = otmp->nobj)
         if (confers_luck(otmp)) {
             if (otmp->cursed)

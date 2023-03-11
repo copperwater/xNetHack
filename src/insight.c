@@ -1881,6 +1881,9 @@ attributes_enlightenment(int unused_mode UNUSED, int final)
     }
 #endif
 
+    if (Doomed)
+        enl_msg("You ", "are under a curse of doom", "were doomed", "", "");
+
     {
         const char *p;
 
