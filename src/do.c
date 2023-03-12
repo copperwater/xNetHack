@@ -2252,15 +2252,15 @@ wipeoff(void)
         u.ucreamed = 0;
     else
         u.ucreamed -= 4;
-    if (Blinded < 4)
-        Blinded = 0;
+    if ((Blinded & TIMEOUT) < 4)
+        set_itimeout(&Blinded, 0);
     else
-        Blinded -= 4;
-    if (!Blinded) {
+        incr_itimeout(&Blinded, -4);
+    if ((Blinded & TIMEOUT) == 0) {
         pline("You've got the glop off.");
         u.ucreamed = 0;
         if (!gulp_blnd_check()) {
-            Blinded = 1;
+            set_itimeout(&Blinded, 1);
             make_blinded(0L, TRUE);
         }
         return 0;

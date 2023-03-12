@@ -1430,8 +1430,12 @@ Blindf_on(struct obj *otmp)
                can't let the "blind from birth" conduct remain intact */
             pline("For the first time in your life, you can see!");
             u.uroleplay.blind = FALSE;
-        } else
+        }
+        else {
+            if (Blinded & INTRINSIC)
+                Blinded = 0L; /* this deliberately removes any INTRINSIC flags */
             You("can see!");
+        }
     }
     if (changed) {
         toggle_blindness(); /* potion.c */

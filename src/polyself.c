@@ -225,7 +225,7 @@ polyman(const char *fmt, const char *arg)
         set_utrap(rn1(6, 2), TT_PIT); /* time to escape resets */
     }
     if (was_blind && !Blind) { /* reverting from eyeless */
-        Blinded = 1L;
+        set_itimeout(&Blinded, 1);
         make_blinded(0L, TRUE); /* remove blindness */
     }
     check_strangling(TRUE, TRUE);
@@ -830,7 +830,7 @@ polymon(int mntmp, int msgflags)
         set_utrap(rn1(6, 2), TT_PIT); /* time to escape resets */
     }
     if (was_blind && !Blind) { /* previous form was eyeless */
-        Blinded = 1L;
+        set_itimeout(&Blinded, 1);
         make_blinded(0L, TRUE); /* remove blindness */
     }
     newsym(u.ux, u.uy); /* Change symbol */

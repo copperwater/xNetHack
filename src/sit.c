@@ -110,7 +110,7 @@ throne_sit_effect(void)
             verbalize(
                       "A curse upon thee for sitting upon this most holy throne!");
             if (Luck > 0) {
-                make_blinded(Blinded + rn1(100, 250), TRUE);
+                make_blinded((Blinded & TIMEOUT) + rn1(100, 250), TRUE);
                 change_luck((Luck > 1) ? -rnd(2) : -1);
             } else
                 rndcurse();

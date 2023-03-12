@@ -283,7 +283,7 @@ make_blinded(long xtime, boolean talk)
     /* we need to probe ahead in case the Eyes of the Overworld
        are or will be overriding blindness */
     u_could_see = !Blind;
-    Blinded = xtime ? 1L : 0L;
+    Blinded = (Blinded & ~TIMEOUT) | (xtime ? 1L : 0L);
     can_see_now = !Blind;
     Blinded = old; /* restore */
 
@@ -297,7 +297,7 @@ make_blinded(long xtime, boolean talk)
             else
                 You("can see again.");
         }
-    } else if (old && !xtime) {
+    } else if (old && can_see_now && !xtime) {
         /* clearing temporary blindness without toggling blindness */
         if (talk) {
             if (!haseyes(g.youmonst.data)) {

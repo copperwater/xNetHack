@@ -219,6 +219,10 @@ changes:
   the doom is lifted (minus losses from good luck timing out). The only thing
   that can prematurely lift doom is the throne effect that would otherwise give
   a wish.
+- It is now possible to become intrinsically blind. This is separate from the
+  blind roleplay birth option. It can be cured via casting cure blindness,
+  prayer, invoking the Staff of Aesculapius, or putting on the Eyes of the
+  Overworld.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly

@@ -1002,9 +1002,10 @@ status_enlightenment(int mode, int final)
         Sprintf(buf, "%s blind",
                 !haseyes(g.youmonst.data) ? "innately"
                 : u.uroleplay.blind ? "permanently"
-                  /* better phrasing desperately wanted... */
-                  : Blindfolded_only ? "deliberately"
-                    : "temporarily");
+                  : (Blinded & INTRINSIC) ? "indefinitely"
+                    /* better phrasing desperately wanted... */
+                    : Blindfolded_only ? "deliberately"
+                      : "temporarily");
         if (wizard && (Blinded & TIMEOUT) != 0L
             && !u.uroleplay.blind && haseyes(g.youmonst.data))
             Sprintf(eos(buf), " (%ld)", (Blinded & TIMEOUT));
@@ -3134,7 +3135,7 @@ ustatusline(void)
     if (Blind) {
         Strcat(info, ", blind");
         if (u.ucreamed) {
-            if ((long) u.ucreamed < Blinded || Blindfolded
+            if ((long) u.ucreamed < (Blinded & TIMEOUT) || Blindfolded
                 || !haseyes(g.youmonst.data))
                 Strcat(info, ", cover");
             Strcat(info, "ed by sticky goop");

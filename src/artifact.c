@@ -1839,6 +1839,7 @@ arti_invoke(struct obj *obj)
 
             if (Upolyd)
                 healamt = (u.mhmax + 1 - u.mh) / 2;
+            /* Blinded > creamed also catches intrinsic blindness */
             if (healamt || Sick || Slimed || HWithering || Blinded > creamed)
                 You_feel("better.");
             else
@@ -1855,8 +1856,14 @@ arti_invoke(struct obj *obj)
                 make_sick(0L, (char *) 0, FALSE, SICK_ALL);
             if (Slimed)
                 make_slimed(0L, (char *) 0);
-            if (Blinded > creamed)
+            if (Blinded > creamed) {
+                /* remove blindness bestowed by external means; keep 1 turn of
+                 * timeout so that if creamed == 0, make_blinded will produce
+                 * messages and recalc vision */
+                Blinded &= ~FROMOUTSIDE;
+                set_itimeout(&Blinded, 1L);
                 make_blinded(creamed, FALSE);
+            }
             g.context.botl = TRUE;
             break;
         }

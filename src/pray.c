@@ -627,6 +627,7 @@ fix_worst_trouble(int trouble)
 
         msgbuf[0] = '\0';
         if (Blinded) {
+            Blinded &= ~FROMOUTSIDE;
             if (eyecount(g.youmonst.data) != 1)
                 eyes = makeplural(eyes);
             Sprintf(msgbuf, "Your %s %s better", eyes, vtense(eyes, "feel"));

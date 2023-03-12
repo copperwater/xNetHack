@@ -120,7 +120,7 @@ cursed_book(struct obj* bp)
         aggravate();
         break;
     case 2:
-        make_blinded(Blinded + rn1(30, 10), TRUE);
+        make_blinded((Blinded & TIMEOUT) + rn1(30, 10), TRUE);
         break;
     case 3:
         pline_The("book develops a huge set of teeth and bites you!");
@@ -1189,6 +1189,10 @@ spelleffects(int spell_otyp, boolean atme)
     /* end of potion-like spells */
 
     case SPE_CURE_BLINDNESS:
+        /* remove externally imposed intrinsic blind; expect healup to call
+         * make_blinded(0) to produce messages and recalc vision */
+        Blinded &= ~FROMOUTSIDE;
+        set_itimeout(&Blinded, 1L);
         healup(0, 0, FALSE, TRUE);
         break;
     case SPE_CURE_SICKNESS:

@@ -121,7 +121,8 @@ use_towel(struct obj *obj)
                 u.ucreamed += rn1(10, 3);
                 pline("Yecch!  Your %s %s gunk on it!", body_part(FACE),
                       (old ? "has more" : "now has"));
-                make_blinded(Blinded + (long) u.ucreamed - old, TRUE);
+                make_blinded((Blinded & TIMEOUT) + (long) u.ucreamed - old,
+                             TRUE);
             } else {
                 const char *what;
 
@@ -155,12 +156,12 @@ use_towel(struct obj *obj)
             dry_a_towel(obj, -1, drying_feedback);
         return ECMD_TIME;
     } else if (u.ucreamed) {
-        Blinded -= u.ucreamed;
+        incr_itimeout(&Blinded, -u.ucreamed);
         u.ucreamed = 0;
-        if (!Blinded) {
+        if ((Blinded & TIMEOUT) == 0) {
             pline("You've got the glop off.");
             if (!gulp_blnd_check()) {
-                Blinded = 1;
+                set_itimeout(&Blinded, 1);
                 make_blinded(0L, TRUE);
             }
         } else {
@@ -3675,7 +3676,7 @@ use_cream_pie(struct obj *obj)
     if (can_blnd((struct monst *) 0, &g.youmonst, AT_WEAP, obj)) {
         int blindinc = rnd(25);
         u.ucreamed += blindinc;
-        make_blinded(Blinded + (long) blindinc, FALSE);
+        make_blinded((Blinded & TIMEOUT) + (long) blindinc, FALSE);
         if (!Blind || (Blind && wasblind))
             pline("There's %ssticky goop all over your %s.",
                   wascreamed ? "more " : "", body_part(FACE));
