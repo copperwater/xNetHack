@@ -20,7 +20,9 @@ enum mcast_mage_spells {
     MGC_CLONE_WIZ,
     MGC_DEATH_TOUCH,
     MGC_ENTOMB,
-    MGC_TPORT_AWAY
+    MGC_TPORT_AWAY,
+    MGC_DARK_SPEECH,
+    MGC_SHEER_COLD /* Asmodeus - emulates an AT_MAGC AD_COLD attack */
 };
 
 /* monster cleric spells */
@@ -49,6 +51,7 @@ static boolean is_undirected_spell(unsigned int, int);
 static boolean
 spell_would_be_useless(struct monst *, unsigned int, int);
 static boolean is_entombed(xchar, xchar);
+static void sheer_cold(int *dmg);
 
 /* feedback when frustrated monster couldn't cast a spell */
 static void
@@ -189,6 +192,7 @@ has_special_spell_list(struct permonst *mdat)
     /* Add more monsters to this list as needed. */
     switch (monsndx(mdat)) {
     case PM_DISPATER:
+    case PM_ASMODEUS:
         return TRUE;
     }
     return FALSE;
@@ -211,6 +215,15 @@ choose_special_spell(struct monst *mtmp)
             MGC_ENTOMB, MGC_SUMMON_MONS, MGC_TPORT_AWAY
         };
         return dispater_list[rn2(SIZE(dispater_list))];
+    }
+    else if (mtmp->data == &mons[PM_ASMODEUS]) {
+        if ((mtmp->mhp * 8 < mtmp->mhpmax)
+            || (mtmp->mhp * 3 < mtmp->mhpmax && !rn2(3)))
+            return MGC_CURE_SELF;
+        else if (!rn2(4))
+            return MGC_DARK_SPEECH;
+        else
+            return MGC_SHEER_COLD;
     }
     impossible("no special spell list for mon %s",
                mtmp->data->pmnames[NEUTRAL]);
@@ -305,7 +318,9 @@ castmu(register struct monst *mtmp,
             pline_The("air crackles around %s.", mon_nam(mtmp));
         return 0;
     }
-    if (canspotmon(mtmp) || !is_undirected_spell(mattk->adtyp, spellnum)) {
+    if ((canspotmon(mtmp) || !is_undirected_spell(mattk->adtyp, spellnum))
+        /* dark speech has its own casting message */
+        && spellnum != MGC_DARK_SPEECH) {
         pline("%s casts a spell%s!",
               canspotmon(mtmp) ? Monnam(mtmp) : "Something",
               is_undirected_spell(mattk->adtyp, spellnum)
@@ -351,13 +366,7 @@ castmu(register struct monst *mtmp,
         burn_away_slime();
         break;
     case AD_COLD:
-        pline("You're covered in frost.");
-        if (Cold_resistance) {
-            shieldeff(u.ux, u.uy);
-            pline("But you resist the effects.");
-            monstseesu(M_SEEN_COLD);
-            dmg = 0;
-        }
+        sheer_cold(&dmg);
         break;
     case AD_MAGM:
         You("are hit by a shower of missiles!");
@@ -605,6 +614,60 @@ cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
         dmg = 0;
         break;
     }
+    case MGC_DARK_SPEECH:
+        if (Blind) {
+            if (Deaf)
+                ; /* nothing */
+            else
+                pline("Something intones a terrible chant!");
+        }
+        else {
+            pline("%s raises a %s towards you and %s", Monnam(mtmp),
+                  mbodypart(mtmp, HAND),
+                  Deaf ? "appears to chant something."
+                       : "intones a terrible chant!");
+        }
+        pline("Dark energy surrounds you...");
+        switch (rn2(5)) {
+        case 0:
+            attrcurse();
+            break;
+        case 1:
+            You("%s rapidly decomposing!", Withering ? "continue" : "begin");
+            incr_itimeout(&HWithering, rn1(40, 100));
+            break;
+        case 2:
+            Your("mind twists!");
+            losehp(d((Deaf ? 4 : 8), 6), "hearing the Dark Speech", KILLED_BY);
+            make_confused((HConfusion & TIMEOUT) + rnd(30), FALSE);
+            make_stunned((HStun & TIMEOUT) + rnd(30), TRUE);
+            break;
+        case 3:
+            You("are overwhelmed with a sense of doom...");
+            if (Doomed)
+                change_luck(-2);
+            else
+                set_itimeout(&Doomed, rn1(2000, 500));
+            break;
+        case 4:
+            {
+                boolean was_blind_before = Blind;
+                /* this handles all the vision recalc stuff */
+                make_blinded(1L, FALSE);
+                Blinded |= FROMOUTSIDE;
+                if (!Blind)
+                    /* wearing Eyes of the Overworld - no effect, undo it */
+                    Blinded &= ~FROMOUTSIDE;
+                else if (!was_blind_before)
+                    You("can no longer see.");
+                break;
+            }
+        }
+        dmg = 0;
+        break;
+    case MGC_SHEER_COLD:
+        sheer_cold(&dmg);
+        break;
     default:
         impossible("mcastu: invalid magic spell (%d)", spellnum);
         dmg = 0;
@@ -851,6 +914,11 @@ is_undirected_spell(unsigned int adtyp, int spellnum)
         case MGC_CURE_SELF:
         case MGC_TPORT_AWAY:
         case MGC_ENTOMB:
+        /* note that if MGC_SHEER_COLD were to appear here, it could be cast at
+         * range, but would deal 0 damage, because of the castmu code that sets
+         * damage to 0 if !foundyou, which it is when castmu is called from
+         * monmove. This might be possible to kludge around. */
+        case MGC_DARK_SPEECH:
             return TRUE;
         default:
             break;
@@ -924,6 +992,10 @@ spell_would_be_useless(struct monst *mtmp, unsigned int adtyp, int spellnum)
         /* don't entomb if hero is already entombed */
         if (spellnum == MGC_ENTOMB && is_entombed(u.ux, u.uy))
             return TRUE;
+        /* sheer cold and dark speech require line of sight */
+        if (!mcouldseeu && (spellnum == MGC_DARK_SPEECH
+                            || spellnum == MGC_SHEER_COLD))
+            return TRUE;
     } else if (adtyp == AD_CLRC) {
         /* summon insects/sticks to snakes won't be cast by peaceful monsters
          */
@@ -986,6 +1058,25 @@ is_entombed(xchar x, xchar y)
         }
     }
     return TRUE;
+}
+
+/* extracted from castmu; if the corresponding flame spell is ever used and
+ * treated as one of several possible spells in a demon lord's repertoire, it
+ * should also probably be extracted.
+ * The function expects *dmg to be the already rolled amount of damage the spell
+ * will deliver by default. It may adjust *dmg in the process; the caller should
+ * anticipate this. */
+static void
+sheer_cold(int *dmg)
+{
+    pline("You're covered in frigid frost.");
+    if (Cold_resistance) {
+        shieldeff(u.ux, u.uy);
+        pline("You partially resist the effects.");
+        monstseesu(M_SEEN_COLD);
+        *dmg /= 4;
+    }
+    destroy_items(&g.youmonst, AD_COLD, *dmg);
 }
 
 /*mcastu.c*/

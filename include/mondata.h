@@ -315,7 +315,8 @@
 #define covetous_nonwarper(ptr)       \
     ((ptr) == &mons[PM_SCHLIEMANN]    \
      || (ptr) == &mons[PM_DISPATER]   \
-     || (ptr) == &mons[PM_JUIBLEX])
+     || (ptr) == &mons[PM_JUIBLEX]    \
+     || (ptr) == &mons[PM_ASMODEUS])
 
 /* The monster knows the difference between a valuable gem and worthless glass.
  * (This is not an innate ability, so player polymorphed into them will not get

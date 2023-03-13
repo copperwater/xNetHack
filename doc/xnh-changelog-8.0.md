@@ -223,6 +223,15 @@ changes:
   blind roleplay birth option. It can be cured via casting cure blindness,
   prayer, invoking the Staff of Aesculapius, or putting on the Eyes of the
   Overworld.
+- New monster spell Dark Speech, which only demon lords can cast. It inflicts
+  one of the following five effects:
+  - Remove a random intrinsic, as with a gremlin but without requiring it to be
+    night.
+  - Inflict d40+100 turns of withering.
+  - Inflict 8d6 psychic damage (4d6 if deaf) and confuse and stun you.
+  - Make you intrinsically blind (see above).
+  - Grant you d2000+500 turns of the doomed intrinsic (see above). If you were
+    already doomed, the timer is not modified and you lose two Luck instead.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly
@@ -253,6 +262,11 @@ changes:
     Killing him while there are clones of him on the level makes a random clone
     become the "real" one. When angry, he will produce ooze-like monsters from
     his body. He is now speed 6 instead of 3, and can hide on the ceiling.
+  - Asmodeus can now cast three spells; the main one is his signature powerful
+    cold spell, but he can also cast cure self at lower HP, and he can cast dark
+    speech (see above). Cold resistance no longer entirely negates the cold
+    spell; it reduces its damage to a quarter instead, and can now freeze items
+    in your inventory.
 - Wands of wishing are again redistributed through the late game:
   - The Castle wand now only gives one wish, due to being much closer to Vlad's
     Tower.
