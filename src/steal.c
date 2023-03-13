@@ -787,12 +787,12 @@ relobj(
     } /* isgd && has gold */
 
     while ((otmp = (is_pet ? droppables(mtmp) : mtmp->minvent)) != 0) {
-        mdrop_obj(mtmp, otmp, is_pet && flags.verbose);
         if (is_unpaid(otmp) && costly_spot(omx, omy)
             && (shkp = shop_keeper(*in_rooms(omx, omy, SHOPBASE))) != 0
             && inhishop(shkp)) {
             subfrombill(otmp, shkp);
         }
+        mdrop_obj(mtmp, otmp, is_pet && flags.verbose);
     }
 
     if (show && cansee(omx, omy))
