@@ -511,8 +511,13 @@ landing_spot(
             if (accessible(x, y) && !MON_AT(x, y)
                 /* accessible() excludes liquids, but not air, so we need to
                  * check for it here */
-                && !(is_open_air(x, y) && !Flying && !Levitation
-                     && !is_clinger(gy.youmonst.data))
+                && !(is_open_air(x, y) && !Levitation
+                     /* can't use Flying because that includes
+                        about-to-be-dismounted steed */
+                     && !((HFlying || EFlying) && !BFlying)
+                     /* TODO: restore is_clinger test if clinger polyforms ever
+                      * allow the hero to walk on the ceiling */
+                     /* && !is_clinger(g.youmonst.data) */)
                 && test_move(u.ux, u.uy, x - u.ux, y - u.uy, TEST_MOVE)) {
                 ++viable;
                 distance = distu(x, y);
@@ -689,20 +694,17 @@ dismount_steed(
             return;
         }
 
-        /* If the hero is over air and the steed is grounded(), it will fall
-         * down. */
-        if (is_open_air(u.ux, u.uy)) {
-            mon_aireffects(mtmp);
-        }
         /* Set hero's and/or steed's positions.  Usually try moving the
            hero first.  Note: for DISMOUNT_ENGULFED, caller hasn't set
            u.uswallow yet but has set u.ustuck. */
-        else if (!u.uswallow && !u.ustuck && have_spot) {
+        if (!u.uswallow && !u.ustuck && have_spot) {
             struct permonst *mdat = mtmp->data;
 
-            /* The steed may drop into water/lava */
+            /* The steed may drop into water/lava/chasm */
             if (grounded(mdat)) {
-                if (is_pool(u.ux, u.uy)) {
+                if (is_open_air(u.ux, u.uy)) {
+                    mon_aireffects(mtmp);
+                } else if (is_pool(u.ux, u.uy)) {
                     if (!Underwater)
                         pline("%s falls into the %s!", Monnam(mtmp),
                               surface(u.ux, u.uy));
