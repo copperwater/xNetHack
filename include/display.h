@@ -664,11 +664,11 @@ enum glyph_offsets {
                : GLYPH_EXPLODE_FIERY_OFF))
 
 #define cmap_walls_to_glyph(cmap_idx) \
-    ((cmap_idx) - S_vwall                               \
-     + (In_mines(&u.uz) ? GLYPH_CMAP_MINES_OFF          \
-        : In_hell(&u.uz) ? GLYPH_CMAP_GEH_OFF           \
-          : Is_knox(&u.uz) ? GLYPH_CMAP_KNOX_OFF        \
-            : In_sokoban(&u.uz) ? GLYPH_CMAP_SOKO_OFF   \
+    ((cmap_idx) - S_vwall                                             \
+     + (In_mines(&u.uz) ? GLYPH_CMAP_MINES_OFF                        \
+        : (In_hell(&u.uz) && !In_cocytus(&u.uz)) ? GLYPH_CMAP_GEH_OFF \
+          : Is_knox(&u.uz) ? GLYPH_CMAP_KNOX_OFF                      \
+            : In_sokoban(&u.uz) ? GLYPH_CMAP_SOKO_OFF                 \
               : GLYPH_CMAP_MAIN_OFF))
 
 #define cmap_a_to_glyph(cmap_idx) \
