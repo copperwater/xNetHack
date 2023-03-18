@@ -205,8 +205,7 @@ for i = 1,3 do
    des.object(')')
    des.object('*')
 end
-local icymons = { 'ice vortex', 'ice troll', 'freezing sphere', 'winter wolf',
-                  'blue jelly', 'white dragon', 'brown mold' }
+local icymons = get_icymon_list()
 for i = 1, #icymons do
    for j = 1, d(4)-1 do
       des.monster(icymons[i])

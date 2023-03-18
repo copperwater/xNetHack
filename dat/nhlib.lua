@@ -81,3 +81,9 @@ function bool2int(b)
       return 0
    end
 end
+
+-- for Cocytus monster generation to avoid repeating this list
+function get_icymon_list()
+   return { 'ice vortex', 'ice troll', 'freezing sphere', 'winter wolf',
+            'blue jelly', 'white dragon', 'brown mold' }
+end
