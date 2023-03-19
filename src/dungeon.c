@@ -1163,6 +1163,7 @@ init_dungeons(void)
     sokoban_dnum = dname_to_dnum("Sokoban");
     mines_dnum = dname_to_dnum("The Gnomish Mines");
     tower_dnum = dname_to_dnum("Vlad's Tower");
+    gehennom_dnum = dname_to_dnum("Gehennom");
 
     /* one special fixup for dummy surface level */
     if ((x = find_level("dummy")) != 0) {

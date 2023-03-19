@@ -153,6 +153,7 @@ typedef struct branch {
 #define In_sokoban(x) ((x)->dnum == sokoban_dnum)
 #define In_tower(x) ((x)->dnum == tower_dnum)
 #define Inhell In_hell(&u.uz) /* now gehennom */
+#define In_main_gehennom(x) ((x)->dnum == gehennom_dnum)
 #define In_endgame(x) ((x)->dnum == astral_level.dnum)
 #define In_cocytus(x) ((x)->dnum == asmodeus_level.dnum)
 /* fiery hell: Inhell && !In_cocytus; icy hell: Inhell && In_cocytus

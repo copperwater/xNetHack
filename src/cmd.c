@@ -1671,7 +1671,7 @@ wiz_map_levltyp(void)
             Strcat(dsc, " quest");
         else if (Is_knox(&u.uz))
             Strcat(dsc, " ludios");
-        else if (u.uz.dnum == 1)
+        else if (u.uz.dnum == gehennom_dnum)
             Strcat(dsc, " gehennom");
         else if (u.uz.dnum == tower_dnum)
             Strcat(dsc, " vlad");

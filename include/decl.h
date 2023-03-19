@@ -38,6 +38,7 @@ struct dgn_topology { /* special dungeon levels for speed */
     d_level d_air_level;
     d_level d_astral_level;
     xchar d_tower_dnum;
+    xchar d_gehennom_dnum;
     xchar d_sokoban_dnum;
     xchar d_mines_dnum, d_quest_dnum;
     d_level d_qstart_level, d_qlocate_level, d_nemesis_level;
@@ -74,6 +75,7 @@ struct dgn_topology { /* special dungeon levels for speed */
 #define air_level               (g.dungeon_topology.d_air_level)
 #define astral_level            (g.dungeon_topology.d_astral_level)
 #define tower_dnum              (g.dungeon_topology.d_tower_dnum)
+#define gehennom_dnum           (g.dungeon_topology.d_gehennom_dnum)
 #define sokoban_dnum            (g.dungeon_topology.d_sokoban_dnum)
 #define mines_dnum              (g.dungeon_topology.d_mines_dnum)
 #define quest_dnum              (g.dungeon_topology.d_quest_dnum)

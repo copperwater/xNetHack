@@ -588,7 +588,8 @@ fall_through(
              || ((Flying || !grounded(g.youmonst.data)
                   || (ceiling_hider(g.youmonst.data) && u.uundetected))
                  && !(ftflags & TOOKPLUNGE))
-             || (Inhell && !u.uevent.invoked && newlevel == bottom)) {
+             || (In_main_gehennom(&u.uz) && !u.uevent.invoked
+                 && newlevel == bottom)) {
         dont_fall = "don't fall in.";
     } else if (g.youmonst.data->msize >= MZ_HUGE) {
         dont_fall = "don't fit through.";
