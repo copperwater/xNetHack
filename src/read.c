@@ -3469,6 +3469,83 @@ create_particular(void)
     return NULL;
 }
 
+/* Who's in charge of this level (assumed to be u.uz)?
+ * Return a PM constant or NON_PM if there is none.
+ * If lair is non-null, set *lair to true if this is the actual residence of the
+ * boss, and false if it's merely a level in their sphere of influence. */
+int
+find_boss(boolean *lair)
+{
+    int boss_mndx = NON_PM;
+    boolean tmplair = FALSE;
+
+    if (In_quest(&u.uz) && !Is_qstart(&u.uz)) {
+        boss_mndx = g.urole.neminum;
+        tmplair = Is_nemesis(&u.uz);
+    }
+    else if (On_W_tower_level(&u.uz)) {
+        boss_mndx = PM_WIZARD_OF_YENDOR;
+        tmplair = Is_wiz1_level(&u.uz);
+    }
+    else if (In_tower(&u.uz)) {
+        boss_mndx = PM_VLAD_THE_IMPALER;
+        /* currently there is no level macro differentiating the vlad's tower
+         * levels */
+        tmplair = FALSE;
+    }
+    else if (Is_medusa_level(&u.uz)) {
+        boss_mndx = PM_MEDUSA;
+        tmplair = TRUE;
+    }
+    else if (Is_knox(&u.uz)) {
+        boss_mndx = PM_CROESUS;
+        tmplair = TRUE;
+    }
+    else if (Is_asmo_level(&u.uz)) {
+        boss_mndx = PM_ASMODEUS;
+        tmplair = TRUE;
+    }
+    else if (Is_baal_level(&u.uz)) {
+        boss_mndx = PM_BAALZEBUB;
+        tmplair = TRUE;
+    }
+    else if (Is_juiblex_level(&u.uz)) {
+        boss_mndx = PM_JUIBLEX;
+        tmplair = TRUE;
+    }
+    else if (Is_orcus_level(&u.uz)) {
+        boss_mndx = PM_ORCUS;
+        tmplair = TRUE;
+    }
+    else if (Is_dis_level(&u.uz)) { /* his city, but not his level */
+        boss_mndx = PM_DISPATER;
+        tmplair = FALSE;
+    }
+    else if (Is_dispater_level(&u.uz)) {
+        boss_mndx = PM_DISPATER;
+        tmplair = TRUE;
+    }
+    else if (Is_geryon_level(&u.uz)) {
+        boss_mndx = PM_GERYON;
+        tmplair = TRUE;
+    }
+    else if (Is_demogorgon_level(&u.uz)) {
+        boss_mndx = PM_DEMOGORGON;
+        tmplair = TRUE;
+    }
+    else if (Is_yeen_level(&u.uz)) {
+        boss_mndx = PM_YEENOGHU;
+        tmplair = TRUE;
+    }
+    /* other uniques - Oracle, Quest leader, Riders - are not considered in
+     * charge of their level, and there are special levels like the Castle which
+     * have no one in charge */
+
+    if (lair)
+        *lair = tmplair;
+    return boss_mndx;
+}
+
 /* Return true if it is currently possible to magic map the current level, based
  * on the value of nommap. */
 boolean
@@ -3492,29 +3569,8 @@ can_magic_map(void)
          * have, but that restriction is lifted once you get them to move to a
          * different level, which doesn't make as much sense for this.
          */
-        if (In_quest(&u.uz) && !Is_qstart(&u.uz)) {
-            /* All levels of the Quest besides the start will have mapping
-             * blocked by the nemesis. */
-            boss_mndx = g.urole.neminum;
-        }
-        else if (Is_asmo_level(&u.uz))
-            boss_mndx = PM_ASMODEUS;
-        else if (Is_baal_level(&u.uz))
-            boss_mndx = PM_BAALZEBUB;
-        else if (Is_juiblex_level(&u.uz))
-            boss_mndx = PM_JUIBLEX;
-        else if (Is_orcus_level(&u.uz))
-            boss_mndx = PM_ORCUS;
-        else if (Is_dis_level(&u.uz) || Is_dispater_level(&u.uz))
-            boss_mndx = PM_DISPATER;
-        else if (Is_geryon_level(&u.uz))
-            boss_mndx = PM_GERYON;
-        else if (Is_demogorgon_level(&u.uz))
-            boss_mndx = PM_DEMOGORGON;
-        else if (Is_yeen_level(&u.uz))
-            boss_mndx = PM_YEENOGHU;
-        /* add more cases here if blocking for other bosses is desired */
-        else {
+        boss_mndx = find_boss((boolean *) 0);
+        if (boss_mndx == NON_PM) {
             /* not on a boss's level, so why do we have BOSSBLOCKED set? */
             impossible("nommap set to BOSSBLOCKED on non-boss level");
             return TRUE;
@@ -3522,7 +3578,7 @@ can_magic_map(void)
         if (g.mvitals[boss_mndx].died == 0)
             return FALSE;
         for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-            if (mtmp->data == &mons[boss_mndx])
+            if (mtmp->data == &mons[boss_mndx]) /* peaceful is irrelevant */
                 return FALSE;
         }
         return TRUE;

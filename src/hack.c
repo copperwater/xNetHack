@@ -38,6 +38,7 @@ static struct monst *monstinroom(struct permonst *, int);
 static void move_update(boolean);
 static int pickup_checks(void);
 static void maybe_wail(void);
+static boolean summon_thronerm_dlord(int);
 
 #define IS_SHOP(x) (g.rooms[x].rtype >= SHOPBASE)
 
@@ -3224,20 +3225,10 @@ check_special_room(boolean newlev)
                   Blind ? "humid" : "muddy");
             break;
         case COURT:
-            if (Is_asmo_level(&u.uz)) {
-                xchar x = g.rooms[roomno].lx + ((g.rooms[roomno].hx -
-                                                 g.rooms[roomno].lx) / 2);
-                xchar y = g.rooms[roomno].ly + ((g.rooms[roomno].hy -
-                                                 g.rooms[roomno].ly) / 2);
-                struct monst *asmo = makemon(&mons[PM_ASMODEUS], x, y,
-                                             MM_NOMSG);
-                if (!boss_entrance(asmo))
-                    You("suddenly sense a new, ominous presence nearby...");
-                asmo->mstrategy &= ~STRAT_APPEARMSG; /* we just did this */
-            }
-            else { /* generic case */
+            if (summon_thronerm_dlord(roomno))
+                break;
+            else  /* generic case */
                 You("enter an opulent throne room!");
-            }
             break;
         case LEPREHALL:
             You("enter a leprechaun hall!");
@@ -4051,6 +4042,37 @@ environment_damages_u(void)
         }
         losehp(dmg, "freezing to death", KILLED_BY);
     }
+}
+
+/* We have just entered a throne room; check if we are in a demon lord lair, and
+ * if so, spawn in that demon lord in the center of the throne room.
+ * argument 'roomno' is index into g.rooms of the throne room we just entered.
+ * Return TRUE if a demon lord was spawned in or FALSE if not. */
+static boolean
+summon_thronerm_dlord(int roomno)
+{
+    boolean lair;
+    int boss_mndx = find_boss(&lair);
+
+    if (!lair)
+        return FALSE;
+
+    if (boss_mndx != NON_PM
+        && (is_dlord(&mons[boss_mndx]) || is_dprince(&mons[boss_mndx]))) {
+        /* possible enhancement: scan for a throne in this room, and spawn the
+         * demon lord on it if one exists. Currently, no demon lords have
+         * thrones, though. */
+        xchar x = g.rooms[roomno].lx + ((g.rooms[roomno].hx -
+                                         g.rooms[roomno].lx) / 2);
+        xchar y = g.rooms[roomno].ly + ((g.rooms[roomno].hy -
+                                         g.rooms[roomno].ly) / 2);
+        struct monst *mtmp = makemon(&mons[boss_mndx], x, y, MM_NOMSG);
+        if (!boss_entrance(mtmp))
+            You("suddenly sense a new, ominous presence nearby...");
+        mtmp->mstrategy &= ~STRAT_APPEARMSG; /* boss_entrance just did this */
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /*hack.c*/

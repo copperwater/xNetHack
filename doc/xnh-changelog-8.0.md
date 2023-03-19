@@ -321,3 +321,5 @@ changes:
 - Add a lua command des.reset_coordinate_system() which clears the relative
   coordinate system of the last defined room or map and sets them back to their
   level-wide values.
+- Add a function find_boss() that returns the boss of the current level and
+  whether it's their lair level or merely in their domain.
