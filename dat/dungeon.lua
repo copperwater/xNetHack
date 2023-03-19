@@ -300,7 +300,7 @@ dungeon = {
          {
             name = lawdemon1,
             bonetag = "H",
-            base = 1
+            base = 2
          },
          {
             name = "asmodeus",

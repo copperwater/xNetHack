@@ -15,7 +15,6 @@ static boolean okay(int, int, int);
 static void maze0xy(coord *);
 static boolean put_lregion_here(xchar, xchar, xchar, xchar, xchar,
                                 xchar, xchar, boolean, d_level *);
-static void baalz_fixup(void);
 static void setup_waterlevel(void);
 static void unsetup_waterlevel(void);
 static void check_ransacked(char *);
@@ -187,10 +186,6 @@ wall_cleanup(int x1, int y1, int x2, int y2)
     /* change walls surrounded by rock to rock. */
     for (x = x1; x <= x2; x++)
         for (y = y1; y <= y2; y++) {
-            if (within_bounded_area(x, y,
-                                    g.bughack.inarea.x1, g.bughack.inarea.y1,
-                                    g.bughack.inarea.x2, g.bughack.inarea.y2))
-                continue;
             lev = &levl[x][y];
             type = lev->typ;
             if (IS_WALL(type) && type != DBWALL) {
@@ -238,11 +233,7 @@ fix_wall_spines(int x1, int y1, int x2, int y2)
                 continue;
 
             /* set the locations TRUE if rock or wall or out of bounds */
-            loc_f = within_bounded_area(x, y, /* for baalz insect */
-                                        g.bughack.inarea.x1, g.bughack.inarea.y1,
-                                        g.bughack.inarea.x2, g.bughack.inarea.y2)
-                       ? iswall
-                       : iswall_or_stone;
+            loc_f = iswall_or_stone;
             locale[0][0] = (*loc_f)(x - 1, y - 1);
             locale[1][0] = (*loc_f)(x, y - 1);
             locale[2][0] = (*loc_f)(x + 1, y - 1);
@@ -437,103 +428,6 @@ put_lregion_here(
     return TRUE;
 }
 
-/* fix up Baalzebub's lair, which depicts a level-sized beetle;
-   its legs are walls within solid rock--regular wallification
-   classifies them as superfluous and gets rid of them */
-static void
-baalz_fixup(void)
-{
-    struct monst *mtmp;
-    int x, y, lastx, lasty;
-
-    /*
-     * baalz level's nondiggable region surrounds the "insect" and rooms.
-     * The outermost perimeter of that region is subject to wall cleanup
-     * (hence 'x + 1' and 'y + 1' for starting don't-clean column and row,
-     * 'lastx - 1' and 'lasty - 1' for ending don't-clean column and row)
-     * and the interior is protected against that (in wall_cleanup()).
-     *
-     * Assumes level.flags.corrmaze is True, otherwise the bug legs will
-     * have already been "cleaned" away by general wallification.
-     */
-
-    /* find low and high x for to-be-wallified portion of level */
-    y = ROWNO / 2;
-    for (lastx = x = 0; x < COLNO; ++x)
-        if ((levl[x][y].wall_info & W_NONDIGGABLE) != 0) {
-            if (!lastx)
-                g.bughack.inarea.x1 = x + 1;
-            lastx = x;
-        }
-    g.bughack.inarea.x2 = ((lastx > g.bughack.inarea.x1) ? lastx : x) - 1;
-    /* find low and high y for to-be-wallified portion of level */
-    x = g.bughack.inarea.x1;
-    for (lasty = y = 0; y < ROWNO; ++y)
-        if ((levl[x][y].wall_info & W_NONDIGGABLE) != 0) {
-            if (!lasty)
-                g.bughack.inarea.y1 = y + 1;
-            lasty = y;
-        }
-    g.bughack.inarea.y2 = ((lasty > g.bughack.inarea.y1) ? lasty : y) - 1;
-    /* two pools mark where special post-wallify fix-ups are needed */
-    for (x = g.bughack.inarea.x1; x <= g.bughack.inarea.x2; ++x)
-        for (y = g.bughack.inarea.y1; y <= g.bughack.inarea.y2; ++y)
-            if (levl[x][y].typ == POOL) {
-                levl[x][y].typ = HWALL;
-                if (g.bughack.delarea.x1 == COLNO)
-                    g.bughack.delarea.x1 = x, g.bughack.delarea.y1 = y;
-                else
-                    g.bughack.delarea.x2 = x, g.bughack.delarea.y2 = y;
-            } else if (levl[x][y].typ == IRONBARS) {
-                /* novelty effect; allowing digging in front of 'eyes' */
-                if (isok(x - 1, y)
-                    && (levl[x - 1][y].wall_info & W_NONDIGGABLE) != 0) {
-                    levl[x - 1][y].wall_info &= ~W_NONDIGGABLE;
-                    if (isok(x - 2, y))
-                        levl[x - 2][y].wall_info &= ~W_NONDIGGABLE;
-                } else if (isok(x + 1, y)
-                    && (levl[x + 1][y].wall_info & W_NONDIGGABLE) != 0) {
-                    levl[x + 1][y].wall_info &= ~W_NONDIGGABLE;
-                    if (isok(x + 2, y))
-                        levl[x + 2][y].wall_info &= ~W_NONDIGGABLE;
-                }
-            }
-
-    wallification(max(g.bughack.inarea.x1 - 2, 1),
-                  max(g.bughack.inarea.y1 - 2, 0),
-                  min(g.bughack.inarea.x2 + 2, COLNO - 1),
-                  min(g.bughack.inarea.y2 + 2, ROWNO - 1));
-
-    /* bughack hack for rear-most legs on baalz level; first joint on
-       both top and bottom gets a bogus extra connection to room area,
-       producing unwanted rectangles; change back to separated legs */
-    x = g.bughack.delarea.x1, y = g.bughack.delarea.y1;
-    if (isok(x, y) && (levl[x][y].typ == TLWALL || levl[x][y].typ == TRWALL)
-        && isok(x, y + 1) && levl[x][y + 1].typ == TUWALL) {
-        levl[x][y].typ = (levl[x][y].typ == TLWALL) ? BRCORNER : BLCORNER;
-        levl[x][y + 1].typ = HWALL;
-        if ((mtmp = m_at(x, y)) != 0) /* something at temporary pool... */
-            (void) rloc(mtmp, RLOC_ERR|RLOC_NOMSG);
-    }
-
-    x = g.bughack.delarea.x2, y = g.bughack.delarea.y2;
-    if (isok(x, y) && (levl[x][y].typ == TLWALL || levl[x][y].typ == TRWALL)
-        && isok(x, y - 1) && levl[x][y - 1].typ == TDWALL) {
-        levl[x][y].typ = (levl[x][y].typ == TLWALL) ? TRCORNER : TLCORNER;
-        levl[x][y - 1].typ = HWALL;
-        if ((mtmp = m_at(x, y)) != 0) /* something at temporary pool... */
-            (void) rloc(mtmp, RLOC_ERR|RLOC_NOMSG);
-    }
-
-    /* reset bughack region; set low end to <COLNO,ROWNO> so that
-       within_bounded_region() in fix_wall_spines() will fail
-       most quickly--on its first test--when loading other levels */
-    g.bughack.inarea.x1 = g.bughack.delarea.x1 = COLNO;
-    g.bughack.inarea.y1 = g.bughack.delarea.y1 = ROWNO;
-    g.bughack.inarea.x2 = g.bughack.delarea.x2 = 0;
-    g.bughack.inarea.y2 = g.bughack.delarea.y2 = 0;
-}
-
 /* this is special stuff that the level compiler cannot (yet) handle */
 void
 fixup_special(void)
@@ -646,9 +540,6 @@ fixup_special(void)
                 set_corpsenm(otmp, rndmonnum());
             }
         }
-    } else if (on_level(&u.uz, &baalzebub_level)) {
-        /* custom wallify the "beetle" potion of the level */
-        baalz_fixup();
     } else if (u.uz.dnum == mines_dnum && g.ransacked) {
        stolen_booty();
     } else if (Is_wizpuzzle_lev(&u.uz)) {

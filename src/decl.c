@@ -460,7 +460,6 @@ const struct instance_globals g_init = {
     UNDEFINED_VALUE, /* n_loc_filled */
 
     /* mkmaze.c */
-    { {COLNO, ROWNO, 0, 0}, {COLNO, ROWNO, 0, 0} }, /* bughack */
     UNDEFINED_PTR, /* bbubbles */
     UNDEFINED_PTR, /* ebubbles */
     UNDEFINED_PTR, /* wportal */

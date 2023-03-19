@@ -1060,8 +1060,6 @@ struct instance_globals {
     int n_loc_filled;
 
     /* mkmaze.c */
-    lev_region bughack; /* for preserving the insect legs when wallifying
-                         * baalz level */
     struct bubble *bbubbles;
     struct bubble *ebubbles;
     struct trap *wportal;
