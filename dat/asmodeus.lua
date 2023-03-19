@@ -46,6 +46,9 @@ local sanctum = selection.area(57,07,62,12)
 fortress = fortress - sanctum -- fortress does NOT include sanctum
 local allindoors = wing1 + wing2 + antechamber + hallway + recess1 + recess2 + fortress + sanctum
 
+-- Teleport region so people don't fall into the fortress
+des.teleport_region({ region={00,00,74,19}, exclude={08,02,71,17} })
+
 -- This isn't a lake
 des.replace_terrain({ selection=(everything - sanctum),
                       fromterrain='I', toterrain='.', chance=20 })
