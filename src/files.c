@@ -857,7 +857,16 @@ touch_whereis(void)
 void
 delete_whereis(void)
 {
-    write_whereis(FALSE);
+    if (program_state.something_worth_saving) {
+        /* if we have valid data to write, just write it but specify that the
+         * game isn't active ("playing=0") */
+        write_whereis(FALSE);
+    } else {
+        /* if data may be unavailable for writing, actually unlink the file */
+        if (strstr(whereis_file, "%n"))
+            set_whereisfile();
+        (void) unlink(whereis_file);
+    }
 }
 #endif /* WHEREIS_FILE */
 
