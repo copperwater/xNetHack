@@ -61,6 +61,16 @@
 #endif /* DUMB */
 
 /*
+ * type coordxy: integers (typedef'd as signed,
+ * in the range -32768 to 32767), mostly coordinates.
+ * Note that in 2022, screen coordinates easily
+ * surpass an upper limit of 127.
+ * NOTE (aosdict 03/19/2023) - intentionally adding this to create merge
+ * conflicts during a later vanilla merge so that coordxy can be used now.
+ * Delete this in favor of vanilla's changes to global.h later.
+ */
+typedef int16_t coordxy;
+/*
  * type xchar: small integers (typedef'd as signed char,
  * so in the range -127 - 127), usually coordinates.
  */

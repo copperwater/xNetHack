@@ -50,7 +50,7 @@ static int choose_special_spell(struct monst *);
 static boolean is_undirected_spell(unsigned int, int);
 static boolean
 spell_would_be_useless(struct monst *, unsigned int, int);
-static boolean is_entombed(xchar, xchar);
+static boolean is_entombed(coordxy, coordxy);
 static void sheer_cold(int *dmg);
 
 /* feedback when frustrated monster couldn't cast a spell */
@@ -582,7 +582,7 @@ cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
     case MGC_ENTOMB: {
         /* entomb you in rocks (and maybe a couple diggable walls) to delay you
          * and allow some time for the caster to get away */
-        xchar x, y;
+        coordxy x, y;
         pline_The("ground shakes violently%s!",
                   Blind ? "" : " and twists into walls");
         if (!Blind)
@@ -1047,9 +1047,9 @@ buzzmu(register struct monst *mtmp, register struct attack *mattk)
 /* is (x,y) entombed (completely surrounded by boulders or nonwalkable spaces)?
  * note that (x,y) itself is not checked */
 static boolean
-is_entombed(xchar x, xchar y)
+is_entombed(coordxy x, coordxy y)
 {
-    xchar xx, yy;
+    coordxy xx, yy;
     for (xx = x - 1; xx <= x + 1; xx++) {
         for (yy = y - 1; yy <= y + 1; yy++) {
             if (isok(xx, yy) && xx != x && yy != y

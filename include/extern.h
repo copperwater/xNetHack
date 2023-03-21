@@ -2876,7 +2876,7 @@ extern coord *gettrack(int, int);
 
 extern boolean burnarmor(struct monst *);
 extern int erode_obj(struct obj *, const char *, int, int);
-extern void mk_trap_statue(xchar, xchar); /* 3.7 MERGE TODO: make coordxy */
+extern void mk_trap_statue(coordxy, coordxy);
 extern boolean grease_protect(struct obj *, const char *, struct monst *);
 extern struct trap *maketrap(int, int, int);
 extern void set_trap_ammo(struct trap *, struct obj *);
@@ -3417,7 +3417,7 @@ extern void intervene(void);
 extern void wizdead(void);
 extern void cuss(struct monst *);
 extern void wizpuzzle_enterchamber(int);
-extern void wizpuzzle_activate_mechanism(xchar, xchar);
+extern void wizpuzzle_activate_mechanism(coordxy, coordxy);
 
 /* ### worm.c ### */
 

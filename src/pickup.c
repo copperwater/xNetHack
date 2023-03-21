@@ -4362,7 +4362,7 @@ dump_container(struct obj* box, struct obj *targetbox, int msgflags)
 static void
 u_took_forbidden_object(struct obj *offender)
 {
-    xchar x, y;
+    coordxy x, y;
     struct obj *otmp, *nobj;
     static long last_time_called = 0;
     boolean did_something = FALSE;

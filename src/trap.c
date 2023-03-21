@@ -342,7 +342,7 @@ grease_protect(
 
 /* create a "living" statue at x,y */
 void
-mk_trap_statue(xchar x, xchar y) /* 3.7 MERGE TODO: make these coordxy */
+mk_trap_statue(coordxy x, coordxy y)
 {
     struct monst *mtmp;
     struct obj *otmp, *statue;

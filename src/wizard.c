@@ -839,7 +839,7 @@ cuss(struct monst *mtmp)
 /* In the Wizard's Tower puzzle, close the gap on a single space by slamming a
  * wall down on it, turning the space into wall. */
 static void
-wizpuzzle_close_space(xchar x, xchar y,
+wizpuzzle_close_space(coordxy x, coordxy y,
                       schar newtyp, /* what sort of wall to put here */
                       boolean *gavemsg)
 {
@@ -891,7 +891,7 @@ wizpuzzle_close_space(xchar x, xchar y,
 /* In the Wizard's Tower puzzle, open the gap on a single space by removing its
  * wall. */
 static void
-wizpuzzle_open_space(xchar x, xchar y, boolean *gavemsg)
+wizpuzzle_open_space(coordxy x, coordxy y, boolean *gavemsg)
 {
     if (!IS_WALL(levl[x][y].typ)) {
         impossible("wizpuzzle_open_space on non-wall %d,%d", x, y);
@@ -924,7 +924,7 @@ wizpuzzle_open_space(xchar x, xchar y, boolean *gavemsg)
 static void
 wizpuzzle_give_clues(void)
 {
-    xchar x, y;
+    coordxy x, y;
     int ring;
     char lightbuf[BUFSZ] = {0};
     char notebuf[BUFSZ] = {0};
@@ -1002,8 +1002,8 @@ wizpuzzle_give_clues(void)
 static struct {
     int ring;
     int roomno;
-    xchar lx_offset;
-    xchar ly_offset;
+    coordxy lx_offset;
+    coordxy ly_offset;
     xchar typ; /* wall typ when gap is closed */
 } gap_spaces[] = {
     { 0, 0, 4,4, HWALL },
@@ -1225,7 +1225,7 @@ wizpuzzle_enterchamber(int rm_entered)
 /* In the Wizard's Tower puzzle, you have just triggered a mechanism that causes
  * the puzzle to change. */
 void
-wizpuzzle_activate_mechanism(xchar x, xchar y)
+wizpuzzle_activate_mechanism(coordxy x, coordxy y)
 {
     int roomno = levl[x][y].roomno - ROOMOFFSET;
     int ring;
