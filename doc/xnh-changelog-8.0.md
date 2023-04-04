@@ -72,9 +72,6 @@ changes:
   either of the two drawbridge squares, instead of only directly adjacent
   squares.
 - Sleep spell level raised from 2 to 3 (which is what it is in vanilla).
-- Item encyclopedia lookup from the inventory is now an item in the menu of
-  things you can do with an item you select when looking at the inventory, under
-  'l', rather than the default behavior.
 - Kicking into empty air (which may strain a muscle) no longer wakes monsters.
 - Anti-magic fields no longer deal HP damage when magic resistant. They instead
   drain additional energy the more sources of magic resistance and half damage
@@ -287,6 +284,9 @@ changes:
   are active.
 - Cold rays and explosions render as bright blue instead of white, to
   distinguish them from lightning.
+- Item encyclopedia lookup from the inventory is now an item in the menu of
+  things you can do with an item you select when looking at the inventory, under
+  'l', rather than the default behavior.
 - Quantum mechanics are given physicist names when farlooked, or "Dr. Science"
   if cancelled. (Similar to coyotes, not like nymphs or foocubi.)
 - Steam vortices' engulf attack produces "boiling" messages rather than
