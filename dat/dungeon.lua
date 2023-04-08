@@ -295,7 +295,7 @@ dungeon = {
       flags = { "mazelike", "hellish" },
       alignment = "lawful",
       lvlfill = "cocytusfill",
-      entry = 2,
+      entry = 1,
       levels = {
          {
             name = lawdemon1,
