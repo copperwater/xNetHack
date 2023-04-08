@@ -229,6 +229,8 @@ changes:
   - Make you intrinsically blind (see above).
   - Grant you d2000+500 turns of the doomed intrinsic (see above). If you were
     already doomed, the timer is not modified and you lose two Luck instead.
+- New monster giant fly. Has low health, but is fast and has a 2d8 bite. Appears
+  only on Baalzebub's level.
 - Gehennom's length, structure, and appearance is overhauled:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly

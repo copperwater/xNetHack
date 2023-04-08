@@ -129,6 +129,14 @@
         SIZ(200, 50, MS_SILENT, MZ_LARGE), MR_POISON, MR_POISON,
         M1_ANIMAL | M1_NOHANDS | M1_POIS | M1_CARNIVORE, M2_HOSTILE, 0,
         6, CLR_BLACK, GIANT_BEETLE),
+    /* giant fly is no-generate, no-geno because it's more of a feature for
+     * Baalzebub than a random monster */
+    MON("giant fly", S_ANT, LVL(1, 20, 3, 0, 0), G_NOGEN,
+        A(ATTK(AT_BITE, AD_PHYS, 2, 8), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
+          NO_ATTK),
+        SIZ(10, 10, MS_BUZZ, MZ_TINY), 0, 0,
+        M1_ANIMAL | M1_NOHANDS | M1_OVIPAROUS | M1_CARNIVORE | M1_FLY,
+        M2_HOSTILE, 0, 7, CLR_GRAY, GIANT_FLY),
     MON("queen bee", S_ANT, LVL(9, 24, -4, 0, 0), (G_GENO | G_NOGEN),
         A(ATTK(AT_STNG, AD_DRST, 1, 8), NO_ATTK, NO_ATTK, NO_ATTK, NO_ATTK,
           NO_ATTK),
