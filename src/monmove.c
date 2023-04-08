@@ -25,6 +25,8 @@ static void leppie_stash(struct monst *);
 static boolean m_balks_at_approaching(struct monst *);
 static boolean stuff_prevents_passage(struct monst *);
 static int vamp_shift(struct monst *, struct permonst *, boolean);
+static boolean special_juiblex_actions(struct monst *);
+static boolean special_baalzebub_actions(struct monst *);
 
 #ifdef FUZZER_LOG
 void
@@ -719,33 +721,10 @@ dochug(register struct monst* mtmp)
         }
         return 0;
     }
-    /* Juiblex may split himself if there are no copies of him on the level;
-     * if there are, some of him will split off into a lesser monster */
-    if (mdat == &mons[PM_JUIBLEX] && !mtmp->mpeaceful && !rn2(10)) {
-        struct monst *m2;
-        boolean dosplit = TRUE;
-        for (m2 = fmon; m2; m2 = m2->nmon) {
-            if (m2 != mtmp && m2->data == &mons[PM_JUIBLEX]) {
-                dosplit = FALSE;
-                break;
-            }
-        }
-        if (dosplit) {
-            if ((m2 = clone_mon(mtmp, 0, 0)) != (struct monst *) 0
-                && (canspotmon(mtmp) || canspotmon(m2))) {
-                pline("%s splits itself in two!", Monnam(mtmp));
-                return 0;
-            }
-        }
-        else if (rn2(2)) {
-            const char classes[] = { S_BLOB, S_JELLY, S_PUDDING };
-            m2 = makemon(mkclass(classes[rn2(SIZE(classes))], 0),
-                         mtmp->mx, mtmp->my,
-                         MM_ADJACENTOK | MM_ANGRY | MM_NOMSG);
-            pline("Some ooze rolls off %s and becomes %s.",
-                  mon_nam(mtmp), a_monnam(m2));
-        }
-    }
+    if (mdat == &mons[PM_JUIBLEX] && special_juiblex_actions(mtmp))
+        return 0;
+    if (mdat == &mons[PM_BAALZEBUB] && special_baalzebub_actions(mtmp))
+        return 0;
 
  toofar:
 
@@ -2237,6 +2216,124 @@ remove_monster(xchar x, xchar y)
         impossible("no monster to remove");
 #endif
     g.level.monsters[x][y] = (struct monst *) 0;
+}
+
+/* once-per-move actions and effects for Juiblex; return true if this has used
+ * up his move and false if he should continue with his normal actions */
+static boolean
+special_juiblex_actions(struct monst *juib)
+{
+    struct monst *m2;
+    boolean dosplit = TRUE;
+
+    /* Juiblex may split himself if there are no copies of him on the level;
+     * if there are, some of him will split off into a lesser monster */
+    if (juib->mpeaceful)
+        return FALSE;
+    if (rn2(10)) /* limiting factor */
+        return FALSE;
+
+    for (m2 = fmon; m2; m2 = m2->nmon) {
+        if (m2 != juib && m2->data == &mons[PM_JUIBLEX]) {
+            dosplit = FALSE;
+            break;
+        }
+    }
+    if (dosplit) {
+        if ((m2 = clone_mon(juib, 0, 0)) != (struct monst *) 0
+            && (canspotmon(juib) || canspotmon(m2))) {
+            pline("%s splits itself in two!", Monnam(juib));
+            return TRUE;
+        }
+    }
+    else if (rn2(2)) {
+        const char classes[] = { S_BLOB, S_JELLY, S_PUDDING };
+        m2 = makemon(mkclass(classes[rn2(SIZE(classes))], 0),
+                        juib->mx, juib->my,
+                        MM_ADJACENTOK | MM_ANGRY | MM_NOMSG);
+        pline("Some ooze rolls off %s and becomes %s.",
+                mon_nam(juib), a_monnam(m2));
+    }
+    return FALSE;
+}
+
+/* once-per-move actions and effects for Baalzebub; return true if this has used
+ * up his move and false if he should continue with his normal actions */
+static boolean
+special_baalzebub_actions(struct monst *baalz)
+{
+    coordxy x, y;
+
+    if (baalz->mpeaceful)
+        return FALSE;
+
+    /* When threatened, he may decide to burst into a swarm of flies and reform
+     * elsewhere. */
+    if (baalz->mhp * 2 < baalz->mhpmax && !baalz->mspec_used) {
+        int dist_i = distu(baalz->mx, baalz->my);
+        int options = 0;
+        coordxy targx = -1, targy = -1;
+        for (x = baalz->mx - 10; x <= baalz->mx + 10; ++x) {
+            for (y = baalz->my - 10; y <= baalz->my + 10; ++y) {
+                if (!goodpos(x, y, baalz, GP_CHECKSCARY))
+                    continue;
+                if (distu(x, y) <= dist_i) /* must go strictly away from hero */
+                    continue;
+                options++;
+                if (!rn2(options)) {
+                    targx = x;
+                    targy = y;
+                }
+            }
+        }
+        if (options > 0) {
+            coordxy ox = baalz->mx, oy = baalz->my;
+            int nflies = 5 + rn2(3);
+            int i;
+            if (canspotmon(baalz)) {
+                pline("%s explodes into a swarm of flies!", Monnam(baalz));
+            }
+            rloc_to(baalz, targx, targy);
+            baalz->mspec_used = 10 + rn2(20);
+            monflee(baalz, baalz->mspec_used, TRUE, FALSE);
+            for (i = 0; i < nflies; ++i) {
+                makemon(&mons[PM_GIANT_FLY], ox, oy, MM_ADJACENTOK | MM_NOMSG);
+            }
+            if (canspotmon(baalz)) {
+                pline("%s re-coalesces further away.", Monnam(baalz));
+            }
+            return TRUE;
+        }
+    }
+
+    /* Flies constantly peel off Baalzebub. */
+    if (m_canseeu(baalz) || !rn2(8)) {
+        /* spawn flies if fewer than 50% of open spaces around baalzebub are
+         * occupied by flies already */
+        int numopen = 0, numflies = 0;
+        for (x = baalz->mx - 1; x <= baalz->mx + 1; ++x) {
+            for (y = baalz->my - 1; y <= baalz->my + 1; ++y) {
+                if (!isok(x, y))
+                    continue;
+                if ((IS_DOOR(levl[x][y].typ) && !door_is_closed(&levl[x][y]))
+                    || SPACE_POS(levl[x][y].typ)) {
+                    struct monst *m2 = m_at(x, y);
+                    if (!m2)
+                        numopen++;
+                    else if (monsndx(m2->data) == PM_GIANT_FLY)
+                        numflies++;
+                }
+            }
+        }
+        if (numopen > 0 && numflies < numopen) {
+            int mkflies = min(rnd(2), (numopen - numflies));
+            for (; mkflies > 0; mkflies--) {
+                makemon(&mons[PM_GIANT_FLY], baalz->mx, baalz->my,
+                        MM_ADJACENTOK | MM_NOGRP | MM_NOMSG);
+            }
+        }
+    }
+    return FALSE;
 }
 
 /*monmove.c*/

@@ -266,6 +266,9 @@ changes:
     speech (see above). Cold resistance no longer entirely negates the cold
     spell; it reduces its damage to a quarter instead, and can now freeze items
     in your inventory.
+  - Baalzebub constantly spawns giant flies from his body, and when threatened
+    can burst into a swarm of flies and reform some distance away. He also has a
+    poisonous sting attack.
 - Wands of wishing are again redistributed through the late game:
   - The Castle wand now only gives one wish, due to being much closer to Vlad's
     Tower.
