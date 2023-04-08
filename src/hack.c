@@ -4066,7 +4066,12 @@ summon_thronerm_dlord(int roomno)
                                            g.rooms[roomno].lx) / 2);
         coordxy y = g.rooms[roomno].ly + ((g.rooms[roomno].hy -
                                            g.rooms[roomno].ly) / 2);
-        struct monst *mtmp = makemon(&mons[boss_mndx], x, y, MM_NOMSG);
+        struct monst *mtmp = makemon(&mons[boss_mndx], x, y,
+                                     MM_NOMSG | MM_ADJACENTOK);
+        if (!mtmp) {
+            impossible("Failed to spawn in demon lord %d", boss_mndx);
+            return FALSE;
+        }
         if (!boss_entrance(mtmp))
             You("suddenly sense a new, ominous presence nearby...");
         mtmp->mstrategy &= ~STRAT_APPEARMSG; /* boss_entrance just did this */
