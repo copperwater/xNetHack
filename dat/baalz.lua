@@ -19,7 +19,7 @@ des.map([[
 ..----...-------...-- ---...------......|..---------|.........|..|.........
 ...--|.---..|..---.|---.....F....|..-------|...........--------------......
 ....--.....F-F.....--.....---....|--|..................S............|----..
-..........................+...--....S..----------------|............S...|.>
+..........................+...--....S..----------------|............S...|..
 ....--.....F-F.....--.....---....|--|..................|............|----..
 ...--|.---..|..---.|---.....F....|..-------|...........-----S--------......
 ..----...-------...-- ---...------......|..---------|.........|..|.........
@@ -47,7 +47,10 @@ end
 local cocytus = (nh.dnum_name(u.dnum) == 'Cocytus')
 
 -- stairs
-des.levregion({ region = {00,05,00,13}, region_islev=0, type="stair-up" })
+-- ugly hack here in which assumptions are made about the law demon branches:
+-- if in cocytus we are not on the level which connects to gehennom, and if not
+-- in cocytus we are on that level; place an upstair or branch accordingly
+des.levregion({ region = {00,05,00,13}, region_islev=0, type=(cocytus and "stair-up" or "branch") })
 des.stair('down', 74,09) -- does nothing if this is the bottom level of the branch
 
 -- levelport or falling into the level
@@ -71,6 +74,8 @@ local tmpbugzone = smallbugzone:clone()
 for i = 1, 30 do
    if percent(15) then
       des.trap({ coord=tmpbugzone:rndcoord(1) })
+   elseif percent(50) then
+      des.monster({ id='giant fly', coord=tmpbugzone:rndcoord(1) })
    else
       des.monster({ class=rndbugclass(), coord=tmpbugzone:rndcoord(1) })
    end
@@ -82,9 +87,13 @@ for i = 1, 15 do
    if percent(30) then
       des.monster({ class = '&', coord = outside:rndcoord() })
    elseif percent(20) then
-      des.monster({ class = 'i', coord = outside:rndcoord() })
+      des.monster({ id = percent(50) and 'imp' or 'lemure', coord = outside:rndcoord() })
    elseif percent(30) then
-      des.monster({ class = rndbugclass(), coord = outside:rndcoord() })
+      if percent(50) then
+         des.monster({ id = 'giant fly', coord = outside:rndcoord() })
+      else
+         des.monster({ class = rndbugclass(), coord = outside:rndcoord() })
+      end
    elseif cocytus then
       des.monster({ id = icymons[d(#icymons)], coord = outside:rndcoord() })
    else
@@ -97,6 +106,7 @@ des.door({ state="locked", iron=1, x=26, y=09 })
 for i = 1, 2 do
    des.monster({ id='barbed devil', coord=head:rndcoord() })
    des.monster({ class = rndbugclass(), coord=head:rndcoord() })
+   des.monster({ id='giant fly', coord=head:rndcoord() })
    des.trap({ coord = head:rndcoord() })
 end
 des.monster({ class='i', coord=head:rndcoord() })
@@ -113,12 +123,15 @@ des.monster({ class='V', coord=thorax:rndcoord() })
 -- inside: abdomen
 -- Unfilled throne room so Baalz can spawn when hero enters
 des.region({ region={56,08,67,10}, type='throne', filled=0, lit = 1 })
-des.monster({ id='horned devil', coord=abdomen:rndcoord() })
-des.monster({ id='barbed devil', coord=abdomen:rndcoord() })
-des.monster({ class='V', coord=abdomen:rndcoord() })
 for i = 1, 3 do
    des.trap({ coord = abdomen:rndcoord() })
    des.object()
+end
+des.monster({ id='horned devil', coord=abdomen:rndcoord(), waiting = 1 })
+des.monster({ id='barbed devil', coord=abdomen:rndcoord(), waiting = 1 })
+des.monster({ class='V', coord=abdomen:rndcoord(), waiting = 1 })
+for i = 1, 3 + d(2) do
+   des.monster({ id='giant fly', coord=abdomen:rndcoord(), waiting = 1 })
 end
 
 -- the treasure
@@ -141,6 +154,9 @@ for i = 1, 2 do
    des.object("!")
    des.object("?")
    des.monster("ghost")
+end
+for i = 1, 20 do
+   des.monster('giant fly')
 end
 des.monster("L")
 
