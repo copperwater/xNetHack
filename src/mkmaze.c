@@ -1083,26 +1083,6 @@ create_maze(int corrwid, int wallthick, boolean rmdeadends)
     maze_add_rooms(20);
 
     lvlfill_maze_grid(2, 2, rdx * 2, rdy * 2, HWALL);
-#if 0 /* we don't randomly generate corrmazes in xnethack */
-    if (g.level.flags.corrmaze) {
-        for (x = 2; x < (rdx * 2); x++) {
-            for (y = 2; y < (rdy * 2); y++) {
-                if (levl[x][y].roomno == NO_ROOM) {
-                    levl[x][y].typ = STONE;
-                }
-            }
-        }
-    }
-    else {
-        for (x = 2; x <= (rdx * 2); x++) {
-            for (y = 2; y <= (rdy * 2); y++) {
-                if (levl[x][y].roomno == NO_ROOM) {
-                    levl[x][y].typ = ((x % 2) && (y % 2)) ? STONE : HWALL;
-                }
-            }
-        }
-    }
-#endif
 
     /* set upper bounds for maze0xy and walkfrom */
     g.x_maze_max = (rdx * 2);
@@ -1120,7 +1100,7 @@ create_maze(int corrwid, int wallthick, boolean rmdeadends)
     walkfrom((int) mm.x, (int) mm.y, 0);
 
     if (rmdeadends)
-        maze_remove_deadends((g.level.flags.corrmaze) ? CORR : ROOM);
+        maze_remove_deadends(ROOM);
 
     /* restore bounds */
     g.x_maze_max = tmp_xmax;
@@ -1238,7 +1218,6 @@ makemaz(const char *s)
     }
 
     g.level.flags.is_maze_lev = TRUE;
-    g.level.flags.corrmaze = FALSE; //!rn2(3);
 
     /*
     if (!Invocation_lev(&u.uz) && rn2(2)) {
@@ -1249,10 +1228,8 @@ makemaz(const char *s)
     */
     create_maze(1, 1, !rn2(5));
 
-    if (!g.level.flags.corrmaze) {
-        wallification(2, 2, g.x_maze_max, g.y_maze_max);
-        check_maze_coverage(2, 2, g.x_maze_max, g.y_maze_max);
-    }
+    wallification(2, 2, g.x_maze_max, g.y_maze_max);
+    check_maze_coverage(2, 2, g.x_maze_max, g.y_maze_max);
 
     mazexy(&mm);
     mkstairs(mm.x, mm.y, 1, (struct mkroom *) 0, FALSE); /* up */
@@ -1354,10 +1331,7 @@ walkfrom(int x, int y, schar typ)
     int dirs[4];
 
     if (!typ) {
-        if (g.level.flags.corrmaze)
-            typ = CORR;
-        else
-            typ = ROOM;
+        typ = ROOM;
     }
 
     pos = 1;
@@ -1409,10 +1383,7 @@ walkfrom(int x, int y, schar typ)
     int dirs[4];
 
     if (!typ) {
-        if (g.level.flags.corrmaze)
-            typ = CORR;
-        else
-            typ = ROOM;
+        typ = ROOM;
     }
 
     if (!IS_DOOR(levl[x][y].typ)) {
@@ -1438,7 +1409,7 @@ walkfrom(int x, int y, schar typ)
 #endif /* ?MICRO */
 
 /* Finds a random point in the maze area which has the designated floor type of
- * the maze (CORR if the corrmaze flag is set, ROOM otherwise).
+ * the maze (always ROOM).
  * This is to avoid creating items, monsters, and features in illegal terrain
  * like moats, bunkers, or walls.
  * Argument is a pointer to coord that will be set by this function.
@@ -1446,7 +1417,7 @@ walkfrom(int x, int y, schar typ)
 void
 mazexy(coord *cc)
 {
-    int x, y, allowedtyp = (g.level.flags.corrmaze ? CORR : ROOM);
+    int x, y, allowedtyp = ROOM;
     int cpt = 0;
 
     do {

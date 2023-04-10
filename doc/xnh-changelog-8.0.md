@@ -328,3 +328,4 @@ changes:
   level-wide values.
 - Add a function find_boss() that returns the boss of the current level and
   whether it's their lair level or merely in their domain.
+- The corrmaze level flag and its associated behavior are removed.

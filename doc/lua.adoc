@@ -506,7 +506,6 @@ Set flags for this level.
 | shroud        | Unseen locations on the level will not be remembered by the hero, instead of rendering as out-of-sight map, trap, and object glyphs like they normally do.
 | graveyard     | Treats the level as a graveyard level (causes graveyard sounds and undead have a reduced chance of leaving corpses).
 | icedpools     | Ice generated with the level will be treated as frozen pools instead of frozen moats.
-| corrmaze      |
 | premapped     | Map, including traps and boulders, is revealed on entrance.
 | solidify      | Areas outside the specified level map are made undiggable and unphaseable.
 | inaccessibles | If inaccessible areas are generated, generate ways for them to connect to the "accessible" area.

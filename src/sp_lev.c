@@ -323,16 +323,11 @@ lvlfill_maze_grid(int x1, int y1, int x2, int y2, schar filling)
         for (y = y1; y <= y2; y++) {
             /* avoid overwriting maze rooms */
             if (levl[x][y].roomno == NO_ROOM) {
-                if (g.level.flags.corrmaze) {
+                if (y < 2 || ((x % 2) && (y % 2))) {
                     levl[x][y].typ = STONE;
                 }
                 else {
-                    if (y < 2 || ((x % 2) && (y % 2))) {
-                        levl[x][y].typ = STONE;
-                    }
-                    else {
-                        levl[x][y].typ = filling;
-                    }
+                    levl[x][y].typ = filling;
                 }
             }
         }
@@ -3685,8 +3680,6 @@ lspo_level_flags(lua_State *L)
             g.level.flags.graveyard = 1;
         else if (!strcmpi(s, "icedpools"))
             icedpools = 1;
-        else if (!strcmpi(s, "corrmaze"))
-            g.level.flags.corrmaze = 1;
         else if (!strcmpi(s, "premapped"))
             g.coder->premapped = 1;
         else if (!strcmpi(s, "solidify"))
@@ -6118,7 +6111,7 @@ lspo_mazewalk(lua_State *L)
         return 0;
 
     if (ftyp < 1) {
-        ftyp = g.level.flags.corrmaze ? CORR : ROOM;
+        ftyp = ROOM;
     }
 
     if (dir == W_RANDOM)
@@ -6356,14 +6349,7 @@ lspo_finalize_level(lua_State *L UNUSED)
     if (L && g.coder->check_inaccessibles)
         ensure_way_out();
 
-    /* FIXME: Ideally, we want this call to only cover areas of the map
-     * which were not inserted directly by the special level file (see
-     * the insect legs on Baalzebub's level, for instance). Since that
-     * is currently not possible, we overload the corrmaze flag for this
-     * purpose.
-     */
-    if (!g.level.flags.corrmaze)
-        wallification(1, 0, COLNO - 1, ROWNO - 1);
+    wallification(1, 0, COLNO - 1, ROWNO - 1);
 
     if (L)
         flip_level_rnd(g.coder->allow_flips, FALSE);
@@ -6798,14 +6784,7 @@ load_special(const char *name)
     if (g.coder->check_inaccessibles)
         ensure_way_out();
 
-    /* FIXME: Ideally, we want this call to only cover areas of the map
-     * which were not inserted directly by the special level file (see
-     * the insect legs on Baalzebub's level, for instance). Since that
-     * is currently not possible, we overload the corrmaze flag for this
-     * purpose.
-     */
-    if (!g.level.flags.corrmaze)
-        wallification(1, 0, COLNO - 1, ROWNO - 1);
+    wallification(1, 0, COLNO - 1, ROWNO - 1);
 
     flip_level_rnd(g.coder->allow_flips, FALSE);
 

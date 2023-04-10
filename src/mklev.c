@@ -1019,7 +1019,6 @@ clear_level_structures(void)
     g.level.flags.is_cavernous_lev = 0;
     g.level.flags.arboreal = 0;
     g.level.flags.wizard_bones = 0;
-    g.level.flags.corrmaze = 0;
     g.level.flags.outdoors = 0;
 
     g.nroom = 0;
