@@ -2651,8 +2651,10 @@ m_detach(
     mtmp->mhp = 0; /* simplify some tests: force mhp to 0 */
     if (mtmp->iswiz)
         wizdead();
-    if (mtmp->data == &mons[PM_JUIBLEX])
-        g.context.no_of_juiblex--;
+    if (is_dlord(mtmp->data) || is_dprince(mtmp->data)) {
+        struct fiend_info *fiend = lookup_fiend(monsndx(mtmp->data));
+        fiend->num_in_dgn--;
+    }
     if (mtmp->data->msound == MS_NEMESIS) {
         struct permonst *mdat = mtmp->data;
         nemdead();

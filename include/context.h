@@ -133,13 +133,27 @@ struct achievement_tracking {
     boolean minetn_reached;     /* avoid redundant checking for town entry */
 };
 
+struct fiend_info {
+    /* has_wish is unused yet - needs to be migrated from wish_dlords */
+    boolean has_wish; /* is guarding a wand of wishing this game */
+    unsigned num_in_dgn; /* how many of it exist in the dungeon (usually 0 or 1,
+                            but could be more for Juiblex; since he can be split
+                            indefinitely and copies can go to different levels,
+                            we need a way to check if all the copies of him are
+                            dead or not) */
+    boolean escaped; /* if they escaped the dungeon (not bribing) */
+    /* there are a few possible extensions, like saving the monster struct or
+     * location so we can do things with them when they're off-level */
+};
+/* it isn't great to have to define this here instead of defining
+ * FIRST_ARCHFIEND and LAST_ARCHFIEND, but we can't use subtraction to define an
+ * array size anyway; if adding any more demon lords or princes, adjust this
+ * number */
+#define NUM_ARCHFIENDS 8
+
 struct context_info {
     unsigned ident;         /* social security number for each monster */
     unsigned no_of_wizards; /* 0, 1 or 2 (wizard and his shadow) */
-    unsigned no_of_juiblex; /* ditto, but could be any amount really; since he
-                               can be split indefinitely and copies can go to
-                               different levels, we need a way to check if all
-                               the copies of him are dead or not */
     unsigned run;           /* 0: h (etc), 1: H (etc), 2: fh (etc) */
                             /* 3: FH, 4: ff+, 5: ff-, 6: FF+, 7: FF- */
                             /* 8: travel */
@@ -182,6 +196,7 @@ struct context_info {
     struct tribute_info tribute;
     struct novel_tracking novel;
     struct achievement_tracking achieveo;
+    struct fiend_info archfiends[NUM_ARCHFIENDS];
 };
 
 #endif /* CONTEXT_H */

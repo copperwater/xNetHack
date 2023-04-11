@@ -763,4 +763,15 @@ init_wish_dlords(void)
     }
 }
 
+/* Obtain a pointer to the fiend_info struct that stores data about the
+ * given archfiend.
+ * ASSUMPTION: Juiblex is the first defined archfiend. If another one is added
+ * before him, this needs to be changed.
+ * This function basically makes it so we only need to have this assumption
+ * once, rather than scattering it all over the code. */
+struct fiend_info *
+lookup_fiend(int mndx) {
+    return &g.context.archfiends[mndx - PM_JUIBLEX];
+}
+
 /*minion.c*/

@@ -950,8 +950,12 @@ clone_mon(struct monst *mon,
      * monster get APPEARMSG flag and produce duplicate appearance messages */
     m2->mstrategy = mon->mstrategy & ~STRAT_APPEARMSG;
 
-    if (m2->data == &mons[PM_JUIBLEX])
-        g.context.no_of_juiblex++;
+    if (is_dlord(m2->data) || is_dprince(m2->data)) {
+        /* this is mainly for juiblex but if any other archfiend becomes capable
+         * of having multiple copies, it will work for them too */
+        struct fiend_info *fiend = lookup_fiend(monsndx(m2->data));
+        fiend->num_in_dgn++;
+    }
 
     set_malign(m2);
     newsym(m2->mx, m2->my); /* display the new monster */
@@ -1446,8 +1450,6 @@ makemon(
         g.context.no_of_wizards++;
         if (g.context.no_of_wizards == 1 && Is_earthlevel(&u.uz))
             mitem = SPE_DIG;
-    } else if (mndx == PM_JUIBLEX) {
-        g.context.no_of_juiblex++;
     } else if (mndx == PM_GHOST && !(mmflags & MM_NONAME)) {
         mtmp = christen_monst(mtmp, rndghostname());
     } else if (ptr->msound == MS_NEMESIS) {
@@ -1468,6 +1470,10 @@ makemon(
             newsym(mtmp->mx, mtmp->my);
             set_apparxy(mtmp);
         }
+    }
+    if (is_dlord(mtmp->data) || is_dprince(mtmp->data)) {
+        struct fiend_info *fiend = lookup_fiend(monsndx(mtmp->data));
+        fiend->num_in_dgn++;
     }
     if (is_dprince(ptr) && ptr->msound == MS_BRIBE) {
         mtmp->mpeaceful = 1;

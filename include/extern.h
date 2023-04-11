@@ -1406,6 +1406,7 @@ extern int lminion(void);
 extern void lose_guardian_angel(struct monst *);
 extern void gain_guardian_angel(void);
 extern void init_wish_dlords(void);
+extern struct fiend_info *lookup_fiend(int);
 
 /* ### mklev.c ### */
 

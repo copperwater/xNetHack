@@ -2605,7 +2605,8 @@
         M2_DEMON | M2_STALK | M2_HOSTILE | M2_STRONG | M2_NASTY | M2_COLLECT,
         M3_INFRAVISIBLE | M3_INFRAVISION, 20, CLR_RED, BALROG),
     /* Named demon lords & princes plus Arch-Devils.
-     * (their order matters; see minion.c)
+     * (their order matters; see dlord() and dprince())
+     * If adding or removing, make sure to update NUM_DLORDS.
      */
     MON("Juiblex", S_DEMON, LVL(50, 6, -7, 65, -15),
         (G_HELL | G_NOCORPSE | G_NOGEN | G_UNIQ),

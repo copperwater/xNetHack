@@ -945,6 +945,10 @@ use_defensive(struct monst* mtmp)
             if (vismon)
                 pline("%s escapes the dungeon!", Monnam(mtmp));
             mongone(mtmp);
+            if (is_dlord(mtmp->data) || is_dprince(mtmp->data)) {
+                struct fiend_info *fiend = lookup_fiend(monsndx(mtmp->data));
+                fiend->escaped = TRUE;
+            }
             return 2;
         }
         if (vismon)

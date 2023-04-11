@@ -329,3 +329,7 @@ changes:
 - Add a function find_boss() that returns the boss of the current level and
   whether it's their lair level or merely in their domain.
 - The corrmaze level flag and its associated behavior are removed.
+- Add a struct to the global context that tracks information about demon lords
+  and princes (called "archfiends" collectively in the code): how many of them
+  are present, whether any of them have escaped the dungeon, and if they are
+  designated to have a wish this game.
