@@ -39,6 +39,7 @@ static boolean muse_unslime(struct monst *, struct obj *, struct trap *,
                             boolean);
 static int cures_sliming(struct monst *, struct obj *);
 static boolean green_mon(struct monst *);
+static boolean wont_leave_level(struct monst *);
 
 /* Any preliminary checks which may result in the monster being unable to use
  * the item.  Returns 0 if nothing happened, 2 if the monster can't do
@@ -437,6 +438,8 @@ find_defensive(struct monst* mtmp)
 
     if (stuck || immobile) {
         ; /* fleeing by stairs or traps is not possible */
+    } else if (wont_leave_level(mtmp)) {
+        ; /* fleeing IS possible, but mtmp doesn't want to */
     } else if (levl[x][y].typ == STAIRS) {
         stway = stairway_at(x,y);
         if (stway && !stway->up && stway->tolev.dnum == u.uz.dnum) {
@@ -498,7 +501,7 @@ find_defensive(struct monst* mtmp)
             /* use trap if it's the correct type */
             if (is_hole(t->ttyp)
                 && !is_floater(mtmp->data)
-                && !mtmp->isshk && !mtmp->isgd && !mtmp->ispriest
+                && !wont_leave_level(mtmp)
                 && Can_fall_thru(&u.uz)) {
                 g.trapx = xx;
                 g.trapy = yy;
@@ -562,7 +565,7 @@ find_defensive(struct monst* mtmp)
         if (g.m.has_defense == MUSE_WAN_DIGGING)
             break;
         if (obj->otyp == WAN_DIGGING && obj->spe > 0 && !stuck && !t
-            && !mtmp->isshk && !mtmp->isgd && !mtmp->ispriest
+            && !wont_leave_level(mtmp)
             && !is_floater(mtmp->data)
             /* monsters digging in Sokoban can ruin things */
             && !Sokoban
@@ -595,8 +598,7 @@ find_defensive(struct monst* mtmp)
         nomore(MUSE_SCR_TELEPORTATION);
         if (obj->otyp == SCR_TELEPORTATION && mtmp->mcansee
             && haseyes(mtmp->data)
-            && (!obj->cursed || (!(mtmp->isshk && inhishop(mtmp))
-                                 && !mtmp->isgd && !mtmp->ispriest))) {
+            && (!obj->cursed || !wont_leave_level(mtmp))) {
             /* see WAN_TELEPORTATION case above */
             if (!noteleport_level(mtmp)
                 || !(mtmp->mtrapseen & (1 << (TELEP_TRAP - 1)))) {
@@ -1065,7 +1067,7 @@ rnd_defensive_item(struct monst* mtmp)
         return (mtmp->data != &mons[PM_PESTILENCE]) ? POT_FULL_HEALING
                                                     : POT_SICKNESS;
     case 7:
-        if (is_floater(pm) || mtmp->isshk || mtmp->isgd || mtmp->ispriest)
+        if (is_floater(pm) || wont_leave_level(mtmp))
             return 0;
         else
             return WAN_DIGGING;
@@ -1889,8 +1891,7 @@ find_misc(struct monst* mtmp)
         /* Monsters shouldn't recognize cursed items; this kludge is
            necessary to prevent serious problems though... */
         if (obj->otyp == POT_GAIN_LEVEL
-            && (!obj->cursed
-                || (!mtmp->isgd && !mtmp->isshk && !mtmp->ispriest))) {
+            && (!obj->cursed || !wont_leave_level(mtmp))) {
             g.m.misc = obj;
             g.m.has_misc = MUSE_POT_GAIN_LEVEL;
         }
@@ -3017,6 +3018,17 @@ green_mon(struct monst* mon)
             return TRUE;
         break;
     }
+    return FALSE;
+}
+
+/* mtmp, for whatever reason, does not want to leave the current level, even if
+ * fleeing, so it should not consider MUSE_* options that would make it leave
+ * the level. */
+static boolean
+wont_leave_level(struct monst *mtmp)
+{
+    if (mtmp->isshk || mtmp->ispriest || mtmp->isgd)
+        return TRUE;
     return FALSE;
 }
 
