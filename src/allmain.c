@@ -745,7 +745,7 @@ newgame(void)
                        * in hero's initial inventory */
     init_artifacts(); /* before u_init() in case $WIZKIT specifies
                        * any artifacts */
-    init_wish_dlords(); /* who will have a wish this game? */
+    init_archfiends(); /* who will have a wish this game? */
 
     u_init();
 

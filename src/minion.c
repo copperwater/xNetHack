@@ -5,6 +5,10 @@
 
 #include "hack.h"
 
+/* these need to be kept up to date if archfiends are added or removed */
+#define FIRST_ARCHFIEND PM_JUIBLEX
+#define LAST_ARCHFIEND PM_DEMOGORGON
+
 /* used to pick among the four basic elementals without worrying whether
    they've been reordered (difficulty reassessment?) or any new ones have
    been introduced (hybrid types added to 'E'-class?) */
@@ -745,33 +749,38 @@ gain_guardian_angel(void)
     }
 }
 
-/* At the start of the game, randomly select which demon lords should have wands
- * of wishing in their lairs. */
+/* At the start of the game, set up the archfiend structures and randomly select
+ * which archfiends should have wands of wishing in their lairs. */
+#define NUM_ARCHFIEND_WISHES 3
 void
-init_wish_dlords(void)
+init_archfiends(void)
 {
     int i;
-    /* Juiblex is omitted here because his lair is open and doesn't really have
+    /* first just set the basic constants */
+    for (i = FIRST_ARCHFIEND; i <= LAST_ARCHFIEND; ++i) {
+        struct fiend_info *tmpinfo = lookup_fiend(i);
+        tmpinfo->mndx = i;
+        tmpinfo->num_in_dgn = 0;
+        tmpinfo->escaped = FALSE;
+    }
+    /* now randomly choose some of them to have wishes
+     * Juiblex is omitted here because his lair is open and doesn't really have
      * anywhere to stash a wand of wishing safely. */
-    static int elig_dlords[7] = {
+    static int elig_fiends[7] = {
         PM_YEENOGHU, PM_ORCUS, PM_GERYON, PM_DISPATER, PM_ASMODEUS,
         PM_BAALZEBUB, PM_DEMOGORGON
     };
-    shuffle_int_array(elig_dlords, 7);
-    for (i = 0; i < NUM_DLORD_WISHES; ++i) {
-        g.context.wish_dlords[i] = elig_dlords[i];
+    shuffle_int_array(elig_fiends, 7);
+    for (i = 0; i < NUM_ARCHFIEND_WISHES; ++i) {
+        lookup_fiend(elig_fiends[i])->has_wish = TRUE;
     }
 }
 
 /* Obtain a pointer to the fiend_info struct that stores data about the
- * given archfiend.
- * ASSUMPTION: Juiblex is the first defined archfiend. If another one is added
- * before him, this needs to be changed.
- * This function basically makes it so we only need to have this assumption
- * once, rather than scattering it all over the code. */
+ * given archfiend. */
 struct fiend_info *
 lookup_fiend(int mndx) {
-    return &g.context.archfiends[mndx - PM_JUIBLEX];
+    return &g.context.archfiends[mndx - FIRST_ARCHFIEND];
 }
 
 /*minion.c*/

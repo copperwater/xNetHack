@@ -1268,19 +1268,23 @@ nhl_timer_start_at(lua_State *L)
 }
 
 /* for a special level (demon lord lair) to check if it should generate a wand
- * of wishing */
+ * of wishing
+ * nh.is_wish_dlord('Orcus') */
 static int
 nhl_is_wish_dlord(lua_State *L)
 {
-    int i;
+    int mndx;
     boolean ret = FALSE;
     const char *name = lua_tostring(L, -1);
 
     lua_pop(L, 1);
 
-    for (i = 0; i < NUM_DLORD_WISHES; ++i) {
-        if (!strcmp(name, mons[g.context.wish_dlords[i]].pmnames[NEUTRAL])) {
-            ret = TRUE;
+    for (mndx = LOW_PM; mndx < SPECIAL_PM; mndx++) {
+        if (!strcmp(name, mons[mndx].pmnames[NEUTRAL])) {
+            struct fiend_info *fiend = lookup_fiend(mndx);
+            if (fiend->has_wish) {
+                ret = TRUE;
+            }
             break;
         }
     }

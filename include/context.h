@@ -134,14 +134,15 @@ struct achievement_tracking {
 };
 
 struct fiend_info {
+    int mndx;            /* PM_* index of this fiend */
     /* has_wish is unused yet - needs to be migrated from wish_dlords */
-    boolean has_wish; /* is guarding a wand of wishing this game */
+    boolean has_wish;    /* is guarding a wand of wishing this game */
     unsigned num_in_dgn; /* how many of it exist in the dungeon (usually 0 or 1,
                             but could be more for Juiblex; since he can be split
                             indefinitely and copies can go to different levels,
                             we need a way to check if all the copies of him are
                             dead or not) */
-    boolean escaped; /* if they escaped the dungeon (not bribing) */
+    boolean escaped;     /* if they escaped the dungeon (not bribing) */
     /* there are a few possible extensions, like saving the monster struct or
      * location so we can do things with them when they're off-level */
 };
@@ -166,9 +167,6 @@ struct context_info {
     long seer_turn;         /* when random clairvoyance will next kick in */
     long stethoscope_seq;   /* when a stethoscope was last used; first use
                              * during a move takes no time, second uses move */
-    /* randomly chosen demon lords get wishing wands in their lairs */
-#define NUM_DLORD_WISHES 3
-    unsigned short wish_dlords[NUM_DLORD_WISHES];
     boolean travel;  /* find way automatically to u.tx,u.ty */
     boolean travel1; /* first travel step */
     boolean forcefight;
