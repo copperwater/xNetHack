@@ -749,6 +749,89 @@ gain_guardian_angel(void)
     }
 }
 
+/* special bonus for Geryon towards damage and regeneration on his level, based
+ * on the number of his herd that is present */
+int
+geryon_bonus(void)
+{
+    static long lastturncheck = -1;
+    static int bonus = 0;
+    struct monst *mtmp;
+
+    if (g.moves == lastturncheck)
+        return bonus; /* already calculated this turn */
+
+    lastturncheck = g.moves;
+    bonus = 0;
+    if (Is_geryon_level(&u.uz)) {
+        for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
+            if (mtmp->data->mlet == S_QUADRUPED && !mtmp->mtame) {
+                bonus++;
+            }
+        }
+    }
+    else {
+        /* if he was summoned away from his level, give a middling amount
+         * (assuming it typically ranges from 40 to 0) */
+        bonus = 20;
+    }
+    return bonus;
+}
+
+/* you have ticked off Geryon by killing a member of his herd; assumes caller
+ * has checked for the conditions like being on his level already */
+void
+angry_geryon(void)
+{
+    struct monst *geryon;
+    boolean givemsg = FALSE;
+    for (geryon = fmon; geryon; geryon = geryon->nmon) {
+        if (geryon->data == &mons[PM_GERYON]) {
+            if (geryon->mhp * 5 > geryon->mhpmax
+                && !monnear(geryon, u.ux, u.uy)) {
+                if (geryon->mpeaceful)
+                    givemsg = TRUE;
+                geryon->mpeaceful = FALSE;
+                mnexto(geryon, RLOC_NONE);
+            }
+            break;
+        }
+    }
+    /* Cases where Geryon comes back mad and should be spawned in, assuming
+     * he is not present on the level and num_in_dgn is not indicating he's
+     * somewhere else:
+     *
+     * spawn geryon if
+     * born = 0, died = 0 (never generated)
+     * born = 1, died = 0 (bribed or escaped dungeon)
+     * born = X+1, died = X (repeated resurrecting followed by bribe/escape)
+     *
+     * DON'T spawn geryon if
+     * born = 1, died = 1
+     * born = X, died = X (repeated resurrecting ending with a kill)
+     */
+    if (!geryon && (lookup_fiend(PM_GERYON)->num_in_dgn == 0)
+        && (g.mvitals[PM_GERYON].born == 0
+            || g.mvitals[PM_GERYON].born > g.mvitals[PM_GERYON].died)) {
+        /* Geryon hasn't generated yet OR has generated and been bribed
+         * away, in which case he comes back mad; generate him now */
+        boolean never_generated = (g.mvitals[PM_GERYON].born == 0);
+        geryon = makemon(&mons[PM_GERYON], u.ux, u.uy,
+                         MM_NOMSG | MM_ADJACENTOK);
+        if (!geryon) {
+            impossible("Geryon spawning failed");
+        }
+        if (never_generated)
+            boss_entrance(geryon);
+        geryon->mpeaceful = FALSE;
+        newsym(geryon->mx, geryon->my); /* remove peaceful symbol */
+        givemsg = TRUE;
+    }
+    if (givemsg) {
+        verbalize("Thou durst harm my herds, mortal?  Die!");
+    }
+}
+
 /* At the start of the game, set up the archfiend structures and randomly select
  * which archfiends should have wands of wishing in their lairs. */
 #define NUM_ARCHFIEND_WISHES 3

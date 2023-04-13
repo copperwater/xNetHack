@@ -1199,6 +1199,9 @@ hitmu(register struct monst *mtmp, register struct attack *mattk)
     mhm.damage = d((int) mattk->damn, (int) mattk->damd);
     if ((is_undead(mdat) || is_vampshifter(mtmp)) && midnight())
         mhm.damage += d((int) mattk->damn, (int) mattk->damd); /* extra dmg */
+    if (mdat == &mons[PM_GERYON] && mattk->adtyp == AD_PHYS
+        && geryon_bonus() > 0)
+        mhm.damage += rnd(geryon_bonus());
 
     mhitm_adtyping(mtmp, mattk, &g.youmonst, &mhm);
     if (mhm.done)

@@ -238,6 +238,8 @@ mon_regen(struct monst* mon, boolean digest_meal)
                                    || regenerates(mon->data))
         && !mon->mwither)
         mon->mhp++;
+    if (mon->data == &mons[PM_GERYON])
+        mon->mhp = min(mon->mhp + geryon_bonus(), mon->mhpmax);
     if (mon->mspec_used)
         mon->mspec_used--;
     if (digest_meal) {

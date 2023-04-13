@@ -269,6 +269,11 @@ changes:
   - Baalzebub constantly spawns giant flies from his body, and when threatened
     can burst into a swarm of flies and reform some distance away. He also has a
     poisonous sting attack.
+  - Geryon has a large herd of quadrupeds on his level, and draws power from it.
+    His damage and regeneration are proportional to the current size of the
+    herd. His speed is negatively proportional to the size of the herd, meaning
+    he gets faster if the herd is thinned. Killing a monster in his herd causes
+    him to warp in and attack.
 - Wands of wishing are again redistributed through the late game:
   - The Castle wand now only gives one wish, due to being much closer to Vlad's
     Tower.

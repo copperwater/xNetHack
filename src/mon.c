@@ -982,6 +982,14 @@ mcalcmove(
            become 36) */
         mmove = ((rn2(2) ? 4 : 5) * mmove) / 3;
     }
+    if (mon->data == &mons[PM_GERYON]) {
+        /* Geryon gets angrier (and thus faster) as more harm is done to his
+         * herd. This assumes an initial herd size of 40. */
+        int adj = (40 - geryon_bonus()) / 2;
+        if (adj < 0)
+            adj = 0;
+        mmove += adj;
+    }
 
     if (m_moving) {
         /* Randomly round the monster's speed to a multiple of NORMAL_SPEED.
@@ -3413,6 +3421,12 @@ xkilled(
 
     if (mndx == PM_JABBERWOCK && Hallucination) {
         pline("Oh frabjous day!  Callooh!  Callay!");
+    }
+
+    /* messing with Geryon's herds */
+    if (Is_geryon_level(&u.uz) && !g.context.mon_moving
+        && mdat->mlet == S_QUADRUPED) {
+        angry_geryon();
     }
 
     if (g.stoned) {

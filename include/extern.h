@@ -1405,6 +1405,7 @@ extern int ndemon(aligntyp);
 extern int lminion(void);
 extern void lose_guardian_angel(struct monst *);
 extern void gain_guardian_angel(void);
+extern void angry_geryon(void);
 extern void init_archfiends(void);
 extern struct fiend_info *lookup_fiend(int);
 
@@ -1659,6 +1660,7 @@ extern void decide_to_shapeshift(struct monst *, int);
 extern boolean vamp_stone(struct monst *);
 extern void check_gear_next_turn(struct monst *);
 extern void mon_aireffects(struct monst *);
+extern int geryon_bonus(void);
 
 /* ### mondata.c ### */
 

@@ -3031,6 +3031,9 @@ green_mon(struct monst* mon)
 static boolean
 wont_leave_level(struct monst *mtmp)
 {
+    if (mtmp->data == &mons[PM_GERYON] && geryon_bonus() > 0)
+        /* won't leave his herd behind */
+        return TRUE;
     if (mtmp->isshk || mtmp->ispriest || mtmp->isgd)
         return TRUE;
     return FALSE;

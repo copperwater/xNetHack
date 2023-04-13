@@ -1129,6 +1129,10 @@ levl_follower(struct monst* mtmp)
     /* Wizard with Amulet won't bother trying to follow across levels */
     if (mtmp->iswiz && mon_has_amulet(mtmp))
         return FALSE;
+    /* Geryon won't leave his level by choice (though if someone else gates him
+     * in and it's not his level, he will) */
+    if (Is_geryon_level(&u.uz) && mtmp->data == &mons[PM_GERYON])
+        return FALSE;
     /* some monsters will follow even while intending to flee from you */
     if (mtmp->mtame || mtmp->iswiz || is_fshk(mtmp))
         return TRUE;
