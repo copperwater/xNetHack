@@ -282,6 +282,7 @@ changes:
     the Sanctum.
   - Three randomly chosen demon lords guard a wand of wishing. Juiblex never
     does, but any of the other seven might.
+- Ice and bone devils are now lawful rather than chaotic.
 
 ### Interface changes
 
