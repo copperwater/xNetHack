@@ -83,6 +83,7 @@ des.object('ruby', 61, 12)
 des.trap('fire', 57,09)
 des.trap('fire', 57,10)
 
+-- Entry stairs
 des.levregion({ region={00,00,00,19}, type="stair-up" });
 
 -- Non diggable walls
@@ -112,13 +113,6 @@ des.door('random', 54,11)
 des.door('random', 63,04)
 des.door('random', 65,16)
 
--- Only devils and foocubi in Asmodeus' palace -- foocubi are chaotic, but
--- Asmodeus is associated with lust
-local devils = { 'horned devil', 'barbed devil', 'bone devil', 'ice devil', 'amorous demon' }
-function rnddevil()
-   return devils[d(#devils)]
-end
-
 -- The wings:
 if percent(25) then
    des.monster({ id='prisoner', x=28, y=2 })
@@ -127,8 +121,8 @@ if percent(25) then
    des.monster({ id='prisoner', x=28, y=17 })
 end
 for i = 1, 4 do
-   des.monster({ id=rnddevil(), coord=wing1:rndcoord() })
-   des.monster({ id=rnddevil(), coord=wing2:rndcoord() })
+   des.monster({ class='&', align = percent(70) and 'law' or 'random', coord=wing1:rndcoord() })
+   des.monster({ class='&', align = percent(70) and 'law' or 'random', coord=wing2:rndcoord() })
 end
 for i = 1, 2 do
    des.monster({ class='i', coord=wing1:rndcoord() })
@@ -138,6 +132,13 @@ for i = 1, 2 do
 end
 
 -- The hallway:
+-- kind of annoying that we have to hardcode this list because montype requires
+-- an exact species. Foocubi are chaotic, but appear on this list because
+-- Asmodeus is associated with lust
+local devils = { 'horned devil', 'barbed devil', 'bone devil', 'ice devil', 'amorous demon' }
+function rnddevil()
+   return devils[d(#devils)]
+end
 function demonstatue(xx, yy)
    des.object({ id='statue', x=xx, y=yy, montype=rnddevil(), trapped=percent(10) and 1 or 0,
                   contents=function()
@@ -157,14 +158,14 @@ end
 -- waiting devils in the recesses of the hallway
 local bothrecesses = (recess1 + recess2) - selection.area(34,07,40,12)
 for i = 1, 3 + d(4) do
-   des.monster({ id = rnddevil(), coord = bothrecesses:rndcoord(1), waiting = 1 })
+   des.monster({ class = '&', align = percent(80) and 'law' or 'random', coord = bothrecesses:rndcoord(1), waiting = 1 })
 end
 
 -- The fortress:
 fortcopy = fortress:clone() -- so we can rndcoord(1) it
 for i = 1, 10 do
    des.trap({ type='cold', coord = fortcopy:rndcoord(1) })
-   des.monster({ id=rnddevil(), coord = fortcopy:rndcoord(1), waiting = 1 })
+   des.monster({ class = '&', align = 'law', coord = fortcopy:rndcoord(1), waiting = 1 })
 end
 des.monster({ class='V', coord = fortcopy:rndcoord(1) })
 des.monster({ class='V', coord = fortcopy:rndcoord(1) })

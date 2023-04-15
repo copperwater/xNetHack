@@ -85,7 +85,7 @@ local icymons = get_icymon_list()
 for i = 1, 15 do
    des.trap({ coord = outside:rndcoord() })
    if percent(30) then
-      des.monster({ class = '&', coord = outside:rndcoord() })
+      des.monster({ class = '&', coord = outside:rndcoord(), align = percent(75) and "law" or "random" })
    elseif percent(20) then
       des.monster({ id = percent(50) and 'imp' or 'lemure', coord = outside:rndcoord() })
    elseif percent(30) then
@@ -113,7 +113,7 @@ des.monster({ class='i', coord=head:rndcoord() })
 
 -- inside: thorax
 for i = 1, 3 do
-   des.monster({ class = '&', coord = thorax:rndcoord() })
+   des.monster({ class = '&', coord = thorax:rndcoord(), align = percent(90) and "law" or "random" })
    des.trap({ coord = thorax:rndcoord() })
    des.object()
 end

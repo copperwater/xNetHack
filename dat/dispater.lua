@@ -78,8 +78,7 @@ des.monster({ id = 'Dispater', waiting = 1, coord = bigroom:rndcoord(), inventor
 end })
 
 for i = 1, 4 + d(6) do
-   local species = percent(50) and 'horned devil' or 'barbed devil'
-   des.monster({ id = species, coord = bigroom:rndcoord() })
+   des.monster({ class = '&', align = 'law', coord = bigroom:rndcoord() })
 end
 for i = 1, d(2) do
    des.monster({ id = 'pit fiend', coord = bigroom:rndcoord() })

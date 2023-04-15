@@ -71,7 +71,7 @@ for i = 1, 12 do
    des.trap({ coord=outside:rndcoord() })
 end
 for i = 1, 4 do
-   des.monster({ class='&', coord=outside:rndcoord() })
+   des.monster({ class='&', coord=outside:rndcoord(), align = percent(80) and "law" or "random" })
 end
 for i = 1, 3 do
    des.monster({ coord=outside:rndcoord() })
@@ -94,8 +94,8 @@ for i = 1, 20 do
    end
 end
 for i = 1, d(2) do
-   des.monster({ class = '&', coord=pasture1:rndcoord() })
-   des.monster({ class = '&', coord=pasture2:rndcoord() })
+   des.monster({ class = '&', coord=pasture1:rndcoord(), align = percent(50) and "law" or "random" })
+   des.monster({ class = '&', coord=pasture2:rndcoord(), align = percent(50) and "law" or "random" })
 end
 for i = 1, 2 do
    des.monster({ id='warhorse', coord=horsepasture:rndcoord() })
