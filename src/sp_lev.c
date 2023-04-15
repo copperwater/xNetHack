@@ -1907,9 +1907,21 @@ create_monster(monster* m, struct mkroom* croom)
         else if (g_mvflags & G_GONE)    /* genocided or extinct */
             pm = (struct permonst *) 0; /* make random monster */
     } else {
-        pm = mkclass(class, G_NOGEN);
-        /* if we can't get a specific monster type (pm == 0) then the
-           class has been genocided, so settle for a random monster */
+        if (m->sp_amask != AM_SPLEV_RANDOM) {
+            /* overloading of the "align" field when a class is specified but a
+             * specific species is not; produce a monster in this class with
+             * this alignment, and avoid the part later where align is
+             * interpreted to mean "create a minion of a god".
+             * This makes it impossible to generate a minion of an indeterminate
+             * species within a definite class, but this does not currently
+             * happen and it's unlikely it ever would happen. */
+            pm = mkclass_aligned(class, G_NOGEN, Amask2align(amask));
+            m->sp_amask = AM_SPLEV_RANDOM;
+        }
+        else
+            pm = mkclass(class, G_NOGEN);
+            /* if we can't get a specific monster type (pm == 0) then the
+               class has been genocided, so settle for a random monster */
     }
     if (In_mines(&u.uz) && pm && your_race(pm)
         && (Race_if(PM_DWARF) || Race_if(PM_GNOME)) && rn2(3))

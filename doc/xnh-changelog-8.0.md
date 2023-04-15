@@ -338,3 +338,6 @@ changes:
   and princes (called "archfiends" collectively in the code): how many of them
   are present, whether any of them have escaped the dungeon, and if they are
   designated to have a wish this game.
+- When a monster class (but not a species) and an alignment is specified in a
+  des.monster Lua command, it will generate a monster of that class with that
+  alignment in its statblock, rather than a minion of that alignment's god.
