@@ -1,4 +1,4 @@
--- Yeenoghu's lair -- UNIMPLEMENTED
+-- Yeenoghu's lair
 
 des.level_init({ style = "solidfill", fg = " " });
 des.level_flags("mazelevel", "noflip");

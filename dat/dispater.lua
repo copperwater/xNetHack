@@ -1,4 +1,4 @@
--- Dispater's Citadel -- UNIMPLEMENTED
+-- Dispater's Citadel
 
 des.level_init({ style = "solidfill", fg = " " })
 des.level_flags("mazelevel", "noflip", "noteleport", "nommap-boss")
