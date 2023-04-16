@@ -268,24 +268,29 @@ strategy(struct monst *mtmp)
         || (mtmp->ispriest && inhistemple(mtmp)))
         return (unsigned long) STRAT_NONE;
 
-    switch ((mtmp->mhp * 3) / mtmp->mhpmax) { /* 0-3 */
-
-    default:
-    case 0: /* panic time - mtmp is almost snuffed */
-        return (unsigned long) STRAT_HEAL;
-
-    case 1: /* the wiz is less cautious */
-        if (mtmp->data != &mons[PM_WIZARD_OF_YENDOR])
-            return (unsigned long) STRAT_HEAL;
-    /* else fall through */
-
-    case 2:
-        dstrat = STRAT_HEAL;
-        break;
-
-    case 3:
+    if (mtmp->data == &mons[PM_YEENOGHU]) {
+        /* never retreats to heal - full attack */
         dstrat = STRAT_NONE;
-        break;
+    }
+    else {
+        switch ((mtmp->mhp * 3) / mtmp->mhpmax) { /* 0-3 */
+        default:
+        case 0: /* panic time - mtmp is almost snuffed */
+            return (unsigned long) STRAT_HEAL;
+
+        case 1: /* the wiz is less cautious */
+            if (mtmp->data != &mons[PM_WIZARD_OF_YENDOR])
+                return (unsigned long) STRAT_HEAL;
+        /* else fall through */
+
+        case 2:
+            dstrat = STRAT_HEAL;
+            break;
+
+        case 3:
+            dstrat = STRAT_NONE;
+            break;
+        }
     }
 
     if (g.context.made_amulet)

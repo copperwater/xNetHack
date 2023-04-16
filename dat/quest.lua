@@ -228,8 +228,8 @@ Juiblex, the Faceless Lord, has arrived.
       Yeenoghu_appears = {
          output = "text",
          text = [[
-The hulking humanoid that stands before you is covered nearly three meters
-tall and has the head of a hyena.  In one hand it grips a flail, and the
+The hulking humanoid that stands before you is nearly three meters tall
+and has the head of a hyena.  In one hand it grips a flail, and the
 other hand crackles with magical energy.  When it opens its mouth, the
 unholy din that emerges could charitably be called a laugh.
 

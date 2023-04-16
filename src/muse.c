@@ -647,6 +647,26 @@ find_defensive(struct monst* mtmp)
         }
     }
  botm:
+    if (mtmp->data == &mons[PM_YEENOGHU]) {
+        /* Do not allow any of the defenses that involve cowardly escaping. */
+        switch (g.m.has_defense) {
+        case MUSE_SCR_TELEPORTATION:
+        case MUSE_WAN_TELEPORTATION_SELF:
+        case MUSE_WAN_DIGGING:
+        case MUSE_TRAPDOOR:
+        case MUSE_TELEPORT_TRAP:
+        case MUSE_UPSTAIRS:
+        case MUSE_DOWNSTAIRS:
+        case MUSE_UP_LADDER:
+        case MUSE_DN_LADDER:
+        case MUSE_SSTAIRS:
+            g.m.has_defense = 0;
+            g.m.defensive = (struct obj *) 0;
+            break;
+        default:
+            break;
+        }
+    }
     return (boolean) !!g.m.has_defense;
 #undef nomore
 }

@@ -274,6 +274,9 @@ changes:
     herd. His speed is negatively proportional to the size of the herd, meaning
     he gets faster if the herd is thinned. Killing a monster in his herd causes
     him to warp in and attack.
+  - Yeenoghu wields a powerful flail (which is named Butcher, but it's not an
+    artifact), and pursues a strategy of all-out attack, never fleeing or trying
+    to escape.
 - Wands of wishing are again redistributed through the late game:
   - The Castle wand now only gives one wish, due to being much closer to Vlad's
     Tower.
@@ -283,6 +286,7 @@ changes:
   - Three randomly chosen demon lords guard a wand of wishing. Juiblex never
     does, but any of the other seven might.
 - Ice and bone devils are now lawful rather than chaotic.
+- Demons cannot be frightened by showing them their reflection.
 
 ### Interface changes
 

@@ -512,9 +512,6 @@ m_initweap(register struct monst *mtmp)
         case PM_DISPATER:
             (void) mongets(mtmp, WAN_STRIKING);
             break;
-        case PM_YEENOGHU:
-            (void) mongets(mtmp, FLAIL);
-            break;
         }
         /* prevent djinn and mail daemons from leaving objects when
          * they vanish

@@ -375,6 +375,9 @@ monflee(
     if (DEADMONSTER(mtmp))
         return;
 
+    if (mtmp->data == &mons[PM_YEENOGHU])
+        return;
+
     if (mtmp == u.ustuck)
         release_hero(mtmp); /* expels/unstuck */
 
