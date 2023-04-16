@@ -156,6 +156,7 @@ typedef struct branch {
 #define In_main_gehennom(x) ((x)->dnum == gehennom_dnum)
 #define In_endgame(x) ((x)->dnum == astral_level.dnum)
 #define In_cocytus(x) ((x)->dnum == asmodeus_level.dnum)
+#define In_abyss(x) ((x)->dnum == abyss_dnum)
 /* fiery hell: Inhell && !In_cocytus; icy hell: Inhell && In_cocytus
  * because cocytus should still count as part of gehennom for
  * non-temperature-related purposes */

@@ -1164,6 +1164,7 @@ init_dungeons(void)
     mines_dnum = dname_to_dnum("The Gnomish Mines");
     tower_dnum = dname_to_dnum("Vlad's Tower");
     gehennom_dnum = dname_to_dnum("Gehennom");
+    abyss_dnum = dname_to_dnum("The Abyss");
 
     /* one special fixup for dummy surface level */
     if ((x = find_level("dummy")) != 0) {
@@ -1366,6 +1367,11 @@ find_level_beneath(const d_level *start, d_level *beneath)
     if (Is_stronghold((d_level *) start)) {
         /* special case for Castle */
         assign_level(beneath, &valley_level);
+    }
+    else if (In_abyss(start)) {
+        /* falling into any level of the Abyss goes straight to the bottom */
+        *beneath = *start;
+        beneath->dlevel = dunlevs_in_dungeon((d_level *) start);
     }
     else if (start->dlevel != dunlevs_in_dungeon((d_level *) start)) {
         /* if not on the bottom level of a branch, then fall to next lowest
