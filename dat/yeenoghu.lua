@@ -1,7 +1,7 @@
 -- Yeenoghu's lair
 
 des.level_init({ style = "solidfill", fg = " " });
-des.level_flags("mazelevel", "noflip");
+des.level_flags("mazelevel", "noteleport", "nommap-boss");
 
 des.message("You come to a dark, stinking wasteland.")
 
