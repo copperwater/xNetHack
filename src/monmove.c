@@ -2132,6 +2132,11 @@ mon_open_door(struct monst * mtmp, xchar x, xchar y)
     if (!can_open)
         return FALSE;
 
+    /* monsters won't attempt to interact with special Demogorgon level doors
+     * (non special ones on that level are fine) */
+    if (demogorgon_special_door(here))
+        return FALSE;
+
     /* needs to use door manually */
     boolean observeit = cansee(mtmp->mx, mtmp->my) && canspotmon(mtmp);
 

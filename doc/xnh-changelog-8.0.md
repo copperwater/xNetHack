@@ -251,6 +251,9 @@ changes:
   - The sixth level of the main branch is the City of Dis, inhabited by a number
     of demons and containing the entrance to the Citadel of Dis, the lair of
     Dispater.
+  - Below Dis, there is an entrance to the Abyss, which contains the lairs of
+    the other chaotic demon lord and another branch to Tartarus, where
+    Demogorgon lives.
 - Demon lords are overhauled to make fighting them more interesting:
   - Dispater is very defensive-minded, and tries to avoid getting into melee
     combat with the hero. He has a special spell selection that are not direct

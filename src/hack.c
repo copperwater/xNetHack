@@ -812,8 +812,9 @@ may_dig(register xchar x, register xchar y)
 boolean
 may_passwall(register xchar x, register xchar y)
 {
-    return (boolean) !(IS_STWALL(levl[x][y].typ)
-                       && (levl[x][y].wall_info & W_NONPASSWALL));
+    return (boolean) (!(IS_STWALL(levl[x][y].typ)
+                        && (levl[x][y].wall_info & W_NONPASSWALL))
+                      && !demogorgon_special_door(&levl[x][y]));
 }
 
 boolean
@@ -941,11 +942,19 @@ test_move(int ux, int uy, int dx, int dy, int mode)
         }
     } else if (IS_DOOR(tmpr->typ)) {
         if (closed_door(x, y)) {
+            boolean nogo = demogorgon_special_door(&levl[x][y]);
             if (Blind && mode == DO_MOVE)
                 feel_location(x, y);
             if (Passes_walls) {
-                ; /* do nothing */
+                if (nogo) {
+                    You("cannot pass through this door, for some reason.");
+                    return FALSE;
+                }
             } else if (can_ooze(&g.youmonst)) {
+                if (nogo) {
+                    pline("This door is sealed too tightly to pass under.");
+                    return FALSE;
+                }
                 if (mode == DO_MOVE)
                     You("ooze under the door.");
             } else if (Underwater) {
@@ -954,6 +963,10 @@ test_move(int ux, int uy, int dx, int dy, int mode)
                 return FALSE;
             } else if (tunnels(g.youmonst.data)
                        && !needspick(g.youmonst.data)) {
+                if (nogo) {
+                    pline("This door is too hard to eat through.");
+                    return FALSE;
+                }
                 /* Eat the door. */
                 if (mode == DO_MOVE && still_chewing(x, y))
                     return FALSE;

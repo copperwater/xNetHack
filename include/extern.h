@@ -1279,6 +1279,7 @@ extern int doopen(void);
 extern boolean stumble_on_door_mimic(int, int);
 extern int doopen_indir(int, int);
 extern int doclose(void);
+extern boolean demogorgon_special_door(struct rm *door);
 
 #ifdef MAC
 /* outdated functions removed */

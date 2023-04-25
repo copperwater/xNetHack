@@ -2062,6 +2062,9 @@ mfndpos(
                 /* Can mon not bust through the door? */
                 && (!(flag & BUSTDOOR) || door_is_iron(&levl[nx][ny])))
                 continue;
+            /* Is this an impassable Demogorgon special door? */
+            if (demogorgon_special_door(&levl[nx][ny]))
+                continue;
             /* avoid poison gas? */
             if (!poisongas_ok && !in_poisongas
                 && (gas_reg = visible_region_at(nx,ny)) != 0

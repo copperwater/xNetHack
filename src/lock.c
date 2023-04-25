@@ -12,6 +12,7 @@ static int forcelock(void);
 static const char *lock_action(void);
 static boolean obstructed(int, int, boolean);
 static void chest_shatter_msg(struct obj *);
+static boolean demogorgon_special_key(struct obj *key);
 
 boolean
 picking_lock(int *x, int *y)
@@ -92,6 +93,25 @@ picklock(void)
                            g.xlock.door->doormask);
             }
         }
+        if (demogorgon_special_door(g.xlock.door)) {
+            if (g.xlock.picktyp == CREDIT_CARD) {
+                /* if in the future certain random doors are changed to not be
+                 * pickable with a credit card, probably change this message to
+                 * that */
+                pline("The crack of this door is too narrow.");
+                return (g.xlock.usedtime = 0);
+            }
+            else if (g.xlock.picktyp == LOCK_PICK) {
+                pline("A ward on the keyhole repels your attempt to pick it.");
+                return (g.xlock.usedtime = 0);
+            }
+            else { /* key */
+                if (!demogorgon_special_key(g.xlock.pick)) {
+                    pline("This door's keyhole is strange and won't admit your key.");
+                    return (g.xlock.usedtime = 0);
+                }
+            }
+        }
     }
 
     if (g.xlock.door &&
@@ -148,6 +168,20 @@ picklock(void)
         int intended = (door_is_locked(g.xlock.door) ? -D_LOCKED : D_LOCKED);
         if (!postdoortrapped(doorx, doory, NULL, FINGER, intended)) {
             set_door_lock(g.xlock.door, !door_is_locked(g.xlock.door));
+        }
+        if (demogorgon_special_door(g.xlock.door)
+            && demogorgon_special_key(g.xlock.pick)
+            && !door_is_locked(g.xlock.door)) {
+            pline("The door vibrates then vanishes, taking the key with it.");
+            set_doorstate(g.xlock.door, D_NODOOR);
+            /* if the player decides to zap this back into a locked door, make
+             * it a normal breakable wooden door, because otherwise they could
+             * conceivably trap themselves in part of the level with no keys to
+             * escape with */
+            set_door_iron(g.xlock.door, FALSE);
+            newsym(doorx, doory);
+            useup(g.xlock.pick);
+            reset_pick();
         }
     } else {
         g.xlock.box->olocked = !g.xlock.box->olocked;
@@ -265,7 +299,7 @@ reset_pick(void)
     g.xlock.usedtime = g.xlock.chance = g.xlock.picktyp = 0;
     g.xlock.magic_key = FALSE;
     g.xlock.door = (struct rm *) 0;
-    g.xlock.box = (struct obj *) 0;
+    g.xlock.box = g.xlock.pick = (struct obj *) 0;
 }
 
 /* level change or object deletion; context may no longer be valid */
@@ -645,6 +679,7 @@ pick_lock(
     g.context.move = 0;
     g.xlock.chance = ch;
     g.xlock.picktyp = picktyp;
+    g.xlock.pick = pick;
     g.xlock.magic_key = is_magic_key(&g.youmonst, pick);
     g.xlock.usedtime = 0;
     set_occupation(picklock, lock_action(), 0);
@@ -1153,8 +1188,13 @@ doorlock(struct obj *otmp, struct monst *mon, int x, int y)
     case SPE_KNOCK:
         if (door_is_locked(door)
             && doortrapped(x, y, mon, NO_PART, -D_LOCKED, 2) == 0) {
-            msg = "The door unlocks!";
-            set_door_lock(door, FALSE);
+            if (demogorgon_special_door(door)) {
+                msg = "A shimmering shield on the door dissipates the beam.";
+            }
+            else {
+                msg = "The door unlocks!";
+                set_door_lock(door, FALSE);
+            }
         } else
             res = FALSE;
         break;
@@ -1164,9 +1204,7 @@ doorlock(struct obj *otmp, struct monst *mon, int x, int y)
             /* sawit: closed door location is more visible than open */
             boolean sawit, seeit;
             if (door_is_iron(door)) {
-                if (cansee(x, y)) {
-                    pline_The("reinforced door shudders.");
-                }
+                msg = "The reinforced door shudders.";
                 break;
             }
             if (doortrapped(x, y, mon, NO_PART, D_BROKEN, 2) > 0) {
@@ -1250,6 +1288,31 @@ chest_shatter_msg(struct obj *otmp)
         break;
     }
     pline("%s %s!", An(thing), disposition);
+}
+
+/* Some doors on Demogorgon's level are special and can only be unlocked with a
+ * special type of key found there.
+ * For now, this just uses iron doors because that's a nice visual indicator,
+ * but it could be possible in the future to change to "glass doors" or some
+ * such in the future. */
+boolean
+demogorgon_special_door(struct rm *door) {
+    return (IS_DOOR(door->typ) && Is_demogorgon_level(&u.uz)
+            && door_is_iron(door));
+}
+
+/* Same for keys - for now, these are just any glass key. It could later be
+ * changed to "ornate glass key" or something, with its spe field set to
+ * visually distinguish from an ordinary key, and only generate with spe set on
+ * Demogorgon's level. */
+static boolean
+demogorgon_special_key(struct obj *key) {
+    if (key->otyp != SKELETON_KEY) {
+        impossible("non key typ %d passed to demogorgon_special_key",
+                   key->otyp);
+        return FALSE;
+    }
+    return (key->material == BONE);
 }
 
 /*lock.c*/
