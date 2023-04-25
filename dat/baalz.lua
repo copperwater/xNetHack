@@ -56,8 +56,9 @@ des.stair('down', 74,09) -- does nothing if this is the bottom level of the bran
 -- levelport or falling into the level
 des.teleport_region({ region={00,00,03,19}, dir="up" })
 
--- non-diggable everywhere
+-- non-diggable/phaseable everywhere
 des.non_diggable()
+des.non_passwall()
 
 -- set up the outdoor area
 if cocytus then

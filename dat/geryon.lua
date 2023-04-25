@@ -46,8 +46,9 @@ des.levregion({ region = {74,00,74,10}, region_islev=0, type='stair-down' })
 -- levelport or falling into the level
 des.teleport_region({ region={00,00,04,19}, dir="up" })
 
--- non diggable everywhere
+-- non diggable/phaseable everywhere
 des.non_diggable()
+des.non_passwall()
 
 -- set up the outside
 if not cocytus then

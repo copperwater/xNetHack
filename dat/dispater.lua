@@ -27,6 +27,7 @@ des.map([[
 ]])
 
 des.non_diggable()
+des.non_passwall()
 
 -- Corners
 des.door({ state="locked", iron=1, x=09, y=05 })

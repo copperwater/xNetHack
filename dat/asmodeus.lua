@@ -86,8 +86,9 @@ des.trap('fire', 57,10)
 -- Entry stairs
 des.levregion({ region={00,00,00,19}, type="stair-up" });
 
--- Non diggable walls
-des.non_diggable(selection.area(00,00,74,19))
+-- Non diggable/phaseable walls
+des.non_diggable()
+des.non_passwall()
 
 -- Lit areas
 des.region(fortress,"lit")

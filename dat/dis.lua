@@ -29,7 +29,16 @@ des.map([[
 .....................}|.|....|................-------..--.......|......|....
 ]]);
 
-des.non_diggable();
+des.non_diggable()
+
+-- Phasing is allowed but not past the outer wall or into the pyramid
+des.non_passwall(selection.area(18,00,22,18))
+des.non_passwall(selection.area(54,01,70,05))
+des.non_passwall(selection.area(37,05,41,07))
+des.non_passwall(selection.area(42,03,68,12))
+des.non_passwall(selection.area(52,13,58,15))
+des.non_passwall(selection.area(58,13,62,17))
+
 -- Constrain arrival location by levelport
 des.teleport_region({ region={00,00,12,18}, dir="down" })
 
