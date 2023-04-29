@@ -280,6 +280,9 @@ changes:
   - Yeenoghu wields a powerful flail (which is named Butcher, but it's not an
     artifact), and pursues a strategy of all-out attack, never fleeing or trying
     to escape.
+  - In addition to his existing abilities, Demogorgon has a bite attack that
+    induces withering and can cast dark speech in addition to the usual magic
+    spells.
 - Wands of wishing are again redistributed through the late game:
   - The Castle wand now only gives one wish, due to being much closer to Vlad's
     Tower.

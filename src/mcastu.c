@@ -193,6 +193,7 @@ has_special_spell_list(struct permonst *mdat)
     switch (monsndx(mdat)) {
     case PM_DISPATER:
     case PM_ASMODEUS:
+    case PM_DEMOGORGON:
         return TRUE;
     }
     return FALSE;
@@ -224,6 +225,22 @@ choose_special_spell(struct monst *mtmp)
             return MGC_DARK_SPEECH;
         else
             return MGC_SHEER_COLD;
+    }
+    else if (mtmp->data == &mons[PM_DEMOGORGON]) {
+        int spellnum;
+        if ((mtmp->mhp * 8 < mtmp->mhpmax)
+            || (mtmp->mhp * 3 < mtmp->mhpmax && !rn2(3)))
+            return MGC_CURE_SELF;
+        /* Use the regular magic spells as the base, with a few filtered out,
+         * and allow casting dark speech. */
+        do {
+            spellnum = choose_magic_spell(rn2(mtmp->m_lev));
+        } while (spellnum == MGC_DISAPPEAR
+                 || spellnum == MGC_AGGRAVATION);
+        if (!rn2(4))
+            return MGC_DARK_SPEECH;
+        else
+            return spellnum;
     }
     impossible("no special spell list for mon %s",
                mtmp->data->pmnames[NEUTRAL]);
