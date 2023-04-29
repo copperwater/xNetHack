@@ -740,7 +740,12 @@ scatter(int sx, int sy,  /* location of objects to scatter */
             stmp->obj = otmp;
             stmp->ox = sx;
             stmp->oy = sy;
-            tmp = rn2(N_DIRS); /* get the direction */
+            if (scflags & SCATTER_DIR_MASK) {
+                tmp = scflags & SCATTER_DIR_MASK;
+            }
+            else {
+                tmp = rn2(N_DIRS); /* get the direction */
+            }
             stmp->dx = xdir[tmp];
             stmp->dy = ydir[tmp];
             tmp = blastforce - (otmp->owt / 40);

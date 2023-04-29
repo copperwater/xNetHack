@@ -442,12 +442,14 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
 #define ynNaq(query) yn_function(query, ynNaqchars, 'y')
 
 /* Macros for scatter */
-#define VIS_EFFECTS 0x01 /* display visual effects */
-#define MAY_HITMON 0x02  /* objects may hit monsters */
-#define MAY_HITYOU 0x04  /* objects may hit you */
+#define SCATTER_DIR_MASK 0x07 /* scatter objects generally towards this
+                               * direction; is an index into xdir[]/ydir[] */
+#define VIS_EFFECTS 0x08 /* display visual effects */
+#define MAY_HITMON 0x10  /* objects may hit monsters */
+#define MAY_HITYOU 0x20  /* objects may hit you */
 #define MAY_HIT (MAY_HITMON | MAY_HITYOU)
-#define MAY_DESTROY 0x08  /* objects may be destroyed at random */
-#define MAY_FRACTURE 0x10 /* boulders & statues may fracture */
+#define MAY_DESTROY 0x40  /* objects may be destroyed at random */
+#define MAY_FRACTURE 0x80 /* boulders & statues may fracture */
 
 /* Macros for launching objects */
 #define ROLL 0x01          /* the object is rolling */

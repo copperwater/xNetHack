@@ -316,6 +316,7 @@
     ((ptr) == &mons[PM_SCHLIEMANN]    \
      || (ptr) == &mons[PM_DISPATER]   \
      || (ptr) == &mons[PM_JUIBLEX]    \
+     || (ptr) == &mons[PM_YEENOGHU]   \
      || (ptr) == &mons[PM_ASMODEUS]   \
      || (ptr) == &mons[PM_BAALZEBUB]  \
      || (ptr) == &mons[PM_GERYON]     \

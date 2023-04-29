@@ -279,7 +279,8 @@ changes:
     him to warp in and attack.
   - Yeenoghu wields a powerful flail (which is named Butcher, but it's not an
     artifact), and pursues a strategy of all-out attack, never fleeing or trying
-    to escape.
+    to escape. His physical attack can swat your wielded weapon out of your
+    hands.
   - In addition to his existing abilities, Demogorgon has a bite attack that
     induces withering and can cast dark speech in addition to the usual magic
     spells.

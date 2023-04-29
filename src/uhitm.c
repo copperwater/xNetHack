@@ -3966,6 +3966,40 @@ mhitm_ad_phys(struct monst *magr, struct attack *mattk, struct monst *mdef,
             } else if (mattk->aatyp != AT_TUCH || mhm->damage != 0
                        || magr != u.ustuck)
                 hitmsg(magr, mattk);
+
+            if (magr->data == &mons[PM_YEENOGHU] && !rn2(10) && uwep
+                && !uwep->cursed) {
+                xchar dx = u.ux - magr->mx;
+                xchar dy = u.uy - magr->my;
+                int dir;
+                for (dir = 0; dir < N_DIRS; ++dir) {
+                    if (dx == xdir[dir] && dy == ydir[dir]) {
+                        break;
+                    }
+                }
+                if (dir >= N_DIRS) {
+                    impossible("yeenoghu swat attack when not adjacent?");
+                }
+                else {
+                    struct obj *wep = uwep;
+                    pline("%s %s swatted out of your %s!", Yname2(wep),
+                          (wep->quan == 1 ? "is" : "are"),
+                          makeplural(body_part(HAND)));
+                    /* spread scattered objects in a 5-dir arc centered on
+                     * the given direction */
+                    dir = DIR_CLAMP(DIR_LEFT2(dir) + rn2(5));
+                    /* hacks to avoid impossible in scatter(); we don't want
+                     * to call dropz and trigger effects of the object
+                     * hitting the floor because the object isn't actually
+                     * hitting the floor */
+                    setuwep((struct obj *) 0);
+                    freeinv(wep);
+                    wep->ox = u.ux;
+                    wep->oy = u.uy;
+                    /* place_object(wep, u.ux, u.uy); */
+                    scatter(u.ux, u.uy, 8, dir | MAY_HIT | MAY_DESTROY, wep);
+                }
+            }
         }
     } else {
         /* mhitm */
