@@ -180,8 +180,9 @@ msummon(struct monst *mon)
                 const char *cloud = 0,
                            *what = msummon_environ(mtmp->data, &cloud);
 
-                pline("%s appears in a %s of %s!", Amonnam(mtmp),
-                      cloud, what);
+                if (!boss_entrance(mtmp))
+                    pline("%s appears in a %s of %s!", Amonnam(mtmp),
+                          cloud, what);
             }
         }
         cnt--;
