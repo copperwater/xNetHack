@@ -215,4 +215,36 @@ rnz(int i)
     return (int) x;
 }
 
+/* percent(x) = x% chance it returns true */
+boolean
+percent(int x)
+{
+    if (x < 0) {
+        impossible("percent(%d) attempted, returning false", x);
+        return FALSE;
+    }
+    else if (x > 100) {
+        impossible("percent(%d) attempted, returning true", x);
+        return TRUE;
+    }
+    return x > rn2(100);
+}
+
+/* rnf(x, y) = x in y (or x/y) chance it returns true */
+boolean
+rnf(int numerator, int denominator) /**< @returns (rnf(n,d) < n/d) */
+{
+    if (denominator <= 0) {
+        impossible("rnf(%d, %d) attempted, returning false",
+                   numerator, denominator);
+        return FALSE;
+    }
+    else if (numerator > denominator) {
+        impossible("rnf(%d, %d) attempted, returning true",
+                   numerator, denominator);
+        return TRUE;
+    }
+    return rn2(denominator) < numerator;
+}
+
 /*rnd.c*/

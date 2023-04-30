@@ -2450,6 +2450,8 @@ extern int rnd(int);
 extern int d(int, int);
 extern int rne(int);
 extern int rnz(int);
+extern boolean percent(int);
+extern boolean rnf(int, int);
 
 /* ### role.c ### */
 

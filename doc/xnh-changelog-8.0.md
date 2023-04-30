@@ -353,3 +353,6 @@ changes:
 - When a monster class (but not a species) and an alignment is specified in a
   des.monster Lua command, it will generate a monster of that class with that
   alignment in its statblock, rather than a minion of that alignment's god.
+- Add functions percent() and rnf(), for writing conditionals whose semantics
+  are "an X% chance of this" or "a X in Y percent chance of this", and avoiding
+  obtuse rn2 statements.
