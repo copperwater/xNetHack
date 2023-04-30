@@ -320,7 +320,8 @@
      || (ptr) == &mons[PM_ASMODEUS]   \
      || (ptr) == &mons[PM_BAALZEBUB]  \
      || (ptr) == &mons[PM_GERYON]     \
-     || (ptr) == &mons[PM_DEMOGORGON])
+     || (ptr) == &mons[PM_DEMOGORGON] \
+     || (ptr) == &mons[PM_ORCUS])
 
 /* The monster knows the difference between a valuable gem and worthless glass.
  * (This is not an innate ability, so player polymorphed into them will not get

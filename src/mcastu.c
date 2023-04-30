@@ -22,7 +22,9 @@ enum mcast_mage_spells {
     MGC_ENTOMB,
     MGC_TPORT_AWAY,
     MGC_DARK_SPEECH,
-    MGC_SHEER_COLD /* Asmodeus - emulates an AT_MAGC AD_COLD attack */
+    MGC_SHEER_COLD, /* Asmodeus - emulates an AT_MAGC AD_COLD attack */
+    MGC_BLIGHT,
+    MGC_DISENCHANT
 };
 
 /* monster cleric spells */
@@ -194,6 +196,7 @@ has_special_spell_list(struct permonst *mdat)
     case PM_DISPATER:
     case PM_ASMODEUS:
     case PM_DEMOGORGON:
+    case PM_ORCUS:
         return TRUE;
     }
     return FALSE;
@@ -241,6 +244,24 @@ choose_special_spell(struct monst *mtmp)
             return MGC_DARK_SPEECH;
         else
             return spellnum;
+    }
+    else if (mtmp->data == &mons[PM_ORCUS]) {
+        int selection;
+        if ((mtmp->mhp * 8 < mtmp->mhpmax)
+            || (mtmp->mhp * 3 < mtmp->mhpmax && !rn2(3)))
+            return MGC_CURE_SELF;
+        static const int orcus_list[] = {
+            MGC_PSI_BOLT, MGC_BLIGHT, MGC_STUN_YOU, MGC_WEAKEN_YOU,
+            MGC_CURSE_ITEMS, MGC_SUMMON_MONS, MGC_DESTRY_ARMR, MGC_DEATH_TOUCH,
+            MGC_DISENCHANT
+        };
+        /* be intelligent; orcus's spells uniquely can penetrate Antimagic in a
+         * lot of cases, but not for certain spells that would be too nasty
+         * (such as destroying armor) */
+        do {
+            selection = orcus_list[rn2(SIZE(orcus_list))];
+        } while (selection == MGC_DESTRY_ARMR && m_seenres(mtmp, M_SEEN_MAGR));
+        return selection;
     }
     impossible("no special spell list for mon %s",
                mtmp->data->pmnames[NEUTRAL]);
@@ -459,6 +480,10 @@ static
 void
 cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
 {
+    /* Orcus's casting often bypasses Antimagic or has some other effect on
+     * spells */
+    const boolean orcus = (mtmp->data == &mons[PM_ORCUS]);
+
     if (dmg == 0 && !is_undirected_spell(AD_SPEL, spellnum)) {
         impossible("cast directed wizard spell (%d) with dmg=0?", spellnum);
         return;
@@ -470,7 +495,7 @@ cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
         if (nonliving(g.youmonst.data) || is_demon(g.youmonst.data)
             || g.youmonst.data->mlet == S_ANGEL) {
             You("seem no deader than before.");
-        } else if (!Antimagic && rn2(mtmp->m_lev) > 12) {
+        } else if ((!Antimagic || orcus) && rn2(mtmp->m_lev) > 12) {
             if (Hallucination) {
                 You("have an out of body experience.");
             } else {
@@ -494,7 +519,15 @@ cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
             impossible("bad wizard cloning?");
         break;
     case MGC_SUMMON_MONS:
-        (void) nasty(mtmp); /* summon something nasty */
+        if (orcus) {
+            coord yourloc = { u.ux, u.uy };
+            mkundead(&yourloc, TRUE, NO_MINVENT);
+            /* TODO: "The dead emerge from the ground!" message? suppress
+             * existing msg
+             * with mm flags? */
+        }
+        else
+            (void) nasty(mtmp); /* summon something nasty */
         dmg = 0;
         break;
     case MGC_AGGRAVATION:
@@ -518,7 +551,7 @@ cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
         dmg = 0;
         break;
     case MGC_WEAKEN_YOU: /* drain strength */
-        if (Antimagic) {
+        if (Antimagic && !orcus) {
             shieldeff(u.ux, u.uy);
             monstseesu(M_SEEN_MAGR);
             You_feel("momentarily weakened.");
@@ -546,7 +579,7 @@ cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
             impossible("no reason for monster to cast disappear spell?");
         break;
     case MGC_STUN_YOU:
-        if (Antimagic || Free_action) {
+        if ((Antimagic && !orcus) || Free_action) {
             shieldeff(u.ux, u.uy);
             monstseesu(M_SEEN_MAGR);
             if (!Stunned)
@@ -685,6 +718,78 @@ cast_wizard_spell(struct monst *mtmp, int dmg, int spellnum)
     case MGC_SHEER_COLD:
         sheer_cold(&dmg);
         break;
+    case MGC_BLIGHT:
+        /* one of dark speech's effects */
+        You("%s rapidly decomposing!", Withering ? "continue" : "begin");
+        incr_itimeout(&HWithering, rn1(40, 100));
+        dmg = 0;
+        break;
+    case MGC_DISENCHANT: {
+        /* 40% chance of zapping enchantment from current wielded weapon
+         * 45% chance from random piece of worn gear
+         * 15% chance of taking it from a random charged ring, charged tool,
+         * wand, or unequipped weapon or armor */
+        struct obj *targ = (struct obj *) 0;
+        short loss = rnd(3);
+        const schar MIN_SPE1 = -7; /* for worn gear */
+        const schar MIN_SPE2 = 0;  /* for tools & wands */
+        schar floor = MIN_SPE1;
+        if (uwep && uwep->spe > MIN_SPE1 && percent(40))
+            targ = uwep;
+        else if ((targ = some_armor(&g.youmonst)) && targ->spe > MIN_SPE1
+                 && percent(75))
+            ; /* targ already selected */
+        else {
+            struct obj *otmp;
+            int choices = 0;
+            for (otmp = g.invent; otmp; otmp = otmp->nobj) {
+                short oclass = objects[otmp->otyp].oc_class;
+                if ((oclass == RING_CLASS && objects[otmp->otyp].oc_charged)
+                    || (oclass == TOOL_CLASS && is_weptool(otmp))) {
+                    /* weptools and charged rings use the same rules for weapons
+                     * and armor */
+                    if (otmp->spe > MIN_SPE1 && !rn2(++choices)) {
+                        targ = otmp;
+                        floor = MIN_SPE1;
+                    }
+                }
+                else if (oclass == WAND_CLASS
+                         || (oclass == TOOL_CLASS
+                             && objects[otmp->otyp].oc_charged
+                             && objects[otmp->otyp].oc_magic)) {
+                    /* wands and charged tools do not use the same rules since
+                     * negative spe doesn't make sense for them (well, it does
+                     * for wands, but that would mix this up with cancellation
+                     */
+                    if (otmp->spe > MIN_SPE2 && !rn2(++choices)) {
+                        targ = otmp;
+                        floor = MIN_SPE2;
+                        /* account for tools and wands which have a higher
+                         * number of charges than normal, or have been recharged
+                         * beyond their normal amount */
+                        loss = max(loss, otmp->spe / 3);
+                    }
+                }
+            }
+        }
+        if (!targ)
+            /* couldn't find anything to disenchant... */
+            break;
+        if (targ->spe > 0) {
+            pline("%s absorbs magic energies from %s!", Monnam(mtmp),
+                  yname(targ));
+            mtmp->mspec_used = max(mtmp->mspec_used - loss, 0);
+            floor = 0;
+        }
+        else {
+            pline("%s glows black.", Yname2(targ));
+        }
+        targ->spe = max(floor, targ->spe - loss);
+        if (targ->spe < 0)
+            curse(targ);
+        dmg = 0;
+        break;
+    }
     default:
         impossible("mcastu: invalid magic spell (%d)", spellnum);
         dmg = 0;

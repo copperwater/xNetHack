@@ -284,6 +284,13 @@ changes:
   - In addition to his existing abilities, Demogorgon has a bite attack that
     induces withering and can cast dark speech in addition to the usual magic
     spells.
+  - Orcus has two additional spells: a blight spell that induces a large amount
+    of withering, and a disenchant spell that drains and negatively enchants
+    weapons, armor, rings, wands, and magic tools. He also uses a modified spell
+    list with several of his spells behaving differently from usual:
+    - Touch of death, stun hero, and drain strength bypass any magic
+      resistance you have.
+    - Summon nasties creates undead rather than random nasties.
 - Wands of wishing are again redistributed through the late game:
   - The Castle wand now only gives one wish, due to being much closer to Vlad's
     Tower.
