@@ -191,6 +191,7 @@
     (is_demon(ptr) && (((ptr)->mflags2 & (M2_LORD | M2_PRINCE)) == 0L))
 #define is_dlord(ptr) (is_demon(ptr) && is_lord(ptr))
 #define is_dprince(ptr) (is_demon(ptr) && is_prince(ptr))
+#define is_archfiend(ptr) (is_dlord(ptr) || is_dprince(ptr))
 #define is_minion(ptr) (((ptr)->mflags2 & M2_MINION) != 0L)
 #define likes_gold(ptr) (((ptr)->mflags2 & M2_GREEDY) != 0L)
 #define likes_gems(ptr) (((ptr)->mflags2 & M2_JEWELS) != 0L)
@@ -314,14 +315,7 @@
  * tactics(). */
 #define covetous_nonwarper(ptr)       \
     ((ptr) == &mons[PM_SCHLIEMANN]    \
-     || (ptr) == &mons[PM_DISPATER]   \
-     || (ptr) == &mons[PM_JUIBLEX]    \
-     || (ptr) == &mons[PM_YEENOGHU]   \
-     || (ptr) == &mons[PM_ASMODEUS]   \
-     || (ptr) == &mons[PM_BAALZEBUB]  \
-     || (ptr) == &mons[PM_GERYON]     \
-     || (ptr) == &mons[PM_DEMOGORGON] \
-     || (ptr) == &mons[PM_ORCUS])
+     || is_archfiend(ptr))
 
 /* The monster knows the difference between a valuable gem and worthless glass.
  * (This is not an innate ability, so player polymorphed into them will not get

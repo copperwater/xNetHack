@@ -18,7 +18,7 @@ static boolean m_blocks_teleporting(struct monst *);
 static boolean
 m_blocks_teleporting(struct monst *mtmp)
 {
-    if (is_dlord(mtmp->data) || is_dprince(mtmp->data))
+    if (is_archfiend(mtmp->data))
         return TRUE;
     return FALSE;
 }
@@ -28,7 +28,7 @@ boolean
 noteleport_level(struct monst* mon)
 {
     /* demon court in Gehennom prevent others from teleporting */
-    if (In_hell(&u.uz) && !(is_dlord(mon->data) || is_dprince(mon->data)))
+    if (In_hell(&u.uz) && !(is_archfiend(mon->data)))
         if (get_iter_mons(m_blocks_teleporting))
             return TRUE;
 

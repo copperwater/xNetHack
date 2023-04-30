@@ -4073,7 +4073,7 @@ summon_thronerm_dlord(int roomno)
     if (boss_mndx != NON_PM
         && (g.mvitals[boss_mndx].born == 0) /* may have been summoned
                                                elsewhere... */
-        && (is_dlord(&mons[boss_mndx]) || is_dprince(&mons[boss_mndx]))) {
+        && (is_archfiend(&mons[boss_mndx]))) {
         /* possible enhancement: scan for a throne in this room, and spawn the
          * demon lord on it if one exists. Currently, no demon lords have
          * thrones, though. */

@@ -947,7 +947,7 @@ clone_mon(struct monst *mon,
      * monster get APPEARMSG flag and produce duplicate appearance messages */
     m2->mstrategy = mon->mstrategy & ~STRAT_APPEARMSG;
 
-    if (is_dlord(m2->data) || is_dprince(m2->data)) {
+    if (is_archfiend(m2->data)) {
         /* this is mainly for juiblex but if any other archfiend becomes capable
          * of having multiple copies, it will work for them too */
         struct fiend_info *fiend = lookup_fiend(monsndx(m2->data));
@@ -1468,7 +1468,7 @@ makemon(
             set_apparxy(mtmp);
         }
     }
-    if (is_dlord(mtmp->data) || is_dprince(mtmp->data)) {
+    if (is_archfiend(mtmp->data)) {
         struct fiend_info *fiend = lookup_fiend(monsndx(mtmp->data));
         fiend->num_in_dgn++;
     }
