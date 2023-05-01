@@ -435,6 +435,7 @@ demon_talk(register struct monst *mtmp)
      * has reached them, since they do not want to end up dead. */
     demand = d(50,1000);
     cash = money_cnt(g.invent);
+    verbalize("Mortal, if thou canst pay, I shall not hinder thee later.");
 
     /* First, they may want some of your valuables more than gold. See if they
      * do. */
@@ -452,7 +453,7 @@ demon_talk(register struct monst *mtmp)
         }
 
         if (shiny) {
-            verbalize("I see you have %s in your possession...",
+            verbalize("I see thou hast %s in thy possession...",
                       an(xname(shiny)));
             if (yn("Give up your item?") != 'y') {
                 You("refuse.");
@@ -470,8 +471,16 @@ demon_talk(register struct monst *mtmp)
             items_given++;
             demand -= demon_value(shiny);
             freeinv(shiny);
-            (void) mpickobj(mtmp, shiny); /* could merge and free shiny but won't */
-            pline("%s greedily takes it.", Monnam(mtmp));
+            if (shiny->oartifact == ART_DEMONBANE) {
+                pline("%s seizes it!", Monnam(mtmp));
+                pline("Laughing evilly, %s engulfs it in flames, melting it.",
+                      mhe(mtmp));
+                obfree(shiny, (struct obj *) 0);
+            }
+            else {
+                pline("%s greedily takes it.", Monnam(mtmp));
+                (void) mpickobj(mtmp, shiny); /* could merge and free shiny but
+                                               * won't */ }
         }
     } while (demand > 0 && rn2(4));
 
@@ -512,6 +521,7 @@ demon_talk(register struct monst *mtmp)
 
         offer = bribe(mtmp);
         if (offer >= demand) {
+            verbalize("Very well, mortal. I shall not impede thy quest.");
             pline("%s vanishes, laughing about cowardly mortals.",
                   Amonnam(mtmp));
             livelog_printf(LL_UMONST, "bribed %s with %ld %s for safe passage",
