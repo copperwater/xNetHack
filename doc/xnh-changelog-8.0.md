@@ -321,6 +321,7 @@ changes:
 - Demons cannot be frightened by showing them their reflection.
 - Levelporting no longer works in Gehennom (besides from the Valley, which does
   not let you levelport beneath it.)
+- Barbed devils have a 2d4 passive physical attack.
 
 ### Interface changes
 

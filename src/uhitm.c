@@ -5606,6 +5606,20 @@ passive(struct monst *mon,
             passive_obj(mon, weapon, &(ptr->mattk[i]));
         }
         break;
+    case AD_PHYS:
+        /* Currently any monster with NO_ATTK in its statblock hits this path,
+         * because NO_ATTK is a 0d0 passive physical attack. This should
+         * probably be fixed... but for now, handle it.
+         */
+        if (ptr->mattk[i].damn > 0) {
+            if (ptr != &mons[PM_BARBED_DEVIL]) {
+                impossible("need to implement a passive attack for %s",
+                           ptr->pmnames[NEUTRAL]);
+            }
+            You("are stabbed by %s spikes!", s_suffix(mon_nam(mon)));
+            mdamageu(mon, tmp);
+        }
+        break;
     default:
         break;
     }
