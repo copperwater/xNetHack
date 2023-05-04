@@ -883,7 +883,8 @@ level_tele(void)
 
     if (iflags.debug_fuzzer)
         goto random_levtport;
-    if ((u.uhave.amulet || In_endgame(&u.uz) || In_sokoban(&u.uz))
+    if ((u.uhave.amulet || In_endgame(&u.uz) || In_sokoban(&u.uz)
+         || (Inhell && !Is_valley(&u.uz)))
         && !wizard) {
         You_feel("very disoriented for a moment.");
         return;
@@ -1707,6 +1708,13 @@ random_teleport_level(void)
         /* can't reach Sanctum if the invocation hasn't been performed */
         if (Inhell && !u.uevent.invoked)
             max_depth -= 1;
+        /* keep the above as a safeguard; however, this is overridden by not
+         * being able to levelport anywhere below the Valley
+         * (we don't need to worry about levelporting in sub-branches of
+         * Gehennom because it is now only possible to levelport from the
+         * Valley) */
+        if (Inhell)
+            max_depth = g.dungeons[u.uz.dnum].depth_start;
     }
 
     /* Get a random value relative to the current dungeon */

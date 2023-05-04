@@ -319,6 +319,8 @@ changes:
     does, but any of the other seven might.
 - Ice and bone devils are now lawful rather than chaotic.
 - Demons cannot be frightened by showing them their reflection.
+- Levelporting no longer works in Gehennom (besides from the Valley, which does
+  not let you levelport beneath it.)
 
 ### Interface changes
 
