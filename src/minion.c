@@ -5,10 +5,6 @@
 
 #include "hack.h"
 
-/* these need to be kept up to date if archfiends are added or removed */
-#define FIRST_ARCHFIEND PM_JUIBLEX
-#define LAST_ARCHFIEND PM_DEMOGORGON
-
 /* used to pick among the four basic elementals without worrying whether
    they've been reordered (difficulty reassessment?) or any new ones have
    been introduced (hybrid types added to 'E'-class?) */

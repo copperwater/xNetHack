@@ -566,6 +566,10 @@ enum bodypart_types {
 #define TELEDS_ALLOW_DRAG 0x1
 #define TELEDS_TELEPORT   0x2
 
+/*********************************************************************
+ * BEGIN defines that are unique to xNetHack *
+ *********************************************************************/
+
 /* Flags to control polymon() message printing */
 #define POLYMON_NO_MSGS       0x00
 #define POLYMON_TRANSFORM_MSG 0x01 /* "You become a [monster]!" etc. */
@@ -663,6 +667,14 @@ enum concealed_spot_returnflags {
     CONCEALABLE_BY_TERRAIN = 0x1,
     CONCEALABLE_BY_OBJECT  = 0x2
 };
+
+/* these need to be kept up to date if archfiends are added or removed */
+#define FIRST_ARCHFIEND PM_JUIBLEX
+#define LAST_ARCHFIEND PM_DEMOGORGON
+
+/*********************************************************************
+ * END defines that are unique to xNetHack *
+ *********************************************************************/
 
 /* flags for mktrap() */
 #define MKTRAP_NOFLAGS       0x0

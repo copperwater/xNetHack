@@ -73,6 +73,7 @@ static long encodeachieve(boolean);
 static void add_achieveX(char *, const char *, boolean);
 static char *encode_extended_achievements(char *);
 static char *encode_extended_conducts(char *);
+static char *encode_extended_archfiends(char *);
 #endif
 static void free_ttlist(struct toptenentry *);
 static int classmon(char *);
@@ -393,6 +394,8 @@ writexlentry(FILE* rfile, struct toptenentry* tt, int how)
     Fprintf(rfile, "%cbones=%ld", XLOG_SEP, u.uroleplay.numbones);
     Fprintf(rfile, "%cpolyinit=%s", XLOG_SEP,
             Polyinit_mode ? mons[u.umonnum].pmnames[NEUTRAL] : "none");
+    Fprintf(rfile, "%carchfiends=%s", XLOG_SEP,
+            encode_extended_archfiends(buf));
     Fprintf(rfile, "\n");
 #undef XLOG_SEP
 }
@@ -650,6 +653,32 @@ encode_extended_conducts(char *buf)
     add_achieveX(buf, "conflictless", !u.uconduct.conflicting);
     add_achieveX(buf, "unfairscareless", !u.uconduct.scares);
 
+    return buf;
+}
+
+char *
+encode_extended_archfiends(char *buf)
+{
+    int mndx;
+    buf[0] = '\0';
+    for (mndx = FIRST_ARCHFIEND; mndx <= LAST_ARCHFIEND; mndx++) {
+        /* this sort of imitates the logic of fiend_adversity, but with
+         * modifications */
+        struct fiend_info *fnd = lookup_fiend(mndx);
+
+        if (fnd->escaped || fnd->num_in_dgn > 0 || g.mvitals[mndx].born == 0)
+            /* did not dispatch the fiend, so don't mention it in xlog */
+            continue;
+
+        /* either killed or bribed; add their name */
+        add_achieveX(buf, mons[mndx].pmnames[NEUTRAL], TRUE);
+
+        if (g.mvitals[mndx].born > g.mvitals[mndx].died) {
+            /* bribed; mark this fiend with a $ to indicate they were not killed
+             * by the player; e.g. "Asmodeus$,Baalzebub$" */
+            Strcat(buf, "$");
+        }
+    }
     return buf;
 }
 
