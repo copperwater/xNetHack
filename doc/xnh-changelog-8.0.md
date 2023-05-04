@@ -209,7 +209,7 @@ changes:
 - Interacting with a foocubus gives 20+3d20 turns of intrinsic cold resistance.
 - Ice devils' cold sting can either strip their victim's intrinsic cold
   resistance like cold traps, or slow them down like a slowness attack.
-- Bribable demon lords will now demand valuables from your inventory as part of
+- Bribable archfiends will now demand valuables from your inventory as part of
   their bribe. Giving them items reduces the amount of gold they want.
 - New "doomed" intrinsic, which treats you as if you have -10 Luck. Your base
   luck still exists, but is suppressed. It reverts to its underlying value when
@@ -220,8 +220,8 @@ changes:
   blind roleplay birth option. It can be cured via casting cure blindness,
   prayer, invoking the Staff of Aesculapius, or putting on the Eyes of the
   Overworld.
-- New monster spell Dark Speech, which only demon lords can cast. It inflicts
-  one of the following five effects:
+- New monster spell Dark Speech, which only archfiends can cast. It inflicts one
+  of the following five effects:
   - Remove a random intrinsic, as with a gremlin but without requiring it to be
     night.
   - Inflict d40+100 turns of withering.
@@ -235,7 +235,7 @@ changes:
   - The main branch is now 10 levels long, counting the Valley of the Dead and
     Moloch's Sanctum, and containing four special levels and four randomly
     generated levels in the middle.
-  - All eight demon lords are present in their own lairs, none of them in the
+  - All eight archfiends are present in their own lairs, none of them in the
     main branch.
   - The level below the Valley is the gateway to Gehennom proper, which is
     guarded by Cerberus, who is now undeferred. Vlad's Tower is also accessed
@@ -254,7 +254,7 @@ changes:
   - Below Dis, there is an entrance to the Abyss, which contains the lairs of
     the other chaotic demon lord and another branch to Tartarus, where
     Demogorgon lives.
-- Demon lords are overhauled to make fighting them more interesting:
+- Archfiends are overhauled to make fighting them more interesting:
   - Dispater is very defensive-minded, and tries to avoid getting into melee
     combat with the hero. He has a special spell selection that are not direct
     attacks, which includes two new spells for teleporting away from the hero
@@ -315,7 +315,7 @@ changes:
   - Vlad and the Wizard's Tower top floor still have one wish. However, there
     are no longer wishes in the fake wizard tower (which no longer exists) or
     the Sanctum.
-  - Three randomly chosen demon lords guard a wand of wishing. Juiblex never
+  - Three randomly chosen archfiends guard a wand of wishing. Juiblex never
     does, but any of the other seven might.
 - Ice and bone devils are now lawful rather than chaotic.
 - Demons cannot be frightened by showing them their reflection.
@@ -356,6 +356,9 @@ changes:
 
 ### Architectural changes
 
+- Usage of the term "demon lord" to refer to any of the two demon lords and six
+  demon princes has been changed to the collective term "archfiend" to remove
+  ambiguity.
 - Fuzzer logging is now a compile-time switch, and is off by default, rather
   than being a silent user of CPU in all regular games.
 - Struct rm has increased by 1 byte.
@@ -371,7 +374,7 @@ changes:
 - Add a function find_boss() that returns the boss of the current level and
   whether it's their lair level or merely in their domain.
 - The corrmaze level flag and its associated behavior are removed.
-- Add a struct to the global context that tracks information about demon lords
+- Add a struct to the global context that tracks information about archfiends
   and princes (called "archfiends" collectively in the code): how many of them
   are present, whether any of them have escaped the dungeon, and if they are
   designated to have a wish this game.
