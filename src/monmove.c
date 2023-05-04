@@ -706,10 +706,9 @@ dochug(register struct monst* mtmp)
             }
         }
     }
-
     /* ghosts prefer turning invisible instead of moving if they can */
-    if (mdat == &mons[PM_GHOST] && !mtmp->mpeaceful && !mtmp->mcan
-        && !mtmp->mspec_used && !mtmp->minvis) {
+    else if (mdat == &mons[PM_GHOST] && !mtmp->mpeaceful && !mtmp->mcan
+             && !mtmp->mspec_used && !mtmp->minvis) {
         boolean couldsee = canseemon(mtmp);
         /* need to store the monster's name as we see it now; noit_Monnam after
          * the fact would give "The invisible Foo's ghost fades from view" */
@@ -726,6 +725,30 @@ dochug(register struct monst* mtmp)
         }
         return 0;
     }
+    /* bone devils may decide to summon a skeleton */
+    else if (mdat == &mons[PM_BONE_DEVIL] && !mtmp->mpeaceful && !mtmp->mcan
+             && !mtmp->mspec_used) {
+        /* less likely to do it if they aren't close to you */
+        if (distu(mtmp->mx, mtmp->my) <= 150 || percent(25)) {
+            struct monst *skele;
+            if (canseemon(mtmp))
+                pline("%s raises its arms in a ritual.", Monnam(mtmp));
+            skele = makemon(&mons[PM_SKELETON], mtmp->mx, mtmp->my,
+                            MM_ADJACENTOK | MM_ANGRY | MM_NOMSG);
+            if (skele) {
+                if (canseemon(skele))
+                    pline("A skeleton rises from the ground!");
+            }
+            else
+                pline("%s looks confused.", Monnam(mtmp));
+            if (percent(5))
+                mtmp->mcan = 1; /* no infinite skeletons */
+            else
+                mtmp->mspec_used = 15 + rnd(15);
+            return 0;
+        }
+    }
+
     if (mdat == &mons[PM_JUIBLEX] && special_juiblex_actions(mtmp))
         return 0;
     if (mdat == &mons[PM_BAALZEBUB] && special_baalzebub_actions(mtmp))

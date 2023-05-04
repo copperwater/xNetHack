@@ -322,6 +322,7 @@ changes:
 - Levelporting no longer works in Gehennom (besides from the Valley, which does
   not let you levelport beneath it.)
 - Barbed devils have a 2d4 passive physical attack.
+- Bone devils have the ability to summon a skeleton every so often.
 
 ### Interface changes
 
