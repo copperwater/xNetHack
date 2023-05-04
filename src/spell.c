@@ -1869,6 +1869,12 @@ percent_success(int spell)
     }
     chance -= armor_penalty;
 
+    /* One of Orcus's negative effects during the ascension run is to apply a
+     * fluctuating penalty to spellcasting. */
+    if (fiend_adversity(PM_ORCUS)) {
+        chance = ((hash1(g.moves / 20) % 10) + 10);
+    }
+
     /* The less skilled you are, the worse the cap on your spellcasting ability. */
     cap = 30; /* restricted */
     skill = P_SKILL(spell_skilltype(spellid(spell)));

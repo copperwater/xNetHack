@@ -111,6 +111,8 @@ dowrite(struct obj *pen)
     int first, last, i, deferred, deferralchance;
     boolean by_descr = FALSE;
     const char *typeword;
+    /* Orcus interferes with writing if you've got the Amulet */
+    boolean interference = fiend_adversity(PM_ORCUS);
 
     if (nohands(g.youmonst.data)) {
         You("need hands to be able to write!");
@@ -312,12 +314,16 @@ dowrite(struct obj *pen)
      */
 
     /* if known, then either by-name or by-descr works */
-    if (!objects[new_obj->otyp].oc_name_known
-        /* else if named, then only by-descr works */
-        && !(by_descr && label_known(new_obj->otyp, g.invent))
-        /* and Luck might override after both checks have failed */
-        && rnl(Role_if(PM_WIZARD) ? 5 : 15)) {
-        You("%s to write that.", by_descr ? "fail" : "don't know how");
+    if ((interference && percent(35))
+        || (!objects[new_obj->otyp].oc_name_known
+            /* else if named, then only by-descr works */
+            && !(by_descr && label_known(new_obj->otyp, g.invent))
+            /* and Luck might override after both checks have failed */
+            && (rnl(Role_if(PM_WIZARD) ? 5 : 15)))) {
+        You("%s to write that.",
+            interference && objects[new_obj->otyp].oc_name_known
+                ? "temporarily forget how"
+                : by_descr ? "fail" : "don't know how");
         /* scrolls disappear, spellbooks don't */
         if (paper->oclass == SPBOOK_CLASS) {
             You(

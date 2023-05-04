@@ -291,6 +291,24 @@ changes:
     - Touch of death, stun hero, and drain strength bypass any magic
       resistance you have.
     - Summon nasties creates undead rather than random nasties.
+- Archfiends that you do not take care of by killing or bribing them to stay out
+  of your way apply debuffs during the ascension run:
+  - Asmodeus makes your Pw regenerate one-third as fast and prevents cursed gain
+    level from lifting you up a floor.
+  - Baalzebub makes deadly illness kill you in half the time, strips any
+    intrinsic poison resistance you have every so often, and makes tins and food
+    go rotten 1/7 of the time.
+  - Geryon reduces your carrying capacity to 75% of its usual value.
+  - Dispater halves your HP regeneration.
+  - Yeenoghu halves your damage reduction from low AC.
+  - Juiblex reduces your speed to 75% of its usual value.
+  - Orcus applies a fluctuating penalty to spellcasting Pw cost, and causes
+    attempted writes of otherwise known scrolls and spellbooks to fail 35% of
+    the time.
+  - Demogorgon triples your natural hunger rate.
+  - Monsters spawn on the upstairs of your current level during the ascension
+    run. The rate at which they spawn depends on how many archfiends you took
+    care of.
 - Wands of wishing are again redistributed through the late game:
   - The Castle wand now only gives one wish, due to being much closer to Vlad's
     Tower.

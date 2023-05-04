@@ -54,6 +54,7 @@ struct u_event {
     Bitfield(uhand_of_elbereth, 2); /* became Hand of Elbereth */
     Bitfield(udemigod, 1);          /* killed the wiz */
     Bitfield(uvibrated, 1);         /* stepped on "vibrating square" */
+    Bitfield(uamultouch, 1);        /* picked up the Amulet at some point */
     Bitfield(ascended, 1);          /* has offered the Amulet */
 };
 

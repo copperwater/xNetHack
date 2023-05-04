@@ -1217,7 +1217,7 @@ hitmu(register struct monst *mtmp, register struct attack *mattk)
      *  against hits.
      */
     if (mhm.damage && u.uac < 0) {
-        mhm.damage -= rnd(-u.uac);
+        mhm.damage -= (rnd(-u.uac) / (fiend_adversity(PM_YEENOGHU) ? 3 : 1));
         if (mhm.damage < 1)
             mhm.damage = 1;
     }

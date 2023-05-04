@@ -1414,6 +1414,34 @@ weapon_insight(int final)
     } /* skill applies */
 }
 
+/* for any fiends that are applying debuffs to the hero
+ * note that if the debuffs are changed, these strings should change too
+ * also note that there are a couple minor/situational debuffs that are not
+ * mentioned here */
+static void
+fiend_insight(boolean final)
+{
+    if (fiend_adversity(PM_JUIBLEX))
+        enl_msg("Juiblex ", "is", "was", " slowing your steps", "");
+    if (fiend_adversity(PM_YEENOGHU))
+        enl_msg("Yeenoghu ", "is", "was", " softening your defenses", "");
+    if (fiend_adversity(PM_ORCUS))
+        enl_msg("Orcus ", "is", "was", " interfering with your magic", "");
+    if (fiend_adversity(PM_GERYON))
+        enl_msg("Geryon ", "is", "was", " weighing you down", "");
+    if (fiend_adversity(PM_DISPATER))
+        enl_msg("Dispater ", "is", "was",
+                " impeding your vital regeneration", "");
+    if (fiend_adversity(PM_BAALZEBUB))
+        enl_msg("Baalzebub ", "is", "was",
+                " predisposing you to disease and decay", "");
+    if (fiend_adversity(PM_ASMODEUS))
+        enl_msg("Asmodeus ", "is", "was",
+                " impeding your magic regeneration", "");
+    if (fiend_adversity(PM_DEMOGORGON))
+        enl_msg("Demogorgon ", "is", "was", " sapping your metabolism", "");
+}
+
 /* attributes: intrinsics and the like, other non-obvious capabilities */
 static void
 attributes_enlightenment(int unused_mode UNUSED, int final)
@@ -1835,6 +1863,8 @@ attributes_enlightenment(int unused_mode UNUSED, int final)
         if (ltmp >= 0)
             enl_msg("Good luck ", "does", "did", " not time out for you", "");
     }
+
+    fiend_insight(final); /* if fiend_adversity() from any of them */
 
     if (u.ugangr) {
         Sprintf(buf, " %sangry with you",

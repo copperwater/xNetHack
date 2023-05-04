@@ -877,4 +877,70 @@ lookup_fiend(int mndx) {
     return &g.context.archfiends[mndx - FIRST_ARCHFIEND];
 }
 
+/* Should the given archfiend be giving the player a bad effect?
+ * Up to the caller to decide what the bad effect is and when it should be
+ * triggered. This function only tests whether the fiend is out of the picture
+ * or not, or whether they haven't yet started leaning on the scales. */
+boolean
+fiend_adversity(int mndx)
+{
+    struct fiend_info *fnd = lookup_fiend(mndx);
+
+    if (!u.uevent.uamultouch)
+        /* this only kicks in after you have obtained the Amulet */
+        return FALSE;
+
+    if (fnd->escaped)
+        /* they are always going to be exerting their influence and you can't do
+         * anything about it. It's this way because if them escaping meant they
+         * wouldn't bother you anymore, it would probably be easier to do that
+         * than actually dealing with them */
+        return TRUE;
+    else if (fnd->num_in_dgn > 0)
+        /* they are alive and kicking somewhere in the dungeon */
+        return TRUE;
+    else if (g.mvitals[mndx].born == 0)
+        /* they were never encountered, thus not dealt with */
+        return TRUE;
+
+    /* at this point, we could differentiate bribing from killing if we wanted
+     * because bribing cases will have born > died, but we don't care because
+     * either one means they've been dealt with */
+    return FALSE;
+}
+
+/* helper function that returns the number of fiends still in play */
+int
+active_fiends(void)
+{
+    int mndx;
+    int num_active = 0;
+    for (mndx = FIRST_ARCHFIEND; mndx <= LAST_ARCHFIEND; ++mndx) {
+        if (fiend_adversity(mndx))
+            num_active++;
+    }
+    return num_active;
+}
+
+/* When the player first acquires the Amulet of Yendor, un-dealt-with archfiends
+ * start applying debuffs. Give an indication of this, and take care of any
+ * debuffs that should trigger immediately. */
+void
+start_fiend_harassment(void)
+{
+    /* first just see how many fiends are still in play so we can give the
+     * message first */
+    int num_active = active_fiends();
+    if (num_active > 0) {
+        You("feel the malevolent attention of %s archfiend%s.",
+            num_active > 3 ? "several"
+                           : num_active > 1 ? "some" : "an",
+            num_active == 1 ? "" : "s");
+        pline("An oppressive weight seems to settle on you.");
+    }
+    /* now do specific fiend effects or checks that should happen immediately */
+    if (fiend_adversity(PM_GERYON))
+        (void) encumber_msg();
+}
+
 /*minion.c*/

@@ -823,13 +823,19 @@ addinv_core1(struct obj *obj)
     if (obj->oclass == COIN_CLASS) {
         g.context.botl = 1;
     } else if (obj->otyp == AMULET_OF_YENDOR) {
+        /* save this first, then call start_fiend_harassment after recording the
+         * achievement */
+        boolean harass = !u.uevent.uamultouch;
         if (u.uhave.amulet)
             impossible("already have amulet?");
         u.uhave.amulet = 1;
+        u.uevent.uamultouch = 1;
         /* Player will be able to discover if s/he has the real amulet
          * by monitoring the livelog - but only when it was picked up
          * for the first time */
         record_achievement(ACH_AMUL);
+        if (harass)
+            start_fiend_harassment();
     } else if (obj->otyp == CANDELABRUM_OF_INVOCATION) {
         if (u.uhave.menorah)
             impossible("already have candelabrum?");

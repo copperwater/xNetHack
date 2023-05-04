@@ -149,6 +149,10 @@ u_calc_moveamt(int wtcap)
         break;
     }
 
+    if (fiend_adversity(PM_JUIBLEX)) {
+        moveamt -= (moveamt / 4);
+    }
+
     g.youmonst.movement += moveamt;
     if (g.youmonst.movement < 0)
         g.youmonst.movement = 0;
@@ -216,6 +220,24 @@ moveloop_core(void)
                          : 150))
                     (void) makemon((struct permonst *) 0, 0, 0,
                                    NO_MM_FLAGS);
+
+                /* if any demon lords are in play, extra monsters may spawn on
+                 * the stairs */
+                if (u.uevent.uamultouch) {
+                    int active = active_fiends();
+                    if (active > 0 && !rn2((9 - active) * 10)) {
+                        /* 1 fiend active = monster spawns every 80 turns
+                         * 2 fiends active = 70 turns (on average)
+                         * and so on down to
+                         * 8 fiends active = monster spawns every 10 turns
+                         */
+                        stairway *st = stairway_find_type_dir(FALSE, TRUE);
+                        if (st) {
+                            (void) makemon((struct permonst *) 0,
+                                           st->sx, st->sy, MM_ADJACENTOK);
+                        }
+                    }
+                }
 
                 u_calc_moveamt(mvl_wtcap);
                 settrack();
@@ -340,6 +362,14 @@ moveloop_core(void)
                             mvl_change = 0;
                         }
                     }
+                }
+
+                if (fiend_adversity(PM_BAALZEBUB)
+                    && (HPoison_resistance & INTRINSIC) && percent(2)) {
+                    /* this is a copy from rndcurse(); perhaps we should put
+                     * intrinsic stripping code into a unified function */
+                    HPoison_resistance &= ~INTRINSIC;
+                    You_feel("a little sick!");
                 }
 
                 if (!uarmg && uwep && uwep->otyp == UNICORN_HORN
@@ -574,6 +604,9 @@ regen_pw(int wtcap)
                         (9 * u.ulevel) +
                         (9 * ACURR(A_WIS)) +
                         (Role_if(PM_WIZARD) ? 100 : 0));
+        /* alive Asmodeus disrupts energy regen when you have the amulet */
+        if (fiend_adversity(PM_ASMODEUS))
+            energyfrac /= 3;
         u.uen += energyfrac / 300;
         if(rn2(300) < energyfrac % 300) {
             u.uen++;
@@ -615,7 +648,7 @@ regen_hp(int wtcap)
         }
         if (heal && !(Withering && heal > 0)) {
             g.context.botl = TRUE;
-            u.mh += heal;
+            u.mh += heal / (fiend_adversity(PM_DISPATER) ? 2 : 1);
             reached_full = (u.mh == u.mhmax);
         }
 
@@ -649,7 +682,7 @@ regen_hp(int wtcap)
 
             if (heal && !(Withering && heal > 0)) {
                 g.context.botl = TRUE;
-                u.uhp += heal;
+                u.uhp += heal / (fiend_adversity(PM_DISPATER) ? 2 : 1);
                 if (u.uhp > u.uhpmax)
                     u.uhp = u.uhpmax;
                 /* stop voluntary multi-turn activity if now fully healed */

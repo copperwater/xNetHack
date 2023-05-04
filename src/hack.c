@@ -3881,6 +3881,10 @@ weight_cap(void)
         float_vs_flight();
     }
 
+    /* Geryon in play during the end game reduces your ability to carry */
+    if (fiend_adversity(PM_GERYON))
+        carrcap = (carrcap * 3) / 4;
+
     /* final adjustment: ring of carrying lets you carry more than usual and go
      * over the normal carrycap */
     int pct_increase = ringbon(RIN_CARRYING) * 5;

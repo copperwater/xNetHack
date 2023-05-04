@@ -1492,7 +1492,7 @@ tin_variety(struct obj *obj,
 
     if (obj->spe == 1) {
         r = SPINACH_TIN;
-    } else if (obj->cursed) {
+    } else if (obj->cursed || fiend_adversity(PM_BAALZEBUB)) {
         r = ROTTEN_TIN; /* always rotten if cursed */
     } else if (obj->spe < 0) {
         r = -(obj->spe);
@@ -1614,7 +1614,7 @@ consume_tin(const char *mesg)
             hold_another_object(cookie, "It falls to the floor.", NULL, NULL);
         }
     } else { /* spinach... */
-        if (tin->cursed) {
+        if (tin->cursed || fiend_adversity(PM_BAALZEBUB)) {
             pline("It contains some decaying%s%s substance.",
                   Blind ? "" : " ", Blind ? "" : hcolor(NH_GREEN));
         } else {
@@ -1906,7 +1906,9 @@ eatcorpse(struct obj *otmp)
     g.context.victual.reqtime
         = 3 + ((!glob ? mons[mnum].cwt : otmp->owt) >> 6);
 
-    if (!tp && !nonrotting_corpse(mnum) && (otmp->orotten || !rn2(7))) {
+    if (!tp && !nonrotting_corpse(mnum)
+        && (otmp->orotten || !rn2(7)
+            || (fiend_adversity(PM_BAALZEBUB) && rnf(1,7)))) {
         if (rottenfood(otmp)) {
             otmp->orotten = TRUE;
             (void) touchfood(otmp);
@@ -2999,7 +3001,8 @@ doeat(void)
         }
 
         g.context.victual.reqtime = objects[otmp->otyp].oc_delay;
-        if (otmp->otyp != FORTUNE_COOKIE && otmp->cursed
+        if (otmp->otyp != FORTUNE_COOKIE
+            && (otmp->cursed || (fiend_adversity(PM_JUIBLEX) && rnf(1,7)))
             && !nonrotting_food(otmp->otyp)) {
             if (rottenfood(otmp)) {
                 otmp->orotten = TRUE;
@@ -3236,6 +3239,8 @@ gethungry(void)
             break;
         }
     }
+    if (fiend_adversity(PM_DEMOGORGON))
+        u.uhunger -= 2;
     newuhs(TRUE);
 }
 

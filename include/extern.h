@@ -1409,6 +1409,9 @@ extern void gain_guardian_angel(void);
 extern void angry_geryon(void);
 extern void init_archfiends(void);
 extern struct fiend_info *lookup_fiend(int);
+extern boolean fiend_adversity(int);
+extern int active_fiends(void);
+extern void start_fiend_harassment(void);
 
 /* ### mklev.c ### */
 

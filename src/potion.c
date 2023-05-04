@@ -173,7 +173,8 @@ make_sick(long xtime,
             if (talk)
                 You_feel("%s worse.", xtime <= Sick / 2L ? "much" : "even");
         }
-        set_itimeout(&Sick, xtime);
+        set_itimeout(&Sick, fiend_adversity(PM_BAALZEBUB) ? (xtime + 1) / 2
+                                                          : xtime);
         u.usick_type |= type;
         g.context.botl = TRUE;
     } else if (old && (type & u.usick_type)) {
@@ -1284,8 +1285,9 @@ peffect_gain_level(struct obj *otmp)
     if (otmp->cursed) {
         g.potion_unkn++;
         /* they went up a level */
-        if ((ledger_no(&u.uz) == 1 && u.uhave.amulet)
-            || Can_rise_up(u.ux, u.uy, &u.uz)) {
+        if (((ledger_no(&u.uz) == 1 && u.uhave.amulet)
+             || Can_rise_up(u.ux, u.uy, &u.uz))
+            && !fiend_adversity(PM_ASMODEUS)) {
             static const char riseup[] = "rise up, through the %s!";
 
             /* This is allowed now to bypass Sokoban levels, but it's pretty
