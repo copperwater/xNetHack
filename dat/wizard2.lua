@@ -27,7 +27,7 @@ des.map([[
         -----.|.....|...-----        
             -------------            
 ]]);
-des.teleport_region({ region={18,10,18,10}, dir="up" })
+des.teleport_region({ region={18,09,18,11}, dir="up" })
 des.ladder("up", 13,18)
 des.ladder("down", 18,10)
 des.region(selection.area(00,00,35,19), 'lit')
@@ -45,6 +45,7 @@ des.non_passwall()
 -- Teleporter map:
 -- x = landing point
 -- ^ = teleportation trap
+-- H = hole
 --            -------------            
 --        -----^.^|^.x|^.^-----        
 --     ----..^|...---.|....^|^----     
@@ -59,12 +60,19 @@ des.non_passwall()
 --|--|.^-----^------.---^..^|---.|.---|
 --|^.----^|.....x|^|^|^--x..|...x|x..^|
 ----..x|^...------.--|.^|..^|^------.--
--- |^--------.^|^.x.^|..|^-----^...|^| 
+-- |^--------.^|^.x.^|..|H-----^...|^|
 -- ---^....x..--------x----^.^|...x--- 
 --   ---^.-----.^|^|^---^|^...|^.---   
 --     ----x....--.|..|..--.x.----     
 --        -----<|^...x|^.x-----        
 --            -------------            
+
+-- The hole in room 19 is in case a player gets into this level without
+-- completing the puzzle in the previous level - if they had only the ladder and
+-- no means with which to make their own hole, they would only be able to get
+-- into the small center chamber on wizard-3 and be otherwise trapped. With the
+-- hole, they can fall into the outer area.
+des.trap("hole", 23, 14)
 
 local GOALROOM = 1
 local STARTROOM = 2
@@ -191,7 +199,6 @@ local teleporters = {
    { room=19, x=22, y=11 },
    { room=19, x=25, y=11 },
    { room=19, x=25, y=13 },
-   { room=19, x=23, y=14 },
 
    { room=20, x=01, y=12 },
    { room=20, x=02, y=14 },
