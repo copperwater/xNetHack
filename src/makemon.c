@@ -1578,7 +1578,12 @@ makemon(
         else if (is_armed(mtmp->data) /* got a m_initweap weapon */
                  && !helpless(mtmp)) {
             mtmp->weapon_check = NEED_WEAPON;
-            mon_wield_item(mtmp);
+            check_gear_next_turn(mtmp);
+            /* we would like them to wield this immediately but this makes bad
+             * messaging sequence issues when there is a special message for
+             * their appearance, e.g. "Yeenoghu wields a flail! You have
+             * summoned Yeenoghu!"
+             * mon_wield_item(mtmp); */
         }
 
         /* TODO: unify with teleport appears msg */
