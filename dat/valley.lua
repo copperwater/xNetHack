@@ -11,7 +11,7 @@ des.message("You arrive at the Valley of the Dead...")
 des.message("The odor of burnt flesh and decay fills the air.")
 des.message("You hear groans and moans everywhere.")
 
-des.level_flags("mazelevel", "noteleport", "hardfloor", "nommap");
+des.level_flags("mazelevel", "noteleport", "hardfloor", "nommap", "temperate");
 
 des.map([[
 ----------------------------------------------------------------------------

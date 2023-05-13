@@ -36,7 +36,7 @@ tty_doprev_message(void)
                     putstr(prevmsg_win, 0, cw->data[i]);
                 i = (i + 1) % cw->rows;
             } while (i != cw->maxcol);
-            putstr(prevmsg_win, 0, g.toplines);
+            putstr(prevmsg_win, 0, gt.toplines);
             display_nhwindow(prevmsg_win, TRUE);
             destroy_nhwindow(prevmsg_win);
         } else if (iflags.prevmsg_window == 'c') { /* combination */
@@ -44,7 +44,7 @@ tty_doprev_message(void)
                 morc = 0;
                 if (cw->maxcol == cw->maxrow) {
                     ttyDisplay->dismiss_more = C('p'); /* ^P ok at --More-- */
-                    redotoplin(g.toplines);
+                    redotoplin(gt.toplines);
                     cw->maxcol--;
                     if (cw->maxcol < 0)
                         cw->maxcol = cw->rows - 1;
@@ -69,7 +69,7 @@ tty_doprev_message(void)
                             putstr(prevmsg_win, 0, cw->data[i]);
                         i = (i + 1) % cw->rows;
                     } while (i != cw->maxcol);
-                    putstr(prevmsg_win, 0, g.toplines);
+                    putstr(prevmsg_win, 0, gt.toplines);
                     display_nhwindow(prevmsg_win, TRUE);
                     destroy_nhwindow(prevmsg_win);
                 }
@@ -81,7 +81,7 @@ tty_doprev_message(void)
             prevmsg_win = create_nhwindow(NHW_MENU);
             putstr(prevmsg_win, 0, "Message History");
             putstr(prevmsg_win, 0, "");
-            putstr(prevmsg_win, 0, g.toplines);
+            putstr(prevmsg_win, 0, gt.toplines);
             cw->maxcol = cw->maxrow - 1;
             if (cw->maxcol < 0)
                 cw->maxcol = cw->rows - 1;
@@ -104,7 +104,7 @@ tty_doprev_message(void)
         do {
             morc = 0;
             if (cw->maxcol == cw->maxrow)
-                redotoplin(g.toplines);
+                redotoplin(gt.toplines);
             else if (cw->data[cw->maxcol])
                 redotoplin(cw->data[cw->maxcol]);
             cw->maxcol--;
@@ -171,9 +171,9 @@ remember_topl(void)
 {
     register struct WinDesc *cw = wins[WIN_MESSAGE];
     int idx = cw->maxrow;
-    unsigned len = strlen(g.toplines) + 1;
+    unsigned len = strlen(gt.toplines) + 1;
 
-    if ((cw->flags & WIN_LOCKHISTORY) || !*g.toplines)
+    if ((cw->flags & WIN_LOCKHISTORY) || !*gt.toplines)
         return;
 
     if (len > (unsigned) cw->datlen[idx]) {
@@ -183,9 +183,11 @@ remember_topl(void)
         cw->data[idx] = (char *) alloc(len);
         cw->datlen[idx] = (short) len;
     }
-    Strcpy(cw->data[idx], g.toplines);
-    *g.toplines = '\0';
-    cw->maxcol = cw->maxrow = (idx + 1) % cw->rows;
+    Strcpy(cw->data[idx], gt.toplines);
+    if (!gp.program_state.in_checkpoint) {
+        *gt.toplines = '\0';
+        cw->maxcol = cw->maxrow = (idx + 1) % cw->rows;
+    }
 }
 
 void
@@ -239,7 +241,7 @@ more(void)
     }
 
     if (ttyDisplay->toplin && cw->cury) {
-        docorner(1, cw->cury + 1);
+        docorner(1, cw->cury + 1, 0);
         cw->curx = cw->cury = 0;
         home();
     } else if (morc == '\033') {
@@ -265,10 +267,10 @@ update_topl(register const char *bp)
     n0 = strlen(bp);
     if ((ttyDisplay->toplin == TOPLINE_NEED_MORE || skip)
         && cw->cury == 0
-        && n0 + (int) strlen(g.toplines) + 3 < CO - 8 /* room for --More-- */
+        && n0 + (int) strlen(gt.toplines) + 3 < CO - 8 /* room for --More-- */
         && (notdied = strncmp(bp, "You die", 7)) != 0) {
-        Strcat(g.toplines, "  ");
-        Strcat(g.toplines, bp);
+        Strcat(gt.toplines, "  ");
+        Strcat(gt.toplines, bp);
         cw->curx += 2;
         if (!skip)
             addtopl(bp);
@@ -277,22 +279,22 @@ update_topl(register const char *bp)
         if (ttyDisplay->toplin == TOPLINE_NEED_MORE) {
             more();
         } else if (cw->cury) { /* for toplin==TOPLINE_NON_EMPTY && cury > 1 */
-            docorner(1, cw->cury + 1); /* reset cury = 0 if redraw screen */
-            cw->curx = cw->cury = 0;   /* from home--cls() & docorner(1,n) */
+            docorner(1, cw->cury + 1, 0); /* reset cury = 0 if redraw screen */
+            cw->curx = cw->cury = 0;   /* from home--cls() & docorner(1,n,0) */
         }
     }
     remember_topl();
-    (void) strncpy(g.toplines, bp, TBUFSZ);
-    g.toplines[TBUFSZ - 1] = 0;
+    (void) strncpy(gt.toplines, bp, TBUFSZ);
+    gt.toplines[TBUFSZ - 1] = 0;
 
-    for (tl = g.toplines; n0 >= CO; ) {
+    for (tl = gt.toplines; n0 >= CO; ) {
         otl = tl;
         for (tl += CO - 1; tl != otl; --tl)
             if (*tl == ' ')
                 break;
         if (tl == otl) {
             /* Eek!  A huge token.  Try splitting after it. */
-            tl = index(otl, ' ');
+            tl = strchr(otl, ' ');
             if (!tl)
                 break; /* No choice but to spit it out whole. */
         }
@@ -302,7 +304,7 @@ update_topl(register const char *bp)
     if (!notdied) /* double negative => "You die"; avoid suppressing mesg */
         cw->flags &= ~WIN_STOP, skip = FALSE;
     if (!skip)
-        redotoplin(g.toplines);
+        redotoplin(gt.toplines);
 }
 
 static void
@@ -366,13 +368,16 @@ extern char erase_char; /* from xxxtty.c; don't need kill_char */
 
 /* returns a single keystroke; also sets 'yn_number' */
 char
-tty_yn_function(const char *query, const char *resp, char def)
+tty_yn_function(
+    const char *query,
+    const char *resp,
+    char def)
 {
     /*
      * Generic yes/no function.  'def' is the default (returned by space
      * or return; 'esc' returns 'q', or 'n', or the default, depending on
-     * what's in the string.  The 'query' string is printed before the user
-     * is asked about the string.
+     * what's in the expected-response string.  The 'query' string is
+     * printed before the user is asked about the string.
      *
      * If resp is NULL, any single character is accepted and returned.
      * If not-NULL, only characters in it are allowed (exceptions:  the
@@ -397,7 +402,7 @@ tty_yn_function(const char *query, const char *resp, char def)
     if (resp) {
         char *rb, respbuf[QBUFSZ];
 
-        allow_num = (index(resp, '#') != 0);
+        allow_num = (strchr(resp, '#') != 0);
         Strcpy(respbuf, resp);
         /* normally we force lowercase, but if any uppercase letters
            are present in the allowed response, preserve case;
@@ -408,7 +413,7 @@ tty_yn_function(const char *query, const char *resp, char def)
                 break;
             }
         /* any acceptable responses that follow <esc> aren't displayed */
-        if ((rb = index(respbuf, '\033')) != 0)
+        if ((rb = strchr(respbuf, '\033')) != 0)
             *rb = '\0';
         (void) strncpy(prompt, query, QBUFSZ - 1);
         prompt[QBUFSZ - 1] = '\0';
@@ -462,18 +467,18 @@ tty_yn_function(const char *query, const char *resp, char def)
         }
         digit_ok = allow_num && digit(q);
         if (q == '\033') {
-            if (index(resp, 'q'))
+            if (strchr(resp, 'q'))
                 q = 'q';
-            else if (index(resp, 'n'))
+            else if (strchr(resp, 'n'))
                 q = 'n';
             else
                 q = def;
             break;
-        } else if (index(quitchars, q)) {
+        } else if (strchr(quitchars, q)) {
             q = def;
             break;
         }
-        if (!index(resp, q) && !digit_ok) {
+        if (!strchr(resp, q) && !digit_ok) {
             tty_nhbell();
             q = (char) 0;
         } else if (q == '#' || digit_ok) {
@@ -499,7 +504,7 @@ tty_yn_function(const char *query, const char *resp, char def)
                         break; /* overflow: try again */
                     digit_string[0] = z;
                     addtopl(digit_string), n_len++;
-                } else if (z == 'y' || index(quitchars, z)) {
+                } else if (z == 'y' || strchr(quitchars, z)) {
                     if (z == '\033')
                         value = -1; /* abort */
                     z = '\n';       /* break */
@@ -533,10 +538,10 @@ tty_yn_function(const char *query, const char *resp, char def)
         Sprintf(rtmp, "#%ld", yn_number);
     else
         (void) key2txt(q, rtmp);
-    /* addtopl(rtmp); -- rewrite g.toplines instead */
-    Sprintf(g.toplines, "%s%s", prompt, rtmp);
+    /* addtopl(rtmp); -- rewrite gt.toplines instead */
+    Sprintf(gt.toplines, "%s%s", prompt, rtmp);
 #ifdef DUMPLOG
-    dumplogmsg(g.toplines);
+    dumplogmsg(gt.toplines);
 #endif
     ttyDisplay->inread--;
     ttyDisplay->toplin = TOPLINE_NON_EMPTY;
@@ -554,8 +559,8 @@ static char **snapshot_mesgs = 0;
 /* collect currently available message history data into a sequential array;
    optionally, purge that data from the active circular buffer set as we go */
 static void
-msghistory_snapshot(boolean purge) /* clear message history buffer
-                                      as we copy it */
+msghistory_snapshot(
+    boolean purge) /* clear message history buffer as we copy it */
 {
     char *mesg;
     int i, inidx, outidx;
@@ -566,7 +571,7 @@ msghistory_snapshot(boolean purge) /* clear message history buffer
         return;
     cw = wins[WIN_MESSAGE];
 
-    /* flush g.toplines[], moving most recent message to history */
+    /* flush gt.toplines[], moving most recent message to history */
     remember_topl();
 
     /* for a passive snapshot, we just copy pointers, so can't allow further
@@ -687,7 +692,7 @@ tty_putmsghistory(const char *msg, boolean restoring_msghist)
         initd = TRUE;
 #ifdef DUMPLOG
         /* this suffices; there's no need to scrub saved_pline[] pointers */
-        g.saved_pline_index = 0;
+        gs.saved_pline_index = 0;
 #endif
     }
 
@@ -701,9 +706,9 @@ tty_putmsghistory(const char *msg, boolean restoring_msghist)
 
         /* move most recent message to history, make this become most recent */
         remember_topl();
-        Strcpy(g.toplines, msg);
+        Strcpy(gt.toplines, msg);
 #ifdef DUMPLOG
-        dumplogmsg(g.toplines);
+        dumplogmsg(gt.toplines);
 #endif
     } else if (snapshot_mesgs) {
         nhassert(ttyDisplay == NULL ||
@@ -712,9 +717,9 @@ tty_putmsghistory(const char *msg, boolean restoring_msghist)
         /* done putting arbitrary messages in; put the snapshot ones back */
         for (idx = 0; snapshot_mesgs[idx]; ++idx) {
             remember_topl();
-            Strcpy(g.toplines, snapshot_mesgs[idx]);
+            Strcpy(gt.toplines, snapshot_mesgs[idx]);
 #ifdef DUMPLOG
-            dumplogmsg(g.toplines);
+            dumplogmsg(gt.toplines);
 #endif
         }
         /* now release the snapshot */

@@ -1,5 +1,5 @@
 /* NetHack 3.7	youprop.h	$NHDT-Date: 1596498577 2020/08/03 23:49:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.32 $ */
-/* Copyright (c) 1989 Mike Threepoint				  */
+/* Copyright (c) 1989 Mike Threepoint                             */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef YOUPROP_H
@@ -67,7 +67,7 @@
 #define HSick_resistance u.uprops[SICK_RES].intrinsic
 #define ESick_resistance u.uprops[SICK_RES].extrinsic
 #define Sick_resistance (HSick_resistance || ESick_resistance \
-                         || defended(&g.youmonst, AD_DISE))
+                         || defended(&gy.youmonst, AD_DISE))
 
 /* Intrinsics only */
 #define Invulnerable u.uprops[INVULNERABLE].intrinsic /* [Tom] */
@@ -83,20 +83,28 @@
 #define HConfusion u.uprops[CONFUSION].intrinsic
 #define Confusion HConfusion
 
-#define Blinded u.uprops[BLINDED].intrinsic
-#define Blindfolded (ublindf && ublindf->otyp != LENSES)
-/* ...means blind because of a cover */
-#define Blind                                     \
-    ((u.uroleplay.blind || Blinded || Blindfolded \
-      || !haseyes(g.youmonst.data))                 \
-     && !(ublindf && ublindf->oartifact == ART_EYES_OF_THE_OVERWORLD))
-/* ...the Eyes operate even when you really are blind
-    or don't have any eyes */
-#define Blindfolded_only                                            \
-    (Blindfolded && ublindf->oartifact != ART_EYES_OF_THE_OVERWORLD \
-     && !u.uroleplay.blind && !Blinded && haseyes(g.youmonst.data))
-/* ...blind because of a blindfold, and *only* that */
+/* Blindness is more complex than other properties */
+#define HBlinded u.uprops[BLINDED].intrinsic /* TIMEOUT|FROMOUTSIDE|FROMFORM|FROMROLEPLAY */
+#define EBlinded u.uprops[BLINDED].extrinsic /* W_TOOL */
+        /* wearing the Eyes of the Overworld overrides blindness */
+#define BBlinded u.uprops[BLINDED].blocked   /* W_TOOL */
+        /* non-blindfold: timed effect | u.uroleplay.blind | !haseyes() */
+#define Blinded (HBlinded && !BBlinded)
+#define BlindedTimeout (HBlinded & TIMEOUT)
+#define PermaBlind ((HBlinded & FROMROLEPLAY) != 0L) /* OPTIONS:blind */
+        /* worn blindfold (or towel; lenses don't set [BLINDED].extrinsic) */
+#define Blindfolded EBlinded
+#define Blindfolded_only (Blindfolded && !Blinded)
+        /* '#define Blind (Blinded || Blindfolded)' would work, but only
+           because BBlinded (conferred by artifact lenses) and Blindfolded
+           are mutually exclusive; explicitly applying !BBlinded to both
+           internal and external blindness should be more robust in case
+           of future changes */
+#define Blind ((HBlinded || EBlinded) && !BBlinded)
 
+/*
+ * Maladies
+ */
 #define Sick u.uprops[SICK].intrinsic
 #define Stoned u.uprops[STONED].intrinsic
 #define Strangled u.uprops[STRANGLED].intrinsic
@@ -256,11 +264,11 @@
 #define HMagical_breathing u.uprops[MAGICAL_BREATHING].intrinsic
 #define EMagical_breathing u.uprops[MAGICAL_BREATHING].extrinsic
 #define Amphibious \
-    (HMagical_breathing || EMagical_breathing || amphibious(g.youmonst.data))
+    (HMagical_breathing || EMagical_breathing || amphibious(gy.youmonst.data))
 /* Get wet, may go under surface */
 
 #define Breathless \
-    (HMagical_breathing || EMagical_breathing || breathless(g.youmonst.data))
+    (HMagical_breathing || EMagical_breathing || breathless(gy.youmonst.data))
 
 #define Underwater (u.uinwater)
 /* Note that Underwater and u.uinwater are both used in code.
@@ -384,10 +392,10 @@
 
 /* unconscious() includes u.usleep but not is_fainted(); the multi test is
    redundant but allows the function calls to be skipped most of the time */
-#define Unaware (g.multi < 0 && (unconscious() || is_fainted()))
+#define Unaware (gm.multi < 0 && (unconscious() || is_fainted()))
 
 /* Whether the hero is in a form that dislikes a certain material */
-#define Hate_material(material) mon_hates_material(&g.youmonst, material)
+#define Hate_material(material) mon_hates_material(&gy.youmonst, material)
 
 /* _Hitchhikers_Guide_to_the_Galaxy_ on uses for 'towel': "wrap it round
    your head to ward off noxious fumes" [we require it to be damp or wet] */

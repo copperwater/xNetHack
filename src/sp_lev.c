@@ -14,20 +14,23 @@
 #include "hack.h"
 #include "sp_lev.h"
 
-typedef void (*select_iter_func)(int, int, genericptr);
+typedef void (*select_iter_func)(coordxy, coordxy, genericptr);
 
 extern void mkmap(lev_init *);
 
-static boolean match_maptyps(xchar, xchar);
+static boolean match_maptyps(xint16, xint16);
 static void solidify_map(void);
+static void map_cleanup(void);
 static void lvlfill_solid(schar, schar);
 static void lvlfill_swamp(schar, schar, schar);
 static void flip_drawbridge_horizontal(struct rm *);
 static void flip_drawbridge_vertical(struct rm *);
 static void flip_visuals(int, int, int, int, int);
 static int flip_encoded_direction_bits(int, int);
-static void sel_set_wall_property(int, int, genericptr_t);
-static void set_wall_property(xchar, xchar, xchar, xchar, int);
+static void flip_vault_guard(int, struct monst *,
+                             coordxy, coordxy, coordxy, coordxy);
+static void sel_set_wall_property(coordxy, coordxy, genericptr_t);
+static void set_wall_property(coordxy, coordxy, coordxy, coordxy, int);
 static void count_features(void);
 static void remove_boundary_syms(void);
 static void set_door_orientation(int, int);
@@ -35,32 +38,33 @@ static boolean shared_with_room(int, int, struct mkroom *);
 static void maybe_add_door(int, int, struct mkroom *);
 static void link_doors_rooms(void);
 static int rndtrap(void);
-static void get_location(xchar *, xchar *, getloc_flags_t, struct mkroom *);
-static void set_ok_location_func(boolean (*)(xchar, xchar));
-static boolean is_ok_location(xchar, xchar, getloc_flags_t);
+static void get_location(coordxy *, coordxy *, getloc_flags_t, struct mkroom *);
+static void set_ok_location_func(boolean (*)(coordxy, coordxy));
+static boolean is_ok_location(coordxy, coordxy, getloc_flags_t);
 static unpacked_coord get_unpacked_coord(long, int);
-static void get_room_loc(xchar *, xchar *, struct mkroom *);
-static void get_free_room_loc(xchar *, xchar *, struct mkroom *,
+static void get_room_loc(coordxy *, coordxy *, struct mkroom *);
+static void get_free_room_loc(coordxy *, coordxy *, struct mkroom *,
                               packed_coord);
-static boolean create_subroom(struct mkroom *, xchar, xchar, xchar,
-                              xchar, xchar, xchar);
+static boolean create_subroom(struct mkroom *, coordxy, coordxy, coordxy,
+                              coordxy, xint16, xint16);
 static void create_door(room_door *, struct mkroom *);
 static void create_trap(spltrap *, struct mkroom *);
 static int noncoalignment(aligntyp);
-static boolean m_bad_boulder_spot(int, int);
+static boolean m_bad_boulder_spot(coordxy, coordxy);
 static int pm_to_humidity(struct permonst *);
 static unsigned int sp_amask_to_amask(unsigned int sp_amask);
 static void create_monster(monster *, struct mkroom *);
-static void create_object(object *, struct mkroom *);
+static struct obj *create_object(object *, struct mkroom *);
 static void create_altar(altar *, struct mkroom *);
-static boolean search_door(struct mkroom *, xchar *, xchar *, xchar, int);
+static boolean search_door(struct mkroom *, coordxy *, coordxy *, xint16, int);
 static void create_corridor(corridor *);
 static struct mkroom *build_room(room *, struct mkroom *);
 static void light_region(region *);
 static void maze1xy(coord *, int);
 static void fill_empty_maze(void);
 static void splev_initlev(lev_init *);
-static void reset_coordinate_system(void);
+static boolean generate_way_out_method(coordxy nx, coordxy ny,
+                                       struct selectionvar *ov);
 #if 0
 /* macosx complains that these are unused */
 static long sp_code_jmpaddr(long, long);
@@ -78,7 +82,7 @@ static void spo_mazewalk(struct sp_coder *);
 static void spo_wall_property(struct sp_coder *);
 static void spo_room_door(struct sp_coder *);
 static void spo_wallify(struct sp_coder *);
-static void sel_set_wallify(int, int, genericptr_t);
+static void sel_set_wallify(coordxy, coordxy, genericptr_t);
 #endif
 static void spo_end_moninvent(void);
 static void spo_pop_container(void);
@@ -87,22 +91,22 @@ static void spo_endroom(struct sp_coder *);
 static void l_table_getset_feature_flag(lua_State *, int, int, const char *,
                                         int);
 static void l_get_lregion(lua_State *, lev_region *);
-static void sel_set_lit(int, int, genericptr_t);
+static void sel_set_lit(coordxy, coordxy, genericptr_t);
 static void add_doors_to_room(struct mkroom *);
 static void selection_iterate(struct selectionvar *, select_iter_func,
                               genericptr_t);
-static void sel_set_ter(int, int, genericptr_t);
-static void sel_set_door(int, int, genericptr_t);
-static void sel_set_feature(int, int, genericptr_t);
+static void sel_set_ter(coordxy, coordxy, genericptr_t);
+static void sel_set_door(coordxy, coordxy, genericptr_t);
+static void sel_set_feature(coordxy, coordxy, genericptr_t);
 static void levregion_add(lev_region *);
 static void get_table_xy_or_coord(lua_State *, lua_Integer *, lua_Integer *);
 static int get_table_region(lua_State *, const char *, lua_Integer *,
                         lua_Integer *, lua_Integer *, lua_Integer *, boolean);
 static void set_wallprop_in_selection(lua_State *, int);
-static xchar random_wdir(void);
-static int floodfillchk_match_under(int, int);
-static int floodfillchk_match_accessible(int, int);
-static boolean sel_flood_havepoint(int, int, xchar *, xchar *, int);
+static coordxy random_wdir(void);
+static int floodfillchk_match_under(coordxy, coordxy);
+static int floodfillchk_match_accessible(coordxy, coordxy);
+static boolean sel_flood_havepoint(coordxy, coordxy, coordxy *, coordxy *, int);
 static long line_dist_coord(long, long, long, long, long, long);
 static void l_push_mkroom_table(lua_State *, struct mkroom *);
 static int get_table_align(lua_State *);
@@ -117,6 +121,7 @@ static const char *get_mkroom_name(int);
 static int get_table_roomtype_opt(lua_State *, const char *, int);
 static int get_table_traptype_opt(lua_State *, const char *, int);
 static int get_traptype_byname(const char *);
+static void selection_recalc_bounds(struct selectionvar *);
 static lua_Integer get_table_intarray_entry(lua_State *, int, int);
 static struct sp_coder *sp_level_coder_init(void);
 
@@ -157,15 +162,6 @@ int lspo_trap(lua_State *);
 int lspo_wall_property(lua_State *);
 int lspo_wallify(lua_State *);
 
-#define LEFT 1
-#define H_LEFT 2
-#define CENTER 3
-#define H_RIGHT 4
-#define RIGHT 5
-
-#define TOP 1
-#define BOTTOM 5
-
 #define sq(x) ((x) * (x))
 
 /* These are also defined in rect.c. If it's important that they have the same
@@ -198,10 +194,20 @@ static struct monst *invent_carrying_monster = (struct monst *) 0;
 
 #define TYP_CANNOT_MATCH(typ) ((typ) == MAX_TYPE || (typ) == INVALID_TYPE)
 
+/* guts of des.reset_coordinate_system(); called from a couple other places */
+void
+reset_xystart_size(void)
+{
+    gx.xstart = 1; /* column [0] is off limits */
+    gy.ystart = 0;
+    gx.xsize = COLNO - 1; /* 1..COLNO-1 */
+    gy.ysize = ROWNO; /* 0..ROWNO-1 */
+}
+
 /* Does typ match with levl[][].typ, considering special types
    MATCH_WALL and MAX_TYPE (aka transparency)? */
 static boolean
-match_maptyps(xchar typ, xchar levltyp)
+match_maptyps(xint16 typ, xint16 levltyp)
 {
     if ((typ == MATCH_WALL) && !IS_STWALL(levltyp))
         return FALSE;
@@ -224,7 +230,7 @@ mapfrag_fromstr(char *str)
     mf->hei = 0;
     tmps = mf->data;
     while (tmps && *tmps) {
-        char *s1 = index(tmps, '\n');
+        char *s1 = strchr(tmps, '\n');
 
         if (mf->hei > MAP_Y_LIM) {
             free(mf->data);
@@ -301,7 +307,7 @@ mapfrag_match(struct mapfragment* mf,  int x, int y)
 static void
 solidify_map(void)
 {
-    xchar x, y;
+    coordxy x, y;
 
     for (x = 0; x < COLNO; x++)
         for (y = 0; y < ROWNO; y++)
@@ -334,13 +340,46 @@ lvlfill_maze_grid(int x1, int y1, int x2, int y2, schar filling)
     }
 }
 
+/* do a post-level-creation cleanup of map, such as
+   removing boulders and traps from lava */
+static void
+map_cleanup(void)
+{
+    struct obj *otmp;
+    struct trap *ttmp;
+    struct engr *etmp;
+    coordxy x, y;
+
+    for (x = 0; x < COLNO; x++)
+        for (y = 0; y < ROWNO; y++) {
+            schar typ = levl[x][y].typ;
+
+            if (typ == LAVAPOOL || typ == LAVAWALL || IS_POOL(typ)) {
+                /* in case any boulders are on liquid, delete them */
+                while ((otmp = sobj_at(BOULDER, x, y)) != 0) {
+                    obj_extract_self(otmp);
+                    obfree(otmp, (struct obj *)0);
+                }
+
+                /* traps on liquid? */
+                if (((ttmp = t_at(x, y)) != 0)
+                    && !undestroyable_trap(ttmp->ttyp))
+                    deltrap(ttmp);
+
+                /* engravings? */
+                if ((etmp = engr_at(x, y)) != 0)
+                  del_engr(etmp);
+            }
+        }
+}
+
 static void
 lvlfill_solid(schar filling, schar lit)
 {
     int x, y;
 
-    for (x = 2; x <= g.x_maze_max; x++)
-        for (y = 0; y <= g.y_maze_max; y++) {
+    for (x = 2; x <= gx.x_maze_max; x++)
+        for (y = 0; y <= gy.y_maze_max; y++) {
             if (!set_levltyp_lit(x, y, filling, lit))
                 continue;
             /* TODO: consolidate this w lspo_map ? */
@@ -359,8 +398,8 @@ lvlfill_swamp(schar fg, schar bg, schar lit)
     lvlfill_solid(bg, lit);
 
     /* "relaxed blockwise maze" algorithm, Jamis Buck */
-    for (x = 2; x <= min(g.x_maze_max, COLNO-2); x += 2)
-        for (y = 0; y <= min(g.y_maze_max, ROWNO-2); y += 2) {
+    for (x = 2; x <= min(gx.x_maze_max, COLNO-2); x += 2)
+        for (y = 0; y <= min(gy.y_maze_max, ROWNO-2); y += 2) {
             int c = 0;
 
             (void) set_levltyp_lit(x, y, fg, lit);
@@ -493,10 +532,13 @@ flip_encoded_direction_bits(int flp, int val)
 /* transpose top with bottom or left with right or both; sometimes called
    for new special levels, or for any level via the #wizfliplevel command */
 void
-flip_level(int flp, boolean extras)
+flip_level(
+    int flp,        /* mask for orientation(s) to transpose */
+    boolean extras) /* False: level creation; True: #wizfliplevel is
+                     * altering an active level so more needs to be done */
 {
     int x, y, i, itmp;
-    int minx, miny, maxx, maxy;
+    coordxy minx, miny, maxx, maxy;
     struct rm trm;
     struct trap *ttmp;
     struct obj *otmp;
@@ -543,7 +585,7 @@ flip_level(int flp, boolean extras)
     }
 
     /* stairs and ladders */
-    for (stway = g.stairs; stway; stway = stway->next) {
+    for (stway = gs.stairs; stway; stway = stway->next) {
         if (flp & 1)
             stway->sy = FlipY(stway->sy);
         if (flp & 2)
@@ -551,62 +593,66 @@ flip_level(int flp, boolean extras)
     }
 
     /* traps */
-    for (ttmp = g.ftrap; ttmp; ttmp = ttmp->ntrap) {
+    for (ttmp = gf.ftrap; ttmp; ttmp = ttmp->ntrap) {
         if (!inFlipArea(ttmp->tx, ttmp->ty))
             continue;
-	if (flp & 1) {
-	    ttmp->ty = FlipY(ttmp->ty);
-	    if (ttmp->ttyp == ROLLING_BOULDER_TRAP) {
-		ttmp->launch.y = FlipY(ttmp->launch.y);
-		ttmp->launch2.y = FlipY(ttmp->launch2.y);
-	    } else if (is_pit(ttmp->ttyp) && ttmp->conjoined) {
+        if (flp & 1) {
+            ttmp->ty = FlipY(ttmp->ty);
+            if (ttmp->ttyp == ROLLING_BOULDER_TRAP) {
+                ttmp->launch.y = FlipY(ttmp->launch.y);
+                ttmp->launch2.y = FlipY(ttmp->launch2.y);
+            } else if (is_pit(ttmp->ttyp) && ttmp->conjoined) {
                 ttmp->conjoined = flip_encoded_direction_bits(flp,
                                                               ttmp->conjoined);
             }
-	}
-	if (flp & 2) {
-	    ttmp->tx = FlipX(ttmp->tx);
-	    if (ttmp->ttyp == ROLLING_BOULDER_TRAP) {
-		ttmp->launch.x = FlipX(ttmp->launch.x);
-		ttmp->launch2.x = FlipX(ttmp->launch2.x);
-	    } else if (is_pit(ttmp->ttyp) && ttmp->conjoined) {
+        }
+        if (flp & 2) {
+            ttmp->tx = FlipX(ttmp->tx);
+            if (ttmp->ttyp == ROLLING_BOULDER_TRAP) {
+                ttmp->launch.x = FlipX(ttmp->launch.x);
+                ttmp->launch2.x = FlipX(ttmp->launch2.x);
+            } else if (is_pit(ttmp->ttyp) && ttmp->conjoined) {
                 ttmp->conjoined = flip_encoded_direction_bits(flp,
                                                               ttmp->conjoined);
-	    }
-	}
+            }
+        }
     }
 
     /* objects */
     for (otmp = fobj; otmp; otmp = otmp->nobj) {
         if (!inFlipArea(otmp->ox, otmp->oy))
             continue;
-	if (flp & 1)
-	    otmp->oy = FlipY(otmp->oy);
-	if (flp & 2)
-	    otmp->ox = FlipX(otmp->ox);
+        if (flp & 1)
+            otmp->oy = FlipY(otmp->oy);
+        if (flp & 2)
+            otmp->ox = FlipX(otmp->ox);
     }
 
     /* buried objects */
-    for (otmp = g.level.buriedobjlist; otmp; otmp = otmp->nobj) {
+    for (otmp = gl.level.buriedobjlist; otmp; otmp = otmp->nobj) {
         if (!inFlipArea(otmp->ox, otmp->oy))
             continue;
-	if (flp & 1)
-	    otmp->oy = FlipY(otmp->oy);
-	if (flp & 2)
-	    otmp->ox = FlipX(otmp->ox);
+        if (flp & 1)
+            otmp->oy = FlipY(otmp->oy);
+        if (flp & 2)
+            otmp->ox = FlipX(otmp->ox);
     }
 
     /* monsters */
     for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-        if (mtmp->isgd && mtmp->mx == 0)
-            continue;
+        if (mtmp->isgd) {
+            if (extras) /* flip mtmp->mextra->egd */
+                flip_vault_guard(flp, mtmp, minx, miny, maxx, maxy);
+            if (mtmp->mx == 0) /* not on map so don't flip guard->mx,my */
+                continue;
+        }
         /* skip the occasional earth elemental outside the flip area */
         if (!inFlipArea(mtmp->mx, mtmp->my))
             continue;
-	if (flp & 1)
-	    mtmp->my = FlipY(mtmp->my);
-	if (flp & 2)
-	    mtmp->mx = FlipX(mtmp->mx);
+        if (flp & 1)
+            mtmp->my = FlipY(mtmp->my);
+        if (flp & 2)
+            mtmp->mx = FlipX(mtmp->mx);
 
         if (mtmp->ispriest) {
             Flip_coord(EPRI(mtmp)->shrpos);
@@ -617,8 +663,8 @@ flip_level(int flp, boolean extras)
             if (flp & 1)
                 flip_worm_segs_vertical(mtmp, miny, maxy);
             if (flp & 2)
-		flip_worm_segs_horizontal(mtmp, minx, maxx);
-	}
+                flip_worm_segs_horizontal(mtmp, minx, maxx);
+        }
 #if 0   /* not useful unless tracking also gets flipped */
         if (extras) {
             if (mtmp->tame && has_edog(mtmp))
@@ -626,182 +672,196 @@ flip_level(int flp, boolean extras)
         }
 #endif
     }
+    if (extras) { /* #wizfliplevel rather than level creation */
+        for (mtmp = gm.migrating_mons; mtmp; mtmp = mtmp->nmon) {
+            if (mtmp->isgd && on_level(&u.uz, &EGD(mtmp)->gdlevel)) {
+                flip_vault_guard(flp, mtmp, minx, miny, maxx, maxy); /* egd */
+            } else if (mtmp->ispriest
+                       && on_level(&u.uz, &EPRI(mtmp)->shrlevel)) {
+                Flip_coord(EPRI(mtmp)->shrpos); /* priest's altar */
+            } else if (mtmp->isshk
+                       && on_level(&u.uz, &ESHK(mtmp)->shoplevel)) {
+                Flip_coord(ESHK(mtmp)->shk); /* shk's preferred spot */
+                Flip_coord(ESHK(mtmp)->shd); /* shop door */
+            }
+        }
+    }
 
     /* engravings */
     for (etmp = head_engr; etmp; etmp = etmp->nxt_engr) {
-	if (flp & 1)
-	    etmp->engr_y = FlipY(etmp->engr_y);
-	if (flp & 2)
-	    etmp->engr_x = FlipX(etmp->engr_x);
+        if (flp & 1)
+            etmp->engr_y = FlipY(etmp->engr_y);
+        if (flp & 2)
+            etmp->engr_x = FlipX(etmp->engr_x);
     }
 
     /* level (teleport) regions */
-    for (i = 0; i < g.num_lregions; i++) {
-	if (flp & 1) {
-	    g.lregions[i].inarea.y1 = FlipY(g.lregions[i].inarea.y1);
-	    g.lregions[i].inarea.y2 = FlipY(g.lregions[i].inarea.y2);
-	    if (g.lregions[i].inarea.y1 > g.lregions[i].inarea.y2) {
-		itmp = g.lregions[i].inarea.y1;
-		g.lregions[i].inarea.y1 = g.lregions[i].inarea.y2;
-		g.lregions[i].inarea.y2 = itmp;
-	    }
-
-	    g.lregions[i].delarea.y1 = FlipY(g.lregions[i].delarea.y1);
-	    g.lregions[i].delarea.y2 = FlipY(g.lregions[i].delarea.y2);
-	    if (g.lregions[i].delarea.y1 > g.lregions[i].delarea.y2) {
-		itmp = g.lregions[i].delarea.y1;
-		g.lregions[i].delarea.y1 = g.lregions[i].delarea.y2;
-		g.lregions[i].delarea.y2 = itmp;
-	    }
-	}
-	if (flp & 2) {
-	    g.lregions[i].inarea.x1 = FlipX(g.lregions[i].inarea.x1);
-	    g.lregions[i].inarea.x2 = FlipX(g.lregions[i].inarea.x2);
-	    if (g.lregions[i].inarea.x1 > g.lregions[i].inarea.x2) {
-		itmp = g.lregions[i].inarea.x1;
-		g.lregions[i].inarea.x1 = g.lregions[i].inarea.x2;
-		g.lregions[i].inarea.x2 = itmp;
-	    }
-
-	    g.lregions[i].delarea.x1 = FlipX(g.lregions[i].delarea.x1);
-	    g.lregions[i].delarea.x2 = FlipX(g.lregions[i].delarea.x2);
-	    if (g.lregions[i].delarea.x1 > g.lregions[i].delarea.x2) {
-		itmp = g.lregions[i].delarea.x1;
-		g.lregions[i].delarea.x1 = g.lregions[i].delarea.x2;
-		g.lregions[i].delarea.x2 = itmp;
-	    }
-	}
-    }
-
-    /* regions (poison clouds, etc) */
-    for (i = 0; i < g.n_regions; i++) {
-        int j, tmp1, tmp2;
+    for (i = 0; i < gn.num_lregions; i++) {
         if (flp & 1) {
-            tmp1 = FlipY(g.regions[i]->bounding_box.ly);
-            tmp2 = FlipY(g.regions[i]->bounding_box.hy);
-            g.regions[i]->bounding_box.ly = min(tmp1, tmp2);
-            g.regions[i]->bounding_box.hy = max(tmp1, tmp2);
-            for (j = 0; j < g.regions[i]->nrects; j++) {
-                tmp1 = FlipY(g.regions[i]->rects[j].ly);
-                tmp2 = FlipY(g.regions[i]->rects[j].hy);
-                g.regions[i]->rects[j].ly = min(tmp1, tmp2);
-                g.regions[i]->rects[j].hy = max(tmp1, tmp2);
+            gl.lregions[i].inarea.y1 = FlipY(gl.lregions[i].inarea.y1);
+            gl.lregions[i].inarea.y2 = FlipY(gl.lregions[i].inarea.y2);
+            if (gl.lregions[i].inarea.y1 > gl.lregions[i].inarea.y2) {
+                itmp = gl.lregions[i].inarea.y1;
+                gl.lregions[i].inarea.y1 = gl.lregions[i].inarea.y2;
+                gl.lregions[i].inarea.y2 = itmp;
+            }
+
+            gl.lregions[i].delarea.y1 = FlipY(gl.lregions[i].delarea.y1);
+            gl.lregions[i].delarea.y2 = FlipY(gl.lregions[i].delarea.y2);
+            if (gl.lregions[i].delarea.y1 > gl.lregions[i].delarea.y2) {
+                itmp = gl.lregions[i].delarea.y1;
+                gl.lregions[i].delarea.y1 = gl.lregions[i].delarea.y2;
+                gl.lregions[i].delarea.y2 = itmp;
             }
         }
         if (flp & 2) {
-            tmp1 = FlipX(g.regions[i]->bounding_box.lx);
-            tmp2 = FlipX(g.regions[i]->bounding_box.hx);
-            g.regions[i]->bounding_box.lx = min(tmp1, tmp2);
-            g.regions[i]->bounding_box.hx = max(tmp1, tmp2);
-            for (j = 0; j < g.regions[i]->nrects; j++) {
-                tmp1 = FlipX(g.regions[i]->rects[j].lx);
-                tmp2 = FlipX(g.regions[i]->rects[j].hx);
-                g.regions[i]->rects[j].lx = min(tmp1, tmp2);
-                g.regions[i]->rects[j].hx = max(tmp1, tmp2);
+            gl.lregions[i].inarea.x1 = FlipX(gl.lregions[i].inarea.x1);
+            gl.lregions[i].inarea.x2 = FlipX(gl.lregions[i].inarea.x2);
+            if (gl.lregions[i].inarea.x1 > gl.lregions[i].inarea.x2) {
+                itmp = gl.lregions[i].inarea.x1;
+                gl.lregions[i].inarea.x1 = gl.lregions[i].inarea.x2;
+                gl.lregions[i].inarea.x2 = itmp;
+            }
+
+            gl.lregions[i].delarea.x1 = FlipX(gl.lregions[i].delarea.x1);
+            gl.lregions[i].delarea.x2 = FlipX(gl.lregions[i].delarea.x2);
+            if (gl.lregions[i].delarea.x1 > gl.lregions[i].delarea.x2) {
+                itmp = gl.lregions[i].delarea.x1;
+                gl.lregions[i].delarea.x1 = gl.lregions[i].delarea.x2;
+                gl.lregions[i].delarea.x2 = itmp;
+            }
+        }
+    }
+
+    /* regions (poison clouds, etc) */
+    for (i = 0; i < gn.n_regions; i++) {
+        int j, tmp1, tmp2;
+        if (flp & 1) {
+            tmp1 = FlipY(gr.regions[i]->bounding_box.ly);
+            tmp2 = FlipY(gr.regions[i]->bounding_box.hy);
+            gr.regions[i]->bounding_box.ly = min(tmp1, tmp2);
+            gr.regions[i]->bounding_box.hy = max(tmp1, tmp2);
+            for (j = 0; j < gr.regions[i]->nrects; j++) {
+                tmp1 = FlipY(gr.regions[i]->rects[j].ly);
+                tmp2 = FlipY(gr.regions[i]->rects[j].hy);
+                gr.regions[i]->rects[j].ly = min(tmp1, tmp2);
+                gr.regions[i]->rects[j].hy = max(tmp1, tmp2);
+            }
+        }
+        if (flp & 2) {
+            tmp1 = FlipX(gr.regions[i]->bounding_box.lx);
+            tmp2 = FlipX(gr.regions[i]->bounding_box.hx);
+            gr.regions[i]->bounding_box.lx = min(tmp1, tmp2);
+            gr.regions[i]->bounding_box.hx = max(tmp1, tmp2);
+            for (j = 0; j < gr.regions[i]->nrects; j++) {
+                tmp1 = FlipX(gr.regions[i]->rects[j].lx);
+                tmp2 = FlipX(gr.regions[i]->rects[j].hx);
+                gr.regions[i]->rects[j].lx = min(tmp1, tmp2);
+                gr.regions[i]->rects[j].hx = max(tmp1, tmp2);
             }
         }
     }
 
     /* rooms */
-    for (sroom = &g.rooms[0]; ; sroom++) {
-	if (sroom->hx < 0)
+    for (sroom = &gr.rooms[0]; ; sroom++) {
+        if (sroom->hx < 0)
             break;
 
-	if (flp & 1) {
-	    sroom->ly = FlipY(sroom->ly);
-	    sroom->hy = FlipY(sroom->hy);
-	    if (sroom->ly > sroom->hy) {
-		itmp = sroom->ly;
-		sroom->ly = sroom->hy;
-		sroom->hy = itmp;
-	    }
-	}
-	if (flp & 2) {
-	    sroom->lx = FlipX(sroom->lx);
-	    sroom->hx = FlipX(sroom->hx);
-	    if (sroom->lx > sroom->hx) {
-		itmp = sroom->lx;
-		sroom->lx = sroom->hx;
-		sroom->hx = itmp;
-	    }
-	}
+        if (flp & 1) {
+            sroom->ly = FlipY(sroom->ly);
+            sroom->hy = FlipY(sroom->hy);
+            if (sroom->ly > sroom->hy) {
+                itmp = sroom->ly;
+                sroom->ly = sroom->hy;
+                sroom->hy = itmp;
+            }
+        }
+        if (flp & 2) {
+            sroom->lx = FlipX(sroom->lx);
+            sroom->hx = FlipX(sroom->hx);
+            if (sroom->lx > sroom->hx) {
+                itmp = sroom->lx;
+                sroom->lx = sroom->hx;
+                sroom->hx = itmp;
+            }
+        }
 
-	if (sroom->nsubrooms)
-	    for (i = 0; i < sroom->nsubrooms; i++) {
-		struct mkroom *rroom = sroom->sbrooms[i];
+        if (sroom->nsubrooms)
+            for (i = 0; i < sroom->nsubrooms; i++) {
+                struct mkroom *rroom = sroom->sbrooms[i];
 
-		if (flp & 1) {
-		    rroom->ly = FlipY(rroom->ly);
-		    rroom->hy = FlipY(rroom->hy);
-		    if (rroom->ly > rroom->hy) {
-			itmp = rroom->ly;
-			rroom->ly = rroom->hy;
-			rroom->hy = itmp;
-		    }
-		}
-		if (flp & 2) {
-		    rroom->lx = FlipX(rroom->lx);
-		    rroom->hx = FlipX(rroom->hx);
-		    if (rroom->lx > rroom->hx) {
-			itmp = rroom->lx;
-			rroom->lx = rroom->hx;
-			rroom->hx = itmp;
-		    }
-		}
-	    }
+                if (flp & 1) {
+                    rroom->ly = FlipY(rroom->ly);
+                    rroom->hy = FlipY(rroom->hy);
+                    if (rroom->ly > rroom->hy) {
+                        itmp = rroom->ly;
+                        rroom->ly = rroom->hy;
+                        rroom->hy = itmp;
+                    }
+                }
+                if (flp & 2) {
+                    rroom->lx = FlipX(rroom->lx);
+                    rroom->hx = FlipX(rroom->hx);
+                    if (rroom->lx > rroom->hx) {
+                        itmp = rroom->lx;
+                        rroom->lx = rroom->hx;
+                        rroom->hx = itmp;
+                    }
+                }
+            }
     }
 
     /* doors */
-    for (i = 0; i < g.doorindex; i++) {
-	Flip_coord(g.doors[i]);
+    for (i = 0; i < gd.doorindex; i++) {
+        Flip_coord(gd.doors[i]);
     }
 
     /* the map */
     if (flp & 1) {
-	for (x = minx; x <= maxx; x++)
-	    for (y = miny; y < (miny + ((maxy - miny + 1) / 2)); y++) {
+        for (x = minx; x <= maxx; x++)
+            for (y = miny; y < (miny + ((maxy - miny + 1) / 2)); y++) {
                 int ny = FlipY(y);
 
-		flip_drawbridge_vertical(&levl[x][y]);
-		flip_drawbridge_vertical(&levl[x][ny]);
+                flip_drawbridge_vertical(&levl[x][y]);
+                flip_drawbridge_vertical(&levl[x][ny]);
 
-		trm = levl[x][y];
-		levl[x][y] = levl[x][ny];
-		levl[x][ny] = trm;
+                trm = levl[x][y];
+                levl[x][y] = levl[x][ny];
+                levl[x][ny] = trm;
 
-		otmp = g.level.objects[x][y];
-		g.level.objects[x][y] = g.level.objects[x][ny];
-		g.level.objects[x][ny] = otmp;
+                otmp = gl.level.objects[x][y];
+                gl.level.objects[x][y] = gl.level.objects[x][ny];
+                gl.level.objects[x][ny] = otmp;
 
-		mtmp = g.level.monsters[x][y];
-		g.level.monsters[x][y] = g.level.monsters[x][ny];
-		g.level.monsters[x][ny] = mtmp;
-	    }
+                mtmp = gl.level.monsters[x][y];
+                gl.level.monsters[x][y] = gl.level.monsters[x][ny];
+                gl.level.monsters[x][ny] = mtmp;
+            }
     }
     if (flp & 2) {
-	for (x = minx; x < (minx + ((maxx - minx + 1) / 2)); x++)
-	    for (y = miny; y <= maxy; y++) {
+        for (x = minx; x < (minx + ((maxx - minx + 1) / 2)); x++)
+            for (y = miny; y <= maxy; y++) {
                 int nx = FlipX(x);
 
-		flip_drawbridge_horizontal(&levl[x][y]);
-		flip_drawbridge_horizontal(&levl[nx][y]);
+                flip_drawbridge_horizontal(&levl[x][y]);
+                flip_drawbridge_horizontal(&levl[nx][y]);
 
-		trm = levl[x][y];
-		levl[x][y] = levl[nx][y];
-		levl[nx][y] = trm;
+                trm = levl[x][y];
+                levl[x][y] = levl[nx][y];
+                levl[nx][y] = trm;
 
-		otmp = g.level.objects[x][y];
-		g.level.objects[x][y] = g.level.objects[nx][y];
-		g.level.objects[nx][y] = otmp;
+                otmp = gl.level.objects[x][y];
+                gl.level.objects[x][y] = gl.level.objects[nx][y];
+                gl.level.objects[nx][y] = otmp;
 
-		mtmp = g.level.monsters[x][y];
-		g.level.monsters[x][y] = g.level.monsters[nx][y];
-		g.level.monsters[nx][y] = mtmp;
-	    }
+                mtmp = gl.level.monsters[x][y];
+                gl.level.monsters[x][y] = gl.level.monsters[nx][y];
+                gl.level.monsters[nx][y] = mtmp;
+            }
     }
 
     /* timed effects */
-    for (timer = g.timer_base; timer; timer = timer->next) {
+    for (timer = gt.timer_base; timer; timer = timer->next) {
         if (timer->func_index == MELT_ICE_AWAY) {
             long ty = timer->arg.a_long & 0xffff;
             long tx = (timer->arg.a_long >> 16) & 0xffff;
@@ -828,7 +888,7 @@ flip_level(int flp, boolean extras)
         if (ball_active && !ball_fliparea)
             placebc();
         Flip_coord(iflags.travelcc);
-        Flip_coord(g.context.digging.pos);
+        Flip_coord(gc.context.digging.pos);
     }
 
     fix_wall_spines(1, 0, COLNO - 1, ROWNO - 1);
@@ -838,6 +898,42 @@ flip_level(int flp, boolean extras)
         flip_visuals(flp, minx, miny, maxx, maxy);
     }
     vision_reset();
+}
+
+/* for #wizfliplevel, flip guard's egd data; not needed for level creation */
+static void
+flip_vault_guard(
+    int flp, /* 1: transpose vertically, 2: transpose horizontally, 3: both */
+    struct monst *grd, /* the vault guard, has monst->mextra->egd data */
+    coordxy minx, coordxy miny, /* needed by FlipX(), FlipY(), */
+    coordxy maxx, coordxy maxy) /* and inFlipArea() macros     */
+{
+    int i;
+    struct egd *egd = EGD(grd);
+
+    if (inFlipArea(egd->gdx, egd->gdy)) {
+        if (flp & 1)
+            egd->gdy = FlipY(egd->gdy);
+        if (flp & 2)
+            egd->gdx = FlipX(egd->gdx);
+    }
+    if (inFlipArea(egd->ogx, egd->ogy)) {
+        if (flp & 1)
+            egd->ogy = FlipY(egd->ogy);
+        if (flp & 2)
+            egd->ogx = FlipX(egd->ogx);
+    }
+    for (i = egd->fcbeg; i < egd->fcend; ++i) {
+        coordxy fx = egd->fakecorr[i].fx, fy = egd->fakecorr[i].fy;
+
+        if (inFlipArea(fx, fy)) {
+            if (flp & 1)
+                egd->fakecorr[i].fy = FlipY(fy);
+            if (flp & 2)
+                egd->fakecorr[i].fx = FlipX(fx);
+        }
+    }
+    return;
 }
 
 #undef FlipX
@@ -866,7 +962,7 @@ flip_level_rnd(int flp, boolean extras)
 
 
 static void
-sel_set_wall_property(int x, int y, genericptr_t arg)
+sel_set_wall_property(coordxy x, coordxy y, genericptr_t arg)
 {
     int prop = *(int *)arg;
 
@@ -881,9 +977,9 @@ sel_set_wall_property(int x, int y, genericptr_t arg)
  * Make walls of the area (x1, y1, x2, y2) non diggable/non passwall-able
  */
 static void
-set_wall_property(xchar x1, xchar y1, xchar x2, xchar y2, int prop)
+set_wall_property(coordxy x1, coordxy y1, coordxy x2, coordxy y2, int prop)
 {
-    register xchar x, y;
+    register coordxy x, y;
 
     x1 = max(x1, 1);
     x2 = min(x2, COLNO - 1);
@@ -901,16 +997,16 @@ set_wall_property(xchar x1, xchar y1, xchar x2, xchar y2, int prop)
 static void
 count_features(void)
 {
-    xchar x, y;
+    coordxy x, y;
 
-    g.level.flags.nfountains = g.level.flags.nsinks = 0;
+    gl.level.flags.nfountains = gl.level.flags.nsinks = 0;
     for (y = 0; y < ROWNO; y++)
         for (x = 0; x < COLNO; x++) {
             int typ = levl[x][y].typ;
             if (typ == FOUNTAIN)
-                g.level.flags.nfountains++;
+                gl.level.flags.nfountains++;
             else if (typ == SINK)
-                g.level.flags.nsinks++;
+                gl.level.flags.nsinks++;
         }
 }
 
@@ -922,7 +1018,7 @@ remove_boundary_syms(void)
      * are laid out.  CROSSWALLS are used to specify "invisible"
      * boundaries where DOOR syms look bad or aren't desirable.
      */
-    xchar x, y;
+    coordxy x, y;
     boolean has_bounds = FALSE;
 
     for (x = 0; x < COLNO - 1; x++)
@@ -932,8 +1028,8 @@ remove_boundary_syms(void)
                 break;
             }
     if (has_bounds) {
-        for (x = 0; x < g.x_maze_max; x++)
-            for (y = 0; y < g.y_maze_max; y++)
+        for (x = 0; x < gx.x_maze_max; x++)
+            for (y = 0; y < gy.y_maze_max; y++)
                 if ((levl[x][y].typ == CROSSWALL) && SpLev_Map[x][y])
                     levl[x][y].typ = ROOM;
     }
@@ -990,7 +1086,7 @@ set_door_orientation(int x, int y)
 static boolean
 shared_with_room(int x, int y, struct mkroom *droom)
 {
-    int rmno = (droom - g.rooms) + ROOMOFFSET;
+    int rmno = (droom - gr.rooms) + ROOMOFFSET;
 
     if (!isok(x,y))
         return FALSE;
@@ -1011,9 +1107,9 @@ shared_with_room(int x, int y, struct mkroom *droom)
 static void
 maybe_add_door(int x, int y, struct mkroom* droom)
 {
-    if (droom->hx >= 0 && g.doorindex < DOORMAX
+    if (droom->hx >= 0
         && ((!droom->irregular && inside_room(droom, x, y))
-            || (int) levl[x][y].roomno == (droom - g.rooms) + ROOMOFFSET
+            || (int) levl[x][y].roomno == (droom - gr.rooms) + ROOMOFFSET
             || shared_with_room(x, y, droom))) {
         add_door(x, y, droom);
     }
@@ -1034,10 +1130,10 @@ link_doors_rooms(void)
                    directive, set/clear levl[][].horizontal for it */
                 set_door_orientation(x, y);
 
-                for (tmpi = 0; tmpi < g.nroom; tmpi++) {
-                    maybe_add_door(x, y, &g.rooms[tmpi]);
-                    for (m = 0; m < g.rooms[tmpi].nsubrooms; m++) {
-                        maybe_add_door(x, y, g.rooms[tmpi].sbrooms[m]);
+                for (tmpi = 0; tmpi < gn.nroom; tmpi++) {
+                    maybe_add_door(x, y, &gr.rooms[tmpi]);
+                    for (m = 0; m < gr.rooms[tmpi].nsubrooms; m++) {
+                        maybe_add_door(x, y, gr.rooms[tmpi].sbrooms[m]);
                     }
                 }
             }
@@ -1065,11 +1161,11 @@ rndtrap(void)
             break;
         case LEVEL_TELEP:
         case TELEP_TRAP:
-            if (g.level.flags.noteleport)
+            if (gl.level.flags.noteleport)
                 rtrap = NO_TRAP;
             break;
         case ROCKTRAP:
-            if (g.level.flags.outdoors)
+            if (gl.level.flags.outdoors)
                 rtrap = NO_TRAP;
             /* FALLTHRU */
         case ROLLING_BOULDER_TRAP:
@@ -1082,15 +1178,19 @@ rndtrap(void)
 }
 
 /*
- * Coordinates in special level files are handled specially:
+ * Translate a given coordinate from a special level definition into an actual
+ * location on the map.
  *
- *      if x or y is < 0, we generate a random coordinate.
- *      The "humidity" flag is used to ensure that engravings aren't
- *      created underwater, or eels on dry land.
+ * If x or y is negative, we generate a random coordinate within the area. If
+ * not negative, they are interpreted as relative to the last defined map or
+ * room, and are output as absolute gl.level.locations coordinates.
+ *
+ * The "humidity" flag is used to ensure that engravings aren't created
+ * underwater, or eels on dry land.
  */
 static void
 get_location(
-    xchar *x, xchar *y,
+    coordxy *x, coordxy *y,
     getloc_flags_t humidity,
     struct mkroom *croom)
 {
@@ -1103,10 +1203,10 @@ get_location(
         sx = croom->hx - mx + 1;
         sy = croom->hy - my + 1;
     } else {
-        mx = g.xstart;
-        my = g.ystart;
-        sx = g.xsize;
-        sy = g.ysize;
+        mx = gx.xstart;
+        my = gy.ystart;
+        sx = gx.xsize;
+        sy = gy.ysize;
     }
 
     if (*x >= 0) { /* normal locations */
@@ -1150,24 +1250,24 @@ get_location(
     if (!(humidity & ANY_LOC) && !isok(*x, *y)) {
         if (!(humidity & NO_LOC_WARN)) {
             /*warning("get_location:  (%d,%d) out of bounds", *x, *y);*/
-            *x = g.x_maze_max;
-            *y = g.y_maze_max;
+            *x = gx.x_maze_max;
+            *y = gy.y_maze_max;
         } else {
             *x = *y = -1;
         }
     }
 }
 
-static boolean (*is_ok_location_func)(xchar, xchar) = NULL;
+static boolean (*is_ok_location_func)(coordxy, coordxy) = NULL;
 
 static void
-set_ok_location_func(boolean (*func)(xchar, xchar))
+set_ok_location_func(boolean (*func)(coordxy, coordxy))
 {
     is_ok_location_func = func;
 }
 
 static boolean
-is_ok_location(xchar x, xchar y, getloc_flags_t humidity)
+is_ok_location(coordxy x, coordxy y, getloc_flags_t humidity)
 {
     register int typ = levl[x][y].typ;
 
@@ -1201,7 +1301,7 @@ is_ok_location(xchar x, xchar y, getloc_flags_t humidity)
 }
 
 boolean
-pm_good_location(int x, int y, struct permonst* pm)
+pm_good_location(coordxy x, coordxy y, struct permonst* pm)
 {
     return is_ok_location(x, y, pm_to_humidity(pm));
 }
@@ -1228,7 +1328,7 @@ get_unpacked_coord(long loc, int defhumidity)
 
 void
 get_location_coord(
-    xchar *x, xchar *y,
+    coordxy *x, coordxy *y,
     int humidity,
     struct mkroom *croom,
     long crd)
@@ -1240,6 +1340,7 @@ get_location_coord(
     *y = c.y;
     get_location(x, y, c.getloc_flags | (c.is_random ? NO_LOC_WARN : 0),
                  croom);
+
     if (*x == -1 && *y == -1 && c.is_random)
         get_location(x, y, humidity, croom);
 }
@@ -1249,7 +1350,7 @@ get_location_coord(
  * negative values for x or y means RANDOM!
  */
 static void
-get_room_loc(xchar *x, xchar *y, struct mkroom *croom)
+get_room_loc(coordxy *x, coordxy *y, struct mkroom *croom)
 {
     coord c;
 
@@ -1275,11 +1376,11 @@ get_room_loc(xchar *x, xchar *y, struct mkroom *croom)
  */
 static void
 get_free_room_loc(
-    xchar *x, xchar *y,
+    coordxy *x, coordxy *y,
     struct mkroom *croom,
     packed_coord pos)
 {
-    xchar try_x, try_y;
+    coordxy try_x, try_y;
     register int trycnt = 0;
 
     get_location_coord(&try_x, &try_y, DRY, croom, pos);
@@ -1310,14 +1411,14 @@ get_free_room_loc(
  * some reason. */
 boolean
 check_room(
-    xchar *lowx, xchar *ddx,
-    xchar *lowy, xchar *ddy,
+    coordxy *lowx, coordxy *ddx,
+    coordxy *lowy, coordxy *ddy,
     boolean vault)
 {
     register int x, y, hix = *lowx + *ddx, hiy = *lowy + *ddy;
     register struct rm *lev;
     int xlim, ylim, ymax;
-    xchar s_lowx, s_ddx, s_lowy, s_ddy;
+    coordxy s_lowx, s_ddx, s_lowy, s_ddy;
 
     s_lowx = *lowx; s_ddx = *ddx;
     s_lowy = *lowy; s_ddy = *ddy;
@@ -1337,7 +1438,7 @@ check_room(
     if (hix <= *lowx || hiy <= *lowy)
         return FALSE;
 
-    if (g.in_mk_themerooms && (s_lowx != *lowx) && (s_ddx != *ddx)
+    if (gi.in_mk_themerooms && (s_lowx != *lowx) && (s_ddx != *ddx)
         && (s_lowy != *lowy) && (s_ddy != *ddy))
         return FALSE;
 
@@ -1359,9 +1460,9 @@ check_room(
                 }
                 if (!rn2(3))
                     return FALSE;
-                if (g.in_mk_themerooms)
+                if (gi.in_mk_themerooms)
                     return FALSE;
-                if (g.level.flags.is_maze_lev)
+                if (gl.level.flags.is_maze_lev)
                     return FALSE;
                 if (x < *lowx)
                     *lowx = x + xlim + 1;
@@ -1378,7 +1479,7 @@ check_room(
     *ddx = hix - *lowx;
     *ddy = hiy - *lowy;
 
-    if (g.in_mk_themerooms && (s_lowx != *lowx) && (s_ddx != *ddx)
+    if (gi.in_mk_themerooms && (s_lowx != *lowx) && (s_ddx != *ddx)
         && (s_lowy != *lowy) && (s_ddy != *ddy))
         return FALSE;
 
@@ -1398,11 +1499,11 @@ check_room(
  *   a random value within the screen bounds.
  *   w, h: Width and height of the room. If _either_ is -1, width is set to
  *   d15 + 2 and height is set to d8 + 1.
- *   xal, yal: Room alignment (should be RM_LEFT, RM_RIGHT, RM_CENTER / RM_TOP,
- *     RM_BOTTOM, RM_CENTER). Define what point in the room is represented by x
- *     and y; e.g. using RM_CENTER,RM_CENTER means that (x,y) should be the
- *     center of the room. If either is -1 it will pick one of the three
- *     randomly.
+ *   xal, yal: Room alignment (should be SPLEV_LEFT, SPLEV_RIGHT, SPLEV_CENTER /
+ *     SPLEV_TOP, SPLEV_BOTTOM, SPLEV_CENTER). Define what point in the room is
+ *     represented by x and y; e.g. using SPLEV_CENTER,SPLEV_CENTER means that
+ *     (x,y) should be the center of the room. If either is -1 it will pick one
+ *     of the three randomly.
  *   rtype: The room type. If -1, it will choose OROOM (*not* a random special
  *     room type).
  *   rlit: Whether to light the room. If -1, it will choose based on the level
@@ -1411,12 +1512,12 @@ check_room(
  */
 boolean
 create_room(
-    xchar x, xchar y,
-    xchar w, xchar h,
-    xchar xal, xchar yal,
-    xchar rtype, xchar rlit)
+    coordxy x, coordxy y,
+    coordxy w, coordxy h,
+    coordxy xal, coordxy yal,
+    xint16 rtype, xint16 rlit)
 {
-    xchar xabs = 0, yabs = 0;
+    coordxy xabs = 0, yabs = 0;
     int wtmp, htmp, xaltmp, yaltmp, xtmp, ytmp;
     NhRect *r1 = 0, r2;
     int trycnt = 0;
@@ -1445,7 +1546,7 @@ create_room(
      * FIXME: if there are no random parameters and the room cannot be created
      * with those parameters, it tries 100 times anyway. */
     do {
-        xchar xborder, yborder;
+        coordxy xborder, yborder;
 
         wtmp = w;
         htmp = h;
@@ -1460,7 +1561,7 @@ create_room(
             || vault) {
             /* hx, hy, lx, ly: regular rectangle bounds
              * dx, dy: tentative room dimensions minus 1 */
-            xchar hx, hy, lx, ly, dx, dy;
+            coordxy hx, hy, lx, ly, dx, dy;
 
             r1 = rnd_rect(); /* Get a random rectangle */
 
@@ -1538,10 +1639,10 @@ create_room(
              * more or less just a horizontal string of rooms, which
              * occasionally does happen under this algorithm.
              */
-            if (ly == 0 && hy >= (ROWNO - 1) && (!g.nroom || !rn2(g.nroom))
+            if (ly == 0 && hy >= (ROWNO - 1) && (!gn.nroom || !rn2(gn.nroom))
                 && (yabs + dy > ROWNO / 2)) {
                 yabs = rn1(3, 2);
-                if (g.nroom < 4 && dy > 1)
+                if (gn.nroom < 4 && dy > 1)
                     dy--;
             }
 
@@ -1565,7 +1666,7 @@ create_room(
         } else { /* Only some parameters are random */
             xabs = (xtmp < 0) ? rn2(COLNO) : xtmp;
             yabs = (ytmp < 0) ? rn2(COLNO) : ytmp;
-            xchar dx, dy;
+            coordxy dx, dy;
 
             if (wtmp < 0 || htmp < 0) { /* Size is RANDOM */
                 wtmp = rn1(15, 3);
@@ -1577,22 +1678,22 @@ create_room(
                 yaltmp = rnd(3);
 
             switch (xaltmp) {
-            case RM_LEFT:
+            case SPLEV_LEFT:
                 break;
-            case RM_RIGHT:
+            case SPLEV_RIGHT:
                 xabs -= wtmp;
                 break;
-            case RM_CENTER:
+            case SPLEV_CENTER:
                 xabs -= wtmp / 2;
                 break;
             }
             switch (yaltmp) {
-            case RM_TOP:
+            case SPLEV_TOP:
                 break;
-            case RM_BOTTOM:
+            case SPLEV_BOTTOM:
                 yabs -= htmp;
                 break;
-            case RM_CENTER:
+            case SPLEV_CENTER:
                 yabs -= htmp / 2;
                 break;
             }
@@ -1632,7 +1733,7 @@ create_room(
 
     if (!vault) {
         /* set this room's id number to be unique for joining purposes */
-        g.smeq[g.nroom] = g.nroom;
+        gs.smeq[gn.nroom] = gn.nroom;
         /* actually add the room, setting the terrain properly */
         add_room(xabs, yabs, xabs + wtmp - 1, yabs + htmp - 1, rlit, rtype,
                  FALSE);
@@ -1640,8 +1741,8 @@ create_room(
         /* vaults are isolated so don't get added to smeq; also apparently
          * don't have add_room() called on them. The lx and ly is set so that
          * makerooms() can store them in vault_x and vault_y. */
-        g.rooms[g.nroom].lx = xabs;
-        g.rooms[g.nroom].ly = yabs;
+        gr.rooms[gn.nroom].lx = xabs;
+        gr.rooms[gn.nroom].ly = yabs;
     }
     return TRUE;
 }
@@ -1653,11 +1754,11 @@ create_room(
 static boolean
 create_subroom(
     struct mkroom *proom,
-    xchar x, xchar y,
-    xchar w, xchar h,
-    xchar rtype, xchar rlit)
+    coordxy x, coordxy y,
+    coordxy w, coordxy h,
+    xint16 rtype, xint16 rlit)
 {
-    xchar width, height;
+    coordxy width, height;
 
     width = proom->hx - proom->lx + 1;
     height = proom->hy - proom->ly + 1;
@@ -1673,9 +1774,9 @@ create_subroom(
     if (h == -1)
         h = rnd(height - 3);
     if (x == -1)
-        x = rnd(width - w - 1) - 1;
+        x = rnd(width - w);
     if (y == -1)
-        y = rnd(height - h - 1) - 1;
+        y = rnd(height - h);
     if (x == 1)
         x = 0;
     if (y == 1)
@@ -1770,11 +1871,15 @@ create_door(room_door *dd, struct mkroom *broom)
 static void
 create_trap(spltrap* t, struct mkroom* croom)
 {
-    xchar x = -1, y = -1;
+    coordxy x = -1, y = -1;
     coord tm;
     int mktrap_flags = MKTRAP_MAZEFLAG;
 
-    if (croom) {
+    if (t->type == VIBRATING_SQUARE) {
+        pick_vibrasquare_location();
+        maketrap(gi.inv_pos.x, gi.inv_pos.y, VIBRATING_SQUARE);
+        return;
+    } else if (croom) {
         get_free_room_loc(&x, &y, croom, t->coord);
     } else {
         int trycnt = 0;
@@ -1791,6 +1896,8 @@ create_trap(spltrap* t, struct mkroom* croom)
         mktrap_flags |= MKTRAP_NOSPIDERONWEB;
     if (t->seen)
         mktrap_flags |= MKTRAP_SEEN;
+    if (t->novictim)
+        mktrap_flags |= MKTRAP_NOVICTIM;
 
     tm.x = x;
     tm.y = y;
@@ -1811,7 +1918,7 @@ noncoalignment(aligntyp alignment)
 
 /* attempt to screen out locations where a mimic-as-boulder shouldn't occur */
 static boolean
-m_bad_boulder_spot(int x, int y)
+m_bad_boulder_spot(coordxy x, coordxy y)
 {
     struct rm *lev;
 
@@ -1878,7 +1985,7 @@ static void
 create_monster(monster* m, struct mkroom* croom)
 {
     struct monst *mtmp;
-    xchar x, y;
+    coordxy x, y;
     char class;
     unsigned int amask;
     coord cc;
@@ -1901,7 +2008,7 @@ create_monster(monster* m, struct mkroom* croom)
         pm = (struct permonst *) 0;
     else if (m->id != NON_PM) {
         pm = &mons[m->id];
-        g_mvflags = (unsigned) g.mvitals[monsndx(pm)].mvflags;
+        g_mvflags = (unsigned) gm.mvitals[monsndx(pm)].mvflags;
         if ((pm->geno & G_UNIQ) && (g_mvflags & G_EXTINCT))
             return;
         else if (g_mvflags & G_GONE)    /* genocided or extinct */
@@ -2135,7 +2242,7 @@ create_monster(monster* m, struct mkroom* croom)
             mondied(mtmp);
             /* kludge for this: it didn't actually die while the player was
              * around, so revert mondead() incrementing this */
-            g.mvitals[monsndx(mtmp->data)].died--;
+            gm.mvitals[monsndx(mtmp->data)].died--;
         }
         if (m->waiting) {
             mtmp->mstrategy |= STRAT_WAITFORU;
@@ -2146,11 +2253,11 @@ create_monster(monster* m, struct mkroom* croom)
 /*
  * Create an object in a room.
  */
-static void
+static struct obj *
 create_object(object* o, struct mkroom* croom)
 {
     struct obj *otmp;
-    xchar x, y;
+    coordxy x, y;
     char c;
     boolean named; /* has a name been supplied in level description? */
 
@@ -2234,11 +2341,14 @@ create_object(object* o, struct mkroom* croom)
             otmp->oeroded = (o->eroded % 4);
             otmp->oeroded2 = ((o->eroded >> 2) % 4);
         }
+    } else {
+        otmp->oeroded = otmp->oeroded2 = 0;
+        otmp->oerodeproof = 0;
     }
     if (o->recharged)
         otmp->recharged = (o->recharged % 8);
-    if (o->locked) {
-        otmp->olocked = 1;
+    if (o->locked == 0 || o->locked == 1) {
+        otmp->olocked = o->locked;
     } else if (o->broken) {
         otmp->obroken = 1;
         otmp->olocked = 0; /* obj generation may set */
@@ -2251,6 +2361,10 @@ create_object(object* o, struct mkroom* croom)
     }
     if (o->greased)
         otmp->greased = 1;
+    else {
+        otmp->greased = 0;
+    }
+
     if (o->material > 0)
         set_material(otmp, o->material);
 
@@ -2294,7 +2408,7 @@ create_object(object* o, struct mkroom* croom)
                     artifact_exists(otmp, safe_oname(otmp), FALSE,
                                     ONAME_NO_FLAGS); /* flags don't matter */
                 obfree(otmp, NULL);
-                return;
+                return NULL;
             }
         }
     }
@@ -2351,18 +2465,18 @@ create_object(object* o, struct mkroom* croom)
         static const char prize_warning[] = "multiple prizes on %s level";
 
         if (Is_mineend_level(&u.uz)) {
-            if (!g.context.achieveo.mines_prize_oid) {
-                g.context.achieveo.mines_prize_oid = otmp->o_id;
-                g.context.achieveo.mines_prize_otyp = otmp->otyp;
+            if (!gc.context.achieveo.mines_prize_oid) {
+                gc.context.achieveo.mines_prize_oid = otmp->o_id;
+                gc.context.achieveo.mines_prize_otyp = otmp->otyp;
                 /* prevent stacking; cleared when achievement is recorded */
                 otmp->nomerge = 1;
             } else {
                 impossible(prize_warning, "mines end");
             }
         } else if (Is_sokoend_level(&u.uz)) {
-            if (!g.context.achieveo.soko_prize_oid) {
-                g.context.achieveo.soko_prize_oid = otmp->o_id;
-                g.context.achieveo.soko_prize_otyp = otmp->otyp;
+            if (!gc.context.achieveo.soko_prize_oid) {
+                gc.context.achieveo.soko_prize_oid = otmp->o_id;
+                gc.context.achieveo.soko_prize_otyp = otmp->otyp;
                 otmp->nomerge = 1; /* redundant; Sokoban prizes don't stack */
             } else {
                 impossible(prize_warning, "sokoban end");
@@ -2386,11 +2500,14 @@ create_object(object* o, struct mkroom* croom)
             boolean dealloced;
 
             (void) bury_an_obj(otmp, &dealloced);
-            if (dealloced && container_idx) {
-                container_obj[container_idx - 1] = NULL;
+            if (dealloced) {
+                if (container_idx)
+                    container_obj[container_idx - 1] = NULL;
+                otmp = NULL;
             }
         }
     }
+    return otmp;
 }
 
 /*
@@ -2400,7 +2517,7 @@ static void
 create_altar(altar* a, struct mkroom* croom)
 {
     schar sproom;
-    xchar x = -1, y = -1;
+    coordxy x = -1, y = -1;
     unsigned int amask;
     boolean croom_is_temple = TRUE;
 
@@ -2411,7 +2528,7 @@ create_altar(altar* a, struct mkroom* croom)
     } else {
         get_location_coord(&x, &y, DRY, croom, a->coord);
         if ((sproom = (schar) *in_rooms(x, y, TEMPLE)) != 0)
-            croom = &g.rooms[sproom - ROOMOFFSET];
+            croom = &gr.rooms[sproom - ROOMOFFSET];
         else
             croom_is_temple = FALSE;
     }
@@ -2435,7 +2552,7 @@ create_altar(altar* a, struct mkroom* croom)
         levl[x][y].altarmask |= AM_SHRINE;
         if (a->shrine == 2) /* high altar or sanctum */
             levl[x][y].altarmask |= AM_SANCTUM;
-        g.level.flags.has_temple = TRUE;
+        gl.level.flags.has_temple = TRUE;
     }
 }
 
@@ -2445,8 +2562,8 @@ create_altar(altar* a, struct mkroom* croom)
 static boolean
 search_door(
     struct mkroom* croom,
-    xchar *x, xchar * y,
-    xchar wall, int cnt)
+    coordxy *x, coordxy * y,
+    xint16 wall, int cnt)
 {
     int dx, dy;
     int xx, yy;
@@ -2628,11 +2745,11 @@ create_corridor(corridor *c)
         impossible("create_corridor to/from a random wall");
         return;
     }
-    if (!search_door(&g.rooms[c->src.room], &org.x, &org.y, c->src.wall,
+    if (!search_door(&gr.rooms[c->src.room], &org.x, &org.y, c->src.wall,
                      c->src.door))
         return;
     if (c->dest.room != -1) {
-        if (!search_door(&g.rooms[c->dest.room],
+        if (!search_door(&gr.rooms[c->dest.room],
                          &dest.x, &dest.y, c->dest.wall, c->dest.door))
             return;
         switch (c->src.wall) {
@@ -2695,7 +2812,7 @@ fill_special_room(struct mkroom* croom)
         /* Shop ? */
         if (croom->rtype >= SHOPBASE) {
             stock_room(croom->rtype - SHOPBASE, croom);
-            g.level.flags.has_shop = TRUE;
+            gl.level.flags.has_shop = TRUE;
             return;
         }
 
@@ -2723,28 +2840,28 @@ fill_special_room(struct mkroom* croom)
     }
     switch (croom->rtype) {
     case VAULT:
-        g.level.flags.has_vault = TRUE;
+        gl.level.flags.has_vault = TRUE;
         break;
     case ZOO:
-        g.level.flags.has_zoo = TRUE;
+        gl.level.flags.has_zoo = TRUE;
         break;
     case COURT:
-        g.level.flags.has_court = TRUE;
+        gl.level.flags.has_court = TRUE;
         break;
     case MORGUE:
-        g.level.flags.has_morgue = TRUE;
+        gl.level.flags.has_morgue = TRUE;
         break;
     case BEEHIVE:
-        g.level.flags.has_beehive = TRUE;
+        gl.level.flags.has_beehive = TRUE;
         break;
     case BARRACKS:
-        g.level.flags.has_barracks = TRUE;
+        gl.level.flags.has_barracks = TRUE;
         break;
     case TEMPLE:
-        g.level.flags.has_temple = TRUE;
+        gl.level.flags.has_temple = TRUE;
         break;
     case SWAMP:
-        g.level.flags.has_swamp = TRUE;
+        gl.level.flags.has_swamp = TRUE;
         break;
     }
 }
@@ -2754,13 +2871,13 @@ build_room(room *r, struct mkroom* mkr)
 {
     boolean okroom;
     struct mkroom *aroom;
-    xchar rtype = (!r->chance || rn2(100) < r->chance) ? r->rtype : OROOM;
+    xint16 rtype = (!r->chance || rn2(100) < r->chance) ? r->rtype : OROOM;
 
     if (mkr) {
-        aroom = &g.subrooms[g.nsubroom];
+        aroom = &gs.subrooms[gn.nsubroom];
         okroom = create_subroom(mkr, r->x, r->y, r->w, r->h, rtype, r->rlit);
     } else {
-        aroom = &g.rooms[g.nroom];
+        aroom = &gr.rooms[gn.nroom];
         okroom = create_room(r->x, r->y, r->w, r->h, r->xalign, r->yalign,
                              rtype, r->rlit);
     }
@@ -2809,9 +2926,9 @@ light_region(region* tmpregion)
 }
 
 void
-wallify_map(int x1, int y1, int x2, int y2)
+wallify_map(coordxy x1, coordxy y1, coordxy x2, coordxy y2)
 {
-    int x, y, xx, yy, lo_xx, lo_yy, hi_xx, hi_yy;
+    coordxy x, y, xx, yy, lo_xx, lo_yy, hi_xx, hi_yy;
 
     y1 = max(y1, 0);
     x1 = max(x1, 1);
@@ -2855,14 +2972,14 @@ maze1xy(coord *m, int humidity)
        `humidity' screening might drastically change the chances */
 
     do {
-        x = rn1(g.x_maze_max - 3, 3);
-        y = rn1(g.y_maze_max - 3, 3);
+        x = rn1(gx.x_maze_max - 3, 3);
+        y = rn1(gy.y_maze_max - 3, 3);
         if (--tryct < 0)
             break; /* give up */
     } while (!(x % 2) || !(y % 2) || SpLev_Map[x][y]
-             || !is_ok_location((xchar) x, (xchar) y, humidity));
+             || !is_ok_location((coordxy) x, (coordxy) y, humidity));
 
-    m->x = (xchar) x, m->y = (xchar) y;
+    m->x = (coordxy) x, m->y = (coordxy) y;
 }
 
 /*
@@ -2876,14 +2993,14 @@ static void
 fill_empty_maze(void)
 {
     int mapcountmax, mapcount, mapfact;
-    xchar x, y;
+    coordxy x, y;
     coord mm;
 
-    mapcountmax = mapcount = (g.x_maze_max - 2) * (g.y_maze_max - 2);
+    mapcountmax = mapcount = (gx.x_maze_max - 2) * (gy.y_maze_max - 2);
     mapcountmax = mapcountmax / 2;
 
-    for (x = 2; x < g.x_maze_max; x++)
-        for (y = 0; y < g.y_maze_max; y++)
+    for (x = 2; x < gx.x_maze_max; x++)
+        for (y = 0; y < gy.y_maze_max; y++)
             if (SpLev_Map[x][y])
                 mapcount--;
 
@@ -2940,7 +3057,7 @@ splev_initlev(lev_init* linit)
         lvlfill_solid(linit->filling, linit->lit);
         break;
     case LVLINIT_MAZEGRID:
-        lvlfill_maze_grid(2, 0, g.x_maze_max, g.y_maze_max, linit->bg);
+        lvlfill_maze_grid(2, 0, gx.x_maze_max, gy.y_maze_max, linit->bg);
         break;
     case LVLINIT_MAZE:
         create_maze(linit->corrwid, linit->wallthick, linit->rm_deadends);
@@ -3033,6 +3150,8 @@ l_push_mkroom_table(lua_State *L, struct mkroom *tmpr)
     nhl_add_table_entry_str(L, "type", get_mkroom_name(tmpr->rtype));
 }
 
+DISABLE_WARNING_UNREACHABLE_CODE
+
 /* message("What a strange feeling!"); */
 int
 lspo_message(lua_State *L)
@@ -3045,6 +3164,7 @@ lspo_message(lua_State *L)
 
     if (argc < 1) {
         nhl_error(L, "Wrong parameters");
+        /*NOTREACHED*/
         return 0;
     }
 
@@ -3052,22 +3172,24 @@ lspo_message(lua_State *L)
 
     msg = luaL_checkstring(L, 1);
 
-    old_n = g.lev_message ? (Strlen(g.lev_message) + 1) : 0;
+    old_n = gl.lev_message ? (Strlen(gl.lev_message) + 1) : 0;
     n = Strlen(msg);
 
     levmsg = (char *) alloc(old_n + n + 1);
     if (old_n)
         levmsg[old_n - 1] = '\n';
-    if (g.lev_message)
-        (void) memcpy((genericptr_t) levmsg, (genericptr_t) g.lev_message,
+    if (gl.lev_message)
+        (void) memcpy((genericptr_t) levmsg, (genericptr_t) gl.lev_message,
                       old_n - 1);
     (void) memcpy((genericptr_t) &levmsg[old_n], msg, n);
     levmsg[old_n + n] = '\0';
-    Free(g.lev_message);
-    g.lev_message = levmsg;
+    Free(gl.lev_message);
+    gl.lev_message = levmsg;
 
     return 0;  /* number of results */
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 static int
 get_table_align(lua_State *L)
@@ -3137,6 +3259,12 @@ get_table_montype(lua_State *L, int *mgender)
     return ret;
 }
 
+/* Get x and y values from a table (which the caller has already checked for the
+ * existence of), handling both a table with x= and y= specified and a table
+ * with coord= specified.
+ * Returns absolute rather than map-relative coordinates; the caller of this
+ * function must decide if it wants to interpret the coordinates as map-relative
+ * and adjust accordingly. */
 static void
 get_table_xy_or_coord(lua_State *L, lua_Integer *x, lua_Integer *y)
 {
@@ -3319,13 +3447,13 @@ lspo_monster(lua_State *L)
     if (tmpmons.id != NON_PM && tmpmons.class == -1)
         tmpmons.class = def_monsyms[(int) mons[tmpmons.id].mlet].sym;
 
-    create_monster(&tmpmons, g.coder->croom);
+    create_monster(&tmpmons, gc.coder->croom);
 
     if (tmpmons.has_invent && lua_type(L, -1) == LUA_TFUNCTION) {
         lua_remove(L, -2);
-	if (nhl_pcall(L, 0, 0)){
-	    impossible("Lua error: %s", lua_tostring(L, -1));
-	}
+        if (nhl_pcall(L, 0, 0)){
+            impossible("Lua error: %s", lua_tostring(L, -1));
+        }
         spo_end_moninvent();
     } else
         lua_pop(L, 1);
@@ -3335,6 +3463,8 @@ lspo_monster(lua_State *L)
 
     return 0;
 }
+
+DISABLE_WARNING_UNREACHABLE_CODE
 
 /* the hash key 'name' is an integer or "random",
    or if not existent, also return rndval */
@@ -3362,6 +3492,7 @@ get_table_int_or_random(lua_State *L, const char *name, int rndval)
         else
             Strcat(buf, "<Null>");
         nhl_error(L, buf);
+        /*NOTREACHED*/
         lua_pop(L, 1);
         return 0;
     }
@@ -3369,6 +3500,8 @@ get_table_int_or_random(lua_State *L, const char *name, int rndval)
     lua_pop(L, 1);
     return ret;
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 static int
 get_table_buc(lua_State *L)
@@ -3483,7 +3616,20 @@ get_table_objtype(lua_State *L)
 int
 lspo_object(lua_State *L)
 {
-    static object zeroobject = { DUMMY };
+    static object zeroobject = {
+            { 0 },   /* Str_or_len name */
+            0,       /* corpsenm */
+            0, 0,    /* id, spe */
+            0,       /* coord */
+            0, 0,    /* coordxy x,y */
+            0, 0,    /* class, containment */
+            0,       /* curse_state */
+            0,       /* quan */
+            0,       /* buried */
+            0,       /* lit */
+            0, 0, 0, 0, 0, 0, 0, 0, /* eroded, locked, trapped, recharged,
+                                       invis, greased, broken, achievment */
+    };
 #if 0
     int nparams = 0;
 #endif
@@ -3492,6 +3638,7 @@ lspo_object(lua_State *L)
     lua_Integer ox = -1, oy = -1;
     int argc = lua_gettop(L);
     int maybe_contents = 0;
+    struct obj *otmp = NULL;
 
     create_des_coder();
 
@@ -3500,6 +3647,7 @@ lspo_object(lua_State *L)
     tmpobj.spe = -127;
     tmpobj.quan = -1;
     tmpobj.trapped = -1;
+    tmpobj.locked = -1;
     tmpobj.corpsenm = NON_PM;
 
     if (argc == 1 && lua_type(L, 1) == LUA_TSTRING) {
@@ -3550,7 +3698,7 @@ lspo_object(lua_State *L)
         tmpobj.buried = get_table_boolean_opt(L, "buried", 0);
         tmpobj.lit = get_table_boolean_opt(L, "lit", 0);
         tmpobj.eroded = get_table_int_opt(L, "eroded", 0);
-        tmpobj.locked = get_table_boolean_opt(L, "locked", 0);
+        tmpobj.locked = get_table_boolean_opt(L, "locked", -1);
         tmpobj.trapped = get_table_boolean_opt(L, "trapped", -1);
         tmpobj.recharged = get_table_int_opt(L, "recharged", 0);
         tmpobj.greased = get_table_boolean_opt(L, "greased", 0);
@@ -3582,12 +3730,22 @@ lspo_object(lua_State *L)
         || tmpobj.id == CORPSE || tmpobj.id == TIN
         || tmpobj.id == FIGURINE) {
         struct permonst *pm = NULL;
+        boolean nonpmobj = FALSE;
         int i;
         char *montype = get_table_str_opt(L, "montype", NULL);
 
         if (montype) {
-            if (strlen(montype) == 1
-                && def_char_to_monclass(*montype) != MAXMCLASSES) {
+            if ((tmpobj.id == TIN && (!strcmpi(montype, "spinach")
+                /* id="tin",montype="empty" produces an empty tin */
+                                      || !strcmpi(montype, "empty")))
+                /* id="egg",montype="empty" produces a generic, unhatchable
+                   egg rather than an "empty egg" */
+                || (tmpobj.id == EGG && !strcmpi(montype, "empty"))) {
+                tmpobj.corpsenm = NON_PM;
+                tmpobj.spe = !strcmpi(montype, "spinach") ? 1 : 0;
+                nonpmobj = TRUE;
+            } else if (strlen(montype) == 1
+                       && def_char_to_monclass(*montype) != MAXMCLASSES) {
                 pm = mkclass(def_char_to_monclass(*montype),
                              G_NOGEN | G_IGNORE);
             } else {
@@ -3604,7 +3762,7 @@ lspo_object(lua_State *L)
             free((genericptr_t) montype);
             if (pm)
                 tmpobj.corpsenm = monsndx(pm);
-            else
+            else if (!nonpmobj)
                 nhl_error(L, "Unknown montype");
         }
         if (tmpobj.id == STATUE || tmpobj.id == CORPSE) {
@@ -3619,7 +3777,7 @@ lspo_object(lua_State *L)
             tmpobj.spe = lflags;
         } else if (tmpobj.id == EGG) {
             tmpobj.spe = get_table_boolean_opt(L, "laid_by_you", 0) ? 1 : 0;
-        } else {
+        } else if (!nonpmobj) { /* tmpobj.spe is already set for nonpmobj */
             tmpobj.spe = 0;
         }
     }
@@ -3636,16 +3794,17 @@ lspo_object(lua_State *L)
     }
 
     do {
-        create_object(&tmpobj, g.coder->croom);
+        otmp = create_object(&tmpobj, gc.coder->croom);
         quancnt--;
     } while ((quancnt > 0) && ((tmpobj.id > STRANGE_OBJECT)
                                && !objects[tmpobj.id].oc_merge));
 
     if (lua_type(L, -1) == LUA_TFUNCTION) {
         lua_remove(L, -2);
-	if (nhl_pcall(L, 0, 0)){
-	    impossible("Lua error: %s", lua_tostring(L, -1));
-	}
+        nhl_push_obj(L, otmp);
+        if (nhl_pcall(L, 1, 0)){
+            impossible("Lua error: %s", lua_tostring(L, -1));
+        }
     } else
         lua_pop(L, 1);
 
@@ -3654,7 +3813,9 @@ lspo_object(lua_State *L)
 
     Free(tmpobj.name.str);
 
-    return 0;
+    nhl_push_obj(L, otmp);
+
+    return 1;
 }
 
 /* level_flags("noteleport", "mazelevel", ... ); */
@@ -3673,39 +3834,55 @@ lspo_level_flags(lua_State *L)
         const char *s = luaL_checkstring(L, i);
 
         if (!strcmpi(s, "noteleport"))
-            g.level.flags.noteleport = 1;
+            gl.level.flags.noteleport = 1;
         else if (!strcmpi(s, "hardfloor"))
-            g.level.flags.hardfloor = 1;
+            gl.level.flags.hardfloor = 1;
         else if (!strcmpi(s, "nommap"))
-            g.level.flags.nommap = MAPPABLE_NEVER;
+            gl.level.flags.nommap = MAPPABLE_NEVER;
         else if (!strcmpi(s, "nommap-boss"))
-            g.level.flags.nommap = MAPPABLE_BOSSBLOCKED;
+            gl.level.flags.nommap = MAPPABLE_BOSSBLOCKED;
         else if (!strcmpi(s, "shortsighted"))
-            g.level.flags.shortsighted = 1;
+            gl.level.flags.shortsighted = 1;
         else if (!strcmpi(s, "arboreal"))
-            g.level.flags.arboreal = 1;
+            gl.level.flags.arboreal = 1;
         else if (!strcmpi(s, "mazelevel"))
-            g.level.flags.is_maze_lev = 1;
+            gl.level.flags.is_maze_lev = 1;
         else if (!strcmpi(s, "shroud"))
-            g.level.flags.hero_memory = 1;
+            gl.level.flags.hero_memory = 1;
         else if (!strcmpi(s, "graveyard"))
-            g.level.flags.graveyard = 1;
+            gl.level.flags.graveyard = 1;
         else if (!strcmpi(s, "icedpools"))
             icedpools = 1;
         else if (!strcmpi(s, "premapped"))
-            g.coder->premapped = 1;
+            gc.coder->premapped = 1;
         else if (!strcmpi(s, "solidify"))
-            g.coder->solidify = 1;
+            gc.coder->solidify = 1;
         else if (!strcmpi(s, "inaccessibles"))
-            g.coder->check_inaccessibles = 1;
+            gc.coder->check_inaccessibles = 1;
         else if (!strcmpi(s, "outdoors"))
-            g.level.flags.outdoors = 1;
+            gl.level.flags.outdoors = 1;
         else if (!strcmpi(s, "noflipx"))
-            g.coder->allow_flips &= ~2;
+            gc.coder->allow_flips &= ~2;
         else if (!strcmpi(s, "noflipy"))
-            g.coder->allow_flips &= ~1;
+            gc.coder->allow_flips &= ~1;
         else if (!strcmpi(s, "noflip"))
-            g.coder->allow_flips = 0;
+            gc.coder->allow_flips = 0;
+        else if (!strcmpi(s, "temperate"))
+            gl.level.flags.temperature = 0;
+        else if (!strcmpi(s, "hot"))
+            gl.level.flags.temperature = 1;
+        else if (!strcmpi(s, "cold"))
+            gl.level.flags.temperature = -1;
+        else if (!strcmpi(s, "nomongen"))
+            gl.level.flags.rndmongen = 0;
+        else if (!strcmpi(s, "nodeathdrops"))
+            gl.level.flags.deathdrops = 0;
+        else if (!strcmpi(s, "noautosearch"))
+            gl.level.flags.noautosearch = 1;
+        else if (!strcmpi(s, "fumaroles"))
+            gl.level.flags.fumaroles = 1;
+        else if (!strcmpi(s, "stormy"))
+            gl.level.flags.stormy = 1;
         else {
             char buf[BUFSZ];
             Sprintf(buf, "Unknown level flag %s", s);
@@ -3750,7 +3927,7 @@ lspo_level_init(lua_State *L)
     init_lev.wallthick = get_table_int_opt(L, "wallthick", -1);
     init_lev.rm_deadends = !get_table_boolean_opt(L, "deadends", TRUE);
 
-    g.coder->lvl_is_joined = init_lev.joined;
+    gc.coder->lvl_is_joined = init_lev.joined;
 
     if (init_lev.bg == INVALID_TYPE)
         init_lev.bg = (init_lev.init_style == LVLINIT_SWAMP) ? MOAT : STONE;
@@ -3776,9 +3953,12 @@ lspo_engraving(lua_State *L)
     int etyp = DUST;
     char *txt = (char *) 0;
     long ecoord;
-    xchar x = -1, y = -1;
+    coordxy x = -1, y = -1;
     int argc = lua_gettop(L);
     boolean random = FALSE;
+    boolean guardobjs = FALSE;
+    boolean wipeout = TRUE;
+    struct engr *ep;
 
     create_des_coder();
 
@@ -3791,6 +3971,8 @@ lspo_engraving(lua_State *L)
         y = ey;
         etyp = engrtypes2i[get_table_option(L, "type", "engrave", engrtypes)];
         txt = get_table_str(L, "text");
+        wipeout = get_table_boolean_opt(L, "degrade", TRUE);
+        guardobjs = get_table_boolean_opt(L, "guardobjects", FALSE);
     } else if (argc == 3) {
         lua_Integer ex, ey;
         (void) get_coord(L, 1, &ex, &ey);
@@ -3818,9 +4000,14 @@ lspo_engraving(lua_State *L)
     else
         ecoord = SP_COORD_PACK(x, y);
 
-    get_location_coord(&x, &y, DRY, g.coder->croom, ecoord);
+    get_location_coord(&x, &y, DRY, gc.coder->croom, ecoord);
     make_engr_at(x, y, txt, 0L, etyp);
     Free(txt);
+    ep = engr_at(x, y);
+    if (ep) {
+        ep->guardobjects = guardobjs;
+        ep->nowipeout = !wipeout;
+    }
     return 0;
 }
 
@@ -3920,12 +4107,12 @@ lspo_room(lua_State *L)
 {
     create_des_coder();
 
-    if (g.in_mk_themerooms && g.themeroom_failed)
+    if (gi.in_mk_themerooms && gt.themeroom_failed)
         return 0;
 
     lcheck_param_table(L);
 
-    if (g.coder->n_subroom > MAX_NESTED_ROOMS) {
+    if (gc.coder->n_subroom > MAX_NESTED_ROOMS) {
         panic("Too deeply nested rooms?!");
     } else {
         static const char *const left_or_right[] = {
@@ -3933,12 +4120,12 @@ lspo_room(lua_State *L)
             "none", "random", NULL
         };
         static const int l_or_r2i[] = {
-            RM_LEFT, RM_H_LEFT, RM_CENTER, RM_H_RIGHT, RM_RIGHT, -1, -1, -1
+            SPLEV_LEFT, SPLEV_H_LEFT, SPLEV_CENTER, SPLEV_H_RIGHT, SPLEV_RIGHT, -1, -1, -1
         };
         static const char *const top_or_bot[] = {
             "top", "center", "bottom", "none", "random", NULL
         };
-        static const int t_or_b2i[] = { RM_TOP, RM_CENTER, RM_BOTTOM, -1, -1, -1 };
+        static const int t_or_b2i[] = { SPLEV_TOP, SPLEV_CENTER, SPLEV_BOTTOM, -1, -1, -1 };
         room tmproom;
         struct mkroom *tmpcr;
         lua_Integer rx, ry;
@@ -3963,40 +4150,43 @@ lspo_room(lua_State *L)
         tmproom.rlit = get_table_int_opt(L, "lit", -1);
         /* theme rooms default to unfilled */
         tmproom.needfill = get_table_int_opt(L, "filled",
-                                             g.in_mk_themerooms ? 0 : 1);
+                                             gi.in_mk_themerooms ? 0 : 1);
         tmproom.joined = get_table_boolean_opt(L, "joined", TRUE);
 
-        if (!g.coder->failed_room[g.coder->n_subroom - 1]) {
-            tmpcr = build_room(&tmproom, g.coder->croom);
+        if (!gc.coder->failed_room[gc.coder->n_subroom - 1]) {
+            tmpcr = build_room(&tmproom, gc.coder->croom);
             if (tmpcr) {
-                g.coder->tmproomlist[g.coder->n_subroom] = tmpcr;
-                g.coder->failed_room[g.coder->n_subroom] = FALSE;
-                g.coder->n_subroom++;
+                gc.coder->tmproomlist[gc.coder->n_subroom] = tmpcr;
+                gc.coder->failed_room[gc.coder->n_subroom] = FALSE;
+                /* added a subroom, make parent room irregular */
+                if (gc.coder->tmproomlist[gc.coder->n_subroom - 1])
+                    gc.coder->tmproomlist[gc.coder->n_subroom - 1]->irregular = TRUE;
+                gc.coder->n_subroom++;
                 update_croom();
                 lua_getfield(L, 1, "contents");
                 if (lua_type(L, -1) == LUA_TFUNCTION) {
                     lua_remove(L, -2);
                     l_push_mkroom_table(L, tmpcr);
-		    if (nhl_pcall(L, 1, 0)){
-			impossible("Lua error: %s", lua_tostring(L, -1));
-		    }
+                    if (nhl_pcall(L, 1, 0)){
+                        impossible("Lua error: %s", lua_tostring(L, -1));
+                    }
                 } else
                     lua_pop(L, 1);
-                spo_endroom(g.coder);
+                spo_endroom(gc.coder);
                 add_doors_to_room(tmpcr);
                 return 0;
             }
-            if (g.in_mk_themerooms)
-                g.themeroom_failed = TRUE;
+            if (gi.in_mk_themerooms)
+                gt.themeroom_failed = TRUE;
         } /* failed to create parent room, so fail this too */
     }
-    g.coder->tmproomlist[g.coder->n_subroom] = (struct mkroom *) 0;
-    g.coder->failed_room[g.coder->n_subroom] = TRUE;
-    g.coder->n_subroom++;
+    gc.coder->tmproomlist[gc.coder->n_subroom] = (struct mkroom *) 0;
+    gc.coder->failed_room[gc.coder->n_subroom] = TRUE;
+    gc.coder->n_subroom++;
     update_croom();
-    spo_endroom(g.coder);
-    if (g.in_mk_themerooms)
-        g.themeroom_failed = TRUE;
+    spo_endroom(gc.coder);
+    if (gi.in_mk_themerooms)
+        gt.themeroom_failed = TRUE;
 
     return 0;
 }
@@ -4004,18 +4194,17 @@ lspo_room(lua_State *L)
 static void
 spo_endroom(struct sp_coder* coder UNUSED)
 {
-    if (g.coder->n_subroom > 1) {
-        g.coder->n_subroom--;
-        g.coder->tmproomlist[g.coder->n_subroom] = NULL;
-        g.coder->failed_room[g.coder->n_subroom] = TRUE;
+    if (gc.coder->n_subroom > 1) {
+        gc.coder->n_subroom--;
+        gc.coder->tmproomlist[gc.coder->n_subroom] = NULL;
+        gc.coder->failed_room[gc.coder->n_subroom] = TRUE;
     } else {
         /* no subroom, get out of top-level room */
         /* Need to ensure xstart/ystart/xsize/ysize have something sensible,
            in case there's some stuff to be created outside the outermost
            room, and there's no MAP. */
-        if (g.xsize <= 1 && g.ysize <= 1) {
-            reset_coordinate_system();
-        }
+        if (gx.xsize <= 1 && gy.ysize <= 1)
+            reset_xystart_size();
     }
     update_croom();
 }
@@ -4023,7 +4212,7 @@ spo_endroom(struct sp_coder* coder UNUSED)
 /* callback for is_ok_location.
    stairs generated at random location shouldn't overwrite special terrain */
 static boolean
-good_stair_loc(xchar x, xchar y)
+good_stair_loc(coordxy x, coordxy y)
 {
     schar typ = levl[x][y].typ;
 
@@ -4036,7 +4225,7 @@ l_create_stairway(lua_State *L, boolean using_ladder)
     static const char *const stairdirs[] = { "down", "up", NULL };
     static const int stairdirs2i[] = { 0, 1 };
     int argc = lua_gettop(L);
-    xchar x = -1, y = -1;
+    coordxy x = -1, y = -1;
     struct trap *badtrap;
 
     long scoord;
@@ -4050,17 +4239,17 @@ l_create_stairway(lua_State *L, boolean using_ladder)
         lcheck_param_table(L);
         get_table_xy_or_coord(L, &ax, &ay);
         up = stairdirs2i[get_table_option(L, "dir", "down", stairdirs)];
-        x = ax;
-        y = ay;
+        x = (coordxy) ax;
+        y = (coordxy) ay;
     } else {
-        int ix = -1, iy = -1;
+        lua_Integer ix = -1, iy = -1;
         if (argc > 0 && ltype == LUA_TSTRING) {
             up = stairdirs2i[luaL_checkoption(L, 1, "down", stairdirs)];
             lua_remove(L, 1);
         }
         nhl_get_xy_params(L, &ix, &iy);
-        x = ix;
-        y = iy;
+        x = (coordxy) ix;
+        y = (coordxy) iy;
     }
 
     if (x == -1 && y == -1) {
@@ -4069,7 +4258,7 @@ l_create_stairway(lua_State *L, boolean using_ladder)
     } else
         scoord = SP_COORD_PACK(x, y);
 
-    get_location_coord(&x, &y, DRY, g.coder->croom, scoord);
+    get_location_coord(&x, &y, DRY, gc.coder->croom, scoord);
     set_ok_location_func(NULL);
     if ((badtrap = t_at(x, y)) != 0)
         deltrap(badtrap);
@@ -4093,7 +4282,7 @@ l_create_stairway(lua_State *L, boolean using_ladder)
             levl[x][y].ladder = LA_DOWN;
         }
     } else {
-        mkstairs(x, y, (char) up, g.coder->croom,
+        mkstairs(x, y, (char) up, gc.coder->croom,
                  !(scoord & SP_COORD_IS_RANDOM));
     }
     return 0;
@@ -4130,7 +4319,7 @@ int
 lspo_grave(lua_State *L)
 {
     int argc = lua_gettop(L);
-    xchar x, y;
+    coordxy x, y;
     long scoord;
     lua_Integer ax,ay;
     char *txt;
@@ -4154,7 +4343,7 @@ lspo_grave(lua_State *L)
     else
         scoord = SP_COORD_PACK(ax, ay);
 
-    get_location_coord(&x, &y, DRY, g.coder->croom, scoord);
+    get_location_coord(&x, &y, DRY, gc.coder->croom, scoord);
 
     if (isok(x, y) && !t_at(x, y)) {
         levl[x][y].typ = GRAVE;
@@ -4199,7 +4388,7 @@ lspo_altar(lua_State *L)
     tmpaltar.sp_amask = al;
     tmpaltar.shrine = shrine;
 
-    create_altar(&tmpaltar, g.coder->croom);
+    create_altar(&tmpaltar, gc.coder->croom);
 
     return 0;
 }
@@ -4292,6 +4481,7 @@ lspo_trap(lua_State *L)
 
     tmptrap.spider_on_web = TRUE;
     tmptrap.seen = FALSE;
+    tmptrap.novictim = FALSE;
 
     if (argc == 1 && lua_type(L, 1) == LUA_TSTRING) {
         const char *trapstr = luaL_checkstring(L, 1);
@@ -4317,14 +4507,16 @@ lspo_trap(lua_State *L)
         tmptrap.type = get_table_traptype_opt(L, "type", -1);
         tmptrap.spider_on_web = get_table_boolean_opt(L, "spider_on_web", 1);
         tmptrap.seen = get_table_boolean_opt(L, "seen", FALSE);
+        tmptrap.novictim = !get_table_boolean_opt(L, "victim", TRUE);
 
         lua_getfield(L, -1, "launchfrom");
         if (lua_type(L, -1) == LUA_TTABLE) {
             lua_Integer lx = -1, ly = -1;
 
             (void) get_coord(L, -1, &lx, &ly);
-            g.launchplace.x = lx;
-            g.launchplace.y = ly;
+            lua_pop(L, 1);
+            gl.launchplace.x = lx;
+            gl.launchplace.y = ly;
         }
         lua_pop(L, 1);
         lua_getfield(L, -1, "teledest");
@@ -4332,8 +4524,8 @@ lspo_trap(lua_State *L)
             lua_Integer lx = -1, ly = -1;
 
             (void) get_coord(L, -1, &lx, &ly);
-            g.launchplace.x = lx;
-            g.launchplace.y = ly;
+            gl.launchplace.x = lx;
+            gl.launchplace.y = ly;
         }
         lua_pop(L, 1);
     }
@@ -4346,11 +4538,13 @@ lspo_trap(lua_State *L)
     else
         tmptrap.coord = SP_COORD_PACK(x, y);
 
-    create_trap(&tmptrap, g.coder->croom);
-    g.launchplace.x = g.launchplace.y = 0;
+    create_trap(&tmptrap, gc.coder->croom);
+    gl.launchplace.x = gl.launchplace.y = 0;
 
     return 0;
 }
+
+DISABLE_WARNING_UNREACHABLE_CODE
 
 /* gold(500, 3,5); */
 /* gold(500, {5, 6}); */
@@ -4361,45 +4555,48 @@ int
 lspo_gold(lua_State *L)
 {
     int argc = lua_gettop(L);
-    xchar x, y;
+    coordxy x, y;
     long amount;
     long gcoord;
-    lua_Integer gx, gy;
+    lua_Integer gldx, gldy;
 
     create_des_coder();
 
     if (argc == 3) {
         amount = luaL_checkinteger(L, 1);
-        x = gx = luaL_checkinteger(L, 2);
-        y = gy = luaL_checkinteger(L, 2);
+        x = gldx = luaL_checkinteger(L, 2);
+        y = gldy = luaL_checkinteger(L, 2);
     } else if (argc == 2 && lua_type(L, 2) == LUA_TTABLE) {
         amount = luaL_checkinteger(L, 1);
-        (void) get_coord(L, 2, &gx, &gy);
-        x = gx;
-        y = gy;
+        (void) get_coord(L, 2, &gldx, &gldy);
+        x = gldx;
+        y = gldy;
     } else if (argc == 0 || (argc == 1 && lua_type(L, 1) == LUA_TTABLE)) {
         lcheck_param_table(L);
 
         amount = get_table_int_opt(L, "amount", -1);
-        get_table_xy_or_coord(L, &gx, &gy);
-        x = gx, y = gy;
+        get_table_xy_or_coord(L, &gldx, &gldy);
+        x = gldx, y = gldy;
     } else {
         nhl_error(L, "Wrong parameters");
+        /*NOTREACHED*/
         return 0;
     }
 
     if (x == -1 && y == -1)
         gcoord = SP_COORD_PACK_RANDOM(0);
     else
-        gcoord = SP_COORD_PACK(gx, gy);
+        gcoord = SP_COORD_PACK(gldx, gldy);
 
-    get_location_coord(&x, &y, DRY, g.coder->croom, gcoord);
+    get_location_coord(&x, &y, DRY, gc.coder->croom, gcoord);
     if (amount < 0)
         amount = rnd(200);
     mkgold(amount, x, y);
 
     return 0;
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 /* corridor({ srcroom=1, srcdoor=2, srcwall="north", destroom=2, destdoor=1, destwall="west" });*/
 int
@@ -4457,6 +4654,10 @@ selection_new(void)
 
     tmps->wid = COLNO;
     tmps->hei = ROWNO;
+    tmps->bounds_dirty = FALSE;
+    tmps->bounds.lx = COLNO;
+    tmps->bounds.ly = ROWNO;
+    tmps->bounds.hx = tmps->bounds.hy = 0;
     tmps->map = (char *) alloc((COLNO * ROWNO) + 1);
     (void) memset(tmps->map, 1, (COLNO * ROWNO));
     tmps->map[(COLNO * ROWNO)] = '\0';
@@ -4473,8 +4674,26 @@ selection_free(struct selectionvar* sel, boolean freesel)
         if (freesel)
             free((genericptr_t) sel);
         else
-            sel->wid = sel->hei = 0;
+            (void) memset((genericptr_t) sel, 0, sizeof *sel);
     }
+}
+
+/* clear selection, setting all locations to value val */
+void
+selection_clear(struct selectionvar *sel, int val)
+{
+    (void) memset(sel->map, 1 + val, (COLNO * ROWNO));
+    if (val) {
+        sel->bounds.lx = 0;
+        sel->bounds.ly = 0;
+        sel->bounds.hx = COLNO - 1;
+        sel->bounds.hy = ROWNO - 1;
+    } else {
+        sel->bounds.lx = COLNO;
+        sel->bounds.ly = ROWNO;
+        sel->bounds.hx = sel->bounds.hy = 0;
+    }
+    sel->bounds_dirty = FALSE;
 }
 
 struct selectionvar *
@@ -4482,15 +4701,106 @@ selection_clone(struct selectionvar* sel)
 {
     struct selectionvar *tmps = (struct selectionvar *) alloc(sizeof *tmps);
 
-    tmps->wid = sel->wid;
-    tmps->hei = sel->hei;
+    *tmps = *sel;
     tmps->map = dupstr(sel->map);
 
     return tmps;
 }
 
-xchar
-selection_getpoint(int x, int y, struct selectionvar* sel)
+/* get boundary rect of selection sel into b */
+void
+selection_getbounds(struct selectionvar *sel, NhRect *b)
+{
+    if (!sel || !b)
+        return;
+
+    selection_recalc_bounds(sel);
+
+    if (sel->bounds.lx >= sel->wid) {
+        b->lx = 0;
+        b->ly = 0;
+        b->hx = COLNO - 1;
+        b->hy = ROWNO - 1;
+    } else {
+        b->lx = sel->bounds.lx;
+        b->ly = sel->bounds.ly;
+        b->hx = sel->bounds.hx;
+        b->hy = sel->bounds.hy;
+    }
+}
+
+/* recalc the boundary of selection, if necessary */
+static void
+selection_recalc_bounds(struct selectionvar *sel)
+{
+    coordxy x, y;
+    NhRect r;
+
+    if (!sel->bounds_dirty)
+        return;
+
+    sel->bounds.lx = COLNO;
+    sel->bounds.ly = ROWNO;
+    sel->bounds.hx = sel->bounds.hy = 0;
+
+    r.lx = r.ly = r.hx = r.hy = -1;
+
+    /* left */
+    for (x = 0; x < sel->wid; x++) {
+        for (y = 0; y < sel->hei; y++) {
+            if (selection_getpoint(x, y, sel)) {
+                r.lx = x;
+                break;
+            }
+        }
+        if (r.lx > -1)
+            break;
+    }
+
+    if (r.lx > -1) {
+        /* right */
+        for (x = sel->wid-1; x >= r.lx; x--) {
+            for (y = 0; y < sel->hei; y++) {
+                if (selection_getpoint(x, y, sel)) {
+                    r.hx = x;
+                    break;
+                }
+            }
+            if (r.hx > -1)
+                break;
+        }
+
+        /* top */
+        for (y = 0; y < sel->hei; y++) {
+            for (x = r.lx; x <= r.hx; x++) {
+                if (selection_getpoint(x, y, sel)) {
+                    r.ly = y;
+                    break;
+                }
+            }
+            if (r.ly > -1)
+                break;
+        }
+
+        /* bottom */
+        for (y = sel->hei-1; y >= r.ly; y--) {
+            for (x = r.lx; x <= r.hx; x++) {
+                if (selection_getpoint(x, y, sel)) {
+                    r.hy = y;
+                    break;
+                }
+            }
+            if (r.hy > -1)
+                break;
+        }
+        sel->bounds = r;
+    }
+
+    sel->bounds_dirty = FALSE;
+}
+
+coordxy
+selection_getpoint(coordxy x, coordxy y, struct selectionvar* sel)
 {
     if (!sel || !sel->map)
         return 0;
@@ -4501,12 +4811,21 @@ selection_getpoint(int x, int y, struct selectionvar* sel)
 }
 
 void
-selection_setpoint(int x, int y, struct selectionvar* sel, xchar c)
+selection_setpoint(coordxy x, coordxy y, struct selectionvar* sel, int c)
 {
     if (!sel || !sel->map)
         return;
     if (x < 0 || y < 0 || x >= sel->wid || y >= sel->hei)
         return;
+
+    if (c && !sel->bounds_dirty) {
+        if (sel->bounds.lx > x) sel->bounds.lx = x;
+        if (sel->bounds.ly > y) sel->bounds.ly = y;
+        if (sel->bounds.hx < x) sel->bounds.hx = x;
+        if (sel->bounds.hy < y) sel->bounds.hy = y;
+    } else {
+        sel->bounds_dirty = TRUE;
+    }
 
     sel->map[sel->wid * y + x] = (char) (c + 1);
 }
@@ -4515,26 +4834,31 @@ struct selectionvar *
 selection_not(struct selectionvar* s)
 {
     int x, y;
-
+    NhRect tmprect;
 
     for (x = 0; x < s->wid; x++)
         for (y = 0; y < s->hei; y++)
             selection_setpoint(x, y, s, selection_getpoint(x, y, s) ? 0 : 1);
-
+    selection_getbounds(s, &tmprect);
     return s;
 }
 
 struct selectionvar *
-selection_filter_mapchar(struct selectionvar* ov,  xchar typ, int lit)
+selection_filter_mapchar(struct selectionvar* ov,  xint16 typ, int lit)
 {
     int x, y;
-    struct selectionvar *ret = selection_new();
+    struct selectionvar *ret;
+    NhRect rect;
 
-    if (!ov || !ret)
+    if (!ov)
         return NULL;
 
-    for (x = 1; x < ret->wid; x++)
-        for (y = 0; y < ret->hei; y++)
+    ret = selection_new();
+
+    selection_getbounds(ov, &rect);
+
+    for (x = rect.lx; x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++)
             if (selection_getpoint(x, y, ov)
                 && match_maptyps(typ, levl[x][y].typ)) {
                 switch (lit) {
@@ -4555,35 +4879,47 @@ selection_filter_mapchar(struct selectionvar* ov,  xchar typ, int lit)
     return ret;
 }
 
-void
+struct selectionvar *
 selection_filter_percent(struct selectionvar* ov, int percent)
 {
     int x, y;
+    struct selectionvar *ret;
+    NhRect rect;
 
     if (!ov)
-        return;
-    for (x = 0; x < ov->wid; x++)
-        for (y = 0; y < ov->hei; y++)
-            if (selection_getpoint(x, y, ov) && (rn2(100) >= percent))
-                selection_setpoint(x, y, ov, 0);
+        return NULL;
+
+    ret = selection_new();
+
+    selection_getbounds(ov, &rect);
+
+    for (x = rect.lx; x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++)
+            if (selection_getpoint(x, y, ov) && (rn2(100) < percent))
+                selection_setpoint(x, y, ret, 1);
+
+    return ret;
 }
 
 int
-selection_rndcoord(struct selectionvar* ov, xchar *x, xchar *y, boolean removeit)
+selection_rndcoord(struct selectionvar* ov, coordxy *x, coordxy *y, boolean removeit)
 {
     int idx = 0;
     int c;
     int dx, dy;
+    NhRect rect;
 
-    for (dx = 1; dx < ov->wid; dx++)
-        for (dy = 0; dy < ov->hei; dy++)
+    selection_getbounds(ov, &rect);
+
+    for (dx = rect.lx; dx <= rect.hx; dx++)
+        for (dy = rect.ly; dy <= rect.hy; dy++)
             if (selection_getpoint(dx, dy, ov))
                 idx++;
 
     if (idx) {
         c = rn2(idx);
-        for (dx = 1; dx < ov->wid; dx++)
-            for (dy = 0; dy < ov->hei; dy++)
+        for (dx = rect.lx; dx <= rect.hx; dx++)
+            for (dy = rect.ly; dy <= rect.hy; dy++)
                 if (selection_getpoint(dx, dy, ov)) {
                     if (!c) {
                         *x = dx;
@@ -4600,27 +4936,32 @@ selection_rndcoord(struct selectionvar* ov, xchar *x, xchar *y, boolean removeit
 }
 
 /* Choose a single random W_* direction. */
-static xchar
+static coordxy
 random_wdir(void)
 {
-    static const xchar wdirs[4] = { W_NORTH, W_SOUTH, W_EAST, W_WEST };
+    static const coordxy wdirs[4] = { W_NORTH, W_SOUTH, W_EAST, W_WEST };
     return wdirs[rn2(4)];
 }
 
 void
 selection_do_grow(struct selectionvar* ov, int dir)
 {
-    int x, y;
-    struct selectionvar *tmp = selection_new();
+    coordxy x, y;
+    struct selectionvar *tmp;
+    NhRect rect;
 
-    if (!ov || !tmp)
+    if (!ov)
         return;
+
+    tmp = selection_new();
 
     if (dir == W_RANDOM)
         dir = random_wdir();
 
-    for (x = 1; x < ov->wid; x++)
-        for (y = 0; y < ov->hei; y++) {
+    selection_getbounds(ov, &rect);
+
+    for (x = max(0, rect.lx-1); x <= min(COLNO-1, rect.hx+1); x++)
+        for (y = max(0, rect.ly-1); y <= min(ROWNO-1, rect.hy+1); y++) {
             /* note:  dir is a mask of multiple directions, but the only
                way to specify diagonals is by including the two adjacent
                orthogonal directions, which effectively specifies three-
@@ -4643,38 +4984,40 @@ selection_do_grow(struct selectionvar* ov, int dir)
             }
         }
 
-    for (x = 1; x < ov->wid; x++)
-        for (y = 0; y < ov->hei; y++)
+    selection_getbounds(tmp, &rect);
+
+    for (x = rect.lx; x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++)
             if (selection_getpoint(x, y, tmp))
                 selection_setpoint(x, y, ov, 1);
 
     selection_free(tmp, TRUE);
 }
 
-static int (*selection_flood_check_func)(int, int);
+static int (*selection_flood_check_func)(coordxy, coordxy);
 static schar floodfillchk_match_under_typ;
 
 void
-set_selection_floodfillchk(int (*f)(int, int))
+set_selection_floodfillchk(int (*f)(coordxy, coordxy))
 {
     selection_flood_check_func = f;
 }
 
 static int
-floodfillchk_match_under(int x, int y)
+floodfillchk_match_under(coordxy x, coordxy y)
 {
     return (floodfillchk_match_under_typ == levl[x][y].typ);
 }
 
 void
-set_floodfillchk_match_under(xchar typ)
+set_floodfillchk_match_under(coordxy typ)
 {
     floodfillchk_match_under_typ = typ;
     set_selection_floodfillchk(floodfillchk_match_under);
 }
 
 static int
-floodfillchk_match_accessible(int x, int y)
+floodfillchk_match_accessible(coordxy x, coordxy y)
 {
     return (ACCESSIBLE(levl[x][y].typ)
             || levl[x][y].typ == SDOOR
@@ -4683,9 +5026,9 @@ floodfillchk_match_accessible(int x, int y)
 
 /* check whethere <x,y> is already in xs[],ys[] */
 static boolean
-sel_flood_havepoint(int x, int y, xchar xs[], xchar ys[], int n)
+sel_flood_havepoint(coordxy x, coordxy y, coordxy xs[], coordxy ys[], int n)
 {
-    xchar xx = (xchar) x, yy = (xchar) y;
+    coordxy xx = x, yy = y;
 
     while (n > 0) {
         --n;
@@ -4696,7 +5039,7 @@ sel_flood_havepoint(int x, int y, xchar xs[], xchar ys[], int n)
 }
 
 void
-selection_floodfill(struct selectionvar* ov, int x, int y, boolean diagonals)
+selection_floodfill(struct selectionvar* ov, coordxy x, coordxy y, boolean diagonals)
 {
     struct selectionvar *tmp = selection_new();
 #define SEL_FLOOD_STACK (COLNO * ROWNO)
@@ -4719,10 +5062,10 @@ selection_floodfill(struct selectionvar* ov, int x, int y, boolean diagonals)
     } while (0)
     static const char floodfill_stack_overrun[] = "floodfill stack overrun";
     int idx = 0;
-    xchar dx[SEL_FLOOD_STACK];
-    xchar dy[SEL_FLOOD_STACK];
+    coordxy dx[SEL_FLOOD_STACK];
+    coordxy dy[SEL_FLOOD_STACK];
 
-    if (selection_flood_check_func == (int (*)(int, int)) 0) {
+    if (selection_flood_check_func == (int (*)(coordxy, coordxy)) 0) {
         selection_free(tmp, TRUE);
         return;
     }
@@ -4841,18 +5184,18 @@ selection_do_ellipse(
     }
 }
 
-/* distance from line segment (x1,y1, x2,y2) to point (x3,y3) */
+/* square of distance from line segment (x1,y1, x2,y2) to point (x3,y3) */
 static long
 line_dist_coord(long x1, long y1, long x2, long y2, long x3, long y3)
 {
     long px = x2 - x1;
     long py = y2 - y1;
     long s = px * px + py * py;
-    long x, y, dx, dy, dist = 0;
+    long x, y, dx, dy, distsq = 0;
     float lu = 0;
 
     if (x1 == x2 && y1 == y2)
-        return isqrt(dist2(x1, y1, x3, y3));
+        return dist2(x1, y1, x3, y3);
 
     lu = ((x3 - x1) * px + (y3 - y1) * py) / (float) s;
     if (lu > 1)
@@ -4864,18 +5207,19 @@ line_dist_coord(long x1, long y1, long x2, long y2, long x3, long y3)
     y = y1 + lu * py;
     dx = x - x3;
     dy = y - y3;
-    dist = isqrt(dx * dx + dy * dy);
+    distsq = dx * dx + dy * dy;
 
-    return dist;
+    return distsq;
 }
 
+/* guts of l_selection_gradient */
 void
 selection_do_gradient(
     struct selectionvar *ov,
     long x, long y,
     long x2,long y2,
     long gtyp,
-    long mind, long maxd, long limit)
+    long mind, long maxd)
 {
     long dx, dy, dofs;
 
@@ -4885,7 +5229,7 @@ selection_do_gradient(
         maxd = tmp;
     }
 
-    dofs = maxd - mind;
+    dofs = maxd * maxd - mind * mind;
     if (dofs < 1)
         dofs = 1;
 
@@ -4897,10 +5241,9 @@ selection_do_gradient(
         for (dx = 0; dx < COLNO; dx++)
             for (dy = 0; dy < ROWNO; dy++) {
                 long d0 = line_dist_coord(x, y, x2, y2, dx, dy);
-                if (d0 >= mind && (!limit || d0 <= maxd)) {
-                    if (d0 - mind > rn2(dofs))
-                        selection_setpoint(dx, dy, ov, 1);
-                }
+                if (d0 <= mind * mind
+                    || (d0 <= maxd * maxd && d0 - mind * mind < rn2(dofs)))
+                    selection_setpoint(dx, dy, ov, 1);
             }
         break;
     }
@@ -4914,10 +5257,9 @@ selection_do_gradient(
                 long d5 = line_dist_coord(x, y, x2, y2, dx, dy);
                 long d0 = min(d5, min(max(d1, d2), max(d3, d4)));
 
-                if (d0 >= mind && (!limit || d0 <= maxd)) {
-                    if (d0 - mind > rn2(dofs))
-                        selection_setpoint(dx, dy, ov, 1);
-                }
+                if (d0 <= mind * mind
+                    || (d0 <= maxd * maxd && d0 - mind * mind < rn2(dofs)))
+                    selection_setpoint(dx, dy, ov, 1);
             }
         break;
     } /*case*/
@@ -4927,8 +5269,8 @@ selection_do_gradient(
 /* bresenham line algo */
 void
 selection_do_line(
-    xchar x1, xchar y1,
-    xchar x2, xchar y2,
+    coordxy x1, coordxy y1,
+    coordxy x2, coordxy y2,
     struct selectionvar *ov)
 {
     int d0, dx, dy, ai, bi, xi, yi;
@@ -4984,8 +5326,8 @@ selection_do_line(
 
 void
 selection_do_randline(
-    xchar x1, xchar y1,
-    xchar x2, xchar y2,
+    coordxy x1, coordxy y1,
+    coordxy x2, coordxy y2,
     schar rough,
     schar rec,
     struct selectionvar *ov)
@@ -5031,20 +5373,23 @@ selection_iterate(
     select_iter_func func,
     genericptr_t arg)
 {
-    int x, y;
+    coordxy x, y;
+    NhRect rect;
 
     if (!ov)
         return;
 
-    /* yes, this is very naive, but it's not _that_ expensive. */
-    for (x = 0; x < ov->wid; x++)
-        for (y = 0; y < ov->hei; y++)
+    selection_getbounds(ov, &rect);
+
+    for (x = rect.lx; x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++)
             if (isok(x,y) && selection_getpoint(x, y, ov))
                 (*func)(x, y, arg);
 }
 
+/* change map location terrain type during level creation */
 static void
-sel_set_ter(int x, int y, genericptr_t arg)
+sel_set_ter(coordxy x, coordxy y, genericptr_t arg)
 {
     terrain terr;
 
@@ -5058,11 +5403,15 @@ sel_set_ter(int x, int y, genericptr_t arg)
             set_doorstate(&levl[x][y], D_CLOSED);
         if (x && (IS_WALL(levl[x - 1][y].typ) || levl[x - 1][y].horizontal))
             levl[x][y].horizontal = 1;
-    }
+    } else if (levl[x][y].typ == HWALL
+               || levl[x][y].typ == IRONBARS)
+        levl[x][y].horizontal = 1;
+    else if (splev_init_present && levl[x][y].typ == ICE)
+        levl[x][y].icedpool = icedpools ? ICED_POOL : ICED_MOAT;
 }
 
 static void
-sel_set_feature(int x, int y, genericptr_t arg)
+sel_set_feature(coordxy x, coordxy y, genericptr_t arg)
 {
     if (IS_FURNITURE(levl[x][y].typ))
         return;
@@ -5070,10 +5419,10 @@ sel_set_feature(int x, int y, genericptr_t arg)
 }
 
 static void
-sel_set_door(int dx, int dy, genericptr_t arg)
+sel_set_door(coordxy dx, coordxy dy, genericptr_t arg)
 {
-    xchar typ = *(xchar *) arg;
-    xchar x = dx, y = dy;
+    coordxy typ = *(coordxy *) arg;
+    coordxy x = dx, y = dy;
 
     if (!IS_DOOR(levl[x][y].typ) && levl[x][y].typ != SDOOR)
         levl[x][y].typ = (typ & D_SECRET) ? SDOOR : DOOR;
@@ -5110,10 +5459,10 @@ lspo_door(lua_State *L)
     static const int doorstates2i[] = {
         UNSPECIFIED, D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR, D_BROKEN, D_SECRET
     };
-    xchar msk;
+    int msk;
     /* ds is one of the values in doorstates2i. */
     int typ, ds, locked, trapped, iron;
-    xchar x, y;
+    coordxy x, y;
     int argc = lua_gettop(L);
 
     typ = ds = locked = trapped = iron = UNSPECIFIED;
@@ -5211,10 +5560,10 @@ lspo_door(lua_State *L)
         tmpd.pos = get_table_int_opt(L, "pos", -1);
         tmpd.wall = walldirs2i[get_table_option(L, "wall", "all", walldirs)];
 
-        create_door(&tmpd, g.coder->croom);
+        create_door(&tmpd, gc.coder->croom);
     } else {
         /*selection_iterate(sel, sel_set_door, (genericptr_t) &typ);*/
-        get_location_coord(&x, &y, ANY_LOC, g.coder->croom,
+        get_location_coord(&x, &y, ANY_LOC, gc.coder->croom,
                            SP_COORD_PACK(x, y));
         if (!isok(x, y))
             nhl_error(L, "door coord not ok");
@@ -5244,7 +5593,58 @@ l_table_getset_feature_flag(
     }
 }
 
-/* convert relative coordinate to map-absolute.
+/* guts of nhl_abs_coord; convert a coordinate relative to a map or room into an
+ * absolute coordinate in gl.level.locations.
+ *
+ * If there is no enclosing map or room, the coordinates are assumed to be
+ * absolute already.
+ *
+ * Part of the reason this is a function is to make it clearer in the calling
+ * code that this conversion is what is intended.
+ *
+ * NOTE: if the coordinates are going to get passed to one of the get_location
+ * family of functions, this should NOT be called; get_location already makes
+ * an adjustment like this. (What this function supports which get_location
+ * doesn't is the input coordinates being negative. get_location will treat that
+ * as "level designer wants a random coordinate".) */
+void
+cvt_to_abscoord(coordxy *x, coordxy *y)
+{
+    /* since commit 99715e0, xstart and ystart are only relevant in mklev when
+     * maps are being used, and 0 otherwise. It is possible in the future that
+     * map positions and dimensions can be saved and retrieved outside of mklev
+     * which would reintroduce nonzero xstart/ystart/xsiz/ysiz, but this is not
+     * currently implemented, so this function can be assumed to have no effect
+     * outside of mklev.
+     */
+    if (gc.coder && gc.coder->croom) {
+        *x += gc.coder->croom->lx;
+        *y += gc.coder->croom->ly;
+    }
+    else {
+        *x += gx.xstart;
+        *y += gy.ystart;
+    }
+}
+
+/* inverse of cvt_to_abscoord; turn an absolute gl.level.locations coordinate
+ * into one relative to the current map or room. */
+void
+cvt_to_relcoord(coordxy *x, coordxy *y)
+{
+    if (gc.coder && gc.coder->croom) {
+        *x -= gc.coder->croom->lx;
+        *y -= gc.coder->croom->ly;
+    }
+    else {
+        *x -= gx.xstart;
+        *y -= gy.ystart;
+    }
+}
+
+DISABLE_WARNING_UNREACHABLE_CODE
+
+/* convert map-relative coordinate to absolute.
   local ax,ay = nh.abscoord(rx, ry);
   local pt = nh.abscoord({ x = 10, y = 5 });
  */
@@ -5252,27 +5652,26 @@ int
 nhl_abs_coord(lua_State *L)
 {
     int argc = lua_gettop(L);
-    xchar x = -1, y = -1;
+    coordxy x = -1, y = -1;
 
     if (argc == 2) {
-        x = (xchar) lua_tointeger(L, 1);
-        y = (xchar) lua_tointeger(L, 2);
-        x += g.xstart;
-        y += g.ystart;
+        x = (coordxy) lua_tointeger(L, 1);
+        y = (coordxy) lua_tointeger(L, 2);
+        cvt_to_abscoord(&x, &y);
         lua_pushinteger(L, x);
         lua_pushinteger(L, y);
         return 2;
     } else if (argc == 1 && lua_type(L, 1) == LUA_TTABLE) {
-        x = (xchar) get_table_int(L, "x");
-        y = (xchar) get_table_int(L, "y");
-        x += g.xstart;
-        y += g.ystart;
+        x = (coordxy) get_table_int(L, "x");
+        y = (coordxy) get_table_int(L, "y");
+        cvt_to_abscoord(&x, &y);
         lua_newtable(L);
         nhl_add_table_entry_int(L, "x", x);
         nhl_add_table_entry_int(L, "y", y);
         return 1;
     } else {
         nhl_error(L, "nhl_abs_coord: Wrong args");
+        /*NOTREACHED*/
         return 0;
     }
 }
@@ -5289,7 +5688,7 @@ lspo_feature(lua_State *L)
                                             "throne", "tree", NULL };
     static const int features2i[] = { FOUNTAIN, SINK, POOL,
                                       THRONE, TREE, STONE };
-    xchar x, y;
+    coordxy x, y;
     int typ;
     int argc = lua_gettop(L);
     boolean can_have_flags = FALSE;
@@ -5317,7 +5716,7 @@ lspo_feature(lua_State *L)
         can_have_flags = TRUE;
     }
 
-    get_location_coord(&x, &y, ANY_LOC, g.coder->croom, SP_COORD_PACK(x, y));
+    get_location_coord(&x, &y, ANY_LOC, gc.coder->croom, SP_COORD_PACK(x, y));
 
     if (typ == STONE)
         impossible("feature has unknown type param.");
@@ -5364,6 +5763,8 @@ lspo_feature(lua_State *L)
     return 0;
 }
 
+RESTORE_WARNING_UNREACHABLE_CODE
+
 /*
  * [lit_state: 1 On, 0 Off, -1 random, -2 leave as-is]
  * terrain({ x=NN, y=NN, typ=MAPCHAR, lit=lit_state });
@@ -5377,7 +5778,7 @@ int
 lspo_terrain(lua_State *L)
 {
     terrain tmpterrain;
-    xchar x = 0, y = 0;
+    coordxy x = 0, y = 0;
     struct selectionvar *sel = NULL;
     int argc = lua_gettop(L);
 
@@ -5423,7 +5824,7 @@ lspo_terrain(lua_State *L)
     if (sel) {
         selection_iterate(sel, sel_set_ter, (genericptr_t) &tmpterrain);
     } else {
-        get_location_coord(&x, &y, ANY_LOC, g.coder->croom,
+        get_location_coord(&x, &y, ANY_LOC, gc.coder->croom,
                            SP_COORD_PACK(x, y));
         sel_set_ter(x, y, (genericptr_t) &tmpterrain);
     }
@@ -5444,14 +5845,15 @@ lspo_terrain(lua_State *L)
 int
 lspo_replace_terrain(lua_State *L)
 {
-    xchar totyp, fromtyp;
+    coordxy totyp, fromtyp;
     struct mapfragment *mf = NULL;
     struct selectionvar *sel = NULL;
     boolean freesel = FALSE;
-    int x, y;
+    coordxy x, y;
     lua_Integer x1, y1, x2, y2;
     int chance;
     int tolit;
+    NhRect rect;
 
     create_des_coder();
 
@@ -5499,26 +5901,30 @@ lspo_replace_terrain(lua_State *L)
         freesel = TRUE;
 
         if (x1 == -1 && y1 == -1 && x2 == -1 && y2 == -1) {
-            (void) selection_not(sel);
+            (void) selection_clear(sel, 1);
         } else {
-            xchar rx1, ry1, rx2, ry2;
+            coordxy rx1, ry1, rx2, ry2;
             rx1 = x1, ry1 = y1, rx2 = x2, ry2 = y2;
-            get_location(&rx1, &ry1, ANY_LOC, g.coder->croom);
-            get_location(&rx2, &ry2, ANY_LOC, g.coder->croom);
+            get_location(&rx1, &ry1, ANY_LOC, gc.coder->croom);
+            get_location(&rx2, &ry2, ANY_LOC, gc.coder->croom);
             for (x = max(rx1, 0); x <= min(rx2, COLNO - 1); x++)
                 for (y = max(ry1, 0); y <= min(ry2, ROWNO - 1); y++)
                     selection_setpoint(x, y, sel, 1);
         }
     }
 
-    for (y = 0; y <= sel->hei; y++)
-        for (x = 1; x < sel->wid; x++)
+    selection_getbounds(sel, &rect);
+
+    for (x = max(1, rect.lx); x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++)
             if (selection_getpoint(x, y,sel)) {
                 if (mf) {
                     if (mapfrag_match(mf, x, y) && (rn2(100)) < chance)
                         (void) set_levltyp_lit(x, y, totyp, tolit);
                 } else {
-                    if (levl[x][y].typ == fromtyp && rn2(100) < chance)
+                    if (((fromtyp == MATCH_WALL && IS_STWALL(levl[x][y].typ))
+                         || levl[x][y].typ == fromtyp)
+                        && rn2(100) < chance)
                         (void) set_levltyp_lit(x, y, totyp, tolit);
                 }
             }
@@ -5533,7 +5939,7 @@ lspo_replace_terrain(lua_State *L)
 
 static boolean
 generate_way_out_method(
-    int nx, int ny,
+    coordxy nx, coordxy ny,
     struct selectionvar *ov)
 {
     static const int escapeitems[] = {
@@ -5541,7 +5947,7 @@ generate_way_out_method(
         WAN_TELEPORTATION, SCR_TELEPORTATION, RIN_TELEPORTATION
     };
     struct selectionvar *ov2 = selection_new(), *ov3;
-    xchar x, y;
+    coordxy x, y;
     boolean res = TRUE;
 
     selection_floodfill(ov2, nx, ny, TRUE);
@@ -5606,10 +6012,10 @@ static void
 ensure_way_out(void)
 {
     struct selectionvar *ov = selection_new();
-    struct trap *ttmp = g.ftrap;
-    int x, y;
+    struct trap *ttmp = gf.ftrap;
+    coordxy x, y;
     boolean ret = TRUE;
-    stairway *stway = g.stairs;
+    stairway *stway = gs.stairs;
 
     set_selection_floodfillchk(floodfillchk_match_accessible);
 
@@ -5642,6 +6048,8 @@ ensure_way_out(void)
     } while (!ret);
     selection_free(ov, TRUE);
 }
+
+DISABLE_WARNING_UNREACHABLE_CODE
 
 static lua_Integer
 get_table_intarray_entry(lua_State *L, int tableidx, int entrynum)
@@ -5688,6 +6096,7 @@ get_table_region(
     lua_pop(L, 1);
     if (arrlen != 4) {
         nhl_error(L, "Not a region");
+        /*NOTREACHED*/
         lua_pop(L, 1);
         return 0;
     }
@@ -5726,6 +6135,7 @@ get_coord(lua_State *L, int i, lua_Integer *x, lua_Integer *y)
                 ret = TRUE;
             } else {
                 nhl_error(L, "Not a coordinate");
+                /*NOTREACHED*/
                 return FALSE;
             }
         } else {
@@ -5734,6 +6144,7 @@ get_coord(lua_State *L, int i, lua_Integer *x, lua_Integer *y)
             lua_pop(L, 1);
             if (arrlen != 2) {
                 nhl_error(L, "Not a coordinate");
+                /*NOTREACHED*/
                 return FALSE;
             }
 
@@ -5748,6 +6159,8 @@ get_coord(lua_State *L, int i, lua_Integer *x, lua_Integer *y)
     }
     return ret;
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 static void
 levregion_add(lev_region* lregion)
@@ -5765,21 +6178,21 @@ levregion_add(lev_region* lregion)
         get_location(&lregion->delarea.x2, &lregion->delarea.y2,
                      ANY_LOC, (struct mkroom *) 0);
     }
-    if (g.num_lregions) {
+    if (gn.num_lregions) {
         /* realloc the lregion space to add the new one */
         lev_region *newl = (lev_region *) alloc(
-            sizeof (lev_region) * (unsigned) (1 + g.num_lregions));
+            sizeof (lev_region) * (unsigned) (1 + gn.num_lregions));
 
-        (void) memcpy((genericptr_t) (newl), (genericptr_t) g.lregions,
-                      sizeof (lev_region) * g.num_lregions);
-        Free(g.lregions);
-        g.num_lregions++;
-        g.lregions = newl;
+        (void) memcpy((genericptr_t) (newl), (genericptr_t) gl.lregions,
+                      sizeof (lev_region) * gn.num_lregions);
+        Free(gl.lregions);
+        gn.num_lregions++;
+        gl.lregions = newl;
     } else {
-        g.num_lregions = 1;
-        g.lregions = (lev_region *) alloc(sizeof (lev_region));
+        gn.num_lregions = 1;
+        gl.lregions = (lev_region *) alloc(sizeof (lev_region));
     }
-    (void) memcpy(&g.lregions[g.num_lregions - 1], lregion,
+    (void) memcpy(&gl.lregions[gn.num_lregions - 1], lregion,
                   sizeof (lev_region));
 }
 
@@ -5875,7 +6288,7 @@ lspo_levregion(lua_State *L)
 }
 
 static void
-sel_set_lit(int x, int y, genericptr_t arg)
+sel_set_lit(coordxy x, coordxy y, genericptr_t arg)
 {
      int lit = *(int *)arg;
 
@@ -5886,13 +6299,18 @@ sel_set_lit(int x, int y, genericptr_t arg)
 static void
 add_doors_to_room(struct mkroom *croom)
 {
-    int x, y;
+    coordxy x, y;
+    int i;
 
     for (x = croom->lx - 1; x <= croom->hx + 1; x++)
         for (y = croom->ly - 1; y <= croom->hy + 1; y++)
             if (IS_DOOR(levl[x][y].typ) || levl[x][y].typ == SDOOR)
                 maybe_add_door(x, y, croom);
+    for (i = 0; i < croom->nsubrooms; i++)
+        add_doors_to_room(croom->sbrooms[i]);
 }
+
+DISABLE_WARNING_UNREACHABLE_CODE
 
 /* region(selection, lit); */
 /* region({ x1=NN, y1=NN, x2=NN, y2=NN, lit=BOOL, type=ROOMTYPE, joined=BOOL,
@@ -5901,7 +6319,7 @@ add_doors_to_room(struct mkroom *croom)
 int
 lspo_region(lua_State *L)
 {
-    xchar dx1, dy1, dx2, dy2;
+    coordxy dx1, dy1, dx2, dy2;
     register struct mkroom *troom;
     boolean do_arrival_room = FALSE, room_not_needed,
             irregular = FALSE, joined = TRUE;
@@ -5955,6 +6373,7 @@ lspo_region(lua_State *L)
         return 0;
     } else {
         nhl_error(L, "Wrong parameters");
+        /*NOTREACHED*/
         return 0;
     }
 
@@ -5973,8 +6392,8 @@ lspo_region(lua_State *L)
      *    (see the mon_arrive function for details).
      */
     room_not_needed = (rtype == OROOM && !irregular
-                       && !do_arrival_room && !g.in_mk_themerooms);
-    if (room_not_needed || g.nroom >= MAXNROFROOMS) {
+                       && !do_arrival_room && !gi.in_mk_themerooms);
+    if (room_not_needed || gn.nroom >= MAXNROFROOMS) {
         region tmpregion;
         if (!room_not_needed)
             impossible("Too many rooms on new level!");
@@ -5988,7 +6407,7 @@ lspo_region(lua_State *L)
         return 0;
     }
 
-    troom = &g.rooms[g.nroom];
+    troom = &gr.rooms[gn.nroom];
 
     /* mark rooms that must be filled, but do it later */
     troom->needfill = needfill;
@@ -5996,11 +6415,11 @@ lspo_region(lua_State *L)
     troom->needjoining = joined;
 
     if (irregular) {
-        g.min_rx = g.max_rx = dx1;
-        g.min_ry = g.max_ry = dy1;
-        g.smeq[g.nroom] = g.nroom;
-        flood_fill_rm(dx1, dy1, g.nroom + ROOMOFFSET, rlit, TRUE);
-        add_room(g.min_rx, g.min_ry, g.max_rx, g.max_ry, FALSE, rtype, TRUE);
+        gm.min_rx = gm.max_rx = dx1;
+        gm.min_ry = gm.max_ry = dy1;
+        gs.smeq[gn.nroom] = gn.nroom;
+        flood_fill_rm(dx1, dy1, gn.nroom + ROOMOFFSET, rlit, TRUE);
+        add_room(gm.min_rx, gm.min_ry, gm.max_rx, gm.max_ry, FALSE, rtype, TRUE);
         troom->rlit = rlit;
         troom->irregular = TRUE;
     } else {
@@ -6013,28 +6432,31 @@ lspo_region(lua_State *L)
     }
 
     if (!room_not_needed) {
-        if (g.coder->n_subroom > 1)
+        if (gc.coder->n_subroom > 1)
             impossible("region as subroom");
         else {
-            g.coder->tmproomlist[g.coder->n_subroom] = troom;
-            g.coder->failed_room[g.coder->n_subroom] = FALSE;
-            g.coder->n_subroom++;
+            gc.coder->tmproomlist[gc.coder->n_subroom] = troom;
+            gc.coder->failed_room[gc.coder->n_subroom] = FALSE;
+            gc.coder->n_subroom++;
             update_croom();
             lua_getfield(L, 1, "contents");
             if (lua_type(L, -1) == LUA_TFUNCTION) {
                 lua_remove(L, -2);
-		if (nhl_pcall(L, 0, 0)){
-		    impossible("Lua error: %s", lua_tostring(L, -1));
-		}
+                l_push_mkroom_table(L, troom);
+                if (nhl_pcall(L, 1, 0)){
+                    impossible("Lua error: %s", lua_tostring(L, -1));
+                }
             } else
                 lua_pop(L, 1);
-            spo_endroom(g.coder);
+            spo_endroom(gc.coder);
             add_doors_to_room(troom);
         }
     }
 
     return 0;
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 /* drawbridge({ dir="east", state="closed", x=05,y=08 }); */
 /* drawbridge({ dir="east", state="closed", coord={05,08} }); */
@@ -6051,7 +6473,7 @@ lspo_drawbridge(lua_State *L)
         "open", "closed", "random", NULL
     };
     static const int dbopens2i[] = { 1, 0, -1, -2 };
-    xchar x, y;
+    coordxy x, y;
     lua_Integer mx, my;
     int dir;
     int db_open;
@@ -6069,7 +6491,7 @@ lspo_drawbridge(lua_State *L)
     x = mx;
     y = my;
 
-    get_location_coord(&x, &y, DRY | WET | HOT, g.coder->croom, dcoord);
+    get_location_coord(&x, &y, DRY | WET | HOT, gc.coder->croom, dcoord);
     if (db_open == -1)
         db_open = !rn2(2);
     if (!create_drawbridge(x, y, dir, db_open ? TRUE : FALSE))
@@ -6091,9 +6513,9 @@ lspo_mazewalk(lua_State *L)
     static const int mwdirs2i[] = {
         W_NORTH, W_SOUTH, W_EAST, W_WEST, W_RANDOM, -2
     };
-    xchar x, y;
+    coordxy x, y;
     lua_Integer mx, my;
-    xchar ftyp = ROOM;
+    coordxy ftyp = ROOM;
     int fstocked = 1, dir = -1;
     long mcoord;
     int argc = lua_gettop(L);
@@ -6117,7 +6539,7 @@ lspo_mazewalk(lua_State *L)
     x = mx;
     y = my;
 
-    get_location_coord(&x, &y, ANY_LOC, g.coder->croom, mcoord);
+    get_location_coord(&x, &y, ANY_LOC, gc.coder->croom, mcoord);
 
     if (!isok(x, y))
         return 0;
@@ -6189,7 +6611,7 @@ lspo_wall_property(lua_State *L)
 {
     static const char *const wprops[] = { "nondiggable", "nonpasswall", NULL };
     static const int wprop2i[] = { W_NONDIGGABLE, W_NONPASSWALL, -1 };
-    xchar dx1 = -1, dy1 = -1, dx2 = -1, dy2 = -1;
+    coordxy dx1 = -1, dy1 = -1, dx2 = -1, dy2 = -1;
     int wprop;
 
     create_des_coder();
@@ -6211,13 +6633,13 @@ lspo_wall_property(lua_State *L)
     wprop = wprop2i[get_table_option(L, "property", "nondiggable", wprops)];
 
     if (dx1 == -1)
-        dx1 = g.xstart - 1;
+        dx1 = gx.xstart - 1;
     if (dy1 == -1)
-        dy1 = g.ystart - 1;
+        dy1 = gy.ystart - 1;
     if (dx2 == -1)
-        dx2 = g.xstart + g.xsize + 1;
+        dx2 = gx.xstart + gx.xsize + 1;
     if (dy2 == -1)
-        dy2 = g.ystart + g.ysize + 1;
+        dy2 = gy.ystart + gy.ysize + 1;
 
     get_location(&dx1, &dy1, ANY_LOC, (struct mkroom *) 0);
     get_location(&dx2, &dy2, ANY_LOC, (struct mkroom *) 0);
@@ -6241,7 +6663,7 @@ set_wallprop_in_selection(lua_State *L, int prop)
     } else if (argc == 0) {
         freesel = TRUE;
         sel = selection_new();
-        selection_not(sel);
+        selection_clear(sel, 1);
     }
 
     if (sel) {
@@ -6272,7 +6694,7 @@ lspo_non_passwall(lua_State *L)
 #if 0
 /*ARGSUSED*/
 static void
-sel_set_wallify(int x, int y, genericptr_t arg UNUSED)
+sel_set_wallify(coordxy x, coordxy y, genericptr_t arg UNUSED)
 {
     wallify_map(x, y, x, y);
 }
@@ -6300,10 +6722,10 @@ lspo_wallify(lua_State *L)
         dy2 = get_table_int(L, "y2");
     }
 
-    wallify_map(dx1 < 0 ? (g.xstart - 1) : dx1,
-                dy1 < 0 ? (g.ystart - 1) : dy1,
-                dx2 < 0 ? (g.xstart + g.xsize + 1) : dx2,
-                dy2 < 0 ? (g.ystart + g.ysize + 1) : dy2);
+    wallify_map(dx1 < 0 ? (gx.xstart - 1) : dx1,
+                dy1 < 0 ? (gy.ystart - 1) : dy1,
+                dx2 < 0 ? (gx.xstart + gx.xsize + 1) : dx2,
+                dy2 < 0 ? (gy.ystart + gy.ysize + 1) : dy2);
 
     return 0;
 }
@@ -6317,18 +6739,8 @@ lspo_wallify(lua_State *L)
 int
 lspo_reset_coordinate_system(lua_State *L UNUSED)
 {
-    reset_coordinate_system();
+    reset_xystart_size();
     return 0;
-}
-
-/* guts of des.reset_coordinate_system(); called from a couple other places */
-static void
-reset_coordinate_system(void)
-{
-    g.xstart = 1;
-    g.ystart = 0;
-    g.xsize = COLNO - 1;
-    g.ysize = ROWNO;
 }
 
 /* reset_level is only needed for testing purposes */
@@ -6339,7 +6751,7 @@ lspo_reset_level(lua_State *L UNUSED)
     if (L)
         create_des_coder();
     makemap_prepost(TRUE);
-    g.in_mklev = TRUE;
+    gi.in_mklev = TRUE;
     oinit(); /* assign level dependent obj probabilities */
     clear_level_structures();
     return 0;
@@ -6358,30 +6770,31 @@ lspo_finalize_level(lua_State *L UNUSED)
     remove_boundary_syms();
 
     /* TODO: ensure_way_out() needs rewrite */
-    if (L && g.coder->check_inaccessibles)
+    if (L && gc.coder->check_inaccessibles)
         ensure_way_out();
 
+    map_cleanup();
     wallification(1, 0, COLNO - 1, ROWNO - 1);
 
     if (L)
-        flip_level_rnd(g.coder->allow_flips, FALSE);
+        flip_level_rnd(gc.coder->allow_flips, FALSE);
 
     count_features();
 
-    if (L && g.coder->solidify)
+    if (L && gc.coder->solidify)
         solidify_map();
 
     /* This must be done before sokoban_detect(),
      * otherwise branch stairs won't be premapped. */
     fixup_special();
 
-    if (L && g.coder->premapped)
+    if (L && gc.coder->premapped)
         sokoban_detect();
 
     level_finalize_topology();
 
-    for (i = 0; i < g.nroom; ++i) {
-        fill_special_room(&g.rooms[i]);
+    for (i = 0; i < gn.nroom; ++i) {
+        fill_special_room(&gr.rooms[i]);
     }
 
     makemap_prepost(FALSE);
@@ -6389,30 +6802,33 @@ lspo_finalize_level(lua_State *L UNUSED)
     return 0;
 }
 
+DISABLE_WARNING_UNREACHABLE_CODE
+
 /* map({ x = 10, y = 10, map = [[...]] }); */
 /* map({ coord = {10, 10}, map = [[...]] }); */
 /* map({ halign = "center", valign = "center", map = [[...]] }); */
 /* map({ map = [[...]], contents = function(map) ... end }); */
 /* map([[...]]) */
+/* local selection = map( ... ); */
 int
 lspo_map(lua_State *L)
 {
     /*
 TODO: allow passing an array of strings as map data
 TODO: handle if map lines aren't same length
-TODO: g.coder->croom needs to be updated
+TODO: gc.coder->croom needs to be updated
      */
 
     static const char *const left_or_right[] = {
         "left", "half-left", "center", "half-right", "right", "none", NULL
     };
     static const int l_or_r2i[] = {
-        RM_LEFT, RM_H_LEFT, RM_CENTER, RM_H_RIGHT, RM_RIGHT, -1, -1
+        SPLEV_LEFT, SPLEV_H_LEFT, SPLEV_CENTER, SPLEV_H_RIGHT, SPLEV_RIGHT, -1, -1
     };
     static const char *const top_or_bot[] = {
         "top", "center", "bottom", "none", NULL
     };
-    static const int t_or_b2i[] = { RM_TOP, RM_CENTER, RM_BOTTOM, -1, -1 };
+    static const int t_or_b2i[] = { SPLEV_TOP, SPLEV_CENTER, SPLEV_BOTTOM, -1, -1 };
     int lr, tb;
     lua_Integer x = -1, y = -1;
     struct mapfragment *mf;
@@ -6421,15 +6837,17 @@ TODO: g.coder->croom needs to be updated
     boolean has_contents = FALSE;
     int tryct = 0;
     int ox, oy;
+    boolean lit = FALSE;
+    struct selectionvar *sel;
 
     create_des_coder();
 
-    if (g.in_mk_themerooms && g.themeroom_failed)
+    if (gi.in_mk_themerooms && gt.themeroom_failed)
         return 0;
 
     if (argc == 1 && lua_type(L, 1) == LUA_TSTRING) {
         tmpstr = dupstr(luaL_checkstring(L, 1));
-        lr = tb = RM_CENTER;
+        lr = tb = SPLEV_CENTER;
         mf = mapfrag_fromstr(tmpstr);
         free(tmpstr);
     } else {
@@ -6438,6 +6856,7 @@ TODO: g.coder->croom needs to be updated
         tb = t_or_b2i[get_table_option(L, "valign", "none", top_or_bot)];
         get_table_xy_or_coord(L, &x, &y);
         tmpstr = get_table_str(L, "map");
+        lit = (boolean) get_table_boolean_opt(L, "lit", FALSE);
         lua_getfield(L, 1, "contents");
         if (lua_type(L, -1) == LUA_TFUNCTION) {
             lua_remove(L, -2);
@@ -6451,20 +6870,22 @@ TODO: g.coder->croom needs to be updated
 
     if (!mf) {
         nhl_error(L, "Map data error");
+        /*NOTREACHED*/
         return 0;
     }
 
+    sel = selection_new();
     ox = x;
     oy = y;
  redo_maploc:
-    g.xsize = mf->wid;
-    g.ysize = mf->hei;
+    gx.xsize = mf->wid;
+    gy.ysize = mf->hei;
 
     if (lr == -1 && tb == -1) {
-        if (g.in_mk_themerooms && (ox == -1 || oy == -1)) {
+        if (gi.in_mk_themerooms && (ox == -1 || oy == -1)) {
             if (ox == -1) {
-                if (g.coder->croom) {
-                    x = somex(g.coder->croom) - mf->wid;
+                if (gc.coder->croom) {
+                    x = somex(gc.coder->croom) - mf->wid;
                     if (x < 1)
                         x = 1;
                 } else {
@@ -6473,8 +6894,8 @@ TODO: g.coder->croom needs to be updated
             }
 
             if (oy == -1) {
-                if (g.coder->croom) {
-                    y = somey(g.coder->croom) - mf->hei;
+                if (gc.coder->croom) {
+                    y = somey(gc.coder->croom) - mf->hei;
                     if (y < 1)
                         y = 1;
                 } else {
@@ -6485,95 +6906,98 @@ TODO: g.coder->croom needs to be updated
 
         if (isok(x, y)) {
             /* x,y is given, place map starting at x,y */
-            if (g.coder->croom) {
+            if (gc.coder->croom) {
                 /* in a room? adjust to room relative coords */
-                g.xstart = x + g.coder->croom->lx;
-                g.ystart = y + g.coder->croom->ly;
-                g.xsize = min(mf->wid,
-                              (g.coder->croom->hx - g.coder->croom->lx));
-                g.ysize = min(mf->hei,
-                              (g.coder->croom->hy - g.coder->croom->ly));
+                gx.xstart = x + gc.coder->croom->lx;
+                gy.ystart = y + gc.coder->croom->ly;
+                gx.xsize = min(mf->wid,
+                              (gc.coder->croom->hx - gc.coder->croom->lx));
+                gy.ysize = min(mf->hei,
+                              (gc.coder->croom->hy - gc.coder->croom->ly));
             } else {
-                g.xsize = mf->wid;
-                g.ysize = mf->hei;
-                g.xstart = x;
-                g.ystart = y;
+                gx.xsize = mf->wid;
+                gy.ysize = mf->hei;
+                gx.xstart = x;
+                gy.ystart = y;
             }
         } else {
             mapfrag_free(&mf);
             nhl_error(L, "Map requires either x,y or halign,valign params");
+            selection_free(sel, TRUE);
             return 0;
         }
     } else {
         /* place map starting at halign,valign */
         switch (lr) {
-        case RM_LEFT:
-            g.xstart = splev_init_present ? 1 : 3;
+        case SPLEV_LEFT:
+            gx.xstart = splev_init_present ? 1 : 3;
             break;
-        case RM_H_LEFT:
-            g.xstart = 2 + ((g.x_maze_max - 2 - g.xsize) / 4);
+        case SPLEV_H_LEFT:
+            gx.xstart = 2 + ((gx.x_maze_max - 2 - gx.xsize) / 4);
             break;
-        case RM_CENTER:
-            g.xstart = 2 + ((g.x_maze_max - 2 - g.xsize) / 2);
+        case SPLEV_CENTER:
+            gx.xstart = 2 + ((gx.x_maze_max - 2 - gx.xsize) / 2);
             break;
-        case RM_H_RIGHT:
-            g.xstart = 2 + ((g.x_maze_max - 2 - g.xsize) * 3 / 4);
+        case SPLEV_H_RIGHT:
+            gx.xstart = 2 + ((gx.x_maze_max - 2 - gx.xsize) * 3 / 4);
             break;
-        case RM_RIGHT:
-            g.xstart = g.x_maze_max - g.xsize - 1;
+        case SPLEV_RIGHT:
+            gx.xstart = gx.x_maze_max - gx.xsize - 1;
             break;
         }
         switch (tb) {
-        case RM_TOP:
-            g.ystart = 3;
+        case SPLEV_TOP:
+            gy.ystart = 3;
             break;
-        case RM_CENTER:
-            g.ystart = 2 + ((g.y_maze_max - 2 - g.ysize) / 2);
+        case SPLEV_CENTER:
+            gy.ystart = 2 + ((gy.y_maze_max - 2 - gy.ysize) / 2);
             break;
-        case RM_BOTTOM:
-            g.ystart = g.y_maze_max - g.ysize - 1;
+        case SPLEV_BOTTOM:
+            gy.ystart = gy.y_maze_max - gy.ysize - 1;
             break;
         }
-        if (!(g.xstart % 2))
-            g.xstart++;
-        if (!(g.ystart % 2))
-            g.ystart++;
+        if (!(gx.xstart % 2))
+            gx.xstart++;
+        if (!(gy.ystart % 2))
+            gy.ystart++;
     }
 
-    if (g.ystart < 0 || g.ystart + g.ysize > ROWNO) {
-        if (g.in_mk_themerooms) {
-            g.themeroom_failed = TRUE;
+    if (gy.ystart < 0 || gy.ystart + gy.ysize > ROWNO) {
+        if (gi.in_mk_themerooms) {
+            gt.themeroom_failed = TRUE;
             goto skipmap;
         }
         /* try to move the start a bit */
-        g.ystart += (g.ystart > 0) ? -2 : 2;
-        if (g.ysize == ROWNO)
-            g.ystart = 0;
-        if (g.ystart < 0 || g.ystart + g.ysize > ROWNO)
-            g.ystart = 0;
+        gy.ystart += (gy.ystart > 0) ? -2 : 2;
+        if (gy.ysize == ROWNO)
+            gy.ystart = 0;
+        if (gy.ystart < 0 || gy.ystart + gy.ysize > ROWNO)
+            gy.ystart = 0;
     }
-    if (g.xsize <= 1 && g.ysize <= 1) {
-        reset_coordinate_system();
+    if (gx.xsize <= 1 && gy.ysize <= 1) {
+        reset_xystart_size();
     } else {
-        xchar mptyp;
-        int xx, yy;
+        coordxy mptyp;
+        coordxy xx, yy;
+        terrain terr;
 
         /* Themed rooms should never overwrite anything */
-        if (g.in_mk_themerooms) {
+        if (gi.in_mk_themerooms) {
             boolean isokp = TRUE;
-            for (yy = g.ystart - 1; yy < min(ROWNO, g.ystart + g.ysize) + 1;
+            for (yy = gy.ystart - 1; yy < min(ROWNO, gy.ystart + gy.ysize) + 1;
                  yy++)
-                for (xx = g.xstart - 1; xx < min(COLNO, g.xstart + g.xsize) + 1;
-                     xx++) {
+                for (xx = gx.xstart - 1;
+                     xx < min(COLNO, gx.xstart + gx.xsize) + 1; xx++) {
                     if (!isok(xx, yy)) {
                         isokp = FALSE;
-                    } else if (yy < g.ystart || yy >= (g.ystart + g.ysize)
-                               || xx < g.xstart || xx >= (g.xstart + g.xsize)) {
+                    } else if (yy < gy.ystart || yy >= (gy.ystart + gy.ysize)
+                               || xx < gx.xstart
+                               || xx >= (gx.xstart + gx.xsize)) {
                         if (levl[xx][yy].typ != STONE
                             || levl[xx][yy].roomno != NO_ROOM)
                             isokp = FALSE;
                     } else {
-                        mptyp = mapfrag_get(mf, xx - g.xstart, yy - g.ystart);
+                        mptyp = mapfrag_get(mf, xx - gx.xstart, yy - gy.ystart);
                         if (mptyp >= MAX_TYPE)
                             continue;
                         if ((levl[xx][yy].typ != STONE
@@ -6584,81 +7008,86 @@ TODO: g.coder->croom needs to be updated
                     if (!isokp) {
                         if (tryct++ < 100 && (lr == -1 || tb == -1))
                             goto redo_maploc;
-                        g.themeroom_failed = TRUE;
+                        gt.themeroom_failed = TRUE;
                         goto skipmap;
                     }
                 }
         }
 
         /* Load the map */
-        for (y = g.ystart; y < min(ROWNO, g.ystart + g.ysize); y++)
-            for (x = g.xstart; x < min(COLNO, g.xstart + g.xsize); x++) {
-                mptyp = mapfrag_get(mf, (x - g.xstart), (y - g.ystart));
+        for (y = gy.ystart; y < min(ROWNO, gy.ystart + gy.ysize); y++)
+            for (x = gx.xstart; x < min(COLNO, gx.xstart + gx.xsize); x++) {
+                mptyp = mapfrag_get(mf, (x - gx.xstart), (y - gy.ystart));
                 if (mptyp == INVALID_TYPE) {
                     /* TODO: warn about illegal map char */
                     continue;
                 }
                 if (mptyp >= MAX_TYPE)
                     continue;
-                levl[x][y].typ = mptyp;
-                levl[x][y].lit = FALSE;
                 /* clear out levl: load_common_data may set them */
                 levl[x][y].flags = 0;
                 levl[x][y].horizontal = 0;
                 levl[x][y].roomno = 0;
                 levl[x][y].edge = 0;
                 SpLev_Map[x][y] = 1;
-                /*
-                 *  Set secret doors to closed (why not trapped too?).  Set
-                 *  the horizontal bit.
-                 */
-                if (levl[x][y].typ == SDOOR || IS_DOOR(levl[x][y].typ)) {
-                    if (levl[x][y].typ == SDOOR)
-                        set_doorstate(&levl[x][y], D_CLOSED);
-                    /*
-                     *  If there is a wall to the left that connects to a
-                     *  (secret) door, then it is horizontal.  This does
-                     *  not allow (secret) doors to be corners of rooms.
-                     */
-                    if (x != g.xstart && (IS_WALL(levl[x - 1][y].typ)
-                                          || levl[x - 1][y].horizontal))
-                        levl[x][y].horizontal = 1;
-                } else if (levl[x][y].typ == HWALL
-                           || levl[x][y].typ == IRONBARS)
-                    levl[x][y].horizontal = 1;
-                else if (levl[x][y].typ == LAVAPOOL)
-                    levl[x][y].lit = 1;
-                else if (splev_init_present && levl[x][y].typ == ICE)
-                    levl[x][y].icedpool = icedpools ? ICED_POOL : ICED_MOAT;
+                selection_setpoint(x, y, sel, 1);
+                terr.ter = mptyp;
+                terr.tlit = lit;
+                sel_set_ter(x, y, &terr);
             }
-        if (g.coder->lvl_is_joined && !g.in_mk_themerooms)
-            remove_rooms(g.xstart, g.ystart,
-                         g.xstart + g.xsize, g.ystart + g.ysize);
     }
 
  skipmap:
     mapfrag_free(&mf);
 
-    if (has_contents && !(g.in_mk_themerooms && g.themeroom_failed)) {
-        l_push_wid_hei_table(L, g.xsize, g.ysize);
-	if (nhl_pcall(L, 1, 0)){
-	    impossible("Lua error: %s", lua_tostring(L, -1));
-	}
+    if (has_contents && !(gi.in_mk_themerooms && gt.themeroom_failed)) {
+        l_push_wid_hei_table(L, gx.xsize, gy.ysize);
+        if (nhl_pcall(L, 1, 0)){
+            impossible("Lua error: %s", lua_tostring(L, -1));
+        }
+        reset_xystart_size();
     }
 
-    return 0;
+    /* return selection where map locations were put */
+    l_selection_push_copy(L, sel);
+    selection_free(sel, TRUE);
+
+    return 1;
+}
+
+RESTORE_WARNING_UNREACHABLE_CODE
+
+struct selectionvar *
+selection_from_mkroom(struct mkroom *croom)
+{
+    struct selectionvar *sel = selection_new();
+    coordxy x, y;
+    unsigned rmno;
+
+    if (!croom && gc.coder && gc.coder->croom)
+        croom = gc.coder->croom;
+    if (!croom)
+        return sel;
+
+    rmno = (unsigned)((croom - gr.rooms) + ROOMOFFSET);
+    for (y = croom->ly; y <= croom->hy; y++)
+        for (x = croom->lx; x <= croom->hx; x++)
+            if (isok(x, y) && !levl[x][y].edge
+                && levl[x][y].roomno == rmno)
+                selection_setpoint(x, y, sel, 1);
+    return sel;
 }
 
 void
 update_croom(void)
 {
-    if (!g.coder)
+    if (!gc.coder)
         return;
 
-    if (g.coder->n_subroom)
-        g.coder->croom = g.coder->tmproomlist[g.coder->n_subroom - 1];
+    if (gc.coder->n_subroom)
+        gc.coder->croom = gc.coder->tmproomlist[gc.coder->n_subroom - 1];
     else
-        g.coder->croom = NULL;
+        gc.coder->croom = NULL;
 }
 
 static struct sp_coder *
@@ -6694,12 +7123,12 @@ sp_level_coder_init(void)
 
     (void) memset((genericptr_t) SpLev_Map, 0, sizeof SpLev_Map);
 
-    g.level.flags.is_maze_lev = 0;
+    gl.level.flags.is_maze_lev = 0;
+    gl.level.flags.temperature = In_hell(&u.uz) ? 1 : 0;
+    gl.level.flags.rndmongen = 1;
+    gl.level.flags.deathdrops = 1;
 
-    g.xstart = 1; /* column [0] is off limits */
-    g.ystart = 0;
-    g.xsize = COLNO - 1; /* 1..COLNO-1 */
-    g.ysize = ROWNO; /* 0..ROWNO-1 */
+    reset_xystart_size();
 
     return coder;
 }
@@ -6748,7 +7177,7 @@ static const struct luaL_Reg nhl_functions[] = {
 
  - if des-file used MAZE_ID to start a level, the level needs
    des.level_flags("mazelevel")
- - expose g.coder->croom or g.[xy]start and g.xy[size] to lua.
+ - expose gc.coder->croom or gx.xstart gy.ystart and gx.xsize gy.ysize to lua.
  - detect a "subroom" automatically.
  - new function get_mapchar(x,y) to return the mapchar on map
  - many params should accept their normal type (eg, int or bool), AND "random"
@@ -6771,8 +7200,8 @@ l_register_des(lua_State *L)
 void
 create_des_coder(void)
 {
-    if (!g.coder)
-        g.coder = sp_level_coder_init();
+    if (!gc.coder)
+        gc.coder = sp_level_coder_init();
 }
 
 /*
@@ -6793,29 +7222,30 @@ load_special(const char *name)
     remove_boundary_syms();
 
     /* TODO: ensure_way_out() needs rewrite */
-    if (g.coder->check_inaccessibles)
+    if (gc.coder->check_inaccessibles)
         ensure_way_out();
 
+    map_cleanup();
     wallification(1, 0, COLNO - 1, ROWNO - 1);
 
-    flip_level_rnd(g.coder->allow_flips, FALSE);
+    flip_level_rnd(gc.coder->allow_flips, FALSE);
 
     count_features();
 
-    if (g.coder->solidify)
+    if (gc.coder->solidify)
         solidify_map();
 
     /* This must be done before sokoban_detect(),
      * otherwise branch stairs won't be premapped. */
     fixup_special();
 
-    if (g.coder->premapped)
+    if (gc.coder->premapped)
         sokoban_detect();
 
     result = TRUE;
  give_up:
-    Free(g.coder);
-    g.coder = NULL;
+    Free(gc.coder);
+    gc.coder = NULL;
 
     return result;
 }
@@ -6823,7 +7253,7 @@ load_special(const char *name)
 /* Accessor for SpLev_Map for other files.
  * Always returns FALSE for non-special levels. */
 boolean
-in_splev_map(xchar x, xchar y)
+in_splev_map(coordxy x, coordxy y)
 {
     if (!Is_special(&u.uz))
         return FALSE;

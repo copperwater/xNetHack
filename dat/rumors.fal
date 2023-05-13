@@ -10,7 +10,7 @@
 # coming from a fortune cookie, put a : at the start of the line.
 
 "So when I die, the first thing I will see in heaven is a score list?"
-:%p, will you marry me?
+[cookie] %p, will you marry me?
 73% of statistics are made up on the spot.
 A black unicorn can be fooled into thinking a piece of glass is a valuable gem.
 A candle is useless without a tinderbox to light it.
@@ -70,7 +70,7 @@ A violet potion applied to the skin is a natural insect repellent.
 A wand of deaf is a more dangerous weapon than a wand of sheep.
 A wand of vibration might bring the whole cave crashing about your ears.
 A winner never quits.  A quitter never wins.
-A wish?  Okay, make me a fortune cookie!
+[cookie] A wish?  Okay, make me a fortune cookie!
 A wizard knows wands.
 Adventurers who loot glass boxes shouldn't throw stones.
 Afraid of mimics?  Try to wear a ring of true seeing.
@@ -90,7 +90,7 @@ Archeologists find more bones piles.
 Argh!  Why did I ever try to put that create monster wand in my bag?
 Arrange three wands of nothing in a triangle for a glyph of incredible power.
 Astral vision is useless if you're already on the Astral Plane.
-:Bad luck and misfortune will infest your pathetic soul for all eternity.
+[cookie] Bad luck and misfortune will infest your pathetic soul for all eternity.
 Balrogs do not appear above level 20.
 Banana peels work especially well against Keystone Kops.
 Be careful when eating bananas.  Monsters might slip on the peels.
@@ -111,9 +111,9 @@ Cockatrice is a rare delicacy, if you know how to remove the stoning glands.
 Cockatrice meat is such a rare delicacy you might only get to try it once.
 Cockatrices might turn themselves to stone faced with a mirror.
 Consumption of home-made food is strictly forbidden in this dungeon.
-:Contains milk, eggs. Best if used by T:24500.
+[cookie] Contains milk, eggs. Best if used by T:24500.
 Cut down a tree?  Are you mad?
-:DON'T OPEN THE COOKIE
+[cookie] DON'T OPEN THE COOKIE
 Dare to be stupid!
 Dark room?  Your chance to develop your photographs!
 Dark rooms are not *completely* dark:  just wait and let your eyes adjust...
@@ -144,14 +144,14 @@ Don't mock a vrock, or you'll get socked.
 Don't pick up keys until you find the shop on this floor.
 Don't play NetHack at your work; your boss might hit you!
 Don't tell a soul you found a secret door, otherwise it isn't a secret anymore.
-:Don't worry about the Amulet, get more fortune cookies!
+[cookie] Don't worry about the Amulet, get more fortune cookies!
 Drinking potions of booze may land you in jail if you are under experience level 21.
 Drop your vanity and get rid of your jewels!  Pickpockets about!
 Dude, if you're already stoned, what harm is there in messing with boulders?
 Eat 10 cloves of garlic and keep all humans at a two-square distance.
 Eat your vegetables. You don't want to get scurvy, do you?
 Eating Death's corpse can make you resistant to death.
-:Eating flimsy food like this cookie is a good way to feel fragile.
+[cookie] Eating flimsy food like this cookie is a good way to feel fragile.
 Eating too many candy bars is bad for your health!
 Eels hide under mud.  Use a unicorn to clear the water and make them visible.
 Eels will help you tie your shoes.
@@ -185,7 +185,7 @@ For any remedy there is a misery.
 For it is, it is a glorious thing to be an Elvenking!
 Gelatinous cube is a dangerous snack, even in a tin!
 Giant bats turn into giant vampires.
-:Give my regards to the next fortune cookie you eat.
+[cookie] Give my regards to the next fortune cookie you eat.
 Goblins and grid bugs get along great; they love playing tic-tac-toe together.
 Gods are offended by those who polymorph themselves too often.
 Gold golems are fast, but lack durability.
@@ -194,7 +194,7 @@ Greasing your food before you eat it helps avoid choking.
 Grid bugs always come in pairs.
 Half moon tonight.  (At least it's better than no moon at all.)
 Having a hard time against Demogorgon? Try zapping him with a wand of death.
-:Help!  I'm trapped in a fortune cookie factory!
+[cookie] Help!  I'm being held prisoner in a fortune cookie factory!
 Hey!  Who moved the mazes around?  I think I'm getting lost.
 Housecats have nine lives, kittens only one.
 How long can you tread water?
@@ -211,12 +211,12 @@ I once saw a dog wearing a bobble hat!
 I once saw a hacker with a +9 elven runesword!
 I tried eating a xorn once, but it just phased right through my mouth.
 I wonder what happens if you set a magic trap in an anti-magic field...
-:I was a fortune cookie, until someone murdered me for my secrets.
+[cookie] I was a fortune cookie, until someone murdered me for my secrets.
 If Juiblex eats you, don't panic. You brought your pick-axe, didn't you?
-:If found, please return this cookie to Sarangan's delicatessen on Dlvl:16.
+[cookie] If found, please return this cookie to Sarangan's delicatessen on Dlvl:16.
 If it looks like fruit juice and tastes like fruit juice... it is fruit juice.
 If the prize isn't behind the first Sokoban door, there's a 2/3 chance that it's behind the second one.
-:If this cookie satiated you, please consider leaving a good review.
+[cookie] If this cookie satiated you, please consider leaving a good review.
 If you are the shopkeeper, you can take things for free.
 If you ask really nicely, the Wizard will give you the Amulet.
 If you become a disenchanter, you can eat magic items to gain their power.
@@ -294,7 +294,7 @@ Never use a wand of death.
 Never, ever name a floating eye "Sauron".
 No level contains two shops.  The maze is no level.  So...
 No need to be scared if you've overprepared.
-:No part of this fortune may be reproduced, stored in a retrieval system, ...
+[cookie] No part of this fortune may be reproduced, stored in a retrieval system, ...
 Not all rumors are as misleading as this one.
 Nymphs and nurses like beautiful rings.
 Nymphs are blondes.  Are you a gentleman?
@@ -310,12 +310,12 @@ Only chaotic evils kill sleeping monsters.
 Only real trappers escape traps.
 Only real wizards can write scrolls.
 Only you can prevent fireballs.
-:Ouch.  I hate when that happens.
+[cookie] Ouch.  I hate when that happens.
 Out of knives to throw? A carrot will do in a pinch.
 Owlbears just want a hug.  Is that so bad?
 Pets can go feral if you don't throw them food frequently.
 Placing a rock on a headstone helps pacify the dead.
-:Please ignore previous rumor.
+[cookie] Please ignore previous rumor.
 Polymorph into an ettin; meet your opponents face to face to face.
 Polymorphing a fortune cookie will change its fortune.
 Polymorphing the Wizard of Yendor could turn him into the Lizard of Yendor.
@@ -339,13 +339,14 @@ Some jerk has been leaving helpful graffiti at the dungeon entrance.
 Some mazes (especially small ones) have no solutions, says man 6 maze.
 Some questions the Sphynx asks just *don't* have any answers.
 Someone's looking for you in Minetown.
-:Sorry, no fortune this time.  Better luck next cookie!
+Sometimes "mu" is the answer.
+[cookie] Sorry, no fortune this time.  Better luck next cookie!
 Spare your scrolls of make-edible until it's really necessary!
 Sphinx of black quartz, judge my vow.
 Spreading poison all over yourself will prevent monsters from trying to eat you.
 Sticks and stones may break your bones but manes will never hurt you.
 Stormbringer doesn't steal souls.  People steal souls.
-:Suddenly, the dungeon will collapse.
+[cookie] Suddenly, the dungeon will collapse.
 Taming a mail daemon may cause a system security violation.
 Taking a dip in the Styx is really dumb unless your name is Achilles.
 That food really hit the spot! The spot hits the food ration. The food ration is destroyed!
@@ -392,12 +393,12 @@ They say that a desperate shopper might pay any price in a shop.
 They say that a diamond dog is everybody's best friend.
 They say that a dwarf lord can carry a pick-axe because his armor is light.
 They say that a floating eye can defeat Medusa.
-They say that a fortune only has 1 line, but you can read between it.
+[cookie] They say that a fortune only has 1 line, but you can read between it.
 They say that a fountain looks nothing like a regularly erupting geyser.
 They say that a gecko corpse can fetch hundreds of zorkmids in the right shop.
 They say that a gold doubloon is worth more than its weight in gold.
 They say that a grid bug won't pay a shopkeeper for zapping you in a shop.
-They say that a gypsy could tell your fortune for a price.
+[cookie] They say that a gypsy could tell your fortune for a price.
 They say that a hacker named Adeon will always move quickly.
 They say that a hacker named Alice once level teleported by using a mirror.
 They say that a hacker named David once slew a giant with a sling and a rock.
@@ -473,7 +474,7 @@ They say that falling down the stairs can have unexpected benefits, under the ri
 They say that finding a winning strategy is a deliberate move on your part.
 They say that finding worthless glass is worth something.
 They say that flirting with nymphs is a good way to feel more charismatic.
-They say that fortune cookies are food for thought.
+[cookie] They say that fortune cookies are food for thought.
 They say that gold is only wasted on a pet dragon.
 They say that good things come to those that wait.
 They say that greased objects will slip out of monsters' hands.
@@ -612,10 +613,11 @@ They say that you should remove your armor before sitting on a throne.
 They say that you should try jumping over a shark.
 They say that you shouldn't try to pull one over on a watch captain named Vimes.
 They say that the more luckstones you have, the better.
-:This fortune cookie is copy protected.
-:This fortune cookie is the property of Fortune Cookies, Inc.
-:This message will erupt into a tower of flame in 3 seconds.
-:This paper contains 10%% recycled material.
+[cookie] This fortune cookie is copy protected.
+[cookie] This fortune cookie is the property of Fortune Cookies, Inc.
+[cookie] This message will erupt into a tower of flame in 3 seconds.
+[cookie] This paper contains 10%% recycled material.
+This release contains 10%% recycled material.
 Those extra rooms in Minetown are just begging to become more shops.  You too can be a shopkeeper!
 Those with superior minds can teleport to their homeland after yearning for it.
 Time passes differently in Gehennom.
@@ -631,8 +633,8 @@ Try calling your katana Moulinette.
 Ulch!  That meat was painted!
 Unfortunately, no one can tell you what NetHack is.  You have to see for yourself.
 Unicorns don't *eat* gems... do they?
-:Unfortunately, this message is useless.
-:Unfortunately, this message was intentionally left blank.
+[cookie] Unfortunately, this message is useless.
+[cookie] Unfortunately, this message was intentionally left blank.
 Using a morning star in the evening has no effect.
 Waltz, dumb nymph, for quick jigs vex.
 Want a hint?  Zap a wand of make invisible on your weapon!
@@ -640,17 +642,17 @@ Want to ascend in a hurry?  Apply at Gizmonic Institute.
 Want to chow down on a pile of corpses? Get Famine to help you out.
 Wanted: shopkeepers.  Send a scroll of mail to The Wizard of Yendor, Level 35, Gehennom.
 Warning:  Objects on screen may be closer than they appear
-Warning:  fortune reading can be hazardous to your health.
+[cookie] Warning:  fortune reading can be hazardous to your health.
 Watch out for that dwarf king! He might be a master mind flayer in disguise!
 We have new ways of detecting treachery...
 Wet towels make great weapons!
 Whatever can go wrong, will go wrong.
-:When I die, I don't want a grave. Put my epitaph inside a fortune cookie instead.
+[cookie] When I die, I don't want a grave. Put my epitaph inside a fortune cookie instead.
 When a piercer drops in on you, you will be tempted to hit the ceiling!
 When in a maze follow the right wall and you will never get lost.
 When you have a key, you don't have to wait for the guard.
 Who's "they", and why do they say so much?
-:Why are you wasting time reading fortunes?
+[cookie] Why are you wasting time reading fortunes?
 Why would anyone make a gold golem? You could hire an army with that much gold!
 Why would you ever eat food you found in a graveyard?
 Wielding an adder stone will let you see monsters as they truly are.
@@ -660,28 +662,30 @@ Wish for a master key and open the Magic Memory Vault!
 Wolfsbane is poisonous and should only be used in rituals.
 Wow!  You could've had a potion of fruit juice!
 You'll be ruined if you become a lycanthrope. Prevent it by any means possible.
-:You are destined to be misled by a fortune.
+[cookie] You are destined to be misled by a fortune.
 You can always tell a potion of levitation: it'll be the one floating in the air.
 You can always tell an evil monster because it doesn't cast a shadow.
-:You can get a genuine Amulet of Yendor by doing the following:  --More--
+[cookie] You can get a genuine Amulet of Yendor by doing the following:  --More--
 You can get hallucination potions in a health food store if you know how to ask.
 You can make holy water by boiling the hell out of it.
-:You can protect yourself from black dragons by doing the following:  --More--
+[cookie] You can protect yourself from black dragons by doing the following:  --More--
 You can't get by the snake.
 You can't make an Amulet without breaking some eggs.
+[cookie] You choke on the fortune cookie.  --More--
 You feel like someone is pulling your leg.
 You have to outwit the Sphynx or pay her.
 You hear all about the Wizard of Yendor, but why does no one mention the King of Yendor?
-:You hear the fortune cookie's hissing!
-:You kill the poor fortune cookie!  You hear the rumble of distant thunder...
-:You killed the fortune cookie!  You murderer!
+[cookie] You hear the fortune cookie's hissing!
+[cookie] You kill the poor fortune cookie!  You hear the rumble of distant thunder...
+[cookie] You killed the fortune cookie!  You murderer!
 You may get rich selling letters, but beware of being blackmailed!
 You offend Shai-Hulud by sheathing your crysknife without having drawn blood.
-:You should continue eating fortune cookies.
+[cookie] You should continue eating fortune cookies.
 You should sharpen that sword once in a while.
+[cookie] You swallowed the fortune!
 You want to regain strength?  Two levels ahead is a guesthouse!
-:You will eat another fortune cookie.
+[cookie] You will eat another fortune cookie.
 You will encounter a tall, dark, and gruesome creature...
 You've never met a bird of prey in the dungeon?  Good.
-:Your lucky numbers are 5, 29, 17, 34, and 8.
+[cookie] Your lucky numbers are 5, 29, 17, 34, and 8.
 Your plan is going to fail badly.

@@ -25,11 +25,7 @@ equipname(register struct obj* otmp)
 long
 somegold(long lmoney)
 {
-#ifdef LINT /* long conv. ok */
-    int igold = 0;
-#else
     int igold = (lmoney >= (long) LARGEST_INT) ? LARGEST_INT : (int) lmoney;
-#endif
 
     if (igold < 50)
         ; /* all gold */
@@ -94,12 +90,12 @@ stealgold(register struct monst* mtmp)
     const char *whose, *what;
 
     /* look for gold on the floor */
-    fgold = g.level.objects[u.ux][u.uy];
+    fgold = gl.level.objects[u.ux][u.uy];
     while (fgold && fgold->material != GOLD)
         fgold = fgold->nexthere;
 
     /* Do you have real gold? */
-    ygold = findgold(g.invent, FALSE);
+    ygold = findgold(gi.invent, FALSE);
 
     if (fgold && (!ygold || fgold->quan > ygold->quan || !rn2(5))) {
         obj_extract_self(fgold);
@@ -110,7 +106,7 @@ stealgold(register struct monst* mtmp)
             whose = s_suffix(y_monnam(who));
             what = makeplural(mbodypart(who, FOOT));
         } else {
-            who = &g.youmonst;
+            who = &gy.youmonst;
             whose = "your";
             what = makeplural(body_part(FOOT));
         }
@@ -131,7 +127,7 @@ stealgold(register struct monst* mtmp)
         if (ygold->otyp == GOLD_PIECE) {
             const int gold_price = objects[GOLD_PIECE].oc_cost;
 
-            tmp = (somegold(money_cnt(g.invent)) + gold_price - 1) / gold_price;
+            tmp = (somegold(money_cnt(gi.invent)) + gold_price - 1) / gold_price;
             tmp = min(tmp, ygold->quan);
             if (tmp < ygold->quan)
                 ygold = splitobj(ygold, tmp);
@@ -148,7 +144,7 @@ stealgold(register struct monst* mtmp)
         if (!tele_restrict(mtmp))
             (void) rloc(mtmp, RLOC_MSG);
         monflee(mtmp, 0, FALSE, FALSE);
-        g.context.botl = 1;
+        gc.context.botl = 1;
     }
 }
 
@@ -157,14 +153,28 @@ void
 thiefdead(void)
 {
     /* hero is busy taking off an item of armor which takes multiple turns */
-    g.stealmid = 0;
-    if (g.afternmv == stealarm) {
-        g.afternmv = unstolenarm;
-        g.nomovemsg = (char *) 0;
+    gs.stealmid = 0;
+    if (ga.afternmv == stealarm) {
+        ga.afternmv = unstolenarm;
+        gn.nomovemsg = (char *) 0;
     }
 }
 
-/* called via (*g.afternmv)() when hero finishes taking off armor that
+/* checks whether hero can be responsive to seduction attempts; similar to
+   Unaware but also includes paralysis */
+boolean
+unresponsive(void)
+{
+    if (gm.multi >= 0)
+        return FALSE;
+
+    return (unconscious() || is_fainted()
+            || (gm.multi_reason
+                && (!strncmp(gm.multi_reason, "frozen", 6)
+                    || !strncmp(gm.multi_reason, "paralyzed", 9))));
+}
+
+/* called via (*ga.afternmv)() when hero finishes taking off armor that
    was slated to be stolen but the thief died in the interim */
 static int
 unstolenarm(void)
@@ -173,10 +183,10 @@ unstolenarm(void)
 
     /* find the object before clearing stealoid; it has already become
        not-worn and is still in hero's inventory */
-    for (obj = g.invent; obj; obj = obj->nobj)
-        if (obj->o_id == g.stealoid)
+    for (obj = gi.invent; obj; obj = obj->nobj)
+        if (obj->o_id == gs.stealoid)
             break;
-    g.stealoid = 0;
+    gs.stealoid = 0;
     if (obj) {
         You("finish taking off your %s.", equipname(obj));
     }
@@ -189,13 +199,13 @@ stealarm(void)
     register struct monst *mtmp;
     register struct obj *otmp;
 
-    if (!g.stealoid || !g.stealmid)
+    if (!gs.stealoid || !gs.stealmid)
         goto botm;
 
-    for (otmp = g.invent; otmp; otmp = otmp->nobj) {
-        if (otmp->o_id == g.stealoid) {
+    for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
+        if (otmp->o_id == gs.stealoid) {
             for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
-                if (mtmp->m_id == g.stealmid) {
+                if (mtmp->m_id == gs.stealmid) {
                     if (DEADMONSTER(mtmp))
                         impossible("stealarm(): dead monster stealing");
                     if (!dmgtype(mtmp->data, AD_SITM)) /* polymorphed */
@@ -217,7 +227,7 @@ stealarm(void)
         }
     }
  botm:
-    g.stealoid = g.stealmid = 0; /* in case only one has been reset so far */
+    gs.stealoid = gs.stealmid = 0; /* in case only one has been reset so far */
     return 0;
 }
 
@@ -302,7 +312,7 @@ steal(struct monst* mtmp, char* objnambuf)
     /* food being eaten might already be used up but will not have
        been removed from inventory yet; we don't want to steal that,
        so this will cause it to be removed now */
-    if (g.occupation)
+    if (go.occupation)
         (void) maybe_finished_meal(FALSE);
 
     icnt = inv_cnt(FALSE); /* don't include gold */
@@ -333,14 +343,14 @@ steal(struct monst* mtmp, char* objnambuf)
 
  retry:
     tmp = 0;
-    for (otmp = g.invent; otmp; otmp = otmp->nobj)
+    for (otmp = gi.invent; otmp; otmp = otmp->nobj)
         if ((!uarm || otmp != uarmc) && otmp != uskin
             && otmp->oclass != COIN_CLASS)
             tmp += (otmp->owornmask & (W_ARMOR | W_ACCESSORY)) ? 5 : 1;
     if (!tmp)
         goto nothing_to_steal;
     tmp = rn2(tmp);
-    for (otmp = g.invent; otmp; otmp = otmp->nobj)
+    for (otmp = gi.invent; otmp; otmp = otmp->nobj)
         if ((!uarm || otmp != uarmc) && otmp != uskin
             && otmp->oclass != COIN_CLASS) {
             tmp -= (otmp->owornmask & (W_ARMOR | W_ACCESSORY)) ? 5 : 1;
@@ -367,7 +377,7 @@ steal(struct monst* mtmp, char* objnambuf)
         otmp = uarm;
 
  gotobj:
-    if (otmp->o_id == g.stealoid)
+    if (otmp->o_id == gs.stealoid)
         return 0;
 
     if (otmp->otyp == BOULDER && !throws_rocks(mtmp->data)) {
@@ -433,9 +443,10 @@ steal(struct monst* mtmp, char* objnambuf)
             armordelay = objects[otmp->otyp].oc_delay;
             if (olddelay > 0 && olddelay < armordelay)
                 armordelay = olddelay;
-            if (monkey_business) {
-                /* animals usually don't have enough patience
-                   to take off items which require extra time */
+            if (monkey_business || unresponsive()) {
+                /* animals usually don't have enough patience to take off
+                   items which require extra time; unconscious or paralyzed
+                   hero can't be charmed into taking off his own armor */
                 if (armordelay >= 1 && !olddelay && rn2(10))
                     goto cant_take;
                 remove_worn_item(otmp, TRUE);
@@ -446,10 +457,7 @@ steal(struct monst* mtmp, char* objnambuf)
                 boolean seen = canspotmon(mtmp);
 
                 otmp->cursed = 0;
-                /* can't charm you without first waking you */
-                if (Unaware)
-                    unmul((char *) 0);
-                slowly = (armordelay >= 1 || g.multi < 0);
+                slowly = (armordelay >= 1 || gm.multi < 0);
                 if (flags.female)
                     urgent_pline("%s charms you.  You gladly %s your %s.",
                                  !seen ? "She" : Monnam(mtmp),
@@ -469,14 +477,14 @@ steal(struct monst* mtmp, char* objnambuf)
                 named++;
                 /* the following is to set multi for later on */
                 nomul(-armordelay);
-                g.multi_reason = "taking off clothes";
-                g.nomovemsg = 0;
+                gm.multi_reason = "taking off clothes";
+                gn.nomovemsg = 0;
                 remove_worn_item(otmp, TRUE);
                 otmp->cursed = curssv;
-                if (g.multi < 0) {
-                    g.stealoid = otmp->o_id;
-                    g.stealmid = mtmp->m_id;
-                    g.afternmv = stealarm;
+                if (gm.multi < 0) {
+                    gs.stealoid = otmp->o_id;
+                    gs.stealmid = mtmp->m_id;
+                    ga.afternmv = stealarm;
                     return 0;
                 }
             }
@@ -511,7 +519,7 @@ steal(struct monst* mtmp, char* objnambuf)
         minstapetrify(mtmp, TRUE);
         return -1;
     }
-    if (monkey_business && g.multi >= 0) {
+    if (monkey_business && gm.multi >= 0) {
         /* check multi here because we only want the speed boost to go towards
          * fleeing, not towards further attacks if player can't move */
         int bonus = NORMAL_SPEED;
@@ -523,7 +531,7 @@ steal(struct monst* mtmp, char* objnambuf)
         }
         mtmp->movement += bonus;
     }
-    return (g.multi < 0) ? 0 : 1;
+    return (gm.multi < 0) ? 0 : 1;
 }
 
 /* Returns 1 if otmp is free'd, 0 otherwise. */
@@ -545,10 +553,15 @@ mpickobj(struct monst *mtmp, struct obj *otmp)
     }
     /* if monster is acquiring a thrown or kicked object, the throwing
        or kicking code shouldn't continue to track and place it */
-    if (otmp == g.thrownobj)
-        g.thrownobj = 0;
-    else if (otmp == g.kickedobj)
-        g.kickedobj = 0;
+    if (otmp == gt.thrownobj)
+        gt.thrownobj = 0;
+    else if (otmp == gk.kickedobj)
+        gk.kickedobj = 0;
+    /* an unpaid item can be on the floor; if a monster picks it up, take
+       it off the shop bill */
+    if (otmp->unpaid || (Has_contents(otmp) && count_unpaid(otmp->cobj))) {
+        subfrombill(otmp, find_objowner(otmp, otmp->ox, otmp->oy));
+    }
     /* don't want hidden light source inside the monster; assumes that
        engulfers won't have external inventories; whirly monsters cause
        the light to be extinguished rather than letting it shine thru */
@@ -612,18 +625,18 @@ stealamulet(struct monst* mtmp)
     /* target every quest artifact, not just current role's;
        if hero has more than one, choose randomly so that player
        can't use inventory ordering to influence the theft */
-    for (n = 0, obj = g.invent; obj; obj = obj->nobj)
+    for (n = 0, obj = gi.invent; obj; obj = obj->nobj)
         if (any_quest_artifact(obj))
             ++n, otmp = obj;
     if (n > 1) {
         n = rnd(n);
-        for (otmp = g.invent; otmp; otmp = otmp->nobj)
+        for (otmp = gi.invent; otmp; otmp = otmp->nobj)
             if (any_quest_artifact(otmp) && !--n)
                 break;
     }
 
     if (!otmp) {
-        /* if we didn't find any quest arifact, find another valuable item */
+        /* if we didn't find any quest artifact, find another valuable item */
         if (u.uhave.amulet) {
             real = AMULET_OF_YENDOR;
             fake = FAKE_AMULET_OF_YENDOR;
@@ -638,12 +651,12 @@ stealamulet(struct monst* mtmp)
             return; /* you have nothing of special interest */
 
         /* If we get here, real and fake have been set up. */
-        for (n = 0, obj = g.invent; obj; obj = obj->nobj)
+        for (n = 0, obj = gi.invent; obj; obj = obj->nobj)
             if (obj->otyp == real || (obj->otyp == fake && !mtmp->iswiz))
                 ++n, otmp = obj;
         if (n > 1) {
             n = rnd(n);
-            for (otmp = g.invent; otmp; otmp = otmp->nobj)
+            for (otmp = gi.invent; otmp; otmp = otmp->nobj)
                 if ((otmp->otyp == real
                      || (otmp->otyp == fake && !mtmp->iswiz)) && !--n)
                     break;
@@ -718,10 +731,10 @@ mdrop_obj(
     struct obj *obj,
     boolean verbosely)
 {
-    int omx = mon->mx, omy = mon->my;
+    coordxy omx = mon->mx, omy = mon->my;
     long unwornmask = obj->owornmask;
     /* call distant_name() for its possible side-effects even if the result
-       might not be printed, and do it before extracing obj from minvent */
+       might not be printed, and do it before extracting obj from minvent */
     char *obj_name = distant_name(obj, doname);
 
     extract_from_minvent(mon, obj, FALSE, TRUE);
@@ -730,7 +743,7 @@ mdrop_obj(
     if (unwornmask && mon->mtame && (unwornmask & W_SADDLE) != 0L
         && !obj->unpaid && costly_spot(omx, omy)
         /* being at costly_spot guarantees lev->roomno is not 0 */
-        && index(in_rooms(u.ux, u.uy, SHOPBASE), levl[omx][omy].roomno)) {
+        && strchr(in_rooms(u.ux, u.uy, SHOPBASE), levl[omx][omy].roomno)) {
         obj->no_charge = 1;
     }
     /* obj_no_longer_held(obj); -- done by place_object */
@@ -744,7 +757,7 @@ mdrop_obj(
        throws rider, possibly inflicting fatal damage and producing bones; this
        is why we had to call extract_from_minvent() with do_intrinsics=FALSE */
     if (!DEADMONSTER(mon) && unwornmask)
-        update_mon_intrinsics(mon, obj, FALSE, TRUE);
+        update_mon_extrinsics(mon, obj, FALSE, TRUE);
 }
 
 /* some monsters bypass the normal rules for moving between levels or
@@ -793,7 +806,7 @@ relobj(
     } /* isgd && has gold */
 
     while ((otmp = (is_pet ? droppables(mtmp) : mtmp->minvent)) != 0) {
-        mdrop_obj(mtmp, otmp, is_pet && flags.verbose);
+        mdrop_obj(mtmp, otmp, is_pet && Verbose(1, relobj));
         if (is_unpaid(otmp) && costly_spot(omx, omy)
             && (shkp = shop_keeper(*in_rooms(omx, omy, SHOPBASE))) != 0
             && inhishop(shkp)) {

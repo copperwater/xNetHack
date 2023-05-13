@@ -1,4 +1,4 @@
-/* NetHack 3.7	rm.h	$NHDT-Date: 1651099392 2022/04/27 22:43:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.94 $ */
+/* NetHack 3.7	rm.h	$NHDT-Date: 1657918091 2022/07/15 20:48:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.96 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -9,7 +9,7 @@
 /*
  * The dungeon presentation graphics code and data structures were rewritten
  * and generalized for NetHack's release 2 by Eric S. Raymond (eric@snark)
- * building on Don G Kneller's MS-DOS implementation.	See drawing.c for
+ * building on Don G Kneller's MS-DOS implementation. See drawing.c for
  * the code that permits the user to set the contents of the symbol structure.
  *
  * The door representation was changed by Ari
@@ -57,26 +57,27 @@ enum levl_typ_types {
     WATER     = 18,
     DRAWBRIDGE_UP = 19,
     LAVAPOOL  = 20,
-    IRONBARS  = 21, /* KMH */
-    DOOR      = 22,
-    CORR      = 23,
-    ROOM      = 24,
-    STAIRS    = 25,
-    LADDER    = 26,
-    FOUNTAIN  = 27,
-    THRONE    = 28,
-    SINK      = 29,
-    GRAVE     = 30,
-    ALTAR     = 31,
-    ICE       = 32,
-    GRASS     = 33,
-    MAGIC_PLATFORM = 34,
-    DRAWBRIDGE_DOWN = 35,
-    AIR       = 36,
-    CLOUD     = 37,
+    LAVAWALL  = 21,
+    IRONBARS  = 22, /* KMH */
+    DOOR      = 23,
+    CORR      = 24,
+    ROOM      = 25,
+    STAIRS    = 26,
+    LADDER    = 27,
+    FOUNTAIN  = 28,
+    THRONE    = 29,
+    SINK      = 30,
+    GRAVE     = 31,
+    ALTAR     = 32,
+    ICE       = 33,
+    GRASS     = 34,
+    MAGIC_PLATFORM = 35,
+    DRAWBRIDGE_DOWN = 36,
+    AIR       = 37,
+    CLOUD     = 38,
 
-    MAX_TYPE  = 38,
-    MATCH_WALL = 39,
+    MAX_TYPE  = 39,
+    MATCH_WALL = 40,
     INVALID_TYPE = 127
 };
 
@@ -91,7 +92,7 @@ enum levl_typ_types {
 #define IS_DOOR(typ) ((typ) == DOOR)
 #define IS_DOORJOIN(typ) (IS_ROCK(typ) || (typ) == IRONBARS)
 #define IS_TREE(typ)                                            \
-    ((typ) == TREE || (g.level.flags.arboreal && (typ) == STONE))
+    ((typ) == TREE || (gl.level.flags.arboreal && (typ) == STONE))
 #define ACCESSIBLE(typ) ((typ) >= DOOR) /* good position */
 #define IS_ROOM(typ) ((typ) >= ROOM)    /* ROOM, STAIRS, furniture.. */
 #define ZAP_POS(typ) ((typ) >= POOL)
@@ -110,6 +111,14 @@ enum levl_typ_types {
 #define IS_AIR(typ) ((typ) == AIR || (typ) == CLOUD)
 #define IS_SOFT(typ) ((typ) == AIR || (typ) == CLOUD || IS_POOL(typ))
 #define IS_WATERWALL(typ) ((typ) == WATER)
+/* for surface checks when it's unknown whether a drawbridge is involved;
+   drawbridge_up is the spot in front of a closed drawbridge and not the
+   current surface at that spot; caveat: this evaluates its arguments more
+   than once and might make a function call */
+#define SURFACE_AT(x,y) \
+    ((levl[x][y].typ == DRAWBRIDGE_UP)            \
+     ? db_under_typ(levl[x][y].drawbridgemask)    \
+     : levl[x][y].typ)
 
 /*
  *      Note:  secret doors (SDOOR) want to use both rm.doormask and
@@ -347,15 +356,15 @@ struct rm {
  * directions.  If we know the type of wall and the directions from which
  * it has been seen, then we can determine what it looks like to the hero.
  */
-#define SV0   0x01
-#define SV1   0x02
-#define SV2   0x04
-#define SV3   0x08
-#define SV4   0x10
-#define SV5   0x20
-#define SV6   0x40
-#define SV7   0x80
-#define SVALL 0xFF
+#define SV0   ((seenV) 0x01)
+#define SV1   ((seenV) 0x02)
+#define SV2   ((seenV) 0x04)
+#define SV3   ((seenV) 0x08)
+#define SV4   ((seenV) 0x10)
+#define SV5   ((seenV) 0x20)
+#define SV6   ((seenV) 0x40)
+#define SV7   ((seenV) 0x80)
+#define SVALL ((seenV) 0xFF)
 
 /* if these get changed or expanded, make sure wizard-mode wishing becomes
    aware of the new usage */
@@ -367,10 +376,12 @@ struct rm {
 #define looted     flags /* used for throne, tree, fountain, sink, door */
 #define icedpool   flags /* used for ice (in case it melts) */
 #define is_niche   flags /* used to mark corridor spaces that are niches */
+#define emptygrave flags /* no corpse in grave */
 /* horizonal applies to walls, doors (including sdoor); also to iron bars
    even though they don't have separate symbols for horizontal and vertical */
 #define blessedftn horizontal /* a fountain that grants attribs */
-#define disturbed  horizontal /* a grave that has been disturbed */
+#define disturbed  horizontal /* kicking or engraving on a grave's headstone
+                               * has summoned a ghoul */
 
 struct damage {
     struct damage *next;
@@ -384,14 +395,14 @@ struct damage {
    an existing bones level; if so, most recent victim will be first in list */
 struct cemetery {
     struct cemetery *next; /* next struct is previous dead character... */
-    /* "g.plname" + "-ROLe" + "-RACe" + "-GENder" + "-ALIgnment" + \0 */
+    /* "gp.plname" + "-ROLe" + "-RACe" + "-GENder" + "-ALIgnment" + \0 */
     char who[PL_NSIZ + 4 * (1 + 3) + 1];
     /* death reason, same as in score/log file */
     char how[100 + 1]; /* [DTHSZ+1] */
     /* date+time in string of digits rather than binary */
     char when[4 + 2 + 2 + 2 + 2 + 2 + 1]; /* "YYYYMMDDhhmmss\0" */
     /* final resting place spot */
-    xchar frpx, frpy;
+    coordxy frpx, frpy;
     boolean bonesknown;
 };
 
@@ -428,7 +439,15 @@ struct levelflags {
     Bitfield(visited_after_event, 1); /* whether you have already (re)entered
                                        * the level after satisfying some
                                        * condition */
-    /* 0 free bits */
+    Bitfield(rndmongen, 1);    /* random monster generation allowed? */
+
+    Bitfield(deathdrops, 1);   /* monsters may drop corpses/death drops */
+    Bitfield(noautosearch, 1); /* automatic searching disabled */
+    Bitfield(fumaroles, 1);    /* lava emits poison gas at random */
+    Bitfield(stormy, 1);       /* clouds create lightning bolts at random */
+
+    /* 4 free bits */
+    schar temperature;         /* +1 == hot, -1 == cold */
 };
 
 /* values for nommap, which is a slightly awkward name since it is no longer a
@@ -461,9 +480,9 @@ typedef struct {
 /*
  * Macros for compatibility with old code. Someday these will go away.
  */
-#define levl g.level.locations
-#define fobj g.level.objlist
-#define fmon g.level.monlist
+#define levl gl.level.locations
+#define fobj gl.level.objlist
+#define fmon gl.level.monlist
 
 /*
  * Covert a trap number into the defsym graphics array.
@@ -473,26 +492,26 @@ typedef struct {
 #define trap_to_defsym(t) (S_arrow_trap + (t) - 1)
 #define defsym_to_trap(d) ((d) - S_arrow_trap + 1)
 
-#define OBJ_AT(x, y) (g.level.objects[x][y] != (struct obj *) 0)
+#define OBJ_AT(x, y) (gl.level.objects[x][y] != (struct obj *) 0)
 /*
  * Macros for encapsulation of level.monsters references.
  */
 #if 0
 #define MON_AT(x, y) \
-    (g.level.monsters[x][y] != (struct monst *) 0 \
-     && !(g.level.monsters[x][y])->mburied)
+    (gl.level.monsters[x][y] != (struct monst *) 0 \
+     && !(gl.level.monsters[x][y])->mburied)
 #define MON_BURIED_AT(x, y) \
-    (g.level.monsters[x][y] != (struct monst *) 0 \
-     && (g.level.monsters[x][y])->mburied)
+    (gl.level.monsters[x][y] != (struct monst *) 0 \
+     && (gl.level.monsters[x][y])->mburied)
 #else   /* without 'mburied' */
-#define MON_AT(x, y) (g.level.monsters[x][y] != (struct monst *) 0)
+#define MON_AT(x, y) (gl.level.monsters[x][y] != (struct monst *) 0)
 #endif
-#define m_at(x, y) (MON_AT(x, y) ? g.level.monsters[x][y] : (struct monst *) 0)
+#define m_at(x, y) (MON_AT(x, y) ? gl.level.monsters[x][y] : (struct monst *) 0)
 #define m_buried_at(x, y) \
-    (MON_BURIED_AT(x, y) ? g.level.monsters[x][y] : (struct monst *) 0)
+    (MON_BURIED_AT(x, y) ? gl.level.monsters[x][y] : (struct monst *) 0)
 
 /* restricted movement, potential luck penalties */
-#define Sokoban g.level.flags.sokoban_rules
+#define Sokoban gl.level.flags.sokoban_rules
 
 /*
  * These prototypes are in extern.h but some of the code which uses them

@@ -66,6 +66,14 @@ des.object()
 for i=1,5 do
   des.object("boulder")
 end
+-- since vegetarian monks shouldn't eat giant corpses, give a chance for
+-- Str boost that isn't throttled by exercise restrictions;
+-- in vanilla there is an Elbereth that attempts to partially prevent xorns from
+-- eating the tins, but this isn't actually functional, so ignore it
+local tinplace = selection.negate():filter_mapchar('.')
+local tinloc = tinplace:rndcoord(0)
+des.object({ id="tin", coord=tinloc, quantity=2, buc="blessed",
+             montype="spinach" })
 
 -- Traps
 forest = selection.floodfill(01, 01)

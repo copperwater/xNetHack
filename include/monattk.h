@@ -5,8 +5,8 @@
 #ifndef MONATTK_H
 #define MONATTK_H
 
-/*	Add new attack types below - ordering affects experience (exper.c).
- *	Attacks > AT_BUTT are worth extra experience.
+/*      Add new attack types below - ordering affects experience (exper.c).
+ *      Attacks > AT_BUTT are worth extra experience.
  */
 #define AT_ANY (-1) /* fake attack; dmgtype_fromattack wildcard */
 #define AT_NONE 0   /* passive monster (ex. acid blob) */
@@ -28,10 +28,15 @@
 #define AT_MAGC 16  /* uses magic spell(s) */
 #define LAST_AT AT_MAGC
 
-/*	Add new damage types below.
+#define DISTANCE_ATTK_TYPE(atyp) ((atyp) == AT_SPIT \
+                                  || (atyp) == AT_BREA \
+                                  || (atyp) == AT_MAGC \
+                                  || (atyp) == AT_GAZE)
+
+/*      Add new damage types below.
  *
- *	Note that 1-10 correspond to the types of attack used in buzz().
- *	Please don't disturb the order unless you rewrite the buzz() code.
+ *      Note that 1-10 correspond to the types of attack used in buzz().
+ *      Please don't disturb the order unless you rewrite the buzz() code.
  */
 #define AD_ANY (-1) /* fake damage; attacktype_fordmg wildcard */
 #define AD_PHYS 0   /* ordinary physical */
@@ -89,7 +94,7 @@
 
 struct mhitm_data {
     int damage;
-    int hitflags; /* MM_DEF_DIED | MM_AGR_DIED | ... */
+    int hitflags; /* M_ATTK_DEF_DIED | M_ATTK_AGR_DIED | ... */
     boolean done;
     boolean permdmg;
     int specialdmg;
@@ -101,10 +106,10 @@ struct mhitm_data {
  *  any or all of the following can be returned.  See mattackm() for more
  *  details.
  */
-#define MM_MISS 0x0     /* aggressor missed */
-#define MM_HIT 0x1      /* aggressor hit defender */
-#define MM_DEF_DIED 0x2 /* defender died */
-#define MM_AGR_DIED 0x4 /* aggressor died */
-#define MM_AGR_DONE 0x8 /* aggressor is done with their turn */
+#define M_ATTK_MISS 0x0     /* aggressor missed */
+#define M_ATTK_HIT 0x1      /* aggressor hit defender */
+#define M_ATTK_DEF_DIED 0x2 /* defender died */
+#define M_ATTK_AGR_DIED 0x4 /* aggressor died */
+#define M_ATTK_AGR_DONE 0x8 /* aggressor is done with their turn */
 
 #endif /* MONATTK_H */

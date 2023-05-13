@@ -90,17 +90,17 @@ init_rumors(dlb *fp)
 
     (void) dlb_fgets(line, sizeof line, fp); /* skip "don't edit" comment */
     (void) dlb_fgets(line, sizeof line, fp);
-    if (sscanf(line, rumors_header, &true_count, &g.true_rumor_size,
-               &g.true_rumor_start, &false_count, &g.false_rumor_size,
-               &g.false_rumor_start, &eof_offset) == 7
-        && g.true_rumor_size > 0L
-        && g.false_rumor_size > 0L) {
-        g.true_rumor_end = (long) g.true_rumor_start + g.true_rumor_size;
-        /* assert( g.true_rumor_end == false_rumor_start ); */
-        g.false_rumor_end = (long) g.false_rumor_start + g.false_rumor_size;
-        /* assert( g.false_rumor_end == eof_offset ); */
+    if (sscanf(line, rumors_header, &true_count, &gt.true_rumor_size,
+               &gt.true_rumor_start, &false_count, &gf.false_rumor_size,
+               &gf.false_rumor_start, &eof_offset) == 7
+        && gt.true_rumor_size > 0L
+        && gf.false_rumor_size > 0L) {
+        gt.true_rumor_end = (long) gt.true_rumor_start + gt.true_rumor_size;
+        /* assert( gt.true_rumor_end == false_rumor_start ); */
+        gf.false_rumor_end = (long) gf.false_rumor_start + gf.false_rumor_size;
+        /* assert( gf.false_rumor_end == eof_offset ); */
     } else {
-        g.true_rumor_size = -1L; /* init failed */
+        gt.true_rumor_size = -1L; /* init failed */
         (void) dlb_fclose(fp);
     }
 }
@@ -121,9 +121,11 @@ getrumor(
     dlb *rumors;
     long beginning, ending;
     char line[BUFSZ];
+    static const char *cookie_marker = "[cookie] ";
+    const int marklen = strlen(cookie_marker);
 
     rumor_buf[0] = '\0';
-    if (g.true_rumor_size < 0L) /* a previous try failed to open RUMORFILE */
+    if (gt.true_rumor_size < 0L) /* a previous try failed to open RUMORFILE */
         return rumor_buf;
 
     rumors = dlb_fopen(RUMORFILE, "r");
@@ -133,9 +135,9 @@ getrumor(
 
         do {
             rumor_buf[0] = '\0';
-            if (g.true_rumor_size == 0L) { /* if this is 1st outrumor() */
+            if (gt.true_rumor_size == 0L) { /* if this is 1st outrumor() */
                 init_rumors(rumors);
-                if (g.true_rumor_size < 0L) { /* init failed */
+                if (gt.true_rumor_size < 0L) { /* init failed */
                     Sprintf(rumor_buf, "Error reading \"%.80s\".", RUMORFILE);
                     return rumor_buf;
                 }
@@ -148,13 +150,13 @@ getrumor(
             switch (adjtruth = truth + rn2(2)) {
             case 2: /*(might let a bogus input arg sneak thru)*/
             case 1:
-                beginning = (long) g.true_rumor_start;
-                ending = g.true_rumor_end;
+                beginning = (long) gt.true_rumor_start;
+                ending = gt.true_rumor_end;
                 break;
             case 0: /* once here, 0 => false rather than "either"*/
             case -1:
-                beginning = (long) g.false_rumor_start;
-                ending = g.false_rumor_end;
+                beginning = (long) gf.false_rumor_start;
+                ending = gf.false_rumor_end;
                 break;
             default:
                 impossible("strange truth value for rumor");
@@ -163,15 +165,26 @@ getrumor(
             Strcpy(rumor_buf,
                    get_rnd_line(rumors, line, (unsigned) sizeof line, rn2,
                                 beginning, ending, MD_PAD_RUMORS));
-        } while (count++ < 50 && exclude_cookie && (*rumor_buf == ':'));
+        } while (count++ < 50 && exclude_cookie
+                 && !strncmp(rumor_buf, cookie_marker, marklen));
         (void) dlb_fclose(rumors);
         if (count >= 50)
             impossible("Can't find non-cookie rumor?");
-        else if (!g.in_mklev) /* avoid exercizing wisdom for graffiti */
+        else if (!gi.in_mklev) /* avoid exercizing wisdom for graffiti */
             exercise(A_WIS, (adjtruth > 0));
     } else {
         couldnt_open_file(RUMORFILE);
-        g.true_rumor_size = -1; /* don't try to open it again */
+        gt.true_rumor_size = -1; /* don't try to open it again */
+    }
+    if (!exclude_cookie
+        && !strncmp(rumor_buf, cookie_marker, marklen)) {
+        /* remove cookie_marker from the string */
+        char *src = rumor_buf + marklen;
+        char *dst = rumor_buf;
+        for (; *src != '\0'; ++src, ++dst) {
+            *dst = *src;
+        }
+        *dst = '\0'; /* terminator wasn't copied */
     }
     /* cookie rumors have a : at the start of the line; strip this if present */
     if (*rumor_buf == ':')
@@ -189,14 +202,14 @@ rumor_check(void)
     winid tmpwin = WIN_ERR;
     char *endp, line[BUFSZ], xbuf[BUFSZ], rumor_buf[BUFSZ];
 
-    rumors = (g.true_rumor_size >= 0) ? dlb_fopen(RUMORFILE, "r") : 0;
+    rumors = (gt.true_rumor_size >= 0) ? dlb_fopen(RUMORFILE, "r") : 0;
     if (rumors) {
         long ftell_rumor_start = 0L;
 
         rumor_buf[0] = '\0';
-        if (g.true_rumor_size == 0L) { /* if this is 1st outrumor() */
+        if (gt.true_rumor_size == 0L) { /* if this is 1st outrumor() */
             init_rumors(rumors);
-            if (g.true_rumor_size < 0L) {
+            if (gt.true_rumor_size < 0L) {
                 rumors = (dlb *) 0; /* init_rumors() closes it upon failure */
                 goto no_rumors; /* init failed */
             }
@@ -208,15 +221,15 @@ rumor_check(void)
          */
         Sprintf(rumor_buf,
                "T start=%06ld (%06lx), end=%06ld (%06lx), size=%06ld (%06lx)",
-            (long) g.true_rumor_start, g.true_rumor_start,
-            g.true_rumor_end, (unsigned long) g.true_rumor_end,
-            g.true_rumor_size,(unsigned long) g.true_rumor_size);
+            (long) gt.true_rumor_start, gt.true_rumor_start,
+            gt.true_rumor_end, (unsigned long) gt.true_rumor_end,
+            gt.true_rumor_size,(unsigned long) gt.true_rumor_size);
         putstr(tmpwin, 0, rumor_buf);
         Sprintf(rumor_buf,
                "F start=%06ld (%06lx), end=%06ld (%06lx), size=%06ld (%06lx)",
-            (long) g.false_rumor_start, g.false_rumor_start,
-            g.false_rumor_end, (unsigned long) g.false_rumor_end,
-            g.false_rumor_size, (unsigned long) g.false_rumor_size);
+            (long) gf.false_rumor_start, gf.false_rumor_start,
+            gf.false_rumor_end, (unsigned long) gf.false_rumor_end,
+            gf.false_rumor_size, (unsigned long) gf.false_rumor_size);
         putstr(tmpwin, 0, rumor_buf);
 
         /*
@@ -227,37 +240,37 @@ rumor_check(void)
          * the value read in rumors, and display it.
          */
         rumor_buf[0] = '\0';
-        (void) dlb_fseek(rumors, (long) g.true_rumor_start, SEEK_SET);
+        (void) dlb_fseek(rumors, (long) gt.true_rumor_start, SEEK_SET);
         ftell_rumor_start = dlb_ftell(rumors);
         (void) dlb_fgets(line, sizeof line, rumors);
-        if ((endp = index(line, '\n')) != 0)
+        if ((endp = strchr(line, '\n')) != 0)
             *endp = 0;
         Sprintf(rumor_buf, "T %06ld %s", ftell_rumor_start,
                 xcrypt(line, xbuf));
         putstr(tmpwin, 0, rumor_buf);
         /* find last true rumor */
         while (dlb_fgets(line, sizeof line, rumors)
-               && dlb_ftell(rumors) < g.true_rumor_end)
+               && dlb_ftell(rumors) < gt.true_rumor_end)
             continue;
-        if ((endp = index(line, '\n')) != 0)
+        if ((endp = strchr(line, '\n')) != 0)
             *endp = 0;
         Sprintf(rumor_buf, "  %6s %s", "", xcrypt(line, xbuf));
         putstr(tmpwin, 0, rumor_buf);
 
         rumor_buf[0] = '\0';
-        (void) dlb_fseek(rumors, (long) g.false_rumor_start, SEEK_SET);
+        (void) dlb_fseek(rumors, (long) gf.false_rumor_start, SEEK_SET);
         ftell_rumor_start = dlb_ftell(rumors);
         (void) dlb_fgets(line, sizeof line, rumors);
-        if ((endp = index(line, '\n')) != 0)
+        if ((endp = strchr(line, '\n')) != 0)
             *endp = 0;
         Sprintf(rumor_buf, "F %06ld %s", ftell_rumor_start,
                 xcrypt(line, xbuf));
         putstr(tmpwin, 0, rumor_buf);
         /* find last false rumor */
         while (dlb_fgets(line, sizeof line, rumors)
-               && dlb_ftell(rumors) < g.false_rumor_end)
+               && dlb_ftell(rumors) < gf.false_rumor_end)
             continue;
-        if ((endp = index(line, '\n')) != 0)
+        if ((endp = strchr(line, '\n')) != 0)
             *endp = 0;
         Sprintf(rumor_buf, "  %6s %s", "", xcrypt(line, xbuf));
         putstr(tmpwin, 0, rumor_buf);
@@ -266,7 +279,7 @@ rumor_check(void)
 
     /* if a previous attempt couldn't open file or rejected its contents,
        we didn't bother trying again this time */
-    } else if (g.true_rumor_size < 0L) {
+    } else if (gt.true_rumor_size < 0L) {
  no_rumors: /* file could be opened but init_rumors() didn't like it */
         pline("rumors not accessible.");
         /* engravings, epitaphs, and bogus monsters will still be shown,
@@ -276,7 +289,7 @@ rumor_check(void)
     /* first attempt to open file has just failed */
     } else {
         couldnt_open_file(RUMORFILE);
-        g.true_rumor_size = -1; /* don't try to open it again */
+        gt.true_rumor_size = -1; /* don't try to open it again */
     }
 
     /* initial implementation of default epitaph/engraving/bogusmon
@@ -331,7 +344,7 @@ others_check(
             putstr(tmpwin, 0, xbuf);
             /* show the bad line; we don't know whether it has been
                encrypted via xcrypt() so show it both ways */
-            if ((endp = index(line, '\n')) != 0)
+            if ((endp = strchr(line, '\n')) != 0)
                 *endp = 0;
             putstr(tmpwin, 0, "- first line, as is");
             putstr(tmpwin, 0, line);
@@ -351,19 +364,19 @@ others_check(
             goto closeit;
         }
         ++entrycount;
-        if ((endp = index(line, '\n')) != 0)
+        if ((endp = strchr(line, '\n')) != 0)
             *endp = 0;
         putstr(tmpwin, 0, xcrypt(line, xbuf));
         if (!dlb_fgets(line, sizeof line, fh)) {
             putstr(tmpwin, 0, "(no second entry)");
         } else {
             ++entrycount;
-            if ((endp = index(line, '\n')) != 0)
+            if ((endp = strchr(line, '\n')) != 0)
                 *endp = 0;
             putstr(tmpwin, 0, xcrypt(line, xbuf));
             while (dlb_fgets(line, sizeof line, fh)) {
                 ++entrycount;
-                if ((endp = index(line, '\n')) != 0)
+                if ((endp = strchr(line, '\n')) != 0)
                     *endp = 0;
                 (void) xcrypt(line, xbuf);
             }
@@ -373,7 +386,7 @@ others_check(
             if (entrycount == 2) {
                 putstr(tmpwin, 0, "(only two entries)");
             } else {
-                /* showing an elipsis avoids ambiguity about whether
+                /* showing an ellipsis avoids ambiguity about whether
                    there are other lines; doing so three times (once for
                    each file) results in total output being 24 lines,
                    forcing a --More-- prompt if using a 24 line screen;
@@ -478,7 +491,7 @@ get_rnd_line(
             (void) dlb_fgets(buf, bufsiz, fh);
         }
     }
-    if ((newl = index(buf, '\n')) != 0)
+    if ((newl = strchr(buf, '\n')) != 0)
         *newl = '\0';
     /* xNethack uses convert_line to expand any % expressions in the line. If
      * buf is really close to BUFSZ and the string contains % expressions,
@@ -579,8 +592,9 @@ outrumor(
               (!rn2(4) ? "offhandedly "
                        : (!rn2(3) ? "casually "
                                   : (rn2(2) ? "nonchalantly " : ""))));
+        SetVoice((struct monst *) 0, 0, 80, voice_oracle);
         verbalize1(line);
-        /* [WIS exercized by getrumor()] */
+        /* [WIS exercised by getrumor()] */
         return;
     case BY_COOKIE:
         pline(fortune_msg);
@@ -603,11 +617,11 @@ init_oracles(dlb *fp)
     (void) dlb_fgets(line, sizeof line, fp); /* skip "don't edit" comment*/
     (void) dlb_fgets(line, sizeof line, fp);
     if (sscanf(line, "%5d\n", &cnt) == 1 && cnt > 0) {
-        g.oracle_cnt = (unsigned) cnt;
-        g.oracle_loc = (unsigned long *) alloc((unsigned) cnt * sizeof(long));
+        go.oracle_cnt = (unsigned) cnt;
+        go.oracle_loc = (unsigned long *) alloc((unsigned) cnt * sizeof(long));
         for (i = 0; i < cnt; i++) {
             (void) dlb_fgets(line, sizeof line, fp);
-            (void) sscanf(line, "%5lx\n", &g.oracle_loc[i]);
+            (void) sscanf(line, "%5lx\n", &go.oracle_loc[i]);
         }
     }
     return;
@@ -618,19 +632,19 @@ save_oracles(NHFILE *nhfp)
 {
     if (perform_bwrite(nhfp)) {
             if (nhfp->structlevel)
-                bwrite(nhfp->fd, (genericptr_t) &g.oracle_cnt,
-                       sizeof g.oracle_cnt);
-            if (g.oracle_cnt) {
+                bwrite(nhfp->fd, (genericptr_t) &go.oracle_cnt,
+                       sizeof go.oracle_cnt);
+            if (go.oracle_cnt) {
                 if (nhfp->structlevel) {
-                    bwrite(nhfp->fd, (genericptr_t) g.oracle_loc,
-                           g.oracle_cnt * sizeof (long));
+                    bwrite(nhfp->fd, (genericptr_t) go.oracle_loc,
+                           go.oracle_cnt * sizeof (long));
                 }
             }
     }
     if (release_data(nhfp)) {
-        if (g.oracle_cnt) {
-            free((genericptr_t) g.oracle_loc);
-            g.oracle_loc = 0, g.oracle_cnt = 0, g.oracle_flg = 0;
+        if (go.oracle_cnt) {
+            free((genericptr_t) go.oracle_loc);
+            go.oracle_loc = 0, go.oracle_cnt = 0, go.oracle_flg = 0;
         }
     }
 }
@@ -639,15 +653,15 @@ void
 restore_oracles(NHFILE *nhfp)
 {
     if (nhfp->structlevel)
-        mread(nhfp->fd, (genericptr_t) &g.oracle_cnt, sizeof g.oracle_cnt);
+        mread(nhfp->fd, (genericptr_t) &go.oracle_cnt, sizeof go.oracle_cnt);
 
-    if (g.oracle_cnt) {
-        g.oracle_loc = (unsigned long *) alloc(g.oracle_cnt * sizeof(long));
+    if (go.oracle_cnt) {
+        go.oracle_loc = (unsigned long *) alloc(go.oracle_cnt * sizeof(long));
         if (nhfp->structlevel) {
-            mread(nhfp->fd, (genericptr_t) g.oracle_loc,
-                  g.oracle_cnt * sizeof (long));
+            mread(nhfp->fd, (genericptr_t) go.oracle_loc,
+                  go.oracle_cnt * sizeof (long));
         }
-        g.oracle_flg = 1; /* no need to call init_oracles() */
+        go.oracle_flg = 1; /* no need to call init_oracles() */
     }
 }
 
@@ -661,26 +675,26 @@ outoracle(boolean special, boolean delphi)
 
     /* early return if we couldn't open ORACLEFILE on previous attempt,
        or if all the oracularities are already exhausted */
-    if (g.oracle_flg < 0 || (g.oracle_flg > 0 && g.oracle_cnt == 0))
+    if (go.oracle_flg < 0 || (go.oracle_flg > 0 && go.oracle_cnt == 0))
         return;
 
     oracles = dlb_fopen(ORACLEFILE, "r");
 
     if (oracles) {
-        if (g.oracle_flg == 0) { /* if this is the first outoracle() */
+        if (go.oracle_flg == 0) { /* if this is the first outoracle() */
             init_oracles(oracles);
-            g.oracle_flg = 1;
-            if (g.oracle_cnt == 0)
+            go.oracle_flg = 1;
+            if (go.oracle_cnt == 0)
                 goto close_oracles;
         }
         /* oracle_loc[0] is the special oracle;
            oracle_loc[1..oracle_cnt-1] are normal ones */
-        if (g.oracle_cnt <= 1 && !special)
+        if (go.oracle_cnt <= 1 && !special)
             goto close_oracles; /*(shouldn't happen)*/
-        oracle_idx = special ? 0 : rnd((int) g.oracle_cnt - 1);
-        (void) dlb_fseek(oracles, (long) g.oracle_loc[oracle_idx], SEEK_SET);
+        oracle_idx = special ? 0 : rnd((int) go.oracle_cnt - 1);
+        (void) dlb_fseek(oracles, (long) go.oracle_loc[oracle_idx], SEEK_SET);
         if (!special) /* move offset of very last one into this slot */
-            g.oracle_loc[oracle_idx] = g.oracle_loc[--g.oracle_cnt];
+            go.oracle_loc[oracle_idx] = go.oracle_loc[--go.oracle_cnt];
 
         tmpwin = create_nhwindow(NHW_TEXT);
         if (delphi)
@@ -693,7 +707,7 @@ outoracle(boolean special, boolean delphi)
         putstr(tmpwin, 0, "");
 
         while (dlb_fgets(line, COLNO, oracles) && strcmp(line, "---\n")) {
-            if ((endp = index(line, '\n')) != 0)
+            if ((endp = strchr(line, '\n')) != 0)
                 *endp = 0;
             putstr(tmpwin, 0, xcrypt(line, xbuf));
         }
@@ -703,7 +717,7 @@ outoracle(boolean special, boolean delphi)
         (void) dlb_fclose(oracles);
     } else {
         couldnt_open_file(ORACLEFILE);
-        g.oracle_flg = -1; /* don't try to open it again */
+        go.oracle_flg = -1; /* don't try to open it again */
     }
 }
 
@@ -715,8 +729,8 @@ doconsult(struct monst *oracl)
     int add_xpts;
     char qbuf[QBUFSZ];
 
-    g.multi = 0;
-    umoney = money_cnt(g.invent);
+    gm.multi = 0;
+    umoney = money_cnt(gi.invent);
 
     if (!oracl) {
         There("is no one here to consult.");
@@ -744,17 +758,17 @@ doconsult(struct monst *oracl)
         break;
     case 'n':
         if (umoney <= (long) minor_cost /* don't even ask */
-            || (g.oracle_cnt == 1 || g.oracle_flg < 0))
+            || (go.oracle_cnt == 1 || go.oracle_flg < 0))
             return ECMD_OK;
         Sprintf(qbuf, "\"Then dost thou desire a major one?\" (%d %s)",
                 major_cost, currency((long) major_cost));
-        if (yn(qbuf) != 'y')
+        if (y_n(qbuf) != 'y')
             return ECMD_OK;
         u_pay = (umoney < (long) major_cost) ? (int) umoney : major_cost;
         break;
     }
     money2mon(oracl, (long) u_pay);
-    g.context.botl = 1;
+    gc.context.botl = 1;
     if (!u.uevent.major_oracle && !u.uevent.minor_oracle)
         record_achievement(ACH_ORCL);
     add_xpts = 0; /* first oracle of each type gives experience points */
@@ -784,16 +798,16 @@ doconsult(struct monst *oracl)
 static void
 couldnt_open_file(const char *filename)
 {
-    int save_something = g.program_state.something_worth_saving;
+    int save_something = gp.program_state.something_worth_saving;
 
     /* most likely the file is missing, so suppress impossible()'s
        "saving and restoring might fix this" (unless the fuzzer,
        which escalates impossible to panic, is running) */
     if (!iflags.debug_fuzzer)
-        g.program_state.something_worth_saving = 0;
+        gp.program_state.something_worth_saving = 0;
 
     impossible("Can't open '%s' file.", filename);
-    g.program_state.something_worth_saving = save_something;
+    gp.program_state.something_worth_saving = save_something;
 }
 
 /* is 'word' a capitalized monster name that should be preceded by "the"?
@@ -891,12 +905,12 @@ init_CapMons(void)
                gender and/or to distinguish an individual from a type
                (code is a single punctuation character when present) */
             while (dlb_fgets(hline, sizeof hline, bogonfile)) {
-                if ((endp = index(hline, '\n')) != 0)
+                if ((endp = strchr(hline, '\n')) != 0)
                     *endp = '\0'; /* strip newline */
                 (void) xcrypt(hline, xbuf);
                 unpadline(xbuf);
 
-                if (!xbuf[0] || !index(bogon_codes, xbuf[0]))
+                if (!xbuf[0] || !strchr(bogon_codes, xbuf[0]))
                     code = '\0', startp = &xbuf[0]; /* ordinary */
                 else
                     code = xbuf[0], startp = &xbuf[1]; /* special */
@@ -926,7 +940,7 @@ init_CapMons(void)
      * CapMons[] init doesn't kick in until needed.  To force this name
      * dump, set DEBUGFILES to "CapMons" in your environment (or in
      * sysconf) prior to starting nethack, wish for a statue of an Archon
-     * and drop it if held, then step away and apply a stethscope towards
+     * and drop it if held, then step away and apply a stethoscope towards
      * it to trigger a message that passes "Archon" to the() which will
      * then call CapitalMon() which in turn will call init_CapMons().
      */

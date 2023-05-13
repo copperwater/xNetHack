@@ -5,16 +5,22 @@
 #include "hack.h"
 #include "sp_lev.h"
 
+
+struct selectionvar *l_selection_check(lua_State *, int);
+static struct selectionvar *l_selection_push_new(lua_State *);
+
 /* lua_CFunction prototypes */
 static int l_selection_new(lua_State *);
 static int l_selection_clone(lua_State *);
+static int l_selection_numpoints(lua_State *);
 static int l_selection_getpoint(lua_State *);
 static int l_selection_setpoint(lua_State *);
-static int l_selection_not(lua_State *);
 static int l_selection_filter_percent(lua_State *);
 static int l_selection_rndcoord(lua_State *);
+static int l_selection_room(lua_State *);
+static int l_selection_getbounds(lua_State *);
 static boolean params_sel_2coords(lua_State *, struct selectionvar **,
-                                  xchar *, xchar *, xchar *, xchar *);
+                                  coordxy *, coordxy *, coordxy *, coordxy *);
 static int l_selection_line(lua_State *);
 static int l_selection_randline(lua_State *);
 static int l_selection_rect(lua_State *);
@@ -32,7 +38,6 @@ static int l_selection_not(lua_State *);
 static int l_selection_and(lua_State *);
 static int l_selection_or(lua_State *);
 static int l_selection_xor(lua_State *);
-static int l_selection_not(lua_State *);
 /* There doesn't seem to be a point in having a l_selection_add since it would
  * do the same thing as l_selection_or. The addition operator is mapped to
  * l_selection_or. */
@@ -82,8 +87,9 @@ l_selection_to(lua_State *L, int index)
 }
 #endif
 
+/* push a new selection into lua stack, return the selectionvar */
 static struct selectionvar *
-l_selection_push(lua_State *L)
+l_selection_push_new(lua_State *L)
 {
     struct selectionvar *tmp = selection_new();
     struct selectionvar
@@ -92,19 +98,33 @@ l_selection_push(lua_State *L)
     luaL_getmetatable(L, "selection");
     lua_setmetatable(L, -2);
 
-    sel->wid = tmp->wid;
-    sel->hei = tmp->hei;
+    *sel = *tmp;
     sel->map = dupstr(tmp->map);
     selection_free(tmp, TRUE);
 
     return sel;
 }
 
+/* push a copy of selectionvar tmp to lua stack */
+void
+l_selection_push_copy(lua_State *L, struct selectionvar *tmp)
+{
+    struct selectionvar
+        *sel = (struct selectionvar *) lua_newuserdata(L, sizeof(struct selectionvar));
+
+    luaL_getmetatable(L, "selection");
+    lua_setmetatable(L, -2);
+
+    *sel = *tmp;
+    sel->map = dupstr(tmp->map);
+}
+
+
 /* local sel = selection.new(); */
 static int
 l_selection_new(lua_State *L)
 {
-    (void) l_selection_push(L);
+    (void) l_selection_push_new(L);
     return 1;
 }
 
@@ -120,11 +140,12 @@ l_selection_clone(lua_State *L)
     tmp = l_selection_check(L, 2);
     if (tmp->map)
         free(tmp->map);
+    *tmp = *sel;
     tmp->map = dupstr(sel->map);
-    tmp->wid = sel->wid;
-    tmp->hei = sel->hei;
     return 1;
 }
+
+DISABLE_WARNING_UNREACHABLE_CODE
 
 /* selection.set(sel, x, y); */
 /* selection.set(sel, x, y, value); */
@@ -136,7 +157,7 @@ static int
 l_selection_setpoint(lua_State *L)
 {
     struct selectionvar *sel = (struct selectionvar *) 0;
-    xchar x = -1, y = -1;
+    coordxy x = -1, y = -1;
     int val = 1;
     int argc = lua_gettop(L);
     long crd = 0L;
@@ -146,15 +167,15 @@ l_selection_setpoint(lua_State *L)
     } else if (argc == 1) {
         sel = l_selection_check(L, 1);
     } else if (argc == 2) {
-        x = (xchar) luaL_checkinteger(L, 1);
-        y = (xchar) luaL_checkinteger(L, 2);
+        x = (coordxy) luaL_checkinteger(L, 1);
+        y = (coordxy) luaL_checkinteger(L, 2);
         lua_pop(L, 2);
         (void) l_selection_new(L);
         sel = l_selection_check(L, 1);
     } else {
         sel = l_selection_check(L, 1);
-        x = (xchar) luaL_checkinteger(L, 2);
-        y = (xchar) luaL_checkinteger(L, 3);
+        x = (coordxy) luaL_checkinteger(L, 2);
+        y = (coordxy) luaL_checkinteger(L, 3);
         val = (int) luaL_optinteger(L, 4, 1);
     }
 
@@ -169,9 +190,30 @@ l_selection_setpoint(lua_State *L)
     else
         crd = SP_COORD_PACK(x,y);
     get_location_coord(&x, &y, ANY_LOC,
-                       g.coder ? g.coder->croom : NULL, crd);
+                       gc.coder ? gc.coder->croom : NULL, crd);
     selection_setpoint(x, y, sel, val);
     lua_settop(L, 1);
+    return 1;
+}
+
+/* local numpoints = selection.numpoints(sel); */
+static int
+l_selection_numpoints(lua_State *L)
+{
+    struct selectionvar *sel = l_selection_check(L, 1);
+    coordxy x, y;
+    int ret = 0;
+    NhRect rect;
+
+    selection_getbounds(sel, &rect);
+
+    for (x = rect.lx; x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++)
+            if (selection_getpoint(x, y, sel))
+                ret++;
+
+    lua_settop(L, 0);
+    lua_pushinteger(L, ret);
     return 1;
 }
 
@@ -180,30 +222,33 @@ static int
 l_selection_getpoint(lua_State *L)
 {
     struct selectionvar *sel = l_selection_check(L, 1);
-    xchar x, y;
-    int ix, iy;
+    coordxy x, y;
+    lua_Integer ix, iy;
     int val;
     long crd;
 
     lua_remove(L, 1); /* sel */
     if (!nhl_get_xy_params(L, &ix, &iy)) {
         nhl_error(L, "l_selection_getpoint: Incorrect params");
+        /*NOTREACHED*/
         return 0;
     }
-    x = (xchar) ix;
-    y = (xchar) iy;
+    x = (coordxy) ix;
+    y = (coordxy) iy;
 
     if (x == -1 && y == -1)
         crd = SP_COORD_PACK_RANDOM(0);
     else
         crd = SP_COORD_PACK(x,y);
-    get_location_coord(&x, &y, ANY_LOC, g.coder ? g.coder->croom : NULL, crd);
+    get_location_coord(&x, &y, ANY_LOC, gc.coder ? gc.coder->croom : NULL, crd);
 
     val = selection_getpoint(x, y, sel);
     lua_settop(L, 0);
     lua_pushnumber(L, val);
     return 1;
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 /* local s = selection.negate(sel); */
 /* local s = selection.negate(); */
@@ -217,12 +262,13 @@ l_selection_not(lua_State *L)
     if (argc == 0) {
         (void) l_selection_new(L);
         sel = l_selection_check(L, 1);
-        selection_not(sel);
+        selection_clear(sel, 1);
     } else {
         sel = l_selection_check(L, 1);
         (void) l_selection_clone(L);
         sel2 = l_selection_check(L, 2);
         selection_not(sel2);
+        lua_remove(L, 1);
     }
     return 1;
 }
@@ -234,10 +280,13 @@ l_selection_and(lua_State *L)
     int x,y;
     struct selectionvar *sela = l_selection_check(L, 1);
     struct selectionvar *selb = l_selection_check(L, 2);
-    struct selectionvar *selr = l_selection_push(L);
+    struct selectionvar *selr = l_selection_push_new(L);
+    NhRect rect;
 
-    for (x = 0; x < selr->wid; x++)
-        for (y = 0; y < selr->hei; y++) {
+    rect_bounds(sela->bounds, selb->bounds, &rect);
+
+    for (x = rect.lx; x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++) {
             int val = selection_getpoint(x, y, sela) & selection_getpoint(x, y, selb);
             selection_setpoint(x, y, selr, val);
         }
@@ -254,13 +303,17 @@ l_selection_or(lua_State *L)
     int x,y;
     struct selectionvar *sela = l_selection_check(L, 1);
     struct selectionvar *selb = l_selection_check(L, 2);
-    struct selectionvar *selr = l_selection_push(L);
+    struct selectionvar *selr = l_selection_push_new(L);
+    NhRect rect;
 
-    for (x = 0; x < selr->wid; x++)
-        for (y = 0; y < selr->hei; y++) {
+    rect_bounds(sela->bounds, selb->bounds, &rect);
+
+    for (x = rect.lx; x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++) {
             int val = selection_getpoint(x, y, sela) | selection_getpoint(x, y, selb);
             selection_setpoint(x, y, selr, val);
         }
+    selr->bounds = rect;
 
     lua_remove(L, 1);
     lua_remove(L, 1);
@@ -274,10 +327,13 @@ l_selection_xor(lua_State *L)
     int x,y;
     struct selectionvar *sela = l_selection_check(L, 1);
     struct selectionvar *selb = l_selection_check(L, 2);
-    struct selectionvar *selr = l_selection_push(L);
+    struct selectionvar *selr = l_selection_push_new(L);
+    NhRect rect;
 
-    for (x = 0; x < selr->wid; x++)
-        for (y = 0; y < selr->hei; y++) {
+    rect_bounds(sela->bounds, selb->bounds, &rect);
+
+    for (x = rect.lx; x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++) {
             int val = selection_getpoint(x, y, sela) ^ selection_getpoint(x, y, selb);
             selection_setpoint(x, y, selr, val);
         }
@@ -295,16 +351,18 @@ l_selection_sub(lua_State *L)
     int x,y;
     struct selectionvar *sela = l_selection_check(L, 1);
     struct selectionvar *selb = l_selection_check(L, 2);
-    struct selectionvar *selr = l_selection_push(L);
+    struct selectionvar *selr = l_selection_push_new(L);
+    NhRect rect;
 
-    for (x = 0; x < selr->wid; x++) {
-        for (y = 0; y < selr->hei; y++) {
-            xchar a_pt = selection_getpoint(x, y, sela);
-            xchar b_pt = selection_getpoint(x, y, selb);
+    rect_bounds(sela->bounds, selb->bounds, &rect);
+
+    for (x = rect.lx; x <= rect.hx; x++)
+        for (y = rect.ly; y <= rect.hy; y++) {
+            coordxy a_pt = selection_getpoint(x, y, sela);
+            coordxy b_pt = selection_getpoint(x, y, selb);
             int val = (a_pt ^ b_pt) & a_pt;
             selection_setpoint(x, y, selr, val);
         }
-    }
 
     lua_remove(L, 1);
     lua_remove(L, 1);
@@ -315,15 +373,15 @@ l_selection_sub(lua_State *L)
 static int
 l_selection_filter_percent(lua_State *L)
 {
-    struct selectionvar *ret;
-    int p;
+    int argc = lua_gettop(L);
+    struct selectionvar *sel = l_selection_check(L, 1);
+    int p = (int) luaL_checkinteger(L, 2);
+    struct selectionvar *tmp;
 
-    (void) l_selection_check(L, 1);
-    p = (int) luaL_checkinteger(L, 2);
-    lua_pop(L, 1);
-    (void) l_selection_clone(L);
-    ret = l_selection_check(L, 2);
-    selection_filter_percent(ret, p);
+    tmp = selection_filter_percent(sel, p);
+    lua_pop(L, argc);
+    l_selection_push_copy(L, tmp);
+    selection_free(tmp, TRUE);
 
     return 1;
 }
@@ -335,22 +393,61 @@ l_selection_rndcoord(lua_State *L)
 {
     struct selectionvar *sel = l_selection_check(L, 1);
     int removeit = (int) luaL_optinteger(L, 2, 0);
-    xchar x = -1, y = -1;
+    coordxy x = -1, y = -1;
     selection_rndcoord(sel, &x, &y, removeit);
     if (!(x == -1 && y == -1)) {
         update_croom();
-        if (g.coder && g.coder->croom) {
-            x -= g.coder->croom->lx;
-            y -= g.coder->croom->ly;
+        if (gc.coder && gc.coder->croom) {
+            x -= gc.coder->croom->lx;
+            y -= gc.coder->croom->ly;
         } else {
-            x -= g.xstart;
-            y -= g.ystart;
+            x -= gx.xstart;
+            y -= gy.ystart;
         }
     }
     lua_settop(L, 0);
     lua_newtable(L);
     nhl_add_table_entry_int(L, "x", x);
     nhl_add_table_entry_int(L, "y", y);
+    return 1;
+}
+
+/* local s = selection.room(); */
+static int
+l_selection_room(lua_State *L)
+{
+    struct selectionvar *sel;
+    int argc = lua_gettop(L);
+    struct mkroom *croom = NULL;
+
+    if (argc == 1) {
+        int i = luaL_checkinteger(L, -1);
+
+        croom = (i >= 0 && i < gn.nroom) ? &gr.rooms[i] : NULL;
+    }
+
+    sel = selection_from_mkroom(croom);
+
+    l_selection_push_copy(L, sel);
+    selection_free(sel, TRUE);
+
+    return 1;
+}
+
+/* local rect = sel:bounds(); */
+static int
+l_selection_getbounds(lua_State *L)
+{
+    struct selectionvar *sel = l_selection_check(L, 1);
+    NhRect rect;
+
+    selection_getbounds(sel, &rect);
+    lua_settop(L, 0);
+    lua_newtable(L);
+    nhl_add_table_entry_int(L, "lx", rect.lx);
+    nhl_add_table_entry_int(L, "ly", rect.ly);
+    nhl_add_table_entry_int(L, "hx", rect.hx);
+    nhl_add_table_entry_int(L, "hy", rect.hy);
     return 1;
 }
 
@@ -362,16 +459,16 @@ l_selection_rndcoord(lua_State *L)
 /* selection:function(x1,y1, x2,y2) */
 static boolean
 params_sel_2coords(lua_State *L, struct selectionvar **sel,
-                   xchar *x1, xchar *y1, xchar *x2, xchar *y2)
+                   coordxy *x1, coordxy *y1, coordxy *x2, coordxy *y2)
 {
     int argc = lua_gettop(L);
 
     if (argc == 4) {
         (void) l_selection_new(L);
-        *x1 = (xchar) luaL_checkinteger(L, 1);
-        *y1 = (xchar) luaL_checkinteger(L, 2);
-        *x2 = (xchar) luaL_checkinteger(L, 3);
-        *y2 = (xchar) luaL_checkinteger(L, 4);
+        *x1 = (coordxy) luaL_checkinteger(L, 1);
+        *y1 = (coordxy) luaL_checkinteger(L, 2);
+        *x2 = (coordxy) luaL_checkinteger(L, 3);
+        *y2 = (coordxy) luaL_checkinteger(L, 4);
         *sel = l_selection_check(L, 5);
         lua_remove(L, 1);
         lua_remove(L, 1);
@@ -380,10 +477,10 @@ params_sel_2coords(lua_State *L, struct selectionvar **sel,
         return TRUE;
     } else if (argc == 5) {
         *sel = l_selection_check(L, 1);
-        *x1 = (xchar) luaL_checkinteger(L, 2);
-        *y1 = (xchar) luaL_checkinteger(L, 3);
-        *x2 = (xchar) luaL_checkinteger(L, 4);
-        *y2 = (xchar) luaL_checkinteger(L, 5);
+        *x1 = (coordxy) luaL_checkinteger(L, 2);
+        *y1 = (coordxy) luaL_checkinteger(L, 3);
+        *x2 = (coordxy) luaL_checkinteger(L, 4);
+        *y2 = (coordxy) luaL_checkinteger(L, 5);
         lua_pop(L, 4);
         return TRUE;
     }
@@ -397,14 +494,14 @@ static int
 l_selection_line(lua_State *L)
 {
     struct selectionvar *sel = NULL;
-    xchar x1, y1, x2, y2;
+    coordxy x1, y1, x2, y2;
 
     if (!params_sel_2coords(L, &sel, &x1, &y1, &x2, &y2)) {
         nhl_error(L, "selection.line: illegal arguments");
     }
 
-    get_location_coord(&x1, &y1, ANY_LOC, g.coder ? g.coder->croom : NULL, SP_COORD_PACK(x1,y1));
-    get_location_coord(&x2, &y2, ANY_LOC, g.coder ? g.coder->croom : NULL, SP_COORD_PACK(x2,y2));
+    get_location_coord(&x1, &y1, ANY_LOC, gc.coder ? gc.coder->croom : NULL, SP_COORD_PACK(x1,y1));
+    get_location_coord(&x2, &y2, ANY_LOC, gc.coder ? gc.coder->croom : NULL, SP_COORD_PACK(x2,y2));
 
     (void) l_selection_clone(L);
     sel = l_selection_check(L, 2);
@@ -417,15 +514,15 @@ static int
 l_selection_rect(lua_State *L)
 {
     struct selectionvar *sel = NULL;
-    xchar x1, y1, x2, y2;
+    coordxy x1, y1, x2, y2;
 
     if (!params_sel_2coords(L, &sel, &x1, &y1, &x2, &y2)) {
         nhl_error(L, "selection.rect: illegal arguments");
     }
 
-    get_location_coord(&x1, &y1, ANY_LOC, g.coder ? g.coder->croom : NULL,
+    get_location_coord(&x1, &y1, ANY_LOC, gc.coder ? gc.coder->croom : NULL,
                        SP_COORD_PACK(x1, y1));
-    get_location_coord(&x2, &y2, ANY_LOC, g.coder ? g.coder->croom : NULL,
+    get_location_coord(&x2, &y2, ANY_LOC, gc.coder ? gc.coder->croom : NULL,
                        SP_COORD_PACK(x2, y2));
 
     (void) l_selection_clone(L);
@@ -446,15 +543,15 @@ l_selection_fillrect(lua_State *L)
 {
     struct selectionvar *sel = NULL;
     int y;
-    xchar x1, y1, x2, y2;
+    coordxy x1, y1, x2, y2;
 
     if (!params_sel_2coords(L, &sel, &x1, &y1, &x2, &y2)) {
         nhl_error(L, "selection.fillrect: illegal arguments");
     }
 
-    get_location_coord(&x1, &y1, ANY_LOC, g.coder ? g.coder->croom : NULL,
+    get_location_coord(&x1, &y1, ANY_LOC, gc.coder ? gc.coder->croom : NULL,
                        SP_COORD_PACK(x1, y1));
-    get_location_coord(&x2, &y2, ANY_LOC, g.coder ? g.coder->croom : NULL,
+    get_location_coord(&x2, &y2, ANY_LOC, gc.coder ? gc.coder->croom : NULL,
                        SP_COORD_PACK(x2, y2));
 
     (void) l_selection_clone(L);
@@ -478,22 +575,22 @@ l_selection_randline(lua_State *L)
 {
     int argc = lua_gettop(L);
     struct selectionvar *sel = (struct selectionvar *) 0;
-    xchar x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    coordxy x1 = 0, y1 = 0, x2 = 0, y2 = 0;
     int roughness = 7;
 
     if (argc == 6) {
         sel = l_selection_check(L, 1);
-        x1 = (xchar) luaL_checkinteger(L, 2);
-        y1 = (xchar) luaL_checkinteger(L, 3);
-        x2 = (xchar) luaL_checkinteger(L, 4);
-        y2 = (xchar) luaL_checkinteger(L, 5);
+        x1 = (coordxy) luaL_checkinteger(L, 2);
+        y1 = (coordxy) luaL_checkinteger(L, 3);
+        x2 = (coordxy) luaL_checkinteger(L, 4);
+        y2 = (coordxy) luaL_checkinteger(L, 5);
         roughness = (int) luaL_checkinteger(L, 6);
         lua_pop(L, 5);
     } else if (argc == 5 && lua_type(L, 1) == LUA_TNUMBER) {
-        x1 = (xchar) luaL_checkinteger(L, 1);
-        y1 = (xchar) luaL_checkinteger(L, 2);
-        x2 = (xchar) luaL_checkinteger(L, 3);
-        y2 = (xchar) luaL_checkinteger(L, 4);
+        x1 = (coordxy) luaL_checkinteger(L, 1);
+        y1 = (coordxy) luaL_checkinteger(L, 2);
+        x2 = (coordxy) luaL_checkinteger(L, 3);
+        y2 = (coordxy) luaL_checkinteger(L, 4);
         roughness = (int) luaL_checkinteger(L, 5);
         lua_pop(L, 5);
         (void) l_selection_new(L);
@@ -501,9 +598,9 @@ l_selection_randline(lua_State *L)
     }
 
     get_location_coord(&x1, &y1, ANY_LOC,
-                       g.coder ? g.coder->croom : NULL, SP_COORD_PACK(x1, y1));
+                       gc.coder ? gc.coder->croom : NULL, SP_COORD_PACK(x1, y1));
     get_location_coord(&x2, &y2, ANY_LOC,
-                       g.coder ? g.coder->croom : NULL, SP_COORD_PACK(x2, y2));
+                       gc.coder ? gc.coder->croom : NULL, SP_COORD_PACK(x2, y2));
 
     (void) l_selection_clone(L);
     sel = l_selection_check(L, 2);
@@ -540,25 +637,17 @@ l_selection_filter_mapchar(lua_State *L)
     int argc = lua_gettop(L);
     struct selectionvar *sel = l_selection_check(L, 1);
     char *mapchr = dupstr(luaL_checkstring(L, 2));
-    xchar typ = check_mapchr(mapchr);
+    coordxy typ = check_mapchr(mapchr);
     int lit = (int) luaL_optinteger(L, 3, -2); /* TODO: special lit values */
-    struct selectionvar *tmp, *tmp2;
+    struct selectionvar *tmp;
 
     if (typ == INVALID_TYPE)
         nhl_error(L, "Erroneous map char");
 
-    if (argc > 1)
-        lua_pop(L, argc - 1);
-
-    tmp = l_selection_push(L);
-    tmp2 = selection_filter_mapchar(sel, typ, lit);
-
-    free(tmp->map);
-    tmp->map = tmp2->map;
-    tmp2->map = NULL;
-    selection_free(tmp2, TRUE);
-
-    lua_remove(L, 1);
+    tmp = selection_filter_mapchar(sel, typ, lit);
+    lua_pop(L, argc);
+    l_selection_push_copy(L, tmp);
+    selection_free(tmp, TRUE);
 
     if (mapchr)
         free(mapchr);
@@ -612,12 +701,12 @@ l_selection_flood(lua_State *L)
 {
     int argc = lua_gettop(L);
     struct selectionvar *sel = (struct selectionvar *) 0;
-    xchar x = 0, y = 0;
+    coordxy x = 0, y = 0;
     boolean diagonals = FALSE;
 
     if (argc == 2 || argc == 3) {
-        x = (xchar) luaL_checkinteger(L, 1);
-        y = (xchar) luaL_checkinteger(L, 2);
+        x = (coordxy) luaL_checkinteger(L, 1);
+        y = (coordxy) luaL_checkinteger(L, 2);
         if (argc == 3)
             diagonals = lua_toboolean(L, 3);
         lua_pop(L, argc);
@@ -629,7 +718,7 @@ l_selection_flood(lua_State *L)
     }
 
     get_location_coord(&x, &y, ANY_LOC,
-                       g.coder ? g.coder->croom : NULL, SP_COORD_PACK(x, y));
+                       gc.coder ? gc.coder->croom : NULL, SP_COORD_PACK(x, y));
 
     if (isok(x, y)) {
         set_floodfillchk_match_under(levl[x][y].typ);
@@ -648,20 +737,20 @@ l_selection_circle(lua_State *L)
 {
     int argc = lua_gettop(L);
     struct selectionvar *sel = (struct selectionvar *) 0;
-    xchar x = 0, y = 0;
+    coordxy x = 0, y = 0;
     int r = 0, filled = 0;
 
     if (argc == 3) {
-        x = (xchar) luaL_checkinteger(L, 1);
-        y = (xchar) luaL_checkinteger(L, 2);
+        x = (coordxy) luaL_checkinteger(L, 1);
+        y = (coordxy) luaL_checkinteger(L, 2);
         r = (int) luaL_checkinteger(L, 3);
         lua_pop(L, 3);
         (void) l_selection_new(L);
         sel = l_selection_check(L, 1);
         filled = 0;
     } else if (argc == 4 && lua_type(L, 1) == LUA_TNUMBER) {
-        x = (xchar) luaL_checkinteger(L, 1);
-        y = (xchar) luaL_checkinteger(L, 2);
+        x = (coordxy) luaL_checkinteger(L, 1);
+        y = (coordxy) luaL_checkinteger(L, 2);
         r = (int) luaL_checkinteger(L, 3);
         filled = (int) luaL_checkinteger(L, 4); /* TODO: boolean*/
         lua_pop(L, 4);
@@ -669,8 +758,8 @@ l_selection_circle(lua_State *L)
         sel = l_selection_check(L, 1);
     } else if (argc == 4 || argc == 5) {
         sel = l_selection_check(L, 1);
-        x = (xchar) luaL_checkinteger(L, 2);
-        y = (xchar) luaL_checkinteger(L, 3);
+        x = (coordxy) luaL_checkinteger(L, 2);
+        y = (coordxy) luaL_checkinteger(L, 3);
         r = (int) luaL_checkinteger(L, 4);
         filled = (int) luaL_optinteger(L, 5, 0); /* TODO: boolean */
     } else {
@@ -679,7 +768,7 @@ l_selection_circle(lua_State *L)
     }
 
     get_location_coord(&x, &y, ANY_LOC,
-                       g.coder ? g.coder->croom : NULL, SP_COORD_PACK(x, y));
+                       gc.coder ? gc.coder->croom : NULL, SP_COORD_PACK(x, y));
 
     selection_do_ellipse(sel, x, y, r, r, !filled);
 
@@ -696,12 +785,12 @@ l_selection_ellipse(lua_State *L)
 {
     int argc = lua_gettop(L);
     struct selectionvar *sel = (struct selectionvar *) 0;
-    xchar x = 0, y = 0;
+    coordxy x = 0, y = 0;
     int r1 = 0, r2 = 0, filled = 0;
 
     if (argc == 4) {
-        x = (xchar) luaL_checkinteger(L, 1);
-        y = (xchar) luaL_checkinteger(L, 2);
+        x = (coordxy) luaL_checkinteger(L, 1);
+        y = (coordxy) luaL_checkinteger(L, 2);
         r1 = (int) luaL_checkinteger(L, 3);
         r2 = (int) luaL_checkinteger(L, 4);
         lua_pop(L, 4);
@@ -709,8 +798,8 @@ l_selection_ellipse(lua_State *L)
         sel = l_selection_check(L, 1);
         filled = 0;
     } else if (argc == 5 && lua_type(L, 1) == LUA_TNUMBER) {
-        x = (xchar) luaL_checkinteger(L, 1);
-        y = (xchar) luaL_checkinteger(L, 2);
+        x = (coordxy) luaL_checkinteger(L, 1);
+        y = (coordxy) luaL_checkinteger(L, 2);
         r1 = (int) luaL_checkinteger(L, 3);
         r2 = (int) luaL_checkinteger(L, 4);
         filled = (int) luaL_optinteger(L, 5, 0); /* TODO: boolean */
@@ -719,8 +808,8 @@ l_selection_ellipse(lua_State *L)
         sel = l_selection_check(L, 1);
     } else if (argc == 5 || argc == 6) {
         sel = l_selection_check(L, 1);
-        x = (xchar) luaL_checkinteger(L, 2);
-        y = (xchar) luaL_checkinteger(L, 3);
+        x = (coordxy) luaL_checkinteger(L, 2);
+        y = (coordxy) luaL_checkinteger(L, 3);
         r1 = (int) luaL_checkinteger(L, 4);
         r2 = (int) luaL_checkinteger(L, 5);
         filled = (int) luaL_optinteger(L, 6, 0); /* TODO: boolean */
@@ -730,7 +819,7 @@ l_selection_ellipse(lua_State *L)
     }
 
     get_location_coord(&x, &y, ANY_LOC,
-                       g.coder ? g.coder->croom : NULL, SP_COORD_PACK(x, y));
+                       gc.coder ? gc.coder->croom : NULL, SP_COORD_PACK(x, y));
 
     selection_do_ellipse(sel, x, y, r1, r2, !filled);
 
@@ -750,14 +839,11 @@ l_selection_gradient(lua_State *L)
     struct selectionvar *sel = (struct selectionvar *) 0;
     /* if x2 and y2 aren't set, the gradient has a single center point of x,y;
      * if they are set, the gradient is centered on a (x,y) to (x2,y2) line */
-    xchar x = 0, y = 0, x2 = -1, y2 = -1;
-    /* points will not be added within mindist of the center; the chance for a
+    coordxy x = 0, y = 0, x2 = -1, y2 = -1;
+    /* points are always added within mindist of the center; the chance for a
      * point between mindist and maxdist to be added to the selection starts at
-     * 0% at mindist and increases linearly to 100% at maxdist */
-    xchar mindist = 0, maxdist = 0;
-    /* if limited is true, no points farther than maxdist will be added; if
-     * false, all points farther than maxdist will be added */
-    boolean limited = FALSE;
+     * 100% at mindist and decreases linearly to 0% at maxdist */
+    coordxy mindist = 0, maxdist = 0;
     long type = 0;
     static const char *const gradtypes[] = {
         "radial", "square", NULL
@@ -769,21 +855,22 @@ l_selection_gradient(lua_State *L)
     if (argc == 1 && lua_type(L, 1) == LUA_TTABLE) {
         lcheck_param_table(L);
         type = gradtypes2i[get_table_option(L, "type", "radial", gradtypes)];
-        x = (xchar) get_table_int(L, "x");
-        y = (xchar) get_table_int(L, "y");
-        x2 = (xchar) get_table_int_opt(L, "x2", -1);
-        y2 = (xchar) get_table_int_opt(L, "y2", -1);
+        x = (coordxy) get_table_int(L, "x");
+        y = (coordxy) get_table_int(L, "y");
+        x2 = (coordxy) get_table_int_opt(L, "x2", -1);
+        y2 = (coordxy) get_table_int_opt(L, "y2", -1);
+        cvt_to_abscoord(&x, &y);
+        cvt_to_abscoord(&x2, &y2);
         /* maxdist is required because there's no obvious default value for it,
          * whereas mindist has an obvious defalt of 0 */
         maxdist = get_table_int(L, "maxdist");
         mindist = get_table_int_opt(L, "mindist", 0);
-        limited = get_table_boolean_opt(L, "limited", FALSE);
 
         lua_pop(L, 1);
         (void) l_selection_new(L);
         sel = l_selection_check(L, 1);
     } else {
-        nhl_error(L, "wrong parameters");
+        nhl_error(L, "selection.gradient requires table argument");
         /* NOTREACHED */
     }
 
@@ -796,32 +883,39 @@ l_selection_gradient(lua_State *L)
         y2 = y;
     }
 
-    selection_do_gradient(sel, x, y, x2, y2, type, mindist, maxdist, limited);
+    selection_do_gradient(sel, x, y, x2, y2, type, mindist, maxdist);
     lua_settop(L, 1);
     return 1;
 }
 
-/* sel:iterate(function(x,y) ... end); */
+/* sel:iterate(function(x,y) ... end);
+ * The x, y coordinates passed to the function are map- or room-relative
+ * rather than absolute, unless there has been no previous map or room defined.
+ */
 static int
 l_selection_iterate(lua_State *L)
 {
     int argc = lua_gettop(L);
     struct selectionvar *sel = (struct selectionvar *) 0;
     int x, y;
+    NhRect rect;
 
     if (argc == 2 && lua_type(L, 2) == LUA_TFUNCTION) {
         sel = l_selection_check(L, 1);
-        for (y = 0; y < sel->hei; y++)
-            for (x = 1; x < sel->wid; x++)
+        selection_getbounds(sel, &rect);
+        for (y = rect.ly; y <= rect.hy; y++)
+            for (x = max(1,rect.lx); x <= rect.hx; x++)
                 if (selection_getpoint(x, y, sel)) {
+                    coordxy tmpx = x, tmpy = y;
+                    cvt_to_relcoord(&tmpx, &tmpy);
                     lua_pushvalue(L, 2);
-                    lua_pushinteger(L, x - g.xstart);
-                    lua_pushinteger(L, y - g.ystart);
-		    if (nhl_pcall(L, 2, 0)) {
-			impossible("Lua error: %s", lua_tostring(L, -1));
-			/* abort the loops to prevent possible error cascade */
-			goto out;
-		    }
+                    lua_pushinteger(L, tmpx);
+                    lua_pushinteger(L, tmpy);
+                    if (nhl_pcall(L, 2, 0)) {
+                        impossible("Lua error: %s", lua_tostring(L, -1));
+                        /* abort the loops to prevent possible error cascade */
+                        goto out;
+                    }
                 }
     } else {
         nhl_error(L, "wrong parameters");
@@ -837,6 +931,7 @@ static const struct luaL_Reg l_selection_methods[] = {
     { "clone", l_selection_clone },
     { "get", l_selection_getpoint },
     { "set", l_selection_setpoint },
+    { "numpoints", l_selection_numpoints },
     { "negate", l_selection_not },
     { "percentage", l_selection_filter_percent },
     { "rndcoord", l_selection_rndcoord },
@@ -853,6 +948,8 @@ static const struct luaL_Reg l_selection_methods[] = {
     { "ellipse", l_selection_ellipse },
     { "gradient", l_selection_gradient },
     { "iterate", l_selection_iterate },
+    { "bounds", l_selection_getbounds },
+    { "room", l_selection_room },
     { NULL, NULL }
 };
 
@@ -874,29 +971,27 @@ static const luaL_Reg l_selection_meta[] = {
 int
 l_selection_register(lua_State *L)
 {
-    int lib_id, meta_id;
+    /* Table of instance methods and static methods. */
+    luaL_newlib(L, l_selection_methods);
 
-    /* newclass = {} */
-    lua_createtable(L, 0, 0);
-    lib_id = lua_gettop(L);
-
-    /* metatable = {} */
+    /* metatable = { __name = "selection", __gc = l_selection_gc } */
     luaL_newmetatable(L, "selection");
-    meta_id = lua_gettop(L);
     luaL_setfuncs(L, l_selection_meta, 0);
 
-    /* metatable.__index = _methods */
-    luaL_newlib(L, l_selection_methods);
-    lua_setfield(L, meta_id, "__index");
+    /* metatable.__index points at the selection method table. */
+    lua_pushvalue(L, -2);
+    lua_setfield(L, -2, "__index");
 
-    /* metatable.__metatable = _meta */
+    /* Don't let lua code mess with the real metatable.
+       Instead offer a fake one that only contains __gc. */
     luaL_newlib(L, l_selection_meta);
-    lua_setfield(L, meta_id, "__metatable");
+    lua_setfield(L, -2, "__metatable");
 
-    /* class.__metatable = metatable */
-    lua_setmetatable(L, lib_id);
+    /* We don't need the metatable anymore. It's safe in the
+       Lua registry for use by luaL_setmetatable. */
+    lua_pop(L, 1);
 
-    /* _G["selection"] = newclass */
+    /* global selection = the method table we created at the start */
     lua_setglobal(L, "selection");
 
     return 0;

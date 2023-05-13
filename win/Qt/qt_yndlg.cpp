@@ -115,7 +115,7 @@ char NetHackQtYnDialog::Exec()
 	}
 	if ( question.indexOf("what direction") >= 0 ) {
 	    // We replace this regardless, since sometimes you get choices.
-	    const char* d = g.Cmd.dirchars;
+	    const char* d = gc.Cmd.dirchars;
 	    enable=ch;
 	    ch="";
 	    ch.append(d[1]);
@@ -220,7 +220,7 @@ char NetHackQtYnDialog::Exec()
                     // for "ynaq" (where "all" is a choice) it's "stop"
                     // and for end of game disclosure it really is "quit"
                     if (question.left(10) == QString("Dump core?")
-                        || (::g.program_state.gameover
+                        || (::gp.program_state.gameover
                             && question.left(11) == QString("Do you want")))
                         button_name = "Quit";
                     else if (is_ynaq)
@@ -352,7 +352,12 @@ char NetHackQtYnDialog::Exec()
     } else {
 	QLabel label(qlabel,this);
 	QPushButton cancel("Dismiss",this);
+#if __cplusplus >= 202002L
+	label.setFrameStyle(static_cast<int>(QFrame::Box)
+                                | static_cast<int>(QFrame::Sunken));
+#else
 	label.setFrameStyle(QFrame::Box|QFrame::Sunken);
+#endif
 	label.setAlignment(Qt::AlignCenter);
 	label.resize(fontMetrics().QFM_WIDTH(qlabel)+60,30+fontMetrics().height());
 	cancel.move(width()/2-cancel.width()/2,label.geometry().bottom()+8);

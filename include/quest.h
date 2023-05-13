@@ -1,5 +1,5 @@
 /* NetHack 3.7	quest.h	$NHDT-Date: 1596498556 2020/08/03 23:49:16 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.11 $ */
-/* Copyright (c) Mike Stephenson 1991.				  */
+/* Copyright (c) Mike Stephenson 1991.                            */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef QUEST_H
@@ -11,7 +11,7 @@ struct q_score {              /* Quest "scorecard" */
     Bitfield(not_ready, 3);   /* rejected due to alignment, etc. */
     Bitfield(pissed_off, 1);  /* got the leader angry */
     Bitfield(got_quest, 1);   /* got the quest assignment */
-    Bitfield(leader_is_dead, 1); /* quest leader has died at least once */
+    Bitfield(killed_leader, 1); /* quest leader has died at least once */
 
     Bitfield(first_locate, 1); /* only set the first time */
     Bitfield(met_intermed, 1); /* used if the locate is a person. */

@@ -24,9 +24,9 @@ static const struct innate {
     schar ulevel;
     long *ability;
     const char *gainstr, *losestr;
-} arc_abil[] = { { 1, &(HStealth), "", "" },
-                 { 1, &(HFast), "", "" },
-                 { 10, &(HSearching), "perceptive", "" },
+} arc_abil[] = { { 1, &(HSearching), "", "" },
+                 { 5, &(HStealth), "stealthy", "" },
+                 { 10, &(HFast), "quick", "slow" },
                  { 0, 0, 0, 0 } },
 
   bar_abil[] = { { 1, &(HPoison_resistance), "", "" },
@@ -79,7 +79,7 @@ static const struct innate {
                  { 0, 0, 0, 0 } },
 
   val_abil[] = { { 1, &(HCold_resistance), "", "" },
-                 { 1, &(HStealth), "", "" },
+                 { 3, &(HStealth), "stealthy", "" },
                  { 7, &(HFast), "quick", "slow" },
                  { 0, 0, 0, 0 } },
 
@@ -172,7 +172,7 @@ adjattrib(
     }
     if (ACURR(ndx) == old_acurr) {
         if (ABASE(ndx) == old_abase && AMAX(ndx) == old_amax) {
-            if (msgflg == AA_YESMSG && flags.verbose) {
+            if (msgflg == AA_YESMSG && Verbose(0, adjattrib)) {
                 attrstr = staticattr[ndx];
                 pline("You're %s as %s as you can get.",
                         abonflg ? "currently" : "already", attrstr);
@@ -181,7 +181,7 @@ adjattrib(
         } else {
             /* current stayed the same but base value changed, or
                base is at minimum and reduction caused max to drop */
-            if (msgflg != AA_NOMSG && flags.verbose) {
+            if (msgflg != AA_NOMSG && Verbose(4, adjattrib2)) {
                 Your("innate %s has %s.", attrname[ndx],
                      (incr > 0) ? "improved" : "declined");
             }
@@ -189,14 +189,15 @@ adjattrib(
         }
     }
 
-    g.context.botl = TRUE;
+    gc.context.botl = TRUE;
     if (msgflg != AA_NOMSG)
         You_feel("%s%s!", (incr > 1 || incr < -1) ? "much " : "", attrstr);
-    if (g.program_state.in_moveloop && (ndx == A_STR || ndx == A_CON))
+    if (gp.program_state.in_moveloop && (ndx == A_STR || ndx == A_CON))
         (void) encumber_msg();
     return AA_CURRCHNG;
 }
 
+/* strength gain */
 void
 gainstr(struct obj *otmp, int incr, boolean givemsg)
 {
@@ -214,31 +215,65 @@ gainstr(struct obj *otmp, int incr, boolean givemsg)
                      givemsg ? AA_CONDMSG : AA_NOMSG);
 }
 
-/* may kill you; cause may be poison or monster like 'a' */
+/* strength loss, may kill you; cause may be poison or monster like 'a' */
 void
-losestr(int num)
+losestr(int num, const char *knam, schar k_format)
 {
     int uhpmin = minuhpmax(1), olduhpmax = u.uhpmax;
-    int ustr = ABASE(A_STR) - num;
+    int ustr = ABASE(A_STR) - num, amt, dmg;
+    boolean waspolyd = Upolyd;
 
-    while (ustr < 3) {
+    if (num <= 0 || ABASE(A_STR) < ATTRMIN(A_STR)) {
+        impossible("losestr: %d - %d", ABASE(A_STR), num);
+        return;
+    }
+    dmg = 0;
+    while (ustr < ATTRMIN(A_STR)) {
         ++ustr;
         --num;
-        if (Upolyd) {
-            u.mh -= 6;
-            u.mhmax -= 6;
-        } else {
-            u.uhp -= 6;
-            setuhpmax(u.uhpmax - 6);
-        }
-        g.context.botl = TRUE;
+        amt = rn1(4, 3); /* (0..(4-1))+3 => 3..6; used to use flat 6 here */
+        dmg += amt;
     }
-    if (u.uhpmax < uhpmin) {
+    if (dmg) {
+        /* in case damage is fatal and caller didn't supply killer reason */
+        if (!knam || !*knam) {
+            knam = "terminal frailty";
+            k_format = KILLED_BY;
+        }
+        losehp(dmg, knam, k_format);
+
+        if (Upolyd) {
+            /* if still polymorhed, reduce you-as-monst maxHP; never below 1 */
+            u.mhmax -= min(dmg, u.mhmax - 1);
+        } else if (!waspolyd) {
+            /* not polymorphed now and didn't rehumanize when taking damage;
+               reduce max HP, but not below below uhpmin */
+            if (u.uhpmax > uhpmin)
+                setuhpmax(max(u.uhpmax - dmg, uhpmin));
+        }
+        gc.context.botl = TRUE;
+    }
+#if 0   /* only possible if uhpmax was already less than uhpmin */
+    if (!Upolyd && u.uhpmax < uhpmin) {
         setuhpmax(min(olduhpmax, uhpmin));
         if (!Drain_resistance)
             losexp(NULL); /* won't be fatal when no 'drainer' is supplied */
     }
-    (void) adjattrib(A_STR, -num, AA_NOMSG);
+#else
+    nhUse(olduhpmax);
+#endif
+    /* 'num' could have been reduced to 0 in the minimum strength loop;
+       '(Upolyd || !waspolyd)' is True unless damage caused rehumanization */
+    if (num > 0 && (Upolyd || !waspolyd))
+        (void) adjattrib(A_STR, -num, AA_NOMSG);
+}
+
+/* combined strength loss and damage from some poisons */
+void
+poison_strdmg(int strloss, int dmg, const char *knam, schar k_format)
+{
+    losestr(strloss, knam, k_format);
+    losehp(dmg, knam, k_format);
 }
 
 static const struct poison_effect_message {
@@ -278,11 +313,12 @@ poisontell(int typ,         /* which attribute */
 
 /* called when an attack or trap has poisoned hero (used to be in mon.c) */
 void
-poisoned(const char *reason,    /* controls what messages we display */
-         int typ,
-         const char *pkiller,   /* for score+log file if fatal */
-         int hpdamchance,       /* if fatal is 0, limit damage to adjattrib */
-         boolean thrown_weapon) /* thrown weapons are less deadly */
+poisoned(
+    const char *reason,    /* controls what messages we display */
+    int typ,
+    const char *pkiller,   /* for score+log file if fatal */
+    int hpdamchance,       /* if fatal is 0, limit damage to adjattrib */
+    boolean thrown_weapon) /* thrown weapons are less deadly */
 {
     int i, loss, kprefix = KILLED_BY_AN;
     boolean blast = !strcmp(reason, "blast");
@@ -335,8 +371,8 @@ poisoned(const char *reason,    /* controls what messages we display */
     }
 
     if (u.uhp < 1) {
-        g.killer.format = kprefix;
-        Strcpy(g.killer.name, pkiller);
+        gk.killer.format = kprefix;
+        Strcpy(gk.killer.name, pkiller);
         /* "Poisoned by a poisoned ___" is redundant */
         done(strstri(pkiller, "poison") ? DIED : POISONING);
     }
@@ -360,14 +396,14 @@ stone_luck(boolean parameter) /* So I can't think up of a good name.  So sue me.
     register long bonchance = 0;
 
     /* Your quest leader dying casts a pall over your fortunes... */
-    if (g.quest_status.leader_is_dead) {
+    if (gq.quest_status.killed_leader) {
         return -1;
     }
 
     if (Doomed)
         return -1;
 
-    for (otmp = g.invent; otmp; otmp = otmp->nobj)
+    for (otmp = gi.invent; otmp; otmp = otmp->nobj)
         if (confers_luck(otmp)) {
             if (otmp->cursed)
                 bonchance -= otmp->quan;
@@ -417,13 +453,13 @@ restore_attrib(void)
         if (ATEMP(i) != equilibrium && ATIME(i) != 0) {
             if (!(--(ATIME(i)))) { /* countdown for change */
                 ATEMP(i) += (ATEMP(i) > 0) ? -1 : 1;
-                g.context.botl = TRUE;
+                gc.context.botl = TRUE;
                 if (ATEMP(i)) /* reset timer */
                     ATIME(i) = 100 / ACURR(A_CON);
             }
         }
     }
-    if (g.context.botl)
+    if (gc.context.botl)
         (void) encumber_msg();
 }
 
@@ -457,14 +493,14 @@ exercise(int i, boolean inc_or_dec)
                                                                       : "Con",
                     (inc_or_dec) ? "inc" : "dec", AEXE(i));
     }
-    if (g.moves > 0 && (i == A_STR || i == A_CON))
+    if (gm.moves > 0 && (i == A_STR || i == A_CON))
         (void) encumber_msg();
 }
 
 static void
 exerper(void)
 {
-    if (!(g.moves % 10)) {
+    if (!(gm.moves % 10)) {
         /* Hunger Checks */
         int hs = (u.uhunger > 1000) ? SATIATED
                  : (u.uhunger > 150) ? NOT_HUNGRY
@@ -511,7 +547,7 @@ exerper(void)
     }
 
     /* status checks */
-    if (!(g.moves % 5)) {
+    if (!(gm.moves % 5)) {
         debugpline0("exerper: Status checks");
         if ((HClairvoyant & (INTRINSIC | TIMEOUT)) && !BClairvoyant)
             exercise(A_WIS, TRUE);
@@ -546,11 +582,11 @@ exerchk(void)
     /*  Check out the periodic accumulations */
     exerper();
 
-    if (g.moves >= g.context.next_attrib_check) {
-        debugpline1("exerchk: ready to test. multi = %ld.", g.multi);
+    if (gm.moves >= gc.context.next_attrib_check) {
+        debugpline1("exerchk: ready to test. multi = %ld.", gm.multi);
     }
     /*  Are we ready for a test? */
-    if (g.moves >= g.context.next_attrib_check && !g.multi) {
+    if (gm.moves >= gc.context.next_attrib_check && !gm.multi) {
         debugpline0("exerchk: testing.");
         /*
          *      Law of diminishing returns (Part II):
@@ -614,9 +650,9 @@ exerchk(void)
                platform-dependent rounding/truncation for negative vals */
             AEXE(i) = (abs(ax) / 2) * mod_val;
         }
-        g.context.next_attrib_check += rn1(200, 800);
+        gc.context.next_attrib_check += rn1(200, 800);
         debugpline1("exerchk: next check at %ld.",
-                    g.context.next_attrib_check);
+                    gc.context.next_attrib_check);
     }
 }
 
@@ -627,9 +663,9 @@ init_attr(int np)
     register int i, x, tryct;
 
     for (i = 0; i < A_MAX; i++) {
-        ABASE(i) = AMAX(i) = g.urole.attrbase[i];
+        ABASE(i) = AMAX(i) = gu.urole.attrbase[i];
         ATEMP(i) = ATIME(i) = 0;
-        np -= g.urole.attrbase[i];
+        np -= gu.urole.attrbase[i];
     }
 
     /* 3.7: the x -= ... calculation used to have an off by 1 error that
@@ -638,7 +674,7 @@ init_attr(int np)
     while (np > 0 && tryct < 100) {
         x = rn2(100);
         for (i = 0; i < A_MAX; ++i)
-            if ((x -= g.urole.attrdist[i]) < 0)
+            if ((x -= gu.urole.attrdist[i]) < 0)
                 break;
         if (i >= A_MAX || ABASE(i) >= ATTRMAX(i)) {
             tryct++;
@@ -654,7 +690,7 @@ init_attr(int np)
     while (np < 0 && tryct < 100) { /* for redistribution */
         x = rn2(100);
         for (i = 0; i < A_MAX; ++i)
-            if ((x -= g.urole.attrdist[i]) < 0)
+            if ((x -= gu.urole.attrdist[i]) < 0)
                 break;
         if (i >= A_MAX || ABASE(i) <= ATTRMIN(i)) {
             tryct++;
@@ -808,7 +844,7 @@ is_innate(int propidx)
            ignore innateness if equipment is going to claim responsibility */
         && !u.uprops[propidx].extrinsic)
         return FROM_ROLE;
-    if (propidx == BLINDED && !haseyes(g.youmonst.data))
+    if (propidx == BLINDED && !haseyes(gy.youmonst.data))
         return FROM_FORM;
     return FROM_NONE;
 }
@@ -876,6 +912,11 @@ from_what(int propidx) /* special cases can have negative values */
                                              : ysimple_name(obj));
             else if (propidx == BLINDED && Blindfolded_only)
                 Sprintf(buf, because_of, ysimple_name(ublindf));
+            else if (propidx == BLINDED && u.ucreamed
+                     && BlindedTimeout == (long) u.ucreamed
+                     && !EBlinded && !(HBlinded & ~TIMEOUT))
+                Sprintf(buf, "due to goop coverting your %s",
+                        body_part(FACE));
 
             /* remove some verbosity and/or redundancy */
             if ((p = strstri(buf, " pair of ")) != 0)
@@ -889,8 +930,8 @@ from_what(int propidx) /* special cases can have negative values */
                replace this with what_blocks() comparable to what_gives() */
             switch (-propidx) {
             case BLINDED:
-                if (ublindf
-                    && ublindf->oartifact == ART_EYES_OF_THE_OVERWORLD)
+                /* wearing the Eyes of the Overworld overrides blindness */
+                if (BBlinded && is_art(ublindf, ART_EYES_OF_THE_OVERWORLD))
                     Sprintf(buf, because_of, bare_artifactname(ublindf));
                 break;
             case INVIS:
@@ -991,30 +1032,30 @@ newhp(void)
 
     if (u.ulevel == 0) {
         /* Initialize hit points */
-        hp = g.urole.hpadv.infix + g.urace.hpadv.infix;
-        if (g.urole.hpadv.inrnd > 0)
-            hp += rnd(g.urole.hpadv.inrnd);
-        if (g.urace.hpadv.inrnd > 0)
-            hp += rnd(g.urace.hpadv.inrnd);
-        if (g.moves <= 1L) { /* initial hero; skip for polyself to new man */
+        hp = gu.urole.hpadv.infix + gu.urace.hpadv.infix;
+        if (gu.urole.hpadv.inrnd > 0)
+            hp += rnd(gu.urole.hpadv.inrnd);
+        if (gu.urace.hpadv.inrnd > 0)
+            hp += rnd(gu.urace.hpadv.inrnd);
+        if (gm.moves <= 1L) { /* initial hero; skip for polyself to new man */
             /* Initialize alignment stuff */
             u.ualign.type = aligns[flags.initalign].value;
-            u.ualign.record = g.urole.initrecord;
+            u.ualign.record = gu.urole.initrecord;
         }
         /* no Con adjustment for initial hit points */
     } else {
         if (u.ulevel < ROLE_XLEV_CUTOFF) {
-            hp = g.urole.hpadv.lofix + g.urace.hpadv.lofix;
-            if (g.urole.hpadv.lornd > 0)
-                hp += rnd(g.urole.hpadv.lornd);
-            if (g.urace.hpadv.lornd > 0)
-                hp += rnd(g.urace.hpadv.lornd);
+            hp = gu.urole.hpadv.lofix + gu.urace.hpadv.lofix;
+            if (gu.urole.hpadv.lornd > 0)
+                hp += rnd(gu.urole.hpadv.lornd);
+            if (gu.urace.hpadv.lornd > 0)
+                hp += rnd(gu.urace.hpadv.lornd);
         } else {
-            hp = g.urole.hpadv.hifix + g.urace.hpadv.hifix;
-            if (g.urole.hpadv.hirnd > 0)
-                hp += rnd(g.urole.hpadv.hirnd);
-            if (g.urace.hpadv.hirnd > 0)
-                hp += rnd(g.urace.hpadv.hirnd);
+            hp = gu.urole.hpadv.hifix + gu.urace.hpadv.hifix;
+            if (gu.urole.hpadv.hirnd > 0)
+                hp += rnd(gu.urole.hpadv.hirnd);
+            if (gu.urace.hpadv.hirnd > 0)
+                hp += rnd(gu.urace.hpadv.hirnd);
         }
         if (ACURR(A_CON) <= 3)
             conplus = -2;
@@ -1036,7 +1077,7 @@ newhp(void)
         hp = 1;
     if (u.ulevel < MAXULEV) {
         /* remember increment; future level drain could take it away again */
-        u.uhpinc[u.ulevel] = (xchar) hp;
+        u.uhpinc[u.ulevel] = (xint16) hp;
     } else {
         /* after level 30, throttle hit point gains from extra experience;
            once max reaches 1200, further increments will be just 1 more */
@@ -1067,10 +1108,10 @@ setuhpmax(int newmax)
         u.uhpmax = newmax;
         if (u.uhpmax > u.uhppeak)
             u.uhppeak = u.uhpmax;
-        g.context.botl = TRUE;
+        gc.context.botl = TRUE;
     }
     if (u.uhp > u.uhpmax)
-        u.uhp = u.uhpmax, g.context.botl = TRUE;
+        u.uhp = u.uhpmax, gc.context.botl = TRUE;
 }
 
 schar
@@ -1089,11 +1130,11 @@ acurr(int x)
 #endif
     } else if (x == A_CHA) {
         if (tmp < 18
-            && (g.youmonst.data->mlet == S_NYMPH
+            && (gy.youmonst.data->mlet == S_NYMPH
                 || u.umonnum == PM_AMOROUS_DEMON))
             return (schar) 18;
     } else if (x == A_CON) {
-        if (uwep && uwep->oartifact == ART_OGRESMASHER)
+        if (u_wield_art(ART_OGRESMASHER))
             return (schar) 25;
     } else if (x == A_INT || x == A_WIS) {
         /* yes, this may raise int/wis if player is sufficiently
@@ -1140,7 +1181,7 @@ extremeattr(int attrindx) /* does attrindx's value match its max or min? */
         if (uarmg && uarmg->otyp == GAUNTLETS_OF_POWER)
             lolimit = hilimit;
     } else if (attrindx == A_CON) {
-        if (uwep && uwep->oartifact == ART_OGRESMASHER)
+        if (u_wield_art(ART_OGRESMASHER))
             lolimit = hilimit;
     }
     /* this exception is hypothetical; the only other worn item affecting
@@ -1181,7 +1222,7 @@ uchangealign(int newalign,
     u.ublessed = 0; /* lose divine protection */
     /* You/Your/pline message with call flush_screen(), triggering bot(),
        so the actual data change needs to come before the message */
-    g.context.botl = TRUE; /* status line needs updating */
+    gc.context.botl = TRUE; /* status line needs updating */
     if (reason == 0) {
         /* conversion via altar */
         livelog_printf(LL_ALIGNMENT, "permanently converted to %s",

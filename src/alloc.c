@@ -8,16 +8,22 @@
 /* since this file is also used in auxiliary programs, don't include all the
    function declarations for all of nethack */
 #define EXTERN_H /* comment line for pre-compiled headers */
-/* but we need this one */
-#define FITSuint(x) FITSuint_(x, __func__, __LINE__)
-extern unsigned FITSuint_(unsigned long long, const char *, int);
 
 #include "config.h"
+#ifndef LUA_INTEGER
+#include "nhlua.h"
+#endif
 
-char *fmt_ptr(const genericptr);
+/*#define FITSint(x) FITSint_(x, __func__, (int) __LINE__)*/
+extern int FITSint_(LUA_INTEGER, const char *, int);
+/*#define FITSuint(x) FITSuint_(x, __func__, (int) __LINE__)*/
+extern unsigned FITSuint_(unsigned long long, const char *, int);
+
+char *fmt_ptr(const genericptr) NONNULL;
 
 #ifdef MONITOR_HEAP
 #undef alloc
+#undef re_alloc
 #undef free
 extern void free(genericptr_t);
 static void heapmon_init(void);
@@ -26,24 +32,13 @@ static FILE *heaplog = 0;
 static boolean tried_heaplog = FALSE;
 #endif
 
-long *alloc(unsigned int);
-extern void panic(const char *, ...);
+long *alloc(unsigned int) NONNULL;
+long *re_alloc(long *, unsigned int) NONNULL;
+ATTRNORETURN extern void panic(const char *, ...) PRINTF_F(1, 2) NORETURN;
 
 long *
 alloc(unsigned int lth)
 {
-#ifdef LINT
-    /*
-     * a ridiculous definition, suppressing
-     *  "possible pointer alignment problem" for (long *) malloc()
-     * from lint
-     */
-    long dummy = ftell(stderr);
-
-    if (lth)
-        dummy = 0; /* make sure arg is used */
-    return &dummy;
-#else
     register genericptr_t ptr;
 
     ptr = malloc(lth);
@@ -52,7 +47,19 @@ alloc(unsigned int lth)
         panic("Memory allocation failure; cannot get %u bytes", lth);
 #endif
     return (long *) ptr;
+}
+
+/* realloc() call that might get substituted by nhrealloc(p,n,file,line) */
+long *
+re_alloc(long *oldptr, unsigned int newlth)
+{
+    long *newptr = (long *) realloc((genericptr_t) oldptr, (size_t) newlth);
+#ifndef MONITOR_HEAP
+    /* "extend to":  assume it won't ever fail if asked to shrink */
+    if (newlth && !newptr)
+        panic("Memory allocation failure; cannot extend to %u bytes", newlth);
 #endif
+    return newptr;
 }
 
 #ifdef HAS_PTR_FMT
@@ -122,6 +129,42 @@ nhalloc(unsigned int lth, const char *file, int line)
     return ptr;
 }
 
+/* re_alloc() with heap logging; we lack access to the old alloc size  */
+long *
+nhrealloc(
+    long *oldptr,
+    unsigned int newlth,
+    const char *file,
+    int line)
+{
+    long *newptr = re_alloc(oldptr, newlth);
+
+    if (!tried_heaplog)
+        heapmon_init();
+    if (heaplog) {
+        char op = '*'; /* assume realloc() will change size of previous
+                        * allocation rather than make a new one */
+
+        if (newptr != oldptr) {
+            /* if oldptr wasn't Null, realloc() freed it */
+            if (oldptr)
+                (void) fprintf(heaplog, "%c%5s %s %4d %s\n", '<', "",
+                               fmt_ptr((genericptr_t) oldptr), line, file);
+            op = '>'; /* new allocation rather than size-change of old one */
+        }
+        (void) fprintf(heaplog, "%c%5u %s %4d %s\n", op, newlth,
+                           fmt_ptr((genericptr_t) newptr), line, file);
+    }
+    /* potential panic in re_alloc() was deferred til here;
+       "extend to":  assume it won't ever fail if asked to shrink;
+       even if that assumption happens to be wrong, we lack access to
+       the old size so can't use alternate phrasing for that case */
+    if (newlth && !newptr)
+        panic("Cannot extend to %u bytes, line %d of %s", newlth, line, file);
+
+    return newptr;
+}
+
 void
 nhfree(genericptr_t ptr, const char *file, int line)
 {
@@ -139,7 +182,10 @@ nhfree(genericptr_t ptr, const char *file, int line)
 char *
 nhdupstr(const char *string, const char *file, int line)
 {
-    return strcpy((char *) nhalloc(strlen(string) + 1, file, line), string);
+    /* we've got some info about the caller, so use it instead of __func__ */
+    unsigned len = FITSuint_(strlen(string), file, line);
+
+    return strcpy((char *) nhalloc(len + 1, file, line), string);
 }
 #undef dupstr
 
@@ -151,7 +197,8 @@ nhdupstr(const char *string, const char *file, int line)
 char *
 dupstr(const char *string)
 {
-    unsigned len = FITSuint(strlen(string));
+    unsigned len = FITSuint_(strlen(string), __func__, (int) __LINE__);
+
     return strcpy((char *) alloc(len + 1), string);
 }
 
@@ -160,10 +207,32 @@ char *
 dupstr_n(const char *string, unsigned int *lenout)
 {
     size_t len = strlen(string);
-    if(len >= LARGEST_INT)
+
+    if (len >= LARGEST_INT)
         panic("string too long");
     *lenout = (unsigned int) len;
     return strcpy((char *) alloc(len + 1), string);
+}
+
+/* cast to int or panic on overflow; use via macro */
+int
+FITSint_(LUA_INTEGER i, const char *file, int line)
+{
+    int iret = (int) i;
+
+    if (iret != i)
+        panic("Overflow at %s:%d", file, line);
+    return iret;
+}
+
+unsigned
+FITSuint_(unsigned long long ull, const char *file, int line)
+{
+    unsigned uret = (unsigned) ull;
+
+    if (uret != ull)
+        panic("Overflow at %s:%d", file, line);
+    return uret;
 }
 
 /*alloc.c*/

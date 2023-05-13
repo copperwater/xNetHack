@@ -14,6 +14,7 @@ static schar get_map(int, int, schar);
 static void pass_one(schar, schar);
 static void pass_two(schar, schar);
 static void pass_three(schar, schar);
+static void join_map_cleanup(void);
 static void join_map(schar, schar);
 static void finish_map(schar, schar, boolean, boolean, boolean);
 static void remove_room(unsigned);
@@ -27,6 +28,7 @@ init_map(schar bg_typ)
 
     for (i = 1; i < COLNO; i++)
         for (j = 0; j < ROWNO; j++) {
+            levl[i][j].roomno = NO_ROOM;
             levl[i][j].typ = bg_typ;
             levl[i][j].lit = FALSE;
         }
@@ -114,7 +116,7 @@ pass_one(schar bg_typ, schar fg_typ)
         }
 }
 
-#define new_loc(i, j) *(g.new_locations + ((j) * (WIDTH + 1)) + (i))
+#define new_loc(i, j) *(gn.new_locations + ((j) * (WIDTH + 1)) + (i))
 
 /* Second pass at the game of life cellular automaton, except unlike the last
  * time, all it is doing is converting cells with exactly 5 neighbors into dead
@@ -201,10 +203,10 @@ flood_fill_rm(
     sx++; /* compensate for extra decrement */
 
     /* assume sx,sy is valid */
-    if (sx < g.min_rx)
-        g.min_rx = sx;
-    if (sy < g.min_ry)
-        g.min_ry = sy;
+    if (sx < gm.min_rx)
+        gm.min_rx = sx;
+    if (sy < gm.min_ry)
+        gm.min_ry = sy;
 
     for (i = sx; i <= WIDTH && levl[i][sy].typ == fg_typ; i++) {
         levl[i][sy].roomno = rmno;
@@ -227,7 +229,7 @@ flood_fill_rm(
                             levl[ii][jj].roomno = SHARED;
                     }
         }
-        g.n_loc_filled++;
+        gn.n_loc_filled++;
     }
     nx = i;
 
@@ -268,10 +270,23 @@ flood_fill_rm(
             }
     }
 
-    if (nx > g.max_rx)
-        g.max_rx = nx - 1; /* nx is just past valid region */
-    if (sy > g.max_ry)
-        g.max_ry = sy;
+    if (nx > gm.max_rx)
+        gm.max_rx = nx - 1; /* nx is just past valid region */
+    if (sy > gm.max_ry)
+        gm.max_ry = sy;
+}
+
+/* join_map uses temporary rooms; clean up after it */
+static void
+join_map_cleanup(void)
+{
+    coordxy x, y;
+
+    for (x = 1; x < COLNO; x++)
+        for (y = 0; y < ROWNO; y++)
+            levl[x][y].roomno = NO_ROOM;
+    gn.nroom = gn.nsubroom = 0;
+    gr.rooms[gn.nroom].hx = gs.subrooms[gn.nsubroom].hx = -1;
 }
 
 /* Connects all the discrete blobs of fg_typ on the level with "corridors" made
@@ -295,25 +310,25 @@ join_map(schar bg_typ, schar fg_typ)
     for (i = 2; i <= WIDTH; i++)
         for (j = 1; j < HEIGHT; j++) {
             if (levl[i][j].typ == fg_typ && levl[i][j].roomno == NO_ROOM) {
-                g.min_rx = g.max_rx = i;
-                g.min_ry = g.max_ry = j;
-                g.n_loc_filled = 0;
-                flood_fill_rm(i, j, g.nroom + ROOMOFFSET, FALSE, FALSE);
-                if (g.n_loc_filled > 3) {
-                    add_room(g.min_rx, g.min_ry, g.max_rx, g.max_ry,
+                gm.min_rx = gm.max_rx = i;
+                gm.min_ry = gm.max_ry = j;
+                gn.n_loc_filled = 0;
+                flood_fill_rm(i, j, gn.nroom + ROOMOFFSET, FALSE, FALSE);
+                if (gn.n_loc_filled > 3) {
+                    add_room(gm.min_rx, gm.min_ry, gm.max_rx, gm.max_ry,
                              FALSE, OROOM, TRUE);
-                    g.rooms[g.nroom - 1].irregular = TRUE;
-                    if (g.nroom >= (MAXNROFROOMS * 2))
+                    gr.rooms[gn.nroom - 1].irregular = TRUE;
+                    if (gn.nroom >= (MAXNROFROOMS * 2))
                         goto joinm;
                 } else {
                     /*
                      * it's a tiny hole; erase it from the map to avoid
                      * having the player end up here with no way out.
                      */
-                    for (sx = g.min_rx; sx <= g.max_rx; sx++)
-                        for (sy = g.min_ry; sy <= g.max_ry; sy++)
+                    for (sx = gm.min_rx; sx <= gm.max_rx; sx++)
+                        for (sy = gm.min_ry; sy <= gm.max_ry; sy++)
                             if ((int) levl[sx][sy].roomno
-                                == g.nroom + ROOMOFFSET) {
+                                == gn.nroom + ROOMOFFSET) {
                                 levl[sx][sy].typ = bg_typ;
                                 levl[sx][sy].roomno = NO_ROOM;
                             }
@@ -328,8 +343,8 @@ join_map(schar bg_typ, schar fg_typ)
      * so don't call sort_rooms(), which can screw up the roomno's
      * validity in the levl structure.
      */
-    for (croom = &g.rooms[0], croom2 = croom + 1;
-         croom2 < &g.rooms[g.nroom]; ) {
+    for (croom = &gr.rooms[0], croom2 = croom + 1;
+         croom2 < &gr.rooms[gn.nroom]; ) {
         /* pick random starting and end locations for "corridor" */
         if (!somexy(croom, &sm) || !somexy(croom2, &em)) {
             /* ack! -- the level is going to be busted */
@@ -352,6 +367,7 @@ join_map(schar bg_typ, schar fg_typ)
         }
         croom2++; /* always increment the next room */
     }
+    join_map_cleanup();
 }
 
 /* Post-processing of a level to set some final attributes which may be defined
@@ -383,8 +399,8 @@ finish_map(
                     || (bg_typ == TREE && levl[i][j].typ == bg_typ)
                     || (walled && IS_WALL(levl[i][j].typ)))
                     levl[i][j].lit = TRUE;
-        for (i = 0; i < g.nroom; i++)
-            g.rooms[i].rlit = 1;
+        for (i = 0; i < gn.nroom; i++)
+            gr.rooms[i].rlit = 1;
     }
     /* light lava even if everything's otherwise unlit;
        ice might be frozen pool rather than frozen moat */
@@ -398,6 +414,10 @@ finish_map(
 }
 
 /*
+ * TODO: If we really want to remove rooms after a map is plopped down
+ * in a special level, this needs to be rewritten - the maps may have
+ * holes in them ("x" mapchar), leaving parts of rooms still on the map.
+ *
  * When level processed by join_map is overlaid by a MAP, some rooms may no
  * longer be valid.  All rooms in the region lx <= x < hx, ly <= y < hy are
  * removed.  Rooms partially in the region are truncated.  This function
@@ -412,8 +432,8 @@ remove_rooms(int lx, int ly, int hx, int hy)
     int i;
     struct mkroom *croom;
 
-    for (i = g.nroom - 1; i >= 0; --i) {
-        croom = &g.rooms[i];
+    for (i = gn.nroom - 1; i >= 0; --i) {
+        croom = &gr.rooms[i];
         if (croom->hx < lx || croom->lx >= hx || croom->hy < ly
             || croom->ly >= hy)
             continue; /* no overlap */
@@ -440,8 +460,8 @@ remove_rooms(int lx, int ly, int hx, int hy)
 static void
 remove_room(unsigned int roomno)
 {
-    struct mkroom *croom = &g.rooms[roomno];
-    struct mkroom *maxroom = &g.rooms[--g.nroom];
+    struct mkroom *croom = &gr.rooms[roomno];
+    struct mkroom *maxroom = &gr.rooms[--gn.nroom];
     int i, j;
     unsigned oroomno;
 
@@ -453,7 +473,7 @@ remove_room(unsigned int roomno)
                       sizeof(struct mkroom));
 
         /* since maxroom moved, update affected level roomno values */
-        oroomno = g.nroom + ROOMOFFSET;
+        oroomno = gn.nroom + ROOMOFFSET;
         roomno += ROOMOFFSET;
         for (i = croom->lx; i <= croom->hx; ++i)
             for (j = croom->ly; j <= croom->hy; ++j) {
@@ -490,12 +510,12 @@ mkmap(lev_init* init_lev)
 {
     schar bg_typ = init_lev->bg, fg_typ = init_lev->fg;
     boolean smooth = init_lev->smoothed, join = init_lev->joined;
-    xchar lit = init_lev->lit, walled = init_lev->walled;
+    xint16 lit = init_lev->lit, walled = init_lev->walled;
     int i;
 
     lit = litstate_rnd(lit);
 
-    g.new_locations = (char *) alloc((WIDTH + 1) * HEIGHT);
+    gn.new_locations = (char *) alloc((WIDTH + 1) * HEIGHT);
 
     init_map(bg_typ);
     init_fill(bg_typ, fg_typ);
@@ -517,10 +537,10 @@ mkmap(lev_init* init_lev)
                init_lev->icedpools);
     /* a walled, joined level is cavernous, not mazelike -dlc */
     if (walled && join) {
-        g.level.flags.is_maze_lev = FALSE;
-        g.level.flags.is_cavernous_lev = TRUE;
+        gl.level.flags.is_maze_lev = FALSE;
+        gl.level.flags.is_cavernous_lev = TRUE;
     }
-    free(g.new_locations);
+    free(gn.new_locations);
 }
 
 /*mkmap.c*/

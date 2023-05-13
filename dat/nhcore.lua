@@ -4,6 +4,54 @@
 -- This file contains lua code used by NetHack core.
 -- Is it loaded once, at game start, and kept in memory until game exit.
 
+-- Data in nh_lua_variables table can be set and queried with nh.variable()
+-- This table is saved and restored along with the game.
+nh_lua_variables = {
+};
+
+-- wrapper to simplify calling from nethack core
+function get_variables_string()
+   return "nh_lua_variables=" .. table_stringify(nh_lua_variables) .. ";";
+end
+
+function nh_callback_set(cb, fn)
+   local cbname = "_CB_" .. cb;
+
+   -- pline("callback_set(%s,%s)", cb, fn);
+
+   if (type(nh_lua_variables[cbname]) ~= "table") then
+      nh_lua_variables[cbname] = {};
+   end
+   nh_lua_variables[cbname][fn] = true;
+end
+
+function nh_callback_rm(cb, fn)
+   local cbname = "_CB_" .. cb;
+
+   -- pline("callback_RM(%s,%s)", cb, fn);
+
+   if (type(nh_lua_variables[cbname]) ~= "table") then
+      nh_lua_variables[cbname] = {};
+   end
+   nh_lua_variables[cbname][fn] = nil;
+end
+
+function nh_callback_run(cb, ...)
+   local cbname = "_CB_" .. cb;
+
+   -- pline("callback_run(%s)", cb);
+   -- pline("TYPE:%s", type(nh_lua_variables[cbname]));
+
+   if (type(nh_lua_variables[cbname]) ~= "table") then
+      nh_lua_variables[cbname] = {};
+   end
+   for k, v in pairs(nh_lua_variables[cbname]) do
+      if (not _G[k](table.unpack{...})) then
+         return false;
+      end
+   end
+   return true;
+end
 
 -- This is an example of generating an external file during gameplay,
 -- which is updated periodically.
@@ -56,6 +104,19 @@ function mk_dgl_extrainfo()
     end
 end
 
+-- Show a helpful tip when player first uses getpos()
+function show_getpos_tip()
+   nh.text([[
+Tip: Farlooking or selecting a map location
+
+You are now in a "farlook" mode - the movement keys move the cursor,
+not your character.  Game time does not advance.  This mode is used
+to look around the map, or to select a location on it.
+
+When in this mode, you can press ESC to return to normal game mode,
+and pressing ? will show the key help.
+]]);
+end
 
 -- Callback functions
 nhcore = {
@@ -72,5 +133,8 @@ nhcore = {
 
     -- game_exit is called when the game exits (quit, saved, ...)
     -- game_exit = function() end,
+
+    -- getpos_tip is called the first time the code enters getpos()
+    getpos_tip = show_getpos_tip,
 };
 

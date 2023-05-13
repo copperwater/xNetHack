@@ -108,13 +108,13 @@ dowrite(struct obj *pen)
     int basecost, actualcost;
     int curseval;
     char qbuf[QBUFSZ];
-    int first, last, i, deferred, deferralchance;
+    int first, last, i, deferred, deferralchance, real;
     boolean by_descr = FALSE;
     const char *typeword;
     /* Orcus interferes with writing if you've got the Amulet */
     boolean interference = fiend_adversity(PM_ORCUS);
 
-    if (nohands(g.youmonst.data)) {
+    if (nohands(gy.youmonst.data)) {
         You("need hands to be able to write!");
         return ECMD_OK;
     } else if (Glib) {
@@ -170,26 +170,45 @@ dowrite(struct obj *pen)
         (void) mungspaces(bp + 1);        /* remove the extra space */
     }
 
-    deferred = 0;       /* not any scroll or book */
-    deferralchance = 0; /* incremented for each oc_uname match */
-    first = g.bases[(int) paper->oclass];
-    last = g.bases[(int) paper->oclass + 1] - 1;
+    deferred = real = 0; /* not any scroll or book */
+    deferralchance = 0;  /* incremented for each oc_uname match */
+    first = gb.bases[(int) paper->oclass];
+    last = gb.bases[(int) paper->oclass + 1] - 1;
+    /* first loop: look for match with name/description */
     for (i = first; i <= last; i++) {
         /* extra shufflable descr not representing a real object */
         if (!OBJ_NAME(objects[i]))
             continue;
 
-        if (!strcmpi(OBJ_NAME(objects[i]), nm))
-            goto found;
+        if (!strcmpi(OBJ_NAME(objects[i]), nm)) {
+            if (objects[i].oc_name_known
+                /* spellbooks can only be written by_name, so no need to
+                   hold out for a 'better' by_descr match */
+                || paper->oclass == SPBOOK_CLASS) {
+                goto found;
+            } else {
+                /* save item in case there are no better by_descr matches */
+                real = deferred = i;
+                break;
+            }
+        }
+
         if (!strcmpi(OBJ_DESCR(objects[i]), nm)) {
             by_descr = TRUE;
             goto found;
         }
-        /* user-assigned name might match real name of a later
-           entry, so we don't simply use first match with it;
-           also, player might assign same name multiple times
-           and if so, we choose one of those matches randomly */
+    }
+    /* second loop: look for match with user-assigned name */
+    /* we will get here if 'nm' isn't a real scroll name/descr, or is the name
+     * of a real scroll that hasn't been formally IDed. */
+    for (i = first; i <= last; i++) {
+        /* player might assign same name multiple times and if so,
+           we choose one of those matches randomly */
         if (objects[i].oc_uname && !strcmpi(objects[i].oc_uname, nm)
+            /* prefer attempting to write the real scroll type if
+               the typename clobbers a real scroll and is known to
+               be incorrect */
+            && !(real && objects[i].oc_name_known)
             /*
              * First match: chance incremented to 1,
              *   !rn2(1) is 1, we remember i;
@@ -200,15 +219,17 @@ dowrite(struct obj *pen)
              *   and 2/3 chance to keep previous 50:50
              *   choice; so on for higher match counts.
              */
-            && !rn2(++deferralchance))
+            && !rn2(++deferralchance)) {
             deferred = i;
+            /* writing by user-assigned name is same as by description:
+               fails for books, works for scrolls (having an assigned
+               type name guarantees presence on discoveries list) */
+            by_descr = TRUE;
+        }
     }
-    /* writing by user-assigned name is same as by description:
-       fails for books, works for scrolls (having an assigned
-       type name guarantees presence on discoveries list) */
+
     if (deferred) {
         i = deferred;
-        by_descr = TRUE;
         goto found;
     }
 
@@ -317,7 +338,7 @@ dowrite(struct obj *pen)
     if ((interference && percent(35))
         || (!objects[new_obj->otyp].oc_name_known
             /* else if named, then only by-descr works */
-            && !(by_descr && label_known(new_obj->otyp, g.invent))
+            && !(by_descr && label_known(new_obj->otyp, gi.invent))
             /* and Luck might override after both checks have failed */
             && (rnl(Role_if(PM_WIZARD) ? 5 : 15)))) {
         You("%s to write that.",
@@ -334,7 +355,7 @@ dowrite(struct obj *pen)
                 Strcpy(namebuf, OBJ_DESCR(objects[new_obj->otyp]));
                 wipeout_text(namebuf, (6 + MAXULEV - u.ulevel) / 6, 0);
             } else
-                Sprintf(namebuf, "%s was here!", g.plname);
+                Sprintf(namebuf, "%s was here!", gp.plname);
             You("write \"%s\" and the scroll disappears.", namebuf);
             useup(paper);
         }
@@ -376,7 +397,7 @@ dowrite(struct obj *pen)
        specifically chosen item so hero recognizes it even if blind;
        the exception is for being lucky writing an undiscovered scroll,
        where the label associated with the type-name isn't known yet */
-    new_obj->dknown = label_known(new_obj->otyp, g.invent) ? 1 : 0;
+    new_obj->dknown = label_known(new_obj->otyp, gi.invent) ? 1 : 0;
 
     new_obj = hold_another_object(new_obj, "Oops!  %s out of your grasp!",
                                   The(aobjnam(new_obj, "slip")),

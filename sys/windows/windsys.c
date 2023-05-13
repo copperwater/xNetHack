@@ -5,7 +5,7 @@
 /*
  *  WIN32 system functions.
  *
- *  Included in both console and window based clients on the windows platform.
+ *  Included in both console-based and window-based clients on the windows platform.
  *
  *  Initial Creation: Michael Allison - January 31/93
  *
@@ -48,14 +48,23 @@ extern int GUILaunched;
 extern boolean getreturn_enabled;
 int redirect_stdout;
 
-typedef HWND(WINAPI *GETCONSOLEWINDOW)();
+#ifdef WIN32CON
+typedef HWND(WINAPI *GETCONSOLEWINDOW)(void);
+#ifdef WIN32CON
 static HWND GetConsoleHandle(void);
 static HWND GetConsoleHwnd(void);
+#endif
 #if !defined(TTY_GRAPHICS)
 extern void backsp(void);
 #endif
 int windows_console_custom_nhgetch(void);
 extern void safe_routines(void);
+int windows_early_options(const char *window_opt);
+unsigned long sys_random_seed(void);
+#if 0
+static int max_filename(void);
+#endif
+
 
 /* The function pointer nt_kbhit contains a kbhit() equivalent
  * which varies depending on which window port is active.
@@ -65,7 +74,22 @@ extern void safe_routines(void);
  */
 
 int def_kbhit(void);
-int (*nt_kbhit)() = def_kbhit;
+int (*nt_kbhit)(void) = def_kbhit;
+#endif /* WIN32CON */
+
+#ifndef WIN32CON
+/* this is used as a printf() replacement when the window
+ * system isn't initialized yet
+ */
+void msmsg
+VA_DECL(const char *, fmt)
+{
+    VA_START(fmt);
+    VA_INIT(fmt, const char *);
+    VA_END();
+    return;
+}
+#endif
 
 char
 switchar(void)
@@ -135,12 +159,13 @@ chdrive(char* str)
 {
     char *ptr;
     char drive;
-    if ((ptr = index(str, ':')) != (char *) 0) {
+    if ((ptr = strchr(str, ':')) != (char *) 0) {
         drive = toupper((uchar) *(ptr - 1));
         _chdrive((drive - 'A') + 1);
     }
 }
 
+#if 0
 static int
 max_filename(void)
 {
@@ -154,6 +179,7 @@ max_filename(void)
     else
         return 0;
 }
+#endif
 
 int
 def_kbhit(void)
@@ -180,15 +206,19 @@ void nt_regularize(char* s) /* normalize file name */
 char *getxxx(void)
 {
 char     szFullPath[MAX_PATH] = "";
-HMODULE  hInst = NULL;  	/* NULL gets the filename of this module */
+HMODULE  hInst = NULL;  /* NULL gets the filename of this module */
 
 GetModuleFileName(hInst, szFullPath, sizeof(szFullPath));
 return &szFullPath[0];
 }
 #endif
 
+#ifdef MSWIN_GRAPHICS
 extern void mswin_raw_print_flush(void);
 extern void mswin_raw_print(const char *);
+#endif
+
+DISABLE_WARNING_FORMAT_NONLITERAL
 
 /* fatal error */
 /*VARARGS1*/
@@ -201,7 +231,7 @@ VA_DECL(const char *, s)
     /* error() may get called before tty is initialized */
     if (iflags.window_inited)
         end_screen();
-    if (WINDOWPORT("tty")) {
+    if (WINDOWPORT(tty)) {
         buf[0] = '\n';
         (void) vsnprintf(&buf[1], sizeof buf - (1 + sizeof "\n"), s, VA_ARGS);
         Strcat(buf, "\n");
@@ -211,11 +241,15 @@ VA_DECL(const char *, s)
         Strcat(buf, "\n");
         raw_printf(buf);
     }
+#ifdef MSWIN_GRAPHICS
     if (windowprocs.win_raw_print == mswin_raw_print)
         mswin_raw_print_flush();
+#endif
     VA_END();
     exit(EXIT_FAILURE);
 }
+
+RESTORE_WARNING_FORMAT_NONLITERAL
 
 void
 Delay(int ms)
@@ -228,13 +262,15 @@ win32_abort(void)
 {
     int c;
 
-    if (WINDOWPORT("mswin") || WINDOWPORT("tty")) {
+    if (WINDOWPORT(mswin) || WINDOWPORT(tty)) {
         if (iflags.window_inited)
             exit_nhwindows((char *) 0);
         iflags.window_inited = FALSE;
     }
-    if (!WINDOWPORT("mswin") && !WINDOWPORT("safe-startup"))
+#ifdef WIN32CON
+    if (!WINDOWPORT(mswin) && !WINDOWPORT(safestartup))
         safe_routines();
+#endif
     if (wizard) {
         raw_print("Execute debug breakpoint wizard?");
         if ((c = nhgetch()) == 'y' || c == 'Y')
@@ -295,7 +331,7 @@ void
 interject(int interjection_type)
 {
     if (interjection_type >= 0 && interjection_type < INTERJECTION_TYPES)
-        msmsg(interjection_buf[interjection_type]);
+        msmsg("%s", interjection_buf[interjection_type]);
 }
 
 #ifdef RUNTIME_PASTEBUF_SUPPORT
@@ -308,14 +344,15 @@ void port_insert_pastebuf(char *buf)
 
     HGLOBAL hglbCopy;
     WCHAR *w, w2[2];
-    int cc, rc, abytes;
+    /* int cc; */
+    int rc, abytes;
     LPWSTR lpwstrCopy;
     HANDLE hresult;
 
     if (!buf)
         return;
 
-    cc = strlen(buf);
+    /* cc = strlen(buf); */
     /* last arg=0 means "tell me the size of the buffer that I need" */
     rc = MultiByteToWideChar(GetConsoleOutputCP(), 0, buf, -1, w2, 0);
     if (!rc) return;
@@ -368,6 +405,7 @@ void port_insert_pastebuf(char *buf)
     return;
 }
 
+#ifdef WIN32CON
 static HWND
 GetConsoleHandle(void)
 {
@@ -405,7 +443,7 @@ GetConsoleHwnd(void)
     /*       printf("%d iterations\n", iterations); */
     return hwndFound;
 }
-
+#endif /* WIN32CON */
 #endif
 
 #ifdef RUNTIME_PORT_ID
@@ -447,12 +485,14 @@ nethack_exit(int code)
      */
 
 
+#ifdef WIN32CON
     if (!GUILaunched) {
         windowprocs = *get_safe_procs(1);
         /* use our custom version which works
            a little cleaner than the stdio one */
         windowprocs.win_nhgetch = windows_console_custom_nhgetch;
     }
+#endif
     if (getreturn_enabled) {
         raw_print("\n");
         wait_synch();
@@ -460,6 +500,7 @@ nethack_exit(int code)
     exit(code);
 }
 
+#ifdef WIN32CON
 #undef kbhit
 #include <conio.h>
 
@@ -469,6 +510,7 @@ windows_console_custom_nhgetch(void)
     return _getch();
 }
 
+extern int windows_console_custom_nhgetch(void);
 
 void
 getreturn(const char *str)
@@ -481,17 +523,22 @@ getreturn(const char *str)
     in_getreturn = TRUE;
     Sprintf(buf,"Hit <Enter> %s.", str);
     raw_print(buf);
+    if (WINDOWPORT(tty))
+        windows_console_custom_nhgetch();
     wait_synch();
     in_getreturn = FALSE;
     return;
 }
+#endif
 
 /* nethack_enter_windows() is called from main immediately after
    initializing the window port */
 void nethack_enter_windows(void)
 {
-	if (WINDOWPORT("tty"))
-		nethack_enter_consoletty();
+#ifdef WIN32CON
+    if (WINDOWPORT(tty))
+        nethack_enter_consoletty();
+#endif
 }
 
 /* CP437 to Unicode mapping according to the Unicode Consortium */
@@ -534,16 +581,34 @@ WCHAR *
 winos_ascii_to_wide_str(const unsigned char * src, WCHAR * dst, size_t dstLength)
 {
     size_t i = 0;
-    while(i < dstLength - 1 && src[i] != 0)
-        dst[i++] = cp437[src[i]];
+    while(i < dstLength - 1 && src[i] != 0) {
+        dst[i] = cp437[src[i]];
+        i++;
+    }
     dst[i] = 0;
     return dst;
 }
 
-WCHAR
-winos_ascii_to_wide(const unsigned char c)
+void
+winos_ascii_to_wide(WCHAR dst[3], UINT32 c)
 {
-    return cp437[c];
+#ifdef ENHANCED_SYMBOLS
+    if (SYMHANDLING(H_UTF8)) {
+        if (c <= 0xFFFF) {
+            dst[0] = (WCHAR) c;
+            dst[1] = L'\0';
+        } else {
+            /* UTF-16 surrogate pair */
+            dst[0] = (WCHAR) ((c >> 10) + 0xD7C0);
+            dst[1] = (WCHAR) ((c & 0x3FF) + 0xDC00);
+            dst[2] = L'\0';
+        }
+    } else
+#endif
+    {
+        dst[0] = cp437[c];
+        dst[1] = L'\0';
+    }
 }
 
 BOOL winos_font_support_cp437(HFONT hFont)
@@ -596,13 +661,14 @@ windows_early_options(const char *window_opt)
         return 1;
     } else {
         raw_printf(
-            "-%swindows:cursorblink is the only supported option.\n");
+            "-%s windows:cursorblink is the only supported option.\n",
+            window_opt);
     }
     return 0;
 }
 
 /*
- * Add a backslash to any name not ending in /, \ or :	 There must
+ * Add a backslash to any name not ending in /, \ or : There must
  * be room for the \
  */
 void
@@ -642,10 +708,10 @@ sys_random_seed(void)
 
     status = BCryptOpenAlgorithmProvider(&hRa, BCRYPT_RNG_ALGORITHM,
                                          (LPCWSTR) 0, 0);
-    if (hRa && status == STATUS_SUCCESS) {
+    if (hRa && status == (NTSTATUS) STATUS_SUCCESS) {
         status = BCryptGenRandom(hRa, (PUCHAR) &ourseed,
                                  (ULONG) sizeof ourseed, 0);
-        if (status == STATUS_SUCCESS) {
+        if (status == (NTSTATUS) STATUS_SUCCESS) {
             BCryptCloseAlgorithmProvider(hRa,0);
             has_strong_rngseed = TRUE;
             Plan_B = FALSE;

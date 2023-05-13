@@ -1,4 +1,4 @@
-/* NetHack 3.7	wintty.c	$NHDT-Date: 1644531502 2022/02/10 22:18:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.283 $ */
+/* NetHack 3.7	wintty.c	$NHDT-Date: 1661295670 2022/08/23 23:01:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.326 $ */
 /* Copyright (c) David Cohrs, 1991                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -69,7 +69,7 @@ extern void msmsg(const char *, ...);
 #define AVTC_SOUND_PLAY    4
 #endif
 
-#ifdef HANGUP_HANDLING
+#ifdef HANGUPHANDLING
 /*
  * NetHack's core switches to a dummy windowing interface when it
  * detects SIGHUP, but that's no help for any interface routine which
@@ -80,7 +80,7 @@ extern void msmsg(const char *, ...);
  */
 #define HUPSKIP() \
     do {                                        \
-        if (g.program_state.done_hup) {         \
+        if (gp.program_state.done_hup) {         \
             morc = '\033';                      \
             return;                             \
         }                                       \
@@ -88,22 +88,25 @@ extern void msmsg(const char *, ...);
     /* morc=ESC - in case we bypass xwaitforspace() which sets that */
 #define HUPSKIP_RESULT(RES) \
     do {                                        \
-        if (g.program_state.done_hup)           \
+        if (gp.program_state.done_hup)           \
             return (RES);                       \
     } while (0)
-#else /* !HANGUP_HANDLING */
+#else /* !HANGUPHANDLING */
 #define HUPSKIP() /*empty*/
 #define HUPSKIP_RESULT(RES) /*empty*/
-#endif /* ?HANGUP_HANDLING */
+#endif /* ?HANGUPHANDLING */
 
 /* Interface definition, for windows.c */
 struct window_procs tty_procs = {
-    "tty",
+    WPID(tty),
     (0
+#ifdef TTY_PERM_INVENT
+     | WC_PERM_INVENT
+#endif
 #ifdef MSDOS
      | WC_TILED_MAP | WC_ASCII_MAP
 #endif
-#if defined(WIN32)
+#if defined(WIN32CON)
      | WC_MOUSE_SUPPORT
 #endif
      | WC_COLOR | WC_HILITE_PET | WC_INVERSE | WC_EIGHT_BIT_IN),
@@ -115,12 +118,12 @@ struct window_procs tty_procs = {
      | WC2_HILITE_STATUS | WC2_HITPOINTBAR | WC2_FLUSH_STATUS
      | WC2_RESET_STATUS
 #endif
-     | WC2_DARKGRAY | WC2_SUPPRESS_HIST | WC2_URGENT_MESG | WC2_STATUSLINES)
+     | WC2_DARKGRAY | WC2_SUPPRESS_HIST | WC2_URGENT_MESG | WC2_STATUSLINES
      | WC2_U_UTF8STR
-#if !defined(NO_TERMS) || defined(WIN32)
+#if !defined(NO_TERMS) || defined(WIN32CON)
      | WC2_U_24BITCOLOR
 #endif
-    ,
+    ),
 #ifdef TEXTCOLOR
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, /* color availability */
 #else
@@ -132,7 +135,7 @@ struct window_procs tty_procs = {
     tty_destroy_nhwindow, tty_curs, tty_putstr,
     tty_putmixed,
     tty_display_file, tty_start_menu, tty_add_menu, tty_end_menu,
-    tty_select_menu, tty_message_menu, tty_update_inventory, tty_mark_synch,
+    tty_select_menu, tty_message_menu, tty_mark_synch,
     tty_wait_synch,
 #ifdef CLIPPING
     tty_cliparound,
@@ -163,6 +166,8 @@ struct window_procs tty_procs = {
     genl_status_update,
 #endif
     genl_can_suspend_yes,
+    tty_update_inventory,
+    tty_ctrl_nhwindow,
 };
 
 winid BASE_WINDOW;
@@ -180,7 +185,7 @@ static char winpanicstr[] = "Bad window id %d";
 char defmorestr[] = "--More--";
 
 #ifdef CLIPPING
-#if defined(USE_TILES) && defined(MSDOS)
+#if defined(TILES_IN_GLYPHMAP) && defined(MSDOS)
 boolean clipping = FALSE; /* clipping on? */
 int clipx = 0, clipxmax = 0;
 int clipy = 0, clipymax = 0;
@@ -191,7 +196,7 @@ static int clipy = 0, clipymax = 0;
 #endif
 #endif /* CLIPPING */
 
-#if defined(USE_TILES) && defined(MSDOS)
+#if defined(TILES_IN_GLYPHMAP) && defined(MSDOS)
 extern void adjust_cursor_flags(struct WinDesc *);
 #endif
 
@@ -224,12 +229,9 @@ static void process_menu_window(winid, struct WinDesc *);
 static void process_text_window(winid, struct WinDesc *);
 static tty_menu_item *reverse(tty_menu_item *);
 static const char *compress_str(const char *);
+#ifndef STATUS_HILITES
 static void tty_putsym(winid, int, int, char);
-static void setup_rolemenu(winid, boolean, int, int, int);
-static void setup_racemenu(winid, boolean, int, int, int);
-static void setup_gendmenu(winid, boolean, int, int, int);
-static void setup_algnmenu(winid, boolean, int, int, int);
-static boolean reset_role_filtering(void);
+#endif
 #ifdef STATUS_HILITES
 #define MAX_STATUS_ROWS 3
 static boolean check_fields(boolean forcefields, int sz[MAX_STATUS_ROWS]);
@@ -246,6 +248,35 @@ static void status_sanity_check(void);
 #endif
 #ifdef ENHANCED_SYMBOLS
 void g_pututf8(uint8 *utf8str);
+#endif
+
+#ifdef TTY_PERM_INVENT
+static char Empty[1] = { '\0' };
+static struct tty_perminvent_cell zerottycell = { 0, 0, 0, { 0 }, 0 };
+static glyph_info zerogi = { 0 };
+static struct to_core zero_tocore = { 0 };
+enum { border_left, border_middle, border_right, border_elements };
+static int bordercol[border_elements] = { 0, 0, 0 }; /* left, middle, right */
+static int ttyinvmode = InvNormal; /* enum is in wintype.h */
+static int inuse_only_start = 0;
+static boolean done_tty_perm_invent_init = FALSE;
+enum { tty_slots = 52 + 1 + 1 };
+static boolean slot_tracker[tty_slots];
+static long last_glyph_reset_when;
+#ifndef NOINVSYM /* invent.c */
+#define NOINVSYM '#'
+#endif
+static boolean calling_from_update_inventory = FALSE;
+static int ttyinv_create_window(int, struct WinDesc *);
+static void ttyinv_add_menu(winid, struct WinDesc *, char ch, int attr,
+                            int clr, const char *str);
+static void ttyinv_render(winid window, struct WinDesc *cw);
+static void tty_invent_box_glyph_init(struct WinDesc *cw);
+static boolean assesstty(enum inv_modes, short *, short *,
+                         long *, long *, long *, long *, long *);
+static void ttyinv_populate_slot(struct WinDesc *, int, int,
+                                 const char *, int32_t);
+static int selector_to_slot(char ch, const int invflags, boolean *ignore);
 #endif
 
 /*
@@ -377,7 +408,7 @@ winch_handler(int sig_unused UNUSED)
                 ttyDisplay->toplin = i;
                 flush_screen(1);
                 if (i) {
-                    addtopl(g.toplines);
+                    addtopl(gt.toplines);
                 } else
                     for (i = WIN_INVEN; i < MAXWIN; i++)
                         if (wins[i] && wins[i]->active) {
@@ -481,11 +512,28 @@ tty_init_nhwindows(int *argcp UNUSED, char **argv UNUSED)
 
     tty_clear_nhwindow(BASE_WINDOW);
 
-    tty_putstr(BASE_WINDOW, 0, "");
+    /* Once pline() is functional, error-related prompts such as
+     * those relating to save files etc. can intrude on the
+     * copyright information display because their prompts are
+     * up at the very top in the message window.
+     * Move the copyright information a little further down to
+     * row 3, out of the way. */
+
+    tty_curs(BASE_WINDOW, 1, 4);
     for (i = 1; i <= 4; ++i)
         tty_putstr(BASE_WINDOW, 0, copyright_banner_line(i));
     tty_putstr(BASE_WINDOW, 0, "");
     tty_display_nhwindow(BASE_WINDOW, FALSE);
+
+    /* Move to a default location for the "Shall I pick .." player
+     * selection prompts, which also use the BASE_WINDOW. Leave
+     * room for as many as 3 unexpected raw_prints early startup
+     * messages above that.
+     * If there is a topline message prompt, before the
+     * "Shall I pick ..." prompt, the latter will end up appearing
+     * immediately after the topline message prompt. There should
+     * now be room. */
+    tty_curs(BASE_WINDOW, 1, 11);
 
     /* 'statuslines' defaults to set_in_config, allowed but invisible;
        make it dynamically settable if feasible, otherwise visible */
@@ -504,788 +552,42 @@ tty_preference_update(const char *pref)
         new_status_window();
     }
 
-#if defined(WIN32)
+#if defined(WIN32CON)
     consoletty_preference_update(pref);
 #else
     genl_preference_update(pref);
 #endif
+#ifdef TTY_PERM_INVENT
+    /* the boundary box around persistent inventory is drawn with wall
+       symbols, so if player changes to a different symbol set (other
+       than temporary switch to the rogue one), redraw perm_invent; not
+       only might individual symbols change (punctuation vs line drawing),
+       the way to render them might change too (Handling: DEC/UTF8/&c) */
+    if ((!strcmp(pref, "symset") || !strcmp(pref, "perm_invent"))
+        && iflags.window_inited) {
+        if (WIN_INVEN != WIN_ERR)
+           tty_invent_box_glyph_init(wins[WIN_INVEN]);
+    }
+#endif
     return;
 }
-
-/* try to reduce clutter in the code below... */
-#define ROLE flags.initrole
-#define RACE flags.initrace
-#define GEND flags.initgend
-#define ALGN flags.initalign
 
 void
 tty_player_selection(void)
 {
-    int i, k, n, choice, nextpick;
-    boolean getconfirmation, picksomething;
-    char pick4u = 'n';
-    char pbuf[QBUFSZ], plbuf[QBUFSZ];
-    winid win;
-    anything any;
-    menu_item *selected = 0;
+    if (genl_player_setup(ttyDisplay->rows))
+        return;
 
-    /* Used to avoid "Is this ok?" if player has already specified all
-     * four facets of role.
-     * Note that rigid_role_checks might force any unspecified facets to
-     * have a specific value, but that will still require confirmation;
-     * player can specify the forced ones if avoiding that is demanded.
-     */
-    picksomething = (ROLE == ROLE_NONE || RACE == ROLE_NONE
-                     || GEND == ROLE_NONE || ALGN == ROLE_NONE);
-    /* Used for '-@';
-     * choose randomly without asking for all unspecified facets.
-     */
-    if (flags.randomall && picksomething) {
-        if (ROLE == ROLE_NONE)
-            ROLE = ROLE_RANDOM;
-        if (RACE == ROLE_NONE)
-            RACE = ROLE_RANDOM;
-        if (GEND == ROLE_NONE)
-            GEND = ROLE_RANDOM;
-        if (ALGN == ROLE_NONE)
-            ALGN = ROLE_RANDOM;
-    }
-
-    /* prevent unnecessary prompting if role forces race (samurai) or gender
-       (valkyrie) or alignment (rogue), or race forces alignment (orc), &c */
-    rigid_role_checks();
-
-    /* Should we randomly pick for the player? */
-    if (ROLE == ROLE_NONE || RACE == ROLE_NONE || GEND == ROLE_NONE
-        || ALGN == ROLE_NONE) {
-        int echoline;
-        char *prompt = build_plselection_prompt(pbuf, QBUFSZ,
-                                                ROLE, RACE, GEND, ALGN);
-
-        /* this prompt string ends in "[ynaq]?":
-           y - game picks role,&c then asks player to confirm;
-           n - player manually chooses via menu selections;
-           a - like 'y', but skips confirmation and starts game;
-           q - quit
-         */
-        tty_putstr(BASE_WINDOW, 0, "");
-        echoline = wins[BASE_WINDOW]->cury;
-        tty_putstr(BASE_WINDOW, 0, prompt);
-        do {
-            pick4u = lowc(readchar());
-            if (index(quitchars, pick4u))
-                pick4u = 'y';
-        } while (!index(ynaqchars, pick4u));
-        if ((int) strlen(prompt) + 1 < CO) {
-            /* Echo choice and move back down line */
-            tty_putsym(BASE_WINDOW, (int) strlen(prompt) + 1, echoline,
-                       pick4u);
-            tty_putstr(BASE_WINDOW, 0, "");
-        } else
-            /* Otherwise it's hard to tell where to echo, and things are
-             * wrapping a bit messily anyway, so (try to) make sure the next
-             * question shows up well and doesn't get wrapped at the
-             * bottom of the window.
-             */
-            tty_clear_nhwindow(BASE_WINDOW);
-
-        if (pick4u != 'y' && pick4u != 'a' && pick4u != 'n')
-            goto give_up;
-    }
-
- makepicks:
-    nextpick = RS_ROLE;
-    do {
-        if (nextpick == RS_ROLE) {
-            nextpick = RS_RACE;
-            /* Select a role, if necessary;
-               we'll try to be compatible with pre-selected
-               race/gender/alignment, but may not succeed. */
-            if (ROLE < 0) {
-                /* Process the choice */
-                if (pick4u == 'y' || pick4u == 'a' || ROLE == ROLE_RANDOM) {
-                    /* Pick a random role */
-                    k = pick_role(RACE, GEND, ALGN, PICK_RANDOM);
-                    if (k < 0) {
-                        tty_putstr(BASE_WINDOW, 0, "Incompatible role!");
-                        k = randrole(FALSE);
-                    }
-                } else {
-                    /* Prompt for a role */
-                    tty_clear_nhwindow(BASE_WINDOW);
-                    role_selection_prolog(RS_ROLE, BASE_WINDOW);
-                    win = create_nhwindow(NHW_MENU);
-                    start_menu(win, MENU_BEHAVE_STANDARD);
-                    /* populate the menu with role choices */
-                    setup_rolemenu(win, TRUE, RACE, GEND, ALGN);
-                    /* add miscellaneous menu entries */
-                    role_menu_extra(ROLE_RANDOM, win, TRUE);
-                    any = cg.zeroany; /* separator, not a choice */
-                    add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                             ATR_NONE, "", MENU_ITEMFLAGS_NONE);
-                    role_menu_extra(RS_RACE, win, FALSE);
-                    role_menu_extra(RS_GENDER, win, FALSE);
-                    role_menu_extra(RS_ALGNMNT, win, FALSE);
-                    role_menu_extra(RS_filter, win, FALSE);
-                    role_menu_extra(ROLE_NONE, win, FALSE); /* quit */
-                    Strcpy(pbuf, "Pick a role or profession");
-                    end_menu(win, pbuf);
-                    n = select_menu(win, PICK_ONE, &selected);
-                    /*
-                     * PICK_ONE with preselected choice behaves strangely:
-                     *  n == -1 -- <escape>, so use quit choice;
-                     *  n ==  0 -- explicitly chose preselected entry,
-                     *             toggling it off, so use it;
-                     *  n ==  1 -- implicitly chose preselected entry
-                     *             with <space> or <return>;
-                     *  n ==  2 -- explicitly chose a different entry, so
-                     *             both it and preselected one are in list.
-                     */
-                    if (n > 0) {
-                        choice = selected[0].item.a_int;
-                        if (n > 1 && choice == ROLE_RANDOM)
-                            choice = selected[1].item.a_int;
-                    } else
-                        choice = (n == 0) ? ROLE_RANDOM : ROLE_NONE;
-                    if (selected)
-                        free((genericptr_t) selected), selected = 0;
-                    destroy_nhwindow(win);
-
-                    if (choice == ROLE_NONE) {
-                        goto give_up; /* Selected quit */
-                    } else if (choice == RS_menu_arg(RS_ALGNMNT)) {
-                        ALGN = k = ROLE_NONE;
-                        nextpick = RS_ALGNMNT;
-                    } else if (choice == RS_menu_arg(RS_GENDER)) {
-                        GEND = k = ROLE_NONE;
-                        nextpick = RS_GENDER;
-                    } else if (choice == RS_menu_arg(RS_RACE)) {
-                        RACE = k = ROLE_NONE;
-                        nextpick = RS_RACE;
-                    } else if (choice == RS_menu_arg(RS_filter)) {
-                        ROLE = k = ROLE_NONE;
-                        (void) reset_role_filtering();
-                        nextpick = RS_ROLE;
-                    } else if (choice == ROLE_RANDOM) {
-                        k = pick_role(RACE, GEND, ALGN, PICK_RANDOM);
-                        if (k < 0)
-                            k = randrole(FALSE);
-                    } else {
-                        k = choice - 1;
-                    }
-                }
-                ROLE = k;
-            } /* needed role */
-        }     /* picking role */
-
-        if (nextpick == RS_RACE) {
-            nextpick = (ROLE < 0) ? RS_ROLE : RS_GENDER;
-            /* Select a race, if necessary;
-               force compatibility with role, try for compatibility
-               with pre-selected gender/alignment. */
-            if (RACE < 0 || !validrace(ROLE, RACE)) {
-                /* no race yet, or pre-selected race not valid */
-                if (pick4u == 'y' || pick4u == 'a' || RACE == ROLE_RANDOM) {
-                    k = pick_race(ROLE, GEND, ALGN, PICK_RANDOM);
-                    if (k < 0) {
-                        tty_putstr(BASE_WINDOW, 0, "Incompatible race!");
-                        k = randrace(ROLE);
-                    }
-                } else { /* pick4u == 'n' */
-                    /* Count the number of valid races */
-                    n = 0; /* number valid */
-                    k = 0; /* valid race */
-                    for (i = 0; races[i].noun; i++)
-                        if (ok_race(ROLE, i, GEND, ALGN)) {
-                            n++;
-                            k = i;
-                        }
-                    if (n == 0) {
-                        for (i = 0; races[i].noun; i++)
-                            if (validrace(ROLE, i)) {
-                                n++;
-                                k = i;
-                            }
-                    }
-                    /* Permit the user to pick, if there is more than one */
-                    if (n > 1) {
-                        tty_clear_nhwindow(BASE_WINDOW);
-                        role_selection_prolog(RS_RACE, BASE_WINDOW);
-                        win = create_nhwindow(NHW_MENU);
-                        start_menu(win, MENU_BEHAVE_STANDARD);
-                        any = cg.zeroany; /* zero out all bits */
-                        /* populate the menu with role choices */
-                        setup_racemenu(win, TRUE, ROLE, GEND, ALGN);
-                        /* add miscellaneous menu entries */
-                        role_menu_extra(ROLE_RANDOM, win, TRUE);
-                        any.a_int = 0; /* separator, not a choice */
-                        add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                                 ATR_NONE, "", MENU_ITEMFLAGS_NONE);
-                        role_menu_extra(RS_ROLE, win, FALSE);
-                        role_menu_extra(RS_GENDER, win, FALSE);
-                        role_menu_extra(RS_ALGNMNT, win, FALSE);
-                        role_menu_extra(RS_filter, win, FALSE);
-                        role_menu_extra(ROLE_NONE, win, FALSE); /* quit */
-                        Strcpy(pbuf, "Pick a race or species");
-                        end_menu(win, pbuf);
-                        n = select_menu(win, PICK_ONE, &selected);
-                        if (n > 0) {
-                            choice = selected[0].item.a_int;
-                            if (n > 1 && choice == ROLE_RANDOM)
-                                choice = selected[1].item.a_int;
-                        } else
-                            choice = (n == 0) ? ROLE_RANDOM : ROLE_NONE;
-                        if (selected)
-                            free((genericptr_t) selected), selected = 0;
-                        destroy_nhwindow(win);
-
-                        if (choice == ROLE_NONE) {
-                            goto give_up; /* Selected quit */
-                        } else if (choice == RS_menu_arg(RS_ALGNMNT)) {
-                            ALGN = k = ROLE_NONE;
-                            nextpick = RS_ALGNMNT;
-                        } else if (choice == RS_menu_arg(RS_GENDER)) {
-                            GEND = k = ROLE_NONE;
-                            nextpick = RS_GENDER;
-                        } else if (choice == RS_menu_arg(RS_ROLE)) {
-                            ROLE = k = ROLE_NONE;
-                            nextpick = RS_ROLE;
-                        } else if (choice == RS_menu_arg(RS_filter)) {
-                            RACE = k = ROLE_NONE;
-                            if (reset_role_filtering())
-                                nextpick = RS_ROLE;
-                            else
-                                nextpick = RS_RACE;
-                        } else if (choice == ROLE_RANDOM) {
-                            k = pick_race(ROLE, GEND, ALGN, PICK_RANDOM);
-                            if (k < 0)
-                                k = randrace(ROLE);
-                        } else {
-                            k = choice - 1;
-                        }
-                    }
-                }
-                RACE = k;
-            } /* needed race */
-        }     /* picking race */
-
-        if (nextpick == RS_GENDER) {
-            nextpick = (ROLE < 0) ? RS_ROLE : (RACE < 0) ? RS_RACE
-                       : RS_ALGNMNT;
-            /* Select a gender, if necessary;
-               force compatibility with role/race, try for compatibility
-               with pre-selected alignment. */
-            if (GEND < 0 || !validgend(ROLE, RACE, GEND)) {
-                /* no gender yet, or pre-selected gender not valid */
-                if (pick4u == 'y' || pick4u == 'a' || GEND == ROLE_RANDOM) {
-                    k = pick_gend(ROLE, RACE, ALGN, PICK_RANDOM);
-                    if (k < 0) {
-                        tty_putstr(BASE_WINDOW, 0, "Incompatible gender!");
-                        k = randgend(ROLE, RACE);
-                    }
-                } else { /* pick4u == 'n' */
-                    /* Count the number of valid genders */
-                    n = 0; /* number valid */
-                    k = 0; /* valid gender */
-                    for (i = 0; i < ROLE_GENDERS; i++)
-                        if (ok_gend(ROLE, RACE, i, ALGN)) {
-                            n++;
-                            k = i;
-                        }
-                    if (n == 0) {
-                        for (i = 0; i < ROLE_GENDERS; i++)
-                            if (validgend(ROLE, RACE, i)) {
-                                n++;
-                                k = i;
-                            }
-                    }
-                    /* Permit the user to pick, if there is more than one */
-                    if (n > 1) {
-                        tty_clear_nhwindow(BASE_WINDOW);
-                        role_selection_prolog(RS_GENDER, BASE_WINDOW);
-                        win = create_nhwindow(NHW_MENU);
-                        start_menu(win, MENU_BEHAVE_STANDARD);
-                        any = cg.zeroany; /* zero out all bits */
-                        /* populate the menu with gender choices */
-                        setup_gendmenu(win, TRUE, ROLE, RACE, ALGN);
-                        /* add miscellaneous menu entries */
-                        role_menu_extra(ROLE_RANDOM, win, TRUE);
-                        any.a_int = 0; /* separator, not a choice */
-                        add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                                 ATR_NONE, "", MENU_ITEMFLAGS_NONE);
-                        role_menu_extra(RS_ROLE, win, FALSE);
-                        role_menu_extra(RS_RACE, win, FALSE);
-                        role_menu_extra(RS_ALGNMNT, win, FALSE);
-                        role_menu_extra(RS_filter, win, FALSE);
-                        role_menu_extra(ROLE_NONE, win, FALSE); /* quit */
-                        Strcpy(pbuf, "Pick a gender or sex");
-                        end_menu(win, pbuf);
-                        n = select_menu(win, PICK_ONE, &selected);
-                        if (n > 0) {
-                            choice = selected[0].item.a_int;
-                            if (n > 1 && choice == ROLE_RANDOM)
-                                choice = selected[1].item.a_int;
-                        } else
-                            choice = (n == 0) ? ROLE_RANDOM : ROLE_NONE;
-                        if (selected)
-                            free((genericptr_t) selected), selected = 0;
-                        destroy_nhwindow(win);
-
-                        if (choice == ROLE_NONE) {
-                            goto give_up; /* Selected quit */
-                        } else if (choice == RS_menu_arg(RS_ALGNMNT)) {
-                            ALGN = k = ROLE_NONE;
-                            nextpick = RS_ALGNMNT;
-                        } else if (choice == RS_menu_arg(RS_RACE)) {
-                            RACE = k = ROLE_NONE;
-                            nextpick = RS_RACE;
-                        } else if (choice == RS_menu_arg(RS_ROLE)) {
-                            ROLE = k = ROLE_NONE;
-                            nextpick = RS_ROLE;
-                        } else if (choice == RS_menu_arg(RS_filter)) {
-                            GEND = k = ROLE_NONE;
-                            if (reset_role_filtering())
-                                nextpick = RS_ROLE;
-                            else
-                                nextpick = RS_GENDER;
-                        } else if (choice == ROLE_RANDOM) {
-                            k = pick_gend(ROLE, RACE, ALGN, PICK_RANDOM);
-                            if (k < 0)
-                                k = randgend(ROLE, RACE);
-                        } else {
-                            k = choice - 1;
-                        }
-                    }
-                }
-                GEND = k;
-            } /* needed gender */
-        }     /* picking gender */
-
-        if (nextpick == RS_ALGNMNT) {
-            nextpick = (ROLE < 0) ? RS_ROLE : (RACE < 0) ? RS_RACE : RS_GENDER;
-            /* Select an alignment, if necessary;
-               force compatibility with role/race/gender. */
-            if (ALGN < 0 || !validalign(ROLE, RACE, ALGN)) {
-                /* no alignment yet, or pre-selected alignment not valid */
-                if (pick4u == 'y' || pick4u == 'a' || ALGN == ROLE_RANDOM) {
-                    k = pick_align(ROLE, RACE, GEND, PICK_RANDOM);
-                    if (k < 0) {
-                        tty_putstr(BASE_WINDOW, 0, "Incompatible alignment!");
-                        k = randalign(ROLE, RACE);
-                    }
-                } else { /* pick4u == 'n' */
-                    /* Count the number of valid alignments */
-                    n = 0; /* number valid */
-                    k = 0; /* valid alignment */
-                    for (i = 0; i < ROLE_ALIGNS; i++)
-                        if (ok_align(ROLE, RACE, GEND, i)) {
-                            n++;
-                            k = i;
-                        }
-                    if (n == 0) {
-                        for (i = 0; i < ROLE_ALIGNS; i++)
-                            if (validalign(ROLE, RACE, i)) {
-                                n++;
-                                k = i;
-                            }
-                    }
-                    /* Permit the user to pick, if there is more than one */
-                    if (n > 1) {
-                        tty_clear_nhwindow(BASE_WINDOW);
-                        role_selection_prolog(RS_ALGNMNT, BASE_WINDOW);
-                        win = create_nhwindow(NHW_MENU);
-                        start_menu(win, MENU_BEHAVE_STANDARD);
-                        any = cg.zeroany; /* zero out all bits */
-                        setup_algnmenu(win, TRUE, ROLE, RACE, GEND);
-                        role_menu_extra(ROLE_RANDOM, win, TRUE);
-                        any.a_int = 0; /* separator, not a choice */
-                        add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                                 ATR_NONE, "", MENU_ITEMFLAGS_NONE);
-                        role_menu_extra(RS_ROLE, win, FALSE);
-                        role_menu_extra(RS_RACE, win, FALSE);
-                        role_menu_extra(RS_GENDER, win, FALSE);
-                        role_menu_extra(RS_filter, win, FALSE);
-                        role_menu_extra(ROLE_NONE, win, FALSE); /* quit */
-                        Strcpy(pbuf, "Pick an alignment or creed");
-                        end_menu(win, pbuf);
-                        n = select_menu(win, PICK_ONE, &selected);
-                        if (n > 0) {
-                            choice = selected[0].item.a_int;
-                            if (n > 1 && choice == ROLE_RANDOM)
-                                choice = selected[1].item.a_int;
-                        } else
-                            choice = (n == 0) ? ROLE_RANDOM : ROLE_NONE;
-                        if (selected)
-                            free((genericptr_t) selected), selected = 0;
-                        destroy_nhwindow(win);
-
-                        if (choice == ROLE_NONE) {
-                            goto give_up; /* Selected quit */
-                        } else if (choice == RS_menu_arg(RS_GENDER)) {
-                            GEND = k = ROLE_NONE;
-                            nextpick = RS_GENDER;
-                        } else if (choice == RS_menu_arg(RS_RACE)) {
-                            RACE = k = ROLE_NONE;
-                            nextpick = RS_RACE;
-                        } else if (choice == RS_menu_arg(RS_ROLE)) {
-                            ROLE = k = ROLE_NONE;
-                            nextpick = RS_ROLE;
-                        } else if (choice == RS_menu_arg(RS_filter)) {
-                            ALGN = k = ROLE_NONE;
-                            if (reset_role_filtering())
-                                nextpick = RS_ROLE;
-                            else
-                                nextpick = RS_ALGNMNT;
-                        } else if (choice == ROLE_RANDOM) {
-                            k = pick_align(ROLE, RACE, GEND, PICK_RANDOM);
-                            if (k < 0)
-                                k = randalign(ROLE, RACE);
-                        } else {
-                            k = choice - 1;
-                        }
-                    }
-                }
-                ALGN = k;
-            } /* needed alignment */
-        }     /* picking alignment */
-
-    } while (ROLE < 0 || RACE < 0 || GEND < 0 || ALGN < 0);
-
-    /*
-     *  Role, race, &c have now been determined;
-     *  ask for confirmation and maybe go back to choose all over again.
-     *
-     *  Uses ynaq for familiarity, although 'a' is usually a
-     *  superset of 'y' but here is an alternate form of 'n'.
-     *  Menu layout:
-     *   title:  Is this ok? [ynaq]
-     *   blank:
-     *    text:  $name, $alignment $gender $race $role
-     *   blank:
-     *    menu:  y + yes; play
-     *           n - no; pick again
-     *   maybe:  a - no; rename hero
-     *           q - quit
-     *           (end)
-     */
-    getconfirmation = ((picksomething && pick4u != 'a' && !flags.randomall)
-                       || Polyinit_mode);
-    while (getconfirmation) {
-        tty_clear_nhwindow(BASE_WINDOW);
-        role_selection_prolog(ROLE_NONE, BASE_WINDOW);
-        win = create_nhwindow(NHW_MENU);
-        start_menu(win, MENU_BEHAVE_STANDARD);
-        any = cg.zeroany; /* zero out all bits */
-        any.a_int = 0;
-        if (!roles[ROLE].name.f
-            && (roles[ROLE].allow & ROLE_GENDMASK)
-                   == (ROLE_MALE | ROLE_FEMALE))
-            Sprintf(plbuf, " %s", genders[GEND].adj);
-        else
-            *plbuf = '\0'; /* omit redundant gender */
-        Snprintf(pbuf, sizeof(pbuf), "%s, %s%s %s %s", g.plname,
-                 aligns[ALGN].adj, plbuf, races[RACE].adj,
-                (GEND == 1 && roles[ROLE].name.f) ? roles[ROLE].name.f
-                                                  : roles[ROLE].name.m);
-        add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, pbuf,
-                 MENU_ITEMFLAGS_NONE);
-        /* show polyinit form, if any */
-        if (Polyinit_mode) {
-            any.a_int = 0;
-            Snprintf(pbuf, sizeof(pbuf), "in a %s polyinit form",
-                     pmname(&mons[flags.polyinit_mnum], GEND));
-            add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, pbuf,
-                     MENU_ITEMFLAGS_NONE);
-        }
-        /* blank separator */
-        any.a_int = 0;
-        add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                 ATR_NONE, "", MENU_ITEMFLAGS_NONE);
-        /* [ynaq] menu choices */
-        any.a_int = 1;
-        add_menu(win, &nul_glyphinfo, &any, 'y', 0,
-                 ATR_NONE, "Yes; start game", MENU_ITEMFLAGS_SELECTED);
-        any.a_int = 2;
-        add_menu(win, &nul_glyphinfo, &any, 'n', 0,
-                 ATR_NONE, "No; choose role again", MENU_ITEMFLAGS_NONE);
-        if (iflags.renameallowed) {
-            any.a_int = 3;
-            add_menu(win, &nul_glyphinfo, &any, 'a', 0, ATR_NONE,
-                     "Not yet; choose another name", MENU_ITEMFLAGS_NONE);
-        }
-        any.a_int = -1;
-        add_menu(win, &nul_glyphinfo, &any, 'q', 0,
-                 ATR_NONE, "Quit", MENU_ITEMFLAGS_NONE);
-        Sprintf(pbuf, "Is this ok? [yn%sq]", iflags.renameallowed ? "a" : "");
-        end_menu(win, pbuf);
-        n = select_menu(win, PICK_ONE, &selected);
-        /* [pick-one menus with a preselected entry behave oddly...] */
-        choice = (n > 0) ? selected[n - 1].item.a_int : (n == 0) ? 1 : -1;
-        if (selected)
-            free((genericptr_t) selected), selected = 0;
-        destroy_nhwindow(win);
-
-        switch (choice) {
-        default:          /* 'q' or ESC */
-            goto give_up; /* quit */
-            break;
-        case 3: { /* 'a' */
-            /*
-             * TODO: what, if anything, should be done if the name is
-             * changed to or from "wizard" after port-specific startup
-             * code has set flags.debug based on the original name?
-             */
-            int saveROLE, saveRACE, saveGEND, saveALGN;
-
-            iflags.renameinprogress = TRUE;
-            /* plnamesuffix() can change any or all of ROLE, RACE,
-               GEND, ALGN; we'll override that and honor only the name */
-            saveROLE = ROLE, saveRACE = RACE, saveGEND = GEND,
-                saveALGN = ALGN;
-            *g.plname = '\0';
-            plnamesuffix(); /* calls askname() when g.plname[] is empty */
-            ROLE = saveROLE, RACE = saveRACE, GEND = saveGEND,
-                ALGN = saveALGN;
-            break; /* getconfirmation is still True */
-        }
-        case 2:    /* 'n' */
-            /* start fresh, but bypass "shall I pick everything for you?"
-               step; any partial role selection via config file, command
-               line, or name suffix is discarded this time */
-            pick4u = 'n';
-            ROLE = RACE = GEND = ALGN = ROLE_NONE;
-            goto makepicks;
-            break;
-        case 1: /* 'y' or Space or Return/Enter */
-            /* success; drop out through end of function */
-            getconfirmation = FALSE;
-            break;
-        }
-    }
-
-    /* Success! */
-    tty_display_nhwindow(BASE_WINDOW, FALSE);
-    return;
-
- give_up:
-    /* Quit */
-    if (selected)
-        free((genericptr_t) selected); /* [obsolete] */
     bail((char *) 0);
     /*NOTREACHED*/
-    return;
-}
-
-static boolean
-reset_role_filtering(void)
-{
-    winid win;
-    anything any;
-    int i, n;
-    char filterprompt[QBUFSZ];
-    menu_item *selected = 0;
-
-    win = create_nhwindow(NHW_MENU);
-    start_menu(win, MENU_BEHAVE_STANDARD);
-    any = cg.zeroany;
-
-    /* no extra blank line preceding this entry; end_menu supplies one */
-    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
-             "Unacceptable roles", MENU_ITEMFLAGS_NONE);
-    setup_rolemenu(win, FALSE, ROLE_NONE, ROLE_NONE, ROLE_NONE);
-
-    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, "", MENU_ITEMFLAGS_NONE);
-    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
-             "Unacceptable races", MENU_ITEMFLAGS_NONE);
-    setup_racemenu(win, FALSE, ROLE_NONE, ROLE_NONE, ROLE_NONE);
-
-    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, "", MENU_ITEMFLAGS_NONE);
-    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
-             "Unacceptable genders", MENU_ITEMFLAGS_NONE);
-    setup_gendmenu(win, FALSE, ROLE_NONE, ROLE_NONE, ROLE_NONE);
-
-    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, "", MENU_ITEMFLAGS_NONE);
-    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
-             "Unacceptable alignments", MENU_ITEMFLAGS_NONE);
-    setup_algnmenu(win, FALSE, ROLE_NONE, ROLE_NONE, ROLE_NONE);
-
-    Sprintf(filterprompt, "Pick all that apply%s",
-            gotrolefilter() ? " and/or unpick any that no longer apply" : "");
-    end_menu(win, filterprompt);
-    n = select_menu(win, PICK_ANY, &selected);
-
-    if (n >= 0) { /* n==0: clear current filters and don't set new ones */
-        clearrolefilter();
-        for (i = 0; i < n; i++)
-            setrolefilter(selected[i].item.a_string);
-
-        ROLE = RACE = GEND = ALGN = ROLE_NONE;
-    }
-    if (selected)
-        free((genericptr_t) selected), selected = 0;
-    destroy_nhwindow(win);
-    return (n > 0) ? TRUE : FALSE;
-}
-
-#undef ROLE
-#undef RACE
-#undef GEND
-#undef ALGN
-
-/* add entries a-Archeologist, b-Barbarian, &c to menu being built in 'win' */
-static void
-setup_rolemenu(
-    winid win,
-    boolean filtering, /* True => exclude filtered roles;
-                        * False => filter reset */
-    int race, int gend, int algn) /* all ROLE_NONE for !filtering case */
-{
-    anything any;
-    int i;
-    boolean role_ok;
-    char thisch, lastch = '\0', rolenamebuf[50];
-
-    any = cg.zeroany; /* zero out all bits */
-    for (i = 0; roles[i].name.m; i++) {
-        /* role can be constrained by any of race, gender, or alignment */
-        role_ok = (ok_role(i, race, gend, algn)
-                   && ok_race(i, race, gend, algn)
-                   && ok_gend(i, race, gend, algn)
-                   && ok_align(i, race, gend, algn));
-        if (filtering && !role_ok)
-            continue;
-        if (filtering)
-            any.a_int = i + 1;
-        else
-            any.a_string = roles[i].name.m;
-        thisch = lowc(*roles[i].name.m);
-        if (thisch == lastch)
-            thisch = highc(thisch);
-        Strcpy(rolenamebuf, roles[i].name.m);
-        if (roles[i].name.f) {
-            /* role has distinct name for female (C,P) */
-            if (gend == 1) {
-                /* female already chosen; replace male name */
-                Strcpy(rolenamebuf, roles[i].name.f);
-            } else if (gend < 0) {
-                /* not chosen yet; append slash+female name */
-                Strcat(rolenamebuf, "/");
-                Strcat(rolenamebuf, roles[i].name.f);
-            }
-        }
-        /* !filtering implies reset_role_filtering() where we want to
-           mark this role as preseleted if current filter excludes it */
-        add_menu(win, &nul_glyphinfo, &any, thisch, 0,
-                 ATR_NONE, an(rolenamebuf),
-                 (!filtering && !role_ok)
-                    ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
-        lastch = thisch;
-    }
-}
-
-static void
-setup_racemenu(winid win, boolean filtering, int role, int gend, int algn)
-{
-    anything any;
-    boolean race_ok;
-    int i;
-    char this_ch;
-
-    any = cg.zeroany;
-    for (i = 0; races[i].noun; i++) {
-        /* no ok_gend(); race isn't constrained by gender */
-        race_ok = (ok_race(role, i, gend, algn)
-                   && ok_role(role, i, gend, algn)
-                   && ok_align(role, i, gend, algn));
-        if (filtering && !race_ok)
-            continue;
-        if (filtering)
-            any.a_int = i + 1;
-        else
-            any.a_string = races[i].noun;
-        this_ch = *races[i].noun;
-        /* filtering: picking race, so choose by first letter, with
-           capital letter as unseen accelerator;
-           !filtering: resetting filter rather than picking, choose by
-           capital letter since lowercase role letters will be present */
-        add_menu(win, &nul_glyphinfo, &any,
-                 filtering ? this_ch : highc(this_ch),
-                 filtering ? highc(this_ch) : 0,
-                 ATR_NONE, races[i].noun,
-                 (!filtering && !race_ok)
-                    ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
-    }
-}
-
-static void
-setup_gendmenu(winid win, boolean filtering, int role, int race, int algn)
-{
-    anything any;
-    boolean gend_ok;
-    int i;
-    char this_ch;
-
-    any = cg.zeroany;
-    for (i = 0; i < ROLE_GENDERS; i++) {
-        /* no ok_align(); gender isn't constrained by alignment */
-        gend_ok = (ok_gend(role, race, i, algn)
-                   && ok_role(role, race, i, algn)
-                   && ok_race(role, race, i, algn));
-        if (filtering && !gend_ok)
-            continue;
-        if (filtering)
-            any.a_int = i + 1;
-        else
-            any.a_string = genders[i].adj;
-        this_ch = *genders[i].adj;
-        /* (see setup_racemenu for explanation of selector letters
-           and setup_rolemenu for preselection) */
-        add_menu(win, &nul_glyphinfo, &any,
-                 filtering ? this_ch : highc(this_ch),
-                 filtering ? highc(this_ch) : 0,
-                 ATR_NONE, genders[i].adj,
-                 (!filtering && !gend_ok)
-                    ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
-    }
-}
-
-static void
-setup_algnmenu(winid win, boolean filtering, int role, int race, int gend)
-{
-    anything any;
-    boolean algn_ok;
-    int i;
-    char this_ch;
-
-    any = cg.zeroany;
-    for (i = 0; i < ROLE_ALIGNS; i++) {
-        /* no ok_gend(); alignment isn't constrained by gender */
-        algn_ok = (ok_align(role, race, gend, i)
-                   && ok_role(role, race, gend, i)
-                   && ok_race(role, race, gend, i));
-        if (filtering && !algn_ok)
-            continue;
-        if (filtering)
-            any.a_int = i + 1;
-        else
-            any.a_string = aligns[i].adj;
-        this_ch = *aligns[i].adj;
-        /* (see setup_racemenu for explanation of selector letters
-           and setup_rolemenu for preselection) */
-        add_menu(win, &nul_glyphinfo, &any,
-                 filtering ? this_ch : highc(this_ch),
-                 filtering ? highc(this_ch) : 0,
-                 ATR_NONE, aligns[i].adj,
-                 (!filtering && !algn_ok)
-                    ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
-    }
 }
 
 /*
- * g.plname is filled either by an option (-u Player  or  -uPlayer) or
+ * gp.plname is filled either by an option (-u Player  or  -uPlayer) or
  * explicitly (by being the wizard) or by askname.
  * It may still contain a suffix denoting the role, etc.
- * Always called after init_nhwindows() and before display_gamewindows().
+ * Always called after init_nhwindows() and before
+ * init_sound_and_display_gamewindows().
  */
 void
 tty_askname(void)
@@ -1302,7 +604,7 @@ tty_askname(void)
         case 0:
             break; /* no game chosen; start new game */
         case 1:
-            return; /* g.plname[] has been set */
+            return; /* gp.plname[] has been set */
         }
 #endif /* SELECTSAVED */
 
@@ -1365,7 +667,7 @@ tty_askname(void)
                     && !(c >= '0' && c <= '9' && ct > 0))
                     c = '_';
 #endif
-            if (ct < (int) (sizeof g.plname) - 1) {
+            if (ct < (int) (sizeof gp.plname) - 1) {
 #if defined(MICRO)
 #if defined(MSDOS)
                 if (iflags.grmode) {
@@ -1376,13 +678,13 @@ tty_askname(void)
 #else
                 (void) putchar(c);
 #endif
-                g.plname[ct++] = c;
+                gp.plname[ct++] = c;
 #ifdef WIN32CON
                 ttyDisplay->curx++;
 #endif
             }
         }
-        g.plname[ct] = 0;
+        gp.plname[ct] = 0;
     } while (ct == 0);
 
     /* move to next line to simulate echo of user's <return> */
@@ -1469,11 +771,13 @@ tty_exit_nhwindows(const char *str)
 #ifndef NO_TERMS    /*(until this gets added to the window interface)*/
     tty_shutdown(); /* cleanup termcap/terminfo/whatever */
 #endif
-#ifdef WIN32
+#ifdef WIN32CON
     consoletty_exit();
 #endif
     iflags.window_inited = 0;
 }
+
+DISABLE_WARNING_UNREACHABLE_CODE
 
 winid
 tty_create_nhwindow(int type)
@@ -1532,7 +836,7 @@ tty_create_nhwindow(int type)
             iflags.wc2_statuslines = 2;
         newwin->offx = 0;
         rowoffset = ttyDisplay->rows - iflags.wc2_statuslines;
-#if defined(USE_TILES) && defined(MSDOS)
+#if defined(TILES_IN_GLYPHMAP) && defined(MSDOS)
         if (iflags.grmode) {
             newwin->offy = rowoffset;
         } else
@@ -1589,6 +893,8 @@ tty_create_nhwindow(int type)
     return newid;
 }
 
+RESTORE_WARNING_UNREACHABLE_CODE
+
 static void
 erase_menu_or_text(winid window, struct WinDesc *cw, boolean clear)
 {
@@ -1597,13 +903,13 @@ erase_menu_or_text(winid window, struct WinDesc *cw, boolean clear)
             tty_curs(window, 1, 0);
             cl_eos();
         } else if (clear) {
-            clear_screen();
+            term_clear_screen();
         } else {
             docrt();
             flush_screen(1);
         }
     } else {
-        docorner((int) cw->offx, cw->maxrow + 1);
+        docorner((int) cw->offx, cw->maxrow + 1, 0);
     }
 }
 
@@ -1613,7 +919,8 @@ free_window_info(struct WinDesc *cw, boolean free_data)
     int i;
 
     if (cw->data) {
-        if (cw == wins[WIN_MESSAGE] && cw->rows > cw->maxrow)
+        if (WIN_MESSAGE != WIN_ERR && cw == wins[WIN_MESSAGE]
+            && cw->rows > cw->maxrow)
             cw->maxrow = cw->rows; /* topl data */
         for (i = 0; i < cw->maxrow; i++)
             if (cw->data[i]) {
@@ -1674,7 +981,7 @@ tty_clear_nhwindow(winid window)
             home();
             cl_end();
             if (cw->cury)
-                docorner(1, cw->cury + 1);
+                docorner(1, cw->cury + 1, 0);
             ttyDisplay->toplin = TOPLINE_EMPTY;
         }
         break;
@@ -1690,14 +997,14 @@ tty_clear_nhwindow(winid window)
             cw->data[i][n - 1] = '\0';
             /*finalx[i][NOW] = finalx[i][BEFORE] = 0;*/
         }
-        g.context.botlx = 1;
+        gc.context.botlx = 1;
         break;
     case NHW_MAP:
         /* cheap -- clear the whole thing and tell nethack to redraw botl */
-        g.context.botlx = 1;
+        gc.context.botlx = 1;
         /*FALLTHRU*/
     case NHW_BASE:
-        clear_screen();
+        term_clear_screen();
         /* [this should reset state for MESSAGE, MAP, and STATUS] */
         break;
     case NHW_MENU:
@@ -1951,7 +1258,7 @@ process_menu_window(winid window, struct WinDesc *cw)
 {
     tty_menu_item *page_start, *page_end, *curr;
     long count;
-    int n, attr_n, curr_page, page_lines, resp_len;
+    int n, attr_n, curr_page, page_lines, resp_len, previous_page_lines;
     boolean finished, counting, reset_count;
     char *cp, *rp, resp[QBUFSZ], gacc[QBUFSZ], *msave, *morestr, really_morc;
 #define MENU_EXPLICIT_CHOICE 0x7f /* pseudo menu manipulation char */
@@ -1964,6 +1271,7 @@ process_menu_window(winid window, struct WinDesc *cw)
     count = 0L;
     reset_count = TRUE;
     finished = FALSE;
+    previous_page_lines = 0;
 
     /* collect group accelerators; for PICK_NONE, they're ignored;
        for PICK_ONE, only those which match exactly one entry will be
@@ -1989,11 +1297,11 @@ process_menu_window(winid window, struct WinDesc *cw)
                            accelerator; including it in gacc allows gold to
                            be selected via group when not on current page */
                         || curr->gselector == GOLD_SYM)
-                    && !index(gacc, curr->gselector)
+                    && !strchr(gacc, curr->gselector)
                     && (cw->how == PICK_ANY
                         || gcnt[GSELIDX(curr->gselector)] == 1)) {
                     *rp++ = curr->gselector;
-                    *rp = '\0'; /* re-terminate for index() */
+                    *rp = '\0'; /* re-terminate for strchr() */
                 }
     }
     resp_len = 0; /* lint suppression */
@@ -2018,7 +1326,7 @@ process_menu_window(winid window, struct WinDesc *cw)
                     tty_curs(window, 1, 0);
                     cl_eos();
                 } else
-                    clear_screen();
+                    term_clear_screen();
             }
 
             rp = resp;
@@ -2051,7 +1359,7 @@ process_menu_window(winid window, struct WinDesc *cw)
                        entries, so we don't rely on curr->identifier here) */
                     attr_n = 0; /* whole line */
                     if (curr->str[0] && curr->str[1] == ' '
-                        && curr->str[2] && index("-+#", curr->str[2])
+                        && curr->str[2] && strchr("-+#", curr->str[2])
                         && curr->str[3] == ' ')
                         /* [0]=letter, [1]==space, [2]=[-+#], [3]=space */
                         attr_n = 4; /* [4:N]=entry description */
@@ -2103,14 +1411,32 @@ process_menu_window(winid window, struct WinDesc *cw)
                     tty_curs(window, 1, n);
                     cl_end();
                 }
-            }
+                /*
+                 * If this corner menu was big, there are likely large
+                 * portions of the map, status window, and tty perm_invent
+                 * window (is there is one), that are all missing a lot of
+                 * information. Let's repair the blacked-out rows now
+                 * because it looks better.
+                 */
+                if (previous_page_lines != 0
+                        && page_lines < previous_page_lines) {
+                    /*
+                     * +3 to leave a couple of blank rows
+                     * under the menu to make it contrast well.
+                     */
+                    int row_startoffset = page_lines + 3;
 
+                    if (row_startoffset > cw->maxrow - 1)
+                        row_startoffset = cw->maxrow - 1;
+                    docorner((int) cw->offx, cw->maxrow + 1, row_startoffset);
+                }
+            }
             /* set extra chars.. */
             Strcat(resp, default_menu_cmds);
             Strcat(resp, " ");                  /* next page or end */
             Strcat(resp, "0123456789\033\n\r"); /* counts, quit */
             Strcat(resp, gacc);                 /* group accelerators */
-            Strcat(resp, g.mapped_menu_cmds);
+            Strcat(resp, gm.mapped_menu_cmds);
 
             if (cw->npages > 1)
                 Sprintf(cw->morestr, "(%d of %d)", curr_page + 1,
@@ -2130,7 +1456,7 @@ process_menu_window(winid window, struct WinDesc *cw)
         }
 
         really_morc = morc; /* (only used with MENU_EXPLICIT_CHOICE) */
-        if ((rp = index(resp, morc)) != 0 && rp < resp + resp_len)
+        if ((rp = strchr(resp, morc)) != 0 && rp < resp + resp_len)
             /* explicit menu selection; don't override it if it also
                happens to match a mapped menu command (such as ':' to
                look inside a container vs ':' to search) */
@@ -2152,7 +1478,7 @@ process_menu_window(winid window, struct WinDesc *cw)
             /* special case: '0' is also the default ball class;
                some menus use digits as potential group accelerators
                but their entries don't rely on counts */
-            if (!counting && index(gacc, morc))
+            if (!counting && strchr(gacc, morc))
                 goto group_accel;
 
             count = (count * 10L) + (long) (morc - '0');
@@ -2192,6 +1518,7 @@ process_menu_window(winid window, struct WinDesc *cw)
         case ' ':
         case MENU_NEXT_PAGE:
             if (cw->npages > 0 && curr_page != cw->npages - 1) {
+                previous_page_lines = page_lines;
                 curr_page++;
                 page_start = 0;
             } else if (morc == ' ') {
@@ -2304,11 +1631,11 @@ process_menu_window(winid window, struct WinDesc *cw)
             morc = really_morc;
         /*FALLTHRU*/
         default:
-            if (cw->how == PICK_NONE || !index(resp, morc)) {
+            if (cw->how == PICK_NONE || !strchr(resp, morc)) {
                 /* unacceptable input received */
                 tty_nhbell();
                 break;
-            } else if (index(gacc, morc)) {
+            } else if (strchr(gacc, morc)) {
  group_accel:
                 /* group accelerator; for the PICK_ONE case, we know that
                    it matches exactly one item in order to be in gacc[] */
@@ -2356,7 +1683,7 @@ process_text_window(winid window, struct WinDesc *cw)
                 tty_curs(window, 1, 0);
                 cl_eos();
             } else
-                clear_screen();
+                term_clear_screen();
             n = 0;
         }
         tty_curs(window, 1, n++);
@@ -2501,7 +1828,7 @@ tty_display_nhwindow(
                 tty_curs(window, 1, 0);
                 cl_eos();
             } else
-                clear_screen();
+                term_clear_screen();
             ttyDisplay->toplin = TOPLINE_EMPTY;
         } else {
             if (WIN_MESSAGE != WIN_ERR)
@@ -2547,14 +1874,22 @@ tty_dismiss_nhwindow(winid window)
     case NHW_MENU:
     case NHW_TEXT:
         if (cw->active) {
+            /* skip erasure if window_inited has been reset to 0 during
+               final run-down in case this is the end-of-game window;
+               the contents of that window should remain shown even when
+               the window itself has gone away */
             if (iflags.window_inited) {
-                /* otherwise dismissing the text endwin after other windows
-                 * are dismissed tries to redraw the map and panics.  since
-                 * the whole reason for dismissing the other windows was to
-                 * leave the ending window on the screen, we don't want to
-                 * erase it anyway.
-                 */
-                erase_menu_or_text(window, cw, FALSE);
+                boolean clearscreen = FALSE; /* just erase the menu */
+
+                /* during role/race/&c selection, menus are put up on top
+                   of the base window; we don't track what was there so
+                   can't refresh--force the screen to be cleared instead
+                   (affects dismissal of 'reset role filtering' menu if
+                   screen height forces that to need a second page) */
+                if (gp.program_state.in_role_selection)
+                    clearscreen = TRUE;
+
+                erase_menu_or_text(window, cw, clearscreen);
             }
             cw->active = 0;
         }
@@ -2576,8 +1911,35 @@ tty_destroy_nhwindow(winid window)
     if (cw->type == NHW_MESSAGE)
         iflags.window_inited = 0;
     if (cw->type == NHW_MAP)
-        clear_screen();
+        term_clear_screen();
+#ifdef TTY_PERM_INVENT
+    if (cw->type == NHW_PERMINVENT) {
+        int r, c;
 
+        if (cw->cells) {
+            for (r = 0; r < cw->maxrow; r++) {
+                if (cw->cells[r]) {
+                    for (c = 0; c < cw->maxcol; c++) {
+                        /* glyph is a flag indicating whether content union
+                           contains a glyph_info structure or just a char */
+                        if (cw->cells[r][c].glyph)
+                            free((genericptr_t) cw->cells[r][c].content.gi);
+                        cw->cells[r][c] = zerottycell;
+                        cw->cells[r][c].glyph = 0;
+                    }
+                    free((genericptr_t) cw->cells[r]);
+                    cw->cells[r] = (struct tty_perminvent_cell *) 0;
+                }
+            }
+            free((genericptr_t) cw->cells);
+            cw->cells = (struct tty_perminvent_cell **) 0;
+            cw->rows = cw->cols = 0;
+        }
+        cw->maxrow = cw->maxcol = 0;
+        WIN_INVEN = WIN_ERR;
+        done_tty_perm_invent_init = FALSE;
+    }
+#endif
     free_window_info(cw, TRUE);
     free((genericptr_t) cw);
     wins[window] = 0; /* available for re-use */
@@ -2585,9 +1947,8 @@ tty_destroy_nhwindow(winid window)
 
 void
 tty_curs(winid window,
-         register int x, register int y) /* not xchar: perhaps xchar is
-                                            unsigned and curx-x would be
-                                            unsigned as well */
+    register int x, register int y) /* not xchar: perhaps xchar is unsigned
+                                     * then curx-x would be unsigned too */
 {
     struct WinDesc *cw = 0;
     int cx = ttyDisplay->curx;
@@ -2600,7 +1961,7 @@ tty_curs(winid window,
 
     print_vt_code2(AVTC_SELECT_WINDOW, window);
 
-#if defined(USE_TILES) && defined(MSDOS)
+#if defined(TILES_IN_GLYPHMAP) && defined(MSDOS)
     adjust_cursor_flags(cw);
 #endif
     cw->curx = --x; /* column 0 is never used */
@@ -2684,6 +2045,7 @@ tty_curs(winid window,
     ttyDisplay->cury = y;
 }
 
+#ifndef STATUS_HILITES
 static void
 tty_putsym(winid window, int x, int y, char ch)
 {
@@ -2699,6 +2061,9 @@ tty_putsym(winid window, int x, int y, char ch)
 #ifndef STATUS_HILITES
     case NHW_STATUS:
 #endif
+#ifdef TTY_PERM_INVENT
+    case NHW_PERMINVENT:
+#endif
     case NHW_MAP:
     case NHW_BASE:
         tty_curs(window, x, y);
@@ -2713,6 +2078,7 @@ tty_putsym(winid window, int x, int y, char ch)
         break;
     }
 }
+#endif
 
 static const char *
 compress_str(const char *str)
@@ -2722,7 +2088,7 @@ compress_str(const char *str)
     /* compress out consecutive spaces if line is too long;
        topline wrapping converts space at wrap point into newline,
        we reverse that here */
-    if ((int) strlen(str) >= CO || index(str, '\n')) {
+    if ((int) strlen(str) >= CO || strchr(str, '\n')) {
         const char *in_str = str;
         char c, *outstr = cbuf, *outend = &cbuf[sizeof cbuf - 1];
         boolean was_space = TRUE; /* True discards all leading spaces;
@@ -2767,7 +2133,11 @@ tty_putstr(winid window, int attr, const char *str)
     if (str == (const char *) 0
         || ((cw->flags & WIN_CANCELLED) && (cw->type != NHW_MESSAGE)))
         return;
-    if (cw->type != NHW_MESSAGE)
+    if (cw->type != NHW_MESSAGE
+#ifdef TTY_PERM_INVENT
+        && window != WIN_INVEN
+#endif
+       )
         str = compress_str(str);
 
     ttyDisplay->lastwin = window;
@@ -2813,18 +2183,18 @@ tty_putstr(winid window, int attr, const char *str)
 #ifndef STATUS_HILITES
     case NHW_STATUS:
         ob = &cw->data[cw->cury][j = cw->curx];
-        if (g.context.botlx)
+        if (gc.context.botlx)
             *ob = '\0';
         if (!cw->cury && (int) strlen(str) >= CO) {
             /* the characters before "St:" are unnecessary */
-            nb = index(str, ':');
+            nb = strchr(str, ':');
             if (nb && nb > str + 2)
                 str = nb - 2;
         }
         nb = str;
         for (i = cw->curx + 1, n0 = cw->cols; i < n0; i++, nb++) {
             if (!*nb) {
-                if (*ob || g.context.botlx) {
+                if (*ob || gc.context.botlx) {
                     /* last char printed may be in middle of line */
                     tty_curs(WIN_STATUS, i, cw->cury);
                     cl_end();
@@ -2928,12 +2298,16 @@ tty_putstr(winid window, int attr, const char *str)
         }
         break;
     }
+    return;
 }
 
 void
-tty_display_file(const char *fname, boolean complain)
+tty_display_file(
+    const char *fname, /* name of file to display */
+    boolean complain)  /* whether to report problem if file can't be opened */
 {
 #ifdef DEF_PAGER /* this implies that UNIX is defined */
+    /* FIXME:  this won't work if fname is inside a dlb container */
     {
         /* use external pager; this may give security problems */
         int fd = open(fname, O_RDONLY);
@@ -2941,7 +2315,7 @@ tty_display_file(const char *fname, boolean complain)
         if (fd < 0) {
             if (complain)
                 pline("Cannot open %s.", fname);
-            else
+            else /* [is this refresh actually necessary?] */
                 docrt();
             return;
         }
@@ -2954,9 +2328,9 @@ tty_display_file(const char *fname, boolean complain)
                 if (complain)
                     raw_printf("Cannot open %s as stdin.", fname);
             } else {
-                (void) execlp(g.catmore, "page", (char *) 0);
+                (void) execlp(gc.catmore, "page", (char *) 0);
                 if (complain)
-                    raw_printf("Cannot exec %s.", g.catmore);
+                    raw_printf("Cannot exec %s.", gc.catmore);
             }
             if (complain)
                 sleep(10); /* want to wait_synch() but stdin is gone */
@@ -2981,10 +2355,11 @@ tty_display_file(const char *fname, boolean complain)
                 tty_mark_synch();
                 tty_raw_print("");
                 perror(fname);
-                tty_wait_synch();
+                tty_wait_synch(); /* "Hit <space> to continue: " */
+                if (u.ux) /* if hero is on map, refresh the screen */
+                    docrt();
                 pline("Cannot open \"%s\".", fname);
-            } else if (u.ux)
-                docrt();
+            }
         } else {
             winid datawin = tty_create_nhwindow(NHW_TEXT);
             boolean empty = TRUE;
@@ -3000,13 +2375,13 @@ tty_display_file(const char *fname, boolean complain)
                     wins[datawin]->offy = 0;
             }
             while (dlb_fgets(buf, BUFSZ, f)) {
-                if ((cr = index(buf, '\n')) != 0)
+                if ((cr = strchr(buf, '\n')) != 0)
                     *cr = 0;
 #ifdef MSDOS
-                if ((cr = index(buf, '\r')) != 0)
+                if ((cr = strchr(buf, '\r')) != 0)
                     *cr = 0;
 #endif
-                if (index(buf, '\t') != 0)
+                if (strchr(buf, '\t') != 0)
                     (void) tabexpand(buf);
                 empty = FALSE;
                 tty_putstr(datawin, 0, buf);
@@ -3020,31 +2395,59 @@ tty_display_file(const char *fname, boolean complain)
         }
     }
 #endif /* DEF_PAGER */
+    return;
 }
 
 void
 tty_start_menu(winid window, unsigned long mbehavior)
 {
-    wins[window]->mbehavior = mbehavior;
+    struct WinDesc *cw = 0;
+
+    if (window == WIN_ERR || (cw = wins[window]) == (struct WinDesc *) 0)
+        panic(winpanicstr, window);
+
+#ifdef TTY_PERM_INVENT
+    if (window != WIN_ERR && cw->mbehavior == MENU_BEHAVE_PERMINV) {
+        /* PERMINV is ready to go already; not much to do here */
+        inuse_only_start = 0;
+        return;
+    }
+    if (mbehavior == MENU_BEHAVE_PERMINV
+             && (iflags.perm_invent
+                 || gp.perm_invent_toggling_direction == toggling_on)) {
+        winid w = ttyinv_create_window(window, wins[window]);
+        if (w == WIN_ERR) {
+            /* something went wrong, so add clean up code here */
+        } else {
+            cw->mbehavior = mbehavior;
+        }
+        return;
+    }
+#else
+    nhUse(mbehavior);
+#endif
+
     tty_clear_nhwindow(window);
     return;
 }
 
-/*ARGSUSED*/
+    /*ARGSUSED*/
 /*
  * Add a menu item to the beginning of the menu list.  This list is reversed
  * later.
  */
 void
-tty_add_menu(winid window,  /* window to use, must be of type NHW_MENU */
-             const glyph_info *glyphinfo UNUSED, /* glyph info with glyph to
-                                                    display with item */
-             const anything *identifier, /* what to return if selected */
-             char ch,             /* keyboard accelerator (0 = pick our own) */
-             char gch,            /* group accelerator (0 = no group) */
-             int attr,            /* attribute for string (like tty_putstr()) */
-             const char *str,     /* menu string */
-             unsigned int itemflags) /* itemflags such as MENU_ITEMFLAGS_SELECTED */
+tty_add_menu(
+    winid window,  /* window to use, must be of type NHW_MENU */
+    const glyph_info *glyphinfo UNUSED, /* glyph info with glyph to
+                                         * display with item */
+    const anything *identifier, /* what to return if selected */
+    char ch,                /* selector letter (0 = pick our own) */
+    char gch,               /* group accelerator (0 = no group) */
+    int attr,               /* attribute for string (like tty_putstr()) */
+    int clr UNUSED,         /* color for string */
+    const char *str,        /* menu string */
+    unsigned int itemflags) /* itemflags such as MENU_ITEMFLAGS_SELECTED */
 {
     boolean preselected = ((itemflags & MENU_ITEMFLAGS_SELECTED) != 0);
     register struct WinDesc *cw = 0;
@@ -3060,6 +2463,13 @@ tty_add_menu(winid window,  /* window to use, must be of type NHW_MENU */
         || (cw = wins[window]) == (struct WinDesc *) 0
         || cw->type != NHW_MENU)
         panic(winpanicstr, window);
+
+#ifdef TTY_PERM_INVENT
+    if (cw->mbehavior == MENU_BEHAVE_PERMINV) {
+        ttyinv_add_menu(window, cw, ch, attr, clr, str);
+        return;
+    }
+#endif
 
     cw->nitems++;
     if (identifier->a_void) {
@@ -3121,10 +2531,26 @@ tty_end_menu(winid window,       /* menu to use */
     short len;
     int lmax, n;
     char menu_ch;
+    int clr = 0;
 
     if (window == WIN_ERR || (cw = wins[window]) == (struct WinDesc *) 0
-        || cw->type != NHW_MENU)
+        || cw->type != NHW_MENU) {
+        /* this can happen if start_menu failed due to size requirements
+           for the tty perm inventory window. It isn't a situation that
+           requires a panic, just an early return. */
+        if (window == WIN_INVEN && !cw)
+            return;
         panic(winpanicstr, window);
+    }
+#ifdef TTY_PERM_INVENT
+    if (cw->mbehavior == MENU_BEHAVE_PERMINV
+        && (iflags.perm_invent || gp.perm_invent_toggling_direction == toggling_on)
+        && window == WIN_INVEN) {
+        if (gp.program_state.in_moveloop)
+            ttyinv_render(window, cw);
+        return;
+    }
+#endif
 
     /* Reverse the list so that items are in correct order. */
     cw->mlist = reverse(cw->mlist);
@@ -3135,9 +2561,9 @@ tty_end_menu(winid window,       /* menu to use */
 
         any = cg.zeroany; /* not selectable */
         tty_add_menu(window, &nul_glyphinfo, &any, 0, 0,
-                     ATR_NONE, "", MENU_ITEMFLAGS_NONE);
+                     ATR_NONE, clr, "", MENU_ITEMFLAGS_NONE);
         tty_add_menu(window, &nul_glyphinfo, &any, 0, 0,
-                     ATR_NONE, prompt, MENU_ITEMFLAGS_NONE);
+                     ATR_NONE, clr, prompt, MENU_ITEMFLAGS_NONE);
     }
 
     /* 52: 'a'..'z' and 'A'..'Z'; avoids selector duplication within a page */
@@ -3234,6 +2660,9 @@ tty_select_menu(winid window, int how, menu_item **menu_list)
         || cw->type != NHW_MENU)
         panic(winpanicstr, window);
 
+    if (cw->mbehavior == MENU_BEHAVE_PERMINV) {
+        return 0;
+    }
     *menu_list = (menu_item *) 0;
     cw->how = (short) how;
     morc = 0;
@@ -3262,13 +2691,11 @@ tty_select_menu(winid window, int how, menu_item **menu_list)
     return n;
 }
 
-RESTORE_WARNING_FORMAT_NONLITERAL
-
 /* special hack for treating top line --More-- as a one item menu */
 char
 tty_message_menu(char let, int how, const char *mesg)
 {
-    HUPSKIP();
+    HUPSKIP_RESULT('\033');
     /* "menu" without selection; use ordinary pline, no more() */
     if (how == PICK_NONE) {
         pline("%s", mesg);
@@ -3296,11 +2723,513 @@ tty_message_menu(char let, int how, const char *mesg)
     return ((how == PICK_ONE && morc == let) || morc == '\033') ? morc : '\0';
 }
 
+RESTORE_WARNING_FORMAT_NONLITERAL
+
+win_request_info *
+tty_ctrl_nhwindow(winid window UNUSED, int request, win_request_info *wri)
+{
+#if !defined(TTY_PERM_INVENT)
+    return (win_request_info *) 0;
+    nhUse(window);
+    nhUse(request);
+    nhUse(wri);
+#else
+    boolean tty_ok /*, show_gold */, inuse_only;
+    int maxslot;
+    /* these types are set match the wintty.h field declarations */
+    long minrow; /* long to match maxrow declaration in wintty.h */
+    short offx, offy;
+    long rows, cols, maxrow, maxcol;
+
+    if (!wri)
+        return (win_request_info *) 0;
+
+    switch (request) {
+    case set_mode:
+    case request_settings:
+        ttyinvmode = wri->fromcore.invmode;
+        /* show_gold = (ttyinvmode & InvShowGold) != 0; */
+        inuse_only = ((ttyinvmode & InvInUse) != 0);
+        if (request == set_mode)
+            break;
+        wri->tocore = zero_tocore;
+        tty_ok = assesstty(ttyinvmode, &offx, &offy, &rows, &cols, &maxcol,
+                           &minrow, &maxrow);
+        wri->tocore.needrows = (int) (minrow + 1 + ROWNO + 3);
+        wri->tocore.needcols = (int) tty_perminv_mincol;
+        wri->tocore.haverows = (int) ttyDisplay->rows;
+        wri->tocore.havecols = (int) ttyDisplay->cols;
+        if (!tty_ok) {
+            wri->tocore.tocore_flags |= prohibited; /* prohibited */
+            return wri;
+        }
+        maxslot = (maxrow - 2) * (!inuse_only ? 2 : 1);
+        wri->tocore.maxslot = maxslot;
+        return wri;
+        break;
+    default:
+        impossible("invalid request to tty_update_invent_slot %u", request);
+    }
+    return wri;
+#endif
+}
+
+#ifdef TTY_PERM_INVENT
+
+static int
+ttyinv_create_window(int newid, struct WinDesc *newwin)
+{
+    int i, r, c;
+    long minrow; /* long to match maxrow declaration */
+    unsigned n;
+
+    /* Is there enough real estate to do this beyond the status line?
+     * Rows:
+     * Top border line (1)
+     * 26 inventory rows (26)
+     * [should be 27 to have room for '$' and '#']
+     * Bottom border line (1)
+     * 1 + 26 + 1 = 28
+     *
+     * Cols:
+     * Left border (1)
+     * Left inventory items (38)
+     * Middle separation (1)
+     * Right inventory items (38)
+     * Right border (1)
+     * 1 + 38 + 1 + 38 + 1 = 79
+     *
+     * The topline + map rows + status lines require:
+     * 1 + 21 + 2 (or 3) = 24 (or 25 depending on status line count).
+     * So we can only present a full inventory on tty if there are
+     * 28 + 24 (or 25) available (52 or 53 rows on the terminal).
+     * Correspondingly ttyDisplay->rows has to be at least 52 (or 53).
+     * [The top and bottom borderlines aren't necessary.  Suppressing
+     * them would reduce the number of rows needed by 2.]
+     *
+     */
+
+    /* preliminary init in case tty_desctroy_nhwindow() gets called */
+    newwin->data = (char **) 0;
+    newwin->datlen = (short *) 0;
+    newwin->cells = (struct tty_perminvent_cell **) 0;
+
+
+    if (!assesstty(ttyinvmode, &newwin->offx, &newwin->offy, &newwin->rows,
+                   &newwin->cols, &newwin->maxcol, &minrow,
+                   &newwin->maxrow)) {
+        tty_destroy_nhwindow(newid); /* sets WIN_INVEN to WIN_ERR */
+        pline("%s.", "tty perm_invent could not be enabled");
+        pline("tty perm_invent needs a terminal that is at least %dx%d, "
+              "yours is %dx%d.",
+              (int) (minrow + 1 + ROWNO + 3), tty_perminv_mincol,
+              ttyDisplay->rows, ttyDisplay->cols);
+        tty_wait_synch();
+        set_option_mod_status("perm_invent", set_gameview);
+        iflags.perm_invent = FALSE;
+        return WIN_ERR;
+    }
+
+    /*
+     * Terminal/window/screen is big enough.
+     */
+    newwin->maxrow = minrow;
+    newwin->maxcol = newwin->cols;
+    /* establish the borders */
+    bordercol[border_left] = 0;
+    bordercol[border_middle] = (newwin->maxcol + 1) / 2;
+    bordercol[border_right] = newwin->maxcol - 1;
+    /* for in-use mode, use full lines */
+    if ((ttyinvmode & InvInUse) != 0)
+        bordercol[border_middle] = bordercol[border_right];
+
+    n = (unsigned) (newwin->maxrow * sizeof(struct tty_perminvent_cell *));
+    newwin->cells = (struct tty_perminvent_cell **) alloc(n);
+
+    n = (unsigned) (newwin->maxcol * sizeof(struct tty_perminvent_cell));
+    for (i = 0; i < newwin->maxrow; i++)
+        newwin->cells[i] = (struct tty_perminvent_cell *) alloc(n);
+
+    n = (unsigned) sizeof(glyph_info);
+    for (r = 0; r < newwin->maxrow; r++)
+        for (c = 0; c < newwin->maxcol; c++) {
+            newwin->cells[r][c] = zerottycell;
+            if (r == 0 || r == newwin->maxrow - 1
+                || c == bordercol[border_left]
+                || c == bordercol[border_middle]
+                || c == bordercol[border_right]) {
+                newwin->cells[r][c].content.gi = (glyph_info *) alloc(n);
+                *newwin->cells[r][c].content.gi = zerogi;
+                newwin->cells[r][c].glyph = 1;
+            }
+        }
+    newwin->active = 1;
+    tty_invent_box_glyph_init(newwin);
+    return newid;
+}
+
+static void
+ttyinv_add_menu(winid window UNUSED, struct WinDesc *cw, char ch,
+                int attr UNUSED, int clr UNUSED, const char *str)
+{
+    char invbuf[BUFSZ];
+    const char *text;
+    boolean inuse_only = (ttyinvmode & InvInUse) != 0,
+            show_gold = (ttyinvmode & InvShowGold) != 0,
+            /* sparse = (ttyinvmode & InvSparse) != 0, */
+            ignore = FALSE;
+    int row, side, slot = 0, rows_per_side = (!show_gold ? 26 : 27);
+
+    if (!gp.program_state.in_moveloop)
+        return;
+    slot = selector_to_slot(ch, ttyinvmode, &ignore);
+    if (!ignore) {
+        /* inuse_only = ((ttyinvmode & InvInUse) != 0); */
+        slot_tracker[slot] = TRUE;
+        text = Empty; /* lint suppression */
+        /*            maxslot = ((int) cw->maxrow - 2) * (!inuse_only ? 2 :
+         * 1); */
+
+        /* TODO: check for MENUCOLORS match */
+        text = str; /* 'text' will switch to invbuf[] below */
+        /* strip away "a"/"an"/"the" prefix to show a bit more of
+            the interesting part of the object's description; this
+            is inline version of pi_article_skip() from cursinvt.c;
+            should move that to hacklib.c and use it here */
+        if (text[0] == 'a') {
+            if (text[1] == ' ')
+                text += 2;
+            else if (text[1] == 'n' && text[2] == ' ')
+                text += 3;
+        } else if (text[0] == 't') {
+            if (text[1] == 'h' && text[2] == 'e' && text[3] == ' ')
+                text += 4;
+        }
+        Snprintf(invbuf, sizeof invbuf, "%c - %s", ch, text);
+        text = invbuf;
+        row = (slot % rows_per_side) + 1; /* +1: top border */
+        /* side: left side panel or right side panel, not a window column */
+        side = slot < rows_per_side ? 0 : 1;
+        if (!(inuse_only && side == 1))
+            ttyinv_populate_slot(cw, row, side, text, 0);
+    }
+    return;
+}
+static int
+selector_to_slot(char ch, const int invflags, boolean *ignore)
+{
+    int slot = 0;
+    boolean show_gold = (invflags & InvShowGold) != 0,
+            inuse_only = (invflags & InvInUse) != 0;
+#if 0
+            sparse = (invflags & InvSparse) != 0,
+#endif
+
+    *ignore = FALSE;
+    switch (ch) {
+    case '$':
+        if (!show_gold)
+            *ignore = TRUE;
+        slot = 0;
+        break;
+    case '#':
+        slot = 52 + (show_gold ? 1 : 0);
+        break;
+    case 0:
+        *ignore = TRUE;
+        break;
+    default:
+        if (!inuse_only) {
+            if (ch >= 'a' && ch <= 'z')
+                slot = (ch - 'a') + (show_gold ? 1 : 0);
+            if (ch >= 'A' && ch <= 'Z')
+                slot = (ch - 'A') + (show_gold ? 1 : 0) + 26;
+        } else {
+            if ((ch >= 'a' && ch <= 'z')
+                || (ch >= 'A' && ch <= 'Z'))
+                slot = (show_gold ? 1 : 0) + inuse_only_start++;
+        }
+    }
+    return slot;
+}
+
+static void
+ttyinv_render(winid window, struct WinDesc *cw)
+{
+    int row, col, slot, side, filled_count = 0, slot_limit;
+    struct tty_perminvent_cell *cell;
+    char invbuf[BUFSZ], *text;
+    boolean force_redraw = gp.program_state.in_docrt ? TRUE : FALSE,
+            show_gold = (ttyinvmode & InvShowGold) != 0,
+            inuse_only = (ttyinvmode & InvInUse) != 0;
+    int rows_per_side = (!show_gold ? 26 : 27);
+
+    slot_limit = SIZE(slot_tracker);
+    if (inuse_only) {
+        rows_per_side = cw->maxrow - 2; /* -2 top and bottom borders */
+    }
+    for (slot = 0; slot < slot_limit; ++slot)
+        if (slot_tracker[slot])
+            filled_count++;
+    for (slot = 0; slot < slot_limit; ++slot) {
+        if (slot_tracker[slot])
+           continue;
+        if (slot == 0 && !filled_count) {
+            Sprintf(invbuf, "%-4s[%s]", "",
+                    !filled_count ? "empty"
+                    : inuse_only  ? "no items are in use"
+                                  : "only gold");
+            text = invbuf;
+        } else {
+            text = Empty; /* "" => fill slot with spaces */
+        }
+        row = (slot % rows_per_side) + 1; /* +1: top border */
+        /* side: left side panel or right side panel, not a window column */
+        side = slot < rows_per_side ? 0 : 1;
+        if (!(inuse_only && side == 1))
+            ttyinv_populate_slot(cw, row, side, text, 0);
+    }
+    /* has there been a glyph reset since we last got here? */
+    if (gg.glyph_reset_timestamp > last_glyph_reset_when) {
+        //        tty_invent_box_glyph_init(wins[WIN_INVEN]);
+        last_glyph_reset_when = gg.glyph_reset_timestamp;
+        force_redraw = TRUE;
+    }
+    /* render to the display */
+    calling_from_update_inventory = TRUE;
+    for (row = 0; row < cw->maxrow; ++row)
+        for (col = 0; col < cw->maxcol; ++col) {
+            cell = &cw->cells[row][col];
+            if (cell->refresh || force_redraw) {
+                if (cell->glyph) {
+                    tty_print_glyph(window, col + 1, row, cell->content.gi,
+                                    &nul_glyphinfo);
+                    end_glyphout();
+                } else {
+                    if (col != cw->curx || row != cw->cury)
+                        tty_curs(window, col + 1, row);
+                    (void) putchar(cell->content.ttychar);
+                    ttyDisplay->curx++;
+                    cw->curx++;
+                }
+                cell->refresh = 0;
+            }
+        }
+    tty_curs(window, 1, 0);
+    for (slot = 0; slot < SIZE(slot_tracker); ++slot)
+        slot_tracker[slot] = 0;
+    calling_from_update_inventory = FALSE;
+    return;
+}
+
+/*
+ * returns TRUE if things are ok
+ */
+static boolean
+assesstty(
+    enum inv_modes invmode,
+    short *offx, short *offy, long *rows, long *cols,
+    long *maxcol, long *minrow, long *maxrow)
+{
+    boolean show_gold, inuse_only;
+
+    show_gold = (invmode & InvShowGold) != 0;
+    inuse_only = (invmode & InvInUse) != 0;
+
+    *offx = 0;
+    /* topline + map rows + status lines */
+    *offy = 1 + ROWNO + 3; /* 3: + 2 + (iflags.wc2_statuslines > 2) */
+    *rows = (ttyDisplay->rows - (*offy));
+    *cols = ttyDisplay->cols;
+    *minrow = tty_perminv_minrow;
+    if (show_gold)
+        *minrow += 1;
+    /* "normal" max for items in use would be 3 weapon + 7 armor + 4
+       accessories == 14, but being punished and picking up the ball will
+       add 1, and some quest artifacts have an an #invoke property that's
+       tracked via obj->owornmask so could add more; if hero ends up with
+       more than 15 in-use items, some will be left out;
+       Qt's "paper doll" adds first lit lamp/candle and first active
+       leash; those aren't tracked via owornmask so we don't notice them */
+    if (inuse_only)
+        *minrow = 1 + 15 + 1; /* top border + 15 lines + bottom border */
+    *maxrow = *minrow;
+    *maxcol = *cols;
+    return !(*rows < *minrow || *cols < tty_perminv_mincol);
+}
+
+/* put the formatted object description for one item into a particular row
+   and left/right panel, truncating if long or padding with spaces if short */
+static void
+ttyinv_populate_slot(
+    struct WinDesc *cw,
+    int row,  /* 'row' within the window, not within screen */
+    int side, /* 'side'==0 is left panel or ==1 is right panel */
+    const char *text, int32_t color)
+{
+    struct tty_perminvent_cell *cell;
+    char c;
+    int ccnt, col, endcol;
+
+    /* FIXME: this needs a review. Crashed under InvInUse without */
+    if ((ttyinvmode & InvInUse) != 0)
+        col = bordercol[0] + 1;
+    else
+        col = bordercol[side] + 1;
+
+    endcol = bordercol[side + 1] - 1;
+    cell = &cw->cells[row][col];
+    if (cell->color != color)
+        cell->refresh = 1;
+    cell->color = color;
+    for (ccnt = col; ccnt <= endcol; ++ccnt, ++cell) {
+        /* [don't expect this to happen] if there was a glyph here, release
+           memory allocated for it; gi pointer and ttychar character overlay
+           each other in a union, so clear gi before assigning ttychar */
+        if (cell->glyph) {
+            free((genericptr_t) cell->content.gi), cell->content.gi = 0;
+            cell->glyph = 0; /* cell->content.gi is gone */
+        }
+
+        if ((c = *text) != '\0') {
+            if (cell->content.ttychar != c)
+                cell->refresh = 1;
+            cell->content.ttychar = c;
+            ++text;
+        } else {
+            if (cell->content.ttychar != ' ')
+                cell->refresh = 1;
+            cell->content.ttychar = ' ';
+        }
+        cell->text = 1; /* cell->content.ttychar is current */
+    }
+}
+
+DISABLE_WARNING_FORMAT_NONLITERAL
+
+void
+tty_refresh_inventory(int start, int stop, int y)
+{
+    int row = y, col, col_limit = stop;
+    struct WinDesc *cw = 0;
+    winid window = WIN_INVEN;
+    struct tty_perminvent_cell *cell;
+
+    if (window == WIN_ERR || !iflags.perm_invent || y < 0)
+        return;
+
+    if ((cw = wins[window]) == (struct WinDesc *) 0)
+        panic(winpanicstr, window);
+
+    if (col_limit > cw->maxcol)
+        col_limit = cw->maxcol;
+
+    if (row >= cw->maxrow)
+        return; /* out of our range. Huge menus can do this */
+
+    /* we've been asked to redisplay a portion of the screen, one row */
+    for (col = start - 1; col < col_limit; ++col) {
+        cell = &cw->cells[row][col];
+        if (cell->glyph) {
+            tty_print_glyph(window, col + 1, row, cell->content.gi,
+                            &nul_glyphinfo);
+            end_glyphout();
+        } else {
+            if (col != cw->curx || row != cw->cury)
+                tty_curs(window, col + 1, row);
+            (void) putchar(cell->content.ttychar);
+            ttyDisplay->curx++;
+            cw->curx++;
+        }
+        cell->refresh = 0;
+    }
+}
+
+RESTORE_WARNING_FORMAT_NONLITERAL
+
+static void
+tty_invent_box_glyph_init(struct WinDesc *cw)
+        {
+    int row, col;
+    uchar sym;
+    struct tty_perminvent_cell *cell;
+
+    if (cw == 0 || !cw->active)
+        return;
+
+    for (row = 0; row < cw->maxrow; ++row)
+        for (col = 0; col < cw->maxcol; ++col) {
+            cell = &cw->cells[row][col];
+            /* cell->glyph is a flag for whether the content union contains
+               a glyph_info structure rather than just a char */
+            if (!cell->glyph)
+                continue;
+            /* sym will always get another value; if for some reason it
+               doesn't, this default is valid for cmap_walls_to_glyph() */
+               sym = S_crwall;
+            /* note: for top and bottom, check [border_right] before
+               [border_middle] because they could be the same and if so
+               we want corner rather than tee */
+            if (row == 0) {
+                if (col == bordercol[border_left])
+                    sym = S_tlcorn;
+                else if (col == bordercol[border_right])
+                    sym = S_trcorn;
+                else if (col == bordercol[border_middle])
+                    sym = S_tdwall;
+                else /*if ((col > bordercol[border_left]
+                            && col < bordercol[border_middle])
+                           || (col > bordercol[border_middle]
+                               && col < bordercol[border_right]))*/
+                    sym = S_hwall;
+            } else if (row == (cw->maxrow - 1)) {
+                if (col == bordercol[border_left])
+                    sym = S_blcorn;
+                else if (col == bordercol[border_right])
+                    sym = S_brcorn;
+                else if (col == bordercol[border_middle])
+                    sym = S_tuwall;
+                else /*if ((col > bordercol[border_left]
+                            && col < bordercol[border_middle])
+                           || (col > bordercol[border_middle]
+                               && col < bordercol[border_right]))*/
+                    sym = S_hwall;
+            } else {
+                if (col == bordercol[border_left]
+                    || col == bordercol[border_middle]
+                    || col == bordercol[border_right])
+                    sym = S_vwall;
+            }
+
+            /* to get here, cell->glyph is 1 and cell->content union has gi */
+            {
+                int oldsymidx = cell->content.gi->gm.sym.symidx;
+#ifdef ENHANCED_SYMBOLS
+                struct unicode_representation *
+                    oldgmu = cell->content.gi->gm.u;
+#endif
+                int glyph = cmap_D0walls_to_glyph(sym);
+
+                map_glyphinfo(0, 0, glyph, 0, cell->content.gi);
+                if (
+#ifdef ENHANCED_SYMBOLS
+                    cell->content.gi->gm.u != oldgmu ||
+#endif
+                    cell->content.gi->gm.sym.symidx != oldsymidx)
+                    cell->refresh = 1;
+                cell->glyph = 1; /* (redundant) */
+                cell->text = 0;
+            }
+        }
+    done_tty_perm_invent_init = TRUE;
+}
+#endif  /* TTY_PERM_INVENT */
+
 /* update persistent inventory window */
 void
 tty_update_inventory(int arg UNUSED)
 {
-    /* tty doesn't support persistent inventory window */
+    /* currently not used */
     return;
 }
 
@@ -3325,7 +3254,7 @@ tty_wait_synch(void)
         if (ttyDisplay->inmore) {
             addtopl("--More--");
             (void) fflush(stdout);
-        } else if (ttyDisplay->inread > g.program_state.gameover) {
+        } else if (ttyDisplay->inread > gp.program_state.gameover) {
             /* this can only happen if we were reading and got interrupted */
             ttyDisplay->toplin = TOPLINE_SPECIAL_PROMPT;
             /* do this twice; 1st time gets the Quit? message again */
@@ -3338,10 +3267,17 @@ tty_wait_synch(void)
 }
 
 void
-docorner(register int xmin, register int ymax)
+docorner(register int xmin, register int ymax, int ystart_between_menu_pages)
 {
     register int y;
     register struct WinDesc *cw = wins[WIN_MAP];
+    int ystart = 0;
+#ifdef TTY_PERM_INVENT
+    struct WinDesc *icw = 0;
+
+    if (WIN_INVEN != WIN_ERR)
+        icw = wins[WIN_INVEN];
+#endif
 
     HUPSKIP();
 #if 0   /* this optimization is not valuable enough to justify
@@ -3360,13 +3296,23 @@ docorner(register int xmin, register int ymax)
     if (ymax > LI)
         ymax = LI; /* can happen if window gets smaller */
 #endif
-    for (y = 0; y < ymax; y++) {
+    if (ystart_between_menu_pages)
+        ystart = ystart_between_menu_pages;
+
+    for (y = ystart; y < ymax; y++) {
         tty_curs(BASE_WINDOW, xmin, y); /* move cursor */
-        cl_end();                       /* clear to end of line */
+        if (!ystart_between_menu_pages)
+            cl_end();                   /* clear to end of line */
+#ifdef TTY_PERM_INVENT
+        /* the whole thing is beyond the board */
+        if (icw)
+            tty_refresh_inventory(xmin - (int) icw->offx, icw->maxcol,
+                                  y - (int) icw->offy);
+#endif
 #ifdef CLIPPING
         if (y < (int) cw->offy || y + clipy > ROWNO)
             continue; /* only refresh board */
-#if defined(USE_TILES) && defined(MSDOS)
+#if defined(TILES_IN_GLYPHMAP) && defined(MSDOS)
         if (iflags.tile_view)
             row_refresh((xmin / 2) + clipx - ((int) cw->offx / 2), COLNO - 1,
                         y + clipy - (int) cw->offy);
@@ -3379,12 +3325,14 @@ docorner(register int xmin, register int ymax)
             continue; /* only refresh board  */
         row_refresh(xmin - (int) cw->offx, COLNO - 1, y - (int) cw->offy);
 #endif
+
     }
 
     end_glyphout();
-    if (ymax >= (int) wins[WIN_STATUS]->offy) {
+    if (ymax >= (int) wins[WIN_STATUS]->offy
+        && !ystart_between_menu_pages) {
         /* we have wrecked the bottom line */
-        g.context.botlx = 1;
+        gc.context.botlx = 1;
         bot();
     }
 }
@@ -3407,7 +3355,7 @@ end_glyphout(void)
 #endif
 }
 
-#ifndef WIN32
+#ifndef WIN32CON
 void
 g_putch(int in_ch)
 {
@@ -3447,7 +3395,7 @@ g_putch(int in_ch)
 
     return;
 }
-#endif /* !WIN32 */
+#endif /* !WIN32CON */
 
 #if defined(ENHANCED_SYMBOLS) && defined(UNIX)
 void
@@ -3510,13 +3458,11 @@ tty_cliparound(int x, int y)
  */
 
 void
-tty_print_glyph(winid window, xchar x, xchar y,
-#if defined(TTY_TILES_ESCCODES) || defined(MSDOS)
-                const glyph_info *glyphinfo,
-#else
-                const glyph_info *glyphinfo UNUSED,
-#endif
-                const glyph_info *bkglyphinfo UNUSED)
+tty_print_glyph(
+    winid window,
+    coordxy x, coordxy y,
+    const glyph_info *glyphinfo,
+    const glyph_info *bkglyphinfo)
 {
     boolean inverse_on = FALSE, underline_on = FALSE,
             colordone = FALSE, glyphdone = FALSE;
@@ -3561,6 +3507,10 @@ tty_print_glyph(winid window, xchar x, xchar y,
 #ifdef ENHANCED_SYMBOLS
         /* we don't link with termcap.o if NO_TERMS is defined */
         if ((tty_procs.wincap2 & WC2_U_24BITCOLOR) && SYMHANDLING(H_UTF8)
+            && iflags.colorcount >= 256
+#ifdef TTY_PERM_INVENT
+            && !calling_from_update_inventory
+#endif
             && glyphinfo->gm.u && glyphinfo->gm.u->ucolor) {
             term_start_24bitcolor(glyphinfo->gm.u);
             color24bit_on = TRUE;
@@ -3572,7 +3522,7 @@ tty_print_glyph(winid window, xchar x, xchar y,
             ttyDisplay->color = color;
             if (color != NO_COLOR)
                 term_start_color(color);
-	}
+        }
 #endif /* TEXTCOLOR */
     }   /* iflags.use_color aka iflags.wc_color */
 
@@ -3580,9 +3530,16 @@ tty_print_glyph(winid window, xchar x, xchar y,
        BW_LAVA and BW_ICE won't ever be set when color is on;
        (tried bold for ice but it didn't look very good; inverse is easier
        to see although the Valkyrie quest ends up being hard on the eyes) */
-    if (((special & MG_PET) != 0 && iflags.hilite_pet)
+    if (iflags.use_color
+        && bkglyphinfo && bkglyphinfo->framecolor != NO_COLOR) {
+#ifdef TEXTCOLOR
+        ttyDisplay->framecolor = bkglyphinfo->framecolor;
+        term_start_bgcolor(bkglyphinfo->framecolor);
+#endif
+    } else if (((special & MG_PET) != 0 && iflags.hilite_pet)
         || ((special & MG_OBJPILE) != 0 && iflags.hilite_pile)
-        || ((special & (MG_DETECT | MG_BW_LAVA | MG_BW_ICE)) != 0
+        || ((special & MG_FEMALE) != 0 && wizard && iflags.wizmgender)
+        || ((special & (MG_DETECT | MG_BW_LAVA | MG_BW_ICE | MG_BW_SINK)) != 0
             && iflags.use_inverse)) {
         term_start_attr(ATR_INVERSE);
         inverse_on = TRUE;
@@ -3600,9 +3557,9 @@ tty_print_glyph(winid window, xchar x, xchar y,
     }
 #endif /* TEXTCOLOR */
 
-#if defined(USE_TILES) && defined(MSDOS)
+#if defined(TILES_IN_GLYPHMAP) && defined(MSDOS)
     if (iflags.grmode && iflags.tile_view) {
-        xputg(glyphinfo);
+        xputg(glyphinfo, bkglyphinfo);
         glyphdone = TRUE;
     }
 #endif
@@ -3628,9 +3585,9 @@ tty_print_glyph(winid window, xchar x, xchar y,
         /* turn off color as well, turning off ATR_INVERSE may have done
           this already and if so, we won't know the current state unless
           we do it explicitly */
-        if (ttyDisplay->color != NO_COLOR) {
+        if (ttyDisplay->color != NO_COLOR || ttyDisplay->framecolor != NO_COLOR) {
             term_end_color();
-            ttyDisplay->color = NO_COLOR;
+            ttyDisplay->color = ttyDisplay->framecolor = NO_COLOR;
         }
 #endif
 #ifdef ENHANCED_SYMBOLS
@@ -3643,6 +3600,16 @@ tty_print_glyph(winid window, xchar x, xchar y,
     wins[window]->curx++; /* one character over */
     ttyDisplay->curx++;   /* the real cursor moved too */
 }
+
+#ifdef NO_TERMS  /* termcap.o isn't linked in */
+#if !defined(MSDOS) && !defined(WIN32)
+void
+term_start_bgcolor(int color)
+{
+    /* placeholder for now */
+}
+#endif  /* !MSDOS && !WIN32 */
+#endif  /* NO_TERMS */
 
 void
 tty_raw_print(const char *str)
@@ -3745,9 +3712,9 @@ tty_nhgetch(void)
 /*ARGSUSED*/
 int
 #if defined(WIN32CON)
-tty_nh_poskey(int *x, int *y, int *mod)
+tty_nh_poskey(coordxy *x, coordxy *y, int *mod)
 #else
-tty_nh_poskey(int *x UNUSED, int *y UNUSED, int *mod UNUSED)
+tty_nh_poskey(coordxy *x UNUSED, coordxy *y UNUSED, int *mod UNUSED)
 #endif
 {
     int i;
@@ -4070,8 +4037,13 @@ tty_status_enablefield(int fieldidx, const char *nm, const char *fmt,
 DISABLE_WARNING_FORMAT_NONLITERAL
 
 void
-tty_status_update(int fldidx, genericptr_t ptr, int chg UNUSED, int percent,
-                  int color, unsigned long *colormasks)
+tty_status_update(
+    int fldidx,
+    genericptr_t ptr,
+    int chg UNUSED,
+    int percent,
+    int color,
+    unsigned long *colormasks)
 {
     int attrmask;
     long *condptr = (long *) ptr;
@@ -4178,7 +4150,7 @@ tty_status_update(int fldidx, genericptr_t ptr, int chg UNUSED, int percent,
         break;
     case BL_GOLD:
         /* \GXXXXNNNN counts as 1 [moot since we use decode_mixed() above] */
-        if ((p = index(status_vals[fldidx], '\\')) != 0 && p[1] == 'G')
+        if ((p = strchr(status_vals[fldidx], '\\')) != 0 && p[1] == 'G')
             tty_status[NOW][fldidx].lth -= (10 - 1);
         break;
     case BL_CAP:
@@ -4479,7 +4451,7 @@ shrink_dlvl(int lvl)
 {
     /* try changing Dlvl: to Dl: */
     char buf[BUFSZ];
-    char *levval = index(status_vals[BL_LEVELDESC], ':');
+    char *levval = strchr(status_vals[BL_LEVELDESC], ':');
 
     if (levval) {
         dlvl_shrinklvl = lvl;

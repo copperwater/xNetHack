@@ -1,9 +1,15 @@
-/* NetHack 3.7	symbols.c	$NHDT-Date: 1596498214 2020/08/03 23:43:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.77 $ */
+/* NetHack 3.7	symbols.c	$NHDT-Date: 1661295669 2022/08/23 23:01:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.90 $ */
 /* Copyright (c) NetHack Development Team 2020.                   */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
 #include "tcap.h"
+
+static void savedsym_add(const char *, const char *, int);
+static struct _savedsym *savedsym_find(const char *, int);
+#ifdef ENHANCED_SYMBOLS
+static void purge_custom_entries(enum graphics_sets which_set);
+#endif
 
 extern const uchar def_r_oc_syms[MAXOCLASSES];      /* drawing.c */
 
@@ -23,10 +29,10 @@ void (*ibmgraphics_mode_callback)(void) = 0;
 #endif
 #ifdef ENHANCED_SYMBOLS
 void (*utf8graphics_mode_callback)(void) = 0; /* set in tty_start_screen and
-                                                   found in unixtty, windtty, etc */
+                                               * found in unixtty,windtty,&c */
 #endif
 
-    /*
+/*
  * Explanations of the functions found below:
  *
  * init_symbols()
@@ -47,8 +53,8 @@ void (*utf8graphics_mode_callback)(void) = 0; /* set in tty_start_screen and
  *
  *                     If (arg != 0), which is the normal expected
  *                     usage, then showsyms are taken from the
- *                     adjustable display symbols found in g.primary_syms.
- *                     g.primary_syms may have been loaded from an external
+ *                     adjustable display symbols found in gp.primary_syms.
+ *                     gp.primary_syms may have been loaded from an external
  *                     symbol file by config file options or interactively
  *                     in the Options menu.
  *
@@ -58,7 +64,7 @@ void (*utf8graphics_mode_callback)(void) = 0; /* set in tty_start_screen and
  *                     out of other level display modes.
  *
  *                     If arg is PRIMARYSET, this places the symbols
- *                     from g.primary_syms into g.showsyms.
+ *                     from gp.primary_syms into gs.showsyms.
  *
  * update_primary_symset()
  *                     Update a member of the primary(primary_*) symbol set.
@@ -82,15 +88,15 @@ init_showsyms(void)
     register int i;
 
     for (i = 0; i < MAXPCHARS; i++)
-        g.showsyms[i + SYM_OFF_P] = defsyms[i].sym;
+        gs.showsyms[i + SYM_OFF_P] = defsyms[i].sym;
     for (i = 0; i < MAXOCLASSES; i++)
-        g.showsyms[i + SYM_OFF_O] = def_oc_syms[i].sym;
+        gs.showsyms[i + SYM_OFF_O] = def_oc_syms[i].sym;
     for (i = 0; i < MAXMCLASSES; i++)
-        g.showsyms[i + SYM_OFF_M] = def_monsyms[i].sym;
+        gs.showsyms[i + SYM_OFF_M] = def_monsyms[i].sym;
     for (i = 0; i < WARNCOUNT; i++)
-        g.showsyms[i + SYM_OFF_W] = def_warnsyms[i].sym;
+        gs.showsyms[i + SYM_OFF_W] = def_warnsyms[i].sym;
     for (i = 0; i < MAXOTHER; i++)
-        g.showsyms[i + SYM_OFF_X] = get_othersym(i, PRIMARYSET);
+        gs.showsyms[i + SYM_OFF_X] = get_othersym(i, PRIMARYSET);
 }
 
 /* initialize defaults for the overrides to the primary symset */
@@ -100,7 +106,7 @@ init_ov_primary_symbols(void)
     register int i;
 
     for (i = 0; i < SYM_MAX; i++)
-        g.ov_primary_syms[i] = (nhsym) 0;
+        go.ov_primary_syms[i] = (nhsym) 0;
 }
 
 nhsym
@@ -109,8 +115,8 @@ get_othersym(int idx, int which_set UNUSED)
     nhsym sym = (nhsym) 0;
     int oidx = idx + SYM_OFF_X;
 
-    sym = g.ov_primary_syms[oidx] ? g.ov_primary_syms[oidx]
-                                  : g.primary_syms[oidx];
+    sym = go.ov_primary_syms[oidx] ? go.ov_primary_syms[oidx]
+                                   : gp.primary_syms[oidx];
     if (!sym) {
         switch(idx) {
             case SYM_NOTHING:
@@ -141,15 +147,15 @@ init_primary_symbols(void)
     register int i;
 
     for (i = 0; i < MAXPCHARS; i++)
-        g.primary_syms[i + SYM_OFF_P] = defsyms[i].sym;
+        gp.primary_syms[i + SYM_OFF_P] = defsyms[i].sym;
     for (i = 0; i < MAXOCLASSES; i++)
-        g.primary_syms[i + SYM_OFF_O] = def_oc_syms[i].sym;
+        gp.primary_syms[i + SYM_OFF_O] = def_oc_syms[i].sym;
     for (i = 0; i < MAXMCLASSES; i++)
-        g.primary_syms[i + SYM_OFF_M] = def_monsyms[i].sym;
+        gp.primary_syms[i + SYM_OFF_M] = def_monsyms[i].sym;
     for (i = 0; i < WARNCOUNT; i++)
-        g.primary_syms[i + SYM_OFF_W] = def_warnsyms[i].sym;
+        gp.primary_syms[i + SYM_OFF_W] = def_warnsyms[i].sym;
     for (i = 0; i < MAXOTHER; i++)
-        g.primary_syms[i + SYM_OFF_X] = get_othersym(i, PRIMARYSET);
+        gp.primary_syms[i + SYM_OFF_X] = get_othersym(i, PRIMARYSET);
 
     clear_symsetentry(PRIMARYSET, FALSE);
 }
@@ -163,14 +169,14 @@ assign_graphics(int whichset)
     case PRIMARYSET:
     default:
         for (i = 0; i < SYM_MAX; i++)
-            g.showsyms[i] = g.ov_primary_syms[i] ? g.ov_primary_syms[i]
-                                             : g.primary_syms[i];
+            gs.showsyms[i] = go.ov_primary_syms[i] ? go.ov_primary_syms[i]
+                                             : gp.primary_syms[i];
 
-#if defined(MSDOS) && defined(USE_TILES)
+#if defined(MSDOS) && defined(TILES_IN_GLYPHMAP)
         if (iflags.grmode)
             tileview(TRUE);
 #endif
-        g.currentgraphics = PRIMARYSET;
+        gc.currentgraphics = PRIMARYSET;
         break;
     }
     reset_glyphmap(gm_symchange);
@@ -183,8 +189,8 @@ switch_symbols(int nondefault)
 
     if (nondefault) {
         for (i = 0; i < SYM_MAX; i++)
-            g.showsyms[i] = g.ov_primary_syms[i] ? g.ov_primary_syms[i]
-                                             : g.primary_syms[i];
+            gs.showsyms[i] = go.ov_primary_syms[i] ? go.ov_primary_syms[i]
+                                                 : gp.primary_syms[i];
 #ifdef PC9800
         if (SYMHANDLING(H_IBM) && ibmgraphics_mode_callback)
             (*ibmgraphics_mode_callback)();
@@ -221,54 +227,63 @@ switch_symbols(int nondefault)
 void
 update_ov_primary_symset(const struct symparse* symp, int val)
 {
-    g.ov_primary_syms[symp->idx] = val;
+    go.ov_primary_syms[symp->idx] = val;
 }
 
 void
 update_primary_symset(const struct symparse* symp, int val)
 {
-    g.primary_syms[symp->idx] = val;
+    gp.primary_syms[symp->idx] = val;
 }
 
 void
 clear_symsetentry(int which_set, boolean name_too)
 {
-    if (g.symset[which_set].desc)
-        free((genericptr_t) g.symset[which_set].desc);
-    g.symset[which_set].desc = (char *) 0;
+    if (gs.symset[which_set].desc)
+        free((genericptr_t) gs.symset[which_set].desc);
+    gs.symset[which_set].desc = (char *) 0;
 
-    g.symset[which_set].handling = H_UNK;
-    g.symset[which_set].nocolor = 0;
+    gs.symset[which_set].handling = H_UNK;
+    gs.symset[which_set].nocolor = 0;
     /* initialize restriction bits */
-    g.symset[which_set].primary = 0;
+    gs.symset[which_set].primary = 0;
 
     if (name_too) {
-        if (g.symset[which_set].name)
-            free((genericptr_t) g.symset[which_set].name);
-        g.symset[which_set].name = (char *) 0;
+        if (gs.symset[which_set].name)
+            free((genericptr_t) gs.symset[which_set].name);
+        gs.symset[which_set].name = (char *) 0;
     }
+#ifdef ENHANCED_SYMBOLS
+    free_all_glyphmap_u();
+    purge_custom_entries(which_set);
+#endif
 }
 
-boolean symset_is_compatible(enum symset_handling_types handling, unsigned long wincap2)
+/* called from windmain.c */
+boolean
+symset_is_compatible(
+    enum symset_handling_types handling,
+    unsigned long wincap2)
 {
 #ifdef ENHANCED_SYMBOLS
-    if ((handling == H_UTF8) &&
-        (((wincap2 & WC2_U_UTF8STR) == 0)
-         || ((wincap2 & WC2_U_24BITCOLOR) == 0)))
+#define WC2_utf8_bits (WC2_U_UTF8STR | WC2_U_24BITCOLOR)
+    if (handling == H_UTF8 && ((wincap2 & WC2_utf8_bits) != WC2_utf8_bits))
         return FALSE;
+#undef WC2_bits
 #else
     nhUse(handling);
     nhUse(wincap2);
 #endif
     return TRUE;
 }
-    /*
+
+/*
  * If you are adding code somewhere to be able to recognize
  * particular types of symset "handling", define a
  * H_XXX macro in include/sym.h and add the name
  * to this array at the matching offset.
  */
-const char *known_handling[] = {
+const char *const known_handling[] = {
     "UNKNOWN", /* H_UNK  */
     "IBM",     /* H_IBM  */
     "DEC",     /* H_DEC  */
@@ -325,7 +340,7 @@ const struct symparse loadsyms[] = {
 boolean
 proc_symset_line(char *buf)
 {
-    return !((boolean) parse_sym_line(buf, g.symset_which_set));
+    return !((boolean) parse_sym_line(buf, gs.symset_which_set));
 }
 
 /* returns 0 on error */
@@ -349,20 +364,20 @@ parse_sym_line(char *buf, int which_set)
        separating space slips through; for handling or set description,
        symbol set creator is responsible for preceding '#' with a space
        and that comment itself doesn't contain " #") */
-    if ((commentp = rindex(buf, '#')) != 0 && commentp[-1] == ' ')
+    if ((commentp = strrchr(buf, '#')) != 0 && commentp[-1] == ' ')
         commentp[-1] = '\0';
 
     /* find the '=' or ':' */
-    bufp = index(buf, '=');
-    altp = index(buf, ':');
+    bufp = strchr(buf, '=');
+    altp = strchr(buf, ':');
     if (!bufp || (altp && altp < bufp))
         bufp = altp;
     if (!bufp) {
         if (strncmpi(buf, "finish", 6) == 0) {
             /* end current graphics set */
-            if (g.chosen_symset_start)
-                g.chosen_symset_end = TRUE;
-            g.chosen_symset_start = FALSE;
+            if (gc.chosen_symset_start)
+                gc.chosen_symset_end = TRUE;
+            gc.chosen_symset_start = FALSE;
             return 1;
         }
         config_error_add("No \"finish\"");
@@ -377,7 +392,11 @@ parse_sym_line(char *buf, int which_set)
     symp = match_sym(buf);
     if (!symp && buf[0] == 'G' && buf[1] == '_') {
 #ifdef ENHANCED_SYMBOLS
-        is_glyph = match_glyph(buf);
+        if (gc.chosen_symset_start) {
+            is_glyph = match_glyph(buf);
+        } else {
+            is_glyph = TRUE; /* report error only once */
+        }
 #else
         enhanced_unavailable = TRUE;
 #endif
@@ -387,14 +406,14 @@ parse_sym_line(char *buf, int which_set)
         return 0;
     }
     if (symp) {
-        if (!g.symset[which_set].name) {
+        if (!gs.symset[which_set].name) {
             /* A null symset name indicates that we're just
                building a pick-list of possible symset
                values from the file, so only do that */
             if (symp->range == SYM_CONTROL) {
                 struct symsetentry *tmpsp, *lastsp;
 
-                for (lastsp = g.symset_list; lastsp; lastsp = lastsp->next)
+                for (lastsp = gs.symset_list; lastsp; lastsp = lastsp->next)
                     if (!lastsp->next)
                         break;
                 switch (symp->idx) {
@@ -402,10 +421,10 @@ parse_sym_line(char *buf, int which_set)
                     tmpsp = (struct symsetentry *) alloc(sizeof *tmpsp);
                     tmpsp->next = (struct symsetentry *) 0;
                     if (!lastsp)
-                        g.symset_list = tmpsp;
+                        gs.symset_list = tmpsp;
                     else
                         lastsp->next = tmpsp;
-                    tmpsp->idx = g.symset_count++;
+                    tmpsp->idx = gs.symset_count++;
                     tmpsp->name = dupstr(bufp);
                     tmpsp->desc = (char *) 0;
                     tmpsp->handling = H_UNK;
@@ -454,9 +473,9 @@ parse_sym_line(char *buf, int which_set)
             switch (symp->idx) {
             case 0:
                 /* start of symset */
-                if (!strcmpi(bufp, g.symset[which_set].name)) {
+                if (!strcmpi(bufp, gs.symset[which_set].name)) {
                     /* matches desired one */
-                    g.chosen_symset_start = TRUE;
+                    gc.chosen_symset_start = TRUE;
                     /* these init_*() functions clear symset fields too */
                     if (which_set == PRIMARYSET)
                         init_primary_symbols();
@@ -464,41 +483,41 @@ parse_sym_line(char *buf, int which_set)
                 break;
             case 1:
                 /* finish symset */
-                if (g.chosen_symset_start)
-                    g.chosen_symset_end = TRUE;
-                g.chosen_symset_start = FALSE;
+                if (gc.chosen_symset_start)
+                    gc.chosen_symset_end = TRUE;
+                gc.chosen_symset_start = FALSE;
                 break;
             case 2:
                 /* handler type identified */
-                if (g.chosen_symset_start)
+                if (gc.chosen_symset_start)
                     set_symhandling(bufp, which_set);
                 break;
             /* case 3: (description) is ignored here */
             case 4: /* color:off */
-                if (g.chosen_symset_start) {
+                if (gc.chosen_symset_start) {
                     if (bufp) {
                         if (!strcmpi(bufp, "true") || !strcmpi(bufp, "yes")
                             || !strcmpi(bufp, "on"))
-                            g.symset[which_set].nocolor = 0;
+                            gs.symset[which_set].nocolor = 0;
                         else if (!strcmpi(bufp, "false")
                                  || !strcmpi(bufp, "no")
                                  || !strcmpi(bufp, "off"))
-                            g.symset[which_set].nocolor = 1;
+                            gs.symset[which_set].nocolor = 1;
                     }
                 }
                 break;
             case 5: /* restrictions: xxxx*/
-                if (g.chosen_symset_start) {
+                if (gc.chosen_symset_start) {
                     int n = 0;
 
                     while (known_restrictions[n]) {
                         if (!strcmpi(known_restrictions[n], bufp)) {
                             switch (n) {
                             case 0:
-                                g.symset[which_set].primary = 1;
+                                gs.symset[which_set].primary = 1;
                                 break;
                             case 1:
-                                g.symset[which_set].rogue = 1;
+                                gs.symset[which_set].rogue = 1;
                                 break;
                             }
                             break; /* while loop */
@@ -510,16 +529,18 @@ parse_sym_line(char *buf, int which_set)
             }
         } else {
             /* Not SYM_CONTROL */
-            if (g.symset[which_set].handling != H_UTF8) {
+            if (gs.symset[which_set].handling != H_UTF8) {
                 val = sym_val(bufp);
-                if (g.chosen_symset_start) {
+                if (gc.chosen_symset_start) {
                     if (which_set == PRIMARYSET) {
                         update_primary_symset(symp, val);
                     }
                 }
 #ifdef ENHANCED_SYMBOLS
             } else {
-                glyphrep_to_custom_map_entries(buf, &glyph);
+                if (gc.chosen_symset_start) {
+                    glyphrep_to_custom_map_entries(buf, &glyph);
+                }
 #endif
             }
         }
@@ -535,10 +556,10 @@ set_symhandling(char *handling, int which_set)
 {
     int i = 0;
 
-    g.symset[which_set].handling = H_UNK;
+    gs.symset[which_set].handling = H_UNK;
     while (known_handling[i]) {
         if (!strcmpi(known_handling[i], handling)) {
-            g.symset[which_set].handling = i;
+            gs.symset[which_set].handling = i;
             return;
         }
         i++;
@@ -551,9 +572,9 @@ load_symset(const char *s, int which_set)
 {
     clear_symsetentry(which_set, TRUE);
 
-    if (g.symset[which_set].name)
-        free((genericptr_t) g.symset[which_set].name);
-    g.symset[which_set].name = dupstr(s);
+    if (gs.symset[which_set].name)
+        free((genericptr_t) gs.symset[which_set].name);
+    gs.symset[which_set].name = dupstr(s);
 
     if (read_sym_file(which_set)) {
         switch_symbols(TRUE);
@@ -574,6 +595,74 @@ free_symsets(void)
     /* assert( symset_list == NULL ); */
 }
 
+struct _savedsym {
+    char *name;
+    char *val;
+    int which_set;
+    struct _savedsym *next;
+};
+struct _savedsym *saved_symbols = NULL;
+
+void
+savedsym_free(void)
+{
+    struct _savedsym *tmp = saved_symbols, *tmp2;
+
+    while (tmp) {
+        tmp2 = tmp->next;
+        free(tmp->name);
+        free(tmp->val);
+        free(tmp);
+        tmp = tmp2;
+    }
+}
+
+static struct _savedsym *
+savedsym_find(const char *name, int which_set)
+{
+    struct _savedsym *tmp = saved_symbols;
+
+    while (tmp) {
+        if (which_set == tmp->which_set && !strcmp(name, tmp->name))
+            return tmp;
+        tmp = tmp->next;
+    }
+    return NULL;
+}
+
+static void
+savedsym_add(const char *name, const char *val, int which_set)
+{
+    struct _savedsym *tmp = NULL;
+
+    if ((tmp = savedsym_find(name, which_set)) != 0) {
+        free(tmp->val);
+        tmp->val = dupstr(val);
+    } else {
+        tmp = (struct _savedsym *) alloc(sizeof *tmp);
+        tmp->name = dupstr(name);
+        tmp->val = dupstr(val);
+        tmp->which_set = which_set;
+        tmp->next = saved_symbols;
+        saved_symbols = tmp;
+    }
+}
+
+void
+savedsym_strbuf(strbuf_t *sbuf)
+{
+    struct _savedsym *tmp = saved_symbols;
+    char buf[BUFSZ];
+
+    while (tmp) {
+        Sprintf(buf, "%sSYMBOLS=%s:%s\n",
+                (tmp->which_set == ROGUESET) ? "ROGUE" : "",
+                tmp->name, tmp->val);
+        strbuf_append(sbuf, buf);
+        tmp = tmp->next;
+    }
+}
+
 /* Parse the value of a SYMBOLS line from a config file */
 boolean
 parsesymbols(register char *opts, int which_set)
@@ -583,17 +672,23 @@ parsesymbols(register char *opts, int which_set)
     const struct symparse *symp;
     boolean is_glyph = FALSE;
 
-    if ((op = index(opts, ',')) != 0) {
-        *op++ = 0;
+    /*
+     * FIXME:
+     *  The parsing here (and next) yields incorrect results for
+     *  "S_sample=','" or "S_sample=':'".
+     */
+
+    if ((op = strchr(opts, ',')) != 0) {
+        *op++ = '\0';
         if (!parsesymbols(op, which_set))
             return FALSE;
     }
 
     /* S_sample:string */
     symname = opts;
-    strval = index(opts, ':');
+    strval = strchr(opts, ':');
     if (!strval)
-        strval = index(opts, '=');
+        strval = strchr(opts, '=');
     if (!strval)
         return FALSE;
     *strval++ = '\0';
@@ -612,14 +707,11 @@ parsesymbols(register char *opts, int which_set)
         return FALSE;
     if (symp) {
         if (symp->range && symp->range != SYM_CONTROL) {
-#ifdef ENHANCED_SYMBOLS
-            int glyph;
-#endif
-
-            if ((g.symset[which_set].handling == H_UTF8)
-                || (strval && (lowc(strval[0]) == 'u') && (strval[1] == '+'))) {
+            if (gs.symset[which_set].handling == H_UTF8
+                || (lowc(strval[0]) == 'u' && strval[1] == '+')) {
 #ifdef ENHANCED_SYMBOLS
                 char buf[BUFSZ];
+                int glyph;
 
                 Snprintf(buf, sizeof buf, "%s:%s", opts, strval);
                 glyphrep_to_custom_map_entries(buf, &glyph);
@@ -630,6 +722,7 @@ parsesymbols(register char *opts, int which_set)
             }
         }
     }
+    savedsym_add(opts, strval, which_set);
     return TRUE;
 }
 
@@ -648,8 +741,12 @@ match_sym(char *buf)
         { "S_explode8", "S_expl_bc" }, { "S_explode9", "S_expl_br" },
     };
     size_t len = strlen(buf);
-    const char *p = index(buf, ':'), *q = index(buf, '=');
+    const char *p = strchr(buf, ':'), *q = strchr(buf, '=');
     const struct symparse *sp = loadsyms;
+
+    /* G_ lines will never match here */
+    if ((buf[0] == 'G' || buf[0] == 'g') && buf[1] == '_')
+        return (struct symparse *) 0;
 
     if (!p || (q && q < p))
         p = q;
@@ -697,23 +794,24 @@ do_symset(void)
     char *symset_name, fmtstr[20];
     struct symsetentry *sl;
     int res, which_set, setcount = 0, chosen = -2, defindx = 0;
+    int clr = 0;
 
     which_set = PRIMARYSET;
-    g.symset_list = (struct symsetentry *) 0;
+    gs.symset_list = (struct symsetentry *) 0;
     /* clear symset[].name as a flag to read_sym_file() to build list */
-    symset_name = g.symset[which_set].name;
-    g.symset[which_set].name = (char *) 0;
+    symset_name = gs.symset[which_set].name;
+    gs.symset[which_set].name = (char *) 0;
 
     res = read_sym_file(which_set);
     /* put symset name back */
-    g.symset[which_set].name = symset_name;
+    gs.symset[which_set].name = symset_name;
 
-    if (res && g.symset_list) {
+    if (res && gs.symset_list) {
         int thissize,
             biggest = (int) (sizeof "Default Symbols" - sizeof ""),
             big_desc = 0;
 
-        for (sl = g.symset_list; sl; sl = sl->next) {
+        for (sl = gs.symset_list; sl; sl = sl->next) {
             /* check restrictions */
             if (sl->rogue)
                 continue;
@@ -747,11 +845,11 @@ do_symset(void)
         if (!symset_name)
             defindx = any.a_int;
         add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
-                 "Default Symbols",
+                 clr, "Default Symbols",
                  (any.a_int == defindx) ? MENU_ITEMFLAGS_SELECTED
                                         : MENU_ITEMFLAGS_NONE);
 
-        for (sl = g.symset_list; sl; sl = sl->next) {
+        for (sl = gs.symset_list; sl; sl = sl->next) {
             /* check restrictions */
             if (sl->rogue)
                 continue;
@@ -772,7 +870,7 @@ do_symset(void)
                     defindx = any.a_int;
                 Sprintf(buf, fmtstr, sl->name, sl->desc ? sl->desc : "");
                 add_menu(tmpwin, &nul_glyphinfo, &any, 0, 0,
-                         ATR_NONE, buf,
+                         ATR_NONE, clr, buf,
                          (any.a_int == defindx) ? MENU_ITEMFLAGS_SELECTED
                                                 : MENU_ITEMFLAGS_NONE);
             }
@@ -796,7 +894,7 @@ do_symset(void)
 
         if (chosen > -1) {
             /* chose an actual symset name from file */
-            for (sl = g.symset_list; sl; sl = sl->next)
+            for (sl = gs.symset_list; sl; sl = sl->next)
                 if (sl->idx == chosen)
                     break;
             if (sl) {
@@ -804,7 +902,7 @@ do_symset(void)
                 clear_symsetentry(which_set, TRUE);
 
                 /* transfer only the name of the symbol set */
-                g.symset[which_set].name = dupstr(sl->name);
+                gs.symset[which_set].name = dupstr(sl->name);
                 ready_to_switch = TRUE;
             }
         } else if (chosen == -1) {
@@ -817,15 +915,15 @@ do_symset(void)
         /* The symbols file could not be accessed */
         pline("Unable to access \"%s\" file.", SYMBOLS);
         return TRUE;
-    } else if (!g.symset_list) {
+    } else if (!gs.symset_list) {
         /* The symbols file was empty */
-        pline("There were no symbol sets found in \"%s\".", SYMBOLS);
+        There("were no symbol sets found in \"%s\".", SYMBOLS);
         return TRUE;
     }
 
     /* clean up */
-    while ((sl = g.symset_list) != 0) {
-        g.symset_list = sl->next;
+    while ((sl = gs.symset_list) != 0) {
+        gs.symset_list = sl->next;
         if (sl->name)
             free((genericptr_t) sl->name), sl->name = (char *) 0;
         if (sl->desc)
@@ -839,9 +937,21 @@ do_symset(void)
     /* Set default symbols and clear the handling value */
     init_primary_symbols();
 
-    if (g.symset[which_set].name) {
+    if (gs.symset[which_set].name) {
         /* non-default symbols */
-        if (read_sym_file(which_set)) {
+        int ok;
+#ifdef ENHANCED_SYMBOLS
+        if (!glyphid_cache_status()) {
+            fill_glyphid_cache();
+        }
+#endif
+        ok = read_sym_file(which_set);
+#ifdef ENHANCED_SYMBOLS
+        if (glyphid_cache_status()) {
+            free_glyphid_cache();
+        }
+#endif
+        if (ok) {
             ready_to_switch = TRUE;
         } else {
             clear_symsetentry(which_set, TRUE);
@@ -871,26 +981,28 @@ struct customization_detail *find_matching_symset_customization(
     const char *customization_name, int custtype,
     enum graphics_sets which_set);
 struct customization_detail *find_display_urep_customization(
-    const char *customization_name, int glyphidx, enum graphics_sets which_set);
-void purge_custom_entries(enum graphics_sets which_set);
+    const char *customization_name, int glyphidx,
+    enum graphics_sets which_set);
 extern glyph_map glyphmap[MAX_GLYPH];
 static void shuffle_customizations(void);
 
 void
 apply_customizations_to_symset(enum graphics_sets which_set)
 {
-    glyph_map *gm;
+    glyph_map *gmap;
     struct customization_detail *details;
 
-    if (g.symset[which_set].handling == H_UTF8
-        && g.sym_customizations[UNICODESET].count
-        && g.sym_customizations[UNICODESET].details) {
+    if (gs.symset[which_set].handling == H_UTF8
+        && gs.sym_customizations[which_set].count
+        && gs.sym_customizations[which_set].details) {
         /* These UTF-8 customizations get applied to the glyphmap array,
            not to symset entries */
-        details = g.sym_customizations[UNICODESET].details;
+        details = gs.sym_customizations[which_set].details;
         while (details) {
-            gm = &glyphmap[details->content.urep.glyphidx];
-            (void) set_map_u(gm, details->content.urep.u.utf8str,
+            gmap = &glyphmap[details->content.urep.glyphidx];
+            (void) set_map_u(gmap,
+                             details->content.urep.u.utf32ch,
+                             details->content.urep.u.utf8str,
                              details->content.urep.u.ucolor);
             details = details->next;
         }
@@ -903,39 +1015,78 @@ apply_customizations_to_symset(enum graphics_sets which_set)
 static void
 shuffle_customizations(void)
 {
-    int i;
-    struct unicode_representation *tmp_u[2][NUM_OBJECTS];
+    static const int offsets[2] = { GLYPH_OBJ_OFF, GLYPH_OBJ_PILETOP_OFF };
+    int j;
 
-    for (i = 0; i < NUM_OBJECTS; i++) {
-        tmp_u[0][i] =
-            glyphmap[objects[i].oc_descr_idx + GLYPH_OBJ_OFF].u;
-        tmp_u[1][i] =
-            glyphmap[objects[i].oc_descr_idx + GLYPH_OBJ_PILETOP_OFF].u;
-    }
-    for (i = 0; i < NUM_OBJECTS; i++) {
-        glyphmap[i + GLYPH_OBJ_OFF].u = tmp_u[0][i];
-        glyphmap[i + GLYPH_OBJ_PILETOP_OFF].u = tmp_u[1][i];
+    for (j = 0; j < SIZE(offsets); j++) {
+        glyph_map *obj_glyphs = glyphmap + offsets[j];
+        int i;
+        struct unicode_representation *tmp_u[NUM_OBJECTS];
+        int duplicate[NUM_OBJECTS];
+
+        for (i = 0; i < NUM_OBJECTS; i++) {
+            duplicate[i] = -1;
+            tmp_u[i] = (struct unicode_representation *) 0;
+        }
+        for (i = 0; i < NUM_OBJECTS; i++) {
+            int idx = objects[i].oc_descr_idx;
+
+            /*
+             * Shuffling gem appearances can cause the same oc_descr_idx to
+             * appear more than once. Detect this condition and ensure that
+             * each pointer points to a unique allocation.
+             */
+            if (duplicate[idx] >= 0) {
+                /* Current structure already appears in tmp_u */
+                struct unicode_representation *other = tmp_u[duplicate[idx]];
+
+                tmp_u[i] = (struct unicode_representation *)
+                           alloc(sizeof *tmp_u[i]);
+                *tmp_u[i] = *other;
+                if (other->utf8str != NULL) {
+                    tmp_u[i]->utf8str = (uint8 *)
+                                        dupstr((const char *) other->utf8str);
+                }
+            } else {
+                tmp_u[i] = obj_glyphs[idx].u;
+                if (obj_glyphs[idx].u != NULL)  {
+                    duplicate[idx] = i;
+                    obj_glyphs[idx].u = NULL;
+                }
+            }
+        }
+        for (i = 0; i < NUM_OBJECTS; i++) {
+            /* Some glyphmaps may not have been transferred */
+            if (obj_glyphs[i].u != NULL) {
+                free(obj_glyphs[i].u->utf8str);
+                free(obj_glyphs[i].u);
+            }
+            obj_glyphs[i].u = tmp_u[i];
+        }
     }
 }
 
 struct customization_detail *
-find_matching_symset_customization(const char *customization_name,
-                                   int custtype,
-                                   enum graphics_sets which_set)
+find_matching_symset_customization(
+    const char *customization_name,
+    int custtype,
+    enum graphics_sets which_set)
 {
-    struct symset_customization *gdc = &g.sym_customizations[which_set];
+    struct symset_customization *gdc = &gs.sym_customizations[which_set];
+
     if ((gdc->custtype == custtype)
         && (strcmp(customization_name, gdc->customization_name) != 0))
-            return gdc->details;
+        return gdc->details;
     return (struct customization_detail *) 0;
 }
 
-void
+static void
 purge_custom_entries(enum graphics_sets which_set)
 {
-    struct symset_customization *gdc = &g.sym_customizations[which_set];
+    struct symset_customization *gdc = &gs.sym_customizations[which_set];
     struct customization_detail *details = gdc->details, *next;
-    if (details) {
+
+    while (details) {
         next = details->next;
         if (gdc->custtype == custom_ureps) {
             if (details->content.urep.u.utf8str)
@@ -951,6 +1102,7 @@ purge_custom_entries(enum graphics_sets which_set)
         details = next;
     }
     gdc->details = 0;
+    gdc->details_end = 0;
     if (gdc->customization_name) {
         free((genericptr_t) gdc->customization_name);
         gdc->customization_name = 0;
@@ -959,12 +1111,14 @@ purge_custom_entries(enum graphics_sets which_set)
 }
 
 struct customization_detail *
-find_display_sym_customization(const char *customization_name,
-                               const struct symparse *symparse,
-                               enum graphics_sets which_set)
+find_display_sym_customization(
+    const char *customization_name,
+    const struct symparse *symparse,
+    enum graphics_sets which_set)
 {
-    struct symset_customization *gdc = &g.sym_customizations[which_set];
+    struct symset_customization *gdc = &gs.sym_customizations[which_set];
     struct customization_detail *symdetails;
+
     if ((gdc->custtype == custom_symbols)
         && (strcmp(customization_name, gdc->customization_name) == 0)) {
         symdetails = gdc->details;

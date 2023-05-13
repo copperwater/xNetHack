@@ -7,8 +7,8 @@
  * by nethack.
  *
  * Assumptions:
- * 	+ Two dimensional byte arrays are in row order and are not padded
- *	  between rows (x11_colormap[][]).
+ *      + Two dimensional byte arrays are in row order and are not padded
+ *        between rows (x11_colormap[][]).
  */
 #include "hack.h" /* for MAX_GLYPH */
 #include "tile.h"
@@ -241,14 +241,5 @@ main(int argc, char *argv[])
     return 0;
 }
 
-/* we need a local copy of this for alloc.o and because we don't have panic() */
-unsigned
-FITSuint_(unsigned long long i, const char *file, int line){
-    unsigned ret = (unsigned)i;
-    if (ret != i) {
-        Fprintf(stderr, "Overflow at %s:%d", file, line);
-        exit(1);
-    }
-    return (unsigned)i;
-}
+/*tile2X11.c*/
 

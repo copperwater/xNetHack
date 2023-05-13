@@ -1,5 +1,5 @@
 /* NetHack 3.7	wc_chainout.c	$NHDT-Date: 1596498324 2020/08/03 23:45:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.13 $ */
-/* Copyright (c) Kenneth Lorber, 2012				  */
+/* Copyright (c) Kenneth Lorber, 2012                             */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* -chainout is an internal processor that changes the flow from chain_procs
@@ -24,12 +24,11 @@ void chainout_putmixed(void *,winid, int, const char *);
 void chainout_display_file(void *,const char *, boolean);
 void chainout_start_menu(void *,winid, unsigned long);
 void chainout_add_menu(void *,winid, const glyph_info *, const ANY_P *,
-                         char, char, int,
+                         char, char, int, int,
                          const char *, unsigned int);
 void chainout_end_menu(void *,winid, const char *);
 int chainout_select_menu(void *,winid, int, MENU_ITEM_P **);
 char chainout_message_menu(void *,char, int, const char *);
-void chainout_update_inventory(void *,int);
 void chainout_mark_synch(void *);
 void chainout_wait_synch(void *);
 #ifdef CLIPPING
@@ -38,12 +37,12 @@ void chainout_cliparound(void *,int, int);
 #ifdef POSITIONBAR
 void chainout_update_positionbar(void *,char *);
 #endif
-void chainout_print_glyph(void *,winid, xchar, xchar,
+void chainout_print_glyph(void *,winid, coordxy, coordxy,
                             const glyph_info *, const glyph_info *);
 void chainout_raw_print(void *,const char *);
 void chainout_raw_print_bold(void *,const char *);
 int chainout_nhgetch(void *);
-int chainout_nh_poskey(void *,int *, int *, int *);
+int chainout_nh_poskey(void *,coordxy *, coordxy *, int *);
 void chainout_nhbell(void *);
 int chainout_doprev_message(void *);
 char chainout_yn_function(void *,const char *, const char *, char);
@@ -75,6 +74,8 @@ void chainout_status_update(void *,int, genericptr_t, int, int, int,
                            unsigned long *);
 
 boolean chainout_can_suspend(void *);
+void chainout_update_inventory(void *, int);
+win_request_info *chainout_ctrl_nhwindow(void *, winid, int, win_request_info *);
 
 void chainout_procs_init(int dir);
 void *chainout_procs_chain(int cmd, int n, void *me, void *nextprocs, void *nextdata);
@@ -299,13 +300,14 @@ chainout_add_menu(
     char ch,                     /* keyboard accelerator (0 = pick our own) */
     char gch,                    /* group accelerator (0 = no group) */
     int attr,                    /* attribute for string (like tty_putstr()) */
+    int clr,                     /* clr for string */
     const char *str,             /* menu string */
     unsigned int itemflags)      /* itemflags such as marked as selected */
 {
     struct chainout_data *tdp = vp;
 
     (*tdp->nprocs->win_add_menu)(window, glyphinfo, identifier, ch, gch,
-                                 attr, str, itemflags);
+                                 attr, clr, str, itemflags);
 }
 
 void
@@ -402,8 +404,8 @@ void
 chainout_print_glyph(
     void *vp,
     winid window,
-    xchar x,
-    xchar y,
+    coordxy x,
+    coordxy y,
     const glyph_info *glyphinfo,
     const glyph_info *bkglyphinfo)
 {
@@ -444,8 +446,8 @@ chainout_nhgetch(void *vp)
 int
 chainout_nh_poskey(
     void *vp,
-    int *x,
-    int *y,
+    coordxy *x,
+    coordxy *y,
     int *mod)
 {
     struct chainout_data *tdp = vp;
@@ -698,8 +700,22 @@ chainout_can_suspend(void *vp)
     return rv;
 }
 
+win_request_info *
+chainout_ctrl_nhwindow(
+    winid window,
+    int request,
+    win_request_info *wri)
+{
+    struct chainout_data *tdp = vp;
+    boolean rv;
+
+    rv = (*tdp->nprocs->win_ctrl_nhwindow)(window,
+                                           request, wri);
+    return rv;
+}
+
 struct chain_procs chainout_procs = {
-    "-chainout", 0, /* wincap */
+    WPIDMINUS(chainout), 0, /* wincap */
     0,              /* wincap2 */
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, /* color availability */
     /*
@@ -744,4 +760,6 @@ struct chain_procs chainout_procs = {
     chainout_status_init, chainout_status_finish, chainout_status_enablefield,
     chainout_status_update,
     chainout_can_suspend,
+    chainout_update_inventory,
+    chainout_ctrl_nhwindow,
 };

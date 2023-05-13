@@ -9,7 +9,7 @@
 #include "quest.h"
 
 #define Not_firsttime (on_level(&u.uz0, &u.uz))
-#define Qstat(x) (g.quest_status.x)
+#define Qstat(x) (gq.quest_status.x)
 
 static void on_start(void);
 static void on_locate(void);
@@ -113,15 +113,15 @@ nemdead(void)
 
         /* this won't do anything unless on Valk locate level */
         restore_valk_locate(PHASE_PHYSICAL | PHASE_DIALOGUE | PHASE_VISION);
-        g.level.flags.visited_after_event |= VISITED_AFTER_NEMDEAD;
+        gl.level.flags.visited_after_event |= VISITED_AFTER_NEMDEAD;
     }
 }
 
 void
 leaddead(void)
 {
-    if (!Qstat(leader_is_dead)) {
-        Qstat(leader_is_dead) = TRUE;
+    if (!Qstat(killed_leader)) {
+        Qstat(killed_leader) = TRUE;
         /* TODO: qt_pager("killed_leader"); ? */
     }
 }
@@ -145,7 +145,7 @@ boolean
 ok_to_quest(void)
 {
     return (boolean) (((Qstat(got_quest) || Qstat(got_thanks))
-                       && is_pure(FALSE) > 0) || Qstat(leader_is_dead));
+                       && is_pure(FALSE) > 0) || Qstat(killed_leader));
 }
 
 static boolean
@@ -169,7 +169,7 @@ is_pure(boolean talk)
         } else if (u.ualign.record < MIN_QUEST_ALIGN) {
             You("are currently %d and require %d.", u.ualign.record,
                 MIN_QUEST_ALIGN);
-            if (yn_function("adjust?", (char *) 0, 'y') == 'y')
+            if (yn_function("adjust?", (char *) 0, 'y', TRUE) == 'y')
                 u.ualign.record = MIN_QUEST_ALIGN;
         }
     }
@@ -199,6 +199,7 @@ expulsion(boolean seal)
     dest = (br->end1.dnum == u.uz.dnum) ? &br->end2 : &br->end1;
     if (seal)
         portal_flag |= UTOTYPE_RMPORTAL;
+    nomul(0); /* stop running */
     schedule_goto(dest, portal_flag, (char *) 0, (char *) 0);
     if (seal) { /* remove the portal to the quest - sealing it off */
         int reexpelled = u.uevent.qexpelled;
@@ -209,7 +210,7 @@ expulsion(boolean seal)
            portal will be deleted as part of arrival on that level.
            If monster movement is in progress, any who haven't moved
            yet will now miss out on a chance to wander through it... */
-        for (t = g.ftrap; t; t = t->ntrap)
+        for (t = gf.ftrap; t; t = t->ntrap)
             if (t->ttyp == MAGIC_PORTAL)
                 break;
         if (t)
@@ -303,7 +304,7 @@ chat_with_leader(struct monst *mtmp)
     } else if (u.uhave.questart) {
         struct obj *otmp;
 
-        for (otmp = g.invent; otmp; otmp = otmp->nobj)
+        for (otmp = gi.invent; otmp; otmp = otmp->nobj)
             if (is_quest_artifact(otmp))
                 break;
 
@@ -343,7 +344,7 @@ chat_with_leader(struct monst *mtmp)
                  * Quest, which removes a lot of drudgery for pacifist conduct
                  * players */
                 qt_pager("lowlevel");
-                if (yn("Confirm your readiness and start the quest?") == 'y') {
+                if (y_n("Confirm your readiness and start the quest?") == 'y') {
                     verbalize("Go on then.");
                     Qstat(got_quest) = TRUE;
                     return;
@@ -419,7 +420,7 @@ nemesis_speaks(void)
      * Qstat(in_battle) being set to true. For non-warping nemeses, ignore
      * whether this flag is set or not because nemesis_speaks should only get
      * called when nearby anyway. */
-    if (!Qstat(in_battle) || covetous_nonwarper(&mons[g.urole.neminum])) {
+    if (!Qstat(in_battle) || covetous_nonwarper(&mons[gu.urole.neminum])) {
         if (u.uhave.questart)
             qt_pager("nemesis_wantsit");
         else if (Qstat(made_goal) == 1 || !Qstat(met_nemesis))
@@ -456,6 +457,7 @@ prisoner_speaks(struct monst *mtmp)
         /* Awaken the prisoner */
         if (canseemon(mtmp))
             pline("%s speaks:", Monnam(mtmp));
+        SetVoice(mtmp, 0, 80, 0);
         verbalize("I'm finally free!");
         mtmp->mstrategy &= ~STRAT_WAITMASK;
         mtmp->mpeaceful = 1;

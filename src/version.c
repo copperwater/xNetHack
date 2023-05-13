@@ -1,4 +1,4 @@
-/* NetHack 3.7	version.c	$NHDT-Date: 1651297024 2022/04/30 05:37:04 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.88 $ */
+/* NetHack 3.7	version.c	$NHDT-Date: 1655402415 2022/06/16 18:00:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.92 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,13 +10,19 @@
 #define OPTIONS_AT_RUNTIME
 #endif
 
+extern char *mdlib_version_string(char *, const char *);
 static void insert_rtoption(char *);
 
 /* fill buffer with short version (so caller can avoid including date.h) */
 char *
 version_string(char *buf, size_t bufsz)
 {
-    Snprintf(buf, bufsz, "%s", nomakedefs.version_string);
+    Snprintf(buf, bufsz, "%s",
+             ((nomakedefs.version_string && nomakedefs.version_string[0])
+              ? nomakedefs.version_string
+              /* in case we try to write a paniclog entry after releasing
+                 the 'nomakedefs' data */
+              : mdlib_version_string(buf, ".")));
     return buf;
 }
 
@@ -118,7 +124,7 @@ doextversion(void)
     /* if extra text (git info) is present, put it on separate line
        but don't wrap on (x86) */
     if (strlen(buf) >= COLNO)
-        p = rindex(buf, '(');
+        p = strrchr(buf, '(');
     if (p && p > buf && p[-1] == ' ' && p[1] != 'x')
         p[-1] = '\0';
     else
@@ -176,7 +182,7 @@ doextversion(void)
             break;
         }
         (void) strip_newline(buf);
-        if (index(buf, '\t') != 0)
+        if (strchr(buf, '\t') != 0)
             (void) tabexpand(buf);
 
         if (*buf && *buf != ' ') {
@@ -189,7 +195,7 @@ doextversion(void)
         if (prolog || !*buf)
             continue;
 
-        if (index(buf, ':'))
+        if (strchr(buf, ':'))
             insert_rtoption(buf);
 
         if (*buf)
@@ -251,8 +257,8 @@ static struct rt_opt {
     const char *token, *value;
 } rt_opts[] = {
     { ":PATMATCH:", regex_id },
-    { ":LUAVERSION:", (const char *) g.lua_ver },
-    { ":LUACOPYRIGHT:", (const char *) g.lua_copyright },
+    { ":LUAVERSION:", (const char *) gl.lua_ver },
+    { ":LUACOPYRIGHT:", (const char *) gl.lua_copyright },
 };
 
 /*
@@ -266,13 +272,13 @@ insert_rtoption(char *buf)
 {
     int i;
 
-    if (!g.lua_ver[0])
+    if (!gl.lua_ver[0])
         get_lua_version();
 
     for (i = 0; i < SIZE(rt_opts); ++i) {
         if (strstri(buf, rt_opts[i].token) && *rt_opts[i].value) {
             (void) strsubst(buf, rt_opts[i].token, rt_opts[i].value);
-	}
+        }
         /* we don't break out of the loop after a match; there might be
            other matches on the same line */
     }
@@ -289,11 +295,14 @@ comp_times(long filetime)
 #endif
 
 boolean
-check_version(struct version_info *version_data, const char *filename,
-              boolean complain, unsigned long utdflags)
+check_version(
+    struct version_info *version_data,
+    const char *filename,
+    boolean complain,
+    unsigned long utdflags)
 {
     if (
-#ifdef VERSION_COMPATIBILITY
+#ifdef VERSION_COMPATIBILITY /* patchlevel.h */
         version_data->incarnation < VERSION_COMPATIBILITY
         || version_data->incarnation > nomakedefs.version_number
 #else
@@ -306,18 +315,15 @@ check_version(struct version_info *version_data, const char *filename,
         }
         return FALSE;
     } else if (
-#ifndef IGNORED_FEATURES
-        version_data->feature_set != nomakedefs.version_features
-#else
         (version_data->feature_set & ~nomakedefs.ignored_features)
-            != (VERSION_FEATURES & ~nomakedefs.ignored_features)
-#endif
+            != (nomakedefs.version_features & ~nomakedefs.ignored_features)
         || ((utdflags & UTD_SKIP_SANITY1) == 0
              && version_data->entity_count != nomakedefs.version_sanity1)
         || ((utdflags & UTD_CHECKSIZES) != 0
             && version_data->struct_sizes1 != nomakedefs.version_sanity2)
         || ((utdflags & UTD_CHECKSIZES) != 0
-            && version_data->struct_sizes2 != nomakedefs.version_sanity3)) {
+            && version_data->struct_sizes2 != nomakedefs.version_sanity3)
+        ) {
         if (complain) {
             pline("Configuration incompatibility for file \"%s\".", filename);
             display_nhwindow(WIN_MESSAGE, TRUE);
@@ -384,7 +390,7 @@ void
 store_version(NHFILE *nhfp)
 {
     struct version_info version_data = {
-        0UL,0UL,0UL,0UL,0Ul
+        0UL, 0UL, 0UL, 0UL, 0UL
     };
 
     /* actual version number */
@@ -402,7 +408,7 @@ store_version(NHFILE *nhfp)
         bufoff(nhfp->fd);
         /* bwrite() before bufon() uses plain write() */
         store_formatindicator(nhfp);
-        bwrite(nhfp->fd,(genericptr_t) &version_data,
+        bwrite(nhfp->fd, (genericptr_t) &version_data,
                (unsigned) (sizeof version_data));
         bufon(nhfp->fd);
     }
@@ -432,7 +438,7 @@ get_feature_notice_ver(char *str)
             istr[j] = str;
             if (j == 2)
                 break;
-        } else if (index("0123456789", *str) != 0) {
+        } else if (strchr("0123456789", *str) != 0) {
             str++;
         } else
             return 0L;

@@ -3,7 +3,7 @@
 This is a major version of xNetHack. It is based directly on xNetHack 7.0, and
 is a fork off the vanilla NetHack 3.7.0 development version release.
 
-The most recent vanilla commit incorporated into xNetHack is f592b9d. Note that
+The most recent vanilla commit incorporated into xNetHack is 1800424. Note that
 because 3.7.0 is still in development status, xNetHack contains major changes
 including new monsters, new objects, themed rooms, and other things *not*
 documented in this file or other xNetHack changelogs. See doc/fixes37.0 for the
@@ -323,6 +323,33 @@ changes:
   not let you levelport beneath it.)
 - Barbed devils have a 2d4 passive physical attack.
 - Bone devils have the ability to summon a skeleton every so often.
+- Non-obvious gameplay changes from vanilla, introduced by its merge: 
+  - The Monk quest provides spinach tins in a couple places.
+  - Goblins and hobgoblins no longer have poison resistance, as in vanilla.
+  - Demonbane no longer confers warning, but can now be invoked to banish demons
+    and is the first sacrifice gift for Priests. It is still a lawful silver
+    mace.
+  - Carrying a lizard corpse on new moon no longer confers any passive
+    protection. Cockatrice and chickatrice hisses will begin petrifying you 100%
+    of the time during new moon regardless of whether you have a lizard.
+  - The amulet of life saving grants 60-170 HP depending on Con, rather than a
+    flat 100 HP.
+  - The gas clouds on the Plane of Fire are smaller.
+  - The potion of speed confers 40/100/160+d10 turns of temporary very fast
+    speed, depending on BUC, instead of a fairly short duration.
+  - The chance of objects generating eroded, erodeproof, or greased now matches
+    vanilla's (1/80 erodeproof, 1/80 recursive chance of erosion, 1/1000
+    greased).
+  - Themed rooms with interesting shapes but no unusual terrain or contents now
+    can use the vanilla "themeroom fill" system which allows them to get various
+    room-shape-agnostic fills.
+  - The "buried treasure" room now uses vanilla's approach of putting an
+    engraving potentially anywhere on the map that indicates a buried treasure
+    in the themed room.
+  - Orcs no longer automatically get a cap of Skilled in scimitar (which is now
+    lumped into saber skill).
+  - The Tutorial branch is present. As in vanilla, you can disable start-of-game
+    prompting for a tutorial by adding "OPTIONS=!tutorial" to your config file.
 
 ### Interface changes
 
@@ -388,3 +415,4 @@ changes:
 - Add functions percent() and rnf(), for writing conditionals whose semantics
   are "an X% chance of this" or "a X in Y percent chance of this", and avoiding
   obtuse rn2 statements.
+- ceiling_exists() is no longer a function. It is back to has_ceiling(&u.uz).

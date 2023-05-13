@@ -45,6 +45,9 @@ end
 
 -- this level can appear in cocytus, or outside it
 local cocytus = (nh.dnum_name(u.dnum) == 'Cocytus')
+if cocytus then
+   des.level_flags('cold')
+end
 
 -- stairs
 -- ugly hack here in which assumptions are made about the law demon branches:

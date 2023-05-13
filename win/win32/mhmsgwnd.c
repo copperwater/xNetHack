@@ -1,5 +1,5 @@
 /* NetHack 3.7	mhmsgwnd.c	$NHDT-Date: 1596498357 2020/08/03 23:45:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.40 $ */
-/* Copyright (C) 2001 by Alex Kompel 	 */
+/* Copyright (C) 2001 by Alex Kompel */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "winMS.h"
@@ -416,9 +416,9 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
             }
     } break;
 
-	case MSNH_MSG_RANDOM_INPUT:
-		nhassert(0); // unexpected
-		break;
+    case MSNH_MSG_RANDOM_INPUT:
+        nhassert(0); // unexpected
+        break;
 
     } /* switch( wParam ) */
 }

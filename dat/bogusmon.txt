@@ -123,6 +123,7 @@ floatin' guy
 forest centerfold
 fresh golem
 frizzed centaur
+frog cloud
 frosted giant
 geriatric snake
 giant bath
@@ -763,6 +764,9 @@ red spider
 # not actually from but prominent in "'Salem's Lot"
 Emperor of Ice-Cream
 
+# The Culture
+antagonistic undecagonstring
+
 ## Section 4 - miscellaneous non-reference things
 
 # Actual creatures
@@ -951,6 +955,7 @@ ascii art
 astronaut
 attorney
 banker
+barking spider
 basilisk
 battlemech
 battletoad
@@ -965,6 +970,7 @@ butler
 cardboard golem
 care bear
 cheese golem
+chiasmus
 cliche
 clone of yourself
 college dropout
@@ -1007,6 +1013,7 @@ giant hand
 giant pigmy
 giant rotating cube
 giant slug
+giant tetrapod
 gingerbread man
 gnu
 golem of infinite hunger
@@ -1049,6 +1056,7 @@ maniac
 marid
 mayor
 mighty morphin' power ranger
+millitaur
 modern art
 mother-in-law
 multi-bear
@@ -1114,12 +1122,14 @@ tax collector
 teenager
 telemarketer
 tofurkey
+toothsayer
 trainspotter
 tyrannosaurus rex
 uberhulk
 undercover cop
 venture capitalist
 viking
+voussoir
 wax statue
 weapon of mass destruction
 wee green blobbie

@@ -1,5 +1,5 @@
 /* NetHack 3.7	winprocs.h	$NHDT-Date: 1596498572 2020/08/03 23:49:32 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.56 $ */
-/* Copyright (c) David Cohrs, 1992				  */
+/* Copyright (c) David Cohrs, 1992                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef WINPROCS_H
@@ -7,11 +7,20 @@
 
 #include "botl.h"
 
+enum wp_ids { wp_tty = 1, wp_X11, wp_Qt, wp_mswin, wp_curses,
+              wp_chainin, wp_chainout, wp_safestartup, wp_shim,
+              wp_hup, wp_guistubs, wp_ttystubs,
+#ifdef OUTDATED_STUFF
+              , wp_mac, wp_Gem, wp_Gnome, wp_amii, wp_amiv
+#endif
+};
+
 /* NB: this MUST match chain_procs below */
 struct window_procs {
     const char *name;     /* Names should start with [a-z].  Names must
                            * not start with '-'.  Names starting with
                            * '+' are reserved for processors. */
+    enum wp_ids wp_id;
     unsigned long wincap; /* window port capability options supported */
     unsigned long wincap2; /* additional window port capability options */
     boolean has_color[CLR_MAX];
@@ -32,12 +41,11 @@ struct window_procs {
     void (*win_display_file)(const char *, boolean);
     void (*win_start_menu)(winid, unsigned long);
     void (*win_add_menu)(winid, const glyph_info *, const ANY_P *,
-                         char, char, int,
+                         char, char, int, int,
                          const char *, unsigned int);
     void (*win_end_menu)(winid, const char *);
     int (*win_select_menu)(winid, int, MENU_ITEM_P **);
     char (*win_message_menu)(char, int, const char *);
-    void (*win_update_inventory)(int);
     void (*win_mark_synch)(void);
     void (*win_wait_synch)(void);
 #ifdef CLIPPING
@@ -46,12 +54,12 @@ struct window_procs {
 #ifdef POSITIONBAR
     void (*win_update_positionbar)(char *);
 #endif
-    void (*win_print_glyph)(winid, xchar, xchar,
+    void (*win_print_glyph)(winid, coordxy, coordxy,
                             const glyph_info *, const glyph_info *);
     void (*win_raw_print)(const char *);
     void (*win_raw_print_bold)(const char *);
     int (*win_nhgetch)(void);
-    int (*win_nh_poskey)(int *, int *, int *);
+    int (*win_nh_poskey)(coordxy *, coordxy *, int *);
     void (*win_nhbell)(void);
     int (*win_doprev_message)(void);
     char (*win_yn_function)(const char *, const char *, char);
@@ -83,6 +91,8 @@ struct window_procs {
     void (*win_status_update)(int, genericptr_t, int, int, int,
                               unsigned long *);
     boolean (*win_can_suspend)(void);
+    void (*win_update_inventory)(int);
+    win_request_info *(*win_ctrl_nhwindow)(winid, int, win_request_info *);
 };
 
 extern
@@ -135,7 +145,7 @@ extern
 #define getlin (*windowprocs.win_getlin)
 #define get_ext_cmd (*windowprocs.win_get_ext_cmd)
 #define number_pad (*windowprocs.win_number_pad)
-#define delay_output (*windowprocs.win_delay_output)
+#define nh_delay_output (*windowprocs.win_delay_output)
 #ifdef CHANGE_COLOR
 #define change_color (*windowprocs.win_change_color)
 #ifdef MAC
@@ -164,6 +174,13 @@ extern
  */
 #define status_enablefield (*windowprocs.win_status_enablefield)
 #define status_update (*windowprocs.win_status_update)
+#define ctrl_nhwindow (*windowprocs.win_ctrl_nhwindow)
+
+/*
+ *
+ */
+#define WPID(name) #name, wp_##name
+#define WPIDMINUS(name) "-" #name, wp_##name
 
 /*
  * WINCAP
@@ -259,16 +276,6 @@ extern
 #define MAP_MODE_ASCII_FIT_TO_SCREEN 10
 #define MAP_MODE_TILES_FIT_TO_SCREEN 11
 
-#if 0
-#define WC_SND_SOUND   0x0001L /* 01 Port has some sound capabilities     */
-#define WC_SND_SPEAKER 0x0002L /* 02 Sound supported via built-in speaker */
-#define WC_SND_STEREO  0x0004L /* 03 Stereo sound supported               */
-#define WC_SND_RAW     0x0008L /* 04 Raw sound supported                  */
-#define WC_SND_WAVE    0x0010L /* 05 Wave support                         */
-#define WC_SND_MIDI    0x0020L /* 06 Midi support                         */
-                               /* 26 free bits */
-#endif
-
 struct wc_Opt {
     const char *wc_name;
     unsigned long wc_bit;
@@ -276,8 +283,13 @@ struct wc_Opt {
 
 /* Macro for the currently active Window Port whose function
    pointers have been loaded */
+#if 0
+/* 3.7 The string comparison version isn't used anymore */
 #define WINDOWPORT(wn) \
-    (windowprocs.name && !strncmpi((wn), windowprocs.name, strlen((wn))))
+    (windowprocs.name && !strncmpi((#wn), windowprocs.name, strlen((#wn))))
+#endif
+
+#define WINDOWPORT(wn) (windowprocs.wp_id == wp_##wn)
 
 /* role selection by player_selection(); this ought to be in the core... */
 #define RS_NAME    0
@@ -295,9 +307,9 @@ struct wc_Opt {
 
 #ifdef WINCHAIN
 /* Setup phases for window chain elements.
-        void *  rv = X_procs_chain(int,	int, void *, void *, void *);
-                Xprivate*	   ALLOC n	0	0	0
-                -		   INIT	 n   self    next    nextdata
+        void *  rv = X_procs_chain(int, int, void *, void *, void *);
+                Xprivate*          ALLOC n      0       0       0
+                -                  INIT  n   self    next    nextdata
    where:
         Xprivate* is anything window chain entry type X wants back
         n is the link count (starting with 1)
@@ -318,6 +330,7 @@ struct chain_procs {
     const char *name;     /* Names should start with [a-z].  Names must
                            * not start with '-'.  Names starting with
                            * '+' are reserved for processors. */
+    enum wp_ids wp_id;
     unsigned long wincap; /* window port capability options supported */
     unsigned long wincap2; /* additional window port capability options */
     boolean has_color[CLR_MAX];
@@ -339,7 +352,7 @@ struct chain_procs {
     void (*win_start_menu)(CARGS, winid, unsigned long);
     void (*win_add_menu)(CARGS, winid, const glyph_info *,
                          const ANY_P *, char, char, int,
-                         const char *, unsigned int);
+                         int, const char *, unsigned int);
     void (*win_end_menu)(CARGS, winid, const char *);
     int (*win_select_menu)(CARGS, winid, int, MENU_ITEM_P **);
     char (*win_message_menu)(CARGS, char, int, const char *);
@@ -352,13 +365,13 @@ struct chain_procs {
 #ifdef POSITIONBAR
     void (*win_update_positionbar)(CARGS, char *);
 #endif
-    void (*win_print_glyph)(CARGS, winid, xchar, xchar,
+    void (*win_print_glyph)(CARGS, winid, coordxy, coordxy,
                             const glyph_info *,
                             const glyph_info *);
     void (*win_raw_print)(CARGS, const char *);
     void (*win_raw_print_bold)(CARGS, const char *);
     int (*win_nhgetch)(CARGS);
-    int (*win_nh_poskey)(CARGS, int *, int *, int *);
+    int (*win_nh_poskey)(CARGS, coordxy *, coordxy *, int *);
     void (*win_nhbell)(CARGS);
     int (*win_doprev_message)(CARGS);
     char (*win_yn_function)
@@ -416,12 +429,11 @@ extern void safe_putmixed(winid, int, const char *);
 extern void safe_display_file(const char *, boolean);
 extern void safe_start_menu(winid, unsigned long);
 extern void safe_add_menu(winid, const glyph_info *, const ANY_P *,
-                          char, char, int, const char *,
+                          char, char, int, int, const char *,
                           unsigned int);
 extern void safe_end_menu(winid, const char *);
 extern int safe_select_menu(winid, int, MENU_ITEM_P **);
 extern char safe_message_menu(char, int, const char *);
-extern void safe_update_inventory(int);
 extern void safe_mark_synch(void);
 extern void safe_wait_synch(void);
 #ifdef CLIPPING
@@ -430,12 +442,12 @@ extern void safe_cliparound(int, int);
 #ifdef POSITIONBAR
 extern void safe_update_positionbar(char *);
 #endif
-extern void safe_print_glyph(winid, xchar, xchar,
+extern void safe_print_glyph(winid, coordxy, coordxy,
                              const glyph_info *, const glyph_info *);
 extern void safe_raw_print(const char *);
 extern void safe_raw_print_bold(const char *);
 extern int safe_nhgetch(void);
-extern int safe_nh_poskey(int *, int *, int *);
+extern int safe_nh_poskey(coordxy *, coordxy *, int *);
 extern void safe_nhbell(void);
 extern int safe_doprev_message(void);
 extern char safe_yn_function(const char *, const char *, char);
@@ -468,6 +480,8 @@ extern void stdio_raw_print(const char *);
 extern void stdio_nonl_raw_print(const char *);
 extern void stdio_raw_print_bold(const char *);
 extern void stdio_wait_synch(void);
+extern void safe_update_inventory(int);
+extern win_request_info *safe_ctrl_nhwindow(winid, int, win_request_info *);
 extern int stdio_nhgetch(void);
 #endif /* SAFEPROCS */
 #endif /* WINPROCS_H */

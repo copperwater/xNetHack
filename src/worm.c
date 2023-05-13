@@ -11,7 +11,7 @@
 /* worm segment structure */
 struct wseg {
     struct wseg *nseg;
-    xchar wx, wy; /* the segment's position */
+    coordxy wx, wy; /* the segment's position */
 };
 
 static void toss_wsegs(struct wseg *, boolean);
@@ -82,7 +82,7 @@ static long wgrowtime[MAX_NUM_WORMS] = DUMMY;
  *  there are no slots available.  This means that the worm head can exist,
  *  it just cannot ever grow a tail.
  *
- *  It, also, means that there is an optimisation to made.  The [0] positions
+ *  It, also, means that there is an optimization to made.  The [0] positions
  *  of the arrays are never used.  Meaning, we really *could* have one more
  *  tailed worm on the level, or use a smaller array (using wormno - 1).
  *
@@ -213,13 +213,13 @@ worm_move(struct monst *worm)
     seg->nseg = new_seg;    /* attach it to the end of the list */
     wheads[wnum] = new_seg; /* move the end pointer */
 
-    if (wgrowtime[wnum] <= g.moves) {
+    if (wgrowtime[wnum] <= gm.moves) {
         int whplimit, whpcap, prev_mhp, wsegs = count_wsegs(worm);
 
         /* first set up for the next time to grow */
         if (!wgrowtime[wnum]) {
             /* new worm; usually grow a tail segment on its next turn */
-            wgrowtime[wnum] = g.moves + rnd(5);
+            wgrowtime[wnum] = gm.moves + rnd(5);
         } else {
             int mmove = mcalcmove(worm, FALSE),
                 /* prior to 3.7.0, next-grow increment was 3..17 but since
@@ -232,7 +232,7 @@ worm_move(struct monst *worm)
                                     * speed of 3, effective value is 8..48 */
 
             incr = (incr * NORMAL_SPEED) / max(mmove, 1);
-            wgrowtime[wnum] = g.moves + incr;
+            wgrowtime[wnum] = gm.moves + incr;
         }
 
         /* increase HP based on number of segments; if it has shrunk, it
@@ -368,7 +368,7 @@ wormhitu(struct monst *worm)
  *  that both halves will survive.
  */
 void
-cutworm(struct monst *worm, xchar x, xchar y,
+cutworm(struct monst *worm, coordxy x, coordxy y,
         boolean cuttier) /* hit is by wielded blade or axe or by thrown axe */
 {
     struct wseg *curr, *new_tail;
@@ -434,7 +434,7 @@ cutworm(struct monst *worm, xchar x, xchar y,
     /* Sometimes the tail end dies. */
     if (!new_worm) {
         place_worm_seg(worm, x, y); /* place the "head" segment back */
-        if (g.context.mon_moving) {
+        if (gc.context.mon_moving) {
             if (canspotmon(worm))
                 pline("Part of %s tail has been cut off.",
                       s_suffix(mon_nam(worm)));
@@ -468,7 +468,7 @@ cutworm(struct monst *worm, xchar x, xchar y,
     /* Place the new monster at all the segment locations. */
     place_wsegs(new_worm, worm);
 
-    if (g.context.mon_moving)
+    if (gc.context.mon_moving)
         pline("%s is cut in half.", Monnam(worm));
     else
         You("cut %s in half.", mon_nam(worm));
@@ -623,7 +623,7 @@ place_wsegs(struct monst *worm, struct monst *oldworm)
     struct wseg *curr = wtails[worm->wormno];
 
     while (curr != wheads[worm->wormno]) {
-        xchar x = curr->wx, y = curr->wy;
+        coordxy x = curr->wx, y = curr->wy;
         struct monst *mtmp = m_at(x, y);
 
         if (oldworm && mtmp == oldworm)
@@ -674,9 +674,9 @@ sanity_check_worm(struct monst *worm)
         x = curr->wx, y = curr->wy;
         if (!isok(x, y))
             impossible("worm seg not isok <%d,%d>", x, y);
-        else if (g.level.monsters[x][y] != worm)
+        else if (gl.level.monsters[x][y] != worm)
             impossible("mon (%s) at seg location is not worm (%s)",
-                       fmt_ptr((genericptr_t) g.level.monsters[x][y]),
+                       fmt_ptr((genericptr_t) gl.level.monsters[x][y]),
                        fmt_ptr((genericptr_t) worm));
 
         curr = curr->nseg;
@@ -741,7 +741,7 @@ remove_worm(struct monst *worm)
  *  be, if somehow the head is disjoint from the tail.
  */
 void
-place_worm_tail_randomly(struct monst *worm, xchar x, xchar y)
+place_worm_tail_randomly(struct monst *worm, coordxy x, coordxy y)
 {
     int wnum = worm->wormno;
     struct wseg *curr = wtails[wnum];
@@ -778,42 +778,12 @@ place_worm_tail_randomly(struct monst *worm, xchar x, xchar y)
     new_tail->wy = y;
 
     while (curr) {
-        int nx = 0, ny = 0;
-#if 0   /* old code */
-        int trycnt = 0;
+        coordxy nx = ox, ny = oy;
 
-        /* pick a random direction from x, y and test for goodpos() */
-        do {
-            random_dir(ox, oy, &nx, &ny);
-        } while (!goodpos(nx, ny, worm, 0) && ++tryct <= 50);
-
-        if (tryct <= 50)
-#else   /* new code */
-        int i, j, k, dirs[N_DIRS];
-
-        /* instead of picking a random direction up to 50 times, try each
-           of the eight directions at most once after shuffling their order */
-        for (i = 0; i < N_DIRS; ++i)
-            dirs[i] = i;
-        for (i = N_DIRS; i > 0; --i) {
-            j = rn2(i);
-            k = dirs[j];
-            dirs[j] = dirs[i - 1];
-            dirs[i - 1] = k;
-        }
-        for (i = 0; i < N_DIRS; ++i) {
-            nx = ox + xdir[dirs[i]];
-            ny = oy + ydir[dirs[i]];
-            if (goodpos(nx, ny, worm, 0)) /* includes an isok() check */
-                break;
-        }
-
-        if (i < N_DIRS)
-#endif
-        {
+        if (rnd_nextto_goodpos(&nx, &ny, worm)) {
             place_worm_seg(worm, nx, ny);
-            curr->wx = (xchar) (ox = nx);
-            curr->wy = (xchar) (oy = ny);
+            curr->wx = (coordxy) (ox = nx);
+            curr->wy = (coordxy) (oy = ny);
             wtails[wnum] = curr;
             curr = curr->nseg;
             wtails[wnum]->nseg = new_tail;
@@ -987,7 +957,7 @@ wseg_at(struct monst *worm, int x, int y)
     if (worm && worm->wormno && m_at(x, y) == worm) {
         struct wseg *curr;
         int i, n;
-        xchar wx = (xchar) x, wy = (xchar) y;
+        coordxy wx = (coordxy) x, wy = (coordxy) y;
 
         for (i = 0, curr = wtails[worm->wormno]; curr; curr = curr->nseg) {
             if (curr->wx == wx && curr->wy == wy)
@@ -1007,8 +977,8 @@ flip_worm_segs_vertical(struct monst *worm, int miny, int maxy)
     struct wseg *curr = wtails[worm->wormno];
 
     while (curr) {
-	curr->wy = (maxy - curr->wy + miny);
-	curr = curr->nseg;
+        curr->wy = (maxy - curr->wy + miny);
+        curr = curr->nseg;
     }
 }
 
@@ -1018,22 +988,22 @@ flip_worm_segs_horizontal(struct monst *worm, int minx, int maxx)
     struct wseg *curr = wtails[worm->wormno];
 
     while (curr) {
-	curr->wx = (maxx - curr->wx + minx);
-	curr = curr->nseg;
+        curr->wx = (maxx - curr->wx + minx);
+        curr = curr->nseg;
     }
 }
 
 void
-place_worm_seg(struct monst *worm, xchar x, xchar y)
+place_worm_seg(struct monst *worm, coordxy x, coordxy y)
 {
 #ifdef FUZZER_LOG
     fuzl_xy("place_worm_seg", x,y);
 #endif
 #ifdef EXTRA_SANITY_CHECKS
-    if (g.level.monsters[x][y] && g.level.monsters[x][y] != worm)
+    if (gl.level.monsters[x][y] && gl.level.monsters[x][y] != worm)
         impossible("place_worm_seg over mon");
 #endif
-    g.level.monsters[x][y] = worm;
+    gl.level.monsters[x][y] = worm;
 }
 
 /*worm.c*/

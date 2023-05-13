@@ -1,5 +1,5 @@
 /* NetHack 3.7	winstat.c	$NHDT-Date: 1649269127 2022/04/06 18:18:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.37 $ */
-/* Copyright (c) Dean Luick, 1992				  */
+/* Copyright (c) Dean Luick, 1992                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /*
@@ -181,7 +181,7 @@ static const char *fancy_status_hilite_colors[] = {
     "magenta3",
     "dark cyan",
     "web gray",
-    "",	/* NO_COLOR */
+    "",          /* NO_COLOR */
     "orange",
     "green3",
     "goldenrod",
@@ -1228,8 +1228,8 @@ adjust_status_fancy(struct xwindow *wp, const char *str)
 }
 
 /* Fancy ================================================================== */
-extern const char *hu_stat[];  /* from eat.c */
-extern const char *enc_stat[]; /* from botl.c */
+extern const char *const hu_stat[];  /* from eat.c */
+extern const char *const enc_stat[]; /* from botl.c */
 
 struct X_status_value {
     /* we have to cast away 'const' when assigning new names */
@@ -1467,7 +1467,7 @@ update_val(struct X_status_value *attr_rec, long new_value)
 
     if (attr_rec->type == SV_LABEL) {
         if (attr_rec == &shown_stats[F_NAME]) {
-            Strcpy(buf, g.plname);
+            Strcpy(buf, gp.plname);
             buf[0] = highc(buf[0]);
             Strcat(buf, " the ");
             if (Upolyd) {
@@ -1482,11 +1482,11 @@ update_val(struct X_status_value *attr_rec, long new_value)
                 Strcat(buf, mnam);
             } else
                 Strcat(buf,
-                       rank_of(u.ulevel, g.pl_character[0], flags.female));
+                       rank_of(u.ulevel, gp.pl_character[0], flags.female));
 
         } else if (attr_rec == &shown_stats[F_DLEVEL]) {
             if (!describe_level(buf, 0)) {
-                Strcpy(buf, g.dungeons[u.uz.dnum].dname);
+                Strcpy(buf, gd.dungeons[u.uz.dnum].dname);
                 Sprintf(eos(buf), ", level %d", depth(&u.uz));
             }
         } else {
@@ -1754,11 +1754,11 @@ apply_hilite_attributes(struct X_status_value *sv, int attributes)
  * the other.  So only do our update when we update the second line.
  *
  * Information on the first line:
- *	name, characteristics, alignment, score
+ *      name, characteristics, alignment, score
  *
  * Information on the second line:
- *	dlvl, gold, hp, power, ac, {level & exp or HD **}, time,
- *	status * (stone, slime, strngl, foodpois, termill,
+ *      dlvl, gold, hp, power, ac, {level & exp or HD **}, time,
+ *      status * (stone, slime, strngl, foodpois, termill,
  *                hunger, encumbrance, lev, fly, ride,
  *                blind, deaf, stun, conf, hallu)
  *
@@ -1876,7 +1876,7 @@ update_fancy_status_field(int i, int color, int attributes)
             break; /* special */
 
         case F_GOLD:
-            val = money_cnt(g.invent);
+            val = money_cnt(gi.invent);
             if (val < 0L)
                 val = 0L; /* ought to issue impossible() and discard gold */
             break;
@@ -1906,7 +1906,7 @@ update_fancy_status_field(int i, int color, int attributes)
             val = (long) u.ualign.type;
             break;
         case F_TIME:
-            val = flags.time ? (long) g.moves : 0L;
+            val = flags.time ? (long) gm.moves : 0L;
             break;
         case F_SCORE:
 #ifdef SCORE_ON_BOTL
@@ -1919,17 +1919,17 @@ update_fancy_status_field(int i, int color, int attributes)
             /*
              * There is a possible infinite loop that occurs with:
              *
-             * 	impossible->pline->flush_screen->bot->bot{1,2}->
-             * 	putstr->adjust_status->update_other->impossible
+             *  impossible->pline->flush_screen->bot->bot{1,2}->
+             *  putstr->adjust_status->update_other->impossible
              *
              * Break out with this.
              */
-            static boolean active = FALSE;
+            static boolean isactive = FALSE;
 
-            if (!active) {
-                active = TRUE;
+            if (!isactive) {
+                isactive = TRUE;
                 impossible("update_other: unknown shown value");
-                active = FALSE;
+                isactive = FALSE;
             }
             val = 0L;
             break;
@@ -2314,12 +2314,12 @@ static int characteristics_indices[11 - 2] = {
 /*
  * Produce a form that looks like the following:
  *
- *		  title
+ *                title
  *               location
- * col1_indices[0]	col2_indices[0]      col3_indices[0]
- * col1_indices[1]	col2_indices[1]      col3_indices[1]
+ * col1_indices[0]      col2_indices[0]      col3_indices[0]
+ * col1_indices[1]      col2_indices[1]      col3_indices[1]
  *    ...                  ...                  ...
- * col1_indices[5]	col2_indices[5]      col3_indices[5]
+ * col1_indices[5]      col2_indices[5]      col3_indices[5]
  *
  * The status conditions are managed separately and appear to the right
  * of this form.

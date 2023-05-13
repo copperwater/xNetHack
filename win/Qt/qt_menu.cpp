@@ -170,7 +170,12 @@ NetHackQtMenuWindow::NetHackQtMenuWindow(QWidget *parent) :
 
     QGridLayout *grid = new QGridLayout();
     table->setColumnCount(5);
+#if __cplusplus >= 202002L
+    table->setFrameStyle(static_cast<int>(QFrame::Panel)
+                             | static_cast<int>(QFrame::Sunken));
+#else
     table->setFrameStyle(QFrame::Panel|QFrame::Sunken);
+#endif
     table->setLineWidth(2); // note: this is not row spacing
     table->setShowGrid(false);
     table->horizontalHeader()->hide();
@@ -378,8 +383,8 @@ void NetHackQtMenuWindow::PadMenuColumns(bool split_descr)
     QFontMetrics fm(table->font());
     QString col0width_str = "";
     if (biggestcount > 0L)
-        col0width_str = QString::asprintf("%*ld", std::max(countdigits, 1),
-                                          biggestcount);
+        col0width_str = nh_qsprintf("%*ld", std::max(countdigits, 1),
+                                    biggestcount);
     int col0width_int = (int) fm.QFM_WIDTH(col0width_str) + MENU_WIDTH_SLOP;
     if (col0width_int > table->columnWidth(0))
 	WidenColumn(0, col0width_int);
@@ -422,7 +427,7 @@ void NetHackQtMenuWindow::PadMenuColumns(bool split_descr)
             QString Amt = "";
             long amt = count(row); // fetch item(row,0) as a number
             if (amt > 0L)
-                Amt = QString::asprintf("%*ld", countdigits, amt);
+                Amt = nh_qsprintf("%*ld", countdigits, amt);
             cnt->setText(Amt);
         }
 
@@ -465,8 +470,7 @@ void NetHackQtMenuWindow::UpdateCountColumn(long newcount)
     } else {
         biggestcount = std::max(biggestcount, newcount);
         QString num;
-        num = QString::asprintf("%*ld", std::max(countdigits, 1),
-                                biggestcount);
+        num = nh_qsprintf("%*ld", std::max(countdigits, 1), biggestcount);
         int numlen = (int) num.length();
         if (numlen % 2)
             ++numlen;
@@ -798,7 +802,7 @@ void NetHackQtMenuWindow::ChooseNone()
         itemlist[row].preselected = false; // stale for all rows
         // skip if not selectable or already unselected or fails invert_test()
         if (!itemlist[row].Selectable()
-            || !itemlist[row].selected
+            || (!itemlist[row].selected && !isSelected(row))
             || !menuitem_invert_test(2, itemlist[row].itemflags, TRUE))
             continue;
         itemlist[row].selected = false;
@@ -898,7 +902,7 @@ void NetHackQtMenuWindow::ToggleSelect(int row, bool already_toggled)
                 amt = count(row); // fetch item(row,0) as a number
                 QString Amt = "";
                 if (amt > 0L)
-                    Amt = QString::asprintf("%*ld", countdigits, amt);
+                    Amt = nh_qsprintf("%*ld", countdigits, amt);
                 countfield->setText(Amt); // store right-justified value
             }
             ClearCount(); // blank out 'countstr' and reset 'counting'
@@ -1062,7 +1066,7 @@ void NetHackQtTextWindow::UseRIP(int how, time_t when)
 
     /* Put name on stone */
     (void) snprintf(rip_line[NAME_LINE], STONE_LINE_LEN + 1,
-                    "%.*s", STONE_LINE_LEN, g.plname);
+                    "%.*s", STONE_LINE_LEN, gp.plname);
 
     /* Put $ on stone;
        to keep things safe and relatively simple, impose an arbitrary
@@ -1074,9 +1078,11 @@ void NetHackQtTextWindow::UseRIP(int how, time_t when)
        (simplest case: ~300K four times in a blessed bag of holding, so
        ~1.2M; in addition to the hassle of getting such a thing set up,
        it would need many gold-rich bones levels or wizard mode wishing) */
-    long cash = std::max(g.done_money, 0L);
+    long cash = std::max(gd.done_money, 0L);
     /* force less that 10 digits to satisfy elaborate format checking;
        it's arbitrary but still way, way more than could ever be needed */
+    if (cash < 0)
+        cash = 0;
     if (cash > 999999999L)
         cash = 999999999L;
     snpres = snprintf(rip_line[GOLD_LINE], STONE_LINE_LEN + 1, "%ld Au", cash);
@@ -1278,57 +1284,89 @@ NetHackQtMenuOrTextWindow::NetHackQtMenuOrTextWindow(QWidget *parent_) :
 {
 }
 
+// StartMenu() turns a MenuOrTextWindow into a MenuWindow,
+// PutStr() turns one into a TextWindow;
+// calling any other MenuOrTextWindow routine before either of those
+// elicits a warning.  (Should probably quit via panic() instead.)
+void NetHackQtMenuOrTextWindow::MenuOrText_too_soon_warning(const char *which)
+{
+    impossible("'%s' called before we know whether window is Menu or Text.",
+               which);
+}
+
 QWidget* NetHackQtMenuOrTextWindow::Widget()
 {
-    if (!actual) impossible("Widget called before we know if Menu or Text");
-    return actual->Widget();
+    QWidget *result = NULL;
+    if (!actual)
+        MenuOrText_too_soon_warning("Widget");
+    else
+        result = actual->Widget();
+    return result;
 }
 
 // Text
 void NetHackQtMenuOrTextWindow::Clear()
 {
-    if (!actual) impossible("Clear called before we know if Menu or Text");
-    actual->Clear();
+    if (!actual)
+        MenuOrText_too_soon_warning("Clear");
+    else
+        actual->Clear();
 }
 void NetHackQtMenuOrTextWindow::Display(bool block)
 {
-    if (!actual) impossible("Display called before we know if Menu or Text");
-    actual->Display(block);
+    if (!actual)
+        MenuOrText_too_soon_warning("Display");
+    else
+        actual->Display(block);
 }
 bool NetHackQtMenuOrTextWindow::Destroy()
 {
-    if (!actual) impossible("Destroy called before we know if Menu or Text");
-    return actual->Destroy();
+    bool result = false;
+    if (!actual)
+        MenuOrText_too_soon_warning("Destroy");
+    else
+        result = actual->Destroy();
+    return result;
 }
-
 void NetHackQtMenuOrTextWindow::PutStr(int attr, const QString& text)
 {
-    if (!actual) actual=new NetHackQtTextWindow(parent);
-    actual->PutStr(attr,text);
+    if (!actual)
+        actual = new NetHackQtTextWindow(parent);
+    actual->PutStr(attr, text);
 }
 
 // Menu
 void NetHackQtMenuOrTextWindow::StartMenu(bool using_WIN_INVEN)
 {
-    if (!actual) actual=new NetHackQtMenuWindow(parent);
+    if (!actual)
+        actual = new NetHackQtMenuWindow(parent);
     actual->StartMenu(using_WIN_INVEN);
 }
-void NetHackQtMenuOrTextWindow::AddMenu(int glyph, const ANY_P* identifier,
-                                        char ch, char gch, int attr,
-                                        const QString& str, unsigned itemflags)
+void NetHackQtMenuOrTextWindow::AddMenu(
+    int glyph, const ANY_P* identifier,
+    char ch, char gch, int attr,
+    const QString& str, unsigned itemflags)
 {
-    if (!actual) impossible("AddMenu called before we know if Menu or Text");
-    actual->AddMenu(glyph,identifier,ch,gch,attr,str,itemflags);
+    if (!actual)
+        MenuOrText_too_soon_warning("AddMenu");
+    else
+        actual->AddMenu(glyph, identifier, ch, gch, attr, str, itemflags);
 }
 void NetHackQtMenuOrTextWindow::EndMenu(const QString& prompt)
 {
-    if (!actual) impossible("EndMenu called before we know if Menu or Text");
-    actual->EndMenu(prompt);
+    if (!actual)
+        MenuOrText_too_soon_warning("EndMenu");
+    else
+        actual->EndMenu(prompt);
 }
 int NetHackQtMenuOrTextWindow::SelectMenu(int how, MENU_ITEM_P **menu_list)
 {
-    if (!actual) impossible("SelectMenu called before we know if Menu or Text");
-    return actual->SelectMenu(how,menu_list);
+    int result = -1; // cancelled
+    if (!actual)
+        MenuOrText_too_soon_warning("SelectMenu");
+    else
+        result = actual->SelectMenu(how, menu_list);
+    return result;
 }
 
 } // namespace nethack_qt_

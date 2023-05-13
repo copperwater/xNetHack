@@ -13,7 +13,7 @@ extern "C" {
 #include <QtGui/QtGui>
 #if QT_VERSION >= 0x060000
 #include <QtGui/QShortcut>
-#else
+#elif QT_VERSION >= 0x050000
 #include <QtWidgets/QShortcut>
 #endif
 
@@ -459,11 +459,12 @@ aboutMsg()
     char *p, vbuf[BUFSZ];
     /* nethack's getversionstring() includes a final period
        but we're using it mid-sentence so strip period off */
-    if ((p = strrchr(::getversionstring(vbuf, sizeof vbuf), '.')) != 0 && *(p + 1) == '\0')
+    if ((p = strrchr(::getversionstring(vbuf, sizeof vbuf), '.')) != 0
+        && *(p + 1) == '\0')
         *p = '\0';
     /* it's also long; break it into two pieces */
     (void) strsubst(vbuf, " - ", "\n- ");
-    QString msg = QString::asprintf(
+    QString msg = nh_qsprintf(
         // format
         "xNetHack-Qt is a version of xNetHack built using" // no newline
 #ifdef KDE
@@ -585,9 +586,9 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
         int flags;         // 1 desktop, 2 handheld, 3 either/both
         int (*funct)(void);
     } item[] = {
-        { game,    0, 3},
+        { game,    0, 3, (int (*)(void)) 0},
         { game,    "Extended-commands",  3, doextcmd },
-        { game,    0, 3},
+        { game,    0, 3, (int (*)(void)) 0},
         { game,    "Version",            3, doversion},
         { game,    "Compilation",        3, doextversion},
         { game,    "History",            3, dohistory},
@@ -602,7 +603,7 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
 #endif
                    "Options",            3, doset},
         { game,    "Explore mode",       3, enter_explore_mode},
-        { game,    0, 3},
+        { game,    0, 3, (int (*)(void)) 0},
         { game,    "Save-and-exit",      3, dosave},
         { game,
 #ifdef MACOS
@@ -615,15 +616,15 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
 
         { apparel, "Apparel off",        2, doddoremarm},
         { apparel, "Remove many",        1, doddoremarm},
-        { apparel, 0, 3},
+        { apparel, 0, 3, (int (*)(void)) 0},
         { apparel, "Wield weapon",       3, dowield},
         { apparel, "Exchange weapons",   3, doswapweapon},
         { apparel, "Two weapon combat",  3, dotwoweapon},
         { apparel, "Load quiver",        3, dowieldquiver},
-        { apparel, 0, 3},
+        { apparel, 0, 3, (int (*)(void)) 0},
         { apparel, "Wear armor",         3, dowear},
         { apparel, "Take off armor",     3, dotakeoff},
-        { apparel, 0, 3},
+        { apparel, 0, 3, (int (*)(void)) 0},
         { apparel, "Put on accessories", 3, doputon},
         { apparel, "Remove accessories", 3, doremring},
 
@@ -663,20 +664,20 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
         { magic, "Dip",              3, dodip},
         { magic, "Rub",              3, dorub},
         { magic, "Invoke",           3, doinvoke},
-        { magic, 0, 3},
+        { magic, 0, 3, (int (*)(void)) 0},
         { magic, "Offer",            3, dosacrifice},
         { magic, "Pray",             3, dopray},
-        { magic, 0, 3},
+        { magic, 0, 3, (int (*)(void)) 0},
         { magic, "Teleport",         3, dotelecmd},
         { magic, "Monster action",   3, domonability},
         { magic, "Turn undead",      3, doturn},
 
         { help,  "Help",             3, dohelp},
-        { help,  0, 3},
+        { help,  0, 3, (int (*)(void)) 0},
         { help,  "What is here",     3, dolook},
         { help,  "What is there",    3, doquickwhatis},
         { help,  "What is...",       2, dowhatis},
-        { help,  0, 1},
+        { help,  0, 1, (int (*)(void)) 0},
 
         { info,  "Inventory",        3, ddoinv},
         { info,  "Attributes (extended status)", 3, doattributes },
@@ -685,13 +686,13 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
         { info,  "Discoveries",      3, dodiscovered},
         { info,  "List/reorder spells",  3, dovspell},
         { info,  "Adjust inventory letters", 3, doorganize },
-        { info,  0, 3},
+        { info,  0, 3, (int (*)(void)) 0},
         { info,  "Name object or creature", 3, docallcmd},
         { info,  "Annotate level",   3, donamelevel },
-        { info,  0, 3},
+        { info,  0, 3, (int (*)(void)) 0},
         { info,  "Skills",  3, enhance_weapon_skill},
 
-	{ 0, 0, 0 }
+	{ 0, 0, 0, (int (*)(void)) 0 }
     };
 
     QAction *actn;
@@ -829,8 +830,13 @@ NetHackQtMainWindow::NetHackQtMainWindow(NetHackQtKeyBuffer& ks) :
     // order changed: was Again, Get, Kick, Throw, Fire, Drop, Eat, Rest
     //                now Again, PickUp, Drop, Kick, Throw, Fire, Eat, Rest
     QSignalMapper* sm = new QSignalMapper(this);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    connect(sm, SIGNAL(mappedString(const QString&)),
+            this, SLOT(doKeys(const QString&)));
+#else
     connect(sm, SIGNAL(mapped(const QString&)),
             this, SLOT(doKeys(const QString&)));
+#endif
     AddToolButton(toolbar, sm, "Again", do_repeat, QPixmap(again_xpm));
     // this used to be called "Get" which is confusing to experienced players
     AddToolButton(toolbar, sm, "Pick up", dopickup, QPixmap(pickup_xpm));
@@ -996,8 +1002,30 @@ public:
 };
 #endif
 
+/* used by doMenuItem() and for the toolbar buttons */
+bool NetHackQtMainWindow::ok_for_command()
+{
+    /*
+     * If the core expects text to be entered (perhaps typing in a wish,
+     * assigning a name to something, or answering a y/n prompt), or a
+     * map position or a direction is being picked, don't accept commands
+     * from the toolbar.
+     *
+     * FIXME: it would be much better to gray-out inapplicable entries
+     * when popping up a command menu instead of needing this.
+     */
+    if (::gp.program_state.input_state != commandInp) {
+        NetHackQtBind::qt_nhbell();
+        // possibly call doKeys("\033"); here?
+        return false;
+    }
+    return true;
+}
+
 void NetHackQtMainWindow::doMenuItem(QAction *action)
 {
+    if (!ok_for_command())
+        return;
     /* this converts meta characters to '?'; menu processing has been
        changed to send multi-character "#abc" instead (already needed
        for commands that didn't have either a regular keystroke or a
@@ -1029,8 +1057,8 @@ void NetHackQtMainWindow::doQuit(bool)
     // nethack's #quit command itself) but this routine is unconditional
     // in case someone wants to change that
 #ifdef MACOS
-    QString info = QString::asprintf("This will end your xNetHack session.%s",
-                 !g.program_state.something_worth_saving ? ""
+    QString info = nh_qsprintf("This will end your xNetHack session.%s",
+                 !gp.program_state.something_worth_saving ? ""
                  : "\n(Cancel quitting and use the Save command"
                    "\nto save your current game.)");
     /* this is similar to closeEvent but the details are different;
@@ -1048,7 +1076,7 @@ void NetHackQtMainWindow::doQuit(bool)
         break; // return to game
     case 1:
         // quit -- bypass the prompting preformed by done2()
-        g.program_state.stopprint++;
+        gp.program_state.stopprint++;
         ::done(QUIT);
         /*NOTREACHED*/
         break;
@@ -1315,7 +1343,7 @@ void NetHackQtMainWindow::keyPressEvent(QKeyEvent* event)
 	event->key() >= Qt::Key_Left && event->key() <= Qt::Key_Down )
 	return;
 
-    const char* d = g.Cmd.dirchars;
+    const char* d = gc.Cmd.dirchars;
     switch (event->key()) {
     case Qt::Key_Up:
 	if ( dirkey == d[0] )
@@ -1377,7 +1405,7 @@ void NetHackQtMainWindow::keyPressEvent(QKeyEvent* event)
 void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
 {
     int ok = 0;
-    if ( g.program_state.something_worth_saving ) {
+    if ( gp.program_state.something_worth_saving ) {
         /* this used to offer "Save" and "Cancel"
            but cancel (ignoring the close attempt) won't work
            if user has clicked on the window's Close button */
@@ -1392,7 +1420,7 @@ void NetHackQtMainWindow::closeEvent(QCloseEvent *e UNUSED)
         case 1:
             // quit -- bypass the prompting preformed by done2()
             ok = 1;
-            g.program_state.stopprint++;
+            gp.program_state.stopprint++;
             ::done(QUIT);
             /*NOTREACHED*/
             break;

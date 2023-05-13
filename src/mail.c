@@ -45,7 +45,7 @@ static boolean md_stop(coord *, coord *);
 static boolean md_rush(struct monst *, int, int);
 static void newmail(struct mail_info *);
 #if defined(SIMPLE_MAIL) || defined(SERVER_ADMIN_MSG)
-static void read_simplemail(char *mbox, boolean adminmsg);
+static void read_simplemail(const char *mbox, boolean adminmsg);
 #endif
 
 #if !defined(UNIX) && !defined(VMS)
@@ -153,7 +153,7 @@ md_start(coord *startp)
     int lax;          /* if TRUE, pick a position in sight. */
     int dd;           /* distance to current point */
     int max_distance; /* max distance found so far */
-    stairway *stway = g.stairs;
+    stairway *stway = gs.stairs;
 
     /*
      * If blind and not telepathic, then it doesn't matter what we pick ---
@@ -184,23 +184,23 @@ md_start(coord *startp)
      * position that could be seen.  What we really ought to be doing is
      * finding a path from a stairwell...
      *
-     * The arrays g.viz_rmin[] and g.viz_rmax[] are set even when blind.  These
+     * The arrays gv.viz_rmin[] and gv.viz_rmax[] are set even when blind.  These
      * are the LOS limits for each row.
      */
     lax = 0; /* be picky */
     max_distance = -1;
  retry:
     for (row = 0; row < ROWNO; row++) {
-        if (g.viz_rmin[row] < g.viz_rmax[row]) {
+        if (gv.viz_rmin[row] < gv.viz_rmax[row]) {
             /* There are valid positions on this row. */
-            dd = distu(g.viz_rmin[row], row);
+            dd = distu(gv.viz_rmin[row], row);
             if (dd > max_distance) {
                 if (lax) {
                     max_distance = dd;
                     startp->y = row;
-                    startp->x = g.viz_rmin[row];
+                    startp->x = gv.viz_rmin[row];
 
-                } else if (enexto(&testcc, (xchar) g.viz_rmin[row], row,
+                } else if (enexto(&testcc, (coordxy) gv.viz_rmin[row], row,
                                   (struct permonst *) 0)
                            && !cansee(testcc.x, testcc.y)
                            && couldsee(testcc.x, testcc.y)) {
@@ -208,14 +208,14 @@ md_start(coord *startp)
                     *startp = testcc;
                 }
             }
-            dd = distu(g.viz_rmax[row], row);
+            dd = distu(gv.viz_rmax[row], row);
             if (dd > max_distance) {
                 if (lax) {
                     max_distance = dd;
                     startp->y = row;
-                    startp->x = g.viz_rmax[row];
+                    startp->x = gv.viz_rmax[row];
 
-                } else if (enexto(&testcc, (xchar) g.viz_rmax[row], row,
+                } else if (enexto(&testcc, (coordxy) gv.viz_rmax[row], row,
                                   (struct permonst *) 0)
                            && !cansee(testcc.x, testcc.y)
                            && couldsee(testcc.x, testcc.y)) {
@@ -247,7 +247,7 @@ static boolean
 md_stop(coord *stopp,  /* stopping position (we fill it in) */
         coord *startp) /* starting position (read only) */
 {
-    int x, y, distance, min_distance = -1;
+    coordxy x, y, distance, min_distance = -1;
 
     for (x = u.ux - 1; x <= u.ux + 1; x++)
         for (y = u.uy - 1; y <= u.uy + 1; y++) {
@@ -332,6 +332,7 @@ md_rush(struct monst *md,
         if (fx == tx && fy == ty)
             break;
 
+        SetVoice(md, 0, 80, 0);
         if ((mon = m_at(fx, fy)) != 0) /* save monster at this position */
             verbalize1(md_exclamations());
         else if (u_at(fx, fy))
@@ -342,7 +343,7 @@ md_rush(struct monst *md,
         place_monster(md, fx, fy); /* put md down */
         newsym(fx, fy);            /* see it */
         flush_screen(0);           /* make sure md shows up */
-        delay_output();            /* wait a little bit */
+        nh_delay_output();            /* wait a little bit */
 
         /* Remove md from the dungeon.  Restore original mon, if necessary. */
         remove_monster(fx, fy);
@@ -363,6 +364,7 @@ md_rush(struct monst *md,
         remove_monster(fx, fy);
         place_monster(md, fx, fy); /* display md with text below */
         newsym(fx, fy);
+        SetVoice(md, 0, 80, 0);
         verbalize("This place's too crowded.  I'm outta here.");
         remove_monster(fx, fy);
 
@@ -378,7 +380,7 @@ md_rush(struct monst *md,
     place_monster(md, fx, fy); /* place at final spot */
     newsym(fx, fy);
     flush_screen(0);
-    delay_output(); /* wait a little bit */
+    nh_delay_output(); /* wait a little bit */
 
     return TRUE;
 }
@@ -403,7 +405,8 @@ newmail(struct mail_info *info)
         goto go_back;
 
     message_seen = TRUE;
-    verbalize("%s, %s!  %s.", Hello(md), g.plname, info->display_txt);
+    SetVoice(md, 0, 80, 0);
+    verbalize("%s, %s!  %s.", Hello(md), gp.plname, info->display_txt);
 
     if (info->message_typ) {
         struct obj *obj = mksobj(SCR_MAIL, FALSE, FALSE);
@@ -413,8 +416,10 @@ newmail(struct mail_info *info)
         if (info->response_cmd)
             new_omailcmd(obj, info->response_cmd);
 
-        if (!next2u(md->mx, md->my))
+        if (!next2u(md->mx, md->my)) {
+            SetVoice(md, 0, 80, 0);
             verbalize("Catch!");
+        }
         display_nhwindow(WIN_MESSAGE, FALSE);
         obj = hold_another_object(obj, "Oops!", (const char *) 0,
                                   (const char *) 0);
@@ -442,7 +447,7 @@ ckmailstatus(void)
         return;
     if (mustgetmail < 0) {
 #if defined(AMIGA) || defined(MSDOS) || defined(TOS)
-        mustgetmail = (g.moves < 2000) ? (100 + rn2(2000)) : (2000 + rn2(3000));
+        mustgetmail = (gm.moves < 2000) ? (100 + rn2(2000)) : (2000 + rn2(3000));
 #endif
         return;
     }
@@ -493,7 +498,7 @@ readmail(struct obj *otmp UNUSED)
     const char *const it_reads = "It reads:  \"";
 
     i = rn2(SIZE(junk_templates));
-    if (index(junk_templates[i], '%')) {
+    if (strchr(junk_templates[i], '%')) {
         if (i == 0) {
             recipient = DEVTEAM_EMAIL;
             delivery = subst_delivery;
@@ -528,12 +533,12 @@ ckmailstatus(void)
 
     if (!mailbox || u.uswallow || !flags.biff
 #ifdef MAILCKFREQ
-        || g.moves < laststattime + MAILCKFREQ
+        || gm.moves < laststattime + MAILCKFREQ
 #endif
         )
         return;
 
-    laststattime = g.moves;
+    laststattime = gm.moves;
     if (stat(mailbox, &nmstat)) {
 #ifdef PERMANENT_MAILBOX
         pline("Cannot get status of MAIL=\"%s\" anymore.", mailbox);
@@ -560,10 +565,8 @@ ckmailstatus(void)
 
 #if defined(SIMPLE_MAIL) || defined(SERVER_ADMIN_MSG)
 
-DISABLE_WARNING_FORMAT_NONLITERAL
-
 void
-read_simplemail(char *mbox, boolean adminmsg)
+read_simplemail(const char *mbox, boolean adminmsg)
 {
     FILE* mb = fopen(mbox, "r");
     char curline[128], *msg;
@@ -571,9 +574,6 @@ read_simplemail(char *mbox, boolean adminmsg)
 #ifdef SIMPLE_MAIL
     struct flock fl = { 0 };
 #endif
-    const char *msgfrom = adminmsg
-        ? "The voice of %s booms through the caverns:"
-        : "This message is from '%s'.";
 
     if (!mb)
         goto bail;
@@ -589,34 +589,47 @@ read_simplemail(char *mbox, boolean adminmsg)
     /* Allow this call to block. */
     if (!adminmsg
 #ifdef SIMPLE_MAIL
-        && fcntl (fileno (mb), F_SETLKW, &fl) == -1
+        && fcntl(fileno(mb), F_SETLKW, &fl) == -1
 #endif
         )
         goto bail;
 
     while (fgets(curline, 128, mb) != NULL) {
+        const char *endpunct;
+        int msglen;
+
         if (!adminmsg) {
 #ifdef SIMPLE_MAIL
             fl.l_type = F_UNLCK;
-            fcntl (fileno(mb), F_UNLCK, &fl);
+            fcntl(fileno(mb), F_UNLCK, &fl);
 #endif
-            pline("There is a%s message on this scroll.",
+            There("is a%s message on this scroll.",
                   seen_one_already ? "nother" : "");
         }
         msg = strchr(curline, ':');
 
-        if (!msg)
+        /* if incorrectly formatted, or message is empty (':' and '\n' take
+           up 2 chars, so must have at least 3 to be nonempty), give up */
+        if (!msg || (msglen = (int) strlen(msg)) < 3)
             goto bail;
 
         *msg = '\0';
-        msg++;
-        msg[strlen(msg) - 1] = '\0'; /* kill newline */
+        msg++, msglen--;
+        msg[msglen - 1] = '\0'; /* kill newline */
 
-        pline(msgfrom, curline);
-        if (adminmsg)
-            verbalize("%s", msg);
-        else
-            pline("It reads: \"%s\".", msg);
+        /* supply ending punctuation only if the message doesn't have any */
+        endpunct = "";
+        if (!strchr(".!?", msg[msglen - 2]))
+            endpunct = ".";
+
+        if (adminmsg) {
+            urgent_pline("The voice of %s booms through the caverns:",
+                         curline);
+        } else {
+            pline("This message is from '%s'.", curline);
+            pline("It reads:");
+        }
+        pline("\"%s\"%s", msg, endpunct);
 
         seen_one_already = TRUE;
 #ifdef SIMPLE_MAIL
@@ -646,8 +659,6 @@ read_simplemail(char *mbox, boolean adminmsg)
         pline("It appears to be all gibberish.");
 }
 
-RESTORE_WARNING_FORMAT_NONLITERAL
-
 #endif /* SIMPLE_MAIL */
 
 void
@@ -656,15 +667,13 @@ ck_server_admin_msg(void)
 #ifdef SERVER_ADMIN_MSG
     static struct stat ost,nst;
     static long lastchk = 0;
-    char adminbuf[BUFSZ];
 
-    if (g.moves < lastchk + SERVER_ADMIN_MSG_CKFREQ) return;
-    lastchk = g.moves;
+    if (gm.moves < lastchk + SERVER_ADMIN_MSG_CKFREQ) return;
+    lastchk = gm.moves;
 
     if (!stat(SERVER_ADMIN_MSG, &nst)) {
         if (nst.st_mtime > ost.st_mtime)
-            read_simplemail(nonconst(SERVER_ADMIN_MSG, adminbuf,
-				     sizeof adminbuf), TRUE);
+            read_simplemail(SERVER_ADMIN_MSG, TRUE);
         ost.st_mtime = nst.st_mtime;
     }
 #endif /* SERVER_ADMIN_MSG */

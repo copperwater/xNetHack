@@ -7,8 +7,8 @@
 #define DUNGEON_H
 
 typedef struct d_level { /* basic dungeon level element */
-    xchar dnum;          /* dungeon number */
-    xchar dlevel;        /* level number */
+    xint16 dnum;          /* dungeon number */
+    xint16 dlevel;        /* level number */
 } d_level;
 
 #if !defined(MAKEDEFS_C) && !defined(MDLIB_C)
@@ -18,7 +18,7 @@ typedef struct d_flags {     /* dungeon/level type flags */
     Bitfield(hellish, 1);    /* is this part of hell? */
     Bitfield(maze_like, 1);  /* is this a maze? */
     Bitfield(align, 3);      /* dungeon alignment. */
-    Bitfield(unused, 1);     /* etc... */
+    Bitfield(unconnected, 1); /* dungeon not connected to any branch */
 } d_flags;
 
 typedef struct s_level { /* special dungeon level element */
@@ -31,7 +31,7 @@ typedef struct s_level { /* special dungeon level element */
 } s_level;
 
 typedef struct stairway { /* basic stairway identifier */
-    xchar sx, sy;         /* x / y location of the stair */
+    coordxy sx, sy;         /* x / y location of the stair */
     d_level tolev;        /* where does it go */
     boolean up;           /* up or down? */
     boolean isladder;     /* ladder or stairway? */
@@ -51,10 +51,10 @@ enum level_region_types {
 };
 
 typedef struct dest_area { /* non-stairway level change identifier */
-    xchar lx, ly;          /* "lower" left corner (near [0,0]) */
-    xchar hx, hy;          /* "upper" right corner (near [COLNO,ROWNO]) */
-    xchar nlx, nly;        /* outline of invalid area */
-    xchar nhx, nhy;        /* opposite corner of invalid area */
+    coordxy lx, ly;          /* "lower" left corner (near [0,0]) */
+    coordxy hx, hy;          /* "upper" right corner (near [COLNO,ROWNO]) */
+    coordxy nlx, nly;        /* outline of invalid area */
+    coordxy nhx, nhy;        /* opposite corner of invalid area */
 } dest_area;
 
 typedef struct dungeon {   /* basic dungeon identifier */
@@ -64,9 +64,9 @@ typedef struct dungeon {   /* basic dungeon identifier */
     char themerms[15];     /* lua file name containing themed rooms */
     char boneid;           /* character to id dungeon in bones files */
     d_flags flags;         /* dungeon flags */
-    xchar entry_lev;       /* entry level */
-    xchar num_dunlevs;     /* number of levels in this dungeon */
-    xchar dunlev_ureached; /* how deep you have been in this dungeon */
+    xint16 entry_lev;       /* entry level */
+    xint16 num_dunlevs;     /* number of levels in this dungeon */
+    xint16 dunlev_ureached; /* how deep you have been in this dungeon */
     int ledger_start,      /* the starting depth in "real" terms */
         depth_start;       /* the starting depth in "logical" terms */
 } dungeon;
@@ -266,7 +266,7 @@ typedef struct mapseen {
     struct mapseen_rooms {
         Bitfield(seen, 1);
         Bitfield(untended, 1);         /* flag for shop without shk */
-    } msrooms[(MAXNROFROOMS + 1) * 2]; /* same size as g.rooms[] */
+    } msrooms[(MAXNROFROOMS + 1) * 2]; /* same size as gr.rooms[] */
     /* dead heroes; might not have graves or ghosts */
     struct cemetery *final_resting_place; /* same as level.bonesinfo */
 } mapseen;

@@ -1,7 +1,7 @@
 strategy:
   matrix:
-    linux_focal_gcc9_minimal:
-      imageName: 'ubuntu-20.04'
+    linux_latest_gcc9_minimal:
+      imageName: 'ubuntu-latest'
       toolchainName: gcc9
       buildTargetName: minimal
     linux_focal_clang_all:
@@ -16,22 +16,20 @@ strategy:
       imageName: 'ubuntu-20.04'
       toolchainName: gcc10
       buildTargetName: all
-    linux_bionic_gcc7_all:
-      imageName: 'ubuntu-18.04'
-      toolchainName: gcc7
+    linux_jammy_gcc11_all:
+      imageName: 'ubuntu-22.04'
+      toolchainName: gcc11
       buildTargetName: all
-# build is currently broken
-#    mac_catalina_gcc8_all:
-#      imageName: 'macOS-10.15'
-#      ccName: gcc-8
-#      cxxName: g++-8
-#      buildSetting: 'all'
-    mac_catalina_clang_all:
-      imageName: 'macOS-10.15'
+    macOS_latest_clang_all:
+      imageName: 'macOS-latest'
+      toolchainName: clang
+      buildTargetName: all
+    macOS_monterey_clang13_all:
+      imageName: 'macOS-12'
       toolchainName: clang
       buildTargetName: all
     windows-visualstudio:
-      imageName: 'windows-2019'
+      imageName: 'windows-latest'
       toolchainName: vs
       buildTargetName: all
     windows-mingw:
@@ -42,6 +40,11 @@ strategy:
       imageName: 'ubuntu-20.04'
       toolchainName: cross
       buildTargetName: msdos
+    linux_jammy_docs:
+      imageName: 'ubuntu-22.04'
+      toolchainName: docs
+      buildTargetName: all
+      continueOnError: true
 
 pool:
   vmImage: $(imageName)
@@ -75,6 +78,11 @@ steps:
     then
       echo "##vso[task.setvariable variable=CC]gcc-10"
       echo "##vso[task.setvariable variable=CXX]g++-10"
+    fi
+    if [ "$(toolchain)" == "gcc11" ]
+    then
+      echo "##vso[task.setvariable variable=CC]gcc-11"
+      echo "##vso[task.setvariable variable=CXX]g++-11"
     fi
     if [ "$(toolchain)" == "clang" ]
     then
@@ -114,12 +122,6 @@ steps:
     TargetFolder: $(Agent.BuildDirectory)/$(netHackPath)/sys/windows/vs
   condition: eq( variables.toolchain, 'vs' )
   displayName: 'Copying store key'
-
-- task: NuGetCommand@2
-  inputs:
-    command: 'restore'
-    restoreSolution: '$(Agent.BuildDirectory)/$(netHackPath)/sys/windows/vs/NetHack.sln'
-    feedsToUse: 'select'
 
 - task: MSBuild@1
   inputs:
@@ -198,6 +200,7 @@ steps:
     #sed -i '/^#define GDBPATH/d'        include/config.h
     #sed -i '/^#define GREPPATH/d'       include/config.h
     sed -i '/^#define INSURANCE/d'      include/config.h
+    sed -i '/^#define ENHANCED_SYMBOLS/d' include/config.h
     sed -i '/^#define LOGFILE/d'        include/config.h
     sed -i '/^#define NEWS/d'           include/config.h
     sed -i '/^#define PANICLOG/d'       include/config.h
@@ -205,7 +208,7 @@ steps:
     sed -i '/^#define SYSCF/d'          include/config.h
     sed -i '/^#define USER_SOUNDS/d'    include/config.h
     sed -i '/^#define XLOGFILE/d'       include/config.h
-
+    sed -i '/^#define HANGUPHANDLING/d' include/global.h
     sed -i '/^#define MAIL/d'           include/unixconf.h
     sed -i '/^#define SHELL/d'          include/unixconf.h
     sed -i '/^#define SUSPEND/d'        include/unixconf.h
@@ -221,20 +224,30 @@ steps:
     sh setup.sh hints/macos.370
     cd ../..
     make fetch-lua
-    make all
+    make WANT_MACSOUND=1 all
   condition: eq( variables['Agent.OS'], 'Darwin' )
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
   displayName: 'Building mac full build'
 
 - bash: |
-    export GCCVER=gcc1020
+    export GCCVER=gcc1210
     cd sys/unix
     sh setup.sh hints/linux.370
     cd ../..
     make fetch-lua
     sh sys/msdos/fetch-cross-compiler.sh
-    make LUA_VERSION=5.4.4 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 CROSS_TO_MSDOS=1 all
-    make LUA_VERSION=5.4.4 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 CROSS_TO_MSDOS=1 package
+    retVal=$?
+    if [ $retVal -eq 0 ]; then
+        make LUA_VERSION=5.4.4 WANT_WIN_TTY=1 WANT_WIN_CURSES=1 CROSS_TO_MSDOS=1 package
+    fi
   condition: and(eq( variables['Agent.OS'], 'Linux' ), eq( variables.toolchain, 'cross'))
   workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
   displayName: 'Building MSDOS build'
+- bash: |
+    sudo apt-get install texlive
+    make Guidebook
+    make Guidebook.txt
+    make Guidebook.pdf
+  condition: and(eq( variables['Agent.OS'], 'Linux' ), eq( variables.toolchain, 'docs'))
+  workingDirectory: $(Agent.BuildDirectory)/$(netHackPath)
+  displayName: 'Building NetHack documentation'

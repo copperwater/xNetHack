@@ -183,7 +183,7 @@ curses_line_input_dialog(
            [Note: wgetnstr() treats <escape> as an ordinary character
            so user has to type <escape><return> for it to behave the
            way we want it to.] */
-        if (input[0] != '\033' && index(input, '\033') != 0)
+        if (input[0] != '\033' && strchr(input, '\033') != 0)
              input[0] = '\0';
     } while (--trylim > 0 && !input[0]);
     curs_set(0);
@@ -220,7 +220,7 @@ curses_character_input_dialog(
        re-activate them now that input is being requested */
     curses_got_input();
 
-    if (g.invent || (g.moves > 1)) {
+    if (gi.invent || (gm.moves > 1)) {
         curses_get_window_size(MAP_WIN, &map_height, &map_width);
     } else {
         map_height = term_rows;
@@ -297,7 +297,7 @@ curses_character_input_dialog(
 #ifdef PDCURSES
         answer = wgetch(message_window);
 #else
-        answer = getch();
+        answer = curses_read_char();
 #endif
         if (answer == ERR) {
             answer = def;
@@ -344,7 +344,7 @@ curses_character_input_dialog(
             break;
         }
 
-        if (choices != NULL && answer != '\0' && index(choices, answer))
+        if (choices != NULL && answer != '\0' && strchr(choices, answer))
             break;
     }
     curs_set(0);
@@ -496,20 +496,12 @@ curses_ext_cmd(void)
         curses_destroy_win(extwin2);
 
     if (ret != -1) {
-        if (!g.in_doagain)
-            savech_extcmd(cur_choice, TRUE);
     } else {
         char extcmd_char = extcmd_initiator();
 
         if (*cur_choice)
             pline("%s%s: unknown extended command.",
                   visctrl(extcmd_char), cur_choice);
-
-        if (!g.in_doagain) {
-            savech(0); /* reset do-again buffer */
-            if (letter != '\033')
-                savech(extcmd_char);
-        }
     }
     return ret;
 }
@@ -762,14 +754,14 @@ curses_display_nhmenu(
     if (current_menu == NULL) {
         impossible(
                 "curses_display_nhmenu: attempt to display nonexistent menu");
-        return '\033';
+        return -1; /* not ESC which falsely claims 27 items were selected */
     }
 
     menu_item_ptr = current_menu->entries;
 
     if (menu_item_ptr == NULL) {
         impossible("curses_display_nhmenu: attempt to display empty menu");
-        return '\033';
+        return -1;
     }
 
     /* Reset items to unselected to clear out selections from previous
@@ -783,7 +775,7 @@ curses_display_nhmenu(
     menu_determine_pages(current_menu);
 
     /* Display pre and post-game menus centered */
-    if ((g.moves <= 1 && !g.invent) || g.program_state.gameover) {
+    if ((gm.moves <= 1 && !gi.invent) || gp.program_state.gameover) {
         win = curses_create_window(current_menu->width,
                                    current_menu->height, CENTER);
     } else { /* Display during-game menus on the right out of the way */
@@ -798,15 +790,14 @@ curses_display_nhmenu(
         selected = (MENU_ITEM_P *) alloc((unsigned)
                                          (num_chosen * sizeof (MENU_ITEM_P)));
         count = 0;
-
         menu_item_ptr = current_menu->entries;
 
         while (menu_item_ptr != NULL) {
             if (menu_item_ptr->selected) {
                 if (count == num_chosen) {
                     impossible("curses_display_nhmenu: Selected items "
-                          "exceeds expected number");
-                     break;
+                               "exceeds expected number");
+                    break;
                 }
                 selected[count].item = menu_item_ptr->identifier;
                 selected[count].count = menu_item_ptr->count;
@@ -818,6 +809,7 @@ curses_display_nhmenu(
         if (count != num_chosen) {
             impossible(
            "curses_display_nhmenu: Selected items less than expected number");
+            num_chosen = min(count, num_chosen);
         }
     }
 
@@ -1026,7 +1018,7 @@ menu_win_size(nhmenu *menu)
     int maxheaderwidth = menu->prompt ? (int) strlen(menu->prompt) : 0;
     nhmenu_item *menu_item_ptr;
 
-    if (g.program_state.gameover) {
+    if (gp.program_state.gameover) {
         /* for final inventory disclosure, use full width */
         maxwidth = term_cols - 2; /* +2: borders assumed */
     } else {
@@ -1495,7 +1487,7 @@ menu_get_selections(WINDOW *win, nhmenu *menu, int how)
     menu_display_page(menu, win, curpage, selectors, groupaccels);
 
     while (!dismiss) {
-        curletter = getch();
+        curletter = curses_getch();
 
         if (curletter == ERR) {
             num_selected = -1;
@@ -1549,7 +1541,7 @@ menu_get_selections(WINDOW *win, nhmenu *menu, int how)
             if (isdigit(curletter) && !groupaccels[curletter]) {
                 count = curses_get_count(curletter);
                 /* after count, we know some non-digit is already pending */
-                curletter = getch();
+                curletter = curses_getch();
                 count_letter = (count > 0L) ? curletter : '\0';
 
                 /* remove the count wind (erases last line of message wind) */
@@ -1644,6 +1636,7 @@ menu_select_deselect(
 
     if (operation == DESELECT || (item->selected && operation == INVERT)) {
         item->selected = FALSE;
+        item->count = -1L;
         if (visible) {
             mvwaddch(win, item->line_num + 1, 1, ' ');
             curses_toggle_color_attr(win, HIGHLIGHT_COLOR, NONE, ON);

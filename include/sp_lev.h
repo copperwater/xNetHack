@@ -1,5 +1,5 @@
 /* NetHack 3.7	sp_lev.h	$NHDT-Date: 1622361649 2021/05/30 08:00:49 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.47 $ */
-/* Copyright (c) 1989 by Jean-Christophe Collet			  */
+/* Copyright (c) 1989 by Jean-Christophe Collet                   */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef SP_LEV_H
@@ -14,13 +14,13 @@
 #define W_ANY (W_NORTH | W_SOUTH | W_EAST | W_WEST)
 
 /* Room alignment directions. */
-#define RM_LEFT 1
-#define RM_H_LEFT 2
-#define RM_CENTER 3
-#define RM_H_RIGHT 4
-#define RM_RIGHT 5
-#define RM_TOP 1
-#define RM_BOTTOM 5
+#define SPLEV_LEFT 1
+#define SPLEV_H_LEFT 2
+#define SPLEV_CENTER 3
+#define SPLEV_H_RIGHT 4
+#define SPLEV_RIGHT 5
+#define SPLEV_TOP 1
+#define SPLEV_BOTTOM 5
 
 /* MAP limits */
 #define MAP_X_LIM 76
@@ -109,33 +109,35 @@ struct sp_coder {
 #define packed_coord long
 typedef uint32_t getloc_flags_t;
 typedef struct {
-    xchar is_random;
+    xint16 is_random;
     getloc_flags_t getloc_flags;
     int x, y;
 } unpacked_coord;
 
 typedef struct {
-    xchar init_style; /* one of LVLINIT_foo */
+    xint16 init_style; /* one of LVLINIT_foo */
     long flags;
     schar filling;
     boolean init_present, padding;
     char fg, bg;
     boolean smoothed, joined;
-    xchar lit, walled;
+    xint16 lit, walled;
     boolean icedpools;
     int corrwid, wallthick;
     boolean rm_deadends;
 } lev_init;
 
 typedef struct {
-    xchar wall, pos, secret, doormask;
+    xint8 wall, pos, secret, doormask;
 } room_door;
 
 typedef struct {
     packed_coord coord;
-    xchar x, y, type;
+    coordxy x, y;
+    xint16 type;
     boolean spider_on_web;
     boolean seen;
+    boolean novictim;
 } spltrap;
 
 typedef struct {
@@ -143,7 +145,8 @@ typedef struct {
     short id;
     unsigned int sp_amask; /* splev amask */
     packed_coord coord;
-    xchar x, y, class, appear;
+    coordxy x, y;
+    xint16 class, appear;
     schar peaceful, asleep;
     short female, invis, cancelled, revived, avenge, fleeing, blinded,
         paralyzed, stunned, confused, dead, waiting;
@@ -157,46 +160,48 @@ typedef struct {
     int corpsenm;
     short id, spe;
     packed_coord coord;
-    xchar x, y, class, containment;
+    coordxy x, y;
+    xint16 class, containment;
     schar curse_state;
     int quan;
     short buried;
     short lit;
     short eroded, locked, trapped, recharged, invis, greased, broken,
           achievement;
-    xchar material;
+    xint8 material;
 } object;
 
 typedef struct {
     packed_coord coord;
-    xchar x, y;
+    coordxy x, y;
     unsigned int sp_amask; /* splev amask */
-    xchar shrine;
+    xint16 shrine;
 } altar;
 
 typedef struct {
-    xchar x1, y1, x2, y2;
-    xchar rtype, rlit, rirreg;
+    coordxy x1, y1, x2, y2;
+    xint16 rtype, rlit, rirreg;
 } region;
 
 typedef struct {
-    xchar ter, tlit;
+    xint16 ter, tlit;
 } terrain;
 
 typedef struct {
     struct {
-        xchar room;
-        xchar wall;
-        xchar door;
+        xint16 room;
+        xint16 wall;
+        xint16 door;
     } src, dest;
 } corridor;
 
 typedef struct _room {
     Str_or_Len name;
     Str_or_Len parent;
-    xchar x, y, w, h;
-    xchar xalign, yalign;
-    xchar rtype, chance, rlit, needfill;
+    coordxy x, y;
+    xint16 w, h;
+    xint16 xalign, yalign;
+    xint16 rtype, chance, rlit, needfill;
     boolean joined;
 } room;
 

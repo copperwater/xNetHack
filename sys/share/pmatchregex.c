@@ -41,10 +41,10 @@ regex_compile(const char *s, struct nhregex *re)
     return TRUE;
 }
 
-const char *
-regex_error_desc(struct nhregex *re UNUSED)
+char *
+regex_error_desc(struct nhregex *re UNUSED, char *errbuf)
 {
-    return "pattern match compilation error";
+    return strcpy(errbuf, "pattern match compilation error");
 }
 
 boolean
@@ -65,3 +65,5 @@ regex_free(struct nhregex *re)
         free((genericptr_t) re);
     }
 }
+
+/*pmatchregex.c*/

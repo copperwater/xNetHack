@@ -6,7 +6,7 @@
 des.level_init({ style="solidfill", fg =" " });
 
 des.level_flags("mazelevel", "shortsighted", "noteleport", "noflip", "nommap-boss")
--- The Necropolis
+-- The Necropolis, or the Dead End
 des.map([[
 .-------------------------------------------------------------------------   
 ..--....|....|....|..............|....|.........|...|....................--  

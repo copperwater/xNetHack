@@ -1,5 +1,5 @@
 /* NetHack 3.7	mhtext.c	$NHDT-Date: 1596498362 2020/08/03 23:46:02 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.31 $ */
-/* Copyright (C) 2001 by Alex Kompel 	 */
+/* Copyright (C) 2001 by Alex Kompel */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #include "winMS.h"
@@ -214,11 +214,11 @@ onMSNHCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
         break;
     }
 
-	case MSNH_MSG_RANDOM_INPUT: {
-        PostMessage(GetDlgItem(hWnd, IDC_TEXT_CONTROL), 
+        case MSNH_MSG_RANDOM_INPUT: {
+            PostMessage(GetDlgItem(hWnd, IDC_TEXT_CONTROL), 
             WM_MSNH_COMMAND, MSNH_MSG_RANDOM_INPUT, 0);
-	}
-	break;
+        }
+        break;
 
     }
 }

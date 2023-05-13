@@ -11,6 +11,7 @@
 -- ice themes.
 des.level_init({ style="mines", fg=".", bg=" ", lit=0,
                  smoothed=false ,joined=false, walled=false })
+des.level_flags("cold")
 
 des.replace_terrain({ fromterrain='.', toterrain='I', chance=50 })
 

@@ -1,5 +1,5 @@
 /* NetHack 3.7	mhdlg.c	$NHDT-Date: 1596498347 2020/08/03 23:45:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.36 $ */
-/* Copyright (C) 2001 by Alex Kompel 	 */
+/* Copyright (C) 2001 by Alex Kompel */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* various dialog boxes are defined here */
@@ -574,6 +574,7 @@ plselInitDialog(struct plsel_data * data)
 {
     TCHAR wbuf[BUFSZ];
     LVCOLUMN lvcol;
+    control_t *control;
 
     SetWindowLongPtr(data->dialog, GWLP_USERDATA, (LONG_PTR) data);
 
@@ -646,7 +647,7 @@ plselInitDialog(struct plsel_data * data)
 
     /* set player name */
     control_t * name_box = &data->controls[psc_name_box];
-    SetDlgItemText(data->dialog, name_box->id, NH_A2W(g.plname, wbuf, sizeof(wbuf)));
+    SetDlgItemText(data->dialog, name_box->id, NH_A2W(gp.plname, wbuf, sizeof(wbuf)));
 
     plselRandomize(data);
 
@@ -654,10 +655,12 @@ plselInitDialog(struct plsel_data * data)
     plselAdjustSelections(data->dialog);
 
     /* set tab order */
-    control_t * control = &data->controls[psc_quit_button];
-    for(int i = psc_quit_button; i >= psc_name_box; i--, control++)
-        SetWindowPos(control->hWnd, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
+    for (int i = psc_quit_button; i >= psc_name_box; i--) {
+        control = &data->controls[i];
+        SetWindowPos(control->hWnd, NULL, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE);
+    }
     do_player_selector_layout(data);
 
     center_dialog(data->dialog);

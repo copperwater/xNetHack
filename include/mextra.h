@@ -69,7 +69,7 @@
 #define GD_DESTROYGOLD 0x02
 
 struct fakecorridor {
-    xchar fx, fy;
+    coordxy fx, fy;
     schar ftyp; /* from struct rm's typ */
     uchar flags; /* also from struct rm; an unsigned 5-bit field there */
 };
@@ -77,10 +77,11 @@ struct fakecorridor {
 struct egd {
     int fcbeg, fcend;     /* fcend: first unused pos */
     int vroom;            /* room number of the vault */
-    xchar gdx, gdy;       /* goal of guard's walk */
-    xchar ogx, ogy;       /* guard's last position */
+    coordxy gdx, gdy;     /* goal of guard's walk */
+    coordxy ogx, ogy;     /* guard's last position */
     d_level gdlevel;      /* level (& dungeon) guard was created in */
-    xchar warncnt;        /* number of warnings to follow */
+    xint8 warncnt;        /* number of warnings to follow */
+    xint8 dropgoldcnt;    /* number of demands to drop gold */
     Bitfield(gddone, 1);  /* true iff guard has released player */
     Bitfield(witness, 2); /* the guard saw you do something */
     Bitfield(unused, 5);
@@ -121,8 +122,8 @@ struct eshk {
     long credit;          /* amount credited to customer */
     long debit;           /* amount of debt for using unpaid items */
     long loan;            /* shop-gold picked (part of debit) */
-    int shoptype;         /* the value of g.rooms[shoproom].rtype */
-    schar shoproom;       /* index in g.rooms; set by inshop() */
+    int shoptype;         /* the value of gr.rooms[shoproom].rtype */
+    schar shoproom;       /* index in gr.rooms; set by inshop() */
     schar unused;         /* to force alignment for stupid compilers */
     boolean following;    /* following customer since he owes us sth */
     boolean surcharge;    /* angry shk inflates prices */

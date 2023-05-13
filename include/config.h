@@ -53,7 +53,7 @@
  * Some combinations make no sense.  See the installation document.
  */
 #if !defined(NOTTYGRAPHICS)
-#define TTY_GRAPHICS /* good old tty based graphics */
+#define TTY_GRAPHICS /* good old tty-based graphics */
 #endif
 /* #define CURSES_GRAPHICS *//* Curses interface - Karl Garrison*/
 /* #define X11_GRAPHICS */   /* X11 interface */
@@ -98,9 +98,6 @@
 #ifndef DEFAULT_WC_TILED_MAP
 #define DEFAULT_WC_TILED_MAP /* Default to tiles if users doesn't say \
                                 wc_ascii_map */
-#endif
-#ifndef NOUSER_SOUNDS
-#define USER_SOUNDS /* Use sounds */
 #endif
 #ifndef USE_XPM
 #define USE_XPM           /* Use XPM format for images (required) */
@@ -202,9 +199,9 @@
  *              PERS_IS_UID  (0 or 1 - person is name or (numeric) userid)
  *            Can force incubi/succubi behavior to be toned down to nymph-like:
  *              SEDUCE       (0 or 1 - runtime disable/enable SEDUCE option)
- *            Live-logging
- *              LIVELOG      (0-0xFFFF - bitmask for level/type of live-logging
- *                            See comments in 'sysconf' for details)
+ *            Can hide the entry for displaying command line usage from
+ *            the help menu if players don't have access to command lines:
+ *              HIDEUSAGE    (0 or 1 - runtime show/hide command line usage)
  *            The following options pertain to crash reporting:
  *              GREPPATH     (the path to the system grep(1) utility)
  *              GDBPATH      (the path to the system gdb(1) program)
@@ -280,6 +277,9 @@
  *      uncommented to define NODUMPENUMS. Doing so will disable the
  *          nethack --dumpenums
  *      command line option.
+ *      Note:  the extra memory is also used when ENHANCED_SYMBOLS is
+ *      defined, so defining both ENHANCED_SYMBOLS and NODUMPENUMS will limit
+ *      the amount of memory and code reduction offered by the latter.
  */
 /* #define NODUMPENUMS */
 
@@ -420,6 +420,7 @@
  * #define MAX_NR_OF_PLAYERS 6
  */
 #endif /* CHDIR */
+
 
 /*
  * Section 3:   Definitions that may vary with system type.
@@ -563,6 +564,10 @@ typedef unsigned char uchar;
 /* #define TTY_TILES_ESCCODES */
 /* #define TTY_SOUND_ESCCODES */
 
+/* An experimental minimalist inventory list capability under tty if you have
+ * at least 28 additional rows beneath the status window on your terminal  */
+/* #define TTY_PERM_INVENT */
+
 /* NetHack will execute an external program whenever a new message-window
  * message is shown.  The program to execute is given in environment variable
  * NETHACK_MSGHANDLER.  It will get the message as the only parameter.
@@ -575,8 +580,10 @@ typedef unsigned char uchar;
 
 /* #define WINCHAIN */              /* stacked window systems */
 
-/* #define DEBUG_MIGRATING_MONS */  /* add a wizard-mode command to help debug
-                                       migrating monsters */
+#if defined(DEBUG) && !defined(DEBUG_MIGRATING_MONS)
+#define DEBUG_MIGRATING_MONS  /* add a wizard-mode command to help debug
+                                 migrating monsters */
+#endif
 
 /* SCORE_ON_BOTL is neither experimental nor inadequately tested,
    but doesn't seem to fit in any other section... */
@@ -644,23 +651,45 @@ typedef unsigned char uchar;
 #ifdef CHRONICLE
 /* LIVELOG - log CHRONICLE events into LIVELOGFILE as they happen. */
 /* #define LIVELOG */
-#ifdef LIVELOG
-#define LIVELOGFILE "livelog" /* in-game events recorded, live */
-#endif /* LIVELOG */
 #endif /* CHRONICLE */
 #else
 #undef LIVELOG
 #endif /* NO_CHRONICLE */
 
 /* #define DUMPLOG */  /* End-of-game dump logs */
-#if defined(DUMPLOG) || defined(DUMPHTML)
 
-#ifndef DUMPLOG_MSG_COUNT
-#define DUMPLOG_MSG_COUNT   50
+#define USE_ISAAC64 /* Use cross-plattform, bundled RNG */
+
+/* TEMPORARY - MAKE UNCONDITIONAL BEFORE RELEASE */
+/* undef this to check if sandbox breaks something */
+#define NHL_SANDBOX
+
+/* End of Section 4 */
+
+#ifdef TTY_TILES_ESCCODES
+# ifndef TILES_IN_GLYPHMAP
+#  define TILES_IN_GLYPHMAP
+# endif
 #endif
 
-#ifdef DUMPLOG
+#include "cstd.h"
+#include "integer.h"
+#include "global.h" /* Define everything else according to choices above */
 
+/* Place the following after #include [platform]conf.h in global.h so that
+   overrides are possible in there, for things like unix-specfic file
+   paths. */
+
+#ifdef LIVELOG
+#ifndef LIVELOGFILE
+#define LIVELOGFILE "livelog" /* in-game events recorded, live */
+#endif /* LIVELOGFILE */
+#endif /* LIVELOG */
+
+#ifdef DUMPLOG
+#ifndef DUMPLOG_MSG_COUNT
+#define DUMPLOG_MSG_COUNT   50
+#endif /* DUMPLOG_MSG_COUNT */
 #ifndef DUMPLOG_FILE
 #define DUMPLOG_FILE        "/tmp/xnethack.%n.%d.log"
 /* DUMPLOG_FILE allows following placeholders:
@@ -675,23 +704,17 @@ typedef unsigned char uchar;
    %N first character of player name
    DUMPLOG_FILE is not used if SYSCF is defined
 */
-#endif
-
+#endif /* DUMPLOG_FILE */
 #endif /* DUMPLOG */
 
 #ifdef DUMPHTML
-
 #ifndef DUMPHTML_FILE
 #define DUMPHTML_FILE        "/tmp/xnethack.%n.%d.html"
 /* Placeholders as above
- * DUMPHTML_FILE is not used if SYSCF is defiined
+ * DUMPHTML_FILE is not used if SYSCF is defined
  */
-
-#endif
-
+#endif /* DUMPHTML_FILE */
 #endif /* DUMPHTML */
-
-#endif /* DUMPLOG || DUMPHTML */
 
 #define USE_ISAAC64 /* Use cross-plattform, bundled RNG */
 
@@ -706,8 +729,5 @@ typedef unsigned char uchar;
 #  define USE_TILES
 # endif
 #endif
-
-#include "integer.h"
-#include "global.h" /* Define everything else according to choices above */
 
 #endif /* CONFIG_H */

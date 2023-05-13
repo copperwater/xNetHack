@@ -9,6 +9,11 @@
 /* #define obj obj_nh */ /* uncomment for SCO UNIX, which has a conflicting
                           * typedef for "obj" in <sys/types.h> */
 
+/* start with incomplete types in case these aren't defined yet;
+   basic pointers to them don't need to know their details */
+struct obj;
+struct monst;
+
 union vptrs {
     struct obj *v_nexthere;   /* floor location lists */
     struct obj *v_ocontainer; /* point back to container */
@@ -36,7 +41,7 @@ struct obj {
 
     struct obj *cobj; /* contents list for containers */
     unsigned o_id;
-    xchar ox, oy;
+    coordxy ox, oy;
     short otyp; /* object class number */
     unsigned owt;
     long quan; /* number of items */
@@ -50,7 +55,7 @@ struct obj {
                 * oil lamp, tallow/wax candle (1 for no apparent reason?);
                 * marks spinach tins (1 iff corpsenm==NON_PM);
                 * marks tin variety (various: homemade, stir fried, &c);
-                * eggs laid by you (1), eggs upgraded with rojal jelly (2);
+                * eggs laid by you (1), eggs upgraded with royal jelly (2);
                 * Schroedinger's Box (1) or royal coffers for a court (2) or a
                 * mummy-trapped chest (3);
                 * named fruit index;
@@ -66,7 +71,7 @@ struct obj {
     char invlet;    /* designation in inventory */
     char oartifact; /* artifact array index */
 
-    xchar where;        /* where the object thinks it is */
+    xint8 where;        /* where the object thinks it is */
 #define OBJ_FREE 0      /* object not attached to anything */
 #define OBJ_FLOOR 1     /* object on floor */
 #define OBJ_CONTAINED 2 /* object in a container */
@@ -78,16 +83,26 @@ struct obj {
 #define OBJ_INTRAP 8    /* object is trap ammo */
 #define OBJ_LUAFREE 9   /* object has been dealloc'd, but is ref'd by lua */
 #define NOBJ_STATES 10
-    xchar timed; /* # of fuses (timers) attached to this obj */
+    xint16 timed; /* # of fuses (timers) attached to this obj */
 
-    Bitfield(cursed, 1);
+    Bitfield(cursed, 1);    /* uncursed when neither cursed nor blessed */
     Bitfield(blessed, 1);
-    Bitfield(unpaid, 1);    /* on some bill */
-    Bitfield(no_charge, 1); /* if shk shouldn't charge for this */
-    Bitfield(known, 1);     /* exact nature known */
-    Bitfield(dknown, 1);    /* color or text known */
-    Bitfield(bknown, 1);    /* blessing or curse known */
-    Bitfield(rknown, 1);    /* rustproof or not known */
+    Bitfield(unpaid, 1);    /* owned by shop; valid for objects in hero's
+                             * inventory or inside containers there; also,
+                             * used for items on the floor only on the shop
+                             * boundary (including "free spot") or if moved
+                             * from there to inside by wall repairs */
+    Bitfield(no_charge, 1); /* if shk shouldn't charge for this; valid for
+                             * items on shop floor or in containers there;
+                             * implicit for items at any other location
+                             * unless carried and explicitly flagged unpaid */
+    Bitfield(known, 1);     /* exact nature known (for instance, charge count
+                             * or enchantment); many items have this preset if
+                             * they lack anything interesting to discover */
+    Bitfield(dknown, 1);    /* description known (item seen "up close");
+                             * some types of items always have dknown set */
+    Bitfield(bknown, 1);    /* BUC (blessed/uncursed/cursed) known */
+    Bitfield(rknown, 1);    /* rustproofing status known */
 
     Bitfield(oeroded, 2);  /* rusted/burnt weapon/armor */
     Bitfield(oeroded2, 2); /* corroded/rotted weapon/armor */
@@ -120,10 +135,22 @@ struct obj {
     Bitfield(in_use, 1); /* for magic items before useup items */
     Bitfield(bypass, 1); /* mark this as an object to be skipped by bhito() */
     Bitfield(cknown, 1); /* for containers (including statues): the contents
-                          * are known; also applicable to tins */
-    Bitfield(lknown, 1); /* locked/unlocked status is known */
+                          * are known; also applicable to tins; also applies
+                          * to horn of plenty but only for empty/non-empty */
+    Bitfield(lknown, 1); /* locked/unlocked status is known; assigned for bags
+                          * and for horn of plenty (when tipping) even though
+                          * they have no locks */
     Bitfield(pickup_prev, 1); /* was picked up previously */
+#if 0
+    /* not implemented */
+    Bitfield(tknown, 1); /* trap status known for chests */
+    Bitfield(eknown, 1); /* effect known for wands zapped or rings worn when
+                          * not seen yet after being picked up while blind
+                          * [maybe for remaining stack of used potion too] */
+    /* 4 free bits */
+#else
     /* 6 free bits */
+#endif
 
     int corpsenm;         /* type of corpse is mons[corpsenm] */
 #define leashmon corpsenm /* gets m_id of attached pet */
@@ -147,10 +174,10 @@ struct obj {
                             * overloaded for the destination of migrating
                             * objects (which can't be worn at same time) */
 #define migrateflags owornmask /* migrating objects can't be worn anyway */
-    xchar mgrx, mgry;       /* when migrating, travel to these coords */
+    xint8 mgrx, mgry;       /* when migrating, travel to these coords */
     unsigned lua_ref_cnt;  /* # of lua script references for this object */
-    xchar omigr_from_dnum; /* where obj is migrating from */
-    xchar omigr_from_dlevel; /* where obj is migrating from */
+    xint16 omigr_from_dnum; /* where obj is migrating from */
+    xint16 omigr_from_dlevel; /* where obj is migrating from */
     struct oextra *oextra; /* pointer to oextra struct */
 };
 
@@ -289,7 +316,7 @@ struct obj {
 /* Eggs and other food */
 #define MAX_EGG_HATCH_TIME 200 /* longest an egg can remain unhatched */
 #define stale_egg(egg) \
-    ((g.moves - (egg)->age) > (2 * MAX_EGG_HATCH_TIME))
+    ((gm.moves - (egg)->age) > (2 * MAX_EGG_HATCH_TIME))
 #define ofood(o) ((o)->otyp == CORPSE || (o)->otyp == EGG || (o)->otyp == TIN)
     /* note: sometimes eggs and tins have special corpsenm values that
        shouldn't be used as an index into mons[]                       */
@@ -328,7 +355,7 @@ struct obj {
 #define LAST_DRAGON_SCALES  YELLOW_DRAGON_SCALES
 
 /* usually waterproof; random chance to be subjected to leakage if cursed;
-   excludes statues, which aren't vulernable to water even when cursed */
+   excludes statues, which aren't vulnerable to water even when cursed */
 #define Waterproof_container(o) \
     ((o)->otyp == OILSKIN_SACK || (o)->otyp == ICE_BOX || Is_box(o))
 
@@ -436,8 +463,17 @@ struct obj {
                        || (o)->otyp == POT_POLYMORPH)
 
 /* achievement tracking; 3.6.x did this differently */
-#define is_mines_prize(o) ((o)->o_id == g.context.achieveo.mines_prize_oid)
-#define is_soko_prize(o) ((o)->o_id == g.context.achieveo.soko_prize_oid)
+#define is_mines_prize(o) ((o)->o_id == gc.context.achieveo.mines_prize_oid)
+#define is_soko_prize(o) ((o)->o_id == gc.context.achieveo.soko_prize_oid)
+
+#define is_art(o,art) ((o) && (o)->oartifact == (art))
+#define u_wield_art(art) is_art(uwep, art)
+
+/* mummy wrappings are more versatile sizewise than other cloaks */
+#define WrappingAllowed(mptr) \
+    (humanoid(mptr) && (mptr)->msize >= MZ_SMALL && (mptr)->msize <= MZ_HUGE \
+     && !noncorporeal(mptr) && (mptr)->mlet != S_CENTAUR                     \
+     && (mptr) != &mons[PM_WINGED_GARGOYLE] && (mptr) != &mons[PM_MARILITH])
 
 /* Flags for get_obj_location(). */
 #define CONTAINED_TOO 0x1

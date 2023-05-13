@@ -1,4 +1,4 @@
-/* NetHack 3.7	questpgr.c	$NHDT-Date: 1652827965 2022/05/17 22:52:45 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.78 $ */
+/* NetHack 3.7	questpgr.c	$NHDT-Date: 1655065145 2022/06/12 20:19:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.79 $ */
 /*      Copyright 1991, M. Stephenson                             */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -23,20 +23,20 @@ static void convert_arg(char);
 static void deliver_by_pline(const char *);
 static void deliver_by_window(const char *, int);
 static boolean skip_pager(boolean);
-static boolean com_pager_core(const char *, const char *, boolean);
+static boolean com_pager_core(const char *, const char *, boolean, char **);
 
 short
 quest_info(int typ)
 {
     switch (typ) {
     case 0:
-        return g.urole.questarti;
+        return gu.urole.questarti;
     case MS_LEADER:
-        return g.urole.ldrnum;
+        return gu.urole.ldrnum;
     case MS_NEMESIS:
-        return g.urole.neminum;
+        return gu.urole.neminum;
     case MS_GUARDIAN:
-        return g.urole.guardnum;
+        return gu.urole.guardnum;
     default:
         impossible("quest_info(%d)", typ);
     }
@@ -47,24 +47,24 @@ quest_info(int typ)
 const char *
 ldrname(void)
 {
-    int i = g.urole.ldrnum;
+    int i = gu.urole.ldrnum;
 
-    Sprintf(g.nambuf, "%s%s", type_is_pname(&mons[i]) ? "" : "the ",
+    Sprintf(gn.nambuf, "%s%s", type_is_pname(&mons[i]) ? "" : "the ",
             mons[i].pmnames[NEUTRAL]);
-    return g.nambuf;
+    return gn.nambuf;
 }
 
 /* return your intermediate target string */
 static const char *
 intermed(void)
 {
-    return g.urole.intermed;
+    return gu.urole.intermed;
 }
 
 boolean
 is_quest_artifact(struct obj *otmp)
 {
-    return (boolean) (otmp->oartifact == g.urole.questarti);
+    return (boolean) (otmp->oartifact == gu.urole.questarti);
 }
 
 static struct obj *
@@ -90,7 +90,7 @@ find_quest_artifact(unsigned whichchains)
     struct obj *qarti = 0;
 
     if ((whichchains & (1 << OBJ_INVENT)) != 0)
-        qarti = find_qarti(g.invent);
+        qarti = find_qarti(gi.invent);
     if (!qarti && (whichchains & (1 << OBJ_FLOOR)) != 0)
         qarti = find_qarti(fobj);
     if (!qarti && (whichchains & (1 << OBJ_MINVENT)) != 0)
@@ -102,17 +102,17 @@ find_quest_artifact(unsigned whichchains)
         }
     if (!qarti && (whichchains & (1 << OBJ_MIGRATING)) != 0) {
         /* check migrating objects and minvent of migrating monsters */
-        for (mtmp = g.migrating_mons; mtmp; mtmp = mtmp->nmon) {
+        for (mtmp = gm.migrating_mons; mtmp; mtmp = mtmp->nmon) {
             if (DEADMONSTER(mtmp))
                 continue;
             if ((qarti = find_qarti(mtmp->minvent)) != 0)
                 break;
         }
         if (!qarti)
-            qarti = find_qarti(g.migrating_objs);
+            qarti = find_qarti(gm.migrating_objs);
     }
     if (!qarti && (whichchains & (1 << OBJ_BURIED)) != 0)
-        qarti = find_qarti(g.level.buriedobjlist);
+        qarti = find_qarti(gl.level.buriedobjlist);
 
     return qarti;
 }
@@ -121,17 +121,17 @@ find_quest_artifact(unsigned whichchains)
 static const char *
 neminame(void)
 {
-    int i = g.urole.neminum;
+    int i = gu.urole.neminum;
 
-    Sprintf(g.nambuf, "%s%s", type_is_pname(&mons[i]) ? "" : "the ",
+    Sprintf(gn.nambuf, "%s%s", type_is_pname(&mons[i]) ? "" : "the ",
             mons[i].pmnames[NEUTRAL]);
-    return g.nambuf;
+    return gn.nambuf;
 }
 
 static const char *
 guardname(void) /* return your role leader's guard monster name */
 {
-    int i = g.urole.guardnum;
+    int i = gu.urole.guardnum;
 
     return mons[i].pmnames[NEUTRAL];
 }
@@ -139,7 +139,56 @@ guardname(void) /* return your role leader's guard monster name */
 static const char *
 homebase(void) /* return your role leader's location */
 {
-    return g.urole.homebase;
+    return gu.urole.homebase;
+}
+
+/* returns 1 if nemesis death message mentions noxious fumes, otherwise 0;
+   does not display the message */
+int
+stinky_nemesis(struct monst *mon)
+{
+    char *mesg = 0;
+    int res = 0;
+
+#if 0
+    /* get the quest text for dying nemesis; don't assume that mon is
+       hero's own role's nemesis (overkill since m_detach() and nemdead()
+       both make that assumption--valid for normal play but not necessarily
+       valid for wizard mode) */
+    int r, mndx = monsndx(mon->data);
+    for (r = 0; roles[r].name.m || roles[r].name.f; ++r)
+        if (roles[r].neminum == mndx) {
+            (void) com_pager_core(roles[r].filecode, "killed_nemesis",
+                                  FALSE, &mesg);
+            break;
+        }
+#else
+    nhUse(mon);
+    /* since nemdead() just gave the message for hero's nemesis even if 'mon'
+       is some other role's nemesis (feasible in wizard mode), base any gas
+       cloud on the text that was shown even if not appropriate for 'mon' */
+    (void) com_pager_core(gu.urole.filecode, "killed_nemesis", FALSE, &mesg);
+#endif
+
+    /* this is somewhat fragile; it assumes that when both (noxious or
+       poisonous or toxic) and (gas or fumes) are present, the latter
+       refers to the former rather than to something unrelated; it does
+       make sure that fumes occurs after noxious rather than before */
+    if (mesg) {
+        char *p;
+
+        /* change newlines into spaces to cope with "...noxious\nfumes..." */
+        (void) strNsubst(mesg, "\n", " ", 0);
+
+        if (((p = strstri(mesg, "noxious")) != 0
+             || (p = strstri(mesg, "poisonous")) != 0
+             || (p = strstri(mesg, "toxic")) != 0)
+            && (strstri(p, " gas") || strstri(p, " fumes")))
+            res = 1;
+
+        free((genericptr_t) mesg);
+    }
+    return res;
 }
 
 /* replace deity, leader, nemesis, or artifact name with pronoun;
@@ -160,24 +209,24 @@ qtext_pronoun(
      * which genders[] doesn't handle; cvt_buf[] already contains name.
      */
     if (who == 'o'
-        && (strstri(g.cvt_buf, "Eyes ")
-            || strcmpi(g.cvt_buf, makesingular(g.cvt_buf)))) {
+        && (strstri(gc.cvt_buf, "Eyes ")
+            || strcmpi(gc.cvt_buf, makesingular(gc.cvt_buf)))) {
         pnoun = (lwhich == 'h') ? "they"
                 : (lwhich == 'i') ? "them"
                 : (lwhich == 'j') ? "their" : "?";
     } else {
-        godgend = (who == 'd') ? g.quest_status.godgend
-            : (who == 'l') ? g.quest_status.ldrgend
-            : (who == 'n') ? g.quest_status.nemgend
+        godgend = (who == 'd') ? gq.quest_status.godgend
+            : (who == 'l') ? gq.quest_status.ldrgend
+            : (who == 'n') ? gq.quest_status.nemgend
             : 2; /* default to neuter */
         pnoun = (lwhich == 'h') ? genders[godgend].he
                 : (lwhich == 'i') ? genders[godgend].him
                 : (lwhich == 'j') ? genders[godgend].his : "?";
     }
-    Strcpy(g.cvt_buf, pnoun);
+    Strcpy(gc.cvt_buf, pnoun);
     /* capitalize for H,I,J */
     if (lwhich != which)
-        g.cvt_buf[0] = highc(g.cvt_buf[0]);
+        gc.cvt_buf[0] = highc(gc.cvt_buf[0]);
     return;
 }
 
@@ -188,11 +237,11 @@ convert_arg(char c)
 
     switch (c) {
     case 'p':
-        str = g.plname;
+        str = gp.plname;
         break;
     case 'c':
-        str = (flags.female && g.urole.name.f) ? g.urole.name.f
-                                               : g.urole.name.m;
+        str = (flags.female && gu.urole.name.f) ? gu.urole.name.f
+                                               : gu.urole.name.m;
         break;
     case 'r':
         str = rank_of(u.ulevel, Role_switch, flags.female);
@@ -214,7 +263,7 @@ convert_arg(char c)
         break;
     case 'O':
     case 'o':
-        str = the(artiname(g.urole.questarti));
+        str = the(artiname(gu.urole.questarti));
         if (c == 'O') {
             /* shorten "the Foo of Bar" to "the Foo"
                (buffer returned by the() is modifiable) */
@@ -261,7 +310,7 @@ convert_arg(char c)
         str = Blind ? "sense" : "see";
         break;
     case 'Z':
-        str = g.dungeons[0].dname;
+        str = gd.dungeons[0].dname;
         break;
     case '%':
         str = "%";
@@ -270,7 +319,7 @@ convert_arg(char c)
         str = "";
         break;
     }
-    Strcpy(g.cvt_buf, str);
+    Strcpy(gc.cvt_buf, str);
 }
 
 void
@@ -294,17 +343,17 @@ convert_line(const char *in_line, char *out_line)
                 switch (*(++c)) {
                 /* insert "a"/"an" prefix */
                 case 'A':
-                    Strcat(cc, An(g.cvt_buf));
+                    Strcat(cc, An(gc.cvt_buf));
                     cc += strlen(cc);
                     continue; /* for */
                 case 'a':
-                    Strcat(cc, an(g.cvt_buf));
+                    Strcat(cc, an(gc.cvt_buf));
                     cc += strlen(cc);
                     continue; /* for */
 
                 /* capitalize */
                 case 'C':
-                    g.cvt_buf[0] = highc(g.cvt_buf[0]);
+                    gc.cvt_buf[0] = highc(gc.cvt_buf[0]);
                     break;
 
                 /* replace name with pronoun;
@@ -315,7 +364,7 @@ convert_line(const char *in_line, char *out_line)
                 case 'I':
                 case 'j': /* his/her */
                 case 'J':
-                    if (index("dlno", lowc(*(c - 1))))
+                    if (strchr("dlno", lowc(*(c - 1))))
                         qtext_pronoun(*(c - 1), *c);
                     else
                         --c; /* default action */
@@ -323,24 +372,24 @@ convert_line(const char *in_line, char *out_line)
 
                 /* pluralize */
                 case 'P':
-                    g.cvt_buf[0] = highc(g.cvt_buf[0]);
+                    gc.cvt_buf[0] = highc(gc.cvt_buf[0]);
                     /*FALLTHRU*/
                 case 'p':
-                    Strcpy(g.cvt_buf, makeplural(g.cvt_buf));
+                    Strcpy(gc.cvt_buf, makeplural(gc.cvt_buf));
                     break;
 
                 /* append possessive suffix */
                 case 'S':
-                    g.cvt_buf[0] = highc(g.cvt_buf[0]);
+                    gc.cvt_buf[0] = highc(gc.cvt_buf[0]);
                     /*FALLTHRU*/
                 case 's':
-                    Strcpy(g.cvt_buf, s_suffix(g.cvt_buf));
+                    Strcpy(gc.cvt_buf, s_suffix(gc.cvt_buf));
                     break;
 
                 /* strip any "the" prefix */
                 case 't':
-                    if (!strncmpi(g.cvt_buf, "the ", 4)) {
-                        Strcat(cc, &g.cvt_buf[4]);
+                    if (!strncmpi(gc.cvt_buf, "the ", 4)) {
+                        Strcat(cc, &gc.cvt_buf[4]);
                         cc += strlen(cc);
                         continue; /* for */
                     }
@@ -350,8 +399,8 @@ convert_line(const char *in_line, char *out_line)
                     --c; /* undo switch increment */
                     break;
                 }
-                Strcat(cc, g.cvt_buf);
-                cc += strlen(g.cvt_buf);
+                Strcat(cc, gc.cvt_buf);
+                cc += strlen(gc.cvt_buf);
                 break;
             } /* else fall through */
 
@@ -406,7 +455,7 @@ static boolean
 skip_pager(boolean common UNUSED)
 {
     /* WIZKIT: suppress plot feedback if starting with quest artifact */
-    if (g.program_state.wizkit_wishing)
+    if (gp.program_state.wizkit_wishing)
         return TRUE;
     return FALSE;
 }
@@ -415,7 +464,8 @@ static boolean
 com_pager_core(
     const char *section,
     const char *msgid,
-    boolean showerror)
+    boolean showerror,
+    char **rawtext)
 {
     static const char *const howtoput[] = {
         "pline", "window", "text", "menu", "default", NULL
@@ -486,8 +536,13 @@ com_pager_core(
         goto compagerdone;
     }
 
-    synopsis = get_table_str_opt(L, "synopsis", NULL);
     text = get_table_str_opt(L, "text", NULL);
+    if (rawtext) {
+        *rawtext = dupstr(text);
+        res = TRUE;
+        goto compagerdone;
+    }
+    synopsis = get_table_str_opt(L, "synopsis", NULL);
     output = howtoput2i[get_table_option(L, "output", "default", howtoput)];
 
     if (!text) {
@@ -513,7 +568,7 @@ com_pager_core(
     /* switch from by_pline to by_window if line has multiple segments or
        is unreasonably long (the latter ought to checked after formatting
        conversions rather than before...) */
-    if (output == 0 && (index(text, '\n') || strlen(text) >= BUFSZ - 1)) {
+    if (output == 0 && (strchr(text, '\n') || strlen(text) >= BUFSZ - 1)) {
         output = 2;
 
         /*
@@ -564,14 +619,14 @@ com_pager_core(
 void
 com_pager(const char *msgid)
 {
-    com_pager_core("common", msgid, TRUE);
+    (void) com_pager_core("common", msgid, TRUE, (char **) 0);
 }
 
 void
 qt_pager(const char *msgid)
 {
-    if (!com_pager_core(g.urole.filecode, msgid, FALSE))
-        com_pager_core("common", msgid, TRUE);
+    if (!com_pager_core(gu.urole.filecode, msgid, FALSE, (char **) 0))
+        (void) com_pager_core("common", msgid, TRUE, (char **) 0);
 }
 
 struct permonst *
@@ -580,15 +635,15 @@ qt_montype(void)
     int qpm;
 
     if (rn2(5)) {
-        qpm = g.urole.enemy1num;
-        if (qpm != NON_PM && rn2(5) && !(g.mvitals[qpm].mvflags & G_GENOD))
+        qpm = gu.urole.enemy1num;
+        if (qpm != NON_PM && rn2(5) && !(gm.mvitals[qpm].mvflags & G_GENOD))
             return &mons[qpm];
-        return mkclass(g.urole.enemy1sym, 0);
+        return mkclass(gu.urole.enemy1sym, 0);
     }
-    qpm = g.urole.enemy2num;
-    if (qpm != NON_PM && rn2(5) && !(g.mvitals[qpm].mvflags & G_GENOD))
+    qpm = gu.urole.enemy2num;
+    if (qpm != NON_PM && rn2(5) && !(gm.mvitals[qpm].mvflags & G_GENOD))
         return &mons[qpm];
-    return mkclass(g.urole.enemy2sym, 0);
+    return mkclass(gu.urole.enemy2sym, 0);
 }
 
 /* special levels can include a custom arrival message; display it */
@@ -596,11 +651,11 @@ void
 deliver_splev_message(void)
 {
     /* there's no provision for delivering via window instead of pline */
-    if (g.lev_message) {
-        deliver_by_pline(g.lev_message);
+    if (gl.lev_message) {
+        deliver_by_pline(gl.lev_message);
 
-        free((genericptr_t) g.lev_message);
-        g.lev_message = NULL;
+        free((genericptr_t) gl.lev_message);
+        gl.lev_message = NULL;
     }
 }
 

@@ -66,7 +66,7 @@
  */
 
 struct window_procs safe_procs = {
-    "safe-startup", 0L, 0L,
+    WPID(safestartup), 0L, 0L,
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, /* color availability */
     safe_init_nhwindows, safe_player_selection, safe_askname,
     safe_get_nh_event,
@@ -74,7 +74,7 @@ struct window_procs safe_procs = {
     safe_create_nhwindow, safe_clear_nhwindow, safe_display_nhwindow,
     safe_destroy_nhwindow, safe_curs, safe_putstr, safe_putmixed,
     safe_display_file, safe_start_menu, safe_add_menu, safe_end_menu,
-    safe_select_menu, safe_message_menu, safe_update_inventory,
+    safe_select_menu, safe_message_menu,
     safe_mark_synch,
     safe_wait_synch,
 #ifdef CLIPPING
@@ -100,6 +100,8 @@ struct window_procs safe_procs = {
     safe_status_finish, safe_status_enablefield,
     safe_status_update,
     safe_can_suspend,
+    safe_update_inventory,
+    safe_ctrl_nhwindow,
 };
 
 struct window_procs *
@@ -143,7 +145,7 @@ safe_get_nh_event(void)
 }
 
 void
-safe_suspend_nhwindows(const char *str)
+safe_suspend_nhwindows(const char *str UNUSED)
 {
     return;
 }
@@ -155,44 +157,44 @@ safe_resume_nhwindows(void)
 }
 
 void
-safe_exit_nhwindows(const char *str)
+safe_exit_nhwindows(const char *str UNUSED)
 {
     return;
 }
 
 winid
-safe_create_nhwindow(int type)
+safe_create_nhwindow(int type UNUSED)
 {
     return WIN_ERR;
 }
 
 void
-safe_clear_nhwindow(winid window)
+safe_clear_nhwindow(winid window UNUSED)
 {
     return;
 }
 
 /*ARGSUSED*/
 void
-safe_display_nhwindow(winid window,boolean blocking)
+safe_display_nhwindow(winid window UNUSED, boolean blocking UNUSED)
 {
     return;
 }
 
 void
-safe_dismiss_nhwindow(winid window)
+safe_dismiss_nhwindow(winid window UNUSED)
 {
     return;
 }
 
 void
-safe_destroy_nhwindow(winid window)
+safe_destroy_nhwindow(winid window UNUSED)
 {
     return;
 }
 
 void
-safe_curs(winid window, int x, int y)
+safe_curs(winid window UNUSED, int x UNUSED, int y UNUSED)
 {
     return;
 }
@@ -204,19 +206,19 @@ safe_putstr(winid window, int attr, const char *str)
 }
 
 void
-safe_putmixed(winid window, int attr, const char *str)
+safe_putmixed(winid window UNUSED, int attr UNUSED, const char *str UNUSED)
 {
     return;
 }
 
 void
-safe_display_file(const char * fname, boolean complain)
+safe_display_file(const char * fname UNUSED, boolean complain UNUSED)
 {
     return;
 }
 
 void
-safe_start_menu(winid window, unsigned long mbehavior)
+safe_start_menu(winid window UNUSED, unsigned long mbehavior UNUSED)
 {
     return;
 }
@@ -228,14 +230,15 @@ safe_start_menu(winid window, unsigned long mbehavior)
  */
 void
 safe_add_menu(
-    winid window,               /* window to use, must be of type NHW_MENU */
+    winid window UNUSED,        /* window to use, must be of type NHW_MENU */
     const glyph_info *glyphinfo UNUSED, /* glyph plus glyph info */
-    const anything *identifier, /* what to return if selected */
-    char ch,                    /* keyboard accelerator (0 = pick our own) */
-    char gch,                   /* group accelerator (0 = no group) */
-    int attr,                   /* attribute for string (like safe_putstr()) */
-    const char *str,            /* menu string */
-    unsigned int itemflags)     /* itemflags such as marked as selected */
+    const anything *identifier UNUSED, /* what to return if selected */
+    char ch UNUSED,                    /* keyboard accelerator (0 = pick our own) */
+    char gch UNUSED,                   /* group accelerator (0 = no group) */
+    int attr UNUSED,                   /* attribute for string (like safe_putstr()) */
+    int clr UNUSED,                    /* colour for string */
+    const char *str UNUSED,            /* menu string */
+    unsigned int itemflags UNUSED)     /* itemflags such as marked as selected */
 {
     return;
 }
@@ -245,17 +248,17 @@ safe_add_menu(
  */
 void
 safe_end_menu(
-    winid window,       /* menu to use */
-    const char *prompt) /* prompt to for menu */
+    winid window UNUSED,       /* menu to use */
+    const char *prompt UNUSED) /* prompt to for menu */
 {
     return;
 }
 
 int
 safe_select_menu(
-    winid window,
-    int how,
-    menu_item **menu_list)
+    winid window UNUSED,
+    int how UNUSED,
+    menu_item **menu_list UNUSED)
 {
     return 0;
 }
@@ -263,17 +266,11 @@ safe_select_menu(
 /* special hack for treating top line --More-- as a one item menu */
 char
 safe_message_menu(
-    char let,
-    int how,
-    const char *mesg)
+    char let UNUSED,
+    int how UNUSED,
+    const char *mesg UNUSED)
 {
     return '\033';
-}
-
-void
-safe_update_inventory(int arg UNUSED)
-{
-    return;
 }
 
 void
@@ -288,7 +285,7 @@ safe_wait_synch(void)
 
 #ifdef CLIPPING
 void
-safe_cliparound(int x, int y)
+safe_cliparound(int x UNUSED, int y UNUSED)
 {
 }
 #endif /* CLIPPING */
@@ -301,8 +298,8 @@ safe_cliparound(int x, int y)
 void
 safe_print_glyph(
     winid window UNUSED,
-    xchar x UNUSED,
-    xchar y UNUSED,
+    coordxy x UNUSED,
+    coordxy y UNUSED,
     const glyph_info *glyphinfo UNUSED,
     const glyph_info *bkglyphinfo UNUSED)
 {
@@ -310,13 +307,13 @@ safe_print_glyph(
 }
 
 void
-safe_raw_print(const char *str)
+safe_raw_print(const char *str UNUSED)
 {
     return;
 }
 
 void
-safe_raw_print_bold(const char *str)
+safe_raw_print_bold(const char *str UNUSED)
 {
     return;
 }
@@ -334,20 +331,20 @@ safe_nhgetch(void)
  */
 /*ARGSUSED*/
 int
-safe_nh_poskey(int *x, int *y, int *mod)
+safe_nh_poskey(coordxy *x UNUSED, coordxy *y UNUSED, int *mod UNUSED)
 {
     return '\033';
 }
 
 void
-win_safe_init(int dir)
+win_safe_init(int dir UNUSED)
 {
     return;
 }
 
 #ifdef POSITIONBAR
 void
-safe_update_positionbar(char *posbar)
+safe_update_positionbar(char *posbar UNUSED)
 {
     return;
 }
@@ -382,7 +379,8 @@ safe_doprev_message(void)
 }
 
 char
-safe_yn_function(const char * query, const char* resp, char def)
+safe_yn_function(const char *query UNUSED,
+                 const char *resp UNUSED, char def UNUSED)
 {
     return '\033';
 }
@@ -425,7 +423,7 @@ safe_end_screen(void)
 }
 
 void
-safe_outrip(winid tmpwin, int how, time_t when)
+safe_outrip(winid tmpwin UNUSED, int how UNUSED, time_t when UNUSED)
 {
     return;
 }
@@ -445,8 +443,8 @@ safe_getmsghistory(boolean init UNUSED)
 
 void
 safe_putmsghistory(
-    const char *msg,
-    boolean is_restoring)
+    const char *msg UNUSED,
+    boolean is_restoring UNUSED)
 {
 }
 
@@ -457,23 +455,38 @@ safe_status_finish(void)
 
 void
 safe_status_enablefield(
-    int fieldidx,
-    const char *nm,
-    const char *fmt,
-    boolean enable)
+    int fieldidx UNUSED,
+    const char *nm UNUSED,
+    const char *fmt UNUSED,
+    boolean enable UNUSED)
 {
 }
 
 /* call once for each field, then call with BL_FLUSH to output the result */
 void
 safe_status_update(
-    int idx,
-    genericptr_t ptr,
+    int idx UNUSED,
+    genericptr_t ptr UNUSED,
     int chg UNUSED,
     int percent UNUSED, 
     int color UNUSED,
     unsigned long *colormasks UNUSED)
 {
+}
+
+void
+safe_update_inventory(int arg UNUSED)
+{
+    return;
+}
+
+win_request_info *
+safe_ctrl_nhwindow(
+    winid window UNUSED,
+    int request UNUSED,
+    win_request_info *wri UNUSED)
+{
+    return (win_request_info *) 0;
 }
 
 /**************************************************************
@@ -499,7 +512,7 @@ stdio_wait_synch(void)
 
     fprintf(stdout, "--More--");
     (void) fflush(stdout);
-    while (!index(valid, nhgetch()))
+    while (!strchr(valid, nhgetch()))
         ;
 }
 

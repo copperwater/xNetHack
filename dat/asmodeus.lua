@@ -5,7 +5,7 @@
 --
 des.level_init({ style="solidfill", fg =" " });
 
-des.level_flags("mazelevel", "noteleport", "nommap-boss", "icedpools", "solidify", "noflipx")
+des.level_flags("mazelevel", "noteleport", "nommap-boss", "icedpools", "solidify", "noflipx", "cold")
 
 des.map([[
 IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII

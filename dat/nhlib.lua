@@ -87,3 +87,100 @@ function get_icymon_list()
    return { 'ice vortex', 'ice troll', 'freezing sphere', 'winter wolf',
             'blue jelly', 'white dragon', 'brown mold' }
 end
+
+-- pline with variable number of arguments
+function pline(fmt, ...)
+   nh.pline(string.format(fmt, table.unpack({...})));
+end
+
+-- wrapper to make calling from nethack core easier
+function nh_set_variables_string(key, tbl)
+   return "nh_lua_variables[\"" .. key .. "\"]=" .. table_stringify(tbl) .. ";";
+end
+
+-- wrapper to make calling from nethack core easier
+function nh_get_variables_string(tbl)
+   return "return " .. table_stringify(tbl) .. ";";
+end
+
+-- return the (simple) table tbl converted into a string
+function table_stringify(tbl)
+   local str = "";
+   for key, value in pairs(tbl) do
+      local typ = type(value);
+      if (typ == "table") then
+         str = str .. "[\"" .. key .. "\"]=" .. table_stringify(value);
+      elseif (typ == "string") then
+         str = str .. "[\"" .. key .. "\"]=[[" .. value .. "]]";
+      elseif (typ == "boolean") then
+         str = str .. "[\"" .. key .. "\"]=" .. tostring(value);
+      elseif (typ == "number") then
+         str = str .. "[\"" .. key .. "\"]=" .. value;
+      elseif (typ == "nil") then
+         str = str .. "[\"" .. key .. "\"]=nil";
+      end
+      str = str .. ",";
+   end
+   -- pline("table_stringify:(%s)", str);
+   return "{" .. str .. "}";
+end
+
+--
+-- TUTORIAL
+--
+
+-- extended commands NOT available in tutorial
+local tutorial_blacklist_commands = {
+   ["save"] = true,
+};
+
+function tutorial_cmd_before(cmd)
+   -- nh.pline("TUT:cmd_before:" .. cmd);
+
+   if (tutorial_blacklist_commands[cmd]) then
+      return false;
+   end
+   return true;
+end
+
+function tutorial_enter()
+   -- nh.pline("TUT:enter");
+   nh.gamestate();
+end
+
+function tutorial_leave()
+   -- nh.pline("TUT:leave");
+
+   -- remove the tutorial level callbacks
+   nh.callback("cmd_before", "tutorial_cmd_before", true);
+   nh.callback("level_enter", "tutorial_enter", true);
+   nh.callback("level_leave", "tutorial_leave", true);
+   nh.callback("end_turn", "tutorial_turn", true);
+   nh.gamestate(true);
+end
+
+local tutorial_events = {
+   {
+      func = function()
+         if (u.uhunger < 148) then
+            local o = obj.new("blessed food ration");
+            o:placeobj(u.ux, u.uy);
+            nh.pline("Looks like you're getting hungry.  You'll starve to death, unless you eat something.", true);
+            nh.pline("Comestibles are eaten with '" .. nh.eckey("eat") .. "'", true);
+            return true;
+         end
+      end
+   },
+};
+
+function tutorial_turn()
+   for k, v in pairs(tutorial_events) do
+      if ((v.ucoord and u.ux == v.ucoord[1] + 3 and u.uy == v.ucoord[2] + 3)
+         or (v.ucoord == nil)) then
+         if (v.func() or v.remove) then
+            tutorial_events[k] = nil;
+         end
+      end
+   end
+   -- nh.pline("TUT:turn");
+end

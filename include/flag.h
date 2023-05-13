@@ -1,4 +1,4 @@
-/* NetHack 3.7	flag.h	$NHDT-Date: 1600933440 2020/09/24 07:44:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.185 $ */
+/* NetHack 3.7	flag.h	$NHDT-Date: 1655161560 2022/06/13 23:06:00 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.201 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -31,13 +31,15 @@ struct flag {
     boolean explore;         /* in exploration mode (aka discover mode) */
 #define discover flags.explore
     boolean female;
-    xchar orientation; /* index into orientations[] */
+    xint8 orientation;       /* index into orientations[] */
 #define ORIENT_STRAIGHT 0
 #define ORIENT_GAY 1
 #define ORIENT_BISEXUAL 2
     boolean friday13;        /* it's Friday the 13th */
     boolean goldX;           /* for BUCX filtering, whether gold is X or U */
     boolean help;            /* look in data file for info about stuff */
+    boolean tips;            /* show helpful hints? */
+    boolean tutorial;        /* ask if player wants tutorial level? */
     boolean ignintr;         /* ignore interrupts */
     boolean implicit_uncursed; /* maybe omit "uncursed" status in inventory */
     boolean ins_chkpt;       /* checkpoint as appropriate; INSURANCE */
@@ -93,6 +95,7 @@ struct flag {
     int pile_limit;    /* controls feedback when walking over objects */
     char discosort;    /* order of dodiscovery/doclassdisco output: o,s,c,a */
     char sortloot; /* 'n'=none, 'l'=loot (pickup), 'f'=full ('l'+invent) */
+    uchar vanq_sortmode; /* [uint_8] order of vanquished monsters: 0..7 */
     char inv_order[MAXOCLASSES];
     char pickup_types[MAXOCLASSES];
 #define NUM_DISCLOSURE_OPTIONS 6 /* i,a,v,g,c,o (decl.c) */
@@ -191,18 +194,19 @@ struct debug_flags {
 /*
  * Stuff that really isn't option or platform related and does not
  * get saved and restored.  They are set and cleared during the game
- * to control the internal behaviour of various NetHack functions
+ * to control the internal behavior of various NetHack functions
  * and probably warrant a structure of their own elsewhere some day.
  */
 struct instance_flags {
     boolean debug_fuzzer;  /* fuzz testing */
-    boolean defer_plname;  /* X11 hack: askname() might not set g.plname */
+    boolean defer_plname;  /* X11 hack: askname() might not set gp.plname */
     boolean herecmd_menu;  /* use menu when mouseclick on yourself */
     boolean invis_goldsym; /* gold symbol is ' '? */
     boolean in_lua;        /* executing a lua script */
     boolean lua_testing;   /* doing lua tests */
     boolean partly_eaten_hack; /* extra flag for xname() used when it's called
                                 * indirectly so we can't use xname_flags() */
+    boolean remember_getpos; /* save getpos() positioning in do-again queue */
     boolean sad_feeling;   /* unseen pet is dying */
     int at_midnight;       /* only valid during end of game disclosure */
     int at_night;          /* also only valid during end of game disclosure */
@@ -220,10 +224,15 @@ struct instance_flags {
 #define TER_MON    0x08
 #define TER_DETECT 0x10    /* detect_foo magic rather than #terrain */
 #define TER_VISIT  0x20
-    boolean getloc_travelmode;
+    int getdir_click;      /* as input to getdir(): non-zero, accept simulated
+                            * click that's not adjacent to or on hero;
+                            * as output from getdir(): simulated button used
+                            * 0 (none) or CLICK_1 (left) or CLICK_2 (right) */
     int getloc_filter;     /* GFILTER_foo */
-    boolean getloc_usemenu;
+    boolean bgcolors;      /* display background colors on a map position */
     boolean getloc_moveskip;
+    boolean getloc_travelmode;
+    boolean getloc_usemenu;
     coord travelcc;        /* coordinates for travel_cache */
     boolean trav_debug;    /* display travel path (#if DEBUG only) */
     boolean window_inited; /* true if init_nhwindows() completed */
@@ -268,6 +277,7 @@ struct instance_flags {
     boolean perm_invent;      /* keep full inventories up until dismissed */
     boolean renameallowed;    /* can change hero name during role selection */
     boolean renameinprogress; /* we are changing hero name */
+    boolean sounds;           /* master on/off switch for using soundlib */
     boolean status_updates;   /* allow updates to bottom status lines;
                                * disable to avoid excessive noise when using
                                * a screen reader (use ^X to review status) */
@@ -279,6 +289,7 @@ struct instance_flags {
     long hilite_delta;        /* number of moves to leave a temp hilite lit */
     long unhilite_deadline; /* time when oldest temp hilite should be unlit */
 #endif
+    boolean voices;           /* enable text-to-speech or other talking */
     boolean zerocomp;         /* write zero-compressed save files */
     boolean rlecomp;          /* alternative to zerocomp; run-length encoding
                                * compression of levels when writing savefile */
@@ -293,15 +304,7 @@ struct instance_flags {
 #if defined(MICRO) || defined(WIN32)
     boolean rawio; /* whether can use rawio (IOCTL call) */
 #endif
-#ifdef MAC_GRAPHICS_ENV
-    boolean MACgraphics; /* use Macintosh extended character set, as
-                            as defined in the special font HackFont */
-    unsigned use_stone;  /* use the stone ppats */
-#endif
 #if defined(MSDOS) || defined(WIN32)
-    boolean hassound;     /* has a sound card */
-    boolean usesound;     /* use the sound card */
-    boolean usepcspeaker; /* use the pc speaker */
     boolean tile_view;
     boolean over_view;
     boolean traditional_view;
@@ -323,7 +326,6 @@ struct instance_flags {
 #ifdef TTY_SOUND_ESCCODES
     boolean vt_sounddata;    /* output console codes for sound support in TTY*/
 #endif
-    boolean clicklook;       /* allow right-clicking for look */
     boolean cmdassist;       /* provide detailed assistance for some comnds */
     boolean fireassist;      /* autowield launcher when using fire-command */
     boolean time_botl;       /* context.botl for 'time' (moves) only */
@@ -386,10 +388,10 @@ struct instance_flags {
     boolean wc2_hitpointbar;  /* show graphical bar representing hit points */
     boolean wc2_guicolor;       /* allow colours in gui (outside map) */
     int wc_mouse_support;       /* allow mouse support */
-    int wc2_term_cols;		/* terminal width, in characters */
-    int wc2_term_rows;		/* terminal height, in characters */
+    int wc2_term_cols;          /* terminal width, in characters */
+    int wc2_term_rows;          /* terminal height, in characters */
     int wc2_statuslines;        /* default = 2, curses can handle 3 */
-    int wc2_windowborders;	/* display borders on NetHack windows */
+    int wc2_windowborders;      /* display borders on NetHack windows */
     int wc2_petattr;            /* text attributes for pet */
 #ifdef WIN32
 #define MAX_ALTKEYHANDLING 25

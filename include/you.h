@@ -22,9 +22,9 @@ struct RoleName {
 
 struct RoleAdvance {
     /* "fix" is the fixed amount, "rnd" is the random amount */
-    xchar infix, inrnd; /* at character initialization */
-    xchar lofix, lornd; /* gained per level <  xlvl 12 */
-    xchar hifix, hirnd; /* gained per level >= xlvl 12 */
+    xint16 infix, inrnd; /* at character initialization */
+    xint16 lofix, lornd; /* gained per level <  xlvl 12 */
+    xint16 hifix, hirnd; /* gained per level >= xlvl 12 */
 };
 /* determines at which level lofix, lornd cease to be used and hifix, hirnd
  * start to be used */
@@ -118,7 +118,7 @@ enum achivements {
      *  defeated nemesis (not same as acquiring Bell or artifact),
      *  completed quest (formally, by bringing artifact to leader),
      *  entered rogue level,
-     *  entered Fort Ludios level/branch (not guaranteed to be achieveable),
+     *  entered Fort Ludios level/branch (not guaranteed to be achievable),
      *  entered Medusa level,
      *  entered castle level,
      *  obtained castle wand (handle similarly to mines and sokoban prizes),
@@ -158,11 +158,11 @@ struct u_conduct {     /* number of times... */
     long wishes;       /* used a wish */
     long wisharti;     /* wished for an artifact */
     long artitouch;    /* touched an artifact in any way */
-    long pets;         /* obtained a pet */
     long scares;       /* scared a monster by standing in a certain spot */
     long uncelibate;   /* interacted with a foocubus */
     long conflicting;  /* generated conflict */
     long sokocheat;    /* violated special 'rules' in Sokoban */
+    long pets;         /* obtained a pet */
     /* genocides already listed at end of game */
 };
 
@@ -209,11 +209,11 @@ struct Role {
 #define ROLE_CHAOTIC   AM_CHAOTIC
 
     /*** Attributes (from attrib.c and exper.c) ***/
-    xchar attrbase[A_MAX];    /* lowest initial attributes */
-    xchar attrdist[A_MAX];    /* distribution of initial attributes */
+    xint16 attrbase[A_MAX];    /* lowest initial attributes */
+    xint16 attrdist[A_MAX];    /* distribution of initial attributes */
     struct RoleAdvance hpadv; /* hit point advancement */
     struct RoleAdvance enadv; /* energy advancement */
-    xchar initrecord;         /* initial alignment record */
+    xint16 initrecord;         /* initial alignment record */
 
     /*** Spell statistics (from spell.c) ***/
     int spelbase; /* base spellcasting bonus */
@@ -232,8 +232,8 @@ struct Role {
 };
 
 extern const struct Role roles[]; /* table of available roles */
-#define Role_if(X) (g.urole.mnum == (X))
-#define Role_switch (g.urole.mnum)
+#define Role_if(X) (gu.urole.mnum == (X))
+#define Role_switch (gu.urole.mnum)
 
 /* used during initialization for race, gender, and alignment
    as well as for character class */
@@ -262,8 +262,8 @@ struct Race {
         hatemask;   /* bit mask of always hostile */
 
     /*** Attributes ***/
-    xchar attrmin[A_MAX];     /* minimum allowable attribute */
-    xchar attrmax[A_MAX];     /* maximum allowable attribute */
+    xint16 attrmin[A_MAX];     /* minimum allowable attribute */
+    xint16 attrmax[A_MAX];     /* maximum allowable attribute */
     struct RoleAdvance hpadv; /* hit point advancement */
     struct RoleAdvance enadv; /* energy advancement */
 #if 0 /* DEFERRED */
@@ -282,8 +282,8 @@ struct Race {
 };
 
 extern const struct Race races[]; /* Table of available races */
-#define Race_if(X) (g.urace.mnum == (X))
-#define Race_switch (g.urace.mnum)
+#define Race_if(X) (gu.urace.mnum == (X))
+#define Race_switch (gu.urace.mnum)
 
 /*** Unified structure specifying gender information ***/
 struct Gender {
@@ -297,7 +297,7 @@ struct Gender {
 struct Orientation {
     const char* adj;       /* gay/straight/bi */
     const char* technical; /* homosexual/heterosexual/bisexual */
-    xchar mapping;         /* equivalent constant, e.g. ORIENT_STRAIGHT */
+    xint8 mapping;         /* equivalent constant, e.g. ORIENT_STRAIGHT */
 };
 #define ROLE_GENDERS 2    /* number of permitted player genders
                              increment to 3 if you allow neuter roles */
@@ -358,17 +358,19 @@ enum utotypes {
 
 /*** Information about the player ***/
 struct you {
-    xchar ux, uy;       /* current map coordinates */
-    schar dx, dy, dz;   /* direction of move (or zap or ... ) */
-    schar di;           /* direction of FF */
-    xchar tx, ty;       /* destination of travel */
-    xchar ux0, uy0;     /* initial position FF */
+    coordxy ux, uy;     /* current map coordinates */
+    int dx, dy, dz;     /* x,y,z deltas; direction of move (or zap or ... )
+                         * usually +1 or 0 or -1 */
+    coordxy tx, ty;     /* destination of travel */
+    coordxy ux0, uy0;   /* previous ux,uy */
     d_level uz, uz0;    /* your level on this and the previous turn */
     d_level utolev;     /* level monster teleported you to, or uz */
     uchar utotype;      /* bitmask of goto_level() flags for utolev */
+    d_level ucamefrom;  /* level where you came from; used for tutorial */
+    boolean nofollowers; /* level change ignores monster followers/pets */
     boolean umoved;     /* changed map location (post-move) */
     int last_str_turn;  /* 0: none, 1: half turn, 2: full turn
-                           +: turn right, -: turn left */
+                         * +: turn right, -: turn left */
     int ulevel;         /* 1 to MAXULEV (30) */
     int ulevelmax;      /* highest level, but might go down (to throttle
                          * lost level recovery via blessed full healing) */
@@ -429,7 +431,9 @@ struct you {
     Bitfield(uburied, 1);       /* you're buried */
     Bitfield(uedibility, 1);    /* blessed food detect; sense unsafe food */
     Bitfield(ufalldamage, 1);   /* fell into air; take damage on level below */
-    /* 0 free bits */
+
+    Bitfield(usaving_grace, 1); /* prevents death once */
+    /* 7 free bits */
 
     unsigned udg_cnt;           /* how long you have been demigod */
     struct u_event uevent;      /* certain events have happened */
@@ -467,7 +471,7 @@ struct you {
         uhppeak;             /* highest value of uhpmax so far */
     int uen, uenmax,         /* magical energy, aka spell power */
         uenpeak;             /* highest value of uenmax so far */
-    xchar uhpinc[MAXULEV],   /* increases to uhpmax for each level gain */
+    xint16 uhpinc[MAXULEV],  /* increases to uhpmax for each level gain */
           ueninc[MAXULEV];   /* increases to uenmax for each level gain */
     int ugangr;              /* if the gods are angry at you */
     int ugifts;              /* number of artifacts bestowed */
@@ -487,12 +491,52 @@ struct you {
     int ugrave_arise;    /* you die and become something aside from a ghost */
     int weapon_slots;        /* unused skill slots */
     int skills_advanced;     /* # of advances made so far */
-    xchar skill_record[P_SKILL_LIMIT]; /* skill advancements */
+    xint16 skill_record[P_SKILL_LIMIT]; /* skill advancements */
     struct skills weapon_skills[P_NUM_SKILLS];
     boolean twoweap;         /* KMH -- Using two-weapon combat */
     short mcham;             /* vampire mndx if shapeshifted to bat/cloud */
     schar uachieved[N_ACH];  /* list of achievements in the order attained */
 }; /* end of `struct you' */
+
+
+/* _hitmon_data: Info for when hero hits a monster */
+/* The basic reason we need all these booleans is that we don't want
+ * a "hit" message when a monster dies, so we have to know how much
+ * damage it did _before_ outputting a hit message, but any messages
+ * associated with the damage don't come out until _after_ outputting
+ * a hit message.
+ *
+ * More complications:  first_weapon_hit() should be called before
+ * xkilled() in order to have the gamelog messages in the right order.
+ * So it can't be deferred until end of known_hitum() as was originally
+ * done.
+ */
+struct _hitmon_data {
+    int dmg;  /* damage */
+    int thrown;
+    int dieroll;
+    struct permonst *mdat;
+    boolean use_weapon_skill;
+    boolean train_weapon_skill;
+    boolean lightobj;
+    int jousting;
+    boolean hittxt;
+    boolean get_dmg_bonus;
+    boolean unarmed;
+    boolean hand_to_hand;
+    boolean ispoisoned;
+    boolean unpoisonmsg;
+    boolean needpoismsg;
+    boolean already_killed;
+    boolean destroyed;
+    boolean dryit;
+    boolean doreturn;
+    boolean retval;
+    char saved_oname[BUFSZ];
+    /* xNetHack additions: */
+    struct obj *hated_obj;
+    int artimsg;
+};
 
 #define Upolyd (u.umonnum != u.umonster)
 #define Ugender ((Upolyd ? u.mfemale : flags.female) ? 1 : 0)

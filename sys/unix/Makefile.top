@@ -93,7 +93,7 @@ LUA_VERSION = 5.4.4
 # The CSS file is required for HTML end-of-game dump logs.
 CSS = NHdump.css
 
-DATHELP = help hh cmdhelp keyhelp history opthelp optmenu wizhelp
+DATHELP = help hh cmdhelp keyhelp history opthelp optmenu usagehlp wizhelp
 
 SPEC_LEVS = abyssfill.lua asmodeus.lua baalz.lua bigrm-*.lua castle.lua \
 	cocytusfill.lua demogorgon.lua dis.lua dispater.lua \
@@ -102,7 +102,7 @@ SPEC_LEVS = abyssfill.lua asmodeus.lua baalz.lua bigrm-*.lua castle.lua \
 	sanctum.lua soko?-?.lua styxmarsh.lua tower?.lua valley.lua \
 	wizard?.lua yeenoghu.lua nhcore.lua nhlib.lua themerms.lua astral.lua \
 	air.lua earth.lua fire.lua water.lua invocation.lua \
-	repair-Val-loca.lua
+	repair-Val-loca.lua tut-?.lua
 QUEST_LEVS = ???-goal.lua ???-fil?.lua ???-loca.lua ???-strt.lua
 
 DATNODLB = $(VARDATND) license symbols $(CSS)
@@ -148,6 +148,10 @@ include/nhlua.h: $(TOPLUALIB)
 lib/lua-$(LUA_VERSION)/src/lua.h:
 	@echo "Please do 'make fetch-lua' to obtain lua-$(LUA_VERSION)"
 	@false
+luabin:
+	( cd $(LUATOP) \
+	  && make $(LUAMAKEFILES) all && cd $(LUA2NHTOP) )
+
 # hints file could set LUATESTTARGET to this if GITSUBMODULES is defined
 submodules/lua/lua.h:
 	git submodule init submodules/lua
@@ -158,6 +162,12 @@ submodules/lua/lua.h:
 
 Guidebook:
 	( cd doc ; $(MAKE) Guidebook )
+
+Guidebook.txt:
+	( cd doc ; $(MAKE) Guidebook.txt )
+
+Guidebook.pdf:
+	( cd doc ; $(MAKE) Guidebook.pdf )
 
 manpages:
 	( cd doc ; $(MAKE) manpages )

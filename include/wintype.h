@@ -5,8 +5,6 @@
 #ifndef WINTYPE_H
 #define WINTYPE_H
 
-#include "integer.h"
-
 typedef int winid; /* a window identifier */
 
 /* generic parameter - must not be any larger than a pointer */
@@ -15,14 +13,20 @@ typedef union any {
     struct obj *a_obj;
     struct monst *a_monst;
     int a_int;
+    int a_xint16;
+    int a_xint8;
     char a_char;
     schar a_schar;
     uchar a_uchar;
     unsigned int a_uint;
     long a_long;
     unsigned long a_ulong;
+    coordxy a_coordxy;
     int *a_iptr;
+    xint16 *a_xint16ptr;
+    xint8 *a_xint8ptr;
     long *a_lptr;
+    coordxy *a_coordxyptr;
     unsigned long *a_ulptr;
     unsigned *a_uptr;
     const char *a_string;
@@ -74,6 +78,7 @@ struct classic_representation {
 struct unicode_representation {
     uint32 ucolor;
     uint16 u256coloridx;
+    uint32 utf32ch;
     uint8 *utf8str;
 };
 
@@ -94,6 +99,7 @@ typedef struct glyph_map_entry {
 typedef struct gi {
     int glyph;            /* the display entity */
     int ttychar;
+    uint32 framecolor;
     glyph_map gm;
 } glyph_info;
 #define GLYPH_INFO_P struct gi
@@ -111,16 +117,23 @@ typedef struct gi {
 #define NHW_MAP 3
 #define NHW_MENU 4
 #define NHW_TEXT 5
+#define NHW_PERMINVENT 6
+#define NHW_LAST_TYPE NHW_PERMINVENT
 #if defined(DUMPLOG) || defined(DUMPHTML)
-/* There's no windump.h, so these go here for now */
-#define NHW_DUMPTXT 6
-#define NHW_DUMPHTML 7
+/* There's no windump.h, so these go here for now - these are not actually
+ * windows, they're psuedo windows that various bits of code like dump_putstr()
+ * use to distinguish whether the HTML dump is in progress and change what it's
+ * doing accordingly. It should probably be refactored into iflags.in_html_dump
+ * or something like that so the calling code doesn't need to worry about it. */
+#define NHW_DUMPTXT 7
+#define NHW_DUMPHTML 8
 #endif
 
 /* attribute types for putstr; the same as the ANSI value, for convenience */
 #define ATR_NONE       0
 #define ATR_BOLD       1
 #define ATR_DIM        2
+#define ATR_ITALIC     3
 #define ATR_ULINE      4
 #define ATR_BLINK      5
 #define ATR_INVERSE    7
@@ -133,13 +146,14 @@ typedef struct gi {
    dumping because other window ports don't define how they are
    handled.  This masking could be generalised with a WC#_ flag
    to allow other windowports to support them. */
-#define ATR_HEADING   (iflags.in_dumplog ?  64 : 0) /* rendered as <h2> in HTML dump */
-#define ATR_SUBHEAD   (iflags.in_dumplog ? 128 : 0) /* rendered as <h3> in HTML dump */
-#define ATR_PREFORM   (iflags.in_dumplog ? 256 : 0) /* preformatted - for preserving indentation */
+#define ATR_HEADING   (iflags.in_dumplog ?  64 : ATR_NONE) /* rendered as <h2> in HTML dump */
+#define ATR_SUBHEAD   (iflags.in_dumplog ? 128 : ATR_NONE) /* rendered as <h3> in HTML dump */
+#define ATR_PREFORM   (iflags.in_dumplog ? 256 : ATR_NONE) /* preformatted - for preserving indentation */
 
 /* nh_poskey() modifier types */
 #define CLICK_1 1
 #define CLICK_2 2
+#define NUM_MOUSE_BUTTONS 2
 
 /* invalid winid */
 #define WIN_ERR ((winid) -1)
@@ -174,6 +188,62 @@ typedef struct gi {
  */
 
 #define MENU_BEHAVE_STANDARD      0x0000000U
+#define MENU_BEHAVE_PERMINV       0x0000001U
+
+enum perm_invent_toggles {toggling_off = -1, toggling_not = 0, toggling_on = 1 };
+
+/* inventory modes */
+enum inv_modes { InvNormal = 0, InvShowGold = 1, InvSparse = 2, InvInUse = 4 };
+
+enum to_core_flags {
+    active           = 0x001,
+    prohibited       = 0x002,
+    no_init_done     = 0x004
+};
+
+enum from_core_requests {
+    set_mode         = 1,
+    request_settings = 2,
+};
+
+struct to_core {
+    long tocore_flags;
+    boolean active;
+    boolean use_update_inventory;    /* disable the newer slot interface */
+    int maxslot;
+    int needrows, needcols;
+    int haverows, havecols;
+};
+
+struct from_core {
+    enum from_core_requests core_request;
+    enum inv_modes invmode;
+};
+
+struct win_request_info_t {
+    struct to_core tocore;
+    struct from_core fromcore;
+};
+
+typedef struct win_request_info_t win_request_info;
+
+/* #define CORE_INVENT */
+
+/* In a binary with multiple window interfaces linked in, this is
+ * a structure to track certain interface capabilities that cannot be
+ * statically done at compile time. Some of them can be toggled and
+ * the core needs to know if they are active or not at the time.
+ */
+
+enum win_display_modes {
+    wdmode_traditional = 0,
+    wdmode_tiled
+};
+
+struct win_settings {
+    enum win_display_modes wdmode;
+    uint32 map_frame_color;
+};
 
 /* clang-format on */
 

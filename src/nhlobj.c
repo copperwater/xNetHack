@@ -45,26 +45,26 @@ l_obj_check(lua_State *L, int indx)
 static int
 l_obj_gc(lua_State *L)
 {
+    struct obj *obj, *otmp;
     struct _lua_obj *lo = l_obj_check(L, 1);
 
-    if (lo && lo->obj) {
-        if (lo->obj->lua_ref_cnt > 0)
-            lo->obj->lua_ref_cnt--;
+    if (lo && (obj = lo->obj) != 0) {
+        if (obj->lua_ref_cnt > 0)
+            obj->lua_ref_cnt--;
         /* free-floating objects with no other refs are deallocated. */
-        if (!lo->obj->lua_ref_cnt
-            && (lo->obj->where == OBJ_FREE || lo->obj->where == OBJ_LUAFREE)) {
-            if (Has_contents(lo->obj)) {
-                struct obj *otmp;
-                while ((otmp = lo->obj->cobj) != 0) {
+        if (!obj->lua_ref_cnt
+            && (obj->where == OBJ_FREE || obj->where == OBJ_LUAFREE)) {
+            if (Has_contents(obj)) {
+                while ((otmp = obj->cobj) != 0) {
                     obj_extract_self(otmp);
                     dealloc_obj(otmp);
                 }
             }
-            dealloc_obj(lo->obj);
+            obj->where = OBJ_FREE;
+            dealloc_obj(obj), obj = 0;
         }
         lo->obj = NULL;
     }
-
     return 0;
 }
 
@@ -158,6 +158,8 @@ nhl_obj_u_giveobj(lua_State *L)
     return 0;
 }
 
+DISABLE_WARNING_UNREACHABLE_CODE
+
 /* Get a table of object class data. */
 /* local odata = obj.class(otbl.otyp); */
 /* local odata = obj.class(obj.new("rock")); */
@@ -171,6 +173,7 @@ l_obj_objects_to_table(lua_State *L)
 
     if (argc != 1) {
         nhl_error(L, "l_obj_objects_to_table: Wrong args");
+        /*NOTREACHED*/
         return 0;
     }
 
@@ -229,6 +232,8 @@ l_obj_objects_to_table(lua_State *L)
 
     return 1;
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 /* Create a lua table representation of the object, unpacking all the
    object fields.
@@ -331,6 +336,8 @@ l_obj_to_table(lua_State *L)
     return 1;
 }
 
+DISABLE_WARNING_UNREACHABLE_CODE
+
 /* create a new object via wishing routine */
 /* local o = obj.new("rock"); */
 static int
@@ -348,6 +355,7 @@ l_obj_new_readobjnam(lua_State *L)
         return 1;
     } else
         nhl_error(L, "l_obj_new_readobjname: Wrong args");
+    /*NOTREACHED*/
     return 0;
 }
 
@@ -359,15 +367,18 @@ l_obj_at(lua_State *L)
     int argc = lua_gettop(L);
 
     if (argc == 2) {
-        int x, y;
+        coordxy x, y;
 
-        x = (int) luaL_checkinteger(L, 1);
-        y = (int) luaL_checkinteger(L, 2);
+        x = (coordxy) luaL_checkinteger(L, 1);
+        y = (coordxy) luaL_checkinteger(L, 2);
+        cvt_to_abscoord(&x, &y);
+
         lua_pop(L, 2);
-        (void) l_obj_push(L, g.level.objects[x][y]);
+        (void) l_obj_push(L, gl.level.objects[x][y]);
         return 1;
     } else
         nhl_error(L, "l_obj_at: Wrong args");
+    /*NOTREACHED*/
     return 0;
 }
 
@@ -379,13 +390,15 @@ l_obj_placeobj(lua_State *L)
 {
     int argc = lua_gettop(L);
     struct _lua_obj *lo = l_obj_check(L, 1);
-    int x, y;
+    coordxy x, y;
 
     if (argc != 3)
         nhl_error(L, "l_obj_placeobj: Wrong args");
 
-    x = (int) luaL_checkinteger(L, 2);
-    y = (int) luaL_checkinteger(L, 3);
+    x = (coordxy) luaL_checkinteger(L, 2);
+    y = (coordxy) luaL_checkinteger(L, 3);
+    cvt_to_abscoord(&x, &y);
+
     lua_pop(L, 3);
 
     if (lobj_is_ok(lo)) {
@@ -396,6 +409,8 @@ l_obj_placeobj(lua_State *L)
 
     return 0;
 }
+
+RESTORE_WARNING_UNREACHABLE_CODE
 
 /* Get the next object in the object chain */
 /* local o = obj.at(x, y);
@@ -449,6 +464,8 @@ l_obj_isnull(lua_State *L)
     return 1;
 }
 
+DISABLE_WARNING_UNREACHABLE_CODE
+
 /* does object have a timer of certain type? */
 /* local hastimer = o:has_timer("rot-organic"); */
 static int
@@ -472,6 +489,7 @@ l_obj_timer_has(lua_State *L)
     return 0;
 }
 
+
 /* peek at an object timer. return the turn when timer triggers.
    returns 0 if no such timer attached to the object. */
 /* local timeout = o:peek_timer("hatch-egg"); */
@@ -493,6 +511,7 @@ l_obj_timer_peek(lua_State *L)
         }
     } else
         nhl_error(L, "l_obj_timer_peek: Wrong args");
+    /*NOTREACHED*/
     return 0;
 }
 
@@ -529,6 +548,8 @@ l_obj_timer_stop(lua_State *L)
     return 0;
 }
 
+RESTORE_WARNING_UNREACHABLE_CODE
+
 /* start an object timer. */
 /* o:start_timer("hatch-egg", 10); */
 static int
@@ -561,14 +582,15 @@ l_obj_bury(lua_State *L)
     int argc = lua_gettop(L);
     boolean dealloced = FALSE;
     struct _lua_obj *lo = l_obj_check(L, 1);
-    xchar x = 0, y = 0;
+    coordxy x = 0, y = 0;
 
     if (argc == 1) {
         x = lo->obj->ox;
         y = lo->obj->oy;
     } else if (argc == 3) {
-        x = (xchar) lua_tointeger(L, 2);
-        y = (xchar) lua_tointeger(L, 3);
+        x = (coordxy) lua_tointeger(L, 2);
+        y = (coordxy) lua_tointeger(L, 3);
+        cvt_to_abscoord(&x, &y);
     } else
         nhl_error(L, "l_obj_bury: Wrong args");
 
@@ -608,30 +630,33 @@ static const luaL_Reg l_obj_meta[] = {
 int
 l_obj_register(lua_State *L)
 {
-    int lib_id, meta_id;
-
-    /* newclass = {} */
-    lua_createtable(L, 0, 0);
-    lib_id = lua_gettop(L);
-
-    /* metatable = {} */
-    luaL_newmetatable(L, "obj");
-    meta_id = lua_gettop(L);
-    luaL_setfuncs(L, l_obj_meta, 0);
-
-    /* metatable.__index = _methods */
+    /* Table of instance methods (e.g. an_object:isnull())
+       and static methods (e.g. obj.new("dagger")). */
     luaL_newlib(L, l_obj_methods);
-    lua_setfield(L, meta_id, "__index");
 
-    /* metatable.__metatable = _meta */
+    /* metatable = { __name = "obj", __gc = l_obj_gc } */
+    luaL_newmetatable(L, "obj");
+    luaL_setfuncs(L, l_obj_meta, 0);
+    /* metatable.__index points at the object method table. */
+    lua_pushvalue(L, -2);
+    lua_setfield(L, -2, "__index");
+
+    /* Don't let lua code mess with the real metatable.
+       Instead offer a fake one that only contains __gc. */
     luaL_newlib(L, l_obj_meta);
-    lua_setfield(L, meta_id, "__metatable");
+    lua_setfield(L, -2, "__metatable");
 
-    /* class.__metatable = metatable */
-    lua_setmetatable(L, lib_id);
+    /* We don't need the metatable anymore. It's safe in the
+       Lua registry for use by luaL_setmetatable. */
+    lua_pop(L, 1);
 
-    /* _G["obj"] = newclass */
+    /* global obj = the method table we created at the start */
     lua_setglobal(L, "obj");
-
     return 0;
 }
+
+/* for 'onefile' processing where end of this file isn't necessarily the
+   end of the source code seen by the compiler */
+#undef lobj_is_ok
+
+/*nhlobj.c*/

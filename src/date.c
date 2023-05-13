@@ -1,4 +1,4 @@
-/* NetHack 3.7  date.c  $NHDT-Date: 1645393645 2022/02/20 21:47:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $ */
+/* NetHack 3.7  date.c  $NHDT-Date: 1655402414 2022/06/16 18:00:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $ */
 /* Copyright (c) Michael Allison, 2021.                           */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -12,9 +12,10 @@ void free_nomakedefs(void);
     nh_snprintf(__func__, __LINE__, str, size, __VA_ARGS__)
 extern void nh_snprintf(const char *func, int line, char *str, size_t size,
                         const char *fmt, ...);
+extern unsigned long md_ignored_features(void);
 extern char *mdlib_version_string(char *, const char *);
-extern char *version_id_string(char *, int, const char *);
-extern char *bannerc_string(char *, int, const char *);
+extern char *version_id_string(char *, size_t, const char *);
+extern char *bannerc_string(char *, size_t, const char *);
 extern int case_insensitive_comp(const char *, const char *);
 
 /* nomakedefs_populated: flag for whether 'nomakedefs' should be freed */
@@ -25,8 +26,8 @@ struct nomakedefs_s nomakedefs = {
        comp.sources.games/91SfKYg_xzI/dGnR3JnspFkJ */
     "Tue, 28-Jul-87 13:18:57 EDT",
     "Version 1.0, built Jul 28 13:18:57 1987.",
-    (const char *) 0,	/* git_sha */
-    (const char *) 0,	/* git_branch */
+    (const char *) 0,   /* git_sha */
+    (const char *) 0,   /* git_branch */
     "1.0.0-0",
     "xNetHack Version 1.0.0-0 - last build Tue Jul 28 13:18:57 1987.",
     0x01010000UL,
@@ -108,9 +109,7 @@ populate_nomakedefs(struct version_info *version)
 
     nomakedefs.version_number = version->incarnation;
     nomakedefs.version_features = version->feature_set;
-#ifdef MD_IGNORED_FEATURES
-    nomakedefs.ignored_features = MD_IGNORED_FEATURES;
-#endif
+    nomakedefs.ignored_features = md_ignored_features();
     nomakedefs.version_sanity1 = version->entity_count;
     nomakedefs.version_sanity2 = version->struct_sizes1;
     nomakedefs.version_sanity3 = version->struct_sizes2;

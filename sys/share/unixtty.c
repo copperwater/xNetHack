@@ -38,7 +38,6 @@
 #endif /* POSIX_TYPES */
 #ifdef LINUX
 #include <sys/ioctl.h>
-#undef delay_output /* curses redefines this */
 #include <curses.h>
 #endif
 #define kill_sym c_cc[VKILL]
@@ -136,9 +135,7 @@ int has_colors(void);
 
 #if defined(TTY_GRAPHICS) && ((!defined(SYSV) && !defined(HPUX)) \
                               || defined(UNIXPC) || defined(SVR4))
-#ifndef LINT
 extern /* it is defined in libtermlib (libtermcap) */
-#endif
     short ospeed; /* terminal baudrate; set by gettty */
 #else
 short ospeed = 0; /* gets around "not defined" error message */
@@ -257,7 +254,7 @@ setftty(void)
     /* Should use (ECHO|CRMOD) here instead of ECHO */
     if ((unsigned) (curttyb.echoflgs & ECHO) != ef) {
         curttyb.echoflgs &= ~ECHO;
-        /*		curttyb.echoflgs |= ef; */
+        /* curttyb.echoflgs |= ef; */
         change++;
     }
     if ((unsigned) (curttyb.cbrkflgs & CBRKMASK) != cf) {
@@ -316,7 +313,7 @@ void intron(void) /* enable kbd interupts if enabled when game started */
 {
 #ifdef TTY_GRAPHICS
     /* Ugly hack to keep from changing tty modes for non-tty games -dlc */
-    if (WINDOWPORT("tty") && intr_char != nonesuch
+    if (WINDOWPORT(tty) && intr_char != nonesuch
         && curttyb2.intr_sym != '\003') {
         curttyb2.intr_sym = '\003';
         setctty();
@@ -328,7 +325,7 @@ void introff(void) /* disable kbd interrupts if required*/
 {
 #ifdef TTY_GRAPHICS
     /* Ugly hack to keep from changing tty modes for non-tty games -dlc */
-    if (WINDOWPORT("tty") && curttyb2.intr_sym != nonesuch) {
+    if (WINDOWPORT(tty) && curttyb2.intr_sym != nonesuch) {
         curttyb2.intr_sym = nonesuch;
         setctty();
     }
@@ -356,7 +353,7 @@ void
 sco_mapon(void)
 {
 #ifdef TTY_GRAPHICS
-    if (WINDOWPORT("tty") && sco_flag_console) {
+    if (WINDOWPORT(tty) && sco_flag_console) {
         if (sco_map_valid != -1) {
             ioctl(0, LDSMAP, sco_chanmap_buf);
         }
@@ -369,7 +366,7 @@ void
 sco_mapoff(void)
 {
 #ifdef TTY_GRAPHICS
-    if (WINDOWPORT("tty") && sco_flag_console) {
+    if (WINDOWPORT(tty) && sco_flag_console) {
         sco_map_valid = ioctl(0, LDGMAP, sco_chanmap_buf);
         if (sco_map_valid != -1) {
             ioctl(0, LDNMAP, (char *) 0);
@@ -390,7 +387,7 @@ void
 init_sco_cons(void)
 {
 #ifdef TTY_GRAPHICS
-    if (WINDOWPORT("tty") && sco_flag_console) {
+    if (WINDOWPORT(tty) && sco_flag_console) {
         atexit(sco_mapon);
         sco_mapoff();
         load_symset("IBMGraphics", PRIMARYSET);
@@ -419,7 +416,7 @@ void
 linux_mapon(void)
 {
 #ifdef TTY_GRAPHICS
-    if (WINDOWPORT("tty") && linux_flag_console) {
+    if (WINDOWPORT(tty) && linux_flag_console) {
         write(1, "\033(B", 3);
     }
 #endif
@@ -429,7 +426,7 @@ void
 linux_mapoff(void)
 {
 #ifdef TTY_GRAPHICS
-    if (WINDOWPORT("tty") && linux_flag_console) {
+    if (WINDOWPORT(tty) && linux_flag_console) {
         write(1, "\033(U", 3);
     }
 #endif
@@ -449,7 +446,7 @@ void
 init_linux_cons(void)
 {
 #ifdef TTY_GRAPHICS
-    if (WINDOWPORT("tty") && linux_flag_console) {
+    if (WINDOWPORT(tty) && linux_flag_console) {
         atexit(linux_mapon);
         linux_mapoff();
 #ifdef TEXTCOLOR

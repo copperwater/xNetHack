@@ -82,6 +82,39 @@ xxxx.........xxxx
 xxxxxx.....xxxxxx
 ]], contents = function() end });
    end,
+   function ()
+      des.map({ halign = rnd_halign(), valign = rnd_valign(), map = [[
+xxxxxx.xxxxxx
+xLLLLLLLLLLLx
+xL---------Lx
+xL|.......|Lx
+xL|.......|Lx
+.L|.......|L.
+xL|.......|Lx
+xL|.......|Lx
+xL---------Lx
+xLLLLLLLLLLLx
+xxxxxx.xxxxxx
+]], contents = function()
+   des.non_diggable(selection.area(2,2, 10,8));
+   des.region(selection.area(4,4, 8,6), "lit");
+   local dblocs = {
+      { x = 1, y = 5, dir="east", state="closed" },
+      { x = 11, y = 5, dir="west", state="closed" },
+      { x = 6, y = 1, dir="south", state="closed" },
+      { x = 6, y = 9, dir="north", state="closed" }
+   }
+   shuffle(dblocs);
+   for i = 1, math.random(1, #dblocs) do
+      des.drawbridge(dblocs[i]);
+   end
+   local mons = { "H", "T", "@" };
+   shuffle(mons);
+   for i = 1, 3 + math.random(1, 5) do
+      des.monster(mons[1], 6, 5);
+   end
+      end });
+   end,
    -- small circular area with demons
    function ()
       des.map({ halign = rnd_halign(), valign = rnd_valign(), lit = true, map = [[
@@ -275,6 +308,24 @@ xx--.---xx]], contents = function()
             end
          end
       end });
+   end,
+   -- from vanilla: several columns of water/lava flowing down into a pool
+   function ()
+      local mapstr = percent(30) and [[
+.....
+.LLL.
+.LZL.
+.LLL.
+.....]] or [[
+.....
+.PPP.
+.PWP.
+.PPP.
+.....]];
+      for dx = 1, 5 do
+         des.map({ x = dx*14 - 4, y = math.random(3, 15),
+                   map = mapstr, contents = function() end })
+      end
    end,
 
    -- TODO: add some more

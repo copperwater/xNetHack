@@ -9,22 +9,36 @@
 #undef C            // conflicts with Qt6 header
 #undef Invisible
 #undef Warning
-#undef index
 #undef msleep
-#undef rindex
 #undef wizard
-#undef yn
 #undef min
 #undef max
 
-/* disable warnings for shadowed names; some of the Qt prototypes use
-   placeholder argument names which conflict with nethack variables
-   ('g', 'u', a couple of others) */
+#ifdef NOT_C99
+#ifdef NEED_INDEX
+#undef index
+#endif
+#ifdef NEED_RINDX
+#undef rindex
+#endif
+#endif
+
+#if defined(__cplusplus)
+
 #ifdef __clang__
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
-#elif defined(__GNUC__) && defined(__cplusplus)
+#endif
+#ifdef __GNUC__
 #pragma GCC diagnostic push
+#endif
+/* the diagnostic pop is in qt_post.h */
+
+#ifdef __clang__
+/* disable warnings for shadowed names; some of the Qt prototypes use
+   placeholder argument names which conflict with nethack variables
+   ('u' and 'flags') */
+#pragma clang diagnostic ignored "-Wshadow"
+#elif defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wshadow"
 #endif
 
@@ -36,6 +50,27 @@
 #else
 #define QFM_WIDTH(foo) horizontalAdvance(foo)
 #endif
+
+#if __cplusplus >= 202002L
+/* c++20 or newer */
+#if QT_VERSION < 0x060000
+/*
+ * qt5/QtWidgets/qsizepolicy.h
+ * Qt5 header file issue under c++ 20
+ *
+ * warning: bitwise operation between different enumeration types 
+ * ‘QSizePolicy::Policy’ and ‘QSizePolicy::PolicyFlag’
+ * is deprecated [-Wdeprecated-enum-enum-conversion]
+ */
+#if defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#endif
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#endif
+#endif  /* QT_VERSION < 0x060000 */
+#endif  /* __cplusplus >= 202002L */
+#endif /* __cplusplus */
 
 /*qt_pre.h*/
 

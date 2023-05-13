@@ -16,6 +16,14 @@
 #define SHORT_FILENAMES
 #endif
 
+/* Can't use #ifdef LINUX because no header files have been processed yet.
+ * This is needed to ensure the prototype for seteuid() is picked up when
+ * the header files are processed.
+ */
+#ifdef __linux__
+#define _POSIX_C_SOURCE 200809
+#endif
+
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 #include <X11/Shell.h>
@@ -46,7 +54,10 @@
 #undef SHORT_FILENAMES /* hack.h will reset via global.h if necessary */
 #endif
 
+#define X11_BUILD
 #include "hack.h"
+#undef X11_BUILD
+
 #include "winX.h"
 #include "dlb.h"
 #include "xwindow.h"
@@ -71,10 +82,12 @@ static struct icon_info {
     const char *name;
     unsigned char *bits;
     unsigned width, height;
-} icon_data[] = { { "nh72", nh72icon_bits, nh72icon_width, nh72icon_height },
-                  { "nh56", nh56icon_bits, nh56icon_width, nh56icon_height },
-                  { "nh32", nh32icon_bits, nh32icon_width, nh32icon_height },
-                  { (const char *) 0, (unsigned char *) 0, 0, 0 } };
+} icon_data[] = {
+    { "nh72", nh72icon_bits, nh72icon_width, nh72icon_height },
+    { "nh56", nh56icon_bits, nh56icon_width, nh56icon_height },
+    { "nh32", nh32icon_bits, nh32icon_width, nh32icon_height },
+    { (const char *) 0, (unsigned char *) 0, 0, 0 }
+};
 
 /*
  * Private global variables (shared among the window port files).
@@ -82,25 +95,27 @@ static struct icon_info {
 struct xwindow window_list[MAX_WINDOWS];
 AppResources appResources;
 void (*input_func)(Widget, XEvent *, String *, Cardinal *);
-int click_x, click_y, click_button; /* Click position on a map window   */
-                                    /* (filled by set_button_values()). */
+int click_x, click_y, click_button; /* Click position on a map window
+                                     * (filled by set_button_values()). */
 int updated_inventory; /* used to indicate perm_invent updating */
 
 static void X11_error_handler(String) NORETURN;
 static int X11_io_error_handler(Display *);
 
-static int (*old_error_handler) (Display *, XErrorEvent *);
+static int (*old_error_handler)(Display *, XErrorEvent *);
 
+#if defined(HANGUPHANDLING)
 #if !defined(NO_SIGNAL) && defined(SAFERHANGUP)
 #if XtSpecificationRelease >= 6
 #define X11_HANGUP_SIGNAL
 static XtSignalId X11_sig_id;
 #endif
 #endif
+#endif
 
 /* Interface definition, for windows.c */
 struct window_procs X11_procs = {
-    "X11",
+    WPID(X11),
     ( WC_COLOR | WC_INVERSE | WC_HILITE_PET | WC_ASCII_MAP | WC_TILED_MAP
      | WC_PLAYER_SELECTION | WC_PERM_INVENT | WC_MOUSE_SUPPORT ),
     /* status requires VIA_WINDOWPORT(); WC2_FLUSH_STATUS ensures that */
@@ -117,7 +132,7 @@ struct window_procs X11_procs = {
     X11_putstr, genl_putmixed, X11_display_file, X11_start_menu, X11_add_menu,
     X11_end_menu, X11_select_menu,
     genl_message_menu, /* no need for X-specific handling */
-    X11_update_inventory, X11_mark_synch, X11_wait_synch,
+    X11_mark_synch, X11_wait_synch,
 #ifdef CLIPPING
     X11_cliparound,
 #endif
@@ -141,6 +156,8 @@ struct window_procs X11_procs = {
     X11_status_init, X11_status_finish, X11_status_enablefield,
     X11_status_update,
     genl_can_suspend_no, /* XXX may not always be correct */
+    X11_update_inventory,
+    X11_ctrl_nhwindow,
 };
 
 /*
@@ -396,10 +413,11 @@ XtConvertArgRec const nhcolorConvertArgs[] = {
  * Return True if something close was found.
  */
 Boolean
-nhApproxColor(Screen *screen,    /* screen to use */
-              Colormap colormap, /* the colormap to use */
-              char *str,         /* color name */
-              XColor *color)     /* the X color structure; changed only if successful */
+nhApproxColor(
+    Screen *screen,    /* screen to use */
+    Colormap colormap, /* the colormap to use */
+    char *str,         /* color name */
+    XColor *color)     /* the X color structure; changed only if successful */
 {
     int ncells;
     long cdiff = 16777216; /* 2^24; hopefully our map is smaller */
@@ -428,10 +446,10 @@ nhApproxColor(Screen *screen,    /* screen to use */
         XQueryColors(DisplayOfScreen(screen), colormap, table, ncells);
     }
 
-/* go thru cells and look for the one with smallest diff        */
-/* diff is calculated abs(reddiff)+abs(greendiff)+abs(bluediff) */
-/* a more knowledgeable color person might improve this -dlc    */
-try_again:
+    /* go thru cells and look for the one with smallest diff;
+       diff is calculated abs(reddiff)+abs(greendiff)+abs(bluediff);
+       a more knowledgeable color person might improve this -dlc */
+ try_again:
     for (i = 0; i < ncells; i++) {
         if (table[i].flags == tmp.flags) {
             j = (int) table[i].red - (int) tmp.red;
@@ -471,9 +489,11 @@ try_again:
 }
 
 Boolean
-nhCvtStringToPixel(Display *dpy, XrmValuePtr args, Cardinal *num_args,
-                   XrmValuePtr fromVal, XrmValuePtr toVal,
-                   XtPointer *closure_ret)
+nhCvtStringToPixel(
+    Display *dpy,
+    XrmValuePtr args, Cardinal *num_args,
+    XrmValuePtr fromVal, XrmValuePtr toVal,
+    XtPointer *closure_ret)
 {
     String str = (String) fromVal->addr;
     XColor screenColor;
@@ -562,9 +582,10 @@ nhCvtStringToPixel(Display *dpy, XrmValuePtr args, Cardinal *num_args,
 
 /* Ask the WM for window frame size */
 void
-get_window_frame_extents(Widget w,
-                         long *top, long *bottom,
-                         long *left, long *right)
+get_window_frame_extents(
+    Widget w,
+    long *top, long *bottom,
+    long *left, long *right)
 {
     XEvent event;
     Display *dpy = XtDisplay(w);
@@ -575,6 +596,8 @@ get_window_frame_extents(Widget w,
     unsigned long nbytes;
     unsigned char *data = 0;
     long *extents;
+
+    *top = *bottom = *left = *right = 0L;
 
     prop = XInternAtom(dpy, "_NET_FRAME_EXTENTS", True);
     if (prop == None) {
@@ -589,9 +612,11 @@ get_window_frame_extents(Widget w,
          * and also a smaller amount to the left every time it gets
          * updated.  Caveat:  amount determined by trial and error and
          * could change depending upon monitor resolution....
+         *
+         * This hack could be improved by implementing the anti-creep
+         * value as an X resource so that player can adjust it.
          */
-        *top = 22;
-        *left = 0;
+        *top = 22L;
 #endif
         return;
     }
@@ -605,18 +630,23 @@ get_window_frame_extents(Widget w,
     }
 
     extents = (long *) data;
-
-    *left = extents[0];
-    *right = extents[1];
-    *top = extents[2];
-    *bottom = extents[3];
+    if (extents) {
+        *left = extents[0];
+        *right = extents[1];
+        *top = extents[2];
+        *bottom = extents[3];
+    }
 }
 
 void
-get_widget_window_geometry(Widget w, int *x, int *y, int *width, int *height)
+get_widget_window_geometry(
+    Widget w,
+    int *x, int *y,
+    int *width, int *height)
 {
     long top, bottom, left, right;
     Arg args[5];
+
     XtSetArg(args[0], nhStr(XtNx), x);
     XtSetArg(args[1], nhStr(XtNy), y);
     XtSetArg(args[2], nhStr(XtNwidth), width);
@@ -680,11 +710,12 @@ load_boldfont(struct xwindow *wp, Widget w)
 #ifdef TEXTCOLOR
 /* ARGSUSED */
 static void
-nhFreePixel(XtAppContext app,
-            XrmValuePtr toVal,
-            XtPointer closure,
-            XrmValuePtr args,
-            Cardinal *num_args)
+nhFreePixel(
+    XtAppContext app,
+    XrmValuePtr toVal,
+    XtPointer closure,
+    XrmValuePtr args,
+    Cardinal *num_args)
 {
     Screen *screen;
     Colormap colormap;
@@ -741,8 +772,9 @@ static String *default_resource_data = 0, /* NULL-terminated arrays */
 
 /* caller found "#define"; parse into macro name and its expansion value */
 static boolean
-new_resource_macro(String inbuf, /* points past '#define' rather than to start of buffer */
-                   unsigned numdefs) /* array slot to fill */
+new_resource_macro(
+    String inbuf, /* points past '#define' rather than to start of buffer */
+    unsigned numdefs) /* array slot to fill */
 {
     String p, q;
 
@@ -813,7 +845,7 @@ load_default_resources(void)
             ++numdefs;
         }
         linelen += strlen(inbuf);
-        if (!index(inbuf, '\n'))
+        if (!strchr(inbuf, '\n'))
             continue;
         if (linelen > longlen)
             longlen = linelen;
@@ -938,8 +970,8 @@ X11_putstr(winid window, int attr, const char *str)
 
     switch (wp->type) {
     case NHW_MESSAGE:
-        (void) strncpy(g.toplines, str, TBUFSZ); /* for Norep(). */
-        g.toplines[TBUFSZ - 1] = 0;
+        (void) strncpy(gt.toplines, str, TBUFSZ); /* for Norep(). */
+        gt.toplines[TBUFSZ - 1] = 0;
         append_message(wp, str);
         break;
 #ifndef STATUS_HILITES
@@ -987,7 +1019,7 @@ X11_nhgetch(void)
 }
 
 int
-X11_nh_poskey(int *x, int *y, int *mod)
+X11_nh_poskey(coordxy *x, coordxy *y, int *mod)
 {
     int val = input_event(EXIT_ON_KEY_OR_BUTTON_PRESS);
 
@@ -1253,7 +1285,7 @@ X11_update_inventory(int arg)
 
     if (iflags.perm_invent) {
         /* skip any calls to update_inventory() before in_moveloop starts */
-        if (g.program_state.in_moveloop || g.program_state.gameover) {
+        if (gp.program_state.in_moveloop || gp.program_state.gameover) {
             updated_inventory = 1; /* hack to avoid mapping&raising window */
             if (!arg) {
                 (void) display_inventory((char *) 0, FALSE);
@@ -1270,6 +1302,15 @@ X11_update_inventory(int arg)
     return;
 }
 
+win_request_info *
+X11_ctrl_nhwindow(
+    winid window UNUSED,
+    int request UNUSED,
+    win_request_info *wri UNUSED)
+{
+    return (win_request_info *) 0;
+}
+
 /* The current implementation has all of the saved lines on the screen. */
 int
 X11_doprev_message(void)
@@ -1277,13 +1318,21 @@ X11_doprev_message(void)
     return 0;
 }
 
+/* issue a beep to alert the user about something */
 void
 X11_nhbell(void)
 {
-    /* We can't use XBell until toplevel has been initialized. */
-    if (x_inited)
-        XBell(XtDisplay(toplevel), 0);
-    /* else print ^G ?? */
+    if (!flags.silent) {
+        /* We can't use XBell until toplevel has been initialized. */
+        if (x_inited) {
+            XBell(XtDisplay(toplevel), 0);
+#if 0
+        } else {
+            /* raw_print() uses puts() so appends a newline */
+            X11_raw_print("\a"); /* '\a' == '\007' (^G), ascii BEL */
+#endif
+        }
+    }
 }
 
 void
@@ -1306,8 +1355,10 @@ X11_mark_synch(void)
 void
 X11_wait_synch(void)
 {
-    if (x_inited)
+    if (x_inited) {
+        X11_mark_synch();
         XFlush(XtDisplay(toplevel));
+    }
 }
 
 /* Both resume_ and suspend_ are called from ioctl.c and unixunix.c. */
@@ -1481,16 +1532,27 @@ static void
 X11_error_handler(String str)
 {
     nhUse(str);
+#if defined(HANGUPHANDLING)
     hangup(1);
-    nh_terminate(EXIT_FAILURE);
+#ifdef SAFERHANGUP /* keeps going after hangup() for '#if SAFERHANGUP' */
+    end_of_input();
+#endif
+#endif
     /*NOTREACHED*/
+    nh_terminate(EXIT_FAILURE);
 }
 
 static int
 X11_io_error_handler(Display *display)
 {
     nhUse(display);
+#if defined(HANGUPHANDLING)
     hangup(1);
+#ifdef SAFERHANGUP /* keeps going after hangup() for '#if SAFERHANGUP' */
+    end_of_input();
+#endif
+#endif
+    /*NOREACHED*/ /* but not declared NORETURN */
     return 0;
 }
 
@@ -1523,7 +1585,7 @@ X11_init_nhwindows(int *argcp, char **argv)
      * when opening X11 connections, in case the user is using xauth, since
      * the "games" or whatever user probably doesn't have permission to open
      * a window on the user's display.  This code is harmless if the binary
-     * is not installed setuid.  See include/system.h on compilation failures.
+     * is not installed setuid.
      */
     savuid = geteuid();
     (void) seteuid(getuid());
@@ -1576,7 +1638,7 @@ X11_init_nhwindows(int *argcp, char **argv)
                 if (icon_pixmap != None) {
                     XWMHints hints;
 
-                    (void) memset((genericptr_t) &hints, 0, sizeof(XWMHints));
+                    (void) memset((genericptr_t) &hints, 0, sizeof hints);
                     hints.flags = IconPixmapHint;
                     hints.icon_pixmap = icon_pixmap;
                     XSetWMHints(XtDisplay(toplevel), XtWindow(toplevel),
@@ -1630,6 +1692,8 @@ X11_exit_nhwindows(const char *dummy)
 
     release_getline_widgets();
     release_yn_widgets();
+
+    x_inited = FALSE;
 }
 
 #ifdef X11_HANGUP_SIGNAL
@@ -1661,10 +1725,10 @@ X11_sig_cb(XtPointer not_used, XtSignalId *id)
 }
 #endif
 
-/* delay_output ----------------------------------------------------------- */
+/* X11_delay_output ------------------------------------------------------- */
 
 /*
- * Timeout callback for delay_output().  Send a fake message to the map
+ * Timeout callback for X11_delay_output().  Send a fake message to the map
  * window.
  */
 /* ARGSUSED */
@@ -1715,7 +1779,9 @@ X11_hangup(Widget w, XEvent *event, String *params, Cardinal *num_params)
     nhUse(params);
     nhUse(num_params);
 
+#if defined(HANGUPHANDLING)
     hangup(1); /* 1 is commonly SIGHUP, but ignored anyway */
+#endif
     exit_x_event = TRUE;
 }
 
@@ -1724,7 +1790,7 @@ X11_hangup(Widget w, XEvent *event, String *params, Cardinal *num_params)
 static void
 X11_bail(const char *mesg)
 {
-    g.program_state.something_worth_saving = 0;
+    gp.program_state.something_worth_saving = 0;
     clearlocks();
     X11_exit_nhwindows(mesg);
     nh_terminate(EXIT_SUCCESS);
@@ -1741,7 +1807,7 @@ askname_delete(Widget w, XEvent *event, String *params, Cardinal *num_params)
     nhUse(num_params);
 
     nh_XtPopdown(w);
-    (void) strcpy(g.plname, "Mumbles"); /* give them a name... ;-) */
+    (void) strcpy(gp.plname, "Mumbles"); /* give them a name... ;-) */
     exit_x_event = TRUE;
 }
 
@@ -1766,11 +1832,11 @@ askname_done(Widget w, XtPointer client_data, XtPointer call_data)
     }
 
     /* Truncate name if necessary */
-    if (len >= sizeof g.plname - 1)
-        len = sizeof g.plname - 1;
+    if (len >= sizeof gp.plname - 1)
+        len = sizeof gp.plname - 1;
 
-    (void) strncpy(g.plname, s, len);
-    g.plname[len] = '\0';
+    (void) strncpy(gp.plname, s, len);
+    gp.plname[len] = '\0';
     XtFree(s);
 
     nh_XtPopdown(XtParent(dialog));
@@ -1818,7 +1884,7 @@ X11_askname(void)
                           (XtCallbackProc) 0);
 
     SetDialogPrompt(dialog, nhStr("What is your name?")); /* set prompt */
-    SetDialogResponse(dialog, g.plname, PL_NSIZ); /* set default answer */
+    SetDialogResponse(dialog, gp.plname, PL_NSIZ); /* set default answer */
 
     XtRealizeWidget(popup);
     positionpopup(popup, TRUE); /* center,bottom */
@@ -1911,9 +1977,12 @@ release_getline_widgets(void)
 
 /* ask user for a line of text */
 void
-X11_getlin(const char *question, /* prompt */
-           char *input)          /* user's input, getlin's _output_ buffer */
+X11_getlin(
+    const char *question, /* prompt */
+    char *input)          /* user's input, getlin's _output_ buffer */
 {
+    unsigned upromptlen;
+
     getline_input = input; /* used by popup actions */
 
     flush_screen(1); /* tell core to make sure that map is up to date */
@@ -1936,18 +2005,24 @@ X11_getlin(const char *question, /* prompt */
         XSetWMProtocols(XtDisplay(getline_popup), XtWindow(getline_popup),
                         &wm_delete_window, 1);
     }
-    SetDialogPrompt(getline_dialog, (String) question); /* set prompt */
-    /* 60:  make the answer widget be wide enough to hold 60 characters,
+
+    /* 64:  make the answer widget be wide enough to hold 64 characters,
        or the length of the prompt string, whichever is bigger.  User's
        response can be longer--when limit is reached, value-so-far will
        slide left hiding some chars at the beginning of the response but
        making room to type more.  [Prior to 3.6.1, width wasn't specifiable
        and answer box always got sized to match the width of the prompt.] */
+    upromptlen = (unsigned) strlen(question);
+    if (upromptlen < 64)
+        upromptlen = 64;
 #ifdef EDIT_GETLIN
-    SetDialogResponse(getline_dialog, input, 60); /* set default answer */
+    /* set default answer */
+    SetDialogResponse(getline_dialog, input, upromptlen);
 #else
-    SetDialogResponse(getline_dialog, nhStr(""), 60); /* set default answer */
+    /* no default answer */
+    SetDialogResponse(getline_dialog, nhStr(""), upromptlen);
 #endif
+    SetDialogPrompt(getline_dialog, (String) question); /* set prompt */
     positionpopup(getline_popup, TRUE);           /* center,bottom */
 
     nh_XtPopup(getline_popup, (int) XtGrabExclusive, getline_dialog);
@@ -1958,7 +2033,7 @@ X11_getlin(const char *question, /* prompt */
     /* we get here after the popup has exited;
        put prompt and response into the message window (and into
        core's dumplog history) unless play hasn't started yet */
-    if (g.program_state.in_moveloop || g.program_state.gameover) {
+    if (gp.program_state.in_moveloop || gp.program_state.gameover) {
         /* single space has meaning (to remove a previously applied name) so
            show it clearly; don't care about legibility of multiple spaces */
         const char *visanswer = !input[0] ? "<empty>"
@@ -1998,6 +2073,7 @@ X11_display_file(const char *str, boolean complain)
     menu_item *menu_list;
 #define LLEN 128
     char line[LLEN];
+    int clr = 0;
 
     /* Use the port-independent file opener to see if the file exists. */
     fp = dlb_fopen(str, RDTMODE);
@@ -2014,7 +2090,7 @@ X11_display_file(const char *str, boolean complain)
     any = cg.zeroany;
     while (dlb_fgets(line, LLEN, fp)) {
         X11_add_menu(newwin, &nul_glyphinfo, &any, 0, 0, ATR_NONE,
-                     line, MENU_ITEMFLAGS_NONE);
+                     clr, line, MENU_ITEMFLAGS_NONE);
     }
     (void) dlb_fclose(fp);
 
@@ -2107,7 +2183,7 @@ yn_key(Widget w, XEvent *event, String *params, Cardinal *num_params)
     }
 
     if (!yn_choices /* accept any input */
-        || (yn_no_default && (ch == '\033' || index(yn_quitchars, ch)))) {
+        || (yn_no_default && (ch == '\033' || strchr(yn_quitchars, ch)))) {
         yn_return = ch;
     } else {
         if (!yn_preserve_case)
@@ -2116,9 +2192,9 @@ yn_key(Widget w, XEvent *event, String *params, Cardinal *num_params)
         if (ch == '\033') {
             yn_getting_num = FALSE;
             yn_return = yn_esc_map;
-        } else if (index(yn_quitchars, ch)) {
+        } else if (strchr(yn_quitchars, ch)) {
             yn_return = yn_def;
-        } else if (index(yn_choices, ch)) {
+        } else if (strchr(yn_choices, ch)) {
             if (ch == '#') {
                 if (yn_getting_num) { /* don't select again */
                     X11_nhbell();
@@ -2214,7 +2290,7 @@ X11_yn_function_core(
                 yn_preserve_case = TRUE;
                 break;
             }
-        if ((cb = index(choicebuf, '\033')) != 0)
+        if ((cb = strchr(choicebuf, '\033')) != 0)
             *cb = '\0';
         /* ques [choices] (def) */
         int ln = ((int) strlen(ques)        /* prompt text */
@@ -2231,8 +2307,8 @@ X11_yn_function_core(
         Strcat(buf, " ");
 
         /* escape maps to 'q' or 'n' or default, in that order */
-        yn_esc_map = (index(choices, 'q') ? 'q'
-                      : index(choices, 'n') ? 'n'
+        yn_esc_map = (strchr(choices, 'q') ? 'q'
+                      : strchr(choices, 'n') ? 'n'
                         : def);
     } else {
         int ln = ((int) strlen(ques)        /* prompt text */
@@ -2326,7 +2402,7 @@ X11_yn_function_core(
          * It also enforces a minimum prompt width, which wasn't being
          * done before, so that really short prompts are more noticeable
          * if they pop up where the pointer is parked and it happens to
-         * be setting somewhere the player isn't looking.
+         * be sitting somewhere the player isn't looking.
          */
         Dimension promptwidth, labelwidth = 0;
 
@@ -2471,12 +2547,12 @@ highlight_yn(boolean init)
         Arg args[2];
         XGCValues vals;
         unsigned long fg_bg = (GCForeground | GCBackground);
-        GC gc = (xmap->map_information->is_tile
+        GC ggc = (xmap->map_information->is_tile
                     ? xmap->map_information->tile_map.white_gc
                     : xmap->map_information->text_map.copy_gc);
 
         (void) memset((genericptr_t) &vals, 0, sizeof vals);
-        if (XGetGCValues(XtDisplay(xmap->w), gc, fg_bg, &vals)) {
+        if (XGetGCValues(XtDisplay(xmap->w), ggc, fg_bg, &vals)) {
             XtSetArg(args[0], XtNforeground, vals.foreground);
             XtSetArg(args[1], XtNbackground, vals.background);
             XtSetValues(yn_label, args, TWO);

@@ -5,11 +5,11 @@
 /* tty.c - (Windows console) version */
 
 /*
- * Initial Creation 				M. Allison	1993/01/31
- * Switch to low level console output routines	M. Allison	2003/10/01
- * Restrict cursor movement until input pending	M. Lehotay	2003/10/02
- * Call Unicode version of output API on NT     R. Chason	2005/10/28
- * Use of back buffer to improve performance    B. House	2018/05/06
+ * Initial Creation                             M. Allison      1993/01/31
+ * Switch to low level console output routines  M. Allison      2003/10/01
+ * Restrict cursor movement until input pending M. Lehotay      2003/10/02
+ * Call Unicode version of output API on NT     R. Chason       2005/10/28
+ * Use of back buffer to improve performance    B. House        2018/05/06
  *
  */
 
@@ -86,6 +86,7 @@ typedef struct {
     WORD attr;
     long color24;
     int color256idx;
+    const char *bkcolorseq;
     const char *colorseq;
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
 } cell_t;
@@ -170,6 +171,7 @@ struct console_t {
     WORD foreground;
     WORD attr;
     int current_nhcolor;
+    int current_nhbkcolor;
     int current_nhattr[ATR_INVERSE+1];
     COORD cursor;
     HANDLE hConOut;
@@ -210,6 +212,7 @@ struct console_t {
     (FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED), /* foreground */
     0,                                                     /* attr */
     0,                                                     /* current_nhcolor */
+    0,                                                     /* current_nhbkcolor */
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
     {FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE},
 #ifndef VIRTUAL_TERMINAL_SEQUENCES
@@ -313,6 +316,7 @@ static INPUT_RECORD bogus_key;
 #ifdef VIRTUAL_TERMINAL_SEQUENCES
 long customcolors[CLR_MAX];
 const char *esc_seq_colors[CLR_MAX];
+const char *esc_seq_bkcolors[CLR_MAX];
 
 struct rgbvalues {
     int idx;
@@ -471,6 +475,8 @@ rgbtable_to_long(struct rgbvalues *tbl)
 static void
 init_custom_colors(void)
 {
+    char bkcolorbuf[32];
+
     customcolors[CLR_BLACK] = rgbtable_to_long(&rgbtable[131]);
     customcolors[CLR_RED] = rgbtable_to_long(&rgbtable[5]);
     customcolors[CLR_GREEN] = rgbtable_to_long(&rgbtable[31]);
@@ -507,6 +513,40 @@ init_custom_colors(void)
     esc_seq_colors[CLR_BRIGHT_BLUE] = "\x1b[34m\x1b[94m";
     esc_seq_colors[CLR_BRIGHT_MAGENTA] = "\x1b[35m\x1b[95m";
     esc_seq_colors[CLR_BRIGHT_CYAN] = "\x1b[36m\x1b[96m";
+
+     /* Sprintf(tmp, "\033[%dm", ((color % 8) + 40)); */
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_BLACK % 8) + 40));
+    esc_seq_bkcolors[CLR_BLACK] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_RED % 8) + 40));
+    esc_seq_bkcolors[CLR_RED] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_GREEN % 8) + 40));
+    esc_seq_bkcolors[CLR_GREEN] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_YELLOW % 8) + 40));
+    esc_seq_bkcolors[CLR_YELLOW] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_BLUE % 8) + 40));
+    esc_seq_bkcolors[CLR_BLUE] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_MAGENTA % 8) + 40));
+    esc_seq_bkcolors[CLR_MAGENTA] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_CYAN % 8) + 40));
+    esc_seq_bkcolors[CLR_CYAN] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_WHITE % 8) + 40));
+    esc_seq_bkcolors[CLR_WHITE] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_BROWN % 8) + 40));
+    esc_seq_bkcolors[CLR_BROWN] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_GRAY % 8) + 40));
+    esc_seq_bkcolors[CLR_GRAY] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((NO_COLOR % 8) + 40));
+    esc_seq_bkcolors[NO_COLOR] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_ORANGE % 8) + 40));
+    esc_seq_bkcolors[CLR_ORANGE] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_BRIGHT_BLUE % 8) + 40));
+    esc_seq_bkcolors[CLR_BRIGHT_BLUE] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_BRIGHT_GREEN % 8) + 40));
+    esc_seq_bkcolors[CLR_BRIGHT_GREEN] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_BRIGHT_MAGENTA % 8) + 40));
+    esc_seq_bkcolors[CLR_BRIGHT_MAGENTA] = dupstr(bkcolorbuf);
+    Snprintf(bkcolorbuf, sizeof bkcolorbuf, "\x1b[%dm", ((CLR_BRIGHT_CYAN % 8) + 40));
+    esc_seq_bkcolors[CLR_BRIGHT_CYAN] = dupstr(bkcolorbuf);
 }
 
 void emit_start_bold(void);
@@ -715,18 +755,20 @@ DWORD error_result;
 /* Console buffer flipping support */
 #ifdef VIRTUAL_TERMINAL_SEQUENCES
 enum do_flags {
-    do_utf8_content = 1,
-    do_wide_content = 2,
-    do_colorseq = 4,
-    do_color24 = 8,
-    do_newattr = 16
+    do_utf8_content = 0x01,
+    do_wide_content = 0x02,
+    do_colorseq     = 0x04,
+    do_color24      = 0x08,
+    do_newattr      = 0x10,
+    do_bkcolorseq   = 0x20,
 };
 enum did_flags {
-    did_utf8_content = 1,
-    did_wide_content = 2,
-    did_colorseq = 4,
-    did_color24 = 8,
-    did_newattr = 16
+    did_utf8_content = 0x01,
+    did_wide_content = 0x02,
+    did_colorseq     = 0x04,
+    did_color24      = 0x08,
+    did_newattr      = 0x10,
+    did_bkcolorseq   = 0x20,
 };
 
 static void
@@ -753,6 +795,8 @@ back_buffer_flip(void)
                 do_anything |= do_colorseq;
             if (back->attr != front->attr)
                 do_anything |= do_newattr;
+            if (back->bkcolorseq != front->bkcolorseq)
+                do_anything |= do_bkcolorseq;
 #ifdef UTF8_FROM_CORE
             if (!SYMHANDLING(H_UTF8)) {
                 if (console.has_unicode
@@ -800,7 +844,15 @@ back_buffer_flip(void)
                     WriteConsoleA(console.hConOut, back->colorseq,
                                   (int) strlen(back->colorseq), &unused,
                                   &reserved);
-                } else {
+                }
+                if (back->bkcolorseq) {
+                    did_anything |= did_bkcolorseq;
+                    WriteConsoleA(console.hConOut, back->bkcolorseq,
+                                  (int) strlen(back->bkcolorseq), &unused,
+                                  &reserved);
+                }
+                if ((did_anything | (did_colorseq | did_bkcolorseq | did_color24)) == 0) {
+                    did_anything &= ~(did_bkcolorseq | did_color24);
                     did_anything |= did_colorseq;
                     emit_default_color();
                 }
@@ -884,7 +936,8 @@ void buffer_fill_to_end(cell_t * buffer, cell_t * fill, int x, int y)
     while (dst != sentinel)
         *dst++ = *fill;
 
-    if (iflags.debug.immediateflips && buffer == console.back_buffer)
+    if ((iflags.debug.immediateflips || !gp.program_state.in_moveloop)
+        && buffer == console.back_buffer)
         back_buffer_flip();
 }
 
@@ -899,7 +952,7 @@ static void buffer_clear_to_end_of_line(cell_t * buffer, int x, int y)
     while (dst != sentinel)
         *dst++ = clear_cell;
 
-    if (iflags.debug.immediateflips)
+    if (iflags.debug.immediateflips || !gp.program_state.in_moveloop)
         back_buffer_flip();
 }
 
@@ -911,7 +964,8 @@ void buffer_write(cell_t * buffer, cell_t * cell, COORD pos)
     cell_t * dst = buffer + (console.width * pos.Y) + pos.X;
     *dst = *cell;
 
-    if (iflags.debug.immediateflips && buffer == console.back_buffer)
+    if ((iflags.debug.immediateflips || !gp.program_state.in_moveloop)
+        && buffer == console.back_buffer)
         back_buffer_flip();
 }
 
@@ -919,7 +973,7 @@ void buffer_write(cell_t * buffer, cell_t * cell, COORD pos)
  * Called after returning from ! or ^Z
  */
 void
-gettty()
+gettty(void)
 {
 #ifndef TEXTCOLOR
     int k;
@@ -961,7 +1015,7 @@ settty(const char* s)
 
 /* called by init_nhwindows() and resume_nhwindows() */
 void
-setftty()
+setftty(void)
 {
     start_screen();
 }
@@ -983,7 +1037,7 @@ tty_number_pad(int state)
 }
 
 void
-tty_start_screen()
+tty_start_screen(void)
 {
     if (iflags.num_pad)
         tty_number_pad(1); /* make keypad send digits */
@@ -998,9 +1052,9 @@ tty_start_screen()
 }
 
 void
-tty_end_screen()
+tty_end_screen(void)
 {
-    clear_screen();
+    term_clear_screen();
     really_move_cursor();
     buffer_fill_to_end(console.back_buffer, &clear_cell, 0, 0);
     back_buffer_flip();
@@ -1011,9 +1065,9 @@ static BOOL
 CtrlHandler(DWORD ctrltype)
 {
     switch (ctrltype) {
-    /*	case CTRL_C_EVENT: */
+    /* case CTRL_C_EVENT: */
     case CTRL_BREAK_EVENT:
-        clear_screen();
+        term_clear_screen();
     case CTRL_CLOSE_EVENT:
     case CTRL_LOGOFF_EVENT:
     case CTRL_SHUTDOWN_EVENT:
@@ -1053,7 +1107,7 @@ consoletty_open(int mode)
 }
 
 void
-consoletty_exit()
+consoletty_exit(void)
 {
     /* go back to using the safe routines */
     safe_routines();
@@ -1069,7 +1123,7 @@ process_keystroke(
     int ch;
 
 #ifdef QWERTZ_SUPPORT
-    if (g.Cmd.swap_yz)
+    if (gc.Cmd.swap_yz)
         numberpad |= 0x10;
 #endif
     ch = keyboard_handling.pProcessKeystroke(
@@ -1084,13 +1138,13 @@ process_keystroke(
 }
 
 int
-consoletty_kbhit()
+consoletty_kbhit(void)
 {
     return keyboard_handling.pNHkbhit(console.hConIn, &ir);
 }
 
 int
-tgetch()
+tgetch(void)
 {
     int mod;
     coord cc;
@@ -1101,18 +1155,18 @@ tgetch()
     if (iflags.debug_fuzzer)
         return randomkey();
 #ifdef QWERTZ_SUPPORT
-    if (g.Cmd.swap_yz)
+    if (gc.Cmd.swap_yz)
         numpad |= 0x10;
 #endif
 
-    return (g.program_state.done_hup)
+    return (gp.program_state.done_hup)
                ? '\033'
                : keyboard_handling.pCheckInput(
                    console.hConIn, &ir, &count, numpad, 0, &mod, &cc);
 }
 
 int
-console_poskey(int *x, int *y, int *mod)
+console_poskey(coordxy *x, coordxy *y, int *mod)
 {
     int ch;
     coord cc = { 0, 0 };
@@ -1130,10 +1184,10 @@ console_poskey(int *x, int *y, int *mod)
         return poskey;
     }
 #ifdef QWERTZ_SUPPORT
-    if (g.Cmd.swap_yz)
+    if (gc.Cmd.swap_yz)
         numpad |= 0x10;
 #endif
-    ch = (g.program_state.done_hup)
+    ch = (gp.program_state.done_hup)
              ? '\033'
              : keyboard_handling.pCheckInput(
                    console.hConIn, &ir, &count, numpad, 1, mod, &cc);
@@ -1157,7 +1211,7 @@ static void set_console_cursor(int x, int y)
 }
 
 static void
-really_move_cursor()
+really_move_cursor(void)
 {
 #ifdef PORT_DEBUG
     char oldtitle[BUFSZ], newtitle[BUFSZ];
@@ -1182,6 +1236,11 @@ really_move_cursor()
 void
 cmov(int x, int y)
 {
+    if (x >= console.width)
+        x = console.width - 1;
+    if (y >= console.height)
+        y = console.height - 1;
+
     ttyDisplay->cury = y;
     ttyDisplay->curx = x;
 
@@ -1221,8 +1280,11 @@ xputs(const char* s)
 int
 xputc(int ch)
 {
-    set_console_cursor(ttyDisplay->curx, ttyDisplay->cury);
-    xputc_core(ch);
+    int x = ttyDisplay->curx, y = ttyDisplay->cury;
+    if (x < console.width && y < console.height) {
+        set_console_cursor(ttyDisplay->curx, ttyDisplay->cury);
+        xputc_core(ch);
+    }
     return 0;
 }
 
@@ -1266,6 +1328,7 @@ xputc_core(int ch)
         /* this causes way too much performance degradation */
         /* cell.color24 = customcolors[console.current_nhcolor]; */
         cell.colorseq = esc_seq_colors[console.current_nhcolor];
+        cell.bkcolorseq = esc_seq_bkcolors[console.current_nhbkcolor];
         cell.attr = console.attr;
         // if (console.color24)
         //    __debugbreak();
@@ -1360,6 +1423,7 @@ g_putch(int in_ch)
 #else
     cell.attr = console.attr;
     cell.colorseq = esc_seq_colors[console.current_nhcolor];
+    cell.bkcolorseq = esc_seq_bkcolors[console.current_nhbkcolor];
     cell.color24 = console.color24 ? console.color24 : 0L;
     cell.color256idx = 0;
     wch[1] = 0;
@@ -1406,6 +1470,7 @@ g_pututf8(uint8 *sequence)
     cell_t cell;
     cell.attr = console.attr;
     cell.colorseq = esc_seq_colors[console.current_nhcolor];
+    cell.bkcolorseq = esc_seq_bkcolors[console.current_nhbkcolor];
     cell.color24 = console.color24 ? console.color24 : 0L;
     cell.color256idx =console.color256idx ? console.color256idx : 0;
     Snprintf((char *) cell.utf8str, sizeof cell.utf8str, "%s",
@@ -1432,16 +1497,20 @@ term_end_24bitcolor(void)
 void
 cl_end(void)
 {
-    set_console_cursor(ttyDisplay->curx, ttyDisplay->cury);
-    buffer_clear_to_end_of_line(console.back_buffer, console.cursor.X,
-                                console.cursor.Y);
-    tty_curs(BASE_WINDOW, (int) ttyDisplay->curx + 1, (int) ttyDisplay->cury);
+    if (ttyDisplay->curx < console.width 
+            && ttyDisplay->cury < console.height) {
+        set_console_cursor(ttyDisplay->curx, ttyDisplay->cury);
+        buffer_clear_to_end_of_line(console.back_buffer, console.cursor.X,
+                                    console.cursor.Y);
+        tty_curs(BASE_WINDOW, (int) ttyDisplay->curx + 1,
+                 (int) ttyDisplay->cury);
+    }
 }
 
 void
 raw_clear_screen(void)
 {
-    if (WINDOWPORT("tty")) {
+    if (WINDOWPORT(tty)) {
         cell_t * back = console.back_buffer;
         cell_t * front = console.front_buffer;
         COORD pos;
@@ -1488,7 +1557,7 @@ raw_clear_screen(void)
 }
 
 void
-clear_screen(void)
+term_clear_screen(void)
 {
     buffer_fill_to_end(console.back_buffer, &clear_cell, 0, 0);
     home();
@@ -1707,8 +1776,12 @@ term_start_color(int color)
 void
 term_start_bgcolor(int color)
 {
-    nhUse(color);
-    /* empty */
+#ifdef TEXTCOLOR
+    if (color >= 0 && color < CLR_MAX) {
+        console.current_nhbkcolor = color;
+    } else
+#endif
+    console.current_nhbkcolor = NO_COLOR;
 }
 
 void
@@ -1721,6 +1794,7 @@ term_end_color(void)
     console.attr = (console.foreground | console.background);
 #endif /* ! VIRTUAL_TERMINAL_SEQUENCES */
     console.current_nhcolor = NO_COLOR;
+    console.current_nhbkcolor = NO_COLOR;
 }
 
 void
@@ -1842,7 +1916,7 @@ tty_utf8graphics_fixup(void)
         /* the locale */
         if (console.localestr)
             free(console.localestr);
-        console.localestr = strdup(setlocale(LC_ALL, ".UTF8"));
+        console.localestr = dupstr(setlocale(LC_ALL, ".UTF8"));
         /* the code page */
         SetConsoleOutputCP(65001);
         console.code_page = GetConsoleOutputCP();
@@ -1910,7 +1984,7 @@ tty_ibmgraphics_fixup(void)
     if (localestr) {
         if (console.localestr)
             free(console.localestr);
-        console.localestr = strdup(localestr);
+        console.localestr = dupstr(localestr);
     }
     set_known_good_console_font();
     /* the console mode */
@@ -1955,7 +2029,7 @@ map_subkeyvalue(char* op)
 
     idx = -1;
     val = -1;
-    kp = index(op, '/');
+    kp = strchr(op, '/');
     if (kp) {
         *kp = '\0';
         kp++;
@@ -1963,14 +2037,14 @@ map_subkeyvalue(char* op)
         if (length < 1 || length > 3)
             return;
         for (i = 0; i < length; i++)
-            if (!index(digits, kp[i]))
+            if (!strchr(digits, kp[i]))
                 return;
         val = atoi(kp);
         length = strlen(op);
         if (length < 1 || length > 3)
             return;
         for (i = 0; i < length; i++)
-            if (!index(digits, op[i]))
+            if (!strchr(digits, op[i]))
                 return;
         idx = atoi(op);
     }
@@ -2018,7 +2092,7 @@ static int CALLBACK EnumFontCallback(
  * correctly, then it will change the font to a known good font.
  */
 void
-check_and_set_font()
+check_and_set_font(void)
 {
     if (!check_font_widths()) {
         raw_print("WARNING: glyphs too wide in console font."
@@ -2032,7 +2106,7 @@ check_and_set_font()
  */
 boolean
 #ifndef VIRTUAL_TERMINAL_SEQUENCES
-check_font_widths()
+check_font_widths(void)
 #else /* VIRTUAL_TERMINAL_SEQUENCES */
 check_font_widths(void)
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
@@ -2097,7 +2171,7 @@ check_font_widths(void)
     boolean used[256];
     memset(used, 0, sizeof(used));
     for (int i = 0; i < SYM_MAX; i++) {
-        used[g.primary_syms[i]] = TRUE;
+        used[gp.primary_syms[i]] = TRUE;
     }
 
     int wcUsedCount = 0;
@@ -2186,13 +2260,14 @@ restore_original_console_font(void)
         raw_print("Restoring original font and code page\n");
         success = SetConsoleOutputCP(console.original_code_page);
 #else /* VIRTUAL_TERMINAL_SEQUENCES */
-        raw_print("Restoring original font, code page and locale\n");
+        if (wizard)
+            raw_print("Restoring original font, code page and locale\n");
 
         tmplocalestr = setlocale(LC_ALL, console.orig_localestr);
         if (tmplocalestr) {
             if (console.localestr)
                 free(console.localestr);
-            console.localestr = strdup(tmplocalestr);
+            console.localestr = dupstr(tmplocalestr);
         }
         success = SetConsoleOutputCP(console.orig_code_page);
 #endif /* VIRTUAL_TERMINAL_SEQUENCES */
@@ -2369,13 +2444,18 @@ void nethack_enter_consoletty(void)
                      console.orig_csbi.srWindow.Left + 1;
     console.Width = max(console.Width, COLNO);
 #else
-    console.width = COLNO;
+//    console.width = COLNO;
+    console.width = console.orig_csbi.srWindow.Right -
+                     console.orig_csbi.srWindow.Left + 1;
+    if (console.width < COLNO)
+        console.width = COLNO;
 #endif
 
     console.height = console.orig_csbi.srWindow.Bottom -
                      console.orig_csbi.srWindow.Top + 1;
-    console.height = max(console.height, ROWNO + 3);
-
+//    console.height = max(console.height, ROWNO + 3);
+    if (console.height < (ROWNO + 2 + 1))
+        console.height = (ROWNO + 2 + 1);
     console.buffer_size = console.width * console.height;
 
 
@@ -2441,7 +2521,7 @@ void nethack_enter_consoletty(void)
     if (localestr) {
         if (console.localestr)
             free(console.localestr);
-        console.localestr = strdup(localestr);
+        console.localestr = dupstr(localestr);
     }
     console.code_page = console.orig_code_page;
     if (console.has_unicode) {
@@ -2785,7 +2865,7 @@ set_keyhandling_via_option(void)
 {
     winid tmpwin;
     anything any;
-    int i;
+    int i, clr = 0;
     menu_item *console_key_handling_pick = (menu_item *) 0;
 
     tmpwin = create_nhwindow(NHW_MENU);
@@ -2794,7 +2874,7 @@ set_keyhandling_via_option(void)
     for (i = default_keyhandling; i < SIZE(legal_key_handling); i++) {
         any.a_int = i + 1;
         add_menu(tmpwin, &nul_glyphinfo, &any, 'a' + i,
-                 0, ATR_NONE,
+                 0, ATR_NONE, clr,
                  legal_key_handling[i], MENU_ITEMFLAGS_NONE);
     }
     end_menu(tmpwin, "Select windows console key handling:");
@@ -3038,8 +3118,8 @@ default_checkinput(
                                  & RIGHTBUTTON)
                             *mod = CLICK_2;
 #if 0 /* middle button */
-				    else if (ir->Event.MouseEvent.dwButtonState & MIDBUTTON)
-			      		*mod = CLICK_3;
+                                    else if (ir->Event.MouseEvent.dwButtonState & MIDBUTTON)
+                                        *mod = CLICK_3;
 #endif
                         return 0;
                     }
@@ -3505,19 +3585,19 @@ ray_checkinput(
                             else if (ir->Event.MouseEvent.dwButtonState
                                      & RIGHTBUTTON)
                                 *mod = CLICK_2;
-#if 0 /* middle button */			       
-				else if (ir->Event.MouseEvent.dwButtonState & MIDBUTTON)
-			      		*mod = CLICK_3;
+#if 0 /* middle button */       
+                            else if (ir->Event.MouseEvent.dwButtonState & MIDBUTTON)
+                                *mod = CLICK_3;
 #endif
                             return 0;
                         }
                     }
 #if 0
-			/* We ignore these types of console events */
-		        else if (ir->EventType == FOCUS_EVENT) {
-		        }
-		        else if (ir->EventType == MENU_EVENT) {
-		        }
+                    /* We ignore these types of console events */
+                        else if (ir->EventType == FOCUS_EVENT) {
+                        }
+                        else if (ir->EventType == MENU_EVENT) {
+                        }
 #endif
                 }
             } else
@@ -3813,8 +3893,8 @@ nh340_checkinput(
                                  & RIGHTBUTTON)
                             *mod = CLICK_2;
 #if 0 /* middle button */
-				    else if (ir->Event.MouseEvent.dwButtonState & MIDBUTTON)
-			      		*mod = CLICK_3;
+                        else if (ir->Event.MouseEvent.dwButtonState & MIDBUTTON)
+                            *mod = CLICK_3;
 #endif
                         return 0;
                     }

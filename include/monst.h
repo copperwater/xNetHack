@@ -1,10 +1,15 @@
-/* NetHack 3.7	monst.h	$NHDT-Date: 1596498550 2020/08/03 23:49:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.42 $ */
+/* NetHack 3.7	monst.h	$NHDT-Date: 1678560511 2023/03/11 18:48:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.54 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef MONST_H
 #define MONST_H
+
+/* start with incomplete types in case these aren't defined yet;
+   basic pointers to them don't need to know their details */
+struct monst;
+struct obj;
 
 #ifndef MEXTRA_H
 #include "mextra.h"
@@ -36,7 +41,7 @@ enum wpn_chk_flags {
  * PICK_NONE, PICK_ONE, PICK_ANY (wintype.h)  0, 1, 2
  * MINV_NOLET  If set, don't display inventory letters on monster's inventory.
  * MINV_ALL    If set, display all items in monster's inventory, otherwise
- *	       just display wielded weapons and worn items.
+ *             just display wielded weapons and worn items.
  */
 #define MINV_PICKMASK 0x03 /* 1|2 */
 #define MINV_NOLET    0x04
@@ -63,8 +68,8 @@ enum m_ap_types {
 
 #define M_AP_TYPMASK  0x7
 #define M_AP_F_DKNOWN 0x8
-#define U_AP_TYPE (g.youmonst.m_ap_type & M_AP_TYPMASK)
-#define U_AP_FLAG (g.youmonst.m_ap_type & ~M_AP_TYPMASK)
+#define U_AP_TYPE (gy.youmonst.m_ap_type & M_AP_TYPMASK)
+#define U_AP_FLAG (gy.youmonst.m_ap_type & ~M_AP_TYPMASK)
 #define M_AP_TYPE(m) ((m)->m_ap_type & M_AP_TYPMASK)
 #define M_AP_FLAG(m) ((m)->m_ap_type & ~M_AP_TYPMASK)
 
@@ -96,8 +101,8 @@ struct monst {
     uchar m_lev;          /* adjusted difficulty level of monster */
     aligntyp malign;      /* alignment of this monster, relative to the
                              player (positive = good to kill) */
-    xchar mx, my;
-    xchar mux, muy;       /* where the monster thinks you are */
+    coordxy mx, my;
+    coordxy mux, muy;       /* where the monster thinks you are */
 #define MTSZ 4
     /* mtrack[0..2] is used to keep extra data when migrating the monster */
     coord mtrack[MTSZ];   /* monster track */
@@ -152,7 +157,8 @@ struct monst {
     Bitfield(wormno, 5);    /* at most 31 worms on any level */
     Bitfield(mtemplit, 1);  /* temporarily seen; only valid during bhit() */
     Bitfield(mwither_from_u, 1); /* is withering due to player */
-    /* 0 free bits */
+    Bitfield(meverseen, 1); /* mon has been seen at some point */
+    /* 7 free bits */
 
     uchar mwither;          /* withering; amount of turns left till recovery */
 #define MAX_NUM_WORMS 32    /* should be 2^(wormno bitfield size) */
@@ -176,8 +182,8 @@ struct monst {
 #define STRAT_XMASK     0x00ff0000L
 #define STRAT_YMASK     0x0000ff00L
 #define STRAT_GOAL      0x000000ffL
-#define STRAT_GOALX(s) ((xchar) ((s & STRAT_XMASK) >> 16))
-#define STRAT_GOALY(s) ((xchar) ((s & STRAT_YMASK) >> 8))
+#define STRAT_GOALX(s) ((coordxy) ((s & STRAT_XMASK) >> 16))
+#define STRAT_GOALY(s) ((coordxy) ((s & STRAT_YMASK) >> 8))
 
     long mtrapseen;        /* bitmap of traps we've been trapped in */
     long mlstmv;           /* for catching up with lost time */
@@ -187,7 +193,7 @@ struct monst {
     struct obj *minvent;   /* mon's inventory */
     struct obj *mw;        /* mon's weapon */
     long misc_worn_check;  /* mon's wornmask */
-    xchar weapon_check;    /* flag for whether to try switching weapons */
+    xint16 weapon_check;   /* flag for whether to try switching weapons */
 
     int meating;           /* monster is eating timeout */
     struct mextra *mextra; /* point to mextra struct */
@@ -203,7 +209,7 @@ struct monst {
 #define MON_NOWEP(mon) ((mon)->mw = (struct obj *) 0)
 
 #define DEADMONSTER(mon) ((mon)->mhp < 1)
-#define is_starting_pet(mon) ((mon)->m_id == g.context.startingpet_mid)
+#define is_starting_pet(mon) ((mon)->m_id == gc.context.startingpet_mid)
 #define is_vampshifter(mon)                                      \
     ((mon)->cham == PM_VAMPIRE || (mon)->cham == PM_VAMPIRE_LEADER \
      || (mon)->cham == PM_VLAD_THE_IMPALER)
@@ -215,7 +221,7 @@ struct monst {
                               || (mon)->isshk                    \
                               || (mon)->isgd                     \
                               || (mon)->data == &mons[PM_ORACLE] \
-                              || (mon)->m_id == g.quest_status.leader_m_id)
+                              || (mon)->m_id == gq.quest_status.leader_m_id)
 
 /* mimic appearances that block vision/light */
 #define is_lightblocker_mappear(mon)                       \
@@ -252,6 +258,7 @@ struct monst {
 #define monmax_difficulty(levdif) \
     (u.uevent.udemigod ? 256 : (((levdif) + u.ulevel) / 2))
 #define monmin_difficulty(levdif) ((levdif) / 6)
+#define monmax_difficulty_lev() (monmax_difficulty(level_difficulty()))
 
 /* Macros for whether a type of monster is too strong for a specific level. */
 #define montoostrong(monindx, lev) (mons[monindx].difficulty > lev)

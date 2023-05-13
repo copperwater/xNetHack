@@ -69,7 +69,7 @@ msummon(struct monst *mon)
     if (mon) {
         ptr = mon->data;
 
-        if (uwep && uwep->oartifact == ART_DEMONBANE && is_demon(ptr)) {
+        if (u_wield_art(ART_DEMONBANE) && is_demon(ptr)) {
             if (canseemon(mon))
                 pline("%s looks puzzled for a moment.", Monnam(mon));
             return 0;
@@ -137,7 +137,7 @@ msummon(struct monst *mon)
      * If this daemon is unique and being re-summoned (the only way we
      * could get this far with an extinct dtype), try another.
      */
-    if ((g.mvitals[dtype].mvflags & G_GONE) != 0) {
+    if ((gm.mvitals[dtype].mvflags & G_GONE) != 0) {
         dtype = ndemon(atyp);
         if (dtype == NON_PM)
             return 0;
@@ -249,6 +249,7 @@ summon_minion(aligntyp alignment, boolean talk)
             else
                 You_feel("%s booming voice:",
                          s_suffix(align_gname(alignment)));
+            SetVoice(mon, 0, 80, 0);
             verbalize("Thou shalt pay for thine indiscretion!");
             if (canspotmon(mon))
                 pline("%s appears before you.", Amonnam(mon));
@@ -283,7 +284,7 @@ boss_entrance(struct monst* mtmp)
         return FALSE;
     }
 
-    if (g.mvitals[mondx].died > 0) {
+    if (gm.mvitals[mondx].died > 0) {
         /* Never print entrance message if the player already killed it. */
         return FALSE;
     }
@@ -382,8 +383,7 @@ demon_talk(register struct monst *mtmp)
     struct obj *otmp, *shiny = (struct obj *) 0;
     int items_given = 0;
 
-    if (uwep && (uwep->oartifact == ART_EXCALIBUR
-                 || uwep->oartifact == ART_DEMONBANE)) {
+    if (u_wield_art(ART_EXCALIBUR) || u_wield_art(ART_DEMONBANE)) {
         if (canspotmon(mtmp))
             pline("%s looks very angry.", Amonnam(mtmp));
         else
@@ -398,7 +398,7 @@ demon_talk(register struct monst *mtmp)
         reset_faint(); /* if fainted - wake up */
     } else {
         stop_occupation();
-        if (g.multi > 0) {
+        if (gm.multi > 0) {
             nomul(0);
             unmul((char *) 0);
         }
@@ -414,7 +414,7 @@ demon_talk(register struct monst *mtmp)
         }
         newsym(mtmp->mx, mtmp->my);
     }
-    if (g.youmonst.data->mlet == S_DEMON) { /* Won't blackmail their own. */
+    if (gy.youmonst.data->mlet == S_DEMON) { /* Won't blackmail their own. */
         if (!Deaf)
             pline("%s says, \"Good hunting, %s.\"", Amonnam(mtmp),
                   flags.female ? "Sister" : "Brother");
@@ -430,7 +430,7 @@ demon_talk(register struct monst *mtmp)
      * exorbitant amounts; however, it might be risky to challenge a hero who
      * has reached them, since they do not want to end up dead. */
     demand = d(50,1000);
-    cash = money_cnt(g.invent);
+    cash = money_cnt(gi.invent);
     verbalize("Mortal, if thou canst pay, I shall not hinder thee later.");
 
     /* First, they may want some of your valuables more than gold. See if they
@@ -439,7 +439,7 @@ demon_talk(register struct monst *mtmp)
         long total_value = 0;
         shiny = (struct obj *) 0;
 
-        for (otmp = g.invent; otmp; otmp = otmp->nobj) {
+        for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
             long value = demon_value(otmp);
             if (value < 1)
                 continue;
@@ -451,7 +451,7 @@ demon_talk(register struct monst *mtmp)
         if (shiny) {
             verbalize("I see thou hast %s in thy possession...",
                       an(xname(shiny)));
-            if (yn("Give up your item?") != 'y') {
+            if (y_n("Give up your item?") != 'y') {
                 You("refuse.");
                 pline("%s gets angry...", Amonnam(mtmp));
                 mtmp->mpeaceful = 0;
@@ -487,7 +487,7 @@ demon_talk(register struct monst *mtmp)
                         Amonnam(mtmp), items_given);
         /* fall through to mongone() */
     }
-    else if (items_given == 0 && (cash == 0 || g.multi < 0)) {
+    else if (items_given == 0 && (cash == 0 || gm.multi < 0)) {
         /* you have no gold or can't move */
         pline("%s roars:", Amonnam(mtmp));
         verbalize("You bring me no tribute?  Then you must die!");
@@ -549,6 +549,8 @@ demon_talk(register struct monst *mtmp)
             return 0;
         }
     }
+    livelog_printf(LL_UMONST, "bribed %s with %ld %s for safe passage",
+                   Amonnam(mtmp), offer, currency(offer));
     mongone(mtmp);
     return 1;
 }
@@ -558,7 +560,7 @@ bribe(struct monst *mtmp)
 {
     char buf[BUFSZ] = DUMMY;
     long offer;
-    long umoney = money_cnt(g.invent);
+    long umoney = money_cnt(gi.invent);
 
     getlin("How much will you offer?", buf);
     if (sscanf(buf, "%ld", &offer) != 1)
@@ -581,7 +583,7 @@ bribe(struct monst *mtmp)
         You("give %s %ld %s.", mon_nam(mtmp), offer, currency(offer));
     }
     (void) money2mon(mtmp, offer);
-    g.context.botl = 1;
+    gc.context.botl = 1;
     return offer;
 }
 
@@ -592,7 +594,7 @@ dprince(aligntyp atyp)
 
     for (tryct = !In_endgame(&u.uz) ? 20 : 0; tryct > 0; --tryct) {
         pm = rn1(PM_DEMOGORGON + 1 - PM_ORCUS, PM_ORCUS);
-        if (!(g.mvitals[pm].mvflags & G_GONE)
+        if (!(gm.mvitals[pm].mvflags & G_GONE)
             && (atyp == A_NONE || sgn(mons[pm].maligntyp) == sgn(atyp)))
             return pm;
     }
@@ -606,7 +608,7 @@ dlord(aligntyp atyp)
 
     for (tryct = !In_endgame(&u.uz) ? 20 : 0; tryct > 0; --tryct) {
         pm = rn1(PM_YEENOGHU + 1 - PM_JUIBLEX, PM_JUIBLEX);
-        if (!(g.mvitals[pm].mvflags & G_GONE)
+        if (!(gm.mvitals[pm].mvflags & G_GONE)
             && (atyp == A_NONE || sgn(mons[pm].maligntyp) == sgn(atyp)))
             return pm;
     }
@@ -617,7 +619,7 @@ dlord(aligntyp atyp)
 int
 llord(void)
 {
-    if (!(g.mvitals[PM_ARCHON].mvflags & G_GONE))
+    if (!(gm.mvitals[PM_ARCHON].mvflags & G_GONE))
         return PM_ARCHON;
 
     return lminion(); /* approximate */
@@ -672,6 +674,7 @@ lose_guardian_angel(struct monst *mon) /* if null, angel hasn't been created yet
         if (canspotmon(mon)) {
             if (!Deaf) {
                 pline("%s rebukes you, saying:", Monnam(mon));
+                SetVoice(mon, 0, 80, 0);
                 verbalize("Since you desire conflict, have some more!");
             } else {
                 pline("%s vanishes!", Monnam(mon));
@@ -704,6 +707,7 @@ gain_guardian_angel(void)
             pline("A voice booms:");
         else
             You_feel("a booming voice:");
+        SetVoice((struct monst *) 0, 0, 80, voice_deity);
         verbalize("Thy desire for conflict shall be fulfilled!");
         /* send in some hostile angels instead */
         lose_guardian_angel((struct monst *) 0);
@@ -715,6 +719,7 @@ gain_guardian_angel(void)
             pline("A voice whispers:");
         else
             You_feel("a soft voice:");
+        SetVoice((struct monst *) 0, 0, 80, voice_deity);
         verbalize("Thou hast been worthy of me!");
         mm.x = u.ux;
         mm.y = u.uy;
@@ -765,10 +770,10 @@ geryon_bonus(void)
     static int bonus = 0;
     struct monst *mtmp;
 
-    if (g.moves == lastturncheck)
+    if (gm.moves == lastturncheck)
         return bonus; /* already calculated this turn */
 
-    lastturncheck = g.moves;
+    lastturncheck = gm.moves;
     bonus = 0;
     if (Is_geryon_level(&u.uz)) {
         for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
@@ -818,11 +823,11 @@ angry_geryon(void)
      * born = X, died = X (repeated resurrecting ending with a kill)
      */
     if (!geryon && (lookup_fiend(PM_GERYON)->num_in_dgn == 0)
-        && (g.mvitals[PM_GERYON].born == 0
-            || g.mvitals[PM_GERYON].born > g.mvitals[PM_GERYON].died)) {
+        && (gm.mvitals[PM_GERYON].born == 0
+            || gm.mvitals[PM_GERYON].born > gm.mvitals[PM_GERYON].died)) {
         /* Geryon hasn't generated yet OR has generated and been bribed
          * away, in which case he comes back mad; generate him now */
-        boolean never_generated = (g.mvitals[PM_GERYON].born == 0);
+        boolean never_generated = (gm.mvitals[PM_GERYON].born == 0);
         geryon = makemon(&mons[PM_GERYON], u.ux, u.uy,
                          MM_NOMSG | MM_ADJACENTOK);
         if (!geryon) {
@@ -870,7 +875,7 @@ init_archfiends(void)
  * given archfiend. */
 struct fiend_info *
 lookup_fiend(int mndx) {
-    return &g.context.archfiends[mndx - FIRST_ARCHFIEND];
+    return &gc.context.archfiends[mndx - FIRST_ARCHFIEND];
 }
 
 /* Should the given archfiend be giving the player a bad effect?
@@ -895,7 +900,7 @@ fiend_adversity(int mndx)
     else if (fnd->num_in_dgn > 0)
         /* they are alive and kicking somewhere in the dungeon */
         return TRUE;
-    else if (g.mvitals[mndx].born == 0)
+    else if (gm.mvitals[mndx].born == 0)
         /* they were never encountered, thus not dealt with */
         return TRUE;
 

@@ -1,5 +1,5 @@
 /* NetHack 3.7	prop.h	$NHDT-Date: 1596498555 2020/08/03 23:49:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.22 $ */
-/* Copyright (c) 1989 Mike Threepoint				  */
+/* Copyright (c) 1989 Mike Threepoint                             */
 /* NetHack may be freely redistributed.  See license for details. */
 
 #ifndef PROP_H
@@ -135,7 +135,8 @@ struct prop {
 #define FROMEXPER 0x01000000L   /* Gain/lose with experience, for role */
 #define FROMRACE 0x02000000L    /* Gain/lose with experience, for race */
 #define FROMOUTSIDE 0x04000000L /* By corpses, prayer, thrones, etc. */
-#define INTRINSIC (FROMOUTSIDE | FROMRACE | FROMEXPER)
+#define FROMROLEPLAY 0x08000000L /* From a roleplay birth option */
+#define INTRINSIC (FROMOUTSIDE | FROMRACE | FROMEXPER | FROMROLEPLAY)
 /* Control flags */
 #define FROMFORM 0x10000000L  /* Polyd; conferred by monster form */
 #define I_SPECIAL 0x20000000L /* Property is controllable */

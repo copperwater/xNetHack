@@ -40,7 +40,7 @@ function sel_are_equal(sela, selb, msg)
 end
 
 function is_map_at(x,y, mapch, lit)
-   local rm = nh.getmap(x + 1, y); -- + 1 == g.xstart
+   local rm = nh.getmap(x, y); 
    if rm.mapchr ~= mapch then
       error("Terrain at (" .. x .. "," .. y .. ") is not \"" .. mapch .. "\", but \"" .. rm.mapchr .. "\"");
    end
@@ -467,6 +467,60 @@ function test_sel_iterate()
    is_map_at(5,5, "L");
    is_map_at(7,5, "L");
    is_map_at(9,5, "L");
+
+end
+
+function test_sel_bounds()
+   local __func__ = "test_sel_bounds";
+   local sel = selection.new();
+   sel:set(5, 5);
+   sel:set(7, 5);
+   sel:set(5, 6);
+
+   local rect = sel:bounds();
+   if (rect.lx ~= (5 + 1) or rect.ly ~= 5 or rect.hx ~= (7 + 1) or rect.hy ~= 6) then
+      error(string.format("selection bounds error:(%i,%i-%i,%i)", rect.lx, rect.ly, rect.hx, rect.hy));
+   end
+end
+
+-- test des.map returning a selection
+function test_sel_map()
+   local __func__ = "test_sel_map";
+   des.reset_level();
+   des.level_init({ style = "solidfill", fg = " " });
+
+   local sela = des.map([[LLL]]);
+   sel_has_n_points(sela, 3, __func__);
+   local selb = selection.match("L");
+   sel_are_equal(sela, selb, __func__);
+end
+
+function test_sel_numpoints()
+   local __func__ = "test_sel_numpoints";
+   des.reset_level();
+   des.level_init({ style = "solidfill", fg = " " });
+
+   local sela = selection.new();
+   local npts = sela:numpoints();
+   if (npts ~= 0) then
+      error(string.format("numpoints reported %i, should have been 0", npts));
+   end
+
+   des.terrain(5,5, ".");
+
+   local selb = selection.match(".");
+   local npts = selb:numpoints();
+   if (npts ~= 1) then
+      error(string.format("numpoints reported %i, should have been 1", npts));
+   end
+
+   des.terrain(6,5, ".");
+
+   local selc = selection.match(".");
+   local npts = selc:numpoints();
+   if (npts ~= 2) then
+      error(string.format("numpoints reported %i, should have been 2", npts));
+   end
 end
 
 nh.debug_flags({mongen = false, hunger = false, overwrite_stairs = true });
@@ -487,3 +541,6 @@ test_sel_filter_mapchar();
 test_sel_flood();
 test_sel_match();
 test_sel_iterate();
+test_sel_bounds();
+test_sel_map();
+test_sel_numpoints();

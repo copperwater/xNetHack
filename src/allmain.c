@@ -14,6 +14,7 @@
 
 static void moveloop_preamble(boolean);
 static void u_calc_moveamt(int);
+static void maybe_do_tutorial(void);
 #ifdef POSITIONBAR
 static void do_positionbar(void);
 #endif
@@ -21,6 +22,9 @@ static void regen_pw(int);
 static void regen_hp(int);
 static void interrupt_multi(const char *);
 static void debug_fields(const char *);
+#ifndef NODUMPENUMS
+static void dump_enums(void);
+#endif
 
 #ifdef EXTRAINFO_FN
 static long prev_dgl_extrainfo = 0;
@@ -69,33 +73,33 @@ moveloop_preamble(boolean resuming)
     }
 
     if (!resuming) { /* new game */
-        g.context.rndencode = rnd(9000);
+        gc.context.rndencode = rnd(9000);
         set_wear((struct obj *) 0); /* for side-effects of starting gear */
-        reset_justpicked(g.invent);
+        reset_justpicked(gi.invent);
         (void) pickup(1);      /* autopickup at initial location */
         /* only matters if someday a character is able to start with
            clairvoyance (wizard with cornuthaum perhaps?); without this,
            first "random" occurrence would always kick in on turn 1 */
-        g.context.seer_turn = (long) rnd(30);
+        gc.context.seer_turn = (long) rnd(30);
     }
-    g.context.botlx = TRUE; /* for STATUS_HILITES */
+    gc.context.botlx = TRUE; /* for STATUS_HILITES */
     if (resuming) { /* restoring old game */
         read_engr_at(u.ux, u.uy); /* subset of pickup() */
         fix_shop_damage();
     }
 
     (void) encumber_msg(); /* in case they auto-picked up something */
-    if (g.defer_see_monsters) {
-        g.defer_see_monsters = FALSE;
+    if (gd.defer_see_monsters) {
+        gd.defer_see_monsters = FALSE;
         see_monsters();
     }
     initrack();
 
     u.uz0.dlevel = u.uz.dlevel;
-    g.youmonst.movement = NORMAL_SPEED; /* give hero some movement points */
-    g.context.move = 0;
+    gy.youmonst.movement = NORMAL_SPEED; /* give hero some movement points */
+    gc.context.move = 0;
 
-    g.program_state.in_moveloop = 1;
+    gp.program_state.in_moveloop = 1;
 
 #ifdef WHEREIS_FILE
     touch_whereis();
@@ -117,7 +121,7 @@ u_calc_moveamt(int wtcap)
         /* your speed doesn't augment steed's speed */
         moveamt = mcalcmove(u.usteed, TRUE);
     } else {
-        moveamt = g.youmonst.data->mmove;
+        moveamt = gy.youmonst.data->mmove;
 
         if (Very_fast) { /* speed boots, potion, or spell */
             /* gain a free action on 2/3 of turns */
@@ -153,9 +157,9 @@ u_calc_moveamt(int wtcap)
         moveamt -= (moveamt / 4);
     }
 
-    g.youmonst.movement += moveamt;
-    if (g.youmonst.movement < 0)
-        g.youmonst.movement = 0;
+    gy.youmonst.movement += moveamt;
+    if (gy.youmonst.movement < 0)
+        gy.youmonst.movement = 0;
 }
 
 #if defined(MICRO) || defined(WIN32)
@@ -170,7 +174,7 @@ moveloop_core(void)
     boolean monscanmove = FALSE;
 
 #ifdef SAFERHANGUP
-    if (g.program_state.done_hup)
+    if (gp.program_state.done_hup)
         end_of_input();
 #endif
     get_nh_event();
@@ -178,28 +182,28 @@ moveloop_core(void)
     do_positionbar();
 #endif
 
-    if (g.context.bypasses)
+    if (gc.context.bypasses)
         clear_bypasses();
 
     if (iflags.sanity_check || iflags.debug_fuzzer)
         sanity_check();
 
-    if (g.context.move) {
+    if (gc.context.move) {
         /* actual time passed */
-        g.youmonst.movement -= NORMAL_SPEED;
+        gy.youmonst.movement -= NORMAL_SPEED;
 
         do { /* hero can't move this turn loop */
             mvl_wtcap = encumber_msg();
 
-            g.context.mon_moving = TRUE;
+            gc.context.mon_moving = TRUE;
             do {
                 monscanmove = movemon();
-                if (g.youmonst.movement >= NORMAL_SPEED)
+                if (gy.youmonst.movement >= NORMAL_SPEED)
                     break; /* it's now your turn */
             } while (monscanmove);
-            g.context.mon_moving = FALSE;
+            gc.context.mon_moving = FALSE;
 
-            if (!monscanmove && g.youmonst.movement < NORMAL_SPEED) {
+            if (!monscanmove && gy.youmonst.movement < NORMAL_SPEED) {
                 /* both hero and monsters are out of steam this round */
                 struct monst *mtmp;
 
@@ -224,8 +228,8 @@ moveloop_core(void)
                 /* if any demon lords are in play, extra monsters may spawn on
                  * the stairs */
                 if (u.uevent.uamultouch) {
-                    int active = active_fiends();
-                    if (active > 0 && !rn2((9 - active) * 10)) {
+                    int activef = active_fiends();
+                    if (activef > 0 && !rn2((9 - activef) * 10)) {
                         /* 1 fiend active = monster spawns every 80 turns
                          * 2 fiends active = 70 turns (on average)
                          * and so on down to
@@ -242,7 +246,7 @@ moveloop_core(void)
                 u_calc_moveamt(mvl_wtcap);
                 settrack();
 
-                g.moves++;
+                gm.moves++;
                 /*
                  * Never allow 'moves' to grow big enough to wrap.
                  * We don't care what the maximum possible 'long int'
@@ -251,16 +255,16 @@ moveloop_core(void)
                  * When imposing the limit, use a mystic decimal value
                  * instead of a magic binary one such as 0x7fffffffL.
                  */
-                if (g.moves >= 1000000000L) {
+                if (gm.moves >= 1000000000L) {
                     display_nhwindow(WIN_MESSAGE, TRUE);
                     urgent_pline("The dungeon capitulates.");
                     done(ESCAPED);
                 }
                 /* 'moves' is misnamed; it represents turns; hero_seq is
                    a value that is distinct every time the hero moves */
-                g.hero_seq = g.moves << 3;
+                gh.hero_seq = gm.moves << 3;
 
-                if (flags.time && !g.context.run)
+                if (flags.time && !gc.context.run)
                     iflags.time_botl = TRUE; /* 'moves' just changed */
 
                 /********************************/
@@ -281,8 +285,8 @@ moveloop_core(void)
                     u.uconduct.conflicting++;
 
 #ifdef EXTRAINFO_FN
-                if ((prev_dgl_extrainfo == 0) || (prev_dgl_extrainfo < (g.moves + 250))) {
-                    prev_dgl_extrainfo = g.moves;
+                if ((prev_dgl_extrainfo == 0) || (prev_dgl_extrainfo < (gm.moves + 250))) {
+                    prev_dgl_extrainfo = gm.moves;
                     mk_dgl_extrainfo();
                 }
 #endif
@@ -300,7 +304,7 @@ moveloop_core(void)
                     mvl_wtcap = UNENCUMBERED;
                 } else if (!Upolyd ? (u.uhp < u.uhpmax)
                            : (u.mh < u.mhmax
-                              || g.youmonst.data->mlet == S_EEL)) {
+                              || gy.youmonst.data->mlet == S_EEL)) {
                     /* maybe heal */
                     regen_hp(mvl_wtcap);
                 }
@@ -312,7 +316,7 @@ moveloop_core(void)
                         You("wither away completely!");
                     }
                     losehp(loss, "withered away", NO_KILLER_PREFIX);
-                    g.context.botl = TRUE;
+                    gc.context.botl = TRUE;
                     interrupt_multi("You are slowly withering away.");
                 }
 
@@ -321,8 +325,8 @@ moveloop_core(void)
 
                 /* moving around while encumbered is hard work */
                 if (mvl_wtcap > MOD_ENCUMBER && u.umoved) {
-                    if (!(mvl_wtcap < EXT_ENCUMBER ? g.moves % 30
-                          : g.moves % 10)) {
+                    if (!(mvl_wtcap < EXT_ENCUMBER ? gm.moves % 30
+                          : gm.moves % 10)) {
                         overexert_hp();
                     }
                 }
@@ -331,7 +335,7 @@ moveloop_core(void)
 
                 if (!u.uinvulnerable) {
                     if (Teleportation && !rn2(85)) {
-                        xchar old_ux = u.ux, old_uy = u.uy;
+                        coordxy old_ux = u.ux, old_uy = u.uy;
 
                         tele();
                         if (u.ux != old_ux || u.uy != old_uy) {
@@ -339,8 +343,8 @@ moveloop_core(void)
                                 check_leash(old_ux, old_uy);
                             }
                             /* clear doagain keystrokes */
-                            pushch(0);
-                            savech(0);
+                            cmdq_clear(CQ_CANNED);
+                            cmdq_clear(CQ_REPEAT);
                         }
                     }
                     /* delayed change may not be valid anymore */
@@ -353,10 +357,10 @@ moveloop_core(void)
                              && !rn2(80 - (20 * night())))
                         mvl_change = 2;
                     if (mvl_change && !Unchanging) {
-                        if (g.multi >= 0) {
+                        if (gm.multi >= 0) {
                             stop_occupation();
                             if (mvl_change == 1)
-                                polyself(0);
+                                polyself(POLY_NOFLAGS);
                             else
                                 you_were();
                             mvl_change = 0;
@@ -381,7 +385,7 @@ moveloop_core(void)
                     abattoir_sickness();
                 }
 
-                if (Searching && g.multi >= 0)
+                if (!gl.level.flags.noautosearch && Searching && gm.multi >= 0)
                     (void) dosearch0(1);
                 if (Warning)
                     warnreveal();
@@ -407,21 +411,16 @@ moveloop_core(void)
 /* XXX This should be recoded to use something like regions - a list of
  * things that are active and need to be handled that is dynamically
  * maintained and not a list of special cases. */
-                /* underwater and waterlevel vision are done here */
+                /* vision will be updated as bubbles move */
                 if (Is_waterlevel(&u.uz) || Is_airlevel(&u.uz))
                     movebubbles();
-                else if (Is_firelevel(&u.uz))
+                else if (gl.level.flags.fumaroles)
                     fumaroles();
-                else if (Underwater)
-                    under_water(0);
-                /* vision while buried done here */
-                else if (u.uburied)
-                    under_ground(0);
 
                 /* when immobile, count is in turns */
-                if (g.multi < 0) {
+                if (gm.multi < 0) {
                     runmode_delay_output();
-                    if (++g.multi == 0) { /* finished yet? */
+                    if (++gm.multi == 0) { /* finished yet? */
                         unmul((char *) 0);
                         /* if unmul caused a level change, take it now */
                         if (u.utotype)
@@ -429,15 +428,15 @@ moveloop_core(void)
                     }
                 }
             }
-        } while (g.youmonst.movement < NORMAL_SPEED); /* hero can't move */
+        } while (gy.youmonst.movement < NORMAL_SPEED); /* hero can't move */
 
         /******************************************/
         /* once-per-hero-took-time things go here */
         /******************************************/
 
-        g.hero_seq++; /* moves*8 + n for n == 1..7 */
+        gh.hero_seq++; /* moves*8 + n for n == 1..7 */
 
-        /* although we checked for encumberance above, we need to
+        /* although we checked for encumbrance above, we need to
            check again for message purposes, as the weight of
            inventory may have changed in, e.g., nh_timeout(); we do
            need two checks here so that the player gets feedback
@@ -448,13 +447,13 @@ moveloop_core(void)
         if (iflags.hilite_delta)
             status_eval_next_unhilite();
 #endif
-        if (g.moves >= g.context.seer_turn) {
+        if (gm.moves >= gc.context.seer_turn) {
             if ((u.uhave.amulet || Clairvoyant) && !In_endgame(&u.uz)
                 && !BClairvoyant)
                 do_vicinity_map((struct obj *) 0);
             /* we maintain this counter even when clairvoyance isn't
                taking place; on average, go again 30 turns from now */
-            g.context.seer_turn = g.moves + (long) rn1(31, 15); /*15..45*/
+            gc.context.seer_turn = gm.moves + (long) rn1(31, 15); /*15..45*/
             /* [it used to be that on every 15th turn, there was a 50%
                chance of farsight, so it could happen as often as every
                15 turns or theoretically never happen at all; but when
@@ -469,6 +468,12 @@ moveloop_core(void)
         else if (!u.umoved)
             (void) pooleffects(FALSE);
 
+        /* vision while buried or underwater is updated here */
+        if (Underwater)
+            under_water(0);
+        else if (u.uburied)
+            under_ground(0);
+
     } /* actual time passed */
 
     /****************************************/
@@ -478,7 +483,7 @@ moveloop_core(void)
     clear_splitobjs();
     find_ac();
     /* passive_gold_detect(); */ /* too buggy right now */
-    if (!g.context.mv || Blind) {
+    if (!gc.context.mv || Blind) {
         /* redo monsters if hallu or wearing a helm of telepathy */
         if (Hallucination) { /* update screen randomly */
             see_monsters();
@@ -491,10 +496,10 @@ moveloop_core(void)
         } else if (Warning || Warn_of_mon)
             see_monsters();
 
-        if (g.vision_full_recalc)
+        if (gv.vision_full_recalc)
             vision_recalc(0); /* vision! */
     }
-    if (g.context.botl || g.context.botlx) {
+    if (gc.context.botl || gc.context.botlx) {
         bot();
         curs_on_u();
     } else if (iflags.time_botl) {
@@ -502,10 +507,10 @@ moveloop_core(void)
         curs_on_u();
     }
 
-    g.context.move = 1;
+    gc.context.move = 1;
 
-    if (g.multi >= 0 && g.occupation) {
-#if defined(MICRO) || defined(WIN32)
+    if (gm.multi >= 0 && go.occupation) {
+#if defined(MICRO) || defined(WIN32CON)
         mvl_abort_lev = 0;
         if (kbhit()) {
             char ch;
@@ -513,13 +518,13 @@ moveloop_core(void)
             if ((ch = pgetchar()) == ABORT)
                 mvl_abort_lev++;
             else
-                pushch(ch);
+                cmdq_add_key(CQ_CANNED, ch);
         }
-        if (!mvl_abort_lev && (*g.occupation)() == 0)
+        if (!mvl_abort_lev && (*go.occupation)() == 0)
 #else
-            if ((*g.occupation)() == 0)
+            if ((*go.occupation)() == 0)
 #endif
-                g.occupation = 0;
+                go.occupation = 0;
         if (
 #if defined(MICRO) || defined(WIN32)
             mvl_abort_lev ||
@@ -542,24 +547,24 @@ moveloop_core(void)
 
     u.umoved = FALSE;
 
-    if (g.multi > 0) {
+    if (gm.multi > 0) {
         lookaround();
         runmode_delay_output();
-        if (!g.multi) {
+        if (!gm.multi) {
             /* lookaround may clear multi */
-            g.context.move = 0;
+            gc.context.move = 0;
             return;
         }
-        if (g.context.mv) {
-            if (g.multi < COLNO && !--g.multi)
+        if (gc.context.mv) {
+            if (gm.multi < COLNO && !--gm.multi)
                 end_running(TRUE);
             domove();
         } else {
-            --g.multi;
-            nhassert(g.command_count != 0);
-            rhack(g.command_line);
+            --gm.multi;
+            nhassert(gc.command_count != 0);
+            rhack(gc.command_line);
         }
-    } else if (g.multi == 0) {
+    } else if (gm.multi == 0) {
 #ifdef MAIL
         ckmailstatus();
 #endif
@@ -568,16 +573,41 @@ moveloop_core(void)
     if (u.utotype)       /* change dungeon level */
         deferred_goto(); /* after rhack() */
 
-    if (g.vision_full_recalc)
+    if (gv.vision_full_recalc)
         vision_recalc(0); /* vision! */
     /* when running in non-tport mode, this gets done through domove() */
-    if ((!g.context.run || flags.runmode == RUN_TPORT)
-        && (g.multi && (!g.context.travel ? !(g.multi % 7)
-                        : !(g.moves % 7L)))) {
-        if (flags.time && g.context.run)
-            g.context.botl = TRUE;
+    if ((!gc.context.run || flags.runmode == RUN_TPORT)
+        && (gm.multi && (!gc.context.travel ? !(gm.multi % 7)
+                        : !(gm.moves % 7L)))) {
+        if (flags.time && gc.context.run)
+            gc.context.botl = TRUE;
         /* [should this be flush_screen() instead?] */
         display_nhwindow(WIN_MAP, FALSE);
+    }
+
+    if (gl.luacore && nhcb_counts[NHCB_END_TURN]) {
+        lua_getglobal(gl.luacore, "nh_callback_run");
+        lua_pushstring(gl.luacore, nhcb_name[NHCB_END_TURN]);
+        nhl_pcall(gl.luacore, 1, 0);
+    }
+}
+
+static void
+maybe_do_tutorial(void)
+{
+    s_level *sp = find_level("tut-1");
+
+    if (!sp)
+        return;
+
+    if (ask_do_tutorial()) {
+        assign_level(&u.ucamefrom, &u.uz);
+        u.nofollowers = TRUE;
+        schedule_goto(&sp->dlevel, UTOTYPE_NONE, (char *) 0, (char *) 0);
+        deferred_goto();
+        vision_recalc(0);
+        docrt();
+        u.nofollowers = FALSE;
     }
 }
 
@@ -585,6 +615,10 @@ void
 moveloop(boolean resuming)
 {
     moveloop_preamble(resuming);
+
+    if (!resuming)
+        maybe_do_tutorial();
+
     for (;;) {
         moveloop_core();
     }
@@ -614,7 +648,7 @@ regen_pw(int wtcap)
         if (u.uen > u.uenmax)
             u.uen = u.uenmax;
 
-        g.context.botl = TRUE;
+        gc.context.botl = TRUE;
         if (u.uen == u.uenmax)
             interrupt_multi("You feel full of energy.");
     }
@@ -634,20 +668,20 @@ regen_hp(int wtcap)
         if (u.mh < 1) { /* shouldn't happen... */
             impossible("regenerating monster HP that was negative?");
             rehumanize();
-        } else if (g.youmonst.data->mlet == S_EEL
+        } else if (gy.youmonst.data->mlet == S_EEL
                    && !is_pool(u.ux, u.uy) && !Is_waterlevel(&u.uz)
                    && !Breathless) {
             /* eel out of water loses hp, similar to monster eels;
                as hp gets lower, rate of further loss slows down */
             if (u.mh > 1 && !Regeneration && rn2(u.mh) > rn2(8)
-                && (!Half_physical_damage || !(g.moves % 2L)))
+                && (!Half_physical_damage || !(gm.moves % 2L)))
                 heal = -1;
         } else if (u.mh < u.mhmax) {
-            if (U_CAN_REGEN() || (encumbrance_ok && !(g.moves % 20L)))
+            if (U_CAN_REGEN() || (encumbrance_ok && !(gm.moves % 20L)))
                 heal = 1;
         }
         if (heal && !(Withering && heal > 0)) {
-            g.context.botl = TRUE;
+            gc.context.botl = TRUE;
             u.mh += heal / (fiend_adversity(PM_DISPATER) ? 2 : 1);
             reached_full = (u.mh == u.mhmax);
         }
@@ -660,7 +694,7 @@ regen_hp(int wtcap)
            for the player, but it didn't make sense for gameplay...] */
         if (u.uhp < u.uhpmax && (encumbrance_ok || U_CAN_REGEN())) {
             if (u.ulevel > 9) {
-                if (!(g.moves % 3L)) {
+                if (!(gm.moves % 3L)) {
                     int Con = (int) ACURR(A_CON);
 
                     if (Con <= 12) {
@@ -672,7 +706,7 @@ regen_hp(int wtcap)
                     }
                 }
             } else { /* u.ulevel <= 9 */
-                if (!(g.moves % (long) ((MAXULEV + 12) / (u.ulevel + 2) + 1)))
+                if (!(gm.moves % (long) ((MAXULEV + 12) / (u.ulevel + 2) + 1)))
                     heal = 1;
             }
             if (U_CAN_REGEN() && !heal)
@@ -681,7 +715,7 @@ regen_hp(int wtcap)
                 heal++;
 
             if (heal && !(Withering && heal > 0)) {
-                g.context.botl = TRUE;
+                gc.context.botl = TRUE;
                 u.uhp += heal / (fiend_adversity(PM_DISPATER) ? 2 : 1);
                 if (u.uhp > u.uhpmax)
                     u.uhp = u.uhpmax;
@@ -700,22 +734,32 @@ regen_hp(int wtcap)
 void
 stop_occupation(void)
 {
-    if (g.occupation) {
+    if (go.occupation) {
         if (!maybe_finished_meal(TRUE))
-            You("stop %s.", g.occtxt);
-        g.occupation = 0;
-        g.context.botl = TRUE; /* in case u.uhs changed */
+            You("stop %s.", go.occtxt);
+        go.occupation = 0;
+        gc.context.botl = TRUE; /* in case u.uhs changed */
         nomul(0);
-        pushch(0);
-    } else if (g.multi >= 0) {
+    } else if (gm.multi >= 0) {
         nomul(0);
     }
-    cmdq_clear();
+    cmdq_clear(CQ_CANNED);
 }
 
 void
-display_gamewindows(void)
+init_sound_and_display_gamewindows(void)
 {
+    int menu_behavior = MENU_BEHAVE_STANDARD;
+
+    activate_chosen_soundlib();
+
+    if (iflags.wc_splash_screen && !flags.randomall) {
+        SoundAchievement(0, sa2_splashscreen, 0);
+        /* ToDo: new splash screen invocation will go here */
+    } else {
+        SoundAchievement(0, sa2_newgame_nosplash, 0);
+    }
+
     WIN_MESSAGE = create_nhwindow(NHW_MESSAGE);
     if (VIA_WINDOWPORT()) {
         status_initialize(0);
@@ -724,14 +768,20 @@ display_gamewindows(void)
     }
     WIN_MAP = create_nhwindow(NHW_MAP);
     WIN_INVEN = create_nhwindow(NHW_MENU);
+#ifdef TTY_PERM_INVENT
+    if (WINDOWPORT(tty) && WIN_INVEN != WIN_ERR) {
+        menu_behavior = MENU_BEHAVE_PERMINV;
+        prepare_perminvent(WIN_INVEN);
+    }
+#endif
     /* in case of early quit where WIN_INVEN could be destroyed before
        ever having been used, use it here to pacify the Qt interface */
-    start_menu(WIN_INVEN, 0U), end_menu(WIN_INVEN, (char *) 0);
+    start_menu(WIN_INVEN, menu_behavior), end_menu(WIN_INVEN, (char *) 0);
 
 #ifdef MAC
     /* This _is_ the right place for this - maybe we will
-     * have to split display_gamewindows into create_gamewindows
-     * and show_gamewindows to get rid of this ifdef...
+     * have to split init_sound_and_display_gamewindows into
+     * create_gamewindows and show_gamewindows to get rid of this ifdef...
      */
     if (!strcmp(windowprocs.name, "mac"))
         SanePositions();
@@ -747,25 +797,25 @@ display_gamewindows(void)
     display_nhwindow(WIN_MESSAGE, FALSE);
     clear_glyph_buffer();
     display_nhwindow(WIN_MAP, FALSE);
-}
+ }
 
 void
 newgame(void)
 {
     int i;
 
-    g.context.botlx = TRUE;
-    g.context.ident = 1;
-    g.context.warnlevel = 1;
-    g.context.next_attrib_check = 600L; /* arbitrary first setting */
-    g.context.tribute.enabled = TRUE;   /* turn on 3.6 tributes    */
-    g.context.tribute.tributesz = sizeof(struct tribute_info);
+    gc.context.botlx = TRUE;
+    gc.context.ident = 1;
+    gc.context.warnlevel = 1;
+    gc.context.next_attrib_check = 600L; /* arbitrary first setting */
+    gc.context.tribute.enabled = TRUE;   /* turn on 3.6 tributes    */
+    gc.context.tribute.tributesz = sizeof(struct tribute_info);
 
     /* Extra entropy added to sysopt.serverseed */
     /* sysopt.serverseed += rn2(8000000); */
 
     for (i = LOW_PM; i < NUMMONS; i++)
-        g.mvitals[i].mvflags = mons[i].geno & G_NOCORPSE;
+        gm.mvitals[i].mvflags = mons[i].geno & G_NOCORPSE;
 
     init_objects(); /* must be before u_init() */
 
@@ -782,7 +832,7 @@ newgame(void)
 
     u_init();
 
-    l_nhcore_init();	/* create a Lua state that lasts until the end of the game */
+    l_nhcore_init();  /* create a Lua state that lasts until the end of the game */
     reset_glyphmap(gm_newgame);
 #ifndef NO_SIGNAL
     (void) signal(SIGINT, (SIG_RET_TYPE) done1);
@@ -835,7 +885,7 @@ newgame(void)
 #ifdef INSURANCE
     save_currentstate();
 #endif
-    g.program_state.something_worth_saving++; /* useful data now exists */
+    gp.program_state.something_worth_saving++; /* useful data now exists */
 
     /* Success! */
     welcome(TRUE);
@@ -869,17 +919,17 @@ welcome(boolean new_game) /* false => restoring an old game */
     *buf = '\0';
     if (new_game || u.ualignbase[A_ORIGINAL] != u.ualignbase[A_CURRENT])
         Sprintf(eos(buf), " %s", align_str(u.ualignbase[A_ORIGINAL]));
-    if (!g.urole.name.f
+    if (!gu.urole.name.f
         && (new_game
-                ? (g.urole.allow & ROLE_GENDMASK) == (ROLE_MALE | ROLE_FEMALE)
+                ? (gu.urole.allow & ROLE_GENDMASK) == (ROLE_MALE | ROLE_FEMALE)
                 : currentgend != flags.initgend))
         Sprintf(eos(buf), " %s", genders[currentgend].adj);
-    Sprintf(eos(buf), " %s %s", g.urace.adj,
-            (currentgend && g.urole.name.f) ? g.urole.name.f : g.urole.name.m);
+    Sprintf(eos(buf), " %s %s", gu.urace.adj,
+            (currentgend && gu.urole.name.f) ? gu.urole.name.f : gu.urole.name.m);
 
     pline(new_game ? "%s %s, welcome to xNetHack!  You are a%s."
                    : "%s %s, the%s, welcome back to xNetHack!",
-          Hello((struct monst *) 0), g.plname, buf);
+          Hello((struct monst *) 0), gp.plname, buf);
 
     if (Hallucination)
         pline("xNetHack is filmed in front of an undead studio audience.");
@@ -887,9 +937,9 @@ welcome(boolean new_game) /* false => restoring an old game */
     if (new_game) {
         /* guarantee that 'major' event category is never empty */
         livelog_printf(LL_ACHIEVE, "%s the%s entered the dungeon",
-                       g.plname, buf);
+                       gp.plname, buf);
     } else {
-        /* if restroing in Gehennom, give same hot/smoky message as when
+        /* if restoring in Gehennom, give same hot/smoky message as when
            first entering it */
         hellish_smoke_mesg();
     }
@@ -901,14 +951,14 @@ do_positionbar(void)
 {
     static char pbar[COLNO];
     char *p;
-    stairway *stway = g.stairs;
+    stairway *stway = gs.stairs;
 
     p = pbar;
     /* TODO: use the same method as getpos() so objects don't cover stairs */
     while (stway) {
         int x = stway->sx;
         int y = stway->sy;
-        int glyph = glyph_to_cmap(g.level.locations[x][y].glyph);
+        int glyph = glyph_to_cmap(gl.level.locations[x][y].glyph);
 
         if (is_cmap_stairs(glyph)) {
             *p++ = (stway->up ? '<' : '>');
@@ -932,9 +982,9 @@ do_positionbar(void)
 static void
 interrupt_multi(const char *msg)
 {
-    if (g.multi > 0 && !g.context.travel && !g.context.run) {
+    if (gm.multi > 0 && !gc.context.travel && !gc.context.run) {
         nomul(0);
-        if (flags.verbose && msg)
+        if (Verbose(0,interrupt_multi) && msg)
             Norep("%s", msg);
     }
 }
@@ -953,17 +1003,17 @@ interrupt_multi(const char *msg)
  */
 
 static const struct early_opt earlyopts[] = {
-    {ARG_DEBUG, "debug", 5, TRUE},
-    {ARG_VERSION, "version", 4, TRUE},
-    {ARG_SHOWPATHS, "showpaths", 9, FALSE},
+    { ARG_DEBUG, "debug", 5, TRUE },
+    { ARG_VERSION, "version", 4, TRUE },
+    { ARG_SHOWPATHS, "showpaths", 9, FALSE },
 #ifndef NODUMPENUMS
-    {ARG_DUMPENUMS, "dumpenums", 9, FALSE},
-#ifdef ENHANCED_SYMBOLS
-    {ARG_DUMPGLYPHIDS, "dumpglyphids", 12, FALSE},
+    { ARG_DUMPENUMS, "dumpenums", 9, FALSE },
 #endif
-#endif /* NODUMPENUMS */
+#ifdef ENHANCED_SYMBOLS
+    { ARG_DUMPGLYPHIDS, "dumpglyphids", 12, FALSE },
+#endif
 #ifdef WIN32
-    {ARG_WINDOWS, "windows", 4, TRUE},
+    { ARG_WINDOWS, "windows", 4, TRUE },
 #endif
 };
 
@@ -1009,10 +1059,10 @@ argcheck(int argc, char *argv[], enum earlyarg e_arg)
     }
 
     if (match) {
-        const char *extended_opt = index(userea, ':');
+        const char *extended_opt = strchr(userea, ':');
 
         if (!extended_opt)
-            extended_opt = index(userea, '=');
+            extended_opt = strchr(userea, '=');
         switch(e_arg) {
         case ARG_DEBUG:
             if (extended_opt) {
@@ -1037,28 +1087,25 @@ argcheck(int argc, char *argv[], enum earlyarg e_arg)
             early_version_info(insert_into_pastebuf);
             return 2;
         }
-        case ARG_SHOWPATHS: {
+        case ARG_SHOWPATHS:
             return 2;
-        }
 #ifndef NODUMPENUMS
-        case ARG_DUMPENUMS: {
+        case ARG_DUMPENUMS:
             dump_enums();
             return 2;
-        }
+#endif
 #ifdef ENHANCED_SYMBOLS
-        case ARG_DUMPGLYPHIDS: {
+        case ARG_DUMPGLYPHIDS:
             dump_glyphids();
             return 2;
-        }
 #endif
-#endif /* NODUMPENUMS */
 #ifdef WIN32
-        case ARG_WINDOWS: {
+        case ARG_WINDOWS:
             if (extended_opt) {
                 extended_opt++;
                 return windows_early_options(extended_opt);
             }
-        }
+        /*FALLTHRU*/
 #endif
         default:
             break;
@@ -1085,7 +1132,7 @@ debug_fields(const char *opts)
     char *op;
     boolean negated = FALSE;
 
-    while ((op = index(opts, ',')) != 0) {
+    while ((op = strchr(opts, ',')) != 0) {
         *op++ = 0;
         /* recurse */
         debug_fields(op);
@@ -1143,55 +1190,72 @@ timet_delta(time_t etim, time_t stim) /* end and start times */
     return (long) difftime(etim, stim);
 }
 
-#ifndef NODUMPENUMS
+#if !defined(NODUMPENUMS) || defined(ENHANCED_SYMBOLS)
+/* monsdump[] and objdump[] are also used in utf8map.c */
 #define DUMP_ENUMS
 struct enum_dump monsdump[] = {
 #include "monsters.h"
-        { NUMMONS, "NUMMONS" },
+    { NUMMONS, "NUMMONS" },
 };
 struct enum_dump objdump[] = {
 #include "objects.h"
-        { NUM_OBJECTS, "NUM_OBJECTS" },
+    { NUM_OBJECTS, "NUM_OBJECTS" },
 };
 #undef DUMP_ENUMS
 
-void
+#ifndef NODUMPENUMS
+static void
 dump_enums(void)
 {
-    int i, j;
     enum enum_dumps {
         monsters_enum,
         objects_enum,
         objects_misc_enum,
         NUM_ENUM_DUMPS
     };
-    static const char *const titles[NUM_ENUM_DUMPS] =
-        { "monnums", "objects_nums" , "misc_object_nums" };
-
-    struct enum_dump omdump[] = {
-            { LAST_GEM, "LAST_GEM" },
-            { NUM_GLASS_GEMS, "NUM_GLASS_GEMS" },
-            { MAXSPELL, "MAXSPELL" },
+    static const char *const titles[NUM_ENUM_DUMPS] = {
+        "monnums", "objects_nums" , "misc_object_nums"
     };
-    struct enum_dump *ed[NUM_ENUM_DUMPS] = { monsdump, objdump, omdump };
+#define dump_om(om) { om, #om }
+    static const struct enum_dump omdump[] = {
+        dump_om(FIRST_AMULET),
+        dump_om(LAST_AMULET),
+        dump_om(FIRST_SPELL),
+        dump_om(LAST_SPELL),
+        dump_om(MAXSPELL),
+        dump_om(FIRST_REAL_GEM),
+        dump_om(LAST_REAL_GEM),
+        dump_om(FIRST_GLASS_GEM),
+        dump_om(LAST_GLASS_GEM),
+        dump_om(NUM_REAL_GEMS),
+        dump_om(NUM_GLASS_GEMS),
+        dump_om(MAX_GLYPH),
+    };
+#undef dump_om
+    static const struct enum_dump *const ed[NUM_ENUM_DUMPS] = {
+        monsdump, objdump, omdump
+    };
     static const char *const pfx[NUM_ENUM_DUMPS] = { "PM_", "", "" };
-    int szd[NUM_ENUM_DUMPS] = { SIZE(monsdump), SIZE(objdump), SIZE(omdump) };
+    static int szd[NUM_ENUM_DUMPS] = {
+        SIZE(monsdump), SIZE(objdump), SIZE(omdump)
+    };
+    const char *nmprefix;
+    int i, j, nmwidth;
 
     for (i = 0; i < NUM_ENUM_DUMPS; ++ i) {
         raw_printf("enum %s = {", titles[i]);
         for (j = 0; j < szd[i]; ++j) {
-            raw_printf("    %s%s = %i%s",
-                       (j == szd[i] - 1) ? "" : pfx[i],
-                       ed[i]->nm,
-                       ed[i]->val,
-                       (j == szd[i] - 1) ? "" : ",");
-            ed[i]++;
+            nmprefix = (j == szd[i] - 1) ? "" : pfx[i]; /* "" or "PM_" */
+            nmwidth = 27 - (int) strlen(nmprefix); /* 27 or 24 */
+            raw_printf("    %s%*s = %3d,",
+                       nmprefix, -nmwidth, ed[i][j].nm, ed[i][j].val);
        }
         raw_print("};");
         raw_print("");
     }
     raw_print("");
 }
+#endif /* NODUMPENUMS */
 
 #ifdef ENHANCED_SYMBOLS
 void
@@ -1200,6 +1264,6 @@ dump_glyphids(void)
     dump_all_glyphids(stdout);
 }
 #endif /* ENHANCED_SYMBOLS */
-#endif /* NODUMPENUMS */
+#endif /* !NODUMPENUMS || ENHANCED_SYMBOLS */
 
 /*allmain.c*/

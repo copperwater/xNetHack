@@ -8,6 +8,7 @@
 
 /* Global declarations */
 
+int curses_getch(void);
 int curses_read_char(void);
 void curses_toggle_color_attr(WINDOW *win, int color, int attr, int onoff);
 void curses_menu_color_attr(WINDOW *win, int color, int attr, int onoff);
@@ -21,6 +22,7 @@ boolean curses_is_menu(winid wid);
 boolean curses_is_text(winid wid);
 int curses_convert_glyph(int ch, int glyph);
 void curses_move_cursor(winid wid, int x, int y);
+void curses_update_stdscr_cursor(void);
 void curses_prehousekeeping(void);
 void curses_posthousekeeping(void);
 void curses_view_file(const char *filename, boolean must_exist);
@@ -30,7 +32,7 @@ int curses_convert_attr(int attr);
 int curses_read_attrs(const char *attrs);
 char *curses_fmt_attrs(char *);
 int curses_convert_keys(int key);
-int curses_get_mouse(int *mousex, int *mousey, int *mod);
+int curses_get_mouse(coordxy *mousex, coordxy *mousey, int *mod);
 void curses_mouse_support(int);
 
 #endif /* CURSMISC_H */

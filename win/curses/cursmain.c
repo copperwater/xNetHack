@@ -8,7 +8,7 @@
 #include "color.h"
 #include "wincurs.h"
 #ifdef CURSES_UNICODE
-#include "locale.h"
+#include <locale.h>
 #endif
 
 /* define this if not linking with <foo>tty.o|.obj for some reason */
@@ -36,7 +36,7 @@ static char *dummy_get_color_string(void);
 
 /* Interface definition, for windows.c */
 struct window_procs curses_procs = {
-    "curses",
+    WPID(curses),
     (WC_ALIGN_MESSAGE | WC_ALIGN_STATUS | WC_COLOR | WC_INVERSE
      | WC_HILITE_PET
 #ifdef NCURSES_MOUSE_VERSION /* (this macro name works for PDCURSES too) */
@@ -77,7 +77,6 @@ struct window_procs curses_procs = {
     curses_end_menu,
     curses_select_menu,
     genl_message_menu,
-    curses_update_inventory,
     curses_mark_synch,
     curses_wait_synch,
 #ifdef CLIPPING
@@ -117,6 +116,8 @@ struct window_procs curses_procs = {
     genl_status_enablefield,
     curses_status_update,
     genl_can_suspend_yes,
+    curses_update_inventory,
+    curses_ctrl_nhwindow,
 };
 
 /*
@@ -149,15 +150,39 @@ init_nhwindows(int* argcp, char** argv)
                 ** windows?  Or at least all but WIN_INFO?      -dean
 */
 void
-curses_init_nhwindows(int *argcp UNUSED,
-                      char **argv UNUSED)
+curses_init_nhwindows(
+    int *argcp UNUSED,
+    char **argv UNUSED)
 {
 #ifdef PDCURSES
     char window_title[BUFSZ];
 #endif
+#ifdef CURSES_UNICODE
+#ifdef PDCURSES
+    static char pdc_font[BUFSZ] = "";
+#endif
+#endif
 
 #ifdef CURSES_UNICODE
     setlocale(LC_CTYPE, "");
+#ifdef PDCURSES
+    /* Assume the DOSVGA port of PDCursesMod, or the SDL1 or SDL2 port of
+       either PDCurses or PDCursesMod. Honor the font_map option to set
+       a font.
+       On MS-DOS, if no font_map is set, use ter-u16v.psf if it is present.
+       PDC_FONT has no effect on other PDCurses or PDCursesMod ports. */
+    if (iflags.wc_font_map && iflags.wc_font_map[0]) {
+        Snprintf(pdc_font, sizeof(pdc_font), "PDC_FONT=%s",
+                 iflags.wc_font_map);
+#ifdef MSDOS
+    } else if (access("ter-u16v.psf", R_OK) >= 0) {
+        Snprintf(pdc_font, sizeof(pdc_font), "PDC_FONT=ter-u16v.psf");
+#endif
+    }
+    if (pdc_font[0] != '\0') {
+        putenv(pdc_font);
+    }
+#endif
 #endif
 
 #ifdef XCURSES
@@ -246,14 +271,21 @@ curses_init_nhwindows(int *argcp UNUSED,
     curses_display_splash_window();
 }
 
-/* Do a window-port specific player type selection. If player_selection()
-   offers a Quit option, it is its responsibility to clean up and terminate
-   the process. You need to fill in pl_character[0].
-*/
+/* Use the general role/race/&c selection originally implemented for tty. */
 void
 curses_player_selection(void)
 {
+#if 1
+    if (genl_player_setup(0))
+        return; /* success */
+
+    /* quit/cancel */
+    curses_bail((const char *) NULL);
+    /*NOTREACHED*/
+#else
+    /* still present cursinit.c but no longer used */
     curses_choose_character();
+#endif
 }
 
 
@@ -273,9 +305,9 @@ curses_askname(void)
         }
 #endif /* SELECTSAVED */
 
-    curses_line_input_dialog("Who are you?", g.plname, PL_NSIZ);
-    (void) mungspaces(g.plname);
-    if (!g.plname[0] || g.plname[0] == '\033')
+    curses_line_input_dialog("Who are you?", gp.plname, PL_NSIZ);
+    (void) mungspaces(gp.plname);
+    if (!gp.plname[0] || gp.plname[0] == '\033')
          goto bail;
 
     iflags.renameallowed = TRUE; /* tty uses this, we don't [yet?] */
@@ -419,7 +451,7 @@ curses_display_nhwindow(winid wid, boolean block)
 
     if (curses_is_menu(wid) || curses_is_text(wid)) {
         curses_end_menu(wid, "");
-        curses_select_menu(wid, PICK_NONE, &selected);
+        (void) curses_select_menu(wid, PICK_NONE, &selected);
         return;
     }
 
@@ -559,7 +591,8 @@ curses_start_menu(winid wid, unsigned long mbehavior)
 add_menu(winid wid, const glyph_info *glyphinfo,
                                 const anything identifier,
                                 char accelerator, char groupacc,
-                                int attr, char *str, unsigned int itemflags)
+                                int attr, int color,
+                                char *str, unsigned int itemflags)
                 -- Add a text line str to the given menu window.  If identifier
                    is 0, then the line cannot be selected (e.g. a title).
                    Otherwise, identifier is the value returned if the line is
@@ -592,7 +625,7 @@ void
 curses_add_menu(winid wid, const glyph_info *glyphinfo,
                 const ANY_P *identifier,
                 char accelerator, char group_accel, int attr,
-                const char *str, unsigned itemflags)
+                int clr UNUSED, const char *str, unsigned itemflags)
 {
     int curses_attr;
 
@@ -679,16 +712,25 @@ curses_update_inventory(int arg)
     }
 
     /* skip inventory updating during character initialization */
-    if (!g.program_state.in_moveloop && !g.program_state.gameover)
+    if (!gp.program_state.in_moveloop && !gp.program_state.gameover)
         return;
 
     if (!arg) {
+         /* if perm_invent is just being toggled on, we need to run the
+            update twice; the first time creates the window and organizes
+            the screen to fit it in, the second time populates it;
+            needed if we're called from docrt() because the "organizes
+            the screen" part calls docrt() and that skips recursive calls */
+         boolean no_inv_win_yet = !curses_get_nhwin(INV_WIN);
+
         /* Update inventory sidebar.  NetHack uses normal menu functions
            when gathering the inventory, and we don't want to change the
            underlying code.  So instead, track if an inventory update is
            being performed with a static variable. */
         inv_update = 1;
         curs_update_invt(0);
+        if (no_inv_win_yet)
+            curs_update_invt(0);
         inv_update = 0;
     } else {
         /* perform scrolling operations on persistent inventory window */
@@ -696,14 +738,23 @@ curses_update_inventory(int arg)
     }
 }
 
+win_request_info *
+curses_ctrl_nhwindow(
+    winid window UNUSED,
+    int request UNUSED,
+    win_request_info *wri UNUSED)
+{
+    return (win_request_info *) 0;
+}
+
 /*
 mark_synch()    -- Don't go beyond this point in I/O on any channel until
-                   all channels are caught up to here.  Can be an empty call
-                   for the moment
+                   all channels are caught up to here.
 */
 void
 curses_mark_synch(void)
 {
+    curses_refresh_nethack_windows();
 }
 
 /*
@@ -715,6 +766,9 @@ wait_synch()    -- Wait until all pending output is complete (*flush*() for
 void
 curses_wait_synch(void)
 {
+    if (curses_got_output())
+        (void) curses_more();
+    curses_mark_synch();
     /* [do we need 'if (counting) curses_count_window((char *)0);' here?] */
 }
 
@@ -743,26 +797,29 @@ print_glyph(window, x, y, glyphinfo, bkglyphinfo)
                    a 1-1 map between glyphs and distinct things on the map).
                    bkglyphinfo is to render the background behind the glyph.
                    It's not used here.
-               -- bkglyphinfo contains a background glyph for potential use
-                   by some graphical or tiled environments to allow the depiction
-                   to fall against a background consistent with the grid
-                   around x,y. If bkglyphinfo->glyph is NO_GLYPH, then the
-                   parameter should be ignored (do nothing with it).
+                -- bkglyphinfo contains a background glyph for potential use
+                   by some graphical or tiled environments to allow the
+                   depiction to fall against a background consistent with
+                   the grid around x,y. If bkglyphinfo->glyph is NO_GLYPH,
+                   then the parameter should be ignored (do nothing with it).
                 -- glyph_info struct fields:
-                    int glyph;            the display entity
-                    int color;            color for window ports not using a tile
-                    int ttychar;          the character mapping for the original tty
-                                          interface. Most or all window ports wanted
-                                          and used this for various things so it is
-                                          provided in 3.7+
+                    int glyph;    the display entity
+                    int color;    color for window ports not using a tile
+                    int ttychar;  the character mapping for the original tty
+                                  interface. Most or all window ports wanted
+                                  and used this for various things so it is
+                                  provided in 3.7+
                     short int symidx;     offset into syms array
                     unsigned glyphflags;  more detail about the entity
 
 */
 
 void
-curses_print_glyph(winid wid, xchar x, xchar y,
-                   const glyph_info *glyphinfo, const glyph_info *bkglyphinfo UNUSED)
+curses_print_glyph(
+    winid wid,
+    coordxy x, coordxy y,
+    const glyph_info *glyphinfo,
+    const glyph_info *bkglyphinfo)
 {
     int glyph;
     int ch;
@@ -801,7 +858,12 @@ curses_print_glyph(winid wid, xchar x, xchar y,
         /* water and lava look the same except for color; when color is off,
            render lava in inverse video so that they look different */
         if ((special & (MG_BW_LAVA | MG_BW_ICE)) != 0 && iflags.use_inverse) {
-            attr = A_REVERSE; /* map_glyphinfo() only sets this if color is off */
+            /* reset_glyphmap() only sets MG_BW_foo if color is off */
+            attr = A_REVERSE;
+        }
+        /* highlight female monsters (wizard mode option) */
+        if ((special & MG_FEMALE) && wizard && iflags.wizmgender) {
+            attr = A_REVERSE;
         }
     }
 
@@ -809,12 +871,15 @@ curses_print_glyph(winid wid, xchar x, xchar y,
     if (SYMHANDLING(H_UTF8)
         && glyphinfo->gm.u
         && glyphinfo->gm.u->utf8str) {
-        curses_putch(wid, x, y, ch, glyphinfo->gm.u, color, attr);
+        curses_putch(wid, x, y, ch, glyphinfo->gm.u, color,
+                     bkglyphinfo->framecolor, attr);
     } else {
-        curses_putch(wid, x, y, ch, NULL, color, attr);
+        curses_putch(wid, x, y, ch, NULL, color,
+                     bkglyphinfo->framecolor, attr);
     }
 #else
-    curses_putch(wid, x, y, ch, color, attr);
+    curses_putch(wid, x, y, ch, color,
+                 bkglyphinfo->framecolor, attr);
 #endif
 }
 
@@ -833,7 +898,11 @@ curses_raw_print(const char *str)
 #ifdef PDCURSES
     /* WINDOW *win = curses_get_nhwin(MESSAGE_WIN); */
 
-    curses_message_win_puts(str, FALSE);
+    if (iflags.window_inited) {
+        curses_message_win_puts(str, FALSE);
+    } else {
+        puts(str);
+    }
 #else
     puts(str);
 #endif
@@ -874,7 +943,7 @@ curses_nhgetch(void)
 }
 
 /*
-int nh_poskey(int *x, int *y, int *mod)
+int nh_poskey(coordxy *x, coordxy *y, int *mod)
                 -- Returns a single character input from the user or a
                    a positioning event (perhaps from a mouse).  If the
                    return value is non-zero, a character was typed, else,
@@ -889,7 +958,7 @@ int nh_poskey(int *x, int *y, int *mod)
                    routine always returns a non-zero character.
 */
 int
-curses_nh_poskey(int *x, int *y, int *mod)
+curses_nh_poskey(coordxy *x, coordxy *y, int *mod)
 {
     int key = curses_nhgetch();
 
@@ -914,7 +983,8 @@ nhbell()        -- Beep at user.  [This will exist at least until sounds are
 void
 curses_nhbell(void)
 {
-    beep();
+    if (!flags.silent)
+        beep();
 }
 
 /*
@@ -1002,9 +1072,10 @@ void
 curses_delay_output(void)
 {
 #ifdef TIMED_DELAY
-    if (flags.nap) {
+    if (flags.nap && !iflags.debug_fuzzer) {
         /* refreshing the whole display is a waste of time,
          * but that's why we're here */
+        curses_update_stdscr_cursor();
         refresh();
         napms(50);
     }
@@ -1090,7 +1161,7 @@ curs_reset_windows(boolean redo_main, boolean redo_status)
     }
     if (need_redraw) {
         curses_last_messages();
-        doredraw();
+        docrt();
     }
 }
 

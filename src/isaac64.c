@@ -12,7 +12,6 @@
 #include "config.h"
 
 #ifdef USE_ISAAC64
-#include <math.h>
 #include <string.h>
 #include "isaac64.h"
 
@@ -34,13 +33,13 @@
 /* Extract ISAAC64_SZ_LOG bits (starting at bit 3). */
 static inline uint32_t lower_bits(uint64_t x)
 {
-	return (x & ((ISAAC64_SZ-1) << 3)) >>3;
+    return (x & ((ISAAC64_SZ-1) << 3)) >>3;
 }
 
 /* Extract next ISAAC64_SZ_LOG bits (starting at bit ISAAC64_SZ_LOG+2). */
 static inline uint32_t upper_bits(uint64_t y)
 {
-	return (y >> (ISAAC64_SZ_LOG+3)) & (ISAAC64_SZ-1);
+    return (y >> (ISAAC64_SZ_LOG+3)) & (ISAAC64_SZ-1);
 }
 
 static void isaac64_update(isaac64_ctx *_ctx){

@@ -1,4 +1,4 @@
-/* NetHack 3.7	trap.h	$NHDT-Date: 1615759956 2021/03/14 22:12:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.20 $ */
+/* NetHack 3.7	trap.h	$NHDT-Date: 1670316586 2022/12/06 08:49:46 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.31 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -17,20 +17,20 @@ union vlaunchinfo {
 
 struct trap {
     struct trap *ntrap;
-    xchar tx, ty;
-    d_level dst; /* destination for portals */
+    coordxy tx, ty;
+    d_level dst; /* destination for portals/holes/trapdoors */
     coord launch;
 #define teledest launch /* x,y destination for teleport traps, if > 0 */
     Bitfield(ttyp, 5);
     Bitfield(tseen, 1);
     Bitfield(once, 1); /* has the trap been triggered previously? */
     Bitfield(madeby_u, 1); /* So monsters may take offence when you trap
-                              them.  Recognizing who made the trap isn't
-                              completely unreasonable, everybody has
-                              their own style.  This flag is also needed
-                              when you untrap a monster.  It would be too
-                              easy to make a monster peaceful if you could
-                              set a trap for it and then untrap it. */
+                            * them.  Recognizing who made the trap isn't
+                            * completely unreasonable, everybody has
+                            * their own style.  This flag is also needed
+                            * when you untrap a monster.  It would be too
+                            * easy to make a monster peaceful if you could
+                            * set a trap for it and then untrap it. */
     struct obj* ammo; /* object associated with this trap - darts for a dart
                          trap, arrows for an arrow trap, a beartrap object for a
                          bear trap.  This object does not physically exist in
@@ -63,6 +63,7 @@ struct trap {
 
 /* unconditional traps */
 enum trap_types {
+    ALL_TRAPS    = -1, /* mon_knows_traps(), mon_learns_traps() */
     NO_TRAP      =  0,
     ARROW_TRAP   =  1,
     DART_TRAP    =  2,
@@ -111,6 +112,8 @@ enum { Trap_Effect_Finished = 0,
 
 #define is_pit(ttyp) ((ttyp) == PIT || (ttyp) == SPIKED_PIT)
 #define is_hole(ttyp)  ((ttyp) == HOLE || (ttyp) == TRAPDOOR)
+#define unhideable_trap(ttyp) ((ttyp) == HOLE \
+                               || (ttyp) == MAGIC_PORTAL) /* visible traps */
 #define undestroyable_trap(ttyp) ((ttyp) == MAGIC_PORTAL         \
                                   || (ttyp) == VIBRATING_SQUARE)
 #define is_magical_trap(ttyp) ((ttyp) == TELEP_TRAP     \

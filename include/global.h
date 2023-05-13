@@ -1,4 +1,4 @@
-/* NetHack 3.7	global.h	$NHDT-Date: 1646322467 2022/03/03 15:47:47 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.135 $ */
+/* NetHack 3.7	global.h	$NHDT-Date: 1657918090 2022/07/15 20:48:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.144 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -26,6 +26,7 @@
 #define LICENSE "license"       /* file with license information */
 #define OPTIONFILE "opthelp"    /* file explaining runtime options */
 #define OPTMENUHELP "optmenu"   /* file explaining #options command */
+#define USAGEHELP "usagehlp"    /* file explaining command line use */
 #define OPTIONS_USED "options"  /* compile-time options, for #version */
 #define SYMBOLS "symbols"       /* replacement symbol sets */
 #define EPITAPHFILE "epitaph"   /* random epitaphs on graves */
@@ -61,29 +62,36 @@
 #endif /* DUMB */
 
 /*
+ * type xint8: small integers (typedef'd as signed,
+ * in the range -127 - 127).
+ */
+typedef int8_t xint8;
+/*
  * type coordxy: integers (typedef'd as signed,
  * in the range -32768 to 32767), mostly coordinates.
  * Note that in 2022, screen coordinates easily
  * surpass an upper limit of 127.
- * NOTE (aosdict 03/19/2023) - intentionally adding this to create merge
- * conflicts during a later vanilla merge so that coordxy can be used now.
- * Delete this in favor of vanilla's changes to global.h later.
  */
 typedef int16_t coordxy;
 /*
- * type xchar: small integers (typedef'd as signed char,
- * so in the range -127 - 127), usually coordinates.
+ * type xint16: integers (typedef'd as signed,
+ * in the range -32768 to 32767), non-coordinates.
  */
-typedef schar xchar;
+typedef int16_t xint16;
 
 #ifdef __MINGW32__
 /* Resolve conflict with Qt 5 and MinGW-w32 */
 typedef unsigned char boolean; /* 0 or 1 */
 #else
 #ifndef SKIP_BOOLEAN
-typedef xchar boolean; /* 0 or 1 */
+typedef schar boolean; /* 0 or 1 */
 #endif
 #endif
+
+/* vision seen vectors: viz_array[][] and levl[][].seenv, which use different
+   values from each other but are close enough in size to share a type;
+   viz_array contains 8-bit bitmasks, lev->seenv is a 5-bit bitfield */
+typedef unsigned char seenV; /* no need for uint8_t */
 
 /* Type for third parameter of read(2) */
 #if defined(BSD) || defined(ULTRIX)
@@ -139,6 +147,21 @@ typedef uchar nhsym;
 #define LARGEST_INT 32767
 
 #include "coord.h"
+
+/* define USING_ADDRESS_SANITIZER if ASAN is in use */
+#if defined(__clang__)
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define USING_ADDRESS_SANITIZER
+#endif  /* __has_feature */
+#endif  /* __has_feature(address_sanitizer) */
+#else   /* ?__clang__ */
+#if defined(__GNUC__) || defined(_MSC_VER)
+#ifdef __SANITIZE_ADDRESS__
+#define USING_ADDRESS_SANITIZER
+#endif  /* __SANITIZE_ADDRESS__ */
+#endif  /* __GNUC__ || _MSC_VER */
+#endif  /* !__clang__ */
 
 /*
  * Automatic inclusions for the subsidiary files.
@@ -248,17 +271,17 @@ typedef uchar nhsym;
 #endif
 
 #if defined(X11_GRAPHICS) || defined(QT_GRAPHICS) || defined(GNOME_GRAPHICS) \
-    || defined(WIN32)
+    || defined(MSWIN_GRAPHICS)
 #ifndef NO_TILE_C
-#ifndef USE_TILES
-#define USE_TILES /* glyphmap[] with prefilled tile mappings will be available */
+#ifndef TILES_IN_GLYPHMAP
+#define TILES_IN_GLYPHMAP
 #endif
 #endif
 #endif
 #if defined(AMII_GRAPHICS) || defined(GEM_GRAPHICS)
 #ifndef NO_TILE_C
-#ifndef USE_TILES
-#define USE_TILES
+#ifndef TILES_IN_GLYPHMAP
+#define TILES_IN_GLYPHMAP
 #endif
 #endif
 #endif
@@ -298,9 +321,9 @@ typedef uchar nhsym;
    if nethack is built with MONITOR_HEAP enabled and they aren't; this
    declaration has been moved out of the '#else' below to avoid getting
    a complaint from -Wmissing-prototypes when building with MONITOR_HEAP */
-extern char *dupstr(const char *);
+extern char *dupstr(const char *) NONNULL;
 /* same, but return strlen(string) */
-extern char *dupstr_n(const char *string, unsigned int *lenout);
+extern char *dupstr_n(const char *string, unsigned int *lenout) NONNULL;
 
 /*
  * MONITOR_HEAP is conditionally used for primitive memory leak debugging.
@@ -312,9 +335,10 @@ extern char *dupstr_n(const char *string, unsigned int *lenout);
  */
 #ifdef MONITOR_HEAP
 /* plain alloc() is not declared except in alloc.c */
-extern long *nhalloc(unsigned int, const char *, int);
+extern long *nhalloc(unsigned int, const char *, int) NONNULL;
+extern long *nhrealloc(long *, unsigned int, const char *, int) NONNULL;
 extern void nhfree(genericptr_t, const char *, int);
-extern char *nhdupstr(const char *, const char *, int);
+extern char *nhdupstr(const char *, const char *, int) NONNULL;
 /* this predates C99's __func__; that is trickier to use conditionally
    because it is not implemented as a preprocessor macro; MONITOR_HEAP
    wouldn't gain much benefit from it anyway so continue to live without it;
@@ -326,11 +350,13 @@ extern char *nhdupstr(const char *, const char *, int);
 #define __LINE__ 0
 #endif
 #define alloc(a) nhalloc(a, __FILE__, (int) __LINE__)
+#define re_alloc(a,n) nhrealloc(a, n, __FILE__, (int) __LINE__)
 #define free(a) nhfree(a, __FILE__, (int) __LINE__)
 #define dupstr(s) nhdupstr(s, __FILE__, (int) __LINE__)
 #else /* !MONITOR_HEAP */
 /* declare alloc.c's alloc(); allocations made with it use ordinary free() */
-extern long *alloc(unsigned int);  /* alloc.c */
+extern long *alloc(unsigned int) NONNULL;  /* alloc.c */
+extern long *re_alloc(long *, unsigned int) NONNULL;
 #endif /* ?MONITOR_HEAP */
 
 /* Used for consistency checks of various data files; declare it here so
@@ -392,11 +418,11 @@ extern struct nomakedefs_s nomakedefs;
 
 #define MAXNROFROOMS 40 /* max number of rooms per level */
 #define MAX_SUBROOMS 24 /* max # of subrooms in a given room */
-#define DOORMAX 120     /* max number of doors per level */
+#define DOORINC 120     /* number of doors per level, increment */
 
 #define BUFSZ 256  /* for getlin buffers */
 #define QBUFSZ 128 /* for building question text */
-#define TBUFSZ 300 /* g.toplines[] buffer max msg: 3 81char names */
+#define TBUFSZ 300 /* gt.toplines[] buffer max msg: 3 81char names */
 /* plus longest prefix plus a few extra words */
 
 /* COLBUFSZ is the larger of BUFSZ and COLNO */

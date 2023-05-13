@@ -113,7 +113,7 @@ Expensive cameras have penetrating flash lights.
 Extra staircases lead to extra levels.
 Fate abhors those who cheat at Sokoban.
 Fiery letters might deter monsters.
-:Fortune cookies are a nice snack, but you'll need some real food at some point.
+[cookie] Fortune cookies are a nice snack, but you'll need some real food at some point.
 Gandalf could pull off being a sword-wielding wizard.  You, though...
 Gems are too precious to be thrown away carelessly.
 Gems hard enough to carve into the ground are always valuable.
@@ -145,7 +145,7 @@ I tried to read a book but it exploded! I guess I wasn't smart enough...
 I wish I never wished a wand of wishing.  (Wishful thinking.)
 I wished for the Amulet and put it in my bag, but I'm not sure if it's real.
 I wouldn't advise playing catch with a giant.
-:I'm watching you, %p.  -- The Wizard of Yendor
+[cookie] I'm watching you, %p.  -- The Wizard of Yendor
 Ice boxes keep your food fresh.
 If a gray stone steals from you, steal back from it.
 If you are being punished, it's done with a deadly weapon.
@@ -189,7 +189,7 @@ Life before death. Strength before weakness. Journey before destination.
 Lizard corpses protect against cockatrices.
 Losing focus?  Feeling jumpy?  Eat a tengu and get back in control.
 Lucky adventurers usually pay a visit to the Mines.
-:Man shall not live by fortune cookies alone.
+[cookie] Man shall not live by fortune cookies alone.
 Mirrors are fragile. Handle with care.
 Money is worth more than blood, if you're a shopkeeper.
 Money lost, little lost; honor lost, much lost; pluck lost, all lost.
@@ -251,6 +251,7 @@ Some hackers r-select, some K-select.
 Some kinds of cloaks provide more protection than others.
 Some monsters can be tamed.  I once saw a hacker with a tame dragon!
 Some of these molds are really delicious!
+Some remain flexible, while others can't seem to change their tune.
 Somebody's been letting poisonous snakes loose in the fountains.
 Someone's been spiking the pits!
 Sometimes monsters are more likely to fight each other than attack you.

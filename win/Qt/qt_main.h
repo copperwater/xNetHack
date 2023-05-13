@@ -17,7 +17,9 @@
 // Allow changing 'statuslines:2' to 'statuslines:3' or vice versa
 // while the game is running; deletes and re-creates the status window.
 // [Used in qt_bind.cpp and qt_main.cpp, but not referenced in qt_stat.cpp.]
+#if QT_VERSION >= QT_VERSION_CHECK(5, 9, 0)
 #define DYNAMIC_STATUSLINES
+#endif
 
 // NetHackQtBind::notify() doesn't see ^V on OSX
 #ifdef MACOS
@@ -96,6 +98,7 @@ private:
 	void ShowIfReady();
         void AddToolButton(QToolBar *toolbar, QSignalMapper *sm,
                            const char *name, int (*func)(void), QPixmap xpm);
+        static bool ok_for_command();
 
 #ifdef KDE
 	KMenuBar* menubar;

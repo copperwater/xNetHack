@@ -66,6 +66,8 @@ enum invoke_prop_types {
     CREATE_PORTAL,
     ENLIGHTENING,
     CREATE_AMMO,
+    BANISH,
+    /* xNetHack specific ones: */
     LIGHTNING_BOLT,
     SMOKE_CLOUD
 };

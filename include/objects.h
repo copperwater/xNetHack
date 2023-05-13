@@ -32,6 +32,7 @@
 #define OBJ(name,desc)  name, desc
 #define OBJECT(obj,bits,prp,sym,prob,dly,wt, \
                cost,sdam,ldam,oc1,oc2,nut,color,sn)  { obj }
+#define MARKER(tag,sn) /*empty*/
 
 #elif defined(OBJECTS_INIT)
 #define COLOR_FIELD(X) X,
@@ -45,27 +46,58 @@
                cost,sdam,ldam,oc1,oc2,nut,color,sn) \
   { 0, 0, (char *) 0, bits, prp, sym, dly, COLOR_FIELD(color) prob, wt, \
     cost, sdam, ldam, oc1, oc2, nut }
+#define MARKER(tag,sn) /*empty*/
 
 #elif defined(OBJECTS_ENUM)
 #define OBJ(name,desc)
 #define OBJECT(obj,bits,prp,sym,prob,dly,wt,        \
                cost,sdam,ldam,oc1,oc2,nut,color,sn) \
     sn
+#define MARKER(tag,sn) tag = sn,
 
 #elif defined(DUMP_ENUMS)
 #define OBJ(name,desc)
 #define OBJECT(obj,bits,prp,sym,prob,dly,wt,        \
                cost,sdam,ldam,oc1,oc2,nut,color,sn) \
   { sn, #sn }
+#define MARKER(tag,sn) /*empty*/
 
 #else
 #error Unproductive inclusion of objects.h
 #endif  /* OBJECTS_DESCR_INIT || OBJECTS_INIT || OBJECTS_ENUM */
 
+#define GENERIC(desc, class, gen_enum) \
+    OBJECT(OBJ("generic " desc, desc),                                  \
+           BITS(0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, P_NONE, 0),            \
+           0, class, 0, 0, 0, 0, 0, 0, 0, 0, 0, CLR_GRAY, gen_enum)
+
 /* dummy object[0] -- description [2nd arg] *must* be NULL */
 OBJECT(OBJ("strange object", NoDes),
        BITS(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, P_NONE, 0),
        0, ILLOBJ_CLASS, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, STRANGE_OBJECT),
+/* slots [1] through [MAXOCLASSES-1] are indexed by class; some are
+   used for display purposes, most aren't used; none are actual objects;
+   note that 'real' strange object is in slot [0] but ILLOBJ_CLASS is 1
+   so we add a dummy for it in slot [1] to simplify accessing the rest;
+   there isn't any entry for RANDOM_CLASS (0) */
+GENERIC("strange",    ILLOBJ_CLASS,  GENERIC_ILLOBJ),  /* [1] */
+GENERIC("weapon",     WEAPON_CLASS,  GENERIC_WEAPON),  /* [2] */
+GENERIC("armor",      ARMOR_CLASS,   GENERIC_ARMOR),   /* [3] */
+GENERIC("ring",       RING_CLASS,    GENERIC_RING),    /* [4] */
+GENERIC("amulet",     AMULET_CLASS,  GENERIC_AMULET),  /* [5] */
+GENERIC("tool",       TOOL_CLASS,    GENERIC_TOOL),    /* [6] */
+GENERIC("food",       FOOD_CLASS,    GENERIC_FOOD),    /* [7] */
+GENERIC("potion",     POTION_CLASS,  GENERIC_POTION),  /* [8] */
+GENERIC("scroll",     SCROLL_CLASS,  GENERIC_SCROLL),  /* [9] */
+GENERIC("spellbook",  SPBOOK_CLASS,  GENERIC_SPBOOK),  /* [10] */
+GENERIC("wand",       WAND_CLASS,    GENERIC_WAND),    /* [11] */
+GENERIC("coin",       COIN_CLASS,    GENERIC_COIN),    /* [12] */
+GENERIC("gem",        GEM_CLASS,     GENERIC_GEM),     /* [13] */
+GENERIC("large rock", ROCK_CLASS,    GENERIC_ROCK),    /* [14] bldr+statue */
+GENERIC("iron ball",  BALL_CLASS,    GENERIC_BALL),    /* [15] */
+GENERIC("iron chain", CHAIN_CLASS,   GENERIC_CHAIN),   /* [16] */
+GENERIC("venom",      VENOM_CLASS,   GENERIC_VENOM),   /* [17] */
+#undef GENERIC
 
 /* weapons ... */
 #define WEAPON(name,desc,kn,mg,bi,prob,wt,                          \
@@ -199,7 +231,7 @@ WEAPON("dwarvish short sword", "broad short sword",
        0, 0, 0,  2,  30,  10,  7,  8, 0, P,   P_SHORT_SWORD, IRON, HI_METAL,
                                                         DWARVISH_SHORT_SWORD),
 WEAPON("scimitar", "curved sword",
-       0, 0, 0, 15,  40,  15,  8,  8, 0, S,   P_SCIMITAR, IRON, HI_METAL,
+       0, 0, 0, 15,  40,  15,  8,  8, 0, S,   P_SABER, IRON, HI_METAL,
                                                         SCIMITAR),
 WEAPON("saber", NoDes,
        1, 0, 0,  6,  40,  75,  8,  8, 0, S,   P_SABER, IRON, HI_METAL,
@@ -364,22 +396,29 @@ HELM("fedora", NoDes,
                                                         FEDORA),
 HELM("cornuthaum", "conical hat",
      0, 1, CLAIRVOYANT,  3, 1,  4, 80, 10, 1, CLOTH, CLR_BLUE,
-                                                        CORNUTHAUM),
         /* name coined by devteam; confers clairvoyance for wizards,
            blocks clairvoyance if worn by role other than wizard */
+                                                        CORNUTHAUM),
 HELM("dunce cap", "conical hat",
      0, 1,           0,  3, 1,  4,  1, 10, 0, CLOTH, CLR_BLUE,
+        /* sets Int and Wis to fixed value of 6, so actually provides
+           protection against death caused by Int being drained below 3 */
                                                         DUNCE_CAP),
 HELM("dented pot", NoDes,
      1, 0,           0,  2, 0, 10,  8,  9, 0, IRON, CLR_BLACK,
                                                         DENTED_POT),
+HELM("helm of brilliance", "crystal helmet",
+     0, 1,           0,  3, 1, 40, 50,  9, 0, GLASS, CLR_WHITE,
+        /* used to be iron and shuffled as "etched helmet" but required
+           special case for the effect of iron armor on spell casting */
+                                                        HELM_OF_BRILLIANCE),
 /* with shuffled appearances... */
 HELM("helmet", "plumed helmet",
      0, 0,           0, 10, 1, 30, 10,  9, 0, IRON, HI_METAL,
                                                         HELMET),
-HELM("helm of brilliance", "etched helmet",
-     0, 1,           0,  6, 1, 50, 50,  9, 0, IRON, CLR_GREEN,
-                                                        HELM_OF_BRILLIANCE),
+HELM("helm of caution", "etched helmet",
+     0, 1,     WARNING,  3, 1, 50, 50,  9, 0, IRON, CLR_GREEN,
+                                                        HELM_OF_CAUTION),
 HELM("helm of opposite alignment", "crested helmet",
      0, 1,           0,  6, 1, 50, 50,  9, 0, IRON, HI_METAL,
                                                  HELM_OF_OPPOSITE_ALIGNMENT),
@@ -690,6 +729,7 @@ RING("carrying", "glittery",
            power, AMULET_CLASS, prob, 0, 20, 150, 0, 0, 0, 0, 20, HI_METAL, sn)
 AMULET("amulet of ESP",                "circular", TELEPAT, 120,
                                                         AMULET_OF_ESP),
+MARKER(FIRST_AMULET, AMULET_OF_ESP)
 AMULET("amulet of life saving",       "spherical", LIFESAVED, 75,
                                                         AMULET_OF_LIFE_SAVING),
 AMULET("amulet of strangulation",          "oval", STRANGLED, 115,
@@ -727,6 +767,7 @@ OBJECT(OBJ("Amulet of Yendor", /* note: description == name */
        BITS(0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, MITHRIL),
        0, AMULET_CLASS, 0, 0, 20, 30000, 0, 0, 0, 0, 20, HI_METAL,
                                                 AMULET_OF_YENDOR),
+MARKER(LAST_AMULET, AMULET_OF_YENDOR)
 #undef AMULET
 
 /* tools ... */
@@ -739,10 +780,16 @@ OBJECT(OBJ("Amulet of Yendor", /* note: description == name */
     OBJECT(OBJ(name, desc),                                             \
            BITS(kn, 0, chg, 1, mgc, chg, 0, 0, 0, 0, 0, P_NONE, mat),   \
            0, TOOL_CLASS, prob, 0, wt, cost, 0, 0, 0, 0, wt, color, sn)
-#define WEPTOOL(name,desc,kn,mgc,bi,prob,wt,cost,sdam,ldam,hitbon,sub,mat,clr,sn)\
+#define EYEWEAR(name,desc,kn,prop,prob,wt,cost,mat,color,sn) \
+    OBJECT(OBJ(name, desc),                                             \
+           BITS(kn, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, P_NONE, mat),         \
+           prop, TOOL_CLASS, prob, 0, wt, cost, 0, 0, 0, 0, wt, color, sn)
+#define WEPTOOL(name,desc,kn,mgc,bi,prob,wt,cost,sdam,ldam,hitbon,sub, \
+                mat,clr,sn)                                             \
     OBJECT(OBJ(name, desc),                                             \
            BITS(kn, 0, 1, 0, mgc, 1, 0, 0, bi, 0, hitbon, sub, mat),    \
-           0, TOOL_CLASS, prob, 0, wt, cost, sdam, ldam, hitbon, 0, wt, clr, sn)
+           0, TOOL_CLASS, prob, 0, wt, cost, sdam, ldam, hitbon, 0, wt, \
+           clr, sn)
 /* containers */
 CONTAINER("large box",       NoDes, 1, 0, 0, 40, 350,   8, WOOD, HI_WOOD,
                                                                 LARGE_BOX),
@@ -780,17 +827,24 @@ TOOL("magic lamp",        "lamp", 0, 0, 1, 0, 15, 20,500, COPPER, CLR_YELLOW,
                                                                 MAGIC_LAMP),
 /* other tools */
 TOOL("expensive camera",    NoDes, 1, 0, 0, 1, 15, 12,200, PLASTIC, CLR_BLACK,
-                                                              EXPENSIVE_CAMERA),
+                                                            EXPENSIVE_CAMERA),
 TOOL("mirror",   "looking glass", 0, 0, 0, 0, 45, 13, 10, GLASS, HI_SILVER,
                                                                 MIRROR),
 TOOL("crystal ball", "glass orb", 0, 0, 1, 1, 15,100, 60, GLASS, HI_GLASS,
                                                                 CRYSTAL_BALL),
-TOOL("lenses",              NoDes, 1, 0, 0, 0,  5,  3, 80, GLASS, HI_GLASS,
+/* eyewear - tools which can be worn on the face; (!mrg, !chg, !mgc)
+   worn lenses don't confer the Blinded property, blindfolds and towels do;
+   wet towel can be used as a weapon but is not a weptool and uses obj->spe
+   differently from weapons and weptools */
+EYEWEAR("lenses",           NoDes, 1,       0,  5,  3, 80, GLASS, HI_GLASS,
                                                                 LENSES),
-TOOL("blindfold",           NoDes, 1, 0, 0, 0, 50,  2, 20, CLOTH, CLR_BLACK,
+EYEWEAR("blindfold",        NoDes, 1, BLINDED, 50,  2, 20, CLOTH, CLR_BLACK,
                                                                 BLINDFOLD),
-TOOL("towel",               NoDes, 1, 0, 0, 0, 50,  5, 50, CLOTH, CLR_MAGENTA,
+EYEWEAR("towel",            NoDes, 1, BLINDED, 50,  2, 50, CLOTH, CLR_MAGENTA,
                                                                 TOWEL),
+#undef EYEWEAR
+
+/* still other tools */
 TOOL("saddle",              NoDes, 1, 0, 0, 0,  5,200,150, LEATHER, HI_LEATHER,
                                                                 SADDLE),
 TOOL("leash",               NoDes, 1, 0, 0, 0, 65, 12, 20, LEATHER, HI_LEATHER,
@@ -895,8 +949,9 @@ FOOD("meatball",              0,  1,  1, 0, FLESH,   5, CLR_BROWN,
                                                         MEATBALL),
 FOOD("meat stick",            0,  1,  1, 0, FLESH,   5, CLR_BROWN,
                                                         MEAT_STICK),
-FOOD("huge chunk of meat",    0, 20,400, 0, FLESH,2000, CLR_BROWN,
-                                                        HUGE_CHUNK_OF_MEAT),
+/* formerly "huge chunk of meat" */
+FOOD("enormous meatball",     0, 20,400, 0, FLESH,2000, CLR_BROWN,
+                                                        ENORMOUS_MEATBALL),
 /* special case because it's not mergable */
 OBJECT(OBJ("meat ring", NoDes),
        BITS(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, FLESH),
@@ -1127,6 +1182,8 @@ SCROLL("blank paper", "unlabeled",  0,  28,  60, SCR_BLANK_PAPER),
 #define PAPER LEATHER /* override enum for use in SPELL() expansion */
 SPELL("dig",             "parchment",
       P_MATTER_SPELL,      20,  3, 1, RAY, HI_LEATHER, SPE_DIG),
+MARKER(FIRST_SPELL, SPE_DIG)
+/* magic missile ... finger of death must be in this order; see buzz() */
 SPELL("magic missile",   "vellum",
       P_ATTACK_SPELL,      45,  2, 1, RAY, HI_LEATHER, SPE_MAGIC_MISSILE),
 #undef PAPER /* revert to normal material */
@@ -1250,6 +1307,11 @@ SPELL("freeze sphere",   "hardcover",
 /* books with fixed descriptions
  */
 SPELL("blank paper", "plain", P_NONE, 18, 0, 0, 0, HI_PAPER, SPE_BLANK_PAPER),
+/* LAST_SPELL is used to calculate MAXSPELL, allocation size of spl_book[];
+   by including blank paper, which has no actual spell, we ensure that
+   even if hero learns every spell, spl_book[] will have at least one
+   unused slot at end; an unused slot is needed for use as terminator */
+MARKER(LAST_SPELL, SPE_BLANK_PAPER)
 /* tribute book for 3.6 */
 OBJECT(OBJ("novel", "paperback"),
        BITS(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, P_NONE, PAPER),
@@ -1304,6 +1366,7 @@ WAND("probing",       "uranium", 30, 150, 1, IMMEDIATE, METAL, HI_METAL,
                                                     WAN_PROBING),
 WAND("digging",          "iron", 55, 150, 1, RAY, IRON, HI_METAL,
                                                     WAN_DIGGING),
+/* magic missile ... lightning must be in this order; see buzz() */
 WAND("magic missile",   "steel", 50, 150, 1, RAY, IRON, HI_METAL,
                                                     WAN_MAGIC_MISSILE),
 WAND("fire",        "hexagonal", 40, 175, 1, RAY, GEMSTONE, CLR_WHITE,
@@ -1346,6 +1409,7 @@ COIN("gold piece", 1000, GOLD, 1, GOLD_PIECE),
            0, GEM_CLASS, prob, 0, wt, gval, sdam, ldam, 0, 0, nutr, color, sn)
 GEM("dilithium crystal", "white",  2, 1, 4500, 15,  5, GEMSTONE, CLR_WHITE,
                                                         DILITHIUM_CRYSTAL),
+MARKER(FIRST_REAL_GEM, DILITHIUM_CRYSTAL)
 GEM("diamond",           "white",  3, 1, 4000, 15, 10, GEMSTONE, CLR_WHITE,
                                                         DIAMOND),
 GEM("ruby",                "red",  4, 1, 3500, 15,  9, GEMSTONE, CLR_RED,
@@ -1388,14 +1452,16 @@ GEM("agate",            "orange", 12, 1,  200, 15,  6, GEMSTONE, CLR_ORANGE,
                                                         AGATE),
 GEM("jade",              "green", 10, 1,  300, 15,  6, GEMSTONE, CLR_GREEN,
                                                         JADE),
+MARKER(LAST_REAL_GEM, JADE)
 GEM("worthless piece of white glass", "white",
     77, 1, 0, 6, 5, GLASS, CLR_WHITE, WORTHLESS_WHITE_GLASS),
+MARKER(FIRST_GLASS_GEM, WORTHLESS_WHITE_GLASS)
 GEM("worthless piece of blue glass", "blue",
     77, 1, 0, 6, 5, GLASS, CLR_BLUE, WORTHLESS_BLUE_GLASS),
 GEM("worthless piece of red glass", "red",
     77, 1, 0, 6, 5, GLASS, CLR_RED, WORTHLESS_RED_GLASS),
 GEM("worthless piece of yellowish brown glass", "yellowish brown",
-    77, 1, 0, 6, 5, GLASS, CLR_BROWN, WORTHLESS_YELLOWISH_BROWN_GLASS),
+    77, 1, 0, 6, 5, GLASS, CLR_BROWN, WORTHLESS_YELLOWBROWN_GLASS),
 GEM("worthless piece of orange glass", "orange",
     76, 1, 0, 6, 5, GLASS, CLR_ORANGE, WORTHLESS_ORANGE_GLASS),
 GEM("worthless piece of yellow glass", "yellow",
@@ -1406,6 +1472,7 @@ GEM("worthless piece of green glass", "green",
     77, 1, 0, 6, 5, GLASS, CLR_GREEN, WORTHLESS_GREEN_GLASS),
 GEM("worthless piece of violet glass", "violet",
     77, 1, 0, 6, 5, GLASS, CLR_MAGENTA, WORTHLESS_VIOLET_GLASS),
+MARKER(LAST_GLASS_GEM, WORTHLESS_VIOLET_GLASS)
 
 /* Placement note: there is a wishable subrange for
  * "gray stones" in the o_ranges[] array in objnam.c
@@ -1470,6 +1537,7 @@ OBJECT(OBJ(NoDes, NoDes),
 
 #undef OBJ
 #undef OBJECT
+#undef MARKER
 #undef HARDGEM
 #undef NoDes
 

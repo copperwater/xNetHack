@@ -60,19 +60,19 @@ newpw(void)
     int en = 0, enrnd, enfix;
 
     if (u.ulevel == 0) {
-        en = g.urole.enadv.infix + g.urace.enadv.infix;
-        if (g.urole.enadv.inrnd > 0)
-            en += rnd(g.urole.enadv.inrnd);
-        if (g.urace.enadv.inrnd > 0)
-            en += rnd(g.urace.enadv.inrnd);
+        en = gu.urole.enadv.infix + gu.urace.enadv.infix;
+        if (gu.urole.enadv.inrnd > 0)
+            en += rnd(gu.urole.enadv.inrnd);
+        if (gu.urace.enadv.inrnd > 0)
+            en += rnd(gu.urace.enadv.inrnd);
     } else {
         enrnd = (int) ACURR(A_WIS) / 2;
         if (u.ulevel < ROLE_XLEV_CUTOFF) {
-            enrnd += g.urole.enadv.lornd + g.urace.enadv.lornd;
-            enfix = g.urole.enadv.lofix + g.urace.enadv.lofix;
+            enrnd += gu.urole.enadv.lornd + gu.urace.enadv.lornd;
+            enfix = gu.urole.enadv.lofix + gu.urace.enadv.lofix;
         } else {
-            enrnd += g.urole.enadv.hirnd + g.urace.enadv.hirnd;
-            enfix = g.urole.enadv.hifix + g.urace.enadv.hifix;
+            enrnd += gu.urole.enadv.hirnd + gu.urace.enadv.hirnd;
+            enfix = gu.urole.enadv.hifix + gu.urace.enadv.hifix;
         }
         en = rn1(enrnd, enfix);
         /* energy gain "modifier" */
@@ -94,7 +94,7 @@ newpw(void)
         en = 1;
     if (u.ulevel < MAXULEV) {
         /* remember increment; future level drain could take it away again */
-        u.ueninc[u.ulevel] = (xchar) en;
+        u.ueninc[u.ulevel] = (xint16) en;
     } else {
         /* after level 30, throttle energy gains from extra experience;
            once max reaches 600, further increments will be just 1 more */
@@ -210,19 +210,19 @@ more_experienced(register int exper, register int rexp)
     if (newexp != oldexp) {
         u.uexp = newexp;
         if (flags.showexp)
-            g.context.botl = TRUE;
+            gc.context.botl = TRUE;
         /* even when experience points aren't being shown, experience level
            might be highlighted with a percentage highlight rule and that
            percentage depends upon experience points */
-        if (!g.context.botl && exp_percent_changing())
-            g.context.botl = TRUE;
+        if (!gc.context.botl && exp_percent_changing())
+            gc.context.botl = TRUE;
     }
     /* newrexp will always differ from oldrexp unless they're LONG_MAX */
     if (newrexp != oldrexp) {
         u.urexp = newrexp;
 #ifdef SCORE_ON_BOTL
         if (flags.showscore)
-            g.context.botl = TRUE;
+            gc.context.botl = TRUE;
 #endif
     }
     if (u.urexp >= (Role_if(PM_WIZARD) ? 1000 : 2000))
@@ -240,7 +240,7 @@ losexp(
        wizard mode request to reduce level; never fatal though */
     if (drainer && !strcmp(drainer, "#levelchange"))
         drainer = 0;
-    else if (resists_drli(&g.youmonst) || item_catches_drain(&g.youmonst))
+    else if (resists_drli(&gy.youmonst) || item_catches_drain(&gy.youmonst))
         return;
 
     /* level-loss message; "Goodbye level 1." is fatal; divine anger
@@ -254,11 +254,12 @@ losexp(
         /* remove intrinsic abilities */
         adjabil(u.ulevel + 1, u.ulevel);
         livelog_printf(LL_MINORAC, "lost experience level %d", u.ulevel + 1);
+        SoundAchievement(0, sa2_xpleveldown, 0);
     } else {
         if (drainer) {
-            g.killer.format = KILLED_BY;
-            if (g.killer.name != drainer)
-                Strcpy(g.killer.name, drainer);
+            gk.killer.format = KILLED_BY;
+            if (gk.killer.name != drainer)
+                Strcpy(gk.killer.name, drainer);
             done(DIED);
         }
         /* no drainer or lifesaved */
@@ -276,7 +277,7 @@ losexp(
        strength loss or by a fire trap or by an attack by Death which
        all use a different minimum than life-saving or experience loss;
        we don't allow it to go up because that contradicts assumptions
-       elsewhere (such as healing wielder who drains with Strombringer) */
+       elsewhere (such as healing wielder who drains with Stormbringer) */
     if (u.uhpmax > olduhpmax)
         setuhpmax(olduhpmax);
 
@@ -300,18 +301,18 @@ losexp(
         u.uexp = newuexp(u.ulevel) - 1;
 
     if (Upolyd) {
-        num = monhp_per_lvl(&g.youmonst);
+        num = monhp_per_lvl(&gy.youmonst);
         u.mhmax -= num;
         u.mh -= num;
         if (u.mh <= 0) {
             /* in case we die here */
-            Strcpy(g.killer.name, "fragility");
-            g.killer.format = KILLED_BY;
+            Strcpy(gk.killer.name, "fragility");
+            gk.killer.format = KILLED_BY;
             rehumanize();
         }
     }
 
-    g.context.botl = TRUE;
+    gc.context.botl = TRUE;
 }
 
 /*
@@ -340,7 +341,7 @@ pluslvl(
     /* increase hit points (when polymorphed, do monster form first
        in order to retain normal human/whatever increase for later) */
     if (Upolyd) {
-        hpinc = monhp_per_lvl(&g.youmonst);
+        hpinc = monhp_per_lvl(&gy.youmonst);
         u.mhmax += hpinc;
         u.mh += hpinc;
     }
@@ -375,7 +376,7 @@ pluslvl(
         if (u.ulevelmax < u.ulevel)
             u.ulevelmax = u.ulevel;
         adjabil(u.ulevel - 1, u.ulevel); /* give new intrinsics */
-
+        SoundAchievement(0, sa2_xplevelup, 0);
         old_ach_cnt = count_achievements();
         newrank = xlev_to_rank(u.ulevel);
         if (newrank > oldrank)
@@ -390,7 +391,7 @@ pluslvl(
         if (u.ulevel > u.ulevelpeak)
             u.ulevelpeak = u.ulevel;
     }
-    g.context.botl = TRUE;
+    gc.context.botl = TRUE;
 }
 
 /* compute a random amount of experience points suitable for the hero's
