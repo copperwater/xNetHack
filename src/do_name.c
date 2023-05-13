@@ -1437,8 +1437,7 @@ do_oname(struct obj *obj)
             /* this used to be flavored as actually writing on the weapon and
              * breaking illiterate, but that was silly for a number of reasons. */
             pline("For some reason, you can't mentally assign that name to %s.",
-                  is_plural(obj) ? "them" : "it");
-            display_nhwindow(WIN_MESSAGE, FALSE);
+                  yname(obj));
             return;
         } else if (obj->otyp == objtyp) {
             /* artifact_name() found a match and restrict_name() didn't reject
