@@ -887,8 +887,8 @@ dump_everything(
     putstr(NHW_DUMPTXT, 0, "");
 
     dump_plines();
-    putstr(0, 0, "");
-    putstr(0, 0, "Inventory:");
+    putstr(NHW_DUMPTXT, 0, "");
+    putstr(0, ATR_HEADING, "Inventory:");
     (void) display_inventory((char *) 0, TRUE);
     container_contents(gi.invent, TRUE, TRUE, FALSE);
     enlightenment((BASICENLIGHTENMENT | MAGICENLIGHTENMENT),
@@ -897,13 +897,14 @@ dump_everything(
 
     /* overview of the game up to this point */
     show_gamelog((how >= PANICKED) ? ENL_GAMEOVERALIVE : ENL_GAMEOVERDEAD);
-    putstr(0, 0, "");
+    putstr(NHW_DUMPTXT, 0, "");
     list_vanquished('d', FALSE); /* 'd' => 'y' */
     putstr(NHW_DUMPTXT, 0, "");
     list_genocided('d', FALSE); /* 'd' => 'y' */
     putstr(NHW_DUMPTXT, 0, "");
     show_conduct((how >= PANICKED) ? 1 : 2);
     putstr(NHW_DUMPTXT, 0, "");
+    putstr(0, ATR_HEADING, "Dungeon overview:");
     show_overview((how >= PANICKED) ? 1 : 2, how);
     putstr(NHW_DUMPTXT, 0, "");
     dump_redirect(FALSE);

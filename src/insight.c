@@ -384,7 +384,7 @@ enlightenment(
     }
 
     enlght_out(""); /* separator */
-    enlght_out("Miscellaneous:");
+    enlght_out_attr(ATR_SUBHEAD, "Miscellaneous:");
     /* reminder to player and/or information for dumplog */
     if ((mode & BASICENLIGHTENMENT) != 0 && (wizard || discover || final)) {
         if (wizard || discover) {

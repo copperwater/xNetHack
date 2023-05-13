@@ -3477,7 +3477,7 @@ print_mapseen(
                     depthstart + gd.dungeons[dnum].dunlev_ureached - 1);
         any = cg.zeroany;
         add_menu(win, &nul_glyphinfo, &any, 0, 0,
-                 !final ? iflags.menu_headings : ATR_NONE, NO_COLOR,
+                 !final ? iflags.menu_headings : ATR_SUBHEAD, NO_COLOR,
                  buf, MENU_ITEMFLAGS_NONE);
     }
 
@@ -3508,7 +3508,7 @@ print_mapseen(
     any = cg.zeroany;
     if (final == -1)
         any.a_int = ledger_no(&(mptr->lev)) + 1;
-    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_NONE, NO_COLOR,
+    add_menu(win, &nul_glyphinfo, &any, 0, 0, ATR_PREFORM, NO_COLOR,
              buf, MENU_ITEMFLAGS_NONE);
 
     if (INTEREST(mptr->feat)) {
