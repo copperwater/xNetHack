@@ -80,14 +80,18 @@ thitu(
     boolean is_acid, named = (name != 0);
     int kprefix = KILLED_BY_AN, dieroll;
     char onmbuf[BUFSZ], knmbuf[BUFSZ];
+    boolean save_invweight = iflags.invweight;
 
     if (!name) {
         if (!obj)
             panic("thitu: name & obj both null?");
+        iflags.invweight = FALSE; /* force no weight display here - it messes
+                                    with pluralization/vtense */
         name = strcpy(onmbuf,
                       (obj->quan > 1L) ? doname(obj) : mshot_xname(obj));
         knm = strcpy(knmbuf, killer_xname(obj));
         kprefix = KILLED_BY; /* killer_name supplies "an" if warranted */
+        iflags.invweight = save_invweight;
     } else {
         knm = name;
         /* [perhaps ought to check for plural here to] */
