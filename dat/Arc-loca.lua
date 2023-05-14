@@ -234,4 +234,4 @@ for i=1,#statue_coords do
 end
 
 -- Treasure?
-des.engraving({ type="engrave", coord=outside:rndcoord(), text="X marks the spot." })
+des.engraving({ type="engrave", coord=outside:filter_mapchar('.'):rndcoord(), text="X marks the spot." })
