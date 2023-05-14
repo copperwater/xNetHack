@@ -163,9 +163,6 @@ struct conditionals_t {
     int sequence, predecessor;
     const char *name;
 } conditionals[] = {
-#ifndef CHARON /* not supported */
-    { MON_GLYPH, PM_HELL_HOUND, "Cerberus" },
-#endif
     /* commented out in monst.c at present */
     { MON_GLYPH, PM_SHOCKING_SPHERE, "beholder" },
     { MON_GLYPH, PM_BABY_SILVER_DRAGON, "baby shimmering dragon" },
