@@ -39,7 +39,7 @@ des.non_diggable(nondig)
 
 -- Jungle filler on the left side
 local forest_max_x = 40
-local trees = selection.gradient({ type="square", x=forest_max_x, y=00, x2=forest_max_x, y2=19, maxdist=60, limited=false })
+local trees = selection.gradient({ type="square", x=forest_max_x, y=00, x2=forest_max_x, y2=19, maxdist=60, limited=false }):negate()
 trees = trees & selection.area(00,00,forest_max_x,19)
 des.terrain({ selection=trees, typ='T' })
 

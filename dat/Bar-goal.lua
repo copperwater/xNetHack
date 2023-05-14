@@ -54,9 +54,9 @@ local inbuildings = selection.floodfill(32,05) | selection.floodfill(50,00) |
                     selection.floodfill(61,04)
 
 -- Grass... none in the village or buildings, more outside it
-local grass = selection.gradient({ type="radial", mindist=6, maxdist=60, limited=false,
-                                   x=55, y=8, x2=59, y2=8 })
-              & selection.negate(inbuildings)
+local grass = selection.gradient({ type="radial", mindist=6, maxdist=60,
+                                   x=55, y=8, x2=59, y2=8 }):negate() - inbuildings
+              -- & selection.negate(inbuildings)
 des.replace_terrain({ selection = grass, fromterrain=".", toterrain="g" })
 
 -- Make some trees

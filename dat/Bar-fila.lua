@@ -14,8 +14,6 @@ local mesa_centers = selection.fillrect(08,00,72,20)
 for i=1, 12+d(4) do
    local ctr = mesa_centers:rndcoord()
    local rock = selection.gradient({ type="radial", mindist=0, maxdist=3, limited=true, x=ctr.x, y=ctr.y })
-   -- gradients are non-invertible so have to do some selection magic to flip it
-   rock = rock:negate()
    rock = rock & selection.circle(ctr.x, ctr.y, 3);
 
    if percent(50) then
