@@ -6,9 +6,9 @@
 #ifndef PATCHLEVEL_H
 #define PATCHLEVEL_H
 
-/* xNetHack 7.1 */
-#define VERSION_MAJOR 7
-#define VERSION_MINOR 1
+/* xNetHack 8.0 */
+#define VERSION_MAJOR 8
+#define VERSION_MINOR 0
 /*
  * PATCHLEVEL is updated for each release.
  */
