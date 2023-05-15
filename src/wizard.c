@@ -971,9 +971,10 @@ wizpuzzle_give_clues(void)
         /* Iterate over the room where the new gap is to look for a visual clue
          * (based on the number of gems on the top of object piles there) and an
          * auditory clue (based on the squeaky board in that room).
-         * Originally, it didn't have this and instead just had iron bars instead of
-         * walls so you could see where the gap was now, but those are trivially
-         * passable (with all carried gear) by polyselfing into a whirly monster. */
+         * Originally, it didn't have this and instead just had iron bars
+         * instead of walls so you could see where the gap was now, but those
+         * are trivially passable (with all carried gear) by polyselfing into a
+         * whirly monster. */
         for (x = gr.rooms[openroom].lx; x <= gr.rooms[openroom].hx; ++x) {
             for (y = gr.rooms[openroom].ly; y <= gr.rooms[openroom].hy; ++y) {
                 struct obj *otmp;
@@ -1127,7 +1128,8 @@ wizpuzzle_move_gap(int newc, xint8 ring)
                 y = gr.rooms[gap_spaces[i].roomno].ly + gap_spaces[i].ly_offset;
 
                 if (round == 1 && gap_spaces[i].roomno != newc) {
-                    wizpuzzle_close_space(x, y, gap_spaces[i].typ, &gaveclosemsg);
+                    wizpuzzle_close_space(x, y, gap_spaces[i].typ,
+                                          &gaveclosemsg);
                     vision_recalc(0);
                 }
                 else if (round == 2 && gap_spaces[i].roomno == newc) {
@@ -1143,7 +1145,8 @@ wizpuzzle_move_gap(int newc, xint8 ring)
      * move of another ring into the same room as another ring (which is about
      * to move but hasn't yet) doesn't count it as solved */
     if (ring == NUM_PUZZLE_RINGS - 1
-        && levl[u.ux][u.uy].roomno - ROOMOFFSET == gw.wizpuzzle.open_chamber[ring]) {
+        && levl[u.ux][u.uy].roomno - ROOMOFFSET
+            == gw.wizpuzzle.open_chamber[ring]) {
         solved = TRUE;
         for (i = 0; i < NUM_PUZZLE_RINGS - 1; ++i) {
             if (gw.wizpuzzle.open_chamber[i] != gw.wizpuzzle.open_chamber[i+1])
@@ -1184,7 +1187,8 @@ wizpuzzle_init(int init_room) {
         for (room1 = NUM_PUZZLE_CHAMBERS - 1; room1 >= 1; --room1) {
             int room2 = rn2(room1 + 1);
             enum wizpuzzle_actions tmp = gw.wizpuzzle.actions[ring][room1];
-            gw.wizpuzzle.actions[ring][room1] = gw.wizpuzzle.actions[ring][room2];
+            gw.wizpuzzle.actions[ring][room1]
+                = gw.wizpuzzle.actions[ring][room2];
             gw.wizpuzzle.actions[ring][room2] = tmp;
         }
     }
