@@ -91,7 +91,12 @@ end
 -- Rolling boulder trap room
 -- Original design of this level called for six traps, one on each of the 6
 -- spaces with height 5 in this room, with a vertically rolling boulder.
--- However, we can't specify their launch coordinates from here.
+-- We can now specify launch coordinates on rolling boulder traps, but the
+-- problem with this is that rolling boulder traps get created with their
+-- secondary launch2 point equidistant on the opposite side of the trap as
+-- launch1. This would mean in order for this room to behave as desired (and not
+-- segfault when a boulder tries to roll off the map), the traps would be in a
+-- predictable line down the middle, which isn't interesting.
 -- Instead, just put a bunch of traps in the center of the room and hope that
 -- most of them will generate appropriate coordinates and a boulder.
 local bouldertraps = selection.area(60,16,65,18)
