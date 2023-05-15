@@ -189,12 +189,8 @@ for i = 1, 80 do
          des.gold({ coord=crd })
       end
    end
-   local corpse = obj.new(corpsetypes[d(#corpsetypes)]..' corpse')
+   local corpse = des.object({ coord=crd, id='corpse', montype=corpsetypes[d(#corpsetypes)] })
    corpse:stop_timer('rot-corpse')
-   -- FIXME: x + 1 is a shim that assumes xstart=1 and ystart=0 when this is
-   -- being processed, because the nhlobj.c code does not currently account for
-   -- anything other than absolute x and y.
-   corpse:placeobj(crd.x + 1, crd.y)
 end
 
 -- Candles to light up a few parts of the swamp
