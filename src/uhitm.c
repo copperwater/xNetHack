@@ -4381,7 +4381,7 @@ mhitm_ad_ston(
                  */
                 if (!rn2(10) || flags.moonphase == NEW_MOON) {
                     if (Hallucination) {
-                        You("are already stoned.");
+                        ; /* you are already stoned :-) */
                     }
                     else if (do_stone_u(magr)) {
                         mhm->hitflags = M_ATTK_HIT;

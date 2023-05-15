@@ -3697,10 +3697,10 @@ instapetrify(const char *str)
     if (Stone_resistance)
         return;
 
-    if (Hallucination) {
+    if (Hallucination) { /* you are already stoned :-) */
         /* This will follow messages such as "Touching a cockatrice corpse is a
          * fatal mistake" that imply the game is ending; contradict that */
-        pline("But you are already stoned.");
+        You("feel momentarily inflexible, but then you feel groovy again.");
         return;
     }
     if (poly_when_stoned(gy.youmonst.data)
