@@ -1277,7 +1277,7 @@ dump_fmtstr(
    for preformatted text, we don't mess with any existing bullet list, but try to
    keep consecutive preformatted strings in a single block.  */
 static void
-html_write_tags(FILE *fp, int attr, boolean before) 
+html_write_tags(FILE *fp, int attr, boolean before)
 {
     static boolean in_list = FALSE;
     static boolean in_preform = FALSE;
