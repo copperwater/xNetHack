@@ -6856,6 +6856,8 @@ doortrapped(int x, int y, struct monst * mon, int bodypart, int action,
         /* TODO: ensure explode() wakes monsters without having to call it
          * here */
         if (byu || canseedoor) {
+            /* if !byu, this will be preceded by "You see a door open." or "Foo
+             * opens a door." */
             Soundeffect(se_kaboom_door_explodes, 75);
             pline("KABOOM!!  The door was booby-trapped!");
         }
