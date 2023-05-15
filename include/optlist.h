@@ -332,9 +332,6 @@ static int optfn_##a(int, int, boolean, char *, char *);
                 No, Yes, No, No, NoAlias,
                 "same as palette, only order is reversed")
 #endif
-    NHOPTB(hilite_hidden_stairs, Map, 0, opt_out, set_in_game, Off, Yes, No, No,
-           NoAlias, &iflags.hilite_hidden_stairs, Term_False,
-           "highlight stairs hidden by objects in red")
     NHOPTB(hilite_pet, Map, 0, opt_in, set_in_game,
            Off, Yes, No, No, NoAlias, &iflags.wc_hilite_pet, Term_False,
            "use highlight for pets")

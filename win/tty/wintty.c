@@ -3550,13 +3550,6 @@ tty_print_glyph(
         underline_on = TRUE;
     }
 
-#ifdef TEXTCOLOR
-    if ((special & MG_STAIRS) && iflags.hilite_hidden_stairs
-        && (window == NHW_MAP)) {
-        term_start_bgcolor(CLR_RED);
-    }
-#endif /* TEXTCOLOR */
-
 #if defined(TILES_IN_GLYPHMAP) && defined(MSDOS)
     if (iflags.grmode && iflags.tile_view) {
         xputg(glyphinfo, bkglyphinfo);

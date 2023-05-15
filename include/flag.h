@@ -266,7 +266,6 @@ struct instance_flags {
     boolean echo;             /* 1 to echo characters */
     boolean force_invmenu;    /* always menu when handling inventory */
     boolean hilite_pile;      /* mark piles of objects with a hilite */
-    boolean hilite_hidden_stairs; /* mark hidden stairs with a hilite */
     boolean menu_head_objsym; /* Show obj symbol in menu headings */
     boolean menu_overlay;     /* Draw menus over the map */
     boolean menu_requested;   /* Flag for overloaded use of 'm' prefix
