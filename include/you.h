@@ -536,6 +536,7 @@ struct _hitmon_data {
     /* xNetHack additions: */
     struct obj *hated_obj;
     int artimsg;
+    boolean defer_breakwep;
 };
 
 #define Upolyd (u.umonnum != u.umonster)

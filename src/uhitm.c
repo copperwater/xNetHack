@@ -1171,8 +1171,13 @@ hmon_hitmon_weapon_melee(
      * this at the end so that other stuff doesn't have to check obj
      * && obj->whatever all the time */
     if (hmd->hand_to_hand) {
-        if (break_glass_obj(obj))
-            obj = (struct obj *) 0;
+        /* Back when hmon_hitmon was a single big function, it sufficed to call
+         * break_glass_obj(obj) here and set obj to null. Now that it's split up
+         * into a bunch of different functions AND obj is one of the only
+         * remaining parameters passed around rather than being in struct
+         * _hitmon_data, that doesn't suffice to prevent use-after-free. Flag it
+         * for potential breakage later. */
+        hmd->defer_breakwep = TRUE;
         break_glass_obj(some_armor(mon));
     }
 }
@@ -1806,6 +1811,7 @@ hmon_hitmon(
     hmd.saved_oname[0] = '\0';
     hmd.hated_obj = (struct obj *) 0;
     hmd.artimsg = ARTIFACTHIT_NOMSG;
+    hmd.defer_breakwep = FALSE;
 
     hmon_hitmon_do_hit(&hmd, mon, obj);
     if (hmd.doreturn)
@@ -1914,6 +1920,9 @@ hmon_hitmon(
         print_mon_wounded(mon, saved_mhp);
         wakeup(mon, TRUE, TRUE);
     }
+    /* now try to break the glass weapon, if used */
+    if (hmd.defer_breakwep)
+        (void) break_glass_obj(obj);
 
     return hmd.destroyed ? FALSE : TRUE;
 }
