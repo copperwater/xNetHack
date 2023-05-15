@@ -971,8 +971,10 @@ explmm(struct monst *magr, struct monst *mdef, struct attack *mattk)
 
     /* it's also not currently possible for any exploding monsters to wear life
      * saving... */
-    if (!DEADMONSTER(magr))
+    if (!DEADMONSTER(magr)) {
+        result &= ~M_ATTK_AGR_DIED;
         return result; /* life saved */
+    }
 
     /* mondead() -> m_detach() -> m_unleash() always suppresses
        the m_unleash() slack message, so deliver it here instead */
