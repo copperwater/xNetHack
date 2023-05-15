@@ -1478,11 +1478,11 @@ hmon_hitmon_misc_obj(
         /* things like wands made of harmful materials can arrive here so
          * we need another check for that; blessed check too */
         if (mon_hates_material(mon, obj->material)) {
-            /* dmgval() already added damage, but track hated_obj */
+            /* this does not end up calling sear_damage again; it will be called
+             * only once in the dmgval call below */
             hmd->hated_obj = obj;
         }
-        if (obj->blessed && mon_hates_blessings(mon))
-            hmd->dmg += rnd(4);
+        hmd->dmg += dmgval(obj, mon);
     }
 }
 
