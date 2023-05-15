@@ -1828,8 +1828,10 @@ use_silver_on_withering(struct obj *obj)
         useupall(obj);
     }
     else {
-        pline("%s %s and %s!", obj->quan == 1 ? "It" : "They",
-              otense(obj, "blacken"), otense(obj, "corrode"));
+        pline("%s %s%s%s!", obj->quan == 1 ? "It" : "They",
+              Blind ? "" : otense(obj, "blacken"),
+              Blind ? "" : " and ",
+              otense(obj, "corrode"));
         obj->oeroded2 = new_oeroded2;
     }
     if (Hate_material(obj->material)) {
