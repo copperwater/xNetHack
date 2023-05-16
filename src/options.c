@@ -6067,7 +6067,8 @@ handler_monstercolor(void)
                         Sprintf(buf, "%s (%s)", mons[mndx].pmnames[NEUTRAL],
                                 clr2colorname(gm.monstercolors[mndx]));
                         add_menu(tmpwin, &info, &any, 0, 0,
-                                 ATR_NONE, 0, buf, MENU_ITEMFLAGS_NONE);
+                                 ATR_NONE, gm.monstercolors[mndx], buf,
+                                 MENU_ITEMFLAGS_NONE);
                     }
                 }
             }
