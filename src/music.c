@@ -907,7 +907,7 @@ obj_to_instr(struct obj *obj SOUNDLIBONLY) {
 
 #if defined(SND_LIB_INTEGRATED)
     switch(obj->otyp) {
-        case WOODEN_FLUTE:
+        case FLUTE:
             ret_instr = ins_flute;
             break;
         case MAGIC_FLUTE:
@@ -925,7 +925,7 @@ obj_to_instr(struct obj *obj SOUNDLIBONLY) {
         case BUGLE:
             ret_instr = ins_trumpet;
             break;
-        case WOODEN_HARP:
+        case HARP:
             ret_instr = ins_orchestral_harp;
             break;
         case MAGIC_HARP:
