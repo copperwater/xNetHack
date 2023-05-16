@@ -677,7 +677,7 @@ nasty(struct monst *summoner)
         count = monster_census(FALSE) - census;
 
     if (summoner && summoner->iswiz) {
-        SetVoice(mtmp, 0, 80, 0);
+        SetVoice(summoner, 0, 80, 0);
         verbalize("Destroy the thief, my pet%s!", plur(count));
     }
     else {
