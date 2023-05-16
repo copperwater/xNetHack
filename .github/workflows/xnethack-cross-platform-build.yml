@@ -15,7 +15,7 @@ jobs:
       #LUA_VERSION: 5.4.2
       HINTS_FILE: linux.370
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: setup
       run: ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
     - name: fetch lua
@@ -31,7 +31,7 @@ jobs:
     env:
       HINTS_FILE: macOS.370
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: setup
       run: |
         ./sys/unix/setup.sh sys/unix/hints/$HINTS_FILE
@@ -54,7 +54,7 @@ jobs:
         TRAVIS_COMPILER: 1
         ZIP_NAME: xnethack.zip
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
     - uses: ilammy/msvc-dev-cmd@v1 # enable visual c compiler / nmake
