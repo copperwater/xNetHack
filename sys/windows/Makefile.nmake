@@ -723,7 +723,7 @@ SOUNDLIBINCL = $(SOUNDLIBINCL)
 SOUNDLIBDEFS = $(SOUNDLIBDEFS) -DSND_LIB_WINDSOUND
 TTYSOUNDOBJS = $(TTYSOUNDOBJS) $(OTTY)windsound.o
 GUISOUNDOBJS = $(GUISOUNDOBJS) $(OGUI)windsound.o
-#WINDSOUNDLIBDIR = 
+#WINDSOUNDLIBDIR =
 #TTYSOUNDLIBS = $(TTYSOUNDLIBS)
 #GUISOUNDLIBS = $(GUISOUNDLIBS)
 #WINDSOUNDLIBDIR =
@@ -1423,7 +1423,7 @@ $(GAMEDIR)\xNetHackW.exe : gamedir.tag $(OGUI)tile.o \
 		$(GUISOUNDOBJS)
 		$(OGUI)tile.o
 		$(OGUI)date.o
-		$(OGUI)NetHackW.res
+		$(OGUI)xNetHackW.res
 << keep
 
 #--------
@@ -2298,8 +2298,8 @@ clean:
 	if exist $(OPDC)*.EXP           del $(OPDC)*.EXP
 	if exist $(SRC)\tiles.bmp       del $(SRC)\tiles.bmp
 	if exist $(OTTY)console.res     del $(OTTY)console.res
-	if exist $(OTTY)NetHack.res     del $(OTTY)NetHack.res
-	if exist $(OGUI)NetHackW.res    del $(OGUI)NetHackW.res
+	if exist $(OTTY)xNetHack.res    del $(OTTY)xNetHack.res
+	if exist $(OGUI)xNetHackW.res   del $(OGUI)xNetHackW.res
 
 #===================================================================
 # OTHER DEPENDENCIES
