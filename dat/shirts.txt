@@ -78,6 +78,7 @@ Real men love Crom
 Rock 'n Mole
 Serial Ascender
 Stand back, I'm going to try alchemy!
+This is a silly thing to read.
 This shirt intentionally left blank.  Hey, wait a minute.
 Vegan and Proud
 Weapons don't kill people, I kill people
@@ -115,3 +116,6 @@ Valar morghulis.
 # Theory" although they didn't create it (and an actual T-shirt
 # with pentagonal diagram showing which choices defeat which)
 rock--paper--scissors--lizard--Spock!
+
+# Schlock Mercenary
+Maxim One: Pillage, *then* burn.

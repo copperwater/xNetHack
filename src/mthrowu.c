@@ -38,10 +38,10 @@ const char *const hallublasts[] = {
     "photons", "pixels", "plasma", "polarity", "powder", "powerups",
     "prismatic light", "pure logic", "purple", "radio waves", "rainbows",
     "rock music", "rocket fuel", "rope", "sadness", "salt", "sand", "scrolls",
-    "sludge", "smileys", "snowflakes", "sparkles", "specularity", "spores",
-    "stars", "steam", "tetrahedrons", "text", "the past", "tinsel", "tornadoes",
-    "toxic waste", "ultraviolet light", "viruses", "water", "waveforms", "wind",
-    "X-rays", "zorkmids"
+    "sinewaves", "sludge", "smileys", "snowflakes", "sparkles", "specularity",
+    "spirits", "spores", "stars", "steam", "tetrahedrons", "text", "the past",
+    "tinsel", "tornadoes", "toxic waste", "ultraviolet light", "viruses",
+    "water", "waveforms", "wind", "X-rays", "zorkmids"
 };
 
 /* Return a random hallucinatory blast. */

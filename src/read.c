@@ -278,6 +278,7 @@ tin_text(struct obj *tin, char* buf)
         "Djinni Brand Tins - Open now for your free wish!",
         "Can Of Whoop-Ass. Use Caution When Opening.",
         "A Whole Can of Worms",
+        "Buzz Brand Newt - Delicious and Newt-ritious!",
     };
     /* default is to pick a random label; may be overriden later */
     int food = tin_variety(tin, TRUE);

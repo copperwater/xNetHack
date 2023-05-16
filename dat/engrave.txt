@@ -52,6 +52,8 @@ Vlad wasn't here.
 Why are you reading this?
 For a good time call 867-5309
 All your castle are belong to us
+Please Excuse The Mess
+You lost The Game.
 
 # Advertising
 Cancel this engraving and win a free prize!
@@ -145,6 +147,8 @@ It is dark. You may be eaten by a grue.
 # Terry Pratchett / Discworld
 FABRICATI DIEM, PVNC
 GNU Terry Pratchett
+The Turtle Moves!
+Books = Knowledge = Power = Force * Distance / Time
 
 # The Blues Brothers
 They're not gonna catch us.  We're on a mission from %d.
@@ -160,3 +164,6 @@ All work and no play makes Jack a dull boy.
 
 # Mistborn
 I write these words in steel, for anything not set in metal cannot be trusted.
+
+# They Might Be Giants
+There's only one thing that you know how to do well, and that's be you

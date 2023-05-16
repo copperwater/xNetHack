@@ -8,6 +8,7 @@
 %p, killed by an ambush, while reading a gravestone
 (This space for sale)
 ...and they made me engrave my own headstone too!
+0xdeadd00d
 1994-1995. The Longest-Lived Hacker Ever
 A good dog. Took "play dead" far too literally though.
 A masochist is never satisfied.
@@ -19,7 +20,6 @@ Age and treachery will always overcome youth and skill
 Aging is not so bad.  The real killer is when you stop.
 Ain't I a stinker?
 Al's Mortuary -- You kill 'em, we chill 'em
-Alas fair Death, 'twas missed in life - some peace and quiet from my wife
 Alas, poor Yorick!
 Algernon
 All else failed
@@ -68,6 +68,7 @@ Being dead builds character
 Beloved daughter, a treasure, buried here.
 Best friends come and go....  Mine just die.
 Better luck next time
+Beware of Discordians bearing answers
 Beware of Electric Third Rail
 Bloody Hell...
 Bloody barbarians!
@@ -110,8 +111,11 @@ Cross my fingers for me.
 Curses, foiled again!
 Dead again?  Pardon me for not getting it right the first time!
 Dead and loving every moment!
+Dead grasping arms erupt from the ground and seize you!  --More--
+Decapitated by Medusa -- Head, Stoned.
 Dear wife of mine.  Died of a broken heart, after I took it out of her.
 Did you know that death rays bounce?
+Died from not forwarding a chain letter to 10 people
 Died when this very tombstone fell and crushed his head
 Dig here for a wand of wishing.
 Do not open until Christmas
@@ -121,6 +125,8 @@ Don't forget to stop and smell the roses
 Don't let this happen to you!
 Don't mind me, just rolling in my grave.
 Don't tread on me!
+Don't you DARE fashion any bone weapons out of me
+Dr. Samuel Reinhardt -- Office upstairs.
 Dragon? What dragon?
 Drawn and quartered
 Dudley, killed by a newt.
@@ -143,7 +149,10 @@ Excuse me for not standing up.
 Excuse me, I ordered the cremation.
 Experience isn't everything.  First, you've got to survive.
 Explore the Mazes of Menace, they said. It will be fun, they said.
+Exquisite Corpse
+Failed all three death saves, can you believe it?
 Finally I am becoming stupider no more
+Friendly reminder to confess to a priest before you end up like me.
 Follow me to hell
 For recreational use only.
 For sale: One soul, slightly used.  Asking for 3 wishes.
@@ -186,6 +195,7 @@ He got the upside, I got the downside.
 He lost his face when he was beheaded.
 He missed me first.
 He waited too long
+He was a simple man who died of complications
 He's not dead, he just smells that way
 Help! I'm trapped in a gravestone factory!
 Help! I've fallen and I can't get up!
@@ -193,6 +203,7 @@ Help, I can't wake up!
 Here lies Patient Zero
 Here lies Bob - decided to try an acid blob
 Here lies Bugs Bunny. His doc couldn't figure out what was up.
+Here lies Dr. Ango, discoverer of the death ray, who also discovered that it bounces.
 Here lies Dudley, killed by another !&#@#& newt.
 Here lies Elric, killed by touching Stormbringer
 Here lies Ezekiel, age 102.  The good die young.
@@ -208,7 +219,7 @@ Here lies The Lady's maid, died of a Vorpal Blade
 Here lies Tim Burr. Smashed by a tree.
 Here lies a programmer.  Killed by a fatal error.
 Here lies an atheist, all dressed up and no place to go
-Here lies my wife: Here let her lie! Now she's at rest and so am I.
+Here lies expert gardener Pete Moss; he is now enriching the soil.
 Here lies the body of Jonathan Blake.  Stepped on the gas instead of the brake.
 Here lies the left foot of Jack, killed by a land mine.  Let us know if you find any more of him
 Here there be dragons
@@ -231,6 +242,7 @@ I am here.  Wish you were fine.
 I am never eating cursed fortune cookies again.
 I am not dead yet, but watch for further reports.
 I believe them bones are me.
+I came here without being consulted and I left without my consent.
 I can't go to Hell.  They're afraid I'm gonna take over!
 I didn't believe in reincarnation the last time, either.
 I didn't know tin openers were improved THAT much.
@@ -254,6 +266,7 @@ I thought the name "killer bees" was just hyperbole.
 I told you I would never say goodbye.
 I used to be amusing.  Now I'm just disgusting.
 I used up all my sick days, so now I'm calling in dead.
+I was hoping for a pyramid
 I was killed by <illegible scrawl>
 I was somebody.  Who, is no business of yours.
 I was wanted dead or alive.  Turned out it was dead.
@@ -261,6 +274,7 @@ I will not go quietly.
 I wonder what deleting 'system32' does?
 I'd give you a piece of my mind... but I can't find it.
 I'd rather be breathing
+I'd rather be reading this
 I'd rather be sailing
 I'll be back.
 I'll bring all of you ants to justi-
@@ -271,6 +285,7 @@ I'm not afraid of Death!  What's he gonna do? Kill me?
 I'm not getting enough money, so I'm not going to engrave anything useful here.
 I'm not saying anything.
 If a man's deeds do not outlive him, of what value is a mark in stone?
+If it weren't for bad luck, I'd have no luck at all
 If you thought you had problems...
 Ignorance kills daily.
 Ignore me... I'm just here for my looks!
@@ -282,8 +297,10 @@ It must be Thursday.  I never could get the hang of Thursdays.
 It wasn't a fair fight
 It wasn't so easy.
 It's Loot, Pillage and THEN Burn...
+KAABLAMM! The headstone explodes!  --More--
 Killed by a black dragon -- This grave is empty
 Killed by diarrhea of mouth and constipation of brain.
+Knock loudly -- I'm sleeping and can't hear very well.
 LEEROY JENKINS!
 Last words are for wimps.
 Let her RIP
@@ -314,6 +331,7 @@ Not every soil can bear all things
 Note -- there are NO valuable items in this grave
 Now I have a life
 Now I lay me down to sleep... wanna join me?
+Now I really am between a rock and a hard place!
 Obesa Cantavit
 Og friend. Og good dude. Og died. Og now food.
 Oh sure, give the *gnome* a wand of death.
@@ -340,6 +358,7 @@ Powered off.
 Prepare to meet me in Heaven
 Press F to pay respects
 R.I.P.
+RIP in pepperoni
 Relax.  Nothing ever happens on the first level.
 Res omnia mea culpa est
 Rest In Pieces
@@ -347,6 +366,8 @@ Rest in peace
 Rest, rest, perturbed spirit.
 Rolling In Grave Power Generator #1357
 SOLD
+Second fastest draw in the West
+Sent to the Shadow Realm
 She died of a chest cold.
 So let it be written, so let it be done!
 So then I says, How do I know you're the real angel of death?
@@ -373,11 +394,13 @@ The reports of my demise are completely accurate
 The treasure is buried three spaces to the left.
 This dungeon is a pushover
 This elevator doesn't go to Heaven
+This grave is empty because I was killed by a horde of cannibals
 This gravestone does not indicate a bones file.
 This gravestone is shareware.  To register, please send me 10 zorkmids
 This gravestone provided by The Yendorian Grave Services Inc.
 This gravestone provided to you by FreeStone. Please read license before continuing.
 This headstone intentionally left blank.
+This is NOT a secret entrance to the mole people's tunnel network
 This is not an important part of my life.
 This is what happens to you if you try to kill me.
 This one's on me.
@@ -439,7 +462,16 @@ All right, we'll call it a draw!
 Come back here!  I'll bite your bloody knees off!
 
 # They Might Be Giants
+Alas, my murdered remains are incapable of learning anything
+Hold my cold dead hand for a bit?
+I will never say the word "procrastinate" again
+I'll lay me down, down in the dark, the dark and sad, sad empty room
+If it wasn't for disappointment, I wouldn't have any appointments
+My plan was to live forever, or die trying.
+Now it's over, I'm dead, and I haven't done anything that I want
+The grave is the loneliest place
 The statue got me high
+We die alone, we die afraid, we live in terror, we're naked and alone
 
 # Lovecraft
 That is not dead which may eternal lie.
@@ -466,6 +498,12 @@ Here lies Jade, her debt to a shopkeeper finally paid.
 Ashes to ashes, dust to dust.
 This guy didn't pay enough to have his name on the headstone.
 Here lies Brock, killed by a falling rock.
+Amulet? More like choker!
+Been Here.  Now Gone.  Had a Good Time.
+From dust I came, and to dust I have returned.
+Here lies a hero named Theseus, he was struck in the trapezius.
+Here lies Astolfo the knight, whose fault was never to run from a fight.
+Here lies Tim Burr, whose final act was to chop down a tree.
 
 # Spongebob Squarepants
 Smitty Werbenjagermanjensen -- He was #1
@@ -511,3 +549,6 @@ I ain't afraid of no ghosts!
 
 # Princess Bride
 I'm only mostly dead!
+
+# Edgar Allan Poe
+Here! -- here! -- it is the beating of his hideous heart!

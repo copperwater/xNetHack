@@ -18,11 +18,13 @@
 =%d
 +Marduk the Creator
 +Moloch
+Amulet of Yendor
 RNG
 carnivorous bag
 feeling that you're being watched
 mysterious force
 royal jelly
+wand of wishing
 wide-angle disintegration beam
 
 # spoofs of in-game things
@@ -37,19 +39,25 @@ Demogorgonzola
 Grid Bug Mk 2
 _Semigorgon
 +Ptah Amon
+acupuncture xan
+alphanumeric character
 ambulatory fortune cookie
 apostrophe golem
 arch-lichen
 brown dragon
 capital letter
+centaur of gravity
 cheap plastic imitation of the Wizard of Yendor
 clear dragon
+decrepit lich
 demilichen
 diagonally moving grid bug
 ear piercer
 enchanted food ration
 feather golem
 gargantuan mimic
+gelatinous pyramid
+gelatinous sphere
 glorkum golem
 golem golem
 grandmaster mind flayer
@@ -59,10 +67,13 @@ hexagonal grid bug
 humongous mimic
 inside-out bag of holding
 invisible potion of invisibility
+jagged asterisk
 lurker below
 master lichen
 mithril piercer
+mysterious horse
 other hallucinating NetHack character
+rock 'n roll mole
 sergeant ant
 spelling bee
 thoroughly rusty thoroughly corroded iron golem
@@ -87,8 +98,11 @@ uncursed +10 bobble hat
 absurd pop-culture reference
 obscure reference
 poorly balanced monster
+variant developer
 
 # soundex and typos of monsters
++Lord Sulfur
++Lord Suture
 acid blog
 acrid blob
 acute blob
@@ -107,11 +121,15 @@ baby parable worm
 barfed devil
 beer wight
 beerholder
+blue dragoon
 boor wight
 brawny mold
 bust vortex
+clockatrice
+cluckatrice
 cockathrice
 decipede
+dishenchanter
 elastic eel
 electrocardiogram eel
 errata elemental
@@ -119,7 +137,9 @@ fallacy golem
 fierceness sphere
 fir elemental
 flamingo sphere
+flash golem
 floatin' guy
+flush golem
 forest centerfold
 fresh golem
 frizzed centaur
@@ -152,10 +172,12 @@ martyr orc
 mime flayer
 mock role
 moldier ant
+monotaur
 mortar orc
 mountain lymph
 pager golem
 pie fiend
+pit friend
 prophylactic worm
 quivering glob
 rabbit rat
@@ -172,6 +194,7 @@ tire elemental
 umbrella hulk
 vampire mace
 verbal jabberwock
+vice troll
 violent fungus
 visible stalker
 waiter elemental
@@ -190,19 +213,29 @@ zombie zombie
 
 # UnNetHack
 -One-Eyed Sam
+bourgeois
+common comma
+=Zalgo
 
 # SpliceHack
+absurdly powerful mystic scarab
 hunger hulk
 
 # EvilHack
 lava gremlin
+-Kathryn the Ice Queen
 
 # NotdNetHack
 illithianachronounbinder
 
+# SLASH'EM
+bat from hell
+
 # Slash'EM Extended
+banana peel golem
 dissolved undead potato
 great wyrm of power
+techno ant
 
 # Quendor (Zork, &c.)
 Christmas-tree monster
@@ -239,6 +272,9 @@ creeping coins
 +Sigmund
 lernaean hydra
 
+# Wil Wheaton, John Scalzi
+unicorn pegasus kitten
+
 # ADOM
 Ancient Chaos Wyrm
 
@@ -247,6 +283,9 @@ tridude
 
 # Dwarf Fortress
 +Urist McDwarf
+drunken cat
+dwarf throwing a tantrum
+flaming dwarf
 
 ## Section 3 - miscellaneous pop culture references
 
@@ -268,6 +307,8 @@ Nemean lion
 amazon
 harpy
 hydra
+lotus eater
+sacred cow of Apollo
 satyr
 siren
 sphinx
@@ -275,8 +316,9 @@ sphinx
 # other folklore
 +Santa Claus
 -Baba Yaga
+-Lady of the Lake
+=Abominable Snowman
 Easter Bunny
-Lady of the Lake
 basilisk
 changeling
 efreeti
@@ -286,6 +328,7 @@ roc
 sea serpent
 will-o'-the-wisp
 cephalophore
+vampiric watermelon
 
 # Monty Python
 Rabbit of Caerbannog
@@ -316,8 +359,8 @@ Wintersmith
 =Bel-Shamharoth
 Luggage
 glom of nit
+pictsie
 quantum weather butterfly
-vampiric watermelon
 wizzard
 
 # Lord of the Rings
@@ -341,6 +384,7 @@ Cheshire cat
 bandersnatch
 jubjub bird
 mock turtle
+mome rath
 snark
 white rabbit
 wobberjackal
@@ -386,8 +430,10 @@ twi'lek
 wookiee
 youngling
 
-# Tonari no Totoro
+# Studio Ghibli
+-Princess Mononoke
 Totoro
+Witch of the Wastes
 
 # Nausicaa
 ohmu
@@ -431,6 +477,9 @@ hooloovoo
 microscopic space fleet
 small furry creature from Alpha Centauri
 hoopy frood
+
+# The Tough Guide to Fantasyland
+leathery-winged avian
 
 # TMNT
 teenage mutant ninja turtle
@@ -502,9 +551,16 @@ vegepygmy
 +Particle Man
 +Triangle Man
 bee of the bird of the moth
-deranged millionaire
+chronophage
 cow beneath the sea
+deranged millionaire
+hopeless bleak despair
 hotel detective
+hovering sombrero
+omnicorn
+
+# Robot Finds Kitten
+kitten prospecting robot
 
 # Web comics and animation
 +Bob the Angry Flower
@@ -519,6 +575,7 @@ Jagermonster
 hoomhoffer
 
 # KoL
+Guy made of Bees
 one-winged dewinged stab-bat
 
 # deities
@@ -530,7 +587,10 @@ Invisible Pink Unicorn
 three-headed monkey
 
 # Portal
+-GLaDOS
 Companion Cube
+dangerous mute lunatic
+defective turret
 
 # South Park
 manbearpig
@@ -551,6 +611,7 @@ tie-thulu
 # the Internet is made for cat pix
 ceiling cat
 basement cat
+knife cat
 monorail cat
 
 # Radomir Dopieralski
@@ -638,6 +699,7 @@ turtle duck
 crumple-horned snorkack
 dementor
 Devil's Snare
+Golden Snitch
 house-elf
 niffler
 whomping willow
@@ -753,6 +815,7 @@ mulefa
 -White Witch
 Marsh-wiggle
 Tisroc
+neevil
 
 # xkcd
 red spider
@@ -763,21 +826,67 @@ red spider
 +Randall Flagg
 # not actually from but prominent in "'Salem's Lot"
 Emperor of Ice-Cream
+gunslinger
 
 # The Culture
 antagonistic undecagonstring
 
+# Schlock Mercenary
+carbosilicate amorph
+
+# The Demented Cartoon Movie
+kamikaze watermelon
+
+# Antigua
+blue dragon Vorltrarr
+
+# Pikmin
+bulborb
+doodlebug
+dweevil
+gatling groink
+pikmin
+snagret
+waterwraith
+
+# Gravity Falls
++Bill Cipher
+eye-bat
+gremloblin
+hawktopus
+leprecorn
+manotaur
+multibear
+sascrotch
+
+# Terraria
++Moon Lord
++Skeletron
+
+# Fallen London and Sunless Sea
+sorrow spider
+spider council
+chair of the department of antiquarian esquivalience
+
+# Jojo
+enemy stand
+
 ## Section 4 - miscellaneous non-reference things
 
 # Actual creatures
+antlion
 axolotl
+barnacle
+beaver
 beluga whale
+blobfish
 butterfly
 chicken
 coelacanth
 cuttlefish
 direwolf
 dodo bird
+gnat swarm
 lemming
 liger
 lungfish
@@ -860,10 +969,12 @@ stack overflow
 technical difficulty
 walking disk drive
 wiki
+wire shark
 
 # bugs
 =Schroedinger's Bug
 bohrbug
+dune bug
 heisenbug
 mandelbug
 microcode bug
@@ -872,6 +983,8 @@ microcode bug
 +ZZAZZ
 =Test0
 MissingNo
+corrupted data
+segment of freed memory
 
 # Items and stuff
 action figure
@@ -887,6 +1000,7 @@ rubber ducky
 terracotta warrior
 
 # SciFi elements
+antimatter fragment
 big dumb object
 cosmic ray
 first category perpetual motion device
@@ -894,6 +1008,7 @@ gray goo
 little green man
 mad scientist
 magnetic monopole
+mote in %d's eye
 mothership
 nanobot
 robot
@@ -904,6 +1019,7 @@ space invader
 bold face
 boustrophedon
 dingbat
+dinkus
 grawlix
 guillemet
 ligature
@@ -942,6 +1058,7 @@ peddler
 +Skeletor
 -Ebony Dark'ness Dementia Raven Way
 -Cruella de Vil
+CEO
 Ghost of Christmas Past
 Mexican jumping bean
 Sheriff of Nottingham
@@ -959,6 +1076,7 @@ barking spider
 basilisk
 battlemech
 battletoad
+beast inside
 big red button
 blade vortex
 blancmange
@@ -971,6 +1089,8 @@ cardboard golem
 care bear
 cheese golem
 chiasmus
+chimney sweep
+chronomancer
 cliche
 clone of yourself
 college dropout
@@ -986,12 +1106,15 @@ darkling
 death vortex
 dilithium crystal golem
 disappointing final boss
+disapproving parent
+disembodied hand
 disillusioner
 door-to-door salesman
 drakon
 drider
 drunken driver
 duct tape golem
+dungeon core
 dust bunny
 early bird
 earthquake beast
@@ -1005,6 +1128,7 @@ explosive weasel
 fire nymph
 firebug
 flaming skull
+fool
 forgotten beast
 ghoti
 giant cockroach
@@ -1024,8 +1148,11 @@ grumpy old man
 hamburglar
 happy little tree
 haunted wardrobe
+headbanger
 help vampire
 hoagie
+holistic sphere
+holloway
 hologram
 humorous message
 hyperactive child
@@ -1047,15 +1174,19 @@ lava golem
 lawyer
 lion-dog
 living armor
+living bonfire
 living statue
 loan shark
+luminous mockrat
 maestro
 maggot
+man in the mirror
 man-eating banana
 maniac
 marid
 mayor
 mighty morphin' power ranger
+maxotaur
 millitaur
 modern art
 mother-in-law
@@ -1079,8 +1210,10 @@ paint blob
 paparazzi
 philosophical zombie
 pigasus
+pillar of salt
 pilot
 pink elephant
+pop culture reference
 possessed waffle iron
 poultrygeist
 professional wrestler
@@ -1089,8 +1222,10 @@ pterodactyl
 pumpkin king
 purple haze
 puzzle fiend
+quig
 rabble-rouser
 raging nerd
+railgun enthusiast
 random monster
 rat king
 reanimator
@@ -1098,11 +1233,13 @@ red light
 rhinovirus
 rot grub
 runaway shopping cart
+salt golem
 sandworm
 schooner
 shadow
 shallow one
 sharknado
+shrimpanzee
 shrinking violet
 skelephant
 sleazoid
@@ -1127,9 +1264,14 @@ trainspotter
 tyrannosaurus rex
 uberhulk
 undercover cop
+velocirapper
+vengeful spirit
+venomous vermillion viper
 venture capitalist
 viking
 voussoir
 wax statue
 weapon of mass destruction
 wee green blobbie
+wereshopkeeper
+zombo
