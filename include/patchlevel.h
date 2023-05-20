@@ -30,7 +30,7 @@
 /*
  * Development status of this NetHack version.
  */
-#define NH_DEVEL_STATUS NH_STATUS_RELEASED
+#define NH_DEVEL_STATUS NH_STATUS_BETA
 
 #ifndef DEBUG  /* allow tool chains to define without causing warnings */
 #define DEBUG
