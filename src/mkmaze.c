@@ -22,10 +22,6 @@ static void migr_booty_item(int, const char *);
 static void migrate_orc(struct monst *, unsigned long);
 static void shiny_orc_stuff(struct monst *);
 static void stolen_booty(void);
-static boolean mazeroom_eligible(void);
-static void destroy_wall(coordxy, coordxy);
-static void maze_touchup_rooms(int);
-static void check_maze_coverage(int, int, int, int);
 static void maze_remove_deadends(xint16);
 
 /* adjust a coordinate one step in the specified direction */
@@ -763,16 +759,6 @@ maze_inbounds(coordxy x, coordxy y)
             && isok(x, y));
 }
 
-/* Return TRUE iff the given location is on the edge of the valid maze area;
- * that is, if you could step one square in any direction and then go out of
- * bounds. */
-static boolean
-maze_edge(coordxy x, coordxy y)
-{
-    return (!maze_inbounds(x - 1, y) || !maze_inbounds(x + 1, y)
-            || !maze_inbounds(x, y - 1) || !maze_inbounds(x, y + 1));
-}
-
 /* Remove all dead ends from the maze.
  * Does this by looking for spots that have 3 or more directions in which they
  * are separated from another open space 2 squares away by some inaccessible
@@ -828,235 +814,6 @@ maze_remove_deadends(xint16 typ)
             }
 }
 
-/* Return TRUE if this is an eligible maze level to have rooms. */
-static boolean
-mazeroom_eligible(void)
-{
-    return !(Is_special(&u.uz) || Invocation_lev(&u.uz));
-}
-
-/* Add some rooms to the maze!
- * Rooms are placed first, before the mazewalk is executed. */
-void
-maze_add_rooms(int attempts)
-{
-    coordxy x, y;
-
-    /* Ineligible maze levels for rooms */
-    if (!mazeroom_eligible())
-        return;
-
-    /* Pre-room setup: set the whole level to STONE so that rooms don't object
-     * to being placed on it. */
-    for (x = 2; x < gx.x_maze_max; x++)
-        for (y = 2; y < gy.y_maze_max; y++)
-            levl[x][y].typ = STONE;
-
-    for (; attempts > 0; attempts--) {
-        int roomidx;
-        coord roompos;
-        coordxy lx, ly, hx, hy, width, height;
-        boolean intersect = FALSE;
-        int door_attempts = 3;
-        int no_doors_made = 0;
-
-        /* room must fit nicely in the maze; that is, its corner spaces should
-         * all be valid maze0xy() locations. Thus, it should have odd
-         * dimensions. */
-        width = 2 * rn2(4) + 3;
-        height = 2 * rn2(4) + 3;
-
-        /* Pick a corner location. Which directions the room points out from
-         * this corner are randomized so that we don't have a bias towards any
-         * edge of the map. */
-        maze0xy(&roompos);
-        if (rn2(2)) {
-            /* original roompos is a bottom corner */
-            roompos.y -= (height-1);
-        }
-        if (rn2(2)) {
-            /* original roompos is a right corner */
-            roompos.x -= (width - 1);
-        }
-        /* these variables are the boundaries including walls */
-        lx = roompos.x - 1;
-        ly = roompos.y - 1;
-        hx = roompos.x + width;
-        hy = roompos.y + height;
-
-        if (!maze_inbounds(lx, ly) || !maze_inbounds(hx, hy)) {
-            /* can't place, out of bounds */
-            continue;
-        }
-
-        /* Mazes on special levels: are any corners of the room too close to a
-         * special level map?
-         * Ensure some extra buffer space around rooms so that they don't block
-         * off the regular maze generation. */
-        if (in_splev_map(lx - 2, ly) || in_splev_map(lx, ly - 2)
-            || in_splev_map(hx, ly - 2) || in_splev_map(hx + 2, ly)
-            || in_splev_map(lx - 2, hy) || in_splev_map(lx, hy + 2)
-            || in_splev_map(hx, hy + 2) || in_splev_map(hx + 2, hy)) {
-            continue;
-        }
-
-        /* Does it intersect with an existing room?
-         * Because of the constraints on room coordinates and the behavior of
-         * inside_room, this should ensure that no two rooms ever touch.
-         * Also make sure no two room walls ever touch; this should guarantee
-         * that the mazewalk can reach everywhere. */
-        for (roomidx = 0; roomidx < gn.nroom; roomidx++) {
-            struct mkroom* croom = &gr.rooms[roomidx];
-            if (inside_room(croom, lx, ly)
-                || inside_room(croom, hx, ly)
-                || inside_room(croom, lx, hy)
-                || inside_room(croom, hx, hy)) {
-                intersect = TRUE;
-                break;
-            }
-        }
-        if (intersect) {
-            /* can't place this one */
-            continue;
-        }
-        /* pick a suitable place in the maze to add a room */
-        if (!create_room(roompos.x, roompos.y, width, height,
-                         SPLEV_LEFT, SPLEV_TOP, OROOM, 1))
-            continue;
-
-        /* put in some doors */
-        for (; door_attempts > 0; door_attempts--) {
-            /* don't use finddpos - it'll bias doors towards the top left of
-             * the room */
-            coordxy doorx, doory;
-            boolean horiz = rn2(2) ? TRUE : FALSE;
-            if (horiz) {
-                doorx = rn1(hx - lx + 1, lx);
-                doory = rn2(2) ? ly : hy;
-            }
-            else {
-                doorx = rn2(2) ? hx : lx;
-                doory = rn1(hy - ly + 1, ly);
-            }
-            /* Don't generate doors on the maze edges.
-             * Also make sure doors don't generate at possible wall-intersection
-             * points (inverse of valid maze0xy() locations).
-             * Because we're on a wall, one of doorx and doory will be even --
-             * but the other should not be.
-             * Shouldn't need okdoor() - with this rule, doors can't be next to
-             * each other and they should always be on walls */
-            if (maze_edge(doorx, doory)
-                || ((doorx % 2 == 0) && (doory % 2 == 0))) {
-                if (door_attempts == 1) {
-                    door_attempts++; /* try again */
-                    no_doors_made++;
-                    if (no_doors_made == 200) {
-                        impossible("maze_add_rooms: can't place a door!");
-                        break;
-                    }
-                }
-                continue;
-            }
-            dodoor(doorx, doory, &gr.rooms[gn.nroom-1]);
-        }
-        if (no_doors_made >= 100) {
-            impossible("maze_add_rooms: couldn't place a door?");
-        }
-
-        /* set roomno so mazewalk and other maze generation ignore it */
-        topologize(&gr.rooms[gn.nroom-1]);
-    }
-}
-
-/* Utility function to destroy a wall at the given spot. */
-static void
-destroy_wall(coordxy x, coordxy y)
-{
-    /* don't destroy walls of the maze border */
-    if (maze_edge(x, y)) {
-        /* convert corners to straight border */
-        if (levl[x][y].typ == TUWALL || levl[x][y].typ == TDWALL)
-            levl[x][y].typ = HWALL;
-        else if (levl[x][y].typ == TLWALL || levl[x][y].typ == TRWALL)
-            levl[x][y].typ = VWALL;
-        return;
-    }
-    if (IS_WALL(levl[x][y].typ) || IS_DOOR(levl[x][y].typ)
-        || levl[x][y].typ == SDOOR) {
-        levl[x][y].typ = ROOM;
-        levl[x][y].flags = 0; /* clear door mask */
-    }
-}
-
-/* Postprocessing after most of the rest of the level has been created
- * (including stairs), and some rooms exist.
- * Select attempts rooms to be converted into special rooms, then possibly
- * place some other furniture inside the room. For non-special rooms, also
- * knock down some walls to make the maze more accessible. */
-static void
-maze_touchup_rooms(int attempts)
-{
-    if (!mazeroom_eligible())
-        return;
-
-    int i;
-    for (attempts = 2; attempts > 0; attempts--) {
-        if (wizard && nh_getenv("SHOPTYPE")) {
-            /* full manual override */
-            do_mkroom(SHOPBASE);
-        }
-        else {
-            do_mkroom(rand_roomtype());
-        }
-    }
-    for (i = 0; i < gn.nroom; ++i) {
-        if (gr.rooms[i].rtype != OROOM) /* is it already special? */
-            continue;
-        /* probabilities here are deflated from makelevel() */
-        if (!rn2(20))
-            mkfount(&gr.rooms[i]);
-        if (!rn2(80))
-            mksink(&gr.rooms[i]);
-        if (!rn2(100))
-            mkgrave(&gr.rooms[i]);
-        /* TODO: Currently altars won't generate in Gehennom because they
-         * would imply the player can pray on a coaligned altar there, and that
-         * isn't implemented. */
-        if (!rn2(100) && !Inhell)
-            mkaltar(&gr.rooms[i]);
-
-        /* Maybe remove the walls for this room. */
-        if (rn2(5)) {
-            coordxy x, y;
-            for (x = gr.rooms[i].lx - 1; x <= gr.rooms[i].hx + 1; x++) {
-                destroy_wall(x, gr.rooms[i].ly - 1);
-                destroy_wall(x, gr.rooms[i].hy + 1);
-            }
-            for (y = gr.rooms[i].ly - 1; y <= gr.rooms[i].hy + 1; y++) {
-                destroy_wall(gr.rooms[i].lx - 1, y);
-                destroy_wall(gr.rooms[i].hx + 1, y);
-            }
-        }
-    }
-}
-
-static void
-check_maze_coverage(int x1, int y1, int x2, int y2)
-{
-    int x, y;
-    for (x = x1; x <= x2; x++) {
-        for (y = y1; y <= y2; y++) {
-            if (levl[x][y].typ == STONE
-                /* skip room interiors, in case a themeroom has 'columns' or
-                 * similar decor */
-                && levl[x][y].roomno == NO_ROOM) {
-                impossible("mazewalk unfinished? stone at <%d,%d>", x, y);
-                return;
-            }
-        }
-    }
-}
-
 /* Create a maze with specified corridor width and wall thickness
  * TODO: rewrite walkfrom so it works on temp space, not levl
  */
@@ -1090,9 +847,6 @@ create_maze(int corrwid, int wallthick, boolean rmdeadends)
     scale = corrwid + wallthick;
     rdx = (gx.x_maze_max / scale);
     rdy = (gy.y_maze_max / scale);
-
-    /* Place rooms first */
-    maze_add_rooms(20);
 
     lvlfill_maze_grid(2, 2, rdx * 2, rdy * 2, HWALL);
 
@@ -1154,57 +908,6 @@ create_maze(int corrwid, int wallthick, boolean rmdeadends)
         }
 
     }
-}
-
-void
-pick_vibrasquare_location(void)
-{
-    coordxy x, y;
-    stairway *stway;
-    int trycnt = 0;
-#define x_maze_min 2
-#define y_maze_min 2
-/*
- * Pick a position where the stairs down to Moloch's Sanctum
- * level will ultimately be created.  At that time, an area
- * will be altered:  walls removed, moat and traps generated,
- * boulders destroyed.  The position picked here must ensure
- * that that invocation area won't extend off the map.
- *
- * We actually allow up to 2 squares around the usual edge of
- * the area to get truncated; see mkinvokearea(mklev.c).
- */
-#define INVPOS_X_MARGIN (6 - 2)
-#define INVPOS_Y_MARGIN (5 - 2)
-#define INVPOS_DISTANCE 11
-    int x_range = gx.x_maze_max - x_maze_min - 2 * INVPOS_X_MARGIN - 1,
-        y_range = gy.y_maze_max - y_maze_min - 2 * INVPOS_Y_MARGIN - 1;
-
-    if (x_range <= INVPOS_X_MARGIN || y_range <= INVPOS_Y_MARGIN
-        || (x_range * y_range) <= (INVPOS_DISTANCE * INVPOS_DISTANCE)) {
-        debugpline2("gi.inv_pos: maze is too small! (%d x %d)",
-                    gx.x_maze_max, gy.y_maze_max);
-    }
-    gi.inv_pos.x = gi.inv_pos.y = 0; /*{occupied() => invocation_pos()}*/
-    do {
-        x = rn1(x_range, x_maze_min + INVPOS_X_MARGIN + 1);
-        y = rn1(y_range, y_maze_min + INVPOS_Y_MARGIN + 1);
-        /* we don't want it to be too near the stairs, nor
-           to be on a spot that's already in use (wall|trap) */
-        if (++trycnt > 1000)
-            break;
-    } while (((stway = stairway_find_dir(TRUE)) != 0)
-             && (x == stway->sx || y == stway->sy /*(direct line)*/
-                 || abs(x - stway->sx) == abs(y - stway->sy)
-                 || distmin(x, y, stway->sx, stway->sy) <= INVPOS_DISTANCE
-                 || !SPACE_POS(levl[x][y].typ) || occupied(x, y)));
-    gi.inv_pos.x = x;
-    gi.inv_pos.y = y;
-#undef INVPOS_X_MARGIN
-#undef INVPOS_Y_MARGIN
-#undef INVPOS_DISTANCE
-#undef x_maze_min
-#undef y_maze_min
 }
 
 void

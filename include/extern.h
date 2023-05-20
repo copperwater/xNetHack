@@ -1513,7 +1513,6 @@ extern void place_lregion(coordxy, coordxy, coordxy, coordxy, coordxy,
                           coordxy, coordxy, coordxy, xint16, d_level *);
 extern void fixup_special(void);
 extern boolean maze_inbounds(coordxy, coordxy);
-extern void maze_add_rooms(int);
 extern void fumaroles(void);
 extern void movebubbles(void);
 extern void water_friction(void);
