@@ -21,7 +21,6 @@ extern void mkmap(lev_init *);
 static boolean match_maptyps(xint16, xint16);
 static void solidify_map(void);
 static void map_cleanup(void);
-static void lvlfill_solid(schar, schar);
 static void lvlfill_swamp(schar, schar, schar);
 static void flip_drawbridge_horizontal(struct rm *);
 static void flip_drawbridge_vertical(struct rm *);
@@ -373,7 +372,7 @@ map_cleanup(void)
         }
 }
 
-static void
+void
 lvlfill_solid(schar filling, schar lit)
 {
     int x, y;

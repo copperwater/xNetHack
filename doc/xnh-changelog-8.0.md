@@ -355,6 +355,8 @@ changes:
   like they previously had a 20% chance of doing. Special levels that explicitly
   use mazes as part of their generation (vibrating square level, Catacombs, a
   couple Big Room variants) are not affected.
+- When a Lua script errors out and fails to load completely, the level will
+  generate as a big empty space instead of a random maze.
 
 ### Interface changes
 

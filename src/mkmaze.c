@@ -1210,10 +1210,8 @@ pick_vibrasquare_location(void)
 void
 makemaz(const char *s)
 {
-    coordxy x;
     char protofile[20];
     s_level *sp = Is_special(&u.uz);
-    coord mm;
 
     if (*s) {
         if (sp && sp->rndlevs)
@@ -1274,64 +1272,44 @@ makemaz(const char *s)
             dmonsfree();
             return; /* no mazification right now */
         }
-        impossible("Couldn't load \"%s\" - making a maze.", protofile);
+        impossible("Couldn't load \"%s\" - making the Bug Room.", protofile);
+    }
+    else {
+        impossible("makemaz(\"\") with no protofile - unsupported");
     }
 
+    /* this code used to create a random maze, but since it should now never be
+     * hit during normal play, create the "Bug Room" (spoof of Big Room) as an
+     * emergency fallback.
+     * This should be a simple, no frills level. It does not have to be
+     * attractive or randomized in any way, because it should never be
+     * encountered. */
+    lvlfill_solid(ROOM, 1);
     gl.level.flags.is_maze_lev = TRUE;
 
-    /*
-    if (!Invocation_lev(&u.uz) && rn2(2)) {
-        create_maze(-1, -1, !rn2(5));
-    } else {
-        create_maze(1, 1, FALSE);
-    }
-    create_maze(-1, -1, !rn2(5));
-    */
-
-    wallification(2, 2, gx.x_maze_max, gy.y_maze_max);
-    check_maze_coverage(2, 2, gx.x_maze_max, gy.y_maze_max);
-
-    mazexy(&mm);
-    mkstairs(mm.x, mm.y, 1, (struct mkroom *) 0, FALSE); /* up */
-    if (!Invocation_lev(&u.uz)) {
-        mazexy(&mm);
-        mkstairs(mm.x, mm.y, 0, (struct mkroom *) 0, FALSE); /* down */
-    } else { /* choose "vibrating square" location */
+    mkstairs(20, 11, 1, (struct mkroom *) 0, FALSE); /* up */
+    if (Invocation_lev(&u.uz)) {
         /* vibrating square is now set by invocation.lua; however, this code
          * remains in place so that the game is not unwinnable if invocation.lua
          * fails to load. */
-        pick_vibrasquare_location();
-        maketrap(gi.inv_pos.x, gi.inv_pos.y, VIBRATING_SQUARE);
+        struct trap *t = maketrap(40, 11, VIBRATING_SQUARE);
+        t->tseen = TRUE;
+    }
+    else if (Is_stronghold(&u.uz)) {
+        /* mkstairs down will fail - make a hole instead */
+        maketrap(40, 11, HOLE);
+    }
+    else {
+        mkstairs(40, 11, 0, (struct mkroom *) 0, FALSE); /* down */
     }
 
     /* place branch stair or portal */
     place_branch(Is_branchlev(&u.uz), 0, 0);
 
-    /* init special rooms and dungeon features */
-    maze_touchup_rooms(rnd(3));
-
-    for (x = rn1(8, 11); x; x--) {
-        mazexy(&mm);
-        (void) mkobj_at(rn2(2) ? GEM_CLASS : RANDOM_CLASS, mm.x, mm.y, TRUE);
-    }
-    for (x = rn1(10, 2); x; x--) {
-        mazexy(&mm);
-        (void) mksobj_at(BOULDER, mm.x, mm.y, TRUE, FALSE);
-    }
-    for (x = rn2(3); x; x--) {
-        mazexy(&mm);
-        (void) makemon(&mons[PM_MINOTAUR], mm.x, mm.y, NO_MM_FLAGS);
-    }
-    for (x = rn1(10, 20); x; x--) {
-        mazexy(&mm);
-        (void) makemon((struct permonst *) 0, mm.x, mm.y, NO_MM_FLAGS);
-    }
-    for (x = rn1(6, 7); x; x--) {
-        mazexy(&mm);
-        (void) mkgold(0L, mm.x, mm.y);
-    }
-    for (x = rn1(6, 7); x; x--)
-        mktrap(0, MKTRAP_MAZEFLAG, (struct mkroom *) 0, (coord *) 0);
+    /* leave an engraving */
+    make_engr_at(30, 11,
+                 "This level should not exist. Please report it as a bug.",
+                 0L, MARK);
 }
 
 #ifdef MICRO
