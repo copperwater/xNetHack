@@ -375,8 +375,6 @@ if percent(40) and prefab3 ~= prefab2 and prefab3 ~= prefab1 then
    hell_prefabs[prefab3]()
 end
 
-des.reset_coordinate_system()
-
 -- default monsters
 for i = 1, d(3) do
    des.monster('minotaur') -- not a maze, but still...

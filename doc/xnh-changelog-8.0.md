@@ -406,9 +406,6 @@ changes:
 - The nommap level flag is now 2 bits long.
 - Implement a system in which a spellcasting monster can cast from a special
   list of spells rather than just casting any spell at all.
-- Add a lua command des.reset_coordinate_system() which clears the relative
-  coordinate system of the last defined room or map and sets them back to their
-  level-wide values.
 - Add a function find_boss() that returns the boss of the current level and
   whether it's their lair level or merely in their domain.
 - The corrmaze level flag and its associated behavior are removed.

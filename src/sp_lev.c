@@ -150,7 +150,6 @@ int lspo_portal(lua_State *);
 int lspo_random_corridors(lua_State *);
 int lspo_region(lua_State *);
 int lspo_replace_terrain(lua_State *);
-int lspo_reset_coordinate_system(lua_State *);
 int lspo_reset_level(lua_State *);
 int lspo_finalize_level(lua_State *);
 int lspo_room(lua_State *);
@@ -193,7 +192,6 @@ static struct monst *invent_carrying_monster = (struct monst *) 0;
 
 #define TYP_CANNOT_MATCH(typ) ((typ) == MAX_TYPE || (typ) == INVALID_TYPE)
 
-/* guts of des.reset_coordinate_system(); called from a couple other places */
 void
 reset_xystart_size(void)
 {
@@ -6719,19 +6717,6 @@ lspo_wallify(lua_State *L)
     return 0;
 }
 
-/* Reset the coordinate system of the level.
- * Useful when defining a des.map that only covers part of the map, and you
- * don't want its relative coordinate system to apply to everything else that
- * follows in the lua file.
- * des.reset_coordinate_system();
- */
-int
-lspo_reset_coordinate_system(lua_State *L UNUSED)
-{
-    reset_xystart_size();
-    return 0;
-}
-
 /* reset_level is only needed for testing purposes */
 int
 lspo_reset_level(lua_State *L UNUSED)
@@ -7155,7 +7140,6 @@ static const struct luaL_Reg nhl_functions[] = {
     { "non_passwall", lspo_non_passwall },
     { "teleport_region", lspo_teleport_region },
     { "reset_level", lspo_reset_level },
-    { "reset_coordinate_system", lspo_reset_coordinate_system },
     { "finalize_level", lspo_finalize_level },
     /* TODO: { "branch", lspo_branch }, */
     /* TODO: { "portal", lspo_portal }, */

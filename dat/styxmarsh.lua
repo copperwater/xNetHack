@@ -11,13 +11,13 @@ des.map({ x=01, y=00, map=[[
  --....--x
  --..---xx
  |...|xxxx
-]] })
+]], contents = function() end })
 des.map({ x=01, y=19, map=[[
  |....|xxx
  --...---x
   --....|x
    ------x
-]] })
+]], contents = function() end })
 
 local othermap_y = { 05, 09, 13 }
 shuffle(othermap_y)
@@ -26,13 +26,13 @@ des.map({ x=01, y=othermap_y[1], map=[[
 |..-..--.x
 |..--..B..
 --....--.x
-]] })
+]], contents = function() end })
 des.map({ x=01, y=othermap_y[2], map=[[
  --...|xxx
   --..----
    |.....|
  ---..----
-]] })
+]], contents = function() end })
 des.map({ x=01, y=othermap_y[3], map=[[
 --...--xxx
 .....|xxxx
@@ -43,7 +43,6 @@ des.map({ x=01, y=othermap_y[3], map=[[
 end })
 
 -- Add some grass to the map.
-des.reset_coordinate_system() -- clear the relative coords from the last map
 local everything = selection.area(09,00,77,20)
 des.replace_terrain({ selection=everything, fromterrain='.', toterrain='g', chance=40 })
 
@@ -69,13 +68,13 @@ x.----
 x..|.x
 ----..
 x....x
-]] })
+]], contents = function() end })
 des.map({ coord=randmapcoords[3], map=[[
 xxxxxx...xx
 ..-----....
 x.....----.
 xxxxxx...xx
-]] })
+]], contents = function() end })
 des.map({ coord=randmapcoords[4], map=[[
 x}|}}|}x
 }------}
@@ -101,9 +100,6 @@ des.map({ coord=randmapcoords[5], map=[[
    des.monster('&', 08,02)
 end})
 
--- clear relative coords again
-des.reset_coordinate_system()
-
 -- downstairs is on right edge, avoiding the corners
 des.levregion({ region={78,04,78,16}, region_islev=1, type="stair-down" })
 
@@ -125,9 +121,6 @@ x...x
 ]], contents=function()
    des.levregion({ region={02,00,02,00}, region_islev=0, type='branch' })
 end })
-
--- clear relative coords AGAIN
-des.reset_coordinate_system()
 
 -- Randomly placed monsters
 for i = 1, 5 + d(3) do
