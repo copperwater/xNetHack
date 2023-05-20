@@ -323,7 +323,7 @@ changes:
   not let you levelport beneath it.)
 - Barbed devils have a 2d4 passive physical attack.
 - Bone devils have the ability to summon a skeleton every so often.
-- Non-obvious gameplay changes from vanilla, introduced by its merge: 
+- Non-obvious gameplay changes from vanilla, introduced by its merge:
   - The Monk quest provides spinach tins in a couple places.
   - Goblins and hobgoblins no longer have poison resistance, as in vanilla.
   - Demonbane no longer confers warning, but can now be invoked to banish demons
@@ -350,6 +350,11 @@ changes:
     lumped into saber skill).
   - The Tutorial branch is present. As in vanilla, you can disable start-of-game
     prompting for a tutorial by adding "OPTIONS=!tutorial" to your config file.
+- All remaining random maze levels (namely, those between Medusa and the Castle)
+  have been removed. These levels will instead generate regular dungeon floors,
+  like they previously had a 20% chance of doing. Special levels that explicitly
+  use mazes as part of their generation (vibrating square level, Catacombs, a
+  couple Big Room variants) are not affected.
 
 ### Interface changes
 

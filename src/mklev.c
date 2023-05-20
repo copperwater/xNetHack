@@ -1245,12 +1245,15 @@ makelevel(void)
         Strcat(fillname,
                 (u.uz.dlevel < loc_lev->dlevel.dlevel) ? "a" : "b");
         makemaz(fillname);
-    } else if (In_hell(&u.uz)
-                || (rn2(5) && u.uz.dnum == medusa_level.dnum
-                    && depth(&u.uz) > depth(&medusa_level))) {
-        /* Gehennom, or 80% of levels below Medusa - maze filler */
-        makemaz("");
-    } else {
+    }
+    /* Previously, there used to be an else if here for Gehennom levels with no
+     * special level proto file, or 80% of levels beneath Medusa below the
+     * Castle, that would generate a random maze filler. These no longer exist -
+     * all Gehennom levels should be either a special level or have a dungeon
+     * filler template (hellfill.lua) defined, and the levels beneath Medusa are
+     * regular dungeon levels. The only levels that "should" fall into the below
+     * else are regular Dungeons of Doom levels. */
+    else {
         /* otherwise, fall through - it's a "regular" level. */
         makerooms();
 
