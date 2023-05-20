@@ -312,5 +312,5 @@ local rincewind_titles = {
    'Interesting Times', 'The Last Continent', 'The Last Hero'
 }
 if percent(10) then
-   des.object({ id='novel', name=rincewind_titles(d(#rincewind_titles)) })
+   des.object({ id='novel', name=rincewind_titles[d(#rincewind_titles)] })
 end
