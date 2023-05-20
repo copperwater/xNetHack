@@ -6285,7 +6285,8 @@ deltrap(register struct trap* trap)
 struct obj *
 deltrap_with_ammo(struct trap *trap, int do_what)
 {
-    struct obj *otmp, *objchn = NULL;
+    struct obj *otmp = (struct obj *) 0;
+    struct obj *objchn = (struct obj *) 0;
     coordxy tx, ty;
     if (!trap) {
         impossible("deltrap_with_ammo: null trap!");
@@ -6475,7 +6476,13 @@ delfloortrap(struct trap* ttmp)
         } else if ((mtmp = m_at(ttmp->tx, ttmp->ty)) != 0) {
             mtmp->mtrapped = 0;
         }
-        deltrap(ttmp);
+        /* For the two types of ammo-bearing floor traps (land mine and bear
+         * trap), it's ambiguous whether this should destroy the ammo or place
+         * it. Since this is currently only called during gameplay (usually when
+         * this space gets flooded), assume placing it; if this ever gets called
+         * in level generation or something, it may result in the objects
+         * getting left around the map where they shouldn't be. */
+        deltrap_with_ammo(ttmp, DELTRAP_PLACE_AMMO);
         return TRUE;
     }
     return FALSE;
