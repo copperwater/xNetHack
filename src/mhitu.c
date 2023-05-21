@@ -697,7 +697,8 @@ mattacku(register struct monst *mtmp)
 
                 if (obj || u.umonnum == PM_TRAPPER
                     || (gy.youmonst.data->mlet == S_EEL
-                        && is_pool(u.ux, u.uy))) {
+                        && is_pool(u.ux, u.uy))
+                    || concealed_spot(u.ux, u.uy)) {
                     int save_spe = 0; /* suppress warning */
 
                     if (obj) {
@@ -708,7 +709,7 @@ mattacku(register struct monst *mtmp)
                     /* note that m_monnam() overrides hallucination, which is
                        what we want when message is from mtmp's perspective */
                     if (gy.youmonst.data->mlet == S_EEL
-                        || u.umonnum == PM_TRAPPER)
+                        || u.umonnum == PM_TRAPPER || !obj)
                         pline(
                              "Wait, %s!  There's a hidden %s named %s there!",
                               m_monnam(mtmp),
