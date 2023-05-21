@@ -362,6 +362,11 @@ attack_check_conducts(struct obj* wep)
      * since it's hard for pacifists to gain score.
      */
     static boolean said_yes_to_attack = FALSE;
+    if (iflags.debug_fuzzer)
+        /* the fuzzer can spend a lot of cycles entering garbage into this
+         * prompt before it attacks anything, and of course the chance of it
+         * entering "Yes" randomly is extremely low */
+        said_yes_to_attack = TRUE;
     if (!said_yes_to_attack && !u.uconduct.killer && !gc.context.forcefight
         && gm.moves > 100) {
         pline("Killing a monster violates pacifist conduct.");
