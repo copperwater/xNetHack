@@ -1674,7 +1674,7 @@ x------------xx]], contents = function()
                  contents = function()
          -- furniture...
          for i = 1, d(2) do
-            des.feature({ type='sink' })
+            des.feature('sink')
          end
          if percent(50) then
             des.object('ice box')
