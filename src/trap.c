@@ -3301,7 +3301,7 @@ launch_obj(
                               cansee(gb.bhitpos.x, gb.bhitpos.y)
                                ? "  The rolling boulder triggers a land mine."
                                : "");
-                        deltrap(t);
+                        deltrap_with_ammo(t, DELTRAP_DESTROY_AMMO);
                         del_engr_at(gb.bhitpos.x, gb.bhitpos.y);
                         place_object(singleobj, gb.bhitpos.x, gb.bhitpos.y);
                         singleobj->otrapped = 0;
