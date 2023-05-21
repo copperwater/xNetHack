@@ -529,6 +529,9 @@ maketrap(coordxy x, coordxy y, int typ)
         if (gl.launchplace.x > 0) {
             ttmp->teledest.x = gx.xstart + gl.launchplace.x;
             ttmp->teledest.y = gy.ystart + gl.launchplace.y;
+            if (ttmp->teledest.x == x && ttmp->teledest.y == y) {
+                impossible("making fixed-dest tele trap pointing to itself");
+            }
         }
         break;
     case VIBRATING_SQUARE:
