@@ -4247,7 +4247,7 @@ l_create_stairway(lua_State *L, boolean using_ladder)
     get_location_coord(&x, &y, DRY, gc.coder->croom, scoord);
     set_ok_location_func(NULL);
     if ((badtrap = t_at(x, y)) != 0)
-        deltrap(badtrap);
+        deltrap_with_ammo(badtrap, DELTRAP_DESTROY_AMMO);
     SpLev_Map[x][y] = 1;
 
     if (using_ladder) {
