@@ -571,6 +571,10 @@ set_trap_ammo(struct trap *trap, struct obj *obj)
     while (trap->ammo) {
         struct obj* oldobj = trap->ammo;
         extract_nobj(oldobj, &trap->ammo);
+        if (oldobj->oartifact) {
+            impossible("destroying artifact %d that was ammo of a trap",
+                       oldobj->oartifact);
+        }
         obfree(oldobj, (struct obj *) 0);
     }
     if (!obj) {
@@ -6305,18 +6309,18 @@ deltrap_with_ammo(struct trap *trap, int do_what)
         }
         objchn = otmp;
     }
-    if (do_what != DELTRAP_RETURN_AMMO) {
+    if (do_what == DELTRAP_DESTROY_AMMO) {
+        set_trap_ammo(trap, (struct obj *) 0);
+    }
+    else if (do_what != DELTRAP_RETURN_AMMO) {
         struct obj *nobj;
         otmp = objchn;
         while (otmp) {
             nobj = otmp->nobj;
             switch (do_what) {
             default:
-                impossible("Bad deltrap constant! Destroying ammo instead");
+                impossible("Bad deltrap constant! Placing ammo instead");
                 /* FALLTHRU */
-            case DELTRAP_DESTROY_AMMO:
-                obfree(otmp, NULL);
-                break;
             case DELTRAP_PLACE_AMMO:
                 place_object(otmp, trap->tx, trap->ty);
                 /* Sell your own traps only... */
