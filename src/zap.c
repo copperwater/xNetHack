@@ -4426,7 +4426,7 @@ burn_floor_objects(
             }
         }
         /* Being hit by fire is a good thing for phoenix eggs. */
-        if (obj->otyp == EGG && obj->corpsenm == PM_PHOENIX) {
+        else if (obj->otyp == EGG && obj->corpsenm == PM_PHOENIX) {
             revive_egg(obj);
         }
     }
