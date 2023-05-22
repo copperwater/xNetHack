@@ -1783,10 +1783,15 @@ trapeffect_fire_trap(
                 mtmp->mhpmax -= rn2(num + 1);
         }
         if (burnarmor(mtmp) || rn2(3)) {
-            mtmp->mhp -= destroy_items(mtmp, AD_FIRE, orig_dmg);
+            int xtradmg = destroy_items(mtmp, AD_FIRE, orig_dmg);
             ignite_items(mtmp->minvent);
-            if (DEADMONSTER(mtmp))
-                trapkilled = TRUE;
+            if (!DEADMONSTER(mtmp)) {
+                mtmp->mhp -= xtradmg;
+                if (DEADMONSTER(mtmp)) { /* NOW it's dead */
+                    monkilled(mtmp, "", AD_FIRE);
+                    trapkilled = TRUE;
+                }
+            }
         }
         if (burn_floor_objects(tx, ty, see_it, FALSE)
             && !see_it && distu(tx, ty) <= 3 * 3)
@@ -1908,9 +1913,14 @@ trapeffect_cold_trap(
                 mtmp->mhpmax -= rn2(dmg + 1);
         }
         if (rn2(3)) {
-            mtmp->mhp -= destroy_items(mtmp, AD_COLD, dmg);
-            if (DEADMONSTER(mtmp))
-                trapkilled = TRUE;
+            int xtradmg = destroy_items(mtmp, AD_COLD, dmg);
+            if (!DEADMONSTER(mtmp)) {
+                mtmp->mhp -= xtradmg;
+                if (DEADMONSTER(mtmp)) { /* NOW it's dead */
+                    monkilled(mtmp, "", AD_COLD);
+                    trapkilled = TRUE;
+                }
+            }
         }
         if (see_it && t_at(mtmp->mx, mtmp->my))
             seetrap(trap);
