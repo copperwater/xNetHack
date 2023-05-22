@@ -135,7 +135,11 @@ setnotworn(struct obj *obj)
             p = armor_provides_extrinsic(obj);
             u.uprops[p].extrinsic = u.uprops[p].extrinsic & ~wp->w_mask;
             obj->owornmask &= ~wp->w_mask;
-            obj->owt = weight(obj); /* remove armor weight reduction */
+            if (wp->w_mask & W_ARMOR)
+                /* this function can technically be called with wielded or
+                 * quivered egg in the process of hatching, which is not worn
+                 * armor */
+                obj->owt = weight(obj); /* remove armor weight reduction */
             if (obj->oartifact)
                 set_artifact_intrinsic(obj, 0, wp->w_mask);
             if ((p = w_blocks(obj, wp->w_mask)) != 0)
