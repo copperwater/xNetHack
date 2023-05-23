@@ -35,7 +35,7 @@ static int set_trap(void); /* occupation callback */
 static void display_polearm_positions(int);
 static int use_cream_pie(struct obj *);
 static int jelly_ok(struct obj *);
-static int use_royal_jelly(struct obj *);
+static int use_royal_jelly(struct obj **);
 static int grapple_range(void);
 static boolean can_grapple_location(coordxy, coordxy);
 static int use_grapple(struct obj *);
@@ -1900,7 +1900,7 @@ dorub(void)
             return ECMD_OK;
         }
     } else if (obj->otyp == LUMP_OF_ROYAL_JELLY) {
-        return use_royal_jelly(obj);
+        return use_royal_jelly(&obj);
     } else if (obj->material == SILVER && Withering) {
         if (use_silver_on_withering(obj) == ECMD_TIME) {
             return ECMD_TIME;
@@ -3785,10 +3785,11 @@ jelly_ok(struct obj *obj)
 }
 
 static int
-use_royal_jelly(struct obj *obj)
+use_royal_jelly(struct obj **optr)
 {
     int oldcorpsenm;
     unsigned was_timed;
+    struct obj *obj = *optr;
     struct obj *eobj;
 
     if (obj->quan > 1L)
@@ -3844,6 +3845,7 @@ use_royal_jelly(struct obj *obj)
     /* not useup() because we've already done freeinv() */
     setnotworn(obj);
     obfree(obj, (struct obj *) 0);
+    *optr = 0;
     return ECMD_TIME;
 }
 
@@ -4389,9 +4391,10 @@ doapply(void)
         break;
     case CREAM_PIE:
         res = use_cream_pie(obj);
+        obj = (struct obj *) 0;
         break;
     case LUMP_OF_ROYAL_JELLY:
-        res = use_royal_jelly(obj);
+        res = use_royal_jelly(&obj);
         break;
     case BULLWHIP:
         res = use_whip(obj);
@@ -4539,6 +4542,8 @@ doapply(void)
         pline("Sorry, I don't know how to use that.");
         return ECMD_FAIL;
     }
+    /* This assumes that anything that potentially destroyed obj has kept track
+     * of it and set obj to null before this point. */
     if (obj && obj->oartifact) {
         res |= arti_speak(obj); /* sets ECMD_TIME bit if artifact speaks */
     }
