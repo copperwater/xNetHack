@@ -1402,7 +1402,8 @@ meatmetal(struct monst *mtmp)
                  * special effects happened - but it would require cascading
                  * refactors to make m_consume_obj and mon_givit, etc return
                  * booleans, which is more trouble than it's worth right now. */
-                if (otmp->otyp == TIN || !rn2(7))
+                if (otmp == uball || otmp == uchain
+                    || otmp->otyp == TIN || !rn2(7))
                     m_consume_obj(mtmp, otmp);
                 else {
                     obj_extract_self(otmp);
