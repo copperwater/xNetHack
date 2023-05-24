@@ -1767,7 +1767,7 @@ has_ceiling(d_level *lev)
        above ground and don't have ceilings outside of their buildings
        but we don't presently check for that */
     if ((In_endgame(lev) && !Is_earthlevel(lev))
-        || !gl.level.flags.outdoors)
+        || gl.level.flags.outdoors)
         return FALSE;
     return TRUE;
 }
