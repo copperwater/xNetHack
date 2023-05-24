@@ -116,6 +116,14 @@ xx............................xxx]], x=25, y=2, contents=function()
       des.object({ id = 'oil lamp', coord = nonshop_houses:rndcoord() })
    end
 
+   -- stairs
+   -- because the contents function resets the relative map coordinates when it
+   -- ends, the exclude coordinates (which are relative to the map, not the
+   -- level) will become invalid after this, so the stairs must be defined while
+   -- still inside the contents function
+   des.levregion({ type="stair-up", region={01,03,20,19}, region_islev=1, exclude={0,0,39,15} })
+   des.levregion({ type="stair-down", region={61,03,75,19}, region_islev=1, exclude={0,0,39,15} })
+
 end });
 
 -- monsters which could be anywhere on the level
@@ -125,10 +133,6 @@ des.monster('dwarf')
 if not gnomelord then
    des.monster('dwarf lord')
 end
-
--- stairs
-des.levregion({ type="stair-up", region={01,03,20,19}, region_islev=1, exclude={0,0,39,15} })
-des.levregion({ type="stair-down", region={61,03,75,19}, region_islev=1, exclude={0,0,39,15} })
 
 des.wallify()
 des.mineralize()
