@@ -552,8 +552,6 @@ demon_talk(register struct monst *mtmp)
             return 0;
         }
     }
-    livelog_printf(LL_UMONST, "bribed %s with %ld %s for safe passage",
-                   Amonnam(mtmp), offer, currency(offer));
     mongone(mtmp);
     return 1;
 }
