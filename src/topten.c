@@ -73,7 +73,6 @@ static long encodeachieve(boolean);
 static void add_achieveX(char *, const char *, boolean);
 static char *encode_extended_achievements(char *);
 static char *encode_extended_conducts(char *);
-static char *encode_extended_archfiends(char *);
 #endif
 static void free_ttlist(struct toptenentry *);
 static int classmon(char *);
@@ -338,9 +337,10 @@ writexlentry(FILE *rfile, struct toptenentry *tt, int how)
 {
 #define Fprintf (void) fprintf
 #define XLOG_SEP '\t' /* xlogfile field separator. */
+#define XNH_EXTRA_ACHIEVEMENTS 2
     char buf[BUFSZ], tmpbuf[DTHSZ + 1];
     char stuck = (Upolyd && Unchanging);
-    char achbuf[N_ACH * 40];
+    char achbuf[(N_ACH + XNH_EXTRA_ACHIEVEMENTS) * 40];
 
     Sprintf(buf, "version=%d.%d.%d", tt->ver_major, tt->ver_minor,
             tt->patchlevel);
@@ -394,8 +394,6 @@ writexlentry(FILE *rfile, struct toptenentry *tt, int how)
     Fprintf(rfile, "%cbones=%ld", XLOG_SEP, u.uroleplay.numbones);
     Fprintf(rfile, "%cpolyinit=%s", XLOG_SEP,
             Polyinit_mode ? mons[u.umonnum].pmnames[NEUTRAL] : "none");
-    Fprintf(rfile, "%carchfiends=%s", XLOG_SEP,
-            encode_extended_archfiends(buf));
     Fprintf(rfile, "\n");
 #undef XLOG_SEP
 }
@@ -614,12 +612,30 @@ encode_extended_achievements(char *buf)
         add_achieveX(buf, achievement, TRUE);
     }
 
+    /* put xNetHack specific achievements for Junethack here; when doing so,
+     * increment XNH_EXTRA_ACHIEVEMENTS */
     /* Junethack 2021 shim: record quest completion in achieveX without making
      * it a formal achievement (because vanilla NetHack might add it as an
      * actual achievement and only one achievement slot remains at the moment).
      */
     if (u.uevent.qcompleted) {
         add_achieveX(buf, "completed_quest", TRUE);
+    }
+    for (i = FIRST_ARCHFIEND; i <= LAST_ARCHFIEND; ++i) {
+        /* this sort of imitates the logic of fiend_adversity, but with
+         * modifications - and active_fiends will not do here because it only
+         * becomes > 0 when you get the Amulet; you can kill all the archfiends
+         * without getting the Amulet */
+        struct fiend_info *fnd = lookup_fiend(i);
+        if (fnd->escaped || fnd->num_in_dgn > 0 || gm.mvitals[i].born == 0)
+            /* did not dispatch the fiend */
+            break;
+        if (gm.mvitals[i].born > gm.mvitals[i].died)
+            /* bribed, doesn't count for the achievement */
+            break;
+    }
+    if (i > LAST_ARCHFIEND) { /* completed loop, all archfiends killed off */
+        add_achieveX(buf, "killed_all_archfiends", TRUE);
     }
 
     return buf;
@@ -656,32 +672,6 @@ encode_extended_conducts(char *buf)
     add_achieveX(buf, "conflictless", !u.uconduct.conflicting);
     add_achieveX(buf, "unfairscareless", !u.uconduct.scares);
 
-    return buf;
-}
-
-char *
-encode_extended_archfiends(char *buf)
-{
-    int mndx;
-    buf[0] = '\0';
-    for (mndx = FIRST_ARCHFIEND; mndx <= LAST_ARCHFIEND; mndx++) {
-        /* this sort of imitates the logic of fiend_adversity, but with
-         * modifications */
-        struct fiend_info *fnd = lookup_fiend(mndx);
-
-        if (fnd->escaped || fnd->num_in_dgn > 0 || gm.mvitals[mndx].born == 0)
-            /* did not dispatch the fiend, so don't mention it in xlog */
-            continue;
-
-        /* either killed or bribed; add their name */
-        add_achieveX(buf, mons[mndx].pmnames[NEUTRAL], TRUE);
-
-        if (gm.mvitals[mndx].born > gm.mvitals[mndx].died) {
-            /* bribed; mark this fiend with a $ to indicate they were not killed
-             * by the player; e.g. "Asmodeus$,Baalzebub$" */
-            Strcat(buf, "$");
-        }
-    }
     return buf;
 }
 

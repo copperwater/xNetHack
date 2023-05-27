@@ -420,3 +420,4 @@ changes:
   are "an X% chance of this" or "a X in Y percent chance of this", and avoiding
   obtuse rn2 statements.
 - ceiling_exists() is no longer a function. It is back to has_ceiling(&u.uz).
+- Award an extended achievement for killing every archfiend.
