@@ -421,3 +421,5 @@ changes:
   obtuse rn2 statements.
 - ceiling_exists() is no longer a function. It is back to has_ceiling(&u.uz).
 - Award an extended achievement for killing every archfiend.
+- Move the logic of choosing a special fruit name for a holiday into a new
+  function maybe_festive_fruit().

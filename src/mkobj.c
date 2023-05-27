@@ -9,6 +9,7 @@ static boolean may_generate_eroded(struct obj *);
 static void mkobj_erosions(struct obj *);
 static void mkbox_cnts(struct obj *);
 static unsigned nextoid(struct obj *, struct obj *);
+static int maybe_festive_fruit(void);
 static void mksobj_init(struct obj *, boolean);
 static int item_on_ice(struct obj *);
 static void shrinking_glob_gone(struct obj *);
@@ -859,6 +860,101 @@ unknow_object(struct obj *obj)
     obj->known = objects[obj->otyp].oc_uses_known ? 0 : 1;
 }
 
+/* while initializing a slime mold; determine if it's a holiday that should
+ * apply a special holiday fruit name, and if so return the value of spe
+ * representing that new fruit name.
+ * If it's not a holiday for which there are special fruits, return the current
+ * fruit index. Caller should be able to set spe of a slime mold with this
+ * return value without any conditions. */
+static int
+maybe_festive_fruit(void)
+{
+    int holiday = current_holidays();
+    const char* foods[10];
+    int idx = 0;
+
+    if (!gi.in_mklev)
+        return gc.context.current_fruit;
+
+    if (holiday & HOLIDAY_NEW_YEARS
+        && Role_if(PM_SAMURAI)) {
+        /* a sampling of traditional Japanese New Year foods
+           (osechi ryouri) */
+        foods[idx++] = "bowl of zoni";
+        foods[idx++] = "datemaki";
+        foods[idx++] = "kuromame";
+    }
+    if (holiday & HOLIDAY_VALENTINES_DAY) {
+        foods[idx++] = "box of chocolates";
+        foods[idx++] = "chocolate-covered strawberry";
+    }
+    if (holiday & HOLIDAY_MARDI_GRAS) {
+        foods[idx++] = "slice of king cake";
+        foods[idx++] = "beignet";
+        foods[idx++] = "bowl of gumbo";
+        foods[idx++] = "bowl of jambalaya";
+    }
+    if (holiday & HOLIDAY_PI_DAY) {
+        foods[idx++] = "irrational pie";
+        foods[idx++] = "perfectly circular pie";
+    }
+    if (holiday & HOLIDAY_EASTER) {
+        foods[idx++] = "easter egg";
+        foods[idx++] = "chocolate bunny";
+        foods[idx++] = "bag of jelly beans";
+    }
+    if (holiday & HOLIDAY_CANADA_DAY) {
+        foods[idx++] = "maple sugar candy";
+    }
+    if (holiday & HOLIDAY_HALLOWEEN) {
+        foods[idx++] = "bag of candy corn";
+        foods[idx++] = "lollipop";
+        foods[idx++] = "popcorn ball";
+    }
+    if (holiday & HOLIDAY_THANKSGIVING) {
+        foods[idx++] = "roast turkey drumstick";
+        foods[idx++] = "mashed potato with gravy";
+        foods[idx++] = "cup of cranberry sauce";
+        foods[idx++] = "slice of pumpkin pie";
+    }
+    if (holiday & HOLIDAY_EID_AL_FITR) {
+        foods[idx++] = "ma'amoul";
+        foods[idx++] = "baklava";
+        foods[idx++] = "kleicha";
+    }
+    if (holiday & HOLIDAY_LOS_MUERTOS) {
+        foods[idx++] = "pan de muerto";
+    }
+    if (holiday & HOLIDAY_ROSH_HASHANAH) {
+        foods[idx++] = "honeyed apple";
+    }
+    if (holiday & HOLIDAY_PASSOVER) {
+        foods[idx++] = "matzo ball";
+    }
+    if (holiday & HOLIDAY_HANUKKAH) {
+        foods[idx++] = "latke";
+        foods[idx++] = "sufganiyah";
+    }
+    if (holiday & HOLIDAY_CHRISTMAS) {
+        foods[idx++] = "sugar plum";
+        foods[idx++] = "candy cane";
+        foods[idx++] = "figgy pudding";
+        foods[idx++] = "fruitcake";
+    }
+    if (idx >= 10) {
+        impossible("Too many holiday foods!");
+        idx = 9;
+    }
+    if (idx > 0) {
+        /* fruitadd requires a modifiable string */
+        char foodbuf[BUFSZ];
+        Strcpy(foodbuf, foods[rn2(idx)]);
+        return fruitadd(foodbuf, NULL);
+    }
+    /* no active holidays with fruits */
+    return gc.context.current_fruit;
+}
+
 /* do some initialization to a newly created object.
    object otyp must be set. */
 static void
@@ -942,87 +1038,7 @@ mksobj_init(struct obj *otmp, boolean artif)
                 otmp->otrapped = TRUE;
             break;
         case SLIME_MOLD:
-            otmp->spe = gc.context.current_fruit;
-            if (gi.in_mklev) {
-                int holiday = current_holidays();
-                const char* foods[10];
-                int idx = 0;
-                if (holiday & HOLIDAY_NEW_YEARS
-                    && Role_if(PM_SAMURAI)) {
-                    /* a sampling of traditional Japanese New Year foods
-                       (osechi ryouri) */
-                    foods[idx++] = "bowl of zoni";
-                    foods[idx++] = "datemaki";
-                    foods[idx++] = "kuromame";
-                }
-                if (holiday & HOLIDAY_VALENTINES_DAY) {
-                    foods[idx++] = "box of chocolates";
-                    foods[idx++] = "chocolate-covered strawberry";
-                }
-                if (holiday & HOLIDAY_MARDI_GRAS) {
-                    foods[idx++] = "slice of king cake";
-                    foods[idx++] = "beignet";
-                    foods[idx++] = "bowl of gumbo";
-                    foods[idx++] = "bowl of jambalaya";
-                }
-                if (holiday & HOLIDAY_PI_DAY) {
-                    foods[idx++] = "irrational pie";
-                    foods[idx++] = "perfectly circular pie";
-                }
-                if (holiday & HOLIDAY_EASTER) {
-                    foods[idx++] = "easter egg";
-                    foods[idx++] = "chocolate bunny";
-                    foods[idx++] = "bag of jelly beans";
-                }
-                if (holiday & HOLIDAY_CANADA_DAY) {
-                    foods[idx++] = "maple sugar candy";
-                }
-                if (holiday & HOLIDAY_HALLOWEEN) {
-                    foods[idx++] = "bag of candy corn";
-                    foods[idx++] = "lollipop";
-                    foods[idx++] = "popcorn ball";
-                }
-                if (holiday & HOLIDAY_THANKSGIVING) {
-                    foods[idx++] = "roast turkey drumstick";
-                    foods[idx++] = "mashed potato with gravy";
-                    foods[idx++] = "cup of cranberry sauce";
-                    foods[idx++] = "slice of pumpkin pie";
-                }
-                if (holiday & HOLIDAY_EID_AL_FITR) {
-                    foods[idx++] = "ma'amoul";
-                    foods[idx++] = "baklava";
-                    foods[idx++] = "kleicha";
-                }
-                if (holiday & HOLIDAY_LOS_MUERTOS) {
-                    foods[idx++] = "pan de muerto";
-                }
-                if (holiday & HOLIDAY_ROSH_HASHANAH) {
-                    foods[idx++] = "honeyed apple";
-                }
-                if (holiday & HOLIDAY_PASSOVER) {
-                    foods[idx++] = "matzo ball";
-                }
-                if (holiday & HOLIDAY_HANUKKAH) {
-                    foods[idx++] = "latke";
-                    foods[idx++] = "sufganiyah";
-                }
-                if (holiday & HOLIDAY_CHRISTMAS) {
-                    foods[idx++] = "sugar plum";
-                    foods[idx++] = "candy cane";
-                    foods[idx++] = "figgy pudding";
-                    foods[idx++] = "fruitcake";
-                }
-                if (idx >= 10) {
-                    impossible("Too many holiday foods!");
-                    idx = 9;
-                }
-                if (idx > 0) {
-                    /* fruitadd requires a modifiable string */
-                    char foodbuf[BUFSZ];
-                    Strcpy(foodbuf, foods[rn2(idx)]);
-                    otmp->spe = fruitadd(foodbuf, NULL);
-                }
-            }
+            otmp->spe = maybe_festive_fruit();
             flags.made_fruit = TRUE;
             break;
         case KELP_FROND:
