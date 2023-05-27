@@ -1,4 +1,4 @@
-/* NetHack 3.7	rm.h	$NHDT-Date: 1657918091 2022/07/15 20:48:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.96 $ */
+/* NetHack 3.7	rm.h	$NHDT-Date: 1684058570 2023/05/14 10:02:50 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.107 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2017. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -497,18 +497,20 @@ typedef struct {
  * Macros for encapsulation of level.monsters references.
  */
 #if 0
+/* these wouldn't allow buried monster and surface monster at same location */
 #define MON_AT(x, y) \
-    (gl.level.monsters[x][y] != (struct monst *) 0 \
-     && !(gl.level.monsters[x][y])->mburied)
+    (gl.level.monsters[x][y] && !gl.level.monsters[x][y]->mburied)
 #define MON_BURIED_AT(x, y) \
-    (gl.level.monsters[x][y] != (struct monst *) 0 \
-     && (gl.level.monsters[x][y])->mburied)
-#else   /* without 'mburied' */
-#define MON_AT(x, y) (gl.level.monsters[x][y] != (struct monst *) 0)
-#endif
-#define m_at(x, y) (MON_AT(x, y) ? gl.level.monsters[x][y] : (struct monst *) 0)
+    (gl.level.monsters[x][y] && gl.level.monsters[x][y]->mburied)
+#define m_at(x, y) \
+    (MON_AT(x, y) ? gl.level.monsters[x][y] : (struct monst *) 0)
 #define m_buried_at(x, y) \
     (MON_BURIED_AT(x, y) ? gl.level.monsters[x][y] : (struct monst *) 0)
+#else   /* without 'mburied' */
+#define MON_AT(x, y) (gl.level.monsters[x][y] != (struct monst *) 0)
+#define m_at(x, y) (gl.level.monsters[x][y])
+#define m_buried_at(x, y) ((struct monst *) 0)
+#endif
 
 /* restricted movement, potential luck penalties */
 #define Sokoban gl.level.flags.sokoban_rules

@@ -30,6 +30,7 @@ static void disclose(int, boolean);
 static void get_valuables(struct obj *);
 static void sort_valuables(struct valuable_data *, int);
 static void artifact_score(struct obj *, boolean, winid);
+static boolean fuzzer_savelife(int);
 ATTRNORETURN static void really_done(int) NORETURN;
 static void savelife(int);
 static boolean should_query_disclose_option(int, char *);
@@ -384,7 +385,9 @@ done_intr(int sig_unused UNUSED)
     done_stopprint++;
     (void) signal(SIGINT, SIG_IGN);
 #if defined(UNIX) || defined(VMS)
+#ifndef VMSVSI
     (void) signal(SIGQUIT, SIG_IGN);
+#endif
 #endif
     return;
 }
@@ -1235,6 +1238,76 @@ artifact_score(
     }
 }
 
+/* when dying while running the debug fuzzer, [almost] always keep going;
+   True: forced survival; False: doomed unless wearing life-save amulet */
+static boolean
+fuzzer_savelife(int how)
+{
+    /*
+     * Some debugging code pulled out of done() to unclutter it.
+     * 'done_seq' is maintained in done().
+     */
+    if (!gp.program_state.panicking
+        && how != PANICKED && how != TRICKED
+        /* Guard against getting stuck in a loop if we die in one of
+         * the few ways where life-saving isn't effective (cited case
+         * was burning in lava when the level was too full to allow
+         * teleporting to safety).  Skip the life-save attempt if we've
+         * died on the same move more than 100 times; give up instead.
+         * [Note: 100 deaths on the same move may seem excessive but it
+         * has been demonstrated that a limit of 20 was not enough.] */
+        && (gd.done_seq++ < gh.hero_seq + 100L)) {
+        savelife(how);
+
+        /* periodically restore characteristics plus lost experience
+           levels or cure lycanthropy or both; those conditions make the
+           hero vulnerable to repeat deaths (often by becoming surrounded
+           while being too encumbered to do anything) */
+        if (!rn2((gd.done_seq > gh.hero_seq + 2L) ? 2 : 10)) {
+            struct obj *potion;
+            int propidx, proptim, remedies = 0;
+
+            /* get rid of temporary potion with obfree() rather than useup()
+               because it doesn't get entered into inventory */
+            if (u.ulycn >= LOW_PM && !rn2(3)) {
+                potion = mksobj(POT_WATER, TRUE, FALSE);
+                bless(potion);
+                (void) peffects(potion);
+                obfree(potion, (struct obj *) 0);
+                ++remedies;
+            }
+            if (!remedies || rn2(3)) {
+                potion = mksobj(POT_RESTORE_ABILITY, TRUE, FALSE);
+                bless(potion);
+                (void) peffects(potion);
+                obfree(potion, (struct obj *) 0);
+                ++remedies;
+            }
+            if (!rn2(3 + 3 * remedies)) {
+                /* confer temporary resistances for first 8 properities:
+                   fire, cold, sleep, disint, shock, poison, acid, stone */
+                for (propidx = 1; propidx <= 8; ++propidx) {
+                    if (!u.uprops[propidx].intrinsic
+                        && !u.uprops[propidx].extrinsic
+                        && (proptim = rn2(3)) > 0) /* 0..2 */
+                        set_itimeout(&u.uprops[propidx].intrinsic,
+                                     (long) (2 * proptim + 1)); /* 3 or 5 */
+                }
+                ++remedies;
+            }
+            if (!rn2(5 + 5 * remedies)) {
+                ; /* might confer temporary Antimagic (magic resistance)
+                   * or even Invulnerable */
+            }
+        }
+        /* clear stale cause of death info after life-saving */
+        gk.killer.name[0] = '\0';
+        gk.killer.format = 0;
+        return TRUE;
+    }
+    return FALSE; /* panic or too many consecutive deaths */
+}
+
 /* Be careful not to call panic from here! */
 void
 done(int how)
@@ -1266,26 +1339,18 @@ done(int how)
         bot();
     }
 
-    if (iflags.debug_fuzzer) {
-        if (!(gp.program_state.panicking || how == PANICKED)) {
-            savelife(how);
-            /* periodically restore characteristics and lost exp levels
-               or cure lycanthropy */
-            if (!rn2(10)) {
-                struct obj *potion = mksobj((u.ulycn > LOW_PM && !rn2(3))
-                                            ? POT_WATER : POT_RESTORE_ABILITY,
-                                            TRUE, FALSE);
+    /* hero_seq is (moves<<3 + n) where n is number of moves made
+       by the hero on the current turn (since the 'moves' variable
+       actually counts turns); its details shouldn't matter here;
+       used by fuzzer_savelife() and for hangup below */
+    if (gd.done_seq < gh.hero_seq)
+        gd.done_seq = gh.hero_seq;
 
-                bless(potion);
-                (void) peffects(potion); /* always -1 for restore ability */
-                /* not useup(); we haven't put this potion into inventory */
-                obfree(potion, (struct obj *) 0);
-            }
-            gk.killer.name[0] = '\0';
-            gk.killer.format = 0;
+    if (iflags.debug_fuzzer) {
+        if (fuzzer_savelife(how))
             return;
-        }
-    } else
+    }
+
     if (how == ASCENDED || (!gk.killer.name[0] && how == GENOCIDED))
         gk.killer.format = NO_KILLER_PREFIX;
     /* Avoid killed by "a" burning or "a" starvation */
@@ -1306,6 +1371,7 @@ done(int how)
     }
     if (Lifesaved && (how <= GENOCIDED) && !nonliving(gy.youmonst.data)) {
         pline("But wait...");
+        /* assumes that only one type of item confers LifeSaved property */
         makeknown(AMULET_OF_LIFE_SAVING);
         Your("medallion %s!", !Blind ? "begins to glow" : "feels warm");
         /* It's cursed? Well, that's just too bad. */
@@ -1353,6 +1419,12 @@ done(int how)
 
     /* explore and wizard modes offer player the option to keep playing */
     if (!survive && (wizard || discover) && how <= GENOCIDED
+#ifdef HANGUPHANDLING
+        /* if hangup has occurred, the only possible answer to a paranoid
+           query is 'no'; we want 'no' as the default for "Die?" but can't
+           accept it more than once if there's no user supplying it */
+        && !(gp.program_state.done_hup && gd.done_seq++ == gh.hero_seq)
+#endif
         && !paranoid_query(ParanoidDie, "Die?")) {
         pline("OK, so you don't %s.", (how == CHOKING) ? "choke" : "die");
         iflags.last_msg = PLNMSG_OK_DONT_DIE;
@@ -1436,7 +1508,9 @@ really_done(int how)
 #ifndef NO_SIGNAL
     (void) signal(SIGINT, (SIG_RET_TYPE) done_intr);
 #if defined(UNIX) || defined(VMS) || defined(__EMX__)
+#ifndef VMSVSI
     (void) signal(SIGQUIT, (SIG_RET_TYPE) done_intr);
+#endif
     sethanguphandler(done_hangup);
 #endif
 #endif /* NO_SIGNAL */

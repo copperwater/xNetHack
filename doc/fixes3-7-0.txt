@@ -1,4 +1,4 @@
-HDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1153 $ $NHDT-Date: 1681429662 2023/04/13 23:47:42 $
+HDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1181 $ $NHDT-Date: 1684621591 2023/05/20 22:26:31 $
 
 General Fixes and Modified Features
 -----------------------------------
@@ -1145,7 +1145,7 @@ give feedback if monster holding onto the hero has to let go when hero polys
 	into a form which can't be held
 prevent hug attacks and touch or engulf attacks for wrap, stick-to, and
 	digestion damage from succeeding against unsolid targets (ghosts,
-	vortices, a few others)
+	vortices, a few others) or against worm tails
 wand of speed gives temporary speed, potion gives intrinsic
 some monsters (riders, shopkeepers, priests, quest leader) can break boulders
 corpse-eating monsters will go out of their way to eat corpses on the floor
@@ -1169,6 +1169,30 @@ engraving in an open doorway was allowed, engraving in closed one (presumably
 	change to allow engraving at closed door location
 engraving in a breach in a shop's or vault's wall or vault guard's temporary
 	corridor would leave the engraving intact after repair/cleanup
+if a fire resistant non-fire immune monster wearing a thoroughly burnt wooden
+	shield got knocked into lava, burning the shield completely yielded
+	impossible warning "obfree: deleting worn obj"
+hangup in wizard or explore mode would result in answering ESC to "Die?"
+	prompt if that was reached, and since default is 'no' the hero would
+	be life-saved and the game would try to keep going; if circumstances
+	resulted in repeat death then the program might get stuck in a loop
+	instead of exiting [no reports of such, but if it ever happened the
+	process was probably killed without anyone knowing why it happened]
+with OPTIONS=blind (blind from birth), being inflicted with timed blinding
+	yielded "your vision seems to dim for a moment but is normal now"
+avoid sanity_check warning if statue in water or lava gets polymorphed into a
+	boulder; break it into a stack of rocks if that would happen
+werewolf or werejackal howling and purple worm burping wakes up monsters
+don't exclude map column 1 from consideration when rloc() picks a random spot
+	for destination of a teleported monster
+covetous monster attacking another monster to acquire special item would not
+	do so if positioned diagonally adjacent
+skip sanity_check handling when current command is ^P, otherwise it might
+	re-trigger and show new sanity warning every time when set for
+	line-at-a-line feedback
+applying a cream pie (always) or lump of royal jelly (sometimes) would use up
+	the object and then access its memory after that had been freed
+keep track of hero's pending movement points across save and restore
 
 
 Fixes to 3.7.0-x General Problems Exposed Via git Repository
@@ -1561,6 +1585,16 @@ buried troll whose auto-revive timer expired might triger panic with
         "revive default case 6"
 throwing a helm of brilliance could yield "breaking odd object?"
 sanity checking of engravings was stopping after first problem found
+the fuzzer could get stuck in a loop if hero died in a way where life-saving
+	just resulted in a repeat death (cited case was burning up in lava,
+	where life-saving teleports you out of it; if the level is full, the
+	teleport will fail and you'll immediately burn up again)
+fix unicorn horn's ability to repair blindness
+quest nemesis and a few other special monsters are suppressed from bones;
+	their death feedback could be given when they were removed
+running the tutorial until completion and returning to normal play but left
+	the 'no followers' flag set; adjacent pets wouldn't tag along when
+	hero moved to other levels
 
 
 Fixes to 3.7.0-x Platform and/or Interface Problems Exposed Via git Repository
@@ -2088,6 +2122,7 @@ add conduct for petless
 preceding #overview with the 'm' prefix brings up the overview display as a
 	menu allowing selection of any visited level to #annotate; it also
 	shows every level visited rather than just the "interesting" ones
+include monster size in feedback for wand of probing and stethoscope
 
 
 Platform- and/or Interface-Specific New Features

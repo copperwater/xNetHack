@@ -762,6 +762,7 @@ hitum_cleave(
     static boolean clockwise = FALSE;
     int i;
     coord save_bhitpos;
+    boolean save_notonhead;
     int count, umort, x = u.ux, y = u.uy;
 
     /* find the direction toward primary target */
@@ -777,6 +778,7 @@ hitum_cleave(
     i = clockwise ? DIR_LEFT2(i) : DIR_RIGHT2(i);
     umort = u.umortality; /* used to detect life-saving */
     save_bhitpos = gb.bhitpos;
+    save_notonhead = gn.notonhead;
 
     /*
      * Three attacks:  adjacent to primary, primary, adjacent on other
@@ -808,8 +810,8 @@ hitum_cleave(
         mon_maybe_unparalyze(mtmp);
         dieroll = rnd(20);
         mhit = (tmp > dieroll);
-        gb.bhitpos.x = tx, gb.bhitpos.y = ty; /* normally set up by
-                                               do_attack() */
+        gb.bhitpos.x = tx, gb.bhitpos.y = ty; /* normally set by do_attack() */
+        gn.notonhead = (mtmp->mx != tx || mtmp->my != ty);
         (void) known_hitum(mtmp, uwep, &mhit, tmp, armorpenalty,
                            uattk, dieroll);
         (void) passive(mtmp, uwep, mhit, !DEADMONSTER(mtmp), AT_WEAP, !uwep);
@@ -822,7 +824,8 @@ hitum_cleave(
     /* set up for next time */
     clockwise = !clockwise; /* alternate */
     gb.bhitpos = save_bhitpos; /* in case somebody relies on bhitpos
-                             * designating the primary target */
+                                * designating the primary target */
+    gn.notonhead = save_notonhead;
 
     /* return False if primary target died, True otherwise; note: if 'target'
        was nonNull upon entry then it's still nonNull even if *target died */
@@ -3201,6 +3204,17 @@ mhitm_ad_drin(
     struct monst *mdef, struct mhitm_data *mhm)
 {
     struct permonst *pd = mdef->data;
+    struct obj *amu;
+    boolean lifsav;
+
+    /*
+     * Mind flayers have multiple AD_DRIN attacks (3 for plain mind flayer,
+     * 5 for master mind flayer).  If one of those kills the target, skip
+     * the others (for rest of attacker's current move).  To check whether
+     * hero has been killed, we check mortality counter.  For a monster,
+     * we check whether it was wearing an amulet of life-saving before the
+     * attack and no longer wearing any amulet after the attack.
+     */
 
     if (magr == &gy.youmonst) {
         /* uhitm */
@@ -3230,8 +3244,15 @@ mhitm_ad_drin(
                   mhis(mdef));
             return;
         }
+        amu = which_armor(mdef, W_AMUL);
+        lifsav = amu && amu->otyp == AMULET_OF_LIFE_SAVING;
 
         (void) eat_brains(&gy.youmonst, mdef, TRUE, &mhm->damage);
+
+        /* skip further AD_DRIN if amulet of life-saving got used up */
+        if (lifsav && !which_armor(mdef, W_AMUL))
+            gs.skipdrin = TRUE;
+
     } else if (mdef == &gy.youmonst) {
         /* mhitu */
         hitmsg(magr, mattk);
@@ -3258,16 +3279,23 @@ mhitm_ad_drin(
         mhm->damage = 0; /* don't inflict a second dose below */
 
         if (!uarmh || uarmh->otyp != DUNCE_CAP) {
+            int oldmort = u.umortality,
+                mhitu = eat_brains(magr, mdef, TRUE, (int *) 0);
+
+            /* skip further AD_DRIN if hero's number of deaths went up */
+            if (u.umortality > oldmort)
+                gs.skipdrin = TRUE;
             /* eat_brains() will miss if target is mindless (won't
-               happen here; hero is considered to retain his mind
+               happen here--hero is considered to retain his mind
                regardless of current shape) or is noncorporeal
-               (can't happen here; no one can poly into a ghost
+               (can't happen here--no one can poly into a ghost
                or shade) so this check for missing is academic */
-            if (eat_brains(magr, mdef, TRUE, (int *) 0) == M_ATTK_MISS)
+            if (mhitu == M_ATTK_MISS)
                 return;
         }
         /* adjattrib gives dunce cap message when appropriate */
         (void) adjattrib(A_INT, -rnd(2), AA_YESMSG);
+
     } else {
         /* mhitm */
         char buf[BUFSZ];
@@ -3290,7 +3318,14 @@ mhitm_ad_drin(
             }
             return;
         }
+        amu = which_armor(mdef, W_AMUL);
+        lifsav = amu && amu->otyp == AMULET_OF_LIFE_SAVING;
+
         mhm->hitflags = eat_brains(magr, mdef, gv.vis, &mhm->damage);
+
+        /* skip further AD_DRIN if amulet of life-saving got used up */
+        if (lifsav && !which_armor(mdef, W_AMUL))
+            gs.skipdrin = TRUE;
     }
 }
 
@@ -3330,7 +3365,9 @@ mhitm_ad_wrap(
     if (magr == &gy.youmonst) {
         /* uhitm */
         if (!sticks(pd)) {
-            if (!u.ustuck && !rn2(10)) {
+            boolean tailmiss = !gn.notonhead;
+
+            if (!u.ustuck && !tailmiss && !rn2(10)) {
                 if (m_slips_free(mdef, mattk)) {
                     mhm->damage = 0;
                 } else {
@@ -3338,7 +3375,7 @@ mhitm_ad_wrap(
                         coil ? "coil" : "swing", mon_nam(mdef));
                     set_ustuck(mdef);
                 }
-            } else if (u.ustuck == mdef) {
+            } else if (u.ustuck == mdef && !tailmiss) {
                 /* Monsters don't wear amulets of magical breathing */
                 if (is_pool(u.ux, u.uy) && !cant_drown(pd)) {
                     You("drown %s...", mon_nam(mdef));
@@ -3348,11 +3385,11 @@ mhitm_ad_wrap(
             } else {
                 mhm->damage = 0;
                 if (Verbose(4, mhitm_ad_wrap1)) {
-                    if (coil)
+                    if (coil && !tailmiss)
                         You("brush against %s.", mon_nam(mdef));
                     else
                         You("brush against %s %s.", s_suffix(mon_nam(mdef)),
-                            mbodypart(mdef, LEG));
+                            tailmiss ? "tail" : mbodypart(mdef, LEG));
                 }
             }
         } else
@@ -3401,6 +3438,11 @@ mhitm_ad_wrap(
         /* mhitm */
         if (magr->mcan)
             mhm->damage = 0;
+
+        if (!mhm->damage && (canseemon(magr) || canseemon(mdef))) {
+            pline("%s brushes against %s.",
+                  Some_Monnam(magr), some_mon_nam(mdef));
+        }
     }
 }
 
@@ -3761,6 +3803,10 @@ mhitm_ad_poly(
                 pline("%s is not transformed.", Monnam(mdef));
             } else {
                 mhm->damage = mon_poly(&gy.youmonst, mdef, mhm->damage);
+                if (DEADMONSTER(mdef))
+                    mhm->hitflags |= M_ATTK_DEF_DIED;
+                mhm->hitflags |= M_ATTK_HIT;
+                mhm->done = TRUE;
             }
         }
     } else if (mdef == &gy.youmonst) {
@@ -3772,12 +3818,19 @@ mhitm_ad_poly(
                     You("aren't transformed.");
             } else {
                 mhm->damage = mon_poly(magr, &gy.youmonst, mhm->damage);
+                mhm->hitflags |= M_ATTK_HIT;
+                mhm->done = TRUE;
             }
         }
     } else {
         /* mhitm */
-        if (mhm->damage < mdef->mhp && !negated)
+        if (mhm->damage < mdef->mhp && !negated) {
             mhm->damage = mon_poly(magr, mdef, mhm->damage);
+            if (DEADMONSTER(mdef))
+                mhm->hitflags |= M_ATTK_DEF_DIED;
+            mhm->hitflags |= M_ATTK_HIT;
+            mhm->done = TRUE;
+        }
     }
 }
 
@@ -4680,6 +4733,7 @@ mhitm_ad_dgst(struct monst *magr, struct attack *mattk UNUSED,
             SetVoice(magr, 0, 80, 0);
             verbalize("Burrrrp!");
         }
+        wake_nearto(magr->mx, magr->my, 2 * 2); /* Burrrrp! */
         mhm->damage = mdef->mhp;
         /* Use up amulet of life saving */
         if ((obj = mlifesaver(mdef)) != 0)
@@ -5544,12 +5598,15 @@ mhitm_knockback(
             dismount_steed(DISMOUNT_KNOCKED);
         } else {
             hurtle(dx, dy, knockdistance, FALSE);
+            *hitflags |= M_ATTK_HIT;
         }
         set_apparxy(magr); /* update magr's idea of where you are */
         if (!Stunned && !rn2(4))
             make_stunned((long) (knockdistance + 1), TRUE); /* 2 or 3 */
     } else {
         mhurtle(mdef, dx, dy, knockdistance);
+        if (!u_agr)
+            *hitflags |= M_ATTK_HIT;
         if (DEADMONSTER(mdef)) {
             if (!was_u)
                 *hitflags |= M_ATTK_DEF_DIED;

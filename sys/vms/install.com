@@ -29,7 +29,7 @@ $	!	to avoid inadvertent logical name interaction
 $	play_files = "PERM.,RECORD.,LOGFILE.,XLOGFILE.,PANICLOG."
 $	help_files = "HELP.,HH.,CMDHELP.,KEYHELP.,WIZHELP.,OPTHELP.," -
 		   + "HISTORY.,LICENSE."
-$	data_files = "DATA.,RUMORS.,ORACLES.,OPTIONS.,QUEST.DAT,TRIBUTE.," -
+$	data_files = "DATA.,RUMORS.,ORACLES.,OPTIONS.,TRIBUTE.," -
 		   + "ENGRAVE.,EPITAPH.,BOGUSMON."
 $	sysconf_file = "[.sys.vms]sysconf"
 $	guidebook  = "[.doc]Guidebook.txt"
@@ -105,6 +105,8 @@ $ makedefs -h	!oracles.txt -> oracles
 $	milestone "(dungeon preprocess)"
 $ makedefs -s
 $	milestone "(engrave, epitaph, bogusmon)"
+$ makedefs -v
+$	milestone "(options)"
 $! makedefs -e	!dungeon.def -> dungeon.pdf
 $!	milestone "(quest text)"
 $ makedefs -q	!quest.txt -> quest.dat

@@ -1,4 +1,4 @@
-/* NetHack 3.7	trap.c	$NHDT-Date: 1683116409 2023/05/03 12:20:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.530 $ */
+/* NetHack 3.7	trap.c	$NHDT-Date: 1684140131 2023/05/15 08:42:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.536 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -186,9 +186,9 @@ erode_obj(
     uvictim = (victim == &gy.youmonst);
     vismon = victim && (victim != &gy.youmonst) && canseemon(victim);
     /* Is gb.bhitpos correct here? Ugh. */
-    visobj = !victim && cansee(gb.bhitpos.x, gb.bhitpos.y)
-        && (!is_pool(gb.bhitpos.x, gb.bhitpos.y)
-            || (next2u(gb.bhitpos.x,gb.bhitpos.y) && Underwater));
+    visobj = (!victim && cansee(gb.bhitpos.x, gb.bhitpos.y)
+              && (!is_pool(gb.bhitpos.x, gb.bhitpos.y)
+                  || (next2u(gb.bhitpos.x,gb.bhitpos.y) && Underwater)));
 
     switch (type) {
     case ERODE_BURN:
@@ -283,6 +283,7 @@ erode_obj(
 
         return ER_DAMAGED;
     } else if (ef_flags & EF_DESTROY) {
+        otmp->in_use = 1; /* in case of hangup during message w/ --More-- */
         if (uvictim || vismon || visobj)
             pline("%s %s %s away!",
                   uvictim ? "Your"
@@ -293,7 +294,27 @@ erode_obj(
         if (ef_flags & EF_PAY)
             costly_alteration(otmp, cost_type);
 
-        setnotworn(otmp);
+        if (otmp->owornmask) {
+            /* unwear otmp before deleting it */
+            if (carried(otmp)) {
+                /* otmp remains in hero's invent; if we get here because
+                   it is being burned up by lava, we don't need to worry
+                   about unwearing levitation boots and having that
+                   trigger float_down to then fall in again; if such
+                   were being worn, they wouldn't be in the lava now */
+                remove_worn_item(otmp, TRUE); /* calls Cloak_off(),&c */
+            } else if (mcarried(otmp)) {
+                /* results in otmp->where==OBJ_FREE; delobj() doesn't care */
+                extract_from_minvent(otmp->ocarry, otmp, TRUE, FALSE);
+            } else { /* worn but not in hero invent or monster minvent ? */
+                impossible(
+            "erode_obj(%d): destroying strangely worn item [%d, 0x%08lx: %s]",
+                           type,
+                           otmp->where, otmp->owornmask, simpleonames(otmp));
+                otmp->owornmask = 0L; /* otherwise a second complaint (about
+                                       * deleting a worn item) will ensue */
+            }
+        }
         delobj(otmp);
         return ER_DESTROYED;
     } else {
@@ -437,7 +458,8 @@ maketrap(coordxy x, coordxy y, int typ)
         /* old <tx,ty> remain valid */
     } else if ((IS_FURNITURE(lev->typ)
                 && (!IS_GRAVE(lev->typ) || (typ != PIT && typ != HOLE)))
-               || (is_pool_or_lava(x, y) || IS_AIR(lev->typ))
+               || is_pool_or_lava(x, y)
+               || (IS_AIR(lev->typ) && typ != MAGIC_PORTAL)
                || (typ == LEVEL_TELEP && single_level_branch(&u.uz))) {
         /* no trap on top of furniture (caller usually screens the
            location to inhibit this, but wizard mode wishing doesn't)
@@ -4912,7 +4934,53 @@ rnd_nextto_goodpos(coordxy *x, coordxy *y, struct monst *mtmp)
     return FALSE;
 }
 
-/*  return TRUE iff player relocated */
+/* life-saving or divine rescue has attempted to get the hero out of hostile
+   terrain and put hero in an unexpected spot or failed due to overfull level
+   and just prevented death so "back on solid ground" may be inappropriate */
+void
+back_on_ground(int how)
+{
+    static const char find_yourself[] = "find yourself";
+    struct rm *lev = &levl[u.ux][u.uy];
+    boolean mesggiven = FALSE;
+
+    switch (how) {
+    case DROWNING:
+        if (is_pool(u.ux, u.uy)) {
+            You("%s %s of %s.", find_yourself,
+                (Is_waterlevel(&u.uz) || IS_WATERWALL(lev->typ))
+                  ? "in the midst" : "on top",
+                hliquid("water"));
+            mesggiven = TRUE;
+        } else if (IS_AIR(lev->typ)) {
+            You("%s in %s.", find_yourself,
+                Is_waterlevel(&u.uz) ? "an air bubble" : "mid air");
+            mesggiven = TRUE;
+        }
+        break;
+    case BURNING: /* moved onto lava without fire resistance */
+    case DISSOLVED: /* sunk into lava while fire resistant */
+        if (is_pool(u.ux, u.uy)) {
+            You("%s %s %s.", find_yourself,
+                u.uinwater ? "in" : "on", hliquid("water"));
+            mesggiven = TRUE;
+        } else if (is_lava(u.ux, u.uy)) {
+            You("%s on top of %s.", find_yourself, hliquid("molten lava"));
+            mesggiven = TRUE;
+        }
+        break;
+    default:
+        break;
+    }
+    if (!mesggiven)
+        You("%s back on solid %s.", find_yourself, surface(u.ux, u.uy));
+
+    iflags.last_msg = PLNMSG_BACK_ON_GROUND; /* for describe_decor() */
+    /* feedback just disclosed this */
+    iflags.prev_decor = gl.lastseentyp[u.ux][u.uy] = lev->typ;
+}
+
+/* return TRUE iff player relocated */
 boolean
 drown(void)
 {
@@ -4964,9 +5032,9 @@ drown(void)
 
     water_damage_chain(gi.invent, FALSE, 0, TRUE);
 
-    if (u.umonnum == PM_GREMLIN && rn2(3))
+    if (u.umonnum == PM_GREMLIN && rn2(3)) {
         (void) split_mon(&gy.youmonst, (struct monst *) 0);
-    else if (u.umonnum == PM_IRON_GOLEM) {
+    } else if (u.umonnum == PM_IRON_GOLEM) {
         You("rust!");
         i = Maybe_Half_Phys(d(2, 6));
         if (u.mhmax > i)
@@ -5048,7 +5116,10 @@ drown(void)
     }
     set_uinwater(1); /* u.uinwater = 1 */
     urgent_pline("You drown.");
-    for (i = 0; i < 5; i++) { /* arbitrary number of loops */
+    /* first pass is survivable by using up an amulet of life-saving or by
+       answering no to "Die?" in explore|wizard mode; second pass can only
+       be survivable via the latter */
+    for (i = 0; i < 2; i++) {
         /* killer format and name are reconstructed every iteration
            because lifesaving resets them */
         pool_of_water = waterbody_name(u.ux, u.uy);
@@ -5064,11 +5135,10 @@ drown(void)
         /* nowhere safe to land; repeat drowning loop... */
         pline("You're still drowning.");
     }
-    if (u.uinwater) {
+
+    if (u.uinwater)
         set_uinwater(0); /* u.uinwater = 0 */
-        You("find yourself back %s.",
-            Is_waterlevel(&u.uz) ? "in an air bubble" : "on land");
-    }
+    back_on_ground(DROWNING);
     return TRUE;
 }
 
@@ -7021,8 +7091,9 @@ boolean
 lava_effects(void)
 {
     register struct obj *obj, *obj2;
-    const int dmg = d(6, 6); /* only applicable for water walking */
     boolean usurvive, boil_away;
+    int burncount = 0, burnmesgcount = 0;
+    int dmg = d(6, 6); /* only applicable for water walking */
 
     if (iflags.in_lava_effects) {
         debugpline0("Skipping recursive lava_effects().");
@@ -7056,14 +7127,18 @@ lava_effects(void)
     /* Check whether we should burn away boots *first* so we know whether to
      * make the player sink into the lava. Assumption: water walking only
      * comes from boots.
+     * (3.7: that assumption is no longer true, but having boots be the first
+     * thing to come into contact with lava makes sense.)
      */
     if (uarmf && is_organic(uarmf) && !uarmf->oerodeproof) {
         obj = uarmf;
         pline("%s into flame!", Yobjnam2(obj, "burst"));
+        ++burnmesgcount;
         iflags.in_lava_effects++; /* (see above) */
         (void) Boots_off();
         useup(obj);
         iflags.in_lava_effects--;
+        ++burncount;
     }
 
     if (!Fire_resistance) {
@@ -7107,19 +7182,31 @@ lava_effects(void)
                           The(xname(obj)), hcolor("dark red"));
             } else if (obj->in_use) {
                 if (obj->owornmask) {
-                    if (usurvive)
+                    if (usurvive) {
                         pline("%s into flame!", Yobjnam2(obj, "burst"));
+                        ++burnmesgcount;
+                    }
                     remove_worn_item(obj, TRUE);
                 }
                 useupall(obj);
+                ++burncount;
             }
         }
+        if (usurvive && burncount > burnmesgcount)
+            pline("%s item%s in your inventory %s been destroyed.",
+                  (burnmesgcount > 0)
+                    ? ((burncount - burnmesgcount == 1) ? "Another" : "Other")
+                    : ((burncount == 1) ? "An" : "Some"),
+                  plur(burncount - burnmesgcount),
+                  (burncount - burnmesgcount == 1) ? "has" : "have");
 
         /* s/he died... */
         boil_away = (u.umonnum == PM_WATER_ELEMENTAL
                      || u.umonnum == PM_STEAM_VORTEX
                      || u.umonnum == PM_FOG_CLOUD);
-        for (;;) {
+        /* burn to death; if hero is life-saved on the first pass, try
+           to teleport to safety; if that fails, burn all over again */
+        for (burncount = 0; burncount < 2; ++burncount) {
             u.uhp = -1;
             /* killer format and name are reconstructed every iteration
                because lifesaving resets them */
@@ -7136,27 +7223,21 @@ lava_effects(void)
 
         iflags.in_lava_effects--;
 
-        /*
-         * 3.7: this used to be unconditional "back on solid <surface>"
-         * but surface() could return a lot of things where that ends up
-         * sounding silly.  Deal with water, ignore furniture; assume
-         * surface types 'air' and 'cloud' won't be present on same level
-         * as lava so don't need to be catered for.
-         *
-         * Made it out of the lava.  We know that hero isn't levitating
-         * or flying but life-saving plus fireproof water walking boots
-         * (and no fire resistance) could put hero on water rather than
-         * "on solid ground"; likewise if poly'd into an aquatic form.
-         */
-        if (is_pool(u.ux, u.uy))
-            You("find yourself %s %s.", u.uinwater ? "in" : "on",
-                hliquid("water"));
-        else
-            You("find yourself back on solid %s.", surface(u.ux, u.uy));
-        iflags.last_msg = PLNMSG_BACK_ON_GROUND; /* for describe_decor();
-                                                  * use for on-water too */
-        /* surface() just disclosed this */
-        iflags.prev_decor = gl.lastseentyp[u.ux][u.uy] = levl[u.ux][u.uy].typ;
+        if (burncount == 2) {
+            /* life-saved twice (second time must have been due to declining
+               to die in wizard|explore mode) and failed to be teleported
+               to safety both times; moveloop() will just drop the hero into
+               the lava again on next move so take countermeasures to give
+               the player--or the debug fuzzer--a chance to try something
+               else instead of just immediately burning up all over again */
+            if (!Fire_resistance)
+                set_itimeout(&HFire_resistance, 5L);
+            if (!Wwalking)
+                set_itimeout(&HWwalking, 5L);
+            goto burn_stuff;
+        }
+        back_on_ground(BURNING);
+
         /* normally done via safe_teleds() -> teleds() -> spoteffects() but
            spoteffects() was no-op when called with nonzero in_lava_effects */
         spoteffects(FALSE); /* suppress auto-pickup for this landing... */

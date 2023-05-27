@@ -81,6 +81,9 @@ moveloop_preamble(boolean resuming)
            clairvoyance (wizard with cornuthaum perhaps?); without this,
            first "random" occurrence would always kick in on turn 1 */
         gc.context.seer_turn = (long) rnd(30);
+        /* give hero initial movement points; new game only--for restore,
+           pending movement points were included in the save file */
+        u.umovement = NORMAL_SPEED;
     }
     gc.context.botlx = TRUE; /* for STATUS_HILITES */
     if (resuming) { /* restoring old game */
@@ -96,7 +99,6 @@ moveloop_preamble(boolean resuming)
     initrack();
 
     u.uz0.dlevel = u.uz.dlevel;
-    gy.youmonst.movement = NORMAL_SPEED; /* give hero some movement points */
     gc.context.move = 0;
 
     gp.program_state.in_moveloop = 1;
@@ -157,9 +159,9 @@ u_calc_moveamt(int wtcap)
         moveamt -= (moveamt / 4);
     }
 
-    gy.youmonst.movement += moveamt;
-    if (gy.youmonst.movement < 0)
-        gy.youmonst.movement = 0;
+    u.umovement += moveamt;
+    if (u.umovement < 0)
+        u.umovement = 0;
 }
 
 #if defined(MICRO) || defined(WIN32)
@@ -190,7 +192,7 @@ moveloop_core(void)
 
     if (gc.context.move) {
         /* actual time passed */
-        gy.youmonst.movement -= NORMAL_SPEED;
+        u.umovement -= NORMAL_SPEED;
 
         do { /* hero can't move this turn loop */
             mvl_wtcap = encumber_msg();
@@ -198,12 +200,12 @@ moveloop_core(void)
             gc.context.mon_moving = TRUE;
             do {
                 monscanmove = movemon();
-                if (gy.youmonst.movement >= NORMAL_SPEED)
+                if (u.umovement >= NORMAL_SPEED)
                     break; /* it's now your turn */
             } while (monscanmove);
             gc.context.mon_moving = FALSE;
 
-            if (!monscanmove && gy.youmonst.movement < NORMAL_SPEED) {
+            if (!monscanmove && u.umovement < NORMAL_SPEED) {
                 /* both hero and monsters are out of steam this round */
                 struct monst *mtmp;
 
@@ -428,7 +430,7 @@ moveloop_core(void)
                     }
                 }
             }
-        } while (gy.youmonst.movement < NORMAL_SPEED); /* hero can't move */
+        } while (u.umovement < NORMAL_SPEED); /* hero can't move */
 
         /******************************************/
         /* once-per-hero-took-time things go here */
@@ -602,12 +604,12 @@ maybe_do_tutorial(void)
 
     if (ask_do_tutorial()) {
         assign_level(&u.ucamefrom, &u.uz);
-        u.nofollowers = TRUE;
+        iflags.nofollowers = TRUE;
         schedule_goto(&sp->dlevel, UTOTYPE_NONE, (char *) 0, (char *) 0);
         deferred_goto();
         vision_recalc(0);
         docrt();
-        u.nofollowers = FALSE;
+        iflags.nofollowers = FALSE;
     }
 }
 
@@ -737,7 +739,7 @@ stop_occupation(void)
     if (go.occupation) {
         if (!maybe_finished_meal(TRUE))
             You("stop %s.", go.occtxt);
-        go.occupation = 0;
+        go.occupation = (int (*)(void)) 0;
         gc.context.botl = TRUE; /* in case u.uhs changed */
         nomul(0);
     } else if (gm.multi >= 0) {
@@ -747,7 +749,7 @@ stop_occupation(void)
 }
 
 void
-init_sound_and_display_gamewindows(void)
+init_sound_disp_gamewindows(void)
 {
     int menu_behavior = MENU_BEHAVE_STANDARD;
 
@@ -780,7 +782,7 @@ init_sound_and_display_gamewindows(void)
 
 #ifdef MAC
     /* This _is_ the right place for this - maybe we will
-     * have to split init_sound_and_display_gamewindows into
+     * have to split init_sound_disp_gamewindows into
      * create_gamewindows and show_gamewindows to get rid of this ifdef...
      */
     if (!strcmp(windowprocs.name, "mac"))

@@ -11,6 +11,12 @@ unsigned long enable_broadcast_trapping(void);
 unsigned long disable_broadcast_trapping(void);
 struct mail_info *parse_next_broadcast(void);
 
+#ifdef VMSVSI
+#include <descrip.h>
+#include <lib$routines.h>
+#include <starlet.h>
+#endif
+
 #ifdef MAIL
 #include "wintype.h"
 #include "winprocs.h"
@@ -39,8 +45,13 @@ extern size_t strspn(const char *, const char *);
 #ifndef __DECC
 extern int VDECL(sscanf, (const char *, const char *, ...));
 #endif
+
+#ifdef VMSVSI
+#include <smg$routines.h>
+#else
 extern unsigned long smg$create_pasteboard(), smg$get_broadcast_message(),
     smg$set_broadcast_trapping(), smg$disable_broadcast_trapping();
+#endif
 
 extern volatile int broadcasts; /* defining declaration in mail.c */
 
@@ -285,10 +296,10 @@ parse_brdcst(char *buf) /* called by parse_next_broadcast() */
     if (txt && strlen(txt) > BUFSZ - 50)
         txt[BUFSZ - 50] = '\0';
 
-    msgm.message_typ = typ;  /* simple index */
+    msg.message_typ = typ;  /* simple index */
     msg.display_txt = txt;  /* text for daemon to pline() */
     msg.object_nam = nam;   /* 'name' for mail scroll */
-    msgr.response_cmd = cmd; /* command to spawn when scroll read */
+    msg.response_cmd = cmd; /* command to spawn when scroll read */
     return &msg;
 }
 

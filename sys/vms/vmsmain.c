@@ -7,6 +7,12 @@
 #include "hack.h"
 #include "dlb.h"
 
+#ifdef VMSVSI
+#include <descrip.h>
+#include <lib$routines.h>
+#include <starlet.h>
+#endif
+
 #include <signal.h>
 
 static void whoami(void);
@@ -183,7 +189,7 @@ main(int argc, char *argv[])
      */
     vision_init();
 
-    init_sound_and_display_gamewindows();
+    init_sound_disp_gamewindows();
 
 /*
  * First, try to find and restore a save file for specified character.
@@ -388,7 +394,9 @@ byebye(void)
     void (*hup)(int) ;
 #ifdef SHELL
     extern unsigned long dosh_pid, mail_pid;
+#ifndef VMSVSI
     extern unsigned long sys$delprc(unsigned long *, const genericptr_t);
+#endif
 
     /* clean up any subprocess we've spawned that may still be hanging around
      */

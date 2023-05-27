@@ -1,4 +1,4 @@
-/* NetHack 3.7	mon.c	$NHDT-Date: 1681429657 2023/04/13 23:47:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.495 $ */
+/* NetHack 3.7	mon.c	$NHDT-Date: 1683831104 2023/05/11 18:51:44 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.501 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -15,7 +15,7 @@ static boolean monlineu(struct monst *, int, int);
 static long mm_2way_aggression(struct monst *, struct monst *);
 static long mm_displacement(struct monst *, struct monst *);
 static void mon_leaving_level(struct monst *);
-static void m_detach(struct monst *, struct permonst *);
+static void m_detach(struct monst *, struct permonst *, boolean);
 static void set_mon_min_mhpmax(struct monst *, int);
 static void lifesaved_monster(struct monst *);
 static void juiblex_transferral(void);
@@ -68,6 +68,7 @@ sanity_check_single_mon(
            but this would be too extreme to keep going */
         panic("illegal mon data %s; mnum=%d (%s)",
               fmt_ptr((genericptr_t) mptr), mtmp->mnum, msg);
+        /*NOTREACHED*/
     } else {
         int mndx = monsndx(mptr);
 
@@ -176,10 +177,15 @@ sanity_check_single_mon(
                              : (M_AP_TYPE(mtmp) == M_AP_OBJECT) ? "an object"
                                : "something strange";
 
-        if (Protection_from_shape_changers)
+        if (!strcmp(msg, "migr")) {
+            if (M_AP_TYPE(mtmp) != M_AP_MONSTER)
+                impossible("migrating %s mimicking %s %s",
+                           is_mimic ? "mimic" : "monster", what, msg);
+        } else if (Protection_from_shape_changers) {
             impossible(
                 "mimic%s concealed as %s despite Prot-from-shape-changers %s",
                        is_mimic ? "" : "ker", what, msg);
+        }
         /* the Wizard's clone after "double trouble" starts out mimicking
            some other monster; pet's quickmimic effect can temporarily take
            on furniture, object, or monster shape, but only until the pet
@@ -231,6 +237,12 @@ mon_sanity_check(void)
                        fmt_ptr((genericptr_t) mtmp), x, y);
         } else if (mtmp->wormno) {
             sanity_check_worm(mtmp);
+
+        /* TODO: figure out which other bits shouldn't be set for 'fmon' */
+        } else if ((mtmp->mstate & (MON_DETACH | MON_MIGRATING | MON_LIMBO))
+                   != 0) {
+            impossible("floor mon (%s) with mstate set to 0x%08lx",
+                       fmt_ptr((genericptr_t) mtmp), mtmp->mstate);
         }
     }
 
@@ -255,6 +267,13 @@ mon_sanity_check(void)
 
     for (mtmp = gm.migrating_mons; mtmp; mtmp = mtmp->nmon) {
         sanity_check_single_mon(mtmp, FALSE, "migr");
+
+        /* TODO: figure out which other bits could or shouldn't be set
+         * when migrating */
+        if ((mtmp->mstate & (MON_DETACH)) != 0
+            || (mtmp->mstate & (MON_MIGRATING | MON_LIMBO)) == 0)
+            impossible("migrating mon (%s) with mstate set to 0x%08lx",
+                       fmt_ptr((genericptr_t) mtmp), mtmp->mstate);
     }
 
     wormno_sanity_check(); /* test for bogus worm tail */
@@ -796,6 +815,8 @@ make_corpse(struct monst *mtmp, unsigned int corpseflags)
     return obj;
 }
 
+#undef KEEPTRAITS
+
 /* check mtmp and water/lava for compatibility, 0 (survived), 1 (died) */
 int
 minliquid(struct monst* mtmp)
@@ -902,7 +923,7 @@ minliquid_core(struct monst* mtmp)
             if (!DEADMONSTER(mtmp)) {
                 (void) fire_damage_chain(mtmp->minvent, FALSE, FALSE,
                                          mtmp->mx, mtmp->my);
-                (void) rloc(mtmp, RLOC_ERR|RLOC_NOMSG);
+                (void) rloc(mtmp, RLOC_MSG);
                 return 0;
             }
             return 1;
@@ -964,7 +985,8 @@ minliquid_core(struct monst* mtmp)
 int
 mcalcmove(
     struct monst *mon,
-    boolean m_moving) /* True: adjust for moving; False: just adjust for speed */
+    boolean m_moving) /* True: adjust for moving;
+                       * False: just adjust for speed */
 {
     int mmove = mon->data->mmove;
     int mmove_adj;
@@ -1119,7 +1141,7 @@ movemon_singlemon(struct monst *mtmp)
         return FALSE;
 
     /* monster isn't on this map anymore */
-    if ((mtmp->mstate & (MON_DETACH|MON_MIGRATING|MON_LIMBO|MON_OFFMAP)) != 0)
+    if (mon_offmap(mtmp))
         return FALSE;
 
     /* Find a monster that we have not treated yet. */
@@ -1211,7 +1233,7 @@ movemon(void)
     iter_mons_safe(movemon_singlemon);
 
     if (any_light_source())
-        gv.vision_full_recalc = 1; /* in case a mon moved with a light source */
+        gv.vision_full_recalc = 1; /* in case a mon moved w/ a light source */
     /* reset obj bypasses after last monster has moved */
     if (gc.context.bypasses)
         clear_bypasses();
@@ -1541,6 +1563,8 @@ meatobj(struct monst* mtmp) /* for gelatinous cubes */
     }
     return (count > 0 || ecount > 0) ? 1 : 0;
 }
+
+#undef mstoning
 
 /* Monster eats a corpse off the ground.
  * Return value is 0 = nothing eaten, 1 = ate a corpse, 2 = died */
@@ -2722,7 +2746,8 @@ mon_leaving_level(struct monst *mon)
 static void
 m_detach(
     struct monst *mtmp,
-    struct permonst *mptr) /* reflects mtmp->data _prior_ to mtmp's death */
+    struct permonst *mptr, /* reflects mtmp->data _prior_ to mtmp's death */
+    boolean due_to_death)
 {
     coordxy mx = mtmp->mx, my = mtmp->my;
 
@@ -2744,27 +2769,33 @@ m_detach(
     mon_leaving_level(mtmp);
 
     mtmp->mhp = 0; /* simplify some tests: force mhp to 0 */
-    if (mtmp->iswiz)
-        wizdead();
+    /* foodead() might give quest feedback for foo having died; skip that
+       if we're called for mongone() rather than mondead(); saving bones
+       or wizard mode genocide of "*" can result in special monsters going
+       away without having been killed */
+    if (due_to_death) {
+        if (mtmp->iswiz)
+            wizdead();
+        if (mtmp->data->msound == MS_NEMESIS) {
+            nemdead();
+            /* The Caveman and Priest quest texts describe
+               the nemesis's body creating noxious fumes/gas when killed. */
+            if (stinky_nemesis(mtmp))
+                create_gas_cloud(mx, my, 5, 8);
+        }
+        if (mtmp->data->msound == MS_LEADER)
+            leaddead();
+        /* release (drop onto map) all objects carried by mtmp; assumes that
+           mtmp->mx,my contains the appropriate location */
+        relobj(mtmp, 1, FALSE); /* drop mtmp->minvent, issue newsym(mx,my) */
+    }
     if (is_archfiend(mtmp->data)) {
         struct fiend_info *fiend = lookup_fiend(monsndx(mtmp->data));
         fiend->num_in_dgn--;
     }
-    if (mtmp->data->msound == MS_NEMESIS) {
-        nemdead();
-        /* The Caveman and Priest quest texts describe
-           the nemesis's body creating noxious fumes/gas when killed. */
-        if (stinky_nemesis(mtmp))
-            create_gas_cloud(mx, my, 5, 8);
-    }
-    if (mtmp->data->msound == MS_LEADER)
-        leaddead();
-    if (mtmp->m_id == gs.stealmid)
-        thiefdead();
-    /* release (drop onto map) all objects carried by mtmp; assumes that
-       mtmp->mx,my contains the appropriate location */
-    relobj(mtmp, 1, FALSE); /* drop mtmp->minvent, then issue newsym(mx,my) */
 
+    if (mtmp->m_id == gs.stealmid)
+        thiefdead(); /* reset theft-in-progress data */
     if (mtmp->isshk)
         shkgone(mtmp);
     if (mtmp->wormno)
@@ -3122,7 +3153,7 @@ mondead(struct monst *mtmp)
     if (glyph_is_invisible(levl[mtmp->mx][mtmp->my].glyph))
         unmap_object(mtmp->mx, mtmp->my);
 
-    m_detach(mtmp, mptr);
+    m_detach(mtmp, mptr, TRUE);
     return;
 }
 
@@ -3223,7 +3254,7 @@ mongone(struct monst* mdef)
     mdrop_special_objs(mdef);
     /* release rest of monster's inventory--it is removed from game */
     discard_minvent(mdef, FALSE);
-    m_detach(mdef, mdef->data);
+    m_detach(mdef, mdef->data, FALSE);
 }
 
 /* drop a statue or rock and remove monster */
@@ -3583,7 +3614,7 @@ xkilled(
     }
 
     if (wasinside) {
-        /* spoteffects() can end up clearing the level of monsters; grab a copy */
+        /* spoteffects() can end up clearing level of monsters; grab a copy */
         museum = *mtmp;
         museum.nmon = 0;
         museum.minvent = 0;
@@ -3675,6 +3706,9 @@ xkilled(
                                EBONES(mtmp)->female));
     }
 }
+
+#undef livelog_mon_nam
+#undef LEVEL_SPECIFIC_NOCORPSE
 
 /* changes the monster into a stone monster of the same type
    this should only be called when poly_when_stoned() is true */
@@ -5421,6 +5455,8 @@ egg_type_from_parent(
     }
     return mnum;
 }
+
+#undef BREEDER_EGG
 
 /* decide whether an egg of the indicated monster type is viable;
    also used to determine whether an egg or tin can be created... */

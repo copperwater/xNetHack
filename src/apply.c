@@ -692,6 +692,8 @@ magic_whistled(struct obj *obj)
     return;
 }
 
+#undef HowMany
+
 boolean
 um_dist(coordxy x, coordxy y, xint16 n)
 {
@@ -914,6 +916,8 @@ mleashed_next2u(struct monst *mtmp)
     }
     return FALSE;
 }
+
+#undef MAXLEASHED
 
 boolean
 next_to_u(void)
@@ -1192,6 +1196,7 @@ use_mirror(struct obj *obj)
             pline("%s ignores %s reflection.", Monnam(mtmp), mhis(mtmp));
     }
     return ECMD_TIME;
+#undef SEENMON
 }
 
 static void
@@ -2322,8 +2327,9 @@ use_tinning_kit(struct obj *obj)
             useup(corpse);
         } else {
             if (costly_spot(corpse->ox, corpse->oy) && !corpse->no_charge) {
-                struct monst *shkp VOICEONLY = shop_keeper(*in_rooms(corpse->ox,
-                                                 corpse->oy, SHOPBASE));
+                struct monst *shkp VOICEONLY
+                   = shop_keeper(*in_rooms(corpse->ox, corpse->oy, SHOPBASE));
+
                 SetVoice(shkp, 0, 80, 0);
                 verbalize(you_buy_it);
             }
@@ -2383,9 +2389,6 @@ use_unicorn_horn(struct obj **optr, boolean passive)
         return;
     }
 
-/*
- * Entries in the trouble list use a very simple encoding scheme.
- */
 #define prop_trouble(X) trouble_list[trouble_count++] = (X)
 #define TimedTrouble(P) (((P) && !((P) & ~TIMEOUT)) ? ((P) & TIMEOUT) : 0L)
 
@@ -2394,7 +2397,7 @@ use_unicorn_horn(struct obj **optr, boolean passive)
     /* collect property troubles */
     if (TimedTrouble(Sick))
         prop_trouble(SICK);
-    if (TimedTrouble(Blinded) > (long) u.ucreamed && !PermaBlind
+    if (TimedTrouble(HBlinded) > (long) u.ucreamed
         && !(HBlinded & FROMOUTSIDE) /* can't cure dark speech affliction */
         && !(u.uswallow
              && attacktype_fordmg(u.ustuck->data, AT_ENGL, AD_BLND)))
@@ -3119,6 +3122,7 @@ use_trap(struct obj *otmp)
     return;
 }
 
+/* occupation routine called each turn while arming a beartrap or landmine */
 static int
 set_trap(void)
 {
@@ -3126,9 +3130,8 @@ set_trap(void)
     struct trap *ttmp;
     int ttyp;
 
-    if (!otmp || !carried(otmp) || u.ux != gt.trapinfo.tx
-        || u.uy != gt.trapinfo.ty) {
-        /* ?? */
+    if (!otmp || !carried(otmp) || !u_at(gt.trapinfo.tx, gt.trapinfo.ty)) {
+        /* trap object might have been stolen or hero teleported */
         reset_trapset();
         return 0;
     }
@@ -3736,6 +3739,8 @@ use_pole(struct obj *obj, boolean autohit)
     return ECMD_TIME;
 }
 
+#undef glyph_is_poleable
+
 static int
 use_cream_pie(struct obj *obj)
 {
@@ -4015,12 +4020,11 @@ use_grapple(struct obj *obj)
     return ECMD_TIME;
 }
 
-#define BY_OBJECT ((struct monst *) 0)
-
 /* return 1 if the wand is broken, hence some time elapsed */
 static int
 do_break_wand(struct obj *obj)
 {
+#define BY_OBJECT ((struct monst *) 0)
     static const char nothing_else_happens[] = "But nothing else happens...";
     register int i;
     coordxy x, y;
@@ -4267,6 +4271,7 @@ do_break_wand(struct obj *obj)
         delobj(obj);
     nomul(0);
     return ECMD_TIME;
+#undef BY_OBJECT
 }
 
 /* getobj callback for object to apply - this is more complex than most other
@@ -4522,6 +4527,8 @@ doapply(void)
     case LAND_MINE:
     case BEARTRAP:
         use_trap(obj);
+        if (go.occupation == set_trap)
+            obj = (struct obj *) 0; /* not gone yet but behave as if it was */
         break;
     case FLINT:
     case LUCKSTONE:
@@ -4542,8 +4549,8 @@ doapply(void)
         pline("Sorry, I don't know how to use that.");
         return ECMD_FAIL;
     }
-    /* This assumes that anything that potentially destroyed obj has kept track
-     * of it and set obj to null before this point. */
+    /* This assumes that anything that potentially destroyed obj has kept
+     * track of it and set obj to null before this point. */
     if (obj && obj->oartifact) {
         res |= arti_speak(obj); /* sets ECMD_TIME bit if artifact speaks */
     }

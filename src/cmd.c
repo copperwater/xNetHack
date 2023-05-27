@@ -1,4 +1,4 @@
-/* NetHack 3.7	cmd.c	$NHDT-Date: 1678312816 2023/03/08 22:00:16 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.666 $ */
+/* NetHack 3.7	cmd.c	$NHDT-Date: 1684791777 2023/05/22 21:42:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.677 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -2680,7 +2680,7 @@ struct ext_func_tab extcmdlist[] = {
     { M('p'), "pray", "pray to the gods for help",
               dopray, IFBURIED | AUTOCOMPLETE, NULL },
     { C('p'), "prevmsg", "view recent game messages",
-              doprev_message, IFBURIED | GENERALCMD, NULL },
+              doprev_message, IFBURIED | GENERALCMD | CMD_INSANE, NULL },
     { 'P',    "puton", "put on an accessory (ring, amulet, etc)",
               doputon, 0, NULL },
     { 'q',    "quaff", "quaff (drink) something",
@@ -2693,7 +2693,7 @@ struct ext_func_tab extcmdlist[] = {
     { 'r',    "read", "read a scroll or spellbook",
               doread, 0, NULL },
     { C('r'), "redraw", "redraw screen",
-              doredraw, IFBURIED | GENERALCMD, NULL },
+              doredraw, IFBURIED | GENERALCMD | CMD_INSANE, NULL },
     { 'R',    "remove", "remove an accessory (ring, amulet, etc)",
               doremring, 0, NULL },
     { C('a'), "repeat", "repeat a previous command",
@@ -4281,6 +4281,14 @@ you_sanity_check(void)
 void
 sanity_check(void)
 {
+    if (iflags.sanity_no_check) {
+        /* in case a recurring sanity_check warning occurs, we mustn't
+           re-trigger it when ^P is used, otherwise msg_window:Single
+           and msg_window:Combination will always repeat the most recent
+           instance, never able to go back to any earlier messages */
+        iflags.sanity_no_check = FALSE;
+        return;
+    }
     you_sanity_check();
     obj_sanity_check();
     timer_sanity_check();
@@ -5038,6 +5046,12 @@ rhack(char *cmd)
                         cmdq_clear(CQ_REPEAT);
                     }
                 }
+                /* some commands shouldn't trigger sanity_check() because
+                   if it produces output that might interfere with them;
+                   note: if sanity_check is False, this has no effect */
+                if ((tlist->flags & CMD_INSANE) != 0)
+                    iflags.sanity_no_check = iflags.sanity_check;
+
                 res = (*func)(); /* perform the command */
                 /* if 'func' is doextcmd(), 'tlist' is for Cmd.commands['#']
                    rather than for the command that doextcmd() just ran;

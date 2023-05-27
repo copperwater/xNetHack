@@ -43,6 +43,7 @@ were_change(struct monst *mon)
                 if (howler) {
                     Soundeffect(se_canine_howl, 50);
                     You_hear("a %s %s at the moon.", howler, howl);
+                    wake_nearto(mon->mx, mon->my, 4 * 4);
                 }
             }
         }

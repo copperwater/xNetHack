@@ -1906,12 +1906,16 @@ poly_obj(struct obj *obj, int id)
             }
         } /* old_wornmask */
     } else if (obj_location == OBJ_FLOOR) {
-        if (obj->otyp == BOULDER && otmp->otyp != BOULDER
-            && !does_block(ox, oy, &levl[ox][oy]))
-            unblock_point(ox, oy);
-        else if (obj->otyp != BOULDER && otmp->otyp == BOULDER)
-            /* (checking does_block() here would be redundant) */
-            block_point(ox, oy);
+        if (obj->otyp == BOULDER && otmp->otyp != BOULDER) {
+            if (!does_block(ox, oy, &levl[ox][oy]))
+                unblock_point(ox, oy);
+        } else if (obj->otyp != BOULDER && otmp->otyp == BOULDER) {
+            /* leaving boulder in liquid would trigger sanity_check warning */
+            if (is_pool_or_lava(ox, oy))
+                fracture_rock(otmp);
+            if (does_block(ox, oy, &levl[ox][oy]))
+                block_point(ox, oy);
+        }
     }
 
     /* note: if otmp is gone, billing for it was handled by useup() */
@@ -2266,7 +2270,12 @@ bhito(struct obj *obj, struct obj *otmp)
             break;
         case WAN_TELEPORTATION:
         case SPE_TELEPORT_AWAY:
-            (void) rloco(obj);
+            {
+                coordxy ox = obj->ox, oy = obj->oy;
+
+                (void) rloco(obj);
+                maybe_unhide_at(ox, oy);
+            }
             break;
         case WAN_MAKE_INVISIBLE:
             break;

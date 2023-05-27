@@ -1,4 +1,4 @@
-/* NetHack 3.7	do.c	$NHDT-Date: 1652831519 2022/05/17 23:51:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.304 $ */
+/* NetHack 3.7	do.c	$NHDT-Date: 1683832317 2023/05/11 19:11:57 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.352 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -267,6 +267,8 @@ flooreffects(struct obj *obj, coordxy x, coordxy y, const char *verb)
  deletedwithboulder:
         if ((t = t_at(x, y)) != 0)
             deltrap(t);
+        if (u.utrap && u_at(x, y))
+            reset_utrap(FALSE);
         useupf(obj, 1L);
         bury_objs(x, y);
         newsym(x, y);
@@ -1538,7 +1540,7 @@ goto_level(
     set_ustuck((struct monst *) 0); /* clear u.ustuck and u.uswallow */
     set_uinwater(0); /* u.uinwater = 0 */
     u.uundetected = 0; /* not hidden, even if means are available */
-    if (!u.nofollowers)
+    if (!iflags.nofollowers)
         keepdogs(FALSE, at_stairs);
     recalc_mapseen(); /* recalculate map overview before we leave the level */
     /*

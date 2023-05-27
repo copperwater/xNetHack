@@ -147,9 +147,8 @@ fightm(register struct monst *mtmp)
                 }
 
                 /* mtmp can be killed */
-                gb.bhitpos.x = mon->mx;
-                gb.bhitpos.y = mon->my;
-                gn.notonhead = 0;
+                gb.bhitpos.x = mon->mx, gb.bhitpos.y = mon->my;
+                gn.notonhead = FALSE;
                 result = mattackm(mtmp, mon);
 
                 if (result & M_ATTK_AGR_DIED)
@@ -169,7 +168,8 @@ fightm(register struct monst *mtmp)
                         mon->movement -= NORMAL_SPEED;
                     else
                         mon->movement = 0;
-                    gn.notonhead = 0;
+                    gb.bhitpos.x = mtmp->mx, gb.bhitpos.y = mtmp->my;
+                    gn.notonhead = FALSE;
                     (void) mattackm(mon, mtmp); /* return attack */
                 }
 
@@ -185,8 +185,10 @@ fightm(register struct monst *mtmp)
  *                 returns same results as mattackm().
  */
 int
-mdisplacem(register struct monst *magr, register struct monst *mdef,
-           boolean quietly)
+mdisplacem(
+    struct monst *magr,
+    struct monst *mdef,
+    boolean quietly)
 {
     struct permonst *pa, *pd;
     int tx, ty, fx, fy;
@@ -301,7 +303,9 @@ mdisplacem(register struct monst *magr, register struct monst *mdef,
  * In the case of exploding monsters, the monster dies as well.
  */
 int
-mattackm(register struct monst *magr, register struct monst *mdef)
+mattackm(
+    register struct monst *magr,
+    register struct monst *mdef)
 {
     int i,          /* loop counter */
         tmp,        /* armor class difference */
@@ -576,6 +580,9 @@ mattackm(register struct monst *magr, register struct monst *mdef)
         /* return if aggressor can no longer attack */
         if (helpless(magr))
             return res[i];
+        /* eg. defender was knocked into a level teleport trap */
+        if (mon_offmap(mdef))
+            return res[i];
         if (res[i] & M_ATTK_HIT)
             struck = 1; /* at least one hit */
     } /* for (;i < NATTK;) loop */
@@ -586,14 +593,15 @@ mattackm(register struct monst *magr, register struct monst *mdef)
     return (struck ? M_ATTK_HIT : M_ATTK_MISS);
 }
 
-/* can't hold an unsolid target (ghosts, lights, vortices, most elementals) */
+/* can't hold an unsolid target (ghosts, lights, vortices, most elementals)
+   or a long worm tail */
 boolean
 failed_grab(
     struct monst *magr,
     struct monst *mdef,
     struct attack *mattk)
 {
-    if (unsolid(mdef->data)
+    if ((unsolid(mdef->data) || gn.notonhead)
         /* hug attack: most holders (owlbear, python, pit fiend, &c);
            wrap damage: eel grabbing, trapper/lurker-above engulfing;
            stick-to damage: mimic, lichen;
@@ -603,21 +611,30 @@ failed_grab(
         if ((gv.vis && canspotmon(mdef)) /* mon-vs-mon */
             || magr == &gy.youmonst || mdef == &gy.youmonst) {
             char magrnam[BUFSZ], mdefnam[BUFSZ];
+            boolean tailmiss = gn.notonhead;
             const char *verb = (mattk->adtyp == AD_DGST) ? "gulp"
                                : (mattk->adtyp == AD_STCK) ? "adhere"
                                  : "grab";
 
             /* beware of "Foo's grab passes through Bar's ghost";
                mon_nam(x_monnam) calls s_suffix() for named ghosts and
-               s_suffix() uses a single static buffer; make copies of
-               both names to overcome that */
+               s_suffix() uses a single static buffer; make copies of both
+               names to overcome that [note: comment predates 'tailmiss'] */
             Strcpy(magrnam, (magr == &gy.youmonst) ? "Your"
                                                    : s_suffix(Monnam(magr)));
-            Strcpy(mdefnam, (mdef == &gy.youmonst) ? "you" : mon_nam(mdef));
-            /* this is actually somewhat iffy--how come ordinary attacks
-               don't also pass right through? */
-            pline("%.99s %s attempt passes right through %.99s!",
-                  magrnam, verb, mdefnam);
+            if (!tailmiss) {
+                Strcpy(mdefnam, (mdef == &gy.youmonst) ? "you"
+                                                       : mon_nam(mdef));
+            } else {
+                /* hero poly'd into long worm can't grow tail
+                   so no 'youmonst' handling is needed here */
+                Sprintf(mdefnam, "%s tail", s_suffix(some_mon_nam(mdef)));
+            }
+            /* unsolid grab misses are actually somewhat iffy--how come
+               ordinary attacks don't also pass right through? */
+            pline("%.99s %s attempt %s %.99s!", magrnam, verb,
+                  !tailmiss ? "passes right through" : "fails to hold",
+                  mdefnam);
         }
         return TRUE;
     }
@@ -990,8 +1007,12 @@ explmm(struct monst *magr, struct monst *mdef, struct attack *mattk)
  *  See comment at top of mattackm(), for return values.
  */
 static int
-mdamagem(struct monst *magr, struct monst *mdef,
-         struct attack *mattk, struct obj *mwep, int dieroll)
+mdamagem(
+    struct monst *magr,
+    struct monst *mdef,
+    struct attack *mattk,
+    struct obj *mwep,
+    int dieroll)
 {
     struct permonst *pa = magr->data, *pd = mdef->data;
     struct mhitm_data mhm;
@@ -1041,7 +1062,7 @@ mdamagem(struct monst *magr, struct monst *mdef,
 
     if (mhitm_knockback(magr, mdef, mattk, &mhm.hitflags,
                         (MON_WEP(magr) != 0))
-        && ((mhm.hitflags & M_ATTK_DEF_DIED) != 0
+        && ((mhm.hitflags & (M_ATTK_DEF_DIED|M_ATTK_HIT)) != 0
             || (mdef->mstate & (MON_DETACH|MON_MIGRATING|MON_LIMBO)) != 0))
         return mhm.hitflags;
 
@@ -1276,11 +1297,15 @@ mswingsm(
  * handled above.  Returns same values as mattackm.
  */
 static int
-passivemm(register struct monst *magr, register struct monst *mdef,
-          boolean mhitb, int mdead, struct obj *mwep)
+passivemm(
+    struct monst *magr,
+    struct monst *mdef,
+    boolean mhitb,
+    int mdead,
+    struct obj *mwep)
 {
-    register struct permonst *mddat = mdef->data;
-    register struct permonst *madat = magr->data;
+    struct permonst *mddat = mdef->data;
+    struct permonst *madat = magr->data;
     char buf[BUFSZ];
     int i, tmp;
     int mhit = mhitb ? M_ATTK_HIT : M_ATTK_MISS;
