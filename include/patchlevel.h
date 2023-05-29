@@ -6,8 +6,8 @@
 #ifndef PATCHLEVEL_H
 #define PATCHLEVEL_H
 
-/* xNetHack 8.0 */
-#define VERSION_MAJOR 8
+/* xNetHack 9.0 */
+#define VERSION_MAJOR 9
 #define VERSION_MINOR 0
 /*
  * PATCHLEVEL is updated for each release.
@@ -17,7 +17,7 @@
  * Incrementing EDITLEVEL can be used to force invalidation of old bones
  * and save files.
  */
-#define EDITLEVEL 1
+#define EDITLEVEL 0
 
 /*
  * Development status possibilities.
@@ -30,7 +30,7 @@
 /*
  * Development status of this NetHack version.
  */
-#define NH_DEVEL_STATUS NH_STATUS_RELEASED
+#define NH_DEVEL_STATUS NH_STATUS_WIP
 
 #ifndef DEBUG  /* allow tool chains to define without causing warnings */
 #define DEBUG
