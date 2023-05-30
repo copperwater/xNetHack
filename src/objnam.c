@@ -3184,6 +3184,7 @@ static const struct alt_spellings {
     { "pie", CREAM_PIE },
     { "huge meatball", ENORMOUS_MEATBALL }, /* likely conflated name */
     { "huge chunk of meat", ENORMOUS_MEATBALL }, /* original name */
+    { "tripe", TRIPE_RATION },
     { "marker", MAGIC_MARKER },
     { "hook", GRAPPLING_HOOK },
     { "grappling iron", GRAPPLING_HOOK },
