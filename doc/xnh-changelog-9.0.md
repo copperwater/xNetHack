@@ -39,6 +39,7 @@ changes:
   spellbook (via the dust making you sneeze) causes enough noise to wake nearby
   monsters.
 - Monsters stepping on a squeaky board near you can wake you up.
+- Leprechauns have a one-sided grudge against gold golems and gold dragons.
 
 ### Interface changes
 

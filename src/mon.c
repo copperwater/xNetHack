@@ -2439,6 +2439,12 @@ mm_aggression(
     if (ma == &mons[PM_GUARD] && md == &mons[PM_LEPRECHAUN])
         return ALLOW_M|ALLOW_TM;
 
+    /* leprechans vs gold golems and (baby) gold dragons */
+    if (ma == &mons[PM_LEPRECHAUN]
+        && (md == &mons[PM_GOLD_GOLEM] || md == &mons[PM_GOLD_DRAGON]
+            || md == &mons[PM_BABY_GOLD_DRAGON]))
+        return ALLOW_M|ALLOW_TM;
+
     /* now test all two-way aggressions both ways */
     return (mm_2way_aggression(magr, mdef) | mm_2way_aggression(mdef, magr));
 }
