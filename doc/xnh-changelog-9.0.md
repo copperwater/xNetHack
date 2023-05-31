@@ -40,6 +40,8 @@ changes:
   direction to chat in.
 - When you are a few turns from temporary invisibility expiring, you receive a
   message warning you that you're becoming visible again.
+- When farlooking a closed and unlocked door you are next to, it will show up as
+  "unlocked door" instead of the generic "closed door".
 
 ### Architectural changes
 
