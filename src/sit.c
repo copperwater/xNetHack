@@ -245,6 +245,7 @@ dosit(void)
     static const char sit_message[] = "sit on the %s.";
     register struct trap *trap = t_at(u.ux, u.uy);
     register int typ = levl[u.ux][u.uy].typ;
+    struct engr *ep = engr_at(u.ux, u.uy);
 
     if (u.usteed) {
         You("are already sitting on %s.", mon_nam(u.usteed));
@@ -376,6 +377,12 @@ dosit(void)
         throne_sit_effect();
     } else if (lays_eggs(gy.youmonst.data)) {
         return lay_an_egg();
+    } else if (ep &&
+        (ep->engr_type == DUST || ep->engr_type == MARK || ep->engr_type == ENGR_BLOOD)) {
+        wipe_engr_at(u.ux, u.uy, rnd(5), FALSE);
+        if (!Blind)
+          Your("%s scuffs the message here.",
+            humanoid(gy.youmonst.data) ? "rump" : "underside");
     } else {
         pline("Having fun sitting on the %s?", surface(u.ux, u.uy));
     }
