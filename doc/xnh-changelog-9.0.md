@@ -50,6 +50,8 @@ changes:
 - The potion of gain energy can be alchemized by combining the potions of full
   healing and gain ability.
 - Sitting down can partly wipe engravings on your space.
+- The chance of finding a secret door or passage via searching is no longer
+  dependent on Luck.
 
 ### Interface changes
 
