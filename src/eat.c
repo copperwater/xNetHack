@@ -1992,8 +1992,10 @@ eatcorpse(struct obj *otmp)
                     "Tokay", "Istringy", "Igamey", "Ifatty", "Itough"
                 };
                 int idx = vegetarian(&mons[mnum]) ? 0 : rn2(SIZE(palatable_msgs));
-                taste = &palatable_msgs[idx][1];
+                taste = palatable_msgs[idx];
+                /* use and discard the 'T' or 'I' tag */
                 use_is = (*taste == 'I');
+                taste++;
             }
             else
                 taste = "terrible";
