@@ -675,12 +675,14 @@ lookat(coordxy x, coordxy y, char *buf, char *monbuf)
         case S_vcdoor:
         case S_hcdoor:
             if (IS_DOOR(levl[x][y].typ) && next2u(x, y)) {
-                if (door_is_locked(&levl[x][y]))
+                if (door_is_locked(&levl[x][y])) {
                   Strcpy(buf, "locked door");
-                else
+                } else {
                   Strcpy(buf, "unlocked door");
-            } else
+                }
+            } else {
                 Strcpy(buf, defsyms[symidx].explanation);
+            }
             break;
         case S_cloud:
             Strcpy(buf,
