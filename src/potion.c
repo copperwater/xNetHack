@@ -1427,31 +1427,36 @@ peffect_levitation(struct obj *otmp)
 static void
 peffect_gain_energy(struct obj *otmp)
 {
-    int num;
+    int max_change, current_change;
 
     if (otmp->cursed)
         You_feel("lackluster.");
     else
         pline("Magical energies course through your body.");
 
-    /* old: num = rnd(5) + 5 * otmp->blessed + 1;
-     *      blessed:  +7..11 max & current (+9 avg)
-     *      uncursed: +2.. 6 max & current (+4 avg)
-     *      cursed:   -2.. 6 max & current (-4 avg)
-     * new: (3.6.0)
-     *      blessed:  +3..18 max (+10.5 avg), +9..54 current (+31.5 avg)
-     *      uncursed: +2..12 max (+ 7   avg), +6..36 current (+21   avg)
-     *      cursed:   -1.. 6 max (- 3.5 avg), -3..18 current (-10.5 avg)
+    /* blessed:  +3..18 max (+10.5 avg), +9..54 current (+31.5 avg) OR 40% uenmax
+     * uncursed: +2..12 max (+ 7   avg), +6..36 current (+21   avg) OR 25% uenmax
+     * cursed:   -1.. 6 max (- 3.5 avg), -3..18 current (-10.5 avg)
      */
-    num = d(otmp->blessed ? 3 : !otmp->cursed ? 2 : 1, 6);
-    if (otmp->cursed)
-        num = -num; /* subtract instead of add when cursed */
-    u.uenmax += num;
+    if (otmp->blessed) {
+        max_change = d(3, 6);
+        current_change = 2 * u.uenmax / 5;
+    } else if(!otmp->cursed) {
+        max_change = d(2, 6);
+        current_change = u.uenmax / 4;
+    } else {
+        max_change = -1 * d(1, 6);
+        current_change = 3 * max_change;
+    }
+    if (current_change < 3 * max_change) {
+        current_change = 3 * max_change;
+    }
+    u.uenmax += max_change;
     if (u.uenmax > u.uenpeak)
         u.uenpeak = u.uenmax;
     else if (u.uenmax <= 0)
         u.uenmax = 0;
-    u.uen += 3 * num;
+    u.uen += current_change;
     if (u.uen > u.uenmax)
         u.uen = u.uenmax;
     else if (u.uen <= 0)
@@ -2471,10 +2476,13 @@ mixtype(struct obj *o1, struct obj *o2)
         /*FALLTHRU*/
     case POT_EXTRA_HEALING:
     case POT_FULL_HEALING:
-        if (o2typ == POT_GAIN_LEVEL || o2typ == POT_GAIN_ENERGY)
+        if (o2typ == POT_GAIN_LEVEL || o2typ == POT_GAIN_ENERGY) {
             return (o1typ == POT_HEALING) ? POT_EXTRA_HEALING
                    : (o1typ == POT_EXTRA_HEALING) ? POT_FULL_HEALING
                      : POT_GAIN_ABILITY;
+        } else if (o1typ == POT_FULL_HEALING && o2typ == POT_GAIN_ABILITY) {
+            return POT_GAIN_ENERGY;
+        }
         /*FALLTHRU*/
     case UNICORN_HORN:
         switch (o2typ) {
