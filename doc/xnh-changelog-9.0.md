@@ -40,6 +40,10 @@ changes:
   monsters.
 - Monsters stepping on a squeaky board near you can wake you up.
 - Leprechauns have a one-sided grudge against gold golems and gold dragons.
+- Rock moles can eat gems and rocks (and other objects made of stone, like
+  marble wands). Dilithium crystals grant them extra speed. The player can eat
+  boulders and (empty) statues when polymorphed into one, but other rock moles
+  won't.
 
 ### Interface changes
 

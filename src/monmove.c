@@ -1850,10 +1850,19 @@ m_move(register struct monst *mtmp, int after)
                 newsym(mtmp->mx, mtmp->my);
         }
         if (OBJ_AT(mtmp->mx, mtmp->my) && mtmp->mcanmove) {
+            etmp = 0; /* default "nothing happened" from meat*() funcs */
 
-            /* Maybe a rock mole just ate some metal object */
-            if (metallivorous(ptr)) {
-                if (meatmetal(mtmp) == 2)
+            /* Maybe a rock mole just ate some rock object */
+            if (lithivorous(ptr)) {
+                etmp = meatrocks(mtmp);
+                if (etmp == 2) /* not currently possible */
+                    return MMOVE_DIED;
+            }
+
+            /* Or maybe the rock mole just ate some metal object */
+            if (etmp == 0 && metallivorous(ptr)) {
+                etmp = meatmetal(mtmp);
+                if (etmp == 2)
                     return MMOVE_DIED; /* it died */
             }
 
