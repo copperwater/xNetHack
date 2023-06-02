@@ -44,6 +44,11 @@ changes:
   marble wands). Dilithium crystals grant them extra speed. The player can eat
   boulders and (empty) statues when polymorphed into one, but other rock moles
   won't.
+- Gain energy potions are guaranteed to restore more energy. A blessed one
+  restores at least 40% of your energy maximum and an uncursed one restores at
+  least 25%.
+- The potion of gain energy can be alchemized by combining the potions of full
+  healing and gain ability.
 
 ### Interface changes
 
