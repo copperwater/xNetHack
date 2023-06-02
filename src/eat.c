@@ -2470,7 +2470,17 @@ eatspecial(void)
     if (otmp->otyp == FLINT && !otmp->cursed) {
         /* chewable vitamin for kids based on "The Flintstones" TV cartoon */
         pline("Yabba-dabba delicious!");
+        makeknown(otmp->otyp);
         exercise(A_CON, TRUE);
+    }
+    if (otmp->otyp == DILITHIUM_CRYSTAL && !(HFast & FROMOUTSIDE)) {
+        if (Fast) {
+            Your("quickness feels more natural.");
+        } else {
+            You_feel("quick.");
+        }
+        HFast |= FROMOUTSIDE;
+        makeknown(otmp->otyp);
     }
 
     if (otmp == uwep && otmp->quan == 1L)
@@ -2812,6 +2822,10 @@ doeat_nonfood(struct obj *otmp)
                     an(food_xname(otmp, FALSE)));
             violated_vegetarian();
         }
+    }
+
+    if (material == MINERAL) {
+        nodelicious = TRUE;
     }
 
     if (otmp->oclass == WEAPON_CLASS && otmp->opoisoned) {
@@ -3174,6 +3188,7 @@ gethungry(void)
     if ((!Unaware || !rn2(10)) /* slow metabolic rate while asleep */
         && (carnivorous(gy.youmonst.data)
             || herbivorous(gy.youmonst.data)
+            || lithivorous(gy.youmonst.data)
             || metallivorous(gy.youmonst.data))
         && !Slow_digestion)
         u.uhunger--; /* ordinary food consumption */
@@ -3998,8 +4013,11 @@ can_eat_material(struct permonst *pm, int material)
         /* rust monsters can ONLY eat rustprone items */
         return is_rustprone(&psuedo);
     }
-    else if (metallivorous(pm)) {
-        return is_metallic(&psuedo);
+    else if (metallivorous(pm) && is_metallic(&psuedo)) {
+        return TRUE;
+    }
+    else if (lithivorous(pm) && (material == MINERAL || material == GEMSTONE)) {
+        return TRUE;
     }
     return FALSE;
 }
