@@ -28,6 +28,10 @@ changes:
   depth.
 - Cockatrice nests may contain chickatrices and cockatrice eggs.
 - Eating troll meat provides 2d6 turns of intrinsic regneneration.
+- Rock moles can eat gems and rocks (and other objects made of stone, like
+  marble wands). Dilithium crystals grant them extra speed. The player can eat
+  boulders and (empty) statues when polymorphed into one, but other rock moles
+  won't.
 
 ### Interface changes
 
