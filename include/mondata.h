@@ -293,8 +293,10 @@
             || obj->material == VEGGY                 \
             || ((obj)->otyp == CORPSE && (obj)->corpsenm == PM_LICHEN))))
 
-/* Wielding and opening doors use the same flags: handed and not verysmall. */
-#define can_open_doors(ptr) (!cantwield(ptr))
+/* Wielding and opening doors use the same flags: handed and not verysmall.
+   Exception: zombies cannot open doors.
+*/
+#define can_open_doors(ptr) (!cantwield(ptr) && !is_zombie(ptr))
 
 /* Noise that a monster makes when engaged in combat. Assume that vocalizations
  * account for some noise, so monsters capable of vocalizing make more.

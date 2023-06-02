@@ -52,6 +52,7 @@ changes:
 - Sitting down can partly wipe engravings on your space.
 - The chance of finding a secret door or passage via searching is no longer
   dependent on Luck.
+- Zombies cannot open closed doors.
 
 ### Interface changes
 
