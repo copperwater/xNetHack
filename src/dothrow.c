@@ -2118,6 +2118,12 @@ thitmonst(
 
     if (obj->oclass == WEAPON_CLASS || is_weptool(obj)
         || obj->oclass == GEM_CLASS) {
+        /* It is possible for a gem to be dogfood */
+        if (mon->mtame && dogfood(mon, obj) <= ACCFOOD) {
+            if (tamedog(mon, obj, FALSE)) {
+                return 1; /* obj is gone */
+            }
+        }
         if (hmode == HMON_KICKED) {
             /* throwing adjustments and weapon skill bonus don't apply */
             tmp -= (is_ammo(obj) ? 5 : 3);
