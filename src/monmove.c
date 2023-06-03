@@ -1850,32 +1850,43 @@ m_move(register struct monst *mtmp, int after)
                 newsym(mtmp->mx, mtmp->my);
         }
         if (OBJ_AT(mtmp->mx, mtmp->my) && mtmp->mcanmove) {
+            do {
+                /* Maybe a rock mole just ate some rock object */
+                if (lithivorous(ptr) && meatrocks(mtmp))
+                    break;
 
-            /* Maybe a rock mole just ate some metal object */
-            if (metallivorous(ptr)) {
-                if (meatmetal(mtmp) == 2)
-                    return MMOVE_DIED; /* it died */
-            }
+                /* Maybe a rock mole just ate some metal object */
+                if (metallivorous(ptr)) {
+                    if ((etmp = meatmetal(mtmp)) == 2)
+                        return MMOVE_DIED; /* it died */
+                    if (etmp == 1)
+                        break;
+                }
 
-            /* Maybe a cube ate just about anything */
-            if (ptr == &mons[PM_GELATINOUS_CUBE]) {
-                if ((etmp = meatobj(mtmp)) >= 2)
-                    return etmp; /* it died or got forced off the level */
-            }
-            /* Maybe a purple worm ate a corpse */
-            if (corpse_eater(ptr)) {
-                if ((etmp = meatcorpse(mtmp)) >= 2)
-                    return etmp; /* it died or got forced off the level */
-            }
+                /* Maybe a cube ate just about anything */
+                if (ptr == &mons[PM_GELATINOUS_CUBE]) {
+                    if ((etmp = meatobj(mtmp)) >= 2)
+                        return etmp; /* it died or got forced off the level */
+                    if (etmp == 1)
+                        break;
+                }
+                /* Maybe a purple worm ate a corpse */
+                if (corpse_eater(ptr)) {
+                    if ((etmp = meatcorpse(mtmp)) >= 2)
+                        return etmp; /* it died or got forced off the level */
+                    if (etmp == 1)
+                        break;
+                }
 
-            if (mpickstuff(mtmp))
-                mmoved = MMOVE_DONE;
+                if (mpickstuff(mtmp))
+                    mmoved = MMOVE_DONE;
 
-            if (mtmp->minvis) {
-                newsym(mtmp->mx, mtmp->my);
-                if (mtmp->wormno)
-                    see_wsegs(mtmp);
-            }
+                if (mtmp->minvis) {
+                    newsym(mtmp->mx, mtmp->my);
+                    if (mtmp->wormno)
+                        see_wsegs(mtmp);
+                }
+            } while(FALSE);
         }
 
         maybe_spin_web(mtmp);
