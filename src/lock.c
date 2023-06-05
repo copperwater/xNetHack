@@ -67,7 +67,9 @@ lock_action(void)
 static int
 picklock(void)
 {
-    coordxy doorx = u.ux + u.dx, doory = u.uy + u.dy;
+    coordxy doorx = u.ux + u.dx, doory = u.uy + u.dy, behind_x, behind_y;
+    boolean credit_card_slipped;
+
     if (gx.xlock.box) {
         if (gx.xlock.box->where != OBJ_FLOOR
             || gx.xlock.box->ox != u.ux || gx.xlock.box->oy != u.uy) {
@@ -124,6 +126,26 @@ picklock(void)
         You("give up your attempt at %s.", lock_action());
         exercise(A_DEX, TRUE); /* even if you don't succeed */
         return ((gx.xlock.usedtime = 0));
+    }
+
+    if (gx.xlock.picktyp == CREDIT_CARD && (Fumbling || gx.xlock.pick->cursed) && !rn2(20)) {
+        if (gx.xlock.door) {
+            behind_x = doorx + (gx.xlock.door->horizontal ? 0 : u.dx);
+            behind_y = doory + (gx.xlock.door->horizontal ? u.dy : 0);
+            credit_card_slipped = isok(behind_x, behind_y) && SPACE_POS(levl[behind_x][behind_y].typ);
+        } else {
+            credit_card_slipped = TRUE;
+        }
+        if (credit_card_slipped) {
+            Your("%s slips through the crack!", xname(gx.xlock.pick));
+            obj_extract_self(gx.xlock.pick);
+            if (gx.xlock.door) {
+                place_object(gx.xlock.pick, behind_x, behind_y);
+            } else {
+                add_to_container(gx.xlock.box, gx.xlock.pick);
+            }
+            return ((gx.xlock.usedtime = 0));
+        }
     }
 
     if (rn2(100) >= gx.xlock.chance)
