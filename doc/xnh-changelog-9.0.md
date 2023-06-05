@@ -26,6 +26,8 @@ changes:
 - Every lock in the game may be unopenable by using a credit card. Boxes have a
   40% chance, and doors have a chance that starts at 10% and increases with
   depth.
+- Also, if the card is cursed or you are fumbling, the card may slip through the
+  lock, ending up inside a box or on the other side of a door.
 - Cockatrice nests may contain chickatrices and cockatrice eggs.
 - Eating troll meat provides 2d6 turns of intrinsic regneneration.
 - Drinking from a magic fountain when either HP or Pw is below 60% may give a
