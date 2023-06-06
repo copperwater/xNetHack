@@ -38,6 +38,8 @@ changes:
 - When you #chat and are next to only one observable monster, you will
   automatically attempt to chat to that monster without being prompted for a
   direction to chat in.
+- When you are a few turns from temporary invisibility expiring, you receive a
+  message warning you that you're becoming visible again.
 
 ### Architectural changes
 
