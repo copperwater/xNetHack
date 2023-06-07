@@ -4472,7 +4472,9 @@ readobjnam_postparse1(struct _readobjnam_data *d)
         && strncmpi(d->bp, "light armor", 11)
         && strncmpi(d->bp, "tooled horn", 11)
         && strncmpi(d->bp, "food ration", 11)
-        && strncmpi(d->bp, "meat ring", 9))
+        && strncmpi(d->bp, "meat ring", 9)
+        && strncmpi(d->bp, "amulet of storms", 16)
+        )
         for (i = 0; i < (int) (sizeof wrpsym); i++) {
             register int j = Strlen(wrp[i]);
 

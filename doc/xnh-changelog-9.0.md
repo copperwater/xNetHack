@@ -40,6 +40,10 @@ changes:
   monsters.
 - Monsters stepping on a squeaky board near you can wake you up.
 - Leprechauns have a one-sided grudge against gold golems and gold dragons.
+- New artifact The Amulet of Storms: a chaotic amulet of flying that grants
+  shock resistance when worn and allows you to chat to hostile vortices, air
+  elementals, and storm giants to pacify them. It also prevents you from being
+  paralyzed by lightning on the Plane of Air.
 
 ### Interface changes
 
