@@ -189,6 +189,11 @@ static NEARDATA struct artifact artilist[] = {
       NO_CARY, CONFLICT, A_CHAOTIC, NON_PM, NON_PM, 4000L, NO_COLOR, GOLD,
       APPLE_OF_DISCORD),
 
+    A("The Amulet of Storms", AMULET_OF_FLYING,
+      (SPFX_RESTR | SPFX_DEFN), 0, 0,
+      NO_ATTK, DFNS(AD_ELEC), NO_CARY, 0, A_CHAOTIC, NON_PM,
+      NON_PM, 600L, NO_COLOR, DEFAULT_MAT, AMULET_OF_STORMS),
+
     /*
      *      The artifacts for the quest dungeon, all self-willed.
      */
