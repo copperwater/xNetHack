@@ -12,6 +12,8 @@ static boolean temple_priest_sound(struct monst *);
 static boolean mon_is_gecko(struct monst *);
 static int domonnoise(struct monst *);
 static int dochat(void);
+static boolean is_stormy_monster(struct monst *);
+static void pacify_with_words(struct monst *);
 static struct monst *responsive_mon_at(int, int);
 static int mon_in_room(struct monst *, int);
 
@@ -1351,6 +1353,11 @@ dochat(void)
         return ECMD_OK;
     }
     if (u.uswallow) {
+        if (uamul && uamul->oartifact == ART_AMULET_OF_STORMS
+            && is_stormy_monster(u.ustuck)) {
+            pacify_with_words(u.ustuck);
+            return ECMD_OK;
+        }
         pline("They won't hear you out there.");
         return ECMD_OK;
     }
@@ -1467,6 +1474,12 @@ dochat(void)
         return ECMD_OK;
     }
 
+    if (uamul && uamul->oartifact == ART_AMULET_OF_STORMS
+        && is_stormy_monster(mtmp)) {
+        pacify_with_words(mtmp);
+        return ECMD_OK;
+    }
+
     /* if this monster is waiting for something, prod it into action */
     mtmp->mstrategy &= ~STRAT_WAITMASK;
 
@@ -1488,6 +1501,27 @@ dochat(void)
         return ECMD_OK;
     }
     return domonnoise(mtmp);
+}
+
+
+static boolean
+is_stormy_monster(struct monst * mtmp)
+{
+    return
+    !mtmp->mpeaceful &&
+    (mtmp->data->mlet == S_VORTEX
+    || mtmp->data == &mons[PM_AIR_ELEMENTAL]
+    || mtmp->data == &mons[PM_STORM_GIANT])
+    && !is_vampshifter(mtmp) && !mtmp->iswiz
+    ;
+}
+
+static void
+pacify_with_words(struct monst *mtmp)
+{
+    Your("words soothe %s.", mon_nam(mtmp));
+    mtmp->mpeaceful = 1;
+    newsym(mtmp->mx, mtmp->my);
 }
 
 /* is there a monster at <x,y> that can see the hero and react? */
