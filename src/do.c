@@ -1836,6 +1836,25 @@ goto_level(
     } else if (In_sokoban(&u.uz)) {
         if (newdungeon)
             record_achievement(ACH_SOKO);
+    } else if (Is_wizpuzzle_lev(&u.uz) && new && !newdungeon && at_stairs) {
+        /* if you somehow got into the wizard's tower puzzle from above, by
+         * descending the ladder in the center, WITHOUT having triggered the
+         * puzzle to move out of its init state (unsolved, with two lined-up
+         * gaps at chamber 0).
+         * Shut down the mechanism so that you don't trigger it when you move
+         * into the chamber and get crushed to death by the wall falling down.
+         * This should only be possible in wizard mode where you can level
+         * teleport directly to the upper floors. In normal play, you should
+         * have entered this level before and either solved the puzzle or
+         * triggered it to move. (It's not unwinnable to leave the player
+         * trapped inside the ring of undiggable walls because they can always
+         * climb back up and fall down the hole on wizard2, which will place
+         * them in an outer chamber.) */
+        if (wizard)
+            debugpline0("Marking un-entered wizard puzzle as solved...");
+        else
+            impossible("got to wizard3 ladder without ever entering level?");
+        gw.wizpuzzle.entered = gw.wizpuzzle.solved = TRUE;
     } else {
         if (new && Is_bigroom(&u.uz)) {
             record_achievement(ACH_BGRM);
