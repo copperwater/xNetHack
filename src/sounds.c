@@ -1340,6 +1340,8 @@ dochat(void)
     struct monst *mtmp;
     int tx, ty;
     struct obj *otmp;
+    int mon_count = 0;
+    int dx, dy;
 
     if (is_silent(gy.youmonst.data)) {
         pline("As %s, you cannot speak.",
@@ -1370,7 +1372,24 @@ dochat(void)
         return ECMD_TIME;
     }
 
-    if (!getdir("Talk to whom? (in what direction)")) {
+    /* count the monsters surrounding the player */
+    u.dx = u.dy = u.dz = 0;
+    for (dx = -1; dx <= +1; dx++) {
+        for (dy = -1; dy <= +1; dy++) {
+            if (u.ux + dx == u.ux && u.uy + dy == u.uy)
+                continue;
+            mtmp = m_at(u.ux + dx, u.uy + dy);
+            if (mtmp && canspotmon(mtmp)) {
+                mon_count++;
+                u.dx = dx;
+                u.dy = dy;
+            }
+        }
+    }
+
+    /* only ask for directions if there is more or less than one monster
+     * around */
+    if (mon_count != 1 && !getdir("Talk to whom? (in what direction)")) {
         /* decided not to chat */
         return ECMD_CANCEL;
     }
