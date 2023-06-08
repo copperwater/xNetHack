@@ -1024,6 +1024,8 @@ polymon(int mntmp, int msgflags)
             pline(use_thec, monsterc, "shriek");
         if (is_vampire(uptr) || is_vampshifter(&gy.youmonst))
             pline(use_thec, monsterc, "change shape");
+        if(attacktype(uptr, AT_EXPL))
+            pline(use_thec, monsterc, "explode");
 
         if (lays_eggs(uptr) && flags.female
             && !(uptr == &mons[PM_GIANT_EEL]
@@ -1943,6 +1945,20 @@ domindblast(void)
                 killed(mtmp);
         }
     }
+    return ECMD_TIME;
+}
+
+/* Explode self as monster with exploding attack */
+int
+doselfexplode(void)
+{
+    struct attack *attk = attacktype_fordmg(gy.youmonst.data, AT_EXPL, AD_ANY);
+
+    wake_nearto(u.ux, u.uy, 7 * 7); /* same radius as explum() */
+    if (attk)
+        explum((struct monst *) 0, attk);
+    u.mh = -1; /* dead in the current form */
+    rehumanize();
     return ECMD_TIME;
 }
 
