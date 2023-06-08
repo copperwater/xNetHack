@@ -35,6 +35,9 @@ changes:
   equivalent from vanilla).
 - Pets are referred to with their correct gender pronoun if they have one,
   rather than "it".
+- When you #chat and are next to only one observable monster, you will
+  automatically attempt to chat to that monster without being prompted for a
+  direction to chat in.
 
 ### Architectural changes
 
