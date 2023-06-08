@@ -57,6 +57,7 @@ enum ms_sounds {
     MS_SPELL    = 42,   /* spellcaster not matching any of the above */
     MS_BOAST    = 43,   /* giants */
     MS_GROAN    = 44,   /* zombies groan */
+    MS_TROLL    = 45,   /* May troll hallucinating player */
 };
 
 #define MR_FIRE         0x01 /* resists fire */

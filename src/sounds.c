@@ -978,6 +978,22 @@ domonnoise(register struct monst* mtmp)
         Soundeffect((mtmp->mpeaceful ? se_buzz : se_angry_drone), 80);
         pline_msg = mtmp->mpeaceful ? "drones." : "buzzes angrily.";
         break;
+    case MS_TROLL:
+        if (Hallucination) {
+            switch(rn2(3)) {
+            case 0:
+                verbl_msg = "Problem?";
+                break;
+            case 1:
+                verbl_msg = "U mad bro?";
+                break;
+            case 2:
+                verbl_msg = "Trolololol!";
+                break;
+            }
+            break;
+        }
+        /*FALLTHRU*/
     case MS_GRUNT:
         Soundeffect(se_grunt, 60);
         pline_msg = "grunts.";
