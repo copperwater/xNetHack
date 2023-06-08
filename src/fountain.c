@@ -250,24 +250,36 @@ drinkfountain(void)
     }
 
     if (mgkftn && !Doomed && u.uluck >= 0 && fate >= 10) {
-        int i, ii, littleluck = (u.uluck < 4);
+        if (u.uhp < u.uhpmax * 3 / 5 || u.uen < u.uenmax * 3 / 5) {
+            /* Healing spring */
+            pline("Wow!  You feel healed and energized!");
+            if (++u.uhpmax > u.uhppeak)
+                u.uhppeak = u.uhpmax;
+            u.uhp = u.uhpmax;
+            if (++u.uenmax > u.uenpeak)
+                u.uenpeak = u.uenmax;
+            u.uen = u.uenmax;
+            gc.context.botl = 1;
+        } else {
+            int i, ii, littleluck = (u.uluck < 4);
 
-        pline("Wow!  This makes you feel great!");
-        /* blessed restore ability */
-        for (ii = 0; ii < A_MAX; ii++)
-            if (ABASE(ii) < AMAX(ii)) {
-                ABASE(ii) = AMAX(ii);
-                gc.context.botl = 1;
+            pline("Wow!  This makes you feel great!");
+            /* blessed restore ability */
+            for (ii = 0; ii < A_MAX; ii++)
+                if (ABASE(ii) < AMAX(ii)) {
+                    ABASE(ii) = AMAX(ii);
+                    gc.context.botl = 1;
+                }
+            /* gain ability, blessed if "natural" luck is high */
+            i = rn2(A_MAX); /* start at a random attribute */
+            for (ii = 0; ii < A_MAX; ii++) {
+                if ((adjattrib(i, 1, littleluck ? AA_CONDMSG : AA_YESMSG)
+                         == AA_CURRCHNG)
+                    && littleluck)
+                    break;
+                if (++i >= A_MAX)
+                    i = 0;
             }
-        /* gain ability, blessed if "natural" luck is high */
-        i = rn2(A_MAX); /* start at a random attribute */
-        for (ii = 0; ii < A_MAX; ii++) {
-            if ((adjattrib(i, 1, littleluck ? AA_CONDMSG : AA_YESMSG)
-                     == AA_CURRCHNG)
-                && littleluck)
-                break;
-            if (++i >= A_MAX)
-                i = 0;
         }
         display_nhwindow(WIN_MESSAGE, FALSE);
         pline("A wisp of vapor escapes the fountain...");
