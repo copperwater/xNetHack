@@ -32,6 +32,9 @@ changes:
   healing spring effect that increases both maximums by 1 and fully restores
   both, instead of the usual gain ability effect. The fountain still becomes
   nonmagical afterward.
+- Monsters will consider if their regular melee attacks might deal a lot more
+  damage to the hero than their offensive items would, and may subsequently
+  decide to attack in melee rather than using that offensive item.
 
 ### Interface changes
 

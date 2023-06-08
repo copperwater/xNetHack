@@ -1670,14 +1670,28 @@ mbhit(
 int
 use_offensive(struct monst *mtmp)
 {
-    int i;
+    int i, maxdmg = 0;
     struct obj *otmp = gm.m.offensive;
     boolean oseen;
+    struct attack *mattk;
 
     /* offensive potions are not drunk, they're thrown */
     if (otmp->oclass != POTION_CLASS && (i = precheck(mtmp, otmp)) != 0)
         return i;
     oseen = otmp && canseemon(mtmp);
+
+    /* total up the possible damage for just swinging */
+    for (i = 0; i < NATTK; i++) {
+        mattk = &mtmp->data->mattk[i];
+        maxdmg += mattk->damn * mattk->damd;
+    }
+
+    if ((maxdmg > 36 || (MON_WEP(mtmp) && MON_WEP(mtmp)->oartifact))
+        && (monnear(mtmp, mtmp->mux, mtmp->muy)
+        && gm.m.has_offense != MUSE_WAN_DEATH
+        && gm.m.has_offense != MUSE_WAN_SLEEP)) {
+        return 0;
+    }
 
     switch (gm.m.has_offense) {
     case MUSE_WAN_DEATH:
