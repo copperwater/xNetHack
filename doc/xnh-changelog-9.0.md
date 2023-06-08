@@ -28,6 +28,10 @@ changes:
   depth.
 - Cockatrice nests may contain chickatrices and cockatrice eggs.
 - Eating troll meat provides 2d6 turns of intrinsic regneneration.
+- Drinking from a magic fountain when either HP or Pw is below 60% may give a
+  healing spring effect that increases both maximums by 1 and fully restores
+  both, instead of the usual gain ability effect. The fountain still becomes
+  nonmagical afterward.
 
 ### Interface changes
 
