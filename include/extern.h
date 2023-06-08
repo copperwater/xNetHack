@@ -2324,6 +2324,7 @@ extern int dogaze(void);
 extern int dohide(void);
 extern int dopoly(void);
 extern int domindblast(void);
+extern int doselfexplode(void);
 extern void uunstick(void);
 extern void skinback(boolean);
 extern const char *mbodypart(struct monst *, int);

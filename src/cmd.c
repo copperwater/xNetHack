@@ -962,6 +962,9 @@ domonability(void)
             aggravate();
     } else if (is_vampire(uptr) || is_vampshifter(&gy.youmonst)) {
         return dopoly();
+    } else if (attacktype(uptr, AT_EXPL)) {
+        You("explode!");
+        return doselfexplode();
     } else if (Upolyd) {
         pline("Any special ability you may have is purely reflexive.");
     } else {

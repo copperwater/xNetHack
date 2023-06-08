@@ -54,6 +54,9 @@ changes:
 - When farlooking a closed and unlocked door you are next to, it will show up as
   "unlocked door" instead of the generic "closed door".
 - Produce a message when a nymph teleports away after a successful theft.
+- When polymorphed into a monster with an explosion attack, you can #monster to
+  intentionally explode. (This was already possible by attacking a monster or
+  force-fighting thin air.)
 
 ### Architectural changes
 
