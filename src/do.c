@@ -698,8 +698,8 @@ canletgo(struct obj *obj, const char *word)
     }
     if (undroppable(obj)) {
         if (*word) {
-            pline("For some reason, you cannot %s%s the %s!", word,
-                  obj->quan > 1 ? " any of" : "", xname(obj));
+            pline("For some reason, you cannot %s%s %s!", word,
+                  obj->quan > 1 ? " any of" : "", the(xname(obj)));
         }
         set_bknown(obj, 1);
         return FALSE;
