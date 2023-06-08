@@ -1385,7 +1385,11 @@ done(int how)
         else {
             if (how == CHOKING)
                 You("vomit ...");
-            You_feel("much better!");
+            if (!Hallucination) {
+                You_feel("much better!");
+            } else {
+                pline("The world is destroyed and reborn anew exactly as it was!");
+            }
             pline_The("medallion crumbles to dust!");
             if (uamul)
                 useup(uamul);

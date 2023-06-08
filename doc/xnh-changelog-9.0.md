@@ -79,6 +79,11 @@ changes:
   causes a random polymorph.)
 - The legacy text at the start of the game uses different role-based opening
   lines that replace the standard "It is written in the Book of [deity]:"
+- YAFMs:
+  - Chatting to a troll (even though you can't see it's a troll) while
+    hallucinating.
+  - Being life-saved while hallucinating.
+  - Monster drinking a potion where you can't see while hallucinating.
 
 ### Architectural changes
 
