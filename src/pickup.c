@@ -2808,7 +2808,7 @@ in_container(struct obj *obj)
         return 0;
     } else if (undroppable(obj)) {
         set_bknown(obj, 1);
-        pline("%s won't leave your person.", xname(obj));
+        pline("%s won't leave your person.", The(xname(obj)));
         return 0;
     } else if (obj->otyp == AMULET_OF_YENDOR
                || obj->otyp == CANDELABRUM_OF_INVOCATION
