@@ -1497,7 +1497,7 @@ zap_dig(void)
     if (u.dz) {
         if (!Is_airlevel(&u.uz) && !Is_waterlevel(&u.uz) && !Underwater) {
             if ((u.dz < 0 || On_stairs(u.ux, u.uy))
-                && !gl.level.flags.outdoors) {
+                && ceiling_exists(u.ux, u.uy)) {
                 int dmg;
                 if (On_stairs(u.ux, u.uy)) {
                     stairway *stway = stairway_at(u.ux, u.uy);
