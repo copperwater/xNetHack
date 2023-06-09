@@ -2939,6 +2939,17 @@ potion_dip(struct obj *obj, struct obj *potion)
         return ECMD_TIME;
     }
 
+    /* removing erosion from items */
+    if (potion->otyp == POT_RESTORE_ABILITY && !potion->cursed
+        && erosion_matters(obj) && (obj->oeroded || obj->oeroded2)) {
+        obj->oeroded = obj->oeroded2 = 0;
+        pline("%s as good as new!", Yobjnam2(obj, Blind ? "feel" : "look"));
+        if (potion->dknown)
+            makeknown(POT_RESTORE_ABILITY);
+        useup(potion);
+        return ECMD_TIME;
+    }
+
     /* resetting a cancelled thiefstone */
     if (potion->otyp == POT_RESTORE_ABILITY
         && obj->otyp == THIEFSTONE && !thiefstone_ledger_valid(obj)
