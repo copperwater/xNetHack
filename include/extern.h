@@ -742,7 +742,7 @@ extern boolean Is_botlevel(d_level *);
 extern boolean Can_fall_thru(d_level *);
 extern boolean Can_dig_down(d_level *);
 extern boolean Can_rise_up(coordxy, coordxy, d_level *);
-extern boolean ceiling_exists(coordxy, coordxy, boolean);
+extern boolean ceiling_exists(coordxy, coordxy);
 extern boolean has_ceiling(d_level *);
 extern boolean avoid_ceiling(d_level *);
 extern const char *surface(coordxy, coordxy);

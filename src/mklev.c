@@ -1965,7 +1965,7 @@ mktrap(
             case RUST_TRAP:
             case ROCKTRAP:
                 /* certain traps that rely on a ceiling to make sense */
-                if (tm && !ceiling_exists(tm->x, tm->y, FALSE))
+                if (tm && !ceiling_exists(tm->x, tm->y))
                     kind = NO_TRAP;
             }
         } while (kind == NO_TRAP);
@@ -1991,7 +1991,7 @@ mktrap(
                 return;
         } while (occupied(m.x, m.y)
                  || (avoid_boulder && sobj_at(BOULDER, m.x, m.y))
-                 || (need_ceiling && !ceiling_exists(m.x, m.y, FALSE)));
+                 || (need_ceiling && !ceiling_exists(m.x, m.y)));
     }
 
     t = maketrap(m.x, m.y, kind);
