@@ -1878,7 +1878,7 @@ ceiling_exists(coordxy x, coordxy y)
     if (!isok(x, y))
         return FALSE;
     /* now check for exceptions */
-    if (HAS_CEILING(x, y))
+    if (levl[x][y].ceiling)
         return TRUE;
 
     return FALSE;

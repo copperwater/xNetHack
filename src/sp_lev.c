@@ -29,7 +29,6 @@ static int flip_encoded_direction_bits(int, int);
 static void flip_vault_guard(int, struct monst *,
                              coordxy, coordxy, coordxy, coordxy);
 static void sel_set_wall_property(coordxy, coordxy, genericptr_t);
-static void sel_set_flags(coordxy, coordxy, genericptr_t);
 static void set_wall_property(coordxy, coordxy, coordxy, coordxy, int);
 static void count_features(void);
 static void remove_boundary_syms(void);
@@ -104,6 +103,7 @@ static int get_table_region(lua_State *, const char *, lua_Integer *,
                         lua_Integer *, lua_Integer *, lua_Integer *, boolean);
 static void set_wallprop_in_selection(lua_State *, int);
 static void set_prop_in_selection(lua_State *, select_iter_func, int);
+static void sel_set_ceiling(coordxy, coordxy, genericptr_t);
 static coordxy random_wdir(void);
 static int floodfillchk_match_under(coordxy, coordxy);
 static int floodfillchk_match_accessible(coordxy, coordxy);
@@ -964,14 +964,6 @@ sel_set_wall_property(coordxy x, coordxy y, genericptr_t arg)
            (checked by chewing(hack.c) and zap_over_floor(zap.c)) */
         || levl[x][y].typ == IRONBARS)
         levl[x][y].wall_info |= prop;
-}
-
-static void
-sel_set_flags(coordxy x, coordxy y, genericptr_t arg)
-{
-    int prop = *(int *)arg;
-
-    levl[x][y].flags |= prop;
 }
 
 /*
@@ -6725,6 +6717,14 @@ lspo_non_passwall(lua_State *L)
     return 0;
 }
 
+static void
+sel_set_ceiling(coordxy x, coordxy y, genericptr_t arg)
+{
+    int val = *(int *)arg;
+
+    levl[x][y].ceiling = val;
+}
+
 /* should be used for 'outdoors' flagged levels, to specify areas which have
  * ceilings */
 /* add_ceiling(selection); */
@@ -6732,7 +6732,7 @@ lspo_non_passwall(lua_State *L)
 int
 lspo_add_ceiling(lua_State *L)
 {
-    set_prop_in_selection(L, sel_set_flags, BECEILINGED);
+    set_prop_in_selection(L, sel_set_ceiling, 1);
     return 0;
 }
 
