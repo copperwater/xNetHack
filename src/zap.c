@@ -998,15 +998,20 @@ revive(struct obj *corpse, boolean by_hero)
         if (cansee(x, y)) {
             char buf[BUFSZ];
 
-            Strcpy(buf, one_of ? "one of " : "");
-            /* shk_your: "the " or "your " or "<mon>'s " or "<Shk>'s ".
-               If the result is "Shk's " then it will be ambiguous:
-               is Shk the mon carrying it, or does Shk's shop own it?
-               Let's not worry about that... */
-            (void) shk_your(eos(buf), corpse);
-            if (one_of)
-                corpse->quan++; /* force plural */
-            Strcat(buf, corpse_xname(corpse, (const char *) 0, CXN_NO_PFX));
+            if (mtmp->mtame) {
+                Sprintf(buf, "%s corpse", s_suffix(y_monnam(mtmp)));
+            } else {
+                Strcpy(buf, one_of ? "one of " : "");
+                /* shk_your: "the " or "your " or "<mon>'s " or "<Shk>'s ".
+                   If the result is "Shk's " then it will be ambiguous:
+                   is Shk the mon carrying it, or does Shk's shop own it?
+                   Let's not worry about that... */
+                (void) shk_your(eos(buf), corpse);
+                if (one_of)
+                    corpse->quan++; /* force plural */
+                Strcat(buf,
+                       corpse_xname(corpse, (const char *) 0, CXN_NO_PFX));
+            }
             if (one_of) /* could be simplified to ''corpse->quan = 1L;'' */
                 corpse->quan--;
             pline("%s glows iridescently.", upstart(buf));
@@ -2307,7 +2312,7 @@ bhito(struct obj *obj, struct obj *otmp)
                     if (cansee(ox, oy)) {
                         if (canspotmon(mtmp)) {
                             pline("%s is resurrected!",
-                                  upstart(noname_monnam(mtmp, ARTICLE_THE)));
+                                  mtmp->mtame ? upstart(y_monnam(mtmp)) : upstart(noname_monnam(mtmp, ARTICLE_THE)));
                             learn_it = by_u ? TRUE : gz.zap_oseen;
                         } else {
                             /* saw corpse but don't see monster: maybe
