@@ -3226,7 +3226,7 @@ zap_updown(struct obj *obj) /* wand or spell */
                 destroy_drawbridge(xx, yy);
             disclose = TRUE;
         } else if (striking && u.dz < 0 && rn2(3)
-                   && ceiling_exists() && !Underwater) {
+                   && ceiling_exists(x, y, FALSE) && !Underwater) {
             int dmg;
             /* similar to zap_dig() */
             pline("A rock is dislodged from the %s and falls on your %s.",

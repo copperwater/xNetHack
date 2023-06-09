@@ -1984,7 +1984,7 @@ seffect_earth(struct obj **sobjp)
         }
         pline("The earth moves around you!");
     }
-    else if (has_ceiling(&u.uz)
+    else if (ceiling_exists(u.ux, u.uy, !scursed)
              && (!In_endgame(&u.uz) || Is_earthlevel(&u.uz))) {
         coordxy x, y;
         int nboulders = 0;
@@ -2016,6 +2016,7 @@ seffect_earth(struct obj **sobjp)
                 for (y = u.uy - 1; y <= u.uy + 1; y++) {
                     /* Is this a suitable spot? */
                     if (isok(x, y) && !closed_door(x, y)
+                        && ceiling_exists(x, y, FALSE)
                         && !IS_ROCK(levl[x][y].typ)
                         && !IS_AIR(levl[x][y].typ)
                         && (x != u.ux || y != u.uy)) {
@@ -2025,7 +2026,7 @@ seffect_earth(struct obj **sobjp)
                 }
             }
         /* Attack the player */
-        if (!sblessed) {
+        if (!sblessed && ceiling_exists(u.ux, u.uy, FALSE)) {
             drop_boulder_on_player(FALSE, !scursed, TRUE, FALSE);
         } else if (!nboulders)
             pline("But nothing else happens.");

@@ -1963,10 +1963,14 @@ mktrap(
                     kind = NO_TRAP;
                 break;
             case RUST_TRAP:
-            case ROCKTRAP:
+            case ROCKTRAP: {
                 /* certain traps that rely on a ceiling to make sense */
-                if (!has_ceiling(&u.uz))
+                int x = 0, y = 0;
+                if (tm)
+                    x = tm->x, y = tm->y;
+                if (!ceiling_exists(x, y, FALSE))
                     kind = NO_TRAP;
+            }
             }
         } while (kind == NO_TRAP);
     }

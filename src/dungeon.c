@@ -1864,6 +1864,38 @@ surface(coordxy x, coordxy y)
         return "ground";
 }
 
+boolean
+ceiling_exists(coordxy x, coordxy y, boolean check_surroundings)
+{
+    /* no exceptions on certain levels */
+    if (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz))
+        return FALSE;
+    if (!gl.level.flags.outdoors)
+        return TRUE;
+
+    /* if we're given 0,0 or similar out-of-bounds candidate, just return
+       the default ceiling state for the level -- after previous checks it
+       must be no-ceiling */
+    if (!isok(x, y))
+        return FALSE;
+
+    /* now check for exceptions */
+    if (HAS_CEILING(x, y))
+        return TRUE;
+
+    if (check_surroundings) {
+        int xx, yy;
+        for (xx = x - 1; xx <= x + 1; ++xx) {
+            for (yy = y - 1; yy <= y + 1; ++yy) {
+                if (isok(xx, yy) && HAS_CEILING(xx, yy))
+                    return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
 /*
  * It is expected that the second argument of get_level is a depth value,
  * either supplied by the user (teleport control) or randomly generated.

@@ -1309,7 +1309,7 @@ toss_up(struct obj *obj, boolean hitsroof)
                          && touch_petrifies(&mons[obj->corpsenm]));
     /* note: obj->quan == 1 */
 
-    if (!has_ceiling(&u.uz)) {
+    if (!ceiling_exists(u.ux, u.uy, FALSE)) {
         action = "flies up into"; /* into "the sky" or "the water above" */
     } else if (hitsroof) {
         if (breaktest(obj)) {
