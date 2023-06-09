@@ -252,7 +252,7 @@ drinkfountain(void)
     if (mgkftn && !Doomed && u.uluck >= 0 && fate >= 10) {
         if (u.uhp < u.uhpmax * 3 / 5 || u.uen < u.uenmax * 3 / 5) {
             /* Healing spring */
-            pline("Wow!  You feel healed and energized!");
+            pline_The("cool water heals and reenergizes you!");
             if (++u.uhpmax > u.uhppeak)
                 u.uhppeak = u.uhpmax;
             u.uhp = u.uhpmax;
