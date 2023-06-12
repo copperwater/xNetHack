@@ -1486,7 +1486,7 @@ zap_dig(void)
                 You("pierce %s %s wall!", s_suffix(mon_nam(mtmp)),
                     mbodypart(mtmp, STOMACH));
             if (amorphous(mtmp->data)) /* this won't do a ton of damage */
-                mtmp->mhp = (mtmp->mhp * 3) / 4;
+                mtmp->mhp = ((mtmp->mhp * 3) + 3) / 4;
             else
                 mtmp->mhp = (mtmp->mhp + 1) / 2;
             expels(mtmp, mtmp->data, !digests(mtmp->data));
