@@ -1339,6 +1339,15 @@ cpostfx(int pm)
             attrcurse();
         }
         break;
+    case PM_TROLL:
+    case PM_ICE_TROLL:
+    case PM_ROCK_TROLL:
+    case PM_WATER_TROLL:
+    case PM_OLOG_HAI:
+        if (!Regeneration)
+            You_feel("invigorated!");
+        incr_itimeout(&HRegeneration, d(6, 6));
+        break;
     case PM_DEATH:
     case PM_PESTILENCE:
     case PM_FAMINE:
