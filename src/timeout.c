@@ -902,6 +902,10 @@ nh_timeout(void)
             case GLIB:
                 make_glib(0); /* might update persistent inventory */
                 break;
+            case REGENERATION:
+                if (!Regeneration)
+                    You_feel("enervated.");
+                break;
             }
         }
     }

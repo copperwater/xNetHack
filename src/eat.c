@@ -1198,6 +1198,13 @@ cpostfx(int pm)
     if (ge.eatmbuf)
         (void) eatmdone();
 
+    /* put anything not based on specific species here */
+    if (mons[pm].mlet == S_TROLL) {
+        if (!Regeneration)
+            You_feel("invigorated!");
+        incr_itimeout(&HRegeneration, d(2, 6));
+    }
+
     switch (pm) {
     case PM_WRAITH:
         pluslvl(FALSE);
