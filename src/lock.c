@@ -554,6 +554,10 @@ pick_lock(
                 }
                 switch (picktyp) {
                 case CREDIT_CARD:
+                    if (hash1(otmp->o_id) % 5 < 2) {
+                        pline("It doesn't look like this lock can be opened with a credit card.");
+                        return PICKLOCK_LEARNED_SOMETHING;
+                    }
                     ch = ACURR(A_DEX) + 20 * Role_if(PM_ROGUE);
                     break;
                 case LOCK_PICK:
@@ -662,6 +666,13 @@ pick_lock(
 
             switch (picktyp) {
             case CREDIT_CARD:
+                /* chance of unopenable door increases with depth;
+                 * 10% on early floors, increasing to 60% or so by the Sanctum */
+                if (coord_hash(cc.x, cc.y, ledger_no(&u.uz)) % 10
+                    < (depth(&u.uz) / 7) + 1) {
+                    pline("It doesn't look like this lock can be opened with a credit card.");
+                    return PICKLOCK_LEARNED_SOMETHING;
+                }
                 ch = 2 * ACURR(A_DEX) + 20 * Role_if(PM_ROGUE);
                 break;
             case LOCK_PICK:
