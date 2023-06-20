@@ -166,6 +166,10 @@ changes:
   - Master Kaen can phase through walls and boulders, and casts summon
     elementals instead of summon insects.
 - One giant on the Valkyrie quest goal level may have a fire horn.
+- You can now play a Barbarian as a dwarf. Barbarians can consequently be
+  lawful.
+- You can now play a Tourist as a gnome.
+- You can now play a Rogue as an elf.
 
 ### Interface changes
 
