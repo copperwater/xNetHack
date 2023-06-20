@@ -2149,6 +2149,10 @@ fprefx(struct obj *otmp)
             break;
         }
         goto give_feedback;
+    case CARROT:
+        pline("Crunch!");
+        wake_nearby();
+        goto give_feedback;
     case MEATBALL:
     case MEAT_STICK:
     case ENORMOUS_MEATBALL:
