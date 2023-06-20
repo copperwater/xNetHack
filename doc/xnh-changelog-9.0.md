@@ -35,6 +35,10 @@ changes:
 - Monsters will consider if their regular melee attacks might deal a lot more
   damage to the hero than their offensive items would, and may subsequently
   decide to attack in melee rather than using that offensive item.
+- Rolling boulders, eating carrots, and occasionally trying to read a dusty
+  spellbook (via the dust making you sneeze) causes enough noise to wake nearby
+  monsters.
+- Monsters stepping on a squeaky board near you can wake you up.
 
 ### Interface changes
 
