@@ -339,7 +339,7 @@ writexlentry(FILE *rfile, struct toptenentry *tt, int how)
 #define XLOG_SEP '\t' /* xlogfile field separator. */
 #define XNH_EXTRA_ACHIEVEMENTS 2
     char buf[BUFSZ], tmpbuf[DTHSZ + 1];
-    char stuck = (Upolyd && Unchanging);
+    char stuck = (Upolyd && Unchanging && !Polyinit_mode);
     char achbuf[(N_ACH + XNH_EXTRA_ACHIEVEMENTS) * 40];
 
     Sprintf(buf, "version=%d.%d.%d", tt->ver_major, tt->ver_minor,
@@ -361,14 +361,15 @@ writexlentry(FILE *rfile, struct toptenentry *tt, int how)
             buf, /* (already includes separator) */
             XLOG_SEP, gp.plname, XLOG_SEP, tmpbuf);
     if (gm.multi < 0 || stuck) {
-        const char* helpless = gm.multi_reason ? gm.multi_reason : "helpless";
-        const char* and = (gm.multi && stuck && !Polyinit_mode) ? " and " : "";
         tmpbuf[0] = '\0';
-        if (stuck && !Polyinit_mode)
-            Sprintf(tmpbuf, "stuck in %s form",
+        if (gm.multi < 0) {
+            Strcpy(tmpbuf, gm.multi_reason ? gm.multi_reason : "helpless");
+        }
+        if (stuck) {
+            Sprintf(eos(tmpbuf), "%sstuck in %s form", *tmpbuf ? " and " : "",
                     pmname(&mons[u.umonnum], Ugender));
-
-        Fprintf(rfile, "%cwhile=%s%s%s", XLOG_SEP, helpless, and, tmpbuf);
+        }
+        Fprintf(rfile, "%cwhile=%s", XLOG_SEP, tmpbuf);
     }
     Fprintf(rfile, "%cconduct=0x%lx%cturns=%ld%cachieve=0x%lx", XLOG_SEP,
             encodeconduct(), XLOG_SEP, gm.moves, XLOG_SEP,
