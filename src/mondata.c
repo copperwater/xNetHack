@@ -1191,8 +1191,9 @@ gender(register struct monst* mtmp)
 }
 
 /* Like gender(), but unseen humanoids are "it" rather than "he" or "she"
-   and lower animals and such are "it" even when seen; hallucination might
-   yield "they".  This is the one we want to use when printing messages. */
+   and lower animals and such are "it" even when seen, except pets;
+   hallucination might yield "they".
+   This is the one we want to use when printing messages. */
 int
 pronoun_gender(
     register struct monst *mtmp,
@@ -1209,7 +1210,8 @@ pronoun_gender(
     if (is_neuter(mtmp->data))
         return 2;
     return (humanoid(mtmp->data) || (mtmp->data->geno & G_UNIQ)
-            || type_is_pname(mtmp->data)) ? (int) mtmp->female : 2;
+            || type_is_pname(mtmp->data) || mtmp->mtame)
+            ? (int) mtmp->female : 2;
 }
 
 /* used for nearby monsters when you go to another level */

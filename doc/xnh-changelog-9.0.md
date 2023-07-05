@@ -33,6 +33,8 @@ changes:
 
 - Wishing for "leather armor" will give the player a leather light armor (its
   equivalent from vanilla).
+- Pets are referred to with their correct gender pronoun if they have one,
+  rather than "it".
 
 ### Architectural changes
 
