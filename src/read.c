@@ -2136,8 +2136,16 @@ seffect_gold_detection(struct obj **sobjp)
     struct obj *sobj = *sobjp;
     boolean scursed = sobj->cursed;
     boolean confused = (Confusion != 0);
+    boolean failure;
 
-    if ((confused || scursed) ? trap_detect(sobj) : gold_detect(sobj, FALSE))
+    if (confused || scursed) {
+        failure = trap_detect(sobj) != 0;
+    } else {
+        failure = gold_detect(sobj, FALSE) != 0;
+        if(sobj->blessed && (object_detect(sobj, GEM_CLASS) == 0))
+            failure = FALSE;
+    }
+    if (failure)
         *sobjp = 0; /* failure: strange_feeling() -> useup() */
 }
 
