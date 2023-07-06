@@ -1022,7 +1022,8 @@ dogfood(struct monst *mon, struct obj *obj)
             else if (is_shapeshifter(fptr) && mon->mtame > 1 && !starving)
                 return MANFOOD;
             else if (vegan(fptr))
-                return herbi ? CADAVER : MANFOOD;
+                return herbi ? (mon_wants_prop(fptr, mon) ? DOGFOOD : CADAVER)
+                             : MANFOOD;
             /* most humanoids will avoid cannibalism unless starving;
                arbitrary: elves won't eat other elves even then */
             else if (humanoid(mptr) && same_race(mptr, fptr)
@@ -1030,7 +1031,8 @@ dogfood(struct monst *mon, struct obj *obj)
                          && fptr->mlet != S_ORC && fptr->mlet != S_OGRE))
                 return (starving && carni && !is_elf(mptr)) ? ACCFOOD : TABU;
             else
-                return carni ? CADAVER : MANFOOD;
+                return carni ? (mon_wants_prop(fptr, mon) ? DOGFOOD : CADAVER)
+                             : MANFOOD;
         case GLOB_OF_GREEN_SLIME: /* other globs use the default case */
             /* turning into slime is preferable to starvation */
             return (starving || slimeproof(mon->data)) ? ACCFOOD : POISON;
