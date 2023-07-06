@@ -1644,6 +1644,7 @@ extern void m_consume_obj(struct monst *, struct obj *);
 extern int meatmetal(struct monst *);
 extern int meatobj(struct monst *);
 extern int meatcorpse(struct monst *);
+extern boolean mon_wants_prop(struct permonst *, struct monst *);
 extern void mon_give_prop(struct monst *, int);
 extern void mon_givit(struct monst *, struct permonst *);
 extern void mpickgold(struct monst *);

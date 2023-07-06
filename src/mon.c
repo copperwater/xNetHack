@@ -1636,6 +1636,27 @@ meatcorpse(
     return 0;
 }
 
+/* does the corpse convey an intrinsic that the monster doesn't have yet? */
+boolean
+mon_wants_prop(struct permonst *ptr, struct monst *mon)
+{
+#define mon_has_intrinsic(intrinsic, mon) \
+    ((((mon)->mintrinsics | (mon)->data->mresists) & intrinsic) != 0UL)
+    int i;
+
+    for (i = 1; i <= STONE_RES; i++) {
+        if (intrinsic_possible(i, ptr)
+            && !mon_has_intrinsic((1 << (i - 1)), mon)) {
+            return TRUE;
+        }
+    }
+    if (intrinsic_possible(TELEPAT, ptr)
+        && !(mon_has_intrinsic(MR2_TELEPATHY, mon) || telepathic(mon->data)))
+        return TRUE;
+
+    return FALSE;
+}
+
 /* give monster property prop */
 void
 mon_give_prop(struct monst *mtmp, int prop)
