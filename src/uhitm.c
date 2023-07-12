@@ -1501,6 +1501,13 @@ hmon_hitmon_do_hit(
     struct monst *mon,
     struct obj *obj)
 {
+    if (!(is_silent(gy.youmonst.data) && helpless(mon))
+        && hmd->hand_to_hand && rn2(Stealth ? 10 : 5)) {
+        int base_combat_noise = combat_noise(&mons[gu.urace.mnum]);
+        if (Stealth)
+            base_combat_noise /= 2;
+        wake_nearto(mon->mx, mon->my, base_combat_noise);
+    }
     if (!obj) { /* attack with bare hands */
         hmon_hitmon_barehands(hmd, mon);
     } else {
