@@ -4334,7 +4334,7 @@ readobjnam_postparse1(struct _readobjnam_data *d)
 
     /* Compatibility hack: leather armor from older version most closely
        corresponds to light armor. */
-    if (strncmpi(d->bp, "leather armor", 13)) {
+    if (d->material == LEATHER && !strncmpi(d->bp, "armor", 5)) {
         d->typ = LIGHT_ARMOR;
         return 2; /*goto typfnd;*/
     }
