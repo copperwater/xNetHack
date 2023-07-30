@@ -669,7 +669,7 @@ pick_lock(
                 /* chance of unopenable door increases with depth;
                  * 10% on early floors, increasing to 60% or so by the Sanctum */
                 if (coord_hash(cc.x, cc.y, ledger_no(&u.uz)) % 10
-                    < (depth(&u.uz) / 7) + 1) {
+                    < (unsigned int) (depth(&u.uz) / 7) + 1) {
                     pline("It doesn't look like this lock can be opened with a credit card.");
                     return PICKLOCK_LEARNED_SOMETHING;
                 }
