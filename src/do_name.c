@@ -1783,6 +1783,10 @@ docall_xname(struct obj *obj)
     otemp.quan = 1L;
     /* in case water is already known, convert "[un]holy water" to "water" */
     otemp.blessed = otemp.cursed = 0;
+    /* drop material from name unless it's really mandatory */
+    if (!force_material_name(otemp.otyp)) {
+        otemp.material = objects[otemp.otyp].oc_material;
+    }
     /* remove attributes that are doname() caliber but get formatted
        by xname(); most of these fixups aren't really needed because the
        relevant type of object isn't callable so won't reach this far */

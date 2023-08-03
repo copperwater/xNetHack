@@ -213,4 +213,15 @@ extern NEARDATA struct objdescr obj_descr[NUM_OBJECTS + 1];
     (is_rustprone(otmp) || is_flammable(otmp) || is_rottable(otmp) \
      || is_corrodeable(otmp))
 
+/* Force rendering of materials on certain items where the object name
+ * wouldn't make as much sense without a material (e.g. "leather jacket" vs
+ * "jacket"), or those where the default material is non-obvious.
+ * NB: GLOVES have a randomized description when not identified; "leather
+ * padded gloves" would give the game away if we did not check their
+ * identification status */
+#define force_material_name(typ) \
+    ((typ) == LIGHT_ARMOR || (typ) == STUDDED_ARMOR || (typ) == JACKET \
+     || (typ) == PLAIN_CLOAK || (typ) == FIGURINE || (typ) == STATUE \
+     || ((typ) == GLOVES && objects[GLOVES].oc_name_known))
+
 #endif /* OBJCLASS_H */
