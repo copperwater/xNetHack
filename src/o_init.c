@@ -1092,6 +1092,7 @@ rename_disco(void)
             odummy.oclass = objects[dis].oc_class;
             odummy.quan = 1L;
             odummy.known = !objects[dis].oc_uses_known;
+            odummy.material = objects[dis].oc_material;
             odummy.dknown = 1;
             docall(&odummy);
         }
