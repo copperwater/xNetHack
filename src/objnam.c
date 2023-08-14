@@ -1307,9 +1307,10 @@ doname_base(
                         arti_light_description(obj));
         }
         if (Is_dragon_scaled_armor(obj)) {
-            char scalebuf[30];
-            Sprintf(scalebuf, "%s-scaled ", dragon_scales_color(obj));
+            char scalebuf[30], *colorstr = dragon_scales_color(obj);
+            Sprintf(scalebuf, "%s-scaled ", colorstr);
             Strcat(prefix, scalebuf);
+            releaseobuf(colorstr); /* don't consume an extra obuf */
         }
         /*FALLTHRU*/
     case WEAPON_CLASS:
@@ -5548,7 +5549,7 @@ shirt_simple_name(struct obj *shirt UNUSED)
 char *
 dragon_scales_color(struct obj *obj)
 {
-    char* buf = nextobuf();
+    char *buf = nextobuf();
     if (!obj) {
         impossible("dragon_scales_color: null obj");
         return NULL;
