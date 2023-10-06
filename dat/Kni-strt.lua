@@ -40,6 +40,9 @@ des.region({ region={06,06,22,09}, lit=1, type="throne", filled=2 })
 des.region(selection.area(27,06,43,09), "lit")
 -- Portal arrival point
 des.levregion({ region = {20,14,20,14}, type="branch" })
+-- Ceilings
+local interior = selection.floodfill(00,00):negate():filter_mapchar('.'):grow()
+des.add_ceiling(interior)
 -- Stairs
 des.stair("down", 40,7)
 -- Doors

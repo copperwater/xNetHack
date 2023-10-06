@@ -41,6 +41,11 @@ des.region(selection.area(00,00,75,19), "lit")
 
 local spacelocs = selection.floodfill(05,04);
 
+-- Ceilings
+local covered = selection.area(55,14, 65,19) | selection.area(54,15, 66,18)
+                  | selection.floodfill(40,09):grow()
+des.add_ceiling(covered)
+
 -- Portal arrival point
 des.levregion({ region = {02,10,02,10}, type="branch" })
 

@@ -24,6 +24,8 @@ PPPPPPPPPPP........PPPPPPPPPPPP
 -- Dungeon Description
 des.region(selection.area(00,00,30,09), "lit")
 des.region({ region={12,03, 20,06}, lit=1, type="temple", filled=1 })
+-- Ceilings
+des.add_ceiling(selection.area(09,02, 21,07))
 -- Doors
 des.door("closed",09,04)
 des.door("closed",09,05)

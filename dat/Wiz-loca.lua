@@ -72,6 +72,8 @@ des.region({ region={48,10,54,10}, lit=0, type="ordinary", irregular=1,
              end
 })
 
+-- Ceilings
+des.add_ceiling(selection.area(36,03, 66,17))
 -- Doors
 des.door("locked",55,08)
 des.door("locked",55,12)

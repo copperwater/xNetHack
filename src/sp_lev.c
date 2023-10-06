@@ -102,6 +102,8 @@ static void get_table_xy_or_coord(lua_State *, lua_Integer *, lua_Integer *);
 static int get_table_region(lua_State *, const char *, lua_Integer *,
                         lua_Integer *, lua_Integer *, lua_Integer *, boolean);
 static void set_wallprop_in_selection(lua_State *, int);
+static void set_prop_in_selection(lua_State *, select_iter_func, int);
+static void sel_set_ceiling(coordxy, coordxy, genericptr_t);
 static coordxy random_wdir(void);
 static int floodfillchk_match_under(coordxy, coordxy);
 static int floodfillchk_match_accessible(coordxy, coordxy);
@@ -144,6 +146,7 @@ int lspo_mineralize(lua_State *);
 int lspo_monster(lua_State *);
 int lspo_non_diggable(lua_State *);
 int lspo_non_passwall(lua_State *);
+int lspo_add_ceiling(lua_State *);
 int lspo_object(lua_State *);
 int lspo_portal(lua_State *);
 int lspo_random_corridors(lua_State *);
@@ -6669,6 +6672,12 @@ lspo_wall_property(lua_State *L)
 static void
 set_wallprop_in_selection(lua_State *L, int prop)
 {
+    set_prop_in_selection(L, sel_set_wall_property, prop);
+}
+
+static void
+set_prop_in_selection(lua_State *L, select_iter_func set, int prop)
+{
     int argc = lua_gettop(L);
     boolean freesel = FALSE;
     struct selectionvar *sel = (struct selectionvar *) 0;
@@ -6684,7 +6693,7 @@ set_wallprop_in_selection(lua_State *L, int prop)
     }
 
     if (sel) {
-        selection_iterate(sel, sel_set_wall_property, (genericptr_t) &prop);
+        selection_iterate(sel, set, (genericptr_t) &prop);
         if (freesel)
             selection_free(sel, TRUE);
     }
@@ -6705,6 +6714,25 @@ int
 lspo_non_passwall(lua_State *L)
 {
     set_wallprop_in_selection(L, W_NONPASSWALL);
+    return 0;
+}
+
+static void
+sel_set_ceiling(coordxy x, coordxy y, genericptr_t arg)
+{
+    int val = *(int *)arg;
+
+    levl[x][y].ceiling = val;
+}
+
+/* should be used for 'outdoors' flagged levels, to specify areas which have
+ * ceilings */
+/* add_ceiling(selection); */
+/* add_ceiling(); */
+int
+lspo_add_ceiling(lua_State *L)
+{
+    set_prop_in_selection(L, sel_set_ceiling, 1);
     return 0;
 }
 
@@ -7173,6 +7201,7 @@ static const struct luaL_Reg nhl_functions[] = {
     { "wall_property", lspo_wall_property },
     { "non_diggable", lspo_non_diggable },
     { "non_passwall", lspo_non_passwall },
+    { "add_ceiling", lspo_add_ceiling },
     { "teleport_region", lspo_teleport_region },
     { "reset_level", lspo_reset_level },
     { "finalize_level", lspo_finalize_level },

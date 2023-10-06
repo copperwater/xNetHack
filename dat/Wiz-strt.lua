@@ -35,7 +35,11 @@ des.map([[
 ......................CCC.C.................................................
 ]]);
 
--- first do cloud everywhere
+-- Add ceilings before anything else, so floodfill will work
+local covered = selection.floodfill(00,00):negate():filter_mapchar('.'):grow()
+                  | selection.area(11,08, 35,12)
+des.add_ceiling(covered)
+-- do cloud everywhere
 des.replace_terrain({ region={0,0, 75,19}, fromterrain=".", toterrain="C", chance=10 })
 -- then replace clouds inside the tower back to floor
 des.replace_terrain({ region={13,5, 33,15}, fromterrain="C", toterrain=".", chance=100 })

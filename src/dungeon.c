@@ -1803,7 +1803,7 @@ ceiling(coordxy x, coordxy y)
     else if (Is_waterlevel(&u.uz))
         /* water plane has no surface; its air bubbles aren't below sky */
         what = "water above";
-    else if (!has_ceiling(&u.uz))
+    else if (!ceiling_exists(x, y))
         what = "sky";
     else if (Is_firelevel(&u.uz))
         what = "flames above";
@@ -1862,6 +1862,26 @@ surface(coordxy x, coordxy y)
         return "floor";
     else
         return "ground";
+}
+
+boolean
+ceiling_exists(coordxy x, coordxy y)
+{
+    /* no exceptions on certain levels */
+    if (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz))
+        return FALSE;
+    if (!gl.level.flags.outdoors)
+        return TRUE;
+    /* if we're given 0,0 or similar out-of-bounds candidate, just return
+       the default ceiling state for the level -- after previous checks it
+       must be no-ceiling */
+    if (!isok(x, y))
+        return FALSE;
+    /* now check for exceptions */
+    if (levl[x][y].ceiling)
+        return TRUE;
+
+    return FALSE;
 }
 
 /*

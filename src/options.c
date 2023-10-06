@@ -5004,6 +5004,7 @@ optfn_boolean(int optidx, int req, boolean negated, char *opts, char *op)
             if (iflags.use_color)
                 go.opt_need_redraw = TRUE; /* darkroom refresh */
             break;
+        case opt_wizceiling:
         case opt_wizmgender:
         case opt_showrace:
         case opt_use_inverse:

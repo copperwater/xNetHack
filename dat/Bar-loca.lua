@@ -37,6 +37,11 @@ des.region(selection.area(35,14,37,15), "unlit")
 des.region(selection.area(39,03,54,08), "lit")
 des.region(selection.area(56,00,75,08), "unlit")
 des.region(selection.area(64,09,75,16), "unlit")
+-- Ceilings
+local covered = selection.floodfill(00,00, true):negate():filter_mapchar('.')
+-- only needed if the caves to the right should actually be uncovered:
+-- covered = covered - selection.floodfill(66,05)
+des.add_ceiling(covered:grow())
 -- Doors
 des.door("open",23,03)
 des.door("open",30,08)

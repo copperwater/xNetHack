@@ -42,6 +42,8 @@ local inside = selection.floodfill(34,10) + selection.floodfill(34,06) + selecti
 local outside = (everything:filter_mapchar('.') + alltheice) - inside
 local init_monster_area = outside & selection.area(17,00,75,19):grow()
 des.region(everything, "lit")
+-- Ceilings
+des.add_ceiling(inside:clone():grow())
 -- Lava vents surrounded by water
 local pools = selection.new()
 local function growths()

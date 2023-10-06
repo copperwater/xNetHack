@@ -1400,7 +1400,7 @@ peffect_levitation(struct obj *otmp)
             /* in case we're already Levitating, which would have
                resulted in incrementing 'nothing' */
             gp.potion_nothing = 0; /* not nothing after all */
-        } else if (has_ceiling(&u.uz)) {
+        } else if (ceiling_exists(u.ux, u.uy)) {
             int dmg = rnd(!uarmh ? 10 : !is_hard(uarmh) ? 6 : 3);
 
             You("hit your %s on the %s.", body_part(HEAD),

@@ -38,6 +38,9 @@ des.map([[
 -- Dungeon Description
 des.region(selection.area(00,00,75,19), "lit")
 des.region({ region={18,03, 26,07}, lit=1, type="throne", filled=2 })
+-- Ceilings
+local covered = selection.area(10,02,60,11) | selection.area(42,12,60,17)
+des.add_ceiling(covered)
 -- Portal arrival zone
 des.levregion({ region = {62,12,70,17}, type="branch" })
 -- Stairs

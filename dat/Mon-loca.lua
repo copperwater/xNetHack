@@ -39,6 +39,10 @@ des.region(selection.area(62,03,72,11), "unlit")
 des.teleport_region({ region={00,00,06,04}, dir="down" })
 des.teleport_region({ region={62,03,72,11}, dir="up" })
 
+-- Ceilings
+local covered = selection.floodfill(67, 4):grow() + selection.floodfill(67, 7)
+des.add_ceiling(covered)
+
 -- Stairs
 des.stair("up", 00,00)
 des.stair("down", 67,07)
