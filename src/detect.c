@@ -1893,7 +1893,7 @@ dosearch0(int aflag) /* intrinsic autosearch vs explicit searching */
                 if (Blind && !aflag)
                     feel_location(x, y);
                 if (levl[x][y].typ == SDOOR) {
-                    if (rnl(7 - fund))
+                    if (rn2(7 - fund))
                         continue;
                     cvt_sdoor_to_door(&levl[x][y]); /* .typ = DOOR */
                     exercise(A_WIS, TRUE);
@@ -1901,7 +1901,7 @@ dosearch0(int aflag) /* intrinsic autosearch vs explicit searching */
                     feel_location(x, y); /* make sure it shows up */
                     You("find a hidden door.");
                 } else if (levl[x][y].typ == SCORR) {
-                    if (rnl(7 - fund))
+                    if (rn2(7 - fund))
                         continue;
                     levl[x][y].typ = CORR;
                     unblock_point(x, y); /* vision */
