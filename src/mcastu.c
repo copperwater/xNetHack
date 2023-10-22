@@ -1021,9 +1021,10 @@ cast_cleric_spell(struct monst *mtmp, int dmg, int spellnum)
         if (Antimagic) {
             shieldeff(u.ux, u.uy);
             monstseesu(M_SEEN_MAGR);
+            dmg = 1;
         }
         dynamic_multi_reason(mtmp, "paralyzed", FALSE);
-        make_paralyzed(dmg, FALSE, (const char *) 0);
+        make_paralyzed(dmg, TRUE, (const char *) 0);
         dmg = 0;
         break;
     case CLC_CONFUSE_YOU:
