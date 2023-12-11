@@ -77,7 +77,7 @@ leftwall:iterate(function(x,y)
    end
 end)
 if not madegap then
-   des.terrain(03,10, '-') -- failsafe
+   des.terrain(03,10, '.') -- failsafe
 end
 
 -- Doors
