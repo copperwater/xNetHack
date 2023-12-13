@@ -1770,7 +1770,7 @@ extern const char *locomotion(const struct permonst *, const char *);
 extern const char *stagger(const struct permonst *, const char *);
 extern const char *on_fire(struct permonst *, struct attack *);
 extern const char *msummon_environ(struct permonst *, const char **);
-extern const struct permonst *raceptr(struct monst *);
+extern struct permonst *raceptr(struct monst *);
 extern boolean olfaction(struct permonst *);
 extern int monmaterial(int);
 extern int emits_light(struct permonst *);

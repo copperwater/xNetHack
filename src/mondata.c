@@ -458,7 +458,7 @@ mstrength_ranged_attk(register struct permonst* ptr)
 boolean
 mon_hates_material(struct monst *mon, int material)
 {
-    if (hates_material(mon->data, material))
+    if (hates_material(raceptr(mon), material))
         return TRUE;
 
     /* extra case: shapeshifted vampires still hate silver */
@@ -1367,8 +1367,8 @@ big_little_match(int montyp1, int montyp2)
  * Returns correct pointer for non-polymorphed and polymorphed
  * player.  It does not return a pointer to player role character.
  */
-const struct permonst *
-raceptr(struct monst* mtmp)
+struct permonst *
+raceptr(struct monst *mtmp)
 {
     if (mtmp == &gy.youmonst && !Upolyd)
         return &mons[gu.urace.mnum];
