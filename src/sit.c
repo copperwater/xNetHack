@@ -301,9 +301,11 @@ dosit(void)
                 u.utrap++;
             } else if (u.utraptype == TT_PIT) {
                 if (trap && trap->ttyp == SPIKED_PIT) {
+                    int dmg = Half_physical_damage ? rn2(2) : 1;
+                    if (mon_hates_material(&gy.youmonst, IRON))
+                        dmg += Maybe_Half_Phys(rnd(sear_damage(IRON)));
                     You("sit down on a spike.  Ouch!");
-                    losehp(Half_physical_damage ? rn2(2) : 1,
-                           "sitting on an iron spike", KILLED_BY);
+                    losehp(dmg, "sitting on an iron spike", KILLED_BY);
                     exercise(A_STR, FALSE);
                 } else
                     You("sit down in the pit.");

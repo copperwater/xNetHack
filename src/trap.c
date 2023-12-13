@@ -2056,8 +2056,11 @@ trapeffect_pit(
         set_utrap((unsigned) rn1(6, 2), TT_PIT);
         if (!steedintrap(trap, (struct obj *) 0)) {
             if (ttype == SPIKED_PIT) {
+                int dmg = rnd(conj_pit ? 4 : adj_pit ? 6 : 10);
+                if (mon_hates_material(mtmp, IRON))
+                    dmg += rnd(sear_damage(IRON));
                 oldumort = u.umortality;
-                losehp(Maybe_Half_Phys(rnd(conj_pit ? 4 : adj_pit ? 6 : 10)),
+                losehp(Maybe_Half_Phys(dmg),
                        /* note: these don't need locomotion() handling;
                           if fatal while poly'd and Unchanging, the
                           death reason will be overridden with
@@ -2099,7 +2102,7 @@ trapeffect_pit(
             exercise(A_DEX, FALSE);
         }
     } else {
-        int tt = trap->ttyp;
+        int tt = trap->ttyp, dmg;
         boolean in_sight = canseemon(mtmp) || (mtmp == u.usteed);
         boolean trapkilled = FALSE;
         boolean forcetrap = ((trflags & FORCETRAP) != 0);
@@ -2134,8 +2137,11 @@ trapeffect_pit(
             seetrap(trap);
         }
         mselftouch(mtmp, "Falling, ", FALSE);
+        dmg = rnd((tt == PIT) ? 6 : 10);
+        if (tt == SPIKED_PIT && mon_hates_material(mtmp, IRON))
+            dmg += rnd(sear_damage(IRON));
         if (DEADMONSTER(mtmp) || thitm(0, mtmp, (struct obj *) 0,
-                                       rnd((tt == PIT) ? 6 : 10), FALSE))
+                                       dmg, FALSE))
             trapkilled = TRUE;
 
         return trapkilled ? Trap_Killed_Mon : mtmp->mtrapped
