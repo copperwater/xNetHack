@@ -342,7 +342,7 @@
     /* apelike creature includes owlbear, monkey */
     MONSYM(51, 'Y', YETI, S_YETI, "apelike creature")
     MONSYM(52, 'Z', ZOMBIE, S_ZOMBIE, "zombie")
-    MONSYM(53, '@', HUMAN, S_HUMAN, "human or elf")
+    MONSYM(53, '@', HUMAN, S_HUMAN, "human")
     /* space symbol*/
     MONSYM(54, '\'', GOLEM, S_GOLEM, "golem")
     MONSYM(55, '&', DEMON, S_DEMON, "major demon")
