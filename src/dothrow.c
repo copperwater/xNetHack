@@ -247,8 +247,8 @@ throw_obj(struct obj *obj, int shotlimit)
             || (!is_missile(obj) && !objects[obj->otyp].oc_merge)
             /* ... but even that heuristic has a few gaps in it */
             || obj->otyp == SCALPEL || obj->otyp == WORM_TOOTH)
-        /* aklyses, because of autoreturning, are intended to be thrown */
-        && (obj->otyp != AKLYS)) {
+        /* autoreturning weapons are intended to be thrown */
+        && !AutoReturn(obj, obj->owornmask)) {
         if (ParanoidThrow) {
             if (is_ammo(obj))
                 pline("You're not wielding the right launcher for that.");
