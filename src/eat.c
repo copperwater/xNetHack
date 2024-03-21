@@ -2007,9 +2007,11 @@ eatcorpse(struct obj *otmp)
             yummy = palatable = TRUE;
         }
         if (mnum == PM_LONG_WORM || mnum == PM_BABY_LONG_WORM) {
+            use_is = FALSE;
             taste = "spicy";
         }
         if ((yummy || palatable) && mnum == PM_BROWN_PUDDING) {
+            use_is = FALSE;
             taste = "like chocolate";
         }
 
