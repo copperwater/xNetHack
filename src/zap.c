@@ -2312,7 +2312,9 @@ bhito(struct obj *obj, struct obj *otmp)
                     if (cansee(ox, oy)) {
                         if (canspotmon(mtmp)) {
                             pline("%s is resurrected!",
-                                  mtmp->mtame ? upstart(y_monnam(mtmp)) : upstart(noname_monnam(mtmp, ARTICLE_THE)));
+                                  upstart(mtmp->mtame ? y_monnam(mtmp)
+                                                      : noname_monnam(mtmp,
+                                                                ARTICLE_THE)));
                             learn_it = by_u ? TRUE : gz.zap_oseen;
                         } else {
                             /* saw corpse but don't see monster: maybe
