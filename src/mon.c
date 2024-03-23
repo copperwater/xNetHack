@@ -2396,17 +2396,14 @@ mm_aggression(
     struct permonst *ma, *md;
     ma = magr->data;
     md = mdef->data;
-    /* Don't allow pets to fight each other. */
+
+    /* don't allow pets to fight each other */
     if (magr->mtame && mdef->mtame)
         return 0;
 
     /* Grudge patch. */
     /* Put one-way aggressions below here, and two-way aggressions in
      * mm_2way_aggression. */
-
-    /* don't allow pets to fight each other */
-    if (magr->mtame && mdef->mtame)
-        return 0;
 
     /* supposedly purple worms are attracted to shrieking because they
        like to eat shriekers, so attack the latter when feasible */
