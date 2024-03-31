@@ -7,7 +7,7 @@
 #
 # Certain rumors might not make any sense unless they come from the scrap of
 # paper inside a fortune cookie. To ensure that a rumor will ONLY be seen
-# coming from a fortune cookie, put a : at the start of the line.
+# coming from a fortune cookie, put [cookie] at the start of the line.
 
 "So when I die, the first thing I will see in heaven is a score list?"
 [cookie] %p, will you marry me?

@@ -6,7 +6,7 @@
 #
 # Certain rumors might not make any sense unless they come from the scrap of
 # paper inside a fortune cookie. To ensure that a rumor will ONLY be seen
-# coming from a fortune cookie, put a : at the start of the line.
+# coming from a fortune cookie, put [cookie] at the start of the line.
 
 .senutrof gnidaer naht erom rof desu eb nac srorriM
 1st Law of Hacking:  leaving is much more difficult than entering.
