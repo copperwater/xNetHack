@@ -499,7 +499,8 @@ polyself(int psflags)
                     pline1(Never_mind);
                     return;
                 }
-                Strcpy(buf, "*"); /* resort to random */
+                pline("Enter \"random\" or \"*\" for a random polymorph.");
+                continue;
             }
             if (!strcmp(buf, "*") || !strcmp(buf, "random")) {
                 /* explicitly requesting random result */

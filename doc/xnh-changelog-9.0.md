@@ -67,6 +67,10 @@ changes:
 - When polymorphed into a monster with an explosion attack, you can #monster to
   intentionally explode. (This was already possible by attacking a monster or
   force-fighting thin air.)
+- Escaping out of a polymorph prompt no longer causes a random polymorph; it
+  instead gives instructions on how to explicitly request that and prompts
+  again. (However, escaping or failing to enter a valid form 5 times still
+  causes a random polymorph.)
 
 ### Architectural changes
 
