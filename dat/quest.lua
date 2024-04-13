@@ -24,7 +24,41 @@
 -- pline, unless the text contains newlines, or is too long to fit a message buffer,
 -- then will be shown as a text window instead.
 
-
+-- Return a role-specific variant on the middle part of the first sentence of
+-- the legacy text, "It is written in the Book of %d" (the first and last parts
+-- remain constant so this doesn't handle them)
+function written_in_Book()
+   local role = u.role;
+   if role == 'Archeologist' then
+      return 'written in the Ancient Scrolls'
+   elseif role == 'Barbarian' then
+      return 'etched on the Tablets'
+   elseif role == 'Caveman' then
+      return 'painted in the Sacred Caves'
+   elseif role == 'Healer' then
+      return 'taught in the School'
+   elseif role == 'Knight' then
+      return 'told in the Legends'
+   elseif role == 'Monk' then
+      return 'chanted in the Rites'
+   elseif role == 'Priest' then
+      return 'catechized in the Temples'
+   elseif role == 'Ranger' then
+      return 'remembered in the Grove'
+   elseif role == 'Rogue' then
+      return 'whispered in the Secret History'
+   elseif role == 'Samurai' then
+      return 'illustrated in the Emakimono'
+   elseif role == 'Tourist' then
+      return 'referenced in the Guidebooks'
+   elseif role == 'Valkyrie' then
+      return 'sung in the Sagas'
+   elseif role == 'Wizard' then
+      return 'inscribed in the Tomes'
+   end
+   -- if a role doesn't have a string defined, fall back on the standard message
+   return 'written in the Book'
+end
 
 questtext = {
    -- If a role doesn't have a specific message, try a fallback
@@ -174,7 +208,9 @@ Go now!  You are banished from this place.]],
       legacy = {
          synopsis = "[%dC has chosen you to recover the Amulet of Yendor for %dI.]",
          output = "menu",
-         text = [[It is written in the Book of %d:
+         -- used to be hardcoded "written in the Book", now replaced by
+         -- role-specific strings
+         text = "It is "..written_in_Book()..[[ of %d:
 
     After the Creation, the cruel god Moloch rebelled
     against the authority of Marduk the Creator.

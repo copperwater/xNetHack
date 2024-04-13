@@ -72,6 +72,8 @@ changes:
   instead gives instructions on how to explicitly request that and prompts
   again. (However, escaping or failing to enter a valid form 5 times still
   causes a random polymorph.)
+- The legacy text at the start of the game uses different role-based opening
+  lines that replace the standard "It is written in the Book of [deity]:"
 
 ### Architectural changes
 
