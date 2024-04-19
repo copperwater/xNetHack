@@ -55,6 +55,8 @@ changes:
 - The chance of finding a secret door or passage via searching is no longer
   dependent on Luck.
 - Zombies cannot open closed doors.
+- Orcs, barbarians, and cavemen have a Wisdom-dependent chance of avoiding the
+  urge to take a bath in a fountain.
 
 ### Interface changes
 

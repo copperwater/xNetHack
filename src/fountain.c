@@ -507,6 +507,12 @@ dipfountain(register struct obj *obj)
         You_feel("a sudden chill.");
         break;
     case 28: /* Strange feeling */
+        if (rn2(50) < ACURR(A_WIS)
+            && (Role_if(PM_CAVE_DWELLER) || Role_if(PM_BARBARIAN)
+                || Race_if(PM_ORC))) {
+            pline("The water smells suspiciously clean.");
+            break;
+        }
         pline("An urge to take a bath overwhelms you.");
         {
             long money = money_cnt(gi.invent);
