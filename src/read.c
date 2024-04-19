@@ -1984,8 +1984,7 @@ seffect_earth(struct obj **sobjp)
         }
         pline("The earth moves around you!");
     }
-    else if (has_ceiling(&u.uz)
-             && (!In_endgame(&u.uz) || Is_earthlevel(&u.uz))) {
+    else if (!In_endgame(&u.uz) || Is_earthlevel(&u.uz)) {
         coordxy x, y;
         int nboulders = 0;
 

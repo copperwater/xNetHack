@@ -57,6 +57,7 @@ changes:
 - Zombies cannot open closed doors.
 - Orcs, barbarians, and cavemen have a Wisdom-dependent chance of avoiding the
   urge to take a bath in a fountain.
+- Scrolls of earth work again in all levels besides the non-Earth Planes.
 
 ### Interface changes
 
