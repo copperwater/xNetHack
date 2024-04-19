@@ -2899,6 +2899,15 @@ faulty_lifesaver(struct obj* obj)
 {
     if (!obj) {
         impossible("faulty_lifesaver with null object");
+        return FALSE;
+    }
+    if (obj->otyp != AMULET_OF_LIFE_SAVING) {
+        /* amulets of LS being the only thing that provides Lifesaved could
+         * theoretically change at some point; if so this condition will need to
+         * be adjusted */
+        impossible("faulty_lifesaver with non-amulet-of-life-saving %d",
+                   obj->otyp);
+        return FALSE;
     }
     if (objects[obj->otyp].oc_oprop != LIFESAVED) {
         impossible("faulty_lifesaver with non-life-saving object");
