@@ -33,6 +33,9 @@ local outside = selection.floodfill(00,00)
 local inside = outside:clone():negate():filter_mapchar('.')
 des.region(outside, "lit")
 
+-- Ceilings
+des.add_ceiling(inside:clone():grow() | selection.area(70,13, 76,19))
+
 -- Non diggable walls (but leave all trees diggable)
 local nondig = selection.area(00,00,75,19) ~ selection.area(00,00,50,19):filter_mapchar('T')
 des.non_diggable(nondig)

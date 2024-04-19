@@ -1965,7 +1965,7 @@ mktrap(
             case RUST_TRAP:
             case ROCKTRAP:
                 /* certain traps that rely on a ceiling to make sense */
-                if (!has_ceiling(&u.uz))
+                if (tm && !ceiling_exists(tm->x, tm->y))
                     kind = NO_TRAP;
             }
         } while (kind == NO_TRAP);
@@ -1978,7 +1978,8 @@ mktrap(
         m = *tm;
     } else {
         register int tryct = 0;
-        boolean avoid_boulder = (is_pit(kind) || is_hole(kind));
+        boolean avoid_boulder = (is_pit(kind) || is_hole(kind)),
+                need_ceiling = is_ceiling_trap(kind);
 
         /* Try up to 200 times to find a random coordinate for the trap. */
         do {
@@ -1989,7 +1990,8 @@ mktrap(
             else if (!somexyspace(croom, &m))
                 return;
         } while (occupied(m.x, m.y)
-                 || (avoid_boulder && sobj_at(BOULDER, m.x, m.y)));
+                 || (avoid_boulder && sobj_at(BOULDER, m.x, m.y))
+                 || (need_ceiling && !ceiling_exists(m.x, m.y)));
     }
 
     t = maketrap(m.x, m.y, kind);

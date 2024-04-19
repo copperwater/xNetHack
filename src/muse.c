@@ -1444,6 +1444,7 @@ find_offensive(struct monst *mtmp)
                 || !rn2(10))
             && dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy) <= 2
             && mtmp->mcansee && haseyes(mtmp->data)
+            && ceiling_exists(mtmp->mx, mtmp->my)
             && (!In_endgame(&u.uz) || Is_earthlevel(&u.uz))) {
             gm.m.offensive = obj;
             gm.m.has_offense = MUSE_SCR_EARTH;
@@ -1798,6 +1799,7 @@ use_offensive(struct monst *mtmp)
             for (y = mmy - 1; y <= mmy + 1; y++) {
                 /* Is this a suitable spot? */
                 if (isok(x, y) && !closed_door(x, y)
+                    && ceiling_exists(x, y)
                     && !IS_ROCK(levl[x][y].typ) && !IS_AIR(levl[x][y].typ)
                     && (((x == mmx) && (y == mmy)) ? !is_blessed : !is_cursed)
                     && (x != u.ux || y != u.uy)) {
@@ -1806,7 +1808,8 @@ use_offensive(struct monst *mtmp)
             }
         }
         /* Attack the player */
-        if (distmin(mmx, mmy, u.ux, u.uy) == 1 && !is_cursed) {
+        if (distmin(mmx, mmy, u.ux, u.uy) == 1 && !is_cursed
+            && ceiling_exists(u.ux, u.uy)) {
             drop_boulder_on_player(confused, !is_cursed, FALSE, TRUE);
         }
 

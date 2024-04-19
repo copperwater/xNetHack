@@ -37,6 +37,11 @@ des.map([[
 ]]);
 -- Dungeon Description
 des.region(selection.area(00,00,76,19), "lit")
+-- Ceilings
+local exterior = selection.area(00,00, 76,19):filter_mapchar(',') | selection.floodfill(02,06, true)
+                  | selection.area(71,15, 76,19) | selection.area(34,12, 41,14)
+local interior = exterior:clone():negate():filter_mapchar('.'):grow()
+des.add_ceiling(interior)
 -- Stairs
 des.stair("down",76,05)
 -- Portal arrival point

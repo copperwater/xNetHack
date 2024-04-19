@@ -159,14 +159,14 @@ sanity_check_single_mon(
         if (ceiling_hider(mptr)
             /* normally !accessible would be overridable with passes_walls,
                but not for hiding on the ceiling */
-            && (!has_ceiling(&u.uz) ||
-                !(levl[mx][my].typ == POOL
-                  || levl[mx][my].typ == MOAT
-                  || levl[mx][my].typ == LAVAPOOL
-                  || accessible(mx, my))))
+            && (!ceiling_exists(mx, my)
+                || !(levl[mx][my].typ == POOL
+                    || levl[mx][my].typ == MOAT
+                    || levl[mx][my].typ == LAVAPOOL
+                    || accessible(mx, my))))
             impossible("ceiling hider hiding %s (%s)",
-                       !has_ceiling(&u.uz) ? "without ceiling"
-                                           : "in solid stone",
+                       !ceiling_exists(mx, my) ? "without ceiling"
+                                               : "in solid stone",
                        msg);
         if (mtmp->mtrapped && (t = t_at(mx, my)) != 0 && !is_pit(t->ttyp))
             impossible("hiding while trapped in a non-pit (%s)", msg);
@@ -4719,7 +4719,7 @@ restrap(struct monst *mtmp)
         set_mimic_sym(mtmp);
         return TRUE;
     } else if (levl[mtmp->mx][mtmp->my].typ == ROOM
-               && has_ceiling(&u.uz)) {
+               && ceiling_exists(mtmp->mx, mtmp->my)) {
         mtmp->mundetected = 1;
         return TRUE;
     }

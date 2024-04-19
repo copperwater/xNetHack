@@ -251,7 +251,8 @@ struct rm {
 
     Bitfield(candig, 1);     /* Exception to Can_dig_down; was a trapdoor */
     Bitfield(uvisited, 1);   /* player has visited this space */
-    Bitfield(unused, 6);     /* currently unused - take bits out of this rather
+    Bitfield(ceiling, 1);    /* special ceiling status */
+    Bitfield(unused, 5);     /* currently unused - take bits out of this rather
                                 than overloading it as if it were a second flags
                                 field! */
 };

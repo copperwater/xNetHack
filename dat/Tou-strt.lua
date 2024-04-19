@@ -45,6 +45,10 @@ des.region(selection.area(34,02,39,04), "unlit")
 des.region(selection.area(41,02,53,04), "unlit")
 des.region(selection.area(55,02,60,04), "unlit")
 des.region(selection.area(62,02,67,04), "lit")
+-- Ceilings
+local covered = selection.area(06,09, 12,13) | selection.area(03,15, 09,19)
+                  | selection.area(16,15, 22,19) | selection.area(24,00, 72,07)
+des.add_ceiling(covered)
 -- Stairs
 des.stair("down", 66,03)
 -- Portal arrival point

@@ -41,6 +41,11 @@ des.teleport_region({ region = {00,00,75,19}, exclude = {06,00,75,19}, dir="down
 -- and active at the same time.
 des.teleport_region({ region = {00,00,75,19}, exclude = {41,00,75,19}, dir="up" })
 
+-- Ceilings
+local exterior = selection.floodfill(00,00) + selection.floodfill(57,08)
+local covered = exterior:clone():negate():filter_mapchar('.'):grow()
+des.add_ceiling(covered)
+
 -- Stair
 local leftedge = selection.line(00,00, 00,19)
 des.stair("up", leftedge:rndcoord(1))
