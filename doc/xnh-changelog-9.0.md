@@ -55,6 +55,8 @@ changes:
 - The chance of finding a secret door or passage via searching is no longer
   dependent on Luck.
 - Zombies cannot open closed doors.
+- Zombies additionally are immune to being scared by any source, including the
+  scroll of scare monster.
 - Orcs, barbarians, and cavemen have a Wisdom-dependent chance of avoiding the
   urge to take a bath in a fountain.
 - Scrolls of earth work again in all levels besides the non-Earth Planes.

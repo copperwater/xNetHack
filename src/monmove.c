@@ -231,13 +231,14 @@ onscary(coordxy x, coordxy y, struct monst *mtmp)
      * humans aren't monsters
      * uniques have ascended their base monster instincts
      * Rodney, lawful minions, Angels, the Riders, shopkeepers
-     * inside their own shop, priests inside their own temple, uniques */
+     * inside their own shop, priests inside their own temple, uniques,
+     * zombies */
     if (mtmp->iswiz || is_lminion(mtmp) || mtmp->data == &mons[PM_ANGEL]
         || is_rider(mtmp->data)
         || mtmp->data->mlet == S_HUMAN || unique_corpstat(mtmp->data)
         || (mtmp->isshk && inhishop(mtmp))
         || (mtmp->ispriest && inhistemple(mtmp))
-        || (mtmp->data->geno & G_UNIQ))
+        || (mtmp->data->geno & G_UNIQ) || is_zombie(mtmp->data))
         return FALSE;
 
     /* <0,0> is used by musical scaring to check for the above;
