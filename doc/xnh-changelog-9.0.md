@@ -58,6 +58,8 @@ changes:
 - Orcs, barbarians, and cavemen have a Wisdom-dependent chance of avoiding the
   urge to take a bath in a fountain.
 - Scrolls of earth work again in all levels besides the non-Earth Planes.
+- Yeenoghu no longer carries a wand of wishing; instead there is a buried chest
+  on his level that may contain it.
 
 ### Interface changes
 
