@@ -46,6 +46,8 @@ changes:
   paralyzed by lightning on the Plane of Air.
 - The bigroom variant which contains patches of light and darkness has a new
   variation with randomly generated "spotlights" of lit area.
+- Martial arts users with at least Basic skill (all monks and samurai) no longer
+  take damage or wound their legs when kicking inadvisable things.
 
 ### Interface changes
 

@@ -884,8 +884,15 @@ kick_ouch(coordxy x, coordxy y, const char *kickobjnam)
 {
     int dmg;
     char buf[BUFSZ];
+    /* this is explicitly NOT martial(), kicking boots do not
+     * protect from damage; this was initially "has Basic or higher in martial
+     * arts", but that happens to be equivalent to martial_bonus() anyway */
+    boolean mart = martial_bonus();
 
-    pline("Ouch!  That hurts!");
+    if (mart)
+        Your("kick is ineffective.");
+    else
+        pline("Ouch!  That hurts!");
     exercise(A_DEX, FALSE);
     exercise(A_STR, FALSE);
     wake_nearby();
@@ -893,17 +900,21 @@ kick_ouch(coordxy x, coordxy y, const char *kickobjnam)
         if (Blind)
             feel_location(x, y); /* we know we hit it */
         if (is_drawbridge_wall(x, y) >= 0) {
-            pline_The("drawbridge is unaffected.");
+            if (!mart)
+                /* avoid similar message right after "ineffective" */
+                pline_The("drawbridge is unaffected.");
             /* update maploc to refer to the drawbridge */
             (void) find_drawbridge(&x, &y);
             gm.maploc = &levl[x][y];
         }
         wake_nearto(x, y, 5 * 5);
     }
-    if (!rn2(3))
-        set_wounded_legs(RIGHT_SIDE, 5 + rnd(5));
-    dmg = rnd(ACURR(A_CON) > 15 ? 3 : 5);
-    losehp(Maybe_Half_Phys(dmg), kickstr(buf, kickobjnam), KILLED_BY);
+    if (!mart) {
+        if (!rn2(3))
+            set_wounded_legs(RIGHT_SIDE, 5 + rnd(5));
+        dmg = rnd(ACURR(A_CON) > 15 ? 3 : 5);
+        losehp(Maybe_Half_Phys(dmg), kickstr(buf, kickobjnam), KILLED_BY);
+    }
     if (Is_airlevel(&u.uz) || Levitation)
         hurtle(-u.dx, -u.dy, rn1(2, 4), TRUE); /* assume it's heavy */
 }
