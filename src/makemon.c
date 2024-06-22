@@ -1307,6 +1307,8 @@ makemon(
     set_mon_data(mtmp, ptr); /* mtmp->data = ptr; */
     if (ptr->msound == MS_LEADER && quest_info(MS_LEADER) == mndx)
         gq.quest_status.leader_m_id = mtmp->m_id;
+    if (ptr->msound == MS_NEMESIS && quest_info(MS_NEMESIS) == mndx)
+        gq.quest_status.nemesis_m_id = mtmp->m_id;
     mtmp->mnum = mndx;
 
     /* set up level and hit points */

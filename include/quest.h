@@ -35,6 +35,7 @@ struct q_score {              /* Quest "scorecard" */
     Bitfield(godgend, 2); /* deity's gender */
 
     unsigned leader_m_id;
+    unsigned nemesis_m_id;
 };
 
 #define MIN_QUEST_ALIGN 20 /* at least this align.record to start */

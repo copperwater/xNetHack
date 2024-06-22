@@ -723,11 +723,14 @@ montraits(
            (we cleared it when loading bones) */
         if (mtmp->m_id) {
             mtmp2->m_id = mtmp->m_id;
-            /* might be bringing quest leader back to life */
+            /* might be bringing quest leader/nemesis back to life */
             if (gq.quest_status.killed_leader
                 /* killed_leader implies leader_m_id is valid */
                 && mtmp2->m_id == gq.quest_status.leader_m_id)
                 gq.quest_status.killed_leader = FALSE;
+            if (gq.quest_status.killed_nemesis
+                && mtmp2->m_id == gq.quest_status.nemesis_m_id)
+                gq.quest_status.killed_nemesis = FALSE;
         }
         mtmp2->mx = mtmp->mx;
         mtmp2->my = mtmp->my;

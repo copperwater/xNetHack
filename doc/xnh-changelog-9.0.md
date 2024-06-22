@@ -65,3 +65,5 @@ changes:
 
 ### Architectural changes
 
+- The monster ID of the quest nemesis is now tracked similar to the quest
+  leader's.

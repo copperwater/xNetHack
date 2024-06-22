@@ -1167,6 +1167,8 @@ tamedog(struct monst *mtmp, struct obj *obj, boolean pacify_only)
 
     if (mtmp->m_id == gq.quest_status.leader_m_id)
         return FALSE;
+    if (mtmp->m_id == gq.quest_status.nemesis_m_id)
+        return FALSE;
 
     if (pacify_only) {
        return FALSE;

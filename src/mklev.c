@@ -1067,6 +1067,7 @@ clear_level_structures(void)
     gl.level.flags.arboreal = 0;
     gl.level.flags.wizard_bones = 0;
     gl.level.flags.outdoors = 0;
+    gl.level.flags.visited_after_event = 0;
 
     gn.nroom = 0;
     gr.rooms[0].hx = -1;

@@ -481,10 +481,11 @@ quest_chat(struct monst *mtmp)
             setmangry(mtmp, FALSE);
         return;
     }
-    switch (mtmp->data->msound) {
-    case MS_NEMESIS:
+    if (mtmp->m_id == Qstat(nemesis_m_id) && mtmp->data->msound > MS_ANIMAL) {
         chat_with_nemesis();
-        break;
+        return;
+    }
+    switch (mtmp->data->msound) {
     case MS_GUARDIAN:
         chat_with_guardian();
         break;
@@ -500,10 +501,11 @@ quest_talk(struct monst *mtmp)
         leader_speaks(mtmp);
         return;
     }
-    switch (mtmp->data->msound) {
-    case MS_NEMESIS:
+    if (mtmp->m_id == Qstat(nemesis_m_id) && mtmp->data->msound > MS_ANIMAL) {
         nemesis_speaks();
-        break;
+        return;
+    }
+    switch (mtmp->data->msound) {
     case MS_DJINNI:
         prisoner_speaks(mtmp);
         break;

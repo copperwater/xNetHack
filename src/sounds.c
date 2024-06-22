@@ -775,6 +775,8 @@ domonnoise(register struct monst* mtmp)
     /* leader might be poly'd; if he can still speak, give leader speech */
     if (mtmp->m_id == gq.quest_status.leader_m_id && msound > MS_ANIMAL)
         msound = MS_LEADER;
+    if (mtmp->m_id == gq.quest_status.nemesis_m_id && msound > MS_ANIMAL)
+        msound = MS_NEMESIS;
     /* make sure it's your role's quest guardian; adjust if not */
     else if (msound == MS_GUARDIAN && ptr != &mons[gu.urole.guardnum])
         msound = mons[genus(monsndx(ptr), 1)].msound;

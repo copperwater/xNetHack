@@ -505,9 +505,10 @@ pm_to_cham(int mndx)
 #define KEEPTRAITS(mon)                                                  \
     ((mon)->isshk || (mon)->mtame || unique_corpstat((mon)->data)        \
      || is_reviver((mon)->data)                                          \
-        /* normally quest leader will be unique, */                      \
+        /* normally quest leader/nemesis will be unique, */              \
         /* but he or she might have been polymorphed  */                 \
      || (mon)->m_id == gq.quest_status.leader_m_id                       \
+     || (mon)->m_id == gq.quest_status.nemesis_m_id                      \
         /* special cancellation handling for these */                    \
      || (dmgtype((mon)->data, AD_SEDU) || dmgtype((mon)->data, AD_SSEX)))
 
@@ -3091,6 +3092,8 @@ mondead(struct monst *mtmp)
     /* if it's a (possibly polymorphed) quest leader, mark him as dead */
     if (mtmp->m_id == gq.quest_status.leader_m_id)
         gq.quest_status.killed_leader = TRUE;
+    if (mtmp->m_id == gq.quest_status.nemesis_m_id)
+        gq.quest_status.killed_nemesis = TRUE;
 #ifdef MAIL_STRUCTURES
     /* if the mail daemon dies, no more mail delivery.  -3. */
     if (mndx == PM_MAIL_DAEMON)
@@ -3680,7 +3683,7 @@ xkilled(
         change_luck(-20);
         pline("That was %sa bad idea...",
               u.uevent.qcompleted ? "probably " : "");
-    } else if (mdat->msound == MS_NEMESIS) { /* Real good! */
+    } else if (mtmp->m_id == gq.quest_status.nemesis_m_id) { /* Real good! */
         if (!gq.quest_status.killed_leader)
             adjalign((int) (ALIGNLIM / 4));
     } else if (mdat->msound == MS_GUARDIAN) { /* Bad */
