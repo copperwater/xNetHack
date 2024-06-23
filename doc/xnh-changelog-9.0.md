@@ -44,6 +44,8 @@ changes:
   shock resistance when worn and allows you to chat to hostile vortices, air
   elementals, and storm giants to pacify them. It also prevents you from being
   paralyzed by lightning on the Plane of Air.
+- The bigroom variant which contains patches of light and darkness has a new
+  variation with randomly generated "spotlights" of lit area.
 
 ### Interface changes
 
