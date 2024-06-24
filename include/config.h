@@ -496,7 +496,7 @@ typedef unsigned char uchar;
 #endif
 #endif
 
-/* CONFIG_ERROR_SECURE: If user makes NETHACKOPTIONS point to a file ...
+/* CONFIG_ERROR_SECURE: If user makes XNETHACKOPTIONS point to a file ...
  *  TRUE: Show the first error, nothing else.
  *  FALSE: Show all errors as normal, with line numbers and context.
  */
@@ -513,7 +513,7 @@ typedef unsigned char uchar;
  */
 
 /* SELECTSAVED: Enable the 'selectsaved' run-time option, allowing it
- * to be set in user's config file or NETHACKOPTIONS.  When set, if
+ * to be set in user's config file or XNETHACKOPTIONS.  When set, if
  * player is about to be given the "who are you?" prompt, check for
  * save files and if any are found, put up a menu of them for choosing
  * one to restore (plus extra menu entries "new game" and "quit").

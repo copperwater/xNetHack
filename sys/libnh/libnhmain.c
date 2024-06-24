@@ -520,7 +520,7 @@ static boolean
 whoami(void)
 {
     /*
-     * Who am i? Algorithm: 1. Use name as specified in NETHACKOPTIONS
+     * Who am i? Algorithm: 1. Use name as specified in XNETHACKOPTIONS
      *                      2. Use $USER or $LOGNAME    (if 1. fails)
      *                      3. Use getlogin()           (if 2. fails)
      * The resulting name is overridden by command line options.

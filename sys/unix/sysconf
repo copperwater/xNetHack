@@ -186,7 +186,7 @@ PANICTRACE_LIBC=2
 # Ordinary run-time options can be set here to override the builtin-in
 # default values.  Unlike all the SYSCF values above, individual users
 # can override the overridden options set here by choosing their own
-# option settings via NETHACKOPTIONS in their environment or via
+# option settings via XNETHACKOPTIONS in their environment or via
 # ~/.xnethackrc run-time configuration file.
 #OPTIONS=!autopickup,fruit:tomato,symset:DECgraphics
 OPTIONS=bones

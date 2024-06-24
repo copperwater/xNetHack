@@ -98,15 +98,15 @@ if [[ $response =~ ^(yes|y|Yes|Y) ]]; then
     echo
     echo "1) GUI version, with tile set:"
     echo
-    echo "       $ NETHACKOPTIONS=windowtype:qt $LAUNCH_SCRIPT"
+    echo "       $ XNETHACKOPTIONS=windowtype:qt $LAUNCH_SCRIPT"
     echo
     echo "2) Curses version:"
     echo
-    echo "       $ NETHACKOPTIONS=windowtype:curses $LAUNCH_SCRIPT"
+    echo "       $ XNETHACKOPTIONS=windowtype:curses $LAUNCH_SCRIPT"
     echo
     echo "3) TTY version:"
     echo
-    echo "       $ NETHACKOPTIONS=windowtype:tty $LAUNCH_SCRIPT"
+    echo "       $ XNETHACKOPTIONS=windowtype:tty $LAUNCH_SCRIPT"
     echo
     echo "You can also set your launch preference in $USER_CONFIG:"
     echo

@@ -3420,7 +3420,7 @@ enough\(embut not too close!\(emto
 the Castle level's drawbridge or can be given to you via prayer boon.
 .pg
 \fIBlind\fP, \fIDeaf\fP, and \fINudist\fP are also conducts, and they can only be
-enabled by setting the correspondingly named option in NETHACKOPTIONS
+enabled by setting the correspondingly named option in XNETHACKOPTIONS
 or run-time configuration file prior to game start.
 In the case of \fIBlind\fP and \fIDeaf\fP, the option also enforces the conduct.
 They aren't really significant accomplishments unless/until you make
@@ -3439,7 +3439,7 @@ Options may be set in a number of ways.
 Within the game, the \(oqO\(cq
 command allows you to view all options and change most of them.
 You can also set options automatically by placing them in a configuration
-file, or in the NETHACKOPTIONS environment variable.
+file, or in the XNETHACKOPTIONS environment variable.
 Some versions of NetHack also have front-end programs that allow
 you to set options before starting the game or a global configuration
 for system administrators.
@@ -3627,7 +3627,7 @@ Example:
 .SD n \" suppress indentation
 Here is an example of configuration file contents:
 .ED
-.\" [conditional indentation; see description of NETHACKOPTIONS below]
+.\" [conditional indentation; see description of XNETHACKOPTIONS below]
 .ds sD i \" assume proportional, indentation acceptable and preferred
 .\" Check for fixed-width font; fF set up at top of file
 .if \n(fF .ds sD n \" if same width, suppress indentation
@@ -3653,9 +3653,9 @@ OPTIONS=!splash_screen
 .pg
 \ \" another dummy paragraph [.BR 2]
 .hn 2
-Using the NETHACKOPTIONS environment variable
+Using the XNETHACKOPTIONS environment variable
 .pg
-The NETHACKOPTIONS variable is a comma-separated list of initial
+The XNETHACKOPTIONS variable is a comma-separated list of initial
 values for the various options.
 Some can only be turned on or off.
 You turn one of these on by adding the name of the option to the list,
@@ -3683,17 +3683,17 @@ you would enter the command
 .\" Check for fixed-width font; fF set up at top of file
 .if \n(fF .ds sD n \" if same width, suppress indentation
 .SD \*(sD
-\f(CR% setenv NETHACKOPTIONS "color,\\!leg,name:Blue Meanie,fruit:lime"\fP
+\f(CR% setenv XNETHACKOPTIONS "color,\\!leg,name:Blue Meanie,fruit:lime"\fP
 .ED
 in \fIcsh\fP (note the need to escape the \(oq!\(cq since it's special
 to that shell), or the pair of commands
 .SD \*(sD
-\f(CR$ NETHACKOPTIONS="color,!leg,name:Blue Meanie,fruit:lime"\fP
-\f(CR$ export NETHACKOPTIONS\fP
+\f(CR$ XNETHACKOPTIONS="color,!leg,name:Blue Meanie,fruit:lime"\fP
+\f(CR$ export XNETHACKOPTIONS\fP
 .ED
 in \fIsh\fP, \fIksh\fP, or \fIbash\fP.
 .pg
-The NETHACKOPTIONS value is effectively the same as a single OPTIONS
+The XNETHACKOPTIONS value is effectively the same as a single OPTIONS
 directive in a configuration file.
 The \(lqOPTIONS=\(rq prefix is implied and comma separated options are
 processed from right to left.
@@ -3701,7 +3701,7 @@ Other types of configuration directives such as BIND or MSGTYPE are
 not allowed.
 .pg
 Instead of a comma-separated list of options,
-NETHACKOPTIONS can be set to the full name of a configuration file you
+XNETHACKOPTIONS can be set to the full name of a configuration file you
 want to use.
 If that full name doesn't start with a slash, precede it with \(oq\f(CR@\fP\(cq
 (at-sign) to let NetHack know that the rest is intended as a file name.
@@ -4519,7 +4519,7 @@ default;
 order by monster difficulty rating; ties broken by internal index;
 .PL \f(CRa\fP
 order alphabetically, first any unique monsters then all the others;
-.\" note: 'A' and 'C' can be set in RC file or NETHACKOPTIONS but not by 'O'
+.\" note: 'A' and 'C' can be set in RC file or XNETHACKOPTIONS but not by 'O'
 .\" .PL \f(CRA\fP
 .\" order alphabetically, unique monsters intermixed with other monsters;
 .\" .PL \f(CRC\fP
@@ -4650,7 +4650,7 @@ When used, it should be the first option set since its value might
 enable or disable the availability of various other options.
 For multiple lines in a configuration file, that would be the first
 non-comment line.
-For a comma-separated list in NETHACKOPTIONS or an OPTIONS line in a
+For a comma-separated list in XNETHACKOPTIONS or an OPTIONS line in a
 configuration file,
 that would
 be the \fIrightmost\fP option in the list.
@@ -4789,7 +4789,7 @@ height needed.
 (If NetHack has been built using a version of \f(CRQt\fP
 older than \f(CRqt-5.9\fP,
 .op statuslines
-can only be set in the run-time configuration file or via NETHACKOPTIONS,
+can only be set in the run-time configuration file or via XNETHACKOPTIONS,
 not during play with the \(oq\f(CRO\fP\(cq command.)
 .lp "term_cols\ \ \fIand\fP"
 .lp term_rows

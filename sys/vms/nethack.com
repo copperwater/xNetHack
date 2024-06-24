@@ -9,7 +9,7 @@ $!    Possible command line arguments include
 $!	"-uConan-B"	!play a barbarian named Conan
 $!	"-u" "Merlin-W" !play a wizard named Merlin (slight variant of above)
 $!	"-e" or "-E"	!play an elf with default name (from environment
-$!			! [ie, NETHACKOPTIONS logical name] or VMS username)
+$!			! [ie, XNETHACKOPTIONS logical name] or VMS username)
 $!	"-a" or "-A", "-b" or "-B", "-c" or "-C", ... !specify character type
 $!			!note: "-s" is ambiguous between "play as a samurai"
 $!			!   vs "show scoreboard", so use "-S" for the former
@@ -41,7 +41,7 @@ $!
 $!
 $! use the VT100 line drawing character set if possible
 $ graphics = ""
-$	usropt = f$trnlnm("NETHACKOPTIONS")
+$	usropt = f$trnlnm("XNETHACKOPTIONS")
 $	if usropt.eqs."" then  usropt = f$trnlnm("HACKOPTIONS")
 $ if f$locate("DECG",f$edit(usropt,"UPCASE")) .ge. f$length(usropt) then -
     if f$getdvi("TT:","TT_DECCRT") .and. f$getdvi("TT:","TT_ANSICRT") then -

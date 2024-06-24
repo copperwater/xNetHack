@@ -125,7 +125,7 @@ Commands:
         O       Review current options and possibly change them.
                 A menu displaying the option settings will be displayed
                 and most can be changed by simply selecting their entry.
-                Options are usually set before the game with NETHACKOPTIONS
+                Options are usually set before the game with XNETHACKOPTIONS
                 environment variable or via a configuration file (defaults.nh,
                 xNetHack Defaults, xnethack.cnf, ~/.xnethackrc, etc.), rather
                 than with the 'O' command.

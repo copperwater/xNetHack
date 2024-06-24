@@ -154,10 +154,10 @@ Notes:
 2.  Ancient C libs will not work; vsnprintf is required.
 
 3.  To specify user-preference options in your environment, define the
-    logical name NETHACKOPTIONS to have the value of a quoted string
+    logical name XNETHACKOPTIONS to have the value of a quoted string
     containing a comma separated list of option values.  The option names
     are case-insensitive.
-       $ define nethackoptions "noAutoPickup,Dog:Rover,Cat:Felix,DECgraphics"
+       $ define xnethackoptions "noAutoPickup,Dog:Rover,Cat:Felix,DECgraphics"
     One value you'll probably want to specify is "noLegacy" to turn off
     the initial introductory passage.  The "checkpoint" option controls
     whether or not enough data is saved to disk so that the set of level
@@ -168,17 +168,17 @@ Notes:
     aspects of the user interface, and can be set to "menustyle:traditional"
     to make nethack behave more like older versions.
 
-    If logical name or DCL symbol NETHACKOPTIONS is not defined, NetHack
+    If logical name or DCL symbol XNETHACKOPTIONS is not defined, NetHack
     will try HACKOPTIONS instead.  Regardless of whether or not either
     is defined, it will also try to find a configuration file containing
     additional option settings.  If the value of the translation of
-    NETHACKOPTIONS--or HACKOPTIONS--begins with an "@" character then the
+    XNETHACKOPTIONS--or HACKOPTIONS--begins with an "@" character then the
     rest of the translation is assumed to be the name of the configuration
     file.  Otherwise, the following are tried:  file specified by logical
     name NETHACKINI, file SYS$LOGIN:NETHACK.INI, and file HOME:NETHACK.CNF
     (note that the C run-time library sets up the value of HOME to match
     sys$login).  Syntax for the configuration file is similar to
-    NETHACKOPTIONS, but multiple lines can be used, each must start with
+    XNETHACKOPTIONS, but multiple lines can be used, each must start with
     OPTIONS=, and comments can be included by placing '#' in the first
     column.  Several options which take more complex values (graphics
     representation) can also be present; see the "Guidebook" for details.

@@ -96,7 +96,7 @@ enum option_phases {
     builtin_opt,  /* compiled-in default value of an option */
     syscf_opt,    /* sysconf setting of an option, overrides builtin */
     rc_file_opt,  /* player's run-time config file setting, overrides syscf */
-    environ_opt,  /* player's environment NETHACKOPTIONS, overrides rc_file */
+    environ_opt,  /* player's environment XNETHACKOPTIONS, overrides rc_file */
     cmdline_opt,  /* program invocation command-line, overrides environ */
     play_opt,     /* 'O' command, interactively set so overrides all */
     num_opt_phases
@@ -4543,7 +4543,7 @@ optfn_windowtype(int optidx, int req, boolean negated UNUSED,
          * For user, making it be first in a config file is trivial, use
          * OPTIONS=windowtype:Foo
          * as the first non-comment line of the file.
-         * Making it first in NETHACKOPTIONS requires it to be at the
+         * Making it first in XNETHACKOPTIONS requires it to be at the
          * _end_ because comma-separated option strings are processed from
          * right to left.
          */
@@ -6373,7 +6373,7 @@ rejectoption(const char *optname)
 #ifdef MICRO
     pline("\"%s\" settable only from %s.", optname, configfile);
 #else
-    pline("%s can be set only from NETHACKOPTIONS or %s.", optname,
+    pline("%s can be set only from XNETHACKOPTIONS or %s.", optname,
           configfile);
 #endif
 }
@@ -6689,7 +6689,7 @@ initoptions_init(void)
 
     /* if windowtype has been specified on the command line, set it up
        early so windowtype-specific options use it as their base; we will
-       set it again in initoptions_finish() so that NETHACKOPTIONS and
+       set it again in initoptions_finish() so that XNETHACKOPTIONS and
        .nethrackrc can't override it (command line takes precedence) */
     if (gc.cmdline_windowsys) {
         nmcpy(gc.chosen_windowtype, gc.cmdline_windowsys, WINTYPELEN);
@@ -6838,19 +6838,19 @@ initoptions_init(void)
 
 /*
  *  Process user's run-time configuration file:
- *    get value of NETHACKOPTIONS;
+ *    get value of XNETHACKOPTIONS;
  *    if command line specified -nethackrc=filename, use that;
- *      if NETHACKOPTIONS is present,
+ *      if XNETHACKOPTIONS is present,
  *        honor it if it has a list of options to set
  *        or ignore it if it specifies a file name;
- *    else if not specified on command line and NETHACKOPTIONS names a file,
+ *    else if not specified on command line and XNETHACKOPTIONS names a file,
  *      use that as the config file;
- *      no extra options (normal use of NETHACKOPTIONS) will be set;
- *    otherwise (not on command line and either no NETHACKOPTIONS or that
+ *      no extra options (normal use of XNETHACKOPTIONS) will be set;
+ *    otherwise (not on command line and either no XNETHACKOPTIONS or that
  *        isn't a file name),
  *      pass Null to read_config_file() so that it will read ~/.nethackrc
  *        by default,
- *      then process the value of NETHACKOPTIONS as extra options.
+ *      then process the value of XNETHACKOPTIONS as extra options.
  */
 void
 initoptions_finish(void)
@@ -6862,7 +6862,7 @@ initoptions_finish(void)
 
     /* getenv() instead of nhgetenv(): let total length of options be long;
        parseoptions() will check each individually */
-    envname = "NETHACKOPTIONS";
+    envname = "XNETHACKOPTIONS";
     opts = getenv(envname);
     if (!opts) {
         /* fall back to original name; discouraged */
@@ -6875,9 +6875,9 @@ initoptions_finish(void)
         nameval = gc.cmdline_rcfile;
         xtraopts = opts;
         if (opts && (*opts == '/' || *opts == '\\' || *opts == '@'))
-            xtraopts = 0; /* NETHACKOPTIONS is a file name; ignore it */
+            xtraopts = 0; /* XNETHACKOPTIONS is a file name; ignore it */
     } else if (opts && (*opts == '/' || *opts == '\\' || *opts == '@')) {
-        /* NETHACKOPTIONS is a file name; use that instead of the default */
+        /* XNETHACKOPTIONS is a file name; use that instead of the default */
         if (*opts == '@')
             ++opts; /* @filename */
         namesrc = envname;
@@ -6886,7 +6886,7 @@ initoptions_finish(void)
     } else
 #endif /* !MAC */
     /*else*/ {
-        /* either no NETHACKOPTIONS or it wasn't a file name;
+        /* either no XNETHACKOPTIONS or it wasn't a file name;
            read the default configuration file */
         nameval = namesrc = 0;
         xtraopts = opts;
@@ -6909,14 +6909,14 @@ initoptions_finish(void)
     (void) read_config_file(nameval, set_in_config);
     config_error_done();
     if (xtraopts) {
-        /* NETHACKOPTIONS is present and not a file name */
+        /* XNETHACKOPTIONS is present and not a file name */
         go.opt_phase = environ_opt;
         config_error_init(FALSE, envname, FALSE);
         (void) parseoptions(xtraopts, TRUE, FALSE);
         config_error_done();
     }
 
-    /* after .nethackrc and NETHACKOPTIONS so that cmdline takes precedence */
+    /* after .nethackrc and XNETHACKOPTIONS so that cmdline takes precedence */
     if (gc.cmdline_windowsys) {
         go.opt_phase = cmdline_opt;
         config_error_init(FALSE, "command line", FALSE);
@@ -8348,7 +8348,7 @@ fruitadd(char *str, struct fruit *replace_fruit)
 #if defined(MICRO) || defined(MAC) || defined(WIN32)
 #define OPTIONS_HEADING "OPTIONS"
 #else
-#define OPTIONS_HEADING "NETHACKOPTIONS"
+#define OPTIONS_HEADING "XNETHACKOPTIONS"
 #endif
 
 static const char n_currently_set[] = "(%d currently set)";
@@ -9450,11 +9450,11 @@ static const char *opt_intro[] = {
 #define CONFIG_SLOT 3 /* fill in next value at run-time */
     (char *) 0,
 #if !defined(MICRO) && !defined(MAC)
-    "or use `NETHACKOPTIONS=\"<options>\"' in your environment",
+    "or use `XNETHACKOPTIONS=\"<options>\"' in your environment",
 #endif
     "(<options> is a list of options separated by commas)",
 #ifdef VMS
-    "-- for example, $ DEFINE NETHACKOPTIONS \"noautopickup,fruit:kumquat\"",
+    "-- for example, $ DEFINE XNETHACKOPTIONS \"noautopickup,fruit:kumquat\"",
 #endif
     "or press \"O\" while playing and use the menu.",
     "",

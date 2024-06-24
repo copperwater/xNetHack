@@ -3718,7 +3718,7 @@ the Castle level's drawbridge or can be given to you via prayer boon.
 
 %.pg
 {\it Blind\/}, {\it Deaf\/}, and {\it Nudist\/} are also conducts, and they can only be
-enabled by setting the correspondingly named option in {\tt NETHACKOPTIONS}
+enabled by setting the correspondingly named option in {\tt XNETHACKOPTIONS}
 or run-time configuration file prior to game start.
 In the case of {\it Blind\/} and {\it Deaf\/}, the option also enforces the conduct.
 They aren't really significant accomplishments unless/until you make
@@ -3739,7 +3739,7 @@ behaves.
 Options may be set in a number of ways.  Within the game, the `{\tt O}'
 command allows you to view all options and change most of them.
 You can also set options automatically by placing them in a configuration
-file, or in the ``{\tt NETHACKOPTIONS}'' environment variable.
+file, or in the ``{\tt XNETHACKOPTIONS}'' environment variable.
 Some versions of {\it NetHack\/} also have front-end programs that allow
 you to set options before starting the game or a global configuration
 for system administrators.
@@ -3988,10 +3988,10 @@ Here is an example of configuration file contents:
 %.BR 2
 
 %.hn 2
-\subsection*{Using the {\tt NETHACKOPTIONS} environment variable}
+\subsection*{Using the {\tt XNETHACKOPTIONS} environment variable}
 
 %.pg
-The NETHACKOPTIONS variable is a comma-separated list of initial
+The XNETHACKOPTIONS variable is a comma-separated list of initial
 values for the various options.  Some can only be turned on or off.
 You turn one of these on by adding the name of the option to the list,
 and turn it off by typing a `{\tt !}' or ``{\tt no}'' before the name.
@@ -4009,7 +4009,7 @@ and named {\it fruit\/} is set to ``{\tt lime}'',
 you would enter the command
 %.SD i
 \begin{verbatim}
-    setenv NETHACKOPTIONS "color,\!leg,name:Blue Meanie,fruit:lime"
+    setenv XNETHACKOPTIONS "color,\!leg,name:Blue Meanie,fruit:lime"
 \end{verbatim}
 %.ED
 
@@ -4018,15 +4018,15 @@ you would enter the command
 to that shell), or the pair of commands
 %.SD i
 \begin{verbatim}
-    NETHACKOPTIONS="color,!leg,name:Blue Meanie,fruit:lime"
-    export NETHACKOPTIONS
+    XNETHACKOPTIONS="color,!leg,name:Blue Meanie,fruit:lime"
+    export XNETHACKOPTIONS
 \end{verbatim}
 %.ED
 
 \nd in {\it sh}, {\it ksh}, or {\it bash}.
 
 %.pg
-The NETHACKOPTIONS value is effectively the same as a single OPTIONS
+The XNETHACKOPTIONS value is effectively the same as a single OPTIONS
 directive in a configuration file.
 The ``OPTIONS='' prefix is implied and comma separated options are
 processed from right to left.
@@ -4035,7 +4035,7 @@ not allowed.
 
 %.pg
 Instead of a comma-separated list of options,
-NETHACKOPTIONS can be set to the full name of a configuration file you
+XNETHACKOPTIONS can be set to the full name of a configuration file you
 want to use.
 If that full name doesn't start with a slash, precede it with `{\tt @}'
 (at-sign) to let NetHack know that the rest is intended as a file name.
@@ -4949,7 +4949,7 @@ order by monster difficulty rating; ties broken by internal index;
 {\tt a} ---
 order alphabetically, first any unique monsters then all the others;
 \\
-%note: 'A' and 'C' can be set in RC file or NETHACKOPTIONS but not by 'O'
+%note: 'A' and 'C' can be set in RC file or XNETHACKOPTIONS but not by 'O'
 % {\tt A} ---
 % order alphabetically, unique monsters intermixed with other monsters;
 % \\
@@ -5110,7 +5110,7 @@ When used, it should be the first option set since its value might
 enable or disable the availability of various other options.
 For multiple lines in a configuration file, that would be the first
 non-comment line.
-For a comma-separated list in NETHACKOPTIONS or an OPTIONS line in a
+For a comma-separated list in XNETHACKOPTIONS or an OPTIONS line in a
 configuration file, that would be the {\it rightmost\/} option in the list.
 %.lp
 \item[\ib{wizweight}]
@@ -5279,7 +5279,7 @@ height needed.
 (If NetHack has been built using a version of {\tt Qt}
 older than {\tt qt-5.9},
 {\it statuslines\/}
-can only be set in the run-time configuration file or via NETHACKOPTIONS,
+can only be set in the run-time configuration file or via XNETHACKOPTIONS,
 not during play with the `{\tt O}' command.)
 %.lp
 \item[\ib{term\verb+_+cols} {\normalfont and}]

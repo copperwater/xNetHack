@@ -6,7 +6,7 @@
 
 #
 # Naming this file $(HOME)/.xnethackrc (for UNIX) or setting the environment
-# variable NETHACKOPTIONS to point to its full path name elsewhere tells
+# variable XNETHACKOPTIONS to point to its full path name elsewhere tells
 # NetHack to use X11 windowing and fonts (provided the executable was
 # compiled with that ability).
 #

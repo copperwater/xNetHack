@@ -181,7 +181,7 @@ PANICTRACE_GDB=1
 # Ordinary run-time options can be set here to override the builtin-in
 # default values.  Unlike all the SYSCF values above, individual users
 # can override the overridden options set here by choosing their own
-# option settings via NETHACKOPTIONS in their environment or via
+# option settings via XNETHACKOPTIONS in their environment or via
 # sys$login:nethack.ini run-time configuration file.
 #OPTIONS=!autopickup,fruit:tomato,symset:DECgraphics
 

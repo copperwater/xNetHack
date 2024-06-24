@@ -1,5 +1,5 @@
-.\"DO NOT REMOVE NH_DATESUB .TH NETHACK 6 "DATE(%-d %B %Y)" NETHACK
-.TH NETHACK 6 "21 February 2022" NETHACK
+.\"DO NOT REMOVE NH_DATESUB .TH XNETHACK 6 "DATE(%-d %B %Y)" XNETHACK
+.TH XNETHACK 6 "21 February 2022" XNETHACK
 .\"DO NOT REMOVE NH_DATESUB .ds Nd DATE(%Y)
 .ds Nd 2022
 .de NB
@@ -12,7 +12,7 @@
 .NR $NHDT-Revision: 1.27 $
 .ds Na Robert Patrick Rankin
 .SH NAME
-nethack \- Exploring The Mazes of Menace
+xnethack \- Exploring The Mazes of Menace
 .SH SYNOPSIS
 .na
 .hy 0
@@ -20,7 +20,7 @@ nethack \- Exploring The Mazes of Menace
 .\" have been arranged to fit within an 80-column page with nearly full
 .\" lines while avoiding splitting "[" and "-opt ]" or "[ -opt" and "]"
 .\" across line boundaries.  It would be better to do that with 'roff magic.
-.B nethack
+.B xnethack
 [
 .BR \-d | \-\-directory
 .I directory
@@ -33,9 +33,9 @@ nethack \- Exploring The Mazes of Menace
 ]
 .br 1
 [
-.BI \-\-nethackrc: RC-file
+.BI \-\-xnethackrc: RC-file
 |
-.B \-\-no\-nethackrc
+.B \-\-no\-xnethackrc
 ]
 [
 .B \-n
@@ -92,7 +92,7 @@ Also
 .BR \-W | \-Wiz
 ]
 .PP
-.B nethack
+.B xnethack
 [
 .BR \-d | \-\-directory
 .I directory
@@ -114,7 +114,7 @@ Also
 .I playernames
 ]
 .PP
-.B nethack
+.B xnethack
 [
 .B \-\-usage
 |
@@ -129,10 +129,10 @@ Also
 .ad
 .hy 14
 .\" Make sure path is not hyphenated below
-.hw nethackdir
+.hw xnethackdir
 .SH DESCRIPTION
 .PP
-.I NetHack
+.I xNetHack
 is a display oriented Dungeons & Dragons(tm) - like game.
 The standard tty display and command structure resemble rogue.
 .PP
@@ -159,7 +159,7 @@ section on Conduct if this game has gotten too easy for you.
 .PP
 When the game ends, whether by your dying, quitting, or escaping
 from the caves,
-.I NetHack
+.I xNetHack
 will give you (a fragment of) the list of top scorers.
 The scoring is based on many aspects of your behavior, but a rough estimate
 is obtained by taking the amount of gold you've found in the cave plus four
@@ -167,7 +167,7 @@ times your (real) experience.
 Precious stones may be worth a lot of gold when brought to the exit.
 There is a 10% penalty for getting yourself killed.
 .PP
-The environment variable NETHACKOPTIONS can be used to initialize many
+The environment variable XNETHACKOPTIONS can be used to initialize many
 run-time options.
 The ? command provides a description of these options and syntax.
 (The
@@ -198,7 +198,7 @@ while
 on VMS|OpenVMS it is xnethack.ini in your home directory.
 The default configuration file may be overridden via the
 .BI \-\-xnethackrc: "rc-file"
-command line option or by setting xNETHACKOPTIONS in your environment
+command line option or by setting XNETHACKOPTIONS in your environment
 to a string consisting of an @ character followed by the path and filename.
 .PP
 The
@@ -283,7 +283,7 @@ is already used for the
 role.
 .PP
 .B \-\@
-tells nethack to choose any omitted characteristics (profession/role, race,
+tells xnethack to choose any omitted characteristics (profession/role, race,
 gender, alignment) randomly without prompting.
 Otherwise, leaving out any of these characteristics will result in you
 being prompted during game startup for the information.
@@ -302,7 +302,7 @@ changing the character name to \(lqwizard\(rq, if the player is allowed.
 Otherwise it will switch to
 .BR \-X .
 Control of who is allowed to use debug mode is done via the
-.RI "\(lq" WIZARDS= "\(rq line in nethack's " sysconf " file."
+.RI "\(lq" WIZARDS= "\(rq line in xnethack's " sysconf " file."
 .PP
 The
 .BR \-d " or " \-\-directory
@@ -325,16 +325,16 @@ option can be used to specify which interface to use if the program
 has been built with support for more than one.
 Specifying a value on the command line overrides any value
 specified in the run-time configuration file.
-NetHack's #version command shows available interfaces.
+xNetHack's #version command shows available interfaces.
 .PP
 The
-.BI \-\-nethackrc: RC-file
+.BI \-\-xnethackrc: RC-file
 option will use
 .I RC-file
 instead of the default run-time configuration file
-.RI "(typically " \(ti/.nethackrc ")"
+.RI "(typically " \(ti/.xnethackrc ")"
 and the
-.B \-\-no\-nethackrc
+.B \-\-no\-xnethackrc
 option can be used to skip any run-time configuration file.
 .PP
 .\" extra blank line
@@ -368,19 +368,19 @@ Combining names with role or race or both will report entries which match
 any of those rather than just the ones which match all.
 .PP
 .B \-\-version
-can be used to cause NetHack to show the version information it
+can be used to cause xNetHack to show the version information it
 was compiled with, then exit.
 That will include the
 .I git
 commit hash if the information was available when the game was compiled.
 On some platforms, such as Windows and macOS, a variation
 .B \-\-version:paste
-can be used to cause NetHack to show the version information, then exit,
+can be used to cause xNetHack to show the version information, then exit,
 while also leaving a copy of the version information in the paste buffer
 or clipboard for potential insertion into things like bug reports.
 .PP
 .B \-\-showpaths
-can be used to cause NetHack to show where it is expecting
+can be used to cause xNetHack to show where it is expecting
 to find various files.
 Among other things it shows the path to and name for the player's
 run-time configuration file, a text file which can be editted to
@@ -389,7 +389,7 @@ customize aspects of how the game operates.
 .BR \-\-usage " or " \-\-help
 will display information similar to this manual page, then exit.
 Use
-.RB \(oq "nethack \-\-usage | more" \(cq
+.RB \(oq "xnethack \-\-usage | more" \(cq
 to read it a page at a time.
 .SH AUTHORS
 .PP
@@ -418,7 +418,7 @@ name is '.xnethackrc' in the user's home directory.
 
 .br
 All other files are in the playground directory,
-normally /usr/games/lib/nethackdir.
+normally /usr/games/lib/xnethackdir.
 If DLB was defined during the compile, the data files and special levels
 will be inside a larger file, normally nhdat, instead of being separate
 files.
@@ -427,11 +427,11 @@ files.
 .DT
 .\" continuation lines begin with <backslash><space><tab>
 .ta \w'cmdhelp, opthelp, wizhelp\ \ \ 'u
-nethack		The program itself.
+xnethack		The program itself.
 .br
-Guidebook\ |\ Guidebook.txt	NetHack's user manual.
+Guidebook\ |\ Guidebook.txt	xNetHack's user manual.
 .br
-data, oracles, rumors	Data files used by NetHack.
+data, oracles, rumors	Data files used by xNetHack.
 .br
 bogusmon 	Another data file.
 .br
@@ -502,12 +502,12 @@ A subsequent
 \ 	character might encounter this old level.
 .br
 .\"following line should contain <backslash><space><tab>
-\ 	
+\
 .br
 save/	A subdirectory containing saved games.
 .br
 .\"following line should contain <backslash><space><tab>
-\ 	
+\
 .br
 sysconf	System-wide options.  Required if
 .br
@@ -520,7 +520,7 @@ The location of 'sysconf' is specified at build time and can't be changed
 except by updating source file "config.h" and rebuilding the program.
 .br
 
-NetHack's Guidebook might not be present if whoever packaged or installed
+xNetHack's Guidebook might not be present if whoever packaged or installed
 the program distribution neglected to include it.
 .br
 
@@ -546,11 +546,11 @@ MAILREADER	Replacement for default reader
 .br
 NETHACKDIR or HACKDIR	Playground.
 .br
-NETHACKOPTIONS	String predefining several NetHack options.
+XNETHACKOPTIONS	String predefining several xNetHack options.
 .br
 
-If the same option is specified in both NETHACKOPTIONS and .xnethackrc,
-the value assigned in NETHACKOPTIONS takes precedence.
+If the same option is specified in both XNETHACKOPTIONS and .xnethackrc,
+the value assigned in XNETHACKOPTIONS takes precedence.
 .br
 
 SHOPTYPE and SPLEVTYPE can be used in debugging (wizard) mode.
@@ -564,6 +564,6 @@ recover(6)
 Probably infinite.
 .SH COPYRIGHT
 This file is Copyright (C) \*(Na, \*(Nd for version \*(Nb:\*(Nr.
-NetHack may be freely redistributed.  See license for details.
+xNetHack may be freely redistributed.  See license for details.
 .PP
 Dungeons & Dragons is a Trademark of Wizards of the Coast, Inc.

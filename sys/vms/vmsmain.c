@@ -374,7 +374,7 @@ static void
 whoami(void)
 {
     /*
-     * Who am i? Algorithm: 1. Use name as specified in NETHACKOPTIONS;
+     * Who am i? Algorithm: 1. Use name as specified in XNETHACKOPTIONS;
      *                      2. Use lowercase of $USER (if 1. fails).
      * The resulting name is overridden by command line options.
      * If everything fails, or if the resulting name is some generic
