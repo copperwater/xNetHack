@@ -707,7 +707,7 @@ build_package_root:
 	install -p src/nethack $(PKGROOT_BIN)
 	# XXX should this be called nethackrecover?
 	install -p util/recover $(PKGROOT_BIN)
-	install -p doc/nethack.6 $(PKGROOT_UG)/man/man6
+	install -p doc/xnethack.6 $(PKGROOT_UG)/man/man6
 	install -p doc/recover.6 $(PKGROOT_UG)/man/man6
 	install -p doc/Guidebook $(PKGROOT_UG)/doc
 	install -p dat/nhdat $(PKGROOT_UGLN)

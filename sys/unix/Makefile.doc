@@ -80,17 +80,17 @@ $(MAKEDEFS)	: ../util/makedefs.c ../include/config.h ../src/mdlib.c \
 		  ../util/mdgrep.h
 	( cd ../util ; make makedefs )
 
-GAME	= nethack
+GAME	= xnethack
 MANDIR	= /usr/man/man6
 MANEXT	= 6
 
 # manual installation for most BSD-style systems
-GAMEMANCREATE = cat nethack.6 | $(NHGREP) >
+GAMEMANCREATE = cat xnethack.6 | $(NHGREP) >
 RCVRMANCREATE = cat recover.6 | $(NHGREP) >
 DLBMANCREATE = cat dlb.6 | $(NHGREP) >
 MDMANCREATE = cat makedefs.6 | $(NHGREP) >
 # manual installation for most SYSV-style systems
-# GAMEMANCREATE = cat nethack.6 | $(NHGREP) | nroff -man - >
+# GAMEMANCREATE = cat xnethack.6 | $(NHGREP) | nroff -man - >
 # RCVRMANCREATE = cat recover.6 | $(NHGREP) | nroff -man - >
 # DLBMANCREATE = cat dlb.6 | $(NHGREP) | nroff -man - >
 # MDMANCREATE = cat makedefs.6 | $(NHGREP) | nroff -man - >
@@ -102,7 +102,7 @@ manpages:
 	-$(MDMANCREATE) $(MANDIR)/makedefs.$(MANEXT)
 
 # manual creation for distribution
-DISTRIB = Guidebook.txt nethack.txt recover.txt \
+DISTRIB = Guidebook.txt xnethack.txt recover.txt \
 	dlb.txt makedefs.txt
 
 distrib: $(DISTRIB)
@@ -115,8 +115,8 @@ Guidebook.dat	: Gbk-1pg-pfx.mn Gbk-1pg-sfx.mn $(GUIDEBOOK_MN) tmac.n tmac.nh \
 	$(ONEPAGECMD) > $@
 
 MAN2TXT = $(NHGREP) | nroff -man - | $(COLCMD)
-nethack.txt	: nethack.6
-	cat nethack.6 | $(MAN2TXT) > nethack.txt
+xnethack.txt	: xnethack.6
+	cat xnethack.6 | $(MAN2TXT) > xnethack.txt
 recover.txt	: recover.6
 	cat recover.6 | $(MAN2TXT) > recover.txt
 dlb.txt		: dlb.6
