@@ -1452,18 +1452,22 @@ current_holidays(void)
 
         /* There are 166 days in the partial year 622. Start with that. */
         int date_delta = today_epoch - days_since_epoch(6220719);
+        int cycyear;
 
         /* Now cut off as many 30-year periods as possible. */
         date_delta = date_delta % 10631;
         /* Then cut off year by year until we reach the current lunar year. */
-        for (i = 0; i < 30; ++i) {
-            int this_year_len = 354 + lunar_leap[i];
+        for (cycyear = 0; cycyear < 30; ++i) {
+            int this_year_len = 354 + lunar_leap[cycyear];
             if (date_delta < this_year_len) {
                 break;
+                /* cycyear stays in scope so we can tell below if it is
+                 * currently a leap year and need to adjust the last month
+                 * accordingly */
             }
             date_delta -= this_year_len;
         }
-        if (date_delta < 0 || i == 30) {
+        if (date_delta < 0 || cycyear == 30) {
             impossible("holiday: bad math finding lunar year");
             date_delta = 0;
         }
@@ -1472,6 +1476,8 @@ current_holidays(void)
         int islam_month = 0, islam_date = 0;
         for (i = 0; i < 12; ++i) {
             int month_len = (i % 2 == 1) ? 29 : 30;
+            if (i == 11)
+                month_len += lunar_leap[cycyear];
             if (date_delta < month_len) {
                 islam_month = i + 1;        /* convert back to human-readable */
                 islam_date = date_delta + 1;
@@ -1479,7 +1485,7 @@ current_holidays(void)
             }
             date_delta -= month_len;
         }
-        if (date_delta < 0 || i == 12) {
+        if (date_delta < 0 || i >= 12) {
             impossible("holiday: bad math finding lunar month/date");
         }
         if (islam_month == 9) {
