@@ -1341,7 +1341,6 @@ current_holidays(void)
     const int date = ymd % 100;            /* 1..31 */
     const int today_epoch = days_since_epoch(ymd);
     const int hour = getlt()->tm_hour;
-    int i;
     int retmask = 0;
 
     /* These cache the value of the last time this function did a full holiday
@@ -1453,11 +1452,12 @@ current_holidays(void)
         /* There are 166 days in the partial year 622. Start with that. */
         int date_delta = today_epoch - days_since_epoch(6220719);
         int cycyear;
+        int month_ctr;
 
         /* Now cut off as many 30-year periods as possible. */
         date_delta = date_delta % 10631;
         /* Then cut off year by year until we reach the current lunar year. */
-        for (cycyear = 0; cycyear < 30; ++i) {
+        for (cycyear = 0; cycyear < 30; ++cycyear) {
             int this_year_len = 354 + lunar_leap[cycyear];
             if (date_delta < this_year_len) {
                 break;
@@ -1474,18 +1474,18 @@ current_holidays(void)
         /* Then using whatever is remaining, find the month and date of the
          * current day. */
         int islam_month = 0, islam_date = 0;
-        for (i = 0; i < 12; ++i) {
-            int month_len = (i % 2 == 1) ? 29 : 30;
-            if (i == 11)
+        for (month_ctr = 0; month_ctr < 12; ++month_ctr) {
+            int month_len = (month_ctr % 2 == 1) ? 29 : 30;
+            if (month_ctr == 11)
                 month_len += lunar_leap[cycyear];
             if (date_delta < month_len) {
-                islam_month = i + 1;        /* convert back to human-readable */
+                islam_month = month_ctr + 1;        /* convert back to human-readable */
                 islam_date = date_delta + 1;
                 break;
             }
             date_delta -= month_len;
         }
-        if (date_delta < 0 || i >= 12) {
+        if (date_delta < 0 || month_ctr >= 12) {
             impossible("holiday: bad math finding lunar month/date");
         }
         if (islam_month == 9) {
@@ -1515,6 +1515,7 @@ current_holidays(void)
             20400908, 20410926, 20420915, 20431005, 20440922, /* 2040-2044 */
             20450912, 20461001, 20470921, 20480908, 20490927, /* 2045-2049 */
         };
+
         if (year > 2048) {
             pline("This game is still being played after 2048?  Cool.");
             impossible("no data for Hebrew calendar in year %d", year);
@@ -1564,15 +1565,16 @@ current_holidays(void)
             }
             int hebrew_month = 0, hebrew_date = 0;
             int date_delta = tmp_epoch_today - epoch_last_newyear;
-            for (i = 0; i < 13; ++i) {
-                if (date_delta < heb_month_len[i]) {
-                    hebrew_month = i + 1;
+            int month_ctr;
+            for (month_ctr = 0; month_ctr < 13; ++month_ctr) {
+                if (date_delta < heb_month_len[month_ctr]) {
+                    hebrew_month = month_ctr + 1;
                     hebrew_date = date_delta + 1;
                     break;
                 }
-                date_delta -= heb_month_len[i];
+                date_delta -= heb_month_len[month_ctr];
             }
-            if (date_delta < 0 || i == 13) {
+            if (date_delta < 0 || month_ctr == 13) {
                 impossible("holiday: bad math finding hebrew month/date");
             }
             if (hebrew_month == 1 && hebrew_date >= 1 && hebrew_date <= 2) {
