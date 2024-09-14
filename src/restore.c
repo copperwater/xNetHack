@@ -1160,6 +1160,12 @@ getlev(NHFILE *nhfp, int pid, xint8 lev)
                                        == sgn(mtmp->data->maligntyp))) ? 1
                                   : peace_minded(mtmp->data);
             set_malign(mtmp);
+            /* archfiends that newly exist in the game due to this bones file
+             * need to be counted */
+            if (is_archfiend(mtmp->data)) {
+                struct fiend_info *fnd = lookup_fiend(monsndx(mtmp->data));
+                fnd->num_in_dgn++;
+            }
         } else if (elapsed > 0L) {
             mon_catchup_elapsed_time(mtmp, elapsed);
         }

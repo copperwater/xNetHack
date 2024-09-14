@@ -2867,7 +2867,12 @@ m_detach(
     }
     if (is_archfiend(mtmp->data)) {
         struct fiend_info *fiend = lookup_fiend(monsndx(mtmp->data));
-        fiend->num_in_dgn--;
+        if (fiend->num_in_dgn == 0) {
+            impossible("already 0 of this archfiend?");
+        }
+        else {
+            fiend->num_in_dgn--;
+        }
     }
 
     if (mtmp->m_id == gs.stealmid)
