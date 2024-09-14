@@ -6,14 +6,14 @@
 
 -- Randomize a couple of demon lair placements. These strings are the special
 -- level identifiers.
-local lawdemon1 = 'baalz'
-local lawdemon2 = 'geryon'
+local lawdemon1 = { name='baalz', bonetag='B' }
+local lawdemon2 = { name='geryon', bonetag='G' }
 if percent(50) then
    lawdemon1, lawdemon2 = lawdemon2, lawdemon1
 end
 
-local chaosdemon1 = 'orcus'
-local chaosdemon2 = 'yeenoghu'
+local chaosdemon1 = { name='orcus', bonetag='O' }
+local chaosdemon2 = { name='yeenoghu', bonetag='Y' }
 if percent(50) then
    chaosdemon1, chaosdemon2 = chaosdemon2, chaosdemon1
 end
@@ -299,8 +299,8 @@ dungeon = {
       entry = 1,
       levels = {
          {
-            name = lawdemon1,
-            bonetag = "H",
+            name = lawdemon1.name,
+            bonetag = lawdemon1.bonetag,
             base = 2
          },
          {
@@ -318,8 +318,8 @@ dungeon = {
       alignment = "lawful",
       levels = {
          {
-            name = lawdemon2,
-            bonetag = "P",
+            name = lawdemon2.name,
+            bonetag = lawdemon2.bonetag,
             base = 1
          }
       }
@@ -337,8 +337,8 @@ dungeon = {
             base = 1
          },
          {
-            name = chaosdemon1,
-            bonetag = "P",
+            name = chaosdemon1.name,
+            bonetag = chaosdemon1.bonetag,
             base = 2
          }
       }
@@ -373,8 +373,8 @@ dungeon = {
       },
       levels = {
          {
-            name = chaosdemon2,
-            bonetag = "Q",
+            name = chaosdemon2.name,
+            bonetag = chaosdemon2.bonetag,
             base = 3
          }
       }
