@@ -92,10 +92,11 @@ B. Specify the prefix for variable substitution:
 	tree you cloned from git.  I use ~/nethack/GITADDDIR; for that base,
 	create the needed directories and edit the file:
 		~/nethack/GITADDDIR/DOTGIT/PRE
-	Put this in it (if your OS is not Unix-like you may need to change
-	the first line):
+	Put this in it, adapting it to your variant (if your OS is not Unix-like
+	you may need to change the first line):
 		#!/bin/sh
 		git config nethack.substprefix MINE
+		git config nethack.projectname MineHack
 	Now make it executable:
 		chmod +x ~/nethack/GITADDDIR/DOTGIT/PRE
 C. Configure the repository:
@@ -169,8 +170,8 @@ A. Introduction
    The PREFIX is the value in the git config variable nethack.substprefix.
    VARNAME is one of:
 	Date
-	Branch (experimental)
-	Revision (experimental)
+	Branch
+	Revision
    other names will give a warning.
 
 B. Enabling variable expansion

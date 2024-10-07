@@ -1,4 +1,4 @@
-.\" $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.574 $ $NHDT-Date: 1711040379 2024/03/21 16:59:39 $
+.\" $NHDT-Branch: keni-gitset $:$NHDT-Revision: 1.593 $ $NHDT-Date: 1730681007 2024/11/04 00:43:27 $
 .\"
 .\" This is an excerpt from the 'roff' man page from the 'groff' package.
 .\"+--
@@ -46,8 +46,8 @@
 .ds vr NetHack 3.7.0
 .ds f0 \*(vr
 .ds f1 \" empty
-.\"DO NOT REMOVE NH_DATESUB .ds f2 DATE(%B %-d, %Y)
-.ds f2 September 13, 2024
+.\"DO NOT REMOVE NH_DATESUB .ds f2 Date(%B %-d, %Y)
+.ds f2 November 4, 2024
 .
 .\" A note on some special characters:
 .\" \(lq = left double quote
@@ -6671,3 +6671,4 @@ Izchak Miller	Mike Stephenson
 .sm "Brand and product names are trademarks or registered trademarks \
 of their respective holders."
 .\"EOF
+changes

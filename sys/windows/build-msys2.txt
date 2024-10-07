@@ -11,6 +11,8 @@ Prerequisite Requirements:
           pacman -S make
           pacman -S vim (or your editor of choice)
           pacman -S man (otherwise "git help foo" will not work)
+          pacman -S perl-doc (otherwise "git nhhelp foo" will not work,
+                              so only needed if you use nhgitset.pl)
   o Lua
   o pdcursesmod (Only required if curses interface support is desired)
      Instructions for obtaining these are later in this file.
