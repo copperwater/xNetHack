@@ -629,11 +629,10 @@ typedef unsigned char uchar;
  * glyph" code, then the escape codes for color and the glyph character
  * itself, and then the "end glyph" code.
  *
- * To compile NetHack with this, add tile.c to WINSRC and tile.o to WINOBJ
- * in the hints file or Makefile.
- * Set boolean option vt_tiledata and/or vt_sounddata in your config file
- * to turn either of these on.
- * Note that gnome-terminal at least doesn't work with this. */
+ * To compile NetHack with this, add tile.c to WINSRC and tile.o to WINOBJ in
+ * the hints file or Makefile.  Set boolean option vt_tiledata and/or
+ * vt_sounddata in your config file to turn either of these on.  Note that some
+ * terminals (e.g. old versions of gnome-terminal) don't work with this. */
 /* #define TTY_TILES_ESCCODES */
 /* #define TTY_SOUND_ESCCODES */
 
