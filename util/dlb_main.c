@@ -134,10 +134,8 @@ Write(int out, char *buf, long len)
 
 /* open_library(dlb.c) needs this (which normally comes from src/files.c) */
 FILE *
-fopen_datafile(const char *filename, const char *mode, int prefix)
+fopen_datafile(const char *filename, const char *mode, int prefix UNUSED)
 {
-    prefix = !prefix; /* not needed, silence compiler */
-
     return fopen(filename, mode);
 }
 
