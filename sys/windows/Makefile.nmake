@@ -2361,6 +2361,8 @@ spotless: clean
 	if exist oguidirx64.tag         del oguidirx64.tag
 	if exist oluadirx64.tag         del oluadirx64.tag
 	if exist opdcdirx64.tag         del opdcdirx64.tag
+	if exist opdccdirx64.tag        del opdccdirx64.tag
+	if exist opdcgdirx64.tag        del opdcgdirx64.tag
 	if exist libdir.tag             del libdir.tag
 	if exist gamedir.tag            del gamedir.tag
 	if exist $(MSWIN)\mnsel.bmp     del $(MSWIN)\mnsel.bmp
