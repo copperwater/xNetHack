@@ -2305,6 +2305,62 @@ assess_dmg(struct monst *mtmp, int tmp)
     return M_ATTK_HIT;
 }
 
+#if 0
+/* returns True if monster has a range attack in its repertoire
+   that it will actually utilize. Caller provides the assessment
+   callback (optional). Callback returns 0 if the attack is
+   active */
+
+boolean ranged_attk_assessed(
+struct monst *mtmp,
+boolean (*assessfunc)(struct monst *, int))
+{
+    int i;
+    struct permonst *ptr = mtmp->data;
+
+    for (i = 0; i < NATTK; i++)
+        if (DISTANCE_ATTK_TYPE(ptr->mattk[i].aatyp)) {
+            if (!assessfunc || (*assessfunc)(mtmp, i) == 0)
+                return TRUE;
+        }
+    return FALSE;
+}
+#endif
+
+/* can be used as ranged_attk_assessed() callback.
+   Returns TRUE if monster is avoiding use of this attack */
+boolean
+mon_avoiding_this_attack(struct monst *mtmp, int attkidx)
+{
+    struct permonst *ptr = mtmp->data;
+    int typ = -1;
+
+    if (attkidx >= 0
+        && (typ = get_atkdam_type(ptr->mattk[attkidx].adtyp)) >= 0
+        && m_seenres(mtmp, cvt_adtyp_to_mseenres(typ)))
+        return TRUE;
+    return FALSE;
+}
+
+/*
+ * This would be equivalent to:
+ *     ranged_attk_assessed(mtmp, mon_avoiding_this_attack)
+ * but without the added assessment function call overhead.
+ */
+boolean ranged_attk_available(struct monst *mtmp)
+{
+    int i, typ = -1;
+    struct permonst *ptr = mtmp->data;
+
+    for (i = 0; i < NATTK; i++) {
+        if (DISTANCE_ATTK_TYPE(ptr->mattk[i].aatyp)
+            && (typ = get_atkdam_type(ptr->mattk[i].adtyp)) >= 0
+                && m_seenres(mtmp, cvt_adtyp_to_mseenres(typ)) == 0)
+                return TRUE;
+    }
+    return FALSE;
+}
+
 /* FIXME:
  *  sequencing issue:  a monster's attack might cause poly'd hero
  *  to revert to normal form.  The messages for passive counterattack
