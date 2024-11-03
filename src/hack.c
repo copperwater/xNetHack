@@ -13,6 +13,7 @@ staticfn void dopush(coordxy, coordxy, coordxy, coordxy, struct obj *,
                      boolean);
 staticfn void cannot_push_msg(struct obj *, coordxy, coordxy);
 staticfn int cannot_push(struct obj *, coordxy, coordxy);
+staticfn void rock_disappear_msg(struct obj *);
 staticfn void moverock_done(coordxy, coordxy);
 staticfn int moverock(void);
 staticfn int moverock_core(coordxy, coordxy);
@@ -309,6 +310,18 @@ cannot_push(struct obj *otmp, coordxy sx, coordxy sy)
 }
 
 staticfn void
+rock_disappear_msg(struct obj *otmp)
+{
+    if (u.usteed)
+        pline("%s pushes %s and suddenly it disappears!",
+                YMonnam(u.usteed), the(xname(otmp)));
+    else
+        You("push %s and suddenly it disappears!",
+            the(xname(otmp)));
+
+}
+
+staticfn void
 moverock_done(coordxy sx, coordxy sy)
 {
     struct obj *otmp;
@@ -560,12 +573,7 @@ moverock_core(coordxy sx, coordxy sy)
                     }
                     /*FALLTHRU*/
                 case TELEP_TRAP:
-                    if (u.usteed)
-                        pline("%s pushes %s and suddenly it disappears!",
-                              YMonnam(u.usteed), the(xname(otmp)));
-                    else
-                        You("push %s and suddenly it disappears!",
-                            the(xname(otmp)));
+                    rock_disappear_msg(otmp);
                     otmp->next_boulder = 0; /* reset before moving it */
                     if (ttmp->ttyp == TELEP_TRAP) {
                         (void) rloco(otmp);
