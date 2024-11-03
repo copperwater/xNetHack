@@ -1437,7 +1437,8 @@ bound_digging(void)
 
     for (x = 0; x < COLNO; x++)
         for (y = 0; y < ROWNO; y++)
-            if (y <= ymin || y >= ymax || x <= xmin || x >= xmax)
+            if (IS_STWALL(levl[x][y].typ)
+                && (y <= ymin || y >= ymax || x <= xmin || x >= xmax))
                 levl[x][y].wall_info |= W_NONDIGGABLE;
 }
 
