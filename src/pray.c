@@ -27,6 +27,7 @@ staticfn void offer_fake_amulet(struct obj *, boolean, aligntyp);
 staticfn void offer_different_alignment_altar(struct obj *, aligntyp);
 staticfn void sacrifice_your_race(struct obj *, boolean, aligntyp);
 staticfn int bestow_artifact(void);
+staticfn int sacrifice_value(struct obj *);
 staticfn boolean pray_revive(void);
 staticfn boolean water_prayer(boolean);
 staticfn boolean blocked_boulder(int, int);
@@ -1805,6 +1806,20 @@ bestow_artifact(void)
     return FALSE;
 }
 
+staticfn int
+sacrifice_value(struct obj *otmp)
+{
+    int value = 0;
+
+    if (otmp->corpsenm == PM_ACID_BLOB
+        || (svm.moves <= peek_at_iced_corpse_age(otmp) + 50)) {
+        value = mons[otmp->corpsenm].difficulty + 1;
+        if (otmp->oeaten)
+            value = eaten_stat(value, otmp);
+    }
+    return value;
+}
+
 /* the #offer command - sacrifice something to the gods */
 int
 dosacrifice(void)
@@ -1871,12 +1886,7 @@ dosacrifice(void)
         if (rider_corpse_revival(otmp, FALSE))
             return ECMD_TIME;
 
-        if (otmp->corpsenm == PM_ACID_BLOB
-            || (svm.moves <= peek_at_iced_corpse_age(otmp) + 50)) {
-            value = mons[otmp->corpsenm].difficulty + 1;
-            if (otmp->oeaten)
-                value = eaten_stat(value, otmp);
-        }
+        value = sacrifice_value(otmp);
 
         /* same race or former pet results apply even if the corpse is
            too old (value==0) */
