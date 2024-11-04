@@ -1827,7 +1827,9 @@ dosacrifice(void)
     struct obj *otmp;
     boolean highaltar;
     aligntyp altaralign = a_align(u.ux, u.uy);
-    int value = 0;
+    int value;
+    struct permonst *ptr;
+    struct monst *mtmp;
 
     if (!on_altar() || u.uswallow) {
         You("are not %s an altar.",
@@ -1858,6 +1860,11 @@ dosacrifice(void)
         return ECMD_TIME;
     } /* fake Amulet */
 
+    if (otmp->otyp != CORPSE) {
+        pline1(nothing_happens);
+        return ECMD_TIME;
+    }
+
     /*
      * Was based on nutritional value and aging behavior (< 50 moves).
      * Sacrificing a food ration got you max luck instantly, making the
@@ -1869,88 +1876,83 @@ dosacrifice(void)
      */
 #define MAXVALUE 24 /* Highest corpse value (besides Wiz) */
 
-    if (otmp->otyp == CORPSE) {
-        struct permonst *ptr = &mons[otmp->corpsenm];
-        struct monst *mtmp;
+    ptr = &mons[otmp->corpsenm];
 
-        /* KMH, conduct */
-        if (!u.uconduct.gnostic++)
-            livelog_printf(LL_CONDUCT, "rejected atheism"
-                                       " by offering %s on an altar of %s",
-                           corpse_xname(otmp, (const char *) 0, CXN_ARTICLE),
-                           a_gname());
+    /* KMH, conduct */
+    if (!u.uconduct.gnostic++)
+        livelog_printf(LL_CONDUCT, "rejected atheism"
+                                   " by offering %s on an altar of %s",
+                       corpse_xname(otmp, (const char *) 0, CXN_ARTICLE),
+                       a_gname());
 
-        /* you're handling this corpse, even if it was killed upon the altar
-         */
-        feel_cockatrice(otmp, TRUE);
-        if (rider_corpse_revival(otmp, FALSE))
-            return ECMD_TIME;
+    /* you're handling this corpse, even if it was killed upon the altar
+     */
+    feel_cockatrice(otmp, TRUE);
+    if (rider_corpse_revival(otmp, FALSE))
+        return ECMD_TIME;
 
-        value = sacrifice_value(otmp);
+    value = sacrifice_value(otmp);
 
-        /* same race or former pet results apply even if the corpse is
-           too old (value==0) */
-        if (your_race(ptr)) {
-            sacrifice_your_race(otmp, highaltar, altaralign);
-            return ECMD_TIME;
-        } else if (has_omonst(otmp)
-                   && (mtmp = get_mtraits(otmp, FALSE)) != 0
-                   && mtmp->mtame) {
-                /* mtmp is a temporary pointer to a tame monster's attributes,
-                 * not a real monster */
-            pline("So this is how you repay loyalty?");
-            adjalign(-3);
-            value = -1;
-            HAggravate_monster |= FROMOUTSIDE;
-        } else if (!value) {
-            ; /* too old; don't give undead or unicorn bonus or penalty */
-        } else if (is_undead(ptr)) { /* Not demons--no demon corpses */
-            /* most undead that leave a corpse yield 'human' (or other race)
-               corpse so won't get here; the exception is wraith; give the
-               bonus for wraith to chaotics too because they are sacrificing
-               something valuable (unless hero refuses to eat such things) */
-            if (u.ualign.type != A_CHAOTIC
-                /* reaching this side of the 'or' means hero is chaotic */
-                || (ptr == &mons[PM_WRAITH] && u.uconduct.unvegetarian))
-                value += 1;
-        } else if (is_unicorn(ptr)) {
-            int unicalign = sgn(ptr->maligntyp);
+    /* same race or former pet results apply even if the corpse is
+       too old (value==0) */
+    if (your_race(ptr)) {
+        sacrifice_your_race(otmp, highaltar, altaralign);
+        return ECMD_TIME;
+    } else if (has_omonst(otmp)
+               && (mtmp = get_mtraits(otmp, FALSE)) != 0
+               && mtmp->mtame) {
+            /* mtmp is a temporary pointer to a tame monster's attributes,
+             * not a real monster */
+        pline("So this is how you repay loyalty?");
+        adjalign(-3);
+        value = -1;
+        HAggravate_monster |= FROMOUTSIDE;
+    } else if (!value) {
+        ; /* too old; don't give undead or unicorn bonus or penalty */
+    } else if (is_undead(ptr)) { /* Not demons--no demon corpses */
+        /* most undead that leave a corpse yield 'human' (or other race)
+           corpse so won't get here; the exception is wraith; give the
+           bonus for wraith to chaotics too because they are sacrificing
+           something valuable (unless hero refuses to eat such things) */
+        if (u.ualign.type != A_CHAOTIC
+            /* reaching this side of the 'or' means hero is chaotic */
+            || (ptr == &mons[PM_WRAITH] && u.uconduct.unvegetarian))
+            value += 1;
+    } else if (is_unicorn(ptr)) {
+        int unicalign = sgn(ptr->maligntyp);
 
-            if (unicalign == altaralign) {
-                /* When same as altar, always a very bad action.
-                 */
-                pline("Such an action is an insult to %s!",
-                      (unicalign == A_CHAOTIC) ? "chaos"
-                         : unicalign ? "law" : "balance");
-                (void) adjattrib(A_WIS, -1, TRUE);
-                value = -5;
-            } else if (u.ualign.type == altaralign) {
-                /* When different from altar, and altar is same as yours,
-                 * it's a very good action.
-                 */
-                if (u.ualign.record < ALIGNLIM)
-                    You_feel("appropriately %s.", align_str(u.ualign.type));
-                else
-                    You_feel("you are thoroughly on the right path.");
-                adjalign(5);
-                value += 3;
-            } else if (unicalign == u.ualign.type) {
-                /* When sacrificing unicorn of your alignment to altar not of
-                 * your alignment, your god gets angry and it's a conversion.
-                 */
-                u.ualign.record = -1;
-                value = 1;
-            } else {
-                /* Otherwise, unicorn's alignment is different from yours
-                 * and different from the altar's.  It's an ordinary (well,
-                 * with a bonus) sacrifice on a cross-aligned altar.
-                 */
-                value += 3;
-            }
+        if (unicalign == altaralign) {
+            /* When same as altar, always a very bad action.
+             */
+            pline("Such an action is an insult to %s!",
+                  (unicalign == A_CHAOTIC) ? "chaos"
+                     : unicalign ? "law" : "balance");
+            (void) adjattrib(A_WIS, -1, TRUE);
+            value = -5;
+        } else if (u.ualign.type == altaralign) {
+            /* When different from altar, and altar is same as yours,
+             * it's a very good action.
+             */
+            if (u.ualign.record < ALIGNLIM)
+                You_feel("appropriately %s.", align_str(u.ualign.type));
+            else
+                You_feel("you are thoroughly on the right path.");
+            adjalign(5);
+            value += 3;
+        } else if (unicalign == u.ualign.type) {
+            /* When sacrificing unicorn of your alignment to altar not of
+             * your alignment, your god gets angry and it's a conversion.
+             */
+            u.ualign.record = -1;
+            value = 1;
+        } else {
+            /* Otherwise, unicorn's alignment is different from yours
+             * and different from the altar's.  It's an ordinary (well,
+             * with a bonus) sacrifice on a cross-aligned altar.
+             */
+            value += 3;
         }
-    } else { /* !corpse */
-        ; /* value==0 which is what we want for non-corpse */
-    } /* ?corpse */
+    }
 
     if (value == 0) {
         pline1(nothing_happens);
