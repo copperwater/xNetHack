@@ -1908,7 +1908,9 @@ dosacrifice(void)
         value = -1;
         HAggravate_monster |= FROMOUTSIDE;
     } else if (!value) {
-        ; /* too old; don't give undead or unicorn bonus or penalty */
+        /* too old; don't give undead or unicorn bonus or penalty */
+        pline1(nothing_happens);
+        return ECMD_TIME;
     } else if (is_undead(ptr)) { /* Not demons--no demon corpses */
         /* most undead that leave a corpse yield 'human' (or other race)
            corpse so won't get here; the exception is wraith; give the
@@ -1952,11 +1954,6 @@ dosacrifice(void)
              */
             value += 3;
         }
-    }
-
-    if (value == 0) {
-        pline1(nothing_happens);
-        return ECMD_TIME;
     }
 
     if (altaralign != u.ualign.type && highaltar) {
