@@ -23,6 +23,7 @@ staticfn void gods_upset(aligntyp);
 staticfn void consume_offering(struct obj *);
 staticfn void offer_too_soon(aligntyp);
 staticfn void offer_real_amulet(struct obj *, aligntyp); /* NORETURN */
+staticfn void offer_negative_valued(boolean, aligntyp);
 staticfn void offer_fake_amulet(struct obj *, boolean, aligntyp);
 staticfn void offer_different_alignment_altar(struct obj *, aligntyp);
 staticfn void sacrifice_your_race(struct obj *, boolean, aligntyp);
@@ -1573,6 +1574,16 @@ offer_real_amulet(struct obj *otmp, aligntyp altaralign)
 }
 
 staticfn void
+offer_negative_valued(boolean highaltar, aligntyp altaralign)
+{
+    if (altaralign != u.ualign.type && highaltar) {
+        desecrate_altar(highaltar, altaralign);
+    } else {
+        gods_upset(altaralign);
+    }
+}
+
+staticfn void
 offer_fake_amulet(
     struct obj *otmp,
     boolean highaltar,
@@ -1596,12 +1607,7 @@ offer_fake_amulet(
         change_luck(-3);
         adjalign(-1);
         u.ugangr += 3;
-        /* value = -3; */
-        if (altaralign != u.ualign.type && highaltar) {
-            desecrate_altar(highaltar, altaralign);
-        } else { /* value < 0 */
-            gods_upset(altaralign);
-        }
+        offer_negative_valued(highaltar, altaralign);
     }
 }
 
@@ -1905,8 +1911,9 @@ dosacrifice(void)
              * not a real monster */
         pline("So this is how you repay loyalty?");
         adjalign(-3);
-        value = -1;
         HAggravate_monster |= FROMOUTSIDE;
+        offer_negative_valued(highaltar, altaralign);
+        return ECMD_TIME;
     } else if (!value) {
         /* too old; don't give undead or unicorn bonus or penalty */
         pline1(nothing_happens);
@@ -1930,7 +1937,8 @@ dosacrifice(void)
                   (unicalign == A_CHAOTIC) ? "chaos"
                      : unicalign ? "law" : "balance");
             (void) adjattrib(A_WIS, -1, TRUE);
-            value = -5;
+            offer_negative_valued(highaltar, altaralign);
+            return ECMD_TIME;
         } else if (u.ualign.type == altaralign) {
             /* When different from altar, and altar is same as yours,
              * it's a very good action.
@@ -1958,8 +1966,6 @@ dosacrifice(void)
 
     if (altaralign != u.ualign.type && highaltar) {
         desecrate_altar(highaltar, altaralign);
-    } else if (value < 0) { /* don't think the gods are gonna like this... */
-        gods_upset(altaralign);
     } else if (u.ualign.type != altaralign) {
         /* Sacrificing at an altar of a different alignment */
         offer_different_alignment_altar(otmp, altaralign);
