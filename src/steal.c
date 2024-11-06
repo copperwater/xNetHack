@@ -165,12 +165,13 @@ staticfn int
 stealarm(void)
 {
     struct monst *mtmp;
-    struct obj *otmp;
+    struct obj *otmp, *nextobj;
 
     if (!gs.stealoid || !gs.stealmid)
         goto botm;
 
-    for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
+    for (otmp = gi.invent; otmp; otmp = nextobj) {
+        nextobj = otmp->nobj;
         if (otmp->o_id == gs.stealoid) {
             for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
                 if (mtmp->m_id == gs.stealmid) {

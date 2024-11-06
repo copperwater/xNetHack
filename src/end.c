@@ -1236,14 +1236,15 @@ really_done(int how)
         display_nhwindow(WIN_MESSAGE, FALSE);
 
     if (how != PANICKED) {
-        struct obj *obj;
+        struct obj *obj, *nextobj;
 
         /*
          * This is needed for both inventory disclosure and dumplog.
          * Both are optional, so do it once here instead of duplicating
          * it in both of those places.
          */
-        for (obj = gi.invent; obj; obj = obj->nobj) {
+        for (obj = gi.invent; obj; obj = nextobj) {
+            nextobj = obj->nobj;
             discover_object(obj->otyp, TRUE, FALSE);
             obj->known = obj->bknown = obj->dknown = obj->rknown = 1;
             set_cknown_lknown(obj); /* set flags when applicable */

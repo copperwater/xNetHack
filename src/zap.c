@@ -2626,15 +2626,17 @@ dozap(void)
 staticfn void
 boxlock_invent(struct obj *obj)
 {
-    struct obj *otmp;
+    struct obj *otmp, *nextobj;
     boolean boxing = FALSE;
 
     /* (un)lock carried boxes */
-    for (otmp = gi.invent; otmp; otmp = otmp->nobj)
+    for (otmp = gi.invent; otmp; otmp = nextobj) {
+        nextobj = otmp->nobj;
         if (Is_box(otmp)) {
             (void) boxlock(otmp, obj);
             boxing = TRUE;
         }
+    }
     if (boxing)
         update_inventory(); /* in case any box->lknown has changed */
 }

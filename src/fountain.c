@@ -315,18 +315,20 @@ drinkfountain(void)
             dowaterdemon();
             break;
         case 24: { /* Maybe curse some items */
-            struct obj *obj;
+            struct obj *obj, *nextobj;
             int buc_changed = 0;
 
             pline("This water's no good!");
             morehungry(rn1(20, 11));
             exercise(A_CON, FALSE);
             /* this is more severe than rndcurse() */
-            for (obj = gi.invent; obj; obj = obj->nobj)
+            for (obj = gi.invent; obj; obj = nextobj) {
+                nextobj = obj->nobj;
                 if (obj->oclass != COIN_CLASS && !obj->cursed && !rn2(5)) {
                     curse(obj);
                     ++buc_changed;
                 }
+            }
             if (buc_changed)
                 update_inventory();
             break;
@@ -498,13 +500,14 @@ dipfountain(struct obj *obj)
         pline("An urge to take a bath overwhelms you.");
         {
             long money = money_cnt(gi.invent);
-            struct obj *otmp;
+            struct obj *otmp, *nextobj;
 
             if (money > 10) {
                 /* Amount to lose.  Might get rounded up as fountains don't
                  * pay change... */
                 money = somegold(money) / 10;
-                for (otmp = gi.invent; otmp && money > 0; otmp = otmp->nobj)
+                for (otmp = gi.invent; otmp && money > 0; otmp = nextobj) {
+                    nextobj = otmp->nobj;
                     if (otmp->oclass == COIN_CLASS) {
                         int denomination = objects[otmp->otyp].oc_cost;
                         long coin_loss =
@@ -515,6 +518,7 @@ dipfountain(struct obj *obj)
                         if (!otmp->quan)
                             delobj(otmp);
                     }
+                }
                 You("lost some of your gold in the fountain!");
                 CLEAR_FOUNTAIN_LOOTED(u.ux, u.uy);
                 exercise(A_WIS, FALSE);

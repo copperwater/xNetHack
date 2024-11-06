@@ -2382,7 +2382,7 @@ litroom(
     boolean on,      /* True: make nearby area lit; False: cursed scroll */
     struct obj *obj) /* scroll, spellbook (for spell), or wand of light */
 {
-    struct obj *otmp;
+    struct obj *otmp, *nextobj;
     boolean blessed_effect = (obj && obj->oclass == SCROLL_CLASS
                               && obj->blessed);
     boolean no_op = (u.uswallow || Underwater || Is_waterlevel(&u.uz));
@@ -2400,7 +2400,8 @@ litroom(
          *  Shouldn't this affect all lit objects in the area of effect
          *  rather than just those carried by the hero?
          */
-        for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
+        for (otmp = gi.invent; otmp; otmp = nextobj) {
+            nextobj = otmp->nobj;
             if (otmp->lamplit) {
                 if (!artifact_light(otmp))
                     (void) snuff_lit(otmp);
@@ -2431,7 +2432,8 @@ litroom(
     } else { /* on */
         if (blessed_effect) {
             /* might bless artifact lights; no effect on ordinary lights */
-            for (otmp = gi.invent; otmp; otmp = otmp->nobj) {
+            for (otmp = gi.invent; otmp; otmp = nextobj) {
+                nextobj = otmp->nobj;
                 if (otmp->lamplit && artifact_light(otmp))
                     /* wielded Sunsword or worn gold dragon scales/mail;
                        maybe raise its BUC state if not already blessed */

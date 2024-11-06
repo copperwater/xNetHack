@@ -3020,7 +3020,7 @@ menu_remarm(int retry)
 staticfn void
 wornarm_destroyed(struct obj *wornarm)
 {
-    struct obj *invobj;
+    struct obj *invobj, *nextobj;
     unsigned wornoid = wornarm->o_id;
 
     /* cancel_don() resets 'afternmv' when appropriate but doesn't reset
@@ -3049,11 +3049,13 @@ wornarm_destroyed(struct obj *wornarm)
        scan invent instead; if already freed it shouldn't be possible to
        have re-used the stale memory for a new item yet but verify o_id
        just in case */
-    for (invobj = gi.invent; invobj; invobj = invobj->nobj)
+    for (invobj = gi.invent; invobj; invobj = nextobj) {
+        nextobj = invobj->nobj;
         if (invobj == wornarm && invobj->o_id == wornoid) {
             useup(wornarm);
             break;
         }
+    }
 }
 
 /*
