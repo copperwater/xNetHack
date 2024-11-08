@@ -29,6 +29,7 @@ staticfn void offer_different_alignment_altar(struct obj *, aligntyp);
 staticfn void sacrifice_your_race(struct obj *, boolean, aligntyp);
 staticfn int bestow_artifact(void);
 staticfn int sacrifice_value(struct obj *);
+staticfn int offer_corpse(struct obj *, boolean, aligntyp);
 staticfn boolean pray_revive(void);
 staticfn boolean water_prayer(boolean);
 staticfn boolean blocked_boulder(int, int);
@@ -1834,9 +1835,6 @@ dosacrifice(void)
     struct obj *otmp;
     boolean highaltar;
     aligntyp altaralign = a_align(u.ux, u.uy);
-    int value;
-    struct permonst *ptr;
-    struct monst *mtmp;
 
     if (!on_altar() || u.uswallow) {
         You("are not %s an altar.",
@@ -1867,10 +1865,20 @@ dosacrifice(void)
         return ECMD_TIME;
     } /* fake Amulet */
 
-    if (otmp->otyp != CORPSE) {
-        pline1(nothing_happens);
-        return ECMD_TIME;
+    if (otmp->otyp == CORPSE) {
+        return offer_corpse(otmp, highaltar, altaralign);
     }
+
+    pline1(nothing_happens);
+    return ECMD_TIME;
+}
+
+staticfn int
+offer_corpse(struct obj *otmp, boolean highaltar, aligntyp altaralign)
+{
+    int value;
+    struct permonst *ptr;
+    struct monst *mtmp;
 
     /*
      * Was based on nutritional value and aging behavior (< 50 moves).
