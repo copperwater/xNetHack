@@ -135,20 +135,6 @@ enum levl_typ_types {
      : levl[x][y].typ)
 
 /*
- *      Note:  secret doors (SDOOR) want to use both rm.doormask and
- *      rm.wall_info but those both overload rm.flags.  SDOOR only
- *      has 2 states (closed or locked).  However, it can't specify
- *      D_CLOSED due to that conflicting with WM_MASK (below).  When
- *      a secret door is revealed, the door gets set to D_CLOSED iff
- *      it isn't set to D_LOCKED (see cvt_sdoor_to_door() in detect.c).
- *
- *      D_LOCKED conflicts with W_NONDIGGABLE but the latter is not
- *      expected to be used on door locations.  D_TRAPPED conflicts
- *      with W_NONPASSWALL but secret doors aren't trapped.
- *      D_SECRET would not fit within struct rm's 5-bit 'flags' field.
- */
-
-/*
  * The structure describing a coordinate position.
  * Before adding fields, remember that this will significantly affect
  * the size of temporary files and save files.
@@ -193,6 +179,18 @@ struct rm {
  *
  * If these get changed or expanded, make sure wizard-mode wishing becomes
  * aware of the new usage
+ *
+ *      Note:  secret doors (SDOOR) want to use both rm.doormask and
+ *      rm.wall_info but those both overload rm.flags.  SDOOR only
+ *      has 2 states (closed or locked).  However, it can't specify
+ *      D_CLOSED due to that conflicting with WM_MASK (below).  When
+ *      a secret door is revealed, the door gets set to D_CLOSED iff
+ *      it isn't set to D_LOCKED (see cvt_sdoor_to_door() in detect.c).
+ *
+ *      D_LOCKED conflicts with W_NONDIGGABLE but the latter is not
+ *      expected to be used on door locations.  D_TRAPPED conflicts
+ *      with W_NONPASSWALL but secret doors aren't trapped.
+ *      D_SECRET would not fit within struct rm's 5-bit 'flags' field.
  */
 
 #define doormask   flags /* door, sdoor (note conflict with wall_info) */
